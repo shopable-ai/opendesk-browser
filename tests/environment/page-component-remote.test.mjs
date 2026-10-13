@@ -18,7 +18,7 @@ function fixture(){
   const nodes=new Map(['','-status','-prepare','-cancel','-sources','-details','-detail-body','-lock'].map(suffix=>['page-component-remote'+suffix,new Node()]));
   const f={source:{componentSource:`import value from '${root}';export default function App(){return value}`,framework:'react'},
     calls:[],permissions:[],locked:false,downloadGate:null};
-  const entries=rows.map(pin),manifestDigest='manifest-d3',lockId='fixed-lock';
+  const entries=rows.map(pin),manifestDigest='manifest-d3',lockId='component-lock-'+'f'.repeat(64);
   const client={request:async(method,payload)=>{
     f.calls.push({method,payload:structuredClone(payload)});
     if(method==='inspectPageComponentDependencies')return {manifestDigest,locks:f.locked?[{lockId,entries}]:[]};
@@ -76,4 +76,34 @@ test('Cancel and source changes discard late downloads before any transitive acq
     assert.equal(f.calls.some(row=>row.method==='approvePageComponentDependencies'),false);
     assert.equal(f.get('-status').dataset.state,'idle');
   }
+});
+
+test('R7.2 Controller/React ESM Run automatically pins complete transitive module graph',async t=>{
+  const f=fixture();t.after(()=>f.controller.dispose());
+  const loaded=await f.controller.autoLoadForRun(f.source);
+  assert.equal(loaded.modules.length,2);
+  assert.equal(f.locked,true);
+  assert.equal(f.get('-status').dataset.state,'ready');
+  const prepared=f.calls.filter(row=>row.method==='preparePageComponentDependencies');
+  assert.deepEqual(prepared.map(row=>row.payload.approvedUrls),[[root],[child]]);
+  assert.ok(prepared.every(row=>row.payload.explicitUserAction===true));
+  const approved=f.calls.filter(row=>row.method==='approvePageComponentDependencies');
+  assert.equal(approved.length,1);
+  assert.equal(approved[0].payload.explicitUserAction,true);
+  assert.deepEqual(approved[0].payload.graph,[{url:root,children:[child]},{url:child,children:[]}]);
+  await f.controller.autoLoadForRun(f.source);
+  assert.equal(f.calls.filter(row=>row.method==='preparePageComponentDependencies').length,2,
+    'repeat Run uses the locked immutable bytes');
+});
+test('R7.2 auto graph acquisition stops after a cancellation, with no transitive fetch or approval',async t=>{
+  const f=fixture();t.after(()=>f.controller.dispose());
+  f.downloadGate=deferred();
+  const pending=f.controller.autoLoadForRun(f.source);
+  await tick();assert.equal(f.controller.busy,true);
+  f.controller.cancel();
+  f.downloadGate.resolve();
+  await assert.rejects(pending,{code:'E_REMOTE_STALE'});
+  assert.equal(f.locked,false);
+  assert.deepEqual(f.calls.filter(row=>row.method==='preparePageComponentDependencies').map(row=>row.payload.approvedUrls),[[root]]);
+  assert.equal(f.calls.some(row=>row.method==='approvePageComponentDependencies'),false);
 });

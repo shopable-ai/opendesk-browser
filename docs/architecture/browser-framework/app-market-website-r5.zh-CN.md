@@ -8,6 +8,11 @@
 
 这证明的是**该候选的本地 HTTP 闭环**，不是正式官网已上线或后续变更后的 `main` 自动验收。之后 `main` 对 Worker 定时唤醒、Browser SDK 能力、工具页和 Side Panel 进行了并行修改，必须按 `AFFECTED_INPUTS` 复查新的构建与受影响的原生链路。正式 HTTPS 缺经核验的 Origin、发行扩展 ID、获取链接及部署前提，保持 `BLOCKED`。真实 Chrome API 回执丢失、配额不足、完整 30 分钟 TTL 和自然空闲关停等仍是独立 `NOT_TESTED`，不能与本轮物理中断等同。
 
+### 最新双平台安装候选（2026-10-12）
+固定 `608ed7c1a36ae878fa70f45339ffb0e68e054398` 的 [Linux/macOS HTTP 真实安装及生产原生回归](https://github.com/shopable-ai/opendesk-browser/actions/runs/38269315702) 全部通过，覆盖原网站点击、受控来源、扩展固定候选审阅、安装、主动打开、真实工具使用、固定套装、A1/A2/B/C 中断恢复、用户数据保留和浏览器完整重启。此候选亦合入 Native Workspace SVG 文件树修复和共享 Developer 编译器资源测试基线；静态网站与扩展均按相同候选编译和验证。
+
+真实结果身份与独立维度分数见 [本候选机器证据索引](../../framework/workstreams/evidence/app-market-r5/ci-38269315702/index.json) 和 [持续工作流](../../framework/workstreams/app-market-r5.md)。**只对这一源码候选和实际 CI 浏览器环境承认 PASSED**；正式 HTTPS、Chrome API 本身 ACK 丢失、真实配额故障及完整自然过期仍分别 `BLOCKED`／`NOT_TESTED`。既有随包官方安装是已通过的 R5 范围；远程 Page/Task 整包发行仍由各自独立签名及准入任务负责。
+
 ## 1. 本轮固定范围与路线
 
 交付范围在实施开始时固定为：独立网站源码和完整构建、官方固定发行的受限交接、一次可信审阅、本地 HTTP 安装及实际使用、必要恢复、开发／生产隔离、版本归档、可部署产物及正式渠道合同。真实安装、使用和恢复是验收要求，不因环境受限而改称后续功能。未完成的证据必须在工作流保留 `BLOCKED`／`NOT_TESTED`。

@@ -1,3 +1,51 @@
+## R9 受控同源导航（2026-10-13）
+
+`browser.tabs.navigateOwned({tabRef,url})` 复用原 Trusted Host 和 `chrome.tabs.update({url})`，只有用户已批准且仍拥有的 TabRef + 同一 Origin 目标 URL 才能发起；其他站点必须独立授权或采用显式创建新标签。批准前核对站点、文档和安装身份；执行前撤销旧 TabRef。返回 `navigationRequested` 只表示原生导航请求获得确认，绝不冒充页面已加载完成。不确定效果不重试；Node 和 Mac Chrome 验收仍需本候选证据。
+
+## R9 受控网页重载（2026-10-13，新增源码接线）
+
+正式操作 `browser.tabs.reloadOwned({tabRef})` 只对本工具当前拥有的 Chrome TabRef 工作。真正的 Side Panel 用户批准及 Host 对当前网页/权限检查后调用 `chrome.tabs.reload`，**在发起原生请求前先撤销旧 TabRef**；未知效果不会重试。返回 `{reloadRequested:true,tabRefRevoked:true}` 仅表示 Chrome 已接受重载请求，不代表新文档完成加载。该接口的 Node、Build、Mac Chrome 验收仍按当次候选单独登记 `NOT_TESTED`，不能继承旧 R5 收据。
+
+## R9 自有 Tab 固定与取消固定（2026-10-13）
+
+正式接线 `browser.tabs.pinOwned({tabRef,pinned})`，Host 使用 `chrome.tabs.update({pinned})`，要求安装身份、精确网页文档、用户单次点击批准及原生回执确认。不确定效果不会自动重试；Node、Mac Chrome 验收独立保持 NOT_TESTED。
+
+## R9 Tabs 命名迁移（2026-10-13）
+
+现行可调用：`browser.tabs.create({url})`、`browser.tabs.activateOwned({tabRef})`、`browser.tabs.getOwned({tabRef})`、`browser.tabs.listOwned()`、`browser.tabs.removeOwned({tabRef})`。旧开发期 `open/focus/closeOwned` 已从实际 SDK → Host/Driver 删除，不保留别名；后四项不等同于能访问任意 Chrome Tab ID。Node 和 Mac Chrome 验收须按更名后的源码重新执行，下方 R5 章节仅保留历史。
+
+## R9 预发布接口清理（2026-10-13，现行合同）
+
+**当前正式注册表登记 29 项已有实际 SDK/Host 运行路径的接口；七项未实现 Media/Speech 和两项未开放 Notifications 占位已删除。** 旧 35 项只是历史快照，不再强制兼容。Cookie 可信 Host-only 实现与正式 SDK 接线继续独立统计；Cookie observe.read 目前不向普通安装工具开放。新代码候选的 Node / Build / Chrome 验收不得继承旧 R5 PASS。下方 R1–R8 记录属于**历史证据**，并非 R9 当前数量。
+
+## R5 已取得同候选 Node/Build 证据（2026-10-12）
+
+> **2026-10-13 四层总账入口**：[浏览器框架四层矩阵](../../api/browser-framework-four-layer-ledger.zh-CN.md) / [机器可读账本](browser-framework-four-layer-ledger.json) / [Cookie R6 框架优先任务](browser-cookies-r6.md)。原 35 项正式接口与验收账本保持权威，本轮只是把 Chrome 原生、Driver/Host、SDK 开放与 Native/CI 验收拆分追踪；Cookies 0/10 未登记。以下各轮原始记录仍保留。
+
+
+- **本次真实源码候选 Git SHA：** `90239cd4d2145f8055aa847854d252f3c93dae4a`。定向 CI：https://github.com/shopable-ai/opendesk-browser/actions/runs/38269129236（**SUCCESS**；Node Browser SDK 测试、真实 Host 模拟、来源校验、生产构建、开发构建、尺寸门槛及 Verify 均 PASS）。
+- **可调用源码合同**：35 项 = 原 32 项（23 IMPLEMENTED / 7 PLANNED / 2 NOT_EXPOSED）+ R5 三项正式新增 `browser.tabs.getOwned`、`listOwned`、`closeOwned`，共 26 SOURCE_WIRED、7 PLANNED、2 NOT_EXPOSED。R5+ 初始 114 候选剩 111 未批准。
+- **有组件级正向/拒绝证据**：本轮三项 Tabs 新接口的 Host、Schema、归属、导航和未知结果测试均获 Node CI PASS；证据文件：`docs/framework/evidence/browser-sdk-r5/r5-ci-90239cd4.json`（SHA-256 `191ba9eed5696ec6a44e61bdb0641dfeb5bf1182967527ce9252786188927b16`）。其余 23 个旧接口的逐项最新验收，不因一个集中 CI 自动提升。
+- **完整 Mac Chrome GUI 原生验收：0/35，全部原生状态仍 NOT_TESTED。** Worker 重启、真实用户点击、PNG/JSON 最终落盘未获同候选 Mac 证据，不能算 PASS。两项 Notifications 继续 NOT_EXPOSED，三项 Speech 和四项 Recording 仍 PLANNED。
+- **独立遗留阻塞**：旧 [Browser SDK R1.3 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38269129168) 含共享 `fixed-entries-audit.test.mjs` 的页面编译器资源清单断言异常，不能将其失败误称为本次 Tabs Host 组件失败，也不能删除断言来变绿。
+- **后续需要修改的源码**：自有 Tab 的 Reload/Navigate → `src/platform/chrome/browser-tabs.js`、`context-menus.js`、SDK Schema；Downloads 状态/实际落盘 → `src/platform/downloads/index.js` 及 Browser 下载收据；Cookie Editor → `src/platform/chrome/cookies.js` 与可信 Editor UI；持久任务/授权 → 复用 Controller Task / RunHost / Authority / Chrome Alarms；最后进入录制与 Mac Chrome 正式验收。
+
+## R5 CI 兼容修复：标准/开发双版本资源清单（2026-10-12）
+
+- **阻塞证据**：R5 Tabs commit `4c7d8fb5bf1aaa5a113bda1b63c627b07e2f7d8d` 的 Browser SDK CI [38268105391](https://github.com/shopable-ai/opendesk-browser/actions/runs/38268105391) 中 `browser-bundles` PASS；`browser-contracts` 在 R1.3 组合测试 183 项中的 `fixed-entries-audit.test.mjs:97` FAILED（182 PASS / 1 FAIL）。
+- **根因**：Standard/Developer 构建分离后，`scripts/audit-fixed-entries.mjs` 仅当 `receipt.report.edition === 'developer'` 提供 `browser-vue-compiler-on-demand` 和 React 编译器加载组；测试仍假设 Standard 默认具备该加载组，导致 `undefined.resources`。不得因此重新给 Standard 打入开发编译器。
+- **修复与拒绝性验证**：测试分别断言 Standard 不包含编译器加载组，Developer 明确包含完整 Vue/受限 React 按需组，且编译器不会进入后台预加载。业务实现和包权限边界保持不变。
+- **验收口径**：本修复提交的 CI 需新 Git SHA 绑定后才能标记 PASS；R5 35 项源码接线与 0 项同候选 Mac Chrome 原生正式 PASS 的统计均不变。
+
+## R5 Tabs 三项新增正式接口（2026-10-12）
+
+- **接口登记**：原冻结的 32 项保持 23 IMPLEMENTED、7 PLANNED、2 NOT_EXPOSED。本轮新增并实际接线 R5 `browser.tabs.getOwned`、`browser.tabs.listOwned`、`browser.tabs.closeOwned`，累计 35 项（26 SOURCE_WIRED、7 PLANNED、2 NOT_EXPOSED）；R5+ 原 114 候选晋级 3 项，尚未批准 111 项。前期统计在下方仅作为历史记录。
+- **调用路径**：SDK wrapper → 已安装 v2 工具 `browser.tabs` capability → 可信 Side Panel（close 需真实点击）→ 现有单次 intent + Host RPC → `createBrowserTabHost` → Chrome tabs / webNavigation → 精确自有 TabRef / 有界结果。
+- **安全约束**：最多八个本工具有效 TabRef；只返回本工具 origin 和可验证的页面信息，无原生 tabId 和任意标签枚举；页面导航、包变化、撤权、停用、Worker 重启均不得复用旧引用。关闭前再次核验 TabRef/Origin/Document；关闭前先消费引用，未知 Chrome 效果不自动重试。
+- **回归测试**：`browser-tabs-host.test.mjs`、`browser-sdk-r2-host.test.mjs`、`browser-sdk-contract-compat.test.mjs`，均新增正向、拒绝和反重试断言；本次 CI 要关联新 Git SHA。
+- **验收**：Mac Chrome 同候选完整 GUI / Worker 正式验收仍 **0/35 NOT_TESTED**；上轮 P0 修复 CI https://github.com/shopable-ai/opendesk-browser/actions/runs/38266349590 为 PASS，不等于本轮新增三接口 PASS。
+- **下一步**：继续 `browser-tabs.js` 的 reload/navigate；基于 `src/platform/downloads/**` 管理本工具下载及落盘状态；可信 Cookie Editor 对接 `src/platform/chrome/cookies.js`；复用现有任务和 Authority；最后补受控 Mac Chrome 实际安装验收。
+
 ## R5 P0 实际安全修复：TabRef 完整 URL 与撤权竞态（2026-10-12）
 
 - **不增加空接口**：原正式 32 项中仍有 23 项 SOURCE_WIRED、7 项 PLANNED、2 项 NOT_EXPOSED；原生完整 Mac Chrome 验收仍 **0/32 / NOT_TESTED**。R5+ 114 项尚未晋级正式合同。
@@ -116,8 +164,14 @@
 | `browser.page.getSelection` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.clipboard.writeText` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.downloads.text` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
-| `browser.tabs.open` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
-| `browser.tabs.focus` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.tabs.create` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.tabs.activateOwned` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.tabs.getOwned` | IMPLEMENTED | APPROVED_TOOL | PASS | PASS | NOT_TESTED |
+| `browser.tabs.listOwned` | IMPLEMENTED | APPROVED_TOOL | PASS | PASS | NOT_TESTED |
+| `browser.tabs.pinOwned` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.tabs.reloadOwned` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.tabs.navigateOwned` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.tabs.removeOwned` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.sidePanel.openSelf` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.network.request` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.network.observe.start` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
@@ -127,15 +181,6 @@
 | `browser.events.read` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.events.close` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.screenshot.captureVisible` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
-| `browser.media.recording.prepare` | PLANNED | DECLARED_NON_EXECUTABLE | NOT_TESTED | NOT_TESTED | NOT_TESTED |
-| `browser.media.recording.getStatus` | PLANNED | DECLARED_NON_EXECUTABLE | NOT_TESTED | NOT_TESTED | NOT_TESTED |
-| `browser.media.recording.stop` | PLANNED | DECLARED_NON_EXECUTABLE | NOT_TESTED | NOT_TESTED | NOT_TESTED |
-| `browser.media.recording.discard` | PLANNED | DECLARED_NON_EXECUTABLE | NOT_TESTED | NOT_TESTED | NOT_TESTED |
-| `browser.speech.transcribe` | PLANNED | DECLARED_NON_EXECUTABLE | NOT_TESTED | NOT_TESTED | NOT_TESTED |
-| `browser.speech.speak` | PLANNED | DECLARED_NON_EXECUTABLE | NOT_TESTED | NOT_TESTED | NOT_TESTED |
-| `browser.speech.stop` | PLANNED | DECLARED_NON_EXECUTABLE | NOT_TESTED | NOT_TESTED | NOT_TESTED |
-| `browser.notifications.create` | NOT_EXPOSED | NOT_EXPOSED | NOT_TESTED | NOT_TESTED | NOT_TESTED |
-| `browser.notifications.clear` | NOT_EXPOSED | NOT_EXPOSED | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.operations.getStatus` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.operations.cancel` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 

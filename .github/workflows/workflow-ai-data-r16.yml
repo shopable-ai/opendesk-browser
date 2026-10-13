@@ -1,0 +1,31 @@
+name: Workflow R16 model privacy and consent
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/ui/workflow/**'
+      - 'src/ui/tool.html'
+      - 'src/ui/tool-shell.css'
+      - 'tests/environment/workflow-*.test.mjs'
+      - '.github/workflows/workflow-ai-data-r16.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  data-sharing-and-workflow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify changed JavaScript parses
+        run: |
+          node --check src/ui/workflow/data-sharing.js
+          node --check src/ui/workflow/workflow-view.js
+          node --check src/ui/workflow/local-codex.js
+          node --check src/ui/workflow/ai-plan.js
+      - name: User-owned model data disclosure, provider, workflow and UI regressions
+        run: |
+          node --test tests/environment/workflow-ai-data-sharing.test.mjs tests/environment/workflow-ui-states.test.mjs tests/environment/workflow-r15.test.mjs tests/environment/workflow-local-codex.test.mjs

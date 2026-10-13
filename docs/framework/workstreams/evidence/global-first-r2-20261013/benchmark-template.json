@@ -1,0 +1,99 @@
+{
+  "schemaVersion": "opendesk.global-first-r2-benchmark.v1",
+  "purpose": "Blank preregistration template; no measured data",
+  "registeredAt": "2026-10-13",
+  "executedAt": null,
+  "status": "NOT_TESTED",
+  "repository": {
+    "headSha": null,
+    "packageHash": null,
+    "zipSha256": null,
+    "extensionId": null,
+    "releaseChannel": null
+  },
+  "environment": {
+    "os": null,
+    "hardware": null,
+    "chromeVersion": null,
+    "chromeBinarySha256": null,
+    "profilePolicy": "isolated fresh CFT",
+    "nodeVersion": null,
+    "nativeHostVersion": null,
+    "siteUrl": "http://127.0.0.1:43111/demo-form.html",
+    "userScriptsEnabled": null,
+    "siteGrant": null
+  },
+  "workflows": [
+    {
+      "id": "opendesk",
+      "version": null,
+      "distribution": null
+    },
+    {
+      "id": "vite-plugin-monkey+tampermonkey",
+      "version": null,
+      "distribution": null
+    },
+    {
+      "id": "vite-plugin-monkey+scriptcat-stable",
+      "version": null,
+      "distribution": null
+    },
+    {
+      "id": "wxt",
+      "version": null,
+      "distribution": null
+    }
+  ],
+  "tests": [
+    {
+      "id": "F01-REACT",
+      "source": "examples/programs/page-ui-react/src/App.jsx",
+      "expect": "React Hooks real pointer click, source change rerun, managed Stop"
+    },
+    {
+      "id": "F01-VUE",
+      "source": "examples/programs/page-ui-vue/src/App.vue",
+      "expect": "Vue ref click, scoped CSS, source change rerun, managed Stop"
+    },
+    {
+      "id": "F02-PAGE",
+      "source": "examples/programs/local-page-ui/",
+      "expect": "multifile JS/CSS edit, explicit Run, sourceHash update, Stop"
+    },
+    {
+      "id": "F02-CONTROLLER",
+      "source": "examples/programs/local-controller/",
+      "expect": "source revision and preserved old runId/resultId"
+    }
+  ],
+  "trialPolicy": {
+    "coldRepetitionsPlanned": 5,
+    "hotRepetitionsPlanned": 10,
+    "recoveryRepetitionsPlanned": 3,
+    "recordMs": [
+      "coldSetupMs",
+      "firstSuccessMs",
+      "editToVisibleMs",
+      "stopToCleanMs",
+      "failureRecoveryMs"
+    ],
+    "other": [
+      "manualActions",
+      "externalTools",
+      "actualSourceHash",
+      "actualRunOrPreviewId",
+      "actualDocumentId",
+      "result",
+      "videoOrCdpEvidence"
+    ],
+    "unsupported": "UNSUPPORTED is not FAIL or infinite elapsed",
+    "notTested": "NOT_TESTED is not zero"
+  },
+  "trials": [],
+  "summary": {
+    "status": "NOT_SCORED",
+    "dateScope": null,
+    "claimsApproved": false
+  }
+}

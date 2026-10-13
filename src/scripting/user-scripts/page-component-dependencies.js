@@ -5,10 +5,11 @@ import {remoteURL,validateRemoteLock,REMOTE_LIMITS} from './remote-esm-contract.
 export const COMPONENT_DEPENDENCY_STORAGE_KEYS=Object.freeze({
   review:(ns,id)=>'component-esm-review:v1:'+JSON.stringify([ns,id]),
   lock:(ns,id)=>'component-esm-lock:v1:'+JSON.stringify([ns,id]),
-  manifest:(ns,hash)=>'component-esm-manifest:v1:'+JSON.stringify([ns,hash])
+  manifest:(ns,hash)=>'component-esm-manifest:v1:'+JSON.stringify([ns,hash]),
+  source:(ns,url)=>'component-esm-source:v1:'+JSON.stringify([ns,url])
 });
 const keys=COMPONENT_DEPENDENCY_STORAGE_KEYS,STORE='frameworkKV';
-const coreFields=['componentSource','framework','roots'];
+const coreFields=['componentSource','framework','roots','programId'];
 export function createPageComponentDependencyMethods({hostFor,inTransaction,httpsAsset,verifiedAsset,
   timestamp,hashObject,hashBytes,ensure,fields,clone,assetKey,referenceKey,risk}){
   const encode=value=>new TextEncoder().encode(value);
@@ -16,15 +17,23 @@ export function createPageComponentDependencyMethods({hostFor,inTransaction,http
     Object.fromEntries(Object.keys(value).sort().map(key=>[key,stable(value[key])])):value;
   const same=(a,b)=>JSON.stringify(stable(a))===JSON.stringify(stable(b));
   async function profile(request){
+    const controller=request.framework==='controller';
     ensure(typeof request.componentSource==='string'&&request.componentSource.trim()&&
-      encode(request.componentSource).byteLength<=128*1024&&['react','vue'].includes(request.framework),
+      encode(request.componentSource).byteLength<=128*1024&&['react','vue','controller'].includes(request.framework),
       'E_PAGE_COMPONENT_IDENTITY','组件来源或框架无效');
+    // Controller reviews are tied to the exact program AND author source. A
+    // shared byte cache is not an authorization for a different script.
+    ensure(controller
+      ? typeof request.programId==='string'&&/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(request.programId)
+      : request.programId===undefined,'E_REMOTE_PROGRAM','Controller needs an explicit script ID; Page locks have no Controller identity');
     ensure(Array.isArray(request.roots)&&request.roots.length>0&&request.roots.length<=REMOTE_LIMITS.modules,
       'E_REMOTE_IMPORT','需要明确的静态 HTTPS 根模块列表');
     const roots=request.roots.map(remoteURL).sort();
     ensure(new Set(roots).size===roots.length&&roots.every(url=>request.roots.includes(url)),'E_REMOTE_URL','模块来源须为无重复的规范 HTTPS URL');
-    const manifest={format:'opendesk.component-esm.v1',world:'USER_SCRIPT',framework:request.framework,roots};
-    return {manifest,manifestDigest:await hashObject(manifest),sourceHash:await hashBytes(encode(request.componentSource))};
+    const sourceHash=await hashBytes(encode(request.componentSource));
+    const manifest={format:'opendesk.component-esm.v1',world:controller?'CONTROLLER':'USER_SCRIPT',
+      framework:request.framework,roots,...(controller?{programId:request.programId,sourceHash}:{})};
+    return {manifest,manifestDigest:await hashObject(manifest),sourceHash};
   }
   const entryPin=entry=>({url:entry.url,sha256:entry.sha256,bytes:entry.bytes});
   const reviewCore=row=>({reviewId:row.reviewId,namespace:row.namespace,manifest:row.manifest,
@@ -61,18 +70,40 @@ export function createPageComponentDependencyMethods({hostFor,inTransaction,http
     }
     return modules;
   }
+  // Content-addressed bytes may be shared; only the previous APPROVED lock
+  // may index them, and each new Controller program still has to approve its
+  // own distinct program/source/world lock before execution.
+  async function cachedApproved(tx,host,url){
+    const index=await tx.get(STORE,keys.source(host.namespace,url));
+    if(!index)return null;
+    ensure(index.tag==='component-esm-source-index-v1'&&index.namespace===host.namespace&&index.url===url&&
+      Array.isArray(index.choices)&&index.choices.length<=24,'E_REMOTE_CACHE','Malformed approved source index');
+    const entries=[];
+    for(const item of index.choices){
+      const lock=await verifyLock(await tx.get(STORE,keys.lock(host.namespace,item.lockId)),host,item.lockId);
+      const entry=lock.entries[item.order];
+      ensure(entry?.url===url,'E_REMOTE_CACHE','Source index no longer matches its approved lock');
+      if(!entries.some(x=>x.sha256===entry.sha256))entries.push(entry);
+    }
+    ensure(entries.length<=1,'E_REMOTE_CACHE_CHOICE','Source URL has multiple approved byte versions; choose an immutable versioned URL or use the local builder');
+    const entry=entries[0];
+    if(!entry)return null;
+    const {asset}=await verifiedAsset(await tx.get(STORE,assetKey(entry.sha256)),entry.sha256,entry.bytes);
+    return {entry,asset};
+  }
   async function inspectComponentDependencies(request,sender){
     fields(request,coreFields);const input=await profile(request),host=await hostFor(sender);
-    const locks=await inTransaction(host,'readonly',async tx=>{
-      const index=await tx.get(STORE,keys.manifest(host.namespace,input.manifestDigest)),locks=[];
+    const {locks,cachedUrls}=await inTransaction(host,'readonly',async tx=>{
+      const index=await tx.get(STORE,keys.manifest(host.namespace,input.manifestDigest)),locks=[],cachedUrls=[];
       for(const id of (index?.lockIds||[]).slice(0,20)){
         const row=await verifyLock(await tx.get(STORE,keys.lock(host.namespace,id)),host,id);
         ensure(same(row.manifest,input.manifest),'E_REMOTE_LOCK','来源索引与依赖锁不一致');locks.push(publicLock(row));
       }
-      return locks;
+      for(const url of input.manifest.roots)if(await cachedApproved(tx,host,url))cachedUrls.push(url);
+      return {locks,cachedUrls};
     });
     await hostFor(sender,host);
-    return {...input,locks}; // Read-only: no code acquisition, permission prompt or execution.
+    return {...input,locks,cachedUrls}; // Read-only: no code acquisition, permission prompt or execution.
   }
   async function prepareComponentDependencies(request,sender){
     fields(request,[...coreFields,'reviewId','reviewDigest','approvedUrls','explicitUserAction']);
@@ -96,9 +127,16 @@ export function createPageComponentDependencyMethods({hostFor,inTransaction,http
       if(entries.some(row=>row.url===url))continue; // Explicit retry can only reuse these exact pending bytes.
       ensure(entries.length<REMOTE_LIMITS.modules,'E_REMOTE_LIMIT','浏览器模块图最多 32 个模块');
       let acquired;
-      try{acquired=await httpsAsset({url},Math.min(REMOTE_LIMITS.moduleBytes,REMOTE_LIMITS.totalBytes-total));}
-      catch(error){if(error.code==='E_DEPENDENCY_LIMIT')ensure(false,'E_REMOTE_LIMIT',
-        '浏览器源码准备最多 32 个模块、单个 128 KiB、整图 256 KiB；更大依赖请导入已构建并冻结的 JSON 项目');throw error;}
+      // A previously approved identical URL+SHA may reuse its original bytes
+      // after the new program confirms the source. This is NOT new-run approval.
+      const reused=await inTransaction(host,'readonly',tx=>cachedApproved(tx,host,url));
+      if(reused){
+        acquired={bytes:reused.asset.bytes,license:reused.entry.license,mime:reused.entry.mime,acquisition:'approved-cache'};
+      }else{
+        try{acquired=await httpsAsset({url},Math.min(REMOTE_LIMITS.moduleBytes,REMOTE_LIMITS.totalBytes-total));}
+        catch(error){if(error.code==='E_DEPENDENCY_LIMIT')ensure(false,'E_REMOTE_LIMIT',
+          '浏览器源码准备最多 32 个模块、单个 128 KiB、整图 256 KiB；更大依赖请导入已构建并冻结的 JSON 项目');throw error;}
+      }
       const size=acquired.bytes.byteLength;
       ensure(size>0&&size<=REMOTE_LIMITS.moduleBytes&&total+size<=REMOTE_LIMITS.totalBytes,
         'E_REMOTE_LIMIT','浏览器模块上限为单个 128 KiB、整图 256 KiB');
@@ -171,6 +209,12 @@ export function createPageComponentDependencyMethods({hostFor,inTransaction,http
         lockIds:[lock.lockId,...(index?.lockIds||[])]},indexKey);
       await tx.put(STORE,{tag:'userscript-reference-v1',namespace:host.namespace,ownerType:'component-lock',ownerId:lock.lockId,
         assetHashes:[...new Set(lock.entries.map(entry=>entry.sha256))]},referenceKey(host.namespace,'component-lock',lock.lockId));
+      for(let order=0;order<lock.entries.length;order++){
+        const url=lock.entries[order].url,k=keys.source(host.namespace,url),prev=await tx.get(STORE,k);
+        const older=(prev?.choices||[]).filter(x=>x.lockId!==lock.lockId);
+        await tx.put(STORE,{tag:'component-esm-source-index-v1',namespace:host.namespace,url,
+          choices:[{lockId:lock.lockId,order},...older].slice(0,24)},k);
+      }
       return publicLock(lock);
     });
   }

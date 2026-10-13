@@ -1,7 +1,8 @@
 # 旧框架：技术方案、文件职责与真实调用链
 
 > 旧版固定来源：`shopable-ai/todo-user@0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5/src-bex`。
-> 本文只写旧源码事实；没有运行旧扩展，也没有读取到用户 Mac 上的未提交源码。场景编号与[功能对照](legacy-to-target-map.md)对应。
+> 本文只写旧源码事实；没有运行旧扩展，也没有读取到用户 Mac 上的未提交源码。
+> File-First R7 的旧独立文件机制对照及新版安全迁移边界见 [2026-10-13 阶段账本](../../framework/workstreams/universal-dependency-file-first-r7-20261013.md)；历史插入 JS 不代表现代 USER_SCRIPT/Worker 具备相同词法全局或自动 fail-stop。场景编号与[功能对照](legacy-to-target-map.md)对应。
 
 ## 一、旧框架的整体关系
 

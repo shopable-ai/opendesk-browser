@@ -13,7 +13,7 @@ import {createScheduledTaskWorkbench} from './scheduled-task-workbench.js';
 import {createScheduledTaskHost} from './scheduled-task-host.js';
 import {createSidebarTabMemory} from './sidebar-tab-memory.js';
 import {createWorkflowView} from './workflow/workflow-view.js';
-import {createSidebarTools} from './sidebar-tools.js';
+import {createSidebarTools} from './sidebar-tools-loader.js';
 import {createInstalledPageTools} from './installed-page-tools.js';
 import {requestedToolId,requestedPreviewId,canonicalToolHostUrl} from './sidebar-tools/navigation.js';
 import {previewStorageKey} from '../native-agent/tool-snapshot.js';
@@ -64,6 +64,12 @@ export function initToolShell(installDevelopment=null,{debugEnabled=false}={}) {
   }
   const foundationClient = createHostClient(chrome, {hostInstanceId});
 const currentPageTarget = createCurrentPageTarget({api:chrome});
+const cookieUI=globalThis.__opendeskTrustedCookieUI;
+ if(!cookieUI?.create)console.warn('E_TRUSTED_COOKIE_UI_UNAVAILABLE');
+ const trustedCookieWorkbench=cookieUI?.create
+  ?cookieUI.create({api:chrome,currentPageTarget,doc:document,hostInstanceId})
+  :Object.freeze({dispose(){}});
+window.addEventListener('pagehide',()=>trustedCookieWorkbench.dispose(),{once:true});
 const scriptEditor = createScriptEditor({client:foundationClient,currentPageTarget,development:Boolean(installDevelopment)});
 let debugWorkbench=null;
 // The full-size tool/catalog page must never overwrite the Side Panel's last tab.
@@ -86,14 +92,19 @@ const workflowView=createWorkflowView({api:chrome,client:foundationClient,host:s
   openCatalog:()=>taskWorkbench.navigate('catalog')});
 const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbench});
 const installedPageTools=createInstalledPageTools({client:foundationClient,api:chrome,doc:document});
+const scheduleStatus=message=>{
+  for(const id of ['schedule-host-status','schedule-runner-host-status']){
+    const label=document.getElementById(id);
+    if(label)label.textContent=message;
+  }
+};
 scheduleUI=createScheduledTaskWorkbench({client:foundationClient,host:scriptEditor.host,taskWorkbench,
-  api:chrome,document,onOpen:()=>{const label=document.getElementById('schedule-host-status');
-    if(label)label.textContent=scheduleHost?'宿主已连接；到期时将通过现有执行槽运行':'没有活动运行页';}});
+  api:chrome,document,onOpen:()=>scheduleStatus(scheduleHost?
+    '宿主已连接；到期时将通过现有执行槽运行':'没有活动运行页')});
 function startScheduledHost(){
   if(scheduleHost)return;
   scheduleHost=createScheduledTaskHost({client:foundationClient,host:scriptEditor.host,api:chrome,
-    onStatus:message=>{const label=document.getElementById('schedule-host-status');
-      if(label)label.textContent=message;},
+    onStatus:scheduleStatus,
     onChange:()=>{if(scheduleUI?.shown)void scheduleUI.refresh().catch(()=>{});},
     onRun:runId=>scheduleUI?.setRun(runId)});
 }
@@ -151,7 +162,7 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
     document.documentElement.dataset.opendeskSurface='scheduled-runner';
     taskWorkbench.navigate('tasks');
     startScheduledHost();
-    void scheduleUI.open('list').catch(error=>console.warn('Visible runner page',error));
+    void scheduleUI.open('runner').catch(error=>console.warn('Visible runner page',error));
     return;
   }
   const toolId=requestedToolId(hostUrl.href),previewId=requestedPreviewId(hostUrl.href);

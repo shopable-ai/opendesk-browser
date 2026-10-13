@@ -1,0 +1,16 @@
+{
+  "id": "stay-focus",
+  "version": "1.0.0",
+  "title": "Stay Focus · 保持专注",
+  "description": "本机娱乐限额、共享时间预算、工作时段和专注模式；由 Chrome 在得到独立授权后限制网站访问。",
+  "capabilities": [
+    "focus.control",
+    "currentPage.read"
+  ],
+  "files": {
+    "html": "src/index.html",
+    "css": "src/style.css",
+    "js": "src/main.js"
+  },
+  "assets": []
+}

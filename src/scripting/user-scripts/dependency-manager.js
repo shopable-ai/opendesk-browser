@@ -16,6 +16,9 @@ export const DEPENDENCY_STORAGE_KEYS = Object.freeze({
   review:(ns,id)=>`userscript-review:v1:${JSON.stringify([ns,id])}`,
   lock:(ns,id)=>`userscript-lock:v1:${JSON.stringify([ns,id])}`,
   source:(ns,url)=>`userscript-source:v1:${JSON.stringify([ns,url])}`,
+  // A provenance pointer only; assets remain in the existing SHA store. This
+  // does NOT confer namespace approval or permission to execute/download.
+  sharedSource:url=>`userscript-shared-source:v1:${JSON.stringify(url)}`,
   manifest:(ns,hash)=>`userscript-manifest:v1:${JSON.stringify([ns,hash])}`,
   reference:(ns,kind,id)=>`userscript-reference:v1:${JSON.stringify([ns,kind,id])}`
 });
@@ -119,6 +122,15 @@ async function verifiedLock(row,namespace,id) {
     'E_DEPENDENCY_LOCK','不可变依赖锁校验失败');
   return row;
 }
+// Program IDs are a second, scoped approval dimension beneath the existing
+// authenticated host. The SHA asset store remains global. Legacy unscoped
+// locks/candidates continue to resolve without granting them to new programs.
+const programNamespace=(namespace,programId)=>{
+  if(programId===undefined)return namespace;
+  ensure(typeof programId==='string'&&/^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/.test(programId),
+    'E_DEPENDENCY_PROGRAM','第三方依赖必须绑定有效的页面程序 ID');
+  return namespace+'|page-program:'+JSON.stringify(programId);
+};
 const publicLock = row => clone({lockId:row.lockId,lockVersion:row.lockVersion,manifestDigest:row.manifestDigest,
   status:row.status,approvalStatus:row.approvalStatus,world:row.world,approvedAt:row.approvedAt,entries:row.entries});
 
@@ -151,22 +163,50 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
     }
     return choices;
   }
+  // Only approved, actually downloaded HTTPS bytes can enter this cross-program
+  // provenance index. Rehash the shared asset on every read: the index is never
+  // itself an approval or a replacement for a namespace-specific dependency lock.
+  async function sharedChoices(tx,url) {
+    dependencyUrl(url);
+    const index=await tx.get(DEPENDENCY_STORE,key.sharedSource(url));
+    if(index===undefined)return [];
+    ensure(index?.tag==='userscript-shared-source-index-v1'&&index.url===url&&
+      Array.isArray(index.choices)&&index.choices.length>0&&index.choices.length<=16,
+      'E_DEPENDENCY_SHARED_SOURCE','共享来源索引损坏');
+    const choices=[],seen=new Set();
+    for(const choice of index.choices) {
+      ensure(HEX64.test(choice?.sha256)&&Number.isSafeInteger(choice.byteLength)&&
+        choice.byteLength>0&&choice.byteLength<=DEPENDENCY_LIMITS.assetBytes&&
+        choice.sourceKind==='https'&&choice.resolvedUrl===url&&
+        typeof choice.mime==='string'&&mimeTypes.has(choice.mime)&&
+        choice.license?.status==='unknown'&&
+        Number.isSafeInteger(choice.approvedAt)&&choice.approvedAt>=0&&
+        !seen.has(choice.sha256),
+      'E_DEPENDENCY_SHARED_SOURCE','共享来源身份或元数据损坏');
+      await verifiedAsset(await tx.get(DEPENDENCY_STORE,key.asset(choice.sha256)),choice.sha256,choice.byteLength);
+      seen.add(choice.sha256);choices.push(clone(choice));
+    }
+    return choices;
+  }
   async function inspect(request,sender) {
-    fields(request,['sourceUtf8','entryFormat','importSourceUrl']);
+    fields(request,['sourceUtf8','entryFormat','importSourceUrl','programId']);
     await validateFixedResource(request.sourceUtf8);
-    const host=await hostFor(sender),{parsed,manifest,entryFormat}=manifestFor(request),manifestDigest=await hashObject(manifest);
+    const host=await hostFor(sender),namespace=programNamespace(host.namespace,request.programId),
+      {parsed,manifest,entryFormat}=manifestFor(request),manifestDigest=await hashObject(manifest);
     const result=await inTransaction(host,'readonly',async tx=>{
       const requires=[];
       for (const row of parsed.requires) {
         let descriptor=null,downloadError=null;
         try { if(row.url) descriptor=packagedDescriptor(row.url); } catch(error) { downloadError={code:error.code,message:error.message}; }
-        const cacheChoices=await cachedChoices(tx,host.namespace,row);
+        const cacheChoices=await cachedChoices(tx,namespace,row);
+        const sharedCacheChoices=!downloadError&&row.url&&!descriptor?await sharedChoices(tx,row.url):[];
         requires.push({...clone(row),...(row.url ? sourceSummary(row.url) : {}),sourceKind:descriptor?'packaged':'https',
           status:downloadError?'unsupported':cacheChoices.length?'approved-cache':'needs-review',
-          cacheChoices,downloadError,risk,license:descriptor?{status:'known',name:descriptor.license,source:'extension-package'}:unknownLicense()});
+          cacheChoices,sharedCacheChoices,downloadError,risk,
+          license:descriptor?{status:'known',name:descriptor.license,source:'extension-package'}:unknownLicense()});
       }
-      const index=await tx.get(DEPENDENCY_STORE,key.manifest(host.namespace,manifestDigest)),locks=[];
-      for (const id of (index?.lockIds || []).slice(0,20)) locks.push(publicLock(await verifiedLock(await tx.get(DEPENDENCY_STORE,key.lock(host.namespace,id)),host.namespace,id)));
+      const index=await tx.get(DEPENDENCY_STORE,key.manifest(namespace,manifestDigest)),locks=[];
+      for (const id of (index?.lockIds || []).slice(0,20)) locks.push(publicLock(await verifiedLock(await tx.get(DEPENDENCY_STORE,key.lock(namespace,id)),namespace,id)));
       return {manifestDigest,requires,locks,admission:assessUserScriptExecution(parsed,{entryFormat,phase:'preview',dependenciesLocked:locks.length>0})};
     });
     result.permissionOrigins=[];
@@ -228,18 +268,21 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
       license:file.license?{status:'declared',name:file.license,source:'user-provided-file'}:unknownLicense(),integrityRepresentation:'original-file-bytes'};
   }
   async function prepare(request,sender) {
-    fields(request,['sourceUtf8','entryFormat','importSourceUrl','explicitUserAction','selections']);
+    fields(request,['sourceUtf8','entryFormat','importSourceUrl','programId','explicitUserAction','selections']);
     await validateFixedResource(request.sourceUtf8);
     ensure(request.explicitUserAction===true,'E_DEPENDENCY_REVIEW','下载依赖需要用户明确操作');
-    const host=await hostFor(sender),{parsed,manifest,entryFormat}=manifestFor(request);
+    const host=await hostFor(sender),namespace=programNamespace(host.namespace,request.programId),
+      {parsed,manifest,entryFormat}=manifestFor(request);
     assertUserScriptExecutable(parsed,{entryFormat,phase:'preview',dependenciesLocked:true});
     ensure(parsed.requires.length>0,'E_DEPENDENCY_EMPTY','源码没有 @require');
     const selections=request.selections || [];ensure(Array.isArray(selections)&&selections.length<=parsed.requires.length,'E_SCHEMA');
     const selected=new Map();
     for(const choice of selections){
-      fields(choice,['order','assetSha256','localFile']);
+      fields(choice,['order','assetSha256','sharedAssetSha256','localFile']);
       ensure(Number.isSafeInteger(choice.order)&&choice.order>=0&&choice.order<parsed.requires.length&&!selected.has(choice.order) &&
-        !(choice.assetSha256 && choice.localFile) && (choice.assetSha256===undefined || HEX64.test(choice.assetSha256)),'E_SCHEMA');
+        [choice.assetSha256,choice.sharedAssetSha256,choice.localFile].filter(value=>value!==undefined).length<=1 &&
+        (choice.assetSha256===undefined || HEX64.test(choice.assetSha256)) &&
+        (choice.sharedAssetSha256===undefined || HEX64.test(choice.sharedAssetSha256)),'E_SCHEMA');
       selected.set(choice.order,choice);
     }
     const assets=new Map(),entries=[],retrieved=new Map();let totalBytes=0;
@@ -248,10 +291,21 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
       const choice=selected.get(row.order);let obtained;
       if(choice?.assetSha256){
         obtained=await inTransaction(host,'readonly',async tx=>{
-          const match=(await cachedChoices(tx,host.namespace,row)).find(e=>e.sha256===choice.assetSha256);
+          const match=(await cachedChoices(tx,namespace,row)).find(e=>e.sha256===choice.assetSha256);
           ensure(match,'E_DEPENDENCY_REVIEW','当前身份尚未批准该声明来源的所选缓存');
           const {asset}=await verifiedAsset(await tx.get(DEPENDENCY_STORE,key.asset(match.sha256)),match.sha256,match.byteLength);
           return {...match,bytes:asset.bytes,acquisition:'approved-cache',reusedFrom:{lockId:match.lockId}};
+        });
+      } else if(choice?.sharedAssetSha256){
+        // Explicit reuse of a verified byte identity is NOT an approved cache
+        // hit for this owner. It still creates a fresh review and owner lock.
+        obtained=await inTransaction(host,'readonly',async tx=>{
+          const match=(await sharedChoices(tx,row.url)).find(entry=>entry.sha256===choice.sharedAssetSha256);
+          ensure(match,'E_DEPENDENCY_REVIEW','所选共享资产缺少同 URL 的已批准下载来源；请重新获取或选择正确 SHA');
+          const {asset}=await verifiedAsset(await tx.get(DEPENDENCY_STORE,key.asset(match.sha256)),match.sha256,match.byteLength);
+          return {bytes:asset.bytes,sourceKind:'https',resolvedUrl:row.url,
+            acquisition:'shared-content-cache',mime:match.mime,license:clone(match.license),
+            integrityRepresentation:'original-https-bytes'};
         });
       } else if(choice?.localFile) obtained=await localAsset(choice.localFile);
       else if(retrieved.has(row.url)) obtained=retrieved.get(row.url);
@@ -276,7 +330,7 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
         integrityRepresentation:obtained.integrityRepresentation,license:obtained.license,mime:obtained.mime,risk});
     }
     const reviewId=`dep-review-${crypto.randomUUID()}`,manifestDigest=await hashObject(manifest);
-    const review={tag:'userscript-review-v1',reviewId,namespace:host.namespace,status:'pending-review',approvalStatus:'pending',
+    const review={tag:'userscript-review-v1',reviewId,namespace:namespace,status:'pending-review',approvalStatus:'pending',
       manifest,manifestDigest,entries,totalBytes,createdAt:timestamp()};
     review.reviewDigest=await hashObject(reviewCore(review));
     await hostFor(sender,host);
@@ -286,20 +340,20 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
         if(existing) await verifiedAsset(existing,sha256,asset.byteLength);
         else await tx.put(DEPENDENCY_STORE,asset,key.asset(sha256));
       }
-      await tx.put(DEPENDENCY_STORE,review,key.review(host.namespace,reviewId));
-      await tx.put(DEPENDENCY_STORE,{tag:'userscript-reference-v1',namespace:host.namespace,ownerType:'review',ownerId:reviewId,
-        assetHashes:[...assets.keys()]},key.reference(host.namespace,'review',reviewId));
+      await tx.put(DEPENDENCY_STORE,review,key.review(namespace,reviewId));
+      await tx.put(DEPENDENCY_STORE,{tag:'userscript-reference-v1',namespace:namespace,ownerType:'review',ownerId:reviewId,
+        assetHashes:[...assets.keys()]},key.reference(namespace,'review',reviewId));
     });
     return clone({reviewId,manifestDigest,status:review.status,approvalStatus:review.approvalStatus,entries,totalBytes});
   }
   async function approve(request,sender) {
-    fields(request,['reviewId','explicitUserAction','acceptedHashes']);
+    fields(request,['reviewId','programId','explicitUserAction','acceptedHashes']);
     ensure(request.explicitUserAction===true && /^dep-review-[a-f0-9-]{36}$/.test(request.reviewId),'E_DEPENDENCY_REVIEW','请明确审核下载后的来源、内容哈希和风险');
     ensure(Array.isArray(request.acceptedHashes)&&request.acceptedHashes.every(h=>HEX64.test(h)),'E_DEPENDENCY_REVIEW');
-    const host=await hostFor(sender);
+    const host=await hostFor(sender),namespace=programNamespace(host.namespace,request.programId);
     const reviewed=await inTransaction(host,'readonly',async tx=>{
-      const review=await tx.get(DEPENDENCY_STORE,key.review(host.namespace,request.reviewId));
-      ensure(review?.tag==='userscript-review-v1' && review.namespace===host.namespace && review.reviewId===request.reviewId && Array.isArray(review.entries) &&
+      const review=await tx.get(DEPENDENCY_STORE,key.review(namespace,request.reviewId));
+      ensure(review?.tag==='userscript-review-v1' && review.namespace===namespace && review.reviewId===request.reviewId && Array.isArray(review.entries) &&
         same(request.acceptedHashes,review.entries.map(e=>e.sha256)) && review.manifestDigest===await hashObject(review.manifest) &&
         review.reviewDigest===await hashObject(reviewCore(review)),
       'E_DEPENDENCY_REVIEW','审核记录或明确接受的哈希不匹配');
@@ -309,14 +363,14 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
       }
       return review;
     });
-    const core={lockVersion:1,namespace:host.namespace,manifestDigest:reviewed.manifestDigest,manifest:reviewed.manifest,
+    const core={lockVersion:1,namespace:namespace,manifestDigest:reviewed.manifestDigest,manifest:reviewed.manifest,
       world:'USER_SCRIPT',reviewId:reviewed.reviewId,approvedAt:timestamp(),entries:reviewed.entries};
     const lock={tag:'userscript-lock-v1',...core,lockId:`dep-lock-${await hashObject(core)}`,status:'locked',approvalStatus:'approved'};
     await hostFor(sender,host);
     return inTransaction(host,'readwrite',async tx=>{
-      const current=await tx.get(DEPENDENCY_STORE,key.review(host.namespace,request.reviewId));
+      const current=await tx.get(DEPENDENCY_STORE,key.review(namespace,request.reviewId));
       if(current?.lockId) {
-        const existing=await verifiedLock(await tx.get(DEPENDENCY_STORE,key.lock(host.namespace,current.lockId)),host.namespace,current.lockId);
+        const existing=await verifiedLock(await tx.get(DEPENDENCY_STORE,key.lock(namespace,current.lockId)),namespace,current.lockId);
         ensure(same(reviewCore(current),reviewCore(reviewed)) && existing.reviewId===reviewed.reviewId &&
           existing.manifestDigest===reviewed.manifestDigest && same(existing.manifest,reviewed.manifest) &&
           same(existing.entries,reviewed.entries) && same(existing.entries.map(e=>e.sha256),request.acceptedHashes),
@@ -327,29 +381,43 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
       // Recheck within the same atomic commit: a concurrently corrupted/deleted
       // asset must never receive an approved lock based on an earlier snapshot.
       for(const entry of lock.entries) await verifiedAsset(await tx.get(DEPENDENCY_STORE,key.asset(entry.sha256)),entry.sha256,entry.byteLength);
-      await tx.put(DEPENDENCY_STORE,lock,key.lock(host.namespace,lock.lockId));
-      await tx.put(DEPENDENCY_STORE,{...current,status:'reviewed',approvalStatus:'approved',lockId:lock.lockId},key.review(host.namespace,request.reviewId));
-      const manifestKey=key.manifest(host.namespace,lock.manifestDigest),index=await tx.get(DEPENDENCY_STORE,manifestKey);
-      await tx.put(DEPENDENCY_STORE,{tag:'userscript-manifest-index-v1',namespace:host.namespace,manifestDigest:lock.manifestDigest,
+      await tx.put(DEPENDENCY_STORE,lock,key.lock(namespace,lock.lockId));
+      await tx.put(DEPENDENCY_STORE,{...current,status:'reviewed',approvalStatus:'approved',lockId:lock.lockId},key.review(namespace,request.reviewId));
+      const manifestKey=key.manifest(namespace,lock.manifestDigest),index=await tx.get(DEPENDENCY_STORE,manifestKey);
+      await tx.put(DEPENDENCY_STORE,{tag:'userscript-manifest-index-v1',namespace:namespace,manifestDigest:lock.manifestDigest,
         lockIds:[lock.lockId,...(index?.lockIds || [])]},manifestKey);
       for(const url of new Set(lock.entries.map(e=>e.url))){
-        const sourceKey=key.source(host.namespace,url),source=await tx.get(DEPENDENCY_STORE,sourceKey),choices=[];
+        const sourceKey=key.source(namespace,url),source=await tx.get(DEPENDENCY_STORE,sourceKey),choices=[];
         for(const entry of lock.entries.filter(e=>e.url===url)) if(!choices.some(c=>c.sha256===entry.sha256))
           choices.push({lockId:lock.lockId,order:entry.order,sha256:entry.sha256});
         // A source's picker needs one proof per immutable hash, while old full
         // lock/reference records remain untouched for installed/history users.
         const previous=(source?.choices || []).filter(c=>!choices.some(next=>next.sha256===c.sha256));
-        await tx.put(DEPENDENCY_STORE,{tag:'userscript-source-index-v1',namespace:host.namespace,url,choices:[...choices,...previous]},sourceKey);
+        await tx.put(DEPENDENCY_STORE,{tag:'userscript-source-index-v1',namespace:namespace,url,choices:[...choices,...previous]},sourceKey);
       }
-      await tx.put(DEPENDENCY_STORE,{tag:'userscript-reference-v1',namespace:host.namespace,ownerType:'lock',ownerId:lock.lockId,
-        assetHashes:[...new Set(lock.entries.map(e=>e.sha256))]},key.reference(host.namespace,'lock',lock.lockId));
+      await tx.put(DEPENDENCY_STORE,{tag:'userscript-reference-v1',namespace:namespace,ownerType:'lock',ownerId:lock.lockId,
+        assetHashes:[...new Set(lock.entries.map(e=>e.sha256))]},key.reference(namespace,'lock',lock.lockId));
+      // Publish provenance only AFTER an explicit owner's approval, in the same
+      // transaction as its immutable lock. Local uploads, packaged aliases and
+      // cache-only selections must not claim a fresh HTTPS acquisition.
+      for(const entry of lock.entries) {
+        if(entry.sourceKind!=='https'||entry.acquisition!=='download'||entry.resolvedUrl!==entry.url)continue;
+        const sourceKey=key.sharedSource(entry.url),old=await tx.get(DEPENDENCY_STORE,sourceKey);
+        if(old)await sharedChoices(tx,entry.url);
+        const choice={sha256:entry.sha256,byteLength:entry.byteLength,
+          sourceKind:'https',resolvedUrl:entry.url,mime:entry.mime,
+          license:clone(entry.license),approvedAt:lock.approvedAt};
+        const remaining=(old?.choices||[]).filter(item=>item.sha256!==entry.sha256);
+        await tx.put(DEPENDENCY_STORE,{tag:'userscript-shared-source-index-v1',url:entry.url,
+          choices:[choice,...remaining].slice(0,16)},sourceKey);
+      }
       return publicLock(lock);
     });
   }
   async function loadForExecution(request,sender) {
-    fields(request,['sourceUtf8','entryFormat','importSourceUrl','lockId']);
-    const host=await hostFor(sender);
-    const result=await loadInNamespace(request,host.namespace,work=>inTransaction(host,'readonly',work));
+    fields(request,['sourceUtf8','entryFormat','importSourceUrl','programId','lockId']);
+    const host=await hostFor(sender),namespace=programNamespace(host.namespace,request.programId);
+    const result=await loadInNamespace(request,namespace,work=>inTransaction(host,'readonly',work));
     await hostFor(sender,host);
     return result;
   }
@@ -390,20 +458,24 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
     return row;
   }
   async function importPageCandidate(request,sender) {
-    fields(request,['programId','revision','sourceUtf8','entryFormat','importSourceUrl','lockId','pageRules']);
+    fields(request,['programId','revision','sourceUtf8','entryFormat','importSourceUrl','lockId','dependencyScope','pageRules']);
     // Freeze both bytes and settings before the first asynchronous operation.
     // Neither mutating a request later nor a native pageRules field grants a service.
     request=clone(request);
     ensure(typeof request.programId==='string' && /^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/.test(request.programId) &&
       Number.isSafeInteger(request.revision) && request.revision>0,'E_REVISION');
+    ensure(request.dependencyScope===undefined||request.dependencyScope==='program',
+      'E_DEPENDENCY_PROGRAM','页面程序依赖身份不合法');
     ensure(typeof request.sourceUtf8==='string' && request.sourceUtf8.trim().length>0,'E_SOURCE','页面程序源码不能为空');
     const {parsed,entryFormat}=manifestFor(request);
     const admission=assertUserScriptExecutable(parsed,{entryFormat,phase:'preview',dependenciesLocked:true});
     const pageRules=resolvePageProgramRules(parsed,admission,request.pageRules);
     const lock=await loadForExecution({sourceUtf8:request.sourceUtf8,entryFormat,
-      importSourceUrl:request.importSourceUrl,lockId:request.lockId},sender);
+      importSourceUrl:request.importSourceUrl,lockId:request.lockId,
+      ...(request.dependencyScope==='program'?{programId:request.programId}:{})},sender);
     const manifest={format:'opendesk.page-program.v1',runtimeKind:'page-userscript',
       programId:request.programId,revision:request.revision,
+      ...(request.dependencyScope==='program'?{dependencyScope:'program'}:{}),
       sourceHash:await hashBytes(encoder.encode(request.sourceUtf8)),entryFormat,
       sourceProfile:{metadataProfile:parsed.profile,importSourceUrl:parsed.importSourceUrl},
       dependencyLockId:lock.lockId,dependencyManifestDigest:lock.manifestDigest,pageRules};
@@ -440,7 +512,8 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
     const read=work=>storage.transaction([DEPENDENCY_STORE],'readonly',work);
     const row=await read(async tx=>clone(await pageRow(await tx.get(DEPENDENCY_STORE,pageKey(namespace,programId,revision)),namespace)));
     const resolution=await loadInNamespace({sourceUtf8:row.sourceUtf8,entryFormat:row.manifest.entryFormat,
-      importSourceUrl:row.manifest.sourceProfile.importSourceUrl,lockId:row.manifest.dependencyLockId},namespace,read);
+      importSourceUrl:row.manifest.sourceProfile.importSourceUrl,lockId:row.manifest.dependencyLockId},
+      row.manifest.dependencyScope==='program'?programNamespace(namespace,programId):namespace,read);
     return {candidate:row,resolution};
   }
   // References are durable and no automatic GC runs. A future collector must

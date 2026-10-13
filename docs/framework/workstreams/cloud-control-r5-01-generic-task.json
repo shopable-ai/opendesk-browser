@@ -1,0 +1,141 @@
+{
+  "goal": "Cloud Control R5.1 Universal Installed Task Delivery",
+  "date": "2026-10-13",
+  "branch": "main",
+  "observedStartingHead": "de52893a69d5107b4d60f837c9e570d7298ac588",
+  "sourceCommits": [
+    "bf98690daf760d472895f5c447c365611f3e100e",
+    "03ecb592130ca476567f24603a41b6d126921e8f",
+    "5c34ffced54c53535cf44a737f29f3e24c5ed10f",
+    "849ab2b901beab02b837f5d91fcd2477ed2ef4a9",
+    "d0ad8ed119a22343be38dfa62a650199ce6872ba",
+    "05f3fc8f5a9220b237adb57e6052c3615f753d8e",
+    "539bb35c05bc44aabdd501dadb18bc4fcef56fec",
+    "c3356edd26092aac2470594076e42dd4ef63befc",
+    "ae5e765fe743ee7396f752702880ed0a26de5d32",
+    "c814449e08d45baef40bee5439017551b42408a5",
+    "d5712897adf7b8471227fb2b40d132af5363505c",
+    "ac92a35418a2ea69e9970e64d0579579005f76a1",
+    "93c78341271032cb3c641f2b818e9636fb6b88e9"
+  ],
+  "taskExamples": [
+    {
+      "taskId": "sample.form-fill",
+      "version": "1.0.0",
+      "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+      "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63"
+    },
+    {
+      "taskId": "sample.modern-search",
+      "version": "1.0.0",
+      "manifestHash": "5bce863a91c5abd26513dc19a50c55eeb068eb030c7e0aa5a664b9f8e902984a",
+      "sourceHash": "1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d"
+    }
+  ],
+  "status": {
+    "source": "SOURCE_IMPLEMENTED",
+    "components": "COMPONENT_TESTED",
+    "build": "BUILD_VERIFIED",
+    "nativeTwoTasks": "NATIVE_PENDING",
+    "nativeMac": "NATIVE_PENDING",
+    "longRunningRunner": "NOT_IMPLEMENTED"
+  },
+  "ci": {
+    "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38351008157",
+    "headSha": "93c78341271032cb3c641f2b818e9636fb6b88e9",
+    "status": "completed",
+    "conclusion": "success",
+    "passed": 226,
+    "failed": 0,
+    "cloudProviderTests": {
+      "passed": 30,
+      "failed": 0
+    },
+    "authorityTests": {
+      "passed": 113,
+      "failed": 0
+    },
+    "otherComponents": {
+      "passed": 83,
+      "failed": 0
+    },
+    "check": "PASS",
+    "productionBuild": "PASS",
+    "developmentBuild": "PASS",
+    "verify": "PASS",
+    "productionPackageHash": "9efaded0997d1182bdd0b058f017a6c025563aa1b7ac5162012957ada8faf839",
+    "developmentPackageHash": "8cdbbf5663130d6b78c68c831ccee4650699d90f26efc8666ebaf8f4e0cd0e8e",
+    "qualification": "CI component+package only; actual two-task Chrome Worker run evidence pending"
+  },
+  "originalRunEvidence": {
+    "runIds": [],
+    "resultIds": [],
+    "sourceHashes": [],
+    "workerOutcomes": [],
+    "retirementReleased": [],
+    "providerReceiptIds": []
+  },
+  "safety": {
+    "mainOnly": true,
+    "noForce": true,
+    "noWorktree": true,
+    "noMacResources": true,
+    "noSharedProvider": true
+  },
+  "exposure": {
+    "taskSchemaReview": "names, required fields and full manifest paramsSchema disclosure",
+    "authorizationGenerationReview": "strict display matching on installationId and generation",
+    "approvalPin": "complete fixed identity mandatory and verified by browser resolver"
+  },
+  "previousFailedCi": {
+    "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38291915410",
+    "headSha": "c814449e08d45baef40bee5439017551b42408a5",
+    "status": "completed",
+    "conclusion": "failure",
+    "componentTests": {
+      "passed": 28,
+      "failed": 1
+    },
+    "failedCase": "generic-approval-ui.test.mjs test fixture created no cloud-consent control",
+    "resolutionCommit": "d5712897adf7b8471227fb2b40d132af5363505c",
+    "productionPackageHash": "1b8816eee032d7a0f26930a8bf17435cf8a8148fce5aac8bccf1fc49c164c293",
+    "developmentPackageHash": "b141119021a5b07a665835adcc86f5a9a2f4d2325f98911129e5b6f991fd2416"
+  },
+  "openQuestions": [
+    {
+      "issue": "resultAllowed=false prevents reconcile from delivering any Provider receipt",
+      "status": "NEEDS_PRODUCT_AND_SECURITY_DECISION",
+      "evidence": "src/cloud-control/service.js reconcile projection returns null when !r.task.resultAllowed",
+      "suggestedNextStep": "Define whether metadata-only completion acknowledgements are authorized, verify no result body leaks, and test exact consent outcomes"
+    },
+    {
+      "issue": "No two independently installed, verified Controller Tasks executed through actual Chrome Worker under one approved cloud grant",
+      "status": "NATIVE_PENDING",
+      "suggestedNextStep": "Isolated Chrome actual Side Panel with owned test profile, original Run/Result/retirement and Provider receipts"
+    },
+    {
+      "issue": "Mac R4 and Scheduled Tasks R2 share fixed provider port 43112 and browser profile",
+      "status": "OWNED_ELSEWHERE",
+      "suggestedNextStep": "Obtain explicit resource handoff or postpone native execution; keep CI isolated"
+    }
+  ],
+  "previousSuccessfulCi": {
+    "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38350592138",
+    "headSha": "d5712897adf7b8471227fb2b40d132af5363505c",
+    "status": "completed",
+    "conclusion": "success",
+    "passed": 225,
+    "failed": 0,
+    "cloudProviderTests": {
+      "passed": 29,
+      "failed": 0
+    },
+    "authorityTests": {
+      "passed": 113,
+      "failed": 0
+    },
+    "productionPackageHash": "819c0bf67a86ccfbe6e98b8f99c5e08e6a50186caee524c976054f55a13c9e49",
+    "developmentPackageHash": "5abadfc2d3cb310ea20a7fc20576ecff6736ff63a00fc97c1a950f2300725a1a",
+    "qualification": "Same SHA CI component and build validation only; no native two-task Chrome Worker runs"
+  }
+}

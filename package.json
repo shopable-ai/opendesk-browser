@@ -33,7 +33,11 @@
     "cloud:fault": "node scripts/cloud-control/cli.mjs fault",
     "test:cloud": "node --test tests/cloud-control/*.test.mjs",
     "dev:market": "node scripts/serve-market-site.mjs",
-    "snapshot:market": "node scripts/snapshot-market-release.mjs"
+    "snapshot:market": "node scripts/snapshot-market-release.mjs",
+    "build:developer": "node scripts/build-page-edition-r245.mjs production",
+    "build:developer:dev": "node scripts/build-page-edition-r245.mjs development",
+    "pack:developer": "node scripts/pack-page-edition-r245.mjs production",
+    "verify:developer": "node scripts/verify-package.mjs dist/production-developer production"
   },
   "devDependencies": {
     "@tailwindcss/cli": "4.3.3",

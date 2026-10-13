@@ -114,9 +114,9 @@
 /* Develop: page signal and code first; results, library, DOM and SDK on demand. */
 /* R19: the parent owns 8px row spacing; descendants never stack unrelated margins.
  * Controls use 8px, surfaces 12px, and only state badges stay fully rounded. */
-#workspace-content #workbench-develop{display:grid;gap:var(--space-2);align-content:start}
+#workspace-content #workbench-develop{display:grid;gap:var(--space-3);align-content:start}
 #workspace-content #workbench-develop>.developer-target,#workspace-content #workbench-develop>.developer-editor{margin:0;padding:0}
-#workbench-develop .developer-editor{display:grid;gap:var(--space-2);align-content:start;font-size:12px;line-height:1.5}
+#workbench-develop .developer-editor{display:grid;gap:var(--space-3);align-content:start;font-size:12px;line-height:1.5}
 #workbench-develop .developer-editor>:not([hidden]){margin-block:0}
 #workbench-develop #manual-source-editor{display:grid;gap:var(--space-2);min-width:0}
 #workbench-develop #manual-source-editor>:not([hidden]){margin-block:0}
@@ -124,7 +124,7 @@
 /* R25: one vertical rhythm for Dev only: 8px rows, 4px label/control, 12px body. */
 #workbench-develop .developer-editor :is(p,pre,details,textarea,.row){margin-block:0}
 #workbench-develop .developer-editor details>:not(summary){margin-block:8px 0}
-#workbench-develop .developer-editor details>label+:is(input,select,textarea){margin-block-start:4px}
+#workbench-develop .developer-editor details>label+:is(input,select,textarea){margin-block-start:var(--space-2)}
 #workbench-develop .developer-editor .row>label{margin:0}
 #workbench-develop .developer-editor label{font-size:12px;line-height:1.5;font-weight:400;color:var(--od-sub)}
 #workbench-develop .developer-editor details>summary{font-size:12px;line-height:1.5;font-weight:500}
@@ -202,22 +202,58 @@
 @media(max-width:340px){.program-source-toolbar{gap:5px}.program-source-toolbar #program-new-script{padding:7px 8px}}
 #program-generated pre{max-height:260px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px}
 .developer-params{margin:0}
-.developer-params summary,.developer-run-technical summary,.developer-results summary{font-size:12px;font-weight:600;color:#496381}
-.developer-run-feedback{display:flex;align-items:baseline;flex-wrap:wrap;column-gap:4px;row-gap:0;margin:0;min-width:0}
+.developer-params summary,.developer-run-technical summary,.developer-results summary{font-size:12px;font-weight:600;color:var(--od-sub)}
+.developer-run-feedback{display:flex;align-items:baseline;flex-wrap:wrap;column-gap:var(--space-1);row-gap:var(--space-1);margin:0;min-width:0}
 .developer-run-feedback>span{min-width:0;overflow-wrap:anywhere}
 #script-status,#script-task-status{font-size:12px;line-height:1.5;font-weight:400;margin:0}
 #script-status[data-state=results],#script-task-status{white-space:nowrap}
 #script-status:empty,#script-task-status:empty{display:none}
 .developer-run-technical{margin:0}
-.developer-run-technical p{font-size:11px;margin:4px 0}
-.developer-results{border-top:1px solid var(--line);padding-top:8px;margin:0}
-.developer-results-body{display:grid;gap:var(--space-2);padding-top:8px}
-#script-result{margin:0;max-height:250px;border:1px solid #e4ebf5;color:#304560;background:#f7f9fd}
+.developer-run-technical p{font-size:11px;margin:var(--space-1) 0}
+.developer-results{margin:0}
+.developer-results-body{display:grid;gap:var(--space-2);padding-top:var(--space-2)}
+#script-result{margin:0;max-height:250px;border:1px solid var(--od-line);color:var(--od-ink);background:var(--od-muted)}
 #workbench-develop .developer-results .row{margin:0}
 #workbench-develop .developer-results label{margin:0}
-#script-library-tools,#page-preview-tools,#script-advanced{border-top:1px solid var(--line);padding-top:8px;margin:0}
-#script-library-tools>summary,#page-preview-tools>summary,#script-advanced>summary{font-size:12px;font-weight:650}
-#script-library-tools label,#script-advanced label{font-size:11px;color:#526681}
+#script-library-tools,#page-preview-tools,#script-advanced{margin:0}
+#script-library-tools>summary,#page-preview-tools>summary,#script-advanced>summary{font-size:13px;font-weight:650}
+#script-library-tools label,#script-advanced label{font-size:12px;color:var(--od-sub)}
+/* R29: one card per independent Dev section; nested history stays flat.
+   Spacing and colors are from existing R27 tokens; no extra page gutter. */
+#workbench-develop .developer-editor>details{min-width:0;margin:0;padding:0;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface)}
+#workbench-develop .developer-editor>details>summary{min-height:40px;padding:var(--space-2) var(--space-3);font-size:13px;font-weight:650;line-height:1.5;color:var(--od-ink);list-style-position:inside}
+#workbench-develop .developer-editor>details[open]>summary{border-bottom:1px solid var(--od-line)}
+#workbench-develop .developer-editor>details>:not(summary){max-width:calc(100% - var(--space-3) * 2);margin-inline:var(--space-3)}
+#workbench-develop .developer-editor>details>:last-child:not(summary){margin-bottom:var(--space-3)}
+#workbench-develop #developer-results-panel>.developer-results-body{margin-top:0}
+#workbench-develop #developer-run-technical>p{margin-top:var(--space-1);overflow-wrap:anywhere}
+#workbench-develop .result-toolbar{margin-bottom:0;flex-wrap:wrap}
+#workbench-develop .result-history{margin-top:0;padding-top:var(--space-2);border-top:1px solid var(--od-line)}
+#workbench-develop .result-history>summary{min-height:36px;padding:var(--space-2) 0;font-size:12px;font-weight:650;color:var(--od-sub)}
+#workbench-develop .developer-history-content{display:grid;gap:var(--space-3);min-width:0;padding-top:var(--space-2)}
+#workbench-develop .developer-editor .developer-history-content>:not(summary){margin:0}
+#workbench-develop .developer-history-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--space-2);min-width:0}
+#workbench-develop .developer-history-head>p{flex:1 1 150px;margin:0;font-size:12px;line-height:1.5}
+#workbench-develop .developer-history-head>button{flex:none;min-height:36px}
+#workbench-develop .developer-history-field{display:grid;gap:var(--space-2);min-width:0}
+#workbench-develop .developer-history-field>label{margin:0;color:var(--od-ink);font-size:12px;font-weight:600}
+#workbench-develop .developer-history-field>input{width:100%;min-width:0;margin:0}
+#workbench-develop .developer-history-actions{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:var(--space-2);min-width:0}
+#workbench-develop .developer-history-actions>select{width:100%;min-width:0;margin:0;min-height:36px}
+#workbench-develop .developer-history-actions>button{min-height:36px;white-space:nowrap;overflow-wrap:normal}
+#workbench-develop .developer-history-control-row{display:flex;gap:var(--space-2);min-width:0}
+#workbench-develop .developer-history-control-row>button{min-height:36px}
+#workbench-develop .developer-history-disclosure{min-width:0;margin:0;padding-top:var(--space-2);border-top:1px solid var(--od-line)}
+#workbench-develop .developer-history-disclosure>summary{min-height:36px;padding:var(--space-2) 0;font-size:12px;font-weight:600;color:var(--od-sub)}
+#workbench-develop .developer-history-disclosure>:not(summary){max-width:100%;margin:var(--space-2) 0 0}
+#workbench-develop .developer-history-disclosure>pre{max-height:240px;overflow:auto;overflow-wrap:anywhere}
+#workbench-develop .developer-history-disclosure>p{font-size:12px;line-height:1.5}
+#workbench-develop .developer-history-disclosure>.developer-history-field:not(:first-of-type){margin-top:var(--space-3)}
+@media(max-width:380px){
+  #workbench-develop .developer-history-actions{grid-template-columns:minmax(0,1fr)}
+  #workbench-develop .developer-history-actions>button{width:100%}
+  #workbench-develop .developer-history-head>button{flex:1 1 100%}
+}
 #tool-diagnostics{border-top:1px solid var(--line);padding-top:8px;margin:0}
 #tool-diagnostics>summary{font-size:11px}
 #tool-diagnostics section{border:1px solid var(--line);border-radius:var(--radius-surface);background:#fff;padding:12px;margin-bottom:9px}
@@ -394,11 +430,18 @@
 #sidebar-tool-settings-open:hover{background:#eef3ff;color:#365dba;border-color:#dce5fa}
 .sidebar-tool-settings-view{padding:14px 15px;border-radius:var(--radius-surface);background:var(--surface,#fff);min-width:0}
 .time-review-trusted-actions{display:flex;flex-wrap:wrap;gap:8px;min-width:0;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.time-review-trusted-actions[hidden]{display:none!important}
 .time-review-trusted-actions>p{flex:1 1 100%;margin:0;color:var(--od-sub);font-size:12px;line-height:1.5}
 .time-review-trusted-actions button{flex:0 0 auto;min-height:34px;padding:6px 10px;font-size:12px}
 .time-review-inline-clear-review{display:flex;align-items:center;flex-wrap:wrap;gap:8px;flex:1 1 100%;padding:9px;border:1px solid #e5c4c8;border-radius:var(--radius-control);background:#fff8f8}
 .time-review-inline-clear-review[hidden]{display:none!important}
 .time-review-inline-clear-review p{flex:1 1 100%;margin:0;font-size:12px;color:#82454d}
+.time-review-trusted-actions #time-review-site-grants-list{flex:1 1 100%;min-width:0;display:grid;gap:6px}
+.time-review-site-grant-row{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;padding:7px 9px;border:1px solid var(--line);border-radius:var(--radius-control);background:var(--surface)}
+.time-review-site-grant-row span{font-size:12px;overflow-wrap:anywhere;min-width:0}
+.time-review-site-grant-row button{flex:none;min-height:28px}
+#time-review-site-all-confirm{border-color:var(--line);background:var(--surface-subtle)}
+#time-review-site-all-confirm p{color:var(--od-sub)}
 #time-review-clear-approve{background:var(--od-negative);color:var(--od-paper)}
 .sidebar-toc-settings-intro{font-size:12px;color:var(--text-secondary,#62738b);margin:0 0 15px;line-height:1.5}
 .sidebar-toc-settings-scope{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:11px;background:var(--surface-subtle,#f7f9fd);border:1px solid var(--line,#e6eaf1);border-radius:var(--radius-control);margin-bottom:12px}
@@ -498,6 +541,17 @@
 .workflow-composer-actions{display:flex;justify-content:flex-end;align-items:center;gap:5px;flex-wrap:nowrap}
 .workflow-composer .workflow-settings-button{border-color:transparent!important}
 .workflow-composer .workflow-send-button{display:inline-flex;align-items:center;justify-content:center;flex:none;width:36px;height:36px;min-height:36px;padding:0;border-radius:var(--radius-control)}
+/* R16: first-use model data approval, using the shared R27 spacing/tokens. */
+.workflow-composer .workflow-send-button[data-first-use="true"]{width:auto;max-width:100%;min-width:112px;gap:var(--space-2);padding:0 var(--space-3);white-space:nowrap}
+.workflow-send-label{font-size:12px;font-weight:650;line-height:1.4;white-space:nowrap}
+.workflow-ai-data-notice{min-width:0;margin:var(--space-2) 0 0;font-size:12px;line-height:1.55;color:var(--od-sub);overflow-wrap:anywhere}
+.workflow-ai-data-notice[data-consent="required"]{color:var(--od-ink)}
+.workflow-ai-data-details{margin:var(--space-3) 0 0;padding-top:var(--space-2);border-top:1px solid var(--od-line)}
+.workflow-ai-data-details summary{min-height:28px;cursor:pointer;font-size:12px;font-weight:650;color:var(--od-sub)}
+.workflow-ai-data-details p{overflow-wrap:anywhere}
+.workflow-ai-revoke{margin-top:var(--space-2);min-height:36px;font-size:12px;white-space:normal;text-align:left}
+@media(max-width:280px){.workflow-composer .workflow-send-button[data-first-use="true"]{min-width:0}}
+
 #workflow-provider-settings:not([open]){display:none}
 #workflow-provider-settings>summary{display:none}
 .workflow-provider{margin:6px 0 0;padding-top:6px;border-top:1px solid #edf1f7}
@@ -760,25 +814,25 @@
 .schedule-history-row small{display:block;margin-top:4px;color:var(--od-sub);overflow-wrap:anywhere}
 .schedule-delete-confirm{display:grid;gap:8px;padding:12px;border:1px solid var(--od-line)}
 .schedule-delete-confirm p{margin:0}
-.schedule-form{min-width:0;display:grid;gap:var(--space-3)}
-.schedule-form .od-field,.schedule-rule .od-field,#schedule-task-manager .od-field{display:grid;gap:var(--space-1);font-size:12px;font-weight:600;min-width:0}
+.schedule-form{min-width:0;display:grid;gap:var(--space-4)}
+.schedule-form .od-field,.schedule-rule .od-field,#schedule-task-manager .od-field{display:grid;gap:var(--space-2);font-size:12px;font-weight:600;min-width:0}
 .schedule-form input,.schedule-form select,.schedule-form textarea,
 #schedule-task-manager input,#schedule-task-manager select{max-width:100%;width:100%;min-width:0;min-height:36px;font-size:13px;line-height:1.45;border:1px solid var(--od-line);border-radius:var(--radius-control);padding:7px 8px;background:var(--od-paper);color:var(--od-ink)}
-.schedule-form textarea{resize:vertical}
-.schedule-source-field{display:grid;gap:var(--space-1);min-width:0}
-.schedule-source-field>label{font-weight:600}
+.schedule-form textarea{resize:vertical;margin:0}
+.schedule-source-field{display:grid;gap:var(--space-2);min-width:0}
+.schedule-source-field>label{font-weight:600;margin:0}
 .schedule-source-row{display:grid;grid-template-columns:minmax(0,1fr) var(--od-icon-size) var(--od-icon-size);gap:var(--space-2);align-items:center;min-width:0}
 .schedule-source-row select{width:100%;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .schedule-rule,.schedule-weekdays{min-width:0;border:1px solid var(--od-line);border-radius:var(--radius-control);padding:var(--space-3);margin:0;display:grid;gap:var(--space-2)}
 .schedule-rule legend,.schedule-weekdays legend{font-size:12px;font-weight:650;padding-inline:5px}
-.schedule-rule-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space-2)}
+.schedule-rule-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space-3)}
 .schedule-weekdays{display:flex;flex-wrap:wrap;gap:var(--space-2)}
 .schedule-weekdays label{display:inline-flex;align-items:center;gap:4px;min-height:32px;font-size:12px}
 .schedule-check{display:flex;align-items:flex-start;gap:var(--space-2);font-size:12px;line-height:1.5}
 .schedule-check input,.schedule-weekdays input{min-width:16px;width:16px;height:16px;min-height:16px;flex:none;margin:2px 0}
-.schedule-advanced{border:1px solid var(--od-line);border-radius:var(--radius-control);padding:var(--space-2)}
+.schedule-advanced{border:1px solid var(--od-line);border-radius:var(--radius-control);padding:var(--space-3);margin:0}
 .schedule-advanced>summary{cursor:pointer;font-size:12px;font-weight:600}
-.schedule-advanced>.od-field,.schedule-advanced>.schedule-check{margin-top:var(--space-2)}
+.schedule-advanced>.od-field,.schedule-advanced>.schedule-check{margin-top:var(--space-3)}
 #schedule-task-manager{display:grid;gap:var(--space-3);min-width:0}
 #schedule-uninstall-confirm{padding:var(--space-3);display:grid;gap:var(--space-2)}
 #schedule-uninstall-confirm p{margin:0;overflow-wrap:anywhere}
@@ -787,10 +841,264 @@
   .schedule-rule-row{grid-template-columns:minmax(0,1fr)}
 }
 
+
+/* R2.5: Source-aligned four-part form; R27 space-2/3/4 and one-page gutter.
+   Plain section dividers only, not nested shadow cards or secondary design tokens. */
+.schedule-form-section{display:grid;gap:var(--space-3);min-width:0;padding:0 0 var(--space-4);margin:0;border:0;border-bottom:1px solid var(--od-line)}
+.schedule-form-advanced{border-bottom:0}
+.schedule-section-title{font-size:12px;line-height:1.5;font-weight:750;color:var(--od-sub);margin:0 0 var(--space-1);padding:0}
+.schedule-section-title span{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:6px;margin-right:var(--space-2);background:var(--od-muted);color:var(--od-brand);font-size:11px;font-weight:800}
+.schedule-form-section .od-field,.schedule-form-section .od-field>label,.schedule-form-section .schedule-source-field>label{margin:0}
+.schedule-form-section .od-field{gap:var(--space-2)}
+.schedule-form-section .od-field:not(.schedule-check){line-height:1.5}
+.schedule-form-section .od-field input,.schedule-form-section .od-field select,.schedule-form-section .od-field textarea{margin:0}
+.schedule-form .schedule-rule{padding:0 0 var(--space-4);border:0;border-bottom:1px solid var(--od-line);border-radius:0}
+.schedule-form .schedule-rule legend{margin-bottom:var(--space-3)}
+.schedule-rule-field{display:grid;gap:var(--space-2);min-width:0;align-content:start}
+.schedule-rule-field>label{font-size:12px;line-height:1.5;font-weight:600;margin:0}
+.schedule-panel .schedule-timezone-help{font-size:12px;line-height:1.5;margin:0;overflow-wrap:anywhere}
+.schedule-source-field>p:empty{display:none}
+.schedule-advanced .od-field{margin-top:var(--space-3)}
+@media(max-width:420px){
+  .schedule-rule-row{grid-template-columns:minmax(0,1fr)}
+}
+
 /* Component source review stays inside the existing editor; long public URLs
    wrap locally and do not create a second page gutter. */
+#page-dependency-panel{min-width:0;padding:var(--space-2);margin:var(--space-2) 0;border:1px solid var(--line);border-radius:var(--radius-surface)}
+#page-dependency-panel>summary{font-size:12px;font-weight:650;cursor:pointer}
+#page-dependency-panel p{font-size:12px;line-height:1.5;margin:0;overflow-wrap:anywhere}
+#page-dependency-panel .identity{white-space:pre-wrap;overflow-wrap:anywhere}
+#page-dependency-panel select{max-width:100%;min-width:0;width:100%}
+#page-dependency-panel .od-surface{padding:var(--space-2)}
+#page-dependency-panel #page-dependency-review-list{margin:var(--space-2) 0}
+#page-dependency-status[data-state="error"]{color:var(--od-negative)}
+#page-dependency-panel .od-toolbar{flex-wrap:wrap;gap:var(--space-2)}
 #page-component-remote{min-width:0;gap:var(--space-2);padding-block:var(--space-2)}
 #page-component-remote p{margin:0;font-size:13px;line-height:1.5;color:var(--od-ink)}
 #page-component-remote pre{white-space:pre-wrap;overflow-wrap:anywhere;min-width:0;max-height:16rem;overflow:auto;font-size:12px;line-height:1.5;margin:0}
 #page-component-remote .od-toolbar{flex-wrap:wrap;gap:var(--space-2)}
 #page-component-remote-status[data-state="error"]{color:var(--od-negative)}
+
+/* Dedicated, visible scheduled RunHost tab. This is the SAME trusted tool.html
+ * entry and execution chain, not a second scheduler or an offscreen page.
+ * Keep the validated 320px Side Panel layout unchanged. */
+:root[data-opendesk-surface="scheduled-runner"] .workbench-nav{display:none!important}
+:root[data-opendesk-surface="scheduled-runner"] #workspace-content{
+  max-width:760px;
+  width:100%;
+  padding:20px clamp(12px,3vw,24px) 32px;
+  margin-inline:auto
+}
+:root[data-opendesk-surface="scheduled-runner"] .schedule-header strong{font-size:18px}
+:root[data-opendesk-surface="scheduled-runner"] .schedule-panel{gap:var(--space-4)}
+:root[data-opendesk-surface="scheduled-runner"] .schedule-card,
+:root[data-opendesk-surface="scheduled-runner"] .schedule-manager-card{padding:var(--space-4)}
+:root[data-opendesk-surface="scheduled-runner"] .schedule-card-head strong{font-size:14px}
+
+/* R2: a dedicated visible runner overview, using the original task workbench
+ * and design tokens. The narrow Side Panel is intentionally unchanged. */
+:root[data-opendesk-surface="scheduled-runner"] #workspace-dock{display:none!important}
+:root[data-opendesk-surface="scheduled-runner"] .schedule-runner-view{gap:var(--space-4);min-width:0}
+.schedule-runner-intro{display:flex;align-items:flex-end;justify-content:space-between;gap:var(--space-3);flex-wrap:wrap;min-width:0}
+.schedule-runner-intro h1{font-size:clamp(20px,3vw,25px);line-height:1.3;letter-spacing:-.025em;margin:2px 0 8px}
+.schedule-runner-kicker{font-size:11px;font-weight:700;color:var(--od-sub);letter-spacing:.05em;margin:0}
+.schedule-runner-intro .hint{max-width:58ch;margin:0}
+.schedule-runner-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,185px),1fr));gap:var(--space-3);min-width:0}
+.schedule-runner-metric{display:grid;gap:8px;align-content:start;min-width:0;padding:var(--space-4)}
+.schedule-runner-metric span{font-size:12px;color:var(--od-sub)}
+.schedule-runner-metric strong{font-size:16px;line-height:1.4;overflow-wrap:anywhere}
+.schedule-runner-metric small{font-size:12px;line-height:1.5;color:var(--od-sub);overflow-wrap:anywhere}
+.schedule-runner-focus{display:grid;gap:var(--space-3);padding:var(--space-4);min-width:0}
+.schedule-runner-focus .schedule-card-head>div{flex:1 1 170px;min-width:0}
+.schedule-runner-focus #schedule-runner-focus-title{overflow-wrap:anywhere}
+.schedule-runner-focus .hint{margin:0;overflow-wrap:anywhere}
+:root[data-opendesk-surface="scheduled-runner"] .schedule-runner-view .od-button{min-height:38px}
+:root[data-opendesk-surface="scheduled-runner"] .schedule-header{align-items:flex-start}
+@media(max-width:420px){
+ :root[data-opendesk-surface="scheduled-runner"] #workspace-content{padding:12px 10px 20px}
+ .schedule-runner-metric,.schedule-runner-focus{padding:var(--space-3)}
+}
+
+/* R2: field-level validation and explicit inline approval, no native JS dialog. */
+.schedule-panel .schedule-field-error{color:var(--od-negative);font-size:12px;line-height:1.4;margin:0;overflow-wrap:anywhere}
+.schedule-field-error:empty{display:none}
+.schedule-form [aria-invalid="true"]{border-color:var(--od-negative);outline-offset:2px}
+.schedule-save-confirm{display:grid;gap:var(--space-2);padding:var(--space-3);min-width:0}
+.schedule-save-confirm>p{margin:0;font-size:12px;line-height:1.6;overflow-wrap:anywhere;white-space:pre-line}
+.schedule-save-confirm>strong{font-size:13px}
+.schedule-run-details{margin-top:4px;max-width:100%}
+.schedule-run-details summary{cursor:pointer;color:var(--od-sub)}
+
+/* Scheduled R2: paged history stays within the original plan card. */
+.schedule-load-more{justify-self:start;min-height:36px}
+
+
+/* Scheduled R2.6: one gutter, explicit reading hierarchy and non-destructive
+ * timezone search. Scoped to the existing scheduled surface only. */
+.schedule-header{justify-content:flex-start;align-items:center}
+.schedule-header-heading{min-width:0;flex:1 1 130px}
+.schedule-header-heading strong,.schedule-header-heading .hint{overflow-wrap:anywhere}
+.schedule-header #schedule-stop{margin-inline-start:auto}
+.schedule-panel #schedule-list-summary{margin:0;color:var(--od-ink);font-size:12px;font-weight:650;line-height:1.55;overflow-wrap:anywhere}
+.schedule-panel .schedule-card{gap:var(--space-2);padding:var(--space-3);overflow-wrap:anywhere}
+.schedule-card-head{align-items:flex-start;flex-wrap:nowrap}
+.schedule-card-head strong{font-size:14px;line-height:1.5;flex:1 1 auto;min-width:0;white-space:normal}
+.schedule-state{flex:0 0 auto;white-space:nowrap;font-weight:650}
+.schedule-card .schedule-next-time{font-size:16px;line-height:1.4;font-weight:780;color:var(--od-ink);letter-spacing:-.02em;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.schedule-panel .schedule-plan-meta{margin:0;font-size:12px;line-height:1.5}
+.schedule-panel .schedule-status-help{margin:0;padding:var(--space-2);border-radius:var(--radius-control);background:var(--od-muted);color:var(--od-sub);font-size:12px;line-height:1.55;overflow-wrap:anywhere}
+.schedule-plan-actions{justify-content:flex-start;border-top:1px solid var(--od-line);padding-top:var(--space-2)}
+.schedule-plan-actions .od-button{min-height:36px}
+.schedule-more{border-top:1px solid var(--od-line);padding-top:var(--space-2);min-width:0}
+.schedule-more>summary{cursor:pointer;min-height:34px;display:list-item;padding-block:6px;font-size:12px;font-weight:650;color:var(--od-sub)}
+.schedule-more>summary:focus-visible,.schedule-history>summary:focus-visible{outline:2px solid var(--od-brand);outline-offset:2px}
+.schedule-more>.hint{margin:var(--space-2) 0;overflow-wrap:anywhere}
+.schedule-more>.od-button{margin-top:var(--space-2);max-width:100%;min-height:36px}
+.schedule-panel .schedule-danger-link{background:transparent;border:1px solid var(--od-negative);color:var(--od-negative)}
+.schedule-panel .schedule-danger-button{background:var(--od-negative);color:var(--od-paper)}
+.schedule-delete-confirm .od-button{min-height:36px}
+.schedule-delete-confirm{border-radius:var(--radius-control)}
+.schedule-history{min-width:0}
+.schedule-history>summary{min-height:34px;display:list-item;padding-block:6px;overflow-wrap:anywhere}
+.schedule-history>.od-stack{gap:var(--space-2)}
+.schedule-history-row .schedule-status-guidance{display:block;margin-top:var(--space-1);line-height:1.5}
+.schedule-form .schedule-form-section{row-gap:var(--space-3)}
+.schedule-form-section .schedule-section-title{margin-bottom:var(--space-1)}
+.schedule-form-section .schedule-source-field,.schedule-form-section .schedule-rule-field{gap:var(--space-2);min-width:0}
+.schedule-form-section .schedule-rule-field input[type=search]{height:36px;min-height:36px}
+.schedule-panel .schedule-timezone-match:empty{display:none}
+.schedule-panel .schedule-timezone-match{margin:0;font-size:11px;line-height:1.5}
+.schedule-form-section .schedule-timezone-help{margin:0}
+.schedule-form #schedule-next{margin:0;line-height:1.55;overflow-wrap:anywhere}
+.schedule-form .schedule-advanced{min-width:0}
+.schedule-form .schedule-advanced>.od-field{display:grid;gap:var(--space-2)}
+.schedule-form .schedule-advanced>summary{min-height:30px;line-height:1.5}
+.schedule-form #schedule-save-confirm{border-radius:var(--radius-surface)}
+.schedule-form #schedule-discard-confirm{display:grid;gap:var(--space-2);padding:var(--space-3);min-width:0;border-radius:var(--radius-surface)}
+.schedule-form #schedule-discard-confirm>p{margin:0;font-size:12px;line-height:1.55;color:var(--od-sub);overflow-wrap:anywhere}
+.schedule-form #schedule-discard-confirm>.schedule-actions{justify-content:flex-start;flex-wrap:wrap}
+.schedule-form>.schedule-actions{justify-content:flex-start;gap:var(--space-2);padding-bottom:var(--space-2)}
+.schedule-form .schedule-actions>.od-button{min-height:36px}
+:root[data-opendesk-surface="scheduled-runner"]:has(#schedule-runner-view:not([hidden])) .schedule-header-heading{display:none}
+:root[data-opendesk-surface="scheduled-runner"]:has(#schedule-runner-view:not([hidden])) .schedule-header:has(#schedule-stop[hidden]){display:none}
+:root[data-opendesk-surface="scheduled-runner"]:has(#schedule-runner-view:not([hidden])) .schedule-header{justify-content:flex-end}
+:root[data-opendesk-surface="scheduled-runner"] .schedule-runner-view .schedule-runner-focus{order:1}
+:root[data-opendesk-surface="scheduled-runner"] .schedule-runner-view .schedule-runner-metrics{order:2}
+:root[data-opendesk-surface="scheduled-runner"] .schedule-runner-focus{padding:var(--space-4)}
+:root[data-opendesk-surface="scheduled-runner"] .schedule-runner-metric{padding:var(--space-3);background:transparent}
+:root[data-opendesk-surface="scheduled-runner"] .schedule-runner-metric strong{font-size:14px}
+:root[data-opendesk-surface="scheduled-runner"] .schedule-runner-intro{align-items:flex-start}
+@media(max-width:340px){
+ .schedule-card .schedule-next-time{font-size:15px}
+ .schedule-header{gap:var(--space-2)}
+ .schedule-form .schedule-actions>.od-button{flex:1 1 115px;min-width:0}
+ .schedule-plan-actions>.od-button{flex:1 1 85px;min-width:0}
+}
+
+/* Trusted native Cookie inspector: within existing Tools surface, not the sandbox. */
+.trusted-cookie-panel{margin-top:var(--space-3);padding:var(--space-3);min-width:0}
+.trusted-cookie-panel>summary{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap;cursor:pointer}
+.trusted-cookie-panel>summary::marker{color:var(--od-sub)}
+.trusted-cookie-panel>summary strong{color:var(--od-ink)}
+.trusted-cookie-content{display:grid;gap:var(--space-2);padding-top:var(--space-3);min-width:0}
+.trusted-cookie-content>.hint{line-height:1.6;margin:0}
+.trusted-cookie-content>.identity{margin:0}
+.trusted-cookie-content>button{justify-self:start}
+.trusted-cookie-list{display:grid;gap:var(--space-2);max-height:330px;overflow:auto;min-width:0}
+.trusted-cookie-item{display:flex;align-items:flex-start;gap:var(--space-2);padding:var(--space-2);border:1px solid var(--od-input-border);border-radius:var(--radius-control);min-width:0;flex-wrap:wrap}
+.trusted-cookie-item-copy{display:grid;gap:2px;flex:1 1 140px;min-width:0}
+.trusted-cookie-item-copy>strong,.trusted-cookie-value{overflow-wrap:anywhere;word-break:break-word}
+.trusted-cookie-item-copy>small{color:var(--od-sub);overflow-wrap:anywhere}
+.trusted-cookie-value{font:12px/1.5 ui-monospace,monospace}
+.trusted-cookie-item-actions{display:flex;flex-wrap:wrap;gap:var(--space-1)}
+.trusted-cookie-item-actions button{min-height:32px}
+/* Trusted Cookie observation is ephemeral, opt-in and contains metadata only. */
+.trusted-cookie-observe{border-top:1px solid var(--od-input-border);padding:var(--space-2) 0;min-width:0}
+.trusted-cookie-observe>summary{cursor:pointer;font-size:12px;font-weight:650;min-height:30px}
+.trusted-cookie-observe>.hint{font-size:12px;line-height:1.55;margin:var(--space-2) 0}
+.trusted-cookie-observe-actions{display:flex;flex-wrap:wrap;gap:var(--space-1)}
+.trusted-cookie-observe-actions>button{min-width:0;min-height:32px;flex:1 1 88px}
+.trusted-cookie-watch-events{display:grid;gap:var(--space-1);max-height:168px;overflow:auto;min-width:0}
+.trusted-cookie-watch-event{font:12px/1.5 ui-monospace,monospace;overflow-wrap:anywhere;padding:var(--space-1);border-bottom:1px solid var(--od-input-border)}
+.trusted-cookie-write{padding:var(--space-2);border-top:1px solid var(--od-input-border);min-width:0}
+.trusted-cookie-write>summary{margin-bottom:var(--space-2)}
+.trusted-cookie-write label{margin-bottom:var(--space-1)}
+.trusted-cookie-write input{margin-top:0}
+.trusted-cookie-write>.hint{line-height:1.6}
+@media(max-width:350px){.trusted-cookie-item-actions{width:100%}}
+
+/* R5.2 Cloud: task-first authorization, advanced technical identity and one page gutter. */
+#workbench-cloud .cloud-overview-secondary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-2);margin-top:var(--space-2)}
+#workbench-cloud .cloud-overview-secondary>div{min-width:0;font-size:12px;line-height:1.5;color:var(--od-sub)}
+#workbench-cloud .cloud-overview-secondary strong{display:block;color:var(--od-ink);overflow-wrap:anywhere}
+#workbench-cloud .cloud-diagnostics{margin-top:var(--space-3);min-width:0}
+#workbench-cloud .cloud-diagnostics>summary{cursor:pointer;font-size:12px;color:var(--od-sub);min-height:30px}
+#workbench-cloud .cloud-first-run{padding:var(--space-3);display:grid;gap:var(--space-2);min-width:0}
+#workbench-cloud .cloud-first-run[hidden],#workbench-cloud .cloud-approval-section[hidden]{display:none}
+#workbench-cloud .cloud-first-run p{margin:0;font-size:13px;line-height:1.5;overflow-wrap:anywhere}
+#workbench-cloud .cloud-approval-section{display:grid;gap:var(--space-2);padding:var(--space-3);min-width:0}
+#workbench-cloud .cloud-privacy-note{margin:0;font-size:12px;line-height:1.55;color:var(--od-sub)}
+#workbench-cloud .cloud-task-approvals{border:0;padding:0;margin:0;min-width:0}
+#workbench-cloud .cloud-task-approvals legend{font-size:12px;font-weight:650}
+#workbench-cloud #cloud-task-list{display:grid;gap:0;min-width:0}
+#workbench-cloud .cloud-task-choice{display:grid;gap:var(--space-2);min-width:0;border-top:1px solid var(--od-line);padding:var(--space-3) 0;font-size:12px;line-height:1.5}
+#workbench-cloud .cloud-task-choice>label:first-child{display:flex;align-items:flex-start;flex-wrap:wrap;gap:var(--space-2);min-width:0;font-size:13px;font-weight:650}
+#workbench-cloud .cloud-task-choice label{display:flex;align-items:flex-start;gap:var(--space-2);min-width:0;overflow-wrap:anywhere}
+#workbench-cloud .cloud-task-choice label>span{min-width:0;flex:1;overflow-wrap:anywhere}
+#workbench-cloud .cloud-task-choice input{flex:0 0 auto;margin-top:3px}
+#workbench-cloud .cloud-task-description{display:block;flex:0 0 100%;margin-left:24px;font-size:12px;line-height:1.5;color:var(--od-sub);font-weight:400;overflow-wrap:anywhere}
+#workbench-cloud .cloud-task-scope,#workbench-cloud .cloud-task-params{font-size:12px;line-height:1.5;color:var(--od-sub);margin:0;overflow-wrap:anywhere}
+#workbench-cloud #cloud-approval-summary{font-size:12px;line-height:1.5;overflow-wrap:anywhere;margin:var(--space-2) 0 0}
+#workbench-cloud .cloud-approval-confirm{display:flex;align-items:flex-start;gap:var(--space-2);min-width:0;font-size:12px;line-height:1.5}
+#workbench-cloud .cloud-approval-confirm input{flex:0 0 auto}
+#workbench-cloud .cloud-action-row{display:flex;gap:var(--space-2);flex-wrap:wrap;min-width:0}
+#workbench-cloud .cloud-action-row>button{flex:1 1 140px;min-width:0;min-height:36px}
+#workbench-cloud .cloud-task-choice details{min-width:0;max-width:100%}
+#workbench-cloud .cloud-task-choice details summary{font-size:12px;font-weight:600;cursor:pointer;min-height:28px}
+#workbench-cloud .cloud-task-choice details pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;line-height:1.5;max-height:200px;max-width:100%;overflow:auto}
+@media(max-width:340px){#workbench-cloud .cloud-action-row>button{flex-basis:100%}#workbench-cloud .cloud-overview-secondary{grid-template-columns:1fr}}
+
+/* R5.2 external app grants: one trusted Side Panel subview, no nested cards. */
+#workbench-cloud .cloud-clients{min-width:0;padding:var(--space-3);display:grid;gap:var(--space-3)}
+#workbench-cloud .cloud-clients>summary{cursor:pointer;min-height:36px;font-size:13px;font-weight:650;line-height:1.5}
+#workbench-cloud .cloud-clients>summary:focus-visible{outline:2px solid var(--od-brand);outline-offset:2px}
+#workbench-cloud .cloud-clients:not([open])>:not(summary){display:none!important}
+#workbench-cloud .cloud-clients .cloud-privacy-note{margin:0}
+#workbench-cloud .cloud-client-form{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-2)}
+#workbench-cloud .cloud-client-form>label:not(.cloud-approval-confirm),
+#workbench-cloud .cloud-client-once>label{font-size:12px;font-weight:600;line-height:1.5}
+#workbench-cloud .cloud-client-form>.od-field,
+#workbench-cloud .cloud-client-secret-row>.od-field{min-width:0;width:100%;max-width:100%;min-height:36px}
+#workbench-cloud .cloud-client-form .cloud-approval-confirm{margin-block:var(--space-1)}
+#workbench-cloud .cloud-client-form>button{justify-self:start;min-height:36px}
+#workbench-cloud .cloud-client-once{display:grid;gap:var(--space-2);min-width:0}
+#workbench-cloud .cloud-client-once[hidden]{display:none}
+#workbench-cloud .cloud-client-secret-row{display:flex;flex-wrap:wrap;gap:var(--space-2);min-width:0}
+#workbench-cloud .cloud-client-secret-row>.od-field{flex:1 1 180px;min-width:0;font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+#workbench-cloud .cloud-client-secret-row>button{flex:0 0 auto;min-height:36px}
+#workbench-cloud #cloud-clients-status{margin:0;line-height:1.55;overflow-wrap:anywhere}
+#workbench-cloud .cloud-clients-list{display:grid;gap:0;list-style:none;margin:0;padding:0;min-width:0}
+#workbench-cloud .cloud-client-row{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap;min-width:0;padding:var(--space-3) 0;border-top:1px solid var(--od-line)}
+#workbench-cloud .cloud-client-row>span{flex:1 1 180px;min-width:0;overflow-wrap:anywhere;font-size:12px;line-height:1.5}
+#workbench-cloud .cloud-client-row>button{flex:0 0 auto;min-height:36px}
+#workbench-cloud .cloud-client-row:first-child{border-top:0}
+@media(max-width:340px){#workbench-cloud .cloud-client-row>button{flex-basis:100%}#workbench-cloud .cloud-client-secret-row>button{flex:1 1 100%}#workbench-cloud .cloud-client-form>button{width:100%}}
+
+/* R2.3 local-only storage transparency; no destructive cleanup control. */
+.schedule-storage-details{max-width:100%;min-width:0;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper)}
+.schedule-storage-details>summary{cursor:pointer;min-height:36px;padding:8px 12px;font-size:12px;font-weight:650;line-height:1.5}
+.schedule-storage-details>summary:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.schedule-storage-details>p{margin:0;padding:0 12px 12px;overflow-wrap:anywhere}
+
+/* Tools with their own trusted site grants must not show generic TOC/Clip grant controls. */
+#sidebar-tool-generic-site-scope[hidden],#sidebar-tool-generic-site-binary[hidden],#sidebar-tool-generic-site-advanced[hidden]{display:none!important}
+
+/* Time Review uses existing trusted settings as an in-place enrollment card.
+   Only this tool keeps the sandbox statistics visible during permission setup. */
+#sidebar-tool-display[data-time-review-inline="true"]{display:flex;flex-direction:column}
+#sidebar-tool-display[data-time-review-inline="true"]>.sidebar-tool-view-head{order:0}
+#sidebar-tool-display[data-time-review-inline="true"]>#sidebar-tool-settings-view{order:1;margin-bottom:10px}
+#sidebar-tool-display[data-time-review-inline="true"]>#sidebar-tool-frame{order:2}
+#sidebar-tool-display[data-time-review-inline="true"]>#sidebar-tool-launch,
+#sidebar-tool-display[data-time-review-inline="true"]>#sidebar-tool-retired-draft{order:3}

@@ -3,18 +3,19 @@ import {SIDEBAR_TOOL_PROTOCOL} from '../ui/sidebar-tools/package.js';
 import {createBrowserSdk} from '../framework/sdk/browser.js';
 // The sandbox waits for a separate real Side Panel click; ordinary tool RPCs
 // remain 8 seconds. This duration is UX only, never an authorization or grant.
-const TOOL_CONSENT_OPS=new Set(['browser.tabs.open','browser.tabs.focus',
+const TOOL_CONSENT_OPS=new Set(['browser.tabs.create','browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.reloadOwned','browser.tabs.navigateOwned','browser.tabs.removeOwned',
  'browser.network.request','browser.sidePanel.openSelf',
  'browser.network.observe.start','browser.network.observe.export',
  'browser.screenshot.captureVisible']);
 export function sidebarToolRequestTimeout(operation,toolId){
- return (toolId==='time-review'&&['time.start','time.clear'].includes(operation))||
+ return (toolId==='stay-focus'&&operation.startsWith('focus.')&&operation!=='focus.status')||
+   (toolId==='time-review'&&['time.start','time.clear'].includes(operation))||
    TOOL_CONSENT_OPS.has(operation)?120000:8000;
 }
 export function initSidebarToolSandbox() {
   const root=document.getElementById('tool-root');
   const status=document.getElementById('tool-status');
-  let instance=null, toolId=null, sequence=0, scriptUrl=null;
+  let instance=null, toolId=null, sequence=0, scriptUrl=null,disposed=false;
   const waiting=new Map();
   let resizePending=false,lastHeight=0;
   const sendSize=()=>{
@@ -128,15 +129,58 @@ export function initSidebarToolSandbox() {
     };
     Object.defineProperty(window,'OpenDeskTool',{value:Object.freeze({root,request,setState}),configurable:false});
     Object.defineProperty(window,'OpenDeskSDK',{value:Object.freeze({browser:createBrowserSdk({request,context:'sidebar-tool'})}),configurable:false});
-    scriptUrl=URL.createObjectURL(new Blob([tool.js],{type:'text/javascript'}));
-    const script=document.createElement('script');
-    script.src=scriptUrl;
-    script.addEventListener('load',()=>{URL.revokeObjectURL(scriptUrl);scriptUrl=null;report('ready','工具已就绪');},{once:true});
-    script.addEventListener('error',()=>{URL.revokeObjectURL(scriptUrl);scriptUrl=null;report('error','工具脚本加载失败');},{once:true});
-    document.body.append(script);
+    // Native/File-first: every dependency is the exact UTF-8 source bundled in
+    // the installed v2 package. Verify SHA before creating a local Blob URL.
+    // Never create a network script.src, never use privileged extension DOM.
+    const fixed=tool.scripts===undefined?[]:tool.scripts;
+    if(!Array.isArray(fixed)||fixed.length>8||fixed.some(item=>
+      !item||typeof item.code!=='string'||typeof item.name!=='string'||
+      !/^[a-f0-9]{64}$/.test(item.sha256)||item.code.length>96000)){
+      report('error','E_TOOL_SCRIPTS：工具固定库清单无效，已阻止执行');return;
+    }
+    async function verifySource(item){
+      if(!globalThis.crypto?.subtle)throw Error('E_TOOL_HASH_UNAVAILABLE');
+      const raw=new TextEncoder().encode(item.code);
+      if(raw.byteLength<1||raw.byteLength>96000)throw Error('E_TOOL_SCRIPT_LIMIT');
+      const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',raw)))
+        .map(b=>b.toString(16).padStart(2,'0')).join('');
+      if(hash!==item.sha256)throw Error('E_TOOL_SHA：'+item.name);
+    }
+    function loadLocal(code,name){
+      if(disposed)return Promise.reject(Error('E_TOOL_DISPOSED'));
+      return new Promise((resolve,reject)=>{
+        const url=URL.createObjectURL(new Blob([code],{type:'text/javascript'}));
+        scriptUrl=url;
+        const script=document.createElement('script');
+        script.src=url;
+        const finish=()=>{URL.revokeObjectURL(url);if(scriptUrl===url)scriptUrl=null;};
+        script.addEventListener('load',()=>{finish();disposed?reject(Error('E_TOOL_DISPOSED')):resolve();},{once:true});
+        script.addEventListener('error',()=>{finish();reject(Error('E_TOOL_SCRIPT_LOAD：'+name));},{once:true});
+        document.body.append(script);
+      });
+    }
+    void (async()=>{
+      for(const row of fixed){
+        if(disposed)throw Error('E_TOOL_DISPOSED');
+        await verifySource(row);
+        if(disposed)throw Error('E_TOOL_DISPOSED');
+        await loadLocal(row.code,row.name); // strict onload/error before next asset
+      }
+      if(disposed)throw Error('E_TOOL_DISPOSED');
+      scriptUrl=URL.createObjectURL(new Blob([tool.js],{type:'text/javascript'}));
+      const url=scriptUrl;
+      await new Promise((resolve,reject)=>{
+        const script=document.createElement('script');script.src=url;
+        const finish=()=>{URL.revokeObjectURL(url);if(scriptUrl===url)scriptUrl=null;};
+        script.addEventListener('load',()=>{finish();resolve();},{once:true});
+        script.addEventListener('error',()=>{finish();reject(Error('E_TOOL_MAIN_LOAD'));},{once:true});
+        document.body.append(script);
+      });
+      if(!disposed)report('ready','工具已就绪');
+    })().catch(cause=>{if(!disposed)report('error',String(cause?.message||cause).slice(0,260));});
   });
   window.addEventListener('pagehide',()=>{
-    if(scriptUrl)URL.revokeObjectURL(scriptUrl);
+    disposed=true;if(scriptUrl)URL.revokeObjectURL(scriptUrl);
     for(const {reject,timeout} of waiting.values()){clearTimeout(timeout);reject(new Error('工具已关闭'));}
     waiting.clear();
   },{once:true});

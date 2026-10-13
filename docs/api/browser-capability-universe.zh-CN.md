@@ -1,8 +1,10 @@
 # Browser Capability Universe · OpenDesk Browser R1.3
 
-> 当前状态：2026-10-12，main，API 1.0.0。[32 操作的当前实施/测试矩阵](../framework/workstreams/browser-sdk-r13-20261011.md) 与 [机器记录](../framework/workstreams/browser-sdk-r13-acceptance.json) 为最新验收入口。以下 18 域/74 叶子仍是能力规划，不能与公开操作数相加或推导完成百分比。
+> **R8 历史状态纠错**：本文的“18 领域、74 叶子”是旧版需求审计，不是官方 Chrome 全量 Namespace/Method/Event/Property，也不代表 R8 已开放的工具 API。旧 R1.3/R2/R3 阶段预测可能早于最新真实源码；已将下面已明确实现的 Tabs、HTTP、Network Observe、Screenshot 及现有任务调度信息纠正。此页不构成原生验收结论。当前正式 35 项看 [SDK 注册与验收](browser-sdk.zh-CN.md)，新 [R8 架构](browser-sdk-architecture-r8.zh-CN.md) 和 [部分官方 JSON Catalog](chrome-native-api-catalog.json) 单独追踪。
 
-本轮接通规范 Browser clipboard/downloads 请求并使前台可调用状态一致；菜单注销、过期、包摘要和 BFCache 生命周期已修复并有组件回归，原生结果按独立记录。`tabs.open/focus/sidePanel.openSelf` 缺受控引用、网站批准/真实手势合同，继续 PLANNED；通知 NOT_EXPOSED，网络请求/截图 HOST_ONLY。R2 被动观察仍 PLANNED，未提前实现。
+> **当前四层总账入口**：[OpenDesk 浏览器框架四层总账](browser-framework-four-layer-ledger.zh-CN.md)。本文 18 领域、74 能力叶子是历史审计范围，不等于当前正式 SDK 的 35 项或候选 114 项；不要把叶子统计提升为完成比例。
+
+本地菜单注销、过期、包摘要与 BFCache 生命周期修复及云控原生事实保护继续保留，证据按各自工作流的候选身份和等级核对。
 
 
 **核查范围**：18 个浏览器功能域、74 个叶子能力；以本次目标仓库的 Chrome 138+ Manifest、当前源码及 R1.3 变更为依据。此矩阵是**审计和扩展规划**，不构成额外的权限批准名单，不能据此直接向工具沙箱开放 `chrome.*`。
@@ -15,7 +17,7 @@
 - **PLANNED**：只冻结命名/责任/合同，**不能实际调用**。
 - **UNSUPPORTED**：当前模型明确不支持这种越权模式。
 
-**证据编码**：表中标记“既有”的叶子来自可定位源码，尚未作为本轮真实浏览器重新验收；标记“R1.3”的叶子仅为当前开发实现，需要 `tests/environment/browser-sdk-r13.test.mjs` 的定向结果以及独立 Mac Chrome 验收；“R2/R3”尚无可运行代码。最终每项原生 PASS 需在工作流记录中绑定 HEAD、dist 哈希、Chrome 版本和原始操作记录。即使 Controller 有截图/HTTP/Cookie，也不能将其计入普通工具公开接口。
+**证据编码**：表中标记“既有”的叶子来自可定位源码，尚未作为本轮真实浏览器重新验收；标记“R1.3”的叶子仅为当前开发实现，需要 `tests/environment/browser-sdk-r13.test.mjs` 的定向结果以及独立 Mac Chrome 验收；“R2/R3”是当时规划阶段的标签；其中部分功能已在后续版本实际接线，必须以当前源码和逐项验收账本为准。最终每项原生 PASS 需在工作流记录中绑定 HEAD、dist 哈希、Chrome 版本和原始操作记录。即使 Controller 有截图/HTTP/Cookie，也不能将其计入普通工具公开接口。
 
 ## 18 个领域功能树与状态矩阵
 
@@ -33,7 +35,7 @@
 
 | 子能力 | Chrome / Web / Native 接口 | 实际服务源码或拟新增位置 | Browser SDK/旧接口 | 允许环境 | 权限/能力 | 网站/身份范围 | Chrome | 风险 | 实施状态 | 阶段 / 证据 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 标签创建/聚焦 | chrome.tabs.create/update | src/platform/chrome/tabs.js（已有固定脚本注入，不等于公开页签管理） | browser.tabs.open/focus | 未来工具沙箱 | tabs + browser.tabs | 受控 tabRef | 138 | 中 | PLANNED | R2+ |
+| 标签创建/聚焦/自有管理 | chrome.tabs.create/update/get/remove + chrome.webNavigation | src/platform/chrome/browser-tabs.js; context-menus.js | browser.tabs.open/focus/getOwned/listOwned/closeOwned | 已安装获准工具 | tabs/webNavigation + browser.tabs | 自有 tabRef；不公开原生 tabId | 138 | 高 | IMPLEMENTED | R5 源码接线；原生另验 |
 | 窗口查询/管理 | chrome.windows | src/ui/tool-shell.js（现有 windows.getCurrent） | — | 可信 Host | windows | 窗口范围 | 138 | 中 | NOT_EXPOSED | R3 |
 | 标签分组 | chrome.tabGroups / tabs.group | manifest.json（可选 tabGroups） | — | 可信 Host | tabGroups | 用户可见 | 138 | 中 | PLANNED | R3 |
 | 会话恢复 | chrome.sessions | 未接线 | — | 可信 Host | sessions | 用户显式授权 | 138 | 高 | PLANNED | R3 |
@@ -53,7 +55,7 @@
 | 子能力 | Chrome / Web / Native 接口 | 实际服务源码或拟新增位置 | Browser SDK/旧接口 | 允许环境 | 权限/能力 | 网站/身份范围 | Chrome | 风险 | 实施状态 | 阶段 / 证据 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 现有主动请求 | fetch / axiosx | src/platform/chrome/network.js; src/framework/sdk/http.js | 原 axiosx | Page/Controller | 原网络能力 | 原目标 Origin | 138 | 高 | HOST_ONLY | 既有 |
-| 普通工具主动请求便捷层 | 同一 HTTP driver | src/platform/host/sdk-broker.js | browser.network.request（未接线） | 未来已安装工具 | 独立网络能力 | 显式 Origin | 138 | 高 | PLANNED | R2+ |
+| 普通工具主动请求便捷层 | fetch + 既有 Network Service | src/platform/chrome/context-menus.js; network.js | browser.network.request（已源码接线） | 已安装获准工具 | network + 单次 Host intent | 显式获准 Origin | 138 | 高 | IMPLEMENTED | R2 源码接线；原生另验 |
 | 自定义 Cookie/Auth 透传 | fetch credentials / cookie | src/platform/chrome/network.js; cookies.js | — | 可信 Host | Cookie/认证 | 强限制 | 138 | 极高 | NOT_EXPOSED | 不默认开放 |
 | WebSocket 业务连接 | WebSocket | src/native-agent/（已有其他通信用途） | — | 各自可信驱动 | 连接权限 | 明确服务器 | 138 | 高 | NOT_EXPOSED | R3 |
 
@@ -61,9 +63,9 @@
 
 | 子能力 | Chrome / Web / Native 接口 | 实际服务源码或拟新增位置 | Browser SDK/旧接口 | 允许环境 | 权限/能力 | 网站/身份范围 | Chrome | 风险 | 实施状态 | 阶段 / 证据 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| HTTP 请求元数据 | chrome.webRequest | 计划 network-observer.js | browser.network.observe.start | 可信 SW/未来工具 | webRequest + 单站授权 | 单标签单 Origin | 138 | 高 | PLANNED | R2 |
-| 会话状态/停止/导出 | storage.session/受控缓冲 | 计划 network-observation.js | browser.network.observe.getStatus/stop/export | 未来工具 | 观察会话 token | 原观察范围 | 138 | 高 | PLANNED | R2 |
-| 有界事件读取 | 消息/分页 cursor | 计划 network-observation.js | browser.events.read/close | 未来工具 | 会话身份 | 单会话 | 138 | 高 | PLANNED | R2 |
+| HTTP 请求元数据 | chrome.webRequest | src/platform/chrome/browser-network-observe.js; context-menus.js | browser.network.observe.start | 可信 SW/获准工具 | webRequest + 单站授权、真实 Host intent | 单标签单 Origin | 138 | 高 | IMPLEMENTED | R3/R4 源码接线；原生另验 |
+| 会话状态/停止/导出 | storage.session/受控缓冲 | src/platform/chrome/browser-network-observe.js; context-menus.js | browser.network.observe.getStatus/stop/export | 已安装获准工具 | 会话 token + 真实 Host 授权 | 原观察范围 | 138 | 高 | IMPLEMENTED | R3/R4 源码接线；原生另验 |
+| 有界网络事件读取 | 消息/分页 cursor | src/platform/chrome/browser-network-observe.js | browser.events.read/close | 已安装获准工具 | 绑定本工具会话 | 单网络观察会话（不直接支持 Cookie Change） | 138 | 高 | IMPLEMENTED | R3/R4 源码接线；原生另验 |
 | 完整 HAR 保真 | webRequest/CDP | 未实现 | — | 可信环境 | 调试强权限 | 敏感网络 | 138 | 极高 | PLANNED | R3+ |
 | WebSocket message body | CDP Network | 未实现 | — | 可信调试 | debugger | 未开放 | 138 | 极高 | NOT_EXPOSED | 非 R2 |
 
@@ -79,7 +81,7 @@
 
 | 子能力 | Chrome / Web / Native 接口 | 实际服务源码或拟新增位置 | Browser SDK/旧接口 | 允许环境 | 权限/能力 | 网站/身份范围 | Chrome | 风险 | 实施状态 | 阶段 / 证据 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 可见区域截图 | chrome.tabs.captureVisibleTab/Controller | src/platform/host/controller-methods.js; src/framework/control/native-driver.js | browser.screenshot.captureVisible（未开放） | Controller Host | 目标文档绑定 | 受权目标 | 138 | 高 | HOST_ONLY | R3 映射 |
+| 可见区域截图 | chrome.tabs.captureVisibleTab + downloads.download | src/platform/chrome/browser-screenshot.js; browser-screenshot-resources.js; context-menus.js | browser.screenshot.captureVisible（已源码接线） | 已安装获准工具/可信 Host | 自有 TabRef + 真实用户 intent | 精确标签与文档；不向沙箱返回原图 | 138 | 高 | IMPLEMENTED | R3 源码接线；下载完成与原生另验 |
 | 区域裁剪 | canvas / ImageBitmap | 未建独立通用服务 | — | 可信 UI | screenshot | 单图资源 | 138 | 中 | PLANNED | R3 |
 | 整页截图 | 受控滚动或 CDP | 未实现通用工具能力 | — | 可信 Host | 用户授权 | 目标文档 | 138 | 高 | PLANNED | R3 |
 
@@ -127,7 +129,7 @@
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 工具菜单开关/安装同步 | chrome.runtime.onInstalled / permissions / storage | src/sw.js; context-menus.js | — | 可信 SW | 菜单可选权限 | 工具安装状态 | 138 | 高 | IMPLEMENTED | R1.3 |
 | 文档导航与标签关闭撤销 | webNavigation.onCommitted / tabs.onRemoved | src/sw.js; sdk-methods.js; context-menus.js | — | 可信 SW | webNavigation | tab/document | 138 | 高 | HOST_ONLY | 既有+R1.3 |
-| Alarm 定时器 | chrome.alarms | 未见统一 Browser SDK 入口 | — | 可信 SW | alarms | 按任务限额 | 138 | 中 | PLANNED | R3 |
+| Alarm 定时器/任务调度 | chrome.alarms + OpenDesk Scheduled Tasks | src/platform/tasks/schedule-service.js; src/platform/host/authority.js（已有任务服务，非公共 browser.scheduler Facade） | —（公共 Facade 尚未注册） | 现有任务 Host | alarms + 任务授权 | 任务所有权/持久状态 | 138 | 高 | HOST_ONLY | 已有任务服务，公开 SDK 待设计 |
 | 扩展更新恢复 | runtime.onInstalled / startup | src/sw.js | — | 可信 SW | MV3 | 扩展 | 138 | 高 | HOST_ONLY | R1.3 验收中 |
 
 ### Controller、Page、Locator 和自动化
@@ -186,6 +188,6 @@
 
 ## Manifest 事实与后续阶段
 
-实际 `manifest.json` 的必备权限包含 `storage/scripting/sidePanel/activeTab/downloads/tabs/webNavigation/userScripts/cookies/notifications/unlimitedStorage`，可选包含 `contextMenus/webRequest/tabGroups/bookmarks/history/clipboardRead/clipboardWrite/declarativeNetRequestWithHostAccess/nativeMessaging`。项目当前声明 `host_permissions: ["<all_urls>"]`，它不是工具或网站授权事实来源，也不代表可以默认被动采集所有网络请求。
+实际 `manifest.json` 的必备权限包含 `storage/scripting/sidePanel/activeTab/downloads/tabs/webNavigation/userScripts/cookies/notifications/unlimitedStorage/alarms`，可选包含 `contextMenus/webRequest/tabGroups/bookmarks/history/clipboardRead/clipboardWrite/declarativeNetRequestWithHostAccess/nativeMessaging/idle`。项目当前声明 `host_permissions: ["<all_urls>"]`，它不是工具或网站授权事实来源，也不代表可以默认被动采集所有网络请求。
 
 R2 首要补齐 **浏览器网络请求被动观察**，保留 `src/platform/chrome/network.js` 中现有主动请求职责；R3 及之后按 Browser API 合同扩展 Tab/截图/录屏/语音/通知，不以第二套 SDK 代替现有 Authority/RunHost。完整接口和现实状态见 [browser-sdk.zh-CN.md](browser-sdk.zh-CN.md)。

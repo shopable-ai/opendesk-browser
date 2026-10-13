@@ -44,13 +44,13 @@ test('R4.9 Tools has one navigation tier and three accessible add/import/market 
   assert.match(css,/\.sidebar-tool-view-head \.sidebar-tool-icon-action\{flex:0 0 var\(--od-icon-size\)/);
 });
 
-test('R15 official sidebar preserves five product views, privileged controls, compact discovery and task history',async()=>{
+test('R15 official sidebar preserves six product views, privileged controls, compact discovery and task history',async()=>{
   const [html,css,work]=await Promise.all([
     read('src/ui/tool.html'),read('src/ui/tool-shell.css'),read('src/ui/task-workbench.js')
   ]);
   const ids=[...html.matchAll(/id="([^"]+)"/g)].map(match=>match[1]);
   assert.equal(ids.length,new Set(ids).size,'no duplicate DOM IDs');
-  for(const value of ['tab-my-tasks','tab-discover','tab-workflow','tab-develop','tab-tools','workbench-workflow','workbench-tools','cloud-hosting','cloud-open-console','workbench-local-discover',
+  for(const value of ['tab-my-tasks','tab-discover','tab-workflow','tab-develop','tab-tools','tab-cloud','workbench-workflow','workbench-tools','workbench-cloud','cloud-hosting','cloud-open-console','workbench-local-discover',
     'task-selected-workspace','task-history','task-params-form','task-run','task-stop',
     'workspace-dock','task-result-panel','task-history-panel','local-discover-open-catalog','script-source','script-run','script-save',
     'page-preview-run','sdk-install','task-install-feedback'])assert(ids.includes(value),'preserved '+value);
@@ -132,7 +132,7 @@ test('R19 Sidebar spacing and corner system is consistent across all five tabs',
   assert.match(css,/:focus-visible/,'keyboard focus state remains visible');
 });
 
-test('R20/R23 five-tab design system has one token source and a strict trusted asset pipeline',async()=>{
+test('R20/R23 six-tab design system has one token source and a strict trusted asset pipeline',async()=>{
   const [html,tokens,design,css,prepare,verify,visual]=await Promise.all([
     read('src/ui/tool.html'),read('src/ui/design-tokens.css'),read('src/ui/design-system.css'),read('src/ui/tool-shell.css'),
     read('scripts/prepare-public.mjs'),read('scripts/verify-package.mjs'),read('scripts/tests/sidebar-r19-layout-visual.mjs')
@@ -162,7 +162,10 @@ test('R20/R23 five-tab design system has one token source and a strict trusted a
   assert.doesNotMatch(design,/@import\b|url\s*\(|expression\s*\(/i);
   assert.match(prepare,/'src\/ui\/design-tokens\.css':'ui\/design-tokens\.css'/);
   assert.match(prepare,/'src\/ui\/design-system\.css':'ui\/design-system\.css'/);
-  assert.match(verify,/'ui\/tool\.html': \['design-tokens\.css', 'design-system\.css', 'tool-shell\.css', 'cloud-hosting\.css', 'tool-shell\.js'\]/);
+  assert.ok(verify.includes("'ui/tool.html': ['design-tokens.css', 'design-system.css', 'tool-shell.css', 'cloud-hosting.css', 'sidebar-tool-host.js', 'stay-focus-controls.js', 'trusted-cookie-ui.js', 'tool-shell.js']"),
+    'the fixed asset verifier must require cloud hosting CSS and the precise trusted sidecars before the main shell');
+  assert.match(html, /<script src="sidebar-tool-host\.js"><\/script>\s*<script src="stay-focus-controls\.js"><\/script>\s*<script src="trusted-cookie-ui\.js"><\/script>\s*<script src="tool-shell\.js"><\/script>/,
+    'the native Cookie/Stay Focus controls load in a verified order before the Side Panel shell');
   // Resource auditors may add newly trusted CSS (for example Cloud Console)
   // without weakening the original token, shell and workspace audit closure.
   const auditedCSS=[...verify.matchAll(/for\(const cssPath of \[([^\]]+)\]\)/g)]

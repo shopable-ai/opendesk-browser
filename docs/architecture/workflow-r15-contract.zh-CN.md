@@ -44,7 +44,7 @@ Sidebar Workflow（语义定义与参数）
 
 ## 5. AI 安全
 
-Provider 可选，未配置就手工创建步骤。用户必须输入 HTTPS 接口与本次密钥、勾选需求发送许可、点击真实按钮申请服务 origin 权限。只发**用户填写的任务描述、精确 origin、现有步骤和参数结构**，不上传自动提取的网页正文。API key 只驻留当前输入控件，不放进工作流、日志或持久化版本。返回只认严格 JSON 的 `title/description/paramsSchema/steps`；再次经 `normalizeAiProposal/validateWorkflow` 限权。AI 输出永不直接进入 `eval`、Controller source 或授权列表。即使 Schema 通过也必须由用户审阅并明确采用，且不表示 Locator 已实测。
+Provider 可选，未配置就手工创建步骤。**R16（2026-10-13）替代旧版逐次勾选：**首次发送前在输入框处显示接收方、网站及数据范围，用户真实点击「同意并生成」后才可发送。相同模型/接收路径在 180 天许可有效期内复用，可随时撤回；切换接收方/模型则重新同意。自定义 HTTPS 仍使用当次 API Key，并在真实用户手势中申请 Chrome 服务端 Origin 权限；网页摘要另经单独确认。具体见 [R16 工作流 AI 数据及责任合同](../product/workflow-ai-data-privacy-r16.zh-CN.md)。只发**用户填写的任务描述、精确 origin、现有步骤和参数结构**，不上传自动提取的网页正文。API key 只驻留当前输入控件，不放进工作流、日志或持久化版本。返回只认严格 JSON 的 `title/description/paramsSchema/steps`；再次经 `normalizeAiProposal/validateWorkflow` 限权。AI 输出永不直接进入 `eval`、Controller source 或授权列表。即使 Schema 通过也必须由用户审阅并明确采用，且不表示 Locator 已实测。
 
 ## 6. 证据与审计
 

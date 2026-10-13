@@ -8,6 +8,7 @@ import {REQUIRED_BROWSER_API_PERMISSIONS, OPTIONAL_PLUGIN_API_PERMISSIONS, REQUI
 import {SDK_RESOURCE_PATHS, SDK_RESOURCE_MANIFEST} from '../src/framework/sdk/resource-contract.js';
 import {BUILTIN_CATALOG,BUILTIN_RESOURCE_PATHS,BUILTIN_RUNTIME_CATALOG} from '../src/libs/catalog.js';
 import {PAGE_FRAMEWORK_RUNTIMES,PAGE_FRAMEWORK_RESOURCE_LIMIT,PAGE_BROWSER_PRIVATE_FILES,PAGE_BROWSER_COMPILER,PAGE_BROWSER_COMPILER_RESOURCE_LIMIT} from '../src/libs/page-frameworks/contract.js';
+import {BROWSER_EDITION_RECORD,DEVELOPER_BROWSER_NAME,compilerResourcesForEdition,readEditionRecord} from './browser-editions-r245.mjs';
 import {inspectWorkspaceStyle} from './build-workspace-style.mjs';
 import {readOfficialSources,createOfficialToolResources} from './build-official-tools.mjs';
 import {OFFICIAL_CATALOG_PATH,officialPackagePath} from '../src/sidebar-tools/official-catalog.js';
@@ -27,6 +28,14 @@ export const EXTENSION_CSP = "script-src 'self'; object-src 'self'";
 export const SANDBOX_META_CSP = "default-src 'none'; script-src 'self' 'unsafe-eval'; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'none'; style-src 'none'; base-uri 'none'; form-action 'none'";
 export const SANDBOX_CSP = "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'";
 export const SDK_MAIN_WAR = Object.freeze([{resources: ['framework/sdk-main.js'], matches: ['http://*/*', 'https://*/*']}]);
+// Static internal restriction pages can be loaded as DNR redirect targets,
+// not as arbitrary extension scripts. Require the exact reviewed paths.
+export const FOCUS_BLOCK_RESOURCES=Object.freeze([
+  'stay-focus/blocked-quota.html','stay-focus/blocked-schedule.html',
+  'stay-focus/blocked-session.html','stay-focus/blocked-always.html'
+]);
+export const APPROVED_WEB_ACCESSIBLE_RESOURCES=Object.freeze([...SDK_MAIN_WAR,
+  {resources:[...FOCUS_BLOCK_RESOURCES],matches:['http://*/*','https://*/*']}]);
 export const SDK_AUTOMATIC_CONTENT_SCRIPTS = Object.freeze([
   {matches:['http://*/*','https://*/*'],js:['agents/page-relay.js'],run_at:'document_start',all_frames:true,world:'ISOLATED'},
   {matches:['http://*/*','https://*/*'],js:['framework/sdk-main.js'],run_at:'document_start',all_frames:true,world:'MAIN'}
@@ -37,27 +46,36 @@ export const FIXED_ASSETS = Object.freeze({
   'licenses/jquery-MIT.txt': {bytes: 1097, sha256: 'd4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d'}
 });
 const HTML_REFERENCES = Object.freeze({
-  'ui/tool.html': ['design-tokens.css', 'design-system.css', 'tool-shell.css', 'cloud-hosting.css', 'tool-shell.js'],
+  'ui/tool.html': ['design-tokens.css', 'design-system.css', 'tool-shell.css', 'cloud-hosting.css', 'sidebar-tool-host.js', 'stay-focus-controls.js', 'trusted-cookie-ui.js', 'tool-shell.js'],
   'ui/cloud-control.html': ['design-tokens.css', 'design-system.css', 'cloud-control-console.css', 'cloud-console.js'],
   'ui/marketplace.html': ['design-tokens.css', 'marketplace.css', 'marketplace.js'],
   'native-agent/settings.html': ['../ui/design-tokens.css', 'settings.css', 'settings.js'],
   'native-agent/workspace.html': ['workspace.css','settings.js'],
   'ui/target-bootstrap.html': ['../agents/bootstrap.js'],
   [SANDBOX_HTML]: ['sandbox.js'],
-  [TOOL_SANDBOX_HTML]: ['bridge.js']
+  [TOOL_SANDBOX_HTML]: ['bridge.js'],
+  ...Object.fromEntries(['quota','schedule','session','always'].map(reason=>[
+    'stay-focus/blocked-'+reason+'.html',['./blocked.css','./blocked.js']]))
 });
 const generatedJS = ['sw.js', ...Object.values(FIXED_OUTPUTS)].sort();
 const vendorJS = [BUILTIN_CATALOG.bootstrap,...Object.values(PINNED_USER_SCRIPT_LIBRARIES).map(row => row.output)];
 const frameworkJS=Object.values(PAGE_FRAMEWORK_RUNTIMES).map(row=>row.output);
-const browserCompilerJS=PAGE_BROWSER_PRIVATE_FILES.map(row=>row.output).filter(path=>path.endsWith('.js'));
-const browserCompilerESM=PAGE_BROWSER_PRIVATE_FILES.map(row=>row.output).filter(path=>path.endsWith('.mjs'));
 const frameworkLicenses=Object.values(PAGE_FRAMEWORK_RUNTIMES).map(row=>row.licensePath);
-const expectedJS = [...generatedJS, ...vendorJS, ...frameworkJS, ...browserCompilerJS].sort();
 const officialSource=await readOfficialSources();
 const officialPaths=[OFFICIAL_CATALOG_PATH,...officialSource.tools.map(row=>officialPackagePath(row.id))];
-const required = ['manifest.json', MARKET_CHANNEL_PATH, SDK_RESOURCE_MANIFEST, BUILTIN_RESOURCE_MANIFEST,
-  ...BUILTIN_RESOURCE_PATHS,...frameworkLicenses,...browserCompilerESM,PAGE_BROWSER_COMPILER.licensePath,
-  ...Object.keys(HTML_REFERENCES), 'ui/design-tokens.css', 'ui/design-system.css', 'ui/tool-shell.css', 'ui/cloud-hosting.css', 'ui/cloud-control-console.css', 'native-agent/settings.css', 'native-agent/workspace.css', 'ui/marketplace.css', ...officialPaths, ...expectedJS, ...Object.keys(FIXED_ASSETS)].sort();
+// A "standard" package cannot smuggle a dormant compiler: the verifier
+// rejects ANY unlisted file, including both ESM assets and MIT notices.
+function editionFiles(edition){
+  const compilerFiles=compilerResourcesForEdition(edition);
+  const browserCompilerJS=compilerFiles.map(row=>row.output).filter(path=>path.endsWith('.js'));
+  const browserCompilerESM=compilerFiles.map(row=>row.output).filter(path=>path.endsWith('.mjs'));
+  const expectedJS=[...generatedJS,...vendorJS,...frameworkJS,...browserCompilerJS].sort();
+  const required=['manifest.json',BROWSER_EDITION_RECORD,MARKET_CHANNEL_PATH,SDK_RESOURCE_MANIFEST,BUILTIN_RESOURCE_MANIFEST,
+    ...BUILTIN_RESOURCE_PATHS,...frameworkLicenses,...browserCompilerESM,
+    ...(edition==='developer'?[PAGE_BROWSER_COMPILER.licensePath]:[]),
+    ...Object.keys(HTML_REFERENCES),'stay-focus/blocked.css','ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css','ui/cloud-hosting.css','ui/cloud-control-console.css','native-agent/settings.css','native-agent/workspace.css','ui/marketplace.css',...officialPaths,...expectedJS,...Object.keys(FIXED_ASSETS)].sort();
+  return {compilerFiles,expectedJS,required};
+}
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 // SW shipping cap: 1 MiB (512 KiB review); development SW: 1.5 MiB.
@@ -149,7 +167,9 @@ export async function verifyBuiltinResourceManifest(directory) {
   }
   return generated;
 }
-export function verifyManifest(manifest,{mode='production',source=false,channel=resolveMarketChannel({mode})}={}) {
+export function verifyManifest(manifest,{mode='production',source=false,edition='standard',channel=resolveMarketChannel({mode})}={}) {
+  if(manifest.name!==(edition==='developer'?DEVELOPER_BROWSER_NAME:'OpenDesk Browser'))
+    throw Error('Extension manifest name differs from reviewed browser edition');
   const fields = ['manifest_version', 'name', 'version', 'description', 'minimum_chrome_version', 'permissions', 'optional_permissions', 'host_permissions', 'background', 'action', 'side_panel', 'options_ui', 'content_security_policy', 'incognito', 'sandbox', 'web_accessible_resources', 'content_scripts'];
   if (manifest.manifest_version !== 3 || manifest.background?.type || manifest.action?.default_popup) throw new Error('Expected MV3 worker and action window entry');
   if (manifest.minimum_chrome_version !== '138') throw new Error('Expected independently qualified minimum Chrome 138');
@@ -163,7 +183,7 @@ export function verifyManifest(manifest,{mode='production',source=false,channel=
   if (!same(manifest.side_panel, {default_path: 'ui/tool.html'})) throw new Error('Unexpected or missing Side Panel entry');
   if (!same(manifest.options_ui, {page:'native-agent/settings.html',open_in_tab:true})) throw new Error('Unexpected Native Agent settings exposure');
   if (manifest.incognito !== 'not_allowed') throw new Error('Unexpected incognito policy');
-  if (!same(manifest.web_accessible_resources, SDK_MAIN_WAR)) throw new Error('Unexpected web accessible resources');
+  if (!same(manifest.web_accessible_resources, APPROVED_WEB_ACCESSIBLE_RESOURCES)) throw new Error('Unexpected web accessible resources');
   if (!same(manifest.content_scripts, SDK_AUTOMATIC_CONTENT_SCRIPTS))
     throw new Error('SDK auto-install must use the two approved fixed scripts and distinct worlds');
   if (manifest.optional_host_permissions)
@@ -227,20 +247,29 @@ function assertPinnedFrameworkIIFE(text,file){
     fn.body.body[0].expression.value!=='use strict')
     throw Error('Non-isolated pinned Page framework IIFE: '+file);
 }
-function assertClassicIIFE(text, file) {
-  const ast = parseScript(text, file, 'script'), declaration = ast.body[0];
-  const call = declaration?.declarations?.[0]?.init;
-  if (ast.body.length !== 1 || declaration?.type !== 'VariableDeclaration' || declaration.kind !== 'var' ||
-      declaration.declarations.length !== 1 || declaration.declarations[0].id.type !== 'Identifier' ||
-      call?.type !== 'CallExpression' || call.arguments.length || call.callee.type !== 'FunctionExpression' ||
-      call.callee.params.length || call.callee.async || call.callee.generator)
+export function assertClassicIIFE(text, file) {
+  const ast = parseScript(text,file,'script'), declaration=ast.body[0];
+  // WXT/Terser can emit a side-effect-only tool-shell as !function(){...}().
+  // Accept ONLY that one fixed resource and ONLY this exact no-argument
+  // synchronous IIFE. It is not a bypass for extra statements or dynamic JS.
+  const unary=declaration?.type==='ExpressionStatement'?declaration.expression:null;
+  const expressionIIFE=file==='ui/tool-shell.js'&&
+    unary?.type==='UnaryExpression'&&unary.operator==='!'&&unary.prefix===true&&
+    unary.argument?.type==='CallExpression'?unary.argument:null;
+  if(expressionIIFE&&ast.body.length===1&&expressionIIFE.arguments.length===0&&
+     expressionIIFE.callee?.type==='FunctionExpression'&&
+     expressionIIFE.callee.params.length===0&&!expressionIIFE.callee.async&&
+     !expressionIIFE.callee.generator)return;
+  const call=declaration?.declarations?.[0]?.init;
+  if(ast.body.length!==1||declaration?.type!=='VariableDeclaration'||declaration.kind!=='var'||
+      declaration.declarations.length!==1||declaration.declarations[0].id.type!=='Identifier'||
+      call?.type!=='CallExpression'||call.arguments.length||
+      call.callee.type!=='FunctionExpression'||call.callee.params.length||
+      call.callee.async||call.callee.generator)
     throw new Error(`Non-classic IIFE output in ${file}: top=${ast.body.length}, ${ast.body.map(node=>node.type).join(',')}, decl=${declaration?.kind}, init=${call?.type}, callee=${call?.callee?.type}, expr=${declaration?.expression?.type}, exprCallee=${declaration?.expression?.callee?.type}, unaryArg=${declaration?.expression?.argument?.type}, unaryCallee=${declaration?.expression?.argument?.callee?.type}`);
-  // A WXT unlisted IIFE is a top-level 'var <entryName> = (function(){...})()'.
-  // In a single USER_SCRIPT ScriptSource, that declaration is hoisted BEFORE
-  // any library installation. Reserved public API names must be installed only
-  // by the audited src/libs/core.js installer, never claimed by WXT wrappers.
-  const bundleGlobal = declaration.declarations[0].id.name;
-  if (['_', 'dayjs', 'OpenDeskLibs'].includes(bundleGlobal))
+  // Named fixed IIFE globals must never pre-claim runtime-provided APIs.
+  const bundleGlobal=declaration.declarations[0].id.name;
+  if(['_', 'dayjs', 'OpenDeskLibs'].includes(bundleGlobal))
     throw new Error(`WXT bundle preclaims built-in API global: ${file} (${bundleGlobal})`);
 }
 // Narrow exception: only these seven reviewed, packaged classic resources may
@@ -365,6 +394,8 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
   const root = resolve(directory);
   const expectedMode=requestedMode??(['production','development'].includes(basename(root))?basename(root):undefined);
   if(expectedMode!==undefined&&!['production','development'].includes(expectedMode))throw new Error('Invalid package mode');
+  const edition=readEditionRecord(await readFile(join(root,BROWSER_EDITION_RECORD),'utf8'));
+  const {compilerFiles,expectedJS,required}=editionFiles(edition);
   const files = await filesAt(root);
   for (const file of required) if (!files.includes(file)) throw new Error(`Missing required resource: ${file}`);
   const js = files.filter(path => path.endsWith('.js'));
@@ -379,7 +410,7 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
   const marketChannel=resolveMarketChannel({mode});
   const actualChannel=JSON.parse(await readFile(join(root,MARKET_CHANNEL_PATH),'utf8'));
   if(!same(actualChannel,marketChannel))throw Error('Packaged market channel differs from reviewed build configuration');
-  const manifest = JSON.parse(await readFile(join(root, 'manifest.json'), 'utf8')); verifyManifest(manifest,{mode,channel:marketChannel});
+  const manifest = JSON.parse(await readFile(join(root, 'manifest.json'), 'utf8')); verifyManifest(manifest,{mode,edition,channel:marketChannel});
   const boundaries = [];
   for (const file of js) {
     const bytes = await readFile(join(root, file));
@@ -400,6 +431,7 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
       if(file==='ui/page-component-compiler-worker.js'){
         if(!code.includes("importScripts('../libs/page-frameworks/babel-7.29.9.min.js')")||
            !code.includes("import('../libs/page-frameworks/page-component-linker-r243.mjs')")||
+            !code.includes("import('../libs/page-frameworks/controller-esm-linker-r4.mjs')")||
            !code.includes("import('../libs/page-frameworks/vue-sfc-transform-r243.mjs')"))
           throw Error('Browser compiler Worker only accepts fixed packaged imports');
       }else if(/\b(?:eval|new\s+Function|AsyncFunction|importScripts)\s*\(/.test(code)
@@ -439,16 +471,18 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
   }
   // Browser-only ESM modules are private extension resources, not runtime
   // dynamically generated JS entries. Validate all bytes and MIME-ready paths.
-  for(const row of PAGE_BROWSER_PRIVATE_FILES.filter(row=>row.output.endsWith('.mjs'))){
+  for(const row of compilerFiles.filter(row=>row.output.endsWith('.mjs'))){
     const bytes=await readFile(join(root,row.output));
     if(bytes.length!==row.bytes||bytes.length>PAGE_BROWSER_COMPILER_RESOURCE_LIMIT||
        digest(bytes)!==row.sha256)throw Error('Browser compiler ESM resource drift: '+row.output);
     const code=bytes.toString('utf8');
     parse(code,{ecmaVersion:'latest',sourceType:'module'});
   }
-  const babelLicense=await readFile(join(root,PAGE_BROWSER_COMPILER.licensePath));
-  if(digest(babelLicense)!==PAGE_BROWSER_COMPILER.licenseSha256)
-    throw Error('Browser compiler license mismatch');
+  if(edition==='developer'){
+    const babelLicense=await readFile(join(root,PAGE_BROWSER_COMPILER.licensePath));
+    if(digest(babelLicense)!==PAGE_BROWSER_COMPILER.licenseSha256)
+      throw Error('Browser compiler license mismatch');
+  }
   for (const file of Object.keys(HTML_REFERENCES)) await inspectHTML(root, file);
   // A checked-in SVG explorer cannot ship with a stale compiled settings bundle.
   // The extension serves HTML/CSS as public assets, but Workspace JS is built
@@ -461,7 +495,7 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
   const explorerJS=await readFile(join(root,'native-agent/settings.js'),'utf8');
   if(!['data-variant','folder-open','tree-caret','file-icon'].every(value=>explorerJS.includes(value)))
     throw Error('Workspace explorer runtime is stale: packaged settings.js lacks SVG file-tree icons');
-  for(const cssPath of ['ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css','ui/cloud-hosting.css','ui/cloud-control-console.css','native-agent/settings.css','native-agent/workspace.css']) {
+  for(const cssPath of ['ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css','ui/cloud-hosting.css','ui/cloud-control-console.css','native-agent/settings.css','native-agent/workspace.css','stay-focus/blocked.css']) {
     const css = await readFile(join(root,cssPath),'utf8');
     if(/@(?:import|source|apply|tailwind|config|plugin)\b|url\s*\(|expression\s*\(/i.test(css)) throw new Error('Unsafe CSS resources in '+cssPath);
     if(cssPath==='native-agent/workspace.css')inspectWorkspaceStyle(css);
@@ -489,7 +523,7 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
   }
   const sdkResources = await verifySdkResourceManifest(root);
   const builtinResources = await verifyBuiltinResourceManifest(root);
-  return {status: 'passed', mode, manifestVersion: 3, classicEntries: js, htmlChecked: Object.keys(HTML_REFERENCES), assetsChecked: [...Object.keys(FIXED_ASSETS), SDK_RESOURCE_MANIFEST,BUILTIN_RESOURCE_MANIFEST], sdkResources,builtinResources,
+  return {status: 'passed', mode, edition, manifestVersion: 3, classicEntries: js, htmlChecked: Object.keys(HTML_REFERENCES), assetsChecked: [...Object.keys(FIXED_ASSETS), SDK_RESOURCE_MANIFEST,BUILTIN_RESOURCE_MANIFEST], sdkResources,builtinResources,
     sdkEntries: {MAIN: 'framework/sdk-main.js', ISOLATED: 'agents/page-relay.js'}, privilegedDynamicExecutionFound: false,
     approvedDynamicExecution: boundaries, sandbox: {pages: [SANDBOX_HTML, TOOL_SANDBOX_HTML], csp: SANDBOX_CSP}, ...await packageFingerprint(root)};
 }

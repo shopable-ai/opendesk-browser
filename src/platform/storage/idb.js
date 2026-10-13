@@ -260,17 +260,22 @@ export function transact(db, stores, mode, work, {raw = false} = {}) {
     const keyRequired = key => invariant(key !== undefined && key !== null, 'E_SCHEMA', 'Explicit key required');
     // v2 primary keys are ordered. Native cursor.advance skips offsets
     // without materializing an entire frameworkKV history in JavaScript.
-    const cursorPage = (store,{prefix,direction='next',offset=0,limit=50}={},keysOnly=false) => {
+    const cursorPage = (store,{prefix,direction='next',offset=0,limit=50,afterKey}={},keysOnly=false,entries=false) => {
       invariant(typeof prefix==='string'&&prefix.length>0&&
         ['next','prev'].includes(direction)&&Number.isSafeInteger(offset)&&
         offset>=0&&offset<=1000000&&Number.isSafeInteger(limit)&&
         limit>=1&&limit<=1000001,'E_SCHEMA','Invalid bounded IDB cursor');
+      // Continue by exact native primary key; do not re-skip all earlier rows.
+      const high=prefix+'\uffff';
+      invariant(afterKey===undefined||
+        (typeof afterKey==='string'&&afterKey.startsWith(prefix)&&afterKey<high&&
+          direction==='next'&&offset===0),'E_SCHEMA','Invalid IDB resume key');
       const range=globalThis.IDBKeyRange;
       invariant(typeof range?.bound==='function','E_VERSION','Native IDBKeyRange unavailable');
       return enqueue(() => ({cursor(done,fail){
         const rows=[];let advanced=false,request;
         try{request=object(store)[keysOnly?'openKeyCursor':'openCursor'](
-          range.bound(prefix,prefix+'\uffff'),direction);}
+          range.bound(afterKey??prefix,high,afterKey!==undefined),direction);}
         catch(error){fail(error);return;}
         request.onerror=()=>fail(request.error);
         request.onsuccess=()=>{
@@ -278,7 +283,8 @@ export function transact(db, stores, mode, work, {raw = false} = {}) {
             const cursor=request.result;
             if(!cursor){done(rows);return;}
             if(!advanced&&offset>0){advanced=true;cursor.advance(offset);return;}
-            rows.push(keysOnly?cursor.primaryKey:cursor.value);
+            rows.push(keysOnly?cursor.primaryKey:entries?
+               {key:cursor.primaryKey,value:cursor.value}:cursor.value);
             if(rows.length===limit)done(rows);
             else cursor.continue();
           }catch(error){fail(error);}
@@ -291,7 +297,15 @@ export function transact(db, stores, mode, work, {raw = false} = {}) {
       delete: (store, key) => enqueue(() => { keyRequired(key); return object(store).delete(key); }),
       all: store => enqueue(() => object(store).getAll()),
       scan: (store,options) => cursorPage(store,options,false),
-      keys: (store,options) => cursorPage(store,options,true)
+      keys: (store,options) => cursorPage(store,options,true),
+       // Internal key-preserving cursor for linear-memory, linear-I/O migration.
+       scanEntries: (store,options) => cursorPage(store,options,false,true),
+       countPrefix: (store,prefix) => {
+         invariant(typeof prefix==='string'&&prefix.length>0,'E_SCHEMA','Invalid bounded IDB count');
+         const range=globalThis.IDBKeyRange;
+         invariant(typeof range?.bound==='function','E_VERSION','Native IDBKeyRange unavailable');
+         return enqueue(() => object(store).count(range.bound(prefix,prefix+'\uffff')));
+       }
     });
     const abort = error => {
       failure ||= error;

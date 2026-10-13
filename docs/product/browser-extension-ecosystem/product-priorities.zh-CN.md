@@ -4,6 +4,16 @@
 
 > **商业方向复审（2026-10-12，新决策优先）：**下方 R1 TOP30、TOP5、MVP 1 是历史研究提议，**不再将 Page QA Inspector 作为首款商业重点或默认 CWS 上架对象**；旧 Page QA 实验源码已从 main 清理（Git 历史可追溯）。下一轮商业优先研究电商工具宇宙（B2B 卖家与 B2C 消费者），真实用户任务、竞品免费替代、付费证据和数据合法性之后才可重排商业名次。详情：[商业决策](commercial-decision-ecommerce-20261012.zh-CN.md)、[电商工具宇宙](ecommerce-tool-universe.zh-CN.md)。
 
+
+## R3 当前跨行业商业研究排序（2026-10-12；非已验证销售）
+
+1. **优先验证：Seller Payout Exception Auditor**（卖家经授权 Finance/Settlement CSV → 退款/费用/到账差异可解释报告）。Shopify 原生 CSV/报告及 A2X 构成强反证，必须与原生+Excel同任务实测。
+2. **平行备选：Creator Commission Exceptions**（仅在美国 Creator Center 官方可下载订单与用户授权条件下）；2026-09 的 TikTok Shop 口径统一及免费 15,000 条导出显著削弱“导出工具”差异。
+3. **平行备选：Sponsored Content Proof Pack**（合同交付逐项核对 + 有来源的报表证据，而非再做 Metricool 替代看板）。
+4. **保留竞品比较**：OPP-015/016/018 卖家 Listing/SKU/毛利及 EXP-005；B2B 采购报价对账；EXP-007 B2C 购物仍等待真实自然复用/收入证据。
+
+详细可核查的 TOP30 工作流、TOP10 概念、平台角色/地区权限表、12 维无均分评分及 GO/PIVOT/STOP 见 [高价值用户 R3](high-value-user-opportunities-r3-20261012.zh-CN.md)。**没有完成任何访谈、付款、上架或原生产品验收；下方 R1 TOP30 原始序位保留历史意义。**
+
 ## 当前商业研究重点（不代表产品已经开发或付费验证）
 
 | 当前研究对象 | 机会与实验 | 下一步需要证明 | 状态 |

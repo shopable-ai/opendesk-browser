@@ -202,3 +202,121 @@ test('asset, review provenance and lock tampering fail closed; quota failure ato
   const q=fixture();q.throwOnPut=row=>row.tag==='userscript-review-v1';
   await assert.rejects(q.prepare(),failCode('E_QUOTA'));assert.equal(q.rows().length,0);
 });
+
+
+// R7: shared SHA bytes are not shared runtime permissions or owner locks.
+test('approved HTTPS bytes can be explicitly reused across programs without network or inherited approval',async()=>{
+  const f=fixture(),src=source(),review=await f.prepare(src),firstLock=await f.approve(review);
+  const other=f.managerForNamespace('tool:other');
+  const inspected=await other.inspect({sourceUtf8:src},{});
+  assert.equal(inspected.requires[0].status,'needs-review');
+  assert.deepEqual(inspected.requires[0].cacheChoices,[]);
+  assert.equal(inspected.requires[0].sharedCacheChoices.length,1);
+  assert.equal(inspected.requires[0].sharedCacheChoices[0].sha256,sha(first));
+  assert.equal(inspected.requires[0].sharedCacheChoices[0].sourceKind,'https');
+  await assert.rejects(other.loadForExecution({sourceUtf8:src,lockId:firstLock.lockId},{}),failCode('E_DEPENDENCY_LOCK'));
+  f.offline=true;f.granted=false;
+  await assert.rejects(other.prepare({sourceUtf8:src,explicitUserAction:true,
+    selections:[{order:0,assetSha256:sha(first)}]},{}),failCode('E_DEPENDENCY_REVIEW'));
+  const pending=await other.prepare({sourceUtf8:src,explicitUserAction:true,
+    selections:[{order:0,sharedAssetSha256:sha(first)}]},{});
+  assert.equal(pending.entries[0].acquisition,'shared-content-cache');
+  assert.equal(pending.entries[0].sourceKind,'https');
+  assert.equal(f.calls.length,1,'second program must not fetch on explicit shared-content reuse');
+  await assert.rejects(other.loadForExecution({sourceUtf8:src},{}),failCode('E_DEPENDENCY_UNLOCKED'));
+  const secondLock=await other.approve({reviewId:pending.reviewId,explicitUserAction:true,
+    acceptedHashes:[sha(first)]},{});
+  assert.notEqual(secondLock.lockId,firstLock.lockId,'different owner always receives its own approval lock');
+  assert.equal((await other.loadForExecution({sourceUtf8:src,lockId:secondLock.lockId},{})).entries[0].code,first);
+  assert.equal(f.rows().filter(row=>row.tag==='userscript-asset-v1').length,1);
+  assert.equal(f.calls.length,1);
+});
+
+test('unapproved/local bytes never enter shared HTTPS provenance; corrupted index and bytes block reuse',async()=>{
+  const pending=fixture();await pending.prepare();
+  const otherPending=pending.managerForNamespace('tool:other');
+  assert.deepEqual((await otherPending.inspect({sourceUtf8:source()},{})).requires[0].sharedCacheChoices,[]);
+  const local=fixture();local.offline=true;local.granted=false;
+  await local.approve(await local.prepare(source(),{selections:[{order:0,
+    localFile:{name:'local.js',bytesBase64:Buffer.from(first).toString('base64')}}]}));
+  const other=local.managerForNamespace('tool:other');
+  assert.deepEqual((await other.inspect({sourceUtf8:source()},{})).requires[0].sharedCacheChoices,[]);
+  await assert.rejects(other.prepare({sourceUtf8:source(),explicitUserAction:true,
+    selections:[{order:0,sharedAssetSha256:sha(first)}]},{}),failCode('E_DEPENDENCY_REVIEW'));
+  const tamper=fixture();await tamper.approve(await tamper.prepare());
+  tamper.change('frameworkKV',keys.sharedSource(firstUrl),row=>({...row,
+    choices:row.choices.map(choice=>({...choice,resolvedUrl:secondUrl}))}));
+  await assert.rejects(tamper.managerForNamespace('tool:other').inspect({sourceUtf8:source()},{}),
+    failCode('E_DEPENDENCY_SHARED_SOURCE'));
+  const broken=fixture();await broken.approve(await broken.prepare());
+  broken.change('frameworkKV',keys.asset(sha(first)),row=>{new Uint8Array(row.bytes)[0]^=1;return row;});
+  await assert.rejects(broken.managerForNamespace('tool:other').inspect({sourceUtf8:source()},{}),
+    failCode('E_DEPENDENCY_HASH'));
+});
+
+test('multiple reviewed versions remain separately selectable without upgrading old revisions',async()=>{
+  const f=fixture(),old=await f.approve(await f.prepare());
+  f.routes.set(firstUrl,{bytes:first+'\n// immutable second version'});
+  const latest=await f.approve(await f.prepare());
+  const other=f.managerForNamespace('tool:other'),inspected=await other.inspect({sourceUtf8:source()},{});
+  assert.deepEqual(inspected.requires[0].sharedCacheChoices.map(x=>x.sha256),
+    [sha(first+'\n// immutable second version'),sha(first)]);
+  assert.notEqual(old.lockId,latest.lockId);
+  assert.equal((await f.load(old)).entries[0].code,first);
+  assert.equal((await f.load(latest)).entries[0].code,first+'\n// immutable second version');
+});
+
+
+test('R7.1 two Sidebar program IDs have independent grants but reuse approved SHA bytes offline',async()=>{
+  const f=fixture(),src=source();
+  const aReview=await f.manager.prepare({sourceUtf8:src,programId:'alpha',explicitUserAction:true},{});
+  const aLock=await f.manager.approve({reviewId:aReview.reviewId,programId:'alpha',
+    explicitUserAction:true,acceptedHashes:aReview.entries.map(row=>row.sha256)},{});
+  const bInspect=await f.manager.inspect({sourceUtf8:src,programId:'beta'},{});
+  assert.equal(bInspect.locks.length,0);
+  assert.equal(bInspect.requires[0].sharedCacheChoices[0].sha256,sha(first));
+  await assert.rejects(f.manager.loadForExecution({sourceUtf8:src,programId:'beta',lockId:aLock.lockId},{}),
+    failCode('E_DEPENDENCY_LOCK'));
+  f.granted=false;f.offline=true;const downloads=f.calls.length;
+  const bReview=await f.manager.prepare({sourceUtf8:src,programId:'beta',explicitUserAction:true,
+    selections:[{order:0,sharedAssetSha256:sha(first)}]},{});
+  await assert.rejects(f.manager.loadForExecution({sourceUtf8:src,programId:'beta'},{}),
+    failCode('E_DEPENDENCY_UNLOCKED'));
+  const bLock=await f.manager.approve({reviewId:bReview.reviewId,programId:'beta',
+    explicitUserAction:true,acceptedHashes:bReview.entries.map(row=>row.sha256)},{});
+  assert.notEqual(bLock.lockId,aLock.lockId);
+  assert.equal((await f.manager.loadForExecution({sourceUtf8:src,programId:'beta',lockId:bLock.lockId},{}))
+    .entries[0].code,first);
+  assert.equal((await f.manager.loadForExecution({sourceUtf8:src,programId:'alpha',lockId:aLock.lockId},{}))
+    .entries[0].code,first);
+  assert.equal(f.calls.length,downloads,'no second HTTPS fetch for approved bytes');
+  assert.equal(f.rows().filter(r=>r.tag==='userscript-asset-v1').length,1);
+  await assert.rejects(f.manager.loadForExecution({sourceUtf8:src,programId:'alpha',lockId:bLock.lockId},{}),
+    failCode('E_DEPENDENCY_LOCK'));
+  f.change('frameworkKV',keys.asset(sha(first)),asset=>{
+    new Uint8Array(asset.bytes)[0]^=1;return asset;
+  });
+  await assert.rejects(f.manager.loadForExecution({sourceUtf8:src,programId:'alpha',lockId:aLock.lockId},{}),
+    failCode('E_DEPENDENCY_HASH'));
+});
+
+
+test('R7.1 frozen Page candidate preserves program-scoped lock through storage and installed reader',async()=>{
+  const f=fixture(),src=source(),review=await f.manager.prepare({sourceUtf8:src,programId:'alpha',
+    explicitUserAction:true},{}),lock=await f.manager.approve({reviewId:review.reviewId,
+    programId:'alpha',explicitUserAction:true,acceptedHashes:review.entries.map(row=>row.sha256)},{});
+  const candidate=await f.manager.importPageCandidate({programId:'alpha',revision:1,
+    sourceUtf8:src,entryFormat:'async-main',lockId:lock.lockId,dependencyScope:'program',
+    pageRules:{matches:['https://example.org/*'],excludeMatches:[],runAt:'document_idle',
+      allFrames:false,world:'USER_SCRIPT'}},{});
+  assert.equal(candidate.stage,'Candidate');
+  const saved=await f.manager.getPageCandidate({programId:'alpha',revision:1},{});
+  assert.equal(saved.manifest.dependencyScope,'program');
+  const frozen=await f.manager.readStoredPageCandidate(ns,'alpha',1);
+  assert.equal(frozen.resolution.lockId,lock.lockId);
+  assert.equal(frozen.resolution.entries[0].code,first);
+  await assert.rejects(f.manager.importPageCandidate({programId:'beta',revision:1,
+    sourceUtf8:src,entryFormat:'async-main',lockId:lock.lockId,dependencyScope:'program',
+    pageRules:{matches:['https://example.org/*'],excludeMatches:[],runAt:'document_idle',
+      allFrames:false,world:'USER_SCRIPT'}},{}),failCode('E_DEPENDENCY_LOCK'));
+});

@@ -33,7 +33,7 @@ function freezeTarget(raw) {
 }
 function frozenSource(request) {
   if (request && !Object.hasOwn(request, 'withJquery')) {
-    const allowed = ['sourceUtf8','entryFormat','lockId','target','importSourceUrl','managedUI'];
+    const allowed = ['sourceUtf8','entryFormat','lockId','target','importSourceUrl','managedUI','programId'];
     invariant(typeof request === 'object' && !Array.isArray(request) &&
       Object.keys(request).every(key => allowed.includes(key)) &&
       ['sourceUtf8','entryFormat','target'].every(key => Object.hasOwn(request,key)), 'E_SCHEMA', 'Unexpected page preview fields');
@@ -43,6 +43,7 @@ function frozenSource(request) {
       (request.lockId == null || typeof request.lockId === 'string'), 'E_SOURCE', 'Invalid page script entry or source');
     return Object.freeze({sourceUtf8:request.sourceUtf8,entryFormat:request.entryFormat,
       lockId:request.lockId ?? null, ...(request.importSourceUrl ? {importSourceUrl:request.importSourceUrl} : {}),
+       ...(request.programId!==undefined?{programId:request.programId}:{}),
       ...(request.managedUI?{managedUI:Object.freeze({...request.managedUI})}:{}),
       target:freezeTarget(request.target),legacy:false});
   }
@@ -150,6 +151,7 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
     else {
       locked = await dependencyManager.loadForExecution({sourceUtf8:frozen.sourceUtf8,
         entryFormat:frozen.entryFormat,lockId:frozen.lockId,
+        ...(frozen.programId!==undefined?{programId:frozen.programId}:{}),
         ...(frozen.importSourceUrl ? {importSourceUrl:frozen.importSourceUrl} : {})},sender);
       script = await compileLockedPageSource({...frozen,entries:locked.entries,receiptNonce,builtinSource,jqueryCode,frameworkSource,optionalSources});
     }

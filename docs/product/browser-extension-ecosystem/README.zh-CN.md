@@ -1,4 +1,16 @@
-# OpenDesk Browser Product Ecosystem R1–R2（决策与长期导航）
+> **2026-10-13 · Global First R5 最新入口**：[45 对手、TOP20、84 OPP、8 EXP、七道验收门及各机会退出标准](global-first-r5-portfolio.zh-CN.md)。AI 提示词重复和录制回放已经有 Chrome Skills/Claude in Chrome 强反例；OpenDesk 已获批第一仍为 0。全球第一标语不获准，当前 Mac Chrome 同版 AI→Installed→无模型两次运行 **NOT_TESTED**。
+
+> **Global First R4 最新 AI-first 竞争结论（2026-10-13）**：[TOP5、26 项真实任务机会、竞品反例及最小原生缺口](global-first-r2-decision.zh-CN.md)；[30 个竞品时间线](competitor-timeline.json)；[唯一 GF 声明账本](first-claims-ledger.json)；[五份双语 SEO/GEO 事实页与营销合规](marketing-playbook.zh-CN.md)。已证实世界/区域/任务第一为 0，最新同包 AI→Installed→断开模型重复真机验收 NOT_TESTED。手动 JSX/Vue 编辑不再是首页 P0。
+
+# OpenDesk Browser · 产品生态导航（含历史 R1—R3）
+
+## 当前 Global First 战略：R4 AI 优先第一小山头
+
+**先寻找用户真正需要、能取得全球/区域/行业/任务第一的竞争位置，再决定开发什么。** AI 协助生成浏览器工具、用户审阅/安装/重复使用是研究视角；人工 Side Panel 编写 React/Vue 不再是营销主位。
+
+只读 [当前战略与防偏移原则](global-first-r2-decision.zh-CN.md)，执行请用 [R4 GOAL](../../framework/prompts/goal-global-first-r4-ai-first-niche-leadership.zh-CN.md)。竞品时间与 GF 审批只读原有 [时间账本](competitor-timeline.json)、[声明账本](first-claims-ledger.json)，目前获批绝对第一为 **0**。
+
+> 下面历史 R1/R2 的 F01→F02→F04 技术优先级及 R3/F01 手工编辑器 GOAL，均不是当前 Global First 竞争战略；Product Ecosystem R3 是另一条独立工程/商业工作流。
 
 > 2026-10-12。本目录是**产品机会研究与产品架构提案**，并非已发布软件、正式验收或市场规模证明。仅基于远端 GitHub `main` 的抽样源码、既有 R8 账本/工作记录及公开产品和政策资料；**未能访问用户 Mac 本地工作区，不能证明其 git status、真实 Chrome、最终构建或本地并行写入情况**。新研究不得覆盖现有 R8 188 条稳定 ID 与 E01–E40。
 >
@@ -6,12 +18,21 @@
 
 > 首次合入审计基线：`main@8ccec441898bc3a175b20105d7116850de9f5be0`，研究首轮提交 [`6463b7098bc9`](https://github.com/shopable-ai/opendesk-browser/commit/6463b7098bc968b12097c48f754a102cd4390312)。后续工作不得将此 SHA 的源码审计状态提升成更新后主线的原生验收。任何状态声明都要按最新 HEAD 再核对。
 
+## 当前工程推进入口：Product Ecosystem R3
+
+- **[R3 完整任务树与状态](product-ecosystem-r3-roadmap.zh-CN.md)**：P0 清理回归 → P1 框架能力复用 → P2 真实电商 A/C MVP → P3 条件性独立插件工厂 → P4 验收 → P5 工程交接。
+- **[R3 可复制完整实施 GOAL](../../framework/prompts/goal-product-ecosystem-r3.zh-CN.md)**：供下一次需要修改真实源码、实现可用工具的工程对话直接使用。
+- **[R3 工程工作流](../../framework/workstreams/product-ecosystem-r3.md)**：本轮文档落库与下次代码/测试证据记录，不代替原 Browser SDK、Cloud Control 等工作流。
+- 商业研究仍按[电商工具宇宙 R2](../../framework/prompts/goal-ecommerce-tool-universe-r2-commercial-validation.zh-CN.md)推进，研究结论不能直接当作功能完成或付费事实。
+
+> 本次新增的是**文档导航和下一阶段执行计划**，不是新插件、SDK 接口或 Factory 代码；不要将 R3 GOAL 的任务当作已完成。Page QA 仍是 DEPRECATED / SOURCE_REMOVED_FROM_MAIN。
+
 ## 当前有效产品决策（2026-10-12，覆盖旧 R1 排名）
 **停止将 Page QA Inspector 当成商业产品或首款独立 Chrome 扩展。** `DEPRECATED / NO_RELEASE / SOURCE_REMOVED_FROM_MAIN`：原 `products/page-qa-inspector/`、QA 专用 feature、专用实验工厂脚本/测试/CI 已从当前 `main` 源码树移除，根产品构建命令也已清理。历史设计、源码提交、决策与证据仍可追溯；本仓库当前**没有已交付的跨产品通用 Extension Factory**。商业实验 `EXP-002` 已归档，不得根据旧 TOP5、MVP1、GOAL 恢复 Page QA 开发或上架。
 
 当前优先研究 **电商卖家 B2B 的 Listing/SKU/毛利工作流（EXP-005）** 与 **消费者 B2C 的实际到手价/购物决策（EXP-007）**；两者仍是 `HYPOTHESIS / NOT_VALIDATED`，不是已经核实的付费项目。保留企业工作流/研究剪藏等其他方向作为独立备选。请以[商业纠偏决策](commercial-decision-ecommerce-20261012.zh-CN.md)和[电商工具宇宙](ecommerce-tool-universe.zh-CN.md)为准，**不要把旧 TOP30 技术机会排序当商业立项排序**。
 
-下一轮推荐执行：[电商机会验证 R2 GOAL](../../framework/prompts/goal-ecommerce-tool-universe-r2-commercial-validation.zh-CN.md)，而不是旧 Page QA 专项验收。
+下一轮工程实施优先参考 [R3 GOAL](../../framework/prompts/goal-product-ecosystem-r3.zh-CN.md)（真实工具与框架复用）；商业研究继续参考 [电商 R2 GOAL](../../framework/prompts/goal-ecommerce-tool-universe-r2-commercial-validation.zh-CN.md)。两条工作线独立维护证据，不再执行旧 Page QA 专项验收。
 
 ## 一句话结论
 
@@ -38,7 +59,20 @@ OpenDesk Product Ecosystem
 ```
 
 
+## 全球竞品与全球第一细分赛道 R1（2026-10-13）
+
+- **[全球第一细分赛道定位](global-first-positioning.zh-CN.md)**：竞争边界、双因素 D01–D08、三因素 F01–F10、三座优先小山头和功能/证据边界。
+- **[竞品时间线（JSON）](competitor-timeline.json)**：16 个代表性竞品的稳定版、预览版、代码活动及来源时间字段；不把推送时间当正式发布日期。
+- **[全球第一声明台账（JSON）](first-claims-ledger.json)**：14 条候选/已被反例否定的声明、限制条件和审核门；**当前 0 条全球第一声明获准对外使用**。
+- **[营销执行手册](marketing-playbook.zh-CN.md)**：安全可用的中英定位文案、首创称号候选、竞品真实对照实验、视频/官网/商店传播与审批清单。
+
+**宣传硬边界：**“研究候选/细分组合潜力”不等于“全球首个或全球第一已经成立”。Stable / Beta / 源码推送分开；OpenDesk Standard、Developer、本地 Native 三种体验分开；正式排名/首创只能在相应台账证据门通过后宣称。这组文档属于**市场定位研究**，不改变 R8/Browser SDK/GM API/商业 EXP 的工程和市场验收事实。
+
 ## 文档索引
+
+- [R3 任务树与阶段验收](product-ecosystem-r3-roadmap.zh-CN.md) — 当前工程推进顺序、产品形态、依赖、状态和实际验收门
+- [R3 实施 GOAL](../../framework/prompts/goal-product-ecosystem-r3.zh-CN.md) — 新对话复制执行的完整工程任务
+- [R3 工程记录](../../framework/workstreams/product-ecosystem-r3.md) — 候选身份、实际修改、测试证据和阻断交接
 
 - [整体产品战略](product-strategy.zh-CN.md) — 三路线业务边界、商业模式和发行方式判断
 - [Extension Factory](extension-factory-architecture.zh-CN.md) — 基于最新源码的可复用性审计、建议分层与构建/发布闭环
@@ -56,6 +90,8 @@ OpenDesk Product Ecosystem
 - [商业实验台账](commercial-experiments.json) — 8 个 EXP、无虚构订单和访谈、不复制 84 个 OPP（R2）
 - [下一轮 GOAL](next-goals.zh-CN.md) — 当前电商验证 GOAL 与历史已废弃提案
 - [商业方向调整：电商优先](commercial-decision-ecommerce-20261012.zh-CN.md) — Page QA 已退出商业路线且实验源码已从 main 移除；先验证电商问题与付费方
+- [X 维度：高商业价值用户与创作者数据工作流](high-value-audience-creator-analytics-x-dimension-r2-20261012.zh-CN.md) — 新增跨行业用户价值轴，纠正“粉丝/流量=付费”假设，记录后台数据、合规导出、候选 MVP 和反证
+- [X 维度 R3 深入研究 GOAL](../../framework/prompts/goal-high-value-user-workflow-research-r3-20261012.zh-CN.md) — 下一轮验证高价值用户与创作者付费工作流
 - [电商工具宇宙](ecommerce-tool-universe.zh-CN.md) — 消费者/卖家/品牌/供应链/生态共 20 个研究领域
 - [电商研究 R1 历史 GOAL](../../framework/prompts/goal-ecommerce-tool-universe-r1.zh-CN.md) — 原始研究范围
 - [电商商业验证 R2 当前 GOAL](../../framework/prompts/goal-ecommerce-tool-universe-r2-commercial-validation.zh-CN.md) — 文档收敛、真实买方与三个 MVP 决策
@@ -74,3 +110,12 @@ OpenDesk Product Ecosystem
 `RESEARCH` / `HYPOTHESIS` ≠ `SOURCE_IMPLEMENTED` ≠ `COMPONENT_TESTED` ≠ `BUILD_VERIFIED` ≠ `CHROME_NATIVE_VERIFIED` ≠ `CWS_APPROVED`。产品机会的“高频”只是待验证假设；本轮**没有完成用户访谈、授权页面真实使用、Mac 浏览器商店审核或支付转化测量**。
 
 安全/隐私、合规、真实可运行性为独立硬门，不因其他评分高而豁免。
+
+## 高价值用户 X 维度 R3 增量
+
+- **[高价值用户跨行业机会 R3（2026-10-12，研究排序与证据）](high-value-user-opportunities-r3-20261012.zh-CN.md)**：12 类用户、8 平台数据边界、TOP30 微任务、TOP10 概念与三个 CSV/合同工作流；不新增 OPP/EXP，不等于付费或产品通过验收。
+
+## R4 商业工作流 MVP 工程入口（2026-10-13）
+
+- [R4 Seller Payout 商业闭环、功能规划、用户流程、代码任务树、验收](commercial-mvp-workflow-r4-20261013.zh-CN.md)：现有工具 Tab → 官方 CSV 导入 → 本地差异对账 → CSV/JSON 证据；研究计划，非已完成产品。
+- [R4 真实源码开发完整 GOAL](../../framework/prompts/goal-commercial-mvp-seller-payout-r4-20261013.zh-CN.md)。

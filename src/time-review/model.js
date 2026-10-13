@@ -1,3 +1,4 @@
+import {requireTimeReviewSiteGrants} from './policy.js';
 export const TIME_REVIEW_KEY='opendesk.time-review.v1';
 export const MAX_OBSERVATION_GAP=45000;
 export const MAX_MINUTE_DAYS=90;
@@ -20,7 +21,7 @@ export function reviewSettings(value){
     fail('设置无效：空闲阈值 15–3600 秒，保留 7–365 天，最多排除 100 个域名');
   return {...value,excludedHosts:[...new Set(value.excludedHosts)].sort()};
 }
-export function emptyReview(){return {version:1,authorizedHash:null,authorizedEpoch:null,highWater:0,paused:true,settings:{...DEFAULT_SETTINGS,excludedHosts:[]},days:{},checkpoint:null,discardedMs:0,categories:{},minuteConsent:false,minuteDays:{}};}
+export function emptyReview(){return {version:1,authorizedHash:null,authorizedEpoch:null,highWater:0,paused:true,settings:{...DEFAULT_SETTINGS,excludedHosts:[]},days:{},checkpoint:null,discardedMs:0,categories:{},minuteConsent:false,minuteDays:{},siteGrants:{allSites:false,origins:[]}};}
 export function readReview(raw){
   if(raw===undefined)return emptyReview();
   if(!raw||raw.version!==1||typeof raw.paused!=='boolean'||
@@ -58,6 +59,7 @@ export function readReview(raw){
     }
   }
   const result=structuredClone(raw);
+  result.siteGrants=requireTimeReviewSiteGrants(result.siteGrants);
   result.categories??={};
   result.minuteConsent??=false;
   result.minuteDays??={};
@@ -188,7 +190,7 @@ export function reviewSummary(state,at){
     yesterdayMs,minuteConsent:Boolean(state.minuteConsent),
     todaySites:Object.entries(state.days[today]||{}).sort((a,b)=>b[1]-a[1]).map(([host,ms])=>({host,ms})),
     sites:[...sites].sort((a,b)=>b[1]-a[1]).map(([host,ms])=>({host,ms})),paused:state.paused,
-    authorized:Boolean(state.authorizedHash),settings:state.settings,trackingHost:state.checkpoint?.host||null,discardedMs:state.discardedMs};
+    authorized:Boolean(state.authorizedHash),settings:state.settings,siteGrants:requireTimeReviewSiteGrants(state.siteGrants),trackingHost:state.checkpoint?.host||null,discardedMs:state.discardedMs};
 }
 export function reviewExport(state,format='json'){
   if(format==='json')return {name:'time-review.json',text:JSON.stringify({format:'opendesk.time-review.export.v1',days:state.days,settings:state.settings,discardedMs:state.discardedMs,categories:state.categories,minuteConsent:state.minuteConsent,minuteDays:state.minuteDays},null,2)};

@@ -15,7 +15,10 @@ async function fixture(){
   let tab={id:11,windowId:2,active:true,url:'https://example.com/path?secret=never-store'};
   const tool=await createSidebarToolPackage('examples/sidebar-tools/time-review');
   const initialHash=await timeReviewPackageHash(tool);
-  const local={[SIDEBAR_TOOL_STORE]:[structuredClone(tool)]},session={},downloads=[],alarms=new Map();
+  // Legacy behavioral fixtures begin with a separately consented site scope.
+  // R1.5 zero-consent migration and refusal cases live in time-review-r15-site-grants.
+  const local={[SIDEBAR_TOOL_STORE]:[structuredClone(tool)],
+    [TIME_REVIEW_KEY]:{...emptyReview(),siteGrants:{allSites:true,origins:[]}}},session={},downloads=[],alarms=new Map();
   const area=data=>({async get(keys){return structuredClone(keys===null?data:Object.fromEntries((Array.isArray(keys)?keys:[keys]).map(key=>[key,data[key]])));},async set(rows){Object.assign(data,structuredClone(rows));},async remove(keys){for(const key of Array.isArray(keys)?keys:[keys])delete data[key];}});
   const sender={id:'abcdefghijklmnopabcdefghijklmnop',url:'chrome-extension://abcdefghijklmnopabcdefghijklmnop/ui/tool.html?hostInstanceId=11111111-1111-4111-8111-111111111111&toolId=time-review',documentId:'doc-1',frameId:0,documentLifecycle:'active',tab:{id:99,incognito:false}};
   let contexts=[{contextType:'TAB',documentUrl:sender.url,documentId:sender.documentId,tabId:99,frameId:0,incognito:false}];
@@ -126,7 +129,7 @@ test('forged sender, document, package, install generation and arbitrary operati
   const f=await fixture(),message={protocol:TIME_REVIEW_PROTOCOL,toolId:'time-review',operation:'time.start',payload:{},packageHash:await timeReviewPackageHash(f.tool),installEpoch:null};
   for(const sender of [{...f.sender,id:'foreign'},{...f.sender,url:'https://example.com'},{...f.sender,frameId:1},{...f.sender,documentId:'old'},{...f.sender,tab:{id:99,incognito:true}}])await assert.rejects(f.newService().dispatch(message,sender));
   await assert.rejects(f.call('time.status',{}, {packageHash:'0'.repeat(64)}));await assert.rejects(f.call('time.status',{}, {installEpoch:'old'}));await assert.rejects(f.call('time.inject'));
-  assert.equal(f.local[TIME_REVIEW_KEY],undefined);
+  assert.deepEqual(f.local[TIME_REVIEW_KEY],{...emptyReview(),siteGrants:{allSites:true,origins:[]}});
 });
 test('date totals and export use explicit clear confirmation and actual download request',async()=>{
   const f=await fixture();await f.call('time.start');f.advance(1000);await f.call('time.pause');
@@ -161,10 +164,38 @@ test('serialized concurrent reads do not double-count an interval',async()=>{
   const f=await fixture();await f.call('time.start');f.advance(10000);await Promise.all([f.tick(),f.call('time.status'),f.tick()]);assert.equal((await f.call('time.status')).todayMs,10000);
 });
 test('failed storage write protects existing records and does not fabricate success',async()=>{
-  const f=await fixture();f.api.storage.local.set=async()=>{throw new Error('disk write failure');};await assert.rejects(f.call('time.start'),{code:'E_HOST_STORAGE_WRITE'});assert.equal(f.local[TIME_REVIEW_KEY],undefined);
+  const f=await fixture();f.api.storage.local.set=async()=>{throw new Error('disk write failure');};await assert.rejects(f.call('time.start'),{code:'E_HOST_STORAGE_WRITE'});assert.deepEqual(f.local[TIME_REVIEW_KEY],{...emptyReview(),siteGrants:{allSites:true,origins:[]}});
 });
 test('listener lifecycle attaches synchronously and disposes without duplicate handlers',async()=>{
   const f=await fixture(),service=installTimeReviewService({api:f.api,lockManager:f.locks,now:()=>f.at});assert.equal(f.api.runtime.onMessage.listeners.size,1);assert.equal(f.api.alarms.onAlarm.listeners.size,1);service.dispose();assert.equal(f.api.runtime.onMessage.listeners.size,0);assert.equal(f.api.tabs.onActivated.listeners.size,0);
+});
+test('unrelated tool installation never revokes an active Time Review checkpoint',async()=>{
+  const f=await fixture();
+  await f.call('time.start');
+  const hosted=installTimeReviewService({api:f.api,lockManager:f.locks,now:()=>f.at});
+  await hosted.service.tick();
+  const before=structuredClone(f.local[SIDEBAR_TOOL_STORE]);
+  const other={...f.tool,id:'other-tool',title:'Another tool'};
+  f.local[SIDEBAR_TOOL_STORE]=[...before,other];
+  f.api.storage.onChanged.emit({[SIDEBAR_TOOL_STORE]:{
+    oldValue:before,newValue:f.local[SIDEBAR_TOOL_STORE]
+  }},'local');
+  f.advance(2000);
+  await hosted.service.tick();
+  const state=await f.call('time.status');
+  assert.equal(state.paused,false,'unrelated install may not revoke this tool');
+  assert.equal(state.todayMs,2000);
+  assert.equal(state.trackingHost,'example.com');
+  const current=structuredClone(f.local[SIDEBAR_TOOL_STORE]);
+  f.local[SIDEBAR_TOOL_STORE][0].js+='\\n// updated Time Review';
+  f.api.storage.onChanged.emit({[SIDEBAR_TOOL_STORE]:{
+    oldValue:current,newValue:f.local[SIDEBAR_TOOL_STORE]
+  }},'local');
+  await hosted.service.tick();
+  assert.equal(f.local[TIME_REVIEW_KEY].paused,true,
+    'changing this exact installed package must retire tracking');
+  assert.equal(f.local[TIME_REVIEW_KEY].checkpoint,null);
+  hosted.dispose();
 });
 test('official tool uses reviewed capability and optional catalog; MV3 permissions and fixed host',async()=>{
   const tool=validateSidebarToolPackage(await createSidebarToolPackage('examples/sidebar-tools/time-review'));assert.deepEqual(tool.capabilities,['time.review','user.export']);
@@ -178,10 +209,10 @@ test('clock rollback and later correction never double-count previously settled 
   const f=await fixture();await f.call('time.start');f.advance(10000);await f.tick();f.advance(-5000);await f.tick();assert.equal(f.local[TIME_REVIEW_KEY].checkpoint,null);f.advance(15000);assert.equal((await f.call('time.status')).todayMs,10000);f.advance(5000);assert.equal((await f.call('time.status')).todayMs,15000);
 });
 test('host disappearing during browser observation rejects mutation before storage write',async()=>{
-  const f=await fixture(),query=f.api.tabs.query;f.api.tabs.query=async()=>{f.set({contexts:[]});return query();};await assert.rejects(f.call('time.start'),{code:'E_TIME_AUTHORITY'});assert.equal(f.local[TIME_REVIEW_KEY],undefined);
+  const f=await fixture(),query=f.api.tabs.query;f.api.tabs.query=async()=>{f.set({contexts:[]});return query();};await assert.rejects(f.call('time.start'),{code:'E_TIME_AUTHORITY'});assert.deepEqual(f.local[TIME_REVIEW_KEY],{...emptyReview(),siteGrants:{allSites:true,origins:[]}});
 });
 test('invalidated async observation cannot authorize or create stale checkpoint',async()=>{
-  const f=await fixture(),query=f.api.tabs.query;f.api.tabs.query=async()=>{f.invalidate();f.set({idle:'idle'});f.advance(10000);return query();};await assert.rejects(f.call('time.start'),{code:'E_TIME_OBSERVATION'});assert.equal(f.local[TIME_REVIEW_KEY],undefined);
+  const f=await fixture(),query=f.api.tabs.query;f.api.tabs.query=async()=>{f.invalidate();f.set({idle:'idle'});f.advance(10000);return query();};await assert.rejects(f.call('time.start'),{code:'E_TIME_OBSERVATION'});assert.deepEqual(f.local[TIME_REVIEW_KEY],{...emptyReview(),siteGrants:{allSites:true,origins:[]}});
 });
 test('revocation remains latched after a quick regrant and requires explicit new start',async()=>{
   const f=await fixture();await f.call('time.start');f.invalidate({revoke:true});f.set({permission:true});await f.tick();assert.equal(f.local[TIME_REVIEW_KEY].authorizedHash,null);assert.equal(f.local[TIME_REVIEW_KEY].paused,true);await f.call('time.start');assert.equal(f.local[TIME_REVIEW_KEY].paused,false);
@@ -206,5 +237,5 @@ test('resolved Side Panel document remains pinned across asynchronous observatio
   f.set({contexts:[context]});
   const query=f.api.tabs.query;f.api.tabs.query=async()=>{f.set({contexts:[{...context,documentId:'replacement'}]});return query();};
   await assert.rejects(f.call('time.start'),/文档已变化/);
-  assert.equal(f.local[TIME_REVIEW_KEY],undefined);
+  assert.deepEqual(f.local[TIME_REVIEW_KEY],{...emptyReview(),siteGrants:{allSites:true,origins:[]}});
 });

@@ -1,0 +1,3584 @@
+{
+  "schemaVersion": "opendesk.chrome.native-api.catalog.v1",
+  "sourceOfTruth": "pinned Chromium JSON schemas (discovery only)",
+  "chromiumCommit": "b5485910372708cd11d9a814a3e382fe8da57df3",
+  "chromeMinimum": 138,
+  "coverage": "PARTIAL_JSON_ONLY_IDL_AND_OTHER_NAMESPACES_PENDING",
+  "sourceFiles": [
+    {
+      "upstreamPath": "chrome/common/extensions/api/bookmarks.json",
+      "localPath": "vendor/chromium-extension-api/bookmarks.json",
+      "gitBlobSha": "1103be61f271c2410da601c5116360296951e28f",
+      "format": "chromium-json-schema"
+    },
+    {
+      "upstreamPath": "chrome/common/extensions/api/context_menus.json",
+      "localPath": "vendor/chromium-extension-api/context_menus.json",
+      "gitBlobSha": "c42347861ac2873c2647ee156a7e72e9f92976c9",
+      "format": "chromium-json-schema"
+    },
+    {
+      "upstreamPath": "chrome/common/extensions/api/history.json",
+      "localPath": "vendor/chromium-extension-api/history.json",
+      "gitBlobSha": "94633ddbd586a9f971f19b4c735ee5a5ea40ad4e",
+      "format": "chromium-json-schema"
+    },
+    {
+      "upstreamPath": "chrome/common/extensions/api/sessions.json",
+      "localPath": "vendor/chromium-extension-api/sessions.json",
+      "gitBlobSha": "d58cd9c40c285d9bf89e090108b6b7523fb373a6",
+      "format": "chromium-json-schema"
+    },
+    {
+      "upstreamPath": "chrome/common/extensions/api/tabs.json",
+      "localPath": "vendor/chromium-extension-api/tabs.json",
+      "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2",
+      "format": "chromium-json-schema"
+    },
+    {
+      "upstreamPath": "chrome/common/extensions/api/web_navigation.json",
+      "localPath": "vendor/chromium-extension-api/web_navigation.json",
+      "gitBlobSha": "d28dd5dfbcf9493c7e6b04aa44b9ed0ed4fff05b",
+      "format": "chromium-json-schema"
+    },
+    {
+      "upstreamPath": "chrome/common/extensions/api/windows.json",
+      "localPath": "vendor/chromium-extension-api/windows.json",
+      "gitBlobSha": "f890145286aef2d0a912d1fe5e2bda082a4e5347",
+      "format": "chromium-json-schema"
+    },
+    {
+      "upstreamPath": "extensions/common/api/cookies.json",
+      "localPath": "vendor/chromium-extension-api/cookies.json",
+      "gitBlobSha": "1a3fe52a71da6c17ce6a5f64c0ec3a51078cd7fd",
+      "format": "chromium-json-schema"
+    }
+  ],
+  "counts": {
+    "namespaces": 8,
+    "methods": 70,
+    "events": 38,
+    "properties": 11
+  },
+  "entries": [
+    {
+      "nativeApi": "chrome.bookmarks.MAX_SUSTAINED_WRITE_OPERATIONS_PER_MINUTE",
+      "namespace": "bookmarks",
+      "kind": "PROPERTY",
+      "parameters": [],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/bookmarks.json",
+        "gitBlobSha": "1103be61f271c2410da601c5116360296951e28f"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.bookmarks.MAX_WRITE_OPERATIONS_PER_HOUR",
+      "namespace": "bookmarks",
+      "kind": "PROPERTY",
+      "parameters": [],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/bookmarks.json",
+        "gitBlobSha": "1103be61f271c2410da601c5116360296951e28f"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.bookmarks.ROOT_NODE_ID",
+      "namespace": "bookmarks",
+      "kind": "PROPERTY",
+      "parameters": [],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/bookmarks.json",
+        "gitBlobSha": "1103be61f271c2410da601c5116360296951e28f"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.bookmarks.create",
+      "namespace": "bookmarks",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "bookmark",
+          "optional": false,
+          "type": "$ref:CreateDetails"
+        }
+      ],
+      "returnType": "$ref:BookmarkTreeNode",
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/bookmarks.json",
+        "gitBlobSha": "1103be61f271c2410da601c5116360296951e28f"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.bookmarks.get",
+      "namespace": "bookmarks",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "idOrIdList",
+          "optional": false,
+          "type": [
+            "string",
+            {
+              "type": "array",
+              "items": "string"
+            }
+          ]
+        }
+      ],
+      "returnType": {
+        "type": "array",
+        "items": "$ref:BookmarkTreeNode"
+      },
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/bookmarks.json",
+        "gitBlobSha": "1103be61f271c2410da601c5116360296951e28f"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.bookmarks.getChildren",
+      "namespace": "bookmarks",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "id",
+          "optional": false,
+          "type": "string"
+        }
+      ],
+      "returnType": {
+        "type": "array",
+        "items": "$ref:BookmarkTreeNode"
+      },
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/bookmarks.json",
+        "gitBlobSha": "1103be61f271c2410da601c5116360296951e28f"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.bookmarks.getRecent",
+      "namespace": "bookmarks",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "numberOfItems",
+          "optional": false,
+          "type": "integer"
+        }
+      ],
+      "returnType": {
+        "type": "array",
+        "items": "$ref:BookmarkTreeNode"
+      },
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/bookmarks.json",
+        "gitBlobSha": "1103be61f271c2410da601c5116360296951e28f"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.bookmarks.getSubTree",
+      "namespace": "bookmarks",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "id",
+          "optional": false,
+          "type": "string"
+        }
+      ],
+      "returnType": {
+        "type": "array",
+        "items": "$ref:BookmarkTreeNode"
+      },
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/bookmarks.json",
+        "gitBlobSha": "1103be61f271c2410da601c5116360296951e28f"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.bookmarks.getTree",
+      "namespace": "bookmarks",
+      "kind": "METHOD",
+      "parameters": [],
+      "returnType": {
+        "type": "array",
+        "items": "$ref:BookmarkTreeNode"
+      },
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/bookmarks.json",
+        "gitBlobSha": "1103be61f271c2410da601c5116360296951e28f"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.bookmarks.move",
+      "namespace": "bookmarks",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "id",
+          "optional": false,
+          "type": "string"
+        },
+        {
+          "name": "destination",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": "$ref:BookmarkTreeNode",
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/bookmarks.json",
+        "gitBlobSha": "1103be61f271c2410da601c5116360296951e28f"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.bookmarks.onChanged",
+      "namespace": "bookmarks",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "id",
+          "optional": false,
+          "type": "string"
+        },
+        {
+          "name": "changeInfo",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/bookmarks.json",
+        "gitBlobSha": "1103be61f271c2410da601c5116360296951e28f"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.bookmarks.onChildrenReordered",
+      "namespace": "bookmarks",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "id",
+          "optional": false,
+          "type": "string"
+        },
+        {
+          "name": "reorderInfo",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/bookmarks.json",
+        "gitBlobSha": "1103be61f271c2410da601c5116360296951e28f"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.bookmarks.onCreated",
+      "namespace": "bookmarks",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "id",
+          "optional": false,
+          "type": "string"
+        },
+        {
+          "name": "bookmark",
+          "optional": false,
+          "type": "$ref:BookmarkTreeNode"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/bookmarks.json",
+        "gitBlobSha": "1103be61f271c2410da601c5116360296951e28f"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.bookmarks.onImportBegan",
+      "namespace": "bookmarks",
+      "kind": "EVENT",
+      "parameters": [],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/bookmarks.json",
+        "gitBlobSha": "1103be61f271c2410da601c5116360296951e28f"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.bookmarks.onImportEnded",
+      "namespace": "bookmarks",
+      "kind": "EVENT",
+      "parameters": [],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/bookmarks.json",
+        "gitBlobSha": "1103be61f271c2410da601c5116360296951e28f"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.bookmarks.onMoved",
+      "namespace": "bookmarks",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "id",
+          "optional": false,
+          "type": "string"
+        },
+        {
+          "name": "moveInfo",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/bookmarks.json",
+        "gitBlobSha": "1103be61f271c2410da601c5116360296951e28f"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.bookmarks.onRemoved",
+      "namespace": "bookmarks",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "id",
+          "optional": false,
+          "type": "string"
+        },
+        {
+          "name": "removeInfo",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/bookmarks.json",
+        "gitBlobSha": "1103be61f271c2410da601c5116360296951e28f"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.bookmarks.remove",
+      "namespace": "bookmarks",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "id",
+          "optional": false,
+          "type": "string"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/bookmarks.json",
+        "gitBlobSha": "1103be61f271c2410da601c5116360296951e28f"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.bookmarks.removeTree",
+      "namespace": "bookmarks",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "id",
+          "optional": false,
+          "type": "string"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/bookmarks.json",
+        "gitBlobSha": "1103be61f271c2410da601c5116360296951e28f"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.bookmarks.search",
+      "namespace": "bookmarks",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "query",
+          "optional": false,
+          "type": [
+            "string",
+            "object"
+          ]
+        }
+      ],
+      "returnType": {
+        "type": "array",
+        "items": "$ref:BookmarkTreeNode"
+      },
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/bookmarks.json",
+        "gitBlobSha": "1103be61f271c2410da601c5116360296951e28f"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.bookmarks.update",
+      "namespace": "bookmarks",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "id",
+          "optional": false,
+          "type": "string"
+        },
+        {
+          "name": "changes",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": "$ref:BookmarkTreeNode",
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/bookmarks.json",
+        "gitBlobSha": "1103be61f271c2410da601c5116360296951e28f"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.contextMenus.ACTION_MENU_TOP_LEVEL_LIMIT",
+      "namespace": "contextMenus",
+      "kind": "PROPERTY",
+      "parameters": [],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/context_menus.json",
+        "gitBlobSha": "c42347861ac2873c2647ee156a7e72e9f92976c9"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.contextMenus.create",
+      "namespace": "contextMenus",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "createProperties",
+          "optional": false,
+          "type": "$ref:CreateProperties"
+        }
+      ],
+      "returnType": [
+        "integer",
+        "string"
+      ],
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": "EXISTING_SERVICE",
+      "opendeskOperation": [
+        "browser.contextMenu.register"
+      ],
+      "hostService": "src/platform/chrome/context-menus.js",
+      "exposure": "SEE_APPROVED_SDK_CONTRACT",
+      "implementation": "MAPPED_TO_EXISTING_CONTRACT",
+      "source": {
+        "path": "chrome/common/extensions/api/context_menus.json",
+        "gitBlobSha": "c42347861ac2873c2647ee156a7e72e9f92976c9"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.contextMenus.onClicked",
+      "namespace": "contextMenus",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "info",
+          "optional": false,
+          "type": "$ref:OnClickData"
+        },
+        {
+          "name": "tab",
+          "optional": true,
+          "type": "$ref:tabs.Tab"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [
+        "browser.contextMenu.getStatus",
+        "browser.launch.consume",
+        "browser.page.getSelection"
+      ],
+      "hostService": null,
+      "exposure": "SEE_APPROVED_SDK_CONTRACT",
+      "implementation": "MAPPED_TO_EXISTING_CONTRACT",
+      "source": {
+        "path": "chrome/common/extensions/api/context_menus.json",
+        "gitBlobSha": "c42347861ac2873c2647ee156a7e72e9f92976c9"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.contextMenus.remove",
+      "namespace": "contextMenus",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "menuItemId",
+          "optional": false,
+          "type": [
+            "integer",
+            "string"
+          ]
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": "EXISTING_SERVICE",
+      "opendeskOperation": [
+        "browser.contextMenu.unregister"
+      ],
+      "hostService": "src/platform/chrome/context-menus.js",
+      "exposure": "SEE_APPROVED_SDK_CONTRACT",
+      "implementation": "MAPPED_TO_EXISTING_CONTRACT",
+      "source": {
+        "path": "chrome/common/extensions/api/context_menus.json",
+        "gitBlobSha": "c42347861ac2873c2647ee156a7e72e9f92976c9"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.contextMenus.removeAll",
+      "namespace": "contextMenus",
+      "kind": "METHOD",
+      "parameters": [],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/context_menus.json",
+        "gitBlobSha": "c42347861ac2873c2647ee156a7e72e9f92976c9"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.contextMenus.update",
+      "namespace": "contextMenus",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "id",
+          "optional": false,
+          "type": [
+            "integer",
+            "string"
+          ]
+        },
+        {
+          "name": "updateProperties",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": "EXISTING_SERVICE",
+      "opendeskOperation": [
+        "browser.contextMenu.register"
+      ],
+      "hostService": "src/platform/chrome/context-menus.js",
+      "exposure": "SEE_APPROVED_SDK_CONTRACT",
+      "implementation": "MAPPED_TO_EXISTING_CONTRACT",
+      "source": {
+        "path": "chrome/common/extensions/api/context_menus.json",
+        "gitBlobSha": "c42347861ac2873c2647ee156a7e72e9f92976c9"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.cookies.get",
+      "namespace": "cookies",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "details",
+          "optional": false,
+          "type": "$ref:CookieDetails"
+        }
+      ],
+      "returnType": "$ref:Cookie",
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "extensions/common/api/cookies.json",
+        "gitBlobSha": "1a3fe52a71da6c17ce6a5f64c0ec3a51078cd7fd"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.cookies.getAll",
+      "namespace": "cookies",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "details",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": {
+        "type": "array",
+        "items": "$ref:Cookie"
+      },
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "extensions/common/api/cookies.json",
+        "gitBlobSha": "1a3fe52a71da6c17ce6a5f64c0ec3a51078cd7fd"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.cookies.getAllCookieStores",
+      "namespace": "cookies",
+      "kind": "METHOD",
+      "parameters": [],
+      "returnType": {
+        "type": "array",
+        "items": "$ref:CookieStore"
+      },
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "extensions/common/api/cookies.json",
+        "gitBlobSha": "1a3fe52a71da6c17ce6a5f64c0ec3a51078cd7fd"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.cookies.getPartitionKey",
+      "namespace": "cookies",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "details",
+          "optional": false,
+          "type": "$ref:FrameDetails"
+        }
+      ],
+      "returnType": "object",
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "extensions/common/api/cookies.json",
+        "gitBlobSha": "1a3fe52a71da6c17ce6a5f64c0ec3a51078cd7fd"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.cookies.onChanged",
+      "namespace": "cookies",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "changeInfo",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "extensions/common/api/cookies.json",
+        "gitBlobSha": "1a3fe52a71da6c17ce6a5f64c0ec3a51078cd7fd"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.cookies.remove",
+      "namespace": "cookies",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "details",
+          "optional": false,
+          "type": "$ref:CookieDetails"
+        }
+      ],
+      "returnType": "object",
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "extensions/common/api/cookies.json",
+        "gitBlobSha": "1a3fe52a71da6c17ce6a5f64c0ec3a51078cd7fd"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.cookies.set",
+      "namespace": "cookies",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "details",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": "$ref:Cookie",
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "extensions/common/api/cookies.json",
+        "gitBlobSha": "1a3fe52a71da6c17ce6a5f64c0ec3a51078cd7fd"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.history.addUrl",
+      "namespace": "history",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "details",
+          "optional": false,
+          "type": "$ref:UrlDetails"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/history.json",
+        "gitBlobSha": "94633ddbd586a9f971f19b4c735ee5a5ea40ad4e"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.history.deleteAll",
+      "namespace": "history",
+      "kind": "METHOD",
+      "parameters": [],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/history.json",
+        "gitBlobSha": "94633ddbd586a9f971f19b4c735ee5a5ea40ad4e"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.history.deleteRange",
+      "namespace": "history",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "range",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/history.json",
+        "gitBlobSha": "94633ddbd586a9f971f19b4c735ee5a5ea40ad4e"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.history.deleteUrl",
+      "namespace": "history",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "details",
+          "optional": false,
+          "type": "$ref:UrlDetails"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/history.json",
+        "gitBlobSha": "94633ddbd586a9f971f19b4c735ee5a5ea40ad4e"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.history.getVisits",
+      "namespace": "history",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "details",
+          "optional": false,
+          "type": "$ref:UrlDetails"
+        }
+      ],
+      "returnType": {
+        "type": "array",
+        "items": "$ref:VisitItem"
+      },
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/history.json",
+        "gitBlobSha": "94633ddbd586a9f971f19b4c735ee5a5ea40ad4e"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.history.onVisitRemoved",
+      "namespace": "history",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "removed",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/history.json",
+        "gitBlobSha": "94633ddbd586a9f971f19b4c735ee5a5ea40ad4e"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.history.onVisited",
+      "namespace": "history",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "result",
+          "optional": false,
+          "type": "$ref:HistoryItem"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/history.json",
+        "gitBlobSha": "94633ddbd586a9f971f19b4c735ee5a5ea40ad4e"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.history.search",
+      "namespace": "history",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "query",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": {
+        "type": "array",
+        "items": "$ref:HistoryItem"
+      },
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/history.json",
+        "gitBlobSha": "94633ddbd586a9f971f19b4c735ee5a5ea40ad4e"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.sessions.MAX_SESSION_RESULTS",
+      "namespace": "sessions",
+      "kind": "PROPERTY",
+      "parameters": [],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/sessions.json",
+        "gitBlobSha": "d58cd9c40c285d9bf89e090108b6b7523fb373a6"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.sessions.getDevices",
+      "namespace": "sessions",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "filter",
+          "optional": true,
+          "type": "$ref:Filter"
+        }
+      ],
+      "returnType": {
+        "type": "array",
+        "items": "$ref:Device"
+      },
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/sessions.json",
+        "gitBlobSha": "d58cd9c40c285d9bf89e090108b6b7523fb373a6"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.sessions.getRecentlyClosed",
+      "namespace": "sessions",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "filter",
+          "optional": true,
+          "type": "$ref:Filter"
+        }
+      ],
+      "returnType": {
+        "type": "array",
+        "items": "$ref:Session"
+      },
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/sessions.json",
+        "gitBlobSha": "d58cd9c40c285d9bf89e090108b6b7523fb373a6"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.sessions.onChanged",
+      "namespace": "sessions",
+      "kind": "EVENT",
+      "parameters": [],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/sessions.json",
+        "gitBlobSha": "d58cd9c40c285d9bf89e090108b6b7523fb373a6"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.sessions.restore",
+      "namespace": "sessions",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "sessionId",
+          "optional": true,
+          "type": "string"
+        }
+      ],
+      "returnType": "$ref:Session",
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/sessions.json",
+        "gitBlobSha": "d58cd9c40c285d9bf89e090108b6b7523fb373a6"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.MAX_CAPTURE_VISIBLE_TAB_CALLS_PER_SECOND",
+      "namespace": "tabs",
+      "kind": "PROPERTY",
+      "parameters": [],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.SPLIT_VIEW_ID_NONE",
+      "namespace": "tabs",
+      "kind": "PROPERTY",
+      "parameters": [],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.TAB_ID_NONE",
+      "namespace": "tabs",
+      "kind": "PROPERTY",
+      "parameters": [],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.TAB_INDEX_NONE",
+      "namespace": "tabs",
+      "kind": "PROPERTY",
+      "parameters": [],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.captureVisibleTab",
+      "namespace": "tabs",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "windowId",
+          "optional": true,
+          "type": "integer"
+        },
+        {
+          "name": "options",
+          "optional": true,
+          "type": "$ref:extensionTypes.ImageDetails"
+        }
+      ],
+      "returnType": "string",
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": "COMPOSED",
+      "opendeskOperation": [
+        "browser.screenshot.captureVisible"
+      ],
+      "hostService": "src/platform/chrome/context-menus.js",
+      "exposure": "SEE_APPROVED_SDK_CONTRACT",
+      "implementation": "MAPPED_TO_EXISTING_CONTRACT",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.connect",
+      "namespace": "tabs",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "tabId",
+          "optional": false,
+          "type": "integer"
+        },
+        {
+          "name": "connectInfo",
+          "optional": true,
+          "type": "object"
+        }
+      ],
+      "returnType": "$ref:runtime.Port",
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.create",
+      "namespace": "tabs",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "createProperties",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": "$ref:Tab",
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": "SCOPED",
+      "opendeskOperation": [
+        "browser.tabs.create"
+      ],
+      "hostService": "src/platform/chrome/context-menus.js",
+      "exposure": "SEE_APPROVED_SDK_CONTRACT",
+      "implementation": "MAPPED_TO_EXISTING_CONTRACT",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.createSplit",
+      "namespace": "tabs",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "tabIds",
+          "optional": false,
+          "type": {
+            "type": "array",
+            "items": "integer"
+          }
+        }
+      ],
+      "returnType": "integer",
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.detectLanguage",
+      "namespace": "tabs",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "tabId",
+          "optional": true,
+          "type": "integer"
+        }
+      ],
+      "returnType": "string",
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.discard",
+      "namespace": "tabs",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "tabId",
+          "optional": true,
+          "type": "integer"
+        }
+      ],
+      "returnType": "$ref:Tab",
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.duplicate",
+      "namespace": "tabs",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "tabId",
+          "optional": false,
+          "type": "integer"
+        }
+      ],
+      "returnType": "$ref:Tab",
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.executeScript",
+      "namespace": "tabs",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "tabId",
+          "optional": true,
+          "type": "integer"
+        },
+        {
+          "name": "details",
+          "optional": false,
+          "type": "$ref:extensionTypes.InjectDetails"
+        }
+      ],
+      "returnType": {
+        "type": "array",
+        "items": "any"
+      },
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.get",
+      "namespace": "tabs",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "tabId",
+          "optional": false,
+          "type": "integer"
+        }
+      ],
+      "returnType": "$ref:Tab",
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [
+        "browser.tabs.activateOwned",
+        "browser.tabs.getOwned",
+        "browser.tabs.listOwned",
+        "browser.tabs.navigateOwned",
+        "browser.tabs.pinOwned",
+        "browser.tabs.reloadOwned",
+        "browser.tabs.removeOwned"
+      ],
+      "hostService": null,
+      "exposure": "SEE_APPROVED_SDK_CONTRACT",
+      "implementation": "MAPPED_TO_EXISTING_CONTRACT",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.getAllInWindow",
+      "namespace": "tabs",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "windowId",
+          "optional": true,
+          "type": "integer"
+        }
+      ],
+      "returnType": {
+        "type": "array",
+        "items": "$ref:Tab"
+      },
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.getCurrent",
+      "namespace": "tabs",
+      "kind": "METHOD",
+      "parameters": [],
+      "returnType": "$ref:Tab",
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.getSelected",
+      "namespace": "tabs",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "windowId",
+          "optional": true,
+          "type": "integer"
+        }
+      ],
+      "returnType": "$ref:Tab",
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.getZoom",
+      "namespace": "tabs",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "tabId",
+          "optional": true,
+          "type": "integer"
+        }
+      ],
+      "returnType": "number",
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.getZoomSettings",
+      "namespace": "tabs",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "tabId",
+          "optional": true,
+          "type": "integer"
+        }
+      ],
+      "returnType": "$ref:ZoomSettings",
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.goBack",
+      "namespace": "tabs",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "tabId",
+          "optional": true,
+          "type": "integer"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.goForward",
+      "namespace": "tabs",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "tabId",
+          "optional": true,
+          "type": "integer"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.group",
+      "namespace": "tabs",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "options",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": "integer",
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.highlight",
+      "namespace": "tabs",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "highlightInfo",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": "$ref:windows.Window",
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.insertCSS",
+      "namespace": "tabs",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "tabId",
+          "optional": true,
+          "type": "integer"
+        },
+        {
+          "name": "details",
+          "optional": false,
+          "type": "$ref:extensionTypes.InjectDetails"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.move",
+      "namespace": "tabs",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "tabIds",
+          "optional": false,
+          "type": [
+            "integer",
+            {
+              "type": "array",
+              "items": "integer"
+            }
+          ]
+        },
+        {
+          "name": "moveProperties",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": [
+        "$ref:Tab",
+        {
+          "type": "array",
+          "items": "$ref:Tab"
+        }
+      ],
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.onActivated",
+      "namespace": "tabs",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "activeInfo",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.onActiveChanged",
+      "namespace": "tabs",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "tabId",
+          "optional": false,
+          "type": "integer"
+        },
+        {
+          "name": "selectInfo",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.onAttached",
+      "namespace": "tabs",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "tabId",
+          "optional": false,
+          "type": "integer"
+        },
+        {
+          "name": "attachInfo",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.onCreated",
+      "namespace": "tabs",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "tab",
+          "optional": false,
+          "type": "$ref:Tab"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.onDetached",
+      "namespace": "tabs",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "tabId",
+          "optional": false,
+          "type": "integer"
+        },
+        {
+          "name": "detachInfo",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.onHighlightChanged",
+      "namespace": "tabs",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "selectInfo",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.onHighlighted",
+      "namespace": "tabs",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "highlightInfo",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.onMoved",
+      "namespace": "tabs",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "tabId",
+          "optional": false,
+          "type": "integer"
+        },
+        {
+          "name": "moveInfo",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.onRemoved",
+      "namespace": "tabs",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "tabId",
+          "optional": false,
+          "type": "integer"
+        },
+        {
+          "name": "removeInfo",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.onReplaced",
+      "namespace": "tabs",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "addedTabId",
+          "optional": false,
+          "type": "integer"
+        },
+        {
+          "name": "removedTabId",
+          "optional": false,
+          "type": "integer"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.onSelectionChanged",
+      "namespace": "tabs",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "tabId",
+          "optional": false,
+          "type": "integer"
+        },
+        {
+          "name": "selectInfo",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.onUpdated",
+      "namespace": "tabs",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "tabId",
+          "optional": false,
+          "type": "integer"
+        },
+        {
+          "name": "changeInfo",
+          "optional": false,
+          "type": "object"
+        },
+        {
+          "name": "tab",
+          "optional": false,
+          "type": "$ref:Tab"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.onZoomChange",
+      "namespace": "tabs",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "ZoomChangeInfo",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.query",
+      "namespace": "tabs",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "queryInfo",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": {
+        "type": "array",
+        "items": "$ref:Tab"
+      },
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.reload",
+      "namespace": "tabs",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "tabId",
+          "optional": true,
+          "type": "integer"
+        },
+        {
+          "name": "reloadProperties",
+          "optional": true,
+          "type": "object"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": "SCOPED",
+      "opendeskOperation": [
+        "browser.tabs.reloadOwned"
+      ],
+      "hostService": "src/platform/chrome/context-menus.js",
+      "exposure": "SEE_APPROVED_SDK_CONTRACT",
+      "implementation": "MAPPED_TO_EXISTING_CONTRACT",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.remove",
+      "namespace": "tabs",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "tabIds",
+          "optional": false,
+          "type": [
+            "integer",
+            {
+              "type": "array",
+              "items": "integer"
+            }
+          ]
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": "SCOPED",
+      "opendeskOperation": [
+        "browser.tabs.removeOwned"
+      ],
+      "hostService": "src/platform/chrome/context-menus.js",
+      "exposure": "SEE_APPROVED_SDK_CONTRACT",
+      "implementation": "MAPPED_TO_EXISTING_CONTRACT",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.removeCSS",
+      "namespace": "tabs",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "tabId",
+          "optional": true,
+          "type": "integer"
+        },
+        {
+          "name": "details",
+          "optional": false,
+          "type": "$ref:extensionTypes.DeleteInjectionDetails"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.sendMessage",
+      "namespace": "tabs",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "tabId",
+          "optional": false,
+          "type": "integer"
+        },
+        {
+          "name": "message",
+          "optional": false,
+          "type": "any"
+        },
+        {
+          "name": "options",
+          "optional": true,
+          "type": "object"
+        }
+      ],
+      "returnType": "any",
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.sendRequest",
+      "namespace": "tabs",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "tabId",
+          "optional": false,
+          "type": "integer"
+        },
+        {
+          "name": "request",
+          "optional": false,
+          "type": "any"
+        }
+      ],
+      "returnType": "any",
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.setZoom",
+      "namespace": "tabs",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "tabId",
+          "optional": true,
+          "type": "integer"
+        },
+        {
+          "name": "zoomFactor",
+          "optional": false,
+          "type": "number"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.setZoomSettings",
+      "namespace": "tabs",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "tabId",
+          "optional": true,
+          "type": "integer"
+        },
+        {
+          "name": "zoomSettings",
+          "optional": false,
+          "type": "$ref:ZoomSettings"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.ungroup",
+      "namespace": "tabs",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "tabIds",
+          "optional": false,
+          "type": [
+            "integer",
+            {
+              "type": "array",
+              "items": "integer"
+            }
+          ]
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.unsplit",
+      "namespace": "tabs",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "splitViewId",
+          "optional": false,
+          "type": "integer"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.tabs.update",
+      "namespace": "tabs",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "tabId",
+          "optional": true,
+          "type": "integer"
+        },
+        {
+          "name": "updateProperties",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": "$ref:Tab",
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [
+        "browser.tabs.activateOwned",
+        "browser.tabs.navigateOwned",
+        "browser.tabs.pinOwned"
+      ],
+      "hostService": null,
+      "exposure": "SEE_APPROVED_SDK_CONTRACT",
+      "implementation": "MAPPED_TO_EXISTING_CONTRACT",
+      "source": {
+        "path": "chrome/common/extensions/api/tabs.json",
+        "gitBlobSha": "dbd3c252a3039cb10014518b05037151be7a1ce2"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.webNavigation.getAllFrames",
+      "namespace": "webNavigation",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "details",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": {
+        "type": "array",
+        "items": "object"
+      },
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/web_navigation.json",
+        "gitBlobSha": "d28dd5dfbcf9493c7e6b04aa44b9ed0ed4fff05b"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.webNavigation.getFrame",
+      "namespace": "webNavigation",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "details",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": "object",
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [
+        "browser.launch.consume",
+        "browser.tabs.getOwned",
+        "browser.tabs.listOwned",
+        "browser.tabs.navigateOwned",
+        "browser.tabs.pinOwned",
+        "browser.tabs.reloadOwned",
+        "browser.tabs.removeOwned"
+      ],
+      "hostService": null,
+      "exposure": "SEE_APPROVED_SDK_CONTRACT",
+      "implementation": "MAPPED_TO_EXISTING_CONTRACT",
+      "source": {
+        "path": "chrome/common/extensions/api/web_navigation.json",
+        "gitBlobSha": "d28dd5dfbcf9493c7e6b04aa44b9ed0ed4fff05b"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.webNavigation.onBeforeNavigate",
+      "namespace": "webNavigation",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "details",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/web_navigation.json",
+        "gitBlobSha": "d28dd5dfbcf9493c7e6b04aa44b9ed0ed4fff05b"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.webNavigation.onCommitted",
+      "namespace": "webNavigation",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "details",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/web_navigation.json",
+        "gitBlobSha": "d28dd5dfbcf9493c7e6b04aa44b9ed0ed4fff05b"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.webNavigation.onCompleted",
+      "namespace": "webNavigation",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "details",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/web_navigation.json",
+        "gitBlobSha": "d28dd5dfbcf9493c7e6b04aa44b9ed0ed4fff05b"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.webNavigation.onCreatedNavigationTarget",
+      "namespace": "webNavigation",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "details",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/web_navigation.json",
+        "gitBlobSha": "d28dd5dfbcf9493c7e6b04aa44b9ed0ed4fff05b"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.webNavigation.onDOMContentLoaded",
+      "namespace": "webNavigation",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "details",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/web_navigation.json",
+        "gitBlobSha": "d28dd5dfbcf9493c7e6b04aa44b9ed0ed4fff05b"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.webNavigation.onErrorOccurred",
+      "namespace": "webNavigation",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "details",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/web_navigation.json",
+        "gitBlobSha": "d28dd5dfbcf9493c7e6b04aa44b9ed0ed4fff05b"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.webNavigation.onHistoryStateUpdated",
+      "namespace": "webNavigation",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "details",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/web_navigation.json",
+        "gitBlobSha": "d28dd5dfbcf9493c7e6b04aa44b9ed0ed4fff05b"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.webNavigation.onReferenceFragmentUpdated",
+      "namespace": "webNavigation",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "details",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/web_navigation.json",
+        "gitBlobSha": "d28dd5dfbcf9493c7e6b04aa44b9ed0ed4fff05b"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.webNavigation.onTabReplaced",
+      "namespace": "webNavigation",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "details",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/web_navigation.json",
+        "gitBlobSha": "d28dd5dfbcf9493c7e6b04aa44b9ed0ed4fff05b"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.windows.WINDOW_ID_CURRENT",
+      "namespace": "windows",
+      "kind": "PROPERTY",
+      "parameters": [],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/windows.json",
+        "gitBlobSha": "f890145286aef2d0a912d1fe5e2bda082a4e5347"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.windows.WINDOW_ID_NONE",
+      "namespace": "windows",
+      "kind": "PROPERTY",
+      "parameters": [],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/windows.json",
+        "gitBlobSha": "f890145286aef2d0a912d1fe5e2bda082a4e5347"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.windows.create",
+      "namespace": "windows",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "createData",
+          "optional": true,
+          "type": "object"
+        }
+      ],
+      "returnType": "$ref:Window",
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/windows.json",
+        "gitBlobSha": "f890145286aef2d0a912d1fe5e2bda082a4e5347"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.windows.get",
+      "namespace": "windows",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "windowId",
+          "optional": false,
+          "type": "integer"
+        },
+        {
+          "name": "queryOptions",
+          "optional": true,
+          "type": "$ref:QueryOptions"
+        }
+      ],
+      "returnType": "$ref:Window",
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/windows.json",
+        "gitBlobSha": "f890145286aef2d0a912d1fe5e2bda082a4e5347"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.windows.getAll",
+      "namespace": "windows",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "queryOptions",
+          "optional": true,
+          "type": "$ref:QueryOptions"
+        }
+      ],
+      "returnType": {
+        "type": "array",
+        "items": "$ref:Window"
+      },
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/windows.json",
+        "gitBlobSha": "f890145286aef2d0a912d1fe5e2bda082a4e5347"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.windows.getCurrent",
+      "namespace": "windows",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "queryOptions",
+          "optional": true,
+          "type": "$ref:QueryOptions"
+        }
+      ],
+      "returnType": "$ref:Window",
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/windows.json",
+        "gitBlobSha": "f890145286aef2d0a912d1fe5e2bda082a4e5347"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.windows.getLastFocused",
+      "namespace": "windows",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "queryOptions",
+          "optional": true,
+          "type": "$ref:QueryOptions"
+        }
+      ],
+      "returnType": "$ref:Window",
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/windows.json",
+        "gitBlobSha": "f890145286aef2d0a912d1fe5e2bda082a4e5347"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.windows.onBoundsChanged",
+      "namespace": "windows",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "window",
+          "optional": false,
+          "type": "$ref:Window"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/windows.json",
+        "gitBlobSha": "f890145286aef2d0a912d1fe5e2bda082a4e5347"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.windows.onCreated",
+      "namespace": "windows",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "window",
+          "optional": false,
+          "type": "$ref:Window"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/windows.json",
+        "gitBlobSha": "f890145286aef2d0a912d1fe5e2bda082a4e5347"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.windows.onFocusChanged",
+      "namespace": "windows",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "windowId",
+          "optional": false,
+          "type": "integer"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/windows.json",
+        "gitBlobSha": "f890145286aef2d0a912d1fe5e2bda082a4e5347"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.windows.onRemoved",
+      "namespace": "windows",
+      "kind": "EVENT",
+      "parameters": [
+        {
+          "name": "windowId",
+          "optional": false,
+          "type": "integer"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/windows.json",
+        "gitBlobSha": "f890145286aef2d0a912d1fe5e2bda082a4e5347"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.windows.remove",
+      "namespace": "windows",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "windowId",
+          "optional": false,
+          "type": "integer"
+        }
+      ],
+      "returnType": null,
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": null,
+      "opendeskOperation": [],
+      "hostService": null,
+      "exposure": "NOT_EXPOSED",
+      "implementation": "NOT_IMPLEMENTED",
+      "source": {
+        "path": "chrome/common/extensions/api/windows.json",
+        "gitBlobSha": "f890145286aef2d0a912d1fe5e2bda082a4e5347"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    },
+    {
+      "nativeApi": "chrome.windows.update",
+      "namespace": "windows",
+      "kind": "METHOD",
+      "parameters": [
+        {
+          "name": "windowId",
+          "optional": false,
+          "type": "integer"
+        },
+        {
+          "name": "updateInfo",
+          "optional": false,
+          "type": "object"
+        }
+      ],
+      "returnType": "$ref:Window",
+      "minChrome": null,
+      "contexts": null,
+      "chromePermissions": null,
+      "hostPermissions": null,
+      "availability": "MIN_VERSION_UNVERIFIED",
+      "mappingKind": "SCOPED",
+      "opendeskOperation": [
+        "browser.tabs.activateOwned"
+      ],
+      "hostService": "src/platform/chrome/context-menus.js",
+      "exposure": "SEE_APPROVED_SDK_CONTRACT",
+      "implementation": "MAPPED_TO_EXISTING_CONTRACT",
+      "source": {
+        "path": "chrome/common/extensions/api/windows.json",
+        "gitBlobSha": "f890145286aef2d0a912d1fe5e2bda082a4e5347"
+      },
+      "evidence": "SCHEMA_DISCOVERY_ONLY_NOT_CHROME_TESTED"
+    }
+  ]
+}

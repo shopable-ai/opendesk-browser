@@ -1,5 +1,7 @@
 # Extension Factory：技术复用审计与增量架构
 
+> **R3 续接入口（2026-10-12）**：完整分阶段任务树参见 [Product Ecosystem R3 Roadmap](product-ecosystem-r3-roadmap.zh-CN.md)，可执行 GOAL 参见 [R3 工程实施](../../framework/prompts/goal-product-ecosystem-r3.zh-CN.md)。本文件保留 R1/R2 设计及历史 Page QA 示例，下面新增第八节明确什么时候才建设通用工厂。
+
 > **2026-10-12 最新状态：Page QA = `DEPRECATED / NO_RELEASE / SOURCE_REMOVED_FROM_MAIN`。** 下文产品目录、配置和构建示例仅保留 R1/R2 历史设计，不再存在于当前 `main`。原 R2 CLI/Resolver/Feature Catalog 只支持 Page QA，已与其专用产品代码一起清理，**不能继续宣称现有仓库实现了任意多产品构建工厂**；保留最少权限/Manifest/ZIP 设计理念，先验证电商等真实需求，再决定新一代通用实现。参见 [商业决策](commercial-decision-ecommerce-20261012.zh-CN.md)。
 
 > R1 为**设计研究**，没有创建产品打包器或运行第二套执行框架。本文件所称“现有”仅指在 2026-10-12 远端 `main` 抽样读取的代码，CI/原生证据另见对应 workstream。
@@ -116,3 +118,36 @@ export default {
 ## 七、如何避免维护成本失控？
 
 每产品必须有 `owner / purpose / userStories / featureModules / permissions / supportedSites / tests / SLO / updatePolicy / sunsetPlan`。同类功能走内部模块或 C Script，不单独发行；没有真实用户、长期适配预算与责任人不能进入 CWS 扩展队列。
+
+
+## 八、R3：通用化决策、真实消费者与测试门
+
+> **状态：`CONDITIONAL / NOT_STARTED`。** R3 未通过本次文档提交恢复任何 `product-build` / `product-pack` npm 命令，也未创建产品注册中心；Page QA 代码继续保持 `SOURCE_REMOVED_FROM_MAIN`。
+
+### 8.1 先验证产品形态，再建设构建器
+
+- A OpenDesk 工具、C UserScript 能直接解决且无单独 CWS 品牌诉求时，优先复用现有安装与页面能力，不要为了打包创建 B 产品。
+- D 外部服务需要合法、持续的数据源与用户授权；不能通过新扩展的浏览器权限代替商家官方 API 授权。
+- **真正要启动 B 的门槛**：单一用途、真实目标用户的任务、独立安装/分发必要性、比通用工具更合理的权限范围、可承担的版本和平台维护、可用的真实验收入口。商业收入是可研究的假设，不因产品 ZIP 可编译就算 `PAID_VALIDATED`。
+- 主业务先看 EXP-005 卖家 Listing/SKU 和 EXP-007 到手价；它们均属 `HYPOTHESIS`，不能自动宣布适合独立插件。
+
+### 8.2 条件成立后的最小技术接口
+
+~~~text
+Reviewed Product Registry
+  → ProductConfig（ID、目的、UI、模块、授权、存储、版本、预算）
+  → Static Feature Catalog / Dependency + Permission Resolver
+  → Product Build Plan（选择静态入口/依赖、拒绝未声明资源）
+  → WXT/Manifest（每产品最少权限，不复制整套 OpenDesk）
+  → Independent Build / Pack / Verify（独立缓存、资源哈希与包签收）
+  → Node/CFT/原生 Chrome/升级撤销验证
+  → 手工发布和合规审查（CWS_APPROVED 另有证据）
+~~~
+
+只有通用解析器 + 两种配置有实际差异的**非商业 Fixture**完成负面测试后，才重新注册按产品选择的构建命令，避免重造 R2 只接受 `page-qa-inspector` 的伪通用接口。Fixture 放在 `tests/fixtures` 等受控测试目录，不作为新的商业扩展或 Page QA 继承者。
+
+### 8.3 最小且不可省略的安全拒绝
+
+未知/重复 ID；缺依赖/循环；未授权站点与超出目的的 API 权限；未选模块混入；跨产品共享敏感存储；远程特权 JS；Manifest 权限/CSP 变更；构建包与来源哈希不符；版本升级和权限撤销后继续执行。每项须有代码级断言和对应的原生证据适用边界。
+
+本文件仅持有独立工厂的架构说明；**权威任务树**统一维护在 [R3 Roadmap](product-ecosystem-r3-roadmap.zh-CN.md)，真实开发过程写 [R3 Workstream](../../framework/workstreams/product-ecosystem-r3.md)，不得自建第二份 R8/OPP/EXP 编号。

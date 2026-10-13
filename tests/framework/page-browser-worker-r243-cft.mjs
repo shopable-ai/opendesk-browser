@@ -10,9 +10,10 @@ import path from 'node:path';
 import {WebSocket} from 'ws';
 import {launchLocalDevChrome} from './local-dev-cft-launcher.mjs';
 import {runBrowserComponentCycles} from './page-browser-ui-r243-cycles.mjs';
+import {runR72PageClassicCycle} from './page-dependency-r72-cft-cycle.mjs';
 
 const root=process.cwd(),output=path.resolve(process.env.OPENDESK_DEV_EVIDENCE||
-  '.runtime/tests/page-browser-worker-r243'),packageRoot=path.resolve('dist/production');
+  '.runtime/tests/page-browser-worker-r243'),packageRoot=path.resolve(process.env.OPENDESK_DEV_PACKAGE_DIR||'dist/production');
 fs.mkdirSync(output,{recursive:true});
 const binary=process.env.CHROME_FOR_TESTING_BIN;
 if(!binary||!fs.existsSync(binary))throw Error('Chrome for Testing binary is required');
@@ -135,6 +136,70 @@ async function verifyBrowserUI({browser,page,catalogTabId,base,extensionId,outpu
       'trusted Sidebar developer navigation',10000);
     const permission=await sidebar.read('chrome.permissions.contains({origins:["http://127.0.0.1:43111/*"]})');
     assert.equal(permission,true,'original Chrome website permission must be granted');
+    if(process.env.OPENDESK_R72_DEPENDENCY_NATIVE_SMOKE==='1')
+      await runR72PageClassicCycle({sidebar,website,browser,base,extensionId,cdp,until,clickReal,report});
+    if(process.env.OPENDESK_R245_STANDARD_SMOKE==='1'){
+      const marker=await sidebar.read('(async()=>{const r=await fetch(chrome.runtime.getURL("framework/browser-edition.json"));'+
+        'if(!r.ok)throw Error("E_EDITION_MARKER");return r.json()})()');
+      assert.equal(marker.edition,'standard');
+      assert.equal(marker.browserComponentCompiler,false);
+      const state=await sidebar.read('(()=>{const js=document.querySelector("#page-component-javascript");'+
+        'const react=document.querySelector("#page-component-react");'+
+        'const vue=document.querySelector("#page-component-vue");'+
+        'const hint=document.querySelector("#page-component-hint");'+
+        'return {jsChecked:js?.checked,reactDisabled:react?.disabled,vueDisabled:vue?.disabled,'+
+        'reactHidden:react?.parentElement?.hidden,vueHidden:vue?.parentElement?.hidden,'+
+        'modeRowHidden:document.querySelector("#page-component-editor-tools")?.hidden,'+
+        'modeRowDisplay:getComputedStyle(document.querySelector("#page-component-editor-tools")).display,'+
+        'sourceLabel:document.querySelector("label[for=script-source]")?.textContent,'+
+        'hint:hint?.textContent}})()');
+      assert.equal(state.jsChecked,true);
+      assert.equal(state.reactDisabled,true);
+      assert.equal(state.vueDisabled,true);
+      assert.equal(state.reactHidden,true);
+      assert.equal(state.vueHidden,true);
+      assert.equal(state.modeRowHidden,true);
+      assert.equal(state.modeRowDisplay,'none','The Standard editor must not display a one-choice mode picker');
+      assert.equal(state.sourceLabel,'JavaScript 源码编辑器');
+      assert.match(state.hint,/标准版/);
+      report.tests.push({name:'r245-standard-real-chrome-no-browser-compiler-ui',
+        status:'PASS',edition:marker.edition,noNative:true,compilerChoicesHidden:true,
+        javascriptChoiceRetained:true});
+      const screenshot=await sidebar.call('Page.captureScreenshot',{format:'png'});
+      fs.writeFileSync(path.join(output,'r245-standard-sidepanel.png'),Buffer.from(screenshot.data,'base64'));
+      // Run plain JavaScript from a trusted Chrome textarea/Run click to prove
+      // removing JSX/SFC compilers did not disable the ordinary Page executor.
+      const standardJS='async function main(){'+
+        'const node=document.createElement("div");node.id="r245-standard-js-proof";'+
+        'node.textContent="Standard JavaScript executed";document.body.append(node);'+
+        'return "r245-standard-js-ok";}';
+      const typed=await sidebar.read('(()=>{const editor=document.querySelector("#script-source");'+
+        'if(!editor||editor.readOnly)return false;editor.focus();editor.select();return true})()');
+      assert.equal(typed,true,'Standard JavaScript source textarea must be editable');
+      await sidebar.call('Input.insertText',{text:standardJS});
+      await until(()=>sidebar.read('document.querySelector("#script-source").value==='+
+        JSON.stringify(standardJS)),'genuine Standard editor input',10000);
+      if(!await sidebar.read('document.querySelector("#page-preview-tools").open'))
+        await clickReal(sidebar,'document.querySelector("#page-preview-tools > summary")');
+      await until(()=>sidebar.read('!document.querySelector("#page-preview-run").disabled'),
+        'Standard JavaScript run enabled',20000);
+      await clickReal(sidebar,'document.querySelector("#page-preview-run")');
+      const ran=await until(()=>sidebar.read('(()=>{const node=document.querySelector("#page-preview-status");'+
+        'return ["completed","error"].includes(node?.dataset.state)?{state:node.dataset.state,text:node.textContent}:null})()'),
+        'real Standard JavaScript admission',60000);
+      assert.equal(ran.state,'completed','Standard JavaScript run failed: '+ran.text);
+      assert.equal(await website.session.read('document.querySelector("#r245-standard-js-proof")?.textContent'),
+        'Standard JavaScript executed');
+      const ordinaryReceipt=JSON.parse(await sidebar.read(
+        'document.querySelector("#page-preview-technical").textContent'));
+      assert.equal(ordinaryReceipt.state,'preview-evaluated');
+      assert(/^[a-f0-9]{64}$/.test(ordinaryReceipt.sourceHash));
+      report.tests.push({name:'r245-standard-real-chrome-javascript-execution',
+        status:'PASS',sourceHash:ordinaryReceipt.sourceHash,
+        documentId:ordinaryReceipt.documentId,actualPointerInput:true,
+        pageDOMUpdated:true,noNative:true,noBrowserCompiler:true});
+      return;
+    }
     for(const framework of ['react','vue']){
       await selectFramework(sidebar,framework);
       await until(()=>sidebar.read('document.querySelector("#page-component-'+framework+'").checked===true'),
@@ -288,6 +353,59 @@ async function verifyBrowserUI({browser,page,catalogTabId,base,extensionId,outpu
     await typeSource(originalVue);
     assert.equal(await website.session.read('!document.querySelector("#r243-teleported-vue")'),true,
       'restoring the editor source alone must never execute a Page component');
+    if(process.env.OPENDESK_R4_CONTROLLER_ESM_NATIVE_SMOKE==='1'){
+      // Controller Single-file ESM is NOT a Page USER_SCRIPT. Drive the original
+      // Side Panel click, RunHost/Authority, opaque Worker, durable Result and
+      // saved Program Revision. CDP observes only; it never executes user code.
+      const controllerSource=[
+        'export default async function main() {',
+        '  const title=await page.title();',
+        '  return {controllerEsmR4:true,title,words:_.words(title),parameter:params.value};',
+        '}'
+      ].join('\n');
+      const devChoice='document.querySelector("#page-component-javascript")';
+      await clickReal(sidebar,'document.querySelector("label[for=page-component-javascript]")');
+      await until(()=>sidebar.read(devChoice+'?.checked===true'),
+        'real browser returned from Vue SFC to JavaScript editor');
+      await typeSource(controllerSource);
+      await until(()=>sidebar.read('!document.querySelector("#script-run").disabled'),
+        'Controller original RunHost slot and exact current-page target available');
+      await clickReal(sidebar,'document.querySelector("#script-run")');
+      const ran=await until(()=>sidebar.read('(()=>{const s=document.querySelector("#script-status");'+
+        'const result=document.querySelector("#script-result");'+
+        'return s?.dataset.state==="error"?{state:"error",message:s.textContent}:'
+        +'s?.dataset.state==="results"&&result?.textContent.includes("controllerEsmR4")?'
+        +'{state:"results",message:s.textContent,value:result.textContent}:null})()'),
+        'real Controller ESM Worker executes after trusted Run and yields durable Result',60000);
+      assert.equal(ran.state,'results',ran.message);
+      assert.match(ran.value,/controllerEsmR4/);
+      assert.match(ran.value,/true/);
+      assert.match(ran.value,/parameter/);
+      const runId=await sidebar.read('document.querySelector("#script-run-id").value');
+      assert(typeof runId==='string'&&runId.length>10,'real original Controller runId');
+      const version=await sidebar.read('document.querySelector("#script-task-version").textContent');
+      const sourceHash=await sidebar.read('document.querySelector("#script-task-id").textContent');
+      report.tests.push({name:'r4-controller-actual-sidepanel-esm-runhost-worker-durable-result',
+        status:'PASS',runId,version,sourceIdentity:sourceHash,returnedValue:ran.value,
+        actualPointerInput:true,noNative:true,executedIn:'CONTROLLER_OPAQUE_WORKER'});
+      await until(()=>sidebar.read('!document.querySelector("#script-save").disabled'),
+        'Controller ESM save ready',10000);
+      await clickReal(sidebar,'document.querySelector("#script-save")');
+      const saved=await until(()=>sidebar.read('(()=>{const s=document.querySelector("#script-status");'+
+        'return s?.dataset.state==="saved"?s.textContent:null})()'),
+        'Controller ESM verified built revision saved without rerunning',30000);
+      assert.match(saved,/已持久保存/);
+      await clickReal(sidebar,'document.querySelector("#script-load")');
+      await until(()=>sidebar.read('document.querySelector("#script-source").value==='+
+        JSON.stringify(controllerSource)),
+        'Controller ESM author source restored from immutable compiled revision',15000);
+      report.tests.push({name:'r4-controller-actual-sidepanel-save-load-edited-esm-source',
+        status:'PASS',runId,originalAuthorSourceRestored:true,savedReceipt:saved,
+        noUnapprovedRemoteFetch:true,noNative:true});
+      const screenshot=await sidebar.call('Page.captureScreenshot',{format:'png'});
+      fs.writeFileSync(path.join(output,'r4-controller-esm-durable-result.png'),
+        Buffer.from(screenshot.data,'base64'));
+    }
     if(process.env.OPENDESK_R243_BROWSER_STRESS==='1')
       await runBrowserComponentCycles({sidebar,website,output,report,until,clickReal,selectFramework});
   }finally{
@@ -321,7 +439,7 @@ async function main(){
     await until(()=>page.read('location.protocol==="chrome-extension:"&&document.readyState==="complete"'),
       'actual packaged extension page');
     assert.equal(await page.read('typeof Worker'),'function');
-    for(const [framework,fixture] of [
+    if(process.env.OPENDESK_R245_STANDARD_SMOKE!=='1')for(const [framework,fixture] of [
       ['react','examples/programs/page-ui-react/src/App.jsx'],
       ['vue','examples/programs/page-ui-vue/src/App.vue']
     ]){
@@ -355,7 +473,10 @@ async function main(){
         bytes:result.bytes,cspWorker:true,noNative:true,compiledWithoutExecutingComponent:true};
       report.tests.push(proof);
     }
-    if(process.env.OPENDESK_R243_BROWSER_FULL_UI==='1'){
+    if(process.env.OPENDESK_R245_STANDARD_SMOKE==='1'){
+      await verifyBrowserUI({browser,page,catalogTabId:tab.id,base,extensionId,output,report});
+      report.status='PASS_STANDARD_BROWSER_NO_COMPILER';
+    }else if(process.env.OPENDESK_R243_BROWSER_FULL_UI==='1'){
       await verifyBrowserUI({browser,page,catalogTabId:tab.id,base,extensionId,output,report});
       report.status=process.env.OPENDESK_R243_BROWSER_STRESS==='1'?
         'PASS_BROWSER_UI_NO_NATIVE_20X_EACH_RUN_STOP':'PASS_BROWSER_UI_NO_NATIVE_REACT_VUE_RUN_STOP';

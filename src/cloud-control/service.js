@@ -19,6 +19,11 @@ function assignmentIdentity(c,a){
   if(c.pairingId)invariant(a.providerId===c.providerId&&a.pairingId===c.pairingId&&a.pairingGeneration===c.pairingGeneration&&Number.isSafeInteger(a.attemptEpoch)&&a.attemptEpoch>0,'E_ASSIGNMENT');
   return {pairing:pairingIdentity(c),jobId:a.jobId,claimId:a.claimId,assignmentId:a.assignmentId,attemptEpoch:a.attemptEpoch??0};
 }
+const APPROVAL_FIELDS=['taskId','version','manifestHash','sourceHash','installationId','generation','siteOrigins','resultAllowed'];
+function acceptedCloudTarget(target,origins){
+ if(!target||typeof target!=='object'||Array.isArray(target)||Object.keys(target).some(k=>!['mode','url'].includes(k))||target.mode!=='owned'||typeof target.url!=='string'||target.url.length>8192)return false;
+ try{const url=new URL(target.url);return (url.protocol==='http:'||url.protocol==='https:')&&url.href===target.url&&!url.username&&!url.password&&!url.hash&&origins.includes(url.origin);}catch{return false;}
+}
 function assertPermit(p,c,r){
   invariant(nonempty(p?.permitId)&&p.providerId===c?.providerId&&p.assignmentId===r.assignment.assignmentId&&p.runRef&&canonical(p.runRef)===canonical(r.runRef)&&finiteLease(p.leaseUntil),'E_PERMIT');
   if(c?.pairingId){const identity=effectiveIdentity(r,c),expected={...identity.pairing,attemptEpoch:identity.attemptEpoch,jobId:identity.jobId,claimId:identity.claimId};
@@ -93,10 +98,10 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
     }
     return findRequest(tx,run.cloudRequestId,c,run.runId);
   };
-  async function post(config,path,body,{isCurrent=()=>true}={}){
+  async function post(config,path,body,{isCurrent=()=>true,timeoutMs=10000}={}){
     invariant(config?.credential,'E_PAIRING');
     invariant(isCurrent(),'E_CLOUD_REVOKED');const abort=new AbortController();if(path==='receipt')deliveries.add(abort);
-    try{const response=await fetcher(config.url+'/v1/'+path,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+config.credential},body:JSON.stringify(body),signal:AbortSignal.any([abort.signal,AbortSignal.timeout(10000)]),redirect:'error'});
+    try{const response=await fetcher(config.url+'/v1/'+path,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+config.credential},body:JSON.stringify(body),signal:AbortSignal.any([abort.signal,AbortSignal.timeout(timeoutMs)]),redirect:'error'});
       const value=await response.json();invariant(response.ok,value.error?.code||'E_PROVIDER',value.error?.message);return value;
     }finally{deliveries.delete(abort);}
   }
@@ -164,7 +169,8 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
         for(const r of page){
           const run=r.runId?await tx.get('runs',r.runId):null;
           if(run?.state==='interrupted')operations??=await tx.all('commandJournal');
-          projected.push({state:r.state,runState:run?.state??null,retirementState:run?.retirementState??null,reason:r.reason??null,outcomeUnknown:await unknownOutcome(tx,run,operations),
+          const title=typeof r.task?.manifest?.title==='string'&&r.task.manifest.title.trim()?r.task.manifest.title.trim().slice(0,80):'历史任务';
+ projected.push({taskTitle:title,state:r.state,runState:run?.state??null,retirementState:run?.retirementState??null,reason:r.reason??null,outcomeUnknown:await unknownOutcome(tx,run,operations),
             receipt:r.receipt?true:null,targetReady:!!run?.target&&run.retirementState!=='released'});
         }
         projected.reverse(); // Existing Side Panel shows the newest sample first.
@@ -239,11 +245,33 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
     await scoped(sender,async tx=>{invariant(!(await tx.get(KV,CONFIG)),'E_PAIRING');await tx.put(KV,{url,providerId:pair.providerId,credential:pair.credential,executorId,pairingId:pair.pairingId,pairingGeneration:pair.pairingGeneration,namespace:host.namespace,enabled:false,tasks:[],pendingRequestId:null},CONFIG);},'readwrite');return cloudStatus({},sender);
   }
   async function cloudApprove(request,sender){
-    invariant(Object.keys(request).every(k=>k==='tasks')&&Array.isArray(request.tasks)&&request.tasks.length>0&&request.tasks.length<=32,'E_SCHEMA');
-    const tasks=[];for(const approval of request.tasks){invariant(Object.keys(approval).every(k=>['taskId','resultAllowed'].includes(k))&&typeof approval.resultAllowed==='boolean','E_SCHEMA');tasks.push({...await resolveTask({taskId:approval.taskId},sender),resultAllowed:approval.resultAllowed});}
+    invariant(request&&typeof request==='object'&&!Array.isArray(request)&&
+      Object.keys(request).length===1&&Object.hasOwn(request,'tasks')&&
+      Array.isArray(request.tasks)&&request.tasks.length>0&&request.tasks.length<=32,'E_SCHEMA');
+    const tasks=[],seen=new Set();for(const approval of request.tasks){
+      invariant(approval&&typeof approval==='object'&&!Array.isArray(approval)&&
+        Object.keys(approval).length===APPROVAL_FIELDS.length&&
+        APPROVAL_FIELDS.every(k=>Object.hasOwn(approval,k))&&
+        typeof approval.taskId==='string'&&approval.taskId.length>0&&
+        typeof approval.version==='string'&&approval.version.length>0&&
+        /^[a-f0-9]{64}$/.test(approval.manifestHash)&&
+        /^[a-f0-9]{64}$/.test(approval.sourceHash)&&
+        typeof approval.installationId==='string'&&approval.installationId.length>0&&
+        Number.isSafeInteger(approval.generation)&&approval.generation>=0&&
+        Array.isArray(approval.siteOrigins)&&approval.siteOrigins.every(origin=>typeof origin==='string')&&
+        typeof approval.resultAllowed==='boolean'&&!seen.has(approval.taskId),'E_SCHEMA','Cloud approval must include immutable task identity');
+      seen.add(approval.taskId);
+      const installed=await resolveTask({taskId:approval.taskId},sender);
+      for(const [key,value] of [['version',installed.version],['manifestHash',installed.manifestHash],
+        ['sourceHash',installed.contentHash],['installationId',installed.installationId],['generation',installed.generation]])
+        invariant(approval[key]===value,'E_REVISION','Cloud approval pin no longer matches installed Task');
+      invariant(canonical(approval.siteOrigins)===canonical(installed.manifest.siteOrigins),
+        'E_REVISION','Task site origin approval changed');
+      tasks.push({...installed,resultAllowed:approval.resultAllowed});
+    }
     for(const t of tasks)for(const origin of t.manifest.siteOrigins)await requireGrant(api,origin);
     await scoped(sender,async(tx,host)=>{const c=await tx.get(KV,CONFIG);invariant(c&&!c.unpairing&&c.namespace===host.namespace&&!c.enabled,'E_PAIRING','Stop current hosting before changing approval');
-      c.tasks=tasks;c.grantId=newId();c.claimId=null;c.pendingRequestId=null;c.enabled=true;c.revokedAt=null;await tx.put(KV,c,CONFIG);},'readwrite');wake();return cloudStatus({},sender);
+      c.tasks=tasks;c.grantId=newId();c.claimId=null;c.pendingRequestId=null;c.enabled=true;c.revokedAt=null;c.remoteSuspension=null;await tx.put(KV,c,CONFIG);},'readwrite');wake();return cloudStatus({},sender);
   }
   async function fence(request,reason){
     const result=await transaction('readwrite',async tx=>{const r=await tx.get(KV,rowKey(request));if(!r)return;const run=r.runId&&await tx.get('runs',r.runId);
@@ -300,6 +328,7 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       invariant(c.namespace===host.namespace,'E_CLOUD_FENCED');
       const owned={namespace:host.namespace,grantId:c.grantId,config:c};
       c.enabled=false;c.revokedAt=clock.now();c.claimId=null;c.pendingRequestId=null;
+      c.remoteSuspension=c.grantId?'pending':null;
       await tx.put(KV,c,CONFIG);
       return owned;
     },'readwrite');
@@ -308,6 +337,18 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       if(r.namespace===scope.namespace&&r.grantId===scope.grantId&&samePairing(r,scope.config))
         await fence(r,'E_CLOUD_REVOKED');
     }
+    if(scope?.config&&scope.grantId)try{
+      const acknowledgement=await post(scope.config,'suspend',{grantId:scope.grantId},{timeoutMs:1800});
+      if(acknowledgement.suspended===true&&acknowledgement.grantId===scope.grantId){
+        await scoped(sender,async tx=>{
+          const current=await tx.get(KV,CONFIG);
+          if(current&&!current.enabled&&current.grantId===scope.grantId){
+            current.remoteSuspension='confirmed';
+            await tx.put(KV,current,CONFIG);
+          }
+        },'readwrite');
+      }
+    }catch{}
     return cloudStatus({},sender);
   }
   let revocationPromise;
@@ -336,6 +377,61 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
     await retryRevocation();wake();return cloudStatus({},sender);
   }
   let nextPromise;
+  // External-client management is exclusively a real Side Panel Host RPC.
+  // Admin credentials remain on the Provider machine; issued client tokens
+  // exist only in the one-time response and are never written to Browser KV.
+  async function cloudClients(request={},sender){
+    invariant(request&&typeof request==='object'&&!Array.isArray(request)&&
+      Object.keys(request).every(k=>['offset','limit'].includes(k))&&
+      (request.offset===undefined||Number.isSafeInteger(request.offset)&&request.offset>=0)&&
+      (request.limit===undefined||Number.isSafeInteger(request.limit)&&
+        request.limit>=1&&request.limit<=50),'E_SCHEMA');
+    const config=await scoped(sender,tx=>tx.get(KV,CONFIG));
+    invariant(config?.credential,'E_PAIRING');
+    return post(config,'client-list',request);
+  }
+  async function cloudClientGrant(request,sender){
+    invariant(request&&typeof request==='object'&&!Array.isArray(request)&&
+      Object.keys(request).length===3&&
+      typeof request.taskId==='string'&&request.taskId.length>0&&
+      typeof request.label==='string'&&request.label.trim().length>0&&
+      request.label.trim().length<=60&&
+      !/[\x00-\x1f\x7f]/.test(request.label)&&
+      typeof request.allowResult==='boolean','E_SCHEMA');
+    const task=await resolveTask({taskId:request.taskId},sender);
+    const chosen=await scoped(sender,async tx=>{
+      const c=await tx.get(KV,CONFIG);
+      invariant(c?.enabled&&!c.revokedAt&&c.grantId&&c.credential,'E_CLOUD_REVOKED');
+      const approved=c.tasks?.find(t=>t.taskId===request.taskId&&
+        t.version===task.version&&t.manifestHash===task.manifestHash&&
+        t.contentHash===task.contentHash&&t.installationId===task.installationId&&
+        t.generation===task.generation);
+      invariant(approved&&(!request.allowResult||approved.resultAllowed===true),'E_CLIENT_SCOPE');
+      return {config:structuredClone(c),pin:{
+        taskId:approved.taskId,version:approved.version,
+        manifestHash:approved.manifestHash,sourceHash:approved.contentHash
+      }};
+    });
+    const epoch=revocationEpoch;
+    const result=await post(chosen.config,'client-grant',{
+      grantId:chosen.config.grantId,tasks:[chosen.pin],
+      allowResult:request.allowResult,label:request.label.trim()
+    },{isCurrent:()=>epoch===revocationEpoch});
+    const active=await scoped(sender,async tx=>{
+      const c=await tx.get(KV,CONFIG);
+      return c?.enabled&&c.grantId===chosen.config.grantId&&epoch===revocationEpoch;
+    });
+    invariant(active,'E_CLOUD_REVOKED');
+    return result;
+  }
+  async function cloudClientRevoke(request,sender){
+    invariant(request&&typeof request==='object'&&!Array.isArray(request)&&
+      Object.keys(request).length===1&&
+      /^[a-f0-9-]{36}$/i.test(request.clientId),'E_SCHEMA');
+    const config=await scoped(sender,tx=>tx.get(KV,CONFIG));
+    invariant(config?.credential,'E_PAIRING');
+    return post(config,'client-revoke',{clientId:request.clientId});
+  }
   async function cloudNext(_,sender){if(nextPromise)return null;nextPromise=next(sender);try{return await nextPromise;}finally{nextPromise=null;}}
   async function pendingRequest(sender,host,configSnapshot,{isCurrent=()=>true}={}){
     return scoped(sender,async(tx,currentHost)=>{
@@ -373,7 +469,7 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       config.claimId??=newId();await tx.put(KV,config,CONFIG);return {claimId:config.claimId,tasks:c.tasks.map(t=>({taskId:t.taskId,manifestHash:t.manifestHash,sourceHash:t.contentHash}))};},'readwrite');if(!claim)return null;
     const answer=await post(c,'claim',claim,{isCurrent:current});
     return scoped(sender,async tx=>{const config=await tx.get(KV,CONFIG);invariant(current(),'E_CLOUD_FENCED');invariant(config?.enabled&&!config.unpairing&&config.grantId===c.grantId&&canonical(pairingIdentity(config))===canonical(pairingIdentity(c))&&config.claimId===claim.claimId,'E_CLOUD_REVOKED');
-      if(answer.assignment){const a=answer.assignment,identity=assignmentIdentity(c,a);invariant(!knownRemoteRuns.has(a.assignmentId),'E_RUN_REF','Query the original remote Run instead of creating another');invariant(a.executorId===c.executorId&&a.claimId===claim.claimId&&a.leaseUntil>clock.now(),'E_ASSIGNMENT');const t=c.tasks.find(t=>t.taskId===a.task.taskId&&t.version===a.task.version&&t.manifestHash===a.task.manifestHash&&t.contentHash===a.task.sourceHash);invariant(t&&a.target.mode==='owned'&&t.manifest.siteOrigins.includes(new URL(a.target.url).origin),'E_TASK');
+      if(answer.assignment){const a=answer.assignment,identity=assignmentIdentity(c,a);invariant(!knownRemoteRuns.has(a.assignmentId),'E_RUN_REF','Query the original remote Run instead of creating another');invariant(a.executorId===c.executorId&&a.claimId===claim.claimId&&a.leaseUntil>clock.now(),'E_ASSIGNMENT');const t=c.tasks.find(t=>t.taskId===a.task.taskId&&t.version===a.task.version&&t.manifestHash===a.task.manifestHash&&t.contentHash===a.task.sourceHash);invariant(t&&acceptedCloudTarget(a.target,t.manifest.siteOrigins),'E_TASK');
         const params=validateTaskParams(t.manifest.paramsSchema,a.params),requestId='cloud:'+a.assignmentId;const digestValue=await digest({identity,task:a.task,params,target:a.target});const storageKey=PREFIX+await digest({pairing:identity.pairing,requestId});const prior=await findRequest(tx,requestId,c);invariant(!prior||prior.digest===digestValue,'E_REQUEST_CONFLICT');invariant(!prior||prior.grantId===c.grantId&&prior.state==='waiting'&&!prior.runId,'E_CLOUD_FENCED');
         if(!prior)await history.put(tx,{tag:'cloud-request-v1',storageKey,identity,requestId,digest:digestValue,assignment:a,params,task:t,grantId:c.grantId,namespace:host.namespace,state:'waiting',createdAt:clock.now()});
         config.claimId=null;config.pendingRequestId=requestId;await tx.put(KV,config,CONFIG);return {requestId};}
@@ -390,7 +486,7 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
   }
   async function permit(run){
     const c=await read(),r=await transaction('readonly',tx=>requestForRun(tx,run,c),[KV]);invariant(c?.enabled&&c.grantId===r?.grantId,'E_CLOUD_REVOKED');const epoch=connectionEpoch,currentEpoch=()=>epoch===connectionEpoch;let p;
-    for(let attempt=0;attempt<2;attempt++){try{p=await post(c,'admission',{assignmentId:r.assignment.assignmentId,runRef:r.runRef,...requestBinding(r)},{isCurrent:currentEpoch});break;}catch(e){if(attempt||e.code)throw e;}}
+    for(let attempt=0;attempt<2;attempt++){try{p=await post(c,'admission',{assignmentId:r.assignment.assignmentId,runRef:r.runRef,...(!legacyMapped(r,c)?{resultAllowed:r.task.resultAllowed===true}:{}),...requestBinding(r)},{isCurrent:currentEpoch});break;}catch(e){if(attempt||e.code)throw e;}}
     await transaction('readwrite',async tx=>{const current=await tx.get(KV,rowKey(r)),config=await tx.get(KV,CONFIG),stored=await tx.get('runs',run.runId);invariant(currentEpoch(),'E_CLOUD_FENCED');assertPermit(p,config,r);invariant(config?.enabled&&samePairing(r,config)&&config.grantId===r.grantId&&stored?.state==='preparing'&&!stored.cancelSeq&&current?.runId===run.runId&&p.providerId===config.providerId&&p.assignmentId===r.assignment.assignmentId&&canonical(p.runRef)===canonical(r.runRef)&&p.leaseUntil>clock.now(),'E_PERMIT');await assertRunTaskAuthorization(tx,stored);
       if(current.permit){
         assertPermit(current.permit,config,current);const issued={...p};
@@ -439,7 +535,7 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       if(!r.runId||!current())continue;
       const projection=await transaction('readonly',async tx=>{
         const stored=await tx.get('runs',r.runId),config=await tx.get(KV,CONFIG);
-        if(!stored||stored.state==='paused_unknown'||!r.task.resultAllowed||!config?.enabled||config.revokedAt||config.grantId!==r.grantId)return null;
+        if(!stored||stored.state==='paused_unknown'||!config?.enabled||config.revokedAt||config.grantId!==r.grantId)return null;
         await assertRunTaskAuthorization(tx,stored);const result=await tx.get('results',stored.resultId);if(!result)return null;
         invariant(result.tag==='controller-result'&&result.runId===r.runRef.runId&&result.resultId===r.runRef.resultId&&result.revision?.sourceHash===r.runRef.sourceHash,'E_RESULT');return {result:structuredClone(result),run:stored};
       });
@@ -455,10 +551,10 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       for(const origin of r.task.manifest.siteOrigins)await requireGrant(api,origin);
       const stillAllowed=await transaction('readonly',async tx=>{
         const config=await tx.get(KV,CONFIG),stored=await tx.get('runs',r.runId),row=await tx.get(KV,rowKey(r));
-        if(!current()||!config?.enabled||config.revokedAt||config.grantId!==r.grantId||stored?.resultDeliveryRevoked||!row?.task.resultAllowed||canonical(row.runRef)!==canonical(r.runRef))return false;
+        if(!current()||!config?.enabled||config.revokedAt||config.grantId!==r.grantId||stored?.resultDeliveryRevoked||canonical(row.runRef)!==canonical(r.runRef))return false;
         await assertRunTaskAuthorization(tx,stored);return true;
       });if(!stillAllowed||!current())continue;
-      const result=projection.result,limited={runId:result.runId,resultId:result.resultId,revision:result.revision,state:result.state,sourceHash:r.runRef.sourceHash,retirementState:projection.run.retirementState,...(result.outcome?.valueWire!==undefined?{valueWire:result.outcome.valueWire}:{}),...(result.outcome?.error?{error:result.outcome.error}:{})};
+      const result=projection.result,limited=r.task.resultAllowed===true?{visibility:'full',runId:result.runId,resultId:result.resultId,revision:result.revision,state:result.state,sourceHash:r.runRef.sourceHash,retirementState:projection.run.retirementState,...(result.outcome?.valueWire!==undefined?{valueWire:result.outcome.valueWire}:{}),...(result.outcome?.error?{error:result.outcome.error}:{})}:{visibility:'status-only',state:['completed','failed','stopped','interrupted'].includes(result.state)?result.state:'interrupted',retirementState:'released'};
       const receipt=await post(c,'receipt',{assignmentId:r.assignment.assignmentId,receiptKey:r.runRef.resultId,runRef:r.runRef,result:limited,...requestBinding(r)},{isCurrent:current});
       invariant(nonempty(receipt?.receiptId)&&nonempty(receipt.digest),'E_RECEIPT');
       await transaction('readwrite',async tx=>{
@@ -468,7 +564,7 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       });
     }
   }
-  return {cloudStatus,cloudObserve,cloudPair,cloudApprove,cloudStop,cloudUnpair,cloudNext,cloudResolve,bind,permit,assertActive,read,post,reconcile,invalidate,retryRevocation,adoptPairing,
+  return {cloudStatus,cloudObserve,cloudPair,cloudApprove,cloudStop,cloudUnpair,cloudClients,cloudClientGrant,cloudClientRevoke,cloudNext,cloudResolve,bind,permit,assertActive,read,post,reconcile,invalidate,retryRevocation,adoptPairing,
     captureAuthentication(){const epoch=connectionEpoch;return ()=>epoch===connectionEpoch;},
     attachConnection({start,stop}){wake=start;close=stop;},connection(state){if(state!=='authenticated')connectionEpoch++;connectionState=state;online=state==='authenticated';if(!online)reconciled=false;},setReconciled(value){reconciled=value;}};
 }

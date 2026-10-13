@@ -8,6 +8,8 @@ import {CAPTURE_SITE_STORE, KNOWLEDGE_TOOL_ID, KNOWLEDGE_WORKSPACE_PREFIX} from 
 import {writeVerifiedLocalValue,classifyStorageWriteError,unknownStorageOutcome,sameStorageValue} from './storage-state.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,TOOL_REVOCATION_EPOCHS_STORE} from './lifecycle.js';
 import {TIME_REVIEW_KEY} from '../../time-review/model.js';
+import {FOCUS_ID,FOCUS_STORE} from '../../stay-focus/policy.js';
+import {clearFocusRules} from '../../stay-focus/rule-ownership.js';
 
 export const MARKET_PROVENANCE_STORE='opendesk.market.provenance.v1';
 export const MARKET_OPERATIONS_STORE='opendesk.market.operations.v1';
@@ -76,8 +78,12 @@ export async function setInstalledSidebarToolEnabled({api,lockManager,tool,enabl
         throw error('工具撤销记录损坏；已停止修改','E_STORAGE_CORRUPT');
       // Stop first. Resume fences every old frame/request before it becomes available.
       // A crash between these writes leaves the tool stopped, never silently resumed.
-      if(!enabled)await writeVerifiedLocalValue(api,SIDEBAR_TOOL_ENABLE_STORE,
-        {...previous,[tool.id]:false},raw,'工具启停');
+      if(!enabled){
+        await writeVerifiedLocalValue(api,SIDEBAR_TOOL_ENABLE_STORE,
+          {...previous,[tool.id]:false},raw,'工具启停');
+        if(tool.id===FOCUS_ID&&await api.permissions.contains({permissions:['declarativeNetRequestWithHostAccess']}))
+          await clearFocusRules(api);
+      }
       await writeVerifiedLocalValue(api,TOOL_REVOCATION_EPOCHS_STORE,
         {...epochs,[tool.id]:crypto.randomUUID()},rawEpochs,'工具实例撤销');
       if(enabled)await writeVerifiedLocalValue(api,SIDEBAR_TOOL_ENABLE_STORE,
@@ -146,6 +152,11 @@ export async function cleanupUninstalledToolLocked(api,id){
   try{
     await removeVerifiedKey(api,sidebarToolStorageKey(id));
     if(id==='time-review')await removeVerifiedKey(api,TIME_REVIEW_KEY);
+    if(id===FOCUS_ID){
+      if(await api.permissions.contains({permissions:['declarativeNetRequestWithHostAccess']}))
+        await clearFocusRules(api);
+      await removeVerifiedKey(api,FOCUS_STORE);
+    }
     for(const store of [SIDEBAR_TOOL_ENABLE_STORE,READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,READING_TOC_PAGE_RULES_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE,MARKET_PROVENANCE_STORE,BROWSER_MENU_GRANTS_STORE]){
       const raw=(await api.storage.local.get(store))[store];
       const original=store===SIDEBAR_TOOL_ENABLE_STORE?requireToolEnableRecords(raw):(raw||{});

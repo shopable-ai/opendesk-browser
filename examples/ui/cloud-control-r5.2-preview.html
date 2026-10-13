@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>OpenDesk Browser · Cloud Control R5.2 · 产品交互预览</title>
+<!--
+CLOUD CONTROL R5.2 — STANDALONE UI REVIEW ONLY (2026-10-13)
+Proposed canonical repository path: examples/ui/cloud-control-r5.2-preview.html
+Reviewed sources: src/ui/{tool.html,cloud-hosting.js,cloud-status-presentation.js,design-tokens.css,design-system.css,tool-shell.css}; R27/R28; R5.2 workstream.
+This file contains exclusively disposable fixture state. It never calls Chrome APIs,
+Provider HTTPS/WSS, Cloud Authority, RunHost or Worker, and never grants real permissions.
+The outer gray review frame is NOT part of the production Side Panel.
+Do not certify native Chrome width, real browser zoom, real Run/Result or remote service via this preview.
+-->
+<style>
+:root {
+  /* EXACT light semantic values and spacing from src/ui/design-tokens.css (R27). */
+  --od-ink:#1b2c49;--od-sub:#53647e;--od-line:#e1e8f1;--od-brand:#365eda;
+  --od-paper:#fff;--od-bg:#f5f7fb;--od-input-border:#cbd6e6;--od-muted:#f5f7fb;
+  --od-positive:#138263;--od-negative:#ae3d4b;--space-1:4px;--space-2:8px;
+  --space-3:12px;--space-4:16px;--radius-control:8px;--radius-surface:12px;
+  --radius-pill:999px;--od-icon-size:34px;--od-page-gutter:11px;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  color:var(--od-ink);background:#edf1f7;font-size:14px;font-synthesis:none
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;min-height:100vh}
+button,input,select{font:inherit}
+button{cursor:pointer}
+button:disabled{cursor:not-allowed;opacity:.5}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--od-brand);outline-offset:3px}
+svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.review-top{padding:18px max(20px,calc((100vw - 1160px)/2));display:flex;justify-content:space-between;align-items:center;gap:16px;background:#fff;border-bottom:1px solid #dce3ef}
+.brand-heading{display:flex;gap:12px;align-items:center;min-width:0}
+.brand-mark{width:36px;height:36px;border-radius:10px;background:linear-gradient(140deg,#345fdc,#688ce7);display:grid;place-items:center;color:#fff;font-weight:800;font-size:19px;flex:none}
+.brand-heading strong{font-size:15px;letter-spacing:-.2px}
+.brand-heading p{margin:3px 0 0;font-size:12px;color:#66758b}
+.prototype-tag{padding:6px 10px;border:1px solid #d9e4f5;border-radius:7px;color:#365998;background:#f4f7fe;font-size:12px;font-weight:650;white-space:nowrap}
+.review-main{max-width:1160px;margin:0 auto;display:grid;grid-template-columns:235px minmax(0,1fr) 245px;gap:30px;align-items:start;padding:28px 20px 54px}
+.review-pane{background:#fff;border:1px solid #dce4f0;border-radius:14px;padding:16px;min-width:0}
+.review-pane h2{font-size:13px;margin:0 0 13px}
+.review-pane h3{font-size:12px;color:#596c86;margin:19px 0 8px}
+.review-help{color:#64758a;line-height:1.6;font-size:12px;margin:8px 0 0}
+.review-control{display:flex;flex-wrap:wrap;gap:6px}
+.review-control button{padding:8px 10px;border-radius:7px;border:1px solid #dce4ee;background:#fff;font-size:12px;color:#445872;min-height:33px;text-align:left}
+.review-control button[aria-pressed=true]{border-color:#5c7ce3;background:#eef3ff;color:#254aa6;font-weight:750}
+.review-control.review-states{display:grid;grid-template-columns:1fr 1fr}
+.review-control.review-states button{min-width:0}
+.review-control.review-sizes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+.review-control.review-sizes button{text-align:center;padding:7px 2px}
+.review-pane .demo-reset{width:100%;border:1px solid #d3dcf0;color:#365eda;background:#f8faff;border-radius:8px;margin-top:15px;min-height:36px}
+.review-legend{display:flex;align-items:center;gap:9px;font-size:12px;color:#53647e;margin:9px 0}
+.review-legend i{width:7px;height:7px;border-radius:50%;background:#138263;flex:none}
+.review-legend i.warn{background:#b77d25}.review-legend i.neutral{background:#8191a6}
+.stage{min-width:0;display:grid;justify-items:center;gap:13px}
+.stage-caption{display:flex;justify-content:space-between;gap:12px;width:min(100%,560px);font-size:12px;color:#728096}
+.stage-caption strong{color:#3e506b;font-weight:600}
+.device-frame{width:var(--preview-width,360px);max-width:100%;height:690px;border:1px solid #d4dde9;border-radius:16px;background:#fff;box-shadow:0 15px 42px rgba(36,54,82,.12),0 3px 9px rgba(36,54,82,.06);display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.panel-nav{display:flex;align-items:stretch;gap:1px;padding:7px 5px 0;flex:none;overflow-x:auto;scrollbar-width:thin;background:#fff;border-bottom:1px solid var(--od-line)}
+.panel-nav button{border:0;background:transparent;padding:10px 11px 12px;min-height:38px;white-space:nowrap;font-size:12px;font-weight:600;color:var(--od-sub);border-bottom:2px solid transparent;flex:0 0 auto}
+.panel-nav button.active{color:var(--od-brand);border-bottom-color:var(--od-brand)}
+.panel-nav button:focus-visible{outline-offset:-3px}
+.mock-scroll{min-width:0;min-height:0;overflow-y:auto;overscroll-behavior:contain;flex:1;background:var(--od-bg);scrollbar-gutter:stable}
+.panel{--od-page-gutter:11px;padding:var(--space-4) var(--od-page-gutter) 18px;min-width:0;font-size:13px;line-height:1.5}
+.panel h1,.panel h2,.panel h3,.panel p{overflow-wrap:anywhere}
+.page-head{display:flex;align-items:flex-start;gap:8px;justify-content:space-between;margin:0 0 var(--space-4)}
+.page-head .head-copy{min-width:0;flex:1}
+.page-head h1{font-size:16px;line-height:1.35;margin:0;letter-spacing:-.2px;font-weight:750}
+.page-head .hint{margin:5px 0 0;font-size:12px;color:var(--od-sub);line-height:1.45}
+.head-actions{display:flex;gap:4px;flex:none}
+.icon-btn{width:34px;height:34px;border:0;border-radius:var(--radius-control);display:grid;place-items:center;color:#566983;background:transparent}
+.icon-btn:hover{background:#eef2fa}
+.subhead{display:flex;align-items:center;gap:8px;margin-bottom:var(--space-4)}
+.back-btn{width:34px;height:34px;border:1px solid var(--od-line);background:var(--od-paper);border-radius:var(--radius-control);display:grid;place-items:center;color:var(--od-ink);flex:none}
+.subhead h1{margin:0;font-size:15px}
+.subhead p{margin:2px 0 0;font-size:12px;color:var(--od-sub)}
+.od-stack{display:grid;gap:var(--space-4);min-width:0}
+.od-surface{border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper);padding:var(--space-3);min-width:0}
+.sec-head{display:flex;justify-content:space-between;align-items:center;gap:8px;min-width:0;margin-bottom:9px}
+.sec-head h2{margin:0;font-size:13px;font-weight:750}
+.sec-head .count{color:var(--od-sub);font-size:12px}
+.sec-head button{background:transparent;color:var(--od-brand);border:0;font-size:12px;min-height:30px;white-space:nowrap;padding:3px}
+.status-hero{border:1px solid #dce5f3;background:linear-gradient(112deg,#f9fbff,#f3f7ff);border-radius:var(--radius-surface);padding:var(--space-3);display:grid;gap:var(--space-2)}
+.status-top{display:flex;align-items:center;gap:7px;min-width:0;font-size:13px;font-weight:750}
+.status-top .dot{width:8px;height:8px;background:var(--od-positive);border-radius:50%;flex:none;box-shadow:0 0 0 3px #ddf1e7}
+.status-top .dot.warn{background:#b98026;box-shadow:0 0 0 3px #f8ecd8}.status-top .dot.off{background:#9aabbf;box-shadow:0 0 0 3px #e8edf3}.status-top .dot.alert{background:var(--od-negative);box-shadow:0 0 0 3px #f9e4e7}
+.status-top .state-side{margin-left:auto;font-size:11px;font-weight:600;color:#536d91;background:#e7eefc;border-radius:5px;padding:3px 6px;white-space:nowrap}
+.status-hero p{font-size:12px;margin:0;color:#53647e}
+.status-mini{display:flex;gap:9px;flex-wrap:wrap;font-size:11px;color:#53647e}
+.status-mini span{display:flex;align-items:center;gap:5px}
+.status-mini strong{color:var(--od-ink)}
+.btn{min-height:36px;padding:8px 12px;border:1px solid var(--od-input-border);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink);font-size:12px;font-weight:650;line-height:1.35;text-align:center;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.btn-primary{background:var(--od-brand);border-color:var(--od-brand);color:#fff}
+.btn-soft{background:#f7f9fd;color:#3356bd;border-color:#dce5f5}
+.btn-danger{color:var(--od-negative);border-color:#eed3d7;background:#fff}
+.btn-block{width:100%}
+.btn-row{display:flex;gap:var(--space-2);flex-wrap:wrap}.btn-row>*{flex:1 1 116px}
+.help{font-size:12px;color:var(--od-sub);line-height:1.55;margin:0}
+.caption{font-size:11px;color:var(--od-sub);margin:0}
+.callout{border-radius:8px;background:#f0f5ff;padding:var(--space-3);display:grid;gap:var(--space-1);font-size:12px;color:#38577e;line-height:1.55}
+.callout strong{color:var(--od-ink)}
+.callout.warn{background:#fff7e9;color:#7d5a29}.callout.warn strong{color:#6a4817}
+.callout.danger{background:#fdf2f3;color:#8d3b4c}
+.item-list{display:grid;gap:0;min-width:0}
+.task-row{display:grid;gap:var(--space-2);padding:var(--space-3) 0;border-top:1px solid var(--od-line);min-width:0}
+.task-row:first-child{border-top:0;padding-top:2px}.task-row:last-child{padding-bottom:2px}
+.task-head{display:flex;gap:9px;align-items:start;min-width:0}
+.task-icon{width:32px;height:32px;border-radius:9px;background:#edf3ff;display:grid;place-items:center;color:#3c63ca;font-weight:750;flex:none}
+.task-icon.search{background:#edf7f3;color:#128260}.task-icon.report{background:#f5f1fa;color:#85639b}
+.task-body{min-width:0;flex:1}.task-body strong{display:block;font-size:12px;line-height:1.45}.task-body small{display:block;font-size:11px;color:var(--od-sub);line-height:1.5;margin-top:2px;overflow-wrap:anywhere}
+.task-more{align-self:center;flex:none;border:0;background:transparent;color:var(--od-sub);font-size:12px;min-height:32px;padding:5px 0 5px 6px}
+.task-chips{display:flex;gap:6px;flex-wrap:wrap;padding-left:41px;font-size:11px}
+.chip{padding:3px 7px;background:#f5f7fb;border-radius:5px;color:var(--od-sub);border:1px solid #e8edf5}
+.chip.success{background:#edf8f3;border-color:#d9efe5;color:#14805f}.chip.warn{background:#fff6e7;border-color:#f6e8d1;color:#91631f}
+.task-purpose{font-size:12px;color:var(--od-sub);margin:0 0 0 41px}
+.empty-state{display:grid;gap:11px;text-align:center;justify-items:center;padding:20px 14px}
+.empty-icon{background:#eef3ff;border-radius:12px;color:#4564c6;display:grid;place-items:center;width:44px;height:44px}
+.empty-state strong{font-size:13px}.empty-state p{font-size:12px;line-height:1.6;margin:0;color:var(--od-sub)}
+.request-row{display:flex;align-items:flex-start;gap:9px;width:100%;border:0;border-top:1px solid var(--od-line);background:transparent;text-align:left;padding:var(--space-3) 0;min-width:0}
+.request-row:first-child{border-top:0;padding-top:2px}.request-row:last-child{padding-bottom:0}
+.run-dot{width:7px;height:7px;background:var(--od-positive);border-radius:50%;margin-top:5px;flex:none}.run-dot.warn{background:#b98026}.run-dot.off{background:#8695ab}.run-dot.alert{background:var(--od-negative)}
+.request-copy{flex:1;min-width:0}.request-copy strong{display:block;font-size:12px;font-weight:650}.request-copy small{display:block;margin-top:3px;font-size:11px;color:var(--od-sub)}
+.request-time{font-size:11px;color:var(--od-sub);white-space:nowrap}
+.aux-link{border:0;background:transparent;color:var(--od-brand);padding:7px 2px;font-size:12px;font-weight:650}
+.advanced{margin-top:2px;border-top:1px solid var(--od-line);padding-top:var(--space-2)}
+.advanced>summary{font-size:12px;font-weight:650;cursor:pointer;padding:6px 0;color:#4c607c}
+.advanced-body{display:grid;gap:var(--space-3);padding:var(--space-2) 0 2px}
+.inline-info{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;align-items:center;font-size:12px}
+.inline-info .value{font-weight:600;min-width:0;overflow-wrap:anywhere;text-align:right}
+.meta-text{color:var(--od-sub);font-size:12px}
+.form-block{display:grid;gap:var(--space-2)}
+.form-block label{font-size:12px;font-weight:650}
+.form-field{width:100%;min-width:0;min-height:38px;background:#fff;border:1px solid var(--od-input-border);border-radius:8px;padding:8px 10px;color:var(--od-ink);font-size:12px}
+.form-field::placeholder{color:var(--od-sub)}
+.form-helper{font-size:11px;color:var(--od-sub);line-height:1.5;margin:0}
+.field-error{font-size:12px;color:var(--od-negative);min-height:0;margin:0}
+.checkbox-row{display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-size:12px;line-height:1.5;min-width:0}
+.checkbox-row input{margin:2px 0 0;accent-color:var(--od-brand);flex:none;width:16px;height:16px}
+.checkbox-row span{min-width:0;flex:1}
+.check-option{padding:12px 0;border-top:1px solid var(--od-line);display:grid;gap:8px;min-width:0}
+.check-option:first-child{padding-top:0;border-top:0}
+.check-task{display:flex;align-items:flex-start;gap:10px;min-width:0}
+.check-task input{width:17px;height:17px;margin:4px 0 0;flex:none;accent-color:var(--od-brand)}
+.check-task>div{flex:1;min-width:0}.check-task strong{font-size:13px;display:block}.check-task small{display:block;font-size:11px;color:var(--od-sub);margin-top:2px;line-height:1.5}
+.check-option .result-scope{margin:0 0 0 27px;padding:8px 9px;background:#f7f9fd;border-radius:8px;display:grid;gap:5px;min-width:0}
+.result-scope>p{margin:0;font-size:11px;color:var(--od-sub);line-height:1.5}
+.result-scope .checkbox-row{font-weight:600}
+.warning-require{color:var(--od-negative);font-size:12px;margin:0}
+.summary-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;color:var(--od-sub);font-size:12px}
+.summary-row strong{color:var(--od-ink)}
+.sticky-actions{position:sticky;bottom:0;padding:12px 0 8px;background:linear-gradient(180deg,rgba(245,247,251,0),var(--od-bg) 15%,var(--od-bg));display:grid;gap:7px;z-index:2}
+.scope-details{border-top:1px solid var(--od-line);padding-top:9px;margin-top:5px;min-width:0}
+.scope-details summary{font-size:12px;font-weight:650;cursor:pointer}
+.scope-details pre{margin:7px 0 0;padding:10px;background:#f7f9fd;border-radius:8px;font-size:10.5px;white-space:pre-wrap;overflow-wrap:anywhere;color:#50617b;line-height:1.6;max-height:160px;overflow:auto}
+.key-value{display:grid;grid-template-columns:minmax(90px,105px) minmax(0,1fr);gap:9px 8px;font-size:12px;margin:0}.key-value dt{color:var(--od-sub)}.key-value dd{margin:0;overflow-wrap:anywhere;font-weight:550}
+.review-item{padding:10px 0;border-top:1px solid var(--od-line);display:grid;gap:4px;font-size:12px}
+.review-item:first-child{border-top:0}.review-item strong{font-size:12px}.review-item span{color:var(--od-sub);overflow-wrap:anywhere}
+.filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:var(--space-2)}
+.filter-row button{border:1px solid var(--od-line);background:#fff;border-radius:7px;font-size:11px;color:var(--od-sub);padding:7px 9px;min-height:32px}
+.filter-row button[aria-pressed=true]{background:#edf2ff;border-color:#c8d7fa;color:#365eda;font-weight:750}
+.panel-bottom{padding:8px var(--od-page-gutter);font-size:11px;text-align:center;color:var(--od-sub);border-top:1px solid #e9edf4;background:#fff;flex:none}
+@media(max-width:340px){.panel{--od-page-gutter:9px}.task-chips{padding-left:0}.task-purpose{margin-left:0}.check-option .result-scope{margin-left:0}.status-top .state-side{display:none}.btn-row>.btn{flex-basis:100%}}
+@media(max-width:1000px){.review-main{grid-template-columns:205px minmax(0,1fr);gap:18px}.review-aside{grid-column:1/-1}.review-aside .review-pane{max-width:700px;margin:auto}}
+@media(max-width:690px){.review-main{display:block;padding:18px 10px 40px}.review-controls{max-width:560px;margin:0 auto 15px}.review-aside{max-width:560px;margin:15px auto 0}.review-top{padding:12px 14px}.prototype-tag{font-size:10px}.stage-caption{padding:0 7px}.device-frame{height:675px}}
+</style>
+</head>
+<body>
+<header class="review-top">
+  <div class="brand-heading"><div class="brand-mark">O</div><div><strong>OpenDesk · 云控</strong><p>R5.2 产品 UI / UX 交互预览 · 仅设计模拟</p></div></div>
+  <span class="prototype-tag">UI Review · Preview only</span>
+</header>
+<main class="review-main">
+  <aside class="review-controls review-pane" aria-label="预览控制台">
+    <h2>切换典型使用场景</h2>
+    <div class="review-control review-states" id="scenarios" role="group" aria-label="模拟云控状态">
+      <button type="button" data-scenario="active" aria-pressed="true">正常运行</button>
+      <button type="button" data-scenario="first" aria-pressed="false">首次使用</button>
+      <button type="button" data-scenario="paired" aria-pressed="false">待授权</button>
+      <button type="button" data-scenario="running" aria-pressed="false">执行中</button>
+      <button type="button" data-scenario="offline" aria-pressed="false">离线重连</button>
+      <button type="button" data-scenario="stale" aria-pressed="false">授权失效</button>
+    </div>
+    <h3>Side Panel CSS 宽度</h3>
+    <div class="review-control review-sizes" id="widths" role="group" aria-label="预览宽度">
+      <button type="button" data-width="300" aria-pressed="false">300</button>
+      <button type="button" data-width="320" aria-pressed="false">320</button>
+      <button type="button" data-width="360" aria-pressed="true">360</button>
+      <button type="button" data-width="420" aria-pressed="false">420</button>
+      <button type="button" data-width="520" aria-pressed="false">520</button>
+    </div>
+    <button type="button" class="demo-reset" id="reset">恢复完整演示</button>
+    <p class="review-help">可以点击侧栏中的任务、授权、连接、请求记录、停止托管和解除配对。所有数据仅保存在当前页面内存中。</p>
+  </aside>
+  <div class="stage">
+    <div class="stage-caption"><span>Chrome Side Panel · 交互布局模拟</span><strong id="width-caption">360 CSS px</strong></div>
+    <div class="device-frame" id="device" style="--preview-width:360px">
+      <nav class="panel-nav" aria-label="OpenDesk 主选项卡">
+        <button type="button" data-tab="my">我的</button><button type="button" data-tab="discover">发现</button><button type="button" data-tab="workflow">工作流</button><button type="button" data-tab="develop">开发</button><button type="button" data-tab="tools">工具</button><button type="button" data-tab="cloud" class="active" aria-current="page">云控</button>
+      </nav>
+      <div class="mock-scroll" id="mock-scroll"><div id="panel-app" class="panel" aria-live="off"></div></div>
+      <div class="panel-bottom">产品布局演示 · 未连接真实 Chrome / Provider</div>
+    </div>
+    <div class="stage-caption"><span>预览验证间距、状态和操作路径</span><span>不等于真实 Chrome 缩放验收</span></div>
+  </div>
+  <aside class="review-aside"><div class="review-pane">
+    <h2>本轮交互合同</h2>
+    <div class="review-legend"><i></i> 用户能看懂当前是否可执行</div>
+    <div class="review-legend"><i></i> 每项 Task 独立结果许可</div>
+    <div class="review-legend"><i></i> 多个 Task 的历史可辨认</div>
+    <div class="review-legend"><i class="warn"></i> 未知副作用不自动重试</div>
+    <div class="review-legend"><i class="neutral"></i> 技术身份只在高级区显示</div>
+    <h3>真实 API 复用</h3>
+    <p class="review-help">配对 → <code>cloudPair</code><br>安装任务 → <code>listTaskCatalog</code><br>启用授权 → <code>cloudApprove</code><br>停止 → <code>cloudStop</code><br>解除配对 → <code>cloudUnpair</code><br>状态历史 → <code>cloudStatus / cloudObserve</code></p>
+    <h3>设计与实现边界</h3>
+    <p class="review-help">此 HTML 仅验证产品页面。外部客户端令牌管理目前属于 Provider 管理端；Side Panel 不会凭预览获得新权限。Side Panel 关闭后也不承诺长期后台执行。</p>
+  </div></aside>
+</main>
+<script>
+'use strict';
+// All IDs, origins and times in this preview are fictional UI fixtures, not server evidence.
+const tasks=[
+  {id:'sample.form-fill',title:'演示表单填写',description:'按指定姓名填写网页表单并提交',icon:'▤',iconClass:'',version:'1.0.0',origin:'http://127.0.0.1:43111',params:'name · 字符串 · 必填',manifest:'57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a',source:'1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63',installed:true,eligible:true,enabled:true,generation:1,descriptionShort:'填写姓名并提交'},
+  {id:'sample.modern-search',title:'网页关键词搜索',description:'按关键词搜索并读取网页匹配内容',icon:'⌕',iconClass:'search',version:'1.0.0',origin:'http://127.0.0.1:43111',params:'keyword · 字符串 · 必填',manifest:'5bce863a91c5abd26513dc19a50c55eeb068eb030c7e0aa5a664b9f8e902984a',source:'1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d',installed:true,eligible:true,enabled:true,generation:1,descriptionShort:'执行搜索并返回内容'},
+  {id:'customer.report',title:'营销报表汇总',description:'从站点生成报表（示例：本版本未验证）',icon:'▥',iconClass:'report',version:'1.2.0',origin:'https://reports.example.com',params:'date · 日期',manifest:'',source:'',installed:true,eligible:false,enabled:false,generation:2,descriptionShort:'本地版本需重新验证'}
+];
+const baseHistory=[
+  {id:'REQ-003',task:1,status:'unknown',time:'14:20',detail:'网页操作可能已发生，结果尚未确认',receipt:false},
+  {id:'REQ-002',task:1,status:'success',time:'13:46',detail:'已完成，已确认最小状态回执',receipt:true},
+  {id:'REQ-001',task:0,status:'success',time:'13:42',detail:'表单已提交，原始结果保存在本地',receipt:true},
+  {id:'REQ-000',task:0,status:'cancel',time:'昨天',detail:'在执行前取消',receipt:false}
+];
+const icon={back:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>',refresh:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14-5L4 8m0-5v5h5M4 13a8 8 0 0 0 14 5l2-2m0 5v-5h-5"/></svg>',chev:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>',close:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18 6-12 12M6 6l12 12"/></svg>'};
+const escapeHTML=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+let model;
+function reset(scenario='active'){
+  model={scenario,view:'home',paired:!['first'].includes(scenario),enabled:['active','running','offline','stale'].includes(scenario),connection:scenario==='offline'?'offline':scenario==='running'?'running':scenario==='stale'?'stale':'online',remoteSuspension:null,selected:{0:scenario==='paired'?false:true,1:scenario==='paired'?false:true,2:false},bodyAllowed:{0:false,1:scenario!=='paired',2:false},granted:{0:scenario==='paired'?false:true,1:scenario==='paired'?false:true},history:baseHistory.map(item=>({...item})),detailTask:0,detailRequest:'REQ-001',historyFilter:'all',formError:'',consent:false,extraConsent:false,notice:''};
+  if(scenario==='first'){model.selected={0:false,1:false,2:false};model.bodyAllowed={0:false,1:false,2:false};model.granted={0:false,1:false,2:false};model.enabled=false;}
+  if(scenario==='running')model.history[0]={id:'REQ-004',task:1,status:'running',time:'现在',detail:'已取得许可，原 Worker 正在执行',receipt:false};
+  if(scenario==='stale'){tasks[1].stale=true;model.enabled=false;model.granted[1]=false;}else tasks[1].stale=false;
+  document.querySelectorAll('[data-scenario]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.scenario===scenario)));
+  render();
+}
+const app=()=>document.getElementById('panel-app');
+function homeHeader(){return '<header class="page-head"><div class="head-copy"><h1>云控</h1><p class="hint">让可信服务调用你已安装的浏览器任务</p></div><div class="head-actions"><button class="icon-btn" title="刷新状态（仅更新界面）" aria-label="刷新云控状态" data-act="refresh">'+icon.refresh+'</button></div></header>';}
+function statusStyle(){if(!model.paired)return {label:'尚未连接提供者',dot:'off',side:'未配对',text:'连接可信提供者后，再选择允许远程调用的任务。'};if(model.connection==='stale')return {label:'授权需要重新核对',dot:'alert',side:'不可执行',text:'已安装版本或网站授权变化，停止后重新批准才能恢复。'};if(!model.enabled)return {label:model.remoteSuspension==='pending'?'本地已停止 · 远端待确认':model.remoteSuspension==='confirmed'?'托管已停止':'已配对，等待授权',dot:'warn',side:'不可执行',text:model.remoteSuspension==='pending'?'本地已停止执行，远端暂停尚未得到确认。':model.remoteSuspension==='confirmed'?'不会领取新云任务，历史记录仍保留。':'选择已安装任务并批准后才能接收调用。'};if(model.connection==='offline')return {label:'连接中断，正在重连',dot:'warn',side:'不可执行',text:'保留既有执行结果，不会因为断线而自动重跑未知副作用。'};if(model.connection==='running')return {label:'已连接 · 正在执行',dot:'',side:'执行槽占用',text:'浏览器正在执行一个受许可的任务，后续请求等待处理。'};return {label:'已连接 · 等待云端任务',dot:'',side:'可执行',text:'只有已批准的固定任务、参数和网站范围才能被调用。'};}
+function hero(){const s=statusStyle(),count=Object.values(model.granted).filter(Boolean).length;return '<section class="status-hero" aria-label="当前云控状态"><div class="status-top"><i class="dot '+s.dot+'" aria-hidden="true"></i><span>'+s.label+'</span><span class="state-side">'+s.side+'</span></div><p>'+s.text+'</p><div class="status-mini"><span>已批准 <strong>'+count+' 项任务</strong></span><span>执行结果 <strong>逐项授权</strong></span></div></section>';}
+function taskIcon(task){return '<span class="task-icon '+task.iconClass+'" aria-hidden="true">'+task.icon+'</span>';}
+function rowTask(task,i,mode='active'){
+ const enabled=mode==='active'&&model.granted[i],warn=task.stale||!task.eligible;
+ return '<article class="task-row">'+
+   '<div class="task-head">'+taskIcon(task)+'<div class="task-body"><strong>'+escapeHTML(task.title)+'</strong><small>v'+escapeHTML(task.version)+' · '+escapeHTML(task.origin)+'</small></div><button type="button" class="task-more" data-act="task" data-i="'+i+'" aria-label="查看'+escapeHTML(task.title)+'权限详情">详情 '+icon.chev+'</button></div>'+
+   '<div class="task-chips"><span class="chip '+(warn?'warn':enabled?'success':'')+'">'+(warn?'需要重新验证':enabled?'允许远程调用':'尚未授权')+'</span><span class="chip '+(enabled&&model.bodyAllowed[i]?'warn':'')+'">'+(enabled&&model.bodyAllowed[i]?'结果正文可回传':'仅回传完成状态')+'</span></div></article>';
+}
+const stateMap={success:['已完成',''],running:['执行中','warn'],unknown:['结果待核对','warn'],cancel:['已取消','off'],failed:['执行失败','alert'],waiting:['等待执行','off']};
+function requestRow(r){const title=tasks[r.task].title,s=stateMap[r.status]||['状态未知','off'];return '<button type="button" class="request-row" data-act="request" data-id="'+r.id+'" aria-label="查看'+escapeHTML(title)+'的'+s[0]+'请求"><i class="run-dot '+s[1]+'" aria-hidden="true"></i><div class="request-copy"><strong>'+escapeHTML(title)+' · '+s[0]+'</strong><small>'+escapeHTML(r.detail)+'</small></div><span class="request-time">'+escapeHTML(r.time)+'</span></button>';}
+function home(){const eligible=tasks.filter(t=>t.installed&&t.eligible&&!t.stale);const authorized=tasks.map((t,i)=>model.granted[i]?i:null).filter(i=>i!==null&&tasks[i].eligible&&!tasks[i].stale);
+ let taskContent;
+ if(!model.paired){taskContent='<div class="empty-state"><span class="empty-icon" aria-hidden="true">☁</span><strong>先连接可信提供者</strong><p>连接完成后，你可以选择哪些已安装任务允许外部系统调用。</p><button class="btn btn-primary btn-block" type="button" data-act="pair">连接提供者</button></div>';}
+ else if(!eligible.length){taskContent='<div class="empty-state"><span class="empty-icon" aria-hidden="true">＋</span><strong>暂无可授权任务</strong><p>请先在「我的」验证并安装一个任务，之后就能反复远程调用。</p><button class="btn btn-soft btn-block" data-act="my" type="button">前往「我的」安装任务</button></div>';}
+ else if(!model.enabled){taskContent='<div class="item-list">'+tasks.map((t,i)=>rowTask(t,i,'inactive')).join('')+'</div><div style="margin-top:12px"><button type="button" class="btn btn-primary btn-block" data-act="manage">选择任务并批准</button></div>';}
+ else {taskContent='<div class="item-list">'+authorized.map(i=>rowTask(tasks[i],i)).join('')+'</div><div style="margin-top:8px"><button type="button" class="aux-link" data-act="manage">调整授权（需要先停止托管） →</button></div>';}
+ let alert='';if(model.connection==='offline'&&model.enabled)alert='<div class="callout warn"><strong>当前没有连接</strong>网页副作用未知的任务不会自动再次执行。你可以先查看记录，或选择停止托管。</div>';
+ if(tasks[1].stale)alert='<div class="callout warn"><strong>检测到安装版本变化</strong>关键词搜索需要重新核对版本和网站权限，旧许可不会自动恢复。</div>';
+ const requests=model.history.slice(0,3);
+ return homeHeader()+'<div class="od-stack">'+hero()+alert+
+ '<section class="od-surface" aria-label="已安装的云控任务"><div class="sec-head"><h2>'+(model.enabled?'已授权任务':'已安装任务')+'</h2><span class="count">'+(model.enabled?authorized.length:eligible.length)+' 项</span></div>'+taskContent+'</section>'+
+ '<section class="od-surface" aria-label="最近请求"><div class="sec-head"><h2>最近请求</h2><button type="button" data-act="history">全部记录 →</button></div><div class="item-list">'+(requests.length?requests.map(requestRow).join(''):'<p class="help">暂无请求记录。首次执行后可以在这里看到状态和回执。</p>')+'</div></section>'+
+ '<section class="od-surface" aria-label="托管管理"><div class="sec-head"><h2>托管管理</h2></div><p class="help">'+(model.paired?'当前浏览器已配对可信提供者。停止托管将立即撤销本地执行许可。':'连接之前不会接收外部任务，也不会授予任何网站权限。')+'</p>'+
+ '<div class="btn-row" style="margin-top:12px">'+(model.enabled?'<button type="button" class="btn btn-soft" data-act="stop">停止远程调用</button>':'<button type="button" class="btn" data-act="pair">'+(model.paired?'连接设置':'连接提供者')+'</button>')+'<button class="btn" type="button" data-act="settings">连接与安全</button></div></section>'+
+ '<p class="caption">提示：关闭 Side Panel 后不保证持续执行。Provider 不是任意脚本执行器。</p></div>';
+}
+function subhead(title,subtitle){return '<header class="subhead"><button type="button" class="back-btn" data-act="back" aria-label="返回">'+icon.back+'</button><div><h1>'+title+'</h1>'+(subtitle?'<p>'+subtitle+'</p>':'')+'</div></header>';}
+function pairPage(){return subhead('连接可信提供者','连接后还需要单独批准任务')+'<div class="od-stack">'+
+ '<div class="callout"><strong>首次连接 · 两个独立步骤</strong>先验证提供者身份，再审核允许远程调用的任务；配对本身不会授权执行。</div>'+
+ '<section class="od-surface"><div class="form-block"><label for="provider-url">提供者 HTTPS 地址</label><input class="form-field" id="provider-url" type="url" autocomplete="off" placeholder="https://provider.example" value="https://provider.example"><p class="form-helper">应来自你信任的服务方。真正的跨公网调用需要可信 HTTPS/WSS。</p></div><div class="form-block" style="margin-top:14px"><label for="provider-identity">提供者身份 ID</label><input class="form-field" id="provider-identity" type="text" autocomplete="off" placeholder="由提供者提供"><p class="form-helper">连接时需核对提供者身份，不能只看域名。</p></div><div class="form-block" style="margin-top:14px"><label for="provider-code">一次性配对码</label><input class="form-field" id="provider-code" type="password" autocomplete="off" placeholder="粘贴提供者给你的配对码"></div><details class="advanced"><summary>高级：本机开发演示</summary><div class="advanced-body"><label class="checkbox-row"><input type="checkbox" id="loopback"><span>本次明确使用固定本机 HTTP/WS 演示地址</span></label><p class="help">仅允许 <code>http://127.0.0.1:43112</code>。不应将本机管理员接口直接暴露到公网。</p></div></details><p id="pair-error" role="status" class="field-error"></p></section>'+
+ '<div class="sticky-actions"><button type="button" class="btn btn-primary btn-block" data-act="pair-confirm">验证并配对</button><button type="button" class="btn btn-soft btn-block" data-act="demo-fill">填入安全演示数据</button></div></div>';}
+function optionCard(t,i){const current=!!model.selected[i]&&t.eligible&&!t.stale;return '<article class="check-option"><label class="check-task"><input type="checkbox" data-task-choice="'+i+'" '+(current?'checked ':'')+(t.eligible&&!t.stale?'':'disabled ')+'><div><strong>'+escapeHTML(t.title)+' <span class="caption">v'+escapeHTML(t.version)+'</span></strong><small>'+escapeHTML(t.description)+'</small><small>网站：'+escapeHTML(t.origin)+'</small>'+(t.stale||!t.eligible?'<small style="color:var(--od-negative)">本版本未通过验证，无法授权</small>':'')+'</div></label>'+
+ '<div class="result-scope"><label class="checkbox-row"><input type="checkbox" data-body-choice="'+i+'" '+(model.bodyAllowed[i]?'checked ':'')+(current?'':'disabled ')+'><span>额外允许回传结果正文</span></label><p>关闭时仍会回传最小完成状态，不回传网页内容、返回值或原始错误。</p></div></article>';}
+function managePage(){const count=tasks.filter((t,i)=>t.eligible&&!t.stale&&model.selected[i]).length,full=tasks.filter((t,i)=>t.eligible&&!t.stale&&model.selected[i]&&model.bodyAllowed[i]).length;return subhead('选择可远程调用的任务','逐项授权，默认不回传正文')+'<div class="od-stack">'+(model.enabled?'<div class="callout warn"><strong>当前托管正在运行</strong>为防止正在运行的任务被静默更换，修改授权前需要先停止托管。<button type="button" class="btn" data-act="stop" style="margin-top:8px">停止后调整</button></div>':'')+
+ '<div class="callout"><strong>执行权限与结果隐私分开</strong>勾选任务表示允许远程执行固定版本；只有再开启“结果正文”，Provider 才能取得网页返回内容。</div>'+
+ '<section class="od-surface"><div class="sec-head"><h2>已安装任务</h2><span class="count">最多 32 项</span></div>'+tasks.map(optionCard).join('')+'</section>'+
+ '<div class="summary-row">已选 <strong>'+count+'</strong> 项 · 结果正文开启 <strong>'+full+'</strong> 项</div>'+
+ '<div class="sticky-actions"><button class="btn btn-primary btn-block" type="button" data-act="review" '+(model.enabled||count===0?'disabled':'')+'>审阅并启用 '+count+' 项任务</button></div></div>';}
+function reviewPage(){const selected=tasks.map((t,i)=>model.selected[i]&&t.eligible&&!t.stale?i:null).filter(i=>i!==null),full=selected.filter(i=>model.bodyAllowed[i]).length;return subhead('确认本次授权','批准后外部系统可以重复调用')+'<div class="od-stack">'+
+ '<div class="callout warn"><strong>请核对即将允许的操作</strong>你将允许已配对的提供者按以下固定版本、网站与参数范围发起调用。任何新版本或安装代际都需要重新批准。</div>'+
+ '<section class="od-surface"><div class="sec-head"><h2>即将批准的任务</h2><span class="count">'+selected.length+' 项</span></div>'+selected.map(i=>'<div class="review-item"><strong>'+escapeHTML(tasks[i].title)+' · v'+escapeHTML(tasks[i].version)+'</strong><span>网站：'+escapeHTML(tasks[i].origin)+'</span><span>参数：'+escapeHTML(tasks[i].params)+'</span><span>结果正文：'+(model.bodyAllowed[i]?'允许回传（需另外确认）':'不回传，仅最小状态')+'</span></div>').join('')+'</section>'+
+ '<section class="od-surface" style="display:grid;gap:12px"><label class="checkbox-row"><input type="checkbox" id="confirm-scope" '+(model.consent?'checked':'')+'><span>我已核对本次批准的任务、网站和固定版本</span></label>'+(full?'<label class="checkbox-row"><input type="checkbox" id="confirm-result" '+(model.extraConsent?'checked':'')+'><span>我另外同意上面 '+full+' 项任务向 Provider 回传结果正文</span></label>':'')+'</section><p id="review-error" role="status" class="warning-require"></p>'+
+ '<div class="sticky-actions"><button type="button" class="btn btn-primary btn-block" data-act="approve-confirm">批准并启用云控</button><button type="button" class="btn btn-block" data-act="manage">返回修改</button></div></div>';}
+function detailPage(){const t=tasks[model.detailTask],i=model.detailTask,active=!!model.granted[i]&&model.enabled;return subhead(t.title,'固定任务授权详情')+'<div class="od-stack">'+
+ '<section class="od-surface" style="display:grid;gap:11px"><div class="task-head">'+taskIcon(t)+'<div class="task-body"><strong>'+escapeHTML(t.descriptionShort)+'</strong><small>v'+escapeHTML(t.version)+'</small></div></div><dl class="key-value"><dt>远程调用</dt><dd>'+(active?'已允许':'未允许')+'</dd><dt>结果正文</dt><dd>'+(active&&model.bodyAllowed[i]?'允许回传':'不允许回传')+'</dd><dt>允许网站</dt><dd>'+escapeHTML(t.origin)+'</dd><dt>参数约束</dt><dd>'+escapeHTML(t.params)+'</dd><dt>版本状态</dt><dd>'+(t.stale?'版本已变化 · 需要重新批准':t.eligible?'已验证、已安装':'当前不可用')+'</dd></dl><details class="scope-details"><summary>高级技术身份（Task / SHA / 代际）</summary><pre>'+escapeHTML(JSON.stringify({taskId:t.id,version:t.version,manifestHash:t.manifest||'未验证',sourceHash:t.source||'未验证',installationId:'preview-install-'+i,generation:t.generation,paramsSchema:t.params},null,2))+'</pre></details></section>'+
+ '<div class="callout"><strong>权限更新规则</strong>正在运行的云控不能静默替换任务版本、网站或安装授权。请先停止，再重新审批。</div><div class="btn-row"><button type="button" class="btn btn-soft" data-act="manage">'+(model.enabled?'查看授权管理':'选择任务授权')+'</button><button type="button" class="btn" data-act="my">在「我的」管理安装</button></div></div>';}
+function historyPage(){const filtered=model.history.filter(r=>model.historyFilter==='all'||(model.historyFilter==='active'?r.status==='running'||r.status==='waiting':r.status==='unknown'));return subhead('云请求记录','仅显示任务名称和状态，不公开网页数据')+'<div class="od-stack"><section class="od-surface"><div class="sec-head"><h2>调用记录</h2><span class="count">'+filtered.length+' 条</span></div><div class="filter-row" role="group" aria-label="请求状态筛选">'+[['all','全部'],['active','执行中'],['unknown','待核对']].map(([v,l])=>'<button type="button" data-filter="'+v+'" aria-pressed="'+(model.historyFilter===v)+'">'+l+'</button>').join('')+'</div><div class="item-list">'+(filtered.length?filtered.map(requestRow).join(''):'<p class="help">当前筛选条件下暂无记录。</p>')+'</div></section><p class="help">完整历史通过原有 Cloud History Index 和只读控制台分页获取。刷新页面不应触发领取新的 Job。</p></div>';}
+function requestDetail(){const r=model.history.find(h=>h.id===model.detailRequest)||model.history[0],t=tasks[r.task],st=stateMap[r.status]||['状态未知','off'];return subhead('请求详情','只读记录 · 不会重新执行')+'<div class="od-stack"><section class="od-surface"><div class="sec-head"><h2>'+escapeHTML(t.title)+'</h2><span class="chip '+(r.status==='unknown'?'warn':'')+'">'+st[0]+'</span></div><dl class="key-value"><dt>任务版本</dt><dd>v'+escapeHTML(t.version)+'</dd><dt>执行状态</dt><dd>'+st[0]+'</dd><dt>回执</dt><dd>'+(r.receipt?'已确认':'尚未确认')+'</dd><dt>本地记录</dt><dd>保留原 Run / Result</dd><dt>执行时间</dt><dd>'+escapeHTML(r.time)+'</dd></dl></section>'+(r.status==='unknown'?'<div class="callout warn"><strong>可能已经产生网页副作用</strong>结果未知时不会自动重试。请检查目标网页或原始运行记录，再决定是否创建新的操作。</div>':'<div class="callout"><strong>结果正文与执行状态是独立权限</strong>远端不一定能读取本地网页数据，即使已经收到“完成”状态回执。</div>')+'<details class="od-surface scope-details"><summary>高级：原始运行身份</summary><pre>'+escapeHTML(JSON.stringify({requestId:'preview-'+r.id,runId:'preview-run-'+r.id,resultId:'preview-result-'+r.id,retirement:r.receipt?'released':'unknown'},null,2))+'</pre></details><button class="btn btn-block" data-act="my">前往「我的」查看本地运行记录</button></div>';}
+function settingsPage(){return subhead('连接与安全','低频操作集中在此处')+'<div class="od-stack">'+(model.remoteSuspension==='pending'?'<div class="callout warn"><strong>本地已停止，远端尚未确认</strong>此时不应标记为已解除配对。待可信 Provider 恢复连接后，需要再次确认凭据撤销。<button class="btn" type="button" data-act="demo-reconnect" style="margin-top:8px">模拟服务恢复</button></div>':'')+'<section class="od-surface"><div class="sec-head"><h2>当前提供者</h2></div><dl class="key-value"><dt>配对状态</dt><dd>'+(model.paired?'已配对':'尚未配对')+'</dd><dt>连接</dt><dd>'+(model.enabled&&model.connection==='offline'?'未连接':model.enabled?'已连接':model.paired?'已停止':'未连接')+'</dd><dt>执行主体</dt><dd>仅当前浏览器</dd><dt>结果政策</dt><dd>逐 Task 授权</dd></dl><details class="scope-details"><summary>高级：Provider 与 Executor 身份</summary><pre>'+escapeHTML(JSON.stringify({providerId:'preview-provider-uuid',executorId:'preview-executor-uuid',approvalGeneration:'preview-fixed-grant',auth:'配对凭据从不显示在预览中'},null,2))+'</pre></details></section><section class="od-surface" style="display:grid;gap:10px"><h2 style="margin:0;font-size:13px">权限边界</h2><p class="help">外部调用方的令牌范围由可信 Provider 侧管理；当前 Side Panel 只批准已安装任务，不会从网页接受任意 JavaScript、Shell 或 CDP。</p><p class="help">关闭 Side Panel 后不承诺长期后台执行。当前显示的是控制台，不是新的 Runner。</p></section>'+(model.paired?'<section class="od-surface" style="display:grid;gap:9px"><h2 style="margin:0;font-size:13px">管理连接</h2><button class="btn btn-block" data-act="stop" '+(!model.enabled?'disabled':'')+'>停止远程调用（保留配对）</button><button class="btn btn-danger btn-block" data-act="unpair">解除配对并撤销凭据</button></section>':'<button type="button" class="btn btn-primary btn-block" data-act="pair">连接提供者</button>')+'</div>';}
+function confirmPage(type){const stop=type==='stopConfirm';return subhead(stop?'停止云端托管':'解除提供者配对',stop?'立即撤销当前浏览器的执行许可':'此操作还需 Provider 确认远端凭据失效')+'<div class="od-stack"><div class="callout '+(stop?'warn':'danger')+'"><strong>'+(stop?'停止与取消不是同一回事':'请确认解除配对')+'</strong>'+(stop?'新的任务将不再取得本地执行许可。若现有网页操作的副作用未知，将保留“结果待核对”，不会自动重试。':'会撤销当前 Provider 配对，原有任务运行记录仍保留。离线时不能假报远端凭据已经删除。')+'</div><section class="od-surface"><dl class="key-value"><dt>影响范围</dt><dd>'+(stop?'本次云控授权的所有任务':'当前已配对 Provider')+'</dd><dt>保留内容</dt><dd>原始 Run、Result、历史</dd><dt>是否删除安装</dt><dd>不会卸载已安装 Task</dd></dl></section><div class="sticky-actions"><button class="btn '+(stop?'btn-primary':'btn-danger')+' btn-block" data-act="'+(stop?'stop-confirm':'unpair-confirm')+'">'+(stop?'确认停止托管':'确认解除配对')+'</button><button class="btn btn-block" data-act="back">取消</button></div></div>';}
+function myPage(){return subhead('我的 · 已安装任务','这里仅模拟跳转，不修改实际安装')+'<div class="od-stack"><section class="od-surface"><div class="sec-head"><h2>Controller Task</h2><span class="count">3 项</span></div>'+tasks.map((t,i)=>rowTask(t,i,'inactive')).join('')+'</section><button class="btn btn-primary btn-block" type="button" data-act="cloud">返回「云控」管理远程授权</button></div>';}
+function render(){const m=model;let markup='';switch(m.view){case 'home':markup=home();break;case 'pair':markup=pairPage();break;case 'manage':markup=managePage();break;case 'review':markup=reviewPage();break;case 'detail':markup=detailPage();break;case 'history':markup=historyPage();break;case 'requestDetail':markup=requestDetail();break;case 'settings':markup=settingsPage();break;case 'stopConfirm':case 'unpairConfirm':markup=confirmPage(m.view);break;case 'my':markup=myPage();break;default:markup=home();}app().innerHTML=markup;document.querySelectorAll('.panel-nav button').forEach(b=>{const selected=b.dataset.tab===(m.view==='my'?'my':'cloud');b.classList.toggle('active',selected);if(selected)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});}
+function navigate(view){model.view=view;model.formError='';document.getElementById('mock-scroll').scrollTop=0;render();}
+function execute(action,element){switch(action){
+  case 'back':navigate(model.view==='review'?'manage':model.view==='requestDetail'?'history':'home');break;
+  case 'refresh':model.notice='已刷新演示状态';render();break;
+  case 'pair':model.paired?navigate('settings'):navigate('pair');break;
+  case 'settings':navigate('settings');break;
+  case 'manage':navigate('manage');break;
+  case 'review':model.consent=false;model.extraConsent=false;navigate('review');break;
+  case 'task':model.detailTask=Number(element.dataset.i);navigate('detail');break;
+  case 'request':model.detailRequest=element.dataset.id;navigate('requestDetail');break;
+  case 'history':navigate('history');break;
+  case 'stop':navigate('stopConfirm');break;
+  case 'unpair':navigate('unpairConfirm');break;
+  case 'cloud':navigate('home');break;
+  case 'my':navigate('my');break;
+  case 'demo-fill':document.getElementById('provider-url').value='https://provider.example';document.getElementById('provider-identity').value='sample-provider-id';document.getElementById('provider-code').value='sample-pairing-code';document.getElementById('pair-error').textContent='已填写模拟参数。本页面不会建立真实连接。';break;
+  case 'pair-confirm':{const url=document.getElementById('provider-url').value.trim(),id=document.getElementById('provider-identity').value.trim(),code=document.getElementById('provider-code').value.trim(),local=document.getElementById('loopback').checked;let valid=false;try{const u=new URL(url);valid=!u.username&&!u.password&&!u.search&&!u.hash&&u.pathname==='/'&&(u.protocol==='https:'||(local&&u.origin==='http://127.0.0.1:43112'));}catch{}if(!valid||!id||!code){document.getElementById('pair-error').textContent='请填写 HTTPS 地址、提供者身份与配对码；本地 HTTP 演示需单独勾选。';break;}model.paired=true;model.enabled=false;model.connection='online';model.remoteSuspension=null;model.granted={0:false,1:false,2:false};model.selected={0:false,1:false,2:false};model.bodyAllowed={0:false,1:false,2:false};navigate('manage');break;}
+  case 'approve-confirm':{const full=tasks.some((t,i)=>t.eligible&&model.selected[i]&&model.bodyAllowed[i]);if(!model.consent||(full&&!model.extraConsent)){document.getElementById('review-error').textContent='请确认固定任务、网站范围'+(full?'及结果正文回传许可':'')+'。';break;}model.granted={...model.selected};model.enabled=true;model.connection='online';model.remoteSuspension=null;model.history=[];model.scenario='active';navigate('home');break;}
+  case 'stop-confirm':{const connected=model.connection!=='offline';model.enabled=false;model.remoteSuspension=connected?'confirmed':'pending';model.connection=connected?'online':'offline';navigate('home');break;}
+  case 'demo-reconnect':model.connection='online';model.remoteSuspension='confirmed';navigate('settings');break;
+  case 'unpair-confirm':if(model.connection==='offline'){model.enabled=false;model.remoteSuspension='pending';model.notice='远端撤销未获确认，必须保留配对凭据以便再次撤销';navigate('settings');break;}model.paired=false;model.enabled=false;model.granted={0:false,1:false,2:false};model.remoteSuspension=null;model.connection='offline';navigate('home');break;
+ }}
+document.getElementById('panel-app').addEventListener('click',event=>{const el=event.target.closest('[data-act]');if(el)execute(el.dataset.act,el);});
+document.getElementById('panel-app').addEventListener('change',event=>{const el=event.target;if(el.hasAttribute('data-task-choice')){const i=Number(el.dataset.taskChoice);model.selected[i]=el.checked;if(!el.checked)model.bodyAllowed[i]=false;render();app().querySelector('[data-task-choice="'+i+'"]')?.focus();}else if(el.hasAttribute('data-body-choice')){const i=Number(el.dataset.bodyChoice);model.bodyAllowed[i]=el.checked;render();app().querySelector('[data-body-choice="'+i+'"]')?.focus();}else if(el.id==='confirm-scope')model.consent=el.checked;else if(el.id==='confirm-result')model.extraConsent=el.checked;});
+document.getElementById('panel-app').addEventListener('click',event=>{const btn=event.target.closest('[data-filter]');if(btn){model.historyFilter=btn.dataset.filter;render();}});
+document.querySelector('.panel-nav').addEventListener('click',event=>{const btn=event.target.closest('[data-tab]');if(!btn)return;if(btn.dataset.tab==='cloud')navigate('home');else if(btn.dataset.tab==='my')navigate('my');else{btn.setAttribute('title','此原型仅实现云控交互；其他主 Tab 属于现有 OpenDesk 页面');}});
+document.getElementById('scenarios').addEventListener('click',event=>{const button=event.target.closest('[data-scenario]');if(button)reset(button.dataset.scenario);});
+document.getElementById('widths').addEventListener('click',event=>{const button=event.target.closest('[data-width]');if(!button)return;const w=Number(button.dataset.width);document.getElementById('device').style.setProperty('--preview-width',w+'px');document.getElementById('width-caption').textContent=w+' CSS px';document.querySelectorAll('[data-width]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));});
+document.getElementById('reset').addEventListener('click',()=>reset('active'));
+reset('active');
+</script>
+</body>
+</html>

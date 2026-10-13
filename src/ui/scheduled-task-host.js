@@ -1,3 +1,5 @@
+import {permissionPattern} from '../environment.js';
+
 // The visible trusted tool.html Host is the only execution realm.
 // The SW emits wake hints; this module never creates hidden documents.
 export function createScheduledTaskHost({client,host,api=globalThis.chrome,clock=()=>Date.now(),
@@ -29,6 +31,16 @@ export function createScheduledTaskHost({client,host,api=globalThis.chrome,clock
       await client.request('setScheduleFireState',{fireId:fire.fireId,status:'NEEDS_ATTENTION'});
       status('安装的任务或权限已经变更；需要处理');return;
     }
+    // Chrome may hide tab URL/document details immediately after an origin
+    // grant is revoked. Classify that as a permission issue before mistaking
+    // the invisible target for an ordinary WAITING_TARGET condition.
+    const origin=new URL(definition.targetUrl).origin;
+    const granted=typeof api.permissions?.contains==='function'&&
+      await api.permissions.contains({origins:[permissionPattern(origin)]}).catch(()=>false);
+    if(!granted){
+      await client.request('setScheduleFireState',{fireId:fire.fireId,status:'NEEDS_ATTENTION'});
+      status('目标网站权限不足；请在 Chrome 中明确重新授权');return;
+    }
     const borrowed=await observeTarget(definition.targetUrl);
     if(!borrowed&&!definition.openIfMissing){
       await client.request('setScheduleFireState',{fireId:fire.fireId,status:'WAITING_TARGET'});
@@ -38,20 +50,46 @@ export function createScheduledTaskHost({client,host,api=globalThis.chrome,clock
     status('正在启动已授权的定时任务');
     // Authority verifies the unforgeable persisted FireId in the SAME IDB
     // transaction that pins the revision and claims runs/@slot.
-    const started=await host.start({source:{kind:'saved',scriptId:resolved.scriptId,
-      revision:resolved.revision,contentHash:resolved.contentHash},
-      params:definition.params,target,deadlineAt:Math.min(fire.deadlineAt,clock()+600000),
-      requestId:fire.fireId,scheduledFireId:fire.fireId,
-      expectedTaskGeneration:definition.taskGeneration,
-      expectedTaskInstallationId:definition.installationId});
+    let started;
+    try{
+      started=await host.start({source:{kind:'saved',scriptId:resolved.scriptId,
+        revision:resolved.revision,contentHash:resolved.contentHash},
+        params:definition.params,target,deadlineAt:Math.min(fire.deadlineAt,clock()+600000),
+        requestId:fire.fireId,scheduledFireId:fire.fireId,
+        expectedTaskGeneration:definition.taskGeneration,
+        expectedTaskInstallationId:definition.installationId});
+      if(typeof started?.runId!=='string'||!started.runId)
+        throw new Error('Original Controller RunId was not acknowledged');
+    }catch(error){
+      if(error?.code==='E_OWNER')throw error; // local/shared slot was denied
+      // A disconnected Host can conceal durable admission or web page effects.
+      // Treat any other error after calling start as ambiguous; the repository
+      // alone decides whether the original Fire was already ADMITTED.
+      const uncertain=new Error('Controller 准入回执不确定，必须对账原 Run/Result');
+      uncertain.code='E_EFFECT_UNKNOWN';
+      uncertain.cause=error;
+      throw uncertain;
+    }
     onRun(started.runId);
     status('定时任务运行中：'+started.runId);
     onChange();
-    const result=await host.completion;
-    onRun(null);
-    status(result?.pendingSettlement||result?.state==='paused_unknown'?'结果未知，禁止自动重试':
-      '本次任务已结束：'+(result?.state??'待核对'));
-    onChange();
+    // From this point the original Authority may already have ADMITTED
+    // native page effects. A missing completion ack must never flow into
+    // the pre-admission WAITING_TARGET/READY retry classification.
+    try{
+      const result=await host.completion;
+      status(result?.pendingSettlement||result?.state==='paused_unknown'?
+        '结果未知，禁止自动重试':
+        '本次任务已结束：'+(result?.state??'待核对'));
+    }catch(error){
+      // Keep the original FireId -> RunId/ResultId binding untouched.
+      // Reconciliation queries the authoritative Run/Result; no new Run
+      // or synthetic UNKNOWN receipt may be created from this UI.
+      status('运行回执丢失；请检查原运行结果，已禁止自动重试');
+    }finally{
+      onRun(null);
+      onChange();
+    }
   }
   async function poll(){
     if(busy||disposed)return;

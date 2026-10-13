@@ -1,9 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {nextScheduleAt,parseWallScheduleTime,formatWallScheduleTime,recentMissedAt} from '../../src/platform/tasks/schedule-time.js';
-import {scheduleFireId,fireKey,validateScheduleInput} from '../../src/platform/tasks/schedule-contract.js';
+import {scheduleFireId,fireKey,scheduleKey,validateScheduleInput} from '../../src/platform/tasks/schedule-contract.js';
 import {createScheduleRepository} from '../../src/platform/tasks/schedule-repository.js';
 import {createScheduleService,scheduledHostDocumentIds} from '../../src/platform/tasks/schedule-service.js';
+import {createScheduledTaskHost} from '../../src/ui/scheduled-task-host.js';
 import {createTaskPackage,installedKey,taskKey,taskScriptId} from '../../src/platform/tasks/contract.js';
 import {digestUtf8} from '../../src/platform/protocol.js';
 
@@ -11,13 +12,34 @@ const millis=value=>Date.parse(value);
 function storageFake(){
   const buckets=new Map([['frameworkKV',new Map()],['commandJournal',new Map()],['runs',new Map()]]);
   let queue=Promise.resolve();
+  const scanPrefixes=[],scanResumeKeys=[],scanRanges=[];
   return {
+    scanPrefixes,scanResumeKeys,scanRanges,
     put(store,key,value){buckets.get(store).set(key,structuredClone(value));},
     transaction(names,mode,callback){
       const work=()=>callback({
         get:async(store,key)=>structuredClone(buckets.get(store).get(key)),
         put:async(store,row,key)=>{buckets.get(store).set(key,structuredClone(row));},
         all:async store=>structuredClone([...buckets.get(store).values()]),
+        scan:async(store,{prefix,direction='next',offset=0,limit=50})=>{
+          scanPrefixes.push(prefix);scanRanges.push({prefix,direction,offset,limit});
+          const rows=[...buckets.get(store).entries()].filter(([key])=>String(key).startsWith(prefix))
+            .sort(([a],[b])=>a<b?-1:a>b?1:0);
+          if(direction==='prev')rows.reverse();
+          return structuredClone(rows.slice(offset,offset+limit).map(([,value])=>value));
+        },
+        countPrefix:async(store,prefix)=>[...buckets.get(store).keys()]
+          .filter(key=>String(key).startsWith(prefix)).length,
+        scanEntries:async(store,{prefix,afterKey,limit=50})=>{
+          scanPrefixes.push(prefix);
+          if(afterKey!==undefined)scanResumeKeys.push(afterKey);
+          const entries=[...buckets.get(store).entries()]
+            .filter(([key])=>String(key).startsWith(prefix)&&
+              (afterKey===undefined||String(key)>afterKey))
+            .sort(([a],[b])=>a<b?-1:a>b?1:0)
+            .slice(0,limit).map(([key,value])=>({key,value}));
+          return structuredClone(entries);
+        },
         delete:async(store,key)=>{buckets.get(store).delete(key);}
       });
       const next=queue.then(work);
@@ -234,4 +256,363 @@ test('short outage latest-within-hour selects LAST occurrence, skip preserves fi
     assert.equal((await f.repo.reconcile()).length,0,'same wall time must never mint a second FireId');
     assert.equal((await f.repo.list())[0].history.length,1);
   }
+});
+
+test('R2 schedule history pages 135 persisted fires without losing original identities',async()=>{
+  const f=await fixture(),plan=await f.repo.save(f.input);
+  for(let i=0;i<135;i++){
+    const at=millis('2026-10-13T10:00:00Z')+i*60000;
+    const fireId=scheduleFireId(plan.scheduleId,plan.generation,at);
+    f.db.put('frameworkKV',fireKey(fireId),{
+      tag:'schedule-fire-v1',namespace:f.namespace,fireId,
+      scheduleId:plan.scheduleId,generation:plan.generation,scheduledAt:at,
+      deadlineAt:at+300000,status:'MISSED',runId:null,resultId:null,createdAt:at
+    });
+  }
+  const rows=await f.repo.list();
+  assert.equal(rows.length,1);
+  assert.equal(rows[0].history.length,20,'initial view is bounded');
+  assert.equal(rows[0].history[0].scheduledAt,millis('2026-10-13T10:00:00Z')+134*60000);
+  const second=await f.repo.history({scheduleId:plan.scheduleId,offset:20,limit:20});
+  assert.equal(second.history.length,20);
+  assert.equal(second.hasMore,true);
+  assert.equal(second.history[0].scheduledAt,millis('2026-10-13T10:00:00Z')+114*60000);
+  const last=await f.repo.history({scheduleId:plan.scheduleId,offset:120,limit:20});
+  assert.equal(last.history.length,15);
+  assert.equal(last.hasMore,false);
+  assert.notEqual(last.history[0].fireId,rows[0].history[0].fireId);
+  await assert.rejects(f.repo.history({scheduleId:plan.scheduleId,offset:-1,limit:20}));
+});
+
+test('R2 UNKNOWN side effect retains same FireId and never requeues',async()=>{
+  const f=await fixture(),plan=await f.repo.save(f.input);
+  f.setTime(plan.nextDueAt+1000);
+  await f.repo.reconcile();
+  const due=(await f.repo.ready())[0];
+  await f.repo.recordWait(due.fireId,'UNKNOWN');
+  await f.repo.reconcile();
+  assert.equal((await f.repo.ready()).length,0);
+  assert.equal((await f.repo.list())[0].history[0].fireId,due.fireId);
+  assert.equal((await f.repo.recordWait(due.fireId,'WAITING_TARGET')).status,'UNKNOWN');
+  await f.repo.changeState({scheduleId:plan.scheduleId,expectedGeneration:plan.generation,action:'pause'});
+  assert.equal((await f.repo.list())[0].history[0].status,'UNKNOWN');
+});
+test('R2 task disable/update/uninstall/authorization rotation never silently rebind a schedule',async()=>{
+  const edits=[
+    row=>({...row,enabled:false}),
+    row=>({...row,version:'1.0.1'}),
+    row=>({...row,manifestHash:'f'.repeat(64)}),
+    row=>({...row,authorization:{...row.authorization,generation:2}}),
+    row=>({...row,authorization:{...row.authorization,
+      installationId:'ffffffff-ffff-4fff-8fff-ffffffffffff'}}),
+    ()=>null
+  ];
+  for(const edit of edits){
+    const f=await fixture(),plan=await f.repo.save(f.input);
+    const key=installedKey(f.namespace,plan.taskId);
+    await f.db.transaction(['frameworkKV'],'readwrite',async tx=>{
+      const row=edit(await tx.get('frameworkKV',key));
+      if(row)await tx.put('frameworkKV',row,key);
+      else await tx.delete('frameworkKV',key);
+    });
+    const current=(await f.repo.list())[0];
+    assert.equal(current.needsAttention,true);
+    assert.equal(current.version,plan.version);
+    assert.equal(current.taskGeneration,plan.taskGeneration);
+    assert.equal(current.manifestHash,plan.manifestHash);
+    await assert.rejects(f.repo.save({...f.input,scheduleId:plan.scheduleId,
+      expectedGeneration:plan.generation}),/Installed task authorization changed/);
+  }
+});
+test('R2 website grant revocation is visible without re-requesting permission',async()=>{
+  const f=await fixture(),plan=await f.repo.save(f.input);
+  let granted=true,permissionRequests=0;
+  const api={runtime:{id:'schedule-test',getURL:()=>
+    'chrome-extension://abcdefghijklmnopabcdefghijklmnop/ui/tool.html',
+    getContexts:async()=>[]},alarms:{getAll:async()=>[],create:async()=>{},clear:async()=>{}},
+    permissions:{contains:async()=>granted,request:async()=>{permissionRequests++;return true;}}};
+  const service=createScheduleService({storage:f.db,api,clock:{now:f.getTime},
+    assertHost:async()=>({}),emitToHost:async()=>{}});
+  assert.equal((await service.listSchedules({},{})).schedules[0].needsAttention,false);
+  granted=false;
+  const revoked=await service.listSchedules({},{});
+  assert.equal(revoked.schedules[0].scheduleId,plan.scheduleId);
+  assert.equal(revoked.schedules[0].needsAttention,true);
+  assert.equal(permissionRequests,0);
+  await assert.rejects(service.saveSchedule(f.input,{}),/Grant website access/);
+  granted=true;
+  assert.equal((await service.listSchedules({},{})).schedules[0].needsAttention,false);
+  assert.equal(permissionRequests,0);
+});
+test('R2 rebuilt service restores only schedule-prefixed Chrome Alarms without duplication',async()=>{
+  const f=await fixture(),plan=await f.repo.save(f.input);
+  const alarms=new Map([['unrelated.cloud',{name:'unrelated.cloud',scheduledTime:42}]]);
+  const api={runtime:{id:'schedule-test',getURL:()=> 'chrome-extension://abcdefghijklmnopabcdefghijklmnop/ui/tool.html',
+    getContexts:async()=>[]},
+    alarms:{getAll:async()=>[...alarms.values()],
+      create:async(name,{when})=>{alarms.set(name,{name,scheduledTime:when});},
+      clear:async name=>{alarms.delete(name);}},
+    permissions:{contains:async()=>true}};
+  const service=()=>createScheduleService({storage:f.db,api,clock:{now:f.getTime},
+    assertHost:async()=>({}),emitToHost:async()=>{}});
+  await service().reconcile();
+  const alarm='opendesk.schedule.v1:'+plan.scheduleId;
+  assert.equal(alarms.get(alarm)?.scheduledTime,plan.nextDueAt);
+  alarms.delete(alarm);
+  await service().reconcile();
+  assert.equal(alarms.get(alarm)?.scheduledTime,plan.nextDueAt);
+  assert.equal(alarms.get('unrelated.cloud')?.scheduledTime,42);
+  f.setTime(plan.nextDueAt+1000);
+  await service().reconcile();
+  const one=(await f.repo.ready())[0];
+  await service().reconcile();
+  assert.equal((await f.repo.ready())[0].fireId,one.fireId);
+});
+
+test('R2 native-prefix paging sorts generation 10 after 9 without mutating persisted FireId',async()=>{
+  const f=await fixture();let def=await f.repo.save(f.input);
+  for(let i=0;i<9;i++)
+    def=await f.repo.changeState({scheduleId:def.scheduleId,expectedGeneration:def.generation,
+      action:i%2===0?'pause':'resume'});
+  assert.equal(def.generation,10);
+  const base=millis('2026-10-13T10:00:00Z');
+  for(let i=0;i<25;i++){
+    const generation=i===24?10:9,at=base+i*60000;
+    const fireId=scheduleFireId(def.scheduleId,generation,at);
+    f.db.put('frameworkKV',fireKey(fireId),{
+      tag:'schedule-fire-v1',namespace:f.namespace,fireId,
+      scheduleId:def.scheduleId,generation,scheduledAt:at,deadlineAt:at+300000,
+      status:'MISSED',runId:null,resultId:null,createdAt:at
+    });
+  }
+  const first=(await f.repo.list())[0].history;
+  assert.equal(first.length,20);
+  assert.equal(first[0].generation,10,'generation 10 is newer than 9 regardless of key lexical order');
+  const older=await f.repo.history({scheduleId:def.scheduleId,offset:20,limit:20});
+  assert.equal(older.history.length,5);
+  assert.equal(older.hasMore,false);
+  assert.equal(older.history[0].scheduledAt,base+4*60000);
+});
+
+test('R2 lost completion after admitted Run never becomes WAITING_TARGET or mints a second Run',async()=>{
+  const definition={taskId:'demo.form',version:'1.0.0',manifestHash:'a'.repeat(64),
+    sourceHash:'b'.repeat(64),installationId:'install-approved',taskGeneration:7,
+    targetUrl:'https://example.com/form',openIfMissing:true,params:{name:'R2'}};
+  const fire={fireId:'sched:stable:7:1791819235665',
+    deadlineAt:1791819535665,definition};
+  const calls=[],owners=[],statuses=[];
+  let due=true,starts=0;
+  const client={
+    ready:new Promise(()=>{}),
+    request:async(name,body)=>{
+      calls.push({name,body});
+      if(name==='listDueSchedules'){const fires=due?[fire]:[];due=false;return {fires};}
+      if(name==='resolveInstalledTask')return {taskId:definition.taskId,version:definition.version,
+        manifestHash:definition.manifestHash,contentHash:definition.sourceHash,
+        installationId:definition.installationId,generation:definition.taskGeneration,
+        revision:1,scriptId:'task:demo.form:1.0.0'};
+      if(name==='setScheduleFireState')throw Error('Never mutate already ADMITTED Fire');
+      throw Error('Unexpected operation '+name);
+    }
+  };
+  const host={executionPending:false,start:async(input)=>{
+    starts++;assert.equal(input.scheduledFireId,fire.fireId);
+    return {runId:'run-accepted-once'};
+  },get completion(){return Promise.reject(Error('Lost native completion acknowledgement'));}};
+  const scheduled=createScheduledTaskHost({client,host,
+    api:{tabs:{query:async()=>[]},permissions:{contains:async()=>true}},clock:()=>1791819300000,pollMs:600000,
+    onRun:id=>owners.push(id),onStatus:value=>statuses.push(value)});
+  try{
+    await scheduled.poll();
+    await scheduled.poll();
+    assert.equal(starts,1,'post-admission errors cannot start a replacement Run');
+    assert.deepEqual(owners,['run-accepted-once',null],
+      'stop control must be cleared even if original completion promise rejects');
+    assert.equal(calls.some(c=>c.name==='setScheduleFireState'),false,
+      'already ADMITTED Fire state must remain owned by original Authority/Result');
+    assert.match(scheduled.status,/回执丢失|禁止自动重试/);
+    assert.equal(statuses.some(s=>s.startsWith('等待目标或运行环境')),false);
+  }finally{scheduled.dispose();}
+});
+
+test('R2 pending-fire index migrates R1 history once and avoids repeated full Fire scans',async()=>{
+  const f=await fixture(),plan=await f.repo.save({...f.input,triggerKind:'interval',
+    triggerSpec:{anchorAt:f.getTime()+60000,everyMinutes:1}});
+  for(let i=0;i<1000;i++){
+    const at=millis('2026-09-01T00:00:00Z')+i*60000,fireId=scheduleFireId(plan.scheduleId,1,at);
+    f.db.put('frameworkKV',fireKey(fireId),{
+      tag:'schedule-fire-v1',namespace:f.namespace,fireId,scheduleId:plan.scheduleId,
+      generation:1,scheduledAt:at,deadlineAt:at+60000,
+      status:'MISSED',runId:null,resultId:null,createdAt:at});
+  }
+  await f.repo.reconcile(); // First call seeds the derived index from historical R1 rows.
+  const key='schedule:pending-index:v1:'+f.namespace;
+  const marker=await f.db.transaction(['frameworkKV'],'readonly',tx=>tx.get('frameworkKV',key));
+  assert.equal(marker.tag,'schedule-pending-index-v1');
+  f.db.scanPrefixes.length=0;
+  await f.repo.reconcile();
+  assert.equal((await f.repo.ready()).length,0);
+  assert.equal(f.db.scanPrefixes.some(p=>p.startsWith('schedule:fire:v1:')),false,
+    'steady-state scheduler must not scan the complete audit history');
+  assert.equal(f.db.scanPrefixes.some(p=>p.startsWith('schedule:pending:v1:')),true);
+  assert.equal((await f.repo.list())[0].history.length,20,'auditable history stays intact');
+});
+test('R2 pending-fire index migrates legacy WAITING_HOST and removes it on ADMITTED',async()=>{
+  const f=await fixture(),def=await f.repo.save(f.input),at=def.nextDueAt;
+  const fireId=scheduleFireId(def.scheduleId,def.generation,at);
+  f.db.put('frameworkKV',fireKey(fireId),{
+    tag:'schedule-fire-v1',namespace:f.namespace,fireId,scheduleId:def.scheduleId,
+    generation:def.generation,scheduledAt:at,deadlineAt:at+300000,
+    status:'WAITING_HOST',runId:null,resultId:null,createdAt:at});
+  f.setTime(at+100);
+  await f.repo.reconcile();
+  assert.equal((await f.repo.ready()).length,1);
+  const request={source:{kind:'saved',scriptId:taskScriptId('demo.form','1.0.0'),contentHash:f.input.sourceHash},
+    paramsDecoded:{},target:{mode:'borrowed',expectedUrl:f.input.targetUrl},requestId:fireId,
+    expectedTaskGeneration:1,expectedTaskInstallationId:f.input.installationId};
+  await f.db.transaction(['frameworkKV'],'readwrite',async tx=>{
+    const fire=await f.repo.admit(tx,fireId,request,'https://example.com',f.getTime());
+    await f.repo.bind(tx,fire,{runId:'once',resultId:'original'});
+  });
+  assert.equal((await f.repo.ready()).length,0);
+  const stored=(await f.repo.list())[0].history[0];
+  assert.equal(stored.runId,'once');
+  assert.equal(stored.resultId,'original');
+});
+
+test('R2 revoked Chrome site access is NEEDS_ATTENTION before target browsing or Controller admission',async()=>{
+  const definition={taskId:'demo.form',version:'1.0.0',manifestHash:'a'.repeat(64),
+    sourceHash:'b'.repeat(64),installationId:'approved-install',taskGeneration:7,
+    targetUrl:'https://example.com/form',openIfMissing:true,params:{}};
+  const fire={fireId:'sched:revoked:7:1791819235665',deadlineAt:1791819535665,definition};
+  let admitted=0,lookedUpTabs=0;
+  const updates=[],statuses=[],permissions=[];
+  const client={ready:new Promise(()=>{}),request:async(name,body)=>{
+    if(name==='listDueSchedules')return {fires:[fire]};
+    if(name==='resolveInstalledTask')return {...definition,contentHash:definition.sourceHash,
+      generation:definition.taskGeneration,revision:1,scriptId:'task:demo.form:1.0.0'};
+    if(name==='setScheduleFireState'){updates.push(body);return body;}
+    throw Error('Unexpected operation '+name);
+  }};
+  const scheduled=createScheduledTaskHost({client,
+    host:{executionPending:false,start:async()=>{admitted++;return {runId:'unsafe'};}},
+    api:{tabs:{query:async()=>{lookedUpTabs++;return [];}},
+      permissions:{contains:async value=>{permissions.push(value);return false;}}},
+    pollMs:600000,onStatus:value=>statuses.push(value)});
+  try{
+    await scheduled.poll();
+    assert.equal(admitted,0,'Controller cannot start after website grant is revoked');
+    assert.equal(lookedUpTabs,0,'tab URL discovery must not mask the revoked grant');
+    assert.deepEqual(updates,[{fireId:fire.fireId,status:'NEEDS_ATTENTION'}]);
+    assert.deepEqual(permissions,[{origins:['https://example.com/*']}]);
+    assert.match(statuses.at(-1),/权限不足/);
+  }finally{scheduled.dispose();}
+});
+
+test('R2.3 terminal needs-attention and legacy bound Fire never regain admission',async()=>{
+  const f=await fixture(),plan=await f.repo.save(f.input);
+  f.setTime(plan.nextDueAt+1000);
+  await f.repo.reconcile();
+  const fire=(await f.repo.ready())[0];
+  assert.equal((await f.repo.recordWait(fire.fireId,'NEEDS_ATTENTION')).status,'NEEDS_ATTENTION');
+  assert.equal((await f.repo.recordWait(fire.fireId,'WAITING_TARGET')).status,'NEEDS_ATTENTION');
+  assert.equal((await f.repo.ready()).length,0);
+
+  const g=await fixture(),other=await g.repo.save(g.input);
+  g.setTime(other.nextDueAt+1000);
+  await g.repo.reconcile();
+  const {definition,...pending}=(await g.repo.ready())[0];
+  g.db.put('frameworkKV',fireKey(pending.fireId),{...pending,
+    runId:'original-admitted-run',resultId:'original-result'});
+  await g.repo.reconcile();
+  assert.equal((await g.repo.ready()).length,0);
+  const history=await g.repo.history({scheduleId:other.scheduleId,offset:0,limit:20});
+  assert.equal(history.history[0].status,'UNKNOWN','inconsistent admission is quarantined');
+  assert.equal(history.history[0].runId,'original-admitted-run','original audit identity survives');
+  const request={source:{kind:'saved',scriptId:taskScriptId('demo.form','1.0.0'),
+    contentHash:g.input.sourceHash},paramsDecoded:{},target:{mode:'borrowed',
+    expectedUrl:g.input.targetUrl},requestId:pending.fireId,
+    expectedTaskGeneration:1,expectedTaskInstallationId:g.input.installationId};
+  await assert.rejects(()=>g.db.transaction(['frameworkKV'],'readonly',tx=>
+    g.repo.admit(tx,pending.fireId,request,'https://example.com',g.getTime())),/consumed|expired/);
+});
+
+test('R2.3 ambiguous start reply is UNKNOWN, never a repeatable waiting target',async()=>{
+  const f=await fixture(),plan=await f.repo.save({...f.input,openIfMissing:true});
+  f.setTime(plan.nextDueAt+1000);
+  await f.repo.reconcile();
+  const fireId=(await f.repo.ready())[0].fireId;
+  let starts=0;
+  const statuses=[];
+  const client={
+    ready:new Promise(()=>{}),
+    request:async(name,body)=>{
+      if(name==='listDueSchedules')return {fires:await f.repo.ready()};
+      if(name==='resolveInstalledTask')return {taskId:plan.taskId,version:plan.version,
+        manifestHash:plan.manifestHash,contentHash:plan.sourceHash,
+        installationId:plan.installationId,generation:plan.taskGeneration,
+        revision:1,scriptId:taskScriptId(plan.taskId,plan.version)};
+      if(name==='setScheduleFireState')return f.repo.recordWait(body.fireId,body.status);
+      throw Error('Unexpected '+name);
+    }
+  };
+  const runner=createScheduledTaskHost({client,
+    host:{executionPending:false,start:async request=>{
+      assert.equal(request.scheduledFireId,fireId);starts++;
+      throw Object.assign(new Error('Host disconnected after dispatch'),{code:'E_TRANSPORT'});
+    }},
+    api:{tabs:{query:async()=>[]},permissions:{contains:async()=>true}},
+    pollMs:600000,onStatus:value=>statuses.push(value)});
+  try{
+    await runner.poll();
+    assert.equal((await f.repo.history({scheduleId:plan.scheduleId,offset:0,limit:20})).history[0].status,'UNKNOWN');
+    await runner.poll();
+    assert.equal(starts,1,'reconnecting Host must not mint a replacement Run');
+    assert.match(statuses.at(-1),/禁止自动重试/);
+    assert.equal(statuses.some(value=>value.includes('等待目标或运行环境')),false);
+  }finally{runner.dispose();}
+});
+
+test('R2.3 index migration seeks forward by original Fire primary key over 1300 rows',async()=>{
+  const f=await fixture(),plan=await f.repo.save(f.input);
+  for(let i=0;i<1300;i++){
+    const scheduledAt=f.getTime()-1300*60000+i*60000;
+    const fireId=scheduleFireId(plan.scheduleId,plan.generation,scheduledAt);
+    f.db.put('frameworkKV',fireKey(fireId),{
+      tag:'schedule-fire-v1',namespace:f.namespace,fireId,scheduleId:plan.scheduleId,
+      generation:plan.generation,scheduledAt,deadlineAt:scheduledAt+300000,
+      createdAt:scheduledAt,status:'MISSED',runId:null,resultId:null
+    });
+  }
+  f.setTime(plan.nextDueAt+1000);
+  await f.repo.reconcile();
+  assert(f.db.scanResumeKeys.length>=5,'migration did not resume across bounded pages');
+  assert(f.db.scanResumeKeys.every((key,i,keys)=>i===0||key>keys[i-1]),
+    'resume keys must advance strictly monotonically');
+  assert.equal((await f.repo.ready()).length,1,'only genuinely pending Fire is ready');
+  const recent=await f.repo.history({scheduleId:plan.scheduleId,offset:0,limit:20});
+  assert.equal(recent.history.length,20);
+  assert.equal(new Set(recent.history.map(x=>x.fireId)).size,20);
+});
+
+test('R2.3 deep history offset skips old generations without allocating the full history',async()=>{
+  const f=await fixture(),plan=await f.repo.save(f.input),base=f.getTime()-1200*60000;
+  f.db.put('frameworkKV',scheduleKey(plan.scheduleId),{...plan,generation:10});
+  const historyRows=[];
+  for(let i=0;i<1200;i++){
+    const generation=i<600?9:10,scheduledAt=base+i*60000;
+    const fireId=scheduleFireId(plan.scheduleId,generation,scheduledAt);
+    const row={tag:'schedule-fire-v1',namespace:f.namespace,
+      fireId,scheduleId:plan.scheduleId,generation,scheduledAt,
+      deadlineAt:scheduledAt+300000,createdAt:scheduledAt,
+      status:'MISSED',runId:null,resultId:null};
+    f.db.put('frameworkKV',fireKey(fireId),row);
+    historyRows.push(row);
+  }
+  const result=await f.repo.history({scheduleId:plan.scheduleId,offset:900,limit:20});
+  const expected=historyRows.sort((a,b)=>b.scheduledAt-a.scheduledAt).slice(900,920);
+  assert.equal(result.history.length,20);
+  assert.deepEqual(result.history.map(row=>row.fireId),expected.map(row=>row.fireId));
+  assert(f.db.scanRanges.some(row=>row.offset>=300&&row.limit<=21),
+    'the native deep-page path must offset-seek without cloning 900 Fire values');
 });

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {programDraft} from '../fixtures/program-draft.mjs';
 import {createTaskWorkbench} from '../../src/ui/task-workbench.js';
+import {createTaskReviewHandoff} from '../../src/ui/workflow/task-review-handoff.js';
 import {encodeValue} from '../../src/platform/page-port/codec.js';
 
 
@@ -775,4 +776,57 @@ test('Scheduled Tasks hides idle manual Run dock and never borrows scheduled Run
   f.ui.setScheduledRunOwner(null);f.ui.setScheduledSurfaceActive(false);
   f.ui.navigate('tasks');
   assert.equal(f.get('task-dock').hidden,false,'ordinary My Run dock is restored');
+});
+
+test('Workflow Task one-shot review handoff preselects exact candidate and runId but never verifies or installs',async t=>{
+  const {createTaskReviewHandoff,taskReviewHandoffKey}=await import('../../src/ui/workflow/task-review-handoff.js');
+  const saved=new Map();
+  const storage={
+    async get(key){return {[key]:saved.get(key)};},
+    async set(rows){for(const [key,value] of Object.entries(rows))saved.set(key,value);},
+    async remove(key){saved.delete(key);}
+  };
+  const now=Date.now(),key=taskReviewHandoffKey(7);
+  const hint=createTaskReviewHandoff({windowId:7,taskId:'demo.form',version:'1.0.0',
+    sourceHash:'a'.repeat(64),manifestHash:'b'.repeat(64),
+    siteOrigin:'https://a.example',runId:'run-previous-native-123',issuedAt:now});
+  saved.set(key,hint);
+  const f=make({installedInitially:false,draftStorage:storage});
+  t.after(()=>f.ui.dispose());
+  f.catalogState.catalog[0].stage='candidate';
+  f.api.windows={getCurrent:async()=>({id:7})};
+  f.ui.showCatalogPage();
+  for(let i=0;i<5;i++)await tick();
+  assert.equal(f.get('task-catalog-list').value,'demo.form@1.0.0');
+  assert.equal(f.get('task-verify-run').value,'run-previous-native-123');
+  assert.match(f.get('task-catalog-status').textContent,/仍需亲自核对/);
+  assert.equal(f.get('task-verify').disabled,false);
+  assert.equal(f.get('task-install').disabled,true);
+  assert.equal(f.catalogState.catalog[0].stage,'candidate');
+  assert.equal(f.catalogState.installed.length,0);
+  assert.equal(f.starts.length,0);
+  assert.equal(saved.has(key),false,'handoff must be single-use');
+});
+
+test('Workflow Task review handoff rejects stale/wrong-hash hints without altering Task authority',async t=>{
+  const {createTaskReviewHandoff,taskReviewHandoffKey}=await import('../../src/ui/workflow/task-review-handoff.js');
+  const key=taskReviewHandoffKey(7),store=new Map();
+  const storage={async get(key){return {[key]:store.get(key)};},
+    async set(value){for(const [k,v] of Object.entries(value))store.set(k,v);},
+    async remove(key){store.delete(key);}};
+  store.set(key,createTaskReviewHandoff({windowId:7,taskId:'demo.form',version:'1.0.0',
+    sourceHash:'c'.repeat(64),manifestHash:'b'.repeat(64),
+    siteOrigin:'https://a.example',runId:'run-other-version',issuedAt:Date.now()}));
+  const f=make({installedInitially:false,draftStorage:storage});
+  t.after(()=>f.ui.dispose());
+  f.catalogState.catalog[0].stage='candidate';
+  f.api.windows={getCurrent:async()=>({id:7})};
+  f.ui.showCatalogPage();
+  for(let i=0;i<5;i++)await tick();
+  assert.equal(f.get('task-catalog-list').value,'');
+  assert.equal(f.get('task-verify-run').value,'');
+  assert.equal(f.get('task-install').disabled,true);
+  assert.equal(f.catalogState.catalog[0].stage,'candidate');
+  assert.equal(f.catalogState.installed.length,0);
+  assert.equal(store.has(key),false);
 });

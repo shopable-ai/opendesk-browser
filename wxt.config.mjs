@@ -9,7 +9,9 @@ import {FIXED_OUTPUTS, entryByteBudget} from './scripts/build-contract.mjs';
 import {configureDevelopment,closeDevelopment,publishDevelopment,waitDevelopmentPublication} from './scripts/wxt-development.mjs';
 import {outputGuardPort} from './scripts/development-lock.mjs';
 import {resolveMarketChannel,marketExternalConnectable} from './scripts/market-channel.mjs';
+import {resolveBrowserEdition,DEVELOPER_BROWSER_NAME} from './scripts/browser-editions-r245.mjs';
 
+const browserEdition=resolveBrowserEdition();
 const schemaSpecializer=createSchemaSpecializer(protocolSchema);
 const manifest = JSON.parse(readFileSync(new URL('./manifest.json', import.meta.url), 'utf8'));
 delete manifest.manifest_version;
@@ -19,17 +21,18 @@ export default defineConfig({
   srcDir: 'src',
   publicDir: '.wxt/public',
   outDir: 'dist',
-  outDirTemplate: '{{mode}}',
+  outDirTemplate: '{{mode}}'+(browserEdition==='developer'?'-developer':''),
   manifestVersion: 3,
   imports: false,
   webExt: {disabled: true},
   dev: {reloadCommand: false, server: {host:'127.0.0.1',port:outputGuardPort(process.env.OPENDESK_DEV_PORT??43119)}},
   manifest: structuredClone(manifest),
-  vite: () => ({optimizeDeps:{noDiscovery:true,include:[],entries:[]},build: {minify: 'terser', terserOptions: {ecma:2022, compress:{passes:3}, format: {comments: false}},
+  vite: () => ({define:{__OPENDESK_BROWSER_COMPILER_ENABLED__:JSON.stringify(browserEdition==='developer')},optimizeDeps:{noDiscovery:true,include:[],entries:[]},build: {minify: 'terser', terserOptions: {ecma:2022, compress:{passes:3}, format: {comments: false}},
     sourcemap: process.env.OPENDESK_BUILD_MODE === 'development', target: 'es2022'}}),
   hooks: {
     'build:publicAssets'(wxt){if(wxt.config.command==='serve')return waitDevelopmentPublication(wxt);},
     'build:manifestGenerated'(wxt,output){
+      if(browserEdition==='developer')output.name=DEVELOPER_BROWSER_NAME;
       const channel=resolveMarketChannel({mode:process.env.OPENDESK_BUILD_MODE||wxt.config.mode||'production'});
       const external=marketExternalConnectable(channel);
       if(external)output.externally_connectable=external;
@@ -86,7 +89,13 @@ export default defineConfig({
         const options = config.build.terserOptions;
         config.build.terserOptions = {...options, format:{...options.format,semicolons:false}, compress:{...options.compress, passes:6, toplevel:true, top_retain:['sw','background'], unsafe:true}};
       }
-      if (!target || !config.build?.lib) throw new Error('Expected approved WXT library entry');
+      if (target === 'ui/tool-shell.js') {
+         // Preserve the 512 KiB fixed IIFE ceiling; optimize, never relax.
+         const options=config.build.terserOptions;
+         config.build.terserOptions={...options,
+           compress:{...options.compress,passes:6,toplevel:true}};
+       }
+       if (!target || !config.build?.lib) throw new Error('Expected approved WXT library entry');
       // WXT names classic IIFEs after their entry basename by default.
       // A bundle named "dayjs" creates/hoists globalThis.dayjs BEFORE our
       // audited installer runs in the same USER_SCRIPT compilation unit.
@@ -171,8 +180,17 @@ export default defineConfig({
           // build.mjs saves it as FAILED diagnostics, never a verified receipt.
           await recordBundle(chunks[0]);
           const budget=entryByteBudget(target,config.mode),bytes=Buffer.byteLength(chunks[0].code);
-          if(bytes>budget)throw Object.assign(new Error(`WXT entry exceeds configured byte budget: ${target} (${bytes} > ${budget})`),
-            {target,bytes,budgetBytes:budget});
+          if(bytes>budget){
+            // Build-only diagnostics. Rendered lengths are pre-minification and
+            // do not replace the real output byte gate or verified receipts.
+            const largest=Object.entries(chunks[0].modules)
+              .map(([id,info])=>({module:id.replace(process.cwd()+'/', ''),
+                renderedLength:info.renderedLength||0}))
+              .sort((a,b)=>b.renderedLength-a.renderedLength).slice(0,18);
+            console.error('OVERSIZE_FIXED_ENTRY_MODULES='+JSON.stringify({target,bytes,budget,largest}));
+            throw Object.assign(new Error(`WXT entry exceeds configured byte budget: ${target} (${bytes} > ${budget})`),
+              {target,bytes,budgetBytes:budget});
+          }
         }
       });
     }

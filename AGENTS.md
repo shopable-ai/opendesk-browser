@@ -18,6 +18,38 @@ YOU ARE AN AUTONOMOUS CODING AGENT. EXECUTE AUTHORIZED TASKS TO COMPLETION WITHO
 
 核对 Chrome 实际启用扩展的加载路径、真实 ID、Go doctor 的 `local.extensionId` 及 Native manifest 的 `allowed_origins`，不能用仓库 HEAD、目录名或版本号替代配对检查。用户明确要求切换或删除历史副本时，先保留必要证据和可恢复备份、收尾连接，再使用所属 owner 的官方命令修复配对；跨 ID 的 `E_EXTENSION_ID_CONFLICT` 不得靠直接改写或删除 Native 配置绕过。日常源码开发详见 `docs/framework/extension-development-r131.zh-CN.md`。
 
+## Browser SDK 唯一设计封版与实施入口（2026-10-13）
+
+**Browser SDK 的唯一后续执行手册：** [`docs/api/browser-sdk-execution-manual.zh-CN.md`](docs/api/browser-sdk-execution-manual.zh-CN.md)；**全部官方发现与获批准逐接口实施合同：** [`docs/api/browser-sdk-interface-matrix.json`](docs/api/browser-sdk-interface-matrix.json)。本次按固定 Chromium JSON/WebIDL/IDL Schema 扫描，目录中包含私有/特定平台/历史接口，发现不等于批准开放。后续编码任务直接按手册 Phase 0–7、矩阵首项未完成接口实施、测试、保留证据并安全提交，不重开整体架构讨论，不再建立并列总 GOAL。
+
+**原 35 项永久兼容规则已失效。** R7/R8、`browser-sdk-compatibility-map.json` 与旧 8 Namespace Chrome Catalog 是迁移与历史检索资料，不能覆盖唯一 Registry / Host / Authority 或要求保存开发期错误旧 API。接口的 SOURCE_WIRED、NODE_PASS、BUILD_PASS、NATIVE_PASS 独立验证；无同候选真实 Chrome 证据必须标为 NOT_TESTED。
+
+## Browser SDK 预发布 API 一次性收敛授权（2026-10-13）
+
+**用户最新明确：OpenDesk Browser 尚未正式上线使用，现有 35 项 Browser SDK 只是开发期快照，不是必须长期兼容的外部 API。** 对 Browser SDK 中命名、参数、返回值、分层或重复调用设计不合理的旧接口，允许直接合并、改名或删除；一次性同步迁移仓库内全部消费者、示例、测试和当前文档，不增加无意义的兼容别名、deprecated shim、第二套 Registry/Host/Authority 或固定 35 项测试分母。本条在 Browser SDK 范围内优先于历史“保留已约定公开 API”及 R7/R8 的旧接口兼容目标。
+
+优先采用 Chrome Native API 的习惯命名与语义，安全作用域不同则明确标注（如 owned TabRef）。**放弃旧 API 不等于放弃旧功能与安全**：必须保留真实 Sender、安装身份、精确 Origin/Document、用户手势、撤权、未知副作用、隔离和既有 603+19/B05/F3/ZIP 验收事实；正确功能必须迁移到新单一入口。权威决策见 [`Browser SDK 预发布收敛合同`](docs/api/browser-sdk-prelaunch-contract-20261013.zh-CN.md)。
+
+## Global First 第一小山头：长期市场策略约束（2026-10-13）
+
+**仅适用于全球/区域/行业“第一”、小山头竞争定位、营销、SEO/GEO 与 AI 推荐研究任务；不改变其他 Browser SDK、Cloud、Native 工程任务的实施所有权。**
+
+- **先定竞争位置，再决定做什么功能**。从真实用户、问题和替代成本出发，寻找全球第一、真实国家/语言区域/行业/具体任务第一；不够第一时可争取有实测依据的第 2—5 名。双/三因素组合必须有实际用户价值，不能靠无意义限定词制造独家。
+- **AI 优先，不等于预设 GF-007 已获胜**。主要用户旅程是提出需求→AI 协助创建→审核权限/结果→受控安装→以后可重复使用；这条全链仍是待实证方向，不得写成已经正式交付。手动在 Side Panel 编写 React/Vue（旧 F01）是技术支撑，不能自动恢复为全球第一营销 P0。
+- **先验证竞品，再反推产品缺口**。要比较单产品和真实组合（如 AI 编码器 + Vite + 脚本管理器），分开 Stable、Beta、仓库推送、商店发布日期和关键能力首次公开可用时间。未找到反例不等于世界首创。
+- **分清候选顺序与市场排名**。TOP 1—5 的研究优先级不是第 1—5 名产品排名；只有真实日期、范围、地区、充分对手样本、当前发布/原生证据及独立审批才能宣传全球首个/区域第一/最快/Top 5。GF-013/GF-014 保留 DISPROVED，不换词复活；95 分未审则 NOT_SCORED。
+- **用户先看一屏可读结果**：每项“谁需要、解决什么、竞争哪种第一、最强对手、已有证据、最小缺口、下一步”，再附技术文档。不能把再写一份 GOAL 当作竞争验证已完成。
+
+权威阅读顺序：[R4 战略决策](docs/product/browser-extension-ecosystem/global-first-r2-decision.zh-CN.md) → [R4 执行 GOAL](docs/framework/prompts/goal-global-first-r4-ai-first-niche-leadership.zh-CN.md)。唯一事实/审批账本仍是 `docs/product/browser-extension-ecosystem/competitor-timeline.json` 与 `first-claims-ledger.json`。R1/R2 与 R3/F01 旧方向仅历史参考。
+
+## 第三方 JS 依赖：开发脚本免人工审核的最高优先级产品决策（2026-10-13）
+
+**用户自己编写、修改或让 AI 生成的脚本，在 Side Panel「开发」主动点击 Run 时，不得被要求逐库核对/勾选 SHA、许可证、依赖图或点击“批准锁”，也不允许程序 B 因使用同一固定库而重复人工审核。** Run 是用户的草稿执行意图；系统自动校验来源、固定版本、SHA、依赖闭包与执行世界，按权限允许的方式取得/复用缓存，自动生成绑定各程序/Revision 的固定锁。可查看高级详情，但不得把它变成每次开发的通行证。
+
+免依赖人工审核不等于免权限：仍须尊重真实 Chrome 来源/网站权限手势、页面/宿主 Authority、安装/定时/云控/第三方 Provider 的能力与数据范围授权、MV3/CWS 远程代码边界、撤权、坏 SHA/私网/重定向及资源上限。不得将用户下载代码直接交给特权 SW/Host，不得静默升级 fixed Revision。只有真实缺失权限或无法解析确切版本才提示必要操作。
+
+**R7.1/R4 现有「检查→下载→人工审阅→批准→运行」是历史实现，不能作为最终正确 UX；需要继续修复源码与测试。** 长期规则：[依赖使用场景合同](docs/framework/universal-dependency-runtime-usage-contract.zh-CN.md)；执行入口：[R7.2 GOAL](docs/framework/prompts/goal-universal-dependency-runtime-r7.2-scenario-first-20261013.zh-CN.md)。本条优先于历史 R4–R7 的逐库人工审核要求，不影响 Browser SDK 与安装安全合同。
+
 ## Controller/Page 零参数用户入口及 src/libs 环境合同（2026-10-12）
 
 用户当前明确要求：**推荐示例、AI 生成代码与多文件 ESM Controller 入口使用 `export default async function main()`，Side Panel「开发」直接编辑 Controller 草稿使用 `async function main()`，直接引用受控 Worker 词法 `page`、`params` 及默认 `_`、`dayjs`、`OpenDeskLibs`，不让用户给 `main` 传能力对象、重复 npm 安装或写 CDN。** 历史 `main({page})` ESM 入口只保留兼容，不得再宣传为唯一/推荐格式。

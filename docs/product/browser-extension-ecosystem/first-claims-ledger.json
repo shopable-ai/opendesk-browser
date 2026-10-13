@@ -1,0 +1,1188 @@
+{
+  "schemaVersion": "opendesk.first-claims.v1",
+  "researchedAt": "2026-10-13",
+  "evidencePolicy": "No world-first / number-one claim currently approved. Each future claim needs user-relevant scope, first public availability date, global counterexample research, same-version reproducible acceptance, and legal/marketing approval.",
+  "statuses": [
+    "CANDIDATE_NEEDS_COMPETITOR_REVIEW",
+    "CANDIDATE_NEEDS_BENCHMARK",
+    "CANDIDATE_PRODUCT_GAPS",
+    "CANDIDATE_NOT_READY",
+    "CANDIDATE_NEEDS_END_TO_END_PROOF",
+    "FUTURE_RESEARCH_ONLY",
+    "MARKET_HYPOTHESIS_ONLY",
+    "CANDIDATE_NOT_MEASURED",
+    "DISPROVED_BY_EXISTING_COMPETITORS",
+    "PRODUCT_VERIFIED",
+    "COMPETITOR_REVIEWED",
+    "CLAIM_APPROVED"
+  ],
+  "transitions": {
+    "promotion": "CANDIDATE → PRODUCT_VERIFIED → COMPETITOR_REVIEWED → CLAIM_APPROVED; requires stored citations and separate approval",
+    "demotion": "New equivalent older release, feature regression or weak evidence → revert to CANDIDATE or DISPROVED immediately."
+  },
+  "claims": [
+    {
+      "id": "GF-001",
+      "workingClaimZh": "全球首个支持 React JSX 与 Vue SFC 侧栏直编、目标网页交互、受管 Stop 的 Chrome 网站工具开发环境",
+      "claimClass": "WORLD_FIRST_CANDIDATE",
+      "axes": [
+        "Chrome Side Panel",
+        "dual-framework direct source authoring",
+        "USER_SCRIPT Run + managed Stop"
+      ],
+      "priority": "P3_TECHNICAL_ONLY",
+      "status": "CANDIDATE_NEEDS_COMPETITOR_REVIEW",
+      "publicUseAllowed": false,
+      "worldFirstProven": false,
+      "globalRankProven": false,
+      "productEvidence": [
+        "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/api/page-ui-frameworks.zh-CN.md"
+      ],
+      "counterexamples": [
+        "ScriptCat developer editor / Agent beta",
+        "Tampermonkey + vite-plugin-monkey",
+        "other in-extension component studios"
+      ],
+      "requiredEvidence": [
+        "freeze Developer Edition SHA + public availability",
+        "direct authoring user-level video with Chrome receipt + Stop",
+        "worldwide timeline search across extensions/IDEs and earliest release check",
+        "independent competitor testing"
+      ],
+      "scope": "Chrome MV3; clarify Standard / Developer / Native local workspace and comparable public product channels",
+      "lastCheckedAt": "2026-10-13",
+      "nextReviewBy": "2026-11-13",
+      "notes": "Developer edition browser editor is currently single component; no general arbitrary import. Word 'first' is unapproved.",
+      "invalidatedBy": [],
+      "r2Review": {
+        "checkedAt": "2026-10-13",
+        "track": "F01",
+        "priority": "P0",
+        "userTaskOrValueHypothesis": "JSX/SFC 源码直接编写、网页真实交互及受管 Stop",
+        "strongestKnownAlternative": "ScriptCat 编辑器、Tampermonkey+Editors、Web Dev Kit、vite-plugin-monkey 组合",
+        "nextRequiredProof": "Developer 公众可获得发行身份 + 当前版 Chrome 验证 + 全球首次公开等价实现排他性审查",
+        "currentEvidenceLevel": "HISTORICAL_NATIVE_ONLY",
+        "numericScore": "NOT_SCORED",
+        "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      },
+      "r4Priority": {
+        "strategicOrder": null,
+        "level": "RETAIN_HISTORICAL",
+        "claimApproved": false,
+        "verification": "NOT_SCORED",
+        "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
+      },
+      "r4Review": {
+        "asOf": "2026-10-13",
+        "investmentPriority": null,
+        "score": "NOT_SCORED",
+        "verifiedWorldRank": false,
+        "approvedPublicAbsolute": false,
+        "competitorCounterexample": null,
+        "minimalProofGap": null,
+        "notes": "R4 priority is not CLAIM_APPROVED or latest package native proof"
+      }
+    },
+    {
+      "id": "GF-002",
+      "workingClaimZh": "全球首个从本地多文件 ESM、React/Vue 自动准备直达网页工具 Run 的低配置开发平台",
+      "claimClass": "WORLD_FIRST_CANDIDATE",
+      "axes": [
+        "local multifile",
+        "automatic framework preparation",
+        "installed extension Run"
+      ],
+      "priority": "P2_COST_PROOF",
+      "status": "CANDIDATE_NEEDS_BENCHMARK",
+      "publicUseAllowed": false,
+      "worldFirstProven": false,
+      "globalRankProven": false,
+      "productEvidence": [
+        "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/api/local-projects.zh-CN.md",
+        "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/api/page-ui-frameworks.zh-CN.md"
+      ],
+      "counterexamples": [
+        "vite-plugin-monkey + userscript manager",
+        "https://wxt.dev/",
+        "Plasmo"
+      ],
+      "requiredEvidence": [
+        "cold install and setup cost transparency including Native/Node",
+        "same-project cold and modified-run timing / human steps",
+        "head-to-head competitor tutorials and video",
+        "artifact availability + risk audit"
+      ],
+      "scope": "Chrome MV3; clarify Standard / Developer / Native local workspace and comparable public product channels",
+      "lastCheckedAt": "2026-10-13",
+      "nextReviewBy": "2026-11-13",
+      "notes": "Do not omit native pairing or Node build steps from measured setup time.",
+      "invalidatedBy": [],
+      "r2Review": {
+        "checkedAt": "2026-10-13",
+        "track": "F02",
+        "priority": "P0",
+        "userTaskOrValueHypothesis": "编辑本地多文件后无需重打包主扩展即可在授权网页明确运行",
+        "strongestKnownAlternative": "vite-plugin-monkey+Tampermonkey/ScriptCat、WXT",
+        "nextRequiredProof": "四组工作流冷启动、热修改、错误恢复的原始计时含 Native/Node 成本",
+        "currentEvidenceLevel": "HISTORICAL_NATIVE_ONLY",
+        "numericScore": "NOT_SCORED",
+        "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      },
+      "r4Priority": {
+        "strategicOrder": 4,
+        "level": "TOP_FIVE_RESEARCH_ONLY",
+        "claimApproved": false,
+        "verification": "NOT_SCORED",
+        "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
+      },
+      "r4Review": {
+        "asOf": "2026-10-13",
+        "investmentPriority": 4,
+        "score": "NOT_SCORED",
+        "verifiedWorldRank": false,
+        "approvedPublicAbsolute": false,
+        "competitorCounterexample": "vite-plugin-monkey + userscript manager, WXT",
+        "minimalProofGap": "COLD_HOT_RESTORE_AND_20_RUN_COST_NOT_TESTED",
+        "notes": "R4 priority is not CLAIM_APPROVED or latest package native proof"
+      }
+    },
+    {
+      "id": "GF-003",
+      "workingClaimZh": "全球首个 JS Page 增强、React/Vue 组件和 Controller 自动化统一管理的 Chrome 应用平台",
+      "claimClass": "WORLD_FIRST_CANDIDATE",
+      "axes": [
+        "Page JS",
+        "framework UI",
+        "Controller RunHost"
+      ],
+      "priority": "P1_PRODUCT_TYPES",
+      "status": "CANDIDATE_PRODUCT_GAPS",
+      "publicUseAllowed": false,
+      "worldFirstProven": false,
+      "globalRankProven": false,
+      "productEvidence": [
+        "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/api/page-ui-frameworks.zh-CN.md",
+        "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/product/browser-extension-ecosystem/userscript-ecosystem.zh-CN.md",
+        "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/framework/workstreams/browser-sdk-status.md"
+      ],
+      "counterexamples": [
+        "ScriptCat background+Agent",
+        "Automa node scripts",
+        "other browser workflow suites"
+      ],
+      "requiredEvidence": [
+        "three-source real user journey with install and stop",
+        "shared update/rollback evidence",
+        "comparison of same value not merely count of APIs"
+      ],
+      "scope": "Chrome MV3; clarify Standard / Developer / Native local workspace and comparable public product channels",
+      "lastCheckedAt": "2026-10-13",
+      "nextReviewBy": "2026-11-13",
+      "notes": "Controller and USER_SCRIPT live in separate worlds; do not imply full sharing of chrome.*.",
+      "invalidatedBy": [],
+      "r2Review": {
+        "checkedAt": "2026-10-13",
+        "track": "F03",
+        "priority": "P1",
+        "userTaskOrValueHypothesis": "JS、受管 Page UI 与 Controller 统一项目管理",
+        "strongestKnownAlternative": "ScriptCat background/Agent、Automa",
+        "nextRequiredProof": "同一候选三运行世界的保存→运行→停止→安装升级证据",
+        "currentEvidenceLevel": "PARTIAL_SOURCE",
+        "numericScore": "NOT_SCORED",
+        "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      },
+      "r4Priority": {
+        "strategicOrder": 3,
+        "level": "TOP_FIVE_RESEARCH_ONLY",
+        "claimApproved": false,
+        "verification": "NOT_SCORED",
+        "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
+      },
+      "r4Review": {
+        "asOf": "2026-10-13",
+        "investmentPriority": 3,
+        "score": "NOT_SCORED",
+        "verifiedWorldRank": false,
+        "approvedPublicAbsolute": false,
+        "competitorCounterexample": "AI Coding + WXT or Tampermonkey + Automa",
+        "minimalProofGap": "THREE_TYPES_INSTALLED_NATIVE_NOT_TESTED",
+        "notes": "R4 priority is not CLAIM_APPROVED or latest package native proof"
+      }
+    },
+    {
+      "id": "GF-004",
+      "workingClaimZh": "全球首个集中实现受控依赖锁、固定源码版本哈希、原生网页运行回执的网站工具运行链",
+      "claimClass": "WORLD_FIRST_CANDIDATE",
+      "axes": [
+        "dependency lock",
+        "immutable revision",
+        "native receipt"
+      ],
+      "priority": "P0_TRUST",
+      "status": "CANDIDATE_NEEDS_END_TO_END_PROOF",
+      "publicUseAllowed": false,
+      "worldFirstProven": false,
+      "globalRankProven": false,
+      "productEvidence": [
+        "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/api/local-projects.zh-CN.md",
+        "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/product/browser-extension-ecosystem/userscript-ecosystem.zh-CN.md"
+      ],
+      "counterexamples": [
+        "vite-plugin-monkey pinned builds",
+        "traditional userscript update verification",
+        "enterprise internal deployment tools",
+        "ScriptCat 1.5 beta permissions/GM disclosure and MCP audit",
+        "UiPath enterprise permission/approval governance",
+        "Microsoft Power Automate Desktop browser action controls",
+        "Relay.app explicit human-in-loop approvals"
+      ],
+      "requiredEvidence": [
+        "one same-hash end-to-end proof",
+        "failure and downgrade/rollback tests",
+        "independent supply chain comparison",
+        "product-level benefit and differentiator test"
+      ],
+      "scope": "Chrome MV3; clarify Standard / Developer / Native local workspace and comparable public product channels",
+      "lastCheckedAt": "2026-10-13",
+      "nextReviewBy": "2026-11-13",
+      "notes": "Do not claim uniquely secure or superior safety without independent benchmark.",
+      "invalidatedBy": [],
+      "r2Review": {
+        "checkedAt": "2026-10-13",
+        "track": "F04",
+        "priority": "P0",
+        "userTaskOrValueHypothesis": "清楚看到授权范围、冻结源 SHA/依赖、运行回执与受管清理",
+        "strongestKnownAlternative": "传统签名扩展、依赖锁工具链",
+        "nextRequiredProof": "同包签名/来源/运行/撤权/升级端到端真实 Chrome 与对照",
+        "currentEvidenceLevel": "PARTIAL_SOURCE",
+        "numericScore": "NOT_SCORED",
+        "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      },
+      "r4Priority": {
+        "strategicOrder": 2,
+        "level": "TOP_FIVE_RESEARCH_ONLY",
+        "claimApproved": false,
+        "verification": "NOT_SCORED",
+        "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
+      },
+      "r4Review": {
+        "asOf": "2026-10-13",
+        "investmentPriority": 2,
+        "score": "NOT_SCORED",
+        "verifiedWorldRank": false,
+        "approvedPublicAbsolute": false,
+        "competitorCounterexample": "ScriptCat Beta 2026-08-06 MCP grant and 2026-09-18 install diff",
+        "minimalProofGap": "SAME_PACKAGE_NATIVE_REVOKE_UPDATE_RECEIPT_NOT_TESTED",
+        "notes": "R4 priority is not CLAIM_APPROVED or latest package native proof"
+      },
+      "r5CriticalCounterexample": {
+        "reviewedAt": "2026-10-13",
+        "status": "TRUST_HARDENING_NOT_A_GLOBAL_SAFETY_FIRST",
+        "rule": "No most-secure or guaranteed rollback claim without independent security evidence and browser side-effect threat model."
+      }
+    },
+    {
+      "id": "GF-005",
+      "workingClaimZh": "全球首个结合多文件网页小应用、显式网站授权和可恢复计划任务的浏览器工具平台",
+      "claimClass": "WORLD_FIRST_CANDIDATE",
+      "axes": [
+        "multi-file app",
+        "scope authorization",
+        "schedule"
+      ],
+      "priority": "P2",
+      "status": "CANDIDATE_NOT_READY",
+      "publicUseAllowed": false,
+      "worldFirstProven": false,
+      "globalRankProven": false,
+      "productEvidence": [
+        "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/api/local-projects.zh-CN.md",
+        "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/framework/workstreams/scheduled-tasks-r1-20261012.md"
+      ],
+      "counterexamples": [
+        "ScriptCat @crontab",
+        "Automa schedules",
+        "UI.Vision automations",
+        "UiPath Delegate Routines with scheduling (2026-08-25 preview)",
+        "Apify scheduled versioned Actors",
+        "Browse AI scheduled approved Robots",
+        "Zapier Agents scheduling"
+      ],
+      "requiredEvidence": [
+        "restart/revoke/suspended-host recovery Chrome matrix",
+        "complete installation plus timer lifecycle proof",
+        "same-user task benchmark"
+      ],
+      "scope": "Chrome MV3; clarify Standard / Developer / Native local workspace and comparable public product channels",
+      "lastCheckedAt": "2026-10-13",
+      "nextReviewBy": "2026-11-13",
+      "notes": "Mac scheduled case exists, not a 24/7 reliability warranty.",
+      "invalidatedBy": [],
+      "r2Review": {
+        "checkedAt": "2026-10-13",
+        "track": "F05",
+        "priority": "P2",
+        "userTaskOrValueHypothesis": "已授权计划任务可靠恢复",
+        "strongestKnownAlternative": "ScriptCat @crontab、Automa 定时",
+        "nextRequiredProof": "Chrome 重启/撤权/无 Runner 场景的完整原生恢复",
+        "currentEvidenceLevel": "PARTIAL_SOURCE",
+        "numericScore": "NOT_SCORED",
+        "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      },
+      "r4Priority": {
+        "strategicOrder": null,
+        "level": "RETAIN_HISTORICAL",
+        "claimApproved": false,
+        "verification": "NOT_SCORED",
+        "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
+      },
+      "r4Review": {
+        "asOf": "2026-10-13",
+        "investmentPriority": null,
+        "score": "NOT_SCORED",
+        "verifiedWorldRank": false,
+        "approvedPublicAbsolute": false,
+        "competitorCounterexample": null,
+        "minimalProofGap": null,
+        "notes": "R4 priority is not CLAIM_APPROVED or latest package native proof"
+      }
+    },
+    {
+      "id": "GF-006",
+      "workingClaimZh": "全球首个将 React/Vue 网站组件开发、固定版本安装和工具目录统一起来的平台",
+      "claimClass": "WORLD_FIRST_CANDIDATE",
+      "axes": [
+        "React/Vue page UI",
+        "versioned install",
+        "catalog"
+      ],
+      "priority": "P1",
+      "status": "CANDIDATE_NOT_READY",
+      "publicUseAllowed": false,
+      "worldFirstProven": false,
+      "globalRankProven": false,
+      "productEvidence": [
+        "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/api/page-ui-frameworks.zh-CN.md",
+        "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/product/browser-extension-ecosystem/userscript-ecosystem.zh-CN.md"
+      ],
+      "counterexamples": [
+        "ScriptCat scripts store",
+        "Greasy Fork userscript install",
+        "modern extension marketplaces"
+      ],
+      "requiredEvidence": [
+        "creator-to-consumer flow",
+        "version diff/update rollback native proof",
+        "independent global alternative search"
+      ],
+      "scope": "Chrome MV3; clarify Standard / Developer / Native local workspace and comparable public product channels",
+      "lastCheckedAt": "2026-10-13",
+      "nextReviewBy": "2026-11-13",
+      "notes": "Marketplace installation intent is not complete author signing/release governance.",
+      "invalidatedBy": [],
+      "r2Review": {
+        "checkedAt": "2026-10-13",
+        "track": "F06",
+        "priority": "P1",
+        "userTaskOrValueHypothesis": "React/Vue 工具可验证版本后安装、更新和卸载",
+        "strongestKnownAlternative": "ScriptCat 脚本商店、现有扩展管理",
+        "nextRequiredProof": "同版作者→安装→更新/撤销的真实可获取产品路径",
+        "currentEvidenceLevel": "PARTIAL_SOURCE",
+        "numericScore": "NOT_SCORED",
+        "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      },
+      "r4Priority": {
+        "strategicOrder": null,
+        "level": "RETAIN_HISTORICAL",
+        "claimApproved": false,
+        "verification": "NOT_SCORED",
+        "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
+      },
+      "r4Review": {
+        "asOf": "2026-10-13",
+        "investmentPriority": null,
+        "score": "NOT_SCORED",
+        "verifiedWorldRank": false,
+        "approvedPublicAbsolute": false,
+        "competitorCounterexample": null,
+        "minimalProofGap": null,
+        "notes": "R4 priority is not CLAIM_APPROVED or latest package native proof"
+      }
+    },
+    {
+      "id": "GF-007",
+      "workingClaimZh": "全球首个 AI 创建、人工许可、确定性固定版本浏览器任务执行的应用平台",
+      "claimClass": "WORLD_FIRST_CANDIDATE",
+      "axes": [
+        "AI authoring",
+        "trusted grants",
+        "deterministic Task"
+      ],
+      "priority": "P0_AI_FIRST",
+      "status": "FUTURE_RESEARCH_ONLY",
+      "publicUseAllowed": false,
+      "worldFirstProven": false,
+      "globalRankProven": false,
+      "productEvidence": [
+        "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/architecture/browser-framework/webcodex-browser-dev-chat-bridge-r3-decisions.zh-CN.md",
+        "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/framework/workstreams/browser-sdk-status.md"
+      ],
+      "counterexamples": [
+        "ScriptCat Agent/MCP beta",
+        "Violentmonkey MCP beta",
+        "Playwright MCP",
+        "Browser Use",
+        "Google Gemini in Chrome Skills: saved one-click AI prompts, official 2026-04-14 https://blog.google/products-and-platforms/products/chrome/skills-in-chrome/",
+        "Claude in Chrome recorded reusable workflows: December 18, 2025 official beta release notes https://support.claude.com/en/articles/12138966-release-notes",
+        "UiPath Delegate 2026-08-25 Public Preview reusable/scheduled Routines https://docs.uipath.com/delegate/standalone/latest/release-notes/august-2026",
+        "Axiom Claude Skill Chrome bot import/repeated execution https://axiom.ai/automate/chrome/",
+        "AI Coding + Playwright + Tampermonkey/ScriptCat/WXT or Apify Actor"
+      ],
+      "requiredEvidence": [
+        "actual external model tool connection",
+        "consented code review/save/install/run/result roundtrip",
+        "reproducibility and security tests",
+        "comparable global releases timeline",
+        "Prove fixed-source execution with NO model requests on second and third actual runs in SAME installed version, not just saved AI prompts or recorded replay.",
+        "Directly compare Chrome Skills, Claude in Chrome, Axiom, UiPath Routine, Apify Actor and AI Coding + script manager by user outcomes.",
+        "Include initial model spend and 20-run total cost plus maintenance; do not infer competitor model usage without measurement."
+      ],
+      "scope": "Chrome MV3; clarify Standard / Developer / Native local workspace and comparable public product channels",
+      "lastCheckedAt": "2026-10-13",
+      "nextReviewBy": "2026-11-13",
+      "notes": "AI/model tooling chain is not fully shipped; no current world-first claim.",
+      "invalidatedBy": [],
+      "r2Review": {
+        "checkedAt": "2026-10-13",
+        "track": "F07",
+        "priority": "P3",
+        "userTaskOrValueHypothesis": "AI 创作转成用户审查批准的确定性任务",
+        "strongestKnownAlternative": "ScriptCat Beta Agent、Violentmonkey Beta MCP、Browser Use/Stagehand/Midscene",
+        "nextRequiredProof": "外部真实模型→人工审核→固定任务→结果完整正向链",
+        "currentEvidenceLevel": "FUTURE",
+        "numericScore": "NOT_SCORED",
+        "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      },
+      "r4Priority": {
+        "strategicOrder": 1,
+        "level": "TOP_FIVE_RESEARCH_ONLY",
+        "claimApproved": false,
+        "verification": "NOT_SCORED",
+        "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
+      },
+      "r4Review": {
+        "asOf": "2026-10-13",
+        "investmentPriority": 1,
+        "score": "NOT_SCORED",
+        "verifiedWorldRank": false,
+        "approvedPublicAbsolute": false,
+        "competitorCounterexample": "Axiom Claude Skill, UiPath Delegate Preview, ScriptCat Beta",
+        "minimalProofGap": "MAC_CHROME_FULL_INSTALL_NO_AI_RERUN_NOT_TESTED",
+        "notes": "R4 priority is not CLAIM_APPROVED or latest package native proof"
+      },
+      "r5CriticalCounterexample": {
+        "reviewedAt": "2026-10-13",
+        "status": "BROAD_AI_PLUS_REUSE_WORLD_FIRST_UNDEFENDABLE_WITH_KNOWN_ALTERNATIVES",
+        "differencesNotProven": [
+          "model-free deterministic repeat",
+          "source and dependency version review",
+          "immutable install identity",
+          "current-user Chrome permission",
+          "original durable run/result receipts"
+        ],
+        "publishedSources": [
+          "https://blog.google/products-and-platforms/products/chrome/skills-in-chrome/",
+          "https://support.claude.com/en/articles/12138966-release-notes",
+          "https://docs.uipath.com/delegate/standalone/latest/release-notes/august-2026",
+          "https://axiom.ai/automate/chrome/"
+        ],
+        "shortTermMarketing": "M0 only: AI-assisted, reviewable installed browser workflows (full native acceptance pending).",
+        "requiresGlobalFirstClaim": false,
+        "measurementRequiresDirectProductBenchmark": true,
+        "correctedClaudeEvidence": {
+          "previouslyMistakenDate": "2026-07-24",
+          "officialRecordingDocumented": "2025-12-18",
+          "earlierBrowserSchedulingAndPlanApproval": "2025-11-24",
+          "url": "https://support.claude.com/en/articles/12138966-release-notes",
+          "historicalFirstAvailability": "RESEARCH_INCOMPLETE",
+          "note": "The July 24 2026 section concerns Claude Opus 5, not workflow recording."
+        }
+      }
+    },
+    {
+      "id": "GF-008",
+      "workingClaimZh": "全球首个面向创作者后台的可授权数据处理、交互组件和定时报告工具平台",
+      "claimClass": "WORLD_FIRST_CANDIDATE",
+      "axes": [
+        "creator platform",
+        "legal data export",
+        "UI + reporting"
+      ],
+      "priority": "P3",
+      "status": "MARKET_HYPOTHESIS_ONLY",
+      "publicUseAllowed": false,
+      "worldFirstProven": false,
+      "globalRankProven": false,
+      "productEvidence": [
+        "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/product/browser-extension-ecosystem/userscript-ecosystem.zh-CN.md"
+      ],
+      "counterexamples": [
+        "creator analytics suites",
+        "native platform dashboards",
+        "browser productivity apps"
+      ],
+      "requiredEvidence": [
+        "customer interviews",
+        "platform permission/ToS validation",
+        "paid pilot with actual recurring use",
+        "independent market differentiation"
+      ],
+      "scope": "Chrome MV3; clarify Standard / Developer / Native local workspace and comparable public product channels",
+      "lastCheckedAt": "2026-10-13",
+      "nextReviewBy": "2026-11-13",
+      "notes": "Not authorized by fan/traffic scale alone; separate from engineering.",
+      "invalidatedBy": [],
+      "r2Review": {
+        "checkedAt": "2026-10-13",
+        "track": "F08",
+        "priority": "P3",
+        "userTaskOrValueHypothesis": "创作者后台合法数据辅助与可视报告",
+        "strongestKnownAlternative": "创作者原生后台、第三方分析套件",
+        "nextRequiredProof": "真实客户任务访谈、可行数据权限及留存付费",
+        "currentEvidenceLevel": "MARKET_HYPOTHESIS",
+        "numericScore": "NOT_SCORED",
+        "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      },
+      "r4Priority": {
+        "strategicOrder": null,
+        "level": "RETAIN_HISTORICAL",
+        "claimApproved": false,
+        "verification": "NOT_SCORED",
+        "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
+      },
+      "r4Review": {
+        "asOf": "2026-10-13",
+        "investmentPriority": null,
+        "score": "NOT_SCORED",
+        "verifiedWorldRank": false,
+        "approvedPublicAbsolute": false,
+        "competitorCounterexample": null,
+        "minimalProofGap": null,
+        "notes": "R4 priority is not CLAIM_APPROVED or latest package native proof"
+      }
+    },
+    {
+      "id": "GF-009",
+      "workingClaimZh": "全球首个针对电商卖家后台的可定制页面组件、权限控制与运营自动化工作流平台",
+      "claimClass": "WORLD_FIRST_CANDIDATE",
+      "axes": [
+        "seller workflow",
+        "custom page tools",
+        "scheduled operation"
+      ],
+      "priority": "P2_CUSTOMER_RESEARCH",
+      "status": "MARKET_HYPOTHESIS_ONLY",
+      "publicUseAllowed": false,
+      "worldFirstProven": false,
+      "globalRankProven": false,
+      "productEvidence": [
+        "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/product/browser-extension-ecosystem/userscript-ecosystem.zh-CN.md"
+      ],
+      "counterexamples": [
+        "seller operation suites",
+        "RPA plugins",
+        "marketplace-native dashboards"
+      ],
+      "requiredEvidence": [
+        "EXP-005 genuine user interviews",
+        "real seller flow with proof",
+        "privacy/legal ToS review",
+        "willingness-to-pay experiment"
+      ],
+      "scope": "Chrome MV3; clarify Standard / Developer / Native local workspace and comparable public product channels",
+      "lastCheckedAt": "2026-10-13",
+      "nextReviewBy": "2026-11-13",
+      "notes": "Follow existing EXP-005/EXP-007 ownership; do not create a new commercial experiment.",
+      "invalidatedBy": [],
+      "r2Review": {
+        "checkedAt": "2026-10-13",
+        "track": "F09",
+        "priority": "P3",
+        "userTaskOrValueHypothesis": "卖家后台定制操作和复用工作流",
+        "strongestKnownAlternative": "电商 ERP/RPA/浏览器工具",
+        "nextRequiredProof": "沿用现有 EXP-005 商业实验，真实店铺场景及付费数据",
+        "currentEvidenceLevel": "MARKET_HYPOTHESIS",
+        "numericScore": "NOT_SCORED",
+        "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      },
+      "r4Priority": {
+        "strategicOrder": 5,
+        "level": "TOP_FIVE_RESEARCH_ONLY",
+        "claimApproved": false,
+        "verification": "NOT_SCORED",
+        "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
+      },
+      "r4Review": {
+        "asOf": "2026-10-13",
+        "investmentPriority": 5,
+        "score": "NOT_SCORED",
+        "verifiedWorldRank": false,
+        "approvedPublicAbsolute": false,
+        "competitorCounterexample": "Shopify / A2X / ERP / browser RPA",
+        "minimalProofGap": "CUSTOMER_PLATFORM_RIGHTS_AND_RELEASE_NOT_TESTED",
+        "notes": "R4 priority is not CLAIM_APPROVED or latest package native proof"
+      }
+    },
+    {
+      "id": "GF-010",
+      "workingClaimZh": "全球首个兼容传统 GM 用户脚本、现代 React/Vue 开发和受信 Browser SDK 的 Chrome 平台",
+      "claimClass": "WORLD_FIRST_CANDIDATE",
+      "axes": [
+        "GM legacy",
+        "modern framework",
+        "SDK"
+      ],
+      "priority": "P2",
+      "status": "CANDIDATE_NOT_READY",
+      "publicUseAllowed": false,
+      "worldFirstProven": false,
+      "globalRankProven": false,
+      "productEvidence": [
+        "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/architecture/browser-framework/userscript-compatibility-matrix-r8.zh-CN.md",
+        "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/framework/workstreams/browser-sdk-status.md"
+      ],
+      "counterexamples": [
+        "Tampermonkey",
+        "ScriptCat",
+        "Violentmonkey"
+      ],
+      "requiredEvidence": [
+        "50 representative .user.js compatibility tests",
+        "GM per-operation compliance",
+        "35-API Chrome acceptance gap resolution",
+        "same-scope competitive matrix"
+      ],
+      "scope": "Chrome MV3; clarify Standard / Developer / Native local workspace and comparable public product channels",
+      "lastCheckedAt": "2026-10-13",
+      "nextReviewBy": "2026-11-13",
+      "notes": "Compatibility and current SDK native validation have major gaps.",
+      "invalidatedBy": [],
+      "r2Review": {
+        "checkedAt": "2026-10-13",
+        "track": "F10",
+        "priority": "P2",
+        "userTaskOrValueHypothesis": "旧 GM 用户脚本迁移到现代组件/SDK",
+        "strongestKnownAlternative": "Tampermonkey、ScriptCat、Violentmonkey",
+        "nextRequiredProof": "GM 逐 API 兼容与 35+ SDK 相关浏览器原生矩阵",
+        "currentEvidenceLevel": "PARTIAL_SOURCE",
+        "numericScore": "NOT_SCORED",
+        "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      },
+      "r4Priority": {
+        "strategicOrder": null,
+        "level": "RETAIN_HISTORICAL",
+        "claimApproved": false,
+        "verification": "NOT_SCORED",
+        "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
+      },
+      "r4Review": {
+        "asOf": "2026-10-13",
+        "investmentPriority": null,
+        "score": "NOT_SCORED",
+        "verifiedWorldRank": false,
+        "approvedPublicAbsolute": false,
+        "competitorCounterexample": null,
+        "minimalProofGap": null,
+        "notes": "R4 priority is not CLAIM_APPROVED or latest package native proof"
+      }
+    },
+    {
+      "id": "GF-011",
+      "workingClaimZh": "全球最快的浏览器网页应用开发平台",
+      "claimClass": "WORLD_FIRST_CANDIDATE",
+      "axes": [
+        "time-to-first-working-app",
+        "edit-and-run latency"
+      ],
+      "priority": "P2_COST_PROOF",
+      "status": "CANDIDATE_NOT_MEASURED",
+      "publicUseAllowed": false,
+      "worldFirstProven": false,
+      "globalRankProven": false,
+      "productEvidence": [
+        "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/api/page-ui-frameworks.zh-CN.md",
+        "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/api/local-projects.zh-CN.md"
+      ],
+      "counterexamples": [
+        "vite-plugin-monkey",
+        "WXT",
+        "Plasmo",
+        "ScriptCat",
+        "Gemini Chrome Skills task save/reuse",
+        "Claude in Chrome recorded workflows",
+        "Axiom Chrome prompt builder",
+        "Playwright AI Codegen + Chromium"
+      ],
+      "requiredEvidence": [
+        "public representative workloads and pre-registered metric",
+        "same machines, permissions, cold/hot scenarios",
+        "raw timings and statistical distribution",
+        "document exact winner cohort/date"
+      ],
+      "scope": "Chrome MV3; clarify Standard / Developer / Native local workspace and comparable public product channels",
+      "lastCheckedAt": "2026-10-13",
+      "nextReviewBy": "2026-11-13",
+      "notes": "Could only become a qualified dated benchmark statement; no currently measured global ranking.",
+      "invalidatedBy": [],
+      "r2Review": {
+        "checkedAt": "2026-10-13",
+        "track": "F01/F02",
+        "priority": "P2",
+        "userTaskOrValueHypothesis": "指定实际任务耗时更短",
+        "strongestKnownAlternative": "vite-plugin-monkey、WXT、用户脚本编辑器",
+        "nextRequiredProof": "可复现同机同任务原始时间分布",
+        "currentEvidenceLevel": "NOT_MEASURED",
+        "numericScore": "NOT_SCORED",
+        "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      },
+      "r4Priority": {
+        "strategicOrder": 4,
+        "level": "TOP_FIVE_RESEARCH_ONLY",
+        "claimApproved": false,
+        "verification": "NOT_SCORED",
+        "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
+      },
+      "r4Review": {
+        "asOf": "2026-10-13",
+        "investmentPriority": 4,
+        "score": "NOT_SCORED",
+        "verifiedWorldRank": false,
+        "approvedPublicAbsolute": false,
+        "competitorCounterexample": "vite-plugin-monkey + userscript manager, WXT",
+        "minimalProofGap": "COLD_HOT_RESTORE_AND_20_RUN_COST_NOT_TESTED",
+        "notes": "R4 priority is not CLAIM_APPROVED or latest package native proof"
+      }
+    },
+    {
+      "id": "GF-012",
+      "workingClaimZh": "全球最可靠、最安全的用户脚本与浏览器自动化平台",
+      "claimClass": "WORLD_FIRST_CANDIDATE",
+      "axes": [
+        "reliability",
+        "security"
+      ],
+      "priority": "P3",
+      "status": "CANDIDATE_NOT_MEASURED",
+      "publicUseAllowed": false,
+      "worldFirstProven": false,
+      "globalRankProven": false,
+      "productEvidence": [
+        "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/framework/workstreams/browser-sdk-status.md",
+        "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/architecture/browser-framework/userscript-compatibility-matrix-r8.zh-CN.md"
+      ],
+      "counterexamples": [
+        "Tampermonkey",
+        "ScriptCat",
+        "Violentmonkey",
+        "enterprise browser automation"
+      ],
+      "requiredEvidence": [
+        "independent audit and same-scope test criteria",
+        "revoke/update/worker failure real-world matrix",
+        "production incident statistics",
+        "qualified benchmark language"
+      ],
+      "scope": "Chrome MV3; clarify Standard / Developer / Native local workspace and comparable public product channels",
+      "lastCheckedAt": "2026-10-13",
+      "nextReviewBy": "2026-11-13",
+      "notes": "Avoid blanket 'most secure' even after limited-scope tests.",
+      "invalidatedBy": [],
+      "r2Review": {
+        "checkedAt": "2026-10-13",
+        "track": "F04",
+        "priority": "P3",
+        "userTaskOrValueHypothesis": "更可靠的可审核运行链",
+        "strongestKnownAlternative": "现役用户脚本管理器与企业安全工具",
+        "nextRequiredProof": "独立安全审计、真实失败率、撤权/恢复与对手同范围结果",
+        "currentEvidenceLevel": "NOT_MEASURED",
+        "numericScore": "NOT_SCORED",
+        "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      },
+      "r4Priority": {
+        "strategicOrder": null,
+        "level": "RETAIN_HISTORICAL",
+        "claimApproved": false,
+        "verification": "NOT_SCORED",
+        "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
+      },
+      "r4Review": {
+        "asOf": "2026-10-13",
+        "investmentPriority": null,
+        "score": "NOT_SCORED",
+        "verifiedWorldRank": false,
+        "approvedPublicAbsolute": false,
+        "competitorCounterexample": null,
+        "minimalProofGap": null,
+        "notes": "R4 priority is not CLAIM_APPROVED or latest package native proof"
+      }
+    },
+    {
+      "id": "GF-013",
+      "workingClaimZh": "全球首款支持 AI/MCP 的用户脚本管理器",
+      "claimClass": "WORLD_FIRST_CANDIDATE",
+      "axes": [
+        "userscript",
+        "MCP",
+        "AI"
+      ],
+      "priority": "STOP",
+      "status": "DISPROVED_BY_EXISTING_COMPETITORS",
+      "publicUseAllowed": false,
+      "worldFirstProven": false,
+      "globalRankProven": false,
+      "productEvidence": [
+        "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/architecture/browser-framework/webcodex-browser-dev-chat-bridge-r3-decisions.zh-CN.md"
+      ],
+      "counterexamples": [
+        "Violentmonkey v2.49.5 beta",
+        "ScriptCat 1.5 beta Agent/MCP"
+      ],
+      "invalidatedBy": [
+        "https://github.com/violentmonkey/violentmonkey/releases/tag/v2.49.5",
+        "https://github.com/scriptscat/scriptcat/releases/tag/v1.5.0-beta.4"
+      ],
+      "requiredEvidence": [],
+      "scope": "Userscript managers; beta releases count as publicly available preview evidence",
+      "lastCheckedAt": "2026-10-13",
+      "nextReviewBy": null,
+      "notes": "Do not use; competitors explicitly reported similar capabilities.",
+      "r2Review": {
+        "checkedAt": "2026-10-13",
+        "track": "STOP",
+        "priority": "STOP",
+        "userTaskOrValueHypothesis": "AI/MCP 用户脚本管理器单独首创没有独家价值",
+        "strongestKnownAlternative": "ScriptCat/Violentmonkey Beta、Tampermonkey Editors MCP",
+        "nextRequiredProof": "DISPROVED：保留反例，禁止换词复活",
+        "currentEvidenceLevel": "DISPROVED",
+        "numericScore": "NOT_SCORED",
+        "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      },
+      "r4Priority": {
+        "strategicOrder": null,
+        "level": "RETAIN_HISTORICAL",
+        "claimApproved": false,
+        "verification": "NOT_SCORED",
+        "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
+      },
+      "r4Review": {
+        "asOf": "2026-10-13",
+        "investmentPriority": null,
+        "score": "NOT_SCORED",
+        "verifiedWorldRank": false,
+        "approvedPublicAbsolute": false,
+        "competitorCounterexample": null,
+        "minimalProofGap": null,
+        "notes": "R4 priority is not CLAIM_APPROVED or latest package native proof"
+      }
+    },
+    {
+      "id": "GF-014",
+      "workingClaimZh": "全球首款支持多文件 React/Vue 开发的用户脚本工具",
+      "claimClass": "WORLD_FIRST_CANDIDATE",
+      "axes": [
+        "multi-file",
+        "React/Vue",
+        "userscript"
+      ],
+      "priority": "STOP",
+      "status": "DISPROVED_BY_EXISTING_COMPETITORS",
+      "publicUseAllowed": false,
+      "worldFirstProven": false,
+      "globalRankProven": false,
+      "productEvidence": [
+        "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/api/local-projects.zh-CN.md"
+      ],
+      "counterexamples": [
+        "vite-plugin-monkey with Vite userscript toolchain"
+      ],
+      "invalidatedBy": [
+        "https://github.com/lisonge/vite-plugin-monkey/releases/tag/v8.1.1"
+      ],
+      "requiredEvidence": [],
+      "scope": "All development workflows including Vite + userscript manager",
+      "lastCheckedAt": "2026-10-13",
+      "nextReviewBy": null,
+      "notes": "Existing toolchain already supports modern framework development; seek workflow integration advantages instead.",
+      "r2Review": {
+        "checkedAt": "2026-10-13",
+        "track": "STOP",
+        "priority": "STOP",
+        "userTaskOrValueHypothesis": "多文件 React/Vue 支持不是独家",
+        "strongestKnownAlternative": "vite-plugin-monkey React/Vue + 用户脚本管理器、WXT",
+        "nextRequiredProof": "DISPROVED：保留反例，禁止换词复活",
+        "currentEvidenceLevel": "DISPROVED",
+        "numericScore": "NOT_SCORED",
+        "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      },
+      "r4Priority": {
+        "strategicOrder": null,
+        "level": "RETAIN_HISTORICAL",
+        "claimApproved": false,
+        "verification": "NOT_SCORED",
+        "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
+      },
+      "r4Review": {
+        "asOf": "2026-10-13",
+        "investmentPriority": null,
+        "score": "NOT_SCORED",
+        "verifiedWorldRank": false,
+        "approvedPublicAbsolute": false,
+        "competitorCounterexample": null,
+        "minimalProofGap": null,
+        "notes": "R4 priority is not CLAIM_APPROVED or latest package native proof"
+      }
+    }
+  ],
+  "approvedClaimIds": [],
+  "rules": {
+    "singleFeatureNoveltyNeverAssumed": true,
+    "forceStableBetaDistinction": true,
+    "doNotInventFirstReleaseDate": true,
+    "comparatorsMustIncludeCompositions": true,
+    "firstRequiresPublicRelease": true,
+    "rankRequiresBenchmark": true,
+    "avoidArtificiallyNarrowCategory": true
+  },
+  "r2DecisionRef": "docs/product/browser-extension-ecosystem/global-first-r2-decision.zh-CN.md",
+  "r2Priorities": {
+    "asOf": "2026-10-13",
+    "tracks": [
+      "F01",
+      "F02",
+      "F04"
+    ],
+    "topTen": [
+      "GF-001",
+      "GF-002",
+      "GF-004",
+      "GF-006",
+      "GF-003",
+      "GF-011",
+      "GF-010",
+      "GF-005",
+      "GF-007",
+      "GF-012"
+    ],
+    "excluded": [
+      "GF-013",
+      "GF-014"
+    ],
+    "globallyApproved": 0,
+    "scores": "NOT_SCORED",
+    "basis": "Current candidate identity/availability, real user tasks, historical evidence and strongest alternatives. Not measured user performance.",
+    "supersededBy": "r4AiFirst"
+  },
+  "r2EvaluationDimensions": [
+    "userValue",
+    "differentiation",
+    "productMaturity",
+    "measurability",
+    "globalExclusivity",
+    "firstUseFriction",
+    "commercialOpportunity",
+    "marketingClarity",
+    "legalRisk"
+  ],
+  "r4AiFirst": {
+    "asOf": "2026-10-13",
+    "role": "STRATEGIC_PRIORITY_NOT_WORLD_RANKING",
+    "topFive": [
+      {
+        "order": 1,
+        "ids": [
+          "GF-007"
+        ],
+        "label": "AI create -> review -> fixed task installed -> no-model repeated Run",
+        "strongestCounterexample": "Axiom Claude Skill, UiPath Delegate Preview, ScriptCat Beta",
+        "remainingGap": "MAC_CHROME_FULL_INSTALL_NO_AI_RERUN_NOT_TESTED",
+        "score": "NOT_SCORED",
+        "rankVerified": false
+      },
+      {
+        "order": 2,
+        "ids": [
+          "GF-004"
+        ],
+        "label": "Source/dependency/site permissions + versioned native receipt",
+        "strongestCounterexample": "ScriptCat Beta 2026-08-06 MCP grant and 2026-09-18 install diff",
+        "remainingGap": "SAME_PACKAGE_NATIVE_REVOKE_UPDATE_RECEIPT_NOT_TESTED",
+        "score": "NOT_SCORED",
+        "rankVerified": false
+      },
+      {
+        "order": 3,
+        "ids": [
+          "GF-003"
+        ],
+        "label": "AI-assisted JS Page/UI/Controller installed tools",
+        "strongestCounterexample": "AI Coding + WXT or Tampermonkey + Automa",
+        "remainingGap": "THREE_TYPES_INSTALLED_NATIVE_NOT_TESTED",
+        "score": "NOT_SCORED",
+        "rankVerified": false
+      },
+      {
+        "order": 4,
+        "ids": [
+          "GF-002",
+          "GF-011"
+        ],
+        "label": "AI modified multi-file to explicit Run; full lifecycle benchmark",
+        "strongestCounterexample": "vite-plugin-monkey + userscript manager, WXT",
+        "remainingGap": "COLD_HOT_RESTORE_AND_20_RUN_COST_NOT_TESTED",
+        "score": "NOT_SCORED",
+        "rankVerified": false
+      },
+      {
+        "order": 5,
+        "ids": [
+          "GF-009"
+        ],
+        "label": "Authorized regional seller workflows with real tasks",
+        "strongestCounterexample": "Shopify / A2X / ERP / browser RPA",
+        "remainingGap": "CUSTOMER_PLATFORM_RIGHTS_AND_RELEASE_NOT_TESTED",
+        "score": "NOT_SCORED",
+        "rankVerified": false
+      }
+    ],
+    "scopeOptions": [
+      "GLOBAL_FIRST",
+      "COUNTRY_OR_LANGUAGE_FIRST",
+      "DEFINED_TASK_METRIC_FIRST",
+      "VALUE_COMBINATION_FIRST",
+      "SCOPED_TOP_2_TO_5"
+    ],
+    "regionChosen": null,
+    "claimApprovedCount": 0,
+    "counterexamples": [
+      "ScriptCat Agent and Skills",
+      "Axiom.ai AI builder",
+      "Bardeen",
+      "AI coding + Vite + userscript manager"
+    ],
+    "legacyGF013GF014": "KEEP_DISPROVED",
+    "manualReactVueF01": "ENGINEERING_SUPPORT_NOT_MARKET_P0",
+    "topTen": [
+      "GF-007",
+      "GF-004",
+      "GF-003",
+      "GF-002",
+      "GF-011",
+      "GF-009",
+      "GF-005",
+      "GF-006",
+      "GF-010",
+      "GF-001"
+    ]
+  },
+  "r4EvidenceReview": {
+    "asOf": "2026-10-13",
+    "comparedProductRecords": 30,
+    "opportunityCount": 26,
+    "sourceReview": "PARTIAL_PRIMARY_SOURCES",
+    "worldHistoricalFeatureFirstComplete": false,
+    "confirmedGlobalOrRegionalFirst": 0,
+    "confirmedScopedTaskFirst": 0,
+    "confirmedTop2To5": 0,
+    "competitorHandsOnTrials": 0,
+    "score": "NOT_SCORED",
+    "macChromeE2E": "NOT_TESTED",
+    "localMacStatus": "LOCAL_NOT_INSPECTED",
+    "decision": "docs/product/browser-extension-ecosystem/global-first-r2-decision.zh-CN.md",
+    "noAdditionalClaimsLedger": true,
+    "disprovedIds": [
+      "GF-013",
+      "GF-014"
+    ]
+  },
+  "r5CompetitiveReview": {
+    "asOf": "2026-10-13",
+    "role": "EVIDENCE_POLICY_AND_PRODUCT_PORTFOLIO_NOT_NEW_GF_CLAIMS",
+    "companionOpportunityView": "docs/product/browser-extension-ecosystem/opportunity-register.json#globalFirstR5Portfolio",
+    "competitorTimeline": "docs/product/browser-extension-ecosystem/competitor-timeline.json",
+    "comparedProductsRegistered": 45,
+    "gfClaimsCount": 14,
+    "approvedClaimIds": [],
+    "strongestReusabilityCounterexamples": [
+      "gemini-in-chrome",
+      "claude-in-chrome",
+      "axiom-ai",
+      "uipath-delegate",
+      "apify-actors",
+      "microsoft-power-automate-desktop",
+      "scriptcat",
+      "zapier-agents"
+    ],
+    "coreThesis": "AI helps author a source-reviewable, site-scoped, version-pinned tool that can be repeated without additional model requests, but global novelty and superiority must be proven vs all natural substitutes.",
+    "featureFirstHistoricalRanking": "NOT_APPROVED",
+    "regionalRank": "NOT_TESTED",
+    "topFiveRank": "NOT_TESTED",
+    "technicalNativeE2E": "NOT_TESTED",
+    "comparisonBenchmarks": "NOT_TESTED",
+    "independentExpertScores": "NOT_SCORED",
+    "releaseAndSeo": "NOT_DEPLOYED_OR_NOT_VERIFIED",
+    "excludeClaims": [
+      "GF-013",
+      "GF-014"
+    ],
+    "gates": [
+      {
+        "id": "R5-G1",
+        "name": "AI assistance + source/site/params review",
+        "passRule": "actual consent and exact bytes, user visible; model reply alone insufficient",
+        "status": "PARTIAL_SOURCE_IMPLEMENTED_NATIVE_NOT_TESTED"
+      },
+      {
+        "id": "R5-G2",
+        "name": "formal Candidate/Verified/Available/Installed",
+        "passRule": "same sourceHash/manifestHash with real receipt and installation identity",
+        "status": "NOT_TESTED_CURRENT_PACKAGE"
+      },
+      {
+        "id": "R5-G3",
+        "name": "after AI disconnected two runs",
+        "passRule": "no model request, two separate RunId/ResultId, same fixed installation, original Chrome effects",
+        "status": "NOT_TESTED_CURRENT_PACKAGE"
+      },
+      {
+        "id": "R5-G4",
+        "name": "stop, permission revoke and unknown-effects protection",
+        "passRule": "real browser permissions and recovery, no hidden retries; Stop cannot roll back external effects",
+        "status": "NOT_TESTED_CURRENT_PACKAGE"
+      },
+      {
+        "id": "R5-G5",
+        "name": "first-use/20-repeat costs",
+        "passRule": "actual timestamps, model usage, setup, recurring run cost, maintenance and mistakes",
+        "status": "NOT_TESTED"
+      },
+      {
+        "id": "R5-G6",
+        "name": "fair worldwide/region competitors",
+        "passRule": "date/edition/channel and natural alternative workflows measured, beta counts as prior public preview",
+        "status": "RESEARCH_INCOMPLETE"
+      },
+      {
+        "id": "R5-G7",
+        "name": "actual distribution and users",
+        "passRule": "real downloadable package/store + legal website access, first self-service activation and natural repeat",
+        "status": "NOT_TESTED"
+      }
+    ],
+    "dateCorrection": {
+      "source": "Anthropic official release notes",
+      "incorrect": "2026-07-24",
+      "correct": "2025-12-18 workflow recording; 2025-11-24 scheduled tasks and approved plans",
+      "firstFeatureHistoricalCompleteness": "UNKNOWN"
+    }
+  }
+}

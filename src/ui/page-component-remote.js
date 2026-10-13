@@ -1,10 +1,10 @@
-// The existing component editor owns this explicit preparation/review flow.
-// Run only calls loadForRun(), which performs local inspection and reads an
-// approved immutable graph. No save, retry or Run path can fetch new code.
+// Existing component editor + existing Broker for automatic SHA-fixed ESM.
+// Run/Save can prepare new versions; installed revisions remain strictly offline.
+// Manual preparation and lock selection remain optional advanced diagnostics.
 import {createChromePermissionConsent} from '../platform/chrome/permission-gate.js';
 const error=(code,message)=>Object.assign(new Error(message),{code});
-const inputKey=input=>JSON.stringify({source:input.componentSource,framework:input.framework});
-const identity=(input,roots)=>({componentSource:input.componentSource,framework:input.framework,roots});
+const inputKey=input=>JSON.stringify({source:input.componentSource,framework:input.framework,programId:input.programId});
+const identity=(input,roots)=>({componentSource:input.componentSource,framework:input.framework,roots,...(input.framework==='controller'?{programId:input.programId}:{})});
 const pin=row=>({url:row.url,sha256:row.sha256,bytes:row.bytes});
 export function createPageComponentRemote({client,preparer,api,document:doc,getInput,isBlocked=()=>false,onState=()=>{}}){
   const get=id=>doc.getElementById(id),panel=get('page-component-remote'),status=get('page-component-remote-status'),
@@ -14,7 +14,7 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
   let disposed=false,generation=0,busy=false,state=null;
   const selectedLocks=new Map();
   const permissions=createChromePermissionConsent({api});
-  const compatible=input=>input&&['react','vue'].includes(input.framework);
+  const compatible=input=>input&&['react','vue','controller'].includes(input.framework);
   function current(ticket,input){
     if(disposed||ticket!==generation||inputKey(getInput())!==inputKey(input))throw error('E_REMOTE_STALE','组件源码已更改或准备已取消；旧结果不会使用');
   }
@@ -23,9 +23,11 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
     const input=getInput();panel.hidden=!compatible(input);
     if(panel.hidden)return;
     const stage=state?.stage||'idle';
-    status.textContent=state?.message||'首次使用 HTTPS 模块时，先检查来源并确认获取；固定版本可以离线运行。此源码入口最多 32 个模块、整图 256 KiB、链接结果 100 KB。';
+    status.textContent=state?.message||(input.framework==='controller'
+      ? 'Controller ESM：点击运行会自动解析、获取并固定明确版本的静态依赖图。首次下载可能需要 Chrome 来源授权；Developer 上限 32 模块 / 256 KiB。'
+      : '点击运行会自动处理固定 HTTPS 依赖；高级检查仅供查看来源、许可证与 SHA。已固定资产可离线复用，上限 32 个模块 / 256 KiB。');
     status.dataset.state=stage;
-    button.textContent=stage==='download'?'确认获取所列模块':stage==='review'?'确认固定此版本':stage==='choose'?'使用所选固定版本':'检查依赖';
+    button.textContent=stage==='download'?(state?.cachedUrls?.length===state?.urls?.length?'确认复用缓存':'确认获取所列模块'):stage==='review'?'确认固定此版本':stage==='choose'?'使用所选固定版本':'高级：检查依赖';
     button.disabled=busy||isBlocked()||stage==='choose'&&!selector?.value;
     cancelButton.hidden=!busy;cancelButton.disabled=false;
     sources.hidden=!(state?.urls?.length);sources.textContent=(state?.urls||[]).join('\n');
@@ -47,11 +49,14 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
     if(typeof preparer.inspect!=='function')throw error('E_PAGE_COMPILER_WORKER','当前组件准备器不支持依赖检查');
     return preparer.inspect({...input,projectId:'browser-'+input.framework,remoteModules:modules});
   }
-  async function showDownload(ticket,input,analysis,review){
-    state={stage:'download',input,analysis,review,urls:analysis.missingUrls,entries:review?.entries||[],
-      message:'仅确认获取以下 HTTPS 模块。获取后还需审阅并固定完整版本；此操作不会运行网页。'};
-    const origins=[...new Set(analysis.missingUrls.map(url=>new URL(url).origin+'/*'))];
-    await permissions.prepare({origins});current(ticket,input);render();
+  async function showDownload(ticket,input,analysis,review,cachedUrls=[]){
+    const cached=analysis.missingUrls.filter(url=>cachedUrls.includes(url));
+    state={stage:'download',input,analysis,review,urls:analysis.missingUrls,cachedUrls:cached,entries:review?.entries||[],
+      message:cached.length===analysis.missingUrls.length
+        ? '已有批准来源的完全相同内容可复用；请确认本程序也需要这些来源。复用字节并不授权执行，仍须独立审核和固定。'
+        : '仅确认获取以下 HTTPS 模块。获取后还需审阅并固定完整版本；此操作不会自动执行。'};
+    const origins=[...new Set(analysis.missingUrls.filter(url=>!cached.includes(url)).map(url=>new URL(url).origin+'/*'))];
+    if(origins.length)await permissions.prepare({origins});current(ticket,input);render();
   }
   async function inspected(ticket,input){
     const analysis=await inspect(input);current(ticket,input);
@@ -71,7 +76,7 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
       selector.replaceChildren(new Option('选择固定依赖版本',''),...report.locks.map(row=>new Option(row.lockId.slice(0,28)+'… · '+row.entries.length+' 个模块',row.lockId)));
       selector.value='';render();return;
     }
-    await showDownload(ticket,input,analysis,null);
+    await showDownload(ticket,input,analysis,null,report.cachedUrls||[]);
   }
   async function click(event){
     if(!event?.isTrusted||disposed||busy||isBlocked())return;
@@ -82,7 +87,8 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
     let permission;
     if(previous?.stage==='download'){
       if(inputKey(previous.input)!==inputKey(input)){refresh();return;}
-      permission=permissions.confirm(event,{origins:[...new Set(previous.urls.map(url=>new URL(url).origin+'/*'))]});
+      const needNetwork=previous.urls.filter(url=>!previous.cachedUrls?.includes(url));
+      permission=needNetwork.length?permissions.confirm(event,{origins:[...new Set(needNetwork.map(url=>new URL(url).origin+'/*'))]}):Promise.resolve(true);
     }
     busy=true;render();
     try{
@@ -124,6 +130,67 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
       state={stage:'error',message:(cause.code||'E_REMOTE_PREPARE')+'：'+(cause.message||cause)};render();
     }finally{if(ticket===generation){busy=false;render();}}
   }
+  // Native/File-first R7.2: the Run/Save click is the single author intent.
+  // Keep the old manual review UI for advanced forensics, but the normal path
+  // automatically fixes the complete statically discoverable ESM graph.
+  // Third-party code is handled only as bytes by the existing Broker Manager
+  // and by the fixed compiler Worker; no downloaded code runs in this UI.
+  async function autoLoadForRun(input,assertRunCurrent=()=>{}){
+    if(busy)throw error('E_REMOTE_PENDING','当前已有依赖操作；请先结束或取消');
+    const ticket=++generation;busy=true;render();
+    const verify=()=>{assertRunCurrent();current(ticket,input);};
+    try{
+      let analysis=await inspect(input);verify();
+      if(!analysis.remoteRoots.length)return undefined;
+      const request=identity(input,analysis.remoteRoots);
+      const report=await client.request('inspectPageComponentDependencies',request);verify();
+      const available=Array.isArray(report?.locks)?report.locks:[];
+      let selected=available.find(row=>row.lockId===selectedLocks.get(report.manifestDigest))||
+        (available.length===1?available[0]:null);
+      if(!selected&&available.length>1)throw error('E_REMOTE_LOCK_AMBIGUOUS',
+        '此源码存在多份不同 SHA 的固定模块图；请在高级详情指定版本');
+      let lockId;
+      if(selected)lockId=selected.lockId;
+      else{
+        let review=null;
+        for(let i=0;i<32&&!analysis.complete;i++){
+          const next=analysis.missingUrls.find(url=>!review?.entries?.some(entry=>entry.url===url));
+          if(!next)throw error('E_REMOTE_GRAPH','静态依赖图不完整，无法确定下一模块');
+          const prior=review?.entries?.length||0;
+          // A review is just a temporary byte transaction, not user approval.
+          review=await client.request('preparePageComponentDependencies',{
+            ...request,...(review?{reviewId:review.reviewId,reviewDigest:review.reviewDigest}:{}),
+            approvedUrls:[next],explicitUserAction:true});
+          verify();
+          if(!Array.isArray(review?.entries)||!Array.isArray(review.modules)||
+            review.entries.length!==prior+1||review.entries.some(row=>!row.url||!/^[a-f0-9]{64}$/.test(row.sha256)))
+            throw error('E_REMOTE_REVIEW','新模块的 SHA 或完整性清单不可信');
+          analysis=await inspect(input,review.modules);verify();
+        }
+        if(!analysis.complete||!review)
+          throw error('E_REMOTE_GRAPH','模块图超出 32 项或仍有未固定的 import');
+        const approved=await client.request('approvePageComponentDependencies',{
+          ...request,reviewId:review.reviewId,reviewDigest:review.reviewDigest,
+          acceptedModules:review.entries.map(pin),
+          graph:analysis.modules.map(row=>({url:row.url,children:row.children})),
+          explicitUserAction:true});
+        verify();
+        if(approved?.manifestDigest!==report.manifestDigest||
+          !/^component-lock-[a-f0-9]{64}$/.test(approved.lockId))
+          throw error('E_REMOTE_LOCK','固定模块锁未通过身份校验');
+        lockId=approved.lockId;selectedLocks.set(report.manifestDigest,lockId);
+      }
+      const loaded=await client.request('loadPageComponentDependencies',{...request,lockId});verify();
+      const checked=await inspect(input,loaded.modules);verify();
+      if(!checked.complete)throw error('E_REMOTE_GRAPH','固定模块图与源码不匹配；拒绝运行');
+      state={stage:'ready',entries:loaded.modules,
+        message:'已自动固定 '+loaded.modules.length+' 个 ESM 模块；Run 使用受控执行世界，不会在宿主执行库代码'};
+      return loaded;
+    }catch(cause){
+      if(!disposed&&ticket===generation)state={stage:'error',message:(cause.code||'E_REMOTE_PREPARE')+'：'+(cause.message||cause)};
+      throw cause;
+    }finally{if(!disposed&&ticket===generation){busy=false;render();}}
+  }
   async function loadForRun(input){
     if(busy)throw error('E_REMOTE_PENDING','请先完成或取消当前依赖准备');
     // Older injected compiler test doubles lack inspect(); the production
@@ -141,7 +208,7 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
   }
   const onCancel=event=>{if(event?.isTrusted)cancel();},onSelection=()=>render();
   button?.addEventListener('click',click);cancelButton?.addEventListener('click',onCancel);selector?.addEventListener('change',onSelection);
-  return Object.freeze({loadForRun,refresh,cancel,update:()=>render(false),get busy(){return busy;},
+  return Object.freeze({loadForRun,autoLoadForRun,refresh,cancel,update:()=>render(false),get busy(){return busy;},
     dispose(){if(disposed)return;disposed=true;generation++;permissions.dispose();
       button?.removeEventListener('click',click);cancelButton?.removeEventListener('click',onCancel);selector?.removeEventListener('change',onSelection);}});
 }

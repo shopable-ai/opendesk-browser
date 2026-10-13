@@ -1,0 +1,171 @@
+{
+  "schemaVersion": "opendesk.browser-sdk.r8.execution.v1",
+  "status": "IN_PROGRESS",
+  "branch": "main",
+  "reviewedBaseSha": "a6f68e04bf9788d7f287385a1081ca973a9a4990",
+  "resultCommitSha": "96e691f735d660cb299d2adda825b8effeb47ee6",
+  "phase": "C_COOKIE_HOST_PRIVATE_WIRED_PUBLIC_SDK_NATIVE_PENDING",
+  "scope": "Single Host/Authority; no additional permissions",
+  "modifiedFiles": [
+    "scripts/sync-chrome-api-catalog.mjs",
+    "docs/api/chrome-native-api-sources.json",
+    "docs/api/chrome-native-api-catalog.json",
+    "docs/api/browser-sdk-compatibility-map.json",
+    "docs/api/browser-sdk-architecture-r8.zh-CN.md",
+    "docs/api/browser-sdk-open-source-reuse.zh-CN.md",
+    "tests/environment/browser-sdk-r8-catalog.test.mjs",
+    ".github/workflows/browser-sdk-r5.yml",
+    "vendor/chromium-extension-api/bookmarks.json",
+    "vendor/chromium-extension-api/context_menus.json",
+    "vendor/chromium-extension-api/history.json",
+    "vendor/chromium-extension-api/sessions.json",
+    "vendor/chromium-extension-api/tabs.json",
+    "vendor/chromium-extension-api/web_navigation.json",
+    "vendor/chromium-extension-api/windows.json",
+    "vendor/chromium-extension-api/cookies.json",
+    "src/platform/chrome/cookies.js"
+  ],
+  "sdkOperationCountBefore": 35,
+  "sdkOperationCountAfter": 35,
+  "newSdkMethods": [],
+  "reusedModules": [
+    "browser-contract.js",
+    "browser.js",
+    "src/platform/chrome/context-menus.js",
+    "Authority/Permission Gate",
+    "WXT 0.21.4"
+  ],
+  "catalogCoverage": {
+    "namespaces": 8,
+    "methods": 70,
+    "events": 38,
+    "properties": 11
+  },
+  "verification": {
+    "node": "PASS",
+    "check": "PASS",
+    "build": "PASS",
+    "buildDev": "PASS",
+    "verify": "PASS",
+    "nativeChrome": "NOT_TESTED",
+    "evidenceCandidateSha": "96e691f735d660cb299d2adda825b8effeb47ee6",
+    "evidenceRuns": [
+      38350576715,
+      38350576755
+    ],
+    "evidencePolicy": "All PASS apply to exact candidate source inputs; later unrelated documentation or product changes do not automatically upgrade/downgrade native evidence"
+  },
+  "blocked": [
+    "Cookie 10 HOST_ONLY operations are not formal OpenDeskSDK.browser cookies methods; sandbox remains disallowed",
+    "Cookie observe.getStatus currently drains event data; new observe.read and stable event semantics remain unapproved",
+    "No same-candidate real Chrome 138+/Mac native Cookie acceptance, worker restart, UI disclosure, or mutation reconciliation evidence",
+    "User Mac workspace unmounted here; live local Git status and Chrome UI/native tests cannot be verified"
+  ],
+  "next": [
+    "Finish R7 Cookie test-fix CI for SHA 96e691f; record precise PASS/FAIL evidence and fix any actual failures",
+    "Approve trusted-host-only cookie contract; register and wire via same OpenDeskSDK.browser implementation without exposing to installed-tool sandbox",
+    "Separate Cookie observe.getStatus from bounded observe.read; preserve event metadata redaction, document and grant lifetime fences",
+    "Use Chrome for Testing/real sender to validate trusted UI read/write, site revoke, navigation, partition, Chrome 138, worker restart, unknown-effect receipt",
+    "Advance Tabs owned reload/navigate/duplicate/pin and Downloads own-history through existing Host; retain exact Tool/TabRef authority",
+    "Expand offline Chromium schema discovery to pinned JSON and IDL all namespaces with stable hashes and drift tests, no runtime dynamic proxy",
+    "Update four-layer ledger and final acceptance with per-candidate evidence and exact code status; avoid global percentage claims"
+  ],
+  "conflictStatus": "REMOTE_MAIN_MOVES; conditional expected-SHA commit; no Mac local uncommitted status accessible",
+  "internalCookieDriverMethods": [
+    "get",
+    "getAll",
+    "set",
+    "remove",
+    "clearSite",
+    "getStores",
+    "getPartitionKey"
+  ],
+  "lastReviewedMainSha": "9260b8cecb442d37a35b61256323f6c8e7552662",
+  "verifiedScope": "R7 private HOST-only 10 Cookie operations; original 35 public operations unchanged",
+  "crossWorkstream": {
+    "name": "Browser SDK R7.0 trusted Cookies",
+    "completedSourceWiring": [
+      "src/platform/chrome/browser-cookie-host.js",
+      "src/platform/chrome/context-menus.js",
+      "src/ui/trusted-cookie-workbench.js",
+      "src/ui/tool.html",
+      "src/ui/tool-shell.js"
+    ],
+    "sourceEvidenceCommit": "6283b0518224",
+    "mapping": "docs/api/browser-sdk-native-mapping.json",
+    "architecture": "docs/architecture/browser-sdk-r7-architecture-contract.zh-CN.md",
+    "cookieHostOnlyOperations": 10,
+    "cookiePublicSdkOperations": 0,
+    "trust": "TRUSTED_PACKAGED_UI_AND_AUTHENTICATED_HOST_ONLY",
+    "nativeAcceptance": "NOT_TESTED",
+    "note": "R7 Host/UI source work belongs to the other R7 workstream. R8 must reuse it, not reimplement it."
+  },
+  "evidenceHistory": [
+    {
+      "candidateSha": "2456d809472f05bef540dbd397a4b5186e57595a",
+      "scope": "pinned Chromium 8-namespace discovery + legacy compatibility",
+      "ciRunId": 38286714036,
+      "level": "NODE_BUILD_VERIFY",
+      "status": "PASS"
+    },
+    {
+      "candidateSha": "de52893a69d5107b4d60f837c9e570d7298ac588",
+      "scope": "R8 Cookie Driver and pinned Schema/browser SDK tests",
+      "ciRunId": 38288676763,
+      "level": "NODE_BUILD_VERIFY",
+      "status": "PASS"
+    },
+    {
+      "candidateSha": "8849c104ad72617fccd14e91297997959c604b07",
+      "scope": "R7 Browser SDK targeted source and build",
+      "ciRunId": 38291544965,
+      "level": "NODE_BUILD_VERIFY",
+      "status": "PASS"
+    },
+    {
+      "candidateSha": "07a07abb05cc5e7b28c6760e2c8c83e6e27a1fcf",
+      "scope": "R7 Browser SDK R5 CI stale-document test incorrectly obtained fresh approval",
+      "ciRunId": 38291748427,
+      "level": "NODE",
+      "status": "FAIL",
+      "failure": "Expected stale approval rejection but test created a fresh approval after document mutation"
+    },
+    {
+      "candidateSha": "96e691f735d660cb299d2adda825b8effeb47ee6",
+      "scope": "R7 Cookie test corrected to use original one-shot approval during document/URL mutation",
+      "ciRunIds": [
+        38350576715,
+        38350576755
+      ],
+      "level": "NODE_BUILD_VERIFY",
+      "status": "PASS",
+      "testEvidence": [
+        {
+          "runId": 38350576715,
+          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38350576715",
+          "conclusion": "success",
+          "includes": [
+            "Browser SDK R7/R8/legacy contract tests",
+            "Chromium offline drift check",
+            "SDK acceptance guards",
+            "npm run check",
+            "npm run build",
+            "npm run build:dev",
+            "npm run verify"
+          ]
+        },
+        {
+          "runId": 38350576755,
+          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38350576755",
+          "conclusion": "success",
+          "includes": [
+            "Browser SDK targeted main verification",
+            "Source/package check and builds"
+          ]
+        }
+      ]
+    }
+  ],
+  "lastWritePurpose": "R8 status reconciliation with completed R7 HOST_ONLY Cookie work and CI diagnostic; no new public SDK permissions",
+  "latestCiReconciliation": "2026-10-13: fixed stale-document test CI 38350576715 and 38350576755 both completed success at 96e691f; same-candidate native Chrome still NOT_TESTED."
+}

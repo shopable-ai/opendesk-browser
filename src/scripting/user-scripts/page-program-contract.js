@@ -11,10 +11,10 @@ export const PAGE_PROGRAM_RUNTIME = 'page-userscript';
 const SHA256 = /^[a-f0-9]{64}$/;
 const ID = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/;
 const LOCK_ID = /^dep-lock-[a-f0-9]{64}$/;
-function object(value,allowed) {
+function object(value,allowed,optional=[]) {
   invariant(value && typeof value === 'object' && !Array.isArray(value) &&
     [Object.prototype,null].includes(Object.getPrototypeOf(value)) &&
-    Object.keys(value).every(key => allowed.includes(key)) && allowed.every(key => Object.hasOwn(value,key)),
+    Object.keys(value).every(key => allowed.includes(key)||optional.includes(key)) && allowed.every(key => Object.hasOwn(value,key)),
     'E_PAGE_CONTRACT','页面程序合同字段不完整或含未知字段');
 }
 function frozen(value) {
@@ -26,7 +26,9 @@ function frozen(value) {
 }
 export function validatePageProgramManifest(value) {
   object(value,['format','runtimeKind','programId','revision','sourceHash','entryFormat','sourceProfile',
-    'dependencyLockId','dependencyManifestDigest','pageRules']);
+    'dependencyLockId','dependencyManifestDigest','pageRules'],['dependencyScope']);
+  invariant(value.dependencyScope===undefined||value.dependencyScope==='program',
+    'E_DEPENDENCY_PROGRAM','不支持的依赖审核范围');
   invariant(value.format === PAGE_PROGRAM_FORMAT && value.runtimeKind === PAGE_PROGRAM_RUNTIME,
     'E_PAGE_KIND','需要明确的 Page Program v1；不能把 Controller Task 当成页面脚本');
   invariant(typeof value.programId === 'string' && ID.test(value.programId) &&

@@ -267,3 +267,21 @@ test('R5 independent website build is reproducible, self-contained and replaces 
     await assert.rejects(buildMarketSite({env:{...env,OPENDESK_MARKET_SITE_OUTPUT:'src'}}),/may not replace/);
   }finally{await rm(tmp,{recursive:true,force:true});}
 });
+
+test('R5 CI watches package-coupled Workspace inputs without expanding market trust',async()=>{
+  const workflow=await readFile('.github/workflows/app-market-r3.yml','utf8');
+  const trigger=workflow.split('  workflow_dispatch:')[0];
+  assert(trigger.includes('push:')&&trigger.includes('branches: [main]'));
+  const paths=[...trigger.matchAll(/^\s+- '([^']+)'/gm)].map(([,path])=>path);
+  for(const path of [
+    'src/native-agent/workspace.html',
+    'src/native-agent/workspace*.js',
+    'src/native-agent/workspace*.css',
+    'src/native-agent/settings.*',
+    'src/ui/design-*.css',
+    'scripts/build-workspace-style.mjs',
+    'scripts/verify-package.mjs',
+    '.github/workflows/app-market-r3.yml'
+  ])assert(paths.includes(path),'Native R5 build trigger must cover '+path);
+  assert(!paths.includes('src/native-agent/**'),'avoid retriggering the whole R5 suite for unrelated Native Agent edits');
+});

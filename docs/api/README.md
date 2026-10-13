@@ -1,5 +1,7 @@
 # OpenDesk Browser R10.1 使用说明与 API
 
+> **查看框架整体完成情况**：[四层功能树/进度树](../architecture/browser-framework/framework-feature-progress-tree-20261013.zh-CN.md)。Browser SDK 的**正式可调用名称**以 [`browser-contract.js`](../../src/framework/sdk/browser-contract.js) 为准，Cookie 等扩展候选以 [全接口候选清单](browser-sdk-full-interface-inventory.zh-CN.md) 为准；规划接口不能当作已经实现。
+
 > **本地 Workspace 首选用法**：在本机用 AI/Codex 修改真实文件，Workspace 负责预览和确认。已有页面编辑、对照和 ChatGPT 对话编辑保留为备用，不是默认工作流。详见[工作区使用指南](workspace-ai-preview-first.zh-CN.md)。
 
 OpenDesk 可以运行你保存在本机的 JavaScript：读取网页、执行自动化，或者给网页添加按钮和样式。修改源码后明确再运行，便会读取新版本；已经完成的 Controller 结果保留原版本。第一次使用从[快速入门](quickstart.zh-CN.md)开始。

@@ -18,7 +18,7 @@ const baseRequest={tag:'cloud-request-v1',namespace,requestId,runId:ref.runId,ru
 const baseConfig={namespace,enabled:true,grantId:'grant-one',providerId:'provider-one',
   url:'https://provider.example',credential:'private-credential',tasks:[]};
 
-function fixture({request=baseRequest,run=baseRun,result=baseResult}={}){
+function fixture({request=baseRequest,run=baseRun,result=baseResult,suspendAck=false}={}){
   let db=new Map();const messages=[],posts=[];
   const store=(name,key,value)=>{if(value!==null)db.set(name+':'+key,structuredClone(value));};
   store('frameworkKV','cloud:config',baseConfig);
@@ -52,6 +52,14 @@ function fixture({request=baseRequest,run=baseRun,result=baseResult}={}){
         providerId:'provider-one',assignments:[{assignmentId:'assignment-one',
           runRef:ref,cancelled:true,leaseUntil:200}]
       }),{status:200,headers:{'Content-Type':'application/json'}});
+      if(url.endsWith('/v1/suspend')&&suspendAck)
+        return new Response(JSON.stringify({suspended:true,grantId:'grant-one'}),{status:200});
+      if(url.endsWith('/v1/receipt')){
+        assert.deepEqual(posts.at(-1).body.result,{visibility:'status-only',
+          state:'completed',retirementState:'released'});
+        return new Response(JSON.stringify({receiptId:'status-receipt',digest:'status-digest'}),
+          {status:200,headers:{'Content-Type':'application/json'}});
+      }
       throw Error('Unexpected Provider call '+url);
     }
   });
@@ -66,6 +74,25 @@ test('only matching original terminal released Run + Result can prove a cloud ou
   for(const bad of [{...baseRun,state:'running'},{...baseRun,state:'paused_unknown'},
     {...baseRun,retirementState:'fenced'},{...baseRun,cloudRequestId:'cloud:other'}])
     assert.equal(isDurableCloudResult(baseRequest,bad,baseResult),false);
+});
+
+test('local Stop fences execution even when Provider suspend is unavailable',async()=>{
+  const f=fixture(),status=await f.service.cloudStop({},{});
+  assert.equal(status.enabled,false);
+  assert.equal(status.remoteSuspension,'pending',
+    'No remote success claim is permitted while Provider suspend failed');
+  assert.deepEqual(f.posts.filter(p=>p.url.endsWith('/v1/suspend'))
+    .map(p=>p.body),[{grantId:'grant-one'}]);
+  assert.deepEqual(f.read('results',ref.resultId),baseResult);
+});
+
+test('Provider acknowledgement is distinguished from local-only Stop without deleting Result',async()=>{
+  const f=fixture({suspendAck:true}),status=await f.service.cloudStop({},{});
+  assert.equal(status.enabled,false);
+  assert.equal(status.remoteSuspension,'confirmed');
+  assert.equal(f.read('frameworkKV','cloud:config').remoteSuspension,'confirmed');
+  assert.deepEqual(f.read('results',ref.resultId),baseResult);
+  assert.equal(f.read('frameworkKV','cloud:request:'+requestId).state,'finished');
 });
 
 test('hosting Stop preserves original released Result before receipt acknowledgement',async()=>{
@@ -87,7 +114,8 @@ test('Provider cancellation after real retirement does not relabel completed tas
   assert.equal(row.state,'finished');assert.equal(row.reason,undefined);
   assert.equal(f.read('runs',ref.runId).state,'completed');
   assert.equal(f.read('results',ref.resultId).state,'completed');
-  assert.equal(f.posts.length,1);
+  assert.equal(f.posts.length,2,'Durable terminal completion may acknowledge status despite Provider cancellation');
+  assert.equal(f.read('frameworkKV','cloud:request:'+requestId).receipt.receiptId,'status-receipt');
   assert.deepEqual(f.messages,[]);
 });
 

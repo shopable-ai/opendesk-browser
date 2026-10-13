@@ -1,0 +1,377 @@
+{
+  "schema": "opendesk.market.r5.native-ci-evidence.v1",
+  "recordedDate": "2026-10-12",
+  "candidate": {
+    "sha": "608ed7c1a36ae878fa70f45339ffb0e68e054398",
+    "branch": "main",
+    "gitCompareRequiredForLaterCommits": true
+  },
+  "run": {
+    "id": 38269315702,
+    "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38269315702",
+    "status": "completed",
+    "conclusion": "success"
+  },
+  "catalog": {
+    "recommendedApps": 7,
+    "immutableReleases": 13,
+    "readingKitRevisions": [
+      1,
+      2,
+      3
+    ],
+    "sha256": "80bd653266e4c378ffd8b372fd12dc0f5c9a9d53f8617296c99e7e9bd98f302c",
+    "incompleteArchivedReference": "opendesk/quick-notes@1.1.1 remains explicitly unavailable"
+  },
+  "site": {
+    "mode": "development",
+    "files": 59,
+    "origin": "http://127.0.0.1:43132",
+    "sharedStylesFrom": "src/ui/design-tokens.css",
+    "externalInstallerTrust": "restricted-review-only",
+    "linuxBuildId": "0526637ef3accd46a6c150e0d3f4d6eeefbbec36941a06700b161af6a80025f5",
+    "macBuildId": "ba4c16d2de8ddea656e0bde112e2f4aea009218f8c5c3e79f052ee67542ccec8"
+  },
+  "linux": {
+    "platform": "ubuntu-latest",
+    "jobId": 114879345809,
+    "conclusion": "success",
+    "chrome": "Chrome for Testing 155.0.8059.39",
+    "artifact": {
+      "id": 11755284663,
+      "name": "market-r5-http-ubuntu-latest-608ed7c1a36ae878fa70f45339ffb0e68e054398",
+      "sizeBytes": 3910916,
+      "zipSha256": "93e1e4ee268d6dce22db7fc205599d8423a9c247d914150857d72d6a9e2d6e6c",
+      "originalReceipt": "artifacts/app-market-r5/native/native-result.json",
+      "receiptSha256": "ea33c1edc0e649d115fbad0db23272794d286cb52e512e1a7ed88e79ac892c30"
+    },
+    "extensionId": "nmeilgnolfnnlopgjoijdafbkelekcbj",
+    "packageHash": "533ead8d92ab44c94d734e0498e3df738b689965472c9f0b5c91b98491f065c8",
+    "siteBuildId": "0526637ef3accd46a6c150e0d3f4d6eeefbbec36941a06700b161af6a80025f5",
+    "origin": "http://127.0.0.1:43132",
+    "realBrowserStatus": "REAL_CHROME_MARKET_R5_PASS",
+    "r5": {
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "real-browser-sender-and-live-document-verification",
+          "status": "PASS"
+        },
+        {
+          "name": "public-routes-search-filters-responsive-dark-refresh-404",
+          "status": "PASS"
+        },
+        {
+          "name": "two-real-valid-pending-candidates-cannot-replace-each-other",
+          "status": "PASS"
+        },
+        {
+          "name": "trusted-install-result-open-action-reaches-current-installed-tool",
+          "status": "PASS"
+        },
+        {
+          "name": "http-real-sender-fixed-review-first-install-close-website-then-confirm-and-real-markdown-use",
+          "status": "PASS"
+        },
+        {
+          "name": "real-website-five-second-timeout-does-not-claim-uninstalled-and-explicit-reconnect",
+          "status": "PASS"
+        },
+        {
+          "name": "native-worker-prepared-before-create-and-created-before-persist-recovery",
+          "status": "PASS"
+        },
+        {
+          "name": "native-consumed-before-first-journal-interruption-never-replays-and-explicitly-closes-unknown",
+          "status": "PASS"
+        },
+        {
+          "name": "actual-browser-origin-port-iframe-protocol-fields-id-and-conflict-rejections",
+          "status": "PASS"
+        },
+        {
+          "name": "already-installed-is-read-from-extension-and-old-fixed-version-stays-missing",
+          "status": "PASS"
+        },
+        {
+          "name": "real-worker-stop-observed-and-http-wakeup-preserves-identity",
+          "status": "PASS"
+        },
+        {
+          "name": "website-fixed-revision-real-batch-skips-installed-preserves-operation-ids-and-reloads",
+          "status": "PASS"
+        },
+        {
+          "name": "native-registry-committed-page-interruption-recovers-original-operation-and-user-data",
+          "status": "PASS"
+        },
+        {
+          "name": "baseline-change-requires-new-review-and-official-update-preserves-user-data",
+          "status": "PASS"
+        },
+        {
+          "name": "separate-site-authorization-and-standard-demo-heading-navigation",
+          "status": "PASS"
+        },
+        {
+          "name": "inline-uninstall-cancel-confirm-and-normal-chrome-restart-with-persisted-updated-data",
+          "status": "PASS"
+        }
+      ],
+      "untrustedMessagesRejected": 8,
+      "interruptions": {
+        "A1": "PASS",
+        "A2": "PASS",
+        "B": "PASS",
+        "C": "PASS"
+      },
+      "recoveredRegistryResubmissions": 0,
+      "realServiceWorkerStopAndHttpWake": "PASS",
+      "ui": {
+        "layouts": 23,
+        "realZoom": 4,
+        "keyboard": 101
+      },
+      "normalBrowserExits": 2,
+      "unresolvedRuntimeExceptions": 0,
+      "consoleErrors": 0,
+      "protectedStorageWritesByDriver": 0
+    }
+  },
+  "macos": {
+    "platform": "macos-15",
+    "jobId": 114879345163,
+    "conclusion": "success",
+    "chrome": "Chrome for Testing 155.0.8059.39",
+    "artifact": {
+      "id": 11756367827,
+      "name": "market-r5-http-macos-15-608ed7c1a36ae878fa70f45339ffb0e68e054398",
+      "sizeBytes": 3305604,
+      "zipSha256": "d91482b32f8d6a53e8e276be1b024ae876dfdadef48be58ea7ec79d3ece131aa",
+      "originalReceipt": "artifacts/app-market-r5/native/native-result.json",
+      "receiptSha256": "bd4fdcb0d55d620a62c4d5bd48d2ae4b685721dc274e0b53102f06ca6661d15c"
+    },
+    "extensionId": "oibdecbpklpnlljpiolnkgpohmpflnmj",
+    "packageHash": "d6f18545427ed254b3a5a227fc357cc2ee0c17bac2364defd0f4824b8dd3c219",
+    "siteBuildId": "ba4c16d2de8ddea656e0bde112e2f4aea009218f8c5c3e79f052ee67542ccec8",
+    "origin": "http://127.0.0.1:43132",
+    "realBrowserStatus": "REAL_CHROME_MARKET_R5_PASS",
+    "r5": {
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "real-browser-sender-and-live-document-verification",
+          "status": "PASS"
+        },
+        {
+          "name": "public-routes-search-filters-responsive-dark-refresh-404",
+          "status": "PASS"
+        },
+        {
+          "name": "two-real-valid-pending-candidates-cannot-replace-each-other",
+          "status": "PASS"
+        },
+        {
+          "name": "trusted-install-result-open-action-reaches-current-installed-tool",
+          "status": "PASS"
+        },
+        {
+          "name": "http-real-sender-fixed-review-first-install-close-website-then-confirm-and-real-markdown-use",
+          "status": "PASS"
+        },
+        {
+          "name": "real-website-five-second-timeout-does-not-claim-uninstalled-and-explicit-reconnect",
+          "status": "PASS"
+        },
+        {
+          "name": "native-worker-prepared-before-create-and-created-before-persist-recovery",
+          "status": "PASS"
+        },
+        {
+          "name": "native-consumed-before-first-journal-interruption-never-replays-and-explicitly-closes-unknown",
+          "status": "PASS"
+        },
+        {
+          "name": "actual-browser-origin-port-iframe-protocol-fields-id-and-conflict-rejections",
+          "status": "PASS"
+        },
+        {
+          "name": "already-installed-is-read-from-extension-and-old-fixed-version-stays-missing",
+          "status": "PASS"
+        },
+        {
+          "name": "real-worker-stop-observed-and-http-wakeup-preserves-identity",
+          "status": "PASS"
+        },
+        {
+          "name": "website-fixed-revision-real-batch-skips-installed-preserves-operation-ids-and-reloads",
+          "status": "PASS"
+        },
+        {
+          "name": "native-registry-committed-page-interruption-recovers-original-operation-and-user-data",
+          "status": "PASS"
+        },
+        {
+          "name": "baseline-change-requires-new-review-and-official-update-preserves-user-data",
+          "status": "PASS"
+        },
+        {
+          "name": "separate-site-authorization-and-standard-demo-heading-navigation",
+          "status": "PASS"
+        },
+        {
+          "name": "inline-uninstall-cancel-confirm-and-normal-chrome-restart-with-persisted-updated-data",
+          "status": "PASS"
+        }
+      ],
+      "untrustedMessagesRejected": 8,
+      "interruptions": {
+        "A1": "PASS",
+        "A2": "PASS",
+        "B": "PASS",
+        "C": "PASS"
+      },
+      "recoveredRegistryResubmissions": 0,
+      "realServiceWorkerStopAndHttpWake": "PASS",
+      "ui": {
+        "layouts": 23,
+        "realZoom": 4,
+        "keyboard": 101
+      },
+      "normalBrowserExits": 2,
+      "unresolvedRuntimeExceptions": 0,
+      "consoleErrors": 0,
+      "protectedStorageWritesByDriver": 0
+    }
+  },
+  "production": {
+    "jobId": 114879345652,
+    "conclusion": "success",
+    "nativeStatus": "REAL_CHROME_FIXTURE_PASS",
+    "extensionId": "jhajepcnohiplmafaiokjlcagcfjgaap",
+    "packageHash": "9833c92e259ed970d56b0475449b118737941db679bb5ea9087495cd599a123c",
+    "chromeNativePhases": 13,
+    "normalChromeExits": 3,
+    "environmentTests": {
+      "pass": 1648,
+      "fail": 0,
+      "skip": 7
+    },
+    "artifact": {
+      "id": 11755524973,
+      "name": "market-r3-production-native",
+      "sizeBytes": 2182927,
+      "zipSha256": "b373a838e5d64fbb9fd212283500039455be9b084dec900297ccf0dba47bcc19",
+      "originalReceipt": "artifacts/app-market-r3/native-result.json",
+      "receiptSha256": "ac16be2376e3972eb8a54d472f1dd0f616bd42d5f08baf95ee42170f9ed29d7a"
+    }
+  },
+  "testGates": {
+    "components": {
+      "count": 99,
+      "failed": 0
+    },
+    "nativeLinux": {
+      "passed": 16,
+      "failed": 0
+    },
+    "nativeMac": {
+      "passed": 16,
+      "failed": 0
+    },
+    "productionEnvironment": {
+      "passed": 1648,
+      "failed": 0,
+      "skipped": 7
+    }
+  },
+  "scores": {
+    "nature": "retained independent-stage engineering scores; not new independent review of all upstream SDK edits",
+    "items": [
+      {
+        "dimension": "architecture",
+        "design": 97,
+        "implementation": 96,
+        "status": "CODE_AND_TWO_OS_CHROME_PASS"
+      },
+      {
+        "dimension": "ui_responsive",
+        "design": 96,
+        "implementation": 95,
+        "status": "TWO_OS_REAL_UI_PASS"
+      },
+      {
+        "dimension": "ux_clarity",
+        "design": 96,
+        "implementation": 95,
+        "status": "TWO_OS_NATIVE_PASS"
+      },
+      {
+        "dimension": "install_update_uninstall_use",
+        "design": 97,
+        "implementation": 96,
+        "status": "TWO_OS_NATIVE_AND_PRODUCTION_PASS"
+      },
+      {
+        "dimension": "sender_permissions_execution_security",
+        "design": 97,
+        "implementation": 95,
+        "status": "TWO_OS_SOURCE_REJECTIONS_PASS"
+      },
+      {
+        "dimension": "privacy_data_minimization",
+        "design": 97,
+        "implementation": 96,
+        "status": "STATIC_COMPONENT_AND_NATIVE_PASS"
+      },
+      {
+        "dimension": "immutable_versions_batches_transaction",
+        "design": 96,
+        "implementation": 95,
+        "status": "TWO_OS_NATIVE_PASS"
+      },
+      {
+        "dimension": "local_http_development",
+        "design": 97,
+        "implementation": 97,
+        "status": "TWO_OS_NATIVE_PASS"
+      },
+      {
+        "dimension": "formal_https_official_channel",
+        "design": 95,
+        "implementation": null,
+        "status": "BLOCKED"
+      },
+      {
+        "dimension": "compatibility_performance_maintenance",
+        "design": 96,
+        "implementation": 94,
+        "status": "PARTIAL_NOT_ACCEPTED"
+      },
+      {
+        "dimension": "recovery_complete_fault_acceptance",
+        "design": 97,
+        "implementation": 93,
+        "status": "PARTIAL_NOT_ACCEPTED"
+      }
+    ],
+    "anyUnmetCriticalDimension": true
+  },
+  "unverified": [
+    "real installed production HTTPS Origin and external channel",
+    "user personal Mac Chrome profile",
+    "native Chrome tabs.create ack loss rather than physical caller termination",
+    "native Chrome storage.local.set ack loss rather than physical caller termination",
+    "physical quota failure or damaged signed artifact",
+    "30-minute natural intent TTL expiration",
+    "natural idle worker shutdown",
+    "publisher signing root/rotation/revocation for future remote packages (outside R5)"
+  ],
+  "policy": "No fabricated sender/installed registry, no general RPC from website, no production loopback; do not equate physical interruption with Chrome API acknowledgement loss.",
+  "history": {
+    "priorSuccessfulCandidate": "6d71854b49fc2fcbace0047b8703b9c2c154211b",
+    "workspacePackagingFailure": "38263164441",
+    "preCorrectionPartialProductionFailure": "38268044494",
+    "firstDualPlatformPass": "38237391020"
+  }
+}

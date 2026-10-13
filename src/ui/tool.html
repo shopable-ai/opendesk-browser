@@ -8,6 +8,7 @@
   <button type="button" id="tab-workflow" role="tab" tabindex="-1" data-workbench-tab="workflow" aria-selected="false" aria-controls="workbench-workflow">工作流</button>
   <button type="button" id="tab-develop" role="tab" tabindex="-1" data-workbench-tab="develop" aria-selected="false" aria-controls="workbench-develop">开发</button>
   <button type="button" id="tab-tools" role="tab" tabindex="-1" data-workbench-tab="tools" aria-selected="false" aria-controls="workbench-tools">工具</button>
+  <button type="button" id="tab-cloud" role="tab" tabindex="-1" data-workbench-tab="cloud" aria-selected="false" aria-controls="workbench-cloud">云控</button>
   <button type="button" id="tab-debug" role="tab" tabindex="-1" data-workbench-tab="debug" aria-selected="false" aria-controls="workbench-debug" hidden>调试</button>
 </nav>
 <main id="workspace-content">
@@ -47,51 +48,100 @@
     </section>
     <section id="scheduled-panel" class="schedule-panel od-stack" aria-label="定时计划" hidden>
       <header class="schedule-header od-toolbar">
-        <div><strong id="schedule-panel-title">定时计划</strong><p class="hint">安排已验证安装的自动化任务</p></div>
-        <button id="schedule-stop" type="button" class="od-button od-button--secondary" hidden>停止本次</button>
         <button id="schedule-back" class="od-icon-button" type="button" title="返回我的任务" aria-label="返回我的任务"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m7-7-7 7 7 7"></path></svg></button>
+        <div class="schedule-header-heading"><strong id="schedule-panel-title">定时计划</strong><p id="schedule-panel-subtitle" class="hint">安排已验证安装的自动化任务</p></div>
+        <button id="schedule-stop" type="button" class="od-button od-button--secondary" hidden>停止本次</button>
       </header>
       <p id="schedule-message" role="status" aria-live="polite" class="hint"></p>
+      <section id="schedule-runner-view" class="schedule-runner-view od-stack" aria-label="定时任务运行概览" hidden>
+        <div class="schedule-runner-intro">
+          <div>
+            <p class="schedule-runner-kicker">可见运行宿主 · Chrome 定时计划</p>
+            <h1>运行概览</h1>
+            <p class="hint">本页保持打开时可领取到期任务。Chrome 完全退出、设备休眠或没有任何可见运行宿主时不会在后台执行。</p>
+          </div>
+          <div class="schedule-actions od-toolbar">
+            <button id="schedule-runner-manage" type="button" class="od-button">管理全部计划</button>
+            <button id="schedule-runner-refresh" type="button" class="od-button od-button--secondary">刷新</button>
+          </div>
+        </div>
+        <div class="schedule-runner-metrics" aria-label="运行概况">
+          <div class="schedule-runner-metric od-surface"><span>运行宿主</span><strong id="schedule-runner-host-status" role="status">正在连接…</strong></div>
+          <div class="schedule-runner-metric od-surface"><span>下次执行</span><strong id="schedule-runner-next">暂无计划</strong><small id="schedule-runner-next-detail"></small></div>
+          <div class="schedule-runner-metric od-surface"><span>当前任务</span><strong id="schedule-runner-current">暂无任务运行</strong><small id="schedule-runner-current-detail"></small></div>
+          <div class="schedule-runner-metric od-surface"><span>最近结果</span><strong id="schedule-runner-result">尚无记录</strong><small id="schedule-runner-result-detail"></small></div>
+        </div>
+        <section class="schedule-runner-focus od-surface" aria-labelledby="schedule-runner-focus-title">
+          <div class="schedule-card-head od-toolbar">
+            <div><strong id="schedule-runner-focus-title">下一个计划</strong><p id="schedule-runner-focus-detail" class="hint">暂无已安装计划</p></div>
+            <button id="schedule-runner-toggle" type="button" class="od-button od-button--secondary" disabled>暂停计划</button>
+          </div>
+          <p id="schedule-runner-explain" class="hint">到期时将检查目标网页、固定任务身份和执行槽。</p>
+          <button id="schedule-runner-history" type="button" class="od-button od-button--secondary">查看计划及运行记录</button>
+        </section>
+      </section>
       <div id="schedule-list-view" class="od-stack">
         <div class="schedule-actions od-toolbar">
           <button id="schedule-create" type="button" class="od-button">＋ 新建计划</button>
           <button id="schedule-open-runner" type="button" class="od-button od-button--secondary" title="打开可以在 Side Panel 关闭时运行的可见扩展页面">打开运行页 ↗</button>
         </div>
         <p id="schedule-host-status" class="hint" role="status">正在检查可用运行宿主…</p>
+        <p id="schedule-list-summary" class="schedule-list-summary" role="status" aria-live="polite">正在读取定时计划…</p>
         <div id="schedule-plan-list" class="od-stack" aria-label="已保存的定时计划"></div>
+        <details class="schedule-storage-details">
+          <summary>本地运行记录与存储</summary>
+          <p id="schedule-storage-status" class="hint" role="status" aria-live="polite">历史记录按计划分页展示；未知副作用、未结算执行和审计记录不会自动清除。</p>
+        </details>
       </div>
-      <form id="schedule-form" class="schedule-form od-stack" autocomplete="off" hidden>
+      <form id="schedule-form" class="schedule-form od-stack" autocomplete="off" novalidate hidden>
+        <section class="schedule-form-section" aria-labelledby="schedule-source-section-title">
+          <h3 id="schedule-source-section-title" class="schedule-section-title"><span aria-hidden="true">1</span>名称与执行任务</h3>
         <label class="od-field" for="schedule-title">计划名称
-          <input id="schedule-title" type="text" maxlength="100" required placeholder="例如：每天整理网页报告">
+          <input id="schedule-title" type="text" maxlength="100" required aria-describedby="schedule-title-error" placeholder="例如：每天整理网页报告">
         </label>
+        <p id="schedule-title-error" class="schedule-field-error" role="alert"></p>
         <div class="schedule-source-field">
           <label for="schedule-task-select">执行任务（已验证并安装）</label>
           <div class="schedule-source-row">
-            <select id="schedule-task-select" required aria-label="选择已安装任务"><option value="">请选择可用任务</option></select>
+            <select id="schedule-task-select" required aria-label="选择已安装任务" aria-describedby="schedule-task-version schedule-task-error"><option value="">请选择可用任务</option></select>
             <button id="schedule-new-script" type="button" class="od-icon-button" title="新建脚本 · 进入开发" aria-label="新建脚本"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8m-4-4v8"></path></svg></button>
             <button id="schedule-manage-tasks" type="button" class="od-icon-button" title="管理任务 · 搜索、启停和卸载" aria-label="管理任务"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h12M9 12h12M9 18h12M3 6l1 1 2-2M3 12l1 1 2-2M3 18l1 1 2-2"></path></svg></button>
           </div>
           <p id="schedule-task-version" class="hint" aria-live="polite"></p>
+          <p id="schedule-task-error" class="schedule-field-error" role="alert"></p>
         </div>
+        </section>
+        <section class="schedule-form-section" aria-labelledby="schedule-target-section-title">
+          <h3 id="schedule-target-section-title" class="schedule-section-title"><span aria-hidden="true">2</span>目标网页与参数</h3>
         <label class="od-field" for="schedule-target">目标网页 URL
-          <input id="schedule-target" type="url" inputmode="url" maxlength="2048" required placeholder="https://example.com/path">
+          <input id="schedule-target" type="url" inputmode="url" maxlength="2048" required aria-describedby="schedule-target-error" placeholder="https://example.com/path">
         </label>
+        <p id="schedule-target-error" class="schedule-field-error" role="alert"></p>
         <label class="od-field" for="schedule-params">任务参数（JSON 对象）
-          <textarea id="schedule-params" rows="2" spellcheck="false">{}</textarea>
+          <textarea id="schedule-params" rows="2" spellcheck="false" aria-describedby="schedule-params-error">{}</textarea>
         </label>
-        <fieldset class="schedule-rule">
-          <legend>执行时间</legend>
+        <p id="schedule-params-error" class="schedule-field-error" role="alert"></p>
+        </section>
+        <fieldset class="schedule-rule schedule-form-section">
+          <legend class="schedule-section-title"><span aria-hidden="true">3</span>执行时间</legend>
           <div class="schedule-rule-row">
-            <label for="schedule-kind" class="visually-hidden">频率</label>
-            <select id="schedule-kind"><option value="once">执行一次</option><option value="daily">每天</option><option value="weekly">每周</option><option value="interval">每隔一段时间</option></select>
-            <label for="schedule-timezone" class="visually-hidden">时区</label>
-            <input id="schedule-timezone" type="text" maxlength="80" required placeholder="Asia/Shanghai" aria-label="IANA 时区">
+            <div class="schedule-rule-field">
+              <label for="schedule-kind">重复规则</label>
+              <select id="schedule-kind" aria-describedby="schedule-time-error"><option value="once">执行一次</option><option value="daily">每天</option><option value="weekly">每周</option><option value="interval">每隔一段时间</option></select>
+            </div>
+            <div class="schedule-rule-field">
+              <label for="schedule-timezone">执行时区</label>
+              <input id="schedule-timezone-search" type="search" autocomplete="off" spellcheck="false" aria-label="搜索城市、地区或 IANA 时区（只筛选，不更改时区）" aria-controls="schedule-timezone" placeholder="搜索城市或 IANA 时区">
+              <select id="schedule-timezone" required aria-describedby="schedule-timezone-help schedule-time-error"><option value="">正在识别当前时区…</option></select>
+              <p class="hint schedule-timezone-help" id="schedule-timezone-help">新建时自动识别，编辑时保留原时区；只有选择下拉项才更改。保存后固定所选 IANA 时区。</p>
+              <p class="hint schedule-timezone-match" id="schedule-timezone-match" role="status" aria-live="polite"></p>
+            </div>
           </div>
           <label id="schedule-once-field" class="od-field" for="schedule-once">执行日期和时间
-            <input id="schedule-once" type="datetime-local">
+            <input id="schedule-once" type="datetime-local" aria-describedby="schedule-time-error">
           </label>
           <label id="schedule-clock-field" class="od-field" for="schedule-clock" hidden>当地时间
-            <input id="schedule-clock" type="time" value="09:00">
+            <input id="schedule-clock" type="time" aria-describedby="schedule-time-error" value="09:00">
           </label>
           <fieldset id="schedule-weekdays-field" class="schedule-weekdays" hidden>
             <legend>星期（至少选择一天）</legend>
@@ -99,22 +149,43 @@
             <label><input type="checkbox" value="4">四</label><label><input type="checkbox" value="5">五</label><label><input type="checkbox" value="6">六</label><label><input type="checkbox" value="0">日</label>
           </fieldset>
           <label id="schedule-interval-field" class="od-field" for="schedule-minutes" hidden>间隔分钟（1–10080）
-            <input id="schedule-minutes" type="number" min="1" max="10080" step="1" value="60">
+            <input id="schedule-minutes" type="number" aria-describedby="schedule-time-error" min="1" max="10080" step="1" value="60">
           </label>
           <p id="schedule-next" class="hint" aria-live="polite">选择规则后显示下一次触发时间。</p>
+          <p id="schedule-time-error" class="schedule-field-error" role="alert"></p>
         </fieldset>
+        <section class="schedule-form-section schedule-form-advanced" aria-labelledby="schedule-advanced-section-title">
+          <h3 id="schedule-advanced-section-title" class="schedule-section-title"><span aria-hidden="true">4</span>高级执行条件</h3>
         <details class="schedule-advanced"><summary>高级选项</summary>
           <label class="schedule-check"><input type="checkbox" id="schedule-open-target">找不到已打开的目标网页时，允许为本次执行新开标签页</label>
           <label class="od-field" for="schedule-misfire">错过触发
             <select id="schedule-misfire"><option value="skip">跳过错过的执行</option><option value="latest-within-hour">只补最近 1 小时内的一次</option></select>
           </label>
           <label class="od-field" for="schedule-deadline">最长等待执行条件（分钟）
-            <input id="schedule-deadline" type="number" min="1" max="60" value="5" step="1">
+            <input id="schedule-deadline" type="number" aria-describedby="schedule-time-error" min="1" max="60" value="5" step="1">
           </label>
         </details>
         <label class="schedule-check"><input type="checkbox" id="schedule-paused">创建后先暂停</label>
+        </section>
+        <div id="schedule-save-confirm" class="schedule-save-confirm od-surface" role="group" aria-label="确认定时计划" hidden>
+          <strong>确认计划及固定任务授权</strong>
+          <p id="schedule-save-summary"></p>
+          <p class="hint">保存后仅在已授权网页及合法可见运行宿主内按时尝试执行。浏览器关闭时不会自动操作网页。</p>
+          <div class="schedule-actions od-toolbar">
+            <button id="schedule-confirm-yes" type="button" class="od-button">确认并保存</button>
+            <button id="schedule-confirm-no" type="button" class="od-button od-button--secondary">返回修改</button>
+          </div>
+        </div>
+        <div id="schedule-discard-confirm" class="schedule-discard-confirm od-surface" role="group" aria-label="离开计划编辑" hidden>
+          <strong>放弃尚未保存的修改？</strong>
+          <p>离开编辑后，这些修改不会自动保存。</p>
+          <div class="schedule-actions od-toolbar">
+            <button id="schedule-discard-yes" type="button" class="od-button schedule-danger-button">放弃修改</button>
+            <button id="schedule-discard-no" type="button" class="od-button od-button--secondary">继续编辑</button>
+          </div>
+        </div>
         <div class="schedule-actions od-toolbar">
-          <button type="submit" id="schedule-save" class="od-button">保存计划</button>
+          <button type="submit" id="schedule-save" class="od-button">检查并确认</button>
           <button type="button" id="schedule-cancel" class="od-button od-button--secondary">返回列表</button>
         </div>
       </form>
@@ -136,48 +207,6 @@
         </div>
       </div>
     </section>
-    <section class="cloud-my-entry od-surface" aria-label="云端托管状态">
-    <strong>云端托管</strong><span id="cloud-my-state" role="status" aria-live="polite">托管未启用</span>
-  </section>
-    <section class="cloud-panel od-stack" aria-label="云控管理">
-      <header class="cloud-panel-head od-toolbar">
-        <div class="cloud-panel-heading"><strong>云控</strong><p class="hint">与当前目标网页并排查看云任务及执行状态。</p></div>
-        <button type="button" id="cloud-open-console" class="od-icon-button" title="在大页面打开云控控制台" aria-label="在新标签页打开只读云控控制台"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5h5v5m0-5-9 9M19 14v5H5V5h5"></path></svg></button>
-        <button type="button" id="cloud-overview-refresh" class="od-icon-button" title="刷新云控状态" aria-label="刷新云控状态"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14-5L4 8m0-5v5h5M4 13a8 8 0 0 0 14 5l2-2m0 5v-5h-5"></path></svg></button>
-      </header>
-      <section class="cloud-overview od-surface" aria-label="云控实时概览">
-        <p id="cloud-overview-state" role="status" aria-live="polite">正在读取云控状态…</p>
-        <div class="cloud-overview-metrics">
-          <div><span>提供者</span><strong id="cloud-overview-provider">检测中</strong></div>
-          <div><span>连接</span><strong id="cloud-overview-connection">检测中</strong></div>
-          <div><span>执行宿主</span><strong id="cloud-overview-host">检测中</strong></div>
-          <div><span>执行槽</span><strong id="cloud-overview-slot">检测中</strong></div>
-          <div><span>已批准任务</span><strong id="cloud-overview-tasks">—</strong></div>
-          <div><span>云请求数</span><strong id="cloud-overview-requests">—</strong></div>
-        </div>
-      </section>
-      <section class="cloud-requests od-surface" aria-label="云请求状态样本">
-        <div class="cloud-section-title od-toolbar"><strong>请求状态</strong><span class="hint">最多 5 条，脱敏显示</span></div>
-        <ol id="cloud-request-samples" class="cloud-request-samples"><li>暂无云请求</li></ol>
-      </section>
-    <details id="cloud-hosting" class="task-scope-panel"><summary>连接与授权 <span id="cloud-brief" class="cloud-status-brief">未配对</span></summary>
-        <label>提供者地址 <input id="cloud-url" type="url" placeholder="https://可信提供者地址"></label>
-        <label>提供者身份 <input id="cloud-provider-id" autocomplete="off"></label>
-        <label>配对码 <input id="cloud-pairing-code" type="password" autocomplete="off"></label>
-        <label><input id="cloud-loopback" type="checkbox">明确允许固定本地测试提供者 HTTP/WS</label>
-        <p class="hint">云控框架已内置，无需在「工具」中导入。开发回环服务请输入 http://127.0.0.1:43112 并明确允许本地测试；普通服务器应使用 HTTPS。</p>
-        <button id="cloud-pair" type="button">配对提供者</button>
-        <p>请先在「我的」安装并选择任务。托管授权固定当前安装版本、摘要、授权代次及该任务网站范围。</p>
-        <label><input id="cloud-consent" type="checkbox">批准所选固定任务和网站范围，在合法浏览器执行宿主可用时运行</label>
-        <label><input id="cloud-result-consent" type="checkbox">允许该固定任务结果回传</label>
-        <div><button id="cloud-approve" type="button">批准并启用托管</button><button id="cloud-stop" type="button">停止托管并请求取消</button><button id="cloud-unpair" type="button">解除配对</button><button id="cloud-refresh" type="button">核对状态</button></div>
-        <p class="hint">关闭 Side Panel 后不承诺无人值守执行。停止后保留取消处理中、退休待核对和未知结果；正常重连复用已有授权。</p>
-        <p id="cloud-status" role="status" aria-live="polite">尚未配对</p>
-      </details>
-
-      <p class="hint">云控复用「我的」已安装授权的任务和原 RunHost。切换选项卡不会启动第二个执行器；关闭 Side Panel 后不承诺任务继续运行。</p>
-    </section>
-
   </div>
   <div id="workbench-tools" role="tabpanel" aria-labelledby="tab-tools" class="od-page" data-workbench-page="tools" hidden>
     <section id="sidebar-tools" class="sidebar-tools" aria-label="自定义工具">
@@ -232,6 +261,39 @@
           <div id="installed-page-tools-list" class="od-stack"></div>
           <p id="installed-page-tools-status" class="hint" role="status" aria-live="polite"></p>
         </section>
+        <details id="trusted-cookie-panel" class="trusted-cookie-panel od-surface" aria-label="当前网页 Cookie 管理">
+          <summary><strong>Cookie 管理</strong><span class="hint">受信浏览器界面 · 按需读取</span></summary>
+          <div class="trusted-cookie-content">
+            <p id="trusted-cookie-target" class="identity">尚未选择 HTTP(S) 网页</p>
+            <p class="hint">仅在本扩展受信界面操作。仅匹配当前网页 URL；不会读取或传递给已安装工具脚本。值默认隐藏，浏览器站点权限仍须独立批准。</p>
+            <button id="trusted-cookie-read" type="button" class="od-button">读取当前网页 Cookie</button>
+            <p id="trusted-cookie-status" role="status" aria-live="polite" class="hint">请主动点击读取；不会在打开界面时自动获取 Cookie。</p>
+            <div id="trusted-cookie-rows" class="trusted-cookie-list" aria-label="已读取的 Cookie"></div>
+            <details id="trusted-cookie-observe-panel" class="trusted-cookie-observe">
+              <summary>近期 Cookie 变化（仅元数据）</summary>
+              <p class="hint">手动开始后最多监听 15 秒，事件不包含 Cookie 值。不会在后台持续监控，也不会向已安装工具发送信息。</p>
+              <div class="trusted-cookie-observe-actions" role="group" aria-label="Cookie 变更观察操作">
+                <button id="trusted-cookie-watch-start" type="button" class="od-button od-button--secondary">开始监听</button>
+                <button id="trusted-cookie-watch-status-button" type="button" class="od-button od-button--secondary" disabled>检查状态</button>
+                <button id="trusted-cookie-watch-read" type="button" class="od-button od-button--secondary" disabled>读取变化</button>
+                <button id="trusted-cookie-watch-stop" type="button" class="od-button od-button--secondary" disabled>停止</button>
+              </div>
+              <p id="trusted-cookie-watch-status" role="status" aria-live="polite" class="hint">未监听。</p>
+              <div id="trusted-cookie-watch-events" class="trusted-cookie-watch-events" aria-label="不包含 Cookie 值的变更事件"></div>
+            </details>
+            <details class="trusted-cookie-write">
+              <summary>创建或修改 Cookie</summary>
+              <label for="trusted-cookie-name">名称</label>
+              <input id="trusted-cookie-name" type="text" maxlength="256" autocomplete="off">
+              <label for="trusted-cookie-value">值（敏感）</label>
+              <input id="trusted-cookie-value" type="password" maxlength="4096" autocomplete="off" data-sensitive="true">
+              <label for="trusted-cookie-path">路径</label>
+              <input id="trusted-cookie-path" type="text" maxlength="512" value="/" autocomplete="off">
+              <button id="trusted-cookie-save" type="button" class="od-button">写入 Cookie</button>
+              <p class="hint">写入和删除需要再次点击确认，不会在未知结果后自动重试。</p>
+            </details>
+          </div>
+        </details>
         </section>
         <section id="sidebar-tool-discover-panel" class="sidebar-tool-discover-section" aria-label="可安装的官方工具" hidden>
           <div class="sidebar-tool-discovery-tools">
@@ -266,11 +328,11 @@
         <section id="sidebar-tool-settings-view" class="sidebar-tool-settings-view od-surface" aria-label="工具设置" hidden>
           <div class="sidebar-toc-settings-row"><strong>工具启停</strong><button type="button" id="sidebar-tool-enable" class="od-button od-button--secondary" aria-pressed="true">停用工具</button></div>
           <p id="sidebar-tool-enable-hint" class="sidebar-toc-settings-hint" role="status"></p>
-          <div class="sidebar-toc-settings-scope">
+          <div id="sidebar-tool-generic-site-scope" class="sidebar-toc-settings-scope">
             <div><span class="sidebar-toc-settings-caption" id="sidebar-tool-settings-scope-label">当前网站授权</span><strong id="sidebar-tool-settings-target">请选择适用网页</strong></div>
             <button type="button" id="sidebar-tool-settings-scope" hidden>只设置本页</button>
           </div>
-          <div class="sidebar-toc-settings-binary" role="group" aria-label="当前网站授权">
+          <div id="sidebar-tool-generic-site-binary" class="sidebar-toc-settings-binary" role="group" aria-label="当前网站授权">
             <button type="button" id="sidebar-tool-settings-allow" aria-pressed="false">授权当前网站</button>
             <button type="button" id="sidebar-tool-settings-deny" aria-pressed="false">撤销当前网站授权</button>
           </div>
@@ -281,8 +343,8 @@
             <div class="sidebar-toc-settings-row"><span>仅此页面</span><button type="button" id="sidebar-tool-settings-page-visibility" class="sidebar-toc-visibility-toggle">隐藏</button></div>
             <p class="sidebar-toc-settings-hint">网站可用且工具启用时显示；隐藏只影响网页悬浮目录，Side Panel 目录仍可使用。两级隐藏规则都恢复后才显示。</p>
           </div>
-          <details class="sidebar-toc-advanced" open>
-            <summary>网站与页面例外</summary>
+          <details id="sidebar-tool-generic-site-advanced" class="sidebar-toc-advanced" open>
+            <summary>已有授权与页面例外</summary>
             <strong class="sidebar-toc-settings-title" id="sidebar-tool-settings-sites-title">已授权的网站</strong>
             <div id="sidebar-tool-settings-sites" class="sidebar-toc-settings-entries"></div>
             <div id="sidebar-tool-page-exceptions" hidden>
@@ -290,6 +352,43 @@
               <div id="sidebar-tool-settings-pages" class="sidebar-toc-settings-entries"></div>
             </div>
           </details>
+          <!-- Trusted static Time Review controls: never sourced from sandbox UI. -->
+          <section id="time-review-permission-settings" class="time-review-trusted-actions" aria-label="时间回顾采集权限" hidden>
+            <p>安装不等于授权采集。先单独同意记录的网站，再主动开始；仅记录前台非空闲网页的域名和时长，默认只保存在本机。</p>
+            <button id="time-review-grant-idle" type="button" class="od-button od-button--secondary">授权空闲检测</button>
+            <button id="time-review-revoke-idle" type="button" class="od-button od-button--secondary">撤销空闲检测</button>
+            <p>网站采集授权与 Chrome 权限相互独立；撤权停止未来的记录，已有合法统计保留。</p>
+            <button id="time-review-site-current-open" type="button" class="od-button od-button--secondary">授权当前网站…</button>
+            <section id="time-review-site-confirm" class="time-review-inline-clear-review" aria-label="确认当前网站统计权限" hidden>
+              <p id="time-review-site-confirm-text"></p>
+              <button id="time-review-site-current-approve" type="button" class="od-button od-button--secondary">确认授权该网站</button>
+              <button id="time-review-site-current-cancel" type="button" class="od-button od-button--secondary">取消</button>
+            </section>
+            <button id="time-review-site-all-open" type="button" class="od-button od-button--secondary">授权全部普通网站…</button>
+            <section id="time-review-site-all-confirm" class="time-review-inline-clear-review" aria-label="确认全部网站统计权限" hidden>
+              <p>确认允许 Time Review 统计全部普通 HTTP(S) 网站（不含浏览器内部与隐身页面）？该授权独立于主扩展权限。</p>
+              <button id="time-review-site-all-approve" type="button" class="od-button od-button--secondary">我同意记录全部普通网站</button>
+              <button id="time-review-site-all-cancel" type="button" class="od-button od-button--secondary">取消</button>
+            </section>
+            <button id="time-review-site-all-revoke" type="button" class="od-button od-button--secondary">撤销全部网站授权</button>
+            <p id="time-review-site-grants-status" role="status">正在读取网站授权…</p>
+            <div id="time-review-site-grants-list" aria-label="已经授权的网站"></div>
+            <button id="time-review-trusted-start" type="button" class="od-button od-button--secondary">开始／恢复记录</button>
+            <button id="time-review-clear-open" type="button" class="od-button od-button--secondary">清空时间统计…</button>
+            <section id="time-review-inline-clear-review" class="time-review-inline-clear-review" aria-label="确认清空时间统计" hidden>
+              <p>确定清空所有本机时间统计？请先导出备份，清空后无法恢复。</p>
+              <button id="time-review-clear-approve" type="button" class="od-button od-button--secondary">确认清空全部记录</button>
+              <button id="time-review-clear-cancel" type="button" class="od-button od-button--secondary">取消</button>
+            </section>
+            <p>可选分钟明细：仅保存未来真实结算的分钟数据，不记录标题、路径或正文；不会根据旧记录补造分钟。</p>
+            <button id="time-review-minute-enable" type="button" class="od-button od-button--secondary">开启分钟明细</button>
+            <button id="time-review-minute-disable" type="button" class="od-button od-button--secondary">关闭并删除分钟明细…</button>
+            <section id="time-review-minute-delete-review" class="time-review-inline-clear-review" aria-label="确认删除分钟明细" hidden>
+              <p>确定关闭未来分钟采集并永久删除已有分钟明细？日汇总和分类保持不变。</p>
+              <button id="time-review-minute-delete-approve" type="button" class="od-button od-button--secondary">确认关闭并删除</button>
+              <button id="time-review-minute-delete-cancel" type="button" class="od-button od-button--secondary">取消</button>
+            </section>
+          </section>
         </section>
       </section>
       <p id="sidebar-tool-status" class="sidebar-tool-status" role="status" aria-live="polite" hidden></p>
@@ -300,6 +399,84 @@
           <button type="button" id="sidebar-tool-inline-remove-cancel" class="od-button od-button--secondary">取消</button>
         </div>
       </section>
+    </section>
+  </div>
+  <div id="workbench-cloud" role="tabpanel" aria-labelledby="tab-cloud" class="od-page" data-workbench-page="cloud" hidden>
+    <section class="cloud-panel od-stack" aria-label="云控管理">
+      <header class="cloud-panel-head od-toolbar">
+        <div class="cloud-panel-heading"><strong>云控</strong><p class="hint">授权一次，可信外部服务即可重复调用已安装任务</p></div>
+        <span id="cloud-my-state" role="status" aria-live="polite" class="cloud-status-brief">托管未启用</span>
+        <button type="button" id="cloud-open-console" class="od-icon-button" title="在大页面打开云控控制台" aria-label="在新标签页打开只读云控控制台"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5h5v5m0-5-9 9M19 14v5H5V5h5"></path></svg></button>
+        <button type="button" id="cloud-overview-refresh" class="od-icon-button" title="刷新云控状态" aria-label="刷新云控状态"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14-5L4 8m0-5v5h5M4 13a8 8 0 0 0 14 5l2-2m0 5v-5h-5"></path></svg></button>
+      </header>
+      <section class="cloud-overview od-surface" aria-label="云控连接状态">
+        <p id="cloud-overview-state" role="status" aria-live="polite">正在检查连接与授权…</p>
+        <div class="cloud-overview-metrics">
+          <div><span>连接</span><strong id="cloud-overview-connection">检测中</strong></div>
+          <div><span>已授权任务</span><strong id="cloud-overview-tasks">—</strong></div>
+        </div>
+        <details class="cloud-diagnostics"><summary>运行环境与历史统计</summary>
+          <div class="cloud-overview-secondary">
+            <div>提供者 <strong id="cloud-overview-provider">检测中</strong></div>
+            <div>执行宿主 <strong id="cloud-overview-host">检测中</strong></div>
+            <div>执行槽 <strong id="cloud-overview-slot">检测中</strong></div>
+            <div>云请求 <strong id="cloud-overview-requests">—</strong></div>
+          </div>
+        </details>
+      </section>
+      <div id="cloud-first-run" class="cloud-first-run od-surface" hidden>
+        <p id="cloud-next-step">请先连接可信提供者。</p>
+        <button type="button" id="cloud-configure" class="od-button">连接提供者</button>
+      </div>
+      <section id="cloud-approval-section" class="cloud-approval-section od-surface" aria-label="已安装任务的远程授权" hidden>
+        <div class="cloud-section-title od-toolbar"><strong>允许远程调用的任务</strong><span class="hint">按任务独立批准</span></div>
+        <p class="cloud-privacy-note">执行完成或失败的最小状态会回传；网页数据和结果正文默认不回传。</p>
+        <fieldset class="cloud-task-approvals"><legend class="visually-hidden">选择任务，最多 32 项</legend>
+          <div id="cloud-task-list" role="group" aria-label="逐任务确认版本、网站及结果权限"><p class="hint">正在读取已安装任务…</p></div>
+          <p id="cloud-approval-summary" role="status" aria-live="polite" class="hint">请选择要允许远程调用的任务。</p>
+        </fieldset>
+        <label class="cloud-approval-confirm"><input id="cloud-consent" type="checkbox"> 我已核对所选任务的网站和固定安装版本</label>
+        <label class="cloud-approval-confirm"><input id="cloud-result-consent" type="checkbox"> 我另外同意所勾选任务向 Provider 回传结果正文</label>
+        <div class="cloud-action-row"><button id="cloud-approve" type="button" class="od-button">批准并启用</button>
+          <button id="cloud-stop" type="button" class="od-button od-button--secondary">停止远程调用</button></div>
+      </section>
+      <section class="cloud-requests od-surface" aria-label="最近的云请求">
+        <div class="cloud-section-title od-toolbar"><strong>最近请求</strong><span class="hint">最近 5 条，仅显示状态</span></div>
+        <ol id="cloud-request-samples" class="cloud-request-samples"><li>暂无云请求</li></ol>
+      </section>
+      <details id="cloud-clients" class="cloud-clients od-surface">
+        <summary>外部应用授权 <span id="cloud-clients-count" class="hint">按需管理</span></summary>
+        <p class="cloud-privacy-note">只有本浏览器已批准的固定任务可以向外部应用授权。密钥只展示一次，不保存到扩展配置；仅通过可信渠道交给应用。</p>
+        <div class="cloud-client-form">
+          <label for="cloud-client-name">外部应用名称</label>
+          <input id="cloud-client-name" class="od-field" maxlength="60" autocomplete="off" placeholder="例如：我的自动化服务">
+          <label for="cloud-client-task">允许调用的已安装任务</label>
+          <select id="cloud-client-task" class="od-field" aria-describedby="cloud-clients-status"><option value="">先启用云控任务授权</option></select>
+          <label class="cloud-approval-confirm"><input id="cloud-client-result" type="checkbox"> 另外允许此应用读取结果正文（仅适用于此前已允许回传的任务）</label>
+          <button id="cloud-client-create" type="button" class="od-button" disabled>创建应用凭据</button>
+        </div>
+        <div id="cloud-client-once" class="cloud-client-once" hidden>
+          <label for="cloud-client-token">一次性客户端密钥（关闭此区域后不再显示）</label>
+          <div class="cloud-client-secret-row"><input id="cloud-client-token" class="od-field" type="text" readonly spellcheck="false" autocomplete="off"><button type="button" id="cloud-client-copy" class="od-button od-button--secondary">复制密钥</button></div>
+        </div>
+        <p id="cloud-clients-status" role="status" aria-live="polite" class="hint">连接并授权任务后，可以创建、查看和撤销外部应用凭据。</p>
+        <div class="cloud-action-row"><button id="cloud-client-refresh" type="button" class="od-button od-button--secondary">刷新应用列表</button><button id="cloud-client-more" type="button" class="od-button od-button--secondary" hidden>查看更多</button></div>
+        <ul id="cloud-clients-list" class="cloud-clients-list" aria-label="已授权的外部应用"></ul>
+      </details>
+      <details id="cloud-hosting" class="task-scope-panel"><summary>连接设置与解除配对 <span id="cloud-brief" class="cloud-status-brief">未配对</span></summary>
+        <p class="hint">连接只用于经过批准的已安装任务，不能远程投递任意脚本。</p>
+        <label>可信提供者 HTTPS 地址 <input id="cloud-url" type="url" placeholder="https://provider.example"></label>
+        <label>提供者身份 <input id="cloud-provider-id" autocomplete="off"></label>
+        <label>一次性配对码 <input id="cloud-pairing-code" type="password" autocomplete="off"></label>
+        <label><input id="cloud-loopback" type="checkbox"> 使用本机演示连接（固定 127.0.0.1:43112）</label>
+        <p class="hint">本机 Provider 为 HTTP/WS 演示。实际远程连接必须使用可信 HTTPS/WSS。</p>
+        <button id="cloud-pair" type="button" class="od-button">完成配对</button>
+        <div class="cloud-action-row"><button id="cloud-unpair" type="button" class="od-button od-button--secondary">解除配对并撤销凭据</button>
+          <button id="cloud-refresh" type="button" class="od-button od-button--secondary">核对状态</button></div>
+        <p class="hint">停止仅暂停云控并保留配对；解除配对还会请求 Provider 撤销本机凭据。连接中断时先停止，待 Provider 可达后再解除配对。</p>
+        <p id="cloud-status" role="status" aria-live="polite">尚未配对</p>
+      </details>
+      <p class="hint">云控复用「我的」已安装授权的任务和原 RunHost。切换选项卡不会启动第二个执行器；关闭 Side Panel 后不承诺任务继续运行。</p>
     </section>
   </div>
   <div id="workbench-local-discover" role="tabpanel" aria-labelledby="tab-discover" class="od-page" data-workbench-page="local-discover" hidden>
@@ -451,9 +628,10 @@
         <textarea id="workflow-ai-request" rows="2" maxlength="4000" placeholder="描述要自动完成的任务…"></textarea>
         <div class="workflow-composer-actions">
           <button type="button" id="workflow-provider-toggle" class="workflow-icon-button workflow-settings-button od-icon-button" aria-label="配置 AI 模型与数据授权" aria-expanded="false" aria-controls="workflow-provider-settings" title="AI 设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h9m6 0h1M4 17h1m6 0h9"></path><circle cx="16" cy="7" r="3"></circle><circle cx="8" cy="17" r="3"></circle></svg></button>
-          <button id="workflow-ai-plan" type="button" class="workflow-primary workflow-send-button" aria-label="生成工作流步骤" title="生成步骤"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 19V5m-7 7 7-7 7 7"></path></svg></button>
+          <button id="workflow-ai-plan" type="button" class="workflow-primary workflow-send-button" aria-label="同意数据发送并生成工作流步骤" title="同意并生成"><span id="workflow-ai-plan-label" class="workflow-send-label">同意并生成</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 19V5m-7 7 7-7 7 7"></path></svg></button>
           <button id="workflow-ai-cancel" type="button" class="workflow-send-button workflow-ai-cancel" aria-label="停止 AI 规划" title="停止 AI 规划" hidden><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg></button>
         </div>
+        <p id="workflow-ai-disclosure" class="workflow-ai-data-notice" role="note" aria-live="polite">首次发送会告知选定的模型接收方、当前网站和数据范围，点击「同意并生成」才发送；网页摘要需要单独确认。</p>
         <details id="workflow-provider-settings" class="workflow-provider">
           <summary>模型连接与数据发送授权</summary>
           <label for="workflow-ai-provider">AI 来源</label>
@@ -462,7 +640,7 @@
           <div id="workflow-local-settings">
             <p id="workflow-local-status" class="workflow-local-status" role="status" aria-live="polite">打开设置后检查本机状态。</p>
             <div class="workflow-actions"><button type="button" id="workflow-local-connect">连接 OpenDesk</button><button type="button" id="workflow-local-refresh">重新检查</button><button type="button" id="workflow-local-help">本机连接设置 ↗</button></div>
-            <label class="workflow-consent"><input id="workflow-ai-observe-consent" type="checkbox">本次允许 AI 请求网页结构、元素名称与文字摘要，每次读取仍需确认</label>
+            <p class="workflow-minor-note">Codex 可以提出读取网页摘要的请求，但不会自动读取或发送。每次读取仍需确认，还需满足真实 Chrome 网站授权。</p>
             <div class="workflow-actions workflow-session-actions"><button type="button" id="workflow-ai-new-session" title="结束当前 AI 会话，下次发送开始新对话" hidden>新对话</button><button type="button" id="workflow-ai-resume" hidden>恢复上次对话</button></div>
           </div>
           <div id="workflow-custom-settings" hidden>
@@ -471,8 +649,12 @@
             <label for="workflow-ai-key">API Key（不保存）</label><input id="workflow-ai-key" type="password" autocomplete="off" spellcheck="false" placeholder="仅本次会话使用">
             <p class="workflow-minor-note">此来源生成一次步骤提议，不使用本机工具；密钥只在本窗口内使用。</p>
           </div>
-          <label id="workflow-ai-send-consent" class="workflow-consent"><input id="workflow-ai-consent" type="checkbox">同意本次向选定模型发送需求、网站 origin、步骤和参数定义</label>
-          <p id="workflow-ai-consent-note" class="workflow-minor-note">每次发送后清除本次同意。网页读取与网页操作分别确认。官方 AI 服务接口已预留，当前尚未开放。</p>
+          <details class="workflow-ai-data-details"><summary>数据范围与各方责任</summary>
+            <p id="workflow-ai-data-details-text" class="workflow-minor-note"></p>
+            <p class="workflow-minor-note">不要在任务需求或选择器中输入密码、API Key。原填写值、参数默认值、导航网址的查询参数不会自动发送；网页摘要需要另行确认。</p>
+          </details>
+          <button id="workflow-ai-revoke" type="button" class="workflow-secondary workflow-ai-revoke" hidden>撤回当前模型的数据发送许可</button>
+          <p class="workflow-minor-note">由你选择 Codex 或 HTTPS 模型，服务方负责其服务端处理；OpenDesk 仍对本扩展的权限及数据发送安全负责。官方 AI 服务尚未开放。</p>
         </details>
       </div>
       <p id="workflow-status" class="workflow-status" role="status" aria-live="polite" hidden></p>
@@ -552,6 +734,21 @@
     <label for="script-source" class="visually-hidden">JavaScript、React JSX 或 Vue SFC 源码编辑器</label><textarea id="script-source" rows="6" spellcheck="false">async function main() {
   return {title: await page.title(), url: await page.url(), value: params.value};
 }</textarea>
+    <details id="page-dependency-panel" class="od-stack" aria-label="第三方 Classic JS 依赖固定详情" hidden>
+      <summary>第三方 JS 依赖 · 自动固定与缓存（高级详情）</summary>
+      <p id="page-dependency-status" role="status" aria-live="polite">点击运行会自动固定安全依赖；这里仅显示高级详情。</p>
+      <div id="page-dependency-list" class="od-stack" role="group" aria-label="每项依赖来源与下载方式"></div>
+      <label for="page-dependency-lock" class="visually-hidden">已审核依赖锁版本</label>
+      <select id="page-dependency-lock" hidden></select>
+      <div class="od-toolbar"><button id="page-dependency-prepare" type="button" disabled>获取并检查依赖（不执行）</button></div>
+      <details id="page-dependency-review" hidden>
+        <summary>审核实际字节、SHA-256、许可证及风险</summary>
+        <p class="hint">第三方 JavaScript 可读取和修改获准网站的 DOM；USER_SCRIPT 不等于网络隔离。本步骤不授予网页访问权、不安装、不执行。</p>
+        <div id="page-dependency-review-list" class="od-stack"></div>
+        <button id="page-dependency-approve" type="button" disabled>批准当前程序的固定 SHA 锁（不运行）</button>
+      </details>
+      <p class="hint">点击 Run 会自动校验、获取及固定当前程序的依赖。高级手动流程不再是运行前置步骤；不同程序共享 SHA 字节但不共享站点权限。</p>
+    </details>
     <section id="page-component-remote" class="od-stack" aria-label="组件 HTTPS 依赖准备" hidden>
       <p id="page-component-remote-status" role="status" aria-live="polite"></p>
       <pre id="page-component-remote-sources" aria-label="本次需明确确认的 HTTPS 模块来源" hidden></pre>
@@ -576,17 +773,43 @@
     <div class="result-toolbar"><span id="script-result-kind" class="hint">尚无结果</span>
       <button type="button" id="script-copy-result" disabled>复制结果</button></div>
     <pre id="script-result" aria-label="脚本返回值">尚无结果</pre>
-    <details id="script-history-panel" class="result-history"><summary>运行记录与技术信息</summary>
-      <div class="row"><button id="script-read">刷新历史</button></div>
-      <label for="script-history-run">历史运行</label><select id="script-history-run"><option value="">选择历史任务</option></select>
-      <div class="row"><button id="script-history-open">查看选中任务</button></div>
-      <details><summary>完整历史与版本身份</summary><pre id="script-history" aria-label="持久结果历史">正在读取…</pre></details>
-      <details><summary>结果下载与任务查询</summary>
-        <label for="script-run-id">查询 runId（留空读取全部历史）</label><input id="script-run-id" placeholder="runId">
-        <div class="row"><button id="script-read-run">查询任务</button></div>
-        <div class="row"><label for="script-download-result">已完成的持久结果</label><select id="script-download-result"><option value="">请选择要下载的结果</option></select><button id="script-download" disabled>下载结果 JSON</button></div>
-        <p id="script-download-status" role="status">结果下载保留类型信息，包括 undefined。</p>
-      </details>
+    <details id="script-history-panel" class="result-history">
+      <summary>运行记录与技术信息</summary>
+      <div class="developer-history-content">
+        <div class="developer-history-head">
+          <p id="script-history-hint" class="hint">仅刷新已有记录，不会重新运行脚本。</p>
+          <button id="script-read" type="button" class="od-button od-button--secondary">刷新历史</button>
+        </div>
+        <div class="developer-history-field">
+          <label for="script-history-run">历史运行</label>
+          <div class="developer-history-actions">
+            <select id="script-history-run" aria-describedby="script-history-hint"><option value="">选择历史任务</option></select>
+            <button id="script-history-open" type="button" disabled>查看选中任务</button>
+          </div>
+        </div>
+        <details class="developer-history-disclosure">
+          <summary>完整历史与版本身份</summary>
+          <pre id="script-history" aria-label="持久结果历史">正在读取…</pre>
+        </details>
+        <details class="developer-history-disclosure">
+          <summary>结果下载与任务查询</summary>
+          <div class="developer-history-field">
+            <label for="script-run-id">查询 runId（留空读取全部历史）</label>
+            <input id="script-run-id" placeholder="runId">
+          </div>
+          <div class="developer-history-control-row">
+            <button id="script-read-run" type="button" class="od-button od-button--secondary">查询任务</button>
+          </div>
+          <div class="developer-history-field">
+            <label for="script-download-result">已完成的持久结果</label>
+            <div class="developer-history-actions">
+              <select id="script-download-result"><option value="">请选择要下载的结果</option></select>
+              <button id="script-download" type="button" disabled>下载结果 JSON</button>
+            </div>
+          </div>
+          <p id="script-download-status" class="hint" role="status">结果下载保留类型信息，包括 undefined。</p>
+        </details>
+      </div>
     </details>
   </div></details>
   <details id="developer-run-technical" class="developer-run-technical"><summary>运行目标与版本</summary>
@@ -707,5 +930,8 @@
     <div class="dock-buttons od-toolbar"><button class="od-button" id="script-run" disabled>运行草稿</button><button class="od-button" id="script-save">保存版本</button><button id="script-stop" disabled>停止</button></div>
   </div>
 </footer>
+<script src="sidebar-tool-host.js"></script>
+<script src="stay-focus-controls.js"></script>
+<script src="trusted-cookie-ui.js"></script>
 <script src="tool-shell.js"></script>
 </body></html>

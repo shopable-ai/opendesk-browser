@@ -1,0 +1,615 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>OpenDesk · 定时计划 R2.5｜交互预览</title>
+<!--
+OpenDesk Browser Scheduled Tasks R2.5 (R2.6 UX sync) — HTML PREVIEW ONLY
+Canonical repo path: examples/ui/scheduled-tasks-r2.5-preview.html
+Source reviewed 2026-10-13: src/ui/tool.html, scheduled-task-workbench.js,
+scheduled-task-host.js, schedule-contract.js, schedule-time.js, design-tokens.css,
+design-system.css, tool-shell.css, R27/R20/R28 and R2 workstream.
+Reference clock: 2026-10-13 08:10 Asia/Shanghai (fixed for deterministic fixtures).
+No Chrome API, network, Task, Controller, FireId, RunId, ResultId or Alarm is executed.
+
+PRODUCT_PARITY_CONTRACT:
+1. My → scheduled list/back/new/runner: tool.html #schedule-open,
+   #schedule-back,#schedule-create,#schedule-open-runner; workbench.open/show/hidePanel.
+2. Plans: client.request('listSchedules'); #schedule-plan-list;
+   changeSchedule({scheduleId,expectedGeneration,action:'pause'|'resume'|'delete'}).
+   Production currently puts Delete next to Edit/Pause. R2.5 visual moves it to More.
+3. Create/edit: #schedule-form, #schedule-task-select, #schedule-new-script,
+   #schedule-manage-tasks, #schedule-target, #schedule-params, #schedule-kind,
+   #schedule-timezone, #schedule-once, #schedule-clock,#schedule-weekdays-field,
+   #schedule-minutes, #schedule-advanced, #schedule-next.
+4. Two-step save: #schedule-save -> resolveInstalledTask + validation ->
+   #schedule-save-confirm/#schedule-confirm-yes -> saveSchedule; exact fixed
+   task/version/hash/generation, approved origins, http(s), JSON object and IANA zone.
+5. Management: #schedule-task-manager,#schedule-manager-search/filter/list,
+   setInstalledTaskEnabled, getTaskCandidate + receiveDraft, uninstallTask;
+   production permission gesture for enabling not simulated here.
+6. History: plan.history (up to 20); listScheduleHistory({scheduleId,offset,limit:20});
+   RunId/ResultId/retirementState inside technical details, only demo-prefixed IDs here.
+7. Runner: existing trusted tool.html?scheduledRunner=1; #schedule-runner-view,
+   #schedule-runner-focus-title,#schedule-runner-toggle,#schedule-runner-history;
+   #schedule-stop iff selectedFire == host.currentRun (RunId), uses host.stop.
+8. Status labels: READY, WAITING_HOST, WAITING_TARGET, WAITING_SLOT,
+   ADMITTED, RUNNING, SETTLING, SUCCESS, FAILED, STOPPED, UNKNOWN,
+   MISSED, CANCELLED, NEEDS_ATTENTION and paused. UNKNOWN not auto-retried.
+9. Chrome website access recovery: user must go to real extension settings.
+   There is no quick permission-grant button in this preview.
+10. Independent UI states and mock changes never assert persisted results,
+    Chrome Alarms, Chrome Site Access, actual Run/Result or authorization.
+-->
+<style>
+/* R27/R20 semantic token snapshot (verified against src/ui/design-tokens.css on 2026-10-13).
+   Only the product mock uses these; the outer review desk is not production UI. */
+:root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Microsoft YaHei",system-ui,sans-serif;font-size:14px;color:#14243e;background:#ebeff6;font-synthesis:none}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;min-width:0}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+button:disabled{opacity:.47;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid #80a7ff;outline-offset:2px}
+button,select,input,textarea{min-width:0}
+h1,h2,h3,p{margin-top:0}
+.review-header{max-width:1536px;margin:auto;padding:23px 27px 14px;display:flex;gap:18px;align-items:flex-end;justify-content:space-between}
+.review-kicker{color:#4c69a2;font-size:11px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;margin:0 0 5px}
+.review-header h1{font-size:24px;line-height:1.2;letter-spacing:-.045em;margin:0 0 6px;font-weight:780}
+.review-header p{margin:0;font-size:13px;color:#52617a}
+.review-tag{background:#dce7ff;color:#3054a0;border:1px solid #bed0f7;border-radius:99px;padding:7px 11px;font-size:12px;font-weight:750;white-space:nowrap}
+.review-layout{max-width:1536px;display:grid;grid-template-columns:270px minmax(0,1fr);gap:20px;padding:0 27px 30px;margin:auto;align-items:start}
+.review-console{border-radius:16px;background:#15243e;color:#f2f6ff;box-shadow:0 18px 35px #1b294323;padding:18px;position:sticky;top:18px;min-width:0}
+.console-head{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:760;margin:1px 0 7px}
+.console-badge{width:27px;height:27px;border-radius:8px;display:grid;place-items:center;background:#3864bb;color:white;font-size:12px;font-weight:800}
+.console-description{font-size:12px;line-height:1.6;color:#c0cee5;margin:0 0 19px}
+.console-section{border-top:1px solid #34465f;padding-top:15px;margin-top:15px}
+.console-title{font-size:11px;color:#b8c8e0;margin:0 0 9px;font-weight:720;letter-spacing:.06em}
+.console-segment{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:10px;background:#233755}
+.console-segment button{border:0;border-radius:7px;background:transparent;color:#c8d7ec;min-height:35px;padding:6px;font-size:12px;font-weight:650}
+.console-segment button[aria-pressed=true]{background:#eff4ff;color:#294d99;box-shadow:0 2px 8px #0711272b}
+.console-sizes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.console-sizes button{min-height:33px;border:1px solid #46607f;color:#d8e6fa;background:#203551;border-radius:8px;font-size:12px;padding:4px 2px}
+.console-sizes button[aria-pressed=true]{background:#e8f0ff;border-color:#e8f0ff;color:#224684;font-weight:800}
+.console-field{display:block;margin:0 0 10px;font-size:12px;font-weight:600;color:#cad7ed}
+.console-field select{display:block;margin-top:6px;min-height:36px;width:100%;padding:7px 10px;color:#ebf3ff;background:#203551;border:1px solid #45607f;border-radius:8px}
+.console-actions{display:flex;gap:8px;flex-wrap:wrap}
+.console-reset{border:1px solid #607493;border-radius:8px;background:transparent;color:#e4eefa;min-height:35px;padding:7px 12px;font-weight:650;font-size:12px}
+.console-warning{margin-top:17px;padding:12px;border-radius:10px;border:1px solid #536580;background:#203550;color:#dce6f6;font-size:12px;line-height:1.6}
+.console-warning strong{display:block;color:#fff;font-size:12px;margin-bottom:4px}
+.console-foot{font-size:11px;line-height:1.5;color:#9fb2d2;margin:10px 0 0}
+.review-stage{border:1px solid #d7deeb;background:radial-gradient(circle at 50% 0,#fefeff 0,#f7f9fd 46%,#e9eef6 100%);border-radius:18px;box-shadow:0 8px 35px #293b5910;min-width:0;min-height:820px;padding:17px;display:grid;align-content:start;justify-items:center;gap:12px;overflow-x:auto}
+.stage-toolbar{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px;color:#697b96}
+.stage-toolbar strong{font-size:12px;color:#425b80}
+.stage-hint{display:flex;align-items:center;gap:7px;min-width:0}
+.stage-dot{width:7px;height:7px;border-radius:100%;background:#5886d8;flex:none}
+#preview-mount{width:100%;display:flex;justify-content:center;align-items:start;min-width:0}
+.viewport-note{font-size:11px;color:#7b8ba1;text-align:center}
+/* Product mock: trusted Side Panel visual rules only. */
+.product-window{
+  --od-ink:#1b2c49;--od-sub:#53647e;--od-line:#e1e8f1;--od-brand:#365eda;
+  --od-paper:#fff;--od-bg:#f5f7fb;--od-input-border:#cbd6e6;--od-muted:#f5f7fb;
+  --od-positive:#138263;--od-negative:#ae3d4b;
+  --space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;
+  --radius-control:8px;--radius-surface:12px;--radius-pill:999px;--od-icon-size:34px;--od-page-gutter:11px;
+  --tint:#eef3ff;--tint-border:#d5e1fb;--warn-bg:#fff5e8;--warn-ink:#865a0d;
+  --od-button-text:#fff;--od-secondary-text:#3157b1;
+  color:var(--od-ink);background:var(--od-bg);font-size:13px;line-height:1.5;
+  width:360px;height:770px;display:flex;flex-direction:column;min-width:0;overflow:hidden;
+  border:1px solid #ccd8e9;border-radius:15px;box-shadow:0 17px 36px #293d6126;
+  container-type:inline-size;color-scheme:light;
+}
+.product-window[data-theme=dark]{--od-ink:#e9eef7;--od-sub:#b3c1d3;--od-line:#374457;--od-brand:#6b98ef;
+  --od-paper:#151c28;--od-bg:#101722;--od-input-border:#52627a;--od-muted:#222d3e;
+  --od-positive:#a1f3cc;--od-negative:#ff9ea6;--tint:#202f47;--tint-border:#405476;
+  --warn-bg:#342c1d;--warn-ink:#f6c978;--od-button-text:#101c31;--od-secondary-text:#c2d5ff;
+  color-scheme:dark;border-color:#46546b}
+.product-window button{font-size:12px;line-height:1.4}
+.product-window button:hover:not(:disabled){filter:brightness(.97)}
+.product-window .od-toolbar{display:flex;align-items:center;gap:var(--space-2);min-width:0}
+.product-window .od-stack{display:grid;gap:var(--space-2);min-width:0}
+.product-window .od-surface{background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface);min-width:0}
+.product-window .od-button{display:inline-flex;align-items:center;justify-content:center;gap:4px;min-height:34px;border:1px solid var(--od-brand);background:var(--od-brand);color:var(--od-button-text);padding:6px 11px;border-radius:var(--radius-control);font-weight:700;text-decoration:none;white-space:nowrap}
+.product-window .od-button--secondary{background:var(--tint);border-color:var(--tint-border);color:var(--od-secondary-text)}
+.product-window .od-button--quiet{background:transparent;border-color:var(--od-line);color:var(--od-ink)}
+.product-window .od-icon-button{display:inline-grid;place-items:center;flex:none;width:var(--od-icon-size);height:var(--od-icon-size);min-width:var(--od-icon-size);min-height:var(--od-icon-size);padding:0;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-control);color:var(--od-sub)}
+.product-window .od-icon-button svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.product-window .od-field{min-width:0;display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-2);align-content:start}
+.product-window .od-field label{display:block;color:var(--od-ink);font-size:12px;font-weight:700;line-height:1.5;margin:0}
+.product-window input:not([type=checkbox]),.product-window textarea,.product-window select{width:100%;min-height:36px;border:1px solid var(--od-input-border);border-radius:var(--radius-control);padding:7px 9px;background:var(--od-paper);color:var(--od-ink);outline-offset:2px}
+.product-window select{padding-right:4px;text-overflow:ellipsis}
+.product-window textarea{min-height:62px;resize:vertical;font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace}
+.product-window input[aria-invalid=true],.product-window textarea[aria-invalid=true],.product-window select[aria-invalid=true]{border-color:var(--od-negative)}
+.product-window p{margin:0;overflow-wrap:anywhere}
+.product-window .muted{color:var(--od-sub);font-size:12px;line-height:1.5}
+.product-window .small{font-size:11px;color:var(--od-sub)}
+.product-window .product-identity{background:var(--od-paper);min-height:41px;border-bottom:1px solid var(--od-line);padding:7px var(--od-page-gutter);display:flex;align-items:center;gap:8px;flex:none}
+.product-window .brand-mark{width:25px;height:25px;background:#365eda;color:#fff;border-radius:8px;font-size:11px;font-weight:850;display:grid;place-items:center;letter-spacing:-.08em;flex:none}
+.product-window .brand-name{color:var(--od-ink);font-size:12px;font-weight:800;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.product-window .brand-context{font-size:11px;color:var(--od-sub);margin-left:auto;white-space:nowrap}
+.product-window .workbench-nav{display:flex;gap:1px;border-bottom:1px solid var(--od-line);background:var(--od-paper);padding:0 var(--od-page-gutter);overflow-x:auto;scrollbar-width:thin;overscroll-behavior-x:contain;flex:none}
+.product-window .workbench-nav button{border:0;border-bottom:2px solid transparent;border-radius:0;background:transparent;color:var(--od-sub);font-size:12px;min-height:40px;min-width:39px;flex:none;padding:6px 9px;white-space:nowrap}
+.product-window .workbench-nav button[aria-selected=true]{color:var(--od-brand);border-bottom-color:var(--od-brand);font-weight:800}
+.product-window .product-content{padding:11px var(--od-page-gutter) 20px;overflow-y:auto;overflow-x:hidden;min-height:0;flex:1;scrollbar-width:thin;scroll-padding-top:15px}
+.product-window .view-header{display:flex;align-items:center;gap:8px;min-width:0;margin-bottom:12px}
+.product-window .view-heading{font-size:16px;font-weight:780;line-height:1.3;letter-spacing:-.018em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;margin:0;flex:1}
+.product-window .view-header .od-button{flex:none}
+.product-window .view-actions{display:flex;align-items:center;gap:6px;flex:none}
+.product-window .overview-strip{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 1px 11px;border-bottom:1px solid var(--od-line);margin-bottom:12px;font-size:12px;color:var(--od-sub)}
+.product-window .overview-strip strong{font-weight:780;color:var(--od-ink)}
+.product-window .host-row{display:flex;align-items:center;gap:7px;min-width:0;margin-bottom:13px;line-height:1.5;font-size:12px;color:var(--od-sub)}
+.product-window .host-row .host-copy{min-width:0;flex:1}
+.product-window .status-dot{width:7px;height:7px;border-radius:50%;background:var(--od-positive);flex:none}
+.product-window .status-dot.warn{background:#cd9443}
+.product-window .text-link{border:0;background:transparent;color:var(--od-brand);padding:3px 0;min-height:30px;font-weight:720;flex:none;text-align:left}
+.product-window .section-heading{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:0 0 9px}
+.product-window .section-heading h2{font-size:13px;font-weight:800;margin:0;letter-spacing:-.01em}
+.product-window .plan-list{display:grid;gap:9px}
+.product-window .plan-card{padding:12px;position:relative;min-width:0}
+.product-window .plan-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;min-width:0}
+.product-window .plan-title{display:block;font-size:14px;line-height:1.4;font-weight:780;color:var(--od-ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;margin:0;flex:1}
+.product-window .badge{display:inline-flex;align-items:center;gap:4px;flex:none;font-size:11px;font-weight:720;white-space:nowrap;border:1px solid var(--od-line);border-radius:999px;padding:2px 7px;background:var(--od-muted);color:var(--od-sub)}
+.product-window .badge.ok{background:color-mix(in srgb,var(--od-positive) 9%,var(--od-paper));color:var(--od-positive);border-color:color-mix(in srgb,var(--od-positive) 20%,var(--od-line))}
+.product-window .badge.warn{background:var(--warn-bg);border-color:color-mix(in srgb,var(--warn-ink) 20%,var(--od-line));color:var(--warn-ink)}
+.product-window .badge.danger{background:color-mix(in srgb,var(--od-negative) 9%,var(--od-paper));color:var(--od-negative);border-color:color-mix(in srgb,var(--od-negative) 22%,var(--od-line))}
+.product-window .plan-next-label{font-size:11px;color:var(--od-sub);margin-top:10px;display:block}
+.product-window .plan-next{font-weight:800;font-size:19px;line-height:1.28;letter-spacing:-.035em;margin-top:1px;font-variant-numeric:tabular-nums;color:var(--od-ink)}
+.product-window .plan-meta{font-size:12px;line-height:1.45;color:var(--od-sub);margin:8px 0 0;overflow-wrap:anywhere}
+.product-window .plan-meta span{display:inline}
+.product-window .plan-context{border-radius:8px;background:var(--warn-bg);color:var(--warn-ink);font-size:12px;line-height:1.5;padding:8px 9px;margin-top:10px;overflow-wrap:anywhere}
+.product-window .plan-context.neutral{background:var(--od-muted);color:var(--od-sub)}
+.product-window .plan-actions{border-top:1px solid var(--od-line);margin-top:11px;padding-top:9px;display:flex;align-items:center;gap:8px;min-width:0}
+.product-window .plan-actions .od-button{min-width:63px}
+.product-window .plan-actions .od-icon-button{margin-left:auto}
+.product-window .more-menu{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--od-muted);border-radius:8px;padding:8px;margin-top:8px}
+.product-window .more-menu .od-button{white-space:normal}
+.product-window .danger-action{color:var(--od-negative);border-color:color-mix(in srgb,var(--od-negative) 35%,var(--od-line));background:transparent}
+.product-window .inline-confirm{padding:12px;margin-top:9px;background:var(--warn-bg);border:1px solid color-mix(in srgb,var(--warn-ink) 22%,var(--od-line));border-radius:9px;display:grid;gap:8px;font-size:12px;color:var(--od-ink)}
+.product-window .inline-confirm strong{font-weight:780}
+.product-window .inline-confirm .od-toolbar{flex-wrap:wrap}
+.product-window .inline-confirm .destructive{background:var(--od-negative);border-color:var(--od-negative);color:#fff}
+.product-window .empty-state{border:1px dashed var(--od-input-border);border-radius:12px;background:var(--od-paper);padding:29px 16px;text-align:center;color:var(--od-sub)}
+.product-window .empty-icon{width:39px;height:39px;border:1px solid var(--od-line);border-radius:13px;background:var(--tint);color:var(--od-brand);display:grid;place-items:center;font-size:21px;margin:0 auto 12px}
+.product-window .empty-state strong{display:block;color:var(--od-ink);font-size:14px;margin-bottom:4px}
+.product-window .inline-warning{border:1px solid color-mix(in srgb,var(--warn-ink) 18%,var(--od-line));background:var(--warn-bg);color:var(--warn-ink);padding:10px;border-radius:9px;font-size:12px;line-height:1.5;margin-bottom:12px;overflow-wrap:anywhere}
+.product-window .inline-error{color:var(--od-negative);font-size:12px;line-height:1.5;min-height:0;margin:0}
+.product-window .inline-error:empty{display:none}
+.product-window .inline-info{font-size:12px;color:var(--od-sub);line-height:1.5;margin:7px 0}
+.product-window .field-group{display:grid;gap:12px;min-width:0}
+.product-window .form-section{display:grid;gap:var(--space-3);min-width:0;padding-bottom:var(--space-4);border-bottom:1px solid var(--od-line);margin-bottom:var(--space-4)}
+.product-window .form-section:last-of-type{border:0}
+.product-window .form-title{display:flex;align-items:center;gap:var(--space-2);font-size:12px;line-height:1.5;color:var(--od-sub);font-weight:800;letter-spacing:.02em;margin:0 0 var(--space-1);min-height:24px}
+.product-window .form-title b{display:inline-grid;place-items:center;width:20px;height:20px;background:var(--tint);color:var(--od-brand);border-radius:6px;font-size:11px;flex:none}
+.product-window .source-grid{display:grid;grid-template-columns:minmax(0,1fr) 34px 34px;gap:8px;min-width:0}
+.product-window .source-info{background:var(--od-muted);padding:var(--space-3);border-radius:8px;color:var(--od-sub);font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.product-window .source-info strong{font-weight:720;color:var(--od-ink)}
+.product-window .source-info.error{background:var(--warn-bg);color:var(--warn-ink)}
+.product-window .field-help{font-size:12px;color:var(--od-sub);line-height:1.5;margin:0;overflow-wrap:anywhere}
+.product-window #zone-search-result:empty{display:none}
+.product-window #zone-query{min-height:36px}
+.product-window .plan-title{white-space:normal;overflow:visible;text-overflow:clip}
+.product-window .form-title{margin-bottom:var(--space-1)}
+.product-window .runner-secondary{grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr))}
+.product-window .rule-pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space-3)}
+.product-window .weekdays{display:flex;gap:5px;flex-wrap:wrap;padding:3px 0 0;border:0;margin:0;min-width:0}
+.product-window .weekdays legend{font-size:12px;font-weight:720;margin-bottom:6px;color:var(--od-ink)}
+.product-window .weekdays label{display:inline-flex;gap:4px;align-items:center;cursor:pointer;padding:4px 5px;border:1px solid var(--od-line);border-radius:7px;color:var(--od-sub);font-size:12px;min-height:30px}
+.product-window .weekdays input{margin:0;width:14px;height:14px;accent-color:var(--od-brand)}
+.product-window .next-callout{background:var(--tint);border:1px solid var(--tint-border);border-radius:9px;padding:11px 12px;margin-top:2px}
+.product-window .next-callout span{display:block;color:var(--od-sub);font-size:11px;font-weight:720;margin-bottom:3px}
+.product-window .next-callout strong{font-size:17px;line-height:1.3;letter-spacing:-.018em;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.product-window .next-callout small{display:block;color:var(--od-sub);font-size:11px;margin-top:4px}
+.product-window .advanced{padding:10px;border:1px solid var(--od-line);border-radius:9px;margin-bottom:13px}
+.product-window .advanced summary{font-size:12px;font-weight:740;cursor:pointer}
+.product-window .advanced-inner{display:grid;gap:12px;margin-top:12px}
+.product-window .checkline{display:flex;align-items:flex-start;gap:8px;color:var(--od-ink);font-size:12px;line-height:1.5;cursor:pointer}
+.product-window .checkline input{width:16px;height:16px;min-width:16px;accent-color:var(--od-brand);margin:1px 0}
+.product-window .form-footer{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:4px 0 14px}
+.product-window .confirm-panel{padding:12px;display:grid;gap:10px;border-color:var(--tint-border)!important;background:var(--tint)!important;margin:6px 0 13px}
+.product-window .confirm-panel h3{font-size:13px;margin:0}
+.product-window .confirm-summary{display:grid;gap:5px;font-size:12px;overflow-wrap:anywhere}
+.product-window .confirm-summary strong{font-weight:750;color:var(--od-ink)}
+.product-window .manage-controls{display:grid;grid-template-columns:minmax(0,1fr) 115px;gap:8px;margin-bottom:12px}
+.product-window .manager-card{padding:12px;display:grid;gap:9px}
+.product-window .manager-head{display:flex;gap:8px;align-items:center;justify-content:space-between}
+.product-window .manager-title{font-size:13px;font-weight:760;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.product-window .manager-detail{font-size:12px;color:var(--od-sub);overflow-wrap:anywhere}
+.product-window .manager-actions{display:flex;gap:6px;flex-wrap:wrap;border-top:1px solid var(--od-line);padding-top:9px}
+.product-window .manager-actions .od-button{font-size:12px}
+.product-window details.summary-panel{padding:10px 0;border-top:1px solid var(--od-line);margin-top:16px;color:var(--od-sub);font-size:12px}
+.product-window details.summary-panel summary{cursor:pointer;font-weight:700;color:var(--od-sub)}
+.product-window .history-item{border-bottom:1px solid var(--od-line);padding:11px 0;display:flex;flex-direction:column;gap:3px;font-size:12px}
+.product-window .history-item strong{font-weight:740;color:var(--od-ink)}
+.product-window .history-item:last-child{border-bottom:0}
+.product-window .history-item details{padding:4px 0 0;min-width:0}
+.product-window .history-item summary{font-size:11px;cursor:pointer;color:var(--od-sub)}
+.product-window .technical{margin-top:6px;background:var(--od-muted);border-radius:7px;padding:9px;font:11px/1.65 ui-monospace,monospace;color:var(--od-sub);overflow-wrap:anywhere}
+.product-window .load-more{margin-top:12px}
+.product-window .runner-container{width:100%;max-width:880px;margin:0 auto;padding:4px 0 25px}
+.product-window .runner-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:0 0 16px}
+.product-window .runner-header h1{font-size:23px;line-height:1.3;letter-spacing:-.04em;margin:0 0 3px}
+.product-window .runner-header p{font-size:12px;color:var(--od-sub)}
+.product-window .runner-host{display:inline-flex;align-items:center;gap:6px;border-radius:99px;border:1px solid var(--od-line);background:var(--od-paper);color:var(--od-sub);padding:5px 10px;font-size:11px;white-space:nowrap}
+.product-window .runner-focus{background:var(--od-paper);border:1px solid var(--od-line);border-radius:12px;padding:20px;display:grid;gap:12px}
+.product-window .focus-kicker{color:var(--od-brand);font-size:11px;letter-spacing:.075em;font-weight:850}
+.product-window .runner-focus h2{font-size:21px;line-height:1.36;letter-spacing:-.025em;margin:0;overflow-wrap:anywhere}
+.product-window .runner-main-time{font-size:24px;font-weight:810;letter-spacing:-.045em;line-height:1.2;font-variant-numeric:tabular-nums}
+.product-window .runner-focus-meta{color:var(--od-sub);font-size:12px;overflow-wrap:anywhere}
+.product-window .runner-focus-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.product-window .runner-secondary{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.product-window .runner-slim{padding:13px;display:grid;gap:5px;align-content:start}
+.product-window .runner-slim .label{font-size:11px;color:var(--od-sub)}
+.product-window .runner-slim strong{font-size:13px;font-weight:760;overflow-wrap:anywhere}
+.product-window .runner-footer{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-top:15px}
+.product-window .runner-help{margin-top:14px;font-size:12px;color:var(--od-sub)}
+.product-window .runner-help summary{cursor:pointer}
+.product-window .runner-help p{margin:7px 0}
+.product-window .scroll-note{font-size:11px;color:var(--od-sub);padding:10px 0}
+.product-window .preview-toast{border-radius:9px;border:1px solid var(--tint-border);background:var(--tint);color:var(--od-ink);padding:9px 10px;margin-bottom:11px;font-size:12px;line-height:1.5}
+.product-window .preview-toast.error{border-color:color-mix(in srgb,var(--od-negative) 40%,var(--od-line));background:color-mix(in srgb,var(--od-negative) 8%,var(--od-paper));color:var(--od-negative)}
+@container (max-width:420px){.product-window .rule-pair{grid-template-columns:1fr}}
+@container (max-width:340px){.product-window .product-content{--od-page-gutter:9px}.product-window .workbench-nav{--od-page-gutter:9px}.product-window .product-identity{--od-page-gutter:9px}.product-window .view-header{gap:5px}.product-window .view-header .od-button{padding-inline:8px}.product-window .plan-actions{gap:6px}.product-window .plan-actions .od-button{min-width:58px;padding-inline:9px}.product-window .manage-controls{grid-template-columns:1fr}.product-window .rule-pair{grid-template-columns:1fr}}
+@container (max-width:260px){.product-window .view-heading{font-size:14px}.product-window .plan-actions{flex-wrap:wrap}.product-window .plan-actions .od-icon-button{margin-left:auto}.product-window .source-grid{grid-template-columns:minmax(0,1fr) 34px 34px;gap:4px}.product-window .plan-next{font-size:17px}.product-window .overview-strip{flex-wrap:wrap}.product-window .manager-actions{display:grid;grid-template-columns:1fr 1fr}}
+@container (max-width:420px){.product-window .runner-header{flex-direction:column}.product-window .runner-secondary{grid-template-columns:1fr}.product-window .runner-focus{padding:12px}.product-window .runner-focus h2{font-size:17px}.product-window .runner-main-time{font-size:21px}.product-window .runner-header h1{font-size:20px}}
+@media(max-width:980px){.review-layout{grid-template-columns:1fr}.review-console{position:static;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.console-section{border:0;border-top:1px solid #34465f;margin-top:0}.review-console>.console-head,.review-console>.console-description,.console-warning,.console-foot{grid-column:1/-1}.review-console .console-description{margin-bottom:0}.review-stage{min-height:0}.review-header{padding:19px 18px 12px}.review-layout{padding:0 18px 25px}}
+@media(max-width:520px){.review-header{flex-direction:column;align-items:flex-start}.review-header h1{font-size:20px}.review-console{display:block}.console-section{margin-top:12px}.review-stage{padding:10px}.review-layout{gap:10px;padding-inline:10px}.review-header{padding-inline:11px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="review-header"><div><p class="review-kicker">OpenDesk Browser / R2.5</p><h1>定时计划 · 界面评审</h1><p>围绕真实 R2 功能设计，切换宽度、状态与任务流程检查布局。</p></div><span class="review-tag">交互原型 · 非真实任务执行</span></header>
+<div class="review-layout">
+  <aside class="review-console" aria-label="预览控制台">
+    <div class="console-head"><span class="console-badge" aria-hidden="true">OD</span>预览控制台</div>
+    <p class="console-description">左侧仅用于设计验收；右侧为计划管理的界面模拟。所有改动仅在当前页面内有效。</p>
+    <div class="console-section"><p class="console-title">预览场景</p>
+      <div class="console-segment" role="group" aria-label="切换预览画布"><button type="button" data-env="side" aria-pressed="true">侧栏</button><button type="button" data-env="runner" aria-pressed="false">独立运行页</button></div>
+    </div>
+    <div class="console-section"><p class="console-title">CSS 宽度 · <span id="width-display">360px</span></p><div class="console-sizes" id="width-controls" role="group" aria-label="预览有效宽度"></div><p class="console-foot">可测试更窄的有效 CSS 宽度；这不是 Chrome 实际 200% 缩放。</p></div>
+    <div class="console-section"><p class="console-title">示例状态与内容</p><label class="console-field" for="scenario-select">数据与运行场景
+      <select id="scenario-select">
+        <option value="trio">3 个计划 · 正常</option><option value="empty">空计划</option><option value="single">单个计划</option>
+        <option value="many">20 条计划</option><option value="long">超长名称和 URL</option><option value="history125">125 条历史</option>
+        <option value="no-tasks">没有已安装任务</option><option value="task-disabled">任务已停用</option>
+        <option value="running">正在运行</option><option value="settling">正在结算</option><option value="success">最近成功</option><option value="failed">最近失败</option>
+        <option value="waiting-host">等待运行宿主</option><option value="waiting-target">等待目标网页</option><option value="waiting-slot">等待执行槽</option>
+        <option value="unknown">结果未确认（不可自动重试）</option><option value="attention">网站权限撤销 / 需处理</option>
+        <option value="paused">计划已暂停</option><option value="missed">计划已错过</option><option value="cancelled">已取消</option>
+        <option value="loading">列表加载中</option><option value="error">列表读取失败</option>
+      </select></label>
+      <label class="console-field" for="theme-select">产品色彩模式<select id="theme-select"><option value="light">浅色</option><option value="dark">深色</option></select></label>
+      <div class="console-actions"><button type="button" class="console-reset" id="reset-preview">↻ 重置演示数据</button></div>
+    </div>
+    <div class="console-warning"><strong>仅界面模拟 · 不运行任务</strong>不调用 Chrome Alarms、Controller、RunHost、授权或真实存储。示例历史中的标识使用 demo 前缀。没有真实任务结果。</div>
+    <p class="console-foot">固定参考时间：2026-10-13 08:10（Asia/Shanghai）。预览根据此时间计算示例下一次执行。</p>
+  </aside>
+  <section class="review-stage" aria-label="产品界面预览">
+    <div class="stage-toolbar"><div class="stage-hint"><span class="stage-dot"></span><strong id="stage-label">Side Panel / 我的 → 定时计划</strong></div><span id="stage-size">360 × 770 CSS px</span></div>
+    <div id="preview-mount" aria-live="off"></div>
+    <div class="viewport-note" id="viewport-note">产品画布模拟 · 非真实扩展 / 非原生缩放截图</div>
+  </section>
+</div>
+<script>
+(()=>{'use strict';
+  const $=id=>document.getElementById(id);
+  const REF=Date.parse('2026-10-13T08:10:00+08:00');
+  const W=['日','一','二','三','四','五','六'];
+  const weekdays=[1,2,3,4,5,6,0];
+
+  // R2.5: choose a concrete IANA time zone instead of requiring users to type it.
+  // Device detection only seeds new plans; existing plans retain their pinned zone.
+  const COMMON_ZONES=[
+    ['Asia/Shanghai','中国 · 北京 / 上海'],['Asia/Hong_Kong','中国 · 香港'],
+    ['Asia/Taipei','中国 · 台北'],['Asia/Tokyo','日本 · 东京'],
+    ['Asia/Seoul','韩国 · 首尔'],['Asia/Singapore','新加坡'],
+    ['Asia/Kolkata','印度 · 加尔各答'],['Asia/Dubai','阿联酋 · 迪拜'],
+    ['Europe/London','英国 · 伦敦'],['Europe/Paris','法国 · 巴黎'],
+    ['Europe/Berlin','德国 · 柏林'],['America/New_York','美国 · 纽约'],
+    ['America/Chicago','美国 · 芝加哥'],['America/Los_Angeles','美国 · 洛杉矶'],
+    ['America/Toronto','加拿大 · 多伦多'],['Australia/Sydney','澳大利亚 · 悉尼'],
+    ['Pacific/Auckland','新西兰 · 奥克兰'],['UTC','协调世界时 UTC']
+  ];
+  const COMMON_LABELS=new Map(COMMON_ZONES);
+  function isTimeZone(zone){
+    if(typeof zone!=='string'||zone.length>80||!(zone==='UTC'||zone.includes('/')))return false;
+    try{new Intl.DateTimeFormat('en-US',{timeZone:zone});return true}catch{return false}
+  }
+  function deviceTimeZone(){
+    try{const zone=Intl.DateTimeFormat().resolvedOptions().timeZone;return isTimeZone(zone)?zone:'UTC'}catch{return 'UTC'}
+  }
+  function timeZoneChoices(selected,query=''){
+    const device=deviceTimeZone(),available=typeof Intl.supportedValuesOf==='function'
+      ?Intl.supportedValuesOf('timeZone'):COMMON_ZONES.map(([zone])=>zone);
+    const supported=new Set([device,selected,...COMMON_ZONES.map(([zone])=>zone),...available].filter(isTimeZone));
+    const needle=query.trim().toLocaleLowerCase('zh-CN');
+    const option=(zone,label,groupLabel='')=>needle&&zone!==selected&&
+      !(zone+' '+label+' '+groupLabel).toLocaleLowerCase('zh-CN').includes(needle)?'':
+      `<option value="${safe(zone)}" ${zone===selected?'selected':''}>${safe(label)}</option>`;
+    const seen=new Set([device]);
+    const detectedLabel=`自动识别 · ${COMMON_LABELS.get(device)||device} (${device})`;
+    const deviceOption=option(device,detectedLabel,'当前设备 · 默认');
+    let html=deviceOption?`<optgroup label="当前设备 · 默认">${deviceOption}</optgroup>`:'';
+    let common='';
+    for(const [zone,name] of COMMON_ZONES){if(zone!==device&&supported.has(zone)){seen.add(zone);common+=option(zone,`${name} (${zone})`,'常用地区')}}
+    if(common)html+=`<optgroup label="常用地区">${common}</optgroup>`;
+    const labels={Africa:'非洲',America:'美洲',Antarctica:'南极地区',Asia:'亚洲',Atlantic:'大西洋地区',Australia:'澳大利亚',Europe:'欧洲',Indian:'印度洋地区',Pacific:'太平洋地区',Etc:'其他'};
+    const groups=new Map();
+    for(const zone of [...supported].sort()){if(seen.has(zone))continue;const region=zone.split('/')[0];if(!groups.has(region))groups.set(region,[]);groups.get(region).push(zone);seen.add(zone)}
+    for(const [region,name] of Object.entries(labels)){
+      const list=groups.get(region)||[];
+      const matches=list.map(z=>option(z,COMMON_LABELS.get(z)||z.replaceAll('_',' '),name)).join('');
+      if(matches)html+=`<optgroup label="${name}">${matches}</optgroup>`;
+    }
+    return html;
+  }
+
+  const statusText={READY:'待执行',WAITING_HOST:'等待运行页',WAITING_TARGET:'等待目标页',WAITING_SLOT:'等待执行槽',ADMITTED:'已启动',RUNNING:'运行中',SETTLING:'正在结算',SUCCESS:'成功',FAILED:'失败',STOPPED:'已停止',UNKNOWN:'结果未确认',MISSED:'已错过',CANCELLED:'已取消',NEEDS_ATTENTION:'需要处理'};
+  const states=new Set(['READY','WAITING_HOST','WAITING_TARGET','WAITING_SLOT','ADMITTED','RUNNING','SETTLING']);
+  const safe=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const pad=x=>String(x).padStart(2,'0');
+  const icons={back:'<path d="M19 12H5m7-7-7 7 7 7"/>',more:'<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>',script:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8"/>',manage:'<path d="M9 6h12M9 12h12M9 18h12M3 6l1 1 2-2M3 12l1 1 2-2M3 18l1 1 2-2"/>',clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'};
+  const svg=name=>`<svg viewBox="0 0 24 24" aria-hidden="true">${icons[name]}</svg>`;
+  // Same time semantics as schedule-time.js: IANA time zone, DST gap moves forward,
+  // fold chooses first occurrence, interval uses fixed anchor. Only fixture math.
+  const formatters=new Map();
+  function civil(zone,at){let f=formatters.get(zone);if(!f){f=new Intl.DateTimeFormat('en-US-u-ca-gregory',{timeZone:zone,hourCycle:'h23',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});formatters.set(zone,f)}return Object.fromEntries(f.formatToParts(new Date(at)).filter(x=>x.type!=='literal').map(x=>[x.type,Number(x.value)]));}
+  const nominal=c=>Date.UTC(c.year,c.month-1,c.day,c.hour??0,c.minute??0);
+  function exact(zone,c){const wanted=nominal(c),offsets=new Set();for(const h of [-36,-12,0,12,36]){const t=wanted+h*3600000,z=civil(zone,t);offsets.add(nominal(z)-Math.floor(t/60000)*60000)}return [...offsets].map(o=>wanted-o).filter(t=>t>=0&&Number.isFinite(t)&&Object.keys(c).every(k=>civil(zone,t)[k]===c[k])).sort((a,b)=>a-b)[0]??null;}
+  function wall(zone,day,h,m){const expected={...day,hour:h,minute:m},found=exact(zone,expected);if(found!==null)return found;for(let step=1;step<=180;step++){const d=new Date(nominal(expected)+step*60000),target={year:d.getUTCFullYear(),month:d.getUTCMonth()+1,day:d.getUTCDate(),hour:d.getUTCHours(),minute:d.getUTCMinutes()},v=exact(zone,target);if(v!==null)return v;}throw Error('不支持的时区转换');}
+  function validateZone(zone){if(typeof zone!=='string'||zone.length>80||!(zone==='UTC'||zone.includes('/')))throw Error('请输入有效的 IANA 时区，例如 Asia/Shanghai');try{new Intl.DateTimeFormat('en-US',{timeZone:zone})}catch{throw Error('IANA 时区不存在')}}
+  function parseOnce(zone,value){validateZone(zone);const m=/^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d)$/.exec(value||'');if(!m)throw Error('请选择有效的执行日期和时间');const [y,mo,d,h,mi]=m.slice(1).map(Number),dt=new Date(Date.UTC(y,mo-1,d));if(y<1970||dt.getUTCFullYear()!==y||dt.getUTCMonth()+1!==mo||dt.getUTCDate()!==d||h>23||mi>59)throw Error('无效的日期和时间');return wall(zone,{year:y,month:mo,day:d},h,mi);}
+  function nextAt(kind,spec,zone,after=REF){validateZone(zone);if(kind==='once')return spec.at>after?spec.at:null;if(kind==='interval'){const m=Number(spec.everyMinutes);if(!Number.isSafeInteger(m)||m<1||m>10080)throw Error('间隔分钟必须为 1–10080');const span=m*60000,steps=after<spec.anchorAt?0:Math.floor((after-spec.anchorAt)/span)+1;return spec.anchorAt+steps*span;}if(!['daily','weekly'].includes(kind))throw Error('未知频率');const hour=Number(spec.hour),minute=Number(spec.minute);if(!Number.isInteger(hour)||hour<0||hour>23||!Number.isInteger(minute)||minute<0||minute>59)throw Error('执行时间无效');if(kind==='weekly'&&(!Array.isArray(spec.days)||!spec.days.length))throw Error('每周至少选择一天');const now=civil(zone,after);for(let delta=0;delta<(kind==='weekly'?15:3);delta++){const d=new Date(Date.UTC(now.year,now.month-1,now.day+delta));if(kind==='weekly'&&!spec.days.includes(d.getUTCDay()))continue;const at=wall(zone,{year:d.getUTCFullYear(),month:d.getUTCMonth()+1,day:d.getUTCDate()},hour,minute);if(at>after)return at;}throw Error('没有后续执行时间');}
+  const dateFull=(at,zone)=>{if(!Number.isFinite(at))return '暂无';try{return new Intl.DateTimeFormat('zh-CN',{timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit',weekday:'short',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(at));}catch{return '时间不可用'}};
+  function dateShort(at,zone){if(!Number.isFinite(at))return '暂无下次执行';const c=civil(zone,at),ref=civil(zone,REF);const isToday=c.year===ref.year&&c.month===ref.month&&c.day===ref.day;const tomorrowDate=new Date(Date.UTC(ref.year,ref.month-1,ref.day+1));const isTomorrow=c.year===tomorrowDate.getUTCFullYear()&&c.month===tomorrowDate.getUTCMonth()+1&&c.day===tomorrowDate.getUTCDate();return `${isToday?'今天':isTomorrow?'明天':`${c.month}月${c.day}日`} ${pad(c.hour)}:${pad(c.minute)}`;}
+  const frequency=p=>{const s=p.spec;if(p.kind==='once')return '执行一次';if(p.kind==='daily')return `每天 ${pad(s.hour)}:${pad(s.minute)}`;if(p.kind==='weekly')return '每周'+(s.days||[]).slice().sort((a,b)=>((a+6)%7)-((b+6)%7)).map(d=>W[d]).join('、')+` ${pad(s.hour)}:${pad(s.minute)}`;return `每隔 ${s.everyMinutes} 分钟`};
+  const catalogSeed=()=>[
+    {id:'sample.form-fill',title:'客户日报整理',version:'1.2.0',origin:'https://example.com',enabled:true,installed:true,permitted:true,generation:3},
+    {id:'demo.price-check',title:'商品价格检查',version:'1.4.0',origin:'https://store.example.com',enabled:true,installed:true,permitted:true,generation:1},
+    {id:'demo.crm-summary',title:'CRM 周报同步',version:'2.0.0',origin:'https://crm.example.com',enabled:true,installed:true,permitted:true,generation:7}
+  ];
+  function makePlan(id,title,taskId,kind,spec,zone='Asia/Shanghai',paused=false){const task=catalogSeed().find(t=>t.id===taskId);return {id,title,taskId,version:task?.version||'1.0.0',target:task.origin+'/dashboard',params:'{}',kind,spec,zone,paused,misfire:'skip',openTarget:false,deadline:5,generation:1,attention:false,history:[]};}
+  function historySeed(n,firstStatus='SUCCESS',id='s1'){return Array.from({length:n},(_,i)=>{const status=i===0?firstStatus:i%9===0?'FAILED':i%13===0?'UNKNOWN':'SUCCESS';return {key:`demo-fire-${id}-${pad(i+1)}`,at:REF-(i+1)*86400000,status,run:status==='MISSED'||status==='WAITING_HOST'||status==='WAITING_TARGET'?null:`demo-run-${id}-${pad(i+1)}`,result:['SUCCESS','FAILED','STOPPED','UNKNOWN'].includes(status)?`demo-result-${id}-${pad(i+1)}`:null,retirement:['SETTLING','RUNNING','UNKNOWN'].includes(status)?'pending':'released'};});}
+  function seed(scenario){const tasks=catalogSeed(),p1=makePlan('s1','每日客户数据检查','sample.form-fill','daily',{hour:9,minute:0}),p2=makePlan('s2','商品价格变化提醒','demo.price-check','interval',{anchorAt:Date.parse('2026-10-13T07:40:00+08:00'),everyMinutes:30}),p3=makePlan('s3','每周 CRM 数据同步','demo.crm-summary','weekly',{hour:10,minute:30,days:[1,3,5]});p1.history=historySeed(3);p2.history=historySeed(2);p3.history=historySeed(3);let plans=[p1,p2,p3],active=null,host='ready',load='',message='';
+    if(scenario==='empty')plans=[];if(scenario==='single')plans=[p1];
+    if(scenario==='many')plans=Array.from({length:20},(_,i)=>{let p={...p1,id:'s'+(i+1),title:['客户资料定期核查','每周业务更新','销售报表生成','自动数据同步'][i%4]+` · ${pad(i+1)}`,spec:i%3===0?{hour:9+i%8,minute:0}:i%3===1?{hour:12,minute:15}:{hour:16,minute:30},history:historySeed(i%3,i===1?'FAILED':'SUCCESS','m'+i)};return p});
+    if(scenario==='history125'){p1.history=historySeed(125);plans=[p1]}
+    if(scenario==='long'){p1.title='面向多个业务系统的每日数据校对、异常提醒和跨区域销售运营报表自动化同步计划（很长的中文标题演示）';p1.target='https://example.com/long/very-long-long-long-long-long-long-long-long-long-long-long-long-long-long-url?source=review&device=preview';plans=[p1,p2,p3]}
+    if(scenario==='no-tasks'){tasks.length=0;plans=[];message='当前没有可用的已验证安装任务。创建计划前，请到「开发」中验证并安装。'}
+    if(scenario==='task-disabled'){tasks[0].enabled=false;p1.attention=true;p1.attentionReason='关联任务已停用。需先检查安装任务，再核对固定版本。';plans=[p1]}
+    const special={running:'RUNNING',settling:'SETTLING',success:'SUCCESS',failed:'FAILED','waiting-host':'WAITING_HOST','waiting-target':'WAITING_TARGET','waiting-slot':'WAITING_SLOT',unknown:'UNKNOWN',attention:'NEEDS_ATTENTION',missed:'MISSED',cancelled:'CANCELLED'};
+    if(special[scenario]){p1.history=historySeed(20,special[scenario]);plans=[p1];if(['RUNNING','SETTLING'].includes(special[scenario]))active={planId:p1.id,run:'demo-active-run',status:special[scenario]};}
+    if(scenario==='waiting-host'){host='waiting';message='没有可见运行宿主，计划到期后只能等待或按错过规则处理。'}
+    if(scenario==='waiting-target')message='目标网页尚未可用。仅在允许“新开标签页”时，原宿主才可能打开目标页。';
+    if(scenario==='waiting-slot')message='全局执行槽繁忙。不会并行启动第二个 Controller Run。';
+    if(scenario==='unknown')message='执行结果未确认：不可自动重试同一触发实例，避免重复网页副作用。';
+    if(scenario==='attention'){p1.attention=true;tasks[0].permitted=false;p1.attentionReason='网站权限已撤销。前往 Chrome 扩展详情页的网站访问设置处理；原任务版本不会自动替换。';message='网站权限撤销需要在 Chrome 设置中处理，当前预览不能发起授权。'}
+    if(scenario==='paused'){p1.paused=true;plans=[p1];}
+    if(scenario==='loading'){load='loading';plans=[];}
+    if(scenario==='error'){load='error';plans=[];}
+    return {tasks,plans,active,host,load,message};
+  }
+  const makeDraft=(p=null)=>p?{title:p.title,taskId:p.taskId,target:p.target,params:p.params,kind:p.kind,zone:p.zone,once:p.kind==='once'?(()=>{const t=civil(p.zone,p.spec.at);return `${t.year}-${pad(t.month)}-${pad(t.day)}T${pad(t.hour)}:${pad(t.minute)}`})():'2026-10-13T09:30',clock:`${pad(p.spec.hour??9)}:${pad(p.spec.minute??0)}`,days:[...(p.spec.days||[1,3,5])],minutes:p.spec.everyMinutes||60,misfire:p.misfire,openTarget:p.openTarget,deadline:p.deadline,paused:p.paused,intervalAnchor:p.spec.anchorAt}: {title:'',taskId:'',target:'',params:'{}',kind:'once',zone:deviceTimeZone(),once:'2026-10-13T09:30',clock:'09:00',days:[1,3,5],minutes:60,misfire:'skip',openTarget:false,deadline:5,paused:false,intervalAnchor:null};
+  const s={env:'side',width:360,scenario:'trio',theme:'light',view:'list',...seed('trio'),menu:null,deleteId:null,confirm:false,cancelConfirm:false,uninstallId:null,managerFilter:'all',managerSearch:'',managerBack:'list',historyId:null,historyLimit:20,draft:makeDraft(),editing:null,dirty:false,errors:{},toast:'',toastError:false,advanced:false};
+  function updateScenario(name){Object.assign(s,seed(name));s.scenario=name;s.view=s.env==='runner'?'runner':'list';s.menu=null;s.deleteId=null;s.confirm=false;s.cancelConfirm=false;s.uninstallId=null;s.historyId=null;s.historyLimit=20;s.draft=makeDraft();s.editing=null;s.dirty=false;s.errors={};s.toast='';s.toastError=false;render();}
+  const nextPlan=p=>{if(!p||p.paused||p.attention)return null;try{return nextAt(p.kind,p.spec,p.zone)}catch{return null}};
+  const ordered=()=>s.plans.slice().sort((a,b)=>(nextPlan(a)??Infinity)-(nextPlan(b)??Infinity));
+  const eligibleTasks=()=>s.tasks.filter(t=>t.enabled&&t.installed);
+  const taskOf=id=>s.tasks.find(t=>t.id===id);
+  function planStatus(p){return p.paused?['已暂停','']:p.attention?['需要处理','warn']:['已启用','ok'];}
+  function prettyReason(status){return ({WAITING_HOST:'该次触发尚无可见的执行宿主；需打开 Side Panel 或运行页。',WAITING_TARGET:'等待符合已批准网址范围的目标网页。',WAITING_SLOT:'全局执行槽被占用，当前实例正在等待。',ADMITTED:'已获得原 Controller 执行准入；尚不能判断结果。',RUNNING:'正在由可见宿主运行。',SETTLING:'执行已进入资源结算，暂不能视为成功。',FAILED:'最近一次任务执行失败；可查看原始历史。',UNKNOWN:'结果未确认，不能自动重试或认定成功。',MISSED:'本次错过触发；依所选错过策略处理，不自动重复网页副作用。',CANCELLED:'本次触发已取消，不会自动重放。',NEEDS_ATTENTION:'固定安装身份或网站权限发生变化，需要人工处理。',STOPPED:'最近一次已停止。'})[status]||'';}
+  const countStatus=()=>s.plans.reduce((r,p)=>(r[p.paused?'paused':p.attention?'attention':'active']++,r),{active:0,paused:0,attention:0});
+  function iconButton(name,aria,action,extra=''){return `<button type="button" class="od-icon-button" title="${safe(aria)}" aria-label="${safe(aria)}" data-action="${action}" ${extra}>${svg(name)}</button>`;}
+  function sectionHeader(title,right=''){return `<div class="section-heading"><h2>${title}</h2>${right}</div>`;}
+  function toast(){return s.toast?`<div class="preview-toast ${s.toastError?'error':''}" role="status" aria-live="polite">${safe(s.toast)}</div>`:'';}
+  function viewHeader(title,create=false){return `<header class="view-header">${iconButton('back',s.view==='list'?'返回我的任务':s.env==='runner'?'返回运行概览':'返回计划列表','back')}<h1 class="view-heading" title="${safe(title)}">${safe(title)}</h1>${create?'<button type="button" class="od-button" data-action="create">＋ 新建</button>':''}${s.active&&s.view==='list'?'<button type="button" class="od-button od-button--secondary" data-action="stop" title="模拟停止当前 Controller Run">停止本次</button>':''}</header>`;}
+  function renderPlan(p){const task=taskOf(p.taskId),status=planStatus(p),next=nextPlan(p),h=p.history?.[0],menu=s.menu===p.id,del=s.deleteId===p.id;
+    return `<article class="plan-card od-surface" data-plan-card="${safe(p.id)}">
+      <div class="plan-head"><h3 class="plan-title" title="${safe(p.title)}">${safe(p.title)}</h3><span class="badge ${status[1]}">${status[0]}</span></div>
+      <span class="plan-next-label">下次执行</span><div class="plan-next">${safe(p.paused?'已暂停':p.attention?'等待处理':dateShort(next,p.zone))}</div>
+      <p class="plan-meta">${safe(frequency(p))} · ${safe(task?.title||p.taskId)}</p>
+      ${p.attention?`<p class="plan-context">${safe(p.attentionReason||'任务安装身份或网站权限需要处理。')} <button type="button" class="text-link" data-action="manager">查看任务</button></p>`:''}
+      ${h&&['UNKNOWN','FAILED','WAITING_HOST','WAITING_TARGET','WAITING_SLOT','RUNNING','SETTLING'].includes(h.status)?`<div class="plan-context ${h.status==='UNKNOWN'||h.status==='FAILED'?'':'neutral'}">${safe(statusText[h.status])} · ${safe(prettyReason(h.status))}</div>`:''}
+      <div class="plan-actions"><button type="button" class="od-button od-button--secondary" data-action="${p.paused?'resume':'pause'}" data-id="${safe(p.id)}" ${p.attention&&!p.paused?'disabled title="需要先处理任务身份或网站权限"':''}>${p.paused?'恢复':'暂停'}</button>
+        <button type="button" class="od-button od-button--quiet" data-action="edit" data-id="${safe(p.id)}">编辑</button>
+        ${iconButton('more','更多操作','more',`data-id="${safe(p.id)}" aria-expanded="${menu}"`)}</div>
+      ${menu?`<div class="more-menu" role="group" aria-label="${safe(p.title)} 更多操作"><button type="button" class="od-button od-button--quiet" data-action="history" data-id="${safe(p.id)}">运行记录</button><button type="button" class="od-button danger-action" data-action="delete" data-id="${safe(p.id)}">删除计划</button></div>`:''}
+      ${del?`<div class="inline-confirm" role="group" aria-label="确认删除计划"><strong>删除「${safe(p.title)}」？</strong><p>仅删除计划定义。已有 Run/Result 历史不会因此清除。</p><div class="od-toolbar"><button type="button" class="od-button destructive" data-action="delete-yes" data-id="${safe(p.id)}">确认删除</button><button type="button" class="od-button od-button--quiet" data-action="delete-no">取消</button></div></div>`:''}
+    </article>`;}
+  function renderList(){const count=countStatus(),all=ordered(),upcoming=all.find(p=>nextPlan(p)!==null),latest=s.plans.flatMap(p=>(p.history||[]).map(h=>({p,h}))).sort((a,b)=>b.h.at-a.h.at)[0];
+    const body=s.load==='loading'?'<p class="inline-info" role="status">正在读取计划与已安装任务…</p>':s.load==='error'?`<div class="inline-warning" role="alert">读取定时计划失败。真实 UI 保留计划数据，不会自动删除或新建。</div><button type="button" class="od-button od-button--secondary" data-action="mock-reload">重新模拟读取</button>`:!all.length?`<div class="empty-state"><div class="empty-icon" aria-hidden="true">${svg('clock')}</div><strong>还没有定时计划</strong><p class="muted">点击右上角「新建」，为已验证且安装的 Controller 任务安排时间。</p></div>`:`<div class="plan-list">${all.map(renderPlan).join('')}</div>`;
+    return `${viewHeader('定时计划',true)}${toast()}
+      <div class="overview-strip"><span><strong>${s.plans.length}</strong> 个计划 · ${count.active} 启用${count.attention?' · '+count.attention+' 需处理':''}${count.paused?' · '+count.paused+' 暂停':''}</span>${upcoming?`<span>最近 <strong>${safe(dateShort(nextPlan(upcoming),upcoming.zone))}</strong></span>`:''}</div>
+      <div class="host-row"><span class="status-dot ${s.host==='waiting'?'warn':''}"></span><span class="host-copy">${s.host==='waiting'?'暂时没有可见运行宿主':'当前侧栏可见 · 可检查到期任务'}</span><button type="button" class="text-link" data-action="runner">运行页 ↗</button></div>
+      ${s.message?`<div class="inline-warning">${safe(s.message)}</div>`:''}
+      ${sectionHeader('我的计划',`<button class="text-link" type="button" data-action="recent-history" ${latest?'':'disabled'}>最近运行记录 →</button>`)}
+      ${body}
+      <details class="summary-panel"><summary>本地运行记录与存储</summary><p class="muted">历史按计划每次加载 20 条；未提供自动清理。生产版仅可读取整个 OpenDesk 扩展来源的 Chrome 存储估算，非定时任务独立占用。</p></details>`;}
+  function taskChoices(){return `<option value="">请选择已安装并验证的任务</option>${eligibleTasks().map(t=>`<option value="${safe(t.id)}" ${s.draft.taskId===t.id?'selected':''}>${safe(t.title)} · v${safe(t.version)}</option>`).join('')}`;}
+  function formTimeSpec(d=s.draft){if(d.kind==='once')return {kind:'once',spec:{at:parseOnce(d.zone,d.once)}};if(d.kind==='interval'){const m=Number(d.minutes);const anchor=d.intervalAnchor||REF+m*60000;return {kind:'interval',spec:{anchorAt:anchor,everyMinutes:m}}}const match=/^(\d\d):(\d\d)$/.exec(d.clock||'');if(!match)throw Error('请输入有效的当地时间');const spec={hour:Number(match[1]),minute:Number(match[2])};if(d.kind==='weekly')spec.days=d.days;return {kind:d.kind,spec};}
+  function formNext(){try{const d=s.draft,t=formTimeSpec();const next=nextAt(t.kind,t.spec,d.zone);if(next===null)throw Error('没有未来触发时间');return {next,label:dateFull(next,d.zone)}}catch(e){return {next:null,label:e.message||'请检查时间规则'}}}
+  function renderForm(){const d=s.draft,task=taskOf(d.taskId),eligible=eligibleTasks().some(t=>t.id===d.taskId),rule=formNext(),editing=Boolean(s.editing);let sourceMessage=task?`固定版本 v${task.version} · 网站：${task.origin} · ${task.permitted?'网站权限已具备（模拟）':'网站权限不足，需在 Chrome 设置中处理'}`:'选择任务后显示固定版本和批准的网站范围';if(!s.tasks.length)sourceMessage='尚无已验证并安装的 Controller Task，需先到开发页完成验证安装';
+    const error=k=>`<p class="inline-error" id="error-${k}" role="alert">${safe(s.errors[k]||'')}</p>`;
+    const attr=k=>s.errors[k]?'aria-invalid="true"':'aria-invalid="false"';
+    return `${viewHeader(editing?'编辑计划':'新建计划')}${toast()}
+    ${s.message&&(!eligible||task&&!task.permitted)?`<div class="inline-warning">${safe(s.message)}</div>`:''}
+    <form id="plan-form" novalidate autocomplete="off">
+      <section class="form-section"><p class="form-title"><b>1</b>名称与执行任务</p>
+        <div class="od-field"><label for="field-title">计划名称</label><input id="field-title" type="text" maxlength="100" required data-field="title" value="${safe(d.title)}" placeholder="例如：每日客户数据检查" ${attr('title')} aria-describedby="error-title">${error('title')}</div>
+        <div class="od-field"><label for="field-taskId">执行任务（已验证并安装）</label><div class="source-grid"><select id="field-taskId" data-field="taskId" aria-label="已安装任务" aria-describedby="error-task source-summary" ${attr('task')}>${taskChoices()}</select>
+          ${iconButton('script','新建脚本 · 前往开发','new-script')}${iconButton('manage','管理任务 · 搜索与启停','manager')}</div>${error('task')}</div>
+        <div id="source-summary" class="source-info ${task&&!task.permitted?'error':''}">${safe(sourceMessage)}${editing?'<p class="small">编辑不会自动替换原绑定的版本、安装身份或授权代次。</p>':''}</div>
+      </section>
+      <section class="form-section"><p class="form-title"><b>2</b>目标网页与参数</p>
+        <div class="od-field"><label for="field-target">目标网页 URL</label><input type="url" id="field-target" data-field="target" maxlength="2048" required spellcheck="false" value="${safe(d.target)}" placeholder="https://example.com/dashboard" ${attr('target')} aria-describedby="error-target"><p class="field-help">只允许任务批准范围内的 HTTP(S) 网站；不能包含账号密码或 # 片段。</p>${error('target')}</div>
+        <div class="od-field"><label for="field-params">参数（JSON 对象）</label><textarea id="field-params" data-field="params" aria-describedby="error-params" ${attr('params')}>${safe(d.params)}</textarea>${error('params')}</div>
+      </section>
+      <section class="form-section"><p class="form-title"><b>3</b>执行时间</p>
+        <div class="rule-pair"><div class="od-field"><label for="field-kind">重复规则</label><select id="field-kind" data-field="kind">${[['once','执行一次'],['daily','每天'],['weekly','每周'],['interval','每隔一段时间']].map(([v,t])=>`<option value="${v}" ${d.kind===v?'selected':''}>${t}</option>`).join('')}</select></div>
+          <div class="od-field"><label for="field-zone">执行时区</label><input type="search" id="zone-query" autocomplete="off" spellcheck="false" aria-label="筛选城市或 IANA 时区（不直接修改时区）" aria-controls="field-zone" placeholder="搜索城市或 IANA 时区"><select id="field-zone" data-field="zone" aria-describedby="zone-help error-time">${timeZoneChoices(d.zone)}</select><p class="field-help" id="zone-help">新建自动识别，编辑保留原时区。只有选中下拉项才更改，保存后固定。</p><p id="zone-search-result" class="field-help" role="status" aria-live="polite"></p></div></div>
+        ${d.kind==='once'?`<div class="od-field"><label for="field-once">执行日期和时间（当地）</label><input id="field-once" type="datetime-local" data-field="once" value="${safe(d.once)}" aria-describedby="error-time"></div>`:''}
+        ${['daily','weekly'].includes(d.kind)?`<div class="od-field"><label for="field-clock">当地时间</label><input type="time" id="field-clock" data-field="clock" value="${safe(d.clock)}" aria-describedby="error-time"></div>`:''}
+        ${d.kind==='weekly'?`<fieldset class="weekdays"><legend>选择每周执行的日期</legend>${weekdays.map(v=>`<label><input type="checkbox" data-weekday="${v}" ${d.days.includes(v)?'checked':''}>周${W[v]}</label>`).join('')}</fieldset>`:''}
+        ${d.kind==='interval'?`<div class="od-field"><label for="field-minutes">间隔分钟（1–10080）</label><input type="number" id="field-minutes" min="1" max="10080" step="1" data-field="minutes" value="${safe(d.minutes)}" aria-describedby="error-time"></div>`:''}
+        <div class="next-callout" role="status" aria-live="polite"><span>预计下次执行 · ${safe(d.zone)}</span><strong id="next-preview">${safe(rule.label)}</strong><small>示例基于固定参考时间，仅用于检查排版与规则。</small></div>${error('time')}
+      </section>
+      <details class="advanced" id="advanced-panel" ${s.advanced?'open':''}><summary>高级选项 · 目标网页与错过策略</summary><div class="advanced-inner">
+        <label class="checkline"><input type="checkbox" data-field="openTarget" ${d.openTarget?'checked':''}>找不到已打开的目标页时，本次允许新开标签页</label>
+        <div class="od-field"><label for="field-misfire">错过触发</label><select id="field-misfire" data-field="misfire"><option value="skip" ${d.misfire==='skip'?'selected':''}>跳过错过的执行</option><option value="latest-within-hour" ${d.misfire==='latest-within-hour'?'selected':''}>只补最近 1 小时内的一次</option></select></div>
+        <div class="od-field"><label for="field-deadline">最长等待执行条件（分钟）</label><input id="field-deadline" type="number" min="1" max="60" step="1" data-field="deadline" value="${safe(d.deadline)}" aria-describedby="error-time"></div>
+        <label class="checkline"><input type="checkbox" data-field="paused" ${d.paused?'checked':''}>保存后先暂停</label>
+      </div></details>
+      ${s.confirm?renderSaveConfirm():''}
+      ${s.cancelConfirm?`<div class="inline-confirm" role="group" aria-label="放弃未保存修改"><strong>放弃当前未保存的修改？</strong><div class="od-toolbar"><button type="button" class="od-button danger-action" data-action="discard-form">放弃修改</button><button type="button" class="od-button od-button--secondary" data-action="stay-form">继续编辑</button></div></div>`:''}
+      <div class="form-footer"><button id="form-check" type="submit" class="od-button">检查并确认</button><button type="button" class="od-button od-button--quiet" data-action="cancel-form">返回列表</button></div>
+    </form>`;}
+  function renderSaveConfirm(){const d=s.draft,next=formNext(),task=taskOf(d.taskId);return `<div class="confirm-panel od-surface" role="group" aria-label="保存前确认"><h3>保存前，请核对这些信息</h3>
+    <div class="confirm-summary"><strong>${safe(d.title)}</strong><span>任务：${safe(task?.title)} · v${safe(task?.version)}</span><span>网站：${safe(d.target)}</span><span>执行：${safe(frequency({kind:d.kind,spec:formTimeSpec().spec}))}</span><span>时区：${safe(d.zone)}（保存时固定）</span><span>下次：${safe(next.label)}</span><span>保存状态：${d.paused?'先暂停':'已启用'}</span></div>
+    <div class="od-toolbar" style="flex-wrap:wrap"><button type="button" class="od-button" data-action="save-yes">确认并保存</button><button type="button" class="od-button od-button--secondary" data-action="save-no">返回修改</button></div><p class="small">仅更新本页演示数据，不生成真实闹钟或执行结果。</p></div>`;}
+  function renderManager(){const rows=managerRows();return `${viewHeader('任务管理')}${toast()}${sectionHeader('已安装任务',`<button type="button" class="text-link" data-action="new-script">＋ 新建脚本 ↗</button>`)}
+    <div class="manage-controls"><div class="od-field"><label for="manager-query">搜索</label><input type="search" placeholder="任务名称 / ID" id="manager-query" value="${safe(s.managerSearch)}" aria-label="搜索已安装任务"></div>
+    <div class="od-field"><label for="manager-filter">状态</label><select id="manager-filter" aria-label="任务状态筛选"><option value="all" ${s.managerFilter==='all'?'selected':''}>全部</option><option value="enabled" ${s.managerFilter==='enabled'?'selected':''}>已启用</option><option value="disabled" ${s.managerFilter==='disabled'?'selected':''}>已停用</option></select></div></div>
+    <div id="manager-cards" class="od-stack">${rows.map(managerCard).join('')||'<div class="empty-state"><strong>没有符合条件的任务</strong><p class="muted">请修改筛选条件，或从开发页验证并安装一个任务。</p></div>'}</div>`;}
+  const managerRows=()=>s.tasks.filter(t=>(s.managerFilter==='all'||t.enabled===(s.managerFilter==='enabled'))&&`${t.id} ${t.title}`.toLowerCase().includes(s.managerSearch.trim().toLowerCase()));
+  function managerCard(t){return `<article class="manager-card od-surface" data-manager-card="${safe(t.id)}"><div class="manager-head"><strong class="manager-title" title="${safe(t.title)}">${safe(t.title)}</strong><span class="badge ${t.enabled?'ok':''}">${t.enabled?'已启用':'已停用'}</span></div>
+    <div class="manager-detail">固定版本 v${safe(t.version)} · 关联计划 ${s.plans.filter(p=>p.taskId===t.id).length}</div>
+    <div class="manager-detail">授权网站：${safe(t.origin)} · ${t.permitted?'已授权（模拟）':'权限需要处理'}</div>
+    <div class="manager-actions"><button type="button" class="od-button od-button--secondary" data-action="schedule-task" data-id="${safe(t.id)}" ${!t.enabled?'disabled title="任务已停用"':''}>设置定时</button>
+      <button type="button" class="od-button od-button--quiet" data-action="toggle-task" data-id="${safe(t.id)}">${t.enabled?'停用':'启用'}</button>
+      <button type="button" class="od-button od-button--quiet" data-action="copy-task" data-id="${safe(t.id)}">复制到开发</button>
+      <button type="button" class="od-button danger-action" data-action="uninstall-task" data-id="${safe(t.id)}">卸载</button></div>
+    ${s.uninstallId===t.id?`<div class="inline-confirm" role="group" aria-label="确认卸载任务"><strong>卸载「${safe(t.title)}」v${safe(t.version)}？</strong><p>关联计划不会自动换绑新版本；历史保留。</p><div class="od-toolbar"><button type="button" class="od-button destructive" data-action="uninstall-yes" data-id="${safe(t.id)}">确认卸载</button><button type="button" class="od-button od-button--quiet" data-action="uninstall-no">取消</button></div></div>`:''}
+  </article>`;}
+  function renderHistory(){const p=s.plans.find(x=>x.id===s.historyId)||ordered()[0];if(!p)return `${viewHeader('运行记录')}<div class="empty-state">暂无运行记录。</div>`;const items=(p.history||[]).slice(0,s.historyLimit),hasMore=p.history.length>s.historyLimit;return `${viewHeader('运行记录')}${toast()}<div class="section-heading"><h2 title="${safe(p.title)}" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${safe(p.title)}</h2><span class="small">${p.history.length} 条示例</span></div><div class="od-surface" style="padding:0 12px">${items.length?items.map(h=>`<article class="history-item"><div class="od-toolbar" style="justify-content:space-between;align-items:start"><strong>${safe(dateFull(h.at,p.zone))}</strong><span class="badge ${h.status==='SUCCESS'?'ok':h.status==='UNKNOWN'||h.status==='FAILED'?'danger':''}">${safe(statusText[h.status]||h.status)}</span></div>${prettyReason(h.status)?`<p class="muted">${safe(prettyReason(h.status))}</p>`:''}
+    ${h.run?`<details><summary>技术详情</summary><div class="technical">FireId: ${safe(h.key)}<br>RunId: ${safe(h.run)}<br>ResultId: ${safe(h.result||'未生成')}<br>资源：${h.retirement==='released'?'已释放':'尚未结算'}<br>demo 标识 · 非真实执行结果</div></details>`:''}</article>`).join(''):'<div class="empty-state">还没有运行记录。</div>'}</div>${hasMore?`<button type="button" class="od-button od-button--secondary load-more" data-action="load-history">加载更早记录（每次 20 条）</button>`:''}<p class="scroll-note">历史仅展示，不重新触发任务；结果未确认的执行不会自动重试。</p>`;}
+  function renderRunner(){const upcoming=ordered().find(p=>nextPlan(p)!==null),focus=s.active?s.plans.find(p=>p.id===s.active.planId):upcoming||ordered()[0],next=focus?nextPlan(focus):null,active=s.active,latest=s.plans.flatMap(p=>(p.history||[]).map(h=>({p,h}))).sort((a,b)=>b.h.at-a.h.at)[0];
+    const header=`<header class="runner-header"><div><h1>运行概览</h1><p>定时任务的可见运行页面</p></div><span class="runner-host"><span class="status-dot"></span>可见运行宿主</span></header>`;
+    const main=focus?`<div class="focus-kicker">${active?'当前执行':'下一条计划'}</div><h2>${safe(focus.title)}</h2><div class="runner-main-time">${active?safe(statusText[active.status]):safe(focus.paused?'计划已暂停':focus.attention?'需要处理':dateShort(next,focus.zone))}</div>
+      <div class="runner-focus-meta">${safe(frequency(focus))} · ${safe(taskOf(focus.taskId)?.title||focus.taskId)} · ${safe(focus.zone)}</div>
+      ${(active||focus.attention||focus.history?.[0]&&focus.history[0].status==='UNKNOWN')?`<div class="inline-warning">${safe(active?'正在使用已有 Controller 执行槽；真实 Stop 只能停止原当前 RunId。':focus.attention?'计划的固定任务身份或网站权限需要处理。':'上次结果未确认，不能自动重试同一触发。')}</div>`:''}
+      <div class="runner-focus-actions">${active?'<button type="button" class="od-button" data-action="stop">停止本次（模拟）</button>':`<button type="button" class="od-button od-button--secondary" data-action="${focus.paused?'resume':'pause'}" data-id="${safe(focus.id)}" ${focus.attention&&!focus.paused?'disabled':''}>${focus.paused?'恢复计划':'暂停计划'}</button>`}
+        <button type="button" class="od-button od-button--quiet" data-action="history" data-id="${safe(focus.id)}">运行记录</button></div>`:
+      `<div class="focus-kicker">还没有定时计划</div><h2>创建计划后，在此查看下一次执行</h2><p class="muted">先验证并安装 Controller 任务，再安排执行时间。</p><button type="button" class="od-button" data-action="create">＋ 新建计划</button>`;
+    return `<div class="runner-container">${header}${toast()}${s.message&&!(s.scenario==='waiting-host')?`<div class="inline-warning">${safe(s.message)}</div>`:''}
+      <section class="runner-focus" aria-label="当前优先事项">${main}</section>
+      <section class="runner-secondary" aria-label="运行摘要"><div class="runner-slim od-surface"><span class="label">运行宿主</span><strong>此扩展页面可见</strong><span class="muted">Chrome 退出后不会继续执行</span></div>
+      <div class="runner-slim od-surface"><span class="label">最近结果</span><strong>${latest?safe(statusText[latest.h.status]||latest.h.status):'尚无记录'}</strong><span class="muted">${latest?safe(latest.p.title):'查看单条计划的运行历史'}</span></div></section>
+      ${s.scenario==='waiting-host'?'<div class="inline-warning" style="margin-top:12px">历史记录曾等待运行宿主；当前预览切换到可见运行页，不应继续宣称“此刻无 Host”。</div>':''}
+      <div class="runner-footer"><button type="button" class="od-button" data-action="manage-all">管理全部计划 →</button><button type="button" class="od-button od-button--quiet" data-action="refresh">刷新（模拟）</button></div>
+      <details class="runner-help"><summary>关于执行条件与浏览器关闭后的行为</summary><p>这是可见扩展页面，不是后台常驻服务。实际到期执行前仍需检查任务固定身份、网站权限、目标网页及全局执行槽；Chrome 关闭时不会自行完成 DOM 任务。</p></details>
+    </div>`;}
+  function render(){const runner=s.env==='runner',width=s.width,dim=runner?Math.min(760,Math.max(650,Math.round(width*.83))):770;
+    $('stage-label').textContent=runner?'独立运行页 / 可见 Controller Host':'Side Panel / 我的 → 定时计划';$('stage-size').textContent=`${width} × ${dim} CSS px`; $('width-display').textContent=width+'px';$('viewport-note').textContent=`${runner?'独立页面':'侧栏'} ${width}px CSS 画布 · 仅界面模拟 · 无真实宿主/授权/执行`;
+    document.querySelectorAll('[data-env]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.env===s.env)));
+    $('scenario-select').value=s.scenario;$('theme-select').value=s.theme;
+    const widths=runner?[360,594,760,980,220]:[220,300,320,360,420,520];$('width-controls').innerHTML=widths.map(w=>`<button type="button" data-width="${w}" aria-pressed="${w===s.width}">${w}</button>`).join('');
+    const panel=runner?(s.view==='runner'?renderRunner():s.view==='list'?renderList():s.view==='form'?renderForm():s.view==='manager'?renderManager():renderHistory()):(s.view==='list'?renderList():s.view==='form'?renderForm():s.view==='manager'?renderManager():s.view==='history'?renderHistory():renderRunner());
+    $('preview-mount').innerHTML=`<div class="product-window ${runner?'is-runner':''}" data-theme="${s.theme}" style="width:${width}px;height:${dim}px" id="product-window">
+      ${runner?'<div class="product-identity"><span class="brand-mark">OD</span><span class="brand-name">OpenDesk Browser</span><span class="brand-context">可见运行页</span></div>':''}
+      ${!runner?'<nav class="workbench-nav" role="tablist" aria-label="工作台">'+['我的','发现','工作流','开发','工具','云控'].map((n,i)=>`<button type="button" role="tab" data-action="other-tab" data-tab="${n}" aria-selected="${i===0}">${n}</button>`).join('')+'</nav>':''}
+      <main class="product-content" id="product-content">${panel}</main>
+    </div>`;
+    $('product-content').scrollTop=0;
+  }
+  function notify(t,error=false){s.toast=t;s.toastError=error;render();}
+  function startForm(plan=null){s.editing=plan?.id||null;s.draft=makeDraft(plan);s.confirm=false;s.cancelConfirm=false;s.dirty=false;s.errors={};s.advanced=false;s.toast='';s.view='form';render();focusLater('#field-title');}
+  const focusLater=selector=>requestAnimationFrame(()=>$('product-window')?.querySelector(selector)?.focus());
+  function goBack(){s.toast='';s.toastError=false;s.menu=null;s.deleteId=null;s.uninstallId=null;
+    if(s.view==='form'){if(s.dirty&&!s.cancelConfirm){s.cancelConfirm=true;render();focusLater('[data-action="stay-form"]');return;}if(s.cancelConfirm)return;s.view=s.env==='runner'?'runner':'list'}
+    else if(s.view==='manager')s.view=s.managerBack;
+    else if(s.view==='history')s.view=s.env==='runner'?'runner':'list';
+    else if(s.view==='runner')s.view='list';
+    else{s.toast='生产页面会返回「我的」任务总览，当前预览只包含定时计划子视图。';}
+    render();}
+  function validateDraft(){const d=s.draft,errors={},task=taskOf(d.taskId);
+    if(!d.title.trim()||d.title.trim().length>100)errors.title='计划名称应为 1–100 个字符';
+    if(!task||!eligibleTasks().includes(task))errors.task='请选择已验证、已安装且已启用的任务';
+    else if(!task.permitted)errors.task='网站访问权限不足，请先在 Chrome 设置中处理';
+    try{const url=new URL(d.target.trim());if(!['http:','https:'].includes(url.protocol)||url.username||url.password||url.hash||url.href.length>2048)throw Error('请输入不含账号密码和 # 片段的 HTTP(S) 地址');if(task&&url.origin!==task.origin)throw Error('目标网址不在任务批准的网站范围内');}catch(e){errors.target=e instanceof TypeError?'请输入完整有效的网址':e.message}
+    try{const obj=JSON.parse(d.params||'{}');if(!obj||Array.isArray(obj)||typeof obj!=='object'||JSON.stringify(obj).length>8192)throw Error('请输入不超过 8192 字符的 JSON 对象');}catch(e){errors.params=e instanceof SyntaxError?'JSON 格式有误，请检查引号、逗号及括号':e.message}
+    try{const rule=formTimeSpec(d);const due=nextAt(rule.kind,rule.spec,d.zone);if(due===null)throw Error('请选择未来的有效执行时间');const m=Number(d.deadline);if(!Number.isSafeInteger(m)||m<1||m>60)throw Error('最长等待应为 1–60 分钟')}catch(e){errors.time=e.message||'时区或执行规则不正确'}
+    if(s.editing){const original=s.plans.find(p=>p.id===s.editing);if(original&&(original.taskId!==d.taskId||original.version!==task?.version))errors.task='原计划绑定的固定任务身份不可静默更换；如需切换任务，请新建计划';}
+    s.errors=errors;return !Object.keys(errors).length;}
+  function applySave(){const d=s.draft,{kind,spec}=formTimeSpec(d),old=s.plans.find(p=>p.id===s.editing),task=taskOf(d.taskId);const input={title:d.title.trim(),taskId:d.taskId,target:new URL(d.target.trim()).href,params:d.params,kind,spec,zone:d.zone,paused:d.paused,misfire:d.misfire,openTarget:d.openTarget,deadline:Number(d.deadline),version:task?.version};
+    if(old){Object.assign(old,input,{generation:old.generation+1});}else s.plans.push({...input,id:'demo-plan-'+(s.plans.length+1),generation:1,attention:false,history:[]});
+    s.view=s.env==='runner'?'runner':'list';s.confirm=false;s.dirty=false;s.editing=null;s.toast='已模拟保存到当前预览（未创建 Chrome Alarm，未调用 saveSchedule）。';s.toastError=false;render();}
+  function setPlanState(id,op){const p=s.plans.find(x=>x.id===id);if(!p)return;
+    if(op==='pause'){p.paused=true;p.generation++;s.toast='计划已在预览中暂停，未更改真实调度数据。';}
+    if(op==='resume'){if(p.attention){notify('需要先处理固定任务身份或网站权限，不能自动恢复。',true);return;}p.paused=false;p.generation++;s.toast='计划已在预览中恢复，未触发任何历史 Fire。';}
+    if(op==='delete'){s.plans=s.plans.filter(x=>x.id!==id);s.toast='计划已从模拟列表移除；其历史不会由真实服务自动清除。';}
+    s.toastError=false;s.menu=null;s.deleteId=null;render();}
+  function stopMock(){if(!s.active){notify('没有与当前 Host 关联的 RunId；不能停止其他运行。',true);return;}const p=s.plans.find(x=>x.id===s.active.planId);if(p?.history?.length){p.history[0].status='STOPPED';p.history[0].retirement='pending';}s.active=null;s.toast='已模拟 Stop UI 状态，仅更改已有 demo 条目；未调用 host.stop 或生成新 Run/Result。';s.toastError=false;render();}
+  $('reset-preview').addEventListener('click',()=>updateScenario(s.scenario));
+  $('scenario-select').addEventListener('change',e=>updateScenario(e.target.value));
+  $('theme-select').addEventListener('change',e=>{s.theme=e.target.value;render()});
+  document.querySelectorAll('[data-env]').forEach(b=>b.addEventListener('click',()=>{s.env=b.dataset.env;s.width=s.env==='runner'?760:360;s.view=s.env==='runner'?'runner':'list';s.toast='';render()}));
+  $('width-controls').addEventListener('click',e=>{const b=e.target.closest('[data-width]');if(!b)return;s.width=Number(b.dataset.width);render()});
+  $('preview-mount').addEventListener('click',e=>{const b=e.target.closest('[data-action]');if(!b)return;const a=b.dataset.action,id=b.dataset.id;
+    switch(a){
+      case 'back':goBack();break;
+      case 'other-tab':notify(`「${b.dataset.tab}」是生产工作台现有一级 Tab，本预览只呈现「我的 → 定时计划」内部页面。`);break;
+      case 'create':startForm();break;
+      case 'runner':s.env='runner';s.width=760;s.view='runner';s.toast='';render();break;
+      case 'manage-all':s.view='list';render();break;
+      case 'recent-history':{const plan=ordered().find(p=>p.history.length);if(plan){s.historyId=plan.id;s.historyLimit=20;s.view='history';render();}break;}
+      case 'history':s.historyId=id;s.historyLimit=20;s.view='history';s.toast='';render();break;
+      case 'load-history':s.historyLimit+=20;render();break;
+      case 'edit':startForm(s.plans.find(x=>x.id===id));break;
+      case 'pause':case 'resume':setPlanState(id,a);break;
+      case 'more':s.menu=s.menu===id?null:id;s.deleteId=null;render();focusLater(`[data-action="more"][data-id="${id}"]`);break;
+      case 'delete':s.deleteId=id;render();focusLater('[data-action="delete-no"]');break;
+      case 'delete-no':s.deleteId=null;render();break;
+      case 'delete-yes':setPlanState(id,'delete');break;
+      case 'manager':s.managerBack=s.view==='form'?'form':s.view==='runner'?'runner':'list';s.view='manager';s.uninstallId=null;s.toast='';render();focusLater('#manager-query');break;
+      case 'new-script':s.toast='真实产品会进入「开发」Tab，新脚本需在真实网页验证后安装。本预览不编译、运行或安装任何脚本。';s.toastError=false;render();break;
+      case 'copy-task':notify('生产功能会读取候选并复制源码到「开发」草稿；本预览没有执行该动作。');break;
+      case 'schedule-task':{const t=taskOf(id);if(!t?.enabled)return;startForm();s.draft.taskId=id;s.draft.title=t.title+' 定时';s.draft.target=t.origin+'/dashboard';s.managerBack='manager';s.view='form';render();break;}
+      case 'toggle-task':{const t=taskOf(id);if(!t)return;if(!t.enabled&&!t.permitted){notify('启用该任务需要真实 Chrome 用户手势及网站权限；本预览不会代替浏览器请求权限。',true);return;}t.enabled=!t.enabled;t.generation++;s.plans.filter(p=>p.taskId===id).forEach(p=>{p.attention=!t.enabled;p.attentionReason='关联任务状态已变化，需核对固定安装身份。'});s.toast=`已模拟${t.enabled?'启用':'停用'}任务。关联计划未静默改绑版本。`;s.toastError=false;render();break;}
+      case 'uninstall-task':s.uninstallId=id;render();break;
+      case 'uninstall-no':s.uninstallId=null;render();break;
+      case 'uninstall-yes':{const t=taskOf(id);s.tasks=s.tasks.filter(x=>x.id!==id);s.plans.filter(p=>p.taskId===id).forEach(p=>{p.attention=true;p.attentionReason='原固定安装任务已卸载，关联计划不能自动恢复或重新绑定。'});s.uninstallId=null;s.toast=`已模拟卸载「${t?.title||'任务'}」，历史仍在模拟模型中保留。`;s.toastError=false;render();break;}
+      case 'save-yes':if(validateDraft())applySave();else{s.confirm=false;notify('保存前字段已变化，请重新检查。',true);}break;
+      case 'save-no':s.confirm=false;render();focusLater('#form-check');break;
+      case 'cancel-form':if(s.dirty){s.cancelConfirm=true;render()}else goBack();break;
+      case 'stay-form':s.cancelConfirm=false;render();focusLater('#field-title');break;
+      case 'discard-form':s.dirty=false;s.cancelConfirm=false;s.view=s.env==='runner'?'runner':(s.managerBack==='manager'?'manager':'list');render();break;
+      case 'refresh':s.toast='已重新绘制当前 fixture；未向 Host 请求真实执行状态。';render();break;
+      case 'mock-reload':s.load='';s.toast='仅模拟刷新成功。';render();break;
+      case 'stop':stopMock();break;
+      default:break;
+    }
+  });
+  $('preview-mount').addEventListener('submit',e=>{if(e.target.id!=='plan-form')return;e.preventDefault();s.confirm=false;s.cancelConfirm=false;if(!validateDraft()){notify('请先修正标记的字段，不能进入保存确认。',true);const field=Object.keys(s.errors)[0];focusLater(`#field-${field==='task'?'taskId':field==='time'?'zone':field}`);return;}s.confirm=true;s.toast='这是保存前确认；固定任务身份在真实产品中还会重新解析并验证。';s.toastError=false;render();focusLater('[data-action="save-yes"]');});
+  $('preview-mount').addEventListener('input',e=>{const el=e.target;
+    if(el.id==='manager-query'){s.managerSearch=el.value;const list=$('manager-cards');if(list)list.innerHTML=managerRows().map(managerCard).join('')||'<p class="muted">没有匹配的已安装任务。</p>';return;}
+    if(el.id==='zone-query'){
+      const select=$('field-zone');if(!select)return;
+      const selected=s.draft.zone;
+      select.innerHTML=timeZoneChoices(selected,el.value);
+      select.value=selected;
+      const count=[...select.options].filter(o=>o.value!==selected).length;
+      $('zone-search-result').textContent=el.value.trim()?
+        (count?`另有 ${count} 个匹配地区；选中下拉项才会更改时区。`:'未找到其他地区；原时区保持不变。'):'';
+      return;
+    }
+    const field=el.dataset.field;if(field){s.dirty=true;s.confirm=false;$('product-window')?.querySelector('.confirm-panel')?.remove();if(el.type==='checkbox')s.draft[field]=el.checked;else s.draft[field]=el.value; if(['once','clock','minutes','zone'].includes(field)){const preview=$('next-preview');if(preview)preview.textContent=formNext().label;} if(s.errors[field]){s.errors[field]='';const err=$('error-'+field);if(err)err.textContent='';el.setAttribute('aria-invalid','false')} }
+  });
+  $('preview-mount').addEventListener('change',e=>{const el=e.target;if(el.id==='manager-filter'){s.managerFilter=el.value;const list=$('manager-cards');if(list)list.innerHTML=managerRows().map(managerCard).join('')||'<p class="muted">没有匹配的已安装任务。</p>';return;}
+    if(el.dataset.weekday!==undefined){const n=Number(el.dataset.weekday);s.draft.days=el.checked?[...new Set([...s.draft.days,n])]:s.draft.days.filter(v=>v!==n);s.dirty=true;const pv=$('next-preview');if(pv)pv.textContent=formNext().label;return;}
+    const field=el.dataset.field;if(field){
+      if(field==='zone'){
+        const query=$('zone-query');if(query)query.value='';
+        el.innerHTML=timeZoneChoices(el.value);
+      }
+      s.draft[field]=el.type==='checkbox'?el.checked:el.value;s.dirty=true;s.confirm=false;$('product-window')?.querySelector('.confirm-panel')?.remove();if(['kind','taskId'].includes(field)){if(field==='kind'&&s.draft.kind==='interval')s.draft.intervalAnchor=null;s.advanced=$('advanced-panel')?.open||false;render();focusLater(`#field-${field}`);}else if(['paused','misfire','openTarget','deadline'].includes(field)){s.advanced=true;}}
+  });
+  $('preview-mount').addEventListener('toggle',e=>{if(e.target.id==='advanced-panel')s.advanced=e.target.open;},true);
+  document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(s.deleteId||s.uninstallId||s.menu||s.confirm||s.cancelConfirm){s.deleteId=null;s.uninstallId=null;s.menu=null;s.confirm=false;s.cancelConfirm=false;render();e.preventDefault();}else if(s.view!=='list'&&s.view!=='runner'){goBack();e.preventDefault();}});
+  render();
+  window.__R25_PREVIEW__={state:()=>({env:s.env,width:s.width,scenario:s.scenario,view:s.view,plans:s.plans.length,historyLimit:s.historyLimit,confirm:s.confirm,toast:s.toast}),setScenario:updateScenario,setEnv:(env)=>{s.env=env;s.width=env==='runner'?760:360;s.view=env==='runner'?'runner':'list';render()},setWidth:(w)=>{s.width=w;render()},nextAt};
+})();
+</script>
+</body>
+</html>

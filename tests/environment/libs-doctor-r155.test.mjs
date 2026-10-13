@@ -35,7 +35,6 @@ async function withLibraryFiles(run){
   const dir=await mkdtemp(join(tmpdir(),'opendesk-r155-output-'));
   const expected=[...BUILTIN_RESOURCE_PATHS.filter(path=>path.startsWith('libs/')),
     ...Object.values(PAGE_FRAMEWORK_RUNTIMES).map(row=>row.output),
-    ...PAGE_BROWSER_PRIVATE_FILES.map(row=>row.output).filter(output=>output.startsWith('libs/')),
     BUILTIN_CATALOG.resourceManifest].sort();
   const write=async(path)=>{const filename=join(dir,path);await mkdir(dirname(filename),{recursive:true});await writeFile(filename,'fixture');};
   try{for(const path of expected)await write(path);await run({dir,expected,write});}
@@ -77,4 +76,20 @@ test('R15.5 diagnostic PACKAGE_PASS cannot accept an oversized shipped SW',()=>{
     BUILD_POLICY.developmentBytes);
   assert.throws(()=>verifyShippedSwBudget('development',BUILD_POLICY.developmentBytes+1),/exceeds development byte budget/);
   assert.throws(()=>verifyShippedSwBudget('unknown',1),/Invalid Service Worker/);
+});
+
+test('Standard excludes Developer-only library files and Developer requires all of them',async()=>{
+  await withLibraryFiles(async({dir,expected,write})=>{
+    const privateFiles=PAGE_BROWSER_PRIVATE_FILES.map(row=>row.output)
+      .filter(path=>path.startsWith('libs/')).sort();
+    assert.deepEqual(await inspectLibraryOutputInventory(dir,'production','standard'),expected);
+    await assert.rejects(inspectLibraryOutputInventory(dir,'production','developer'),/missing=.*libs\/page-frameworks/);
+    for(const path of privateFiles)await write(path);
+    await assert.rejects(inspectLibraryOutputInventory(dir,'production','standard'),/extra=.*libs\/page-frameworks/);
+    assert.deepEqual(await inspectLibraryOutputInventory(dir,'production','developer'),
+      [...expected,...privateFiles].sort());
+    await rm(join(dir,privateFiles[0]));
+    await assert.rejects(inspectLibraryOutputInventory(dir,'production','developer'),/missing=.*libs\/page-frameworks/);
+  });
+  await assert.rejects(inspectLibraryOutputInventory('/not-used','production','unknown'),/E_BROWSER_EDITION/);
 });

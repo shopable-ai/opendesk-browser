@@ -1,0 +1,62 @@
+name: Global First R5 compiled Workflow to installed Task component
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tests/environment/global-first-r5-fixed-workflow-to-task.test.mjs'
+      - 'tests/environment/global-first-r5-native-baseline-audit.test.mjs'
+      - 'scripts/global-first-r5-native-baseline-audit.mjs'
+      - '.github/workflows/global-first-r5-fixed-task-integration.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: global-first-r5-fixed-task-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  compile-verify-install-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install locked test dependencies (native auditor imports package fingerprint)
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Record exact source and test identity
+        run: |
+          mkdir -p artifacts/global-first-r5-compiled-task
+          git rev-parse HEAD > artifacts/global-first-r5-compiled-task/head.txt
+          sha256sum \
+            src/framework/workflow/compiler.js \
+            src/framework/workflow/contract.js \
+            src/platform/tasks/service.js \
+            src/platform/tasks/contract.js \
+            tests/environment/global-first-r5-fixed-workflow-to-task.test.mjs \
+            tests/environment/task-package-flow.test.mjs \
+            scripts/global-first-r5-native-baseline-audit.mjs \
+            tests/environment/global-first-r5-native-baseline-audit.test.mjs \
+            > artifacts/global-first-r5-compiled-task/inputs.sha256
+      - name: Real production contracts in isolated Node component fixture
+        run: |
+          set -o pipefail
+          node --test \
+            tests/environment/global-first-r5-fixed-workflow-to-task.test.mjs \
+            tests/environment/task-package-flow.test.mjs \
+            tests/environment/global-first-r5-native-baseline-audit.test.mjs \
+            | tee artifacts/global-first-r5-compiled-task/component-results.tap
+      - name: Preserve component evidence without claiming native Chrome
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: global-first-r5-compiled-task-node-${{ github.sha }}-${{ github.run_attempt }}
+          path: artifacts/global-first-r5-compiled-task/
+          retention-days: 14
+          if-no-files-found: warn

@@ -35,9 +35,21 @@ await watch.close();
 6. 网络观察只收集相同 Tab/Origin 的 HTTP 元数据。可在该标签页 DevTools Console 运行 `fetch(location.href)` 制造一次同源请求，返回工具后点「读取观察事件」。观察最长 30 秒，过期/导航/撤权需重新开始。
 7. 执行「停止观察」后可以「导出 JSON」；导出操作需要再次明确点击确认。关闭事件会话之后，旧观察引用不可再读。
 
+## R9 新增：一次性重载与 TabRef 退休
+
+本示例升级为 **1.0.2**，按钮「重载标签页」调用 `OpenDeskSDK.browser.tabs.reloadOwned({tabRef})`。该操作必须在安装工具的真实 Side Panel 明确点击批准，且只允许本工具创建的授权标签页。
+
+```js
+const {tabRef}=await OpenDeskSDK.browser.tabs.create({url:'https://example.org/page'});
+const result=await OpenDeskSDK.browser.tabs.reloadOwned({tabRef});
+// {reloadRequested:true,tabRefRevoked:true}，仅代表 Chrome 接受重载请求
+```
+
+旧 `tabRef` 在重载前立即失效；工具示例会清理自己的本地引用，不能自动继续观察、截图或重放。要再次验证其他操作，请创建新的已授权标签页。无原生回执或产生不确定效果时不能盲目重试；通过模拟 Node 测试不等于真实 Chrome 页面完成加载。
+
 ## 必须验证的拒绝条件
 
-- 没有单次用户批准，`tabs.open/focus`、HTTP、观察开始/导出、截图应返回明确拒绝。
+- 没有单次用户批准，`tabs.create/activateOwned/reloadOwned`、HTTP、观察开始/导出、截图应返回明确拒绝。
 - 不存在或已失效的 `tabRef`、切换到其他活跃 Tab、网址导航、工具关闭/停用/卸载、Chrome Origin 权限撤销，应拒绝受保护的能力，不向工具发送原始 `tabId`、PNG Base64、Cookie、Token 或 HTTP 正文。
 - 网络观察读取和操作取消仅接受当前工具持有的 `observationId/operationId`；跨工具引用必须拒绝。
 - MV3 Worker 中断期间未观察到的请求不能伪造；记录 gap/interrupted，旧权限引用不应自动恢复。

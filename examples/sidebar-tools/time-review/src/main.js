@@ -26,6 +26,20 @@
     return element;
   };
   const showMessage=(message,error=false)=>{$('status').textContent=message;$('status').dataset.error=String(error);};
+  function activityStatus(view){
+    if(view.paused)return '已暂停';
+    if(!view.idlePermission)return '空闲检测未授权';
+    if(view.trackingHost)return '正在记录';
+    return ({
+      idle:'系统空闲 · 暂不计时',
+      'window-inactive':'Chrome 未在前台',
+      excluded:'当前网站已排除',
+      'site-not-authorized':'当前网站未授权',
+      'chrome-site-permission':'Chrome 网站权限不足',
+      'unsupported-page':'当前页面不计时',
+      'observation-error':'无法确认活动状态'
+    })[view.waitingReason]||'已启用 · 等待可记录网站';
+  }
   const safeDate=date=>new Date(date+'T12:00:00');
   const shiftDate=(date,offset)=>{
     const d=safeDate(date);d.setDate(d.getDate()+offset);
@@ -151,13 +165,19 @@
   function renderCurrent(data){
     const host=state?.paused?null:state?.trackingHost||null;
     $('site-host').textContent=host||'当前没有正在记录的网站';
-    $('site-hint').textContent=host?'仅记录域名，不读取网页正文':'暂停、失焦、空闲或未授权时不记录';
+    const reasons={paused:'记录已暂停', 'site-not-authorized':'当前网站未单独授权记录',
+      'chrome-site-permission':'OpenDesk 缺少该站点的 Chrome 权限',
+      'idle-permission':'请授权空闲检测后开始记录',idle:'Chrome 检测到用户空闲',
+      'window-inactive':'Chrome 当前不在前台',excluded:'该网站已排除',
+      'unsupported-page':'仅支持普通非隐身网页', 'observation-error':'暂时无法核实网页活动'};
+    $('site-hint').textContent=host?'仅记录域名，不读取网页正文':
+      reasons[state?.waitingReason]||'等待已授权网站成为前台活动页面';
     // The live-site card always reflects today, even while reviewing an earlier date.
     const site=(state?.todaySites||[]).find(row=>row.host===host);
     $('site-time').textContent=site?formatMs(site.ms):'—';
     const cat=host?(state?.siteCategories?.[host]??0):undefined;
     $('site-category').textContent=host&&cat!==undefined?C[cat].name:'—';
-    $('tracking-state').textContent=host?'正在记录':'未记录';
+    $('tracking-state').textContent=host?'正在记录':state?.paused?'已暂停':'未记录';
     $('edit-category').disabled=busy||!host||!site;
     $('inline-edit').hidden=!editing||!host||!site;
     if(site&&!editing)$('type-select').value=String(site.category??0);
@@ -209,8 +229,23 @@
     for(const button of root.querySelectorAll('button'))button.disabled=busy||!state;
     if(!state)return;
     const data=dayData();
-    $('start').disabled=busy||!state.paused;
-    $('start').textContent=state.authorized?'恢复记录':'开始记录';
+    const compatible=state.hostApiVersion==='time.review/1.5.0';
+    $('start').disabled=busy||!state.paused||!compatible;
+    $('start').hidden=!state.paused;
+    $('pause').hidden=state.paused;
+    const startLabel=state.authorized?'恢复记录':'开始记录';
+    $('start').title=startLabel;
+    $('start').setAttribute('aria-label',startLabel);
+    $('pause').title='暂停记录';
+    $('pause').setAttribute('aria-label','暂停记录');
+    const grants=state.siteGrants||{allSites:false,origins:[]};
+    $('site-grant-summary').textContent=!compatible?'后台版本不支持独立网站授权，请先升级 OpenDesk 主扩展。':
+      grants.allSites?'已同意记录全部普通网站（可在工具详情撤销）':
+      grants.origins?.length?'已单独授权 '+grants.origins.length+' 个网站（在工具详情管理）':
+      '尚未授权网站；请在「工具详情 → 设置」先授权当前网站或全部普通网站。';
+    $('site-grant-summary').hidden=compatible&&state.idlePermission&&
+      (grants.allSites||Boolean(grants.origins?.length))&&
+      !['site-not-authorized','chrome-site-permission'].includes(state.waitingReason);
     $('pause').disabled=busy||state.paused;
     $('next-date').disabled=busy||selectedDate>=state.today;
     $('prev-date').disabled=busy||selectedDate<=earliest();
@@ -254,8 +289,7 @@
         state=result;
         if(!selectedDate||selectedDate>state.today||selectedDate<earliest())selectedDate=state.today;
         if(operation==='time.clear'){day=null;filter=null;editing=false;}
-        showMessage(!state.idlePermission?'未授权空闲检测；请在工具详情设置中授权。':
-          state.paused?'已暂停 · 历史数据保留':state.trackingHost?'正在记录 '+state.trackingHost:'记录已开启 · 等待可访问网页');
+        showMessage(activityStatus(state));
         await readDay();
       }
     }catch(err){

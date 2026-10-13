@@ -171,9 +171,11 @@ export function summarizePackageResources(receipt,measuredFiles) {
     group('page-with-jquery',[...libraryPaths('USER_SCRIPT'),BUILTIN_CATALOG.libraries.jquery.output],{assembled:true}),
     group('automatic-page-injection',['agents/page-relay.js','framework/sdk-main.js']),
     group('sidebar-shell',['ui/tool.html','ui/tool-shell.css','ui/cloud-hosting.css','ui/tool-shell.js']),
-    group('browser-react-compiler-on-demand',PAGE_BROWSER_PRIVATE_FILES.filter(row=>
-      !['page-vue-sfc-transform','page-vue-sfc-compiler'].includes(row.id)).map(row=>row.output)),
-    group('browser-vue-compiler-on-demand',PAGE_BROWSER_PRIVATE_FILES.map(row=>row.output)),
+    ...(receipt.report.edition==='developer'?[
+      group('browser-react-compiler-on-demand',PAGE_BROWSER_PRIVATE_FILES.filter(row=>
+        !['page-vue-sfc-transform','page-vue-sfc-compiler'].includes(row.id)).map(row=>row.output)),
+      group('browser-vue-compiler-on-demand',PAGE_BROWSER_PRIVATE_FILES.map(row=>row.output))
+    ]:[]),
     group('workspace-shell',['native-agent/workspace.html','native-agent/workspace.css','native-agent/settings.js']),
     ...optInPageAssets.filter(row=>row.id!=='jquery')
       .map(row=>group('page-with-'+row.id,[...pageDefaults,row.path],{assembled:true}))

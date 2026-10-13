@@ -7,6 +7,7 @@ import {PROGRAM_DRAFT_FORMAT, PROGRAM_DRAFT_V2_FORMAT, PROGRAM_DRAFT_INPUT_LIMIT
 import {formatTaskValue, presentTaskValue, formatTaskError, formatTaskRunTechnical,
   unresolvedTaskRunMessage} from './task-run-diagnostics.js';
 import {formatRunValue} from './run-value-format.js';
+import {matchTaskReviewHandoff,taskReviewHandoffKey} from './workflow/task-review-handoff.js';
 
 const states={candidate:'待验证',verified:'本机验证通过',available:'本地可用'};
 const terminal=new Set(['completed','failed','stopped','interrupted']);
@@ -165,6 +166,30 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     catalogSurface=true;
     if(doc.documentElement?.dataset) doc.documentElement.dataset.opendeskSurface='catalog';
     navigate('catalog');
+    // Navigation is a user-facing convenience, never a Verify, Available,
+    // Install or permissions grant. The original Task Catalog stays authoritative.
+    void (async()=>{
+      await client.ready;
+      if(disposed||!catalogSurface)return;
+      await refresh();
+      if(disposed||!catalogSurface||!api.storage?.session||!api.windows?.getCurrent)return;
+      const windowId=(await api.windows.getCurrent())?.id;
+      const key=taskReviewHandoffKey(windowId);
+      if(!key)return;
+      const handoff=(await api.storage.session.get(key))?.[key];
+      if(!handoff)return;
+      await api.storage.session.remove?.(key); // Consume once, even when stale/forged.
+      if(disposed||!catalogSurface)return;
+      const selected=matchTaskReviewHandoff(handoff,windowId,catalog);
+      if(!selected || get('task-catalog-list').value)return; // An actual user's selection wins.
+      get('task-catalog-list').value=selected.candidateKey;
+      renderCatalogCards();renderCandidate();
+      if(selected.runId && !get('task-verify-run').value)
+        get('task-verify-run').value=selected.runId;
+      get('task-catalog-status').textContent=selected.runId
+        ? '已根据同窗口固定版本预选候选并预填真实运行 ID；仍需亲自核对运行证据、设为可用并确认安装。'
+        : '已定位候选固定版本；请先用相同源码真实运行，然后核对证据。未自动验证或安装。';
+    })().catch(error=>console.warn('Task review shortcut unavailable; use manual catalog review',error));
   }
   const identity=row=>`${row.taskId}@${row.version}`;
   const candidate=()=>catalog.find(row=>identity(row)===get('task-catalog-list').value);

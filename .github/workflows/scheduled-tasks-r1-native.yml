@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/scheduled-tasks-r1-native.yml'
       - 'tests/framework/scheduled-tasks-r1-native-mac.test.mjs'
+      - 'tests/framework/time-review-native-input.swift'
       - 'src/platform/tasks/schedule-*.js'
       - 'src/platform/tasks/service.js'
       - 'src/platform/host/authority.js'

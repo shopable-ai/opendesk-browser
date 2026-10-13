@@ -4,6 +4,7 @@ import {createNetworkService} from './network.js';
 import {createBrowserNetworkObserver} from './browser-network-observe.js';
 import {createBrowserScreenshotHost} from './browser-screenshot.js';
 import {createBrowserScreenshotResources} from './browser-screenshot-resources.js';
+import {createTrustedCookieHost} from './browser-cookie-host.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,sidebarToolEnabled} from '../../ui/sidebar-tools/lifecycle.js';
 // Trusted Chrome MV3 context-menu driver. No third-party code executes here.
 // Listener registration is synchronous; storage and install checks are async.
@@ -141,7 +142,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   const browserIntents=new Map(),INTENT_TTL=15000;
   // A permission or installed-package change must fence requests that are already in fetch().
   const activeNetworkRequests=new Set();
-  const intentOperations=new Set(['browser.tabs.open','browser.tabs.focus','browser.network.request',
+  const intentOperations=new Set(['browser.tabs.create','browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.reloadOwned','browser.tabs.navigateOwned','browser.tabs.removeOwned','browser.network.request',
     'browser.network.observe.start','browser.network.observe.export','browser.screenshot.captureVisible']);
   const observationOperations=new Set(['browser.network.observe.getStatus','browser.network.observe.stop',
     'browser.events.read','browser.events.close']);
@@ -180,6 +181,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     }});
   const networkObserver=createBrowserNetworkObserver({api});
   const screenshotResources=createBrowserScreenshotResources({api});
+  const trustedCookies=createTrustedCookieHost({api});
   const screenshotHost=createBrowserScreenshotHost({api,
     resolveTarget:(ref,context)=>tabHost.resolve(ref,context),
     authorize:async({origin,context})=>{
@@ -190,6 +192,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     discardResource:ref=>screenshotResources.discardResource(ref)
   });
   function revokeBrowserOperations(){
+    trustedCookies.revoke();
     networkObserver.revokeAll();
     screenshotResources.revokeAll();
     browserIntents.clear();
@@ -265,7 +268,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   }
   const epochKey=(tabId,frameId)=>String(tabId)+':'+String(frameId);
   function noteNavigation(tabId,frameId=0){
-    if(frameId===0){networkObserver.invalidateTab(tabId);screenshotResources.revokeTab(tabId);}
+    if(frameId===0){networkObserver.invalidateTab(tabId);screenshotResources.revokeTab(tabId);trustedCookies.noteNavigation(tabId);}
     const key=epochKey(tabId,frameId);
     documentEpochs.set(key,(documentEpochs.get(key)||0)+1);
     if(frameId===0){
@@ -349,13 +352,19 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       operation==='browser.page.getSelection';
     const menuApiAvailable=Boolean(api.contextMenus?.create&&api.contextMenus?.onClicked);
     const platformSupported=(!isMenu||['browser.contextMenu.getStatus','browser.contextMenu.unregister'].includes(operation)||menuApiAvailable)&&(
-      operation==='browser.tabs.open'?Boolean(api.tabs?.create):
-      operation==='browser.tabs.focus'?Boolean(api.tabs?.get&&api.tabs?.update):
+      operation==='browser.tabs.create'?Boolean(api.tabs?.create):
+      operation==='browser.tabs.activateOwned'?Boolean(api.tabs?.get&&api.tabs?.update&&api.webNavigation?.getFrame):
+      operation==='browser.tabs.getOwned'||operation==='browser.tabs.listOwned'?Boolean(api.tabs?.get&&api.webNavigation?.getFrame):
+      operation==='browser.tabs.pinOwned'?Boolean(api.tabs?.get&&api.tabs?.update&&api.webNavigation?.getFrame):
+      operation==='browser.tabs.reloadOwned'?Boolean(api.tabs?.get&&api.tabs?.reload&&api.webNavigation?.getFrame):
+      operation==='browser.tabs.navigateOwned'?Boolean(api.tabs?.get&&api.tabs?.update&&api.webNavigation?.getFrame):
+      operation==='browser.tabs.removeOwned'?Boolean(api.tabs?.get&&api.tabs?.remove&&api.webNavigation?.getFrame):
       operation==='browser.sidePanel.openSelf'?Boolean(api.sidePanel?.open):
       operation==='browser.network.request'?typeof fetchImpl==='function':
+      operation==='browser.network.observe.start'?Boolean(api.webRequest?.onBeforeRequest?.addListener&&api.tabs?.get&&api.webNavigation?.getFrame):
       operation.startsWith('browser.network.observe.')?Boolean(api.webRequest?.onBeforeRequest?.addListener):
       operation==='browser.screenshot.captureVisible'?
-        Boolean(api.tabs?.query&&api.tabs?.captureVisibleTab&&api.downloads?.download):true);
+        Boolean(api.tabs?.query&&api.tabs?.get&&api.webNavigation?.getFrame&&api.tabs?.captureVisibleTab&&api.downloads?.download):true);
     const hasToolCap=op.requiredCapabilities.every(cap=>tool.capabilities.includes(cap));
     const chromium=menuApiAvailable&&await permissionGranted(api);
     const requiredBrowser=operation==='browser.contextMenu.getStatus'||(await Promise.all(op.requiredChromePermissions.map(async id=>
@@ -435,12 +444,16 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
            intent.args!==canonicalJSON(checked))
           throw failure('E_USER_GESTURE_REQUIRED','New explicit approval required for this exact action');
         const approvedOrigin=operation==='browser.network.observe.start'?checked.origins[0]:
-          ['browser.tabs.open','browser.network.request'].includes(operation)
+          ['browser.tabs.create','browser.tabs.navigateOwned','browser.network.request'].includes(operation)
             ?new URL(checked.url).origin:null;
         const context={...owner,approvedOrigin};
         await verifyBrowserOwner(context,operation,approvedOrigin);
-        if(operation==='browser.tabs.open')return tabHost.open(checked,context);
-        if(operation==='browser.tabs.focus')return tabHost.focus(checked,context);
+        if(operation==='browser.tabs.create')return tabHost.create(checked,context);
+        if(operation==='browser.tabs.activateOwned')return tabHost.activateOwned(checked,context);
+        if(operation==='browser.tabs.pinOwned')return tabHost.pinOwned(checked,context);
+        if(operation==='browser.tabs.reloadOwned')return tabHost.reloadOwned(checked,context);
+        if(operation==='browser.tabs.navigateOwned')return tabHost.navigateOwned(checked,context);
+        if(operation==='browser.tabs.removeOwned')return tabHost.removeOwned(checked,context);
         if(operation==='browser.screenshot.captureVisible'){
           // One-use approval was spent above; only the trusted Host may assert
           // that it came from the visible extension UI's verified click.
@@ -486,6 +499,16 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
           if(jsonBytes(result)>12000)throw failure('E_LIMIT','HTTP response exceeds IPC budget');
           return result;
         }finally{activeNetworkRequests.delete(controller)}
+      }
+      if(operation==='browser.tabs.getOwned'||operation==='browser.tabs.listOwned'){
+        const checked=normalizeBrowserOperation(operation,args),packageHash=await digestTool(tool);
+        const context={toolId,toolVersion,packageHash,epoch:installEpoch??null,
+          installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null};
+        await verifyBrowserOwner(context,operation);
+        const value=operation==='browser.tabs.getOwned'
+          ?await tabHost.getOwned(checked,context):await tabHost.listOwned(checked,context);
+        await verifyBrowserOwner(context,operation);
+        return value;
       }
       if(observationOperations.has(operation)||ownedOperationMethods.has(operation)){
         const checked=normalizeBrowserOperation(operation,args),packageHash=await digestTool(tool);
@@ -595,10 +618,20 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       throw failure('E_SERVICE_UNSUPPORTED','Browser operation is not available to installed tools');
     }));
   }
-  async function handleHost({operation,toolId,enabled,origin,document,launchId,toolInstance,hostInstanceId,toolVersion,installEpoch,targetOperation,targetArgs},sender){
+  async function handleHost({operation,toolId,enabled,origin,document,launchId,toolInstance,hostInstanceId,toolVersion,installEpoch,targetOperation,targetArgs,approvalRef},sender){
     const actualHost=await checkedSender(api,sender);
-    if(actualHost!==hostInstanceId||!validId(toolId))
+    if(actualHost!==hostInstanceId)
       throw failure('E_OWNER','Wrong OpenDesk tool host');
+    // Cookie calls are HOST_ONLY: the existing Chrome sender check authenticates
+    // this packaged extension document. Sandbox tool messages never enter here.
+    if(operation==='browser.cookies.approve'||operation==='browser.cookies.execute'){
+      const trustedSender=await resolveToolSender(api,sender);
+      const caller={documentId:trustedSender.documentId,hostInstanceId:actualHost};
+      return serial(()=>operation==='browser.cookies.approve'
+        ?trustedCookies.approve({targetOperation,targetArgs,document,hostInstanceId},caller)
+        :trustedCookies.execute({approvalRef,hostInstanceId},caller));
+    }
+    if(!validId(toolId))throw failure('E_OWNER','Wrong OpenDesk tool host');
     return serial(()=>runLocked(toolId,async()=>{
       if(operation==='browser.intent.confirm'){
         if(!intentOperations.has(targetOperation)||typeof toolInstance!=='string'||
@@ -610,9 +643,21 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
           throw failure('E_TOOL_CHANGED','Tool updated during approval');
         const packageHash=await digestTool(tool);
         const origin=targetOperation==='browser.network.observe.start'?args.origins[0]:
-          ['browser.tabs.open','browser.network.request'].includes(targetOperation)
+          ['browser.tabs.create','browser.tabs.navigateOwned','browser.network.request'].includes(targetOperation)
             ?new URL(args.url).origin:null;
-        await verifyBrowserOwner({toolId,toolVersion,packageHash,epoch:installEpoch??null},targetOperation,origin);
+        const identity={toolId,toolVersion,packageHash,epoch:installEpoch??null,
+          installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null};
+        await verifyBrowserOwner(identity,targetOperation,origin);
+        // An approval is not authority by itself. Before minting one for an owned
+        // TabRef, resolve its real Chrome document and check the CURRENT website
+        // grant, not just the package capability. Revoked or foreign refs must
+        // fail now, not only after the user approves a misleading dialog.
+        if(typeof args.tabRef==='string'){
+          const target=await tabHost.resolve(args.tabRef,identity);
+          if(origin!==null&&target.origin!==origin)
+            throw failure('E_SITE_GRANT_REQUIRED','Requested observation origin differs from owned tab');
+          await verifyBrowserOwner(identity,targetOperation,target.origin);
+        }
         for(const [ref,intent] of browserIntents)if(Date.now()>=intent.expiresAt)browserIntents.delete(ref);
         if(browserIntents.size>=16)throw failure('E_LIMIT','Too many pending approvals');
         const approvalRef=crypto.randomUUID(),expiresAt=Date.now()+INTENT_TTL;

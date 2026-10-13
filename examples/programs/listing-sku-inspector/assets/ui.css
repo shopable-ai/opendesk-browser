@@ -1,0 +1,18 @@
+:host{--od-primary:#2859bf}
+.listing-inspector{width:min(376px,calc(100vw - 24px));max-height:min(560px,calc(100vh - 32px));overflow:auto;overscroll-behavior:contain}
+.listing-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.listing-title{font-size:15px;letter-spacing:-.02em}
+.listing-close{flex:none}
+.listing-scope{color:var(--od-muted);font-size:11px;line-height:1.6;margin:5px 0 14px}
+.listing-run{width:100%;margin-bottom:4px}
+.listing-status{margin:12px 0;font-size:12px;line-height:1.55}
+.listing-issues{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.listing-issue,.listing-ok{border:1px solid #dce4ef;border-radius:9px;background:#f7f9fc;padding:10px 11px;display:grid;gap:4px;overflow-wrap:anywhere}
+.listing-issue[data-severity="error"]{border-color:#f1caca;background:#fff7f7}
+.listing-issue[data-severity="warning"]{border-color:#eddfba;background:#fffaf0}
+.listing-issue-code{font-size:11px;color:#233d5e}
+.listing-issue-message{font-size:12px;color:#263c58}
+.listing-advice{font-size:11px;color:#61748d}
+.listing-ok{font-size:12px;color:#116a42;background:#f1faf5;border-color:#cae9d9}
+@media (max-width:360px){.listing-inspector{padding:12px}.listing-title{font-size:13px}}
+@media (prefers-reduced-motion:reduce){.listing-inspector{scroll-behavior:auto}}

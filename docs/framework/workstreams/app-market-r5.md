@@ -301,3 +301,50 @@ FIX8 将主动观察失败变成不可重试的结果并在外层立即抛出，
 
 本轮本会话没有撤销、删除或覆盖 Workspace 并行成果，也没有为了获取测试绿色而放松 `inspectHTML`、禁用危险标签/CSP 校验或直接操作 `dist`。正式 HTTPS 和原生 ACK 故障注入仍维持本工作流前述 **BLOCKED / NOT_TESTED**。
 
+
+## R5 最新 main 打包闭包触发修正（2026-10-12）
+
+原候选 `6d71854b` 的 Linux／macOS 16/16 与生产包原生回归已绑定原始制品。之后 Native Workspace 的 `workspace.html` 与样式变更曾触发旧候选的包拒绝，并由 `90732696` 在源文件和包审计中修正。R5 原工作流仅监听市场和部分共享构建脚本，**不监听这次实际变化的 Workspace 原始资源**，因此修复后不会自动产生完整新候选的 R5 Chrome 证据。
+
+本次仅给现有 `.github/workflows/app-market-r3.yml` 补精确的固定包输入路径：Workspace HTML、`workspace*.js`、`workspace*.css`、`settings.*`、共享 `design-*.css` 与 Workspace 固定 Tailwind 构建脚本；没有扩展到 `src/native-agent/**` 全目录，也没有建立第二套安装服务。新增一个组件断言持续检查这个 CI 输入闭包。变更工作流会触发一次最新 `main` 的双平台 HTTP + 生产 Chrome 验证，**结果必须由本次真实 run 的原件决定，不能预填 PASS**。未来仅当这些受影响的包输入变化时重跑对应原生链路；上游固定候选结果永久保留。
+
+
+## 共享 Developer 编译器资源基线与 R5 生产回归（2026-10-12）
+
+R5 新候选 `13373cc1` 的 Linux HTTP 安装原生 16/16 PASS；生产插件在 Chrome 原生生命周期中也为 `REAL_CHROME_FIXTURE_PASS`，但 `npm test` 有两项失败，不能称生产 Job PASS：旧 R24.5 测试把 Developer 专用离线编译器合集锁为 4,249,817 字节，而实际固定资源清单已增加到 4,261,533 字节；另一个固定资源统计测试以 Standard fixture 查找 Developer 才存在的 compiler group。后者已由并行 Browser SDK 工作流单独修复，保留其两种 edition 的验证。
+
+本次只更新 R24.5 的**独立合集大小基线**，仍通过 `PAGE_BROWSER_PRIVATE_FILES` 与 `verifyPackage` 验证每个固定编译器资源的大小、SHA-256、受控加载世界与单资源 4 MiB 上限。没有更改实际编译器、Market 安装器、权限或安全信任根。补充 R5 生产测试触发范围，对共有编译器合同／容量审计脚本及两个环境测试产生的新包级变更执行必要回归。最新候选是否完全通过，以后续同身份的真实 CI Job 和原始 artifact 判断；此前失败日志不可删除。
+
+## R5 最新打包输入候选三平台验收完成（2026-10-12）
+
+固定受测提交：`608ed7c1a36ae878fa70f45339ffb0e68e054398`；[GitHub Actions #38269315702](https://github.com/shopable-ai/opendesk-browser/actions/runs/38269315702) 三个 Job **全部 success**。本次候选在修复 Native Workspace 源资源闭包触发路径、共享 Page Developer 编译器测试基线之后重新构建，不能把先前 `13373cc1` 的部分成功当作本次结果。正式分发官网仍未上线。
+
+| 独立验收 | Linux Chrome | macOS 15 Chrome | 生产 Chrome / 环境回归 |
+| --- | --- | --- | --- |
+| 原生结果 | `REAL_CHROME_MARKET_R5_PASS` | `REAL_CHROME_MARKET_R5_PASS` | `REAL_CHROME_FIXTURE_PASS` |
+| 真实官网安装测试 | **16/16 PASS** | **16/16 PASS** | 13 个生产原生生命周期阶段 PASS |
+| 关键行为 | 固定版本、套装、首次安装、使用、更新保留数据、标准网页授权、卸载、真实五秒超时及 Chrome 重启 PASS | 与 Linux 相同范围 PASS | 安装、授权、更新、导入、卸载和三次完整浏览器退出 |
+| 不可信消息与中断 | 8 项拒绝，A1/A2/B/C 真实中断恢复 PASS | 8 项拒绝，A1/A2/B/C 真实中断恢复 PASS | 保留原生产安装事务和权限边界 |
+| 安装注册表恢复重提交／未解释 runtime 异常／console 错误 | **0／0／0** | **0／0／0** | **0／0**（异常／console 错误） |
+| 响应式布局／实际缩放／键盘观察 | 23／4／101 条 | 23／4／101 条 | 固定版 Production Native 覆盖 |
+| 组件／环境测试 | **99 通过、0 失败** | **99 通过、0 失败** | **1,648 通过、0 失败、7 跳过** |
+| 正常 Chrome 退出 | 2 次 | 2 次 | 3 次 |
+
+Linux 和 Mac **实际的开发扩展 ID 与编译包 SHA 不同**，不能混写：
+
+| 身份 | Linux | macOS |
+| --- | --- | --- |
+| Chrome 扩展 ID | `nmeilgnolfnnlopgjoijdafbkelekcbj` | `oibdecbpklpnlljpiolnkgpohmpflnmj` |
+| 扩展包 hash | `533ead8d92ab44c94d734e0498e3df738b689965472c9f0b5c91b98491f065c8` | `d6f18545427ed254b3a5a227fc357cc2ee0c17bac2364defd0f4824b8dd3c219` |
+| 网站 build ID | `0526637ef3accd46a6c150e0d3f4d6eeefbbec36941a06700b161af6a80025f5` | `ba4c16d2de8ddea656e0bde112e2f4aea009218f8c5c3e79f052ee67542ccec8` |
+| 原生 JSON SHA-256 | `ea33c1edc0e649d115fbad0db23272794d286cb52e512e1a7ed88e79ac892c30` | `bd4fdcb0d55d620a62c4d5bd48d2ae4b685721dc274e0b53102f06ca6661d15c` |
+
+生产扩展 ID `jhajepcnohiplmafaiokjlcagcfjgaap`、包 hash `9833c92e259ed970d56b0475449b118737941db679bb5ea9087495cd599a123c`、原生 JSON SHA-256 `ac16be2376e3972eb8a54d472f1dd0f616bd42d5f08baf95ee42170f9ed29d7a`。全部 SHA 是从 GitHub 原始 ZIP 实际读回计算，未重新制作、编辑或伪造结果文件。实际 HTTP Origin 均为 `http://127.0.0.1:43132`，公开静态网站 59 个受控文件，官方目录 hash `80bd653266e4c378ffd8b372fd12dc0f5c9a9d53f8617296c99e7e9bd98f302c`，7 个当前工具、13 条完整不可变发行描述、3 个固定 reading-kit revision。
+
+**独立评分与硬性门槛：** 此候选原安装协议、站点、权限和候选合同没有扩展信任范围，沿用上文已经审阅并与两平台行为一致的设计与实现阶段评分。11 项的机器索引在 [`ci-38269315702/index.json`](evidence/app-market-r5/ci-38269315702/index.json)。产品定位/架构 97/96；UI 96/95；UX 96/95；安装/更新/卸载 97/96；安全 97/95；隐私 97/96；固定版本/套装 96/95；本地 HTTP 97/97。**正式 HTTPS 为 95/待评、BLOCKED；兼容性/性能/维护为 96/94、未验收；完整恢复与故障证据为 97/93、未验收。** 不将最后三项冒充已达到 95 分，也不继承“综合 96 分”。本次没有凭 CI 绿色虚构新的独立审阅人员或主张 Chrome Web Store 已批准。
+
+还需原生实测：`tabs.create` 与 `chrome.storage.local.set` 的 Chrome API **自身回执丢失**（非 A2/C 已测的调用者关闭）、真实配额不足、30 分钟 TTL 自然过期、Worker 自然闲置停止、用户自己的 Mac Chrome Profile。生产公网渠道需核实正式 HTTPS Origin、发行扩展 ID、官方获取地址、部署权限及生产包连通性。上述均保留 `NOT_TESTED`／`BLOCKED`，不因固定候选 PASS 被降低或删除。
+
+本次 CI 修复已提交的文件仅为原 R5 workflow 路径、相关测试和工作流记录；现有 Marketplace/Authority/Broker/RunHost/安装注册表未更改。后续 `main` 新提交须按 [测试证据复用指南](../testing-guide.md) 对比具体产品源码与构建输入；无关文件改变不自动失效此次候选的 PASS，修改依赖的包或 SDK 运行链路则标记 `AFFECTED_INPUTS` 另行补测。GitHub Artifact 有过期窗口，机器索引保存原 SHA 与可追溯 CI URL，不能宣称原 ZIP 永久可下载。
+
+

@@ -1,0 +1,22 @@
+{
+  "name": "@opendesk-examples/listing-sku-inspector",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "EXP-005 read-only seller Listing/SKU checks on the authorized local Browser Test Lab",
+  "opendesk": {
+    "format": "opendesk.project.v1",
+    "id": "exp005.listing-sku-inspector",
+    "runtimeKind": "page-userscript",
+    "sourceFormat": "esm",
+    "entry": "src/main.js",
+    "pageRules": {
+      "matches": ["http://127.0.0.1/*"],
+      "excludeMatches": [],
+      "runAt": "document_idle",
+      "allFrames": false,
+      "world": "USER_SCRIPT"
+    },
+    "assets": [{"path":"assets/ui.css","kind":"css"}]
+  }
+}

@@ -1,10 +1,16 @@
-# OpenDesk 后续 GOAL：当前电商 R2 与已废弃历史方案
+# OpenDesk 后续 GOAL：Product Ecosystem R3 工程、电商 R2 商业研究与已废弃历史方案
 
 > 仅供下一轮执行，当前 R1 **不实现**以下代码、不新增分支/Worktree/PR。开始时必须重新阅读最新 `AGENTS.md` 和 main HEAD；若发现并行写入冲突，保持只读并提醒，不强推、不修改其他 Agent 的工作。
 
-> **2026-10-12 商业方向调整：**原 GOAL 1 Page QA / GOAL 3 EXP-002 的“首款商业产品”建议属于历史计划，**仅保留工厂技术验证参考，不能直接作为新的商业优先级**。现在应先执行 [电商工具宇宙唯一研究 GOAL](../../framework/prompts/goal-ecommerce-tool-universe-r1.zh-CN.md)；其他研发任务需按各自原有授权执行，Page QA 相关实验源码现已从 main 安全移除，保留历史记录；勿影响其他 Agent 的独立任务。
+> **2026-10-12 商业方向调整：**原 GOAL 1 Page QA / GOAL 3 EXP-002 的“首款商业产品”建议属于历史计划。现有 Page QA 实验源码已从 main 移除，历史设计仅供追溯。电商业务研究按 [电商 R2 GOAL](../../framework/prompts/goal-ecommerce-tool-universe-r2-commercial-validation.zh-CN.md)，需要编写真实工具代码的工程工作按下方 Product Ecosystem R3 GOAL；勿影响其他 Agent 的独立任务。
 
-## 当前推荐：电商需求与商业验证 R2
+## 当前工程任务（R3）：真实工具与通用架构
+
+> **新的工程执行入口**：[Product Ecosystem R3 GOAL](../../framework/prompts/goal-product-ecosystem-r3.zh-CN.md)，任务树与验收门见 [R3 Roadmap](product-ecosystem-r3-roadmap.zh-CN.md)。依序完成 P0 清理影响验证、P1 复用能力映射、P2 实际电商工具/UserScript 闭环；只有真实独立发行必要时才启动 P3 Extension Factory 通用化。当前并没有已交付的跨产品通用 Factory，也不应重新建立 Page QA。
+>
+> 本 GOAL 用于**真实工程实现**；下面 R2 GOAL 用于**商业研究**，两条线互相提供证据，但不能互相冒充完成或对方的发布授权。工程状态写 [R3 工作流](../../framework/workstreams/product-ecosystem-r3.md)。
+
+## 并行的商业研究任务（R2）：电商需求与商业验证
 
 请直接复制 [电商工具宇宙 R2 正式 GOAL](../../framework/prompts/goal-ecommerce-tool-universe-r2-commercial-validation.zh-CN.md)，本轮首先对齐已保存的研究文件、分析卖家与购物者真实任务、筛选有买方和合法数据源的 MVP，而不是进一步实现 Page QA。
 
@@ -95,3 +101,10 @@ CWS 单一用途、重复内容、白标、最小权限和合法数据来源为�
 交付 GO/PIVOT/STOP、真实/缺失证据、各项 Gate 结果和下一轮产品建议；
 仅在安全无并行冲突时将研究文档保存 main。
 ~~~
+
+## 新增：R4 商业闭环 MVP 实施入口（2026-10-13）
+
+- [一个真正在浏览器插件内可用的卖家结算审计 MVP 工作流和任务树](commercial-mvp-workflow-r4-20261013.zh-CN.md)
+- [复制到下一源码对话的 R4 完整 GOAL](../../framework/prompts/goal-commercial-mvp-seller-payout-r4-20261013.zh-CN.md)
+
+仅 P0 使用手动 CSV 和本地解释规则，不重建 SDK/Task/工具市场，不提前创造支付/用户统计。Page QA Inspector 仍 DEPRECATED。

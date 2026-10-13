@@ -101,3 +101,12 @@
 ## 八、正式续接
 
 [电商研究 R1 GOAL（历史）](../../framework/prompts/goal-ecommerce-tool-universe-r1.zh-CN.md) 保留原始功能树；当前使用 [电商工具宇宙 R2 商业验证 GOAL](../../framework/prompts/goal-ecommerce-tool-universe-r2-commercial-validation.zh-CN.md) 对真实需求、用户买方、合法来源、盈利可行性和三个 MVP 做证据收敛，不重新开发已废弃的 Page QA、AdBlock 或第二套 SDK。
+
+
+## 九、X 维度：跨行业高商业价值用户 × 数据工作流（2026-10-12 增量）
+
+**研究接受、商业优先级未验证。** 创作者、带货机构、品牌投放团队与多客户代理商属于可研究的高价值用户群；但**粉丝/流量不等于净收入、预算与愿意付费**。跨行业机会应按用户可合法访问的后台数据、重复决策、财务/工时损失、现有免费工具替代、付费决策人和维护成本判断，不自动升级为 MVP 或独立 Chrome 扩展。
+
+已核查 YouTube Studio 高级报告导出、TikTok Shop 菲律宾 Creator Center 佣金导出与结算口径、Shopify Collabs 佣金/销售及商家报表导出；这些也构成强大的**官方免费替代反证**。优先研究跨结算周期差异、商单交付证明、机构的多客户对账等任务，不把普通播放量看板、粉丝导出或静默采集作为商业候选。
+
+详见 [X 维度研究与反证](high-value-audience-creator-analytics-x-dimension-r2-20261012.zh-CN.md)；独立下一轮研究任务见 [X 维度 R3 GOAL](../../framework/prompts/goal-high-value-user-workflow-research-r3-20261012.zh-CN.md)。复用 OPP-015～021、OPP-078/080/081/083 等已有机会，不新建平行总账；所有人群高频及付费结论仍是 HYPOTHESIS。

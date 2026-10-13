@@ -1,5 +1,7 @@
 # OpenDesk Browser 通用框架迁移 Goal 进度
 
+> **历史迁移工作流（2026-10-03 快照），不是今天全部框架的完成进度。** 当前全局导航请先读 [框架四层功能树与依赖进度树](../architecture/browser-framework/framework-feature-progress-tree-20261013.zh-CN.md)，以及 [机器进度镜像](workstreams/framework-feature-progress-20261013.json)。这里的早期 F1/F2、603+19 与包 Hash 原文保留为历史证据，不能直接改写或用于推导当前产品完成百分比。
+
 ## 当前真实状态 — 2026-10-03T09:00:42.131909+00:00
 
 阶段0与F1已通过，唯一owner为 `01a1007d-556c-7783-b5dd-c09312a10236`，Goal active。双包已用原构建体系build/pack/verify，77源码输入无漂移；syntax71与392/392组件测试通过。production SW252486 bytes、development SW513045 bytes均在原预算内，未放宽预算或CSP。

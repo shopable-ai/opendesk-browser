@@ -37,7 +37,7 @@ export function projectCloudStatus(raw, {version='未知', capturedAt=new Date()
     schema:'opendesk.cloud-control.diagnostics.v1',capturedAt,
     extensionVersion:/^\d+(?:\.\d+){1,3}$/.test(String(version))?String(version):'未知',
     paired:Boolean(source.provider),enabled:source.enabled===true,
-    revocation:revocationState(source.revocation),
+    revocation:revocationState(source.revocation),remoteSuspension:['pending','confirmed'].includes(source.remoteSuspension)?source.remoteSuspension:null,
     connection:CONNECTION.has(source.connection)?source.connection:'unknown',
     online:source.online===true,reconciled:source.reconciled===true,
     hostReady:source.hostReady===true,slotAvailable:slotState(source)==='available',
@@ -61,7 +61,8 @@ function hostingAvailabilitySummary(status){
   if(status.revocation==='unknown')return '撤销状态待核对；暂不能确认可重新配对。';
   if(!status.paired&&status.revocation==='confirmed')return '本机已停止；服务端撤销已确认。可重新配对提供者。';
   if(!status.paired)return '未配对提供者。云端托管是浏览器内置能力；请先安装任务，再配对并批准明确范围。';
-  if(!status.enabled)return '已配对，托管已关闭。不会领取新任务。';
+  if(!status.enabled&&status.remoteSuspension==='pending')return '本地已停止执行，但提供者尚未确认暂停；外部请求可能继续排队。';
+  if(!status.enabled)return '已配对，托管已关闭。未启用任务授权，不会领取新任务。';
   if(!status.online)return '托管已启用，但提供者尚未连接。请检查网络和连接状态。';
   if(!status.reconciled)return '已连接提供者，正在对账；尚不能确认可执行。';
   if(!status.hostReady)return '连接和对账已完成；需要可用的浏览器执行宿主。';
@@ -129,6 +130,8 @@ export function projectCloudRequestSamples(raw,limit=5){
     const completed=row?.state==='finished'&&row?.runState==='completed'&&row?.retirementState==='released'&&row?.receipt!=null&&row?.outcomeUnknown!==true;
     const reason=row?.reason==null||row.reason===''||completed&&row.reason==='E_CLOUD_CANCELLED'?'':label(REASON_LABELS,row.reason,'状态原因待核对');
     return {
+      title:typeof row?.taskTitle==='string'&&row.taskTitle.trim()
+        ?row.taskTitle.trim().slice(0,80):'历史任务',
       state:row?.state==='finished'&&row?.runState!=='completed'?'请求已结束':label(REQUEST_STATE_LABELS,row?.state,'状态未识别'),
       run:label(RUN_STATE_LABELS,row?.runState,row?.runState==null?'尚无执行状态':'执行状态未识别'),
       // Controller terminal state and result are committed in the same transaction;

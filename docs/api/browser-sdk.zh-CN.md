@@ -1,6 +1,45 @@
+> **R9 正式入口**：`OpenDeskSDK.browser`。Chrome 原生命名优先，创建使用 `tabs.create`；仅自有 TabRef 的聚焦和关闭明确叫 `tabs.activateOwned` / `tabs.removeOwned`，禁止原生数字 Tab ID。下方 R5/R8 的固定 35 项与长期兼容要求只留作历史。
+
 # OpenDeskSDK.browser API · 推荐短接口与原有高级操作
 
-> **更新：2026-10-12。** 对安装工具的开发者，优先使用易理解的高层写法；下方保留的 R1.3 `PLANNED` / `HOST_ONLY` 表是 **2026-10-11 历史快照，不能当作当前进度**。当前真实合同为 [32 项操作注册表](../../src/framework/sdk/browser-contract.js)，状态与原生证据见 [Browser SDK 工作流](../framework/workstreams/browser-sdk-status.md)。
+> **R8 统一规范（已建立分阶段实施工作流）**：[单一 `OpenDeskSDK.browser` / Host / Authority 架构](browser-sdk-architecture-r8.zh-CN.md)、[35 项旧接口兼容映射](browser-sdk-compatibility-map.json)、[上游复用决策](browser-sdk-open-source-reuse.zh-CN.md)、[官方 Native Catalog（目前只覆盖 8 组固定 JSON，不能称 Chrome 全量）](chrome-native-api-catalog.json)。R8 的 Catalog 发现层不授予执行权限。本页 R1.3 历史表格明确不是今日状态；`cookies.*` 尚未成为正式可信调用链。
+
+> **框架能力四层总账**：[Chrome 原生 ↔ Driver/Host ↔ Browser SDK ↔ 验收证据](browser-framework-four-layer-ledger.zh-CN.md)；所有 27 组 114 项候选和 Cookie 10 项 P0 缺口都有逐项索引。此页保留当前开发者 API/历史设计，四层总账不构成额外授权。
+
+
+> **更新：2026-10-12。** 对安装工具的开发者，优先使用易理解的高层写法；下方保留的 R1.3 `PLANNED` / `HOST_ONLY` 表是 **2026-10-11 历史快照，不能当作当前进度**。当前源码正式合同为 [28 项操作注册表](../../src/framework/sdk/browser-contract.js)，状态与原生证据见 [Browser SDK 工作流](../framework/workstreams/browser-sdk-status.md)。
+
+## R9 当前推荐：重载本工具拥有的网页
+
+```js
+const {browser} = OpenDeskSDK;
+const {tabRef} = await browser.tabs.create({url:'https://example.org/page'});
+// 一次性点击审批，旧 TabRef 在调用原生 reload 前立即失效
+const receipt = await browser.tabs.reloadOwned({tabRef});
+// {reloadRequested:true, tabRefRevoked:true}：仅代表发起成功，不是页面完成加载
+```
+
+`reloadOwned` 仅作用于当前工具安装身份、精确网页文档和获批站点对应的 opaque TabRef；每次重载都必须经过可信 Side Panel 明确点击。旧引用不能重用，不能以原生数字 tabId 访问其他标签页。网络观察、截图等旧文档资源会继续遵循既有导航失效规则。页面导航完成不属于本操作的成功回执。
+
+## R5：查询、列出并关闭本工具的标签页
+
+此处 R5 正式新增 **3 项源码接线接口**。原 32 项历史接口合同仍保留，按 R5 增量记账为 35 项，其中 26 项已接线。源码接线不等于 Mac Chrome 原生验收；当前新增功能原生仍 NOT_TESTED。
+
+```js
+const {browser} = OpenDeskSDK;
+const {tabRef} = await browser.tabs.create({url:'https://example.org/page'});
+const owned = await browser.tabs.getOwned({tabRef});
+const {tabs} = await browser.tabs.listOwned();
+await browser.tabs.removeOwned({tabRef});
+```
+
+- `getOwned({tabRef})` 返回本工具已打开、目前仍合法的 URL、Origin、引用到期时间及 TabRef。
+- `listOwned()` 只列本工具最多 8 个当前合法引用与 Origin，不查询所有 Chrome 标签页。
+- `closeOwned({tabRef})` 必须经受信侧边栏的明确单次点击，通过真实 Host 后才能关闭；原生结果未知时不重复执行。
+- 工具包仍需声明 `browser.tabs` capability，且必须安装、启用并保持相同包 Hash / Install Epoch、Chrome 权限与网站授权。不能把原生 tabId 传入任何一个方法。
+- 已导航、关闭、停用、卸载、更新及 Worker 重启后的旧引用不再有效；开发期旧 open/focus/closeOwned 已清理，工具必须使用上面的单一正式方法。
+
+实现包括 `src/framework/sdk/browser-contract.js`、`browser.js`、`browser-schemas.js`、`src/platform/chrome/browser-tabs.js`、`context-menus.js`、`src/ui/sidebar-tools.js` 与 `src/sidebar-tools/bridge.js`。验收见 [状态与测试账本](../framework/workstreams/browser-sdk-status.md)。
 
 ## 开发者优先：`browser.network.watch()`
 
@@ -8,7 +47,7 @@
 // 仅在已安装、已启用且具备 capability 的 Side Panel 工具沙箱中。
 // OpenDeskSDK 是运行时提供的环境对象，不向 main() 传参数。
 const {browser} = OpenDeskSDK;
-const {tabRef} = await browser.tabs.open({url:'https://example.org/page'});
+const {tabRef} = await browser.tabs.create({url:'https://example.org/page'});
 
 // 通过可信 UI 明确批准指定 TabRef + Origin，开启不超过 30 秒的元数据观察。
 const watch = await browser.network.watch({
@@ -22,7 +61,7 @@ await watch.export();  // JSON Save As；需要另一次用户确认
 await watch.close();
 ```
 
-**为什么不再推荐把 `network.observe.start` 写进普通示例？** 因为 `network.observe.start`、`events.read`、`operations.cancel` 属于内部按能力领域拆分的**精确 Host 操作合同**，用户不应为一次短时观察自行维护 `observationId/sessionRef/operationId`。推荐 `watch` 作为**仅存在于工具沙箱的轻量便捷句柄**；其 `read/status/stop/export/close/cancel` 仍分别调用原已批准的 Host RPC，没有第二套权限、Driver 或持久观察系统。旧写法完全保留兼容，不改变 32 项合同分母、错误码和能力体系。
+**为什么不再推荐把 `network.observe.start` 写进普通示例？** 因为 `network.observe.start`、`events.read`、`operations.cancel` 属于内部按能力领域拆分的**精确 Host 操作合同**，用户不应为一次短时观察自行维护 `observationId/sessionRef/operationId`。推荐 `watch` 作为**仅存在于工具沙箱的轻量便捷句柄**；其 `read/status/stop/export/close/cancel` 仍分别调用原已批准的 Host RPC，没有第二套权限、Driver 或持久观察系统。旧写法完全保留兼容；`watch` 不属于新的正式 RPC 操作：既不改写 R1.3–R4 历史 32 项分母，也不改变当前包含 R5 增量的 35 项正式合同、错误码或能力体系。
 
 | 用户操作 | 推荐方式 | 复用的可信底层操作 |
 | --- | --- | --- |
@@ -116,8 +155,8 @@ await OpenDeskTool.request('storage.get',{key:'notes'});
 
 | 拟议名称 | 参数/输入形态 | 当前阶段 | 原因 |
 | --- | --- | --- | --- |
-| `browser.tabs.open` | {url} | **PLANNED** | 禁止任意 tabId, 计划受控 tabRef |
-| `browser.tabs.focus` | {tabRef} | **PLANNED** | 需要不可伪造引用 |
+| `browser.tabs.create` | {url} | **PLANNED** | 禁止任意 tabId, 计划受控 tabRef |
+| `browser.tabs.activateOwned` | {tabRef} | **PLANNED** | 需要不可伪造引用 |
 | `browser.sidePanel.openSelf` | {} | **PLANNED** | 真实用户手势可信前台 |
 | `browser.network.request` | HTTP 请求合同 | **HOST_ONLY** | 已有 axiosx/Controller 主动请求，未对工具重映射 |
 | `browser.network.observe.start` | {tabRef,origins,durationMs,...} | **PLANNED** | R2 被动 HTTP(S) 元数据 |

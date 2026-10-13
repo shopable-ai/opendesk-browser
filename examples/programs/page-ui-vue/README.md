@@ -1,8 +1,11 @@
 # Vue SFC · OpenDesk Browser R24.3
 
+> **R24.5 分版：** 默认 Standard **不包含浏览器内 JSX/SFC 编译器**，但本示例仍可经本地 `opendesk browser dev .` 自动编译并运行。只有 Developer Edition 支持不安装 Native、直接在 Side Panel 粘贴原始组件源码即时编译。[双版本说明](../../../docs/architecture/browser-framework/browser-compiler-editions-r245.zh-CN.md)。
+
+
 ## 自动编译状态（2026-10-12）
 
-**状态：已实现、历史候选真实 Chrome PASS；R24.4 最终验收未完成。** `src/App.vue` 是原始 Vue SFC，Chrome 不能直接当普通 JavaScript 运行。OpenDesk 会自动转换：本地 `opendesk browser dev .` 在保存后准备；无 Native 浏览器「直接编辑 → Vue SFC」在明确 Run 时用受信 Worker 编译 `<script setup>`、`<template>` 与 `<style scoped>`。用户无须每次手动 Vite/npm build，**保存、编译并不自动运行**。
+**状态：已实现、历史候选真实 Chrome PASS；R24.4 最终验收未完成。** `src/App.vue` 是原始 Vue SFC，Chrome 不能直接当普通 JavaScript 运行。OpenDesk 会自动转换：本地 `opendesk browser dev .` 在保存后准备；Developer Edition 无 Native 浏览器「直接编辑 → Vue SFC」在明确 Run 时用受信 Worker 编译 `<script setup>`、`<template>` 与 `<style scoped>`。用户无须每次手动 Vite/npm build，**保存、编译并不自动运行**。
 
 证据：[本地 Vue 20 次真实 Chrome Run/Stop](https://github.com/shopable-ai/opendesk-browser/actions/runs/38155034890)、[浏览器 Vue `ref` 交互与 Stop](https://github.com/shopable-ai/opendesk-browser/actions/runs/38225425847)、[浏览器 Vue 语法错误拒绝与修复恢复](https://github.com/shopable-ai/opendesk-browser/actions/runs/38230083408)、[独立安装 CLI SFC 编译](https://github.com/shopable-ai/opendesk-browser/actions/runs/38231722128)。这些是历史候选 PASS；最新 `main` 浏览器 20 次循环、SPA/BFCache、撤权、完整 scoped CSS、缩放/主题与最终交付 **NOT_TESTED**。[完整状态表](../../../docs/api/page-ui-frameworks.zh-CN.md)。
 
@@ -13,7 +16,7 @@
 
 本地多文件编辑需要已安装配对的 OpenDesk Native Host。从本目录执行 `opendesk browser dev .`，保存自动准备，明确点击 Sidebar「开发 → 本地项目 → 运行本地项目」才操作目标网页。统一测试页 `http://127.0.0.1:43111/demo-form.html`，仓库根目录运行 `python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks`。原用户脚本许可和网站授权不可跳过。
 
-**无需 Native 也可在浏览器直接编辑 Vue SFC：** Side Panel →「开发」→「直接编辑」→「Vue SFC」，把本项目 `src/App.vue` 的 `<script setup>` / `<template>` / `<style scoped>` 粘贴进编辑器，明确点击「运行 React/Vue 组件」；固定 Dedicated Worker 转换后进入原 Page USER_SCRIPT，使用原「停止受管 UI」卸载。此功能针对单组件源码，不是对本地目录的多文件同步。另可[导入冻结的 Vue JSON 草稿](../../import-ready/README.zh-CN.md)并试运行，导入 JSON 与在线转换属于不同入口。TS/TSX、外部 `src`、未经批准的预处理器和 CSS 网络依赖仍会拒绝。
+**仅 Developer Edition 无需 Native 也可在浏览器直接编辑 Vue SFC：** Side Panel →「开发」→「直接编辑」→「Vue SFC」，把本项目 `src/App.vue` 的 `<script setup>` / `<template>` / `<style scoped>` 粘贴进编辑器，明确点击「运行 React/Vue 组件」；固定 Dedicated Worker 转换后进入原 Page USER_SCRIPT，使用原「停止受管 UI」卸载。此功能针对单组件源码，不是对本地目录的多文件同步。另可[导入冻结的 Vue JSON 草稿](../../import-ready/README.zh-CN.md)并试运行，导入 JSON 与在线转换属于不同入口。TS/TSX、外部 `src`、未经批准的预处理器和 CSS 网络依赖仍会拒绝。
 
 维护者 `npm run build:program` 现在直接运行项目编译器，不先执行 Vite。独立保留 `build:framework`、`src/runtime-entry.js`、`vite.config.mjs`、源锁和许可证作为固定运行时来源。旧 `src/Widget.vue`、`src/main.js`、`src/enhancement.js` 仅用于原 R24.1 高亮/撤销场景，不作为新默认组件依赖。
 

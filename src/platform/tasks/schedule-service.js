@@ -88,6 +88,13 @@ export function createScheduleService({storage,api,clock,session,assertHost,emit
     return {schedules:schedules.map(row=>({...row,
       needsAttention:row.needsAttention||grants.get(new URL(row.targetUrl).origin)!==true}))};
   }
+  async function listScheduleHistory(request,sender){
+    await checkSender(sender);
+    invariant(request&&typeof request==='object'&&!Array.isArray(request)&&
+      ['scheduleId','offset','limit'].every(key=>Object.hasOwn(request,key))&&
+      Object.keys(request).length===3,'E_SCHEMA','Invalid history page request');
+    return repo.history(request);
+  }
   async function listDueSchedules(request,sender){
     await checkSender(sender);
     invariant(request&&Object.keys(request).length===0,'E_SCHEMA');
@@ -106,6 +113,6 @@ export function createScheduleService({storage,api,clock,session,assertHost,emit
     if(typeof alarm?.name!=='string'||!alarm.name.startsWith(SCHEDULE_ALARM_PREFIX))return false;
     await reconcile();return true;
   }
-  return {saveSchedule,changeSchedule,listSchedules,listDueSchedules,setScheduleFireState,onAlarm,reconcile,
+  return {saveSchedule,changeSchedule,listSchedules,listScheduleHistory,listDueSchedules,setScheduleFireState,onAlarm,reconcile,
     admit:repo.admit,bind:repo.bind};
 }

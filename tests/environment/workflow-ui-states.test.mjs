@@ -144,6 +144,10 @@ test('R16 AI settings distinguish local Codex, custom HTTPS, future cloud and in
   assert.match(settings,/可能保存在 Codex 本机对话中/);
   assert.match(settings,/请勿填写 Codex 登录凭据/);
   assert.match(settings,/每次读取仍需确认/);
+  assert.doesNotMatch(settings,/id="workflow-ai-consent"|id="workflow-ai-observe-consent"/);
+  assert.match(settings,/id="workflow-ai-revoke"/);
+  assert.match(html,/id="workflow-ai-disclosure"/);
+  assert.match(html,/id="workflow-ai-plan-label"/);
   assert.match(html,/id="workflow-provider-settings" class="workflow-provider"/);
   assert.doesNotMatch(settings,/localCodexReady\s*=\s*true|模拟连接成功/);
 });

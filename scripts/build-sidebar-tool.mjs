@@ -3,6 +3,7 @@
 import {readFile,writeFile,mkdir,realpath,stat} from 'node:fs/promises';
 import {resolve,dirname,join,extname,basename} from 'node:path';
 import {pathToFileURL} from 'node:url';
+import {createHash} from 'node:crypto';
 import {validateSidebarToolPackage,SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_FORMAT_V2,serializeSidebarToolPackage} from '../src/ui/sidebar-tools/package.js';
 const fail=(message)=>{throw new Error('E_TOOL_BUILD: '+message);};
 function rel(value) {
@@ -32,11 +33,23 @@ export async function createSidebarToolPackage(projectPath) {
        :['id','version','title','description','capabilities','files','assets']).includes(key))||
      (!v2&&Object.hasOwn(meta,'format'))||
      !meta.files||typeof meta.files!=='object'||Array.isArray(meta.files)||
-     Object.keys(meta.files).sort().join(',')!=='css,html,js')
+     Object.keys(meta.files).some(key=>!['html','css','js','dependencies'].includes(key))||
+     !['html','css','js'].every(key=>Object.hasOwn(meta.files,key))||
+     (Object.hasOwn(meta.files,'dependencies')&&!v2))
+    
     fail('tool.config.json needs exactly HTML, CSS and JS file paths');
   const html=await source(root,meta.files.html,64000);
   let css=await source(root,meta.files.css,120000);
   const js=await source(root,meta.files.js,220000);
+  const libraries=meta.files.dependencies||[];
+  if(!Array.isArray(libraries)||libraries.length>8||
+      new Set(libraries).size!==libraries.length||libraries.includes(meta.files.js))
+    fail('fixed dependency paths must be unique, ordered, and limited to eight Classic files');
+  const scripts=await Promise.all(libraries.map(async name=>{
+    const code=await source(root,name,96000);
+    const sha256=createHash('sha256').update(Buffer.from(code,'utf8')).digest('hex');
+    return {name,sha256,code};
+  }));
   let embeddedHtml=html;
   const assets=meta.assets||[];
   if(!Array.isArray(assets)||assets.length>16||new Set(assets).size!==assets.length)fail('invalid asset list');
@@ -54,7 +67,7 @@ export async function createSidebarToolPackage(projectPath) {
   if(/\{\{asset:/.test(embeddedHtml+css))fail('unresolved local asset reference');
   const pkg=validateSidebarToolPackage({format:v2?SIDEBAR_TOOL_FORMAT_V2:SIDEBAR_TOOL_FORMAT,id:meta.id,version:meta.version,
     title:meta.title,description:meta.description,capabilities:meta.capabilities||[],html:embeddedHtml,css,js,
-    ...(v2?{requires:meta.requires,contributes:meta.contributes}:{})});
+    ...(v2?{requires:meta.requires,contributes:meta.contributes,...(scripts.length?{scripts}:{})}:{})});
   return pkg;
 }
 // The digest/size must describe the actual portable UTF-8 file, including its

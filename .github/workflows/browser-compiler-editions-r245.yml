@@ -1,0 +1,116 @@
+name: R24.5 Standard slim and optional Developer compiler editions
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/browser-compiler-editions-r245.yml'
+      - 'scripts/browser-editions-r245.mjs'
+      - 'scripts/build-page-edition-r245.mjs'
+      - 'scripts/pack-page-edition-r245.mjs'
+      - 'scripts/prepare-public.mjs'
+      - 'scripts/build.mjs'
+      - 'scripts/pack.mjs'
+      - 'scripts/audit-fixed-entries.mjs'
+      - 'scripts/verify-package.mjs'
+      - 'wxt.config.mjs'
+      - 'src/ui/script-editor.js'
+      - 'src/ui/controller-esm-source.js'
+      - 'src/ui/page-component-preparer.js'
+      - 'src/ui/page-component-remote.js'
+      - 'src/ui/page-component-compiler-worker.js'
+      - 'src/libs/page-frameworks/contract.js'
+      - 'src/libs/page-frameworks/controller-esm-linker-r4.mjs'
+      - 'src/scripting/user-scripts/page-component-dependencies.js'
+      - 'tests/environment/controller-esm-runtime-r4.test.mjs'
+      - 'tests/environment/page-component-dependencies.test.mjs'
+      - 'tests/environment/browser-editions-r245.test.mjs'
+      - 'tests/framework/browser-edition-package-r245.mjs'
+      - 'package.json'
+      - 'tests/framework/page-browser-worker-r243-cft.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  dual-edition-package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Targeted edition contracts and source check
+        run: |
+          node --test tests/environment/browser-editions-r245.test.mjs tests/environment/page-component-preparer-r243.test.mjs tests/environment/controller-esm-runtime-r4.test.mjs tests/environment/page-component-dependencies.test.mjs tests/environment/page-component-remote.test.mjs tests/environment/script-editor.test.mjs
+          npm run check
+      - name: Build the ordinary Standard package with NO JSX/SFC browser compiler
+        run: npm run build
+      - name: Build Developer Edition into a separate isolated output path
+        run: npm run build:developer
+      - name: Verify both packages and compare actual compiled resource bytes and hashes
+        env:
+          OPENDESK_EDITION_TEST_OUTPUT: .runtime/tests/browser-editions-r245/acceptance.json
+        run: node tests/framework/browser-edition-package-r245.mjs
+      - name: Pack both independently, without publishing a release
+        run: |
+          npm run pack
+          npm run pack:developer
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r245-two-editions-${{ github.sha }}
+          path: |
+            .runtime/tests/browser-editions-r245
+            artifacts/opendesk-browser-production.zip
+            artifacts/opendesk-browser-production-developer.zip
+          if-no-files-found: warn
+
+  browser-editions-real-chrome:
+    runs-on: macos-15
+    timeout-minutes: 28
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Build Standard and verify true physical compiler absence
+        run: |
+          npm run build
+          node scripts/verify-package.mjs dist/production production
+      - name: Real Chrome Standard Side Panel hides compiler modes, Native absent
+        env:
+          CHROME_FOR_TESTING_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          OPENDESK_R245_STANDARD_SMOKE: '1'
+          OPENDESK_DEV_PACKAGE_DIR: dist/production
+          OPENDESK_DEV_EVIDENCE: .runtime/tests/r245-standard-chrome
+          OPENDESK_DEV_CFT_LAUNCHER: ${{ github.workspace }}/tests/framework/cft-isolated-launcher.py
+        run: node tests/framework/page-browser-worker-r243-cft.mjs
+      - name: Build Developer and verify fixed compiler assets
+        run: |
+          npm run build:developer
+          node scripts/verify-package.mjs dist/production-developer production
+      - name: Real Chrome Developer JSX/SFC edit, interactions, error recovery and Stop, Native absent
+        env:
+          CHROME_FOR_TESTING_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          OPENDESK_R243_BROWSER_FULL_UI: '1'
+          OPENDESK_R4_CONTROLLER_ESM_NATIVE_SMOKE: '1'
+          OPENDESK_DEV_PACKAGE_DIR: dist/production-developer
+          OPENDESK_DEV_EVIDENCE: .runtime/tests/r245-developer-chrome
+          OPENDESK_DEV_CFT_LAUNCHER: ${{ github.workspace }}/tests/framework/cft-isolated-launcher.py
+        run: node tests/framework/page-browser-worker-r243-cft.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r245-standard-and-developer-native-${{ github.sha }}
+          path: |
+            .runtime/tests/r245-standard-chrome
+            .runtime/tests/r245-developer-chrome
+          if-no-files-found: warn

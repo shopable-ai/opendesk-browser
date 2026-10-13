@@ -1,0 +1,5048 @@
+{
+  "schemaVersion": "opendesk.browser-framework.four-layer.v1",
+  "readOnly": true,
+  "source": {
+    "mainSha": "74c11918e327ac8f0c6a05cb78c9de13dadb8e6d",
+    "reviewDate": "2026-10-13",
+    "minChrome": "138",
+    "formalRegistry": "src/framework/sdk/browser-contract.js",
+    "acceptanceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json",
+    "candidateCatalog": "docs/api/browser-sdk-full-interface-inventory.zh-CN.md",
+    "cookieDriver": "src/platform/chrome/cookies.js",
+    "chromeReference": "https://developer.chrome.com/docs/extensions/reference/api"
+  },
+  "layers": [
+    {
+      "id": "layer1",
+      "label": "Chrome 原生能力"
+    },
+    {
+      "id": "layer2",
+      "label": "OpenDesk 基础 Driver / Host / Controller"
+    },
+    {
+      "id": "layer3",
+      "label": "Browser SDK 正式登记与可信等级"
+    },
+    {
+      "id": "layer4",
+      "label": "组件和真实 Chrome 验收"
+    }
+  ],
+  "counts": {
+    "formal": 29,
+    "implemented": 29,
+    "planned": 0,
+    "notExposed": 0,
+    "candidateGroups": 27,
+    "originalCandidates": 114,
+    "promoted": 6,
+    "pending": 108,
+    "uniqueNamedMethods": 137,
+    "cookieSdkFormal": 0,
+    "cookieCandidates": 10,
+    "formalNativePass": 0,
+    "supplementalAuditDomains": 32
+  },
+  "formal": [
+    {
+      "id": "browser.capabilities.list",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "Host-owned abstraction",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/context-menus.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [],
+        "chromePermissions": [],
+        "siteScope": "none"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.capabilities.getStatus",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "Host-owned abstraction",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/context-menus.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [],
+        "chromePermissions": [],
+        "siteScope": "none"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.contextMenu.getStatus",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.contextMenus",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/context-menus.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.contextMenu"
+        ],
+        "chromePermissions": [
+          "contextMenus"
+        ],
+        "siteScope": "approved-origin"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.contextMenu.register",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.contextMenus",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/context-menus.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.contextMenu"
+        ],
+        "chromePermissions": [
+          "contextMenus"
+        ],
+        "siteScope": "approved-origin"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.contextMenu.unregister",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.contextMenus",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/context-menus.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.contextMenu"
+        ],
+        "chromePermissions": [],
+        "siteScope": "approved-origin"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.launch.consume",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.contextMenus",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/context-menus.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.contextMenu"
+        ],
+        "chromePermissions": [],
+        "siteScope": "clicked-document"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.page.getContext",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "DOM / currentPage",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/ui/sidebar-tools.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "currentPage.read"
+        ],
+        "chromePermissions": [],
+        "siteScope": "current-page"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.page.getSelection",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "DOM / currentPage",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/context-menus.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.contextMenu"
+        ],
+        "chromePermissions": [],
+        "siteScope": "clicked-document"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.clipboard.writeText",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "Web Clipboard API",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/ui/sidebar-tools.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "user.export"
+        ],
+        "chromePermissions": [],
+        "siteScope": "none"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.downloads.text",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.downloads",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/ui/sidebar-tools.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "user.export"
+        ],
+        "chromePermissions": [
+          "downloads"
+        ],
+        "siteScope": "none"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.tabs.create",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.tabs + chrome.webNavigation",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/context-menus.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.tabs"
+        ],
+        "chromePermissions": [
+          "tabs"
+        ],
+        "siteScope": "explicit-url"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.tabs.activateOwned",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.tabs + chrome.webNavigation",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/context-menus.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.tabs"
+        ],
+        "chromePermissions": [
+          "tabs",
+          "webNavigation"
+        ],
+        "siteScope": "tab-ref"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.tabs.getOwned",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.tabs + chrome.webNavigation",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/context-menus.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.tabs"
+        ],
+        "chromePermissions": [
+          "tabs",
+          "webNavigation"
+        ],
+        "siteScope": "tab-ref"
+      },
+      "layer4": {
+        "positive": "PASS",
+        "denial": "PASS",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": {
+        "id": "browser.tabs.getOwned",
+        "group": "标签页扩展操作",
+        "priority": "P0",
+        "trust": "APPROVED_TOOL"
+      }
+    },
+    {
+      "id": "browser.tabs.listOwned",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.tabs + chrome.webNavigation",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/context-menus.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.tabs"
+        ],
+        "chromePermissions": [
+          "tabs",
+          "webNavigation"
+        ],
+        "siteScope": "owned-tabs"
+      },
+      "layer4": {
+        "positive": "PASS",
+        "denial": "PASS",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": {
+        "id": "browser.tabs.listOwned",
+        "group": "标签页扩展操作",
+        "priority": "P0",
+        "trust": "APPROVED_TOOL"
+      }
+    },
+    {
+      "id": "browser.tabs.pinOwned",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.tabs + chrome.webNavigation",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/browser-tabs.js",
+          "src/platform/chrome/context-menus.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.tabs"
+        ],
+        "chromePermissions": [
+          "tabs",
+          "webNavigation"
+        ],
+        "siteScope": "tab-ref"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": {
+        "id": "browser.tabs.pinOwned",
+        "group": "标签页扩展操作",
+        "priority": "P0",
+        "trust": "APPROVED_TOOL"
+      }
+    },
+    {
+      "id": "browser.tabs.reloadOwned",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.tabs.reload + chrome.tabs.get + chrome.webNavigation.getFrame",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/browser-tabs.js",
+          "src/platform/chrome/context-menus.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.tabs"
+        ],
+        "chromePermissions": [
+          "tabs",
+          "webNavigation"
+        ],
+        "siteScope": "tab-ref"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": {
+        "id": "browser.tabs.reloadOwned",
+        "group": "标签页扩展操作",
+        "priority": "P0",
+        "trust": "APPROVED_TOOL"
+      }
+    },
+    {
+      "id": "browser.tabs.navigateOwned",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.tabs.update({url}) + chrome.tabs.get + chrome.webNavigation.getFrame",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/browser-tabs.js",
+          "src/platform/chrome/context-menus.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.tabs"
+        ],
+        "chromePermissions": [
+          "tabs",
+          "webNavigation"
+        ],
+        "siteScope": "same-origin-owned-tab"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": {
+        "id": "browser.tabs.navigateOwned",
+        "group": "标签页扩展操作",
+        "priority": "P0",
+        "trust": "APPROVED_TOOL"
+      }
+    },
+    {
+      "id": "browser.tabs.removeOwned",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.tabs + chrome.webNavigation",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/context-menus.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.tabs"
+        ],
+        "chromePermissions": [
+          "tabs",
+          "webNavigation"
+        ],
+        "siteScope": "tab-ref"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": {
+        "id": "browser.tabs.closeOwned",
+        "group": "标签页扩展操作",
+        "priority": "P0",
+        "trust": "APPROVED_TOOL"
+      }
+    },
+    {
+      "id": "browser.sidePanel.openSelf",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.sidePanel",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/ui/sidebar-tools.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.sidePanel"
+        ],
+        "chromePermissions": [
+          "sidePanel"
+        ],
+        "siteScope": "user-gesture"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.network.request",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "fetch",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/context-menus.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "network"
+        ],
+        "chromePermissions": [],
+        "siteScope": "target-origin"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.network.observe.start",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.webRequest",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/browser-network-observe.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.network.observe"
+        ],
+        "chromePermissions": [
+          "tabs",
+          "webNavigation",
+          "webRequest"
+        ],
+        "siteScope": "approved-tab"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.network.observe.getStatus",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.webRequest",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/browser-network-observe.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.network.observe"
+        ],
+        "chromePermissions": [
+          "webRequest"
+        ],
+        "siteScope": "approved-tab"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.network.observe.stop",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.webRequest",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/browser-network-observe.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.network.observe"
+        ],
+        "chromePermissions": [
+          "webRequest"
+        ],
+        "siteScope": "approved-tab"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.network.observe.export",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.webRequest",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/browser-network-observe.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.network.observe"
+        ],
+        "chromePermissions": [
+          "webRequest",
+          "downloads"
+        ],
+        "siteScope": "approved-tab"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.events.read",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "Host-owned abstraction",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/browser-network-observe.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.events"
+        ],
+        "chromePermissions": [],
+        "siteScope": "owned-session"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.events.close",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "Host-owned abstraction",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/browser-network-observe.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.events"
+        ],
+        "chromePermissions": [],
+        "siteScope": "owned-session"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.screenshot.captureVisible",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.tabs.captureVisibleTab",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/context-menus.js#handleTool + src/platform/chrome/browser-screenshot.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.screenshot"
+        ],
+        "chromePermissions": [
+          "tabs",
+          "webNavigation",
+          "activeTab",
+          "downloads"
+        ],
+        "siteScope": "selected-tab"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.operations.getStatus",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "Host-owned abstraction",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/context-menus.js#handleTool"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.operations"
+        ],
+        "chromePermissions": [],
+        "siteScope": "owned-operation"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.operations.cancel",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "Host-owned abstraction",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/context-menus.js#handleTool"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.operations"
+        ],
+        "chromePermissions": [],
+        "siteScope": "owned-operation"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    }
+  ],
+  "candidateCatalog": [
+    {
+      "id": "browser.cookies.get",
+      "group": "Cookie 核心读写与事件",
+      "priority": "P0",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.cookies.get",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "PARTIAL_DRIVER_ONLY",
+        "files": [
+          "src/platform/chrome/cookies.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.cookies.getAll",
+      "group": "Cookie 核心读写与事件",
+      "priority": "P0",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.cookies.getAll",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "PARTIAL_DRIVER_ONLY",
+        "files": [
+          "src/platform/chrome/cookies.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.cookies.set",
+      "group": "Cookie 核心读写与事件",
+      "priority": "P0",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.cookies.set",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "PARTIAL_DRIVER_ONLY",
+        "files": [
+          "src/platform/chrome/cookies.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.cookies.remove",
+      "group": "Cookie 核心读写与事件",
+      "priority": "P0",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.cookies.remove",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "PARTIAL_DRIVER_ONLY",
+        "files": [
+          "src/platform/chrome/cookies.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.cookies.clearSite",
+      "group": "Cookie 核心读写与事件",
+      "priority": "P0",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.cookies.getAll + chrome.cookies.remove",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "PARTIAL_DRIVER_ONLY",
+        "files": [
+          "src/platform/chrome/cookies.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.cookies.getStores",
+      "group": "Cookie 核心读写与事件",
+      "priority": "P0",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.cookies.getAllCookieStores",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "PARTIAL_DRIVER_ONLY",
+        "files": [
+          "src/platform/chrome/cookies.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.cookies.getPartitionKey",
+      "group": "Cookie 核心读写与事件",
+      "priority": "P0",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.cookies.getPartitionKey (Chrome 132+)",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "PARTIAL_DRIVER_ONLY",
+        "files": [
+          "src/platform/chrome/cookies.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.cookies.observe.start",
+      "group": "Cookie 核心读写与事件",
+      "priority": "P0",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.cookies.onChanged",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "PARTIAL_DRIVER_ONLY",
+        "files": [
+          "src/platform/chrome/cookies.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.cookies.observe.getStatus",
+      "group": "Cookie 核心读写与事件",
+      "priority": "P0",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "Host event queue",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "PARTIAL_DRIVER_ONLY",
+        "files": [
+          "src/platform/chrome/cookies.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.cookies.observe.stop",
+      "group": "Cookie 核心读写与事件",
+      "priority": "P0",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.cookies.onChanged / session cleanup",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "PARTIAL_DRIVER_ONLY",
+        "files": [
+          "src/platform/chrome/cookies.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.tabs.getActive",
+      "group": "标签页扩展操作",
+      "priority": "P0",
+      "trust": "APPROVED_TOOL",
+      "layer1": {
+        "api": "chrome.tabs + chrome.webNavigation",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/chrome/browser-tabs.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.tabs.getOwned",
+      "group": "标签页扩展操作",
+      "priority": "P0",
+      "trust": "APPROVED_TOOL",
+      "layer1": {
+        "api": "chrome.tabs + chrome.webNavigation",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SEE_FORMAL",
+        "files": [
+          "src/platform/chrome/browser-tabs.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROMOTED_TO_FORMAL",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "positive": "SEE_FORMAL",
+        "denial": "SEE_FORMAL",
+        "macChrome": "SEE_FORMAL"
+      }
+    },
+    {
+      "id": "browser.tabs.listOwned",
+      "group": "标签页扩展操作",
+      "priority": "P0",
+      "trust": "APPROVED_TOOL",
+      "layer1": {
+        "api": "chrome.tabs + chrome.webNavigation",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SEE_FORMAL",
+        "files": [
+          "src/platform/chrome/browser-tabs.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROMOTED_TO_FORMAL",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "positive": "SEE_FORMAL",
+        "denial": "SEE_FORMAL",
+        "macChrome": "SEE_FORMAL"
+      }
+    },
+    {
+      "id": "browser.tabs.removeOwned",
+      "group": "标签页扩展操作",
+      "priority": "P0",
+      "trust": "APPROVED_TOOL",
+      "layer1": {
+        "api": "chrome.tabs + chrome.webNavigation",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SEE_FORMAL",
+        "files": [
+          "src/platform/chrome/browser-tabs.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROMOTED_TO_FORMAL",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "positive": "SEE_FORMAL",
+        "denial": "SEE_FORMAL",
+        "macChrome": "SEE_FORMAL"
+      }
+    },
+    {
+      "id": "browser.tabs.reloadOwned",
+      "group": "标签页扩展操作",
+      "priority": "P0",
+      "trust": "APPROVED_TOOL",
+      "layer1": {
+        "api": "chrome.tabs.reload + chrome.tabs.get + chrome.webNavigation.getFrame",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/browser-tabs.js",
+          "src/platform/chrome/context-menus.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROMOTED_TO_FORMAL",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.tabs.navigateOwned",
+      "group": "标签页扩展操作",
+      "priority": "P0",
+      "trust": "APPROVED_TOOL",
+      "layer1": {
+        "api": "chrome.tabs.update({url}) + chrome.tabs.get + chrome.webNavigation.getFrame",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/browser-tabs.js",
+          "src/platform/chrome/context-menus.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROMOTED_TO_FORMAL",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.tabs.duplicateOwned",
+      "group": "标签页扩展操作",
+      "priority": "P0",
+      "trust": "APPROVED_TOOL",
+      "layer1": {
+        "api": "chrome.tabs + chrome.webNavigation",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/chrome/browser-tabs.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.tabs.pinOwned",
+      "group": "标签页扩展操作",
+      "priority": "P0",
+      "trust": "APPROVED_TOOL",
+      "layer1": {
+        "api": "chrome.tabs + chrome.webNavigation",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/browser-tabs.js",
+          "src/platform/chrome/context-menus.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROMOTED_TO_FORMAL",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.windows.getCurrent",
+      "group": "浏览器窗口",
+      "priority": "P1",
+      "trust": "APPROVED_TOOL",
+      "layer1": {
+        "api": "chrome.windows",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": [
+          "src/platform/chrome/browser-tabs.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.windows.openOwned",
+      "group": "浏览器窗口",
+      "priority": "P1",
+      "trust": "APPROVED_TOOL",
+      "layer1": {
+        "api": "chrome.windows",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": [
+          "src/platform/chrome/browser-tabs.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.windows.focusOwned",
+      "group": "浏览器窗口",
+      "priority": "P1",
+      "trust": "APPROVED_TOOL",
+      "layer1": {
+        "api": "chrome.windows",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": [
+          "src/platform/chrome/browser-tabs.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.windows.closeOwned",
+      "group": "浏览器窗口",
+      "priority": "P1",
+      "trust": "APPROVED_TOOL",
+      "layer1": {
+        "api": "chrome.windows",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": [
+          "src/platform/chrome/browser-tabs.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.windows.listOwned",
+      "group": "浏览器窗口",
+      "priority": "P1",
+      "trust": "APPROVED_TOOL",
+      "layer1": {
+        "api": "chrome.windows",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": [
+          "src/platform/chrome/browser-tabs.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.tabGroups.listOwned",
+      "group": "标签分组",
+      "priority": "P1",
+      "trust": "APPROVED_TOOL",
+      "layer1": {
+        "api": "chrome.tabGroups",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": [
+          "src/platform/chrome/browser-tabs.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.tabGroups.groupOwned",
+      "group": "标签分组",
+      "priority": "P1",
+      "trust": "APPROVED_TOOL",
+      "layer1": {
+        "api": "chrome.tabGroups",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": [
+          "src/platform/chrome/browser-tabs.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.tabGroups.updateOwned",
+      "group": "标签分组",
+      "priority": "P1",
+      "trust": "APPROVED_TOOL",
+      "layer1": {
+        "api": "chrome.tabGroups",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": [
+          "src/platform/chrome/browser-tabs.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.tabGroups.moveOwned",
+      "group": "标签分组",
+      "priority": "P1",
+      "trust": "APPROVED_TOOL",
+      "layer1": {
+        "api": "chrome.tabGroups",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": [
+          "src/platform/chrome/browser-tabs.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.tabGroups.ungroupOwned",
+      "group": "标签分组",
+      "priority": "P1",
+      "trust": "APPROVED_TOOL",
+      "layer1": {
+        "api": "chrome.tabGroups",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": [
+          "src/platform/chrome/browser-tabs.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.sessions.listRecentlyClosed",
+      "group": "会话恢复",
+      "priority": "P2",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.sessions",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": []
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.sessions.restoreExplicit",
+      "group": "会话恢复",
+      "priority": "P2",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.sessions",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": []
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.bookmarks.search",
+      "group": "书签管理",
+      "priority": "P1",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.bookmarks",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": []
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.bookmarks.getTree",
+      "group": "书签管理",
+      "priority": "P1",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.bookmarks",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": []
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.bookmarks.get",
+      "group": "书签管理",
+      "priority": "P1",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.bookmarks",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": []
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.bookmarks.create",
+      "group": "书签管理",
+      "priority": "P1",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.bookmarks",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": []
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.bookmarks.update",
+      "group": "书签管理",
+      "priority": "P1",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.bookmarks",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": []
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.bookmarks.move",
+      "group": "书签管理",
+      "priority": "P1",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.bookmarks",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": []
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.bookmarks.remove",
+      "group": "书签管理",
+      "priority": "P1",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.bookmarks",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": []
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.history.search",
+      "group": "浏览历史",
+      "priority": "P1",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.history",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": []
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.history.getVisits",
+      "group": "浏览历史",
+      "priority": "P1",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.history",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": []
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.history.deleteUrl",
+      "group": "浏览历史",
+      "priority": "P1",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.history",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": []
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.history.deleteRange",
+      "group": "浏览历史",
+      "priority": "P1",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.history",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": []
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.storage.get",
+      "group": "工具隔离存储",
+      "priority": "P0",
+      "trust": "REUSE_EXISTING",
+      "layer1": {
+        "api": "chrome.storage / existing tool storage",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/ui/sidebar-tools/storage-state.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "REUSE_EXISTING"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.storage.set",
+      "group": "工具隔离存储",
+      "priority": "P0",
+      "trust": "REUSE_EXISTING",
+      "layer1": {
+        "api": "chrome.storage / existing tool storage",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/ui/sidebar-tools/storage-state.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "REUSE_EXISTING"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.storage.remove",
+      "group": "工具隔离存储",
+      "priority": "P0",
+      "trust": "REUSE_EXISTING",
+      "layer1": {
+        "api": "chrome.storage / existing tool storage",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/ui/sidebar-tools/storage-state.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "REUSE_EXISTING"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.storage.keys",
+      "group": "工具隔离存储",
+      "priority": "P0",
+      "trust": "REUSE_EXISTING",
+      "layer1": {
+        "api": "chrome.storage / existing tool storage",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/ui/sidebar-tools/storage-state.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "REUSE_EXISTING"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.storage.clear",
+      "group": "工具隔离存储",
+      "priority": "P0",
+      "trust": "REUSE_EXISTING",
+      "layer1": {
+        "api": "chrome.storage / existing tool storage",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/ui/sidebar-tools/storage-state.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "REUSE_EXISTING"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.storage.getQuota",
+      "group": "工具隔离存储",
+      "priority": "P0",
+      "trust": "REUSE_EXISTING",
+      "layer1": {
+        "api": "chrome.storage / existing tool storage",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/ui/sidebar-tools/storage-state.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "REUSE_EXISTING"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.downloads.getOwn",
+      "group": "下载管理",
+      "priority": "P1",
+      "trust": "APPROVED_TOOL",
+      "layer1": {
+        "api": "chrome.downloads",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/downloads/index.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.downloads.listOwn",
+      "group": "下载管理",
+      "priority": "P1",
+      "trust": "APPROVED_TOOL",
+      "layer1": {
+        "api": "chrome.downloads",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/downloads/index.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.downloads.cancelOwn",
+      "group": "下载管理",
+      "priority": "P1",
+      "trust": "APPROVED_TOOL",
+      "layer1": {
+        "api": "chrome.downloads",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/downloads/index.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.downloads.openOwn",
+      "group": "下载管理",
+      "priority": "P1",
+      "trust": "APPROVED_TOOL",
+      "layer1": {
+        "api": "chrome.downloads",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/downloads/index.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.downloads.revealOwn",
+      "group": "下载管理",
+      "priority": "P1",
+      "trust": "APPROVED_TOOL",
+      "layer1": {
+        "api": "chrome.downloads",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/downloads/index.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.downloads.eraseOwnHistory",
+      "group": "下载管理",
+      "priority": "P1",
+      "trust": "APPROVED_TOOL",
+      "layer1": {
+        "api": "chrome.downloads",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/downloads/index.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.browsingData.previewSite",
+      "group": "网站数据清理",
+      "priority": "P2",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.browsingData",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": []
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.browsingData.removeSiteData",
+      "group": "网站数据清理",
+      "priority": "P2",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.browsingData",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": []
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.permissions.getStatus",
+      "group": "权限与站点授权",
+      "priority": "P0",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.permissions / existing Authority",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/chrome/permission-gate.js",
+          "src/platform/host/authority.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.permissions.listApprovedSites",
+      "group": "权限与站点授权",
+      "priority": "P0",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.permissions / existing Authority",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/chrome/permission-gate.js",
+          "src/platform/host/authority.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.permissions.requestSite",
+      "group": "权限与站点授权",
+      "priority": "P0",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.permissions / existing Authority",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/chrome/permission-gate.js",
+          "src/platform/host/authority.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.permissions.revokeSite",
+      "group": "权限与站点授权",
+      "priority": "P0",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.permissions / existing Authority",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/chrome/permission-gate.js",
+          "src/platform/host/authority.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.permissions.requestCapability",
+      "group": "权限与站点授权",
+      "priority": "P0",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.permissions / existing Authority",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/chrome/permission-gate.js",
+          "src/platform/host/authority.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.permissions.revokeCapability",
+      "group": "权限与站点授权",
+      "priority": "P0",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.permissions / existing Authority",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/chrome/permission-gate.js",
+          "src/platform/host/authority.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.webNavigation.getCurrentFrame",
+      "group": "网页导航和框架",
+      "priority": "P1",
+      "trust": "APPROVED_TOOL",
+      "layer1": {
+        "api": "chrome.webNavigation",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/chrome/browser-tabs.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.webNavigation.getApprovedFrames",
+      "group": "网页导航和框架",
+      "priority": "P1",
+      "trust": "APPROVED_TOOL",
+      "layer1": {
+        "api": "chrome.webNavigation",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/chrome/browser-tabs.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.webNavigation.observe.start",
+      "group": "网页导航和框架",
+      "priority": "P1",
+      "trust": "APPROVED_TOOL",
+      "layer1": {
+        "api": "chrome.webNavigation",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/chrome/browser-tabs.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.webNavigation.observe.stop",
+      "group": "网页导航和框架",
+      "priority": "P1",
+      "trust": "APPROVED_TOOL",
+      "layer1": {
+        "api": "chrome.webNavigation",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/chrome/browser-tabs.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.scripting.runApproved",
+      "group": "脚本/CSS 注入",
+      "priority": "P2",
+      "trust": "CONTROLLER_ONLY",
+      "layer1": {
+        "api": "chrome.scripting / chrome.userScripts",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/scripting"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "CONTROLLER_ONLY"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.scripting.insertApprovedCss",
+      "group": "脚本/CSS 注入",
+      "priority": "P2",
+      "trust": "CONTROLLER_ONLY",
+      "layer1": {
+        "api": "chrome.scripting / chrome.userScripts",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/scripting"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "CONTROLLER_ONLY"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.scripting.removeApprovedCss",
+      "group": "脚本/CSS 注入",
+      "priority": "P2",
+      "trust": "CONTROLLER_ONLY",
+      "layer1": {
+        "api": "chrome.scripting / chrome.userScripts",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/scripting"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "CONTROLLER_ONLY"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.scripting.listManaged",
+      "group": "脚本/CSS 注入",
+      "priority": "P2",
+      "trust": "CONTROLLER_ONLY",
+      "layer1": {
+        "api": "chrome.scripting / chrome.userScripts",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/scripting"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "CONTROLLER_ONLY"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.network.rules.listOwn",
+      "group": "声明式网络规则",
+      "priority": "P1",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.declarativeNetRequest",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/chrome/browser-network-observe.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.network.rules.enableOwn",
+      "group": "声明式网络规则",
+      "priority": "P1",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.declarativeNetRequest",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/chrome/browser-network-observe.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.network.rules.disableOwn",
+      "group": "声明式网络规则",
+      "priority": "P1",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.declarativeNetRequest",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/chrome/browser-network-observe.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.network.rules.getStatus",
+      "group": "声明式网络规则",
+      "priority": "P1",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.declarativeNetRequest",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/chrome/browser-network-observe.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.network.rules.updateOwn",
+      "group": "声明式网络规则",
+      "priority": "P1",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.declarativeNetRequest",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/chrome/browser-network-observe.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.clipboard.readText",
+      "group": "剪贴板扩展",
+      "priority": "P2",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "Web Clipboard API",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": []
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.clipboard.writeHtml",
+      "group": "剪贴板扩展",
+      "priority": "P2",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "Web Clipboard API",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": []
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.clipboard.readImage",
+      "group": "剪贴板扩展",
+      "priority": "P2",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "Web Clipboard API",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": []
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.screenshot.captureRegion",
+      "group": "截图拓展",
+      "priority": "P2",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.tabs.captureVisibleTab",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/chrome/browser-screenshot.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.screenshot.captureFullPage",
+      "group": "截图拓展",
+      "priority": "P2",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.tabs.captureVisibleTab",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/chrome/browser-screenshot.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.resources.getInfo",
+      "group": "临时资源/导出",
+      "priority": "P0",
+      "trust": "APPROVED_TOOL",
+      "layer1": {
+        "api": "Host-owned abstraction",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/downloads/index.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.resources.readChunk",
+      "group": "临时资源/导出",
+      "priority": "P0",
+      "trust": "APPROVED_TOOL",
+      "layer1": {
+        "api": "Host-owned abstraction",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/downloads/index.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.resources.release",
+      "group": "临时资源/导出",
+      "priority": "P0",
+      "trust": "APPROVED_TOOL",
+      "layer1": {
+        "api": "Host-owned abstraction",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/downloads/index.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.resources.saveAs",
+      "group": "临时资源/导出",
+      "priority": "P0",
+      "trust": "APPROVED_TOOL",
+      "layer1": {
+        "api": "Host-owned abstraction",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/downloads/index.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.scheduler.list",
+      "group": "定时任务服务",
+      "priority": "P0",
+      "trust": "REUSE_EXISTING",
+      "layer1": {
+        "api": "chrome.alarms / Controller Task",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/tasks"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "REUSE_EXISTING"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.scheduler.get",
+      "group": "定时任务服务",
+      "priority": "P0",
+      "trust": "REUSE_EXISTING",
+      "layer1": {
+        "api": "chrome.alarms / Controller Task",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/tasks"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "REUSE_EXISTING"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.scheduler.create",
+      "group": "定时任务服务",
+      "priority": "P0",
+      "trust": "REUSE_EXISTING",
+      "layer1": {
+        "api": "chrome.alarms / Controller Task",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/tasks"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "REUSE_EXISTING"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.scheduler.update",
+      "group": "定时任务服务",
+      "priority": "P0",
+      "trust": "REUSE_EXISTING",
+      "layer1": {
+        "api": "chrome.alarms / Controller Task",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/tasks"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "REUSE_EXISTING"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.scheduler.remove",
+      "group": "定时任务服务",
+      "priority": "P0",
+      "trust": "REUSE_EXISTING",
+      "layer1": {
+        "api": "chrome.alarms / Controller Task",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/tasks"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "REUSE_EXISTING"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.scheduler.runNow",
+      "group": "定时任务服务",
+      "priority": "P0",
+      "trust": "REUSE_EXISTING",
+      "layer1": {
+        "api": "chrome.alarms / Controller Task",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/tasks"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "REUSE_EXISTING"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.idle.getState",
+      "group": "浏览器空闲状态",
+      "priority": "P2",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.idle",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": []
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.idle.observe.start",
+      "group": "浏览器空闲状态",
+      "priority": "P2",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.idle",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": []
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.idle.observe.stop",
+      "group": "浏览器空闲状态",
+      "priority": "P2",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.idle",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": []
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.notifications.getStatus",
+      "group": "通知自管理",
+      "priority": "P2",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.notifications",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/chrome/notifications.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.notifications.listOwn",
+      "group": "通知自管理",
+      "priority": "P2",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.notifications",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/chrome/notifications.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.notifications.closeOwn",
+      "group": "通知自管理",
+      "priority": "P2",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.notifications",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/chrome/notifications.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.commands.listConfigured",
+      "group": "快捷键",
+      "priority": "P2",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.commands",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": []
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.commands.getShortcut",
+      "group": "快捷键",
+      "priority": "P2",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.commands",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": []
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.omnibox.getStatus",
+      "group": "地址栏集成",
+      "priority": "P2",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.omnibox",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": []
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.omnibox.getSuggestions",
+      "group": "地址栏集成",
+      "priority": "P2",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.omnibox",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": []
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.readingList.list",
+      "group": "阅读列表",
+      "priority": "P2",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.readingList",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": []
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.readingList.add",
+      "group": "阅读列表",
+      "priority": "P2",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.readingList",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": []
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.readingList.update",
+      "group": "阅读列表",
+      "priority": "P2",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.readingList",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": []
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.readingList.remove",
+      "group": "阅读列表",
+      "priority": "P2",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "chrome.readingList",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT",
+        "files": []
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.performance.getNavigation",
+      "group": "页面性能观测",
+      "priority": "P2",
+      "trust": "CONTROLLER_ONLY",
+      "layer1": {
+        "api": "Performance API",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/framework/ChromePage.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "CONTROLLER_ONLY"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.performance.getEntries",
+      "group": "页面性能观测",
+      "priority": "P2",
+      "trust": "CONTROLLER_ONLY",
+      "layer1": {
+        "api": "Performance API",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/framework/ChromePage.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "CONTROLLER_ONLY"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.performance.observe",
+      "group": "页面性能观测",
+      "priority": "P2",
+      "trust": "CONTROLLER_ONLY",
+      "layer1": {
+        "api": "Performance API",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/framework/ChromePage.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "CONTROLLER_ONLY"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.page.getMetadata",
+      "group": "页面语义封装",
+      "priority": "P1",
+      "trust": "REUSE_EXISTING",
+      "layer1": {
+        "api": "DOM / currentPage",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/framework/ChromePage.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "REUSE_EXISTING"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.page.getLinks",
+      "group": "页面语义封装",
+      "priority": "P1",
+      "trust": "REUSE_EXISTING",
+      "layer1": {
+        "api": "DOM / currentPage",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/framework/ChromePage.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "REUSE_EXISTING"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.page.getApprovedFrames",
+      "group": "页面语义封装",
+      "priority": "P1",
+      "trust": "REUSE_EXISTING",
+      "layer1": {
+        "api": "DOM / currentPage",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/framework/ChromePage.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "REUSE_EXISTING"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.page.getDomSnapshot",
+      "group": "页面语义封装",
+      "priority": "P1",
+      "trust": "REUSE_EXISTING",
+      "layer1": {
+        "api": "DOM / currentPage",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/framework/ChromePage.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "REUSE_EXISTING"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.contextMenu.listOwned",
+      "group": "右键菜单拓展",
+      "priority": "P1",
+      "trust": "APPROVED_TOOL",
+      "layer1": {
+        "api": "chrome.contextMenus",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/chrome/context-menus.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.contextMenu.updateOwned",
+      "group": "右键菜单拓展",
+      "priority": "P1",
+      "trust": "APPROVED_TOOL",
+      "layer1": {
+        "api": "chrome.contextMenus",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/chrome/context-menus.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.diagnostics.getSdkStatus",
+      "group": "诊断/日志",
+      "priority": "P1",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "Host-owned abstraction",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/host/sdk-broker.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.diagnostics.exportRedactedReport",
+      "group": "诊断/日志",
+      "priority": "P1",
+      "trust": "BUILTIN_TRUSTED",
+      "layer1": {
+        "api": "Host-owned abstraction",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "REUSE_EXISTING_NEEDS_AUDIT",
+        "files": [
+          "src/platform/host/sdk-broker.js"
+        ]
+      },
+      "layer3": {
+        "status": "PROPOSED_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED"
+      }
+    }
+  ],
+  "candidateGroups": [
+    {
+      "name": "Cookie 核心读写与事件",
+      "priority": "P0",
+      "trust": "BUILTIN_TRUSTED",
+      "original": 10,
+      "promoted": 0,
+      "pending": 10,
+      "frameworkPaths": [
+        "src/platform/chrome/cookies.js"
+      ]
+    },
+    {
+      "name": "标签页扩展操作",
+      "priority": "P0",
+      "trust": "APPROVED_TOOL",
+      "original": 8,
+      "promoted": 6,
+      "pending": 2,
+      "frameworkPaths": [
+        "src/platform/chrome/browser-tabs.js"
+      ]
+    },
+    {
+      "name": "浏览器窗口",
+      "priority": "P1",
+      "trust": "APPROVED_TOOL",
+      "original": 5,
+      "promoted": 0,
+      "pending": 5,
+      "frameworkPaths": [
+        "src/platform/chrome/browser-tabs.js"
+      ]
+    },
+    {
+      "name": "标签分组",
+      "priority": "P1",
+      "trust": "APPROVED_TOOL",
+      "original": 5,
+      "promoted": 0,
+      "pending": 5,
+      "frameworkPaths": [
+        "src/platform/chrome/browser-tabs.js"
+      ]
+    },
+    {
+      "name": "会话恢复",
+      "priority": "P2",
+      "trust": "BUILTIN_TRUSTED",
+      "original": 2,
+      "promoted": 0,
+      "pending": 2,
+      "frameworkPaths": []
+    },
+    {
+      "name": "书签管理",
+      "priority": "P1",
+      "trust": "BUILTIN_TRUSTED",
+      "original": 7,
+      "promoted": 0,
+      "pending": 7,
+      "frameworkPaths": []
+    },
+    {
+      "name": "浏览历史",
+      "priority": "P1",
+      "trust": "BUILTIN_TRUSTED",
+      "original": 4,
+      "promoted": 0,
+      "pending": 4,
+      "frameworkPaths": []
+    },
+    {
+      "name": "工具隔离存储",
+      "priority": "P0",
+      "trust": "REUSE_EXISTING",
+      "original": 6,
+      "promoted": 0,
+      "pending": 6,
+      "frameworkPaths": [
+        "src/ui/sidebar-tools/storage-state.js"
+      ]
+    },
+    {
+      "name": "下载管理",
+      "priority": "P1",
+      "trust": "APPROVED_TOOL",
+      "original": 6,
+      "promoted": 0,
+      "pending": 6,
+      "frameworkPaths": [
+        "src/platform/downloads/index.js"
+      ]
+    },
+    {
+      "name": "网站数据清理",
+      "priority": "P2",
+      "trust": "BUILTIN_TRUSTED",
+      "original": 2,
+      "promoted": 0,
+      "pending": 2,
+      "frameworkPaths": []
+    },
+    {
+      "name": "权限与站点授权",
+      "priority": "P0",
+      "trust": "BUILTIN_TRUSTED",
+      "original": 6,
+      "promoted": 0,
+      "pending": 6,
+      "frameworkPaths": [
+        "src/platform/chrome/permission-gate.js",
+        "src/platform/host/authority.js"
+      ]
+    },
+    {
+      "name": "网页导航和框架",
+      "priority": "P1",
+      "trust": "APPROVED_TOOL",
+      "original": 4,
+      "promoted": 0,
+      "pending": 4,
+      "frameworkPaths": [
+        "src/platform/chrome/browser-tabs.js"
+      ]
+    },
+    {
+      "name": "脚本/CSS 注入",
+      "priority": "P2",
+      "trust": "CONTROLLER_ONLY",
+      "original": 4,
+      "promoted": 0,
+      "pending": 4,
+      "frameworkPaths": [
+        "src/scripting"
+      ]
+    },
+    {
+      "name": "声明式网络规则",
+      "priority": "P1",
+      "trust": "BUILTIN_TRUSTED",
+      "original": 5,
+      "promoted": 0,
+      "pending": 5,
+      "frameworkPaths": [
+        "src/platform/chrome/browser-network-observe.js"
+      ]
+    },
+    {
+      "name": "剪贴板扩展",
+      "priority": "P2",
+      "trust": "BUILTIN_TRUSTED",
+      "original": 3,
+      "promoted": 0,
+      "pending": 3,
+      "frameworkPaths": []
+    },
+    {
+      "name": "截图拓展",
+      "priority": "P2",
+      "trust": "BUILTIN_TRUSTED",
+      "original": 2,
+      "promoted": 0,
+      "pending": 2,
+      "frameworkPaths": [
+        "src/platform/chrome/browser-screenshot.js"
+      ]
+    },
+    {
+      "name": "临时资源/导出",
+      "priority": "P0",
+      "trust": "APPROVED_TOOL",
+      "original": 4,
+      "promoted": 0,
+      "pending": 4,
+      "frameworkPaths": [
+        "src/platform/downloads/index.js"
+      ]
+    },
+    {
+      "name": "定时任务服务",
+      "priority": "P0",
+      "trust": "REUSE_EXISTING",
+      "original": 6,
+      "promoted": 0,
+      "pending": 6,
+      "frameworkPaths": [
+        "src/platform/tasks"
+      ]
+    },
+    {
+      "name": "浏览器空闲状态",
+      "priority": "P2",
+      "trust": "BUILTIN_TRUSTED",
+      "original": 3,
+      "promoted": 0,
+      "pending": 3,
+      "frameworkPaths": []
+    },
+    {
+      "name": "通知自管理",
+      "priority": "P2",
+      "trust": "BUILTIN_TRUSTED",
+      "original": 3,
+      "promoted": 0,
+      "pending": 3,
+      "frameworkPaths": [
+        "src/platform/chrome/notifications.js"
+      ]
+    },
+    {
+      "name": "快捷键",
+      "priority": "P2",
+      "trust": "BUILTIN_TRUSTED",
+      "original": 2,
+      "promoted": 0,
+      "pending": 2,
+      "frameworkPaths": []
+    },
+    {
+      "name": "地址栏集成",
+      "priority": "P2",
+      "trust": "BUILTIN_TRUSTED",
+      "original": 2,
+      "promoted": 0,
+      "pending": 2,
+      "frameworkPaths": []
+    },
+    {
+      "name": "阅读列表",
+      "priority": "P2",
+      "trust": "BUILTIN_TRUSTED",
+      "original": 4,
+      "promoted": 0,
+      "pending": 4,
+      "frameworkPaths": []
+    },
+    {
+      "name": "页面性能观测",
+      "priority": "P2",
+      "trust": "CONTROLLER_ONLY",
+      "original": 3,
+      "promoted": 0,
+      "pending": 3,
+      "frameworkPaths": [
+        "src/framework/ChromePage.js"
+      ]
+    },
+    {
+      "name": "页面语义封装",
+      "priority": "P1",
+      "trust": "REUSE_EXISTING",
+      "original": 4,
+      "promoted": 0,
+      "pending": 4,
+      "frameworkPaths": [
+        "src/framework/ChromePage.js"
+      ]
+    },
+    {
+      "name": "右键菜单拓展",
+      "priority": "P1",
+      "trust": "APPROVED_TOOL",
+      "original": 2,
+      "promoted": 0,
+      "pending": 2,
+      "frameworkPaths": [
+        "src/platform/chrome/context-menus.js"
+      ]
+    },
+    {
+      "name": "诊断/日志",
+      "priority": "P1",
+      "trust": "BUILTIN_TRUSTED",
+      "original": 2,
+      "promoted": 0,
+      "pending": 2,
+      "frameworkPaths": [
+        "src/platform/host/sdk-broker.js"
+      ]
+    }
+  ],
+  "supplementalAudits": [
+    {
+      "id": "action",
+      "layer1": {
+        "api": "chrome.action",
+        "examples": "onClicked/getTitle/setBadgeText/setIcon",
+        "minChrome": null
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT_REUSE_WHERE_AVAILABLE"
+      },
+      "layer3": {
+        "status": "AUDIT_ONLY_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "status": "NOT_TESTED"
+      },
+      "priority": "P1"
+    },
+    {
+      "id": "runtime",
+      "layer1": {
+        "api": "chrome.runtime",
+        "examples": "onInstalled/onStartup/onMessage/connect",
+        "minChrome": null
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT_REUSE_WHERE_AVAILABLE"
+      },
+      "layer3": {
+        "status": "AUDIT_ONLY_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "status": "NOT_TESTED"
+      },
+      "priority": "P0"
+    },
+    {
+      "id": "offscreen",
+      "layer1": {
+        "api": "chrome.offscreen",
+        "examples": "createDocument/hasDocument/closeDocument",
+        "minChrome": 109
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT_REUSE_WHERE_AVAILABLE"
+      },
+      "layer3": {
+        "status": "AUDIT_ONLY_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "status": "NOT_TESTED"
+      },
+      "priority": "P2"
+    },
+    {
+      "id": "contentSettings",
+      "layer1": {
+        "api": "chrome.contentSettings",
+        "examples": "get/set/clear",
+        "minChrome": null
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT_REUSE_WHERE_AVAILABLE"
+      },
+      "layer3": {
+        "status": "AUDIT_ONLY_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "status": "NOT_TESTED"
+      },
+      "priority": "P2"
+    },
+    {
+      "id": "declarativeContent",
+      "layer1": {
+        "api": "chrome.declarativeContent",
+        "examples": "onPageChanged",
+        "minChrome": null
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT_REUSE_WHERE_AVAILABLE"
+      },
+      "layer3": {
+        "status": "AUDIT_ONLY_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "status": "NOT_TESTED"
+      },
+      "priority": "P2"
+    },
+    {
+      "id": "tabCapture",
+      "layer1": {
+        "api": "chrome.tabCapture",
+        "examples": "capture/getMediaStreamId",
+        "minChrome": null
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT_REUSE_WHERE_AVAILABLE"
+      },
+      "layer3": {
+        "status": "AUDIT_ONLY_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "status": "NOT_TESTED"
+      },
+      "priority": "P2"
+    },
+    {
+      "id": "desktopCapture",
+      "layer1": {
+        "api": "chrome.desktopCapture",
+        "examples": "chooseDesktopMedia",
+        "minChrome": null
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT_REUSE_WHERE_AVAILABLE"
+      },
+      "layer3": {
+        "status": "AUDIT_ONLY_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "status": "NOT_TESTED"
+      },
+      "priority": "P2"
+    },
+    {
+      "id": "pageCapture",
+      "layer1": {
+        "api": "chrome.pageCapture",
+        "examples": "saveAsMHTML",
+        "minChrome": null
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT_REUSE_WHERE_AVAILABLE"
+      },
+      "layer3": {
+        "status": "AUDIT_ONLY_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "status": "NOT_TESTED"
+      },
+      "priority": "P2"
+    },
+    {
+      "id": "search",
+      "layer1": {
+        "api": "chrome.search",
+        "examples": "query",
+        "minChrome": null
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT_REUSE_WHERE_AVAILABLE"
+      },
+      "layer3": {
+        "status": "AUDIT_ONLY_NOT_REGISTERED",
+        "trust": "APPROVED_TOOL"
+      },
+      "layer4": {
+        "status": "NOT_TESTED"
+      },
+      "priority": "P2"
+    },
+    {
+      "id": "topSites",
+      "layer1": {
+        "api": "chrome.topSites",
+        "examples": "get",
+        "minChrome": null
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT_REUSE_WHERE_AVAILABLE"
+      },
+      "layer3": {
+        "status": "AUDIT_ONLY_NOT_REGISTERED",
+        "trust": "NOT_EXPOSED"
+      },
+      "layer4": {
+        "status": "NOT_TESTED"
+      },
+      "priority": "RESTRICTED"
+    },
+    {
+      "id": "identity",
+      "layer1": {
+        "api": "chrome.identity",
+        "examples": "getAuthToken/launchWebAuthFlow",
+        "minChrome": null
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT_REUSE_WHERE_AVAILABLE"
+      },
+      "layer3": {
+        "status": "AUDIT_ONLY_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "status": "NOT_TESTED"
+      },
+      "priority": "RESTRICTED"
+    },
+    {
+      "id": "devtools",
+      "layer1": {
+        "api": "chrome.devtools.*",
+        "examples": "network/panels/recorder/performance",
+        "minChrome": null
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT_REUSE_WHERE_AVAILABLE"
+      },
+      "layer3": {
+        "status": "AUDIT_ONLY_NOT_REGISTERED",
+        "trust": "DEVTOOLS_ONLY"
+      },
+      "layer4": {
+        "status": "NOT_TESTED"
+      },
+      "priority": "OUT_OF_SCOPE"
+    },
+    {
+      "id": "i18n",
+      "layer1": {
+        "api": "chrome.i18n",
+        "examples": "getMessage/getUILanguage",
+        "minChrome": null
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT_REUSE_WHERE_AVAILABLE"
+      },
+      "layer3": {
+        "status": "AUDIT_ONLY_NOT_REGISTERED",
+        "trust": "REUSE_EXISTING"
+      },
+      "layer4": {
+        "status": "NOT_TESTED"
+      },
+      "priority": "P2"
+    },
+    {
+      "id": "publicSuffix",
+      "layer1": {
+        "api": "chrome.publicSuffix",
+        "examples": "getDomain/getKnownSuffix/isKnownSuffix",
+        "minChrome": 153
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT_REUSE_WHERE_AVAILABLE"
+      },
+      "layer3": {
+        "status": "AUDIT_ONLY_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "status": "NOT_TESTED"
+      },
+      "priority": "P1"
+    },
+    {
+      "id": "fontSettings",
+      "layer1": {
+        "api": "chrome.fontSettings",
+        "examples": "getFont/setFont",
+        "minChrome": null
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT_REUSE_WHERE_AVAILABLE"
+      },
+      "layer3": {
+        "status": "AUDIT_ONLY_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "status": "NOT_TESTED"
+      },
+      "priority": "P2"
+    },
+    {
+      "id": "management",
+      "layer1": {
+        "api": "chrome.management",
+        "examples": "getAll/setEnabled/uninstall",
+        "minChrome": null
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT_REUSE_WHERE_AVAILABLE"
+      },
+      "layer3": {
+        "status": "AUDIT_ONLY_NOT_REGISTERED",
+        "trust": "NOT_EXPOSED"
+      },
+      "layer4": {
+        "status": "NOT_TESTED"
+      },
+      "priority": "RESTRICTED"
+    },
+    {
+      "id": "privacy",
+      "layer1": {
+        "api": "chrome.privacy",
+        "examples": "network/services/websites",
+        "minChrome": null
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT_REUSE_WHERE_AVAILABLE"
+      },
+      "layer3": {
+        "status": "AUDIT_ONLY_NOT_REGISTERED",
+        "trust": "NOT_EXPOSED"
+      },
+      "layer4": {
+        "status": "NOT_TESTED"
+      },
+      "priority": "RESTRICTED"
+    },
+    {
+      "id": "proxy",
+      "layer1": {
+        "api": "chrome.proxy",
+        "examples": "settings.get/settings.set",
+        "minChrome": null
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT_REUSE_WHERE_AVAILABLE"
+      },
+      "layer3": {
+        "status": "AUDIT_ONLY_NOT_REGISTERED",
+        "trust": "NOT_EXPOSED"
+      },
+      "layer4": {
+        "status": "NOT_TESTED"
+      },
+      "priority": "RESTRICTED"
+    },
+    {
+      "id": "system",
+      "layer1": {
+        "api": "chrome.system.*",
+        "examples": "cpu/memory/storage",
+        "minChrome": null
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT_REUSE_WHERE_AVAILABLE"
+      },
+      "layer3": {
+        "status": "AUDIT_ONLY_NOT_REGISTERED",
+        "trust": "NOT_EXPOSED"
+      },
+      "layer4": {
+        "status": "NOT_TESTED"
+      },
+      "priority": "OUT_OF_SCOPE"
+    },
+    {
+      "id": "power",
+      "layer1": {
+        "api": "chrome.power",
+        "examples": "requestKeepAwake/releaseKeepAwake",
+        "minChrome": null
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT_REUSE_WHERE_AVAILABLE"
+      },
+      "layer3": {
+        "status": "AUDIT_ONLY_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "status": "NOT_TESTED"
+      },
+      "priority": "RESTRICTED"
+    },
+    {
+      "id": "nativeMessaging",
+      "layer1": {
+        "api": "chrome.runtime",
+        "examples": "runtime.connectNative/sendNativeMessage",
+        "minChrome": null
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT_REUSE_WHERE_AVAILABLE"
+      },
+      "layer3": {
+        "status": "AUDIT_ONLY_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "status": "NOT_TESTED"
+      },
+      "priority": "RESTRICTED"
+    },
+    {
+      "id": "tabsEvents",
+      "layer1": {
+        "api": "chrome.tabs",
+        "examples": "tabs.onUpdated/onRemoved/onActivated",
+        "minChrome": null
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT_REUSE_WHERE_AVAILABLE"
+      },
+      "layer3": {
+        "status": "AUDIT_ONLY_NOT_REGISTERED",
+        "trust": "REUSE_EXISTING"
+      },
+      "layer4": {
+        "status": "NOT_TESTED"
+      },
+      "priority": "P0"
+    },
+    {
+      "id": "downloadsEvents",
+      "layer1": {
+        "api": "chrome.downloads",
+        "examples": "downloads.onCreated/onChanged",
+        "minChrome": null
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT_REUSE_WHERE_AVAILABLE"
+      },
+      "layer3": {
+        "status": "AUDIT_ONLY_NOT_REGISTERED",
+        "trust": "REUSE_EXISTING"
+      },
+      "layer4": {
+        "status": "NOT_TESTED"
+      },
+      "priority": "P1"
+    },
+    {
+      "id": "storageEvents",
+      "layer1": {
+        "api": "chrome.storage",
+        "examples": "storage.onChanged",
+        "minChrome": null
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT_REUSE_WHERE_AVAILABLE"
+      },
+      "layer3": {
+        "status": "AUDIT_ONLY_NOT_REGISTERED",
+        "trust": "REUSE_EXISTING"
+      },
+      "layer4": {
+        "status": "NOT_TESTED"
+      },
+      "priority": "P1"
+    },
+    {
+      "id": "userScriptsLifecycle",
+      "layer1": {
+        "api": "chrome.userScripts",
+        "examples": "userScripts.register/update/unregister",
+        "minChrome": null
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT_REUSE_WHERE_AVAILABLE"
+      },
+      "layer3": {
+        "status": "AUDIT_ONLY_NOT_REGISTERED",
+        "trust": "CONTROLLER_ONLY"
+      },
+      "layer4": {
+        "status": "NOT_TESTED"
+      },
+      "priority": "P1"
+    },
+    {
+      "id": "sidePanelExtended",
+      "layer1": {
+        "api": "chrome.sidePanel",
+        "examples": "sidePanel.setOptions/getOptions/setPanelBehavior",
+        "minChrome": null
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT_REUSE_WHERE_AVAILABLE"
+      },
+      "layer3": {
+        "status": "AUDIT_ONLY_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "status": "NOT_TESTED"
+      },
+      "priority": "P1"
+    },
+    {
+      "id": "webRequestEvents",
+      "layer1": {
+        "api": "chrome.webRequest",
+        "examples": "webRequest.onBeforeRequest/onCompleted",
+        "minChrome": null
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT_REUSE_WHERE_AVAILABLE"
+      },
+      "layer3": {
+        "status": "AUDIT_ONLY_NOT_REGISTERED",
+        "trust": "REUSE_EXISTING"
+      },
+      "layer4": {
+        "status": "NOT_TESTED"
+      },
+      "priority": "P1"
+    },
+    {
+      "id": "debugger",
+      "layer1": {
+        "api": "chrome.debugger",
+        "examples": "attach/sendCommand/detach",
+        "minChrome": null
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT_REUSE_WHERE_AVAILABLE"
+      },
+      "layer3": {
+        "status": "AUDIT_ONLY_NOT_REGISTERED",
+        "trust": "NOT_EXPOSED"
+      },
+      "layer4": {
+        "status": "NOT_TESTED"
+      },
+      "priority": "RESTRICTED"
+    },
+    {
+      "id": "notificationsEvents",
+      "layer1": {
+        "api": "chrome.notifications",
+        "examples": "notifications.onClicked/onClosed",
+        "minChrome": null
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT_REUSE_WHERE_AVAILABLE"
+      },
+      "layer3": {
+        "status": "AUDIT_ONLY_NOT_REGISTERED",
+        "trust": "BUILTIN_TRUSTED"
+      },
+      "layer4": {
+        "status": "NOT_TESTED"
+      },
+      "priority": "P2"
+    },
+    {
+      "id": "alarms",
+      "layer1": {
+        "api": "chrome.alarms",
+        "examples": "create/getAll/onAlarm",
+        "minChrome": null
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT_REUSE_WHERE_AVAILABLE"
+      },
+      "layer3": {
+        "status": "AUDIT_ONLY_NOT_REGISTERED",
+        "trust": "REUSE_EXISTING"
+      },
+      "layer4": {
+        "status": "NOT_TESTED"
+      },
+      "priority": "P0"
+    },
+    {
+      "id": "webAuthenticationProxy",
+      "layer1": {
+        "api": "chrome.webAuthenticationProxy",
+        "examples": "attach/completeCreateRequest",
+        "minChrome": null
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT_REUSE_WHERE_AVAILABLE"
+      },
+      "layer3": {
+        "status": "AUDIT_ONLY_NOT_REGISTERED",
+        "trust": "NOT_EXPOSED"
+      },
+      "layer4": {
+        "status": "NOT_TESTED"
+      },
+      "priority": "OUT_OF_SCOPE"
+    },
+    {
+      "id": "webNavigationEvents",
+      "layer1": {
+        "api": "chrome.webNavigation",
+        "examples": "onCommitted/onHistoryStateUpdated",
+        "minChrome": null
+      },
+      "layer2": {
+        "status": "NEEDS_AUDIT_REUSE_WHERE_AVAILABLE"
+      },
+      "layer3": {
+        "status": "AUDIT_ONLY_NOT_REGISTERED",
+        "trust": "REUSE_EXISTING"
+      },
+      "layer4": {
+        "status": "NOT_TESTED"
+      },
+      "priority": "P0"
+    }
+  ],
+  "firstPriority": {
+    "name": "Cookies",
+    "status": "SDK_NOT_REGISTERED",
+    "trust": "BUILTIN_TRUSTED",
+    "items": [
+      "browser.cookies.get",
+      "browser.cookies.getAll",
+      "browser.cookies.set",
+      "browser.cookies.remove",
+      "browser.cookies.clearSite",
+      "browser.cookies.getStores",
+      "browser.cookies.getPartitionKey",
+      "browser.cookies.observe.start",
+      "browser.cookies.observe.getStatus",
+      "browser.cookies.observe.stop"
+    ],
+    "driverMethods": [
+      "getCookies",
+      "setCookies",
+      "deleteCookiesByUrl"
+    ],
+    "security": [
+      "cookies+host_permissions is NOT tool authorization",
+      "Origin+tabRef+documentId trusted host binding",
+      "partitionKey/storeId accurate matching",
+      "value and HttpOnly redaction",
+      "partial/unknown native effects not automatically retried"
+    ],
+    "chromeSupport": {
+      "min": 138,
+      "partitionKey": 119,
+      "hasCrossSiteAncestor": 130,
+      "getPartitionKey": 132,
+      "publicSuffixOptional": 153
+    }
+  },
+  "convenienceAlias": [
+    "browser.network.watch (not a second registered operation)"
+  ],
+  "preservation": [
+    "original 32 frozen operations",
+    "original 114 candidate names",
+    "603+19, B05, F3 and ZIP contracts",
+    "existing native evidence"
+  ],
+  "legacyR8RemovedFormal": [
+    {
+      "id": "browser.media.recording.prepare",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "MediaRecorder / chrome.tabCapture",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NOT_IMPLEMENTED",
+        "files": []
+      },
+      "layer3": {
+        "status": "PLANNED",
+        "exposure": "DECLARED_NON_EXECUTABLE",
+        "capabilities": [
+          "browser.media.recording"
+        ],
+        "chromePermissions": [],
+        "siteScope": "visible-user-consent"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.media.recording.getStatus",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "MediaRecorder / chrome.tabCapture",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NOT_IMPLEMENTED",
+        "files": []
+      },
+      "layer3": {
+        "status": "PLANNED",
+        "exposure": "DECLARED_NON_EXECUTABLE",
+        "capabilities": [
+          "browser.media.recording"
+        ],
+        "chromePermissions": [],
+        "siteScope": "owned-session"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.media.recording.stop",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "MediaRecorder / chrome.tabCapture",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NOT_IMPLEMENTED",
+        "files": []
+      },
+      "layer3": {
+        "status": "PLANNED",
+        "exposure": "DECLARED_NON_EXECUTABLE",
+        "capabilities": [
+          "browser.media.recording"
+        ],
+        "chromePermissions": [],
+        "siteScope": "owned-session"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.media.recording.discard",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "MediaRecorder / chrome.tabCapture",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NOT_IMPLEMENTED",
+        "files": []
+      },
+      "layer3": {
+        "status": "PLANNED",
+        "exposure": "DECLARED_NON_EXECUTABLE",
+        "capabilities": [
+          "browser.media.recording"
+        ],
+        "chromePermissions": [],
+        "siteScope": "owned-session"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.speech.transcribe",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "Web Speech API",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NOT_IMPLEMENTED",
+        "files": []
+      },
+      "layer3": {
+        "status": "PLANNED",
+        "exposure": "DECLARED_NON_EXECUTABLE",
+        "capabilities": [
+          "browser.speech"
+        ],
+        "chromePermissions": [],
+        "siteScope": "explicit-audio"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.speech.speak",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "Web Speech API",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NOT_IMPLEMENTED",
+        "files": []
+      },
+      "layer3": {
+        "status": "PLANNED",
+        "exposure": "DECLARED_NON_EXECUTABLE",
+        "capabilities": [
+          "browser.speech"
+        ],
+        "chromePermissions": [],
+        "siteScope": "user-output"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.speech.stop",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "Web Speech API",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "NOT_IMPLEMENTED",
+        "files": []
+      },
+      "layer3": {
+        "status": "PLANNED",
+        "exposure": "DECLARED_NON_EXECUTABLE",
+        "capabilities": [
+          "browser.speech"
+        ],
+        "chromePermissions": [],
+        "siteScope": "owned-session"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.notifications.create",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.notifications",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "RESTRICTED_EXPOSURE",
+        "files": []
+      },
+      "layer3": {
+        "status": "NOT_EXPOSED",
+        "exposure": "NOT_EXPOSED",
+        "capabilities": [
+          "browser.notifications"
+        ],
+        "chromePermissions": [
+          "notifications"
+        ],
+        "siteScope": "none"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.notifications.clear",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.notifications",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "RESTRICTED_EXPOSURE",
+        "files": []
+      },
+      "layer3": {
+        "status": "NOT_EXPOSED",
+        "exposure": "NOT_EXPOSED",
+        "capabilities": [
+          "browser.notifications"
+        ],
+        "chromePermissions": [
+          "notifications"
+        ],
+        "siteScope": "none"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    }
+  ],
+  "prelaunchR9": {
+    "policy": "LATEST_PRELAUNCH_API_CONTRACT_OVERRIDES_R8_LEGACY",
+    "oldFormalCount": 35,
+    "newFormalCount": 26,
+    "legacyR8RemovedFormalStored": true,
+    "nativeChrome": "NOT_TESTED",
+    "tabsRenamed": {
+      "browser.tabs.open": "browser.tabs.create",
+      "browser.tabs.focus": "browser.tabs.activateOwned",
+      "browser.tabs.closeOwned": "browser.tabs.removeOwned"
+    },
+    "tabsNativeChrome": "NOT_TESTED",
+    "pinOwned": "SOURCE_WIRED_NODE_AND_CHROME_NOT_TESTED",
+    "latestApprovedTabOperation": "browser.tabs.navigateOwned",
+    "reloadNativeChrome": "NOT_TESTED",
+    "navigationChrome": "NOT_TESTED"
+  }
+}

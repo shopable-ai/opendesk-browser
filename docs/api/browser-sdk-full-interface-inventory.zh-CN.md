@@ -1,6 +1,15 @@
+> **R9 当前执行事实（2026-10-13）**：正式注册表 29 项源码已接线（不等于原生验收）；原 114 个候选中，已晋级 6 项、仍为候选 108 项。含 `tabs.pinOwned`、`tabs.reloadOwned`。本页下方 R5 的固定 35/114/111 是保留的**历史快照**，不强制 SDK 兼容。
+
+> **R9 当前命名**：`tabs.create({url})`、`tabs.activateOwned({tabRef})`、`tabs.removeOwned({tabRef})`。后两项是仅操作自己 TabRef 的受限 API；本页 R5 兼容叙述仅为历史，不再约束开发期新接口。
+
 # Browser SDK 全接口扩展候选目录（R5+ / 2026-10-12）
 
-> **定位：产品功能防遗漏清单，不是可调用 API 注册表，也不是新增权限许可。** 唯一已经批准的 Browser SDK 操作事实来源仍为 `src/framework/sdk/browser-contract.js`，其现有 32 项不得直接以本目录覆盖。本文所有候选均为 `PROPOSED_NOT_REGISTERED`，尚未实现/正式开放；不得计入 R1.3–R4 实现率。
+> **R8 阅读提示**：下面 **27 组、114 项**是旧版产品候选，不是 Chrome 官方全量 API；当下已存在 [固定 Chromium JSON 的首批 8 个 Namespace](chrome-native-api-catalog.json)，IDL 和其余 Namespace 仍未同步，不能把未知标成 UNSUPPORTED。正式操作由 [注册表](../../src/framework/sdk/browser-contract.js) 定义，新架构和映射看 [R8 决策](browser-sdk-architecture-r8.zh-CN.md)。原始 Cookie 10 项不变；观察结果读取缺口建议另列 `browser.cookies.observe.read` 第 11 个候选（未登记、未实现，不加入原 114 项）。
+
+> **四层总账导航（2026-10-13）**：本页保留 27 组、114 项原始候选方法（3 项 R5 已晋级）。对应的 Chrome 原生、OpenDesk Driver/Host、SDK 开放、真实验收四层交叉状态参见 [浏览器框架四层总账](browser-framework-four-layer-ledger.zh-CN.md)，Cookie 10 项仍属于 P0 未登记。该总账不修改本页候选权限。
+
+
+> **定位：产品功能防遗漏清单，不是可调用 API 注册表，也不是新增权限许可。** 唯一已经批准的 Browser SDK 操作事实来源仍为 `src/framework/sdk/browser-contract.js`，其原 R1.3–R4 冻结 32 项不能被候选覆盖；正式注册表现含独立 R5 增量三项，共 35 项。本文初版共 114 项 R5+ 候选；当前 3 个自有 Tabs 方法已晋级并 SOURCE_WIRED，其余 111 项仍为 `PROPOSED_NOT_REGISTERED`。不改变此前 R1.3–R4 冻结 32 项的统计分母。
 
 ## 一、首先明确用户最终需要的能力
 
@@ -8,9 +17,9 @@
 
 ### 当前源码事实（本次核对）
 
-- Browser SDK 正式操作：**32**，10 IMPLEMENTED、18 PLANNED、2 HOST_ONLY、2 NOT_EXPOSED（该统计应实时以主仓最新源码校验）。
+- Browser SDK 当前正式登记操作：**35**（26 IMPLEMENTED、7 PLANNED、0 HOST_ONLY、2 NOT_EXPOSED），其中原冻结 32 项是 23/7/0/2，新增 R5 已接线三项独立计数。IMPLEMENTED 只是源码状态，不表示同候选原生 Mac Chrome 通过。
 - 原能力生态审计：18 域、74 叶子；能力叶子不是接口数量。例如单一 Cookie 叶子包含 get/getAll/set/remove/getStores/partitionKey/事件等多个方法。
-- `src/platform/chrome/cookies.js` 已有 Controller Cookie 驱动：getCookies/setCookies/deleteCookiesByUrl。**不等于普通工具拥有 cookies API**。
+- `src/platform/chrome/cookies.js` 已有 Controller 原 Cookie 驱动（getCookies/setCookies/deleteCookiesByUrl），R8 还新增受信的 get/getAll/set/remove/clearSite/getStores/getPartitionKey；R7 经既有 Host 接入 10 个 Host-only Cookie 私有操作及受信 UI。**普通工具与 Page SDK 仍不能调用 cookies API；公开 SDK 0/10、Chrome 原生未验收**。详见 [R7 架构补充](../architecture/browser-sdk-r7-architecture-contract.zh-CN.md)。
 - `examples/sidebar-tools/cookie-editor/README.zh-CN.md` 表示 Cookie Editor 只支持临时内存 UI、JSON/Header/Netscape 导入导出，真实浏览器 Cookie 读写没有接入。
 - 本仓 `manifest.json` 已含 cookies/notifications/alarms 等扩展权限及可选 bookmarks/history/webRequest；manifest 权限不等于用户工具的授权。不要擅自改变默认权限。
 
@@ -18,7 +27,7 @@
 
 | 目录状态 | 意义 |
 | --- | --- |
-| `EXISTING_CONTRACT` | 已在 `browser-contract.js` 的32项。仍须按运行权限、Host 接线、测试判断实际可调用 |
+| `EXISTING_CONTRACT` | 原冻结 32 项 + 本轮单列 R5 正式新增 3 项都以 `browser-contract.js` 为依据；仍须按 Host、授权、组件及原生测试分别验收 |
 | `PROPOSED_NOT_REGISTERED` | 下表候选名称，不能调用，不属于目前的 PLANNED 分母 |
 | `APPROVED_TOOL` | 未来满足用户安装能力审查、Origin、身份/代际和具体动作后才可能开放的候选 |
 | `BUILTIN_TRUSTED` | 原则上只能由可信内置扩展 UI / Host 使用，不应直接向任意第三方沙箱开放 |
@@ -26,7 +35,7 @@
 | `CONTROLLER_ONLY` | 高特权 Page/Controller 范围，普通 Side Panel 工具不可跨越 |
 | `NOT_EXPOSED` / `OUT_OF_SCOPE` | 设计明确不对普通工具开放，且不要求为了数字而实现 |
 
-## 三、建议新增的接口候选（全部未登记）
+## 三、R5+ 候选（3 项已晋级正式合同，111 项仍未登记）
 
 **以下是面向当前 OpenDesk 产品的覆盖性候选，不承诺穷尽 Chrome 未来新增 API。正式 R5 接口清单须经过逐项 Owner、安全和兼容审批。**
 
@@ -78,11 +87,11 @@
 ### 标签页扩展操作 · P0 · APPROVED_TOOL
 
 - `OpenDeskSDK.browser.tabs.getActive()`
-- `OpenDeskSDK.browser.tabs.getOwned()`
-- `OpenDeskSDK.browser.tabs.listOwned()`
-- `OpenDeskSDK.browser.tabs.closeOwned()`
-- `OpenDeskSDK.browser.tabs.reloadOwned()`
-- `OpenDeskSDK.browser.tabs.navigateOwned()`
+- `OpenDeskSDK.browser.tabs.getOwned()` — **R5 APPROVED / SOURCE_WIRED；原生 Chrome NOT_TESTED**
+- `OpenDeskSDK.browser.tabs.listOwned()` — **R5 APPROVED / SOURCE_WIRED；原生 Chrome NOT_TESTED**
+- `OpenDeskSDK.browser.tabs.removeOwned()` — **R5 APPROVED / SOURCE_WIRED；原生 Chrome NOT_TESTED**
+- `OpenDeskSDK.browser.tabs.reloadOwned()` — **R9 APPROVED / SOURCE_WIRED；原生 Chrome NOT_TESTED**
+- `OpenDeskSDK.browser.tabs.navigateOwned()` — **R9 APPROVED / SOURCE_WIRED（同 Origin）；Chrome 原生 NOT_TESTED**
 - `OpenDeskSDK.browser.tabs.duplicateOwned()`
 - `OpenDeskSDK.browser.tabs.pinOwned()`
 
@@ -300,6 +309,6 @@
 ## 九、审计核查快照
 
 - 当前现有注册接口数量：32。
-- 本候选额外建议方法数：114（仅目录候选，不是已批准开发分母）。
+- R5 初始 114 项候选，已批准并实现真实接线 3 个自有 Tabs 方法，剩余 111 项仍未登记；不会因 Schema 而自动成为实施功能。
 - 候选曝光分类计数：BUILTIN_TRUSTED=57、APPROVED_TOOL=34、REUSE_EXISTING=16、CONTROLLER_ONLY=7。
 - 此清单下一次修改必须检查 Chrome 官方 API 变更及本仓最新代码，避免重叠已有 API 或构造第二套权限存储。

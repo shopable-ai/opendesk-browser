@@ -29,7 +29,7 @@ jobs:
       - name: Build and verify actual MV3 package
         run: |
           npm run check
-          npm run build
+          npm run build:developer
       - uses: browser-actions/setup-chrome@v2
         id: chrome
         with:
@@ -37,6 +37,7 @@ jobs:
       - name: Real CFT fixed JSX and Vue SFC Workers with no Native installation
         env:
           CHROME_FOR_TESTING_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          OPENDESK_DEV_PACKAGE_DIR: dist/production-developer
           OPENDESK_DEV_EVIDENCE: .runtime/tests/page-browser-worker-r243
           OPENDESK_DEV_CFT_LAUNCHER: ${{ github.workspace }}/tests/framework/cft-isolated-launcher.py
         run: node tests/framework/page-browser-worker-r243-cft.mjs

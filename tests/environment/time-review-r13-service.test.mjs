@@ -4,7 +4,7 @@ import {createTimeReviewService} from '../../src/time-review/service.js';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 import {timeReviewPackageHash,TIME_REVIEW_PROTOCOL,TIME_REVIEW_SESSION} from '../../src/time-review/policy.js';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
-import {TIME_REVIEW_KEY} from '../../src/time-review/model.js';
+import {TIME_REVIEW_KEY,emptyReview} from '../../src/time-review/model.js';
 
 function emitter(){
   const listeners=new Set();
@@ -17,7 +17,8 @@ function locks(){
 async function makeFixture(){
   let clock=new Date(2026,9,11,10).getTime(),permission=true;
   const tool=await createSidebarToolPackage('examples/sidebar-tools/time-review'),hash=await timeReviewPackageHash(tool);
-  const local={[SIDEBAR_TOOL_STORE]:[tool]},session={},alarms=new Map();
+  const local={[SIDEBAR_TOOL_STORE]:[tool],
+    [TIME_REVIEW_KEY]:{...emptyReview(),siteGrants:{allSites:true,origins:[]}}},session={},alarms=new Map();
   const area=data=>({
     async get(keys){return structuredClone(Object.fromEntries((Array.isArray(keys)?keys:[keys]).map(key=>[key,data[key]])));},
     async set(rows){Object.assign(data,structuredClone(rows));}

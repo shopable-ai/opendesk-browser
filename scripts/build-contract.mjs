@@ -2,6 +2,9 @@ import {BUILTIN_CATALOG} from '../src/libs/catalog.js';
 export const PACKAGE_ENTRIES = Object.freeze({
   sw: './src/sw.js',
   'ui/tool-shell': './src/ui/tool-shell.js',
+  'ui/stay-focus-controls': './src/entrypoints/stay-focus-controls.js',
+  'ui/trusted-cookie-ui': './src/entrypoints/trusted-cookie-ui.js',
+  'ui/sidebar-tool-host': './src/entrypoints/sidebar-tool-host.js',
   'ui/cloud-console': './src/ui/cloud-control-console.js',
   'ui/marketplace': './src/marketplace/page.js',
   'marketplace/market-host': './src/marketplace/external.js',
@@ -11,6 +14,7 @@ export const PACKAGE_ENTRIES = Object.freeze({
   'platform/context-menus': './src/entrypoints/context-menus.js',
   'cloud-control/cloud-host': './src/cloud-control/service.js',
   'time-review/time-review-host': './src/time-review/service.js',
+  'stay-focus/blocked': './src/stay-focus/blocked.js',
   'sidebar-tools/preinstall-intent': './src/entrypoints/preinstall-intent.js',
   'agents/health': './src/agents/health.js',
   'agents/health-host': './src/entrypoints/health-host.js',

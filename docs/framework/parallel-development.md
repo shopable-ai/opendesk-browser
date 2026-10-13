@@ -88,3 +88,7 @@ Git 的 [git-add 文档](https://git-scm.com/docs/git-add)说明暂存记录的�
 - 独立测试设计、文档、API 契约审计、第三方库映射和只读 Legacy 核查可并行。旧来源工程只读，不另造执行器、持久存储或权限体系。
 
 普通用户运行交付任务不依赖 Codex/MCP/Native Messaging；真实运行仍遵守受控目标、授权、停止、deadline、unknown-effect 与持久化栅栏。各任务完成不代表整体 F3/ZIP 验收。
+
+## 本机与远端身份核对
+
+写入前记录实际工作目录、main、工作区差异、本地与远端 HEAD，并按 testing-guide 核查并行文件和测试资源。只读远端核查不等于本机工作区、Chrome 或安装验收通过；无法访问 Mac 时对应项必须标记 NOT_TESTED。旧全目录单写入及自动隔离规则以本协议的文件范围并行和用户最新授权为准。

@@ -5,17 +5,16 @@ import {projectCloudRequestSamples} from '../../src/ui/cloud-status-presentation
 import {createCloudHosting} from '../../src/ui/cloud-hosting.js';
 const read=path=>readFile(path,'utf8');
 
-test('Side Panel keeps hosting in My and development-only Debug at sixth',async()=>{
-  const [html,work,mem,shell]=await Promise.all([
-    read('src/ui/tool.html'),read('src/ui/task-workbench.js'),
-    read('src/ui/sidebar-tab-memory.js'),read('src/ui/tool-shell.js')]);
+test('Side Panel keeps Cloud as a dedicated product tab and development-only Debug at the end',async()=>{
+  const [html,shell]=await Promise.all([
+    read('src/ui/tool.html'),read('src/ui/tool-shell.js')]);
   const tabs=[...html.matchAll(/data-workbench-tab="([^"]+)"/g)].map(m=>m[1]);
-  assert.deepEqual(tabs,['tasks','discover','workflow','develop','tools','debug']);
-  assert.doesNotMatch(html,/id="tab-cloud"|id="workbench-cloud"/);
-  assert.match(work,/if\(name==='cloud'\)name='tasks'/);
+  assert.deepEqual(tabs,['tasks','discover','workflow','develop','tools','cloud','debug']);
+  assert.match(html,/id="tab-cloud"/);
+  assert.match(html,/id="workbench-cloud"/);
   assert.doesNotMatch(shell,/setCloudAvailable/);
-  assert.match(mem,/if\(saved==='cloud'\)saved='tasks'/);
-  const ids=[...html.matchAll(/id="([^"]+)"/g)].map(m=>m[1]);assert.equal(new Set(ids).size,ids.length);
+  const ids=[...html.matchAll(/id="([^"]+)"/g)].map(m=>m[1]);
+  assert.equal(new Set(ids).size,ids.length);
 });
 
 test('only tab navigation scrolls horizontally and Cloud cards wrap on narrow panels',async()=>{
@@ -27,33 +26,33 @@ test('only tab navigation scrolls horizontally and Cloud cards wrap on narrow pa
   assert.match(css,/#workspace-content\{[^}]*overflow-y:auto/);
 });
 
-test('hosting control rules match the live My container and wrap action buttons',async()=>{
+test('hosting control rules match the dedicated Cloud container and wrap action buttons',async()=>{
   const [html,css]=await Promise.all([read('src/ui/tool.html'),read('src/ui/cloud-hosting.css')]);
-  const my=html.slice(html.indexOf('id="workbench-tasks"'),html.indexOf('id="workbench-tools"'));
-  assert.match(my,/id="cloud-hosting"/);
-  assert.match(html,/<link rel="stylesheet" href="cloud-hosting\.css">/);
-  assert.doesNotMatch(css,/#workbench-cloud/);
-  assert.match(css,/#workbench-tasks #cloud-hosting>div\{[^}]*display:flex;flex-wrap:wrap;gap:var\(--space-2\)/);
-  assert.match(css,/#workbench-tasks #cloud-hosting>div button\{flex:1 1 130px;min-height:36px\}/);
+  const cloud=html.slice(html.indexOf('id="workbench-cloud"'),html.indexOf('id="workbench-local-discover"'));
+  assert.match(cloud,/id="cloud-hosting"/);
+  assert.match(html,/<link href="cloud-hosting\.css">/);
+  assert.match(css,/#cloud-hosting>div\{[^}]*display:flex;flex-wrap:wrap;gap:var\(--space-2\)/);
+  assert.match(css,/#cloud-hosting>div button\{flex:1 1 130px;min-height:36px\}/);
 });
 
-test('Cloud controls exist once within My and refresh stays read-only',async()=>{
+test('Cloud controls exist once within Cloud and refresh stays read-only',async()=>{
   const [html,cloud,shell]=await Promise.all([
     read('src/ui/tool.html'),read('src/ui/cloud-hosting.js'),read('src/ui/tool-shell.js')]);
-  const my=html.slice(html.indexOf('id="workbench-tasks"'),html.indexOf('id="workbench-tools"'));
+  const panel=html.slice(html.indexOf('id="workbench-cloud"'),html.indexOf('id="workbench-local-discover"'));
   for(const id of ['cloud-hosting','cloud-pair','cloud-approve','cloud-stop','cloud-refresh','cloud-overview-refresh','cloud-request-samples'])
-    assert.ok(my.includes('id="'+id+'"'),id);
-  assert.match(cloud,/async function dispatchNext\(s\)/);
-  assert.match(cloud,/click\('cloud-overview-refresh',async\(\)=>\{\}\)/);
+    assert.ok(panel.includes('id="'+id+'"'),id);
+  assert.match(cloud,/async function dispatchNext\(/);
+  assert.match(cloud,/click\('cloud-overview-refresh',async\(\)=>\{await refreshStatus\(\{includeRequests:false\}\);\}\)/);
   assert.match(shell,/let cloudHosting=null/);
 });
 
 test('cloud request previews project whitelisted states rather than IDs or result data',()=>{
   const samples=projectCloudRequestSamples({requests:[{
     requestId:'REQUEST_SECRET',runId:'RUN_SECRET',provider:{url:'https://secret.example'},
-    state:'permitted',runState:'running',retirementState:'released',receipt:{token:'HIDDEN'}
+    taskTitle:'用户安装的表单任务',state:'permitted',runState:'running',retirementState:'released',receipt:{token:'HIDDEN'}
   }]});
   assert.equal(samples.length,1);
+  assert.equal(samples[0].title,'用户安装的表单任务');
   assert.equal(samples[0].state,'已取得许可');assert.equal(samples[0].run,'运行中');
   assert.equal(samples[0].receipt,'回执已确认');
   assert.doesNotMatch(JSON.stringify(samples),/SECRET|HIDDEN|https?:\/\//);
@@ -122,7 +121,7 @@ test('unknown states and reasons stay conservative, bounded and secret free',()=
 });
 
 function hostingFixture(){
-  const element=()=>({textContent:'',disabled:false,value:'',checked:false,children:[],listeners:new Map(),
+  const element=()=>({textContent:'',disabled:false,value:'',checked:false,children:[],listeners:new Map(),dataset:{},
     addEventListener(type,fn){this.listeners.set(type,fn)},removeEventListener(type){this.listeners.delete(type)},
     replaceChildren(){this.children=[]},append(...children){this.children.push(...children)}});
   const map=new Map();
@@ -284,7 +283,11 @@ test('operation rejection and local approval validation preserve trusted status 
   const {document,map}=hostingFixture();let reads=0,approvals=0;
   const cloud={cloudStatus:async()=>{reads++;return {...readyStatus,enabled:false}},
     cloudApprove:async()=>{approvals++;throw {code:'E_PRIVATE_SECRET',message:'https://SECRET.example'};}};
-  const hosting=createCloudHosting({document,client:{cloud},host:{executionPending:true}});
+  const manifestHash='a'.repeat(64),sourceHash='b'.repeat(64);
+  const catalog={catalog:[{taskId:'PRIVATE_TASK',version:'1.0.0',manifestHash,stage:'available',
+    verification:{manifestHash,sourceHash},manifest:{title:'已验证任务',program:{sourceHash},siteOrigins:['https://example.test']}}],
+    installed:[{taskId:'PRIVATE_TASK',version:'1.0.0',manifestHash,installationId:'install-one',generation:1,enabled:true}]};
+  const hosting=createCloudHosting({document,client:{cloud,request:async name=>{assert.equal(name,'listTaskCatalog');return catalog;}},host:{executionPending:true}});
   try{
     await flush();const initialReads=reads;
     map.get('cloud-approve').listeners.get('click')();await flush();
@@ -292,11 +295,12 @@ test('operation rejection and local approval validation preserve trusted status 
     assert.equal(approvals,0);assert.equal(reads,initialReads);
     map.get('cloud-consent').checked=true;
     map.get('cloud-approve').listeners.get('click')();await flush();
-    assert.match(map.get('cloud-status').textContent,/请先安装并选择任务/);assert.equal(approvals,0);
-    map.get('task-installed-list').value='PRIVATE_TASK';
+    assert.match(map.get('cloud-status').textContent,/请选择 1–32 项已验证且启用的 Controller Task/);assert.equal(approvals,0);
+    const key=['PRIVATE_TASK','1.0.0',manifestHash,sourceHash,'install-one',1].join('|');
+    map.get('cloud-task-list').listeners.get('change')({target:{dataset:{cloudTaskKey:key},checked:true}});
     map.get('cloud-approve').listeners.get('click')();await flush();
     assert.equal(approvals,1);assert.equal(reads,initialReads);
-    assert.match(map.get('cloud-status').textContent,/操作未完成，请核对状态后再试/);
+    assert.match(map.get('cloud-status').textContent,/操作未完成，请检查连接与授权（E_CLOUD）/);
     assert.doesNotMatch(map.get('cloud-status').textContent,/状态暂不可读取|PRIVATE|SECRET|https?:\/\//);
     assert.equal(map.get('cloud-overview-connection').textContent,'已连接');
     assert.equal(map.get('cloud-overview-slot').textContent,'空闲');
@@ -348,7 +352,7 @@ test('dispatch rejection is operation feedback and does not erase successful sta
   try{
     await flush();assert.equal(claims,1);
     assert.equal(map.get('cloud-overview-connection').textContent,'已连接');
-    assert.match(map.get('cloud-status').textContent,/操作未完成，请核对状态后再试/);
+    assert.match(map.get('cloud-status').textContent,/操作未完成，请检查连接与授权（E_PRIVATE）/);
     assert.doesNotMatch(map.get('cloud-status').textContent,/状态暂不可读取|SECRET/);
   }finally{hosting.dispose();}
 });

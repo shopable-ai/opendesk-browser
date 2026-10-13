@@ -1,0 +1,102 @@
+name: Browser SDK R5 implementation contracts
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/framework/sdk/browser*.js'
+      - 'docs/api/browser-sdk-interface-matrix.json'
+      - 'docs/api/browser-sdk-execution-manual.zh-CN.md'
+      - 'scripts/check-browser-sdk-interface-matrix.mjs'
+      - 'tests/environment/browser-sdk-interface-matrix.test.mjs'
+      - 'src/platform/chrome/browser-tabs.js'
+      - 'src/platform/chrome/cookies.js'
+      - 'src/platform/chrome/browser-screenshot*.js'
+      - 'src/platform/chrome/browser-network-observe.js'
+      - 'src/platform/chrome/context-menus.js'
+      - 'src/platform/chrome/browser-cookie-host.js'
+      - 'src/ui/trusted-cookie-workbench.js'
+      - 'src/ui/tool-shell.js'
+      - 'src/ui/tool.html'
+      - 'src/ui/sidebar-tools.js'
+      - 'src/sidebar-tools/bridge.js'
+      - 'tests/environment/browser-*.test.mjs'
+      - 'tests/environment/browser-sdk-*.test.mjs'
+      - 'docs/framework/workstreams/browser-sdk-*'
+      - 'docs/framework/workstreams/browser-framework-four-layer-ledger.json'
+      - 'docs/framework/workstreams/browser-cookies-r6.md'
+      - 'docs/api/browser-framework-four-layer-ledger.zh-CN.md'
+      - 'docs/api/browser-sdk-full-interface-inventory.zh-CN.md'
+      - 'docs/api/browser-capability-universe.zh-CN.md'
+      - 'scripts/check-browser-framework-ledger.mjs'
+      - 'tests/environment/browser-framework-ledger.test.mjs'
+      - '.github/workflows/browser-sdk-r5.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  sdk-host-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          clean: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Explicit Browser SDK contracts, Host, native API mocks and denial paths
+        run: |
+          node --test --test-reporter=spec \
+            tests/environment/browser-sdk-r8-catalog.test.mjs \
+            tests/environment/browser-sdk-r8-cookies.test.mjs \
+            tests/environment/browser-sdk-r7-trusted-cookies.test.mjs \
+            tests/environment/browser-sdk-r7-mapping.test.mjs \
+            tests/environment/browser-sdk-contract-compat.test.mjs \
+            tests/environment/browser-sdk-coverage.test.mjs \
+            tests/environment/browser-tabs-host.test.mjs \
+            tests/environment/browser-sidepanel-host.test.mjs \
+            tests/environment/browser-sdk-r2-host.test.mjs \
+            tests/environment/browser-screenshot-host.test.mjs \
+            tests/environment/browser-screenshot-resources.test.mjs \
+            tests/environment/browser-network-observe-host.test.mjs \
+            tests/environment/browser-sdk-approval-timeout.test.mjs \
+            tests/environment/browser-sdk-r2-demo.test.mjs
+      - name: R8 pinned Chromium schema offline drift check
+        run: node scripts/sync-chrome-api-catalog.mjs --check
+      - name: R9 frozen full Chromium matrix structural and approved-operation check
+        run: |
+          node scripts/check-browser-sdk-interface-matrix.mjs --check
+          node --test tests/environment/browser-sdk-interface-matrix.test.mjs
+      - name: Browser SDK exact registry and human acceptance ledger
+        run: node scripts/check-browser-sdk-coverage.mjs --check
+      - name: Browser framework four-layer registry and Cookie priority ledger
+        run: |
+          node scripts/check-browser-framework-ledger.mjs --check
+          node --test tests/environment/browser-framework-ledger.test.mjs
+      - name: Source checks
+        run: npm run check
+  sdk-product-bundles:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          clean: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run build
+      - run: npm run build:dev
+      - run: npm run verify
+      - name: Save exact production candidate for manual Chrome acceptance
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-sdk-r5-unpacked-${{ github.sha }}
+          retention-days: 7
+          if-no-files-found: error
+          path: dist/production/

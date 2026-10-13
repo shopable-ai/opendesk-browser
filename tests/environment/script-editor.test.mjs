@@ -551,13 +551,12 @@ test('draft import rejects empty/oversized sources and active saves without over
   assert.equal(f.find('script-source').value,before);gate.resolve();await tick();
 });
 
-test('imported legacy @require only reads previously approved versions and never adds a form or downloads code',async t=>{
+test('imported Classic @require inspects per-program grants without any implicit download, approval or run',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   const source='// ==UserScript==\n// @require https://cdn.example/library.js\n// ==/UserScript==\nasync function main(){return document.title;}';
   f.editor.importDraft(source);await tick();
-  assert.deepEqual(f.dependencyInspections,[{sourceUtf8:source,entryFormat:'async-main'}]);
+  assert.deepEqual(f.dependencyInspections,[{sourceUtf8:source,entryFormat:'async-main',programId:f.find('script-id').value}]);
   assert.equal(f.find('page-dependency-add'),undefined);
-  assert.equal(f.find('page-dependency-lock'),undefined);
   assert.equal(f.find('page-preview-entry'),undefined);
   await f.click('page-preview-run');
   assert.match(f.find('page-preview-status').textContent,/E_DEPENDENCY_UNLOCKED/);

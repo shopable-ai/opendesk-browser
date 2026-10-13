@@ -1,0 +1,527 @@
+{
+  "goal": "Cloud Control R5.2 AI-First Real Cloud Control Product Closure",
+  "date": "2026-10-13",
+  "branch": "main",
+  "userJourneys": [
+    {
+      "id": "A",
+      "purpose": "Two independently installed fixed Controller Tasks",
+      "examples": [
+        "sample.form-fill@1.0.0",
+        "sample.modern-search@1.0.0"
+      ],
+      "status": "NATIVE_PENDING",
+      "originalChromeRunIds": [],
+      "originalResultIds": [],
+      "originalReceiptIds": []
+    },
+    {
+      "id": "B",
+      "purpose": "Status-only receipt when result body consent is false",
+      "status": "SOURCE_IMPLEMENTED",
+      "test": "tests/cloud-control/status-only-privacy-r52.test.mjs"
+    },
+    {
+      "id": "C",
+      "purpose": "Same Task multi-Executor strict recipient pairing isolation",
+      "status": "SOURCE_IMPLEMENTED",
+      "test": "tests/cloud-control/executor-isolation-r52.test.mjs"
+    },
+    {
+      "id": "D",
+      "purpose": "Authenticated external HTTPS/WSS client scoped to paired Executor",
+      "status": "SOURCE_IMPLEMENTED",
+      "externalInternetNative": "REMOTE_NATIVE_PENDING",
+      "test": "tests/cloud-control/remote-https-r52.test.mjs"
+    }
+  ],
+  "protocol": {
+    "jobOwnership": [
+      "providerId",
+      "targetExecutorId",
+      "targetPairingId",
+      "targetGrantId",
+      "taskId",
+      "version",
+      "manifestHash",
+      "sourceHash",
+      "normalizedParams",
+      "normalizedTarget"
+    ],
+    "oldQueuedUnownedJob": "QUARANTINED_NO_CLAIM",
+    "oldAssignedJob": "PRESERVE_ORIGINAL_OWNER_AND_RECEIPT",
+    "localAdminEndpoint": "http://127.0.0.1:43112/admin/*",
+    "externalSubmitEndpoint": "https://trusted-provider/v1/submit",
+    "externalWebSocket": "wss://trusted-provider/v1/events",
+    "noPublicAdmin": true,
+    "externalClientScope": "Each issued client token pins executorId + pairingId + grantId + immutable approved task pins; readResult is independently default false",
+    "statusOnlyFields": [
+      "visibility",
+      "state",
+      "retirementState"
+    ],
+    "resultBodyConsentDefault": false,
+    "fullReceiptRequiresConsent": true,
+    "stopOfflineBehavior": "Local stop succeeds; unpair requires confirmed server revocation",
+    "unknownSideEffects": "OUTCOME_UNKNOWN; do not resubmit",
+    "grantEpoch": "Every new Browser Cloud approval creates a new grantId; /v1/capabilities registers current grant and cancels unmatched queued work, /v1/claim/admission/renew require same generation",
+    "externalClientLimits": {
+      "maxNewJobsPer60Seconds": 60,
+      "maxOutstandingQueued": 100,
+      "idempotentRetry": "Original jobId without extra quota"
+    },
+    "externalStatusEndpoint": "POST https://trusted-provider/v1/job-status with own jobId",
+    "externalResultReturn": "Only for own submitted job AND Browser task.resultAllowed at admission AND client.allowResult AND a full original Provider receipt",
+    "staleApprovalReplay": "Retired grantIds persist and /v1/capabilities rejects E_GRANT_STALE; old client tokens revoked on approval change",
+    "runRefProviderPin": "Provider requires UUID RunId/ResultId, requestId=cloud:assignmentId, pinned sourceHash/manifestHash, runRef.grantId equals targetGrantId",
+    "receiptIdentity": "receiptKey must equal admitted runRef.resultId; modified same-key payload is E_REQUEST_CONFLICT and changed key is E_RECEIPT_KEY",
+    "clientRemoteCLI": "client:grant --packages --token-out (0600), submit:remote, status:remote use real HTTPS"
+  },
+  "sourceCommits": [
+    "85173716d554ef9679639da8c2b6186fd046c451",
+    "9b97c9b1ab754026b16281d9563ab48e26324eb1",
+    "73744a865ebc45a1662dd125e022fb14e594c580",
+    "79c50e5c371c34ca8c0351f12f07e9a42a22ec0f",
+    "274ba710ece5d026aff4bd69eff539566746377e",
+    "373f8b698222b54489d704041d8dddb8db761d1b",
+    "5961cce5f7d1cd995af606da107856536109656b",
+    "73c7ee45f62e59e9ae01493f8dd2d5ad2bef803a",
+    "5dc467fbf401785d48cc0b904a1de8562465180a",
+    "1318be2a85d6c26ab825c83d6634c5d99f83729c",
+    "dda54ec52d0f6e4f411b34328ec474b9bd66e45f",
+    "50847960556e77d32513d7ccd68cf52f1d77e964",
+    "a31bc3ee454890c42c237e5a64991039425f4818",
+    "b1a5b51127d92a1943d7824fb35ede9fa6cf41c0",
+    "3d1284224b46c2c26ccb9c421b27d51ec4c7ee95",
+    "df8be0483b37d58c894b0e2aad0535eeebd978a6",
+    "80a00eeb75f5c0d19df74a842067ff81dd52b194",
+    "faf43e48954584a9df94a8fd58e059d01bd19138",
+    "eb8931adbbf8e4dab48146e600ff86f6a86671d6",
+    "58a3939b5e57b866921f9c2d9b3878980b01105b",
+    "cfd7daa7139b8b0309723516d848035e2e974c2a",
+    "24994880c48e70241174727d65c3165e4f0dc35d",
+    "59a7fc3d78fefea5345bb2fc726fc1c0f5130370",
+    "d95fd8330400943d85940e29b3ee55d949651e18",
+    "286fa75c08be60a6bc543062858090cc34116043",
+    "c72bcf44646a060e027a57106ac4c4cb310aac46",
+    "42090b1689b0c25172d9b07287ed22a392abd715",
+    "cd1d7b2d8149b968629d3b4d5bb5cb7942438acf",
+    "cadfafaf17beee04513775c93635b0aa5e0a8b53",
+    "47e7b27ab93a4c43cf463d8232c732aa615939b0",
+    "48fb4273f233913889d35f60c316a91193d01501",
+    "dfd4c3beb0f94cbe42474f71ed71e4c98dc9015c",
+    "9ad75dde80d2b79bcbd26b5276ebd2d606be2f47",
+    "d69045abed34453e2e6f38b2f236c6d8498738f6",
+    "35ef0a81e70f4a30f956896514dbde3e39779ca3",
+    "b706430ce94cb8b086c5a75ed810e52694962b21",
+    "2fe78b4c73d11e71e23fb72caf579ebef084f55f",
+    "11773011d5ae12e91000c6645e6da45384fc9949",
+    "b4225056170c3522f8796d5f6cda4f009763e6a0",
+    "70d02565cd645b74ef1ea028653e1528fc1fe4fc",
+    "3a9fc1f56046cf4ee3a72a81138946949b76a59d",
+    "bc82f2c1420fbe114cc77e4eeba2616ee4570965",
+    "e8e9ed5da7dfdc56060216f8681dec5a3fc38afe",
+    "c39650027c7c5cd5cf01b5ee16f5aaae25e361d8",
+    "9337d5a44af3acdd866c0e8578f737f8e34c5349",
+    "fadff7695ebd7ca1adaa5406cbb906dcf17052a1",
+    "8f944aebd0301f37d1b40cc325f4cf7953a80f01",
+    "e2e3821b3397a5ac19293cc7d4387b08595c43b7",
+    "91cd8c39352b7fd705e3b987c8428ff98e3a7106",
+    "996f305f35c1cdb9fbc45edc9653b4ef8b1dc0d3",
+    "0cd96638b060932dbef1116230c004cba1f7ae27",
+    "aa21f13cdf68c1efe115a517c4d2b31a01c9950e",
+    "2c4692e406dd48872329cbfc31a1d6aeb732b2ea",
+    "498fb0d4b7213376e292323bf6309cb0e1ea9567",
+    "e7c099627b59992df2268f2e3be76d07e982360e",
+    "7558ebac9f7e1f1ccd332829d60e67e3a2ba1619",
+    "2120c2eeca71c44e2a6f18b4d53ba911f6ab3638",
+    "af0727f1c7e5094e523a4ebff715d3eff151581a",
+    "5e05bc43db78248d46ff46f46977043d33ff26d8",
+    "9da132b07d4cdfa8938ea379f20f3e78d8f01316",
+    "861a79cb60c1a9ce0359ff7e48012b0871e1a2a2",
+    "4cb1d7b6128a9d9be34c3c9fcc90abf37b68e487",
+    "33c6e4a821830c4fa5db7b64c7f463cdc061c00d",
+    "738fdc1e28c3a6758d853acea20011b295e56207",
+    "7aff8bd27e258022cdf186019409dcc07fdee719"
+  ],
+  "statuses": {
+    "jobExecutorIsolation": "COMPONENT_TESTED",
+    "statusOnlyReceipts": "COMPONENT_TESTED",
+    "twoDistinctChromeTasks": "NATIVE_PENDING",
+    "chromeUIResponsive": "NATIVE_PENDING",
+    "remoteTLSProtocol": "COMPONENT_TESTED",
+    "deployedRemoteChrome": "REMOTE_NATIVE_PENDING",
+    "macChromeValidation": "NATIVE_PENDING",
+    "longRunningRunner": "NOT_IMPLEMENTED",
+    "componentCI": "COMPONENT_TESTED",
+    "build": "NOT_VERIFIED",
+    "approvalGenerationFence": "COMPONENT_TESTED",
+    "clientScopedTaskAndResultPermissions": "COMPONENT_TESTED",
+    "remoteJobStatus": "COMPONENT_TESTED",
+    "originalRunRefIdentity": "SOURCE_IMPLEMENTED",
+    "receiptImmutableResultId": "SOURCE_IMPLEMENTED",
+    "remoteCLITwoTaskProtocol": "SOURCE_IMPLEMENTED",
+    "sidebarR52ProductUXTests": "SOURCE_IMPLEMENTED",
+    "authenticatedHistoryTaskName": "SOURCE_IMPLEMENTED",
+    "stoppedNewAdmissionIdempotency": "SOURCE_IMPLEMENTED",
+    "providerReadonlyPersistence": "SOURCE_IMPLEMENTED",
+    "cloudEmptyStateMyNavigation": "SOURCE_IMPLEMENTED",
+    "cloudLocalErrorExplanation": "SOURCE_IMPLEMENTED",
+    "externalClientSelfService": "SOURCE_IMPLEMENTED",
+    "browserScopedClientManagement": "SOURCE_IMPLEMENTED",
+    "externalClientRevocationRaceFence": "SOURCE_IMPLEMENTED",
+    "r524CurrentComponentCI": "NOT_VERIFIED",
+    "r524CurrentPackageBuild": "NOT_VERIFIED",
+    "uiPreviewSource": "SOURCE_IMPLEMENTED",
+    "uiPreviewContractTest": "SOURCE_IMPLEMENTED",
+    "uiPreviewToProduction": "NOT_IMPLEMENTED",
+    "uiPreviewNative": "NATIVE_PENDING"
+  },
+  "priorEvidence": {
+    "r51": {
+      "sha": "93c78341271032cb3c641f2b818e9636fb6b88e9",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38351008157",
+      "passed": 226,
+      "failed": 0,
+      "cloudPassed": 30,
+      "authorityPassed": 113,
+      "othersPassed": 83,
+      "check": "PASS",
+      "productionBuild": "PASS",
+      "developmentBuild": "PASS",
+      "verify": "PASS",
+      "productionPackageHash": "9efaded0997d1182bdd0b058f017a6c025563aa1b7ac5162012957ada8faf839",
+      "developmentPackageHash": "8cdbbf5663130d6b78c68c831ccee4650699d90f26efc8666ebaf8f4e0cd0e8e",
+      "actualNativeTwoTaskRun": "NATIVE_PENDING"
+    },
+    "r52FirstFail": {
+      "sha": "85173716d554ef9679639da8c2b6186fd046c451",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38357973403",
+      "status": "completed",
+      "conclusion": "failure",
+      "reason": "Durable outcome test expected no status-only receipt; production tool-shell exceeds 512 KiB byte budget: 527585 > 524288"
+    },
+    "newerCI": {
+      "sha": "50847960556e77d32513d7ccd68cf52f1d77e964",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38359650307",
+      "status": "QUEUED_AS_OBSERVED",
+      "conclusion": "NOT_VERIFIED"
+    }
+  },
+  "native": {
+    "chromeVersion": null,
+    "macProfile": null,
+    "installedTaskIds": [],
+    "runIds": [],
+    "resultIds": [],
+    "revisionSourceHashes": [],
+    "webPageEffects": [],
+    "retirementReleased": [],
+    "providerReceiptIds": [],
+    "screenshots": [],
+    "externalInternetTrace": null,
+    "packageHash": null,
+    "approvalGenerationChromeTrace": []
+  },
+  "quality": {
+    "targetEach": 95,
+    "dimensions": [
+      {
+        "name": "产品定位与用户价值",
+        "designScore": "NOT_VERIFIED",
+        "implementationScore": "NOT_VERIFIED",
+        "verificationScore": "NOT_VERIFIED"
+      },
+      {
+        "name": "用户完整流程",
+        "designScore": "NOT_VERIFIED",
+        "implementationScore": "NOT_VERIFIED",
+        "verificationScore": "NOT_VERIFIED"
+      },
+      {
+        "name": "功能完整性",
+        "designScore": "NOT_VERIFIED",
+        "implementationScore": "NOT_VERIFIED",
+        "verificationScore": "NOT_VERIFIED"
+      },
+      {
+        "name": "云端可用性",
+        "designScore": "NOT_VERIFIED",
+        "implementationScore": "NOT_VERIFIED",
+        "verificationScore": "NOT_VERIFIED"
+      },
+      {
+        "name": "多用户/Executor 隔离",
+        "designScore": "NOT_VERIFIED",
+        "implementationScore": "NOT_VERIFIED",
+        "verificationScore": "NOT_VERIFIED"
+      },
+      {
+        "name": "权限安全",
+        "designScore": "NOT_VERIFIED",
+        "implementationScore": "NOT_VERIFIED",
+        "verificationScore": "NOT_VERIFIED"
+      },
+      {
+        "name": "结果隐私",
+        "designScore": "NOT_VERIFIED",
+        "implementationScore": "NOT_VERIFIED",
+        "verificationScore": "NOT_VERIFIED"
+      },
+      {
+        "name": "UI 视觉设计",
+        "designScore": "NOT_VERIFIED",
+        "implementationScore": "NOT_VERIFIED",
+        "verificationScore": "NOT_VERIFIED"
+      },
+      {
+        "name": "UI 信息与文案",
+        "designScore": "NOT_VERIFIED",
+        "implementationScore": "NOT_VERIFIED",
+        "verificationScore": "NOT_VERIFIED"
+      },
+      {
+        "name": "UI 操作效率",
+        "designScore": "NOT_VERIFIED",
+        "implementationScore": "NOT_VERIFIED",
+        "verificationScore": "NOT_VERIFIED"
+      },
+      {
+        "name": "可访问性与响应式",
+        "designScore": "NOT_VERIFIED",
+        "implementationScore": "NOT_VERIFIED",
+        "verificationScore": "NOT_VERIFIED"
+      },
+      {
+        "name": "运行可靠性",
+        "designScore": "NOT_VERIFIED",
+        "implementationScore": "NOT_VERIFIED",
+        "verificationScore": "NOT_VERIFIED"
+      },
+      {
+        "name": "框架复用与可维护性",
+        "designScore": "NOT_VERIFIED",
+        "implementationScore": "NOT_VERIFIED",
+        "verificationScore": "NOT_VERIFIED"
+      },
+      {
+        "name": "自动化测试完整性",
+        "designScore": "NOT_VERIFIED",
+        "implementationScore": "NOT_VERIFIED",
+        "verificationScore": "NOT_VERIFIED"
+      },
+      {
+        "name": "真实 Chrome 验收可信度",
+        "designScore": "NOT_VERIFIED",
+        "implementationScore": "NOT_VERIFIED",
+        "verificationScore": "NOT_VERIFIED"
+      }
+    ],
+    "overall95Plus": false
+  },
+  "restrictions": {
+    "mainOnly": true,
+    "noForce": true,
+    "noWorktree": true,
+    "noPR": true,
+    "noSharedMacChromeResources": true,
+    "noRewriteKnownFailures": true
+  },
+  "remaining": [
+    "After reviewing the single HTML, map its Index/Connect/Manage/Review/History subviews into existing Side Panel; do not create another Cloud Product",
+    "Run existing Cloud and Controller Authority regressions plus 300–520px/125%/200% genuine installed Chrome UI acceptance",
+    "Verify 91cd8c39352b exact-candidate Cloud and shared production CI after GitHub Actions queue clears; do not infer success from 24994880",
+    "Mac Chrome dual independently installed Task Worker/Run/Result/Provider receipts still absent",
+    "Independent real Chrome 300/320/360/420/520px + 125/200% keyboard/screenshots still absent",
+    "Wait for and inspect exact current R5.2 CI; do not label new code COMPONENT_TESTED until new SHA passes",
+    "New async CLI test, Task-labelled history, Stop idempotency, and readonly status have new unverified changes",
+    "R5.2 scoped-client candidate Cloud component CI 157/157 passed, but final moving main requires fresh build evidence and native Chrome",
+    "Fix shared tool-shell production fixed 524288 byte budget without raising budget",
+    "Run real two installed different Tasks in Chrome and collect Worker Run/Result/retirement/receipt IDs",
+    "Capture real Chrome side panel 300/320/360/420/520px 125%/200% keyboard and screenshot matrix",
+    "Deploy only with approved trusted HTTPS/WSS server/account; run external Chrome end-to-end; otherwise REMOTE_NATIVE_PENDING",
+    "Continue stop/upgrade/restart/network loss/unknown effect native negative gates",
+    "Verify approval generation rebind race and revoke-after-partial-result in original Chrome",
+    "External client credentials must be audited and rotated by Provider operator; dedicated user-visible per-client UI is not yet verified",
+    "R5.2.4 self-service scoped client grants and UI code committed on main; latest SHA 7aff8bd27e... Cloud CI #38379208965 queued, matching build CI #38379209138 pending; no new test PASS or PackageHash.",
+    "Verify external client credential rotation/revoke and Chrome A/B isolation in real native Chrome; only TLS Node tests added. Do not use fabricated RunRef."
+  ],
+  "currentComponentEvidence": {
+    "candidateSha": "24994880c48e70241174727d65c3165e4f0dc35d",
+    "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38368001891",
+    "conclusion": "success",
+    "scope": "Cloud R5.2 HTTP/WSS/TLS contract + Controller Authority + Side Panel component only",
+    "cloudProviderTests": {
+      "passed": 34,
+      "failed": 0
+    },
+    "controllerAuthorityTests": {
+      "passed": 113,
+      "failed": 0
+    },
+    "cloudSidePanelTests": {
+      "passed": 10,
+      "failed": 0
+    },
+    "total": {
+      "passed": 157,
+      "failed": 0
+    },
+    "sourceAndBuildVerified": false,
+    "twoTaskRealChromeVerified": false,
+    "deployedPublicInternetVerified": false,
+    "qualification": "Earlier immutable SHA 24994880c48e... only; subsequent R5.2 commits require fresh exact-SHA CI. Do not transfer its 157 passes."
+  },
+  "latestAdditionalTests": [
+    "tests/cloud-control/remote-cli-r52.test.mjs",
+    "tests/cloud-control/r52-product-ui.test.mjs",
+    "tests/cloud-control/remote-https-r52.test.mjs",
+    "tests/cloud-control/executor-isolation-r52.test.mjs",
+    "tests/cloud-control/provider.test.mjs"
+  ],
+  "pendingExactCandidate": {
+    "sha": "7aff8bd27e258022cdf186019409dcc07fdee719",
+    "ciUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38379208965",
+    "ciStatus": "queued",
+    "packageCiUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38379209138",
+    "packageCiStatus": "cancelled",
+    "observedAt": "2026-10-13",
+    "componentTests": "NOT_VERIFIED",
+    "check": "NOT_VERIFIED",
+    "productionBuild": "NOT_VERIFIED",
+    "developmentBuild": "NOT_VERIFIED",
+    "verify": "NOT_VERIFIED",
+    "packageHash": null,
+    "realMacChrome": "NATIVE_PENDING",
+    "internetRemote": "REMOTE_NATIVE_PENDING"
+  },
+  "priorPendingExactCandidates": [
+    {
+      "sha": "91cd8c39352b7fd705e3b987c8428ff98e3a7106",
+      "ciUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38373957070",
+      "observed": "queued",
+      "componentTests": "NOT_VERIFIED",
+      "check": "NOT_VERIFIED",
+      "productionBuild": "NOT_VERIFIED",
+      "developmentBuild": "NOT_VERIFIED",
+      "verify": "NOT_VERIFIED",
+      "packageHash": null
+    }
+  ],
+  "r524SelfService": {
+    "date": "2026-10-13",
+    "status": "SOURCE_IMPLEMENTED",
+    "files": [
+      "scripts/cloud-control/provider.mjs",
+      "src/cloud-control/service.js",
+      "src/platform/host/authority.js",
+      "src/platform/host/broker.js",
+      "src/platform/host/client.js",
+      "src/ui/tool.html",
+      "src/ui/cloud-hosting.js",
+      "src/ui/tool-shell.css"
+    ],
+    "validationTests": [
+      "tests/cloud-control/remote-https-r52.test.mjs",
+      "tests/cloud-control/r52-product-ui.test.mjs"
+    ],
+    "endpointMethods": [
+      "/v1/client-list",
+      "/v1/client-grant",
+      "/v1/client-revoke"
+    ],
+    "controlScope": "Executor credential + current Pairing + current Grant + pinned approved Task; exact local installed manifest/content hash, installation and generation; browser-side resultAllowed cannot be increased",
+    "clientSecret": "one-time-only 256-bit response, never persisted in Chrome KV or exposed to observer",
+    "adminInterfacePublic": false,
+    "priorKnownCIRegression": {
+      "runId": 38370589040,
+      "sha": "9ad75dde80d2b79bcbd26b5276ebd2d606be2f47",
+      "status": "failure",
+      "reason": "remote-cli-r52.test.mjs execFileSync blocked local Provider HTTP loop; subsequent asynchronous CLI test fix requires fresh CI"
+    },
+    "componentCi": {
+      "runId": 38379208965,
+      "sha": "7aff8bd27e258022cdf186019409dcc07fdee719",
+      "status": "queued",
+      "result": "NOT_VERIFIED"
+    },
+    "packageCi": {
+      "runId": 38379209138,
+      "sha": "7aff8bd27e258022cdf186019409dcc07fdee719",
+      "status": "cancelled",
+      "result": "NOT_VERIFIED",
+      "productionBudgetBytes": 524288,
+      "packageHash": null,
+      "conclusion": "cancelled",
+      "recordedInitialStatus": "pending"
+    },
+    "realChromeTwoTasks": "NATIVE_PENDING",
+    "realUiScreenshots": [],
+    "remotePublicProvider": "REMOTE_NATIVE_PENDING",
+    "nativeEvidenceAdded": 0,
+    "quality95Plus": false,
+    "latestObservation": {
+      "date": "2026-10-13",
+      "sourceSha": "7aff8bd27e258022cdf186019409dcc07fdee719",
+      "cloudCi": {
+        "runId": 38379208965,
+        "status": "queued",
+        "conclusion": null
+      },
+      "fixedBudgetCi": {
+        "runId": 38379209138,
+        "status": "completed",
+        "conclusion": "cancelled"
+      },
+      "note": "Shared fixed-entry workflow was cancelled amid concurrent main pushes; no PASS, FAIL, PackageHash or budget receipt for this code candidate."
+    }
+  },
+  "uiPreviewR52": {
+    "html": "examples/ui/cloud-control-r5.2-preview.html",
+    "designContract": "docs/architecture/browser-framework/cloud-control-r5.2-ui-preview-contract.zh-CN.md",
+    "regression": "tests/cloud-control/r52-ui-preview-contract.test.mjs",
+    "clusters": 6,
+    "traceableUiFunctions": 39,
+    "canonicalProductionTab": "src/ui/tool.html#workbench-cloud",
+    "sourceStatus": "SOURCE_IMPLEMENTED",
+    "previewOnly": true,
+    "noRealProviderOrChrome": true,
+    "previewValidation": {
+      "environment": "Isolated Chromium headless, page.set_content on standalone HTML, not installed extension",
+      "scenarios": [
+        "first",
+        "paired",
+        "active",
+        "running",
+        "offline",
+        "stale"
+      ],
+      "cssWidths": [
+        300,
+        320,
+        360,
+        420,
+        520
+      ],
+      "layoutsChecked": 30,
+      "horizontalOverflowFailures": 0,
+      "jsPageErrors": 0,
+      "focusRestoredOnTaskAndResultConsent": true,
+      "scenarioFlows": [
+        "pair",
+        "task selection",
+        "per-task result consent",
+        "review",
+        "approve",
+        "history/unknown",
+        "offline Stop",
+        "unpair fail closed"
+      ],
+      "nativeChromeEquivalent": false
+    },
+    "productionMigration": "NOT_IMPLEMENTED",
+    "nativePanelScreenshot": "NATIVE_PENDING",
+    "chromeZoom125And200": "NATIVE_PENDING",
+    "note": "Preview does not grant Task/Provider authority or execute Worker. Production migration must reuse existing Host, Installer, SDK and R27/R28 tokens."
+  }
+}

@@ -328,6 +328,45 @@ button.primary:hover{background:#1b4aac}
 }</pre>
     </details>
   </section></div>
+    <p class="section-caption">PRODUCT TOOL / EXP-005 · LOCAL SELLER WORKFLOW</p>
+    <div class="sheet">
+      <section class="unit" id="listing-sku-fixture" data-opendesk-listing-fixture="seller-listing-v1" aria-labelledby="listing-fixture-title">
+        <div class="unit-heading"><small>EXP-005</small><h2 id="listing-fixture-title">Listing / SKU · 本地卖家数据检查</h2></div>
+        <p class="sample-text">这是可审计的本地商品测试数据，非真实商家后台。下方按钮只改变本区域字段；需在 OpenDesk「开发」手动运行 Listing 检查项目，再点击面板「检查当前商品」。不上传、不发布商品。</p>
+        <div class="controls" role="group" aria-label="商品检查测试场景" style="margin:14px 0">
+          <button type="button" data-listing-preset="valid">正常商品</button>
+          <button type="button" data-listing-preset="missing">字段缺失</button>
+          <button type="button" data-listing-preset="duplicate">SKU 重复</button>
+          <button type="button" data-listing-preset="variant">变体异常</button>
+        </div>
+        <p id="listing-fixture-scenario" class="footnote" role="status" aria-live="polite">正常商品</p>
+        <div class="fields" style="margin-top:14px">
+          <div class="field"><label for="listing-title">商品标题</label><input id="listing-title" data-listing-field="title" type="text" maxlength="256" value="便携式阅读灯 · 暖白色"></div>
+          <div class="field"><label for="listing-parent-sku">主 SKU</label><input id="listing-parent-sku" data-listing-field="parentSku" type="text" maxlength="256" value="READ-LAMP-001"></div>
+          <div class="field" style="flex-basis:100%"><label for="listing-description">商品描述</label><input id="listing-description" data-listing-field="description" type="text" maxlength="256" value="USB 供电，暖白色光，手动调节亮度"></div>
+        </div>
+        <div style="overflow-x:auto;margin-top:14px">
+          <table style="width:100%;border-collapse:separate;border-spacing:8px;text-align:left;font-size:12px" aria-label="商品 SKU 变体测试表">
+            <thead><tr><th scope="col">变体 SKU</th><th scope="col">规格选项</th><th scope="col">测试价格</th><th scope="col">测试库存</th></tr></thead>
+            <tbody>
+              <tr data-listing-variant>
+                <td><input data-listing-field="sku" aria-label="变体 1 SKU" type="text" maxlength="256" value="READ-WARM-01" style="min-width:128px;width:100%"></td>
+                <td><input data-listing-field="option" aria-label="变体 1 规格" type="text" maxlength="256" value="暖白 / 小号" style="min-width:110px;width:100%"></td>
+                <td><input data-listing-field="price" aria-label="变体 1 价格" type="text" maxlength="256" value="129.00" style="min-width:75px;width:100%"></td>
+                <td><input data-listing-field="stock" aria-label="变体 1 库存" type="text" maxlength="256" value="8" style="min-width:65px;width:100%"></td>
+              </tr>
+              <tr data-listing-variant>
+                <td><input data-listing-field="sku" aria-label="变体 2 SKU" type="text" maxlength="256" value="READ-COOL-02" style="min-width:128px;width:100%"></td>
+                <td><input data-listing-field="option" aria-label="变体 2 规格" type="text" maxlength="256" value="冷白 / 小号" style="min-width:110px;width:100%"></td>
+                <td><input data-listing-field="price" aria-label="变体 2 价格" type="text" maxlength="256" value="139.00" style="min-width:75px;width:100%"></td>
+                <td><input data-listing-field="stock" aria-label="变体 2 库存" type="text" maxlength="256" value="12" style="min-width:65px;width:100%"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="footnote">测试数据无币种、平台费率或售卖身份；价格仅作格式校验，不进行毛利或真实售价建议。手动编辑字段后，回到工具面板点击「检查当前商品」读取新数据。</p>
+      </section>
+    </div>
   <p class="lab-footer">本地服务只托管测试 HTML。第 03 组以同源 fetch 验证 DOM 异步；第 06 组经授权的网页 SDK axiosx 测试真实公网 HTTP。仅用户点击才发请求，原生回执另查扩展后台。</p>
 </div></div>
 </main>
@@ -774,7 +813,40 @@ button.primary:hover{background:#1b4aac}
     searchStatus.textContent = '';
     results.textContent = '';
   });
+  // EXP005_FIXTURE_START
+  // Local Browser Test Lab demo data only. No event synthesis, network or storage.
+  (()=>{
+    'use strict';
+    const scope=typeof document.querySelector==='function'
+      ? document.querySelector('[data-opendesk-listing-fixture="seller-listing-v1"]') : null;
+    if(!scope)return;
+    const rows=[...scope.querySelectorAll('[data-listing-variant]')];
+    if(rows.length!==2)return;
+    const field=(root,name)=>root.querySelector(`[data-listing-field="${name}"]`);
+    const base={title:'便携式阅读灯 · 暖白色',description:'USB 供电，暖白色光，手动调节亮度',
+      parentSku:'READ-LAMP-001',variants:[
+        {sku:'READ-WARM-01',option:'暖白 / 小号',price:'129.00',stock:'8'},
+        {sku:'READ-COOL-02',option:'冷白 / 小号',price:'139.00',stock:'12'}]};
+    const names={valid:'正常商品',missing:'字段缺失',duplicate:'SKU 重复',variant:'变体异常'};
+    function preset(name){
+      if(!Object.hasOwn(names,name))return;
+      const data=structuredClone(base);
+      if(name==='missing'){data.title='';data.parentSku='';data.variants[1].sku='';}
+      if(name==='duplicate')data.variants[1].sku=' read-warm-01 ';
+      if(name==='variant'){data.variants[1].option='';data.variants[1].price='0';data.variants[1].stock='-1';}
+      for(const key of ['title','description','parentSku'])field(scope,key).value=data[key];
+      rows.forEach((row,index)=>{
+        for(const key of ['sku','option','price','stock'])field(row,key).value=data.variants[index][key];
+      });
+      document.getElementById('listing-fixture-scenario').textContent='当前场景：'+names[name]+'（可继续手动编辑字段）';
+    }
+    scope.querySelectorAll('[data-listing-preset]').forEach(button=>
+      button.addEventListener('click',()=>preset(button.getAttribute('data-listing-preset'))));
+    preset('valid');
+  })();
+  // EXP005_FIXTURE_END
 })();
 </script>
+
 </body>
 </html>

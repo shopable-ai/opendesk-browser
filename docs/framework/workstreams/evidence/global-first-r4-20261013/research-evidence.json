@@ -1,0 +1,435 @@
+{
+  "format": "opendesk.global-first-r4-research-v1",
+  "observedDate": "2026-10-13",
+  "type": "SOURCE_INDEX_AND_UNRUN_TRIALS_NOT_SECOND_CLAIMS_LEDGER",
+  "authoritativeClaimsLedger": "docs/product/browser-extension-ecosystem/first-claims-ledger.json",
+  "competitorCount": 30,
+  "dualTripleFactorOpportunityCount": 26,
+  "globalFirstApproved": 0,
+  "regionalFirstApproved": 0,
+  "rankedSecondToFifth": 0,
+  "localMacStatus": "LOCAL_NOT_INSPECTED",
+  "samePackageMacChromeNativeStatus": "NOT_TESTED",
+  "competitorHandsOnStatus": "NOT_TESTED",
+  "expertScore": "NOT_SCORED",
+  "publicSEOIndex": "NOT_TESTED",
+  "firstReleaseHistory": "RESEARCH_INCOMPLETE",
+  "releaseSources": [
+    {
+      "name": "ScriptCat MCP permission",
+      "date": "2026-08-06",
+      "channel": "GitHub Beta first feature evidence",
+      "url": "https://github.com/scriptscat/scriptcat/releases/tag/v1.5.0-beta.1"
+    },
+    {
+      "name": "ScriptCat install permission diff",
+      "date": "2026-09-18",
+      "channel": "GitHub Beta first feature evidence",
+      "url": "https://github.com/scriptscat/scriptcat/releases/tag/v1.5.0-beta.4"
+    },
+    {
+      "name": "Violentmonkey MCP",
+      "date": "2026-10-10",
+      "channel": "GitHub Beta first feature evidence",
+      "url": "https://github.com/violentmonkey/violentmonkey/releases/tag/v2.49.5"
+    },
+    {
+      "name": "UiPath Delegate Routines",
+      "date": "2026-08-25",
+      "channel": "Official Public Preview first feature evidence",
+      "url": "https://docs.uipath.com/delegate/standalone/latest/release-notes/august-2026"
+    },
+    {
+      "name": "Axiom Claude bot creation",
+      "date": null,
+      "channel": "Vendor current docs, first-public-date unverified",
+      "url": "https://axiom.ai/build-in-claude/"
+    },
+    {
+      "name": "Axiom import/schedule",
+      "date": null,
+      "channel": "Vendor current docs, first-public-date unverified",
+      "url": "https://axiom.ai/build-with-no-code/claude/"
+    },
+    {
+      "name": "Nanobrowser v0.2.0",
+      "date": "2026-10-02",
+      "channel": "GitHub release",
+      "url": "https://github.com/nanobrowser/nanobrowser/releases/tag/v0.2.0"
+    },
+    {
+      "name": "Browser Use 0.13.11",
+      "date": "2026-10-07",
+      "channel": "GitHub release",
+      "url": "https://github.com/browser-use/browser-use/releases/tag/0.13.11"
+    },
+    {
+      "name": "Midscene v1.15.2",
+      "date": "2026-10-12",
+      "channel": "GitHub release",
+      "url": "https://github.com/web-infra-dev/midscene/releases/tag/v1.15.2"
+    },
+    {
+      "name": "Skyvern 1.0.55",
+      "date": "2026-10-01",
+      "channel": "GitHub release",
+      "url": "https://github.com/Skyvern-AI/skyvern/releases/tag/v1.0.55"
+    },
+    {
+      "name": "Stagehand JS @3.7.3",
+      "date": "2026-08-28",
+      "channel": "GitHub monorepo package release only",
+      "url": "https://github.com/browserbase/stagehand/releases/tag/%40browserbasehq/stagehand%403.7.3"
+    },
+    {
+      "name": "BrowserOS BrowserClaw extension",
+      "date": "2026-10-13",
+      "channel": "GitHub extension subcomponent release, not full browser",
+      "url": "https://github.com/browseros-ai/BrowserOS/releases/tag/ext-browserclaw/v0.2.37.0"
+    },
+    {
+      "name": "Chrome DevTools MCP v1.10.1",
+      "date": "2026-09-23",
+      "channel": "GitHub release",
+      "url": "https://github.com/ChromeDevTools/chrome-devtools-mcp/releases/tag/chrome-devtools-mcp-v1.10.1"
+    },
+    {
+      "name": "Bardeen Store 5.0.0",
+      "date": "2026-06-19",
+      "channel": "Chrome Web Store update, not original release",
+      "url": "https://chromewebstore.google.com/detail/bardeen-automate-browser/ihhkmalpkhkoedlmcnilbbhhbhnicjga"
+    },
+    {
+      "name": "HARPA AI Store 14.4.0",
+      "date": "2026-06-29",
+      "channel": "Chrome Web Store update, Chinese/Japanese support",
+      "url": "https://chromewebstore.google.com/detail/harpa-ai-web-automation-w/eanggfilgoajaocelnaflolkadkeghjp"
+    },
+    {
+      "name": "Google AI Search SEO",
+      "date": null,
+      "channel": "Official guidance, indexability and no special AI schema",
+      "url": "https://developers.google.com/search/docs/appearance/ai-features"
+    },
+    {
+      "name": "Bing AI Performance",
+      "date": "2026-02-10",
+      "channel": "Official Public Preview announcement",
+      "url": "https://blogs.bing.com/webmaster/2026/2/Introducing-AI-Performance-in-Bing-Webmaster-Tools-Public-Preview/"
+    }
+  ],
+  "seoQueries": [
+    {
+      "id": "Q01",
+      "language": "zh-CN",
+      "region": "CN",
+      "query": "AI 创建浏览器工具 安装后重复使用",
+      "google": "NOT_TESTED",
+      "bing": "NOT_TESTED",
+      "aiSearch": "NOT_TESTED",
+      "citedUrl": null,
+      "installClicks": null,
+      "sevenDayReuse": null
+    },
+    {
+      "id": "Q02",
+      "language": "en",
+      "region": "US",
+      "query": "AI browser automation reusable without AI",
+      "google": "NOT_TESTED",
+      "bing": "NOT_TESTED",
+      "aiSearch": "NOT_TESTED",
+      "citedUrl": null,
+      "installClicks": null,
+      "sevenDayReuse": null
+    },
+    {
+      "id": "Q03",
+      "language": "zh-CN",
+      "region": "CN",
+      "query": "AI 自动生成脚本 审核后安装 Chrome",
+      "google": "NOT_TESTED",
+      "bing": "NOT_TESTED",
+      "aiSearch": "NOT_TESTED",
+      "citedUrl": null,
+      "installClicks": null,
+      "sevenDayReuse": null
+    },
+    {
+      "id": "Q04",
+      "language": "en",
+      "region": "US",
+      "query": "turn AI browser task into reusable extension",
+      "google": "NOT_TESTED",
+      "bing": "NOT_TESTED",
+      "aiSearch": "NOT_TESTED",
+      "citedUrl": null,
+      "installClicks": null,
+      "sevenDayReuse": null
+    },
+    {
+      "id": "Q05",
+      "language": "zh-CN",
+      "region": "CN",
+      "query": "浏览器脚本 安装权限 检查源码",
+      "google": "NOT_TESTED",
+      "bing": "NOT_TESTED",
+      "aiSearch": "NOT_TESTED",
+      "citedUrl": null,
+      "installClicks": null,
+      "sevenDayReuse": null
+    },
+    {
+      "id": "Q06",
+      "language": "en",
+      "region": "US",
+      "query": "review userscript permissions before installing",
+      "google": "NOT_TESTED",
+      "bing": "NOT_TESTED",
+      "aiSearch": "NOT_TESTED",
+      "citedUrl": null,
+      "installClicks": null,
+      "sevenDayReuse": null
+    },
+    {
+      "id": "Q07",
+      "language": "zh-CN",
+      "region": "CN",
+      "query": "ScriptCat 替代 AI 编写脚本",
+      "google": "NOT_TESTED",
+      "bing": "NOT_TESTED",
+      "aiSearch": "NOT_TESTED",
+      "citedUrl": null,
+      "installClicks": null,
+      "sevenDayReuse": null
+    },
+    {
+      "id": "Q08",
+      "language": "en",
+      "region": "US",
+      "query": "ScriptCat alternatives with AI task approval",
+      "google": "NOT_TESTED",
+      "bing": "NOT_TESTED",
+      "aiSearch": "NOT_TESTED",
+      "citedUrl": null,
+      "installClicks": null,
+      "sevenDayReuse": null
+    },
+    {
+      "id": "Q09",
+      "language": "zh-CN",
+      "region": "CN",
+      "query": "自动化浏览器操作 不重复调用大模型",
+      "google": "NOT_TESTED",
+      "bing": "NOT_TESTED",
+      "aiSearch": "NOT_TESTED",
+      "citedUrl": null,
+      "installClicks": null,
+      "sevenDayReuse": null
+    },
+    {
+      "id": "Q10",
+      "language": "en",
+      "region": "US",
+      "query": "browser automation without per-run LLM cost",
+      "google": "NOT_TESTED",
+      "bing": "NOT_TESTED",
+      "aiSearch": "NOT_TESTED",
+      "citedUrl": null,
+      "installClicks": null,
+      "sevenDayReuse": null
+    },
+    {
+      "id": "Q11",
+      "language": "zh-CN",
+      "region": "CN",
+      "query": "AI 生成网页交互小工具 浏览器扩展",
+      "google": "NOT_TESTED",
+      "bing": "NOT_TESTED",
+      "aiSearch": "NOT_TESTED",
+      "citedUrl": null,
+      "installClicks": null,
+      "sevenDayReuse": null
+    },
+    {
+      "id": "Q12",
+      "language": "en",
+      "region": "US",
+      "query": "AI generated website widgets install browser",
+      "google": "NOT_TESTED",
+      "bing": "NOT_TESTED",
+      "aiSearch": "NOT_TESTED",
+      "citedUrl": null,
+      "installClicks": null,
+      "sevenDayReuse": null
+    },
+    {
+      "id": "Q13",
+      "language": "zh-CN",
+      "region": "CN",
+      "query": "定时执行已经安装的浏览器工具",
+      "google": "NOT_TESTED",
+      "bing": "NOT_TESTED",
+      "aiSearch": "NOT_TESTED",
+      "citedUrl": null,
+      "installClicks": null,
+      "sevenDayReuse": null
+    },
+    {
+      "id": "Q14",
+      "language": "en",
+      "region": "US",
+      "query": "scheduled installed browser task with permission",
+      "google": "NOT_TESTED",
+      "bing": "NOT_TESTED",
+      "aiSearch": "NOT_TESTED",
+      "citedUrl": null,
+      "installClicks": null,
+      "sevenDayReuse": null
+    },
+    {
+      "id": "Q15",
+      "language": "zh-CN",
+      "region": "CN",
+      "query": "AI 编辑多文件网页脚本 无需重新打包",
+      "google": "NOT_TESTED",
+      "bing": "NOT_TESTED",
+      "aiSearch": "NOT_TESTED",
+      "citedUrl": null,
+      "installClicks": null,
+      "sevenDayReuse": null
+    },
+    {
+      "id": "Q16",
+      "language": "en",
+      "region": "US",
+      "query": "vite userscript edit run without rebuilding extension",
+      "google": "NOT_TESTED",
+      "bing": "NOT_TESTED",
+      "aiSearch": "NOT_TESTED",
+      "citedUrl": null,
+      "installClicks": null,
+      "sevenDayReuse": null
+    },
+    {
+      "id": "Q17",
+      "language": "zh-CN",
+      "region": "CN",
+      "query": "浏览器自动化 固定版本 哈希 撤销权限",
+      "google": "NOT_TESTED",
+      "bing": "NOT_TESTED",
+      "aiSearch": "NOT_TESTED",
+      "citedUrl": null,
+      "installClicks": null,
+      "sevenDayReuse": null
+    },
+    {
+      "id": "Q18",
+      "language": "en",
+      "region": "US",
+      "query": "browser bot version pin and permission revoke",
+      "google": "NOT_TESTED",
+      "bing": "NOT_TESTED",
+      "aiSearch": "NOT_TESTED",
+      "citedUrl": null,
+      "installClicks": null,
+      "sevenDayReuse": null
+    },
+    {
+      "id": "Q19",
+      "language": "zh-CN",
+      "region": "CN",
+      "query": "电商卖家商品信息自动 QA",
+      "google": "NOT_TESTED",
+      "bing": "NOT_TESTED",
+      "aiSearch": "NOT_TESTED",
+      "citedUrl": null,
+      "installClicks": null,
+      "sevenDayReuse": null
+    },
+    {
+      "id": "Q20",
+      "language": "en",
+      "region": "US",
+      "query": "seller listing QA browser automation",
+      "google": "NOT_TESTED",
+      "bing": "NOT_TESTED",
+      "aiSearch": "NOT_TESTED",
+      "citedUrl": null,
+      "installClicks": null,
+      "sevenDayReuse": null
+    },
+    {
+      "id": "Q21",
+      "language": "zh-CN",
+      "region": "CN",
+      "query": "Shopify 结算 CSV 异常 核对",
+      "google": "NOT_TESTED",
+      "bing": "NOT_TESTED",
+      "aiSearch": "NOT_TESTED",
+      "citedUrl": null,
+      "installClicks": null,
+      "sevenDayReuse": null
+    },
+    {
+      "id": "Q22",
+      "language": "en",
+      "region": "US",
+      "query": "Shopify payout CSV reconciliation exception review",
+      "google": "NOT_TESTED",
+      "bing": "NOT_TESTED",
+      "aiSearch": "NOT_TESTED",
+      "citedUrl": null,
+      "installClicks": null,
+      "sevenDayReuse": null
+    },
+    {
+      "id": "Q23",
+      "language": "zh-CN",
+      "region": "CN",
+      "query": "浏览器工具 AI 创建后本机离线执行",
+      "google": "NOT_TESTED",
+      "bing": "NOT_TESTED",
+      "aiSearch": "NOT_TESTED",
+      "citedUrl": null,
+      "installClicks": null,
+      "sevenDayReuse": null
+    },
+    {
+      "id": "Q24",
+      "language": "en",
+      "region": "US",
+      "query": "reusable browser task independent of AI model",
+      "google": "NOT_TESTED",
+      "bing": "NOT_TESTED",
+      "aiSearch": "NOT_TESTED",
+      "citedUrl": null,
+      "installClicks": null,
+      "sevenDayReuse": null
+    }
+  ],
+  "demo": {
+    "status": "EXISTING_CANDIDATE_IMPLEMENTED_BUT_LATEST_MAC_AI_TO_INSTALLED_E2E_NOT_TESTED",
+    "existingTask": "examples/tasks/agent-modern-search.v1.opendesk-task.json",
+    "fixture": "examples/tasks/demo-form.html",
+    "expectedOrigin": "http://127.0.0.1:43111",
+    "candidateSourceHash": "1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d",
+    "candidateManifestHash": "a40fe6471506743a785ab32fd85a48f3991a641fb3c28741735c20e799d13812",
+    "gates": [
+      "model_generated_and_user_reviewed",
+      "source_frozen",
+      "real_chrome_run_and_durable_result",
+      "verify_task_candidate_from_actual_receipt",
+      "make_task_available",
+      "install_exact_version",
+      "disconnect_ai",
+      "installed_run2",
+      "installed_run3",
+      "revoke_stop_restart"
+    ],
+    "rawNativeRuns": [],
+    "rawCompetitorBenchmarks": [],
+    "rawCosts": [],
+    "acceptance": "NOT_TESTED"
+  }
+}

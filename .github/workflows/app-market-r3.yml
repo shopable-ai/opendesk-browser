@@ -17,6 +17,15 @@ on:
       - 'src/ui/tool-shell.js'
       - 'src/ui/tool-shell.css'
       - 'src/sidebar-tools/**'
+      # R5 builds package ALL fixed extension HTML/CSS/JS. Keep the native
+      # Workspace shared output closure in the market CI trigger even though
+      # its UI does not participate in website/installer execution.
+      - 'src/native-agent/workspace.html'
+      - 'src/native-agent/workspace*.js'
+      - 'src/native-agent/workspace*.css'
+      - 'src/native-agent/settings.*'
+      - 'src/ui/design-*.css'
+      - 'scripts/build-workspace-style.mjs'
       - 'scripts/prepare-public.mjs'
       - 'scripts/verify-package.mjs'
       - 'scripts/build-contract.mjs'
@@ -29,6 +38,11 @@ on:
       - 'package.json'
       - 'tests/environment/app-market-r3.test.mjs'
       - 'tests/environment/app-market-r5.test.mjs'
+      # Shared Developer/Standard package closure and capacity regression tests.
+      - 'tests/environment/browser-editions-r245.test.mjs'
+      - 'tests/environment/fixed-entries-audit.test.mjs'
+      - 'src/libs/page-frameworks/contract.js'
+      - 'scripts/audit-fixed-entries.mjs'
       - 'tests/environment/market-site-client-r5.test.mjs'
       - 'tests/environment/market-site-media-r5.test.mjs'
       - 'tests/environment/market-cutpoint-observation-r5.test.mjs'
