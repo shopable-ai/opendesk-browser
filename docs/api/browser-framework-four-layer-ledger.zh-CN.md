@@ -1,4 +1,4 @@
-> **R9 当前四层合同（2026-10-13）**：本页及下方旧表保留 R6/R8 原始审计快照，原 35/26/7/2 不再是当前接口分母。R9 正式注册表保留 **28 项正式已接线操作**（原 9 项占位已删除，旧记录位于 JSON 的 `legacyR8RemovedFormal`）；Cookie 可信 Host 与安装工具公开 SDK 的能力继续分开。当前原生 Chrome 验收仍 NOT_TESTED；正式机读状态请以当前 `browser-contract.js` + `browser-sdk-acceptance.json` + 四层 JSON `formal` 为准。
+> **R9 当前四层合同（2026-10-13）**：本页及下方旧表保留 R6/R8 原始审计快照，原 35/26/7/2 不再是当前接口分母。R9 正式注册表保留 **29 项正式已接线操作**（原 9 项占位已删除，旧记录位于 JSON 的 `legacyR8RemovedFormal`）；Cookie 可信 Host 与安装工具公开 SDK 的能力继续分开。当前原生 Chrome 验收仍 NOT_TESTED；正式机读状态请以当前 `browser-contract.js` + `browser-sdk-acceptance.json` + 四层 JSON `formal` 为准。
 
 # 浏览器框架四层总账（R6，2026-10-13）
 
