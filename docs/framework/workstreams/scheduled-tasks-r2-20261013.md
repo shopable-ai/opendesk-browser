@@ -308,3 +308,10 @@
 - 最新历史 CI 两个 macOS Job（Zoom 38433892190 / restart 38433152806）仍queued，Linux success；最新main的对应任务也queued。不存在可替代本机证据的macOS PASS。
 - 当前总状态：IN_PROGRESS；最终身份链未闭合，尚不具备95+产品交付条件。十个维度（视觉、排版、层级、效率、表单、完整性、响应式、可访问性、安全、Chrome原生交付）均NOT_SCORED；详见本轮 `closure-status.json`。
 - Git串行写入范围：仅本轮工作记录、wxt printer配置、Native fixture驱动和Shared Sidebar异步等待测试。提交前核对main、暂存为空、无活动git/index.lock；不纳入其他人的源码或依赖未提交R30 class的两项静态测试。
+
+### R2.9 本轮提交及 clean-main 构建确认
+
+- 本轮4文件提交 `22abce369312e385f35dc240bd93b8635d125464` 已非强制推送main；只包含工作记录、WXT printer、Native fixture复用/诊断、Shared Sidebar异步等待测试。其他暂存内容没有混入。
+- [同SHA Shared Sidebar CI 38458199861](https://github.com/shopable-ai/opendesk-browser/actions/runs/38458199861)，job115506257027 **SUCCESS**；R14隔离与全部五组Sidebar回归、离线工具打包、React/Vue固定编译、WXT production/development及Verify均SUCCESS。
+- clean worker生产包 `b5020c3343c2ef8404a285601e7f11cf6c1564267ca5e63f7b427a4c0e26d77f`，tool-shell=494692 bytes，余量29596；开发包 `45db176ed4c7db72df1eac882a3725485f365153bd32f8784fd2cba7978553db`，tool-shell=494932 bytes，余量29356。两包在同一512KiB限制下超过16KiB余量目标；证据 `ci-clean-build-proof.json`。不得将这两个CI hash冒充本机盘上或实际运行中的扩展hash。
+- Mac最终身份链、实体320/360/420、Side Panel原生Zoom、完整生命周期矩阵及URL文案修复仍未闭合；现有dev PID25173保持运行。上述CI成功不改变十维NOT_SCORED和IN_PROGRESS结论。
