@@ -6,7 +6,7 @@
 
 **最重要的选择**：OpenDesk 应当争夺“AI 协助制作 + 用户审阅源码/网站权限 + 固定版本真实安装 + 模型断开后的确定性多次 Run + 可检查的结果与撤权”的**完整使用体验**，而非再次投入“让用户手写 React/Vue 更方便”。
 
-但[Google Chrome Skills](https://blog.google/products-and-platforms/products/chrome/skills-in-chrome/) 早在 2026-04-14 已保存/复用 AI 提示词，[Claude in Chrome 2026-07-24 发布说明](https://support.claude.com/en/articles/12138966-release-notes) 已提供录制可重复工作流；[UiPath Delegate](https://docs.uipath.com/delegate/standalone/latest/release-notes/august-2026)、Axiom、Power Automate 与 Apify 已覆盖很多相同用户价值。**OpenDesk 不能只靠“AI+可复用”声称历史第一**，必须以合法使用条件下的完整成本、可审阅性、部署摩擦和真实成功率说服用户。
+但[Google Chrome Skills](https://blog.google/products-and-platforms/products/chrome/skills-in-chrome/) 早在 2026-04-14 已保存/复用 AI 提示词，[Claude in Chrome 2025-12-18 发布说明](https://support.claude.com/en/articles/12138966-release-notes) 已提供录制可重复工作流；[UiPath Delegate](https://docs.uipath.com/delegate/standalone/latest/release-notes/august-2026)、Axiom、Power Automate 与 Apify 已覆盖很多相同用户价值。**OpenDesk 不能只靠“AI+可复用”声称历史第一**，必须以合法使用条件下的完整成本、可审阅性、部署摩擦和真实成功率说服用户。
 
 本轮主决策：
 - **横向 P0**：GF-007 + GF-004 同一产品闭环，一次 AI 创建→安装→关闭 AI→两次独立运行。GF-004 是信任基础不是第二套运行器。
@@ -62,7 +62,7 @@
 | 真实替代类别 | 公开官方事实 | 对 OpenDesk 的挑战 |
 | --- | --- | --- |
 | 模型重播 | [Gemini in Chrome Skills（2026-04-14）](https://blog.google/products-and-platforms/products/chrome/skills-in-chrome/) | 仅保存提示词也可一键重跑；下一步要实测每次模型调用、人工审批、源代码是否固定 |
-| AI 录制/再运行 | [Claude in Chrome（2026-07-24 Beta）](https://support.claude.com/en/articles/12138966-release-notes) | 录制后复用已有官方宣称；需核查生成的是录制步骤还是固定源码及回执 |
+| AI 录制/再运行 | [Claude in Chrome（2025-12-18 官方 Beta 说明）](https://support.claude.com/en/articles/12138966-release-notes) | 录制后复用已有官方宣称；需核查生成的是录制步骤还是固定源码及回执 |
 | AI 创建可导入自动化 | [Axiom Claude Skill](https://axiom.ai/automate/chrome/) | 用户能描述→生成→导入浏览器→多次运行；最强直接实际使用流程对手 |
 | 企业有权复用 | [UiPath Delegate（2026-08-25 Public Preview）](https://docs.uipath.com/delegate/standalone/latest/release-notes/august-2026) | Routines 可复用/调度，权限审核，覆盖桌面与浏览器；不可忽略企业最佳替代 |
 | 代码型确定性工具 | [Playwright + Codex/Claude Code + Vite/脚本管理器](https://github.com/microsoft/playwright/releases/tag/v1.64.0) | 可以生成真实代码并固定版本，不可只比较独立扩展 |
@@ -72,7 +72,9 @@
 | 业务 AI Agent | [Zapier Agents / AI by Zapier](https://help.zapier.com/hc/en-us/articles/45394909914381-Set-up-your-agent-s-trigger) | 按需/定时/应用事件触发，不必在 Chrome 内作为唯一对手 |
 | 狭窄但极强的模板 | [Text Blaze](https://blaze.today/guides/forms/) | 在客服/填写/表单场景可能比通用运行器更快、更便宜 |
 
-发布/日期的严肃边界：Gemini Chrome Skills 的 2026-04-14 是该能力官方公开说明；Claude 2026-07-24 是录制工作流的公开 Beta 发行说明；GitHub Playwright release 等是组件发行，不代表整个 SaaS/Chrome Store 时间。竞品稳定版、商店地区、访问资格和重跑是否调用模型要逐项补测，未知不能被当作对手缺失。
+**本轮历史日期纠错**：此前误把 Claude Opus 5 于 2026-07-24 的发行日当作 Claude in Chrome 录制工作流日期，现经官方同一 release notes 页面纠正为 2025-12-18，且其计划任务/批准计划的官方说明更早见于 2025-11-24。此日期是当前核实到的公开功能文档，并不证明历史首次上线日。
+
+发布/日期的严肃边界：Gemini Chrome Skills 的 2026-04-14 是该能力官方公开说明；Claude 在 2025-12-18 的官方 Beta 说明中已有录制与重复工作流，2025-11-24 更早说明了计划任务与按批准计划执行；GitHub Playwright release 等是组件发行，不代表整个 SaaS/Chrome Store 时间。竞品稳定版、商店地区、访问资格和重跑是否调用模型要逐项补测，未知不能被当作对手缺失。
 
 ## 12 类行业×84 个已有 OPP：不要因为新研究再造第二账本
 
