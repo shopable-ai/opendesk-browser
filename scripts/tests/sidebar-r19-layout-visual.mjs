@@ -313,11 +313,11 @@ function measureScene(scene){
   metrics.actionGroups=groups.filter(e=>e.getClientRects().length).map(e=>{
     const r=e.getBoundingClientRect(),style=getComputedStyle(e);
     const buttons=[...e.children].filter(b=>b.tagName==='BUTTON'&&b.getClientRects().length).map(b=>{
-      const q=b.getBoundingClientRect();return {id:b.id,text:b.textContent.trim(),top:q.top,center:q.top+q.height/2,right:q.right,width:q.width,height:q.height};
+      const q=b.getBoundingClientRect();return {id:b.id,text:b.textContent.trim(),top:q.top,center:q.top+q.height/2,left:q.left,right:q.right,width:q.width,height:q.height};
     });
     const rows=[];
-    for(const b of buttons){let row=rows.find(row=>Math.abs(row.center-b.center)<1);if(!row){row={center:b.center,right:b.right};rows.push(row);}row.right=Math.max(row.right,b.right);}
-    return {className:e.className,gap:parseFloat(style.columnGap),right:r.right-parseFloat(style.paddingRight)-parseFloat(style.borderRightWidth),rows,buttons};
+    for(const b of buttons){let row=rows.find(row=>Math.abs(row.center-b.center)<1);if(!row){row={center:b.center,left:b.left,right:b.right};rows.push(row);}row.left=Math.min(row.left,b.left);row.right=Math.max(row.right,b.right);}
+    return {className:e.className,gap:parseFloat(style.columnGap),left:r.left+parseFloat(style.paddingLeft)+parseFloat(style.borderLeftWidth),right:r.right-parseFloat(style.paddingRight)-parseFloat(style.borderRightWidth),rows,buttons};
   });
   if(scene.tab==='tasks')metrics.corners.taskCard=radius('.task-card-group');
   if(scene.tab==='local-discover'){
@@ -379,7 +379,11 @@ function validate(scene,width,m){
   if(m.dockOverlap)throw Error('Footer obscures content '+scene.name+' '+width+'px');
   for(const group of m.actionGroups){
     if(group.buttons.some(b=>b.height<33.5))throw Error('Undersized action '+scene.name+' '+width+'px '+JSON.stringify(group));
-    if(group.rows.some(row=>Math.abs(row.right-group.right)>1))throw Error('Action row is not trailing aligned '+scene.name+' '+width+'px '+JSON.stringify(group));
+    // The schedule creation footer intentionally starts at the leading edge.
+    // All other action groups must keep their existing trailing alignment contract.
+    const leading=scene.name==='schedule-form'&&group.buttons.some(button=>button.id==='schedule-save');
+    if(group.rows.some(row=>Math.abs(leading?row.left-group.left:row.right-group.right)>1))
+      throw Error('Action row is not '+(leading?'leading':'trailing')+' aligned '+scene.name+' '+width+'px '+JSON.stringify(group));
     if(group.buttons.length>1&&group.gap!==8)throw Error('Action spacing is not 8px '+scene.name+' '+JSON.stringify(group));
   }
 

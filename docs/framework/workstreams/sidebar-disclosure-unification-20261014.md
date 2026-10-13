@@ -45,3 +45,7 @@ R19 [38434969667](https://github.com/shopable-ai/opendesk-browser/actions/runs/3
 ## 300px 展开场景真实 CSS 根因与修复
 
 诊断版 Chrome R19 [38435389431](https://github.com/shopable-ai/opendesk-browser/actions/runs/38435389431) 明确报告 `develop-details 300px` 中五个直接子控件溢出：`#script-params`、`#page-program-list`、`#script-id`、`#script-owned-url`、`#script-document`，每项边界均为 `left=22,right=302,width=280`（面板右边界约 291）。**根因不是需要新增 Tailwind，而是 `.od-disclosure>:not(summary)` 的左右 12px margin 与控件自身 `width:100%` 相加，导致真实溢出**。在框架公共 CSS 的 disclosure 内容规则中增加 `max-width:calc(100% - var(--space-3) - var(--space-3))`，嵌套 `--flat` 无侧边 inset 时单独恢复 `max-width:100%`。新增双重 Node 合同和保留真实 Chrome 300px 展开溢出阻断。未重新实测的新候选仍标记 `NOT_TESTED`。
+
+## 定时计划表单操作区的有意左对齐
+
+`f767d52` R19 [38435698788](https://github.com/shopable-ai/opendesk-browser/actions/runs/38435698788) 证实 300px 和 320px 的所有场景均通过，包括 `develop-details` 的真实水平溢出检查。继续至 360px `schedule-form` 时，旧静态脚本把表单底部 **“检查并确认 / 返回列表”** 的明确左对齐错误当作必须右对齐。代码 `.schedule-form>.schedule-actions{justify-content:flex-start}` 属于计划表单 R2.7 已确定的布局。验收脚本现在只为存在 `schedule-save` 的该表单操作组验证 **左侧内边缘**，其余操作组仍严格验证右侧内边缘；绝不放松按钮高度、8px 间距、真实宽度和溢出规则。
