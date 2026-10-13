@@ -1589,7 +1589,7 @@
       "availability": "MIN_VERSION_UNVERIFIED",
       "mappingKind": "SCOPED",
       "opendeskOperation": [
-        "browser.tabs.open"
+        "browser.tabs.create"
       ],
       "hostService": "src/platform/chrome/context-menus.js",
       "exposure": "SEE_APPROVED_SDK_CONTRACT",
@@ -1770,10 +1770,10 @@
       "availability": "MIN_VERSION_UNVERIFIED",
       "mappingKind": null,
       "opendeskOperation": [
-        "browser.tabs.closeOwned",
-        "browser.tabs.focus",
+        "browser.tabs.activateOwned",
         "browser.tabs.getOwned",
-        "browser.tabs.listOwned"
+        "browser.tabs.listOwned",
+        "browser.tabs.removeOwned"
       ],
       "hostService": null,
       "exposure": "SEE_APPROVED_SDK_CONTRACT",
@@ -2609,7 +2609,7 @@
       "availability": "MIN_VERSION_UNVERIFIED",
       "mappingKind": "SCOPED",
       "opendeskOperation": [
-        "browser.tabs.closeOwned"
+        "browser.tabs.removeOwned"
       ],
       "hostService": "src/platform/chrome/context-menus.js",
       "exposure": "SEE_APPROVED_SDK_CONTRACT",
@@ -2876,7 +2876,7 @@
       "availability": "MIN_VERSION_UNVERIFIED",
       "mappingKind": "SCOPED",
       "opendeskOperation": [
-        "browser.tabs.focus"
+        "browser.tabs.activateOwned"
       ],
       "hostService": "src/platform/chrome/context-menus.js",
       "exposure": "SEE_APPROVED_SDK_CONTRACT",
@@ -2938,9 +2938,9 @@
       "mappingKind": null,
       "opendeskOperation": [
         "browser.launch.consume",
-        "browser.tabs.closeOwned",
         "browser.tabs.getOwned",
-        "browser.tabs.listOwned"
+        "browser.tabs.listOwned",
+        "browser.tabs.removeOwned"
       ],
       "hostService": null,
       "exposure": "SEE_APPROVED_SDK_CONTRACT",
@@ -3559,7 +3559,7 @@
       "availability": "MIN_VERSION_UNVERIFIED",
       "mappingKind": "SCOPED",
       "opendeskOperation": [
-        "browser.tabs.focus"
+        "browser.tabs.activateOwned"
       ],
       "hostService": "src/platform/chrome/context-menus.js",
       "exposure": "SEE_APPROVED_SDK_CONTRACT",
