@@ -496,3 +496,67 @@ test('R2 revoked Chrome site access is NEEDS_ATTENTION before target browsing or
     assert.match(statuses.at(-1),/权限不足/);
   }finally{scheduled.dispose();}
 });
+
+test('R2.3 terminal needs-attention and legacy bound Fire never regain admission',async()=>{
+  const f=await fixture(),plan=await f.repo.save(f.input);
+  f.setTime(plan.nextDueAt+1000);
+  await f.repo.reconcile();
+  const fire=(await f.repo.ready())[0];
+  assert.equal((await f.repo.recordWait(fire.fireId,'NEEDS_ATTENTION')).status,'NEEDS_ATTENTION');
+  assert.equal((await f.repo.recordWait(fire.fireId,'WAITING_TARGET')).status,'NEEDS_ATTENTION');
+  assert.equal((await f.repo.ready()).length,0);
+
+  const g=await fixture(),other=await g.repo.save(g.input);
+  g.setTime(other.nextDueAt+1000);
+  await g.repo.reconcile();
+  const {definition,...pending}=(await g.repo.ready())[0];
+  g.db.put('frameworkKV',fireKey(pending.fireId),{...pending,
+    runId:'original-admitted-run',resultId:'original-result'});
+  await g.repo.reconcile();
+  assert.equal((await g.repo.ready()).length,0);
+  const history=await g.repo.history({scheduleId:other.scheduleId,offset:0,limit:20});
+  assert.equal(history.history[0].status,'UNKNOWN','inconsistent admission is quarantined');
+  assert.equal(history.history[0].runId,'original-admitted-run','original audit identity survives');
+  const request={source:{kind:'saved',scriptId:taskScriptId('demo.form','1.0.0'),
+    contentHash:g.input.sourceHash},paramsDecoded:{},target:{mode:'borrowed',
+    expectedUrl:g.input.targetUrl},requestId:pending.fireId,
+    expectedTaskGeneration:1,expectedTaskInstallationId:g.input.installationId};
+  await assert.rejects(()=>g.db.transaction(['frameworkKV'],'readonly',tx=>
+    g.repo.admit(tx,pending.fireId,request,'https://example.com',g.getTime())),/consumed|expired/);
+});
+
+test('R2.3 ambiguous start reply is UNKNOWN, never a repeatable waiting target',async()=>{
+  const f=await fixture(),plan=await f.repo.save({...f.input,openIfMissing:true});
+  f.setTime(plan.nextDueAt+1000);
+  await f.repo.reconcile();
+  const fireId=(await f.repo.ready())[0].fireId;
+  let starts=0;
+  const statuses=[];
+  const client={
+    ready:new Promise(()=>{}),
+    request:async(name,body)=>{
+      if(name==='listDueSchedules')return {fires:await f.repo.ready()};
+      if(name==='resolveInstalledTask')return {taskId:plan.taskId,version:plan.version,
+        manifestHash:plan.manifestHash,contentHash:plan.sourceHash,
+        installationId:plan.installationId,generation:plan.taskGeneration,
+        revision:1,scriptId:taskScriptId(plan.taskId,plan.version)};
+      if(name==='setScheduleFireState')return f.repo.recordWait(body.fireId,body.status);
+      throw Error('Unexpected '+name);
+    }
+  };
+  const runner=createScheduledTaskHost({client,
+    host:{executionPending:false,start:async request=>{
+      assert.equal(request.scheduledFireId,fireId);starts++;
+      throw Object.assign(new Error('Host disconnected after dispatch'),{code:'E_TRANSPORT'});
+    }},
+    api:{tabs:{query:async()=>[]},permissions:{contains:async()=>true}},
+    pollMs:600000,onStatus:value=>statuses.push(value)});
+  try{
+    await runner.poll();
+    assert.equal((await f.repo.history({scheduleId:plan.scheduleId,offset:0,limit:20})).history[0].status,'UNKNOWN');
+    await runner.poll();
+    assert.equal(starts,1,'reconnecting Host must not mint a replacement Run');
+    assert.match(statuses.at(-1),/禁止自动重试/);
+    assert.equal(statuses.some(value=>value.includes('等待目标或运行环境')),false);
+  }finally{runner.dispose();}
+});

@@ -6,6 +6,9 @@ import {nextScheduleAt,recentMissedAt} from './schedule-time.js';
 export function createScheduleRepository({storage,clock,namespace,session}){
   const now=()=>clock.now();
   const pendingStates=new Set(['READY','WAITING_HOST','WAITING_SLOT','WAITING_TARGET']);
+  // An old Fire can retain READY after an interrupted status write despite
+  // carrying its original RunId/ResultId. No bound identity may be replayed.
+  const canRequeue=fire=>pendingStates.has(fire?.status)&&fire.runId==null&&fire.resultId==null;
   const pendingPrefix='schedule:pending:v1:';
   const pendingIndexKey='schedule:pending-index:v1:'+namespace;
   const pendingKey=fireId=>pendingPrefix+fireKey(fireId).slice(SCHEDULE_FIRE_PREFIX.length);
@@ -34,9 +37,25 @@ export function createScheduleRepository({storage,clock,namespace,session}){
     // One-time upgrade of existing R1/R2 Fire rows into a derived cursor
     // index. This stays in the original frameworkKV transaction/schema.
     // ADMITTED, UNKNOWN and audit records are never scheduled for replay.
-    for(const fire of await fires(tx))
-      if(pendingStates.has(fire.status))
+    // Keep first-time migration memory bounded even on large legacy profiles.
+    // The marker and all derived pointers commit in one original IDB transaction.
+    const migrate=async fire=>{
+      if(fire?.tag!=='schedule-fire-v1'||fire.namespace!==namespace)return;
+      if(canRequeue(fire))
         await tx.put('frameworkKV',pendingRow(fire.fireId),pendingKey(fire.fireId));
+      else if(pendingStates.has(fire.status))
+        // The already-bound original identity wins over stale READY state.
+        await tx.put('frameworkKV',{...fire,status:'UNKNOWN',updatedAt:now()},fireKey(fire.fireId));
+    };
+    if(typeof tx.scan==='function'){
+      let offset=0;
+      for(;;){
+        const batch=await tx.scan('frameworkKV',{prefix:SCHEDULE_FIRE_PREFIX,offset,limit:256});
+        for(const fire of batch)await migrate(fire);
+        offset+=batch.length;
+        if(batch.length<256)break;
+      }
+    }else for(const fire of await fires(tx))await migrate(fire);
     await tx.put('frameworkKV',{tag:'schedule-pending-index-v1',namespace,
       builtAt:now()},pendingIndexKey);
   }
@@ -169,7 +188,11 @@ export function createScheduleRepository({storage,clock,namespace,session}){
       for(const ref of await pendingRefs(tx)){
         const fire=await tx.get('frameworkKV',fireKey(ref.fireId));
         if(fire?.tag!=='schedule-fire-v1'||fire.namespace!==namespace||
-          !pendingStates.has(fire.status)){
+          !canRequeue(fire)){
+          // Quarantine inconsistent legacy rows without replacing Run/Result.
+          if(fire?.tag==='schedule-fire-v1'&&fire.namespace===namespace&&
+            pendingStates.has(fire.status))
+            await tx.put('frameworkKV',{...fire,status:'UNKNOWN',updatedAt:time},fireKey(ref.fireId));
           await tx.delete('frameworkKV',pendingKey(ref.fireId));
           continue;
         }
@@ -221,7 +244,7 @@ export function createScheduleRepository({storage,clock,namespace,session}){
         const fire=await tx.get('frameworkKV',fireKey(ref.fireId));
         const def=fire&&map.get(fire.scheduleId);
         if(fire?.tag==='schedule-fire-v1'&&fire.namespace===namespace&&
-          pendingStates.has(fire.status)&&fire.deadlineAt>=now()&&
+          canRequeue(fire)&&fire.deadlineAt>=now()&&
           def?.generation===fire.generation&&!def.paused)
           rows.push({...fire,definition:structuredClone(def)});
       }
@@ -233,7 +256,8 @@ export function createScheduleRepository({storage,clock,namespace,session}){
     return storage.transaction(['frameworkKV'],'readwrite',async tx=>{
       const key=fireKey(fireId),fire=await tx.get('frameworkKV',key);
       invariant(fire?.tag==='schedule-fire-v1'&&fire.namespace===namespace,'E_SCHEMA','Unknown occurrence');
-      if(fire.status==='ADMITTED'||fire.status==='UNKNOWN'||fire.status==='MISSED'||fire.status==='CANCELLED')return fire;
+      // Even NEEDS_ATTENTION is terminal for this FireId; stale Host callbacks cannot undo it.
+      if(!canRequeue(fire))return fire;
       const next={...fire,status,updatedAt:now()};
       await tx.put('frameworkKV',next,key);
       if(!pendingStates.has(status))await tx.delete('frameworkKV',pendingKey(fireId));
@@ -243,7 +267,7 @@ export function createScheduleRepository({storage,clock,namespace,session}){
   async function admit(tx,fireId,request,origin,time){
     const key=fireKey(fireId),fire=await tx.get('frameworkKV',key);
     invariant(fire?.tag==='schedule-fire-v1'&&fire.namespace===namespace&&
-      ['READY','WAITING_HOST','WAITING_SLOT','WAITING_TARGET'].includes(fire.status)&&fire.deadlineAt>=time,
+      canRequeue(fire)&&fire.deadlineAt>=time,
       'E_PERMISSION','Scheduled occurrence was consumed or expired');
     const definition=await tx.get('frameworkKV',scheduleKey(fire.scheduleId));
     invariant(definition?.tag==='schedule-definition-v1'&&!definition.deleted&&!definition.paused&&

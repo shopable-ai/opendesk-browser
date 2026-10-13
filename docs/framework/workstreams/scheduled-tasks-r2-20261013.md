@@ -118,3 +118,11 @@
 - **尚未正式关闭：** 大规模历史下的真实 IDB 延时与安全保留/清理，Worker/Host/网页副作用不确定时的原生故障注入全矩阵、同名新版 Task 哈希变化及多产品共用槽回归、完整可访问性与高倍率视觉、用户 Mac 独立 Profile。
 - 本次核查 `main` 为 `bd3c476ed09e6ddca7b5b78fffd8e50fd63a99ad`；它比上述定时任务候选更新，最新差异未涉及 scheduled tasks 主要文件，但**不能把旧候选原生 PASS 无条件写成新 HEAD 的整体 Final PASS**。
 - 下一轮执行提示词：[`goal-scheduled-tasks-r2.3-final-20261013.zh-CN.md`](../prompts/goal-scheduled-tasks-r2.3-final-20261013.zh-CN.md)。
+
+### R2.3 本轮源码加固与证据边界（2026-10-13）
+
+- `schedule-repository.js` 统一在 `ready/admit/reconcile/recordWait` 排除已含 RunId 或 ResultId 的待执行 Fire；首次索引迁移及持续对账发现遗留的 `READY` + 已绑定身份时保留原身份并标记 `UNKNOWN`，禁止重新准入。`NEEDS_ATTENTION` 等终态不能被旧回调回退。
+- `scheduled-task-host.js` 对已经发起 `host.start()` 但没有获得可信 RunId 的非 `E_OWNER` 错误执行保守 `E_EFFECT_UNKNOWN` 路径；Authority 若已绑定原 RunId 则不会被覆盖。没有生成第二个 Run 或伪造 Result。
+- 第一次 pending index 迁移将历史扫描改为单页最多 256 条，避免一次在 JS 内物化所有历史；所有改动继续在原 `frameworkKV` 事务与 KV 索引内，且仍没有自动删除审计历史。**未取得 1000/10000/100000 真实 IndexedDB P50/P95 或迁移事务时延证据**，性能与保留期限均未正式关闭。
+- 新增组件回归用例覆盖终态不可回退、遗留 Run 身份防重放、Host 发起后不确定应答。需核对对应固定提交的 GitHub CI 后才可升级到 `COMPONENT_TESTED`。
+- 本轮**未**取得隔离 Chrome 原生故障注入、200% 真实缩放与用户 Mac Profile、Cloud Control/Time Review 共享槽矩阵的新证据；这些仍 `NOT_TESTED`，十项专家验收 `NOT_SCORED`，R2 暂不可标记 Final。

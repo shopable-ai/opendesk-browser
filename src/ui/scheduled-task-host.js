@@ -50,12 +50,26 @@ export function createScheduledTaskHost({client,host,api=globalThis.chrome,clock
     status('正在启动已授权的定时任务');
     // Authority verifies the unforgeable persisted FireId in the SAME IDB
     // transaction that pins the revision and claims runs/@slot.
-    const started=await host.start({source:{kind:'saved',scriptId:resolved.scriptId,
-      revision:resolved.revision,contentHash:resolved.contentHash},
-      params:definition.params,target,deadlineAt:Math.min(fire.deadlineAt,clock()+600000),
-      requestId:fire.fireId,scheduledFireId:fire.fireId,
-      expectedTaskGeneration:definition.taskGeneration,
-      expectedTaskInstallationId:definition.installationId});
+    let started;
+    try{
+      started=await host.start({source:{kind:'saved',scriptId:resolved.scriptId,
+        revision:resolved.revision,contentHash:resolved.contentHash},
+        params:definition.params,target,deadlineAt:Math.min(fire.deadlineAt,clock()+600000),
+        requestId:fire.fireId,scheduledFireId:fire.fireId,
+        expectedTaskGeneration:definition.taskGeneration,
+        expectedTaskInstallationId:definition.installationId});
+      if(typeof started?.runId!=='string'||!started.runId)
+        throw new Error('Original Controller RunId was not acknowledged');
+    }catch(error){
+      if(error?.code==='E_OWNER')throw error; // local/shared slot was denied
+      // A disconnected Host can conceal durable admission or web page effects.
+      // Treat any other error after calling start as ambiguous; the repository
+      // alone decides whether the original Fire was already ADMITTED.
+      const uncertain=new Error('Controller 准入回执不确定，必须对账原 Run/Result');
+      uncertain.code='E_EFFECT_UNKNOWN';
+      uncertain.cause=error;
+      throw uncertain;
+    }
     onRun(started.runId);
     status('定时任务运行中：'+started.runId);
     onChange();
