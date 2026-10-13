@@ -131,7 +131,14 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
       E_CLOUD_REVOKED:'云控授权已停止，任务不能继续执行',
       E_PERMISSION:'网站或本地 Task 授权已失效，请重新审核',
       E_PROVIDER:'提供者连接异常，请核对 HTTPS 地址和网络'};
-    brief.textContent='需要处理';status.textContent=(help[code]||'操作未完成，请检查连接与授权')+'（'+code+'）';
+    // Only render trusted, fixed local validation messages verbatim. Remote
+    // Provider errors remain projected to known codes, never raw page details.
+    const local=new Set(['请先核对所选任务的固定版本、网站范围与安装代际',
+      '请选择 1–32 项已验证且启用的 Controller Task',
+      '请确认允许所选任务的结果回传范围']);
+    const safe=local.has(e?.message)?e.message:null;
+    brief.textContent='需要处理';
+    status.textContent=safe||(help[code]||'操作未完成，请检查连接与授权')+'（'+code+'）';
     myState.textContent='需要处理 · '+code;overview.textContent=status.textContent;};
   // Refresh is deliberately read-only. Cloud claim/dispatch belongs only to poll().
   async function refresh(){
