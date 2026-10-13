@@ -1,8 +1,30 @@
 // Build-only evidence. Never emitted into dist or imported by extension code.
 import {readFile,writeFile,readdir,mkdir} from 'node:fs/promises';
+import {readFileSync,realpathSync} from 'node:fs';
 import {createHash,randomUUID} from 'node:crypto';
 import {resolve,relative,sep,isAbsolute} from 'node:path';
 import {BUILTIN_CATALOG} from '../src/libs/catalog.js';
+
+// Exactly two audited first-party Time Review UI files are compiled into the
+// existing trusted sidebar-tool-host entry. Never allow arbitrary examples,
+// installed packages or remote/user sources. Each source is pinned to its
+// reviewed Git blob; edits require an explicit build-boundary review. The
+// separate runtime admission still validates the exact official release.
+const compiledTimeReviewInputs=Object.freeze({
+  'examples/sidebar-tools/time-review/src/index.html':'fcaec7808b606c8f4484e20bd4c82a7d66e66fa5',
+  'examples/sidebar-tools/time-review/src/main.js':'c0d8dc0ce6d42a0ff08ce8012dec3e66a2840ed0'
+});
+function reviewedCompiledTimeReview(target,path,root){
+  if(target!=='ui/sidebar-tool-host.js'||!Object.hasOwn(compiledTimeReviewInputs,path))return null;
+  const file=resolve(root,path);
+  if(realpathSync(file)!==file)
+    throw Error('Trusted Time Review source must not be a symlink: '+path);
+  const bytes=readFileSync(file);
+  const hash=createHash('sha1').update('blob '+bytes.length+'\\0').update(bytes).digest('hex');
+  if(hash!==compiledTimeReviewInputs[path])
+    throw Error('Trusted Time Review source changed; review and re-pin before fixed build: '+path);
+  return hash;
+}
 
 const npmOwners=new Map(Object.values(BUILTIN_CATALOG.libraries).filter(row=>row.origin==='npm')
   .map(row=>[row.npm,row.output]));
@@ -34,9 +56,11 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
   const modules=Object.entries(chunk.modules).map(([id,info])=>{
     const path=modulePath(id,root);
     assertLibraryModuleBoundary(chunk.fileName,path);
-    if(/^(?:docs\/contracts\/source-snapshots\/|examples\/|src\/vendor\/)/.test(path))
+    const reviewedSource=reviewedCompiledTimeReview(chunk.fileName,path,root);
+    if(!reviewedSource&&/^(?:docs\/contracts\/source-snapshots\/|examples\/|src\/vendor\/)/.test(path))
       throw Error('Historical/user/vendor code cannot enter a privileged fixed bundle: '+path);
-    const row={path,renderedLength:info.renderedLength,originalLength:info.originalLength};
+    const row={path,renderedLength:info.renderedLength,originalLength:info.originalLength,
+      ...(reviewedSource?{reviewedFirstPartyBlob:reviewedSource}:{})};
     if(path.startsWith('node_modules/')){
       const parts=path.split('/'),index=parts.lastIndexOf('node_modules');
       const count=parts[index+1].startsWith('@')?3:2;
