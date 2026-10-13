@@ -111,6 +111,30 @@ test('removal, tool disable, permission revoke and uninstall reconcile only rese
   f.rules.push(other);await f.focus.tick({boot:true});
   assert.deepEqual(f.rules,[other],'focus cleanup never deletes foreign extension rules');
 });
+test('unrelated Chrome site revocation never turns off Stay Focus or Time Review',async()=>{
+  const f=fixture();
+  await f.focus.dispatch(await f.msg('focus.site.put',{site:mkSite('example.com','always')}),f.sender);
+  await f.focus.dispatch(await f.msg('focus.site.put',{site:mkSite('reddit.com','always')}),f.sender);
+  await f.focus.dispatch(await f.msg('focus.enable'),f.sender);
+  assert.equal(f.rules.length,2,'both authorized domains have Chrome rules');
+  await f.focus.tick({removedOrigins:['https://unrelated.test/*']});
+  let state=(await f.api.storage.local.get(FOCUS_STORE))[FOCUS_STORE];
+  assert.equal(state.enabled,true,'removing unrelated site access cannot revoke all focus');
+  assert.equal(state.sites.filter(row=>row.enabled).length,2);
+  assert.equal(f.rules.length,2);
+  await f.focus.tick({removedOrigins:['https://example.com/*']});
+  state=(await f.api.storage.local.get(FOCUS_STORE))[FOCUS_STORE];
+  assert.equal(state.enabled,true,'site scoped revocation preserves remaining focus');
+  assert.equal(state.sites.find(x=>x.host==='example.com').enabled,false);
+  assert.equal(state.sites.find(x=>x.host==='reddit.com').enabled,true);
+  assert.equal(f.rules.length,1);
+  assert.match(f.rules[0].condition.regexFilter,/reddit/);
+  await f.focus.tick();
+  state=(await f.api.storage.local.get(FOCUS_STORE))[FOCUS_STORE];
+  assert.equal(state.sites.find(x=>x.host==='example.com').enabled,false,
+    'Chrome host permission regrant must not silently reenable revoked restrictions');
+});
+
 test('DNR write failures reject mutations instead of reporting a false active block',async()=>{
   const f=fixture();
   await f.focus.dispatch(await f.msg('focus.site.put',{site:mkSite('example.com','always')}),f.sender);
