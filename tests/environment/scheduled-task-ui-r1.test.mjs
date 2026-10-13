@@ -403,3 +403,18 @@ test('R2.8 production create form keeps 36px controls and a distinct field label
   assert.match(css,/#scheduled-panel\[hidden\],#scheduled-panel \[hidden\]\{display:none!important\}/,
     'collapsed native controls must remain hidden instead of taking space');
 });
+
+test('R2.8 native runner does not dereference a retired Cloud quick entry',async()=>{
+  const [html,source]=await Promise.all([
+    load('src/ui/tool.html'),load('src/ui/scheduled-task-workbench.js')
+  ]);
+  assert.doesNotMatch(html,/class="[^"]*cloud-my-entry/,'latest production markup retired the entry');
+  assert.match(source,/const cloudEntry=doc\.querySelector\('#workbench-tasks \.cloud-my-entry'\)/);
+  assert.match(source,/if\(cloudEntry\)cloudEntry\.hidden=true/);
+  assert.match(source,/if\(cloudEntry\)cloudEntry\.hidden=false/);
+  assert.match(source,/doc\.querySelector\('#workbench-tasks \.tasks-surface'\)\.hidden=true/,
+    'present Tasks surface remains the required original view');
+  assert.doesNotMatch(source,/querySelector\('#workbench-tasks \.cloud-my-entry'\)\.hidden=/,
+    'optional absent element must not crash before runner can display');
+});
+
