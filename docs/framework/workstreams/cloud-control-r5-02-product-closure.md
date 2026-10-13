@@ -288,3 +288,14 @@ node scripts/cloud-control/cli.mjs client:revoke --client CLIENT_UUID --director
 - [增量工作记录](cloud-control-r5-03-g3-ui08-incremental.md) 含变更文件 Blob SHA 和实际 CI 入口；静态设计旧评分 86 与独立十五维 `NOT_VERIFIED` 原样保留。
 
 当前判断：**PARTIALLY_VERIFIED（已有源码及历史组件证据，但 G0/G2/G3/G4/G5/G6 的真实产品验收未闭环）**。
+
+## R5.3.1 · 实际 CI 与原生阻断收敛（2026-10-13）
+
+本轮直接修改现有 Cloud Provider、Browser Cloud Service、R3 UI/Task fixture 及测试，未创建第二套执行架构。已推送提交：`3a835ad`、`de321e9`、`7d4c7a1`、`1f0613a`、`ebfd075`、`7384485`，均由本轮 GitHub `main` 实际提交产生。
+
+- **Cloud R5.2 完整组件成功**：固定 `ebfd0758aa7c7f6b813bc014209fc68bc01f9e43`、[Actions #38429276271](https://github.com/shopable-ai/opendesk-browser/actions/runs/38429276271)，Cloud Provider **71/71**、Controller Authority **120/120**、相关 Cloud UI **27/27**，合计 **218/218 PASS / 0 FAIL**；旧 K3 OOM 在该固定候选没有重现。
+- **生产/开发包均真实通过**：同一固定源码 SHA `ebfd0758aa7c7f6b813bc014209fc68bc01f9e43` 的 [R3 包 Job #38429276214](https://github.com/shopable-ai/opendesk-browser/actions/runs/38429276214)：`npm run check`、`npm run build`、`npm run build:dev`、`npm run verify` 全部 PASS；生产 PackageHash `9f82008047c92af9e6c9f5d1ced7ca710703d68e6ba7592c4a9c9a0343498e95`，开发 PackageHash `49f9364661d20d1341aa13b72c667f62f5310ad14e0a78132ed475dbd03e0407`。**该 R3 整体工作流仍 FAIL**，因为 Task 阅读器旧测试夹具缺少完整 Manifest 身份；修复提交 `7384485` 后需单独同 SHA 复验，不得把包 Job PASS 冒充整个工作流 PASS。
+- **本次有组件级实证的矩阵项目**：`PAIR-04、DELIVERY-05、DELIVERY-07、RESULT-02、RESULT-03、RESULT-05、RESULT-07、UI-06、UI-08`，只更新为 `COMPONENT_TESTED`。其余 110 项按原验证状态保守保留；源码统计仍为 **109 SOURCE_IMPLEMENTED / 1 NOT_IMPLEMENTED (OPS-05)**。组件通过不等于 Mac 真实 Chrome 双 Task/Product UI 全闭环。
+- **安全缺陷修复**：活动 Executor 无故重复配对被拒绝；Claim 允许且固定校验 Task version；原 Result 的 status-only 与 full 同意权限分离；原本已批准 full 的持久发送意图在撤权后不得自动降级上传；HTTP full receipt 接受可选正文/错误字段，不弱化 RunRef/revision 绑定；Side Panel 旧静态断言与实际正式 Cloud Tab 保持一致。
+- **原生与公网仍受阻**：真实 Chrome Task A/B 独立 Worker/RunId/ResultId/sourceHash/released/ReceiptId、授权代际与网页副作用、五档宽度 × 两种 Zoom × 键盘截图均无可核查原始记录，保持 `NATIVE_PENDING`；未获用户批准的公网 Provider 继续 `REMOTE_NATIVE_PENDING`；15 项 DESIGN/IMPLEMENTATION/VERIFICATION 正式分数保留 `NOT_VERIFIED`，不可打 95+。
+

@@ -269,5 +269,42 @@
     "componentCI": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38405840554",
     "buildCI": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38405840990",
     "caveat": "Static estimate 86 is not automatically raised by adding code. Wait for independent review and real Chrome."
+  },
+  "r531VerifiedFacts": {
+    "sourceSha": "ebfd0758aa7c7f6b813bc014209fc68bc01f9e43",
+    "ciRunId": 38429276271,
+    "ciConclusion": "success",
+    "provider": {
+      "passed": 71,
+      "failed": 0
+    },
+    "authority": {
+      "passed": 120,
+      "failed": 0,
+      "priorOOMReproduced": false
+    },
+    "sidePanelNode": {
+      "passed": 27,
+      "failed": 0
+    },
+    "packageJob": {
+      "runId": 38429276214,
+      "status": "success",
+      "fullRunStatus": "failure",
+      "productionPackageHash": "9f82008047c92af9e6c9f5d1ced7ca710703d68e6ba7592c4a9c9a0343498e95",
+      "developmentPackageHash": "49f9364661d20d1341aa13b72c667f62f5310ad14e0a78132ed475dbd03e0407",
+      "check": "PASS",
+      "build": "PASS",
+      "developmentBuild": "PASS",
+      "verify": "PASS"
+    },
+    "nativeTwoDistinctTasks": 0,
+    "realChromeScreenshots": 0,
+    "remoteNativeTrace": 0,
+    "dimensionCount": 15,
+    "formalScoresIssued": 0,
+    "allIndependentScoresRemain": "NOT_VERIFIED",
+    "noScoreInflation": true,
+    "overall95Plus": false
   }
 }

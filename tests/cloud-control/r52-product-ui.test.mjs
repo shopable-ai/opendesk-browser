@@ -282,3 +282,19 @@ test('Side Panel issues a one-time fixed Task credential and revokes it with inl
     assert.equal(f.get('cloud-client-once').hidden,true);
   }finally{view.dispose();}
 });
+
+test('Stop status distinguishes pending Provider ACK and redacts foreign fields',async()=>{
+  const {projectCloudStatus,cloudHostingSummary}=await import('../../src/ui/cloud-status-presentation.js');
+  const status={enabled:false,remoteSuspension:'pending',provider:{
+    url:'https://PRIVATE-ORIGIN.invalid',credential:'HIDDEN-TOKEN'}};
+  const pending=projectCloudStatus(status);
+  assert.equal(pending.remoteSuspension,'pending');
+  assert.match(cloudHostingSummary(pending),/本地已停止执行.*提供者尚未确认暂停/);
+  assert.doesNotMatch(JSON.stringify(pending),/PRIVATE-ORIGIN|HIDDEN-TOKEN|https?:\/\//);
+  const confirmed=projectCloudStatus({...status,remoteSuspension:'confirmed'});
+  assert.equal(confirmed.remoteSuspension,'confirmed');
+  assert.doesNotMatch(cloudHostingSummary(confirmed),/提供者尚未确认暂停/);
+  const untrusted=projectCloudStatus({...status,remoteSuspension:'HIDDEN-TOKEN'});
+  assert.equal(untrusted.remoteSuspension,null);
+  assert.doesNotMatch(JSON.stringify(untrusted),/HIDDEN-TOKEN/);
+});

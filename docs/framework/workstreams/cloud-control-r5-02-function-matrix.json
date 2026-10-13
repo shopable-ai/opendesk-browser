@@ -2,7 +2,7 @@
   "schema": "opendesk.cloud-control.r5.2.complete-function-matrix.v1",
   "date": "2026-10-13",
   "branch": "main",
-  "observedHead": "21c5a0dacb7ae0dfea18ea85d414ac157b09b34a",
+  "observedHead": "b36f6ea67cd31c33f5e0c80c2b51a7f14db63a6a",
   "statusPolicy": "Implementation field records source presence only. Verification is NOT_VERIFIED until exact-SHA CI/native evidence. Counts are coverage inventory, never a product completion percentage.",
   "uiOverlay": {
     "uiContract": "docs/architecture/browser-framework/cloud-control-r5.2-ui-preview-contract.zh-CN.md",
@@ -36,8 +36,9 @@
       "NOT_IMPLEMENTED": 1
     },
     "verification": {
-      "NOT_VERIFIED": 101,
+      "COMPONENT_TESTED": 9,
       "NATIVE_PENDING": 8,
+      "NOT_VERIFIED": 92,
       "REMOTE_NATIVE_PENDING": 1
     }
   },
@@ -261,8 +262,13 @@
       "gate": "G1",
       "priority": "P0",
       "implementation": "SOURCE_IMPLEMENTED",
-      "verification": "NOT_VERIFIED",
-      "ui39Overlay": null
+      "verification": "COMPONENT_TESTED",
+      "ui39Overlay": null,
+      "componentEvidence": {
+        "sourceSha": "ebfd0758aa7c7f6b813bc014209fc68bc01f9e43",
+        "ciRunId": 38429276271,
+        "scope": "Node/Provider/Authority/UI component only; native Chrome remains pending"
+      }
     },
     {
       "id": "PAIR-05",
@@ -677,8 +683,13 @@
       "gate": "G1",
       "priority": "P0",
       "implementation": "SOURCE_IMPLEMENTED",
-      "verification": "NOT_VERIFIED",
-      "ui39Overlay": null
+      "verification": "COMPONENT_TESTED",
+      "ui39Overlay": null,
+      "componentEvidence": {
+        "sourceSha": "ebfd0758aa7c7f6b813bc014209fc68bc01f9e43",
+        "ciRunId": 38429276271,
+        "scope": "Node/Provider/Authority/UI component only; native Chrome remains pending"
+      }
     },
     {
       "id": "DELIVERY-06",
@@ -703,8 +714,13 @@
       "gate": "G1",
       "priority": "P0",
       "implementation": "SOURCE_IMPLEMENTED",
-      "verification": "NOT_VERIFIED",
-      "ui39Overlay": null
+      "verification": "COMPONENT_TESTED",
+      "ui39Overlay": null,
+      "componentEvidence": {
+        "sourceSha": "ebfd0758aa7c7f6b813bc014209fc68bc01f9e43",
+        "ciRunId": 38429276271,
+        "scope": "Node/Provider/Authority/UI component only; native Chrome remains pending"
+      }
     },
     {
       "id": "DELIVERY-08",
@@ -924,8 +940,13 @@
       "gate": "G1",
       "priority": "P0",
       "implementation": "SOURCE_IMPLEMENTED",
-      "verification": "NOT_VERIFIED",
-      "ui39Overlay": null
+      "verification": "COMPONENT_TESTED",
+      "ui39Overlay": null,
+      "componentEvidence": {
+        "sourceSha": "ebfd0758aa7c7f6b813bc014209fc68bc01f9e43",
+        "ciRunId": 38429276271,
+        "scope": "Node/Provider/Authority/UI component only; native Chrome remains pending"
+      }
     },
     {
       "id": "RESULT-03",
@@ -937,8 +958,13 @@
       "gate": "G1",
       "priority": "P0",
       "implementation": "SOURCE_IMPLEMENTED",
-      "verification": "NOT_VERIFIED",
-      "ui39Overlay": null
+      "verification": "COMPONENT_TESTED",
+      "ui39Overlay": null,
+      "componentEvidence": {
+        "sourceSha": "ebfd0758aa7c7f6b813bc014209fc68bc01f9e43",
+        "ciRunId": 38429276271,
+        "scope": "Node/Provider/Authority/UI component only; native Chrome remains pending"
+      }
     },
     {
       "id": "RESULT-04",
@@ -963,8 +989,13 @@
       "gate": "G1",
       "priority": "P0",
       "implementation": "SOURCE_IMPLEMENTED",
-      "verification": "NOT_VERIFIED",
-      "ui39Overlay": null
+      "verification": "COMPONENT_TESTED",
+      "ui39Overlay": null,
+      "componentEvidence": {
+        "sourceSha": "ebfd0758aa7c7f6b813bc014209fc68bc01f9e43",
+        "ciRunId": 38429276271,
+        "scope": "Node/Provider/Authority/UI component only; native Chrome remains pending"
+      }
     },
     {
       "id": "RESULT-06",
@@ -989,8 +1020,13 @@
       "gate": "G1",
       "priority": "P0",
       "implementation": "SOURCE_IMPLEMENTED",
-      "verification": "NOT_VERIFIED",
-      "ui39Overlay": null
+      "verification": "COMPONENT_TESTED",
+      "ui39Overlay": null,
+      "componentEvidence": {
+        "sourceSha": "ebfd0758aa7c7f6b813bc014209fc68bc01f9e43",
+        "ciRunId": 38429276271,
+        "scope": "Node/Provider/Authority/UI component only; native Chrome remains pending"
+      }
     },
     {
       "id": "RESULT-08",
@@ -1275,9 +1311,14 @@
       "gate": "G3",
       "priority": "P1",
       "implementation": "SOURCE_IMPLEMENTED",
-      "verification": "NOT_VERIFIED",
+      "verification": "COMPONENT_TESTED",
       "ui39Overlay": "UI A01–F06 mapping, not additive",
-      "sourceNote": "2026-10-13: production cloud-approval-review lists selected title/version/Origin/parameter/return-body permission; selection or catalog identity change clears prior consent; component/native CI for candidate pending"
+      "sourceNote": "2026-10-13: production cloud-approval-review lists selected title/version/Origin/parameter/return-body permission; selection or catalog identity change clears prior consent; component/native CI for candidate pending",
+      "componentEvidence": {
+        "sourceSha": "ebfd0758aa7c7f6b813bc014209fc68bc01f9e43",
+        "ciRunId": 38429276271,
+        "scope": "Node/Provider/Authority/UI component only; native Chrome remains pending"
+      }
     },
     {
       "id": "UI-07",
@@ -1303,8 +1344,13 @@
       "gate": "G3",
       "priority": "P1",
       "implementation": "SOURCE_IMPLEMENTED",
-      "verification": "NOT_VERIFIED",
-      "ui39Overlay": "UI A01–F06 mapping, not additive"
+      "verification": "COMPONENT_TESTED",
+      "ui39Overlay": "UI A01–F06 mapping, not additive",
+      "componentEvidence": {
+        "sourceSha": "ebfd0758aa7c7f6b813bc014209fc68bc01f9e43",
+        "ciRunId": 38429276271,
+        "scope": "Node/Provider/Authority/UI component only; native Chrome remains pending"
+      }
     },
     {
       "id": "UI-09",
@@ -1546,5 +1592,68 @@
     "nativeVerification": "NATIVE_PENDING",
     "publicNetworkVerification": "REMOTE_NATIVE_PENDING",
     "note": "The CI run is associated with the exact UI-08 source commit. Queued does not imply pass. No Mac Chrome or network deployment evidence."
+  },
+  "r531BlockerEvidence": {
+    "referenceSourceSha": "ebfd0758aa7c7f6b813bc014209fc68bc01f9e43",
+    "recordedDate": "2026-10-13",
+    "r52CI": {
+      "runId": 38429276271,
+      "conclusion": "success",
+      "cloud": {
+        "passed": 71,
+        "failed": 0
+      },
+      "controllerAuthority": {
+        "passed": 120,
+        "failed": 0
+      },
+      "sidePanelAndEnvironment": {
+        "passed": 27,
+        "failed": 0
+      },
+      "total": {
+        "passed": 218,
+        "failed": 0
+      }
+    },
+    "r3CI": {
+      "runId": 38429276214,
+      "conclusion": "failure",
+      "reason": "Shared Task reader mock omitted immutable manifest identity; fixture fix commit 7384485...",
+      "packageJob": "success",
+      "packageSha": "ebfd0758aa7c7f6b813bc014209fc68bc01f9e43",
+      "productionPackageHash": "9f82008047c92af9e6c9f5d1ced7ca710703d68e6ba7592c4a9c9a0343498e95",
+      "developmentPackageHash": "49f9364661d20d1341aa13b72c667f62f5310ad14e0a78132ed475dbd03e0407",
+      "sourceCheck": "PASS",
+      "productionBuild": "PASS",
+      "developmentBuild": "PASS",
+      "packageVerify": "PASS"
+    },
+    "sourceInventoryUnchanged": {
+      "implemented": 109,
+      "notImplemented": 1,
+      "notImplementedId": "OPS-05"
+    },
+    "evidencePromotionIds": [
+      "PAIR-04",
+      "DELIVERY-05",
+      "DELIVERY-07",
+      "RESULT-02",
+      "RESULT-03",
+      "RESULT-05",
+      "RESULT-07",
+      "UI-06",
+      "UI-08"
+    ],
+    "componentDoesNotEqualNative": true,
+    "nativeTasks": {
+      "formFill": "NATIVE_PENDING",
+      "modernSearch": "NATIVE_PENDING"
+    },
+    "realSidePanelScreenshots": "NATIVE_PENDING",
+    "externalPublicProvider": "REMOTE_NATIVE_PENDING",
+    "quality95": "NOT_VERIFIED",
+    "followupSourceCommit": "7384485c9b9a871c6509657985830e6368e0c735",
+    "followupCI": "NOT_VERIFIED"
   }
 }
