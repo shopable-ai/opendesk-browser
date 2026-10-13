@@ -136,3 +136,16 @@ node scripts/cloud-control/cli.mjs client:revoke --client CLIENT_UUID --director
 **明确的未达标部分**：当前无原生 Mac Chrome 两个已安装 Task 的独立 Worker/Run/Result/retirement/Provider receipt；没有真实 Side Panel 300–520px、125%/200% 截图及键盘验收；公网 Provider 未获部署许可；当前移动中的 `main` 没有同一候选完成 `check/build/build:dev/verify` 的新 PackageHash。以上分别保持 `NATIVE_PENDING` / `REMOTE_NATIVE_PENDING` / `NOT_VERIFIED`，不能借组件 157/157 宣称整体 95+。
 
 **演示命令修订**：上文旧示例的 `client:grant --executor EXECUTOR_UUID` 已不合法，必须使用 `client:grant --executor EXECUTOR_UUID --package /secure/approved-task.opendesk-task.json --allow-result false --token-out /secure/client.token`。远端调用及 `status:remote` 的完整可运行步骤以 `examples/cloud-control/README.zh-CN.md` 最新 R5.2 小节为准，HTTPS 目标必须真的属于该 Package 的 `siteOrigins`。
+
+## R5.2.2 · RunRef/Receipt P0 固定身份与原生验收准备
+
+**源码修复已提交**：`59a7fc3d78fefea5345bb2fc726fc1c0f5130370` 修复了 Provider admission 仅校验 Task hash 而未绑定 Cloud Assignment/Grant、以及 receipt 允许用不同 receiptKey 覆盖原 Result 的安全风险。现在要求原 `RunId/ResultId` UUID、`requestId=cloud:assignmentId`、`runRef.grantId=Job.targetGrantId`、Task 双摘要完全一致；receiptKey 必须等于原 `runRef.resultId`，相同 Key 不同内容 `E_REQUEST_CONFLICT`，不同 Key `E_RECEIPT_KEY`。原 completed Result 与历史回执不得重写。
+
+**拒绝性测试已更新**：`tests/cloud-control/provider.test.mjs` 拒绝错误 Assignment/Grant 与回执重写；`generic-delivery.test.mjs`、`executor-isolation-r52.test.mjs`、`remote-https-r52.test.mjs` 均改为用真实绑定的 grantId，不通过随意伪造的 UUID。旧 Grant 墓碑还覆盖 Provider 重启后的回滚拒绝。
+
+**实际用户操作验证补充**：
+- `tests/cloud-control/remote-cli-r52.test.mjs` 启动独立本机 TLS Provider，在真实 Node 子进程执行登记两份不同 Package、创建只允许指定 Task 的客户端、把 Token 写入 0600 文件、通过 HTTPS 投递两项 Job、读取各自未执行状态、最后撤销客户端。这个测试只验证协议与 CLI，**不会伪造 Chrome Run/Result**。
+- `tests/cloud-control/r52-product-ui.test.mjs` 读取当前真实 Side Panel HTML/CSS/JS，并检查首次连接 CTA、任务审批优先于高级配置、默认结果隐私、未批准不领取、Stop/Unpair 的 UI 状态。它不是截图，不能证明 300–520 CSS px 和 125/200% Chrome 缩放已通过。
+- `tests/cloud-control/remote-https-r52.test.mjs` 进一步覆盖浏览器允许结果但外部客户端拒绝读取、admitted 后取消而结果未知、重启后旧授权失效；已有 Run/Result/receipt 仍保存。
+
+**证据门禁**：上面的源码和测试在候选 `9ad75dde80d2b79bcbd26b5276ebd2d606be2f47` 后进入新 CI：[Cloud R5.2 专项 #38370589040](https://github.com/shopable-ai/opendesk-browser/actions/runs/38370589040) 与 [构建 #38370588579](https://github.com/shopable-ai/opendesk-browser/actions/runs/38370588579)。最后查询时仍排队，故 `SOURCE_IMPLEMENTED`，**绝不把上一候选 157 PASS 冒充新候选 PASS 或 BUILD_VERIFIED**。本次 GitHub connector 没有访问用户 Mac 文件系统和已安装 Chrome/Profile 的权限；原生双 Task、真实响应式截图与跨公网端到端仍分别 `NATIVE_PENDING` / `REMOTE_NATIVE_PENDING`，十五项实施/验收评分尚不可填写 95。
