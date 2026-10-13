@@ -16,7 +16,7 @@
 
 在真实网页选择工作流 → 明确启动本机 Codex 或自行配置的 HTTPS 模型 → 检查 AI 提出的步骤与参数 → 保存为源码哈希固定的 Controller 修订 → 用户许可后真实 Run → 在原 Task 目录通过 Candidate、Verified、Available、Installed → 关闭 AI 后从「我的任务」运行已批准固定版。
 
-**当前已能从源码核查的基础**：src/ui/workflow/workflow-view.js, src/ui/workflow/local-codex.js, src/framework/workflow/compiler.js, src/ui/local-project-install.js, 原 Task/Authority/RunHost。
+**当前已能从源码核查的基础**：`src/ui/workflow/workflow-view.js`、`src/ui/workflow/local-codex.js`、`src/framework/workflow/compiler.js`、现有 Task/Authority/RunHost，以及正式任务目录 `src/ui/task-workbench.js`。R6 已在 [具体代码提交](https://github.com/shopable-ai/opendesk-browser/commit/ec42e068c749285e39e0f5690e970295bdd3927b) 中补充**安装前的完整冻结源码只读查看、参数/网站审阅以及准确的 Workflow→Candidate 选择与 RunId 清理**。这属于 `SOURCE_IMPLEMENTED`，不是整条流程的真实 Chrome PASS。
 
 **当前无法作为正式产品承诺的缺口**：同一最新 Mac Chrome/发行包的 AI→Verified→Installed→断开模型 Run×2，真实 RunId/ResultId、许可撤销和失败恢复；首次模型费、20 次综合成本及用户第一次成功率尚无测量。
 
@@ -39,7 +39,8 @@ Axiom Claude Skill 已可生成并导入 Chrome automation 并调度；UiPath De
 - [现有源码/使用研究入口](https://github.com/shopable-ai/opendesk-browser/blob/main/examples/tasks/agent-modern-search.v1.opendesk-task.json)
 - [TOP 5、26 任务机会与最强反例](../global-first-r2-decision.zh-CN.md)
 - [原唯一 GF 声明账本](../first-claims-ledger.json) · [竞品时间线](../competitor-timeline.json)
-- 最新可独立下载并覆盖上述全部场景的 Chrome 发行包/真实模型关闭后运行录像：**本轮 NOT_TESTED**。
+- [R6 首次成功实现与真实验收边界](https://github.com/shopable-ai/opendesk-browser/blob/main/docs/framework/workstreams/global-first-r6-ai-first-product-proof-20261013.md)，同时公开 Task 目录当前只读源码审阅的实现来源。首选合法表单 [demo-form.html](https://github.com/shopable-ai/opendesk-browser/blob/main/examples/tasks/demo-form.html)。
+- 最新可独立下载并覆盖上述全部场景的 Chrome 发行包/真实模型关闭后运行录像：**本轮 NOT_TESTED**。GitHub 源码可见不等于已在商店发行或可从官网直接安装。
 
 ## 可以使用的非排名定位 / Bilingual M0 wording
 
