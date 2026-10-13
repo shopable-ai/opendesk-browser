@@ -46,6 +46,8 @@ export function projectCloudRequestSamples(raw,limit=5){
   const requests=Array.isArray(raw?.requests)?raw.requests:[];
   const size=Number.isSafeInteger(limit)?Math.max(0,Math.min(limit,5)):5;
   return requests.slice(-size).reverse().map(row=>({
+    title:typeof row?.taskTitle==='string'&&row.taskTitle.trim()
+      ?row.taskTitle.trim().slice(0,80):'历史任务',
     state:REQUEST_STATE_LABELS[row?.state]||'状态未识别',
     run:RUN_STATE_LABELS[row?.runState]||'尚无执行状态',
     settlement:row?.retirementState==='released'?'资源已释放':'资源未确认释放',
