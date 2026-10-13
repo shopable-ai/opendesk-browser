@@ -12,9 +12,9 @@
     "auditOnly": true
   },
   "summary": {
-    "operationCount": 40,
+    "operationCount": 44,
     "implementationCounts": {
-      "IMPLEMENTED": 40,
+      "IMPLEMENTED": 44,
       "PLANNED": 0,
       "HOST_ONLY": 0,
       "NOT_EXPOSED": 0
@@ -499,6 +499,178 @@
         "Same-candidate native GUI and denial evidence missing"
       ],
       "nextTask": "Capture current-candidate positive, rejection and native Chrome evidence",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.downloads.download",
+      "module": "browser.downloads",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.downloads.download",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.downloads.download",
+      "chromePermissions": [
+        "downloads"
+      ],
+      "toolCapabilities": [
+        "user.export"
+      ],
+      "effectClass": "write",
+      "riskLevel": "high",
+      "siteScope": "explicit-url",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/platform/chrome/browser-downloads.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Node, Build and actual Chrome acceptance pending for current candidate"
+      ],
+      "nextTask": "Execute tests/environment/browser-sdk-p3-implementation.test.mjs and real Chrome owned-download positive/denial acceptance",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.downloads.getOwned",
+      "module": "browser.downloads",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.downloads.getOwned",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.downloads.getOwned",
+      "chromePermissions": [
+        "downloads"
+      ],
+      "toolCapabilities": [
+        "user.export"
+      ],
+      "effectClass": "read",
+      "riskLevel": "medium",
+      "siteScope": "download-ref",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/platform/chrome/browser-downloads.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Node, Build and actual Chrome acceptance pending for current candidate"
+      ],
+      "nextTask": "Execute tests/environment/browser-sdk-p3-implementation.test.mjs and real Chrome owned-download positive/denial acceptance",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.downloads.listOwned",
+      "module": "browser.downloads",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.downloads.listOwned",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.downloads.listOwned",
+      "chromePermissions": [
+        "downloads"
+      ],
+      "toolCapabilities": [
+        "user.export"
+      ],
+      "effectClass": "read",
+      "riskLevel": "medium",
+      "siteScope": "owned-downloads",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/platform/chrome/browser-downloads.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Node, Build and actual Chrome acceptance pending for current candidate"
+      ],
+      "nextTask": "Execute tests/environment/browser-sdk-p3-implementation.test.mjs and real Chrome owned-download positive/denial acceptance",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.downloads.cancelOwned",
+      "module": "browser.downloads",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.downloads.cancelOwned",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.downloads.cancelOwned",
+      "chromePermissions": [
+        "downloads"
+      ],
+      "toolCapabilities": [
+        "user.export"
+      ],
+      "effectClass": "write",
+      "riskLevel": "high",
+      "siteScope": "download-ref",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/platform/chrome/browser-downloads.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Node, Build and actual Chrome acceptance pending for current candidate"
+      ],
+      "nextTask": "Execute tests/environment/browser-sdk-p3-implementation.test.mjs and real Chrome owned-download positive/denial acceptance",
       "commits": [],
       "evidence": []
     },
