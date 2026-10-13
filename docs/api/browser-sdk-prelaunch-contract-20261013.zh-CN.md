@@ -39,3 +39,10 @@
 当前 `BROWSER_OPERATIONS` 不再登记未实现的 `browser.media.recording.*`（4 项）、`browser.speech.*`（3 项）和 `browser.notifications.*`（2 项），剩余 26 项均为旧有源码已接线项目（不等于全部具有原生 Chrome 验收）。删除仅限运行时正式注册表与相关 Schema、CI 活跃基准、验收表；R5 35 项原始证据与历史映射依然只读保存。
 
 后续必须继续对保留的 26 项做用户调用方式/Host 权限语义收敛，尤其 Tabs Native 命名和 Cookies 可信调用；不得把这一步视为 R9 最终交付。
+
+## R9 可信 Cookie 观察 UI（已提交实际 Side Panel 代码）
+
+- 内置「Cookie 管理 → 近期 Cookie 变化」支持手动开始（15 秒）、检查状态、游标读取与手动停止，全部经既有 Host-only 一次性批准和精确文档校验；不会自动永久监听。
+- 事件显示仅使用名称、域名、路径、原因及删除/更新状态，不渲染 Cookie 值；阅读完成、导航、关闭面板均清空 UI 中的观察会话/事件。读取超过缓冲上限后显示丢弃与游标缺口。
+- 对同名且 Path/分区不同的 `cookies.get`，不再按数组顺序返回不确定值；以 `E_COOKIE_AMBIGUOUS` 拒绝并要求可信用户先用 `getAll` 识别精确条目。
+- 仍需 Node/真实 Chrome 分层验收。普通工具沙箱不可访问本受信界面的 Cookie 明文或会话。
