@@ -685,5 +685,9 @@
         "reference": "docs/framework/workstreams/browser-sdk-acceptance.json"
       }
     }
-  ]
+  ],
+  "archiveOnly": true,
+  "status": "HISTORICAL_PRELAUNCH_SNAPSHOT_NOT_BINDING",
+  "supersededBy": "docs/api/browser-sdk-prelaunch-contract-20261013.zh-CN.md",
+  "comment": "Historical mapping: never enforce current SDK API counts, alias preservation, or backwards compatibility."
 }
