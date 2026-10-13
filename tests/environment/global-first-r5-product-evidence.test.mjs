@@ -128,3 +128,30 @@ test('large competitors that already reuse AI are expressly cited without falsel
   assert.equal(gf.r5CriticalCounterexample?.requiresGlobalFirstClaim,false);
   assert.match(gf.r5CriticalCounterexample?.status,/UNDEFENDABLE/);
 });
+
+
+test('R5 pilot studies preserve existing EXP ownership and never fabricate participants or payments', async () => {
+  const [pilots, opps, exps] = await Promise.all([
+    doc('docs/framework/workstreams/evidence/global-first-r5-20261013/pilot-contract.json'),
+    doc('docs/product/browser-extension-ecosystem/opportunity-register.json'),
+    doc('docs/product/browser-extension-ecosystem/commercial-experiments.json')
+  ]);
+  assert.equal(pilots.format,'opendesk.global-first-r5-pilot-contract.v1');
+  assert.equal(pilots.pilotCandidates.length,5);
+  assert.equal(pilots.sampleGuidance.realCustomersObserved,0);
+  assert.equal(pilots.sampleGuidance.paidUsersObserved,0);
+  for(const study of pilots.pilotCandidates) {
+    assert.ok(opps.opportunities.some(x=>x.id===study.opp), study.opp);
+    assert.equal(study.stage,'RESEARCH_ONLY');
+    assert.equal(study.consentedParticipants,0);
+    assert.equal(study.interviewCount,0);
+    assert.deepEqual(study.realChromeRuns,[]);
+    assert.deepEqual(study.customerPaymentReceipts,[]);
+    assert.equal(study.claimEligibility,'NOT_APPROVED');
+    if(study.exp) {
+      const owner=exps.experiments.find(x=>x.id===study.exp);
+      assert.ok(owner?.opportunityIds.includes(study.opp), 'invalid existing EXP owner '+study.exp);
+      assert.notEqual(owner.stage,'ARCHIVED');
+    }
+  }
+});
