@@ -125,7 +125,7 @@ test('actual installed Chrome runner zooms at 125%, 150%, 200% with keyboard and
     'chrome.tabs.getCurrent().then(tab=>tab?.id??null)',session);
   assert(Number.isInteger(tabId)&&tabId>=0,'real runner TAB ID');
   report.tabId=tabId;
-  for(const [label,zoom] of [['125',1.25],['150',1.5],['200',2]]){
+  for(const [label,zoom] of [['100',1],['125',1.25],['150',1.5],['200',2]]){
     const factor=await evaluate(client,'chrome.tabs.setZoom('+tabId+','+zoom+
       ').then(()=>chrome.tabs.getZoom('+tabId+'))',session);
     assert(Math.abs(factor-zoom)<.001,'real Chrome tabs.getZoom must match '+zoom);
@@ -165,7 +165,7 @@ test('actual installed Chrome runner zooms at 125%, 150%, 200% with keyboard and
   // Browser-installed extension markup at simulated CSS widths is a separate
   // evidence tier from the genuine tabs.setZoom measurements above. Never call
   // these actual Chrome Side Panel physical-width results.
-  for(const width of [220,300,320,360,420,520]){
+  for(const width of [220,300,320,360,420,520,594,760,980]){
     await client.send('Emulation.setDeviceMetricsOverride',{
       width,height:820,deviceScaleFactor:1,mobile:false},session);
     await sleep(120);
@@ -244,6 +244,26 @@ test('actual installed Chrome runner zooms at 125%, 150%, 200% with keyboard and
     'explicit discard may now leave the editor');
   report.unsavedDraftNavigation={cssViewport:320,reviewVisible:true,continuedEditing:true,
     explicitDiscardRequired:true};
+  // The production :root palette reacts to native prefers-color-scheme.
+  // This is an emulated browser media preference, not the user's macOS theme.
+  for(const mode of ['dark','light']){
+    await client.send('Emulation.setDeviceMetricsOverride',{
+      width:360,height:820,deviceScaleFactor:1,mobile:false},session);
+    await client.send('Emulation.setEmulatedMedia',{
+      features:[{name:'prefers-color-scheme',value:mode}]},session);
+    const scheme=await evaluate(client,
+      '({matches:matchMedia("(prefers-color-scheme: dark)").matches,'+
+      'cssWidth:innerWidth,scrollWidth:document.documentElement.scrollWidth,'+
+      'paper:getComputedStyle(document.documentElement).getPropertyValue("--od-paper").trim()})',session);
+    assert.equal(scheme.matches,mode==='dark');
+    assert(scheme.scrollWidth<=scheme.cssWidth+1,
+      'real extension HTML must not horizontally overflow in '+mode+' browser preference');
+    const picture=await snapshot(client,session,'runner-color-scheme-'+mode+'-360');
+    report.screenshots.push(picture);
+    report.cssViewportSimulations.push({...scheme,mode,cssViewport:360,
+      viewportMethod:'real Chrome emulated media query and CSS viewport',screenshot:picture});
+  }
+  await client.send('Emulation.setEmulatedMedia',{features:[]},session);
   await client.send('Emulation.clearDeviceMetricsOverride',{},session);
   passed=true;
 });
