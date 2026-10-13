@@ -120,6 +120,7 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
       state.whitelist=hosts;
     }else if(operation==='focus.session.start'){
       requirePayload(payload,['minutes']);
+      if(!state.enabled)throw focusError('请先从可信设置开启网站限制','E_FOCUS_NOT_ENABLED');
       if(!Number.isInteger(payload.minutes)||payload.minutes<1||payload.minutes>240)
         throw focusError('专注时长必须在 1–240 分钟之间');
       state.focusUntil=at+payload.minutes*60000;
