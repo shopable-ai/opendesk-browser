@@ -8,7 +8,8 @@ const TOOL_CONSENT_OPS=new Set(['browser.tabs.open','browser.tabs.focus','browse
  'browser.network.observe.start','browser.network.observe.export',
  'browser.screenshot.captureVisible']);
 export function sidebarToolRequestTimeout(operation,toolId){
- return (toolId==='time-review'&&['time.start','time.clear'].includes(operation))||
+ return (toolId==='stay-focus'&&operation.startsWith('focus.')&&operation!=='focus.status')||
+   (toolId==='time-review'&&['time.start','time.clear'].includes(operation))||
    TOOL_CONSENT_OPS.has(operation)?120000:8000;
 }
 export function initSidebarToolSandbox() {
