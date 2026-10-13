@@ -107,6 +107,11 @@ export function initSidebarToolSandbox() {
       else {const error=new Error(message.error?.message||'工具请求被拒绝');error.code=message.error?.code||'E_TOOL';pending.reject(error);}
       return;
     }
+    if (message.kind==='cookie-grants-changed') {
+      if(message.instance===instance&&message.toolId===toolId)
+        root.dispatchEvent(new Event('opendesk-cookie-grants-changed'));
+      return;
+    }
     if (message.kind==='page-changed') {
       if(message.instance===instance&&message.toolId===toolId)
         root.dispatchEvent(new Event('opendesk-page-changed'));

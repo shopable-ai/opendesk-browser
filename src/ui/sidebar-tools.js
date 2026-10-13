@@ -1280,6 +1280,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     }
     if(Object.hasOwn(changes||{},BROWSER_MENU_GRANTS_STORE)){
       menuGrants=changes[BROWSER_MENU_GRANTS_STORE]?.newValue||{};render();
+      if(active?.id==='cookie-editor'&&frame&&instance)
+        frame.contentWindow?.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,
+          kind:'cookie-grants-changed',instance,toolId:active.id},'*');
     }
     if(Object.hasOwn(changes||{},CAPTURE_SITE_STORE)){
       captureGrants=changes[CAPTURE_SITE_STORE]?.newValue||{};render();

@@ -783,6 +783,13 @@ root.addEventListener('keydown',event=>{
     (root.ownerDocument.activeElement===cancel?ok:cancel).focus();
   }
 });
+root.addEventListener('opendesk-cookie-grants-changed',()=>{
+  liveSecrets.clear();observing=null;
+  if(mode!=='browser'){render();return;}
+  epoch++;liveRows=[];liveState='idle';liveMessage='';
+  scrubEditors();cancelConfirmation();busy=false;notify();render();
+  status('网站 Cookie 授权已发生变化；隐藏的值与旧列表已立即清除。若刚执行写入，请手动刷新核对。');
+});
 root.addEventListener('opendesk-page-changed',()=>{
   epoch++;data=null;liveRows=[];busy=false;dirty=false;liveState='idle';shown.clear();liveSecrets.clear();observing=null;
   scrubEditors();confirm.hidden=true;pending=null;blockBehindConfirmation(false);
