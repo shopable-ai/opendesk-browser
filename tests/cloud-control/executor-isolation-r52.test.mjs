@@ -107,6 +107,13 @@ test('same installed Task in two Executors cannot cross-claim, admit, receipt or
       grantId:nextGrant,tasks:advertised},credentials[0])).assignment;
     assert.equal(newPicked.jobId,freshAfterApproval.jobId);
     assert.notEqual(newPicked.jobId,stale.jobId);
+    // Durable Grant tombstones survive Provider restart. Never replay a
+    // delayed pre-rotation capabilities announcement into live authority.
+    await p.close();p=await openProvider({directory,port:0});
+    await assert.rejects(post('/v1/capabilities',{
+      grantId:grants[0],tasks:advertised},credentials[0]),{code:'E_GRANT_STALE'});
+    assert.equal((await post('/admin/state',{},admin.adminToken))
+      .jobs[stale.jobId].cancelled,true);
     await post('/v1/unpair',{},credentials[0]);
     await assert.rejects(post('/v1/claim',{claimId:'after-revoke',tasks:advertised},credentials[0]),
       {code:'E_AUTH'});
