@@ -107,3 +107,11 @@ test('R1.5.1 incomplete time consent reveals existing trusted inline card, not a
   assert.match(html,/id="time-review-site-all-approve"/);
   assert.match(html,/id="time-review-grant-idle"/);
 });
+
+test('R1.5.1 trusted inline authorization keeps DOM and visual tab order identical',async()=>{
+  const shell=await readFile('src/ui/sidebar-tools.js','utf8');
+  assert.match(shell,/frameRoot\.before\?\.\(settingsView\)/);
+  assert.match(shell,/retiredDraft\.after\?\.\(settingsView\)/);
+  assert.match(shell,/settingsView\.nextElementSibling!==frameRoot/);
+  assert.match(shell,/settingsView\.previousElementSibling!==retiredDraft/);
+});

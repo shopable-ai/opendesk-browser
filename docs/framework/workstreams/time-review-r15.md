@@ -109,3 +109,5 @@ npm run verify
 - 当沙箱工具请求开始记录而网站范围或 Chrome idle 尚未批准时，Side Panel **只读取既有授权状态**，展开预编译的 `time-review-permission-settings`，不直接运行敏感操作。通过已有 `data-time-review-inline` 排序使授权卡位于统计 iframe 上方，且统计 iframe 不被隐藏或销毁。此模式仅适用于 Time Review；其他工具原有设置页保持不变。
 - 网站范围仍需用户二次确认精确 Origin 或全部普通网站，idle 权限仍在可信 DOM 的原始 Chrome 用户手势中申请。已有权限时，工具内「开始记录」只弹出原位 Host 确认条；敏感操作不由不可信工具事件执行。成功开始后收起原位卡片，保留当前统计 iframe。
 - 缺少真实 macOS Chrome 和 320/360/400/600px、200% 缩放同候选截图，`95/100 UI` 尚不能给出。CI 结果须绑定本次提交 SHA 后再判断；仓库源码级检查不等于原生验收。
+
+- 无障碍收敛：原位授权卡不只用 CSS `order` 提前显示，还在真实 DOM 中将既有可信 `settingsView` 移至 `frameRoot` 前，使键盘 Tab 顺序与视觉一致；收起时还原为 `retiredDraft` 后的默认位置。整个过程不移动或重新挂载 iframe，保护工具运行实例。原生键盘与屏幕阅读器验收仍 `NOT_TESTED`。

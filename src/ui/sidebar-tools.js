@@ -413,6 +413,10 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     // Time Review uses the same trusted static settings DOM as an inline
     // enrollment card. Do not replace/hide its live stats iframe.
     const timeReviewInline=show&&id===TIME_REVIEW_ID;
+    // Keep keyboard focus order identical to visual order. The trusted
+    // settings section moves; the live sandbox iframe never re-parents.
+    if(timeReviewInline&&settingsView.nextElementSibling!==frameRoot)frameRoot.before?.(settingsView);
+    else if(!timeReviewInline&&settingsView.previousElementSibling!==retiredDraft)retiredDraft.after?.(settingsView);
     display.setAttribute('data-time-review-inline',String(timeReviewInline));
     settingsView.hidden=!show;frameRoot.hidden=(show&&!timeReviewInline)||!frame;
     removeButton.hidden=readOnlyPreview;if(openTabButton)openTabButton.hidden=readOnlyPreview;
