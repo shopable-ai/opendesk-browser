@@ -378,7 +378,7 @@
     "ciUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38379208965",
     "ciStatus": "queued",
     "packageCiUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38379209138",
-    "packageCiStatus": "pending",
+    "packageCiStatus": "cancelled",
     "observedAt": "2026-10-13",
     "componentTests": "NOT_VERIFIED",
     "check": "NOT_VERIFIED",
@@ -442,15 +442,32 @@
     "packageCi": {
       "runId": 38379209138,
       "sha": "7aff8bd27e258022cdf186019409dcc07fdee719",
-      "status": "pending",
+      "status": "cancelled",
       "result": "NOT_VERIFIED",
       "productionBudgetBytes": 524288,
-      "packageHash": null
+      "packageHash": null,
+      "conclusion": "cancelled",
+      "recordedInitialStatus": "pending"
     },
     "realChromeTwoTasks": "NATIVE_PENDING",
     "realUiScreenshots": [],
     "remotePublicProvider": "REMOTE_NATIVE_PENDING",
     "nativeEvidenceAdded": 0,
-    "quality95Plus": false
+    "quality95Plus": false,
+    "latestObservation": {
+      "date": "2026-10-13",
+      "sourceSha": "7aff8bd27e258022cdf186019409dcc07fdee719",
+      "cloudCi": {
+        "runId": 38379208965,
+        "status": "queued",
+        "conclusion": null
+      },
+      "fixedBudgetCi": {
+        "runId": 38379209138,
+        "status": "completed",
+        "conclusion": "cancelled"
+      },
+      "note": "Shared fixed-entry workflow was cancelled amid concurrent main pushes; no PASS, FAIL, PackageHash or budget receipt for this code candidate."
+    }
   }
 }
