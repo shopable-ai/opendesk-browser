@@ -110,7 +110,19 @@
     "47e7b27ab93a4c43cf463d8232c732aa615939b0",
     "48fb4273f233913889d35f60c316a91193d01501",
     "dfd4c3beb0f94cbe42474f71ed71e4c98dc9015c",
-    "9ad75dde80d2b79bcbd26b5276ebd2d606be2f47"
+    "9ad75dde80d2b79bcbd26b5276ebd2d606be2f47",
+    "d69045abed34453e2e6f38b2f236c6d8498738f6",
+    "35ef0a81e70f4a30f956896514dbde3e39779ca3",
+    "b706430ce94cb8b086c5a75ed810e52694962b21",
+    "2fe78b4c73d11e71e23fb72caf579ebef084f55f",
+    "11773011d5ae12e91000c6645e6da45384fc9949",
+    "b4225056170c3522f8796d5f6cda4f009763e6a0",
+    "70d02565cd645b74ef1ea028653e1528fc1fe4fc",
+    "3a9fc1f56046cf4ee3a72a81138946949b76a59d",
+    "bc82f2c1420fbe114cc77e4eeba2616ee4570965",
+    "e8e9ed5da7dfdc56060216f8681dec5a3fc38afe",
+    "c39650027c7c5cd5cf01b5ee16f5aaae25e361d8",
+    "9337d5a44af3acdd866c0e8578f737f8e34c5349"
   ],
   "statuses": {
     "jobExecutorIsolation": "COMPONENT_TESTED",
@@ -129,7 +141,10 @@
     "originalRunRefIdentity": "SOURCE_IMPLEMENTED",
     "receiptImmutableResultId": "SOURCE_IMPLEMENTED",
     "remoteCLITwoTaskProtocol": "SOURCE_IMPLEMENTED",
-    "sidebarR52ProductUXTests": "SOURCE_IMPLEMENTED"
+    "sidebarR52ProductUXTests": "SOURCE_IMPLEMENTED",
+    "authenticatedHistoryTaskName": "SOURCE_IMPLEMENTED",
+    "stoppedNewAdmissionIdempotency": "SOURCE_IMPLEMENTED",
+    "providerReadonlyPersistence": "SOURCE_IMPLEMENTED"
   },
   "priorEvidence": {
     "r51": {
@@ -282,7 +297,8 @@
     "noRewriteKnownFailures": true
   },
   "remaining": [
-    "Immutable Provider RunRef/receipt guard and exact CLI + UI tests need matching new-SHA CI before COMPONENT_TESTED",
+    "Wait for and inspect exact current R5.2 CI; do not label new code COMPONENT_TESTED until new SHA passes",
+    "New async CLI test, Task-labelled history, Stop idempotency, and readonly status have new unverified changes",
     "R5.2 scoped-client candidate Cloud component CI 157/157 passed, but final moving main requires fresh build evidence and native Chrome",
     "Fix shared tool-shell production fixed 524288 byte budget without raising budget",
     "Run real two installed different Tasks in Chrome and collect Worker Run/Result/retirement/receipt IDs",
@@ -315,7 +331,8 @@
     },
     "sourceAndBuildVerified": false,
     "twoTaskRealChromeVerified": false,
-    "deployedPublicInternetVerified": false
+    "deployedPublicInternetVerified": false,
+    "qualification": "Earlier immutable SHA 24994880c48e... only; subsequent R5.2 commits require fresh exact-SHA CI. Do not transfer its 157 passes."
   },
   "latestAdditionalTests": [
     "tests/cloud-control/remote-cli-r52.test.mjs",
@@ -325,11 +342,14 @@
     "tests/cloud-control/provider.test.mjs"
   ],
   "pendingExactCandidate": {
-    "sha": "9ad75dde80d2b79bcbd26b5276ebd2d606be2f47",
-    "componentRun": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38370589040",
-    "packageRun": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38370588579",
-    "observedStatus": "queued",
-    "conclusion": "NOT_VERIFIED",
-    "note": "Parallel-agent main commits after this candidate cannot inherit its CI results"
+    "sha": "9337d5a44af3acdd866c0e8578f737f8e34c5349",
+    "ciUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38373122306",
+    "observed": "queued",
+    "componentTests": "NOT_VERIFIED",
+    "check": "NOT_VERIFIED",
+    "productionBuild": "NOT_VERIFIED",
+    "developmentBuild": "NOT_VERIFIED",
+    "verify": "NOT_VERIFIED",
+    "packageHash": null
   }
 }
