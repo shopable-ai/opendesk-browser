@@ -1,35 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {modelDataScope,createModelConsent,workflowForModel,restoreModelRedactions,
-  CONSENT_STORAGE_KEY} from '../../src/ui/workflow/data-sharing.js';
+import {workflowForModel,restoreModelRedactions} from '../../src/ui/workflow/data-sharing.js';
 import {workflowCodexInput} from '../../src/ui/workflow/local-codex.js';
 import {requestWorkflowPlan} from '../../src/ui/workflow/ai-plan.js';
 
-const scope=(model='m')=>modelDataScope({provider:'custom_https',
-  endpoint:'https://ai.example/v1/chat?token=HIDDEN_QUERY',model});
-test('first-use is not granted by default; recipient changes, revocation and expiry',async()=>{
-  let saved,now=1700000000000;
-  const storage={async get(){return {[CONSENT_STORAGE_KEY]:saved};},
-    async set(record){saved=record[CONSENT_STORAGE_KEY];}};
-  const first=createModelConsent({storage,clock:()=>now});
-  await first.load();
-  assert.equal(first.has(scope()),false);
-  assert.ok(!scope().includes('HIDDEN_QUERY'));
-  first.approve(scope());assert.equal(first.has(scope()),true);
-  await Promise.resolve();await Promise.resolve();
-  const restored=createModelConsent({storage,clock:()=>now});
-  await restored.load();assert.equal(restored.has(scope()),true);
-  assert.equal(restored.has(scope('different')),false);
-  assert.equal(restored.has(modelDataScope({provider:'custom_https',endpoint:'https://other.example/v1/chat',model:'m'})),false);
-  restored.revoke(scope());assert.equal(restored.has(scope()),false);
-  now+=181*24*60*60*1000;assert.equal(first.has(scope()),false);
-});
-test('future hosted or manual sources cannot inherit user-selected model consent',()=>{
-  assert.equal(modelDataScope({provider:'manual'}),null);
-  assert.equal(modelDataScope({provider:'opendesk_cloud'}),null);
-  assert.equal(modelDataScope({provider:'custom_https',endpoint:'http://insecure.example',model:'m'}),null);
-  assert.ok(modelDataScope({provider:'local_codex'}));
-});
 test('Codex planning copy omits old fill values, defaults and navigational query',()=>{
   const workflow={workflowId:'wf-test',title:'浏览器表单',description:'',
     siteOrigin:'https://demo.example',
@@ -78,28 +52,21 @@ test('custom HTTPS planning follows the same minimization',async()=>{
   assert.ok(!body.includes('HIDDEN_DEFAULT'));
   assert.ok(!body.includes('test-api-key'));
 });
-test('trusted workflow UI keeps explicit web approval and real Chrome user gesture',async()=>{
+test('user-initiated AI sends directly without custom consent UI or ledger',async()=>{
   const {readFile}=await import('node:fs/promises');
-  const [html,view,css]=await Promise.all([
-    'src/ui/tool.html','src/ui/workflow/workflow-view.js','src/ui/tool-shell.css'
+  const [html,view,css,sharing]=await Promise.all([
+    'src/ui/tool.html','src/ui/workflow/workflow-view.js','src/ui/tool-shell.css',
+    'src/ui/workflow/data-sharing.js'
   ].map(path=>readFile(path,'utf8')));
-  assert.match(html,/id="workflow-ai-disclosure" class="workflow-ai-data-review"[^>]*hidden/);
-  assert.match(html,/id="workflow-ai-review-title" tabindex="-1"/);
-  assert.match(html,/id="workflow-ai-review-approve"/);
-  assert.match(html,/id="workflow-ai-review-cancel"/);
-  assert.match(html,/id="workflow-ai-plan"[^>]*aria-controls="workflow-ai-disclosure"/);
-  assert.match(html,/id="workflow-ai-revoke"/);
-  assert.doesNotMatch(html,/class="workflow-ai-data-notice"|id="workflow-ai-plan-label"/);
-  assert.doesNotMatch(html,/id="workflow-ai-consent"|id="workflow-ai-observe-consent"/);
-  assert.match(view,/modelConsent\.approve\(frozen\.scope\)/);
-  assert.match(view,/api\.permissions\.request\(\{origins:\[permissionPattern\(row\.captured\.url\)\]\}\)/);
+  assert.match(html,/id="workflow-ai-plan"[^>]*aria-label="生成工作流步骤"/);
+  assert.doesNotMatch(html,/id="workflow-ai-disclosure"|id="workflow-ai-review-|id="workflow-ai-revoke"/);
+  assert.doesNotMatch(html,/workflow-ai-data-details|同意并生成|模型的数据发送许可/);
+  assert.doesNotMatch(css,/\.workflow-ai-data-review|\.workflow-ai-data-details|\.workflow-ai-revoke/);
+  assert.doesNotMatch(view,/modelConsent|modelScope|pendingModelReview|showModelReview|renderDataDisclosure/);
+  assert.doesNotMatch(sharing,/createModelConsent|modelDataScope|CONSENT_STORAGE_KEY/);
+  assert.match(view,/listen\(get\('workflow-ai-plan'\),'click',plan\)/);
+  assert.match(view,/async function plan\(event\)\s*\{\s*if\(!event\.isTrusted\|\|busy\)return/);
+  assert.match(view,/permission=api\.permissions\.request\(\{origins:\[permissionPattern\(frozen\.endpoint\)\]\}\)/);
+  assert.match(view,/permission=api\.permissions\.request\(\{origins:\[permissionPattern\(row\.captured\.url\)\]\}\)/);
   assert.match(view,/currentPageTarget\.revalidate\(row\.captured\)/);
-  assert.match(view,/if\(!modelConsent\.has\(frozen\.scope\)\)/);
-  assert.match(view,/if\(event\.currentTarget!==get\('workflow-ai-review-approve'\)\)/);
-  assert.match(view,/showModelReview\(frozen\)/);
-  assert.match(view,/pendingModelReview!==modelReviewSignature\(\)/);
-  assert.match(view,/listen\(get\('workflow-ai-review-cancel'\),'click'/);
-  assert.match(view,/listen\(get\('workflow-ai-request'\),'input'/);
-  assert.match(css,/\.workflow-ai-data-review\{/);
-  assert.doesNotMatch(css,/\.workflow-ai-data-notice\{/);
 });
