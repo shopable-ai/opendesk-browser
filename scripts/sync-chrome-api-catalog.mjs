@@ -45,6 +45,12 @@ export function buildNativeCatalog({sources,compatibility,sourceManifest}){
     {currentPublicOperation:'browser.tabs.activateOwned',
       nativeApis:['chrome.tabs.get','chrome.tabs.update','chrome.windows.update'],
       mappingKind:'SCOPED',existingHost:'src/platform/chrome/context-menus.js'},
+    {currentPublicOperation:'browser.tabs.pinOwned',
+      nativeApis:['chrome.tabs.get','chrome.tabs.update','chrome.webNavigation.getFrame'],
+      mappingKind:'SCOPED',existingHost:'src/platform/chrome/context-menus.js'},
+    {currentPublicOperation:'browser.tabs.reloadOwned',
+      nativeApis:['chrome.tabs.get','chrome.tabs.reload','chrome.webNavigation.getFrame'],
+      mappingKind:'SCOPED',existingHost:'src/platform/chrome/context-menus.js'},
     {currentPublicOperation:'browser.tabs.removeOwned',
       nativeApis:['chrome.tabs.get','chrome.tabs.remove','chrome.webNavigation.getFrame'],
       mappingKind:'SCOPED',existingHost:'src/platform/chrome/context-menus.js'}
