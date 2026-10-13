@@ -114,3 +114,8 @@ Native Workspace 已采用 Tailwind v4 的离线固定构建，必须保持 `rem
 ## 进度表达
 
 首条说明目标、具体缺口、拟修改文件、通过条件。约60秒报告实际成果。任务树使用实际功能名及缩进，每个节点显示实施/证据/剩余任务；编号只作为追溯附注。不得以测试数量或任意等权功能组推导产品完成百分比。
+
+
+## 侧栏工具可信 UI 与动态沙箱边界（2026-10-13）
+
+**新增目标，尚未代表已实施：** Time Review R1.6 优先试点「**编译期审计的第一方 UI 直接挂载已有 Side Panel**，用户/AI/第三方动态包继续使用现有 opaque-origin iframe」。统一生命周期、Host、Browser SDK、授权存储和后台；不创建新安装器/权限系统。不能以工具 ID、官方市场标签、签名字符串或 `capabilities` 将安装包里的动态 HTML/JS 提权；宿主可用的 `chrome.*` 是**扩展级权限**，只经 SDK 检查不足以阻止进入特权页的任意脚本直接调用。闭包、ESM、Shadow DOM 是工程隔离，不是恶意脚本安全沙箱。当前动态工具路径仍有效，未做真实迁移不得称已移除 iframe。权威规则：[官方预编译 UI 与动态工具隔离决策](docs/architecture/browser-framework/custom-tool-ui-and-local-development.zh-CN.md)；执行入口：[Time Review R1.6 GOAL](docs/framework/prompts/goal-time-review-r16-trusted-native-ui-pilot.zh-CN.md)。

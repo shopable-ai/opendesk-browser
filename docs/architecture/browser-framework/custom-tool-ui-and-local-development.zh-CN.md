@@ -44,3 +44,35 @@ npm run verify
 Mac Chrome 需核对已加载构建的扩展 ID/版本/路径，在 Side Panel 和标签页实际打开同一工具，检查独立会话、TOC 授权、卸载撤销、两个实例并发、窄屏、无代码自动执行以及原 Task/RunHost/Workspace 回归。**本次远端 GitHub 接入没有提供本机 Chrome/Go 真实验收，不宣称 95 分 PASS。**
 
 参考：`docs/product/sidebar-custom-tools-r1.zh-CN.md`、`docs/framework/local-directory-cli-r17.zh-CN.md`。
+
+
+## R1.6 设计决策：官方预编译 UI 与动态工具隔离并存（2026-10-13）
+
+**状态：目标设计，尚未完成源码迁移或真实 Chrome 验收。** 当前 `src/ui/sidebar-tools.js:mountTool` 仍将所有安装版工具载入 `sidebar-tools/sandbox.html` 的 opaque-origin iframe。该机制对用户/AI 任意工具是合理的权限隔离，但不应不加区分地约束受审计、随扩展静态编译发布的官方界面。首个试点仅为 Time Review，其他官方应用保持现状，不能把提议写成既有产品实现。
+
+### 按可执行代码的来源分类，不按名称或商店标签分类
+
+| 可执行代码与 UI 来源 | 目标执行位置 | Chrome API 权限与身份约束 |
+| --- | --- | --- |
+| 受信任的**第一方、随扩展静态构建、经过源码审计并编译期登记**的 UI 组件（首个候选：Time Review） | 可直接挂载既有可信 `ui/tool.html` 内容区，不需要工具 iframe | 组件只可由扩展本身静态 import/固定入口加载；每次使用仍检查现有工具安装身份、启停、包版本/规范化 SHA、官方发行来源与撤权代际；特殊操作仍经现有可信 Host 的真实用户手势和权限边界 |
+| 用户自己编写、AI 生成、导入、市场获取且**不在当前扩展构建内静态审计**的 HTML/CSS/JS 工具，即使 title/ID/描述与官方相同 | 继续使用现有 `sidebar-tools/sandbox.html` opaque-origin iframe 和 `OpenDeskTool` / `OpenDeskSDK` 消息桥 | 不能把工具包 `js/html/css` 或库源字符串插入可信页执行；无 `chrome.*` 直接权限，全部能力由唯一现有 Host 逐次判断 |
+| 运行于目标网页的用户脚本 / Page 程序 | 现有 `chrome.userScripts` 的 `USER_SCRIPT` 执行世界（按当前 Controller/Page 合同） | 与 Side Panel UI 是不同执行世界，`worldId` 或隔离脚本不等于扩展侧栏 UI；保留精确目标、作用域、能力和撤权 |
+
+**绝对边界：** `manifest.json` 的 `permissions/optional_permissions/host_permissions` 授权的是整个 OpenDesk Chrome 扩展，`package.json` 不负责 Chrome 授权。工具包 `capabilities`、网站 Origin 同意、浏览器 Native permission 是不同层级；`<all_urls>` 不意味着任意安装版工具或 Time Review 获准采集全部网站。SDK 检查只能限制**通过 SDK 的请求**；任意 JS 若进入有特权的扩展页面，可能绕开 SDK 调用 `chrome.*`、共享存储或篡改可信 DOM。ES Module 闭包只降低变量冲突，Shadow DOM 只降低 DOM/CSS 干扰；它们都**不是**针对不可信 JS 的权限沙箱。不得基于 `id==='time-review'`、官方目录展示标题、`time.review` 能力或单一 runtime SHA 就自动升格未知 JS。
+
+**静态组件准入：** 只有扩展自身已打包的、编译时确定的可信组件可以直渲；安装包只作为是否可以展示/运行该组件的**授权与版本凭据**，不是将包中 JS 提权的代码来源。必须同时核对既有 `official-tools/catalog.json` 的来源和规范化包 SHA、版本、完整安装项/启用/撤权 epoch，且与当前扩展内置组件支持的确定版本一致；伪造来源、离线导入同名包、包摘要改变、版本不匹配及安装记录损坏均不得进入可信组件。对非正式包保持**现有沙箱路径或安全拒绝**，不能用运行时回退把该包 JS 放入可信页。准入失败时的界面应告知用户原因，不自动安装、补授网站权或继承之前的特权。
+
+**一套工具生命周期：** 两种 UI 位置继续复用 `src/ui/sidebar-tools/installation.js`、现有安装注册表、Browser SDK/Host、时间后台 `src/time-review/service.js`、网站许可和卸载/清理事务，不新建第二套安装器、Tool Registry、Authority、调度器或权限库。用户界面的入口、列表、标题栏、卸载按钮一致。可信 UI 的发布/更新需要随浏览器扩展重新构建，不可承诺像沙箱动态工具一样只换 JSON 就能执行新代码。Time Review 迁移完成时**仅保留一份可维护的前端业务逻辑来源**，不能长期开两个状态不一致的 UI；如官方安装 JSON 仍需要元数据/小型静态入口，必须明示其无特权代码地位并同步调整测试与来源哈希。
+
+**用户体验：** 安装≠网站采集同意。第一次需要独立确认网站范围、必要的 Chrome `idle` permission 和首次启动；之后有效同意范围内，用户从可信 UI 直接点击一次开始/恢复/暂停即可，避免无谓的“开始→再确认开始”双击，但不能自动扩大范围、静默请求 Chrome optional permission 或跳过危险清空/撤权确认。关闭 Side Panel 不停已被批准的后台计时；窗口焦点/Idle/Origin 失效时保守停算而不补造时长。显示状态、24h Canvas、六分类及导出维持现有产品功能。
+
+**Tampermonkey 可借鉴边界：** `@match` 约束网站、`@grant` 声明能力、`@sandbox` 选择执行世界；这些概念可映射到 OpenDesk 已有的站点范围/能力/执行世界，而不能让 `@grant none` 被理解为“在扩展可信页获得所有 API”。Chrome 官方扩展 Sandbox 不能直接访问扩展 API，而 MV3 非沙箱扩展页的 CSP 不允许任意代码 `eval/new Function`。参考：
+- [Chrome sandbox manifest](https://developer.chrome.com/docs/extensions/reference/manifest/sandbox)
+- [Chrome MV3 CSP](https://developer.chrome.com/docs/extensions/reference/manifest/content-security-policy)
+- [Chrome userScripts USER_SCRIPT](https://developer.chrome.com/docs/extensions/reference/api/userScripts)
+- [Chrome 权限声明](https://developer.chrome.com/docs/extensions/develop/concepts/declare-permissions)
+- [Tampermonkey @match/@grant/@sandbox](https://www.tampermonkey.net/documentation.php)
+
+**试点实施门槛：** 先核查 WXT 严格 IIFE、自包含静态入口、生产 512 KiB 单入口预算、CSP/Manifest/正式工具包兼容性，再只迁 Time Review。定向测试必须覆盖同 ID 伪装、包版本与哈希错配、恶意 JS 不进入可信页、跨工具无法获权、完整授权/撤销、SW 与 Chrome 恢复、工具更新/卸载及真实 Side Panel 交互。若必须通过提高预算、削弱验证、复制并行安装器、动态提权等方式才可工作，则**不迁移**，维持现有已隔离工具路径并记为 BLOCKED。没有同候选真实 Chrome 证据，95+ 专家评分保持 `NOT_SCORED`。
+
+实施和验收续接见 [Time Review 工作流](../../framework/workstreams/time-review-r15.md) 与 [R1.6 实施 GOAL](../../framework/prompts/goal-time-review-r16-trusted-native-ui-pilot.zh-CN.md)。

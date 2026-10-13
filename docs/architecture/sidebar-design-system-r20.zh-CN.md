@@ -124,3 +124,12 @@ Native Agent 全页 Workspace 和 Settings 具有自己的大屏结构与本地�
 **保留的合理例外：**JavaScript 编辑器继续有等宽字体和可调整高度，但 `#script-source` 的普通表单边框、配色与圆角来自 `od-field`；工作流输入框、目标来源切换开关、原生文件控件、目录筛选保留其具体功能布局。`workflow-ai-plan` 是固定 34px 图标发送按钮，模型接收方/首次许可通过旁边说明、title 和 ARIA 告知，JS 仍严格判断用户手势与独立网页读取授权。由 JavaScript 创建的工作流步骤必须同样应用公共类。
 
 **防退化与验证级别：**`tests/environment/sidebar-component-contract.test.mjs` 是受影响的源码合同检查；已有 `scripts/tests/sidebar-r19-layout-visual.mjs` 用于真实 HTML/CSS 的静态 Chrome 渲染检查，不能代替用户 Mac 的已安装 Side Panel 原生验收。没有完成的检查保持 `NOT_TESTED`；95+ 只按实证评分。
+
+
+## R31 目标适配：第一方可信工具 UI 不必默认 iframe（2026-10-13）
+
+这是 [官方预编译 UI / 动态工具隔离决策](browser-framework/custom-tool-ui-and-local-development.zh-CN.md#r16-设计决策官方预编译-ui-与动态工具隔离并存2026-10-13) 在 **Side Panel 布局**上的增量规则，**当前尚未实施**；不改变上文对现行 iframe 工具的 R26/R30 约束。
+
+- 时间回顾等在**编译期确认**的第一方可信 UI 可复用既有 `#sidebar-tool-display`、宿主标题栏、`od-page/od-toolbar/od-button/od-surface` 和同一 `src/ui/design-tokens.css` 直接渲染，不添加第二层页面 gutter、第二个卸载入口或新的滚动容器。可用 ES Module/局部 CSS/必要时 ShadowRoot 防止同名变量和 CSS 污染；ShadowRoot 并非安全边界。
+- 未经编译期准入的安装工具继续使用原 opaque-origin iframe；不把宿主 `design-tokens.css`、Preflight、`chrome.*` 或任意包脚本放进工具执行世界。视觉差异通过隔离工具自己的 CSS 数值映射修复，不能为“统一样式”解除权限隔离。
+- 可信界面上的开始/恢复/暂停应在同一区域完成；首次来源与网站权限在原位可信 DOM 完成。已存在有效权限时避免二次确认，只有扩大范围、Chrome 缺失权限或不可逆清理才要求必要审核。320/360/400/600px、200% 缩放与真实键盘顺序以同候选 Chrome 证据为准，不能把静态 UI 评审当原生 95+ PASS。

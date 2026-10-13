@@ -144,3 +144,16 @@ npm run verify
 - 设计评估（**预计、未实测**）：`全部去掉 iframe 并直接执行动态工具` 高风险，不可进入正式候选；`全部保留 iframe` 安全且重用度高，但 Time Review UX/可维护性并非最简；`官方受控预编译组件原生渲染 + 动态工具既有 sandbox` 是最有潜力获得 ≥95/100 的方案，实际评分在 build、身份失败关闭、真实原位授权、卸载和 macOS Chrome 证据完成前保持 `NOT_SCORED`。
 - 决策执行顺序：先确认官方可信 UI 可以在既定 WXT IIFE/512 KiB 约束下静态编译且不产生第二实现；随后仅迁 Time Review 一个工具，检查正确的 Chrome 权限请求用户手势、现有网站授权和收起/返回/焦点、停用撤权、跨工具隔离及安装更新；全部通过后才评估 Cookie Editor/Stay Focus 等其他第一方工具。若要突破硬预算、复制安装/Host 或破坏安全边界，直接停止迁移，继续保留当前透明 iframe 运行方式。
 - 不采用 `package.json` 替代 `manifest.json` 的 Chrome 授权，更不能把扩展级 `<all_urls>` 推断为 Time Review 的采集同意。首次网站授权、可选 `idle` 和明确开始记录属于不同用户意图；官方可信 DOM 中可减少冗余跳页与重复确认，但不能绕过扩大权限的清晰授权。
+
+
+## R1.6 迁移交接 · 第一方可信 UI 试点（2026-10-13）
+
+**结论状态：DESIGN_ACCEPTED_FOR_PILOT / IMPLEMENTATION_NOT_STARTED / NATIVE_NOT_TESTED。** 已在 [可选工具 UI 架构文件](../../architecture/browser-framework/custom-tool-ui-and-local-development.zh-CN.md) 定义全局信任分类；不把此目标误记为 Time Review 已经去掉 iframe。R1.5.2 仍使用原 `src/sidebar-tools/bridge.js`、`src/ui/sidebar-tools.js:mountTool`、`src/time-review/service.js`。
+
+- 优先级第一：**只试点 Time Review 的受信任 UI 直接挂载**；只有当前扩展**静态编译且确切准入**的官方 UI 代码可进入特权页。动态/同名/AI 生成工具不因此获得特权。核查必须发生在 UI 挂载和敏感 Host 操作之前，更新、停用或撤权立即失去资格。
+- 优先级第二：维持 `time-review`、`time.review`、`opendesk.time-review.v1`、`time.review/1.5.0` 的单一合同；保持后台独立采样及保存、六分类、Canvas V3、JSON/CSV 和原有版本升级/数据清理。不得因“直渲”而依赖 Side Panel 保活，也不能清空历史数据。
+- 优先级第三：移除只有 Time Review 沙箱 UI 才需要的无用跳页与“开始→再次确认开始”，但只在权限有效时一键开始；网站范围与 Chrome `idle` 仍是明确、各自独立的授权。官方 UI 使用 R20/R27 现有 token/组件，不创建另一个设计系统。
+- 优先级第四：**只有一个可维护的 Time Review 正式前端来源**。若构建时静态组件与现有 `examples/sidebar-tools/time-review/src/*` 不能在单一受控编译图内收敛，不要长期复制两套 UI。官方包版本/哈希、构建、市场发现及预装/升级合同需同步完成。用户自导入工具与官方编译组件必须在代码和准入上严格区分。
+- 验收：先影响分析及旧 PASS 可复用性，随后定向 Node、工具包、`npm run check/build/build:dev/verify`、现有 macOS CFT 真实 Side Panel；证据绑定最新候选 SHA、包 SHA-256、SW 哈希、实际 Chrome 版本、原始日志/截图。历史 CI 不等于新候选。实际未能运行用户 Mac 时标记 `NOT_TESTED`，云同步依旧 `LOCAL_ONLY/NO_UPLOAD/BLOCKED`。八维 95/100 是目标，不是本段的验收结果。
+
+**下一对话直接执行**：[GOAL · Time Review R1.6 可信原生 UI 试点](../prompts/goal-time-review-r16-trusted-native-ui-pilot.zh-CN.md)。若预检查无法安全直渲，保留原沙箱版本，记录 BLOCKED 和最小缺口，不以反复写文档代替实施。
