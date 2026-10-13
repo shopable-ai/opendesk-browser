@@ -172,3 +172,45 @@ node scripts/cloud-control/cli.mjs client:revoke --client CLIENT_UUID --director
 - 云控本地“未核对任务身份 / 未选择任务 / 未再次同意回传结果正文”的明确授权错误，现在只按固定白名单显示可执行的中文提示；**不把来自远端 Provider 的任意 `error.message` 显示到受信 UI**，远端消息仍按已知 `E_* ` 代码脱敏。源码 `e2e3821b3397a5ac19293cc7d4387b08595c43b7`、对应拒绝性测试 `91cd8c39352b7fd705e3b987c8428ff98e3a7106`。
 - [该 UI + Cloud 协议固定候选专项 CI #38373957070](https://github.com/shopable-ai/opendesk-browser/actions/runs/38373957070) 对应 SHA `91cd8c39352b7fd705e3b987c8428ff98e3a7106`，本次检查状态仍 **queued**；状态为 `SOURCE_IMPLEMENTED`，**不能提前记为 `COMPONENT_TESTED` 或 `BUILD_VERIFIED`**。
 - 旧 [#38368001891](https://github.com/shopable-ai/opendesk-browser/actions/runs/38368001891) 的 157/157 成功仍是准确历史证据，但不等于此次 CLI 测试、只读优化和 UI 修复通过。真实 Mac Chrome 与可信公网部署也均未产生原生证据。
+
+
+## R5.2.4 · 普通用户直接管理外部应用授权；真实 CI 门槛继续保留（2026-10-13）
+
+**本节是实际写入 `main` 的代码增量，不是设计提案、第三套权限数据库或新 Runner。** 之前 R5.2.3 段落中的排队/成功判定只作为当时的历史快照；本次核对 R5.2.2 的专项 [CI #38370589040](https://github.com/shopable-ai/opendesk-browser/actions/runs/38370589040) 已 **completed/failure**，失败出现在 `remote-cli-r52.test.mjs` 的 `execFileSync` 阻塞导致 300 秒 `UND_ERR_HEADERS_TIMEOUT`。后续代码已改用异步子进程，必须以最新 SHA 重新测试，不得覆盖或美化历史失败。
+
+### 本轮实际源码改动
+
+- Provider 既有 `state.clients` 与 Executor bearer 授权中新增 `/v1/client-list`、`/v1/client-grant`、`/v1/client-revoke`。列表只读、限制分页，仅当前 **Executor + Pairing + Grant** 可见；颁发凭据必须具备 Provider 预登记、Chrome 已发布批准的 immutable Task pin，默认 `allowResult=false`；仅返回一次 256-bit token。保留原 `/admin/*` 的 127.0.0.1 管理隔离，不在浏览器引入管理员凭据。撤销和提交/状态读取共享序列化队列内二次验证旧 token 是否仍有效，避免先通过认证、排队后被撤销的并发重入。
+- `src/cloud-control/service.js` 通过既有 `scoped(sender)` + 原 `resolveTask` 的固定 manifest/sourceHash/installationId/generation 身份，核查当前 `grantId` 以及 Task 和结果回传授权，再使用原 Provider `post` 颁发或撤销外部应用凭据。浏览器不保存外部应用的令牌，不引入新 Worker/Host/Authority。
+- `src/platform/host/{authority,broker,client}.js` 仅在原 `requireCloudSidePanelSender` 安全门禁追加三个可信 Side Panel RPC；只读独立控制台与目标网页未获得颁发权限。
+- `src/ui/{tool.html,cloud-hosting.js,tool-shell.css}` 在原云控页新增「外部应用授权」，用户可选择一个已批准 Task、单独决定结果读取、创建并**一次性复制**客户端凭据、刷新/分页查看有效授权以及二次确认撤销。Stop/解除配对/关闭详情/页面释放清理本地令牌显示；使用原 R27/R28 Design Tokens，窄宽 CSS 容错，长 Task 名与应用名文本截断/换行且无需新增弹窗。
+- `tests/cloud-control/remote-https-r52.test.mjs` 新增真实 Node TLS 协议用例：当前 Executor 自助创建/撤销，不泄漏 token 于列表，其他外部客户端不能管理，Chrome B 不能读取/撤销 Chrome A 凭据，恶意 Task Pin/控制字符标签被拒绝，Stop 之后不允许再颁发新凭据；`tests/cloud-control/r52-product-ui.test.mjs` 覆盖真实 HTML/CSS/JS 元素与交互 Mock 的单 Task 授权、二次确认、令牌清空以及结果权限不扩大。**以上尚不代表真实 Chrome 运行。**
+
+**可追溯源码提交**：
+`996f305f35c1cdb9fbc45edc9653b4ef8b1dc0d3`、
+`0cd96638b060932dbef1116230c004cba1f7ae27`、
+`aa21f13cdf68c1efe115a517c4d2b31a01c9950e`、
+`2c4692e406dd48872329cbfc31a1d6aeb732b2ea`、
+`498fb0d4b7213376e292323bf6309cb0e1ea9567`、
+`e7c099627b59992df2268f2e3be76d07e982360e`、
+`7558ebac9f7e1f1ccd332829d60e67e3a2ba1619`、
+`2120c2eeca71c44e2a6f18b4d53ba911f6ab3638`、
+`af0727f1c7e5094e523a4ebff715d3eff151581a`、
+`5e05bc43db78248d46ff46f46977043d33ff26d8`；
+修复/追加测试为
+`9da132b07d4cdfa8938ea379f20f3e78d8f01316`、
+`861a79cb60c1a9ce0359ff7e48012b0871e1a2a2`、
+`4cb1d7b6128a9d9be34c3c9fcc90abf37b68e487`、
+`33c6e4a821830c4fa5db7b64c7f463cdc061c00d`、
+`738fdc1e28c3a6758d853acea20011b295e56207`、
+`7aff8bd27e258022cdf186019409dcc07fdee719`。所有提交在 `main`，不含强推、Worktree 或 PR；原始 Request/Run/Result/receipt 历史未修改。
+
+### 最新 R5.2.4 候选验证状态
+
+- **源代码候选 SHA** `7aff8bd27e258022cdf186019409dcc07fdee719`；对应 [R5.2 专项 CI #38379208965](https://github.com/shopable-ai/opendesk-browser/actions/runs/38379208965) 在观察时仍 **queued**；同一 SHA 的 [固定 512 KiB 构建 CI #38379209138](https://github.com/shopable-ai/opendesk-browser/actions/runs/38379209138) 为 **pending**。未得到执行日志，不填 `test:cloud` PASS 数、PackageHash 或 `BUILD_VERIFIED`。
+- 状态严格为 **`SOURCE_IMPLEMENTED` / `COMPONENT_TESTED=NOT_VERIFIED` / `BUILD_VERIFIED=NOT_VERIFIED`**；仅此处新增外部客户端自助管理的实现，不能把旧 157/157 的成功迁移到新 SHA。
+- 未接入用户 Mac 本机 Chrome Profile，未获取两个真实不同 Task 的网页副作用、RunId/ResultId/retirement/receiptId，也没有 300/320/360/420/520px、125%/200% 原生截图与键盘焦点审计。**`NATIVE_PENDING`**。
+- 未获得用户授权的真实公网 Provider/SSL 域名、端到端跨公网 TLS/WSS Chrome/客户端调用链；**`REMOTE_NATIVE_PENDING`**。
+- 十五项 **DESIGN_SCORE、IMPLEMENTATION_SCORE、VERIFICATION_SCORE** 仍独立 **`NOT_VERIFIED`**；不宣称总体 95+。构建预算保持生产固定条目 512 KiB；不得通过提高阈值伪造通过。
+
+**当前唯一事实性后续阻断**：GitHub Actions 队列与无 Mac Chrome 原生资源。先确认最终同一 SHA `npm run test:cloud`、Authority/Side Panel、`npm run check`、`npm run build`、`npm run build:dev`、`npm run verify`；构建成功时记录当次真实 PackageHash。再在相互隔离的原生 Chrome A/B 上完成两个不同 Task Worker/Run/Result/receipt 及隐私/授权撤销/未知副作用；没有公网授权不标公网通过。
