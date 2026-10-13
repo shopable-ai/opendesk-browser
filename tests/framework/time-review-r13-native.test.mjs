@@ -293,19 +293,19 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
   await browser.send('Runtime.enable',{},uiTarget.sessionId);await browser.send('Page.enable',{},uiTarget.sessionId);
   // Observe lifecycle through the ordinary page session. Never attach a
   // debugger to the SW: that attachment would prevent natural idle stopping.
-  const workerStates=[],workerErrors=[],workerEvents=[],workerCrashes=[];
+  const workerStates=[],workerErrors=[],workerEvents=[],workerCrashes=[],workerObserverSessions=new Set([uiTarget.sessionId]);
   evidence.workerObserver={events:workerEvents,errors:workerErrors,crashes:workerCrashes};
   browser.on('ServiceWorker.workerVersionUpdated',(params,sessionId)=>{
-    if(sessionId!==uiTarget.sessionId)return;
+    if(!workerObserverSessions.has(sessionId))return;
     workerEvents.push({at:performance.now(),sessionId,method:'workerVersionUpdated',params});
     for(const version of params.versions||[])if(version.scriptURL==='chrome-extension://'+present+'/sw.js')
-      workerStates.push({at:performance.now(),sessionId,...version,status:version.runningStatus});
+      workerStates.push({at:performance.now(),wallAt:Date.now(),sessionId,...version,status:version.runningStatus});
   });
   browser.on('ServiceWorker.workerRegistrationUpdated',(params,sessionId)=>{
-    if(sessionId===uiTarget.sessionId)workerEvents.push({at:performance.now(),sessionId,method:'workerRegistrationUpdated',params});
+    if(workerObserverSessions.has(sessionId))workerEvents.push({at:performance.now(),sessionId,method:'workerRegistrationUpdated',params});
   });
   browser.on('ServiceWorker.workerErrorReported',({errorMessage},sessionId)=>{
-    if(sessionId===uiTarget.sessionId)workerErrors.push({at:performance.now(),sessionId,...errorMessage});
+    if(workerObserverSessions.has(sessionId))workerErrors.push({at:performance.now(),sessionId,...errorMessage});
   });
   browser.on('Target.targetCrashed',params=>{
     workerCrashes.push({at:performance.now(),...params});
@@ -436,6 +436,13 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
       zoomObserved=measurable;
       assert.ok(zoomObserved.canvasWidth>0&&zoomObserved.canvasWidth<=zoomObserved.cssWidth,
         'actual zoom must keep the one-track Canvas inside the Side Panel width');
+      if(zoomObserved.cssWidth<240){
+        const categoryLayout=await evaluate(browser,side,'(()=>({quadrants:getComputedStyle(document.querySelector(".quadrants")).gridTemplateColumns,extras:getComputedStyle(document.querySelector(".extra-categories")).gridTemplateColumns,names:[...document.querySelectorAll(".q-name")].map(n=>({text:n.textContent,height:n.getBoundingClientRect().height,lineHeight:parseFloat(getComputedStyle(n).lineHeight)}))}))()');
+        assert.equal(categoryLayout.quadrants.trim().split(/\s+/).length,1,'actual narrow zoom uses readable one-column quadrants');
+        assert.equal(categoryLayout.extras.trim().split(/\s+/).length,1,'actual narrow zoom prevents letter-by-letter extra labels');
+        assert.ok(categoryLayout.names.every(n=>n.height<=n.lineHeight*1.2),'actual narrow quadrant labels stay on one readable line');
+        note('actual-narrow-zoom-category-readability',categoryLayout);
+      }
       evidence.screenshots.push(await screenshot(browser,side,'real-chrome-200-percent-zoom'));
     }else if(!zoomFailure)zoomFailure='macOS zoom shortcut did not produce verified double CSS zoom';
     // Reset the real browser zoom before permission/collection acceptance.
@@ -453,7 +460,9 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
   note('real-chrome-zoom',{verdict:browserZoom,source:'macOS CGEvent Command+Plus',steps:zoomSteps,
     baseline:originalZoom,observed:zoomObserved,reason:zoomFailure||null,
     browser200PercentVerified:browserZoom==='PASS'});
-  const readTime=()=>evaluate(browser,side,'chrome.storage.local.get('+JSON.stringify(KEY)+').then(v=>v['+JSON.stringify(KEY)+'])');
+  // Observe durable state from the manager, which can outlive the Side Panel.
+  // It is a storage read, never a Time RPC or a substitute for a real sender.
+  const readTime=()=>evaluate(browser,uiTarget.sessionId,'chrome.storage.local.get('+JSON.stringify(KEY)+').then(v=>v['+JSON.stringify(KEY)+'])');
   let state=await readTime();assert.ok(state&&state.paused,'install/open must not begin recording');
   assert.equal(state.minuteConsent,false,'minute data opt-in must default false');
   // Native UI hides its duplicate minute-consent control: only the existing
@@ -874,7 +883,10 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
       const registrationDeleted=workerEvents.some(row=>row.at>=quietAt&&row.method==='workerRegistrationUpdated'&&row.params.registrations?.some(reg=>reg.registrationId===initialWorkerState?.registrationId&&reg.isDeleted));
       const versionChanged=workerStates.some(row=>row.at>=quietAt&&row.versionId!==initialWorkerState?.versionId);
       const errorFree=!newWorkerErrors.length&&!crashes.length&&!registrationDeleted&&!versionChanged;
-      evidence.naturalSwSleep=workerObserverReady&&initialWorkerState?.registrationId&&initialWorkerState?.versionId&&initialWorkerState.status==='running'&&recoveredNaturally&&errorFree?'PASS':'BLOCKED';
+      // The manager is still open in this active interval. Keep this trace as
+      // diagnostics; only the later interval with all extension UI closed
+      // can prove the required natural lifecycle scenario.
+      evidence.naturalSwSleep='BLOCKED';
       note('passive-natural-worker-observation',{observerReady:workerObserverReady,initialWorkerState,quietMs:Math.round(performance.now()-quietAt),
         trace:naturalTrace,workerSnapshots,newWorkerErrors,crashes,registrationDeleted,versionChanged,
         noTimeRpcFromDriver:true,noWorkerDebugger:true,noForcedStop:true,heartbeatPeriodMinutes:0.5,recoveryTrigger:'not independently attributed',
@@ -1053,14 +1065,42 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
       await nativeClick(browser,side,installed);
       await until(()=>evaluate(browser,side,'!!document.querySelector("main.review")&&!document.querySelector("#sidebar-tool-frame iframe")'),'same official native Time Review after lifecycle observation');
     };
+    let managerClosed=false;
+    const reopenManager=async()=>{
+      if(!managerClosed)return;
+      ui.targetId=(await browser.send('Target.createTarget',{url:'chrome-extension://'+present+'/ui/tool.html?hostInstanceId='+randomUUID(),background:true})).targetId;
+      uiTarget.sessionId=(await browser.send('Target.attachToTarget',{targetId:ui.targetId,flatten:true})).sessionId;
+      workerObserverSessions.add(uiTarget.sessionId);
+      await browser.send('Runtime.enable',{},uiTarget.sessionId);await browser.send('Page.enable',{},uiTarget.sessionId);
+      await browser.send('ServiceWorker.enable',{},uiTarget.sessionId);
+      await until(()=>evaluate(browser,uiTarget.sessionId,'!!document.querySelector('+JSON.stringify(installed)+')'),'existing manager recreated from actual extension UI');
+      managerClosed=false;
+    };
+    // Use the already-owned HTTP page as the passive protocol observer so
+    // every extension UI (and its own RPC traffic) can actually be closed.
+    workerObserverSessions.add(websiteSession);
+    let websiteVersion=null;
+    try{
+      await browser.send('ServiceWorker.enable',{},websiteSession);
+      websiteVersion=await until(()=>workerStates.findLast(row=>row.sessionId===websiteSession&&row.status==='running'),
+        'HTTP page observer sees the actual extension worker registration',3000);
+    }catch(cause){note('website-worker-observer-unavailable',{error:String(cause)});}
     // A running 30s heartbeat need not permit idle shutdown. Exercise natural
     // sleep through genuine pause and panel closure, without disabling alarms
-    // or touching the durable data. Keep only the passive manager observer.
-    const pausedVersion=workerStates.at(-1),pausedQuietAt=performance.now();
+    // or touching the durable data. Only the passive HTTP observer qualifies.
+    const pausedVersion=websiteVersion||workerStates.findLast(row=>row.sessionId===uiTarget.sessionId);
+    note('paused-runtime-before-ui-close',await evaluate(browser,uiTarget.sessionId,'(async()=>({alarms:await chrome.alarms.getAll(),contexts:await chrome.runtime.getContexts({})}))()'));
     const pausedSide=(await browser.send('Target.getTargetInfo',{},side)).targetInfo;
     assert.equal((await browser.send('Target.closeTarget',{targetId:pausedSide.targetId})).success,true);
     sideSid=null;
     await until(()=>evaluate(browser,uiTarget.sessionId,'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]}).then(c=>c.length===0)'),'paused Side Panel really closed');
+    if(websiteVersion){
+      assert.equal((await browser.send('Target.closeTarget',{targetId:ui.targetId})).success,true,'close manager RPC sources during natural observation');
+      managerClosed=true;
+    }
+    const remainingExtensionPages=(await browser.send('Target.getTargets')).targetInfos.filter(row=>row.type==='page'&&row.url.startsWith('chrome-extension://'+present+'/'));
+    const allExtensionUiClosed=Boolean(websiteVersion)&&remainingExtensionPages.length===0;
+    const pausedQuietAt=performance.now();
     await browser.send('Target.activateTarget',{targetId:site.targetId});
     await nativeOSClick(browser,websiteSession,'h1',zoomInput,proc.pid);
     const samePausedWorker=row=>row.sessionId===pausedVersion?.sessionId&&row.registrationId===pausedVersion?.registrationId&&row.versionId===pausedVersion?.versionId;
@@ -1074,6 +1114,7 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
       await sleep(250);
     }
     const pausedStop=workerStates.find(row=>row.at>=pausedQuietAt&&samePausedWorker(row)&&row.status==='stopped');
+    await reopenManager();
     await reopenTimePanel();
     const pausedRunning=await until(()=>workerStates.find(row=>row.at>(pausedStop?.at??Infinity)&&samePausedWorker(row)&&row.status==='running'),
       'actual same paused worker runs after natural stop',3000).catch(()=>null);
@@ -1085,10 +1126,10 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
     const pausedCrashes=workerCrashes.filter(row=>row.at>=pausedQuietAt);
     const pausedVersionChanged=workerStates.some(row=>row.at>=pausedQuietAt&&row.versionId!==pausedVersion?.versionId);
     const pausedRegistrationDeleted=workerEvents.some(row=>row.at>=pausedQuietAt&&row.method==='workerRegistrationUpdated'&&row.params.registrations?.some(reg=>reg.registrationId===pausedVersion?.registrationId&&reg.isDeleted));
-    const pausedNatural=workerObserverReady&&pausedVersion?.status==='running'&&pausedStop&&pausedRunning&&!pausedErrors.length&&!pausedCrashes.length&&!pausedVersionChanged&&!pausedRegistrationDeleted;
+    const pausedNatural=allExtensionUiClosed&&pausedVersion?.registrationId&&pausedVersion?.versionId&&pausedVersion.status==='running'&&pausedStop&&pausedRunning&&!pausedErrors.length&&!pausedCrashes.length&&!pausedVersionChanged&&!pausedRegistrationDeleted;
     if(pausedNatural)evidence.naturalSwSleep='PASS';
     note('paused-natural-worker-observation',{initialVersion:pausedVersion,pausedStop,pausedRunning,pausedSnapshots,pausedErrors,pausedCrashes,pausedVersionChanged,pausedRegistrationDeleted,
-      genuinePause:true,panelClosed:true,noTimeRpcInWait:true,noForcedStop:true,noWorkerDebugger:true,recoveryTrigger:'not independently attributed',historyAndAuthorityPreserved:true,pausedAndCheckpointNull:true,
+      genuinePause:true,panelClosed:true,allExtensionUiClosed,remainingExtensionPages,managerClosedInWait:Boolean(websiteVersion),noTimeRpcInWait:true,noForcedStop:true,noWorkerDebugger:true,recoveryTrigger:'not independently attributed',historyAndAuthorityPreserved:true,pausedAndCheckpointNull:true,
       verdict:pausedNatural?'PASS':'BLOCKED',reason:pausedNatural?'Same worker genuinely stopped and recovered with unchanged paused history':'No independently proven error-free stopped/running chain while genuinely paused'});
     // In Chrome 155 the ServiceWorker CDP domain is not exposed on the
     // root Browser connection. First close the one observed extension worker
@@ -1147,21 +1188,58 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
     assert.equal((await browser.send('Target.closeTarget',{targetId:pollingSide.targetId})).success,true,'close polling tool UI before active recovery observation');
     sideSid=null;
     await until(()=>evaluate(browser,uiTarget.sessionId,'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]}).then(c=>c.length===0)'),'active tool polling document retired');
+    const activeVersion=workerStates.findLast(row=>row.sessionId===(websiteVersion?websiteSession:uiTarget.sessionId)&&row.status==='running');
+    if(websiteVersion){
+      assert.equal((await browser.send('Target.closeTarget',{targetId:ui.targetId})).success,true,'close manager before forced active recovery');
+      managerClosed=true;
+    }
+    await browser.send('Target.activateTarget',{targetId:site.targetId});
+    await nativeOSClick(browser,websiteSession,'h1',zoomInput,proc.pid);
+    assert.equal(await evaluate(browser,websiteSession,'document.hasFocus()'),true,'the owned actual website is focused before the forced stop');
     const activeWorker=(await browser.send('Target.getTargets')).targetInfos.find(row=>row.type==='service_worker'&&row.url==='chrome-extension://'+present+'/sw.js');
     assert.ok(activeWorker,'actual owned active SW target');
-    const activeVersion=workerStates.at(-1),stopAt=performance.now();
+    const stopAt=performance.now();
     const sameActiveWorker=row=>row.sessionId===activeVersion?.sessionId&&row.registrationId===activeVersion?.registrationId&&row.versionId===activeVersion?.versionId;
     assert.equal((await browser.send('Target.closeTarget',{targetId:activeWorker.targetId})).success,true,'real stop of active SW');
     const confirmedStop=await until(()=>workerStates.find(row=>row.at>=stopAt&&sameActiveWorker(row)&&row.status==='stopped'),
       'passive confirmation of real active SW stop',3000).catch(()=>null);
     const activeBlurAt=Date.now();
+    // This local read-only promise observes actual DOM focus; it injects no
+    // event, storage, Chrome API value, or page/global binding.
+    const nativeFocusObservation=evaluate(browser,websiteSession,'new Promise((resolve,reject)=>{const start=Date.now();const check=()=>{if(!document.hasFocus())resolve(Date.now());else if(Date.now()-start>8000)reject(Error("Actual native focus loss not observed"));else setTimeout(check,5)};check()})');
     await new Promise((resolve,reject)=>execFile('osascript',['-e','tell application "Finder" to activate'],{encoding:'utf8',timeout:10000},error=>error?reject(error):resolve()));
-    await until(()=>evaluate(browser,uiTarget.sessionId,'chrome.windows.getLastFocused().then(w=>!w.focused)'),'owned Chrome truly unfocused during active recovery');
+    const confirmedBlurWallAt=await nativeFocusObservation;
     const confirmedBlurAt=performance.now();
-    const confirmedRecovery=await until(()=>workerStates.find(row=>row.at>=stopAt&&sameActiveWorker(row)&&row.status==='running'),
+    // Re-enabling the observation domain enumerates current version states.
+    // Require an actual stopped snapshot AFTER native focus loss. Receipt
+    // wall times are diagnostic only and cannot establish OS chronology.
+    let stoppedAfterBlur=null;
+    if(websiteVersion){
+      await browser.send('ServiceWorker.disable',{},websiteSession);
+      const snapshotAt=performance.now();
+      await browser.send('ServiceWorker.enable',{},websiteSession);
+      const currentVersion=await until(()=>workerStates.find(row=>row.at>=snapshotAt&&sameActiveWorker(row)),
+        'current worker state after real native blur',3000).catch(()=>null);
+      if(currentVersion?.status==='stopped'&&await evaluate(browser,websiteSession,'!document.hasFocus()'))stoppedAfterBlur=currentVersion;
+    }
+    await reopenManager();
+    const confirmedRecovery=await until(()=>workerStates.find(row=>row.at>(stoppedAfterBlur?.at??stopAt)&&sameActiveWorker(row)&&row.status==='running'),
       'passive confirmation of actual active worker recovery',12000).catch(()=>null);
+    await until(()=>evaluate(browser,uiTarget.sessionId,'chrome.windows.getLastFocused().then(w=>!w.focused)'),'recreated background manager confirms actual unfocused Chrome');
     const recoveredActive=await until(async()=>{const s=await readTime();return s?.checkpoint===null&&!s.paused?s:null;},'active recovery retires the now-unfocused checkpoint');
     assert.equal(recoveredActive.authorizedHash,liveBeforeStop.authorizedHash);assert.equal(recoveredActive.authorizedEpoch,liveBeforeStop.authorizedEpoch);
+    for(const key of ['categories','settings','siteGrants','minuteConsent'])
+      assert.deepEqual(recoveredActive[key],liveBeforeStop[key],'active recovery preserves '+key);
+    for(const [day,before] of Object.entries(liveBeforeStop.minuteDays)){
+      const after=recoveredActive.minuteDays[day];
+      assert.ok(after,'active recovery preserves every existing minute day');
+      assert.equal(after.offset,before.offset);assert.equal(after.ambiguous,before.ambiguous);
+      assert.ok(!before.truncated||after.truncated,'active recovery preserves a truncated minute bucket');
+      for(const [minute,host,ms] of before.entries){
+        const current=after.entries.find(row=>row[0]===minute&&row[1]===host);
+        assert.ok(current&&current[2]>=ms,'active recovery preserves earned minute/host duration');
+      }
+    }
     for(const day of new Set([...Object.keys(liveBeforeStop.days),...Object.keys(recoveredActive.days)])){
       const before=liveBeforeStop.days[day]||{},after=recoveredActive.days[day]||{};
       for(const host of new Set([...Object.keys(before),...Object.keys(after)])){
@@ -1179,11 +1257,12 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
     await browser.send('Target.activateTarget',{targetId:site.targetId});await nativeClick(browser,frame,'#refresh');
     const freshActive=await until(async()=>{const s=await readTime();return s?.checkpoint?.origin===approvedOrigin&&!s.paused?s:null;},'active recovery begins a fresh legal observation');
     assert.equal(freshActive.authorizedHash,liveBeforeStop.authorizedHash);
+    assert.equal(freshActive.authorizedEpoch,liveBeforeStop.authorizedEpoch);
     await sleep(900);await nativeClick(browser,frame,'#refresh');
     await until(async()=>hostMs(await readTime(),activeHost)>hostMs(freshActive,activeHost),'only new legal post-recovery activity persists');
-    const ordered=confirmedStop&&confirmedRecovery&&confirmedRecovery.at>confirmedBlurAt&&confirmedStop.at<confirmedBlurAt;
+    const ordered=confirmedStop&&stoppedAfterBlur&&confirmedRecovery&&confirmedRecovery.at>stoppedAfterBlur.at;
     evidence.activeSwRecovery=ordered?'PASS':'BLOCKED';
-    note('real-active-worker-recovery',{method:'Target.closeTarget',natural:false,activeVersion,confirmedStop,confirmedBlurAt,confirmedRecovery,
+    note('real-active-worker-recovery',{method:'Target.closeTarget',natural:false,activeVersion,confirmedStop,confirmedBlurAt,confirmedBlurWallAt,stoppedAfterBlur,confirmedRecovery,managerClosedDuringStop:Boolean(websiteVersion),
       authorizationPreserved:true,allHistoryBucketsPreserved:true,unfocusedHistoryFrozen:true,observedDelta:activeRecoveryDelta,permittedDelta:activeRecoveryLimit,freshObservation:true,
       verdict:evidence.activeSwRecovery,reason:ordered?'Real stopped/unfocused/running order observed':'Recovery ordering scenario not proven; target ID change alone is insufficient'});
 
@@ -1533,6 +1612,10 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
   };
   const lookalike={...pkg,id:'time-review-lookalike'};
   await importPackage(lookalike,'time-review-lookalike');
+  const visibleIdentities=await evaluate(browser,importer,'[...document.querySelectorAll(".sidebar-tool-item-identity")].map(n=>{const r=n.getBoundingClientRect(),button=n.closest("button"),s=getComputedStyle(n);return {text:n.textContent,inViewport:r.width>0&&r.height>0&&r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<=innerHeight,uncropped:n.scrollWidth<=n.clientWidth+1&&n.scrollHeight<=n.clientHeight+1&&s.visibility!=="hidden"&&s.display!=="none",aria:button?.getAttribute("aria-label")}})');
+  for(const id of ['time-review','time-review-lookalike'])assert.ok(visibleIdentities.some(row=>row.text==='安装 ID：'+id&&row.inViewport&&row.uncropped&&row.aria?.endsWith('安装 ID：'+id)),'actual same-title identity is visible, uncropped and accessible: '+id);
+  note('same-name-visible-identities',{identities:visibleIdentities});
+  evidence.screenshots.push(await screenshot(browser,importer,'same-title-installed-identities'));
   await nativeClick(browser,importer,'[data-sidebar-tool-action=open][data-sidebar-tool-id=time-review-lookalike]');
   await until(()=>evaluate(browser,importer,'!!document.querySelector("#sidebar-tool-frame iframe")&&!document.querySelector("#sidebar-tool-frame main.review")'),'same-name local package remains opaque sandbox');
   assert.equal((await browser.send('Runtime.callFunctionOn',{objectId:trustedRoot,functionDeclaration:'function(){return this.isConnected}',returnByValue:true},manager)).result.value,true,'lookalike install preserves actual official native root');

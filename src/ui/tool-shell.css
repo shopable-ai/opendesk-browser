@@ -676,6 +676,12 @@
 .sidebar-tool-item{min-height:54px;padding:8px 10px}
 .sidebar-tool-item-copy small{-webkit-line-clamp:1}
 .sidebar-tool-item-version{display:none}
+.sidebar-tool-item-identity{display:block;color:var(--od-sub);font-size:11px;line-height:1.5;overflow-wrap:anywhere}
+/* Actual 200% Chrome zoom can reduce the native panel below 240 CSS px. */
+@media(max-width:239px){
+  #sidebar-tool-frame main.review .quadrants,
+  #sidebar-tool-frame main.review .extra-categories{grid-template-columns:minmax(0,1fr)}
+}
 .sidebar-tool-update-mark{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:5px;background:#fff5dc;color:#80541d;font-size:10px;font-weight:650;vertical-align:middle}
 .sidebar-tool-update-action{flex:0 0 auto;min-height:34px;padding:4px 6px;font-size:11px}
 @media(max-width:340px){.sidebar-tool-discovery-tools{gap:4px}.sidebar-tool-discovery-filters button{padding:5px 6px}.sidebar-tool-official>.od-button{min-width:47px}}

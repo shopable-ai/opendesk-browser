@@ -44,6 +44,20 @@ test('R26 stopped details remain manageable and enabling waits for an explicit O
   f.elements['sidebar-tool-launch'].emit('click');await settle(()=>f.elements['sidebar-tool-frame'].children.length===1);
 });
 
+test('R19 same-title installed tools expose distinct identities without granting trust',async t=>{
+  const lookalike={...sample,id:'same-title-local'};
+  const store=new Map([[SIDEBAR_TOOL_STORE,[sample,lookalike]]]);
+  const f=await hostFixture(t,{store,startTool:false});
+  const rows=f.elements['sidebar-tool-list'].children;
+  const labels=rows.map(row=>row.children[0].children[1].children
+    .find(node=>node.className==='sidebar-tool-item-identity')?.textContent);
+  assert.deepEqual(labels,['安装 ID：'+sample.id,'安装 ID：same-title-local']);
+  assert.ok(rows.every(row=>row.children[0].attributes.get('aria-label').includes(row.dataset.sidebarToolId)),
+    'screen readers can distinguish the same-title choices too');
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'identity hint cannot launch or privilege either tool');
+  assert.equal(store.has(MARKET_PROVENANCE_STORE),false,'a title collision cannot create official provenance');
+});
+
 test('R26 cross-panel disable destroys old frames and resume does not revive them',async t=>{
   const f=await hostFixture(t),old=f.frame;
   f.store.set(SIDEBAR_TOOL_ENABLE_STORE,{[sample.id]:false});

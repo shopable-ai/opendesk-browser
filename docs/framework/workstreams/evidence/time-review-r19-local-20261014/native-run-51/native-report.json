@@ -1,0 +1,1717 @@
+{
+  "candidate": "40aef3bc2e6a5aaaae8c42a731209a169c920902",
+  "mode": "actual-headed-macos-CFT",
+  "scope": "full",
+  "nodeVersion": "v24.16.0",
+  "macVersion": "ProductName:\t\tmacOS\nProductVersion:\t\t26.5.1\nBuildVersion:\t\t25F80",
+  "package": {
+    "id": "time-review",
+    "version": "1.6.0",
+    "sha256": "90f5029049ed4b2cadd69fa91c4efaefb45f031bd94c07e708c9f78d5f2776f6"
+  },
+  "chromePid": 54774,
+  "profileOwned": true,
+  "install": "PASS",
+  "realSidePanel": "PASS",
+  "minuteConsent": "PASS",
+  "browserRestart": "NOT_TESTED",
+  "download": "PASS",
+  "beginAndActiveCollection": "PASS",
+  "pauseResume": "PASS",
+  "websiteGrantRevocation": "NOT_TESTED",
+  "idlePermissionRevocation": "NOT_TESTED",
+  "swRestart": "PASS",
+  "hostedCI": false,
+  "extensionPath": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/source-r19-closure/dist/production",
+  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-time-r13-AZm7nt",
+  "driverSha256": "37d37335f699a3591d02f3850b4db20a2493e818aed5eba4070e5154af9b7669",
+  "chromeBinaryVersion": "Google Chrome for Testing 155.0.8059.39",
+  "screenshots": [
+    {
+      "filename": "installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "filename": "installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "filename": "installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "filename": "installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "filename": "installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "filename": "real-chrome-200-percent-zoom.png",
+      "bytes": 68907,
+      "sha256": "5c272525231757618d39ef05b8e9b4b3cd661488fdaa882e78c78c13e7160563"
+    },
+    {
+      "filename": "trusted-permission-settings.png",
+      "bytes": 146334,
+      "sha256": "a2675b9c8d6b21ad999cfc53fc8bf3e3de761359967672b58d193a79297e2c8f"
+    },
+    {
+      "filename": "first-run-inline-time-review-consent.png",
+      "bytes": 185550,
+      "sha256": "2e2c20665cdd953dd8bfbd3dc6c7b4cad8c155d2b5fbe865c6826a66d8cee973"
+    },
+    {
+      "filename": "real-recorded-minute-canvas.png",
+      "bytes": 118172,
+      "sha256": "45d78b948a870a4bf227125c5d8d810bbeba3ad1c60a42674734be8186a6289d"
+    },
+    {
+      "filename": "real-long-domain-native.png",
+      "bytes": 114286,
+      "sha256": "b6f1f7f27fd7d17fea6bf46256fe8eba2a82bcb83b3f92e972d0d93464cb1d25"
+    }
+  ],
+  "steps": [
+    {
+      "name": "trusted-open",
+      "selector": "#catalog-open-dev-sidebar",
+      "x": 89.25,
+      "y": 135.1484375
+    },
+    {
+      "name": "install",
+      "version": "1.6.0"
+    },
+    {
+      "name": "native-canvas",
+      "quadrants": 4,
+      "extras": 2,
+      "day": "0秒",
+      "timeline": "尚无分钟明细",
+      "horizontal": true,
+      "frameGeometry": {
+        "viewportHeight": 815,
+        "documentHeight": 815,
+        "rootHeight": 1109.828125
+      },
+      "outerGeometry": {
+        "viewportHeight": 815,
+        "nativeHeight": 1109.828125,
+        "iframeCount": 0,
+        "hostScrollHeight": 815
+      }
+    },
+    {
+      "name": "installed-native-widths",
+      "verdict": "PASS",
+      "method": "installed SIDE_PANEL CSS viewport override",
+      "widths": [
+        320,
+        360,
+        400,
+        600
+      ]
+    },
+    {
+      "name": "real-chrome-zoom",
+      "verdict": "PASS",
+      "source": "macOS CGEvent Command+Plus",
+      "steps": 5,
+      "baseline": {
+        "cssWidth": 360,
+        "cssScrollWidth": 360,
+        "cssHeight": 815,
+        "contentHeight": 815,
+        "dpr": 2,
+        "canvasWidth": 312
+      },
+      "observed": {
+        "cssWidth": 180,
+        "cssScrollWidth": 180,
+        "cssHeight": 407,
+        "contentHeight": 407,
+        "dpr": 4,
+        "canvasWidth": 142
+      },
+      "reason": null,
+      "browser200PercentVerified": true
+    },
+    {
+      "name": "native-permission-actions",
+      "initiallyIdleGranted": false,
+      "duplicateStartHidden": true
+    },
+    {
+      "name": "trusted-native-consent-unmodified",
+      "minuteConsent": false
+    },
+    {
+      "name": "trusted-minute-optin",
+      "minuteConsent": true
+    },
+    {
+      "name": "trusted-minute-withdrawal",
+      "minuteConsent": false
+    },
+    {
+      "name": "download-json",
+      "format": "json",
+      "created": "PASS",
+      "complete": "PASS",
+      "ownedDirectory": "PASS",
+      "disk": "PASS",
+      "content": "PASS",
+      "filename": "PASS",
+      "id": 1,
+      "basename": "time-review.json",
+      "received": 241,
+      "ownedByExtension": true,
+      "bytes": 241,
+      "sha256": "3cc02c23b9d8f1b0b52ee5bf6b4d49ba8119e76b22f03c92bab2d5c6008c7385"
+    },
+    {
+      "name": "download-csv",
+      "format": "csv",
+      "created": "PASS",
+      "complete": "PASS",
+      "ownedDirectory": "PASS",
+      "disk": "PASS",
+      "content": "PASS",
+      "filename": "PASS",
+      "id": 2,
+      "basename": "time-review.csv",
+      "received": 44,
+      "ownedByExtension": true,
+      "bytes": 44,
+      "sha256": "55c24b7f5c3e5ccbc3b7fe3915cb7e73720188c2fd93dff8f84c393035dd63d6"
+    },
+    {
+      "name": "native-inline-enrollment",
+      "trustedExistingControls": true,
+      "nativeUIVisible": true,
+      "iframeRemoved": true,
+      "domFocusOrder": true,
+      "siteGrantUntouched": true
+    },
+    {
+      "name": "native-idle-ui-reflects-grant",
+      "granted": true,
+      "duplicateGrantHidden": true
+    },
+    {
+      "name": "site-grant",
+      "origin": "http://127.0.0.1:49736",
+      "source": "native trusted click"
+    },
+    {
+      "name": "trusted-start-immediate-ui",
+      "pauseVisible": true,
+      "noIframe": true,
+      "noSecondConfirmation": true
+    },
+    {
+      "name": "native-observation-gates-before-input",
+      "focused": true,
+      "windowType": "normal",
+      "idle": "active",
+      "isLoopbackTab": true,
+      "hasHostPermission": true
+    },
+    {
+      "name": "native-observation-gates-final",
+      "focused": true,
+      "windowType": "normal",
+      "idle": "active",
+      "isLoopbackTab": true,
+      "hasHostPermission": true
+    },
+    {
+      "name": "real-web-checkpoint",
+      "host": "127.0.0.1",
+      "paused": false,
+      "startedAt": 1791931092713,
+      "hasPermission": true
+    },
+    {
+      "name": "real-http-activity",
+      "host": "127.0.0.1",
+      "ms": 980,
+      "from": "real active browser tab"
+    },
+    {
+      "name": "actual-canvas-keyboard-focus",
+      "focused": [
+        {
+          "description": "",
+          "enabled": true,
+          "focused": true,
+          "position": {
+            "x": 22,
+            "y": 101
+          },
+          "role": "AXGroup",
+          "size": {
+            "height": 34,
+            "width": 112
+          },
+          "subrole": "",
+          "title": "",
+          "value": ""
+        },
+        {
+          "description": "",
+          "enabled": true,
+          "focused": true,
+          "position": {
+            "x": 30,
+            "y": 198
+          },
+          "role": "AXWebArea",
+          "size": {
+            "height": 799,
+            "width": 814
+          },
+          "subrole": "",
+          "title": "Time Review native",
+          "value": ""
+        },
+        {
+          "description": "分钟时间线",
+          "enabled": true,
+          "focused": true,
+          "position": {
+            "x": 877,
+            "y": 574
+          },
+          "role": "AXSlider",
+          "size": {
+            "height": 54,
+            "width": 312
+          },
+          "subrole": "",
+          "title": "分钟时间线",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "name": "real-minute-canvas",
+      "realEntries": true,
+      "keyboard": true,
+      "ariaMinute": 60
+    },
+    {
+      "name": "unrelated-official-install",
+      "toolId": "reading-toc",
+      "previouslyInstalled": true,
+      "disableEnable": true,
+      "nativeStillMounted": true,
+      "authorizationUnchanged": true,
+      "paused": false
+    },
+    {
+      "name": "native-file-review-install",
+      "id": "reading-toc",
+      "version": "0.0.0",
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/native-run-51/older-reading-toc.opendesk-tool.json",
+      "sha256": "b69bf45e13705a6debcdbd30766548ebaaf9e95f60faf446b45951e614fc0126"
+    },
+    {
+      "name": "unrelated-official-upgrade",
+      "toolId": "reading-toc",
+      "fromVersion": "0.0.0",
+      "fromSource": "reviewed-local-older-version-fixture",
+      "toVersion": "1.0.4",
+      "toSource": "actual-official-catalog",
+      "nativeRootUnchanged": true,
+      "authorizationUnchanged": true,
+      "paused": false
+    },
+    {
+      "name": "unrelated-official-install",
+      "toolId": "cookie-editor",
+      "previouslyInstalled": false,
+      "disableEnable": true,
+      "nativeStillMounted": true,
+      "authorizationUnchanged": true,
+      "paused": false
+    },
+    {
+      "name": "native-file-review-install",
+      "id": "cookie-editor",
+      "version": "0.0.0",
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/native-run-51/older-cookie-editor.opendesk-tool.json",
+      "sha256": "bf72886c105b5aa886060565bff8e2f7e9794a84478f7ce3c373398c2e14e56e"
+    },
+    {
+      "name": "unrelated-official-upgrade",
+      "toolId": "cookie-editor",
+      "fromVersion": "0.0.0",
+      "fromSource": "reviewed-local-older-version-fixture",
+      "toVersion": "2.0.4",
+      "toSource": "actual-official-catalog",
+      "nativeRootUnchanged": true,
+      "authorizationUnchanged": true,
+      "paused": false
+    },
+    {
+      "name": "unrelated-official-install",
+      "toolId": "stay-focus",
+      "previouslyInstalled": false,
+      "disableEnable": true,
+      "nativeStillMounted": true,
+      "authorizationUnchanged": true,
+      "paused": false
+    },
+    {
+      "name": "native-file-review-install",
+      "id": "stay-focus",
+      "version": "0.0.0",
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/native-run-51/older-stay-focus.opendesk-tool.json",
+      "sha256": "e4b94ef63bd867f4489f71fe2590c02aef7fdba75ef81bed3b2ada4fcd666338"
+    },
+    {
+      "name": "unrelated-official-upgrade",
+      "toolId": "stay-focus",
+      "fromVersion": "0.0.0",
+      "fromSource": "reviewed-local-older-version-fixture",
+      "toVersion": "1.0.0",
+      "toSource": "actual-official-catalog",
+      "nativeRootUnchanged": true,
+      "authorizationUnchanged": true,
+      "paused": false
+    },
+    {
+      "name": "focus-retirement-measurement",
+      "observedDelta": 188,
+      "permittedDelta": 1175,
+      "blurAt": 1791931197119,
+      "checkpointAt": 1791931196944
+    },
+    {
+      "name": "real-window-focus",
+      "foreground": false,
+      "totalsFrozen": true
+    },
+    {
+      "name": "passive-natural-worker-observation",
+      "observerReady": true,
+      "initialWorkerState": {
+        "at": 123532.461833,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "versionId": "2",
+        "registrationId": "2",
+        "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+        "runningStatus": "running",
+        "status": "running",
+        "scriptLastModified": 1791929437,
+        "scriptResponseTime": 0,
+        "controlledClients": [],
+        "targetId": "30DB94F3A6D4D82B8D2250A7D48794B5"
+      },
+      "quietMs": 75172,
+      "trace": [],
+      "workerSnapshots": [
+        {
+          "elapsedMs": 1,
+          "targets": [
+            {
+              "targetId": "30DB94F3A6D4D82B8D2250A7D48794B5",
+              "attached": false
+            }
+          ]
+        }
+      ],
+      "newWorkerErrors": [],
+      "crashes": [],
+      "registrationDeleted": false,
+      "versionChanged": false,
+      "noTimeRpcFromDriver": true,
+      "noWorkerDebugger": true,
+      "noForcedStop": true,
+      "heartbeatPeriodMinutes": 0.5,
+      "recoveryTrigger": "not independently attributed",
+      "verdict": "BLOCKED",
+      "reason": "No proven error-free natural stopped/recovered trace; waiting or target snapshots alone are insufficient"
+    },
+    {
+      "name": "panel-closed-observation",
+      "window": {
+        "alwaysOnTop": false,
+        "focused": true,
+        "height": 950,
+        "id": 228219917,
+        "incognito": false,
+        "left": 22,
+        "state": "normal",
+        "top": 55,
+        "type": "normal",
+        "width": 1200
+      },
+      "idle": "active",
+      "alarm": {
+        "name": "opendesk.time-review.heartbeat.v1",
+        "periodInMinutes": 0.5,
+        "persistAcrossSessions": true,
+        "scheduledTime": 1791931302373.97
+      },
+      "state": {
+        "authorizedEpoch": null,
+        "authorizedHash": "9ca3c190a5ff96da5b146ce5ed66d74586b28f9359588f37bb505208de6a08f1",
+        "categories": {},
+        "checkpoint": {
+          "at": 1791931272377,
+          "host": "127.0.0.1",
+          "offset": -480,
+          "origin": "http://127.0.0.1:49736",
+          "session": "5a3a4d41-f6aa-4a63-a41d-1ba45da2358c",
+          "tabId": 228219920,
+          "windowId": 228219917
+        },
+        "days": {
+          "2026-10-14": {
+            "127.0.0.1": 76342
+          }
+        },
+        "discardedMs": 2353,
+        "highWater": 1791931272374,
+        "minuteConsent": true,
+        "minuteDays": {
+          "2026-10-14": {
+            "ambiguous": false,
+            "entries": [
+              [
+                398,
+                "127.0.0.1",
+                2377
+              ],
+              [
+                399,
+                "127.0.0.1",
+                1282
+              ],
+              [
+                400,
+                "127.0.0.1",
+                59987
+              ],
+              [
+                401,
+                "127.0.0.1",
+                12374
+              ]
+            ],
+            "offset": -480,
+            "truncated": false
+          }
+        },
+        "paused": false,
+        "settings": {
+          "excludedHosts": [],
+          "idleSeconds": 60,
+          "retentionDays": 90
+        },
+        "siteGrants": {
+          "allSites": false,
+          "origins": [
+            "http://127.0.0.1:49736"
+          ]
+        },
+        "version": 1
+      }
+    },
+    {
+      "name": "real-panel-closed-collection",
+      "noSidePanel": true,
+      "noTimeRpc": true,
+      "ms": 73001
+    },
+    {
+      "name": "real-site-switch",
+      "firstHost": "127.0.0.1",
+      "firstMs": 76359,
+      "secondHost": "localhost",
+      "secondMs": 1812,
+      "separateTotals": true
+    },
+    {
+      "name": "real-long-domain-layout",
+      "width": 320,
+      "scroll": 320,
+      "host": "very-long-actual-time-review-domain-abcdefghijklmnopqrstuvwxyz.localhost",
+      "canvas": 282,
+      "method": "installed native CSS viewport"
+    },
+    {
+      "name": "real-long-domain-layout",
+      "width": 360,
+      "scroll": 360,
+      "host": "very-long-actual-time-review-domain-abcdefghijklmnopqrstuvwxyz.localhost",
+      "canvas": 312,
+      "method": "installed native CSS viewport"
+    },
+    {
+      "name": "real-long-domain-layout",
+      "width": 400,
+      "scroll": 400,
+      "host": "very-long-actual-time-review-domain-abcdefghijklmnopqrstuvwxyz.localhost",
+      "canvas": 352,
+      "method": "installed native CSS viewport"
+    },
+    {
+      "name": "real-long-domain-layout",
+      "width": 600,
+      "scroll": 600,
+      "host": "very-long-actual-time-review-domain-abcdefghijklmnopqrstuvwxyz.localhost",
+      "canvas": 552,
+      "method": "installed native CSS viewport"
+    },
+    {
+      "name": "real-idle-transition",
+      "enteredIdle": true,
+      "idleTotalsFrozen": true,
+      "resumedHost": "localhost",
+      "postIdleMs": 1685
+    },
+    {
+      "name": "real-pause",
+      "ms": 76453
+    },
+    {
+      "name": "paused-natural-worker-observation",
+      "initialVersion": {
+        "at": 200358.807833,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "versionId": "2",
+        "registrationId": "2",
+        "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+        "runningStatus": "running",
+        "status": "running",
+        "scriptLastModified": 1791929437,
+        "scriptResponseTime": 0,
+        "controlledClients": [],
+        "targetId": "30DB94F3A6D4D82B8D2250A7D48794B5"
+      },
+      "pausedRunning": null,
+      "pausedSnapshots": [
+        {
+          "at": 283644.855167,
+          "targets": [
+            {
+              "targetId": "30DB94F3A6D4D82B8D2250A7D48794B5",
+              "attached": false
+            }
+          ]
+        }
+      ],
+      "pausedErrors": [],
+      "pausedCrashes": [],
+      "pausedVersionChanged": false,
+      "pausedRegistrationDeleted": false,
+      "genuinePause": true,
+      "panelClosed": true,
+      "noTimeRpcInWait": true,
+      "noForcedStop": true,
+      "noWorkerDebugger": true,
+      "recoveryTrigger": "not independently attributed",
+      "historyAndAuthorityPreserved": true,
+      "pausedAndCheckpointNull": true,
+      "verdict": "BLOCKED",
+      "reason": "No independently proven error-free stopped/running chain while genuinely paused"
+    },
+    {
+      "name": "real-service-worker-restart",
+      "ms": 76453,
+      "method": "Target.closeTarget",
+      "targetChanged": true
+    },
+    {
+      "name": "real-resume",
+      "paused": false
+    }
+  ],
+  "chrome": "Chrome/155.0.8059.39",
+  "extensionId": "nfgjhajcnbnmgnlifhbmknljhjekdile",
+  "workerObserver": {
+    "events": [
+      {
+        "at": 1213.732208,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerRegistrationUpdated",
+        "params": {
+          "registrations": [
+            {
+              "registrationId": "2",
+              "scopeURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/",
+              "isDeleted": false
+            },
+            {
+              "registrationId": "0",
+              "scopeURL": "chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/",
+              "isDeleted": false
+            },
+            {
+              "registrationId": "1",
+              "scopeURL": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/",
+              "isDeleted": false
+            }
+          ]
+        }
+      },
+      {
+        "at": 1216.884875,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "starting",
+              "status": "new",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "30DB94F3A6D4D82B8D2250A7D48794B5"
+            },
+            {
+              "versionId": "0",
+              "registrationId": "0",
+              "scriptURL": "chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/thunk.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 0,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "ED74774A1758C2412800B6B3915EE4A6"
+            },
+            {
+              "versionId": "1",
+              "registrationId": "1",
+              "scriptURL": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 0,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "844BA18A07F767FCFA4C059C6DB93469"
+            }
+          ]
+        }
+      },
+      {
+        "at": 1316.080167,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "starting",
+              "status": "installing",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "30DB94F3A6D4D82B8D2250A7D48794B5"
+            }
+          ]
+        }
+      },
+      {
+        "at": 1316.323458,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerRegistrationUpdated",
+        "params": {
+          "registrations": [
+            {
+              "registrationId": "2",
+              "scopeURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/",
+              "isDeleted": false
+            }
+          ]
+        }
+      },
+      {
+        "at": 1317.125708,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "installing",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "30DB94F3A6D4D82B8D2250A7D48794B5"
+            }
+          ]
+        }
+      },
+      {
+        "at": 1329.628542,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "installed",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "30DB94F3A6D4D82B8D2250A7D48794B5"
+            }
+          ]
+        }
+      },
+      {
+        "at": 1329.911875,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activating",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "30DB94F3A6D4D82B8D2250A7D48794B5"
+            }
+          ]
+        }
+      },
+      {
+        "at": 1331.852458,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "30DB94F3A6D4D82B8D2250A7D48794B5"
+            }
+          ]
+        }
+      },
+      {
+        "at": 1510.200333,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "30DB94F3A6D4D82B8D2250A7D48794B5"
+            }
+          ]
+        }
+      },
+      {
+        "at": 1545.917875,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "30DB94F3A6D4D82B8D2250A7D48794B5"
+            }
+          ]
+        }
+      },
+      {
+        "at": 1549.222583,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "30DB94F3A6D4D82B8D2250A7D48794B5"
+            }
+          ]
+        }
+      },
+      {
+        "at": 21138.137083,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "30DB94F3A6D4D82B8D2250A7D48794B5"
+            }
+          ]
+        }
+      },
+      {
+        "at": 21176.193833,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "30DB94F3A6D4D82B8D2250A7D48794B5"
+            }
+          ]
+        }
+      },
+      {
+        "at": 21178.107958,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "30DB94F3A6D4D82B8D2250A7D48794B5"
+            }
+          ]
+        }
+      },
+      {
+        "at": 21669.092292,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "30DB94F3A6D4D82B8D2250A7D48794B5"
+            }
+          ]
+        }
+      },
+      {
+        "at": 21678.234833,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "30DB94F3A6D4D82B8D2250A7D48794B5"
+            }
+          ]
+        }
+      },
+      {
+        "at": 40501.527583,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "0",
+              "registrationId": "0",
+              "scriptURL": "chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/thunk.js",
+              "runningStatus": "stopping",
+              "status": "activated",
+              "scriptLastModified": 0,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "ED74774A1758C2412800B6B3915EE4A6"
+            }
+          ]
+        }
+      },
+      {
+        "at": 40501.65,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "0",
+              "registrationId": "0",
+              "scriptURL": "chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/thunk.js",
+              "runningStatus": "stopped",
+              "status": "activated",
+              "scriptLastModified": 0,
+              "scriptResponseTime": 0,
+              "controlledClients": []
+            }
+          ]
+        }
+      },
+      {
+        "at": 40502.016042,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "1",
+              "registrationId": "1",
+              "scriptURL": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+              "runningStatus": "stopping",
+              "status": "activated",
+              "scriptLastModified": 0,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "844BA18A07F767FCFA4C059C6DB93469"
+            }
+          ]
+        }
+      },
+      {
+        "at": 40502.118417,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "1",
+              "registrationId": "1",
+              "scriptURL": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+              "runningStatus": "stopped",
+              "status": "activated",
+              "scriptLastModified": 0,
+              "scriptResponseTime": 0,
+              "controlledClients": []
+            }
+          ]
+        }
+      },
+      {
+        "at": 42072.234583,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "30DB94F3A6D4D82B8D2250A7D48794B5"
+            }
+          ]
+        }
+      },
+      {
+        "at": 42076.084958,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "30DB94F3A6D4D82B8D2250A7D48794B5"
+            }
+          ]
+        }
+      },
+      {
+        "at": 80653.513542,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "30DB94F3A6D4D82B8D2250A7D48794B5"
+            }
+          ]
+        }
+      },
+      {
+        "at": 80657.457292,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "30DB94F3A6D4D82B8D2250A7D48794B5"
+            }
+          ]
+        }
+      },
+      {
+        "at": 120831.294708,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "30DB94F3A6D4D82B8D2250A7D48794B5"
+            }
+          ]
+        }
+      },
+      {
+        "at": 123532.458542,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "30DB94F3A6D4D82B8D2250A7D48794B5"
+            }
+          ]
+        }
+      },
+      {
+        "at": 200325.449042,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "30DB94F3A6D4D82B8D2250A7D48794B5"
+            }
+          ]
+        }
+      },
+      {
+        "at": 200351.017208,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "30DB94F3A6D4D82B8D2250A7D48794B5"
+            }
+          ]
+        }
+      },
+      {
+        "at": 200358.806375,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "30DB94F3A6D4D82B8D2250A7D48794B5"
+            }
+          ]
+        }
+      },
+      {
+        "at": 282272.2845,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "30DB94F3A6D4D82B8D2250A7D48794B5"
+            }
+          ]
+        }
+      },
+      {
+        "at": 328905.518042,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "30DB94F3A6D4D82B8D2250A7D48794B5"
+            }
+          ]
+        }
+      },
+      {
+        "at": 328929.931125,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "30DB94F3A6D4D82B8D2250A7D48794B5"
+            }
+          ]
+        }
+      },
+      {
+        "at": 328937.797542,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "30DB94F3A6D4D82B8D2250A7D48794B5"
+            }
+          ]
+        }
+      },
+      {
+        "at": 332296.432958,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "stopping",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "30DB94F3A6D4D82B8D2250A7D48794B5"
+            }
+          ]
+        }
+      },
+      {
+        "at": 332298.392208,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "stopped",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": []
+            }
+          ]
+        }
+      },
+      {
+        "at": 332403.363292,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "starting",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": []
+            }
+          ]
+        }
+      },
+      {
+        "at": 332403.432708,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "starting",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "05026C0F19AABD92B2F68B9BF82E8900"
+            }
+          ]
+        }
+      },
+      {
+        "at": 332406.164042,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "starting",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "05026C0F19AABD92B2F68B9BF82E8900"
+            }
+          ]
+        }
+      },
+      {
+        "at": 332421.481542,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "05026C0F19AABD92B2F68B9BF82E8900"
+            }
+          ]
+        }
+      },
+      {
+        "at": 334643.698083,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "05026C0F19AABD92B2F68B9BF82E8900"
+            }
+          ]
+        }
+      },
+      {
+        "at": 334651.794042,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "stopping",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "05026C0F19AABD92B2F68B9BF82E8900"
+            }
+          ]
+        }
+      },
+      {
+        "at": 334653.446167,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "stopped",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": []
+            }
+          ]
+        }
+      },
+      {
+        "at": 334907.123917,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "starting",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": []
+            }
+          ]
+        }
+      },
+      {
+        "at": 334907.178792,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "starting",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "F293D3462B10D7F85CD1E68BF7DD2AA4"
+            }
+          ]
+        }
+      },
+      {
+        "at": 334907.832375,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "starting",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "F293D3462B10D7F85CD1E68BF7DD2AA4"
+            }
+          ]
+        }
+      },
+      {
+        "at": 334917.742583,
+        "sessionId": "1983DCC1995C74F8003C15AACCDBD151",
+        "method": "workerVersionUpdated",
+        "params": {
+          "versions": [
+            {
+              "versionId": "2",
+              "registrationId": "2",
+              "scriptURL": "chrome-extension://nfgjhajcnbnmgnlifhbmknljhjekdile/sw.js",
+              "runningStatus": "running",
+              "status": "activated",
+              "scriptLastModified": 1791929437,
+              "scriptResponseTime": 0,
+              "controlledClients": [],
+              "targetId": "F293D3462B10D7F85CD1E68BF7DD2AA4"
+            }
+          ]
+        }
+      }
+    ],
+    "errors": [],
+    "crashes": []
+  },
+  "nativeTrustedUI": "PASS",
+  "timeReviewIframeRemoved": "PASS",
+  "installedViewportWidths": [
+    {
+      "width": 320,
+      "scroll": 320,
+      "canvas": 282,
+      "reviews": 1,
+      "iframes": 0,
+      "label": "分钟时间线",
+      "method": "CDP viewport on installed native UI"
+    },
+    {
+      "width": 360,
+      "scroll": 360,
+      "canvas": 312,
+      "reviews": 1,
+      "iframes": 0,
+      "label": "分钟时间线",
+      "method": "CDP viewport on installed native UI"
+    },
+    {
+      "width": 400,
+      "scroll": 400,
+      "canvas": 352,
+      "reviews": 1,
+      "iframes": 0,
+      "label": "分钟时间线",
+      "method": "CDP viewport on installed native UI"
+    },
+    {
+      "width": 600,
+      "scroll": 600,
+      "canvas": 552,
+      "reviews": 1,
+      "iframes": 0,
+      "label": "分钟时间线",
+      "method": "CDP viewport on installed native UI"
+    }
+  ],
+  "layoutWidths": "PASS",
+  "realBrowserZoom": "PASS",
+  "nativePermissionControls": "PASS",
+  "downloadChecks": [
+    {
+      "format": "json",
+      "created": "PASS",
+      "complete": "PASS",
+      "ownedDirectory": "PASS",
+      "disk": "PASS",
+      "content": "PASS",
+      "filename": "PASS",
+      "id": 1,
+      "basename": "time-review.json",
+      "received": 241,
+      "ownedByExtension": true,
+      "bytes": 241,
+      "sha256": "3cc02c23b9d8f1b0b52ee5bf6b4d49ba8119e76b22f03c92bab2d5c6008c7385"
+    },
+    {
+      "format": "csv",
+      "created": "PASS",
+      "complete": "PASS",
+      "ownedDirectory": "PASS",
+      "disk": "PASS",
+      "content": "PASS",
+      "filename": "PASS",
+      "id": 2,
+      "basename": "time-review.csv",
+      "received": 44,
+      "ownedByExtension": true,
+      "bytes": 44,
+      "sha256": "55c24b7f5c3e5ccbc3b7fe3915cb7e73720188c2fd93dff8f84c393035dd63d6"
+    }
+  ],
+  "inlineEnrollment": "PASS",
+  "minuteCanvas": "PASS",
+  "canvasKeyboard": "PASS",
+  "unrelatedToolInstall": "PASS",
+  "unrelatedToolLifecycle": "PASS",
+  "unrelatedToolUpgrade": "PASS",
+  "windowFocus": "PASS",
+  "naturalSwSleep": "BLOCKED",
+  "panelClosedCollection": "PASS",
+  "multiSite": "PASS",
+  "longDomainLayout": "PASS",
+  "idleTransition": "PASS",
+  "cleanup": {
+    "terminated": true,
+    "profileRemoved": true,
+    "owned": true
+  },
+  "complete": false,
+  "acceptance": "FAIL",
+  "requiredResults": {
+    "install": "PASS",
+    "realSidePanel": "PASS",
+    "nativeTrustedUI": "PASS",
+    "minuteConsent": "PASS",
+    "download": "PASS",
+    "multiSite": "PASS",
+    "idleTransition": "PASS",
+    "beginAndActiveCollection": "PASS",
+    "pauseResume": "PASS",
+    "websiteGrantRevocation": "NOT_TESTED",
+    "idlePermissionRevocation": "NOT_TESTED",
+    "swRestart": "PASS",
+    "browserRestart": "NOT_TESTED",
+    "disableEnable": "NOT_TESTED",
+    "uninstall": "NOT_TESTED",
+    "realBrowserZoom": "PASS",
+    "windowFocus": "PASS",
+    "panelClosedCollection": "PASS",
+    "unrelatedToolInstall": "PASS",
+    "unrelatedToolLifecycle": "PASS",
+    "minuteCanvas": "PASS",
+    "canvasKeyboard": "PASS",
+    "classification": "NOT_TESTED",
+    "populatedExport": "NOT_TESTED",
+    "reinstall": "NOT_TESTED",
+    "realSidePanelReopened": "NOT_TESTED",
+    "nativePermissionControls": "PASS",
+    "inlineEnrollment": "PASS",
+    "timeReviewIframeRemoved": "PASS",
+    "layoutWidths": "PASS",
+    "historyNavigation": "NOT_TESTED",
+    "longDomainLayout": "PASS",
+    "sameNameSandbox": "NOT_TESTED",
+    "replacementRetirement": "NOT_TESTED",
+    "officialUpgrade": "NOT_TESTED",
+    "unrelatedToolUpgrade": "PASS",
+    "activeSwRecovery": "NOT_TESTED",
+    "naturalSwSleep": "BLOCKED"
+  },
+  "chromeStderr": "\nDevTools listening on ws://127.0.0.1:49616/devtools/browser/921b7145-ad0a-4c83-b8dc-ae55314fcfab\n[54774:74195610:1014/063801.433412:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR\n[54774:74195610:1014/063801.446776:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR\n[54774:74195610:1014/063801.447798:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR\n[54774:74195610:1014/063825.743466:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[54774:74195610:1014/063924.144705:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: QUOTA_EXCEEDED\n[54774:74195610:1014/064121.783251:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2\n"
+}

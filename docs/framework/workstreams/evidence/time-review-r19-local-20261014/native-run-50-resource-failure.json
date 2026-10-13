@@ -1,0 +1,13 @@
+{
+  "nativeFailure": "actionable #refresh timed out",
+  "actualUIError": "E_HOST_STORAGE_WRITE",
+  "systemFailureObserved": "zsh cannot create heredoc temp file: no space left on device",
+  "currentFreeBytes": 6168059904,
+  "inference": "Concurrent low disk most likely caused Chrome storage I/O refusal; inner Chrome storage error not directly retained",
+  "cleanup": {
+    "terminated": true,
+    "profileRemoved": true,
+    "owned": true
+  },
+  "noCacheOrOtherProfileDeleted": true
+}

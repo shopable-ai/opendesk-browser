@@ -562,6 +562,11 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       const newerRelease=officialReleases.find(release=>release.toolId===row.id&&officialToolStatus(release,installed)==='update');
       if(newerRelease){const marker=doc.createElement('span');marker.className='sidebar-tool-update-mark';marker.textContent='可更新';heading.append(marker);}
       const subtitle=doc.createElement('small');subtitle.textContent=row.description;copy.append(heading,subtitle);
+      if(installed.some(other=>other.id!==row.id&&other.title===row.title)){
+        const identity=doc.createElement('span');identity.className='sidebar-tool-item-identity';
+        identity.textContent='安装 ID：'+row.id;copy.append(identity);
+        button.setAttribute('aria-label','打开工具「'+row.title+'」的详情，安装 ID：'+row.id);
+      }
       const version=doc.createElement('span');version.className='sidebar-tool-item-version';
       version.textContent='v'+row.version+(enableReadError?' · 状态异常':sidebarToolEnabled(enableRecords,row.id)?'':' · 已停用');
       button.append(icon,copy,version);button.addEventListener('click',()=>openTool(row.id));item.append(button);list.append(item);

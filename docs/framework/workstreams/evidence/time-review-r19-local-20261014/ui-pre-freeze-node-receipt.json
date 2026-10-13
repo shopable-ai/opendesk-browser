@@ -1,0 +1,30 @@
+{
+  "head": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
+  "node": "v24.16.0",
+  "commands": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "tests/environment/time-review-r16-trusted-native.test.mjs",
+    "tests/environment/time-review-r15-site-grants.test.mjs",
+    "tests/environment/time-review-r13-service.test.mjs",
+    "tests/environment/time-review-r13-consent.test.mjs",
+    "tests/environment/time-review-r12.test.mjs",
+    "tests/environment/time-review-r13.test.mjs",
+    "tests/environment/time-review-host-controls-r51.test.mjs",
+    "tests/environment/time-review-r14-sync-outbox.test.mjs",
+    "tests/environment/sidebar-tools-host.test.mjs",
+    "tests/environment/sidebar-component-contract.test.mjs",
+    "tests/environment/sidebar-r21-design-system.test.mjs",
+    "tests/environment/developer-layout.test.mjs",
+    "tests/environment/sidebar-tool-enable-r26.test.mjs",
+    "tests/environment/sidebar-tool-multiscript-r72.test.mjs"
+  ],
+  "counts": {
+    "pass": 206,
+    "fail": 0,
+    "skip": 0
+  },
+  "exitCode": 0,
+  "scope": "Root affected 14-file regression; final committed snapshot will be validated independently."
+}

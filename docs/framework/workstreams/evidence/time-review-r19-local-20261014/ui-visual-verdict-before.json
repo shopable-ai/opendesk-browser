@@ -1,0 +1,16 @@
+{
+  "owner": "Time Review R1.9 local 01a1364f",
+  "candidate": "ac7d7aa191c131bf28eb2fae3c505c5a6ef30d46",
+  "iteration": 1,
+  "verdict": "NEEDS_FIX",
+  "score": "NOT_SCORED",
+  "issues": [
+    "200% labels in extra-categories become vertically letter-by-letter",
+    "same-title installed tools lack visible distinct identity"
+  ],
+  "evidence": [
+    "native-run-49/real-chrome-200-percent-zoom.png",
+    "native-run-49/official-native-retired-after-local-replacement.png"
+  ],
+  "reviewer": "Poincare independent actual screenshot review"
+}
