@@ -106,6 +106,7 @@ test('Real Chrome always-block and live one-minute quota, Side Panel approval an
     await new Promise(resolve=>http.close(resolve));
     assert.ok(path.basename(profile).startsWith('opendesk-stay-focus-r1-')&&path.dirname(profile)===tmpdir());
     await rm(profile,{recursive:true,force:true,maxRetries:4,retryDelay:200});
+    if(report.quota==='IN_PROGRESS')report.quota='FAIL';
     report.passed=passed;report.chromeErrorTail=errors.slice(-900);
     await writeFile(path.join(OUT,'native-report.json'),JSON.stringify(report,null,2)+'\n');
   });
@@ -220,6 +221,7 @@ test('Real Chrome always-block and live one-minute quota, Side Panel approval an
       'owned:rules.filter(r=>r.id>=730000&&r.id<=730199).length}})()');
     return result.site?.mode==='limit'&&result.site.minutes===1&&result.owned===0;
   },'real UI changed from always block to an unused one-minute quota');
+  report.quota='IN_PROGRESS';
   note('real-ui-one-minute-quota',{minutes:1,storageUsageWasNotModified:true});
 
   // This creates a real HTTP tab and makes it the focused, active Chrome tab.
@@ -276,7 +278,6 @@ test('Real Chrome always-block and live one-minute quota, Side Panel approval an
     'quota trace needs actual pre-threshold foreground observations');
   assert.ok(report.quotaTrace.some(x=>x.focused&&x.idle==='active'&&x.tabId===focusedTab.tabId),
     'real browser must observe focused active non-idle target tab');
-  report.quota='PASS';
   report.quotaEnforcedElapsedMs=reached.elapsedMs;
   report.quotaOvershootMs=reached.elapsedMs-60000;
   note('actual-elapsed-quota-exhaustion',{usedMs:reached.usedMs,
@@ -294,6 +295,7 @@ test('Real Chrome always-block and live one-minute quota, Side Panel approval an
   },'new real HTTP main-frame navigation denied by quota DNR',15000);
   assert.ok(quotaRedirect.startsWith('chrome-extension://'+id+'/stay-focus/blocked-quota.html'));
   report.actualQuotaNavigation='PASS';
+  report.quota='PASS';
   note('quota-real-http-navigation',{status:'PASS',urlPath:'/stay-focus/blocked-quota.html'});
   await click(client,sid,'#sidebar-tool-remove');
   await click(client,sid,'#sidebar-tool-inline-remove-confirm');
