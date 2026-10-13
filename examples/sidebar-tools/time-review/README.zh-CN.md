@@ -1,4 +1,4 @@
-# Time Review · 时间回顾 R1.5.2（Canvas V3 / 站点独立授权）
+# Time Review · 时间回顾 R1.6（第一方可信原生 UI / Canvas V3 / 独立网站授权）
 
 正式界面基准：prototypes/time-review-r12/time-review-r12-canvas-v3-single-track.html。正式 Side Panel 工具只采用单条 24h Canvas、紧凑四象限/生活/未分类和卡片视觉，不采用原型的浏览器外壳、样例时间、模拟同步或账号设置。
 
@@ -9,7 +9,7 @@ Time Review 仍是 opendesk.sidebar-tool.v1，ID 始终是 time-review，能力�
 1. Side Panel → 工具 → 发现工具（或应用市场）→ Time Review → 安装/更新，审阅权限。不能新建相同 ID 的平行工具。
 2. 在工具详情的受信任设置区，**先单独授权 Time Review 可统计的指定 HTTP(S) 网站**（明确看到 Origin 后二次确认）；需要统计所有普通网站时，另外点击「授权全部普通网站…」并明确确认。OpenDesk 主扩展即使有 `<all_urls>`，也不会自动产生本工具的授权。单独授权不会开始计时。
 3. 用户本人授权 Chrome 空闲检测；此权限与 Time Review 的网站范围独立检查，两者不能互相替代。
-4. 在 Time Review 内容页顶部点击「开始记录」：首次若尚未同意网站范围或 idle 权限，当前页面上方直接展开扩展预编译的授权卡，原统计页面仍可见。确认一个精确 HTTP(S) Origin 或全部普通网站及 Chrome 空闲检测后，在授权卡内点击受信任的「开始／恢复记录」，成功后授权卡收起；以后点击顶部「恢复记录」只会出现原位受信任确认条，无需重新同意有效的网站范围。暂停后同一位置变成「恢复记录」。仅统计 Chrome 聚焦且非空闲、非隐身的已授权普通网站；关闭侧栏不停止已开启的可信后台。
+4. 当前扩展正式内置、经固定版本/官方包摘要/安装来源/启停代际核验的 Time Review 1.6.0 **直接在 Side Panel 渲染，不使用工具 iframe**。在其顶部点击「开始记录」：缺少网站范围或 idle 权限时，原位展开可信设置区；手动完成两类必要授权后，**再点击一次顶部「开始记录」即可真实启动，不再有第二次“确认开始”弹窗**。之后有效授权范围内一键暂停、恢复。仅统计 Chrome 前台非空闲、普通窗口内的已授权 HTTP(S) Origin 观察时间；关闭 Side Panel 不停止后台计时。未经核验、AI 生成、导入、同名改写的工具包仍使用 opaque-origin iframe，不能进入可信页面执行。
 5. 在工具内「设置、分钟明细与数据管理」选择开启时，只会打开扩展受信任的工具详情设置区，必须在那里由用户本人点击「开启分钟明细」才会真正生效。**只保存以后真正结算的分钟**，不会根据旧日汇总反推历史。关闭必须经过受信任的工具详情设置区页面内确认，届时删除已有分钟明细，不影响毫秒日汇总。
 6. 在当前网站卡片或所选日期的网站列表修改分类；会重新计算保留期内的分类时长、重要时间、生产率和已存在的分钟色带，绝不重新计时。
 7. 日期箭头查看历史日，「所选日期/近七天」切换排行；设置可调整空闲阈值、排除域名、汇总保留期，导出 JSON/CSV，暂停与撤权；清空全部记录需在受信任设置区完成一次页面内二次确认。卸载会清理本工具本机数据，请先备份。
@@ -73,8 +73,10 @@ Mac Chrome 155 对 Time Review 1.3.1 的真实内容导出、同名文件防覆�
 
 专项回归：`node --test tests/environment/time-review-r12.test.mjs tests/environment/time-review-r13-service.test.mjs tests/environment/time-review-r13-consent.test.mjs tests/environment/time-review-r15-site-grants.test.mjs`。当前候选的 Node、构建、真实 Mac Chrome 结论以及 Git SHA 应以 [R1.5 工作流](../../../docs/framework/workstreams/time-review-r15.md) 中绑定的结果为准；历史 R1.3/R1.4 通过不自动迁移为新包 PASS。
 
-## Side Panel 为什么有 iframe？
+## R1.6：什么情况下仍有 iframe？
 
-这是**内部权限隔离**，不是浏览器新标签，也不是第二个 Time Review。OpenDesk 可信 Side Panel（`src/ui/tool.html`）负责工具标题、安装/卸载、网站与 Chrome 权限确认；每个已安装工具的 UI 在 `sidebar-tools/sandbox.html` 沙箱 iframe 内显示，不能直接访问扩展的高权限 `chrome.*` API。操作只能经 `OpenDeskTool.request`、已有宿主桥、安装身份和可信后台审核。计时由 Service Worker 独立维护，关闭 Side Panel 或销毁 iframe 不等于停止统计。
+iframe 依然是**未获可信 UI 静态准入的动态工具的安全边界**，不是另一个浏览器插件或新的 Host。普通用户编写、AI 生成、第三方导入（包括伪造 `time-review` ID、标题和能力的工具包）依旧在 `sidebar-tools/sandbox.html` 运行，不能访问特权页面 `chrome.*`。没有受信任安装来源和确切编译版本时，即使打开 Time Review 同名包也不直渲，而继续安全沙箱或拒绝。
 
-用户看到的仍应是一个连续的 Side Panel 工具页：必要时原位显示可信授权卡，授权后立即回到同一统计界面。可信操作确认成功时，宿主仅发送不含数据的 `state-changed` 提示，Time Review 再以现有 `time.status` 读取最新状态，不等下一轮 15 秒轮询。
+Time Review 1.6.0 的**唯一 UI 源码**仍是本目录的 `src/main.js`、`src/index.html` 和 `src/style.css`：官方扩展静态编译和受限安装包共享这些源文件，不维护第二套 UI。静态 HTML 不来自用户安装包；默认保留六分类、24h Canvas、数据管理、JSON/CSV 导出。受信任 UI 的所有读写仍经过原 `src/time-review/service.js` 和 `time.review/1.5.0` Host，网站/idle 单独授权，历史存储为 `opendesk.time-review.v1`，无新增 Host、安装器或权限库。
+
+**验收状态**：本节是 R1.6 源码与使用说明，不是 Chrome 实测通过证明。必须在同一提交、工具 SHA-256、WXT 生产/开发构建和原生 Chrome 证据下验证官方无 iframe、动态包有 iframe、320–600px/200% 缩放、计时、停止、撤权、重启、升级及卸载。历史 R1.5.2 的截图/CI 不自动升级。云同步仍为 `LOCAL_ONLY / NO_UPLOAD / BLOCKED`。

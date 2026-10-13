@@ -93,7 +93,7 @@ test('R1.5.1 sandbox start stays inline until genuine trusted Host confirmation'
 test('R1.5.1 incomplete time consent reveals existing trusted inline card, not a new page',async()=>{
   const shell=await readFile('src/ui/sidebar-tools.js','utf8');
   assert.match(shell,/const timeReviewInline=show&&id===TIME_REVIEW_ID/);
-  assert.match(shell,/frameRoot\.hidden=\(show&&!timeReviewInline\)\|\|!frame/);
+  assert.match(shell,/frameRoot\.hidden=\(show&&!timeReviewInline\)\|\|!\(frame\|\|nativeUI\)/);
   assert.match(shell,/display\.setAttribute\('data-time-review-inline'/);
   assert.match(shell,/api\.permissions\.contains\(\{permissions:\['idle'\]\}\)/);
   assert.match(shell,/api\.storage\.local\.get\(TIME_REVIEW_KEY\)/);
