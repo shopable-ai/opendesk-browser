@@ -80,6 +80,28 @@ test('one Provider serves authenticated HTTPS/WSS and target-scoped client submi
       {executorId,tasks:[pin],allowResult:false},admin.adminToken);
     const permittedResultClient=await local('/admin/client-grant',
       {executorId,tasks:[pin],allowResult:true},admin.adminToken);
+    // A normal Chrome user can issue and revoke a fixed Task client without
+    // ever receiving the Provider's local Admin credential.
+    const self=await p('/v1/client-grant',{grantId,tasks:[searchPin],
+      allowResult:false,label:'Side Panel approved search'},executor.credential);
+    assert.match(self.credential,/^[a-f0-9]{64}$/);
+    let listing=await p('/v1/client-list',{offset:0,limit:50},executor.credential);
+    assert.equal(listing.total,3);
+    assert.ok(listing.clients.some(c=>c.clientId===self.clientId&&
+      c.label==='Side Panel approved search'&&c.allowResult===false));
+    assert.equal(JSON.stringify(listing).includes(self.credential),false);
+    await assert.rejects(p('/v1/client-list',{},grant.credential),{code:'E_AUTH'});
+    await assert.rejects(p('/v1/client-grant',{grantId,tasks:[searchPin],
+      allowResult:false,label:'Untrusted'},grant.credential),{code:'E_AUTH'});
+    await assert.rejects(p('/v1/client-grant',{grantId,tasks:[{
+      ...searchPin,sourceHash:'0'.repeat(64)}],allowResult:false,label:'Wrong Task'},
+      executor.credential),{code:'E_CLIENT_SCOPE'});
+    await p('/v1/client-revoke',{clientId:self.clientId},executor.credential);
+    await assert.rejects(p('/v1/submit',{requestKey:'revoked-self',...searchPin,
+      params:{keyword:'Should not run'},target},self.credential),{code:'E_AUTH'});
+    listing=await p('/v1/client-list',{},executor.credential);
+    assert.equal(listing.total,2);
+    assert.equal(listing.clients.some(c=>c.clientId===self.clientId),false);
     assert.equal(grant.executorId,executorId);
     assert.match(grant.credential,/^[a-f0-9]{64}$/);
     await assert.rejects(p('/v1/submit',{},executor.credential),{code:'E_AUTH'});
