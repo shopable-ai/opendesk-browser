@@ -37,7 +37,20 @@ function parsedVersion(v){
   return m?Number(m[1]):null;
 }
 export function buildNativeCatalog({sources,compatibility,sourceManifest}){
-  const legacy=compatibility.operations;
+  // These are discovery-only native correlations, NOT runtime aliases.
+  // The archived R8 35-item compatibility list has no authority to create SDK calls.
+  const currentTabs=[
+    {currentPublicOperation:'browser.tabs.create',nativeApis:['chrome.tabs.create'],
+      mappingKind:'SCOPED',existingHost:'src/platform/chrome/context-menus.js'},
+    {currentPublicOperation:'browser.tabs.activateOwned',
+      nativeApis:['chrome.tabs.get','chrome.tabs.update','chrome.windows.update'],
+      mappingKind:'SCOPED',existingHost:'src/platform/chrome/context-menus.js'},
+    {currentPublicOperation:'browser.tabs.removeOwned',
+      nativeApis:['chrome.tabs.get','chrome.tabs.remove','chrome.webNavigation.getFrame'],
+      mappingKind:'SCOPED',existingHost:'src/platform/chrome/context-menus.js'}
+  ];
+  const legacy=[...compatibility.operations.filter(row=>
+    Object.hasOwn(BROWSER_OPERATIONS,row.currentPublicOperation)),...currentTabs];
   const entries=[];
   for(const src of sources){
     const parsed=parseChromiumJson(src.body),docs=Array.isArray(parsed)?parsed:[parsed];
