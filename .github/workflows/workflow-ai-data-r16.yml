@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'src/ui/workflow/**'
+      - 'src/framework/workflow/**'
       - 'src/ui/tool.html'
       - 'src/ui/tool-shell.css'
       - 'tests/environment/workflow-*.test.mjs'
@@ -14,7 +15,7 @@ permissions:
 jobs:
   data-sharing-and-workflow:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -27,6 +28,12 @@ jobs:
           node --check src/ui/workflow/local-codex.js
           node --check src/ui/workflow/ai-plan.js
           node --check src/ui/workflow/direct-execution.js
+      - name: Install locked dependencies for real build and tests
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Direct-send provider, payload minimization and workflow regressions
         run: |
-          node --test tests/environment/workflow-ai-data-sharing.test.mjs tests/environment/workflow-ui-states.test.mjs tests/environment/workflow-r15.test.mjs tests/environment/workflow-local-codex.test.mjs tests/environment/workflow-direct-execution.test.mjs
+          node --test tests/environment/workflow-direct-execution.test.mjs tests/environment/workflow-local-codex.test.mjs tests/environment/workflow-r15.test.mjs tests/environment/workflow-ai-observation.test.mjs tests/environment/workflow-ai-data-sharing.test.mjs tests/environment/workflow-ai-transport.test.mjs tests/environment/workflow-ui-states.test.mjs
+      - name: Real source verification
+        run: npm run check
+      - name: Real development build
+        run: npm run build:dev

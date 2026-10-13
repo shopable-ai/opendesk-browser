@@ -30,9 +30,10 @@ export async function compileWorkflow(value,{verifyFill=false}={}) {
       const input = step.param ? 'params[' + JSON.stringify(step.param) + ']' : JSON.stringify(step.text);
       lines.push('  await ' + locator(step) + '.fill(' + input + ');');
       if(verifyFill) {
-        lines.push('  if (String(await ' + locator(step) + '.inputValue()) !== String(' + input +
+        lines.push('  { const __actual = await ' + locator(step) + '.inputValue();');
+        lines.push('    if (String(__actual) !== String(' + input +
           ')) throw new Error(' + JSON.stringify('Workflow input verification failed: ' + step.stepId) + ');');
-        lines.push('  __results[' + id + '] = {kind:"input-readback",matched:true};');
+        lines.push('    __results[' + id + '] = {kind:"input-readback",matched:true,value:__actual}; }');
       }
     }
     if (step.op === 'click') lines.push('  await ' + locator(step) + '.click();');

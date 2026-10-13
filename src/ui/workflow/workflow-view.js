@@ -486,6 +486,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         status('执行或收尾状态未知，禁止自动重新执行。请检查历史与网页副作用。',true);
       else status(''); // Result panel owns confirmed completion feedback.
       const view=await host.controller.snapshotControllerRun({runId:claim.runId});
+      const result=view?.results?.find(item=>item?.runId===claim.runId);
       if(!disposed) {
         const decoded=resultDisplay(claim.runId,view);
         if(prepared) {
@@ -500,8 +501,11 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
             status('运行未成功或结果无法确认，请检查真实结果及页面效果；不会自动重试。',true);
           return {ok:lastRun==='success',runId:claim.runId,resultId:proof?.resultId||null};
         }
-        lastRun=completed?.state==='paused_unknown'||completed?.pendingSettlement||!result?.outcome?.ok||!decoded
-          ?'failed':'success';
+        lastRun=completed?.state==='completed'&&completed?.retirement?.state==='released'&&
+          !completed?.pendingSettlement&&result?.state==='completed'&&result?.outcome?.ok===true&&decoded&&
+          result?.resultId===claim.resultId&&view?.run?.resultId===claim.resultId&&
+          view?.run?.state==='completed'&&view.run.workerRetired===true&&
+          view.run.retirementState==='released'?'success':'failed';
         if(lastRun==='success' && view?.run?.state==='completed' && view.run.workerRetired===true &&
           view.run.retirementState==='released' && view.run.runId===claim.runId &&
           view.run.target?.documentId===captured.documentId &&
@@ -821,7 +825,6 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       directVerifiedSerial=stable();
       proposal=null;proposalBase=null;proposalSerial=null;
       get('workflow-ai-proposal').hidden=true;render();persistDraft();
-      appendChat('系统','已解析 '+result.steps.length+' 个动作，正在当前网页直接执行…');
       const execution=await run(null,{freeze,captured,params:prepared.params,hasReadback:prepared.hasReadback,permission:Promise.resolve(true)});
       if(execution?.ok) {
         appendChat('执行结果','已通过 RunHost 执行并核对回执：'+execution.runId+' / '+execution.resultId+
@@ -831,8 +834,13 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       } else {
         appendChat('执行结果','本次未能确认成功；不会自动重试。请检查真实网页与运行详情。');
       }
-    }catch(error){if(!disposed&&epoch===planningGeneration)status(
-      frozen.selected==='local_codex'?localFailure(error):format(error),true);}
+    }catch(error){
+      if(!disposed&&epoch===planningGeneration){
+        const message=frozen.selected==='local_codex'?localFailure(error):format(error);
+        appendChat('执行结果','本次任务未完成：'+message+'。不会自动重放。');
+        status(message,true);
+      }
+    }
     finally{
       if(epoch===planningGeneration){busy=false;phase='idle';planningAbort=null;pendingApproval?.settle({decision:'deny'});
         get('workflow-ai-progress').hidden=true;if(!disposed){updateLocalStatus();updateButtons();}}

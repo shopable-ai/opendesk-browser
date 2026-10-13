@@ -101,7 +101,7 @@ test('R15.3 compact workflow header and composer use meaningful icons without re
   assert.doesNotMatch(snippet,/id="workflow-head-site"|id="workflow-provider-summary"/);
   assert.match(snippet,/id="workflow-saved-state"[^>]*hidden/);
   assert.match(snippet,/id="workflow-target-warning"[^>]*hidden/);
-  assert.match(css,/\.workflow-icon-button\{[^}]*width:36px;height:36px/);
+  assert.match(css,/#workspace-content \.workflow-icon-button,#workspace-content \.workflow-send-button\{width:44px;height:44px;min-width:44px;min-height:44px\}/);
   assert.match(css,/#workflow-provider-settings:not\(\[open\]\)\{display:none\}/);
   assert.doesNotMatch(view,/workflow-head-site|workflow-provider-summary/);
   assert.match(view,/warning.hidden=!mismatch/);
@@ -146,7 +146,7 @@ test('workflow model selector stays minimal without manual creation or custom ap
   assert.match(settings,/模型推理可能联网/);
   assert.match(settings,/可能保存在 Codex 本机对话中/);
   assert.match(settings,/请勿填写 Codex 登录凭据|API Key（不保存）/);
-  assert.match(html,/id="workflow-ai-plan"[^>]*aria-label="生成工作流步骤"/);
+  assert.match(html,/id="workflow-ai-plan"[^>]*aria-label="发送并执行浏览器任务"/);
   assert.doesNotMatch(html,/id="workflow-ai-disclosure"|id="workflow-ai-review-|id="workflow-ai-revoke"/);
   assert.doesNotMatch(settings,/模型的数据发送许可|同意并生成|每次读取仍需确认/);
   assert.match(html,/id="workflow-provider-settings" class="workflow-provider"/);

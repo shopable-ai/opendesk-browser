@@ -608,9 +608,9 @@
           <div id="workflow-chat-intro" class="workflow-chat-intro">
             <div class="workflow-chat-mark" aria-hidden="true">✦</div>
             <h3 id="workflow-ai-title">想自动完成什么操作？</h3>
-            <p>描述需求，整理成可复用的操作步骤。</p>
+            <p>描述任务并发送，获授权的低风险操作会直接执行；完成后可选择保存为工作流。</p>
           </div>
-          <div id="workflow-ai-transcript" class="workflow-chat-transcript" role="log" aria-label="AI 规划对话记录" aria-live="polite" hidden></div>
+          <div id="workflow-ai-transcript" class="workflow-chat-transcript" role="log" aria-label="浏览器任务对话与执行记录" aria-live="polite" hidden></div>
           <p id="workflow-planning-indicator" class="workflow-planning-indicator" role="status" hidden>✦ 正在整理可检查的语义步骤…</p>
           <ol id="workflow-ai-progress" class="workflow-ai-progress" aria-label="Codex 实时规划进度" hidden></ol>
           <section id="workflow-ai-approval" class="workflow-ai-approval od-alert od-alert--warning" aria-labelledby="workflow-ai-approval-title" hidden>
@@ -680,7 +680,7 @@
         <textarea id="workflow-ai-request" rows="2" maxlength="4000" placeholder="描述要自动完成的任务…"></textarea>
         <div class="workflow-composer-actions">
           <button type="button" id="workflow-provider-toggle" class="workflow-icon-button workflow-settings-button od-icon-button" aria-label="配置 AI 模型与数据授权" aria-expanded="false" aria-controls="workflow-provider-settings" title="AI 设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h9m6 0h1M4 17h1m6 0h9"></path><circle cx="16" cy="7" r="3"></circle><circle cx="8" cy="17" r="3"></circle></svg></button>
-          <button id="workflow-ai-plan" type="button" class="workflow-send-button od-icon-button od-icon-button--primary" aria-label="生成工作流步骤" title="生成步骤"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 19V5m-7 7 7-7 7 7"></path></svg></button>
+          <button id="workflow-ai-plan" type="button" class="workflow-send-button od-icon-button od-icon-button--primary" aria-label="发送并执行浏览器任务" title="发送并执行"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 19V5m-7 7 7-7 7 7"></path></svg></button>
           <button id="workflow-ai-cancel" type="button" class="workflow-send-button workflow-ai-cancel od-icon-button od-icon-button--danger" aria-label="停止 AI 规划" title="停止 AI 规划" hidden><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg></button>
         </div>
         <details id="workflow-provider-settings" class="workflow-provider">
