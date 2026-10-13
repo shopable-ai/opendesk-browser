@@ -1608,30 +1608,57 @@ test('R56 dirty tool enable/disable uses a cancellable inline review and cannot 
   assert.deepEqual(store.get(key),privateData);
 });
 
-test('R1.3 canonical browser exports reuse installed user.export services and reject absent capability',async t=>{
+test('R10 canonical exports need real Side Panel click plus one-use Host authorization',async t=>{
   const tool={...sample,capabilities:[...sample.capabilities,'user.export']};
   const f=await hostFixture(t,{tool,store:new Map([[SIDEBAR_TOOL_STORE,[tool]]])});
-  const old=Object.getOwnPropertyDescriptor(globalThis,'navigator'),copied=[],downloads=[];
+  const old=Object.getOwnPropertyDescriptor(globalThis,'navigator'),oldLocation=globalThis.location;
+  const copied=[],downloads=[],hostCalls=[];
   Object.defineProperty(globalThis,'navigator',{configurable:true,value:{clipboard:{writeText:async text=>copied.push(text)}}});
-  t.after(()=>{if(old)Object.defineProperty(globalThis,'navigator',old);else delete globalThis.navigator;});
+  globalThis.location={href:'chrome-extension://test/ui/tool.html?hostInstanceId=01234567-89ab-4def-8123-456789abcdef'};
+  t.after(()=>{if(old)Object.defineProperty(globalThis,'navigator',old);else delete globalThis.navigator;
+    globalThis.location=oldLocation;});
   f.api.downloads={download:async args=>{downloads.push(args);return 91;}};
-  const ask=async(operation,payload,id)=>{
-    f.ask(operation,payload,id);await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId===id));
+  f.api.runtime.sendMessage=async message=>{
+    hostCalls.push(message);
+    if(message.operation==='browser.intent.confirm')
+      return {ok:true,data:{approvalRef:'single-use-host-approval'}};
+    if(message.kind==='tool'&&message.approvalRef==='single-use-host-approval')
+      return {ok:true,data:{authorized:true}};
+    throw new Error('Unexpected Host request');
+  };
+  const ask=async(operation,payload,id,click=true)=>{
+    f.ask(operation,payload,id);
+    await settle(()=>!f.elements['sidebar-tool-action-review'].hidden||
+      f.frame.contentWindow.sent.some(row=>row.requestId===id));
+    if(!f.elements['sidebar-tool-action-review'].hidden){
+      assert.equal(copied.length+downloads.length,0+effects,'sandbox request must not have an effect before click');
+      f.elements['sidebar-tool-action-continue'].emit('click',{isTrusted:click});
+    }
+    await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId===id));
     return f.frame.contentWindow.sent.find(row=>row.requestId===id);
   };
+  let effects=0;
   const text='x'.repeat(20000);
   assert.equal((await ask('browser.clipboard.writeText',{text},'browser-copy')).result.copied,true);
-  assert.equal((await ask('clipboard.writeText',{text},'legacy-copy')).result.copied,true);
-  assert.deepEqual(copied,[text,text]);
+  effects++;assert.deepEqual(copied,[text]);
   assert.deepEqual((await ask('browser.downloads.text',{text:'notes',filename:'notes.md'},'browser-download')).result,{downloadId:91});
-  assert.deepEqual((await ask('file.download',{text:'notes',filename:'notes.md'},'legacy-download')).result,{downloadId:91});
-  assert.deepEqual(downloads[0],downloads[1]);
-  const invalid=await ask('browser.downloads.text',{text:'notes',filename:'escape.txt'},'invalid-download');
+  effects++;assert.equal(downloads.length,1);
+  assert.deepEqual((await ask('browser.downloads.text',{text:'{}',filename:'notes.json'},'json-download')).result,{downloadId:91});
+  effects++;assert.equal(downloads.length,2);
+  assert.equal(downloads.at(-1).url.startsWith('data:application/json;'),true);
+  const invalid=await ask('browser.downloads.text',{text:'notes',filename:'../escape.txt'},'invalid-download');
   assert.equal(invalid.ok,false);assert.equal(downloads.length,2);
+  const untrusted=await ask('browser.clipboard.writeText',{text:'blocked'},'untrusted-click',false);
+  assert.equal(untrusted.ok,false);assert.equal(copied.length,1);
+  const oldCopy=await ask('clipboard.writeText',{text},'retired-copy');
+  const oldDownload=await ask('file.download',{text,filename:'notes.md'},'retired-download');
+  assert.equal(oldCopy.ok,false);assert.equal(oldDownload.ok,false);
+  assert.equal(copied.length,1);assert.equal(downloads.length,2);
+  assert(hostCalls.filter(row=>row.operation==='browser.intent.confirm').length>=3);
   const missing={...tool,capabilities:sample.capabilities};
   f.store.set(SIDEBAR_TOOL_STORE,[missing]);
   const stale=await ask('browser.clipboard.writeText',{text:'stale'},'stale-copy');
-  assert.equal(stale.ok,false);assert.equal(copied.length,2);
+  assert.equal(stale.ok,false);assert.equal(copied.length,1);
 });
 test('R1.3 frontend status and list reflect callable export services and include mounted package identity',async t=>{
   const tool={...sample,capabilities:[...sample.capabilities,'user.export']};
