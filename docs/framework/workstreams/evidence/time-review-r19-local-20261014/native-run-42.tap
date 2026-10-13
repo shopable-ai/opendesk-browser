@@ -1,0 +1,93 @@
+TAP version 13
+# TIME_NATIVE trusted-open {"selector":"\#catalog-open-dev-sidebar","x":89.25,"y":135.1484375}
+# TIME_NATIVE install {"version":"1.6.0"}
+# TIME_NATIVE native-canvas {"quadrants":4,"extras":2,"day":"0秒","timeline":"尚无分钟明细","horizontal":true,"frameGeometry":{"viewportHeight":815,"documentHeight":815,"rootHeight":1109.828125},"outerGeometry":{"viewportHeight":815,"nativeHeight":1109.828125,"iframeCount":0,"hostScrollHeight":815}}
+# TIME_NATIVE installed-native-widths {"verdict":"PASS","method":"installed SIDE_PANEL CSS viewport override","widths":[320,360,400,600]}
+# TIME_NATIVE actual-webarea-geometry {"geometry":{"x":180,"y":419.7890625,"width":360,"height":815,"visible":true},"areas":[{"description":"","enabled":true,"focused":true,"position":{"x":30,"y":198},"role":"AXWebArea","size":{"height":799,"width":814},"subrole":"","title":"OpenDesk Browser","value":""},{"description":"","enabled":true,"focused":false,"position":{"x":853,"y":181},"role":"AXWebArea","size":{"height":815,"width":360},"subrole":"","title":"OpenDesk Browser","value":""}]}
+# TIME_NATIVE actual-os-pointer {"selector":"\#minute-canvas","x":1033,"y":600.7890625,"visible":true}
+# TIME_NATIVE real-chrome-zoom {"verdict":"PASS","source":"macOS CGEvent Command+Plus","steps":5,"baseline":{"cssWidth":360,"cssScrollWidth":360,"cssHeight":815,"contentHeight":815,"dpr":2,"canvasWidth":312},"observed":{"cssWidth":180,"cssScrollWidth":180,"cssHeight":407,"contentHeight":407,"dpr":4,"canvasWidth":142},"reason":null,"browser200PercentVerified":true}
+# TIME_NATIVE native-permission-actions {"initiallyIdleGranted":false,"duplicateStartHidden":true}
+# TIME_NATIVE trusted-native-consent-unmodified {"minuteConsent":false}
+# TIME_NATIVE trusted-minute-optin {"minuteConsent":true}
+# TIME_NATIVE trusted-minute-withdrawal {"minuteConsent":false}
+# TIME_NATIVE download-json {"format":"json","created":"PASS","complete":"PASS","ownedDirectory":"PASS","disk":"PASS","content":"PASS","filename":"PASS","id":1,"basename":"time-review.json","received":241,"ownedByExtension":true,"bytes":241,"sha256":"3cc02c23b9d8f1b0b52ee5bf6b4d49ba8119e76b22f03c92bab2d5c6008c7385"}
+# TIME_NATIVE download-csv {"format":"csv","created":"PASS","complete":"PASS","ownedDirectory":"PASS","disk":"PASS","content":"PASS","filename":"PASS","id":2,"basename":"time-review.csv","received":44,"ownedByExtension":true,"bytes":44,"sha256":"55c24b7f5c3e5ccbc3b7fe3915cb7e73720188c2fd93dff8f84c393035dd63d6"}
+# TIME_NATIVE native-inline-enrollment {"trustedExistingControls":true,"nativeUIVisible":true,"iframeRemoved":true,"domFocusOrder":true,"siteGrantUntouched":true}
+# TIME_NATIVE native-idle-ui-reflects-grant {"granted":true,"duplicateGrantHidden":true}
+# TIME_NATIVE actual-webarea-geometry {"geometry":{"x":407,"y":43.9375,"width":814,"height":799,"visible":true},"areas":[{"description":"","enabled":true,"focused":true,"position":{"x":30,"y":198},"role":"AXWebArea","size":{"height":799,"width":814},"subrole":"","title":"Time Review native","value":""},{"description":"","enabled":true,"focused":true,"position":{"x":853,"y":181},"role":"AXWebArea","size":{"height":815,"width":360},"subrole":"","title":"OpenDesk Browser","value":""}]}
+# TIME_NATIVE actual-os-pointer {"selector":"h1","x":437,"y":241.9375,"visible":true}
+# TIME_NATIVE site-grant {"origin":"http://127.0.0.1:61419","source":"native trusted click"}
+# TIME_NATIVE trusted-start-immediate-ui {"pauseVisible":true,"noIframe":true,"noSecondConfirmation":true}
+# TIME_NATIVE native-observation-gates-before-input {"focused":true,"windowType":"normal","idle":"active","isLoopbackTab":true,"hasHostPermission":true}
+# TIME_NATIVE native-observation-gates-final {"focused":true,"windowType":"normal","idle":"active","isLoopbackTab":true,"hasHostPermission":true}
+# TIME_NATIVE real-web-checkpoint {"host":"127.0.0.1","paused":false,"startedAt":1791924771697,"hasPermission":true}
+# TIME_NATIVE real-http-activity {"host":"127.0.0.1","ms":1017,"from":"real active browser tab"}
+# TIME_NATIVE actual-webarea-geometry {"geometry":{"x":180,"y":419.7890625,"width":360,"height":815,"visible":true},"areas":[{"description":"","enabled":true,"focused":true,"position":{"x":30,"y":198},"role":"AXWebArea","size":{"height":799,"width":814},"subrole":"","title":"Time Review native","value":""},{"description":"","enabled":true,"focused":true,"position":{"x":853,"y":181},"role":"AXWebArea","size":{"height":815,"width":360},"subrole":"","title":"OpenDesk Browser","value":""}]}
+# TIME_NATIVE actual-os-pointer {"selector":"\#minute-canvas","x":1033,"y":600.7890625,"visible":true}
+# TIME_NATIVE actual-canvas-keyboard-focus {"focused":[{"description":"","enabled":true,"focused":true,"position":{"x":22,"y":101},"role":"AXGroup","size":{"height":34,"width":112},"subrole":"","title":"","value":""},{"description":"","enabled":true,"focused":true,"position":{"x":30,"y":198},"role":"AXWebArea","size":{"height":799,"width":814},"subrole":"","title":"Time Review native","value":""},{"description":"分钟时间线","enabled":true,"focused":true,"position":{"x":877,"y":574},"role":"AXSlider","size":{"height":54,"width":312},"subrole":"","title":"分钟时间线","value":""}]}
+# TIME_NATIVE real-minute-canvas {"realEntries":true,"keyboard":true,"ariaMinute":60}
+# TIME_NATIVE unrelated-official-install {"toolId":"reading-toc","previouslyInstalled":true,"disableEnable":true,"nativeStillMounted":true,"authorizationUnchanged":true,"paused":false}
+# TIME_NATIVE unrelated-official-install {"toolId":"cookie-editor","previouslyInstalled":false,"disableEnable":true,"nativeStillMounted":true,"authorizationUnchanged":true,"paused":false}
+# TIME_NATIVE unrelated-official-install {"toolId":"stay-focus","previouslyInstalled":false,"disableEnable":true,"nativeStillMounted":true,"authorizationUnchanged":true,"paused":false}
+# TIME_NATIVE focus-retirement-measurement {"observedDelta":179,"permittedDelta":1163,"blurAt":1791924780789,"checkpointAt":1791924780626}
+# TIME_NATIVE real-window-focus {"foreground":false,"totalsFrozen":true}
+# TIME_NATIVE actual-webarea-geometry {"geometry":{"x":600,"y":43.9375,"width":1200,"height":807,"visible":true},"areas":[{"description":"","enabled":true,"focused":true,"position":{"x":22,"y":198},"role":"AXWebArea","size":{"height":807,"width":1200},"subrole":"","title":"Time Review native","value":""}]}
+# TIME_NATIVE actual-os-pointer {"selector":"h1","x":622,"y":241.9375,"visible":true}
+# TIME_NATIVE panel-closed-observation {"window":{"alwaysOnTop":false,"focused":true,"height":950,"id":621070791,"incognito":false,"left":22,"state":"normal","top":55,"type":"normal","width":1200},"idle":"active","alarm":{"name":"opendesk.time-review.heartbeat.v1","periodInMinutes":0.5,"persistAcrossSessions":true,"scheduledTime":1791924861347.415},"state":{"authorizedEpoch":null,"authorizedHash":"9ca3c190a5ff96da5b146ce5ed66d74586b28f9359588f37bb505208de6a08f1","categories":{},"checkpoint":{"at":1791924831354,"host":"127.0.0.1","offset":-480,"origin":"http://127.0.0.1:61419","session":"68e093e6-e952-4412-9082-7e6a404a0ca3","tabId":621070794,"windowId":621070791},"days":{"2026-10-14":{"127.0.0.1":31363}},"discardedMs":22823,"highWater":1791924831349,"minuteConsent":true,"minuteDays":{"2026-10-14":{"ambiguous":false,"entries":[[292,"127.0.0.1",2403],[293,"127.0.0.1",28631]],"offset":-480,"truncated":false}},"paused":false,"settings":{"excludedHosts":[],"idleSeconds":60,"retentionDays":90},"siteGrants":{"allSites":false,"origins":["http://127.0.0.1:61419"]},"version":1}}
+# TIME_NATIVE real-panel-closed-collection {"noSidePanel":true,"noTimeRpc":true,"ms":28016}
+# TIME_NATIVE actual-webarea-geometry {"geometry":{"x":407,"y":43.9375,"width":814,"height":799,"visible":true},"areas":[{"description":"","enabled":true,"focused":true,"position":{"x":30,"y":198},"role":"AXWebArea","size":{"height":799,"width":814},"subrole":"","title":"Time Review native","value":""},{"description":"","enabled":true,"focused":false,"position":{"x":853,"y":181},"role":"AXWebArea","size":{"height":815,"width":360},"subrole":"","title":"OpenDesk Browser","value":""}]}
+# TIME_NATIVE actual-os-pointer {"selector":"h1","x":437,"y":241.9375,"visible":true}
+# TIME_NATIVE actual-webarea-geometry {"geometry":{"x":407,"y":43.9375,"width":814,"height":799,"visible":true},"areas":[{"description":"","enabled":true,"focused":true,"position":{"x":30,"y":198},"role":"AXWebArea","size":{"height":799,"width":814},"subrole":"","title":"Time Review native","value":""},{"description":"","enabled":true,"focused":false,"position":{"x":853,"y":181},"role":"AXWebArea","size":{"height":815,"width":360},"subrole":"","title":"OpenDesk Browser","value":""}]}
+# TIME_NATIVE actual-os-pointer {"selector":"h1","x":437,"y":241.9375,"visible":true}
+# TIME_NATIVE real-site-switch {"firstHost":"127.0.0.1","firstMs":31375,"secondHost":"localhost","secondMs":1847,"separateTotals":true}
+# TIME_NATIVE actual-webarea-geometry {"geometry":{"x":407,"y":43.9375,"width":814,"height":799,"visible":true},"areas":[{"description":"","enabled":true,"focused":true,"position":{"x":30,"y":198},"role":"AXWebArea","size":{"height":799,"width":814},"subrole":"","title":"Time Review native","value":""},{"description":"","enabled":true,"focused":true,"position":{"x":853,"y":181},"role":"AXWebArea","size":{"height":815,"width":360},"subrole":"","title":"OpenDesk Browser","value":""}]}
+# TIME_NATIVE actual-os-pointer {"selector":"h1","x":437,"y":241.9375,"visible":true}
+# TIME_NATIVE actual-webarea-geometry {"geometry":{"x":407,"y":43.9375,"width":814,"height":799,"visible":true},"areas":[{"description":"","enabled":true,"focused":true,"position":{"x":30,"y":198},"role":"AXWebArea","size":{"height":799,"width":814},"subrole":"","title":"Time Review native","value":""},{"description":"","enabled":true,"focused":false,"position":{"x":853,"y":181},"role":"AXWebArea","size":{"height":815,"width":360},"subrole":"","title":"OpenDesk Browser","value":""}]}
+# TIME_NATIVE actual-os-pointer {"selector":"h1","x":437,"y":241.9375,"visible":true}
+# TIME_NATIVE real-long-domain-layout {"width":320,"scroll":320,"host":"very-long-actual-time-review-domain-abcdefghijklmnopqrstuvwxyz.localhost","canvas":282,"method":"installed native CSS viewport"}
+# TIME_NATIVE real-long-domain-layout {"width":360,"scroll":360,"host":"very-long-actual-time-review-domain-abcdefghijklmnopqrstuvwxyz.localhost","canvas":312,"method":"installed native CSS viewport"}
+# TIME_NATIVE real-long-domain-layout {"width":400,"scroll":400,"host":"very-long-actual-time-review-domain-abcdefghijklmnopqrstuvwxyz.localhost","canvas":352,"method":"installed native CSS viewport"}
+# TIME_NATIVE real-long-domain-layout {"width":600,"scroll":600,"host":"very-long-actual-time-review-domain-abcdefghijklmnopqrstuvwxyz.localhost","canvas":552,"method":"installed native CSS viewport"}
+# TIME_NATIVE actual-webarea-geometry {"geometry":{"x":407,"y":43.9375,"width":814,"height":799,"visible":true},"areas":[{"description":"","enabled":true,"focused":true,"position":{"x":30,"y":198},"role":"AXWebArea","size":{"height":799,"width":814},"subrole":"","title":"Time Review native","value":""},{"description":"","enabled":true,"focused":true,"position":{"x":853,"y":181},"role":"AXWebArea","size":{"height":815,"width":360},"subrole":"","title":"OpenDesk Browser","value":""}]}
+# TIME_NATIVE actual-os-pointer {"selector":"h1","x":437,"y":241.9375,"visible":true}
+# TIME_NATIVE real-idle-transition {"enteredIdle":true,"idleTotalsFrozen":true,"resumedHost":"localhost","postIdleMs":1683}
+# TIME_NATIVE real-pause {"ms":31464}
+# TIME_NATIVE real-service-worker-restart {"ms":31464,"method":"Target.closeTarget","targetChanged":true}
+# TIME_NATIVE real-resume {"paused":false}
+# TIME_NATIVE actual-webarea-geometry {"geometry":{"x":407,"y":43.9375,"width":814,"height":799,"visible":true},"areas":[{"description":"","enabled":true,"focused":true,"position":{"x":30,"y":198},"role":"AXWebArea","size":{"height":799,"width":814},"subrole":"","title":"Time Review native","value":""},{"description":"","enabled":true,"focused":true,"position":{"x":853,"y":181},"role":"AXWebArea","size":{"height":815,"width":360},"subrole":"","title":"OpenDesk Browser","value":""}]}
+# TIME_NATIVE actual-os-pointer {"selector":"h1","x":437,"y":241.9375,"visible":true}
+# TIME_NATIVE real-site-authorization-revocation {"chromeIdleRetained":true,"checkpointRetired":true,"unauthorizedRestartDenied":true,"historyPreserved":true,"regrantExplicit":true}
+# TIME_NATIVE real-idle-permission-revocation {"chromePermissionRemoved":true,"revokedHash":true,"checkpointRetired":true,"heartbeatRetired":true,"unauthorizedRestartDenied":true,"daysPreserved":true}
+# TIME_NATIVE actual-webarea-geometry {"geometry":{"x":120.546875,"y":544.328125,"width":360,"height":815,"visible":true},"areas":[{"description":"","enabled":true,"focused":true,"position":{"x":30,"y":198},"role":"AXWebArea","size":{"height":799,"width":814},"subrole":"","title":"OpenDesk Browser","value":""},{"description":"","enabled":true,"focused":false,"position":{"x":853,"y":181},"role":"AXWebArea","size":{"height":815,"width":360},"subrole":"","title":"OpenDesk Browser","value":""}]}
+# TIME_NATIVE actual-os-pointer {"selector":"\#sites .detail-item:nth-child(2) .row-edit select","x":973.546875,"y":725.328125,"visible":true}
+# TIME_NATIVE real-classification {"host":"127.0.0.1","category":2,"unchangedTime":true,"visible":true}
+# TIME_NATIVE real-history-navigation {"previousEmptyDay":true,"currentDayRestored":true,"weekRecords":true,"ranking":true}
+# TIME_NATIVE populated-export {"format":"json","filename":"time-review (1).json","bytes":1071,"sha256":"9f1aeb905f622ade052b09ebf621121ce00dbe453425a09a0cefc23f7ec35b9b","actualWebsiteTime":true}
+# TIME_NATIVE populated-export {"format":"csv","filename":"time-review (1).csv","bytes":222,"sha256":"f69740234324dd66fec07446f33ab2620a11426e20fbd1c3ee755cb0d54c0ce0","actualWebsiteTime":true}
+# TIME_NATIVE real-chrome-restart {"previousPid":99082,"newPid":99415,"sameProfile":true,"sessionChanged":true,"toolVersion":"1.6.0","days":1,"paused":true}
+# TIME_NATIVE real-sidepanel-reopened-after-chrome-restart {"ownSidePanel":true,"documentId":"A942A9D330B47200BE5D9DDA04801E3C","targetId":"DDE3946E32BA86595A0A2DF91B8A0AA7"}
+# TIME_NATIVE real-tool-disable-reenable {"rotatedEpoch":true,"daysPreserved":true,"noAutoStart":true}
+# TIME_NATIVE real-tool-uninstall {"selective":true,"recordDeleted":true,"othersIntact":true,"noResurrection":true}
+# TIME_NATIVE real-tool-reinstall {"version":"1.6.0","newConsentRequired":true,"oldDataNotResurrected":true,"noIframe":true}
+# TIME_NATIVE native-file-review-install {"id":"time-review-lookalike","version":"1.6.0","file":"/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/native-run-42/time-review-lookalike.opendesk-tool.json","sha256":"09809030242e8993be461e0167dc67749c05b3ba38f780c22839e9a1a9a215e6"}
+# TIME_NATIVE same-name-real-sandbox {"sameTitle":true,"sameCapability":true,"differentId":true,"iframe":true}
+# TIME_NATIVE actual-webarea-geometry {"geometry":{"x":407,"y":43.9375,"width":814,"height":799,"visible":true},"areas":[{"description":"","enabled":true,"focused":true,"position":{"x":30,"y":198},"role":"AXWebArea","size":{"height":799,"width":814},"subrole":"","title":"Time Review native","value":""},{"description":"","enabled":true,"focused":false,"position":{"x":853,"y":181},"role":"AXWebArea","size":{"height":815,"width":360},"subrole":"","title":"OpenDesk Browser","value":""}]}
+# TIME_NATIVE actual-os-pointer {"selector":"h1","x":437,"y":241.9375,"visible":true}
+# TIME_NATIVE native-file-review-install {"id":"time-review","version":"1.6.1","file":"/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/native-run-42/time-review-local-replacement.opendesk-tool.json","sha256":"1aa222fd0a222f727e192dd25b532466366a27890f9e2404bfab310ecd81a8b5"}
+# TIME_NATIVE own-reviewed-replacement-retirement {"version":"1.6.1","bytesChanged":true,"officialProvenanceRemoved":true,"epochPreserved":true,"packageHashChanged":true,"oldNativeRootRetired":true,"noAutoStart":true}
+# TIME_NATIVE official-upgrade-unavailable {"reason":"Catalog contains only official 1.6.0; reviewed local replacement is not a newer official release"}
+# Subtest: Time Review R1.9 actual Mac Chrome native product acceptance
+ok 1 - Time Review R1.9 actual Mac Chrome native product acceptance
+  ---
+  duration_ms: 229706.213541
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 229846.811208

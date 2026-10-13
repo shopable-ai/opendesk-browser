@@ -1,0 +1,88 @@
+{
+  "candidate": "dba771cc8e64fa5f3b1ef7163568a8812af9d024",
+  "outputGuardPort": 43272,
+  "commands": [
+    {
+      "command": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "tests/environment/time-review-r16-trusted-native.test.mjs",
+        "tests/environment/time-review-r15-site-grants.test.mjs",
+        "tests/environment/time-review-r13-service.test.mjs",
+        "tests/environment/time-review-r13-consent.test.mjs",
+        "tests/environment/time-review-r12.test.mjs",
+        "tests/environment/time-review-r13.test.mjs",
+        "tests/environment/time-review-host-controls-r51.test.mjs",
+        "tests/environment/time-review-r14-sync-outbox.test.mjs",
+        "tests/environment/sidebar-tools-host.test.mjs",
+        "tests/environment/sidebar-component-contract.test.mjs",
+        "tests/environment/sidebar-r21-design-system.test.mjs",
+        "tests/environment/developer-layout.test.mjs",
+        "tests/environment/sidebar-tool-enable-r26.test.mjs",
+        "tests/environment/sidebar-tool-multiscript-r72.test.mjs"
+      ],
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/source-r19-final",
+      "exitCode": 0,
+      "elapsedSeconds": 1.406,
+      "log": "0-raw.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "build:sidebar-tool",
+        "--",
+        "examples/sidebar-tools/time-review"
+      ],
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/source-r19-final",
+      "exitCode": 0,
+      "elapsedSeconds": 0.245,
+      "log": "1-raw.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "check"
+      ],
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/source-r19-final",
+      "exitCode": 0,
+      "elapsedSeconds": 37.511,
+      "log": "2-raw.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/source-r19-final",
+      "exitCode": 0,
+      "elapsedSeconds": 26.209,
+      "log": "3-raw.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "build:dev"
+      ],
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/source-r19-final",
+      "exitCode": 0,
+      "elapsedSeconds": 23.723,
+      "log": "4-raw.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "verify"
+      ],
+      "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/source-r19-final",
+      "exitCode": 0,
+      "elapsedSeconds": 2.136,
+      "log": "5-raw.log"
+    }
+  ]
+}

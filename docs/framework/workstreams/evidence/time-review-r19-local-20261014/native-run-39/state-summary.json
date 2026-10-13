@@ -1,0 +1,48 @@
+{
+  "minuteConsent": true,
+  "paused": true,
+  "days": 1,
+  "nativeInstall": true,
+  "downloadChecks": [
+    {
+      "format": "json",
+      "created": "PASS",
+      "complete": "PASS",
+      "ownedDirectory": "PASS",
+      "disk": "PASS",
+      "content": "PASS",
+      "filename": "PASS",
+      "id": 1,
+      "basename": "time-review.json",
+      "received": 241,
+      "ownedByExtension": true,
+      "bytes": 241,
+      "sha256": "3cc02c23b9d8f1b0b52ee5bf6b4d49ba8119e76b22f03c92bab2d5c6008c7385"
+    },
+    {
+      "format": "csv",
+      "created": "PASS",
+      "complete": "PASS",
+      "ownedDirectory": "PASS",
+      "disk": "PASS",
+      "content": "PASS",
+      "filename": "PASS",
+      "id": 2,
+      "basename": "time-review.csv",
+      "received": 44,
+      "ownedByExtension": true,
+      "bytes": 44,
+      "sha256": "55c24b7f5c3e5ccbc3b7fe3915cb7e73720188c2fd93dff8f84c393035dd63d6"
+    }
+  ],
+  "browserRestart": "PARTIAL",
+  "populatedExport": "NOT_TESTED",
+  "classification": "NOT_TESTED",
+  "realBrowserZoom": "PASS",
+  "websiteGrantRevocation": "NOT_TESTED",
+  "idlePermissionRevocation": "NOT_TESTED",
+  "disableEnable": "PASS",
+  "uninstall": "PASS",
+  "currentSourceHash": "dba771cc8e64fa5f3b1ef7163568a8812af9d024",
+  "actualSidePanelDocumentId": "2E8311D4FFB244A7E25E4C43BB0C9962"
+}

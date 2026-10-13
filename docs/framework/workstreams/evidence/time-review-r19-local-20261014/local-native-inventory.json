@@ -1,0 +1,2470 @@
+{
+  "localEvidenceRoot": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f",
+  "files": [
+    {
+      "path": "native-run-1/failure-side.png",
+      "bytes": 113969,
+      "sha256": "596e1e0039cc32746e9548b572f883d38a2d86b75f757e17d4af6c295e99e4d4"
+    },
+    {
+      "path": "native-run-1/installed-native-320.png",
+      "bytes": 62106,
+      "sha256": "25f4b90276ad02edbc55a5f0bf158afc054bb785ba0614a236cc9114e0f5c222"
+    },
+    {
+      "path": "native-run-1/installed-native-360.png",
+      "bytes": 61720,
+      "sha256": "9be3786b72520e5f5411c3f7d7a964972462e10fd5faad9534cb20b2df9aee0d"
+    },
+    {
+      "path": "native-run-1/installed-native-400.png",
+      "bytes": 62205,
+      "sha256": "71e8a88e2de560ec4fad08e87aab5c8dbbabd56dec1a64557caa8258d1abdb03"
+    },
+    {
+      "path": "native-run-1/installed-native-600.png",
+      "bytes": 64004,
+      "sha256": "746cd9623e111d14d80c463e537ce2fef07168408697008aae904b4229ea2444"
+    },
+    {
+      "path": "native-run-1/installed-native-side-panel.png",
+      "bytes": 112651,
+      "sha256": "ea59426301e39315d85db197bf7f1836702fc3bd4819d53423160ff05bac5643"
+    },
+    {
+      "path": "native-run-1/native-report.json",
+      "bytes": 6305,
+      "sha256": "bfdfceb0b68d8af5b615760982534472c71ad8098929c6ee907f9a4ab79038c1"
+    },
+    {
+      "path": "native-run-1/real-chrome-200-percent-zoom.png",
+      "bytes": 75642,
+      "sha256": "989554ff1e8fc14659c8eb5bd0353c67ad6c07e5f7784a19be459bffa2ecce53"
+    },
+    {
+      "path": "native-run-1/trusted-permission-settings.png",
+      "bytes": 152800,
+      "sha256": "0e306bf18553f9c4ea01f12e29456f68f1c9898163dc5734e78a07b8e025271c"
+    },
+    {
+      "path": "native-run-10/failure-side.png",
+      "bytes": 117376,
+      "sha256": "555ea1b54d3622872138d6f8f5a5d1bdf8f6143c23b95d24f502642d5059c938"
+    },
+    {
+      "path": "native-run-10/first-run-inline-time-review-consent.png",
+      "bytes": 185591,
+      "sha256": "b058da65e0bc4c7e13bf066adc2a3d5b3672e360b8baebce33a6167c5f48f578"
+    },
+    {
+      "path": "native-run-10/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-10/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-10/installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "path": "native-run-10/installed-native-600.png",
+      "bytes": 60826,
+      "sha256": "0eee5b8162379d3b856e4dd237bb3d4e89451bfe0aa93aacd038aca98e72927a"
+    },
+    {
+      "path": "native-run-10/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-10/native-report.json",
+      "bytes": 12139,
+      "sha256": "b8bc2d3c50fdff06d43923c4f9af63149aaee2f20a5d776fe341441d8d83ceb8"
+    },
+    {
+      "path": "native-run-10/real-chrome-200-percent-zoom.png",
+      "bytes": 74522,
+      "sha256": "322626e7c19cf0477adef05e28719b881804b42d722f707335abb07e4199ee73"
+    },
+    {
+      "path": "native-run-10/trusted-permission-settings.png",
+      "bytes": 146308,
+      "sha256": "03492d36ef6fa260bc3f3d5da117841ba390b4179577ae2a41d0215206108733"
+    },
+    {
+      "path": "native-run-11/failure-side.png",
+      "bytes": 118681,
+      "sha256": "b099365c3b35029ae545cf68da2f2115f4e79e58491ad5793947c6130afaa56a"
+    },
+    {
+      "path": "native-run-11/first-run-inline-time-review-consent.png",
+      "bytes": 185591,
+      "sha256": "b058da65e0bc4c7e13bf066adc2a3d5b3672e360b8baebce33a6167c5f48f578"
+    },
+    {
+      "path": "native-run-11/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-11/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-11/installed-native-400.png",
+      "bytes": 59224,
+      "sha256": "3183bdd488eba2d9d66f9185088b1704c5c14ad36915332fa1ff239a03b141c6"
+    },
+    {
+      "path": "native-run-11/installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "path": "native-run-11/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-11/native-report.json",
+      "bytes": 12597,
+      "sha256": "70a7b48356e47b1dd068aec087a67e1028ff635be494e499734fa1870a15dd60"
+    },
+    {
+      "path": "native-run-11/real-chrome-200-percent-zoom.png",
+      "bytes": 68887,
+      "sha256": "8d1e899442c715271528cd3e72752224eb5bae22595bb0d372901b6f4934d3b3"
+    },
+    {
+      "path": "native-run-11/trusted-permission-settings.png",
+      "bytes": 146308,
+      "sha256": "03492d36ef6fa260bc3f3d5da117841ba390b4179577ae2a41d0215206108733"
+    },
+    {
+      "path": "native-run-12/failure-side.png",
+      "bytes": 112611,
+      "sha256": "b76e233b4fda86ec0a69c585c0a010b76c9573566ed74fa8d2b1200c13b990f4"
+    },
+    {
+      "path": "native-run-12/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-12/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-12/installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "path": "native-run-12/installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "path": "native-run-12/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-12/native-report.json",
+      "bytes": 6975,
+      "sha256": "5c026ad5b25e2718e97da69e6b2558f3b541db3b396e04b2a3c3364d0901244a"
+    },
+    {
+      "path": "native-run-13/failure-side.png",
+      "bytes": 113321,
+      "sha256": "a1b7f607be4bda871488d289d28dfc0fec035c6496c0ef99f554d8d94158e071"
+    },
+    {
+      "path": "native-run-13/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-13/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-13/installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "path": "native-run-13/installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "path": "native-run-13/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-13/native-report.json",
+      "bytes": 6981,
+      "sha256": "083bea2ef2959c172ec4958131c9fa5e67d2877edbef849e84d31eb3f7c3db84"
+    },
+    {
+      "path": "native-run-14/first-run-inline-time-review-consent.png",
+      "bytes": 185591,
+      "sha256": "b058da65e0bc4c7e13bf066adc2a3d5b3672e360b8baebce33a6167c5f48f578"
+    },
+    {
+      "path": "native-run-14/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-14/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-14/installed-native-400.png",
+      "bytes": 59224,
+      "sha256": "3183bdd488eba2d9d66f9185088b1704c5c14ad36915332fa1ff239a03b141c6"
+    },
+    {
+      "path": "native-run-14/installed-native-600.png",
+      "bytes": 60871,
+      "sha256": "006e2f5b7325f21e5fddd4aa733a62c4c7b449dc25c5e79d816f59d2cbef61bb"
+    },
+    {
+      "path": "native-run-14/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-14/native-report.json",
+      "bytes": 9645,
+      "sha256": "9ef010bfbc1ec92ff345fa4798575018de47a71bc4dccd1e7bbb9ee31b83ae29"
+    },
+    {
+      "path": "native-run-14/real-chrome-200-percent-zoom.png",
+      "bytes": 68887,
+      "sha256": "8d1e899442c715271528cd3e72752224eb5bae22595bb0d372901b6f4934d3b3"
+    },
+    {
+      "path": "native-run-14/trusted-permission-settings.png",
+      "bytes": 146308,
+      "sha256": "03492d36ef6fa260bc3f3d5da117841ba390b4179577ae2a41d0215206108733"
+    },
+    {
+      "path": "native-run-15/first-run-inline-time-review-consent.png",
+      "bytes": 185591,
+      "sha256": "b058da65e0bc4c7e13bf066adc2a3d5b3672e360b8baebce33a6167c5f48f578"
+    },
+    {
+      "path": "native-run-15/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-15/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-15/installed-native-400.png",
+      "bytes": 59224,
+      "sha256": "3183bdd488eba2d9d66f9185088b1704c5c14ad36915332fa1ff239a03b141c6"
+    },
+    {
+      "path": "native-run-15/installed-native-600.png",
+      "bytes": 60871,
+      "sha256": "006e2f5b7325f21e5fddd4aa733a62c4c7b449dc25c5e79d816f59d2cbef61bb"
+    },
+    {
+      "path": "native-run-15/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-15/real-chrome-200-percent-zoom.png",
+      "bytes": 68887,
+      "sha256": "8d1e899442c715271528cd3e72752224eb5bae22595bb0d372901b6f4934d3b3"
+    },
+    {
+      "path": "native-run-15/trusted-permission-settings.png",
+      "bytes": 146308,
+      "sha256": "03492d36ef6fa260bc3f3d5da117841ba390b4179577ae2a41d0215206108733"
+    },
+    {
+      "path": "native-run-16/failure-side.png",
+      "bytes": 118686,
+      "sha256": "6b94dca26d1b89e31628db54cce2c2501b41afb6375ad2062d51ef2aaf18ef57"
+    },
+    {
+      "path": "native-run-16/first-run-inline-time-review-consent.png",
+      "bytes": 185591,
+      "sha256": "b058da65e0bc4c7e13bf066adc2a3d5b3672e360b8baebce33a6167c5f48f578"
+    },
+    {
+      "path": "native-run-16/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-16/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-16/installed-native-400.png",
+      "bytes": 59224,
+      "sha256": "3183bdd488eba2d9d66f9185088b1704c5c14ad36915332fa1ff239a03b141c6"
+    },
+    {
+      "path": "native-run-16/installed-native-600.png",
+      "bytes": 60871,
+      "sha256": "006e2f5b7325f21e5fddd4aa733a62c4c7b449dc25c5e79d816f59d2cbef61bb"
+    },
+    {
+      "path": "native-run-16/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-16/native-report.json",
+      "bytes": 13735,
+      "sha256": "b3343651b12ba0bc10ef56e3481002dd182a3c9736fa933595122d2fde13ffc5"
+    },
+    {
+      "path": "native-run-16/real-chrome-200-percent-zoom.png",
+      "bytes": 68887,
+      "sha256": "8d1e899442c715271528cd3e72752224eb5bae22595bb0d372901b6f4934d3b3"
+    },
+    {
+      "path": "native-run-16/trusted-permission-settings.png",
+      "bytes": 146308,
+      "sha256": "03492d36ef6fa260bc3f3d5da117841ba390b4179577ae2a41d0215206108733"
+    },
+    {
+      "path": "native-run-17/failure-side.png",
+      "bytes": 105466,
+      "sha256": "4022ef877bcb1ea40c6f6766fa0f55acef9ba00dc0ab1c78af560a085f135f7f"
+    },
+    {
+      "path": "native-run-17/first-run-inline-time-review-consent.png",
+      "bytes": 185591,
+      "sha256": "b058da65e0bc4c7e13bf066adc2a3d5b3672e360b8baebce33a6167c5f48f578"
+    },
+    {
+      "path": "native-run-17/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-17/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-17/installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "path": "native-run-17/installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "path": "native-run-17/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-17/native-report.json",
+      "bytes": 17680,
+      "sha256": "e58e6405dfee30b8994dc141cd5110203f007e5112d2c611395a52a5d55445af"
+    },
+    {
+      "path": "native-run-17/real-chrome-200-percent-zoom.png",
+      "bytes": 68887,
+      "sha256": "8d1e899442c715271528cd3e72752224eb5bae22595bb0d372901b6f4934d3b3"
+    },
+    {
+      "path": "native-run-17/real-recorded-minute-canvas.png",
+      "bytes": 118176,
+      "sha256": "7bfbbf1b669056ccb73e4d93d88b12ab15dbe37d7fe07a286b4708d87ec8e865"
+    },
+    {
+      "path": "native-run-17/trusted-permission-settings.png",
+      "bytes": 146308,
+      "sha256": "03492d36ef6fa260bc3f3d5da117841ba390b4179577ae2a41d0215206108733"
+    },
+    {
+      "path": "native-run-18/failure-side.png",
+      "bytes": 113979,
+      "sha256": "433a6a4b21975a2aa18cdee48c256bed67a3143cb35541a8f9e96adfed9f04a7"
+    },
+    {
+      "path": "native-run-18/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-18/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-18/installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "path": "native-run-18/installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "path": "native-run-18/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-18/native-report.json",
+      "bytes": 7689,
+      "sha256": "eae73dfca41443e5e91ac70de1a5316b26daae027828651fbcb9414c5f9189d0"
+    },
+    {
+      "path": "native-run-19/failure-side.png",
+      "bytes": 116121,
+      "sha256": "5c37834e9884a304ef973c1306cb47a3fd1ecfc7bd2146842f3e204ee8d70604"
+    },
+    {
+      "path": "native-run-19/first-run-inline-time-review-consent.png",
+      "bytes": 185550,
+      "sha256": "2e2c20665cdd953dd8bfbd3dc6c7b4cad8c155d2b5fbe865c6826a66d8cee973"
+    },
+    {
+      "path": "native-run-19/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-19/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-19/installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "path": "native-run-19/installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "path": "native-run-19/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-19/native-report.json",
+      "bytes": 15705,
+      "sha256": "2ad03b10fcd634fc7b13e55bc56bed3a959f4c4558a458e1c829c9afa3f94587"
+    },
+    {
+      "path": "native-run-19/real-recorded-minute-canvas.png",
+      "bytes": 116152,
+      "sha256": "c145f679c2facc39c7fe3cd661c18aad11667234e262846e4589215271a9f43a"
+    },
+    {
+      "path": "native-run-19/trusted-permission-settings.png",
+      "bytes": 146334,
+      "sha256": "a2675b9c8d6b21ad999cfc53fc8bf3e3de761359967672b58d193a79297e2c8f"
+    },
+    {
+      "path": "native-run-2/failure-side.png",
+      "bytes": 107316,
+      "sha256": "74df4260434ea521bf56df673daec919099b330ea1e8498d291a7666c31b5800"
+    },
+    {
+      "path": "native-run-2/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-2/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-2/installed-native-400.png",
+      "bytes": 59175,
+      "sha256": "d65311e6d0a3d702d56d7930cb81269f9b6398ab345883a4cc5058f14355eeff"
+    },
+    {
+      "path": "native-run-2/installed-native-600.png",
+      "bytes": 60826,
+      "sha256": "0eee5b8162379d3b856e4dd237bb3d4e89451bfe0aa93aacd038aca98e72927a"
+    },
+    {
+      "path": "native-run-2/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-2/native-report.json",
+      "bytes": 6622,
+      "sha256": "145a9878346870a8fe06090d3278e6dc658b5768b8fbc09d16f7f644c57fc216"
+    },
+    {
+      "path": "native-run-2/real-chrome-200-percent-zoom.png",
+      "bytes": 68887,
+      "sha256": "8d1e899442c715271528cd3e72752224eb5bae22595bb0d372901b6f4934d3b3"
+    },
+    {
+      "path": "native-run-2/trusted-permission-settings.png",
+      "bytes": 146308,
+      "sha256": "03492d36ef6fa260bc3f3d5da117841ba390b4179577ae2a41d0215206108733"
+    },
+    {
+      "path": "native-run-20/failure-side.png",
+      "bytes": 185025,
+      "sha256": "35177782af5b1bed4cfecab9f7d404ee52066ec3f5c6a3eff24950c283865ef4"
+    },
+    {
+      "path": "native-run-20/first-run-inline-time-review-consent.png",
+      "bytes": 185550,
+      "sha256": "2e2c20665cdd953dd8bfbd3dc6c7b4cad8c155d2b5fbe865c6826a66d8cee973"
+    },
+    {
+      "path": "native-run-20/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-20/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-20/installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "path": "native-run-20/installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "path": "native-run-20/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-20/native-report.json",
+      "bytes": 12956,
+      "sha256": "430dc03423676fe505473417309684e8e96e2f0d1d09e21ae6cda4cc5dc5e758"
+    },
+    {
+      "path": "native-run-20/real-chrome-200-percent-zoom.png",
+      "bytes": 68907,
+      "sha256": "5c272525231757618d39ef05b8e9b4b3cd661488fdaa882e78c78c13e7160563"
+    },
+    {
+      "path": "native-run-20/trusted-permission-settings.png",
+      "bytes": 146334,
+      "sha256": "a2675b9c8d6b21ad999cfc53fc8bf3e3de761359967672b58d193a79297e2c8f"
+    },
+    {
+      "path": "native-run-21/first-run-inline-time-review-consent.png",
+      "bytes": 185550,
+      "sha256": "2e2c20665cdd953dd8bfbd3dc6c7b4cad8c155d2b5fbe865c6826a66d8cee973"
+    },
+    {
+      "path": "native-run-21/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-21/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-21/installed-native-400.png",
+      "bytes": 59224,
+      "sha256": "3183bdd488eba2d9d66f9185088b1704c5c14ad36915332fa1ff239a03b141c6"
+    },
+    {
+      "path": "native-run-21/installed-native-600.png",
+      "bytes": 60871,
+      "sha256": "006e2f5b7325f21e5fddd4aa733a62c4c7b449dc25c5e79d816f59d2cbef61bb"
+    },
+    {
+      "path": "native-run-21/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-21/native-report.json",
+      "bytes": 12816,
+      "sha256": "5af6df066c7ef02d433788ecf293d6271ff1ced6367ecba06144464fe15e61ec"
+    },
+    {
+      "path": "native-run-21/real-chrome-200-percent-zoom.png",
+      "bytes": 68907,
+      "sha256": "5c272525231757618d39ef05b8e9b4b3cd661488fdaa882e78c78c13e7160563"
+    },
+    {
+      "path": "native-run-21/real-recorded-minute-canvas.png",
+      "bytes": 118175,
+      "sha256": "07164fcb76a58f65fcb450a423db2e76ed81bc324a5b537bac91c666322544c3"
+    },
+    {
+      "path": "native-run-21/trusted-permission-settings.png",
+      "bytes": 146337,
+      "sha256": "51c836be5ecb1339ed63cd986378051c90207654254a65ff3bb6361ba968da93"
+    },
+    {
+      "path": "native-run-22/failure-side.png",
+      "bytes": 114182,
+      "sha256": "53089b533a238c5fb66d62997676215e84a6c8ba9f55d0f7ba6ed9c86dce06c2"
+    },
+    {
+      "path": "native-run-22/first-run-inline-time-review-consent.png",
+      "bytes": 185550,
+      "sha256": "2e2c20665cdd953dd8bfbd3dc6c7b4cad8c155d2b5fbe865c6826a66d8cee973"
+    },
+    {
+      "path": "native-run-22/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-22/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-22/installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "path": "native-run-22/installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "path": "native-run-22/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-22/native-report.json",
+      "bytes": 13913,
+      "sha256": "82d3a6a2b6f334c4dffd7c71f311be585320bf77fc11933a102a6b8d4401fc28"
+    },
+    {
+      "path": "native-run-22/trusted-permission-settings.png",
+      "bytes": 146334,
+      "sha256": "a2675b9c8d6b21ad999cfc53fc8bf3e3de761359967672b58d193a79297e2c8f"
+    },
+    {
+      "path": "native-run-23/failure-side.png",
+      "bytes": 112611,
+      "sha256": "b76e233b4fda86ec0a69c585c0a010b76c9573566ed74fa8d2b1200c13b990f4"
+    },
+    {
+      "path": "native-run-23/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-23/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-23/installed-native-400.png",
+      "bytes": 59224,
+      "sha256": "3183bdd488eba2d9d66f9185088b1704c5c14ad36915332fa1ff239a03b141c6"
+    },
+    {
+      "path": "native-run-23/installed-native-600.png",
+      "bytes": 60871,
+      "sha256": "006e2f5b7325f21e5fddd4aa733a62c4c7b449dc25c5e79d816f59d2cbef61bb"
+    },
+    {
+      "path": "native-run-23/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-23/native-report.json",
+      "bytes": 7877,
+      "sha256": "ab8506844ec6be91b847d442e02e7de9e634d5fcac7dda240493e991e6d24bd7"
+    },
+    {
+      "path": "native-run-24/download-empty.csv",
+      "bytes": 44,
+      "sha256": "55c24b7f5c3e5ccbc3b7fe3915cb7e73720188c2fd93dff8f84c393035dd63d6"
+    },
+    {
+      "path": "native-run-24/download-empty.json",
+      "bytes": 241,
+      "sha256": "3cc02c23b9d8f1b0b52ee5bf6b4d49ba8119e76b22f03c92bab2d5c6008c7385"
+    },
+    {
+      "path": "native-run-24/first-run-inline-time-review-consent.png",
+      "bytes": 185550,
+      "sha256": "2e2c20665cdd953dd8bfbd3dc6c7b4cad8c155d2b5fbe865c6826a66d8cee973"
+    },
+    {
+      "path": "native-run-24/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-24/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-24/installed-native-400.png",
+      "bytes": 59224,
+      "sha256": "3183bdd488eba2d9d66f9185088b1704c5c14ad36915332fa1ff239a03b141c6"
+    },
+    {
+      "path": "native-run-24/installed-native-600.png",
+      "bytes": 60871,
+      "sha256": "006e2f5b7325f21e5fddd4aa733a62c4c7b449dc25c5e79d816f59d2cbef61bb"
+    },
+    {
+      "path": "native-run-24/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-24/native-report.json",
+      "bytes": 13510,
+      "sha256": "a8c7fbd1d53f60a359129be3edb857ba53a24080f7ea8d9eb0c6d1edd879ae5c"
+    },
+    {
+      "path": "native-run-24/real-chrome-200-percent-zoom.png",
+      "bytes": 68907,
+      "sha256": "5c272525231757618d39ef05b8e9b4b3cd661488fdaa882e78c78c13e7160563"
+    },
+    {
+      "path": "native-run-24/real-recorded-minute-canvas.png",
+      "bytes": 118176,
+      "sha256": "364447dc8e8c6c54a6801e98728227ac3258d1a0a18f8a7a47643aa0f446fa48"
+    },
+    {
+      "path": "native-run-24/trusted-permission-settings.png",
+      "bytes": 146334,
+      "sha256": "a2675b9c8d6b21ad999cfc53fc8bf3e3de761359967672b58d193a79297e2c8f"
+    },
+    {
+      "path": "native-run-25/failure-side.png",
+      "bytes": 113043,
+      "sha256": "1f70b34f39329ba0f6e4ba0132d3237c9b8837c2ad0a2aa24e25d72798725116"
+    },
+    {
+      "path": "native-run-25/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-25/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-25/installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "path": "native-run-25/installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "path": "native-run-25/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-25/native-report.json",
+      "bytes": 8318,
+      "sha256": "f87e5604cd6d45f61d56840ecfdb01dbb34897566090f06a5a90f2b5dcdae12a"
+    },
+    {
+      "path": "native-run-26/download-empty.csv",
+      "bytes": 44,
+      "sha256": "55c24b7f5c3e5ccbc3b7fe3915cb7e73720188c2fd93dff8f84c393035dd63d6"
+    },
+    {
+      "path": "native-run-26/download-empty.json",
+      "bytes": 241,
+      "sha256": "3cc02c23b9d8f1b0b52ee5bf6b4d49ba8119e76b22f03c92bab2d5c6008c7385"
+    },
+    {
+      "path": "native-run-26/failure-side.png",
+      "bytes": 139950,
+      "sha256": "b76e0f590239ecf81dc474c38feb272d7e350bb5d7b82c16637bc1852410be50"
+    },
+    {
+      "path": "native-run-26/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-26/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-26/installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "path": "native-run-26/installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "path": "native-run-26/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-26/native-report.json",
+      "bytes": 12502,
+      "sha256": "0723de74ac6e72cd6ebf8091c2361449399f2c0abe034f87d9b87d4c0c2230d0"
+    },
+    {
+      "path": "native-run-26/trusted-permission-settings.png",
+      "bytes": 146334,
+      "sha256": "a2675b9c8d6b21ad999cfc53fc8bf3e3de761359967672b58d193a79297e2c8f"
+    },
+    {
+      "path": "native-run-27/download-empty.csv",
+      "bytes": 44,
+      "sha256": "55c24b7f5c3e5ccbc3b7fe3915cb7e73720188c2fd93dff8f84c393035dd63d6"
+    },
+    {
+      "path": "native-run-27/download-empty.json",
+      "bytes": 241,
+      "sha256": "3cc02c23b9d8f1b0b52ee5bf6b4d49ba8119e76b22f03c92bab2d5c6008c7385"
+    },
+    {
+      "path": "native-run-27/failure-side.png",
+      "bytes": 140469,
+      "sha256": "c0ebaa1cc39460da6c6511e1876289e3f1c93d17038fce837b4ddefb43af214e"
+    },
+    {
+      "path": "native-run-27/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-27/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-27/installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "path": "native-run-27/installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "path": "native-run-27/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-27/native-report.json",
+      "bytes": 11720,
+      "sha256": "ad64463411596e65e48376ee88ba18dc5d1d83898870e458bfe9e77a698c4f9d"
+    },
+    {
+      "path": "native-run-27/trusted-permission-settings.png",
+      "bytes": 146337,
+      "sha256": "51c836be5ecb1339ed63cd986378051c90207654254a65ff3bb6361ba968da93"
+    },
+    {
+      "path": "native-run-28/failure-side.png",
+      "bytes": 112614,
+      "sha256": "c91208999a4fd7c2826a2a552dfe4f4215906eeb25a9d2b972283cc63c3ee41e"
+    },
+    {
+      "path": "native-run-28/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-28/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-28/installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "path": "native-run-28/installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "path": "native-run-28/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-28/native-report.json",
+      "bytes": 8474,
+      "sha256": "4f0964d54908f366a1f457b582ab7a3c69e1325072653b30feaa00f2fde29fb0"
+    },
+    {
+      "path": "native-run-29/failure-side.png",
+      "bytes": 112614,
+      "sha256": "c91208999a4fd7c2826a2a552dfe4f4215906eeb25a9d2b972283cc63c3ee41e"
+    },
+    {
+      "path": "native-run-29/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-29/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-29/installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "path": "native-run-29/installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "path": "native-run-29/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-29/native-report.json",
+      "bytes": 8033,
+      "sha256": "8e4a962217dad4761d524f971e4de8456fe7df291acb0d68ab7df119e0a6aaa4"
+    },
+    {
+      "path": "native-run-3/failure-side.png",
+      "bytes": 185858,
+      "sha256": "65ae3953a79c5e27581c4f05ad06fab0ddcf39c48bb5a4ccb35d31ff6c34b5bd"
+    },
+    {
+      "path": "native-run-3/first-run-inline-time-review-consent.png",
+      "bytes": 185591,
+      "sha256": "b058da65e0bc4c7e13bf066adc2a3d5b3672e360b8baebce33a6167c5f48f578"
+    },
+    {
+      "path": "native-run-3/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-3/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-3/installed-native-400.png",
+      "bytes": 59175,
+      "sha256": "d65311e6d0a3d702d56d7930cb81269f9b6398ab345883a4cc5058f14355eeff"
+    },
+    {
+      "path": "native-run-3/installed-native-600.png",
+      "bytes": 60826,
+      "sha256": "0eee5b8162379d3b856e4dd237bb3d4e89451bfe0aa93aacd038aca98e72927a"
+    },
+    {
+      "path": "native-run-3/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-3/native-report.json",
+      "bytes": 9215,
+      "sha256": "430bec9c32aa46ef6269ff21b781fc7ec5608fdb5819495ffd10d5542133b21f"
+    },
+    {
+      "path": "native-run-3/real-chrome-200-percent-zoom.png",
+      "bytes": 68887,
+      "sha256": "8d1e899442c715271528cd3e72752224eb5bae22595bb0d372901b6f4934d3b3"
+    },
+    {
+      "path": "native-run-3/trusted-permission-settings.png",
+      "bytes": 146308,
+      "sha256": "03492d36ef6fa260bc3f3d5da117841ba390b4179577ae2a41d0215206108733"
+    },
+    {
+      "path": "native-run-30/download-empty.csv",
+      "bytes": 44,
+      "sha256": "55c24b7f5c3e5ccbc3b7fe3915cb7e73720188c2fd93dff8f84c393035dd63d6"
+    },
+    {
+      "path": "native-run-30/download-empty.json",
+      "bytes": 241,
+      "sha256": "3cc02c23b9d8f1b0b52ee5bf6b4d49ba8119e76b22f03c92bab2d5c6008c7385"
+    },
+    {
+      "path": "native-run-30/failure-side.png",
+      "bytes": 114129,
+      "sha256": "c6b9a9106465c764a3c59cbba97748057f332e0099fbc734a36798b8ab68c5e8"
+    },
+    {
+      "path": "native-run-30/first-run-inline-time-review-consent.png",
+      "bytes": 185550,
+      "sha256": "2e2c20665cdd953dd8bfbd3dc6c7b4cad8c155d2b5fbe865c6826a66d8cee973"
+    },
+    {
+      "path": "native-run-30/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-30/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-30/installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "path": "native-run-30/installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "path": "native-run-30/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-30/native-report.json",
+      "bytes": 15991,
+      "sha256": "7404f3b91127e657202e59964ea99be1240d0364944b3c16edeb262ce9eb63a1"
+    },
+    {
+      "path": "native-run-30/real-chrome-200-percent-zoom.png",
+      "bytes": 68907,
+      "sha256": "5c272525231757618d39ef05b8e9b4b3cd661488fdaa882e78c78c13e7160563"
+    },
+    {
+      "path": "native-run-30/real-recorded-minute-canvas.png",
+      "bytes": 118175,
+      "sha256": "54545c935d8d83cd783865763aae256726bdfe0f42129c2ba1f4c1c1c83ba6c0"
+    },
+    {
+      "path": "native-run-30/trusted-permission-settings.png",
+      "bytes": 146334,
+      "sha256": "a2675b9c8d6b21ad999cfc53fc8bf3e3de761359967672b58d193a79297e2c8f"
+    },
+    {
+      "path": "native-run-31/download-empty.csv",
+      "bytes": 44,
+      "sha256": "55c24b7f5c3e5ccbc3b7fe3915cb7e73720188c2fd93dff8f84c393035dd63d6"
+    },
+    {
+      "path": "native-run-31/download-empty.json",
+      "bytes": 241,
+      "sha256": "3cc02c23b9d8f1b0b52ee5bf6b4d49ba8119e76b22f03c92bab2d5c6008c7385"
+    },
+    {
+      "path": "native-run-31/failure-side.png",
+      "bytes": 114125,
+      "sha256": "df469138132a78ff38395da4dd390b9a3bca85d79e9d36278561b0694976fc6d"
+    },
+    {
+      "path": "native-run-31/first-run-inline-time-review-consent.png",
+      "bytes": 185550,
+      "sha256": "2e2c20665cdd953dd8bfbd3dc6c7b4cad8c155d2b5fbe865c6826a66d8cee973"
+    },
+    {
+      "path": "native-run-31/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-31/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-31/installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "path": "native-run-31/installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "path": "native-run-31/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-31/native-report.json",
+      "bytes": 16668,
+      "sha256": "0641cbc52c9418692cc38ecb8f168af7aca6f6fee1dddba43a78a5d796ed2b44"
+    },
+    {
+      "path": "native-run-31/real-chrome-200-percent-zoom.png",
+      "bytes": 68907,
+      "sha256": "5c272525231757618d39ef05b8e9b4b3cd661488fdaa882e78c78c13e7160563"
+    },
+    {
+      "path": "native-run-31/real-recorded-minute-canvas.png",
+      "bytes": 118173,
+      "sha256": "5ad57007d2cece434dbaf8248b43f156267b1f443e14ddb091f930d535c4eda4"
+    },
+    {
+      "path": "native-run-31/trusted-permission-settings.png",
+      "bytes": 146334,
+      "sha256": "a2675b9c8d6b21ad999cfc53fc8bf3e3de761359967672b58d193a79297e2c8f"
+    },
+    {
+      "path": "native-run-32/download-empty.csv",
+      "bytes": 44,
+      "sha256": "55c24b7f5c3e5ccbc3b7fe3915cb7e73720188c2fd93dff8f84c393035dd63d6"
+    },
+    {
+      "path": "native-run-32/download-empty.json",
+      "bytes": 241,
+      "sha256": "3cc02c23b9d8f1b0b52ee5bf6b4d49ba8119e76b22f03c92bab2d5c6008c7385"
+    },
+    {
+      "path": "native-run-32/failure-side.png",
+      "bytes": 114127,
+      "sha256": "36a17b18203b643bef62283185ea4c1cc8ff03c6f43f60b7e1f7a3661004caff"
+    },
+    {
+      "path": "native-run-32/first-run-inline-time-review-consent.png",
+      "bytes": 185550,
+      "sha256": "2e2c20665cdd953dd8bfbd3dc6c7b4cad8c155d2b5fbe865c6826a66d8cee973"
+    },
+    {
+      "path": "native-run-32/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-32/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-32/installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "path": "native-run-32/installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "path": "native-run-32/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-32/native-report.json",
+      "bytes": 16462,
+      "sha256": "a1e5e08ea13172a68cf918fce47ad3c085672acc515363aa0bba76a7bf33f9d0"
+    },
+    {
+      "path": "native-run-32/real-chrome-200-percent-zoom.png",
+      "bytes": 68907,
+      "sha256": "5c272525231757618d39ef05b8e9b4b3cd661488fdaa882e78c78c13e7160563"
+    },
+    {
+      "path": "native-run-32/real-recorded-minute-canvas.png",
+      "bytes": 118175,
+      "sha256": "cb653a94b4523dfdb8cbc61e2e4f0f64ff2b4ea5fdbe28051c24414bb25deb51"
+    },
+    {
+      "path": "native-run-32/trusted-permission-settings.png",
+      "bytes": 146334,
+      "sha256": "a2675b9c8d6b21ad999cfc53fc8bf3e3de761359967672b58d193a79297e2c8f"
+    },
+    {
+      "path": "native-run-33/download-empty.csv",
+      "bytes": 44,
+      "sha256": "55c24b7f5c3e5ccbc3b7fe3915cb7e73720188c2fd93dff8f84c393035dd63d6"
+    },
+    {
+      "path": "native-run-33/download-empty.json",
+      "bytes": 241,
+      "sha256": "3cc02c23b9d8f1b0b52ee5bf6b4d49ba8119e76b22f03c92bab2d5c6008c7385"
+    },
+    {
+      "path": "native-run-33/first-run-inline-time-review-consent.png",
+      "bytes": 185550,
+      "sha256": "2e2c20665cdd953dd8bfbd3dc6c7b4cad8c155d2b5fbe865c6826a66d8cee973"
+    },
+    {
+      "path": "native-run-33/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-33/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-33/installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "path": "native-run-33/installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "path": "native-run-33/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-33/native-report.json",
+      "bytes": 12988,
+      "sha256": "c5d82cfcd716b5a53490dd37d0f725e38ec65818fdba0355fd6186f100de5d55"
+    },
+    {
+      "path": "native-run-33/real-chrome-200-percent-zoom.png",
+      "bytes": 68907,
+      "sha256": "5c272525231757618d39ef05b8e9b4b3cd661488fdaa882e78c78c13e7160563"
+    },
+    {
+      "path": "native-run-33/real-recorded-minute-canvas.png",
+      "bytes": 118175,
+      "sha256": "817fafb8aabfdc5b9fbd8d52f1981ac963a38037d88d83cbd9e11498754c1747"
+    },
+    {
+      "path": "native-run-33/trusted-permission-settings.png",
+      "bytes": 146334,
+      "sha256": "a2675b9c8d6b21ad999cfc53fc8bf3e3de761359967672b58d193a79297e2c8f"
+    },
+    {
+      "path": "native-run-34/failure-side.png",
+      "bytes": 112614,
+      "sha256": "c91208999a4fd7c2826a2a552dfe4f4215906eeb25a9d2b972283cc63c3ee41e"
+    },
+    {
+      "path": "native-run-34/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-34/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-34/installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "path": "native-run-34/installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "path": "native-run-34/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-34/native-report.json",
+      "bytes": 8883,
+      "sha256": "fae5173c186011b2785f0aa7e484ac4d26bff70d0ce3d2f10a98b4a714b34b35"
+    },
+    {
+      "path": "native-run-35/download-empty.csv",
+      "bytes": 44,
+      "sha256": "55c24b7f5c3e5ccbc3b7fe3915cb7e73720188c2fd93dff8f84c393035dd63d6"
+    },
+    {
+      "path": "native-run-35/download-empty.json",
+      "bytes": 241,
+      "sha256": "3cc02c23b9d8f1b0b52ee5bf6b4d49ba8119e76b22f03c92bab2d5c6008c7385"
+    },
+    {
+      "path": "native-run-35/download-populated.csv",
+      "bytes": 220,
+      "sha256": "a56fc4aeada782f358b60284ebd8e1d2b4fc476466dfe6c7aaf0b64e8dce8c75"
+    },
+    {
+      "path": "native-run-35/download-populated.json",
+      "bytes": 1069,
+      "sha256": "256cca86463d28523454a238a40aca7305dcbd9e70baa6c63c5c140f8ff40aa9"
+    },
+    {
+      "path": "native-run-35/failure-side.png",
+      "bytes": 105974,
+      "sha256": "a79e0047ec118f786f5af05f2c48e09bcc3d97d7191dcc5a5ab2fe430bddda7a"
+    },
+    {
+      "path": "native-run-35/first-run-inline-time-review-consent.png",
+      "bytes": 185550,
+      "sha256": "2e2c20665cdd953dd8bfbd3dc6c7b4cad8c155d2b5fbe865c6826a66d8cee973"
+    },
+    {
+      "path": "native-run-35/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-35/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-35/installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "path": "native-run-35/installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "path": "native-run-35/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-35/native-report.json",
+      "bytes": 22970,
+      "sha256": "341ce44e68a9a54c1bb0e62d53f8eddbbd20e28b973a7f65653984e0593cd05f"
+    },
+    {
+      "path": "native-run-35/real-chrome-200-percent-zoom.png",
+      "bytes": 68907,
+      "sha256": "5c272525231757618d39ef05b8e9b4b3cd661488fdaa882e78c78c13e7160563"
+    },
+    {
+      "path": "native-run-35/real-long-domain-native.png",
+      "bytes": 116831,
+      "sha256": "bb816a6603295fc845abbcd25acae070ec366cc38506818bb4185cb05fd8cbdf"
+    },
+    {
+      "path": "native-run-35/real-recorded-minute-canvas.png",
+      "bytes": 118173,
+      "sha256": "5fa3d32bf05551dbefcaeecf8c4dbc369c1b8cfca581d658312e9749366a825a"
+    },
+    {
+      "path": "native-run-35/time-review-lookalike.opendesk-tool.json",
+      "bytes": 41508,
+      "sha256": "09809030242e8993be461e0167dc67749c05b3ba38f780c22839e9a1a9a215e6"
+    },
+    {
+      "path": "native-run-35/trusted-permission-settings.png",
+      "bytes": 146334,
+      "sha256": "a2675b9c8d6b21ad999cfc53fc8bf3e3de761359967672b58d193a79297e2c8f"
+    },
+    {
+      "path": "native-run-36/download-empty.csv",
+      "bytes": 44,
+      "sha256": "55c24b7f5c3e5ccbc3b7fe3915cb7e73720188c2fd93dff8f84c393035dd63d6"
+    },
+    {
+      "path": "native-run-36/download-empty.json",
+      "bytes": 241,
+      "sha256": "3cc02c23b9d8f1b0b52ee5bf6b4d49ba8119e76b22f03c92bab2d5c6008c7385"
+    },
+    {
+      "path": "native-run-36/failure-side.png",
+      "bytes": 108164,
+      "sha256": "3bc404a4ba27bbf346fb363119eee5d5dcb7c8c60f74ef5c613779f2f2baee30"
+    },
+    {
+      "path": "native-run-36/first-run-inline-time-review-consent.png",
+      "bytes": 185550,
+      "sha256": "2e2c20665cdd953dd8bfbd3dc6c7b4cad8c155d2b5fbe865c6826a66d8cee973"
+    },
+    {
+      "path": "native-run-36/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-36/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-36/installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "path": "native-run-36/installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "path": "native-run-36/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-36/native-report.json",
+      "bytes": 13769,
+      "sha256": "186b4e65d92d5713fc3adfff6f8e2b893616382a3d3f991cfdbcc7d713294a21"
+    },
+    {
+      "path": "native-run-36/real-chrome-200-percent-zoom.png",
+      "bytes": 68907,
+      "sha256": "5c272525231757618d39ef05b8e9b4b3cd661488fdaa882e78c78c13e7160563"
+    },
+    {
+      "path": "native-run-36/trusted-permission-settings.png",
+      "bytes": 146334,
+      "sha256": "a2675b9c8d6b21ad999cfc53fc8bf3e3de761359967672b58d193a79297e2c8f"
+    },
+    {
+      "path": "native-run-37/download-empty.csv",
+      "bytes": 44,
+      "sha256": "55c24b7f5c3e5ccbc3b7fe3915cb7e73720188c2fd93dff8f84c393035dd63d6"
+    },
+    {
+      "path": "native-run-37/download-empty.json",
+      "bytes": 241,
+      "sha256": "3cc02c23b9d8f1b0b52ee5bf6b4d49ba8119e76b22f03c92bab2d5c6008c7385"
+    },
+    {
+      "path": "native-run-37/failure-side.png",
+      "bytes": 118001,
+      "sha256": "52366fe57bcd313f487a7a90b65bfbd5e022addc41ad43bf9cc8fe7a9fccd47c"
+    },
+    {
+      "path": "native-run-37/first-run-inline-time-review-consent.png",
+      "bytes": 185550,
+      "sha256": "2e2c20665cdd953dd8bfbd3dc6c7b4cad8c155d2b5fbe865c6826a66d8cee973"
+    },
+    {
+      "path": "native-run-37/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-37/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-37/installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "path": "native-run-37/installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "path": "native-run-37/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-37/native-report.json",
+      "bytes": 15773,
+      "sha256": "3756f55a896f796523eb17a062b91bad07fc591029a33df576fdf48e7cf4204c"
+    },
+    {
+      "path": "native-run-37/real-chrome-200-percent-zoom.png",
+      "bytes": 68907,
+      "sha256": "5c272525231757618d39ef05b8e9b4b3cd661488fdaa882e78c78c13e7160563"
+    },
+    {
+      "path": "native-run-37/time-review-local-replacement.opendesk-tool.json",
+      "bytes": 41546,
+      "sha256": "1aa222fd0a222f727e192dd25b532466366a27890f9e2404bfab310ecd81a8b5"
+    },
+    {
+      "path": "native-run-37/time-review-lookalike.opendesk-tool.json",
+      "bytes": 41508,
+      "sha256": "09809030242e8993be461e0167dc67749c05b3ba38f780c22839e9a1a9a215e6"
+    },
+    {
+      "path": "native-run-37/trusted-permission-settings.png",
+      "bytes": 146334,
+      "sha256": "a2675b9c8d6b21ad999cfc53fc8bf3e3de761359967672b58d193a79297e2c8f"
+    },
+    {
+      "path": "native-run-38/download-empty.csv",
+      "bytes": 44,
+      "sha256": "55c24b7f5c3e5ccbc3b7fe3915cb7e73720188c2fd93dff8f84c393035dd63d6"
+    },
+    {
+      "path": "native-run-38/download-empty.json",
+      "bytes": 241,
+      "sha256": "3cc02c23b9d8f1b0b52ee5bf6b4d49ba8119e76b22f03c92bab2d5c6008c7385"
+    },
+    {
+      "path": "native-run-38/failure-side.png",
+      "bytes": 131626,
+      "sha256": "b89b7c5a7685da594f9bcbc51f20127adf75399fc95105889565994582a43470"
+    },
+    {
+      "path": "native-run-38/first-run-inline-time-review-consent.png",
+      "bytes": 185550,
+      "sha256": "2e2c20665cdd953dd8bfbd3dc6c7b4cad8c155d2b5fbe865c6826a66d8cee973"
+    },
+    {
+      "path": "native-run-38/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-38/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-38/installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "path": "native-run-38/installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "path": "native-run-38/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-38/native-report.json",
+      "bytes": 15997,
+      "sha256": "a89f56449f7c12ff8d7f8d3272031e1968f064a8aa939d239d0caa2a1367c591"
+    },
+    {
+      "path": "native-run-38/real-chrome-200-percent-zoom.png",
+      "bytes": 68907,
+      "sha256": "5c272525231757618d39ef05b8e9b4b3cd661488fdaa882e78c78c13e7160563"
+    },
+    {
+      "path": "native-run-38/time-review-local-replacement.opendesk-tool.json",
+      "bytes": 41546,
+      "sha256": "1aa222fd0a222f727e192dd25b532466366a27890f9e2404bfab310ecd81a8b5"
+    },
+    {
+      "path": "native-run-38/time-review-lookalike.opendesk-tool.json",
+      "bytes": 41508,
+      "sha256": "09809030242e8993be461e0167dc67749c05b3ba38f780c22839e9a1a9a215e6"
+    },
+    {
+      "path": "native-run-38/trusted-permission-settings.png",
+      "bytes": 146334,
+      "sha256": "a2675b9c8d6b21ad999cfc53fc8bf3e3de761359967672b58d193a79297e2c8f"
+    },
+    {
+      "path": "native-run-39/download-empty.csv",
+      "bytes": 44,
+      "sha256": "55c24b7f5c3e5ccbc3b7fe3915cb7e73720188c2fd93dff8f84c393035dd63d6"
+    },
+    {
+      "path": "native-run-39/download-empty.json",
+      "bytes": 241,
+      "sha256": "3cc02c23b9d8f1b0b52ee5bf6b4d49ba8119e76b22f03c92bab2d5c6008c7385"
+    },
+    {
+      "path": "native-run-39/first-run-inline-time-review-consent.png",
+      "bytes": 185550,
+      "sha256": "2e2c20665cdd953dd8bfbd3dc6c7b4cad8c155d2b5fbe865c6826a66d8cee973"
+    },
+    {
+      "path": "native-run-39/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-39/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-39/installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "path": "native-run-39/installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "path": "native-run-39/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-39/native-report.json",
+      "bytes": 13383,
+      "sha256": "3c677ab2ec3adc18cfa292195745214efe9fb8caa181a133d0a952b1a7a48ea8"
+    },
+    {
+      "path": "native-run-39/official-native-retired-after-local-replacement.png",
+      "bytes": 131626,
+      "sha256": "b89b7c5a7685da594f9bcbc51f20127adf75399fc95105889565994582a43470"
+    },
+    {
+      "path": "native-run-39/real-chrome-200-percent-zoom.png",
+      "bytes": 68907,
+      "sha256": "5c272525231757618d39ef05b8e9b4b3cd661488fdaa882e78c78c13e7160563"
+    },
+    {
+      "path": "native-run-39/state-summary.json",
+      "bytes": 1313,
+      "sha256": "3c377d810dbd7560aa9d0db77b177892e27b331b0c9df473c6df51b198ec737e"
+    },
+    {
+      "path": "native-run-39/time-review-local-replacement.opendesk-tool.json",
+      "bytes": 41546,
+      "sha256": "1aa222fd0a222f727e192dd25b532466366a27890f9e2404bfab310ecd81a8b5"
+    },
+    {
+      "path": "native-run-39/time-review-lookalike.opendesk-tool.json",
+      "bytes": 41508,
+      "sha256": "09809030242e8993be461e0167dc67749c05b3ba38f780c22839e9a1a9a215e6"
+    },
+    {
+      "path": "native-run-39/trusted-permission-settings.png",
+      "bytes": 146334,
+      "sha256": "a2675b9c8d6b21ad999cfc53fc8bf3e3de761359967672b58d193a79297e2c8f"
+    },
+    {
+      "path": "native-run-4/failure-side.png",
+      "bytes": 113979,
+      "sha256": "433a6a4b21975a2aa18cdee48c256bed67a3143cb35541a8f9e96adfed9f04a7"
+    },
+    {
+      "path": "native-run-4/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-4/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-4/installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "path": "native-run-4/installed-native-600.png",
+      "bytes": 60826,
+      "sha256": "0eee5b8162379d3b856e4dd237bb3d4e89451bfe0aa93aacd038aca98e72927a"
+    },
+    {
+      "path": "native-run-4/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-4/native-report.json",
+      "bytes": 7335,
+      "sha256": "be0d88849acb010ad95e0c9da3d662f71b08c5252fa8eaf5349e41889036306c"
+    },
+    {
+      "path": "native-run-40/download-empty.csv",
+      "bytes": 44,
+      "sha256": "55c24b7f5c3e5ccbc3b7fe3915cb7e73720188c2fd93dff8f84c393035dd63d6"
+    },
+    {
+      "path": "native-run-40/download-empty.json",
+      "bytes": 241,
+      "sha256": "3cc02c23b9d8f1b0b52ee5bf6b4d49ba8119e76b22f03c92bab2d5c6008c7385"
+    },
+    {
+      "path": "native-run-40/failure-side.png",
+      "bytes": 185885,
+      "sha256": "48d33f1c15d5b2b435acbe8ec25b5963a6acf4ea1e682fd4cc5ad47987080cb2"
+    },
+    {
+      "path": "native-run-40/first-run-inline-time-review-consent.png",
+      "bytes": 185550,
+      "sha256": "2e2c20665cdd953dd8bfbd3dc6c7b4cad8c155d2b5fbe865c6826a66d8cee973"
+    },
+    {
+      "path": "native-run-40/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-40/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-40/installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "path": "native-run-40/installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "path": "native-run-40/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-40/native-report.json",
+      "bytes": 21777,
+      "sha256": "6dd89afdffdba786948502c819986716af39fd8083efc86d403aabe035ce1185"
+    },
+    {
+      "path": "native-run-40/real-chrome-200-percent-zoom.png",
+      "bytes": 68907,
+      "sha256": "5c272525231757618d39ef05b8e9b4b3cd661488fdaa882e78c78c13e7160563"
+    },
+    {
+      "path": "native-run-40/real-long-domain-native.png",
+      "bytes": 116831,
+      "sha256": "27b967837957d12f6c5e95a84014bd4b9c97671a36d4ac74ae0c54681ffd9b56"
+    },
+    {
+      "path": "native-run-40/real-recorded-minute-canvas.png",
+      "bytes": 118172,
+      "sha256": "86354820f72a6573088b5bce3930ce5de69c35eb7e1f85a260072dfbbc71f527"
+    },
+    {
+      "path": "native-run-40/trusted-permission-settings.png",
+      "bytes": 146334,
+      "sha256": "a2675b9c8d6b21ad999cfc53fc8bf3e3de761359967672b58d193a79297e2c8f"
+    },
+    {
+      "path": "native-run-41/download-empty.csv",
+      "bytes": 44,
+      "sha256": "55c24b7f5c3e5ccbc3b7fe3915cb7e73720188c2fd93dff8f84c393035dd63d6"
+    },
+    {
+      "path": "native-run-41/download-empty.json",
+      "bytes": 241,
+      "sha256": "3cc02c23b9d8f1b0b52ee5bf6b4d49ba8119e76b22f03c92bab2d5c6008c7385"
+    },
+    {
+      "path": "native-run-41/failure-side.png",
+      "bytes": 145327,
+      "sha256": "457a377aac718605f2ea62441b087bd71429c6b55325c33fc5e4b701eba8ab34"
+    },
+    {
+      "path": "native-run-41/first-run-inline-time-review-consent.png",
+      "bytes": 185550,
+      "sha256": "2e2c20665cdd953dd8bfbd3dc6c7b4cad8c155d2b5fbe865c6826a66d8cee973"
+    },
+    {
+      "path": "native-run-41/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-41/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-41/installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "path": "native-run-41/installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "path": "native-run-41/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-41/native-report.json",
+      "bytes": 22427,
+      "sha256": "1c245e34189b199a0f71d5eca9d7c24ac04160a4a2283f2154480cacd9a56b50"
+    },
+    {
+      "path": "native-run-41/real-chrome-200-percent-zoom.png",
+      "bytes": 68907,
+      "sha256": "5c272525231757618d39ef05b8e9b4b3cd661488fdaa882e78c78c13e7160563"
+    },
+    {
+      "path": "native-run-41/real-long-domain-native.png",
+      "bytes": 116905,
+      "sha256": "ef80a4f04fa04c99bafa864bc37375cbf62ba620cbe1fd036120d2c8ff724240"
+    },
+    {
+      "path": "native-run-41/real-recorded-minute-canvas.png",
+      "bytes": 118172,
+      "sha256": "675dbf8c19c3c02756b044ef0720bc22824e332d8f0901c747601630989c71ec"
+    },
+    {
+      "path": "native-run-41/trusted-permission-settings.png",
+      "bytes": 146334,
+      "sha256": "a2675b9c8d6b21ad999cfc53fc8bf3e3de761359967672b58d193a79297e2c8f"
+    },
+    {
+      "path": "native-run-42/download-empty.csv",
+      "bytes": 44,
+      "sha256": "55c24b7f5c3e5ccbc3b7fe3915cb7e73720188c2fd93dff8f84c393035dd63d6"
+    },
+    {
+      "path": "native-run-42/download-empty.json",
+      "bytes": 241,
+      "sha256": "3cc02c23b9d8f1b0b52ee5bf6b4d49ba8119e76b22f03c92bab2d5c6008c7385"
+    },
+    {
+      "path": "native-run-42/download-populated.csv",
+      "bytes": 222,
+      "sha256": "f69740234324dd66fec07446f33ab2620a11426e20fbd1c3ee755cb0d54c0ce0"
+    },
+    {
+      "path": "native-run-42/download-populated.json",
+      "bytes": 1071,
+      "sha256": "9f1aeb905f622ade052b09ebf621121ce00dbe453425a09a0cefc23f7ec35b9b"
+    },
+    {
+      "path": "native-run-42/first-run-inline-time-review-consent.png",
+      "bytes": 185550,
+      "sha256": "2e2c20665cdd953dd8bfbd3dc6c7b4cad8c155d2b5fbe865c6826a66d8cee973"
+    },
+    {
+      "path": "native-run-42/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-42/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-42/installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "path": "native-run-42/installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "path": "native-run-42/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-42/native-report.json",
+      "bytes": 21539,
+      "sha256": "9d1207a52de314ec2b0697a1abde63089ccaadf28d1eb7f95de8d16f0065acc0"
+    },
+    {
+      "path": "native-run-42/official-native-retired-after-local-replacement.png",
+      "bytes": 169720,
+      "sha256": "18f39c53622f4b2fa9d242f4499a79aba8079c2bd37f180c2943e4a77a291661"
+    },
+    {
+      "path": "native-run-42/real-chrome-200-percent-zoom.png",
+      "bytes": 68907,
+      "sha256": "5c272525231757618d39ef05b8e9b4b3cd661488fdaa882e78c78c13e7160563"
+    },
+    {
+      "path": "native-run-42/real-long-domain-native.png",
+      "bytes": 117320,
+      "sha256": "1197898324dde6d5fab57a0c9f6bcf9e39ae393739f1509857fc3c2ec5a4fc7a"
+    },
+    {
+      "path": "native-run-42/real-recorded-minute-canvas.png",
+      "bytes": 118172,
+      "sha256": "34f63952dbad721483543664409e0863f96a87d996a2841bc514a491ddd2050e"
+    },
+    {
+      "path": "native-run-42/state-summary.json",
+      "bytes": 1337,
+      "sha256": "b14333313ca4a1ac78e1d913190fc970db41af573cd42259de30bacb395c7f45"
+    },
+    {
+      "path": "native-run-42/time-review-local-replacement.opendesk-tool.json",
+      "bytes": 41546,
+      "sha256": "1aa222fd0a222f727e192dd25b532466366a27890f9e2404bfab310ecd81a8b5"
+    },
+    {
+      "path": "native-run-42/time-review-lookalike.opendesk-tool.json",
+      "bytes": 41508,
+      "sha256": "09809030242e8993be461e0167dc67749c05b3ba38f780c22839e9a1a9a215e6"
+    },
+    {
+      "path": "native-run-42/trusted-permission-settings.png",
+      "bytes": 146334,
+      "sha256": "a2675b9c8d6b21ad999cfc53fc8bf3e3de761359967672b58d193a79297e2c8f"
+    },
+    {
+      "path": "native-run-43/download-empty.csv",
+      "bytes": 44,
+      "sha256": "55c24b7f5c3e5ccbc3b7fe3915cb7e73720188c2fd93dff8f84c393035dd63d6"
+    },
+    {
+      "path": "native-run-43/download-empty.json",
+      "bytes": 241,
+      "sha256": "3cc02c23b9d8f1b0b52ee5bf6b4d49ba8119e76b22f03c92bab2d5c6008c7385"
+    },
+    {
+      "path": "native-run-43/failure-side.png",
+      "bytes": 106020,
+      "sha256": "709809d91be8c812fd73ef48e462374a95cc9f42b14ecffaa34532fbc8956be5"
+    },
+    {
+      "path": "native-run-43/first-run-inline-time-review-consent.png",
+      "bytes": 185550,
+      "sha256": "2e2c20665cdd953dd8bfbd3dc6c7b4cad8c155d2b5fbe865c6826a66d8cee973"
+    },
+    {
+      "path": "native-run-43/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-43/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-43/installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "path": "native-run-43/installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "path": "native-run-43/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-43/native-report.json",
+      "bytes": 14675,
+      "sha256": "3c635872590ed80f02fb39940c8d06cb0af53ecd0a5847324d00c3c0df34192a"
+    },
+    {
+      "path": "native-run-43/real-chrome-200-percent-zoom.png",
+      "bytes": 68907,
+      "sha256": "5c272525231757618d39ef05b8e9b4b3cd661488fdaa882e78c78c13e7160563"
+    },
+    {
+      "path": "native-run-43/time-review-lookalike.opendesk-tool.json",
+      "bytes": 41508,
+      "sha256": "09809030242e8993be461e0167dc67749c05b3ba38f780c22839e9a1a9a215e6"
+    },
+    {
+      "path": "native-run-43/trusted-permission-settings.png",
+      "bytes": 146334,
+      "sha256": "a2675b9c8d6b21ad999cfc53fc8bf3e3de761359967672b58d193a79297e2c8f"
+    },
+    {
+      "path": "native-run-44/download-empty.csv",
+      "bytes": 44,
+      "sha256": "55c24b7f5c3e5ccbc3b7fe3915cb7e73720188c2fd93dff8f84c393035dd63d6"
+    },
+    {
+      "path": "native-run-44/download-empty.json",
+      "bytes": 241,
+      "sha256": "3cc02c23b9d8f1b0b52ee5bf6b4d49ba8119e76b22f03c92bab2d5c6008c7385"
+    },
+    {
+      "path": "native-run-44/failure-side.png",
+      "bytes": 106015,
+      "sha256": "5ce365783e171303b5ea5cdd0f73e5877f83b5e1fb999a22136ba9ae6d68ff2f"
+    },
+    {
+      "path": "native-run-44/first-run-inline-time-review-consent.png",
+      "bytes": 185550,
+      "sha256": "2e2c20665cdd953dd8bfbd3dc6c7b4cad8c155d2b5fbe865c6826a66d8cee973"
+    },
+    {
+      "path": "native-run-44/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-44/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-44/installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "path": "native-run-44/installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "path": "native-run-44/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-44/native-report.json",
+      "bytes": 15129,
+      "sha256": "9f75ad5eaaa5e9d79c4248d29c7de764bcdc10b69696dc2319795c06a0f5428c"
+    },
+    {
+      "path": "native-run-44/real-chrome-200-percent-zoom.png",
+      "bytes": 68907,
+      "sha256": "5c272525231757618d39ef05b8e9b4b3cd661488fdaa882e78c78c13e7160563"
+    },
+    {
+      "path": "native-run-44/time-review-lookalike.opendesk-tool.json",
+      "bytes": 41508,
+      "sha256": "09809030242e8993be461e0167dc67749c05b3ba38f780c22839e9a1a9a215e6"
+    },
+    {
+      "path": "native-run-44/trusted-permission-settings.png",
+      "bytes": 146334,
+      "sha256": "a2675b9c8d6b21ad999cfc53fc8bf3e3de761359967672b58d193a79297e2c8f"
+    },
+    {
+      "path": "native-run-45/download-empty.csv",
+      "bytes": 44,
+      "sha256": "55c24b7f5c3e5ccbc3b7fe3915cb7e73720188c2fd93dff8f84c393035dd63d6"
+    },
+    {
+      "path": "native-run-45/download-empty.json",
+      "bytes": 241,
+      "sha256": "3cc02c23b9d8f1b0b52ee5bf6b4d49ba8119e76b22f03c92bab2d5c6008c7385"
+    },
+    {
+      "path": "native-run-45/failure-side.png",
+      "bytes": 118497,
+      "sha256": "45bc7fcd1a2bffb353f763b59b603b1c970fcfd7ada7746fffee2f0374d02867"
+    },
+    {
+      "path": "native-run-45/first-run-inline-time-review-consent.png",
+      "bytes": 185550,
+      "sha256": "2e2c20665cdd953dd8bfbd3dc6c7b4cad8c155d2b5fbe865c6826a66d8cee973"
+    },
+    {
+      "path": "native-run-45/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-45/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-45/installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "path": "native-run-45/installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "path": "native-run-45/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-45/native-report.json",
+      "bytes": 15675,
+      "sha256": "c1887932c3a8b3f78756cb93a7e046010666f6ca9f73850f33964296f2ca70fe"
+    },
+    {
+      "path": "native-run-45/real-chrome-200-percent-zoom.png",
+      "bytes": 68907,
+      "sha256": "5c272525231757618d39ef05b8e9b4b3cd661488fdaa882e78c78c13e7160563"
+    },
+    {
+      "path": "native-run-45/time-review-local-replacement.opendesk-tool.json",
+      "bytes": 41546,
+      "sha256": "1aa222fd0a222f727e192dd25b532466366a27890f9e2404bfab310ecd81a8b5"
+    },
+    {
+      "path": "native-run-45/time-review-lookalike.opendesk-tool.json",
+      "bytes": 41508,
+      "sha256": "09809030242e8993be461e0167dc67749c05b3ba38f780c22839e9a1a9a215e6"
+    },
+    {
+      "path": "native-run-45/trusted-permission-settings.png",
+      "bytes": 146334,
+      "sha256": "a2675b9c8d6b21ad999cfc53fc8bf3e3de761359967672b58d193a79297e2c8f"
+    },
+    {
+      "path": "native-run-46/download-empty.csv",
+      "bytes": 44,
+      "sha256": "55c24b7f5c3e5ccbc3b7fe3915cb7e73720188c2fd93dff8f84c393035dd63d6"
+    },
+    {
+      "path": "native-run-46/download-empty.json",
+      "bytes": 241,
+      "sha256": "3cc02c23b9d8f1b0b52ee5bf6b4d49ba8119e76b22f03c92bab2d5c6008c7385"
+    },
+    {
+      "path": "native-run-46/failure-side.png",
+      "bytes": 106020,
+      "sha256": "709809d91be8c812fd73ef48e462374a95cc9f42b14ecffaa34532fbc8956be5"
+    },
+    {
+      "path": "native-run-46/first-run-inline-time-review-consent.png",
+      "bytes": 185550,
+      "sha256": "2e2c20665cdd953dd8bfbd3dc6c7b4cad8c155d2b5fbe865c6826a66d8cee973"
+    },
+    {
+      "path": "native-run-46/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-46/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-46/installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "path": "native-run-46/installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "path": "native-run-46/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-46/native-report.json",
+      "bytes": 14675,
+      "sha256": "b0473c2cb8b224b380dd0639ee511423af8a743f7fb26b27c4465ef0edbcfc03"
+    },
+    {
+      "path": "native-run-46/real-chrome-200-percent-zoom.png",
+      "bytes": 68907,
+      "sha256": "5c272525231757618d39ef05b8e9b4b3cd661488fdaa882e78c78c13e7160563"
+    },
+    {
+      "path": "native-run-46/time-review-lookalike.opendesk-tool.json",
+      "bytes": 41508,
+      "sha256": "09809030242e8993be461e0167dc67749c05b3ba38f780c22839e9a1a9a215e6"
+    },
+    {
+      "path": "native-run-46/trusted-permission-settings.png",
+      "bytes": 146334,
+      "sha256": "a2675b9c8d6b21ad999cfc53fc8bf3e3de761359967672b58d193a79297e2c8f"
+    },
+    {
+      "path": "native-run-5/failure-side.png",
+      "bytes": 117895,
+      "sha256": "86c5118bfa5dbcb34ffacc22470ffc6c1add18008bc9a7e00e02258eea3f04b8"
+    },
+    {
+      "path": "native-run-5/first-run-inline-time-review-consent.png",
+      "bytes": 185591,
+      "sha256": "b058da65e0bc4c7e13bf066adc2a3d5b3672e360b8baebce33a6167c5f48f578"
+    },
+    {
+      "path": "native-run-5/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-5/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-5/installed-native-400.png",
+      "bytes": 59175,
+      "sha256": "d65311e6d0a3d702d56d7930cb81269f9b6398ab345883a4cc5058f14355eeff"
+    },
+    {
+      "path": "native-run-5/installed-native-600.png",
+      "bytes": 60826,
+      "sha256": "0eee5b8162379d3b856e4dd237bb3d4e89451bfe0aa93aacd038aca98e72927a"
+    },
+    {
+      "path": "native-run-5/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-5/native-report.json",
+      "bytes": 12624,
+      "sha256": "dabb9cfff8a262bcbb1669c89f27173c6e40db20ee4b4bde7db77d58f8dde430"
+    },
+    {
+      "path": "native-run-5/real-chrome-200-percent-zoom.png",
+      "bytes": 68887,
+      "sha256": "8d1e899442c715271528cd3e72752224eb5bae22595bb0d372901b6f4934d3b3"
+    },
+    {
+      "path": "native-run-5/trusted-permission-settings.png",
+      "bytes": 146308,
+      "sha256": "03492d36ef6fa260bc3f3d5da117841ba390b4179577ae2a41d0215206108733"
+    },
+    {
+      "path": "native-run-6/failure-side.png",
+      "bytes": 117222,
+      "sha256": "7c93b005261d96d373be9bb9f687643abc23a6e5c04f47ddf1da932239d19138"
+    },
+    {
+      "path": "native-run-6/first-run-inline-time-review-consent.png",
+      "bytes": 185591,
+      "sha256": "b058da65e0bc4c7e13bf066adc2a3d5b3672e360b8baebce33a6167c5f48f578"
+    },
+    {
+      "path": "native-run-6/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-6/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-6/installed-native-400.png",
+      "bytes": 59175,
+      "sha256": "d65311e6d0a3d702d56d7930cb81269f9b6398ab345883a4cc5058f14355eeff"
+    },
+    {
+      "path": "native-run-6/installed-native-600.png",
+      "bytes": 60826,
+      "sha256": "0eee5b8162379d3b856e4dd237bb3d4e89451bfe0aa93aacd038aca98e72927a"
+    },
+    {
+      "path": "native-run-6/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-6/native-report.json",
+      "bytes": 13309,
+      "sha256": "7ff288969ad4262d86831b8949c04ed55e1e228a431c9f61ebe38bae0f404853"
+    },
+    {
+      "path": "native-run-6/real-chrome-200-percent-zoom.png",
+      "bytes": 68887,
+      "sha256": "8d1e899442c715271528cd3e72752224eb5bae22595bb0d372901b6f4934d3b3"
+    },
+    {
+      "path": "native-run-6/trusted-permission-settings.png",
+      "bytes": 146308,
+      "sha256": "03492d36ef6fa260bc3f3d5da117841ba390b4179577ae2a41d0215206108733"
+    },
+    {
+      "path": "native-run-7/failure-side.png",
+      "bytes": 117222,
+      "sha256": "7c93b005261d96d373be9bb9f687643abc23a6e5c04f47ddf1da932239d19138"
+    },
+    {
+      "path": "native-run-7/first-run-inline-time-review-consent.png",
+      "bytes": 185591,
+      "sha256": "b058da65e0bc4c7e13bf066adc2a3d5b3672e360b8baebce33a6167c5f48f578"
+    },
+    {
+      "path": "native-run-7/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-7/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-7/installed-native-400.png",
+      "bytes": 59175,
+      "sha256": "d65311e6d0a3d702d56d7930cb81269f9b6398ab345883a4cc5058f14355eeff"
+    },
+    {
+      "path": "native-run-7/installed-native-600.png",
+      "bytes": 60826,
+      "sha256": "0eee5b8162379d3b856e4dd237bb3d4e89451bfe0aa93aacd038aca98e72927a"
+    },
+    {
+      "path": "native-run-7/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-7/native-report.json",
+      "bytes": 12977,
+      "sha256": "ed3cb5df8f24818fb5c522c58a018e26f5a14b66d023ff896fd8df42fbf35b8c"
+    },
+    {
+      "path": "native-run-7/real-chrome-200-percent-zoom.png",
+      "bytes": 68887,
+      "sha256": "8d1e899442c715271528cd3e72752224eb5bae22595bb0d372901b6f4934d3b3"
+    },
+    {
+      "path": "native-run-7/trusted-permission-settings.png",
+      "bytes": 146308,
+      "sha256": "03492d36ef6fa260bc3f3d5da117841ba390b4179577ae2a41d0215206108733"
+    },
+    {
+      "path": "native-run-8/failure-side.png",
+      "bytes": 118375,
+      "sha256": "7093f83ef68025b80b37db484c97eeb494bc6de8ee75112b7e4b0d2580d3f985"
+    },
+    {
+      "path": "native-run-8/first-run-inline-time-review-consent.png",
+      "bytes": 185591,
+      "sha256": "b058da65e0bc4c7e13bf066adc2a3d5b3672e360b8baebce33a6167c5f48f578"
+    },
+    {
+      "path": "native-run-8/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-8/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-8/installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "path": "native-run-8/installed-native-600.png",
+      "bytes": 60826,
+      "sha256": "0eee5b8162379d3b856e4dd237bb3d4e89451bfe0aa93aacd038aca98e72927a"
+    },
+    {
+      "path": "native-run-8/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-8/native-report.json",
+      "bytes": 14006,
+      "sha256": "9f281b049aceb51ada41a17efdbb853e86c4cf103cf4a8b1192f87992fa74f0c"
+    },
+    {
+      "path": "native-run-8/real-chrome-200-percent-zoom.png",
+      "bytes": 68887,
+      "sha256": "8d1e899442c715271528cd3e72752224eb5bae22595bb0d372901b6f4934d3b3"
+    },
+    {
+      "path": "native-run-8/trusted-permission-settings.png",
+      "bytes": 146308,
+      "sha256": "03492d36ef6fa260bc3f3d5da117841ba390b4179577ae2a41d0215206108733"
+    },
+    {
+      "path": "native-run-9/failure-side.png",
+      "bytes": 117058,
+      "sha256": "b7e76c61c4c195e02e52cb32e537c063c2fba352d45305a546ca93a1bb67f574"
+    },
+    {
+      "path": "native-run-9/first-run-inline-time-review-consent.png",
+      "bytes": 185591,
+      "sha256": "b058da65e0bc4c7e13bf066adc2a3d5b3672e360b8baebce33a6167c5f48f578"
+    },
+    {
+      "path": "native-run-9/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-9/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-9/installed-native-400.png",
+      "bytes": 59175,
+      "sha256": "d65311e6d0a3d702d56d7930cb81269f9b6398ab345883a4cc5058f14355eeff"
+    },
+    {
+      "path": "native-run-9/installed-native-600.png",
+      "bytes": 60826,
+      "sha256": "0eee5b8162379d3b856e4dd237bb3d4e89451bfe0aa93aacd038aca98e72927a"
+    },
+    {
+      "path": "native-run-9/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-9/native-report.json",
+      "bytes": 12135,
+      "sha256": "d5a937748d785df6428cf61b9d3d45622d3ac8df0ff4f65c005eeab743a22830"
+    },
+    {
+      "path": "native-run-9/real-chrome-200-percent-zoom.png",
+      "bytes": 68887,
+      "sha256": "8d1e899442c715271528cd3e72752224eb5bae22595bb0d372901b6f4934d3b3"
+    },
+    {
+      "path": "native-run-9/trusted-permission-settings.png",
+      "bytes": 146308,
+      "sha256": "03492d36ef6fa260bc3f3d5da117841ba390b4179577ae2a41d0215206108733"
+    }
+  ]
+}

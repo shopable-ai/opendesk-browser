@@ -1,0 +1,59 @@
+{
+  "format": "opendesk.time-review.export.v1",
+  "days": {
+    "2026-10-14": {
+      "127.0.0.1": 31821,
+      "localhost": 50793,
+      "very-long-actual-time-review-domain-abcdefghijklmnopqrstuvwxyz.localhost": 3478
+    }
+  },
+  "settings": {
+    "excludedHosts": [],
+    "idleSeconds": 60,
+    "retentionDays": 90
+  },
+  "discardedMs": 46143,
+  "categories": {
+    "127.0.0.1": 2
+  },
+  "minuteConsent": true,
+  "minuteDays": {
+    "2026-10-14": {
+      "ambiguous": false,
+      "entries": [
+        [
+          292,
+          "127.0.0.1",
+          2403
+        ],
+        [
+          293,
+          "127.0.0.1",
+          28643
+        ],
+        [
+          294,
+          "localhost",
+          48996
+        ],
+        [
+          294,
+          "very-long-actual-time-review-domain-abcdefghijklmnopqrstuvwxyz.localhost",
+          3478
+        ],
+        [
+          295,
+          "localhost",
+          1797
+        ],
+        [
+          295,
+          "127.0.0.1",
+          446
+        ]
+      ],
+      "offset": -480,
+      "truncated": false
+    }
+  }
+}

@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: R1.3 minute opt-in records only future live intervals and opt-out purges detail
+ok 1 - R1.3 minute opt-in records only future live intervals and opt-out purges detail
+  ---
+  duration_ms: 18.429
+  type: 'test'
+  ...
+# Subtest: R1.3 classification updates real state/summary/day and export without altering ms
+ok 2 - R1.3 classification updates real state/summary/day and export without altering ms
+  ---
+  duration_ms: 7.55175
+  type: 'test'
+  ...
+# Subtest: R1.3 new APIs validate payload, package identity and pinned document
+ok 3 - R1.3 new APIs validate payload, package identity and pinned document
+  ---
+  duration_ms: 5.706459
+  type: 'test'
+  ...
+# Subtest: R1.3 restart never generates unobserved minute history
+ok 4 - R1.3 restart never generates unobserved minute history
+  ---
+  duration_ms: 7.440625
+  type: 'test'
+  ...
+# Subtest: R1.9 window-inactive observation never backfills an unknown inactive interval
+ok 5 - R1.9 window-inactive observation never backfills an unknown inactive interval
+  ---
+  duration_ms: 7.523583
+  type: 'test'
+  ...
+# Subtest: R1.9 idle observation never backfills an unknown inactive interval
+ok 6 - R1.9 idle observation never backfills an unknown inactive interval
+  ---
+  duration_ms: 7.472584
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 105.054083

@@ -1,0 +1,236 @@
+{
+  "candidate": "85de6add728a45167583b0308a8e31da7503d044",
+  "mode": "actual-headed-macos-CFT",
+  "nodeVersion": "v26.3.1",
+  "macVersion": "ProductName:\t\tmacOS\nProductVersion:\t\t26.5.1\nBuildVersion:\t\t25F80",
+  "package": {
+    "id": "time-review",
+    "version": "1.6.0",
+    "sha256": "90f5029049ed4b2cadd69fa91c4efaefb45f031bd94c07e708c9f78d5f2776f6"
+  },
+  "chromePid": 64198,
+  "profileOwned": true,
+  "install": "PASS",
+  "realSidePanel": "PASS",
+  "minuteConsent": "NOT_TESTED",
+  "browserRestart": "NOT_TESTED",
+  "download": "NOT_TESTED",
+  "beginAndActiveCollection": "NOT_TESTED",
+  "pauseResume": "NOT_TESTED",
+  "websiteGrantRevocation": "NOT_TESTED",
+  "idlePermissionRevocation": "NOT_TESTED",
+  "swRestart": "NOT_TESTED",
+  "hostedCI": false,
+  "extensionPath": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/source-delivery/dist/production",
+  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-time-r13-yxgaOB",
+  "driverSha256": "6c7549923cd3b67e630348cb2cc64ab4778deaa194fc5be267ace96f130ea608",
+  "chromeBinaryVersion": "Google Chrome for Testing 155.0.8059.39",
+  "screenshots": [
+    {
+      "filename": "installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "filename": "installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "filename": "installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "filename": "installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "filename": "installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "filename": "failure-side.png",
+      "bytes": 112614,
+      "sha256": "c91208999a4fd7c2826a2a552dfe4f4215906eeb25a9d2b972283cc63c3ee41e"
+    }
+  ],
+  "steps": [
+    {
+      "name": "trusted-open",
+      "selector": "#catalog-open-dev-sidebar",
+      "x": 89.25,
+      "y": 135.1484375
+    },
+    {
+      "name": "install",
+      "version": "1.6.0"
+    },
+    {
+      "name": "native-canvas",
+      "quadrants": 4,
+      "extras": 2,
+      "day": "0秒",
+      "timeline": "尚无分钟明细",
+      "horizontal": true,
+      "frameGeometry": {
+        "viewportHeight": 815,
+        "documentHeight": 815,
+        "rootHeight": 1109.828125
+      },
+      "outerGeometry": {
+        "viewportHeight": 815,
+        "nativeHeight": 1109.828125,
+        "iframeCount": 0,
+        "hostScrollHeight": 815
+      }
+    },
+    {
+      "name": "installed-native-widths",
+      "verdict": "PASS",
+      "method": "installed SIDE_PANEL CSS viewport override",
+      "widths": [
+        320,
+        360,
+        400,
+        600
+      ]
+    }
+  ],
+  "chrome": "Chrome/155.0.8059.39",
+  "extensionId": "hlblclkdihmdpmcgdbpkdhpichhkjalk",
+  "nativeTrustedUI": "PASS",
+  "timeReviewIframeRemoved": "PASS",
+  "installedViewportWidths": [
+    {
+      "width": 320,
+      "scroll": 320,
+      "canvas": 282,
+      "reviews": 1,
+      "iframes": 0,
+      "label": "分钟时间线",
+      "method": "CDP viewport on installed native UI"
+    },
+    {
+      "width": 360,
+      "scroll": 360,
+      "canvas": 312,
+      "reviews": 1,
+      "iframes": 0,
+      "label": "分钟时间线",
+      "method": "CDP viewport on installed native UI"
+    },
+    {
+      "width": 400,
+      "scroll": 400,
+      "canvas": 352,
+      "reviews": 1,
+      "iframes": 0,
+      "label": "分钟时间线",
+      "method": "CDP viewport on installed native UI"
+    },
+    {
+      "width": 600,
+      "scroll": 600,
+      "canvas": 552,
+      "reviews": 1,
+      "iframes": 0,
+      "label": "分钟时间线",
+      "method": "CDP viewport on installed native UI"
+    }
+  ],
+  "layoutWidths": "PASS",
+  "failureObservation": {
+    "text": "我的\n发现\n工作流\n开发\n工具\n云控\nTime Review · 时间回顾\n\n已暂停\n\n▶\n⚙\n↻\n‹\n10月14日周三\n今天 · 本机统计\n›\n已记录\n0秒\n重要时间\n0秒\n—\n生产率\n暂无昨日比较\n暂无分类统计\n时间分类\n暂无记录\n重要且紧急\n—\n—\n重要不紧急\n—\n—\n紧急不重要\n—\n—\n不重要不紧急\n—\n—\n生活\n—\n未分类\n—\n24 小时时间线\n尚无分钟明细\n\n选择时间查看对应分钟\n\n可在设置中自愿开启未来的分钟明细。\n\n当前网站\n已暂停\n当前没有正在记录的网站\n记录已暂停\n—\n网站分类\n—\n修改\n\n尚未授权网站；请在「工具详情 → 设置」先授权当前网站或全部普通网站。\n\n详细记录\n七天 0秒\n所选日期\n近七天\n网站排行\n暂无记录\n设置、分钟明细与数据管理\n历史记录查询",
+    "focused": {
+      "alwaysOnTop": false,
+      "focused": false,
+      "height": 950,
+      "id": 2120527144,
+      "incognito": false,
+      "left": 22,
+      "state": "normal",
+      "top": 55,
+      "type": "normal",
+      "width": 1200
+    },
+    "active": [
+      {
+        "active": true,
+        "audible": false,
+        "autoDiscardable": true,
+        "discarded": false,
+        "favIconUrl": "",
+        "frozen": false,
+        "groupId": -1,
+        "height": 799,
+        "highlighted": true,
+        "id": 2120527146,
+        "incognito": false,
+        "index": 1,
+        "lastAccessed": 1791921686107.842,
+        "mutedInfo": {
+          "muted": false
+        },
+        "openerTabId": 2120527145,
+        "pinned": false,
+        "selected": true,
+        "splitViewId": -1,
+        "status": "complete",
+        "title": "OpenDesk Browser",
+        "url": "chrome-extension://hlblclkdihmdpmcgdbpkdhpichhkjalk/ui/tool.html?hostInstanceId=6f7960b6-cd8d-4b12-86dc-befeb0b637c0",
+        "width": 814,
+        "windowId": 2120527144
+      }
+    ],
+    "status": "已暂停"
+  },
+  "downloadObservation": [],
+  "cleanup": {
+    "terminated": true,
+    "profileRemoved": true,
+    "owned": true
+  },
+  "complete": false,
+  "acceptance": "FAIL",
+  "requiredResults": {
+    "install": "PASS",
+    "realSidePanel": "PASS",
+    "nativeTrustedUI": "PASS",
+    "minuteConsent": "NOT_TESTED",
+    "download": "NOT_TESTED",
+    "multiSite": "NOT_TESTED",
+    "idleTransition": "NOT_TESTED",
+    "beginAndActiveCollection": "NOT_TESTED",
+    "pauseResume": "NOT_TESTED",
+    "websiteGrantRevocation": "NOT_TESTED",
+    "idlePermissionRevocation": "NOT_TESTED",
+    "swRestart": "NOT_TESTED",
+    "browserRestart": "NOT_TESTED",
+    "disableEnable": "NOT_TESTED",
+    "uninstall": "NOT_TESTED",
+    "realBrowserZoom": "NOT_TESTED",
+    "windowFocus": "NOT_TESTED",
+    "panelClosedCollection": "NOT_TESTED",
+    "unrelatedToolInstall": "NOT_TESTED",
+    "unrelatedToolLifecycle": "NOT_TESTED",
+    "minuteCanvas": "NOT_TESTED",
+    "canvasKeyboard": "NOT_TESTED",
+    "classification": "NOT_TESTED",
+    "populatedExport": "NOT_TESTED",
+    "reinstall": "NOT_TESTED",
+    "realSidePanelReopened": "NOT_TESTED",
+    "nativePermissionControls": "NOT_TESTED",
+    "inlineEnrollment": "NOT_TESTED",
+    "timeReviewIframeRemoved": "PASS",
+    "layoutWidths": "PASS",
+    "historyNavigation": "NOT_TESTED",
+    "longDomainLayout": "NOT_TESTED",
+    "sameNameSandbox": "NOT_TESTED",
+    "replacementRetirement": "NOT_TESTED",
+    "officialUpgrade": "NOT_TESTED"
+  },
+  "chromeStderr": "\nDevTools listening on ws://127.0.0.1:51515/devtools/browser/d2b49d5b-2580-4a7b-ad07-a57bb579219e\n[64198:73525389:1014/040130.178471:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[64198:73525389:1014/040130.341759:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR\n[64198:73525389:1014/040130.352728:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR\n[64198:73525389:1014/040130.951570:ERROR:google_apis/gcm/engine/mcs_client.cc:702]   Error code: 401  Error message: Authentication Failed: wrong_secret\n[64198:73525389:1014/040130.951581:ERROR:google_apis/gcm/engine/mcs_client.cc:704] Failed to log in to GCM, resetting connection.\n"
+}

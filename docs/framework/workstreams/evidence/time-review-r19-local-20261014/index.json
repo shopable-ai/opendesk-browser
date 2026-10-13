@@ -1,0 +1,3149 @@
+{
+  "createdUtc": "2026-10-13T21:22:23.922025+00:00",
+  "state": "PARTIAL",
+  "productionCandidate": "dba771cc8e64fa5f3b1ef7163568a8812af9d024",
+  "deliveryParentObserved": "097de119d486d89986a7a2b04fc306e08404addb",
+  "productionInputsVerified": 558,
+  "productionSnapshotMatchesGit": true,
+  "postCandidateProductChanges": [
+    "src/platform/chrome/bookmarks.js",
+    "src/ui/sidebar-tab-memory.js",
+    "src/ui/task-workbench.js"
+  ],
+  "postCandidatePolicy": "Only unchanged Time Review/Host inputs may reuse evidence. This is not a full current-main native PASS. Foreign uncommitted changes were excluded.",
+  "mac": "ProductName:\t\tmacOS\nProductVersion:\t\t26.5.1\nBuildVersion:\t\t25F80",
+  "node": "v26.3.1",
+  "chrome": "Chrome/155.0.8059.39",
+  "nativeExtensionId": "coelkalcpnbppgbncibnckabllabgnoo",
+  "nativeExtensionPath": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/source-r19-final/dist/production",
+  "nativeOwnedProfile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-time-r13-aKhsqb",
+  "nativeCleanup": {
+    "terminated": true,
+    "profileRemoved": true,
+    "owned": true
+  },
+  "requestedNineNode": {
+    "tests": 169,
+    "pass": 169,
+    "fail": 0,
+    "skipped": 0,
+    "raw": "inactive-complete-node-after.tap"
+  },
+  "affectedFourteenNode": {
+    "tests": 205,
+    "pass": 205,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0
+  },
+  "buildCommands": {
+    "candidate": "dba771cc8e64fa5f3b1ef7163568a8812af9d024",
+    "outputGuardPort": 43272,
+    "commands": [
+      {
+        "command": [
+          "node",
+          "--test",
+          "--test-reporter=tap",
+          "tests/environment/time-review-r16-trusted-native.test.mjs",
+          "tests/environment/time-review-r15-site-grants.test.mjs",
+          "tests/environment/time-review-r13-service.test.mjs",
+          "tests/environment/time-review-r13-consent.test.mjs",
+          "tests/environment/time-review-r12.test.mjs",
+          "tests/environment/time-review-r13.test.mjs",
+          "tests/environment/time-review-host-controls-r51.test.mjs",
+          "tests/environment/time-review-r14-sync-outbox.test.mjs",
+          "tests/environment/sidebar-tools-host.test.mjs",
+          "tests/environment/sidebar-component-contract.test.mjs",
+          "tests/environment/sidebar-r21-design-system.test.mjs",
+          "tests/environment/developer-layout.test.mjs",
+          "tests/environment/sidebar-tool-enable-r26.test.mjs",
+          "tests/environment/sidebar-tool-multiscript-r72.test.mjs"
+        ],
+        "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/source-r19-final",
+        "exitCode": 0,
+        "elapsedSeconds": 1.406,
+        "log": "0-raw.log"
+      },
+      {
+        "command": [
+          "npm",
+          "run",
+          "build:sidebar-tool",
+          "--",
+          "examples/sidebar-tools/time-review"
+        ],
+        "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/source-r19-final",
+        "exitCode": 0,
+        "elapsedSeconds": 0.245,
+        "log": "1-raw.log"
+      },
+      {
+        "command": [
+          "npm",
+          "run",
+          "check"
+        ],
+        "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/source-r19-final",
+        "exitCode": 0,
+        "elapsedSeconds": 37.511,
+        "log": "2-raw.log"
+      },
+      {
+        "command": [
+          "npm",
+          "run",
+          "build"
+        ],
+        "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/source-r19-final",
+        "exitCode": 0,
+        "elapsedSeconds": 26.209,
+        "log": "3-raw.log"
+      },
+      {
+        "command": [
+          "npm",
+          "run",
+          "build:dev"
+        ],
+        "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/source-r19-final",
+        "exitCode": 0,
+        "elapsedSeconds": 23.723,
+        "log": "4-raw.log"
+      },
+      {
+        "command": [
+          "npm",
+          "run",
+          "verify"
+        ],
+        "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/source-r19-final",
+        "exitCode": 0,
+        "elapsedSeconds": 2.136,
+        "log": "5-raw.log"
+      }
+    ]
+  },
+  "nativeFullRun": {
+    "run": 42,
+    "tapExitCode": 0,
+    "report": "native-run-42/native-report.json",
+    "complete": true,
+    "acceptance": "PARTIAL",
+    "passed": 34,
+    "required": 35,
+    "missing": {
+      "officialUpgrade": "NOT_TESTED"
+    },
+    "driverSha256": "deb1582aca5e5fc8cba0b1562b1450c2d28caa7a1813b5674ecb8e31da2f9277"
+  },
+  "remaining": {
+    "officialUpgrade": "BLOCKED: native runs 43-46 did not reach the current official upgrade tail because another CFT owned foreground; run 46 expected PID3907, actual PID3948.",
+    "historicalOfficialUpgrade": "NOT_TESTED: reviewed older-version local fixture is not evidence of an older official release.",
+    "activeServiceWorkerSleep": "NOT_TESTED: raw native SW replacement was tested while paused, not an active idle worker sleep/wake.",
+    "separateNativeTamperMatrix": "PARTIAL: changed-version/bytes/provenance replacement and epoch rotation have native evidence; independently tampering each authority field without real installation is not claimed.",
+    "cloud": "LOCAL_ONLY / NO_UPLOAD / BLOCKED; no cloud implementation attempted."
+  },
+  "currentDriverVerification": [
+    {
+      "path": "tests/framework/time-review-r13-native.test.mjs",
+      "bytes": 111791,
+      "sha256": "d6008df5a1b5ef21b0007b3918708ad15d793c77b4efb54c2cf5c1c9ca90be38"
+    },
+    {
+      "path": "tests/framework/time-review-native-input.swift",
+      "bytes": 9079,
+      "sha256": "a7180392f2cba814a45541681a8bffef1f02490dd7c7dc36e5c808eb5c3a05b2"
+    }
+  ],
+  "currentDriverNativeResult": "NOT_TESTED to completion; original 42 driver hash retained separately, latest default full now rejects any incomplete requiredResults.",
+  "nativeCommandTemplate": {
+    "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/source-r19-final",
+    "command": [
+      "node",
+      "--test",
+      "--test-reporter=tap",
+      "tests/framework/time-review-r13-native.test.mjs"
+    ],
+    "env": {
+      "GITHUB_SHA": "dba771cc8e64fa5f3b1ef7163568a8812af9d024",
+      "OPENDESK_TIME_REVIEW_NATIVE": "1",
+      "CHROME_BIN": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/time-review-r19-local-01a1364f/OpenDesk Time Review R19 CFT.app/Contents/MacOS/Google Chrome for Testing",
+      "OPENDESK_TIME_NATIVE_EVIDENCE": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/native-run-N"
+    },
+    "identityScopeOnly": "OPENDESK_TIME_NATIVE_SCOPE=identity for bounded identity reruns; omitted cases remain NOT_TESTED."
+  },
+  "selectedRawFiles": [
+    {
+      "path": "environment.json",
+      "bytes": 3658,
+      "sha256": "84cd90dd6dff91fb5b0a28dc8c435a290f1b856c6ab7652d5628c6a9941ac408"
+    },
+    {
+      "path": "final-production-baseline.sha",
+      "bytes": 41,
+      "sha256": "5e423c3fc47ca57e6a23c5ec91066d76e0ddb58317d6481c5ce1ab80a425fef7"
+    },
+    {
+      "path": "final-artifact-identities.json",
+      "bytes": 1315,
+      "sha256": "7bb3fc4222226f8ea7e42954197334e0087e3c60e3c660f78716a549237be77b"
+    },
+    {
+      "path": "final-product-inputs.json",
+      "bytes": 130396,
+      "sha256": "3c7171df2788a8277d8f5c89f8f2dd61de5b34db3aa03f2c4ec1eabc603d8ef9"
+    },
+    {
+      "path": "core-commit.sha",
+      "bytes": 41,
+      "sha256": "f9115b486df6c0d711e4ccc8f72e658062ff9080c0cbf88df62f2668224e1fa3"
+    },
+    {
+      "path": "inactive-fix-commit.sha",
+      "bytes": 41,
+      "sha256": "5e423c3fc47ca57e6a23c5ec91066d76e0ddb58317d6481c5ce1ab80a425fef7"
+    },
+    {
+      "path": "final-driver-node-check.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "final-driver-node-check.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "final-helper-compile.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "final-helper-compile.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "inactive-node-version.txt",
+      "bytes": 9,
+      "sha256": "a8f8f7ba69d43285857a0ea34017ef8dadd3ba012404bb7dd188fc773cf63ee2"
+    },
+    {
+      "path": "inactive-regression-before.tap",
+      "bytes": 2081,
+      "sha256": "fb6b0c000b07b9abd14a55c149e73e741b44e489d9bbeb3f8fb94df35c3c73a0"
+    },
+    {
+      "path": "inactive-regression-before.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "inactive-regression-after.tap",
+      "bytes": 1392,
+      "sha256": "3e9cd30af916cbb77da536efd929ff285d5658f24713928ecd65a49bdef5c577"
+    },
+    {
+      "path": "inactive-regression-after.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "inactive-complete-node.tap",
+      "bytes": 40158,
+      "sha256": "5051b333562bf2fa8cd7b4b2c9a9f840513b99dd5d6a123711a9aac24897b2a2"
+    },
+    {
+      "path": "inactive-complete-node.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "inactive-complete-node-after.tap",
+      "bytes": 38928,
+      "sha256": "6fe6563f5f52951885a04ed39665a1181bd6c20a825b8beee42220048f78438d"
+    },
+    {
+      "path": "inactive-complete-node-after.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "node/r10-before.tap",
+      "bytes": 1172,
+      "sha256": "bac8c75c2e7eb0f192530990510c3f18f37cdd2313d14abd58c895500c6f8154"
+    },
+    {
+      "path": "node/r10-before.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "node/r10-after.tap",
+      "bytes": 352,
+      "sha256": "c5f17dec755bfd63d5a5091ec21d6ed5eba077d99fba72185fe92d7d32cb201c"
+    },
+    {
+      "path": "node/r10-after.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "node/sidebar-host.tap",
+      "bytes": 17726,
+      "sha256": "52a81e176610aef7dba7d9a2818269165e7aefc3fe70abeca524af796ce0453b"
+    },
+    {
+      "path": "node/sidebar-host.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "node/native-forward-before.tap",
+      "bytes": 1064,
+      "sha256": "898db2520201062f6b8a35cb4140e9cc9b8800112d78fb875a971f784caed77b"
+    },
+    {
+      "path": "node/native-forward-before.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "node/native-forward-after.tap",
+      "bytes": 20767,
+      "sha256": "46823b39835f20bfb05df00f701e2abb306a25e7f8b9040e8dd79fa6de63e36e"
+    },
+    {
+      "path": "node/native-forward-after.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "final-validation/0-raw.log",
+      "bytes": 47252,
+      "sha256": "4f917432879c5076da15e9489ca4ab8e4d3aa1617406d3e4f8bb553ec428b7d4"
+    },
+    {
+      "path": "final-validation/1-raw.log",
+      "bytes": 487,
+      "sha256": "9d26c00add6d31c63df726f44e21e29713f942683cc1ed3027f4545cf61d4f89"
+    },
+    {
+      "path": "final-validation/2-raw.log",
+      "bytes": 208,
+      "sha256": "5a3df4fe18df36d0ec280ae65b3a25bc003379937991759117f164f10d6b865b"
+    },
+    {
+      "path": "final-validation/3-raw.log",
+      "bytes": 18310,
+      "sha256": "bde4745595a487f449909c5c4983aea4fca707579a62dd9f830ab2e28840ade1"
+    },
+    {
+      "path": "final-validation/4-raw.log",
+      "bytes": 22597,
+      "sha256": "c03bc19da0fb9011f4502678200e170518c1a8e482a2d3403fb7ef9fbdbcb470"
+    },
+    {
+      "path": "final-validation/5-raw.log",
+      "bytes": 42815,
+      "sha256": "20b7befd29382286a1bd0b60700004c3417df599fe76d51686b16c6eba8e6159"
+    },
+    {
+      "path": "final-validation/commands.json",
+      "bytes": 2814,
+      "sha256": "c0d8cf2b8eae11c4ca9102462c305e928863af7d460641b9248191a1bab91ee4"
+    },
+    {
+      "path": "final-validation/node-version.txt",
+      "bytes": 8,
+      "sha256": "3dcfac47702a14c367f0cce2a49ef565a2985278864fd981add283be89322181"
+    },
+    {
+      "path": "native-run-1.tap",
+      "bytes": 2422,
+      "sha256": "5f799959d919ead7ff45eb5781d99d04be164fa672805f58f8135d6957391147"
+    },
+    {
+      "path": "native-run-1.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-1/native-report.json",
+      "bytes": 6305,
+      "sha256": "bfdfceb0b68d8af5b615760982534472c71ad8098929c6ee907f9a4ab79038c1"
+    },
+    {
+      "path": "native-run-2.tap",
+      "bytes": 2422,
+      "sha256": "3ba9ed0a60f66add15e7e675dfe856fd460a5d52768a0f013b3d135f31ecdd36"
+    },
+    {
+      "path": "native-run-2.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-2/native-report.json",
+      "bytes": 6622,
+      "sha256": "145a9878346870a8fe06090d3278e6dc658b5768b8fbc09d16f7f644c57fc216"
+    },
+    {
+      "path": "native-run-3.tap",
+      "bytes": 3273,
+      "sha256": "84321e5b9a488362f0fb55ddf5f7c0af8180d136487fd191d2f7a2e20aba47fe"
+    },
+    {
+      "path": "native-run-3.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-3/native-report.json",
+      "bytes": 9215,
+      "sha256": "430bec9c32aa46ef6269ff21b781fc7ec5608fdb5819495ffd10d5542133b21f"
+    },
+    {
+      "path": "native-run-4.tap",
+      "bytes": 1559,
+      "sha256": "92a0d1ecabad4b083ca76354d310db65970802d8a16659d1ede3ce58ae2571b7"
+    },
+    {
+      "path": "native-run-4.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-4/native-report.json",
+      "bytes": 7335,
+      "sha256": "be0d88849acb010ad95e0c9da3d662f71b08c5252fa8eaf5349e41889036306c"
+    },
+    {
+      "path": "native-run-5.tap",
+      "bytes": 4001,
+      "sha256": "5c2f47549e586d664e03c47cd452e44639fab5613260da8258468acaf476bde9"
+    },
+    {
+      "path": "native-run-5.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-5/native-report.json",
+      "bytes": 12624,
+      "sha256": "dabb9cfff8a262bcbb1669c89f27173c6e40db20ee4b4bde7db77d58f8dde430"
+    },
+    {
+      "path": "native-run-6.tap",
+      "bytes": 4379,
+      "sha256": "dff5a0068b3353ff75a4e78ce083221a8dfc419037e3226d825f4ac6373dabbd"
+    },
+    {
+      "path": "native-run-6.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-6/native-report.json",
+      "bytes": 13309,
+      "sha256": "7ff288969ad4262d86831b8949c04ed55e1e228a431c9f61ebe38bae0f404853"
+    },
+    {
+      "path": "native-run-7.tap",
+      "bytes": 4182,
+      "sha256": "08f2d08fec59a4218f8fdfb2514845288d6ec593f9cc523af7a959bce4650fbf"
+    },
+    {
+      "path": "native-run-7.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-7/native-report.json",
+      "bytes": 12977,
+      "sha256": "ed3cb5df8f24818fb5c522c58a018e26f5a14b66d023ff896fd8df42fbf35b8c"
+    },
+    {
+      "path": "native-run-8.tap",
+      "bytes": 4608,
+      "sha256": "68b012fed2a589586d9440c15cf3bc06c85478c1bf509cd9d810d9822fc09f41"
+    },
+    {
+      "path": "native-run-8.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-8/native-report.json",
+      "bytes": 14006,
+      "sha256": "9f281b049aceb51ada41a17efdbb853e86c4cf103cf4a8b1192f87992fa74f0c"
+    },
+    {
+      "path": "native-run-9.tap",
+      "bytes": 3918,
+      "sha256": "25a1525a92c1a2b66a2a0045eacbab5a3c8d5deae487f6a13686dcb3d38331cc"
+    },
+    {
+      "path": "native-run-9.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-9/native-report.json",
+      "bytes": 12135,
+      "sha256": "d5a937748d785df6428cf61b9d3d45622d3ac8df0ff4f65c005eeab743a22830"
+    },
+    {
+      "path": "native-run-10.tap",
+      "bytes": 4098,
+      "sha256": "ee403c2dcabf4f6b7dd662269fabfe128b9464b0b641aaffab1698939b23fad5"
+    },
+    {
+      "path": "native-run-10.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-10/native-report.json",
+      "bytes": 12139,
+      "sha256": "b8bc2d3c50fdff06d43923c4f9af63149aaee2f20a5d776fe341441d8d83ceb8"
+    },
+    {
+      "path": "native-run-11.tap",
+      "bytes": 4206,
+      "sha256": "2e50e2b0c0aca890327226627f3d67cbbe707764a2939e5513be46fe315f911d"
+    },
+    {
+      "path": "native-run-11.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-11/native-report.json",
+      "bytes": 12597,
+      "sha256": "70a7b48356e47b1dd068aec087a67e1028ff635be494e499734fa1870a15dd60"
+    },
+    {
+      "path": "native-run-12.tap",
+      "bytes": 1840,
+      "sha256": "78f857681d3573b9faabc7b4cdc2c1332f89efd2da0eb16915ab2ac8cfd2ed87"
+    },
+    {
+      "path": "native-run-12.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-12/native-report.json",
+      "bytes": 6975,
+      "sha256": "5c026ad5b25e2718e97da69e6b2558f3b541db3b396e04b2a3c3364d0901244a"
+    },
+    {
+      "path": "native-run-13.tap",
+      "bytes": 1985,
+      "sha256": "fd26041ff4bfa5d86185fe65af488bfce6c266681c46c1508bd22b193a442564"
+    },
+    {
+      "path": "native-run-13.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-13/native-report.json",
+      "bytes": 6981,
+      "sha256": "083bea2ef2959c172ec4958131c9fa5e67d2877edbef849e84d31eb3f7c3db84"
+    },
+    {
+      "path": "native-run-14.tap",
+      "bytes": 4461,
+      "sha256": "dde07712ff9f08ec7707bb35c65106a08fb02ef4023242957098f9a530052f5e"
+    },
+    {
+      "path": "native-run-14.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-14/native-report.json",
+      "bytes": 9645,
+      "sha256": "9ef010bfbc1ec92ff345fa4798575018de47a71bc4dccd1e7bbb9ee31b83ae29"
+    },
+    {
+      "path": "native-run-15.tap",
+      "bytes": 3562,
+      "sha256": "e09f6d447ba9fed009d751ee5e117aa73e8f8f38883d8801c3b5ac9e35a6f953"
+    },
+    {
+      "path": "native-run-16.tap",
+      "bytes": 5693,
+      "sha256": "dba165b975ea6cb421e9d1078d2ea09089f9f7a29440d6cb42fc6b118f4d56cc"
+    },
+    {
+      "path": "native-run-16.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-16/native-report.json",
+      "bytes": 13735,
+      "sha256": "b3343651b12ba0bc10ef56e3481002dd182a3c9736fa933595122d2fde13ffc5"
+    },
+    {
+      "path": "native-run-17.tap",
+      "bytes": 8818,
+      "sha256": "58584a123c9a23dbbba7fe09623e9eb23f32e1e1c5d34215bba2d7d5500f282a"
+    },
+    {
+      "path": "native-run-17.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-17/native-report.json",
+      "bytes": 17680,
+      "sha256": "e58e6405dfee30b8994dc141cd5110203f007e5112d2c611395a52a5d55445af"
+    },
+    {
+      "path": "native-run-18.tap",
+      "bytes": 2228,
+      "sha256": "2bf630f5156d7b73b8131cc3baf75e5149ee0d90a89b2071a273f6bf998cd627"
+    },
+    {
+      "path": "native-run-18.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-18/native-report.json",
+      "bytes": 7689,
+      "sha256": "eae73dfca41443e5e91ac70de1a5316b26daae027828651fbcb9414c5f9189d0"
+    },
+    {
+      "path": "native-run-19.tap",
+      "bytes": 6584,
+      "sha256": "6a6886e7a1e8acd11fe86e7a5718ce3a3a05d746950437814b8a4b04694c8830"
+    },
+    {
+      "path": "native-run-19.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-19/native-report.json",
+      "bytes": 15705,
+      "sha256": "2ad03b10fcd634fc7b13e55bc56bed3a959f4c4558a458e1c829c9afa3f94587"
+    },
+    {
+      "path": "native-run-20.tap",
+      "bytes": 3853,
+      "sha256": "18cbd9184e787635006cb47eeabb6489c0a104c07e9da1ee2438b80c68ff9599"
+    },
+    {
+      "path": "native-run-20.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-20/native-report.json",
+      "bytes": 12956,
+      "sha256": "430dc03423676fe505473417309684e8e96e2f0d1d09e21ae6cda4cc5dc5e758"
+    },
+    {
+      "path": "native-run-21.tap",
+      "bytes": 6912,
+      "sha256": "cbb4db7b531eea1cf73e093b10b7e518371833df95c4f5150d77efd95ef812fc"
+    },
+    {
+      "path": "native-run-21.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-21/native-report.json",
+      "bytes": 12816,
+      "sha256": "5af6df066c7ef02d433788ecf293d6271ff1ced6367ecba06144464fe15e61ec"
+    },
+    {
+      "path": "native-run-22.tap",
+      "bytes": 6211,
+      "sha256": "f9eaccc0c8cdd191149fbe9eb68ca64417480017bed47dbd560ed880a6ff9330"
+    },
+    {
+      "path": "native-run-22.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-22/native-report.json",
+      "bytes": 13913,
+      "sha256": "82d3a6a2b6f334c4dffd7c71f311be585320bf77fc11933a102a6b8d4401fc28"
+    },
+    {
+      "path": "native-run-23.tap",
+      "bytes": 2299,
+      "sha256": "f169af1e4c58a59ed22c360a430403439bb1a320c35d08e823fa6e601644f376"
+    },
+    {
+      "path": "native-run-23.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-23/native-report.json",
+      "bytes": 7877,
+      "sha256": "ab8506844ec6be91b847d442e02e7de9e634d5fcac7dda240493e991e6d24bd7"
+    },
+    {
+      "path": "native-run-24.tap",
+      "bytes": 7433,
+      "sha256": "f4797fe75f9c63e7c63ded2067d94b581f4d423f62f8a213c0aaf09f7d2f33bd"
+    },
+    {
+      "path": "native-run-24.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-24/native-report.json",
+      "bytes": 13510,
+      "sha256": "a8c7fbd1d53f60a359129be3edb857ba53a24080f7ea8d9eb0c6d1edd879ae5c"
+    },
+    {
+      "path": "native-run-25.tap",
+      "bytes": 2457,
+      "sha256": "8798000e2dee995328e5de30d14af34aee2f9e8abbd95f57f52eec3c7f0469bb"
+    },
+    {
+      "path": "native-run-25.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-25/native-report.json",
+      "bytes": 8318,
+      "sha256": "f87e5604cd6d45f61d56840ecfdb01dbb34897566090f06a5a90f2b5dcdae12a"
+    },
+    {
+      "path": "native-run-26.tap",
+      "bytes": 3151,
+      "sha256": "cf3969c194158b6f4245489c57c126f160d76d7d91fae0502e83245f5a1e8eee"
+    },
+    {
+      "path": "native-run-26.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-26/native-report.json",
+      "bytes": 12502,
+      "sha256": "0723de74ac6e72cd6ebf8091c2361449399f2c0abe034f87d9b87d4c0c2230d0"
+    },
+    {
+      "path": "native-run-27.tap",
+      "bytes": 2996,
+      "sha256": "a5f9a6993fd497025323863a1227eb4a7916b99e1439bfe5fe41039446cc70ae"
+    },
+    {
+      "path": "native-run-27.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-27/native-report.json",
+      "bytes": 11720,
+      "sha256": "ad64463411596e65e48376ee88ba18dc5d1d83898870e458bfe9e77a698c4f9d"
+    },
+    {
+      "path": "native-run-28.tap",
+      "bytes": 2486,
+      "sha256": "32b52143280733c4f670703ea7f67b8d9591c35b190d8de736d81f0474b4c939"
+    },
+    {
+      "path": "native-run-28.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-28/native-report.json",
+      "bytes": 8474,
+      "sha256": "4f0964d54908f366a1f457b582ab7a3c69e1325072653b30feaa00f2fde29fb0"
+    },
+    {
+      "path": "native-run-29.tap",
+      "bytes": 2516,
+      "sha256": "9d218e39bfc56ddb4ca393e6d762e4f49eb638bd3ff427efb66cfd0a8c351a1e"
+    },
+    {
+      "path": "native-run-29.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-29/native-report.json",
+      "bytes": 8033,
+      "sha256": "8e4a962217dad4761d524f971e4de8456fe7df291acb0d68ab7df119e0a6aaa4"
+    },
+    {
+      "path": "native-run-30.tap",
+      "bytes": 6989,
+      "sha256": "c65ea23e9421a437bfec853348604705646835722539ab3cdb00d5e4d551fa86"
+    },
+    {
+      "path": "native-run-30.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-30/native-report.json",
+      "bytes": 15991,
+      "sha256": "7404f3b91127e657202e59964ea99be1240d0364944b3c16edeb262ce9eb63a1"
+    },
+    {
+      "path": "native-run-31.tap",
+      "bytes": 6992,
+      "sha256": "73481ca6e1213ee91fd5f681361538cb7f90f4ce4d24616134580e2cd3dc48d6"
+    },
+    {
+      "path": "native-run-31.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-31/native-report.json",
+      "bytes": 16668,
+      "sha256": "0641cbc52c9418692cc38ecb8f168af7aca6f6fee1dddba43a78a5d796ed2b44"
+    },
+    {
+      "path": "native-run-32.tap",
+      "bytes": 7027,
+      "sha256": "6aabab811efc375586cbdf542837a7f64849f2576a6a40e86997a912ee8f276e"
+    },
+    {
+      "path": "native-run-32.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-32/native-report.json",
+      "bytes": 16462,
+      "sha256": "a1e5e08ea13172a68cf918fce47ad3c085672acc515363aa0bba76a7bf33f9d0"
+    },
+    {
+      "path": "native-run-33.tap",
+      "bytes": 7549,
+      "sha256": "dfbff1f14b02ff639537fdc74167196fc05b05f7d5b9c6c3db2d64642b646d94"
+    },
+    {
+      "path": "native-run-33.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-33/native-report.json",
+      "bytes": 12988,
+      "sha256": "c5d82cfcd716b5a53490dd37d0f725e38ec65818fdba0355fd6186f100de5d55"
+    },
+    {
+      "path": "native-run-34.tap",
+      "bytes": 2520,
+      "sha256": "a2b5caeb7fa1b309c7a1f50a0fc29029df6f798423581c51a4cb7195dd240230"
+    },
+    {
+      "path": "native-run-34.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-34/native-report.json",
+      "bytes": 8883,
+      "sha256": "fae5173c186011b2785f0aa7e484ac4d26bff70d0ce3d2f10a98b4a714b34b35"
+    },
+    {
+      "path": "native-run-35.tap",
+      "bytes": 15623,
+      "sha256": "c3e1c6b451bcd545743017e1463c5b061cd0deb12442cd413d555cd464247663"
+    },
+    {
+      "path": "native-run-35.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-35/native-report.json",
+      "bytes": 22970,
+      "sha256": "341ce44e68a9a54c1bb0e62d53f8eddbbd20e28b973a7f65653984e0593cd05f"
+    },
+    {
+      "path": "native-run-36.tap",
+      "bytes": 5078,
+      "sha256": "6141799cae2bb9b9ddc95ce57f454583e49a540b2318a4caac5a511e1df20490"
+    },
+    {
+      "path": "native-run-36.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-36/native-report.json",
+      "bytes": 13769,
+      "sha256": "186b4e65d92d5713fc3adfff6f8e2b893616382a3d3f991cfdbcc7d713294a21"
+    },
+    {
+      "path": "native-run-37.tap",
+      "bytes": 7252,
+      "sha256": "374d345cfec756b04af0aa6f27ec2df3294b10d6b17b7ab57cce437cbbcf4200"
+    },
+    {
+      "path": "native-run-37.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-37/native-report.json",
+      "bytes": 15773,
+      "sha256": "3756f55a896f796523eb17a062b91bad07fc591029a33df576fdf48e7cf4204c"
+    },
+    {
+      "path": "native-run-38.tap",
+      "bytes": 7193,
+      "sha256": "c20b4bead1a647d38b796717813de80e0f988b1646f6447af9978596e05c1312"
+    },
+    {
+      "path": "native-run-38.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-38/native-report.json",
+      "bytes": 15997,
+      "sha256": "a89f56449f7c12ff8d7f8d3272031e1968f064a8aa939d239d0caa2a1367c591"
+    },
+    {
+      "path": "native-run-39.tap",
+      "bytes": 6714,
+      "sha256": "c4b269075595665b6167facd584797a40b441243bb9231c50df0059f826a367c"
+    },
+    {
+      "path": "native-run-39.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "native-run-39/native-report.json",
+      "bytes": 13383,
+      "sha256": "3c677ab2ec3adc18cfa292195745214efe9fb8caa181a133d0a952b1a7a48ea8"
+    },
+    {
+      "path": "native-run-39/state-summary.json",
+      "bytes": 1313,
+      "sha256": "3c377d810dbd7560aa9d0db77b177892e27b331b0c9df473c6df51b198ec737e"
+    },
+    {
+      "path": "native-run-40.tap",
+      "bytes": 12857,
+      "sha256": "e3b25e2dffaaf5dbf98ce527266160e7fdcf1e6c3b6bd15c5954efecd8c7915c"
+    },
+    {
+      "path": "native-run-40.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-40/native-report.json",
+      "bytes": 21777,
+      "sha256": "6dd89afdffdba786948502c819986716af39fd8083efc86d403aabe035ce1185"
+    },
+    {
+      "path": "native-run-41.tap",
+      "bytes": 14470,
+      "sha256": "3a6cfe5b6107742b2ccdce516aed354e950fa1eb8b3c2ff4088585279322656b"
+    },
+    {
+      "path": "native-run-41.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-41/native-report.json",
+      "bytes": 22427,
+      "sha256": "1c245e34189b199a0f71d5eca9d7c24ac04160a4a2283f2154480cacd9a56b50"
+    },
+    {
+      "path": "native-run-42.tap",
+      "bytes": 16659,
+      "sha256": "1706b84a850af696d22a508f755c8f8a348f33c862fd58c2f19e56d4c8d880a1"
+    },
+    {
+      "path": "native-run-42.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "native-run-42/native-report.json",
+      "bytes": 21539,
+      "sha256": "9d1207a52de314ec2b0697a1abde63089ccaadf28d1eb7f95de8d16f0065acc0"
+    },
+    {
+      "path": "native-run-42/state-summary.json",
+      "bytes": 1337,
+      "sha256": "b14333313ca4a1ac78e1d913190fc970db41af573cd42259de30bacb395c7f45"
+    },
+    {
+      "path": "native-run-43.tap",
+      "bytes": 6414,
+      "sha256": "acf769a56f8436060fb7da9b90943cfc4d852ea035ac707a040f533a60468db3"
+    },
+    {
+      "path": "native-run-43.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-43/native-report.json",
+      "bytes": 14675,
+      "sha256": "3c635872590ed80f02fb39940c8d06cb0af53ecd0a5847324d00c3c0df34192a"
+    },
+    {
+      "path": "native-run-44.tap",
+      "bytes": 6379,
+      "sha256": "9417cfdbeae86d9ed2a8394a001817bc74c485a4f309ae645c96927a16523e20"
+    },
+    {
+      "path": "native-run-44.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-44/native-report.json",
+      "bytes": 15129,
+      "sha256": "9f75ad5eaaa5e9d79c4248d29c7de764bcdc10b69696dc2319795c06a0f5428c"
+    },
+    {
+      "path": "native-run-45.tap",
+      "bytes": 7424,
+      "sha256": "9fcfc1003785f6d19d591c0627641e36ccbab6601815726717094323c78d26b1"
+    },
+    {
+      "path": "native-run-45.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-45/native-report.json",
+      "bytes": 15675,
+      "sha256": "c1887932c3a8b3f78756cb93a7e046010666f6ca9f73850f33964296f2ca70fe"
+    },
+    {
+      "path": "native-run-46.tap",
+      "bytes": 6393,
+      "sha256": "979e7a5c00d78545ea7edcb0550045ff3bc1b3c66060c60870782c952270e780"
+    },
+    {
+      "path": "native-run-46.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-46/native-report.json",
+      "bytes": 14675,
+      "sha256": "b0473c2cb8b224b380dd0639ee511423af8a743f7fb26b27c4465ef0edbcfc03"
+    },
+    {
+      "path": "native-run-42/first-run-inline-time-review-consent.png",
+      "bytes": 185550,
+      "sha256": "2e2c20665cdd953dd8bfbd3dc6c7b4cad8c155d2b5fbe865c6826a66d8cee973"
+    },
+    {
+      "path": "native-run-42/installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "path": "native-run-42/installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "path": "native-run-42/installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "path": "native-run-42/installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "path": "native-run-42/installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "path": "native-run-42/real-chrome-200-percent-zoom.png",
+      "bytes": 68907,
+      "sha256": "5c272525231757618d39ef05b8e9b4b3cd661488fdaa882e78c78c13e7160563"
+    },
+    {
+      "path": "native-run-42/real-long-domain-native.png",
+      "bytes": 117320,
+      "sha256": "1197898324dde6d5fab57a0c9f6bcf9e39ae393739f1509857fc3c2ec5a4fc7a"
+    },
+    {
+      "path": "native-run-42/real-recorded-minute-canvas.png",
+      "bytes": 118172,
+      "sha256": "34f63952dbad721483543664409e0863f96a87d996a2841bc514a491ddd2050e"
+    },
+    {
+      "path": "native-run-42/official-native-retired-after-local-replacement.png",
+      "bytes": 169720,
+      "sha256": "18f39c53622f4b2fa9d242f4499a79aba8079c2bd37f180c2943e4a77a291661"
+    },
+    {
+      "path": "native-run-42/trusted-permission-settings.png",
+      "bytes": 146334,
+      "sha256": "a2675b9c8d6b21ad999cfc53fc8bf3e3de761359967672b58d193a79297e2c8f"
+    },
+    {
+      "path": "native-run-1/failure-side.png",
+      "bytes": 113969,
+      "sha256": "596e1e0039cc32746e9548b572f883d38a2d86b75f757e17d4af6c295e99e4d4"
+    },
+    {
+      "path": "native-run-32/failure-side.png",
+      "bytes": 114127,
+      "sha256": "36a17b18203b643bef62283185ea4c1cc8ff03c6f43f60b7e1f7a3661004caff"
+    },
+    {
+      "path": "native-run-46/failure-side.png",
+      "bytes": 106020,
+      "sha256": "709809d91be8c812fd73ef48e462374a95cc9f42b14ecffaa34532fbc8956be5"
+    },
+    {
+      "path": "native-run-42/download-empty.json",
+      "bytes": 241,
+      "sha256": "3cc02c23b9d8f1b0b52ee5bf6b4d49ba8119e76b22f03c92bab2d5c6008c7385"
+    },
+    {
+      "path": "native-run-42/download-empty.csv",
+      "bytes": 44,
+      "sha256": "55c24b7f5c3e5ccbc3b7fe3915cb7e73720188c2fd93dff8f84c393035dd63d6"
+    },
+    {
+      "path": "native-run-42/download-populated.json",
+      "bytes": 1071,
+      "sha256": "9f1aeb905f622ade052b09ebf621121ce00dbe453425a09a0cefc23f7ec35b9b"
+    },
+    {
+      "path": "native-run-42/download-populated.csv",
+      "bytes": 222,
+      "sha256": "f69740234324dd66fec07446f33ab2620a11426e20fbd1c3ee755cb0d54c0ce0"
+    }
+  ],
+  "nativeAttempts": [
+    {
+      "run": 1,
+      "candidate": "c29f35fa4ea1a465b144e0a1f7751d774bd1ab24",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "NOT_TESTED",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "NOT_TESTED",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "PASS"
+      },
+      "driverSha256": "b2a7fc80eb77fee6e0e927df01622e8f4d99eff6b83902b6d6726d9dad75c784",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 2,
+      "candidate": "c29f35fa4ea1a465b144e0a1f7751d774bd1ab24",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "NOT_TESTED",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "NOT_TESTED",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "PASS"
+      },
+      "driverSha256": "b2a7fc80eb77fee6e0e927df01622e8f4d99eff6b83902b6d6726d9dad75c784",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 3,
+      "candidate": "c29f35fa4ea1a465b144e0a1f7751d774bd1ab24",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "PASS",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "NOT_TESTED",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "PASS"
+      },
+      "driverSha256": "868553de5226762c0e82175cec90a9592f5fa833bbe119371da0bbf317ff2bc5",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 4,
+      "candidate": "c29f35fa4ea1a465b144e0a1f7751d774bd1ab24",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "NOT_TESTED",
+        "download": "NOT_TESTED",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "NOT_TESTED",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "NOT_TESTED"
+      },
+      "driverSha256": "8c7ef57cd611c1523294d1ac2960369bf4c3739165e282c1ea19e592bea50f06",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 5,
+      "candidate": "c29f35fa4ea1a465b144e0a1f7751d774bd1ab24",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "PASS",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "PASS",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "PASS"
+      },
+      "driverSha256": "81be244a89829b8f3482710cf3a19f06cd51a4a7b5ea97d894bfbe5d209b67cf",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 6,
+      "candidate": "c29f35fa4ea1a465b144e0a1f7751d774bd1ab24",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "PASS",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "PASS",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "PASS"
+      },
+      "driverSha256": "3048747270fe83fdd7ea659072cfed76f036840081ab6333b51b62d2ce8238e7",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 7,
+      "candidate": "c29f35fa4ea1a465b144e0a1f7751d774bd1ab24",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "PASS",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "PASS",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "PASS"
+      },
+      "driverSha256": "ccc22cd5e9dc4190aa5ca936dab12f0e0e0e0e8153d5beaae1f48de5ec9fe800",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 8,
+      "candidate": "19cc1c313cb34b1f511f2169197d5af2374ddaf1",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "PASS",
+        "multiSite": "PASS",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "PASS",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "PASS"
+      },
+      "driverSha256": "b36a7aa9a0f143776655f7900cbde5ea60b445c1a6e2ae8b6627f938ec83d629",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 9,
+      "candidate": "fea2b5d8e0644aea4eea52a8f3dba988eb9ae178",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "PASS",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "PASS",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "PASS"
+      },
+      "driverSha256": "a910af4fa26dcf8fd78358ed338febcf6c3edc99fb85c49c3894a181c567ff60",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 10,
+      "candidate": "fea2b5d8e0644aea4eea52a8f3dba988eb9ae178",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "PASS",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "PASS",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "PASS"
+      },
+      "driverSha256": "2f5310a442af33fc4e4f93de8cd64e69ff590a7df8d9d5806e7b17e5e7e499da",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 11,
+      "candidate": "fea2b5d8e0644aea4eea52a8f3dba988eb9ae178",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "PASS",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "PASS",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "PASS"
+      },
+      "driverSha256": "c73f6d9671b62506be9971debb13f75d6041b918ca77103f46b15702686e3789",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 12,
+      "candidate": "f831f5d3f906fca9171e2c9cd662484a07c95ef3",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "NOT_TESTED",
+        "download": "NOT_TESTED",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "NOT_TESTED",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "NOT_TESTED"
+      },
+      "driverSha256": "6dce9772a51e4657eb16ace23bb243e4216312dd5072cbc3f8458120dd405dc4",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 13,
+      "candidate": "f831f5d3f906fca9171e2c9cd662484a07c95ef3",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "NOT_TESTED",
+        "download": "NOT_TESTED",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "NOT_TESTED",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "NOT_TESTED"
+      },
+      "driverSha256": "8d35f6c04c5412c09ae4301f86dbc81738dae4a12a5a322856b687b340798206",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 14,
+      "candidate": "f831f5d3f906fca9171e2c9cd662484a07c95ef3",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "PASS",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "BLOCKED",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "PASS"
+      },
+      "driverSha256": "a2778c127b141fc7fbdc73da5fddd2e18fda61366e690b46be59bb5f6acc3e06",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 15,
+      "candidate": null,
+      "scope": "historical-full",
+      "exitCode": null,
+      "complete": null,
+      "acceptance": null,
+      "requiredResults": {},
+      "driverSha256": null,
+      "cleanup": null
+    },
+    {
+      "run": 16,
+      "candidate": "3c19c71b36f656da941ff2b690bf67420d9c571a",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "PASS",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "PASS",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "PASS"
+      },
+      "driverSha256": "aeeaf1cd6b37e29da8949377337601dc0cd52e13d45da548a8813a4f76f8386f",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 17,
+      "candidate": "3c19c71b36f656da941ff2b690bf67420d9c571a",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "PASS",
+        "multiSite": "PASS",
+        "idleTransition": "PASS",
+        "beginAndActiveCollection": "PASS",
+        "pauseResume": "PASS",
+        "websiteGrantRevocation": "PASS",
+        "idlePermissionRevocation": "PASS",
+        "swRestart": "PASS",
+        "browserRestart": "PASS",
+        "disableEnable": "PASS",
+        "uninstall": "PASS",
+        "realBrowserZoom": "PASS"
+      },
+      "driverSha256": "9f5d6fc63720fb776551e67b63be5dca957e733fb94ef1b0e43959998c23fe89",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 18,
+      "candidate": "3c19c71b36f656da941ff2b690bf67420d9c571a",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "NOT_TESTED",
+        "download": "NOT_TESTED",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "NOT_TESTED",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "NOT_TESTED",
+        "windowFocus": "NOT_TESTED",
+        "panelClosedCollection": "NOT_TESTED",
+        "unrelatedToolInstall": "NOT_TESTED",
+        "unrelatedToolLifecycle": "NOT_TESTED",
+        "minuteCanvas": "NOT_TESTED",
+        "canvasKeyboard": "NOT_TESTED",
+        "classification": "NOT_TESTED",
+        "populatedExport": "NOT_TESTED",
+        "reinstall": "NOT_TESTED",
+        "realSidePanelReopened": "NOT_TESTED",
+        "nativePermissionControls": "NOT_TESTED",
+        "inlineEnrollment": "NOT_TESTED",
+        "timeReviewIframeRemoved": "PASS",
+        "layoutWidths": "PASS",
+        "sameNameSandbox": "NOT_TESTED",
+        "replacementRetirement": "NOT_TESTED",
+        "officialUpgrade": "NOT_TESTED"
+      },
+      "driverSha256": "9a58ff41070c22743ef99400ede499e20ebb4a8252e66025a4ad597aa20347bb",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 19,
+      "candidate": "3c19c71b36f656da941ff2b690bf67420d9c571a",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "PASS",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "PASS",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "BLOCKED",
+        "windowFocus": "PASS",
+        "panelClosedCollection": "BLOCKED",
+        "unrelatedToolInstall": "PASS",
+        "unrelatedToolLifecycle": "PASS",
+        "minuteCanvas": "PASS",
+        "canvasKeyboard": "PASS",
+        "classification": "NOT_TESTED",
+        "populatedExport": "NOT_TESTED",
+        "reinstall": "NOT_TESTED",
+        "realSidePanelReopened": "NOT_TESTED",
+        "nativePermissionControls": "PASS",
+        "inlineEnrollment": "PASS",
+        "timeReviewIframeRemoved": "PASS",
+        "layoutWidths": "PASS",
+        "sameNameSandbox": "NOT_TESTED",
+        "replacementRetirement": "NOT_TESTED",
+        "officialUpgrade": "NOT_TESTED"
+      },
+      "driverSha256": "9a58ff41070c22743ef99400ede499e20ebb4a8252e66025a4ad597aa20347bb",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 20,
+      "candidate": "3c19c71b36f656da941ff2b690bf67420d9c571a",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "PASS",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "NOT_TESTED",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "PASS",
+        "windowFocus": "NOT_TESTED",
+        "panelClosedCollection": "NOT_TESTED",
+        "unrelatedToolInstall": "NOT_TESTED",
+        "unrelatedToolLifecycle": "NOT_TESTED",
+        "minuteCanvas": "NOT_TESTED",
+        "canvasKeyboard": "NOT_TESTED",
+        "classification": "NOT_TESTED",
+        "populatedExport": "NOT_TESTED",
+        "reinstall": "NOT_TESTED",
+        "realSidePanelReopened": "NOT_TESTED",
+        "nativePermissionControls": "PASS",
+        "inlineEnrollment": "PASS",
+        "timeReviewIframeRemoved": "PASS",
+        "layoutWidths": "PASS",
+        "sameNameSandbox": "NOT_TESTED",
+        "replacementRetirement": "NOT_TESTED",
+        "officialUpgrade": "NOT_TESTED"
+      },
+      "driverSha256": "eeb30e3cd19842852066552279950a51a3e572600c032ec8601db9a78347c106",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 21,
+      "candidate": "3c19c71b36f656da941ff2b690bf67420d9c571a",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "PASS",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "PASS",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "PASS",
+        "windowFocus": "PASS",
+        "panelClosedCollection": "NOT_TESTED",
+        "unrelatedToolInstall": "PASS",
+        "unrelatedToolLifecycle": "PASS",
+        "minuteCanvas": "PASS",
+        "canvasKeyboard": "PASS",
+        "classification": "NOT_TESTED",
+        "populatedExport": "NOT_TESTED",
+        "reinstall": "NOT_TESTED",
+        "realSidePanelReopened": "NOT_TESTED",
+        "nativePermissionControls": "PASS",
+        "inlineEnrollment": "PASS",
+        "timeReviewIframeRemoved": "PASS",
+        "layoutWidths": "PASS",
+        "sameNameSandbox": "NOT_TESTED",
+        "replacementRetirement": "NOT_TESTED",
+        "officialUpgrade": "NOT_TESTED"
+      },
+      "driverSha256": "ca7b16a51320fedbdb27c6c9ab0d4c7c13e0fe0bc2e289f2ce9f74ad9d36074d",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 22,
+      "candidate": "3c19c71b36f656da941ff2b690bf67420d9c571a",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "PASS",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "PASS",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "BLOCKED",
+        "windowFocus": "NOT_TESTED",
+        "panelClosedCollection": "NOT_TESTED",
+        "unrelatedToolInstall": "NOT_TESTED",
+        "unrelatedToolLifecycle": "NOT_TESTED",
+        "minuteCanvas": "NOT_TESTED",
+        "canvasKeyboard": "NOT_TESTED",
+        "classification": "NOT_TESTED",
+        "populatedExport": "NOT_TESTED",
+        "reinstall": "NOT_TESTED",
+        "realSidePanelReopened": "NOT_TESTED",
+        "nativePermissionControls": "PASS",
+        "inlineEnrollment": "PASS",
+        "timeReviewIframeRemoved": "PASS",
+        "layoutWidths": "PASS",
+        "sameNameSandbox": "NOT_TESTED",
+        "replacementRetirement": "NOT_TESTED",
+        "officialUpgrade": "NOT_TESTED"
+      },
+      "driverSha256": "63f3b9892cf939e4a79093df5ee5f8e47d88642cc3d868c0c9418266d5e9d9dd",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 23,
+      "candidate": "85de6add728a45167583b0308a8e31da7503d044",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "NOT_TESTED",
+        "download": "NOT_TESTED",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "NOT_TESTED",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "NOT_TESTED",
+        "windowFocus": "NOT_TESTED",
+        "panelClosedCollection": "NOT_TESTED",
+        "unrelatedToolInstall": "NOT_TESTED",
+        "unrelatedToolLifecycle": "NOT_TESTED",
+        "minuteCanvas": "NOT_TESTED",
+        "canvasKeyboard": "NOT_TESTED",
+        "classification": "NOT_TESTED",
+        "populatedExport": "NOT_TESTED",
+        "reinstall": "NOT_TESTED",
+        "realSidePanelReopened": "NOT_TESTED",
+        "nativePermissionControls": "NOT_TESTED",
+        "inlineEnrollment": "NOT_TESTED",
+        "timeReviewIframeRemoved": "PASS",
+        "layoutWidths": "PASS",
+        "historyNavigation": "NOT_TESTED",
+        "longDomainLayout": "NOT_TESTED",
+        "sameNameSandbox": "NOT_TESTED",
+        "replacementRetirement": "NOT_TESTED",
+        "officialUpgrade": "NOT_TESTED"
+      },
+      "driverSha256": "ba8bd7cbf39279a6d7ff5fac9b6dd25d0f29c1953fec533b28181b53e343d202",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 24,
+      "candidate": "85de6add728a45167583b0308a8e31da7503d044",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "PASS",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "PASS",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "PASS",
+        "windowFocus": "PASS",
+        "panelClosedCollection": "NOT_TESTED",
+        "unrelatedToolInstall": "PASS",
+        "unrelatedToolLifecycle": "PASS",
+        "minuteCanvas": "PASS",
+        "canvasKeyboard": "PASS",
+        "classification": "NOT_TESTED",
+        "populatedExport": "NOT_TESTED",
+        "reinstall": "NOT_TESTED",
+        "realSidePanelReopened": "NOT_TESTED",
+        "nativePermissionControls": "PASS",
+        "inlineEnrollment": "PASS",
+        "timeReviewIframeRemoved": "PASS",
+        "layoutWidths": "PASS",
+        "historyNavigation": "NOT_TESTED",
+        "longDomainLayout": "NOT_TESTED",
+        "sameNameSandbox": "NOT_TESTED",
+        "replacementRetirement": "NOT_TESTED",
+        "officialUpgrade": "NOT_TESTED"
+      },
+      "driverSha256": "7937bc04f4919833fbd4c0d3c02e5b76870b2b35a6c63ceb411c2d956d1f2183",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 25,
+      "candidate": "85de6add728a45167583b0308a8e31da7503d044",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "NOT_TESTED",
+        "download": "NOT_TESTED",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "NOT_TESTED",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "NOT_TESTED",
+        "windowFocus": "NOT_TESTED",
+        "panelClosedCollection": "NOT_TESTED",
+        "unrelatedToolInstall": "NOT_TESTED",
+        "unrelatedToolLifecycle": "NOT_TESTED",
+        "minuteCanvas": "NOT_TESTED",
+        "canvasKeyboard": "NOT_TESTED",
+        "classification": "NOT_TESTED",
+        "populatedExport": "NOT_TESTED",
+        "reinstall": "NOT_TESTED",
+        "realSidePanelReopened": "NOT_TESTED",
+        "nativePermissionControls": "NOT_TESTED",
+        "inlineEnrollment": "NOT_TESTED",
+        "timeReviewIframeRemoved": "PASS",
+        "layoutWidths": "PASS",
+        "historyNavigation": "NOT_TESTED",
+        "longDomainLayout": "NOT_TESTED",
+        "sameNameSandbox": "NOT_TESTED",
+        "replacementRetirement": "NOT_TESTED",
+        "officialUpgrade": "NOT_TESTED"
+      },
+      "driverSha256": "6c7549923cd3b67e630348cb2cc64ab4778deaa194fc5be267ace96f130ea608",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 26,
+      "candidate": "85de6add728a45167583b0308a8e31da7503d044",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "PASS",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "NOT_TESTED",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "BLOCKED",
+        "windowFocus": "NOT_TESTED",
+        "panelClosedCollection": "NOT_TESTED",
+        "unrelatedToolInstall": "NOT_TESTED",
+        "unrelatedToolLifecycle": "NOT_TESTED",
+        "minuteCanvas": "NOT_TESTED",
+        "canvasKeyboard": "NOT_TESTED",
+        "classification": "NOT_TESTED",
+        "populatedExport": "NOT_TESTED",
+        "reinstall": "NOT_TESTED",
+        "realSidePanelReopened": "NOT_TESTED",
+        "nativePermissionControls": "PASS",
+        "inlineEnrollment": "NOT_TESTED",
+        "timeReviewIframeRemoved": "PASS",
+        "layoutWidths": "PASS",
+        "historyNavigation": "NOT_TESTED",
+        "longDomainLayout": "NOT_TESTED",
+        "sameNameSandbox": "NOT_TESTED",
+        "replacementRetirement": "NOT_TESTED",
+        "officialUpgrade": "NOT_TESTED"
+      },
+      "driverSha256": "6c7549923cd3b67e630348cb2cc64ab4778deaa194fc5be267ace96f130ea608",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 27,
+      "candidate": "85de6add728a45167583b0308a8e31da7503d044",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "PASS",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "NOT_TESTED",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "BLOCKED",
+        "windowFocus": "NOT_TESTED",
+        "panelClosedCollection": "NOT_TESTED",
+        "unrelatedToolInstall": "NOT_TESTED",
+        "unrelatedToolLifecycle": "NOT_TESTED",
+        "minuteCanvas": "NOT_TESTED",
+        "canvasKeyboard": "NOT_TESTED",
+        "classification": "NOT_TESTED",
+        "populatedExport": "NOT_TESTED",
+        "reinstall": "NOT_TESTED",
+        "realSidePanelReopened": "NOT_TESTED",
+        "nativePermissionControls": "PASS",
+        "inlineEnrollment": "NOT_TESTED",
+        "timeReviewIframeRemoved": "PASS",
+        "layoutWidths": "PASS",
+        "historyNavigation": "NOT_TESTED",
+        "longDomainLayout": "NOT_TESTED",
+        "sameNameSandbox": "NOT_TESTED",
+        "replacementRetirement": "NOT_TESTED",
+        "officialUpgrade": "NOT_TESTED"
+      },
+      "driverSha256": "6c7549923cd3b67e630348cb2cc64ab4778deaa194fc5be267ace96f130ea608",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 28,
+      "candidate": "85de6add728a45167583b0308a8e31da7503d044",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "NOT_TESTED",
+        "download": "NOT_TESTED",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "NOT_TESTED",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "NOT_TESTED",
+        "windowFocus": "NOT_TESTED",
+        "panelClosedCollection": "NOT_TESTED",
+        "unrelatedToolInstall": "NOT_TESTED",
+        "unrelatedToolLifecycle": "NOT_TESTED",
+        "minuteCanvas": "NOT_TESTED",
+        "canvasKeyboard": "NOT_TESTED",
+        "classification": "NOT_TESTED",
+        "populatedExport": "NOT_TESTED",
+        "reinstall": "NOT_TESTED",
+        "realSidePanelReopened": "NOT_TESTED",
+        "nativePermissionControls": "NOT_TESTED",
+        "inlineEnrollment": "NOT_TESTED",
+        "timeReviewIframeRemoved": "PASS",
+        "layoutWidths": "PASS",
+        "historyNavigation": "NOT_TESTED",
+        "longDomainLayout": "NOT_TESTED",
+        "sameNameSandbox": "NOT_TESTED",
+        "replacementRetirement": "NOT_TESTED",
+        "officialUpgrade": "NOT_TESTED"
+      },
+      "driverSha256": "6c7549923cd3b67e630348cb2cc64ab4778deaa194fc5be267ace96f130ea608",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 29,
+      "candidate": "85de6add728a45167583b0308a8e31da7503d044",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "NOT_TESTED",
+        "download": "NOT_TESTED",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "NOT_TESTED",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "NOT_TESTED",
+        "windowFocus": "NOT_TESTED",
+        "panelClosedCollection": "NOT_TESTED",
+        "unrelatedToolInstall": "NOT_TESTED",
+        "unrelatedToolLifecycle": "NOT_TESTED",
+        "minuteCanvas": "NOT_TESTED",
+        "canvasKeyboard": "NOT_TESTED",
+        "classification": "NOT_TESTED",
+        "populatedExport": "NOT_TESTED",
+        "reinstall": "NOT_TESTED",
+        "realSidePanelReopened": "NOT_TESTED",
+        "nativePermissionControls": "NOT_TESTED",
+        "inlineEnrollment": "NOT_TESTED",
+        "timeReviewIframeRemoved": "PASS",
+        "layoutWidths": "PASS",
+        "historyNavigation": "NOT_TESTED",
+        "longDomainLayout": "NOT_TESTED",
+        "sameNameSandbox": "NOT_TESTED",
+        "replacementRetirement": "NOT_TESTED",
+        "officialUpgrade": "NOT_TESTED"
+      },
+      "driverSha256": "b8f87262e514eb68c32e35f56cae9ad0e174128287f86393496135a2dab9e149",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 30,
+      "candidate": "85de6add728a45167583b0308a8e31da7503d044",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "PASS",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "PASS",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "PASS",
+        "windowFocus": "NOT_TESTED",
+        "panelClosedCollection": "NOT_TESTED",
+        "unrelatedToolInstall": "PASS",
+        "unrelatedToolLifecycle": "PASS",
+        "minuteCanvas": "PASS",
+        "canvasKeyboard": "PASS",
+        "classification": "NOT_TESTED",
+        "populatedExport": "NOT_TESTED",
+        "reinstall": "NOT_TESTED",
+        "realSidePanelReopened": "NOT_TESTED",
+        "nativePermissionControls": "PASS",
+        "inlineEnrollment": "PASS",
+        "timeReviewIframeRemoved": "PASS",
+        "layoutWidths": "PASS",
+        "historyNavigation": "NOT_TESTED",
+        "longDomainLayout": "NOT_TESTED",
+        "sameNameSandbox": "NOT_TESTED",
+        "replacementRetirement": "NOT_TESTED",
+        "officialUpgrade": "NOT_TESTED"
+      },
+      "driverSha256": "b8f87262e514eb68c32e35f56cae9ad0e174128287f86393496135a2dab9e149",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 31,
+      "candidate": "85de6add728a45167583b0308a8e31da7503d044",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "PASS",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "PASS",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "PASS",
+        "windowFocus": "NOT_TESTED",
+        "panelClosedCollection": "NOT_TESTED",
+        "unrelatedToolInstall": "PASS",
+        "unrelatedToolLifecycle": "PASS",
+        "minuteCanvas": "PASS",
+        "canvasKeyboard": "PASS",
+        "classification": "NOT_TESTED",
+        "populatedExport": "NOT_TESTED",
+        "reinstall": "NOT_TESTED",
+        "realSidePanelReopened": "NOT_TESTED",
+        "nativePermissionControls": "PASS",
+        "inlineEnrollment": "PASS",
+        "timeReviewIframeRemoved": "PASS",
+        "layoutWidths": "PASS",
+        "historyNavigation": "NOT_TESTED",
+        "longDomainLayout": "NOT_TESTED",
+        "sameNameSandbox": "NOT_TESTED",
+        "replacementRetirement": "NOT_TESTED",
+        "officialUpgrade": "NOT_TESTED"
+      },
+      "driverSha256": "ac8c298b236cf85c7675ad4fb24695cbc64edfdedd58649c749734bb42b9273c",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 32,
+      "candidate": "85de6add728a45167583b0308a8e31da7503d044",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "PASS",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "PASS",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "PASS",
+        "windowFocus": "NOT_TESTED",
+        "panelClosedCollection": "NOT_TESTED",
+        "unrelatedToolInstall": "PASS",
+        "unrelatedToolLifecycle": "PASS",
+        "minuteCanvas": "PASS",
+        "canvasKeyboard": "PASS",
+        "classification": "NOT_TESTED",
+        "populatedExport": "NOT_TESTED",
+        "reinstall": "NOT_TESTED",
+        "realSidePanelReopened": "NOT_TESTED",
+        "nativePermissionControls": "PASS",
+        "inlineEnrollment": "PASS",
+        "timeReviewIframeRemoved": "PASS",
+        "layoutWidths": "PASS",
+        "historyNavigation": "NOT_TESTED",
+        "longDomainLayout": "NOT_TESTED",
+        "sameNameSandbox": "NOT_TESTED",
+        "replacementRetirement": "NOT_TESTED",
+        "officialUpgrade": "NOT_TESTED"
+      },
+      "driverSha256": "5b2bd4df94e5ff9219336800adb0379a45aa2fc86ddbe485515efad56c3cb83f",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 33,
+      "candidate": "dba771cc8e64fa5f3b1ef7163568a8812af9d024",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "PASS",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "PASS",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "PASS",
+        "windowFocus": "PASS",
+        "panelClosedCollection": "NOT_TESTED",
+        "unrelatedToolInstall": "PASS",
+        "unrelatedToolLifecycle": "PASS",
+        "minuteCanvas": "PASS",
+        "canvasKeyboard": "PASS",
+        "classification": "NOT_TESTED",
+        "populatedExport": "NOT_TESTED",
+        "reinstall": "NOT_TESTED",
+        "realSidePanelReopened": "NOT_TESTED",
+        "nativePermissionControls": "PASS",
+        "inlineEnrollment": "PASS",
+        "timeReviewIframeRemoved": "PASS",
+        "layoutWidths": "PASS",
+        "historyNavigation": "NOT_TESTED",
+        "longDomainLayout": "NOT_TESTED",
+        "sameNameSandbox": "NOT_TESTED",
+        "replacementRetirement": "NOT_TESTED",
+        "officialUpgrade": "NOT_TESTED"
+      },
+      "driverSha256": "193bb3b2b8873a7fbd36128ce92d946eb45daf361e9477e01e6add2a8e93e25f",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 34,
+      "candidate": "dba771cc8e64fa5f3b1ef7163568a8812af9d024",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "NOT_TESTED",
+        "download": "NOT_TESTED",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "NOT_TESTED",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "NOT_TESTED",
+        "windowFocus": "NOT_TESTED",
+        "panelClosedCollection": "NOT_TESTED",
+        "unrelatedToolInstall": "NOT_TESTED",
+        "unrelatedToolLifecycle": "NOT_TESTED",
+        "minuteCanvas": "NOT_TESTED",
+        "canvasKeyboard": "NOT_TESTED",
+        "classification": "NOT_TESTED",
+        "populatedExport": "NOT_TESTED",
+        "reinstall": "NOT_TESTED",
+        "realSidePanelReopened": "NOT_TESTED",
+        "nativePermissionControls": "NOT_TESTED",
+        "inlineEnrollment": "NOT_TESTED",
+        "timeReviewIframeRemoved": "PASS",
+        "layoutWidths": "PASS",
+        "historyNavigation": "NOT_TESTED",
+        "longDomainLayout": "NOT_TESTED",
+        "sameNameSandbox": "NOT_TESTED",
+        "replacementRetirement": "NOT_TESTED",
+        "officialUpgrade": "NOT_TESTED"
+      },
+      "driverSha256": "cdef7cb50713b73d258a821fa2993e9f0cc0a4c78f1d1424e4f290863ca52e95",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 35,
+      "candidate": "dba771cc8e64fa5f3b1ef7163568a8812af9d024",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "PASS",
+        "multiSite": "PASS",
+        "idleTransition": "PASS",
+        "beginAndActiveCollection": "PASS",
+        "pauseResume": "PASS",
+        "websiteGrantRevocation": "PASS",
+        "idlePermissionRevocation": "PASS",
+        "swRestart": "PASS",
+        "browserRestart": "PASS",
+        "disableEnable": "PASS",
+        "uninstall": "PASS",
+        "realBrowserZoom": "PASS",
+        "windowFocus": "PASS",
+        "panelClosedCollection": "PASS",
+        "unrelatedToolInstall": "PASS",
+        "unrelatedToolLifecycle": "PASS",
+        "minuteCanvas": "PASS",
+        "canvasKeyboard": "PASS",
+        "classification": "PASS",
+        "populatedExport": "PASS",
+        "reinstall": "PASS",
+        "realSidePanelReopened": "PASS",
+        "nativePermissionControls": "PASS",
+        "inlineEnrollment": "PASS",
+        "timeReviewIframeRemoved": "PASS",
+        "layoutWidths": "PASS",
+        "historyNavigation": "PASS",
+        "longDomainLayout": "PASS",
+        "sameNameSandbox": "NOT_TESTED",
+        "replacementRetirement": "NOT_TESTED",
+        "officialUpgrade": "NOT_TESTED"
+      },
+      "driverSha256": "cdef7cb50713b73d258a821fa2993e9f0cc0a4c78f1d1424e4f290863ca52e95",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 36,
+      "candidate": "dba771cc8e64fa5f3b1ef7163568a8812af9d024",
+      "scope": "historical-full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "PASS",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "NOT_TESTED",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "PASS",
+        "windowFocus": "NOT_TESTED",
+        "panelClosedCollection": "NOT_TESTED",
+        "unrelatedToolInstall": "NOT_TESTED",
+        "unrelatedToolLifecycle": "NOT_TESTED",
+        "minuteCanvas": "NOT_TESTED",
+        "canvasKeyboard": "NOT_TESTED",
+        "classification": "NOT_TESTED",
+        "populatedExport": "NOT_TESTED",
+        "reinstall": "NOT_TESTED",
+        "realSidePanelReopened": "NOT_TESTED",
+        "nativePermissionControls": "PASS",
+        "inlineEnrollment": "PASS",
+        "timeReviewIframeRemoved": "PASS",
+        "layoutWidths": "PASS",
+        "historyNavigation": "NOT_TESTED",
+        "longDomainLayout": "NOT_TESTED",
+        "sameNameSandbox": "NOT_TESTED",
+        "replacementRetirement": "NOT_TESTED",
+        "officialUpgrade": "NOT_TESTED"
+      },
+      "driverSha256": "b7633405b14bfce1c760ca5434c75b43b405bf86ab1fd82e8f1dec7903c73f04",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 37,
+      "candidate": "dba771cc8e64fa5f3b1ef7163568a8812af9d024",
+      "scope": "identity",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "PASS",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "NOT_TESTED",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "PARTIAL",
+        "disableEnable": "PASS",
+        "uninstall": "PASS",
+        "realBrowserZoom": "PASS",
+        "windowFocus": "NOT_TESTED",
+        "panelClosedCollection": "NOT_TESTED",
+        "unrelatedToolInstall": "NOT_TESTED",
+        "unrelatedToolLifecycle": "NOT_TESTED",
+        "minuteCanvas": "NOT_TESTED",
+        "canvasKeyboard": "NOT_TESTED",
+        "classification": "NOT_TESTED",
+        "populatedExport": "NOT_TESTED",
+        "reinstall": "PASS",
+        "realSidePanelReopened": "PASS",
+        "nativePermissionControls": "PASS",
+        "inlineEnrollment": "PASS",
+        "timeReviewIframeRemoved": "PASS",
+        "layoutWidths": "PASS",
+        "historyNavigation": "NOT_TESTED",
+        "longDomainLayout": "NOT_TESTED",
+        "sameNameSandbox": "PASS",
+        "replacementRetirement": "NOT_TESTED",
+        "officialUpgrade": "NOT_TESTED"
+      },
+      "driverSha256": "ba41f9b7a7681dfacc466d904b58f99bd2952e790b15a68d277df0bc5025616a",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 38,
+      "candidate": "dba771cc8e64fa5f3b1ef7163568a8812af9d024",
+      "scope": "identity",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "PASS",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "NOT_TESTED",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "PARTIAL",
+        "disableEnable": "PASS",
+        "uninstall": "PASS",
+        "realBrowserZoom": "PASS",
+        "windowFocus": "NOT_TESTED",
+        "panelClosedCollection": "NOT_TESTED",
+        "unrelatedToolInstall": "NOT_TESTED",
+        "unrelatedToolLifecycle": "NOT_TESTED",
+        "minuteCanvas": "NOT_TESTED",
+        "canvasKeyboard": "NOT_TESTED",
+        "classification": "NOT_TESTED",
+        "populatedExport": "NOT_TESTED",
+        "reinstall": "PASS",
+        "realSidePanelReopened": "PASS",
+        "nativePermissionControls": "PASS",
+        "inlineEnrollment": "PASS",
+        "timeReviewIframeRemoved": "PASS",
+        "layoutWidths": "PASS",
+        "historyNavigation": "NOT_TESTED",
+        "longDomainLayout": "NOT_TESTED",
+        "sameNameSandbox": "PASS",
+        "replacementRetirement": "NOT_TESTED",
+        "officialUpgrade": "NOT_TESTED"
+      },
+      "driverSha256": "1739fda57fd2fa3bd38a4600275ea6dbb02d37928b69893ebcdd8b7201c61a93",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 39,
+      "candidate": "dba771cc8e64fa5f3b1ef7163568a8812af9d024",
+      "scope": "identity",
+      "exitCode": "0",
+      "complete": true,
+      "acceptance": "PARTIAL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "PASS",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "NOT_TESTED",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "PARTIAL",
+        "disableEnable": "PASS",
+        "uninstall": "PASS",
+        "realBrowserZoom": "PASS",
+        "windowFocus": "NOT_TESTED",
+        "panelClosedCollection": "NOT_TESTED",
+        "unrelatedToolInstall": "NOT_TESTED",
+        "unrelatedToolLifecycle": "NOT_TESTED",
+        "minuteCanvas": "NOT_TESTED",
+        "canvasKeyboard": "NOT_TESTED",
+        "classification": "NOT_TESTED",
+        "populatedExport": "NOT_TESTED",
+        "reinstall": "PASS",
+        "realSidePanelReopened": "PASS",
+        "nativePermissionControls": "PASS",
+        "inlineEnrollment": "PASS",
+        "timeReviewIframeRemoved": "PASS",
+        "layoutWidths": "PASS",
+        "historyNavigation": "NOT_TESTED",
+        "longDomainLayout": "NOT_TESTED",
+        "sameNameSandbox": "PASS",
+        "replacementRetirement": "PASS",
+        "officialUpgrade": "NOT_TESTED"
+      },
+      "driverSha256": "7cec989c6ac9764724f5a3aca3e3fd59f690c28ffd42127837945c768b74f719",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 40,
+      "candidate": "dba771cc8e64fa5f3b1ef7163568a8812af9d024",
+      "scope": "full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "PASS",
+        "multiSite": "PASS",
+        "idleTransition": "BLOCKED",
+        "beginAndActiveCollection": "PASS",
+        "pauseResume": "PASS",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "PASS",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "PASS",
+        "windowFocus": "PASS",
+        "panelClosedCollection": "PASS",
+        "unrelatedToolInstall": "PASS",
+        "unrelatedToolLifecycle": "PASS",
+        "minuteCanvas": "PASS",
+        "canvasKeyboard": "PASS",
+        "classification": "NOT_TESTED",
+        "populatedExport": "NOT_TESTED",
+        "reinstall": "NOT_TESTED",
+        "realSidePanelReopened": "NOT_TESTED",
+        "nativePermissionControls": "PASS",
+        "inlineEnrollment": "PASS",
+        "timeReviewIframeRemoved": "PASS",
+        "layoutWidths": "PASS",
+        "historyNavigation": "NOT_TESTED",
+        "longDomainLayout": "PASS",
+        "sameNameSandbox": "NOT_TESTED",
+        "replacementRetirement": "NOT_TESTED",
+        "officialUpgrade": "NOT_TESTED"
+      },
+      "driverSha256": "7cec989c6ac9764724f5a3aca3e3fd59f690c28ffd42127837945c768b74f719",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 41,
+      "candidate": "dba771cc8e64fa5f3b1ef7163568a8812af9d024",
+      "scope": "full",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "PASS",
+        "multiSite": "PASS",
+        "idleTransition": "BLOCKED",
+        "beginAndActiveCollection": "PASS",
+        "pauseResume": "PASS",
+        "websiteGrantRevocation": "PASS",
+        "idlePermissionRevocation": "PASS",
+        "swRestart": "PASS",
+        "browserRestart": "NOT_TESTED",
+        "disableEnable": "NOT_TESTED",
+        "uninstall": "NOT_TESTED",
+        "realBrowserZoom": "PASS",
+        "windowFocus": "PASS",
+        "panelClosedCollection": "PASS",
+        "unrelatedToolInstall": "PASS",
+        "unrelatedToolLifecycle": "PASS",
+        "minuteCanvas": "PASS",
+        "canvasKeyboard": "PASS",
+        "classification": "NOT_TESTED",
+        "populatedExport": "NOT_TESTED",
+        "reinstall": "NOT_TESTED",
+        "realSidePanelReopened": "NOT_TESTED",
+        "nativePermissionControls": "PASS",
+        "inlineEnrollment": "PASS",
+        "timeReviewIframeRemoved": "PASS",
+        "layoutWidths": "PASS",
+        "historyNavigation": "NOT_TESTED",
+        "longDomainLayout": "PASS",
+        "sameNameSandbox": "NOT_TESTED",
+        "replacementRetirement": "NOT_TESTED",
+        "officialUpgrade": "NOT_TESTED"
+      },
+      "driverSha256": "deb1582aca5e5fc8cba0b1562b1450c2d28caa7a1813b5674ecb8e31da2f9277",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 42,
+      "candidate": "dba771cc8e64fa5f3b1ef7163568a8812af9d024",
+      "scope": "full",
+      "exitCode": "0",
+      "complete": true,
+      "acceptance": "PARTIAL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "PASS",
+        "multiSite": "PASS",
+        "idleTransition": "PASS",
+        "beginAndActiveCollection": "PASS",
+        "pauseResume": "PASS",
+        "websiteGrantRevocation": "PASS",
+        "idlePermissionRevocation": "PASS",
+        "swRestart": "PASS",
+        "browserRestart": "PASS",
+        "disableEnable": "PASS",
+        "uninstall": "PASS",
+        "realBrowserZoom": "PASS",
+        "windowFocus": "PASS",
+        "panelClosedCollection": "PASS",
+        "unrelatedToolInstall": "PASS",
+        "unrelatedToolLifecycle": "PASS",
+        "minuteCanvas": "PASS",
+        "canvasKeyboard": "PASS",
+        "classification": "PASS",
+        "populatedExport": "PASS",
+        "reinstall": "PASS",
+        "realSidePanelReopened": "PASS",
+        "nativePermissionControls": "PASS",
+        "inlineEnrollment": "PASS",
+        "timeReviewIframeRemoved": "PASS",
+        "layoutWidths": "PASS",
+        "historyNavigation": "PASS",
+        "longDomainLayout": "PASS",
+        "sameNameSandbox": "PASS",
+        "replacementRetirement": "PASS",
+        "officialUpgrade": "NOT_TESTED"
+      },
+      "driverSha256": "deb1582aca5e5fc8cba0b1562b1450c2d28caa7a1813b5674ecb8e31da2f9277",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 43,
+      "candidate": "dba771cc8e64fa5f3b1ef7163568a8812af9d024",
+      "scope": "identity",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "PASS",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "NOT_TESTED",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "PARTIAL",
+        "disableEnable": "PASS",
+        "uninstall": "PASS",
+        "realBrowserZoom": "PASS",
+        "windowFocus": "NOT_TESTED",
+        "panelClosedCollection": "NOT_TESTED",
+        "unrelatedToolInstall": "NOT_TESTED",
+        "unrelatedToolLifecycle": "NOT_TESTED",
+        "minuteCanvas": "NOT_TESTED",
+        "canvasKeyboard": "NOT_TESTED",
+        "classification": "NOT_TESTED",
+        "populatedExport": "NOT_TESTED",
+        "reinstall": "PASS",
+        "realSidePanelReopened": "PASS",
+        "nativePermissionControls": "PASS",
+        "inlineEnrollment": "PASS",
+        "timeReviewIframeRemoved": "PASS",
+        "layoutWidths": "PASS",
+        "historyNavigation": "NOT_TESTED",
+        "longDomainLayout": "NOT_TESTED",
+        "sameNameSandbox": "NOT_TESTED",
+        "replacementRetirement": "NOT_TESTED",
+        "officialUpgrade": "NOT_TESTED"
+      },
+      "driverSha256": "cb29667dd8b62eedaf84dc831f4b5935f011ff1011c4ef61abab6266ea0b8fbe",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 44,
+      "candidate": "dba771cc8e64fa5f3b1ef7163568a8812af9d024",
+      "scope": "identity",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "PASS",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "NOT_TESTED",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "PARTIAL",
+        "disableEnable": "PASS",
+        "uninstall": "PASS",
+        "realBrowserZoom": "PASS",
+        "windowFocus": "NOT_TESTED",
+        "panelClosedCollection": "NOT_TESTED",
+        "unrelatedToolInstall": "NOT_TESTED",
+        "unrelatedToolLifecycle": "NOT_TESTED",
+        "minuteCanvas": "NOT_TESTED",
+        "canvasKeyboard": "NOT_TESTED",
+        "classification": "NOT_TESTED",
+        "populatedExport": "NOT_TESTED",
+        "reinstall": "PASS",
+        "realSidePanelReopened": "PASS",
+        "nativePermissionControls": "PASS",
+        "inlineEnrollment": "PASS",
+        "timeReviewIframeRemoved": "PASS",
+        "layoutWidths": "PASS",
+        "historyNavigation": "NOT_TESTED",
+        "longDomainLayout": "NOT_TESTED",
+        "sameNameSandbox": "PASS",
+        "replacementRetirement": "NOT_TESTED",
+        "officialUpgrade": "NOT_TESTED"
+      },
+      "driverSha256": "40ee5af488b1ca75ccc745fd0b8ee222a3e98d29dad1911c2eefdde0b3691e44",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 45,
+      "candidate": "dba771cc8e64fa5f3b1ef7163568a8812af9d024",
+      "scope": "identity",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "PASS",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "NOT_TESTED",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "PARTIAL",
+        "disableEnable": "PASS",
+        "uninstall": "PASS",
+        "realBrowserZoom": "PASS",
+        "windowFocus": "NOT_TESTED",
+        "panelClosedCollection": "NOT_TESTED",
+        "unrelatedToolInstall": "NOT_TESTED",
+        "unrelatedToolLifecycle": "NOT_TESTED",
+        "minuteCanvas": "NOT_TESTED",
+        "canvasKeyboard": "NOT_TESTED",
+        "classification": "NOT_TESTED",
+        "populatedExport": "NOT_TESTED",
+        "reinstall": "PASS",
+        "realSidePanelReopened": "PASS",
+        "nativePermissionControls": "PASS",
+        "inlineEnrollment": "PASS",
+        "timeReviewIframeRemoved": "PASS",
+        "layoutWidths": "PASS",
+        "historyNavigation": "NOT_TESTED",
+        "longDomainLayout": "NOT_TESTED",
+        "sameNameSandbox": "PASS",
+        "replacementRetirement": "NOT_TESTED",
+        "officialUpgrade": "NOT_TESTED"
+      },
+      "driverSha256": "40ee5af488b1ca75ccc745fd0b8ee222a3e98d29dad1911c2eefdde0b3691e44",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    },
+    {
+      "run": 46,
+      "candidate": "dba771cc8e64fa5f3b1ef7163568a8812af9d024",
+      "scope": "identity",
+      "exitCode": "1",
+      "complete": false,
+      "acceptance": "FAIL",
+      "requiredResults": {
+        "install": "PASS",
+        "realSidePanel": "PASS",
+        "nativeTrustedUI": "PASS",
+        "minuteConsent": "PASS",
+        "download": "PASS",
+        "multiSite": "NOT_TESTED",
+        "idleTransition": "NOT_TESTED",
+        "beginAndActiveCollection": "NOT_TESTED",
+        "pauseResume": "NOT_TESTED",
+        "websiteGrantRevocation": "NOT_TESTED",
+        "idlePermissionRevocation": "NOT_TESTED",
+        "swRestart": "NOT_TESTED",
+        "browserRestart": "PARTIAL",
+        "disableEnable": "PASS",
+        "uninstall": "PASS",
+        "realBrowserZoom": "PASS",
+        "windowFocus": "NOT_TESTED",
+        "panelClosedCollection": "NOT_TESTED",
+        "unrelatedToolInstall": "NOT_TESTED",
+        "unrelatedToolLifecycle": "NOT_TESTED",
+        "minuteCanvas": "NOT_TESTED",
+        "canvasKeyboard": "NOT_TESTED",
+        "classification": "NOT_TESTED",
+        "populatedExport": "NOT_TESTED",
+        "reinstall": "PASS",
+        "realSidePanelReopened": "PASS",
+        "nativePermissionControls": "PASS",
+        "inlineEnrollment": "PASS",
+        "timeReviewIframeRemoved": "PASS",
+        "layoutWidths": "PASS",
+        "historyNavigation": "NOT_TESTED",
+        "longDomainLayout": "NOT_TESTED",
+        "sameNameSandbox": "NOT_TESTED",
+        "replacementRetirement": "NOT_TESTED",
+        "officialUpgrade": "NOT_TESTED"
+      },
+      "driverSha256": "2e9f26e5c7aabf826079ab60e9c7419334ef18bd2ddc3ab6fd47834ccca6f97e",
+      "cleanup": {
+        "terminated": true,
+        "profileRemoved": true,
+        "owned": true
+      }
+    }
+  ],
+  "allLocalNativeFiles": "local-native-inventory.json",
+  "expertScores": {
+    "功能完整性": "NOT_SCORED",
+    "权限与身份安全": "NOT_SCORED",
+    "UI/UX": "NOT_SCORED",
+    "性能与构建预算": "NOT_SCORED",
+    "后台计时真实性": "NOT_SCORED",
+    "数据持久化与恢复": "NOT_SCORED",
+    "安装与生命周期": "NOT_SCORED",
+    "验收证据可信度": "NOT_SCORED"
+  },
+  "scoringReason": "No complete same-delivery-candidate native acceptance; no numerical expert score is claimed. Static budget is not runtime performance."
+}

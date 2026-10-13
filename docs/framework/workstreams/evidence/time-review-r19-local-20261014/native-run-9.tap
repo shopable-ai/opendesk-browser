@@ -1,0 +1,51 @@
+TAP version 13
+# TIME_NATIVE trusted-open {"selector":"\#catalog-open-dev-sidebar","x":89.25,"y":135.1484375}
+# TIME_NATIVE install {"version":"1.6.0"}
+# TIME_NATIVE native-canvas {"quadrants":4,"extras":2,"day":"0秒","timeline":"尚无分钟明细","horizontal":true,"frameGeometry":{"viewportHeight":815,"documentHeight":815,"rootHeight":1109.828125},"outerGeometry":{"viewportHeight":815,"nativeHeight":1109.828125,"iframeCount":0,"hostScrollHeight":815}}
+# TIME_NATIVE installed-native-widths {"verdict":"PASS","method":"installed SIDE_PANEL CSS viewport override","widths":[320,360,400,600]}
+# TIME_NATIVE real-chrome-zoom {"verdict":"PASS","source":"macOS CGEvent Command+Plus","steps":5,"baseline":{"cssWidth":360,"cssScrollWidth":360,"cssHeight":815,"contentHeight":815,"dpr":2,"canvasWidth":312},"observed":{"cssWidth":180,"cssScrollWidth":180,"cssHeight":407,"contentHeight":407,"dpr":4,"canvasWidth":142},"reason":null,"browser200PercentVerified":true}
+# TIME_NATIVE native-permission-actions {"initiallyIdleGranted":false,"duplicateStartHidden":true}
+# TIME_NATIVE trusted-native-consent-unmodified {"minuteConsent":false}
+# TIME_NATIVE trusted-minute-optin {"minuteConsent":true}
+# TIME_NATIVE trusted-minute-withdrawal {"minuteConsent":false}
+# TIME_NATIVE download-json {"format":"json","created":"PASS","complete":"PASS","ownedDirectory":"PASS","disk":"PASS","content":"PASS","filename":"PASS","id":1,"basename":"time-review.json","received":241,"ownedByExtension":true,"bytes":241,"sha256":"3cc02c23b9d8f1b0b52ee5bf6b4d49ba8119e76b22f03c92bab2d5c6008c7385"}
+# TIME_NATIVE download-csv {"format":"csv","created":"PASS","complete":"PASS","ownedDirectory":"PASS","disk":"PASS","content":"PASS","filename":"PASS","id":2,"basename":"time-review.csv","received":44,"ownedByExtension":true,"bytes":44,"sha256":"55c24b7f5c3e5ccbc3b7fe3915cb7e73720188c2fd93dff8f84c393035dd63d6"}
+# TIME_NATIVE native-inline-enrollment {"trustedExistingControls":true,"nativeUIVisible":true,"iframeRemoved":true,"domFocusOrder":true,"siteGrantUntouched":true}
+# TIME_NATIVE native-idle-ui-reflects-grant {"granted":true,"duplicateGrantHidden":true}
+# TIME_NATIVE site-grant {"origin":"http://127.0.0.1:53093","source":"native trusted click"}
+# TIME_NATIVE trusted-start-immediate-ui {"pauseVisible":true,"noIframe":true,"noSecondConfirmation":true}
+# TIME_NATIVE native-observation-gates-before-input {"focused":true,"windowType":"normal","idle":"active","isLoopbackTab":true,"hasHostPermission":true}
+# TIME_NATIVE native-observation-gates-final {"focused":true,"windowType":"normal","idle":"active","isLoopbackTab":true,"hasHostPermission":true}
+# TIME_NATIVE real-web-checkpoint {"host":"127.0.0.1","paused":false,"startedAt":1791917313715,"hasPermission":true}
+# TIME_NATIVE real-http-activity {"host":"127.0.0.1","ms":2339,"from":"real active browser tab"}
+# Subtest: Time Review R1.3 actual Mac Chrome install and trusted consent smoke
+not ok 1 - Time Review R1.3 actual Mac Chrome install and trusted consent smoke
+  ---
+  duration_ms: 16391.196292
+  type: 'test'
+  location: '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/source-final/tests/framework/time-review-r13-native.test.mjs:85:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    '720' !== '60'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '60'
+  actual: '720'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/source-final/tests/framework/time-review-r13-native.test.mjs:593:12)
+    async Test.run (node:internal/test_runner/test:1389:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 16514.001167

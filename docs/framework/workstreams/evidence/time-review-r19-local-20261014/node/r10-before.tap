@@ -1,0 +1,27 @@
+✖ R10 canonical exports need real Side Panel click plus one-use Host authorization (1239.679458ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1307.35775
+
+✖ failing tests:
+
+test at tests/environment/sidebar-tools-host.test.mjs:1611:1
+✖ R10 canonical exports need real Side Panel click plus one-use Host authorization (1239.679458ms)
+  AssertionError [ERR_ASSERTION]: host state did not settle
+      at settle (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/sidebar-tools-host.test.mjs:171:10)
+      at async ask (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/sidebar-tools-host.test.mjs:1631:5)
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/sidebar-tools-host.test.mjs:1653:17)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'fail',
+    diff: 'simple'
+  }

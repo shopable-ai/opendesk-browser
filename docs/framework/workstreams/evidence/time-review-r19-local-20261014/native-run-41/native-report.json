@@ -1,0 +1,756 @@
+{
+  "candidate": "dba771cc8e64fa5f3b1ef7163568a8812af9d024",
+  "mode": "actual-headed-macos-CFT",
+  "scope": "full",
+  "nodeVersion": "v26.3.1",
+  "macVersion": "ProductName:\t\tmacOS\nProductVersion:\t\t26.5.1\nBuildVersion:\t\t25F80",
+  "package": {
+    "id": "time-review",
+    "version": "1.6.0",
+    "sha256": "90f5029049ed4b2cadd69fa91c4efaefb45f031bd94c07e708c9f78d5f2776f6"
+  },
+  "chromePid": 91372,
+  "profileOwned": true,
+  "install": "PASS",
+  "realSidePanel": "PASS",
+  "minuteConsent": "PASS",
+  "browserRestart": "NOT_TESTED",
+  "download": "PASS",
+  "beginAndActiveCollection": "PASS",
+  "pauseResume": "PASS",
+  "websiteGrantRevocation": "PASS",
+  "idlePermissionRevocation": "PASS",
+  "swRestart": "PASS",
+  "hostedCI": false,
+  "extensionPath": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/source-r19-final/dist/production",
+  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-time-r13-A5bKk1",
+  "driverSha256": "deb1582aca5e5fc8cba0b1562b1450c2d28caa7a1813b5674ecb8e31da2f9277",
+  "chromeBinaryVersion": "Google Chrome for Testing 155.0.8059.39",
+  "screenshots": [
+    {
+      "filename": "installed-native-side-panel.png",
+      "bytes": 105981,
+      "sha256": "dce703a6942144d17d0382226bf43828b60440adc063dd1b3184065a69207071"
+    },
+    {
+      "filename": "installed-native-320.png",
+      "bytes": 59432,
+      "sha256": "e01df45fb293cf4ee9c89779200978b8a4189e7c36ad938d0c1d43281fcfb026"
+    },
+    {
+      "filename": "installed-native-360.png",
+      "bytes": 58713,
+      "sha256": "f2070628ac95756152960e5244588b31c05497ec962011aae9e14a7f138ec14c"
+    },
+    {
+      "filename": "installed-native-400.png",
+      "bytes": 59055,
+      "sha256": "dafbe41f502cfc564290619f5f6b6beee22344074a0a80b27ebb1b6c509333e1"
+    },
+    {
+      "filename": "installed-native-600.png",
+      "bytes": 60718,
+      "sha256": "8e9cd5ccbffb9f2bbc670ef0f0b8023cefd9aec3e47a87fdd5d9ca86f8f3cd86"
+    },
+    {
+      "filename": "real-chrome-200-percent-zoom.png",
+      "bytes": 68907,
+      "sha256": "5c272525231757618d39ef05b8e9b4b3cd661488fdaa882e78c78c13e7160563"
+    },
+    {
+      "filename": "trusted-permission-settings.png",
+      "bytes": 146334,
+      "sha256": "a2675b9c8d6b21ad999cfc53fc8bf3e3de761359967672b58d193a79297e2c8f"
+    },
+    {
+      "filename": "first-run-inline-time-review-consent.png",
+      "bytes": 185550,
+      "sha256": "2e2c20665cdd953dd8bfbd3dc6c7b4cad8c155d2b5fbe865c6826a66d8cee973"
+    },
+    {
+      "filename": "real-recorded-minute-canvas.png",
+      "bytes": 118172,
+      "sha256": "675dbf8c19c3c02756b044ef0720bc22824e332d8f0901c747601630989c71ec"
+    },
+    {
+      "filename": "real-long-domain-native.png",
+      "bytes": 116905,
+      "sha256": "ef80a4f04fa04c99bafa864bc37375cbf62ba620cbe1fd036120d2c8ff724240"
+    },
+    {
+      "filename": "failure-side.png",
+      "bytes": 145327,
+      "sha256": "457a377aac718605f2ea62441b087bd71429c6b55325c33fc5e4b701eba8ab34"
+    }
+  ],
+  "steps": [
+    {
+      "name": "trusted-open",
+      "selector": "#catalog-open-dev-sidebar",
+      "x": 89.25,
+      "y": 135.1484375
+    },
+    {
+      "name": "install",
+      "version": "1.6.0"
+    },
+    {
+      "name": "native-canvas",
+      "quadrants": 4,
+      "extras": 2,
+      "day": "0秒",
+      "timeline": "尚无分钟明细",
+      "horizontal": true,
+      "frameGeometry": {
+        "viewportHeight": 815,
+        "documentHeight": 815,
+        "rootHeight": 1109.828125
+      },
+      "outerGeometry": {
+        "viewportHeight": 815,
+        "nativeHeight": 1109.828125,
+        "iframeCount": 0,
+        "hostScrollHeight": 815
+      }
+    },
+    {
+      "name": "installed-native-widths",
+      "verdict": "PASS",
+      "method": "installed SIDE_PANEL CSS viewport override",
+      "widths": [
+        320,
+        360,
+        400,
+        600
+      ]
+    },
+    {
+      "name": "real-chrome-zoom",
+      "verdict": "PASS",
+      "source": "macOS CGEvent Command+Plus",
+      "steps": 5,
+      "baseline": {
+        "cssWidth": 360,
+        "cssScrollWidth": 360,
+        "cssHeight": 815,
+        "contentHeight": 815,
+        "dpr": 2,
+        "canvasWidth": 312
+      },
+      "observed": {
+        "cssWidth": 180,
+        "cssScrollWidth": 180,
+        "cssHeight": 407,
+        "contentHeight": 407,
+        "dpr": 4,
+        "canvasWidth": 142
+      },
+      "reason": null,
+      "browser200PercentVerified": true
+    },
+    {
+      "name": "native-permission-actions",
+      "initiallyIdleGranted": false,
+      "duplicateStartHidden": true
+    },
+    {
+      "name": "trusted-native-consent-unmodified",
+      "minuteConsent": false
+    },
+    {
+      "name": "trusted-minute-optin",
+      "minuteConsent": true
+    },
+    {
+      "name": "trusted-minute-withdrawal",
+      "minuteConsent": false
+    },
+    {
+      "name": "download-json",
+      "format": "json",
+      "created": "PASS",
+      "complete": "PASS",
+      "ownedDirectory": "PASS",
+      "disk": "PASS",
+      "content": "PASS",
+      "filename": "PASS",
+      "id": 1,
+      "basename": "time-review.json",
+      "received": 241,
+      "ownedByExtension": true,
+      "bytes": 241,
+      "sha256": "3cc02c23b9d8f1b0b52ee5bf6b4d49ba8119e76b22f03c92bab2d5c6008c7385"
+    },
+    {
+      "name": "download-csv",
+      "format": "csv",
+      "created": "PASS",
+      "complete": "PASS",
+      "ownedDirectory": "PASS",
+      "disk": "PASS",
+      "content": "PASS",
+      "filename": "PASS",
+      "id": 2,
+      "basename": "time-review.csv",
+      "received": 44,
+      "ownedByExtension": true,
+      "bytes": 44,
+      "sha256": "55c24b7f5c3e5ccbc3b7fe3915cb7e73720188c2fd93dff8f84c393035dd63d6"
+    },
+    {
+      "name": "native-inline-enrollment",
+      "trustedExistingControls": true,
+      "nativeUIVisible": true,
+      "iframeRemoved": true,
+      "domFocusOrder": true,
+      "siteGrantUntouched": true
+    },
+    {
+      "name": "native-idle-ui-reflects-grant",
+      "granted": true,
+      "duplicateGrantHidden": true
+    },
+    {
+      "name": "site-grant",
+      "origin": "http://127.0.0.1:56895",
+      "source": "native trusted click"
+    },
+    {
+      "name": "trusted-start-immediate-ui",
+      "pauseVisible": true,
+      "noIframe": true,
+      "noSecondConfirmation": true
+    },
+    {
+      "name": "native-observation-gates-before-input",
+      "focused": true,
+      "windowType": "normal",
+      "idle": "active",
+      "isLoopbackTab": true,
+      "hasHostPermission": true
+    },
+    {
+      "name": "native-observation-gates-final",
+      "focused": true,
+      "windowType": "normal",
+      "idle": "active",
+      "isLoopbackTab": true,
+      "hasHostPermission": true
+    },
+    {
+      "name": "real-web-checkpoint",
+      "host": "127.0.0.1",
+      "paused": false,
+      "startedAt": 1791924261580,
+      "hasPermission": true
+    },
+    {
+      "name": "real-http-activity",
+      "host": "127.0.0.1",
+      "ms": 1017,
+      "from": "real active browser tab"
+    },
+    {
+      "name": "actual-canvas-keyboard-focus",
+      "focused": [
+        {
+          "description": "",
+          "enabled": true,
+          "focused": true,
+          "position": {
+            "x": 22,
+            "y": 101
+          },
+          "role": "AXGroup",
+          "size": {
+            "height": 34,
+            "width": 112
+          },
+          "subrole": "",
+          "title": "",
+          "value": ""
+        },
+        {
+          "description": "",
+          "enabled": true,
+          "focused": true,
+          "position": {
+            "x": 30,
+            "y": 198
+          },
+          "role": "AXWebArea",
+          "size": {
+            "height": 799,
+            "width": 814
+          },
+          "subrole": "",
+          "title": "Time Review native",
+          "value": ""
+        },
+        {
+          "description": "分钟时间线",
+          "enabled": true,
+          "focused": true,
+          "position": {
+            "x": 877,
+            "y": 574
+          },
+          "role": "AXSlider",
+          "size": {
+            "height": 54,
+            "width": 312
+          },
+          "subrole": "",
+          "title": "分钟时间线",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "name": "real-minute-canvas",
+      "realEntries": true,
+      "keyboard": true,
+      "ariaMinute": 60
+    },
+    {
+      "name": "unrelated-official-install",
+      "toolId": "reading-toc",
+      "previouslyInstalled": true,
+      "disableEnable": true,
+      "nativeStillMounted": true,
+      "authorizationUnchanged": true,
+      "paused": false
+    },
+    {
+      "name": "unrelated-official-install",
+      "toolId": "cookie-editor",
+      "previouslyInstalled": false,
+      "disableEnable": true,
+      "nativeStillMounted": true,
+      "authorizationUnchanged": true,
+      "paused": false
+    },
+    {
+      "name": "unrelated-official-install",
+      "toolId": "stay-focus",
+      "previouslyInstalled": false,
+      "disableEnable": true,
+      "nativeStillMounted": true,
+      "authorizationUnchanged": true,
+      "paused": false
+    },
+    {
+      "name": "focus-retirement-measurement",
+      "observedDelta": 228,
+      "permittedDelta": 1202,
+      "blurAt": 1791924270662,
+      "checkpointAt": 1791924270460
+    },
+    {
+      "name": "real-window-focus",
+      "foreground": false,
+      "totalsFrozen": true
+    },
+    {
+      "name": "panel-closed-observation",
+      "window": {
+        "alwaysOnTop": false,
+        "focused": true,
+        "height": 950,
+        "id": 1323202887,
+        "incognito": false,
+        "left": 22,
+        "state": "normal",
+        "top": 55,
+        "type": "normal",
+        "width": 1200
+      },
+      "idle": "active",
+      "alarm": {
+        "name": "opendesk.time-review.heartbeat.v1",
+        "periodInMinutes": 0.5,
+        "persistAcrossSessions": true,
+        "scheduledTime": 1791924351232.777
+      },
+      "state": {
+        "authorizedEpoch": null,
+        "authorizedHash": "9ca3c190a5ff96da5b146ce5ed66d74586b28f9359588f37bb505208de6a08f1",
+        "categories": {},
+        "checkpoint": {
+          "at": 1791924321236,
+          "host": "127.0.0.1",
+          "offset": -480,
+          "origin": "http://127.0.0.1:56895",
+          "session": "6f48dae5-8920-4c16-a877-ba637efa59f3",
+          "tabId": 1323202890,
+          "windowId": 1323202887
+        },
+        "days": {
+          "2026-10-14": {
+            "127.0.0.1": 31386
+          }
+        },
+        "discardedMs": 22811,
+        "highWater": 1791924321234,
+        "minuteConsent": true,
+        "minuteDays": {
+          "2026-10-14": {
+            "ambiguous": false,
+            "entries": [
+              [
+                284,
+                "127.0.0.1",
+                9824
+              ],
+              [
+                285,
+                "127.0.0.1",
+                21234
+              ]
+            ],
+            "offset": -480,
+            "truncated": false
+          }
+        },
+        "paused": false,
+        "settings": {
+          "excludedHosts": [],
+          "idleSeconds": 60,
+          "retentionDays": 90
+        },
+        "siteGrants": {
+          "allSites": false,
+          "origins": [
+            "http://127.0.0.1:56895"
+          ]
+        },
+        "version": 1
+      }
+    },
+    {
+      "name": "real-panel-closed-collection",
+      "noSidePanel": true,
+      "noTimeRpc": true,
+      "ms": 27952
+    },
+    {
+      "name": "real-site-switch",
+      "firstHost": "127.0.0.1",
+      "firstMs": 31405,
+      "secondHost": "localhost",
+      "secondMs": 1805,
+      "separateTotals": true
+    },
+    {
+      "name": "real-long-domain-layout",
+      "width": 320,
+      "scroll": 320,
+      "host": "very-long-actual-time-review-domain-abcdefghijklmnopqrstuvwxyz.localhost",
+      "canvas": 282,
+      "method": "installed native CSS viewport"
+    },
+    {
+      "name": "real-long-domain-layout",
+      "width": 360,
+      "scroll": 360,
+      "host": "very-long-actual-time-review-domain-abcdefghijklmnopqrstuvwxyz.localhost",
+      "canvas": 312,
+      "method": "installed native CSS viewport"
+    },
+    {
+      "name": "real-long-domain-layout",
+      "width": 400,
+      "scroll": 400,
+      "host": "very-long-actual-time-review-domain-abcdefghijklmnopqrstuvwxyz.localhost",
+      "canvas": 352,
+      "method": "installed native CSS viewport"
+    },
+    {
+      "name": "real-long-domain-layout",
+      "width": 600,
+      "scroll": 600,
+      "host": "very-long-actual-time-review-domain-abcdefghijklmnopqrstuvwxyz.localhost",
+      "canvas": 552,
+      "method": "installed native CSS viewport"
+    },
+    {
+      "name": "real-idle-blocked",
+      "reason": "macOS CI never reported genuine idle in the observation window"
+    },
+    {
+      "name": "real-pause",
+      "ms": 31405
+    },
+    {
+      "name": "real-service-worker-restart",
+      "ms": 31405,
+      "method": "Target.closeTarget",
+      "targetChanged": true
+    },
+    {
+      "name": "real-resume",
+      "paused": false
+    },
+    {
+      "name": "real-site-authorization-revocation",
+      "chromeIdleRetained": true,
+      "checkpointRetired": true,
+      "unauthorizedRestartDenied": true,
+      "historyPreserved": true,
+      "regrantExplicit": true
+    },
+    {
+      "name": "real-idle-permission-revocation",
+      "chromePermissionRemoved": true,
+      "revokedHash": true,
+      "checkpointRetired": true,
+      "heartbeatRetired": true,
+      "unauthorizedRestartDenied": true,
+      "daysPreserved": true
+    },
+    {
+      "name": "download-observation-unavailable",
+      "error": "Error: RUNTIME_EXCEPTION {\"exceptionId\":1,\"text\":\"Uncaught\",\"lineNumber\":0,\"columnNumber\":12,\"scriptId\":\"185\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"185\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":12}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: 'idle.queryState' is not available in this context.\\n    at <anonymous>:1:13\",\"objectId\":\"-1603473924977431610.8.2\"}}"
+    }
+  ],
+  "chrome": "Chrome/155.0.8059.39",
+  "extensionId": "coelkalcpnbppgbncibnckabllabgnoo",
+  "nativeTrustedUI": "PASS",
+  "timeReviewIframeRemoved": "PASS",
+  "installedViewportWidths": [
+    {
+      "width": 320,
+      "scroll": 320,
+      "canvas": 282,
+      "reviews": 1,
+      "iframes": 0,
+      "label": "分钟时间线",
+      "method": "CDP viewport on installed native UI"
+    },
+    {
+      "width": 360,
+      "scroll": 360,
+      "canvas": 312,
+      "reviews": 1,
+      "iframes": 0,
+      "label": "分钟时间线",
+      "method": "CDP viewport on installed native UI"
+    },
+    {
+      "width": 400,
+      "scroll": 400,
+      "canvas": 352,
+      "reviews": 1,
+      "iframes": 0,
+      "label": "分钟时间线",
+      "method": "CDP viewport on installed native UI"
+    },
+    {
+      "width": 600,
+      "scroll": 600,
+      "canvas": 552,
+      "reviews": 1,
+      "iframes": 0,
+      "label": "分钟时间线",
+      "method": "CDP viewport on installed native UI"
+    }
+  ],
+  "layoutWidths": "PASS",
+  "realBrowserZoom": "PASS",
+  "nativePermissionControls": "PASS",
+  "downloadChecks": [
+    {
+      "format": "json",
+      "created": "PASS",
+      "complete": "PASS",
+      "ownedDirectory": "PASS",
+      "disk": "PASS",
+      "content": "PASS",
+      "filename": "PASS",
+      "id": 1,
+      "basename": "time-review.json",
+      "received": 241,
+      "ownedByExtension": true,
+      "bytes": 241,
+      "sha256": "3cc02c23b9d8f1b0b52ee5bf6b4d49ba8119e76b22f03c92bab2d5c6008c7385"
+    },
+    {
+      "format": "csv",
+      "created": "PASS",
+      "complete": "PASS",
+      "ownedDirectory": "PASS",
+      "disk": "PASS",
+      "content": "PASS",
+      "filename": "PASS",
+      "id": 2,
+      "basename": "time-review.csv",
+      "received": 44,
+      "ownedByExtension": true,
+      "bytes": 44,
+      "sha256": "55c24b7f5c3e5ccbc3b7fe3915cb7e73720188c2fd93dff8f84c393035dd63d6"
+    }
+  ],
+  "inlineEnrollment": "PASS",
+  "minuteCanvas": "PASS",
+  "canvasKeyboard": "PASS",
+  "unrelatedToolInstall": "PASS",
+  "unrelatedToolLifecycle": "PASS",
+  "windowFocus": "PASS",
+  "panelClosedCollection": "PASS",
+  "multiSite": "PASS",
+  "longDomainLayout": "PASS",
+  "idleTransition": "BLOCKED",
+  "failureObservation": {
+    "text": "我的\n发现\n工作流\n开发\n工具\n云控\nTime Review · 时间回顾\n\n已暂停\n\n▶\n⚙\n↻\n‹\n10月14日周三\n今天 · 本机统计\n›\n已记录\n53秒\n重要时间\n0秒\n—\n生产率\n暂无昨日比较\n已分类 0%\n时间分类\n合计 53秒\n重要且紧急\n0秒\n0%\n重要不紧急\n0秒\n0%\n紧急不重要\n0秒\n0%\n不重要不紧急\n0秒\n0%\n生活\n0秒\n未分类\n53秒\n24 小时时间线\n部分分钟明细\n\n选择时间查看对应分钟\n\n仅显示已保存的真实分钟；空白位置不代表未访问。\n\n当前网站\n已暂停\n当前没有正在记录的网站\n记录已暂停\n—\n网站分类\n—\n修改\n\n已单独授权 1 个网站（在工具详情管理）\n\n无法确认的活动间隔 36秒，已排除。\n\n详细记录\n七天 53秒\n所选日期\n近七天\n网站排行\n127.0.0.1\n未分类\n未分类\n重要且紧急\n重要不紧急\n紧急不重要\n不重要不紧急\n生活\n保存\n31秒\n分类\nlocalhost\n未分类\n19秒\n分类\nvery-long-actual-time-review-domain-abcdefghijklmnopqrstuvwxyz.localhost\n未分类\n3秒\n分类\n设置、分钟明细与数据管理\n\n已撤销空闲检测，历史记录保留。\n\n历史记录查询",
+    "focused": {
+      "alwaysOnTop": false,
+      "focused": true,
+      "height": 950,
+      "id": 1323202887,
+      "incognito": false,
+      "left": 22,
+      "state": "normal",
+      "top": 55,
+      "type": "normal",
+      "width": 1200
+    },
+    "active": [
+      {
+        "active": true,
+        "audible": false,
+        "autoDiscardable": true,
+        "discarded": false,
+        "favIconUrl": "",
+        "frozen": false,
+        "groupId": -1,
+        "height": 799,
+        "highlighted": true,
+        "id": 1323202889,
+        "incognito": false,
+        "index": 1,
+        "lastAccessed": 1791924434594.864,
+        "mutedInfo": {
+          "muted": false
+        },
+        "openerTabId": 1323202888,
+        "pinned": false,
+        "selected": true,
+        "splitViewId": -1,
+        "status": "complete",
+        "title": "OpenDesk Browser",
+        "url": "chrome-extension://coelkalcpnbppgbncibnckabllabgnoo/ui/tool.html?hostInstanceId=c3995c53-b269-4140-9bfd-19271a8d1cc2",
+        "width": 814,
+        "windowId": 1323202887
+      }
+    ],
+    "status": "已暂停"
+  },
+  "failureTimeState": {
+    "authorizedEpoch": null,
+    "authorizedHash": null,
+    "categories": {},
+    "checkpoint": null,
+    "days": {
+      "2026-10-14": {
+        "127.0.0.1": 31416,
+        "localhost": 19118,
+        "very-long-actual-time-review-domain-abcdefghijklmnopqrstuvwxyz.localhost": 3436
+      }
+    },
+    "discardedMs": 36907,
+    "highWater": 1791924436769,
+    "minuteConsent": true,
+    "minuteDays": {
+      "2026-10-14": {
+        "ambiguous": false,
+        "entries": [
+          [
+            284,
+            "127.0.0.1",
+            9824
+          ],
+          [
+            285,
+            "127.0.0.1",
+            21253
+          ],
+          [
+            285,
+            "localhost",
+            19118
+          ],
+          [
+            285,
+            "very-long-actual-time-review-domain-abcdefghijklmnopqrstuvwxyz.localhost",
+            3436
+          ],
+          [
+            287,
+            "127.0.0.1",
+            11
+          ]
+        ],
+        "offset": -480,
+        "truncated": false
+      }
+    },
+    "paused": true,
+    "settings": {
+      "excludedHosts": [],
+      "idleSeconds": 60,
+      "retentionDays": 90
+    },
+    "siteGrants": {
+      "allSites": false,
+      "origins": [
+        "http://127.0.0.1:56895"
+      ]
+    },
+    "version": 1
+  },
+  "cleanup": {
+    "terminated": true,
+    "profileRemoved": true,
+    "owned": true
+  },
+  "complete": false,
+  "acceptance": "FAIL",
+  "requiredResults": {
+    "install": "PASS",
+    "realSidePanel": "PASS",
+    "nativeTrustedUI": "PASS",
+    "minuteConsent": "PASS",
+    "download": "PASS",
+    "multiSite": "PASS",
+    "idleTransition": "BLOCKED",
+    "beginAndActiveCollection": "PASS",
+    "pauseResume": "PASS",
+    "websiteGrantRevocation": "PASS",
+    "idlePermissionRevocation": "PASS",
+    "swRestart": "PASS",
+    "browserRestart": "NOT_TESTED",
+    "disableEnable": "NOT_TESTED",
+    "uninstall": "NOT_TESTED",
+    "realBrowserZoom": "PASS",
+    "windowFocus": "PASS",
+    "panelClosedCollection": "PASS",
+    "unrelatedToolInstall": "PASS",
+    "unrelatedToolLifecycle": "PASS",
+    "minuteCanvas": "PASS",
+    "canvasKeyboard": "PASS",
+    "classification": "NOT_TESTED",
+    "populatedExport": "NOT_TESTED",
+    "reinstall": "NOT_TESTED",
+    "realSidePanelReopened": "NOT_TESTED",
+    "nativePermissionControls": "PASS",
+    "inlineEnrollment": "PASS",
+    "timeReviewIframeRemoved": "PASS",
+    "layoutWidths": "PASS",
+    "historyNavigation": "NOT_TESTED",
+    "longDomainLayout": "PASS",
+    "sameNameSandbox": "NOT_TESTED",
+    "replacementRetirement": "NOT_TESTED",
+    "officialUpgrade": "NOT_TESTED"
+  },
+  "chromeStderr": "\nDevTools listening on ws://127.0.0.1:56741/devtools/browser/f8cae377-caca-4bc9-920f-bdde8656b6b4\n[91372:73759302:1014/044410.176039:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[91372:73759302:1014/044439.968020:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[91372:73759302:1014/044525.631029:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[91372:73759302:1014/044701.355838:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[98125:73779261:1014/044718.014058:ERROR:base/apple/mach_port_rendezvous_mac.cc:256] bootstrap_look_up com.google.chrome.for.testing.MachPortRendezvousServer.1: Unknown service name (1102)\n[98125:73779261:1014/044718.014256:ERROR:base/memory/shared_memory_switch.cc:261] No rendezvous client, terminating process (parent died?)\n"
+}

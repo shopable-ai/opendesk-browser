@@ -1,0 +1,38 @@
+TAP version 13
+# TIME_NATIVE trusted-open {"selector":"\#catalog-open-dev-sidebar","x":89.25,"y":135.1484375}
+# TIME_NATIVE install {"version":"1.6.0"}
+# TIME_NATIVE native-canvas {"quadrants":4,"extras":2,"day":"0秒","timeline":"尚无分钟明细","horizontal":true,"frameGeometry":{"viewportHeight":815,"documentHeight":815,"rootHeight":1109.828125},"outerGeometry":{"viewportHeight":815,"nativeHeight":1109.828125,"iframeCount":0,"hostScrollHeight":815}}
+# TIME_NATIVE installed-native-widths {"verdict":"PASS","method":"installed SIDE_PANEL CSS viewport override","widths":[320,360,400,600]}
+# TIME_NATIVE actual-webarea-geometry {"geometry":{"x":180,"y":419.7890625,"width":360,"height":815,"visible":true},"areas":[{"description":"","enabled":true,"focused":true,"position":{"x":30,"y":198},"role":"AXWebArea","size":{"height":799,"width":814},"title":"OpenDesk Browser","value":""},{"description":"","enabled":true,"focused":false,"position":{"x":853,"y":181},"role":"AXWebArea","size":{"height":815,"width":360},"title":"OpenDesk Browser","value":""}]}
+# TIME_NATIVE actual-os-pointer {"selector":"\#minute-canvas","x":1033,"y":600.7890625,"visible":true}
+# Subtest: Time Review R1.3 actual Mac Chrome install and trusted consent smoke
+not ok 1 - Time Review R1.3 actual Mac Chrome install and trusted consent smoke
+  ---
+  duration_ms: 7204.327416
+  type: 'test'
+  location: '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/source-accepted/tests/framework/time-review-r13-native.test.mjs:123:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    owned Chrome foreground before zoom shortcut
+    
+    4 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 4
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/source-accepted/tests/framework/time-review-r13-native.test.mjs:335:14)
+    async Test.run (node:internal/test_runner/test:1389:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 7330.553583
