@@ -1,3 +1,19 @@
+# AI-first Global First R4 定位纠偏（2026-10-13）
+
+**首要价值不是要求人手动在浏览器侧栏编写 React/Vue。** OpenDesk 要竞争的是：让 AI 协助产生浏览器网站工具，经用户审阅源码/网站权限/固定版本后，在能够正式安装的版本和适用站点重复使用；以后执行确定性逻辑时可以不再次调用 AI。
+
+- P0 用户心智：GF-007 **AI→审阅→验证→固定版本安装→无模型重复使用**。Axiom Claude Skill 和 UiPath Delegate Public Preview 已有部分或大部分等价路径，不能做宽泛“全球首个 AI 反复自动化”主张。
+- P0 信任保障：GF-004 原依赖锁/哈希、权限、受控运行回执，必须完成实际 Mac Chrome 撤权/升级测试，不能冒称全球最安全。
+- 后续：GF-003 多形态工具、GF-002/GF-011 总成本、GF-009 有真实客户数据的卖家场景。
+- **已经获批的“第一”0**；GF-013/014 已证伪；“首个 AI/MCP”“首个 React/Vue”“世界最快”均禁止。旧 F01 手写组件编辑能力仍可作技术次级资料。
+- [真正的 TOP5、26 项机会和最新缺口](global-first-r2-decision.zh-CN.md) · [五份双语市场事实页与SEO执行](marketing-playbook.zh-CN.md) · [唯一 GF 声明审批](first-claims-ledger.json)。
+
+**简短中英文 M0**：把 AI 协助制作的浏览器任务转成可审阅、可复用的工具。 / Turn AI-assisted browser tasks into reviewable, reusable tools. 必须注明完整正式安装/关闭模型复用的同版 Chrome 证据尚未获得。
+
+---
+
+## 历史 F01/F02 定位策略（不再指导 AI-first 首页）
+
 # OpenDesk Browser：全球第一细分赛道 R1（历史研究材料）
 
 > **当前 R4 AI-first 战略已替代本页旧优先级。** 请优先阅读 [长期小山头决策及防偏移准则](global-first-r2-decision.zh-CN.md)，执行 [R4 GOAL](../../framework/prompts/goal-global-first-r4-ai-first-niche-leadership.zh-CN.md)。下文把“侧栏手动编写 React/Vue”设为营销优先的 F01/F02/F04 顺序仅供历史审计，不能恢复为当前方向；旧 Chrome 原生证明只保留其固定候选身份。
