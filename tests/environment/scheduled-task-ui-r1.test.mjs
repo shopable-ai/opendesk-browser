@@ -379,5 +379,11 @@ test('R2.8 true host refresh retains keyboard focus, open details and inline con
   assert.match(source,/view\.deleteReview=Boolean\(card\.querySelector\('\.schedule-delete-confirm'\)\)/);
   assert.match(source,/restored\?\.querySelector\(focusedSelector\)\?\.focus\(\)/);
   assert.match(source,/scheduleId:plan\.scheduleId,offset:view\.records\.length,limit:20/);
+  assert.match(source,/const overlap=!latest\.length\|\|!view\.records\.length/);
+  assert.match(source,/view\.records=mergeScheduleHistoryView\(latest,overlap\?view\.records:\[\]\)/,
+    'a non-overlapping first page cannot create a hidden pagination hole');
+  assert.match(source,/if\(!previous\|\|!overlap\)view\.hasMore=latest\.length===20/);
+  assert.match(source,/if\(shown\)\{\s*\/\/ Do not clear a visible inline save\/permission error/,
+    'periodic refresh must not clear the active form error');
   assert.doesNotMatch(source,/chrome\.alarms\.create|new Worker\(/);
 });
