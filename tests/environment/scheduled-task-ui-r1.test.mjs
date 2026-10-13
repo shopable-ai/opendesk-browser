@@ -23,6 +23,9 @@ test('official scheduled plan is nested inside 我的 and keeps icon-only task a
   assert.ok(select>=0&&create>select&&manage>create);
   assert.match(row[1],/aria-label="新建脚本"/);
   assert.match(row[1],/aria-label="管理任务"/);
+  for(const id of ['schedule-new-script','schedule-manage-tasks'])
+    assert.match(row[1],new RegExp('id="'+id+'"[^>]*class="od-icon-button(?: [^"]*)?"'),
+      id+' retains the shared icon size');
   assert.doesNotMatch(row[1],/<option[^>]*>\s*(新建|管理)/);
   assert.doesNotMatch(row[1],/<p[^>]*>\s*(新建脚本|管理任务)/);
   assert.match(html,/id="schedule-task-manager"/);
@@ -123,7 +126,7 @@ test('R2 standalone running tab shows a focused operational dashboard and retain
 });
 test('R2 history keeps technical run identity behind expandable detail',async()=>{
   const ui=await load('src/ui/scheduled-task-workbench.js');
-  assert.match(ui,/element\(doc,'details','schedule-run-details'\)/);
+  assert.match(ui,/element\(doc,'details','schedule-run-details od-disclosure od-disclosure--flat'\)/);
   assert.match(ui,/RunId：/);
   assert.match(ui,/scheduleStatus\(fire.status\)/);
 });
@@ -176,34 +179,37 @@ test('R2 current authorization controls plan badge without hiding historical nee
 });
 
 test('R2.3 explains audit retention and shows native Chrome origin-wide storage without deleting records',async()=>{
-  const [html,ui,css]=await Promise.all([
+  const [html,ui,css,shared]=await Promise.all([
     load('src/ui/tool.html'),load('src/ui/scheduled-task-workbench.js'),
-    load('src/ui/tool-shell.css')
+    load('src/ui/tool-shell.css'),load('src/ui/design-system.css')
   ]);
   assert.match(html,/id="schedule-storage-status"[^>]*role="status"/);
-  assert.match(html,/<details class="schedule-storage-details">/);
+  assert.match(html,/<details class="schedule-storage-details od-disclosure">/);
   assert.match(ui,/navigator\?\.storage/);
   assert.match(ui,/\.estimate\(\)/);
   assert.match(ui,/并非仅定时任务占用/);
   assert.match(ui,/历史不会自动清理/);
   assert.doesNotMatch(ui,/indexedDB\.deleteDatabase\(|chrome\.storage\.(?:local|sync)\.clear\(/);
-  assert.match(css,/\.schedule-storage-details>summary:focus-visible/);
+  assert.match(shared,/(?:^|\n):focus-visible,#workspace-content :focus-visible\{outline:2px solid var\(--od-focus\);outline-offset:2px\}/);
+  assert.doesNotMatch(css,/\.schedule-storage-details>summary:focus-visible/,
+    'storage disclosure uses the shared focus ring');
 });
 
 test('R2.6 plan list keeps next run prominent and destructive actions behind explicit review',async()=>{
-  const [html,css,ui]=await Promise.all([
+  const [html,css,ui,shared]=await Promise.all([
     load('src/ui/tool.html'),load('src/ui/tool-shell.css'),
-    load('src/ui/scheduled-task-workbench.js')
+    load('src/ui/scheduled-task-workbench.js'),load('src/ui/design-system.css')
   ]);
   assert.match(html,/id="schedule-list-summary"[^>]*aria-live="polite"/);
   assert.match(ui,/const next=element\(doc,'p','schedule-next-time'/);
-  assert.match(ui,/const more=element\(doc,'details','schedule-more'\)/);
+  assert.match(ui,/const more=element\(doc,'details','schedule-more od-disclosure od-disclosure--flat'\)/);
   assert.match(ui,/more\.append\(remove\)/);
   assert.match(ui,/\`确定删除「\$\{plan\.title\}」/);
   assert.match(ui,/client\.request\('changeSchedule'/);
   assert.match(css,/\.schedule-card \.schedule-next-time\{font-size:16px/);
   assert.match(css,/\.schedule-plan-actions\{justify-content:flex-start/);
-  assert.match(css,/\.schedule-more>summary:focus-visible/);
+  assert.match(shared,/(?:^|\n):focus-visible,#workspace-content :focus-visible\{outline:2px solid var\(--od-focus\);outline-offset:2px\}/);
+  assert.match(shared,/\.od-disclosure--flat>summary\{min-height:36px/);
 });
 test('R2.6 runner separates running Fire from waiting history and preserves original Stop contract',async()=>{
   const [html,css,ui]=await Promise.all([
@@ -331,7 +337,7 @@ test('R2.7 runner presents focus before compact summary and defers details',asyn
   ]);
   const focus=html.indexOf('id="schedule-runner-focus-title"');
   const summary=html.indexOf('class="schedule-runner-metrics"');
-  const detail=html.indexOf('class="schedule-runner-extra"');
+  const detail=html.indexOf('class="schedule-runner-extra od-disclosure od-disclosure--flat"');
   assert(focus>0&&summary>focus&&detail>summary,
     'single focus card should precede Host/result and disclosure');
   for(const id of ['schedule-runner-next','schedule-runner-current',
@@ -389,7 +395,9 @@ test('R2.8 true host refresh retains keyboard focus, open details and inline con
 });
 
 test('R2.8 production create form keeps 36px controls and a distinct field label layout',async()=>{
-  const [html,css]=await Promise.all([load('src/ui/tool.html'),load('src/ui/tool-shell.css')]);
+  const [html,css,shared]=await Promise.all([
+    load('src/ui/tool.html'),load('src/ui/tool-shell.css'),load('src/ui/design-system.css')
+  ]);
   for(const id of ['schedule-source-section-title','schedule-target-section-title',
     'schedule-timezone-summary','schedule-timezone-edit','schedule-timezone-controls',
     'schedule-next-time','schedule-next-zone','schedule-confirm-yes'])
@@ -397,7 +405,9 @@ test('R2.8 production create form keeps 36px controls and a distinct field label
   assert.match(html,/id="schedule-timezone-controls"[^>]*hidden/);
   assert.match(css,/\.schedule-form label\.od-field,#schedule-task-manager label\.od-field\{display:grid;gap:var\(--space-2\)/);
   assert.match(css,/#schedule-task-manager input,#schedule-task-manager select\{max-width:100%;width:100%;min-width:0;min-height:36px/);
-  assert.match(css,/\.schedule-source-row\{display:grid;grid-template-columns:minmax\(0,1fr\) var\(--od-icon-size\) var\(--od-icon-size\)/);
+  assert.match(css,/\.schedule-source-row\{display:grid;grid-template-columns:minmax\(0,1fr\) max-content max-content/);
+  assert.match(shared,/\.od-icon-button\{[^}]*width:var\(--od-icon-size\);height:var\(--od-icon-size\)/,
+    'intrinsic icon columns retain their shared fixed size');
   assert.match(css,/\.schedule-form-section input\.od-field,\.schedule-form-section textarea\.od-field,/);
   assert.match(css,/\.schedule-next-preview>strong\{font-size:17px/);
   assert.match(css,/#scheduled-panel\[hidden\],#scheduled-panel \[hidden\]\{display:none!important\}/,

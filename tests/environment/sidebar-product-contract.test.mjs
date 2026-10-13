@@ -74,7 +74,7 @@ test('R4 Sidebar sections preserve consumer controls and keep engineering tools 
   assert.doesNotMatch(html.slice(html.indexOf('id="workbench-tasks"'),html.indexOf('id="workbench-tools"')),
     /id="sidebar-tool-import"|id="sidebar-tools"/,'My must not contain Tool management');
   assert.match(css,/\.workbench-nav\{[^}]*display:flex;[^}]*overflow-x:auto;/);
-  assert.match(html, /id="task-history-panel" class="task-history-panel" hidden/);
+  assert.match(html, /id="task-history-panel" class="task-history-panel od-disclosure" hidden/);
   const advanced=html.slice(html.indexOf('<details id="tool-diagnostics"'));
   assert(advanced.startsWith('<details id="tool-diagnostics"'),
     'advanced diagnostics disclosure must remain present even with shared classes');

@@ -49,7 +49,18 @@
 
 原生身份与原始观察：通过 macOS CUA 操作 `/Users/shopme/Applications/Google Chrome.app` 的实际 Side Panel，扩展 UI 的加载路径为仓库 `dist/development`，ID `ccfcjegpkdlgbclopjmadlcjedelidmf`；Native manifest allowed_origins 与 `opendesk browser doctor` 的 local.extensionId 一致。实际 DevTools 只读测量工具页：363×857 CSS px、DPR 2、页面无横向溢出；一级 40px/13px/650/8px 12px，flat 36px/12px/650/8px 0。原生截图和 AX/Console 原始结果保留在本对话工具输出，不能与静态 PNG 混称。最终同候选完整原生验收仍为 NOT_TESTED：宽度拖动返回 `noWindowsAvailable`，滑块动作未证实尺寸变化；Chrome 125% 只改变测试网页缩放，没有证明 Side Panel 本身缩放，随后恢复 100%。200%、300–520 全矩阵、暗色原生与本地项目模式均未登记 PASS。
 
-评分为 **NOT_SCORED**。云控入口 FAIL、最终一致完整构建/CI及完整原生矩阵未关闭，不能宣布 95+ 或整体产品完成。
+评分为 **NOT_SCORED**。云控入口 FAIL、独立运行时 CI FAIL 及完整原生矩阵未关闭，不能宣布 95+ 或整体产品完成。
+
+### R32 提交与当前 CI（2026-10-14）
+
+实现提交 [85de6add728a45167583b0308a8e31da7503d044](https://github.com/shopable-ai/opendesk-browser/commit/85de6add728a45167583b0308a8e31da7503d044) 已正常推送 main，共 17 个限定路径。`workflow-view.js` 只提交 `workflow-step` 的公共组件 class；同文件其他未提交运行时修改、其他工作流源码和构建 receipt 均保留原状。
+
+- [R19 · 38455367169](https://github.com/shopable-ai/opendesk-browser/actions/runs/38455367169)：SUCCESS，292 个真实 Chrome 静态几何样本；证据等级仍是 `STATIC_MARKUP_CHROME`。
+- [R21 · 38455367070](https://github.com/shopable-ai/opendesk-browser/actions/runs/38455367070)：SUCCESS，4+158 条组件/宿主测试全部通过，16 条 R23 构建后 CSS 测试通过。干净 runner 对该提交完成 `check`、生产构建、开发构建及包 verify；生产包 SHA 为 `50df977b9445e6bd68d965a11d564f05d13de24eef808312cb12062bb9fef449`，开发包 SHA 为 `fe3f0b582a317f684b13b78643f49630107f5e969f17e4be12c0fb849f01e0ad`。这些包是 CI 构建证据，不替代日常 Mac 已加载扩展验收。
+- [Sidebar Tools R1 · 38455367079](https://github.com/shopable-ai/opendesk-browser/actions/runs/38455367079)：201 条中 198 PASS / 3 FAIL。一项是 R32 迁移后 `sidebar-product-contract.test.mjs` 仍匹配旧的完整 class 字符串；保留 `hidden` 和业务控件要求，只对齐公共 class。另两项来自 `sidebar-tool-multiscript-r72.test.mjs` 的沙箱终态等待，相关沙箱源码不在 R32 改动范围，保留 FAIL；工作区已有其他 owner 的终态等待修复，未混入本提交。
+- [Sidebar R1 P0 · 38455367467](https://github.com/shopable-ai/opendesk-browser/actions/runs/38455367467)：R15 语义/多状态阶段 SUCCESS，后续运输/编辑器阶段 FAIL。17 项失败中同一项旧 class 断言由本轮修正；其余 16 项涉及依赖检查、Page/Controller 准备器及执行生命周期。实际错误包含 `E_DEPENDENCY_INSPECT`、`E_PAGE_COMPILER_WORKER`、`E_REMOTE_PERMISSION_PENDING`；CSS/class 迁移未修改准备器或其授权状态机，不扩大为运行时重写。
+
+后续限定补丁范围增加 `tests/environment/sidebar-product-contract.test.mjs` 与 `tests/environment/scheduled-task-ui-r1.test.mjs`：读取并接受工作区已有、与 R32 公共 class/焦点/grid 一致的测试修改；独立只读 reviewer 确认未移除授权、删除确认、Stop、运行身份、保留历史、禁止清库及 hidden 断言。两份文件定向结果 **33 PASS / 0 FAIL**（`/tmp/sidebar-r32-related-test-fix.log`）。只更新本任务这两份测试及本工作流，等待 follow-up SHA 的 CI 重新确认；未将静态断言提升为原生 PASS。
 
 复现本地布局验证：
 
