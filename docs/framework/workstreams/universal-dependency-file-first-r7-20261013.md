@@ -142,3 +142,20 @@ Chrome 验收路径：使用相同源文件和 `programId=marked-a`，检查→�
 - **旧真实测试不能误当通过**：GitHub R7.2 工作流 `38359159942`（候选 `5e339c289a61f2710fec5d08f602498d736ecccf`）两个 macOS job 的依赖 Node 测试各 **27/27 PASS**，但当时 `npm run check` 因 `Unexpected web accessible resources` 失败，Chrome 运行步骤均 **SKIPPED**。最新 main 的 `scripts/verify-package.mjs` 已改变 Web Accessible Resources 的校验方式，但这**不构成**本轮 R7.2 现候选同包构建/Chrome PASS；必须按下一轮真实 CI 确认。
 - `tests/framework/page-dependency-r72-cft-cycle.mjs` 当前仍以旧 R7.1 **人工多步审核**测 A/B，不证明新合同要求的“只点击 Run + 无逐库审批”。需改造其断言与真实 Chrome 驱动，且将手工流程的历史结果保留为限定证据。
 - **当前证据结论**：DECISION_FROZEN / DOC_UPDATED；R7.2 新目标 D02–D12 的完整产品闭环仍 **NOT_TESTED / INCOMPLETE**（以各 case 独立原始证据为准）；用户 Mac `MAC_NATIVE_NOT_TESTED`；CWS `COMPLIANCE_NOT_CLOSED`。不能因上述文档提交或理论方案评分宣布 95+。
+
+
+## R7.2 新实现及候选证据交接（2026-10-13）
+
+本节优先于上文 R7.1 的「逐库人工审核」及旧版 D02/D03 多按钮 CFT 状态；历史日志与旧 SHA 保留，不用本节回写伪造 PASS。**本轮确实修改并推送了源码和原生验收驱动，不等于 CI 已通过。**
+
+| 用户场景 | 已写入 main 的实现 / 驱动 | 当前验收 |
+| --- | --- | --- |
+| D01–D02 Page Classic 一次 Run 自动固定 | `a4b287891ae536ed46034cfaf7459c9913613fbe` 将 `captureForRun/resolveForRun` 接入原 Broker Manager；`b6db44391272d76e5d6c60eef4089bc580f6d67d` 将 CDN 来源权限申请连接至真实 Run 点击 | SOURCE_WIRED；新增 Node 与真实 CFT 未确认 PASS |
+| D03 A/B 同库 SHA 字节共享、锁各自独立 | `tests/framework/page-dependency-r72-cft-cycle.mjs` 已取消旧多步人工审核验收，改用真实 Chrome 各点击一次 Run；`tests/environment/page-dependency-one-click-r72.test.mjs` 增加组件测试 | DRIVER_COMMITTED / NATIVE_PENDING；[D02/D03 macOS CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38383604136) 曾处于 QUEUED，以最新候选 job 和 acceptance.json 为准 |
+| 无依赖脚本原有行为 | [Chrome 失败 38381758426](https://github.com/shopable-ai/opendesk-browser/actions/runs/38381758426) 确认无 `@require` 的普通/固定 Page 执行误遭 `E_DEPENDENCY_INSPECT_PENDING`；`350a499a59968ac54cd294fba1ee863129870570` 在现有许可链上修复，增加无依赖测试 | CHROME_FAIL_FOUND / CODE_FIXED / POST_FIX_CHROME_PENDING；不得以旧候选子步骤通过冒充新候选通过 |
+| Controller / React / Vue HTTPS ESM 一键准备 | 复用现有 `page-component-remote.js` 自动固定图与原 Worker 编译器；`b7c80d53a9fb09118137d65bbebeb0997444d950` 新增静态根来源权限只读预热、同步 Run 授权与传递新域名安全阻断；`ae502f2a33ca90b8024471098ad50b481fb81878` 在首次自动下载时拒绝 `latest/main` 等未固定来源，保留旧锁离线读取 | SOURCE_WIRED / TESTS_COMMITTED / REAL_CHROME_PENDING |
+| D05 原始三模块 `@vanillaes/csv@4.1.3` | `daf76f902650b54f3fa3ca8d209d70d58589f0a9` 新增 `tests/framework/controller-dependency-r72-cft-cycle.mjs` 接入 Developer 版真实 macOS CFT。通过真实 Side Panel Run → RunHost → Authority → Worker 验证上游 SHA、`count=2,total=21`、runId/resultId、二次无网络与保存 Revision | DRIVER_COMMITTED / CHROME_NOT_YET_CONFIRMED；目标结果不能写成实际原生输出 |
+| D07 Side Panel Tool 多份 Classic 固定资源 | 已有 `package.js`、`bridge.js`、`build-sidebar-tool.mjs` 接入本地 SHA / Blob 顺序加载、onload/error；`sidebar-tool-multiscript-r72.test.mjs` 为模拟测试 | SOURCE_WIRED / TOOL_NATIVE_LIFECYCLE_NOT_CLOSED |
+| Controller 新增 Worker-compatible Classic、D09 真正 Chrome 重启断网、D10 定时/云控 | 旧预装库与 Runner 仍保留，但全新 Classic 下载→Worker，以及完整重启断网/撤权/定时/云控同一固定 Revision，本轮无足够原始回执 | INCOMPLETE；不能用 Controller ESM 的 Node/Chrome 驱动代替 Classic PASS |
+
+**验证分级与未完成事项：** 历史 R7.2 CI 27/27 Node PASS 只属于旧候选；新增 Node/Standard/Developer/Package/ZIP 仍以当前 SHA 实际 jobs 为准。`MAC_NATIVE_NOT_TESTED`（本会话不能访问用户 Mac），`OFFLINE_NOT_CLOSED`，`CWS_COMPLIANCE_NOT_CLOSED`。未知 Native effect、无权限、坏 SHA 等必须继续安全阻断。八维 95+ 为 `NOT_SCORED`，而非宣称达到。
