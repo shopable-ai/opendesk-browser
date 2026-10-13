@@ -1,4 +1,4 @@
-// R7.2 D05 — actual Chrome Side Panel Run -> Authority -> opaque Controller
+// R7.3 D04 — actual Chrome Side Panel Run -> Authority -> opaque Controller
 // Worker; authentic @vanillaes/csv@4.1.3 bytes (3 upstream ESM files).
 // Browser CDP performs only read-only observation and real input gestures.
 import assert from 'node:assert/strict';
@@ -25,7 +25,7 @@ const SOURCE=[
 const sourceHash=createHash('sha256').update(SOURCE).digest('hex');
 
 export async function runR72ControllerCsvCycle({sidebar,website,browser,until,clickReal,type,read,report,observedRequests}){
-  const proof={caseId:'D05-R72-CONTROLLER-ESM-REAL-CSV',world:'CONTROLLER',programId:PROGRAM,
+  const proof={caseId:'D04-R73-CONTROLLER-ESM-REAL-CSV',world:'CONTROLLER',programId:PROGRAM,
     sourceUrl:CSV_BASE+'index.js',authorSourceHash:sourceHash,status:'IN_PROGRESS'};
   report.tests.push(proof);
   async function fixedLock(){
@@ -98,7 +98,7 @@ export async function runR72ControllerCsvCycle({sidebar,website,browser,until,cl
     },'saved immutable Controller program revision',40000);
     assert(!saved.error,saved.error||'');
     assert.match(saved.saved,/r\d+/);
-    proof.status='CHROME_PASS_D05_CONTROLLER_CSV';
+    proof.status='CHROME_PASS_D04_CONTROLLER_CSV';
     proof.exports={count:2,total:21};
     proof.first=first;proof.second=second;
     proof.lock=actual[0];proof.sourceRequests={first:firstCount,second:0};
