@@ -180,6 +180,8 @@ async function runNative(){
     constraints:['No Runtime.evaluate business SDK calls','No storage writes/grants outside formal Host UI','No DOM value assignment or synthetic DOM events','No forged sender']};
   const save=()=>writeFile(path.join(runDir,'native-report.json'),json(report));
   let launched,client,side,tool,control,toolTarget,website,sideTarget,nativeKeyboard;
+  const workerVersions=new Map(),workerLifecycle=[];
+  const alarmObserverKey='__R106NativeAlarm_'+randomUUID().replaceAll('-','');
   function requireNativeResource(){
     const active=execFileSync('ps',['-axo','pid=,ppid=,comm='],{encoding:'utf8'}).split('\n')
       .map(line=>line.trim().match(/^(\d+)\s+(\d+)\s+(.+)$/)).filter(Boolean)
@@ -318,7 +320,17 @@ async function runNative(){
     report.candidate.buildInputCount=receipt.sourceInputs.length;
     await recordCase('launch-owned-cft',async()=>{
       launched=await launchChrome({root,binary,extension,headed:true,directory:runDir,label:'r106'});
-      client=await connect(launched.endpoint,{onCommand:event=>report.trace.push({at:now(),...event})});
+      client=await connect(launched.endpoint,{
+        onCommand:event=>report.trace.push({at:now(),...event}),
+        onEvent:event=>{
+          if(event.method!=='ServiceWorker.workerVersionUpdated')return;
+          for(const version of event.params.versions){
+            workerVersions.set(version.versionId,version);
+            const row={at:now(),kind:'native-worker-version',sessionId:event.sessionId,version};
+            workerLifecycle.push(row);report.trace.push(row);
+          }
+        }
+      });
       const version=await client.send('Browser.getVersion');
       assert(version.product.includes('Chrome/155.'),'Pinned Chrome 155 expected');
       const worker=await deadline(async()=> (await client.send('Target.getTargets')).targetInfos
@@ -384,6 +396,26 @@ async function runNative(){
     await recordCase('storage-persist',async()=>{
       await toolClick('#storage-write');assert.equal((await output('storage-output')).written,1);
       await toolClick('#storage-read');const result=await output('storage-output');assert.equal(result.items.R106Proof.value,'first-run');return result;
+    });
+    await recordCase('worker-restart-owned-bookmark-and-storage',async()=>{
+      const ref=report.cases['bookmarks-create'].result.result.bookmarkRef;
+      assert.equal(await read(client,tool,'document.querySelector("#bookmark-ref").textContent'),ref);
+      await client.send('ServiceWorker.enable',{},control);
+      const scriptURL='chrome-extension://'+report.extensionId+'/sw.js';
+      const original=await deadline(()=>[...workerVersions.values()].find(v=>v.scriptURL===scriptURL&&v.runningStatus==='running'),'actual original Worker version');
+      const from=workerLifecycle.length;
+      await client.send('ServiceWorker.stopWorker',{versionId:original.versionId},control);
+      const stopped=await deadline(()=>workerLifecycle.slice(from).find(r=>r.version.versionId===original.versionId&&r.version.runningStatus==='stopped'),'actual native Worker stopped');
+      await deadline(async()=>!(await client.send('Target.getTargets')).targetInfos.some(t=>t.targetId===original.targetId),'original Worker target retired');
+      await client.send('ServiceWorker.startWorker',{scopeURL:'chrome-extension://'+report.extensionId+'/'},control);
+      const resumed=await deadline(()=>workerLifecycle.slice(from).find(r=>r.version.scriptURL===scriptURL&&r.version.runningStatus==='running'&&r.version.targetId!==original.targetId),'new native Worker target running');
+      await toolClick('#storage-read');const storage=await output('storage-output');
+      assert.equal(storage.items.R106Proof.value,'first-run','installed storage must survive Worker restart');
+      assert.equal(await read(client,tool,'document.querySelector("#bookmark-ref").textContent'),ref,'the same opaque bookmark reference must be retained');
+      const nativeBookmark=await read(client,control,'chrome.bookmarks.search({title:"OpenDesk R10.6 demo"})');
+      assert.equal(nativeBookmark.length,1);
+      return {original,stopped,resumed,bookmarkRef:ref,storage,nativeBookmark,
+        boundary:'The next separate remove case must prove this same reference is restored and owned after restart.'};
     });
     await recordCase('bookmarks-remove',async()=>{
       await toolClick('#bookmark-remove');const summary=await approve();
@@ -497,6 +529,14 @@ async function runNative(){
       return {result,withoutAI:true,frame:toolTarget};
     });
     await recordCase('scheduler-create-owned-alarm',async()=>{
+      // Observe actual Chrome events in our trusted catalog page; never create,
+      // dispatch or replay an Alarm from the observer.
+      await read(client,control,`(()=>{
+        const rows=[];const listener=alarm=>rows.push({observedAt:Date.now(),alarm:{name:alarm.name,scheduledTime:alarm.scheduledTime}});
+        chrome.alarms.onAlarm.addListener(listener);
+        globalThis[${quote(alarmObserverKey)}]={rows,listener};return true;
+      })()`);
+      report.alarmObserver={marker:alarmObserverKey,sessionId:control,provenance:'Real chrome.alarms.onAlarm events only; observer neither schedules nor dispatches'};
       await toolType('#task-id',installedTask.taskId);
       await toolType('#task-revision','1');
       await toolClick('#schedule-create');const summary=await approve();const result=await output('scheduler-output');
@@ -529,6 +569,7 @@ async function runNative(){
       let firstEffect;
       const results=await deadline(async()=>{
         const state=await durableSchedules(client,runner),fires=state.fires.filter(x=>x.scheduleId===scheduleRef);
+        const alarms=await read(client,control,`globalThis[${quote(alarmObserverKey)}].rows`);
         const complete=[];
         const contexts=await read(client,runner,'chrome.runtime.getContexts({contextTypes:["TAB","SIDE_PANEL"]})');
         for(const fire of fires){
@@ -542,7 +583,8 @@ async function runNative(){
           assert.equal(fire.runId,run.runId);assert.equal(fire.resultId,run.resultId);assert.equal(run.resultId,result.resultId);
           assert(contexts.some(x=>x.documentId===run.hostDocumentId),'Actual registered original RunHost document');
           const effects=await successfulNativeEffects(state,run,manifest);
-          if(effects.length)complete.push({fire,run,result,effects,contexts});
+          const alarm=alarms.find(row=>row.alarm.name==='opendesk.schedule.v1:'+scheduleRef&&Math.abs(row.alarm.scheduledTime-fire.scheduledAt)<1500);
+          if(effects.length&&alarm)complete.push({fire,run,result,effects,contexts,alarm});
         }
         if(complete.length===1&&!firstEffect){
           firstEffect=await read(client,website,'({done:!!document.querySelector("#done"),name:document.querySelector("#name").value})');
@@ -559,7 +601,7 @@ async function runNative(){
       const secondEffect=await read(client,website,'({url:location.href,done:!!document.querySelector("#done"),name:document.querySelector("#name").value})');
       assert.equal(secondEffect.done,true);assert.equal(secondEffect.name,'Alice');
       return {runnerTarget,runnerContext,results,firstEffect,secondEffect,
-        causality:'Registered Chrome Alarms and actual Scheduler/RunHost results; existing Host polling remains active, exclusive onAlarm causality not asserted'};
+        causality:'Two real Chrome onAlarm events matched to separate durable FireIds, RunIds and Results; existing Host polling remains active, exclusive callback causality not asserted'};
     });
     await recordCase('scheduler-cancel-owned',async()=>{
       await toolClick('#schedule-cancel');const result=await output('scheduler-output');
@@ -570,9 +612,10 @@ async function runNative(){
       return {result,list};
     });
     report.status='CORE_PASS_MORE_CONTRACTS_NOT_TESTED';
-    report.remaining=['Worker restart','cross-tool isolation','History real trusted query','Origin revoke','upgrade/uninstall'];
+    report.remaining=['cross-tool isolation','History real trusted query','Origin revoke','upgrade/uninstall','Cookies installed consumer native acceptance'];
     return report;
   }finally{
+    if(client&&control&&report.alarmObserver)report.alarmObserverRemoved=await read(client,control,`(()=>{const observer=globalThis[${quote(alarmObserverKey)}];if(!observer)return false;chrome.alarms.onAlarm.removeListener(observer.listener);delete globalThis[${quote(alarmObserverKey)}];return true})()`).catch(error=>({error:String(error)}));
     if(client)client.close();
     if(launched){
       await launched.copyLog().catch(()=>{});
