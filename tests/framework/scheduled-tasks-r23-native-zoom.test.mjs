@@ -27,14 +27,37 @@ async function until(fn,name,ms=30000){
   throw Error(name+' not observed'+(error?': '+error:''));
 }
 async function click(client,session,selector){
-  const box=await until(()=>evaluate(client,'(()=>{const e='+expr(selector)+
-    ';if(!e||e.disabled||e.getClientRects().length===0)return null;'+
-    'const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2,w:r.width,h:r.height};})()',session),
-  'native zoom click target '+selector);
-  assert(box.w>=8&&box.h>=8,'real target is sufficiently visible');
-  for(const type of ['mousePressed','mouseReleased'])
+  // Read-only DOM geometry + genuine CDP wheel/pointer input. Never invoke
+  // element.click(), focus() or scrollIntoView() from injected JavaScript.
+  for(let attempt=0;attempt<16;attempt++){
+    const box=await until(()=>evaluate(client,'(()=>{const e='+expr(selector)+
+      ';if(!e||e.disabled||e.getClientRects().length===0)return null;'+
+      'const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2,'+
+      'left:r.left,right:r.right,top:r.top,bottom:r.bottom,w:r.width,h:r.height,'+
+      'viewportWidth:innerWidth,viewportHeight:innerHeight};})()',session),
+    'native pointer target '+selector);
+    assert(box.w>=8&&box.h>=8,'native pointer target has a real hit area');
+    const inside=box.left>=0&&box.right<=box.viewportWidth+1&&
+      box.top>=0&&box.bottom<=box.viewportHeight+1;
+    if(inside){
+      for(const type of ['mousePressed','mouseReleased'])
+        await client.send('Input.dispatchMouseEvent',{
+          type,x:box.x,y:box.y,button:'left',clickCount:1},session);
+      return;
+    }
+    // Scroll the existing trusted visible content using real Chrome wheel
+    // input rather than mutating its DOM scrollTop from DevTools.
+    const deltaY=box.top>=box.viewportHeight?Math.min(540,Math.max(160,box.top-box.viewportHeight/2)):
+      box.bottom<=0?-Math.min(540,Math.max(160,box.viewportHeight/2-box.bottom)):
+      box.bottom>box.viewportHeight?220:box.top<0?-220:0;
+    if(!deltaY)break;
     await client.send('Input.dispatchMouseEvent',{
-      type,x:box.x,y:box.y,button:'left',clickCount:1},session);
+      type:'mouseWheel',x:Math.max(10,Math.min(box.viewportWidth/2,box.viewportWidth-10)),
+      y:Math.max(10,Math.min(box.viewportHeight/2,box.viewportHeight-10)),
+      deltaX:0,deltaY},session);
+    await sleep(90);
+  }
+  throw Error('Could not reach visible pointer hit area by trusted scrolling: '+selector);
 }
 async function snapshot(client,session,label){
   const data=(await client.send('Page.captureScreenshot',{
@@ -125,7 +148,7 @@ test('actual installed Chrome runner zooms at 125%, 150%, 200% with keyboard and
     'chrome.tabs.getCurrent().then(tab=>tab?.id??null)',session);
   assert(Number.isInteger(tabId)&&tabId>=0,'real runner TAB ID');
   report.tabId=tabId;
-  for(const [label,zoom] of [['125',1.25],['150',1.5],['200',2]]){
+  for(const [label,zoom] of [['100',1],['125',1.25],['150',1.5],['200',2]]){
     const factor=await evaluate(client,'chrome.tabs.setZoom('+tabId+','+zoom+
       ').then(()=>chrome.tabs.getZoom('+tabId+'))',session);
     assert(Math.abs(factor-zoom)<.001,'real Chrome tabs.getZoom must match '+zoom);
@@ -165,7 +188,7 @@ test('actual installed Chrome runner zooms at 125%, 150%, 200% with keyboard and
   // Browser-installed extension markup at simulated CSS widths is a separate
   // evidence tier from the genuine tabs.setZoom measurements above. Never call
   // these actual Chrome Side Panel physical-width results.
-  for(const width of [220,300,320,360,420,520]){
+  for(const width of [220,300,320,360,420,520,594,760,980]){
     await client.send('Emulation.setDeviceMetricsOverride',{
       width,height:820,deviceScaleFactor:1,mobile:false},session);
     await sleep(120);
@@ -227,6 +250,21 @@ test('actual installed Chrome runner zooms at 125%, 150%, 200% with keyboard and
   assert(timezone.help.includes('选择下拉项'),'real form explains non-destructive search');
   report.timezoneSearch={...timezone,cssViewport:320,inputMethod:'real CDP Input.insertText'};
   report.screenshots.push(await snapshot(client,session,'runner-timezone-filter-320'));
+  // Genuine Chrome invalid-form interaction; fresh isolated Profile has no
+  // installed verified Task. The original two-step approval must stay closed.
+  await click(client,session,'#schedule-save');
+  const invalid=await evaluate(client,'(()=>({'+
+    'error:document.querySelector("#schedule-task-error").textContent,'+
+    'ariaInvalid:document.querySelector("#schedule-task-select").getAttribute("aria-invalid"),'+
+    'focus:document.activeElement?.id||null,'+
+    'confirmed:!document.querySelector("#schedule-save-confirm").hidden'+
+    '}))()',session);
+  assert.match(invalid.error,/请选择已验证、已安装且已启用的任务/);
+  assert.equal(invalid.ariaInvalid,'true');
+  assert.equal(invalid.focus,'schedule-task-select');
+  assert.equal(invalid.confirmed,false,'invalid draft cannot enter approval step');
+  report.invalidForm={...invalid,cssViewport:320,inputMethod:'real CDP wheel/pointer'};
+  report.screenshots.push(await snapshot(client,session,'runner-invalid-task-form-320'));
   await click(client,session,'#schedule-back');
   const leaveReview=await evaluate(client,'(()=>({'+
     'dialog:!document.querySelector("#schedule-discard-confirm").hidden,'+
@@ -244,6 +282,26 @@ test('actual installed Chrome runner zooms at 125%, 150%, 200% with keyboard and
     'explicit discard may now leave the editor');
   report.unsavedDraftNavigation={cssViewport:320,reviewVisible:true,continuedEditing:true,
     explicitDiscardRequired:true};
+  // The production :root palette reacts to native prefers-color-scheme.
+  // This is an emulated browser media preference, not the user's macOS theme.
+  for(const mode of ['dark','light']){
+    await client.send('Emulation.setDeviceMetricsOverride',{
+      width:360,height:820,deviceScaleFactor:1,mobile:false},session);
+    await client.send('Emulation.setEmulatedMedia',{
+      features:[{name:'prefers-color-scheme',value:mode}]},session);
+    const scheme=await evaluate(client,
+      '({matches:matchMedia("(prefers-color-scheme: dark)").matches,'+
+      'cssWidth:innerWidth,scrollWidth:document.documentElement.scrollWidth,'+
+      'paper:getComputedStyle(document.documentElement).getPropertyValue("--od-paper").trim()})',session);
+    assert.equal(scheme.matches,mode==='dark');
+    assert(scheme.scrollWidth<=scheme.cssWidth+1,
+      'real extension HTML must not horizontally overflow in '+mode+' browser preference');
+    const picture=await snapshot(client,session,'runner-color-scheme-'+mode+'-360');
+    report.screenshots.push(picture);
+    report.cssViewportSimulations.push({...scheme,mode,cssViewport:360,
+      viewportMethod:'real Chrome emulated media query and CSS viewport',screenshot:picture});
+  }
+  await client.send('Emulation.setEmulatedMedia',{features:[]},session);
   await client.send('Emulation.clearDeviceMetricsOverride',{},session);
   passed=true;
 });

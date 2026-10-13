@@ -238,6 +238,12 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     // Keep the original iframe visible. A real trusted Start commits and
     // closes the inline enrollment card, not the tool itself.
     if(operation==='time.start'&&tocSettingsOpen){tocSettingsOpen=false;render();}
+    // A UI-only invalidation signal; the sandbox still must fetch time.status
+    // through its installed-tool identity and trusted Host authority.
+    if(frame?.contentWindow&&active?.id===TIME_REVIEW_ID&&tool.id===TIME_REVIEW_ID)
+      frame.contentWindow.postMessage({
+        protocol:SIDEBAR_TOOL_PROTOCOL,kind:'state-changed',instance,toolId:tool.id
+      },'*');
     return response.data;
   }
   // Trusted consent/revocation of browser-wide native permissions is not a

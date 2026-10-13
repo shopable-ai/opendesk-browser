@@ -165,7 +165,9 @@ test('R2 history pagination is authorized and preserves original Run/Result audi
 
 test('R2 current authorization controls plan badge without hiding historical needs-attention failure',async()=>{
   const ui=await load('src/ui/scheduled-task-workbench.js');
-  assert.match(ui,/plan\.paused\?'已暂停':plan\.needsAttention\?'需要处理':'已启用'/);
+  assert.match(ui,/plan\.paused\?'已暂停':plan\.needsAttention\?'需要处理':/);
+  assert.match(ui,/!Number\.isFinite\(plan\.nextDueAt\)\?'暂无后续':'已启用'/);
+  assert.match(ui,/Number\.isFinite\(plan\.nextDueAt\)\?\s*'下次：'/);
   assert.doesNotMatch(ui,/plan\.history\?\.\[0\]\?\.status==='NEEDS_ATTENTION'\?'需要处理'/);
   assert.match(ui,/scheduleStatus\(last.status\)/,'historical denial remains visible in history');
 });
@@ -233,4 +235,43 @@ test('R2.6 unsaved editor Back/cancel must review changes while task manager pre
   assert.equal(css.includes(':root[data-opendesk-surface="scheduled-runner"] .schedule-header:has(#schedule-stop[hidden]){display:none}'),false,
     'standalone editor must never hide its Back header merely because no Run is active');
   assert.doesNotMatch(ui,/(?:window\.)?confirm\s*\(/);
+});
+
+test('R2.6 locked editing Task identity survives uninstall and script-install roundtrip',async()=>{
+  const [ui,css,preview]=await Promise.all([
+    load('src/ui/scheduled-task-workbench.js'),load('src/ui/tool-shell.css'),
+    load('examples/ui/scheduled-tasks-r2.5-preview.html')
+  ]);
+  assert.match(ui,/if\(editing&&!eligible\(\)\.some\(row=>row\.taskId===editing\.taskId\)\)/);
+  assert.match(ui,/unavailable\.value=editing\.taskId;unavailable\.disabled=true/);
+  assert.match(ui,/if\(editing\)select\.value=editing\.taskId/);
+  assert.match(ui,/select\.disabled=Boolean\(editing\)/);
+  assert.match(ui,/get\('schedule-task-select'\)\.disabled=false/);
+  assert.match(ui,/原计划固定任务不可用；请恢复相同安装身份与网站授权/);
+  assert.match(ui,/pendingCreateFromForm=activeView==='form'/);
+  assert.match(ui,/if\(!pendingCreateFromForm\)reset\(\)/);
+  assert.match(ui,/if\(!editing\)\{\s*get\('schedule-task-select'\)\.value=taskId/);
+  assert.match(ui,/原计划仍固定原任务身份/);
+  assert.match(css,/#schedule-task-select:disabled/);
+  assert.match(preview,/editing\?'disabled title="编辑计划不允许更换任务/);
+  assert.match(preview,/原固定任务 · v\$\{safe\(original\?\.version\|\|'\?'\)\}/);
+});
+
+test('R2.6 real runner never labels SETTLING or stale terminal Run as running',async()=>{
+  const [ui,preview]=await Promise.all([
+    load('src/ui/scheduled-task-workbench.js'),
+    load('examples/ui/scheduled-tasks-r2.5-preview.html')
+  ]);
+  assert.match(ui,/const owned=selectedFire\?observed\.find\(item=>item\.fire\.runId===selectedFire&&/);
+  assert.match(ui,/\['ADMITTED','RUNNING'\]\.includes\(item\.fire\.status\)/);
+  assert.match(ui,/const settling=observed\.filter\(item=>item\.fire\.status==='SETTLING'\)/);
+  assert.match(ui,/const alreadyTerminal=Boolean\(selectedFire&&observed\.some/);
+  assert.match(ui,/settling\?'正在核对上次结果'/);
+  assert.match(ui,/正在结算（尚未确认成功）/);
+  assert.match(ui,/waiting\.fire\.status==='WAITING_HOST'&&isRunner\(\)/);
+  assert.match(ui,/本页已经可见，正在检查原触发是否仍符合执行条件/);
+  assert.doesNotMatch(ui,/WAITING_HOST:'没有合法可见运行宿主；请打开运行页/);
+  assert.match(preview,/settlingFocus=!active&&settling\?\.p\.id===focus\?\.id/);
+  assert.match(preview,/正在结算 · 尚未确认成功/);
+  assert.match(preview,/next===null\?'暂无后续执行'/);
 });

@@ -14,7 +14,8 @@ class Node{
   click(trusted=true){return this.listeners.get('click')?.({isTrusted:trusted});}
 }
 globalThis.Option=class extends Node{constructor(text,value){super();this.textContent=text;this.value=value;}};
-function fixture(){
+function fixture({missingOrigin=false,denyOrigin=false}={}){
+  let grant=!missingOrigin,inClick=false;
   const nodes=new Map(['','-status','-prepare','-cancel','-sources','-details','-detail-body','-lock'].map(suffix=>['page-component-remote'+suffix,new Node()]));
   const f={source:{componentSource:`import value from '${root}';export default function App(){return value}`,framework:'react'},
     calls:[],permissions:[],locked:false,downloadGate:null};
@@ -36,9 +37,16 @@ function fixture(){
     const missingUrls=!present.has(root)?[root]:!present.has(child)?[child]:[];
     return {remoteRoots:[root],missingUrls,complete:missingUrls.length===0,modules:modules.map(row=>({url:row.url,children:row.url===root?[child]:[]}))};
   },cancel(){}};
-  const api={permissions:{contains:async()=>true,request:async request=>{f.permissions.push(request);return true;}}};
+  const api={permissions:{contains:async()=>grant,request:request=>{
+    assert.equal(inClick,true,'Chrome permissions.request must happen synchronously in trusted Run');
+    f.permissions.push(request);
+    if(!denyOrigin)grant=true;
+    return Promise.resolve(!denyOrigin);
+  }}};
   f.controller=createPageComponentRemote({client,preparer,api,document:{getElementById:id=>nodes.get(id)},getInput:()=>f.source});
   f.get=id=>nodes.get('page-component-remote'+id);f.click=trusted=>f.get('-prepare').click(trusted);
+  f.runClick=()=>{inClick=true;try{return f.controller.confirmRun({isTrusted:true},f.source);}
+    finally{inClick=false;}};
   return f;
 }
 
@@ -106,4 +114,41 @@ test('R7.2 auto graph acquisition stops after a cancellation, with no transitive
   assert.equal(f.locked,false);
   assert.deepEqual(f.calls.filter(row=>row.method==='preparePageComponentDependencies').map(row=>row.payload.approvedUrls),[[root]]);
   assert.equal(f.calls.some(row=>row.method==='approvePageComponentDependencies'),false);
+});
+
+test('R7.2 static ESM sources prime read-only permission; only trusted Run requests a missing origin',async t=>{
+  const f=fixture({missingOrigin:true});t.after(()=>f.controller.dispose());
+  f.controller.refresh(); // Simulates normal editor source input/change.
+  assert.equal(f.controller.readyForRun,false,'Run must not lose the native gesture to a late inspection');
+  const ready=async()=>{
+    for(let i=0;i<60&&!f.controller.readyForRun;i++)
+      await new Promise(resolve=>setTimeout(resolve,20));
+    assert.equal(f.controller.readyForRun,true);
+  };
+  await ready();
+  assert.equal(f.permissions.length,0,'read-only prime cannot issue Chrome permission requests');
+  await assert.rejects(f.controller.confirmRun({isTrusted:false},f.source),{code:'E_GESTURE'});
+  await f.runClick();
+  assert.deepEqual(f.permissions,[{origins:['https://module.example.org/*']}]);
+  assert.equal(f.calls.filter(row=>row.method==='preparePageComponentDependencies').length,0,
+    'Chrome grant alone is neither a library download nor a program lock');
+  const loaded=await f.controller.autoLoadForRun(f.source);
+  assert.equal(loaded.modules.length,2);
+});
+
+test('R7.2 changing source invalidates cached ESM grant observation; Chrome rejection is fail-closed',async t=>{
+  const f=fixture({missingOrigin:true,denyOrigin:true});t.after(()=>f.controller.dispose());
+  f.controller.refresh();
+  for(let i=0;i<60&&!f.controller.readyForRun;i++)
+    await new Promise(resolve=>setTimeout(resolve,20));
+  assert.equal(f.controller.readyForRun,true);
+  f.source={...f.source,componentSource:f.source.componentSource+'\n// edit changes program identity'};
+  f.controller.refresh();
+  await assert.rejects(f.runClick(),{code:'E_REMOTE_PERMISSION_PENDING'});
+  for(let i=0;i<60&&!f.controller.readyForRun;i++)
+    await new Promise(resolve=>setTimeout(resolve,20));
+  assert.equal(f.controller.readyForRun,true);
+  await assert.rejects(f.runClick(),{code:'E_PERMISSION'});
+  assert.equal(f.calls.filter(row=>row.method==='preparePageComponentDependencies').length,0);
+  assert.equal(f.locked,false);
 });

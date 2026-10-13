@@ -452,6 +452,10 @@ test('Time Review R1.3 actual Mac Chrome install and trusted consent smoke',{ski
     note('site-grant',{origin:approvedOrigin,source:'native trusted click'});
     await nativeClick(browser,side,'#time-review-trusted-start');
     await until(async()=>{const s=await readTime();return s&&!s.paused&&s.authorizedHash?s:null;},'trusted start',10000);
+    await until(()=>evaluate(browser,frame,
+      'document.querySelector("#start")?.hidden===true&&document.querySelector("#pause")?.hidden===false'),
+      'trusted start updates live Time Review controls without waiting 15 seconds',8000);
+    note('trusted-start-immediate-ui',{pauseVisible:true,bridgeStateHintOnly:true});
     const readActivityGates=()=>evaluate(browser,side,
       '(async()=>{const w=await chrome.windows.getLastFocused();const t=(await chrome.tabs.query({active:true,windowId:w.id}))[0];return {focused:w.focused,windowType:w.type,idle:await chrome.idle.queryState(60),isLoopbackTab:t?.url?.startsWith("http://127.0.0.1:"),hasHostPermission:await chrome.permissions.contains({origins:["http://127.0.0.1/*"]})};})()');
     let observationGates=await readActivityGates();

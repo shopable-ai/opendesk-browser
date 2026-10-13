@@ -54,7 +54,9 @@ test('R2.5 production form is a scoped four-part layout with native dropdown and
   assert.match(css,/\.schedule-form-section\{display:grid;gap:var\(--space-3\)/);
   assert.match(css,/\.schedule-rule-row\{display:grid;grid-template-columns:minmax\(0,1fr\) minmax\(0,1fr\);gap:var\(--space-3\)/);
   assert.match(css,/@media\(max-width:420px\)\{/);
-  assert.match(ui,/populateTimeZoneSelect\(getScheduleDeviceTimeZone\(\)\)/);
+  assert.match(ui,/const selectedZone=getScheduleDeviceTimeZone\(\)/);
+  assert.match(ui,/get\('schedule-once'\)\.value=formatWallScheduleTime\(selectedZone,Date\.now\(\)\+10\*60000\)/);
+  assert.match(ui,/populateTimeZoneSelect\(selectedZone\)/);
   assert.match(ui,/populateTimeZoneSelect\(plan\.timezone\)/);
   assert.match(ui,/await client\.request\('saveSchedule',pending\.input\)/);
   assert.match(preview,/id="field-zone" data-field="zone"/);

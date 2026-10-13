@@ -63,3 +63,5 @@
 只运行合并冲突所需定向 Node 检查：最新提交云控/浏览器协议/UI 28 项中 25 项通过，剩余 3 项修复后全部通过；未提交重放定向 8 项中的失败已分别复验通过。重复编译、静态世界误拦与测试 URL 常量遮蔽均已修复。此前其他已通过检查直接复用；全部失败日志留存。未运行全量 npm check、浏览器验收、build、F3、ZIP 或发布。
 
 可恢复备份：`/Users/shopme/.codex/backups/opendesk-main-integration-20261013-01a1342a`。history.bundle 已验证完整，初始 working-files.tar.gz 的359项文件哈希一致；应用前另保存最新文件及 hashes，使用 HEAD CAS、index.lock 与逐文件哈希检查保护并行修改。最新本地/远端 SHA、分支清单与保留验证存入 final-verification.json。
+
+推送并发增量：远端更新到 `1dca23f22c046842cd4e8c1ef4cb94c3550df53a`，普通推送被安全拒绝后补入22个变更文件。提交冲突仅编辑器一处；已有未提交编辑器/CSS再次三方重放。保留经典远端依赖确认与已批准静态 ESM 入口，语法检查通过，不重跑此前已通过检查、不扩大测试。

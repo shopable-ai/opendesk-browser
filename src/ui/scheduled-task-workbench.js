@@ -24,7 +24,7 @@ const scheduleStatusLabels=Object.freeze({
 const scheduleStatus=status=>scheduleStatusLabels[status]||status||'未知';
 const scheduleStatusGuidance=Object.freeze({
   READY:'已排队，等待到期后检查授权及运行条件。',
-  WAITING_HOST:'没有合法可见运行宿主；请打开运行页。Chrome 退出时无法执行。',
+  WAITING_HOST:'这次触发曾等待合法可见运行宿主；保持运行页打开供后续检查。Chrome 退出时无法执行。',
   WAITING_TARGET:'等待获准访问的目标网页；按计划设置检查是否需要打开目标页。',
   WAITING_SLOT:'等待现有 Controller 执行槽；不会创建第二次执行。',
   ADMITTED:'已获准进入原执行链，等待真实结果。',
@@ -141,7 +141,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     node.addEventListener(event,fn);listeners.push(()=>node.removeEventListener(event,fn));
   };
   let disposed=false,shown=false,busy=false,editing=null,managerReturn='list';
-  let pendingCreate=false,pendingTask=null,confirmUninstall=null,allPlans=[],catalog=[],installed=[];
+  let pendingCreate=false,pendingCreateFromForm=false,pendingTask=null,confirmUninstall=null,allPlans=[],catalog=[],installed=[];
   let selectedFire=null,lastRefresh=0,activeView='list',runnerFocusId=null;
   let cloudPanelVisibility;
   let permissionSeq=0,awaitingSave=null,editRevision=0,storageProbeRevision=0;
@@ -261,9 +261,18 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       const option=element(doc,'option',null,(candidate(row)?.manifest?.title||row.taskId)+' · v'+row.version);
       option.value=row.taskId;select.append(option);
     }
-    if(eligible().some(row=>row.taskId===previous))select.value=previous;
-    else if(editing&&eligible().some(row=>row.taskId===editing.taskId))select.value=editing.taskId;
+    // Existing schedules are bound to exact Task + version + installation identity.
+    // Preserve an unavailable historical choice as a readable, disabled option,
+    // never silently substitute another installed version during editing.
+    if(editing&&!eligible().some(row=>row.taskId===editing.taskId)){
+      const unavailable=element(doc,'option',null,
+        '原固定任务 · v'+editing.version+'（已不可用，需检查安装与授权）');
+      unavailable.value=editing.taskId;unavailable.disabled=true;select.append(unavailable);
+    }
+    if(editing)select.value=editing.taskId;
+    else if(eligible().some(row=>row.taskId===previous))select.value=previous;
     else select.value='';
+    select.disabled=Boolean(editing);
     showTaskVersion();
   }
   async function showTaskVersion(){
@@ -271,10 +280,14 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     const row=eligible().find(r=>r.taskId===get('schedule-task-select').value);
     const origins=candidate(row)?.manifest?.siteOrigins||[];
     if(!row){
-      text(get('schedule-task-version'),'请选择已安装、已验证且已启用的 Controller 任务');
+      text(get('schedule-task-version'),editing?
+        '原计划固定任务不可用；请恢复相同安装身份与网站授权。需使用其他任务时请新建计划。':
+        '请选择已安装、已验证且已启用的 Controller 任务');
       return;
     }
-    const prefix=`固定版本 v${row.version} · 网站范围：${origins.join('，')||'不可用'}`;
+    const prefix=`固定版本 v${row.version}`+
+      (editing?' · 编辑时任务身份不可更换（更换请新建计划）':'')+
+      ` · 网站范围：${origins.join('，')||'不可用'}`;
     text(get('schedule-task-version'),prefix+' · 正在核查网站权限…');
     try{
       const allowed=Boolean(api.permissions?.contains)&&origins.length>0&&
@@ -289,27 +302,35 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   function renderRunner(){
     const byTime=(a,b)=>(a.nextDueAt??Infinity)-(b.nextDueAt??Infinity);
     const plans=allPlans.slice().sort(byTime);
-    const upcoming=plans.find(p=>!p.paused&&Number.isFinite(p.nextDueAt));
+    const upcoming=plans.find(p=>!p.paused&&!p.needsAttention&&Number.isFinite(p.nextDueAt));
     const observed=allPlans.flatMap(plan=>(plan.history||[]).map(fire=>({plan,fire})));
     const running=observed.filter(item=>['ADMITTED','RUNNING'].includes(item.fire.status))
       .sort((a,b)=>b.fire.scheduledAt-a.fire.scheduledAt)[0];
-    const owned=selectedFire?observed.find(item=>item.fire.runId===selectedFire):null;
+    const owned=selectedFire?observed.find(item=>item.fire.runId===selectedFire&&
+      ['ADMITTED','RUNNING'].includes(item.fire.status)):null;
     const current=owned||running;
+    const settling=observed.filter(item=>item.fire.status==='SETTLING')
+      .sort((a,b)=>b.fire.scheduledAt-a.fire.scheduledAt)[0];
+    const alreadyTerminal=Boolean(selectedFire&&observed.some(item=>
+      item.fire.runId===selectedFire&&terminal.has(item.fire.status)));
+    const unconfirmedRun=Boolean(selectedFire&&!alreadyTerminal);
     const waiting=observed.filter(item=>
       ['READY','WAITING_HOST','WAITING_TARGET','WAITING_SLOT','SETTLING'].includes(item.fire.status))
       .sort((a,b)=>b.fire.scheduledAt-a.fire.scheduledAt)[0];
     const latest=observed.filter(item=>terminal.has(item.fire.status))
       .sort((a,b)=>b.fire.scheduledAt-a.fire.scheduledAt)[0];
-    const focus=current?.plan||upcoming||plans.find(p=>!p.paused)||plans[0];
+    const focus=current?.plan||settling?.plan||upcoming||plans.find(p=>p.needsAttention)||
+      plans.find(p=>!p.paused)||plans[0];
     runnerFocusId=focus?.scheduleId??null;
     text(get('schedule-runner-next'),upcoming?upcoming.title:'暂无待执行计划');
     text(get('schedule-runner-next-detail'),upcoming?
       frequencyLabel(upcoming)+' · '+describeTime(upcoming.nextDueAt,upcoming.timezone):'可从计划管理创建或恢复计划');
     text(get('schedule-runner-current'),current?current.plan.title:
-      selectedFire?'正在执行任务':'暂无任务运行');
+      settling?'正在核对上次结果':unconfirmedRun?'执行状态待确认':'暂无任务运行');
     text(get('schedule-runner-current-detail'),current?
       scheduleStatus(current.fire.status)+' · '+describeTime(current.fire.scheduledAt,current.plan.timezone):
-      selectedFire?'已进入原始 Controller 执行槽':
+      settling?settling.plan.title+' · 正在结算（尚未确认成功）':
+      unconfirmedRun?'已关联原执行槽，正在核对真实状态':
       waiting?'未运行 · '+scheduleStatus(waiting.fire.status):'到期后才检查执行条件');
     text(get('schedule-runner-result'),latest?scheduleStatus(latest.fire.status):'尚无执行结果');
     text(get('schedule-runner-result-detail'),latest?
@@ -317,14 +338,19 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     text(get('schedule-runner-focus-title'),focus?focus.title:'还没有定时计划');
     text(get('schedule-runner-focus-detail'),focus?
       (current&&focus.scheduleId===current.plan.scheduleId?'当前任务 · '+scheduleStatus(current.fire.status):
+        settling&&focus.scheduleId===settling.plan.scheduleId?'最近执行 · 正在结算（不是成功）':
         frequencyLabel(focus)+' · '+(focus.paused?'已暂停':describeTime(focus.nextDueAt,focus.timezone))):
       '创建一个已验证并安装的任务计划');
     text(get('schedule-runner-explain'),current&&focus?.scheduleId===current.plan.scheduleId?
       scheduleStatusGuidance[current.fire.status]:
+      settling&&focus?.scheduleId===settling.plan.scheduleId?
+        scheduleStatusGuidance.SETTLING:
       focus?.needsAttention?'任务安装身份或网站权限发生变化，需要处理；不会自动重新绑定版本。':
       focus?.paused?'此计划已暂停，不会在到期时触发。':
       waiting&&waiting.plan.scheduleId===focus?.scheduleId?
-        scheduleStatusGuidance[waiting.fire.status]:
+        (waiting.fire.status==='WAITING_HOST'&&isRunner()?
+          '历史记录曾等待运行宿主；本页已经可见，正在检查原触发是否仍符合执行条件。':
+          scheduleStatusGuidance[waiting.fire.status]):
       latest?.fire.status==='UNKNOWN'&&latest.plan.scheduleId===focus?.scheduleId?
         scheduleStatusGuidance.UNKNOWN:
       '计划到期后校验目标网页、固定任务身份和执行槽；浏览器关闭期间不执行。');
@@ -349,10 +375,10 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   function renderPlans(){
     const parent=get('schedule-plan-list');parent.replaceChildren();
     const sorted=allPlans.slice().sort((a,b)=>(a.nextDueAt??Infinity)-(b.nextDueAt??Infinity));
-    const enabled=allPlans.filter(p=>!p.paused&&!p.needsAttention).length;
-    const upcoming=sorted.find(p=>!p.paused&&Number.isFinite(p.nextDueAt));
+    const enabled=allPlans.filter(p=>!p.paused&&!p.needsAttention&&Number.isFinite(p.nextDueAt)).length;
+    const upcoming=sorted.find(p=>!p.paused&&!p.needsAttention&&Number.isFinite(p.nextDueAt));
     text(get('schedule-list-summary'),allPlans.length?
-      `共 ${allPlans.length} 个计划 · ${enabled} 个可执行`+
+      `共 ${allPlans.length} 个计划 · ${enabled} 个已安排下次执行`+
         (upcoming?` · 最近：${upcoming.title}，${describeTime(upcoming.nextDueAt,upcoming.timezone)}`:' · 暂无可预期的下次执行'):
       '尚无定时计划');
     if(!allPlans.length){
@@ -364,11 +390,13 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       card.dataset.scheduleId=plan.scheduleId;
       const head=element(doc,'div','schedule-card-head od-toolbar');
       head.append(element(doc,'strong',null,plan.title),element(doc,'span','schedule-state',
-        plan.paused?'已暂停':plan.needsAttention?'需要处理':'已启用'));
+        plan.paused?'已暂停':plan.needsAttention?'需要处理':
+          !Number.isFinite(plan.nextDueAt)?'暂无后续':'已启用'));
       const catalogEntry=catalog.find(item=>item.taskId===plan.taskId&&item.version===plan.version);
       const next=element(doc,'p','schedule-next-time',
         plan.paused?'已暂停 · 不会触发':plan.needsAttention?'需要处理后才能执行':
-          '下次：'+describeTime(plan.nextDueAt,plan.timezone));
+          Number.isFinite(plan.nextDueAt)?
+            '下次：'+describeTime(plan.nextDueAt,plan.timezone):'暂无后续执行');
       const info=element(doc,'p','schedule-plan-meta hint',
         frequencyLabel(plan)+' · '+(catalogEntry?.manifest?.title||plan.taskId));
       const last=plan.history?.[0];
@@ -536,11 +564,14 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     for(const name of Object.keys(formFields))fieldError(name,'');
     const form=get('schedule-form');form.reset();
     get('schedule-title').value='';
-    const local=new Date(Date.now()+10*60000);
-    get('schedule-once').value=`${local.getFullYear()}-${String(local.getMonth()+1).padStart(2,'0')}-${String(local.getDate()).padStart(2,'0')}T${String(local.getHours()).padStart(2,'0')}:${String(local.getMinutes()).padStart(2,'0')}`;
-    populateTimeZoneSelect(getScheduleDeviceTimeZone());
+    const selectedZone=getScheduleDeviceTimeZone();
+    // A missing/invalid device zone falls back to UTC. The default wall time
+    // must be computed in the SAME selected IANA zone, not host Date getters.
+    get('schedule-once').value=formatWallScheduleTime(selectedZone,Date.now()+10*60000);
+    populateTimeZoneSelect(selectedZone);
     get('schedule-timezone-search').value='';
     get('schedule-params').value='{}';get('schedule-kind').value='once';
+    get('schedule-task-select').disabled=false;
     get('schedule-clock').value='09:00';get('schedule-minutes').value='60';
     get('schedule-deadline').value='5';get('schedule-misfire').value='skip';
     populateChoices();switchKind();
@@ -551,7 +582,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     for(const name of Object.keys(formFields))fieldError(name,'');
     editing=plan;show('form');
     get('schedule-title').value=plan.title;
-    get('schedule-task-select').value=plan.taskId;
+    populateChoices();
     get('schedule-target').value=plan.targetUrl;
     get('schedule-params').value=JSON.stringify(plan.params,null,2);
     get('schedule-kind').value=plan.triggerKind;
@@ -624,6 +655,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     finally{busy=false;get('schedule-confirm-yes').disabled=false;}
   }
   function enterDeveloper(){
+    pendingCreateFromForm=activeView==='form';
     pendingCreate=true;hidePanel();taskWorkbench.navigate('develop');
     text(get('task-dev-status'),'请先真实运行并验证源码、安装固定版本；安装后返回定时计划。');
   }
@@ -791,8 +823,19 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       await refresh();
       if(!eligible().some(row=>row.taskId===taskId))return;
       pendingCreate=false;pendingTask=taskId;taskWorkbench.navigate('tasks');
-      showPanel();show('form');get('schedule-task-select').value=taskId;
-      showTaskVersion();message('已安装验证过的任务，可继续设置时间和目标。');
+      // Task manager launches a NEW plan. Editor launches preserve the current
+      // draft; an existing plan must never silently rebind to the new version.
+      if(!pendingCreateFromForm)reset();
+      pendingCreateFromForm=false;
+      showPanel();show('form');
+      if(!editing){
+        get('schedule-task-select').value=taskId;
+        showTaskVersion();
+        message('新任务已验证安装，可继续设置时间和目标。');
+      }else{
+        populateChoices();
+        message('新任务已安装；原计划仍固定原任务身份。如需使用新任务，请另建计划。');
+      }
     }catch(error){message('任务安装后刷新失败：'+error.message,true);}
   }
   return {open,hidePanel,refresh,setRun(runId){

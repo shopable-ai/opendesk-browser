@@ -115,3 +115,18 @@ test('R1.5.1 trusted inline authorization keeps DOM and visual tab order identic
   assert.match(shell,/settingsView\.nextElementSibling!==frameRoot/);
   assert.match(shell,/settingsView\.previousElementSibling!==retiredDraft/);
 });
+
+test('trusted Time Review updates refresh only the identity-bound sandbox UI',async()=>{
+  const host=await readFile('src/ui/sidebar-tools.js','utf8');
+  const bridge=await readFile('src/sidebar-tools/bridge.js','utf8');
+  const script=await readFile('examples/sidebar-tools/time-review/src/main.js','utf8');
+  assert.match(host,/kind:'state-changed',instance,toolId:tool\.id/);
+  assert.match(host,/frame\?\.contentWindow&&active\?\.id===TIME_REVIEW_ID/);
+  assert.match(bridge,/event\.source!==parent/);
+  assert.match(bridge,/message\.kind==='state-changed'/);
+  assert.match(bridge,/message\.instance===instance&&message\.toolId===toolId/);
+  assert.match(bridge,/new Event\('opendesk-tool-state-changed'\)/);
+  assert.match(script,/root\.addEventListener\('opendesk-tool-state-changed',onTrustedStateChanged\)/);
+  assert.match(script,/void act\('time.status'\)/);
+  assert.match(script,/E_TIME_PERMISSION_SETUP/);
+});

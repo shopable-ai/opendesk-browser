@@ -1,4 +1,4 @@
-# Time Review · 时间回顾 R1.5.1（Canvas V3 / 站点独立授权）
+# Time Review · 时间回顾 R1.5.2（Canvas V3 / 站点独立授权）
 
 正式界面基准：prototypes/time-review-r12/time-review-r12-canvas-v3-single-track.html。正式 Side Panel 工具只采用单条 24h Canvas、紧凑四象限/生活/未分类和卡片视觉，不采用原型的浏览器外壳、样例时间、模拟同步或账号设置。
 
@@ -72,3 +72,9 @@ Mac Chrome 155 对 Time Review 1.3.1 的真实内容导出、同名文件防覆�
 - 可选云同步仍仅有独立的本机准备队列和 HTTPS 适配器；没有经验证的生产账号、幂等服务器 ACK 和原生对账，**默认本地、不登录、不上传**，故不显示虚假的同步开关。
 
 专项回归：`node --test tests/environment/time-review-r12.test.mjs tests/environment/time-review-r13-service.test.mjs tests/environment/time-review-r13-consent.test.mjs tests/environment/time-review-r15-site-grants.test.mjs`。当前候选的 Node、构建、真实 Mac Chrome 结论以及 Git SHA 应以 [R1.5 工作流](../../../docs/framework/workstreams/time-review-r15.md) 中绑定的结果为准；历史 R1.3/R1.4 通过不自动迁移为新包 PASS。
+
+## Side Panel 为什么有 iframe？
+
+这是**内部权限隔离**，不是浏览器新标签，也不是第二个 Time Review。OpenDesk 可信 Side Panel（`src/ui/tool.html`）负责工具标题、安装/卸载、网站与 Chrome 权限确认；每个已安装工具的 UI 在 `sidebar-tools/sandbox.html` 沙箱 iframe 内显示，不能直接访问扩展的高权限 `chrome.*` API。操作只能经 `OpenDeskTool.request`、已有宿主桥、安装身份和可信后台审核。计时由 Service Worker 独立维护，关闭 Side Panel 或销毁 iframe 不等于停止统计。
+
+用户看到的仍应是一个连续的 Side Panel 工具页：必要时原位显示可信授权卡，授权后立即回到同一统计界面。可信操作确认成功时，宿主仅发送不含数据的 `state-changed` 提示，Time Review 再以现有 `time.status` 读取最新状态，不等下一轮 15 秒轮询。
