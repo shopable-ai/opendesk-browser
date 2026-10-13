@@ -296,6 +296,24 @@ test('R9 reloadOwned crosses SDK → one-shot approval → Host → Chrome and r
     err('E_USER_GESTURE_REQUIRED'));
   await assert.rejects(f.call('browser.tabs.getOwned',{tabRef}),err('E_TAB_REF_INVALID'));
 });
+test('R9 navigateOwned requires single use approval and never grants cross-Origin Chrome update',async()=>{
+ const f=fixture(),url={url:'https://example.org/start'};let updates=0;
+ const original=f.api.tabs.update;
+ f.api.tabs.update=async(id,props)=>{updates++;return original(id,props)};
+ const {tabRef}=await f.call('browser.tabs.create',url,
+   (await f.confirm('browser.tabs.create',url)).approvalRef);
+ const args={tabRef,url:'https://example.org/next'};
+ await assert.rejects(f.call('browser.tabs.navigateOwned',args),err('E_USER_GESTURE_REQUIRED'));
+ await assert.rejects(f.confirm('browser.tabs.navigateOwned',{tabRef,url:'https://foreign.example/'}),
+   err('E_SITE_PERMISSION_REVOKED'));
+ const approvalRef=(await f.confirm('browser.tabs.navigateOwned',args)).approvalRef;
+ assert.deepEqual(await f.call('browser.tabs.navigateOwned',args,approvalRef),
+   {navigationRequested:true,tabRefRevoked:true});
+ assert.equal(updates,1);
+ await assert.rejects(f.call('browser.tabs.navigateOwned',args,approvalRef),
+   err('E_USER_GESTURE_REQUIRED'));
+ await assert.rejects(f.call('browser.tabs.getOwned',{tabRef}),err('E_TAB_REF_INVALID'));
+});
 test('R9 Host cannot mint a one-use intent for revoked or foreign owned TabRefs',async()=>{
   const f=fixture(),url={url:'https://example.org/preflight'};
   const {tabRef}=await f.call('browser.tabs.create',url,
@@ -304,6 +322,7 @@ test('R9 Host cannot mint a one-use intent for revoked or foreign owned TabRefs'
     ['browser.tabs.activateOwned',{tabRef}],
     ['browser.tabs.pinOwned',{tabRef,pinned:false}],
     ['browser.tabs.reloadOwned',{tabRef}],
+    ['browser.tabs.navigateOwned',{tabRef,url:'https://example.org/next'}],
     ['browser.tabs.removeOwned',{tabRef}],
     ['browser.screenshot.captureVisible',{tabRef}],
     ['browser.network.observe.start',{tabRef,origins:['https://example.org']}]
@@ -320,7 +339,7 @@ test('R9 Host cannot mint a one-use intent for revoked or foreign owned TabRefs'
 test('R9 capability status fails closed when an owned-TabRef Chrome document driver is absent',async()=>{
   const f=fixture();
   f.api.webNavigation.getFrame=undefined;
-  for(const operation of ['browser.tabs.activateOwned','browser.tabs.pinOwned',
+  for(const operation of ['browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.navigateOwned',
     'browser.screenshot.captureVisible','browser.network.observe.start']){
     const status=await f.call('browser.capabilities.getStatus',{operation});
     assert.equal(status.callableNow,false,operation);
