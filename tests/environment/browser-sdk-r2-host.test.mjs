@@ -279,6 +279,23 @@ test('R9 installed tool pinOwned requires exact one-use Host approval and return
   f.setSite(false);
   await assert.rejects(f.confirm('browser.tabs.pinOwned',{tabRef,pinned:false}),err('E_SITE_PERMISSION_REVOKED'));
 });
+test('R9 reloadOwned crosses SDK → one-shot approval → Host → Chrome and revokes the ref',async()=>{
+  const f=fixture(),url={url:'https://example.org/reload'};
+  let native=0;f.api.tabs.reload=async(id,options)=>{
+    assert.equal(id,100);assert.deepEqual(options,{bypassCache:false});native++;
+  };
+  const {tabRef}=await f.call('browser.tabs.create',url,
+    (await f.confirm('browser.tabs.create',url)).approvalRef);
+  const args={tabRef};
+  await assert.rejects(f.call('browser.tabs.reloadOwned',args),err('E_USER_GESTURE_REQUIRED'));
+  const approvalRef=(await f.confirm('browser.tabs.reloadOwned',args)).approvalRef;
+  assert.deepEqual(await f.call('browser.tabs.reloadOwned',args,approvalRef),
+    {reloadRequested:true,tabRefRevoked:true});
+  assert.equal(native,1);
+  await assert.rejects(f.call('browser.tabs.reloadOwned',args,approvalRef),
+    err('E_USER_GESTURE_REQUIRED'));
+  await assert.rejects(f.call('browser.tabs.getOwned',{tabRef}),err('E_TAB_REF_INVALID'));
+});
 test('R9 Host cannot mint a one-use intent for revoked or foreign owned TabRefs',async()=>{
   const f=fixture(),url={url:'https://example.org/preflight'};
   const {tabRef}=await f.call('browser.tabs.create',url,
@@ -286,6 +303,7 @@ test('R9 Host cannot mint a one-use intent for revoked or foreign owned TabRefs'
   const operations=[
     ['browser.tabs.activateOwned',{tabRef}],
     ['browser.tabs.pinOwned',{tabRef,pinned:false}],
+    ['browser.tabs.reloadOwned',{tabRef}],
     ['browser.tabs.removeOwned',{tabRef}],
     ['browser.screenshot.captureVisible',{tabRef}],
     ['browser.network.observe.start',{tabRef,origins:['https://example.org']}]
