@@ -5,6 +5,7 @@ export const FOCUS_PROTOCOL='opendesk.stay-focus.v1';
 export const FOCUS_STORE='opendesk.stay-focus.state.v1';
 export const FOCUS_SESSION='opendesk.stay-focus.session.v1';
 export const FOCUS_ALARM='opendesk.stay-focus.heartbeat.v1';
+export const FOCUS_PAGE_NOTICE_PROTOCOL='opendesk.stay-focus.page-notice.v1';
 export const FOCUS_RULE_FIRST=730000;
 export const FOCUS_RULE_LAST=730199;
 export const FOCUS_MAX_SITES=60;

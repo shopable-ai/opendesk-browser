@@ -219,3 +219,29 @@ test('Time Review presence or independent storage does not change Stay Focus aut
   assert.equal(f.rules.length,1);
   assert.deepEqual(f.stored.get('opendesk.time-review.v1'),{days:{'2026-10-13':{'example.com':300000}}});
 });
+
+test('R1.4 first true enable seeds shared entertainment, existing explicit policy is preserved',async()=>{
+  const fresh=fixture();
+  const preview=await fresh.focus.dispatch(await fresh.msg('focus.status'),fresh.sender);
+  assert.equal(preview.dailyBudget.minutes,30);
+  assert.equal(preview.sites.length,0,'install and status never grant or silently enable');
+  assert.equal(fresh.stored.has(FOCUS_STORE),false);
+  const enabled=await fresh.focus.dispatch(await fresh.msg('focus.enable'),fresh.sender);
+  assert.equal(enabled.enabled,true);
+  assert.equal(enabled.dailyBudget.managedCount,11);
+  assert.ok(enabled.sites.some(site=>site.host==='youtube.com'&&site.group==='entertainment'));
+  assert.ok(enabled.sites.some(site=>site.host==='tiktok.com'&&site.group==='entertainment'));
+  assert.equal(enabled.sites.find(site=>site.host==='github.com'),undefined);
+  assert.equal(enabled.ruleReceipt.verified,true);
+  const stored=(await fresh.api.storage.local.get(FOCUS_STORE))[FOCUS_STORE];
+  assert.equal(stored.groups.entertainment,30);
+  const second=await fresh.focus.dispatch(await fresh.msg('focus.enable'),fresh.sender);
+  assert.equal(second.sites.length,enabled.sites.length,'repeat approval never reseeds');
+  const legacy=fixture();
+  await legacy.focus.dispatch(await legacy.msg('focus.site.put',{site:mkSite('example.com')}),legacy.sender);
+  await legacy.focus.dispatch(await legacy.msg('focus.enable'),legacy.sender);
+  const old=(await legacy.api.storage.local.get(FOCUS_STORE))[FOCUS_STORE];
+  assert.equal(old.sites.length,1,'existing explicit single-site policy is not widened');
+  assert.equal(old.sites[0].group,'');
+  assert.equal(old.groups.entertainment,undefined);
+});

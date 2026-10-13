@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {focusHost,hostnameMatches,focusRemovedOriginAffectsSite,focusLocalDay,FOCUS_MAX_GAP_MS} from '../../src/stay-focus/policy.js';
 import {emptyFocus,readFocus,focusSite,focusSiteScopesValid,focusSchedule,focusMatchingSite,focusPool,
-  focusBudget,focusReason,focusScheduleActive,settleFocus} from '../../src/stay-focus/model.js';
+  focusBudget,focusReason,focusScheduleActive,settleFocus,focusDueReminder,focusSummary} from '../../src/stay-focus/model.js';
+import {FOCUS_CATALOG,focusCatalogMatch,focusDefaultSites} from '../../src/stay-focus/catalog.js';
 import {installStayFocusBlockedPage} from '../../src/stay-focus/blocked.js';
 import {focusRuleForSite,wantedFocusRules,reconcileFocusRules,clearFocusRules,isFocusRuleId}
   from '../../src/stay-focus/rule-host.js';
@@ -350,4 +351,52 @@ test('isolated Stay Focus UI retains narrow-layout, dark-mode, keyboard and stat
   assert.match(main,/浏览器权限未授权/);
   assert.match(main,/规则未核对/);
   assert.match(main,/已暂停/);
+});
+
+test('R1.4 fixed trusted classification, single 30-minute pool and old durable records',()=>{
+  assert.equal(focusCatalogMatch('m.youtube.com')?.host,'youtube.com');
+  assert.equal(focusCatalogMatch('youtube.com.evil.example'),null);
+  assert.equal(focusCatalogMatch('foo-youtube.com'),null);
+  assert.equal(focusCatalogMatch('docs.google.com')?.auto,false);
+  assert.equal(focusCatalogMatch('github.com')?.minutes,0);
+  const defaults=focusDefaultSites();
+  assert.equal(defaults.length,FOCUS_CATALOG.filter(row=>row.auto).length);
+  assert.ok(defaults.length>2&&defaults.length<=60);
+  assert.ok(defaults.every(site=>site.group==='entertainment'&&site.minutes===30));
+  const s=emptyFocus(at);s.enabled=true;s.groups.entertainment=30;s.sites=defaults;
+  const a=focusMatchingSite(s,'youtube.com'),b=focusMatchingSite(s,'www.tiktok.com');
+  tick(s,at,a);tick(s,at+30000,a);tick(s,at+30000,b);tick(s,at+60000,b);
+  assert.equal(s.usage['g:entertainment'],60000);
+  assert.equal(s.usage['s:youtube.com'],undefined);
+  assert.equal(s.usage['s:tiktok.com'],undefined);
+  assert.equal(focusSummary(s,at+60000).dailyBudget.usedMs,60000);
+  assert.equal(focusSummary(s,at+60000).dailyBudget.budgetMs,1800000);
+  const {notices,...old}=s,restored=readFocus(old,at+60000);
+  assert.deepEqual(restored.usage,s.usage,'older v1 usage is never cleared');
+  assert.deepEqual(restored.sites,s.sites,'older custom site rules are never overwritten');
+  assert.deepEqual(restored.notices.thresholds,[]);
+  assert.throws(()=>readFocus({...s,notices:{...s.notices,thresholds:[1,1]}},at));
+});
+test('R1.4 reminder thresholds are charged-only, persisted and at most once',()=>{
+  const s=emptyFocus(at);s.enabled=true;s.groups.entertainment=30;
+  s.sites=focusDefaultSites();const site=s.sites[0];
+  assert.equal(focusDueReminder(s,site,0,0),null);
+  assert.equal(focusDueReminder(s,site,0,60000),null);
+  assert.equal(focusDueReminder(s,site,19*60000,20*60000)?.minutes,10);
+  assert.equal(focusDueReminder(s,site,19*60000,20*60000),null);
+  assert.equal(focusDueReminder(s,site,24*60000,25*60000)?.minutes,5);
+  assert.equal(focusDueReminder(s,site,28*60000,29*60000)?.minutes,1);
+  assert.deepEqual(s.notices.thresholds,[10,5,1]);
+  assert.equal(focusDueReminder(s,site,29*60000,30*60000),null,'zero means DNR, not an old reminder');
+  const persisted=readFocus(s,at);
+  assert.deepEqual(persisted.notices.thresholds,[10,5,1]);
+  const delayed=emptyFocus(at);delayed.enabled=true;delayed.groups.entertainment=30;delayed.sites=focusDefaultSites();
+  assert.equal(focusDueReminder(delayed,delayed.sites[0],19*60000,29*60000)?.minutes,1);
+  assert.deepEqual(delayed.notices.thresholds,[10,5,1],'skipped 10/5 are not replayed');
+  const short=emptyFocus(at);short.enabled=true;short.groups.entertainment=1;
+  short.sites=[{...site,minutes:1}];
+  assert.equal(focusDueReminder(short,short.sites[0],0,30000),null,
+    'a one-minute native acceptance budget must not fire 10/5/1 immediately');
+  const work=FOCUS_CATALOG.find(row=>row.host==='github.com');
+  assert.equal(focusCatalogMatch(work.host)?.auto,false);
 });
