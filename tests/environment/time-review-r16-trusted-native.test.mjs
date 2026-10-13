@@ -88,7 +88,7 @@ function r17PermissionFixture(){
     return nodes.get(id);
   };
   let siteGrants={allSites:false,origins:[]},idlePermission=false,requests=0,removals=0;
-  let pendingRead=null;
+  let pendingRead=null,currentUrl='https://example.com/path';
   const api={
     storage:{local:{async get(){
       const pending=pendingRead;pendingRead=null;
@@ -100,7 +100,7 @@ function r17PermissionFixture(){
       async remove(){removals++;idlePermission=false;return true;}
     },
     windows:{async getLastFocused(){return {focused:true,incognito:false,type:'normal',id:1};}},
-    tabs:{async query(){return [{url:'https://example.com/path',incognito:false}];}}
+    tabs:{async query(){return [{url:currentUrl,incognito:false}];}}
   };
   const doc={getElementById:get,createElement:tag=>node(tag)};
   const controls=createTimeReviewPermissionControls({api,doc,notice(){},
@@ -115,6 +115,7 @@ function r17PermissionFixture(){
   return {api,get,controls,installed,click,flush,
     setIdle:value=>{idlePermission=value;},
     setGrants:value=>{siteGrants=value;},
+    setCurrentUrl:value=>{currentUrl=value;},
     deferNextRead(){
       let resolve;
       pendingRead=new Promise(done=>{resolve=done;});
@@ -159,8 +160,13 @@ test('R1.7 whole-site grant cannot show redundant or ineffective per-origin enro
   assert.equal(f.get('time-review-site-all-revoke').hidden,false);
   f.setGrants({allSites:false,origins:['https://example.com']});
   f.controls.render(f.installed);await f.flush();
-  assert.equal(f.get('time-review-site-current-open').hidden,false);
+  assert.equal(f.get('time-review-site-current-open').hidden,true,
+    'an already authorized exact Origin should not offer duplicate enrollment');
   assert.equal(f.get('time-review-site-all-open').hidden,false);
+  f.setCurrentUrl('https://another.example/path');
+  f.controls.render(f.installed);await f.flush();
+  assert.equal(f.get('time-review-site-current-open').hidden,false,
+    'a different Origin must remain individually authorizable');
   assert.equal(f.get('time-review-site-all-revoke').hidden,false);
   assert.equal(f.get('time-review-site-grants-list').children.length,1);
   f.setGrants({allSites:false,origins:[]});
