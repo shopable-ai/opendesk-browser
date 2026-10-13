@@ -1,0 +1,62 @@
+{
+  "previousEvidence": "index.json",
+  "raw": [
+    {
+      "path": "native-run-47.tap",
+      "bytes": 7936,
+      "sha256": "489996c3bb32d445b7a768094bbedd6c89c75982a100360374c7ae287605cda1"
+    },
+    {
+      "path": "native-run-47.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-run-47-command.json",
+      "bytes": 746,
+      "sha256": "f03d8e8590c0a895f91df4924052ef762047b2e0ca7fdca09f66c1f5662f05f5"
+    },
+    {
+      "path": "native-run-47/native-report.json",
+      "bytes": 16579,
+      "sha256": "bcf74d74baa187c7a6f49998417501b4550bdd2a4255a97ad4ab473aad89dd7a"
+    },
+    {
+      "path": "native-run-47/failure-side.png",
+      "bytes": 133722,
+      "sha256": "fd4c3423305425ed79926ac50a17c0e80c6799386d4507eff4f21a7bc61f363e"
+    },
+    {
+      "path": "native-run-48.tap",
+      "bytes": 7174,
+      "sha256": "e4c9fd6d0b28fbaa4fa5d62a14b70f4976c7d69e8a5c95dabc343100a48baedc"
+    },
+    {
+      "path": "native-run-48.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "native-run-48-command.json",
+      "bytes": 746,
+      "sha256": "6662643061fba5a0e0ad9bc42abccfdb92ac0dc6c7a1a22bdaf7724cb56bac5e"
+    },
+    {
+      "path": "native-run-48/native-report.json",
+      "bytes": 14263,
+      "sha256": "d29330c4186aaba7bf8f22c6811a4807e2b6d48c05c4c1d508c4942239520d33"
+    },
+    {
+      "path": "native-run-48/state-summary.json",
+      "bytes": 1362,
+      "sha256": "ac9abdce29d423b63d981ae30997cbebc0401172c56b4f6a801e9e48bcb7adf9"
+    },
+    {
+      "path": "native-run-48/official-upgrade-native-1.6.0.png",
+      "bytes": 124978,
+      "sha256": "a158dae731fe637c0bb1f5fe33a8345b0621d50fc3faf70bab9d09069b0eafa0"
+    }
+  ],
+  "productionCandidate": "dba771cc8e64fa5f3b1ef7163568a8812af9d024",
+  "native48": "identity scope officialUpgrade PASS, overall PARTIAL; activity omitted NOT_TESTED"
+}

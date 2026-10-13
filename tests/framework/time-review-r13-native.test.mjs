@@ -22,10 +22,11 @@ const NATIVE_REQUESTED=process.env.OPENDESK_TIME_REVIEW_NATIVE==='1';
 // evidence. Omitted cases remain NOT_TESTED in this report, never PASS/SKIP.
 const NATIVE_SCOPE=process.env.OPENDESK_TIME_NATIVE_SCOPE||'full';
 function cdp(url){
-  const socket=new WebSocket(url),requests=new Map();let sequence=0,closed=false;
+  const socket=new WebSocket(url),requests=new Map(),listeners=new Map();let sequence=0,closed=false;
   const ready=new Promise((resolve,reject)=>{socket.onopen=resolve;socket.onerror=reject;});
   socket.onmessage=event=>{
-    const msg=JSON.parse(event.data);if(!msg.id)return;
+    const msg=JSON.parse(event.data);
+    if(!msg.id){for(const listener of listeners.get(msg.method)||[])listener(msg.params,msg.sessionId);return;}
     const pending=requests.get(msg.id);if(!pending)return;
     requests.delete(msg.id);clearTimeout(pending.timer);
     msg.error?pending.reject(Error(JSON.stringify(msg.error))):pending.resolve(msg.result);
@@ -33,6 +34,11 @@ function cdp(url){
   socket.onclose=()=>{closed=true;for(const p of requests.values()){clearTimeout(p.timer);p.reject(Error('CDP_DISCONNECTED'));}requests.clear();};
   return {
     ready,
+    on(method,listener){
+      if(!listeners.has(method))listeners.set(method,new Set());
+      listeners.get(method).add(listener);
+      return ()=>listeners.get(method)?.delete(listener);
+    },
     send(method,params={},sessionId){return new Promise((resolve,reject)=>{
       if(closed){reject(Error('CDP_DISCONNECTED'));return;}
       const id=++sequence,timer=setTimeout(()=>{requests.delete(id);reject(Error('CDP_TIMEOUT '+method));},15000);
@@ -138,8 +144,26 @@ async function chooseNativeFile(client,session,file,helper,pid){
   await until(()=>!JSON.parse(input('dump')).some(row=>row.role==='AXButton'&&['Open','打开'].includes(row.title||row.description)),
     'actual owned file chooser closed');
 }
+async function installReviewedPackage(client,session,candidate,name,helper,pid,note){
+  const file=path.join(OUT,name+'.opendesk-tool.json'),bytes=JSON.stringify(candidate)+'\n';
+  await writeFile(file,bytes);
+  const target=(await client.send('Target.getTargetInfo',{},session)).targetInfo;
+  await client.send('Target.activateTarget',{targetId:target.targetId});
+  if(await evaluate(client,session,'document.querySelector("#sidebar-tool-import").hidden'))
+    await nativeClick(client,session,'#sidebar-tool-import-trigger');
+  await chooseNativeFile(client,session,file,helper,pid);
+  await until(()=>evaluate(client,session,'!document.querySelector("#sidebar-tool-preview").hidden&&document.querySelector("#sidebar-tool-preview-version").textContent.includes('+JSON.stringify(candidate.version)+')'),
+    'exact reviewed local package version');
+  await nativeClick(client,session,'#sidebar-tool-install');
+  const saved=await until(()=>evaluate(client,session,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>v["opendesk.sidebar-tools.installed.v1"]?.find(t=>t.id==='+JSON.stringify(candidate.id)+'&&t.version==='+JSON.stringify(candidate.version)+'))'),
+    'reviewed package installed');
+  assert.deepEqual(saved,candidate,'exact reviewed local bytes persisted');
+  assert.equal(await evaluate(client,session,'chrome.storage.local.get("opendesk.market.provenance.v1").then(v=>v["opendesk.market.provenance.v1"]?.['+JSON.stringify(candidate.id)+']||null)'),
+    null,'local review cannot acquire official provenance');
+  note('native-file-review-install',{id:candidate.id,version:candidate.version,file,sha256:createHash('sha256').update(bytes).digest('hex')});
+}
 
-test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIVE_REQUESTED,timeout:420000},async t=>{
+test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIVE_REQUESTED,timeout:600000},async t=>{
   assert.equal(process.platform,'darwin','Real Mac Chrome required');
   assert.ok(['full','identity'].includes(NATIVE_SCOPE),'Known native acceptance scope required');
   assert.ok(BIN&&spawnSync(BIN,['--version'],{stdio:'ignore'}).status===0,'Pinned Chrome for Testing binary required');
@@ -242,7 +266,8 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
       'windowFocus','panelClosedCollection','unrelatedToolInstall','unrelatedToolLifecycle',
       'minuteCanvas','canvasKeyboard','classification','populatedExport','reinstall',
       'realSidePanelReopened','nativePermissionControls','inlineEnrollment','timeReviewIframeRemoved',
-      'layoutWidths','historyNavigation','longDomainLayout','sameNameSandbox','replacementRetirement','officialUpgrade'];
+      'layoutWidths','historyNavigation','longDomainLayout','sameNameSandbox','replacementRetirement','officialUpgrade',
+      'unrelatedToolUpgrade','activeSwRecovery','naturalSwSleep'];
     evidence.acceptance=complete?(required.every(key=>evidence[key]==='PASS')?'PASS':'PARTIAL'):'FAIL';
     evidence.requiredResults=Object.fromEntries(required.map(key=>[key,evidence[key]||'NOT_TESTED']));
     evidence.chromeStderr=stderr.slice(-1200);
@@ -268,6 +293,31 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
   const ui=await browser.send('Target.createTarget',{url:'chrome-extension://'+present+'/ui/tool.html?hostInstanceId='+randomUUID()});
   const uiTarget=await browser.send('Target.attachToTarget',{targetId:ui.targetId,flatten:true});
   await browser.send('Runtime.enable',{},uiTarget.sessionId);await browser.send('Page.enable',{},uiTarget.sessionId);
+  // Observe lifecycle through the ordinary page session. Never attach a
+  // debugger to the SW: that attachment would prevent natural idle stopping.
+  const workerStates=[],workerErrors=[],workerEvents=[],workerCrashes=[];
+  evidence.workerObserver={events:workerEvents,errors:workerErrors,crashes:workerCrashes};
+  browser.on('ServiceWorker.workerVersionUpdated',(params,sessionId)=>{
+    if(sessionId!==uiTarget.sessionId)return;
+    workerEvents.push({at:performance.now(),sessionId,method:'workerVersionUpdated',params});
+    for(const version of params.versions||[])if(version.scriptURL==='chrome-extension://'+present+'/sw.js')
+      workerStates.push({at:performance.now(),sessionId,...version,status:version.runningStatus});
+  });
+  browser.on('ServiceWorker.workerRegistrationUpdated',(params,sessionId)=>{
+    if(sessionId===uiTarget.sessionId)workerEvents.push({at:performance.now(),sessionId,method:'workerRegistrationUpdated',params});
+  });
+  browser.on('ServiceWorker.workerErrorReported',({errorMessage},sessionId)=>{
+    if(sessionId===uiTarget.sessionId)workerErrors.push({at:performance.now(),sessionId,...errorMessage});
+  });
+  browser.on('Target.targetCrashed',params=>{
+    workerCrashes.push({at:performance.now(),...params});
+  });
+  let workerObserverReady=false;
+  try{
+    await browser.send('Target.setDiscoverTargets',{discover:true});
+    await browser.send('ServiceWorker.enable',{},uiTarget.sessionId);workerObserverReady=true;
+  }
+  catch(cause){note('passive-worker-observer-unavailable',{error:String(cause)});}
   await until(()=>evaluate(browser,uiTarget.sessionId,'Boolean(document.querySelector("#sidebar-tool-official-time-review-install"))'),'official Time Review available');
   note('trusted-open',await nativeClick(browser,uiTarget.sessionId,'#catalog-open-dev-sidebar'));
   const sideDocument=await until(async()=>{
@@ -731,9 +781,33 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
       await setTimeReviewSettingsVisible(browser,otherManager,false);
       await nativeClick(browser,otherManager,'#sidebar-tool-back');
       await until(()=>evaluate(browser,otherManager,'document.querySelector("#sidebar-tool-display").hidden'),'return other tool manager list');
+      const officialTool=await evaluate(browser,otherManager,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>v["opendesk.sidebar-tools.installed.v1"].find(t=>t.id==='+JSON.stringify(toolId)+'))');
+      const older={...officialTool,version:'0.0.0',js:officialTool.js+'\n// Reviewed local older-version lifecycle fixture, not an official release.\n'};
+      await installReviewedPackage(browser,otherManager,older,'older-'+toolId,zoomInput,proc.pid,note);
+      assert.equal((await browser.send('Runtime.callFunctionOn',{objectId:nativeRoot,functionDeclaration:'function(){return this.isConnected}',returnByValue:true},side)).result.value,true,
+        'other reviewed version replacement preserves the same Time Review native root');
+      if(await evaluate(browser,otherManager,'document.querySelector("#sidebar-tool-discover-panel").hidden'))
+        await nativeClick(browser,otherManager,'#sidebar-tool-discover-toggle');
+      await nativeClick(browser,otherManager,'#sidebar-tool-filter-all');
+      await until(()=>evaluate(browser,otherManager,'document.querySelector("[data-official-tool-id='+toolId+']")?.dataset.installationState==="update"'),'actual other-tool version upgrade available');
+      await nativeClick(browser,otherManager,button);
+      await until(()=>evaluate(browser,otherManager,'!document.querySelector("#sidebar-tool-preview").hidden'),'review actual official upgrade '+toolId);
+      await nativeClick(browser,otherManager,'#sidebar-tool-install');
+      const upgraded=await until(()=>evaluate(browser,otherManager,'chrome.storage.local.get(["opendesk.sidebar-tools.installed.v1","opendesk.market.provenance.v1"]).then(v=>({tool:v["opendesk.sidebar-tools.installed.v1"]?.find(t=>t.id==='+JSON.stringify(toolId)+'),provenance:v["opendesk.market.provenance.v1"]?.['+JSON.stringify(toolId)+']}))')
+        .then(row=>row.tool?.version===officialTool.version&&row.provenance?row:null),'actual other official upgrade settles');
+      assert.deepEqual(upgraded.tool,officialTool);
+      const otherRelease=releaseCatalog.apps.find(row=>row.toolId===toolId);
+      assert.deepEqual(upgraded.provenance,{marketId:otherRelease.id,version:otherRelease.version,sha256:otherRelease.sha256});
+      const afterUpgrade=await readTime();
+      assert.equal(afterUpgrade.paused,false);assert.equal(afterUpgrade.authorizedHash,beforeOtherTools.authorizedHash);
+      assert.equal(afterUpgrade.authorizedEpoch,beforeOtherTools.authorizedEpoch);
+      assert.equal((await browser.send('Runtime.callFunctionOn',{objectId:nativeRoot,functionDeclaration:'function(){return this.isConnected}',returnByValue:true},side)).result.value,true);
+      assert.equal(await evaluate(browser,side,'document.querySelectorAll("#sidebar-tool-frame iframe").length'),0);
+      note('unrelated-official-upgrade',{toolId,fromVersion:older.version,fromSource:'reviewed-local-older-version-fixture',toVersion:officialTool.version,toSource:'actual-official-catalog',nativeRootUnchanged:true,authorizationUnchanged:true,paused:false});
     }
     evidence.unrelatedToolInstall='PASS';
     evidence.unrelatedToolLifecycle='PASS';
+    evidence.unrelatedToolUpgrade='PASS';
     await browser.send('Target.closeTarget',{targetId:otherManagerTarget.targetId});
     await browser.send('Target.activateTarget',{targetId:site.targetId});
     const restoredInput=spawnSync(zoomInput,[String(proc.pid),'activity'],{encoding:'utf8',timeout:10000});
@@ -775,9 +849,39 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
           note('panel-closed-checkpoint-not-settled',await evaluate(browser,uiTarget.sessionId,'(async()=>({window:await chrome.windows.getLastFocused(),idle:await chrome.idle.queryState(60),state:(await chrome.storage.local.get('+JSON.stringify(KEY)+'))['+JSON.stringify(KEY)+']}))()'));throw cause;
         });
       assert.equal(spawnSync(zoomInput,[String(proc.pid),'activity'],{encoding:'utf8',timeout:10000}).status,0,'real OS activity keeps legal website non-idle during next background heartbeat');
-      // One genuine 30s background heartbeat, with no Time Review status RPC.
-      await sleep(32000);
+      // Real background heartbeats, observed without Time RPC or SW debugger
+      // attachment. An alarm every 30s can keep the SW alive; elapsed waiting
+      // is never substituted for an actual running -> stopped -> running trace.
+      const quietAt=performance.now();
+      const initialWorkerState=workerStates.at(-1)||null;
+      const workerSnapshots=[];let lastActivity=quietAt;
+      while(performance.now()-quietAt<75000){
+        const rows=(await browser.send('Target.getTargets')).targetInfos.filter(row=>row.type==='service_worker'&&row.url==='chrome-extension://'+present+'/sw.js');
+        assert.ok(rows.every(row=>row.attached===false),'natural SW observation may not attach its debugger');
+        const snapshot={elapsedMs:Math.round(performance.now()-quietAt),targets:rows.map(({targetId,attached})=>({targetId,attached}))};
+        if(JSON.stringify(snapshot.targets)!==JSON.stringify(workerSnapshots.at(-1)?.targets))workerSnapshots.push(snapshot);
+        if(performance.now()-lastActivity>30000){
+          assert.equal(spawnSync(zoomInput,[String(proc.pid),'activity'],{encoding:'utf8',timeout:10000}).status,0,'real OS activity during passive background observation');
+          lastActivity=performance.now();
+        }
+        await sleep(250);
+      }
       const whileClosed=await evaluate(browser,uiTarget.sessionId,'chrome.storage.local.get('+JSON.stringify(KEY)+').then(v=>v['+JSON.stringify(KEY)+'])');
+      const sameWorker=row=>row.sessionId===initialWorkerState?.sessionId&&row.registrationId===initialWorkerState?.registrationId&&row.versionId===initialWorkerState?.versionId;
+      const naturalTrace=workerStates.filter(row=>row.at>=quietAt&&sameWorker(row));
+      const stopped=naturalTrace.findIndex(row=>row.status==='stopped');
+      const recoveredNaturally=stopped>=0&&naturalTrace.slice(stopped+1).some(row=>row.status==='running');
+      const newWorkerErrors=workerErrors.filter(row=>row.at>=quietAt&&sameWorker(row));
+      const crashes=workerCrashes.filter(row=>row.at>=quietAt);
+      const registrationDeleted=workerEvents.some(row=>row.at>=quietAt&&row.method==='workerRegistrationUpdated'&&row.params.registrations?.some(reg=>reg.registrationId===initialWorkerState?.registrationId&&reg.isDeleted));
+      const versionChanged=workerStates.some(row=>row.at>=quietAt&&row.versionId!==initialWorkerState?.versionId);
+      const errorFree=!newWorkerErrors.length&&!crashes.length&&!registrationDeleted&&!versionChanged;
+      evidence.naturalSwSleep=workerObserverReady&&initialWorkerState?.registrationId&&initialWorkerState?.versionId&&initialWorkerState.status==='running'&&recoveredNaturally&&errorFree?'PASS':'BLOCKED';
+      note('passive-natural-worker-observation',{observerReady:workerObserverReady,initialWorkerState,quietMs:Math.round(performance.now()-quietAt),
+        trace:naturalTrace,workerSnapshots,newWorkerErrors,crashes,registrationDeleted,versionChanged,
+        noTimeRpcFromDriver:true,noWorkerDebugger:true,noForcedStop:true,heartbeatPeriodMinutes:0.5,recoveryTrigger:'not independently attributed',
+        verdict:evidence.naturalSwSleep,reason:evidence.naturalSwSleep==='PASS'?'Actual error-free unforced running/stopped/running; the specific wake event is not claimed':'No proven error-free natural stopped/recovered trace; waiting or target snapshots alone are insufficient'});
+      assert.equal(proc.exitCode,null,'same owned Chrome remains alive during natural observation');
       note('panel-closed-observation',await evaluate(browser,uiTarget.sessionId,
         '(async()=>({window:await chrome.windows.getLastFocused(),idle:await chrome.idle.queryState(60),alarm:await chrome.alarms.get('+JSON.stringify(TIME_REVIEW_ALARM)+'),state:(await chrome.storage.local.get('+JSON.stringify(KEY)+'))['+JSON.stringify(KEY)+']}))()'));
       assert.equal(whileClosed.paused,false);assert.equal(whileClosed.checkpoint?.host,'127.0.0.1');
@@ -984,6 +1088,52 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
     await nativeClick(browser,frame,'#start');
     const resumed=await until(async()=>{const s=await readTime();return s&&!s.paused?s:null;},'trusted resume',10000);
     evidence.pauseResume='PASS';note('real-resume',{paused:resumed.paused});
+    // Independently exercise an ACTIVE checkpoint across a real SW stop and
+    // a real foreground loss. This is forced recovery, never natural sleep.
+    await browser.send('Target.activateTarget',{targetId:site.targetId});
+    await nativeOSClick(browser,websiteSession,'h1',zoomInput,proc.pid);
+    await nativeClick(browser,frame,'#refresh');
+    const liveBeforeStop=await until(async()=>{const s=await readTime();return s?.checkpoint?.origin===approvedOrigin&&!s.paused?s:null;},'active checkpoint before real SW stop');
+    const activeHost=new URL(approvedOrigin).hostname;
+    assert.equal(liveBeforeStop.checkpoint.host,activeHost,'checkpoint host must match the actual approved Origin');
+    const activeWorker=(await browser.send('Target.getTargets')).targetInfos.find(row=>row.type==='service_worker'&&row.url==='chrome-extension://'+present+'/sw.js');
+    assert.ok(activeWorker,'actual owned active SW target');
+    const activeVersion=workerStates.at(-1),stopAt=performance.now();
+    const sameActiveWorker=row=>row.sessionId===activeVersion?.sessionId&&row.registrationId===activeVersion?.registrationId&&row.versionId===activeVersion?.versionId;
+    assert.equal((await browser.send('Target.closeTarget',{targetId:activeWorker.targetId})).success,true,'real stop of active SW');
+    const confirmedStop=await until(()=>workerStates.find(row=>row.at>=stopAt&&sameActiveWorker(row)&&row.status==='stopped'),
+      'passive confirmation of real active SW stop',3000).catch(()=>null);
+    const activeBlurAt=Date.now();
+    assert.equal(spawnSync('osascript',['-e','tell application "Finder" to activate'],{encoding:'utf8',timeout:10000}).status,0,'real focus loss across active worker recovery');
+    await until(()=>evaluate(browser,side,'chrome.windows.getLastFocused().then(w=>!w.focused)'),'owned Chrome truly unfocused during active recovery');
+    const confirmedBlurAt=performance.now();
+    const confirmedRecovery=await until(()=>workerStates.find(row=>row.at>=stopAt&&sameActiveWorker(row)&&row.status==='running'),
+      'passive confirmation of actual active worker recovery',12000).catch(()=>null);
+    const recoveredActive=await until(async()=>{const s=await readTime();return s?.checkpoint===null&&!s.paused?s:null;},'active recovery retires the now-unfocused checkpoint');
+    assert.equal(recoveredActive.authorizedHash,liveBeforeStop.authorizedHash);assert.equal(recoveredActive.authorizedEpoch,liveBeforeStop.authorizedEpoch);
+    for(const day of new Set([...Object.keys(liveBeforeStop.days),...Object.keys(recoveredActive.days)])){
+      const before=liveBeforeStop.days[day]||{},after=recoveredActive.days[day]||{};
+      for(const host of new Set([...Object.keys(before),...Object.keys(after)])){
+        assert.ok((after[host]||0)>=(before[host]||0),'active recovery preserves every earned day/host bucket');
+        if(host!==activeHost)assert.equal(after[host]||0,before[host]||0,'active recovery may not accrue another host');
+      }
+    }
+    const activeRecoveryDelta=hostMs(recoveredActive,activeHost)-hostMs(liveBeforeStop,activeHost);
+    const activeRecoveryLimit=Math.max(0,activeBlurAt-liveBeforeStop.checkpoint.at)+1000;
+    assert.ok(activeRecoveryDelta>=0&&activeRecoveryDelta<=activeRecoveryLimit,'worker recovery preserves history without manufacturing unfocused time');
+    await sleep(1500);assert.deepEqual((await readTime()).days,recoveredActive.days,'unfocused recovered worker keeps history frozen');
+    assert.equal(spawnSync(zoomInput,[String(proc.pid),'activate'],{encoding:'utf8',timeout:10000}).status,0,'owned foreground after active SW recovery');
+    assert.equal(spawnSync(zoomInput,[String(proc.pid),'activity'],{encoding:'utf8',timeout:10000}).status,0,'genuine activity after active SW recovery');
+    await browser.send('Target.activateTarget',{targetId:site.targetId});await nativeClick(browser,frame,'#refresh');
+    const freshActive=await until(async()=>{const s=await readTime();return s?.checkpoint?.origin===approvedOrigin&&!s.paused?s:null;},'active recovery begins a fresh legal observation');
+    assert.equal(freshActive.authorizedHash,liveBeforeStop.authorizedHash);
+    await sleep(900);await nativeClick(browser,frame,'#refresh');
+    await until(async()=>hostMs(await readTime(),activeHost)>hostMs(freshActive,activeHost),'only new legal post-recovery activity persists');
+    const ordered=confirmedStop&&confirmedRecovery&&confirmedRecovery.at>confirmedBlurAt&&confirmedStop.at<confirmedBlurAt;
+    evidence.activeSwRecovery=ordered?'PASS':'BLOCKED';
+    note('real-active-worker-recovery',{method:'Target.closeTarget',natural:false,activeVersion,confirmedStop,confirmedBlurAt,confirmedRecovery,
+      authorizationPreserved:true,allHistoryBucketsPreserved:true,unfocusedHistoryFrozen:true,observedDelta:activeRecoveryDelta,permittedDelta:activeRecoveryLimit,freshObservation:true,
+      verdict:evidence.activeSwRecovery,reason:ordered?'Real stopped/unfocused/running order observed':'Recovery ordering scenario not proven; target ID change alone is insufficient'});
 
     // R1.5: remove the *tool's own* site grant while Chrome idle permission
     // remains intact. The trusted button is clicked by actual Chrome input.
@@ -1327,18 +1477,7 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
   await browser.send('Runtime.enable',{},importer);await browser.send('Page.enable',{},importer);
   await nativeClick(browser,importer,'#sidebar-tool-back');
   const importPackage=async(candidate,name)=>{
-    const file=path.join(OUT,name+'.opendesk-tool.json');const bytes=JSON.stringify(candidate)+'\n';await writeFile(file,bytes);
-    // macOS file dialogs belong to the visible browser tab. The activity
-    // case may have selected another tab since the previous import.
-    await browser.send('Target.activateTarget',{targetId:importTarget.targetId});
-    if(await evaluate(browser,importer,'document.querySelector("#sidebar-tool-import").hidden'))await nativeClick(browser,importer,'#sidebar-tool-import-trigger');
-    await chooseNativeFile(browser,importer,file,zoomInput,restartProc.pid);
-    await until(()=>evaluate(browser,importer,'!document.querySelector("#sidebar-tool-preview").hidden&&document.querySelector("#sidebar-tool-preview-version").textContent.includes('+JSON.stringify(candidate.version)+')'),'exact reviewed local package version');
-    await nativeClick(browser,importer,'#sidebar-tool-install');
-    const persistedPackage=await until(()=>evaluate(browser,importer,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>v["opendesk.sidebar-tools.installed.v1"]?.find(t=>t.id==='+JSON.stringify(candidate.id)+'&&t.version==='+JSON.stringify(candidate.version)+'))'),'reviewed package installed');
-    assert.deepEqual(persistedPackage,candidate,'exact reviewed local bytes persisted');
-    assert.equal(await evaluate(browser,importer,'chrome.storage.local.get("opendesk.market.provenance.v1").then(v=>v["opendesk.market.provenance.v1"]?.['+JSON.stringify(candidate.id)+']||null)'),null,'local review cannot acquire official provenance');
-    note('native-file-review-install',{id:candidate.id,version:candidate.version,file,sha256:createHash('sha256').update(bytes).digest('hex')});
+    await installReviewedPackage(browser,importer,candidate,name,zoomInput,restartProc.pid,note);
   };
   const lookalike={...pkg,id:'time-review-lookalike'};
   await importPackage(lookalike,'time-review-lookalike');
@@ -1406,6 +1545,9 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
   await nativeClick(browser,importer,'#sidebar-tool-back');
   if(await evaluate(browser,importer,'document.querySelector("#sidebar-tool-discover-panel").hidden'))
     await nativeClick(browser,importer,'#sidebar-tool-discover-toggle');
+  await nativeClick(browser,importer,'#sidebar-tool-filter-all');
+  await until(()=>evaluate(browser,importer,'document.querySelector("[data-official-tool-id=time-review]")?.dataset.installationState==="update"'),
+    'actual catalog exposes a version upgrade under All');
   await nativeClick(browser,importer,'#sidebar-tool-official-time-review-install');
   await until(()=>evaluate(browser,importer,'!document.querySelector("#sidebar-tool-preview").hidden&&document.querySelector("#sidebar-tool-preview-version").textContent.includes('+JSON.stringify(pkg.version)+')'),'actual official upgrade review');
   await nativeClick(browser,importer,'#sidebar-tool-install');

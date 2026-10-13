@@ -1,0 +1,16 @@
+{
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/source-r19-final",
+  "command": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "tests/framework/time-review-r13-native.test.mjs"
+  ],
+  "env": {
+    "GITHUB_SHA": "dba771cc8e64fa5f3b1ef7163568a8812af9d024",
+    "OPENDESK_TIME_REVIEW_NATIVE": "1",
+    "CHROME_BIN": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/time-review-r19-local-01a1364f/OpenDesk Time Review R19 CFT.app/Contents/MacOS/Google Chrome for Testing",
+    "OPENDESK_TIME_NATIVE_EVIDENCE": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/native-run-48",
+    "OPENDESK_TIME_NATIVE_SCOPE": "identity"
+  }
+}

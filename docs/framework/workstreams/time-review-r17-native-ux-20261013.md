@@ -89,3 +89,14 @@
 
 - R1.9 交付回执：驱动、原始证据与本记录已在 `main` 提交并正常推送 `956afafc9cf9d28123d5f7987352b3f506a65d6a`；`git ls-remote origin refs/heads/main` 当时确认相同 SHA。该提交父级 `097de119` 已在远端；本轮没有顺带推送他人未发布提交。任务文件与共享暂存索引检查均无残留；未改其他聊天 dirty 文件。
 - 该源码交付提交的 [Time Review CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38470639939) 已真实触发；最初查询整项排队，随后 Ubuntu Node/Build job 为 in_progress、macOS job 为 queued，不能记为 CI PASS。原始 GitHub API receipt 为证据目录 `delivery-ci-runs.json` / `delivery-ci-jobs.json`，与本机冻结候选证据分开。后续本段及 API 回执的文档提交不改变生产/观察器输入，无须重跑已通过构建或将其提升为较新全候选验收。
+
+### R1.9 · 自动续接补验（2026-10-14）
+
+- 上一目标回合为 progress：源码/证据与交付回执已正常推送，Ubuntu CI 实际 success。当前仍有待证原生项，不标记目标 complete。负责人、main、现有写入范围不变；追加原始证据仅使用本记录已声明的独立 artifacts/evidence 目录。
+- 资源复核：上一失败的竞争 PID 3948 已不存在；只有两项先前其他任务遗留的独立 CFT 主进程（43356 / 45301，PPID 1）仍存在，未处理这些进程/Profile。前台实际为日常 Chrome PID 73139；本任务仍仅对新持有 CFT 输入，前台变化即中止。新真实环境证据 `resume-resource-processes.json` 允许有意义地重试，不因旧观察超时重启存活测试。
+- `native-run-47` 使用已提交 `956afafc` 的现有观察器、冻结 `dba771cc` Production 产物、独立 Profile；仅补 identity 范围，活动覆盖缺项保留 NOT_TESTED，不合并为完整 full PASS。Node/双构建相关生产输入没有变化，继续复用原始 PASS。自然 SW 休眠策略同步做只读官方研究，不新建运行时/驱动、不制造时间或存储。
+- 运行 47 已真实执行同名动态包隔离、自己改版本/字节替换及本地 1.5.0 审阅安装；最新 FAIL 是 `actionable #sidebar-tool-official-time-review-install timed out`，不再是前台争用。原始持久记录保留 1,134 ms 的真实历史，报告确认清理。根因是观察器仍选择默认“可安装”筛选，该筛选只列 available；实际旧版本已被生产目录识别为 update。修正现有驱动，真实点击“全部”并要求目录 `installationState=update` 后再点击升级；不改生产目录、不制造来源记录。保留运行 47，方法变更后定向复验 48。
+- 运行 48 身份范围 EXIT 0；`officialUpgrade=PASS`：明确本地 1.5.0 夹具→实际官方 1.6.0，真实审阅/安装、精确包/provenance、非零历史与全部持久字段保留、旧 iframe 退休、可信原生挂载和无自动开始均通过。该 identity 报告其他活动项仍 NOT_TESTED，`acceptance=PARTIAL`，不能覆盖运行 42 的缺项或冒充旧官方 release 迁移。
+- 剩余原生观察器补强仍仅写 `tests/framework/time-review-r13-native.test.mjs`：复用同一个原生文件审阅函数，给 Reading TOC/Cookie Editor/Stay Focus 实际本地旧版本→catalog 正式版本升级添加独立隔离检查；给活跃检查点的真实强制 SW 停止/失焦/恢复添加不补记和新合法采样断言。自然休眠通过普通 page 的 ServiceWorker 状态事件及 Browser target 被动观察，明确不 attach SW、不改 0.5min alarm、不调用 Time RPC 或制造时间/数据；只接受真实 running→stopped→running，没观察到就 BLOCKED，强制停止不能替代。新增三个必需项，原 35 项保留。仅观察器总时限由 420s 调为 600s，以容纳新增 75s 观察及三次真实原生文件审阅；各单步 timeout、所有产品/SDK/原生未知副作用边界及 512KiB 预算不变。
+- 自然 SW 规则依据 [Chrome 生命周期](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)、[官方调试说明](https://developer.chrome.com/docs/extensions/get-started/tutorial/debug#debug_the_service_worker) 和 [alarms API](https://developer.chrome.com/docs/extensions/reference/api/alarms)：30s alarm 和 inactivity 阈值重合，不能用等待秒数推导休眠；实际停止/恢复的具体唤醒事件没有独立归因就不声称 alarm/点击唤醒 PASS。只读研究未替代原生证据。
+- 冻结前独立 architect 审查发现四处 observer 证据缺口，已在同一驱动修正：不再以 target ID 改变代替恢复，关联 page session/registrationId/versionId 的 stopped→真实失焦→running 顺序，场景未命中记 BLOCKED；核对全部 day/host 桶不减少、非当前 host 不增长；自然链保留未过滤事件并按 worker 身份匹配错误、排除 crash/registration 删除/换版本；刷新后的持久增量使用已有 until。官方 CDP 字段核查来源 https://raw.githubusercontent.com/ChromeDevTools/devtools-protocol/master/pdl/domains/ServiceWorker.pdl 。产品代码未变，未宣布新原生 PASS。
