@@ -278,31 +278,43 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     const byTime=(a,b)=>(a.nextDueAt??Infinity)-(b.nextDueAt??Infinity);
     const plans=allPlans.slice().sort(byTime);
     const upcoming=plans.find(p=>!p.paused&&Number.isFinite(p.nextDueAt));
-    const focus=upcoming||plans.find(p=>!p.paused)||plans[0];
-    runnerFocusId=focus?.scheduleId??null;
-    const active=allPlans.flatMap(plan=>(plan.history||[])
-      .filter(f=>['READY','WAITING_HOST','WAITING_TARGET','WAITING_SLOT','ADMITTED','RUNNING','SETTLING'].includes(f.status))
-      .map(f=>({plan,fire:f}))).sort((a,b)=>b.fire.scheduledAt-a.fire.scheduledAt)[0];
-    const latest=allPlans.flatMap(plan=>(plan.history||[])
-      .filter(f=>terminal.has(f.status)).map(f=>({plan,fire:f})))
+    const observed=allPlans.flatMap(plan=>(plan.history||[]).map(fire=>({plan,fire})));
+    const running=observed.filter(item=>['ADMITTED','RUNNING'].includes(item.fire.status))
       .sort((a,b)=>b.fire.scheduledAt-a.fire.scheduledAt)[0];
+    const owned=selectedFire?observed.find(item=>item.fire.runId===selectedFire):null;
+    const current=owned||running;
+    const waiting=observed.filter(item=>
+      ['READY','WAITING_HOST','WAITING_TARGET','WAITING_SLOT','SETTLING'].includes(item.fire.status))
+      .sort((a,b)=>b.fire.scheduledAt-a.fire.scheduledAt)[0];
+    const latest=observed.filter(item=>terminal.has(item.fire.status))
+      .sort((a,b)=>b.fire.scheduledAt-a.fire.scheduledAt)[0];
+    const focus=current?.plan||upcoming||plans.find(p=>!p.paused)||plans[0];
+    runnerFocusId=focus?.scheduleId??null;
     text(get('schedule-runner-next'),upcoming?upcoming.title:'暂无待执行计划');
     text(get('schedule-runner-next-detail'),upcoming?
       frequencyLabel(upcoming)+' · '+describeTime(upcoming.nextDueAt,upcoming.timezone):'可从计划管理创建或恢复计划');
-    text(get('schedule-runner-current'),selectedFire?'正在执行任务':
-      active?active.plan.title:'暂无任务运行');
-    text(get('schedule-runner-current-detail'),selectedFire?'任务已进入原始 Controller 执行槽':
-      active?scheduleStatus(active.fire.status)+' · '+describeTime(active.fire.scheduledAt,active.plan.timezone):
-      '任务到期后将在此页检查执行条件');
+    text(get('schedule-runner-current'),current?current.plan.title:
+      selectedFire?'正在执行任务':'暂无任务运行');
+    text(get('schedule-runner-current-detail'),current?
+      scheduleStatus(current.fire.status)+' · '+describeTime(current.fire.scheduledAt,current.plan.timezone):
+      selectedFire?'已进入原始 Controller 执行槽':
+      waiting?'未运行 · '+scheduleStatus(waiting.fire.status):'到期后才检查执行条件');
     text(get('schedule-runner-result'),latest?scheduleStatus(latest.fire.status):'尚无执行结果');
     text(get('schedule-runner-result-detail'),latest?
       latest.plan.title+' · '+describeTime(latest.fire.scheduledAt,latest.plan.timezone):'运行历史可在计划管理中查看');
     text(get('schedule-runner-focus-title'),focus?focus.title:'还没有定时计划');
     text(get('schedule-runner-focus-detail'),focus?
-      frequencyLabel(focus)+' · '+(focus.paused?'已暂停':describeTime(focus.nextDueAt,focus.timezone)):'创建一个已验证并安装的任务计划');
-    text(get('schedule-runner-explain'),focus?.needsAttention?
-      '任务安装或网站访问权限发生变化，需处理后才能继续。':
+      (current&&focus.scheduleId===current.plan.scheduleId?'当前任务 · '+scheduleStatus(current.fire.status):
+        frequencyLabel(focus)+' · '+(focus.paused?'已暂停':describeTime(focus.nextDueAt,focus.timezone))):
+      '创建一个已验证并安装的任务计划');
+    text(get('schedule-runner-explain'),current&&focus?.scheduleId===current.plan.scheduleId?
+      scheduleStatusGuidance[current.fire.status]:
+      focus?.needsAttention?'任务安装身份或网站权限发生变化，需要处理；不会自动重新绑定版本。':
       focus?.paused?'此计划已暂停，不会在到期时触发。':
+      waiting&&waiting.plan.scheduleId===focus?.scheduleId?
+        scheduleStatusGuidance[waiting.fire.status]:
+      latest?.fire.status==='UNKNOWN'&&latest.plan.scheduleId===focus?.scheduleId?
+        scheduleStatusGuidance.UNKNOWN:
       '计划到期后校验目标网页、固定任务身份和执行槽；浏览器关闭期间不执行。');
     const toggle=get('schedule-runner-toggle');
     toggle.disabled=!focus||Boolean(focus.needsAttention&&!focus.paused);
@@ -311,6 +323,8 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   function makeHistoryRow(fire,zone){
     const row=element(doc,'div','schedule-history-row',
       `${describeTime(fire.scheduledAt,zone)} · ${scheduleStatus(fire.status)}`);
+    const guidance=scheduleStatusGuidance[fire.status];
+    if(guidance)row.append(element(doc,'small','schedule-status-guidance',guidance));
     if(fire.runId){
       const advanced=element(doc,'details','schedule-run-details');
       advanced.append(element(doc,'summary',null,'技术详情'));
@@ -322,18 +336,34 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   }
   function renderPlans(){
     const parent=get('schedule-plan-list');parent.replaceChildren();
-    if(!allPlans.length){parent.append(element(doc,'p','hint','尚无定时计划。点击「新建计划」安排第一个已验证任务。'));return;}
-    for(const plan of allPlans.slice().sort((a,b)=>(a.nextDueAt??Infinity)-(b.nextDueAt??Infinity))){
+    const sorted=allPlans.slice().sort((a,b)=>(a.nextDueAt??Infinity)-(b.nextDueAt??Infinity));
+    const enabled=allPlans.filter(p=>!p.paused&&!p.needsAttention).length;
+    const upcoming=sorted.find(p=>!p.paused&&Number.isFinite(p.nextDueAt));
+    text(get('schedule-list-summary'),allPlans.length?
+      `共 ${allPlans.length} 个计划 · ${enabled} 个可执行`+
+        (upcoming?` · 最近：${upcoming.title}，${describeTime(upcoming.nextDueAt,upcoming.timezone)}`:' · 暂无可预期的下次执行'):
+      '尚无定时计划');
+    if(!allPlans.length){
+      parent.append(element(doc,'p','schedule-empty-hint hint',
+        '尚无定时计划。点击「新建计划」安排第一个已验证任务。'));return;
+    }
+    for(const plan of sorted){
       const card=element(doc,'article','schedule-card od-surface');
       card.dataset.scheduleId=plan.scheduleId;
       const head=element(doc,'div','schedule-card-head od-toolbar');
       head.append(element(doc,'strong',null,plan.title),element(doc,'span','schedule-state',
         plan.paused?'已暂停':plan.needsAttention?'需要处理':'已启用'));
       const catalogEntry=catalog.find(item=>item.taskId===plan.taskId&&item.version===plan.version);
-      const info=element(doc,'p','hint',`${catalogEntry?.manifest?.title||plan.taskId} · v${plan.version} · ${frequencyLabel(plan)} · ${plan.timezone}`);
-      const next=element(doc,'p','hint','下次：'+describeTime(plan.nextDueAt,plan.timezone));
-      if(plan.needsAttention)next.append(element(doc,'span','schedule-warning',' · 任务已停用、版本改变或网站权限不足，需重新授权'));
+      const next=element(doc,'p','schedule-next-time',
+        plan.paused?'已暂停 · 不会触发':plan.needsAttention?'需要处理后才能执行':
+          '下次：'+describeTime(plan.nextDueAt,plan.timezone));
+      const info=element(doc,'p','schedule-plan-meta hint',
+        frequencyLabel(plan)+' · '+(catalogEntry?.manifest?.title||plan.taskId));
       const last=plan.history?.[0];
+      const warning=plan.needsAttention?
+        '当前任务安装身份或网站权限不足；请检查已安装任务，不会自动换绑新版。':
+        last&&!['SUCCESS','STOPPED'].includes(last.status)?scheduleStatusGuidance[last.status]:'';
+      const hint=warning?element(doc,'p','schedule-status-help',warning):null;
       const history=element(doc,'details','schedule-history');
       history.append(element(doc,'summary',null,
         '运行记录'+(last?` · 最近：${scheduleStatus(last.status)} · ${describeTime(last.scheduledAt,plan.timezone)}`:' · 暂无')));
@@ -359,19 +389,30 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
         historyList.append(more);
       }
       history.append(historyList);
-      const toolbar=element(doc,'div','schedule-actions od-toolbar');
+      const toolbar=element(doc,'div','schedule-actions od-toolbar schedule-plan-actions');
+      toolbar.append(action(doc,plan.paused?'恢复':'暂停',
+        ()=>void change(plan,plan.paused?'resume':'pause'),'od-button'));
       toolbar.append(action(doc,'编辑',()=>edit(plan)));
-      toolbar.append(action(doc,plan.paused?'恢复':'暂停',()=>void change(plan,plan.paused?'resume':'pause')));
-      const remove=action(doc,'删除',()=>{
+      const more=element(doc,'details','schedule-more');
+      more.append(element(doc,'summary',null,'更多操作与固定版本'));
+      more.append(element(doc,'p','hint',
+        `固定版本 v${plan.version} · IANA 时区 ${plan.timezone} · 任务 ${plan.taskId}`));
+      const remove=action(doc,'删除此计划',()=>{
         const existing=card.querySelector('.schedule-delete-confirm');
         if(existing){existing.remove();return;}
         const confirm=element(doc,'div','schedule-delete-confirm od-surface');
-        confirm.append(element(doc,'p',null,'删除此计划？已产生的 Run/Result 历史不会删除。'));
-        confirm.append(action(doc,'确认删除',()=>void change(plan,'delete')),
-          action(doc,'取消',()=>confirm.remove()));
-        card.append(confirm);
-      });toolbar.append(remove);
-      card.append(head,info,next,history,toolbar);parent.append(card);
+        confirm.append(element(doc,'p',null,
+          `确定删除「${plan.title}」？已有的 Run/Result 审计历史不会随之清除。`));
+        confirm.append(action(doc,'确认删除',()=>void change(plan,'delete'),
+          'od-button schedule-danger-button'),
+          action(doc,'取消',()=>{confirm.remove();remove.focus();}));
+        card.append(confirm);confirm.querySelector('button')?.focus();
+      },'od-button od-button--secondary schedule-danger-link');
+      more.append(remove);
+      card.append(head,next,info);
+      if(hint)card.append(hint);
+      card.append(toolbar,history,more);
+      parent.append(card);
     }
   }
   async function change(plan,operation){
