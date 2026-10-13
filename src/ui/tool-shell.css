@@ -505,6 +505,17 @@
 .workflow-composer-actions{display:flex;justify-content:flex-end;align-items:center;gap:5px;flex-wrap:nowrap}
 .workflow-composer .workflow-settings-button{border-color:transparent!important}
 .workflow-composer .workflow-send-button{display:inline-flex;align-items:center;justify-content:center;flex:none;width:36px;height:36px;min-height:36px;padding:0;border-radius:var(--radius-control)}
+/* R16: first-use model data approval, using the shared R27 spacing/tokens. */
+.workflow-composer .workflow-send-button[data-first-use="true"]{width:auto;max-width:100%;min-width:112px;gap:var(--space-2);padding:0 var(--space-3);white-space:nowrap}
+.workflow-send-label{font-size:12px;font-weight:650;line-height:1.4;white-space:nowrap}
+.workflow-ai-data-notice{min-width:0;margin:var(--space-2) 0 0;font-size:12px;line-height:1.55;color:var(--od-sub);overflow-wrap:anywhere}
+.workflow-ai-data-notice[data-consent="required"]{color:var(--od-ink)}
+.workflow-ai-data-details{margin:var(--space-3) 0 0;padding-top:var(--space-2);border-top:1px solid var(--od-line)}
+.workflow-ai-data-details summary{min-height:28px;cursor:pointer;font-size:12px;font-weight:650;color:var(--od-sub)}
+.workflow-ai-data-details p{overflow-wrap:anywhere}
+.workflow-ai-revoke{margin-top:var(--space-2);min-height:36px;font-size:12px;white-space:normal;text-align:left}
+@media(max-width:280px){.workflow-composer .workflow-send-button[data-first-use="true"]{min-width:0}}
+
 #workflow-provider-settings:not([open]){display:none}
 #workflow-provider-settings>summary{display:none}
 .workflow-provider{margin:6px 0 0;padding-top:6px;border-top:1px solid #edf1f7}
