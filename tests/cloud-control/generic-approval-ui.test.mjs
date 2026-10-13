@@ -66,6 +66,24 @@ test('Side Panel approves two distinct pinned Tasks with individual result scope
       if(i===0){result.checked=true;nodes.get('cloud-task-list').events.get('change')({target:result});}
     }
     assert.equal(sections[2].children[0].children[0].disabled,true);
+    assert.equal(nodes.get('cloud-approval-review').hidden,false);
+    const reviewItems=nodes.get('cloud-review-items').children;
+    assert.equal(reviewItems.length,2);
+    assert.match(reviewItems[0].textContent,/表单提交 · v1.0.0.*example.org.*结果正文：允许/);
+    assert.match(reviewItems[1].textContent,/Locator 搜索 · v1.0.0.*结果正文：不回传/);
+    assert.doesNotMatch(reviewItems.map(r=>r.textContent).join(' '),/install-0|[a-f0-9]{64}/);
+    // A scope change after human confirmation must invalidate both checkboxes.
+    doc.getElementById('cloud-consent').checked=true;
+    doc.getElementById('cloud-result-consent').checked=true;
+    const searchResult=sections[1].children[3].children[0];
+    searchResult.checked=true;
+    nodes.get('cloud-task-list').events.get('change')({target:searchResult});
+    assert.equal(doc.getElementById('cloud-consent').checked,false);
+    assert.equal(doc.getElementById('cloud-result-consent').checked,false);
+    assert.match(nodes.get('cloud-review-items').children[1].textContent,/结果正文：允许/);
+    searchResult.checked=false;
+    nodes.get('cloud-task-list').events.get('change')({target:searchResult});
+    assert.match(nodes.get('cloud-review-items').children[1].textContent,/结果正文：不回传/);
     doc.getElementById('cloud-consent').checked=true;
     doc.getElementById('cloud-result-consent').checked=true;
     assert.equal(nodes.get('cloud-approve').disabled,false);
