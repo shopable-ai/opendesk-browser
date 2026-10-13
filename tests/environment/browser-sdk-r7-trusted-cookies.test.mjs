@@ -90,7 +90,7 @@ test('R7 current-document read, single store and validated partition',async()=>{
   const f=fixture();
   assert.equal((await f.run('browser.cookies.getAll')).cookies[0].value,'SECRET_PRIVATE');
   assert.equal((await f.run('browser.cookies.get',{name:'sid'})).cookie.value,'SECRET_PRIVATE');
-  assert.deepEqual((await f.run('browser.cookies.getStores')).stores,[{storeId:'0'}]);
+  assert.deepEqual((await f.run('browser.cookies.getCurrentStore')).stores,[{storeId:'0'}]);
   assert.deepEqual((await f.run('browser.cookies.getPartitionKey')).partitionKey,
     {topLevelSite:'https://shop.example.test',hasCrossSiteAncestor:false});
   await assert.rejects(f.run('browser.cookies.getAll',{storeId:'other'}),reject('E_COOKIE_STORE'));
