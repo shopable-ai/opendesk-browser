@@ -396,6 +396,9 @@ test('R7.3 Controller Classic rejects moving versions, private hosts, ESM and ar
   }
   await assert.rejects(call('// @require https://cdn.example.org/pkg@1.2.3/a.js\n'+
     "import a from 'something';"),failCode('E_CONTROLLER_CLASSIC_FORMAT'));
+  await assert.rejects(call('// @opendesk-classic https://cdn.example.org/pkg@1.2.3/a.js\n'+
+    'async function main(){}'),failCode('E_CONTROLLER_CLASSIC_DIRECTIVE'));
+
   assert.equal(f.calls.length,0);
 });
 
