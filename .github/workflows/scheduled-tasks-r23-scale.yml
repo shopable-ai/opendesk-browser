@@ -38,6 +38,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Install locked source dependencies for native launcher
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - uses: browser-actions/setup-chrome@v2
         id: chrome
         with:
