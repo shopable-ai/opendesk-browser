@@ -435,6 +435,48 @@ test('Browser canonical export methods preserve payload, bounds and strict schem
   assert.throws(()=>sdk.clipboard.writeText('中'.repeat(50001)),{code:'E_LIMIT'});
   assert.equal(BROWSER_OPERATIONS['browser.downloads.text'].maxRequestBytes,170000);
 });
+test('R10 export Host requires exact one-use intent, current tool package and Chrome permission',async()=>{
+  const base=await readSample('selection-notes.opendesk-tool.json');
+  const tool={...base,capabilities:[...base.capabilities,'user.export']};
+  const fake=makeChrome(),host=createContextMenuHost({api:fake.api,lockManager,logger:{warn(){}}});
+  await fake.api.storage.local.set({'opendesk.sidebar-tools.installed.v1':[tool]});
+  fake.setPermission(true);
+  const identity={...hostContext,packageHash:await sidebarToolPackageHash(tool)};
+  const confirm=(operation,args)=>host.handleHost({
+    operation:'browser.intent.confirm',toolId:identity.toolId,toolVersion:identity.toolVersion,
+    toolInstance:identity.toolInstance,hostInstanceId:identity.hostInstanceId,
+    installEpoch:identity.installEpoch,packageHash:identity.packageHash,
+    targetOperation:operation,targetArgs:args
+  },sender);
+  const execute=(operation,args,approvalRef,overrides={})=>host.handleTool({
+    operation,args,approvalRef,...identity,...overrides
+  },sender);
+  const copy='browser.clipboard.writeText',download='browser.downloads.text';
+  const text={text:'Hello'};
+  await assert.rejects(execute(copy,text,undefined),{code:'E_USER_GESTURE_REQUIRED'});
+  const one=await confirm(copy,text);
+  await assert.rejects(execute(copy,{text:'Different'},one.approvalRef),
+    {code:'E_USER_GESTURE_REQUIRED'},'intent cannot approve a different payload');
+  await assert.rejects(execute(copy,text,one.approvalRef),
+    {code:'E_USER_GESTURE_REQUIRED'},'mismatched attempt consumes single-use approval');
+  const two=await confirm(copy,text);
+  assert.deepEqual(await execute(copy,text,two.approvalRef),{authorized:true});
+  await assert.rejects(execute(copy,text,two.approvalRef),
+    {code:'E_USER_GESTURE_REQUIRED'},'approved exports may never replay');
+  const dlArgs={text:'text',filename:'receipt.json'};
+  const approved=await confirm(download,dlArgs);
+  fake.setPermission(false);
+  await assert.rejects(execute(download,dlArgs,approved.approvalRef),
+    {code:'E_CHROME_PERMISSION_REQUIRED'},'Chrome permission revocation fences pending export');
+  fake.setPermission(true);
+  const renewed=await confirm(download,dlArgs);
+  assert.deepEqual(await execute(download,dlArgs,renewed.approvalRef),{authorized:true});
+  const last=await confirm(copy,text);
+  const replacement={...tool,description:tool.description+' package changed'};
+  await fake.api.storage.local.set({'opendesk.sidebar-tools.installed.v1':[replacement]});
+  await assert.rejects(execute(copy,text,last.approvalRef),{code:'E_TOOL_CHANGED'},
+    'an old package cannot use an earlier export approval');
+});
 test('menu discovery and idempotent unregister remain callable without site or Chrome menu grant',async()=>{
   const sample=await readSample('selection-notes.opendesk-tool.json'),fake=makeChrome();
   await fake.api.storage.local.set({'opendesk.sidebar-tools.installed.v1':[sample]});
