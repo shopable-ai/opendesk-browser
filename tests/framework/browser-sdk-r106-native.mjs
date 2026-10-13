@@ -31,6 +31,33 @@ const safeName=value=>value.replace(/[:.]/g,'-');
 const now=()=>new Date().toISOString();
 const quote=JSON.stringify;
 
+export function scopedNativeHelper(base){
+  const traversal='if command == "dump" || command == "press" {visit(app,0)}';
+  assert.equal(base.split(traversal).length,2,'Current native helper traversal anchor is required');
+  const dialog=`if command == "dump-dialog" || command == "press-dialog" {
+  func dialogVisit(_ node:AXUIElement,_ depth:Int){
+    budget-=1;guard depth<16,budget>0 else{return}
+    if nodes.contains(where:{CFEqual($0,node)}){return};nodes.append(node)
+    let role=text(node,kAXRoleAttribute)
+    if ["AXBrowser","AXOutline","AXTable","AXWebArea","AXScrollArea"].contains(role){return}
+    for key in [kAXChildrenAttribute,"AXSheets"]{for child in value(node,key) as? [AXUIElement] ?? []{dialogVisit(child,depth+1)}}
+  }
+  let windows=value(app,kAXWindowsAttribute) as? [AXUIElement] ?? []
+  var sheets:[AXUIElement]=[]
+  for window in windows {
+    let candidates=(value(window,"AXSheets") as? [AXUIElement] ?? []) +
+      (value(window,kAXChildrenAttribute) as? [AXUIElement] ?? []).filter{text($0,kAXRoleAttribute)=="AXSheet"}
+    for sheet in candidates {if !sheets.contains(where:{CFEqual($0,sheet)}){sheets.append(sheet)}}
+  }
+  budget=1500;for sheet in sheets{dialogVisit(sheet,0)}
+} else {${traversal}}`;
+  assert.equal(base.split('if command == "dump" {').length,2);
+  assert.equal(base.split('if command == "press" {').length,2);
+  return base.replace(traversal,dialog)
+    .replace('if command == "dump" {','if command == "dump" || command == "dump-dialog" {')
+    .replace('if command == "press" {','if command == "press" || command == "press-dialog" {');
+}
+
 async function fileHash(file){
   const bytes=await readFile(file);
   return {path:path.relative(root,file),bytes:bytes.length,sha256:sha256(bytes)};
@@ -200,7 +227,7 @@ async function runNative(){
   async function chooseFile(session,selector,file){
     await native('activate');await click(client,session,selector,report.trace);
     const chooser=await deadline(async()=>{
-      const rows=JSON.parse(await native('dump'));
+      const rows=JSON.parse(await native('dump-dialog'));
       return rows.some(r=>r.role==='AXButton'&&['Open','打开'].includes(r.title||r.description))&&
         rows.some(r=>r.role==='AXButton'&&['Cancel','取消'].includes(r.title||r.description))?rows:null;
     },'actual owned macOS file chooser');
@@ -209,19 +236,19 @@ async function runNative(){
     assert(open,'Unique owned native Open button is required');
     await native('key','go-to-folder');
     await deadline(async()=>{
-      const rows=JSON.parse(await native('dump'));
+      const rows=JSON.parse(await native('dump-dialog'));
       report.lastFolderDialog=rows;
       return rows.some(r=>['AXTextField','AXComboBox'].includes(r.role)&&r.focused)?rows:null;
     },'focused native Go to Folder field');
     await native('text',file);
     await deadline(async()=>{
-      const rows=JSON.parse(await native('dump'));report.lastTypedFolderDialog=rows;
+      const rows=JSON.parse(await native('dump-dialog'));report.lastTypedFolderDialog=rows;
       return rows.some(r=>['AXTextField','AXComboBox'].includes(r.role)&&r.focused&&r.value===file);
     },'exact path entered by native keyboard');
     await native('key','return');await sleep(500);
     // AXPress revalidates the unique live control and owned foreground PID.
     // A second full dump can traverse the selected JSON's native preview.
-    await native('press',open);
+    await native('press-dialog',open);
     report.trace.push({at:now(),kind:'native-file-choice',file,sha256:sha256(await readFile(file))});
   }
   async function bindTool(){
@@ -342,8 +369,9 @@ async function runNative(){
       assert(helper.includes('case "go-to-folder":key(5,[.maskCommand,.maskShift])'));
       assert(helper.includes('requireForeground()'));
       const source=path.join(runDir,'owned-native-input.swift');
-      await writeFile(source,helper);
-      report.nativeHelper={sourceSha256:sha256(await readFile(source)),baseSha256:sha256(Buffer.from(helper))};
+      await writeFile(source,scopedNativeHelper(helper));
+      report.nativeHelper={sourceSha256:sha256(await readFile(source)),baseSha256:sha256(Buffer.from(helper)),
+        dialogScope:'Actual owned window AXSheets; file lists and website accessibility content are excluded'};
       nativeKeyboard=path.join(runDir,'owned-native-input');
       execFileSync('swiftc',[source,'-o',nativeKeyboard],{timeout:60000});
       return {version,extensionId:report.extensionId,pid:launched.metadata.pid,profile:launched.metadata.profile};
