@@ -152,6 +152,26 @@ test('R9 clear preview refuses replacement cookies even when the count is unchan
 });
 
 
+test('R9 installed Cookie observer does not inherit the partition grant without an explicit partition selector',async()=>{
+  const f=fixture();
+  // The user has a partition receipt for this selected site, but the public
+  // observe.start({url}) operation deliberately has no partitionKey argument.
+  // Default observation must match default unpartitioned Cookie reads only.
+  const session=await f.run('observe.start',{durationMs:15000,maxEvents:5});
+  const common={name:'sid',domain:'shop.example.test',hostOnly:true,
+    path:'/account',storeId:'0',value:'NEVER_LEAK_VALUE'};
+  for(const listener of f.state.events)listener({cookie:{...common,partitionKey},
+    removed:false,cause:'explicit'});
+  assert.equal((await f.run('observe.getStatus',{sessionRef:session.sessionRef})).bufferedCount,0,
+    'Partitioned Cookie metadata must not leak into a default observer');
+  for(const listener of f.state.events)listener({cookie:{...common},
+    removed:true,cause:'explicit'});
+  const events=await f.run('observe.read',{sessionRef:session.sessionRef,cursor:'0'});
+  assert.equal(events.events.length,1);
+  assert.equal(events.events[0].removed,true);
+  assert(!JSON.stringify(events).includes('NEVER_LEAK_VALUE'));
+});
+
 test('R9 observation sessions are tool-owned, bounded, redacted and revoked',async()=>{
   const f=fixture();
   const session=await f.run('observe.start',{durationMs:15000,maxEvents:5});
