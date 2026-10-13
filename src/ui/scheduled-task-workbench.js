@@ -282,7 +282,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   function renderRunner(){
     const byTime=(a,b)=>(a.nextDueAt??Infinity)-(b.nextDueAt??Infinity);
     const plans=allPlans.slice().sort(byTime);
-    const upcoming=plans.find(p=>!p.paused&&Number.isFinite(p.nextDueAt));
+    const upcoming=plans.find(p=>!p.paused&&!p.needsAttention&&Number.isFinite(p.nextDueAt));
     const observed=allPlans.flatMap(plan=>(plan.history||[]).map(fire=>({plan,fire})));
     const running=observed.filter(item=>['ADMITTED','RUNNING'].includes(item.fire.status))
       .sort((a,b)=>b.fire.scheduledAt-a.fire.scheduledAt)[0];
@@ -293,7 +293,8 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       .sort((a,b)=>b.fire.scheduledAt-a.fire.scheduledAt)[0];
     const latest=observed.filter(item=>terminal.has(item.fire.status))
       .sort((a,b)=>b.fire.scheduledAt-a.fire.scheduledAt)[0];
-    const focus=current?.plan||upcoming||plans.find(p=>!p.paused)||plans[0];
+    const focus=current?.plan||upcoming||plans.find(p=>p.needsAttention)||
+      plans.find(p=>!p.paused)||plans[0];
     runnerFocusId=focus?.scheduleId??null;
     text(get('schedule-runner-next'),upcoming?upcoming.title:'暂无待执行计划');
     text(get('schedule-runner-next-detail'),upcoming?
@@ -342,10 +343,10 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   function renderPlans(){
     const parent=get('schedule-plan-list');parent.replaceChildren();
     const sorted=allPlans.slice().sort((a,b)=>(a.nextDueAt??Infinity)-(b.nextDueAt??Infinity));
-    const enabled=allPlans.filter(p=>!p.paused&&!p.needsAttention).length;
-    const upcoming=sorted.find(p=>!p.paused&&Number.isFinite(p.nextDueAt));
+    const enabled=allPlans.filter(p=>!p.paused&&!p.needsAttention&&Number.isFinite(p.nextDueAt)).length;
+    const upcoming=sorted.find(p=>!p.paused&&!p.needsAttention&&Number.isFinite(p.nextDueAt));
     text(get('schedule-list-summary'),allPlans.length?
-      `共 ${allPlans.length} 个计划 · ${enabled} 个可执行`+
+      `共 ${allPlans.length} 个计划 · ${enabled} 个已安排下次执行`+
         (upcoming?` · 最近：${upcoming.title}，${describeTime(upcoming.nextDueAt,upcoming.timezone)}`:' · 暂无可预期的下次执行'):
       '尚无定时计划');
     if(!allPlans.length){
@@ -357,11 +358,13 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       card.dataset.scheduleId=plan.scheduleId;
       const head=element(doc,'div','schedule-card-head od-toolbar');
       head.append(element(doc,'strong',null,plan.title),element(doc,'span','schedule-state',
-        plan.paused?'已暂停':plan.needsAttention?'需要处理':'已启用'));
+        plan.paused?'已暂停':plan.needsAttention?'需要处理':
+          !Number.isFinite(plan.nextDueAt)?'暂无后续':'已启用'));
       const catalogEntry=catalog.find(item=>item.taskId===plan.taskId&&item.version===plan.version);
       const next=element(doc,'p','schedule-next-time',
         plan.paused?'已暂停 · 不会触发':plan.needsAttention?'需要处理后才能执行':
-          '下次：'+describeTime(plan.nextDueAt,plan.timezone));
+          Number.isFinite(plan.nextDueAt)?
+            '下次：'+describeTime(plan.nextDueAt,plan.timezone):'暂无后续执行');
       const info=element(doc,'p','schedule-plan-meta hint',
         frequencyLabel(plan)+' · '+(catalogEntry?.manifest?.title||plan.taskId));
       const last=plan.history?.[0];
@@ -529,9 +532,11 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     for(const name of Object.keys(formFields))fieldError(name,'');
     const form=get('schedule-form');form.reset();
     get('schedule-title').value='';
-    const local=new Date(Date.now()+10*60000);
-    get('schedule-once').value=`${local.getFullYear()}-${String(local.getMonth()+1).padStart(2,'0')}-${String(local.getDate()).padStart(2,'0')}T${String(local.getHours()).padStart(2,'0')}:${String(local.getMinutes()).padStart(2,'0')}`;
-    populateTimeZoneSelect(getScheduleDeviceTimeZone());
+    const selectedZone=getScheduleDeviceTimeZone();
+    // A missing/invalid device zone falls back to UTC. The default wall time
+    // must be computed in the SAME selected IANA zone, not host Date getters.
+    get('schedule-once').value=formatWallScheduleTime(selectedZone,Date.now()+10*60000);
+    populateTimeZoneSelect(selectedZone);
     get('schedule-timezone-search').value='';
     get('schedule-params').value='{}';get('schedule-kind').value='once';
     get('schedule-clock').value='09:00';get('schedule-minutes').value='60';
