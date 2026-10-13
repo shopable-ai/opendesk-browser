@@ -926,25 +926,26 @@
       "firstReleasedAt": null,
       "latestStableAt": null,
       "latestStableVersion": null,
-      "latestPreviewAt": "2026-07-24",
-      "latestPreviewVersion": "Beta side panel",
+      "latestPreviewAt": null,
+      "latestPreviewVersion": null,
       "lastSourceActivityAt": null,
       "lastStoreUpdatedAt": null,
       "lastVerifiedAt": "2026-10-13",
       "sourceActivityBasis": "NOT_RETRIEVED_R5",
-      "maintenanceAssessment": "PREVIEW_DOCUMENTED",
-      "productCapabilityStage": "PREVIEW_OR_BETA",
-      "maintenanceState": "PREVIEW_REPORTED",
+      "maintenanceAssessment": "OFFICIAL_BETA_FEATURE_DOCUMENTED_LATEST_VERSION_UNVERIFIED",
+      "productCapabilityStage": "BETA_RELEASE_NOTES_FEATURES_VERIFIED",
+      "maintenanceState": "BETA_DOCUMENTED_CURRENT_CHANNEL_VERSION_UNKNOWN",
       "verifiedSources": [
         "https://support.claude.com/en/articles/12138966-release-notes"
       ],
-      "note": "Jul 24 2026 release notes explicitly list workflow recording and repetition; no proof fixed source and zero-model rerun.",
+      "note": "Anthropic official 2025-11-24 notes scheduled browser tasks/approved plans, and 2025-12-18 notes record a workflow and repeat. Earlier research mistakenly attributed recording to 2026-07-24 (that date belongs to unrelated Claude Opus 5 launch). Neither date proves product's absolute first release or model-free JS execution.",
       "r5CompetitionClass": "RECORDED_AI_WORKFLOW",
       "r5FeatureProof": {
         "feature": "Record a workflow and repeat",
-        "date": "2026-07-24",
-        "channel": "anthropic-official-release-notes-beta",
-        "note": "2026-07-24 release notes record-a-workflow beta; no model-free fixed-source promise"
+        "date": "2025-12-18",
+        "channel": "anthropic-official-2025-december-release-notes-beta",
+        "dateSemantics": "EARLIEST_DATED_OFFICIAL_EVIDENCE_VERIFIED_HERE_NOT_ABSOLUTE_FEATURE_FIRST",
+        "note": "December 18 2025 Claude in Chrome release notes explicitly record recording and repetition. This is a Beta, not a stable-version proof or model-free execution."
       },
       "r5AgainstGF007": {
         "repeatsWork": true,
@@ -952,7 +953,23 @@
         "fixedCodeOwnedByUser": "UNKNOWN_NOT_MEASURED",
         "sameLoggedInChrome": "UNKNOWN_OR_MODE_DEPENDENT",
         "independentBenchmark": "NOT_TESTED"
-      }
+      },
+      "r5FeatureTimeline": [
+        {
+          "feature": "Scheduled browser tasks and approved plans",
+          "documentedAt": "2025-11-24",
+          "channel": "anthropic-official-2025-november-release-notes-beta",
+          "firstFeatureHistoricalCompleteness": "NOT_ESTABLISHED",
+          "url": "https://support.claude.com/en/articles/12138966-release-notes"
+        },
+        {
+          "feature": "Record browser workflow and repeat",
+          "documentedAt": "2025-12-18",
+          "channel": "anthropic-official-2025-december-release-notes-beta",
+          "firstFeatureHistoricalCompleteness": "NOT_ESTABLISHED",
+          "url": "https://support.claude.com/en/articles/12138966-release-notes"
+        }
+      ]
     },
     {
       "id": "perplexity-comet",
@@ -1428,6 +1445,13 @@
       "apify-actors",
       "zapier-agents"
     ],
-    "caution": "No global-first or Top5 claim approved; unknown stable/channel dates stay null."
+    "caution": "No global-first or Top5 claim approved; unknown stable/channel dates stay null.",
+    "claudeDateCorrection": {
+      "correctedAt": "2026-10-13",
+      "invalidPriorDate": "2026-07-24",
+      "recordedWorkflowFirstFoundOfficialDate": "2025-12-18",
+      "earlierScheduledTasksEvidenceAt": "2025-11-24",
+      "policy": "Do not confuse unrelated Opus 5 July 24 2026 release note with Claude in Chrome recorded workflow; keep firstReleasedAt null."
+    }
   }
 }
