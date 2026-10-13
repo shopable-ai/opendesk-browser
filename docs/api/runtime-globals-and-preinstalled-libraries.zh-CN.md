@@ -20,7 +20,7 @@ export default async function main() {
 }
 ```
 
-**Controller Sidebar 直接编辑／单文件 `async-main`**（Standard 始终支持以下零参数经典脚本；Developer Edition 额外提供需先审核依赖的小型 ESM 转换，见下文。完整可复制源码：[`controller-globals-zero-arg.js`](../../examples/programs/single-file/controller-globals-zero-arg.js)）：
+**Controller Sidebar 直接编辑／单文件 `async-main`**（Standard 始终支持以下零参数经典脚本；Developer Edition 已接入小型 ESM 转换（当前仍有冗余人工依赖审核 UI，目标 Run 自动准备），见下文。完整可复制源码：[`controller-globals-zero-arg.js`](../../examples/programs/single-file/controller-globals-zero-arg.js)）：
 
 ```js
 async function main() {
@@ -46,11 +46,11 @@ export default async function main() {
 }
 ```
 
-该映射声明仅用于**裸包名解析**，并不直接授予下载或运行权限。用户须在同一「开发」界面完成「检查依赖 → 明确确认来源 → 核对 SHA/许可证 → 固定锁」，之后再点击 Run。若使用标准 HTTPS 静态 import，可省去映射；裸包名无固定版本映射会明确拒绝，不隐式取 `latest`。这不是旧 `@require` 协议，也不要求修改扩展源码。所有第三方代码均转换为自包含经典 JS，经原 Controller RunHost/Authority/Worker 执行；Compiler Worker 只变换源码数据。
+该映射声明仅用于**裸包名解析**，并不直接授予下载或运行权限。**目标用户流程是直接点击 Run，由系统自动准备、校验 SHA 和固定程序级锁；不要求逐个确认来源/SHA/许可证。当前 R4 UI 仍存在多步人工审核，这是待优化缺口，不是推荐使用流程。**若使用标准 HTTPS 静态 import，可省去映射；裸包名无固定版本映射会明确拒绝，不隐式取 `latest`。这不是旧 `@require` 协议，也不要求修改扩展源码。所有第三方代码均转换为自包含经典 JS，经原 Controller RunHost/Authority/Worker 执行；Compiler Worker 只变换源码数据。
 
 - **仅 Developer Edition** 包含上述浏览器编译器；Standard 的小型 Controller ESM 必须先走现有本地项目构建。旧经典 `main()` 仍在 Standard/Developer 直接运行。
 - 浏览器内 ESM 上限：32 个远端模块、每模块 128 KiB、全图 256 KiB、链接输出 48 KB；持久保存的编译代码与作者源码快照总计最多 52 KB。大图、Node/CommonJS、相对项目文件应交给已有本地构建器。
-- 共享原始字节缓存不共享授权：Controller 锁包含具体 `programId`、作者源 SHA、`CONTROLLER` 世界和完整依赖锁；第二个脚本即使命中缓存，也需要自己的明确固定审批。
+- 共享原始字节缓存不共享授权：Controller 锁包含具体 `programId`、作者源 SHA、`CONTROLLER` 世界和完整依赖锁；第二个脚本命中缓存时，目标由系统自动生成自己的固定锁，不再要求用户人工批准同一库（当前 R4 仍有多步批准流程待改造）。
 - `保存版本` 存储不再依赖 CDN 的执行字节及可校验的作者源码快照，`加载版本` 恢复可编辑源码；已固定版本重复 Run 不得重新获取远端模块。老草稿、无 ESM 的版本保持旧格式。重启、定时和 Chrome 真实验收要以同一候选证据独立确认，不因本段文档升级为 PASS。
 - Papa Parse 官方 npm 用法通常是 `import Papa from 'papaparse'`。其 npm 原始分发不等于原生浏览器 ESM；需要验证可用的固定 ESM 转换分发及真实导出，不能把 UMD/CommonJS 原文件谎称 ESM。当前 R4 的无网 CSV 小图测试不能替代真实 Papa Parse CDN 和 Chrome 验收。
 
@@ -78,11 +78,15 @@ async function main() {
 - 内部 ESM 包装器 `scripts/build-program-project.mjs` 目前仍可兼容旧入口 `main({page,params,...})`；这是**保留旧 ABI**，不是鼓励 AI 继续生成带参数的标准写法。新 Demo、规范文档与 AI 输出均以 `main()` 为默认，不通过删除兼容逻辑来修正文档。
 - 不向**网站 MAIN** 注入这些全局；Page USER_SCRIPT 的 `document` 是该世界可访问的 DOM，不能据此获得扩展高权限、跨站网络或 Controller 的 RunHost。权限、来源、documentId、Stop、持久结果保持原边界。
 
+### 2026-10-13 产品体验变更：开发脚本无需人工审核库
+
+自己写或由 AI 帮写的草稿，在「开发」中按代码选择第三方 Classic/ESM 后，应能**直接点击 Run**。系统自动确定已固定版本、校验 URL/图/SHA、取缓存或按必要 Chrome 权限取得源码、绑定各程序/世界的固定记录；SHA、许可证和来源为可选详细信息，**不是用户必须签字/勾选的审批步骤**。第二个程序复用同库时不能复制第一程序的敏感权限，但也**不重复审批相同库**。真实 Chrome origin/网站权限及安装、定时、云控的程序能力授权照旧。当前 R4/R7.1 的多步人工库审批尚未改造，不能把此目标当作已实现；见 [长期合同](../framework/universal-dependency-runtime-usage-contract.zh-CN.md)。
+
 ## 2. `src/libs` 实际消费矩阵：构建、加载、作用域分开看
 
 | 执行场景 | 开发者怎样用 | 可直接使用的能力 | 明确不能推断 |
 | --- | --- | --- | --- |
-| **Controller 用户脚本 / Worker** | Standard 单文件 `async function main()`；Developer 固定审批后单文件 ESM `export default async function main()`；本地多文件 ESM | 词法 `page`、`params`、`axiosx`、`AppStorage` 等；默认 `_`、`dayjs`、`OpenDeskLibs`；显式声明后可用真实 Axios（受控 Broker） | 无 `document` / 网站 `window`；Page-only 库不会自动提供给 Controller，`axiosx` 本身不是上游 Axios |
+| **Controller 用户脚本 / Worker** | Standard 单文件 `async function main()`；Developer 当前固定锁后单文件 ESM（目标 Run 自动固定） `export default async function main()`；本地多文件 ESM | 词法 `page`、`params`、`axiosx`、`AppStorage` 等；默认 `_`、`dayjs`、`OpenDeskLibs`；显式声明后可用真实 Axios（受控 Broker） | 无 `document` / 网站 `window`；Page-only 库不会自动提供给 Controller，`axiosx` 本身不是上游 Axios |
 | **目标网站 Page USER_SCRIPT** | `main()` 中使用 `document`，在显式 `// @opendesk-lib <id>` 下使用批准的可选库 | `document` / DOM；默认 `_`、`dayjs`、`OpenDeskLibs`；被显式选择的一个或多个已审定可选 Page 包 | 无 Controller `page` / `axiosx` / `params`；`@opendesk-lib` 不是权限授权；不污染网站 MAIN |
 | **网站 MAIN** | 普通网站代码及经审核的独立 MAIN SDK 合同 | 网站自身 `window` 与业务 JS | 不因安装 OpenDesk 就有 `_` / `dayjs` / `page` 等预置变量 |
 | **后台 Background / MV3 SW** | **扩展开发者**按需在受信源代码中显式 `import`、并经 WXT 生成产物 | 仅实际被后台 bundle 引入且受审核的依赖、Chrome 扩展内部 API | 没有用户 `main()` / `page` / DOM；不把所有 `packages/*` 汇总到 SW |

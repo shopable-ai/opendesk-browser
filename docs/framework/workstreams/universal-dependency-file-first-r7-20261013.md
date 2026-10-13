@@ -124,3 +124,11 @@ Chrome 验收路径：使用相同源文件和 `programId=marked-a`，检查→�
 - 使用固定新库 `marked@15.0.12` Classic UMD，核对真实 CDN 来源、下载 SHA、真实导出返回值、Program A/B 不同批准锁、B SHA 复用和第二程序零新下载、两个 Page Candidate 的保存。
 - 本提交仅为 **IMPLEMENTED_DRIVER**；后续根据每次 CI/job/acceptance.json 实际结果分别记 `CHROME_PASS`/`CHROME_FAIL`，CI 未验证之前不能写 PASS。整 Chrome 重启断网 D09、Controller 新 Classic D05、工具多库 D07、定时和云控 D10 仍未正式关闭。
 - 用户 Mac 本地环境无法访问：`MAC_NATIVE_NOT_TESTED`。不能把 GitHub macOS CI 代替用户原生 Mac 验收。
+
+## 2026-10-13 产品决策变更：自己开发脚本无需逐库人工审核（历史 R7.1 证据原样保留）
+
+- **新产品规则**：用户自己编写或由 AI 为自己生成的脚本，在「开发」点击 Run 应自动解析、获取/复用、技术校验、固定 SHA/版本/依赖图并运行，不需要再点击“检查→获取→逐条审阅 SHA/许可证→批准锁→再运行”。旧的 `reviewId` / `approve` / `explicitUserAction` 状态与旧 CI 仅说明历史源码/测试事实，不能当最终 UX 成功。
+- 程序 B 命中 A 相同已固定库时无需第二次**人工**审批；系统自动绑定新的 programId、Revision、world 锁，绝不自动继承 A 的站点/敏感操作权限。真正缺少 Chrome origin/站点权限仍走真实原生手势；安装、定时、云控授权确认的是程序能力/网站/数据范围，不是逐项库文件。
+- SHA、来源、确切版本、依赖闭包、大小、私网/重定向限制、CWS/MV3、Authority、Stop/撤权/未知执行阻断全部继续自动严格执行；不允许用户下载 JS 进入特权 SW/Host，不得静默升级锁。
+- **新增产品验收**：正常脚本一次 Run；新 Classic 和 ESM 在无额外库审批点击时真正运行库函数；A/B 的人工库确认次数=0、B 网络下载=0、技术锁不同；完全重启/断网、坏 SHA、拒绝 Chrome 权限仍行为正确。旧 R7.1 审核 Node 测试 PASS 不等于新 UX PASS。
+- 以上最新规则以 `docs/framework/universal-dependency-runtime-usage-contract.zh-CN.md` 与 `docs/framework/prompts/goal-universal-dependency-runtime-r7.2-scenario-first-20261013.zh-CN.md` 为准；不修改上文任何历史提交 SHA、旧验收账本或运行结果。

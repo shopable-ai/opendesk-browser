@@ -30,6 +30,14 @@ YOU ARE AN AUTONOMOUS CODING AGENT. EXECUTE AUTHORIZED TASKS TO COMPLETION WITHO
 
 权威阅读顺序：[R4 战略决策](docs/product/browser-extension-ecosystem/global-first-r2-decision.zh-CN.md) → [R4 执行 GOAL](docs/framework/prompts/goal-global-first-r4-ai-first-niche-leadership.zh-CN.md)。唯一事实/审批账本仍是 `docs/product/browser-extension-ecosystem/competitor-timeline.json` 与 `first-claims-ledger.json`。R1/R2 与 R3/F01 旧方向仅历史参考。
 
+## 第三方 JS 依赖：开发脚本免人工审核的最高优先级产品决策（2026-10-13）
+
+**用户自己编写、修改或让 AI 生成的脚本，在 Side Panel「开发」主动点击 Run 时，不得被要求逐库核对/勾选 SHA、许可证、依赖图或点击“批准锁”，也不允许程序 B 因使用同一固定库而重复人工审核。** Run 是用户的草稿执行意图；系统自动校验来源、固定版本、SHA、依赖闭包与执行世界，按权限允许的方式取得/复用缓存，自动生成绑定各程序/Revision 的固定锁。可查看高级详情，但不得把它变成每次开发的通行证。
+
+免依赖人工审核不等于免权限：仍须尊重真实 Chrome 来源/网站权限手势、页面/宿主 Authority、安装/定时/云控/第三方 Provider 的能力与数据范围授权、MV3/CWS 远程代码边界、撤权、坏 SHA/私网/重定向及资源上限。不得将用户下载代码直接交给特权 SW/Host，不得静默升级 fixed Revision。只有真实缺失权限或无法解析确切版本才提示必要操作。
+
+**R7.1/R4 现有「检查→下载→人工审阅→批准→运行」是历史实现，不能作为最终正确 UX；需要继续修复源码与测试。** 长期规则：[依赖使用场景合同](docs/framework/universal-dependency-runtime-usage-contract.zh-CN.md)；执行入口：[R7.2 GOAL](docs/framework/prompts/goal-universal-dependency-runtime-r7.2-scenario-first-20261013.zh-CN.md)。本条优先于历史 R4–R7 的逐库人工审核要求，不影响 Browser SDK 与安装安全合同。
+
 ## Controller/Page 零参数用户入口及 src/libs 环境合同（2026-10-12）
 
 用户当前明确要求：**推荐示例、AI 生成代码与多文件 ESM Controller 入口使用 `export default async function main()`，Side Panel「开发」直接编辑 Controller 草稿使用 `async function main()`，直接引用受控 Worker 词法 `page`、`params` 及默认 `_`、`dayjs`、`OpenDeskLibs`，不让用户给 `main` 传能力对象、重复 npm 安装或写 CDN。** 历史 `main({page})` ESM 入口只保留兼容，不得再宣传为唯一/推荐格式。

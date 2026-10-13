@@ -4,9 +4,21 @@
 
 ## 0. 不可偏移的用户目标
 
-产品方向是 **AI 协助生成有用的浏览器程序 → 用户审查来源、权限和固定版本 → 安装工具/程序 → 以后离开 AI 仍可重复使用**。用户无需修改扩展源码、运行 npm、手工编辑多个依赖文件或重建扩展，才能使用此前未预装且受支持的第三方库。高级/大型项目可以采用已有受信本地构建器，但不应把“人人手动写 React/ESM”当作核心用户价值。
+产品方向是 **用户提出需求 → AI/用户编写脚本 → 直接 Run，系统自动准备第三方库并返回结果 → 需要时授权程序能力并安装固定版本 → 离开 AI 仍可重复使用**。用户无需修改扩展源码、运行 npm、手工编辑多个依赖文件或重建扩展，才能使用此前未预装且受支持的第三方库。高级/大型项目可以采用已有受信本地构建器，但不应把“人人手动写 React/ESM”当作核心用户价值。
 
-**统一资源，独立授权，不同执行世界。** 资源可以以 SHA-256 复用，程序的依赖锁、站点权限、执行世界、Program Revision、安装/定时/云控授权不能跨程序复用。不存在所有世界都可以访问的万能 JS 全局变量表。
+**统一资源、自动固定、权限独立、执行世界隔离。** 相同的 SHA 资产可以复用，程序/Revision/执行世界自动各自建立技术固定记录；**锁不是用户必须逐库点击“批准”的表单**。程序对网站和敏感能力的权限、安装/定时/云控授权各自有效，不能互相继承。不存在所有世界通用的 JS 全局变量。
+
+### 2026-10-13 最新产品原则：自己的开发草稿零人工依赖审核
+
+| 场景 | 用户需要做什么 | 系统必须自动做什么 |
+| --- | --- | --- |
+| 自己写脚本或 AI 代写并主动 Run | **只点击 Run**；不额外点“检查/确认下载/核对 SHA/批准依赖锁” | 解析 Classic/ESM、确定固定版本、校验来源和完整图、获取或复用 SHA 字节、自动固定每程序锁、返回真实结果 |
+| 程序 B 使用程序 A 已缓存的同版本库 | **不再人工批准该库** | 共享完全一致的字节，自动派生 B 的程序/Revision/world 记录；不复制 A 的运行或网站权限 |
+| 来源/网站缺 Chrome 许可 | 按 Chrome 原生弹窗批准或拒绝必要权限 | 将真实手势连接至 Run；拒绝即安全失败，不伪造权限 |
+| 保存、安装，开放定时/云控/外部调用 | 需要时明确授予**程序的站点、数据和操作能力**，不是逐项批准三方 JS | 固定源码/资产/锁与 Program Revision，保持撤权、Stop、离线复用 |
+| 版本不明确、内容损坏、不兼容或违反 MV3/CWS 限制 | 必要时选择版本或收到清晰错误 | 不静默选择 latest、不绕过权限、不在特权 Host/SW 运行下载代码 |
+
+**历史事实和待实现体验必须分开**：R7.1 Page / R4 Controller 仍包含多个手动依赖批准动作；这是待消除的 UX 缺口，不能把旧 Node PASS 当作免审核体验已经交付。
 
 ## 1. 旧源码已保存在本仓库，不必再寻找原工程
 
@@ -30,9 +42,9 @@
 | 场景 / 入口 | 用户/AI 写法与原始示例 | 依赖加载与执行 | 关键源码 | 截至 R7.1 的证据级别 |
 | --- | --- | --- | --- | --- |
 | Controller 单文件 Classic | `async function main(){ return {title:await page.title(),words:_.words("hi")}; }`；`examples/programs/single-file/controller-globals-zero-arg.js` | 默认 `_`/`dayjs` 已安装在 Controller Worker；词法 `page`/`params`；可选受支持资源需单独验证 | `src/ui/script-editor.js`、`src/libs/loader.js`、`src/scripting/sandbox/controller.js`、`worker-runtime.js` | 既有实现，不能推导任意外部 Classic 库自动可用 |
-| Controller 单文件 ESM（Developer） | `// @opendesk-import ... pinned URL` + `import {parse} from '@vanillaes/csv'` + `export default async function main()`；`examples/programs/single-file/controller-vanillaes-csv-esm.js` | 固定三模块图、单独 Controller 锁、受信 Babel 转自包含 Classic，最后进入原 RunHost→Authority→opaque Worker | `src/ui/page-component-remote.js`、`page-component-preparer.js`、`src/libs/page-frameworks/controller-esm-linker-r4.mjs`、`src/ui/controller-esm-source.js` | 固定 Babel/真实 @vanillaes CSV Node PASS；首次网络审批 + 全生命周期 Chrome 未关闭 |
+| Controller 单文件 ESM（Developer） | `// @opendesk-import ... pinned URL` + `import {parse} from '@vanillaes/csv'` + `export default async function main()`；`examples/programs/single-file/controller-vanillaes-csv-esm.js` | 固定三模块图、自动绑定 Controller 锁、受信 Babel 转自包含 Classic（当前 UI 仍有人工依赖审核缺口），最后进入原 RunHost→Authority→opaque Worker | `src/ui/page-component-remote.js`、`page-component-preparer.js`、`src/libs/page-frameworks/controller-esm-linker-r4.mjs`、`src/ui/controller-esm-source.js` | 固定 Babel/真实 @vanillaes CSV Node PASS；首次网络审批 + 全生命周期 Chrome 未关闭 |
 | Controller 多文件 ESM | `export default async function main()` + 相对文件/npm/精确 lock | 已有受信多文件构建器，生成 Program 资产，不创建新 npm 系统 | `scripts/build-program-project.mjs`、`scripts/lock-program-remote.mjs`、`src/ui/program-source.js` | 既有构建合同；本次跨场景未新增 Chrome 证据 |
-| Page Classic 单文件 | `// @opendesk-lib axios` / `// @require https://.../fixed.umd.js`；`async function main(){return document.title;}` | 固定 USER_SCRIPT；R7.1「开发」检查→选择预装/本程序批准/共享 SHA/新下载→确认获取→审核锁→另行试运行；不是网站 MAIN | `src/ui/page-dependency-install.js`、`page-dependencies.js`、`src/scripting/user-scripts/dependency-manager.js`、`execution-source.js`、`preview.js` | R7.1 IMPLEMENTED + Node/包 PASS；真实新 CDN 库 Chrome A/B 下载/授权/离线 NOT_TESTED |
+| Page Classic 单文件 | `// @opendesk-lib axios` / `// @require https://.../fixed.umd.js`；`async function main(){return document.title;}` | 固定 USER_SCRIPT；R7.1 **当前**仍要检查→人工确认获取→审核锁→再运行；**目标**点击 Run 后系统自动准备/固定，无额外依赖审查；不是网站 MAIN | `src/ui/page-dependency-install.js`、`page-dependencies.js`、`src/scripting/user-scripts/dependency-manager.js`、`execution-source.js`、`preview.js` | R7.1 IMPLEMENTED + Node/包 PASS；真实新 CDN 库 Chrome A/B 下载/授权/离线 NOT_TESTED |
 | Page React/Vue | `import {useState} from 'react'` / Vue SFC；额外固定静态 HTTPS ESM | 复用已有 React/Vue 固定运行时、审核图与受管挂载/Stop，不重复嵌入框架 | `src/ui/page-component-remote.js`、`page-component-preparer.js`、`src/ui/page-component-compiler-worker.js`、`src/libs/page-frameworks/*` | 已有固定编译/部分浏览器用例，额外库场景需按当前包验收 |
 | Side Panel 已安装工具 | `tool.config.json` + HTML/CSS/JS；`OpenDeskTool.request` / 受限 `OpenDeskSDK.browser` | 隔离 iframe 当前加载已打包的一份 JS（Blob），不继承 Controller/页面全局或原生 chrome 权限 | `scripts/build-sidebar-tool.mjs`、`src/ui/sidebar-tools/package.js`、`src/sidebar-tools/bridge.js` | 工具框架已有；通用多固定库文件依次加载/跨程序 SHA 批准仍未接入 |
 | 网站 MAIN / Content ISOLATED | 仅明确授权的原生网站交互 / 受信框架 Content | 与 USER_SCRIPT 不同，保持世界隔离；MAIN 不是默认依赖执行目标 | WXT Content、现有 Page 桥 | 不因旧 MAIN 全局而开放新权限 |
@@ -41,23 +53,23 @@
 
 ## 3. 冻结的解决方案（下一轮无需重新讨论）
 
-1. **File-First, NOT Compiler-First**。扩展安装包内的 Classic 文件可直接按执行世界用，预装库无 npm/无 CDN；下载后经审核的 Classic 资源保留独立 SHA 字节，能安全直接加载就不再为其单独 Babel；真正有 import/export 的静态 ESM 才用受信编译器生成对应世界允许的固定执行资产。
+1. **File-First, NOT Compiler-First**。扩展安装包内的 Classic 文件可直接按执行世界用，预装库无 npm/无 CDN；下载后经系统自动技术校验的 Classic 资源保留独立 SHA 字节，能安全直接加载就不再为其单独 Babel；真正有 import/export 的静态 ESM 才用受信编译器生成对应世界允许的固定执行资产。
 2. **不是所有文件都有一个可见的扩展资源 URL**。扩展包中的 `chrome-extension://...` 固定路径与下载后保存在 IndexedDB 的 SHA 资产不同；`chrome.userScripts` 的 `file` 必须是扩展包根下实际文件，不能指向 SHA 虚拟索引；经允许的用户源码走 `code` 或已经受审的 sandbox/Worker 路径。拆分多个 ScriptSource 前必须实际验证错误 fail-stop、先后依赖、Stop 与页面身份，不可无据替换当前 Page 原子代码。
-3. **内容存储共享，执行审批不共享**。资源键包含真实字节 SHA、URL/版本/MIME/许可证信息；每程序与 Revision 分别绑定批准过的完整依赖图和执行世界；同 URL 不同 SHA 必须显式选择，不可静默升级；缓存腐坏/缺失拒绝，不能静默重新下载。
+3. **内容字节共享，能力权限独立，锁由系统自动生成**。资源键包含 SHA、URL/版本/MIME/许可证信息；系统按 Program/Revision/world 自动固定完整依赖图，不要求用户 A/B 逐库分别人工批准。同 URL 不同 SHA 不得静默替换固定版本，确有歧义才请用户选择版本；损坏/缺失拒绝，不能静默联网恢复。
 4. **复用已有实现**：`runtime-contract.js` / `loader.js` 是预装库真源；`dependency-manager.js` 及 Page Component 依赖方法是存储/审核真源；原 RunHost、Authority、Page USER_SCRIPT、Side Panel Tool sandbox 分别是各世界唯一消费者。禁止第二个 Manager/Browser SDK/Runner/工具宿主。
 5. **Standard/Developer**：Standard 不带约 4 MB 的浏览器编译器，Classic 与固定程序照常可用；Developer 使用已打包固定 Babel 处理小型 ESM；大型图走现有受信本地项目构建器，不将 Babel 偷塞进 Standard。
-6. **AI-first**：AI 可生成程序源码、依赖声明、审阅说明、固定项目；用户批准并安装后，未连接 AI、未运行本地 npm、不修改扩展也可重复执行。UI 优先单一路径“运行→缺库时检查→来源/版本审核→准备→批准→运行→保存/安装”，高级图/SHA 折叠展示，不增加大量无用按钮。
-7. **安全合规**：源下载授权、程序执行授权、网页权限、安装身份互不替代。对 Chrome MV3/Chrome Web Store 的适用远程代码政策做单独证据核查；Worker/沙箱本身不等于发布合规。Node/CJS/WASM/CSS/dynamic import/循环图/顶层 await 按真实支持程度拒绝或转受信构建；已支持的不要误拒绝。
+6. **AI-first / Run-first**：AI 或用户写代码→点击 Run→系统自动解析、获取/复用、校验并固定库→返回真实结果→按需保存或授权安装。**不增加人工逐库审核向导**，技术图/SHA/许可证放在可选详情。程序能力/站点/安装/定时/云控才是授权对象，不是 JS 文件。
+7. **安全合规**：Chrome 来源/网站权限、程序可调用的敏感能力、安装身份互不替代；开发时免人工库审查不会扩大任何一个权限。对 Chrome MV3/Chrome Web Store 的适用远程代码政策做单独证据核查；Worker/沙箱本身不等于发布合规。Node/CJS/WASM/CSS/dynamic import/循环图/顶层 await 按真实支持程度拒绝或转受信构建；已支持的不要误拒绝。
 
 ## 4. 最小用户闭环和测试分母
 
 | Case | 用户真实操作/输入 | 通过条件 | 必须保留的证据 |
 | --- | --- | --- | --- |
 | D01 预装 Classic | Controller 用 `_`、`dayjs` | 真实函数成功；依赖下载=0；无网站 MAIN 全局污染 | 主包 hash/ABI、runId/resultId、零网络计数 |
-| D02 新 Classic Page | 新的固定 Classic UMD（可用 `marked@15.0.12` 作为**待网络核对候选**，不假定 URL 有效） | 普通「开发」首次查缺→真实权限弹窗→下载并计算 SHA→用户审核→运行真实导出函数 | URL/response/MIME/bytes/SHA/许可证/approval/真实 Result |
-| D03 Classic 程序 A/B | 两个 `programId` 指向相同已审核 URL+SHA | A 已批准时 B 仍禁止直接运行；B 独立批准后使用同一原始字节、下载次数 0、锁不同 | 原始 fetch 计数、两个锁/namespace/程序 ID |
+| D02 新 Classic Page | 新的固定 Classic UMD（可用 `marked@15.0.12` 作为**待网络核对候选**，不假定 URL 有效） | 普通「开发」用户只点 Run→系统自动准备/固定 SHA→运行真实导出函数；仅缺失真实 Chrome 权限时可弹原生许可，无逐库审核 | URL/response/MIME/bytes/SHA/许可证/approval/真实 Result |
+| D03 Classic 程序 A/B | 两个 `programId` 指向相同已审核 URL+SHA | B 不用重复人工批准同一库；系统复用 A 的相同字节并自动为 B 生成不同固定锁，下载 0 次；B 的程序能力不继承 A | 原始 fetch 计数、两个锁/namespace/程序 ID |
 | D04 新 Controller ESM | `@vanillaes/csv@4.1.3` 上游三个真实 ESM 文件 | 真正运行库函数，结果 `count=2,total=21`；缺锁/错 SHA/错导出一律失败 | 三模块原始 SHA、图/lockId、runId/resultId |
-| D05 Controller Classic 新库 | 新增批准的 Classic 库，访问控制在 Worker 世界 | 不再要求每次 ESM 编译；与 Page 共享 SHA 字节但不共享批准/世界；没有 chrome API | 真实 Worker 输出、独立审批与 Stop |
+| D05 Controller Classic 新库 | 自己代码选用的新 Classic 库自动准备到受控 Worker 世界 | 不再要求每次 ESM 编译；与 Page 共享 SHA 字节但不共享程序能力/执行世界；无需再次人工批准库；没有 chrome API | 真实 Worker 输出、独立审批与 Stop |
 | D06 Page React/Vue + 第三方 | 真实组件 import 新固定模块并触发交互 | 数据/DOM 更新、Stop 后外部 DOM/监听器全清理 | 实机截图/节点快照、Stop receipt、源和包身份 |
 | D07 Tool 多库 | AI 创建工具，含两份固定 JS，点击安装和打开 | 沙箱按序执行，只有本工具许可的 OpenDeskTool/SDK，不暴露 chrome.*；卸载干净 | 工具包 SHA、依赖锁/次序、UI 与权限回执 |
 | D08 版本生命周期 | 保存 A r1，再升级依赖为 r2 | 老 r1 保留旧资产、r2 新锁，卸载 r2 不误删 A/r1 或他人资源 | Revision/sourceHash/lock/asset references |
@@ -74,7 +86,7 @@
 
 - **已有**：旧源码快照与迁移记录；默认/可选内置库 SHA；Page 受控 @require；R4 Controller 小型 ESM；R7 SHA 跨程序字节来源索引；R7.1 Page Classic 首次依赖安装 UI、每程序锁与依赖共享来源展示；React/Vue 固定运行时；工具单 JS 沙箱；Saved/Task 既有 Runner。
 - **已有定向证据**：`docs/framework/workstreams/universal-dependency-file-first-r7-20261013.md` 的 R7.1 实现提交 `bc6dc46a` 和补丁 `d61eea48`、Node/构建成功 CI `38352293156` / `38352293233`。R24.5 的 macOS Chrome 基础 Side Panel/React/Vue PASS **没有覆盖新 CDN Classic/A/B 审核**。R4 中 @vanillaes/csv 真实上游源码编译测试有 Node 记录，不推导 Chrome。
-- **未正式关闭**：D02/D03 实际 Chrome 首次下载及第二程序离线复用、D05 Controller 新 Classic、D07 工具多库、D08–D10 安装/重启/离线/定时云控/撤权全链路、D11 跨世界失败安全、D12 Chrome Web Store 合规。新增代码前重新核实最新 `main`，此清单不是永久完成态。
+- **未正式关闭**：D02/D03 直接 Run 自动准备、无多步人工依赖审批及实际 Chrome 首次下载/第二程序离线复用、D05 Controller 新 Classic、D07 工具多库、D08–D10 安装/重启/离线/定时云控/撤权全链路、D11 跨世界失败安全、D12 Chrome Web Store 合规。新增代码前重新核实最新 `main`，此清单不是永久完成态。
 - **官方依据**：`https://developer.chrome.com/docs/extensions/reference/api/userScripts` 和 `https://developer.chrome.com/docs/webstore/program_policies`；不可把文件式加载偏好误写成允许任意远程代码在扩展特权页运行。
 
 ## 6. 新对话的唯一工作入口
