@@ -48,3 +48,15 @@
 - 在读取权限的异步等待期间切换站点，禁止旧请求继续落到旧网址；不在失败或未知效果时自动重试。
 - 持久 Cookie 元数据附带过期时间（有原始值时）；补充 Node 合同测试源码用例。
 - 本次通过 V8 受控组件冒烟及语法检查，`node --test`、Build/Verify、真实 Mac Chrome 仍 **NOT_TESTED**。
+
+
+## R2.1 调用链重新核查与产品修正（2026-10-13）
+
+- 底层原生驱动：`src/platform/chrome/cookies.js` 已存在，受信代码可访问真实 Chrome Cookie。
+- Host-only 11 项：`src/platform/chrome/browser-cookie-host.js` 登记 Cookie get/getAll/set/remove/clearSite/store/partition 和 observe 四项，`src/ui/trusted-cookie-workbench.js` 通过私有 `browser.cookies.approve/execute` 消费。
+- 普通已安装工具：`src/framework/sdk/browser.js` 尚无公开 `cookies` 命名空间；`src/ui/sidebar-tools/package.js` 尚无 Cookie Capability，故 Cookie Editor **BLOCKED**，不能把受信 Host 原始值直接交给工具沙箱。
+- 当前工具页另有一个可信内置「Cookie 管理」面板，这与官方可选 Cookie Editor 是两个真实界面。未来统一到正式 SDK 后再删除重复产品入口；R2 不先破坏唯一能调用真实 Cookie 的可信入口。
+- 关键合同不匹配：可信 Host `getAll` 为当前活跃 Tab/Document 且返回 `{cookies,scope}`；Cookie Editor 需要按独立授权网站 `getAll({url})`，采用一份 Chrome Native First 返回合同。必须由 R9 的唯一 Host/Authority 正式接通；不能使用私有 approve/execute 或绕过当前 Tab/Store/Partition 限制。
+- 可信 `clearSite` 当前是 CURRENT_URL_MATCHES，并非 Exact Host Host-only 预览+确认+≤50 条，不可原样暴露为公开批量清理。
+- 本次 Cookie Editor 修正：v1.1.1；按浏览器/离线模式正确展示网站身份；用户主动刷新时经正式 SDK 授权门控再读；输入目标网址未确认时禁止显示过期异步结果；保留分区的 `hasCrossSiteAncestor` 元数据；精简用户可见阻塞文案。
+- V8 隔离组件模拟检查已通过（授权拒绝、预留公开读取、脱敏、分区元数据、手动刷新、站点切换）。这属于 **synthetic component**；Node、Build、Verify 与真实 Mac Chrome 均 **NOT_TESTED**。没有可绑定最终候选的 Native 证据，不给 95+ 正式评分。

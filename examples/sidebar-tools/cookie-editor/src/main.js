@@ -30,7 +30,10 @@ function redactMetadata(rows){
       session:row.session===true,expirationDate:Number.isFinite(row.expirationDate)?row.expirationDate:undefined,
       storeId:typeof row.storeId==='string'?row.storeId:undefined,
       partitionKey:row.partitionKey&&typeof row.partitionKey.topLevelSite==='string'?
-        {topLevelSite:row.partitionKey.topLevelSite}:undefined,valueRedacted:true};
+        {topLevelSite:row.partitionKey.topLevelSite,
+          ...(typeof row.partitionKey.hasCrossSiteAncestor==='boolean'?
+            {hasCrossSiteAncestor:row.partitionKey.hasCrossSiteAncestor}:{})}:undefined,
+      valueRedacted:true};
   });
 }
 const MAX_COOKIES=200,MAX_IMPORT=100,MAX_TEXT_BYTES=150000;
@@ -86,8 +89,8 @@ function renderBrowser(){
   }else if(!liveTarget){
     heading.textContent='请选择网页';detail.textContent='打开普通网页并点击「当前页」，或输入指定 HTTP(S) 地址。';
   }else if(!available){
-    heading.textContent='浏览器 Cookie SDK 尚未开放';
-    detail.textContent='当前扩展尚未向已安装工具公开 browser.cookies.getAll 和对应网站授权。这里不会使用演示数据、私有 Host 或 chrome.cookies 冒充结果。可切换到离线工作区。';
+    heading.textContent='真实浏览器 Cookie 管理尚未就绪';
+    detail.textContent='当前版本不能读取或修改 Chrome Cookie。你仍可使用「离线工作区」编辑和导入文件，但不会影响网页。';
   }else if(liveState==='ready'){
     heading.textContent='已读取当前地址匹配的 Cookie 元数据';
     detail.textContent='数据来自正式 SDK；Cookie 值仍被隐藏。独立值授权和写入操作尚未接通，不能在此修改浏览器 Cookie。';
@@ -98,21 +101,22 @@ function renderBrowser(){
     heading.textContent='需要单独授权';detail.textContent='请先在工具详情中批准 Cookie 读取与目标网站，再点击「读取 Cookie」。仅选择网站不会自动授权。';
   }
   E('target-help').textContent=targetOverride?
-    '已选择指定网址；读取权限由正式 SDK 按网站和 Cookie Store 判断，不要求与当前活动标签页相同。':
-    '使用当前网页地址；切换网页后重新核对授权。选择网站不会自动批准权限。';
+    '已选择指定网址；读取仍需该网站授权，不要求与当前活动标签页相同。':
+    '正在使用当前网页地址。选择网站不等于授权读取 Cookie。';
   E('read-live').disabled=busy||!available||targetPending;
-  E('live-count').textContent=hasRead?liveRows.length+' 条 URL 匹配的 Cookie':'尚未读取';
   E('live-filters').hidden=!hasRead;
   const term=E('live-search').value.trim().toLocaleLowerCase(),filter=E('live-filter').value||'all';
   const visible=liveRows.filter(row=>
     [row.name,row.domain,row.path].some(value=>value.toLocaleLowerCase().includes(term))&&
     (filter==='all'||(filter==='secure'&&row.secure)||(filter==='httpOnly'&&row.httpOnly)||
      (filter==='session'&&row.session)||(filter==='partitioned'&&row.partitionKey)));
+  E('live-count').textContent=hasRead?
+    visible.length+' / '+liveRows.length+' 条 Cookie':'尚未读取';
   const list=E('live-cookie-list');list.replaceChildren();
   E('live-empty').hidden=visible.length>0;
   E('live-empty').textContent=hasRead?
     (liveRows.length?'没有匹配的 Cookie':'当前 URL 没有匹配的 Cookie。'):available?
-    '尚未读取真实 Cookie。':'等待公开 SDK 和授权，不显示虚构 Cookie。';
+    '尚未读取真实 Cookie。':'当前未能读取真实 Cookie；可切换离线工作区。';
   const doc=root.ownerDocument;
   for(const row of visible){
     const item=doc.createElement('div');item.className='cookie-row';item.setAttribute('role','listitem');
@@ -134,8 +138,14 @@ function render(){
   renderBrowser();
   const list=E('cookie-list');list.replaceChildren();
   E('cookie-count').textContent=(data?.cookies?.length||0)+' 条 Cookie';
-  E('site-host').textContent=data?.hostname||'本地 Cookie 工作区';
-  E('site-url').textContent=data?.origin||'';E('site-url').hidden=!data;
+  // Header always identifies the VISIBLE mode. In browser mode, never
+  // mislabel the local example.test fallback as a Chrome website.
+  const siteTitle=mode==='browser'?
+    (liveTarget?.hostname||'尚未选择网站'):
+    (data?.hostname?'离线 · '+data.hostname:'离线工作区');
+  const siteUrl=mode==='browser'?(liveTarget?.url||''):(data?.origin||'');
+  E('site-host').textContent=siteTitle;
+  E('site-url').textContent=siteUrl;E('site-url').hidden=!siteUrl;
   const term=E('search').value.trim().toLocaleLowerCase();
   const rows=(data?.cookies||[]).filter(row=>[row.name,row.domain,row.path].some(v=>String(v||'').toLocaleLowerCase().includes(term)));
   E('empty-message').hidden=rows.length!==0;
@@ -301,7 +311,7 @@ async function readBrowserMetadata(){
     // Only public tool SDK: never invoke chrome.cookies or private approve/execute.
     const result=await sdk.cookies.getAll({url:target.url});
     const rows=redactMetadata(result);
-    if(id!==epoch||liveTarget?.url!==target.url||mode!=='browser')return;
+    if(id!==epoch||liveTarget?.url!==target.url||targetPending||mode!=='browser')return;
     liveRows=rows;liveState='ready';liveMessage='';
   }catch(error){
     if(id===epoch){liveRows=[];liveState='error';
@@ -452,7 +462,16 @@ E('use-current').addEventListener('click',()=>guarded(()=>{
 E('read-live').addEventListener('click',()=>{void readBrowserMetadata();});
 E('live-search').addEventListener('input',render);
 E('live-filter').addEventListener('change',render);
-E('refresh').addEventListener('click',()=>guarded(()=>{scrubEditors();void refresh();}));
+E('refresh').addEventListener('click',()=>guarded(()=>{
+  scrubEditors();
+  const refreshedEpoch=epoch+1;
+  // A deliberate Refresh is a user action, unlike automatic page-change updates.
+  // A future public SDK may read after rechecking the site's read grant.
+  void refresh().then(()=>{
+    if(epoch===refreshedEpoch&&mode==='browser'&&!targetPending&&
+       typeof browserSdk()?.cookies?.getAll==='function')return readBrowserMetadata();
+  }).catch(error=>status('刷新失败：'+String(error.message||error),'error'));
+}));
 E('search').addEventListener('input',render);
 E('add').addEventListener('click',()=>guarded(()=>openEditor()));
 E('import-toggle').addEventListener('click',()=>guarded(()=>{

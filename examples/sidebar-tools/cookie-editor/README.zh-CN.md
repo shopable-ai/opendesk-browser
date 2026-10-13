@@ -2,7 +2,7 @@
 
 **产品身份：** Side Panel → 工具 → 发现工具 → Cookie Editor。官方目录中仍是 `optional`，使用已有安装器、停用/启用和卸载机制，不是另一款 Chrome 扩展。
 
-> **本版本 1.1.0：真实 Cookie 操作仍为 BLOCKED。** 截至审计时的仓库 `main`，`OpenDeskSDK.browser` 尚无 `cookies` 命名空间，安装包 Capability 白名单也不接受 `browser.cookies.*`。因此 **不会读取、查看真实敏感值、创建、修改、删除或清除 Chrome Cookie**。代码不会调用私有 `browser.cookies.approve/execute` 或直接访问 `chrome.cookies`。
+> **本版本 1.1.1：真实 Cookie 操作仍为 BLOCKED。** 截至审计时的仓库 `main`，`OpenDeskSDK.browser` 尚无 `cookies` 命名空间，安装包 Capability 白名单也不接受 `browser.cookies.*`。因此 **不会读取、查看真实敏感值、创建、修改、删除或清除 Chrome Cookie**。代码不会调用私有 `browser.cookies.approve/execute` 或直接访问 `chrome.cookies`。
 
 ## 用户能做什么
 
@@ -45,3 +45,11 @@ npm run verify
 ```
 
 本次通过 GitHub 远端仓库读取和条件式写入，**没有访问用户 Mac 工作区**。上面的 Node/Build/Verify/Chrome 命令均不能标记为已运行；证据等级单独见 `docs/framework/workstreams/cookie-editor-r2.{md,json}`。绝不把静态源码检查当作真实 Chrome 验收。
+
+## R2.1：正式 SDK 接入核查
+
+最新 main 的真实 Cookie 路径是：受信 Side Panel 的 `trusted-cookie-workbench.js` → 私有 `browser.cookies.approve/execute` → `browser-cookie-host.js` → 现有 `cookies.js` → Chrome。该路径仅对受信界面开放，不是普通可选安装工具的 `OpenDeskSDK.browser.cookies`，也不构成 Cookie Editor 的授权。
+
+R9 需要将既有底层 Service 纳入唯一正式 SDK/Host/Capability 调用链，按工具安装身份、网站、Store 和 Partition 授权，强制在受信 Host 对无 `browser.cookies.values` 授权的响应脱敏。现有可信 Host 的 `getAll` 返回 `{cookies,scope}`，而 Cookie Editor 为 Chrome 风格 `getAll({url})` 预留数组结果；必须在 R9 确定唯一正式输出格式后同步接入，不得新增兼容 API 或让 Cookie Editor 调用私有 approve/execute。现有 `clearSite` 仅是当前 URL 匹配范围，不可直接冒充精准 Host-only 预览清理。
+
+本版本修复模式对应网站标题、手动刷新授权后重新读取、编辑目标地址时丢弃异步旧结果、分区祖先元数据、首屏文案。Cookie Editor 的真实读写与独立敏感值权限仍是 `BLOCKED`；隔离 V8 检查不能替代 Node、构建或真实 Mac Chrome 验收。

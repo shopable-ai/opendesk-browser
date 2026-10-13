@@ -30,6 +30,7 @@ async function harness(browser=null){
     'setLiveTarget:url=>{liveTarget=parseTarget(url);targetPending=false;liveRows=[];liveState="idle"},'+
     'setTargetPending:value=>{targetPending=value},'+
     'liveSnapshot:()=>({rows:liveRows,state:liveState,message:liveMessage}),'+
+    'render,getSiteHeading:()=>E("site-host").textContent,'+
     'setSite:host=>{data={hostname:host,origin:"https://"+host,cookies:[]}},'+
     'setRows:rows=>{data={...data,cookies:rows}}};\n})();');
   const context={
@@ -231,4 +232,46 @@ test('An edited target must be confirmed before a live Cookie read',async()=>{
   s.setTargetPending(true);
   await s.readBrowserMetadata();
   assert.equal(reads,0);
+});
+
+test('Browser header never identifies the offline fallback as a real website',async()=>{
+  const s=await harness();
+  s.render();
+  assert.equal(s.getSiteHeading(),'尚未选择网站');
+  s.setLiveTarget('https://example.com/account');
+  s.render();
+  assert.equal(s.getSiteHeading(),'example.com');
+});
+
+test('Cookie partition metadata keeps cross-site ancestor and discards native values',async()=>{
+  const s=await harness();
+  const [row]=s.redactMetadata([{name:'sid',domain:'.example.com',path:'/',value:'TOP_SECRET',
+    partitionKey:{topLevelSite:'https://first.example',hasCrossSiteAncestor:true}}]);
+  assert.equal(row.partitionKey.hasCrossSiteAncestor,true);
+  assert.equal(Object.hasOwn(row,'value'),false);
+});
+
+test('An in-flight Cookie read cannot repopulate metadata after target URL was edited',async()=>{
+  let resolveRead,readStarted=false;
+  const result=new Promise(resolve=>{resolveRead=resolve});
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{
+    getAll:async()=>{readStarted=true;return result;}
+  }});
+  s.setLiveTarget('https://example.com/account');
+  const operation=s.readBrowserMetadata();
+  for(let i=0;i<5&&!readStarted;i++)await Promise.resolve();
+  assert.equal(readStarted,true);
+  s.setTargetPending(true);
+  resolveRead([{name:'sid',value:'TOP_SECRET',domain:'example.com',path:'/'}]);
+  await operation;
+  assert.equal(s.liveSnapshot().rows.length,0);
+  assert.notEqual(s.liveSnapshot().state,'ready');
+});
+
+test('Explicit refresh retries only an authorized read and never reuses a stale target',async()=>{
+  const s=await harness();
+  assert(s.source.includes('const refreshedEpoch=epoch+1;'));
+  assert(s.source.includes("if(epoch===refreshedEpoch&&mode==='browser'&&!targetPending"));
+  assert(s.source.includes('return readBrowserMetadata()'));
+  assert(s.source.includes('valueRedacted:true'));
 });

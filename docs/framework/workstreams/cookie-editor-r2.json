@@ -37,7 +37,8 @@
     "GitHub source inspection",
     "V8 JavaScript syntax check",
     "V8 controlled component smoke (6 assertions: SDK grant, metadata redaction, pending URL, parsing); not native Chrome",
-    "Sidebar tool package validator in V8 (valid 1.1.0; rejects unsupported Cookie capability)"
+    "Sidebar tool package validator in V8 (valid 1.1.0; rejects unsupported Cookie capability)",
+    "R2.1 V8 synthetic DOM/SDK smoke: grant fail closed, redaction, site guard, explicit refresh"
   ],
   "testsNotRun": [
     "node --test",
@@ -54,6 +55,13 @@
   "cookieEditorPackageHash": null,
   "note": "Remote source edits only if optimistic content SHA guards hold. No native evidence and no fake 95+.",
   "notes": [
-    "2026-10-13 R2.0.1 target input pending fence and stale authorization; Node/Chrome not executed"
-  ]
+    "2026-10-13 R2.0.1 target input pending fence and stale authorization; Node/Chrome not executed",
+    "R2.1: fixed browser/offline header identity and stale read on edited site; manual refresh re-checks public SDK read grant; partition ancestor preserved",
+    "Current trusted Chrome Cookie manager is separate from ordinary installed Cookie Editor; no permission inheritance",
+    "V8 synthetic component smoke PASS; Node, Build, Verify, Mac Chrome NOT_TESTED"
+  ],
+  "cookieEditorVersion": "1.1.1",
+  "trustedHostCookieOperations": 11,
+  "trustedHostExposure": "HOST_ONLY; internal approve/execute, not OpenDeskSDK.browser.cookies",
+  "productDuplicateUiPresent": true
 }
