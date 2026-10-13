@@ -159,3 +159,19 @@ Chrome 验收路径：使用相同源文件和 `programId=marked-a`，检查→�
 | Controller 新增 Worker-compatible Classic、D09 真正 Chrome 重启断网、D10 定时/云控 | 旧预装库与 Runner 仍保留，但全新 Classic 下载→Worker，以及完整重启断网/撤权/定时/云控同一固定 Revision，本轮无足够原始回执 | INCOMPLETE；不能用 Controller ESM 的 Node/Chrome 驱动代替 Classic PASS |
 
 **验证分级与未完成事项：** 历史 R7.2 CI 27/27 Node PASS 只属于旧候选；新增 Node/Standard/Developer/Package/ZIP 仍以当前 SHA 实际 jobs 为准。`MAC_NATIVE_NOT_TESTED`（本会话不能访问用户 Mac），`OFFLINE_NOT_CLOSED`，`CWS_COMPLIANCE_NOT_CLOSED`。未知 Native effect、无权限、坏 SHA 等必须继续安全阻断。八维 95+ 为 `NOT_SCORED`，而非宣称达到。
+
+## R7.3 源码/CI 交接（2026-10-13）
+
+本次采用原唯一 `dependency-manager.js` / SHA `frameworkKV`、Host/Auth、Controller opaque Worker。R7.3 未新建任何并行 Runner、运行沙箱或 CDN ScriptTag 默认装载器。以下为已提交源码，并非 Chrome PASS：
+
+| 模块 | 提交 / 真实文件 | 当前状态 |
+| --- | --- | --- |
+| P0 SDK Schema 重复损坏、语法断裂 | `56be91a2b5ea2eafe3cd4169c0bc2a02408f2f9e` 和再次修复 `2e7af9287cc45e27405c87a9081b0748aaabe1b3` · `src/framework/sdk/browser-schemas.js` | 修复后 JS 语法解析 PASS；并行 Agent 一度再次写坏，npm/check/CI 新候选尚待完成 |
+| D04 CSV 编号 | `2ad5c273d942962973990d314031e2003a45b55a` · `tests/framework/controller-dependency-r72-cft-cycle.mjs` | D04 标识纠正，实际 Chrome 待验收 |
+| D05 Classic Parser / SHA 技术锁 | `7e2a2862de08d9072ae26d903929f29ee16d8331` + `bef9b703bcbba5347addf0374df48c52219b100f` · `controller-classic.js` / `dependency-manager.js` | SOURCE_IMPLEMENTED；Worker-only raw bytes，锁依 Program/sourceHash/world；共享字节不共享锁、浏览器授权 |
+| D05 现有 Broker / Side Panel / 冻结 Save | `c746a41a25f1d663da28bd4f437c574786ffacd2` + `205ba282678d3054ca6563416ae02c81dfee45a8` + `393f29cdc5b9e74dbfcbda61b65b2b88327e24fa` | SOURCE_IMPLEMENTED；不在 SW eval；Saved 仍须运行期缓存安全回归 |
+| 原生 CFT 和模拟负例 | `8bd2deea720941af1d69f2d432b576c4eeecd622` + `38cbaefe31d6e2daece5adac4489ae33bb65e0a2` + `4d7471936be473aaf6222f861a65a8fb23a798ef` + `01d09a9ad60f1589ca54c7b452d8baf9f54f0530` + `8394ec940cf2a11115108db0d292ae9332c11a43` + `f0939348f01c1338613ce199294906ce469fa708` | 已提交真实 D05 浏览器驱动（mitt@3.0.1）和定向 Node 回归代码，尚未看到本候选 CI 成功 |
+
+GitHub 相关执行：`38393233527` 为 macos-15 R7.3 CFT（查询时 queued）；`38393233718` 为 Page dependencies/package（queued）。这是排队状态，不是 PASS；避免重复派发 CI。语法解析通过不等于 `npm run check`、构建、Package Verify 或 Chrome。
+
+剩余必须关闭：D02/D03 marked Page A/B 的真函数及 SHA 下载证明，D04 CSV 三上游函数结果，D05 真 Worker 输出/Stop；D08/D09 固定安装 Chrome 完整退出、离线和坏 SHA，D10 定时云控，D11 撤权和缓存缺失，D12 Standard/Developer 与 CWS 远程逻辑审查。Linux 当前环境不能读取用户的 Mac 本地工作目录，因此 `MAC_NATIVE_NOT_TESTED`，完整离线 `NOT_TESTED`，CWS `COMPLIANCE_NOT_CLOSED`。95+ 评分须基于后续实际证据。
