@@ -92,6 +92,35 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   const provider=()=>get('workflow-ai-provider').value;
   const modelScope=()=>modelDataScope({provider:provider(),
     endpoint:get('workflow-ai-endpoint').value,model:get('workflow-ai-model').value});
+  let pendingModelReview=null;
+  const modelReviewSignature=()=>JSON.stringify([
+    provider(),modelScope(),get('workflow-ai-endpoint').value.trim(),
+    get('workflow-ai-model').value.trim(),get('workflow-ai-request').value.trim(),
+    stable(),currentOrigin()
+  ]);
+  function closeModelReview(restoreFocus=false) {
+    pendingModelReview=null;
+    get('workflow-ai-disclosure').hidden=true;
+    get('workflow-ai-plan').setAttribute('aria-expanded','false');
+    if(restoreFocus&&!disposed)get('workflow-ai-plan').focus?.({preventScroll:true});
+  }
+  function showModelReview(frozen) {
+    const local=frozen.selected==='local_codex';
+    const receiver=local?'Codex':(()=>{
+      try{return new URL(frozen.endpoint).host+' / '+frozen.model;}
+      catch{return '所选 HTTPS 模型';}
+    })();
+    let website='工作流网站';
+    try{website=new URL(frozen.workflow.siteOrigin).host;}catch{}
+    get('workflow-ai-review-title').textContent='将任务发送给 '+receiver+'？';
+    get('workflow-ai-review-scope').textContent=
+      '将发送需求、'+website+'、步骤及参数结构。'+
+      (local?'Codex 推理可能联网。':'')+'网页正文不自动发送，读取时另行确认。';
+    pendingModelReview=modelReviewSignature();
+    get('workflow-ai-disclosure').hidden=false;
+    get('workflow-ai-plan').setAttribute('aria-expanded','true');
+    get('workflow-ai-review-title').focus?.({preventScroll:true});
+  }
   function renderDataDisclosure() {
     if(disposed)return;
     const selected=provider(),active=['local_codex','custom_https'].includes(selected);
@@ -99,21 +128,13 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     const receiver=selected==='local_codex'?'你连接的 Codex（模型推理可能联网）':
       (()=>{try{return new URL(get('workflow-ai-endpoint').value).host+' / '+get('workflow-ai-model').value;}
         catch{return '你配置的 HTTPS 模型';}})();
-    const site=workflow.siteOrigin||'当前网站';
-    const note=get('workflow-ai-disclosure'),button=get('workflow-ai-plan');
-    note.hidden=!active;
-    if(active) {
-      note.textContent=accepted
-        ?'发送到 '+receiver+'：任务描述、网站 '+site+'、步骤及参数结构。网页摘要需单独批准；可在 AI 设置中撤回许可。'
-        :'首次发送到 '+receiver+'：任务描述、网站 '+site+'、步骤及参数结构。点击右侧发送图标即同意本次向该模型发送上述内容；网页摘要仍需单独批准。';
-      note.dataset.consent=accepted?'granted':'required';
-    }
-    button.dataset.firstUse=String(active&&!accepted);
+    const button=get('workflow-ai-plan');
     button.dataset.disclosureScope=scope||'';
-    button.title=active&&!accepted?'同意并生成':'生成步骤';
-    button.setAttribute('aria-label',active&&!accepted?'同意数据发送并生成工作流步骤':'生成工作流步骤');
-    // Consent remains explicit in the adjacent disclosure, title and aria-label; never widen the icon button.
-    get('workflow-ai-plan-label').hidden=true;
+    // The composer stays icon-only. First-use disclosure appears only after a send click.
+    button.title='生成步骤';
+    button.setAttribute('aria-label','生成工作流步骤');
+    if(pendingModelReview&&(accepted||pendingModelReview!==modelReviewSignature()))
+      closeModelReview();
     const revoke=get('workflow-ai-revoke');
     revoke.hidden=!active||!accepted;revoke.disabled=busy;
     const resume=get('workflow-ai-resume');
@@ -222,6 +243,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     updateButtons();
   }
   function edited() {
+    closeModelReview();
     dismissNewReview();
     touched=true;proposal=null;proposalBase=null;proposalSerial=null;get('workflow-ai-proposal').hidden=true;
     hasError=false;lastRun='none';
@@ -729,15 +751,25 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         let url;try{url=new URL(frozen.endpoint);}catch{}
         if(!url||url.protocol!=='https:'||url.username||url.password||url.hash||!frozen.apiKey||!frozen.model)
           throw err('E_AI_CONFIG','请在 AI 设置中填写 HTTPS 接口、模型和本次会话 API Key');
-        permission=api.permissions.request({origins:[permissionPattern(frozen.endpoint)]});
       } else if(frozen.consent.observation) {
         captured=currentPageTarget.capture();
         if(captured.origin!==frozen.workflow.siteOrigin)throw err('E_WORKFLOW_ORIGIN','请打开工作流对应网站后启用网页观察');
       }
-      // Only the trusted "同意并生成" user gesture grants model transmission.
-      // This does not grant Chrome site permission or any browser.observe request.
+      if(!modelConsent.has(frozen.scope)) {
+        if(event.currentTarget!==get('workflow-ai-review-approve')) {
+          showModelReview(frozen);
+          return; // First click only opens review, never sends model data.
+        }
+        if(!pendingModelReview||pendingModelReview!==modelReviewSignature())
+          throw err('E_AI_SCOPE_CHANGED','发送需求或接收方已变化，请重新检查后确认');
+      }
+      // A Chrome host permission must be requested synchronously on this actual click.
+      if(selected==='custom_https')
+        permission=api.permissions.request({origins:[permissionPattern(frozen.endpoint)]});
       if(!modelConsent.has(frozen.scope))modelConsent.approve(frozen.scope);
+      closeModelReview();
     }catch(error){
+      if(event.currentTarget===get('workflow-ai-review-approve'))closeModelReview();
       if(error?.code==='E_AI_CONFIG')openAISettings(
         provider()==='custom_https'?'workflow-ai-key':'workflow-ai-provider');
       else if(error?.code==='E_AI_REQUEST')get('workflow-ai-request').focus();
@@ -841,12 +873,14 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     if(get('workflow-provider-settings').open)void refreshLocal();
   });
   listen(get('workflow-ai-provider'),'change',()=>{
+    closeModelReview();
     void stopPlanning({close:true}).catch(()=>{});
     proposal=null;proposalBase=null;proposalSerial=null;get('workflow-ai-proposal').hidden=true;
     renderProvider();if(get('workflow-provider-settings').open)void refreshLocal();
   });
   for(const id of ['workflow-ai-key','workflow-ai-model','workflow-ai-endpoint'])
-    listen(get(id),'input',()=>{updateButtons();});
+    listen(get(id),'input',()=>{closeModelReview();updateButtons();});
+  listen(get('workflow-ai-request'),'input',()=>{if(pendingModelReview)closeModelReview();});
   listen(get('workflow-ai-revoke'),'click',event=>{
     if(!event.isTrusted||busy)return;
     const scope=modelScope();if(!scope)return;
@@ -927,6 +961,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     if(last){last.open=true;last.querySelector('summary')?.focus?.({preventScroll:true});}
   });
   function commitNewWorkflow(){
+    closeModelReview();
     dismissNewReview();
     void stopPlanning({close:true}).catch(()=>{});
     workflow=emptyWorkflow(currentOrigin()||'',crypto.randomUUID());
@@ -1011,6 +1046,15 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   listen(get('workflow-refresh'),'click',()=>{void refreshSaved().catch(error=>status(format(error),true));});
   listen(get('workflow-load'),'click',()=>{void loadSaved().catch(error=>status(format(error),true));});
   listen(get('workflow-ai-plan'),'click',plan);
+  listen(get('workflow-ai-review-approve'),'click',plan);
+  listen(get('workflow-ai-review-cancel'),'click',event=>{
+    if(event.isTrusted)closeModelReview(true);
+  });
+  listen(get('workflow-ai-disclosure'),'keydown',event=>{
+    if(event.key==='Escape'){
+      event.preventDefault();closeModelReview(true);
+    }
+  });
   listen(get('workflow-ai-apply'),'click',event=>{
     if(!event.isTrusted||!proposal||proposalBase!==workflow.workflowId||busy)return;
     if(proposalSerial!==stable()) {status('草稿已改变，请重新生成并检查建议后再采用。',true);return;}
@@ -1056,7 +1100,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   render();renderProvider();status('');
   void modelConsent.load().then(()=>{if(!disposed)updateButtons();});
   return {dispose() {
-    if(disposed)return;disposed=true;compileToken++;planningGeneration++;
+    if(disposed)return;closeModelReview();disposed=true;compileToken++;planningGeneration++;
     planningAbort?.abort(err('E_HOST_CLOSED','工作流窗口已关闭'));pendingApproval?.settle({decision:'deny'});
     localPlanner.dispose();void Promise.resolve(observation.dispose()).catch(()=>{});
     unsubscribePage?.();unsubscribeRun?.();unsubscribeNative?.();
