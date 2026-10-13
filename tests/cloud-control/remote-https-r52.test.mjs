@@ -218,6 +218,16 @@ test('one Provider serves authenticated HTTPS/WSS and target-scoped client submi
       admin.adminToken);
     await assert.rejects(retry('/v1/submit',{...seed,requestKey:'after-revoke'},
       grant.credential),{code:'E_AUTH'});
+    const rotatedGrant=randomUUID();
+    await retry('/v1/capabilities',{grantId:rotatedGrant,
+      tasks:[...taskAdvertised,{taskId:searchPin.taskId,
+        manifestHash:searchPin.manifestHash,sourceHash:searchPin.sourceHash}]},
+      executor.credential);
+    await assert.rejects(retry('/v1/job-status',{jobId:contentJob.jobId},
+      permittedResultClient.credential),{code:'E_AUTH'},
+      'Old external client cannot see data after Browser re-approval');
+    await assert.rejects(retry('/v1/capabilities',{grantId,
+      tasks:taskAdvertised},executor.credential),{code:'E_GRANT_STALE'});
     const state=JSON.parse(await readFile(join(directory,'state.json'),'utf8'));
     assert.equal(Object.keys(state.jobs).length,4);
     assert.equal(state.jobs[created.jobId].targetExecutorId,executorId);
