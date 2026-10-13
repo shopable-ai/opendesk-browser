@@ -4,6 +4,7 @@ export const PACKAGE_ENTRIES = Object.freeze({
   'ui/tool-shell': './src/ui/tool-shell.js',
   'ui/stay-focus-controls': './src/entrypoints/stay-focus-controls.js',
   'ui/trusted-cookie-ui': './src/entrypoints/trusted-cookie-ui.js',
+  'ui/sidebar-tool-host': './src/entrypoints/sidebar-tool-host.js',
   'ui/cloud-console': './src/ui/cloud-control-console.js',
   'ui/marketplace': './src/marketplace/page.js',
   'marketplace/market-host': './src/marketplace/external.js',
