@@ -161,8 +161,13 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
   }
   async function operate(op,args,target){
     if(op==='browser.cookies.getAll')return {cookies:await read(target,args),scope:'CURRENT_URL_MATCHES'};
-    if(op==='browser.cookies.get')
-      return {cookie:(await read(target,args)).find(row=>row.name===args.name)??null};
+    if(op==='browser.cookies.get'){
+      const matches=(await read(target,args)).filter(row=>row.name===args.name);
+      // getAll may include identical names from different paths/partitions.
+      // Never return an arbitrary first match with an unintended secret.
+      if(matches.length>1)throw error('E_COOKIE_AMBIGUOUS','Select the exact path and partition from getAll');
+      return {cookie:matches[0]??null};
+    }
     if(op==='browser.cookies.getStores')return {stores:[await existing.getStores({url:target.url},{target})]};
     if(op==='browser.cookies.getPartitionKey')
       return existing.getPartitionKey({url:target.url},{target});
