@@ -1,4 +1,5 @@
 import {normalizeAiProposal} from '../../framework/workflow/contract.js';
+import {workflowForModel} from './data-sharing.js';
 
 const bytes=value=>new TextEncoder().encode(value).byteLength;
 const fail=(code,message)=>Object.assign(new Error(message),{code});
@@ -61,8 +62,9 @@ export function workflowCodexInput(request,workflow) {
     'Preserve useful existing steps when refining. Prefer parameters for values the user will reuse. Do not claim unobserved locators were verified.',
     'User request and current reviewed workflow follow as JSON data:'
   ].join('\n');
-  const input=instructions+'\n'+JSON.stringify({request,siteOrigin:workflow.siteOrigin,
-    title:workflow.title,description:workflow.description,steps:workflow.steps,paramsSchema:workflow.paramsSchema});
+  const shared=workflowForModel(workflow);
+  const input=instructions+'\n'+JSON.stringify({request,siteOrigin:shared.siteOrigin,
+    title:shared.title,description:shared.description,steps:shared.steps,paramsSchema:shared.paramsSchema});
   if(bytes(input)>32768)throw fail('E_AI_INPUT_LIMIT','需求和步骤超过本机会话的发送上限，请缩短后重新发送');
   return input;
 }
