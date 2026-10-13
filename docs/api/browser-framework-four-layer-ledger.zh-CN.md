@@ -1,3 +1,5 @@
+**R10.1 当前四层账本（2026-10-13）**：正式 Browser SDK **44 项正式登记 / 44 项 SOURCE_WIRED**，包含 Cookies 11 项及本轮新增 Downloads 自有下载 4 项。真实 Chrome downloads 通过唯一 Browser Host + 受限 Driver，下载及取消均需受信 Side Panel 真点击、Host 一次性批准、安装身份/Chrome 权限验证；任何工具不可获知原生下载 ID 或枚举全局历史。原 114 候选旧命名不因新功能自动复活。**本候选 Node、Build、Mac Chrome 均未取得完整 PASS 证据**；历史 R6/R9 快照数字仅存档。
+
 > **R9 当前四层合同（2026-10-13）**：正式 Browser SDK **40 项正式登记 / 40 项 SOURCE_WIRED / 11 项 Cookies**，旧 114 个原始候选中 **15 项已晋级、99 项仍是历史候选**。Cookie 的原始 10 候选中 9 项采用现名晋级；旧 `getStores` 没有作为别名保留，新增 `getCurrentStore` 与 `observe.read` 属当前正式 SDK。安装工具受独立网站/敏感值授权限制，官方工具身份不构成免授权。**Mac Chrome 原生验收 0 项同候选 PASS（NOT_TESTED）**。下文保留 R6 历史快照，不再当作现行统计。
 
 # 浏览器框架四层总账（R6，2026-10-13）
