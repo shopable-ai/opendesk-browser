@@ -17,11 +17,18 @@ const requireEvent=(steps,name)=>{
   return matches[0].result;
 };
 export function inspectR5TaskNativeReport(report,{
-  head,actualPackageHash,taskSourceHash,expectedTaskId,expectedTaskVersion
+  head,actualPackageHash,taskSourceHash,expectedTaskId,expectedTaskVersion,
+  expectedPlatform='darwin'
 }={}){
   assert.equal(report?.status,'PASS','Original native driver did not PASS');
   assert.equal(report?.native,true,'Only original actual Chrome driver report is supported');
-  assert.equal(report?.platform,'darwin','Cannot promote Linux/node fixtures to macOS baseline');
+  assert(['darwin','linux'].includes(expectedPlatform),'Only explicit macOS or Linux Chrome baseline supported');
+  assert.equal(report?.platform,expectedPlatform,
+    'Native report platform mismatch; Linux Chrome must never become a macOS receipt');
+  if(expectedPlatform==='linux'){
+    assert.match(report?.sandboxPolicy||'',/explicit isolated Linux CI --no-sandbox/,
+      'Linux CI report must disclose isolation and sandbox limitation');
+  }
   assert(SHA.test(head)&&report.gitSha===head,'Original report must bind its exact CI SHA');
   assert(SHA.test(actualPackageHash)&&report.package?.packageHash===actualPackageHash,
     'Loaded extension and physical package fingerprint differ');
@@ -47,7 +54,7 @@ export function inspectR5TaskNativeReport(report,{
   const reportSummary={
     format:'opendesk.global-first-r5-real-task-baseline-audit.v1',
     role:'STRUCTURAL_CROSSCHECK_OF_NATIVE_REPORT_AND_PHYSICAL_PACKAGE',
-    sourceHead:head,packageHash:actualPackageHash,taskSourceHash,
+    sourceHead:head,platform:expectedPlatform,packageHash:actualPackageHash,taskSourceHash,
     taskId:installed.taskId,taskVersion:installed.version,
     initialManualRunId:original.verifiedRunId,scheduledRunId:scheduled.runId,
     scheduledResultId:scheduled.resultId,scheduledDocumentId:scheduled.documentId,
@@ -63,20 +70,22 @@ export function inspectR5TaskNativeReport(report,{
 }
 
 async function main(argv){
-  if(argv.length!==3)throw Error('Usage: node scripts/global-first-r5-native-baseline-audit.mjs NATIVE_REPORT.json EXTENSION_DIR EXPECTED_HEAD');
-  const [reportPath,packageDir,head]=argv;
+  if(argv.length!==3&&argv.length!==4)throw Error('Usage: node scripts/global-first-r5-native-baseline-audit.mjs NATIVE_REPORT.json EXTENSION_DIR EXPECTED_HEAD [--platform=linux]');
+  const [reportPath,packageDir,head,option]=argv;
+  if(option!==undefined&&option!=='--platform=linux')throw Error('Only explicit --platform=linux is supported');
+  const expectedPlatform=option==='--platform=linux'?'linux':'darwin';
   const report=JSON.parse(await readFile(reportPath,'utf8'));
   const pkg=JSON.parse(await readFile('examples/tasks/form-fill.v1.opendesk-task.json','utf8'));
   const physical=await packageFingerprint(packageDir);
   const summary=inspectR5TaskNativeReport(report,{
     head,actualPackageHash:physical.packageHash,taskSourceHash:hash(pkg.sourceUtf8),
-    expectedTaskId:pkg.manifest.taskId,expectedTaskVersion:pkg.manifest.version
+    expectedTaskId:pkg.manifest.taskId,expectedTaskVersion:pkg.manifest.version,expectedPlatform
   });
   const target=path.join(path.dirname(reportPath),'global-first-r5-native-task-audit.json');
   await mkdir(path.dirname(target),{recursive:true});
   await writeFile(target,JSON.stringify(summary,null,2)+'\n',{flag:'wx'});
   process.stdout.write(JSON.stringify({audit:summary.sourceConsistency,status:summary.nativeDriverStatus,
-    sourceHead:summary.sourceHead,scheduledRunId:summary.scheduledRunId,
+    sourceHead:summary.sourceHead,platform:summary.platform,scheduledRunId:summary.scheduledRunId,
     modelIndependentAIChain:summary.modelDisconnectedAndSameInstalledVersionRepeatedTwice})+'\n');
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href)
