@@ -1,3 +1,40 @@
+# Global First R4 · AI-first SEO/GEO 最新执行口径（2026-10-13）
+
+**真实决策**：目前没有获批的全球/区域/任务第一，0 个可证明的第2—5名；GF-013/014 已有公开竞品反例。以 [R4 TOP5 和26个用户任务](global-first-r2-decision.zh-CN.md) 为最终来源，旧“人工 JSX 编写”营销主线降为工程副属性。
+
+## 面向真人的 M0 宣传（产品方向，不是假称完整版已可安装）
+
+中文：**让 AI 帮你制作浏览器工具，审核源码、站点权限和固定版本，以后重复使用。**  
+English: **Create browser tools with AI assistance. Review source, site permissions and version before reusing supported workflows.**
+
+具体用户体验是 AI 提议动作 → 用户审阅 → 保存/验证固定 Task → 明确安装 → 适用网站独立重复 Run。**尚缺同包 Mac Chrome 的模型关闭后正式安装再 Run 两次完整证据**；Native/Node、AI 提供者、Chrome 权限不可能无条件省略。不要在官网写“已全球第一”“无需模型或任何成本”“任何网页自动运行”“最安全/最快”。
+
+## 五份双语需求/竞争事实页
+
+1. [AI 创造→安装→无模型重复使用 / AI-to-reusable browser task](seo/ai-to-reusable-browser-task.zh-CN.md)
+2. [固定版本、来源和网站许可 / Review source, version and site scope](seo/reviewable-versioned-browser-tools.zh-CN.md)
+3. [AI 制作网页组件与任务 / AI-created page tools and tasks](seo/ai-created-page-tools-and-tasks.zh-CN.md)
+4. [AI 修改多文件并显式 Run / AI-edited multi-file browser workflow](seo/ai-edited-multifile-browser-workflow.zh-CN.md)
+5. [卖家合法业务核查 / Authorized seller workflow checks](seo/seller-browser-workflow-assistant.zh-CN.md)
+
+每份事实页有谁在用、真实任务、产品体验、强反例、代码证据、功能缺口、来源/可尝试入口和准确中英文描述。现存 GitHub Markdown 不意味着已部署正式官网、可索引 canonical 或真正 Chrome 商店可安装。官网部署待确认域名、canonical、sitemap、正确可抓取正文、内部链接与 CWS 安装目标；当前 **NOT_DEPLOYED / NOT_TESTED**。
+
+## SEO/GEO 查询、数据归因和可宣传边界
+
+[研究 JSON](../../framework/workstreams/evidence/global-first-r4-20261013/research-evidence.json) 预注册了 24 条中/英文 Google/Bing/AI 搜索真实任务查询，**目前全为 NOT_TESTED**。实际跟踪：query/语言/地区、时间、Google 公开索引与 Search Console、Bing AI Performance cited URL/grounding query、不同 AI 入口引用是否准确、Chrome Store 安装、首次完成任务、7/30 天复用，不能用“AI 提到了我们”代替真实用户价值。
+
+[Google 官方 AI 搜索](https://developers.google.com/search/docs/appearance/ai-features) 不要求额外 AI 专用 Schema 或 llms.txt；[Bing AI Performance](https://blogs.bing.com/webmaster/2026/2/Introducing-AI-Performance-in-Bing-Webmaster-Tools-Public-Preview/) 是 2026-02-10 开始的公开预览，仅覆盖声明的引用数据并不保证模型推荐。
+
+- **M0** 目前可说产品方向、代码里实际存在的能力和待验证条件。
+- **M1** 同源码/同包 Chrome 有原始日志、安装身份、真实结果后可说具体版本演示。
+- **M2** 预注册同机真实对手基准完成后可说“在指定任务/版本/时间的 N 个方案中排名 X”。
+- **M3** 唯一 [GF 账本](first-claims-ledger.json) 提升 CLAIM_APPROVED、检索全球早期公开版本与发行合规审查后才可说世界首创/全球第一。
+- **禁止** 将 Beta 隐藏、把外部 AI 编程+扩展组合排除、用软件代码替代实际产品可获得性、用虚构专家评分称 95 分。
+
+---
+
+## 历史手册（R1/R2 旧优先级，仅保留追溯）
+
 # OpenDesk Browser：细分赛道第一营销执行手册 R1
 
 ## R4 · AI 优先定位及 SEO/GEO（覆盖以下 R1/R2 人工编辑主线）
