@@ -63,3 +63,10 @@
 - **浏览器阻断**：尝试临时 localhost 43111 + 本环境 Linux Chromium Playwright；导航返回 `net::ERR_BLOCKED_BY_ADMINISTRATOR`，未形成任何浏览器正常运行 PASS，资源已关闭。Mac Chrome、用户脚本真实安装/授权/撤权/Stop、包 SHA/ZIP 一律 `NOT_TESTED`。
 - **并行保护**：GitHub `main` 使用原子树提交与预期 HEAD 校验，仅改本工作流 11 个路径；不创建分支/Worktree/PR，不强推。用户 Mac 本地 Git、Chrome profile 和测试资源不可访问，不能凭远端提交推定本地安装或原生成功。
 - **下一步**：在能访问 Mac 的串行执行环境核对 `git status --short --branch` 与 `origin/main`，保护未提交文件后安全同步远端（不再应用旧补丁）；执行项目校验、受影响构建、真实 Chrome 用户脚本/网站授权/导航/Stop/重复运行，并追加绑定候选 SHA 的回执。EXP-007 与条件性 P3 保留待办。
+
+
+### CI 路径回归修复（2026-10-13）
+
+- 初次源码提交 `76e7e0125b49a80a901ec4402bfc9da161a02406` 的 GitHub Actions 显示：四个传统任务被 `tests/environment/basic-browser-page.test.mjs` 的「仅一个内联 JavaScript、禁止外部脚本」合同拦截。根因是新增的 `<script src="./listing-sku-fixture.js">`，而不是 Listing/SKU 检查算法的八项 Node 测试。
+- 已将原测试场景逻辑并入 `examples/tasks/demo-form.html` 原本唯一的内联脚本，并以 `typeof document.querySelector === 'function'` 守护原 Node DOM 测试替身；新 R3 测试从实际 HTML 内联源码运行场景，移除独立重复的 `listing-sku-fixture.js`。没有放宽或删除原 `basic-browser-page` 断言。
+- 此次修正需要以新的远端提交与 GitHub Actions 回执重新判定；独立组件测试不代表整个构建或 Mac Chrome 完成。

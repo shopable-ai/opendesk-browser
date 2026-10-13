@@ -128,13 +128,16 @@ test('P2 project remains existing Page USER_SCRIPT with isolated CSS and officia
   const html=await readFile('examples/tasks/demo-form.html','utf8');
   assert.match(html,/id="listing-sku-fixture"/);
   assert.match(html,/data-opendesk-listing-fixture="seller-listing-v1"/);
-  assert.match(html,/src="\.\/listing-sku-fixture\.js"/);
-  assert.match(await readFile('examples/tasks/listing-sku-fixture.js','utf8'),/data-listing-preset/);
+  assert.match(html,/EXP005_FIXTURE_START/);
+  assert.match(html,/data-listing-preset/);
+  assert.doesNotMatch(html,/<script[^>]+src=/);
 });
 
 
 test('P2 the actual local page preset buttons switch valid/missing/duplicate/variant inputs',async()=>{
-  const source=await readFile('examples/tasks/listing-sku-fixture.js','utf8');
+  const html=await readFile('examples/tasks/demo-form.html','utf8');
+  const source=html.match(/\/\/ EXP005_FIXTURE_START\n([\s\S]*?)\n\s*\/\/ EXP005_FIXTURE_END/)?.[1];
+  assert.ok(source,'Fixture code must live in the canonical inline script');
   const data=valid();
   const keys=['title','description','parentSku'];
   const top=Object.fromEntries(keys.map(key=>[key,control(data[key])]));
