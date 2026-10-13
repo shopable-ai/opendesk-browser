@@ -90,7 +90,7 @@ test('generic Provider delivers two distinct fixed, locally registered Controlle
       assignments.push(result.assignment);
       const runRef={runId:randomUUID(),resultId:randomUUID(),
         requestId:'cloud:'+result.assignment.assignmentId,
-        sourceHash:jobs[i].sourceHash,manifestHash:jobs[i].manifestHash,grantId:randomUUID()};
+        sourceHash:jobs[i].sourceHash,manifestHash:jobs[i].manifestHash,grantId};
       const admission={assignmentId:result.assignment.assignmentId,runRef,resultAllowed:false};
       const permit=await post('/v1/admission',admission);
       assert.equal(permit.runRef.sourceHash,jobs[i].sourceHash);
