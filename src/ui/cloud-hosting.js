@@ -46,6 +46,20 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
       selections.get(cloudChoiceKey(task))?.resultAllowed).length;
     put('cloud-approval-summary',selected.length+' 项已选 · '+uploaded+
       ' 项允许回传结果正文；未勾选的任务仅回传最小执行状态。');
+    // Review only the selected immutable identities. The HTML must not copy
+    // manifest descriptions as markup or disclose their source SHA by default.
+    const review=get('cloud-approval-review'),items=get('cloud-review-items');
+    review.hidden=selected.length===0;items.replaceChildren();
+    for(const task of selected){
+      const row=doc.createElement('li'),schema=task.paramsSchema;
+      const parameters=schema?.properties?Object.keys(schema.properties).map(name=>
+        name+(schema.required?.includes(name)?'（必填）':'（可选）')).join('、'):'待核对';
+      row.textContent=task.title+' · v'+task.version+
+        ' · 网站：'+task.siteOrigins.join('、')+
+        ' · 参数：'+(parameters||'无')+
+        ' · 结果正文：'+(selections.get(cloudChoiceKey(task))?.resultAllowed?'允许':'不回传');
+      items.append(row);
+    }
     const button=get('cloud-approve');
     if(button)button.disabled=!selected.length||!button.cloudCanApprove;
   }
@@ -61,6 +75,10 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
       stamp=JSON.stringify([projected,!!cloudState.enabled]);
     if(stamp===lastCatalogStamp)return;
     lastCatalogStamp=stamp;taskChoices=projected;
+    // An external install/upgrade/consent change makes any earlier human
+    // confirmation stale, even when the old Task remains selected.
+    get('cloud-consent').checked=false;
+    get('cloud-result-consent').checked=false;
     const keys=new Set(taskChoices.map(cloudChoiceKey));
     for(const key of selections.keys())if(!keys.has(key))selections.delete(key);
     const parent=get('cloud-task-list');parent.replaceChildren();
@@ -309,7 +327,12 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     const selection=selections.get(key)||{selected:false,resultAllowed:false};
     if(input.dataset.cloudTaskKey)selection.selected=!!input.checked;
     else selection.resultAllowed=!!input.checked;
-    selections.set(key,selection);renderApprovalSummary();
+    selections.set(key,selection);
+    // A user must confirm the exact current selection, not an earlier
+    // version of the list or an earlier result-body consent scope.
+    get('cloud-consent').checked=false;
+    get('cloud-result-consent').checked=false;
+    renderApprovalSummary();
   };
   get('cloud-task-list').addEventListener('change',onChoiceChange);
   listeners.push(['cloud-task-list',onChoiceChange,'change']);
@@ -373,7 +396,7 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
   async function poll(){if(disposed)return;try{if(!busy){
     const s=await cloud.cloudStatus({includeRequests:false});
     if(!busy&&!disposed)try{await dispatchNext(s);}catch(error){operationFail(error);}
-    const cloudVisible=doc.documentElement?.dataset?.opendeskTab==='tasks';
+    const cloudVisible=doc.documentElement?.dataset?.opendeskTab==='cloud';
     if(!busy&&!disposed&&Date.now()-lastFullRefresh>=(cloudVisible?5000:15000))await refresh();
   }}catch(e){if(!disposed)fail(e);}finally{if(!disposed)timer=setTimeout(poll,2000);}}
   void poll();return {refresh,dispose(){disposed=true;clearClientToken();clearTimeout(timer);for(const[id,fn,event='click']of listeners)get(id).removeEventListener(event,fn);}};
