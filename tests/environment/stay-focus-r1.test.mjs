@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {focusHost,hostnameMatches,focusLocalDay,FOCUS_MAX_GAP_MS} from '../../src/stay-focus/policy.js';
+import {focusHost,hostnameMatches,focusRemovedOriginAffectsSite,focusLocalDay,FOCUS_MAX_GAP_MS} from '../../src/stay-focus/policy.js';
 import {emptyFocus,readFocus,focusSite,focusSchedule,focusMatchingSite,focusPool,
   focusBudget,focusReason,focusScheduleActive,settleFocus} from '../../src/stay-focus/model.js';
 import {focusRuleForSite,wantedFocusRules,reconcileFocusRules,clearFocusRules,isFocusRuleId}
@@ -23,6 +23,19 @@ test('strict hostname and IDN do not substring-match attacker domains',()=>{
   assert.equal(hostnameMatches('notyoutube.com','youtube.com',true),false);
   assert.equal(hostnameMatches('youtube.com.evil.test','youtube.com',true),false);
 });
+test('Chrome origin revocation patterns are scoped to affected website rules',()=>{
+  const parent=mkSite('example.com'),exact=mkSite('example.com',{subdomains:false});
+  assert.equal(focusRemovedOriginAffectsSite('https://example.com/*',parent),true);
+  assert.equal(focusRemovedOriginAffectsSite('https://child.example.com/*',parent),true);
+  assert.equal(focusRemovedOriginAffectsSite('https://child.example.com/*',exact),false);
+  assert.equal(focusRemovedOriginAffectsSite('*://*.example.com/*',exact),true);
+  assert.equal(focusRemovedOriginAffectsSite('https://unrelated.test/*',parent),false);
+  assert.equal(focusRemovedOriginAffectsSite('<all_urls>',parent),true);
+  assert.equal(focusRemovedOriginAffectsSite('*://*/*',parent),true);
+  assert.equal(focusRemovedOriginAffectsSite('https://example.com.evil.test/*',parent),false);
+  assert.equal(focusRemovedOriginAffectsSite('not-a-host-pattern',parent),false);
+});
+
 test('strict model schema, per-site enable and white-list exception',()=>{
   const s=emptyFocus(at);s.enabled=true;s.sites=[mkSite('example.com')];
   assert.equal(focusMatchingSite(s,'a.example.com')?.host,'example.com');
