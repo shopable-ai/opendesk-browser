@@ -10,7 +10,7 @@
 | 一眼看懂 | 当前可信事实 |
 | --- | --- |
 | **总目录** | **10 个领域、110 个可追溯功能/质量检查点**，其中 98 项产品/系统功能 + 12 项部署/质量；UI 39 项是交叉验收，不重复相加 |
-| **源码覆盖** | **107 项 SOURCE_IMPLEMENTED / 3 项 NOT_IMPLEMENTED**。剩余：UI-07 已授权 Task 详情与变更指引、UI-08 请求详情与原始 Result 入口、OPS-05 获批准公网跨网原生端到端；**107/110 不是实际完成百分比** |
+| **源码覆盖** | **108 项 SOURCE_IMPLEMENTED / 2 项 NOT_IMPLEMENTED**。剩余：UI-08 请求详情与原始 Result 入口、OPS-05 获批准公网跨网原生端到端；**108/110 不是实际完成百分比** |
 | **任务书** | [唯一手册](../cloud-control-r5.2-execution-manual.zh-CN.md)：**7 Gate / 30 包**，先 G0 同候选 CI/构建，再 G1 安全、G2 双 Task 真 Chrome、G3 UI、G4 可信远程、G5 故障、G6 评分 |
 | **专家初评** | [专家评分账本](cloud-control-r5-02-expert-scorecard.json) 的方案静态初评 **86/100**；15 维正式 DESIGN / IMPLEMENTATION / VERIFICATION 仍 **NOT_VERIFIED**；任一 P0 缺证据不能宣称整体 ≥95 |
 | **当前验证阻断** | 旧固定候选 [#38379208965](https://github.com/shopable-ai/opendesk-browser/actions/runs/38379208965) Cloud 45/45 PASS，但 Authority 105 后 OOM，整体 FAIL；Mock 修复已提交，**新候选须独立核对** |
@@ -21,10 +21,13 @@
 
 1. **G0**：固定候选核对云控 + Controller Authority OOM 修复的实际 CI、受影响文件输入 SHA；完成不提高 524288-byte 预算的 check / production+development build / verify，保存 PackageHash。
 2. **G2**：在获独占的原生 Chrome 中真正安装两份不同 Task，分别提交表单与搜索；收集两套 Job/Assignment/Run/Result/sourceHash/released/Provider receipt，双 Executor 拒绝串单。
-3. **G3**：在**唯一生产 Cloud Tab** 补 UI-07 已授权详情和 UI-08 单请求详情/原结果入口；交互仍复用原 Host/History、无第二个 UI 产品；完成五档宽度、Zoom、键盘原生验收。
+3. **G3**：在**唯一生产 Cloud Tab** 核验已实施的 UI-06/07，再补 UI-08 单请求详情/原结果入口；交互仍复用原 Host/History、无第二个 UI 产品；完成五档宽度、Zoom、键盘原生验收。
 4. **G4/G5/G6**：若有明确部署许可，再做可信公网跨网络；否则保留 Pending；完成撤权/重启/未知副作用原生矩阵，按 15 维独立重新评分。
 
 **文档已保存**：完整功能树、机器矩阵、接口身份合同、UI 39 项/唯一 HTML 预览、7 Gate/30 任务手册、用户 README、专家评分与本实际证据账本。它们是不同职责的单一资料，不要再新建重复架构。没有生成的原生收据、截图、包指纹只能保持空值，不创建模拟 PASS。
+
+
+> R5.2.6 增量：UI-07 已授权 Task 详情和版本变化重批提示已接入现有任务卡（`src/ui/cloud-hosting.js`、`src/ui/tool-shell.css`）。对应源码提交 `574bffa459c2c0c88525cede733352b154a87246`，仍需当前 CI 与真实 Chrome 验收；静态专家初评 86/100 未因源码数量增加而自动提高。
 
 ## 用户要完成的事
 
