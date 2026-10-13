@@ -39,7 +39,7 @@ jobs:
       - name: Real R1.3 model and consent regression
         run: |
           node --check tests/framework/time-review-r13-native.test.mjs
-          node --test tests/environment/time-review-r12.test.mjs tests/environment/time-review-r13.test.mjs tests/environment/time-review-r13-service.test.mjs tests/environment/time-review-r13-consent.test.mjs tests/environment/time-review-host-controls-r51.test.mjs
+          node --test tests/environment/time-review-r12.test.mjs tests/environment/time-review-r13.test.mjs tests/environment/time-review-r13-service.test.mjs tests/environment/time-review-r13-consent.test.mjs tests/environment/time-review-host-controls-r51.test.mjs tests/environment/time-review-r14-sync-outbox.test.mjs
       - name: Build standalone Time Review package and verify source/pack limits
         run: |
           npm run build:sidebar-tool -- examples/sidebar-tools/time-review

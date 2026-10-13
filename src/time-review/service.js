@@ -4,6 +4,7 @@ import {writeVerifiedLocalValue} from '../ui/sidebar-tools/storage-state.js';
 import {isReadingTocToolSender} from '../reading-toc/page.js';
 import {TIME_REVIEW_KEY,readReview,reviewHost,reviewSettings,reviewClassify,reviewDay,localDay,settleReview,reviewSummary,reviewExport,MAX_OBSERVATION_GAP} from './model.js';
 import {TIME_REVIEW_ID,TIME_REVIEW_PROTOCOL,TIME_REVIEW_CAPABILITY,TIME_REVIEW_ALARM,TIME_REVIEW_SESSION,TIME_REVIEW_OPERATIONS,timeReviewPackageHash} from './policy.js';
+import {stageReviewSync,reviewSyncStatus} from './sync-outbox.js';
 const error=(message,code='E_TIME_AUTHORITY')=>Object.assign(new Error(message),{code});
 
 export function createTimeReviewService({api=globalThis.chrome,lockManager=globalThis.navigator?.locks,now=Date.now}={}){
@@ -94,6 +95,7 @@ export function createTimeReviewService({api=globalThis.chrome,lockManager=globa
     }else if(operation==='time.clear'){
       if(payload?.confirm!==true)throw error('请明确确认清空本机时间记录','E_TIME_CONFIRM');
       state.days={};state.discardedMs=0;state.minuteDays={};state.categories={};
+      delete state.sync; // local clear cannot imply remote deletion
     }
     const checkpointAt=Math.max(at,now());
     if(!state.paused&&state.authorizedHash===hash&&auth.enabled&&observation.current&&checkpointAt>=state.highWater){
@@ -114,6 +116,12 @@ export function createTimeReviewService({api=globalThis.chrome,lockManager=globa
       if(operation==='time.start')throw error('浏览器活动状态已变化，请重新开始','E_TIME_OBSERVATION');
     }
     if(raw!==undefined||operation||state.authorizedHash){
+      // Local activity MUST survive any malformed/blocked optional sync state.
+      // Both the verified time and any prepared revisions share one durable key.
+      if(state.sync!==undefined){
+        try{await stageReviewSync(state);}
+        catch(cause){console.warn('E_TIME_REVIEW_SYNC_PREPARE',cause.code||'E_SYNC_DATA');}
+      }
       await writeVerifiedLocalValue(api,TIME_REVIEW_KEY,state,raw,'本机时间记录');
       // An OS event may arrive during a slow durable write. Retire that stale
       // checkpoint before unlocking; the queued event starts a fresh sample.
@@ -127,7 +135,9 @@ export function createTimeReviewService({api=globalThis.chrome,lockManager=globa
     if(state.authorizedHash&&!state.paused){
       if(!await api.alarms.get(TIME_REVIEW_ALARM))await api.alarms.create(TIME_REVIEW_ALARM,{periodInMinutes:0.5});
     }else await api.alarms.clear(TIME_REVIEW_ALARM);
-    return {state,summary:{...reviewSummary(state,at),idlePermission:observation.permitted,maximumObservationGapMs:MAX_OBSERVATION_GAP}};
+    let syncStatus;
+    try{syncStatus=reviewSyncStatus(state);}catch{syncStatus={mode:'blocked-invalid',pending:null,overflow:true,networkEnabled:false};}
+    return {state,summary:{...reviewSummary(state,at),syncStatus,idlePermission:observation.permitted,maximumObservationGapMs:MAX_OBSERVATION_GAP}};
   }
   const tick=options=>locked(()=>reconcileLocked(options));
   async function dispatch(message,sender){

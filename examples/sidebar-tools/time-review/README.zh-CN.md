@@ -53,3 +53,9 @@ JSON 导出继续包含原汇总与设置，另包含分类和已保存的分钟
 包输出目标：`artifacts/sidebar-tools/time-review/<当前 tool.config.json 版本>/time-review.opendesk-tool.json`（2026-10-12 为 `1.3.1`，不要硬编码旧版）。必须额外在真实 Mac Chrome 和 320/360/400/600px、200% 缩放完成同包 UI、权限、分类、下载落盘、恢复、撤权、卸载验收。旧候选/原型图不能替代。具体证据与状态见 docs/framework/workstreams/time-review-r13.md。
 
 Mac Chrome 155 对 Time Review 1.3.1 的真实内容导出、同名文件防覆盖、暂停状态下完整 Chrome 重启的证据为 [Actions 38222319502](https://github.com/shopable-ai/opendesk-browser/actions/runs/38222319502)，绑定源码 SHA `f4719da31a876fc4f82b6b0658176fd2693c4a26`。分类编辑、工具启停/卸载和 200% 真正缩放以各自独立的后续验证为准，不能引用该任务替代尚未执行的验收。
+
+## R1.4 · 旧版蒸馏与可选云同步边界
+
+旧 `src-bex` 的全站鼠标/键盘监听、最长网页分钟归属和原始 POST 不会重新注入本工具。迁移矩阵与隐私缺陷详见 [LEGACY-DISTILLATION.zh-CN.md](LEGACY-DISTILLATION.zh-CN.md)。R1.4 的同步队列和 HTTPS 幂等协议当前仅为本地准备模块及隔离测试，**未连接生产服务器，也不会上传任何本机历史记录**；尚无可展示的云同步登录/开启按钮。日汇总、六分类、Canvas V3、导出仍以已验收的 R1.3.1 本地产品为准。
+
+专项测试：`node --test tests/environment/time-review-r14-sync-outbox.test.mjs`。工作流状态见 [time-review-r14.md](../../../docs/framework/workstreams/time-review-r14.md)；只有服务端确认幂等契约、可信连接/权限以及实际 Chrome/HTTPS 验收后才可开放可选云同步。
