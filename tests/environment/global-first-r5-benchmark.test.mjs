@@ -67,3 +67,44 @@ test('benchmark plan and GF record never equate tests or market exploration with
   assert.ok(plan.objectives.length>=5);
   assert.deepEqual(plan.marketingRanksApproved,[]);
 });
+
+test('a fast failing bot cannot win a median-success-only speed comparison',()=>{
+  const trials=[
+    {...sample('opendesk',1,15),outcome:'FAIL'},
+    sample('opendesk',2,10),
+    sample('gemini-in-chrome',1,100),
+    sample('gemini-in-chrome',2,120)
+  ];
+  const result=evaluateR5Benchmark(plan,trials,{scenarioId:'R5-T05',comparatorIds:cohort});
+  assert.equal(result.status,'SCOPED_TRIALS_COMPLETE','observations may be complete even when failures occur');
+  assert.equal(result.rows.find(x=>x.id==='opendesk').successRate,0.5);
+  assert.equal(result.rows.find(x=>x.id==='gemini-in-chrome').successRate,1);
+  assert.equal(result.scopedTimeRanking,'NOT_RANKED');
+  assert.equal(result.failureGate,'RANKING_WITHHELD_FOR_FAILURE_OR_MISSING_EVIDENCE');
+  assert.equal(result.nativeEvidenceCertified,'NOT_CERTIFIED_BY_JSON_CALCULATOR');
+});
+
+test('synthetic fixed-installation evidence rejects a changed version or duplicate RunId within 20 repetitions',()=>{
+  const mockChrome=(n,generation=1)=>({
+    ...sample('opendesk',n,100),
+    scenarioId:'R5-T02',
+    packageHash:'a'.repeat(64),
+    sourceHash:'b'.repeat(64),
+    manifestHash:'c'.repeat(64),
+    installationId:'installed-fixture-identity',
+    generation,
+    runId:'synthetic-run-'+n,
+    resultId:'synthetic-result-'+n,
+    retirementState:'released',
+    nativeEvidenceLevel:'REAL_CHROME_RECEIPT' // assertion examines declarations, does NOT authenticate this label
+  });
+  const a=mockChrome(1),b=mockChrome(2);
+  assert.throws(()=>evaluateR5Benchmark(plan,[a,{...b,generation:2}],{
+    scenarioId:'R5-T02',comparatorIds:cohort}),/mix source, package, manifest or installation generation/);
+  assert.throws(()=>evaluateR5Benchmark(plan,[a,{...b,runId:a.runId}],{
+    scenarioId:'R5-T02',comparatorIds:cohort}),/different trusted RunId and ResultId/);
+  const incomplete=evaluateR5Benchmark(plan,[a,b],{scenarioId:'R5-T02',comparatorIds:cohort});
+  assert.equal(incomplete.scopedTimeRanking,'NOT_RANKED');
+  assert.equal(incomplete.status,'INCOMPLETE');
+  assert.equal(incomplete.nativeEvidenceCertified,'NOT_CERTIFIED_BY_JSON_CALCULATOR');
+});
