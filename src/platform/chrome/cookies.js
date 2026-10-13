@@ -134,6 +134,23 @@ export function createCookieService({api = globalThis.chrome, authorize, resolve
   const redact=cookie=>Object.fromEntries(['name','domain','path','hostOnly','secure','httpOnly','sameSite',
     'session','expirationDate','storeId','partitionKey'].filter(k=>cookie[k]!==undefined)
     .map(k=>[k,cookie[k]]).concat([['valueRedacted',true]]));
+  // Chrome cookies.get() returns the longest matching Path. After deleting a
+  // more specific Cookie, another same-name Cookie on "/" may still match the
+  // URL. Only the exact deleted identity may be used for removal readback.
+  const sameIdentity=(left,right)=>Boolean(left&&right&&left.name===right.name&&
+    left.domain===right.domain&&left.path===right.path&&left.storeId===right.storeId&&
+    Boolean(left.partitionKey)===Boolean(right.partitionKey)&&
+    (!left.partitionKey||left.partitionKey.topLevelSite===right.partitionKey.topLevelSite&&
+      Boolean(left.partitionKey.hasCrossSiteAncestor)===
+        Boolean(right.partitionKey.hasCrossSiteAncestor)));
+  const exactExists=async (cookie,url)=>{
+    const query={url,name:cookie.name,
+      ...(cookie.storeId?{storeId:cookie.storeId}:{}),
+      ...(cookie.partitionKey?{partitionKey:cookie.partitionKey}:{})};
+    const rows=await native('getAll',query);
+    if(!Array.isArray(rows)||rows.length>10000)throw fail('E_CHROME','Invalid exact Cookie readback');
+    return rows.some(row=>sameIdentity(row,cookie));
+  };
   async function get(args,context){
     const details=scoped(args,'get');await verified(details.url,'get','pre',context);
     const result=await native('get',details);
@@ -179,7 +196,7 @@ export function createCookieService({api = globalThis.chrome, authorize, resolve
       const receipt=await native('remove',details);
       if(!receipt||receipt.name!==details.name)throw Error('Unconfirmed Cookie removal');
       await verified(details.url,'remove','post',context);
-      if(await native('get',details))throw Error('Removal not verified by readback');
+      if(await exactExists(before,details.url))throw Error('Exact Cookie still exists after remove');
       await verified(details.url,'remove','post',context);
       return {removed:true,verified:true};
     }catch{throw fail('E_OUTCOME_UNKNOWN','Cookie removal effect uncertain; do not automatically retry');}
@@ -222,7 +239,7 @@ export function createCookieService({api = globalThis.chrome, authorize, resolve
         const receipt=await native('remove',key);
         if(!receipt||receipt.name!==row.name)throw Error('Unconfirmed remove');
         await verified(key.url,'remove','post',context);
-        if(await native('get',key))throw Error('Cookie still present');
+        if(await exactExists(row,key.url))throw Error('Exact Cookie still present');
         await verified(key.url,'remove','post',context);
         removed++;
       }catch{throw fail('E_OUTCOME_UNKNOWN','Partial Cookie site cleanup possible; reconcile before retry');}
