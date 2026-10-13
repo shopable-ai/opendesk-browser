@@ -20,6 +20,8 @@ import {CAPTURE_SITE_STORE,CAPTURE_CAPABILITY,KNOWLEDGE_TOOL_ID,KNOWLEDGE_CAPABI
   KNOWLEDGE_OPERATIONS,KNOWLEDGE_WORKSPACE_PREFIX,changeCaptureGrant,chatCaptureOrigin,knowledgePackageHash} from '../knowledge/policy.js';
 import {TIME_REVIEW_ID,TIME_REVIEW_CAPABILITY,TIME_REVIEW_PROTOCOL,TIME_REVIEW_OPERATIONS,timeReviewPackageHash} from '../time-review/policy.js';
 import {createTimeReviewPermissionControls} from '../time-review/host-controls.js';
+import {FOCUS_ID,FOCUS_CAPABILITY,FOCUS_PROTOCOL,FOCUS_OPERATIONS,focusPackageHash} from '../stay-focus/policy.js';
+import {createStayFocusPermissionControls} from '../stay-focus/host-controls.js';
 
 // Trusted Side Panel shell for untrusted, opaque-origin UI documents.
 // No user code, markup, or CSS is ever inserted into this extension document.
@@ -104,6 +106,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     'page.capture':'在单独授权的 ChatGPT 网站显示保存按钮，按点击保存回答、选区或下载图片',
     'knowledge.store':'管理此工具的本机知识收件箱（200 条 / 4 MiB）',
     'time.review':'明确开始后在后台记录聚焦、非空闲网站的域名与时长（仅本机）',
+    'focus.control':'按单独批准的网站执行每日额度、时段与专注限制，Chrome DNR 拦截（仅本机）',
     'browser.contextMenu':'在明确授权的网站显示 Chrome 右键菜单（最多三项）',
     'browser.tabs':'经用户单次批准打开或聚焦自己获准的标签页',
     'browser.sidePanel':'经真实点击打开 OpenDesk 自己的侧边栏',
@@ -114,6 +117,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     'browser.screenshot':'用户主动截取本工具获准的可见网页并下载 PNG',
   });
   const timePermissions=settingsView?createTimeReviewPermissionControls({api,doc,container:settingsView,notice,runOperation:runTrustedTimeReviewOperation}):null;
+  const focusPermissions=settingsView?createStayFocusPermissionControls({api,doc,container:settingsView,notice,runOperation:runTrustedFocusOperation}):null;
   const versionOrder=compareToolVersions;
   const readableCapability=id=>capabilities[id]||id;
   const addedCapabilities=(next,prior)=>next.capabilities.filter(id=>!prior.capabilities.includes(id));
@@ -228,6 +232,32 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(disposed||!active||!samePackage(active,tool))
       throw Object.assign(new Error('宿主已切换，请核对时间记录，不要重复提交'),{code:'E_OUTCOME_UNKNOWN'});
     return response.data;
+  }
+  // Trusted consent/revocation of browser-wide native permissions is not a
+  // general Browser SDK capability and cannot be invoked from tool JS.
+  async function runTrustedFocusOperation(operation,payload,event){
+    if(event?.isTrusted!==true||!['focus.enable','focus.disable','focus.clear'].includes(operation))
+      throw Object.assign(new Error('请在工具详情中主动点击专注权限操作'),{code:'E_FOCUS_TRUSTED_CLICK'});
+    const tool=active;
+    if(disposed||busy||readOnlyPreview||tool?.id!==FOCUS_ID||
+      !tool.capabilities.includes(FOCUS_CAPABILITY))
+      throw Object.assign(new Error('专注工具未安装或页面已关闭'),{code:'E_TOOL_CHANGED'});
+    await assertSidebarToolEnabled(api,tool.id);
+    const [owned,epochs]=await Promise.all([api.storage.local.get(SIDEBAR_TOOL_STORE),
+      api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE)]);
+    if(!requireCompleteInstalledSidebarTools(owned[SIDEBAR_TOOL_STORE]).some(row=>samePackage(row,tool)))
+      throw Object.assign(new Error('工具已更新或卸载'),{code:'E_TOOL_CHANGED'});
+    const installEpoch=epochs[TOOL_REVOCATION_EPOCHS_STORE]?.[tool.id]??null;
+    const packageHash=await focusPackageHash(tool);
+    if(disposed||!active||!samePackage(active,tool)||readOnlyPreview)
+      throw Object.assign(new Error('专注工具实例已变化'),{code:'E_TOOL_CHANGED'});
+    const result=await api.runtime.sendMessage({protocol:FOCUS_PROTOCOL,
+      toolId:tool.id,operation,payload,packageHash,installEpoch});
+    if(!result?.ok)throw Object.assign(new Error(result?.error?.message||'专注 Host 未确认'),
+      {code:result?.error?.code||'E_FOCUS'});
+    if(disposed||!active||!samePackage(active,tool))
+      throw Object.assign(new Error('宿主已改变，请核查 Chrome 规则状态'),{code:'E_OUTCOME_UNKNOWN'});
+    return result.data;
   }
   function destroyFrame() {
     toolDirty=false;toolSaving=false;
@@ -366,6 +396,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   }
   function renderTocSettings(){
     timePermissions?.render(active,readOnlyPreview);
+    focusPermissions?.render(active,readOnlyPreview);
     const managed=Boolean(active&&!readOnlyPreview),id=active?.id;
     const sitePending=siteTogglePending.has(id);
     const isToc=managed&&id===READING_TOC_TOOL_ID&&active.capabilities.includes(TOC_CAPABILITY);
@@ -698,6 +729,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         CLIP_OPERATIONS.includes(operation)?CLIP_CAPABILITY:
       knowledgeOperation(operation)?KNOWLEDGE_CAPABILITY:
       TIME_REVIEW_OPERATIONS.includes(operation)?TIME_REVIEW_CAPABILITY:
+      FOCUS_OPERATIONS.includes(operation)?FOCUS_CAPABILITY:
         ['clipboard.writeText','file.download'].includes(operation)?'user.export':'__unapproved__'))
       throw new Error('此工具没有被批准使用该能力');
     if(TIME_REVIEW_OPERATIONS.includes(operation)){
@@ -720,6 +752,44 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       const response=await api.runtime.sendMessage({protocol:TIME_REVIEW_PROTOCOL,toolId:tool.id,operation,payload,packageHash,installEpoch:revocationEpoch});
       if(!response?.ok)throw Object.assign(new Error(response?.error?.message||'时间回顾请求失败'),{code:response?.error?.code||'E_TIME_REVIEW'});
       assertSession(source,token);return response.data;
+    }
+    if(FOCUS_OPERATIONS.includes(operation)){
+      if(tool.id!==FOCUS_ID)throw new Error('Stay Focus 工具身份不正确');
+      if(['focus.enable','focus.disable','focus.clear'].includes(operation)){
+        tocSettingsOpen=true;render();
+        throw Object.assign(new Error('请从工具详情中的受信任授权与清空按钮操作'),
+          {code:'E_FOCUS_TRUSTED_CLICK'});
+      }
+      const send=async()=>{
+        assertSession(source,token);
+        const [owned,epochs]=await Promise.all([api.storage.local.get(SIDEBAR_TOOL_STORE),
+          api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE)]);
+        if(!requireCompleteInstalledSidebarTools(owned[SIDEBAR_TOOL_STORE]).some(row=>samePackage(row,tool))||
+          (epochs[TOOL_REVOCATION_EPOCHS_STORE]?.[tool.id]??null)!==revocationEpoch)
+          throw Object.assign(new Error('工具身份或授权版本已变化'),{code:'E_TOOL_CHANGED'});
+        const hash=await focusPackageHash(tool);
+        assertSession(source,token);
+        const response=await api.runtime.sendMessage({protocol:FOCUS_PROTOCOL,toolId:tool.id,
+          operation,payload,packageHash:hash,installEpoch:revocationEpoch});
+        if(!response?.ok)throw Object.assign(new Error(response?.error?.message||'专注操作未确认'),
+          {code:response?.error?.code||'E_FOCUS'});
+        assertSession(source,token);return response.data;
+      };
+      if(operation==='focus.status')return send();
+      const target=operation==='focus.site.put'?'保存「'+String(payload?.site?.host||'').slice(0,80)+'」的网站限制':
+        operation==='focus.site.remove'?'删除「'+String(payload?.host||'').slice(0,80)+'」的网站限制':
+        operation==='focus.session.start'?'开始 '+String(payload?.minutes)+' 分钟的专注模式':
+        operation==='focus.session.stop'?'结束当前专注模式':
+        operation==='focus.schedule.set'?'修改工作时间限制':
+        operation==='focus.whitelist.set'?'替换允许访问的域名白名单':
+        operation==='focus.group.put'?'保存共享每日额度':
+        operation==='focus.group.remove'?'删除共享每日额度组':'更改专注规则';
+      return requestBrowserClick({toolId:tool.id,
+        message:'「'+tool.title+'」请求'+target+'。此操作可能更新 Chrome 网站拦截规则；请确认。',
+        button:'确认修改',run:event=>{
+          if(!event?.isTrusted)throw Object.assign(new Error('需要真实用户点击'),{code:'E_FOCUS_TRUSTED_CLICK'});
+          return send();
+        }});
     }
     if(operation==='knowledge.editorState'){
       if(tool.id!==KNOWLEDGE_TOOL_ID||typeof payload?.dirty!=='boolean')throw new Error('编辑状态无效');
