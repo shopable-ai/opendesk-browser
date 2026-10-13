@@ -70,3 +70,19 @@ test('separate real Result, document, retired Worker and visible page effect all
     assert.throws(()=>inspectR5TaskNativeReport(candidate,expected));
   }
 });
+
+test('explicit Linux native audit is platform-scoped and cannot promote to macOS proof',()=>{
+  const report=syntheticReport();
+  report.platform='linux';
+  report.sandboxPolicy='explicit isolated Linux CI --no-sandbox; NOT a sandbox-security PASS';
+  const scoped=inspectR5TaskNativeReport(report,{...expected,expectedPlatform:'linux'});
+  assert.equal(scoped.platform,'linux');
+  assert.equal(scoped.nativeDriverStatus,'PASS');
+  assert.equal(scoped.aiCreatedThisVersion,'NOT_TESTED');
+  assert.equal(scoped.modelDisconnectedAndSameInstalledVersionRepeatedTwice,'NOT_TESTED');
+  assert.throws(()=>inspectR5TaskNativeReport(report,expected),/platform mismatch/);
+  assert.throws(()=>inspectR5TaskNativeReport({...report,sandboxPolicy:'Chrome OS sandbox unchanged'},{
+    ...expected,expectedPlatform:'linux'}),/sandbox limitation/);
+  assert.throws(()=>inspectR5TaskNativeReport(report,{...expected,expectedPlatform:'windows'}),
+    /Only explicit macOS or Linux/);
+});
