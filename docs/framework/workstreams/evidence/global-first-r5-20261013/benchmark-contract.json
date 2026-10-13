@@ -1,0 +1,176 @@
+{
+  "format": "opendesk.global-first-r5-benchmark-plan.v1",
+  "date": "2026-10-13",
+  "role": "PRE_REGISTERED_PLAN_NO_REAL_TRIALS",
+  "authoritativeSources": {
+    "competitors": "docs/product/browser-extension-ecosystem/competitor-timeline.json",
+    "claims": "docs/product/browser-extension-ecosystem/first-claims-ledger.json",
+    "opportunities": "docs/product/browser-extension-ecosystem/opportunity-register.json",
+    "experiments": "docs/product/browser-extension-ecosystem/commercial-experiments.json"
+  },
+  "fixture": {
+    "path": "examples/tasks/demo-form.html",
+    "url": "http://127.0.0.1:43111/demo-form.html",
+    "sourceExample": "examples/tasks/agent-modern-search.v1.opendesk-task.json",
+    "sourceHash": "1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d",
+    "manifestHash": "a40fe6471506743a785ab32fd85a48f3991a641fb3c28741735c20e799d13812",
+    "note": "These are previously committed Candidate identity values, not latest Chrome PASS/Installed receipts."
+  },
+  "comparatorWorkflows": [
+    {
+      "id": "opendesk",
+      "name": "OpenDesk Current Chrome + frozen Task",
+      "naturalUserFlow": "AI propose -> human review -> current Chrome true Run -> original Verify/Available/Installed -> offline from model subsequent runs",
+      "channel": "unreleased-or-not-verified-production",
+      "actualTest": "NOT_TESTED"
+    },
+    {
+      "id": "gemini-in-chrome",
+      "name": "Chrome Skills",
+      "naturalUserFlow": "write/save skill prompt -> click Skill on target page",
+      "channel": "2026-04-14 official rollout, en-US eligibility",
+      "actualTest": "NOT_TESTED"
+    },
+    {
+      "id": "claude-in-chrome",
+      "name": "Claude workflow recording",
+      "naturalUserFlow": "record while using browser -> replay workflow",
+      "channel": "2026-07-24 beta release notes",
+      "actualTest": "NOT_TESTED"
+    },
+    {
+      "id": "axiom-ai",
+      "name": "Axiom Claude Skill + Chrome Extension",
+      "naturalUserFlow": "natural language -> built bot -> install/import -> browser repetition",
+      "channel": "vendor docs, version unconfirmed",
+      "actualTest": "NOT_TESTED"
+    },
+    {
+      "id": "uipath-delegate",
+      "name": "UiPath Delegate Routine",
+      "naturalUserFlow": "build/show task -> review policy -> save Routine -> manual/scheduled Run",
+      "channel": "2026-08-25 Public Preview with account eligibility",
+      "actualTest": "NOT_TESTED"
+    },
+    {
+      "id": "scriptcat",
+      "name": "ScriptCat Agent Beta",
+      "naturalUserFlow": "AI/script review -> install userscript -> reuse with its own permissions",
+      "channel": "2026-09-18 beta",
+      "actualTest": "NOT_TESTED"
+    },
+    {
+      "id": "ai-coding-vite-manager",
+      "name": "Coding AI + vite-plugin-monkey + user script manager",
+      "naturalUserFlow": "AI generates source -> Vite build -> script manager install -> repeat script",
+      "channel": "multi-tool workflow, compatible versions to be documented",
+      "actualTest": "NOT_TESTED"
+    },
+    {
+      "id": "power-automate-desktop",
+      "name": "Power Automate Desktop",
+      "naturalUserFlow": "record/design browser flow -> approve -> run from desktop or schedule",
+      "channel": "MS official browser actions, Windows requirements",
+      "actualTest": "NOT_TESTED"
+    },
+    {
+      "id": "apify-actors",
+      "name": "Apify Actor",
+      "naturalUserFlow": "AI/code prepare Actor -> version/test/launch with structured inputs -> schedule",
+      "channel": "cloud browser session and credentials must be included",
+      "actualTest": "NOT_TESTED"
+    },
+    {
+      "id": "text-blaze",
+      "name": "Text Blaze",
+      "naturalUserFlow": "for text/form-only tasks use saved snippet and formula with input",
+      "channel": "narrow task comparator; if full task impossible label NOT_EQUIVALENT rather than FAIL",
+      "actualTest": "NOT_TESTED"
+    }
+  ],
+  "objectives": [
+    {
+      "id": "R5-T01",
+      "name": "cold first fully verified tool",
+      "repetitions": 5,
+      "metric": "minutes/setup clicks and model cost, mean/median/distribution",
+      "gate": "No source/permission/install stages silently removed."
+    },
+    {
+      "id": "R5-T02",
+      "name": "same website 20 runs",
+      "repetitions": 20,
+      "metric": "success/outcome/time/model calls/replay effects/total cash+human cost",
+      "gate": "Distinct run IDs, exact installed hash (where product supports)."
+    },
+    {
+      "id": "R5-T03",
+      "name": "permission withdraw and navigation change",
+      "repetitions": 3,
+      "metric": "blocked unauthorized effect or human confirmation, known/unknown outcome",
+      "gate": "Must not count missing permissions as competitor failure if product not designed for same mode."
+    },
+    {
+      "id": "R5-T04",
+      "name": "fault/error recovery",
+      "repetitions": 3,
+      "metric": "time to diagnose and fix, retries and repeated business effects",
+      "gate": "No hidden replays of unknown website side effects."
+    },
+    {
+      "id": "R5-T05",
+      "name": "source changed and installation upgrade",
+      "repetitions": 2,
+      "metric": "sourceHash, package/manifest identity, rollback/approval availability",
+      "gate": "Each vendor evaluated by real available version/policy."
+    },
+    {
+      "id": "R5-T06",
+      "name": "natural user revisit",
+      "repetitions": 2,
+      "metric": "7-day or subsequent natural task use after unassisted success",
+      "gate": "Not simulated by creator repeatedly running demo."
+    }
+  ],
+  "requiredIdentity": [
+    "candidateHeadSha",
+    "extensionPackageSha256",
+    "channel",
+    "browserVersion",
+    "browserProfileId",
+    "targetOrigin",
+    "documentId",
+    "sourceHash",
+    "manifestHash",
+    "taskId",
+    "installationId",
+    "generation",
+    "runId",
+    "resultId",
+    "retirementState",
+    "actualModelCalls",
+    "modelTokenUsage",
+    "modelCostCurrency",
+    "modelCostAmount",
+    "setupSeconds",
+    "runSeconds",
+    "humanActions",
+    "networkPermissionDelta",
+    "externalWebsiteSideEffects"
+  ],
+  "actualChromeTests": [],
+  "actualCompetitorTrials": [],
+  "marketingRanksApproved": [],
+  "firstUseUserSessions": [],
+  "actualCostResults": [],
+  "currentStatus": "ALL_TRIALS_NOT_TESTED",
+  "privacyRules": [
+    "Only legally authorized sites or local fixtures",
+    "No actual customer credentials or third-party production side effects",
+    "No profile or browser resource reused from another AI agent",
+    "Never transmit token/cookie/PII into benchmark logs",
+    "Do not infer model requests if backend tracing is unavailable"
+  ],
+  "invalidOutcomeHandling": "UNKNOWN_NOT_RETRIED",
+  "comparativeWinner": "NOT_SCORED"
+}
