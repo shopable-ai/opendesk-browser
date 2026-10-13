@@ -54,5 +54,14 @@ test('R7 trusted native workbench is outside installed sandbox bridge; no additi
   assert.match(sidecar,/message\.kind==='host'/);
   assert.match(shell,/createTrustedCookieWorkbench/);
   assert(!workbench.includes('chrome.cookies.'));
+  // R9 real trusted Cookie UI: explicit start/status/read/stop; event text omits secrets.
+  for(const id of ['trusted-cookie-watch-start','trusted-cookie-watch-status-button',
+    'trusted-cookie-watch-read','trusted-cookie-watch-stop','trusted-cookie-watch-events'])
+    assert(ui.includes('id="'+id+'"'),'missing actual UI control '+id);
+  assert.match(workbench,/browser\\.cookies\\.observe\\.['"]\\+kind/);
+  assert.match(workbench,/event\\.isTrusted&&\\!busy/);
+  assert.match(workbench,/watchEventsNode\\.replaceChildren\\(\\)/);
+  assert.match(workbench,/String\\(item\\.name/);
+  assert(!workbench.includes('item.value'),'redacted Cookie event UI must never render a value');
   assert(!workbench.includes('storage.local.set('));
 });
