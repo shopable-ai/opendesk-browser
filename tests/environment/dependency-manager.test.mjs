@@ -327,7 +327,7 @@ test('R7.3 Controller Classic: program-scoped SHA locks reuse Page assets offlin
   const f=fixture(),url='https://libraries.example.org/vendor@1.2.3/classic.js';
   const library='globalThis.fixtureClassic={mix:(a,b)=>a*10+b};';
   f.routes.set(url,{bytes:library});
-  const source='// @opendesk-classic '+url+'\nasync function main(){return fixtureClassic.mix(2,1)}';
+  const source='// @require '+url+'\nasync function main(){return fixtureClassic.mix(2,1)}';
   const prepare=(programId,allowDownload=true)=>f.manager.prepareControllerClassic({
     programId,sourceUtf8:source,explicitUserAction:true,allowDownload},{});
   assert.equal(globalThis.fixtureClassic,undefined,'existing manager never evaluates user assets');
@@ -363,7 +363,7 @@ test('R7.3 Controller Classic: program-scoped SHA locks reuse Page assets offlin
 test('R7.3 Controller Classic: bad SHA, revoked origin and tampered cached bytes fail closed',async()=>{
   const url='https://libraries.example.org/vendor@1.2.3/lib.js';
   const content='globalThis.fixture={twice:x=>2*x};';
-  const script=extra=>'// @opendesk-classic '+url+extra+'\nasync function main(){return fixture.twice(2)}';
+  const script=extra=>'// @require '+url+extra+'\nasync function main(){return fixture.twice(2)}';
   const f=fixture();f.routes.set(url,{bytes:content});
   await assert.rejects(f.manager.prepareControllerClassic({
     programId:'classic',sourceUtf8:script(' sha256:'+'f'.repeat(64)),
@@ -391,10 +391,10 @@ test('R7.3 Controller Classic rejects moving versions, private hosts, ESM and ar
   for(const url of ['https://cdn.example.org/pkg@latest/lib.js',
     'https://127.0.0.1/npm/lib@1.2.3/foo.js',
     'http://cdnjs.example.org/pkg@1.2.3/x.js']){
-    await assert.rejects(call('// @opendesk-classic '+url+'\nasync function main(){}'),
+    await assert.rejects(call('// @require '+url+'\nasync function main(){}'),
       error=>['E_DEPENDENCY_VERSION','E_DEPENDENCY_URL','E_CONTROLLER_CLASSIC_DIRECTIVE'].includes(error.code));
   }
-  await assert.rejects(call('// @opendesk-classic https://cdn.example.org/pkg@1.2.3/a.js\n'+
+  await assert.rejects(call('// @require https://cdn.example.org/pkg@1.2.3/a.js\n'+
     "import a from 'something';"),failCode('E_CONTROLLER_CLASSIC_FORMAT'));
   assert.equal(f.calls.length,0);
 });
@@ -403,7 +403,7 @@ test('R7.3 Controller Classic rejects moving versions, private hosts, ESM and ar
 test('R7.3 Controller Classic saved Revision cryptographically binds author, Worker bytes and dependency lock',async()=>{
   const f=fixture(),url='https://libraries.example.org/widget@1.2.3/dist/widget.js';
   const library='globalThis.widget={value:21};';
-  const original='// @opendesk-classic '+url+'\nasync function main(){return widget.value;}';
+  const original='// @require '+url+'\nasync function main(){return widget.value;}';
   f.routes.set(url,{bytes:library});
   const prepared=await f.manager.prepareControllerClassic({
     programId:'widget',sourceUtf8:original,explicitUserAction:true,allowDownload:true},{});
