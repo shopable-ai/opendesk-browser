@@ -299,6 +299,10 @@ test('operation rejection and local approval validation preserve trusted status 
     assert.match(map.get('cloud-status').textContent,/请选择 1–32 项已验证且启用的 Controller Task/);assert.equal(approvals,0);
     const key=['PRIVATE_TASK','1.0.0',manifestHash,sourceHash,'install-one',1].join('|');
     map.get('cloud-task-list').listeners.get('change')({target:{dataset:{cloudTaskKey:key},checked:true}});
+    // A change to the fixed Task selection intentionally invalidates prior
+    // consent. Reaffirm that exact selected version before dispatch.
+    assert.equal(map.get('cloud-consent').checked,false);
+    map.get('cloud-consent').checked=true;
     map.get('cloud-approve').listeners.get('click')();await flush();
     assert.equal(approvals,1);assert.equal(reads,initialReads);
     assert.match(map.get('cloud-status').textContent,/操作未完成，请检查连接与授权（E_CLOUD）/);
