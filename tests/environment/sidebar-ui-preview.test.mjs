@@ -85,7 +85,7 @@ test('Developer source selector and new-script action use one narrow Sidebar too
   assert.ok(toolbar,'one shared toolbar exists');
   assert.match(toolbar,/role="group" aria-label="源码视图操作"/);
   assert.match(toolbar,/id="program-source-files"[\s\S]*id="program-new-script"/);
-  assert.match(toolbar,/<button type="button" id="program-new-script" title="[^"]+" aria-label="新建 JavaScript 草稿" hidden>新建<\/button>/);
+  assert.match(toolbar,/<button type="button" id="program-new-script" title="[^"]+" aria-label="新建 JavaScript 草稿" hidden class="od-button od-button--secondary">新建<\/button>/);
   assert.doesNotMatch(toolbar,/新建单文件草稿|aria-haspopup=/,'there is only one create action, not a multi-file creation menu');
   assert.match(css,/\.program-source-toolbar\{display:flex;flex-wrap:nowrap;/);
   assert.match(css,/\.program-source-toolbar #program-source-files\{[^}]*flex:1 1 0;min-width:0;/);
@@ -163,7 +163,7 @@ test('R20/R23 six-tab design system has one token source and a strict trusted as
   assert.doesNotMatch(design,/@import\b|url\s*\(|expression\s*\(/i);
   assert.match(prepare,/'src\/ui\/design-tokens\.css':'ui\/design-tokens\.css'/);
   assert.match(prepare,/'src\/ui\/design-system\.css':'ui\/design-system\.css'/);
-  assert.ok(verify.includes("'ui/tool.html': ['design-tokens.css', 'design-system.css', 'tool-shell.css', 'cloud-hosting.css', 'sidebar-tool-host.js', 'stay-focus-controls.js', 'trusted-cookie-ui.js', 'tool-shell.js']"),
+  assert.ok(verify.includes("'ui/tool.html': ['design-tokens.css', 'design-system.css', 'tool-shell.css', 'time-review.css', 'cloud-hosting.css', 'sidebar-tool-host.js', 'stay-focus-controls.js', 'trusted-cookie-ui.js', 'tool-shell.js']"),
     'the fixed asset verifier must require cloud hosting CSS and the precise trusted sidecars before the main shell');
   assert.match(html, /<script src="sidebar-tool-host\.js"><\/script>\s*<script src="stay-focus-controls\.js"><\/script>\s*<script src="trusted-cookie-ui\.js"><\/script>\s*<script src="tool-shell\.js"><\/script>/,
     'the native Cookie/Stay Focus controls load in a verified order before the Side Panel shell');
