@@ -26,6 +26,11 @@ test('R8 legacy map remains a non-binding historic snapshot only',async()=>{
   assert(Object.keys(BROWSER_OPERATIONS).some(op=>!data.operations.some(row=>row.legacyOperation===op)));
   const nativeCreate=(await compileNativeCatalog()).entries.find(row=>row.nativeApi==='chrome.tabs.create');
   assert.deepEqual(nativeCreate.opendeskOperation,['browser.tabs.create']);
+  const nativeReload=(await compileNativeCatalog()).entries.find(row=>
+    row.nativeApi==='chrome.tabs.reload');
+  assert.deepEqual(nativeReload.opendeskOperation,['browser.tabs.reloadOwned']);
+  assert.equal(nativeReload.exposure,'SEE_APPROVED_SDK_CONTRACT');
+  assert.equal(BROWSER_OPERATIONS['browser.tabs.reloadOwned']?.implementation,'IMPLEMENTED');
   assert(data.operations.some(row=>!Object.hasOwn(BROWSER_OPERATIONS,row.legacyOperation)));
   for(const row of data.operations){
     assert.equal(row.currentPublicOperation,row.legacyOperation);
