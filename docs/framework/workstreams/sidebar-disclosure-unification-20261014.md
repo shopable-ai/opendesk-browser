@@ -49,6 +49,8 @@ Cloud 补充真实键盘验证：Left→Tools、Right→Cloud、Enter/Space 折�
 
 验收期间其他负责人已将 Import Runtime 保存逻辑合入 main `28f4730c05d71271c173f5f4f63fddc5aea5e71b`。九个本轮相关源码文件仍逐字匹配 d270，四项已加载 HTML/CSS 与源码相同；另有 `workflow-view.js` 并行未提交改动，本轮不纳入、不提升其动态状态。最新 [R1 P0 38472328661](https://github.com/shopable-ai/opendesk-browser/actions/runs/38472328661) 对应 **28f4730c：16+341+23+37=417 PASS / 0 FAIL**，原 d270 的 16 FAIL 保留历史，不能继续宣称当前阻断。R19/R21 的 d270 成功仍按未变的相关输入复用；没有该新 SHA 的对应 R19/R21 run 就明确标记未触发，不冒充新 HEAD 的完整构建、全量 npm test 或整体产品验收。提交窗口前已 fetch 核对 main 与 origin/main 同为 `238e279c2f3f07174d640a91e464ad1fbfa12291`，该后续提交未改 Side Panel 源码；共享索引为空，本次仅暂存本工作流，不纳入其他文件。
 
+独立证据审阅 Hume 已核查新 receipt、metrics、相关源码与加载 HTML/CSS：未发现统计或证据等级被错误提升，结论为高置信度 **不能宣称 95+**。静态记录为 292 几何样本加 3 键盘样本；原生为限定状态的 PARTIAL_MAC_CHROME，不能提升为完整包验收。必要剩余项为精确原生矩阵、Dock、动态安装/工作流/Cookie、本地项目/空及错误结果、原生深色/reduced-motion，以及可独立核验的原始截图与最终评分。原 `/tmp` 输入指纹已嵌入本地新 receipt 的 `sourceInputs` 持久保留，旧 receipt 不覆盖。证据记录提交 `4af96ddd` 已推送，后续只追加独立审阅结论。
+
 本轮修改真实 Side Panel，继续使用 `od-disclosure` / `--flat` / `--info`，没有新 UI、Tailwind、依赖、权限或 iframe 样式注入。独立审阅 Lovelace 检查了正文留白、hidden、标题布局及暂存边界；视觉驱动由 Hume 修改，最终修复和验证由本对话负责人执行。
 
 | 页面 | 已迁移的真实组件 | 原生观察与缺口 |
