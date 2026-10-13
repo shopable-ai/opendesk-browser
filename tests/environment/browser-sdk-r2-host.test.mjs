@@ -265,6 +265,20 @@ test('P1 screenshot revocation and wrong visible tab prevent a Chrome capture si
  assert.equal(f.downloads.length,0);
 });
 
+test('R9 installed tool pinOwned requires exact one-use Host approval and returns Chrome pin state',async()=>{
+  const f=fixture(),url={url:'https://example.org/pin'};
+  const tabRef=(await f.call('browser.tabs.create',url,
+    (await f.confirm('browser.tabs.create',url)).approvalRef)).tabRef;
+  const input={tabRef,pinned:true};
+  await assert.rejects(f.call('browser.tabs.pinOwned',input),err('E_USER_GESTURE_REQUIRED'));
+  await assert.rejects(f.call('browser.tabs.pinOwned',{tabId:100,pinned:true}),err('E_SCHEMA'));
+  const receipt=(await f.confirm('browser.tabs.pinOwned',input)).approvalRef;
+  assert.deepEqual(await f.call('browser.tabs.pinOwned',input,receipt),{pinned:true});
+  assert.equal(f.tabs.get(100).pinned,true);
+  await assert.rejects(f.call('browser.tabs.pinOwned',input,receipt),err('E_USER_GESTURE_REQUIRED'));
+  f.setSite(false);
+  await assert.rejects(f.confirm('browser.tabs.pinOwned',{tabRef,pinned:false}),err('E_SITE_PERMISSION_REVOKED'));
+});
 test('compact network.watch() returns an owned session handle and uses only existing trusted Host operations',async()=>{
  const f=fixture(),routed=[];
  const needsApproval=new Set(['browser.tabs.create','browser.network.observe.start','browser.network.observe.export']);
