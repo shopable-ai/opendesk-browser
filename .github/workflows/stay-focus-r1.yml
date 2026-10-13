@@ -19,6 +19,7 @@ on:
       - 'manifest.json'
       - 'official-tools/catalog.json'
       - 'tests/environment/stay-focus-r1.test.mjs'
+      - 'tests/environment/stay-focus-service-r1.test.mjs'
       - 'tests/framework/stay-focus-r1-native.test.mjs'
       - '.github/workflows/stay-focus-r1.yml'
   workflow_dispatch:
@@ -44,7 +45,7 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Strict policy, time, DNR and component assertions
         run: |
-          node --test tests/environment/stay-focus-r1.test.mjs tests/environment/official-tools-catalog-r45.test.mjs
+          node --test tests/environment/stay-focus-r1.test.mjs tests/environment/stay-focus-service-r1.test.mjs tests/environment/official-tools-catalog-r45.test.mjs
           node --check tests/framework/stay-focus-r1-native.test.mjs
       - name: Build independent user-installable Stay Focus release
         run: |
