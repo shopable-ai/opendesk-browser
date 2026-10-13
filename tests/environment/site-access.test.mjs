@@ -133,7 +133,12 @@ test('site recovery is reachable from every workbench tab and detailed controls 
   for (const id of ['site-access-status','site-access-grant','site-access-refresh',
     'script-run','script-stop','task-run','task-stop','page-preview-run'])
     assert(ids.includes(id),id);
-  for (const removed of ['page-dependency-panel','page-dependency-url','page-dependency-lock','page-preview-jquery'])
+  // Automatic dependency resolution may expose optional advanced details;
+  // these hidden controls must not restore manual setup as the Run entrance.
+  assert.match(html, /<details id="page-dependency-panel"[^>]* hidden>/);
+  assert.match(html, /<summary>第三方 JS 依赖 · 自动固定与缓存（高级详情）<\/summary>/);
+  assert.match(html, /<select id="page-dependency-lock"[^>]* hidden/);
+  for (const removed of ['page-dependency-url','page-preview-jquery'])
     assert(!ids.includes(removed),removed+' must not restore obsolete userscript setup UI');
   for (const removed of ['site-access-cookies','site-access-notifications'])
     assert(!ids.includes(removed),removed+' must not imply an optional install-time permission');

@@ -1,0 +1,15 @@
+✔ required all-url host is the single source of truth; no optional host prompts at startup (1.340459ms)
+✔ a trusted click can re-request withheld required host access without options (0.688875ms)
+✔ untrusted events cannot change permission; native denial never fabricates approval (0.918541ms)
+✔ Chrome site access restrictions invalidate status and never auto-regrant (0.174083ms)
+✔ Chrome onAdded event cannot erase actual approved status during raced refresh (0.404584ms)
+✔ core API status is separately queried; it never grants applications automatically (0.816917ms)
+✔ site recovery is reachable from every workbench tab and detailed controls retain the original panel (4.090208ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 53.857708
