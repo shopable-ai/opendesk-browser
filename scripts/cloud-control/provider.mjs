@@ -153,7 +153,16 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
             exact(b,['assignmentId','runRef','resultAllowed']);const j=owned(b,executorId);
             if(typeof b.resultAllowed!=='boolean')fail('E_SCHEMA');
             if(j.targetGrantId!==state.executors[executorId].grantId)fail('E_GRANT');exact(b.runRef,['runId','resultId','requestId','sourceHash','manifestHash','grantId']);
-            if(j.cancelled||j.assignment.leaseUntil<=clock())fail('E_LEASE');if(b.runRef.sourceHash!==j.task.sourceHash||b.runRef.manifestHash!==j.task.manifestHash)fail('E_TASK');
+            if(j.cancelled||j.assignment.leaseUntil<=clock())fail('E_LEASE');
+            if(b.runRef.sourceHash!==j.task.sourceHash||
+              b.runRef.manifestHash!==j.task.manifestHash)fail('E_TASK');
+            // Permit belongs to the exact Provider Assignment AND the local
+            // Browser approval generation. A matching Task hash alone cannot
+            // authorize a different Run, Result or previously revoked grant.
+            const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
+            if(!uuid.test(b.runRef.runId)||!uuid.test(b.runRef.resultId)||
+              b.runRef.requestId!=='cloud:'+j.assignment.assignmentId||
+              b.runRef.grantId!==j.targetGrantId)fail('E_RUN_REF');
             out=once('admission',b.assignmentId,b,()=>{j.runRef=b.runRef;j.resultAllowed=b.resultAllowed;j.state='admitted';j.permit={permitId:randomUUID(),assignmentId:b.assignmentId,runRef:b.runRef,leaseUntil:j.assignment.leaseUntil,providerId:state.providerId};return j.permit;});break;}
           case '/v1/renew':{
             exact(b,['assignmentId','permitId']);const j=owned(b,executorId);if(j.cancelled||j.assignment.leaseUntil<=clock()||j.permit?.permitId!==b.permitId||
@@ -161,7 +170,11 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
           case '/v1/cancellation':{
             exact(b,['assignmentId']);const j=owned(b,executorId);out={cancelled:Boolean(j.cancelled),leaseUntil:j.assignment.leaseUntil};break;}
           case '/v1/receipt':{
-            exact(b,['assignmentId','receiptKey','runRef','result']);const j=owned(b,executorId);if(canonical(j.runRef)!==canonical(b.runRef))fail('E_RUN_REF');
+            exact(b,['assignmentId','receiptKey','runRef','result']);
+            const j=owned(b,executorId);
+            if(!j.runRef||canonical(j.runRef)!==canonical(b.runRef))fail('E_RUN_REF');
+            // Different receipt keys must never overwrite one durable Result.
+            if(b.receiptKey!==j.runRef.resultId)fail('E_RECEIPT_KEY');
             out=once('receipt',b.receiptKey,b,()=>{
               // Status acknowledgements never carry page values, errors, URLs or
               // arbitrary metadata. Even a credentialed Executor cannot expand
@@ -173,7 +186,10 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
               }else if(b.result?.visibility==='full'&&j.resultAllowed===true){
                 exact(b.result,['visibility','runId','resultId','revision','state','sourceHash','retirementState','valueWire','error']);
                 if(b.result.runId!==j.runRef.runId||b.result.resultId!==j.runRef.resultId||
-                  b.result.sourceHash!==j.runRef.sourceHash||b.result.retirementState!=='released')fail('E_RESULT_SCOPE');
+                  b.result.sourceHash!==j.runRef.sourceHash||
+                  b.result.revision?.sourceHash!==j.runRef.sourceHash||
+                  !['completed','failed','stopped','interrupted'].includes(b.result.state)||
+                  b.result.retirementState!=='released')fail('E_RESULT_SCOPE');
               }else fail('E_RESULT_SCOPE');
               j.receipt={receiptId:randomUUID(),receivedAt:clock(),digest:hash(b),result:b.result};j.state='received';return {receiptId:j.receipt.receiptId,digest:j.receipt.digest};});break;}
           case '/v1/reconcile':exact(b,[]);out={providerId:state.providerId,assignments:Object.values(state.jobs).filter(j=>j.assignment?.executorId===executorId&&
