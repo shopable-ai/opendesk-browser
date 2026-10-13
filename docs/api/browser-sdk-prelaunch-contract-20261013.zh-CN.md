@@ -2,6 +2,12 @@
 
 > **用户最新决定，覆盖旧 R7/R8 中“正式 35 项 API 必须保留兼容”的限制。** OpenDesk Browser 仍在开发，尚未正式上线及提供外部 API 使用承诺。旧 35 项是历史开发快照，不是冻结的未来对外合同。
 
+## Browser SDK 唯一正式执行合同（2026-10-13）
+
+- **设计执行手册**：[`browser-sdk-execution-manual.zh-CN.md`](browser-sdk-execution-manual.zh-CN.md)。后续实现默认依照其中 Phase 0–7 和唯一架构、权限、测试门禁执行，除真实重大安全/平台不可实现/合同冲突外，不再另建第二份总体执行方案。
+- **逐接口机器矩阵**：[`browser-sdk-interface-matrix.json`](browser-sdk-interface-matrix.json)。包含固定 Chromium JSON/WebIDL/IDL 发现范围下的每个 Namespace/Method/Event/Property 分类、来源、实施签名与状态；发现目录不等于可公开能力。现行运行时实际可调用操作仍只能由 `src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS` 判断。
+- **历史优先级**：R7/R8 原 35 项兼容、`browser-sdk-compatibility-map.json`（旧兼容登记）、`browser-sdk-native-mapping.json`（R7 Cookies 10 项）与 R8 局部原生发现目录只作历史或迁移输入，不再对现行 SDK 强制约束。Cookies 现行可信 Host 11 项仍 Host-only，不向安装工具沙箱公开明文。
+
 ## 冻结的产品方向
 
 - 开发者唯一公开入口仍是 `OpenDeskSDK.browser`，优先复用 Chrome 原生 API、现有 OpenDesk Authority、Driver、Host、Storage 与 Scheduler；不得创建第二套运行时框架。

@@ -12,6 +12,12 @@ YOU ARE AN AUTONOMOUS CODING AGENT. EXECUTE AUTHORIZED TASKS TO COMPLETION WITHO
 
 已有非 `main` 分支允许只读核查。仅在用户明确要求合并/清理时，将应保留的变更安全合入 `main`，确认不丢失独有提交后再删除多余分支。绝不为“只保留主分支”而直接删除未合并工作；禁止强推、破坏性 reset/clean、覆盖并行工作。提交与推送仍遵守当前任务的授权边界。
 
+## Browser SDK 唯一设计封版与实施入口（2026-10-13）
+
+**Browser SDK 的唯一后续执行手册：** [`docs/api/browser-sdk-execution-manual.zh-CN.md`](docs/api/browser-sdk-execution-manual.zh-CN.md)；**全部官方发现与获批准逐接口实施合同：** [`docs/api/browser-sdk-interface-matrix.json`](docs/api/browser-sdk-interface-matrix.json)。本次按固定 Chromium JSON/WebIDL/IDL Schema 扫描，目录中包含私有/特定平台/历史接口，发现不等于批准开放。后续编码任务直接按手册 Phase 0–7、矩阵首项未完成接口实施、测试、保留证据并安全提交，不重开整体架构讨论，不再建立并列总 GOAL。
+
+**原 35 项永久兼容规则已失效。** R7/R8、`browser-sdk-compatibility-map.json` 与旧 8 Namespace Chrome Catalog 是迁移与历史检索资料，不能覆盖唯一 Registry / Host / Authority 或要求保存开发期错误旧 API。接口的 SOURCE_WIRED、NODE_PASS、BUILD_PASS、NATIVE_PASS 独立验证；无同候选真实 Chrome 证据必须标为 NOT_TESTED。
+
 ## Browser SDK 预发布 API 一次性收敛授权（2026-10-13）
 
 **用户最新明确：OpenDesk Browser 尚未正式上线使用，现有 35 项 Browser SDK 只是开发期快照，不是必须长期兼容的外部 API。** 对 Browser SDK 中命名、参数、返回值、分层或重复调用设计不合理的旧接口，允许直接合并、改名或删除；一次性同步迁移仓库内全部消费者、示例、测试和当前文档，不增加无意义的兼容别名、deprecated shim、第二套 Registry/Host/Authority 或固定 35 项测试分母。本条在 Browser SDK 范围内优先于历史“保留已约定公开 API”及 R7/R8 的旧接口兼容目标。

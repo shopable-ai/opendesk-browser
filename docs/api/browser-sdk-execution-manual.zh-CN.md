@@ -1,0 +1,186 @@
+# OpenDesk Browser SDK 唯一冻结执行手册（2026-10-13）
+
+> **范围：SDK 设计与后续实施合同。不是实现验收报告。**
+> 本手册是 Browser SDK 当前唯一正式实施入口；结构化逐接口事实见 [browser-sdk-interface-matrix.json](browser-sdk-interface-matrix.json)。其余 R7/R8、旧 35 项兼容映射、R5 114 候选和 R9 工作记录只是历史或输入，不得重新替代本手册。
+> **目标状态：DESIGN FROZEN；IMPLEMENTATION ONLY。** 冻结仅意味着执行选择已确定，不意味着源码、Node、Build、真实 Chrome 均已通过。
+> 当前固定发现基线：Chromium 提交 b5485910372708cd11d9a814a3e382fe8da57df3，Chrome 最低版本 138，Manifest V3。设计扫描发现 191 个源 Schema（JSON/WebIDL/IDL）、163 个 Namespace、1,255 个 Method、321 个 Event、91 个 Property，即 1,830 个有分类目录条目。正式实施合同 54 项，其中 28 项现行注册表 SOURCE_WIRED、11 项 Cookie 可信 Host-only SOURCE_WIRED、15 项 DESIGN_APPROVED_NOT_IMPLEMENTED。数字与每项来源由接口矩阵生成；**此处的“已发现”不等于目标平台全部可用，更不等于公开已实现。**
+
+## 0. 决策优先级与一次封版的边界
+
+1. 本手册及接口矩阵共同构成设计封版合同。现行源码运行时事实始终以 src/framework/sdk/browser-contract.js 中 BROWSER_OPERATIONS、src/framework/sdk/browser-schemas.js、已接线的 Host/Driver 为准。计划操作在实际注册前不能称为可调用。
+2. 2026-10-13 预发布合同高于 R7/R8 的原 35 项永久兼容主张：允许 KEEP、RENAME、MERGE、DELETE、NEW，按功能组一次迁移仓内消费者，不保留无意义别名、deprecated shim 或旧 35 计数分母。历史证据、旧 Chrome native receipt、603+19/B05/F3/ZIP 验收合同继续原样保留。
+3. **统一公开入口仅 OpenDeskSDK.browser。** 不新增 OpenDeskChromeSDK、UniversalChromeProxy、动态 chrome[namespace] 透传、第二 Registry、第二 Browser Host、第二 Authority、第二 Scheduler、第二 Cookie Driver。
+4. 官方固定 Schema 是**发现目录**，不是对沙箱的授权。matrix.nativeInterfaces 的一个成员并不自动进入 SDK；只有 approvedOperations 才是设计批准名单；其中只有 visibility=APPROVED_TOOL_REGISTERED 且源码实际接线的操作目前能进入正常调用路径。
+5. 适用目标是桌面 Chrome MV3、最低 Chrome 138。每个原生操作必须做实际目标 Chrome 版本、权限、上下文和 Feature Presence 核验。矩阵中 minChrome=null 表示未证实，**绝非 Chrome 138 已验证**。例如 chrome.sidePanel.close 至少 Chrome 145，138 不可假定支持；不得通过静默绕过或虚构 Polyfill 宣称通过。Chromium private/internal、ChromeOS/kiosk/enterprise、Chrome App/MV2、DevTools-only 及只读类型声明已经逐项或逐源分类，不作一般沙箱公开。
+6. 发生重大真实安全、平台不可实现或相互矛盾的接口合同时，仅在同一手册与矩阵进行 **有证据的局部修订**，不另建新一份总体 GOAL 或架构方案。仅仅是 Node 失败、源码未完成、Chrome 未测试，不触发重新设计。
+
+## 1. 唯一架构：路径与职责冻结
+
+| 层 | 唯一责任与可执行文件 | 禁止 |
+| --- | --- | --- |
+| Native Discovery | docs/api/browser-sdk-interface-matrix.json；历史 8-namespace 种子 docs/api/chrome-native-api-catalog.json；固定 Chromium JSON/WebIDL/IDL 的提交与 blob SHA | 不能将自动发现自动变成权限、动态 RPC 或真实 Chrome PASS |
+| Registry / Schema | src/framework/sdk/browser-contract.js 的 BROWSER_OPERATIONS + src/framework/sdk/browser-schemas.js；唯一获批准的运行时操作表、版本、输入/输出和错误合同 | 不以旧 35 项、114 候选、compatibility-map 代替注册表；不建立第二份运行时名单 |
+| Developer Wrapper | src/framework/sdk/browser.js 的 createBrowserSdk；src/sidebar-tools/bridge.js；只提供 OpenDeskSDK.browser、Promise、对象参数、opaque Ref | 沙箱内不能直接调用 chrome.*、不能泄露 tabId/downloadId/cookie value |
+| Tool Admission | src/ui/sidebar-tools.js 在真实安装工具身份、packageHash、installEpoch、工具授权、Origin、真实用户意图下建立单次请求 | UI 的前端声明、模拟点击、任意 page-origin 不等于授权 |
+| Browser Host / Dispatcher | src/platform/chrome/context-menus.js 的既有 BROWSER_HOST_PROTOCOL、真实 Sender、documentId、tab/window、意图消费、撤权、生命周期和未知效果决策 | 不平行新增通用 Router / 浏览器授权数据库 / 第二 Host |
+| Driver / Existing Services | src/platform/chrome/browser-tabs.js、cookies.js、browser-cookie-host.js（受信薄适配）、browser-network-observe.js、browser-screenshot.js、permission-gate.js、src/platform/downloads/、src/platform/storage/、src/platform/tasks/schedule-service.js | 不把业务逻辑重复写进 RPC 层；不破坏 Controller 旧 Cookie 行为、现有下载/存储/定时服务 |
+| Controller Authority | src/platform/host/authority.js 与 RunHost 为 Controller/Page 的已有强身份和执行边界；Browser Host 只在现有授权模型下协作 | 不把 Controller 注入世界、可信 Cookie UI、普通第三方 Tool 当作同一权限身份 |
+
+固定调用链：OpenDeskSDK.browser → installed-tool bridge → Side Panel 的已安装身份/用户操作校验 → 唯一 Browser Host (真实 Sender 与授权快照再次验证) → namespace Driver/现有服务 → Chrome 原生 API → 有界、脱敏、稳定回执。Page SDK 只提供已有本地 capabilities 发现与明确的 E_CONTEXT 拒绝，不自动拥有浏览器操作。可信内置 UI 走已存在的 Host-only 受信流，**不能以“官方发布”替代真实可信执行世界**。
+
+固定 mappingKind：DIRECT（安全直接绑定）、SCOPED（施加资源/Origin/工具所有权）、COMPOSED（多 API 组成有限操作）、EXISTING_SERVICE（复用当前服务）、HOST_ONLY（只在真实可信 Host）、UNSUPPORTED（有真实平台/版本证据不可实现）。当前 nativeInterfaces 的安全分类不能被当作某项已经注册；每项批准操作的实际 nativeApis、Host、Driver 和能力在 approvedOperations 中精确记录。
+
+## 2. 全接口目录的事实约束与分类
+
+本轮固定范围从 Chromium 提交 b5485910372708cd11d9a814a3e382fe8da57df3 下 chrome/common/extensions/api/、extensions/common/api/ 根目录全部可枚举的 JSON、WebIDL、IDL 文件及 chrome/common/extensions/api/devtools/ 内 5 个 Schema 读取，保留原始 Git blob SHA；共 191 个 Schema。11 个纯类型/manifest 声明文件不具有公共顶层 Namespace，sourceFiles 明确列为 NO_PUBLIC_NAMESPACE_DEFINITION，不臆造操作。初版 chrome-native-api-catalog.json 的 119 个条目均包含在新矩阵中，旧 8 Namespace 目录**仍是 R8 历史种子，不得作为新的全量分母**。
+
+矩阵 bucket 含义：
+
+| 分类 | 处理决定 |
+| --- | --- |
+| SCOPED_OR_TRUSTED_CANDIDATE | 原生存在，必须进一步有逐项最小权限与所有权映射；只有 approvedOperationIds 所指操作得到实施批准 |
+| TRUSTED_HOST_OR_EXISTING_SERVICE | 浏览器广域、身份、注入、拦截、权限、全局存储或生命周期能力；不得给不可信工具建立原生代理，必须走现有可信 Host / service |
+| INTERNAL_NOT_EXPOSED | Chromium 内部、private、experimental、测试接口；不是普通扩展稳定 API |
+| PLATFORM_OR_POLICY_ONLY | ChromeOS、kiosk、企业策略或指定系统条件；Mac 桌面一般运行环境不满足 |
+| LEGACY_NOT_EXPOSED | Chrome App、MV2、历史或废弃接口；不是新 SDK 目标 |
+| DEVTOOLS_ONLY | 需要 DevTools 扩展页面/独立权限环境，当前工具执行世界不可用 |
+| NOT_APPROVED_FOR_TOOL | 已发现但未获得开放授权/产品需求，不直接公开；仍保留原生签名、来源与理由 |
+| VERSION_GATED | 有明确最低版本证据（如 sidePanel.close 145），按最低 Chrome 138 阻止误用 |
+
+**“发现”不是“实施”。** 初版 1,830 条目中允许保留后续产品能力未获批准的分类；不得因为要凑“全接口”就向任意工具暴露敏感 Chrome 原生 API。若后续确需开放，先按本手册的既定模板在同一矩阵补准确合同，安全审查只是接口范围决策，不意味着为用户自写 JS 库引入逐库人工审核。
+
+范围说明：这份目录是上述**固定 Chromium Schema 来源**的穷尽解析，不宣称覆盖 Chrome 浏览器内部一切未被这些 Schema 声明的 API，也不宣称对每一个新增 Chrome 版本的可用性都完成 Native 测试。发现、稳定性、原生可用性必须分别记录；源文件枚举缺漏或新版 IDL 差异的实际证据需在 P0 补充同一矩阵。
+
+## 3. 已批准接口合同的机器事实
+
+docs/api/browser-sdk-interface-matrix.json#approvedOperations 是唯一逐接口实施清单。每条含 operation ID、精确签名、输入/输出 Schema（现行注册项引用真实 browser-schemas.js 对应操作）、公开/Host-only 信任等级、Chrome 权限、工具 Capability、Origin/TabRef 作用域、用户手势、生命周期、错误码、SDK/Registry/Schema/Host/Driver 源码目标、Phase、正反向测试与真实 Chrome 证据要求。可重复计算的审核分母是 54，**不是历史 35，也不是原生发现 1,830**。
+
+当前 54 项按责任划分：
+
+| 领域 | 数量 | 冻结决定 |
+| --- | ---: | --- |
+| 现行 Browser SDK | 28 | 保留实际功能，按 P1/P3 清理错误旧入口与 Host 旁路；SOURCE_WIRED 不等于 NATIVE_PASS |
+| Cookies | 11 | 只属于受信 Side Panel/Host，不登记给安装工具/Page SDK；Chrome Driver 复用 cookies.js，R9 观察游标只读 |
+| Downloads、Bookmarks、可信 History | 7 | 下载必须 own downloadRef，书签只操作新建自有书签，History 浏览数据只在可信 UI 显式授权 |
+| Permissions | 1 | requestForTool 是可信用户手势入口，严格来自 Manifest optional_permissions/Origin，不允许第三方工具自行伪造 gesture |
+| Storage | 4 | 仅已安装工具自己命名空间，必须限制字节和数量；clear 只删自己的键，绝不转为 chrome.storage.local.clear 全局清除 |
+| Scheduler | 3 | 只调现有 schedule-service + chrome.alarms，为已安装的固定 Revision 授权；不创建第二个闹钟/调度数据库 |
+| **合计** | **54** | 后续不得凭发现目录无审批地增加公有接口 |
+
+下述能力没有批准成“第三方工具可自由调用”：Chrome 原生任意 cookies 全局查询/清理、全浏览器 tabId 枚举/删除、所有历史记录/下载记录、任意 chrome.scripting 注入、全局 chrome.storage、debugger、proxy、identity、management、declarativeNetRequest 动态规则、原生消息、真实浏览器监听的无界事件流。这些能力已经按 nativeInterfaces 安全 bucket 入库，但不是漏项。
+
+## 4. Cookies 11 项不可变的安全调用合同
+
+唯一受信操作名（按现行 src/platform/chrome/browser-cookie-host.js#TRUSTED_COOKIE_OPERATIONS）：
+
+1. browser.cookies.get：当前所选页面 URL 的 Cookie，按名称查询；同名跨 Path/partition 多条返回 E_COOKIE_AMBIGUOUS，不能任意选第一条。
+2. browser.cookies.getAll：只返回当前页面 URL、当前非无痕 Store、指定 Partition 的匹配集合，上限 100 条 / 60 KB。
+3. browser.cookies.set：name/value、Path、SameSite、Secure、__Host-/__Secure- 和 Domain 不扩权，提交后按 Driver 回读/未知效果语义验收。
+4. browser.cookies.remove：必须精确匹配 name/domain/path/storeId/partitionKey，缺失拒绝、歧义拒绝。
+5. browser.cookies.clearSite：只作用当前所选页面实际匹配 Cookie；部分删除后的未知效果返回 E_OUTCOME_UNKNOWN，不自动重试。
+6. browser.cookies.getCurrentStore：只取所选非无痕页面 Store；**不能写成 chrome.cookies.getAllCookieStores 的全局公开别名**。
+7. browser.cookies.getPartitionKey：按真实 tabId/frameId/Document 取得分区键，不能猜测或使用工具提供的任意身份。
+8. browser.cookies.observe.start：受信 UI 真点击；会话默认 15 秒、上限 30 秒、最多 50 条、最多 8 个并行会话，Worker 仅内存持有。
+9. browser.cookies.observe.getStatus：仅读当前会话状态、缓存数量、丢弃数与 expiresAt；不消费事件。
+10. browser.cookies.observe.read：以 sessionRef / 十进制 cursor / limit≤50 读取脱敏事件，返回 seq、nextCursor、gapCount、droppedCount；**绝不包含 Cookie value**。
+11. browser.cookies.observe.stop：停止并撤销会话；导航、撤权、关 UI、Worker 重启使旧会话失效。
+
+调用仍采用现有 context-menus.js 受信 Cookie 路由，其内部 approve → 一次性 execute 是防重放协议，**不是用户编程 API，也不是第二个公共 Cookie Host**。受信 caller 需真实 Chrome Sender + hostInstanceId + Document + 15 秒内一次性批准。执行前后校验 active tab、windowId、documentId、精确 URL/Origin、cookies 权限与该源站 host permission、Store、Partition、非无痕和 lifecycle。工具 iframe 的“Cookie Editor”即使由 OpenDesk 官方分发，只要仍处于不可信沙箱就不得收到明文 Cookie；可提供受信 UI 跳转，不能把沙箱授权冒充 Host 受信身份。Controller 原有 getCookies/setCookies/deleteCookiesByUrl 仍复用 src/platform/chrome/cookies.js，不擅自改变既有用法。
+
+R7 的 getStores、10 项 native-mapping 文件属于历史，不再作为当前 Cookie 名称/数量的真相；R9 实际 11 项以本手册、矩阵与真实 Host 源码一致为准。
+
+## 5. 旧架构迁移：KEEP / RENAME / MERGE / DELETE / NEW
+
+- KEEP：当前 Registry 的正常操作与业务安全效果，保留权限与生命周期语义，但逐一复查正确 Host 和 SDK 入口。
+- RENAME：browser.tabs.open → browser.tabs.create；browser.tabs.focus → browser.tabs.activateOwned；browser.tabs.closeOwned → browser.tabs.removeOwned；Cookie 可信 getStores → getCurrentStore，仓内消费者一次性改用新名字，不保留别名。getOwned/listOwned/pinOwned/reloadOwned 均是 own TabRef 作用域；reloadOwned 在发出 chrome.tabs.reload 前不可逆地撤销旧 TabRef，Chrome 回执只证明收到重新加载请求，不证明新文档加载完成。
+- MERGE：browser.clipboard.writeText 当前走旧 clipboard.writeText、browser.downloads.text 当前走 file.download；P1 将其收敛到同一个受信 Browser Host 调度和回执，不改变用户可用能力。
+- DELETE：已从现行 Registry 清理的 9 个 R8 开发期 Media/Speech/Notifications 占位不以旧 35 项义务复活。后续从所有当前测试分母/现行文档删除其“必须可调用”的假定，但历史测试和旧快照保留 Git 历史。
+- NEW：Cookie observe.read；下载 own Ref 的 4 项、书签 own/可信历史、权限受信请求、隔离 storage 4 项、现有 Scheduler 3 项；以矩阵列出的精确合同实施。禁止为了名字像 Chrome 原生而隐瞒较小的可访问作用域。
+
+每个 Phase 的**强制消费者检索范围**：src/、src/entrypoints/、src/ui/、src/sidebar-tools/、src/platform/、official-tools/、examples/、tests/、scripts/、docs/api/、docs/framework/、manifest.json，以及打包后实际生成的 Side Panel 工具入口。必须同时检索 JS、HTML、JSON、Markdown、类型、测试 fixture 的旧名字或 alias；在迁移记录列出命中路径、修改或明确不改的原因。核心现有点：src/framework/sdk/browser.js、src/framework/sdk/browser-contract.js、src/framework/sdk/browser-schemas.js、src/sidebar-tools/bridge.js、src/ui/sidebar-tools.js、src/platform/chrome/context-menus.js、src/platform/chrome/browser-tabs.js、src/platform/chrome/browser-cookie-host.js、src/ui/trusted-cookie-workbench.js、src/platform/chrome/cookies.js、src/platform/host/authority.js、src/platform/tasks/schedule-service.js、src/platform/storage/、src/platform/downloads/。
+
+安全扫描标准命令：
+
+~~~bash
+rg -n "browser\.tabs\.(open|focus|closeOwned)|browser\.cookies\.getStores|browser\.cookies\.(approve|execute)|clipboard\.writeText|file\.download|browser-sdk-compatibility-map|BROWSER_OPERATIONS|createBrowserSdk|OpenDeskSDK\.browser" src official-tools examples tests scripts docs manifest.json
+~~~
+
+任何命中都需要判断是**当前消费者**还是**有意保留的历史资料**，禁止盲目全局替换。旧设计若仍被当前测试、生成器或文档误当成 active contract，P1 必须修复。
+
+## 6. Phase 0–7：固定源码与通过条件
+
+| 批次 | 精确目标与先决条件 | 必须满足的完成条件 |
+| --- | --- | --- |
+| P0 · 源与账本 | 固定本矩阵 sourceFiles 191 项、1830 nativeInterfaces、现有 119 种子条目全包含；核对 Chromium JSON/WebIDL/IDL、源 gitBlobSha、目标 Chrome/manifest、注册表、实际仓内消费者；不改 Chrome 权限 | 自动验证全 Schema 能解析，Namespace/Method/Event/Property 每条有 bucket 与理由，批准操作签名/Schema/路径齐全；缺来源或版本不得假设支持；记录证据和当前 Git SHA |
+| P1 · 唯一调用链 | src/framework/sdk/browser-contract.js、browser-schemas.js、browser.js、src/sidebar-tools/bridge.js、src/ui/sidebar-tools.js、src/platform/chrome/context-menus.js；先完成旧 UI alias 归并 | 不存在重复 Registry/Host/Grant；真实工具身份 + 安全错误码 + no dynamic chrome.*；原 28 现行能力无回归，所有仓内旧签名消费者迁移 |
+| P2 · Cookies | src/platform/chrome/browser-cookie-host.js、cookies.js、context-menus.js、src/ui/trusted-cookie-workbench.js、Controller 原 Cookie 消费者 | 11 项签名与矩阵一致；非受信沙箱/跨 Origin/失效 Document/跨 Store/Partition/撤权均拒绝；精确写/删/清理与观察游标通过 Node 后再取真实 Chrome 证据 |
+| P3 · Tabs/Downloads/Bookmarks/History | src/platform/chrome/browser-tabs.js、src/platform/downloads/、src/platform/chrome 新增薄 namespace adapter（不得另建 Host）；Registry/Wrapper/Schema 同批修改 | TabRef、DownloadRef、BookmarkRef 不泄露宿主原生 ID；reloadOwned 调用前撤销旧 TabRef，未知 Native 副作用不盲重试；owned 操作不能影响其他工具/网站；History 只可信 UI；安全失败无未知重放；所有对应消费者和测试同批更新 |
+| P4 · Permissions/Storage | src/platform/chrome/permission-gate.js、src/platform/storage/、src/ui/sidebar-tools.js、context-menus.js；不新建 Permission DB | optional permission 只在真实用户手势请求，拒绝/撤权后即时生效；local.get/set/remove/clear 只在自己命名空间、配额可验，不影响其他工具或全局 storage |
+| P5 · Scheduler | src/platform/tasks/schedule-service.js、schedule-contract.js、schedule-repository.js 与现有安装任务体系，底层 chrome.alarms 只在可信 Host；同步更新 Browser SDK 对应操作 | 已安装固定 Revision 才可排期；列表/取消只看 own；重启恢复、不重复投递、撤权取消/隔离、没有新 Scheduler |
+| P6 · 事件及其他原生映射 | contextMenus、sidePanel、webNavigation、network.observe、events、runtime，以及矩阵内已批准 COMPOSED / EXISTING_SERVICE 映射；不因有 nativeInterfaces 就自动公开其余敏感能力 | 有界事件带游标/丢弃计数；观察停止与权限撤销收敛；worker 重启不可错用旧会话；Chrome 138 不支持的调用明确 E_CAPABILITY 或具体版本拒绝 |
+| P7 · 完整验证与交付 | 逐批 Node/源检查、构建、真实 Mac Chrome 原生测试、SDK 与 Consumer 回归；更新唯一矩阵进度和证据并安全提交 | 每批准接口要么 NATIVE_PASS，要么明确 NOT_TESTED/BLOCKED 并附阻碍，绝不假报 100%；最新同一候选 SHA、package hash、Chrome version、sender、负向权限、Worker 生命周期与结果回执可追溯 |
+
+执行顺序固定 P0 → P1 → P2 → P3 → P4 → P5 → P6 → P7；具备明确独立性时可以同一阶段按组件顺序完成，但不允许绕过前置身份与权限合同直接生成原生 RPC。新增源码文件仅在矩阵已写明为 NEW adapter 的位置创建，不能另建第二框架。
+
+## 7. 全接口签名、错误码、权限和生命周期
+
+1. 任何批准公开操作默认单对象入参（零参用空对象语义）、Promise、稳定错误码。现有 28 项输入输出 Schema **直接引用源码** src/framework/sdk/browser-schemas.js 对应 operation；新增 26 项（Cookies 11 + 计划 15）输入输出机器 Schema 已在矩阵中明确。未来修复后必须以实际源码解析结果验证机器合同，不得用“已规划”冒充实际 Validator。
+2. 公共操作最小权限四联检：Chrome extension API permission / 真正已授予的 host origin / 已安装工具能力与 Epoch / 当前真实 Document 与用户授权行为。Chrome Manifest 含 <all_urls>、cookies、downloads 等权限不代表任意安装工具获得同权限。
+3. Sensitive native API 映射默认拒绝，除非 matrix.approvedOperationIds 明确列出特定作用域操作。全部 Host-only 操作都不能序列化为普通 OpenDeskSDK.browser 方法给 iframe/Page。raw tabId、windowId、Cookie value、任意下载 ID、完整浏览历史、token 和未脱敏网络事件不得穿越普通工具沙箱。
+4. 错误码以实际代码可识别的 E_SCHEMA、E_CONTEXT、E_SERVICE_UNSUPPORTED、E_CHROME_PERMISSION_REQUIRED、E_OWNER、E_DOCUMENT_CHANGED、E_USER_GESTURE_REQUIRED、E_OUTCOME_UNKNOWN、E_LIMIT 以及 Cookie 精确匹配错误为底线。不得默默吞错返回成功；更不能猜测执行是否已发生然后重试副作用。
+5. Ref 必须为有界、不可猜的 opaque 句柄，与工具安装身份、权限范围、目标窗口/文档及生命周期绑定。Tool 被禁用、重装、撤权、导航、Worker 重启后不能凭旧 Ref 重新获得权限。事件流固定有界、带游标与 dropped/gap 反馈；不以永久全局监听代替已授权 session。
+6. 一般公开操作只支持 sidebar-tool 的已安装受控执行世界。Page SDK 仅有已经明确的 capabilities / 本地只读发现，其他操作 E_CONTEXT。Controller 原有 RunAuthority 保持独立安全边界，不由于统一 SDK 提升 Page 或 Controller 的跨身份权限。
+7. 新增签名的显示样例与精确 JSON inputSchema/outputSchema 以矩阵为准；若后续发现某 Schema 在 Chrome 138 不适用，先保存真实 Native 平台证据并局部标记 VERSION_GATED / BLOCKED，而不是为凑数量增加特权兜底。
+
+## 8. 测试、证据等级和反向验收
+
+| 状态 | 唯一含义 | 最低证据 |
+| --- | --- | --- |
+| SOURCE_WIRED | 源码的 SDK → Host → Driver 路由可以静态追踪 | 目标文件、调用图、精确提交 SHA、参数/返回合同 |
+| NODE_PASS | 针对候选源码的正向与拒绝用例通过 | 测试命令、退出码、原始输出、候选 SHA；不能叫 Chrome PASS |
+| BUILD_PASS | 生产/开发构建或特定指定产物检查通过 | npm run check、npm run build / build:dev 等精确命令与实际产物哈希 |
+| NATIVE_PASS | 同候选真实 Chrome 扩展安装、真实 Sender、真实用户动作及 Chrome API 回执通过 | SHA、Package hash、Chrome version、扩展 ID、操作名、Origin/Document/工具 Epoch、实际 receipt、撤权负向及 Worker 生命周期日志 |
+| NOT_TESTED | 当前候选没有本等级可核验原始证据；历史候选 PASS 不能继承 | 记录 NOT_TESTED + 原因/测试入口 |
+| BLOCKED | 真实环境/平台/权限/安全或测试条件阻止继续 | 准确 blocker、受影响 ID、来源与解除条件；不得自动降级为 PASS |
+
+每批准操作至少有：Schema 正向；未知字段/错误入参；未安装或禁用工具；恶意/伪 Sender；错误 Origin/Document；旧 installEpoch；权限拒绝/撤权；用户手势伪造；资源越界；重复调用或不确定 Chrome 副作用；正常 Worker 重启/导航；当前候选真实 Chrome 原生行为。若某项不适用（例如零参 capabilities），记录明确 N/A 理由而非静默删除负向断言。
+
+标准源码检查与局部测试入口：
+
+~~~bash
+node scripts/sync-chrome-api-catalog.mjs --check
+node --test tests/environment/browser-sdk-r8-catalog.test.mjs
+node --test tests/environment/browser-sdk-coverage.test.mjs tests/environment/browser-sdk-r2-host.test.mjs
+node --test tests/environment/browser-sdk-r7-trusted-cookies.test.mjs tests/environment/browser-sdk-r8-cookies.test.mjs
+node --test tests/environment/browser-tabs-host.test.mjs
+npm run check
+npm run build
+~~~
+
+旧 sync-chrome-api-catalog 脚本目前仍针对历史 8 Namespace 种子；P0 必须核对其范围并使新的完整接口矩阵具有**可复算的来源覆盖检查**，不能把旧 check PASS 等同新的 191 源扫描 PASS。新增 P3–P6 的测试文件应按矩阵 testContract.target 创建。真正 Chrome 原生由用户 Mac Chrome for Testing 的单一占用者执行，不以 Mock、DOM synthetic click、伪造日志或 UI 截图冒充。
+
+本设计阶段通过 GitHub API 只读核查和 Git Blob 生成矩阵，不等于在用户 Mac 运行 Node、构建或 Chrome；所以现行接口的候选 Node/Build/Native 初始均保留 NOT_TESTED，原有历史证据不覆盖。
+
+## 9. 95 分制设计门禁与真实完成条件
+
+五维各 20 分、总 100 分：覆盖完整性（固定 Schema 的 Namespace/Method/Event/Property 有源和分类）；架构一致性（只有一个 Registry/公开入口/Host、不同执行世界不偷换身份）；可执行性（54 项签名、源码目标、P0–P7 和消费迁移）；安全性（真实手势、最小权限、Cookie 精确身份、撤权、未知副作用）；测试可验证性（正反向用例、同候选 Native 证据、状态不得串级）。**只有 ≥95 且无关键未决架构选择、相互矛盾源码事实和未解决写入冲突，才允许在交付报告中称 DESIGN FROZEN。** 不能用“设计评分”代替“实现进度”或真实 Chrome PASS。
+
+不构成设计阻碍的实施问题：缺少未来 P3–P6 源码、尚未跑 Mac Chrome、当前某条操作仍 NODE/BUILD NOT_TESTED；它们由各自阶段执行合同解决。构成设计阻碍的问题：发现已批准接口存在不可表达的安全权限、Chrome 最低版本无法实现且无明确定义的降级策略、源码现状否定本手册宣称的接口或 Schema、无法确认安全写入原仓库。出现这些情况不得假称封版，必须留下明确的 blocker/证据，先局部修订同一两份正式文档。
+
+## 10. 安全 Git 规则与实施自动循环
+
+1. 唯一可写分支 main；只读核查 git branch/status/HEAD、origin/main、目标文件差异、当前并行写入与测试资源占用。**没有本地 Mac 挂载时不得声称检查了 Mac 工作区**，可以在不冲突时只对远端进行基于 latest HEAD 的条件式提交。
+2. 任何并行 Agent 正在改同文件、存在无法解释的 worktree 差异、远端 HEAD lease 失败时，停止写入，说明冲突。不得新建分支、worktree、PR、强推、reset、覆盖 public-owner.json 或历史 native receipt。
+3. 一次只执行矩阵中的第一项 status 未达本阶段完成条件的批准操作；核对来源与消费者，修改真实源码，做定向测试和负向测试；更新同一矩阵 status、验证级别和证据 SHA，安全提交 main；继续下一条。
+4. 每组接口完成后复核 Phase 条件；只有相同候选的 Node/Build/Native 证据才能进到对应 PASS，不因为其他对话或旧候选曾成功而自动继承。
+5. 后续对话默认执行以下续接指令，无需再写一份总体 GOAL：**读取 AGENTS.md → 本手册 → 矩阵 → 当前 BROWSER_OPERATIONS / Host / Driver → 找第一未完成批准操作 → 修改源码和消费者 → 定向测试 → 原生验证或标记 NOT_TESTED/BLOCKED → 更新矩阵与账本 → 安全提交 main → 下一项。** 仅在实际重大阻碍时局部修改本手册，不进行全面架构重新选型。
+
+## 11. 历史索引与来源
+
+- **现行合同优先**：[Browser SDK 预发布收敛合同](browser-sdk-prelaunch-contract-20261013.zh-CN.md)、本手册、[接口矩阵](browser-sdk-interface-matrix.json)、AGENTS.md。
+- **旧资料归档继续保留**：browser-sdk-architecture-r8.zh-CN.md（旧 35 项保留要求已失效）、browser-sdk-compatibility-map.json（仅迁移检索输入）、browser-sdk-native-mapping.json（R7 10 项 Host 私有历史，不覆盖 R9 11 项）、browser-sdk-full-interface-inventory.zh-CN.md（114 候选历史）、chrome-native-api-catalog.json（原始 8 Namespace / 119 条种子）、docs/framework/workstreams/browser-framework-four-layer-ledger.json（旧分层快照）。
+- **现行组件验收账本**：docs/framework/workstreams/browser-sdk-acceptance.json；只引用有实际候选 SHA 的既存事实，不篡改历史收据。
+- **官方参考**：https://developer.chrome.com/docs/extensions/reference/api ，https://github.com/chromium/chromium/tree/b5485910372708cd11d9a814a3e382fe8da57df3/extensions/common/api ，https://github.com/chromium/chromium/tree/b5485910372708cd11d9a814a3e382fe8da57df3/chrome/common/extensions/api 。
+- **运行时事实与验收资料不等同**：src/framework/sdk/browser-contract.js 是当前“真正在 Registry 注册”的事实；矩阵 approvedOperations 是后续设计准入；Native evidence 只能由用户 Mac 的真实 Chrome 测试产生。
+
+**手册状态变更约束**：一旦在 main 中以无冲突提交与完整矩阵校验完成封版，正式进入 IMPLEMENTATION ONLY；后续不再创建第二份 Browser SDK 总体执行手册。
