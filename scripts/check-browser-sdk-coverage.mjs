@@ -78,6 +78,7 @@ export async function checkBrowserSdk({root=ROOT}={}){
   ()=>sdk.tabs.getOwned({tabRef:'r'.repeat(32)}),()=>sdk.tabs.listOwned(),
   ()=>sdk.tabs.pinOwned({tabRef:'r'.repeat(32),pinned:true}),
   ()=>sdk.tabs.reloadOwned({tabRef:'r'.repeat(32)}),
+  ()=>sdk.tabs.navigateOwned({tabRef:'r'.repeat(32),url:'https://example.org/next'}),
   ()=>sdk.tabs.removeOwned({tabRef:'r'.repeat(32)}),
   ()=>sdk.sidePanel.openSelf(),()=>sdk.network.request({method:'GET',url:'https://example.org'}),
   ()=>sdk.network.observe.start({tabRef:'r'.repeat(32),origins:['https://example.org']}),
