@@ -27,14 +27,37 @@ async function until(fn,name,ms=30000){
   throw Error(name+' not observed'+(error?': '+error:''));
 }
 async function click(client,session,selector){
-  const box=await until(()=>evaluate(client,'(()=>{const e='+expr(selector)+
-    ';if(!e||e.disabled||e.getClientRects().length===0)return null;'+
-    'const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2,w:r.width,h:r.height};})()',session),
-  'native zoom click target '+selector);
-  assert(box.w>=8&&box.h>=8,'real target is sufficiently visible');
-  for(const type of ['mousePressed','mouseReleased'])
+  // Read-only DOM geometry + genuine CDP wheel/pointer input. Never invoke
+  // element.click(), focus() or scrollIntoView() from injected JavaScript.
+  for(let attempt=0;attempt<16;attempt++){
+    const box=await until(()=>evaluate(client,'(()=>{const e='+expr(selector)+
+      ';if(!e||e.disabled||e.getClientRects().length===0)return null;'+
+      'const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2,'+
+      'left:r.left,right:r.right,top:r.top,bottom:r.bottom,w:r.width,h:r.height,'+
+      'viewportWidth:innerWidth,viewportHeight:innerHeight};})()',session),
+    'native pointer target '+selector);
+    assert(box.w>=8&&box.h>=8,'native pointer target has a real hit area');
+    const inside=box.left>=0&&box.right<=box.viewportWidth+1&&
+      box.top>=0&&box.bottom<=box.viewportHeight+1;
+    if(inside){
+      for(const type of ['mousePressed','mouseReleased'])
+        await client.send('Input.dispatchMouseEvent',{
+          type,x:box.x,y:box.y,button:'left',clickCount:1},session);
+      return;
+    }
+    // Scroll the existing trusted visible content using real Chrome wheel
+    // input rather than mutating its DOM scrollTop from DevTools.
+    const deltaY=box.top>=box.viewportHeight?Math.min(540,Math.max(160,box.top-box.viewportHeight/2)):
+      box.bottom<=0?-Math.min(540,Math.max(160,box.viewportHeight/2-box.bottom)):
+      box.bottom>box.viewportHeight?220:box.top<0?-220:0;
+    if(!deltaY)break;
     await client.send('Input.dispatchMouseEvent',{
-      type,x:box.x,y:box.y,button:'left',clickCount:1},session);
+      type:'mouseWheel',x:Math.max(10,Math.min(box.viewportWidth/2,box.viewportWidth-10)),
+      y:Math.max(10,Math.min(box.viewportHeight/2,box.viewportHeight-10)),
+      deltaX:0,deltaY},session);
+    await sleep(90);
+  }
+  throw Error('Could not reach visible pointer hit area by trusted scrolling: '+selector);
 }
 async function snapshot(client,session,label){
   const data=(await client.send('Page.captureScreenshot',{
