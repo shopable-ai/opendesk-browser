@@ -1,0 +1,250 @@
+{
+  "goal": "Cloud Control R5.2 AI-First Real Cloud Control Product Closure",
+  "date": "2026-10-13",
+  "branch": "main",
+  "userJourneys": [
+    {
+      "id": "A",
+      "purpose": "Two independently installed fixed Controller Tasks",
+      "examples": [
+        "sample.form-fill@1.0.0",
+        "sample.modern-search@1.0.0"
+      ],
+      "status": "NATIVE_PENDING",
+      "originalChromeRunIds": [],
+      "originalResultIds": [],
+      "originalReceiptIds": []
+    },
+    {
+      "id": "B",
+      "purpose": "Status-only receipt when result body consent is false",
+      "status": "SOURCE_IMPLEMENTED",
+      "test": "tests/cloud-control/status-only-privacy-r52.test.mjs"
+    },
+    {
+      "id": "C",
+      "purpose": "Same Task multi-Executor strict recipient pairing isolation",
+      "status": "SOURCE_IMPLEMENTED",
+      "test": "tests/cloud-control/executor-isolation-r52.test.mjs"
+    },
+    {
+      "id": "D",
+      "purpose": "Authenticated external HTTPS/WSS client scoped to paired Executor",
+      "status": "SOURCE_IMPLEMENTED",
+      "externalInternetNative": "REMOTE_NATIVE_PENDING",
+      "test": "tests/cloud-control/remote-https-r52.test.mjs"
+    }
+  ],
+  "protocol": {
+    "jobOwnership": [
+      "providerId",
+      "targetExecutorId",
+      "targetPairingId",
+      "taskId",
+      "version",
+      "manifestHash",
+      "sourceHash",
+      "normalizedParams",
+      "normalizedTarget"
+    ],
+    "oldQueuedUnownedJob": "QUARANTINED_NO_CLAIM",
+    "oldAssignedJob": "PRESERVE_ORIGINAL_OWNER_AND_RECEIPT",
+    "localAdminEndpoint": "http://127.0.0.1:43112/admin/*",
+    "externalSubmitEndpoint": "https://trusted-provider/v1/submit",
+    "externalWebSocket": "wss://trusted-provider/v1/events",
+    "noPublicAdmin": true,
+    "externalClientScope": "server-side bound executorId + pairingId",
+    "statusOnlyFields": [
+      "visibility",
+      "state",
+      "retirementState"
+    ],
+    "resultBodyConsentDefault": false,
+    "fullReceiptRequiresConsent": true,
+    "stopOfflineBehavior": "Local stop succeeds; unpair requires confirmed server revocation",
+    "unknownSideEffects": "OUTCOME_UNKNOWN; do not resubmit"
+  },
+  "sourceCommits": [
+    "85173716d554ef9679639da8c2b6186fd046c451",
+    "9b97c9b1ab754026b16281d9563ab48e26324eb1",
+    "73744a865ebc45a1662dd125e022fb14e594c580",
+    "79c50e5c371c34ca8c0351f12f07e9a42a22ec0f",
+    "274ba710ece5d026aff4bd69eff539566746377e",
+    "373f8b698222b54489d704041d8dddb8db761d1b",
+    "5961cce5f7d1cd995af606da107856536109656b",
+    "73c7ee45f62e59e9ae01493f8dd2d5ad2bef803a",
+    "5dc467fbf401785d48cc0b904a1de8562465180a",
+    "1318be2a85d6c26ab825c83d6634c5d99f83729c",
+    "dda54ec52d0f6e4f411b34328ec474b9bd66e45f",
+    "50847960556e77d32513d7ccd68cf52f1d77e964"
+  ],
+  "statuses": {
+    "jobExecutorIsolation": "SOURCE_IMPLEMENTED",
+    "statusOnlyReceipts": "SOURCE_IMPLEMENTED",
+    "twoDistinctChromeTasks": "NATIVE_PENDING",
+    "chromeUIResponsive": "NATIVE_PENDING",
+    "remoteTLSProtocol": "SOURCE_IMPLEMENTED",
+    "deployedRemoteChrome": "REMOTE_NATIVE_PENDING",
+    "macChromeValidation": "NATIVE_PENDING",
+    "longRunningRunner": "NOT_IMPLEMENTED",
+    "componentCI": "NOT_VERIFIED",
+    "build": "NOT_VERIFIED"
+  },
+  "priorEvidence": {
+    "r51": {
+      "sha": "93c78341271032cb3c641f2b818e9636fb6b88e9",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38351008157",
+      "passed": 226,
+      "failed": 0,
+      "cloudPassed": 30,
+      "authorityPassed": 113,
+      "othersPassed": 83,
+      "check": "PASS",
+      "productionBuild": "PASS",
+      "developmentBuild": "PASS",
+      "verify": "PASS",
+      "productionPackageHash": "9efaded0997d1182bdd0b058f017a6c025563aa1b7ac5162012957ada8faf839",
+      "developmentPackageHash": "8cdbbf5663130d6b78c68c831ccee4650699d90f26efc8666ebaf8f4e0cd0e8e",
+      "actualNativeTwoTaskRun": "NATIVE_PENDING"
+    },
+    "r52FirstFail": {
+      "sha": "85173716d554ef9679639da8c2b6186fd046c451",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38357973403",
+      "status": "completed",
+      "conclusion": "failure",
+      "reason": "Durable outcome test expected no status-only receipt; production tool-shell exceeds 512 KiB byte budget: 527585 > 524288"
+    },
+    "newerCI": {
+      "sha": "50847960556e77d32513d7ccd68cf52f1d77e964",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38359650307",
+      "status": "QUEUED_AS_OBSERVED",
+      "conclusion": "NOT_VERIFIED"
+    }
+  },
+  "native": {
+    "chromeVersion": null,
+    "macProfile": null,
+    "installedTaskIds": [],
+    "runIds": [],
+    "resultIds": [],
+    "revisionSourceHashes": [],
+    "webPageEffects": [],
+    "retirementReleased": [],
+    "providerReceiptIds": [],
+    "screenshots": [],
+    "externalInternetTrace": null,
+    "packageHash": null
+  },
+  "quality": {
+    "targetEach": 95,
+    "dimensions": [
+      {
+        "name": "产品定位与用户价值",
+        "designScore": "NOT_VERIFIED",
+        "implementationScore": "NOT_VERIFIED",
+        "verificationScore": "NOT_VERIFIED"
+      },
+      {
+        "name": "用户完整流程",
+        "designScore": "NOT_VERIFIED",
+        "implementationScore": "NOT_VERIFIED",
+        "verificationScore": "NOT_VERIFIED"
+      },
+      {
+        "name": "功能完整性",
+        "designScore": "NOT_VERIFIED",
+        "implementationScore": "NOT_VERIFIED",
+        "verificationScore": "NOT_VERIFIED"
+      },
+      {
+        "name": "云端可用性",
+        "designScore": "NOT_VERIFIED",
+        "implementationScore": "NOT_VERIFIED",
+        "verificationScore": "NOT_VERIFIED"
+      },
+      {
+        "name": "多用户/Executor 隔离",
+        "designScore": "NOT_VERIFIED",
+        "implementationScore": "NOT_VERIFIED",
+        "verificationScore": "NOT_VERIFIED"
+      },
+      {
+        "name": "权限安全",
+        "designScore": "NOT_VERIFIED",
+        "implementationScore": "NOT_VERIFIED",
+        "verificationScore": "NOT_VERIFIED"
+      },
+      {
+        "name": "结果隐私",
+        "designScore": "NOT_VERIFIED",
+        "implementationScore": "NOT_VERIFIED",
+        "verificationScore": "NOT_VERIFIED"
+      },
+      {
+        "name": "UI 视觉设计",
+        "designScore": "NOT_VERIFIED",
+        "implementationScore": "NOT_VERIFIED",
+        "verificationScore": "NOT_VERIFIED"
+      },
+      {
+        "name": "UI 信息与文案",
+        "designScore": "NOT_VERIFIED",
+        "implementationScore": "NOT_VERIFIED",
+        "verificationScore": "NOT_VERIFIED"
+      },
+      {
+        "name": "UI 操作效率",
+        "designScore": "NOT_VERIFIED",
+        "implementationScore": "NOT_VERIFIED",
+        "verificationScore": "NOT_VERIFIED"
+      },
+      {
+        "name": "可访问性与响应式",
+        "designScore": "NOT_VERIFIED",
+        "implementationScore": "NOT_VERIFIED",
+        "verificationScore": "NOT_VERIFIED"
+      },
+      {
+        "name": "运行可靠性",
+        "designScore": "NOT_VERIFIED",
+        "implementationScore": "NOT_VERIFIED",
+        "verificationScore": "NOT_VERIFIED"
+      },
+      {
+        "name": "框架复用与可维护性",
+        "designScore": "NOT_VERIFIED",
+        "implementationScore": "NOT_VERIFIED",
+        "verificationScore": "NOT_VERIFIED"
+      },
+      {
+        "name": "自动化测试完整性",
+        "designScore": "NOT_VERIFIED",
+        "implementationScore": "NOT_VERIFIED",
+        "verificationScore": "NOT_VERIFIED"
+      },
+      {
+        "name": "真实 Chrome 验收可信度",
+        "designScore": "NOT_VERIFIED",
+        "implementationScore": "NOT_VERIFIED",
+        "verificationScore": "NOT_VERIFIED"
+      }
+    ],
+    "overall95Plus": false
+  },
+  "restrictions": {
+    "mainOnly": true,
+    "noForce": true,
+    "noWorktree": true,
+    "noPR": true,
+    "noSharedMacChromeResources": true,
+    "noRewriteKnownFailures": true
+  },
+  "remaining": [
+    "Fix shared tool-shell production fixed 524288 byte budget without raising budget",
+    "Verify new Cloud CI; repair deterministic assertion/runtime failures",
+    "Run real two installed different Tasks in Chrome and collect Worker Run/Result/retirement/receipt IDs",
+    "Capture real Chrome side panel 300/320/360/420/520px 125%/200% keyboard and screenshot matrix",
+    "Deploy only with approved trusted HTTPS/WSS server/account; run external Chrome end-to-end; otherwise REMOTE_NATIVE_PENDING",
+    "Continue stop/upgrade/restart/network loss/unknown effect native negative gates"
+  ]
+}
