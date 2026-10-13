@@ -1,4 +1,5 @@
 import http from 'node:http';
+import https from 'node:https';
 import {randomUUID,randomBytes,createHash,timingSafeEqual} from 'node:crypto';
 import {mkdir,readFile,writeFile,rename,open,unlink} from 'node:fs/promises';
 import {resolve} from 'node:path';
@@ -12,7 +13,15 @@ const hash=v=>createHash('sha256').update(canonical(v)).digest('hex');
 const fail=(code,message=code)=>{throw Object.assign(new Error(message),{code});};
 const exact=(v,keys)=>{if(!v||Array.isArray(v)||Object.keys(v).some(k=>!keys.includes(k)))fail('E_SCHEMA');};
 const secureEqual=(a,b)=>typeof a==='string'&&typeof b==='string'&&a.length===b.length&&timingSafeEqual(Buffer.from(a),Buffer.from(b));
-export async function openProvider({directory='.local/cloud-control',port=43112,clock=()=>Date.now()}={}) {
+export async function openProvider({directory='.local/cloud-control',port=43112,clock=()=>Date.now(),publicTls=null}={}) {
+  if(publicTls!==null){
+    exact(publicTls,['keyFile','certFile','host','port']);
+    if(typeof publicTls.keyFile!=='string'||!publicTls.keyFile||
+      typeof publicTls.certFile!=='string'||!publicTls.certFile||
+      !Number.isSafeInteger(publicTls.port)||publicTls.port<1||publicTls.port>65535||
+      typeof publicTls.host!=='string'||!['127.0.0.1','::1','0.0.0.0','::'].includes(publicTls.host)||
+      publicTls.port===port)fail('E_TLS_CONFIG');
+  }
   directory=resolve(directory);await mkdir(directory,{recursive:true,mode:0o700});
   const lock=resolve(directory,'provider.lock');
   let handle;try{handle=await open(lock,'wx',0o600);await handle.writeFile(String(process.pid));}
@@ -23,7 +32,7 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
   // Migrate legacy R1-R4 state without changing old jobs, requests or receipts.
   // Legacy assigned work remains pinned to its original Executor. Unowned queued
   // R1-R5 jobs stay quarantined: an identical Task never grants ownership.
-  state.executors??={};state.jobs??={};state.requests??={};
+  state.executors??={};state.jobs??={};state.requests??={};state.clients??={};
   for(const row of Object.values(state.executors))row.pairingId??=randomUUID();
   for(const job of Object.values(state.jobs))if(job.assignment&&!job.assignment.pairingId){
     job.assignment.pairingId=state.executors[job.assignment.executorId]?.pairingId??null;
@@ -50,16 +59,28 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
     j.assignment?.assignmentId===b.assignmentId&&j.assignment.executorId===id&&
     j.assignment.pairingId===state.executors[id]?.pairingId);
     if(!j)fail('E_ASSIGNMENT');return j;};
-  const server=http.createServer(async(req,res)=>{
+  const handler=async(req,res,publicRequest=false)=>{
     try{
       if(req.method!=='POST')fail('E_METHOD');
       if(req.headers.origin&&!req.headers.origin.startsWith('chrome-extension://'))fail('E_ORIGIN');
       let text='';for await(const chunk of req){text+=chunk;if(Buffer.byteLength(text)>65536)fail('E_LIMIT');}const b=JSON.parse(text||'{}');
       const path=new URL(req.url,'http://127.0.0.1').pathname;
       const admin=path.startsWith('/admin/');
-      let executorId;
-      if(admin){if(!secureEqual(req.headers.authorization,'Bearer '+credentials.adminToken))fail('E_AUTH');}
-      else if(path!=='/v1/pair'){executorId=Object.keys(state.executors).find(id=>
+      let executorId,client;
+      if(admin){
+        // Local administration is never served by the external HTTPS listener.
+        if(publicRequest)fail('E_ROUTE');
+        if(!secureEqual(req.headers.authorization,'Bearer '+credentials.adminToken))fail('E_AUTH');
+      }else if(path==='/v1/submit'){
+        if(!publicRequest)fail('E_TLS_REQUIRED');
+        const clientId=Object.keys(state.clients).find(id=>
+          !state.clients[id].revokedAt&&
+          secureEqual(req.headers.authorization,'Bearer '+state.clients[id].credential));
+        if(!clientId)fail('E_AUTH');
+        client={...state.clients[clientId],clientId};
+        const target=state.executors[client.executorId];
+        if(!target||target.revokedAt||target.pairingId!==client.pairingId)fail('E_AUTH');
+      }else if(path!=='/v1/pair'){executorId=Object.keys(state.executors).find(id=>
         !state.executors[id].revokedAt&&secureEqual(req.headers.authorization,'Bearer '+state.executors[id].credential));
         if(!executorId)fail('E_AUTH');}
       const answer=await serial(async()=>{
@@ -76,6 +97,8 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
             // Never erase historical Run, Result or receipt. Quarantine unclaimed old work.
             for(const j of Object.values(state.jobs))
               if(j.targetExecutorId===executorId&&j.targetPairingId===row.pairingId&&j.state==='queued')j.cancelled=true;
+            for(const grant of Object.values(state.clients))
+              if(grant.executorId===executorId&&grant.pairingId===row.pairingId)grant.revokedAt=clock()||1;
             out={revoked:true};break;}
           case '/v1/auth':{
             exact(b,[]);const t=token();tickets.set(t,{executorId,pairingId:state.executors[executorId].pairingId,until:clock()+30000});out={ticket:t,expiresAt:clock()+30000,providerId:state.providerId};break;}
@@ -125,6 +148,28 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
             exact(b,[]);out={executors:Object.entries(state.executors).map(([id,row])=>({
               executorId:id,pairedAt:row.pairedAt,revoked:!!row.revokedAt,
               connected:[...sockets.values()].includes(id)}))};break;}
+          case '/admin/client-grant':{
+            exact(b,['executorId']);
+            const row=state.executors[b.executorId];
+            if(!row||row.revokedAt)fail('E_EXECUTOR_TARGET');
+            const clientId=randomUUID(),credential=token();
+            state.clients[clientId]={executorId:b.executorId,pairingId:row.pairingId,
+              credential,createdAt:clock(),revokedAt:null};
+            out={clientId,executorId:b.executorId,credential};
+            break;
+          }
+          case '/admin/client-revoke':{
+            exact(b,['clientId']);
+            if(typeof b.clientId!=='string'||!state.clients[b.clientId])fail('E_CLIENT');
+            state.clients[b.clientId].revokedAt=clock()||1;
+            out={revoked:true};break;
+          }
+          case '/admin/clients':{
+            exact(b,[]);
+            out={clients:Object.entries(state.clients).map(([clientId,c])=>({
+              clientId,executorId:c.executorId,createdAt:c.createdAt,revoked:!!c.revokedAt
+            }))};break;
+          }
           case '/admin/tasks':{
             exact(b,[]);out={tasks:Object.values(state.taskRegistry).map(task=>({...taskPin(task),
               title:task.manifest.title,siteOrigins:task.manifest.siteOrigins}))};break;}
@@ -157,6 +202,27 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
               state.jobs[jobId]={jobId,state:'queued',createdAt:clock(),task:pin,params,target,
                 targetExecutorId:b.targetExecutorId,targetPairingId:owner.pairingId};
               return {jobId};});break;}
+          case '/v1/submit':{
+            // HTTPS caller is bound to one active paired Executor, not arbitrary
+            // installed Tasks or browsers. Reuse the immutable Task registry.
+            exact(b,['requestKey','taskId','version','manifestHash','sourceHash','params','target']);
+            const task=state.taskRegistry[String(b.taskId)+'@'+String(b.version)];
+            if(!task||canonical(taskPin(task))!==canonical({
+              taskId:b.taskId,version:b.version,manifestHash:b.manifestHash,
+              sourceHash:b.sourceHash}))fail('E_TASK');
+            const target=validateCloudTarget(b.target,task.manifest.siteOrigins);
+            const params=validateTaskParams(task.manifest.paramsSchema,b.params??{});
+            const pin=taskPin(task);
+            out=once('external:'+client.clientId+':'+client.pairingId,b.requestKey,
+              {task:pin,params,target,executorId:client.executorId},()=>{
+                const jobId=randomUUID();
+                state.jobs[jobId]={jobId,state:'queued',createdAt:clock(),
+                  task:pin,params,target,targetExecutorId:client.executorId,
+                  targetPairingId:client.pairingId,submittedBy:client.clientId};
+                return {jobId};
+              });
+            break;
+          }
           case '/admin/cancel':exact(b,['jobId']);if(!state.jobs[b.jobId])fail('E_JOB');state.jobs[b.jobId].cancelled=true;out={cancelled:true};break;
           case '/admin/fault':exact(b,['path','count']);if(!['/v1/admission','/v1/claim','/v1/receipt'].includes(b.path)||!Number.isSafeInteger(b.count)||b.count<0||b.count>10)fail('E_SCHEMA');state.faults[b.path]=b.count;out={set:true};break;
           case '/admin/state':exact(b,[]);out={providerId:state.providerId,jobs:state.jobs,executors:Object.fromEntries(Object.entries(state.executors).map(([id,e])=>[id,{pairedAt:e.pairedAt,connected:[...sockets.values()].includes(id),capabilities:e.capabilities}]))};break;
@@ -165,12 +231,25 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
         const drop=!!state.faults[path];if(drop)state.faults[path]--;await save();return {out,drop};
       });
       if(path==='/admin/seed')notify(b.targetExecutorId);
+      if(path==='/v1/submit')notify(client.executorId);
       if(path==='/admin/cancel')notify(state.jobs[b.jobId]?.targetExecutorId);
       if(path==='/v1/unpair')for(const [ws,id] of sockets)if(id===executorId)ws.terminate();if(answer.drop){req.socket.destroy();return;}res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(answer.out));
     }catch(e){res.writeHead(e.code==='E_AUTH'?401:e.code==='E_REQUEST_CONFLICT'?409:400,{'Content-Type':'application/json'});res.end(JSON.stringify({error:{code:e.code||'E_SCHEMA',message:e.message}}));}
-  });
+  };
+  const server=http.createServer((req,res)=>handler(req,res,false));
+  const secureServer=publicTls?https.createServer({
+    key:await readFile(resolve(publicTls.keyFile)),
+    cert:await readFile(resolve(publicTls.certFile))
+  },(req,res)=>handler(req,res,true)):null;
   const wss=new WebSocketServer({noServer:true,maxPayload:8192});
-  server.on('upgrade',(req,socket,head)=>{if(req.url!=='/v1/events'||req.headers.origin&&!req.headers.origin.startsWith('chrome-extension://')){socket.destroy();return;}wss.handleUpgrade(req,socket,head,ws=>wss.emit('connection',ws));});
+  const upgrade=(req,socket,head)=>{
+    if(req.url!=='/v1/events'||req.headers.origin&&!req.headers.origin.startsWith('chrome-extension://')){
+      socket.destroy();return;
+    }
+    wss.handleUpgrade(req,socket,head,ws=>wss.emit('connection',ws));
+  };
+  server.on('upgrade',upgrade);
+  secureServer?.on('upgrade',upgrade);
   wss.on('connection',ws=>{
     const timeout=setTimeout(()=>ws.close(),5000);let authenticated=false;
     ws.on('message',data=>{try{const m=JSON.parse(String(data));if(!authenticated){exact(m,['type','ticket']);const t=tickets.get(m.ticket);tickets.delete(m.ticket);if(m.type!=='authenticate'||!t||t.until<=clock()||
@@ -178,6 +257,21 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
           state.executors[t.executorId]?.pairingId!==t.pairingId)fail('E_AUTH');authenticated=true;clearTimeout(timeout);sockets.set(ws,t.executorId);ws.send(JSON.stringify({type:'authenticated',providerId:state.providerId}));}else if(m.type==='ping')ws.send(JSON.stringify({type:'pong'}));else fail('E_SCHEMA');}catch{ws.close();}});
     ws.on('close',()=>{clearTimeout(timeout);sockets.delete(ws);});
   });
-  try{await new Promise((ok,no)=>{server.once('error',no);server.listen(port,'127.0.0.1',ok);});}catch(e){await handle.close();await unlink(lock);throw e;}
-  return {port:server.address().port,directory,credentialFile,providerId:state.providerId,close:async()=>{for(const ws of wss.clients)ws.terminate();await new Promise(r=>server.close(r));await tail;await handle.close();await unlink(lock);}};
+  try{
+    await new Promise((ok,no)=>{server.once('error',no);server.listen(port,'127.0.0.1',ok);});
+    if(secureServer)await new Promise((ok,no)=>{
+      secureServer.once('error',no);secureServer.listen(publicTls.port,publicTls.host,ok);
+    });
+  }catch(e){
+    if(server.listening)await new Promise(r=>server.close(r));
+    if(secureServer?.listening)await new Promise(r=>secureServer.close(r));
+    await handle.close();await unlink(lock);throw e;
+  }
+  return {port:server.address().port,publicPort:secureServer?.address().port??null,
+    directory,credentialFile,providerId:state.providerId,
+    close:async()=>{for(const ws of wss.clients)ws.terminate();
+      await Promise.all([new Promise(r=>server.close(r)),
+        ...(secureServer?[new Promise(r=>secureServer.close(r))]:[])]);
+      await tail;await handle.close();await unlink(lock);
+    }};
 }
