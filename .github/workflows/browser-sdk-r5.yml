@@ -62,7 +62,8 @@ jobs:
             tests/environment/browser-screenshot-resources.test.mjs \
             tests/environment/browser-network-observe-host.test.mjs \
             tests/environment/browser-sdk-approval-timeout.test.mjs \
-            tests/environment/browser-sdk-r2-demo.test.mjs
+            tests/environment/browser-sdk-r2-demo.test.mjs \
+            tests/environment/browser-sdk-p3-implementation.test.mjs
       - name: R8 pinned Chromium schema offline drift check
         run: node scripts/sync-chrome-api-catalog.mjs --check
       - name: R9 frozen full Chromium matrix structural and approved-operation check
