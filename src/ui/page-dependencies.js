@@ -83,8 +83,96 @@ export function createPageDependencyResolver({client,getSource,getProgramId=()=>
     return {sourceUtf8:candidate.sourceUtf8,entryFormat:candidate.entryFormat,lockId,
       ...(candidate.programId!==undefined?{programId:candidate.programId}:{})};
   }
+
+  // A trusted author Run creates an immutable snapshot. Unlike capture(), it
+  // does not require a previous manual SHA approval ceremony.
+  function captureForRun(){
+    const candidate=current();
+    assertPageSourceReadyToRun(candidate.sourceUtf8);
+    assertUserScriptExecutable(candidate.parsed,
+      {entryFormat:candidate.entryFormat,phase:'preview',dependenciesLocked:true});
+    return {sourceUtf8:candidate.sourceUtf8,entryFormat:candidate.entryFormat,lockId:null,
+      ...(candidate.programId!==undefined?{programId:candidate.programId}:{})};
+  }
+  async function resolveForRun(snapshot,assertRunCurrent=()=>{}){
+    const rejected=(code,message)=>Object.assign(new Error(message),{code});
+    const stillCurrent=()=>{
+      assertRunCurrent();
+      const live=current();
+      if(disposed||live.sourceUtf8!==snapshot.sourceUtf8||
+        live.entryFormat!==snapshot.entryFormat||live.programId!==snapshot.programId)
+        throw rejected('E_DEPENDENCY_STALE','源码或程序身份已更改；不会执行之前准备的依赖');
+    };
+    stillCurrent();
+    const parsed=parseUserScriptDependencies(snapshot.sourceUtf8);
+    if(!parsed.requires.length)return snapshot;
+    const input={sourceUtf8:snapshot.sourceUtf8,entryFormat:snapshot.entryFormat,
+      ...(snapshot.programId!==undefined?{programId:snapshot.programId}:{})};
+    // All byte verification and persistent locks remain in the existing
+    // authenticated Broker Dependency Manager. Never execute here.
+    const report=await client.request('inspectPageDependencies',input);stillCurrent();
+    if(!/^[a-f0-9]{64}$/.test(report?.manifestDigest)||
+      !Array.isArray(report.requires)||report.requires.length!==parsed.requires.length||
+      !Array.isArray(report.locks))
+      throw rejected('E_DEPENDENCY_INSPECT','依赖检查未返回完整可验证的清单');
+    const available=report.locks.filter(row=>/^dep-lock-[a-f0-9]{64}$/.test(row.lockId));
+    if(available.length!==report.locks.length)
+      throw rejected('E_DEPENDENCY_LOCK','依赖锁格式不合法');
+    const pinned=available.find(row=>row.lockId===selectedLockId)||
+      (available.length===1?available[0]:null);
+    if(pinned){selectedLockId=pinned.lockId;return {...snapshot,lockId:pinned.lockId};}
+    if(available.length>1)
+      throw rejected('E_DEPENDENCY_LOCK_AMBIGUOUS','当前程序存在不同的固定依赖版本；请先在高级详情选择要运行的版本');
+    const selections=[];
+    for(const [order,row] of report.requires.entries()){
+      if(row.order!==order||row.url!==parsed.requires[order].url)
+        throw rejected('E_DEPENDENCY_INSPECT','远程依赖清单与本次固定源码不一致');
+      if(row.downloadError)throw rejected(row.downloadError.code||'E_DEPENDENCY_URL',row.downloadError.message||'依赖来源无效');
+      if(row.sourceKind==='packaged')continue;
+      if(row.sourceKind!=='https')throw rejected('E_DEPENDENCY_SOURCE','不支持的第三方库来源');
+      // A moving "latest" URL is not a fixed version. An author supplied
+      // strong hash may also pin original bytes independently of URL naming.
+      const fixed=/@v?\d+\.\d+\.\d+(?:[-+][a-z0-9.-]+)?(?:\/|$)|(?:^|[\/._-])v?\d+\.\d+\.\d+(?:[-+][a-z0-9.-]+)?(?:\/|[._-]|$)|\/[a-f0-9]{40}(?:\/|$)/i.test(new URL(row.url).pathname);
+      const integrity=Array.isArray(row.integrity)?row.integrity:[];
+      if(!fixed&&!integrity.some(pin=>['sha256','sha384','sha512'].includes(pin.algorithm)))
+        throw rejected('E_DEPENDENCY_VERSION','依赖 URL 必须包含明确版本或强完整性哈希；不能自动选择 latest：'+row.url);
+      // Prefer the current program's SHA, then a cross-program asset proven to
+      // come from the exact HTTPS URL. Conflicting bytes cannot auto-upgrade.
+      const choose=rows=>{
+        const shaPins=integrity.filter(pin=>pin.algorithm==='sha256').map(pin=>pin.digestHex);
+        const unique=[...new Map((rows||[]).filter(pin=>/^[a-f0-9]{64}$/.test(pin.sha256))
+          .filter(pin=>!shaPins.length||shaPins.includes(pin.sha256))
+          .map(pin=>[pin.sha256,pin])).values()];
+        if(unique.length>1)throw rejected('E_DEPENDENCY_LOCK_AMBIGUOUS','同一来源存在多份 SHA 字节；请提供明确 integrity，不自动选择不同版本');
+        return unique[0]||null;
+      };
+      const own=choose(row.cacheChoices);
+      if(own)selections.push({order,assetSha256:own.sha256});
+      else {
+        const shared=choose(row.sharedCacheChoices);
+        if(shared)selections.push({order,sharedAssetSha256:shared.sha256});
+      }
+    }
+    // The Run click is the deliberate developer action; acceptedHashes bind
+    // the verified, just-obtained byte identities, not an extra approval UI.
+    const review=await client.request('preparePageDependencies',
+      {...input,explicitUserAction:true,selections});stillCurrent();
+    if(review?.status!=='pending-review'||review.manifestDigest!==report.manifestDigest||
+      !Array.isArray(review.entries)||review.entries.length!==parsed.requires.length||
+      !review.entries.every((row,i)=>row.order===i&&row.url===parsed.requires[i].url&&/^[a-f0-9]{64}$/.test(row.sha256)))
+      throw rejected('E_DEPENDENCY_REVIEW','未获得完整且匹配当前源码的固定依赖资产');
+    const lock=await client.request('approvePageDependencies',{
+      reviewId:review.reviewId,...(snapshot.programId!==undefined?{programId:snapshot.programId}:{}),
+      explicitUserAction:true,acceptedHashes:review.entries.map(row=>row.sha256)});
+    stillCurrent();
+    if(lock?.approvalStatus!=='approved'||lock.manifestDigest!==report.manifestDigest||
+      !/^dep-lock-[a-f0-9]{64}$/.test(lock.lockId))
+      throw rejected('E_DEPENDENCY_LOCK','自动固定后的技术锁无效，不执行脚本');
+    selectedLockId=lock.lockId;refresh(true);
+    return {...snapshot,lockId:lock.lockId};
+  }
   refresh();
-  return {capture,refresh,chooseLock(id){
+  return {capture,captureForRun,resolveForRun,refresh,chooseLock(id){
     if(id&& !locks.some(row=>row.lockId===id))throw {code:'E_DEPENDENCY_LOCK',message:'所选依赖锁不属于当前程序'};
     selectedLockId=id||null;onState();
   },approved(id){

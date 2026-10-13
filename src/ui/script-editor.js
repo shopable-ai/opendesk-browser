@@ -252,7 +252,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if(componentSelector)componentSelector.disabled=!!localProject?.active()||editingBusy||previewBusy||running||stopping||componentRemote?.busy||!!programSource.snapshot();
     if(componentStatus)componentStatus.hidden=componentMode==='javascript'&&!componentStatus.textContent;
     find('page-preview-run').disabled = stopping||browserEffectUnknown||browserManagedPreview?.recoveredOnly||otherTabOwnsBrowserUI()||previewBusy||componentRemote?.busy||dependencyInstaller?.busy ||
-      (componentMode==='javascript'&&dependencyResolver?.busy)||editingBusy||running||!!host.currentRun||
+      editingBusy||running||!!host.currentRun||
       !programSource.source().trim()||programSource.kind()==='controller'||
       currentPageState?.status!=='available';
     find('page-preview-run').textContent=componentMode==='javascript'?'在当前网页试运行':'运行'+(componentMode==='react'?' React':' Vue')+' 组件';
@@ -770,7 +770,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       currentPageState.tabId===lastPagePreview.tabId&&currentPageState.url===lastPagePreview.previewUrl;
   }
   function previewPage(event) {
-    if (!event.isTrusted || disposed || previewBusy || componentRemote?.busy || (componentMode==='javascript'&&dependencyResolver?.busy) ||
+    if (!event.isTrusted || disposed || previewBusy || componentRemote?.busy ||
       editingBusy || running || host.currentRun) return;
     if(localProject?.active())return;
     let captured, permission, pageSource,componentSnapshot,frozenComponent,prepareTicket;
@@ -789,7 +789,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
         componentSnapshot={framework:componentMode,source:programSource.source()};
         if(!componentSnapshot.source.trim())throw {code:'E_SOURCE',message:'请输入组件源码'};
       }else{
-        pageSource=dependencyResolver.capture();
+        pageSource=dependencyResolver.captureForRun();
         if(!pageSource.sourceUtf8.trim())throw {code:'E_SOURCE',message:'请输入 JavaScript 源码'};
         if(artifact?.project.entryMode==='component'){
           const framework=/^\/\/ @opendesk-lib (react|vue)\s*$/m.exec(pageSource.sourceUtf8)?.[1];
@@ -802,7 +802,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
       permission=requireChromePermissions({api,request:{origins:[permissionPattern(captured.url)]}});
     } catch(error) {displayPreview('error',(error.code||'E_SOURCE')+'：'+(error.message||error));return;}
     const managedInput=componentSnapshot||frozenComponent;
-    if(managedInput){prepareTicket=++browserPrepareGeneration;browserPreparing=true;}
+    prepareTicket=++browserPrepareGeneration;
+    if(managedInput)browserPreparing=true;
     const assertPreparation=()=>{
       if(disposed||prepareTicket!==browserPrepareGeneration)
         throw {code:'E_PAGE_COMPILER_STALE',message:'组件准备已取消；迟到结果不会运行'};
@@ -876,6 +877,10 @@ export function createScriptEditor({client, currentPageTarget, development=false
           sourceHash:built.sourceHash,cacheHit:built.cacheHit,prepareMs:built.prepareMs,remoteModules:built.remoteModules||[]}},null,2);
         return;
       }
+      const checkPage=()=>{if(disposed||prepareTicket!==browserPrepareGeneration)
+        throw {code:'E_DEPENDENCY_STALE',message:'网页草稿已变化或准备取消；不会执行旧代码'};};
+      pageSource=await dependencyResolver.resolveForRun(pageSource,checkPage);
+      await currentPageTarget.revalidate(captured);checkPage();
       const result=await client.request('previewPageScript',{...pageSource,
         target:{tabId:captured.tabId,frameId:0,documentId:captured.documentId,expectedUrl:captured.url,expectedWindowId:captured.windowId}});
       lastPagePreview={sourceUtf8:pageSource.sourceUtf8,entryFormat:pageSource.entryFormat,lockId:pageSource.lockId,

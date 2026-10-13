@@ -50,13 +50,13 @@ export function createPageDependencyInstaller({client,api,document:doc,resolver,
           row.sharedCacheChoices?.length?'发现跨程序已审核字节':'首次需要下载'),'identity');
       paragraph(container,'来源：'+(row.url||row.raw));
       paragraph(container,'许可证：'+(row.license?.name||'尚未核实，请自行检查来源与许可证')+
-        ' · '+(row.downloadError?'不支持：'+row.downloadError.message:'仅在审核完成后才能执行'));
+        ' · '+(row.downloadError?'不支持：'+row.downloadError.message:'运行时自动固定并校验'));
       const picker=doc.createElement('select');
       picker.dataset.dependencyOrder=String(row.order);
       picker.setAttribute('aria-label','第 '+(row.order+1)+' 项依赖的获取方式');
       if(row.sourceKind==='packaged')picker.append(option('packaged','使用扩展预装固定资源'));
       else {
-        picker.append(option('download','HTTPS 在线下载新字节（之后另行审核）'));
+        picker.append(option('download','HTTPS 在线下载新字节（高级手动模式）'));
         for(const choice of row.cacheChoices||[])
           picker.append(option('cache:'+choice.sha256,'本程序已审核缓存 · SHA '+choice.sha256.slice(0,16)+'…'));
         for(const choice of row.sharedCacheChoices||[])
@@ -122,10 +122,10 @@ export function createPageDependencyInstaller({client,api,document:doc,resolver,
       errorMessage?'依赖检查失败：'+(errorMessage.code||'E_DEPENDENCY_INSPECT')+' '+(errorMessage.message||errorMessage):
         errors.length?'存在无法下载的来源；请修改 @require 及其 HTTPS URL':
           report?.locks?.length?'已有 '+report.locks.length+' 份固定依赖锁；可离线运行。要更新请显式获取并重新审核。':
-            '选择每个依赖的在线下载或缓存来源；获取、审核、运行是三个独立步骤。');
+            '点击网页试运行会自动获取、校验并锁定依赖；以下是可选的高级手动审阅。');
     prepareButton.disabled=busy||isBlocked()||!report||resolver.busy||!!errorMessage||
       errors.length>0||!readyForPermission||!!review;
-    prepareButton.textContent=busy?'正在获取并校验…':review?'先完成本次审核':'获取并检查依赖（不执行）';
+    prepareButton.textContent=busy?'正在获取并校验…':review?'完成高级审核':'高级：手动获取与检查';
     approveButton.disabled=busy||!review||isBlocked()||checks.length!==review?.entries.length||
       !checks.every(check=>check.checked)||reviewSource!==currentSource()||
       reviewProgramId!==currentProgram();

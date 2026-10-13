@@ -710,9 +710,9 @@
     <label for="script-source" class="visually-hidden">JavaScript、React JSX 或 Vue SFC 源码编辑器</label><textarea id="script-source" rows="6" spellcheck="false">async function main() {
   return {title: await page.title(), url: await page.url(), value: params.value};
 }</textarea>
-    <details id="page-dependency-panel" class="od-stack" aria-label="第三方 Classic JS 依赖审核" open hidden>
-      <summary>第三方 JS 依赖 · 独立安装与审核</summary>
-      <p id="page-dependency-status" role="status" aria-live="polite">只读检查来源；不会自动下载安装。</p>
+    <details id="page-dependency-panel" class="od-stack" aria-label="第三方 Classic JS 依赖固定详情" hidden>
+      <summary>第三方 JS 依赖 · 自动固定与缓存（高级详情）</summary>
+      <p id="page-dependency-status" role="status" aria-live="polite">点击运行会自动固定安全依赖；这里仅显示高级详情。</p>
       <div id="page-dependency-list" class="od-stack" role="group" aria-label="每项依赖来源与下载方式"></div>
       <label for="page-dependency-lock" class="visually-hidden">已审核依赖锁版本</label>
       <select id="page-dependency-lock" hidden></select>
@@ -723,7 +723,7 @@
         <div id="page-dependency-review-list" class="od-stack"></div>
         <button id="page-dependency-approve" type="button" disabled>批准当前程序的固定 SHA 锁（不运行）</button>
       </details>
-      <p class="hint">依赖下载权限与网页运行权限分别核对。不同程序必须分别审核；其他程序的相同 SHA 只复用字节。</p>
+      <p class="hint">点击 Run 会自动校验、获取及固定当前程序的依赖。高级手动流程不再是运行前置步骤；不同程序共享 SHA 字节但不共享站点权限。</p>
     </details>
     <section id="page-component-remote" class="od-stack" aria-label="组件 HTTPS 依赖准备" hidden>
       <p id="page-component-remote-status" role="status" aria-live="polite"></p>
