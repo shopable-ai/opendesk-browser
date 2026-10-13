@@ -105,14 +105,15 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     if(active) {
       note.textContent=accepted
         ?'发送到 '+receiver+'：任务描述、网站 '+site+'、步骤及参数结构。网页摘要需单独批准；可在 AI 设置中撤回许可。'
-        :'首次发送到 '+receiver+'：任务描述、网站 '+site+'、步骤及参数结构。点击「同意并生成」后可复用；网页摘要需单独批准。';
+        :'首次发送到 '+receiver+'：任务描述、网站 '+site+'、步骤及参数结构。点击右侧发送图标即同意本次向该模型发送上述内容；网页摘要仍需单独批准。';
       note.dataset.consent=accepted?'granted':'required';
     }
     button.dataset.firstUse=String(active&&!accepted);
     button.dataset.disclosureScope=scope||'';
     button.title=active&&!accepted?'同意并生成':'生成步骤';
     button.setAttribute('aria-label',active&&!accepted?'同意数据发送并生成工作流步骤':'生成工作流步骤');
-    get('workflow-ai-plan-label').hidden=!active||accepted;
+    // Consent remains explicit in the adjacent disclosure, title and aria-label; never widen the icon button.
+    get('workflow-ai-plan-label').hidden=true;
     const revoke=get('workflow-ai-revoke');
     revoke.hidden=!active||!accepted;revoke.disabled=busy;
     const resume=get('workflow-ai-resume');
@@ -849,7 +850,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     if(!event.isTrusted||busy)return;
     const scope=modelScope();if(!scope)return;
     modelConsent.revoke(scope);updateButtons();
-    status('已撤回当前模型发送许可；下次需要重新点击「同意并生成」。');
+    status('已撤回当前模型发送许可；下次须再次点击发送图标确认。');
   });
   listen(get('workflow-local-refresh'),'click',event=>{if(event.isTrusted)void refreshLocal();});
   listen(get('workflow-local-help'),'click',event=>{
