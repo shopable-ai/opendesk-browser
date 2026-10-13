@@ -1,3 +1,15 @@
+# Global First R6 · 最新执行入口（2026-10-13）
+
+> 本节记录 R6 的当前执行优先级。下方 R5/R4 文字保留为历史决策，不应将旧版本发布日期或旧研发进度视为当前状态。
+
+**首要产品证明**：真实 AI 从用户需求生成可编译工作流 → 用户审阅步骤、源码、参数、网站及权限 → 同一固定版本在真实 Chrome 中运行并取得可信 Durable Result → Candidate → Verified → Available → Installed → 明确关闭模型后从「我的任务」独立运行两次，并覆盖 Stop、撤权及失败恢复。不可拼接不同模型提案、sourceHash、manifestHash、PackageHash、RunId/ResultId 和不同 Chrome 候选的 PASS；未完成就标 `NOT_TESTED`。
+
+**最新工程与业务状态**：[Global First R6 实际代码提交、TOP20 NOW/NEXT/RESEARCH/STOP、原生证据缺口](../../framework/workstreams/global-first-r6-ai-first-product-proof-20261013.md)。现有正式 Task Registry/Authority/RunHost 优先复用，不新建 SDK、Runner、安装器或并列总 GOAL。OPP-059 企业受控网页操作是第一条 demo-form 产品证明；原 84 OPP / 8 EXP / 14 GF 的正式身份及竞争审核只在原账本维护。
+
+**竞品更新**：UiPath Delegate 已于 2026-09-22 正式 GA，Claude in Chrome 于 2026-08-26 宣布 GA，ScriptCat 1.5 Beta 已提供安装前完整源码及权限差异审阅。可重复 AI 工作流与源码查看都不是全球首创；最新可引用的发布日期、渠道与官方证据以 [唯一竞品时间线](competitor-timeline.json) 为准。原获批的全球/区域/任务第一仍为 0；竞争全成本、长期成功率和真实用户自然复用尚未测量。
+
+---
+
 # Global First R5 · 当前优先阅读（2026-10-13）
 
 > **最重要结论**：可证明的全球/区域/具体任务第一和指定世界 Top 5 仍是 **0**；研究中的“TOP 20”是产品实验优先次序，不是市场排名。已登记公开研究对照从 30 扩为 **45**，原 **84 OPP、8 EXP、14 GF** 没有重新编号或造第二账本。相关工作源代码未因为 R5 文档自动完成 Chrome 原生全链验收。
