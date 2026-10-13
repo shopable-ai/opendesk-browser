@@ -1,0 +1,58 @@
+name: Scheduled Tasks R2.3 genuine Chrome zoom & focus
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/scheduled-tasks-r23-native-zoom.yml'
+      - 'tests/framework/scheduled-tasks-r23-native-zoom.test.mjs'
+      - 'src/ui/scheduled-task-workbench.js'
+      - 'src/ui/tool-shell.css'
+      - 'src/ui/tool.html'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+jobs:
+  real-chrome-zoom:
+    timeout-minutes: 18
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux
+            image: ubuntu-latest
+          - platform: macos
+            image: macos-15
+    runs-on: ${{ matrix.image }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install and build original WXT package
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+          npm run verify:package
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Actual Chrome zoom, long text, focus and real UI screenshots
+        env:
+          SCHEDULE_NATIVE_ZOOM: '1'
+          SCHEDULE_NATIVE_PLATFORM: ${{ matrix.platform == 'linux' && 'linux' || 'darwin' }}
+          SCHEDULE_NATIVE_CI_NO_SANDBOX: ${{ matrix.platform == 'linux' && '1' || '0' }}
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          SCHEDULE_NATIVE_OUT: artifacts/r23-native-zoom-${{ matrix.platform }}
+        run: node --test tests/framework/scheduled-tasks-r23-native-zoom.test.mjs
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scheduled-r23-real-zoom-${{ matrix.platform }}-${{ github.sha }}
+          path: artifacts/r23-native-zoom-${{ matrix.platform }}/
+          if-no-files-found: warn
+          retention-days: 14
