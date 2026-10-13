@@ -72,7 +72,7 @@ q('clip-download').addEventListener('click',async()=>{
  if(!markdown)return say('请先剪藏',true);
  const filename=(clean(record?.title).replace(/[\/\\:*?"<>|]/g,'-').slice(0,60)||'web-clip')+'.md';
  try{const done=await globalThis.OpenDeskSDK.browser.downloads.text({text:markdown,filename});
-  if(!Number.isInteger(done?.downloadId))throw Error('下载未确认');
+  if(done?.started!==true)throw Error('下载未确认');
   say('已请求下载，请在 Chrome 确认保存');
  }catch(e){say('下载失败：'+String(e.message||e),true);}
 });
