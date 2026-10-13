@@ -1,0 +1,190 @@
+// Native macOS Chrome acceptance: installed release -> trusted opt-in ->
+// actual HTTP navigation redirected by Chrome DNR -> uninstall -> URL restores.
+// No fake DNR, storage writes, synthetic DOM clicks or user-grant injection.
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {spawn,spawnSync} from 'node:child_process';
+import {createServer} from 'node:http';
+import {mkdtemp,mkdir,readFile,writeFile,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import path from 'node:path';
+import {randomUUID,createHash} from 'node:crypto';
+import {setTimeout as sleep} from 'node:timers/promises';
+const BIN=process.env.CHROME_BIN,ROOT=path.resolve('dist/production');
+const OUT=path.resolve(process.env.OPENDESK_FOCUS_NATIVE_EVIDENCE||'artifacts/stay-focus-r1-native');
+const ENABLED=process.env.OPENDESK_STAY_FOCUS_NATIVE==='1';
+const protocol='opendesk.stay-focus.v1',store='opendesk.stay-focus.state.v1';
+function connect(url){
+  const socket=new WebSocket(url),waiting=new Map();let serial=0;
+  const ready=new Promise((resolve,reject)=>{socket.onopen=resolve;socket.onerror=reject;});
+  socket.onmessage=event=>{
+    const msg=JSON.parse(event.data),p=waiting.get(msg.id);if(!p)return;
+    waiting.delete(msg.id);clearTimeout(p.timer);
+    msg.error?p.reject(Error(JSON.stringify(msg.error))):p.resolve(msg.result);
+  };
+  socket.onclose=()=>{for(const p of waiting.values()){clearTimeout(p.timer);p.reject(Error('CDP disconnected'));}};
+  return {ready,send(method,params={},sessionId){return new Promise((resolve,reject)=>{
+    const id=++serial,timer=setTimeout(()=>{waiting.delete(id);reject(Error('CDP timeout '+method));},15000);
+    waiting.set(id,{resolve,reject,timer});socket.send(JSON.stringify({id,method,params,...(sessionId?{sessionId}:{})}));
+  });},close(){socket.close();}};
+}
+async function until(run,label,limit=18000){
+  const end=Date.now()+limit;let last;
+  while(Date.now()<end){try{const value=await run();if(value)return value;}catch(e){last=String(e);}await sleep(150);}
+  throw Error(label+' timed out'+(last?' - '+last:''));
+}
+async function evalRead(c,session,expression){
+  const x=await c.send('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true},session);
+  if(x.exceptionDetails)throw Error(JSON.stringify(x.exceptionDetails).slice(0,350));
+  return x.result.value;
+}
+async function click(c,session,selector){
+  await until(()=>evalRead(c,session,'(()=>{const x=document.querySelector('+JSON.stringify(selector)+');return !!x&&!x.disabled&&x.getClientRects().length>0;})()'),'clickable '+selector);
+  await evalRead(c,session,'document.querySelector('+JSON.stringify(selector)+').scrollIntoView({block:"center"})');
+  const p=await evalRead(c,session,'(()=>{const r=document.querySelector('+JSON.stringify(selector)+').getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()');
+  for(const type of ['mousePressed','mouseReleased'])
+    await c.send('Input.dispatchMouseEvent',{type,x:p.x,y:p.y,button:'left',clickCount:1},session);
+}
+async function fill(c,session,selector,value){
+  await click(c,session,selector);
+  await c.send('Input.insertText',{text:value},session);
+}
+async function press(c,session,key,code,virtualKey){
+  await c.send('Input.dispatchKeyEvent',{type:'rawKeyDown',key,code,windowsVirtualKeyCode:virtualKey},session);
+  await c.send('Input.dispatchKeyEvent',{type:'keyUp',key,code,windowsVirtualKeyCode:virtualKey},session);
+}
+test('Real Chrome DNR navigation, registry, sidebar approval and uninstall',{skip:!ENABLED,timeout:240000},async t=>{
+  assert.equal(process.platform,'darwin','Native CI must be macOS');
+  assert.ok(BIN&&spawnSync(BIN,['--version'],{stdio:'ignore'}).status===0);
+  const packageFile=path.join(ROOT,'official-tools/stay-focus/stay-focus.opendesk-tool.json');
+  const bytes=await readFile(packageFile),pkg=JSON.parse(bytes);
+  assert.equal(pkg.id,'stay-focus');assert.equal(pkg.version,'1.0.0');
+  await mkdir(OUT,{recursive:true});
+  const profile=await mkdtemp(path.join(tmpdir(),'opendesk-stay-focus-r1-'));
+  const http=createServer((_req,res)=>{
+    res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});
+    res.end('<!doctype html><title>Stay Focus native HTTP test</title><h1>Allowed site before rules</h1>');
+  });
+  await new Promise(resolve=>http.listen(0,'127.0.0.1',resolve));
+  const page='http://127.0.0.1:'+http.address().port+'/real-navigation';
+  const chrome=spawn(BIN,['--use-mock-keychain','--password-store=basic','--no-sandbox',
+    '--disable-gpu','--disable-dev-shm-usage','--no-first-run','--no-default-browser-check',
+    '--disable-background-networking','--remote-allow-origins=*',
+    '--remote-debugging-address=127.0.0.1','--remote-debugging-port=0','--user-data-dir='+profile,
+    '--disable-extensions-except='+ROOT,'--load-extension='+ROOT,'about:blank'],
+    {stdio:['ignore','ignore','pipe']});
+  let errors='',client=null,passed=false;
+  const report={candidate:process.env.GITHUB_SHA||null,
+    pkgSHA256:createHash('sha256').update(bytes).digest('hex'),
+    nativeChrome:'NOT_TESTED',approval:'NOT_TESTED',actualNavigation:'NOT_TESTED',
+    unregister:'NOT_TESTED',uninstall:'NOT_TESTED',steps:[]};
+  const note=(name,details)=>{report.steps.push({name,...details});console.log('STAY_FOCUS_NATIVE '+name+' '+JSON.stringify(details));};
+  chrome.stderr.on('data',x=>{errors=(errors+String(x)).slice(-2200);});
+  t.after(async()=>{
+    if(client)try{await client.send('Browser.close');}catch{}
+    client?.close();
+    if(chrome.exitCode===null&&chrome.signalCode===null){
+      await new Promise(resolve=>{const timer=setTimeout(()=>{chrome.kill('SIGKILL');resolve();},2000);
+        chrome.once('close',()=>{clearTimeout(timer);resolve();});chrome.kill('SIGTERM');});
+    }
+    await new Promise(resolve=>http.close(resolve));
+    assert.ok(path.basename(profile).startsWith('opendesk-stay-focus-r1-')&&path.dirname(profile)===tmpdir());
+    await rm(profile,{recursive:true,force:true,maxRetries:4,retryDelay:200});
+    report.passed=passed;report.chromeErrorTail=errors.slice(-900);
+    await writeFile(path.join(OUT,'native-report.json'),JSON.stringify(report,null,2)+'\n');
+  });
+  const remote=await until(async()=>{
+    const source=await readFile(path.join(profile,'DevToolsActivePort'),'utf8').catch(()=>null);
+    const port=Number(source?.split('\n')[0]);return port>0?port:null;
+  },'isolated Chrome debugging port',30000);
+  const version=await(await fetch('http://127.0.0.1:'+remote+'/json/version')).json();
+  client=connect(version.webSocketDebuggerUrl);await client.ready;
+  report.nativeChrome=version.Browser;
+  const id=await until(async()=>{
+    const targets=(await client.send('Target.getTargets')).targetInfos;
+    return targets.find(x=>x.type==='service_worker'&&x.url?.endsWith('/sw.js'))?.url?.split('/')[2];
+  },'real unpacked SW',15000);
+  const ui=await client.send('Target.createTarget',{url:'chrome-extension://'+id+'/ui/tool.html?hostInstanceId='+randomUUID()});
+  const uid=(await client.send('Target.attachToTarget',{targetId:ui.targetId,flatten:true})).sessionId;
+  await client.send('Runtime.enable',{},uid);await client.send('Page.enable',{},uid);
+  await until(()=>evalRead(client,uid,'!!document.querySelector("#sidebar-tool-official-stay-focus-install")'),'official release in catalogue');
+  const windowId=await evalRead(client,uid,'chrome.windows.getCurrent().then(x=>x.id)');
+  // The harness may mount one visible launcher, but only actual pointer input
+  // may invoke sidePanel.open. It cannot fabricate business storage or clicks.
+  await evalRead(client,uid,'(()=>{const b=document.createElement("button");b.id="open-owned-focus-side";b.textContent="Open Side";b.style.cssText="position:fixed;left:20px;top:50px;min-width:180px;min-height:58px;z-index:999999";b.addEventListener("click",()=>chrome.sidePanel.open({windowId:'+windowId+'}));document.body.append(b);return true;})()');
+  await click(client,uid,'#open-owned-focus-side');
+  const context=await until(async()=>{const found=await evalRead(client,uid,
+    'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]})');
+    return found.find(x=>x.documentUrl?.includes('/ui/tool.html')&&x.documentId);
+  },'real SIDE_PANEL');
+  const sid=await until(async()=>{const x=(await client.send('Target.getTargets')).targetInfos;
+    const target=x.find(row=>row.url===context.documentUrl);if(!target)return null;
+    return (await client.send('Target.attachToTarget',{targetId:target.targetId,flatten:true})).sessionId;
+  },'Side Panel CDP');
+  await client.send('Runtime.enable',{},sid);await client.send('Page.enable',{},sid);
+  await click(client,sid,'#tab-tools');
+  await click(client,sid,'#sidebar-tool-discover-toggle');
+  await click(client,sid,'#sidebar-tool-official-stay-focus-install');
+  await until(()=>evalRead(client,sid,'!document.querySelector("#sidebar-tool-preview").hidden'),'official review');
+  await click(client,sid,'#sidebar-tool-install');
+  const installed='[data-sidebar-tool-action=open][data-sidebar-tool-id=stay-focus]';
+  await until(()=>evalRead(client,sid,'!!document.querySelector('+JSON.stringify(installed)+')'),'real tool installed');
+  await click(client,sid,installed);
+  const frame=await until(async()=>{
+    const x=(await client.send('Target.getTargets')).targetInfos;
+    const target=x.find(row=>row.type==='iframe'&&row.url?.includes('/sidebar-tools/sandbox.html'));
+    return target?(await client.send('Target.attachToTarget',{targetId:target.targetId,flatten:true})).sessionId:null;
+  },'sandbox iframe');
+  await client.send('Runtime.enable',{},frame);await client.send('Page.enable',{},frame);
+  await until(()=>evalRead(client,frame,'!!document.querySelector("#site-host")'),'real Stay Focus UI');
+  await fill(client,frame,'#site-host','127.0.0.1');
+  await click(client,frame,'#site-mode');await press(client,frame,'ArrowDown','ArrowDown',40);
+  await press(client,frame,'Enter','Enter',13);
+  assert.equal(await evalRead(client,frame,'document.querySelector("#site-mode").value'),'always');
+  await click(client,frame,'#site-form button[type=submit]');
+  await until(()=>evalRead(client,sid,'!document.querySelector("#sidebar-tool-action-review").hidden'),'trusted site review');
+  await click(client,sid,'#sidebar-tool-action-continue');
+  await until(()=>evalRead(client,sid,
+    'chrome.storage.local.get('+JSON.stringify(store)+').then(x=>x['+JSON.stringify(store)+']?.sites?.length===1)'),'authorized site rule');
+  note('trusted-domain-approval',{hostname:'127.0.0.1',noQueryStored:true});
+  await click(client,sid,'#sidebar-tool-settings-open');
+  await click(client,sid,'#stay-focus-enable-native');
+  const allowed=await until(()=>evalRead(client,sid,
+    'chrome.permissions.contains({permissions:["idle","declarativeNetRequestWithHostAccess"]})'), 'actual Chrome optional native grants',7500).catch(()=>false);
+  if(!allowed){report.approval='BLOCKED_NATIVE_PERMISSION_PROMPT';
+    note('native-permission-blocked',{notGranted:true});
+    throw Error('Native Chrome rejected or did not approve DNR and idle; cannot claim real blocking');}
+  const enabled=await until(()=>evalRead(client,sid,
+    'chrome.storage.local.get('+JSON.stringify(store)+').then(x=>x['+JSON.stringify(store)+']?.enabled===true)'), 'real trusted activation',10000);
+  assert.equal(enabled,true);report.approval='PASS';
+  const rules=await until(async()=>{
+    const rows=await evalRead(client,sid,'chrome.declarativeNetRequest.getDynamicRules()');
+    return rows.filter(row=>row.id>=730000&&row.id<=730199).length===1?rows:null;
+  },'actual DNR rule created');
+  note('Chrome-getDynamicRules',{owned:rules.filter(row=>row.id>=730000).map(row=>({id:row.id,regexFilter:row.condition.regexFilter,extensionPath:row.action.redirect?.extensionPath}))});
+  const visit=await client.send('Target.createTarget',{url:page});
+  const navigated=await until(async()=>{
+    const list=(await client.send('Target.getTargets')).targetInfos;
+    const target=list.find(x=>x.targetId===visit.targetId);
+    return target?.url?.includes('/stay-focus/blocked-always.html')?target.url:null;
+  },'actual HTTP main-frame blocked via Chrome DNR',16000);
+  assert.ok(navigated.startsWith('chrome-extension://'+id+'/stay-focus/blocked-always.html'));
+  report.actualNavigation='PASS';note('real-http-navigation',{status:'PASS',urlPath:'/stay-focus/blocked-always.html'});
+  await click(client,sid,'#sidebar-tool-remove');
+  await click(client,sid,'#sidebar-tool-inline-remove-confirm');
+  await until(async()=>{
+    const result=await evalRead(client,sid,'(async()=>{const x=await chrome.storage.local.get(['+
+      JSON.stringify(store)+',"opendesk.sidebar-tools.installed.v1"]);'+
+      'const rules=await chrome.declarativeNetRequest.getDynamicRules();return {present:Object.hasOwn(x,'+
+      JSON.stringify(store)+'),installed:x["opendesk.sidebar-tools.installed.v1"]?.some(t=>t.id==="stay-focus"),owned:rules.filter(r=>r.id>=730000&&r.id<=730199).length};})()');
+    return result.present===false&&result.installed===false&&result.owned===0?result:null;
+  },'uninstall removes independent data and all DNR rules',15000);
+  const restored=await client.send('Target.createTarget',{url:page});
+  const allowedURL=await until(async()=>{
+    const x=(await client.send('Target.getTargets')).targetInfos.find(row=>row.targetId===restored.targetId);
+    return x?.url===page?x.url:null;
+  },'real HTTP becomes available after removal',12000);
+  assert.equal(allowedURL,page);
+  report.unregister='PASS';report.uninstall='PASS';passed=true;
+  note('uninstall-restores-access',{realHTTP:true,ownedRules:0});
+});
