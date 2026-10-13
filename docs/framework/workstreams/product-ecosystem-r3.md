@@ -52,3 +52,14 @@
 5. **P4/P5**：做受影响验证，按证据更新工程状态与下一 GOAL，不重复其他工作流的真实测试。
 
 **本文件是 R3 工程进度导航，不是第二份 R8/OPP/EXP 台账，也不是 Page QA 产品复活入口。**
+
+## 五、R3 EXP-005 第一阶段源码入库（2026-10-13）
+
+- **操作位置**：仓库 `examples/programs/listing-sku-inspector`，启动入口为已有 Side Panel「开发 → 本地项目 → 运行本地项目」或构建后的 Page 草稿导入/手动预览；在 `examples/tasks/demo-form.html` 的商品区域编辑数据并点页面 Shadow UI 的「检查当前商品」。不是普通 Side Panel sandbox 工具自动读取 DOM，不需要第二个扩展。
+- **输入/权限/结果**：Page USER_SCRIPT 已授权当前 tab 的 `document`；项目规则仅 `http://127.0.0.1/*`，运行时再严格限定 `http://127.0.0.1:43111/demo-form.html` 与唯一 `data-opendesk-listing-fixture="seller-listing-v1"` 区域；用户点击才调用 `readListing`；结果显示错误/提醒与字段路径，关/Stop 由既有受管 UI 释放。无跨域请求、无写入业务表单、无 Cookie/API 密钥、无存储。
+- **已入库的实际源码**：`src/listing.js` 纯业务与有界读取；`src/view.js` 按钮及文本安全呈现；`src/main.js` 复用 `@opendesk/ui`；`assets/ui.css` Shadow 样式；新增专属 Node 测试、本地 Fixture 场景切换 JS，并向原有 `examples/tasks/demo-form.html` 增加明确标记的商品表单。没有改 Browser SDK、Host、Authority、市场、官方 Catalog 或生产构建命令。
+- **P0 检查**：已在 GitHub `main` 只读确认旧产品、专属 factory 包、专属 build/pack/verify 路径不存在，默认 npm 脚本仍在；未运行完整 `git grep` 和当前源码构建，不能把此项记为回归 PASS。
+- **组件实际结果**：在 `/mnt/data/opendesk-r3-staging` 的隔离候选源码目录中执行 `node --check`（main/listing/view/fixture/test）通过，`node --test tests/environment/listing-sku-inspector-r3.test.mjs` **8 pass / 0 fail**。Node 测试涵盖四种数据场景、重复规格/主 SKU、允许范围、缺失/歧义字段、UI 点击触发/重检/失败清理、DOM fixture 按钮切换。由于 Mac 仓库不可用，针对仓库实际全量 demo-form 源码的 Node/Build 尚未执行；这是“测试基于隔离组装 Fixture”的证据限制。
+- **浏览器阻断**：尝试临时 localhost 43111 + 本环境 Linux Chromium Playwright；导航返回 `net::ERR_BLOCKED_BY_ADMINISTRATOR`，未形成任何浏览器正常运行 PASS，资源已关闭。Mac Chrome、用户脚本真实安装/授权/撤权/Stop、包 SHA/ZIP 一律 `NOT_TESTED`。
+- **并行保护**：GitHub `main` 使用原子树提交与预期 HEAD 校验，仅改本工作流 11 个路径；不创建分支/Worktree/PR，不强推。用户 Mac 本地 Git、Chrome profile 和测试资源不可访问，不能凭远端提交推定本地安装或原生成功。
+- **下一步**：在能访问 Mac 的串行执行环境核对 `git status --short --branch` 与 `origin/main`，保护未提交文件后安全同步远端（不再应用旧补丁）；执行项目校验、受影响构建、真实 Chrome 用户脚本/网站授权/导航/Stop/重复运行，并追加绑定候选 SHA 的回执。EXP-007 与条件性 P3 保留待办。

@@ -1,6 +1,6 @@
 # OpenDesk Browser Product Ecosystem R3 — 产品生态任务树与实施路线
 
-> 日期：2026-10-12。状态：`PLANNED / EXECUTION_GUIDE`；这是**后续工程路线图**，不是已交付产品清单，不替代原有 R8 188 能力账本、E01–E40、84 项 OPP 或 EXP 商业实验台账。执行前必须重新核对最新 `main`、用户工作目录与对应 workstream。  
+> 日期：2026-10-12。状态：`PARTIAL_SOURCE_IMPLEMENTED / CHROME_NOT_TESTED`；这是**后续工程路线图**，不是已交付产品清单，不替代原有 R8 188 能力账本、E01–E40、84 项 OPP 或 EXP 商业实验台账。执行前必须重新核对最新 `main`、用户工作目录与对应 workstream。  
 > 当前关键决策：**Page QA Inspector = `DEPRECATED / NO_RELEASE / SOURCE_REMOVED_FROM_MAIN`**；清理提交 [6d71854b](https://github.com/shopable-ai/opendesk-browser/commit/6d71854b49fc2fcbace0047b8703b9c2c154211b)，后续历史文档 [9122d8d8](https://github.com/shopable-ai/opendesk-browser/commit/9122d8d8c29b5f15e417d0d4fab39bae645d5c0a)。**通用跨产品 Extension Factory 尚未交付**，不得恢复仅支持 Page QA 的旧命令或专属模块。
 
 ## 一、产品形态：一个核心，四种交付方式
@@ -47,7 +47,7 @@ Product Ecosystem R3
 │  └─ 真实消费者 → 代码入口 → 权限 → 结果 → 证据映射：PLANNED
 │
 ├─ P2 电商业务最小闭环（先于正式独立插件）
-│  ├─ EXP-005：卖家 Listing / SKU / 毛利只读辅助：PLANNED
+│  ├─ EXP-005：卖家 Listing / SKU 检查：SOURCE_IMPLEMENTED / COMPONENT_TESTED（本地 Fixture，Chrome 待验收）
 │  ├─ EXP-007：消费者实际到手价 / 条件透明说明：PLANNED
 │  └─ 授权站点/本地 Fixture + UI/脚本 + 错误反馈：PLANNED
 │
@@ -133,4 +133,18 @@ Product Ecosystem R3
 - [电商机会](ecommerce-tool-universe.zh-CN.md)与[商业实验](commercial-experiments.json)：市场方向、购买者和真实证据，仍以 OPP/EXP 正式台账为准。
 - [原 R8 能力](../browser-automation-feature-catalog-r8.zh-CN.md)与[工程计划](../browser-automation-r8-implementation-plan.zh-CN.md)：既有稳定编号不可复制、覆盖或直接改“已完成”。
 
-**下轮默认起步**：先 P0 受影响回归核对与 P1 已实现能力地图，再优先打通 P2 至少一个真实工具入口；只有证明独立发行必要性，才把 P3 从 `CONDITIONAL` 改成可执行工程任务。
+**下轮默认起步**：对已入库 EXP-005 执行项目校验、受影响构建与 Mac Chrome 手动运行/授权撤销/Stop 验收；P0 回归仅补受影响输入。其后按合法数据来源和真实需求考虑 EXP-007；P3 仍为 `CONDITIONAL`。
+
+## 七、R3 第一阶段源码入库（2026-10-13）
+
+> EXP-005 源码已经通过此仓库 `main` 的一次原子提交进入工程（具体源码提交可查询 `git log -- examples/programs/listing-sku-inspector`）。Node 测试是隔离组件验证，不等于完整构建、Mac Chrome 安装、CWS 或付费验收。
+
+- **P0**：GitHub `main` 返回 Page QA 历史删除路径的 404；`package.json` 的 `build` / `pack` / `check` 仍使用默认 OpenDesk 命令。全仓 `git grep`、完整默认构建、打包和 Mac Chrome **NOT_TESTED**，本轮未改变原框架构建命令。
+- **P1**：真实复用路径：`src/scripting/user-scripts/page-ui.js` 的 `createPageUI` 与 `ui.on` / `ui.destroy`；`src/scripting/user-scripts/page-program-rules.js` 的匹配规则；既有 Side Panel「开发 → 本地项目」与 Page 试运行；`scripts/validate-program-project.mjs` / `scripts/build-program-project.mjs`。`src/ui/sidebar-tools.js`/`src/sidebar-tools/bridge.js` 的普通 sandbox 只暴露 `currentPage.info` 标题/URL，不能当作通用 DOM Reader，不新增任意 DOM Host Handler。
+- **P2 EXP-005**：新增 `examples/programs/listing-sku-inspector` 多文件 Page USER_SCRIPT，包含受管 UI、明确点击读取、标题/描述/主 SKU/变体 SKU/选项/价格/库存检查和可定位错误。仅读 `127.0.0.1:43111/demo-form.html` 唯一标记区域，页面内 4 种商品场景由现有标准测试页承载；网站授权与 Chrome 用户脚本开关仍独立。当前不接真实商家后台、不自动发布、不计算未经授权的毛利。
+- **P2 EXP-007**：未实施；价格历史、优惠真实性与汇率缺乏合法来源，不凭模拟值假装实时能力。
+- **P3**：保持 `CONDITIONAL`，不恢复 Page QA，不新增工厂。
+- **P4**：独立目录 `node --test tests/environment/listing-sku-inspector-r3.test.mjs` 为 **8/8 PASS（组件级，验证目录的组装版 Fixture）**。完整仓库 `npm run check/build/pack`、项目编译、Mac Chrome/CFT、扩展 Native、撤权/导航/完整安装、CWS、付费均 `NOT_TESTED`；Linux Chromium HTTP 访问被环境管理员阻止，并非产品成功证据。
+- **P5**：本次仅在 GitHub 远端 `main` 使用预期 HEAD 校验与原子提交，不创建新分支/Worktree/PR，不强推。无法访问用户 Mac 工作目录，不能证明本地 Git 清洁或 Chrome 资源空闲；后续本机验证须串行进行。
+
+本节仅记录源码和组件证据；完整构建、原生 Chrome、ZIP、F3 与商业状态须使用独立同候选回执评定。
