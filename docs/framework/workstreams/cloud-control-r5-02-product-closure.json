@@ -175,7 +175,10 @@
     "uiPreviewSource": "SOURCE_IMPLEMENTED",
     "uiPreviewContractTest": "SOURCE_IMPLEMENTED",
     "uiPreviewToProduction": "NOT_IMPLEMENTED",
-    "uiPreviewNative": "NATIVE_PENDING"
+    "uiPreviewNative": "NATIVE_PENDING",
+    "cloudProductionConsentReview": "SOURCE_IMPLEMENTED",
+    "cloudConsentInvalidation": "SOURCE_IMPLEMENTED",
+    "cloudActiveRefreshCadence": "SOURCE_IMPLEMENTED"
   },
   "priorEvidence": {
     "r51": {
@@ -380,20 +383,16 @@
     "tests/cloud-control/provider.test.mjs"
   ],
   "pendingExactCandidate": {
-    "sha": "7aff8bd27e258022cdf186019409dcc07fdee719",
-    "ciUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38379208965",
+    "sha": "c6e082e1ba5fdb17259b36fad9dbaf9bfd5fd7a8",
+    "ciUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38405840554",
     "ciStatus": "queued",
-    "packageCiUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38379209138",
-    "packageCiStatus": "cancelled",
-    "observedAt": "2026-10-13",
+    "packageCiUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38405840990",
+    "packageCiStatus": "queued",
     "componentTests": "NOT_VERIFIED",
-    "check": "NOT_VERIFIED",
-    "productionBuild": "NOT_VERIFIED",
-    "developmentBuild": "NOT_VERIFIED",
-    "verify": "NOT_VERIFIED",
+    "build": "NOT_VERIFIED",
     "packageHash": null,
-    "realMacChrome": "NATIVE_PENDING",
-    "internetRemote": "REMOTE_NATIVE_PENDING"
+    "nativeTwoTask": "NATIVE_PENDING",
+    "publicDeployment": "REMOTE_NATIVE_PENDING"
   },
   "priorPendingExactCandidates": [
     {
@@ -582,6 +581,56 @@
       "twoDistinctTaskRuns": "NATIVE_PENDING",
       "realUi": "NATIVE_PENDING",
       "publicProvider": "REMOTE_NATIVE_PENDING"
+    },
+    "sourceInventoryAsOf": {
+      "totalTraceable": 110,
+      "sourceImplemented": 107,
+      "notImplemented": 3,
+      "notImplementedIds": [
+        "UI-07",
+        "UI-08",
+        "OPS-05"
+      ],
+      "verificationNotice": "Source status only; cannot use 107/110 as delivered or verified completion percentage",
+      "matrix": "docs/framework/workstreams/cloud-control-r5-02-function-matrix.json"
+    },
+    "productionConsentReview": {
+      "ids": [
+        "UI-06"
+      ],
+      "status": "SOURCE_IMPLEMENTED",
+      "verification": "NOT_VERIFIED",
+      "source": "src/ui/cloud-hosting.js",
+      "markup": "src/ui/tool.html#cloud-approval-review",
+      "style": "src/ui/tool-shell.css",
+      "tests": [
+        "tests/cloud-control/generic-approval-ui.test.mjs",
+        "tests/cloud-control/r52-product-ui.test.mjs"
+      ],
+      "behavior": "Human review shows selected name/version/origin/param names/result sharing; any selected Task or catalog version/authorization change invalidates checkboxes; active cloud Tab refresh cadence uses cloud not tasks",
+      "sourceSha": "c6e082e1ba5fdb17259b36fad9dbaf9bfd5fd7a8",
+      "ciUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38405840554",
+      "ciStatus": "queued_as_checked"
+    },
+    "documentSaveAudit": {
+      "status": "SAVED_BUT_PRODUCT_NOT_VERIFIED",
+      "canonicalDocuments": {
+        "featureTree": "docs/architecture/browser-framework/cloud-control-r5.2-complete-function-tree.zh-CN.md",
+        "functionMatrix": "docs/framework/workstreams/cloud-control-r5-02-function-matrix.json",
+        "executionManual": "docs/framework/cloud-control-r5.2-execution-manual.zh-CN.md",
+        "interfaceSecurity": "docs/architecture/browser-framework/cloud-control-r5.2-interface-security-contract.zh-CN.md",
+        "ui39": "docs/architecture/browser-framework/cloud-control-r5.2-ui-preview-contract.zh-CN.md",
+        "uiPrototype": "examples/ui/cloud-control-r5.2-preview.html",
+        "expertScores": "docs/framework/workstreams/cloud-control-r5-02-expert-scorecard.json",
+        "liveEvidence": "docs/framework/workstreams/cloud-control-r5-02-product-closure.md",
+        "userInstructions": "examples/cloud-control/README.zh-CN.md"
+      },
+      "notSavedAsCompletedEvidence": [
+        "Native dual Task Run/Result/Worker/released/receipt",
+        "Real installed Chrome UI screenshots and zoom/keyboard",
+        "Approved public HTTPS/WSS multi-device run",
+        "Same-source current build PackageHash and complete CI"
+      ]
     }
   }
 }
