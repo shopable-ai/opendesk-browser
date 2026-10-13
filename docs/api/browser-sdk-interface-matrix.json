@@ -2875,7 +2875,7 @@
       "migrationDecision": "MERGE",
       "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
       "callSignature": "OpenDeskSDK.browser.downloads.text({text:string,filename:string})",
-      "returnSignature": "Promise<{downloadId:number}>",
+      "returnSignature": "Promise<{started:true}>",
       "inputSchema": {
         "sourceRef": "src/framework/sdk/browser-schemas.js#browser.downloads.text:input"
       },
@@ -2965,7 +2965,7 @@
         "nodeAndBuildDoNotPromote": true
       },
       "mappingKind": "SCOPED",
-      "statusVerificationPolicy": "Current source path and all current evidence statuses are separate; NEVER treat source-wired as native Chrome PASS",
+      "statusVerificationPolicy": "Native downloadId remains private to the trusted Side Panel; public text export returns {started:true}. SOURCE_WIRED is not native Chrome acceptance.",
       "targetFiles": [
         "src/framework/sdk/browser-contract.js",
         "src/framework/sdk/browser.js",
@@ -56476,7 +56476,7 @@
     "completeness": "Known source consumers identified; exhaustive consumer path enumeration cannot be verified without full repository grep. Phase P1 must enumerate and migrate all current consumers before deleting active alias."
   },
   "currentRegistrySourceSha": "ffe2169d5951fc169d5449714f1491856dfb68ec",
-  "currentSchemaSourceSha": "6934e2c76e36d160bbf0334b5701a89ac35f6c64",
+  "currentSchemaSourceSha": "750935864ad73d323402c5b5bd63cad176de8ac8",
   "contractRevisions": [
     {
       "date": "2026-10-13",
@@ -56516,6 +56516,15 @@
       "id": "R10.1-P3-downloads-owned",
       "reason": "Implement four already approved P3 download operations using the existing authenticated Browser Host and one scoped native download driver; no global history or raw download IDs",
       "change": "Approved registered 40->44; planned 15->11; total 55; pinned Chromium 191/1830 unchanged",
+      "node": "NOT_TESTED",
+      "build": "NOT_TESTED",
+      "nativeChrome": "NOT_TESTED"
+    },
+    {
+      "date": "2026-10-13",
+      "id": "R10.1-hide-native-text-download-id",
+      "reason": "Prelaunch safety contract prohibits exposing Chrome native download IDs in untrusted tool IPC",
+      "change": "browser.downloads.text now returns bounded {started:true}; Chrome download ID remains trusted-only; total registered 44 and planned 11 unchanged",
       "node": "NOT_TESTED",
       "build": "NOT_TESTED",
       "nativeChrome": "NOT_TESTED"
