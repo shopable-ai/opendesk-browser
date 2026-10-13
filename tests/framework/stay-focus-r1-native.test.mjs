@@ -68,7 +68,7 @@ async function press(c,session,key,code,virtualKey){
   await c.send('Input.dispatchKeyEvent',{type:'rawKeyDown',key,code,windowsVirtualKeyCode:virtualKey},session);
   await c.send('Input.dispatchKeyEvent',{type:'keyUp',key,code,windowsVirtualKeyCode:virtualKey},session);
 }
-test('Real Chrome always-block and live one-minute quota, Side Panel approval and uninstall',{skip:!ENABLED,timeout:360000},async t=>{
+test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:!ENABLED,timeout:540000},async t=>{
   assert.equal(process.platform,'darwin','Native CI must be macOS');
   assert.ok(BIN&&spawnSync(BIN,['--version'],{stdio:'ignore'}).status===0);
   const packageFile=path.join(ROOT,'official-tools/stay-focus/stay-focus.opendesk-tool.json');
@@ -93,7 +93,7 @@ test('Real Chrome always-block and live one-minute quota, Side Panel approval an
   const report={candidate:process.env.GITHUB_SHA||null,
     pkgSHA256:createHash('sha256').update(bytes).digest('hex'),
     nativeChrome:'NOT_TESTED',approval:'NOT_TESTED',actualNavigation:'NOT_TESTED',
-    quota:'NATIVE_NOT_TESTED',quotaTrace:[],screenshots:[],
+    quota:'NATIVE_NOT_TESTED',zeroConfig:'NOT_TESTED',pageReminder:'NOT_TESTED',quotaTrace:[],screenshots:[],
     disabled:'NOT_TESTED',reenabled:'NOT_TESTED',restart:'NOT_TESTED',
     unregister:'NOT_TESTED',uninstall:'NOT_TESTED',steps:[]};
   const note=(name,details)=>{report.steps.push({name,...details});console.log('STAY_FOCUS_NATIVE '+name+' '+JSON.stringify(details));};
@@ -163,9 +163,48 @@ test('Real Chrome always-block and live one-minute quota, Side Panel approval an
   assert.ok(dimensions.scrollWidth<=dimensions.width+2,'native tool must not overflow its iframe horizontally');
   report.toolGeometry=dimensions;
   report.screenshots.push(await screenshot(client,sid,'installed-stay-focus-native-panel'));
-  // Advanced controls are intentionally collapsed by default; the quick
-  // recommendations remain visible to ordinary users.
+  // R1.4: approve a clean tool with no site rules using a REAL trusted click.
+  await click(client,sid,'#sidebar-tool-settings-open');
+  report.nativePermissionBefore=await evalRead(client,sid,
+    'chrome.permissions.contains({permissions:["idle","declarativeNetRequestWithHostAccess"]})');
+  await click(client,sid,'#stay-focus-enable-native');
+  const allowed=await until(()=>evalRead(client,sid,
+    'chrome.permissions.contains({permissions:["idle","declarativeNetRequestWithHostAccess"]})'),
+    'real Chrome native optional permission',7500).catch(()=>false);
+  if(!allowed){report.approval='BLOCKED_NATIVE_PERMISSION_PROMPT';
+    note('native-permission-blocked',{notGranted:true});
+    throw Error('Real Chrome native permission missing; no false acceptance');}
+  const defaultPool=await until(()=>evalRead(client,sid,
+    '(async()=>{const x=await chrome.storage.local.get("'+store+'");const v=x["'+store+'"];'+
+    'return v?.enabled&&v.groups?.entertainment===30&&'+
+    'v.sites?.some(s=>s.host==="youtube.com"&&s.group==="entertainment")&&'+
+    'v.sites?.some(s=>s.host==="tiktok.com"&&s.group==="entertainment")?'+
+    '{managed:v.sites.length,minutes:v.groups.entertainment,used:v.usage}:null})()'),
+    'true first-activation default 30-minute shared pool',15000);
+  report.zeroConfig='PASS';report.approval='PASS';
+  note('native-zero-config',defaultPool);
+  report.screenshots.push(await screenshot(client,sid,'zero-config-30-minute-pool'));
+  // The native acceptance uses two minutes of real Chrome browsing, never
+  // edits storage usage or creates a fake DNR rule. That also crosses the
+  // last-one-minute page reminder with no 30-minute stress run.
+  await until(()=>evalRead(client,frame,
+    '(()=>{const x=document.querySelector("#daily-budget-minutes");return !!x&&!x.disabled})()'),
+    'daily total editable after activation',45000);
+  await replaceField(client,frame,'#daily-budget-minutes','2');
+  await click(client,frame,'#daily-budget-form button[type=submit]');
+  await until(()=>evalRead(client,sid,
+    '!document.querySelector("#sidebar-tool-action-review").hidden'),
+    'real trusted daily budget review');
+  await click(client,sid,'#sidebar-tool-action-continue');
+  await until(()=>evalRead(client,sid,
+    'chrome.storage.local.get("'+store+'").then(x=>x["'+store+'"]?.groups?.entertainment===2)'),
+    'trusted two-minute shared quota',15000);
+  note('native-shared-budget-edited',{minutes:2,approvedViaUI:true});
   await click(client,frame,'#manual-site > summary');
+  await click(client,frame,'#site-group');
+  await press(client,frame,'End','End',35);
+  await press(client,frame,'Enter','Enter',13);
+  assert.equal(await evalRead(client,frame,'document.querySelector("#site-group").value'),'entertainment');
   await fill(client,frame,'#site-host','127.0.0.1');
   await click(client,frame,'#site-mode');await press(client,frame,'ArrowDown','ArrowDown',40);
   await press(client,frame,'Enter','Enter',13);
@@ -174,21 +213,9 @@ test('Real Chrome always-block and live one-minute quota, Side Panel approval an
   await until(()=>evalRead(client,sid,'!document.querySelector("#sidebar-tool-action-review").hidden'),'trusted site review');
   await click(client,sid,'#sidebar-tool-action-continue');
   await until(()=>evalRead(client,sid,
-    'chrome.storage.local.get('+JSON.stringify(store)+').then(x=>x['+JSON.stringify(store)+']?.sites?.length===1)'),'authorized site rule');
+    'chrome.storage.local.get('+JSON.stringify(store)+').then(x=>x['+JSON.stringify(store)+']?.sites?.some(s=>s.host==="127.0.0.1"&&s.group==="entertainment"))'),'authorized shared rule');
   note('trusted-domain-approval',{hostname:'127.0.0.1',noQueryStored:true});
-  await click(client,sid,'#sidebar-tool-settings-open');
-  report.nativePermissionBefore=await evalRead(client,sid,
-    'chrome.permissions.contains({permissions:["idle","declarativeNetRequestWithHostAccess"]})');
-  await click(client,sid,'#stay-focus-enable-native');
-  const allowed=await until(()=>evalRead(client,sid,
-    'chrome.permissions.contains({permissions:["idle","declarativeNetRequestWithHostAccess"]})'), 'actual Chrome optional native grants',7500).catch(()=>false);
-  if(!allowed){report.approval='BLOCKED_NATIVE_PERMISSION_PROMPT';
-    note('native-permission-blocked',{notGranted:true});
-    throw Error('Native Chrome rejected or did not approve DNR and idle; cannot claim real blocking');}
-  const enabled=await until(()=>evalRead(client,sid,
-    'chrome.storage.local.get('+JSON.stringify(store)+').then(x=>x['+JSON.stringify(store)+']?.enabled===true)'), 'real trusted activation',10000);
-  assert.equal(enabled,true);report.approval='PASS';
-  report.nativePermissionAfter=allowed;
+  // Native permissions and initial approval were verified before manual editing.
   const rules=await until(async()=>{
     const rows=await evalRead(client,sid,'chrome.declarativeNetRequest.getDynamicRules()');
     return rows.filter(row=>row.id>=730000&&row.id<=730199).length===1?rows:null;
@@ -212,26 +239,27 @@ test('Real Chrome always-block and live one-minute quota, Side Panel approval an
   report.actualNavigation='PASS';note('real-http-navigation',{status:'PASS',
     urlPath:'/stay-focus/blocked-always.html',renderedReason:blockedText});
 
-  // Replace the actual site rule through sandbox UI and its trusted review.
-  // Never set the usage counter, never seed a DNR rule and never shorten time.
+  // Use the trusted review to change the localhost always-block to a
+  // shared two-minute budget; never change storage usage or native rules.
   await click(client,frame,'#site-mode');
   await press(client,frame,'ArrowUp','ArrowUp',38);
   await press(client,frame,'Enter','Enter',13);
   assert.equal(await evalRead(client,frame,'document.querySelector("#site-mode").value'),'limit');
-  await replaceField(client,frame,'#site-minutes','1');
-  assert.equal(await evalRead(client,frame,'document.querySelector("#site-minutes").value'),'1');
+  await replaceField(client,frame,'#site-minutes','2');
+  assert.equal(await evalRead(client,frame,'document.querySelector("#site-minutes").value'),'2');
   await click(client,frame,'#site-form button[type=submit]');
   await until(()=>evalRead(client,sid,'!document.querySelector("#sidebar-tool-action-review").hidden'),
     'trusted one-minute quota review');
   await click(client,sid,'#sidebar-tool-action-continue');
   await until(async()=>{
     const result=await evalRead(client,sid,'(async()=>{const x=await chrome.storage.local.get("'+store+'");'+
-      'const rules=await chrome.declarativeNetRequest.getDynamicRules();return {site:x["'+store+'"]?.sites?.[0],'+
+      'const rules=await chrome.declarativeNetRequest.getDynamicRules();return {site:x["'+store+'"]?.sites?.find(s=>s.host==="127.0.0.1"),'+
       'owned:rules.filter(r=>r.id>=730000&&r.id<=730199).length}})()');
-    return result.site?.mode==='limit'&&result.site.minutes===1&&result.owned===0;
-  },'real UI changed from always block to an unused one-minute quota');
+    return result.site?.mode==='limit'&&result.site.minutes===2&&
+      result.site.group==='entertainment'&&result.owned===0;
+  },'real UI changed from always block to unused two-minute shared quota');
   report.quota='IN_PROGRESS';
-  note('real-ui-one-minute-quota',{minutes:1,storageUsageWasNotModified:true});
+  note('real-ui-two-minute-shared-quota',{minutes:2,storageUsageWasNotModified:true});
 
   // This creates a real HTTP tab and makes it the focused, active Chrome tab.
   // Browser tabs/window activation and CDP mouse events are actual browser
@@ -259,36 +287,44 @@ test('Real Chrome always-block and live one-minute quota, Side Panel approval an
     'chrome.storage.local.get("'+store+'"),chrome.declarativeNetRequest.getDynamicRules(),'+
     'chrome.windows.getLastFocused()]);'+
     'const tabs=await chrome.tabs.query({active:true,windowId:win.id});'+
-    'return {usedMs:saved["'+store+'"]?.usage?.["s:127.0.0.1"]||0,'+
+    'return {usedMs:saved["'+store+'"]?.usage?.["g:entertainment"]||0,'+
     'rules:rules.filter(r=>r.id>=730000&&r.id<=730199).map(r=>({id:r.id,path:r.action?.redirect?.extensionPath})),'+
     'idle:await chrome.idle.queryState(60),focused:win.focused,'+
     'activeUrl:tabs[0]?.url||null,tabId:tabs[0]?.id||null};})()';
   const quotaStart=Date.now();
   let reached=null;
-  while(Date.now()-quotaStart<145000){
+  while(Date.now()-quotaStart<200000){
     // Keep performing real interaction with the opened Chrome page during
     // the quota window; the idle API is still independently read and recorded.
     await client.send('Input.dispatchMouseEvent',{type:'mouseMoved',
       x:60+(report.quotaTrace.length%3)*24,y:85},liveSession);
     const snapshot=await evalRead(client,sid,quotaObservation);
     const elapsedMs=Date.now()-quotaStart;
-    report.quotaTrace.push({elapsedMs,...snapshot});
-    if(snapshot.usedMs>=60000&&snapshot.rules.some(r=>r.path==='/stay-focus/blocked-quota.html')){
+    const notice=await evalRead(client,liveSession,
+      '!!document.querySelector("[data-opendesk-focus-notice]")').catch(()=>false);
+    report.quotaTrace.push({elapsedMs,...snapshot,pageNotice:notice});
+    if(notice&&report.pageReminder!=='PASS'){
+      report.pageReminder='PASS';
+      report.screenshots.push(await screenshot(client,liveSession,'real-one-minute-page-reminder'));
+      note('native-in-page-remaining-reminder',{minutes:1,actualContentScript:true});
+    }
+    if(snapshot.usedMs>=120000&&snapshot.rules.some(r=>r.path==='/stay-focus/blocked-quota.html')){
       reached={elapsedMs,...snapshot};break;
     }
     await sleep(3000);
   }
   if(!reached){
     report.quota='FAIL';
-    throw Error('Real active one-minute quota never created Chrome quota DNR rule: '+
+    throw Error('Real active two-minute shared quota never created Chrome quota DNR rule: '+
       JSON.stringify(report.quotaTrace.slice(-6)));
   }
-  assert.ok(report.quotaTrace.some(x=>x.usedMs<60000),
+  assert.ok(report.quotaTrace.some(x=>x.usedMs<120000),
     'quota trace needs actual pre-threshold foreground observations');
   assert.ok(report.quotaTrace.some(x=>x.focused&&x.idle==='active'&&x.tabId===focusedTab.tabId),
     'real browser must observe focused active non-idle target tab');
+  assert.equal(report.pageReminder,'PASS','1-minute remaining notice must render in the actual isolated content script');
   report.quotaEnforcedElapsedMs=reached.elapsedMs;
-  report.quotaOvershootMs=reached.elapsedMs-60000;
+  report.quotaOvershootMs=reached.elapsedMs-120000;
   note('actual-elapsed-quota-exhaustion',{usedMs:reached.usedMs,
     elapsedMs:reached.elapsedMs,overshootMs:report.quotaOvershootMs,
     actualDnrRules:reached.rules,traceRecords:report.quotaTrace.length});
@@ -335,7 +371,7 @@ test('Real Chrome always-block and live one-minute quota, Side Panel approval an
       'const rules=await chrome.declarativeNetRequest.getDynamicRules();return {enabled:x["'+store+'"]?.enabled,'+
       'owned:rules.filter(r=>r.id>=730000&&r.id<=730199&&'+
       'r.action?.redirect?.extensionPath==="/stay-focus/blocked-quota.html").length}})()');
-    return state.enabled===true&&state.owned===1?state:null;
+    return state.enabled===true&&state.owned>=2?state:null;
   },'real reenable restores exhausted quota rule',15000);
   const reblocked=await client.send('Target.createTarget',{url:page});
   await until(async()=>{
@@ -348,8 +384,8 @@ test('Real Chrome always-block and live one-minute quota, Side Panel approval an
   // Actual full Chrome restart with the SAME profile, not only an MV3 worker
   // restart or a storage/permission fixture. Do not seed rules or usage.
   const beforeRestart=await evalRead(client,sid,'(async()=>{const x=await chrome.storage.local.get("'+
-    store+'");return x["'+store+'"]?.usage?.["s:127.0.0.1"]||0})()');
-  assert.ok(beforeRestart>=60000,'the real exhausted quota must exist before restarting Chrome');
+    store+'");return x["'+store+'"]?.usage?.["g:entertainment"]||0})()');
+  assert.ok(beforeRestart>=120000,'real exhausted shared quota must survive restart');
   const priorChrome=chrome;
   // Browser.close may terminate CDP before its response frame arrives.
   await client.send('Browser.close').catch(()=>{});
@@ -378,10 +414,10 @@ test('Real Chrome always-block and live one-minute quota, Side Panel approval an
   const restoredQuota=await until(async()=>{
     const value=await evalRead(client,reopenedSession,'(async()=>{const x=await chrome.storage.local.get("'+
       store+'");const rules=await chrome.declarativeNetRequest.getDynamicRules();return {'+
-      'enabled:x["'+store+'"]?.enabled,usage:x["'+store+'"]?.usage?.["s:127.0.0.1"]||0,'+
+      'enabled:x["'+store+'"]?.enabled,usage:x["'+store+'"]?.usage?.["g:entertainment"]||0,'+
       'quotaRules:rules.filter(r=>r.id>=730000&&r.id<=730199&&'+
       'r.action?.redirect?.extensionPath==="/stay-focus/blocked-quota.html").length}})()');
-    return value.enabled===true&&value.usage===beforeRestart&&value.quotaRules===1?value:null;
+    return value.enabled===true&&value.usage===beforeRestart&&value.quotaRules>=2?value:null;
   },'persisted quota and owned DNR rule after full Chrome restart',22000);
   const postRestartVisit=await client.send('Target.createTarget',{url:page});
   const redirectedAfterRestart=await until(async()=>{

@@ -203,6 +203,9 @@ test('actual installed Chrome runner zooms at 125%, 150%, 200% with keyboard and
       'const search=box("#schedule-timezone-search"),zone=box("#schedule-timezone");'+
       'const doc=document.documentElement;return {width:innerWidth,scrollWidth:doc.scrollWidth,'+
       'formVisible:!q("#schedule-form").hidden,source:{select,newScript,manage},search,zone,'+
+       'zoneCollapsed:q("#schedule-timezone-controls").hidden,'+
+       'zoneSummary:q("#schedule-timezone-summary").textContent,'+
+       'nextPreviewVisible:q("#schedule-next").getClientRects().length>0,'+
       'fieldLabelGap,titleToFieldGap,title:q("#schedule-title").value};})()',session);
     assert.equal(layout.formVisible,true);
     assert.equal(layout.title,longTitle,'preserve unsubmitted form draft at '+width+'px');
@@ -215,6 +218,10 @@ test('actual installed Chrome runner zooms at 125%, 150%, 200% with keyboard and
     assert(layout.source.newScript.width>=33&&layout.source.manage.width>=33,
       'source action hit targets remain at least 34 CSS px at '+width);
     assert(layout.search&&layout.zone,'IANA search and native select remain present at '+width);
+    assert.equal(layout.zoneCollapsed,true,'R2.7 timezone defaults collapsed at '+width);
+    assert(layout.zoneSummary.includes('(')||layout.zoneSummary.includes('（'),
+      'human-readable pinned device timezone at '+width);
+    assert(layout.nextPreviewVisible,'next-run preview stays visibly emphasized at '+width);
     assert(layout.fieldLabelGap>=6,
       'real label/control computed gap must be visible at '+width);
     const picture=await snapshot(client,session,'runner-css-viewport-'+width);
@@ -236,6 +243,10 @@ test('actual installed Chrome runner zooms at 125%, 150%, 200% with keyboard and
   report.managerReturn={cssViewport:320,source:'actual Chrome pointer',
     preservedDraft:true};
   const initialZone=await evaluate(client,expr('#schedule-timezone')+'.value',session);
+  assert.equal(await evaluate(client,'document.querySelector("#schedule-timezone-controls").hidden',session),true);
+  await click(client,session,'#schedule-timezone-edit');
+  assert.equal(await evaluate(client,'document.querySelector("#schedule-timezone-controls").hidden',session),false,
+    'native click exposes the original filtered IANA select without mutating timezone');
   await click(client,session,'#schedule-timezone-search');
   await client.send('Input.insertText',{text:'东京'},session);
   const timezone=await evaluate(client,'(()=>{'+
@@ -250,6 +261,11 @@ test('actual installed Chrome runner zooms at 125%, 150%, 200% with keyboard and
   assert(timezone.help.includes('选择下拉项'),'real form explains non-destructive search');
   report.timezoneSearch={...timezone,cssViewport:320,inputMethod:'real CDP Input.insertText'};
   report.screenshots.push(await snapshot(client,session,'runner-timezone-filter-320'));
+  await click(client,session,'#schedule-timezone-done');
+  assert.equal(await evaluate(client,'document.querySelector("#schedule-timezone-controls").hidden',session),true,
+    'native pointer collapses the picker without altering selected IANA value');
+  assert.equal(await evaluate(client,expr('#schedule-timezone')+'.value',session),initialZone);
+  report.timezoneSearch.closedWithoutMutation=true;
   // Genuine Chrome invalid-form interaction; fresh isolated Profile has no
   // installed verified Task. The original two-step approval must stay closed.
   await click(client,session,'#schedule-save');

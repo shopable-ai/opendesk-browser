@@ -190,7 +190,7 @@ test('R2 observe/end-to-end Host only sees owned TabRef; pagination and export a
  await assert.rejects(f.call('browser.network.observe.export',exp),err('E_USER_GESTURE_REQUIRED'));
  const result=await f.call('browser.network.observe.export',exp,
    (await f.confirm('browser.network.observe.export',exp)).approvalRef);
- assert.equal(result.downloadId,777);
+ assert.equal(Object.hasOwn(result,'downloadId'),false,'No global download ID in installed-tool reply');
  assert.equal(f.downloads.length,1);
  assert.equal((await f.call('browser.events.close',{sessionRef:started.observationId})).closed,true);
 });
@@ -237,7 +237,7 @@ test('P1 screenshot: exact owned visible tab, one-use user approval and private 
  await assert.rejects(f.confirm('browser.screenshot.captureVisible',{tabId:100}),err('E_SCHEMA'));
  const approval=(await f.confirm('browser.screenshot.captureVisible',capture)).approvalRef;
  const result=await f.call('browser.screenshot.captureVisible',capture,approval);
- assert.equal(result.downloadId,777);
+ assert.equal(Object.hasOwn(result,'downloadId'),false,'No global download ID in installed-tool reply');
  assert.equal(result.width,1);
  assert.equal(result.height,1);
  assert(result.resourceRef.length>=16);
@@ -378,7 +378,7 @@ test('compact network.watch() returns an owned session handle and uses only exis
  assert.equal(stop.state,'stopped');
  assert.equal(Number.isFinite(stop.stoppedAt),true);
  const saved=await watch.export();
- assert.equal(saved.downloadId,777);
+ assert.equal(Object.hasOwn(saved,'downloadId'),false,'Network watch must not leak native download ID');
  assert.equal(f.downloads.length,1);
  assert.equal((await watch.cancel()).cancelRequested,false);
  assert.equal((await watch.close()).closed,true);

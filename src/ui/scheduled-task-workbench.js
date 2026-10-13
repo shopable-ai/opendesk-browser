@@ -200,6 +200,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   const show=view=>{
     activeView=view;
     for(const [key,node] of Object.entries(views))node.hidden=key!==view;
+    get('schedule-create').hidden=view!=='list';
     // The separately visible runner is already a Host, not a second Side Panel.
     text(get('schedule-open-runner'),isRunner()?'再开运行页 ↗':'打开运行页 ↗');
     get('schedule-back').hidden=isRunner()&&view==='runner';

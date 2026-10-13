@@ -21,7 +21,7 @@ import {CAPTURE_SITE_STORE,CAPTURE_CAPABILITY,KNOWLEDGE_TOOL_ID,KNOWLEDGE_CAPABI
 import {TIME_REVIEW_ID,TIME_REVIEW_CAPABILITY,TIME_REVIEW_PROTOCOL,TIME_REVIEW_OPERATIONS,timeReviewPackageHash} from '../time-review/policy.js';
 import {TIME_REVIEW_KEY} from '../time-review/model.js';
 import {createTimeReviewPermissionControls} from '../time-review/host-controls.js';
-import {admitsTrustedTimeReview,TRUSTED_TIME_REVIEW_VERSION} from '../time-review/trusted-admission.js';
+import {admitsTrustedTimeReview,TRUSTED_TIME_REVIEW_VERSION,trustedTimeReviewProvenanceChanged} from '../time-review/trusted-admission.js';
 
 // Trusted Side Panel shell for untrusted, opaque-origin UI documents.
 // No user code, markup, or CSS is ever inserted into this extension document.
@@ -1447,9 +1447,12 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         }else notice('当前工具实例已撤销；草稿仍在当前页面，请复制后重新打开。',true);
       }
     }
-    if(Object.hasOwn(changes||{},MARKET_PROVENANCE_STORE)&&(nativeUI||nativePending)){
+    if(Object.hasOwn(changes||{},MARKET_PROVENANCE_STORE)&&(nativeUI||nativePending)&&
+       trustedTimeReviewProvenanceChanged(changes[MARKET_PROVENANCE_STORE])){
+      // Retire only when this exact tool's own trusted source changed or the
+      // map cannot be checked. Another tool's install must not close Time Review.
       destroyFrame();tocSettingsOpen=true;render();
-      notice('官方工具来源记录发生变化；可信 UI 已关闭。',true);
+      notice('Time Review 官方来源身份发生变化；可信 UI 已关闭。',true);
     }
     // Do not refresh the native view for every TIME_REVIEW_KEY write: the
     // Host persists status reads, and echoing them would form a poll loop.

@@ -36,6 +36,7 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
   const status=get('cloud-status'),brief=get('cloud-brief'),myState=get('cloud-my-state');
   const overview=get('cloud-overview-state'),sampleList=get('cloud-request-samples');
   let lastSamples='',lastFullRefresh=0,lastCatalogAt=0,lastCatalogStamp='';
+  let requestOffset=0,requestNextOffset=null,selectedRequestIndex=null,selectedOriginalRunId=null;
   let taskChoices=[];const selections=new Map();
   let statusText=status.textContent,operationFeedback='';
   let activeClientTasks=[],lastClientTasksStamp='',clientNextOffset=null,oneTimeToken='';
@@ -244,14 +245,50 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     get('cloud-client-more').hidden=clientNextOffset===null;
     put('cloud-clients-count',String(response.total)+' 个有效授权');
   }
-  function sampleView(samples){
-    const serial=JSON.stringify(samples);
+  function closeRequestDetail(){
+    selectedRequestIndex=null;selectedOriginalRunId=null;
+    get('cloud-request-detail').hidden=true;
+    get('cloud-request-open-result').disabled=true;
+    put('cloud-request-detail-run-id','');
+  }
+  function showRequestDetail(sample,raw){
+    // Only a trusted cloudStatus Host projection can provide this pointer.
+    // Results are NOT copied into the Cloud UI or the external Provider.
+    selectedOriginalRunId=typeof raw?.runId==='string'&&
+      /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(raw.runId)
+      ?raw.runId:null;
+    get('cloud-request-detail').hidden=false;
+    put('cloud-request-detail-title',sample.title);
+    put('cloud-request-detail-state',[sample.state,sample.run].join(' · '));
+    put('cloud-request-detail-facts',[sample.result,sample.settlement,sample.receipt].join(' · '));
+    put('cloud-request-detail-reason',sample.reason||'暂无其他状态信息。');
+    put('cloud-request-detail-run-id',selectedOriginalRunId||'尚无可核对的原始 Run');
+    get('cloud-request-open-result').disabled=!selectedOriginalRunId;
+    put('cloud-request-detail-note',selectedOriginalRunId
+      ?'仅在本机可信「开发 → 运行记录」读取原始数据，仍受原网站和 Run 授权限制；不会重新执行，也不扩大外部结果权限。'
+      :'该请求尚未绑定可查询的原始 Run；状态未知时请勿重新执行。');
+  }
+  function sampleView(samples,rawRows=[]){
+    const serial=JSON.stringify([requestOffset,samples,rawRows.map(row=>row?.runId??null)]);
     if(serial===lastSamples)return;lastSamples=serial;sampleList.replaceChildren();
-    if(!samples.length){const li=doc.createElement('li');li.textContent='暂无云请求记录';sampleList.append(li);return;}
-    for(const s of samples){const li=doc.createElement('li'),state=doc.createElement('span'),detail=doc.createElement('span');
+    if(!samples.length){const li=doc.createElement('li');li.textContent='此页暂无请求记录';sampleList.append(li);closeRequestDetail();return;}
+    samples.forEach((s,i)=>{
+      const li=doc.createElement('li'),state=doc.createElement('span'),
+        detail=doc.createElement('span'),button=doc.createElement('button');
       state.textContent=[s.title,s.state,s.run].filter(Boolean).join(' · ');
       detail.textContent=[s.result,s.settlement,s.receipt,s.reason].filter(Boolean).join(' · ');
-      li.append(state,detail);sampleList.append(li);}
+      button.type='button';button.className='od-button od-button--secondary';
+      button.textContent='查看详情';
+      button.addEventListener('click',()=>{
+        selectedRequestIndex=requestOffset+i;
+        showRequestDetail(s,rawRows[i]);
+        get('cloud-request-detail-title').focus?.();
+      });
+      li.append(state,detail,button);sampleList.append(li);
+    });
+    const i=selectedRequestIndex===null?-1:selectedRequestIndex-requestOffset;
+    if(i>=0&&i<samples.length)showRequestDetail(samples[i],rawRows[i]);
+    else closeRequestDetail();
   }
   const cloudErrorText=e=>{let code=/^E_[A-Z0-9_]{1,60}$/.test(String(e?.code))?e.code:'E_CLOUD';
     const help={E_AUTH:'提供者拒绝凭据，请核对配对状态',
@@ -283,10 +320,12 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     get('cloud-pair').disabled=true;get('cloud-approve').disabled=true;
     get('cloud-refresh').disabled=false;get('cloud-overview-refresh').disabled=false;
     lastSamples='';sampleList.replaceChildren();const li=doc.createElement('li');li.textContent='请求状态暂不可读取';sampleList.append(li);
+    closeRequestDetail();get('cloud-request-prev').disabled=true;get('cloud-request-next').disabled=true;
+    put('cloud-request-page','历史状态不可读取');
   };
   // Refresh is deliberately read-only. Cloud claim/dispatch belongs only to poll().
   async function refresh(){
-    const s=await cloud.cloudStatus({limit:5});if(disposed)return null;
+    const s=await cloud.cloudStatus({limit:5,...(requestOffset?{offset:requestOffset}:{})});if(disposed)return null;
     const projected=projectCloudStatus(s),summary=cloudHostingSummary(projected),samples=projectCloudRequestSamples(s);
     brief.textContent=projected.revocation==='pending'?'本机已停止；服务端撤销待确认':projected.revocation==='unknown'?'撤销状态待核对':
       !projected.paired?(projected.revocation==='confirmed'?'撤销已确认':'未配对'):!projected.enabled?(projected.remoteSuspension==='pending'?'本地已停 · 远端待确认':'已关闭'):!projected.online?'连接中':!projected.reconciled?'对账中':!projected.hostReady?'宿主未就绪':
@@ -307,7 +346,14 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     put('cloud-overview-slot',cloudSlotStateLabel(projected.slotState));
     put('cloud-overview-tasks',String(projected.approvedTasks));
     put('cloud-overview-requests',String(projected.requests.total));
-    sampleView(samples);lastFullRefresh=Date.now();await refreshTaskChoices(s);
+    requestNextOffset=Number.isSafeInteger(s.requestPage?.nextOffset)?s.requestPage.nextOffset:null;
+    get('cloud-request-prev').disabled=requestOffset===0;
+    get('cloud-request-next').disabled=requestNextOffset===null;
+    const total=projected.requests.total,shown=samples.length;
+    put('cloud-request-page',total&&shown
+      ?'第 '+(requestOffset+1)+'–'+(requestOffset+shown)+' 条 / '+total+' 条':'暂无请求');
+    sampleView(samples,shown?s.requests.slice(-shown).reverse():[]);
+    lastFullRefresh=Date.now();await refreshTaskChoices(s);
     updateClientTaskChoices(s);
     if(!s.provider){clearClientToken();clientNextOffset=null;
       get('cloud-clients-list').replaceChildren();
@@ -405,6 +451,23 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
   // The user's “核对状态” gesture must never itself claim or run a cloud task.
   click('cloud-refresh',async()=>{});
   click('cloud-overview-refresh',async()=>{});
+  // Paged reads do not claim, renew, replay or otherwise mutate a Cloud Job.
+  click('cloud-request-prev',async()=>{requestOffset=Math.max(0,requestOffset-5);closeRequestDetail();});
+  click('cloud-request-next',async()=>{
+    if(requestNextOffset!==null){requestOffset=requestNextOffset;closeRequestDetail();}
+  });
+  click('cloud-request-close',async()=>{closeRequestDetail();});
+  click('cloud-request-open-result',async()=>{
+    if(!selectedOriginalRunId)return;
+    const tab=get('tab-develop'),field=get('script-run-id'),query=get('script-read-run');
+    if(!tab?.click||!field||!query?.click)throw {code:'E_CLOUD_RESULT_VIEW'};
+    // Reuse the existing authenticated Controller snapshot route and its
+    // result-delivery permission checks. Never execute the Task again.
+    get('developer-results-panel').open=true;
+    get('script-history-panel').open=true;
+    field.value=selectedOriginalRunId;
+    tab.click();query.click();
+  });
   click('cloud-open-console',async()=>{await api.tabs.create({url:api.runtime.getURL('ui/cloud-control.html')});});
   // Preserve the two-second dispatch cadence without scanning cloud history
   // every time. Visibility changes observations, not execution ownership.

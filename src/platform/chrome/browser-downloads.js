@@ -120,6 +120,9 @@ export function createBrowserDownloadsHost({api=globalThis.chrome,authorize,
     for(const [ref,row] of page){
       await guard('browser.downloads.listOwned',context,row.origin);
       const status=await details(row);
+      // A per-origin grant can be revoked while downloads.search is in flight.
+      // The final global capability check below is NOT an Origin check.
+      await guard('browser.downloads.listOwned',context,row.origin);
       items.push({downloadRef:ref,state:status.state});
     }
     await guard('browser.downloads.listOwned',context);
@@ -131,7 +134,10 @@ export function createBrowserDownloadsHost({api=globalThis.chrome,authorize,
     const row=owned(input.downloadRef,context);
     await guard('browser.downloads.cancelOwned',context,row.origin);
     const before=await details(row);
-    if(before.state!=='in_progress')return {cancelled:false};
+    if(before.state!=='in_progress'){
+      await guard('browser.downloads.cancelOwned',context,row.origin);
+      return {cancelled:false};
+    }
     if(typeof api?.downloads?.cancel!=='function')
       throw fail('E_CHROME_UNSUPPORTED','Chrome downloads.cancel unavailable');
     const epoch=generation;

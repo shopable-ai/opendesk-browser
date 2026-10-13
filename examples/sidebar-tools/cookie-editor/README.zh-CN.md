@@ -1,12 +1,12 @@
-# Cookie Editor R3 · 正式 Cookies SDK 安装工具
+# Cookie Editor R3.3 · 正式 Cookies SDK 安装工具
 
-**入口：** Side Panel → 工具 → 发现工具 → Cookie Editor。官方目录仍为 `installationPolicy: optional`；工具包 **2.0.0 / opendesk.sidebar-tool.v2**，不是另建 Chrome 扩展。正式 SDK、Host 和真实 UI 的源码已有接线，但**当前候选尚无 Node/Build/Chrome Native 通过证据，不能宣称 95+ 正式交付**。
+**入口：** Side Panel → 工具 → 发现工具 → Cookie Editor。官方目录仍为 `installationPolicy: optional`；工具包 **2.0.2 / opendesk.sidebar-tool.v2**，不是另建 Chrome 扩展。正式 SDK、Host 和真实 UI 的源码已有接线，但**当前候选尚无 Node/Build/Chrome Native 通过证据，不能宣称 95+ 正式交付**。
 
 ## 用户能完成什么（SOURCE_WIRED，未原生验收）
 
 1. 在实际 Chrome 打开要授权的网站 → 已安装工具「设置」→ 按网站分别授权 `browser.cookies.read / values / write / observe / clear`。安装或选择网址不自动授权；第一次授权需该站点处于活动标签页。授权后普通读取可以在其他网站仍活跃时重复使用。
 2. `OpenDeskSDK.browser.cookies.getAll({url})` 读取真实 Chrome Cookie 元数据，显示 Cookie 名称、Domain/Path、Secure/HttpOnly/SameSite、Session/Expiration、Store/Partition。真实值默认隐藏；独立 `values` 网站授权后才可按需显示或导出。
-3. `cookies.set/remove` 实际新增、编辑、精确删除；受信 Side Panel 每次要求用户明确确认。原生回读和结果未知不自动重试。编辑只有脱敏元数据的旧 Cookie 时必须主动输入新值，避免误将隐藏旧值写成空字符串。
+3. `cookies.set/remove` 实际新增、编辑、精确删除；受信 Side Panel 每次要求用户明确确认。原生回读和结果未知不自动重试。Name 可直接修改，并按先新建核验再精确删除旧名称执行（非原子）。未改动的隐藏 Value 仅在获准独立敏感值权限后临时读取保留；也可主动提供新 Value。未授权时绝不静默写空值。
 4. `clearSite` 只清理选定主机的 Host-only Cookie、批准的 Store/Partition、最多 50 条。先生成含 **60 秒、一次性 `previewRef`** 的预览；清理前核对精确 Cookie 身份集合，数量相同而内容改变也拒绝。实际删除仍需可信点击；Worker 重启、撤权会使旧预览不可用。
 5. `observe.start/getStatus/read/stop` 手动启动最长 15 秒的有界脱敏变化观察，携带 cursor/gap。事件不传 Cookie 值。
 6. 「离线工作区」仍支持 JSON、Cookie Header、Netscape 读取/编辑/导出，绝不冒充真实 Chrome；真实导入每批至多 10 条，预览并逐条经 Chrome SDK 与用户确认。真实含值导出需要主动触发本地保存和额外敏感值授权。
@@ -34,7 +34,7 @@
 | 11 项公开 SDK、Schema、Host 与 Tool Capability | SOURCE_WIRED |
 | 真实读/值/写/删/清理/观察的 UI 调用 | SOURCE_WIRED |
 | V8 JavaScript 语法检查 | PASS（仅语法，不是功能或 Chrome） |
-| Node 专项测试、官方工具打包、Check、Build、Build:dev、Verify | NOT_TESTED（已补测试源码，当前执行环境未运行） |
+| Node 专项测试、官方工具打包、Check、Test、Build、Build:dev、Verify | NOT_TESTED（R3.2 首次 CI run 38412243566 被取消；R3.3 新候选待验证） |
 | Mac Chrome 安装、真实授权、原生操作/撤权/升级及截图 | NOT_TESTED |
 | 八项产品级专家评分 | NOT_SCORED |
 
@@ -48,3 +48,5 @@ npm run check && npm test && npm run build && npm run build:dev && npm run verif
 ```
 
 测试只使用虚构 Cookie。运行命令及真实 Chrome GUI/CFT 证据必须绑定同一 Git SHA、工具包 SHA-256 和扩展构建 Hash；不能用 DevTools 直接调用 `chrome.cookies` 冒充用户安装路径验收。R2/R2.1 历史阻塞与组件冒烟保留在原工作流中；不升级为 R3 Native PASS。
+
+R3.3 新候选：授权变化后经已有 Bridge 自动检查当前网站；拒绝与读取失败显示独立状态；未完成 Host 操作期间锁定网站与模式控件；普通确认不再采用危险操作红色样式。正式产品默认不进入离线工作区。历史 1.0.0 官方发行仍是离线包，已安装用户必须在「发现工具」明确升级；不能静默同版本替换。

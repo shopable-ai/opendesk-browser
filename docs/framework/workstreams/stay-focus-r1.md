@@ -1,3 +1,28 @@
+# Stay Focus R1.4 — zero-config shared entertainment (2026-10-13)
+
+**Implementation candidate:** backend `2780b3178e74`, UI `a2ba84da346e`, native driver `5ac462b64440`. Subsequent R1.4 maintenance commits and unrelated main changes must be checked against final source identity. These are SOURCE changes, not native PASS receipts.
+
+| Product scenario | Source | Current component evidence | Current macOS Chrome evidence |
+| --- | --- | --- | --- |
+| Initial user-approved activation seeds 11 known entertainment sites, daily shared 30 min | SOURCE_DONE | NOT_TESTED | NOT_TESTED |
+| Strict offline domain classification, work/study excluded, preexisting custom state retained | SOURCE_DONE | NOT_TESTED | NOT_TESTED |
+| One durable g:entertainment usage pool, foreground-only billing, all sites quota DNR | SOURCE_DONE | NOT_TESTED | NOT_TESTED |
+| 10/5/1 min charged-only notices with persisted dedupe and isolated in-page renderer | SOURCE_DONE | NOT_TESTED | NOT_TESTED |
+| One-screen shared budget, edit minutes, suspend, one-click per-site exclusion, advanced settings folded | SOURCE_DONE | NOT_TESTED | NOT_TESTED |
+| Side Panel closed, worker/browser restart, permission revoke, disable and uninstall cleanup | SOURCE_DONE | NOT_TESTED | NOT_TESTED |
+
+Scope and migration: The single Host authority src/stay-focus/catalog.js supplies a bounded offline domain catalog to the trusted service and sandbox UI. Only the first explicit focus.enable with no stored policy seeds the defaults. Merely installing, viewing status or reading a page does not confer native permission. Existing policies and same-day usage are preserved; no silent blanket migration to the shared pool. Manual advanced sites can remain independent. The focus.group.put edit changes the single entertainment group for all enrolled domains at once.
+
+Reminder contract: only previously settled, same-session, focused, non-idle usage crossing a threshold can emit. The durable notice snapshot persists day, revision, budget and consumed thresholds; a late tick crossing several thresholds shows just the most urgent. The existing ISOLATED Page Relay renders hardcoded text in a fixed shadow UI; page content cannot change usage, permissions or DNR. Page timers only hide the card. The existing Chrome native DNR still owns navigation blocking and already-open-tab remediation. The existing host-side disable/uninstall paths clear notices without touching other tools.
+
+Test obligations: the existing model/service suite now contains first-enable, legacy isolation, real pool aggregation, 10/5/1 dedupe and page renderer cases. The existing macOS CFT driver has been revised to approve the default configuration from actual UI, change the shared quota through trusted review, spend a short real session, observe the in-page final-minute card and real DNR, then disable, re-enable, restart Chrome and uninstall. It never writes synthetic usage, native permissions or DNR. A second distinct entertainment-domain native accounting session is still NOT_TESTED, and 10/5-minute physical page visual observations remain NOT_TESTED (component cases cover logic).
+
+CI evidence at writing: Stay Focus workflow runs for these candidates are QUEUED, not PASS, including https://github.com/shopable-ai/opendesk-browser/actions/runs/38413311562 . No current-candidate Node test exit status, WXT source/build/verify outcome, ZIP SHA-256 or macOS screenshots can yet be claimed. The user Mac workspace is not reachable from this GitHub connector environment. Only official GitHub job/artifact IDs or an actual separately verified Mac run may change evidence grades.
+
+Verification owner: GitHub Actions macos-15 isolated Chrome for Testing, own temporary profile and port; no alteration to the user's daily Mac Chrome, dist/development, or another task's independent evidence. Test integrity and failure status must remain explicit.
+
+---
+
 # Stay Focus R1.0 · 独立工具交付账本
 
 ## R1.3 易用性改进：默认推荐和当前网站自动识别（2026-10-13）

@@ -97,3 +97,12 @@ test('R5 public Tabs wrappers route through original Host with no raw native tab
  assert.throws(()=>sdk.tabs.listOwned({all:true}),isCode('E_SCHEMA'));
  assert.equal(typeof createBrowserSdk({context:'page-sdk'}).tabs,'undefined');
 });
+
+test('resource export schemas never advertise Chrome-global download IDs',()=>{
+ for(const operation of ['browser.network.observe.export','browser.screenshot.captureVisible']){
+  const result=operationSchemas(operation).output;
+  assert.equal(Object.hasOwn(result.properties,'downloadId'),false,operation);
+  assert.equal(result.required.includes('downloadId'),false,operation);
+  assert.equal(result.additionalProperties,false,operation);
+ }
+});

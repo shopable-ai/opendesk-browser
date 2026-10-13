@@ -275,3 +275,69 @@ test('R2.6 real runner never labels SETTLING or stale terminal Run as running',a
   assert.match(preview,/正在结算 · 尚未确认成功/);
   assert.match(preview,/next===null\?'暂无后续执行'/);
 });
+
+test('R2.7 compact pinned timezone and important next-run callout match the canonical preview',async()=>{
+  const [html,css,ui,preview]=await Promise.all([
+    load('src/ui/tool.html'),load('src/ui/tool-shell.css'),
+    load('src/ui/scheduled-task-workbench.js'),
+    load('examples/ui/scheduled-tasks-r2.5-preview.html')
+  ]);
+  for(const id of ['schedule-timezone-summary','schedule-timezone-edit',
+    'schedule-timezone-controls','schedule-timezone-done','schedule-timezone-search',
+    'schedule-next','schedule-next-time','schedule-next-zone'])
+    assert.match(html,new RegExp('id="'+id+'"'));
+  assert.match(html,/id="schedule-timezone-controls"[^>]*hidden/);
+  assert.match(html,/id="schedule-timezone-edit"[^>]*aria-expanded="false"/);
+  assert.match(ui,/function setTimeZoneExpanded\(expanded,focus=false\)/);
+  assert.match(ui,/updateTimeZoneSummary\(selected\)/);
+  assert.match(ui,/populateTimeZoneSelect\(plan\.timezone\)/,
+    'editing continues to preserve the original fixed IANA time zone');
+  assert.match(ui,/setTimeZoneExpanded\(false\)/);
+  assert.match(ui,/text\(get\('schedule-next-time'\),describeTime\(next,zone\)\)/);
+  assert.match(ui,/setTimeZoneExpanded\(get\('schedule-timezone-controls'\)\.hidden,true\)/);
+  assert.match(css,/\.schedule-next-preview>strong\{font-size:17px/);
+  assert.match(css,/\.schedule-timezone-selected\{/);
+  assert.doesNotMatch(css,/\.schedule-form \.od-field,\.schedule-rule \.od-field/,
+    'R2.7 must not turn input.od-field and select.od-field into grid containers');
+  assert.match(preview,/id="zone-summary"/);
+  assert.match(preview,/data-action="zone-expand"/);
+  assert.match(preview,/s\.zoneExpanded\?'':'hidden'/);
+  assert.match(preview,/case 'zone-done'/);
+});
+
+test('R2.7 unavailable Controller task has an actionable, truthful empty state',async()=>{
+  const [html,ui]=await Promise.all([
+    load('src/ui/tool.html'),load('src/ui/scheduled-task-workbench.js')
+  ]);
+  assert.match(html,/id="schedule-task-empty"[^>]*hidden/);
+  assert.match(html,/id="schedule-task-empty-create"/);
+  assert.match(html,/请先在「开发」中验证并安装 Controller Task/);
+  assert.match(ui,/get\('schedule-task-empty'\)\.hidden=Boolean\(editing\)\|\|eligible\(\)\.length>0/);
+  assert.match(ui,/bind\('schedule-task-empty-create','click',enterDeveloper\)/);
+  assert.match(ui,/bind\('scheduled-panel','keydown'/);
+  assert.match(ui,/event\.key!=='Escape'/);
+  assert.doesNotMatch(ui,/chrome\.permissions\.request\(/,
+    'the UI must not bypass the normal Chrome permission gate');
+});
+
+test('R2.7 runner presents focus before compact summary and defers details',async()=>{
+  const [html,css,ui,native]=await Promise.all([
+    load('src/ui/tool.html'),load('src/ui/tool-shell.css'),
+    load('src/ui/scheduled-task-workbench.js'),
+    load('tests/framework/scheduled-tasks-r23-native-zoom.test.mjs')
+  ]);
+  const focus=html.indexOf('id="schedule-runner-focus-title"');
+  const summary=html.indexOf('class="schedule-runner-metrics"');
+  const detail=html.indexOf('class="schedule-runner-extra"');
+  assert(focus>0&&summary>focus&&detail>summary,
+    'single focus card should precede Host/result and disclosure');
+  for(const id of ['schedule-runner-next','schedule-runner-current',
+    'schedule-runner-host-status','schedule-runner-result','schedule-runner-focus-time'])
+    assert.match(html,new RegExp('id="'+id+'"'));
+  assert.match(css,/\.schedule-runner-view \.schedule-runner-extra\{order:3\}/);
+  assert.match(ui,/text\(get\('schedule-runner-focus-time'\)/);
+  assert.match(ui,/host\.stop\(\{runId:selectedFire,controller:true\}\)/);
+  assert.match(native,/await click\(client,session,'#schedule-timezone-edit'\)/);
+  assert.match(native,/await click\(client,session,'#schedule-timezone-done'\)/);
+  assert.match(native,/chrome\.tabs\.setZoom/,'real zoom is not viewport emulation');
+});

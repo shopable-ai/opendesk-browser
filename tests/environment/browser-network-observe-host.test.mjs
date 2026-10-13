@@ -83,7 +83,8 @@ test('explicit JSON export uses a bounded real Chrome download, never returns ra
  const {observationId}=await host.start(args,identity(),target);
  f.emit('completed',{statusCode:204});await host.stop({observationId},identity());
  const result=await host.exportJson({observationId},identity());
- assert.equal(result.downloadId,91);
+ assert.equal(Object.hasOwn(result,'downloadId'),false,'Native download ID must stay in the Driver');
+ assert.match(result.resourceRef,/^[A-Za-z0-9_-]{16,160}$/);
  assert(result.bytes>0&&result.bytes<=524288);
  assert.equal(result.truncated,false);
  assert.equal(f.calls.downloads.length,1);

@@ -4,7 +4,7 @@ import {TIME_REVIEW_KEY} from '../../src/time-review/model.js';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
-import {admitsTrustedTimeReview,TRUSTED_TIME_REVIEW_VERSION} from '../../src/time-review/trusted-admission.js';
+import {admitsTrustedTimeReview,TRUSTED_TIME_REVIEW_VERSION,trustedTimeReviewProvenanceChanged} from '../../src/time-review/trusted-admission.js';
 import {serializeSidebarToolPackage,validateSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 
 function fixture(){
@@ -88,8 +88,12 @@ function r17PermissionFixture(){
     return nodes.get(id);
   };
   let siteGrants={allSites:false,origins:[]},idlePermission=false,requests=0,removals=0;
+  let pendingRead=null;
   const api={
-    storage:{local:{async get(){return {[TIME_REVIEW_KEY]:{siteGrants}};}}},
+    storage:{local:{async get(){
+      const pending=pendingRead;pendingRead=null;
+      return pending||{[TIME_REVIEW_KEY]:{siteGrants}};
+    }}},
     permissions:{
       async contains(){return idlePermission;},
       request(){requests++;idlePermission=true;return Promise.resolve(true);},
@@ -100,13 +104,22 @@ function r17PermissionFixture(){
   };
   const doc={getElementById:get,createElement:tag=>node(tag)};
   const controls=createTimeReviewPermissionControls({api,doc,notice(){},
-    async runOperation(){return {siteGrants};}});
+    async runOperation(name,payload){
+      if(name==='time.siteGrant'&&payload.mode==='all')
+        siteGrants={allSites:payload.enabled,origins:[]};
+      return {siteGrants};
+    }});
   const installed={id:'time-review',capabilities:['time.review']};
   const flush=async()=>{await new Promise(resolve=>setImmediate(resolve));};
   const click=(id,isTrusted=true)=>get(id).handlers.get('click')({isTrusted});
   return {get,controls,installed,click,flush,
     setIdle:value=>{idlePermission=value;},
     setGrants:value=>{siteGrants=value;},
+    deferNextRead(){
+      let resolve;
+      pendingRead=new Promise(done=>{resolve=done;});
+      return oldSiteGrants=>resolve({[TIME_REVIEW_KEY]:{siteGrants:oldSiteGrants}});
+    },
     counters:()=>({requests,removals})};
 }
 
@@ -153,4 +166,51 @@ test('R1.7 whole-site grant cannot show redundant or ineffective per-origin enro
   f.setGrants({allSites:false,origins:[]});
   f.controls.render(f.installed);await f.flush();
   assert.equal(f.get('time-review-site-all-revoke').hidden,true);
+});
+
+
+test('R1.7 late site-grant storage read never repaints revoked/obsolete consent',async()=>{
+  const f=r17PermissionFixture();
+  const resolveOldRead=f.deferNextRead();
+  f.controls.render(f.installed); // old read deliberately stays in flight
+  f.click('time-review-site-all-open');
+  f.click('time-review-site-all-approve');
+  await f.flush();await f.flush();
+  assert.equal(f.get('time-review-site-all-open').hidden,true);
+  assert.equal(f.get('time-review-site-all-revoke').hidden,false);
+  resolveOldRead({allSites:false,origins:[]});
+  await f.flush();await f.flush();
+  assert.equal(f.get('time-review-site-all-open').hidden,true,
+    'stale response must not re-enable a duplicate grant');
+  assert.equal(f.get('time-review-site-all-revoke').hidden,false,
+    'latest durable all-site grant must remain displayed');
+});
+
+
+test('R1.7 unrelated provenance changes preserve trusted UI but Time Review identity changes invalidate it',()=>{
+  const trusted={marketId:'opendesk/time-review',version:TRUSTED_TIME_REVIEW_VERSION,
+    sha256:'a'.repeat(64)};
+  const oldValue={'time-review':trusted,'reading-toc':{
+    marketId:'opendesk/reading-toc',version:'1.0.0',sha256:'b'.repeat(64)}};
+  const newValue={...oldValue,'cookie-editor':{
+    marketId:'opendesk/cookie-editor',version:'3.2.0',sha256:'c'.repeat(64)}};
+  assert.equal(trustedTimeReviewProvenanceChanged({oldValue,newValue}),false,
+    'installing another official tool cannot destroy an active Time Review native panel');
+  assert.equal(trustedTimeReviewProvenanceChanged({oldValue,newValue:{...newValue,
+    'time-review':{...trusted}}}),false,'copying unchanged own provenance is not a revocation');
+  for(const newOwn of [
+    undefined,null,{...trusted,sha256:'d'.repeat(64)},
+    {...trusted,version:'1.7.0'},{...trusted,marketId:'third-party/time-review'},
+    {...trusted,extra:'unreviewed'},
+    {...trusted,sha256:'not-a-hash'}
+  ]){
+    const next={...newValue,'time-review':newOwn};
+    assert.equal(trustedTimeReviewProvenanceChanged({oldValue,newValue:next}),true,
+      'changing or corrupting own official provenance must close privileged UI');
+  }
+  for(const invalid of [null,[],{'time-review':trusted},'corrupted']){
+    assert.equal(trustedTimeReviewProvenanceChanged({oldValue:invalid,newValue}),true,
+      'old missing/corrupt source cannot be reused');
+  }
+  assert.equal(trustedTimeReviewProvenanceChanged({oldValue,newValue:undefined}),true);
 });

@@ -8,7 +8,7 @@ export async function requestWorkflowPlan({endpoint,apiKey,model,request,workflo
   if (url.protocol !== 'https:' || url.username || url.password || url.hash || !url.pathname ||
     !apiKey || apiKey.length > 4096 || !model || model.length > 120 || !request.trim() || request.length > 4000)
     throw Object.assign(new Error('需配置 HTTPS 模型接口、密钥、模型和需求描述'), {code:'E_AI_CONFIG'});
-  const system = 'You create declarative browser workflows only. Return a JSON object (no markdown) with ' +
+  const system = 'Create a bounded executable browser workflow. OpenDesk will execute it immediately after validation without another click. Use literal fill.text when the user gave the value, and never invent clicks or navigation. Return a JSON object (no markdown) with ' +
     'title,description,paramsSchema,steps. Each step must have a unique stepId and one of ' +
     'navigate,observe,fill,click,wait,extract,assert. For locator actions use locatorKind ' +
     '(css,role,label,text,testId), selector, optional roleName. Fill uses either param ' +

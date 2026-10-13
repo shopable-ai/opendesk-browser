@@ -98,8 +98,8 @@
         "page-sdk"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.capabilities.list",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.capabilities.list",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.capabilities.list:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.capabilities.list:output",
       "chromePermissions": [],
       "toolCapabilities": [],
       "effectClass": "read",
@@ -138,8 +138,8 @@
         "page-sdk"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.capabilities.getStatus",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.capabilities.getStatus",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.capabilities.getStatus:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.capabilities.getStatus:output",
       "chromePermissions": [],
       "toolCapabilities": [],
       "effectClass": "read",
@@ -177,8 +177,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.contextMenu.getStatus",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.contextMenu.getStatus",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.contextMenu.getStatus:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.contextMenu.getStatus:output",
       "chromePermissions": [
         "contextMenus"
       ],
@@ -220,8 +220,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.contextMenu.register",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.contextMenu.register",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.contextMenu.register:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.contextMenu.register:output",
       "chromePermissions": [
         "contextMenus"
       ],
@@ -263,8 +263,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.contextMenu.unregister",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.contextMenu.unregister",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.contextMenu.unregister:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.contextMenu.unregister:output",
       "chromePermissions": [],
       "toolCapabilities": [
         "browser.contextMenu"
@@ -304,8 +304,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.launch.consume",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.launch.consume",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.launch.consume:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.launch.consume:output",
       "chromePermissions": [],
       "toolCapabilities": [
         "browser.contextMenu"
@@ -345,8 +345,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.page.getContext",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.page.getContext",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.page.getContext:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.page.getContext:output",
       "chromePermissions": [],
       "toolCapabilities": [
         "currentPage.read"
@@ -386,8 +386,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.page.getSelection",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.page.getSelection",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.page.getSelection:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.page.getSelection:output",
       "chromePermissions": [],
       "toolCapabilities": [
         "browser.contextMenu"
@@ -427,8 +427,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.clipboard.writeText",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.clipboard.writeText",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.clipboard.writeText:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.clipboard.writeText:output",
       "chromePermissions": [],
       "toolCapabilities": [
         "user.export"
@@ -468,8 +468,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.downloads.text",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.downloads.text",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.downloads.text:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.downloads.text:output",
       "chromePermissions": [
         "downloads"
       ],
@@ -511,8 +511,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.downloads.download",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.downloads.download",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.downloads.download:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.downloads.download:output",
       "chromePermissions": [
         "downloads"
       ],
@@ -554,8 +554,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.downloads.getOwned",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.downloads.getOwned",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.downloads.getOwned:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.downloads.getOwned:output",
       "chromePermissions": [
         "downloads"
       ],
@@ -597,8 +597,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.downloads.listOwned",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.downloads.listOwned",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.downloads.listOwned:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.downloads.listOwned:output",
       "chromePermissions": [
         "downloads"
       ],
@@ -640,8 +640,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.downloads.cancelOwned",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.downloads.cancelOwned",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.downloads.cancelOwned:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.downloads.cancelOwned:output",
       "chromePermissions": [
         "downloads"
       ],
@@ -683,11 +683,9 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.open",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.open",
-      "chromePermissions": [
-        "tabs"
-      ],
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.tabs.create:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.tabs.create:output",
+      "chromePermissions": [],
       "toolCapabilities": [
         "browser.tabs"
       ],
@@ -727,8 +725,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.focus",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.focus",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.tabs.activateOwned:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.tabs.activateOwned:output",
       "chromePermissions": [
         "tabs",
         "webNavigation"
@@ -772,8 +770,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.getOwned",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.getOwned",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.tabs.getOwned:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.tabs.getOwned:output",
       "chromePermissions": [
         "tabs",
         "webNavigation"
@@ -837,8 +835,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.listOwned",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.listOwned",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.tabs.listOwned:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.tabs.listOwned:output",
       "chromePermissions": [
         "tabs",
         "webNavigation"
@@ -902,8 +900,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.pinOwned",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.pinOwned",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.tabs.pinOwned:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.tabs.pinOwned:output",
       "chromePermissions": [
         "tabs",
         "webNavigation"
@@ -946,8 +944,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.reloadOwned",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.reloadOwned",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.tabs.reloadOwned:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.tabs.reloadOwned:output",
       "chromePermissions": [
         "tabs",
         "webNavigation"
@@ -990,8 +988,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.navigateOwned",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.navigateOwned",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.tabs.navigateOwned:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.tabs.navigateOwned:output",
       "chromePermissions": [
         "tabs",
         "webNavigation"
@@ -1034,8 +1032,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.closeOwned",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.tabs.closeOwned",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.tabs.removeOwned:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.tabs.removeOwned:output",
       "chromePermissions": [
         "tabs",
         "webNavigation"
@@ -1082,8 +1080,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.sidePanel.openSelf",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.sidePanel.openSelf",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.sidePanel.openSelf:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.sidePanel.openSelf:output",
       "chromePermissions": [
         "sidePanel"
       ],
@@ -1125,8 +1123,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.network.request",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.network.request",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.network.request:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.network.request:output",
       "chromePermissions": [],
       "toolCapabilities": [
         "network"
@@ -1166,8 +1164,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.network.observe.start",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.network.observe.start",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.network.observe.start:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.network.observe.start:output",
       "chromePermissions": [
         "tabs",
         "webNavigation",
@@ -1211,8 +1209,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.network.observe.getStatus",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.network.observe.getStatus",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.network.observe.getStatus:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.network.observe.getStatus:output",
       "chromePermissions": [
         "webRequest"
       ],
@@ -1254,8 +1252,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.network.observe.stop",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.network.observe.stop",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.network.observe.stop:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.network.observe.stop:output",
       "chromePermissions": [
         "webRequest"
       ],
@@ -1297,8 +1295,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.network.observe.export",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.network.observe.export",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.network.observe.export:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.network.observe.export:output",
       "chromePermissions": [
         "webRequest",
         "downloads"
@@ -1341,8 +1339,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.events.read",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.events.read",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.events.read:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.events.read:output",
       "chromePermissions": [],
       "toolCapabilities": [
         "browser.events"
@@ -1382,8 +1380,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.events.close",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.events.close",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.events.close:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.events.close:output",
       "chromePermissions": [],
       "toolCapabilities": [
         "browser.events"
@@ -1423,8 +1421,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.screenshot.captureVisible",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.screenshot.captureVisible",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.screenshot.captureVisible:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.screenshot.captureVisible:output",
       "chromePermissions": [
         "tabs",
         "webNavigation",
@@ -1469,8 +1467,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.operations.getStatus",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.operations.getStatus",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.operations.getStatus:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.operations.getStatus:output",
       "chromePermissions": [],
       "toolCapabilities": [
         "browser.operations"
@@ -1510,8 +1508,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.operations.cancel",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.operations.cancel",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.operations.cancel:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.operations.cancel:output",
       "chromePermissions": [],
       "toolCapabilities": [
         "browser.operations"
@@ -1551,8 +1549,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.get",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.get",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.get:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.get:output",
       "chromePermissions": [
         "cookies"
       ],
@@ -1594,8 +1592,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.getAll",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.getAll",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.getAll:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.getAll:output",
       "chromePermissions": [
         "cookies"
       ],
@@ -1637,8 +1635,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.set",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.set",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.set:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.set:output",
       "chromePermissions": [
         "cookies"
       ],
@@ -1680,8 +1678,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.remove",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.remove",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.remove:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.remove:output",
       "chromePermissions": [
         "cookies"
       ],
@@ -1723,8 +1721,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.clearSite",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.clearSite",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.clearSite:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.clearSite:output",
       "chromePermissions": [
         "cookies"
       ],
@@ -1766,8 +1764,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.getCurrentStore",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.getCurrentStore",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.getCurrentStore:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.getCurrentStore:output",
       "chromePermissions": [
         "cookies"
       ],
@@ -1809,8 +1807,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.getPartitionKey",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.getPartitionKey",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.getPartitionKey:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.getPartitionKey:output",
       "chromePermissions": [
         "cookies"
       ],
@@ -1852,8 +1850,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.observe.start",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.observe.start",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.observe.start:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.observe.start:output",
       "chromePermissions": [
         "cookies"
       ],
@@ -1895,8 +1893,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.observe.getStatus",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.observe.getStatus",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.observe.getStatus:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.observe.getStatus:output",
       "chromePermissions": [
         "cookies"
       ],
@@ -1938,8 +1936,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.observe.read",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.observe.read",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.observe.read:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.observe.read:output",
       "chromePermissions": [
         "cookies"
       ],
@@ -1981,8 +1979,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.observe.stop",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.cookies.observe.stop",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.observe.stop:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.observe.stop:output",
       "chromePermissions": [
         "cookies"
       ],
@@ -2024,8 +2022,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.storage.local.get",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.storage.local.get",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.storage.local.get:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.storage.local.get:output",
       "chromePermissions": [
         "storage"
       ],
@@ -2067,8 +2065,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.storage.local.set",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.storage.local.set",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.storage.local.set:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.storage.local.set:output",
       "chromePermissions": [
         "storage"
       ],
@@ -2110,8 +2108,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.storage.local.remove",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.storage.local.remove",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.storage.local.remove:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.storage.local.remove:output",
       "chromePermissions": [
         "storage"
       ],
@@ -2153,8 +2151,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-contract.js#browser.storage.local.clear",
-      "outputSchema": "src/framework/sdk/browser-contract.js#browser.storage.local.clear",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.storage.local.clear:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.storage.local.clear:output",
       "chromePermissions": [
         "storage"
       ],

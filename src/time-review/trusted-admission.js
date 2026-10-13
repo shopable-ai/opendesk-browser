@@ -8,6 +8,23 @@ import {requireToolEnableRecords} from '../ui/sidebar-tools/lifecycle.js';
 // A change to the packaged UI must ship as a new official release and a new
 // extension build. Old/unverified releases continue in the opaque sandbox.
 export const TRUSTED_TIME_REVIEW_VERSION='1.6.0';
+
+// Storage.onChanged emits a whole provenance map when ANY tool is installed.
+// An unrelated tool cannot revoke the already verified native Time Review UI,
+// but changes to Time Review's own provenance must fail closed immediately.
+export function trustedTimeReviewProvenanceChanged(change){
+  const record=value=>value&&typeof value==='object'&&!Array.isArray(value)
+    ?value[TIME_REVIEW_ID]:null;
+  const valid=value=>value&&typeof value==='object'&&!Array.isArray(value)&&
+    Object.keys(value).sort().join(',')==='marketId,sha256,version'&&
+    value.marketId==='opendesk/time-review'&&
+    value.version===TRUSTED_TIME_REVIEW_VERSION&&
+    typeof value.sha256==='string'&&/^[a-f0-9]{64}$/.test(value.sha256);
+  const before=record(change?.oldValue),after=record(change?.newValue);
+  if(!valid(before)||!valid(after))return true;
+  return before.marketId!==after.marketId||before.version!==after.version||
+    before.sha256!==after.sha256;
+}
 export async function admitsTrustedTimeReview({
   tool,installed,release,provenance,enableRecords,epochs,expectedEpoch
 }={}){

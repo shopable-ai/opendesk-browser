@@ -6,6 +6,7 @@ on:
     paths:
       - 'src/stay-focus/**'
       - 'src/entrypoints/stay-focus-controls.js'
+      - 'src/entrypoints/page-relay.js'
       - 'src/entrypoints/blocked.js'
       - 'examples/sidebar-tools/stay-focus/**'
       - 'src/ui/sidebar-tools.js'

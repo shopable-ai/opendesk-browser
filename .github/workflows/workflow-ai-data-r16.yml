@@ -26,6 +26,7 @@ jobs:
           node --check src/ui/workflow/workflow-view.js
           node --check src/ui/workflow/local-codex.js
           node --check src/ui/workflow/ai-plan.js
+          node --check src/ui/workflow/direct-execution.js
       - name: Direct-send provider, payload minimization and workflow regressions
         run: |
-          node --test tests/environment/workflow-ai-data-sharing.test.mjs tests/environment/workflow-ui-states.test.mjs tests/environment/workflow-r15.test.mjs tests/environment/workflow-local-codex.test.mjs
+          node --test tests/environment/workflow-ai-data-sharing.test.mjs tests/environment/workflow-ui-states.test.mjs tests/environment/workflow-r15.test.mjs tests/environment/workflow-local-codex.test.mjs tests/environment/workflow-direct-execution.test.mjs

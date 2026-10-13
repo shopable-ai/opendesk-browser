@@ -2,7 +2,7 @@
   "schema": "opendesk.cloud-control.r5.2.complete-function-matrix.v1",
   "date": "2026-10-13",
   "branch": "main",
-  "observedHead": "81596b4f39300f4cc8b692153ca471b1be0beb2a",
+  "observedHead": "21c5a0dacb7ae0dfea18ea85d414ac157b09b34a",
   "statusPolicy": "Implementation field records source presence only. Verification is NOT_VERIFIED until exact-SHA CI/native evidence. Counts are coverage inventory, never a product completion percentage.",
   "uiOverlay": {
     "uiContract": "docs/architecture/browser-framework/cloud-control-r5.2-ui-preview-contract.zh-CN.md",
@@ -32,8 +32,8 @@
       "OPS": 12
     },
     "source": {
-      "SOURCE_IMPLEMENTED": 108,
-      "NOT_IMPLEMENTED": 2
+      "SOURCE_IMPLEMENTED": 109,
+      "NOT_IMPLEMENTED": 1
     },
     "verification": {
       "NOT_VERIFIED": 101,
@@ -1302,7 +1302,7 @@
       "tests": "tests/cloud-control/{r52-product-ui,r52-ui-preview-contract}.test.mjs",
       "gate": "G3",
       "priority": "P1",
-      "implementation": "NOT_IMPLEMENTED",
+      "implementation": "SOURCE_IMPLEMENTED",
       "verification": "NOT_VERIFIED",
       "ui39Overlay": "UI A01–F06 mapping, not additive"
     },
@@ -1528,5 +1528,23 @@
       "tests/cloud-control/r52-product-ui.test.mjs"
     ],
     "behavior": "Shows Task authorization state, immutable identity inside existing advanced details, and user-visible action after install generation/version changes; does not revive old grants."
+  },
+  "r53Ui08Evidence": {
+    "sourceCommit": "21c5a0dacb7ae0dfea18ea85d414ac157b09b34a",
+    "sourceCommitUrl": "https://github.com/shopable-ai/opendesk-browser/commit/21c5a0dacb7ae0dfea18ea85d414ac157b09b34a",
+    "implementation": "SOURCE_IMPLEMENTED",
+    "verification": "NOT_VERIFIED",
+    "testAdded": "tests/cloud-control/r52-product-ui.test.mjs",
+    "testExecutionInThisTurn": "NOT_RUN",
+    "ciRunId": 38413468963,
+    "ciUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38413468963",
+    "ciStatusAtObservation": "queued",
+    "productionPackageHash": null,
+    "developmentPackageHash": null,
+    "nativeTaskA": null,
+    "nativeTaskB": null,
+    "nativeVerification": "NATIVE_PENDING",
+    "publicNetworkVerification": "REMOTE_NATIVE_PENDING",
+    "note": "The CI run is associated with the exact UI-08 source commit. Queued does not imply pass. No Mac Chrome or network deployment evidence."
   }
 }

@@ -30,7 +30,11 @@ export function createTimeReviewPermissionControls({api,doc,notice,runOperation}
     setBusy(true);
     Promise.resolve().then(()=>runOperation(name,payload,event)).then(result=>{
       if(name==='time.siteGrant'){
+        // A pre-existing async storage read may still contain the old grants.
+        // Fence it before painting the verified Host response, then resync.
+        readGeneration++;
         renderGrants(result.siteGrants);
+        void refresh();
         say('网站采集授权已更新；未授权的网站不会记录。');
       }else say(name==='time.start'?'已开始／恢复本机后台记录。':
         name==='time.minuteConsent'?(payload.enabled?'未来分钟明细已开启。':'分钟明细已关闭并清除。'):

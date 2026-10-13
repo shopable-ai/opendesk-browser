@@ -66,6 +66,9 @@ const setBusy=value=>{
   busy=value;notify();
   for(const id of ['refresh','add','import-toggle','copy','download','clear','editor-save','import-apply'])
     E(id).disabled=value||(!data&&id!=='refresh')||(id==='clear'&&!data?.cookies?.length);
+  // Lock target and mode controls while a Host operation remains unresolved.
+  for(const id of ['target-url','apply-target','use-current','mode-browser','mode-offline'])
+    E(id).disabled=value;
   for(const button of root.querySelectorAll('.row-action'))button.disabled=value;
 };
 const clean=()=>{dirty=false;notify();};
@@ -83,7 +86,14 @@ function ask(message,label,callback){
   if(busy||pending)return;
   returnFocus=root.ownerDocument.activeElement;pending=callback;
   blockBehindConfirmation(true);
-  E('confirm-message').textContent=message;E('confirm-accept').textContent=label;
+  E('confirm-message').textContent=message;
+  const accept=E('confirm-accept');accept.textContent=label;
+  // Do not style ordinary edits/imports as destructive deletions.
+  if(/删除|清理|清空/.test(label)){
+    accept.classList.add('danger-button');accept.classList.remove('primary');
+  }else{
+    accept.classList.remove('danger-button');accept.classList.add('primary');
+  }
   confirm.hidden=false;E('confirm-cancel').focus();
 }
 function dismiss(){if(busy)return;cancelConfirmation();editor.hidden=true;importer.hidden=true;editing=null;clean();}
@@ -144,7 +154,8 @@ function renderBrowser(){
   E('live-count').textContent=hasRead?
     visible.length+' / '+liveRows.length+' 条 Cookie':'尚未读取';
   const list=E('live-cookie-list');list.replaceChildren();
-  E('live-empty').hidden=visible.length>0;
+  // Denied grants have a distinct error, never a misleading empty list.
+  E('live-empty').hidden=!hasRead||visible.length>0;
   E('live-empty').textContent=hasRead?
     (liveRows.length?'没有匹配的 Cookie':'当前 URL 没有匹配的 Cookie。'):available?
     '正在检查网站 Cookie…':'无法读取 Cookie，请先在工具设置中授权该网站。';
@@ -841,8 +852,15 @@ function changeMode(next){
 E('mode-browser').addEventListener('click',()=>changeMode('browser'));
 E('mode-offline').addEventListener('click',()=>changeMode('offline'));
 E('target-url').addEventListener('input',()=>{
+  if(busy)return; // the field is disabled during live Host operations
+  const wasPending=targetPending;
   targetPending=E('target-url').value!==(liveTarget?.url||'');
-  if(targetPending){liveRows=[];liveState='idle';}render();
+  if(targetPending||wasPending){
+    epoch++;liveRows=[];liveState='idle';liveSecrets.clear();observing=null;
+  }
+  render();
+  if(wasPending&&!targetPending&&mode==='browser'&&liveTarget)
+    void readBrowserMetadata();
 });
 E('apply-target').addEventListener('click',()=>guarded(()=>{
   try{
@@ -952,13 +970,16 @@ root.addEventListener('opendesk-cookie-grants-changed',()=>{
   liveSecrets.clear();observing=null;
   if(mode!=='browser'){render();return;}
   epoch++;liveRows=[];liveState='idle';liveMessage='';
-  scrubEditors();cancelConfirmation();busy=false;notify();render();
-  status('网站 Cookie 授权已发生变化；隐藏的值与旧列表已立即清除。若刚执行写入，请手动刷新核对。');
+  scrubEditors();cancelConfirmation();setBusy(false);render();
+  status('网站 Cookie 授权已更新；敏感值与旧列表已清除，正在重新检查当前网站。');
+  // A genuine new site grant should populate without a second read click;
+  // a revoked grant still fails closed in the same public SDK and Host.
+  if(liveTarget&&!targetPending)void readBrowserMetadata();
 });
 root.addEventListener('opendesk-page-changed',()=>{
   epoch++;data=null;liveRows=[];busy=false;dirty=false;liveState='idle';shown.clear();liveSecrets.clear();observing=null;
   scrubEditors();confirm.hidden=true;pending=null;blockBehindConfirmation(false);
-  notify();render();void refresh();
+  setBusy(false);render();void refresh();
 });
 root.ownerDocument.defaultView?.addEventListener?.('pagehide',()=>{
   epoch++;liveRows=[];data=null;liveTarget=null;shown.clear();liveSecrets.clear();observing=null;scrubEditors();

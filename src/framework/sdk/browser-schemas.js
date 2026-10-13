@@ -88,7 +88,7 @@ const ops=Object.freeze({
  'browser.network.observe.getStatus':[sid,counter],
  'browser.network.observe.stop':[sid,obj({state:str(40),stoppedAt:num()},['state','stoppedAt'])],
  'browser.network.observe.export':[obj({observationId:ref,format:{enum:['json']}},['observationId','format']),
-   obj({resourceRef:ref,downloadId:num(0,2147483647),bytes:num(0,524288),truncated:bool},['resourceRef','downloadId','bytes','truncated'])],
+   obj({resourceRef:ref,bytes:num(0,524288),truncated:bool},['resourceRef','bytes','truncated'])],
  'browser.events.read':[obj({sessionRef:ref,cursor:str(160),limit:num(1,100)},['sessionRef']),
    obj({events:arr(obj({seq:num(1),kind:{enum:['request','completed','failed']},
      timestamp:num(),origin:http,method:str(16),resourceType:str(24),
@@ -97,7 +97,7 @@ const ops=Object.freeze({
    ['events','droppedCount','gapCount'])],
  'browser.events.close':[eid,obj({closed:bool},['closed'])],
  'browser.screenshot.captureVisible':[obj({tabRef:ref},['tabRef']),
-   obj({resourceRef:ref,downloadId:num(0,2147483647),bytes:num(1,8388608),width:num(1,4096),height:num(1,4096)},['resourceRef','downloadId','bytes','width','height'])],
+   obj({resourceRef:ref,bytes:num(1,8388608),width:num(1,4096),height:num(1,4096)},['resourceRef','bytes','width','height'])],
  'browser.operations.getStatus':[oid,obj({state:{enum:['running','completed','failed','cancelled','unknown']}},['state'])],
 
  'browser.cookies.get':[obj({url:http,name:str(256),domain:str(253),path:str(512),storeId:str(128),partitionKey:cookiePartition,includeValues:bool},['url','name']),

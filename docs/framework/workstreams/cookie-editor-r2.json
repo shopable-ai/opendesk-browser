@@ -63,7 +63,7 @@
     "R3: 11 public Cookie operations and installed Cookie Editor v2 SOURCE_WIRED; Node, Build, Verify and Chrome native remain NOT_TESTED. Keep original R2 findings as history.",
     "2026-10-13 R3.1: verified-only refresh, dual partition scope reads, true path-scoped import preview, atomic revoke, exact post-remove and native cleanup Store/Partition defense. Native/Build/Node unchanged NOT_TESTED."
   ],
-  "cookieEditorVersion": "2.0.0",
+  "cookieEditorVersion": "2.0.2",
   "trustedHostCookieOperations": 11,
   "trustedHostExposure": "11 approved public scoped installed-tool methods in the existing Host; legacy trusted-only approve/execute internal until safe consumer migration",
   "productDuplicateUiPresent": true,
@@ -145,5 +145,31 @@
       "overlappingBrowserSdkMatrix": "BLOCKED_CONCURRENT_SDK_WRITER",
       "matrixScopeNote": "Cookies runtime accepts schemeful HTTP(S) PartitionKey; frozen matrix HTTPS-only metadata requires serial integrator reconciliation"
     }
+  },
+  "r33": {
+    "date": "2026-10-13",
+    "previousVersion": "2.0.1",
+    "candidateVersion": "2.0.2",
+    "source": "SOURCE_WIRED",
+    "sourceChanges": [
+      "grant-change auto-refresh and revoked fail-closed state",
+      "Host-request target and mode locking",
+      "reset busy state on website/permission changes",
+      "non-destructive confirmation styles",
+      "Node event tests",
+      "per-SHA CI and npm test"
+    ],
+    "previousCi": {
+      "runId": 38412243566,
+      "conclusion": "cancelled"
+    },
+    "node": "NOT_TESTED",
+    "build": "NOT_TESTED",
+    "fullTest": "NOT_TESTED",
+    "verify": "NOT_TESTED",
+    "nativeChrome": "NOT_TESTED",
+    "upgrade": "NOT_TESTED",
+    "oldTrustedUi": "BLOCKED_NATIVE_REPLACEMENT",
+    "localMacAccess": false
   }
 }

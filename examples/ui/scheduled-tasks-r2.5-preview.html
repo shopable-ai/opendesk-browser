@@ -191,6 +191,12 @@ h1,h2,h3,p{margin-top:0}
 .product-window .field-help{font-size:12px;color:var(--od-sub);line-height:1.5;margin:0;overflow-wrap:anywhere}
 .product-window #zone-search-result:empty{display:none}
 .product-window #zone-query{min-height:36px}
+.product-window .zone-current{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--space-2);align-items:center;min-width:0;border:1px solid var(--od-input-border);border-radius:var(--radius-control);background:var(--od-paper);padding:var(--space-2)}
+.product-window .zone-current strong{font-size:12px;line-height:1.55;font-weight:700;overflow-wrap:anywhere;min-width:0}
+.product-window .zone-current .od-button{min-height:34px}
+.product-window .zone-controls{display:grid;gap:var(--space-2);border-radius:var(--radius-control);background:var(--od-muted);padding:var(--space-2)}
+.product-window .zone-controls .od-button{justify-self:start}
+@container (max-width:340px){.product-window .zone-current{grid-template-columns:minmax(0,1fr)}.product-window .zone-current>.od-button{justify-self:start}}
 .product-window .plan-title{white-space:normal;overflow:visible;text-overflow:clip}
 .product-window .form-title{margin-bottom:var(--space-1)}
 .product-window .runner-secondary{grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr))}
@@ -393,8 +399,8 @@ h1,h2,h3,p{margin-top:0}
     return {tasks,plans,active,host,load,message};
   }
   const makeDraft=(p=null)=>p?{title:p.title,taskId:p.taskId,target:p.target,params:p.params,kind:p.kind,zone:p.zone,once:p.kind==='once'?(()=>{const t=civil(p.zone,p.spec.at);return `${t.year}-${pad(t.month)}-${pad(t.day)}T${pad(t.hour)}:${pad(t.minute)}`})():'2026-10-13T09:30',clock:`${pad(p.spec.hour??9)}:${pad(p.spec.minute??0)}`,days:[...(p.spec.days||[1,3,5])],minutes:p.spec.everyMinutes||60,misfire:p.misfire,openTarget:p.openTarget,deadline:p.deadline,paused:p.paused,intervalAnchor:p.spec.anchorAt}: {title:'',taskId:'',target:'',params:'{}',kind:'once',zone:deviceTimeZone(),once:'2026-10-13T09:30',clock:'09:00',days:[1,3,5],minutes:60,misfire:'skip',openTarget:false,deadline:5,paused:false,intervalAnchor:null};
-  const s={env:'side',width:360,scenario:'trio',theme:'light',view:'list',...seed('trio'),menu:null,deleteId:null,confirm:false,cancelConfirm:false,uninstallId:null,managerFilter:'all',managerSearch:'',managerBack:'list',historyId:null,historyLimit:20,draft:makeDraft(),editing:null,dirty:false,errors:{},toast:'',toastError:false,advanced:false};
-  function updateScenario(name){Object.assign(s,seed(name));s.scenario=name;s.view=s.env==='runner'?'runner':'list';s.menu=null;s.deleteId=null;s.confirm=false;s.cancelConfirm=false;s.uninstallId=null;s.historyId=null;s.historyLimit=20;s.draft=makeDraft();s.editing=null;s.dirty=false;s.errors={};s.toast='';s.toastError=false;render();}
+  const s={env:'side',width:360,scenario:'trio',theme:'light',view:'list',...seed('trio'),menu:null,deleteId:null,confirm:false,cancelConfirm:false,uninstallId:null,managerFilter:'all',managerSearch:'',managerBack:'list',historyId:null,historyLimit:20,draft:makeDraft(),editing:null,dirty:false,errors:{},toast:'',toastError:false,advanced:false,zoneExpanded:false};
+  function updateScenario(name){Object.assign(s,seed(name));s.scenario=name;s.view=s.env==='runner'?'runner':'list';s.menu=null;s.deleteId=null;s.confirm=false;s.cancelConfirm=false;s.uninstallId=null;s.historyId=null;s.historyLimit=20;s.draft=makeDraft();s.editing=null;s.dirty=false;s.errors={};s.zoneExpanded=false;s.toast='';s.toastError=false;render();}
   const nextPlan=p=>{if(!p||p.paused||p.attention)return null;try{return nextAt(p.kind,p.spec,p.zone)}catch{return null}};
   const ordered=()=>s.plans.slice().sort((a,b)=>(nextPlan(a)??Infinity)-(nextPlan(b)??Infinity));
   const eligibleTasks=()=>s.tasks.filter(t=>t.enabled&&t.installed);
@@ -445,6 +451,7 @@ h1,h2,h3,p{margin-top:0}
     else if(editing)sourceMessage+=' · 编辑时不能替换原固定任务身份。';
     const error=k=>`<p class="inline-error" id="error-${k}" role="alert">${safe(s.errors[k]||'')}</p>`;
     const attr=k=>s.errors[k]?'aria-invalid="true"':'aria-invalid="false"';
+    const zoneTitle=COMMON_LABELS.get(d.zone)||d.zone.replaceAll('_',' ');
     return `${viewHeader(editing?'编辑计划':'新建计划')}${toast()}
     ${s.message&&(!eligible||task&&!task.permitted)?`<div class="inline-warning">${safe(s.message)}</div>`:''}
     <form id="plan-form" novalidate autocomplete="off">
@@ -460,7 +467,15 @@ h1,h2,h3,p{margin-top:0}
       </section>
       <section class="form-section"><p class="form-title"><b>3</b>执行时间</p>
         <div class="rule-pair"><div class="od-field"><label for="field-kind">重复规则</label><select id="field-kind" data-field="kind">${[['once','执行一次'],['daily','每天'],['weekly','每周'],['interval','每隔一段时间']].map(([v,t])=>`<option value="${v}" ${d.kind===v?'selected':''}>${t}</option>`).join('')}</select></div>
-          <div class="od-field"><label for="field-zone">执行时区</label><input type="search" id="zone-query" autocomplete="off" spellcheck="false" aria-label="筛选城市或 IANA 时区（不直接修改时区）" aria-controls="field-zone" placeholder="搜索城市或 IANA 时区"><select id="field-zone" data-field="zone" aria-describedby="zone-help error-time">${timeZoneChoices(d.zone)}</select><p class="field-help" id="zone-help">新建自动识别，编辑保留原时区。只有选中下拉项才更改，保存后固定。</p><p id="zone-search-result" class="field-help" role="status" aria-live="polite"></p></div></div>
+          <div class="od-field"><label for="field-zone">执行时区</label>
+           <div class="zone-current"><strong id="zone-summary" aria-live="polite">${safe(editing?'固定时区 · ':'已选择 · ')}${safe(zoneTitle)}（${safe(d.zone)}）</strong><button type="button" class="od-button od-button--secondary" data-action="zone-expand" aria-expanded="${s.zoneExpanded}" aria-controls="zone-controls">${s.zoneExpanded?'收起':'更改'}</button></div>
+           <div id="zone-controls" class="zone-controls" ${s.zoneExpanded?'':'hidden'}>
+             <input type="search" id="zone-query" autocomplete="off" spellcheck="false" aria-label="筛选城市或 IANA 时区（不直接修改时区）" aria-controls="field-zone" placeholder="搜索城市或 IANA 时区">
+             <select id="field-zone" data-field="zone" aria-describedby="zone-help error-time">${timeZoneChoices(d.zone)}</select>
+             <p class="field-help" id="zone-help">新建自动识别，编辑保留固定时区；筛选不会修改选择。</p>
+             <p id="zone-search-result" class="field-help" role="status" aria-live="polite"></p>
+             <button type="button" class="od-button od-button--quiet" data-action="zone-done">完成时区选择</button>
+           </div></div></div>
         ${d.kind==='once'?`<div class="od-field"><label for="field-once">执行日期和时间（当地）</label><input id="field-once" type="datetime-local" data-field="once" value="${safe(d.once)}" aria-describedby="error-time"></div>`:''}
         ${['daily','weekly'].includes(d.kind)?`<div class="od-field"><label for="field-clock">当地时间</label><input type="time" id="field-clock" data-field="clock" value="${safe(d.clock)}" aria-describedby="error-time"></div>`:''}
         ${d.kind==='weekly'?`<fieldset class="weekdays"><legend>选择每周执行的日期</legend>${weekdays.map(v=>`<label><input type="checkbox" data-weekday="${v}" ${d.days.includes(v)?'checked':''}>周${W[v]}</label>`).join('')}</fieldset>`:''}
@@ -526,7 +541,7 @@ h1,h2,h3,p{margin-top:0}
     $('product-content').scrollTop=0;
   }
   function notify(t,error=false){s.toast=t;s.toastError=error;render();}
-  function startForm(plan=null){s.editing=plan?.id||null;s.draft=makeDraft(plan);s.confirm=false;s.cancelConfirm=false;s.dirty=false;s.errors={};s.advanced=false;s.toast='';s.view='form';render();focusLater('#field-title');}
+  function startForm(plan=null){s.editing=plan?.id||null;s.draft=makeDraft(plan);s.confirm=false;s.cancelConfirm=false;s.dirty=false;s.errors={};s.advanced=false;s.zoneExpanded=false;s.toast='';s.view='form';render();focusLater('#field-title');}
   const focusLater=selector=>requestAnimationFrame(()=>$('product-window')?.querySelector(selector)?.focus());
   function goBack(){s.toast='';s.toastError=false;s.menu=null;s.deleteId=null;s.uninstallId=null;
     if(s.view==='form'){if(s.dirty&&!s.cancelConfirm){s.cancelConfirm=true;render();focusLater('[data-action="stay-form"]');return;}if(s.cancelConfirm)return;s.view=s.env==='runner'?'runner':'list'}
@@ -563,6 +578,8 @@ h1,h2,h3,p{margin-top:0}
       case 'back':goBack();break;
       case 'other-tab':notify(`「${b.dataset.tab}」是生产工作台现有一级 Tab，本预览只呈现「我的 → 定时计划」内部页面。`);break;
       case 'create':startForm();break;
+      case 'zone-expand':s.zoneExpanded=!s.zoneExpanded;render();focusLater(s.zoneExpanded?'#zone-query':'[data-action="zone-expand"]');break;
+      case 'zone-done':s.zoneExpanded=false;render();focusLater('[data-action="zone-expand"]');break;
       case 'runner':s.env='runner';s.width=760;s.view='runner';s.toast='';render();break;
       case 'manage-all':s.view='list';render();break;
       case 'recent-history':{const plan=ordered().find(p=>p.history.length);if(plan){s.historyId=plan.id;s.historyLimit=20;s.view='history';render();}break;}
@@ -614,11 +631,13 @@ h1,h2,h3,p{margin-top:0}
       if(field==='zone'){
         const query=$('zone-query');if(query)query.value='';
         el.innerHTML=timeZoneChoices(el.value);
+        const summary=$('zone-summary'),label=COMMON_LABELS.get(el.value)||el.value.replaceAll('_',' ');
+        if(summary)summary.textContent=(s.editing?'固定时区 · ':'已选择 · ')+label+'（'+el.value+'）';
       }
       s.draft[field]=el.type==='checkbox'?el.checked:el.value;s.dirty=true;s.confirm=false;$('product-window')?.querySelector('.confirm-panel')?.remove();if(['kind','taskId'].includes(field)){if(field==='kind'&&s.draft.kind==='interval')s.draft.intervalAnchor=null;s.advanced=$('advanced-panel')?.open||false;render();focusLater(`#field-${field}`);}else if(['paused','misfire','openTarget','deadline'].includes(field)){s.advanced=true;}}
   });
   $('preview-mount').addEventListener('toggle',e=>{if(e.target.id==='advanced-panel')s.advanced=e.target.open;},true);
-  document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(s.deleteId||s.uninstallId||s.menu||s.confirm||s.cancelConfirm){s.deleteId=null;s.uninstallId=null;s.menu=null;s.confirm=false;s.cancelConfirm=false;render();e.preventDefault();}else if(s.view!=='list'&&s.view!=='runner'){goBack();e.preventDefault();}});
+  document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(s.deleteId||s.uninstallId||s.menu||s.confirm||s.cancelConfirm){s.deleteId=null;s.uninstallId=null;s.menu=null;s.confirm=false;s.cancelConfirm=false;render();e.preventDefault();}else if(s.zoneExpanded){s.zoneExpanded=false;render();e.preventDefault();}else if(s.view!=='list'&&s.view!=='runner'){goBack();e.preventDefault();}});
   render();
   window.__R25_PREVIEW__={state:()=>({env:s.env,width:s.width,scenario:s.scenario,view:s.view,plans:s.plans.length,historyLimit:s.historyLimit,confirm:s.confirm,toast:s.toast}),setScenario:updateScenario,setEnv:(env)=>{s.env=env;s.width=env==='runner'?760:360;s.view=env==='runner'?'runner':'list';render()},setWidth:(w)=>{s.width=w;render()},nextAt};
 })();

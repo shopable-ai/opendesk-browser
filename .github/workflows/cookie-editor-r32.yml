@@ -1,4 +1,4 @@
-name: Cookie Editor R3.2 real SDK and package verification
+name: Cookie Editor R3.3 real SDK and package verification
 
 on:
   push:
@@ -22,8 +22,9 @@ permissions:
   contents: read
 
 concurrency:
-  group: cookie-editor-r32-${{ github.ref }}
-  cancel-in-progress: true
+  # Preserve each SHA's test run despite rapid unrelated main pushes.
+  group: cookie-editor-r33-${{ github.sha }}
+  cancel-in-progress: false
 
 jobs:
   node-and-build:
@@ -55,19 +56,19 @@ jobs:
             tests/environment/browser-sdk-interface-matrix.test.mjs \
             tests/environment/browser-sdk-coverage.test.mjs \
             tests/environment/browser-sdk-contract-compat.test.mjs
-      - name: Pack Cookie Editor 2.0.1 and official reviewed tools independently
+      - name: Pack Cookie Editor 2.0.2 and official reviewed tools independently
         run: |
           node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor \
-            --out artifacts/cookie-editor-r32/cookie-editor.opendesk-tool.json
-          node scripts/build-official-tools.mjs --out artifacts/cookie-editor-r32/official
+            --out artifacts/cookie-editor-r33/cookie-editor.opendesk-tool.json
+          node scripts/build-official-tools.mjs --out artifacts/cookie-editor-r33/official
           node --input-type=module -e "
             import {readFileSync} from 'node:fs';
             import {createHash} from 'node:crypto';
             import {validateSidebarToolPackage} from './src/ui/sidebar-tools/package.js';
-            const bytes=readFileSync('artifacts/cookie-editor-r32/cookie-editor.opendesk-tool.json');
+            const bytes=readFileSync('artifacts/cookie-editor-r33/cookie-editor.opendesk-tool.json');
             const tool=validateSidebarToolPackage(JSON.parse(bytes.toString()));
-            if(tool.id!=='cookie-editor'||tool.version!=='2.0.1')throw Error('Wrong Cookie Editor release');
-            const catalog=JSON.parse(readFileSync('artifacts/cookie-editor-r32/official/official-tools/catalog.json'));
+            if(tool.id!=='cookie-editor'||tool.version!=='2.0.2')throw Error('Wrong Cookie Editor release');
+            const catalog=JSON.parse(readFileSync('artifacts/cookie-editor-r33/official/official-tools/catalog.json'));
             const item=catalog.apps.find(x=>x.toolId==='cookie-editor');
             if(!item||item.installationPolicy!=='optional'||item.version!==tool.version)
               throw Error('Official release identity or optional installation policy mismatch');
@@ -77,6 +78,7 @@ jobs:
       - name: Source guard and two production/development builds
         run: |
           npm run check
+          npm test
           npm run build
           npm run build:dev
           npm run verify
@@ -84,12 +86,12 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: cookie-editor-r32-${{ github.sha }}
+          name: cookie-editor-r33-${{ github.sha }}
           retention-days: 14
           if-no-files-found: error
           path: |
-            artifacts/cookie-editor-r32/cookie-editor.opendesk-tool.json
-            artifacts/cookie-editor-r32/official/official-tools/
+            artifacts/cookie-editor-r33/cookie-editor.opendesk-tool.json
+            artifacts/cookie-editor-r33/official/official-tools/
             dist/production/official-tools/
             docs/framework/evidence/wxt/builds/build-production.json
             docs/framework/evidence/wxt/builds/build-development.json

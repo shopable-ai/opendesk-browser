@@ -22,3 +22,9 @@ test('a phase cannot be accepted with untested candidate checks',()=>{
 test('current source and human readable matrix can be compared',async()=>{
  assert.equal((await checkBrowserSdk()).operations,Object.keys(BROWSER_OPERATIONS).length);
 });
+
+test('a renamed operation cannot pass with a legacy Schema source',()=>{
+ const changed=structuredClone(ledger);
+ changed.operations.find(x=>x.api==='browser.tabs.create').inputSchema='src/framework/sdk/browser-contract.js#browser.tabs.open';
+ assert(inspectBrowserSdkLedger(changed).some(x=>x.includes('browser.tabs.create: stale inputSchema source')));
+});
