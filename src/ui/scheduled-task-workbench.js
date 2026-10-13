@@ -141,7 +141,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     node.addEventListener(event,fn);listeners.push(()=>node.removeEventListener(event,fn));
   };
   let disposed=false,shown=false,busy=false,editing=null,managerReturn='list';
-  let pendingCreate=false,pendingTask=null,confirmUninstall=null,allPlans=[],catalog=[],installed=[];
+  let pendingCreate=false,pendingCreateFromForm=false,pendingTask=null,confirmUninstall=null,allPlans=[],catalog=[],installed=[];
   let selectedFire=null,lastRefresh=0,activeView='list',runnerFocusId=null;
   let permissionSeq=0,awaitingSave=null,editRevision=0,storageProbeRevision=0;
   let formDirty=false,discardDestination='list';
@@ -278,7 +278,9 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
         '请选择已安装、已验证且已启用的 Controller 任务');
       return;
     }
-    const prefix=`固定版本 v${row.version} · 网站范围：${origins.join('，')||'不可用'}`;
+    const prefix=`固定版本 v${row.version}`+
+      (editing?' · 编辑时任务身份不可更换（更换请新建计划）':'')+
+      ` · 网站范围：${origins.join('，')||'不可用'}`;
     text(get('schedule-task-version'),prefix+' · 正在核查网站权限…');
     try{
       const allowed=Boolean(api.permissions?.contains)&&origins.length>0&&
@@ -634,6 +636,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     finally{busy=false;get('schedule-confirm-yes').disabled=false;}
   }
   function enterDeveloper(){
+    pendingCreateFromForm=activeView==='form';
     pendingCreate=true;hidePanel();taskWorkbench.navigate('develop');
     text(get('task-dev-status'),'请先真实运行并验证源码、安装固定版本；安装后返回定时计划。');
   }
@@ -801,8 +804,19 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       await refresh();
       if(!eligible().some(row=>row.taskId===taskId))return;
       pendingCreate=false;pendingTask=taskId;taskWorkbench.navigate('tasks');
-      showPanel();show('form');get('schedule-task-select').value=taskId;
-      showTaskVersion();message('已安装验证过的任务，可继续设置时间和目标。');
+      // Task manager launches a NEW plan. Editor launches preserve the current
+      // draft; an existing plan must never silently rebind to the new version.
+      if(!pendingCreateFromForm)reset();
+      pendingCreateFromForm=false;
+      showPanel();show('form');
+      if(!editing){
+        get('schedule-task-select').value=taskId;
+        showTaskVersion();
+        message('新任务已验证安装，可继续设置时间和目标。');
+      }else{
+        populateChoices();
+        message('新任务已安装；原计划仍固定原任务身份。如需使用新任务，请另建计划。');
+      }
     }catch(error){message('任务安装后刷新失败：'+error.message,true);}
   }
   return {open,hidePanel,refresh,setRun(runId){
