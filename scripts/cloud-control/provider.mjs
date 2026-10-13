@@ -254,6 +254,14 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
               fail('E_GRANT','Target Executor has not approved this Task');
             out=once('external:'+client.clientId+':'+client.pairingId,b.requestKey,
               {task:pin,params,target,executorId:client.executorId},()=>{
+                // Persisted limits survive restart. Check only inside the
+                // first-admission callback: idempotent retries of the same
+                // requestKey must still return their original JobId.
+                const recent=Object.values(state.jobs).filter(j=>
+                  j.submittedBy===client.clientId&&j.createdAt>clock()-60000).length;
+                const queued=Object.values(state.jobs).filter(j=>
+                  j.submittedBy===client.clientId&&j.state==='queued'&&!j.cancelled).length;
+                if(recent>=60||queued>=100)fail('E_QUEUE_LIMIT');
                 const jobId=randomUUID();
                 state.jobs[jobId]={jobId,state:'queued',createdAt:clock(),
                   task:pin,params,target,targetExecutorId:client.executorId,
