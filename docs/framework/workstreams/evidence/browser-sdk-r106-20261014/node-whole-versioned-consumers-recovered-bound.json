@@ -1,0 +1,12 @@
+{
+  "candidateSha": "33b3f574f11b557f6c01830b5758f610d59266f8",
+  "command": "npm test",
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-versioned-consumers-recovered",
+  "environment": {
+    "OPENDESK_BUILD_EVIDENCE_DIR": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/builds-versioned-consumers-recovered",
+    "OPENDESK_OUTPUT_GUARD_PORT": "43127"
+  },
+  "exitCode": 1,
+  "status": "FAIL",
+  "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-whole-versioned-consumers-recovered-bound.log"
+}

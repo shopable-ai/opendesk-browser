@@ -103,7 +103,9 @@ for operation in acceptance['operations']:
         operation['commits'].append(sha)
 acceptance['currentLimitations'] = [note for note in acceptance['currentLimitations']
     if not note.startswith('R10.6 ' + sha + ':')]
-acceptance['currentLimitations'].append('R10.6 ' + sha + ': 292 SDK and 211 targeted Node checks plus Check/Build/Build:dev/Build:size/Verify and same-commit R5/targeted CI PASS; full repository Node remains FAIL, installed-tool Native remains NOT_TESTED. Package-budget CI did not trigger for this test-only commit; local budget check PASS. Bookmarks title/folder edits now reject removal; original Chrome missing-node message observed separately, not an SDK Native PASS.')
+budget_note = ('Same-commit package-budget CI PASS.' if delivery['checks']['packageBudgetsCI']['status'] == 'PASS'
+               else 'Package-budget CI did not trigger; local budget check PASS.')
+acceptance['currentLimitations'].append('R10.6 ' + sha + ': 292 SDK and 211 targeted Node checks plus Check/Build/Build:dev/Build:size/Verify and same-commit R5/targeted CI PASS; full repository Node remains FAIL, installed-tool Native remains NOT_TESTED. ' + budget_note + ' Bookmarks title/folder edits now reject removal; original Chrome missing-node message observed separately, not an SDK Native PASS.')
 save(acceptance_path, acceptance)
 
 status_path = repo / 'docs/framework/workstreams/browser-sdk-status.md'
@@ -111,7 +113,8 @@ status = status_path.read_text()
 lines = status.splitlines()
 for i, line in enumerate(lines):
     if line.startswith('SOURCE_WIRED 55、NODE_PASS 55、BUILD_PASS 55、正式 NATIVE_PASS 0。'):
-        lines[i] = ('SOURCE_WIRED 55、NODE_PASS 55、BUILD_PASS 55、正式 NATIVE_PASS 0。公开 Registry 53 与可信 Host-only 2 分开登记。固定候选 `' + sha + '` 的关联 Node 292/292、定向回归 211/211、Check/双构建/Size/Verify 均 PASS，470 项构建输入一致；完整身份与原始日志见 `docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery.json`。同提交 R5 与 targeted-main Actions PASS；预算 CI 未触发，本候选本地预算检查 PASS。正确绑定新构建收据后的 Mac 全仓回归 ' + str(counts.get('fail')) + ' FAIL；旧环境错误和历史 Cookie CI 失败均保留，不提升为 PASS。书签标题/文件夹编辑与旧映射删除已保守拒绝。正式 Native 全部 NOT_TESTED，95 分目标 NOT_SCORED。')
+        budget_status = '同提交预算 CI PASS。' if delivery['checks']['packageBudgetsCI']['status'] == 'PASS' else '预算 CI 未触发，本候选本地预算检查 PASS。'
+        lines[i] = ('SOURCE_WIRED 55、NODE_PASS 55、BUILD_PASS 55、正式 NATIVE_PASS 0。公开 Registry 53 与可信 Host-only 2 分开登记。固定候选 `' + sha + '` 的关联 Node 292/292、定向回归 211/211、Check/双构建/Size/Verify 均 PASS，470 项构建输入一致；完整身份与原始日志见 `docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery.json`。同提交 R5 与 targeted-main Actions PASS；' + budget_status + '正确绑定新构建收据后的 Mac 全仓回归 ' + str(counts.get('fail')) + ' FAIL；旧环境错误和历史 Cookie CI 失败均保留，不提升为 PASS。书签标题/文件夹编辑与旧映射删除已保守拒绝。正式 Native 全部 NOT_TESTED，95 分目标 NOT_SCORED。')
 status_path.write_text('\n'.join(lines) + '\n')
 
 index_path = root / 'evidence-index.json'

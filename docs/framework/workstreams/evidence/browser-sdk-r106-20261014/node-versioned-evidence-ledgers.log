@@ -1,0 +1,21 @@
+✔ four-layer browser ledger reconciles current Registry, candidate list, Cookie priority and acceptance (49.137625ms)
+✔ four-layer check rejects a missing operation and forged native acceptance without mutating evidence (90.946667ms)
+✔ supplemental reference domains stay audit-only and Cookie is first priority (0.672583ms)
+✔ Browser SDK current ledger derives its denominator from the implemented registry (0.898792ms)
+✔ a status cannot be changed to PASS without real evidence (0.714917ms)
+✔ a phase cannot be accepted with untested candidate checks (0.907208ms)
+✔ current source and human readable matrix can be compared (18.976625ms)
+✔ a renamed operation cannot pass with a legacy Schema source (0.779542ms)
+✔ pinned Chromium matrix and registered Browser SDK agree, without granting native APIs (9.551083ms)
+✔ unapproved runtime operation is never accepted as a harmless catalog difference (1.192208ms)
+✔ public Cookies cannot be demoted to Host-only by a catalog metadata edit (7.6115ms)
+✔ Chromium source hash and reciprocal native mappings are mandatory (13.375833ms)
+✔ native and tool grants cannot drift from active Browser Host metadata (12.912ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 187.022209

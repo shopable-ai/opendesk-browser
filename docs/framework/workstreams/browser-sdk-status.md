@@ -1,6 +1,6 @@
 ## R10.6 · 当前 Registry 与独立证据（2026-10-14）
 
-SOURCE_WIRED 55、NODE_PASS 55、BUILD_PASS 55、正式 NATIVE_PASS 0。公开 Registry 53 与可信 Host-only 2 分开登记。固定候选 `238e279c2f3f07174d640a91e464ad1fbfa12291` 的关联 Node 292/292、定向回归 211/211、Check/双构建/Size/Verify 均 PASS，470 项构建输入一致；完整身份与原始日志见 `docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery.json`。同提交 R5 与 targeted-main Actions PASS；预算 CI 未触发，本候选本地预算检查 PASS。正确绑定新构建收据后的 Mac 全仓回归 8 FAIL；旧环境错误和历史 Cookie CI 失败均保留，不提升为 PASS。书签标题/文件夹编辑与旧映射删除已保守拒绝。正式 Native 全部 NOT_TESTED，95 分目标 NOT_SCORED。
+SOURCE_WIRED 55、NODE_PASS 55、BUILD_PASS 55、正式 NATIVE_PASS 0。公开 Registry 53 与可信 Host-only 2 分开登记。固定候选 `33b3f574f11b557f6c01830b5758f610d59266f8` 的关联 Node 292/292、定向回归 211/211、Check/双构建/Size/Verify 均 PASS，470 项构建输入一致；完整身份与原始日志见 `docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery.json`。同提交 R5 与 targeted-main Actions PASS；同提交预算 CI PASS。正确绑定新构建收据后的 Mac 全仓回归 4 FAIL；旧环境错误和历史 Cookie CI 失败均保留，不提升为 PASS。书签标题/文件夹编辑与旧映射删除已保守拒绝。正式 Native 全部 NOT_TESTED，95 分目标 NOT_SCORED。
 
 批准合同 55：当前唯一公开 Registry 53，可信 Host-only 2；Scheduler 已复用已有 Schedule Service / Repository / Alarms / RunHost 接线。创建计划需要精确任务 Revision、当前网站和真实可信确认；工具只能管理自有计划。History 与 Permissions 不进入公开 Registry。当前整体候选验证仍在进行，Native 未有本候选证据的接口保持 NOT_TESTED。
 
@@ -266,3 +266,7 @@ Node/Build/Verify/真实 Chrome 回执仍需在同一源码候选独立验收，
 - `scripts/check-browser-sdk-coverage.mjs` 用于核对矩阵/权限/证据；不能只改 JSON 把状态设为 PASS。
 - 历史独立候选 CI：<https://github.com/shopable-ai/opendesk-browser/actions/runs/38155035118>，无原生 GUI 完整闭环。
 - Mac 本机源码与测试资源未在当前执行容器中挂载；相关测试明确 NOT_TESTED。
+
+当前固定消费端候选：网页剪藏 1.0.1、Markdown 工作台 1.0.2、知识收件箱 1.2.7、Reading Kit 5；旧工具版本及组合 1–4 不变。后续测试提交 `5c322c26f074b71ab7ff33de1b4a596b6d718dca` 的 470 项产品输入与已验收构建完全一致，Markdown 定向 10/10 PASS；未发布新市场快照、未提升 Native。历史 e7 Cookie 全 CI 11 FAIL 已保留，当前完整 CI 仍待关闭。
+
+后续同产品输入的 Linux Node22（`5c322c26`）完整回归：2286 项、2277 PASS / 2 FAIL / 7 SKIP；剩余 Workflow Focus 与另一负责人未提交的 WXT 断言修复。Markdown 原生 fixture 在“Discover tools available”超时，未提升为 SDK Native。

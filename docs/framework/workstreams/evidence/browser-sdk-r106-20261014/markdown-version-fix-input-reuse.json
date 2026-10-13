@@ -1,0 +1,22 @@
+{
+  "candidateSha": "5c322c26f074b71ab7ff33de1b4a596b6d718dca",
+  "referenceCandidateSha": "33b3f574f11b557f6c01830b5758f610d59266f8",
+  "sourceInputFingerprint": "516219d8bd03c85b7825018ff9e024d74a1f4875e471886a7a6e6ba252e2edbe",
+  "inputCount": 470,
+  "changedCommitPaths": [
+    "docs/framework/workstreams/browser-sdk-r106-20261014.md",
+    "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-markdown-current-version.log",
+    "tests/environment/markdown-tools-r22.test.mjs"
+  ],
+  "productInputDrift": [],
+  "meaning": "Test-only follow-up preserves exact verified product inputs; no new native credit",
+  "targetedRegression": {
+    "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-markdown-current-version.log",
+    "sha256": "c20fcb6a2fb7714d491b66b2b373aa441fde68f13eb23b3d248932f99ac21f3b",
+    "counts": {
+      "tests": 10,
+      "pass": 10,
+      "fail": 0
+    }
+  }
+}

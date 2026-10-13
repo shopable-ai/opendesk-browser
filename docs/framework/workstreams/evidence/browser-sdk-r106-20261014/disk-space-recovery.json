@@ -1,0 +1,19 @@
+{
+  "kind": "reconstructible-validation-copy-cleanup",
+  "reason": "ENOSPC extracting immutable Git archive before dependency preparation or any validation command",
+  "removedDuplicateGitArchiveDocs": [
+    "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-cookie-integrated/docs",
+    "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-source/docs",
+    "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-final-delivery/docs",
+    "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-bookmark-error-final/docs",
+    "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-p0fix/docs",
+    "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-final/docs",
+    "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-ci-recovery-final/docs",
+    "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-bookmark-title-final/docs",
+    "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-ci-recovery/docs"
+  ],
+  "originalEvidencePreserved": true,
+  "extensionOutputsPreserved": true,
+  "failureLog": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/git-archive-preparation-enospc.log",
+  "removedIncompleteArchive": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-versioned-consumers"
+}
