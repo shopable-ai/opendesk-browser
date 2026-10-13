@@ -1,5 +1,14 @@
 # Global First R4｜2026-10-13 真实研究与远端 main 交付
 
+## R4 独占声明/市场证据测试已实跑（不是 Chrome Native）
+
+- [Global First R4 GitHub Actions 成功运行 #38355637174](https://github.com/shopable-ai/opendesk-browser/actions/runs/38355637174)，绑定代码提交 [059ba495aa0878bae883b27ab0299176a6f0be1c](https://github.com/shopable-ai/opendesk-browser/commit/059ba495aa0878bae883b27ab0299176a6f0be1c)。
+- 原始 Job ID 115157757641，Ubuntu / Node 22，命令：node --test tests/environment/global-first-r4-claims.test.mjs；TAP **5 tests / 5 pass / 0 fail**。
+- 五类检查：唯一 GF 账本及 GF-013/014 禁用、TOP5 无虚构世界排名、30 竞品唯一 ID/Beta 与 Public Preview 日期、五份双语事实页和24个未执行查询、冻结 Candidate 不冒充安装回执。
+- 该 CI **只证明仓库研究和声明文件满足静态门禁**，绝不证明任何真实 Chrome 操作、模型连接、候选正式安装、RunId/ResultId、用户 Mac、生产包构建、竞品实测、95/100 或市场领先；对应状态保持 **NOT_TESTED / NOT_SCORED**。
+- 新增的独占文件是 tests/environment/global-first-r4-claims.test.mjs、.github/workflows/global-first-r4-claims.yml，不改已有共享 SDK、Task、Native、Cloud 运行代码或现有测试。
+
+
 **此段覆盖下方 R2/R3 历史优先级。** 以 [R4 最新决策](../../product/browser-extension-ecosystem/global-first-r2-decision.zh-CN.md) 为权威产品结论；沿用唯一 [GF 声明账本](../../product/browser-extension-ecosystem/first-claims-ledger.json)、[竞品时间线](../../product/browser-extension-ecosystem/competitor-timeline.json)、[营销手册](../../product/browser-extension-ecosystem/marketing-playbook.zh-CN.md)。不创建第二账本或运行框架。
 
 ## 本轮真实已完成
