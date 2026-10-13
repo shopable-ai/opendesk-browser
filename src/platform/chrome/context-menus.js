@@ -678,7 +678,10 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         }));
         // Discovery is bounded; verbose schemas belong to the source contract
         // and getStatus() rather than oversized sandbox IPC messages.
-        if(jsonBytes(values)>12000)throw failure('E_LIMIT','Browser capability list exceeds response budget');
+        // The full typed discovery list exceeds 12 KB as the Registry grows.
+        // Only this read-only operation receives a bounded 20 KB exception.
+        if(jsonBytes(values)>browserOperation(operation).maxResponseBytes)
+          throw failure('E_LIMIT','Browser capability list exceeds response budget');
         return values;
       }
       if(operation==='browser.capabilities.getStatus'){

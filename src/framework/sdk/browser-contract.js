@@ -21,7 +21,8 @@ const USER_GESTURE_OPERATIONS=new Set([
 function entry(operation,capability,contexts,chromePermissions,effect,risk,siteScope='none',state='IMPLEMENTED',lifecycle='request'){
   return Object.freeze({...shared,operation,namespace:operation.split('.').slice(0,-1).join('.'),
     maxRequestBytes:['browser.clipboard.writeText','browser.downloads.text'].includes(operation)?170000:shared.maxRequestBytes,
-    maxResponseBytes:['browser.launch.consume','browser.page.getSelection'].includes(operation)?65536:shared.maxResponseBytes,
+    maxResponseBytes:['browser.launch.consume','browser.page.getSelection'].includes(operation)?65536:
+     operation==='browser.capabilities.list'?20000:shared.maxResponseBytes,
     implementation:state,supportedContexts:Object.freeze(contexts),requiredCapabilities:capability?[capability]:[],
     requiredChromePermissions:chromePermissions,effectClass:effect,riskLevel:risk,siteScope,
     requiresUserGesture:USER_GESTURE_OPERATIONS.has(operation),lifecycle,

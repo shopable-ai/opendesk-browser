@@ -115,7 +115,8 @@ test('menus use browser optional permission, idempotent sync, real click and one
   const discovery=await host.handleTool({operation:'browser.capabilities.list',
     args:{},...hostContext},sender);
   assert(Array.isArray(discovery)&&discovery.length>=20);
-  assert(Buffer.byteLength(JSON.stringify(discovery))<=12000,'capability list must respect IPC response budget');
+  assert(Buffer.byteLength(JSON.stringify(discovery))<=BROWSER_OPERATIONS['browser.capabilities.list'].maxResponseBytes,
+     'capability list must respect its bounded, read-only discovery response budget');
   assert(discovery.some(row=>row.operation==='browser.network.observe.start'&&row.implementation==='IMPLEMENTED'));
   markTrustedRightClick(host,api);
   host.onClicked({menuItemId:'opendesk.tool.selection-notes.capture-selection',

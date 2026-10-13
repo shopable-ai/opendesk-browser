@@ -1984,7 +1984,7 @@
         "negative": "uninstalled/revoked/forged sender/stale epoch, no native effect",
         "native": "same candidate Chrome>=138 actual sender, user click, permission revocation and worker restart"
       },
-      "maxResponseBytes": 12000,
+      "maxResponseBytes": 20000,
       "support": {
         "desktopChromeMinimum": 138,
         "chromeFeatureGate": "feature presence + actual source permission check; never fake Chrome>=138 availability for unknown introduced versions",
@@ -56539,6 +56539,15 @@
       "id": "R10.5-real-chrome-start-receipt",
       "reason": "Remove phantom ResourceRefs and native screenshot download ID leak",
       "change": "Network and Screenshot expose typed status started, bounded metadata only; Registry 48 / approved 55 unchanged",
+      "node": "NOT_TESTED",
+      "build": "NOT_TESTED",
+      "nativeChrome": "NOT_TESTED"
+    },
+    {
+      "date": "2026-10-13",
+      "id": "R10.5-bounded-capability-discovery",
+      "reason": "Full 48-operation typed capability list exceeded legacy 12KB response budget",
+      "change": "Only read-only capabilities.list raised to bounded 20KB response; 48 Registry and 55 approvals unchanged, all other IPC budgets unchanged",
       "node": "NOT_TESTED",
       "build": "NOT_TESTED",
       "nativeChrome": "NOT_TESTED"
