@@ -180,8 +180,17 @@ export default defineConfig({
           // build.mjs saves it as FAILED diagnostics, never a verified receipt.
           await recordBundle(chunks[0]);
           const budget=entryByteBudget(target,config.mode),bytes=Buffer.byteLength(chunks[0].code);
-          if(bytes>budget)throw Object.assign(new Error(`WXT entry exceeds configured byte budget: ${target} (${bytes} > ${budget})`),
-            {target,bytes,budgetBytes:budget});
+          if(bytes>budget){
+            // Build-only diagnostics. Rendered lengths are pre-minification and
+            // do not replace the real output byte gate or verified receipts.
+            const largest=Object.entries(chunks[0].modules)
+              .map(([id,info])=>({module:id.replace(process.cwd()+'/', ''),
+                renderedLength:info.renderedLength||0}))
+              .sort((a,b)=>b.renderedLength-a.renderedLength).slice(0,18);
+            console.error('OVERSIZE_FIXED_ENTRY_MODULES='+JSON.stringify({target,bytes,budget,largest}));
+            throw Object.assign(new Error(`WXT entry exceeds configured byte budget: ${target} (${bytes} > ${budget})`),
+              {target,bytes,budgetBytes:budget});
+          }
         }
       });
     }
