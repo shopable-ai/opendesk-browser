@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {focusHost,hostnameMatches,focusRemovedOriginAffectsSite,focusLocalDay,FOCUS_MAX_GAP_MS} from '../../src/stay-focus/policy.js';
 import {emptyFocus,readFocus,focusSite,focusSchedule,focusMatchingSite,focusPool,
   focusBudget,focusReason,focusScheduleActive,settleFocus} from '../../src/stay-focus/model.js';
+import {installStayFocusBlockedPage} from '../../src/stay-focus/blocked.js';
 import {focusRuleForSite,wantedFocusRules,reconcileFocusRules,clearFocusRules,isFocusRuleId}
   from '../../src/stay-focus/rule-host.js';
 
@@ -163,4 +164,31 @@ test('independent Time Review never imported as model state or authority',async(
   assert.notEqual(FOCUS_STORE,TIME_REVIEW_KEY);
   const {FOCUS_ID}=await import('../../src/stay-focus/policy.js');
   assert.equal(FOCUS_ID,'stay-focus');
+});
+
+test('internal block page uses a real window ID and never defers sidePanel.open past user click',async()=>{
+  const elements=new Map();
+  const get=id=>{
+    if(!elements.has(id))elements.set(id,{textContent:'',handlers:{},
+      addEventListener(type,fn){this.handlers[type]=fn;}});
+    return elements.get(id);
+  };
+  const opened=[],visited=[],history={length:1,back(){visited.push('history-back');}};
+  const api={windows:{getCurrent:async()=>({id:27})},sidePanel:{open(options){
+    opened.push(options);return Promise.resolve();
+  }}};
+  installStayFocusBlockedPage({doc:{getElementById:get},api,
+    locationRef:{pathname:'/stay-focus/blocked-quota.html',replace:url=>visited.push(url)},
+    historyRef:history});
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.match(get('reason').textContent,/额度/);
+  assert.equal(get('resume').textContent.includes('明天'),true);
+  get('settings').handlers.click({isTrusted:false});
+  assert.equal(opened.length,0,'a forged click cannot request privileged Side Panel');
+  get('settings').handlers.click({isTrusted:true});
+  assert.deepEqual(opened,[{windowId:27}],'open must use actual pre-read Chrome window ID');
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.match(get('hint').textContent,/工具/);
+  get('back').handlers.click({isTrusted:true});
+  assert.deepEqual(visited,['about:blank'],'no previous history must not loop back to blocked URL');
 });
