@@ -1,3 +1,22 @@
+## Cookie Editor R3.1 · 实际核心修复续接（2026-10-13）
+
+本节覆盖下方 R3 / R2 旧快照，**不表示 Native PASS**。
+
+- **Cookie 分区是真实查询，不是空筛选**：新 `scopedLiveCookies` 分别调用正式 `cookies.getAll({url})` 与已获批准的 `cookies.getPartitionKey/getAll({url,partitionKey})`，按精确身份合并且有界；任一必要范围读取失败则不把部分结果冒充完整站点数据。真实含值导出也用相同双范围逻辑。
+- **真实导入预览不再依赖旧列表**：最多 10 条，先验证批准 Store / Partition；再按每条 Cookie 的实际 Path 调用 `getAll` 检查新增或覆盖，所有原生写入参数预校验后才出现确认。
+- **整站授权撤销原子化**：`cookieCapability:'all',enabled:false` 仅是原受信 Host 内部的撤权操作，并非第三方 SDK 公共方法。一次存储确认撤销该站点全部读/值/写/清理/观察；拒绝一次性全开放权限。新增能力不能悄然将早期授权迁移到另一个 Cookie Store/Partition。
+- **原生同名多 Path 删除回执修复**：复用 `src/platform/chrome/cookies.js`，把删除后的 `cookies.get()` 非精确判断改为对被删除 Name/Domain/Path/Store/Partition 的 `getAll()` 精确回读。清理每条 Cookie 同样按精确身份校验；同名其他 Path 仍存在是正确结果，不是失败。Native `getAll` 即使返回更宽范围，清理前仍二次按 Store/Partition/HostOnly 限定。
+- **未知副作用绝不误报成功**：Cookie Editor 新增/删除/清理/批量导入只有在收到结构完整的真实确认后才自动刷新。失败或 `E_OUTCOME_UNKNOWN` 明确提示手动核查，不重复写入。Domain Cookie 写入确认提示可能影响子域名。
+- **真实列表效率**：按名称、域名、Path 和过期日期排序，保留搜索/筛选；高风险批量操作仍放在折叠区，不抢首屏。
+
+**已写入对应源码与测试**：`examples/sidebar-tools/cookie-editor/src/{main.js,index.html}`、`src/platform/chrome/cookies.js`、`src/platform/chrome/context-menus.js`、`src/ui/sidebar-tools.js`、`tests/environment/{cookie-editor-ui,browser-sdk-r8-cookies,browser-sdk-r9-installed-host}.test.mjs`。其中 Driver 的精确同名 Path 删除与跨 Store/Partition 清理隔离，**本轮实际在受控 V8 引擎从当前真实源码执行了 2 项 mock 级功能测试：2/2 PASS**。对 10 个核心 JS / HTML 文件的 V8 语法/ID 静态检查 10/10 PASS。**这些不是 Node test，也不是 Chrome Native PASS**，不提供扩展包 Hash、Mac Chrome 版本或实际截图。
+
+**并行限制**：Browser SDK R10.1 同时编辑 2.3 MB 正式接口矩阵（非 Cookies 的 Downloads 条目）。本轮不覆盖冲突的矩阵文件；当前 Cookie PartitionKey 运行时 Schema 已支持 schemeful HTTP(S)，矩阵内旧 HTTPS-only 描述需由 SDK 集成者串行合并并重新验证，不另建 Registry。最近其他 Agent 添加的 SDK 接口数量可能超过本 R3 最初快照的 40 项，必须动态以 `BROWSER_OPERATIONS` 为准。
+
+**当前必过门槛仍为**：官方工具打包、专项 Node、`npm run check/test/build/build:dev/verify`、真实 Chrome 已安装工具的授权/读/写/值/分区/删除/清理/观察/撤权/Worker 重启/升级停用卸载、R27 多宽度及 Chrome Zoom。当前会话没有 Mac Chrome 原生环境；以上没有真实运行结果仍为 `NOT_TESTED`。旧受信 Cookie UI 与私有 `approve/execute` 暂不删除，必须等新 Consumer 的原生闭环验证安全后再迁移。
+
+---
+
 # Cookie Editor R3 · 当前真实源码状态（2026-10-13）
 
 > 以下 R2 / R2.1 历史段落原文保留，但其中的「尚未有公开 SDK」「仅离线操作」「v1.1.1」均已经过时，不再代表最新 main。**此处 R3 为当前状态**；源码接线不是同候选真实 Chrome Native PASS。
