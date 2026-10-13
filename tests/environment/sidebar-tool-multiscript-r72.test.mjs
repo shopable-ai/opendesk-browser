@@ -36,7 +36,9 @@ test('v2 packer preserves ordered original Classic UTF-8 bytes and two independe
  assert.throws(()=>validateSidebarToolPackage({...tool,scripts:[...tool.scripts,{...tool.scripts[0]}]}),{code:'E_TOOL_SCRIPTS'});
  assert.throws(()=>validateSidebarToolPackage({...tool,scripts:[{...tool.scripts[0],code:'import a from "http://bad"'}]}),{code:'E_TOOL_SCRIPTS'});
 });
-function sandboxFixture(tool,{failAt=0}={}){
+function sandboxFixture(tool,{failAt=0,digestDelayMs=0}={}){
+ let resolveTerminal;
+ const terminal=new Promise(resolve=>{resolveTerminal=resolve;});
  const emitted=[],loads=[],urls=new Map();let counter=0;
  const eventNode=()=>({handlers:new Map(),addEventListener(name,fn){this.handlers.set(name,fn);},
   removeEventListener(name){this.handlers.delete(name);},emit(name,payload){this.handlers.get(name)?.(payload);}});
@@ -55,22 +57,28 @@ function sandboxFixture(tool,{failAt=0}={}){
     });
   }}
  };
- const parent={postMessage:row=>emitted.push(row)};
+ const parent={postMessage:row=>{
+   emitted.push(row);
+   if(row.kind==='status'&&['ready','error'].includes(row.state))resolveTerminal();
+ }};
  const URLFake={createObjectURL:blob=>{const url='blob:tool-'+(++counter);urls.set(url,blob);return url;},
    revokeObjectURL:url=>urls.delete(url)};
  runInNewContext('('+initSidebarToolSandbox.toString()+')()',{
-   window:win,document:doc,parent,URL:URLFake,Blob,TextEncoder,crypto:webcrypto,
+   window:win,document:doc,parent,URL:URLFake,Blob,TextEncoder,
+   crypto:digestDelayMs?{subtle:{async digest(...args){
+     await new Promise(resolve=>setTimeout(resolve,digestDelayMs));
+     return webcrypto.subtle.digest(...args);
+   }}}:webcrypto,
    requestAnimationFrame:()=>0,setTimeout,clearTimeout,console,
    SIDEBAR_TOOL_PROTOCOL:'opendesk.sidebar-tool.bridge.v1',
    createBrowserSdk:()=>({capabilities:{}})
  });
  win.emit('message',{source:parent,data:{protocol:'opendesk.sidebar-tool.bridge.v1',
     kind:'load',instance:'one',toolId:tool.id,tool}});
- const wait=async()=>{
-   for(let i=0;i<80;i++){if(emitted.some(row=>row.kind==='status'&&['ready','error'].includes(row.state)))return;
-     await new Promise(resolve=>setImmediate(resolve));}
-   assert.fail('Sandbox did not report a terminal result');
- };
+ const wait=()=>new Promise((resolve,reject)=>{
+   const timer=setTimeout(()=>reject(new Error('Sandbox did not report a terminal result')),2000);
+   terminal.then(()=>{clearTimeout(timer);resolve();});
+ });
  return {emitted,loads,wait,win};
 }
 test('opaque sandbox verifies every SHA, observes onload order and only then loads main JS',async t=>{
@@ -91,4 +99,10 @@ test('second asset onerror blocks main script, no later dependencies are dispatc
  assert.deepEqual(b.loads,sources.slice(0,2));
  assert.equal(b.emitted.at(-1).state,'error');
  assert.match(b.emitted.at(-1).message,/E_TOOL_SCRIPT_LOAD/);
+});
+test('ordered loading awaits real SHA completion under asynchronous worker delays',async t=>{
+ const f=await packageFixture();t.after(()=>rm(f.root,{recursive:true,force:true}));
+ const b=sandboxFixture(f.tool,{digestDelayMs:30});await b.wait();
+ assert.deepEqual(b.loads,sources);
+ assert.equal(b.emitted.filter(row=>row.kind==='status').at(-1).state,'ready');
 });

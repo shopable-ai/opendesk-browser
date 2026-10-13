@@ -354,15 +354,25 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     await writeFile(path.join(OUT,'native-report.json'),JSON.stringify(report,null,2)+'\n');
   });
   const html=await readFile('examples/tasks/demo-form.html');
-  server=createServer((req,res)=>{
-    if(!req.url?.startsWith('/demo-form.html')){res.writeHead(404);res.end('Not found');return;}
-    res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});
-    res.end(html);
-  });
-  await new Promise((resolve,reject)=>{
-    server.once('error',reject);
-    server.listen(43111,'127.0.0.1',resolve);
-  });
+  if(process.env.SCHEDULE_NATIVE_REUSE_FIXTURE==='1'){
+    // A shared manual fixture is read-only and must match the canonical bytes.
+    const response=await fetch(URL,{redirect:'error',cache:'no-store',signal:AbortSignal.timeout(5000)});
+    assert.equal(response.status,200,'existing canonical fixture HTTP status');
+    assert.equal(response.url,URL,'existing canonical fixture URL');
+    assert(Buffer.from(await response.arrayBuffer()).equals(html),'existing fixture must match demo-form.html exactly');
+    report.fixtureServer={mode:'verified-existing-read-only',sourceSha256:sha(html)};
+  }else{
+    server=createServer((req,res)=>{
+      if(!req.url?.startsWith('/demo-form.html')){res.writeHead(404);res.end('Not found');return;}
+      res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});
+      res.end(html);
+    });
+    await new Promise((resolve,reject)=>{
+      server.once('error',reject);
+      server.listen(43111,'127.0.0.1',resolve);
+    });
+    report.fixtureServer={mode:'owned',sourceSha256:sha(html)};
+  }
   const args=['--use-mock-keychain','--password-store=basic','--disable-gpu','--disable-dev-shm-usage',
     '--no-first-run','--no-default-browser-check','--disable-background-networking',
     '--remote-allow-origins=*','--remote-debugging-address=127.0.0.1','--remote-debugging-port=0',
@@ -384,8 +394,9 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     nativeOwnedMacInput=(command,value)=>{
       const result=spawnSync(keyboard,[String(proc.pid),command,...(value?[value]:[])],
         {encoding:'utf8',timeout:12000});
+      const diagnostic=[result.stdout,result.stderr,result.error?.message].filter(Boolean).join('\n').trim();
       assert.equal(result.status,0,'real owned macOS input '+command+' '+(value||'')+
-        ': '+String(result.stdout||result.stderr||result.error||'').slice(-900));
+        ': '+diagnostic.slice(-900));
       return String(result.stdout).trim();
     };
     report.macosInput='real owned CGEvent, preexisting AX grant required';

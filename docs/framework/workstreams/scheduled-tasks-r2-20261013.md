@@ -269,3 +269,42 @@
 - **新的必须关注的构建余量风险：** `ui/tool-shell.js` production **523445 / 524288 B**，仅余 **843 B**；development **523685 / 524288 B**，仅余 **603 B**。虽同候选硬门槛 PASS，但随时可能被并行的小功能改动触发新的 build FAIL；后续需要在**不放宽 512 KiB Hard Gate、不改 Native Authority、不增加重复运行时**的前提下由打包/Sidebar Owner 定向减重。未取得可审计减重余量之前不能把长期 Build 稳定性评为 95 分。
 - 真实 Linux 浏览器组合：`f6de1d7` [Zoom+焦点+UI 截图 SUCCESS](https://github.com/shopable-ai/opendesk-browser/actions/runs/38433892190)；`594b35c` [整 Chrome 重启和二次 Native 网页效果 SUCCESS](https://github.com/shopable-ai/opendesk-browser/actions/runs/38433152806)；二者成功于独立隔离候选，**不等于在 `df6eca06` 同一固定包上统一复验全部组合**。Linux 物理 Side Panel 320/360/420、用户 Mac/Profile/Native 配对、macOS 队列及所有十维专家分数仍待独立实证。
 
+
+## R2.9 Mac 本地正式产品验收（2026-10-14）
+
+- 追加测试写入范围：`tests/environment/scheduled-task-ui-r1.test.mjs`、`tests/environment/sidebar-product-contract.test.mjs`（修改前无差异）。首轮 66 项中 60 PASS / 6 FAIL / 0 SKIP；失败对应并行 R30 公共折叠类迁移，保留语义、焦点、危险操作隔离与尺寸检查，只迁移旧类名/局部 CSS 断言。共享生产 UI 源码继续由原负责人写入。
+- 追加原生测试驱动写入范围：`tests/framework/scheduled-tasks-r1-native-mac.test.mjs`（修改前无差异）。首次启用真实测试因既有标准 fixture 43111 被占用而在启动 Chrome 前失败。增加显式 `SCHEDULE_NATIVE_REUSE_FIXTURE=1`：只读复用已运行的标准页面，先拒绝重定向并核对 URL、HTTP 200 和与仓库 demo-form.html 完全相同的字节；不停止已有服务、不更改 Chrome 权限/执行/Run/Result 断言。原 CI 默认自建 fixture 路径保持。
+- 构建减重写入范围：`wxt.config.mjs`（写入前当前无 diff）。本轮只为既有 tool-shell entry 增加 Terser `format.wrap_func_args:false`，保留六轮压缩、所有安全/资源预算及固定 Entry。研究 lane 使用实际 Terser 5.34.1、同一 production 输入 SHA `356082d54ddcb466c0692623d5fc51f12cf30c5e9deb0e70597da7264c1e46c8`，仅重打印减少 1698 B；Acorn 复解析后忽略源码位置和字面量原始拼写的 AST 完全一致。研究记录 `/tmp/opendesk-terser-print-BcuLVl/report.json`，官方依据 https://terser.org/docs/options/#format-options；在线新版默认值与本机固定版本不同，以固定版本与实验为准。正式双包仍须重新构建验证；不采用无收益的 semicolons 改动。
+
+- 状态：IN_PROGRESS；负责人：Codex `01a1364e-28c4-77c3-b7ab-7cbfc65ac673`；仅 main。
+- 写入范围：本工作记录、`docs/framework/workstreams/evidence/scheduled-tasks-r29-mac-20261014/`；真实缺陷需要修改的源码先核对 diff 与当前负责人再扩展范围。
+- 资源：日常 Chrome Default / 扩展 `ccfcjegpkdlgbclopjmadlcjedelidmf` 只操作本轮空计划/测试页面；已有 watcher PID 67794 独占 `dist/development`、`.wxt/public`、43119/43120，本轮不另起覆盖构建。其他 CFT/云控 Profile 不使用。
+- 初始 HEAD `89c3b298dc3cf8927b227b041b101770780ce58a`；fetch 后 origin/main `c29f35fa4ea1a465b144e0a1f7751d774bd1ab24`，并行集成已前进本地 main。保留其他工作区修改。
+- P0 现场：Chrome Details 与 Secure Preferences 均确认加载 `dist/development`；runtime.id/doctor.local.extensionId/allowed_origins 同 ID，doctor nativeConnected=true。
+- 实际 Side Panel CSS width=363，DPR=2。列表缺新建按钮；DevTools 显示旧运行脚本 `Cannot set properties of null (setting hidden)` 和开发热更新因未释放活动延后，另有旧 time-review.css 缺失。保留 before-console.png，先通过既有关闭/重开生命周期核对文档版本，不解除未知副作用保护。
+- 通过条件：main→源码/构建→实际扩展资源身份一致，正式创建/列表/Runner 原生交互与截图，必要 Node/双包校验；CI macOS 与本机/模拟证据分别记。95+ 无证据保持 NOT_SCORED。
+- 独立只读 lane：CI 实时核查与 Bundle 模块归因；不操作共享资源。
+
+- 共享资源后续观察：原 watcher PID 67794 已退出，其他 Page Edition 构建也已结束，development 重新生成。此前关于停止旧 watcher 的问题已不再阻塞：本轮不会停止该已退出进程。正式 build/build:dev 使用既有输出锁串行占用 `dist/{production,development}`、`.wxt/public`、43120；先核对无活动构建，遇锁冲突不覆盖。
+- 正常关闭/重开同一 Side Panel 后，`我的 → 定时计划 → ＋ 新建` 恢复，正式创建表单出现；新 hostInstanceId `998627fc-a2d5-424a-bac9-f3e36aa9ece9`。无已安装任务，不写入真实计划。发现 URL 无效提示直接暴露英文原生异常，记录为待修复产品缺陷。
+- 最新 origin/main 为 `ddbadf6dd0277a00dfe51a6025b601c0bce1fdc6`；只读核查后尝试 ff-only，Git 因并行 `src/ui/workflow/local-codex.js`、`src/ui/workflow/workflow-view.js` 的本地改动拒绝，本地 HEAD 保持 c29。未 stash/reset/覆盖；集成与本轮提交继续待相应文件负责人协调。
+
+- 本轮 fresh production：PASS，packageHash `6df33e2cdb85a9f8aa60f5d7166649d0e55183a9638f4e09a96152cac1e9ee4b`，tool-shell=522262 B。随后 fresh development FAIL：524715 > 524288（超427 B），原始失败 receipt 与日志保留，不将此前 peer 双包 Verify 冒充本轮双包关闭。
+- 独立原生 Zoom 资源：既有 R2.3 驱动、CFT `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome` 149.0.7827.55、驱动自己创建 `opendesk-r23-native-zoom-*` Profile，输出 `evidence/scheduled-tasks-r29-mac-20261014/native-zoom-attempt-1`。使用已有输出 guard 防止 production 验证期间漂移；这是原生 Runner Tab zoom / CDP CSS viewport，不是实体 Side Panel 或 Mac CGEvent 全产品验收。
+
+- R2.9 扩展独立写入范围：`tests/environment/sidebar-tool-multiscript-r72.test.mjs`（当前 diff 为空）。最新 Shared Sidebar CI 38454580327 / job 115493894185 的 second asset onerror 用例未观察到 terminal status；本地原用例 4/4 PASS。待验证原因是测试用 80 次 setImmediate 计数等待真实 WebCrypto，并非固定时长或 terminal 事件。先加入真实 SHA 延迟回归复现，再改为等待 terminal 事件并保留有界超时及原安全断言；不改 Sandbox 运行时。
+
+### R2.9 当前实测与尚未闭合的交付（2026-10-14）
+
+- 本轮独立源码：`wxt.config.mjs` 仅让既有 Terser printer 使用 `wrap_func_args:false`，不更改压缩逻辑、Authority 或 512 KiB 上限；固定 Terser 5.34.1 的源码重打印 AST 等价证据及实验保存在本轮 evidence。原超限开发包 524715 bytes，修复后双包构建及 Verify 曾通过：production `c82572054e1fec52f3bd782f00b506fab80f5863ec834c0967b59357833f9543` / 522963 bytes，development `af6392026b08a3acf827566109ed912e55adc917fbfc8b36e7b533162849462b` / 523203 bytes。这是历史本地候选，不是其后共享 main 的最终包。
+- 最新共享 main 的 `fef1f9e` 已由另一个负责人将既有 Cloud factory 放入既有固定预编译 UI entry；本轮没有新增 Host。当前 watcher 输出 tool-shell=500078 bytes，余量24210 bytes。生产盘上仍522982 bytes，不能用 watcher 数字代替最新双包构建。
+- 本轮 Native 驱动支持 `SCHEDULE_NATIVE_REUSE_FIXTURE=1`：只读核对既有 43111 页面 HTTP 状态、精确 URL 及全部规范源码字节；不结束别人的服务，默认仍使用本测试拥有的 server。原生输入助手失败诊断同时保留 stdout/stderr/error，没有放松前台 PID 和可信 CFT 检查。
+- Shared Sidebar CI 38454580327 / 115493894185：原 onerror 失败为等待真实 WebCrypto 的测试用 80 次事件循环计数；本轮先用真实 SHA 的 30ms 延迟复现失败，再改为 terminal 事件加2秒超时。原顺序、坏 SHA、不加载后续脚本的断言保留；5/5 PASS。最终定向5文件71/71 PASS、0 SKIP；`npm run check` 668文件及构建合同 PASS。
+- 日常 Chrome 155.0.8059.40：ID `ccfcjegpkdlgbclopjmadlcjedelidmf`，实际路径仍 `dist/development`；runtime ID、Go doctor `local.extensionId`、Native `allowed_origins` 相符。正式列表恢复新建，真实创建表单已打开；实测363 CSS px、857高、DPR2、scale1、主要输入高36px、无整页水平溢出。截图与 AX 在 `evidence/scheduled-tasks-r29-mac-20261014/`，索引 `regular-chrome-screenshot-index.json`；后续共享 Profile 截图没有冻结最终候选，不把它们登记为身份闭合 PASS。
+- 原生 Chrome 快捷键100/125/150/200在测试网页生效，已恢复100%；200%时 Side Panel 仍363px、DPR2、scale1、输入36px。这证实普通 Tab 缩放未改变 Side Panel，不计为实体 Side Panel Zoom PASS。320/360/420实体宽度：NOT_TESTED，原生手柄操作未成功改变宽度。
+- Mac CFT149 Runner Tab Zoom 原生驱动 PASS，仅绑定 `6df33e…` 历史生产包；不是实体 Side Panel 或完整 Mac RunHost PASS。Mac Task attempt-1 被43111占用拦截；attempt-2实测安装、Run/Result和网页效果，但错误地同时启用互斥验收阶段导致整体FAIL；后续 lifecycle 在另一个真实盘上包 `bdabe544…` 的前台输入 PID 检查失败。原始失败均保留，未重写为 PASS。
+- 新复测被 PID25173 `npm run dev` 的43120输出锁拦截，未抢占/停止。最终双包、Mac lifecycle/identity/permissions/restart、列表管理和正式执行矩阵需要共享资源交接；已通过结构化问题请求交接。
+- 真实创建表单仍有 URL 文案缺陷：Chrome155 的 TypeError 文本为 `Failed to construct 'URL': Invalid URL`，现有 startsWith 未匹配。准备的一行修复见 `proposed-url-validation.patch`，同文件已有另一个负责人3项R30 class修改；按同文件单负责人规则等待交接，未覆盖其源码。R30 生产 class 和两项静态测试同步现已由共享 main 的85de6add / 8ac00038集成；本轮不重复纳入提交。
+- 最新历史 CI 两个 macOS Job（Zoom 38433892190 / restart 38433152806）仍queued，Linux success；最新main的对应任务也queued。不存在可替代本机证据的macOS PASS。
+- 当前总状态：IN_PROGRESS；最终身份链未闭合，尚不具备95+产品交付条件。十个维度（视觉、排版、层级、效率、表单、完整性、响应式、可访问性、安全、Chrome原生交付）均NOT_SCORED；详见本轮 `closure-status.json`。
+- Git串行写入范围：仅本轮工作记录、wxt printer配置、Native fixture驱动和Shared Sidebar异步等待测试。提交前核对main、暂存为空、无活动git/index.lock；不纳入其他人的源码或依赖未提交R30 class的两项静态测试。

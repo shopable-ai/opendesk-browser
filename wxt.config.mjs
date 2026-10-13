@@ -93,6 +93,7 @@ export default defineConfig({
          // Preserve the 512 KiB fixed IIFE ceiling; optimize, never relax.
          const options=config.build.terserOptions;
          config.build.terserOptions={...options,
+           format:{...options.format,wrap_func_args:false},
            compress:{...options.compress,passes:6,toplevel:true}};
        }
        if (!target || !config.build?.lib) throw new Error('Expected approved WXT library entry');
