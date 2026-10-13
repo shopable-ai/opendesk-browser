@@ -628,10 +628,10 @@
         <textarea id="workflow-ai-request" rows="2" maxlength="4000" placeholder="描述要自动完成的任务…"></textarea>
         <div class="workflow-composer-actions">
           <button type="button" id="workflow-provider-toggle" class="workflow-icon-button workflow-settings-button od-icon-button" aria-label="配置 AI 模型与数据授权" aria-expanded="false" aria-controls="workflow-provider-settings" title="AI 设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h9m6 0h1M4 17h1m6 0h9"></path><circle cx="16" cy="7" r="3"></circle><circle cx="8" cy="17" r="3"></circle></svg></button>
-          <button id="workflow-ai-plan" type="button" class="workflow-primary workflow-send-button" aria-label="同意数据发送并生成工作流步骤" title="同意并生成"><span id="workflow-ai-plan-label" class="workflow-send-label">同意并生成</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 19V5m-7 7 7-7 7 7"></path></svg></button>
+          <button id="workflow-ai-plan" type="button" class="workflow-send-button od-icon-button od-icon-button--primary" aria-label="同意数据发送并生成工作流步骤" title="同意并生成"><span id="workflow-ai-plan-label" hidden>同意并生成</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 19V5m-7 7 7-7 7 7"></path></svg></button>
           <button id="workflow-ai-cancel" type="button" class="workflow-send-button workflow-ai-cancel" aria-label="停止 AI 规划" title="停止 AI 规划" hidden><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg></button>
         </div>
-        <p id="workflow-ai-disclosure" class="workflow-ai-data-notice" role="note" aria-live="polite">首次发送会告知选定的模型接收方、当前网站和数据范围，点击「同意并生成」才发送；网页摘要需要单独确认。</p>
+        <p id="workflow-ai-disclosure" class="workflow-ai-data-notice" role="note" aria-live="polite">点击右侧发送图标才会向选定模型发送任务描述、网站与步骤信息；网页摘要仍需单独确认。</p>
         <details id="workflow-provider-settings" class="workflow-provider">
           <summary>模型连接与数据发送授权</summary>
           <label for="workflow-ai-provider">AI 来源</label>
@@ -683,24 +683,24 @@
       </label>
     </div>
     <section id="local-project-tools" class="local-project-tools" aria-label="本地项目连接" hidden>
-      <p class="local-project-intro">在编辑器或 Codex 中保存，系统自动准备；点击「运行本地项目」执行最新代码。保存文件不会自动运行。</p>
+      <p class="local-project-intro od-note">在编辑器或 Codex 中保存，系统自动准备；点击「运行本地项目」执行最新代码。保存文件不会自动运行。</p>
       <div class="local-project-controls od-toolbar">
-        <label for="local-project-select" class="visually-hidden">已授权本地项目</label><select id="local-project-select"><option value="">选择已授权项目</option></select>
-        <button id="local-project-refresh" type="button">刷新</button>
+        <label for="local-project-select" class="visually-hidden">已授权本地项目</label><select id="local-project-select" class="od-field"><option value="">选择已授权项目</option></select>
+        <button id="local-project-refresh" type="button" class="od-button od-button--secondary">刷新</button>
       </div>
       <p id="local-project-status" role="status" aria-live="polite"></p>
       <section id="local-install-review" class="local-install-review od-surface" aria-label="固定版本安装确认" aria-describedby="local-install-summary local-install-warning" tabindex="-1" hidden>
         <strong>确认保存到浏览器</strong>
         <p id="local-install-summary" class="hint" role="status"></p>
-        <label for="local-install-title">名称</label><input id="local-install-title" type="text" maxlength="100" autocomplete="off">
-        <label for="local-install-version">版本</label><input id="local-install-version" type="text" maxlength="24" autocomplete="off">
+        <label for="local-install-title" class="od-field-label">名称</label><input id="local-install-title" type="text" maxlength="100" autocomplete="off" class="od-field">
+        <label for="local-install-version" class="od-field-label">版本</label><input id="local-install-version" type="text" maxlength="24" autocomplete="off" class="od-field">
         <p id="local-install-warning" class="hint"></p>
-        <div class="row"><button id="local-install-confirm" type="button" disabled>确认安装固定版本</button><button id="local-install-cancel" type="button">取消</button></div>
+        <div class="row"><button id="local-install-confirm" type="button" disabled class="od-button">确认安装固定版本</button><button id="local-install-cancel" type="button" class="od-button od-button--secondary">取消</button></div>
         <p id="local-install-status" role="status" aria-live="polite"></p>
       </section>
-      <details><summary>高级诊断</summary><p id="local-project-diagnostics">运行后显示版本与准备耗时。</p></details>
-      <button id="local-project-connect" class="local-project-connect" type="button">连接本机 OpenDesk ↗</button>
-      <details id="local-project-guide" class="local-project-guide">
+      <details class="od-disclosure od-disclosure--flat"><summary>高级诊断</summary><p id="local-project-diagnostics">运行后显示版本与准备耗时。</p></details>
+      <button id="local-project-connect" class="local-project-connect od-button od-button--secondary" type="button">连接本机 OpenDesk ↗</button>
+      <details id="local-project-guide" class="local-project-guide od-disclosure od-disclosure--info">
         <summary>首次使用：连接方法</summary>
         <ol>
           <li>先安装 OpenDesk 原生程序；点击上方「连接本机 OpenDesk」，在扩展选项中确认首次 Native 权限。</li>
@@ -708,22 +708,22 @@
           <li>回到此处刷新已授权项目列表，选中项目，再明确点击「运行本地项目」。</li>
         </ol>
         <p>本机 Native 已连接与本地项目 Provider 已就绪是两种状态。普通脚本无需它们。当前开发版的首次配对仍可能需要高级配置；<code>npm run dev</code> 只负责扩展源码热更新。</p>
-        <button id="local-project-guide-open" type="button">查看首次配置命令和示例 ↗</button>
+        <button id="local-project-guide-open" type="button" class="od-button od-button--secondary">查看首次配置命令和示例 ↗</button>
         <p>也可在仓库内查阅 <code>docs/api/quickstart.zh-CN.md</code> 的「首次配置」章节。</p>
       </details>
-      <details id="local-project-params-tools" hidden><summary>项目参数 JSON（Controller 可选）</summary><label for="local-project-params" class="visually-hidden">本地项目参数</label><textarea id="local-project-params" rows="3" spellcheck="false">{}</textarea></details>
+      <details id="local-project-params-tools" hidden class="od-disclosure od-disclosure--flat"><summary>项目参数 JSON（Controller 可选）</summary><label for="local-project-params" class="visually-hidden">本地项目参数</label><textarea id="local-project-params" rows="3" spellcheck="false" class="od-field">{}</textarea></details>
     </section>
     <div id="manual-source-editor">
-    <p id="program-source-info" class="identity" role="status" hidden></p>
+    <p id="program-source-info" class="identity od-technical" role="status" hidden></p>
     <div id="program-source-toolbar" class="program-source-toolbar od-toolbar" role="group" aria-label="源码视图操作" hidden>
       <label for="program-source-files" class="visually-hidden">实际执行代码或项目源码快照</label>
-      <select id="program-source-files" hidden></select>
-      <button type="button" id="program-new-script" title="创建可编辑的 JavaScript 草稿（退出当前只读源码视图）" aria-label="新建 JavaScript 草稿" hidden>新建</button>
+      <select id="program-source-files" hidden class="od-field"></select>
+      <button type="button" id="program-new-script" title="创建可编辑的 JavaScript 草稿（退出当前只读源码视图）" aria-label="新建 JavaScript 草稿" hidden class="od-button od-button--secondary">新建</button>
     </div>
     <div id="page-component-editor-tools" class="row">
       <fieldset id="page-component-framework" aria-describedby="page-component-hint">
         <legend>代码类型</legend>
-        <div class="page-component-choices">
+        <div class="page-component-choices od-segmented">
           <label for="page-component-javascript"><input id="page-component-javascript" type="radio" name="page-component-choice" value="javascript" checked><span>JavaScript</span></label>
           <label for="page-component-react"><input id="page-component-react" type="radio" name="page-component-choice" value="react"><span>React · JSX</span></label>
           <label for="page-component-vue"><input id="page-component-vue" type="radio" name="page-component-choice" value="vue"><span>Vue · SFC</span></label>
@@ -731,21 +731,21 @@
       </fieldset>
       <span id="page-component-hint" class="hint">保存草稿不会运行网页</span>
     </div>
-    <label for="script-source" class="visually-hidden">JavaScript、React JSX 或 Vue SFC 源码编辑器</label><textarea id="script-source" rows="6" spellcheck="false">async function main() {
+    <label for="script-source" class="visually-hidden">JavaScript、React JSX 或 Vue SFC 源码编辑器</label><textarea id="script-source" rows="6" spellcheck="false" class="od-field">async function main() {
   return {title: await page.title(), url: await page.url(), value: params.value};
 }</textarea>
-    <details id="page-dependency-panel" class="od-stack" aria-label="第三方 Classic JS 依赖固定详情" hidden>
+    <details id="page-dependency-panel" class="od-stack od-disclosure od-disclosure--flat" aria-label="第三方 Classic JS 依赖固定详情" hidden>
       <summary>第三方 JS 依赖 · 自动固定与缓存（高级详情）</summary>
       <p id="page-dependency-status" role="status" aria-live="polite">点击运行会自动固定安全依赖；这里仅显示高级详情。</p>
       <div id="page-dependency-list" class="od-stack" role="group" aria-label="每项依赖来源与下载方式"></div>
       <label for="page-dependency-lock" class="visually-hidden">已审核依赖锁版本</label>
-      <select id="page-dependency-lock" hidden></select>
-      <div class="od-toolbar"><button id="page-dependency-prepare" type="button" disabled>获取并检查依赖（不执行）</button></div>
-      <details id="page-dependency-review" hidden>
+      <select id="page-dependency-lock" hidden class="od-field"></select>
+      <div class="od-toolbar"><button id="page-dependency-prepare" type="button" disabled class="od-button od-button--secondary">获取并检查依赖（不执行）</button></div>
+      <details id="page-dependency-review" hidden class="od-disclosure od-disclosure--flat">
         <summary>审核实际字节、SHA-256、许可证及风险</summary>
         <p class="hint">第三方 JavaScript 可读取和修改获准网站的 DOM；USER_SCRIPT 不等于网络隔离。本步骤不授予网页访问权、不安装、不执行。</p>
         <div id="page-dependency-review-list" class="od-stack"></div>
-        <button id="page-dependency-approve" type="button" disabled>批准当前程序的固定 SHA 锁（不运行）</button>
+        <button id="page-dependency-approve" type="button" disabled class="od-button od-button--secondary">批准当前程序的固定 SHA 锁（不运行）</button>
       </details>
       <p class="hint">点击 Run 会自动校验、获取及固定当前程序的依赖。高级手动流程不再是运行前置步骤；不同程序共享 SHA 字节但不共享站点权限。</p>
     </details>
@@ -753,27 +753,27 @@
       <p id="page-component-remote-status" role="status" aria-live="polite"></p>
       <pre id="page-component-remote-sources" aria-label="本次需明确确认的 HTTPS 模块来源" hidden></pre>
       <label for="page-component-remote-lock" class="visually-hidden">选择已固定的组件依赖版本</label>
-      <select id="page-component-remote-lock" hidden><option value="">选择固定依赖版本</option></select>
-      <div class="od-toolbar"><button id="page-component-remote-prepare" type="button">检查依赖</button><button id="page-component-remote-cancel" type="button" hidden>取消准备</button></div>
-      <details id="page-component-remote-details" hidden><summary>固定模块、许可证与 SHA-256</summary><pre id="page-component-remote-detail-body"></pre></details>
+      <select id="page-component-remote-lock" hidden class="od-field"><option value="">选择固定依赖版本</option></select>
+      <div class="od-toolbar"><button id="page-component-remote-prepare" type="button" class="od-button od-button--secondary">检查依赖</button><button id="page-component-remote-cancel" type="button" hidden class="od-button od-button--secondary">取消准备</button></div>
+      <details id="page-component-remote-details" hidden class="od-disclosure od-disclosure--flat"><summary>固定模块、许可证与 SHA-256</summary><pre id="page-component-remote-detail-body"></pre></details>
     </section>
-    <details id="program-generated" hidden><summary>高级诊断：查看编译产物</summary><pre id="program-generated-source"></pre></details>
+    <details id="program-generated" hidden class="od-disclosure od-disclosure--flat"><summary>高级诊断：查看编译产物</summary><pre id="program-generated-source"></pre></details>
     </div>
-    <details id="manual-project-params-tools" class="developer-params"><summary>参数 JSON（可选）</summary><label for="script-params">参数 JSON</label><textarea id="script-params" rows="3" spellcheck="false">{"value":0}</textarea></details>
+    <details id="manual-project-params-tools" class="developer-params od-disclosure"><summary>参数 JSON（可选）</summary><label for="script-params" class="od-field-label">参数 JSON</label><textarea id="script-params" rows="3" spellcheck="false" class="od-field">{"value":0}</textarea></details>
 
     <p id="developer-run-feedback" class="developer-run-feedback" role="status" aria-live="polite"><span id="script-status" data-state="loading">正在连接公共运行入口…</span><span id="script-task-status" class="developer-task-status" hidden></span></p>
-    <div id="script-user-scripts-recovery" class="developer-execution-help" data-state="blocked" hidden>
+    <div id="script-user-scripts-recovery" class="developer-execution-help od-alert od-alert--warning" data-state="blocked" hidden>
       <p id="script-user-scripts-recovery-status" role="status" aria-live="polite"></p>
       <div class="developer-execution-help-actions">
-        <button id="script-user-scripts-settings" type="button">打开扩展设置</button>
-        <button id="script-user-scripts-check" type="button">重新检测</button>
+        <button id="script-user-scripts-settings" type="button" class="od-button od-button--secondary">打开扩展设置</button>
+        <button id="script-user-scripts-check" type="button" class="od-button od-button--secondary">重新检测</button>
       </div>
     </div>
-  <details id="developer-results-panel" class="developer-results"><summary>运行结果</summary><div class="developer-results-body">
+  <details id="developer-results-panel" class="developer-results od-disclosure"><summary>运行结果</summary><div class="developer-results-body">
     <div class="result-toolbar"><span id="script-result-kind" class="hint">尚无结果</span>
-      <button type="button" id="script-copy-result" disabled>复制结果</button></div>
-    <pre id="script-result" aria-label="脚本返回值">尚无结果</pre>
-    <details id="script-history-panel" class="result-history">
+      <button type="button" id="script-copy-result" disabled class="od-button od-button--secondary">复制结果</button></div>
+    <pre id="script-result" aria-label="脚本返回值" class="od-result">尚无结果</pre>
+    <details id="script-history-panel" class="result-history od-disclosure od-disclosure--flat">
       <summary>运行记录与技术信息</summary>
       <div class="developer-history-content">
         <div class="developer-history-head">
@@ -781,30 +781,30 @@
           <button id="script-read" type="button" class="od-button od-button--secondary">刷新历史</button>
         </div>
         <div class="developer-history-field">
-          <label for="script-history-run">历史运行</label>
+          <label for="script-history-run" class="od-field-label">历史运行</label>
           <div class="developer-history-actions">
-            <select id="script-history-run" aria-describedby="script-history-hint"><option value="">选择历史任务</option></select>
-            <button id="script-history-open" type="button" disabled>查看选中任务</button>
+            <select id="script-history-run" aria-describedby="script-history-hint" class="od-field"><option value="">选择历史任务</option></select>
+            <button id="script-history-open" type="button" disabled class="od-button od-button--secondary">查看选中任务</button>
           </div>
         </div>
-        <details class="developer-history-disclosure">
+        <details class="developer-history-disclosure od-disclosure od-disclosure--flat">
           <summary>完整历史与版本身份</summary>
-          <pre id="script-history" aria-label="持久结果历史">正在读取…</pre>
+          <pre id="script-history" aria-label="持久结果历史" class="od-result">正在读取…</pre>
         </details>
-        <details class="developer-history-disclosure">
+        <details class="developer-history-disclosure od-disclosure od-disclosure--flat">
           <summary>结果下载与任务查询</summary>
           <div class="developer-history-field">
-            <label for="script-run-id">查询 runId（留空读取全部历史）</label>
-            <input id="script-run-id" placeholder="runId">
+            <label for="script-run-id" class="od-field-label">查询 runId（留空读取全部历史）</label>
+            <input id="script-run-id" placeholder="runId" class="od-field">
           </div>
           <div class="developer-history-control-row">
             <button id="script-read-run" type="button" class="od-button od-button--secondary">查询任务</button>
           </div>
           <div class="developer-history-field">
-            <label for="script-download-result">已完成的持久结果</label>
+            <label for="script-download-result" class="od-field-label">已完成的持久结果</label>
             <div class="developer-history-actions">
-              <select id="script-download-result"><option value="">请选择要下载的结果</option></select>
-              <button id="script-download" type="button" disabled>下载结果 JSON</button>
+              <select id="script-download-result" class="od-field"><option value="">请选择要下载的结果</option></select>
+              <button id="script-download" type="button" disabled class="od-button od-button--secondary">下载结果 JSON</button>
             </div>
           </div>
           <p id="script-download-status" class="hint" role="status">结果下载保留类型信息，包括 undefined。</p>
@@ -812,64 +812,64 @@
       </div>
     </details>
   </div></details>
-  <details id="developer-run-technical" class="developer-run-technical"><summary>运行目标与版本</summary>
+  <details id="developer-run-technical" class="developer-run-technical od-disclosure od-disclosure--flat"><summary>运行目标与版本</summary>
     <p id="script-task-id" class="identity">尚未运行</p>
     <p id="script-running-target" class="identity" data-state="idle">运行目标：尚未建立</p>
     <p id="script-task-version" class="identity"></p>
   </details>
 
-    <details id="page-preview-tools"><summary id="page-preview-mode-title">网页 JavaScript 试运行</summary>
+    <details id="page-preview-tools" class="od-disclosure"><summary id="page-preview-mode-title">网页 JavaScript 试运行</summary>
       <p id="page-preview-mode-hint" class="hint">直接使用上方 JavaScript 源码操作当前网页 DOM；可写 async function main() 返回结果，也可直接编写顶层语句。不要求特殊脚本声明；运行前仍需网站授权。</p>
-      <button id="page-preview-run" type="button" disabled>在当前网页试运行</button>
+      <button id="page-preview-run" type="button" disabled class="od-button">在当前网页试运行</button>
       <p id="page-component-status" role="status" aria-live="polite" hidden></p>
       <p id="page-preview-status" role="status">请先确认当前网页可用；试运行不会保存版本或安装任务。</p>
-      <pre id="page-preview-result" aria-label="网页 JavaScript 试运行结果">尚未运行</pre>
-      <details id="page-preview-technical-panel" hidden><summary>技术信息</summary><pre id="page-preview-technical"></pre></details>
-      <div class="row"><button id="page-candidate-save" type="button" disabled>保存网页脚本版本</button></div>
+      <pre id="page-preview-result" aria-label="网页 JavaScript 试运行结果" class="od-result">尚未运行</pre>
+      <details id="page-preview-technical-panel" hidden class="od-disclosure od-disclosure--flat"><summary>技术信息</summary><pre id="page-preview-technical"></pre></details>
+      <div class="row"><button id="page-candidate-save" type="button" disabled class="od-button od-button--secondary">保存网页脚本版本</button></div>
       <p class="hint">试运行后可保存固定 Page 版本；普通 JS 默认仅匹配本次预览的协议与主机，同主机其他端口可能匹配；显式 @match 保留原范围。保存的冻结版本仍须单独验证、审阅并安装。脚本 ID 和版本在下方「版本管理」中设置。</p>
       <p id="page-candidate-status" role="status" aria-live="polite">尚未保存网页脚本候选。</p>
-      <label for="page-program-list">已保存网页脚本</label>
-      <select id="page-program-list"><option value="">正在读取…</option></select>
-      <pre id="page-program-detail">尚未读取。</pre>
-      <div class="row"><button id="page-program-load" type="button" disabled>加载源码</button><button id="page-program-verify" type="button" disabled>验证冻结版本</button></div>
-      <div class="row"><button id="page-program-install" type="button" disabled>安装自动运行</button><button id="page-program-toggle" type="button" disabled>停用自动运行</button><button id="page-program-restore" type="button" hidden>恢复访问</button><button id="page-program-refresh" type="button">刷新状态</button></div>
+      <label for="page-program-list" class="od-field-label">已保存网页脚本</label>
+      <select id="page-program-list" class="od-field"><option value="">正在读取…</option></select>
+      <pre id="page-program-detail" class="od-result">尚未读取。</pre>
+      <div class="row"><button id="page-program-load" type="button" disabled class="od-button od-button--secondary">加载源码</button><button id="page-program-verify" type="button" disabled class="od-button od-button--secondary">验证冻结版本</button></div>
+      <div class="row"><button id="page-program-install" type="button" disabled class="od-button">安装自动运行</button><button id="page-program-toggle" type="button" disabled class="od-button od-button--secondary">停用自动运行</button><button id="page-program-restore" type="button" hidden class="od-button od-button--secondary">恢复访问</button><button id="page-program-refresh" type="button" class="od-button od-button--secondary">刷新状态</button></div>
       <p id="page-program-status" role="status" aria-live="polite">正式安装支持顶层网页与 document-idle；停用不会撤销已有网页效果。效果未知时不自动重放。</p>
     </details>
-    <details id="script-library-tools"><summary>版本管理与任务制作</summary>
-    <label for="script-list">已保存脚本</label>
-    <div class="row"><select id="script-list"><option value="">正在读取已保存脚本…</option></select><button id="script-list-refresh">刷新</button><button id="script-list-load">加载最新</button></div>
-    <label for="script-id">脚本名称 / ID</label><input id="script-id" value="my-script" autocomplete="off">
-    <div class="row"><label for="script-revision">revision</label><input id="script-revision" type="number" min="1" placeholder="留空加载最新版本"><button id="script-load">加载版本</button></div>
+    <details id="script-library-tools" class="od-disclosure"><summary>版本管理与任务制作</summary>
+    <label for="script-list" class="od-field-label">已保存脚本</label>
+    <div class="row"><select id="script-list" class="od-field"><option value="">正在读取已保存脚本…</option></select><button id="script-list-refresh" class="od-button od-button--secondary">刷新</button><button id="script-list-load" class="od-button od-button--secondary">加载最新</button></div>
+    <label for="script-id" class="od-field-label">脚本名称 / ID</label><input id="script-id" value="my-script" autocomplete="off" class="od-field">
+    <div class="row"><label for="script-revision" class="od-field-label">revision</label><input id="script-revision" type="number" min="1" placeholder="留空加载最新版本" class="od-field"><button id="script-load" class="od-button od-button--secondary">加载版本</button></div>
     <p id="script-version" role="status">尚未保存</p>
-    <details id="task-package-dev"><summary>从已保存版本创建任务候选</summary>
+    <details id="task-package-dev" class="od-disclosure od-disclosure--flat"><summary>从已保存版本创建任务候选</summary>
       <p class="hint">先保存程序版本，再定义任务信息。创建候选不会自动验证、发布或安装。</p>
-      <label for="task-dev-id">稳定任务标识</label><input id="task-dev-id" value="my-first-task" autocomplete="off">
-      <label for="task-dev-version">任务版本</label><input id="task-dev-version" value="1.0.0" autocomplete="off">
-      <label for="task-dev-title">名称</label><input id="task-dev-title" value="我的第一个任务">
-      <label for="task-dev-description">用途</label><input id="task-dev-description" value="运行当前网页的自动化脚本">
-      <label for="task-dev-author">作者</label><input id="task-dev-author" value="local-developer">
-      <label for="task-dev-schema">参数 Schema（JSON）</label>
-      <textarea id="task-dev-schema" rows="4" spellcheck="false">{"type":"object","properties":{},"required":[],"additionalProperties":false}</textarea>
-      <button type="button" id="task-create-candidate">保存为待验证任务候选</button>
+      <label for="task-dev-id" class="od-field-label">稳定任务标识</label><input id="task-dev-id" value="my-first-task" autocomplete="off" class="od-field">
+      <label for="task-dev-version" class="od-field-label">任务版本</label><input id="task-dev-version" value="1.0.0" autocomplete="off" class="od-field">
+      <label for="task-dev-title" class="od-field-label">名称</label><input id="task-dev-title" value="我的第一个任务" class="od-field">
+      <label for="task-dev-description" class="od-field-label">用途</label><input id="task-dev-description" value="运行当前网页的自动化脚本" class="od-field">
+      <label for="task-dev-author" class="od-field-label">作者</label><input id="task-dev-author" value="local-developer" class="od-field">
+      <label for="task-dev-schema" class="od-field-label">参数 Schema（JSON）</label>
+      <textarea id="task-dev-schema" rows="4" spellcheck="false" class="od-field">{"type":"object","properties":{},"required":[],"additionalProperties":false}</textarea>
+      <button type="button" id="task-create-candidate" class="od-button">保存为待验证任务候选</button>
       <p id="task-dev-status" role="status">候选需要真实运行验证后才能安装</p>
     </details>
     </details>
-    <details id="script-advanced"><summary>高级脚本与目标设置</summary>
-      <details id="site-access" class="site-access-panel">
+    <details id="script-advanced" class="od-disclosure"><summary>高级脚本与目标设置</summary>
+      <details id="site-access" class="site-access-panel od-disclosure od-disclosure--flat">
         <summary>网站权限 · 默认全部网站</summary>
         <p id="site-access-status" role="status" data-state="checking">正在查询 Chrome 网站权限…</p>
         <p class="hint">安装或更新时由 Chrome 请求全部网站及核心浏览器 API（含 Cookie、通知）。后续插件的额外 API 仍需明确授权；浏览器网站权限不会自动授予脚本或 SDK 的应用级权限。</p>
-        <div class="row"><button id="site-access-grant" type="button">恢复全部网站访问</button><button id="site-access-refresh" type="button">刷新授权状态</button></div>
+        <div class="row"><button id="site-access-grant" type="button" class="od-button od-button--secondary">恢复全部网站访问</button><button id="site-access-refresh" type="button" class="od-button od-button--secondary">刷新授权状态</button></div>
         <p class="hint">如 Chrome 限制了网站权限，可点击恢复或前往扩展详情将“网站访问”改为“所有网站”。浏览器内部页、file://、隐身与用户脚本开关仍有独立限制。</p>
       </details>
       <p class="hint">默认使用当前网页；手动目标仅用于高级操作。</p>
-      <div class="row"><label for="script-target-mode">目标方式</label><select id="script-target-mode"><option value="current">当前网页（默认）</option><option value="owned">创建隔离网页（高级）</option><option value="borrowed">手动选择精确文档（高级）</option></select></div>
-      <label for="script-owned-url">隔离网页地址</label><input id="script-owned-url" type="url" placeholder="https://example.com/" disabled>
-      <div class="row"><label for="script-tab">现有网页</label><select id="script-tab"><option value="">请选择具体网页</option></select><button id="script-refresh">刷新网页列表</button></div>
-      <label for="script-document">精确文档</label><select id="script-document"><option value="">请选择当前精确文档</option></select>
+      <div class="row"><label for="script-target-mode" class="od-field-label">目标方式</label><select id="script-target-mode" class="od-field"><option value="current">当前网页（默认）</option><option value="owned">创建隔离网页（高级）</option><option value="borrowed">手动选择精确文档（高级）</option></select></div>
+      <label for="script-owned-url" class="od-field-label">隔离网页地址</label><input id="script-owned-url" type="url" placeholder="https://example.com/" disabled class="od-field">
+      <div class="row"><label for="script-tab" class="od-field-label">现有网页</label><select id="script-tab" class="od-field"><option value="">请选择具体网页</option></select><button id="script-refresh" class="od-button od-button--secondary">刷新网页列表</button></div>
+      <label for="script-document" class="od-field-label">精确文档</label><select id="script-document" class="od-field"><option value="">请选择当前精确文档</option></select>
       <p><label><input id="script-allow-cookies" type="checkbox">允许脚本访问目标网站的 Cookie</label></p>
-      <button id="script-delete" disabled>删除脚本</button>
-      <details><summary>当前网页精确身份</summary><pre id="script-current-page-debug" aria-label="当前网页精确目标"></pre></details>
+      <button id="script-delete" disabled class="od-button od-button--danger">删除脚本</button>
+      <details class="od-disclosure od-disclosure--flat"><summary>当前网页精确身份</summary><pre id="script-current-page-debug" aria-label="当前网页精确目标"></pre></details>
     </details>
   </section>
   <details id="tool-diagnostics"><summary>Advanced / Diagnostics</summary>
