@@ -267,7 +267,8 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     if(tasksChanged||plansChanged)renderManager();
     renderRunner();
     if(shown){
-      message('');
+      // Do not clear a visible inline save/permission error on each 15s Host
+      // poll. Explicit user navigation and successful operations own messages.
       void refreshStorageUsage();
     }
   }
@@ -452,8 +453,14 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
         frequencyLabel(plan)+' · '+(catalogEntry?.manifest?.title||plan.taskId));
       const previous=historyViews.get(plan.scheduleId);
       const view=previous||{records:[],hasMore:false,open:false,moreOpen:false,deleteReview:false};
-      view.records=mergeScheduleHistoryView(plan.history||[],view.records);
-      if(!previous)view.hasMore=(plan.history||[]).length===20;
+      const latest=plan.history||[];
+      const overlap=!latest.length||!view.records.length||
+        latest.some(fire=>view.records.some(loaded=>loaded.fireId===fire.fireId));
+      // An extended background gap can add 20+ newer Fires. In that case the
+      // first server page no longer overlaps cached older pages. Do not skip a
+      // missing middle page by treating the old row count as a valid offset.
+      view.records=mergeScheduleHistoryView(latest,overlap?view.records:[]);
+      if(!previous||!overlap)view.hasMore=latest.length===20;
       historyViews.set(plan.scheduleId,view);
       const last=view.records[0];
       const warning=plan.needsAttention?
@@ -815,7 +822,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     }catch(error){message(error?.message||String(error),true);}finally{busy=false;}
   }
   async function open(view='list'){
-    taskWorkbench.navigate('tasks');showPanel();show(view);
+    taskWorkbench.navigate('tasks');showPanel();show(view);message('');
     try{await refresh();}catch(error){message('读取计划失败：'+(error?.message||String(error)),true);}
   }
   function stop(){
