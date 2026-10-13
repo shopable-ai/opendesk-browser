@@ -433,7 +433,7 @@
         "Playwright MCP",
         "Browser Use",
         "Google Gemini in Chrome Skills: saved one-click AI prompts, official 2026-04-14 https://blog.google/products-and-platforms/products/chrome/skills-in-chrome/",
-        "Claude in Chrome recorded reusable workflows: 2026-07-24 beta release notes https://support.claude.com/en/articles/12138966-release-notes",
+        "Claude in Chrome recorded reusable workflows: December 18, 2025 official beta release notes https://support.claude.com/en/articles/12138966-release-notes",
         "UiPath Delegate 2026-08-25 Public Preview reusable/scheduled Routines https://docs.uipath.com/delegate/standalone/latest/release-notes/august-2026",
         "Axiom Claude Skill Chrome bot import/repeated execution https://axiom.ai/automate/chrome/",
         "AI Coding + Playwright + Tampermonkey/ScriptCat/WXT or Apify Actor"
@@ -498,7 +498,15 @@
         ],
         "shortTermMarketing": "M0 only: AI-assisted, reviewable installed browser workflows (full native acceptance pending).",
         "requiresGlobalFirstClaim": false,
-        "measurementRequiresDirectProductBenchmark": true
+        "measurementRequiresDirectProductBenchmark": true,
+        "correctedClaudeEvidence": {
+          "previouslyMistakenDate": "2026-07-24",
+          "officialRecordingDocumented": "2025-12-18",
+          "earlierBrowserSchedulingAndPlanApproval": "2025-11-24",
+          "url": "https://support.claude.com/en/articles/12138966-release-notes",
+          "historicalFirstAvailability": "RESEARCH_INCOMPLETE",
+          "note": "The July 24 2026 section concerns Claude Opus 5, not workflow recording."
+        }
       }
     },
     {
@@ -1169,6 +1177,12 @@
         "passRule": "real downloadable package/store + legal website access, first self-service activation and natural repeat",
         "status": "NOT_TESTED"
       }
-    ]
+    ],
+    "dateCorrection": {
+      "source": "Anthropic official release notes",
+      "incorrect": "2026-07-24",
+      "correct": "2025-12-18 workflow recording; 2025-11-24 scheduled tasks and approved plans",
+      "firstFeatureHistoricalCompleteness": "UNKNOWN"
+    }
   }
 }
