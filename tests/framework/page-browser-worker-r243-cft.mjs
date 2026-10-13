@@ -10,6 +10,7 @@ import path from 'node:path';
 import {WebSocket} from 'ws';
 import {launchLocalDevChrome} from './local-dev-cft-launcher.mjs';
 import {runBrowserComponentCycles} from './page-browser-ui-r243-cycles.mjs';
+import {runR72PageClassicCycle} from './page-dependency-r72-cft-cycle.mjs';
 
 const root=process.cwd(),output=path.resolve(process.env.OPENDESK_DEV_EVIDENCE||
   '.runtime/tests/page-browser-worker-r243'),packageRoot=path.resolve(process.env.OPENDESK_DEV_PACKAGE_DIR||'dist/production');
@@ -135,6 +136,8 @@ async function verifyBrowserUI({browser,page,catalogTabId,base,extensionId,outpu
       'trusted Sidebar developer navigation',10000);
     const permission=await sidebar.read('chrome.permissions.contains({origins:["http://127.0.0.1:43111/*"]})');
     assert.equal(permission,true,'original Chrome website permission must be granted');
+    if(process.env.OPENDESK_R72_DEPENDENCY_NATIVE_SMOKE==='1')
+      await runR72PageClassicCycle({sidebar,website,browser,base,extensionId,cdp,until,clickReal,report});
     if(process.env.OPENDESK_R245_STANDARD_SMOKE==='1'){
       const marker=await sidebar.read('(async()=>{const r=await fetch(chrome.runtime.getURL("framework/browser-edition.json"));'+
         'if(!r.ok)throw Error("E_EDITION_MARKER");return r.json()})()');
