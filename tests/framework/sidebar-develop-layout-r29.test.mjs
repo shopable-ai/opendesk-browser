@@ -16,7 +16,7 @@ test('Develop history retains unique DOM IDs, labels and nested disclosure struc
   for(const id of ids)
     assert.equal((html.match(new RegExp('id="'+id+'"','g'))||[]).length,1,'missing/duplicate '+id);
   const start=html.indexOf('<details id="script-history-panel"');
-  const end=html.indexOf('<details id="developer-run-technical"',start);
+  const end=html.indexOf('\n  </div></details>\n  <details id="developer-run-technical"',start);
   assert(start>=0&&end>start,'History must remain inside results panel');
   const markup=html.slice(start,end);
   assert(markup.includes('<summary>运行记录与技术信息</summary>'));
