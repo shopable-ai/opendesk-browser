@@ -216,3 +216,17 @@ node scripts/cloud-control/cli.mjs client:revoke --client CLIENT_UUID --director
 **当前唯一事实性后续阻断**：GitHub Actions 队列与无 Mac Chrome 原生资源。先确认最终同一 SHA `npm run test:cloud`、Authority/Side Panel、`npm run check`、`npm run build`、`npm run build:dev`、`npm run verify`；构建成功时记录当次真实 PackageHash。再在相互隔离的原生 Chrome A/B 上完成两个不同 Task Worker/Run/Result/receipt 及隐私/授权撤销/未知副作用；没有公网授权不标公网通过。
 
 **CI 状态追加核查（同日，保留上方首次观察时间）：** 固定预算 CI [#38379209138](https://github.com/shopable-ai/opendesk-browser/actions/runs/38379209138) 已由 `pending` 转为 `completed/cancelled`（并行 `main` 提交期间被取消），因此 **不是 PASS 也不是实际构建失败**；当前候选无可用的生产/开发 PackageHash。R5.2 专项 [#38379208965](https://github.com/shopable-ai/opendesk-browser/actions/runs/38379208965) 仍在排队；两者均不能标记 `BUILD_VERIFIED` 或新 `COMPONENT_TESTED`。同名 JSON 已追加此状态，保留旧状态的历史快照。
+
+
+## R5.2.4 · 唯一云控 UI 交互预览与 39 项功能树
+
+日期：2026-10-13。本次用户优先要求**先完成可检查的 HTML 预览，再基于原有产品代码迁移**。本项只新增单一设计原型，不替换真实 Side Panel，不新建 Runner/Task Registry/权限系统，也不改写历史 R1–R5.1 事实。
+
+- 唯一预览：[\`examples/ui/cloud-control-r5.2-preview.html\`](../../../examples/ui/cloud-control-r5.2-preview.html)。支持首次使用、已配对未授权、正常运行、执行中、离线重连及安装版本失效六种场景；各场景可切换 300/320/360/420/520 CSS px，交互模拟配对、固定 Task 多选、单任务正文回传、单次审阅、历史筛选/详情、Stop 和 Unpair。
+- 完整 UI 设计合同：[云控 R5.2 UI 功能树 / 源码映射](../../architecture/browser-framework/cloud-control-r5.2-ui-preview-contract.zh-CN.md)；**6 类 39 项可追溯功能**：状态与导航 7、配对 5、Task 审批与权限 9、请求/结果历史 7、撤权及恢复 5、响应式/安全质量 6。每项区分真实源码能力、仅原型功能与原生待验收。
+- 组件静态契约测试：\`tests/cloud-control/r52-ui-preview-contract.test.mjs\`，保证唯一离线 HTML、R27 Tokens、6 类状态/5 档宽度、双独立 Task 固定 sourceHash、逐任务隐私及 39 项文档未偏离。新增测试属于新候选，尚未凭旧 CI 推升为 \`COMPONENT_TESTED\`。
+- 设计验证：独立容器 Chromium headless 对 HTML 执行真实 DOM/JS 交互，6 场景 × 5 CSS 宽度 = **30 个静态原型布局样本**，当前横向溢出 **0**、JS pageerror **0**；配对、审阅确认、正文许可、离线拒绝虚假解除、焦点保持的演示交互通过。这里的浏览器没有安装 OpenDesk 扩展，因此只表示 **HTML preview 可运行**，**不是 \`NATIVE_VERIFIED\`**。
+- 当前生产 \`src/ui/{tool.html,cloud-hosting.js,tool-shell.css}\` 仍是原有云控产品代码。原型的 **Manage/Review/Request Detail** 二级视图需要根据上述合同迁移；Provider 客户端 Token 管理仍属于 Provider 权限域，不可为了 UI 制造第二套权限系统。
+- 下一独立 Gate：设计评审确认单一信息架构 → 安全增量迁移生产 Side Panel → 源码专项测试及双构建 → 原生 Mac Chrome 300–520px、真正 125%/200% Zoom、键盘/焦点和真实双 Task Run/Result/receipt。**目前原生 UI 和双任务执行继续 \`NATIVE_PENDING\`，公网端到端仍 \`REMOTE_NATIVE_PENDING\`，不填虚假 95 分。**
+
+该页面设计符合 R27/R28 的 token/信息层级与唯一 gutter 规则，但静态原型不会自动证明实际扩展布局、可访问性、原生 Worker 或平台授权。验收、分数与 PackageHash 必须绑到迁移后的真正源码候选。
