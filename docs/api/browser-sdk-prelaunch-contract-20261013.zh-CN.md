@@ -84,6 +84,10 @@
 
 ## R10.1 现行运行时事实（不覆盖前述 R8/R9 历史快照）
 
-- `BROWSER_OPERATIONS` 当前共有 **40 项**，其中 **Cookies 11 项**已由 `OpenDeskSDK.browser.cookies.*` 正式公开给**具备真实安装身份、精确站点/Store/PartitionKey/Chrome 权限和 Side Panel Cookie 用户授权**的安装工具。Page SDK 仍拒绝特权 Cookie 调用；明文单独要求 values 权限。内置受信 Cookie UI 使用已有 Host-only approve/execute；两种 Caller 身份不可混用，底层仍共用唯一 Host 和 Cookie Driver。
+- `BROWSER_OPERATIONS` 当前共有 **44 项**，其中 **Cookies 11 项**已由 `OpenDeskSDK.browser.cookies.*` 正式公开给**具备真实安装身份、精确站点/Store/PartitionKey/Chrome 权限和 Side Panel Cookie 用户授权**的安装工具。Page SDK 仍拒绝特权 Cookie 调用；明文单独要求 values 权限。内置受信 Cookie UI 使用已有 Host-only approve/execute；两种 Caller 身份不可混用，底层仍共用唯一 Host 和 Cookie Driver。
 - Clipboard / Downloads 不再从 Browser SDK Wrapper 转成 `clipboard.writeText` / `file.download` 旧 UI 消息。正式 `browser.clipboard.writeText` / `browser.downloads.text` 由受信 Side Panel 真点击、Host 一次性 Intent、原 Side Panel 系统复制/下载服务共同完成，具体原生效果仍待同候选验收。
-- 此处与唯一执行手册均为**按当前源码的局部修订**。最新接口矩阵已经记录 40 项已注册接口、11 项 Cookies 的 `APPROVED_TOOL_REGISTERED` 可见性、0 项旧 Cookies Host-only 设计；仍不得把矩阵同步等同于全部 Node/Build/Native 门禁完成。
+- 此处与唯一执行手册均为**按当前源码的局部修订**。最新接口矩阵已经记录 44 项已注册接口、11 项 Cookies 的 `APPROVED_TOOL_REGISTERED` 可见性、0 项旧 Cookies Host-only 设计；仍不得把矩阵同步等同于全部 Node/Build/Native 门禁完成。
+
+## R10.1 P3 下载所有权实施（2026-10-13）
+
+四项获批准的 Downloads 功能已由待实施变为正式 `OpenDeskSDK.browser.downloads.download/getOwned/listOwned/cancelOwned`，当前 55 项总合同为 **44 项 SOURCE_WIRED + 11 项设计待实施**。唯一 Browser Host 复核已安装 Tool packageHash、Epoch、Chrome downloads、站点 Origin 与受信 Side Panel 单次点击批准，受限 Driver 仅持有本工具的 opaque `downloadRef` 和对应原生 ID，不向 sandbox 暴露原生 ID 或全浏览器下载列表。Ref 为短时内存记录，Worker 重启和撤权后失效；未知原生副作用不自动重试。新增负向 Node 测试文件已提交，但本候选 Node、Build 和 Native Chrome 仍为 **NOT_TESTED**，不能因源码接线直接评分 95+。
