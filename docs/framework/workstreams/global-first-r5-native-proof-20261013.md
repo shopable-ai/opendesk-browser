@@ -29,7 +29,7 @@
 
 ### 后续并行代码修复与第三次合法重测条件
 
-- 原 Side Panel/构建负责人于 [a7c7f209](https://github.com/shopable-ai/opendesk-browser/commit/a7c7f209684b99360362d776b14440b02240648861)（请以仓库实际完整 SHA 为准，前述短号为定位）修改 `scripts/verify-package.mjs`，严格只对固定 `ui/tool-shell.js` 接受单一、同步、零参数的 `!function(){...}()` Terser 表达式形式。一般非经典入口、额外顶层语句、其它文件和带参数执行仍继续拒绝；后续另有针对错误 IIFE 的拒绝性测试。**这是一条由构建负责人确定的狭义受控构建格式，而非本 R5 通过关闭验证器放行。**
+- 原 Side Panel/构建负责人于 [a7c7f209](https://github.com/shopable-ai/opendesk-browser/commit/a7c7f209684b59ea759eb104f30d80e9f955ca32)修改 `scripts/verify-package.mjs`，严格只对固定 `ui/tool-shell.js` 接受单一、同步、零参数的 `!function(){...}()` Terser 表达式形式。一般非经典入口、额外顶层语句、其它文件和带参数执行仍继续拒绝；后续另有针对错误 IIFE 的拒绝性测试。**这是一条由构建负责人确定的狭义受控构建格式，而非本 R5 通过关闭验证器放行。**
 - 因共享校验器输入确有明确变更，按既有 testing-guide 允许重新跑受影响的 `npm run build / verify / CFT`。第三次 [Linux 真实 Chrome CFT #38368328878](https://github.com/shopable-ai/opendesk-browser/actions/runs/38368328878) 绑定 `5f2c2c229cf065d4fe70dd9ed852086bfcff6f1c`；**在原始报告完成前保留 QUEUED/RUNNING，不提前认定 PASS**。
 - 与前两次不一样的是测试输入变更有 GitHub 证据，因此这不是没有代码变化的循环重试；若再次失败必须记录新失败点及受影响输入，不能借 Node green 或旧发行包代替。
 
