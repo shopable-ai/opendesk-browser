@@ -58,28 +58,35 @@
           <div>
             <p class="schedule-runner-kicker">可见运行宿主 · Chrome 定时计划</p>
             <h1>运行概览</h1>
-            <p class="hint">本页保持打开时可领取到期任务。Chrome 完全退出、设备休眠或没有任何可见运行宿主时不会在后台执行。</p>
+            <p class="hint">本页保持打开后可执行获准的到期任务。</p>
           </div>
           <div class="schedule-actions od-toolbar">
             <button id="schedule-runner-manage" type="button" class="od-button">管理全部计划</button>
             <button id="schedule-runner-refresh" type="button" class="od-button od-button--secondary">刷新</button>
           </div>
         </div>
-        <div class="schedule-runner-metrics" aria-label="运行概况">
-          <div class="schedule-runner-metric od-surface"><span>运行宿主</span><strong id="schedule-runner-host-status" role="status">正在连接…</strong></div>
-          <div class="schedule-runner-metric schedule-runner-metric--detail od-surface"><span>下次执行</span><strong id="schedule-runner-next">暂无计划</strong><small id="schedule-runner-next-detail"></small></div>
-          <div class="schedule-runner-metric schedule-runner-metric--detail od-surface"><span>当前任务</span><strong id="schedule-runner-current">暂无任务运行</strong><small id="schedule-runner-current-detail"></small></div>
-          <div class="schedule-runner-metric od-surface"><span>最近结果</span><strong id="schedule-runner-result">尚无记录</strong><small id="schedule-runner-result-detail"></small></div>
-        </div>
         <section class="schedule-runner-focus od-surface" aria-labelledby="schedule-runner-focus-title">
+          <p class="schedule-runner-focus-kicker">优先关注</p>
           <div class="schedule-card-head od-toolbar">
             <div><strong id="schedule-runner-focus-title">下一个计划</strong><p id="schedule-runner-focus-detail" class="hint">暂无已安装计划</p></div>
             <button id="schedule-runner-toggle" type="button" class="od-button od-button--secondary" disabled>暂停计划</button>
           </div>
           <p id="schedule-runner-focus-time" class="schedule-runner-focus-time" aria-live="polite">等待计划</p>
-           <p id="schedule-runner-explain" class="hint">到期时将检查目标网页、固定任务身份和执行槽。</p>
+          <p id="schedule-runner-explain" class="hint">到期时将检查目标网页、固定任务身份和执行槽。</p>
           <button id="schedule-runner-history" type="button" class="od-button od-button--secondary">查看计划及运行记录</button>
         </section>
+        <div class="schedule-runner-metrics" aria-label="运行概况">
+          <div class="schedule-runner-metric od-surface"><span>运行宿主</span><strong id="schedule-runner-host-status" role="status">正在连接…</strong></div>
+          <div class="schedule-runner-metric od-surface"><span>最近结果</span><strong id="schedule-runner-result">尚无记录</strong><small id="schedule-runner-result-detail"></small></div>
+        </div>
+        <details class="schedule-runner-extra">
+          <summary>其他调度状态和运行说明</summary>
+          <div class="schedule-runner-extra-grid">
+            <div class="schedule-runner-metric schedule-runner-metric--detail od-surface"><span>下次执行</span><strong id="schedule-runner-next">暂无计划</strong><small id="schedule-runner-next-detail"></small></div>
+            <div class="schedule-runner-metric schedule-runner-metric--detail od-surface"><span>当前任务</span><strong id="schedule-runner-current">暂无任务运行</strong><small id="schedule-runner-current-detail"></small></div>
+          </div>
+          <p class="hint">定时执行依赖可见宿主、网站授权和原 Controller 执行槽；浏览器关闭时不会唤醒电脑。</p>
+        </details>
       </section>
       <div id="schedule-list-view" class="od-stack">
         <div class="schedule-actions od-toolbar">
