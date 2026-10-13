@@ -522,6 +522,16 @@
       "sha256": "61a0b84e287634fcd4474b5bcb1d0dc81e3c1f9071cd0a835ce38dac43331e27"
     },
     {
+      "path": "main-push-and-ci.json",
+      "bytes": 2932,
+      "sha256": "b2956887d1ba5467d270acd35da14697a1bdb87b78380fb6227081b38bf61bfe"
+    },
+    {
+      "path": "main-push.log",
+      "bytes": 83,
+      "sha256": "50ef6fb47b32e442e975c2e1e96a1c6ea2b7bedc9f22911b24faeb17a5c92d57"
+    },
+    {
       "path": "native-driver-attempt-21.txt",
       "bytes": 46919,
       "sha256": "ba046580f217d3ad55d4dba082a27af731282b8d03b9fb787950c8a6b81e5f57"

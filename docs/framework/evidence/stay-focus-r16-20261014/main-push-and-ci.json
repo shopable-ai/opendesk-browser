@@ -1,0 +1,82 @@
+{
+  "queriedAt": "2026-10-13T20:15:21.546677+00:00",
+  "pushedCommit": "ada5b7ed76ef3f0993769c753ccfc481d5723bca",
+  "sourceFix": "f831f5d3f906fca9171e2c9cd662484a07c95ef3",
+  "pushExitCode": 0,
+  "forcePush": false,
+  "workflowRunCount": 7,
+  "workflowRuns": [
+    {
+      "id": 38461289222,
+      "name": "Native Agent R1 components and package",
+      "status": "queued",
+      "conclusion": null,
+      "head_sha": "ada5b7ed76ef3f0993769c753ccfc481d5723bca",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38461289222"
+    },
+    {
+      "id": 38461289244,
+      "name": "Sidebar R1 P0 targeted checks",
+      "status": "in_progress",
+      "conclusion": null,
+      "head_sha": "ada5b7ed76ef3f0993769c753ccfc481d5723bca",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38461289244"
+    },
+    {
+      "id": 38461289115,
+      "name": "R7 axiosx HTTP page + fixture contracts",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "ada5b7ed76ef3f0993769c753ccfc481d5723bca",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38461289115"
+    },
+    {
+      "id": 38461289169,
+      "name": "Stay Focus R1 - independent Chrome restrictions and native evidence",
+      "status": "in_progress",
+      "conclusion": null,
+      "head_sha": "ada5b7ed76ef3f0993769c753ccfc481d5723bca",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38461289169"
+    },
+    {
+      "id": 38461289273,
+      "name": "Cleanup merged short-lived OpenDesk branches",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "ada5b7ed76ef3f0993769c753ccfc481d5723bca",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38461289273"
+    },
+    {
+      "id": 38461289266,
+      "name": "Site access targeted checks",
+      "status": "completed",
+      "conclusion": "failure",
+      "head_sha": "ada5b7ed76ef3f0993769c753ccfc481d5723bca",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38461289266"
+    },
+    {
+      "id": 38461289107,
+      "name": "Page userscript dependencies and package",
+      "status": "completed",
+      "conclusion": "failure",
+      "head_sha": "ada5b7ed76ef3f0993769c753ccfc481d5723bca",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38461289107"
+    }
+  ],
+  "r15Jobs": [
+    {
+      "id": 115403285041,
+      "name": "source-and-build",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38428256016/job/115403285041"
+    },
+    {
+      "id": 115404593802,
+      "name": "native-mac-chrome",
+      "status": "queued",
+      "conclusion": null,
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38428256016/job/115404593802"
+    }
+  ]
+}

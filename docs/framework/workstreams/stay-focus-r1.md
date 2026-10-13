@@ -52,7 +52,7 @@ production packageHash：`8de5cf8ca372796d35079ec4cd5f1dc4542571b1716b02ec45ef65
 
 **证据与 CI。** 原始完整日志/失败/截图保存在 `artifacts/stay-focus-r1-native/20261014-r16/`；可随 main 审阅的核心副本在 [本轮证据目录](../evidence/stay-focus-r16-20261014/manifest.json)。目录保存原退出码、两种源码身份、receipt、报告及截图，manifest 逐文件列 SHA-256；旧 artifacts、CI receipt 和 profile 身份没有被覆写。复测基础与缺口保留为 `NATIVE_PASS / NATIVE_FAIL / NATIVE_BLOCKED / NOT_TESTED`，整工具不登记 `PRODUCT_ACCEPTED`。
 
-旧 CI Run [38428256016](https://github.com/shopable-ai/opendesk-browser/actions/runs/38428256016)：source-and-build 115403285041 成功、native-mac-chrome 115404593802 在本轮查询时仍 queued；只属于 b39be6ab，不替代本机候选。本任务修复提交 f831f5d3 的 workflow_runs 查询为空；最终 main 推送后的 CI 状态另行记录，未完成不能登记 CI PASS。
+旧 CI Run [38428256016](https://github.com/shopable-ai/opendesk-browser/actions/runs/38428256016)：source-and-build 115403285041 成功、native-mac-chrome 115404593802 在本轮查询时仍 queued；只属于 b39be6ab，不替代本机候选。本任务修复提交 f831f5d3 的按 SHA workflow_runs 查询为空。验收与驱动提交 `ada5b7ed76ef3f0993769c753ccfc481d5723bca` 已常规推送 main（exit 0，无强推）；本轮 Stay Focus CI [#38461289169](https://github.com/shopable-ai/opendesk-browser/actions/runs/38461289169) 在 2026-10-13T20:15:21.546677+00:00 的真实状态为 `in_progress`、conclusion=null，未登记 CI PASS。推送及 API 查询回执见 `main-push.log` / `main-push-and-ci.json`；这条 CI 不替代本机原生证据。
 
 交付前复核 main `400b3ec1dec2aefc64cbdd37404845320f1a6176`：candidate-07 的 production/development 各 470 个 product inputs 与该提交逐项 SHA 一致、差异 0；详见 `final-main-product-binding.json`。该比对只证明构建输入一致，不提升原生验收等级。
 
