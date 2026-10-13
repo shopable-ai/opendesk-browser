@@ -1,0 +1,185 @@
+{
+  "format": "opendesk.global-first-r5-source-index.v1",
+  "date": "2026-10-13",
+  "role": "RESEARCH_SOURCE_RECEIPTS_NOT_SECOND_LEDGER",
+  "snapshotMainReadAt": "2026-10-13",
+  "competitors": 45,
+  "canonicalRecords": 45,
+  "portfolioView": "docs/product/browser-extension-ecosystem/opportunity-register.json#globalFirstR5Portfolio",
+  "preservedOpportunities": 84,
+  "preservedExperiments": 8,
+  "strategicTop20Count": 20,
+  "approvedFirstClaims": 0,
+  "qualityScore": "NOT_SCORED",
+  "sourceEvidence": [
+    {
+      "id": "gemini-in-chrome",
+      "eventDate": "2026-04-14",
+      "channel": "CHROME_DESKTOP_SKILLS_ROLLOUT",
+      "url": "https://blog.google/products-and-platforms/products/chrome/skills-in-chrome/",
+      "summary": "Save and repeat AI prompt Skill, not proven no-model execution",
+      "firstPublicFeatureClaim": true,
+      "nativeComparativeTest": "NOT_TESTED"
+    },
+    {
+      "id": "claude-in-chrome",
+      "eventDate": "2026-07-24",
+      "channel": "BETA_RELEASE_NOTES_FEATURE",
+      "url": "https://support.claude.com/en/articles/12138966-release-notes",
+      "summary": "Record and repeat workflow, model-free source ownership not proven",
+      "firstPublicFeatureClaim": true,
+      "nativeComparativeTest": "NOT_TESTED"
+    },
+    {
+      "id": "uipath-delegate",
+      "eventDate": "2026-08-25",
+      "channel": "OFFICIAL_PUBLIC_PREVIEW",
+      "url": "https://docs.uipath.com/delegate/standalone/latest/release-notes/august-2026",
+      "summary": "Routines schedule/reuse/enterprise approval",
+      "firstPublicFeatureClaim": true,
+      "nativeComparativeTest": "NOT_TESTED"
+    },
+    {
+      "id": "axiom-ai",
+      "eventDate": null,
+      "channel": "OFFICIAL_VENDOR_PRODUCT_DOC",
+      "url": "https://axiom.ai/automate/chrome/",
+      "summary": "Natural language creates extension bot / cloud bot; first feature date unknown",
+      "firstPublicFeatureClaim": false,
+      "nativeComparativeTest": "NOT_TESTED"
+    },
+    {
+      "id": "microsoft-power-automate-desktop",
+      "eventDate": null,
+      "channel": "OFFICIAL_BROWSER_ACTION_REFERENCE",
+      "url": "https://learn.microsoft.com/en-us/power-automate/desktop-flows/automation-web",
+      "summary": "Chrome support with extension/WebDriver and recorded UI tasks",
+      "firstPublicFeatureClaim": false,
+      "nativeComparativeTest": "NOT_TESTED"
+    },
+    {
+      "id": "apify-actors",
+      "eventDate": null,
+      "channel": "OFFICIAL_ACTORS_CONTRACT",
+      "url": "https://docs.apify.com/actors",
+      "summary": "Versioned cloud programs with structured inputs, schedule and publication",
+      "firstPublicFeatureClaim": false,
+      "nativeComparativeTest": "NOT_TESTED"
+    },
+    {
+      "id": "scriptcat",
+      "eventDate": "2026-09-18",
+      "channel": "GITHUB_BETA_RELEASE",
+      "url": "https://github.com/scriptscat/scriptcat/releases/tag/v1.5.0-beta.4",
+      "summary": "Permission/unsupported GM capability preview; beta not stable",
+      "firstPublicFeatureClaim": false,
+      "nativeComparativeTest": "NOT_TESTED"
+    },
+    {
+      "id": "playwright",
+      "eventDate": "2026-10-07",
+      "channel": "GITHUB_STABLE_RELEASE",
+      "url": "https://github.com/microsoft/playwright/releases/tag/v1.64.0",
+      "summary": "Fixed script automation, code-based alternative",
+      "firstPublicFeatureClaim": false,
+      "nativeComparativeTest": "NOT_TESTED"
+    },
+    {
+      "id": "n8n",
+      "eventDate": "2026-10-12",
+      "channel": "GITHUB_STABLE_PACKAGE_RELEASE",
+      "url": "https://github.com/n8n-io/n8n/releases/tag/n8n%402.42.7",
+      "summary": "Workflow automation alternative; site session equivalence unknown",
+      "firstPublicFeatureClaim": false,
+      "nativeComparativeTest": "NOT_TESTED"
+    },
+    {
+      "id": "activepieces",
+      "eventDate": "2026-10-12",
+      "channel": "GITHUB_STABLE_RELEASE",
+      "url": "https://github.com/activepieces/activepieces/releases/tag/0.92.3",
+      "summary": "Workflow automation alternative",
+      "firstPublicFeatureClaim": false,
+      "nativeComparativeTest": "NOT_TESTED"
+    },
+    {
+      "id": "selenium-ide",
+      "eventDate": "2024-07-20",
+      "channel": "GITHUB_TAGGED_BETA_RELEASE",
+      "url": "https://github.com/SeleniumHQ/selenium-ide/releases/tag/v4.0.1-beta.14",
+      "summary": "Old Chrome extension version 3 retired; current IDE standalone",
+      "firstPublicFeatureClaim": false,
+      "nativeComparativeTest": "NOT_TESTED"
+    },
+    {
+      "id": "zapier-agents",
+      "eventDate": "2026-10-01",
+      "channel": "OFFICIAL_DOC_UPDATE",
+      "url": "https://help.zapier.com/hc/en-us/articles/45394909914381-Set-up-your-agent-s-trigger",
+      "summary": "Manual/scheduled/Zap/MCP triggers; date not feature first release",
+      "firstPublicFeatureClaim": false,
+      "nativeComparativeTest": "NOT_TESTED"
+    },
+    {
+      "id": "browse-ai",
+      "eventDate": "2025-12-05",
+      "channel": "VENDOR_DATED_HELP_DOC",
+      "url": "https://help.browse.ai/en/articles/10535487-how-to-set-up-monitoring-for-website-changes",
+      "summary": "Robot and schedules; scraping product not OpenDesk scope",
+      "firstPublicFeatureClaim": false,
+      "nativeComparativeTest": "NOT_TESTED"
+    },
+    {
+      "id": "text-blaze",
+      "eventDate": null,
+      "channel": "VENDOR_DOCUMENTATION_CURRENT",
+      "url": "https://blaze.today/guides/forms/",
+      "summary": "Chrome dynamic form, formula and canned text, narrow stronger substitute",
+      "firstPublicFeatureClaim": false,
+      "nativeComparativeTest": "NOT_TESTED"
+    },
+    {
+      "id": "onepassword-for-claude",
+      "eventDate": "2026-07-16",
+      "channel": "ANTHROPIC_BETA_HELP_DOC",
+      "url": "https://support.claude.com/en/articles/15936181-get-started-with-1password-for-claude",
+      "summary": "Biometric per-credential consent; not repeatable task runner",
+      "firstPublicFeatureClaim": false,
+      "nativeComparativeTest": "NOT_TESTED"
+    },
+    {
+      "id": "google-search-seo",
+      "eventDate": null,
+      "channel": "GOOGLE_OFFICIAL_SEO_GUIDANCE",
+      "url": "https://developers.google.com/search/docs/appearance/ai-features",
+      "summary": "Standard SEO, no AI-specific special schema",
+      "firstPublicFeatureClaim": false,
+      "nativeComparativeTest": "NOT_TESTED"
+    },
+    {
+      "id": "bing-ai-performance",
+      "eventDate": "2026-02-10",
+      "channel": "BING_OFFICIAL_PUBLIC_PREVIEW",
+      "url": "https://blogs.bing.com/webmaster/2026/2/Introducing-AI-Performance-in-Bing-Webmaster-Tools-Public-Preview/",
+      "summary": "AI cited pages and grounding queries not recommendation guarantee",
+      "firstPublicFeatureClaim": false,
+      "nativeComparativeTest": "NOT_TESTED"
+    }
+  ],
+  "userResearch": {
+    "interviews": "NOT_TESTED",
+    "naturalRepeat": "NOT_TESTED",
+    "paidOrders": "NOT_MEASURED",
+    "publicRelease": "NOT_VERIFIED"
+  },
+  "newRepositoryTest": "tests/environment/global-first-r5-product-evidence.test.mjs",
+  "proofDesign": "docs/framework/workstreams/evidence/global-first-r5-20261013/benchmark-contract.json",
+  "dontConfuse": [
+    "old R4 research candidate hashes are not new Chrome execution receipts",
+    "GitHub stable release dates are not first public feature dates unless explicitly corroborated",
+    "Chrome Skills prompt replay not same as model-free code unless demonstrated",
+    "Claude recorded workflow does not by itself prove frozen JS ownership",
+    "benchmark test scripts without native Chrome cannot earn MAC_CFT_PASS",
+    "do not reuse archived EXP-002 as product proof"
+  ]
+}
