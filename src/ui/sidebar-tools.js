@@ -779,11 +779,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     // that would deadlock the host's existing per-tool Web Lock.
     if(operation.startsWith('browser.')){
       normalizeBrowserOperation(operation,payload);
-      // Canonical Browser exports reuse the existing installation-locked host
-      // services and user.export authority, including their confirmed results.
-      if(operation==='browser.clipboard.writeText'||operation==='browser.downloads.text')
-        return dispatch(operation==='browser.clipboard.writeText'?'clipboard.writeText':'file.download',
-          payload,tool,source,token,revocationEpoch);
+      const browserExport=operation==='browser.clipboard.writeText'||operation==='browser.downloads.text';
       const isDiscovery=['browser.capabilities.list','browser.capabilities.getStatus'].includes(operation);
       if(!isDiscovery&&(!browserOperation(operation)||!browserOperation(operation).requiredCapabilities.every(cap=>tool.capabilities.includes(cap))))
         throw Object.assign(new Error('此工具没有获准浏览器能力'),{code:'E_TOOL_CAPABILITY_REQUIRED'});
@@ -802,6 +798,26 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       const envelope={protocol:BROWSER_HOST_PROTOCOL,kind:'tool',
         operation,args:payload||{},toolId:tool.id,toolVersion:tool.version,
         installEpoch:revocationEpoch,packageHash,toolInstance:token,hostInstanceId};
+      if(browserExport){
+        // A sandbox-initiated request is NOT a trusted click, even when the
+        // request originated from an iframe button. The visible Side Panel
+        // confirms one exact call; the Host then consumes that approval once.
+        const label=operation==='browser.clipboard.writeText'?'复制文本到剪贴板':'导出文本文件';
+        envelope.approvalRef=await requestBrowserClick({toolId:tool.id,
+          message:'「'+tool.title+'」请求'+label+'。仅允许本次操作。',
+          button:'允许本次导出',run:async event=>{
+            if(!event?.isTrusted)throw Object.assign(new Error('需要真实用户点击'),{code:'E_USER_GESTURE_REQUIRED'});
+            assertSession(source,token);
+            const approval=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
+              operation:'browser.intent.confirm',toolId:tool.id,toolVersion:tool.version,
+              installEpoch:revocationEpoch,packageHash,toolInstance:token,hostInstanceId,
+              targetOperation:operation,targetArgs:payload||{}});
+            if(!approval?.ok)throw Object.assign(new Error(approval?.error?.message||'Browser Host denied export'),{
+              code:approval?.error?.code||'E_BROWSER'});
+            return approval.data.approvalRef;
+          }});
+        assertSession(source,token);
+      }
       if(operation==='browser.sidePanel.openSelf'){
         const preflight=await api.runtime.sendMessage(envelope);
         if(!preflight?.ok||preflight.data?.requiresVisibleUserClick!==true)
@@ -889,6 +905,33 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       assertSession(source,token);
       if(!reply?.ok)throw Object.assign(new Error(reply?.error?.message||'浏览器操作失败'),{
         code:reply?.error?.code||'E_BROWSER'});
+      if(browserExport){
+        if(reply.data?.authorized!==true)
+          throw Object.assign(new Error('Browser Host did not authorize this exact export'),{code:'E_OWNER'});
+        // The privileged Side Panel document is the existing Clipboard /
+        // Download driver. SW cannot use navigator.clipboard; no sandbox
+        // receives native browser access or may bypass the one-use Host intent.
+        await assertSidebarToolEnabled(api,tool.id);
+        assertSession(source,token);
+        if(operation==='browser.clipboard.writeText'){
+          if(!globalThis.navigator?.clipboard?.writeText)
+            throw Object.assign(new Error('剪贴板在当前环境不可用'),{code:'E_CHROME_UNSUPPORTED'});
+          try{await globalThis.navigator.clipboard.writeText(payload.text);}
+          catch{throw Object.assign(new Error('复制结果未知，请自行检查剪贴板，勿自动重试'),{code:'E_OUTCOME_UNKNOWN'});}
+          assertSession(source,token);return {copied:true};
+        }
+        if(!api.downloads?.download)
+          throw Object.assign(new Error('下载服务不可用'),{code:'E_CHROME_UNSUPPORTED'});
+        const filename=payload.filename;
+        const mime=/\\.json$/i.test(filename)?'application/json':/\\.txt$/i.test(filename)?'text/plain':'text/markdown';
+        const url='data:'+mime+';charset=utf-8,'+encodeURIComponent(payload.text);
+        let downloadId;
+        try{downloadId=await api.downloads.download({url,filename,saveAs:true,conflictAction:'uniquify'});}
+        catch{throw Object.assign(new Error('下载结果未知，请检查 Chrome 下载记录，勿自动重试'),{code:'E_OUTCOME_UNKNOWN'});}
+        if(!Number.isInteger(downloadId))throw Object.assign(
+          new Error('Chrome 未确认下载，请检查下载记录，勿自动重试'),{code:'E_OUTCOME_UNKNOWN'});
+        assertSession(source,token);return {downloadId};
+      }
       const frontendStatus=state=>{
         if(state?.implementation!=='implemented'||state?.authorization?.tool!=='granted')return state;
         const available=state.operation==='browser.clipboard.writeText'
@@ -915,7 +958,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       knowledgeOperation(operation)?KNOWLEDGE_CAPABILITY:
       TIME_REVIEW_OPERATIONS.includes(operation)?TIME_REVIEW_CAPABILITY:
       focus?.operations?.includes(operation)?focus.capability:
-        ['clipboard.writeText','file.download'].includes(operation)?'user.export':'__unapproved__'))
+        '__unapproved__'))
       throw new Error('此工具没有被批准使用该能力');
     if(TIME_REVIEW_OPERATIONS.includes(operation)){
       if(tool.id!==TIME_REVIEW_ID)throw new Error('时间回顾工具身份无效');
@@ -1097,28 +1140,6 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
           throw new Error('网站剪藏授权已撤销');
         assertSession(source,token);return data;
       }
-      if(operation==='clipboard.writeText'||operation==='file.download'){
-        const value=payload?.text;
-        if(typeof value!=='string'||!value||new TextEncoder().encode(value).length>150000)
-          throw new Error('导出内容为空或超过 150 KB');
-        if(operation==='clipboard.writeText'){
-          if(!globalThis.navigator?.clipboard?.writeText)
-            throw new Error('此环境不允许自动复制；请选中文本手动复制');
-          await globalThis.navigator.clipboard.writeText(value);
-          assertSession(source,token);return {copied:true};
-        }
-        if(!api.downloads?.download)throw new Error('下载服务不可用');
-        const filename=payload?.filename;
-        if(typeof filename!=='string'||filename.length>90||
-          !/^[^\/\x00-\x1f:?*"<>|]+\.(?:md|txt|json)$/i.test(filename)||filename.startsWith('.'))
-          throw new Error('仅允许安全的 Markdown / TXT / JSON 文件名');
-        const mime=/\.json$/i.test(filename)?'application/json':/\.txt$/i.test(filename)?'text/plain':'text/markdown';
-        const url='data:'+mime+';charset=utf-8,'+encodeURIComponent(value);
-        const downloadId=await api.downloads.download({url,filename,saveAs:true,conflictAction:'uniquify'});
-        assertSession(source,token);
-        if(!Number.isInteger(downloadId))throw new Error('Chrome 未确认下载');
-        return {downloadId};
-      }
       if(operation==='tasks.open'){
         if(typeof payload?.taskId!=='string'||!/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,59}$/.test(payload.taskId))
           throw new Error('任务标识无效');
@@ -1228,7 +1249,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     const token=instance,source=event.source,tool=active,revocationEpoch=frameRevocationEpoch;
     let bytes;
     try{bytes=JSON.stringify(message).length;}catch{return;}
-    if(bytes>(['clipboard.writeText','file.download','browser.clipboard.writeText','browser.downloads.text','knowledge.update','knowledge.create'].includes(message.operation)?170000:12000))return;
+    if(bytes>(['browser.clipboard.writeText','browser.downloads.text','knowledge.update','knowledge.create'].includes(message.operation)?170000:12000))return;
     const reply=(ok,result,error)=>{
       if(sameInstance(source,token))source.postMessage({
         protocol:SIDEBAR_TOOL_PROTOCOL,kind:'response',instance:token,toolId:tool.id,
