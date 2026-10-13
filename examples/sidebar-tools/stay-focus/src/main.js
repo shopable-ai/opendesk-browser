@@ -39,6 +39,10 @@
       else message('规则已保存，并完成 Chrome DNR 规则读回核对。');
     }catch(error){
       message(String(error?.message||error),true);
+      if(op==='focus.status'&&state){
+        $('native-state').textContent='状态核对失败';
+        $('native-state').dataset.warning='true';
+      }
     }finally{
       busy=false;buttons.forEach(x=>x.disabled=false);
       if(state)$('focus-start').disabled=!state.enabled;
@@ -48,7 +52,7 @@
     const row=create('article','sf-site');row.dataset.blocked=String(Boolean(site.reason));
     const left=create('div','sf-site-main');
     left.append(create('strong','',site.host),create('small','',
-      (site.reason?siteLabel(site.reason)+' · ':'')+
+      (!site.enabled?'已暂停 · ':site.reason?siteLabel(site.reason)+' · ':'')+
       (site.mode==='always'?'不计额度':minutes(site.remainingMs)+' 剩余 / '+minutes(site.budgetMs))+
       (site.group?' · '+site.group:'')+(site.subdomains?' · 含子域名':'')));
     const actions=create('div','sf-site-actions');
@@ -58,8 +62,8 @@
       $('site-mode').value=site.mode;$('site-subdomains').checked=site.subdomains;
       $('site-group').value=site.group;$('site-host').focus();
     });
-    const toggle=create('button','',site.enabled?'暂停':'启用');toggle.type='button';
-    toggle.setAttribute('aria-label',(site.enabled?'暂停':'启用')+' '+site.host);
+    const toggle=create('button','',site.enabled?'暂停':'恢复');toggle.type='button';
+    toggle.setAttribute('aria-label',(site.enabled?'暂停':'恢复')+' '+site.host);
     toggle.addEventListener('click',()=>call('focus.site.put',{site:{
       host:site.host,subdomains:site.subdomains,enabled:!site.enabled,
       mode:site.mode,minutes:site.minutes,group:site.group}}));
@@ -69,8 +73,15 @@
   };
   function render(){
     if(!state)return;
-    $('native-state').textContent=state.enabled?'已开启':'未开启';
-    $('native-state').dataset.active=String(state.enabled);
+    const permissionReady=state.permissions?.ready===true;
+    const blocked=state.enabled&&state.sites.some(site=>site.enabled&&Boolean(site.reason));
+    const ruleUnverified=state.enabled&&permissionReady&&state.ruleReceipt?.verified!==true;
+    $('native-state').textContent=!permissionReady?'浏览器权限未授权':
+      !state.enabled?'已停用':ruleUnverified?'规则未核对':
+      blocked?'限制中':'运行中';
+    $('native-state').dataset.active=String(state.enabled&&permissionReady&&!ruleUnverified);
+    $('native-state').dataset.blocked=String(blocked);
+    $('native-state').dataset.warning=String(!permissionReady||ruleUnverified);
     $('date-label').textContent=state.day;
     const pools=new Map();
     for(const site of state.sites.filter(s=>s.enabled&&s.mode==='limit'))
@@ -79,7 +90,9 @@
     const remaining=[...pools.values()].reduce((sum,v)=>sum+v.left,0);
     const budget=[...pools.values()].reduce((sum,v)=>sum+v.total,0);
     $('total-remaining').textContent=pools.size?minutes(remaining):'—';
-    $('total-caption').textContent=!state.enabled?'需要在工具详情中点击「授权并开启网站限制」。':
+    $('total-caption').textContent=!permissionReady?'浏览器权限尚未批准，网站限制不会生效。请在工具详情中授权。':
+      !state.enabled?'限制已停止。请在工具详情中主动开启。':
+      ruleUnverified?'无法确认 Chrome 拦截规则，请在工具详情中检查权限并重试。':
       !pools.size?'添加首个每日限额网站，开始保护专注时间。':
       '今天共 '+pools.size+' 份独立娱乐额度 · '+minutes(Math.max(0,budget-remaining))+' 已使用';
     $('total-progress').style.width=(budget?Math.max(0,Math.min(100,100*(budget-remaining)/budget)):0)+'%';
@@ -87,7 +100,7 @@
     $('focus-start').disabled=!state.enabled;
     $('focus-start').hidden=Boolean(focused);
     $('focus-stop').hidden=!focused;
-    if(focused)$('total-caption').textContent='专注模式进行中，预计 '+new Date(state.focusUntil).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})+' 结束。';
+    if(focused&&!ruleUnverified)$('total-caption').textContent='专注模式进行中，预计 '+new Date(state.focusUntil).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})+' 结束。';
     $('site-count').textContent=state.sites.length+' 个网站';
     const list=$('sites');list.replaceChildren();
     for(const site of state.sites)list.append(badgeSite(site));

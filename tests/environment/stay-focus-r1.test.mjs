@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {focusHost,hostnameMatches,focusRemovedOriginAffectsSite,focusLocalDay,FOCUS_MAX_GAP_MS} from '../../src/stay-focus/policy.js';
 import {emptyFocus,readFocus,focusSite,focusSiteScopesValid,focusSchedule,focusMatchingSite,focusPool,
   focusBudget,focusReason,focusScheduleActive,settleFocus} from '../../src/stay-focus/model.js';
@@ -245,4 +246,16 @@ test('internal block page uses a real window ID and never defers sidePanel.open 
   assert.match(get('hint').textContent,/工具/);
   get('back').handlers.click({isTrusted:true});
   assert.deepEqual(visited,['about:blank'],'no previous history must not loop back to blocked URL');
+});
+
+test('isolated Stay Focus UI retains narrow-layout, dark-mode, keyboard and status contracts',()=>{
+  const css=readFileSync(new URL('../../examples/sidebar-tools/stay-focus/src/style.css',import.meta.url),'utf8');
+  const main=readFileSync(new URL('../../examples/sidebar-tools/stay-focus/src/main.js',import.meta.url),'utf8');
+  assert.match(css,/@media\(max-width:360px\)/);
+  assert.match(css,/@media\(max-width:320px\)/);
+  assert.match(css,/@media\(prefers-color-scheme:dark\)/);
+  assert.match(css,/:focus-visible/);
+  assert.match(main,/浏览器权限未授权/);
+  assert.match(main,/规则未核对/);
+  assert.match(main,/已暂停/);
 });
