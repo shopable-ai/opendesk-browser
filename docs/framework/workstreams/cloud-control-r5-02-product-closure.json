@@ -40,6 +40,7 @@
       "providerId",
       "targetExecutorId",
       "targetPairingId",
+      "targetGrantId",
       "taskId",
       "version",
       "manifestHash",
@@ -62,7 +63,13 @@
     "resultBodyConsentDefault": false,
     "fullReceiptRequiresConsent": true,
     "stopOfflineBehavior": "Local stop succeeds; unpair requires confirmed server revocation",
-    "unknownSideEffects": "OUTCOME_UNKNOWN; do not resubmit"
+    "unknownSideEffects": "OUTCOME_UNKNOWN; do not resubmit",
+    "grantEpoch": "Every new Browser Cloud approval creates a new grantId; /v1/capabilities registers current grant and cancels unmatched queued work, /v1/claim/admission/renew require same generation",
+    "externalClientLimits": {
+      "maxNewJobsPer60Seconds": 60,
+      "maxOutstandingQueued": 100,
+      "idempotentRetry": "Original jobId without extra quota"
+    }
   },
   "sourceCommits": [
     "85173716d554ef9679639da8c2b6186fd046c451",
@@ -76,7 +83,12 @@
     "5dc467fbf401785d48cc0b904a1de8562465180a",
     "1318be2a85d6c26ab825c83d6634c5d99f83729c",
     "dda54ec52d0f6e4f411b34328ec474b9bd66e45f",
-    "50847960556e77d32513d7ccd68cf52f1d77e964"
+    "50847960556e77d32513d7ccd68cf52f1d77e964",
+    "a31bc3ee454890c42c237e5a64991039425f4818",
+    "b1a5b51127d92a1943d7824fb35ede9fa6cf41c0",
+    "3d1284224b46c2c26ccb9c421b27d51ec4c7ee95",
+    "df8be0483b37d58c894b0e2aad0535eeebd978a6",
+    "80a00eeb75f5c0d19df74a842067ff81dd52b194"
   ],
   "statuses": {
     "jobExecutorIsolation": "SOURCE_IMPLEMENTED",
@@ -88,7 +100,8 @@
     "macChromeValidation": "NATIVE_PENDING",
     "longRunningRunner": "NOT_IMPLEMENTED",
     "componentCI": "NOT_VERIFIED",
-    "build": "NOT_VERIFIED"
+    "build": "NOT_VERIFIED",
+    "approvalGenerationFence": "SOURCE_IMPLEMENTED"
   },
   "priorEvidence": {
     "r51": {
@@ -133,7 +146,8 @@
     "providerReceiptIds": [],
     "screenshots": [],
     "externalInternetTrace": null,
-    "packageHash": null
+    "packageHash": null,
+    "approvalGenerationChromeTrace": []
   },
   "quality": {
     "targetEach": 95,
@@ -245,6 +259,7 @@
     "Run real two installed different Tasks in Chrome and collect Worker Run/Result/retirement/receipt IDs",
     "Capture real Chrome side panel 300/320/360/420/520px 125%/200% keyboard and screenshot matrix",
     "Deploy only with approved trusted HTTPS/WSS server/account; run external Chrome end-to-end; otherwise REMOTE_NATIVE_PENDING",
-    "Continue stop/upgrade/restart/network loss/unknown effect native negative gates"
+    "Continue stop/upgrade/restart/network loss/unknown effect native negative gates",
+    "Verify approval generation rebind race and revoke-after-partial-result in original Chrome"
   ]
 }
