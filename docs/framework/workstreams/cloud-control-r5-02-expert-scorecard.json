@@ -33,7 +33,7 @@
     "score": 86,
     "outOf": 100,
     "status": "ASSISTANT_PRELIMINARY_STATIC_REVIEW",
-    "why": "明确 AI Task 安装一次复用、唯一 Host/Provider/Worker、Client/Executor/Grant 身份、双重结果许可与严格 UNKNOWN；但 HTML 与生产 UI 脱节、缺原生双 Task、公网未部署、CI OOM 仍阻断"
+    "why": "AI Task 安装复用、唯一 Provider/Authority/Worker、身份及结果权限合同清晰；生产已补就地 Review 与变更重确认，但 Task/Request 详情、真机双 Task、已批准公网和最近独立 CI 证据仍缺"
   },
   "dimensions": [
     {
@@ -56,7 +56,7 @@
       "designScore": "NOT_VERIFIED",
       "implementationScore": "NOT_VERIFIED",
       "verificationScore": "NOT_VERIFIED",
-      "whyNot95": "Task 安装/配对/批准/投递/停用的角色清晰，但生产 UI 二级审批流程未迁移",
+      "whyNot95": "Task 安装/配对/批准/投递/停用角色清晰，生产已补所选 Task 网站/版本/结果许可的就地 Review；仍缺真实双 Task Chrome 全流程和独立用户走查",
       "requiredEvidence": "两 Task 从安装到撤销的真实 Chrome 录像和点击路径",
       "gateStatus": "OPEN"
     },
@@ -128,7 +128,7 @@
       "designScore": "NOT_VERIFIED",
       "implementationScore": "NOT_VERIFIED",
       "verificationScore": "NOT_VERIFIED",
-      "whyNot95": "39 项 UI 预览、30 个静态布局样本，但尚未迁移到正式 Side Panel 全部二级视图",
+      "whyNot95": "UI 39 项预览已有静态布局证据，生产 Side Panel 已补就地 Review；Task Detail/Request Detail 仍未闭环，原生截图缺失",
       "requiredEvidence": "生产 Chrome 300–520px/125%/200% 截图及 UI 评审",
       "gateStatus": "OPEN"
     },
@@ -152,7 +152,7 @@
       "designScore": "NOT_VERIFIED",
       "implementationScore": "NOT_VERIFIED",
       "verificationScore": "NOT_VERIFIED",
-      "whyNot95": "现有多选和自助 Client 凭据具备，但 Connect→Review→管理仍有原型生产差距",
+      "whyNot95": "多 Task 选择、就地 Review 与自助 Client 已有源码；详细历史与任务变更指引未完成，生产宽度/Zoom/真实点击路径未验证",
       "requiredEvidence": "真实 1/2/10 Task 流程点击次数及任务成功率",
       "gateStatus": "OPEN"
     },
@@ -260,5 +260,14 @@
     "VERIFICATION_SCORE requires exact candidate CI, package hash, installed Chrome original evidence and remote test where relevant",
     "Any P0 authorization leak/cross-browser claim/duplicate unknown side effect yields block; cannot score 95",
     "Unverified must remain NOT_VERIFIED, not a cosmetically assigned passing numeric score"
-  ]
+  ],
+  "latestUnverifiedUiReview": {
+    "functionId": "UI-06",
+    "reviewStatus": "SOURCE_IMPLEMENTED",
+    "verified": "NOT_VERIFIED",
+    "sourceSha": "c6e082e1ba5fdb17259b36fad9dbaf9bfd5fd7a8",
+    "componentCI": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38405840554",
+    "buildCI": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38405840990",
+    "caveat": "Static estimate 86 is not automatically raised by adding code. Wait for independent review and real Chrome."
+  }
 }
