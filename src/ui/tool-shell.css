@@ -208,7 +208,7 @@
 #script-result{max-height:250px}
 #workbench-develop .developer-results .row{margin:0}
 #workbench-develop .developer-results label{margin:0}
-#script-library-tools,#page-preview-tools,#script-advanced{min-width:0}
+#script-library-tools,#page-preview-tools,#script-advanced{min-width:0;margin:0}
 /* Developer sections now use od-disclosure; no ID-based card appearance. */
 #workbench-develop .developer-editor>.od-disclosure{min-width:0}
 #workbench-develop #developer-run-technical>p{margin-top:var(--space-1);overflow-wrap:anywhere}
