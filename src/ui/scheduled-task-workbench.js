@@ -22,6 +22,22 @@ const scheduleStatusLabels=Object.freeze({
   NEEDS_ATTENTION:'需要处理'
 });
 const scheduleStatus=status=>scheduleStatusLabels[status]||status||'未知';
+const scheduleStatusGuidance=Object.freeze({
+  READY:'已排队，等待到期后检查授权及运行条件。',
+  WAITING_HOST:'没有合法可见运行宿主；请打开运行页。Chrome 退出时无法执行。',
+  WAITING_TARGET:'等待获准访问的目标网页；按计划设置检查是否需要打开目标页。',
+  WAITING_SLOT:'等待现有 Controller 执行槽；不会创建第二次执行。',
+  ADMITTED:'已获准进入原执行链，等待真实结果。',
+  RUNNING:'任务正在原 Controller 执行链运行。',
+  SETTLING:'正在核对真实结果；结算前不是成功。',
+  SUCCESS:'已报告执行成功，可展开历史查看关联结果。',
+  FAILED:'执行失败；请查看历史并检查任务与目标网页。',
+  STOPPED:'执行已停止；后续仍按原规则安排。',
+  UNKNOWN:'执行结果无法确认，可能存在网页副作用；不会自动重试，请人工核对。',
+  MISSED:'错过了触发时间；是否补执行依照计划的错过策略。',
+  CANCELLED:'本次触发已取消；不表示执行成功。',
+  NEEDS_ATTENTION:'任务安装身份或网站授权需处理；不会自动更换版本。'
+});
 const pad2=value=>String(value).padStart(2,'0');
 const frequencyLabel=plan=>{
   const kind=plan.triggerKind,rule=plan.triggerSpec||{};
@@ -103,6 +119,20 @@ export function listScheduleTimeZoneGroups(intl=globalThis.Intl,selected=''){
   return groups;
 }
 
+/** Search only filters IANA options; existing fixed selection remains selectable. */
+export function filterScheduleTimeZoneGroups(groups,search='',selected=''){
+  const needle=String(search).trim().toLocaleLowerCase('zh-CN');
+  if(!needle)return groups;
+  const filtered=groups.map(group=>({...group,options:group.options.filter(item=>
+    (group.label+' '+item.label+' '+item.value).toLocaleLowerCase('zh-CN').includes(needle))}))
+    .filter(group=>group.options.length);
+  if(selected&&!filtered.some(group=>group.options.some(item=>item.value===selected))){
+    const original=groups.flatMap(group=>group.options).find(item=>item.value===selected);
+    if(original)filtered.unshift({label:'当前已选 · 搜索不会更改',options:[original]});
+  }
+  return filtered;
+}
+
 export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=globalThis.chrome,
   document:doc=globalThis.document,onClose=()=>{},onOpen=()=>{}}){
   const get=id=>doc.getElementById(id),listeners=[];
@@ -124,6 +154,13 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     const field=get(formFields[name]),error=get('schedule-'+name+'-error');
     text(error,value||'');
     field?.setAttribute('aria-invalid',value?'true':'false');
+    if(name==='time'){
+      for(const id of ['schedule-kind','schedule-once','schedule-clock','schedule-minutes','schedule-deadline']){
+        const control=get(id);
+        if(control&&!control.closest('[hidden]'))control.setAttribute('aria-invalid',value?'true':'false');
+        else control?.removeAttribute('aria-invalid');
+      }
+    }
   }
   const message=(value,error=false)=>{
     const el=get('schedule-message');text(el,value);el.dataset.state=error?'error':'ready';
@@ -419,9 +456,10 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       if(showAll||touched.has(name))fieldError(name,errors[name]||'');
     return Object.keys(errors).length?null:{title,row,url,params,rule};
   }
-  function populateTimeZoneSelect(selected=getScheduleDeviceTimeZone()){
+  function populateTimeZoneSelect(selected=getScheduleDeviceTimeZone(),search=''){
     const select=get('schedule-timezone');
-    const groups=listScheduleTimeZoneGroups(globalThis.Intl,selected);
+    const all=listScheduleTimeZoneGroups(globalThis.Intl,selected);
+    const groups=filterScheduleTimeZoneGroups(all,search,selected);
     select.replaceChildren(...groups.map(row=>{
       const group=doc.createElement('optgroup');
       group.label=row.label;
@@ -431,8 +469,12 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       }
       return group;
     }));
-    // Existing fixed plans never drift to a new system zone when edited.
+    // Search is a filter: the fixed IANA value never silently changes.
     select.value=selected;
+    const count=groups.flatMap(group=>group.options).filter(item=>item.value!==selected).length;
+    text(get('schedule-timezone-match'),search.trim()?
+      (count?`找到 ${count} 个其他匹配地区；选择下拉项才会更改时区。`:
+        '未找到其他匹配地区；当前时区保持不变。'):'');
   }
   function reset(){
     editing=null;pendingTask=null;clearConfirmation();touched.clear();
@@ -442,6 +484,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     const local=new Date(Date.now()+10*60000);
     get('schedule-once').value=`${local.getFullYear()}-${String(local.getMonth()+1).padStart(2,'0')}-${String(local.getDate()).padStart(2,'0')}T${String(local.getHours()).padStart(2,'0')}:${String(local.getMinutes()).padStart(2,'0')}`;
     populateTimeZoneSelect(getScheduleDeviceTimeZone());
+    get('schedule-timezone-search').value='';
     get('schedule-params').value='{}';get('schedule-kind').value='once';
     get('schedule-clock').value='09:00';get('schedule-minutes').value='60';
     get('schedule-deadline').value='5';get('schedule-misfire').value='skip';
@@ -456,6 +499,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     get('schedule-target').value=plan.targetUrl;
     get('schedule-params').value=JSON.stringify(plan.params,null,2);
     get('schedule-kind').value=plan.triggerKind;
+    get('schedule-timezone-search').value='';
     populateTimeZoneSelect(plan.timezone);
     if(plan.triggerKind==='once')
       get('schedule-once').value=formatWallScheduleTime(plan.timezone,plan.triggerSpec.at);
@@ -476,7 +520,12 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     clearConfirmation();
     const revision=editRevision;
     const local=validateLocal(true);
-    if(!local){message('请先修正上方标记的字段',true);return;}
+    if(!local){
+      message('请先修正上方标记的字段',true);
+      const invalid=Object.keys(formFields).find(name=>get(formFields[name])?.getAttribute('aria-invalid')==='true');
+      if(invalid)get(formFields[invalid]).focus();
+      return;
+    }
     busy=true;get('schedule-save').disabled=true;
     try{
       const resolved=await client.request('resolveInstalledTask',{taskId:local.row.taskId});
@@ -499,7 +548,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       awaitingSave={input};
       const timing=frequencyLabel(input)+' · '+describeTime(nextScheduleAt(kind,spec,zone,Date.now()),zone);
       text(get('schedule-save-summary'),
-        `${input.title}\n任务：${resolved.manifest.title||resolved.taskId} · v${resolved.version}\n网址：${input.targetUrl}\n时间：${timing}\n状态：${input.paused?'先暂停':'启用'}`);
+        `${input.title}\n任务：${resolved.manifest.title||resolved.taskId} · v${resolved.version}\n网址：${input.targetUrl}\n时区：${zone}（保存后固定）\n时间：${timing}\n状态：${input.paused?'先暂停':'启用'}`);
       get('schedule-save-confirm').hidden=false;
       message('请核对固定任务、目标网址与执行规则后确认保存');
       get('schedule-confirm-yes').focus();
@@ -614,6 +663,13 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     bind(id,'change',()=>{editRevision++;clearConfirmation();});
   bind('schedule-form','submit',save);
   bind('schedule-task-select','change',showTaskVersion);
+  bind('schedule-timezone-search','input',()=>
+    populateTimeZoneSelect(get('schedule-timezone').value,get('schedule-timezone-search').value));
+  bind('schedule-timezone','change',()=>{
+    const selected=get('schedule-timezone').value;
+    get('schedule-timezone-search').value='';
+    populateTimeZoneSelect(selected);
+  });
   bind('schedule-new-script','click',enterDeveloper);
   bind('schedule-manage-tasks','click',()=>{managerReturn='form';show('manager');});
   bind('schedule-manager-create','click',enterDeveloper);
