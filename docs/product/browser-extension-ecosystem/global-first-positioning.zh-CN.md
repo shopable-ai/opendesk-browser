@@ -1,16 +1,12 @@
-# OpenDesk Browser：全球第一细分赛道定位 R1
+# OpenDesk Browser：全球第一细分赛道 R1（历史研究材料）
 
-> **当前战略 R4（AI 优先，2026-10-13）**：[读者决策：5 座真实第一小山头](global-first-r2-decision.zh-CN.md) → [直接执行 R4 GOAL](../../framework/prompts/goal-global-first-r4-ai-first-niche-leadership.zh-CN.md)。旧 F01 “人工编写 React/Vue”已降级为工程专项；战略顺序 GF-007 → GF-004 → GF-003 → GF-002/GF-011 → GF-009，**不等于真实市场排名，当前已获批第一=0**。
-
-> 下文 R1/R2 中 F01→F02→F04 为历史工程优先级，不是 R4 AI-first 的当前市场战略。GF-007 的旧产品状态仍为 FUTURE_RESEARCH_ONLY，提升研究优先级不表示已经交付。
-
-> **R2 决策入口（2026-10-13）**：时间有限时**只读 [Global First R2 产品决策](global-first-r2-decision.zh-CN.md)**。结论：F01（双框架侧栏开发）→ F02（多文件改动后 Run）→ F04（可验证运行链）；全球第一已批准 **0**。R1 下文保留研究背景，版本时效与 GF 审批以两份 JSON 为准。
+> **当前 R4 AI-first 战略已替代本页旧优先级。** 请优先阅读 [长期小山头决策及防偏移准则](global-first-r2-decision.zh-CN.md)，执行 [R4 GOAL](../../framework/prompts/goal-global-first-r4-ai-first-niche-leadership.zh-CN.md)。下文把“侧栏手动编写 React/Vue”设为营销优先的 F01/F02/F04 顺序仅供历史审计，不能恢复为当前方向；旧 Chrome 原生证明只保留其固定候选身份。
 
 > 研究基准：2026-10-13（Asia/Shanghai）；范围：产品定位、全球竞品、双因素/三因素组合创新、可验证的第一称号。**这是营销研究，不是已经取得的世界纪录、商店上市、用户规模或原生验收证明。**
 >
 > 本文不更改 R8 188 项能力账本、Browser SDK 逐项验收、商品实验 EXP 或产品工程状态。优先读取：[竞品证据](competitor-research.zh-CN.md)、[UserScript 生态](userscript-ecosystem.zh-CN.md)、[Browser SDK 状态](../../framework/workstreams/browser-sdk-status.md)、[React/Vue 使用与证据](../../api/page-ui-frameworks.zh-CN.md)、[AI 生态 R6](../../architecture/browser-framework/ai-browser-agent-ecosystem-r6-20261008.zh-CN.md)。
 
-## 0. 战略结论
+## 0. 历史 R1 战略结论（已被当前 R4 纠偏）
 
 OpenDesk 不以“用户脚本数量多于油猴”作为开局。第一步尝试抢占**Chrome 中的现代网站工具开发/运行环境**：开发者在既有扩展内编写或关联 JS/React/Vue 项目，获得授权，明确 Run，在真实网页交互，并可执行受管 Stop。第二步扩大到项目版本、依赖、安装、升级与分发，最后再向 AI → 审核 → 固定任务 → 长期运行迈进。
 
