@@ -1,3 +1,5 @@
+# OpenDeskSDK.browser API · 推荐短接口与原有高级操作
+
 ## 当前政策：旧 35 项接口兼容义务已废止（2026-10-13）
 
 **ABOLISHED（正式废止）的是开发期旧 35 项 API 的永久兼容政策，而不是它们全部对应的浏览器功能。** 不得为保留 35 这个数字而恢复过时名称、旧签名、废弃占位或额外 Alias/Adapter。已核查的旧版处置是 **26 项名称仍登记、3 项 Tabs 更名、9 项 Media/Speech/Notifications 占位移除**；这不是当前注册表接口总数。
@@ -9,7 +11,6 @@
 
 > **R9 正式入口**：`OpenDeskSDK.browser`。Chrome 原生命名优先，创建使用 `tabs.create`；仅自有 TabRef 的聚焦和关闭明确叫 `tabs.activateOwned` / `tabs.removeOwned`，禁止原生数字 Tab ID。下方 R5/R8 的固定 35 项与长期兼容要求只留作历史。
 
-# OpenDeskSDK.browser API · 推荐短接口与原有高级操作
 
 > **R8 统一规范（已建立分阶段实施工作流）**：[单一 `OpenDeskSDK.browser` / Host / Authority 架构](browser-sdk-architecture-r8.zh-CN.md)、[已废止的 35 项兼容映射历史档案](browser-sdk-compatibility-map.json)、[上游复用决策](browser-sdk-open-source-reuse.zh-CN.md)、[官方 Native Catalog（目前只覆盖 8 组固定 JSON，不能称 Chrome 全量）](chrome-native-api-catalog.json)。R8 的 Catalog 发现层不授予执行权限。本页 R1.3 历史表格明确不是今日状态；`cookies.*` 尚未成为正式可信调用链。
 
