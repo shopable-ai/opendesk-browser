@@ -7,11 +7,13 @@ import {createPageDependencyResolver, dependencyMessage} from './page-dependenci
 import {createPageDependencyInstaller} from './page-dependency-install.js';
 import {preparePageCandidateDraft} from './page-candidate-source.js';
 import {parseUserScriptDependencies} from '../scripting/user-scripts/dependency-metadata.js';
+import {parseControllerClassicDependencies} from '../scripting/user-scripts/controller-classic.js';
 import {createProgramSourceView,PROGRAM_DRAFT_INPUT_LIMIT} from './program-source.js';
 import {createPageComponentRemote} from './page-component-remote.js';
 import {hasUnbuiltESM} from './esm-source-detector.js';
 import {createControllerESMSavedSource,readControllerESMAuthorSource,
-  verifiedControllerESMAuthorSource} from './controller-esm-source.js';
+  verifiedControllerESMAuthorSource,createControllerClassicSavedSource,
+  readControllerClassicAuthorSource,verifiedControllerClassicAuthorSource} from './controller-esm-source.js';
 import {inspectPageSource,validatePageSource,PAGE_BUNDLE_PREFIX} from '../scripting/user-scripts/page-bundle.js';
 import {PAGE_PREVIEW_RECEIPT_FORMAT} from '../scripting/user-scripts/execution-source.js';
 import {createBrowserPageComponentPreparer} from './page-component-preparer.js';
@@ -22,7 +24,7 @@ import {formatControllerRunResult, runValueKind} from './run-result-presentation
 import {formatTaskError} from './task-run-diagnostics.js';
 import {inspectUserScriptsAccess, userScriptsSettingsURL} from './user-scripts-access.js';
 import {createPageProgramLibrary} from './page-program-library.js';
-import {requireChromePermissions} from '../platform/chrome/permission-gate.js';
+import {requireChromePermissions,createChromePermissionConsent} from '../platform/chrome/permission-gate.js';
 
 function printable(value, depth = 0) {
   if (value === undefined) return 'undefined';
@@ -131,6 +133,48 @@ export function createScriptEditor({client, currentPageTarget, development=false
     element.addEventListener(event, listener); listeners.push({element, event, listener});
   };
   const programSource = createProgramSourceView({document:doc,listen,onChange:() => {dependencyResolver?.refresh();dependencyInstaller?.refresh();update();}});
+
+  // Controller Classic uses the existing native source-permission consent, not
+  // a second grant registry. The read-only observation is primed on edit; only
+  // a real Run click may request missing Chrome HTTPS origin access.
+  let controllerClassicWarmEpoch=0,controllerClassicWarm=null,controllerClassicWarmError=null;
+  const controllerClassicConsent=createChromePermissionConsent({api,
+    onChange:()=>scheduleControllerClassicWarm()});
+  function scheduleControllerClassicWarm(){
+    const source=programSource.source(),epoch=++controllerClassicWarmEpoch;
+    controllerClassicWarm=null;controllerClassicWarmError=null;
+    let origins;
+    try{
+      const refs=parseControllerClassicDependencies(source);
+      if(!refs.length){update();return;}
+      origins=[...new Set(refs.map(row=>new URL(row.url).origin+'/*'))];
+    }catch(cause){controllerClassicWarmError={source,cause};update();return;}
+    controllerClassicConsent.prepare({origins}).then(observed=>{
+      if(disposed||epoch!==controllerClassicWarmEpoch||source!==programSource.source())return;
+      if(observed)controllerClassicWarm={source,origins};
+      update();
+    }).catch(cause=>{
+      if(disposed||epoch!==controllerClassicWarmEpoch||source!==programSource.source())return;
+      controllerClassicWarmError={source,cause};update();
+    });
+    update();
+  }
+  function controllerClassicReadyForRun(){
+    const source=programSource.source();
+    try{if(!parseControllerClassicDependencies(source).length)return true;}
+    catch{return true;} // Let Run explain malformed source instead of hiding the error.
+    return controllerClassicWarm?.source===source||controllerClassicWarmError?.source===source;
+  }
+  function confirmControllerClassicRun(event,source){
+    const refs=parseControllerClassicDependencies(source);
+    if(!refs.length)return Promise.resolve(true);
+    if(controllerClassicWarmError?.source===source)return Promise.reject(controllerClassicWarmError.cause);
+    if(controllerClassicWarm?.source!==source)return Promise.reject(Object.assign(
+      new Error('正在只读检查 Classic 来源权限，请检查完成后再次点击 Run'),
+      {code:'E_PERMISSION_PENDING'}));
+    return controllerClassicConsent.confirm(event,{origins:controllerClassicWarm.origins});
+  }
+
   const initialDraft=JSON.stringify(captureDraft());
   function display(state, message) {
     if (disposed) return;
@@ -185,7 +229,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
       return;
     }
     let savedSource=currentRevision.sourceUtf8;
-    try{savedSource=readControllerESMAuthorSource(savedSource)?.authorSourceUtf8??savedSource;}
+    try{savedSource=(readControllerESMAuthorSource(savedSource)||
+      readControllerClassicAuthorSource(savedSource))?.authorSourceUtf8??savedSource;}
     catch{savedSource='';} // Damaged authoring headers must not appear clean.
     const dirty = programSource.source() !== savedSource;
     node.dataset.dirty = String(dirty);
@@ -248,6 +293,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     find('script-run').disabled = stopping || editingBusy || previewBusy || running || !projection?.slotAvailable || !!host.currentRun ||
       (componentMode!=='javascript'||!programSource.source().trim()) || programSource.kind() === 'page-userscript' ||
       (browserCompilerEnabled&&hasUnbuiltESM(programSource.source())&&!componentRemote?.readyForRun) ||
+      !controllerClassicReadyForRun() ||
       mode.value === 'current' && currentPageState?.status !== 'available';
     find('script-stop').disabled = stopping || !browserPreparing&&!componentRemote?.busy&&!canStopManaged()&&(!ownedDraftRunId || host.currentRun !== ownedDraftRunId);
     find('script-stop').textContent=browserPreparing||componentRemote?.busy?'取消准备':canStopManaged()?'停止受管 UI':'停止';
@@ -431,9 +477,11 @@ export function createScriptEditor({client, currentPageTarget, development=false
     return {built,lockId:remoteSnapshot?.lockId??null};
   }
   async function save() {
-    const id=scriptId(),source=programSource.source(),esm=hasUnbuiltESM(source);
+    const id=scriptId(),source=programSource.source(),esm=hasUnbuiltESM(source),
+      classic=parseControllerClassicDependencies(source).length>0;
+    if(esm&&classic)throw {code:'E_CONTROLLER_CLASSIC_FORMAT',message:'Controller 不能同时使用 ESM import 与 Classic 声明'};
     const previous=revisions.get(id)||0,ticket=++browserPrepareGeneration;
-    if(esm){editingBusy=true;browserPreparing=true;update();}
+    if(esm||classic){editingBusy=true;browserPreparing=true;update();}
     try{
       let executable=source;
       if(esm){
@@ -441,23 +489,33 @@ export function createScriptEditor({client, currentPageTarget, development=false
           throw {code:'E_CONTROLLER_ESM_STALE',message:'编辑器源码或脚本身份已变化；不会保存旧编译结果'};};
         const {built,lockId}=await prepareControllerESM(source,id,check);check();
         executable=await createControllerESMSavedSource({authorSourceUtf8:source,programId:id,built,lockId});check();
+      }else if(classic){
+        const check=()=>{if(disposed||ticket!==browserPrepareGeneration||programSource.source()!==source||scriptId()!==id)
+          throw {code:'E_CONTROLLER_CLASSIC_STALE',message:'源码已变化或准备被取消，不保存过期 Classic 版本'};};
+        // Saving never silently fetches or executes code. First Run must have
+        // created an immutable, SHA-verified program lock for these author bytes.
+        const prepared=await client.request('prepareControllerClassicDependencies',{
+          programId:id,sourceUtf8:source,explicitUserAction:true,allowDownload:false});check();
+        executable=await createControllerClassicSavedSource({authorSourceUtf8:source,
+          programId:id,prepared});check();
       }
       const row=await host.controller.commitControllerScript({scriptId:id,expectedRevision:previous,sourceUtf8:executable});
       if(disposed)return;
       if(scriptId()===id)remember(row);
       await refreshScripts({silent:true});
-      display('saved',`${id} · r${row.revision} 已持久保存固定${esm?' ESM ':''}版本；保存不会执行，下一次运行依然使用当前草稿。`);
-    }finally{if(esm){browserPreparing=false;editingBusy=false;update();}}
+      display('saved',`${id} · r${row.revision} 已持久保存固定${esm?' ESM ':classic?' Classic ':''}版本；保存不会执行，下一次运行依然使用当前草稿。`);
+    }finally{if(esm||classic){browserPreparing=false;editingBusy=false;update();}}
   }
   async function load() {
     const id = scriptId(), revisionText = find('script-revision').value.trim(), source = programSource.source();
     const row = await host.controller.getControllerScript({scriptId:id,
       ...(revisionText ? {revision:Number(revisionText)} : {})});
-    const recorded=await verifiedControllerESMAuthorSource(row.sourceUtf8);
+    const recorded=await verifiedControllerESMAuthorSource(row.sourceUtf8)||
+      await verifiedControllerClassicAuthorSource(row.sourceUtf8);
     if (disposed) return;
     if (scriptId() !== id || find('script-revision').value.trim() !== revisionText || programSource.source() !== source)
       throw {code:'E_REVISION',message:'加载期间编辑内容已变化，请重新加载'};
-    programSource.replaceSource(recorded?.authorSourceUtf8??row.sourceUtf8); remember(row, {head: !revisionText || revisions.get(id) === row.revision});
+    programSource.replaceSource(recorded?.authorSourceUtf8??row.sourceUtf8); scheduleControllerClassicWarm(); remember(row, {head: !revisionText || revisions.get(id) === row.revision});
     dependencyResolver.refresh();
     display('loaded', `已加载持久版本 r${row.revision}`);
   }
@@ -466,11 +524,12 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if (!id) throw {code:'E_REVISION',message:'请选择已保存脚本'};
     const selectedHead = revisions.get(id);
     const row = await host.controller.getControllerScript({scriptId:id});
-    const recorded=await verifiedControllerESMAuthorSource(row.sourceUtf8);
+    const recorded=await verifiedControllerESMAuthorSource(row.sourceUtf8)||
+      await verifiedControllerClassicAuthorSource(row.sourceUtf8);
     if (disposed) return;
     if (scriptList.value !== id || scriptId() !== activeId || find('script-revision').value.trim() !== revisionText || programSource.source() !== source)
       throw {code:'E_REVISION',message:'加载期间编辑内容已变化，请重新加载'};
-    find('script-id').value = id; programSource.replaceSource(recorded?.authorSourceUtf8??row.sourceUtf8);
+    find('script-id').value = id; programSource.replaceSource(recorded?.authorSourceUtf8??row.sourceUtf8); scheduleControllerClassicWarm();
     dependencyResolver.refresh();
     remember(row);
     if (selectedHead !== row.revision) await refreshScripts({silent: true});
@@ -623,7 +682,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       if(!projection?.slotAvailable)return;
       previewPage(event);return;
     }
-    let chosen, params, permission, sourceUtf8, esm;
+    let chosen, params, permission, sourceUtf8, esm, classic;
     try {
       // Freeze exact editor bytes, params and target inside the trusted click
       // before any asynchronous permission check or other work.
@@ -634,19 +693,23 @@ export function createScriptEditor({client, currentPageTarget, development=false
       if (parseUserScriptDependencies(sourceUtf8).hasHeader) throw {code:'E_PROGRAM_KIND',
         message:'当前源码含兼容性脚本声明，请使用“网页 JavaScript 试运行”；自动化任务运行不解析旧格式声明。'};
       esm=hasUnbuiltESM(sourceUtf8);
+      classic=parseControllerClassicDependencies(sourceUtf8).length>0;
+      if(esm&&classic)throw {code:'E_CONTROLLER_CLASSIC_FORMAT',message:'Controller 不能同时使用 ESM import 与 Classic 声明'};
       permission=Promise.all([
         requireChromePermissions({api,request:{origins:[permissionPattern(chosen.url)],
           ...(find('script-allow-cookies').checked?{permissions:['cookies']}:{} )}}),
         esm&&browserCompilerEnabled?
-          componentRemote.confirmRun(event,controllerESMInput(sourceUtf8,scriptId())):Promise.resolve(true)
+          componentRemote.confirmRun(event,controllerESMInput(sourceUtf8,scriptId())):Promise.resolve(true),
+        classic?confirmControllerClassicRun(event,sourceUtf8):Promise.resolve(true)
       ]);
     } catch (error) { fail(error); return; }
     hideUserScriptsRecovery();
     const version = selectionVersion;
     let startError, admittedRunId;
     const id=scriptId(),ticket=++browserPrepareGeneration;
-    ownedDraftRunId=null;running=true;browserPreparing=esm;renderTask(null);update();beginResult();
-    display('checking',esm?'正在校验固定 ESM 依赖并编译 Controller 源码…':`正在检查访问权限并验证网页：${chosen.url}`);
+    ownedDraftRunId=null;running=true;browserPreparing=esm||classic;renderTask(null);update();beginResult();
+    display('checking',esm?'正在校验固定 ESM 依赖并编译 Controller 源码…':
+      classic?'正在从 SHA 缓存准备固定 Controller Classic 库…':`正在检查访问权限并验证网页：${chosen.url}`);
     (async () => {
       await permission;
       if (disposed) throw {code:'E_HOST_CLOSED',message:'Sidebar 已关闭，未启动任务'};
@@ -662,6 +725,17 @@ export function createScriptEditor({client, currentPageTarget, development=false
           throw {code:'E_CONTROLLER_ESM_STALE',message:'源码已变化或准备已取消；不会启动过期代码'};};
         const prepared=await prepareControllerESM(authorSourceUtf8,id,check);check();
         sourceUtf8=prepared.built.sourceUtf8;
+        browserPreparing=false;update();
+      }else if(classic){
+        const check=()=>{if(disposed||ticket!==browserPrepareGeneration||programSource.source()!==authorSourceUtf8||scriptId()!==id)
+          throw {code:'E_CONTROLLER_CLASSIC_STALE',message:'源码已变化或准备已取消，不启动过期 Classic'};};
+        const prepared=await client.request('prepareControllerClassicDependencies',{
+          programId:id,sourceUtf8:authorSourceUtf8,explicitUserAction:true,allowDownload:true});check();
+        if(prepared.world!=='CONTROLLER'||prepared.programId!==id||
+          prepared.authorSourceHash!==await digestUtf8(authorSourceUtf8)||
+          !/^controller-classic-[a-f0-9]{64}$/.test(prepared.lockId))
+          throw {code:'E_CONTROLLER_CLASSIC_LOCK',message:'固定 Classic 版本或技术锁无效'};
+        sourceUtf8=prepared.sourceUtf8;
         browserPreparing=false;update();
       }
       const claim = await host.start({source:{kind:'draft',sourceUtf8},
@@ -1082,7 +1156,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     componentMessage('idle',next==='javascript'?'':'官方组件源码 · 按需编译 · 明确点击运行');
     update();
   });
-  on('script-target-mode','change',update); on('script-id','input',()=>{dependencyResolver.refresh();dependencyInstaller.refresh();lastPagePreview=null;if(hasUnbuiltESM(programSource.source()))componentRemote.refresh();update();}); on('script-revision','input',update); on('script-source','input',() => {browserPreparer.cancel();browserPrepareGeneration++;programSource.replaceSource(programSource.source());componentDrafts[componentMode]=programSource.source();dependencyResolver.refresh();dependencyInstaller.refresh();componentRemote.refresh();update();});
+  on('script-target-mode','change',update); on('script-id','input',()=>{dependencyResolver.refresh();dependencyInstaller.refresh();lastPagePreview=null;if(hasUnbuiltESM(programSource.source()))componentRemote.refresh();scheduleControllerClassicWarm();update();}); on('script-revision','input',update); on('script-source','input',() => {browserPreparer.cancel();browserPrepareGeneration++;programSource.replaceSource(programSource.source());componentDrafts[componentMode]=programSource.source();dependencyResolver.refresh();dependencyInstaller.refresh();componentRemote.refresh();scheduleControllerClassicWarm();update();});
   on('script-params','input',update);
   listen(find('script-run'), 'click', start);
   listen(scriptsSettings, 'click', event => {
@@ -1223,6 +1297,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     dependencyResolver.refresh();dependencyInstaller.refresh();componentRemote.refresh(); update();
     display('draft','已导入未保存草稿；请返回目标网页后明确点击运行');
   }
+  scheduleControllerClassicWarm();
   return {host,async prepareDevelopmentReload(){
     const idle=()=>!disposed&&!editingBusy&&!stopping&&!running&&!previewBusy&&!ownedManagedPreview&&!browserManagedPreview&&
       !host.executionPending&&!host.currentRun&&!downloading&&!preparations.size&&!client.resourceSnapshot?.().pending;
@@ -1264,7 +1339,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   }, resourceSnapshot: () => ({...host.resourceSnapshot(), editor:{
     timers:[...downloads.values(),...preparations.values()].filter(entry=>entry.timer != null).length+Number(localPollTimer!=null),
     pending:Number(downloading)+preparations.size, subscriptions:listeners.length+2*Number(browserListenersAttached)+Number(Boolean(unsubscribeCurrentPage))+(localProject?.resourceSnapshot().subscriptions||0)}}), dispose() {
-    if (disposed) return; disposed = true; componentRemote.dispose(); browserPrepareGeneration++; browserPreparer.dispose(); scriptsCheckSequence++; localInstaller.dispose();localProject?.dispose();pageLibrary.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyResolver.dispose();dependencyInstaller.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
+    if (disposed) return; disposed = true; controllerClassicConsent.dispose(); componentRemote.dispose(); browserPrepareGeneration++; browserPreparer.dispose(); scriptsCheckSequence++; localInstaller.dispose();localProject?.dispose();pageLibrary.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyResolver.dispose();dependencyInstaller.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
     api.webNavigation.onCommitted.removeListener(onNavigation); api.tabs.onRemoved.removeListener(onRemoved); host.dispose();
     browserListenersAttached = false;
     for (const {element, event, listener} of listeners) element.removeEventListener(event, listener);
