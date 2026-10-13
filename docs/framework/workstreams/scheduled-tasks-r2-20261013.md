@@ -106,3 +106,15 @@
 保留原始失败记录：`594a089e` 的整 Chrome 重启 CI [38285360764](https://github.com/shopable-ai/opendesk-browser/actions/runs/38285360764) 是 **FAIL**，重启后扩展目录页 canonical URL 重定向期间只读 DevTools 会话失效。测试驱动在 `30f304a7` 明确增加等待，并由新的双平台真实 Chrome PASS 关闭该具体测试竞态，**没有因此宣称其他权限/浏览器 Profile 场景都 PASS**。
 
 当前 R2 仍有独立未关闭项：长期历史按审计约束的合规保留/清理策略、数万 Fire 真实 IndexedDB 持续使用时延、用户自己的 macOS Chrome Profile、浏览器真实 200% 缩放（不同于 CDP viewport emulation）、真实 Worker 故障时的未知网页副作用判定，以及全部体验维度分别达到 95 分。上述没有完整证据的维度继续 **NOT_TESTED / NOT_SCORED**。
+
+## R2.3 最新证据校正（2026-10-13，后于上方历史快照）
+
+> 本段仅更新已经获得的结果；保留上文原来的待测、失败和已关闭前的阶段记录，不改写旧 CI。下一轮以这份证据校正及现场的最新 HEAD 为准。
+
+- **最近一次完整定时任务回归候选：** `bc6dc46aa17f56006010ac27af8484a6eaf96f70`。同 SHA 的组件及生产/开发构建 [38352072072](https://github.com/shopable-ai/opendesk-browser/actions/runs/38352072072) **PASS**，Linux Chrome baseline + lifecycle [38352072052](https://github.com/shopable-ai/opendesk-browser/actions/runs/38352072052) **PASS**，macOS Chrome baseline [38352071965](https://github.com/shopable-ai/opendesk-browser/actions/runs/38352071965) **PASS**，完整 Chrome 进程退出/同一隔离 Profile 重启 Linux+macOS [38352072059](https://github.com/shopable-ai/opendesk-browser/actions/runs/38352072059) **PASS**。
+- **真实 Chrome 网站访问权限撤销与恢复：** `743a67bd01404490aa6e1ba4c35ab60eba8806ea` 的 [38287719781](https://github.com/shopable-ai/opendesk-browser/actions/runs/38287719781)，**Linux PASS / macOS PASS**。Chrome WebUI 本身调整网站访问，旧 Fire 不重放，原审计保留。
+- **固定 Task 身份变化：** 同候选 [38287719921](https://github.com/shopable-ai/opendesk-browser/actions/runs/38287719921)，**Linux PASS / macOS PASS**：真实 UI 停用、重新启用、generation 旋转、卸载；计划不会自动换绑新身份，旧 Run/Result 保留。
+- **真实 UI 尺寸：** 存在受控 Chrome viewport 模拟验证入口（`SCHEDULE_NATIVE_VIEWPORT=1`），但它不是 Chrome 真正 200% 缩放，也不能替代用户自己 Mac 的实际 Side Panel 尺寸与辅助功能验收；这些仍 **NOT_TESTED**。
+- **尚未正式关闭：** 大规模历史下的真实 IDB 延时与安全保留/清理，Worker/Host/网页副作用不确定时的原生故障注入全矩阵、同名新版 Task 哈希变化及多产品共用槽回归、完整可访问性与高倍率视觉、用户 Mac 独立 Profile。
+- 本次核查 `main` 为 `bd3c476ed09e6ddca7b5b78fffd8e50fd63a99ad`；它比上述定时任务候选更新，最新差异未涉及 scheduled tasks 主要文件，但**不能把旧候选原生 PASS 无条件写成新 HEAD 的整体 Final PASS**。
+- 下一轮执行提示词：[`goal-scheduled-tasks-r2.3-final-20261013.zh-CN.md`](../prompts/goal-scheduled-tasks-r2.3-final-20261013.zh-CN.md)。
