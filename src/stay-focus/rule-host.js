@@ -13,7 +13,8 @@ export function focusRuleForSite(site,id,reason,whitelist=[]){
   const condition={regexFilter:'^https?://'+host+'(?::[0-9]{1,5})?(?:[/?#]|$)',
     resourceTypes:['main_frame']};
   if(whitelist.length)condition.excludedRequestDomains=whitelist;
-  return {id,priority:20,action:{type:'redirect',redirect:{extensionPath:paths[reason]}},condition};
+  return {id,priority:20+site.host.split('.').length*4+(site.subdomains?0:1),
+    action:{type:'redirect',redirect:{extensionPath:paths[reason]}},condition};
 }
 export function wantedFocusRules(state,at=Date.now()){
   const rules=[];
