@@ -13,7 +13,7 @@ import {createScheduledTaskWorkbench} from './scheduled-task-workbench.js';
 import {createScheduledTaskHost} from './scheduled-task-host.js';
 import {createSidebarTabMemory} from './sidebar-tab-memory.js';
 import {createWorkflowView} from './workflow/workflow-view.js';
-import {createSidebarTools} from './sidebar-tools.js';
+import {createSidebarTools} from './sidebar-tools-loader.js';
 import {createInstalledPageTools} from './installed-page-tools.js';
 import {requestedToolId,requestedPreviewId,canonicalToolHostUrl} from './sidebar-tools/navigation.js';
 import {previewStorageKey} from '../native-agent/tool-snapshot.js';
