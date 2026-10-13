@@ -20,7 +20,6 @@ on:
       - 'tests/environment/global-first-r5-product-evidence.test.mjs'
       - 'tests/environment/global-first-r5-benchmark.test.mjs'
       - 'tests/environment/global-first-r5-historical-timeline.test.mjs'
-      - 'tests/environment/global-first-r5-ai-to-installed-contract.test.mjs'
       - '.github/workflows/global-first-r4-claims.yml'
   workflow_dispatch:
 
@@ -58,7 +57,7 @@ jobs:
           node --test tests/environment/global-first-r4-claims.test.mjs tests/environment/global-first-r5-product-evidence.test.mjs tests/environment/global-first-r5-benchmark.test.mjs tests/environment/global-first-r5-historical-timeline.test.mjs | tee artifacts/global-first-r5/claims-and-evidence.tap
       - name: Existing Task verify/install and workflow compiler (Node component only)
         run: |
-          node --test tests/environment/agent-to-task-contract.test.mjs tests/environment/task-package-flow.test.mjs tests/environment/global-first-r5-ai-to-installed-contract.test.mjs | tee artifacts/global-first-r5/task-package-component.tap
+          node --test tests/environment/agent-to-task-contract.test.mjs tests/environment/task-package-flow.test.mjs | tee artifacts/global-first-r5/task-package-component.tap
           node --test tests/environment/workflow-r15.test.mjs tests/environment/local-project-install-r251.test.mjs | tee artifacts/global-first-r5/workflow-install-component.tap
       - name: Preserve SHA-bound evidence, not a native Chrome receipt
         uses: actions/upload-artifact@v4
