@@ -114,3 +114,5 @@
 保存原生 50/51 失败，不把 Node 或部分原生证据提升为完整 PASS：50 是 E_HOST_STORAGE_WRITE，同时 shell 留有磁盘不足证据，未捕获 Chrome 内部 I/O 原因，只能标记关联推断；51 为驱动读取已关闭的 Side Panel session，23 项已过，剩余未测。修复只读 storage 观察使用有效 manager session。自然生命周期仅接受 HTTP observer、全部扩展 UI 确认关闭后的真实版本状态链；失焦恢复须先确认真实失焦后仍停止的版本快照，不能用 Node 事件到达时间代替 OS 顺序。补分钟历史、稳定字段和安装 epoch 断言；缺证继续 BLOCKED，不降低原 38 项验收。下一候选使用独立物理源码副本、43272 构建锁和独立 CFT profile，日常 watcher/dist 不变。
 
 R1.9 补充观察安全边界：同一 worker 在 confirmedStop 与真实失焦后 stopped 快照之间出现任何 running，则 activeSwRecovery 必须 BLOCKED，禁止拼接第二次停机。仅驱动变更，不重建相同生产输入；构建候选 ccee890c 与后续原生候选按生产文件/产物逐项比对。独立副本六项 Node/工具包/check/Production/Development/Verify 均退出 0，Node 206 PASS，无预算或 CSP 放宽。
+
+R1.9 原生 52：验收源码 3f95e4b8，生产构建输入同 ccee890c；真实 Mac/CFT 完整结束，36/38 PASS，2 BLOCKED，整体 PARTIAL/退出 1，Chrome/Profile 自动清理成功，0 Worker error/crash。原 35 项全部 PASS，加其他三工具实际升级隔离 PASS；新实际 200% 单列标签与同名安装 ID/ARIA 均 PASS，13 张原始图保留。自然试验的 remainingExtensionPages 仍包含刚请求关闭的 manager，不能声明全 UI 已关闭；补等待 Target.getTargets 真实消失后才取 quiet 起点。主动恢复实际 stopped/running 已观察，真实失焦后没有仍停止的快照，保持 BLOCKED。Cloud Recovery 闹钟存在只是关联线索，未删闹钟、关闭服务或篡改任何数据以制造休眠。后续同生产候选仅更新观察边界，复用已验证的 Node/构建字节，继续实际 CFT。

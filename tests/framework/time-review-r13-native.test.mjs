@@ -1096,6 +1096,8 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
     await until(()=>evaluate(browser,uiTarget.sessionId,'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]}).then(c=>c.length===0)'),'paused Side Panel really closed');
     if(websiteVersion){
       assert.equal((await browser.send('Target.closeTarget',{targetId:ui.targetId})).success,true,'close manager RPC sources during natural observation');
+      await until(async()=>!(await browser.send('Target.getTargets')).targetInfos.some(row=>row.targetId===ui.targetId),
+        'manager target actually destroyed before natural observation');
       managerClosed=true;
     }
     const remainingExtensionPages=(await browser.send('Target.getTargets')).targetInfos.filter(row=>row.type==='page'&&row.url.startsWith('chrome-extension://'+present+'/'));
@@ -1191,6 +1193,8 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
     const activeVersion=workerStates.findLast(row=>row.sessionId===(websiteVersion?websiteSession:uiTarget.sessionId)&&row.status==='running');
     if(websiteVersion){
       assert.equal((await browser.send('Target.closeTarget',{targetId:ui.targetId})).success,true,'close manager before forced active recovery');
+      await until(async()=>!(await browser.send('Target.getTargets')).targetInfos.some(row=>row.targetId===ui.targetId),
+        'manager target actually destroyed before forced active recovery');
       managerClosed=true;
     }
     await browser.send('Target.activateTarget',{targetId:site.targetId});

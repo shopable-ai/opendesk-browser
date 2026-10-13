@@ -1,0 +1,8 @@
+{
+  "nativeCandidate": "3f95e4b8d2dc1170042d46c347cc9799eda1549a",
+  "buildCandidate": "ccee890cb84f55ca3d70c0a08e9d121ddddde3a6",
+  "productionChanges": [],
+  "driverSha256": "7072eb1773e8ab4ce94509301231be016745546fb219a741f4cb52ef3b95943e",
+  "sourceSnapshot": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r19-local-01a1364f/source-r19-ui-final",
+  "purpose": "Same production and build inputs; updated native observer only. Six successful builds/tests reused by exact bytes, not unrelated global HEAD."
+}

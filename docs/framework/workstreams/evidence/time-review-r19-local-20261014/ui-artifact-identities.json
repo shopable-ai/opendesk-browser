@@ -1,0 +1,72 @@
+{
+  "buildCandidate": "ccee890cb84f55ca3d70c0a08e9d121ddddde3a6",
+  "nativeCandidate": "3f95e4b8d2dc1170042d46c347cc9799eda1549a",
+  "artifacts": [
+    {
+      "path": "artifacts/sidebar-tools/time-review/1.6.0/time-review.opendesk-tool.json",
+      "bytes": 41548,
+      "sha256": "90f5029049ed4b2cadd69fa91c4efaefb45f031bd94c07e708c9f78d5f2776f6"
+    },
+    {
+      "path": "dist/production/sw.js",
+      "bytes": 592119,
+      "sha256": "9d85e1370c1dc5c1e896764e6c3bb367d2a94a4d32efc93760d78c313cb56e9f"
+    },
+    {
+      "path": "dist/development/sw.js",
+      "bytes": 592285,
+      "sha256": "e49d69652a5713f4c61a75c50d301ef9269290b0df86aa188b62ecdd1321256b"
+    },
+    {
+      "path": "dist/production/ui/tool-shell.js",
+      "bytes": 495305,
+      "sha256": "5b6b25c522b780544753359e96432cdc145718a639aba7e5492d71db3d4d630e"
+    },
+    {
+      "path": "dist/development/ui/tool-shell.js",
+      "bytes": 495545,
+      "sha256": "955fda13835c636bef378c44b22ee625652f65a359e04d95aab110f1d9225f8f"
+    },
+    {
+      "path": "dist/production/ui/sidebar-tool-host.js",
+      "bytes": 190616,
+      "sha256": "21de70f967492291f76956e1c8b90de8a5909070379dbc6cac44acc1118aa243"
+    },
+    {
+      "path": "dist/production/ui/tool-shell.css",
+      "bytes": 102002,
+      "sha256": "81afcf6b2da6964c1eb4a9d7fa9bfe69f347699ab62ae59fab3c214a8aef10d8"
+    },
+    {
+      "path": "dist/production/ui/time-review.css",
+      "bytes": 11538,
+      "sha256": "ed1bc3424fa5dc934c7fd01b8a5bfa570c1b2cc1c2b919ccb08ffae4a9e86151"
+    },
+    {
+      "path": "dist/production/ui/tool.html",
+      "bytes": 102298,
+      "sha256": "249e97d62bf0952814766ed07b1badffadaefdd8f185a8470d6b94176d4845b0"
+    },
+    {
+      "path": "dist/development/ui/sidebar-tool-host.js",
+      "bytes": 190877,
+      "sha256": "da4331b244d57ef92c39b0c54fc82848f1c283631bea80222deb138ca13760d1"
+    },
+    {
+      "path": "dist/development/ui/tool-shell.css",
+      "bytes": 102002,
+      "sha256": "81afcf6b2da6964c1eb4a9d7fa9bfe69f347699ab62ae59fab3c214a8aef10d8"
+    },
+    {
+      "path": "dist/development/ui/time-review.css",
+      "bytes": 11538,
+      "sha256": "ed1bc3424fa5dc934c7fd01b8a5bfa570c1b2cc1c2b919ccb08ffae4a9e86151"
+    },
+    {
+      "path": "dist/development/ui/tool.html",
+      "bytes": 102298,
+      "sha256": "249e97d62bf0952814766ed07b1badffadaefdd8f185a8470d6b94176d4845b0"
+    }
+  ],
+  "toolShellBudgetBytes": 524288
+}
