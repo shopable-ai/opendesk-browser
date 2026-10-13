@@ -1,4 +1,6 @@
 # GOAL：OpenDesk Browser Global First R3 — F01 可运行产品证据与首次成功体验
+
+> **SUPERSEDED_FOR_MARKETING（2026-10-13）**：本文的 F01 侧栏 React/Vue 人工编辑仅保留为历史工程专项，**不再是全球/区域第一竞争战略 P0**。最新目标是 AI 协助创造网站工具、用户审阅、安装后独立复用，以及找出真实有价值的 TOP 1—5 小山头。请执行 [R4 AI 优先 GOAL](goal-global-first-r4-ai-first-niche-leadership.zh-CN.md)；原文已有 Chrome 测试证据仍有效但不能证明 AI 产品闭环。
 > 日期 2026-10-13；默认中文。**直接执行真实仓库源码/原生验收，禁止只再写规划或创建脱离真实产品的 HTML 原型。** 本 GOAL 只解决 F01，不抢 F02/F04、Browser SDK、Native、依赖、Cloud 等工作流的共享运行时所有权。
 
 ## 0. 唯一目标与完成标准

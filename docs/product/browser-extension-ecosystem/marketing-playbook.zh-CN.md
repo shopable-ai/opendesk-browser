@@ -1,5 +1,24 @@
 # OpenDesk Browser：细分赛道第一营销执行手册 R1
 
+## R4 · AI 优先定位及 SEO/GEO（覆盖以下 R1/R2 人工编辑主线）
+
+用户价值：**AI 协助生成并验证浏览器工具，用户审核安装后反复使用**，不是要求一般用户手写 JSX/SFC。请以 [当前 R4 决策](global-first-r2-decision.zh-CN.md) 和 [执行 GOAL](../../framework/prompts/goal-global-first-r4-ai-first-niche-leadership.zh-CN.md) 为准。
+
+**今天可用作清晰产品方向、但不能冒充全功能已上线：**
+- 中文：“让 AI 创造的浏览器工具，经过审核后成为可重复使用的能力。”
+- English: “Turn AI-built browser workflows into reviewable, reusable tools.”
+- 旧 “Build Browser Apps, Not Just Userscripts.” 仍可作技术副标题，但不应把人工 React/Vue 编辑作为 AI-first 首页主要卖点。
+- 强制标明 AI 模型接入、Native/Node、网站许可、Task 安装、云端 Runner 的真实当前可用状态，不能把技术计划写成正式交付。
+
+**候选证据页**：GF-007 AI→Installed→脱离 AI 重用；GF-004 受控权限/版本/回执；GF-003 AI 多形态网站工具统一交付；GF-002/GF-011 AI 多文件效率；GF-009 真实地区卖家业务。每页包含用户真实问题、可用版本、竞品和必要外部组合、公平对照、失败限制、视频/原始证据、更新时间及试用入口。
+
+**SEO/GEO**：按 Google 官方 AI 搜索指引 https://developers.google.com/search/docs/appearance/ai-features ，AI Overviews/Mode 沿用常规 SEO；不要求特殊 AI Schema 或 llms.txt。使用可抓取的实际正文、规范 canonical/内链/sitemap、与可见事实一致的结构化数据。Bing AI Performance https://blogs.bing.com/webmaster/2026/2/Introducing-AI-Performance-in-Bing-Webmaster-Tools-Public-Preview/ 可以观察其支持的 AI 引用与 grounding queries。监测指定日期/地区/模型的引用、用户点击与安装效果；不能保证被 AI 推荐。
+
+**禁止**：“世界首个 AI/MCP 用户脚本管理器”“全球最安全”“中国第一”“全球 Top 5”“无需用户许可”“永久免费永久云控”。所有绝对第一/前五必须先进入 GF 审批；GF-013/GF-014 已有反例，不得换词复活。R1/R2 以下旧宣传为历史候选，不再代表当前战略。
+
+---
+
+
 ## R2 · 今天可用与绝对禁止的文案（先看这里）
 
 **主要对外定位**：**Build Browser Apps, Not Just Userscripts.** / **不只是运行用户脚本，更是在浏览器中开发工具。** 这是产品方向描述，不是已经全球第一。

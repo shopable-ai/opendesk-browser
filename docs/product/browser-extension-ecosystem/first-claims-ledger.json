@@ -64,6 +64,13 @@
         "currentEvidenceLevel": "HISTORICAL_NATIVE_ONLY",
         "numericScore": "NOT_SCORED",
         "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      },
+      "r4Priority": {
+        "strategicOrder": null,
+        "level": "RETAIN_HISTORICAL",
+        "claimApproved": false,
+        "verification": "NOT_SCORED",
+        "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
       }
     },
     {
@@ -110,6 +117,13 @@
         "currentEvidenceLevel": "HISTORICAL_NATIVE_ONLY",
         "numericScore": "NOT_SCORED",
         "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      },
+      "r4Priority": {
+        "strategicOrder": 4,
+        "level": "TOP_FIVE_RESEARCH_ONLY",
+        "claimApproved": false,
+        "verification": "NOT_SCORED",
+        "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
       }
     },
     {
@@ -156,6 +170,13 @@
         "currentEvidenceLevel": "PARTIAL_SOURCE",
         "numericScore": "NOT_SCORED",
         "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      },
+      "r4Priority": {
+        "strategicOrder": 3,
+        "level": "TOP_FIVE_RESEARCH_ONLY",
+        "claimApproved": false,
+        "verification": "NOT_SCORED",
+        "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
       }
     },
     {
@@ -202,6 +223,13 @@
         "currentEvidenceLevel": "PARTIAL_SOURCE",
         "numericScore": "NOT_SCORED",
         "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      },
+      "r4Priority": {
+        "strategicOrder": 2,
+        "level": "TOP_FIVE_RESEARCH_ONLY",
+        "claimApproved": false,
+        "verification": "NOT_SCORED",
+        "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
       }
     },
     {
@@ -247,6 +275,13 @@
         "currentEvidenceLevel": "PARTIAL_SOURCE",
         "numericScore": "NOT_SCORED",
         "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      },
+      "r4Priority": {
+        "strategicOrder": null,
+        "level": "RETAIN_HISTORICAL",
+        "claimApproved": false,
+        "verification": "NOT_SCORED",
+        "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
       }
     },
     {
@@ -292,6 +327,13 @@
         "currentEvidenceLevel": "PARTIAL_SOURCE",
         "numericScore": "NOT_SCORED",
         "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      },
+      "r4Priority": {
+        "strategicOrder": null,
+        "level": "RETAIN_HISTORICAL",
+        "claimApproved": false,
+        "verification": "NOT_SCORED",
+        "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
       }
     },
     {
@@ -339,6 +381,13 @@
         "currentEvidenceLevel": "FUTURE",
         "numericScore": "NOT_SCORED",
         "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      },
+      "r4Priority": {
+        "strategicOrder": 1,
+        "level": "TOP_FIVE_RESEARCH_ONLY",
+        "claimApproved": false,
+        "verification": "NOT_SCORED",
+        "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
       }
     },
     {
@@ -384,6 +433,13 @@
         "currentEvidenceLevel": "MARKET_HYPOTHESIS",
         "numericScore": "NOT_SCORED",
         "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      },
+      "r4Priority": {
+        "strategicOrder": null,
+        "level": "RETAIN_HISTORICAL",
+        "claimApproved": false,
+        "verification": "NOT_SCORED",
+        "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
       }
     },
     {
@@ -429,6 +485,13 @@
         "currentEvidenceLevel": "MARKET_HYPOTHESIS",
         "numericScore": "NOT_SCORED",
         "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      },
+      "r4Priority": {
+        "strategicOrder": 5,
+        "level": "TOP_FIVE_RESEARCH_ONLY",
+        "claimApproved": false,
+        "verification": "NOT_SCORED",
+        "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
       }
     },
     {
@@ -475,6 +538,13 @@
         "currentEvidenceLevel": "PARTIAL_SOURCE",
         "numericScore": "NOT_SCORED",
         "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      },
+      "r4Priority": {
+        "strategicOrder": null,
+        "level": "RETAIN_HISTORICAL",
+        "claimApproved": false,
+        "verification": "NOT_SCORED",
+        "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
       }
     },
     {
@@ -521,6 +591,13 @@
         "currentEvidenceLevel": "NOT_MEASURED",
         "numericScore": "NOT_SCORED",
         "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      },
+      "r4Priority": {
+        "strategicOrder": 4,
+        "level": "TOP_FIVE_RESEARCH_ONLY",
+        "claimApproved": false,
+        "verification": "NOT_SCORED",
+        "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
       }
     },
     {
@@ -567,6 +644,13 @@
         "currentEvidenceLevel": "NOT_MEASURED",
         "numericScore": "NOT_SCORED",
         "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      },
+      "r4Priority": {
+        "strategicOrder": null,
+        "level": "RETAIN_HISTORICAL",
+        "claimApproved": false,
+        "verification": "NOT_SCORED",
+        "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
       }
     },
     {
@@ -609,6 +693,13 @@
         "currentEvidenceLevel": "DISPROVED",
         "numericScore": "NOT_SCORED",
         "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      },
+      "r4Priority": {
+        "strategicOrder": null,
+        "level": "RETAIN_HISTORICAL",
+        "claimApproved": false,
+        "verification": "NOT_SCORED",
+        "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
       }
     },
     {
@@ -649,6 +740,13 @@
         "currentEvidenceLevel": "DISPROVED",
         "numericScore": "NOT_SCORED",
         "scopeNote": "Reviewer has not independently tested all relevant global alternatives or measured comparable users; no claimed world-first, fastest or safety rank."
+      },
+      "r4Priority": {
+        "strategicOrder": null,
+        "level": "RETAIN_HISTORICAL",
+        "claimApproved": false,
+        "verification": "NOT_SCORED",
+        "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
       }
     }
   ],
@@ -688,7 +786,8 @@
     ],
     "globallyApproved": 0,
     "scores": "NOT_SCORED",
-    "basis": "Current candidate identity/availability, real user tasks, historical evidence and strongest alternatives. Not measured user performance."
+    "basis": "Current candidate identity/availability, real user tasks, historical evidence and strongest alternatives. Not measured user performance.",
+    "supersededBy": "r4AiFirst"
   },
   "r2EvaluationDimensions": [
     "userValue",
@@ -700,5 +799,74 @@
     "commercialOpportunity",
     "marketingClarity",
     "legalRisk"
-  ]
+  ],
+  "r4AiFirst": {
+    "asOf": "2026-10-13",
+    "role": "STRATEGIC_PRIORITIES_NOT_MARKET_RANKINGS",
+    "topFive": [
+      {
+        "order": 1,
+        "ids": [
+          "GF-007"
+        ],
+        "label": "AI generated -> review -> verified installed tool -> repeat without AI",
+        "rankVerified": false,
+        "score": "NOT_SCORED"
+      },
+      {
+        "order": 2,
+        "ids": [
+          "GF-004"
+        ],
+        "label": "bounded source/dependency/site permission + verifiable native receipts",
+        "rankVerified": false,
+        "score": "NOT_SCORED"
+      },
+      {
+        "order": 3,
+        "ids": [
+          "GF-003"
+        ],
+        "label": "AI-assisted JS, Page UI, Controller unified product lifecycle",
+        "rankVerified": false,
+        "score": "NOT_SCORED"
+      },
+      {
+        "order": 4,
+        "ids": [
+          "GF-002",
+          "GF-011"
+        ],
+        "label": "AI-assisted multi-file delivery, measured cold/hot cost",
+        "rankVerified": false,
+        "score": "NOT_SCORED"
+      },
+      {
+        "order": 5,
+        "ids": [
+          "GF-009"
+        ],
+        "label": "real region/industry seller workflows based on validated customer need",
+        "rankVerified": false,
+        "score": "NOT_SCORED"
+      }
+    ],
+    "scopeOptions": [
+      "GLOBAL_FIRST",
+      "COUNTRY_OR_LANGUAGE_FIRST",
+      "DEFINED_TASK_METRIC_FIRST",
+      "VALUE_COMBINATION_FIRST",
+      "SCOPED_TOP_2_TO_5"
+    ],
+    "regionChosen": null,
+    "claimApprovedCount": 0,
+    "counterexamples": [
+      "ScriptCat Agent and Skills",
+      "Axiom.ai AI builder",
+      "Bardeen",
+      "AI coding + Vite + userscript manager"
+    ],
+    "legacyGF013GF014": "KEEP_DISPROVED",
+    "manualReactVueF01": "ENGINEERING_SUPPORT_NOT_MARKET_P0"
+  }
 }

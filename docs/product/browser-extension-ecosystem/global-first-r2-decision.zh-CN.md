@@ -1,87 +1,65 @@
-# OpenDesk Browser · 下一步产品决策
-> Global First R2 → R3 · 2026-10-13。**先读本页**：它是产品执行入口，不是竞品百科、世界纪录审批或 Chrome 原生 PASS 证明。权威机器账本仍是 [竞品时间线](competitor-timeline.json) 与 [14 条 GF 声明](first-claims-ledger.json)。
+# OpenDesk Browser · AI 优先的“第一小山头”决策（当前主入口）
 
-## 一屏结论
+> 2026-10-13 · Global First R4。本文替代此前“F01 人工编写 React/Vue 最优先”的**营销方向**，保留原技术与历史原生测试。**现在通过证据批准的全球/区域/行业绝对第一称号：0。**
 
-**只先做成一件事：F01 · 在 Chrome 侧栏编写 React/Vue 网页工具，直接在已授权网页运行、修改、停止。**
+## 一句话：我们在解决什么需求？
 
-- **已经有的**：开发版 JSX / Vue SFC 源码编译、网页交互、受管 Stop 的历史真实 macOS Chrome PASS；本地多文件项目也有历史 Native/CLI 测试。
-- **还没有证明的**：最新 `main` 的可公开取得 Developer 正式产品体验；真实新用户首次成功率；同等体验的全球排他性；对竞争工作流的效率领先。
-- **立即执行**：按 [F01 实施 GOAL](../../framework/prompts/goal-global-first-r3-f01-product-proof.zh-CN.md) 验证现有 Side Panel 产品链，修复最短路径上的实际问题，形成**固定版本 + 原生证据 + 可重复演示**。
-- **营销状态**：获准使用的世界首个/全球第一 **0 项**。今天仅使用 **Build Browser Apps, Not Just Userscripts.／不只是运行用户脚本，更是在浏览器中开发工具。**
+**用户提出需求，由 AI 帮忙创造浏览器工具；用户审阅权限、固定版本并安装；以后无需每次再请 AI 操作，就可安全重复使用。**
 
-## 用户到底会得到什么？
+例如：“在我有权限的卖家后台创建 SKU 毛利核算卡片。”用户想要的是**一个能长期用的网站工具**，而不是学习 JavaScript 或自己在侧栏手写 React。React/Vue、Controller、Browser SDK、Native、Cloud、定时任务只是已有技术支撑，不能自动当首页营销主角。
 
-目标人群是正在写网站增强工具的 JavaScript / React / Vue 开发者。他们不想为一个小网站组件每次重新构建、加载完整浏览器扩展。
+**完整目标旅程**：用户描述问题 → AI 生成/修改候选 → 实际页面运行与审核 → 用户同意网站/参数/源码版本 → Verified → Available → Installed → 断开 AI/开发环境 → 后续直接重复 Run → 可查看结果/停用/升级。这是需要实证的产品目标，**不是当前全链路已交付的声称**。
 
-**用户眼中的完整演示（不是伪 UI）：**
+## 最优先争夺的五座小山头（战略排序，绝非实际排名）
 
-1. 安装明确注明限制的 **Developer Edition**；打开自己获准访问的普通 HTTP(S) 网页。
-2. 在真正的 Side Panel「开发 → 直接编辑」，选 **React JSX**，粘贴一个可交互组件，点击 Run；网页出现组件。
-3. 点网页组件，看到真实状态变化；修改源码再次 Run，看到新的内容而非旧回执。
-4. 切换 **Vue SFC**，展示 `ref` 交互与 `<style scoped>` 的效果（不要把两个框架说成同时共享同一脚本上下文）。
-5. 点击 **Stop**，组件及其受管 DOM/样式/监听器被清理。明确告知：Stop **不撤回**已发出的网络请求或已完成的网站业务动作。
-
-**重要版本事实**：默认 Standard 仍支持 JavaScript 与固定的 React/Vue Direct 运行时，但**不内置浏览器端 JSX/SFC 编译器**。本地多文件开发需另外安装/配对 Native/Node。对新用户不隐藏这些成本。
-
-用于工程验收的计数按钮是可靠的最小观察器；**用于推广还应有一个能解决实际问题的独立 Demo**，如在自有 `demo-form.html` 上显示表单填写检查卡（React）或字段完成进度组件（Vue）。先复用示例和现有受管 UI，不为录视频造假界面；如演示需要新功能，必须真实开发并原生验证。
-
-## 为什么先 F01，F02/F04 暂居第二线？
-
-| 方向 | 真实用户收益 | 当下最短缺口 | 决策 |
+| 优先级 / 既有 GF | 真实用户价值 | 可以尝试的“第一” | 尚缺最少证据 |
 | --- | --- | --- | --- |
-| **F01** 浏览器侧栏 × React/Vue × Stop | 当前网页即时试做小工具，不必先配 Native | 开发版产品交付与可复现体验、全球同类历史对照 | **唯一 P0 主线** |
-| **F02** 多文件 × 自动准备 × 网页 Run | 改一行文件再 Run，不重打包主扩展 | Native/Node 配对成本透明、冷/热效率对照 | **F01 闭环后 P1** |
-| **F04** 源码/依赖锁 × 授权 × 浏览器回执 | 解释“是谁、用哪个版本、在什么页面运行”的可信链 | 同包撤权/更新/Stop/结果全链证据 | **贯穿 F01/F02 的保障，不独立造系统** |
+| **1 · GF-007** AI 创造后长期复用 | AI 一次开发、后续用固定工具运行，减少重复模型调用 | AI→审阅→安装→断开 AI 后重复运行的全球/区域首创**候选**；指定数据集重复成本第一 | 真实模型工具→安装审批→关闭 AI 后真实 Chrome 多次执行；公开版本、竞争历史 |
+| **2 · GF-004** 可验证、可控 | 用户知道代码来源、版本、权限、结果和 Stop 范围 | 指定测试任务“运行可解释性/权限透明度”领先 | 同一冻结包 SHA 的真实授权/撤权/升级/运行回执及公平竞争测试；**不能直接说最安全** |
+| **3 · GF-003** AI 生成三类网站工具 | 不用切换多套应用即可交付 JS、Page UI、Controller Task | AI 创作→多类工具的统一安装管理工作流领先 | 三种产物在一个实际 AI→验收→安装链中跑通，公平比较最佳竞品组合 |
+| **4 · GF-002 + GF-011** AI 多文件效率 | AI 修改文件后立即准备并明确 Run，不重新构建整个扩展 | 指定任务冷/热开发时间、人工步骤或重复使用成本第一 | 对 AI+Vite/Tampermonkey/ScriptCat/WXT 同任务计时，包含 Native/Node 初次成本 |
+| **5 · GF-009** 区域/行业小山头 | 中文、英文或其他真实服务地区的卖家 SKU/对账工作流更贴近实际需求 | **真实地区/语言/具体业务任务**的完成率或效率第一 | 原 EXP-005 买方/场景/权限证据、当地竞品与可公开取得的发行渠道；不能凭地域名称制造首创 |
 
-F01 比 F02 更适合先推出一个开发者能够立即理解的短演示，因为它的浏览器侧编译正向历史证据已存在，而且在开发版中不要求 Native。**但开发版不等于已上市**。如果无法公开获得和安装，F01 只能称工程候选，不能当成公开市场“第一”。
+上述五个只是**研究与争夺优先级**，不是按实测排名。若发现更高价值候选，R4 允许重新排序，并保留理由。原 F01 侧栏手动 JSX/SFC 仅为可选工程专项，不再自动优先于 AI 功能或市场证据。
 
-## 后续执行：四道关卡，不是无限增加任务
+## “第一到第五”的五种合规竞争说法
 
-### 关卡 1 · 锁定真实产品版本
+1. **全球首个**：必须查最早公开可用版本、Beta、区域发行及能完成同等任务的多个工具组合。开发源码与内测演示不算公开首发。
+2. **全球或区域第 1**：明确市场范围、客观指标、样本覆盖、真实产品渠道、测试时间与数据。区域需真实发行/服务/需求，不随便限定一个城市。
+3. **真实用户任务第 1**：例如在指定日期、固定测试数据中，“首次 AI 创建后第 2–20 次执行”的成功率/耗时/模型成本领先；也要公布首次配置与模型花费。
+4. **有用户价值的双/三因素第一**：如 AI 生成 + 用户明示审批 + 固定版可复用。竞争者如 ScriptCat Agent/Skills、Axiom、Bardeen 已能以相同或组合工具达成，就不能再讲首创。
+5. **指定测试范围第 2–5 / Top 3 / Top 5**：必须真测出排名，写“在某日期、某 N 个已测方案中第 X 名”，不能从有限样本外推“全球 Top 5”。
 
-核对 `main` 最新提交、Standard/Developer 构建区别、现有 CFT 成功记录及其实际候选 SHA、源码/包/ZIP 哈希。先确定旧原生证据能否复用；相关输入变化才做受影响重测。
+**GF-013“首个支持 AI/MCP 用户脚本工具”和 GF-014“首个多文件 React/Vue 用户脚本工具”已有反例，保持 DISPROVED，不换词复活。**
 
-**交付：** 一个身份可追溯的 Developer 候选、安装/授权限制清单和明确的剩余 blocker。不能把历史 CI PASS 自动记为最新候选 PASS。
+## 当前已有资产，如何看待其真实证明程度
 
-### 关卡 2 · 证明用户完整操作而不仅是编译器可用
+- [本地 AI/Codex 执行闭环](../../framework/workstreams/local-ai-loop-r1-01a12158.md)：有旧候选真实 Mac Codex 修改/修复与 Chrome Run 证据，不能自动转为最新 AI→Installed→离线于 AI 复用产品。
+- [WebCodex 对话编辑](../../framework/workstreams/webcodex-chat-edit-r2.md)：有结构化请求/Native 文件服务/组件证据，但真实 ChatGPT 模型工具与用户 Mac 网页对话完整自动链未正式验收。
+- [Task 安装工作流](../../framework/workstreams/local-project-install-r251.md)：已存在 Candidate/Verify/Available/Install 代码及测试，长期安装更新/重启原生矩阵有缺口。
+- [Cloud 通用投递](../../framework/workstreams/cloud-control-r5-01-generic-task.md)：已有固定身份多任务授权/投递组件证据，不能说长期无人值守与真实多任务 Chrome 全部完成。
+- [React/Vue 组件说明](../../api/page-ui-frameworks.zh-CN.md)：保留为 AI 创作页面 UI 的能力。历史 Chrome PASS 不能证明 AI 工具长期安装；Standard 不带浏览器原始 JSX/SFC 编译器。
 
-沿用真实 Side Panel，依次完成 React Run/点击/修改/Stop、Vue Run/点击/scoped CSS/修改/Stop、错误修复与许可拒绝。检查可见性、权限引导、Run/Stop 状态、错误能否恢复。如果失败，优先修最短路径，不增加新 SDK、Runner、Scheduler、编译器。只有不存在并行文件冲突才改共享 UI。
+## 后续只用四道关卡执行，不再循环写战略
 
-**交付：** 原生 Chrome 录屏或截图 + 逐动作结果 + `sourceHash/previewId/documentId` + Stop 清理证明。按 R24.4 既有驱动决定是否运行各 20 次独立循环和导航/撤权场景。
+**A 找第一：** 建立 10+ 类真实需求、20+ 有实际用户价值的双/三因素候选；查 20+ 现役竞品及最佳工具组合，按 Stable/Beta/源码/正式发行渠道和首次可用日期分开记录。
 
-### 关卡 3 · 同任务对照，建立差异化证据
+**B 挑第一：** 排 Top 10 → Top 5，逐个列“用户为什么要用、最强反例、最可能争取哪种第一、现在拥有的证据、最少还差什么”；没有客观统计就 NOT_SCORED，不制造 95 分或虚假冠军。
 
-对 **ScriptCat、Tampermonkey、Violentmonkey、Web Dev Kit** 及 **vite-plugin-monkey + 用户脚本管理器** 逐项检查：能否编写原始 JSX/SFC、能否在当前授权网页交互、修改/再 Run、Stop/残留、必需外部工具、公开首发渠道/日期。**导出 JSX/SFC** 与 **直接在当前网页 Run + Stop** 是不同能力，但需验证竞争者的等价替代路径。
+**C 做第一：** 选择距离有意义的领先最近的一项，复用现有 AI、Task、Authority、RunHost 完成一个**真 AI 创造→审批→安装→断开 AI→至少两次独立运行**样本并保留哈希/运行回执。共享 SDK/Cloud/Native 正有 Agent 实施时只提缺口并独立验证，不重复造系统。
 
-F02 的定量对照再测 OpenDesk / vite-plugin-monkey + Tampermonkey / + ScriptCat / WXT，冷启动、热修改与错误恢复分开计时。**对手未测试记 NOT_TESTED，不记失败；不能从 3 个样本第一推成全球最快。**
+**D 证明第一并传播：** 公开可获取产品、可复现原始实验、明确竞品/版本、实际地域范围与真实案例全部齐备后，才能申请从 CANDIDATE→PRODUCT_VERIFIED→COMPETITOR_REVIEWED→CLAIM_APPROVED。没达到就只讲事实和未来方向。
 
-**交付：** 有版本、来源、视频、限制的同任务矩阵；原始计时依原 [空白基准](../../framework/workstreams/evidence/global-first-r2-20261013/benchmark-template.json) 保存，不制造成绩。
+## SEO / GEO：让用户和 AI 更有根据地选择
 
-### 关卡 4 · 转化为可使用的宣传，而非先写绝对称号
+**今天安全的定位（产品方向，不能冒充全功能上线）：**
+> **让 AI 创造的浏览器工具，经过审核后成为可重复使用的能力。**
+> *Turn AI-built browser workflows into reviewable, reusable tools.*
 
-先制作**一条真实短视频**（画面同时看到原 Side Panel 和网页）：授权→React 交互→改动再 Run→Vue 交互→Stop。发布页面列出 Standard/Developer 差别、受控网站授权、可下载安装前提。
+先做有实际用户任务的**事实页**：用户问题、真实流程、版本/发布日期/地域、授权范围、适合/不适合、同任务竞品公平对照、独立测试/视频、可尝试入口、更新时间。围绕“AI generated reusable browser automation”“AI 生成可安装 Chrome 工具”“AI browser task without model on rerun”“受控浏览器脚本”等实际需求建立中英文标题，不制作只有“全球第一”关键词的垃圾页面。
 
-有**公众可获取版本 + 全球历史排他性核查 + 同版完整证据 + 合规审查**才可能将 GF-001 从候选逐级升为 `CLAIM_APPROVED`；否则使用限定范围的产品事实或测试结果，不使用全球首个、最快或最安全。
+Google 官方说明 AI 搜索仍基于常规 SEO，不需要 AI 专属魔法 Schema 或 llms.txt 才可出现：https://developers.google.com/search/docs/appearance/ai-features 。Bing Webmaster Tools 的 AI Performance 可观察部分 AI 引用/查询：https://blogs.bing.com/webmaster/2026/2/Introducing-AI-Performance-in-Bing-Webmaster-Tools-Public-Preview/ 。使用官方站点可抓取正文、真实一致的结构化数据、canonical、sitemap、真实对照证据、Search Console/AI 引用及实际安装转化进行测量。**不能保证 AI 推荐，也不能用 AI 自己写的“我们第一”当证据。**
 
-**顺序**：锁定产品 → 真实用户动作 → 竞品反例 → 宣传。F02 的效率研究可独立只读准备，但不得占用 F01 的 CFT、发行包和 Side Panel 文件。
+**唯一下一轮 GOAL：** [R4 · AI 优先 Top 5 第一小山头研究与验证](../../framework/prompts/goal-global-first-r4-ai-first-niche-leadership.zh-CN.md)。原 R3/F01 文档是历史 JSX/Vue 工程专项，不再执行为全球第一营销主线。
 
-## 95+ 的质量要求怎么落实？
-
-以下是**未来独立验收目标，不是本轮已测得的专家分数**。任何一项没有真实数据都记 `NOT_SCORED`，不能通过别的维度平均抵消：
-
-| 维度 | 可复核的验收方式 | 当前 |
-| --- | --- | --- |
-| **文档可读性 ≥95/100** | 不看其他文件即可回答：做什么、为什么、先做哪项、怎样复现、何时停止。找独立审阅者核查误解点、重复和阅读负担 | `NOT_SCORED` |
-| **产品可用性 ≥95/100** | 真正从安装和授权开始的独立用户任务；跟踪首次成功率、错误恢复与可读反馈，不能只统计作者机器 | `NOT_SCORED` |
-| **功能/可靠性 ≥95/100** | 固定同包 Chrome React/Vue、重新 Run、Stop、撤权、SPA/BFCache 与失败恢复，保留全部 PASS/FAIL/NOT_TESTED | `NOT_SCORED` |
-| **竞品证据质量 ≥95/100** | 版本/Stable/Beta/来源日期/等价任务/原始数据齐备，主动反例搜索；不可获取不等于功能不存在 | `NOT_SCORED` |
-| **宣传准确性 ≥95/100** | 每条可用宣传对应实际可得版本和证据；所有绝对称号必须独立审核。无依据排名属于硬失败 | `NOT_SCORED` |
-
-额外**不可打分抵扣的硬门槛**：0 个绕过网站许可，0 个伪造真实点击/回执，0 个覆盖其他 Agent 未提交工作，0 个未经批准世界第一声明。
-
-## 谁读什么、下一步真正做什么？
-
-**只想决策：就读本文件。** 执行者打开 [F01 下一轮可复制 GOAL](../../framework/prompts/goal-global-first-r3-f01-product-proof.zh-CN.md) 交给有 Mac/CFT 的 Codex，完成后只回报源码身份、演示是否成功、阻断与证据链接。相关产品文件不用重新造目录。
-
-原始跟踪在 [R2 工作流](../../framework/workstreams/global-first-r2-20261013.md)；过去的 [R1 战略](global-first-positioning.zh-CN.md) 和 [营销手册](marketing-playbook.zh-CN.md) 只需专项查阅。**GF-013、GF-014 保持 DISPROVED，14 条唯一正式 GF ID 不重编。**
+独立质量目标：用户价值、竞争事实、真实工程、营销合规、文档可读性分别目标 ≥95/100；无独立评估时写 NOT_SCORED。当前全球/区域/行业获批绝对排名：**0**。

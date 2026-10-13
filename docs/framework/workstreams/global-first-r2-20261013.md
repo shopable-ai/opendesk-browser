@@ -1,4 +1,8 @@
 # Global First R2 · 真实研究与原生验证工作流（2026-10-13）
+
+## R4 AI 优先纠偏（覆盖下文旧 F01 市场优先级）
+
+当前执行 [R4 AI 优先 Top 5 GOAL](../prompts/goal-global-first-r4-ai-first-niche-leadership.zh-CN.md)；[读者一页决策](../../product/browser-extension-ecosystem/global-first-r2-decision.zh-CN.md)。旧 R3 手动 JSX/Vue 编辑任务已在原 GOAL 标 SUPERSEDED_FOR_MARKETING，不删除历史证据。战略排序 GF-007→GF-004→GF-003→GF-002/GF-011→GF-009；均为未证明的争夺目标。R4 Chrome/排名/销售实证 NOT_TESTED，所有绝对排名获批 0。下文 R2 进度是原始历史状态。
 > 任务归属：竞争研究 / 独立 F01-F02 验证；仅写独占文档及原始实验文件。唯一可写分支 main，不创建 PR / worktree，不覆盖并行 R24/R25、Native、SDK、依赖、Cloud 工作流。
 
 ## 下一次执行入口（2026-10-13 · R3 F01）
