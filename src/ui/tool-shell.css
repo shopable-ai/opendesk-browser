@@ -1022,6 +1022,19 @@
 :root[data-opendesk-surface="scheduled-runner"]:has(#schedule-runner-view:not([hidden])) .schedule-header{justify-content:flex-end}
 :root[data-opendesk-surface="scheduled-runner"] .schedule-runner-view .schedule-runner-focus{order:1}
 :root[data-opendesk-surface="scheduled-runner"] .schedule-runner-view .schedule-runner-metrics{order:2}
+:root[data-opendesk-surface="scheduled-runner"] .schedule-runner-view .schedule-runner-extra{order:3}
+:root[data-opendesk-surface="scheduled-runner"] .schedule-runner-extra{
+  margin:0;min-width:0;color:var(--od-sub);font-size:12px;
+  border-top:1px solid var(--od-line);padding-top:var(--space-2)
+}
+:root[data-opendesk-surface="scheduled-runner"] .schedule-runner-extra>summary{
+  min-height:36px;font-size:12px;font-weight:650;color:var(--od-sub)
+}
+:root[data-opendesk-surface="scheduled-runner"] .schedule-runner-extra-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));
+  gap:var(--space-2);min-width:0;margin-top:var(--space-2)
+}
+:root[data-opendesk-surface="scheduled-runner"] .schedule-runner-extra .hint{margin-top:var(--space-2)}
 :root[data-opendesk-surface="scheduled-runner"] .schedule-runner-focus{padding:var(--space-4)}
 :root[data-opendesk-surface="scheduled-runner"] .schedule-runner-metric{padding:var(--space-3);background:transparent}
 :root[data-opendesk-surface="scheduled-runner"] .schedule-runner-metric strong{font-size:14px}
