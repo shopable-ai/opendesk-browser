@@ -275,6 +275,71 @@ test('internal block page uses a real window ID and never defers sidePanel.open 
   assert.deepEqual(visited,['about:blank'],'no previous history must not loop back to blocked URL');
 });
 
+
+test('quick website recommendations use existing trusted save and never auto-install rules',async()=>{
+  const {runInNewContext}=await import('node:vm');
+  const script=readFileSync(new URL('../../examples/sidebar-tools/stay-focus/src/main.js',import.meta.url),'utf8');
+  function mount(page){
+    const dom=new Map(),writes=[];
+    class Node{
+      constructor(){this.handlers={};this.children=[];this.dataset={};this.style={};
+        this.hidden=false;this.value='';this.textContent='';this.checked=false;}
+      addEventListener(name,handler){this.handlers[name]=handler;}
+      replaceChildren(...nodes){this.children=nodes;}
+      append(...nodes){this.children.push(...nodes);}
+      setAttribute(){}
+      focus(){}
+      querySelectorAll(){return [];}
+    }
+    const root={querySelector:selector=>{
+      if(!dom.has(selector))dom.set(selector,new Node());
+      return dom.get(selector);
+    },querySelectorAll:()=>[]};
+    const empty={enabled:false,day:'2026-10-13',permissions:{ready:false},sites:[],
+      groups:{},schedule:{enabled:false,days:[],startMinute:540,endMinute:1020},
+      focusUntil:null,ruleReceipt:{verified:false}};
+    let state=empty;
+    const request=async(op,data)=>{
+      if(op==='focus.status')return state;
+      if(op==='currentPage.info')return page;
+      if(op==='focus.site.put'){
+        writes.push(data.site);
+        state={...state,sites:[{...data.site,usedMs:0,remainingMs:data.site.minutes*60000,
+          budgetMs:data.site.minutes*60000,reason:null}]};
+        return state;
+      }
+      throw Error('unexpected operation: '+op);
+    };
+    runInNewContext(script,{globalThis:{OpenDeskTool:{root,request}},
+      document:{createElement:()=>new Node()},URL,
+      Option:class{constructor(label,value){this.label=label;this.value=value;}},
+      setInterval:()=>0});
+    return {get:id=>root.querySelector('#'+id),writes};
+  }
+  const youtube=mount({status:'available',url:'https://m.youtube.com/watch?v=sample',
+    title:'Python tutorials on YouTube'});
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.match(youtube.get('quick-site').textContent,/youtube.com/);
+  assert.match(youtube.get('quick-explanation').textContent,/15 分钟/);
+  assert.equal(youtube.writes.length,0,'recognition must not silently apply DNR limits');
+  youtube.get('quick-add').handlers.click();
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.deepEqual(JSON.parse(JSON.stringify(youtube.writes)),[{
+    host:'youtube.com',subdomains:true,enabled:true,mode:'limit',minutes:15,group:''
+  }],'one click must request only the existing focus.site.put Host operation');
+  const forged=mount({status:'available',url:'https://youtube.com.attacker.test/',
+    title:'Video portal featuring YouTube'});
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(forged.get('quick-site').textContent,'youtube.com.attacker.test',
+    'site title cannot impersonate an official root domain');
+  assert.equal(forged.writes.length,0);
+  const work=mount({status:'available',url:'https://github.com/shopable-ai/opendesk-browser',
+    title:'My development work'});
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.match(work.get('quick-explanation').textContent,/默认不限制/);
+  assert.equal(work.get('quick-add').hidden,true);
+});
+
 test('isolated Stay Focus UI retains narrow-layout, dark-mode, keyboard and status contracts',()=>{
   const css=readFileSync(new URL('../../examples/sidebar-tools/stay-focus/src/style.css',import.meta.url),'utf8');
   const main=readFileSync(new URL('../../examples/sidebar-tools/stay-focus/src/main.js',import.meta.url),'utf8');
