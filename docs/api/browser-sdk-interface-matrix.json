@@ -1910,18 +1910,19 @@
     "buckets": {
       "NOT_APPROVED_FOR_TOOL": 231,
       "INTERNAL_NOT_EXPOSED": 771,
-      "SCOPED_OR_TRUSTED_CANDIDATE": 212,
+      "SCOPED_OR_TRUSTED_CANDIDATE": 211,
       "TRUSTED_HOST_OR_EXISTING_SERVICE": 316,
       "LEGACY_NOT_EXPOSED": 128,
       "PLATFORM_OR_POLICY_ONLY": 145,
-      "DEVTOOLS_ONLY": 27
+      "DEVTOOLS_ONLY": 27,
+      "VERSION_GATED": 1
     },
-    "approvedOperations": 54,
-    "approvedRegistered": 28,
+    "approvedOperations": 55,
+    "approvedRegistered": 29,
     "approvedCookieHostOnly": 11,
     "approvedPlannedNew": 15,
     "nativeMappedApproved": 36,
-    "approvedWithInputAndOutputSchemas": 54
+    "approvedWithInputAndOutputSchemas": 55
   },
   "parseErrors": [],
   "approvedOperations": [
@@ -8790,6 +8791,124 @@
       "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.tabs.pinOwned')",
       "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
       "requiredPostcondition": "Chrome tabs.reload acknowledges reload request; current opaque TabRef invalid before native effect; new document obtains a new authorization; do not claim page load complete"
+    },
+    {
+      "id": "browser.tabs.navigateOwned",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "migrationDecision": "NEW",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
+      "callSignature": "OpenDeskSDK.browser.tabs.navigateOwned({tabRef:OpaqueTabRef,url:HTTP_URL})",
+      "returnSignature": "Promise<{navigationRequested:boolean,tabRefRevoked:boolean}>",
+      "inputSchema": {
+        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.tabs.navigateOwned:input"
+      },
+      "outputSchema": {
+        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.tabs.navigateOwned:output"
+      },
+      "nativeApis": [
+        "chrome.tabs.get",
+        "chrome.tabs.update",
+        "chrome.webNavigation.getFrame"
+      ],
+      "chromePermissions": [
+        "tabs",
+        "webNavigation"
+      ],
+      "toolCapabilities": [
+        "browser.tabs"
+      ],
+      "siteScope": "same-Origin own TabRef only; retire old TabRef before chrome.tabs.update({url}); never retry unknown native effect",
+      "allowedWorlds": [
+        "sidebar-tool"
+      ],
+      "trust": "INSTALLED_TOOL_WITH_VERIFIED_SENDER",
+      "userGesture": true,
+      "maxRequestBytes": 12000,
+      "errors": [
+        "E_SCHEMA",
+        "E_CONTEXT",
+        "E_SERVICE_UNSUPPORTED",
+        "E_CHROME_PERMISSION_REQUIRED",
+        "E_USER_GESTURE_REQUIRED",
+        "E_OWNER",
+        "E_DOCUMENT_CHANGED",
+        "E_OUTCOME_UNKNOWN",
+        "E_LIMIT"
+      ],
+      "sdkFile": "src/framework/sdk/browser.js",
+      "registryFile": "src/framework/sdk/browser-contract.js",
+      "schemaFile": "src/framework/sdk/browser-schemas.js",
+      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "authority": "src/ui/sidebar-tools.js#createSidebarTools + src/platform/chrome/context-menus.js verified sender/intent",
+      "driverFile": "src/platform/chrome/browser-tabs.js",
+      "lifecycle": "request",
+      "phase": "P3",
+      "status": "SOURCE_WIRED",
+      "verification": {
+        "node": "NOT_TESTED",
+        "build": "NOT_TESTED",
+        "native": "NOT_TESTED"
+      },
+      "testContract": {
+        "existing": [
+          "tests/environment/browser-tabs-host.test.mjs",
+          "tests/environment/browser-sdk-r2-host.test.mjs"
+        ],
+        "positive": "real tool confirms a same-Origin navigation, Chrome receives own tabId, old TabRef permanently retired",
+        "negative": "cross-Origin, foreign tab, stale document, forged sender, revoked site and unknown native outcome never grants authority or replays",
+        "native": "Chrome>=138 real installed tool explicit click; same-origin URL update received, old TabRef rejected, revocation and worker restart evidence"
+      },
+      "maxResponseBytes": 12000,
+      "support": {
+        "desktopChromeMinimum": 138,
+        "chromeFeatureGate": "feature presence + actual source permission check; never fake Chrome>=138 availability for unknown introduced versions",
+        "executionWorlds": [
+          "sidebar-tool"
+        ],
+        "incognito": "DENIED_BY_DEFAULT",
+        "scope": "Same-origin only; current pinned Chrome schema presence not a native acceptance receipt"
+      },
+      "nativeTestConditions": {
+        "kind": "NATIVE_PASS_REQUIRES_REAL_CHROME",
+        "sameCandidate": [
+          "commitSha",
+          "extensionPackageSha256",
+          "chromeVersion",
+          "extensionId",
+          "realSenderDocumentId",
+          "toolPackageHashAndInstallEpoch",
+          "permissionAndOriginSnapshot",
+          "nativeAckOrEffectId",
+          "workerLifecycleEvidence",
+          "redactedLogs"
+        ],
+        "denials": [
+          "permissionRevoked",
+          "foreignTool",
+          "staleDocument",
+          "badOrigin",
+          "staleEpoch"
+        ],
+        "nodeAndBuildDoNotPromote": true,
+        "requires": "same-Origin navigation of an owned tab, old TabRef invalidation, unknown-effect no retry, permission revocation, worker restart"
+      },
+      "mappingKind": "SCOPED",
+      "statusVerificationPolicy": "Current source path and all current evidence statuses are separate; NEVER treat source-wired as native Chrome PASS",
+      "targetFiles": [
+        "src/framework/sdk/browser-contract.js",
+        "src/framework/sdk/browser.js",
+        "src/framework/sdk/browser-schemas.js",
+        "src/platform/chrome/context-menus.js#createContextMenuHost",
+        "src/platform/chrome/browser-tabs.js"
+      ],
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.tabs.pinOwned')",
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
+      "requiredPostcondition": "Chrome tabs.reload acknowledges reload request; current opaque TabRef invalid before native effect; new document obtains a new authorization; do not claim page load complete",
+      "contractRevision": {
+        "reason": "R9 user expressly requires owned-tab navigation; code already source-wired. This narrowly scoped public operation was missing from frozen list.",
+        "date": "2026-10-13",
+        "verification": "NODE_AND_NATIVE_CURRENT_CANDIDATE_NOT_YET_PROVEN"
+      }
     }
   ],
   "nativeInterfaces": [
@@ -44626,6 +44745,7 @@
         "browser.tabs.activateOwned",
         "browser.tabs.getOwned",
         "browser.tabs.listOwned",
+        "browser.tabs.navigateOwned",
         "browser.tabs.pinOwned",
         "browser.tabs.removeOwned"
       ],
@@ -45861,6 +45981,7 @@
       "runtimeStatus": "NOT_TESTED",
       "approvedOperationIds": [
         "browser.tabs.activateOwned",
+        "browser.tabs.navigateOwned",
         "browser.tabs.pinOwned"
       ],
       "testGate": "REGISTERED_OR_PLANNED_OPERATION_NEEDS_NODE_BUILD_NATIVE",
@@ -50556,9 +50677,10 @@
         "browser.launch.consume",
         "browser.tabs.getOwned",
         "browser.tabs.listOwned",
+        "browser.tabs.navigateOwned",
         "browser.tabs.pinOwned",
-        "browser.tabs.removeOwned",
-        "browser.tabs.reloadOwned"
+        "browser.tabs.reloadOwned",
+        "browser.tabs.removeOwned"
       ],
       "testGate": "REGISTERED_OR_PLANNED_OPERATION_NEEDS_NODE_BUILD_NATIVE",
       "disposition": "APPROVED_MAPPED_OPERATION"
@@ -55995,10 +56117,10 @@
   "coverageAudit": {
     "seedNativeCatalogEntries": 119,
     "seedNativeCatalogMissing": 0,
-    "registeredOperations": 28,
+    "registeredOperations": 29,
     "trustedCookieHostOperations": 11,
     "approvedNewDesignOperations": 15,
-    "approvedTotal": 53,
+    "approvedTotal": 55,
     "orphanNativeMappings": [],
     "parseErrors": [],
     "sourceFilesTypeOnly": [
@@ -56109,5 +56231,23 @@
     "completeness": "Known source consumers identified; exhaustive consumer path enumeration cannot be verified without full repository grep. Phase P1 must enumerate and migrate all current consumers before deleting active alias."
   },
   "currentRegistrySourceSha": "d7182f9fa84dc8a271c8b14bac7787dde53a391b",
-  "currentSchemaSourceSha": "dabab71794cfda6db9710a8714ed4618e71799d8"
+  "currentSchemaSourceSha": "dabab71794cfda6db9710a8714ed4618e71799d8",
+  "contractRevisions": [
+    {
+      "date": "2026-10-13",
+      "id": "P3-owned-navigation",
+      "operation": "browser.tabs.navigateOwned",
+      "reason": "Explicit R9 navigation user requirement; pre-existing implemented same-Origin fenced driver lacked approved-list record",
+      "change": "54->55 approved; 28->29 registered; pinned source discovery remains 191/1830 unchanged",
+      "node": "NOT_TESTED_FOR_CURRENT_CANDIDATE",
+      "nativeChrome": "NOT_TESTED"
+    },
+    {
+      "date": "2026-10-13",
+      "id": "P0-version-gated-bucket",
+      "reason": "Reconcile actual pinned interface rows: chrome.sidePanel.close is VERSION_GATED (>=145), not an automatically available Chrome 138 scoped API",
+      "change": "1 row restored to VERSION_GATED; 1830 total unchanged",
+      "evidenceLevel": "SOURCE_METADATA_ONLY_NOT_NATIVE_PASS"
+    }
+  ]
 }
