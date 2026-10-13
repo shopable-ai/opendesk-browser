@@ -2,7 +2,7 @@
 
 ## 当前政策：旧 35 项接口兼容义务已废止（2026-10-13）
 
-**ABOLISHED（正式废止）的是开发期旧 35 项 API 的永久兼容政策，而不是它们全部对应的浏览器功能。** 不得为保留 35 这个数字而恢复过时名称、旧签名、废弃占位或额外 Alias/Adapter。已核查的旧版处置是 **26 项名称仍登记、3 项 Tabs 更名、9 项 Media/Speech/Notifications 占位移除**；这不是当前注册表接口总数。
+**ABOLISHED（正式废止）的是开发期旧 35 项 API 的永久兼容政策，而不是它们全部对应的浏览器功能。** 不得为保留 35 这个数字而恢复过时名称、旧签名、废弃占位或额外 Alias/Adapter。已核查的旧版处置是 **23 项原名称仍登记、3 项 Tabs 更名、9 项 Media/Speech/Notifications 占位移除**；这不是当前注册表接口总数。
 
 - 旧 Tabs 名称 `tabs.open/focus/closeOwned` 已废除；统一使用 `tabs.create/activateOwned/removeOwned`，并遵循 TabRef 的所有权作用域。
 - 历史录制 4 项、语音 3 项、Notifications 2 项占位接口已从现行注册表移除；后续真实产品功能需重新按矩阵批准，不复活原占位。

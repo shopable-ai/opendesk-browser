@@ -4170,7 +4170,7 @@
       "migrationDecision": "KEEP",
       "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
       "callSignature": "OpenDeskSDK.browser.network.observe.export({observationId,format:'json'})",
-      "returnSignature": "Promise<{resourceRef,downloadId,bytes,truncated}>",
+      "returnSignature": "Promise<{resourceRef,bytes,truncated}>",
       "inputSchema": {
         "sourceRef": "src/framework/sdk/browser-schemas.js#browser.network.observe.export:input"
       },
@@ -4484,7 +4484,7 @@
       "migrationDecision": "KEEP",
       "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
       "callSignature": "OpenDeskSDK.browser.screenshot.captureVisible({tabRef})",
-      "returnSignature": "Promise<{resourceRef,downloadId,bytes,width,height}>",
+      "returnSignature": "Promise<{resourceRef,bytes,width,height}>",
       "inputSchema": {
         "sourceRef": "src/framework/sdk/browser-schemas.js#browser.screenshot.captureVisible:input"
       },
@@ -56479,7 +56479,7 @@
     "completeness": "Known source consumers identified; exhaustive consumer path enumeration cannot be verified without full repository grep. Phase P1 must enumerate and migrate all current consumers before deleting active alias."
   },
   "currentRegistrySourceSha": "3eccbf8c7c16e05eaeff6d7b81aec5754880f614",
-  "currentSchemaSourceSha": "7482231d35be77fe4a3818fa7de897b1370be797",
+  "currentSchemaSourceSha": "795157bd5d8ada258d27f79b964b7c9ca283d3e1",
   "contractRevisions": [
     {
       "date": "2026-10-13",

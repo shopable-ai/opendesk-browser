@@ -172,7 +172,9 @@ export function createBrowserNetworkObserver({api=globalThis.chrome,clock=Date,
    filename:'opendesk-network-observation-'+row.startedAt+'.json',saveAs:true});
   if(!Number.isSafeInteger(downloadId)||downloadId<0)
    throw fail('E_OUTCOME_UNKNOWN','Chrome did not confirm the download');
-  return {resourceRef:createRef(),downloadId,bytes:bytes.length,
+  // Keep the native download ID only in this trusted Driver. Installed tools
+  // receive an opaque export receipt, never the browser-global download ID.
+  return {resourceRef:createRef(),bytes:bytes.length,
    truncated:row.droppedCount>0||row.gapCount>0};
  }
  function invalidateTab(tabId){

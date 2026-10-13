@@ -18,6 +18,7 @@ function fixture(){
 test('trusted capture stores private PNG and returns only bounded metadata',async()=>{
  const {host,state}=fixture();const result=await host.captureVisible({tabRef:ref},context);
  assert.equal(result.resourceRef,'private-asset');
+ assert.equal(Object.hasOwn(result,'downloadId'),false,'Screenshot must never expose a native download ID');
  assert.deepEqual([result.width,result.height],[1,1]);
  assert.equal(state.captures,1);
  assert.equal(state.resources[0].mimeType,'image/png');
