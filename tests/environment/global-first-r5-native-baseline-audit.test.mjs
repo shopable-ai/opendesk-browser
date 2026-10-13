@@ -59,6 +59,7 @@ test('missing native result or incomplete Task installation cannot qualify a bas
 test('separate real Result, document, retired Worker and visible page effect all required',()=>{
   for(const mutate of [
     x=>{x.steps[2].result.runId=x.steps[0].result.verifiedRunId},
+    x=>{x.steps[2].result.documentId=x.steps[0].result.documentId},
     x=>{x.steps[2].result.resultId=''},
     x=>{x.steps[2].result.documentId=''},
     x=>{x.steps[2].result.retirement='pending'},
