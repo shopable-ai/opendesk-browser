@@ -24,7 +24,7 @@ export function createCloudConnection({service,api,Socket=globalThis.WebSocket,c
         if(m.type==='authenticated'&&!authenticated&&m.providerId===c.providerId){
           authenticated=true;
           clearTimeout(authTimeout);attempt=0;lastPong=clock.now();connecting=false;service.connection('authenticated');
-          await service.post(c,'capabilities',{tasks:c.tasks.map(t=>({taskId:t.taskId,manifestHash:t.manifestHash,sourceHash:t.contentHash}))});if(stale())return;
+          await service.post(c,'capabilities',{grantId:c.grantId,tasks:c.tasks.map(t=>({taskId:t.taskId,manifestHash:t.manifestHash,sourceHash:t.contentHash}))});if(stale())return;
           await tick(epoch,ws);if(stale())return;
           heartbeat=setInterval(()=>{if(stale())return;if(clock.now()-lastPong>45000){ws.close();return;}ws.send(JSON.stringify({type:'ping'}));tick(epoch,ws).catch(()=>ws.close());},20000);
         }else if(authenticated&&m.type==='pong')lastPong=clock.now();else if(authenticated&&m.type==='notify')tick(epoch,ws).catch(()=>ws.close());
