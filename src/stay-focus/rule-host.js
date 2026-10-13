@@ -10,7 +10,7 @@ export function focusRuleForSite(site,id,reason,whitelist=[]){
     throw focusError('无效的网站拦截规则','E_FOCUS_RULE');
   const quoted=site.host.replace(/\./g,'\\.');
   const host=site.subdomains?'(?:[a-z0-9-]+\\.)*'+quoted:quoted;
-  const condition={regexFilter:'^https?://'+host+'(?::[0-9]{1,5})?(?:[/?#]|$)',
+  const condition={regexFilter:'^https?://'+host+'\\.?(?::[0-9]{1,5})?(?:[/?#]|$)',
     resourceTypes:['main_frame']};
   if(whitelist.length)condition.excludedRequestDomains=whitelist;
   return {id,priority:20+site.host.split('.').length*4+(site.subdomains?0:1),
