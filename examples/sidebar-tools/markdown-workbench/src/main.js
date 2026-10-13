@@ -123,13 +123,13 @@ file.addEventListener('change',()=>{
 });
 q('mdw-copy').addEventListener('click',async()=>{
  if(!editor.value){status('没有可复制的内容',true);return;}
- try{await request('clipboard.writeText',{text:editor.value});status('Markdown 已复制');}
+ try{await globalThis.OpenDeskSDK.browser.clipboard.writeText(editor.value);status('Markdown 已复制');}
  catch{editor.focus();editor.select();status('自动复制不可用：已选中，请按 Ctrl/Cmd+C',true);}
 });
 q('mdw-download').addEventListener('click',async()=>{
  if(!editor.value){status('没有可下载的内容',true);return;}
  try{
-  await request('file.download',{text:editor.value,filename});
+  await globalThis.OpenDeskSDK.browser.downloads.text({text:editor.value,filename});
   dirty=false;state.textContent='已发起下载';status('已向浏览器发起 Markdown 下载，请在下载记录中核对结果。');
  }catch(e){status('下载失败：'+String(e.message||e),true);}
 });
