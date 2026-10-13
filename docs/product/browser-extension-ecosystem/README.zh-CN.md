@@ -1,3 +1,5 @@
+> **2026-10-13 · Global First R5 最新入口**：[45 对手、TOP20、84 OPP、8 EXP、七道验收门及各机会退出标准](global-first-r5-portfolio.zh-CN.md)。AI 提示词重复和录制回放已经有 Chrome Skills/Claude in Chrome 强反例；OpenDesk 已获批第一仍为 0。全球第一标语不获准，当前 Mac Chrome 同版 AI→Installed→无模型两次运行 **NOT_TESTED**。
+
 > **Global First R4 最新 AI-first 竞争结论（2026-10-13）**：[TOP5、26 项真实任务机会、竞品反例及最小原生缺口](global-first-r2-decision.zh-CN.md)；[30 个竞品时间线](competitor-timeline.json)；[唯一 GF 声明账本](first-claims-ledger.json)；[五份双语 SEO/GEO 事实页与营销合规](marketing-playbook.zh-CN.md)。已证实世界/区域/任务第一为 0，最新同包 AI→Installed→断开模型重复真机验收 NOT_TESTED。手动 JSX/Vue 编辑不再是首页 P0。
 
 # OpenDesk Browser · 产品生态导航（含历史 R1—R3）
