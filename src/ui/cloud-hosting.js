@@ -77,9 +77,9 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
         (task.eligible?'':task.enabled?' · 需要重新验证':' · 已停用')+
         (task.approved?' · 已授权':'');
       header.append(check,title);section.append(header);
-      if(task.description){const description=doc.createElement('p');
+      if(task.description){const description=doc.createElement('small');
         description.className='cloud-task-description';description.textContent=task.description;
-        section.append(description);}
+        header.append(description);}
       const scope=doc.createElement('p');scope.className='cloud-task-scope';
       scope.textContent='允许访问：'+(task.siteOrigins.join('、')||'网站范围尚未验证');
       section.append(scope);
