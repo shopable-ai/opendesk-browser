@@ -115,7 +115,7 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
               typeof b.grantId!=='string'||!/^[-a-f0-9]{36}$/.test(b.grantId))
               fail('E_SCHEMA');
             for(const task of b.tasks){
-              exact(task,['taskId','manifestHash','sourceHash']);
+              exact(task,['taskId','version','manifestHash','sourceHash']);
               if(typeof task.taskId!=='string'||!/^[a-f0-9]{64}$/.test(task.manifestHash)||
                 !/^[a-f0-9]{64}$/.test(task.sourceHash))fail('E_SCHEMA');
             }
