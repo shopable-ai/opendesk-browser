@@ -1,5 +1,17 @@
 # Global First R4｜2026-10-13 真实研究与远端 main 交付
 
+## R5 真实 Linux Chrome 固定版 Task 首次独立通过（2026-10-13）
+
+- **经过 GitHub 原始日志确认，而不是拼接不同来源的摘要**：[Linux CFT #38368328878](https://github.com/shopable-ai/opendesk-browser/actions/runs/38368328878) 在精确源码 `5f2c2c229cf065d4fe70dd9ed852086bfcff6f1c` 运行，**real Chrome 155.0.8059.39 / 生产包 SHA `f244dc3886ed8a182db2672747726e6aa1614d0713bb7ab13afe4c6246ae192f` / TAP 1 PASS、0 FAIL**。先前两次 #38367416844、#38367685071 是真实构建 FAIL（当时 Chrome 未启动），保留历史、不倒灌。
+- 实际原生步骤：`native-install-context` 是真实 SIDE_PANEL；`manual-native-receipt` 的原生验证 RunId 为 `ecbdc898-65e7-4f7b-8c8d-2bd0d21f27b6`；`installed-trusted-task` 为 `sample.form-fill@1.0.0`；真实 `native-chrome-alarm-registered` 后，通过独立可见 Runner 在 Chrome 网页执行，`native-scheduled-result` 的 RunId=`eca86301-43d5-4b8e-83c1-41ab1452728e`、ResultId=`f0279f54-daa9-44f3-9c35-9c061350a7e0`，`retirement=released`、`webEffect={name:"Scheduled Native",done:true}`。
+- **正确提升**：该精确 Linux Runner/Task 候选的 **REAL_LINUX_CHROME_FIXED_INSTALLED_TASK_BASELINE_PASS**；它证明真实 Candidate→原验证→安装→定时独立执行链的一项产品底座功能，而不是单纯 Node Mock。
+- **严禁越级**：原任务来源是预设 `sample.form-fill`，不是本轮真实模型新生成的同一源码；没有同一用户在 AI 断开后两次人工 Run + 直接模型调用计数，没有实际用户 Mac 的 R16 Native/ChatGPT/Codex 接入同版原始回执。故 **AI_CREATED_TO_INSTALLED_E2E=NOT_TESTED**、`MAC_USER_PROFILE=NOT_TESTED`、竞品对照/模型成本/排行均 `NOT_SCORED`。Linux GitHub hosted CFT 不能变成 macOS 真机结果；此历史候选也不自动晋级到之后连续修改的 main。
+- R5 的已有更完整独立实施/Native 记录由其它工作流维护：[R5 Native Proof](global-first-r5-native-proof-20261013.md)。本轮只**引用**其真实证据，不覆盖原 Native 驱动、CFT Profile、Cloud/SDK/Task 执行所有权；非互斥的 Node 产品合同测试见 [Workflow + Task 服务回归](https://github.com/shopable-ai/opendesk-browser/blob/main/tests/environment/global-first-r5-ai-to-installed-contract.test.mjs)，它自己仅使用合成内存数据，不能证明 Chrome E2E。
+- **下一唯一 P0 产品缺口**：用真实模型产生的**同一源版本**完成审阅/验证/安装/无模型重复 2 次，并在用户 Mac 实测权限、Stop、重启和数据边界；之后才对 Chrome Skills/Claude/Axiom/UiPath/ScriptCat 作同任务、同地区、全成本比较。切勿为达到营销名次重复发明 Browser SDK/Authority/RunHost。
+
+---
+
+
 ## R4 独占声明/市场证据测试已实跑（不是 Chrome Native）
 
 - [Global First R4 GitHub Actions 成功运行 #38355637174](https://github.com/shopable-ai/opendesk-browser/actions/runs/38355637174)，绑定代码提交 [059ba495aa0878bae883b27ab0299176a6f0be1c](https://github.com/shopable-ai/opendesk-browser/commit/059ba495aa0878bae883b27ab0299176a6f0be1c)。
