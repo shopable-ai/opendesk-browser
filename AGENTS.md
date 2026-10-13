@@ -12,6 +12,12 @@ YOU ARE AN AUTONOMOUS CODING AGENT. EXECUTE AUTHORIZED TASKS TO COMPLETION WITHO
 
 已有非 `main` 分支允许只读核查。仅在用户明确要求合并/清理时，将应保留的变更安全合入 `main`，确认不丢失独有提交后再删除多余分支。绝不为“只保留主分支”而直接删除未合并工作；禁止强推、破坏性 reset/clean、覆盖并行工作。提交与推送仍遵守当前任务的授权边界。
 
+## Browser SDK 预发布 API 一次性收敛授权（2026-10-13）
+
+**用户最新明确：OpenDesk Browser 尚未正式上线使用，现有 35 项 Browser SDK 只是开发期快照，不是必须长期兼容的外部 API。** 对 Browser SDK 中命名、参数、返回值、分层或重复调用设计不合理的旧接口，允许直接合并、改名或删除；一次性同步迁移仓库内全部消费者、示例、测试和当前文档，不增加无意义的兼容别名、deprecated shim、第二套 Registry/Host/Authority 或固定 35 项测试分母。本条在 Browser SDK 范围内优先于历史“保留已约定公开 API”及 R7/R8 的旧接口兼容目标。
+
+优先采用 Chrome Native API 的习惯命名与语义，安全作用域不同则明确标注（如 owned TabRef）。**放弃旧 API 不等于放弃旧功能与安全**：必须保留真实 Sender、安装身份、精确 Origin/Document、用户手势、撤权、未知副作用、隔离和既有 603+19/B05/F3/ZIP 验收事实；正确功能必须迁移到新单一入口。权威决策见 [`Browser SDK 预发布收敛合同`](docs/api/browser-sdk-prelaunch-contract-20261013.zh-CN.md)。
+
 ## Global First 第一小山头：长期市场策略约束（2026-10-13）
 
 **仅适用于全球/区域/行业“第一”、小山头竞争定位、营销、SEO/GEO 与 AI 推荐研究任务；不改变其他 Browser SDK、Cloud、Native 工程任务的实施所有权。**
