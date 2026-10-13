@@ -68,3 +68,14 @@
 - **用户 macOS Chrome Profile/实体 Side Panel：NOT_TESTED**，这次 GitHub 连接器不具备用户本机工作目录/Chrome Profile/未提交状态视图。所有真正视觉评分（十项独立 95/100）保持 **NOT_SCORED**，不得伪造。
 
 **本轮检查的固定源文件 blob**：`scheduled-task-workbench.js=ccc5375de1a495fa8160b4a778e5802fe1c8d181`、唯一 R2.5 原型 `=e001facfbe74511676e83a45cf5085e7e2c4f860`、UI 断言 `=2127c2de63276545149ca8a8028f997bf2365f61`。上述是源 blob 身份，不是 production package hash。R2.6 仍未达到最终 Native 95+ 关闭门槛。
+
+## R2.6 second continuation: truthful settling and expanded native UI matrix
+
+- `88af486f` 修复了独立运行页对 **SETTLING、WAITING_HOST 与迟到的终态 RunId** 的用户文案：SETTLING 仅表示「正在结算，尚未确认成功」；终态历史不能重新显示为正在执行；当前真实可见运行页不会因为历史 WAITING_HOST 而错误宣称此刻没有宿主。
+- `96d9f2fe` 直接更新唯一 R2.5 HTML 模拟场景：已结束的单次计划显示「暂无后续」，数量汇总只计入确有下一次时间且未阻断的计划；模拟运行页优先显示结算等待，不冒充已完成。`11be121e` 为这两类源行为增加原 R1 环境测试文件的定向静态约束。
+- `ecd9a25c` 扩展现有真实 WXT Chrome TAB 原生驱动到 **真实 tabs.setZoom 100/125/150/200%**、**CDP CSS viewport 220/300/320/360/420/520/594/760/980px**，并增加 **Chrome prefers-color-scheme 深色/浅色** 两份截图。viewport 模拟、真实标签页缩放、用户物理 Side Panel 仍须分开记载。
+- `d5cdfb14` 将真实 UI 的远距离点击改成 CDP 轮滚 + CDP 鼠标操作，禁止从 DevTools 调用 DOM `click()`、`focus()`、`scrollIntoView()` 伪造操作。`1f7c9bfc` 增加真实 WXT 新建计划无任务时字段错误、焦点与禁止越过两阶段保存确认的原生专项。**这两项仅 TEST_CODE_IMPLEMENTED，尚无成功 native 回执。**
+- 对应最新候选 `1f7c9bfccb8a2d61b29cc86e9a9f823e7019e385` 的 [GitHub Actions 38383018336](https://github.com/shopable-ai/opendesk-browser/actions/runs/38383018336) 查询结果为 **queued**。CFT 跨平台输出包、包 SHA256、日志与图片 SHA 尚不能列为 PASS。
+- 最新 R1/R2/R2.6 UI 环境测试源文件在受限 V8 中经 `readFile` 内存适配执行 **16/17 PASS，1 项真实模块 URL/可信发送者断言 NOT_EXECUTED**；新生产 JS 与唯一 R2.5 HTML 内联脚本语法检查通过。此结果仍非真实 `node --test` 或浏览器视觉验收。
+
+**当前需要严格保留**：用户 Mac `git status` / Chrome Profile / Side Panel 物理宽度 **NOT_TESTED**；同候选 Linux/macOS Chrome 原生构建及截图 **QUEUED**；十维专家 95+ 独立评分 **NOT_SCORED**。
