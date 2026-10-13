@@ -6,8 +6,8 @@ import {validateProgramDraft} from '../../src/ui/program-source.js';
 import {buildProgramProjectInMemory} from '../../scripts/build-program-project.mjs';
 const sha=value=>createHash('sha256').update(value).digest('hex');
 const fixtures=[
-  {framework:'react',bytes:26061,draftSha:'0af5dd2833d0722523f1c23a298c21d1a5abb49bb64d709a517254b0aa0e3224',
-    sourceHash:'c3ad6f43aaedf2b59e14896df6414f7caaaf2392d01d02bb265030d9ac44146d'},
+  {framework:'react',bytes:26881,draftSha:'7e31482c6bc387fa9e17ab4a55adffe656965fbbb2572e06f612b0d6d2aa0bb9',
+    sourceHash:'81563526280f69099783d54924394e4b41b76c0e751dbf818311df19176b7a06'},
   {framework:'vue',bytes:20267,draftSha:'423dae24742e16446e387a9b8d0e922fb39e3578f98a04b1f3837ce8aed8f873',
     sourceHash:'f83a08b3e2d9952cf5729276b01388b1fca8a5334ea683b5df00ad4e372618f5'}
 ];
@@ -20,7 +20,8 @@ for(const fixture of fixtures)test('R24.3 current '+fixture.framework+' direct J
   assert.equal(draft.project.id,'sample.'+base);
   assert.equal(draft.project.entryMode,'component');
   assert.equal(draft.project.entry,'src/main.js');
-  assert.deepEqual(draft.authoring.files.map(row=>row.path),['src/main.js']);
+  assert.deepEqual(draft.authoring.files.map(row=>row.path),fixture.framework==='react'
+    ?['src/counter.js','src/demo-config.js','src/main.js']:['src/main.js']);
   assert.equal(draft.build.sourceHash,fixture.sourceHash);
   assert.equal(sha(draft.sourceUtf8),fixture.sourceHash);
   assert.match(draft.sourceUtf8,new RegExp('// @opendesk-lib '+fixture.framework));

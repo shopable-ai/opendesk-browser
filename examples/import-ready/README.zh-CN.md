@@ -6,8 +6,10 @@
 | --- | --- | --- |
 | `page-ui-react.opendesk-draft.json` | `97ff050d29977932156b130a01f2149799a2c821a65a25778c2f269591e3c557` | `5bbe94e8623770b68e25d223bf7e40da1066654502f6eda2428eb5cb0487b656` |
 | `page-ui-vue.opendesk-draft.json` | `747838ef6225583e6128f906ec2491f0ce141b7f8f50f3d01e2bcf7877f8f0c0` | `fea91e9418d7d503c6b070e404c82c18f87bb209f88382d9fe55ed7deef23240` |
-| `page-ui-react-direct.opendesk-draft.json` | `c3ad6f43aaedf2b59e14896df6414f7caaaf2392d01d02bb265030d9ac44146d` | `0af5dd2833d0722523f1c23a298c21d1a5abb49bb64d709a517254b0aa0e3224` |
+| `page-ui-react-direct.opendesk-draft.json` | `81563526280f69099783d54924394e4b41b76c0e751dbf818311df19176b7a06` | `7e31482c6bc387fa9e17ab4a55adffe656965fbbb2572e06f612b0d6d2aa0bb9` |
 | `page-ui-vue-direct.opendesk-draft.json` | `f83a08b3e2d9952cf5729276b01388b1fca8a5334ea683b5df00ad4e372618f5` | `423dae24742e16446e387a9b8d0e922fb39e3578f98a04b1f3837ce8aed8f873` |
+
+React Direct 当前草稿于 2026-10-12 经本地原 builder 同步为三文件 import 示例，包含 `src/main.js`、`src/counter.js` 和 `src/demo-config.js`；[构建及定向验证记录](../../docs/framework/workstreams/react-direct-multifile-20261012.md)绑定本次新字节，旧 CI/Native 回执保留为原候选证据。
 
 从「发现 → 导入」选择上述 JSON，检查只读源码与实际构建产物，满足网站范围和 Chrome 用户脚本许可后，在「开发 → 直接编辑」明确点击试运行。此流程与旧普通 JS 草稿共用原导入、执行器、受管容器、停止与权限机制。**导入、预览与固定程序安装不是同一个动作。**
 

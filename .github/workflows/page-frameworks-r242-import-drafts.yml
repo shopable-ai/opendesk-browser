@@ -6,9 +6,10 @@ on:
       - '.github/workflows/page-frameworks-r242-import-drafts.yml'
       - 'examples/import-ready/history/r242-page-ui-react-direct.opendesk-draft.json'
       - 'examples/import-ready/history/r242-page-ui-vue-direct.opendesk-draft.json'
-      - 'examples/programs/page-ui-react-direct/src/legacy-main.js'
       - 'examples/programs/page-ui-vue-direct/src/legacy-main.js'
       - 'tests/environment/page-ui-import-drafts-r242.test.mjs'
+      - 'tests/framework/page-frameworks-r242-native.mjs'
+      - 'tests/framework/local-dev-native-acceptance.mjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -23,7 +24,7 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
-      - name: Validate original R24.2 review hashes and exact retained async-main source
+      - name: Validate original R24.2 review hashes and restore exact archived async-main projects
         run: node --test tests/environment/page-ui-import-drafts-r242.test.mjs
       - name: Preserve previous receipts without generating or relabeling new R24.3 code
         run: |

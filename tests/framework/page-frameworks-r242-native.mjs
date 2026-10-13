@@ -3,7 +3,30 @@
 // permission bypass, synthetic clicks or alternate Page executor.
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
+import {mkdir,readFile,writeFile} from 'node:fs/promises';
+import {dirname,join} from 'node:path';
 import {PAGE_FRAMEWORK_RUNTIMES} from '../../src/libs/page-frameworks/contract.js';
+import {validateProgramDraft} from '../../src/ui/program-source.js';
+import {parseUserScriptDependencies} from '../../src/scripting/user-scripts/dependency-metadata.js';
+
+export async function prepareHistoricalPageFrameworkProject({root,framework,destination}){
+  const sample='page-ui-'+framework+'-direct';
+  const draft=await validateProgramDraft(JSON.parse(await readFile(join(root,
+    'examples/import-ready/history/r242-'+sample+'.opendesk-draft.json'),'utf8')));
+  const pkg=JSON.parse(await readFile(join(root,'examples/programs',sample,'package.json'),'utf8'));
+  const rules=parseUserScriptDependencies(draft.sourceUtf8);
+  pkg.opendesk.entry=draft.project.entry;
+  delete pkg.opendesk.entryMode;
+  pkg.opendesk.pageRules={...pkg.opendesk.pageRules,
+    matches:rules.matches,excludeMatches:rules.excludeMatches};
+  await mkdir(destination,{recursive:true});
+  await writeFile(join(destination,'package.json'),JSON.stringify(pkg,null,2)+'\n');
+  for(const file of draft.authoring.files){
+    const target=join(destination,file.path);
+    await mkdir(dirname(target),{recursive:true});
+    await writeFile(target,file.sourceUtf8);
+  }
+}
 
 export async function runPageFrameworkExamples({projects,mcpClient,target,until,clickNode,record,report}){
   const docBefore=await target.read('document.URL');

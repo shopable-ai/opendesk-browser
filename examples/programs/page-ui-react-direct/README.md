@@ -8,7 +8,7 @@
 **状态：已验证的普通 JavaScript React 示例，不是 JSX 示例。** 默认入口 `src/main.js` 使用官方 React `createElement` 和 Hooks，**不需要 JSX 语法转换**；系统仍自动准备、链接固定 React Runtime、生成受管挂载/Stop。真实独立 npm 安装包四目录编译已在 [macOS/Ubuntu CI PASS](https://github.com/shopable-ai/opendesk-browser/actions/runs/38231722128)，但最新完整 Chrome 生命周期仍有未测矩阵。本项目 `opendesk browser dev .` 需要 Native；浏览器无 Native 的 JSX 单组件编辑是另一个入口，不读取本地目录。**保存不自动 Run。** [状态表](../../../docs/api/page-ui-frameworks.zh-CN.md)。
 
 
-本目录演示**在不同普通网页中运行的 React 悬浮 UI**，不是阅读目录、网页采集或 Side Panel 小工具。保留项目 ID、标准 `react` 导入和 `entryMode: "component"`。开发者只编辑 `src/main.js`，不必自行调用 `createPageUI`、创建 React root、运行 Vite 或在本项目安装 React。
+本目录演示**在不同普通网页中运行的 React 悬浮 UI 与本地多文件 import**，不是阅读目录、网页采集或 Side Panel 小工具。保留项目 ID、标准 `react` 导入和 `entryMode: "component"`。开发者直接编辑 `src/` 下的普通 JavaScript 模块，不必自行调用 `createPageUI`、创建 React root、运行 Vite 或在本项目安装 React。
 
 ## 第三方依赖与 JSON：本项目不以油猴声明为主入口
 
@@ -37,12 +37,24 @@
 4. 切换到另一个已获准访问的普通网页，重新点击运行；用 Sidebar 的受管 Stop 结束，确认 UI、React effect 监听器和宿主均被清理。
 5. 仍可使用标准测试页 `http://127.0.0.1:43111/demo-form.html` 回归，但**它不是运行前提**。服务启动方式：在仓库根目录执行 `python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks`。
 
+## 多文件 import 测试
+
+```text
+src/main.js          React 组件，导入 counter.js 和 demo-config.js
+src/counter.js       计数 reducer，再导入 demo-config.js
+src/demo-config.js   卡片标题与计数步长
+```
+
+入口使用 `import {counter} from './counter.js'` 和 `import {demoConfig} from './demo-config.js'`；计数模块也静态导入同一配置，验证直接导入、传递导入与共享模块。
+
+在已连接的本地项目中，把 `src/demo-config.js` 的 `title` 改成 `OpenDesk · 多文件测试`，把 `counterStep` 从 `1` 改成 `2`，然后保存。系统自动准备，当前网页上的卡片仍保持原状态；点击 **运行本地项目** 后，卡片显示新标题，计数从 0 开始，每次点击增加 2。恢复配置并保存、再次运行即可回到默认演示。无需重启 `opendesk browser dev .` 或手工生成 JSON；每次运行由原本地准备链重新读取源码图。
+
 ## 与其他示例的边界
 
 浏览器无需 Native 的 **React JSX 直接编辑模式** 已支持官方单组件 JSX 的按需编译与网页 Run/Stop（[真实 Chrome 历史证据](https://github.com/shopable-ai/opendesk-browser/actions/runs/38225425847)），但它**不会读取本目录、继承本目录通配 `pageRules`、执行多文件导入或隐式替换已安装版本**。本目录 `src/main.js` 仍按 `opendesk browser dev .` 的 Native 已授权本地目录开发方式操作；两者都只能显式 Run。
 
 `page-ui-toc-react-direct`（由另一个对话单独实现时）负责章节抽取和目录跳转。本项目只验证跨站 React 悬浮挂载，**不复制阅读目录功能**，不修改 `page-ui-react`、`page-ui-vue`、`page-ui-vue-direct`。
 
-旧的 `src/legacy-main.js` 和 `src/enhancement.js` 只作为 R24.2 指定测试页的可逆高亮兼容示例保留；`examples/import-ready/history/` 中的旧版导入快照/回执不得重写。每次修改当前源码或匹配规则后，必须用原有构建器重新生成并验证**当前** `examples/import-ready/page-ui-react-direct.opendesk-draft.json`，旧文件哈希不得冒充本版证据。
+R24.2 的高亮/撤销源码保存在 `examples/import-ready/history/r242-page-ui-react-direct.opendesk-draft.json`，旧版回归从该不可变快照还原临时测试项目；本目录只保留当前组件源码，历史快照/回执不得重写。每次修改当前组件源码或匹配规则后，必须用原有构建器重新生成并验证**当前** `examples/import-ready/page-ui-react-direct.opendesk-draft.json`，旧文件哈希不得冒充本版证据。
 
 [组件使用指南](../../../docs/api/page-ui-frameworks.zh-CN.md) · [导入草稿](../../import-ready/README.zh-CN.md)

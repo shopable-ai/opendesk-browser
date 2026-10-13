@@ -22,7 +22,7 @@ import {runNativeLifecycle,runControllerLifecycle} from './r101-controller-lifec
 import {launchLocalDevChrome} from './local-dev-cft-launcher.mjs';
 import {runR23Preparation} from './r23-local-preparation.mjs';
 import {prepareEsmExamples,runEsmExamples} from './esm-r22-examples.mjs';
-import {runPageFrameworkExamples} from './page-frameworks-r242-native.mjs';
+import {prepareHistoricalPageFrameworkProject,runPageFrameworkExamples} from './page-frameworks-r242-native.mjs';
 import {runPageFrameworkLongLoops} from './page-framework-r243-loop-native.mjs';
 const r101Enabled=process.env.OPENDESK_R101_ACCEPTANCE==='1';
 const acceptanceSlice=process.env.OPENDESK_DEV_SLICE||'full';
@@ -237,15 +237,10 @@ try{
      const sample=name==='reactJsx'?'page-ui-react':name==='vueSfc'?'page-ui-vue':
        name==='reactPlain'?'page-ui-react-direct':name==='vuePlain'?'page-ui-vue-direct':
        'page-ui-'+name+'-direct';
-     fs.cpSync(path.join(root,'examples/programs',sample),dest,{recursive:true});
      if(name==='react'||name==='vue'){
-       // R24.2 original source identity: real old async-main and DOM rollback.
-       const manifest=path.join(dest,'package.json');
-       const pkg=JSON.parse(fs.readFileSync(manifest,'utf8'));
-       pkg.opendesk.entry='src/legacy-main.js';
-       delete pkg.opendesk.entryMode;
-       fs.writeFileSync(manifest,JSON.stringify(pkg,null,2)+'\n');
-     }
+       // Restore R24.2 reviewed bytes from the immutable historical draft.
+       await prepareHistoricalPageFrameworkProject({root,framework:name,destination:dest});
+     }else fs.cpSync(path.join(root,'examples/programs',sample),dest,{recursive:true});
    }
  report.acceptanceSlice=acceptanceSlice;
  if(r101Enabled&&acceptanceSlice==='full')r101Projects=await prepareR101Projects({root,workspace,origin,out,record,staticRemote:process.env.OPENDESK_R23_ACCEPTANCE==='1'});

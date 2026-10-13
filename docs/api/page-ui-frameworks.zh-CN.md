@@ -33,7 +33,7 @@
 
 四个目录各有独立项目身份，但只共用**一套** `opendesk.project.v1` 本地解析器、页面执行链、固定 framework 资源和受管 UI 生命周期，不产生额外 SDK/安装器。默认入口标记 `opendesk.entryMode: "component"` + `framework: "react" | "vue"`；未声明该入口的旧 `async-main`、classic 用户脚本和 Controller 保持兼容。
 
-所有默认组件只写官方语法和默认导出；**不要求** `createPageUI`、`createDemoEnhancer`、`main()` 或手动 `createRoot/createApp`。原高亮/撤销演示保留在两个 direct 项目的 `src/legacy-main.js` + `src/enhancement.js`，既有历史 JSON 保存在 `examples/import-ready/history/`。
+所有默认组件只写官方语法和默认导出；**不要求** `createPageUI`、`createDemoEnhancer`、`main()` 或手动 `createRoot/createApp`。原高亮/撤销演示的完整源码保存在 `examples/import-ready/history/` 的 R24.2 历史 JSON，旧版原生回归从快照还原临时测试项目。React Direct 已删除重复旧源码；Vue Direct 仍保留 `src/legacy-main.js` + `src/enhancement.js`。
 
 ## 二、本地源码开发：保存自动准备，Run 才操作网页
 

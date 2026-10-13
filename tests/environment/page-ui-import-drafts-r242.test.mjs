@@ -1,10 +1,15 @@
 // Reproducible official previews for users who prefer 'Discover -> Import'.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
+import {mkdtemp,readFile,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import {createHash} from 'node:crypto';
 import {validateProgramDraft} from '../../src/ui/program-source.js';
 import {parseUserScriptDependencies} from '../../src/scripting/user-scripts/dependency-metadata.js';
+import {validateProgramProject} from '../../scripts/validate-program-project.mjs';
+import {buildProgramProjectInMemory} from '../../scripts/build-program-project.mjs';
+import {prepareHistoricalPageFrameworkProject} from '../framework/page-frameworks-r242-native.mjs';
 
 const fixtures=[
   {name:'page-ui-react-direct',id:'sample.page-ui-react-direct',
@@ -33,7 +38,23 @@ for (const fixture of fixtures) test('R24.2 historical '+fixture.name+' preserve
   assert.deepEqual(parsed.excludeMatches,['http://127.0.0.1:43111/private/*']);
   const framework=fixture.name.includes('react')?'react':'vue';
   assert.equal(parsed.directives.filter(x=>x.name==='opendesk-lib')[0]?.value,framework);
-  const legacy=await readFile('examples/programs/'+fixture.name+'/src/legacy-main.js','utf8');
-  assert.equal(draft.authoring.files.find(row=>row.path==='src/main.js').sourceUtf8,legacy,
-    'Historical R24.2 source identity must match archived async-main rather than the new component');
+  const legacy=draft.authoring.files.find(row=>row.path==='src/main.js').sourceUtf8;
+  assert.match(legacy,/createDemoEnhancer/);
+  assert.match(legacy,/(?:root|app)\.unmount\(\)/);
+  const destination=await mkdtemp(join(tmpdir(),'opendesk-r242-history-'));
+  try{
+    await prepareHistoricalPageFrameworkProject({root:process.cwd(),framework,destination});
+    const checked=await validateProgramProject(destination);
+    assert.equal(checked.entry,'src/main.js');
+    assert.equal(checked.entryMode,undefined);
+    const pkg=JSON.parse(await readFile(join(destination,'package.json'),'utf8'));
+    assert.deepEqual(pkg.opendesk.pageRules.matches,parsed.matches);
+    assert.deepEqual(pkg.opendesk.pageRules.excludeMatches,parsed.excludeMatches);
+    assert.deepEqual(checked.sources.map(file=>file.path),draft.authoring.files.map(file=>file.path));
+    for(const file of draft.authoring.files)
+      assert.equal(await readFile(join(destination,file.path),'utf8'),file.sourceUtf8);
+    const built=await buildProgramProjectInMemory(destination,{mode:'production'});
+    assert.ok(built.sourceBytes<100000);
+    assert.match(built.sourceUtf8,new RegExp('// @opendesk-lib '+framework));
+  }finally{await rm(destination,{recursive:true,force:true});}
 });

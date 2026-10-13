@@ -1,9 +1,10 @@
 import {createElement, useCallback, useEffect, useReducer, useState} from 'react';
+import {counter} from './counter.js';
+import {demoConfig} from './demo-config.js';
 
 // Portable R24.3 component. OpenDesk owns the floating Shadow DOM host,
 // root creation, runtime authorization and managed Stop/unmount.
 const h=createElement;
-const counter=(count,action)=>action==='increment'?count+1:count;
 function readPage(){
   return {
     title:(document.title?.trim()||'未命名网页').slice(0,180),
@@ -48,7 +49,7 @@ export default function App(){
     style:collapsed?{...styles.panel,width:'min(196px, calc(100vw - 24px))'}:styles.panel
   },
     h('div',{style:styles.heading},
-      h('strong',{style:styles.name},'OpenDesk · React'),
+      h('strong',{style:styles.name},demoConfig.title),
       h('span',{style:styles.pill},'已在当前网页运行')),
     !collapsed&&h('div',{style:styles.page},
       h('span',{style:styles.title,title:page.title},page.title),
