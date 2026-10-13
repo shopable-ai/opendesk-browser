@@ -75,6 +75,43 @@ test('R9 installed-tool Cookies public SDK retains host trust and denies Page SD
   assert.equal(normalizeBrowserOperation('browser.cookies.getAll',{url:'https://shop.example.test/'}).url,
     'https://shop.example.test/');
 });
+test('R10 installed Cookie driver restricts store, partition, values, grant epoch and observation owner',async()=>{
+  const f=fixture(),url='https://shop.example.test/account';
+  let grant=true,allowValues=false;
+  const owner={origin:'https://shop.example.test',storeId:'0',partitionKey:null,
+    ownerKey:'installed-tool-A@package-epoch-sitegrant',
+    authorize:async({url:requested,includeValues})=>{
+      if(!grant)throw Object.assign(new Error('Grant revoked'),{code:'E_GRANT_REVOKED'});
+      if(new URL(requested).origin!=='https://shop.example.test')
+        throw Object.assign(new Error('Wrong Origin'),{code:'E_SITE_GRANT_REQUIRED'});
+      if(includeValues&&!allowValues)
+        throw Object.assign(new Error('Separate values consent required'),{code:'E_COOKIE_VALUES_REQUIRED'});
+    }};
+  const run=(operation,args,context=owner)=>f.cookieHost.executeInstalled(operation,args,context);
+  const metadata=await run('browser.cookies.getAll',{url});
+  assert.equal(metadata.length,1);
+  assert.equal(metadata[0].name,'sid');
+  assert.equal(metadata[0].valueRedacted,true);
+  assert.equal(Object.hasOwn(metadata[0],'value'),false);
+  await assert.rejects(run('browser.cookies.getAll',{url,includeValues:true}),
+    reject('E_COOKIE_VALUES_REQUIRED'));
+  allowValues=true;
+  const values=await run('browser.cookies.getAll',{url,includeValues:true});
+  assert.equal(values[0].value,'SECRET_PRIVATE');
+  await assert.rejects(run('browser.cookies.getAll',{url,storeId:'other'}),
+    reject('E_COOKIE_STORE'));
+  await assert.rejects(run('browser.cookies.getAll',{url,partitionKey:{
+    topLevelSite:'https://another.example.test',hasCrossSiteAncestor:false
+  }}),reject('E_COOKIE_PARTITION'));
+  await assert.rejects(run('browser.cookies.getAll',{url:'https://other.example.test/'}),
+    reject('E_COOKIE_SCOPE'));
+  const session=await run('browser.cookies.observe.start',{url,durationMs:3000,maxEvents:2});
+  await assert.rejects(run('browser.cookies.observe.read',{url,sessionRef:session.sessionRef},
+    {...owner,ownerKey:'another-installed-tool'}),reject('E_SESSION_EXPIRED'));
+  grant=false;
+  await assert.rejects(run('browser.cookies.observe.read',{url,sessionRef:session.sessionRef}),
+    reject('E_GRANT_REVOKED'));
+});
 test('R7 authenticated pre-existing Browser Host route, forged sender rejected, one-use approval',async()=>{
   const f=fixture(),host=createContextMenuHost({api:f.api,logger:{warn(){}}});
   const proposal={protocol:BROWSER_HOST_PROTOCOL,operation:'browser.cookies.approve',
