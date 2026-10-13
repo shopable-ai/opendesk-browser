@@ -149,3 +149,19 @@ node scripts/cloud-control/cli.mjs client:revoke --client CLIENT_UUID --director
 - `tests/cloud-control/remote-https-r52.test.mjs` 进一步覆盖浏览器允许结果但外部客户端拒绝读取、admitted 后取消而结果未知、重启后旧授权失效；已有 Run/Result/receipt 仍保存。
 
 **证据门禁**：上面的源码和测试在候选 `9ad75dde80d2b79bcbd26b5276ebd2d606be2f47` 后进入新 CI：[Cloud R5.2 专项 #38370589040](https://github.com/shopable-ai/opendesk-browser/actions/runs/38370589040) 与 [构建 #38370588579](https://github.com/shopable-ai/opendesk-browser/actions/runs/38370588579)。最后查询时仍排队，故 `SOURCE_IMPLEMENTED`，**绝不把上一候选 157 PASS 冒充新候选 PASS 或 BUILD_VERIFIED**。本次 GitHub connector 没有访问用户 Mac 文件系统和已安装 Chrome/Profile 的权限；原生双 Task、真实响应式截图与跨公网端到端仍分别 `NATIVE_PENDING` / `REMOTE_NATIVE_PENDING`，十五项实施/验收评分尚不可填写 95。
+
+## R5.2.2 · 用户可读请求历史、Stop 幂等与 Provider 高频状态可靠性
+
+日期：2026-10-13。上述历史成功 CI 只对应旧候选，不是下述新源码的完成验收。
+
+本轮直接落实的增量：
+- `src/cloud-control/service.js` 的已认证 `cloudStatus` 请求记录只投影本地 Task Manifest 的 80 字以内标题 `taskTitle`；`src/ui/cloud-status-presentation.js` 只保留标题和固定中文状态，`src/ui/cloud-hosting.js` 在「最近请求」以 **任务名 · 状态 · Run 状态** 展示两种已安装 Task。绝不把 RunId、TaskId、目标 URL、参数、Credential 或网页结果正文传播到只读 Observer 或外部 Provider 查询。测试覆盖两个不同任务及敏感标识不泄漏。
+- `tests/cloud-control/remote-cli-r52.test.mjs` 的 Provider 与 CLI 在同一 Node 测试进程运行，原先使用同步 `execFileSync` 会阻塞事件循环导致真正 HTTP/HTTPS 投递死锁；已改为有 10 秒边界的异步子进程。测试用真实 CLI 命令登记两包、给指定 Executor 颁发独立 0600 凭据、远端 TLS 投递、查询两个 Job、撤销并证明无法再查询；**这些 Node 回执不是 Chrome Worker 原生证明**。
+- `scripts/cloud-control/provider.mjs` 的用户 Stop 以 `suspendedAt` 拒绝任何**新**本机 Admin/外部 HTTPS Job，同时不拒绝先前已经接受的完全相同 `requestKey` 回查：原 JobId/receipt 和未知副作用历史不因 Stop 丢失。对应两种接口均新增断言。
+- `scripts/cloud-control/provider.mjs` 将真正的只读接口（`job-status/reconcile/cancellation` 及管理只读列表）从状态全量 clone 和 `state.json.tmp` fsync/rename 中排除，同时仍沿唯一串行队列读取；`seed/submit/claim/admission/receipt/stop` 等**写入端仍保留异常回滚和原子持久化**。新测试通过将 `state.json.tmp` 故意设为目录验证：读仍可用，写必须失败并回滚。
+
+**最新候选与验收资格**：
+- 更新源码提交包含 `d69045abed34453e2e6f38b2f236c6d8498738f6`、`11773011d5ae12e91000c6645e6da45384fc9949`、`b4225056170c3522f8796d5f6cda4f009763e6a0`、`70d02565cd645b74ef1ea028653e1528fc1fe4fc`、`e8e9ed5da7dfdc56060216f8681dec5a3fc38afe` 和相关测试提交。完整增量 SHA 在同名 JSON。
+- [R5.2 新候选组件 CI #38373122306](https://github.com/shopable-ai/opendesk-browser/actions/runs/38373122306) 绑定 `9337d5a44af3acdd866c0e8578f737f8e34c5349`，查询时 **queued**，不得按旧 `24994880...` 的 157/157 PASS 自动填新候选结果。
+- 最新的 `main` 仍与其他 Agent 并行发展，项目整体 `check/build/build:dev/verify` 需等固定候选的独立结果；不覆盖其他 Agent 共享构建相关修改，也不为了过预算放宽 512 KiB 限制。
+- 真实 Mac Chrome 安装两个不同 Task、实际 Worker/Run/Result/retirement/Provider receipt、300–520 CSS px 及 125%/200% 截图、外部批准公网服务均未在本会话取得原生证据。**NATIVE_PENDING / REMOTE_NATIVE_PENDING；独立 95+ 整体未关闭**。这些结果不能以 Provider mock、真实 TLS Node CI 或静态 UI 代替。
