@@ -102,7 +102,8 @@ export function normalizeBrowserOperation(operation,args={}){
     case 'browser.page.getContext': case 'browser.page.getSelection':
       fields(args,[]);break;
     case 'browser.capabilities.getStatus':
-      fields(args,['operation'],['operation']);
+      fields(args,['operation','url'],['operation']);
+      if(args.url!==undefined)approvedHttpUrl(args.url);
       if(typeof args.operation!=='string'||!/^browser\.[A-Za-z.]+$/.test(args.operation))throw fail('E_SCHEMA','Invalid capability name');
       break;
     case 'browser.tabs.create':

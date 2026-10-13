@@ -301,7 +301,7 @@ async function readBrowserMetadata(){
   }
   setBusy(true);liveRows=[];liveState='idle';render();
   try{
-    const permission=await sdk.capabilities.getStatus({operation:'browser.cookies.getAll'});
+    const permission=await sdk.capabilities.getStatus({operation:'browser.cookies.getAll',url:target.url});
     if(!permission?.callableNow){
       if(id===epoch){liveState='blocked';liveMessage='尚未获得该网站的读取能力（'+
         String(permission?.reasonCode||'E_PERMISSION_REQUIRED').slice(0,80)+'）。请在工具详情中审阅网站授权。';}

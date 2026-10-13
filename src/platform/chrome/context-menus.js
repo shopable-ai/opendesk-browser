@@ -392,6 +392,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       operation==='browser.tabs.navigateOwned'?Boolean(api.tabs?.get&&api.tabs?.update&&api.webNavigation?.getFrame):
       operation==='browser.tabs.removeOwned'?Boolean(api.tabs?.get&&api.tabs?.remove&&api.webNavigation?.getFrame):
       operation==='browser.sidePanel.openSelf'?Boolean(api.sidePanel?.open):
+      operation.startsWith('browser.cookies.')?Boolean(api.cookies?.getAll&&api.cookies?.getAllCookieStores&&api.permissions?.contains):
       operation==='browser.network.request'?typeof fetchImpl==='function':
       operation==='browser.network.observe.start'?Boolean(api.webRequest?.onBeforeRequest?.addListener&&api.tabs?.get&&api.webNavigation?.getFrame):
       operation.startsWith('browser.network.observe.')?Boolean(api.webRequest?.onBeforeRequest?.addListener):
@@ -422,23 +423,35 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     // the background must never claim it is callable solely from a permission.
     const frontendOnly=['browser.clipboard.writeText','browser.downloads.text','browser.page.getContext'].includes(operation);
     const needsSite=isMenu&&!['browser.contextMenu.getStatus','browser.contextMenu.unregister'].includes(operation);
+    const isCookie=Boolean(cookieCapabilities[operation]);
+    const grantRecord=sources.grants?.[tool.id],validGrant=grantRecord?.version===tool.version&&
+      grantRecord.installEpoch===(sources.epochs[tool.id]??null)&&
+      grantRecord.packageHash===await digestTool(tool);
+    const desired=identity?.requestedUrl?parsedHttp(identity.requestedUrl)?.origin:null;
+    const cookieSites=validGrant?grantRecord.cookieSites||{}:{};
+    const candidateOrigins=desired?[desired]:Object.keys(cookieSites);
+    const cookieAuthorized=isCookie&&(await Promise.all(candidateOrigins.map(async origin=>
+      cookieSites[origin]?.[cookieCapabilities[operation]]===true&&await chromeSitePermitted(api,origin)
+    ))).some(Boolean);
     const runnable=op.implementation==='IMPLEMENTED'&&exposure==='allowed'&&platformSupported&&
-      requiredBrowser&&(!needsSite||menu)&&hasLaunch&&!frontendOnly;
+      requiredBrowser&&(!needsSite||menu)&&(!isCookie||cookieAuthorized)&&hasLaunch&&!frontendOnly;
     const reasonCode=runnable?null:
       op.implementation!=='IMPLEMENTED'?'E_NOT_IMPLEMENTED':
       !hasToolCap?'E_TOOL_CAPABILITY_REQUIRED':
       !platformSupported?'E_CHROME_UNSUPPORTED':
       !requiredBrowser?'E_CHROME_PERMISSION_REQUIRED':
       needsSite&&!menu?'E_SITE_GRANT_REQUIRED':
+      isCookie&&!cookieAuthorized?'E_SITE_GRANT_REQUIRED':
       !hasLaunch?'E_LAUNCH_UNAVAILABLE':
       frontendOnly?'E_FRONTEND_CONTEXT_REQUIRED':'E_CONTEXT';
     return {operation,apiVersion:BROWSER_API_VERSION,implementation:op.implementation.toLowerCase().replaceAll('_','-'),
       exposure,platform:platformSupported?'supported':'unsupported',
       authorization:{tool:hasToolCap?'granted':'missing',browser:requiredBrowser?'granted':'missing',
-        site:isMenu?(menu?'granted':'missing'):'not-required'},
+        site:isMenu?(menu?'granted':'missing'):isCookie?(cookieAuthorized?'granted':'missing'):'not-required'},
       callableNow:runnable,requiresUserGesture:op.requiresUserGesture,reasonCode,
       nextAction:runnable?null:!hasToolCap?'update-tool-package':!platformSupported?null:
-        !requiredBrowser?'enable-in-tool-details':isMenu&&!menu?'enable-in-tool-details':null};
+        !requiredBrowser?'enable-in-tool-details':isCookie&&!cookieAuthorized?'enable-in-tool-details':
+          isMenu&&!menu?'enable-in-tool-details':null};
   }
   function ensureToolActions(tool,args){
     const actions=menuActions(tool);
@@ -615,7 +628,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         return values;
       }
       if(operation==='browser.capabilities.getStatus'){
-        normalizeBrowserOperation(operation,args);return status(args.operation,tool,owned,{hostInstanceId,toolInstance});
+        normalizeBrowserOperation(operation,args);return status(args.operation,tool,owned,{hostInstanceId,toolInstance,requestedUrl:args.url});
       }
       if(operation==='browser.contextMenu.getStatus'){
         normalizeBrowserOperation(operation,args);

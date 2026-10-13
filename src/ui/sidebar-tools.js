@@ -201,7 +201,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         throw Object.assign(new Error('请切换到目标网站的活动 Chrome 标签页'),{code:'E_DOCUMENT_CHANGED'});
       const response=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
         operation:'browser.cookies.userGrant',hostInstanceId,toolId:tool.id,toolVersion:tool.version,
-        installEpoch:frameRevocationEpoch,cookieCapability:cap,enabled,origin:current,
+        installEpoch:revocationEpochs[tool.id]??null,cookieCapability:cap,enabled,origin:current,
         ...(snapshot?{document:{
           tabId:snapshot.tabId,windowId:snapshot.windowId,documentId:snapshot.documentId,
           url:snapshot.url,origin:snapshot.origin}}:{})});
