@@ -28,7 +28,7 @@ function fixture({store=storage(),debugEnabled=false}={}){
 }
 
 test('Side Panel restores each previously selected product tab after reopening',async()=>{
-  for(const view of ['tasks','discover','workflow','develop','tools']){
+  for(const view of ['tasks','discover','workflow','develop','tools','cloud']){
     const f=fixture({store:storage({[KEY]:view})});
     await f.memory.restore();
     assert.equal(f.selected,view);
@@ -179,6 +179,12 @@ test('the real shell only restores the Side Panel and ignores navigation rejecte
   assert.match(work,/navigate\('tasks',\{initial:true\}\);update\(\)/);
 });
 
-test('historical Cloud tab preference restores My without opening another workbench',async()=>{
-  const f=fixture({store:storage({[KEY]:'cloud'})});await f.memory.restore();assert.equal(f.selected,'tasks');f.memory.dispose();
+test('R32 Cloud selection persists and restores through normal Side Panel navigation',async()=>{
+  const shared=storage();
+  const first=fixture({store:shared});await first.memory.restore();
+  first.select('cloud');await idle();
+  assert.equal(shared.state[KEY],'cloud');first.memory.dispose();
+  const reopened=fixture({store:shared});await reopened.memory.restore();
+  assert.equal(reopened.selected,'cloud');
+  assert.deepEqual(reopened.activations,['cloud']);reopened.memory.dispose();
 });

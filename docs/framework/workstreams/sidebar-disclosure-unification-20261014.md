@@ -15,6 +15,14 @@
 
 ## R32 实施结果与验收边界（2026-10-14）
 
+R32 原生验收续接写入范围：`src/ui/task-workbench.js`、`src/ui/sidebar-tab-memory.js`、`tests/environment/task-workbench.test.mjs`、`tests/environment/sidebar-tab-memory.test.mjs` 与本工作流。最新用户要求正式云控 Tab；R14 历史合并导航不再覆盖该要求。当前可见 `tab-cloud` 没有 click/键盘绑定，且旧偏好强制回到 tasks。独立只读核查确认现有 Cloud 页及单一 Side Panel Hosting 仍在，没有第二份消费者；只修复页签导航/ARIA/记忆，保留 Tools veto、Run Dock 所有权、一次性授权和 pagehide 清理。修复前先读取现有 diff，相关路径没有其他未提交修改。
+
+续接 CI 范围追加 `.github/workflows/sidebar-r21-ui-quality.yml`、`.github/workflows/sidebar-r19-layout-visual.yml`：两文件当前 diff 为空；导航与记忆修改触发既有检查，R21 运行已有页签记忆测试，R19 继续验证同候选真实静态标记，证据等级仍为 STATIC_MARKUP_CHROME。负责人为本 R32 主 Agent，不占用 watcher、Chrome profile 或其他工作流产物。
+
+续接实施：移除 Cloud→My 的历史重定向，将现有 `workbench-cloud` 纳入唯一导航、click、方向键、ARIA 与页签记忆；没有新建 Hosting 或改变授权。新增可见 Cloud 点击/零 Run/零授权、Tools dirty-veto、记忆恢复和原任务 Stop 跨 Cloud 使用的回归。修复前 60 项测试 55 PASS / 5 FAIL（`/tmp/sidebar-r32-cloud-navigation-before.log`）；修复后云控/导航定向 91 PASS / 0 FAIL（`/tmp/sidebar-r32-cloud-navigation-final.log`），相关集成 214 PASS / 0 FAIL（`/tmp/sidebar-r32-cloud-r21-final.log`）；`npm run check` 检查 668 文件 PASS，限定 diff 检查 PASS。
+
+续接原生观察：日常 Chrome 的实际 Side Panel `ccfcjegpkdlgbclopjmadlcjedelidmf`、`hostInstanceId=04b9e8a8-ab75-4905-8cc5-a33d8dfbba98`，测试页仍为 `127.0.0.1:43111/demo-form.html`。通过原生 Window 菜单选中测试窗口后，真实 Cloud 点击切换 ARIA selected 并显示既有云控管理内容；运行环境折叠真实点击后获得焦点。未点击配对/连接/运行，未创建消费者。该记录仅为当前增量开发产物的局部原生观察；完整宽度、Side Panel 自身 125%/200% 缩放仍 NOT_TESTED，拖拽工具出现 `native_hook_stdin_oversized`，不得提升为 95+ 或完整候选 NATIVE_PASS。
+
 本轮修改真实 Side Panel，继续使用 `od-disclosure` / `--flat` / `--info`，没有新 UI、Tailwind、依赖、权限或 iframe 样式注入。独立审阅 Lovelace 检查了正文留白、hidden、标题布局及暂存边界；视觉驱动由 Hume 修改，最终修复和验证由本对话负责人执行。
 
 | 页面 | 已迁移的真实组件 | 原生观察与缺口 |

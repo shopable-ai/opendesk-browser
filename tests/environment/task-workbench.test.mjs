@@ -424,7 +424,12 @@ test('R6 accessible roving tabs support Arrow and Home/End',async t=>{
   assert.equal(f.get('tab-discover').tabIndex,0);
   assert.equal(f.doc.activeElement,f.get('tab-discover'));
   f.get('tab-discover').fire('keydown',{key:'End',preventDefault(){}});
-  assert.equal(f.get('workbench-tools').hidden,false,'End selects the fourth Tools tab');
+  assert.equal(f.get('workbench-cloud').hidden,false,'End selects the last production Cloud tab');
+  assert.equal(f.get('tab-cloud').attributes['aria-selected'],'true');
+  assert.equal(f.get('tab-cloud').tabIndex,0);
+  f.get('tab-cloud').fire('keydown',{key:'ArrowLeft',preventDefault(){}});
+  assert.equal(f.get('workbench-cloud').hidden,true);
+  assert.equal(f.get('workbench-tools').hidden,false);
   assert.equal(f.get('tab-tools').attributes['aria-selected'],'true');
   assert.equal(f.get('tab-tools').tabIndex,0);
   f.get('tab-tools').fire('keydown',{key:'ArrowLeft',preventDefault(){}});
@@ -450,6 +455,22 @@ test('R6 task card refresh, keyboard selection and Discover handoff restore focu
   discovered.focus();discovered.fire('click');
   assert.equal(f.doc.activeElement,f.get('task-installed-cards').children[0].children[0]);
   assert.equal(f.starts.length,0);
+});
+
+test('R32 visible Cloud tab selects its existing panel without execution or permission requests',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  await f.click('tab-cloud');
+  assert.equal(f.doc.documentElement.dataset.opendeskTab,'cloud');
+  assert.equal(f.get('workbench-cloud').hidden,false);
+  for(const id of ['workbench-tasks','workbench-local-discover','workbench-workflow','workbench-develop','workbench-tools'])
+    assert.equal(f.get(id).hidden,true,id);
+  assert.equal(f.get('tab-cloud').attributes['aria-selected'],'true');
+  assert.equal(f.get('tab-cloud').tabIndex,0);
+  assert.equal(f.get('workspace-dock').hidden,true,'idle Cloud never offers a borrowed Run action');
+  assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
+  await f.click('tab-my-tasks');
+  assert.equal(f.get('workbench-cloud').hidden,true);
+  assert.equal(f.get('tab-cloud').attributes['aria-selected'],'false');
 });
 
 test('twenty installed Task runs never request Chrome permission; revoked access stops admission',async t=>{
@@ -585,6 +606,11 @@ test('R6.1 task-owned Stop is the sole cross-view action and names the launching
   await f.click('tab-develop');
   assert.equal(f.get('task-dock').hidden,false);
   assert.equal(f.get('workspace-dock').dataset.stopOnly,'true');
+  await f.click('tab-cloud');
+  assert.equal(f.get('workbench-cloud').hidden,false);
+  assert.equal(f.get('task-dock').hidden,false);
+  assert.equal(f.get('workspace-dock').dataset.stopOnly,'true');
+  assert.equal(f.starts.length,1,'Cloud navigation never restarts the owning Task');
   f.host.complete({ok:true});await tick();await tick();await tick();
   assert.equal(f.get('workspace-dock').dataset.stopOnly,'false','stop-only mode retires with the owning run');
   await f.click('tab-discover');
@@ -698,7 +724,7 @@ test('R8 R2 an unresolved persisted run warns before an unsafe repeat',async t=>
 });
 
 
-test('R14 an in-flight task keeps its original Stop owner across Tools navigation',async t=>{
+test('R32 an in-flight task keeps its original Stop owner across Tools and Cloud navigation',async t=>{
   const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
   await f.click('task-run');
   f.get('task-installed-cards').children[1].children[0].fire('click');
@@ -709,6 +735,12 @@ test('R14 an in-flight task keeps its original Stop owner across Tools navigatio
   assert.equal(f.get('workspace-dock').dataset.stopOnly,'true','no unrelated Run is exposed');
   assert.match(f.get('task-stop').attributes['aria-label'],/表单任务/);
   assert.equal(f.host.currentRun,'run-task-1','navigation never stops the RunHost');
+  await f.click('tab-cloud');
+  assert.equal(f.get('workbench-cloud').hidden,false);
+  assert.equal(f.get('task-dock').hidden,false,'Cloud retains the original task Stop');
+  assert.equal(f.get('develop-dock').hidden,true);
+  assert.equal(f.get('workspace-dock').dataset.stopOnly,'true');
+  assert.equal(f.host.currentRun,'run-task-1','Cloud cannot replace the run owner');
   await f.click('task-stop');
   assert.deepEqual(f.stops.at(-1),{runId:'run-task-1',controller:true});
   assert.equal(f.host.currentRun,null);
@@ -757,6 +789,9 @@ test('tool editor navigation veto retains visible panel, selected tab and keyboa
   assert.equal(f.ui.navigate('tasks'),false);
   assert.equal(f.doc.documentElement.dataset.opendeskTab,'tools');
   assert.equal(f.get('workbench-tools').hidden,false);
+  await f.click('tab-cloud');
+  assert.equal(f.get('workbench-cloud').hidden,true,'dirty tool veto also applies to Cloud');
+  assert.equal(f.doc.documentElement.dataset.opendeskTab,'tools');
   await f.get('tab-tools').fire('keydown',{key:'Home',preventDefault(){}});
   assert.equal(f.doc.activeElement,f.get('tab-tools'));
   assert.equal(f.get('tab-tools').attributes['aria-selected'],'true');

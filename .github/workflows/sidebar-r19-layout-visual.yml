@@ -4,6 +4,8 @@ on:
     branches: [main]
     paths:
       - 'src/ui/tool.html'
+      - 'src/ui/task-workbench.js'
+      - 'src/ui/sidebar-tab-memory.js'
       - 'src/ui/tool-shell.css'
       - 'src/ui/design-tokens.css'
       - 'src/ui/design-system.css'

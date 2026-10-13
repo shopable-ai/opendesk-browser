@@ -22,6 +22,10 @@ on:
       - 'docs/architecture/ui-layout-conventions-r27.zh-CN.md'
       - 'docs/architecture/sidebar-design-system-r20.zh-CN.md'
       - 'src/ui/tool.html'
+      - 'src/ui/task-workbench.js'
+      - 'src/ui/sidebar-tab-memory.js'
+      - 'tests/environment/task-workbench.test.mjs'
+      - 'tests/environment/sidebar-tab-memory.test.mjs'
       - 'scripts/tests/sidebar-r19-layout-visual.mjs'
       - 'tests/environment/sidebar-r21-design-system.test.mjs'
       - 'tests/environment/sidebar-ui-preview.test.mjs'
@@ -48,6 +52,7 @@ jobs:
       - name: R21 and affected Sidebar/Tools/Workflow contracts
         run: |
           node --test tests/environment/sidebar-product-contract.test.mjs tests/environment/scheduled-task-ui-r1.test.mjs
+          node --test tests/environment/sidebar-tab-memory.test.mjs
           node --test tests/framework/sidebar-develop-layout-r29.test.mjs
           node --test tests/environment/ui-r23-design-boundaries.test.mjs tests/environment/sidebar-r21-design-system.test.mjs tests/environment/sidebar-ui-preview.test.mjs tests/environment/sidebar-tool-spacing-contract.test.mjs tests/environment/ui-layout-conventions-r27.test.mjs tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/workflow-ui-states.test.mjs tests/environment/task-workbench.test.mjs
       - name: Source, production and development package verification
