@@ -16,6 +16,9 @@ export function createTimeReviewPermissionControls({api,doc,notice,runOperation}
   const review=get('time-review-site-confirm'),all=get('time-review-site-all-confirm');
   const clear=get('time-review-inline-clear-review'),minute=get('time-review-minute-delete-review');
   const siteList=get('time-review-site-grants-list'),siteStatus=get('time-review-site-grants-status');
+  const idleGrant=get('time-review-grant-idle'),idleRevoke=get('time-review-revoke-idle');
+  const currentGrant=get('time-review-site-current-open'),allGrant=get('time-review-site-all-open');
+  const revokeAll=get('time-review-site-all-revoke'),trustedStart=get('time-review-trusted-start');
   let busy=false,pendingSite=null,readGeneration=0;
   const setBusy=value=>{
     busy=value;
@@ -39,6 +42,11 @@ export function createTimeReviewPermissionControls({api,doc,notice,runOperation}
     const grants=requireTimeReviewSiteGrants(raw);
     siteStatus.textContent=grants.allSites?'已授权全部普通网站':
       grants.origins.length?'已授权 '+grants.origins.length+' 个网站':'尚未授权网站，不会记录时间';
+    // Full-site consent and exact-Origin consent are mutually exclusive.
+    // Never offer a second grant that cannot take effect while allSites is on.
+    currentGrant.hidden=grants.allSites;
+    allGrant.hidden=grants.allSites;
+    revokeAll.hidden=!grants.allSites&&!grants.origins.length;
     siteList.replaceChildren();
     for(const origin of grants.origins){
       const line=doc.createElement('div'),label=doc.createElement('span'),revoke=doc.createElement('button');
@@ -52,10 +60,23 @@ export function createTimeReviewPermissionControls({api,doc,notice,runOperation}
   }
   async function refresh(){
     const generation=++readGeneration;
-    try{
-      const row=(await api.storage.local.get(TIME_REVIEW_KEY))[TIME_REVIEW_KEY];
-      if(!section.hidden&&generation===readGeneration)renderGrants(row?.siteGrants);
-    }catch{if(!section.hidden&&generation===readGeneration)siteStatus.textContent='授权状态不可读；采集已受保护';}
+    const [stored,idle]=await Promise.allSettled([
+      api.storage.local.get(TIME_REVIEW_KEY),
+      api.permissions.contains({permissions:['idle']})
+    ]);
+    if(section.hidden||generation!==readGeneration)return;
+    if(stored.status==='fulfilled'){
+      try{renderGrants(stored.value[TIME_REVIEW_KEY]?.siteGrants);}
+      catch{siteStatus.textContent='网站授权数据无效；请核查后重新授权';}
+    }else siteStatus.textContent='授权状态不可读；采集已受保护';
+    if(idle.status==='fulfilled'){
+      idleGrant.hidden=idle.value===true;
+      idleRevoke.hidden=idle.value!==true;
+    }else{
+      // Unknown Chrome permission state never becomes an assumed grant.
+      idleGrant.hidden=false;
+      idleRevoke.hidden=true;
+    }
   }
   async function currentOrigin(){
     const win=await api.windows.getLastFocused();
@@ -73,14 +94,14 @@ export function createTimeReviewPermissionControls({api,doc,notice,runOperation}
     catch(error){say(error.message,true);setBusy(false);return;}
     Promise.resolve(request).then(ok=>say(ok?'空闲检测已授权，还需主动开始记录。':
       '未获得 Chrome 空闲检测权限，不能开始记录。',!ok))
-      .catch(error=>say(error.message,true)).finally(()=>setBusy(false));
+      .catch(error=>say(error.message,true)).finally(()=>{setBusy(false);void refresh();});
   });
   click('time-review-revoke-idle',event=>{
     if(!trusted(event))return;
     setBusy(true);
     Promise.resolve().then(()=>api.permissions.remove({permissions:['idle']}))
       .then(()=>say('已撤销空闲检测，历史记录保留。'))
-      .catch(error=>say(error.message,true)).finally(()=>setBusy(false));
+      .catch(error=>say(error.message,true)).finally(()=>{setBusy(false);void refresh();});
   });
   click('time-review-site-current-open',async event=>{
     if(!trusted(event))return;
@@ -141,6 +162,9 @@ export function createTimeReviewPermissionControls({api,doc,notice,runOperation}
   return {render(tool,readOnly=false){
     const enabled=!readOnly&&tool?.id===TIME_REVIEW_ID&&tool.capabilities.includes(TIME_REVIEW_CAPABILITY);
     section.hidden=!enabled;
+    // The compiled native UI already has its own one-click start/resume.
+    // Retain this host button only for the untrusted iframe fallback.
+    trustedStart.hidden=Boolean(get('sidebar-tool-frame')?.dataset?.timeReviewNative==='true');
     if(!enabled){
       readGeneration++;pendingSite=null;
       review.hidden=true;all.hidden=true;clear.hidden=true;minute.hidden=true;

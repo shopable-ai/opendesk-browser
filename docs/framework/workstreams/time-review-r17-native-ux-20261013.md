@@ -1,0 +1,10 @@
+# Time Review R1.7 · Native permission-control UX closure
+
+- 日期：2026-10-13；唯一写入分支：`main`；本对话仅通过已授权 GitHub connector 操作。
+- 负责人：Time Review R1.7 本次执行；不占用用户 Mac 的 Chrome Profile、`dist/development` 或其他 Agent 的本地工作区。
+- 写入范围：`src/time-review/host-controls.js`、`tests/environment/time-review-r16-trusted-native.test.mjs`、本文件。未修改 Tool Host、Installer、SDK、Service Worker、正式 Time Review 包或共享前端源码。
+- 现状核查：原生路径存在但新旧同名工具必须区分；CI 运行 `38408021850` 检查为 `queued`，无 job steps、无 artifacts。GitHub main 仍持续被其他 Agent 推进。
+- 本轮目标缺陷：Chrome idle 已授权时仍展示重复授权入口；静态可信原生 UI 与宿主同时展示两个开始/恢复按钮；全站授权后仍出现无效的网站授权入口。
+- 实施：只调整 Time Review 现有可信宿主控制 DOM 的可见性及真实权限读取；Chrome permission request 仍在真实点击同步调用；异步读取仍有 generation fence；沙箱 fallback 的可信开始按钮保留。
+- 验证：在 GitHub connector 隔离 JS 沙箱执行六种 DOM/权限 mock 合约，结果 PASS（不等同于仓库 Node/Chrome）；新增现有 R1.6 专项文件中的 Node 回归用例，等待仓库 CI 真正执行。
+- 尚未完成：本地 `npm run build:sidebar-tool/check/build/build:dev/verify`、真实 macOS Chrome/200% 缩放、Worker/Chrome 重启、实际下载与全生命周期回归均 `NOT_TESTED`。云同步 `LOCAL_ONLY / NO_UPLOAD / BLOCKED`。八维目标不打 95 分。
