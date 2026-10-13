@@ -50,6 +50,7 @@
       <header class="schedule-header od-toolbar">
         <button id="schedule-back" class="od-icon-button" type="button" title="返回我的任务" aria-label="返回我的任务"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m7-7-7 7 7 7"></path></svg></button>
         <div class="schedule-header-heading"><strong id="schedule-panel-title">定时计划</strong><p id="schedule-panel-subtitle" class="hint">安排已验证安装的自动化任务</p></div>
+        <button id="schedule-create" type="button" class="od-button" hidden>＋ 新建</button>
         <button id="schedule-stop" type="button" class="od-button od-button--secondary" hidden>停止本次</button>
       </header>
       <p id="schedule-message" role="status" aria-live="polite" class="hint"></p>
@@ -89,9 +90,8 @@
         </details>
       </section>
       <div id="schedule-list-view" class="od-stack">
-        <div class="schedule-actions od-toolbar">
-          <button id="schedule-create" type="button" class="od-button">＋ 新建计划</button>
-          <button id="schedule-open-runner" type="button" class="od-button od-button--secondary" title="打开可以在 Side Panel 关闭时运行的可见扩展页面">打开运行页 ↗</button>
+        <div class="schedule-actions od-toolbar schedule-list-utilities">
+          <button id="schedule-open-runner" type="button" class="od-button od-button--quiet" title="打开可以在 Side Panel 关闭时运行的可见扩展页面">运行页 ↗</button>
         </div>
         <p id="schedule-host-status" class="hint" role="status">正在检查可用运行宿主…</p>
         <p id="schedule-list-summary" class="schedule-list-summary" role="status" aria-live="polite">正在读取定时计划…</p>
