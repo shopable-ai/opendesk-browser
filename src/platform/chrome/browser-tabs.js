@@ -200,6 +200,34 @@ export function createBrowserTabHost({api=globalThis.chrome,authorize,clock=Date
   // Chrome acknowledges the request, not the new document's load completion.
   return {reloadRequested:true,tabRefRevoked:true};
  }
+ async function navigateOwned(args,context){
+  if(!args||typeof args!=='object'||Array.isArray(args)||
+     ![Object.prototype,null].includes(Object.getPrototypeOf(args))||
+     Object.keys(args).length!==2||!Object.hasOwn(args,'tabRef')||
+     !Object.hasOwn(args,'url')||typeof args.tabRef!=='string'||
+     !tokenPattern.test(args.tabRef))
+    throw fail('E_SCHEMA','Expected exact owned TabRef and destination URL');
+  const destination=browserTabUrl(args.url);
+  if(typeof api.tabs?.update!=='function')throw fail('E_CHROME_UNSUPPORTED');
+  const before=await resolve(args.tabRef,context);
+  // This first scoped implementation never broadens site permission through a
+  // cross-Origin navigation. Explicitly opening a new URL uses tabs.create.
+  if(destination.origin!==before.origin)
+    throw fail('E_SITE_GRANT_REQUIRED','Owned-tab navigation must remain on the same Origin');
+  await approved('browser.tabs.navigateOwned',before.origin,context);
+  const target=await resolve(args.tabRef,context);
+  if(target.tabId!==before.tabId||target.documentId!==before.documentId)
+    throw fail('E_DOCUMENT_STALE','Tab changed before navigation');
+  purge(args.tabRef); // old document identity must not survive native navigation
+  let result;
+  try{result=await api.tabs.update(before.tabId,{url:destination.href})}
+  catch{throw fail('E_OUTCOME_UNKNOWN','Chrome navigation effect may have occurred; do not replay')}
+  if(result?.id!==before.tabId)
+    throw fail('E_OUTCOME_UNKNOWN','Chrome did not acknowledge the owned Tab ID');
+  try{await approved('browser.tabs.navigateOwned',before.origin,context)}
+  catch{throw fail('E_OUTCOME_UNKNOWN','Grant changed after native navigation')}
+  return {navigationRequested:true,tabRefRevoked:true};
+ }
  async function removeOwned(args,context){
   input(args,'tabRef');
   if(typeof api?.tabs?.remove!=='function')throw fail('E_CHROME_UNSUPPORTED');
@@ -217,7 +245,7 @@ export function createBrowserTabHost({api=globalThis.chrome,authorize,clock=Date
   return {closed:true};
  }
  const revokeTool=id=>{for(const [ref,row] of refs)if(row.owner.startsWith(id+':'))purge(ref)};
- return Object.freeze({create,activateOwned,resolve,getOwned,listOwned,pinOwned,reloadOwned,removeOwned,invalidateTab,revokeTool,
+ return Object.freeze({create,activateOwned,resolve,getOwned,listOwned,pinOwned,reloadOwned,navigateOwned,removeOwned,invalidateTab,revokeTool,
   dispose:()=>{refs.clear();byTool.clear()},
   diagnostics:()=>({references:refs.size})});
 }

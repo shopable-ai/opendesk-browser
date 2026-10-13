@@ -41,6 +41,8 @@ const ops=Object.freeze({
  'browser.tabs.pinOwned':[obj({tabRef:ref,pinned:bool},['tabRef','pinned']),obj({pinned:bool},['pinned'])],
  'browser.tabs.reloadOwned':[obj({tabRef:ref},['tabRef']),
    obj({reloadRequested:bool,tabRefRevoked:bool},['reloadRequested','tabRefRevoked'])],
+ 'browser.tabs.navigateOwned':[obj({tabRef:ref,url:http},['tabRef','url']),
+   obj({navigationRequested:bool,tabRefRevoked:bool},['navigationRequested','tabRefRevoked'])],
  'browser.tabs.removeOwned':[obj({tabRef:ref},['tabRef']),obj({closed:bool},['closed'])],
  'browser.sidePanel.openSelf':[empty,obj({opened:bool},['opened'])],
  'browser.network.request':[obj({method:{enum:['GET','POST','PUT','DELETE']},url:http,

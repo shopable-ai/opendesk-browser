@@ -139,7 +139,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   const browserIntents=new Map(),INTENT_TTL=15000;
   // A permission or installed-package change must fence requests that are already in fetch().
   const activeNetworkRequests=new Set();
-  const intentOperations=new Set(['browser.tabs.create','browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.reloadOwned','browser.tabs.removeOwned','browser.network.request',
+  const intentOperations=new Set(['browser.tabs.create','browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.reloadOwned','browser.tabs.navigateOwned','browser.tabs.removeOwned','browser.network.request',
     'browser.network.observe.start','browser.network.observe.export','browser.screenshot.captureVisible']);
   const observationOperations=new Set(['browser.network.observe.getStatus','browser.network.observe.stop',
     'browser.events.read','browser.events.close']);
@@ -349,6 +349,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       operation==='browser.tabs.getOwned'||operation==='browser.tabs.listOwned'?Boolean(api.tabs?.get&&api.webNavigation?.getFrame):
       operation==='browser.tabs.pinOwned'?Boolean(api.tabs?.get&&api.tabs?.update&&api.webNavigation?.getFrame):
       operation==='browser.tabs.reloadOwned'?Boolean(api.tabs?.get&&api.tabs?.reload&&api.webNavigation?.getFrame):
+      operation==='browser.tabs.navigateOwned'?Boolean(api.tabs?.get&&api.tabs?.update&&api.webNavigation?.getFrame):
       operation==='browser.tabs.removeOwned'?Boolean(api.tabs?.get&&api.tabs?.remove&&api.webNavigation?.getFrame):
       operation==='browser.sidePanel.openSelf'?Boolean(api.sidePanel?.open):
       operation==='browser.network.request'?typeof fetchImpl==='function':
@@ -426,7 +427,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
            intent.args!==canonicalJSON(checked))
           throw failure('E_USER_GESTURE_REQUIRED','New explicit approval required for this exact action');
         const approvedOrigin=operation==='browser.network.observe.start'?checked.origins[0]:
-          ['browser.tabs.create','browser.network.request'].includes(operation)
+          ['browser.tabs.create','browser.tabs.navigateOwned','browser.network.request'].includes(operation)
             ?new URL(checked.url).origin:null;
         const context={...owner,approvedOrigin};
         await verifyBrowserOwner(context,operation,approvedOrigin);
@@ -434,6 +435,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         if(operation==='browser.tabs.activateOwned')return tabHost.activateOwned(checked,context);
         if(operation==='browser.tabs.pinOwned')return tabHost.pinOwned(checked,context);
         if(operation==='browser.tabs.reloadOwned')return tabHost.reloadOwned(checked,context);
+        if(operation==='browser.tabs.navigateOwned')return tabHost.navigateOwned(checked,context);
         if(operation==='browser.tabs.removeOwned')return tabHost.removeOwned(checked,context);
         if(operation==='browser.screenshot.captureVisible'){
           // One-use approval was spent above; only the trusted Host may assert
@@ -613,7 +615,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
           throw failure('E_TOOL_CHANGED','Tool updated during approval');
         const packageHash=await digestTool(tool);
         const origin=targetOperation==='browser.network.observe.start'?args.origins[0]:
-          ['browser.tabs.create','browser.network.request'].includes(targetOperation)
+          ['browser.tabs.create','browser.tabs.navigateOwned','browser.network.request'].includes(targetOperation)
             ?new URL(args.url).origin:null;
         const identity={toolId,toolVersion,packageHash,epoch:installEpoch??null,
           installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null};

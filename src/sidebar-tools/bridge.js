@@ -3,7 +3,7 @@ import {SIDEBAR_TOOL_PROTOCOL} from '../ui/sidebar-tools/package.js';
 import {createBrowserSdk} from '../framework/sdk/browser.js';
 // The sandbox waits for a separate real Side Panel click; ordinary tool RPCs
 // remain 8 seconds. This duration is UX only, never an authorization or grant.
-const TOOL_CONSENT_OPS=new Set(['browser.tabs.create','browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.reloadOwned','browser.tabs.removeOwned',
+const TOOL_CONSENT_OPS=new Set(['browser.tabs.create','browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.reloadOwned','browser.tabs.navigateOwned','browser.tabs.removeOwned',
  'browser.network.request','browser.sidePanel.openSelf',
  'browser.network.observe.start','browser.network.observe.export',
  'browser.screenshot.captureVisible']);
