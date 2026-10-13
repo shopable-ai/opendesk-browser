@@ -43,3 +43,20 @@ Node mock 组件测试只能标为 **COMPONENT**，不能证明真实 Chrome 导
 | 测试证据可信度 | **未达到 95** | 未运行原生 Chrome 的不能称为产品级 PASS |
 
 **未经实际执行的项目不登记数值 95 分；不得使用平均分掩盖缺陷。**
+
+## 2026-10-13 实际 CI 续接证据（不得跨候选冒用）
+
+- GitHub Actions [R1 初轮 #38358365844](https://github.com/shopable-ai/opendesk-browser/actions/runs/38358365844)，候选 `e82f83f179ac`：模型/DNR 组件 **10/10 PASS**；独立可安装工具包生成 **PASS**，原工具包 SHA-256 为 `2f4f6dfd5ce76bb5de5e771e4a97f3380cf3dcddbbdf75892386434c7256e2a2`。`npm run check` 因原有 WAR 安全清单未登记新 DNR 目标而 **FAIL**；此包的 SHA 不代表当前版本。
+- 继续对照 [Sidebar Tools R1 #38362254766](https://github.com/shopable-ai/opendesk-browser/actions/runs/38362254766)：该候选关联的回归 **187 项通过，0 失败**，但 `npm run build` 的 `ui/tool-shell.js` 535147 B 超出 524288 B 上限，构建 **FAIL**。未修改/放宽上限；后续将 Stay Focus 专用可信 UI 拆至 WXT 固定脚本，并隔离 DNR 清理，保持审计规则。
+- 当前修改后的完整来源已保存在远端 `main`，Linux→Mac 分阶段 CI 工作流 `.github/workflows/stay-focus-r1.yml`。针对包含最新组件、Host、WXT 构建修复的候选 [#38365380181](https://github.com/shopable-ai/opendesk-browser/actions/runs/38365380181)，在本次复核时状态 **QUEUED**。该 run 尚不构成 source check/build/verify 或 Native PASS。
+- 新增 `tests/environment/stay-focus-service-r1.test.mjs`：测试伪造 Sender、版本/撤权 epoch、真实 Host 对账意图、过限规则、权限撤销、Time Review 业务存储隔离、DNR 失败与持久策略损坏恢复；目前源码已提交，**尚无本候选的执行回执**。
+- 安全合同通过收紧 `web_accessible_resources`，现在只开放四个固定被限制 HTML 页；资源自身的 JS/CSS 必须在原扩展内部、固定 WXT 输出与完整包清单中校验。未经真实 Chrome 验证，不宣称网页缓存、SPA 或 Service Worker 导航无条件受阻。
+
+### 后续仅剩阻断点（从用户场景出发）
+
+1. **安装后可见、可授权**：当前候选必须先通过全部离线组件、`npm run check`、工具包生成、双 WXT 构建与 `npm run verify`，附 SW 体积/哈希。不以旧候选成功替代。
+2. **浏览网站后真实拦截**：Mac CFT 使用真实用户输入安装和授权，读取实际 DNR 规则、HTTP 导航到扩展阻止页、真实截图和浏览器 PID/候选哈希；不能把 mock 导航记为通过。
+3. **额度准确与恢复**：真实前台非 idle 有效使用，1 分钟快速原生门槛，再覆盖 15 分钟产品场景、跨日重置、后台/多标签、Worker/Chrome 重启。
+4. **撤权与卸载**：本工具 DNR ID 730000–730199、独立业务存储/撤权 epoch 全部核对清零，不影响 Time Review 或其他工具。
+5. **视觉及专家评分**：320/360/400/600px 和 Chrome 实际缩放、键盘焦点、简洁设置动线；每项独立达到 95 之前保持 **NOT_ACCEPTED**。
+
