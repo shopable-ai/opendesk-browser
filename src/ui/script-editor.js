@@ -252,7 +252,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if(componentSelector)componentSelector.disabled=!!localProject?.active()||editingBusy||previewBusy||running||stopping||componentRemote?.busy||!!programSource.snapshot();
     if(componentStatus)componentStatus.hidden=componentMode==='javascript'&&!componentStatus.textContent;
     find('page-preview-run').disabled = stopping||browserEffectUnknown||browserManagedPreview?.recoveredOnly||otherTabOwnsBrowserUI()||previewBusy||componentRemote?.busy||dependencyInstaller?.busy ||
-      editingBusy||running||!!host.currentRun||
+      (componentMode==='javascript'&&(dependencyResolver?.busy||!dependencyInstaller?.readyForRun))||editingBusy||running||!!host.currentRun||
       !programSource.source().trim()||programSource.kind()==='controller'||
       currentPageState?.status!=='available';
     find('page-preview-run').textContent=componentMode==='javascript'?'在当前网页试运行':'运行'+(componentMode==='react'?' React':' Vue')+' 组件';
@@ -770,7 +770,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       currentPageState.tabId===lastPagePreview.tabId&&currentPageState.url===lastPagePreview.previewUrl;
   }
   function previewPage(event) {
-    if (!event.isTrusted || disposed || previewBusy || componentRemote?.busy ||
+    if (!event.isTrusted || disposed || previewBusy || componentRemote?.busy || (componentMode==='javascript'&&(dependencyResolver?.busy||!dependencyInstaller?.readyForRun)) ||
       editingBusy || running || host.currentRun) return;
     if(localProject?.active())return;
     let captured, permission, pageSource,componentSnapshot,frozenComponent,prepareTicket;

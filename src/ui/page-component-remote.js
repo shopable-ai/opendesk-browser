@@ -1,6 +1,6 @@
-// The existing component editor owns this explicit preparation/review flow.
-// Run only calls loadForRun(), which performs local inspection and reads an
-// approved immutable graph. No save, retry or Run path can fetch new code.
+// Existing component editor + existing Broker for automatic SHA-fixed ESM.
+// Run/Save can prepare new versions; installed revisions remain strictly offline.
+// Manual preparation and lock selection remain optional advanced diagnostics.
 import {createChromePermissionConsent} from '../platform/chrome/permission-gate.js';
 const error=(code,message)=>Object.assign(new Error(message),{code});
 const inputKey=input=>JSON.stringify({source:input.componentSource,framework:input.framework,programId:input.programId});
@@ -24,10 +24,10 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
     if(panel.hidden)return;
     const stage=state?.stage||'idle';
     status.textContent=state?.message||(input.framework==='controller'
-      ? 'Controller ESM：检查静态 import，明确确认来源和固定完整 SHA 图后，才可在受控 Worker 运行。Developer 版最多 32 个模块 / 256 KiB；大型依赖请使用本地项目。'
-      : '首次使用 HTTPS 模块时，先检查来源并确认获取；固定版本可以离线运行。此源码入口最多 32 个模块、整图 256 KiB、链接结果 100 KB。');
+      ? 'Controller ESM：点击运行会自动解析、获取并固定明确版本的静态依赖图。首次下载可能需要 Chrome 来源授权；Developer 上限 32 模块 / 256 KiB。'
+      : '点击运行会自动处理固定 HTTPS 依赖；高级检查仅供查看来源、许可证与 SHA。已固定资产可离线复用，上限 32 个模块 / 256 KiB。');
     status.dataset.state=stage;
-    button.textContent=stage==='download'?(state?.cachedUrls?.length===state?.urls?.length?'确认复用缓存':'确认获取所列模块'):stage==='review'?'确认固定此版本':stage==='choose'?'使用所选固定版本':'检查依赖';
+    button.textContent=stage==='download'?(state?.cachedUrls?.length===state?.urls?.length?'确认复用缓存':'确认获取所列模块'):stage==='review'?'确认固定此版本':stage==='choose'?'使用所选固定版本':'高级：检查依赖';
     button.disabled=busy||isBlocked()||stage==='choose'&&!selector?.value;
     cancelButton.hidden=!busy;cancelButton.disabled=false;
     sources.hidden=!(state?.urls?.length);sources.textContent=(state?.urls||[]).join('\n');

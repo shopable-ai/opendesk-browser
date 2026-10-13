@@ -12,7 +12,7 @@ export function createPageDependencyInstaller({client,api,document:doc,resolver,
     list=get('page-dependency-list'),prepareButton=get('page-dependency-prepare'),
     reviewPanel=get('page-dependency-review'),reviewList=get('page-dependency-review-list'),
     approveButton=get('page-dependency-approve'),lockSelector=get('page-dependency-lock');
-  if(!panel)return Object.freeze({update(){},refresh(){},confirmRun(){return Promise.resolve(true);},dispose(){}});
+  if(!panel)return Object.freeze({update(){},refresh(){},get readyForRun(){return true;},confirmRun(){return Promise.resolve(true);},dispose(){}});
   const listeners=[];
   function listen(node,type,fn){node.addEventListener(type,fn);listeners.push([node,type,fn]);}
   const permissions=createChromePermissionConsent({api,onChange(){
@@ -157,9 +157,12 @@ export function createPageDependencyInstaller({client,api,document:doc,resolver,
   function confirmRun(event){
     if(!event?.isTrusted)return Promise.reject(Object.assign(new Error('请主动点击运行'),{code:'E_GESTURE'}));
     if(disposed)return Promise.reject(Object.assign(new Error('编辑器已关闭'),{code:'E_HOST_CLOSED'}));
-    if(!report||currentReport()!==report)return Promise.resolve(true);
+    if(!report||currentReport()!==report)
+      return Promise.reject(Object.assign(new Error('依赖正在检查，请在检查结束后运行'),{code:'E_DEPENDENCY_INSPECT_PENDING'}));
     const origins=networkOrigins();
-    if(!origins.length||!readyForPermission)return Promise.resolve(true);
+    if(!origins.length)return Promise.resolve(true);
+    if(!readyForPermission)
+      return Promise.reject(Object.assign(new Error('依赖来源权限仍在检查，请稍后重新点击运行'),{code:'E_PERMISSION_PENDING'}));
     return permissions.confirm(event,{origins});
   }
   function refresh(){
@@ -234,7 +237,14 @@ export function createPageDependencyInstaller({client,api,document:doc,resolver,
   listen(reviewList,'change',()=>render());
   listen(lockSelector,'change',event=>{if(!busy){resolver.chooseLock(event.target.value);render();}});
   render(false);
-  return Object.freeze({update:()=>render(false),refresh,confirmRun,get busy(){return busy;},dispose(){
+  return Object.freeze({update:()=>render(false),refresh,confirmRun,
+    get readyForRun(){
+      if(disposed)return false;
+      let hasRequires;try{hasRequires=parseUserScriptDependencies(currentSource()).requires.length>0;}catch{return false;}
+      if(!hasRequires)return true;
+      return !!report&&report===currentReport()&&(!networkOrigins().length||readyForPermission);
+    },
+    get busy(){return busy;},dispose(){
     if(disposed)return;disposed=true;generation++;permissionGeneration++;permissions.dispose();
     for(const [node,type,fn] of listeners)node.removeEventListener(type,fn);
   }});
