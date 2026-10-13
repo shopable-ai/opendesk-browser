@@ -34,10 +34,10 @@ test('all ten implemented wrappers preserve original authenticated request path'
 });
 test('Page discovery validates inputs and does not expose privileged browser methods',async()=>{
   const page=createBrowserSdk({context:'page-sdk'});
-  assert.equal((await page.capabilities.getStatus({operation:'browser.tabs.open'})).callableNow,false);
+  assert.equal((await page.capabilities.getStatus({operation:'browser.tabs.create'})).callableNow,false);
   assert.equal(typeof page.tabs,'undefined');
   assert.throws(()=>page.capabilities.getStatus({operation:42}),isCode('E_SCHEMA'));
-  assert.throws(()=>page.capabilities.getStatus({operation:'browser.tabs.open',additional:true}),isCode('E_SCHEMA'));
+  assert.throws(()=>page.capabilities.getStatus({operation:'browser.tabs.create',additional:true}),isCode('E_SCHEMA'));
   await assert.rejects(page.contextMenu.register({actionIds:['capture-selection']}),isCode('E_CONTEXT'));
 });
 test('Legacy exports reject unsafe values before dispatch',async()=>{
@@ -66,10 +66,10 @@ test('Removed prelaunch placeholder operations cannot be invoked or discovered',
 test('R5 public Tabs wrappers route through original Host with no raw native tabId',async()=>{
  const calls=[],sdk=createBrowserSdk({request:async(op,args)=>{calls.push(op);return {ok:true}}});
  const tabRef='r'.repeat(32);
- await sdk.tabs.getOwned({tabRef});await sdk.tabs.listOwned();await sdk.tabs.closeOwned({tabRef});
- assert.deepEqual(calls,['browser.tabs.getOwned','browser.tabs.listOwned','browser.tabs.closeOwned']);
+ await sdk.tabs.getOwned({tabRef});await sdk.tabs.listOwned();await sdk.tabs.removeOwned({tabRef});
+ assert.deepEqual(calls,['browser.tabs.getOwned','browser.tabs.listOwned','browser.tabs.removeOwned']);
  assert.throws(()=>sdk.tabs.getOwned({tabId:1}),isCode('E_SCHEMA'));
- assert.throws(()=>sdk.tabs.closeOwned({tabId:1}),isCode('E_SCHEMA'));
+ assert.throws(()=>sdk.tabs.removeOwned({tabId:1}),isCode('E_SCHEMA'));
  assert.throws(()=>sdk.tabs.listOwned({all:true}),isCode('E_SCHEMA'));
  assert.equal(typeof createBrowserSdk({context:'page-sdk'}).tabs,'undefined');
 });

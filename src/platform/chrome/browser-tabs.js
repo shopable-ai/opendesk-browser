@@ -54,16 +54,16 @@ export function createBrowserTabHost({api=globalThis.chrome,authorize,clock=Date
   if(await authorize({operation,origin,context})!==true)
    throw fail('E_SITE_GRANT_REQUIRED','Origin grant or explicit user intent missing');
  };
- async function open(args,context){
+ async function create(args,context){
   input(args,'url');
   const url=browserTabUrl(args.url),owned=owner(context);
   if(!api?.tabs?.create||!api?.tabs?.remove)throw fail('E_CHROME_UNSUPPORTED');
   if((byTool.get(owned)?.size||0)>=MAX_OWNED)throw fail('E_LIMIT','Too many owned tabs');
-  await approved('browser.tabs.open',url.origin,context);
+  await approved('browser.tabs.create',url.origin,context);
   const tab=await api.tabs.create({url:url.href,active:true});
   if(!Number.isSafeInteger(tab?.id)||tab.id<0)
    throw fail('E_OUTCOME_UNKNOWN','Chrome returned no trustworthy tab ID');
-  try{await approved('browser.tabs.open',url.origin,context)}
+  try{await approved('browser.tabs.create',url.origin,context)}
   catch(e){
    try{await api.tabs.remove(tab.id)}catch{throw fail('E_OUTCOME_UNKNOWN','Revocation after unknown tab side effect')}
    throw e;
@@ -80,14 +80,14 @@ export function createBrowserTabHost({api=globalThis.chrome,authorize,clock=Date
   byTool.get(owned).add(tabRef);
   return {tabRef};
  }
- async function focus(args,context){
+ async function activateOwned(args,context){
   input(args,'tabRef');const owned=owner(context);
   if(typeof args.tabRef!=='string'||!tokenPattern.test(args.tabRef))throw fail('E_SCHEMA');
   const row=refs.get(args.tabRef);
   if(!row||row.owner!==owned)throw fail('E_TAB_REF_INVALID');
   if(clock.now()>=row.expiresAt){purge(args.tabRef);throw fail('E_TAB_REF_INVALID')}
   if(!api?.tabs?.get||!api?.tabs?.update)throw fail('E_CHROME_UNSUPPORTED');
-  await approved('browser.tabs.focus',row.origin,context);
+  await approved('browser.tabs.activateOwned',row.origin,context);
   const tab=await api.tabs.get(row.tabId).catch(()=>null);
   let matches=false;
   try{matches=Number.isSafeInteger(tab?.id)&&tab.id===row.tabId&&
@@ -98,7 +98,7 @@ export function createBrowserTabHost({api=globalThis.chrome,authorize,clock=Date
   const moved=await api.tabs.update(row.tabId,{active:true});
   if(Number.isSafeInteger(moved?.windowId)&&typeof api?.windows?.update==='function')
    await api.windows.update(moved.windowId,{focused:true});
-  try{await approved('browser.tabs.focus',row.origin,context)}
+  try{await approved('browser.tabs.activateOwned',row.origin,context)}
   catch{throw fail('E_OUTCOME_UNKNOWN','Grant revoked after focus')}
   if(moved?.id!==row.tabId)throw fail('E_OUTCOME_UNKNOWN','Chrome did not confirm focus');
   return {focused:true};
@@ -153,11 +153,11 @@ export function createBrowserTabHost({api=globalThis.chrome,authorize,clock=Date
   }
   return {tabs};
  }
- async function closeOwned(args,context){
+ async function removeOwned(args,context){
   input(args,'tabRef');
   if(typeof api?.tabs?.remove!=='function')throw fail('E_CHROME_UNSUPPORTED');
   const before=await resolve(args.tabRef,context);
-  await approved('browser.tabs.closeOwned',before.origin,context);
+  await approved('browser.tabs.removeOwned',before.origin,context);
   const after=await resolve(args.tabRef,context);
   if(after.tabId!==before.tabId||after.documentId!==before.documentId)
    throw fail('E_DOCUMENT_STALE','Tab document changed');
@@ -165,12 +165,12 @@ export function createBrowserTabHost({api=globalThis.chrome,authorize,clock=Date
   purge(args.tabRef);
   try{await api.tabs.remove(after.tabId)}
   catch{throw fail('E_OUTCOME_UNKNOWN','Chrome close outcome unknown')}
-  try{await approved('browser.tabs.closeOwned',before.origin,context)}
+  try{await approved('browser.tabs.removeOwned',before.origin,context)}
   catch{throw fail('E_OUTCOME_UNKNOWN','Authority changed after native close')}
   return {closed:true};
  }
  const revokeTool=id=>{for(const [ref,row] of refs)if(row.owner.startsWith(id+':'))purge(ref)};
- return Object.freeze({open,focus,resolve,getOwned,listOwned,closeOwned,invalidateTab,revokeTool,
+ return Object.freeze({create,activateOwned,resolve,getOwned,listOwned,removeOwned,invalidateTab,revokeTool,
   dispose:()=>{refs.clear();byTool.clear()},
   diagnostics:()=>({references:refs.size})});
 }

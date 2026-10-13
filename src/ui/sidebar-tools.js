@@ -692,12 +692,12 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
           button:'打开侧边栏',run:event=>coordinator.confirm(prepared.requestRef,event)});
         }finally{coordinator.dispose();}
       }
-      if(['browser.tabs.open','browser.tabs.focus','browser.tabs.closeOwned','browser.network.request',
+      if(['browser.tabs.create','browser.tabs.activateOwned','browser.tabs.removeOwned','browser.network.request',
         'browser.network.observe.start','browser.network.observe.export',
         'browser.screenshot.captureVisible'].includes(operation)){
-        const target=operation==='browser.tabs.closeOwned'?'关闭此工具此前打开的标签页（不可撤销）':
-          operation==='browser.tabs.focus'?'聚焦此工具此前打开的标签页':
-          operation==='browser.tabs.open'?'打开网页 '+new URL(payload.url).origin:
+        const target=operation==='browser.tabs.removeOwned'?'关闭此工具此前打开的标签页（不可撤销）':
+          operation==='browser.tabs.activateOwned'?'聚焦此工具此前打开的标签页':
+          operation==='browser.tabs.create'?'打开网页 '+new URL(payload.url).origin:
           operation==='browser.network.observe.start'?'观察已打开标签页内 '+payload.origins[0]+' 的 HTTP 元数据':
           operation==='browser.network.observe.export'?'导出本工具已停止的网络观察为 JSON 文件':
           operation==='browser.screenshot.captureVisible'?'截取当前可见且已授权的网页，并打开 PNG 保存对话框':

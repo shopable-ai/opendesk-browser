@@ -13,7 +13,7 @@ test('Browser SDK R2–R4 demo is a valid installable v2 tool, not a fake privil
  assert.deepEqual(pkg.capabilities,['browser.tabs','browser.sidePanel','network',
   'browser.network.observe','browser.events','browser.operations','browser.screenshot']);
  assert.match(pkg.js,/OpenDeskSDK\.browser/);
- assert.match(pkg.js,/browser\.tabs\.open/);
+ assert.match(pkg.js,/browser\.tabs\.create/);
  assert.match(pkg.js,/browser\.network\.watch/);
  assert.match(pkg.js,/currentWatch\(\)\.read/);
  assert.match(pkg.js,/currentWatch\(\)\.stop/);

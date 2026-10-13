@@ -139,7 +139,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   const browserIntents=new Map(),INTENT_TTL=15000;
   // A permission or installed-package change must fence requests that are already in fetch().
   const activeNetworkRequests=new Set();
-  const intentOperations=new Set(['browser.tabs.open','browser.tabs.focus','browser.tabs.closeOwned','browser.network.request',
+  const intentOperations=new Set(['browser.tabs.create','browser.tabs.activateOwned','browser.tabs.removeOwned','browser.network.request',
     'browser.network.observe.start','browser.network.observe.export','browser.screenshot.captureVisible']);
   const observationOperations=new Set(['browser.network.observe.getStatus','browser.network.observe.stop',
     'browser.events.read','browser.events.close']);
@@ -344,10 +344,10 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       operation==='browser.page.getSelection';
     const menuApiAvailable=Boolean(api.contextMenus?.create&&api.contextMenus?.onClicked);
     const platformSupported=(!isMenu||menuApiAvailable)&&(
-      operation==='browser.tabs.open'?Boolean(api.tabs?.create):
-      operation==='browser.tabs.focus'?Boolean(api.tabs?.get&&api.tabs?.update):
+      operation==='browser.tabs.create'?Boolean(api.tabs?.create):
+      operation==='browser.tabs.activateOwned'?Boolean(api.tabs?.get&&api.tabs?.update):
       operation==='browser.tabs.getOwned'||operation==='browser.tabs.listOwned'?Boolean(api.tabs?.get&&api.webNavigation?.getFrame):
-      operation==='browser.tabs.closeOwned'?Boolean(api.tabs?.get&&api.tabs?.remove&&api.webNavigation?.getFrame):
+      operation==='browser.tabs.removeOwned'?Boolean(api.tabs?.get&&api.tabs?.remove&&api.webNavigation?.getFrame):
       operation==='browser.sidePanel.openSelf'?Boolean(api.sidePanel?.open):
       operation==='browser.network.request'?typeof fetchImpl==='function':
       operation.startsWith('browser.network.observe.')?Boolean(api.webRequest?.onBeforeRequest?.addListener):
@@ -423,13 +423,13 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
            intent.args!==canonicalJSON(checked))
           throw failure('E_USER_GESTURE_REQUIRED','New explicit approval required for this exact action');
         const approvedOrigin=operation==='browser.network.observe.start'?checked.origins[0]:
-          ['browser.tabs.open','browser.network.request'].includes(operation)
+          ['browser.tabs.create','browser.network.request'].includes(operation)
             ?new URL(checked.url).origin:null;
         const context={...owner,approvedOrigin};
         await verifyBrowserOwner(context,operation,approvedOrigin);
-        if(operation==='browser.tabs.open')return tabHost.open(checked,context);
-        if(operation==='browser.tabs.focus')return tabHost.focus(checked,context);
-        if(operation==='browser.tabs.closeOwned')return tabHost.closeOwned(checked,context);
+        if(operation==='browser.tabs.create')return tabHost.create(checked,context);
+        if(operation==='browser.tabs.activateOwned')return tabHost.activateOwned(checked,context);
+        if(operation==='browser.tabs.removeOwned')return tabHost.removeOwned(checked,context);
         if(operation==='browser.screenshot.captureVisible'){
           // One-use approval was spent above; only the trusted Host may assert
           // that it came from the visible extension UI's verified click.
@@ -608,7 +608,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
           throw failure('E_TOOL_CHANGED','Tool updated during approval');
         const packageHash=await digestTool(tool);
         const origin=targetOperation==='browser.network.observe.start'?args.origins[0]:
-          ['browser.tabs.open','browser.network.request'].includes(targetOperation)
+          ['browser.tabs.create','browser.network.request'].includes(targetOperation)
             ?new URL(args.url).origin:null;
         await verifyBrowserOwner({toolId,toolVersion,packageHash,epoch:installEpoch??null},targetOperation,origin);
         for(const [ref,intent] of browserIntents)if(Date.now()>=intent.expiresAt)browserIntents.delete(ref);
