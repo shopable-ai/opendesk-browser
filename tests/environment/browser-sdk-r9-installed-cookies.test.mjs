@@ -152,6 +152,26 @@ test('R9 clear preview refuses replacement cookies even when the count is unchan
 });
 
 
+test('R10 clear preview rejects a changed value with an identical Cookie identity',async()=>{
+  const f=fixture(),preview=await f.run('clearSite',{preview:true,maxCookies:50});
+  const existing=f.state.records.find(row=>row.name==='sid'&&row.path==='/account');
+  assert(existing,'fixture must include an authorized exact-host Cookie');
+  existing.value='REPLACED_LOGIN_AFTER_PREVIEW';
+  await assert.rejects(f.run('clearSite',{expectedCount:preview.matched,
+    previewRef:preview.previewRef,maxCookies:50}),reject('E_COOKIE_STALE'));
+  assert.equal(existing.value,'REPLACED_LOGIN_AFTER_PREVIEW');
+  assert(f.state.records.includes(existing),'a stale destructive preview must not remove the replacement');
+});
+
+test('R10 clear preview rejects same-identity security attribute changes',async()=>{
+  const f=fixture(),preview=await f.run('clearSite',{preview:true,maxCookies:50});
+  const existing=f.state.records.find(row=>row.name==='sid'&&row.path==='/account');
+  existing.httpOnly=false;
+  await assert.rejects(f.run('clearSite',{expectedCount:preview.matched,
+    previewRef:preview.previewRef,maxCookies:50}),reject('E_COOKIE_STALE'));
+  assert(f.state.records.includes(existing));
+});
+
 test('R9 installed Cookie observer does not inherit the partition grant without an explicit partition selector',async()=>{
   const f=fixture();
   // The user has a partition receipt for this selected site, but the public
