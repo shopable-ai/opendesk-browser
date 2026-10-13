@@ -345,15 +345,16 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     const menuApiAvailable=Boolean(api.contextMenus?.create&&api.contextMenus?.onClicked);
     const platformSupported=(!isMenu||menuApiAvailable)&&(
       operation==='browser.tabs.create'?Boolean(api.tabs?.create):
-      operation==='browser.tabs.activateOwned'?Boolean(api.tabs?.get&&api.tabs?.update):
+      operation==='browser.tabs.activateOwned'?Boolean(api.tabs?.get&&api.tabs?.update&&api.webNavigation?.getFrame):
       operation==='browser.tabs.getOwned'||operation==='browser.tabs.listOwned'?Boolean(api.tabs?.get&&api.webNavigation?.getFrame):
       operation==='browser.tabs.pinOwned'?Boolean(api.tabs?.get&&api.tabs?.update&&api.webNavigation?.getFrame):
       operation==='browser.tabs.removeOwned'?Boolean(api.tabs?.get&&api.tabs?.remove&&api.webNavigation?.getFrame):
       operation==='browser.sidePanel.openSelf'?Boolean(api.sidePanel?.open):
       operation==='browser.network.request'?typeof fetchImpl==='function':
+      operation==='browser.network.observe.start'?Boolean(api.webRequest?.onBeforeRequest?.addListener&&api.tabs?.get&&api.webNavigation?.getFrame):
       operation.startsWith('browser.network.observe.')?Boolean(api.webRequest?.onBeforeRequest?.addListener):
       operation==='browser.screenshot.captureVisible'?
-        Boolean(api.tabs?.query&&api.tabs?.captureVisibleTab&&api.downloads?.download):true);
+        Boolean(api.tabs?.query&&api.tabs?.get&&api.webNavigation?.getFrame&&api.tabs?.captureVisibleTab&&api.downloads?.download):true);
     const hasToolCap=op.requiredCapabilities.every(cap=>tool.capabilities.includes(cap));
     const chromium=menuApiAvailable&&await permissionGranted(api);
     const requiredBrowser=(await Promise.all(op.requiredChromePermissions.map(async id=>
