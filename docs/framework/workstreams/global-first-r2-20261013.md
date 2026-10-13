@@ -1,3 +1,30 @@
+# Global First R4｜2026-10-13 真实研究与远端 main 交付
+
+**此段覆盖下方 R2/R3 历史优先级。** 以 [R4 最新决策](../../product/browser-extension-ecosystem/global-first-r2-decision.zh-CN.md) 为权威产品结论；沿用唯一 [GF 声明账本](../../product/browser-extension-ecosystem/first-claims-ledger.json)、[竞品时间线](../../product/browser-extension-ecosystem/competitor-timeline.json)、[营销手册](../../product/browser-extension-ecosystem/marketing-playbook.zh-CN.md)。不创建第二账本或运行框架。
+
+## 本轮真实已完成
+
+- 读取原 R4 GOAL、AGENTS、testing-guide、parallel-development、旧 GF/竞争账本及 AI Workflow / Local Install / Authority / Task / 依赖 / Cloud workstreams；直接经已连接的 GitHub 修改 **main**，没有分支/PR/force/reset。
+- 竞争源证据：时间线原 20 → **30** 个产品/方案；记录 ScriptCat/Violentmonkey Beta MCP、UiPath Delegate 2026-08-25 Public Preview Routines、Axiom AI→扩展导入、Bardeen/HARPA 商店、BrowserOS 子组件，不以 push date 或未知首次发行冒充 first。
+- 创建实际用户任务双/三因素机会 **26** 个、真实战略 TOP5/TOP10、两个证伪旧称号、五种“第一”核查路径，并按真相保留 14 个 GF claim 的 **0 approved**。
+- 五份双语 SEO/GEO 事实页 + 24 条未执行查询及 [独立来源 JSON](evidence/global-first-r4-20261013/research-evidence.json)，明确正式官网部署/搜索收录/商店安装转化 NOT_TESTED。
+- [唯一固定 Demo 验收协议](evidence/global-first-r4-20261013/README.md) 复用现存 agent-modern-search v1 Task Candidate 和 demo-form.html，不建第二 SDK/Task DB/RunHost。
+- 本轮只修改独占文档、JSON 与事实页；**没有修改 src、native、sdk、安装/云控、共享测试代码**。已有 Mac Chrome/CI 历史结果只在其原候选有效。
+
+## 未完成，不能伪造成功
+
+- 用户 Mac 本地 git status/CFT profile/Native/端口/包 SHA：**LOCAL_NOT_INSPECTED**（本次仅远端 GitHub）。
+- 同一最新版外部 AI → 用户步骤/权限审阅 → 真实 Chrome Run/Result → 正式 Verified → Available → Installed → AI 断开后同版两次重复 Run：**NOT_TESTED**。
+- 真实同机竞品 5 次冷启动/10 次热修改/3 次恢复、20次总费用、正式区域产品发行和收费用户：**NOT_TESTED**。
+- 产品/竞争/技术/营销合规/文档专家独立 95/100：**NOT_SCORED**。世界/区域/任务第一、世界第2—5 的实际通过数 0。
+- 共享 AI、Task、Native、Cloud、Dependency 已有专属工作流，不接管他们的 Mac Profile、dist、43111/43112 或修改共享逻辑。缺独占权直接说明 BLOCKED_BY_OWNERSHIP；不足以声称已完成框架闭环。
+
+**下一件真正有用的事情**：在原负责者可独占的 Chrome+Native 环境完成该单版 Demo，保留真正的 runId/resultId/manifestHash/模型费用和同版关闭模型两次运行回执；若缺失，按原始失败/未知保留。随后做 Axiom/UiPath/ScriptCat/Vite 真实同任务比较，不写下一套运行框架。
+
+---
+
+## 以下 R2/R3 历史记录留存，仅作时间线参考
+
 # Global First R2 · 真实研究与原生验证工作流（2026-10-13）
 
 ## R4 AI 优先纠偏（覆盖下文旧 F01 市场优先级）
