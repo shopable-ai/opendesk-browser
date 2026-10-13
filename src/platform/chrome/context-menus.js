@@ -5,6 +5,7 @@ import {createBrowserNetworkObserver} from './browser-network-observe.js';
 import {createBrowserScreenshotHost} from './browser-screenshot.js';
 import {createBrowserScreenshotResources} from './browser-screenshot-resources.js';
 import {createBrowserDownloadsHost} from './browser-downloads.js';
+import {createBrowserBookmarksHost} from './bookmarks.js';
 import {executeBrowserToolStorage} from '../../ui/sidebar-tools/storage-state.js';
 import {createTrustedCookieHost} from './browser-cookie-host.js';
 import {chromeCall} from './tabs.js';
@@ -149,7 +150,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     'browser.network.observe.start','browser.network.observe.export','browser.screenshot.captureVisible',
     'browser.cookies.set','browser.cookies.remove','browser.cookies.clearSite','browser.cookies.observe.start',
     'browser.clipboard.writeText','browser.downloads.text',
-    'browser.downloads.download','browser.downloads.cancelOwned','browser.storage.local.clear']);
+    'browser.downloads.download','browser.downloads.cancelOwned','browser.bookmarks.create','browser.bookmarks.removeOwned','browser.storage.local.clear']);
   const observationOperations=new Set(['browser.network.observe.getStatus','browser.network.observe.stop',
     'browser.events.read','browser.events.close']);
   const ownedOperationMethods=new Set(['browser.operations.getStatus','browser.operations.cancel']);
@@ -224,6 +225,11 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     await verifyBrowserOwner(context,operation,origin);
     return true;
   }});
+  const bookmarkHost=createBrowserBookmarksHost({api,authorize:async({operation,context,origin})=>{
+    if(context.approvedOrigin!==null&&context.approvedOrigin!==origin)
+      throw failure('E_SITE_GRANT_REQUIRED','Bookmark Origin changed after approval');
+    await verifyBrowserOwner(context,operation,origin);
+  }});
   const trustedCookies=createTrustedCookieHost({api});
   const screenshotHost=createBrowserScreenshotHost({api,
     resolveTarget:(ref,context)=>tabHost.resolve(ref,context),
@@ -239,6 +245,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     networkObserver.revokeAll();
     screenshotResources.revokeAll();
     downloadHost.revokeAll();
+    bookmarkHost.revokeAll();
     browserIntents.clear();
     for(const controller of activeNetworkRequests)
       controller.abort(failure('E_GRANT_REVOKED','Installed tool authority changed during HTTP request'));
@@ -405,6 +412,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       operation==='browser.tabs.removeOwned'?Boolean(api.tabs?.get&&api.tabs?.remove&&api.webNavigation?.getFrame):
       operation==='browser.sidePanel.openSelf'?Boolean(api.sidePanel?.open):
       operation.startsWith('browser.storage.local.')?Boolean(api.storage?.local?.get&&api.storage?.local?.set):
+      operation==='browser.bookmarks.create'?Boolean(api.bookmarks?.create&&api.storage?.local?.set):
+      operation==='browser.bookmarks.removeOwned'?Boolean(api.bookmarks?.get&&api.bookmarks?.remove&&api.storage?.local?.set):
       operation==='browser.downloads.download'?Boolean(api.downloads?.download):
       operation==='browser.downloads.getOwned'||operation==='browser.downloads.listOwned'?Boolean(api.downloads?.search):
       operation==='browser.downloads.cancelOwned'?Boolean(api.downloads?.search&&api.downloads?.cancel):
@@ -542,7 +551,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
            intent.args!==canonicalJSON(checked))
           throw failure('E_USER_GESTURE_REQUIRED','New explicit approval required for this exact action');
         const approvedOrigin=operation==='browser.network.observe.start'?checked.origins[0]:
-          ['browser.tabs.create','browser.tabs.navigateOwned','browser.network.request','browser.downloads.download'].includes(operation)
+          ['browser.tabs.create','browser.tabs.navigateOwned','browser.network.request','browser.downloads.download','browser.bookmarks.create'].includes(operation)
             ?new URL(checked.url).origin:null;
         const context={...owner,approvedOrigin};
         await verifyBrowserOwner(context,operation,approvedOrigin);
@@ -558,6 +567,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
             authorize:()=>verifyBrowserOwner(context,operation)});
         if(operation==='browser.downloads.download')return downloadHost.download(checked,context);
         if(operation==='browser.downloads.cancelOwned')return downloadHost.cancelOwned(checked,context);
+        if(operation==='browser.bookmarks.create')return bookmarkHost.create(checked,context);
+        if(operation==='browser.bookmarks.removeOwned')return bookmarkHost.removeOwned(checked,context);
         if(operation==='browser.tabs.create')return tabHost.create(checked,context);
         if(operation==='browser.tabs.activateOwned')return tabHost.activateOwned(checked,context);
         if(operation==='browser.tabs.pinOwned')return tabHost.pinOwned(checked,context);
@@ -851,7 +862,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         const packageHash=await digestTool(tool);
         const origin=cookieCapabilities[targetOperation]?new URL(args.url).origin:
           targetOperation==='browser.network.observe.start'?args.origins[0]:
-          ['browser.tabs.create','browser.tabs.navigateOwned','browser.network.request','browser.downloads.download'].includes(targetOperation)
+          ['browser.tabs.create','browser.tabs.navigateOwned','browser.network.request','browser.downloads.download','browser.bookmarks.create'].includes(targetOperation)
             ?new URL(args.url).origin:null;
         const identity={toolId,toolVersion,packageHash,epoch:installEpoch??null,
           installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null};

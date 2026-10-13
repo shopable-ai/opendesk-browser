@@ -1,7 +1,7 @@
 // One installation transaction path for Side Panel and Marketplace.
 // This is the EXISTING v1 tool registry and authority, not a second runner.
 import {SIDEBAR_TOOL_STORE, MAX_INSTALLED_TOOLS, validateSidebarToolPackage, sidebarToolStorageKey,serializeSidebarToolPackage} from './package.js';
-import {BROWSER_MENU_GRANTS_STORE} from '../../framework/sdk/browser-contract.js';
+import {BROWSER_MENU_GRANTS_STORE,BOOKMARK_OWNED_STORE_PREFIX} from '../../framework/sdk/browser-contract.js';
 import {READING_TOC_SITE_STORE, READING_TOC_VISIBILITY_STORE, READING_TOC_PAGE_RULES_STORE, READING_TOC_PLACEMENT_PREFIX, READING_TOC_TOOL_ID} from '../../reading-toc/policy.js';
 import {CLIP_SITE_STORE} from '../../page-clip/policy.js';
 import {CAPTURE_SITE_STORE, KNOWLEDGE_TOOL_ID, KNOWLEDGE_WORKSPACE_PREFIX} from '../../knowledge/policy.js';
@@ -151,6 +151,8 @@ export async function cleanupUninstalledToolLocked(api,id){
     return {state:'still-installed',toolId:id};
   try{
     await removeVerifiedKey(api,sidebarToolStorageKey(id));
+    // Delete private bookmark ownership IDs but do not silently remove user bookmarks.
+    await removeVerifiedKey(api,BOOKMARK_OWNED_STORE_PREFIX+id);
     if(id==='time-review')await removeVerifiedKey(api,TIME_REVIEW_KEY);
     if(id===FOCUS_ID){
       if(await api.permissions.contains({permissions:['declarativeNetRequestWithHostAccess']}))
