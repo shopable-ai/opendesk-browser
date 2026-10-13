@@ -32,7 +32,11 @@
       message(op==='focus.status'?'正在读取本机状态…':'请在外层可信工具宿主确认本次修改…');
       const result=await request(op,payload);
       state=result;render();
-      message(op==='focus.status'?'':'操作已提交并核对 Chrome 规则状态。');
+      if(op==='focus.status')message('');
+      else if(!result?.enabled)message('规则已保存，但 Stay Focus 尚未开启；需在工具外层详情中授权并启动。');
+      else if(result?.ruleReceipt?.verified!==true)message('设置已存入本机，但尚未验证 Chrome DNR 生效。请检查原生拦截权限。',true);
+      else if(result?.tabs?.failed>0)message('Chrome 拦截规则已核对，但有 '+result.tabs.failed+' 个已打开页面无法自动切换，请手动重新导航。',true);
+      else message('规则已保存，并完成 Chrome DNR 规则读回核对。');
     }catch(error){
       message(String(error?.message||error),true);
     }finally{
