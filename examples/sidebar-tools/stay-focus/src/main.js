@@ -6,7 +6,7 @@
     const el=document.createElement(tag);if(klass)el.className=klass;
     if(text!==undefined)el.textContent=text;return el;
   };
-  let state=null,busy=false,lastHost='',firstSettings=true;
+  let state=null,busy=false,firstSettings=true,currentSuggestion=null;
   const message=(text,error=false)=>{$('message').textContent=text;$('message').dataset.error=String(error);};
   const minutes=ms=>ms>=3600000?Math.floor(ms/3600000)+' 小时 '+Math.floor(ms%3600000/60000)+' 分钟':Math.max(0,Math.ceil(ms/60000))+' 分钟';
   const escapeHost=value=>{
@@ -18,6 +18,78 @@
     }catch{return '';}
   };
   const siteLabel=reason=>({session:'专注中',schedule:'工作时段',always:'始终限制',quota:'额度已用完'})[reason]||'允许访问';
+  // Local, transparent recommendations. Exact registered domains (including
+  // subdomains) take precedence over untrusted website titles. No URL history,
+  // page body, third-party lookup or permission changes are used here.
+  const knownSites=[
+    {host:'youtube.com',name:'YouTube',category:'视频娱乐',minutes:15,preset:true},
+    {host:'bilibili.com',name:'哔哩哔哩',category:'视频娱乐',minutes:15,preset:true},
+    {host:'tiktok.com',name:'TikTok',category:'短视频',minutes:15,preset:true},
+    {host:'douyin.com',name:'抖音',category:'短视频',minutes:15},
+    {host:'instagram.com',name:'Instagram',category:'社交',minutes:20,preset:true},
+    {host:'reddit.com',name:'Reddit',category:'社交',minutes:20},
+    {host:'x.com',name:'X',category:'社交',minutes:20},
+    {host:'weibo.com',name:'微博',category:'社交',minutes:20},
+    {host:'netflix.com',name:'Netflix',category:'影视娱乐',minutes:30},
+    {host:'twitch.tv',name:'Twitch',category:'直播娱乐',minutes:30},
+    {host:'roblox.com',name:'Roblox',category:'游戏',minutes:30},
+    {host:'github.com',name:'GitHub',category:'工作/开发',minutes:0},
+    {host:'stackoverflow.com',name:'Stack Overflow',category:'工作/开发',minutes:0},
+    {host:'docs.google.com',name:'Google Docs',category:'工作',minutes:0},
+    {host:'wikipedia.org',name:'Wikipedia',category:'学习',minutes:0},
+    {host:'coursera.org',name:'Coursera',category:'学习',minutes:0}
+  ];
+  const sameOrChild=(host,parent)=>host===parent||host.endsWith('.'+parent);
+  const siteRule=site=>({host:site.host,subdomains:true,enabled:true,
+    mode:'limit',minutes:site.minutes,group:''});
+  function classifyCurrent(info){
+    if(info?.status!=='available')return null;
+    const host=escapeHost(info.url);
+    if(!host)return null;
+    const known=knownSites.find(site=>sameOrChild(host,site.host));
+    if(known)return {...known,source:'domain'};
+    const title=String(info.title||'').slice(0,256);
+    // Title is only a weak hint: it never grants access or creates any rule.
+    if(/学习|课程|教程|文档|education|tutorial|course|documentation/i.test(title))
+      return {host,name:host,category:'可能是学习/工作',minutes:0,source:'title'};
+    if(/娱乐|短视频|直播|影视|电影|游戏|video|streaming|gaming|movies/i.test(title))
+      return {host,name:host,category:'可能是娱乐',minutes:15,source:'title'};
+    return {host,name:host,category:'未分类',minutes:15,source:'unknown'};
+  }
+  const configured=site=>Boolean(state?.sites?.some(saved=>
+    sameOrChild(site.host,saved.host)&&saved.subdomains||site.host===saved.host));
+  function renderSuggestions(){
+    const card=$('quick-current'),empty=$('quick-empty'),apply=$('quick-add');
+    if(!currentSuggestion){card.hidden=true;empty.hidden=false;}
+    else{
+      const site=currentSuggestion,exists=configured(site);
+      card.hidden=false;empty.hidden=true;
+      $('quick-site').textContent=site.name===site.host?site.host:site.name+' · '+site.host;
+      $('quick-explanation').textContent=(site.source==='domain'?'已识别：':
+        site.source==='title'?'按页面标题推测：':'暂未识别类型：')+site.category+
+        (site.minutes>0?' · 推荐每天 '+site.minutes+' 分钟':' · 默认不限制')+
+        (exists?' · 已设置':'');
+      apply.hidden=site.minutes===0||exists;
+      apply.textContent=site.source==='unknown'?'添加此网站 · 每天 15 分钟':
+        '使用推荐额度 · '+site.minutes+' 分钟/天';
+    }
+    const presets=$('quick-presets');
+    presets.replaceChildren();
+    // Keep first use simple; existing sites can always be managed below.
+    if(state?.sites?.length)return;
+    for(const site of knownSites.filter(row=>row.preset&&!configured(row))){
+      const button=create('button','sf-secondary',site.name+' · '+site.minutes+' 分钟');
+      button.type='button';
+      button.addEventListener('click',()=>call('focus.site.put',{site:siteRule(site)}));
+      presets.append(button);
+    }
+  }
+  async function recognizeCurrent(){
+    try{currentSuggestion=classifyCurrent(await request('currentPage.info',{}));}
+    catch{currentSuggestion=null;}
+    renderSuggestions();
+  }
+
   const checkTime=(input)=>{
     const match=/^(\d{2}):(\d{2})$/.exec(input);
     if(!match)return NaN;
@@ -58,6 +130,7 @@
     const actions=create('div','sf-site-actions');
     const edit=create('button','','编辑');edit.type='button';edit.setAttribute('aria-label','编辑 '+site.host);
     edit.addEventListener('click',()=>{
+      $('manual-site').open=true;
       $('site-host').value=site.host;$('site-minutes').value=site.minutes;
       $('site-mode').value=site.mode;$('site-subdomains').checked=site.subdomains;
       $('site-group').value=site.group;$('site-host').focus();
@@ -73,6 +146,7 @@
   };
   function render(){
     if(!state)return;
+    renderSuggestions();
     const permissionReady=state.permissions?.ready===true;
     const blocked=state.enabled&&state.sites.some(site=>site.enabled&&Boolean(site.reason));
     const ruleUnverified=state.enabled&&permissionReady&&state.ruleReceipt?.verified!==true;
@@ -125,6 +199,11 @@
       $('whitelist').value=state.whitelist.join('\n');
     }
   }
+  $('quick-add').addEventListener('click',()=>{
+    if(currentSuggestion?.minutes>0&&!configured(currentSuggestion))
+      void call('focus.site.put',{site:siteRule(currentSuggestion)});
+  });
+  $('quick-refresh').addEventListener('click',()=>{void recognizeCurrent();});
   $('site-form').addEventListener('submit',event=>{
     event.preventDefault();
     const host=escapeHost($('site-host').value),minutesValue=Number($('site-minutes').value);
@@ -141,7 +220,14 @@
       const current=await request('currentPage.info',{});
       const host=escapeHost(current?.url);
       if(!host)throw new Error('当前选中的标签页不支持添加，先切换到正常网站。');
-      $('site-host').value=host;$('site-host').focus();message('已填写当前网站，请选择额度并保存。');
+      const suggestion=classifyCurrent(current);
+      $('site-host').value=suggestion?.host||host;
+      if(suggestion?.minutes>0)$('site-minutes').value=suggestion.minutes;
+      $('site-mode').value='limit';
+      $('site-subdomains').checked=true;
+      $('manual-site').open=true;
+      $('site-host').focus();
+      message('已填写当前网站'+(suggestion?.minutes>0?'及推荐额度':'')+'，确认后保存。');
     }catch(error){message(String(error?.message||error),true);}
   });
   $('focus-start').addEventListener('click',()=>call('focus.session.start',{minutes:25}));
@@ -172,6 +258,6 @@
     call('focus.whitelist.set',{hosts});
   });
   // The iframe refresh is for display only: the MV3 SW/alarms own all counting.
-  void call('focus.status',{});
+  void call('focus.status',{}).then(()=>recognizeCurrent());
   setInterval(()=>{if(!busy&&document.visibilityState==='visible')void call('focus.status',{});},30000);
 })();
