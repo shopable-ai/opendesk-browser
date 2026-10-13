@@ -120,6 +120,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     'browser.events':'读取和关闭此工具持有的有界网络观察会话',
     'browser.operations':'查询和取消本工具持有的网络观察操作',
     'browser.screenshot':'用户主动截取本工具获准的可见网页并下载 PNG',
+    'browser.storage':'独立保存本工具设置与数据（最多 32 项、32 KB）',
   });
 
   // Cookies reuse the existing trusted tool-settings surface; sandbox JavaScript
@@ -936,7 +937,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       }
       if(['browser.tabs.create','browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.reloadOwned','browser.tabs.navigateOwned','browser.tabs.removeOwned','browser.network.request',
         'browser.network.observe.start','browser.network.observe.export',
-        'browser.screenshot.captureVisible','browser.downloads.download','browser.downloads.cancelOwned'].includes(operation)){
+        'browser.screenshot.captureVisible','browser.downloads.download','browser.downloads.cancelOwned','browser.storage.local.clear'].includes(operation)){
         const target=operation==='browser.tabs.navigateOwned'?'将本工具标签页导航到同源站点 '+new URL(payload.url).origin+'（原 TabRef 将失效）':
           operation==='browser.tabs.reloadOwned'?'重新加载本工具拥有的标签页（原 TabRef 将失效）':
           operation==='browser.tabs.pinOwned'?(payload.pinned?'固定此工具此前打开的标签页':'取消固定此工具此前打开的标签页'):
@@ -948,6 +949,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
           operation==='browser.screenshot.captureVisible'?'截取当前可见且已授权的网页，并打开 PNG 保存对话框':
           operation==='browser.downloads.download'?'下载网站 '+new URL(payload.url).origin+' 的指定文件（仅此一次）':
           operation==='browser.downloads.cancelOwned'?'取消本工具已发起、编号为 '+payload.downloadRef.slice(0,8)+'… 的下载':
+          operation==='browser.storage.local.clear'?'清空本工具保存的数据（不影响其他工具）':
             '向 '+new URL(payload.url).origin+' 发送 '+payload.method+' HTTP 请求';
         const approvalRef=await requestBrowserClick({toolId:tool.id,
           message:'「'+tool.title+'」请求'+target+'；确认仅批准这一次操作。',

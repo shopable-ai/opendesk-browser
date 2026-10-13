@@ -12,9 +12,9 @@
     "auditOnly": true
   },
   "summary": {
-    "operationCount": 44,
+    "operationCount": 48,
     "implementationCounts": {
-      "IMPLEMENTED": 44,
+      "IMPLEMENTED": 48,
       "PLANNED": 0,
       "HOST_ONLY": 0,
       "NOT_EXPOSED": 0
@@ -2012,6 +2012,178 @@
         "Current candidate still needs Node and real installed Cookie Editor native positive/denial/permission lifecycle tests"
       ],
       "nextTask": "Verify installed tool exact site/store/partition grant, write readback, revoke and Chrome native receipt",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.storage.local.get",
+      "module": "browser.storage.local",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.storage.local.get",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.storage.local.get",
+      "chromePermissions": [
+        "storage"
+      ],
+      "toolCapabilities": [
+        "browser.storage"
+      ],
+      "effectClass": "read",
+      "riskLevel": "low",
+      "siteScope": "owned-storage",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/ui/sidebar-tools/storage-state.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Same-candidate Node, Build and real Chrome acceptance pending"
+      ],
+      "nextTask": "Run browser-sdk-p4-implementation.test.mjs and native storage/clear/permission revocation",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.storage.local.set",
+      "module": "browser.storage.local",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.storage.local.set",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.storage.local.set",
+      "chromePermissions": [
+        "storage"
+      ],
+      "toolCapabilities": [
+        "browser.storage"
+      ],
+      "effectClass": "write",
+      "riskLevel": "medium",
+      "siteScope": "owned-storage",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/ui/sidebar-tools/storage-state.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Same-candidate Node, Build and real Chrome acceptance pending"
+      ],
+      "nextTask": "Run browser-sdk-p4-implementation.test.mjs and native storage/clear/permission revocation",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.storage.local.remove",
+      "module": "browser.storage.local",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.storage.local.remove",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.storage.local.remove",
+      "chromePermissions": [
+        "storage"
+      ],
+      "toolCapabilities": [
+        "browser.storage"
+      ],
+      "effectClass": "write",
+      "riskLevel": "medium",
+      "siteScope": "owned-storage",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/ui/sidebar-tools/storage-state.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Same-candidate Node, Build and real Chrome acceptance pending"
+      ],
+      "nextTask": "Run browser-sdk-p4-implementation.test.mjs and native storage/clear/permission revocation",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.storage.local.clear",
+      "module": "browser.storage.local",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-contract.js#browser.storage.local.clear",
+      "outputSchema": "src/framework/sdk/browser-contract.js#browser.storage.local.clear",
+      "chromePermissions": [
+        "storage"
+      ],
+      "toolCapabilities": [
+        "browser.storage"
+      ],
+      "effectClass": "write",
+      "riskLevel": "high",
+      "siteScope": "owned-storage",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/ui/sidebar-tools/storage-state.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Same-candidate Node, Build and real Chrome acceptance pending"
+      ],
+      "nextTask": "Run browser-sdk-p4-implementation.test.mjs and native storage/clear/permission revocation",
       "commits": [],
       "evidence": []
     }

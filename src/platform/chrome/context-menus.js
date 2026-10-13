@@ -5,6 +5,7 @@ import {createBrowserNetworkObserver} from './browser-network-observe.js';
 import {createBrowserScreenshotHost} from './browser-screenshot.js';
 import {createBrowserScreenshotResources} from './browser-screenshot-resources.js';
 import {createBrowserDownloadsHost} from './browser-downloads.js';
+import {executeBrowserToolStorage} from '../../ui/sidebar-tools/storage-state.js';
 import {createTrustedCookieHost} from './browser-cookie-host.js';
 import {chromeCall} from './tabs.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,sidebarToolEnabled} from '../../ui/sidebar-tools/lifecycle.js';
@@ -148,7 +149,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     'browser.network.observe.start','browser.network.observe.export','browser.screenshot.captureVisible',
     'browser.cookies.set','browser.cookies.remove','browser.cookies.clearSite','browser.cookies.observe.start',
     'browser.clipboard.writeText','browser.downloads.text',
-    'browser.downloads.download','browser.downloads.cancelOwned']);
+    'browser.downloads.download','browser.downloads.cancelOwned','browser.storage.local.clear']);
   const observationOperations=new Set(['browser.network.observe.getStatus','browser.network.observe.stop',
     'browser.events.read','browser.events.close']);
   const ownedOperationMethods=new Set(['browser.operations.getStatus','browser.operations.cancel']);
@@ -403,6 +404,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       operation==='browser.tabs.navigateOwned'?Boolean(api.tabs?.get&&api.tabs?.update&&api.webNavigation?.getFrame):
       operation==='browser.tabs.removeOwned'?Boolean(api.tabs?.get&&api.tabs?.remove&&api.webNavigation?.getFrame):
       operation==='browser.sidePanel.openSelf'?Boolean(api.sidePanel?.open):
+      operation.startsWith('browser.storage.local.')?Boolean(api.storage?.local?.get&&api.storage?.local?.set):
       operation==='browser.downloads.download'?Boolean(api.downloads?.download):
       operation==='browser.downloads.getOwned'||operation==='browser.downloads.listOwned'?Boolean(api.downloads?.search):
       operation==='browser.downloads.cancelOwned'?Boolean(api.downloads?.search&&api.downloads?.cancel):
@@ -551,6 +553,9 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         // in the untrusted iframe or in this approval-only Host branch.
         if(operation==='browser.clipboard.writeText'||operation==='browser.downloads.text')
           return {authorized:true};
+        if(operation==='browser.storage.local.clear')
+          return executeBrowserToolStorage({api,operation,toolId,input:checked,
+            authorize:()=>verifyBrowserOwner(context,operation)});
         if(operation==='browser.downloads.download')return downloadHost.download(checked,context);
         if(operation==='browser.downloads.cancelOwned')return downloadHost.cancelOwned(checked,context);
         if(operation==='browser.tabs.create')return tabHost.create(checked,context);
@@ -604,6 +609,13 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
           if(jsonBytes(result)>12000)throw failure('E_LIMIT','HTTP response exceeds IPC budget');
           return result;
         }finally{activeNetworkRequests.delete(controller)}
+      }
+      if(['browser.storage.local.get','browser.storage.local.set','browser.storage.local.remove'].includes(operation)){
+        const checked=normalizeBrowserOperation(operation,args),hash=await digestTool(tool);
+        const context={toolId,toolVersion,packageHash:hash,epoch:installEpoch??null,
+          installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null};
+        return executeBrowserToolStorage({api,operation,toolId,input:checked,
+          authorize:()=>verifyBrowserOwner(context,operation)});
       }
       if(operation==='browser.downloads.getOwned'||operation==='browser.downloads.listOwned'){
         const checked=normalizeBrowserOperation(operation,args),hash=await digestTool(tool);

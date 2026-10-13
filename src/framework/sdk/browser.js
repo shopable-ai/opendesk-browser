@@ -65,6 +65,9 @@ export function createBrowserSdk({request,context='sidebar-tool'}={}){
     downloads:Object.freeze({text:method('browser.downloads.text'),
       download:method('browser.downloads.download'),getOwned:method('browser.downloads.getOwned'),
       listOwned:method('browser.downloads.listOwned'),cancelOwned:method('browser.downloads.cancelOwned')}),
+    storage:Object.freeze({local:Object.freeze({
+      get:method('browser.storage.local.get'),set:method('browser.storage.local.set'),
+      remove:method('browser.storage.local.remove'),clear:method('browser.storage.local.clear')})}),
     tabs:Object.freeze({create:method('browser.tabs.create'),activateOwned:method('browser.tabs.activateOwned'),
       getOwned:method('browser.tabs.getOwned'),listOwned:method('browser.tabs.listOwned'),
       pinOwned:method('browser.tabs.pinOwned'),

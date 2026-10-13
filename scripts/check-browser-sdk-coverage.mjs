@@ -78,6 +78,8 @@ export async function checkBrowserSdk({root=ROOT}={}){
   ()=>sdk.downloads.getOwned({downloadRef:'r'.repeat(32)}),
   ()=>sdk.downloads.listOwned({limit:10}),
   ()=>sdk.downloads.cancelOwned({downloadRef:'r'.repeat(32)}),
+  ()=>sdk.storage.local.get(),()=>sdk.storage.local.set({items:{theme:'dark'}}),
+  ()=>sdk.storage.local.remove({keys:['theme']}),()=>sdk.storage.local.clear({confirm:true}),
   ()=>sdk.tabs.create({url:'https://example.org'}),()=>sdk.tabs.activateOwned({tabRef:'r'.repeat(32)}),
   ()=>sdk.tabs.getOwned({tabRef:'r'.repeat(32)}),()=>sdk.tabs.listOwned(),
   ()=>sdk.tabs.pinOwned({tabRef:'r'.repeat(32),pinned:true}),

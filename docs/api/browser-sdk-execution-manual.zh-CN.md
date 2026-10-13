@@ -199,3 +199,8 @@ npm run build
 - **运行时事实与验收资料不等同**：src/framework/sdk/browser-contract.js 是当前“真正在 Registry 注册”的事实；矩阵 approvedOperations 是后续设计准入；Native evidence 只能由用户 Mac 的真实 Chrome 测试产生。
 
 **手册状态变更约束**：一旦在 main 中以无冲突提交与完整矩阵校验完成封版，正式进入 IMPLEMENTATION ONLY；后续不再创建第二份 Browser SDK 总体执行手册。
+
+
+### R10.3 · 工具隔离 Storage 接线（2026-10-13）
+
+以上 R10.1 的 44/11 数字是历史候选快照，本轮批准接口总数仍为 **55**。正式 Registry 新增 `browser.storage.local.get/set/remove/clear` 四项源码接线，合计 **48 项 SOURCE_WIRED，7 项待实施**（Bookmarks 2、可信 History 1、可信 Permissions 1、Scheduler 3）。复用现有 Side Panel 每工具存储命名空间、每工具 Web Lock 与回读确认，不新建存储数据库。clear 需要可信 Side Panel 真点击和 Host 一次性 Intent；普通读写须核实安装版本、包摘要、Install Epoch、工具能力及 Chrome 原生权限。所有同候选 Node、Build、Native Chrome 证据仍为 NOT_TESTED，不把源码登记当作最终验收。

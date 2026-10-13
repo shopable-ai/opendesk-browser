@@ -1918,9 +1918,9 @@
       "VERSION_GATED": 1
     },
     "approvedOperations": 55,
-    "approvedRegistered": 44,
+    "approvedRegistered": 48,
     "approvedCookieHostOnly": 0,
-    "approvedPlannedNew": 11,
+    "approvedPlannedNew": 7,
     "nativeMappedApproved": 36,
     "approvedWithInputAndOutputSchemas": 55
   },
@@ -8009,9 +8009,9 @@
     },
     {
       "id": "browser.storage.local.get",
-      "visibility": "APPROVED_TOOL_PLANNED",
+      "visibility": "APPROVED_TOOL_REGISTERED",
       "migrationDecision": "NEW",
-      "sourceRegistry": "src/framework/sdk/browser-contract.js (TARGET NOT YET PRESENT)",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js",
       "callSignature": "OpenDeskSDK.browser.storage.local.get({keys?:string[]})",
       "returnSignature": "Promise<{items:Record<string,JSONValue>}>",
       "inputSchema": {
@@ -8077,7 +8077,7 @@
       "driverFile": "src/platform/storage/index.js",
       "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable",
       "phase": "P4",
-      "status": "DESIGN_APPROVED_NOT_IMPLEMENTED",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
         "node": "NOT_TESTED",
         "build": "NOT_TESTED",
@@ -8135,9 +8135,9 @@
     },
     {
       "id": "browser.storage.local.set",
-      "visibility": "APPROVED_TOOL_PLANNED",
+      "visibility": "APPROVED_TOOL_REGISTERED",
       "migrationDecision": "NEW",
-      "sourceRegistry": "src/framework/sdk/browser-contract.js (TARGET NOT YET PRESENT)",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js",
       "callSignature": "OpenDeskSDK.browser.storage.local.set({items:Record<string,JSONValue>})",
       "returnSignature": "Promise<{written:number}>",
       "inputSchema": {
@@ -8201,7 +8201,7 @@
       "driverFile": "src/platform/storage/index.js",
       "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable",
       "phase": "P4",
-      "status": "DESIGN_APPROVED_NOT_IMPLEMENTED",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
         "node": "NOT_TESTED",
         "build": "NOT_TESTED",
@@ -8259,9 +8259,9 @@
     },
     {
       "id": "browser.storage.local.remove",
-      "visibility": "APPROVED_TOOL_PLANNED",
+      "visibility": "APPROVED_TOOL_REGISTERED",
       "migrationDecision": "NEW",
-      "sourceRegistry": "src/framework/sdk/browser-contract.js (TARGET NOT YET PRESENT)",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js",
       "callSignature": "OpenDeskSDK.browser.storage.local.remove({keys:string[]})",
       "returnSignature": "Promise<{removed:number}>",
       "inputSchema": {
@@ -8329,7 +8329,7 @@
       "driverFile": "src/platform/storage/index.js",
       "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable",
       "phase": "P4",
-      "status": "DESIGN_APPROVED_NOT_IMPLEMENTED",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
         "node": "NOT_TESTED",
         "build": "NOT_TESTED",
@@ -8387,9 +8387,9 @@
     },
     {
       "id": "browser.storage.local.clear",
-      "visibility": "APPROVED_TOOL_PLANNED",
+      "visibility": "APPROVED_TOOL_REGISTERED",
       "migrationDecision": "NEW",
-      "sourceRegistry": "src/framework/sdk/browser-contract.js (TARGET NOT YET PRESENT)",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js",
       "callSignature": "OpenDeskSDK.browser.storage.local.clear({confirm:boolean})",
       "returnSignature": "Promise<{removed:number}>",
       "inputSchema": {
@@ -8451,7 +8451,7 @@
       "driverFile": "src/platform/storage/index.js",
       "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable",
       "phase": "P4",
-      "status": "DESIGN_APPROVED_NOT_IMPLEMENTED",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
         "node": "NOT_TESTED",
         "build": "NOT_TESTED",
@@ -56361,9 +56361,9 @@
   "coverageAudit": {
     "seedNativeCatalogEntries": 119,
     "seedNativeCatalogMissing": 0,
-    "registeredOperations": 44,
+    "registeredOperations": 48,
     "trustedCookieHostOperations": 0,
-    "approvedNewDesignOperations": 11,
+    "approvedNewDesignOperations": 7,
     "approvedTotal": 55,
     "orphanNativeMappings": [],
     "parseErrors": [],
@@ -56475,8 +56475,8 @@
     ],
     "completeness": "Known source consumers identified; exhaustive consumer path enumeration cannot be verified without full repository grep. Phase P1 must enumerate and migrate all current consumers before deleting active alias."
   },
-  "currentRegistrySourceSha": "ffe2169d5951fc169d5449714f1491856dfb68ec",
-  "currentSchemaSourceSha": "750935864ad73d323402c5b5bd63cad176de8ac8",
+  "currentRegistrySourceSha": "7768af9cbbf09169214b50bdb68c5340c9566086",
+  "currentSchemaSourceSha": "7482231d35be77fe4a3818fa7de897b1370be797",
   "contractRevisions": [
     {
       "date": "2026-10-13",

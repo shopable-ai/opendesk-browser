@@ -9,6 +9,7 @@ const num=(min=0,max=Number.MAX_SAFE_INTEGER)=>({type:'integer',minimum:min,maxi
 const arr=(items,maxItems=100)=>({type:'array',items,maxItems});
 const bool={type:'boolean'},nullableString={anyOf:[str(160),{type:'null'}]};
 const empty=obj();
+const storageKey=str(128,'^[A-Za-z][A-Za-z0-9._-]{0,127}$'),storageKeys=arr(storageKey,100);
 const sid=obj({observationId:ref},['observationId']);
 const oid=obj({operationId:ref},['operationId']),eid=obj({sessionRef:ref},['sessionRef']);
 const text=str(150000);
@@ -61,6 +62,11 @@ const ops=Object.freeze({
      ['downloadRef','state']),50),nextCursor:ref},['items'])],
  'browser.downloads.cancelOwned':[obj({downloadRef:ref},['downloadRef']),
    obj({cancelled:bool},['cancelled'])],
+ 'browser.storage.local.get':[obj({keys:storageKeys}),obj({items:{type:'object',additionalProperties:true}},['items'])],
+ 'browser.storage.local.set':[obj({items:{type:'object',maxProperties:100,additionalProperties:true}},['items']),
+   obj({written:num()},['written'])],
+ 'browser.storage.local.remove':[obj({keys:storageKeys},['keys']),obj({removed:num()},['removed'])],
+ 'browser.storage.local.clear':[obj({confirm:{const:true}},['confirm']),obj({removed:num()},['removed'])],
  'browser.tabs.create':[obj({url:http},['url']),obj({tabRef:ref},['tabRef'])],
  'browser.tabs.activateOwned':[obj({tabRef:ref},['tabRef']),obj({focused:bool},['focused'])],
  'browser.tabs.getOwned':[obj({tabRef:ref},['tabRef']),

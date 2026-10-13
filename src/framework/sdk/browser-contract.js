@@ -11,7 +11,7 @@ export const BROWSER_MENU_LAUNCH_STORE='opendesk.browser.menu-launch.v1';
 export const BROWSER_MENU_ROOT='opendesk.browser.root';
 const shared={apiVersion:BROWSER_API_VERSION,platform:'chrome>=138',timeout:8000,maxRequestBytes:12000,maxResponseBytes:12000};
 const USER_GESTURE_OPERATIONS=new Set([
-  'browser.clipboard.writeText','browser.downloads.text','browser.downloads.download','browser.downloads.cancelOwned','browser.tabs.create',
+  'browser.clipboard.writeText','browser.downloads.text','browser.downloads.download','browser.downloads.cancelOwned','browser.storage.local.clear','browser.tabs.create',
   'browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.reloadOwned','browser.tabs.navigateOwned','browser.tabs.removeOwned','browser.sidePanel.openSelf','browser.network.request','browser.network.observe.start',
   'browser.network.observe.export','browser.screenshot.captureVisible',
   'browser.cookies.set','browser.cookies.remove','browser.cookies.clearSite','browser.cookies.observe.start'
@@ -41,6 +41,10 @@ export const BROWSER_OPERATIONS=Object.freeze({
   'browser.downloads.getOwned':entry('browser.downloads.getOwned','user.export',tool,['downloads'],'read','medium','download-ref'),
   'browser.downloads.listOwned':entry('browser.downloads.listOwned','user.export',tool,['downloads'],'read','medium','owned-downloads'),
   'browser.downloads.cancelOwned':entry('browser.downloads.cancelOwned','user.export',tool,['downloads'],'write','high','download-ref'),
+  'browser.storage.local.get':entry('browser.storage.local.get','browser.storage',tool,['storage'],'read','low','owned-storage'),
+  'browser.storage.local.set':entry('browser.storage.local.set','browser.storage',tool,['storage'],'write','medium','owned-storage'),
+  'browser.storage.local.remove':entry('browser.storage.local.remove','browser.storage',tool,['storage'],'write','medium','owned-storage'),
+  'browser.storage.local.clear':entry('browser.storage.local.clear','browser.storage',tool,['storage'],'write','high','owned-storage'),
   'browser.tabs.create':entry('browser.tabs.create','browser.tabs',tool,['tabs'],'write','medium','explicit-url','IMPLEMENTED'),
   'browser.tabs.activateOwned':entry('browser.tabs.activateOwned','browser.tabs',tool,['tabs','webNavigation'],'write','medium','tab-ref','IMPLEMENTED'),
   'browser.tabs.getOwned':entry('browser.tabs.getOwned','browser.tabs',tool,['tabs','webNavigation'],'read','medium','tab-ref','IMPLEMENTED'),
@@ -128,6 +132,37 @@ export function normalizeBrowserOperation(operation,args={}){
          args.limit!==undefined&&(!Number.isSafeInteger(args.limit)||args.limit<1||args.limit>50))
         throw fail('E_SCHEMA','Invalid owned download cursor or limit');
       return {cursor:args.cursor,limit:args.limit??20};
+    case 'browser.storage.local.get':
+    case 'browser.storage.local.remove':{
+      fields(args,['keys'],operation==='browser.storage.local.remove'?['keys']:[]);
+      if(args.keys!==undefined&&(!Array.isArray(args.keys)||args.keys.length>100||
+         args.keys.some(key=>typeof key!=='string'||!/^[A-Za-z][A-Za-z0-9._-]{0,127}$/.test(key)||
+           ['__proto__','constructor','prototype'].includes(key))||
+         new Set(args.keys).size!==args.keys.length))
+        throw fail('E_SCHEMA','Invalid or duplicate tool storage keys');
+      return args.keys===undefined?{}:{keys:[...args.keys]};
+    }
+    case 'browser.storage.local.set':{
+      fields(args,['items'],['items']);
+      const items=args.items;
+      if(!items||typeof items!=='object'||Array.isArray(items)||
+         ![Object.prototype,null].includes(Object.getPrototypeOf(items))||
+         Object.keys(items).length>100)
+        throw fail('E_SCHEMA','Expected a bounded tool-storage item object');
+      const normalized={};
+      for(const [key,value] of Object.entries(items)){
+        if(!/^[A-Za-z][A-Za-z0-9._-]{0,127}$/.test(key)||
+           ['__proto__','constructor','prototype'].includes(key)||value===undefined)
+          throw fail('E_SCHEMA','Invalid tool storage key or value');
+        jsonValue(value);
+        normalized[key]=value;
+      }
+      return {items:normalized};
+    }
+    case 'browser.storage.local.clear':
+      fields(args,['confirm'],['confirm']);
+      if(args.confirm!==true)throw fail('E_SCHEMA','Explicit tool-only clear confirmation required');
+      return {confirm:true};
     case 'browser.capabilities.list': case 'browser.contextMenu.getStatus':
     case 'browser.contextMenu.unregister': case 'browser.launch.consume':
     case 'browser.page.getContext': case 'browser.page.getSelection':

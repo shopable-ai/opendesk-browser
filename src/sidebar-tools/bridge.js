@@ -8,7 +8,7 @@ const TOOL_CONSENT_OPS=new Set(['browser.tabs.create','browser.tabs.activateOwne
  'browser.network.observe.start','browser.network.observe.export',
  'browser.screenshot.captureVisible',
  'browser.clipboard.writeText','browser.downloads.text',
- 'browser.downloads.download','browser.downloads.cancelOwned',
+ 'browser.downloads.download','browser.downloads.cancelOwned','browser.storage.local.clear',
  'browser.cookies.set','browser.cookies.remove','browser.cookies.clearSite',
  'browser.cookies.observe.start']);
 export function sidebarToolRequestTimeout(operation,toolId){
