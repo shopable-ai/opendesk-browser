@@ -51,6 +51,10 @@ const sameCookieScope=(a,b)=>a.domain===b.domain&&a.path===b.path&&
   a.hostOnly===b.hostOnly&&(a.storeId??null)===(b.storeId??null)&&
   (a.partitionKey?.topLevelSite??null)===(b.partitionKey?.topLevelSite??null)&&
   Boolean(a.partitionKey?.hasCrossSiteAncestor)===Boolean(b.partitionKey?.hasCrossSiteAncestor);
+const sameCookieMetadata=(a,b)=>sameCookieScope(a,b)&&
+  a.secure===b.secure&&a.httpOnly===b.httpOnly&&a.session===b.session&&
+  a.sameSite===b.sameSite&&
+  (a.expirationDate??null)===(b.expirationDate??null);
 const sameNativeSlot=(a,b)=>a.name===b.name&&a.path===b.path&&
   a.domain.replace(/^\./,'').toLowerCase()===b.domain.replace(/^\./,'').toLowerCase()&&
   (a.storeId??null)===(b.storeId??null)&&
@@ -343,7 +347,7 @@ async function refresh(){
     E('target-url').value=target?.url||'';targetPending=false;
     E('preview-banner').textContent='离线文件工具 · '+(target?
       '本地数据以 '+host+' 为校验范围，不读取或修改 Chrome Cookie。':
-      '请先展开「切换或选择网站」并选择 HTTP(S) 地址，才能准备离线数据。')+
+      '请返回浏览器模式，先选择 HTTP(S) 网站地址，再进入离线文件工具。')+
       ' 关闭工具后临时数据不保留。';
     status(mode==='offline'?'正在使用离线工作区；所有修改仅保存在临时内存。':'');
   }catch(error){if(id===epoch){liveState='error';liveMessage=String(error.message||error);status(liveMessage,'error');}}
@@ -469,8 +473,10 @@ async function saveBrowserCookie(){
         ...(old.partitionKey?{partitionKey:old.partitionKey}:{})};
       const current=await browserSdk().cookies.getAll(scope);
       if(!stillCurrent(id,target))return;
-      if(!Array.isArray(current)||!current.some(item=>key(item)===key(old)))
-        throw new Error('原 Cookie 已改变或消失，请刷新后再编辑');
+      if(!Array.isArray(current))throw new Error('Host 未返回可验证的 Cookie 列表');
+      const original=redactMetadata(current).find(item=>key(item)===key(old));
+      if(!original||!sameCookieMetadata(original,old))
+        throw new Error('原 Cookie 属性已改变或消失，请刷新后再编辑');
       if(renamed&&current.some(item=>sameNativeSlot(item,row)))
         throw new Error('新名称已存在于相同 Domain/Path/Store/Partition；不会覆盖');
       if(old.valueRedacted===true&&!liveValueEdited){
