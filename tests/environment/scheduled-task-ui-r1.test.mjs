@@ -165,7 +165,9 @@ test('R2 history pagination is authorized and preserves original Run/Result audi
 
 test('R2 current authorization controls plan badge without hiding historical needs-attention failure',async()=>{
   const ui=await load('src/ui/scheduled-task-workbench.js');
-  assert.match(ui,/plan\.paused\?'已暂停':plan\.needsAttention\?'需要处理':'已启用'/);
+  assert.match(ui,/plan\.paused\?'已暂停':plan\.needsAttention\?'需要处理':/);
+  assert.match(ui,/!Number\.isFinite\(plan\.nextDueAt\)\?'暂无后续':'已启用'/);
+  assert.match(ui,/Number\.isFinite\(plan\.nextDueAt\)\?\s*'下次：'/);
   assert.doesNotMatch(ui,/plan\.history\?\.\[0\]\?\.status==='NEEDS_ATTENTION'\?'需要处理'/);
   assert.match(ui,/scheduleStatus\(last.status\)/,'historical denial remains visible in history');
 });
