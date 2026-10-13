@@ -439,6 +439,25 @@
         <div class="cloud-section-title od-toolbar"><strong>最近请求</strong><span class="hint">最近 5 条，仅显示状态</span></div>
         <ol id="cloud-request-samples" class="cloud-request-samples"><li>暂无云请求</li></ol>
       </section>
+      <details id="cloud-clients" class="cloud-clients od-surface">
+        <summary>外部应用授权 <span id="cloud-clients-count" class="hint">按需管理</span></summary>
+        <p class="cloud-privacy-note">只有本浏览器已批准的固定任务可以向外部应用授权。密钥只展示一次，不保存到扩展配置；仅通过可信渠道交给应用。</p>
+        <div class="cloud-client-form">
+          <label for="cloud-client-name">外部应用名称</label>
+          <input id="cloud-client-name" class="od-field" maxlength="60" autocomplete="off" placeholder="例如：我的自动化服务">
+          <label for="cloud-client-task">允许调用的已安装任务</label>
+          <select id="cloud-client-task" class="od-field" aria-describedby="cloud-clients-status"><option value="">先启用云控任务授权</option></select>
+          <label class="cloud-approval-confirm"><input id="cloud-client-result" type="checkbox"> 另外允许此应用读取结果正文（仅适用于此前已允许回传的任务）</label>
+          <button id="cloud-client-create" type="button" class="od-button" disabled>创建应用凭据</button>
+        </div>
+        <div id="cloud-client-once" class="cloud-client-once" hidden>
+          <label for="cloud-client-token">一次性客户端密钥（关闭此区域后不再显示）</label>
+          <div class="cloud-client-secret-row"><input id="cloud-client-token" class="od-field" type="text" readonly spellcheck="false" autocomplete="off"><button type="button" id="cloud-client-copy" class="od-button od-button--secondary">复制密钥</button></div>
+        </div>
+        <p id="cloud-clients-status" role="status" aria-live="polite" class="hint">连接并授权任务后，可以创建、查看和撤销外部应用凭据。</p>
+        <div class="cloud-action-row"><button id="cloud-client-refresh" type="button" class="od-button od-button--secondary">刷新应用列表</button><button id="cloud-client-more" type="button" class="od-button od-button--secondary" hidden>查看更多</button></div>
+        <ul id="cloud-clients-list" class="cloud-clients-list" aria-label="已授权的外部应用"></ul>
+      </details>
       <details id="cloud-hosting" class="task-scope-panel"><summary>连接设置与解除配对 <span id="cloud-brief" class="cloud-status-brief">未配对</span></summary>
         <p class="hint">连接只用于经过批准的已安装任务，不能远程投递任意脚本。</p>
         <label>可信提供者 HTTPS 地址 <input id="cloud-url" type="url" placeholder="https://provider.example"></label>
