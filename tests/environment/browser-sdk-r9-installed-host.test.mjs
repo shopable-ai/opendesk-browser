@@ -139,7 +139,7 @@ test('R9 Chrome Cookie native effect requires one-use reviewed intent and respec
   const pending=(await f.confirm('browser.cookies.set',{...args,value:'new'})).approvalRef;
   await f.grant('write',false);
   await assert.rejects(f.call('browser.cookies.set',{...args,value:'new'},pending),
-    reject('E_GRANT_REVOKED'));
+    reject('E_SITE_GRANT_REQUIRED'));
   assert.equal(f.native.filter(x=>x==='set').length,1);
 });
 
