@@ -668,10 +668,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     if(serial!==stable()||selected!==provider())
       throw err('E_WORKFLOW_STALE','规划期间草稿或 AI 来源已改变，请重新发送');
   }
-  function offerObservation(event,context,{epoch,serial,selected,captured}) {
+  function offerObservation(event,context,{epoch,serial,selected,captured,request}) {
     planningCurrent(epoch,serial,selected);
     return new Promise(resolve=>{
-      const row={event,context,epoch,serial,selected,captured,settled:false,processing:false,
+      const row={event,context,epoch,serial,selected,captured,request,settled:false,processing:false,
         settle(answer){
           if(row.settled)return;row.settled=true;
           context.signal.removeEventListener('abort',abort);
@@ -712,7 +712,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       if(!await permission)throw err('E_AI_PERMISSION','网页授权被拒绝，未读取网页');
       planningCurrent(row.epoch,row.serial,row.selected);
       if(row.context.signal.aborted)throw err('E_CANCELLED','网页观察已停止');
-      const receipt=await observation.observe(row.captured,{signal:row.context.signal,requestId:row.context.requestId});
+      const receipt=await observation.observe(row.captured,{signal:row.context.signal,requestId:row.context.requestId,request:row.request});
       await currentPageTarget.revalidate(row.captured);
       if(!await api.permissions.contains({origins:[permissionPattern(row.captured.url)]}))
         throw err('E_PERMISSION','网站权限已撤销，未向 AI 发送观察结果');
@@ -804,7 +804,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         const target=captured?Object.fromEntries(['windowId','tabId','frameId','documentId','url','origin'].map(key=>[key,captured[key]])):undefined;
         result=await localPlanner.plan({request:frozen.request,workflow:frozen.workflow,consent:frozen.consent,target,
           signal:abort.signal,onEvent:progress,onApproval:(event,context)=>offerObservation(event,context,
-            {epoch,serial:frozen.serial,selected:frozen.selected,captured})});
+            {epoch,serial:frozen.serial,selected:frozen.selected,captured,request:frozen.request})});
         localCapability={...localCapability,inferenceVerified:localPlanner.snapshot().inferenceVerified};
       } else {
         if(!await permission)throw err('E_AI_PERMISSION','未授权访问模型网站');

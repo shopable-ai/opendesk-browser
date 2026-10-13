@@ -5,7 +5,35 @@ import {digestUtf8} from '../../platform/protocol.js';
 
 // The only Browser tool available to the Agent. Its code and budget are bundled,
 // never supplied by the model. All execution belongs to the original RunHost.
-export const WORKFLOW_OBSERVE_SOURCE='async function main() {\n  return await page.observe({maxNodes:24,maxChars:4000});\n}\n';
+export const WORKFLOW_OBSERVE_SOURCE=String.raw`async function main() {
+  const first=await page.observe({maxNodes:12,maxChars:2600});
+  const rows=[...first.nodes],seen=new Set(rows.map(row=>JSON.stringify(row.locator)));
+  const query=String(params.request||'').replace(/\s+/g,'').slice(0,4000);
+  let truncated=first.truncated===true;
+  if(query){
+    const regions=page.locator('section[id],form[id]'),count=await regions.count();
+    if(count>12)truncated=true;
+    for(let i=0;i<Math.min(count,12)&&rows.length<24;i++){
+      const id=await regions.nth(i).getAttribute('id');
+      if(!/^[A-Za-z][\w-]{0,79}$/.test(id||''))continue;
+      const part=await page.observe({root:'[id='+JSON.stringify(id)+']',maxDepth:7,maxNodes:14,maxChars:2400});
+      const match=row=>row?.state?.visible===true&&[row.name,row.text].some(value=>
+        typeof value==='string'&&value.trim().length>=2&&value.length<=40&&
+          query.includes(value.replace(/\s+/g,'')));
+      if(!part.nodes.some(match))continue;
+      for(const row of [...part.nodes].sort((a,b)=>Number(match(b))-Number(match(a)))){
+        if(!row.locator||row.locator.parent||row.state?.visible!==true)continue;
+        const key=JSON.stringify(row.locator);
+        if(seen.has(key))continue;
+        if(rows.length>=24){truncated=true;break;}
+        seen.add(key);rows.push(row);
+      }
+      if(part.truncated)truncated=true;
+    }
+  }
+  return {...first,nodes:rows,truncated};
+}
+`;
 const error=(code,message)=>Object.assign(new Error(message),{code});
 export function createWorkflowObservation({api=globalThis.chrome,host,currentPageTarget,onRunOwner=()=>{},onRunId=()=>{}}) {
   let disposed=false,active=null,epoch=0;
@@ -16,10 +44,11 @@ export function createWorkflowObservation({api=globalThis.chrome,host,currentPag
     if(row?.runId&&host.currentRun===row.runId)
       await host.stop({controller:true,runId:row.runId,reason:'E_CANCELLED'});
   }
-  async function observe(target,{signal,requestId}={}) {
+  async function observe(target,{signal,requestId,request=''}={}) {
     if(disposed||active||host.executionPending||host.currentRun)throw error('E_OWNER','原 RunHost 正忙或已关闭');
     if(typeof requestId!=='string'||!/^[a-zA-Z0-9._:-]{1,100}$/.test(requestId)||used.has(requestId))
       throw error('E_AI_APPROVAL','观察请求无效或已经使用；不会重复执行');
+    if(typeof request!=='string'||request.length>4000)throw error('E_AI_REQUEST','观察任务描述无效');
     if(used.size>=64)throw error('E_AI_LIMIT','本次 Sidebar 的观察次数已达上限');
     const captured=currentPageTarget.capture();
     if(!agentSameTarget(agentTargetFromSnapshot(captured),target))throw error('E_DOCUMENT_STALE','请求的网页已变化，请重新规划');
@@ -33,7 +62,7 @@ export function createWorkflowObservation({api=globalThis.chrome,host,currentPag
       if(!await api.permissions.contains({origins:[permissionPattern(captured.url)]}))throw error('E_PERMISSION','请先允许读取这个网站');
       assertLive();await currentPageTarget.revalidate(captured);assertLive();
       const sourceHash=await digestUtf8(WORKFLOW_OBSERVE_SOURCE);assertLive();
-      const claim=await host.start({source:{kind:'draft',sourceUtf8:WORKFLOW_OBSERVE_SOURCE},params:{},requestId,
+      const claim=await host.start({source:{kind:'draft',sourceUtf8:WORKFLOW_OBSERVE_SOURCE},params:request?{request}:{},requestId,
         target:{mode:'borrowed',tabId:captured.tabId,frameId:0,documentId:captured.documentId,
           expectedUrl:captured.url,expectedWindowId:captured.windowId},deadlineAt:Date.now()+15000});
       row.runId=claim.runId;onRunId(claim.runId);onRunOwner(claim.runId);
@@ -54,7 +83,8 @@ export function createWorkflowObservation({api=globalThis.chrome,host,currentPag
       // Send only the separately approved semantic nodes. Omit document URL
       // and unrelated request/history fields; page text can still be sensitive.
       const receipt={format:'opendesk.workflow-observation.v1',runId:claim.runId,resultId:result.resultId,sourceHash,
-        summary:{kind:value.kind,origin:captured.origin,nodes:value.nodes,truncated:value.truncated===true}};
+        summary:{kind:value.kind,origin:captured.origin,documentId:captured.documentId,
+          nodes:value.nodes,truncated:value.truncated===true}};
       if(new TextEncoder().encode(JSON.stringify(receipt)).length>12*1024)throw error('E_AI_LIMIT','观察摘要超过发送上限');
       return receipt;
     } finally {

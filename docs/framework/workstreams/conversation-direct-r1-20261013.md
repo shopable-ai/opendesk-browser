@@ -52,3 +52,23 @@
 ### 本地 Chrome 的剩余验收操作（没有声称执行）
 
 保留用户既有 `dist/development` 与扩展 ID；复用 `http://127.0.0.1:43111/demo-form.html`，在真实 Chrome Side Panel 仅发送一次「在输入框里填入 ai自动化第一选择」，记录真实 tab/document、页面读回字符串、RunHost `runId/resultId/sourceHash` 与 `workerRetired/retirementState`；扩展为安全按钮点击、填写→搜索、无定位、刷新、Stop、撤权、未知结果、可选 Save 与不调用模型的独立复跑。失败不得重放有副作用的动作；所有原生缺口维持 NOT_TESTED。
+
+## R1.1-P0：真实观察范围与 Codex 目标绑定（2026-10-14）
+
+**工作所有者：** 本轮 GitHub 连接会话；仅操作远端 `shopable-ai/opendesk-browser/main`，通过带预期 HEAD 的非强制原子 ref 更新；不占用用户 Mac 工作目录、Chrome Profile、43111 端口、`dist/development` 或 Native Agent。起始远端 HEAD：`89c3b298dc3cf8927b227b041b101770780ce58a`；执行前仍须重新取最新主干。
+
+**最小写入范围：** `src/ui/workflow/observation.js`、`src/ui/workflow/workflow-view.js`、`src/ui/workflow/local-codex.js`、`tests/environment/workflow-ai-observation.test.mjs`、`tests/environment/workflow-local-codex.test.mjs`、本记录。保持原 RunHost / Workflow Compiler / Native Agent RPC / Chrome 权限路径。
+
+**P0 修改意图：**
+- 同一固定、不可由模型提供代码的 Controller 观察源码首先采样有限 body 节点，然后仅按当前用户请求在最多 12 个有 ID 的通用 `section/form` 范围检查语义目标；允许加入至多 24 个可见、有唯一 Locator 的节点；不硬编码 `#lab-search`。不能通过无限增大预算绕过上限。
+- 单次原 RunHost 观察的参数仅来自用户当前请求；成功回执增加原始 DocumentId，保留 Run ID、Result ID、Source Hash 和 Origin；Site Permission、Document 重验及单独网页数据发送审批仍有效。
+- Codex 若未发起真实获批 `browser.observe`，或填写／点击的 Locator 不存在于该次观察摘要，不允许返回可直接执行的方案；不执行模型 JS，不增加第二次任务运行确认。
+- 定向 Node 测试覆盖限额局部观察、回执绑定、模型跳过观察、凭空猜测 Locator、错误 DocumentId、拒绝审批等情况。
+
+**验证等级（本记录随本次远端源码提交，最终以同一候选 CI 实际日志为准）：**
+- G0 GitHub `main` 源码与原 RunHost 使用路径：PASS（远端只读与差异核对）。
+- G1 真实 Codex Session/Turn 和实际页面内容被模型接收：NOT_TESTED（无用户 Mac Native 会话）。
+- G2/G3 三个真实 Chrome 场景与网页副作用读回：NOT_TESTED（无 Mac Chrome）；Node 行为覆盖不能提升状态。
+- G4 原生权限撤销、Document/Stop、Native 断连：NOT_TESTED（原生）。
+- G5 定向 Node、`npm run check`、`npm run build:dev`、同候选 CI：待新提交 GitHub Actions 执行后逐项更新，禁止预写 PASS。
+- 日常 Chrome 扩展路径／ID、真实观察和执行的 Run ID／Result ID／Source Hash、实际页面值、Worker 退出、保存后独立复跑：均为 NOT_TESTED；无伪造日志。

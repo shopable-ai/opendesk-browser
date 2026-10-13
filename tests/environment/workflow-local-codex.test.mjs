@@ -9,6 +9,12 @@ const consent=observation=>({model:true,workflow:true,observation});
 function workflow() {return emptyWorkflow(target.origin,'12345678-1234-1234-1234-123456789abc');}
 function proposal() {return {title:'观察表单',description:'检查页面结构',paramsSchema:workflow().paramsSchema,
   steps:[{stepId:'observe1',op:'observe'}]};}
+const observedReceipt=()=>({format:'opendesk.workflow-observation.v1',runId:'real-run',resultId:'real-result',
+  sourceHash:'a'.repeat(64),summary:{origin:target.origin,documentId:target.documentId,
+    nodes:[{role:'searchbox',name:'搜索关键词',state:{visible:true},
+      locator:{kind:'role',value:'searchbox',name:'搜索关键词',exact:true}}]}});
+const fillProposal=(name='搜索关键词')=>({...proposal(),steps:[{stepId:'fill1',op:'fill',
+  locatorKind:'role',selector:'searchbox',roleName:name,text:'OpenDesk'}]});
 const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
 const deferred=()=>{let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return {promise,resolve,reject};};
 const request=(extra={})=>({request:'检查这个页面',workflow:workflow(),consent:consent(false),...extra});
@@ -128,7 +134,7 @@ test('cross-origin or authority-bearing final model JSON is rejected by the exis
 });
 
 test('browser.observe uses one exact pending approval and returns only the caller-approved receipt',async t=>{
-  const receipt={format:'opendesk.workflow-observation.v1',runId:'real-run',resultId:'real-result',sourceHash:'a'.repeat(64),summary:{origin:target.origin,nodes:[]}};
+  const receipt=observedReceipt();
   let approvals=0;
   const f=fixture({turnEvents:()=>[{type:'tool.request',approvalId:'observe-1',tool:'browser.observe',canApprove:true,target},
     {type:'message.completed',text:JSON.stringify(proposal())},{type:'turn.completed',status:'completed'}]});
@@ -152,10 +158,40 @@ test('unconsented, wrong-document, arbitrary tool, and local command approvals a
   for(const scenario of cases) {
     const f=fixture({turnEvents:()=>[scenario.event,{type:'message.completed',text:JSON.stringify(proposal())},
       {type:'turn.completed',status:'completed'}]});t.after(()=>f.planner.dispose());
-    await f.planner.plan(request({consent:consent(scenario.scope),target:scenario.scope?target:undefined,
+    const planned=f.planner.plan(request({consent:consent(scenario.scope),target:scenario.scope?target:undefined,
       onApproval:()=>assert.fail('unsafe observation must not be requested')}));
+    if(scenario.scope)await assert.rejects(planned,{code:'E_AI_OBSERVATION_REQUIRED'});
+    else await planned;
     const answer=f.calls.find(call=>call.method==='ai.approval.answer');
     assert.deepEqual(answer.params,{approvalId:'one',decision:'deny'});
+  }
+});
+
+
+test('real observation is required before Codex may propose a write',async t=>{
+  const f=fixture({turnEvents:()=>[
+    {type:'message.completed',text:JSON.stringify(fillProposal())},
+    {type:'turn.completed',status:'completed'}]});
+  t.after(()=>f.planner.dispose());
+  await assert.rejects(f.planner.plan(request({request:'在搜索关键词输入框填入 OpenDesk',
+    consent:consent(true),target})),{code:'E_AI_OBSERVATION_REQUIRED'});
+  assert.equal(f.calls.some(call=>call.method==='ai.approval.answer'),false);
+});
+
+test('approved document and observed locator are mandatory for fill',async t=>{
+  for(const variant of ['valid','wrong-document','invented-locator']){
+    const f=fixture({turnEvents:()=>[
+      {type:'tool.request',approvalId:'observe-fill',tool:'browser.observe',canApprove:true,target},
+      {type:'message.completed',text:JSON.stringify(fillProposal(variant==='invented-locator'?'猜测输入框':'搜索关键词'))},
+      {type:'turn.completed',status:'completed'}]});
+    t.after(()=>f.planner.dispose());
+    const receipt=observedReceipt();
+    if(variant==='wrong-document')receipt.summary.documentId='other-document';
+    const planned=f.planner.plan(request({request:'在搜索关键词输入框填入 OpenDesk',
+      consent:consent(true),target,onApproval:async()=>({decision:'approve',result:receipt})}));
+    if(variant==='valid')assert.equal((await planned).steps[0].text,'OpenDesk');
+    else await assert.rejects(planned,{code:variant==='wrong-document'?'E_AI_TOOL_RESULT':'E_AI_LOCATOR_UNOBSERVED'});
+    assert.equal(f.calls.filter(call=>call.method==='ai.approval.answer').length,variant==='wrong-document'?0:1);
   }
 });
 
@@ -174,14 +210,19 @@ test('duplicate tool approval can never execute or answer twice',async t=>{
   let observations=0;
   const f=fixture({turnEvents:()=>[tool,tool]});t.after(()=>f.planner.dispose());
   await assert.rejects(f.planner.plan(request({consent:consent(true),target,
-    onApproval:async()=>{observations++;return {decision:'approve',result:{runId:'one'}};}})),{code:'E_AI_PROTOCOL'});
+    onApproval:async()=>{observations++;return {decision:'approve',result:observedReceipt()};}})),{code:'E_AI_PROTOCOL'});
   assert.equal(observations,1);assert.equal(f.calls.filter(call=>call.method==='ai.approval.answer').length,1);
 });
 
 test('observation scope may shrink in a thread, but expansion requires a newly opened session',async t=>{
-  const f=fixture();t.after(()=>f.planner.dispose());
+  const f=fixture({turnEvents:({params})=>params.consent.observation?
+    [{type:'tool.request',approvalId:'scope-observe',tool:'browser.observe',canApprove:true,target},
+      {type:'message.completed',text:JSON.stringify(proposal())},{type:'turn.completed',status:'completed'}]:
+    [{type:'message.completed',text:JSON.stringify(proposal())},{type:'turn.completed',status:'completed'}]});
+  t.after(()=>f.planner.dispose());
   await f.planner.plan(request());const first=f.planner.snapshot().threadId;
-  await f.planner.plan(request({consent:consent(true),target}));const second=f.planner.snapshot().threadId;
+  await f.planner.plan(request({consent:consent(true),target,
+    onApproval:async()=>({decision:'approve',result:observedReceipt()})}));const second=f.planner.snapshot().threadId;
   assert.notEqual(first,second);
   await f.planner.plan(request({consent:consent(false)}));
   assert.equal(f.planner.snapshot().threadId,second);

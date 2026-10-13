@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {runInNewContext} from 'node:vm';
 import {createWorkflowObservation,WORKFLOW_OBSERVE_SOURCE} from '../../src/ui/workflow/observation.js';
 import {encodeValue} from '../../src/platform/page-port/codec.js';
 import {digestUtf8} from '../../src/platform/protocol.js';
@@ -17,13 +18,51 @@ async function fixture() {
   return {target,result,calls,owners,page,host,service,revoke(){granted=false;},stale(){stale=true;}};
 }
 test('only fixed observe code reaches original RunHost; bounded receipt omits full URL',async t=>{
-  const f=await fixture();t.after(()=>f.service.dispose());const receipt=await f.service.observe(f.target,{requestId:'observe-one'});
+  const f=await fixture();t.after(()=>f.service.dispose());const receipt=await f.service.observe(f.target,{requestId:'observe-one',request:'搜索关键词'});
   assert.equal(f.calls.length,1);assert.equal(f.calls[0].source.sourceUtf8,WORKFLOW_OBSERVE_SOURCE);
-  assert.deepEqual(f.calls[0].params,{});assert.equal(f.calls[0].target.expectedUrl,f.target.url);
+  assert.deepEqual(f.calls[0].params,{request:'搜索关键词'});assert.equal(f.calls[0].target.expectedUrl,f.target.url);
   assert.equal(receipt.resultId,'result-one');assert.equal(receipt.summary.origin,'https://example.com');
+  assert.equal(receipt.summary.documentId,f.target.documentId);
   assert.doesNotMatch(JSON.stringify(receipt),/never-upload|fragment|private=/);assert.equal(f.owners.at(-1),null);
   await assert.rejects(f.service.observe(f.target,{requestId:'observe-one'}),{code:'E_AI_APPROVAL'});assert.equal(f.calls.length,1);
 });
+
+test('fixed observer scans bounded semantic regions instead of guessing a demo selector',async()=>{
+  const calls=[],makeRow=(name,role='button')=>({name,role,text:name,state:{visible:true},
+    locator:{kind:'role',value:role,name,exact:true}});
+  const page={
+    async observe(opts){
+      calls.push(opts);
+      const names=opts.root==='[id="lab-search"]'
+        ?[makeRow('搜索关键词','searchbox'),makeRow('搜索')]
+        :opts.root?[makeRow('其他表单')]:[makeRow('首页导航')];
+      return {kind:'semantic-dom-summary',document:{documentId:'live-doc',url:'https://example.com/demo'},
+        nodes:names,truncated:!opts.root};
+    },
+    locator(css){
+      assert.equal(css,'section[id],form[id]');
+      return {count:async()=>2,nth:i=>({getAttribute:async()=>i?'lab-search':'lab-form'})};
+    }
+  };
+  const result=await runInNewContext(WORKFLOW_OBSERVE_SOURCE+';main()',
+    {page,params:{request:'在搜索关键词输入框里填入 ai自动化第一选择'}});
+  assert.equal(result.document.documentId,'live-doc');
+  assert.ok(result.nodes.some(node=>node.name==='搜索关键词'));
+  assert.ok(result.nodes.some(node=>node.name==='搜索'));
+  assert.ok(!result.nodes.some(node=>node.name==='其他表单'));
+  assert.ok(result.nodes.length<=24);
+  assert.equal(calls.length,3);
+  assert.ok(calls.every(options=>options.maxNodes<=24&&options.maxChars<=4000));
+  assert.doesNotMatch(WORKFLOW_OBSERVE_SOURCE,/#lab-search|#keyword/);
+});
+
+test('untrusted oversized observation query never starts a RunHost',async t=>{
+  const f=await fixture();t.after(()=>f.service.dispose());
+  await assert.rejects(f.service.observe(f.target,{requestId:'oversized-query',
+    request:'x'.repeat(4001)}),{code:'E_AI_REQUEST'});
+  assert.equal(f.calls.length,0);
+});
+
 for(const boundary of ['permission','document','busy','cancelled'])test('observe rejects '+boundary+' before dispatch',async t=>{
   const f=await fixture();t.after(()=>f.service.dispose());const controller=new AbortController();
   if(boundary==='permission')f.revoke();if(boundary==='document')f.stale();if(boundary==='busy')f.host.currentRun='other';if(boundary==='cancelled')controller.abort();
