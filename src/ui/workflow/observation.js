@@ -6,26 +6,16 @@ import {digestUtf8} from '../../platform/protocol.js';
 // The only Browser tool available to the Agent. Its code and budget are bundled,
 // never supplied by the model. All execution belongs to the original RunHost.
 export const WORKFLOW_OBSERVE_SOURCE=String.raw`async function main(){
-const b=await page.observe({maxNodes:12,maxChars:2600}),a=[...b.nodes],seen=new Set(a.map(x=>JSON.stringify(x.locator))),q=String(params.request||'').replace(/\s+/g,'').slice(0,4000);
-let t=b.truncated===true;
+const b=await page.observe({maxNodes:12,maxChars:2600}),a=[...b.nodes],q=String(params.request||'').replace(/\s+/g,''),r=page.locator('section[id],form[id]');let t=b.truncated===true;
 if(q){
-const roots=page.locator('section[id],form[id]'),n=await roots.count();
-if(n>12)t=true;
+const n=await r.count();if(n>12)t=true;
 for(let i=0;i<Math.min(n,12)&&a.length<24;i++){
-const id=await roots.nth(i).getAttribute('id');
-if(!/^[A-Za-z][\w-]{0,79}$/.test(id||''))continue;
-const p=await page.observe({root:'[id='+JSON.stringify(id)+']',maxDepth:7,maxNodes:14,maxChars:2400}),f=x=>x?.state?.visible===true&&[x.name,x.text].some(v=>typeof v==='string'&&v.trim().length>=2&&v.length<=40&&q.includes(v.replace(/\s+/g,'')));
-if(!p.nodes.some(f))continue;
-for(const x of p.nodes.sort((u,v)=>Number(f(v))-Number(f(u)))){
-if(!x.locator||x.locator.parent||x.state?.visible!==true)continue;
-const k=JSON.stringify(x.locator);
-if(seen.has(k))continue;
-if(a.length>=24){t=true;break;}
-seen.add(k);a.push(x);
-}
+const id=await r.nth(i).getAttribute('id');if(!/^[A-Za-z][\w-]{0,79}$/.test(id||''))continue;
+const p=await page.observe({root:'[id='+JSON.stringify(id)+']',maxDepth:7,maxNodes:14,maxChars:2400}),match=x=>[x.name,x.text].some(v=>typeof v==='string'&&v.length>1&&v.length<=40&&q.includes(v.replace(/\s+/g,'')));
+if(!p.nodes.some(match))continue;
+for(const x of p.nodes)if(x?.state?.visible&&x.locator&&!x.locator.parent&&!a.some(y=>JSON.stringify(y.locator)===JSON.stringify(x.locator))&&a.length<24)a.push(x);
 if(p.truncated)t=true;
-}
-}
+}}
 return {...b,nodes:a,truncated:t};
 }
 `;
