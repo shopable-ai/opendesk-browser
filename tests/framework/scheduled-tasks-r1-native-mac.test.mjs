@@ -17,6 +17,7 @@ import {packageFingerprint} from '../../scripts/verify-package.mjs';
 const ENABLED=process.env.OPENDESK_SCHEDULED_NATIVE==='1';
 const LIFECYCLE=process.env.SCHEDULE_NATIVE_LIFECYCLE==='1';
 const VIEWPORT=process.env.SCHEDULE_NATIVE_VIEWPORT==='1';
+const FORM_MATRIX=process.env.SCHEDULE_NATIVE_FORM_MATRIX==='1';
 const EXPECTED_PLATFORM=process.env.SCHEDULE_NATIVE_PLATFORM||'darwin';
 const CONTROL_MODIFIER=process.platform==='darwin'?4:2;
 let nativeOwnedMacInput=null; // Set after the uniquely owned Chrome PID is observed.
@@ -130,10 +131,23 @@ async function select(client,session,selector,index){
   // No synthetic change/input, .value assignments or permission edits.
   if(process.platform==='darwin'){
     assert.equal(typeof nativeOwnedMacInput,'function','owned macOS keyboard unavailable');
+    const info=await client.send('Target.getTargetInfo',{},session);
+    if(info.targetInfo?.type==='page')
+      await client.send('Target.activateTarget',{targetId:info.targetInfo.targetId});
     nativeOwnedMacInput('activate');
     await click(client,session,selector);
-    for(const key of ['home',...Array.from({length:index},()=> 'down'),'return'])
-      nativeOwnedMacInput('key',key);
+    if(selector==='#schedule-timezone'){
+      // Pick the actual visible AppKit menu item by its observed option label.
+      // The existing helper requires one matching CFT AX control and the owned
+      // foreground PID; it never writes select.value or dispatches change.
+      nativeOwnedMacInput('press',original.options[index].label);
+    }else{
+      const movingDown=index>original.index;
+      const steps=original.options.filter((option,position)=>!option.disabled&&
+        (movingDown?position>original.index&&position<=index:position<original.index&&position>=index)).length;
+      for(const key of [...Array.from({length:steps},()=>movingDown?'down':'up'),'return'])
+        nativeOwnedMacInput('key',key);
+    }
     await deadline(()=>evaluate(client,expression+'.value==='+JSON.stringify(expected),session),
       'owned Mac CFT real select '+selector+' '+expected,8000);
     return;
@@ -176,11 +190,13 @@ async function details(client,session,selector){
     await click(client,session,selector+' > summary');
   assert.equal(await evaluate(client,expr(selector)+'.open',session),true);
 }
-async function screenshot(client,session,name){
+async function screenshot(client,session,name,viewportMethod='rendered native surface; Chrome zoom not measured'){
+  const geometry=await evaluate(client,
+    '({url:location.href,widthCSS:innerWidth,heightCSS:innerHeight,dpr:devicePixelRatio,visualViewportScale:visualViewport?.scale??null})',session);
   const response=await client.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false},session);
   const bytes=Buffer.from(response.data,'base64');
   await writeFile(path.join(OUT,name+'.png'),bytes);
-  return {file:name+'.png',bytes:bytes.length,sha256:sha(bytes)};
+  return {file:name+'.png',bytes:bytes.length,sha256:sha(bytes),...geometry,viewportMethod};
 }
 // Genuine Chrome renderer viewport emulation; NOT a physical Side Panel
 // resize and NOT Chrome's 200% browser zoom. This probe never writes page DOM.
@@ -203,7 +219,7 @@ async function viewportEvidence(client,session,surface,report){
       assert.equal(actual.hasHorizontalOverflow,false,
         'No horizontal page overflow in '+surface+' at '+width+'px');
       snapshots.push({surface,width,...actual,
-        screenshot:await screenshot(client,session,'r2-'+surface+'-viewport-'+width)});
+        screenshot:await screenshot(client,session,'r2-'+surface+'-viewport-'+width,'CDP viewport emulation; not physical width or Chrome zoom')});
     }
   }finally{
     await client.send('Emulation.clearDeviceMetricsOverride',{},session).catch(()=>{});
@@ -300,8 +316,8 @@ async function durable(client,session){
     'const chosen=runs.filter(x=>x.tag==="controller-run").map(r=>({runId:r.runId,resultId:r.resultId,scriptId:r.scriptId,'+
     'scheduledFireId:r.scheduledFireId||null,state:r.state,retirementState:r.retirementState,workerRetired:r.workerRetired,'+
     'sourceHash:r.revision?.sourceHash,tabId:r.target?.tabId,documentId:r.target?.documentId}));'+
-    'return {plans:plans.map(x=>({scheduleId:x.scheduleId,generation:x.generation,paused:x.paused,nextDueAt:x.nextDueAt,'+
-    'taskId:x.taskId,triggerKind:x.triggerKind,installationId:x.installationId,taskGeneration:x.taskGeneration,version:x.version,manifestHash:x.manifestHash})),installs:kv.filter(x=>x.tag==="task-installed-v1").map(x=>({taskId:x.taskId,version:x.version,enabled:x.enabled,generation:x.authorization?.generation,installationId:x.authorization?.installationId})),fires:fires.map(x=>({fireId:x.fireId,runId:x.runId,'+
+    'return {plans:plans.map(x=>({scheduleId:x.scheduleId,generation:x.generation,paused:x.paused,deleted:x.deleted,nextDueAt:x.nextDueAt,'+
+    'taskId:x.taskId,triggerKind:x.triggerKind,triggerSpec:x.triggerSpec,timezone:x.timezone,sourceHash:x.sourceHash,params:x.params,openIfMissing:x.openIfMissing,misfirePolicy:x.misfirePolicy,startDeadlineMs:x.startDeadlineMs,installationId:x.installationId,taskGeneration:x.taskGeneration,version:x.version,manifestHash:x.manifestHash})),installs:kv.filter(x=>x.tag==="task-installed-v1").map(x=>({taskId:x.taskId,version:x.version,enabled:x.enabled,generation:x.authorization?.generation,installationId:x.authorization?.installationId})),fires:fires.map(x=>({fireId:x.fireId,runId:x.runId,'+
     'resultId:x.resultId,status:x.status,scheduledAt:x.scheduledAt})),runs:chosen,'+
     'results:results.filter(x=>x.tag==="controller-result").map(x=>({runId:x.runId,resultId:x.resultId,state:x.state,'+
     'ok:x.outcome?.ok===true,sourceHash:x.revision?.sourceHash})),'+
@@ -319,7 +335,7 @@ async function stopChrome(proc){
   });
 }
 test('real installed Chrome: verified Task via Alarms -> original RunHost -> page effect -> released',
-  {skip:!ENABLED,timeout:450000},async t=>{
+  {skip:!ENABLED,timeout:process.env.SCHEDULE_NATIVE_PHYSICAL_WIDTH==='1'?900000:450000},async t=>{
   assert.equal(process.platform,EXPECTED_PLATFORM,'Use an explicit native platform for this isolated CFT test');
   assert(BIN&&path.isAbsolute(BIN)&&spawnSync(BIN,['--version'],{stdio:'ignore'}).status===0,
     'Pinned real Chrome for Testing required');
@@ -395,6 +411,16 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
       const result=spawnSync(keyboard,[String(proc.pid),command,...(value?[value]:[])],
         {encoding:'utf8',timeout:12000});
       const diagnostic=[result.stdout,result.stderr,result.error?.message].filter(Boolean).join('\n').trim();
+      if(result.status!==0){
+        // Observe the owner that displaced CFT without activating it, sending
+        // another input, or weakening the preexisting foreground guard.
+        const front=spawnSync('/usr/bin/lsappinfo',['front'],{encoding:'utf8',timeout:5000});
+        const frontInfo=front.status===0&&front.stdout.trim()?
+          spawnSync('/usr/bin/lsappinfo',['info',front.stdout.trim()],{encoding:'utf8',timeout:5000}):null;
+        report.nativeInputFailure={expectedChromePid:proc.pid,command,value,status:result.status,
+          diagnostic,frontApplication:frontInfo?.stdout?.slice(0,1800)||front.stderr||null};
+        note('mac-native-input-owner-failure',report.nativeInputFailure);
+      }
       assert.equal(result.status,0,'real owned macOS input '+command+' '+(value||'')+
         ': '+diagnostic.slice(-900));
       return String(result.stdout).trim();
@@ -1043,6 +1069,212 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
       const state=await durable(client,runnerAgainSid);
       return state.plans[0]?.paused===true&&state.plans[0]?.nextDueAt===null;
     },'pause recovered plan from original UI after second native result');
+  }
+  if(FORM_MATRIX){
+    let formSid=null;
+    try{
+    await client.send('Target.activateTarget',{targetId:catalog.targetId});
+    await click(client,catalogSid,'#catalog-open-dev-sidebar');
+    const formContext=await deadline(async()=>(await contexts(client,catalogSid)).find(context=>
+      context.contextType==='SIDE_PANEL'&&context.documentId&&context.documentUrl?.includes('/ui/tool.html')),
+      'genuine reopened Side Panel for native form matrix');
+    const formTarget=await deadline(async()=>(await client.send('Target.getTargets')).targetInfos.find(target=>
+      target.url===formContext.documentUrl),'actual form Side Panel target');
+    formSid=await attach(client,formTarget.targetId);
+    await deadline(()=>evaluate(client,
+      'document.readyState==="complete"&&new URL(location.href).searchParams.has("hostInstanceId")&&typeof globalThis.__opendeskTrustedHistoryUI?.createScheduledTaskHost==="function"',formSid),
+      'canonical form Side Panel initialized');
+    await click(client,formSid,'#tab-my-tasks');
+    await deadline(()=>evaluate(client,'document.querySelector("#workbench-tasks")?.getClientRects().length>0&&document.querySelector("#tab-my-tasks")?.getAttribute("aria-selected")==="true"',formSid),
+      'native form My page is visible');
+    await click(client,formSid,'#schedule-open');
+    await deadline(()=>visible(client,formSid,'#schedule-create'),'native form schedule management is visible');
+    assert.equal(LIFECYCLE,false,'Native form matrix owns a separate isolated phase');
+    for(const flag of ['SCHEDULE_NATIVE_TASK_IDENTITY','SCHEDULE_NATIVE_PERMISSIONS','SCHEDULE_NATIVE_RESTART'])
+      assert.notEqual(process.env[flag],'1','Form matrix cannot share another native lifecycle phase');
+    const baseline=await durable(client,formSid),original=baseline.plans[0];
+    const webBefore=await evaluate(client,'({name:document.querySelector("#name")?.value,done:!!document.querySelector("#done")})',siteSid);
+    const readDraft=()=>evaluate(client,
+      '({title:document.querySelector("#schedule-title").value,target:document.querySelector("#schedule-target").value,taskId:document.querySelector("#schedule-task-select").value,days:[...document.querySelectorAll("#schedule-weekdays-field input:checked")].map(input=>input.value),kind:document.querySelector("#schedule-kind").value,zone:document.querySelector("#schedule-timezone").value,params:document.querySelector("#schedule-params").value,paused:document.querySelector("#schedule-paused").checked,clock:document.querySelector("#schedule-clock").value,once:document.querySelector("#schedule-once").value,minutes:document.querySelector("#schedule-minutes").value,misfire:document.querySelector("#schedule-misfire").value,deadline:document.querySelector("#schedule-deadline").value,openIfMissing:document.querySelector("#schedule-open-target").checked})',formSid);
+    assert.equal(original.paused,true,'Only the test-owned paused plan is edited');
+    const card='#schedule-plan-list .schedule-card[data-schedule-id='+JSON.stringify(original.scheduleId)+']';
+    let generation=original.generation,zone=original.timezone;
+    await click(client,formSid,'#schedule-create');
+    await type(client,formSid,'#schedule-title','R2.9 未保存内容验证');
+    await select(client,formSid,'#schedule-task-select',1);
+    await type(client,formSid,'#schedule-target',URL);
+    if(process.env.SCHEDULE_NATIVE_PHYSICAL_WIDTH==='1'){
+      assert.equal(VIEWPORT,false,'Physical width cannot share viewport emulation');
+      for(const width of [320,360,420]){
+        const readGeometry=()=>evaluate(client,
+          '({url:location.href,widthCSS:innerWidth,heightCSS:innerHeight,dpr:devicePixelRatio,scale:visualViewport?.scale,scrollWidth:document.documentElement.scrollWidth})',formSid);
+        const request={requestId:randomUUID(),requestedWidth:width,requestedAt:new Date().toISOString(),
+          chromePid:proc.pid,sidePanelDocumentId:formContext.documentId,geometry:await readGeometry()};
+        await writeFile(path.join(OUT,'physical-request.json'),JSON.stringify(request,null,2));
+        note('physical-width-native-drag-request',{requestedWidth:width,chromePid:proc.pid});
+        const action=await deadline(async()=>{
+          await writeFile(path.join(OUT,'physical-current.json'),JSON.stringify(await readGeometry(),null,2));
+          const recorded=await readFile(path.join(OUT,'physical-'+width+'-attempt.json'),'utf8').catch(()=>null);
+          if(!recorded)return null;
+          const attempt=JSON.parse(recorded);
+          return attempt.requestId===request.requestId&&attempt.chromePid===request.chromePid&&
+            attempt.sidePanelDocumentId===request.sidePanelDocumentId&&attempt.requestedWidth===width?attempt:null;
+        },'recorded native CUA drag attempt '+width,180000);
+        const geometry=await readGeometry();
+        const proof={requestedWidth:width,actual:geometry,action,
+          status:geometry.widthCSS===width?'OBSERVED_MATCH':'LIMITATION',
+          screenshot:await screenshot(client,formSid,'r29-physical-sidepanel-'+width,'physical Side Panel after recorded native attempt/observation; no viewport emulation')};
+        report.screenshots.push(proof.screenshot);note('physical-sidepanel-width',proof);
+        if(proof.status==='LIMITATION')report.limitations.push('Physical '+width+'px requested; actual '+geometry.widthCSS+'px after native drag');
+      }
+    }
+    const unsaved=await readDraft();
+    await click(client,formSid,'#schedule-cancel');
+    await deadline(()=>evaluate(client,'!document.querySelector("#schedule-discard-confirm").hidden',formSid),
+      'real unsaved draft discard confirmation');
+    await click(client,formSid,'#schedule-discard-no');
+    assert.deepEqual(await readDraft(),unsaved,'Continuing after discard review preserves every draft field');
+    await click(client,formSid,'#schedule-cancel');
+    await click(client,formSid,'#schedule-discard-yes');
+    assert.equal((await durable(client,formSid)).plans.length,1,'Discarded draft never creates a schedule');
+    report.tests.nativeUnsavedDraftConfirmation='PASS';
+    for(const [kind,index] of [['daily',1],['weekly',2],['interval',3]]){
+      await click(client,formSid,card+' .schedule-plan-actions button:nth-child(2)');
+      assert.equal(await evaluate(client,expr('#schedule-timezone')+'.value',formSid),zone,
+        'Editing preserves the previously pinned timezone');
+      assert.equal(await evaluate(client,expr('#schedule-task-select')+'.disabled',formSid),true,
+        'Existing plan cannot silently select another fixed Task');
+      await select(client,formSid,'#schedule-kind',index);
+      if(kind==='daily'){
+        await click(client,formSid,'#schedule-timezone-edit');
+        await type(client,formSid,'#schedule-timezone-search','America/New_York');
+        assert.equal(await evaluate(client,expr('#schedule-timezone')+'.value',formSid),zone,
+          'Timezone search never changes the pinned selection');
+        const index=await evaluate(client,
+          '[...document.querySelector("#schedule-timezone").options].findIndex(option=>option.value==="America/New_York")',formSid);
+        await select(client,formSid,'#schedule-timezone',index);
+        await click(client,formSid,'#schedule-timezone-done');zone='America/New_York';
+      }
+      if(kind==='weekly'){
+        for(const day of [3,5])await click(client,formSid,'#schedule-weekdays-field input[value="'+day+'"]');
+        await details(client,formSid,'.schedule-advanced');
+        await select(client,formSid,'#schedule-misfire',1);
+        await type(client,formSid,'#schedule-deadline','10');
+        await click(client,formSid,'#schedule-open-target');
+      }
+      if(kind==='interval')await type(client,formSid,'#schedule-minutes','15');
+      if(kind==='daily'){
+        await type(client,formSid,'#schedule-params','{');
+        await click(client,formSid,'#schedule-save');
+        assert.equal(await evaluate(client,expr('#schedule-params')+'.getAttribute("aria-invalid")',formSid),'true');
+        assert.equal(await evaluate(client,'document.activeElement.id',formSid),'schedule-params',
+          'Invalid JSON receives the actual focus');
+        assert.equal((await durable(client,formSid)).plans[0].generation,generation,
+          'Invalid draft cannot mutate the schedule');
+        report.tests.nativeJsonErrorRecovery='PASS';
+      }
+      await type(client,formSid,'#schedule-params',JSON.stringify({name:'R2.9 '+kind}));
+      await click(client,formSid,'#schedule-save');
+      await deadline(()=>evaluate(client,'!document.querySelector("#schedule-save-confirm").hidden',formSid),
+        'real fixed Task confirmation for '+kind);
+      const reviewedDraft=await readDraft();
+      await click(client,formSid,'#schedule-confirm-no');
+      assert.deepEqual(await readDraft(),reviewedDraft,
+        'Returning to edit preserves every configured field');
+      await click(client,formSid,'#schedule-save');
+      report.screenshots.push(await screenshot(client,formSid,'r29-installed-form-'+kind));
+      await click(client,formSid,'#schedule-confirm-yes');
+      const saved=await deadline(async()=>{
+        const state=await durable(client,formSid),plan=state.plans.find(plan=>plan.scheduleId===original.scheduleId);
+        return plan?.generation>generation?plan:null;
+      },'real paused '+kind+' plan persisted through saveSchedule');
+      assert.equal(saved.triggerKind,kind);assert.equal(saved.timezone,zone);
+      assert.equal(saved.paused,true);assert.equal(saved.nextDueAt,null);
+      assert.equal(saved.taskId,original.taskId);assert.equal(saved.manifestHash,original.manifestHash);
+      assert.equal(saved.sourceHash,original.sourceHash);
+      assert.equal(saved.version,original.version);assert.equal(saved.installationId,original.installationId);
+      assert.equal(saved.taskGeneration,original.taskGeneration);
+      assert.deepEqual(saved.params,{name:'R2.9 '+kind});
+      if(kind==='daily')assert.deepEqual(saved.triggerSpec,{hour:9,minute:0});
+      if(kind==='weekly'){
+        assert.deepEqual(saved.triggerSpec.days,[1,3,5]);assert.equal(saved.openIfMissing,true);
+        assert.equal(saved.misfirePolicy,'latest-within-hour');assert.equal(saved.startDeadlineMs,600000);
+      }
+      if(kind==='interval')assert.equal(saved.triggerSpec.everyMinutes,15);
+      generation=saved.generation;report.tests['nativeRule'+kind]='PASS';
+      note('native-form-rule-saved',{scheduleId:saved.scheduleId,generation,kind,zone,paused:true});
+    }
+    await details(client,formSid,card+' .schedule-history');
+    await deadline(()=>evaluate(client,
+      '[...document.querySelectorAll('+JSON.stringify(card+' .schedule-history-row')+')].some(row=>row.textContent.includes("成功")&&row.textContent.includes('+JSON.stringify(due.run.runId)+')&&row.textContent.includes('+JSON.stringify(due.result.resultId)+'))',formSid),
+      'original real run history remains visible after edits');
+    report.tests.nativeEditedHistoryRetained='PASS';
+    await click(client,formSid,'#schedule-create');
+    assert.equal(await evaluate(client,expr('#schedule-timezone')+'.value',formSid),original.timezone,
+      'New plan re-identifies the real device zone rather than inheriting the edited zone');
+    await type(client,formSid,'#schedule-title','R2.9 多计划隔离验证');
+    await select(client,formSid,'#schedule-task-select',1);
+    await type(client,formSid,'#schedule-target',URL);
+    assert.equal(await evaluate(client,expr('#schedule-kind')+'.value',formSid),'once',
+      'New one-time plan uses the product initialized future date');
+    report.screenshots.push(await screenshot(client,formSid,'r29-installed-form-once'));
+    await click(client,formSid,'#schedule-paused');
+    await click(client,formSid,'#schedule-save');
+    await deadline(()=>evaluate(client,'!document.querySelector("#schedule-save-confirm").hidden',formSid),'second isolated plan review');
+    await click(client,formSid,'#schedule-confirm-yes');
+    const two=await deadline(async()=>{const state=await durable(client,formSid);return state.plans.length===2?state:null;},
+      'two real test-owned paused plans');
+    assert(two.plans.every(plan=>plan.paused));
+    assert(two.plans.every(plan=>plan.nextDueAt===null));
+    const second=two.plans.find(plan=>plan.scheduleId!==original.scheduleId);
+    assert.equal(second.triggerKind,'once');
+    assert(second.triggerSpec.at>Date.now(),'Real one-time UI date is a future occurrence');
+    assert.equal(second.timezone,original.timezone);
+    report.tests.nativeRuleonce='PASS';
+    const secondCard='#schedule-plan-list .schedule-card[data-schedule-id='+JSON.stringify(second.scheduleId)+']';
+    report.screenshots.push(await screenshot(client,formSid,'r29-two-paused-plans'));
+    await details(client,formSid,secondCard+' .schedule-more');
+    await click(client,formSid,secondCard+' .schedule-danger-link');
+    assert.deepEqual((await durable(client,formSid)).plans,two.plans,
+      'Delete review preserves both plans, generations, deletion flags and fixed Task identities');
+    await click(client,formSid,secondCard+' .schedule-delete-confirm button:last-of-type');
+    assert.deepEqual((await durable(client,formSid)).plans,two.plans,
+      'Cancelled deletion preserves both plans, generations, deletion flags and fixed Task identities');
+    await click(client,formSid,secondCard+' .schedule-danger-link');
+    await click(client,formSid,secondCard+' .schedule-delete-confirm button:first-of-type');
+    const remaining=await deadline(async()=>{const state=await durable(client,formSid);return state.plans.find(plan=>
+      plan.scheduleId===second.scheduleId)?.deleted===true?state:null;},
+      'confirmed deletion tombstone for only the second test plan');
+    assert.deepEqual(remaining.plans.filter(plan=>!plan.deleted).map(plan=>plan.scheduleId),[original.scheduleId]);
+    const tombstone=remaining.plans.find(plan=>plan.scheduleId===second.scheduleId);
+    assert.equal(tombstone.generation,second.generation+1);
+    assert.equal(tombstone.paused,true);assert.equal(tombstone.nextDueAt,null);
+    assert.deepEqual(remaining.plans.find(plan=>plan.scheduleId===original.scheduleId),
+      two.plans.find(plan=>plan.scheduleId===original.scheduleId),'Deleting the second plan preserves the original plan');
+    await deadline(()=>evaluate(client,'!document.querySelector('+JSON.stringify(secondCard)+')',formSid),
+      'deleted second plan is absent from the real management list');
+    assert(remaining.runs.some(run=>run.runId===due.run.runId));
+    assert(remaining.results.some(result=>result.resultId===due.result.resultId));
+    assert.deepEqual(remaining.runs.map(run=>run.runId).sort(),baseline.runs.map(run=>run.runId).sort(),
+      'Paused edits and deletion cannot admit another Controller Run');
+    assert.deepEqual(remaining.results.map(result=>result.resultId).sort(),baseline.results.map(result=>result.resultId).sort());
+    assert.deepEqual(remaining.fires.filter(fire=>fire.runId).map(fire=>fire.fireId).sort(),
+      baseline.fires.filter(fire=>fire.runId).map(fire=>fire.fireId).sort());
+    assert.deepEqual(remaining.native,baseline.native,'Native operation states and receipt counts remain unchanged during paused form operations');
+    assert.deepEqual(await evaluate(client,'({name:document.querySelector("#name")?.value,done:!!document.querySelector("#done")})',siteSid),webBefore,
+      'Paused form operations leave the real test webpage unchanged');
+    report.tests.nativeMultiplePlansAndDeleteConfirmation='PASS';
+    report.nativeFormAudit={originalScheduleId:original.scheduleId,deletedScheduleId:second.scheduleId,
+      finalState:remaining,website:await evaluate(client,'({name:document.querySelector("#name")?.value,done:!!document.querySelector("#done")})',siteSid)};
+    report.screenshots.push(await screenshot(client,formSid,'r29-managed-plan-history'));
+    }catch(error){
+      report.formMatrixFailure=await evaluate(client,
+        '({url:location.href,kind:document.querySelector("#schedule-kind")?.value,once:document.querySelector("#schedule-once")?.value,clock:document.querySelector("#schedule-clock")?.value,timezone:document.querySelector("#schedule-timezone")?.value,timezoneOptions:[...document.querySelector("#schedule-timezone").options].map(option=>({value:option.value,disabled:option.disabled})),message:document.querySelector("#schedule-message")?.textContent,errors:[...document.querySelectorAll(".schedule-field-error")].map(node=>({id:node.id,text:node.textContent})),focus:document.activeElement?.id})',formSid).catch(()=>null);
+      note('native-form-matrix-failure',report.formMatrixFailure);
+      const capture=await screenshot(client,formSid,'r29-form-matrix-failure').catch(()=>null);
+      if(capture)report.screenshots.push(capture);
+      throw error;
+    }
   }
   completed=true;
 });
