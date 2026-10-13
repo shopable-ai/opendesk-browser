@@ -26,7 +26,7 @@ function fixture(){
       async create(row){
         calls.push(['create',row]);
         if(unknownCreate)throw Error('timeout');
-        const created={id:String(nodes.size+10),...row};
+        const created={id:String(nodes.size+10),parentId:'2',title:'',...row};
         nodes.set(created.id,created);
         if(revokeOnCreate)permission=false;
         return created;
@@ -69,7 +69,7 @@ test('Bookmarks: real native create, durable opaque ownership and remove after W
   const created=await host.create(request,id);
   assert.equal(created.bookmarkRef,'bookmark-ref-0001');
   assert.equal(f.nodes.size,1);
-  assert.deepEqual(f.nodes.get('10'),{id:'10',url:request.url,title:request.title});
+  assert.deepEqual(f.nodes.get('10'),{id:'10',parentId:'2',url:request.url,title:request.title});
 
   const restarted=f.make();
   assert.deepEqual(await restarted.removeOwned({bookmarkRef:created.bookmarkRef},id),{removed:true});
@@ -187,4 +187,29 @@ test('Bookmarks: permission, service and malformed-ID get errors retain owned ma
   }
   f.api.bookmarks.get=originalGet;
   assert.deepEqual(await host.removeOwned({bookmarkRef:result.bookmarkRef},id),{removed:true});
+});
+
+for(const [field,value] of [['title','User edited title'],['parentId','1']])
+test('Bookmarks: user changes to '+field+' invalidate removal without deleting the native bookmark',async()=>{
+  const f=fixture(),host=f.make(),result=await host.create(request,id);
+  f.nodes.get('10')[field]=value;
+  const restarted=f.make();
+  await assert.rejects(restarted.removeOwned({bookmarkRef:result.bookmarkRef},id),error('E_BOOKMARK_REF_INVALID'));
+  assert.equal(f.calls.some(([kind])=>kind==='remove'),false);
+  assert.equal(f.nodes.size,1);
+});
+
+test('Bookmarks: legacy development records cannot delete a possibly edited bookmark',async()=>{
+  const f=fixture(),host=f.make(),result=await host.create(request,id);
+  for(const saved of f.storage.values()){
+    delete saved.refs[result.bookmarkRef].title;
+    delete saved.refs[result.bookmarkRef].parentId;
+  }
+  await assert.rejects(f.make().removeOwned({bookmarkRef:result.bookmarkRef},id),error('E_BOOKMARK_REF_INVALID'));
+  assert.equal(f.calls.some(([kind])=>kind==='remove'),false);
+  const fresh=await f.make().create(request,id);
+  assert.notEqual(fresh.bookmarkRef,result.bookmarkRef);
+  assert.equal(f.nodes.size,2,'a fresh metadata snapshot leaves the legacy native bookmark intact');
+  assert.deepEqual(await f.make().removeOwned({bookmarkRef:fresh.bookmarkRef},id),{removed:true});
+  assert.equal(f.nodes.size,1);
 });

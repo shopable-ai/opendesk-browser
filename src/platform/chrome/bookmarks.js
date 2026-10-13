@@ -7,6 +7,8 @@ const fail=(code,message=code)=>Object.assign(new Error(message),{code});
 const TOKEN=/^[A-Za-z0-9_-]{16,160}$/;
 const TOOL=/^[a-z][a-z0-9-]{1,39}$/,HASH=/^[a-f0-9]{64}$/;
 const MAX_OWNED=64;
+const LEGACY_ROW_KEYS='createdAt,nativeId,origin,url';
+const ROW_KEYS='createdAt,nativeId,origin,parentId,title,url';
 function owner(context){
   if(!context||!TOOL.test(context.toolId||'')||!HASH.test(context.packageHash||'')||
     typeof context.toolVersion!=='string'||!context.toolVersion||
@@ -49,15 +51,24 @@ export function createBrowserBookmarksHost({api=globalThis.chrome,authorize,
       Object.keys(raw.refs).length>MAX_OWNED||
       Object.entries(raw.refs).some(([ref,row])=>
         !TOKEN.test(ref)||!row||typeof row!=='object'||Array.isArray(row)||
-        Object.keys(row).sort().join(',')!=='createdAt,nativeId,origin,url'||
+        ![LEGACY_ROW_KEYS,ROW_KEYS].includes(Object.keys(row).sort().join(','))||
         typeof row.nativeId!=='string'||!row.nativeId||row.nativeId.length>128||
         typeof row.url!=='string'||typeof row.origin!=='string'||
+        (Object.hasOwn(row,'title')&&(typeof row.title!=='string'||row.title.length>256||
+          typeof row.parentId!=='string'||!row.parentId||row.parentId.length>128))||
         !Number.isSafeInteger(row.createdAt)||row.createdAt<0||
         (()=>{try{return originFor(row.url)!==row.origin}catch{return true}})()))
       throw fail('E_BOOKMARK_STORAGE_CORRUPT','Owned bookmark mapping is invalid');
     if(raw.owner!==identity){
       if(!allowReset)throw fail('E_BOOKMARK_REF_INVALID','Bookmark belongs to another tool revision');
       return {owner:identity,refs:{}};
+    }
+    // Old development records cannot prove that a user left the title/folder
+    // unchanged. Reject removal; a reviewed new creation starts fresh metadata
+    // without deleting any existing native bookmark.
+    if(Object.values(raw.refs).some(row=>!Object.hasOwn(row,'title'))){
+      if(allowReset)return {owner:identity,refs:{}};
+      throw fail('E_BOOKMARK_REF_INVALID','Bookmark reference lacks its original title and folder snapshot');
     }
     return raw;
   }
@@ -86,7 +97,9 @@ export function createBrowserBookmarksHost({api=globalThis.chrome,authorize,
     try{node=await api.bookmarks.create({url:input.url,
       ...(input.title!==undefined?{title:input.title}:{})})}
     catch{throw fail('E_OUTCOME_UNKNOWN','Bookmark may have been created; do not retry blindly')}
-    if(typeof node?.id!=='string'||!node.id||node.id.length>128||node.url!==input.url)
+    if(typeof node?.id!=='string'||!node.id||node.id.length>128||node.url!==input.url||
+      typeof node.title!=='string'||node.title.length>256||
+      typeof node.parentId!=='string'||!node.parentId||node.parentId.length>128)
       throw fail('E_OUTCOME_UNKNOWN','Chrome did not confirm exact bookmark identity');
     try{await guard('browser.bookmarks.create',context,origin)}
     catch{throw fail('E_OUTCOME_UNKNOWN','Bookmark may have been created before revocation')}
@@ -97,7 +110,8 @@ export function createBrowserBookmarksHost({api=globalThis.chrome,authorize,
     if(current.owner!==identity||Object.keys(current.refs).length>=MAX_OWNED)
       throw fail('E_OUTCOME_UNKNOWN','Bookmark mapping changed after native creation');
     try{await write(context,current,{owner:identity,refs:{
-      ...current.refs,[ref]:{nativeId:node.id,url:input.url,origin,createdAt:clock.now()}
+      ...current.refs,[ref]:{nativeId:node.id,url:input.url,origin,title:node.title,
+        parentId:node.parentId,createdAt:clock.now()}
     }})}
     catch{throw fail('E_OUTCOME_UNKNOWN','Bookmark created but durable ownership record is uncertain')}
     try{await guard('browser.bookmarks.create',context,origin)}
@@ -122,7 +136,7 @@ export function createBrowserBookmarksHost({api=globalThis.chrome,authorize,
     }
     if(!Array.isArray(nodes))throw fail('E_CHROME','Invalid Chrome bookmarks.get result');
     if(nodes.length>1||nodes.length===1&&(nodes[0].id!==row.nativeId||
-      nodes[0].url!==row.url))
+      nodes[0].url!==row.url||nodes[0].title!==row.title||nodes[0].parentId!==row.parentId))
       throw fail('E_BOOKMARK_REF_INVALID','Original bookmark was changed or replaced');
     await guard('browser.bookmarks.removeOwned',context,row.origin);
     const epoch=generation;
