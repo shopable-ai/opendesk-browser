@@ -47,13 +47,14 @@ export function validateOfficialReleaseCatalog(value){
     // Reuse the existing package metadata/capability validator. These inert
     // placeholders only validate the descriptor; executable bytes load later.
     const hasMenus=Array.isArray(row.capabilities)&&row.capabilities.includes('browser.contextMenu');
-    validateSidebarToolPackage({format:hasMenus?SIDEBAR_TOOL_FORMAT_V2:SIDEBAR_TOOL_FORMAT,
+    const hasSdk=hasMenus||Array.isArray(row.capabilities)&&row.capabilities.some(cap=>cap.startsWith('browser.cookies.'));
+    validateSidebarToolPackage({format:hasSdk?SIDEBAR_TOOL_FORMAT_V2:SIDEBAR_TOOL_FORMAT,
       id:row.toolId,version:row.version,
       title:row.packageTitle,description:row.description,capabilities:row.capabilities,
       html:'<main></main>',css:'',js:'void 0;',
-      ...(hasMenus?{requires:{browserSdk:'1.0.0'},
-        contributes:{contextMenus:[{actionId:'sample-action',title:'Validation placeholder',
-          contexts:['page'],documentUrlPatterns:['https://example.com/*'],handler:'open-self'}]}}:{})});
+      ...(hasSdk?{requires:{browserSdk:'1.0.0'},
+        contributes:{contextMenus:hasMenus?[{actionId:'sample-action',title:'Validation placeholder',
+          contexts:['page'],documentUrlPatterns:['https://example.com/*'],handler:'open-self'}]:[]}}:{})});
     seen.add(row.id);
   }
   return structuredClone(value);

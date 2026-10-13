@@ -132,3 +132,15 @@ npm run verify
 - 首次缺权限的 `E_TIME_PERMISSION_SETUP` 改为普通指引，不展示红色内部错误码。真正授权仍需要可信 DOM 上的真实 Chrome 用户点击。
 - 因为已安装工具包的 JS 改变，发行 `time-review` 从 `1.5.1` 升级至 `1.5.2`，避免正式市场同版本覆盖；`TIME_REVIEW_HOST_API` 仍为 `time.review/1.5.0`。已有历史合法统计和用户独立网站范围保留，更新包必须再明确开始。
 - 受影响测试：`time-review-host-controls-r51.test.mjs` 新静态信号安全合同、`time-review-r15-site-grants.test.mjs` 版本断言、现有 macOS 原生用例增加 8 秒内可见暂停按钮断言。真实 Mac Chrome、200% 缩放及新的同候选包 hashes 尚未通过，保留 `NOT_TESTED`。
+
+## R1.5.2 · iframe 安全边界与官方原生 UI 简化决策（设计评审）
+
+- 日期：2026-10-13。性质：**目标设计决策，不是已实施/已通过 Chrome 的宣称**。评审对象是 OpenDesk Browser 官方工具与用户/AI 动态工具共存的真实产品；用户反馈是 Time Review 的 iframe 造成重复设置、布局、可信点击桥的过度复杂性。
+- 事实：当前 `manifest.json` 中 `cookies`、`tabs`、`storage`、`scripting`、`<all_urls>` 是**整个扩展**的权限，不是每个安装的 Side Panel 工具的权限；仅包装一层 `OpenDeskSDK`、ESM 闭包、Shadow DOM、Proxy、`event.isTrusted` 不能阻止进入可信扩展页面的任意脚本直接调用 `chrome.*`、干扰权限 DOM 或读取共享 Storage。Chrome MV3 扩展页严格 CSP 也不允许通过 `eval/new Function` 无需重建地执行随时安装的任意工具包 JS。
+- **产品推荐的简化方向：固定且受审计的第一方官方工具 → 现有可信 Side Panel 直接挂载预编译组件；可由用户/AI 修改、导入、从市场获取的动态 HTML/CSS/JS 工具 → 沿用现有 opaque-origin sandbox iframe 和唯一 Tool/Browser SDK/Host。** 这只是运行位置差异，不是第二个安装器/Service Worker/Browser SDK/授权数据库。普通网页脚本继续优先采用 `chrome.userScripts` 的 USER_SCRIPT 隔离世界，不借用 Side Panel 的 iframe 思路直接注入特权扩展页。
+- 当前 Time Review 1.5.2 的 iframe 隔离仍是**已实现的生产路径**。不能仅因为工具 ID=`time-review`、官方描述或能力=`time.review` 就执行已安装工具包里的 JS 于可信页；本机可导入同 ID 的其他来源包。若启用官方直接挂载，必须同时核对当前正式扩展**内置的静态编译组件身份**和既有官方发行目录的确定版 package SHA/安装来源/版本/启用状态/撤权代际；校验失败即不进入受信任组件，绝不自动提升为官方宿主能力。
+- 最小实现位置：复用 `src/ui/sidebar-tools.js` 的现有安装工具选择、启停、卸载和权限 UI，以及已经固定的 `src/entrypoints/sidebar-tool-host.js` 构建边界；将 Time Review 可信 UI 静态预编译（模块闭包、局部样式或 Shadow DOM 仅为避免冲突），挂载到 `src/ui/tool.html` 既有工具内容区，直接调用同一个经身份验证的 `time.review/1.5.0` 后台 Host。不得在特权 DOM 执行包字段中的任意 `html/js/css`，不得动态 eval/import/CDN、改 MV3 CSP 或增加 Chrome 权限。后台 `src/time-review/service.js` 的计时、站点同意和持久化语义保持。
+- **必须只有一份真实 Time Review 前端业务实现**：若从 `examples/sidebar-tools/time-review/src/*` 迁入预编译 UI，官方包、版本、升级和展示合同要一次同步收敛，不长期开两个随时分叉的可执行 UI，不制造二套运行模式切换页面。升级/卸载保留原工具身份、正式安装器与合法历史数据；任何转入可信执行的安装身份必须经过编译期批准及精确 SHA 约束，旧用户生成同名工具仍只能安全沙箱运行或明确拒绝，不允许继承新特权。
+- 设计评估（**预计、未实测**）：`全部去掉 iframe 并直接执行动态工具` 高风险，不可进入正式候选；`全部保留 iframe` 安全且重用度高，但 Time Review UX/可维护性并非最简；`官方受控预编译组件原生渲染 + 动态工具既有 sandbox` 是最有潜力获得 ≥95/100 的方案，实际评分在 build、身份失败关闭、真实原位授权、卸载和 macOS Chrome 证据完成前保持 `NOT_SCORED`。
+- 决策执行顺序：先确认官方可信 UI 可以在既定 WXT IIFE/512 KiB 约束下静态编译且不产生第二实现；随后仅迁 Time Review 一个工具，检查正确的 Chrome 权限请求用户手势、现有网站授权和收起/返回/焦点、停用撤权、跨工具隔离及安装更新；全部通过后才评估 Cookie Editor/Stay Focus 等其他第一方工具。若要突破硬预算、复制安装/Host 或破坏安全边界，直接停止迁移，继续保留当前透明 iframe 运行方式。
+- 不采用 `package.json` 替代 `manifest.json` 的 Chrome 授权，更不能把扩展级 `<all_urls>` 推断为 Time Review 的采集同意。首次网站授权、可选 `idle` 和明确开始记录属于不同用户意图；官方可信 DOM 中可减少冗余跳页与重复确认，但不能绕过扩大权限的清晰授权。

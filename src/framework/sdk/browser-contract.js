@@ -13,7 +13,8 @@ const shared={apiVersion:BROWSER_API_VERSION,platform:'chrome>=138',timeout:8000
 const USER_GESTURE_OPERATIONS=new Set([
   'browser.clipboard.writeText','browser.downloads.text','browser.tabs.create',
   'browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.reloadOwned','browser.tabs.navigateOwned','browser.tabs.removeOwned','browser.sidePanel.openSelf','browser.network.request','browser.network.observe.start',
-  'browser.network.observe.export','browser.screenshot.captureVisible'
+  'browser.network.observe.export','browser.screenshot.captureVisible',
+  'browser.cookies.set','browser.cookies.remove','browser.cookies.clearSite','browser.cookies.observe.start'
 ]);
 function entry(operation,capability,contexts,chromePermissions,effect,risk,siteScope='none',state='IMPLEMENTED',lifecycle='request'){
   return Object.freeze({...shared,operation,namespace:operation.split('.').slice(0,-1).join('.'),
@@ -54,6 +55,17 @@ export const BROWSER_OPERATIONS=Object.freeze({
   'browser.events.close':entry('browser.events.close','browser.events',tool,[],'write','low','owned-session','IMPLEMENTED'),
   'browser.screenshot.captureVisible':entry('browser.screenshot.captureVisible','browser.screenshot',tool,['tabs','webNavigation','activeTab','downloads'],'write','high','selected-tab','IMPLEMENTED'),
   'browser.operations.getStatus':entry('browser.operations.getStatus','browser.operations',tool,[],'read','low','owned-operation','IMPLEMENTED'),
+  'browser.cookies.get':entry('browser.cookies.get','browser.cookies.read',tool,['cookies'],'read','high','approved-cookie-site'),
+  'browser.cookies.getAll':entry('browser.cookies.getAll','browser.cookies.read',tool,['cookies'],'read','high','approved-cookie-site'),
+  'browser.cookies.set':entry('browser.cookies.set','browser.cookies.write',tool,['cookies'],'write','high','approved-cookie-site'),
+  'browser.cookies.remove':entry('browser.cookies.remove','browser.cookies.write',tool,['cookies'],'write','high','approved-cookie-site'),
+  'browser.cookies.clearSite':entry('browser.cookies.clearSite','browser.cookies.clear',tool,['cookies'],'write','high','approved-cookie-host-only'),
+  'browser.cookies.getCurrentStore':entry('browser.cookies.getCurrentStore','browser.cookies.read',tool,['cookies'],'read','high','approved-cookie-site'),
+  'browser.cookies.getPartitionKey':entry('browser.cookies.getPartitionKey','browser.cookies.read',tool,['cookies'],'read','high','approved-cookie-site'),
+  'browser.cookies.observe.start':entry('browser.cookies.observe.start','browser.cookies.observe',tool,['cookies'],'read','high','approved-cookie-site','IMPLEMENTED','bounded-session'),
+  'browser.cookies.observe.getStatus':entry('browser.cookies.observe.getStatus','browser.cookies.observe',tool,['cookies'],'read','high','approved-cookie-site','IMPLEMENTED','bounded-session'),
+  'browser.cookies.observe.read':entry('browser.cookies.observe.read','browser.cookies.observe',tool,['cookies'],'read','high','approved-cookie-site','IMPLEMENTED','bounded-session'),
+  'browser.cookies.observe.stop':entry('browser.cookies.observe.stop','browser.cookies.observe',tool,['cookies'],'write','high','approved-cookie-site','IMPLEMENTED','bounded-session'),
   'browser.operations.cancel':entry('browser.operations.cancel','browser.operations',tool,[],'write','medium','owned-operation','IMPLEMENTED')
 });
 assertBrowserSchemaCoverage(BROWSER_OPERATIONS);
@@ -181,6 +193,89 @@ export function normalizeBrowserOperation(operation,args={}){
       if(typeof args.sessionRef!=='string'||!/^[A-Za-z0-9_-]{16,160}$/.test(args.sessionRef))
         throw fail('E_SCHEMA','Invalid event session reference');
       break;
+
+    case 'browser.cookies.get':
+    case 'browser.cookies.getAll':
+    case 'browser.cookies.set':
+    case 'browser.cookies.remove':
+    case 'browser.cookies.clearSite':
+    case 'browser.cookies.getCurrentStore':
+    case 'browser.cookies.getPartitionKey':
+    case 'browser.cookies.observe.start':
+    case 'browser.cookies.observe.getStatus':
+    case 'browser.cookies.observe.read':
+    case 'browser.cookies.observe.stop':{
+      const tail=operation.slice('browser.cookies.'.length);
+      const sessionOp=tail.startsWith('observe.')&&tail!=='observe.start';
+      const allowed=sessionOp?['url','sessionRef','cursor','limit']:
+        tail==='observe.start'?['url','durationMs','maxEvents']:
+        tail==='set'?['url','name','value','domain','path','secure','httpOnly','sameSite','expirationDate','storeId','partitionKey']:
+        tail==='remove'?['url','name','domain','path','storeId','partitionKey']:
+        tail==='clearSite'?['url','storeId','partitionKey','preview','expectedCount','maxCookies']:
+        tail==='get'||tail==='getAll'?['url','name','storeId','partitionKey','includeValues']:
+          ['url','storeId','partitionKey'];
+      fields(args,allowed,['url',...(sessionOp?['sessionRef']:[]),
+        ...(tail==='set'?['name','value']:tail==='remove'?['name','domain','path']:tail==='get'?['name']:[])]);
+      const url=approvedHttpUrl(args.url),out={...args,url};
+      if(['get','set','remove'].includes(tail)&&
+        (typeof args.name!=='string'||!args.name||args.name.length>256||/[;=\s\x00-\x1f\x7f]/.test(args.name)))
+        throw fail('E_SCHEMA','Invalid Cookie name');
+      if(tail==='getAll'&&args.name!==undefined&&
+        (typeof args.name!=='string'||!args.name||args.name.length>256))throw fail('E_SCHEMA');
+      if(args.storeId!==undefined&&(typeof args.storeId!=='string'||!/^[A-Za-z0-9_-]{1,128}$/.test(args.storeId)))
+        throw fail('E_SCHEMA','Invalid Cookie store');
+      if(args.partitionKey!==undefined){
+        fields(args.partitionKey,['topLevelSite','hasCrossSiteAncestor'],['topLevelSite']);
+        const site=approvedHttpUrl(args.partitionKey.topLevelSite);
+        if(!site.startsWith('https://')||new URL(site).origin!==args.partitionKey.topLevelSite||
+          args.partitionKey.hasCrossSiteAncestor!==undefined&&typeof args.partitionKey.hasCrossSiteAncestor!=='boolean')
+          throw fail('E_SCHEMA','Invalid Cookie partition');
+      }
+      if(args.includeValues!==undefined&&typeof args.includeValues!=='boolean')throw fail('E_SCHEMA');
+      if(tail==='set'){
+        if(typeof args.value!=='string'||new TextEncoder().encode(args.value).length>4096)
+          throw fail('E_SCHEMA','Invalid Cookie value');
+        if(args.domain!==undefined&&(typeof args.domain!=='string'||args.domain.replace(/^\./,'').toLowerCase()!==new URL(url).hostname))
+          throw fail('E_COOKIE_SCOPE','Cookie domain cannot expand site authorization');
+        if(args.path!==undefined&&(typeof args.path!=='string'||!args.path.startsWith('/')||args.path.length>512||
+          /[\r\n;]/.test(args.path)))throw fail('E_SCHEMA','Invalid Cookie path');
+        for(const flag of ['secure','httpOnly'])if(args[flag]!==undefined&&typeof args[flag]!=='boolean')throw fail('E_SCHEMA');
+        if(args.sameSite!==undefined&&!['unspecified','lax','strict','no_restriction'].includes(args.sameSite))throw fail('E_SCHEMA');
+        if(args.expirationDate!==undefined&&(!Number.isFinite(args.expirationDate)||args.expirationDate<=0||args.expirationDate>253402300799))
+          throw fail('E_SCHEMA');
+        const https=new URL(url).protocol==='https:';
+        if(args.secure&&!https||args.sameSite==='no_restriction'&&(!https||args.secure!==true)||
+          args.name.startsWith('__Secure-')&&(!https||args.secure!==true)||
+          args.name.startsWith('__Host-')&&(!https||args.secure!==true||args.domain!==undefined||args.path!=='/'))
+          throw fail('E_COOKIE_SCOPE','Invalid secure Cookie attributes');
+      }
+      if(tail==='remove'){
+        if(typeof args.domain!=='string'||args.domain.replace(/^\./,'').toLowerCase()!==new URL(url).hostname||
+          typeof args.path!=='string'||!args.path.startsWith('/')||args.path.length>512)
+          throw fail('E_COOKIE_SCOPE','Exact Cookie domain and path required');
+      }
+      if(tail==='clearSite'){
+        if(args.preview!==undefined&&typeof args.preview!=='boolean')throw fail('E_SCHEMA');
+        if(args.expectedCount!==undefined&&(!Number.isSafeInteger(args.expectedCount)||args.expectedCount<0||args.expectedCount>50))
+          throw fail('E_SCHEMA');
+        if(args.maxCookies!==undefined&&(!Number.isSafeInteger(args.maxCookies)||args.maxCookies<1||args.maxCookies>50))
+          throw fail('E_SCHEMA');
+        if(args.preview!==true&&args.expectedCount===undefined)
+          throw fail('E_SCHEMA','Clear requires a fresh reviewed expectedCount');
+      }
+      if(tail==='observe.start'){
+        if(args.durationMs!==undefined&&(!Number.isSafeInteger(args.durationMs)||args.durationMs<1000||args.durationMs>30000)||
+          args.maxEvents!==undefined&&(!Number.isSafeInteger(args.maxEvents)||args.maxEvents<1||args.maxEvents>50))
+          throw fail('E_SCHEMA');
+      }
+      if(sessionOp){
+        if(typeof args.sessionRef!=='string'||!/^[0-9a-f-]{36}$/i.test(args.sessionRef))throw fail('E_SCHEMA');
+        if(args.cursor!==undefined&&(typeof args.cursor!=='string'||!/^(0|[1-9][0-9]{0,9})$/.test(args.cursor))||
+          args.limit!==undefined&&(!Number.isSafeInteger(args.limit)||args.limit<1||args.limit>50))
+          throw fail('E_SCHEMA');
+      }
+      return out;
+    }
     case 'browser.contextMenu.register':
       fields(args,['actionIds'],['actionIds']);
       if(!Array.isArray(args.actionIds)||!args.actionIds.length||args.actionIds.length>3||

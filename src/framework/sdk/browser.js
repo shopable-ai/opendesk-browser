@@ -75,6 +75,16 @@ export function createBrowserSdk({request,context='sidebar-tool'}={}){
       reloadOwned:method('browser.tabs.reloadOwned'),
       navigateOwned:method('browser.tabs.navigateOwned'),
       removeOwned:method('browser.tabs.removeOwned')}),
+    cookies:Object.freeze({
+      get:method('browser.cookies.get'),getAll:method('browser.cookies.getAll'),
+      set:method('browser.cookies.set'),remove:method('browser.cookies.remove'),
+      clearSite:method('browser.cookies.clearSite'),
+      getCurrentStore:method('browser.cookies.getCurrentStore'),
+      getPartitionKey:method('browser.cookies.getPartitionKey'),
+      observe:Object.freeze({start:method('browser.cookies.observe.start'),
+        getStatus:method('browser.cookies.observe.getStatus'),
+        read:method('browser.cookies.observe.read'),stop:method('browser.cookies.observe.stop')})
+    }),
     sidePanel:Object.freeze({openSelf:()=>ask('browser.sidePanel.openSelf')}),
     network:Object.freeze({request:method('browser.network.request'),watch,
       observe:Object.freeze({start:method('browser.network.observe.start'),
