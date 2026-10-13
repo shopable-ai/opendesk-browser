@@ -34,11 +34,14 @@ test('Cloud catalog allows multiple verified installed identities but neither di
   assert.deepEqual(projected.map(row=>row.eligible),[true,true,false]);
   assert.deepEqual(projected.map(row=>row.approved),[true,false,false]);
   assert.equal(projected[0].resultAllowed,true);
+  assert.equal(projected[0].requiresReapproval,false);
   const revoked=projectCloudInstalledTasks({catalog,installed:[
     {...installed[0],generation:2}]},[{taskId:tasks[0].taskId,
     version:tasks[0].version,manifestHash:tasks[0].manifestHash,
     sourceHash:tasks[0].hash,installationId:'install-0',generation:1,resultAllowed:true}]);
   assert.equal(revoked[0].approved,false,'Same version with new installation generation must not appear approved');
+  assert.equal(revoked[0].requiresReapproval,true,
+    'Old grant for the same TaskId must visibly require a new approval');
   const upgraded=projectCloudInstalledTasks({catalog,installed:[
     {...installed[0],version:'2.0.0',generation:2}]},[]);
   assert.equal(upgraded[0].eligible,false,'Upgrade requires a new local verification and approval');
