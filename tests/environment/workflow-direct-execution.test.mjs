@@ -57,6 +57,8 @@ test('a single send may fill and click search, but literals cannot authorize ext
   const extra=workflow([fill,{stepId:'click1',op:'click',locatorKind:'css',selector:'#safe-button'}]);
   assert.throws(()=>prepareDirectExecution({request:'填入 ai自动化第一选择',workflow:extra,target}),
     {code:'E_AI_UNREQUESTED_ACTION'});
+  assert.throws(()=>prepareDirectExecution({request:'在搜索框填入 OpenDesk',workflow:search,target}),
+    {code:'E_AI_UNREQUESTED_ACTION'});
   const hiddenRead=workflow([fill,{stepId:'observe',op:'observe'}]);
   assert.throws(()=>prepareDirectExecution({request:'填写 ai自动化第一选择',workflow:hiddenRead,target}),
     {code:'E_AI_UNREQUESTED_ACTION'});
@@ -65,6 +67,10 @@ test('a single send may fill and click search, but literals cannot authorize ext
   assert.equal(prepareDirectExecution({
     request:'填入 OpenDesk 并点击搜索按钮',workflow:afterAssert,target
   }).hasUnprovenClick,false);
+});
+test('a harmless fill can contain a sensitive-sounding literal without granting effects',()=>{
+  const plain=workflow([{...fill,text:'删除'}]);
+  assert.equal(prepareDirectExecution({request:'在搜索框填写 删除',workflow:plain,target}).hasReadback,true);
 });
 test('sensitive click targets and unintended fills are rejected',()=>{
   const dangerous=workflow([{stepId:'danger',op:'click',locatorKind:'css',selector:'#confirm-order'}]);
