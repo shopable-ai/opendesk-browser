@@ -21,7 +21,7 @@
 - 每次正式批准必须有一次明确的**审批确认**，展示 Task、版本、网站、参数与正文回传范围。如含正文回传，需单独明确确认。原 `cloudApprove({tasks})` 仍是权威接口。
 - 正在托管时不静默变更权限。调整 Task 范围需经原 `cloudStop` 栅栏，再重新批准并产生新 `grantId`。云控 Stop 和解除 Provider 配对是不同动作；停止时必须区分「本地已停」和「Provider 已确认暂停」。
 - 「结果待核对」不是重试按钮，不能给用户暗示可安全自动重放未知副作用。关闭 Side Panel 后不保证常驻后台执行，R5.2 不实现新 Runner。
-- 外部调用客户端的 Token 和 Executor/Grant/Task scope 仍由 Provider 管理。**原型没有提供虚构的“Side Panel 管理全部外部客户端”功能**；若要产品化，应另立明确的 Provider 委托管理合同，不能绕过服务器管理边界。
+- 外部调用客户端的 Token 和 Executor/Grant/Task scope 仍由 Provider 的既有持久状态负责。**此 HTML 预览未模拟客户端授权管理**；但 R5.2.4 已在真实 Side Panel 使用原 Executor bearer 及当前 Task/Grant 委托实现受限的客户端创建、分页查看和单独撤销（源码见 `src/ui/cloud-hosting.js`、`src/cloud-control/service.js`、`scripts/cloud-control/provider.mjs`）。它不是 Admin API，也不允许网页或只读控制台颁发令牌；当前实现还需准确的 CI 与 Mac Chrome 原生验收。
 
 ## 2. 信息架构、交互和状态
 
@@ -106,7 +106,7 @@
 | 查看全部历史 | 原 `cloud-open-console` 打开受信只读 `ui/cloud-control.html` / `cloudObserve` | 是否新增同 Tab 详情是 UI 迁移决策，不要新建第二个历史数据库 |
 | Stop / Unpair | 原 `cloudStop` / `cloudUnpair` | Stop 立即本地 fence，Provider suspend confirmation 可 pending；Unpair 失败保留恢复能力 |
 | 任务继续执行 | 原 Worker / Controller Authority / RunHost / receipt | 预览无执行按钮，没有新的 Scheduler/RunHost |
-| 外部客户端 Token / Job 状态 | Provider 的 scoped client 与 `/v1/job-status` | 浏览器 Side Panel 尚无可信客户端自助管理委托，不得在预览造一个假控制台 |
+| 外部客户端 Token / Job 状态 | Provider 的 scoped client 与 `/v1/job-status` | R5.2.4 真实 Side Panel 已新增 `cloudClients/cloudClientGrant/cloudClientRevoke` 可信 Host RPC；静态 HTML 预览不声称实现该操作，也不因此具备远程授权能力 |
 
 ## 5. 预览验收与独立评分（真实级别须分开）
 
