@@ -23,6 +23,12 @@ R32 原生验收续接写入范围：`src/ui/task-workbench.js`、`src/ui/sideba
 
 续接原生观察：日常 Chrome 的实际 Side Panel `ccfcjegpkdlgbclopjmadlcjedelidmf`、`hostInstanceId=04b9e8a8-ab75-4905-8cc5-a33d8dfbba98`，测试页仍为 `127.0.0.1:43111/demo-form.html`。通过原生 Window 菜单选中测试窗口后，真实 Cloud 点击切换 ARIA selected 并显示既有云控管理内容；运行环境折叠真实点击后获得焦点。未点击配对/连接/运行，未创建消费者。该记录仅为当前增量开发产物的局部原生观察；完整宽度、Side Panel 自身 125%/200% 缩放仍 NOT_TESTED，拖拽工具出现 `native_hook_stdin_oversized`，不得提升为 95+ 或完整候选 NATIVE_PASS。
 
+续接代码已提交并推送 [d2700659](https://github.com/shopable-ai/opendesk-browser/commit/d27006593e149964a57edb2d0db4923a04ef829d)。该 SHA 的 [R19](https://github.com/shopable-ai/opendesk-browser/actions/runs/38463647665) SUCCESS，292 个 STATIC_MARKUP_CHROME 状态通过；[R21](https://github.com/shopable-ai/opendesk-browser/actions/runs/38463647827) SUCCESS，208 项组件测试及 16 项构建包测试通过，`check/build/build:dev/verify` 全部通过。干净生产包 SHA-256 `8c0be923642df6313ae89334b66c4be2e8a0ad9ebf5cd2c947b296a537a0e6b9`，开发包 `ccc79d792b3359d48247524275e00c39a6bc75566f7d3105882d841e7e9bf386`。CI 源码检查 664 文件；本地包含并行未提交测试的 668 文件检查不与 CI 分母混算。
+
+同 SHA [R1 P0](https://github.com/shopable-ai/opendesk-browser/actions/runs/38463647631) 仍 FAIL：语义编译 16 PASS，transport 320 PASS / 16 FAIL。保留依赖检查、Page/Controller 准备、Save/Stop 与生命周期失败；没有删除或减弱授权测试。它们不阻断本轮组件和几何专项检查，但整体产品验收仍未关闭。
+
+Cloud 补充真实键盘验证：Left→Tools、Right→Cloud、Enter/Space 折叠详情通过，创建凭据仍禁用、授权任务数仍为 0。实际文档只读 DevTools 测量 `innerWidth/clientWidth/scrollWidth=363/363/363`、高 839、DPR 2：flat 标题 36px / 12px / 650 / padding 8px 0，两个一级标题 40px / 13px / 650 / padding 8px 12px，展开正文分别 315/315 和 339/339，无横向溢出。HTML 与三份受影响 CSS 的源码及日常 `dist/development/ui/` 字节一致。记录于 `artifacts/sidebar-r32-accepted-preserved/cloud-navigation-acceptance-d2700659.json`，不覆盖先前 receipt。原生完整 300–520 宽度和 Side Panel 自身缩放仍 NOT_TESTED，95+ 为 NOT_SCORED / NOT_ACCEPTED。
+
 本轮修改真实 Side Panel，继续使用 `od-disclosure` / `--flat` / `--info`，没有新 UI、Tailwind、依赖、权限或 iframe 样式注入。独立审阅 Lovelace 检查了正文留白、hidden、标题布局及暂存边界；视觉驱动由 Hume 修改，最终修复和验证由本对话负责人执行。
 
 | 页面 | 已迁移的真实组件 | 原生观察与缺口 |
