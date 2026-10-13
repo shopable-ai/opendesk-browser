@@ -14,8 +14,11 @@ on:
       - 'docs/product/browser-extension-ecosystem/global-first-r5-portfolio.zh-CN.md'
       - 'docs/product/browser-extension-ecosystem/seo/**'
       - 'docs/framework/workstreams/evidence/global-first-r4-20261013/**'
+      - 'docs/framework/workstreams/evidence/global-first-r5-20261013/**'
+      - 'scripts/global-first-r5-benchmark.mjs'
       - 'tests/environment/global-first-r4-claims.test.mjs'
       - 'tests/environment/global-first-r5-product-evidence.test.mjs'
+      - 'tests/environment/global-first-r5-benchmark.test.mjs'
       - '.github/workflows/global-first-r4-claims.yml'
   workflow_dispatch:
 
@@ -36,4 +39,4 @@ jobs:
         with:
           node-version: '22'
       - name: Verify existing GF ledger, competing previews, truthful SEO limits
-        run: node --test tests/environment/global-first-r4-claims.test.mjs tests/environment/global-first-r5-product-evidence.test.mjs
+        run: node --test tests/environment/global-first-r4-claims.test.mjs tests/environment/global-first-r5-product-evidence.test.mjs tests/environment/global-first-r5-benchmark.test.mjs
