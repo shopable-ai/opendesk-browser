@@ -1,3 +1,7 @@
+## R9 Tabs 命名迁移（2026-10-13）
+
+现行可调用：`browser.tabs.create({url})`、`browser.tabs.activateOwned({tabRef})`、`browser.tabs.getOwned({tabRef})`、`browser.tabs.listOwned()`、`browser.tabs.removeOwned({tabRef})`。旧开发期 `open/focus/closeOwned` 已从实际 SDK → Host/Driver 删除，不保留别名；后四项不等同于能访问任意 Chrome Tab ID。Node 和 Mac Chrome 验收须按更名后的源码重新执行，下方 R5 章节仅保留历史。
+
 ## R9 预发布接口清理（2026-10-13，现行合同）
 
 **当前正式注册表仅保留 26 项实际实现的开发期接口；七项未实现 Media/Speech 和两项未开放 Notifications 占位已删除。** 旧 35 项只是历史快照，不再强制兼容。Cookie 可信 Host-only 实现与正式 SDK 接线继续独立统计；Cookie observe.read 目前不向普通安装工具开放。新代码候选的 Node / Build / Chrome 验收不得继承旧 R5 PASS。下方 R1–R8 记录属于**历史证据**，并非 R9 当前数量。
@@ -148,11 +152,11 @@
 | `browser.page.getSelection` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.clipboard.writeText` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.downloads.text` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
-| `browser.tabs.open` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
-| `browser.tabs.focus` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.tabs.create` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.tabs.activateOwned` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.tabs.getOwned` | IMPLEMENTED | APPROVED_TOOL | PASS | PASS | NOT_TESTED |
 | `browser.tabs.listOwned` | IMPLEMENTED | APPROVED_TOOL | PASS | PASS | NOT_TESTED |
-| `browser.tabs.closeOwned` | IMPLEMENTED | APPROVED_TOOL | PASS | PASS | NOT_TESTED |
+| `browser.tabs.removeOwned` | IMPLEMENTED | APPROVED_TOOL | PASS | PASS | NOT_TESTED |
 | `browser.sidePanel.openSelf` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.network.request` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.network.observe.start` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
