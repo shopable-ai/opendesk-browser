@@ -30,7 +30,7 @@
         "dual-framework direct source authoring",
         "USER_SCRIPT Run + managed Stop"
       ],
-      "priority": "P0",
+      "priority": "P3_TECHNICAL_ONLY",
       "status": "CANDIDATE_NEEDS_COMPETITOR_REVIEW",
       "publicUseAllowed": false,
       "worldFirstProven": false,
@@ -71,6 +71,16 @@
         "claimApproved": false,
         "verification": "NOT_SCORED",
         "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
+      },
+      "r4Review": {
+        "asOf": "2026-10-13",
+        "investmentPriority": null,
+        "score": "NOT_SCORED",
+        "verifiedWorldRank": false,
+        "approvedPublicAbsolute": false,
+        "competitorCounterexample": null,
+        "minimalProofGap": null,
+        "notes": "R4 priority is not CLAIM_APPROVED or latest package native proof"
       }
     },
     {
@@ -82,7 +92,7 @@
         "automatic framework preparation",
         "installed extension Run"
       ],
-      "priority": "P0",
+      "priority": "P2_COST_PROOF",
       "status": "CANDIDATE_NEEDS_BENCHMARK",
       "publicUseAllowed": false,
       "worldFirstProven": false,
@@ -124,6 +134,16 @@
         "claimApproved": false,
         "verification": "NOT_SCORED",
         "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
+      },
+      "r4Review": {
+        "asOf": "2026-10-13",
+        "investmentPriority": 4,
+        "score": "NOT_SCORED",
+        "verifiedWorldRank": false,
+        "approvedPublicAbsolute": false,
+        "competitorCounterexample": "vite-plugin-monkey + userscript manager, WXT",
+        "minimalProofGap": "COLD_HOT_RESTORE_AND_20_RUN_COST_NOT_TESTED",
+        "notes": "R4 priority is not CLAIM_APPROVED or latest package native proof"
       }
     },
     {
@@ -135,7 +155,7 @@
         "framework UI",
         "Controller RunHost"
       ],
-      "priority": "P1",
+      "priority": "P1_PRODUCT_TYPES",
       "status": "CANDIDATE_PRODUCT_GAPS",
       "publicUseAllowed": false,
       "worldFirstProven": false,
@@ -177,6 +197,16 @@
         "claimApproved": false,
         "verification": "NOT_SCORED",
         "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
+      },
+      "r4Review": {
+        "asOf": "2026-10-13",
+        "investmentPriority": 3,
+        "score": "NOT_SCORED",
+        "verifiedWorldRank": false,
+        "approvedPublicAbsolute": false,
+        "competitorCounterexample": "AI Coding + WXT or Tampermonkey + Automa",
+        "minimalProofGap": "THREE_TYPES_INSTALLED_NATIVE_NOT_TESTED",
+        "notes": "R4 priority is not CLAIM_APPROVED or latest package native proof"
       }
     },
     {
@@ -188,7 +218,7 @@
         "immutable revision",
         "native receipt"
       ],
-      "priority": "P0",
+      "priority": "P0_TRUST",
       "status": "CANDIDATE_NEEDS_END_TO_END_PROOF",
       "publicUseAllowed": false,
       "worldFirstProven": false,
@@ -230,6 +260,16 @@
         "claimApproved": false,
         "verification": "NOT_SCORED",
         "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
+      },
+      "r4Review": {
+        "asOf": "2026-10-13",
+        "investmentPriority": 2,
+        "score": "NOT_SCORED",
+        "verifiedWorldRank": false,
+        "approvedPublicAbsolute": false,
+        "competitorCounterexample": "ScriptCat Beta 2026-08-06 MCP grant and 2026-09-18 install diff",
+        "minimalProofGap": "SAME_PACKAGE_NATIVE_REVOKE_UPDATE_RECEIPT_NOT_TESTED",
+        "notes": "R4 priority is not CLAIM_APPROVED or latest package native proof"
       }
     },
     {
@@ -282,6 +322,16 @@
         "claimApproved": false,
         "verification": "NOT_SCORED",
         "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
+      },
+      "r4Review": {
+        "asOf": "2026-10-13",
+        "investmentPriority": null,
+        "score": "NOT_SCORED",
+        "verifiedWorldRank": false,
+        "approvedPublicAbsolute": false,
+        "competitorCounterexample": null,
+        "minimalProofGap": null,
+        "notes": "R4 priority is not CLAIM_APPROVED or latest package native proof"
       }
     },
     {
@@ -334,6 +384,16 @@
         "claimApproved": false,
         "verification": "NOT_SCORED",
         "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
+      },
+      "r4Review": {
+        "asOf": "2026-10-13",
+        "investmentPriority": null,
+        "score": "NOT_SCORED",
+        "verifiedWorldRank": false,
+        "approvedPublicAbsolute": false,
+        "competitorCounterexample": null,
+        "minimalProofGap": null,
+        "notes": "R4 priority is not CLAIM_APPROVED or latest package native proof"
       }
     },
     {
@@ -345,7 +405,7 @@
         "trusted grants",
         "deterministic Task"
       ],
-      "priority": "P3",
+      "priority": "P0_AI_FIRST",
       "status": "FUTURE_RESEARCH_ONLY",
       "publicUseAllowed": false,
       "worldFirstProven": false,
@@ -388,6 +448,16 @@
         "claimApproved": false,
         "verification": "NOT_SCORED",
         "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
+      },
+      "r4Review": {
+        "asOf": "2026-10-13",
+        "investmentPriority": 1,
+        "score": "NOT_SCORED",
+        "verifiedWorldRank": false,
+        "approvedPublicAbsolute": false,
+        "competitorCounterexample": "Axiom Claude Skill, UiPath Delegate Preview, ScriptCat Beta",
+        "minimalProofGap": "MAC_CHROME_FULL_INSTALL_NO_AI_RERUN_NOT_TESTED",
+        "notes": "R4 priority is not CLAIM_APPROVED or latest package native proof"
       }
     },
     {
@@ -440,6 +510,16 @@
         "claimApproved": false,
         "verification": "NOT_SCORED",
         "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
+      },
+      "r4Review": {
+        "asOf": "2026-10-13",
+        "investmentPriority": null,
+        "score": "NOT_SCORED",
+        "verifiedWorldRank": false,
+        "approvedPublicAbsolute": false,
+        "competitorCounterexample": null,
+        "minimalProofGap": null,
+        "notes": "R4 priority is not CLAIM_APPROVED or latest package native proof"
       }
     },
     {
@@ -451,7 +531,7 @@
         "custom page tools",
         "scheduled operation"
       ],
-      "priority": "P3",
+      "priority": "P2_CUSTOMER_RESEARCH",
       "status": "MARKET_HYPOTHESIS_ONLY",
       "publicUseAllowed": false,
       "worldFirstProven": false,
@@ -492,6 +572,16 @@
         "claimApproved": false,
         "verification": "NOT_SCORED",
         "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
+      },
+      "r4Review": {
+        "asOf": "2026-10-13",
+        "investmentPriority": 5,
+        "score": "NOT_SCORED",
+        "verifiedWorldRank": false,
+        "approvedPublicAbsolute": false,
+        "competitorCounterexample": "Shopify / A2X / ERP / browser RPA",
+        "minimalProofGap": "CUSTOMER_PLATFORM_RIGHTS_AND_RELEASE_NOT_TESTED",
+        "notes": "R4 priority is not CLAIM_APPROVED or latest package native proof"
       }
     },
     {
@@ -545,6 +635,16 @@
         "claimApproved": false,
         "verification": "NOT_SCORED",
         "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
+      },
+      "r4Review": {
+        "asOf": "2026-10-13",
+        "investmentPriority": null,
+        "score": "NOT_SCORED",
+        "verifiedWorldRank": false,
+        "approvedPublicAbsolute": false,
+        "competitorCounterexample": null,
+        "minimalProofGap": null,
+        "notes": "R4 priority is not CLAIM_APPROVED or latest package native proof"
       }
     },
     {
@@ -555,7 +655,7 @@
         "time-to-first-working-app",
         "edit-and-run latency"
       ],
-      "priority": "P2",
+      "priority": "P2_COST_PROOF",
       "status": "CANDIDATE_NOT_MEASURED",
       "publicUseAllowed": false,
       "worldFirstProven": false,
@@ -598,6 +698,16 @@
         "claimApproved": false,
         "verification": "NOT_SCORED",
         "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
+      },
+      "r4Review": {
+        "asOf": "2026-10-13",
+        "investmentPriority": 4,
+        "score": "NOT_SCORED",
+        "verifiedWorldRank": false,
+        "approvedPublicAbsolute": false,
+        "competitorCounterexample": "vite-plugin-monkey + userscript manager, WXT",
+        "minimalProofGap": "COLD_HOT_RESTORE_AND_20_RUN_COST_NOT_TESTED",
+        "notes": "R4 priority is not CLAIM_APPROVED or latest package native proof"
       }
     },
     {
@@ -651,6 +761,16 @@
         "claimApproved": false,
         "verification": "NOT_SCORED",
         "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
+      },
+      "r4Review": {
+        "asOf": "2026-10-13",
+        "investmentPriority": null,
+        "score": "NOT_SCORED",
+        "verifiedWorldRank": false,
+        "approvedPublicAbsolute": false,
+        "competitorCounterexample": null,
+        "minimalProofGap": null,
+        "notes": "R4 priority is not CLAIM_APPROVED or latest package native proof"
       }
     },
     {
@@ -700,6 +820,16 @@
         "claimApproved": false,
         "verification": "NOT_SCORED",
         "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
+      },
+      "r4Review": {
+        "asOf": "2026-10-13",
+        "investmentPriority": null,
+        "score": "NOT_SCORED",
+        "verifiedWorldRank": false,
+        "approvedPublicAbsolute": false,
+        "competitorCounterexample": null,
+        "minimalProofGap": null,
+        "notes": "R4 priority is not CLAIM_APPROVED or latest package native proof"
       }
     },
     {
@@ -747,6 +877,16 @@
         "claimApproved": false,
         "verification": "NOT_SCORED",
         "note": "Changing market research priority does not upgrade product status or prove regional/world ranking."
+      },
+      "r4Review": {
+        "asOf": "2026-10-13",
+        "investmentPriority": null,
+        "score": "NOT_SCORED",
+        "verifiedWorldRank": false,
+        "approvedPublicAbsolute": false,
+        "competitorCounterexample": null,
+        "minimalProofGap": null,
+        "notes": "R4 priority is not CLAIM_APPROVED or latest package native proof"
       }
     }
   ],
@@ -802,34 +942,40 @@
   ],
   "r4AiFirst": {
     "asOf": "2026-10-13",
-    "role": "STRATEGIC_PRIORITIES_NOT_MARKET_RANKINGS",
+    "role": "STRATEGIC_PRIORITY_NOT_WORLD_RANKING",
     "topFive": [
       {
         "order": 1,
         "ids": [
           "GF-007"
         ],
-        "label": "AI generated -> review -> verified installed tool -> repeat without AI",
-        "rankVerified": false,
-        "score": "NOT_SCORED"
+        "label": "AI create -> review -> fixed task installed -> no-model repeated Run",
+        "strongestCounterexample": "Axiom Claude Skill, UiPath Delegate Preview, ScriptCat Beta",
+        "remainingGap": "MAC_CHROME_FULL_INSTALL_NO_AI_RERUN_NOT_TESTED",
+        "score": "NOT_SCORED",
+        "rankVerified": false
       },
       {
         "order": 2,
         "ids": [
           "GF-004"
         ],
-        "label": "bounded source/dependency/site permission + verifiable native receipts",
-        "rankVerified": false,
-        "score": "NOT_SCORED"
+        "label": "Source/dependency/site permissions + versioned native receipt",
+        "strongestCounterexample": "ScriptCat Beta 2026-08-06 MCP grant and 2026-09-18 install diff",
+        "remainingGap": "SAME_PACKAGE_NATIVE_REVOKE_UPDATE_RECEIPT_NOT_TESTED",
+        "score": "NOT_SCORED",
+        "rankVerified": false
       },
       {
         "order": 3,
         "ids": [
           "GF-003"
         ],
-        "label": "AI-assisted JS, Page UI, Controller unified product lifecycle",
-        "rankVerified": false,
-        "score": "NOT_SCORED"
+        "label": "AI-assisted JS Page/UI/Controller installed tools",
+        "strongestCounterexample": "AI Coding + WXT or Tampermonkey + Automa",
+        "remainingGap": "THREE_TYPES_INSTALLED_NATIVE_NOT_TESTED",
+        "score": "NOT_SCORED",
+        "rankVerified": false
       },
       {
         "order": 4,
@@ -837,18 +983,22 @@
           "GF-002",
           "GF-011"
         ],
-        "label": "AI-assisted multi-file delivery, measured cold/hot cost",
-        "rankVerified": false,
-        "score": "NOT_SCORED"
+        "label": "AI modified multi-file to explicit Run; full lifecycle benchmark",
+        "strongestCounterexample": "vite-plugin-monkey + userscript manager, WXT",
+        "remainingGap": "COLD_HOT_RESTORE_AND_20_RUN_COST_NOT_TESTED",
+        "score": "NOT_SCORED",
+        "rankVerified": false
       },
       {
         "order": 5,
         "ids": [
           "GF-009"
         ],
-        "label": "real region/industry seller workflows based on validated customer need",
-        "rankVerified": false,
-        "score": "NOT_SCORED"
+        "label": "Authorized regional seller workflows with real tasks",
+        "strongestCounterexample": "Shopify / A2X / ERP / browser RPA",
+        "remainingGap": "CUSTOMER_PLATFORM_RIGHTS_AND_RELEASE_NOT_TESTED",
+        "score": "NOT_SCORED",
+        "rankVerified": false
       }
     ],
     "scopeOptions": [
@@ -867,6 +1017,38 @@
       "AI coding + Vite + userscript manager"
     ],
     "legacyGF013GF014": "KEEP_DISPROVED",
-    "manualReactVueF01": "ENGINEERING_SUPPORT_NOT_MARKET_P0"
+    "manualReactVueF01": "ENGINEERING_SUPPORT_NOT_MARKET_P0",
+    "topTen": [
+      "GF-007",
+      "GF-004",
+      "GF-003",
+      "GF-002",
+      "GF-011",
+      "GF-009",
+      "GF-005",
+      "GF-006",
+      "GF-010",
+      "GF-001"
+    ]
+  },
+  "r4EvidenceReview": {
+    "asOf": "2026-10-13",
+    "comparedProductRecords": 30,
+    "opportunityCount": 26,
+    "sourceReview": "PARTIAL_PRIMARY_SOURCES",
+    "worldHistoricalFeatureFirstComplete": false,
+    "confirmedGlobalOrRegionalFirst": 0,
+    "confirmedScopedTaskFirst": 0,
+    "confirmedTop2To5": 0,
+    "competitorHandsOnTrials": 0,
+    "score": "NOT_SCORED",
+    "macChromeE2E": "NOT_TESTED",
+    "localMacStatus": "LOCAL_NOT_INSPECTED",
+    "decision": "docs/product/browser-extension-ecosystem/global-first-r2-decision.zh-CN.md",
+    "noAdditionalClaimsLedger": true,
+    "disprovedIds": [
+      "GF-013",
+      "GF-014"
+    ]
   }
 }
