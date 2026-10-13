@@ -41,6 +41,7 @@
       message(String(error?.message||error),true);
     }finally{
       busy=false;buttons.forEach(x=>x.disabled=false);
+      if(state)$('focus-start').disabled=!state.enabled;
     }
   };
   const badgeSite=(site)=>{
@@ -82,7 +83,8 @@
       !pools.size?'添加首个每日限额网站，开始保护专注时间。':
       '今天共 '+pools.size+' 份独立娱乐额度 · '+minutes(Math.max(0,budget-remaining))+' 已使用';
     $('total-progress').style.width=(budget?Math.max(0,Math.min(100,100*(budget-remaining)/budget)):0)+'%';
-    const focused=state.focusUntil&&state.focusUntil>Date.now();
+    const focused=state.enabled&&state.focusUntil&&state.focusUntil>Date.now();
+    $('focus-start').disabled=!state.enabled;
     $('focus-start').hidden=Boolean(focused);
     $('focus-stop').hidden=!focused;
     if(focused)$('total-caption').textContent='专注模式进行中，预计 '+new Date(state.focusUntil).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})+' 结束。';
