@@ -628,10 +628,17 @@
         <textarea id="workflow-ai-request" rows="2" maxlength="4000" placeholder="描述要自动完成的任务…"></textarea>
         <div class="workflow-composer-actions">
           <button type="button" id="workflow-provider-toggle" class="workflow-icon-button workflow-settings-button od-icon-button" aria-label="配置 AI 模型与数据授权" aria-expanded="false" aria-controls="workflow-provider-settings" title="AI 设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h9m6 0h1M4 17h1m6 0h9"></path><circle cx="16" cy="7" r="3"></circle><circle cx="8" cy="17" r="3"></circle></svg></button>
-          <button id="workflow-ai-plan" type="button" class="workflow-send-button od-icon-button od-icon-button--primary" aria-label="同意数据发送并生成工作流步骤" title="同意并生成"><span id="workflow-ai-plan-label" hidden>同意并生成</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 19V5m-7 7 7-7 7 7"></path></svg></button>
+          <button id="workflow-ai-plan" type="button" class="workflow-send-button od-icon-button od-icon-button--primary" aria-label="生成工作流步骤" aria-controls="workflow-ai-disclosure" aria-expanded="false" title="生成步骤"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 19V5m-7 7 7-7 7 7"></path></svg></button>
           <button id="workflow-ai-cancel" type="button" class="workflow-send-button workflow-ai-cancel od-icon-button od-icon-button--danger" aria-label="停止 AI 规划" title="停止 AI 规划" hidden><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg></button>
         </div>
-        <p id="workflow-ai-disclosure" class="workflow-ai-data-notice" role="note" aria-live="polite">点击右侧发送图标才会向选定模型发送任务描述、网站与步骤信息；网页摘要仍需单独确认。</p>
+        <section id="workflow-ai-disclosure" class="workflow-ai-data-review" aria-labelledby="workflow-ai-review-title" hidden>
+          <h3 id="workflow-ai-review-title" tabindex="-1">确认发送到所选模型</h3>
+          <p id="workflow-ai-review-scope">仅发送需求、工作流网站、步骤及参数结构；网页正文需单独确认。</p>
+          <div class="workflow-ai-review-actions">
+            <button type="button" id="workflow-ai-review-cancel" class="od-button od-button--secondary">取消</button>
+            <button type="button" id="workflow-ai-review-approve" class="od-button">同意并生成</button>
+          </div>
+        </section>
         <details id="workflow-provider-settings" class="workflow-provider">
           <summary>模型连接与数据发送授权</summary>
           <label for="workflow-ai-provider" class="od-field-label">AI 来源</label>
