@@ -144,6 +144,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   let pendingCreate=false,pendingTask=null,confirmUninstall=null,allPlans=[],catalog=[],installed=[];
   let selectedFire=null,lastRefresh=0,activeView='list',runnerFocusId=null;
   let permissionSeq=0,awaitingSave=null,editRevision=0,storageProbeRevision=0;
+  let formDirty=false,discardDestination='list';
   const touched=new Set();
   const formFields={title:'schedule-title',task:'schedule-task-select',
     target:'schedule-target',params:'schedule-params',time:'schedule-timezone'};
@@ -201,7 +202,11 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     // The separately visible runner is already a Host, not a second Side Panel.
     text(get('schedule-open-runner'),isRunner()?'再开运行页 ↗':'打开运行页 ↗');
     get('schedule-back').hidden=isRunner()&&view==='runner';
-    get('schedule-back').setAttribute('aria-label',isRunner()?'返回运行概览':'返回我的任务');
+    const backLabel=view==='form'?'返回定时计划':view==='manager'?
+      (managerReturn==='form'?'返回编辑计划':'返回定时计划'):
+      isRunner()?'返回运行概览':'返回我的任务';
+    get('schedule-back').setAttribute('aria-label',backLabel);
+    get('schedule-back').title=backLabel;
     text(get('schedule-panel-title'),view==='runner'?'OpenDesk 运行页 · 运行概览':
       view==='manager'?'任务管理':view==='form'?
       (editing?'编辑定时计划':'创建定时计划'):'定时计划');
@@ -518,7 +523,9 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
         '未找到其他匹配地区；当前时区保持不变。'):'');
   }
   function reset(){
-    editing=null;pendingTask=null;clearConfirmation();touched.clear();
+    editing=null;pendingTask=null;formDirty=false;
+    get('schedule-discard-confirm').hidden=true;
+    clearConfirmation();touched.clear();
     for(const name of Object.keys(formFields))fieldError(name,'');
     const form=get('schedule-form');form.reset();
     get('schedule-title').value='';
@@ -532,6 +539,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     populateChoices();switchKind();
   }
   function edit(plan){
+    formDirty=false;get('schedule-discard-confirm').hidden=true;
     clearConfirmation();touched.clear();
     for(const name of Object.keys(formFields))fieldError(name,'');
     editing=plan;show('form');
@@ -602,7 +610,8 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     const pending=awaitingSave;
     try{
       await client.request('saveSchedule',pending.input);
-      clearConfirmation();await refresh();editing=null;show(isRunner()?'runner':'list');
+      clearConfirmation();formDirty=false;get('schedule-discard-confirm').hidden=true;
+      await refresh();editing=null;show(isRunner()?'runner':'list');
       message('定时计划已保存，Chrome Alarms 已按照持久计划对账');
     }catch(error){message('无法保存计划：'+(error?.message||String(error)),true);}
     finally{busy=false;get('schedule-confirm-yes').disabled=false;}
@@ -670,9 +679,28 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     if(!selectedFire||host.currentRun!==selectedFire)return;
     void host.stop({runId:selectedFire,controller:true}).catch(error=>message(error.message,true));
   }
+  function requestLeaveForm(destination){
+    if(busy)return;
+    if(formDirty){
+      discardDestination=destination;
+      clearConfirmation();
+      get('schedule-discard-confirm').hidden=false;
+      get('schedule-discard-no').focus();
+      return;
+    }
+    clearConfirmation();show(destination);
+  }
+  function navigateBack(){
+    if(activeView==='manager'){show(managerReturn);return;}
+    if(activeView==='form'){
+      requestLeaveForm(isRunner()?'runner':'list');return;
+    }
+    if(isRunner()){show('runner');return;}
+    hidePanel();
+  }
   bind('schedule-open','click',()=>void open());
   bind('schedule-stop','click',stop);
-  bind('schedule-back','click',()=>isRunner()?show('runner'):hidePanel());
+  bind('schedule-back','click',navigateBack);
   bind('schedule-runner-manage','click',()=>show('list'));
   bind('schedule-runner-refresh','click',()=>void refresh().catch(error=>message(error.message,true)));
   bind('schedule-runner-toggle','click',()=>{
@@ -687,7 +715,17 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     if(details){details.open=true;details.querySelector('summary')?.focus();card.scrollIntoView?.({block:'nearest'});}
   });
   bind('schedule-create','click',()=>{reset();show('form');get('schedule-title').focus();});
-  bind('schedule-cancel','click',()=>{clearConfirmation();show(isRunner()?'runner':'list');});
+  bind('schedule-cancel','click',()=>requestLeaveForm(isRunner()?'runner':'list'));
+  bind('schedule-discard-yes','click',()=>{
+    formDirty=false;
+    get('schedule-discard-confirm').hidden=true;
+    clearConfirmation();
+    show(discardDestination);
+  });
+  bind('schedule-discard-no','click',()=>{
+    get('schedule-discard-confirm').hidden=true;
+    get('schedule-title').focus();
+  });
   bind('schedule-confirm-yes','click',()=>void confirmSave());
   bind('schedule-confirm-no','click',()=>{clearConfirmation();get('schedule-save').focus();});
   for(const [id,name] of [
@@ -696,17 +734,22 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     ['schedule-once','time'],['schedule-clock','time'],['schedule-minutes','time'],
     ['schedule-weekdays-field','time'],['schedule-deadline','time']]){
     bind(id,'input',()=>{
-      touched.add(name);editRevision++;clearConfirmation();validateLocal(false);
+      touched.add(name);formDirty=true;editRevision++;
+      get('schedule-discard-confirm').hidden=true;
+      clearConfirmation();validateLocal(false);
       if(name==='time')preview();
     });
   }
   for(const id of ['schedule-open-target','schedule-misfire','schedule-paused'])
-    bind(id,'change',()=>{editRevision++;clearConfirmation();});
+    bind(id,'change',()=>{formDirty=true;editRevision++;clearConfirmation();});
   bind('schedule-form','submit',save);
-  bind('schedule-task-select','change',showTaskVersion);
+  bind('schedule-task-select','change',()=>{
+    formDirty=true;editRevision++;clearConfirmation();void showTaskVersion();
+  });
   bind('schedule-timezone-search','input',()=>
     populateTimeZoneSelect(get('schedule-timezone').value,get('schedule-timezone-search').value));
   bind('schedule-timezone','change',()=>{
+    formDirty=true;editRevision++;clearConfirmation();
     const selected=get('schedule-timezone').value;
     get('schedule-timezone-search').value='';
     populateTimeZoneSelect(selected);
@@ -721,7 +764,10 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   bind('schedule-uninstall-no','click',()=>{confirmUninstall=null;get('schedule-uninstall-confirm').hidden=true;});
   for(const id of ['schedule-kind','schedule-once','schedule-timezone','schedule-clock',
     'schedule-minutes','schedule-weekdays-field'])
-    bind(id,'change',id==='schedule-kind'?switchKind:preview);
+    bind(id,'change',()=>{
+      formDirty=true;editRevision++;clearConfirmation();
+      if(id==='schedule-kind')switchKind();else preview();
+    });
   bind('schedule-open-runner','click',()=>void api.tabs.create({url:api.runtime.getURL('ui/tool.html?scheduledRunner=1')})
     .catch(error=>message('无法打开运行页：'+error.message,true)));
   const installedUpdates=client.subscribeInstalledTasks?.(event=>{
