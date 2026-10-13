@@ -435,6 +435,12 @@
           <div id="cloud-task-list" role="group" aria-label="逐任务确认版本、网站及结果权限"><p class="hint">正在读取已安装任务…</p></div>
           <p id="cloud-approval-summary" role="status" aria-live="polite" class="hint">请选择要允许远程调用的任务。</p>
         </fieldset>
+        <div id="cloud-approval-review" class="cloud-approval-review" role="group"
+          aria-label="批准前核对所选任务" hidden>
+          <strong>批准前核对</strong>
+          <ul id="cloud-review-items" class="cloud-review-items"></ul>
+          <p class="hint">以下版本、网站与结果许可一旦改变，需要重新确认。</p>
+        </div>
         <label class="cloud-approval-confirm"><input id="cloud-consent" type="checkbox"> 我已核对所选任务的网站和固定安装版本</label>
         <label class="cloud-approval-confirm"><input id="cloud-result-consent" type="checkbox"> 我另外同意所勾选任务向 Provider 回传结果正文</label>
         <div class="cloud-action-row"><button id="cloud-approve" type="button" class="od-button">批准并启用</button>
