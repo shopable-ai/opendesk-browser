@@ -32,8 +32,8 @@
       "OPS": 12
     },
     "source": {
-      "SOURCE_IMPLEMENTED": 108,
-      "NOT_IMPLEMENTED": 2
+      "SOURCE_IMPLEMENTED": 109,
+      "NOT_IMPLEMENTED": 1
     },
     "verification": {
       "NOT_VERIFIED": 101,
@@ -1302,7 +1302,7 @@
       "tests": "tests/cloud-control/{r52-product-ui,r52-ui-preview-contract}.test.mjs",
       "gate": "G3",
       "priority": "P1",
-      "implementation": "NOT_IMPLEMENTED",
+      "implementation": "SOURCE_IMPLEMENTED",
       "verification": "NOT_VERIFIED",
       "ui39Overlay": "UI A01–F06 mapping, not additive"
     },

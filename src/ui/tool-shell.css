@@ -733,7 +733,24 @@
 .cloud-request-samples{display:grid;gap:0;list-style:none;padding:0;margin:var(--space-2) 0 0}
 .cloud-request-samples li{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-width:0;padding:var(--space-2) 0;border-top:1px solid var(--od-line);font-size:11px}
 .cloud-request-samples li span{min-width:0;overflow-wrap:anywhere}
-.cloud-request-samples li span:last-child{color:var(--od-sub);text-align:right}
+.cloud-request-samples li span:nth-child(2){color:var(--od-sub);text-align:right}
+.cloud-request-samples li{flex-wrap:wrap;align-items:flex-start}
+.cloud-request-samples li span:first-child{flex:1 1 100%;font-weight:650}
+.cloud-request-samples li span:nth-child(2){flex:1 1 150px;text-align:left}
+.cloud-request-samples li button{flex:none;min-height:32px;padding:5px 9px;font-size:11px}
+.cloud-request-pagination{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);margin-top:var(--space-2);min-width:0}
+.cloud-request-pagination button{flex:none;min-height:32px;padding:5px 8px;font-size:11px}
+.cloud-request-pagination .hint{min-width:0;text-align:center;overflow-wrap:anywhere;font-size:11px}
+.cloud-request-detail{min-width:0;border-top:1px solid var(--od-line);margin-top:var(--space-3);padding-top:var(--space-3)}
+.cloud-request-detail-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-width:0;flex-wrap:wrap}
+.cloud-request-detail-head strong{min-width:0;overflow-wrap:anywhere;font-size:12px}
+.cloud-request-detail-head button{min-height:32px;font-size:11px}
+.cloud-request-detail p{margin:var(--space-2) 0;line-height:1.5;overflow-wrap:anywhere;font-size:11px}
+.cloud-request-technical{margin:var(--space-2) 0}
+.cloud-request-technical summary{font-size:11px}
+.cloud-request-technical pre{max-height:90px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font-size:10px}
+#cloud-request-open-result{max-width:100%;white-space:normal;min-height:34px}
+@media(max-width:340px){.cloud-request-pagination{flex-wrap:wrap}.cloud-request-pagination .hint{order:-1;flex:1 1 100%}}
 #workbench-cloud #cloud-hosting{min-width:0;padding:var(--space-3);margin:0}
 #workbench-cloud #cloud-hosting>summary{cursor:pointer;font-size:12px;font-weight:650}
 #workbench-cloud #cloud-hosting>label{display:block;margin-top:var(--space-2);font-size:12px}

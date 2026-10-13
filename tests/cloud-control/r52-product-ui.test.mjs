@@ -35,6 +35,10 @@ test('Cloud keeps task consent primary and endpoint settings secondary',async()=
   assert.match(js,/technicalLabel\.textContent='查看授权状态与固定版本详情'/);
   assert.match(js,/task\.requiresReapproval/);
   assert.match(js,/先停止云控，再核对并重新批准/);
+  for(const id of ['cloud-request-prev','cloud-request-next','cloud-request-detail',
+    'cloud-request-open-result'])assert.match(panel,new RegExp('id="'+id+'"'));
+  assert.match(js,/script-read-run/);
+  assert.match(css,/\.cloud-request-pagination/);
 });
 
 function surface(){
@@ -131,6 +135,58 @@ test('trusted Cloud requests show readable Task names without exposing raw reque
     const rendered=rows.map(row=>row.children.map(n=>n.textContent).join(' ')).join(' ');
     for(const secret of ['SECRET-RUN','PRIVATE_NAME','PRIVATE_SEARCH_URL'])
       assert.equal(rendered.includes(secret),false,secret);
+  }finally{view.dispose();}
+});
+
+test('Cloud request details page original history and navigate only to the original authorized Run',async()=>{
+  const f=surface(),queries=[],runId='11111111-1111-4111-8111-111111111111';
+  let claims=0,navigations=0,resultQueries=0;
+  f.get('tab-develop').click=()=>{navigations++;};
+  f.get('script-read-run').click=()=>{resultQueries++;};
+  const initial={taskTitle:'表单任务',state:'finished',runState:'completed',
+    retirementState:'released',receipt:true,runId,params:{name:'SECRET_NAME'},
+    target:{url:'https://SECRET_URL'},requestId:'SECRET_REQUEST_ID'};
+  const second={taskTitle:'搜索任务',state:'OUTCOME_UNKNOWN',
+    runState:'paused_unknown',retirementState:null,receipt:null};
+  const client={cloud:{
+    cloudStatus:async query=>{
+      queries.push(query);
+      return {provider:{providerId:'p'},enabled:false,online:false,reconciled:false,
+        connection:'offline',tasks:[],hostReady:true,slotAvailable:true,
+        requestTotal:6,requestPage:{offset:query.offset||0,limit:5,
+          nextOffset:query.offset?null:5},requests:query.offset?[second]:[initial]};
+    },
+    cloudNext:async()=>{claims++;return null;}
+  },request:async()=>({catalog:[],installed:[]})};
+  const view=createCloudHosting({client,host:{executionPending:false},document:f.document,api:{}});
+  try{
+    for(let i=0;i<8;i++)await flush();
+    assert.equal(f.get('cloud-request-prev').disabled,true);
+    assert.equal(f.get('cloud-request-next').disabled,false);
+    const row=f.get('cloud-request-samples').children[0];
+    assert.equal(row.children[2].textContent,'查看详情');
+    assert.doesNotMatch(row.children.map(n=>n.textContent).join(' '),/SECRET_NAME|SECRET_URL|SECRET_REQUEST_ID|11111111/);
+    row.children[2].events.get('click')();
+    assert.equal(f.get('cloud-request-detail').hidden,false);
+    assert.match(f.get('cloud-request-detail-run-id').textContent,/11111111/);
+    assert.equal(f.get('cloud-request-open-result').disabled,false);
+    const shown=['cloud-request-detail-title','cloud-request-detail-state',
+      'cloud-request-detail-facts','cloud-request-detail-reason',
+      'cloud-request-detail-note'].map(id=>f.get(id).textContent).join(' ');
+    assert.doesNotMatch(shown,/SECRET_NAME|SECRET_URL|SECRET_REQUEST_ID/);
+    f.get('cloud-request-open-result').events.get('click')();
+    for(let i=0;i<5;i++)await flush();
+    assert.equal(navigations,1);
+    assert.equal(resultQueries,1);
+    assert.equal(f.get('script-run-id').value,runId);
+    assert.equal(claims,0,'Request history and original-result navigation never claim a Cloud Job');
+    f.get('cloud-request-next').events.get('click')();
+    for(let i=0;i<5;i++)await flush();
+    assert.deepEqual(queries.at(-1),{limit:5,offset:5});
+    assert.equal(f.get('cloud-request-prev').disabled,false);
+    assert.equal(f.get('cloud-request-open-result').disabled,true);
+    assert.equal(f.get('cloud-request-detail').hidden,true);
+    assert.equal(claims,0);
   }finally{view.dispose();}
 });
 

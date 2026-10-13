@@ -109,7 +109,8 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
     const host=await assertHost(sender);return transaction(mode,async tx=>{await currentHost(tx,host,sender);return fn(tx,host);});
   }
   // The two-second dispatcher reads only connectivity and slot readiness.
-  // Detailed observations are bounded, paged and contain no persisted IDs.
+  // The observer remains strictly ID-free; authenticated Host history may
+  // expose a validated original Run pointer for explicit local result lookup.
   // Read original confirmation through a private durable pointer. Legacy
   // receipts remain readable without enumerating unrelated request bodies.
   async function lastRevocation(tx,namespace){
@@ -170,8 +171,14 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
           const run=r.runId?await tx.get('runs',r.runId):null;
           if(run?.state==='interrupted')operations??=await tx.all('commandJournal');
           const title=typeof r.task?.manifest?.title==='string'&&r.task.manifest.title.trim()?r.task.manifest.title.trim().slice(0,80):'历史任务';
- projected.push({taskTitle:title,state:r.state,runState:run?.state??null,retirementState:run?.retirementState??null,reason:r.reason??null,outcomeUnknown:await unknownOutcome(tx,run,operations),
-            receipt:r.receipt?true:null,targetReady:!!run?.target&&run.retirementState!=='released'});
+          // The trusted Side Panel may link to the ORIGINAL Run. Never return
+          // an unverified request-supplied runId or make this an observer field.
+          const originalRunId=run?.tag==='controller-run'&&run.namespace===host.namespace&&
+            run.runId===r.runId&&run.cloudRequestId===r.requestId&&
+            (!run.cloudRequestKey||run.cloudRequestKey===rowKey(r))?run.runId:null;
+          projected.push({taskTitle:title,state:r.state,runState:run?.state??null,retirementState:run?.retirementState??null,reason:r.reason??null,outcomeUnknown:await unknownOutcome(tx,run,operations),
+            receipt:r.receipt?true:null,targetReady:!!run?.target&&run.retirementState!=='released',
+            ...(originalRunId?{runId:originalRunId}:{})});
         }
         projected.reverse(); // Existing Side Panel shows the newest sample first.
       }
