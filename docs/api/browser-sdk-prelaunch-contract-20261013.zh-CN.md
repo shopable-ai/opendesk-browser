@@ -27,3 +27,9 @@
 - 写入仅在 `main`，先查本地/远端/并行冲突；不得新建分支/worktree/PR、覆盖其他 Agent、强推或破坏性 reset。
 
 **注意**：本文件授权清理开发期不合理的 Browser SDK **API 兼容负担**，不是授权破坏已实现的浏览器安全、业务流程或验收事实。旧 R8/R8.1 所有“35 项旧接口永久兼容”的要求以本文件为准。
+
+## R9 Cookie 观察器功能更新（仍待原生 Chrome 验收）
+
+- `browser.cookies.observe.read({sessionRef,cursor,limit})` 使用只读游标读取有界脱敏事件。事件提供 `seq`，读取返回 `nextCursor`、`gapCount` 和 `droppedCount`，每次最多 50 条。
+- `observe.getStatus` 仅返回运行状态、缓存数量、丢弃数量与到期时间，不再消费事件；`stop`、导航、撤权和 Worker 重启仍使旧会话失效。
+- 这一阶段仍是可信内置 UI 的 Host-only 能力，不意味着第三方工具获得 Cookie 权限，不等于正式 SDK 全量实现或原生 Chrome PASS。
