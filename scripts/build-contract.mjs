@@ -11,6 +11,7 @@ export const PACKAGE_ENTRIES = Object.freeze({
   'platform/context-menus': './src/entrypoints/context-menus.js',
   'cloud-control/cloud-host': './src/cloud-control/service.js',
   'time-review/time-review-host': './src/time-review/service.js',
+  'stay-focus/blocked': './src/stay-focus/blocked.js',
   'sidebar-tools/preinstall-intent': './src/entrypoints/preinstall-intent.js',
   'agents/health': './src/agents/health.js',
   'agents/health-host': './src/entrypoints/health-host.js',
