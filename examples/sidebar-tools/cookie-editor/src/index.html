@@ -2,15 +2,16 @@
 <header class="site-bar"><div class="site-meta"><strong id="site-host">正在读取当前网站…</strong><span id="site-url" class="secondary" hidden></span></div>
 <button id="refresh" class="icon-button" type="button" aria-label="刷新 Cookie" title="刷新 Cookie"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.5-4.7L3 9m0-5v5h5M4 13a8 8 0 0 0 14.5 4.7L21 15m0 5v-5h-5"/></svg></button></header>
 <section id="browser-panel" class="browser-panel" aria-label="真实浏览器 Cookie">
-  <div class="target-selector">
-    <label for="target-url">目标网页</label>
+  <details id="target-selector" class="target-selector">
+    <summary>切换或选择网站</summary>
+    <label for="target-url">目标网页地址</label>
     <div class="target-entry">
       <input id="target-url" data-sensitive="true" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://example.com/">
       <button id="apply-target" class="text-button" type="button">选择</button>
       <button id="use-current" class="text-button" type="button">当前页</button>
     </div>
     <p id="target-help" class="hint">选择地址不代表获得 Cookie 权限。只会在正式 SDK 和网站授权均有效时读取。</p>
-  </div>
+  </details>
   <div id="browser-state" class="browser-state" role="group" aria-labelledby="browser-state-heading" aria-live="polite" aria-atomic="true">
     <strong id="browser-state-heading">正在检查网站…</strong>
     <p id="browser-state-detail">仅读取已授权网站。</p>
@@ -35,7 +36,7 @@
   <div class="toolbar live-toolbar">
     <span id="live-count" class="count">尚未读取</span><span class="fill"></span>
     <button id="live-new" class="text-button" type="button" disabled>+ 新建</button>
-    <button id="read-live" class="text-button primary" type="button" disabled>刷新列表</button>
+    
   </div>
   <div id="live-cookie-list" class="cookie-list" role="list" aria-label="真实浏览器 Cookie 元数据"></div>
   <p id="live-empty" class="empty-message">正在检查网站授权与 Cookie…</p>
@@ -80,7 +81,7 @@
 <button id="copy" class="text-button" type="button">复制</button><button id="download" class="text-button" type="button">导出</button></div>
 <div id="cookie-list" class="cookie-list" role="list" aria-label="离线工作区 Cookie 列表"></div>
 <p id="empty-message" class="empty-message">正在准备本地工作区…</p>
-<button id="sample" class="text-button sample-button" type="button" hidden>载入两条虚构示例</button>
+
 <div class="footer-actions"><button id="clear" class="text-button danger-text" type="button" disabled>清空工作区 Cookie</button></div></section>
 <section id="editor-panel" class="editor-panel" aria-labelledby="editor-heading" hidden>
 <div class="section-head"><strong id="editor-heading">新建 Cookie</strong><button id="editor-close" class="icon-button" type="button" title="关闭编辑" aria-label="关闭编辑"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
