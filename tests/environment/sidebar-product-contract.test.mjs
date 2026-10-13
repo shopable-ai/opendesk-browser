@@ -85,7 +85,8 @@ test('developer mode uses one accessible switch and keeps page details folded by
   assert.match(html,/id="local-project-mode" type="checkbox" role="switch"/);
   assert.match(html,/<span>直接编辑<\/span>/);
   assert.doesNotMatch(html,/>手工草稿</);
-  assert.match(html,/id="local-project-guide" class="local-project-guide"/);
+  assert.match(html,/<details id="local-project-guide" class="local-project-guide(?:\\s[^\"]*)?">/,
+    'the existing collapsed guide may reuse shared disclosure classes');
   assert.match(html,/首次使用：连接方法/);
   assert.match(html,/id="local-project-guide-open" type="button"/);
   assert.match(html,/id="local-project-connect" class="local-project-connect" type="button"/);
