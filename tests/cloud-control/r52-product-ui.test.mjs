@@ -75,3 +75,21 @@ test('paired but not enabled exposes Task selection and blocks execution',async(
     assert.match(f.get('cloud-overview-state').textContent,/未启用任务授权/);
   }finally{view.dispose();}
 });
+
+test('local Stop does not claim Provider confirmation while remote suspend is pending',async()=>{
+  const f=surface();
+  const client={cloud:{cloudStatus:async()=>({provider:{providerId:'p'},
+    enabled:false,remoteSuspension:'pending',online:false,reconciled:false,
+    connection:'offline',tasks:[],hostReady:true,slotAvailable:true,
+    requestTotal:0,requests:[]}),
+    cloudNext:async()=>{throw Error('Stopped hosting cannot claim');}},
+    request:async()=>({catalog:[],installed:[]})};
+  const view=createCloudHosting({client,host:{executionPending:false},
+    document:f.document,api:{}});
+  try{
+    for(let i=0;i<6;i++)await flush();
+    assert.match(f.get('cloud-overview-state').textContent,/提供者尚未确认暂停/);
+    assert.match(f.get('cloud-brief').textContent,/远端待确认/);
+    assert.equal(f.get('cloud-stop').disabled,true);
+  }finally{view.dispose();}
+});
