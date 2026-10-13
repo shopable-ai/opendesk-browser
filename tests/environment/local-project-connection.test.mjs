@@ -14,6 +14,19 @@ function serviceFixture(){
   service.receive({v:1,kind:'dev.state',connected:true,providerEpoch:'epoch-a'});
   return {service,sent,received,host,hostPorts,connection};
 }
+test('local project status reports Native connectivity separately from source registration',async t=>{
+  const f=serviceFixture();t.after(()=>f.service.disconnected());
+  f.service.disconnected();
+  f.service.acceptHostRequest(f.host,request('native-only','status',{}));await tick();
+  assert.deepEqual(f.received.at(-1).result,{connected:false,providerEpoch:null,enabled:true,nativeConnected:true});
+  assert.equal(f.sent.length,0,'status is a read without source dispatch');
+  f.service.receive({v:1,kind:'dev.state',connected:true,providerEpoch:'epoch-b'});
+  f.service.acceptHostRequest(f.host,request('provider-online','status',{}));await tick();
+  assert.deepEqual(f.received.at(-1).result,{connected:true,providerEpoch:'epoch-b',enabled:true,nativeConnected:true});
+  f.connection.ready=false;
+  f.service.acceptHostRequest(f.host,request('native-offline','status',{}));await tick();
+  assert.deepEqual(f.received.at(-1).result,{connected:false,providerEpoch:null,enabled:true,nativeConnected:false});
+});
 test('reverse project reads require the exact registered Host object and only bindingId',async t=>{
   const f=serviceFixture();t.after(()=>f.service.disconnected());
   f.service.acceptHostRequest({registrationId:'host-a',postMessage:()=>assert.fail('unregistered recipient')},request('fake'));
