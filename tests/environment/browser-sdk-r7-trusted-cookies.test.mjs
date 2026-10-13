@@ -152,6 +152,30 @@ test('R7 reuse R8 Cookie Driver write/readback, prefix denial, scoped remove and
   }),reject('E_OUTCOME_UNKNOWN'));
   assert.equal(f.state.native.filter(([method])=>method==='remove').length,2);
 });
+test('R9 trusted Cookie events exclude sibling paths, hostOnly parent domains and foreign partitions',async()=>{
+  const f=fixture();
+  const started=await f.run('browser.cookies.observe.start',{durationMs:10000});
+  const emit=attributes=>{
+    for(const onChanged of f.state.changes)onChanged({cookie:{
+      name:'private',value:'FOREIGN_COOKIE_SECRET',storeId:'0',
+      domain:'shop.example.test',hostOnly:true,path:'/',...attributes
+    },removed:false,cause:'explicit'});
+  };
+  emit({path:'/settings'});
+  emit({path:'/accounting'});
+  emit({domain:'example.test',hostOnly:true});
+  emit({partitionKey:{topLevelSite:'https://foreign.example.test',hasCrossSiteAncestor:false}});
+  const denied=await f.run('browser.cookies.observe.getStatus',{sessionRef:started.sessionRef});
+  assert.equal(denied.bufferedCount,0,'No foreign Cookie metadata can be observed');
+  emit({path:'/account',partitionKey:{
+    hasCrossSiteAncestor:false,topLevelSite:'https://shop.example.test'
+  }});
+  const accepted=await f.run('browser.cookies.observe.read',{sessionRef:started.sessionRef});
+  assert.equal(accepted.events.length,1,'Exact current URL Path and partition accepted');
+  assert.equal(accepted.events[0].path,'/account');
+  assert(!JSON.stringify(accepted).includes('FOREIGN_COOKIE_SECRET'),
+    'Native Cookie values must never be included in observation events');
+});
 test('R7 dedicated Cookie events omit values; sessions are volatile under navigation/revocation',async()=>{
   const f=fixture();
   const first=await f.run('browser.cookies.observe.start',{durationMs:10000,maxEvents:2});
