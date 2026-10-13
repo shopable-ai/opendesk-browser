@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {BROWSER_OPERATIONS,browserCapabilityList,normalizeBrowserOperation} from '../../src/framework/sdk/browser-contract.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
+import {operationSchemas} from '../../src/framework/sdk/browser-schemas.js';
 const isCode=expected=>e=>e?.code===expected;
 test('R9 Browser SDK exposes only real implemented operations and typed metadata',()=>{
   const rows=Object.values(BROWSER_OPERATIONS);
@@ -19,6 +20,24 @@ test('R9 Browser SDK exposes only real implemented operations and typed metadata
     assert(['object','array'].includes(op.outputSchema?.type),op.operation);
   }
   assert.equal(browserCapabilityList('page-sdk').find(x=>x.operation==='browser.notifications.create'),undefined);
+});
+
+test('Capability discovery schemas represent Host authorization and failure receipts',()=>{
+  const rows=operationSchemas('browser.capabilities.list').output;
+  assert.equal(rows.type,'array');
+  assert.equal(rows.items.additionalProperties,false);
+  for(const field of ['riskLevel','requiredCapabilities','requiredChromePermissions','status'])
+    assert(Object.hasOwn(rows.items.properties,field),field);
+  assert.equal(rows.items.properties.status.properties.reasonCode.anyOf[1].type,'null');
+  const status=operationSchemas('browser.capabilities.getStatus');
+  assert.equal(status.input.properties.url.type,'string');
+  assert.equal(status.output.additionalProperties,false);
+  for(const field of ['apiVersion','implementation','exposure','platform','authorization',
+    'callableNow','requiresUserGesture','reasonCode','nextAction'])
+    assert(Object.hasOwn(status.output.properties,field),field);
+  assert.deepEqual(status.output.properties.authorization.required,['tool','browser','site']);
+  assert.equal(status.output.properties.reasonCode.anyOf[1].type,'null');
+  assert.equal(status.output.properties.nextAction.anyOf[1].type,'null');
 });
 test('Browser wrapper requests use canonical authenticated operation names',async()=>{
   const calls=[],sdk=createBrowserSdk({request:async(op,args)=>{calls.push([op,args]);return {ok:true};}});
