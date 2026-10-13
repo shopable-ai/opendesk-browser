@@ -47,7 +47,23 @@ export function createScheduleRepository({storage,clock,namespace,session}){
         // The already-bound original identity wins over stale READY state.
         await tx.put('frameworkKV',{...fire,status:'UNKNOWN',updatedAt:now()},fireKey(fire.fireId));
     };
-    if(typeof tx.scan==='function'){
+    if(typeof tx.scanEntries==='function'){
+      // Resume by the real cursor primary key, never by a synthetic RunId.
+      // Every legacy row is scanned once, with 256 records max in memory.
+      let afterKey;
+      for(;;){
+        const batch=await tx.scanEntries('frameworkKV',
+          {prefix:SCHEDULE_FIRE_PREFIX,afterKey,limit:256});
+        for(const {key,value} of batch){
+          invariant(value?.tag!=='schedule-fire-v1'||key===fireKey(value.fireId),
+            'E_SCHEMA','Fire primary key differs from its persisted identity');
+          await migrate(value);
+        }
+        afterKey=batch.at(-1)?.key;
+        if(batch.length<256)break;
+      }
+    }else if(typeof tx.scan==='function'){
+      // Legacy in-memory shim retains the old bounded offset scan.
       let offset=0;
       for(;;){
         const batch=await tx.scan('frameworkKV',{prefix:SCHEDULE_FIRE_PREFIX,offset,limit:256});

@@ -12,9 +12,9 @@ const millis=value=>Date.parse(value);
 function storageFake(){
   const buckets=new Map([['frameworkKV',new Map()],['commandJournal',new Map()],['runs',new Map()]]);
   let queue=Promise.resolve();
-  const scanPrefixes=[];
+  const scanPrefixes=[],scanResumeKeys=[];
   return {
-    scanPrefixes,
+    scanPrefixes,scanResumeKeys,
     put(store,key,value){buckets.get(store).set(key,structuredClone(value));},
     transaction(names,mode,callback){
       const work=()=>callback({
@@ -27,6 +27,16 @@ function storageFake(){
             .sort(([a],[b])=>a<b?-1:a>b?1:0);
           if(direction==='prev')rows.reverse();
           return structuredClone(rows.slice(offset,offset+limit).map(([,value])=>value));
+        },
+        scanEntries:async(store,{prefix,afterKey,limit=50})=>{
+          scanPrefixes.push(prefix);
+          if(afterKey!==undefined)scanResumeKeys.push(afterKey);
+          const entries=[...buckets.get(store).entries()]
+            .filter(([key])=>String(key).startsWith(prefix)&&
+              (afterKey===undefined||String(key)>afterKey))
+            .sort(([a],[b])=>a<b?-1:a>b?1:0)
+            .slice(0,limit).map(([key,value])=>({key,value}));
+          return structuredClone(entries);
         },
         delete:async(store,key)=>{buckets.get(store).delete(key);}
       });
@@ -559,4 +569,26 @@ test('R2.3 ambiguous start reply is UNKNOWN, never a repeatable waiting target',
     assert.match(statuses.at(-1),/禁止自动重试/);
     assert.equal(statuses.some(value=>value.includes('等待目标或运行环境')),false);
   }finally{runner.dispose();}
+});
+
+test('R2.3 index migration seeks forward by original Fire primary key over 1300 rows',async()=>{
+  const f=await fixture(),plan=await f.repo.save(f.input);
+  for(let i=0;i<1300;i++){
+    const scheduledAt=f.getTime()-1300*60000+i*60000;
+    const fireId=scheduleFireId(plan.scheduleId,plan.generation,scheduledAt);
+    f.db.put('frameworkKV',fireKey(fireId),{
+      tag:'schedule-fire-v1',namespace:f.namespace,fireId,scheduleId:plan.scheduleId,
+      generation:plan.generation,scheduledAt,deadlineAt:scheduledAt+300000,
+      createdAt:scheduledAt,status:'MISSED',runId:null,resultId:null
+    });
+  }
+  f.setTime(plan.nextDueAt+1000);
+  await f.repo.reconcile();
+  assert(f.db.scanResumeKeys.length>=5,'migration did not resume across bounded pages');
+  assert(f.db.scanResumeKeys.every((key,i,keys)=>i===0||key>keys[i-1]),
+    'resume keys must advance strictly monotonically');
+  assert.equal((await f.repo.ready()).length,1,'only genuinely pending Fire is ready');
+  const recent=await f.repo.history({scheduleId:plan.scheduleId,offset:0,limit:20});
+  assert.equal(recent.history.length,20);
+  assert.equal(new Set(recent.history.map(x=>x.fireId)).size,20);
 });
