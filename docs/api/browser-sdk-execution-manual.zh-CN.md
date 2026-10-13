@@ -72,7 +72,7 @@ docs/api/browser-sdk-interface-matrix.json#approvedOperations 是唯一逐接口
 ### 2026-10-13 · P3 单接口局部修订（补齐已授权的同源导航）
 此前 54 项矩阵漏登记用户 R9 已明确要求且源码已经实现的 `browser.tabs.navigateOwned({tabRef,url})`。按单一合同批准 **55 项 = 40 项现行 Registry（含 11 项按站点授权的 Cookies SDK）+ 15 项待实施**。该接口只允许当前安装工具自己拥有的 TabRef 导航至**完全相同的 Origin**，执行 Chrome tabs.update({url}) 前销毁旧 TabRef，未知副作用不重试；跨 Origin、旧 Document、失效权限一律拒绝。相关源码和 Node 测试已有接线，但当前候选真实 Chrome 仍为 NOT_TESTED。原始 191 Schema / 1,830 Native 条目及来源 Hash 不变。新增只读结构校验 `scripts/check-browser-sdk-interface-matrix.mjs`：验证目录与审批映射，**不重新解析上游 191 个原始源文件**，不能替代独立上游字节复核和 Native PASS。
 
-> **R10.1 当前源码优先级：** 原矩阵中 Cookies 的 `HOST_ONLY` 规划标记与当前 `BROWSER_OPERATIONS` / `executeInstalled` 公开能力不一致，必须在矩阵逐接口记录中进一步收敛；冻结的安全条件没有被自动放宽。此处不把 40 项误报为 Native PASS，也不把尚未同步的矩阵状态误报为已完成。
+> **R10.1 当前源码与矩阵已核对：** 正式矩阵 `approvedRegistered=40`、`approvedCookieHostOnly=0`，11 项 Cookies 均为 `APPROVED_TOOL_REGISTERED`，并受原有权限边界约束；另有独立可信内置 UI 的内部 Host-only 路由。已同步的矩阵可见性不代表 40 项全数获得 Node、Build 或 Native Chrome PASS。
 
 ## 4. Cookies 11 项正式 SDK 与可信 UI 的共用安全合同
 
