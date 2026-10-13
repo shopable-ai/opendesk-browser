@@ -823,6 +823,7 @@
 .schedule-source-field>label{font-weight:600;margin:0}
 .schedule-source-row{display:grid;grid-template-columns:minmax(0,1fr) var(--od-icon-size) var(--od-icon-size);gap:var(--space-2);align-items:center;min-width:0}
 .schedule-source-row select{width:100%;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.schedule-form #schedule-task-select:disabled{background:var(--od-muted);color:var(--od-sub);opacity:1;cursor:not-allowed}
 .schedule-rule,.schedule-weekdays{min-width:0;border:1px solid var(--od-line);border-radius:var(--radius-control);padding:var(--space-3);margin:0;display:grid;gap:var(--space-2)}
 .schedule-rule legend,.schedule-weekdays legend{font-size:12px;font-weight:650;padding-inline:5px}
 .schedule-rule-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space-3)}
