@@ -35,8 +35,10 @@
       "id": "claude-in-chrome",
       "name": "Claude workflow recording",
       "naturalUserFlow": "record while using browser -> replay workflow",
-      "channel": "2026-07-24 beta release notes",
-      "actualTest": "NOT_TESTED"
+      "channel": "2025-12-18 Anthropic official beta workflow-recording notes; latest version and eligibility still require checking",
+      "actualTest": "NOT_TESTED",
+      "firstReleaseClaimAllowed": false,
+      "productFeatureFirstDate": "UNKNOWN_BEFORE_OR_ON_2025-12-18"
     },
     {
       "id": "axiom-ai",
