@@ -239,10 +239,24 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
     for(const [id,s] of sessions){
       if(now()>=s.expiresAt){sessions.delete(id);continue;}
       if(!cookie||cookie.storeId!==s.storeId)continue;
-      if(cookie.partitionKey&&JSON.stringify(cookie.partitionKey)!==JSON.stringify(s.partitionKey))continue;
+      // An unpartitioned cookie can apply to the selected URL; a partitioned
+      // Cookie from any OTHER top-level site/cross-site ancestry cannot.
+      if(cookie.partitionKey&&
+         (cookie.partitionKey.topLevelSite!==s.partitionKey.topLevelSite||
+          Boolean(cookie.partitionKey.hasCrossSiteAncestor)!==
+            Boolean(s.partitionKey.hasCrossSiteAncestor)))continue;
       const domain=String(cookie.domain||'').replace(/^\./,'').toLowerCase();
-      const host=new URL(s.target.url).hostname;
-      if(!domain||host!==domain&&!host.endsWith('.'+domain))continue;
+      const selected=new URL(s.target.url),host=selected.hostname;
+      if(!domain||(cookie.hostOnly?host!==domain:host!==domain&&!host.endsWith('.'+domain)))
+        continue;
+      // chrome.cookies.onChanged is global: check the current URL's Path
+      // BEFORE emitting any metadata from an unrelated sibling path.
+      const cookiePath=typeof cookie.path==='string'?cookie.path:'';
+      const requestPath=selected.pathname||'/';
+      if(!cookiePath.startsWith('/')||
+        !(requestPath===cookiePath||requestPath.startsWith(cookiePath)&&
+          (cookiePath.endsWith('/')||requestPath[cookiePath.length]==='/')))
+        continue;
       if(s.events.length>=s.maxEvents){s.events.shift();s.dropped++;}
       // Events contain NO Cookie value and never use the generic network event schema.
       s.events.push({seq:s.nextSeq++,name:String(cookie.name||'').slice(0,256),domain,path:String(cookie.path||'').slice(0,512),
