@@ -89,7 +89,7 @@ test('developer mode uses one accessible switch and keeps page details folded by
     'the existing collapsed guide may reuse shared disclosure classes');
   assert.match(html,/首次使用：连接方法/);
   assert.match(html,/id="local-project-guide-open" type="button"/);
-  assert.match(html,/id="local-project-connect" class="local-project-connect" type="button"/);
+  assert.match(html,/<button id="local-project-connect" class="local-project-connect(?: [^"]*)?" type="button"/);
   assert.match(css,/\.local-project-connect\{[^}]*min-height:34px;/);
   assert.doesNotMatch(html,/<a\s[^>]*href=/i,'packaged HTML must not navigate remote resources');
   assert.match(css,/#workbench-develop select\{[^}]*appearance:none;[^}]*padding-right:34px;/);
