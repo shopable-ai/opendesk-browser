@@ -167,3 +167,16 @@ node scripts/cloud-control/cli.mjs client:revoke --client CLIENT_UUID
 **不确定结果和撤权**：Provider 在收到合法终态 receipt 前，不能将已经 admitted 但租约过期或被取消的网页副作用重新投递；状态保守报告 `OUTCOME_UNKNOWN`。停止托管使本地授权失效；重新批准产生新授权代际，旧未领取队列隔离。解除配对需要确认 Provider 撤销，断线时不能假报远端凭据已失效。配对撤销或新的任务审批也会使相关旧客户端凭据失效。原始 Run/Result/receipt 历史不删。
 
 **验收等级**：R5.2 专属 `.github/workflows/cloud-control-r52-contract.yml` 对 Provider HTTP/HTTPS/WSS、双 Executor、隐私、Authority 和 Side Panel 组件做独立 CI；真实双 Task Chrome Worker、原始 Run/Result/retirement、Provider 回执、宽度/缩放截图和真实跨公网终端仍必须分别保存证据。状态见 `docs/framework/workstreams/cloud-control-r5-02-product-closure.{md,json}`。
+
+
+## R5.2.4 · Side Panel 自助管理外部应用授权（源码候选）
+
+**普通用户不必持有 Provider 管理员密钥。** 在真实 Side Panel「云控」完成配对、已安装 Task 验证和「批准并启用」后，展开「外部应用授权」，填写外部应用名称，选择**一个**已批准的固定 Task，决定该应用是否可读取结果正文（默认关闭）。只有 Browser 已对这个 Task 单独批准正文回传时，才允许额外开启应用正文读取。点击「创建应用凭据」后，**只显示一次** 256 位客户端令牌；复制到经审核的外部服务的凭据管理系统，关闭面板、Stop 或解除配对后页面清除令牌，不会写入 Browser IndexedDB/localStorage/日志。重新获得令牌请撤销旧客户端并新建。
+
+应用管理区域可以刷新、分页查看**当前 Executor + Pairing + Grant** 范围内的有效客户端和每个客户端获准调用的固定任务，也可以二次点击「确认撤销」来使指定客户端的提交和状态查询凭据失效。Stop 不能创建新外部授权，但原配对仍可查看/撤销既有客户端；解除配对会从 Provider 撤销本机凭据并间接失效关联客户端。Browser 不会向页面暴露 `/admin/*`、管理员 token 或任意脚本上传入口。
+
+在已有可信 HTTPS Provider 环境中，外部系统拿到一次性令牌后，按上面的 `submit:remote`、`status:remote` 示例调用**自己被批准的固定 Task**。Provider 侧使用既有 `/v1/submit` 与 `/v1/job-status`，不需要新 Worker 或新 Provider。外部服务维护者负责安全保存令牌、设置正式 HTTPS 域名、证书、访问控制与凭据撤换；不要直接把密钥贴到公开群聊或命令行历史中。服务端管理员仍可以使用既有 `client:grant` / `client:revoke` 运维流程。
+
+自助操作对应的 Provider 接口为 `/v1/client-list`（分页只读）、`/v1/client-grant`（Executor-auth、固定 Task pin、明确 allowResult）、`/v1/client-revoke`（仅能撤销同一配对/授权代际），均复用已有 Executor bearer credential 和持久 Provider clients 表。其他浏览器、外部 Client token 和旧配对不能使用这些接口管理该浏览器授权。详细拒绝性测试位于 `tests/cloud-control/remote-https-r52.test.mjs`，Side Panel UI 合同测试位于 `tests/cloud-control/r52-product-ui.test.mjs`。
+
+**证据界限**：当前只是已提交源码/测试候选。必须等对应 SHA 的 Actions 通过，才能算 `COMPONENT_TESTED`；完整 Mac Chrome 双 Task、真实 UI 截图、远端公网服务等仍为 `NATIVE_PENDING` / `REMOTE_NATIVE_PENDING`，不使用 Node 合成 RunRef 伪造用户执行。
