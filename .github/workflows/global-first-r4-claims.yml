@@ -1,0 +1,35 @@
+name: Global First R4 claims and source evidence
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/product/browser-extension-ecosystem/global-first-r2-decision.zh-CN.md'
+      - 'docs/product/browser-extension-ecosystem/global-first-positioning.zh-CN.md'
+      - 'docs/product/browser-extension-ecosystem/marketing-playbook.zh-CN.md'
+      - 'docs/product/browser-extension-ecosystem/competitor-timeline.json'
+      - 'docs/product/browser-extension-ecosystem/first-claims-ledger.json'
+      - 'docs/product/browser-extension-ecosystem/seo/**'
+      - 'docs/framework/workstreams/evidence/global-first-r4-20261013/**'
+      - 'tests/environment/global-first-r4-claims.test.mjs'
+      - '.github/workflows/global-first-r4-claims.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: global-first-r4-claims-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  claim-evidence-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify existing GF ledger, competing previews, truthful SEO limits
+        run: node --test tests/environment/global-first-r4-claims.test.mjs
