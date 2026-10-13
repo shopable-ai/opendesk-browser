@@ -21,7 +21,14 @@ export function wantedFocusRules(state,at=Date.now()){
   if(!state.enabled)return rules;
   for(const site of state.sites.slice().sort((a,b)=>a.host.localeCompare(b.host))){
     const reason=focusReason(state,site,at);
-    if(reason)rules.push(focusRuleForSite(site,FOCUS_RULE_FIRST+rules.length,reason,state.whitelist));
+    if(reason){
+      const overrides=site.subdomains?state.sites.filter(child=>
+        child.host!==site.host&&child.host.endsWith('.'+site.host)).map(child=>child.host):[];
+      // Chrome excludedRequestDomains excludes descendants as well. The model
+      // therefore requires an overriding child site to include subdomains.
+      const excluded=[...new Set([...state.whitelist,...overrides])];
+      rules.push(focusRuleForSite(site,FOCUS_RULE_FIRST+rules.length,reason,excluded));
+    }
   }
   if(rules.length>FOCUS_MAX_SITES)throw focusError('限制网站数量超过安全上限','E_FOCUS_RULE');
   return rules;
