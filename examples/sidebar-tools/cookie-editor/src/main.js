@@ -423,7 +423,7 @@ function nativeInput(row){
   const lookup=new URL(liveTarget.origin);lookup.pathname=row.path;
   if(lookup.pathname!==row.path)
     throw new Error('Cookie Path 无法无损映射为 Chrome URL，请使用标准 URL 编码的路径');
-  return {url:liveTarget.url,name:row.name,value:row.value,path:row.path,
+  return {url:lookup.href,name:row.name,value:row.value,path:row.path,
     ...(row.hostOnly?{}:{domain:row.domain}),secure:row.secure,httpOnly:row.httpOnly,
     sameSite:row.sameSite,...(row.session?{}:{expirationDate:row.expirationDate}),
     ...(row.storeId?{storeId:row.storeId}:{}),
@@ -438,7 +438,9 @@ async function revealBrowserValue(row){
   if(liveSecrets.has(identity)){liveSecrets.delete(identity);render();return;}
   setBusy(true);
   try{
-    const receipt=await browserSdk().cookies.get({url:target.url,name:row.name,
+    const lookup=new URL(target.origin);lookup.pathname=row.path;
+    if(lookup.pathname!==row.path)throw new Error('Cookie Path 无法精确查询');
+    const receipt=await browserSdk().cookies.get({url:lookup.href,name:row.name,
       domain:row.domain,path:row.path,...(row.storeId?{storeId:row.storeId}:{}),
       ...(row.partitionKey?{partitionKey:row.partitionKey}:{}),includeValues:true});
     if(!stillCurrent(id,target))return;
