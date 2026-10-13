@@ -83,13 +83,50 @@ export function createScheduleRepository({storage,clock,namespace,session}){
     const needed=offset+limit+1;
     let rows;
     if(typeof tx.scan==='function'){
-      const grouped=[];
-      for(let generation=definition.generation;generation>=1&&grouped.length<needed;generation--){
-        const prefix=SCHEDULE_FIRE_PREFIX+'sched:'+definition.scheduleId+':'+generation+':';
-        grouped.push(...await tx.scan('frameworkKV',
-          {prefix,direction:'prev',limit:needed-grouped.length}));
+      let page=null;
+      if(offset>=256&&typeof tx.countPrefix==='function'&&definition.generation<=32){
+        // A deep page must never hydrate offset+limit previous Fire values.
+        // Skip completed generations using native IDB prefix counts. This
+        // shortcut is valid ONLY if adjacent generation time ranges do not
+        // overlap, otherwise preserve the original conservative history path.
+        const groups=[];
+        let newerMin=null,nonOverlapping=true;
+        for(let generation=definition.generation;generation>=1;generation--){
+          const prefix=SCHEDULE_FIRE_PREFIX+'sched:'+definition.scheduleId+':'+generation+':';
+          const count=await tx.countPrefix('frameworkKV',prefix);
+          if(count===0)continue;
+          const [newest]=await tx.scan('frameworkKV',{prefix,direction:'prev',limit:1});
+          const [oldest]=await tx.scan('frameworkKV',{prefix,direction:'next',limit:1});
+          if(!newest||!oldest||newest.scheduledAt<oldest.scheduledAt||
+            newerMin!==null&&newest.scheduledAt>newerMin){
+            nonOverlapping=false;break;
+          }
+          newerMin=oldest.scheduledAt;
+          groups.push({prefix,count});
+        }
+        if(nonOverlapping){
+          let skip=offset,left=limit+1;
+          page=[];
+          for(const group of groups){
+            if(skip>=group.count){skip-=group.count;continue;}
+            const part=await tx.scan('frameworkKV',
+              {prefix:group.prefix,direction:'prev',offset:skip,limit:left});
+            page.push(...part);
+            left-=part.length;skip=0;
+            if(left<=0)break;
+          }
+        }
       }
-      rows=grouped.sort((a,b)=>b.scheduledAt-a.scheduledAt).slice(offset,offset+limit+1);
+      if(page!==null)rows=page.sort((a,b)=>b.scheduledAt-a.scheduledAt);
+      else{
+        const grouped=[];
+        for(let generation=definition.generation;generation>=1&&grouped.length<needed;generation--){
+          const prefix=SCHEDULE_FIRE_PREFIX+'sched:'+definition.scheduleId+':'+generation+':';
+          grouped.push(...await tx.scan('frameworkKV',
+            {prefix,direction:'prev',limit:needed-grouped.length}));
+        }
+        rows=grouped.sort((a,b)=>b.scheduledAt-a.scheduledAt).slice(offset,offset+limit+1);
+      }
     }else{
       rows=(await fires(tx)).filter(row=>row.scheduleId===definition.scheduleId)
         .sort((a,b)=>b.scheduledAt-a.scheduledAt).slice(offset,offset+limit+1);

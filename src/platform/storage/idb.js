@@ -299,7 +299,13 @@ export function transact(db, stores, mode, work, {raw = false} = {}) {
       scan: (store,options) => cursorPage(store,options,false),
       keys: (store,options) => cursorPage(store,options,true),
        // Internal key-preserving cursor for linear-memory, linear-I/O migration.
-       scanEntries: (store,options) => cursorPage(store,options,false,true)
+       scanEntries: (store,options) => cursorPage(store,options,false,true),
+       countPrefix: (store,prefix) => {
+         invariant(typeof prefix==='string'&&prefix.length>0,'E_SCHEMA','Invalid bounded IDB count');
+         const range=globalThis.IDBKeyRange;
+         invariant(typeof range?.bound==='function','E_VERSION','Native IDBKeyRange unavailable');
+         return enqueue(() => object(store).count(range.bound(prefix,prefix+'\uffff')));
+       }
     });
     const abort = error => {
       failure ||= error;

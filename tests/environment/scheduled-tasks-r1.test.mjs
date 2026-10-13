@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {nextScheduleAt,parseWallScheduleTime,formatWallScheduleTime,recentMissedAt} from '../../src/platform/tasks/schedule-time.js';
-import {scheduleFireId,fireKey,validateScheduleInput} from '../../src/platform/tasks/schedule-contract.js';
+import {scheduleFireId,fireKey,scheduleKey,validateScheduleInput} from '../../src/platform/tasks/schedule-contract.js';
 import {createScheduleRepository} from '../../src/platform/tasks/schedule-repository.js';
 import {createScheduleService,scheduledHostDocumentIds} from '../../src/platform/tasks/schedule-service.js';
 import {createScheduledTaskHost} from '../../src/ui/scheduled-task-host.js';
@@ -12,9 +12,9 @@ const millis=value=>Date.parse(value);
 function storageFake(){
   const buckets=new Map([['frameworkKV',new Map()],['commandJournal',new Map()],['runs',new Map()]]);
   let queue=Promise.resolve();
-  const scanPrefixes=[],scanResumeKeys=[];
+  const scanPrefixes=[],scanResumeKeys=[],scanRanges=[];
   return {
-    scanPrefixes,scanResumeKeys,
+    scanPrefixes,scanResumeKeys,scanRanges,
     put(store,key,value){buckets.get(store).set(key,structuredClone(value));},
     transaction(names,mode,callback){
       const work=()=>callback({
@@ -22,12 +22,14 @@ function storageFake(){
         put:async(store,row,key)=>{buckets.get(store).set(key,structuredClone(row));},
         all:async store=>structuredClone([...buckets.get(store).values()]),
         scan:async(store,{prefix,direction='next',offset=0,limit=50})=>{
-          scanPrefixes.push(prefix);
+          scanPrefixes.push(prefix);scanRanges.push({prefix,direction,offset,limit});
           const rows=[...buckets.get(store).entries()].filter(([key])=>String(key).startsWith(prefix))
             .sort(([a],[b])=>a<b?-1:a>b?1:0);
           if(direction==='prev')rows.reverse();
           return structuredClone(rows.slice(offset,offset+limit).map(([,value])=>value));
         },
+        countPrefix:async(store,prefix)=>[...buckets.get(store).keys()]
+          .filter(key=>String(key).startsWith(prefix)).length,
         scanEntries:async(store,{prefix,afterKey,limit=50})=>{
           scanPrefixes.push(prefix);
           if(afterKey!==undefined)scanResumeKeys.push(afterKey);
@@ -591,4 +593,26 @@ test('R2.3 index migration seeks forward by original Fire primary key over 1300 
   const recent=await f.repo.history({scheduleId:plan.scheduleId,offset:0,limit:20});
   assert.equal(recent.history.length,20);
   assert.equal(new Set(recent.history.map(x=>x.fireId)).size,20);
+});
+
+test('R2.3 deep history offset skips old generations without allocating the full history',async()=>{
+  const f=await fixture(),plan=await f.repo.save(f.input),base=f.getTime()-1200*60000;
+  f.db.put('frameworkKV',scheduleKey(plan.scheduleId),{...plan,generation:10});
+  const historyRows=[];
+  for(let i=0;i<1200;i++){
+    const generation=i<600?9:10,scheduledAt=base+i*60000;
+    const fireId=scheduleFireId(plan.scheduleId,generation,scheduledAt);
+    const row={tag:'schedule-fire-v1',namespace:f.namespace,
+      fireId,scheduleId:plan.scheduleId,generation,scheduledAt,
+      deadlineAt:scheduledAt+300000,createdAt:scheduledAt,
+      status:'MISSED',runId:null,resultId:null};
+    f.db.put('frameworkKV',fireKey(fireId),row);
+    historyRows.push(row);
+  }
+  const result=await f.repo.history({scheduleId:plan.scheduleId,offset:900,limit:20});
+  const expected=historyRows.sort((a,b)=>b.scheduledAt-a.scheduledAt).slice(900,920);
+  assert.equal(result.history.length,20);
+  assert.deepEqual(result.history.map(row=>row.fireId),expected.map(row=>row.fireId));
+  assert(f.db.scanRanges.some(row=>row.offset>=300&&row.limit<=21),
+    'the native deep-page path must offset-seek without cloning 900 Fire values');
 });
