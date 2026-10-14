@@ -1,0 +1,13 @@
+{
+  "sourceCommit": "71963711e52c90f1cc644aa1e9fbedd85b6dfc36",
+  "integratedHead": "91c39d725a065ad54440b6721637c308e0684314",
+  "pushExitCode": 0,
+  "remoteMain": "91c39d725a065ad54440b6721637c308e0684314",
+  "matrixWorkingBytesPreservedDuringPush": true,
+  "matrixWorkingSha256BeforePush": "d4ee9e36dd6fe9acf6e50c73d26350fa6c2d84ffd73e21b88e991a083746f10c",
+  "status": "PUSHED",
+  "format": "opendesk.stay-focus.boundary-main-delivery.v1",
+  "productAcceptance": "PRODUCT_NOT_ACCEPTED",
+  "sourceAndProductEvidence": "Existing candidate-binding.json remains unchanged; no new Native/F3/ZIP acceptance",
+  "pushLogSha256": "005ebc78a9c770409d5f02261b5bd9ce8b398bab0a69adfd37499c4c421612f2"
+}

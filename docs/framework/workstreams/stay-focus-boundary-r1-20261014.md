@@ -1,6 +1,6 @@
 # Stay Focus 业务边界最小整理 R1
 
-日期：2026-10-14（Asia/Shanghai）。负责人：本对话 `01a13967-10bb-7d62-b97c-2b06c08817c0`。状态：SOURCE_COMPLETE / GIT_INTEGRATION_PENDING。分支：main；起始 HEAD：`5c959712`。只读子 Agent 负责构建发现、生命周期证据与计划评审；本对话独占落盘及 Git 事务。
+日期：2026-10-14（Asia/Shanghai）。负责人：本对话 `01a13967-10bb-7d62-b97c-2b06c08817c0`。状态：DELIVERED / PRODUCT_NOT_ACCEPTED。分支：main；起始 HEAD：`5c959712`。只读子 Agent 负责构建发现、生命周期证据与计划评审；本对话独占落盘及 Git 事务。
 
 ## 一屏方案与通过条件
 
@@ -170,3 +170,11 @@ flowchart TD
 ### 提交前远端核对
 
 远端 main 当前为 `50827de6`，本机为 `5da04474`，远端领先两项 Browser SDK 文档/检查器提交（`ea92aef0`、`50827de6`）。四个 incoming 路径均不属于本任务；其中 `docs/api/browser-sdk-interface-matrix.json` 有其他负责人的未提交改动，工作字节又与远端不同。为不 stash/覆盖或擅自合并他人的矩阵，先完成本任务独立 main 提交；正常 push 如受非 fast-forward 拒绝则如实记录，由该矩阵负责人先协调主干集成，不为推送绕过 main/不创建分支。源码整理和证据不受这一 Git 集成冲突影响。
+
+### 主干集成与实际推送（后续交接）
+
+源码提交为 `71963711e52c90f1cc644aa1e9fbedd85b6dfc36`。首次正常 push 被 non-fast-forward 拒绝，随后 merge 因会覆盖其他 Agent 的矩阵修改而中止；失败记录仍保留在本任务 artifacts。用户续接要求由本任务合理判断时，main 已存在其他 Agent 完成的集成提交 `91c39d725a065ad54440b6721637c308e0684314`，其父提交为本任务源码提交与远端 `5b82e3fd`。本任务没有 stash、重置或覆写矩阵。
+
+推送前逐一核对本任务 50 个已提交文件，工作字节均与 `71963711` 一致；集成只引入远端原有的八个其他任务路径。复用该集成记录中矩阵检查及六项定向测试的证据，不重新实施 Browser SDK。正常 `git push origin main` 成功，远端从 `5b82e3fd` 前进至 `91c39d72`；推送前后矩阵工作字节 SHA-256 均为 `d4ee9e36dd6fe9acf6e50c73d26350fa6c2d84ffd73e21b88e991a083746f10c`，仍为未提交状态。
+
+本次续接仅补充本任务交付记录，不更改运行源码。已有组件、构建、Verify 和原生记录仍绑定原冻结输入与产物；不将它们升级为新 main 的全量原生/F3/ZIP 验收。新增推送 receipt 和原始日志见同名证据目录中的 `delivery-main-push.json`、`push-after-integration.log`；旧 receipt、截图、失败日志和候选身份不变。
