@@ -160,6 +160,7 @@ export function normalizeDirectBrowserArguments(operation,value){
     if(Object.hasOwn(rule,'const')&&item!==rule.const||
        Array.isArray(rule.enum)&&!rule.enum.includes(item))
       throw fail('E_SCHEMA','Direct Chrome API argument value mismatch');
+    if(rule.type===undefined&&(Array.isArray(rule.enum)||Object.hasOwn(rule,'const')))return;
     switch(rule.type){
       case 'object':{
         fields(item,Object.keys(rule.properties??{}),rule.required??[]);
