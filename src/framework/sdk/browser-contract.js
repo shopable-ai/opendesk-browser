@@ -32,7 +32,7 @@ function entry(operation,capability,contexts,chromePermissions,effect,risk,siteS
     inputSchema:operationSchemas(operation)?.input,outputSchema:operationSchemas(operation)?.output});
 }
 const tool=['sidebar-tool'],both=['sidebar-tool','page-sdk'];
-export const BROWSER_OPERATIONS=Object.freeze({
+const MANUAL_BROWSER_OPERATIONS=Object.freeze({
   'browser.capabilities.list':entry('browser.capabilities.list',null,both,[],'read','low'),
   'browser.capabilities.getStatus':entry('browser.capabilities.getStatus',null,both,[],'read','low'),
   'browser.contextMenu.getStatus':entry('browser.contextMenu.getStatus','browser.contextMenu',tool,['contextMenus'],'read','low','approved-origin'),
@@ -86,6 +86,29 @@ export const BROWSER_OPERATIONS=Object.freeze({
   'browser.cookies.observe.read':entry('browser.cookies.observe.read','browser.cookies.observe',tool,['cookies'],'read','high','approved-cookie-site','IMPLEMENTED','bounded-session'),
   'browser.cookies.observe.stop':entry('browser.cookies.observe.stop','browser.cookies.observe',tool,['cookies'],'write','high','approved-cookie-site','IMPLEMENTED','bounded-session'),
   'browser.operations.cancel':entry('browser.operations.cancel','browser.operations',tool,[],'write','medium','owned-operation','IMPLEMENTED')
+});
+// Ordinary DIRECT methods are built from the approved Chromium/SDK matrix.
+// An additional safe DIRECT method now needs no manually maintained Registry
+// entry, Schema table case, SDK wrapper, Host branch or Chrome call adapter.
+const generatedBrowserDirect=Object.fromEntries(APPROVED_BROWSER_DIRECT_BINDINGS.map(row=>{
+  if(Object.hasOwn(MANUAL_BROWSER_OPERATIONS,row.operation)||row.mode!=='DIRECT'||
+     row.siteScope!=='none'||row.effectClass!=='read'||row.requiresUserGesture||
+     !Array.isArray(row.requiredCapabilities)||!Array.isArray(row.requiredChromePermissions)||
+     !Array.isArray(row.supportedContexts)||row.supportedContexts.length!==1||
+     row.supportedContexts[0]!=='sidebar-tool')
+    throw fail('E_CONTRACT','Invalid generated Browser DIRECT registration');
+  return [row.operation,Object.freeze({...shared,operation:row.operation,
+    namespace:row.operation.split('.').slice(0,-1).join('.'),
+    maxRequestBytes:row.maxRequestBytes,maxResponseBytes:row.maxResponseBytes,
+    implementation:'IMPLEMENTED',supportedContexts:Object.freeze([...row.supportedContexts]),
+    requiredCapabilities:Object.freeze([...row.requiredCapabilities]),
+    requiredChromePermissions:Object.freeze([...row.requiredChromePermissions]),
+    effectClass:'read',riskLevel:row.riskLevel,siteScope:'none',requiresUserGesture:false,
+    lifecycle:row.lifecycle,inputSchema:row.inputSchema,outputSchema:row.outputSchema
+  })];
+}));
+export const BROWSER_OPERATIONS=Object.freeze({
+  ...MANUAL_BROWSER_OPERATIONS,...generatedBrowserDirect
 });
 assertBrowserSchemaCoverage(BROWSER_OPERATIONS);
 export function browserOperation(name){return Object.hasOwn(BROWSER_OPERATIONS,name)?BROWSER_OPERATIONS[name]:null;}
