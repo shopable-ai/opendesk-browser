@@ -1,6 +1,6 @@
 # Import 场景导航（R7.7）
 
-> **混合 Import 的完整测试分母（R7.9.4，待实现）**：同一个**本地多文件** `main.js` 必须有 3 条真实静态 import：① 固定 HTTPS ESM、② 精确 npm ESM、③ 相对目录文件；同一次运行另调用 ④ `opendesk.libraries` 显式启用的固定预置库（Page `query-string` / Controller `axios`）及 ⑤ 默认 `_`、`dayjs`（**都不再写 import**）。它不同于下列已有**单文件** D3 演示，不能把单库历史 PASS 冒充混合五来源 PASS。完整最小源码、必要锁和验收规则见[五种依赖的唯一使用合同](../../../docs/framework/universal-dependency-runtime-usage-contract.zh-CN.md)。不要为了凑内置 import 加入 `@opendesk/ui`、按钮或 DOM 挂载。
+> **混合 Import 的完整测试分母（R7.9.4，项目源码已提交、Chrome 待验收）**：同一个**本地多文件** `main.js` 必须有 3 条真实静态 import：① 固定 HTTPS ESM、② 精确 npm ESM、③ 相对目录文件；同一次运行另调用 ④ `opendesk.libraries` 显式启用的固定预置库（Page `query-string` / Controller `axios`）及 ⑤ 默认 `_`、`dayjs`（**都不再写 import**）。它不同于下列已有**单文件** D3 演示，不能把单库历史 PASS 冒充混合五来源 PASS。完整最小源码、必要锁和验收规则见[五种依赖的唯一使用合同](../../../docs/framework/universal-dependency-runtime-usage-contract.zh-CN.md)。不要为了凑内置 import 加入 `@opendesk/ui`、按钮或 DOM 挂载。
 
 打开标准测试页 `http://127.0.0.1:43111/demo-form.html`，在该网页打开 Side Panel。若服务未启动，仓库根目录运行 `python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks`；已有同内容服务时直接复用。
 
@@ -34,3 +34,12 @@ node tests/framework/page-browser-worker-r243-cft.mjs
 将 `d3` 改为 `classic`，复用 Page Classic A/B、Controller Classic、固定 npm/bare mitt 的真实驱动。工具构建与安装测试命令见工具 README。每次先核对测试资源、输入和已有证据，避免重跑没有变化的场景。
 
 完整 SOURCE / NODE / BUILD / CHROME_CFT / MAC_NATIVE / SECURITY 状态、旧候选身份和当前构建限制见 [R7.7 交付记录](../../../docs/framework/workstreams/import-runtime-r77-20261014.md)。不支持任意裸 npm 包或任意传递 ESM 图；所需网站/来源授权仍必须由真实 Chrome 手势取得。
+
+## R7.9.4 本地多文件混合 Import（源码已提交，真实 Chrome 待验收）
+
+| 示例 | 同一次 `main()` 的三条 import | 按需与默认库 |
+| --- | --- | --- |
+| [Page 五机制综合示例](../mixed-import-page/README.zh-CN.md) | D3 HTTPS `max()` + npm lodash-es `escape()` + 相对 `getScores()` | `queryString.parse()`；默认 `_.words()`、`dayjs()`；读取 `document.title` |
+| [Controller 五机制综合示例](../mixed-import-controller/README.zh-CN.md) | 同样的固定 HTTPS、npm、相对模块 | 真实 Axios `getUri()`；默认 `_.words()`、`dayjs()`；`page.title()` 只经原 Worker 代理 |
+
+不是在单文件编辑器中硬塞项目目录，也不增加 `@opendesk/ui`。两个 `package-lock.json`、HTTPS 锁及缓存原始字节均随项目保存；[定向 Node/Build 测试](../../../tests/environment/mixed-import-projects.test.mjs)的 Webpack 场景需要先在**两个**项目目录 `npm ci` 并显式设置 `OPENDESK_MIXED_IMPORT_BUILD=1`。新组合的实际 Chrome 回执尚须 Mac 本地按既有 RunHost/USER_SCRIPT 验收，不将 R7.7 的单库 D3 PASS 写成此处 PASS。
