@@ -83,7 +83,6 @@
  'use strict';
  const KEY='opendesk.adblock.preview.r1';
  const domains=['news.example.com','video.example.com','shop.example.com','chrome://settings'];
- const mockCounts={'news.example.com':18,'video.example.com':42,'shop.example.com':26};
  const $=id=>document.getElementById(id);
  const defaultState=()=>({global:true,allowed:[],domain:domains[0],night:false});
  let state=defaultState();
@@ -98,16 +97,11 @@
   const eligible=supported(),siteOn=eligible&&state.global&&!state.allowed.includes(state.domain);
   $('global-switch').setAttribute('aria-checked',String(state.global));
   $('global-status').className='status-line'+(state.global?'':' off');
-  $('global-status-text').textContent=state.global?'全局保护已开启':'全局保护已暂停';
+  $('global-status-text').textContent=state.global?'拦截中':'已关闭';
   $('site-host').textContent=state.domain;
-  $('site-avatar').textContent=eligible?state.domain[0].toUpperCase():'—';
   $('site-meta').textContent=eligible?'此网页支持过滤':'浏览器受限页面';
   $('site-switch').disabled=!state.global||!eligible;
   $('site-switch').setAttribute('aria-checked',String(siteOn));
-  $('site-description').textContent=!eligible?'此页面无法使用':!state.global?'请先开启全局保护':siteOn?'仅影响当前域名':'当前网站在例外列表中';
-  $('blocked-count').textContent=siteOn?String(mockCounts[state.domain]||0):'—';
-  $('count-label').textContent=siteOn?'本网站已拦截的请求':'当前不进行过滤';
-  $('site-help').textContent=!eligible?'Chrome 内部页面不允许扩展进行广告过滤。':!state.global?'开启全局保护后，可单独管理每个网站。':siteOn?'网页显示异常时，关闭本网站拦截即可排除。':'本站过滤已关闭，可随时重新开启。';
   $('allow-count').textContent=String(state.allowed.length);
   $('domain-select').value=state.domain;
   $('stage').classList.toggle('night',state.night);
@@ -118,7 +112,7 @@
   $('allow-summary').textContent=state.allowed.length+' 个网站';
   const host=$('allow-rows');host.replaceChildren();
   if(!state.allowed.length){
-   const empty=document.createElement('div');empty.className='empty-state';empty.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 13.5 10 17l8-9"/><circle cx="12" cy="12" r="10"/></svg><strong>暂无例外网站</strong><p>所有支持的网站默认启用拦截</p>';host.append(empty);return;
+   const empty=document.createElement('div');empty.className='empty-state';empty.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 13.5 10 17l8-9"/><circle cx="12" cy="12" r="10"/></svg><strong>暂无例外网站</strong><p>未设置停用的网站</p>';host.append(empty);return;
   }
   state.allowed.forEach(domain=>{
    const row=document.createElement('div');row.className='allow-row';
