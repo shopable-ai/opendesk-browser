@@ -25,6 +25,7 @@ import {CAPTURE_SITE_STORE,CAPTURE_CAPABILITY,KNOWLEDGE_TOOL_ID,KNOWLEDGE_CAPABI
 import {TIME_REVIEW_ID,TIME_REVIEW_CAPABILITY,TIME_REVIEW_PROTOCOL,TIME_REVIEW_OPERATIONS,timeReviewPackageHash} from '../time-review/policy.js';
 import {TIME_REVIEW_KEY} from '../time-review/model.js';
 import {FOCUS_ID,FOCUS_CAPABILITY} from '../stay-focus/policy.js';
+import {AI_ID,AI_CAPABILITY} from '../ai-smart-access/policy.js';
 import {createTimeReviewPermissionControls} from '../time-review/host-controls.js';
 import {admitsTrustedTimeReview,TRUSTED_TIME_REVIEW_VERSION,trustedTimeReviewProvenanceChanged} from '../time-review/trusted-admission.js';
 
@@ -35,8 +36,16 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   // Native focus controls load from an audited extension-only classic WXT entry.
   // A missing sidecar fails closed; user-owned opaque sandbox cannot supply it.
   const focus=globalThis.__opendeskStayFocusTrustedUI||null;
+  const aiAccess=globalThis.__opendeskAiAccessTrustedUI||null;
   // A dynamic tool package cannot supply its own privileged Chrome runtime.
   function requireToolRuntime(tool){
+    if(tool?.capabilities?.includes(AI_CAPABILITY)&&
+      (tool.id!==AI_ID||aiAccess?.id!==AI_ID||aiAccess.capability!==AI_CAPABILITY||
+       !aiAccess.operations?.includes('aiAccess.status')||
+       typeof aiAccess.request!=='function'||typeof aiAccess.runTrustedOperation!=='function'||
+       typeof aiAccess.createPermissionControls!=='function'||typeof aiAccess.probe!=='function'))
+      throw Object.assign(new Error('当前扩展缺少 AI 智能访问可信运行能力，请升级扩展后再安装。'),
+        {code:'E_TOOL_RUNTIME_UNAVAILABLE'});
     if(!tool?.capabilities?.includes(FOCUS_CAPABILITY))return;
     if(tool.id!==FOCUS_ID||focus?.id!==FOCUS_ID||focus.capability!==FOCUS_CAPABILITY||
        !Array.isArray(focus.operations)||!focus.operations.includes('focus.status')||
@@ -130,6 +139,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     'knowledge.store':'管理此工具的本机知识收件箱（200 条 / 4 MiB）',
     'time.review':'明确开始后在后台记录聚焦、非空闲网站的域名与时长（仅本机）',
     'focus.control':'按单独批准的网站执行每日额度、时段与专注限制，Chrome DNR 拦截（仅本机）',
+    'ai.access':'仅由可信按钮管理 AI 网站自动代理，需要 Chrome 代理权限；其余网站直连',
     'browser.contextMenu':'在明确授权的网站显示 Chrome 右键菜单（最多三项）',
     'browser.scheduler':'经确认定时执行已安装的固定任务版本，只管理本工具的计划',
     'browser.tabs':'经用户单次批准打开或聚焦自己获准的标签页',
@@ -290,6 +300,17 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
           throw Object.assign(new Error('工具已关闭或不可用'),{code:'E_TOOL_CHANGED'});
       }});
     }}):null;
+  const aiPermissions=settingsView&&aiAccess?.createPermissionControls
+    ?aiAccess.createPermissionControls({api,doc,container:settingsView,notice,
+      runOperation:(operation,payload,event)=>{
+        const tool=active;
+        return aiAccess.runTrustedOperation({api,tool,operation,payload,event,
+          revocationEpoch:frameRevocationEpoch,assertCurrent:phase=>{
+            if(disposed||!tool||!samePackage(active,tool)||
+               phase==='initial'&&busy||phase!=='after-send'&&readOnlyPreview)
+              throw Object.assign(new Error('工具已关闭或不可用'),{code:'E_TOOL_CHANGED'});
+          }});
+      }}):null;
   const versionOrder=compareToolVersions;
   const readableCapability=id=>capabilities[id]||id;
   const addedCapabilities=(next,prior)=>next.capabilities.filter(id=>!prior.capabilities.includes(id));
@@ -613,20 +634,21 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     const enabled=Boolean(managed&&!enableReadError&&sidebarToolEnabled(enableRecords,id));
     timePermissions?.render(active,readOnlyPreview);
     focusPermissions?.render(active,readOnlyPreview,enabled);
+    aiPermissions?.render(active,readOnlyPreview,enabled);
     const sitePending=siteTogglePending.has(id);
     const isToc=managed&&id===READING_TOC_TOOL_ID&&active.capabilities.includes(TOC_CAPABILITY);
     if(!managed)tocSettingsOpen=false;
-    const show=managed&&tocSettingsOpen;
-    settingsButton.hidden=!managed;settingsButton.disabled=busy||sitePending;
+    const show=managed&&(tocSettingsOpen||id===AI_ID);
+    settingsButton.hidden=!managed||id===AI_ID;settingsButton.disabled=busy||sitePending;
     settingsButton.setAttribute('aria-expanded',String(show));
     // Time Review uses the same trusted static settings DOM as an inline
     // enrollment card. Do not replace/hide its live stats iframe.
-    const trustedInline=show&&(id===TIME_REVIEW_ID||id===FOCUS_ID||isCookieTool(active));
+    const trustedInline=show&&(id===TIME_REVIEW_ID||id===FOCUS_ID||id===AI_ID||isCookieTool(active));
     // Native approval/stop remains visible above a live sandbox, never inside it.
     if(trustedInline&&settingsView.nextElementSibling!==frameRoot)frameRoot.before?.(settingsView);
     else if(!trustedInline&&settingsView.previousElementSibling!==retiredDraft)retiredDraft.after?.(settingsView);
     display.setAttribute('data-trusted-tool-inline',String(trustedInline));
-    settingsView.hidden=!show;frameRoot.hidden=(show&&!trustedInline)||!(frame||nativeUI);
+    settingsView.hidden=!show;frameRoot.hidden=id===AI_ID||(show&&!trustedInline)||!(frame||nativeUI);
     renderCookieSettings(show);
     removeButton.hidden=readOnlyPreview;if(openTabButton)openTabButton.hidden=readOnlyPreview;
     if(enableButton){enableButton.textContent=enabled?'停用工具':'启用工具';enableButton.disabled=busy||enableReadError;
@@ -775,6 +797,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     // An installed Focus tool opens with a visible trusted first-use grant.
     tocSettingsOpen=!readOnly&&(
       tool.id===FOCUS_ID&&tool.capabilities.includes(FOCUS_CAPABILITY)||
+      tool.id===AI_ID&&tool.capabilities.includes(AI_CAPABILITY)||
       isCookieTool(tool)&&cookieSiteRecord(tool,websiteOrigin(currentPageTarget?.snapshot?.url))?.read!==true);
     tocScope='site';destroyFrame();active=tool;readOnlyPreview=readOnly;previewDirty=false;knowledgeDirty=false;
     frameRevocationEpoch=readOnly?null:(revocationEpochs[tool.id]??null);
@@ -1206,6 +1229,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       knowledgeOperation(operation)?KNOWLEDGE_CAPABILITY:
       TIME_REVIEW_OPERATIONS.includes(operation)?TIME_REVIEW_CAPABILITY:
       focus?.operations?.includes(operation)?focus.capability:
+      aiAccess?.operations?.includes(operation)?aiAccess.capability:
         '__unapproved__'))
       throw new Error('此工具没有被批准使用该能力');
     if(TIME_REVIEW_OPERATIONS.includes(operation)){
@@ -1261,6 +1285,11 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(focus?.operations?.includes(operation))return focus.request({
       api,tool,operation,payload,revocationEpoch,
       assertCurrent:()=>assertSession(source,token),requestBrowserClick,
+      openSettings:()=>{tocSettingsOpen=true;render();}
+    });
+    if(aiAccess?.operations?.includes(operation))return aiAccess.request({
+      api,tool,operation,payload,revocationEpoch,
+      assertCurrent:()=>assertSession(source,token),
       openSettings:()=>{tocSettingsOpen=true;render();}
     });
     if(operation==='knowledge.editorState'){
@@ -1912,6 +1941,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       // A static adapter cannot substitute for a live MV3 worker protocol.
       // Missing optional idle/DNR grants do not block installation.
       if(candidate.capabilities.includes(FOCUS_CAPABILITY))await focus.probe({api});
+      if(candidate.capabilities.includes(AI_CAPABILITY))await aiAccess.probe({api});
       const result=await installReviewedSidebarTool({api,lockManager,candidate,
         baseline,reviewApproved:true,
         market:release?{marketId:release.id,sha256:release.sha256,operationId}:null,

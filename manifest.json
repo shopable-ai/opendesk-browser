@@ -16,7 +16,8 @@
     "cookies",
     "notifications",
     "unlimitedStorage",
-    "alarms"
+    "alarms",
+    "proxy"
   ],
   "optional_permissions": [
     "bookmarks",

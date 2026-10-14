@@ -1,0 +1,15 @@
+{
+  "id": "ai-smart-access",
+  "version": "1.0.0",
+  "title": "AI 智能访问",
+  "description": "一键开启 AI 网站自动代理，其余网站直连；代理与激活由可信后台管理。",
+  "capabilities": [
+    "ai.access"
+  ],
+  "files": {
+    "html": "src/index.html",
+    "css": "src/style.css",
+    "js": "src/main.js"
+  },
+  "assets": []
+}
