@@ -54,9 +54,11 @@ export function scopedNativeHelper(base){
 } else {${traversal}}`;
   assert.equal(base.split('if command == "dump" {').length,2);
   assert.equal(base.split('if command == "press" {').length,2);
+  assert.equal(base.split('case "down":key(125)').length,2);
   return base.replace(traversal,dialog)
     .replace('if command == "dump" {','if command == "dump" || command == "dump-dialog" {')
-    .replace('if command == "press" {','if command == "press" || command == "press-dialog" {');
+    .replace('if command == "press" {','if command == "press" || command == "press-dialog" {')
+    .replace('case "down":key(125)','case "down":key(125)\n    case "open-date-picker":key(125,.maskAlternate)');
 }
 
 async function fileHash(file){
@@ -197,7 +199,7 @@ async function runNative(){
   assert.equal(process.platform,'darwin','R10.6 native driver is headed macOS CFT only');
   const extension=path.resolve(assertEnv('OPENDESK_R106_EXTENSION'));
   const nativeScope=process.env.OPENDESK_R106_NATIVE_SCOPE||'all';
-  assert(['all','owner'].includes(nativeScope),'Supported native scope: all or owner');
+  assert(['all','owner','trusted'].includes(nativeScope),'Supported native scope: all, owner or trusted');
   const binary=path.resolve(process.env.OPENDESK_R106_CHROME_BIN||chrome155);
   assert.equal(await realpath(binary),await realpath(chrome155),'Use the pinned CFT155 executable');
   assert(!extension.endsWith('/dist/development'),'Do not use shared daily dist/development as immutable native candidate');
@@ -446,6 +448,7 @@ async function runNative(){
       await deadline(()=>read(client,website,'document.readyState==="complete"'),'demo loaded');
       return {page,document:await read(client,website,'({url:location.href,title:document.title})')};
     });
+    if(nativeScope!=='trusted'){
     await recordCase('bookmarks-permission-denied',async()=>{
       await toolClick('#bookmark-create');const summary=await approve();await permissionChoice(false);
       const result=await output('bookmarks-output');assert.equal(result.code,'E_PERMISSION');
@@ -740,8 +743,44 @@ async function runNative(){
       assert(!nativeAlarms.some(x=>x.name==='opendesk.schedule.v1:'+ownershipSchedule));
       return {state,nativeBookmarks,nativeAlarms,review:report.uninstallReview};
     });
-    report.status=nativeScope==='all'?'CORE_PASS_MORE_CONTRACTS_NOT_TESTED':'OWNER_PASS_OTHER_CONTRACTS_NOT_TESTED';
-    report.remaining=['History real trusted query','Origin revoke','Cookies installed consumer native acceptance','remaining public SDK contracts and independent F3/ZIP'];
+    }
+    if(nativeScope==='trusted')await recordCase('ordinary-tool-cannot-access-trusted-host',async()=>{
+      await toolClick('#probe-boundaries');const boundary=await output('probe-output');
+      assert.deepEqual(boundary,{historyExposed:false,permissionsExposed:false,chromeRuntimeExposed:false,parentReadable:false});
+      return {boundary,sandbox:report.installed.frame};
+    });
+    await recordCase('trusted-history-user-selected-range',async()=>{
+      await click(client,side,'#tab-tools',report.trace);
+      await click(client,side,'#trusted-history-panel summary',report.trace);
+      const today=await read(client,side,'(()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-")})()');
+      const dates={};
+      for(const selector of ['#trusted-history-start','#trusted-history-end']){
+        await click(client,side,selector,report.trace);await native('key','open-date-picker');
+        report.screenshots.push(await screenshot(client,side,runDir,selector.slice(1)+'-native-picker'));
+        await native('key','return');
+        dates[selector]=await read(client,side,`document.querySelector(${quote(selector)}).value`);
+        assert.equal(dates[selector],today,'Native date picker must select the actual displayed current day');
+      }
+      await typeText(client,side,'#trusted-history-text','demo-form',report.trace);
+      return {dates,query:'demo-form',limit:await read(client,side,'document.querySelector("#trusted-history-limit").value'),sidePanel:report.sidePanelContext};
+    });
+    await recordCase('trusted-history-real-permission-denial',async()=>{
+      await click(client,side,'#trusted-history-search',report.trace);await permissionChoice(false);
+      const status=await deadline(async()=>{const value=await read(client,side,'document.querySelector("#trusted-history-status").textContent');return value.includes('未授予')?value:null;},'History permission denial');
+      assert.equal(await read(client,control,'chrome.permissions.contains({permissions:["history"]})'),false);
+      assert.equal(await read(client,side,'document.querySelector("#trusted-history-results").children.length'),0);
+      return {status,permission:false};
+    });
+    await recordCase('trusted-history-real-permission-and-query',async()=>{
+      await click(client,side,'#trusted-history-search',report.trace);await permissionChoice(true);
+      const status=await deadline(async()=>{const value=await read(client,side,'document.querySelector("#trusted-history-status").textContent');return value.startsWith('已返回 ')?value:null;},'Trusted History Host query');
+      const visits=await read(client,side,'[...document.querySelectorAll("#trusted-history-results .trusted-history-result")].map(n=>({title:n.querySelector("strong").textContent,url:n.querySelector("code").textContent,lastVisit:n.querySelector("small").textContent}))');
+      assert(visits.length>0&&visits.length<=25);assert(visits.some(x=>x.url===demoUrl));
+      assert.equal(await read(client,control,'chrome.permissions.contains({permissions:["history"]})'),true);
+      return {status,visits,permission:true,scope:'Actual trusted Side Panel document and user-selected current-day demo query only'};
+    });
+    report.status=nativeScope==='all'?'CORE_PASS_MORE_CONTRACTS_NOT_TESTED':nativeScope==='owner'?'OWNER_PASS_OTHER_CONTRACTS_NOT_TESTED':'TRUSTED_PASS_OTHER_CONTRACTS_NOT_TESTED';
+    report.remaining=['Origin revoke','Cookies installed consumer native acceptance','remaining public SDK contracts and independent F3/ZIP'];
     return report;
   }finally{
     if(client&&control&&report.alarmObserver)report.alarmObserverRemoved=await read(client,control,`(()=>{const observer=globalThis[${quote(alarmObserverKey)}];if(!observer)return false;chrome.alarms.onAlarm.removeListener(observer.listener);delete globalThis[${quote(alarmObserverKey)}];return true})()`).catch(error=>({error:String(error)}));

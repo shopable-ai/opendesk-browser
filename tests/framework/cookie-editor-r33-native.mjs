@@ -10,6 +10,7 @@ import {createHash,randomUUID} from 'node:crypto';
 import {setTimeout as sleep} from 'node:timers/promises';
 import {launchChrome} from './k5-sdk-native-launcher.mjs';
 import {connect,evaluate} from './sidebar-native-session.mjs';
+import {packageFingerprint} from '../../scripts/verify-package.mjs';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const fixture='http://127.0.0.1:43111/demo-form.html';
@@ -21,14 +22,23 @@ const binary=required('COOKIE_NATIVE_CHROME_BIN');
 const evidenceBase=required('COOKIE_NATIVE_EVIDENCE');
 const stage=process.env.COOKIE_NATIVE_STAGE==='all'?undefined:process.env.COOKIE_NATIVE_STAGE;
 const directory=path.join(evidenceBase,'native-core-'+new Date().toISOString().replace(/[:.]/g,'-')+'-'+randomUUID().slice(0,8));
+const driverFile=fileURLToPath(import.meta.url),driverBytes=await readFile(driverFile);
 await mkdir(directory,{recursive:true});
 const report={mode:'headed-owned-macos-CFT',startedAt:new Date().toISOString(),extension,fixture,
-  directory,scope:'Installed Side Panel core CRUD; all Cookie mutations originate in tool UI; Chrome API reads only',
+  directory,driver:{path:path.relative(root,driverFile),sha256:hash(driverBytes),bytes:driverBytes.length},scope:'Installed Side Panel core CRUD; all Cookie mutations originate in tool UI; Chrome API reads only',
   cases:Object.fromEntries(['launch','product-side-panel','official-install','active-fixture','read-grant']
     .map(id=>[id,{status:'NOT_TESTED'}])),screenshots:[],steps:[],complete:false};
 let launched,client,control,side,website,currentCase,toolSession;
 const trace=[];
 const persist=()=>writeFile(path.join(directory,'native-report.json'),JSON.stringify(report,null,2)+'\n');
+function requireNativeResource(){
+  const active=execFileSync('ps',['-axo','pid=,ppid=,comm='],{encoding:'utf8'}).split('\n')
+    .map(line=>line.trim().match(/^(\d+)\s+(\d+)\s+(.+)$/)).filter(Boolean)
+    .filter(([,pid,parent,command])=>command.includes('Chrome for Testing')&&!command.includes('/Helpers/')&&parent!=='1'&&Number(pid)!==launched?.metadata?.pid)
+    .filter(([,pid])=>{try{return !/(^|\s)--headless(?:=|\s|$)/.test(execFileSync('ps',['-p',pid,'-ww','-o','command='],{encoding:'utf8'}));}catch{return false;}})
+    .map(([,pid,parent])=>({pid:Number(pid),parent:Number(parent)}));
+  assert.equal(active.length,0,'E_NATIVE_RESOURCE_BUSY '+JSON.stringify(active));
+}
 async function fingerprint(){
   const files=[];
   async function scan(dir){
@@ -42,6 +52,7 @@ async function fingerprint(){
   await scan(extension);return {files,sha256:hash(JSON.stringify(files))};
 }
 function guard(){
+  requireNativeResource();
   assert(launched,'Owned launcher is required');
   const m=launched.metadata;
   process.kill(m.pid,0);process.kill(m.launcherPid,0);
@@ -217,6 +228,23 @@ try{
   const pkg=JSON.parse(pkgBytes);assert.equal(pkg.version,process.env.COOKIE_NATIVE_VERSION||'2.0.4');assert.equal(pkg.version,release.version);
   assert.equal(hash(pkgBytes),release.sha256);assert.equal(manifest.manifest_version,3);
   report.candidate={extensionFingerprint:await fingerprint(),toolVersion:pkg.version,toolFileSha256:hash(pkgBytes)};
+  report.candidate.extensionPackage=await packageFingerprint(extension);
+  const sourceCommit=process.env.COOKIE_NATIVE_CANDIDATE_SHA,receiptPath=process.env.COOKIE_NATIVE_BUILD_RECEIPT;
+  assert.equal(Boolean(sourceCommit),Boolean(receiptPath),'Provide source commit and build receipt together');
+  if(sourceCommit){
+    assert(/^[0-9a-f]{40}$/.test(sourceCommit));
+    const receiptBytes=await readFile(receiptPath),receipt=JSON.parse(receiptBytes);
+    assert.equal(receipt.status,'passed');assert.deepEqual(receipt.sourceDriftDuringBuild,[]);
+    assert.equal(receipt.report.packageHash,report.candidate.extensionPackage.packageHash);
+    assert(receipt.sourceInputs.length>0);
+    for(const input of receipt.sourceInputs){
+      const source=execFileSync('git',['show',sourceCommit+':'+input.path],{cwd:root,maxBuffer:32*1024*1024});
+      assert.equal(hash(source),input.sha256);assert.equal(source.length,input.bytes);
+    }
+    report.candidate.sourceCommit=sourceCommit;
+    report.candidate.buildReceipt={path:receiptPath,sha256:hash(receiptBytes),bytes:receiptBytes.length};
+  }
+  requireNativeResource();
   const fixtureResponse=await fetch(fixture,{signal:AbortSignal.timeout(5000)});assert(fixtureResponse.ok,'Existing canonical fixture unavailable');
   await step('launch',async()=>{
     launched=await launchChrome({root,binary,extension,headed:true,directory,label:'cookie-r33-core'});
@@ -257,7 +285,7 @@ try{
     await click(side,'#sidebar-tool-install');
     const open='[data-sidebar-tool-action="open"][data-sidebar-tool-id="cookie-editor"]';
     await until(()=>read(side,'Boolean(document.querySelector('+quote(open)+'))'),'Installed Cookie list item');
-    const installed=await read(side,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>{const t=v["opendesk.sidebar-tools.installed.v1"]?.find(t=>t.id==="cookie-editor");return t?{id:t.id,version:t.version,capabilities:t.capabilities}:null;})');
+    const installed=await read(side,'chrome.storage.local.get(["opendesk.sidebar-tools.installed.v1","opendesk.sidebar-tools.revocation-epochs.v1"]).then(v=>{const t=v["opendesk.sidebar-tools.installed.v1"]?.find(t=>t.id==="cookie-editor");return t?{id:t.id,version:t.version,capabilities:t.capabilities,installEpoch:v["opendesk.sidebar-tools.revocation-epochs.v1"]?.[t.id]??null}:null;})');
     assert.equal(installed?.version,imported?'2.0.3':pkg.version);await click(side,open);return {preview,installed};
   });
   await step('active-fixture',async()=>{
@@ -530,6 +558,8 @@ try{
   report.complete=true;
 }catch(error){report.error=error.stack;process.exitCode=1;console.error('COOKIE_NATIVE_FAIL '+error.message);}
 finally{
+  report.driverUnchanged=hash(await readFile(driverFile))===report.driver.sha256;
+  if(!report.driverUnchanged){report.complete=false;process.exitCode=1;}
   if(report.candidate)try{const after=await fingerprint();report.candidateUnchanged=after.sha256===report.candidate.extensionFingerprint.sha256;
     if(!report.candidateUnchanged){report.complete=false;process.exitCode=1;report.candidateDrift={after};}}
   catch(error){report.candidateCheckError=error.message;report.complete=false;process.exitCode=1;}
