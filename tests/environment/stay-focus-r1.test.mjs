@@ -307,6 +307,8 @@ test('quick website recommendations use existing trusted save and never auto-ins
     const request=async(op,data)=>{
       if(op==='focus.status')return state;
       if(op==='currentPage.info')return page;
+      if(op==='focus.disable')
+        throw Object.assign(new Error('仅受信任的设置可停用'),{code:'E_FOCUS_TRUSTED_CLICK'});
       if(op==='focus.site.put'){
         writes.push(data.site);
         state={...state,sites:[{...data.site,usedMs:0,remainingMs:data.site.minutes*60000,
@@ -327,6 +329,11 @@ test('quick website recommendations use existing trusted save and never auto-ins
   assert.match(youtube.get('quick-site').textContent,/youtube.com/);
   assert.match(youtube.get('quick-explanation').textContent,/共享 30 分钟/);
   assert.equal(youtube.writes.length,0,'recognition must not silently apply DNR limits');
+  youtube.get('focus-pause').handlers.click();
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.match(youtube.get('message').textContent,/打开外层可信设置.*停止所有 Stay Focus 限制/);
+  assert.equal(youtube.get('message').dataset.error,'false',
+    'a native-settings redirect cannot report that restrictions were stopped');
   youtube.get('quick-add').handlers.click();
   await new Promise(resolve=>setImmediate(resolve));
   assert.deepEqual(JSON.parse(JSON.stringify(youtube.writes)),[{

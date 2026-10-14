@@ -1,10 +1,13 @@
-# Stay Focus R1.0 · 独立保持专注工具
+# Stay Focus · 独立保持专注工具
 
 > 2026-10-13。工具 ID `stay-focus`。本项目是 OpenDesk 原有 Side Panel「工具」选项卡中的**可选独立工具**，不是另一款 Chrome 扩展，也不是 Time Review 子模块。
 
 **源码身份（2026-10-14）：此目录是正式官方发行工具的 UI 源码，不是仅供演示的副本。** `official-tools/catalog.json` 精确登记本 project，统一 packer 将 `tool.config.json` 声明的 `src/index.html`、`src/style.css`、`src/main.js` 编入可安装 JSON；README 与后台代码不在工具包中。计时、限制、可信审批和生命周期适配的扩展预编译源码在 [`src/stay-focus`](../../../src/stay-focus/README.zh-CN.md)。详见 [本轮调用链与边界证据](../../../docs/framework/workstreams/stay-focus-boundary-r1-20261014.md)。
 
 ## 用户场景与安装
+
+当前正式工具包为 **1.0.1**。用户只需安装包含预编译 Stay Focus 后台能力的 OpenDesk Browser 扩展，从「工具 → 发现」安装并打开，不需要 Node 或项目源码。缺少该可信运行能力的扩展会提示升级，不再假称可以使用。首次打开时原生授权区位于主要内容上方；工具内“前往设置停用限制”仅引导可信操作，不会直接请求沙箱停用。停用工具后重新启用，仍需通过可信控制区启动限制。
+
 
 1. 构建或使用包含此发行条目的 OpenDesk Chrome 扩展。在 Side Panel →「工具」→「发现 / 官方工具」，选择 **Stay Focus · 保持专注**，审阅能力和安装来源，安装后点击「打开」。
 2. 首屏的「快速开始」会在本机按当前网页**域名优先、标题辅助**推荐网站类型与每日额度；也可直接点击 YouTube / 哔哩哔哩 / TikTok / Instagram 的推荐按钮。YouTube 默认每天 15 分钟、社交网站默认 20 分钟。只需要点一次推荐按钮并确认，手动域名、子域名、共享额度等设置默认折叠。

@@ -23,6 +23,7 @@ import {CAPTURE_SITE_STORE,CAPTURE_CAPABILITY,KNOWLEDGE_TOOL_ID,KNOWLEDGE_CAPABI
   KNOWLEDGE_OPERATIONS,KNOWLEDGE_WORKSPACE_PREFIX,changeCaptureGrant,chatCaptureOrigin,knowledgePackageHash} from '../knowledge/policy.js';
 import {TIME_REVIEW_ID,TIME_REVIEW_CAPABILITY,TIME_REVIEW_PROTOCOL,TIME_REVIEW_OPERATIONS,timeReviewPackageHash} from '../time-review/policy.js';
 import {TIME_REVIEW_KEY} from '../time-review/model.js';
+import {FOCUS_ID,FOCUS_CAPABILITY} from '../stay-focus/policy.js';
 import {createTimeReviewPermissionControls} from '../time-review/host-controls.js';
 import {admitsTrustedTimeReview,TRUSTED_TIME_REVIEW_VERSION,trustedTimeReviewProvenanceChanged} from '../time-review/trusted-admission.js';
 
@@ -33,6 +34,16 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   // Native focus controls load from an audited extension-only classic WXT entry.
   // A missing sidecar fails closed; user-owned opaque sandbox cannot supply it.
   const focus=globalThis.__opendeskStayFocusTrustedUI||null;
+  // A dynamic tool package cannot supply its own privileged Chrome runtime.
+  function requireToolRuntime(tool){
+    if(!tool?.capabilities?.includes(FOCUS_CAPABILITY))return;
+    if(tool.id!==FOCUS_ID||focus?.id!==FOCUS_ID||focus.capability!==FOCUS_CAPABILITY||
+       !Array.isArray(focus.operations)||!focus.operations.includes('focus.status')||
+       typeof focus.request!=='function'||typeof focus.runTrustedOperation!=='function'||
+       typeof focus.createPermissionControls!=='function')
+      throw Object.assign(new Error('当前 OpenDesk Browser 缺少 Stay Focus 所需的可信运行能力；请升级扩展后再安装或打开工具。'),
+        {code:'E_TOOL_RUNTIME_UNAVAILABLE'});
+  }
   const nativeTimeReview=globalThis.__opendeskTrustedTimeReviewUI||null;
   const get=id=>doc.getElementById(id);
   const list=get('sidebar-tool-list'), listView=get('sidebar-tool-list-view');
@@ -560,9 +571,10 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       tool?.capabilities.includes(TOC_CAPABILITY)?TOC_CAPABILITY:null;
   }
   function renderTocSettings(){
-    timePermissions?.render(active,readOnlyPreview);
-    focusPermissions?.render(active,readOnlyPreview);
     const managed=Boolean(active&&!readOnlyPreview),id=active?.id;
+    const enabled=Boolean(managed&&!enableReadError&&sidebarToolEnabled(enableRecords,id));
+    timePermissions?.render(active,readOnlyPreview);
+    focusPermissions?.render(active,readOnlyPreview,enabled);
     const sitePending=siteTogglePending.has(id);
     const isToc=managed&&id===READING_TOC_TOOL_ID&&active.capabilities.includes(TOC_CAPABILITY);
     if(!managed)tocSettingsOpen=false;
@@ -571,16 +583,14 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     settingsButton.setAttribute('aria-expanded',String(show));
     // Time Review uses the same trusted static settings DOM as an inline
     // enrollment card. Do not replace/hide its live stats iframe.
-    const timeReviewInline=show&&id===TIME_REVIEW_ID;
-    // Keep keyboard focus order identical to visual order. The trusted
-    // settings section moves; the live sandbox iframe never re-parents.
-    if(timeReviewInline&&settingsView.nextElementSibling!==frameRoot)frameRoot.before?.(settingsView);
-    else if(!timeReviewInline&&settingsView.previousElementSibling!==retiredDraft)retiredDraft.after?.(settingsView);
-    display.setAttribute('data-time-review-inline',String(timeReviewInline));
-    settingsView.hidden=!show;frameRoot.hidden=(show&&!timeReviewInline)||!(frame||nativeUI);
+    const trustedInline=show&&(id===TIME_REVIEW_ID||id===FOCUS_ID);
+    // Native approval/stop remains visible above a live sandbox, never inside it.
+    if(trustedInline&&settingsView.nextElementSibling!==frameRoot)frameRoot.before?.(settingsView);
+    else if(!trustedInline&&settingsView.previousElementSibling!==retiredDraft)retiredDraft.after?.(settingsView);
+    display.setAttribute('data-trusted-tool-inline',String(trustedInline));
+    settingsView.hidden=!show;frameRoot.hidden=(show&&!trustedInline)||!(frame||nativeUI);
     renderCookieSettings(show);
     removeButton.hidden=readOnlyPreview;if(openTabButton)openTabButton.hidden=readOnlyPreview;
-    const enabled=!enableReadError&&sidebarToolEnabled(enableRecords,id);
     if(enableButton){enableButton.textContent=enabled?'停用工具':'启用工具';enableButton.disabled=busy||enableReadError;
       enableButton.setAttribute('aria-pressed',String(enabled));}
     if(enableHint)enableHint.textContent=enableReadError?'启停状态读取异常；已保护性停止运行。':
@@ -720,7 +730,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     return true;
   }
   function mountTool(tool,{readOnly=false,launchGate=null,forceSandbox=false}={}) {
-    tocSettingsOpen=false;tocScope='site';destroyFrame();active=tool;readOnlyPreview=readOnly;previewDirty=false;knowledgeDirty=false;
+    // An installed Focus tool opens with a visible trusted first-use grant.
+    tocSettingsOpen=!readOnly&&tool.id===FOCUS_ID&&tool.capabilities.includes(FOCUS_CAPABILITY);
+    tocScope='site';destroyFrame();active=tool;readOnlyPreview=readOnly;previewDirty=false;knowledgeDirty=false;
     frameRevocationEpoch=readOnly?null:(revocationEpochs[tool.id]??null);
     instance=crypto.randomUUID();
     const token=instance;
@@ -814,6 +826,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     }))return;
     const tool=toolById(id);
     if(!tool){notice('找不到已安装的工具',true);return;}
+    try{requireToolRuntime(tool);}
+    catch(error){notice((error.code||'E_TOOL_RUNTIME')+'：'+error.message,true);return;}
     if(enableReadError||!sidebarToolEnabled(enableRecords,id)){
       destroyFrame();active=tool;readOnlyPreview=false;tocSettingsOpen=true;render();backButton.focus?.();return;
     }
@@ -1753,6 +1767,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     render();notice(allow?'已恢复 '+origin+' 的目录':'已停用 '+origin+' 的目录');
   }
   function reviewCandidate(candidate,sourceLabel,release=null){
+    requireToolRuntime(candidate);
     const previous=toolById(candidate.id);
     pending=candidate;pendingBaseline=previous?structuredClone(previous):null;
     pendingRelease=release;pendingOperationId=release?crypto.randomUUID():null;
@@ -1808,6 +1823,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     let accepted=null;
     try{
       const candidate=validateSidebarToolPackage(pending),baseline=pendingBaseline;
+      requireToolRuntime(candidate); // Revalidate before committing reviewed bytes.
       const release=pendingRelease,operationId=pendingOperationId;
       // Bind confirmation to the exact reviewed local resource even if the
       // extension updated while this review was open. No stale-byte fallback.

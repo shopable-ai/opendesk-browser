@@ -1792,15 +1792,31 @@ test('Focus sandbox and trusted settings use the fixed product adapter through t
   assert.equal(calls.length,3,'retiring the host after send must not replay a native effect');
 });
 
-test('Focus capability cannot dispatch without its fixed extension-owned sidecar',async t=>{
+test('R3.1 Focus cannot open when the installed browser lacks its trusted runtime',async t=>{
   const previous=globalThis.__opendeskStayFocusTrustedUI;delete globalThis.__opendeskStayFocusTrustedUI;
   t.after(()=>{if(previous!==undefined)globalThis.__opendeskStayFocusTrustedUI=previous;});
   const tool={...sample,id:FOCUS_ID,capabilities:[FOCUS_CAPABILITY]},store=new Map([[SIDEBAR_TOOL_STORE,[tool]]]);
   const f=await hostFixture(t,{tool,store});
-  f.api.runtime.sendMessage=async()=>{throw new Error('Missing sidecar must never dispatch');};
-  f.ask('focus.status',{},'missing-sidecar');
-  await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId==='missing-sidecar'));
-  assert.equal(f.frame.contentWindow.sent.find(row=>row.requestId==='missing-sidecar').ok,false);
+  assert.equal(f.frame,undefined,'unsupported Focus cannot launch even a sandbox');
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
+  assert.match(f.elements['sidebar-tool-status'].textContent,/缺少 Stay Focus.*请升级扩展/);
+  assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[tool],'failed runtime gate preserves user install bytes');
+});
+
+test('R3.1 Focus first-use native controls share a screen with its live sandbox',async t=>{
+  const previous=globalThis.__opendeskStayFocusTrustedUI;
+  globalThis.__opendeskStayFocusTrustedUI={id:FOCUS_ID,capability:FOCUS_CAPABILITY,
+    operations:FOCUS_OPERATIONS,request:requestStayFocusOperation,
+    runTrustedOperation:runTrustedStayFocusOperation,
+    createPermissionControls(){return {render(){}};}};
+  t.after(()=>{if(previous===undefined)delete globalThis.__opendeskStayFocusTrustedUI;
+    else globalThis.__opendeskStayFocusTrustedUI=previous;});
+  const tool={...sample,id:FOCUS_ID,capabilities:[FOCUS_CAPABILITY]},store=new Map([[SIDEBAR_TOOL_STORE,[tool]]]);
+  const f=await hostFixture(t,{tool,store});
+  assert.equal(f.elements['sidebar-tool-settings-view'].hidden,false);
+  assert.equal(f.elements['sidebar-tool-frame'].hidden,false,'opening native setup must not hide Focus statistics');
+  assert.equal(f.elements['sidebar-tool-display'].attributes.get('data-trusted-tool-inline'),'true');
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,1);
 });
 
 test('Focus response keeps its acknowledged result when only an unrelated UI busy flag changes',async t=>{

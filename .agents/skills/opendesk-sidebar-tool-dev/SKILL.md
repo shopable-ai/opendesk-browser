@@ -40,6 +40,15 @@ description: Develop, preview, package, review, install and verify OpenDesk Brow
 
 **未来抽离的触发条件**：只有当独立发布节奏、跨产品复用或跨团队维护出现可验证的实际需求，并且现有 Catalog、源码哈希、固定入口、调试与验收可安全消费外部版本化源码时，才评估单独仓库或包。当前不引入跨仓库同步、符号链接式运行时加载、远程特权 JS 或自动扫描工具目录并授予权限。目录独立与安全隔离是两个不同指标。
 
+## R3.1 发行、安装与真实能力门槛
+
+- 普通用户只需要发布的 OpenDesk Browser 扩展和既有官方 Catalog 离线工具包；不得要求下载 `examples/`、安装 Node 或复制 Background。普通工具项目仍在 `examples/sidebar-tools/<tool-id>/`。
+- 有 UI 修改的正式工具必须提升其三段式版本，经原有 packer/catalog 生成发行资源；不能把同版本不同字节当作升级。不要复制安装器、Host、SDK 或权限模块。
+- 普通能力使用现有 Browser SDK；确需 Chrome 原生权限时只能依赖固定、经审计的预编译扩展逻辑。工具审阅、安装确认、启动都应检查目标发行扩展能否实际提供所需可信能力；缺失提示升级，不能假装安装成功。
+- Background 管持久计时与 DNR，Content Script 管网页显示，沙箱管 UI，Side Panel 固定 Host 管权限和可信点击。前台授权按钮应在首次打开的可见区域；已停用工具不可触发无效的原生授权。
+- 安装→打开→授权→核心运行→停用→卸载→清理失败恢复→重新安装均需有定向证据。Quick Notes/Time Review 是不受影响的对照；任何移除只能处理自有命名空间与自有 DNR ID。
+- Node、构建、CI、真实 Chrome 是不同证据等级：没有与本次最终候选身份一致的 Mac Chrome/CFT 原生凭据就标为 `NOT_TESTED`，不能提前给出 95+ 通过分。
+
 ## 产品方案与交互预览门槛
 
 新建或显著修改工具 UI 时，先执行 [统一开发规范的 8 阶段设计→预览→实施工作流](../../../docs/api/sidebar-tool-development.zh-CN.md#产品设计与对话预览关卡新建显著改造-ui-时适用)；**在当前对话上下文中直接显示可交互 HTML 原型**并提供独立 HTML 文件，不得只展示包 JSON、截图或一个下载链接就宣称完成产品预览。原型使用模拟数据，无 Chrome/Native 写入权限；用户评审设计后再打包/安装。设计原型不同于下文由 stage 产生的只读包预览。

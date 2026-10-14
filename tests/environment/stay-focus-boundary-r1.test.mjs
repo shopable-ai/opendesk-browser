@@ -8,9 +8,40 @@ import {FOCUS_STORE,FOCUS_RULE_FIRST,FOCUS_PROTOCOL,focusPackageHash} from '../.
 import {TIME_REVIEW_KEY} from '../../src/time-review/model.js';
 import {requestStayFocusOperation,runTrustedStayFocusOperation} from '../../src/stay-focus/tool-host.js';
 import {isSidebarToolHostSender} from '../../src/sidebar-tools/sender.js';
+import {createStayFocusPermissionControls} from '../../src/stay-focus/host-controls.js';
 
 const tool={format:'opendesk.sidebar-tool.v1',id:'stay-focus',version:'1.0.0',title:'Stay Focus',
   description:'Boundary regression',capabilities:['focus.control'],html:'<main>Focus</main>',css:'',js:'void 0;'};
+test('R3.1 a disabled Focus cannot request Chrome native permissions',async()=>{
+  class Node{
+    constructor(){this.children=[];this.listeners={};this.hidden=false;this.disabled=false;}
+    addEventListener(type,listener){this.listeners[type]=listener;}
+    append(...children){this.children.push(...children);}
+    scrollIntoView(){}
+    focus(){}
+  }
+  const container=new Node(),doc={createElement:()=>new Node()};
+  let requests=0,operations=0;
+  const controls=createStayFocusPermissionControls({api:{permissions:{request(){
+    requests++;return Promise.resolve(true);
+  }}},doc,container,notice:()=>{},runOperation:async()=>{operations++;}});
+  controls.render(tool,false,false);
+  const grant=container.children[0].children.find(node=>node.id==='stay-focus-enable-native');
+  assert.ok(grant);
+  assert.equal(grant.disabled,true,'stop state must gate Chrome permission requests');
+  grant.listeners.click({isTrusted:true});
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(requests,0);assert.equal(operations,0);
+  controls.render(tool,false,true);
+  assert.equal(grant.disabled,false);
+  grant.listeners.click({isTrusted:false});
+  assert.equal(requests,0);
+  grant.listeners.click({isTrusted:true});
+  assert.equal(requests,1,'native permission request begins synchronously from trusted click');
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(operations,1);
+});
+
 function fixture(){
   const focusState={enabled:true,usage:{pool:42}},otherState={keep:'time-review'};
   const data=new Map([[SIDEBAR_TOOL_STORE,[tool]],[FOCUS_STORE,focusState],[TIME_REVIEW_KEY,otherState],

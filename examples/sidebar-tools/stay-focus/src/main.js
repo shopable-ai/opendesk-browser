@@ -93,7 +93,9 @@
       else if(result?.tabs?.failed>0)message('Chrome 拦截规则已核对，但有 '+result.tabs.failed+' 个已打开页面无法自动切换，请手动重新导航。',true);
       else message('规则已保存，并完成 Chrome DNR 规则读回核对。');
     }catch(error){
-      message(String(error?.message||error),true);
+      if(op==='focus.disable'&&error?.code==='E_FOCUS_TRUSTED_CLICK')
+        message('已打开外层可信设置；请点击「停止所有 Stay Focus 限制」完成停用。');
+      else message(String(error?.message||error),true);
       if(op==='focus.status'&&state){
         $('native-state').textContent='状态核对失败';
         $('native-state').dataset.warning='true';
