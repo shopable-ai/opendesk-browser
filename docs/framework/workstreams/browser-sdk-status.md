@@ -1,4 +1,66 @@
-## R10.6 · 当前 Registry 与独立证据（2026-10-14）
+## R10.7.1 · GitHub 可复核的证据状态（2026-10-14）
+
+本段是当前 GitHub 仓库可独立复核的状态，不覆盖 R10.6 历史快照。公开 SDK Registry **53** 项，可信 Host-only **2** 项不进入公开 Registry。
+R10.6 逐项 Node `draft-review/node-assertion-coverage.json`、本地构建日志及历史 Actions 索引均未保存在 `main`。这些历史 SHA 和描述仍留在 JSON 的 `evidence`/`historicalReportedStatus` 中，但关联状态保守标为 **BLOCKED**，不得算作当前 `NODE_PASS` 或 `BUILD_PASS`。
+真实 Node/Build/CI 需以各自运行的新候选 SHA/原始日志重验；55 项正式 Native 仍为 **NOT_TESTED**。下方的 R10.6 以及 R10.5 行为历史记录。
+
+| API | Registry | Exposure | Node 正向 | Node 拒绝 | Chrome 原生 |
+| --- | --- | --- | --- | --- | --- |
+| `browser.capabilities.list` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.capabilities.getStatus` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.contextMenu.getStatus` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.contextMenu.register` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.contextMenu.unregister` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.launch.consume` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.page.getContext` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.page.getSelection` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.clipboard.writeText` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.downloads.text` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.downloads.download` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.downloads.getOwned` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.downloads.listOwned` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.downloads.cancelOwned` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.tabs.create` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.tabs.activateOwned` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.tabs.getOwned` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.tabs.listOwned` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.tabs.pinOwned` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.tabs.reloadOwned` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.tabs.navigateOwned` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.tabs.removeOwned` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.sidePanel.openSelf` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.network.request` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.network.observe.start` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.network.observe.getStatus` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.network.observe.stop` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.network.observe.export` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.events.read` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.events.close` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.screenshot.captureVisible` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.operations.getStatus` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.operations.cancel` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.cookies.get` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.cookies.getAll` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.cookies.set` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.cookies.remove` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.cookies.clearSite` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.cookies.getCurrentStore` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.cookies.getPartitionKey` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.cookies.observe.start` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.cookies.observe.getStatus` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.cookies.observe.read` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.cookies.observe.stop` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.storage.local.get` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.storage.local.set` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.storage.local.remove` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.storage.local.clear` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.bookmarks.create` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.bookmarks.removeOwned` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.scheduler.create` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.scheduler.listOwn` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.scheduler.cancelOwn` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+
+## R10.6 · 历史 Registry 与独立证据（2026-10-14）
 
 SOURCE_WIRED 55、BUILD_PASS 55；物理 `4475d0422e107c6a4955db59f3e748468bd2e8d5` 的逐接口限定 Node 正向/拒绝断言各有55项映射，正式 NATIVE_PASS 仍0/55，完整矩阵合同关闭仍0。公开 Registry53 与可信 Host-only2分开登记。原294项日志仅是suite证据；具体调用/断言/源码行与新增补缺驱动见 `evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json`。物理447的Build/Size/Verify及470构建输入事实保留；它与后续main及当前工作区分开。同包主流程23步骤和本轮两次Cookie生命周期各11步骤PASS，不换算为接口。WXT单行已于5c959712提交；其watcher延迟CI失败保留。最新5da04474触发9项CI全部SUCCESS，Cookie工作流未触发。旧receipt、失败及未完整运行保留；旧Cookie超时原因仍未确认。F3/ZIP NOT_TESTED，产品NOT_SCORED。
 

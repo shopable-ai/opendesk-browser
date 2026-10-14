@@ -23,7 +23,7 @@
   },
   "candidateChecks": {
     "nodeTests": {
-      "status": "PASS",
+      "status": "BLOCKED",
       "evidence": [
         {
           "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/nodeTests-alarm-owner-native-final.log",
@@ -33,10 +33,12 @@
           "command": "node --test --test-reporter=spec tests/environment/browser-sdk-r8-catalog.test.mjs tests/environment/browser-sdk-r8-cookies.test.mjs tests/environment/browser-sdk-r7-trusted-cookies.test.mjs tests/environment/browser-sdk-r7-mapping.test.mjs tests/environment/browser-sdk-contract-compat.test.mjs tests/environment/browser-sdk-coverage.test.mjs tests/environment/browser-tabs-host.test.mjs tests/environment/browser-sidepanel-host.test.mjs tests/environment/browser-sdk-r2-host.test.mjs tests/environment/browser-screenshot-host.test.mjs tests/environment/browser-screenshot-resources.test.mjs tests/environment/browser-network-observe-host.test.mjs tests/environment/browser-sdk-approval-timeout.test.mjs tests/environment/browser-sdk-r2-demo.test.mjs tests/environment/browser-sdk-p3-implementation.test.mjs tests/environment/browser-sdk-p3-bookmarks.test.mjs tests/environment/browser-sdk-p4-implementation.test.mjs tests/environment/browser-sdk-r9-installed-cookies.test.mjs tests/environment/browser-sdk-r9-installed-host.test.mjs tests/environment/browser-sdk-p5-scheduler.test.mjs tests/environment/browser-sdk-r106-trusted.test.mjs tests/environment/browser-sdk-r106-history-ui.test.mjs tests/environment/browser-sdk-r106-host.test.mjs tests/environment/scheduled-tasks-r1.test.mjs tests/environment/scheduled-task-timezone-r25.test.mjs tests/environment/browser-sdk-freeze.test.mjs tests/environment/browser-sdk-interface-matrix.test.mjs tests/environment/browser-framework-ledger.test.mjs tests/environment/cookie-editor-ui.test.mjs tests/environment/sidebar-tool-enable-r26.test.mjs tests/environment/official-tools-catalog-r45.test.mjs",
           "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
         }
-      ]
+      ],
+      "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+      "historicalReportedStatus": "PASS"
     },
     "matrix": {
-      "status": "PASS",
+      "status": "BLOCKED",
       "evidence": [
         {
           "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/matrix-alarm-owner-native-final.log",
@@ -46,10 +48,12 @@
           "command": "node scripts/check-browser-sdk-interface-matrix.mjs --check",
           "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
         }
-      ]
+      ],
+      "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+      "historicalReportedStatus": "PASS"
     },
     "catalog": {
-      "status": "PASS",
+      "status": "BLOCKED",
       "evidence": [
         {
           "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/catalog-alarm-owner-native-final.log",
@@ -59,10 +63,12 @@
           "command": "node scripts/sync-chrome-api-catalog.mjs --check",
           "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
         }
-      ]
+      ],
+      "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+      "historicalReportedStatus": "PASS"
     },
     "coverage": {
-      "status": "PASS",
+      "status": "BLOCKED",
       "evidence": [
         {
           "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/coverage-alarm-owner-native-final.log",
@@ -72,10 +78,12 @@
           "command": "node scripts/check-browser-sdk-coverage.mjs --check",
           "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
         }
-      ]
+      ],
+      "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+      "historicalReportedStatus": "PASS"
     },
     "ledger": {
-      "status": "PASS",
+      "status": "BLOCKED",
       "evidence": [
         {
           "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/ledger-alarm-owner-native-final.log",
@@ -85,10 +93,12 @@
           "command": "node scripts/check-browser-framework-ledger.mjs --check",
           "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
         }
-      ]
+      ],
+      "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+      "historicalReportedStatus": "PASS"
     },
     "freeze": {
-      "status": "PASS",
+      "status": "BLOCKED",
       "evidence": [
         {
           "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/freeze-alarm-owner-native-final.log",
@@ -98,10 +108,12 @@
           "command": "node scripts/check-browser-sdk-freeze.mjs",
           "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
         }
-      ]
+      ],
+      "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+      "historicalReportedStatus": "PASS"
     },
     "check": {
-      "status": "PASS",
+      "status": "BLOCKED",
       "evidence": [
         {
           "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/check-alarm-owner-native-final.log",
@@ -111,10 +123,12 @@
           "command": "npm run check",
           "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
         }
-      ]
+      ],
+      "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+      "historicalReportedStatus": "PASS"
     },
     "buildProduction": {
-      "status": "PASS",
+      "status": "BLOCKED",
       "evidence": [
         {
           "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildProduction-alarm-owner-native-final.log",
@@ -124,10 +138,12 @@
           "command": "npm run build",
           "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
         }
-      ]
+      ],
+      "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+      "historicalReportedStatus": "PASS"
     },
     "buildDevelopment": {
-      "status": "PASS",
+      "status": "BLOCKED",
       "evidence": [
         {
           "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildDevelopment-alarm-owner-native-final.log",
@@ -137,10 +153,12 @@
           "command": "npm run build:dev",
           "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
         }
-      ]
+      ],
+      "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+      "historicalReportedStatus": "PASS"
     },
     "buildSize": {
-      "status": "PASS",
+      "status": "BLOCKED",
       "evidence": [
         {
           "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildSize-alarm-owner-native-final.log",
@@ -150,10 +168,12 @@
           "command": "npm run build:size",
           "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
         }
-      ]
+      ],
+      "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+      "historicalReportedStatus": "PASS"
     },
     "verify": {
-      "status": "PASS",
+      "status": "BLOCKED",
       "evidence": [
         {
           "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/verify-alarm-owner-native-final.log",
@@ -163,10 +183,12 @@
           "command": "npm run verify",
           "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
         }
-      ]
+      ],
+      "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+      "historicalReportedStatus": "PASS"
     },
     "targetedMainRegressions": {
-      "status": "PASS",
+      "status": "BLOCKED",
       "evidence": [
         {
           "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/targetedMainRegressions-alarm-owner-native-final.log",
@@ -176,7 +198,9 @@
           "command": "node --test --test-reporter=spec tests/environment/browser-sdk-r13.test.mjs tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/official-tools-catalog-r45.test.mjs tests/environment/fixed-entries-audit.test.mjs tests/framework/k4-sdk-reinjection.test.mjs tests/framework/k4-sdk.test.mjs tests/framework/k2-sdk-relay-races.test.mjs tests/environment/boundaries.test.mjs tests/framework/k4-sdk-hello-races.test.mjs tests/framework/k4-sdk-bundle-reinjection.test.mjs",
           "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
         }
-      ]
+      ],
+      "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+      "historicalReportedStatus": "PASS"
     },
     "nativeChromeGui": {
       "status": "NOT_TESTED",
@@ -189,7 +213,7 @@
       "reason": "Partial installed-tool steps do not close all 55 per-interface contracts."
     },
     "r5CI": {
-      "status": "PASS",
+      "status": "BLOCKED",
       "evidence": [
         {
           "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/actions-4475d042-current.json",
@@ -200,10 +224,12 @@
           "environment": "GitHub Actions; exact run result",
           "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098393"
         }
-      ]
+      ],
+      "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+      "historicalReportedStatus": "PASS"
     },
     "targetedMainCI": {
-      "status": "PASS",
+      "status": "BLOCKED",
       "evidence": [
         {
           "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/actions-4475d042-current.json",
@@ -214,10 +240,12 @@
           "environment": "GitHub Actions; exact run result",
           "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098407"
         }
-      ]
+      ],
+      "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+      "historicalReportedStatus": "PASS"
     },
     "packageBudgetsCI": {
-      "status": "PASS",
+      "status": "BLOCKED",
       "evidence": [
         {
           "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/actions-4475d042-current.json",
@@ -228,7 +256,9 @@
           "environment": "GitHub Actions; exact run result",
           "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098326"
         }
-      ]
+      ],
+      "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+      "historicalReportedStatus": "PASS"
     },
     "cookieEditorCI": {
       "status": "NOT_TESTED",
@@ -335,7 +365,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -350,10 +380,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.capabilities.list.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -368,7 +400,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.capabilities.list.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -407,7 +441,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -422,10 +456,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.capabilities.getStatus.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -440,7 +476,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.capabilities.getStatus.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -482,7 +520,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -497,10 +535,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.contextMenu.getStatus.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -515,7 +555,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.contextMenu.getStatus.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -557,7 +599,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -572,10 +614,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.contextMenu.register.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -590,7 +634,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.contextMenu.register.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -630,7 +676,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -645,10 +691,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.contextMenu.unregister.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -663,7 +711,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.contextMenu.unregister.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -703,7 +753,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -718,10 +768,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.launch.consume.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -736,7 +788,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.launch.consume.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -776,7 +830,7 @@
       "hostImplementation": "src/ui/sidebar-tools.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -791,10 +845,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.page.getContext.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -809,7 +865,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.page.getContext.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -849,7 +907,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -864,10 +922,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.page.getSelection.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -882,7 +942,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.page.getSelection.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -922,7 +984,7 @@
       "hostImplementation": "src/ui/sidebar-tools.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -937,10 +999,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.clipboard.writeText.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -955,7 +1019,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.clipboard.writeText.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -997,7 +1063,7 @@
       "hostImplementation": "src/ui/sidebar-tools.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -1012,10 +1078,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.downloads.text.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -1030,7 +1098,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.downloads.text.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -1072,7 +1142,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/platform/chrome/browser-downloads.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -1087,10 +1157,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.downloads.download.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -1105,7 +1177,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.downloads.download.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -1147,7 +1221,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/platform/chrome/browser-downloads.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -1162,10 +1236,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.downloads.getOwned.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -1180,7 +1256,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.downloads.getOwned.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -1222,7 +1300,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/platform/chrome/browser-downloads.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -1237,10 +1315,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.downloads.listOwned.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -1255,7 +1335,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.downloads.listOwned.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -1297,7 +1379,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/platform/chrome/browser-downloads.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -1312,10 +1394,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.downloads.cancelOwned.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -1330,7 +1414,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.downloads.cancelOwned.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -1370,7 +1456,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -1385,10 +1471,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.tabs.create.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -1403,7 +1491,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.tabs.create.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -1447,7 +1537,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -1462,10 +1552,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.tabs.activateOwned.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -1480,7 +1572,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.tabs.activateOwned.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -1524,7 +1618,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -1539,10 +1633,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.tabs.getOwned.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -1557,7 +1653,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.tabs.getOwned.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -1602,7 +1700,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -1617,10 +1715,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.tabs.listOwned.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -1635,7 +1735,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.tabs.listOwned.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -1680,7 +1782,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -1695,10 +1797,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.tabs.pinOwned.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -1713,7 +1817,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.tabs.pinOwned.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -1756,7 +1862,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -1771,10 +1877,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.tabs.reloadOwned.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -1789,7 +1897,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.tabs.reloadOwned.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -1832,7 +1942,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -1847,10 +1957,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.tabs.navigateOwned.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -1865,7 +1977,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.tabs.navigateOwned.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -1908,7 +2022,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -1923,10 +2037,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.tabs.removeOwned.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -1941,7 +2057,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.tabs.removeOwned.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -1986,7 +2104,7 @@
       "hostImplementation": "src/ui/sidebar-tools.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -2001,10 +2119,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.sidePanel.openSelf.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -2019,7 +2139,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.sidePanel.openSelf.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -2059,7 +2181,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -2074,10 +2196,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.network.request.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -2092,7 +2216,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.network.request.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -2136,7 +2262,7 @@
       "hostImplementation": "src/platform/chrome/browser-network-observe.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -2151,10 +2277,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.network.observe.start.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -2169,7 +2297,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.network.observe.start.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -2211,7 +2341,7 @@
       "hostImplementation": "src/platform/chrome/browser-network-observe.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -2226,10 +2356,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.network.observe.getStatus.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -2244,7 +2376,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.network.observe.getStatus.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -2286,7 +2420,7 @@
       "hostImplementation": "src/platform/chrome/browser-network-observe.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -2301,10 +2435,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.network.observe.stop.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -2319,7 +2455,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.network.observe.stop.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -2362,7 +2500,7 @@
       "hostImplementation": "src/platform/chrome/browser-network-observe.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -2377,10 +2515,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.network.observe.export.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -2395,7 +2535,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.network.observe.export.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -2435,7 +2577,7 @@
       "hostImplementation": "src/platform/chrome/browser-network-observe.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -2450,10 +2592,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.events.read.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -2468,7 +2612,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.events.read.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -2508,7 +2654,7 @@
       "hostImplementation": "src/platform/chrome/browser-network-observe.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -2523,10 +2669,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.events.close.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -2541,7 +2689,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.events.close.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -2586,7 +2736,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js#handleTool + src/platform/chrome/browser-screenshot.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -2601,10 +2751,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.screenshot.captureVisible.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -2619,7 +2771,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.screenshot.captureVisible.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -2659,7 +2813,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js#handleTool",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -2674,10 +2828,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.operations.getStatus.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -2692,7 +2848,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.operations.getStatus.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -2732,7 +2890,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js#handleTool",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -2747,10 +2905,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.operations.cancel.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -2765,7 +2925,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.operations.cancel.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -2807,7 +2969,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → existing createTrustedCookieHost",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -2822,10 +2984,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.cookies.get.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -2840,7 +3004,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.cookies.get.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -2882,7 +3048,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → existing createTrustedCookieHost",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -2897,10 +3063,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.cookies.getAll.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -2915,7 +3083,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.cookies.getAll.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -2957,7 +3127,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → existing createTrustedCookieHost",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -2972,10 +3142,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.cookies.set.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -2990,7 +3162,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.cookies.set.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -3032,7 +3206,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → existing createTrustedCookieHost",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -3047,10 +3221,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.cookies.remove.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -3065,7 +3241,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.cookies.remove.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -3107,7 +3285,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → existing createTrustedCookieHost",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -3122,10 +3300,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.cookies.clearSite.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -3140,7 +3320,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.cookies.clearSite.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -3182,7 +3364,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → existing createTrustedCookieHost",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -3197,10 +3379,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.cookies.getCurrentStore.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -3215,7 +3399,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.cookies.getCurrentStore.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -3257,7 +3443,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → existing createTrustedCookieHost",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -3272,10 +3458,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.cookies.getPartitionKey.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -3290,7 +3478,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.cookies.getPartitionKey.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -3332,7 +3522,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → existing createTrustedCookieHost",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -3347,10 +3537,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.cookies.observe.start.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -3365,7 +3557,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.cookies.observe.start.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -3407,7 +3601,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → existing createTrustedCookieHost",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -3422,10 +3616,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.cookies.observe.getStatus.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -3440,7 +3636,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.cookies.observe.getStatus.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -3482,7 +3680,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → existing createTrustedCookieHost",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -3497,10 +3695,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.cookies.observe.read.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -3515,7 +3715,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.cookies.observe.read.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -3557,7 +3759,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → existing createTrustedCookieHost",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -3572,10 +3774,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.cookies.observe.stop.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -3590,7 +3794,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.cookies.observe.stop.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -3632,7 +3838,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/ui/sidebar-tools/storage-state.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -3647,10 +3853,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.storage.local.get.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -3665,7 +3873,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.storage.local.get.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -3707,7 +3917,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/ui/sidebar-tools/storage-state.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -3722,10 +3932,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.storage.local.set.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -3740,7 +3952,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.storage.local.set.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -3782,7 +3996,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/ui/sidebar-tools/storage-state.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -3797,10 +4011,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.storage.local.remove.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -3815,7 +4031,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.storage.local.remove.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -3857,7 +4075,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/ui/sidebar-tools/storage-state.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -3872,10 +4090,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.storage.local.clear.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -3890,7 +4110,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.storage.local.clear.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -3932,7 +4154,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/platform/chrome/bookmarks.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -3947,10 +4169,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.bookmarks.create.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -3965,7 +4189,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.bookmarks.create.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -4007,7 +4233,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/platform/chrome/bookmarks.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -4022,10 +4248,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.bookmarks.removeOwned.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -4040,7 +4268,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.bookmarks.removeOwned.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -4082,7 +4312,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js → src/platform/tasks/schedule-service.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -4097,10 +4327,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.scheduler.create.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -4115,7 +4347,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.scheduler.create.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -4157,7 +4391,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js → src/platform/tasks/schedule-service.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -4172,10 +4406,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.scheduler.listOwn.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -4190,7 +4426,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.scheduler.listOwn.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
@@ -4232,7 +4470,7 @@
       "hostImplementation": "src/platform/chrome/context-menus.js → src/platform/tasks/schedule-service.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -4247,10 +4485,12 @@
             "assertionKind": "positive",
             "mappingKey": "browser.scheduler.cancelOwn.positive"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "denialTest": {
-        "status": "PASS",
+        "status": "BLOCKED",
         "scope": "SCOPED_NODE_ASSERTIONS_ONLY",
         "fullMatrixContractStatus": "NOT_TESTED",
         "evidence": [
@@ -4265,7 +4505,9 @@
             "assertionKind": "denial",
             "mappingKey": "browser.scheduler.cancelOwn.denial"
           }
-        ]
+        ],
+        "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+        "historicalReportedStatus": "PASS"
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
