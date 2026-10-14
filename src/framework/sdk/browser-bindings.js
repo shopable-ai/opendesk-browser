@@ -12,15 +12,23 @@ const isRecord=value=>value!==null&&typeof value==='object'&&!Array.isArray(valu
 // Only same-named, Promise-based, read-only, no-site-scope calls may use this
 // generic v1 route; any scoped/mutating API continues through its audited Driver.
 function nativeDirectRoute(descriptor,api,registry){
-  if(!isRecord(descriptor)||Object.keys(descriptor).sort().join(',')!==
-     'mode,nativeApi,operation,parameters'||
+  const keys=['effectClass','inputSchema','lifecycle','maxRequestBytes',
+    'maxResponseBytes','minChrome','mode','nativeApi','operation','outputSchema',
+    'parameters','requiredCapabilities','requiredChromePermissions',
+    'requiresUserGesture','riskLevel','siteScope','supportedContexts'];
+  if(!isRecord(descriptor)||Object.keys(descriptor).sort().join(',')!==keys.sort().join(',')||
      descriptor.mode!=='DIRECT'||typeof descriptor.operation!=='string'||
      typeof descriptor.nativeApi!=='string'||!Array.isArray(descriptor.parameters))
     throw fail('E_CONTRACT','Invalid compiled Native DIRECT descriptor');
   const op=Object.hasOwn(registry,descriptor.operation)?registry[descriptor.operation]:null;
   if(!op||op.implementation!=='IMPLEMENTED'||!op.supportedContexts?.includes('sidebar-tool')||
      op.requiresUserGesture||op.effectClass!=='read'||op.siteScope!=='none'||
-     descriptor.nativeApi!=='chrome.'+descriptor.operation.slice('browser.'.length))
+     descriptor.nativeApi!=='chrome.'+descriptor.operation.slice('browser.'.length)||
+     descriptor.requiresUserGesture||descriptor.effectClass!=='read'||descriptor.siteScope!=='none'||
+     JSON.stringify(descriptor.requiredCapabilities)!==JSON.stringify(op.requiredCapabilities)||
+     JSON.stringify(descriptor.requiredChromePermissions)!==JSON.stringify(op.requiredChromePermissions)||
+     JSON.stringify(descriptor.inputSchema)!==JSON.stringify(op.inputSchema)||
+     JSON.stringify(descriptor.outputSchema)!==JSON.stringify(op.outputSchema))
     throw fail('E_CONTRACT','Unsafe or unapproved Native DIRECT operation');
   const path=descriptor.nativeApi.split('.');
   if(path.length!==3||path[0]!=='chrome'||path.slice(1).some(part=>
