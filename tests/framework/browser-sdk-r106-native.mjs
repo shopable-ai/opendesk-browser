@@ -718,7 +718,9 @@ async function runNative(){
       await toolType('#probe-reference',ownershipSchedule);await toolClick('#probe-schedule');const schedule=await probeOutput();assert(schedule.result.error&&schedule.result.code);
       await toolClick('#schedule-list');const list=await output('scheduler-output');assert.deepEqual(list.schedules,[]);
       const nativeAlarms=await deadline(async()=>{const alarms=await read(client,control,'chrome.alarms.getAll()');return alarms.some(x=>x.name==='opendesk.schedule.v1:'+ownershipSchedule)?null:alarms;},'old owner Alarm retired after upgrade');
-      const nativeBookmarks=await read(client,control,'chrome.bookmarks.search({title:"OpenDesk R10.6 demo"})');assert.equal(nativeBookmarks.length,1,'upgrade rejection must not delete the orphaned native bookmark');
+      const nativeBookmark=report.cases['cross-tool-storage-and-resource-rejection'].result.nativeBookmarks[0];
+      const nativeBookmarks=await read(client,control,`chrome.bookmarks.get(${quote(nativeBookmark.id)})`);assert.equal(nativeBookmarks.length,1,'upgrade rejection must not delete the orphaned native bookmark');
+      assert.equal(nativeBookmarks[0].url,nativeBookmark.url);assert.equal(nativeBookmarks[0].title,nativeBookmark.title);
       return {bookmark,schedule,list,nativeAlarms,nativeBookmarks,installed:report.upgradedInstalled};
     });
     await recordCase('tool-uninstall-cleans-only-owned-mappings',async()=>{
@@ -735,8 +737,10 @@ async function runNative(){
       },'uninstalled tool ownership and namespace cleared');
       assert.equal(typeof state.epoch,'string');assert.notEqual(state.epoch,report.upgradedInstalled.epoch,'uninstall must retire the old installation epoch');
       assert(state.installed.some(t=>t.id==='browser-sdk-acceptance-peer'),'uninstall must retain peer installation');
-      const nativeBookmarks=await read(client,control,'chrome.bookmarks.search({title:"OpenDesk demo"})');
+      const nativeBookmark=report.cases['tool-upgrade-revokes-old-resource-identity'].result.nativeBookmarks[0];
+      const nativeBookmarks=await read(client,control,`chrome.bookmarks.get(${quote(nativeBookmark.id)})`);
       assert.equal(nativeBookmarks.length,1,'uninstall must preserve orphaned user bookmark');
+      assert.equal(nativeBookmarks[0].url,nativeBookmark.url);assert.equal(nativeBookmarks[0].title,nativeBookmark.title);
       const nativeAlarms=await read(client,control,'chrome.alarms.getAll()');
       assert(!nativeAlarms.some(x=>x.name==='opendesk.schedule.v1:'+ownershipSchedule));
       return {state,nativeBookmarks,nativeAlarms,review:report.uninstallReview};

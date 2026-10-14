@@ -106,7 +106,7 @@ if(!vm.SourceTextModule) {
     const doc=documentFixture(),get=id=>doc.getElementById(id),draft=contract.emptyWorkflow('https://a.example',crypto.randomUUID());
     draft.steps=structuredClone(steps);
     const planGate=deferred(),approvalReady=deferred(),answers=[],observations=[];
-    let plannerOptions;
+    let plannerOptions;const compiled=[];
     const proposal=workflow=>({...structuredClone(workflow),title:'Component proposal',steps:[{stepId:'proposed',op:'observe'}]});
     const planner={snapshot:()=>({}),probe:async()=>({state:'READY_FOR_TURN',readyForTurn:true}),
       async plan(options){
@@ -125,7 +125,7 @@ if(!vm.SourceTextModule) {
     const bindings={
       '../../framework/workflow/contract.js':contract,
       '../../platform/tasks/contract.js':{checkParamsSchema:value=>value,createTaskPackage:()=>{throw new Error('No packaging in focus suite');}},
-      '../../framework/workflow/compiler.js':{compileWorkflow:async workflow=>({workflow,sourceUtf8:'component fixture',sourceHash:'a'.repeat(64)})},
+      '../../framework/workflow/compiler.js':{compileWorkflow:async workflow=>{compiled.push(structuredClone(workflow));return {workflow,sourceUtf8:'component fixture',sourceHash:'a'.repeat(64)};}},
       '../../environment.js':{permissionPattern:()=> 'https://a.example/*'},
       '../../platform/page-port/codec.js':{decodeValue:value=>value},
       '../task-run-diagnostics.js':{presentTaskValue:value=>({text:String(value)}),formatTaskError:String},
@@ -168,12 +168,12 @@ if(!vm.SourceTextModule) {
       return step.querySelectorAll('[data-workflow-focus]').find(item=>item.dataset.workflowFocus===field);
     };
     const click=async element=>{await element.fire('click');await tick();};
-    const startPlan=async()=>{
-      get('workflow-ai-request').value='Component planning request';
+    const startPlan=async(request='Observe the page for component focus verification')=>{
+      get('workflow-ai-request').value=request;
       const running=get('workflow-ai-plan').fire('click');await tick();
       return {running};
     };
-    return {doc,get,ui,click,control,stepsNow,startPlan,planGate,approvalReady,answers,observations,
+    return {doc,get,ui,click,control,stepsNow,startPlan,planGate,approvalReady,answers,observations,compiled,
       get plannerOptions(){return plannerOptions;}};
   }
   const fill=id=>({stepId:id,op:'fill',locatorKind:'css',selector:'#keyword',text:''});
@@ -239,13 +239,21 @@ if(!vm.SourceTextModule) {
     assert.equal(f.get('workflow-add-step').visible(),false,'empty workflow has no manual creation entry');
   });
 
+  test('component: model-added read without request intent stays blocked before compilation',async t=>{
+    const f=await make(t);const {running}=await f.startPlan('Component planning request');
+    f.planGate.resolve();await running;
+    assert.equal(f.compiled.some(row=>row.steps.some(step=>step.stepId==='proposed')),false);
+    assert.equal(f.stepsNow().length,0);
+    assert.equal(f.get('workflow-ai-proposal').hidden,true);
+  });
+
   for(const external of [false,true]) {
-    test('component: adoption hides Apply and '+(external?'preserves moved focus':'focuses stable request'),async t=>{
-      const f=await make(t);const {running}=await f.startPlan();f.planGate.resolve();await running;
-      assert.equal(f.get('workflow-ai-proposal').hidden,false);
-      f.get('workflow-ai-apply').focus();if(external)f.get('workflow-new').focus();
-      await f.click(f.get('workflow-ai-apply'));
+    test('component: direct planning keeps Apply hidden and '+(external?'preserves moved focus':'preserves stable request focus'),async t=>{
+      const f=await make(t);f.get('workflow-ai-request').focus();const {running}=await f.startPlan();
+      if(external)f.get('workflow-new').focus();
+      f.planGate.resolve();await running;
       assert.equal(f.get('workflow-ai-proposal').hidden,true);assert.equal(f.stepsNow()[0].dataset.stepId,'proposed');
+      assert(f.compiled.some(row=>row.steps.some(step=>step.stepId==='proposed')));
       assertFocus(f,f.get(external?'workflow-new':'workflow-ai-request'));
     });
     for(const choice of ['cancel','discard'])test('component: new '+choice+' closes review '+(external?'without stealing focus':'with a visible destination'),async t=>{
