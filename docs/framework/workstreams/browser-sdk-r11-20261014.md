@@ -65,3 +65,14 @@ Finish finite approved Host Binding dispatcher with no raw `chrome[namespace][me
 - Mac Chrome 原生 **NOT_TESTED**。不能把 Fake Chrome 示例提升为 Chrome 安装通过，也不能给不存在的 DIRECT 接口宣称 Native PASS。
 - R11 全量书签能力仍等待另一轮独立 Full Bookmarks Capability 和原生 CRUD 合同，详见 Issue #75；本轮保留所有已有真实消费者、授权和旧 Host 执行路径。
 - 专家独立 95+ 是最终验收门槛而非静态声明分数；Native NOT_TESTED 时不评分 95+。
+
+## R11 · 单批准描述驱动完整自动生成闭环（2026-10-14）
+
+针对“新增一个普通官方接口仍要手改 Registry + Schema”的问题，额外收敛到**单一批准矩阵 → 编译生成 Runtime DIRECT 描述 → Schema / Registry 自动派生 → Wrapper 自动挂载 → 原 Host 自动调用**：
+
+- `deriveBrowserDirectBindings()` 从现有审批矩阵及固定 Chromium Promise API 签名产生可执行的完整 DIRECT 描述，包含 operation、nativeApi、位置参数、Capability、Chrome Permission、允许执行世界、请求和响应 Schema、IPC 限额及浏览器最低版本。原有 53 个非 DIRECT 公共入口维持手工审计合同，不改业务执行语义。
+- `deriveBrowserDirectOperations()` 在 `src/framework/sdk/browser-contract.js` 自动合并**新增 DIRECT** 的注册项；`deriveBrowserDirectSchemas()` 在 `src/framework/sdk/browser-schemas.js` 自动合并类型输入/输出；`src/framework/sdk/browser.js` 已根据 Registry 自动生成公共 Wrapper；Host 的 `nativeDirect` 走原 installed-tool Sender、packageHash、epoch、Capability、Chrome Permission 和作用域再次验证，不要求新增逐方法分支。
+- `browser-bindings.js` 限制 DIRECT 为同名、批准、无站点作用域、无手势、只读、Promise Native Method；必须是对象自身的数据函数（不执行 getter/继承）；Native 拒绝或无 Promise 有稳定错误；危险 Cookie、Owned Tabs、Owned Downloads、Owned Bookmarks、Scheduler 等仍 SCOPED/CUSTOM。
+- 独立回归测试使用**仅测试夹具**的 `browser.runtime.getPlatformInfo` 模拟一次批准，验证自动派生接口目录、Registry、Schema 和 Chrome Mock Promise 运行，全程不真实批准或开放这个 API；伪造 Native 名称、强行升级写操作、权限漂移、异常返回和撤权均为拒绝路径。
+- 官方 55 项的 Registry/安全含义及 Manifest 未变化；`src/framework/sdk/browser-direct.generated.js` 暂为 `[]`，说明当前冻结批准合同并没有符合直接透传语义的项。不能把编译器可用性说成已经向工具开放 1,830 项。
+- 本轮相关 GitHub CI 在 [先行候选 R5](https://github.com/shopable-ai/opendesk-browser/actions/runs/38597519085) 和 [先行候选 R13](https://github.com/shopable-ai/opendesk-browser/actions/runs/38597527475) 有 PASS；最新编译闭环的 Node / Build / CI 需以本段实际最终源码候选的工作流结论另行核验，不自动继承。真实 Mac Chrome 仍 **NOT_TESTED**。
