@@ -173,6 +173,18 @@ test('real offline Webpack resolves all imports and executes one mixed result in
   assert.match(produced.controller.source,/\/\/ @opendesk-lib axios/);
   const denied=Object.assign(new Error('Origin permission denied'),{code:'E_PERMISSION'});
   await assert.rejects(execute({url:async()=>{throw denied;}},{},null,null,null,null),error=>error===denied);
+  // Machine-readable provenance from one genuine locked Webpack graph per
+  // world. Node VM results are never labeled Chrome/USER_SCRIPT receipts.
+  t.diagnostic(JSON.stringify({
+    format:'opendesk.mixed-import-node-evidence.v1',level:'NODE_BUILD_VM_NOT_CHROME',
+    projects:Object.fromEntries(Object.entries(produced).map(([kind,row])=>[
+      kind,{sourceHash:row.artifact.sourceHash,sourceBytes:row.artifact.sourceBytes,
+        npmLockSha256:row.artifact.npmLockSha256,npmDependencies:row.artifact.npmDependencies,
+        npmBundledModules:row.artifact.npmBundledModules,remoteModules:row.artifact.remoteModules}
+    ])),
+    results:{page:JSON.parse(JSON.stringify(pageResult)),
+      controller:JSON.parse(JSON.stringify(controllerResult))}
+  }));
 });
 
 test('offline runtime rejects damaged HTTPS, missing ESM exports and stale source identity',
