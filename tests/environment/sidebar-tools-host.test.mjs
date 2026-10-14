@@ -217,6 +217,7 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
   const taskSurface=new Node();
   const doc={documentElement:{dataset:{}},getElementById(id){return elements[id];},
     querySelector(selector){assert.equal(selector,'#workbench-tasks .tasks-surface');return taskSurface;},
+    querySelectorAll(){return [];},
     createElement(tag){const node=new Node(tag);node.ownerDocument=doc;return node;}};
   for(const node of Object.values(elements))node.ownerDocument=doc;
   const store=new Map();
@@ -414,6 +415,7 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
     'sidebar-tool-filter-available','sidebar-tool-filter-all',...TRUSTED_STATIC_IDS];
   const elements=Object.fromEntries(ids.map(id=>[id,new Node()]));
   const doc={documentElement:{dataset:{}},getElementById:id=>elements[id],querySelector:()=>new Node(),
+    querySelectorAll:()=>[],
     createElement:tag=>{const node=new Node(tag);node.ownerDocument=doc;return node;}};
   for(const node of Object.values(elements))node.ownerDocument=doc;
   let focused=0;
