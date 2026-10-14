@@ -571,7 +571,6 @@
 .workflow-provider{max-height:min(52vh,350px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;padding-right:2px}
 .workflow-provider select{font-size:12px;min-height:36px}
 .workflow-provider-info,.workflow-provider-diagnostics{margin:5px 0 0}
-.workflow-provider-info>summary,.workflow-provider-diagnostics>summary{font-size:11px;color:var(--od-sub)}
 .workflow-provider-info .workflow-minor-note{margin:5px 0 8px}
 .workflow-connection-line{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}
 .workflow-connection-line .workflow-local-status{flex:1 1 auto;min-width:0}
