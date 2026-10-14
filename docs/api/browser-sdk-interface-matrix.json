@@ -57163,7 +57163,7 @@
     "completeness": "Known source consumers identified; exhaustive consumer path enumeration cannot be verified without full repository grep. Phase P1 must enumerate and migrate all current consumers before deleting active alias."
   },
   "currentRegistrySourceSha": "41fb58d9d87d9ff8b67ca76c1371f943cf746049",
-  "currentSchemaSourceSha": "a8b57622f8dd9749939cc0461a7a39c06d540846",
+  "currentSchemaSourceSha": "1883fc6b541a2b34c79cd9542516eb06d39de1a7",
   "contractRevisions": [
     {
       "date": "2026-10-13",
