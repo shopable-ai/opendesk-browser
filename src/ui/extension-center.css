@@ -4,7 +4,7 @@
 .ec-toolbar{display:flex;align-items:center;gap:7px;min-width:0;margin-bottom:10px}
 .ec-search{display:flex;align-items:center;gap:7px;flex:1;min-width:0;height:38px;padding:0 10px;border:1px solid var(--od-input-border);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-sub)}
 .ec-search:focus-within{outline:2px solid var(--od-focus);outline-offset:1px}
-.ec-search svg{width:17px;height:17px;flex:none}
+.ec-search svg{width:17px;height:17px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .ec-search input{min-width:0;width:100%;height:100%;padding:0;border:0;outline:0;background:transparent;color:var(--od-ink);font:inherit;font-size:13px}
 .ec-search input:focus-visible{outline:0}
 .ec-toolbar .ec-icon{display:grid;place-items:center;flex:none;width:34px;height:34px;min-height:34px;padding:0;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-sub)}
