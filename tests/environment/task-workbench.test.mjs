@@ -312,6 +312,29 @@ test('My searches a single installed task list on demand without executing or re
   assert.equal(f.catalogOpens[0].url,'chrome-extension://extension/ui/tool.html');
 });
 
+test('R5.1 Escape closes inline My search, clears filters and restores keyboard focus without Run',async t=>{
+  const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
+  await f.click('task-search-toggle');
+  f.get('local-discover-search').value='不存在的任务';
+  await f.get('local-discover-search').fire('input');
+  await f.click('local-filter-current');
+  assert.equal(f.get('task-run').disabled,true);
+  let prevented=false;
+  await f.get('task-search-panel').fire('keydown',{
+    key:'Escape',defaultPrevented:false,isComposing:false,preventDefault(){prevented=true;}
+  });
+  assert.equal(prevented,true);
+  assert.equal(f.get('task-search-panel').hidden,true);
+  assert.equal(f.get('task-search-toggle').attributes['aria-expanded'],'false');
+  assert.equal(f.get('local-discover-search').value,'');
+  assert.equal(f.get('local-filter-all').attributes['aria-pressed'],'true');
+  assert.equal(f.get('task-installed-cards').children.length,2);
+  assert.equal(f.doc.activeElement,f.get('task-search-toggle'));
+  assert.equal(f.get('task-run').disabled,false);
+  assert.equal(f.starts.length,0);
+  assert.equal(f.permissions.length,0);
+});
+
 test('My task filters use the one installed list and never run or grant permissions',async t=>{
   const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
   f.catalogState.installed[1].enabled=false;

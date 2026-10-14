@@ -1041,6 +1041,8 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     }
     if(isRunner()){show('runner');return;}
     hidePanel();
+    // Back returns keyboard users to the exact control that opened this subview.
+    get('schedule-open').focus?.({preventScroll:true});
   }
   bind('schedule-open','click',()=>void open());
   bind('schedule-stop','click',stop);

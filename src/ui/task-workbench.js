@@ -831,17 +831,22 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   }
   listen(get('open-catalog'),'click',()=>navigate('catalog'));
   listen(get('task-open-catalog'),'click',()=>navigate('catalog'));
-  listen(get('task-search-toggle'),'click',()=>{
+  function setTaskSearchOpen(open){
     const panel=get('task-search-panel'),toggle=get('task-search-toggle');
-    if(panel.hidden){
-      panel.hidden=false;toggle.setAttribute('aria-expanded','true');
+    panel.hidden=!open;toggle.setAttribute('aria-expanded',String(open));
+    if(open){
       renderInstalledCards();update();
       get('local-discover-search').focus?.({preventScroll:true});
     }else{
-      panel.hidden=true;toggle.setAttribute('aria-expanded','false');
       localQuery='';localFilter='all';get('local-discover-search').value='';
       renderInstalledCards();update();toggle.focus?.({preventScroll:true});
     }
+  }
+  listen(get('task-search-toggle'),'click',()=>setTaskSearchOpen(get('task-search-panel').hidden));
+  listen(get('task-search-panel'),'keydown',event=>{
+    if(event.key!=='Escape'||event.defaultPrevented||event.isComposing)return;
+    event.preventDefault();
+    setTaskSearchOpen(false);
   });
   listen(get('local-discover-search'),'input',()=>{
     localQuery=get('local-discover-search').value.trim().toLocaleLowerCase();

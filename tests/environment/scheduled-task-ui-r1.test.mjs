@@ -627,6 +627,19 @@ async function scheduledDomFixture({count=1,historyCount=1,historyFailures=0}={}
     flush:()=>new Promise(resolve=>setImmediate(resolve))};
 }
 
+test('R5.1 schedule Back restores My opener focus and task surface without rebuilding the task list',async()=>{
+  const {document,ui,get}=await scheduledDomFixture();
+  const surface=document.querySelector('#workbench-tasks .tasks-surface');
+  assert.equal(get('scheduled-panel').hidden,false);
+  assert.equal(surface.hidden,true);
+  get('schedule-back').focus();
+  get('schedule-back').click();
+  assert.equal(get('scheduled-panel').hidden,true);
+  assert.equal(surface.hidden,false);
+  assert.equal(document.activeElement,get('schedule-open'));
+  ui.dispose();
+});
+
 test('R1.2 polling preserves expanded per-Fire technical detail and keyboard focus',async()=>{
   const {get,state,ui,document}=await scheduledDomFixture();
   get('schedule-plan-list').querySelector('.schedule-plan-open').click();
