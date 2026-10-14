@@ -91,7 +91,7 @@ test('developer status is non-visual when the Debug tab does not exist',async()=
   assert.equal(f.status.hidden,true);
   assert.deepEqual(f.prepended,[f.status]);
   await f.ports[0].onMessage.emit({type:'css',hash:'style-rev-2'});
-  assert.notMatch(f.status.textContent||'',/样式已自动更新/);
+  assert.doesNotMatch(f.status.textContent||'',/样式已自动更新/);
   f.dispose();
 });
 test('disconnect clears preparation and reconnects only development channel',async()=>{
