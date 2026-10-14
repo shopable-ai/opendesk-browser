@@ -56,13 +56,25 @@ test('R21 Chrome fixture adds full-width states without changing its native evid
   assert.match(visual,/Expected script marker missing: refusing native JS execution/);
 });
 
-test('R21 product specification reflects six official tabs and archived R5',async()=>{
-  const spec=await read('docs/product/sidebar-ui-spec.zh-CN.md');
-  assert.ok(spec.startsWith('# OpenDesk Browser Sidebar UI SPEC · R21（生产六页签）'));
-  for(const name of ['我的','发现','工作流','开发','工具','云控'])
-    assert.match(spec,new RegExp('\\| '+name+' \\|'));
-  assert.match(spec,/历史存档：OpenDesk Browser Sidebar UI SPEC · R5/);
-  assert.match(spec,/STATIC_MARKUP_CHROME/);
+test('R4 spec matches five visible HTML tabs and preserves archived R21/R5 as history',async()=>{
+  const [spec,html]=await Promise.all([
+    read('docs/product/sidebar-ui-spec.zh-CN.md'),read('src/ui/tool.html')]);
+  assert.ok(spec.startsWith('# OpenDesk Browser Side Panel · Extension Center R4 现行产品规格'));
+  const marker='# 历史存档：OpenDesk Browser Sidebar UI SPEC · R21';
+  assert.ok(spec.includes(marker),'R21 must remain explicitly archived');
+  const current=spec.split(marker)[0];
+  const archived=spec.slice(spec.indexOf(marker));
+  const labels=['我的','扩展','工作流','开发','云控'];
+  const tabMarkup=[...html.split('</nav>')[0].matchAll(/<button\b[^>]*role="tab"[^>]*>([^<]+)<\/button>/g)];
+  assert.deepEqual(tabMarkup.filter(row=>!/\shidden(?:\s|>)/.test(row[0])).map(row=>row[1]),labels);
+  assert.ok(tabMarkup.some(row=>row[1]==='调试'&&/\shidden/.test(row[0])));
+  for(const label of labels)
+    assert.ok(current.includes('| **'+label+'** |'),'current R4 tab missing '+label);
+  assert.doesNotMatch(current,/^\|\s*(发现|工具)\s*\|/m);
+  for(const historicalLabel of ['发现','工具'])
+    assert.ok(archived.includes('| '+historicalLabel+' |'),'R21 history missing '+historicalLabel);
+  assert.match(archived,/历史存档：OpenDesk Browser Sidebar UI SPEC · R5/);
+  assert.match(archived,/STATIC_MARKUP_CHROME/);
 });
 
 test('R21 secondary text selectors use the AA-contrast token, not faint local overrides',async()=>{
