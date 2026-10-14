@@ -118,14 +118,23 @@ export async function checkBrowserSdk({root=ROOT}={}){
  const evidence=[];
  for(const op of data.operations)for(const field of FIELDS)evidence.push(op[field]);
  for(const v of Object.values(data.candidateChecks||{}))evidence.push(v);
+ // Check every PASS descriptor, but hash repeated references to the same raw
+ // report only once. A missing report remains a hard failure, never a PASS.
+ const seenHashes=new Set();
  for(const gate of evidence)if(gate?.status==='PASS')for(const item of gate.evidence||[]){
   const path=item?.path;
   if(typeof path!=='string'||path.startsWith('/')||path.split('/').includes('..')||
    !(/^[a-f0-9]{64}$/.test(item.sha256||''))||!item.candidateSha||!item.caseId||!item.command||!item.environment){
    errors.push('Malformed PASS evidence');continue
   }
+  const key=path+'\\0'+item.sha256;
+  if(seenHashes.has(key))continue;
+  seenHashes.add(key);
   const content=await readFile(resolve(root,path)).catch(()=>null);
-  if(!content||createHash('sha256').update(content).digest('hex')!==item.sha256)errors.push('Evidence hash mismatch');
+  if(!content){errors.push('PASS evidence missing: '+path+' (declared '+item.sha256+')');continue;}
+  const actual=createHash('sha256').update(content).digest('hex');
+  if(actual!==item.sha256)
+   errors.push('PASS evidence hash mismatch: '+path+' (expected '+item.sha256+', actual '+actual+')');
  }
  if(errors.length)throw new Error(errors.join('\n'));
  return {ok:true,operations:data.operations.length,states:data.summary.implementationCounts};
