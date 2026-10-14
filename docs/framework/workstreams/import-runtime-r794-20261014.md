@@ -48,3 +48,11 @@
 - [首个真实失败原始 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38559581293)：**13/14 PASS，1 FAIL，0 SKIP**。原示例 `_.words('OpenDesk Browser')` 在真实 Lodash 中因 `OpenDesk` 驼峰断词返回 3；用户明确要求输出 2。没有更改断言或伪造返回，而将两个示例的输入修成自然的 `_.words('Browser tools')`，真实上游现在返回 2。
 - [修复后的真实 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38559965087)：新综合 **14/14 PASS，0 FAIL，0 SKIP**；npm 源精确安装、固定 D3 缓存、两个混合 Bundle 真正运行，以及缺 npm lock/版本、相对源、按需世界、坏 SHA、缺导出、变更中构建等 fail-closed fixture 通过；同一 CI 既有项目回归、源码检查和原离线示例全部通过。机器级原始日志见该 Actions job 及步骤 `Real pinned mixed-import Page and Controller builds (no SKIP)`。
 - 为补齐 Chrome：将两个项目加入既有 `tests/framework/esm-r22-examples.mjs`，复用相同 macOS Native/MCP/CFT launcher；`.github/workflows/local-dev-r22.yml` 在 isolated runner 中安装两个独立 npm lock 后执行原真实 Chrome 流程，不新建浏览器执行器。 [对应候选 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38560636360) 初始状态为 `QUEUED / NATIVE_NOT_TESTED`。结果须按真实 job 回执更新，不能提前宣布 Chrome PASS。
+
+## 精确 Node 构建身份与函数回执（第二轮复核）
+
+- [机器可读完整证据](evidence/import-r794-20261014/mixed-node-provenance.json)，来自 [GitHub Actions `38561369143`](https://github.com/shopable-ai/opendesk-browser/actions/runs/38561369143) 的**原始日志**，测试 14/14 PASS、0 FAIL、0 SKIP；本仓库证据只转录已实际输出的字段，不伪造 runId 或 Chrome 回执。
+- Page Node Bundle `sourceHash=3156034dabe8be51db089521c907df5e56c9c9ec766bfa0669f176bf7429e8b6`，`sourceBytes=2561`，`npmLockSha256=d42e3fb452a0e53cf31a5a9121b500db4eafea48933423f55f510aea1794ef6d`。
+- Controller Node Bundle `sourceHash=946ae21b21024a27eb92cdfc697a3f45fd49cf2c2b10351f5e1da6cb21c5d578`，`sourceBytes=2506`，`npmLockSha256=1dc684e735a880f00c5463b9f1f462ed80986ed23b1bd059253c7afecb222d53`。
+- 两者 `remoteModules` 均验证同一 D3 `v3.2.4/max.js` SHA `691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d`（502 字节），`npmBundledModules` 均包括真实 `node_modules/lodash-es/escape.js`（4.17.21）；严格的运行返回值在 JSON 中逐字段列明。
+- 注意以上两个 `sourceHash` 是 **Node/CI 构建身份，不是尚未取得的真实 Chrome Revision/Result 证明**。macOS 原生工作流 `38560636360` 尚须检查对应真实同包执行与权限回执。
