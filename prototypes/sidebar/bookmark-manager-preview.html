@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>OpenDesk Browser · 书签管理 / 交互原型</title>
+<style>
+:root{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;color:#182234;background:#f5f7fb;--ink:#182234;--muted:#65748b;--line:#e5e9f1;--accent:#365fee;--soft:#eef2ff;--surface:#fff;--danger:#cc4351}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh}
+button,input,select{font:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #9ab3ff;outline-offset:2px}
+[hidden]{display:none!important}
+.page{max-width:1230px;margin:auto;padding:28px 25px 50px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:20px}
+.brandline{display:flex;align-items:center;gap:11px;font-weight:740;font-size:16px}
+.logo{display:grid;place-items:center;width:31px;height:31px;border-radius:10px;background:#17263b;color:white;font-size:17px}
+.small{font-size:12px;color:var(--muted);font-weight:450}
+.previewbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.tag{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid #e4e9f2;background:white;border-radius:20px;color:#5e6880;font-size:11px;font-weight:600}
+.switch{display:flex;align-items:center;background:#e9edf5;padding:3px;border-radius:10px}
+.switch button{border:0;background:transparent;color:#6d7890;font-size:12px;padding:6px 10px;border-radius:7px}
+.switch button.active{background:white;color:var(--ink);box-shadow:0 1px 3px #00000012;font-weight:700}
+.workspace{display:flex;justify-content:center;align-items:flex-start;gap:22px;min-height:675px}
+.browser{flex:0 0 360px;width:360px;min-width:0;box-shadow:0 24px 66px #2339611a;border:1px solid #dbe1eb;border-radius:17px;background:white;overflow:hidden;transition:width .22s,flex-basis .22s}
+.browser.w320{flex-basis:320px;width:320px}.browser.w420{flex-basis:420px;width:420px}
+.chrome-header{height:44px;background:#f8f9fd;border-bottom:1px solid #e8ecf2;display:flex;align-items:center;justify-content:space-between;padding:0 15px}
+.chrome-name{display:flex;align-items:center;gap:8px;font-weight:780;font-size:13px}
+.dot{width:20px;height:20px;border-radius:7px;display:grid;place-items:center;color:white;background:#3448c5;font-size:12px}
+.chrome-header .right{color:#9aa3b6;font-size:13px;letter-spacing:4px}
+.primary-tabs{display:grid;grid-template-columns:repeat(6,1fr);padding:6px 7px 0;border-bottom:1px solid var(--line);gap:0}
+.primary-tabs button{border:0;background:white;color:#556981;padding:8px 1px 11px;border-bottom:2px solid transparent;font-size:11px;white-space:nowrap;font-weight:580}
+.primary-tabs button.active{color:#315df0;border-bottom-color:#315df0;font-weight:750}
+.sideview{min-height:610px;max-height:700px;overflow:auto;padding:15px 14px 19px;scrollbar-width:thin}
+.detail-header{display:flex;align-items:center;gap:9px;margin-bottom:15px}
+.icon-btn{border:1px solid #e6eaf1;background:#fff;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;color:#435168;font-size:18px;flex-shrink:0}
+.icon-btn:hover,.outline-btn:hover{background:#f4f6fb}
+.heading{font-size:15px;font-weight:770;margin:0;line-height:1.25}
+.subheading{color:var(--muted);font-size:11px;margin-top:4px}
+.spacer{flex:1}
+.hint{font-size:12px;line-height:1.55;color:var(--muted)}
+.search-wrap{display:flex;align-items:center;position:relative;margin:0 0 12px}
+.search-glyph{position:absolute;left:10px;color:#8693a9;font-size:17px;pointer-events:none}
+.search{height:35px;width:100%;min-width:0;border:1px solid #e6eaf1;border-radius:9px;padding:0 10px 0 31px;background:#f8f9fd;color:#22304a;outline:0;font-size:12px}
+.search::placeholder{color:#65758c}
+.toolbar{display:flex;align-items:center;gap:7px;margin-bottom:14px}
+.blue-btn{height:33px;border:1px solid #315de7;border-radius:9px;background:#365fee;color:white;font-size:12px;font-weight:690;padding:0 12px;display:inline-flex;align-items:center;justify-content:center;gap:5px}
+.blue-btn:hover{background:#274ddb}
+.outline-btn{border:1px solid #e4e9f1;border-radius:9px;background:white;height:33px;padding:0 11px;color:#46536a;font-size:12px;font-weight:630;white-space:nowrap}
+.folder-label{display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:720;color:#67738a;margin:10px 3px 7px}
+.folder{width:100%;display:flex;align-items:center;gap:10px;padding:9px 10px;text-align:left;border:0;border-radius:8px;background:transparent;color:#526078;font-size:12px}
+.folder.selected{background:#eef2ff;color:#2e56cc;font-weight:720}
+.folder:hover:not(.selected){background:#f6f8fc}
+.folder-icon{font-size:15px;opacity:.9}
+.folder .cnt{margin-left:auto;color:#566783;font-size:11px}
+.divider{height:1px;background:#ecf0f5;margin:12px 0 12px}
+.list-caption{display:flex;align-items:center;gap:6px;margin:0 1px 10px}
+.list-caption b{font-size:12px}
+.list-caption small{font-size:11px;color:#62718a}
+.list-caption select{margin-left:auto;border:0;background:transparent;color:#73829c;max-width:100px;font-size:11px}
+.bookmark-list{display:grid;gap:3px}
+.bookmark-row .btext{display:flex;flex-direction:column;gap:2px}
+.bookmark-row .btitle,.bookmark-row .burl{display:block;max-width:100%}
+.bookmark-row{display:flex;align-items:center;gap:10px;border:1px solid transparent;background:transparent;width:100%;text-align:left;border-radius:9px;padding:9px 7px;color:inherit}
+.bookmark-row:hover{background:#f8f9fd}
+.bookmark-row.selected{border-color:#dce4ff;background:#f1f4ff}
+.letter{width:31px;height:31px;border-radius:9px;background:#f0edff;color:#7865ce;display:grid;place-items:center;font-size:14px;font-weight:790;flex-shrink:0}
+.letter.green{background:#e7f7ef;color:#2d9774}.letter.orange{background:#fff1e5;color:#e18e35}.letter.blue{background:#e7f1ff;color:#3d7cc9}.letter.gray{background:#f0f2f6;color:#65748e}
+.btext{flex:1;min-width:0}
+.btitle{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.burl{font-size:11px;color:#65768f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}
+.ellipsis{font-size:16px;color:#a3aec0;flex-shrink:0}
+.empty{color:#75819a;text-align:center;border:1px dashed #e1e6ed;border-radius:12px;padding:24px 14px;font-size:12px;line-height:1.7}
+.index-intro{padding:4px 0 7px}
+.section-title{display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:720;margin:13px 0 9px}
+.toolitem{display:flex;align-items:center;gap:11px;padding:12px 10px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;background:white;text-align:left;width:100%}
+.toolitem:hover{border-color:#aebefb;background:#fcfdff}
+.tile{height:33px;width:33px;display:grid;place-items:center;background:#edf2ff;border-radius:10px;color:#4564d4;font-size:17px;flex-shrink:0}
+.toolitem .name{font-size:12px;font-weight:730}.toolitem .desc{font-size:11px;color:#8a96a9;margin-top:3px}
+.index-bottom{margin-top:20px;padding:13px;border:1px dashed #dfe5f2;border-radius:11px;color:#7987a0;font-size:11px}
+.index-bottom button{background:none;border:0;color:#315de7;font-weight:700;padding:0;cursor:pointer}
+.context{flex:1;max-width:690px;min-width:0;background:white;border:1px solid #e2e7f0;border-radius:17px;box-shadow:0 20px 65px #1a33640c;min-height:700px;overflow:hidden}
+.context-top{padding:17px 22px;display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line)}
+.context-top .title{font-size:14px;font-weight:770}
+.context-top .subtitle{font-size:11px;color:#5d7089;margin-top:4px}
+.context-body{padding:23px 26px 25px}
+.marker{font-size:11px;color:#5472dc;font-weight:720;letter-spacing:.04em;margin:0 0 9px}
+.context h2{font-size:21px;line-height:1.35;margin:0 0 12px;letter-spacing:-.4px}
+.context p{font-size:13px;line-height:1.75;color:#586b86;margin:0 0 15px}
+.preview-card{border:1px solid #e5eaf2;border-radius:13px;padding:19px;margin:22px 0 15px;display:flex;align-items:flex-start;gap:13px}
+.large-letter{height:48px;width:48px;border-radius:12px;background:#eff1ff;color:#566acb;display:grid;place-items:center;font-size:24px;flex-shrink:0}
+.preview-card h3{font-size:15px;margin:3px 0 6px;overflow-wrap:anywhere}
+.preview-card .url{font-size:12px;color:#5677cf;overflow-wrap:anywhere;line-height:1.55}
+.fields{margin:8px 0 22px;border-top:1px solid #eff1f5}
+.info-row{display:grid;grid-template-columns:100px minmax(0,1fr);gap:10px;border-bottom:1px solid #eff1f5;padding:13px 0;font-size:12px}
+.info-row dt{color:#5a6e88}.info-row dd{margin:0;color:#41516a;overflow-wrap:anywhere}
+.actions{display:flex;gap:9px;flex-wrap:wrap}
+.action{padding:8px 13px;border:1px solid #e5e9f0;background:#fff;border-radius:9px;font-size:12px;font-weight:700;color:#4c5d77;cursor:pointer}
+.action:hover{background:#f8faff}.action.danger{color:#bf4b59}
+.action.primary{background:#345eea;border-color:#345eea;color:white}
+.note{font-size:11px;color:#586d88;margin-top:19px;padding:12px 13px;border:1px solid #e5ebf7;background:#f8faff;border-radius:10px;line-height:1.65}
+.form-row{margin:17px 0}
+.form-row label{font-size:12px;color:#526078;font-weight:700;display:block;margin-bottom:7px}
+.form-row input,.form-row select{height:38px;border:1px solid #dfe5f0;padding:0 11px;border-radius:9px;width:100%;background:white;color:#23324a;font-size:13px}
+.form-row .help{font-size:11px;color:#8d99ab;margin-top:6px}
+.inline-error{font-size:12px;color:#bb4453;margin-bottom:12px}
+.warning{padding:12px 14px;border-radius:9px;border:1px solid #f4e0d5;background:#fff9f5;color:#98694d;font-size:12px;line-height:1.7;margin:18px 0}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#17283f;color:white;padding:12px 17px;border-radius:12px;box-shadow:0 8px 28px #0002;font-size:12px;z-index:100;max-width:90%;text-align:center}
+.footnote{font-size:12px;line-height:1.6;color:#5c708a;text-align:center;margin-top:20px}
+@media(max-width:760px){.page{padding:15px 12px 30px}.top{flex-direction:column;align-items:flex-start}.workspace{flex-direction:column;align-items:center}.browser,.browser.w320,.browser.w420{flex:0 1 auto;width:min(100%,420px)}.context{width:100%;min-height:350px}.sideview{max-height:none;min-height:500px}.context-body{padding:20px}.context-top{padding:16px 20px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* R1.1: Compact title-only header; contextual actions belong to the relevant section. */
+.toolbar{flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.detail-header{min-height:34px;gap:8px;margin-bottom:12px}
+.heading{font-size:14px;line-height:1.4}
+.folder-label{font-size:12px;margin:8px 0 6px;min-height:34px;gap:8px}
+.folder-label strong{font-size:12px;color:var(--ink)}
+.section-add{border:1px solid #d8e1fa;border-radius:8px;min-height:32px;padding:0 10px;background:#eef2ff;color:#2c54c9;font-size:12px;font-weight:700;white-space:nowrap}
+.section-add:hover{background:#e1e9ff}
+.folder-tree{display:grid;gap:2px}
+.folder-row{display:flex;align-items:center;min-width:0;border-radius:8px;gap:3px}
+.folder-row.selected{background:#eef2ff}
+.folder-row .folder{flex:1;min-width:0;display:flex;align-items:center;min-height:38px;gap:7px;white-space:nowrap;padding:6px 5px 6px 10px;color:#526078}
+.folder-row .folder-name{flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis}
+.folder-row .cnt{font-variant-numeric:tabular-nums}
+.folder-row .folder.selected{background:transparent}
+.folder-row .folder-more{flex:0 0 31px;min-height:34px;border:0;background:transparent;border-radius:8px;color:#4b6083;font-size:17px;font-weight:700}
+.folder-row .folder-more:hover{background:#e5ebf9}
+.folder-menu{margin:0 3px 5px 28px;padding:5px;display:flex;gap:4px;flex-wrap:wrap;background:#f5f7fc;border:1px solid #e2e7f4;border-radius:8px}
+.folder-menu button{background:#fff;border:1px solid #e6e9ef;color:#435069;border-radius:7px;padding:7px 8px;font-size:11px;font-weight:650;min-height:32px}
+.folder-menu button.danger,.dangerous{color:#b73c4c!important}
+.folder-menu button:hover{background:#eef2ff}
+.delete-check{display:flex;gap:9px;align-items:flex-start;font-size:12px;color:#46546d;line-height:1.55;margin:12px 0}
+.delete-check input{margin-top:4px}
+.small-card{margin:12px 0 15px!important;padding:12px!important}
+.compact-row{grid-template-columns:78px minmax(0,1fr)!important}
+.sidebar-form .actions{flex-wrap:wrap}
+.form-row{margin:14px 0}
+.sideview .warning p{font-size:12px;line-height:1.65}
+.index-intro .subheading{display:none}
+@media(max-width:360px){.toolbar .blue-btn,.toolbar .outline-btn{padding:0 10px}.folder-row .folder{font-size:12px}}
+</style>
+</head>
+<body>
+<main class="page">
+  <header class="top">
+    <div class="brandline"><span class="logo" aria-hidden="true">◈</span><span>书签管理交互原型</span></div>
+    <div class="previewbar"><span class="tag">● 模拟数据 · 不修改 Chrome 书签</span><div class="switch" role="group" aria-label="侧边栏宽度"><button data-width="320" type="button">320</button><button data-width="360" class="active" type="button">360</button><button data-width="420" type="button">420</button></div><button type="button" class="outline-btn" id="reset" aria-label="重置演示">↻ 重置</button></div>
+  </header>
+  <div class="workspace">
+    <section id="browser" class="browser" aria-label="模拟的 OpenDesk 浏览器侧边栏">
+      <div class="chrome-header"><div class="chrome-name"><span class="dot">◈</span> OpenDesk Browser</div><div class="right">···</div></div>
+      <nav class="primary-tabs" aria-label="主要选项卡">
+        <button data-tab="我的" type="button">我的</button><button data-tab="发现" type="button">发现</button><button data-tab="工作流" type="button">工作流</button><button data-tab="开发" type="button">开发</button><button data-tab="工具" class="active" type="button" aria-current="page">工具</button><button data-tab="云控" type="button">云控</button>
+      </nav>
+      <div id="sideview" class="sideview"></div>
+    </section>
+    <section class="context" aria-label="上下文区域：书签详情和操作">
+      <div class="context-top"><div><div class="title">上下文区域</div><div class="subtitle" id="context-sub">独立 UI 原型</div></div><span class="tag">交互原型</span></div>
+      <div class="context-body" id="context-body" aria-live="polite"></div>
+    </section>
+  </div>
+  <div class="footnote">原型数据仅保存在当前页面内存，不读取或修改真实 Chrome 书签。右侧仅供评审，不是产品必需的第二面板。</div>
+</main>
+<div id="toast" class="toast" role="status" hidden></div>
+<script>
+(()=>{'use strict';
+  const $=id=>document.getElementById(id);
+  const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const original=[
+    {id:'b1',title:'Chrome Extensions 文档',url:'https://developer.chrome.com/docs/extensions/',folder:'bar',added:'2026-10-14',icon:'C',tone:'blue'},
+    {id:'b2',title:'GitHub · OpenDesk Browser',url:'https://github.com/shopable-ai/opendesk-browser',folder:'bar',added:'2026-10-13',icon:'G',tone:'gray'},
+    {id:'b3',title:'MDN Web Docs · JavaScript',url:'https://developer.mozilla.org/zh-CN/docs/Web/JavaScript',folder:'bar',added:'2026-10-11',icon:'M',tone:'orange'},
+    {id:'b4',title:'Figma · 设计工作台',url:'https://www.figma.com/',folder:'design',added:'2026-10-07',icon:'F',tone:'green'},
+    {id:'b5',title:'Vue.js 官方指南',url:'https://cn.vuejs.org/guide/introduction.html',folder:'dev',added:'2026-09-26',icon:'V',tone:'green'},
+    {id:'b6',title:'React 官方文档',url:'https://react.dev/',folder:'dev',added:'2026-09-20',icon:'R',tone:'blue'},
+    {id:'b7',title:'Wikipedia',url:'https://www.wikipedia.org/',folder:'other',added:'2026-09-15',icon:'W',tone:'gray'}
+  ];
+  const initialFolders=[
+    {id:'all',name:'全部书签',parent:null,locked:true},
+    {id:'bar',name:'书签栏',parent:null,locked:true},
+    {id:'dev',name:'开发资料',parent:'bar',locked:false},
+    {id:'design',name:'设计灵感',parent:'bar',locked:false},
+    {id:'other',name:'其他书签',parent:null,locked:true}
+  ];
+  const s={bookmarks:[],folders:[],screen:'manager',lastScreen:null,folder:'all',selected:'b1',selectedFolder:null,
+    query:'',sort:'recent',menu:null,formMode:'new',error:'',counter:20};
+  const lookup=id=>s.folders.find(x=>x.id===id);
+  const folderTitle=id=>lookup(id)?.name||'未知文件夹';
+  const current=()=>s.bookmarks.find(x=>x.id===s.selected)||null;
+  const host=url=>{try{return new URL(url).hostname.replace(/^www\./,'')}catch{return url||'无网址'}};
+  const today=()=>new Date().toISOString().slice(0,10);
+  const descendant=(id,ancestor)=>{
+    if(ancestor==='all')return true;
+    const seen=new Set();
+    for(let i=0;i<20&&id&&!seen.has(id);i++){
+      if(id===ancestor)return true;
+      seen.add(id);id=lookup(id)?.parent||null;
+    }
+    return false;
+  };
+  const tree=()=>{
+    const out=[{...lookup('all'),depth:0}];
+    const visit=(parent,depth)=>{
+      for(const f of s.folders.filter(x=>x.id!=='all'&&x.parent===parent)){
+        out.push({...f,depth});
+        if(depth<12)visit(f.id,depth+1);
+      }
+    };
+    visit(null,0);return out;
+  };
+  const count=id=>s.bookmarks.filter(b=>descendant(b.folder,id)).length;
+  const visible=()=>s.bookmarks.filter(b=>descendant(b.folder,s.folder)&&(b.title+' '+b.url).toLowerCase().includes(s.query.toLowerCase()))
+    .sort((a,b)=>s.sort==='title'?a.title.localeCompare(b.title,'zh-CN'):b.added.localeCompare(a.added));
+  const foldersSelect=(chosen,exclude)=>tree().filter(f=>f.id!=='all'&&(!exclude||!descendant(f.id,exclude)))
+    .map(f=>`<option value="${esc(f.id)}" ${f.id===chosen?'selected':''}>${'　'.repeat(Math.max(0,f.depth-1))}${esc(f.name)}</option>`).join('');
+  const notice=message=>{
+    const el=$('toast');el.textContent=message;el.hidden=false;
+    clearTimeout(window.__bmToast);window.__bmToast=setTimeout(()=>el.hidden=true,2400);
+  };
+  const heading=(name,back='manager')=>`<div class="detail-header"><button class="icon-btn" type="button" data-action="back" data-destination="${back}" aria-label="返回" title="返回">‹</button><h2 class="heading">${esc(name)}</h2></div>`;
+  const saveButtons=(text)=>`<div class="actions" style="margin-top:18px"><button type="submit" class="blue-btn">${esc(text)}</button><button type="button" class="outline-btn" data-action="back" data-destination="manager">取消</button></div>`;
+  const folderSection=()=>`<div class="folder-label"><strong>文件夹</strong><button type="button" class="section-add" data-action="new-folder" aria-label="新建文件夹">＋ 新建文件夹</button></div>
+    <div class="folder-tree" aria-label="书签文件夹">${tree().map(f=>`
+      <div class="folder-row ${s.folder===f.id?'selected':''}"><button type="button" class="folder ${s.folder===f.id?'selected':''}" data-folder="${esc(f.id)}" style="padding-left:${10+f.depth*14}px" aria-pressed="${s.folder===f.id}"><span class="folder-icon" aria-hidden="true">${f.id==='all'?'▤':'▱'}</span><span class="folder-name">${esc(f.name)}</span><span class="cnt">${count(f.id)}</span></button>
+      ${f.locked?'':`<button type="button" class="folder-more" data-folder-menu="${esc(f.id)}" aria-label="管理${esc(f.name)}" title="管理文件夹" aria-expanded="${s.menu===f.id}">···</button>`}</div>
+      ${s.menu===f.id?`<div class="folder-menu" role="group" aria-label="${esc(f.name)}的管理操作"><button type="button" data-folder-op="rename" data-folder-id="${esc(f.id)}">重命名</button><button type="button" data-folder-op="move" data-folder-id="${esc(f.id)}">移动</button><button type="button" data-folder-op="delete" data-folder-id="${esc(f.id)}" class="danger">删除</button></div>`:''}
+    `).join('')}</div>`;
+  const manager=()=>`${heading('书签管理','index')}
+      <label class="search-wrap"><span class="search-glyph" aria-hidden="true">⌕</span><input id="search" class="search" type="search" autocomplete="off" placeholder="搜索标题或网址…" aria-label="搜索书签" value="${esc(s.query)}"></label>
+      <div class="toolbar"><button type="button" class="blue-btn" data-action="save-current">☆ 收藏当前页</button><button type="button" class="outline-btn" data-action="new-bookmark">＋ 添加书签</button></div>
+      ${folderSection()}
+      <div class="divider"></div><div class="list-caption"><b>书签</b><small>${visible().length} 项</small><select id="sort" aria-label="书签排序"><option value="recent" ${s.sort==='recent'?'selected':''}>最近添加</option><option value="title" ${s.sort==='title'?'selected':''}>名称 A-Z</option></select></div>
+      <div class="bookmark-list">${visible().length?visible().map(b=>`<button type="button" data-bookmark="${esc(b.id)}" class="bookmark-row ${s.selected===b.id?'selected':''}"><span class="letter ${esc(b.tone)}">${esc(b.icon)}</span><span class="btext"><span class="btitle">${esc(b.title)}</span><span class="burl">${esc(host(b.url))}</span></span><span class="ellipsis">›</span></button>`).join(''):`<div class="empty">${s.bookmarks.length?'没有匹配的书签':'还没有书签'}<div style="margin-top:7px"><button type="button" class="outline-btn" data-action="new-bookmark">添加书签</button></div></div>`}</div>`;
+  function folderForm(){
+    const editing=s.formMode==='edit';const f=lookup(s.selectedFolder);
+    if(editing&&(!f||f.locked))return heading('无法编辑文件夹');
+    const currentParent=editing?f.parent:(s.folder==='all'?'bar':s.folder);
+    return `${heading(editing?'重命名文件夹':'新建文件夹')}
+      <form id="folder-form" class="sidebar-form">
+        <div class="form-row"><label for="folder-title">文件夹名称</label><input id="folder-title" name="title" required maxlength="80" placeholder="例如：研究资料" value="${editing?esc(f.name):''}"></div>
+        ${editing?'':`<div class="form-row"><label for="folder-parent">保存到</label><select id="folder-parent" name="parent">${foldersSelect(currentParent)}</select></div>`}
+        <div class="inline-error" id="inline-error" role="alert">${esc(s.error)}</div>${saveButtons(editing?'保存名称':'创建文件夹')}
+      </form>`;
+  }
+  function bookmarkForm(){
+    const edit=s.formMode==='edit'?current():null;
+    return `${heading(edit?'编辑书签':'新增书签')}<form id="bookmark-form" class="sidebar-form">
+      <div class="form-row"><label for="bookmark-title">名称</label><input id="bookmark-title" name="title" required maxlength="256" value="${esc(edit?.title||'')}"></div>
+      <div class="form-row"><label for="bookmark-url">网址</label><input id="bookmark-url" name="url" required spellcheck="false" value="${esc(edit?.url||'https://')}"></div>
+      <div class="form-row"><label for="bookmark-parent">保存到文件夹</label><select id="bookmark-parent" name="parent">${foldersSelect(edit?.folder||(s.folder==='all'?'bar':s.folder))}</select></div>
+      <div class="inline-error" id="inline-error" role="alert">${esc(s.error)}</div>${saveButtons(edit?'保存修改':'添加书签')}
+    </form>`;
+  }
+  function folderMove(){
+    const f=lookup(s.selectedFolder);return `${heading('移动文件夹')}
+      <p class="hint">${esc(f?.name||'')} → 选择新的上级文件夹</p><form id="folder-move-form" class="sidebar-form"><div class="form-row"><label for="folder-target">目标文件夹</label><select id="folder-target" name="target">${foldersSelect(f?.parent||'bar',f?.id)}</select></div>${saveButtons('确认移动')}</form>`;
+  }
+  function folderDelete(){
+    const f=lookup(s.selectedFolder);const folderIds=s.folders.filter(x=>descendant(x.id,f?.id)&&x.id!==f?.id).length;
+    const total=count(f?.id);
+    return `${heading('删除文件夹')}<div class="warning"><strong>确认删除「${esc(f?.name||'')}」？</strong><p style="margin:8px 0 0">将同时删除 ${total} 条书签和 ${folderIds} 个子文件夹。真实 Chrome 中的删除可能同步到其他设备。</p></div>
+      <form id="folder-delete-form">${total||folderIds?'<label class="delete-check"><input type="checkbox" id="confirm-children" required> 我了解其下的书签和子文件夹也会被删除</label>':''}
+        <div class="actions" style="margin-top:18px"><button type="submit" class="outline-btn dangerous">确认删除</button><button type="button" class="outline-btn" data-action="back" data-destination="manager">取消</button></div></form>`;
+  }
+  function bookmarkMove(){const b=current();return `${heading('移动书签','bookmark-detail')}<p class="hint">${esc(b?.title||'')}</p><form id="bookmark-move-form" class="sidebar-form"><div class="form-row"><label for="bookmark-target">目标文件夹</label><select id="bookmark-target">${foldersSelect(b?.folder)}</select></div><div class="actions"><button class="blue-btn" type="submit">确认移动</button><button class="outline-btn" type="button" data-action="back" data-destination="bookmark-detail">取消</button></div></form>`;}
+  function bookmarkDelete(){const b=current();return `${heading('删除书签','bookmark-detail')}<div class="warning">删除「${esc(b?.title||'')}」？此更改可能同步到其他设备。</div><div class="actions"><button class="outline-btn dangerous" data-action="confirm-bookmark-delete" type="button">确认删除</button><button class="outline-btn" data-action="back" data-destination="bookmark-detail" type="button">取消</button></div>`;}
+  function bookmarkDetail(){const b=current();return `${heading('书签详情')}${b?`<div class="preview-card small-card"><span class="letter ${esc(b.tone)}">${esc(b.icon)}</span><div style="min-width:0"><div class="btitle" style="white-space:normal">${esc(b.title)}</div><div class="burl" style="white-space:normal;overflow-wrap:anywhere">${esc(b.url)}</div></div></div>
+    <dl class="fields"><div class="info-row compact-row"><dt>文件夹</dt><dd>${esc(folderTitle(b.folder))}</dd></div><div class="info-row compact-row"><dt>添加日期</dt><dd>${esc(b.added)}</dd></div></dl><div class="actions"><button type="button" class="blue-btn" data-action="open-url">打开网页 ↗</button><button type="button" class="outline-btn" data-action="edit-bookmark">编辑</button><button type="button" class="outline-btn" data-action="move-bookmark">移动</button><button type="button" class="outline-btn dangerous" data-action="delete-bookmark">删除</button></div>`:'<div class="empty">所选书签已不存在</div>'}`;}
+  function index(){return `<div class="detail-header"><h2 class="heading">已安装工具</h2><span class="spacer"></span><button type="button" class="icon-btn" data-action="discover" aria-label="发现工具" title="发现工具">＋</button></div>
+    <button type="button" class="toolitem" data-action="open-manager"><span class="tile">▣</span><span class="btext"><span class="name">书签管理</span><span class="desc">收藏、整理与搜索</span></span><span class="ellipsis">›</span></button>
+    <button type="button" class="toolitem" data-action="other"><span class="tile">◷</span><span class="btext"><span class="name">时间回顾</span></span><span class="ellipsis">›</span></button>
+    <button type="button" class="toolitem" data-action="other"><span class="tile">✎</span><span class="btext"><span class="name">快捷笔记</span></span><span class="ellipsis">›</span></button>
+    <div class="section-title">已安装网页工具</div><div class="index-bottom">已安装网页工具与独立 Side Panel 工具分区展示。</div>`;}
+  function sideMarkup(){switch(s.screen){
+    case 'index':return index();
+    case 'discover':return `${heading('发现','index')}<div class="empty">工具商店是独立一级选项卡，不嵌入书签管理。</div>`;
+    case 'manager':return manager();
+    case 'folder-form':return folderForm();
+    case 'folder-move':return folderMove();
+    case 'folder-delete':return folderDelete();
+    case 'bookmark-detail':return bookmarkDetail();
+    case 'bookmark-form':return bookmarkForm();
+    case 'bookmark-move':return bookmarkMove();
+    case 'bookmark-delete':return bookmarkDelete();
+    case 'info':return `${heading('书签管理说明')}<p class="hint">正式版使用 Chrome 的 bookmarks API。这里只是脱机演示，不会触碰浏览器真实书签。</p>`;
+  }}
+  function contextMarkup(){
+    const b=current();
+    if(s.screen==='index')return `<div class="marker">导航结构</div><h2>工具索引 → 书签管理</h2><p>点击左侧书签管理进入独立工具。发现市场是另一一级选项卡。</p>`;
+    if(s.screen==='discover')return `<div class="marker">应用市场</div><h2>发现和工具分开</h2><p>新工具安装归发现，使用和管理归工具。</p>`;
+    if(s.screen.startsWith('folder-')){
+      const f=lookup(s.selectedFolder);
+      return `<div class="marker">文件夹管理 · 模拟</div><h2>${s.screen==='folder-form'?(s.formMode==='new'?'新建文件夹':'重命名文件夹'):s.screen==='folder-move'?'移动文件夹':'删除文件夹'}</h2>
+        <p>所有输入与确认都在左侧模拟的 Side Panel 中完成；右侧只展示上下文说明，不是正式产品必需的第二个面板。</p>
+        <div class="note">${f?`当前对象：${esc(f.name)}`:'文件夹属于 Chrome 书签树。'}系统根目录不允许重命名或删除，删除包含子项的文件夹需要额外确认。</div>`;
+    }
+    if(s.screen==='bookmark-form'||s.screen==='bookmark-move'||s.screen==='bookmark-delete')return `<div class="marker">书签操作 · 模拟</div><h2>侧栏内完成操作</h2><p>创建、修改、移动和删除都在左侧的同一工具二级视图操作，不要求用户在右侧额外完成表单。</p>`;
+    if(s.screen==='info')return `<div class="marker">实现边界</div><h2>权限与安全</h2><p>只有固定、经审计的第一方组件可经 Chrome bookmarks 可选权限访问完整书签树。安装版动态 HTML 不继承此特权。</p>`;
+    if(!b)return `<div class="marker">书签预览</div><h2>选择一条书签</h2><p>点击左侧书签可查看详情；使用「文件夹 → ＋ 新建文件夹」创建目录。</p>`;
+    return `<div class="marker">${s.screen==='bookmark-detail'?'书签详情':'选中的书签'} · 模拟</div><h2>${esc(b.title)}</h2>
+      <div class="preview-card"><div class="large-letter">${esc(b.icon)}</div><div style="min-width:0"><h3>${esc(b.title)}</h3><div class="url">${esc(b.url)}</div></div></div>
+      <dl class="fields"><div class="info-row"><dt>文件夹</dt><dd>${esc(folderTitle(b.folder))}</dd></div><div class="info-row"><dt>添加日期</dt><dd>${esc(b.added)}</dd></div><div class="info-row"><dt>数据来源</dt><dd>演示数据（非 Chrome 实际书签）</dd></div></dl>
+      <div class="note">上方侧栏只保留主标题。文件夹创建入口贴近文件夹区，而不混在书签操作栏里。</div>`;
+  }
+  function render({focusId=null,keepScroll=false}={}){
+    const root=$('sideview'),scroll=keepScroll?root.scrollTop:0;
+    root.innerHTML=sideMarkup();root.scrollTop=scroll;
+    $('context-sub').textContent='独立 UI 原型 · 右侧仅作为设计说明';
+    $('context-body').innerHTML=contextMarkup();
+    document.querySelectorAll('[data-tab]').forEach(b=>{const on=b.dataset.tab===(s.screen==='discover'?'发现':'工具');b.classList.toggle('active',on);b.setAttribute('aria-current',on?'page':'false')});
+    s.lastScreen=s.screen;
+    if(focusId)requestAnimationFrame(()=>$(`${focusId}`)?.focus());
+  }
+  const go=(screen,focusId)=>{s.screen=screen;s.menu=null;s.error='';render({focusId})};
+  const reset=()=>{
+    s.bookmarks=original.map(x=>({...x}));s.folders=initialFolders.map(x=>({...x}));s.screen='manager';s.folder='all';
+    s.selected='b1';s.selectedFolder=null;s.query='';s.sort='recent';s.menu=null;s.counter=20;s.formMode='new';s.error='';render();
+  };
+  function handleFolderOp(op,id){
+    const f=lookup(id);if(!f||f.locked){notice('Chrome 系统目录不可重命名或删除');return}
+    s.selectedFolder=id;s.menu=null;
+    if(op==='rename'){s.formMode='edit';go('folder-form','folder-title')}
+    else if(op==='move')go('folder-move','folder-target');
+    else if(op==='delete')go('folder-delete','confirm-children');
+  }
+  document.getElementById('browser').addEventListener('click',event=>{
+    const t=event.target.closest('[data-tab]');
+    if(t){if(t.dataset.tab==='工具')go('index');else if(t.dataset.tab==='发现')go('discover');else notice('这里只演示「工具」与「发现」的关系');return}
+    const menu=event.target.closest('[data-folder-menu]');
+    if(menu){s.menu=s.menu===menu.dataset.folderMenu?null:menu.dataset.folderMenu;render({keepScroll:true});return}
+    const op=event.target.closest('[data-folder-op]');if(op){handleFolderOp(op.dataset.folderOp,op.dataset.folderId);return}
+    const folder=event.target.closest('[data-folder]');
+    if(folder){s.folder=folder.dataset.folder;s.menu=null;s.selected=visible()[0]?.id||null;render({keepScroll:true});return}
+    const book=event.target.closest('[data-bookmark]');if(book){s.selected=book.dataset.bookmark;go('bookmark-detail');return}
+    const button=event.target.closest('[data-action]');if(!button)return;
+    const action=button.dataset.action;
+    if(action==='back'){go(button.dataset.destination||'manager');return}
+    if(action==='discover'){go('discover');return}
+    if(action==='open-manager'){go('manager');return}
+    if(action==='other'){notice('此原型仅演示书签管理');return}
+    if(action==='new-folder'){s.selectedFolder=null;s.formMode='new';go('folder-form','folder-title');return}
+    if(action==='new-bookmark'){s.formMode='new';go('bookmark-form','bookmark-title');return}
+    if(action==='edit-bookmark'){s.formMode='edit';go('bookmark-form','bookmark-title');return}
+    if(action==='move-bookmark'){go('bookmark-move','bookmark-target');return}
+    if(action==='delete-bookmark'){go('bookmark-delete');return}
+    if(action==='open-url'){notice('原型不打开真实网页');return}
+    if(action==='confirm-bookmark-delete'){
+      s.bookmarks=s.bookmarks.filter(x=>x.id!==s.selected);s.selected=visible()[0]?.id||null;go('manager');notice('已删除演示书签');return;
+    }
+    if(action==='save-current'){
+      const url='https://developer.chrome.com/docs/extensions/reference/api/bookmarks';
+      const previous=s.bookmarks.find(b=>b.url===url);
+      if(previous){s.selected=previous.id;go('bookmark-detail');notice('该网址已收藏，已定位书签');return}
+      const id='b'+(++s.counter);s.bookmarks.unshift({id,title:'Chrome Bookmarks API',url,folder:s.folder==='all'?'bar':s.folder,added:today(),icon:'C',tone:'blue'});
+      s.selected=id;go('bookmark-detail');notice('已添加演示书签');
+    }
+  });
+  document.getElementById('browser').addEventListener('input',event=>{
+    if(event.target.id!=='search')return;
+    const pos=event.target.selectionStart;s.query=event.target.value;
+    render({keepScroll:true});const input=$('search');input?.focus();input?.setSelectionRange(pos,pos);
+  });
+  document.getElementById('browser').addEventListener('change',event=>{
+    if(event.target.id==='sort'){s.sort=event.target.value;render({keepScroll:true})}
+  });
+  document.getElementById('browser').addEventListener('submit',event=>{
+    const form=event.target;if(!['folder-form','folder-move-form','folder-delete-form','bookmark-form','bookmark-move-form'].includes(form.id))return;
+    event.preventDefault();
+    if(form.id==='folder-form'){
+      const title=form.querySelector('#folder-title').value.trim();const edit=s.formMode==='edit';const target=edit?lookup(s.selectedFolder):null;
+      const parent=edit?target?.parent:form.querySelector('#folder-parent')?.value;
+      if(!title){$('inline-error').textContent='请输入文件夹名称';return}
+      if(s.folders.some(f=>f.id!==target?.id&&f.parent===parent&&f.name===title)){$('inline-error').textContent='当前目录下已有同名文件夹';return}
+      if(edit){if(!target||target.locked){notice('系统文件夹不可修改');return}target.name=title;s.folder=target.id}
+      else{if(!lookup(parent)){notice('目标目录不存在');return}const id='f'+(++s.counter);s.folders.push({id,name:title,parent,locked:false});s.folder=id}
+      s.selected=visible()[0]?.id||null;go('manager');notice(edit?'已重命名演示文件夹':'已新建演示文件夹');return;
+    }
+    if(form.id==='folder-move-form'){
+      const f=lookup(s.selectedFolder),target=form.querySelector('#folder-target')?.value;
+      if(!f||f.locked||!lookup(target)||descendant(target,f.id)){notice('不允许将文件夹移动到自身或子文件夹');return}
+      f.parent=target;s.folder=f.id;go('manager');notice('已移动演示文件夹');return;
+    }
+    if(form.id==='folder-delete-form'){
+      const f=lookup(s.selectedFolder);if(!f||f.locked){notice('系统文件夹不可删除');return}
+      const ids=new Set(s.folders.filter(x=>descendant(x.id,f.id)).map(x=>x.id));
+      if((count(f.id)>0||ids.size>1)&&!form.querySelector('#confirm-children')?.checked){notice('请先确认要删除包含的内容');return}
+      s.bookmarks=s.bookmarks.filter(x=>!ids.has(x.folder));s.folders=s.folders.filter(x=>!ids.has(x.id));
+      s.folder='all';s.selected=s.bookmarks[0]?.id||null;go('manager');notice('已删除演示文件夹和其中内容');return;
+    }
+    if(form.id==='bookmark-form'){
+      const title=form.querySelector('#bookmark-title').value.trim(),url=form.querySelector('#bookmark-url').value.trim();
+      const parent=form.querySelector('#bookmark-parent').value;
+      let parsed;try{parsed=new URL(url);if(!['http:','https:'].includes(parsed.protocol))throw new Error('只支持 http / https 网址')}
+      catch{$('inline-error').textContent='请输入有效的 HTTP(S) 网址';return}
+      if(!title||!lookup(parent)){$('inline-error').textContent='名称或文件夹无效';return}
+      if(s.formMode==='edit'&&current())Object.assign(current(),{title,url:parsed.href,folder:parent,icon:title[0].toUpperCase()});
+      else{const id='b'+(++s.counter);s.bookmarks.unshift({id,title,url:parsed.href,folder:parent,added:today(),icon:title[0].toUpperCase(),tone:'blue'});s.selected=id}
+      s.folder='all';go('bookmark-detail');notice('已保存演示书签');return;
+    }
+    if(form.id==='bookmark-move-form'){
+      if(current())current().folder=form.querySelector('#bookmark-target').value;
+      s.folder='all';go('bookmark-detail');notice('已移动演示书签');
+    }
+  });
+  $('reset').addEventListener('click',()=>{reset();notice('已重置演示数据')});
+  document.querySelectorAll('[data-width]').forEach(btn=>btn.addEventListener('click',()=>{
+    const width=btn.dataset.width;const el=$('browser');el.classList.remove('w320','w420');
+    if(width!=='360')el.classList.add('w'+width);
+    document.querySelectorAll('[data-width]').forEach(x=>x.classList.toggle('active',x===btn));
+  }));
+  document.addEventListener('keydown',event=>{
+    if(event.key!=='Escape')return;
+    if(s.menu){s.menu=null;render({keepScroll:true})}
+    else if(s.screen==='bookmark-detail')go('manager');
+    else if(!['manager','index','discover'].includes(s.screen))go('manager');
+  });
+  reset();
+})();
+</script>
+</body>
+</html>
