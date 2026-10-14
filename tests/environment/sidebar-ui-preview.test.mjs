@@ -191,7 +191,9 @@ test('R20/R23 six-tab design system has one token source and a strict trusted as
   assert.doesNotMatch(design,/@import\b|url\s*\(|expression\s*\(/i);
   assert.match(prepare,/'src\/ui\/design-tokens\.css':'ui\/design-tokens\.css'/);
   assert.match(prepare,/'src\/ui\/design-system\.css':'ui\/design-system\.css'/);
-  assert.ok(verify.includes("'ui/tool.html': ['design-tokens.css', 'design-system.css', 'tool-shell.css', 'time-review.css', 'cloud-hosting.css', 'sidebar-tool-host.js', 'stay-focus-controls.js', 'trusted-cookie-ui.js', 'tool-shell.js']"),
+  assert.match(prepare,/'src\/ui\/bookmark-manager\.css':'ui\/bookmark-manager\.css'/,
+    'the trusted bookmark CSS used by Tools is a whitelisted WXT asset');
+  assert.ok(verify.includes("'ui/tool.html': ['design-tokens.css', 'design-system.css', 'tool-shell.css', 'bookmark-manager.css', 'time-review.css', 'cloud-hosting.css', 'sidebar-tool-host.js', 'stay-focus-controls.js', 'trusted-cookie-ui.js', 'tool-shell.js']"),
     'the fixed asset verifier must require cloud hosting CSS and the precise trusted sidecars before the main shell');
   assert.match(html, /<script src="sidebar-tool-host\.js"><\/script>\s*<script src="stay-focus-controls\.js"><\/script>\s*<script src="trusted-cookie-ui\.js"><\/script>\s*<script src="tool-shell\.js"><\/script>/,
     'the native Cookie/Stay Focus controls load in a verified order before the Side Panel shell');
