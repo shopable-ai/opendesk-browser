@@ -31,7 +31,11 @@ const report={mode:'headed-owned-macos-CFT',startedAt:new Date().toISOString(),e
 let launched,client,control,side,sideTargetId,website,currentCase,toolSession;
 const targetSessions=new Map();
 const trace=[];
-const persist=()=>writeFile(path.join(directory,'native-report.json'),JSON.stringify(report,null,2)+'\n');
+// Native assertions may compare synthetic Cookie values in memory. Persisted
+// reports, failure envelopes, and Input traces must never contain those values.
+const evidenceJson=input=>JSON.stringify(input,(key,value)=>
+  key==='value'&&typeof value==='string'?'[REDACTED_COOKIE_VALUE]':value,2)+'\n';
+const persist=()=>writeFile(path.join(directory,'native-report.json'),evidenceJson(report));
 function requireNativeResource(){
   const active=execFileSync('ps',['-axo','pid=,ppid=,comm='],{encoding:'utf8'}).split('\n')
     .map(line=>line.trim().match(/^(\d+)\s+(\d+)\s+(.+)$/)).filter(Boolean)
@@ -136,11 +140,13 @@ async function type(selector,value){
   await client.send('Input.dispatchKeyEvent',{type:'keyUp',key:'a',code:'KeyA',modifiers:4},side);
   await client.send('Input.insertText',{text:value},side);
   assert.equal(await read(toolSession,'document.querySelector('+quote(selector)+').value'),value,'Native input value');
-  report.steps.push({at:new Date().toISOString(),input:'CDP trusted text',selector,value});
+  report.steps.push({at:new Date().toISOString(),input:'CDP trusted text',selector,length:value.length});
 }
 async function cookies(){
   const rows=await read(control,'chrome.cookies.getAll({domain:"127.0.0.1"}).then(rows=>rows.map(c=>({...c})))');
-  (report.nativeReads??=[]).push({at:new Date().toISOString(),case:currentCase,cookies:rows});return rows;
+  (report.nativeReads??=[]).push({at:new Date().toISOString(),case:currentCase,
+    cookies:rows.map(({value,...metadata})=>({...metadata,valueRedacted:true}))});
+  return rows;
 }
 async function createCookie(name,value,path='/'){
   await click(toolSession,'#live-new');await type('#cookie-name',name);await type('#cookie-value',value);
@@ -245,7 +251,7 @@ async function step(id,fn){
     if(toolSession)report.cases[id].ui=await read(toolSession,'({text:document.body.innerText,active:document.activeElement?.id,scroll:scrollY,height:innerHeight,form:[...document.querySelectorAll("#editor-form input,#editor-form textarea,#editor-form button")].map(n=>({id:n.id,value:n.value,disabled:n.disabled,valid:n.validity?.valid,rect:{x:n.getBoundingClientRect().x,y:n.getBoundingClientRect().y}}))})');
   }catch(e){report.cases[id].screenshotError=e.message;}throw error;}
   finally{report.cases[id].finishedAt=new Date().toISOString();await writeFile(path.join(directory,id+'-receipt.json'),
-    JSON.stringify({candidate:report.candidate,launch:report.launch,case:report.cases[id]},null,2)+'\n');await persist();}
+    evidenceJson({candidate:report.candidate,launch:report.launch,case:report.cases[id]}));await persist();}
   console.log('COOKIE_NATIVE_PASS '+id);
 }
 try{
@@ -617,6 +623,7 @@ finally{
   catch(error){report.candidateCheckError=error.message;report.complete=false;process.exitCode=1;}
   if(client){try{guard();await client.send('Browser.close');}catch(error){report.closeObservation=error.message;}client.close();}
   if(launched){report.cleanup=await launched.stop();if(report.cleanup.cleanupStatus!=='PASS'){report.complete=false;process.exitCode=1;}}
-  report.finishedAt=new Date().toISOString();await writeFile(path.join(directory,'cdp-trace.json'),JSON.stringify(trace,null,2)+'\n');await persist();
+  report.finishedAt=new Date().toISOString();await writeFile(path.join(directory,'cdp-trace.json'),JSON.stringify(trace,(key,value)=>
+    (key==='text'||key==='value')&&typeof value==='string'?'[REDACTED_INPUT]':value,2)+'\n');await persist();
   console.log(JSON.stringify({directory,complete:report.complete,cases:report.cases,error:report.error||null}));
 }
