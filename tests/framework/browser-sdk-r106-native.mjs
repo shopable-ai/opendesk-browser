@@ -779,7 +779,8 @@ async function runNative(){
     });
     await recordCase('trusted-history-real-permission-denial',async()=>{
       await click(client,side,'#trusted-history-search',report.trace);await permissionChoice(false);
-      const status=await deadline(async()=>{const value=await read(client,side,'document.querySelector("#trusted-history-status").textContent');return value.includes('未授予')?value:null;},'History permission denial');
+      const status=await deadline(async()=>{const value=await read(client,side,'document.querySelector("#trusted-history-status").textContent');return value.includes('需要 Chrome history 可选权限')?value:null;},'History permission denial');
+      assert.equal(await read(client,side,'document.querySelector("#trusted-history-panel").dataset.historyPermission'),'missing');
       assert.equal(await read(client,control,'chrome.permissions.contains({permissions:["history"]})'),false);
       assert.equal(await read(client,side,'document.querySelector("#trusted-history-results").children.length'),0);
       return {status,permission:false};
