@@ -74,7 +74,7 @@ jobs:
       - name: Scoped Side Panel size limits and unchanged non-shell budgets
         run: node --test --test-reporter=spec tests/environment/fixed-entries-audit.test.mjs tests/environment/sw-budget-policy.test.mjs
       - name: R10.7 public SDK wrapper routes and trusted-boundary regressions
-        run: node --test --test-reporter=spec tests/environment/browser-sdk-r107-public-routing.test.mjs tests/environment/browser-sdk-r11-declarative.test.mjs tests/environment/browser-sdk-r11-bindings.test.mjs
+        run: node --test --test-reporter=spec tests/environment/browser-sdk-r107-public-routing.test.mjs tests/environment/browser-sdk-r11-declarative.test.mjs tests/environment/browser-sdk-r11-bindings.test.mjs tests/environment/browser-sdk-r11-generated-catalog.test.mjs
       - name: R10.7 installed acceptance tool public-call UI and package regression
         run: node --test --test-reporter=spec tests/environment/browser-sdk-r107-installed-acceptance.test.mjs
       - name: R10.7 native driver PREPARE (not a Native PASS)
