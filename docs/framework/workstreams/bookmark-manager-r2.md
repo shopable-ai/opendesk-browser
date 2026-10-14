@@ -89,3 +89,9 @@
 - R11 Full SDK：BLOCKED；真实 Mac Chrome、Native CRUD/500+/撤权/Worker/卸载：NOT_TESTED；旧宿主 src/bookmark-manager 保留。
 
 **本轮测试**：以同候选 GitHub Actions 最终 Node、Check、Build、Package Verify、Verify 为准；无 Mac Profile 时不能报告 Native 通过。
+
+### R2.2 增量：权限失效即时保护
+
+- Full SDK Registry 存在而 capability status 不可调用时，消费端区分 E_BOOKMARK_PERMISSION 与 E_R11_BOOKMARKS_INCOMPLETE；Node Mock 验证撤权后不请求 getTree/create/observe.read。
+- 事件启动/读取、CRUD 遇到已知 SDK/权限/工具身份失效，独立 UI 立即隐藏旧书签树；不改 Host，实际 Chrome revoke 时序仍 NOT_TESTED。
+- 仍是未正式发行的预备包 0.2.1；Native 和官方安装 BLOCKED/NOT_TESTED。

@@ -15,6 +15,11 @@ const make=(tag,cls,value)=>{
   if(value!==undefined)el.textContent=value;return el;
 };
 const errorText=error=>String(error?.message||error||'操作失败').slice(0,280);
+const authorityLost=error=>[
+  'E_BOOKMARK_PERMISSION','E_GRANT_REVOKED','E_BOOKMARK_SCOPE',
+  'E_CHROME_PERMISSION_REQUIRED','E_TOOL_CAPABILITY_REQUIRED',
+  'E_R11_BOOKMARKS_INCOMPLETE','E_TOOL_DISABLED','E_CONTEXT'
+].includes(error?.code);
 const notice=(message='',error=false)=>{
   const el=q('bm-notice');el.textContent=message;el.dataset.error=String(error);
 };
@@ -159,9 +164,8 @@ async function pollWatch(epoch){
   }catch(error){
     if(epoch!==s.watchEpoch)return;
     endWatch();
-    if(['E_BOOKMARK_PERMISSION','E_GRANT_REVOKED','E_BOOKMARK_SCOPE',
-      'E_CHROME_PERMISSION_REQUIRED'].includes(error?.code)){
-      gate('完整书签权限已撤销；请在可信扩展界面重新授权。');
+    if(authorityLost(error)){
+      gate('完整书签 SDK 或授权已失效；请在可信扩展界面重新检查。');
       notice(errorText(error),true);
     }else if(error?.code==='E_BOOKMARK_EVENT_GAP'){
       void refresh();
@@ -181,6 +185,10 @@ async function beginWatch(session){
     s.watcher=watcher;scheduleWatch(epoch);
   }catch(error){
     if(epoch!==s.watchEpoch)return;
+    if(authorityLost(error)){
+      gate('完整书签 SDK 或授权已失效；请在可信扩展界面重新检查。');
+      notice(errorText(error),true);return;
+    }
     notice('书签事件同步不可用，请手动刷新：'+errorText(error),true);
   }
 }
@@ -194,7 +202,9 @@ async function refresh(){
     const result=await service.probe();
     if(session!==s.session)return;
     if(!result.ready){
-      gate(result.reason+'。必须先完成 SDK R11 Full Bookmarks 能力及可信授权。');
+      gate(result.reason+(result.code==='E_R11_BOOKMARKS_INCOMPLETE'?
+        '。必须先完成 SDK R11 Full Bookmarks 能力。':
+        '。请在 OpenDesk 可信扩展界面审阅权限后重新检查。'));
       notice('当前不可读取或修改 Chrome 书签',true);
       return;
     }
@@ -224,8 +234,8 @@ async function mutation(run){
     busy(false);
     const unknown=['E_OUTCOME_UNKNOWN','E_EFFECT_UNKNOWN'].includes(error?.code);
     notice(errorText(error)+(unknown?'；写入结果未知，请检查 Chrome 数据后再操作，勿直接重试。':''),true);
-    if(['E_BOOKMARK_PERMISSION','E_GRANT_REVOKED','E_BOOKMARK_SCOPE'].includes(error?.code))
-      gate('完整书签授权已失效；请到可信扩展界面重新审阅。');
+    if(authorityLost(error))
+      gate('完整书签 SDK 或授权已失效；请到可信扩展界面重新审阅。');
   }
 }
 function cancel(){

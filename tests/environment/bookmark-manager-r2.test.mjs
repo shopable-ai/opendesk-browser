@@ -264,6 +264,24 @@ test('R2.1 current-page bookmark requires an opaque document and tab binding',as
     'abcdefghijklmnop');
 });
 
+test('R2.2 revoked Full capability fails closed before native write or event read',async()=>{
+  const ctx=await sandbox(),data=fullSdk(ctx,{roots:sample()}),ops=ctx.BookmarkR2Service.METHODS;
+  data.sdk.capabilities.list=async()=>Array.from(ops,operation=>({
+    operation:'browser.bookmarks.'+operation,
+    requiredCapabilities:['browser.bookmarks.full'],
+    status:{callableNow:false,reasonCode:'E_CHROME_PERMISSION_REQUIRED'}
+  }));
+  const service=ctx.BookmarkR2Service.create(data.sdk),status=await service.probe();
+  assert.equal(status.ready,false);
+  assert.equal(status.code,'E_BOOKMARK_PERMISSION');
+  await assert.rejects(service.load(),{code:'E_BOOKMARK_PERMISSION'});
+  await assert.rejects(service.createFolder({title:'Blocked',parentId:'1'}),
+    {code:'E_BOOKMARK_PERMISSION'});
+  await assert.rejects(service.watchRead({sessionRef:'abcdefghijklmnop',cursor:'0'}),
+    {code:'E_BOOKMARK_PERMISSION'});
+  assert.equal(data.calls.filter(([op])=>['getTree','create','observe.read'].includes(op)).length,0);
+});
+
 test('R2.1 event observation is bounded and uses only the public Full SDK',async()=>{
   const ctx=await sandbox(),data=fullSdk(ctx,{roots:sample()}),
     service=ctx.BookmarkR2Service.create(data.sdk);

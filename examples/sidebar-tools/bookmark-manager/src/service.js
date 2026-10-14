@@ -31,7 +31,8 @@ function create(sdk){
         unapproved.push({operation:op,reason:row.status?.reasonCode||'E_PERMISSION_REQUIRED'});
     }
     if(missing.length||unscoped.length||unapproved.length)
-      return {ready:false,code:'E_R11_BOOKMARKS_INCOMPLETE',reason:[
+      return {ready:false,code:missing.length||unscoped.length?
+        'E_R11_BOOKMARKS_INCOMPLETE':'E_BOOKMARK_PERMISSION',reason:[
         missing.length?'缺少公开接口 '+missing.length+' 项':'',
         unscoped.length?'未绑定独立 Full Bookmarks 权限 '+unscoped.length+' 项':'',
         unapproved.length?'未授权或不可调用 '+unapproved.length+' 项':''
