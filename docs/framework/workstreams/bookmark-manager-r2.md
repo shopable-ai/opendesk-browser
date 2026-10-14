@@ -66,3 +66,15 @@
 **未来 R11 owner 接口/Host 前置**（Issue [#75](https://github.com/shopable-ai/opendesk-browser/issues/75)）：需要审批 Full Bookmarks Capability、唯一 Registry/Wrapper/Host/Chrome Driver、完整书签树绑定快照分页、书签 CRUD 的原子条件检查、非空目录可信删除票据、Chrome optional bookmarks 真手势授权、身份/包摘要/epoch、撤权/卸载/Worker 重启/事件缺口隔离，以及当前页 documentRef 可信绑定。R11 若修改方法签名，本工具按最终正式合同同步，不自行新增私有 RPC。
 
 **后续状态和验收分级**：本轮 Node/Check/Build/CI 必须以最终候选 SHA 的 Actions 证据来报告；真实 Chrome 安装/Full CRUD/500+/撤权/Worker/升级/卸载与九维 95+ 在 Mac 没有同候选原始收据，均 NOT_TESTED。`src/bookmark-manager/` 在原生闭环完成前保留。旧候选 R2 的 7/7 Node 和生产/开发 Build PASS 只作为历史基线，不覆盖新候选。
+
+### R2.1 同源候选 CI 实测回执（2026-10-14）
+
+- **PASS — source SHA**：[`054b4f0cdf0279a43955ad18025364c730458bc5`](https://github.com/shopable-ai/opendesk-browser/commit/054b4f0cdf0279a43955ad18025364c730458bc5)（此前的失败候选 `411dce0b` 和 `53f5d954` 仍保留失败历史，不被覆盖）。
+- **PASS — GitHub Actions**：[`38593735852`](https://github.com/shopable-ai/opendesk-browser/actions/runs/38593735852)，job `115954977381`，completed/success。
+- **PASS — Node**：`node --test tests/environment/bookmark-manager-r2.test.mjs` **14/14**，0 failures；涵盖 Owned/Full 权限隔离、550 项树与分页、坏游标、SDK 单对象 CRUD、目录可信票据失败关闭及正向 Mock、文档绑定和事件会话。
+- **PASS — Check/Build**：`npm run check`、`npm run build:sidebar-tool -- examples/sidebar-tools/bookmark-manager`、`npm run build`、`node scripts/verify-package.mjs dist/production`、`npm run build:dev`、`npm run verify`，均为相同 Actions job 成功步骤。
+- **PASS — package schema, NOT INSTALLED**：唯一打包器生成 `artifacts/sidebar-tools/bookmark-manager/0.2.0/bookmark-manager.opendesk-tool.json`，**41,252 bytes**、`validated:true`、`installed:false`。该包仍 `capabilities: []`，没有 Full Chrome 读取权限；CI 上传 Artifact 不代表安装。
+- **BLOCKED — R11**：当前 Registry/Wrapper/Host 仍未声明独立 Full Bookmarks；Issue #75 未关闭。SDK Node Mock/打包成功不等于 Chrome 原生映射可调用。
+- **NOT_TESTED — Native**：实际 Mac Chrome Profile 的 Full 书签 CRUD、500+ 原生树、Chrome optional 权限、拒绝/撤权、Worker 重启、并发删除、工具升级/卸载均没有同一候选原始收据。九维产品专家 95+ 不能据此打分。
+
+后续如有无关主线提交，引用以上精确 SHA 及 Actions 结果；若本目录或 Browser SDK 相关输入发生变化，必须补受影响的定向验证。`src/bookmark-manager/` 旧可信模块仍需保留至真实迁移门禁关闭。
