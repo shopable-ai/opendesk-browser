@@ -18,6 +18,7 @@ const ENABLED=process.env.OPENDESK_SCHEDULED_NATIVE==='1';
 const LIFECYCLE=process.env.SCHEDULE_NATIVE_LIFECYCLE==='1';
 const VIEWPORT=process.env.SCHEDULE_NATIVE_VIEWPORT==='1';
 const FORM_MATRIX=process.env.SCHEDULE_NATIVE_FORM_MATRIX==='1';
+const PRODUCT_MATRIX=process.env.SCHEDULE_NATIVE_PRODUCT_MATRIX==='1';
 const EXPECTED_PLATFORM=process.env.SCHEDULE_NATIVE_PLATFORM||'darwin';
 const CONTROL_MODIFIER=process.platform==='darwin'?4:2;
 let nativeOwnedMacInput=null; // Set after the uniquely owned Chrome PID is observed.
@@ -27,7 +28,7 @@ const CI_UNSANDBOXED_LINUX=process.platform==='linux' &&
   process.env.SCHEDULE_NATIVE_CI_NO_SANDBOX==='1';
 const BIN=process.env.CHROME_BIN;
 const OUT=path.resolve(process.env.SCHEDULE_NATIVE_OUT||'artifacts/scheduled-tasks-r1-mac');
-const EXT=path.resolve('dist/production');
+const EXT=path.resolve(process.env.SCHEDULE_NATIVE_EXTENSION_DIR||'dist/production');
 const URL='http://127.0.0.1:43111/demo-form.html';
 const deadline=async(fn,name,ms=20000)=>{
   const until=Date.now()+ms;let last='';
@@ -200,8 +201,8 @@ async function screenshot(client,session,name,viewportMethod='rendered native su
 }
 // Genuine Chrome renderer viewport emulation; NOT a physical Side Panel
 // resize and NOT Chrome's 200% browser zoom. This probe never writes page DOM.
-async function viewportEvidence(client,session,surface,report){
-  const widths=surface==='sidepanel'?[320,360,420]:[320,360,420,760];
+async function viewportEvidence(client,session,surface,report,
+  widths=surface==='sidepanel'?[320,360,420]:[320,360,420,760]){
   const snapshots=[];
   try{
     for(const width of widths){
@@ -212,12 +213,16 @@ async function viewportEvidence(client,session,surface,report){
         '(()=>{const root=document.documentElement;return {'+
         'viewport:innerWidth,scrollWidth:root.scrollWidth,'+
         'bodyScrollWidth:document.body.scrollWidth,'+
+        'contentWidth:document.querySelector("#workspace-content").clientWidth,'+
+        'contentScrollWidth:document.querySelector("#workspace-content").scrollWidth,'+
         'hasHorizontalOverflow:root.scrollWidth>innerWidth+1,'+
         'panelVisible:!document.querySelector("#scheduled-panel").hidden}})()',session);
       assert.equal(actual.viewport,width,'Native renderer must honor emulated viewport');
       assert.equal(actual.panelVisible,true,'Schedule remains visible at narrow viewport');
       assert.equal(actual.hasHorizontalOverflow,false,
         'No horizontal page overflow in '+surface+' at '+width+'px');
+      assert(actual.contentScrollWidth<=actual.contentWidth+1,
+        'No clipped horizontal content overflow in '+surface+' at '+width+'px');
       snapshots.push({surface,width,...actual,
         screenshot:await screenshot(client,session,'r2-'+surface+'-viewport-'+width,'CDP viewport emulation; not physical width or Chrome zoom')});
     }
@@ -335,7 +340,8 @@ async function stopChrome(proc){
   });
 }
 test('real installed Chrome: verified Task via Alarms -> original RunHost -> page effect -> released',
-  {skip:!ENABLED,timeout:process.env.SCHEDULE_NATIVE_PHYSICAL_WIDTH==='1'?900000:450000},async t=>{
+  {skip:!ENABLED,timeout:PRODUCT_MATRIX||process.env.SCHEDULE_NATIVE_PHYSICAL_WIDTH==='1'?900000:450000},async t=>{
+  assert(!PRODUCT_MATRIX||FORM_MATRIX,'Product matrix extends the existing native form phase');
   assert.equal(process.platform,EXPECTED_PLATFORM,'Use an explicit native platform for this isolated CFT test');
   assert(BIN&&path.isAbsolute(BIN)&&spawnSync(BIN,['--version'],{stdio:'ignore'}).status===0,
     'Pinned real Chrome for Testing required');
@@ -343,6 +349,10 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     assert(CI_UNSANDBOXED_LINUX,'--no-sandbox may only be used in the named ephemeral GitHub Linux CFT runner');
   await mkdir(OUT,{recursive:true});
   const sourceHash=sha(await readFile('src/platform/tasks/schedule-service.js'));
+  const sourceBinding=await Promise.all(['src/ui/scheduled-task-workbench.js','src/ui/tool.html',
+    'src/ui/tool-shell.css','src/ui/design-system.css','src/ui/design-tokens.css',
+    'tests/framework/scheduled-tasks-r1-native-mac.test.mjs','package-lock.json','wxt.config.mjs']
+    .map(async file=>({file,sha256:sha(await readFile(file))})));
   const packageInfo=await packageFingerprint(EXT);
   const task=JSON.parse(await readFile('examples/tasks/form-fill.v1.opendesk-task.json','utf8'));
   assert.equal(task.manifest.siteOrigins[0],'http://127.0.0.1:43111');
@@ -352,7 +362,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
   const report={status:'RUNNING',startedAt:new Date().toISOString(),gitSha:process.env.GITHUB_SHA||null,
     chromeBinary:BIN,platform:process.platform,
     sandboxPolicy:CI_UNSANDBOXED_LINUX?'explicit isolated Linux CI --no-sandbox; NOT a sandbox-security PASS':'Chrome OS sandbox unchanged',
-    package:packageInfo,sourceHash,taskSourceHash:sha(task.sourceUtf8),
+    package:packageInfo,sourceHash,sourceBinding,taskSourceHash:sha(task.sourceUtf8),
     fixture:URL,native:true,steps:[],screenshots:[],tests:{},limitations:[]};
   const note=(name,result)=>{report.steps.push({name,at:new Date().toISOString(),result});console.log('SCHEDULE_NATIVE '+name+' '+JSON.stringify(result));};
   let server,proc,client,chromeStderr='',completed=false,sideId=null,runnerId=null,siteId=null;
@@ -515,6 +525,11 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
   assert.equal(await evaluate(client,expr('#workspace-dock')+'.hidden',sideSid),true,
     'the nested schedule view must not retain an unrelated manual Run footer');
   report.tests.scheduledDockIsolation='PASS';
+  if(PRODUCT_MATRIX){
+    assert.equal((await durable(client,sideSid)).plans.length,0,'genuine test Profile begins with zero schedules');
+    assert.match(await evaluate(client,expr('#schedule-plan-list')+'.textContent',sideSid),/尚无定时计划/);
+    report.tests.nativeEmptyPlanList='PASS';
+  }
   report.screenshots.push(await screenshot(client,sideSid,'schedule-list-original-sidepanel'));
   await click(client,sideSid,'#schedule-create');
   await type(client,sideSid,'#schedule-title','Mac 原生定时表单');
@@ -1130,6 +1145,15 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
       }
     }
     const unsaved=await readDraft();
+    if(PRODUCT_MATRIX){
+      await click(client,formSid,'#schedule-manage-tasks');
+      assert.equal(await evaluate(client,'document.activeElement.id',formSid),'schedule-manager-search');
+      await click(client,formSid,'#schedule-manager-back');
+      assert.deepEqual(await readDraft(),unsaved,'actual task manager roundtrip preserves the unsaved draft');
+      assert.equal(await evaluate(client,'document.activeElement.id',formSid),'schedule-manage-tasks',
+        'actual manager Back restores a visible editor focus target');
+      report.tests.nativeEditorManagerDraftAndFocus='PASS';
+    }
     await click(client,formSid,'#schedule-cancel');
     await deadline(()=>evaluate(client,'!document.querySelector("#schedule-discard-confirm").hidden',formSid),
       'real unsaved draft discard confirmation');
@@ -1286,6 +1310,60 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     report.nativeFormAudit={originalScheduleId:original.scheduleId,deletedScheduleId:second.scheduleId,
       finalState:remaining,website:await evaluate(client,'({name:document.querySelector("#name")?.value,done:!!document.querySelector("#done")})',siteSid)};
     report.screenshots.push(await screenshot(client,formSid,'r29-managed-plan-history'));
+    if(PRODUCT_MATRIX){
+      const beforeMatrix=await durable(client,formSid);
+      // All 19 additions use the original verified install and genuine form
+      // gestures. No storage seeding, arbitrary save RPC or controller replay.
+      const title='长中文计划名用于真实列表扫描和换行验证'.repeat(4);
+      for(let index=1;index<20;index++){
+        await click(client,formSid,'#schedule-create');
+        await type(client,formSid,'#schedule-title',index+' · '+title);
+        await select(client,formSid,'#schedule-task-select',1);
+        await type(client,formSid,'#schedule-target',URL+'?long='+('long-path-'.repeat(30)));
+        await click(client,formSid,'#schedule-paused');
+        await click(client,formSid,'#schedule-save');
+        await deadline(()=>evaluate(client,'!document.querySelector("#schedule-save-confirm").hidden',formSid),'real plan '+index+' confirmation');
+        await click(client,formSid,'#schedule-confirm-yes');
+        await deadline(async()=>{
+          const state=await durable(client,formSid);
+          return state.plans.filter(plan=>!plan.deleted).length===index+1;
+        },'real paused plan '+index+' persisted');
+      }
+      const twenty=await durable(client,formSid),plans=twenty.plans.filter(plan=>!plan.deleted);
+      assert.equal(plans.length,20);assert(plans.every(plan=>plan.paused&&plan.nextDueAt===null));
+      assert.deepEqual(twenty.runs.map(run=>run.runId).sort(),beforeMatrix.runs.map(run=>run.runId).sort());
+      assert.deepEqual(twenty.results.map(result=>result.resultId).sort(),beforeMatrix.results.map(result=>result.resultId).sort());
+      assert.deepEqual(twenty.native,beforeMatrix.native,'creating paused plans never performs native effects');
+      await viewportEvidence(client,formSid,'r12-twenty-plan-sidepanel',report,[300,320,360,420,520]);
+      const lastPlanId=await evaluate(client,'[...document.querySelectorAll("#schedule-plan-list .schedule-card")].at(-1).dataset.scheduleId',formSid);
+      const lastCard='#schedule-plan-list .schedule-card[data-schedule-id='+JSON.stringify(lastPlanId)+']';
+      await click(client,formSid,lastCard+' .schedule-plan-open');
+      assert.equal(await evaluate(client,'document.querySelector("#schedule-detail-view").dataset.scheduleId',formSid),lastPlanId);
+      assert.equal(await evaluate(client,'document.querySelector("#workspace-content").scrollTop',formSid),0);
+      assert.equal(await evaluate(client,'document.querySelectorAll("#schedule-detail-view .schedule-detail-card").length',formSid),1);
+      const indexPosition=await evaluate(client,'document.querySelector("#workspace-content").scrollHeight',formSid);
+      report.screenshots.push(await screenshot(client,formSid,'r12-last-long-plan-detail'));
+      await click(client,formSid,'#schedule-back');
+      assert.equal(await evaluate(client,'document.activeElement.closest(".schedule-card").dataset.scheduleId',formSid),lastPlanId);
+      assert((await evaluate(client,'document.querySelector("#workspace-content").scrollTop',formSid))>0,
+        'return to the twentieth genuine plan restores its scrolled index');
+      await click(client,formSid,card+' .schedule-plan-open');
+      await details(client,formSid,'#schedule-detail-view .schedule-history');
+      await details(client,formSid,'#schedule-detail-view .schedule-run-details');
+      await click(client,formSid,'#schedule-detail-edit');
+      await type(client,formSid,'#schedule-title','真实后台刷新后保留技术详情');
+      await click(client,formSid,'#schedule-save');await click(client,formSid,'#schedule-confirm-yes');
+      await deadline(()=>evaluate(client,'!document.querySelector("#schedule-detail-view").hidden',formSid),'real save returns to its originating detail');
+      assert.equal(await evaluate(client,'document.querySelector("#schedule-detail-view .schedule-run-details").open',formSid),true,
+        'a genuine changed plan snapshot retains the expanded original Run identity');
+      report.tests.nativeTwentyPlansAndDetailReturn='PASS';
+      report.tests.nativeTechnicalExpansionAfterRefresh='PASS';
+      report.productMatrix={kind:'GENUINE_SIDE_PANEL_INPUT_AND_STORAGE',activePlanIds:plans.map(plan=>plan.scheduleId),
+        retainedRunIds:twenty.runs.map(run=>run.runId),detailScrollHeight:indexPosition,
+        limitations:['Widths are CDP CSS viewport emulation; physical Side Panel drag is separate',
+          '120-history pagination uses component/source-renderer fixtures; no 120 native Fire records are fabricated']};
+      report.screenshots.push(await screenshot(client,formSid,'r12-retained-run-detail'));
+    }
     }catch(error){
       report.formMatrixFailure=await evaluate(client,
         '({url:location.href,kind:document.querySelector("#schedule-kind")?.value,once:document.querySelector("#schedule-once")?.value,clock:document.querySelector("#schedule-clock")?.value,timezone:document.querySelector("#schedule-timezone")?.value,timezoneOptions:[...document.querySelector("#schedule-timezone").options].map(option=>({value:option.value,disabled:option.disabled})),message:document.querySelector("#schedule-message")?.textContent,errors:[...document.querySelectorAll(".schedule-field-error")].map(node=>({id:node.id,text:node.textContent})),focus:document.activeElement?.id})',formSid).catch(()=>null);

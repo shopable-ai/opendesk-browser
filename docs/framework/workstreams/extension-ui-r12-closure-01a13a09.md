@@ -21,3 +21,9 @@ P1 范围确认：导航栏裁切外向焦点框（六 Tab 消费者）及云控
 本地双构建由开发锁阻止（PID 33580 / 43120），不绕过 guard 或停 watcher；使用 GitHub Actions 构建当前提交包。R3 原候选26/26 + 原生1/1经连接器日志核实，保留其原SHA/包身份；本轮受影响项单独验证。
 
 集成窗口：远端 `68badfe4` 已含另一轮计划保存成功/刷新失败区分及晚到轮询保护，属于兼容的已提交变化。FF 因本轮两个目标文件有本地改动而安全拒绝，未覆盖任何文件。先提交本轮已通过组件验证的独立补丁，再在 main 合并最新远端并保留双方测试/修复；只处理明确冲突的 import 行，不 stash 其他工作。
+
+源修复提交 `7a633ccb`，兼容合并 `5a1797e6`，定向101/101。R19六Tab静态Chrome272样本PASS（独立profile已关闭）；随后由独立子Agent增强同一驱动，不覆盖生产源码。
+
+本地 npm check 在其他负责人未提交的 `tests/environment/native-agent-chrome-real.test.mjs:302` 遇到重复 extensionId 声明，保留原失败 `/tmp/ui-r12-check.log`，不编辑该文件。为验证已提交输入，使用 main 的 git archive 普通只读源码导出到独立 `.runtime/extension-ui-r12-01a13a09/candidate/`（非Git工作树，不在导出目录改源码），共享 node_modules 只读链接，独立 `.wxt/public` / dist / 输出守护端口43220；日常watcher继续运行。
+
+R3现有原生驱动增补 PRODUCT_MATRIX：真实UI创建19个暂停计划，20计划/长文本/最后详情/返回焦点与滚动、编辑任务管理草稿、技术详情刷新；只用既有可信输入与真实存储，不seed Fire/Run。120历史仍为组件/源码布局模拟，不提升为原生。物理宽度与真实zoom分别记录。

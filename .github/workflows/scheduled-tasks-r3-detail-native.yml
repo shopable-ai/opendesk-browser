@@ -46,6 +46,7 @@ jobs:
         env:
           OPENDESK_SCHEDULED_NATIVE: '1'
           SCHEDULE_NATIVE_FORM_MATRIX: '1'
+          SCHEDULE_NATIVE_PRODUCT_MATRIX: '1'
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
           SCHEDULE_NATIVE_OUT: artifacts/scheduled-r3-detail-macos
         run: node --test tests/framework/scheduled-tasks-r1-native-mac.test.mjs
