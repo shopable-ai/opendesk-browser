@@ -27,3 +27,37 @@ test('R4 trusted candidate shows only after search or available filter',()=>{
 test('R4 discards Page records that do not match their installed manifest hash',()=>{
   assert.deepEqual(composeExtensionEntries({pages:[{...page,manifestHash:'different'}]}),[]);
 });
+
+import {readFile} from 'node:fs/promises';
+
+test('R4 source retains one trusted installer, one combined list and high-zoom responsive actions',async()=>{
+  const [html,css,center,shell]=await Promise.all([
+    readFile('src/ui/tool.html','utf8'),
+    readFile('src/ui/extension-center.css','utf8'),
+    readFile('src/ui/extension-center.js','utf8'),
+    readFile('src/ui/tool-shell.js','utf8')
+  ]);
+  assert.match(html,/id="extension-center-list" class="ec-list"/);
+  assert.match(html,/id="extension-center-menu"/);
+  assert.match(html,/id="extension-center-import-host"/);
+  assert.match(html,/id="task-local-discovery"/);
+  assert.doesNotMatch(html,/id="tab-discover"|id="workbench-local-discover"/);
+  assert.match(shell,/importHost\.append\(originalImport\)/,'trusted installer is physically reused');
+  assert.match(center,/restoreRowFocus\(focusKey,focusAction\)/,'return retains list keyboard identity');
+  assert.match(center,/detailFocusAction='toggle'/,'Page switch can restore focus after async authority update');
+  assert.match(css,/@media\(max-width:240px\)/,'200 percent zoom retains wrapped controls');
+  assert.match(css,/\.ec-name-line\{flex-wrap:wrap/);
+  assert.match(css,/\.ec-row\{grid-template-columns:26px minmax\(0,1fr\) 23px/);
+});
+
+test('R4 webpage enable path delegates to original user-gesture permission and installed Page authority',async()=>{
+  const [controller,page]=await Promise.all([
+    readFile('src/ui/extension-center.js','utf8'),
+    readFile('src/ui/installed-page-tools.js','utf8')
+  ]);
+  assert.match(controller,/if\(!event\.isTrusted\|\|busy\|\|row\.kind!=='page'\)return/);
+  assert.match(controller,/setInstalledPageProgramEnabled\(\{api,client,row:row\.record\}\)/);
+  assert.match(page,/requireChromePermissions\(\{api,request:\{origins:installed\.pageRules\.matches\}\}\)/);
+  assert.match(page,/client\.request\('setInstalledPageEnabled',\{/);
+  assert.match(page,/expectedGeneration:installed\.authorization\?\.generation\?\?null/);
+});
