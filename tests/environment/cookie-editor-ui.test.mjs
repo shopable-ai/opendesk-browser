@@ -42,6 +42,7 @@ async function harness(browser=null,{currentPage=null,initialReadStarted=null,tr
     'globalThis.__cookieTest={normalizeCookie,parseImport,exportText,saveToList,mergeImport,'+
     'sortCookies,parseTarget,redactMetadata,readBrowserMetadata,openEditor,saveBrowserCookie,nativeInput,'+
     'setLiveTarget:url=>{liveTarget=parseTarget(url);targetPending=false;liveRows=[];liveState="idle"},'+
+    'exportBrowserCookies,revealBrowserValue,secretCount:()=>liveSecrets.size,'+
     'setTargetPending:value=>{targetPending=value},'+
     'liveSnapshot:()=>({rows:liveRows,state:liveState,message:liveMessage}),'+
     'settle,render,getSiteHeading:()=>E("site-host").textContent,'+
@@ -113,7 +114,7 @@ test('Cookie Editor is an optional two-mode tool without private cookies API',as
   assert(s.html.includes('id="live-search"')&&s.html.includes('id="live-filter"')&&
     s.html.includes('id="live-sort"'));
   assert(s.source.includes("E('live-filters').hidden=!hasRead"));
-  assert.equal(s.config.version,'2.0.5');
+  assert.equal(s.config.version,'2.0.6');
   assert(s.html.includes('id="offline-tools"')&&s.html.includes('id="browser-panel"'),
     'Live Chrome management is the default; offline tools are secondary');
   assert(!/\b(?:window|globalThis|chrome)\.cookies\./.test(s.source));
@@ -814,4 +815,60 @@ test('R4.3 idle unsaved draft survives an external page change until user confir
   s.fire('confirm-cancel','click',{isTrusted:true});
   assert.equal(s.getField('editor-panel').hidden,false,'cancel must preserve draft');
   assert.equal(s.getField('cookie-value').value,'LOCAL_UNSAVED_DRAFT');
+});
+
+test('R4.3.1 metadata export drops values even if Host overreturns',async()=>{
+  const downloads=[],reads=[];
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{
+    getAll:async args=>{reads.push(args);return args.partitionKey?[]:[
+      {name:'sid',domain:'example.com',path:'/',hostOnly:true,session:true,
+        value:'TOP_SECRET_EXCLUDE',valueRedacted:false}]},
+    getPartitionKey:async()=>({partitionKey:{topLevelSite:'https://example.com'}})
+  },downloads:{text:async x=>{downloads.push(x);return {started:true};}}});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');
+  await s.readBrowserMetadata();s.getField('live-export-content').value='metadata';
+  s.getField('live-export-format').value='json';await s.exportBrowserCookies();
+  assert.equal(downloads.length,1);assert.match(downloads[0].filename,/cookie-metadata\.json$/);
+  assert(!downloads[0].text.includes('TOP_SECRET_EXCLUDE'));
+  const json=JSON.parse(downloads[0].text);assert.equal(json.restoreSupported,false);
+  assert.equal(json.cookies[0].value,undefined);
+  assert(reads.every(args=>args.includeValues!==true));
+});
+test('R4.3.1 full backup does not download redacted values',async()=>{
+  let downloads=0;
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{
+    getAll:async args=>args.partitionKey?[]:[{name:'sid',domain:'example.com',path:'/',session:true,valueRedacted:true}],
+    getPartitionKey:async()=>({partitionKey:{topLevelSite:'https://example.com'}})
+  },downloads:{text:async()=>{downloads++;}}});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
+  s.getField('live-export-content').value='backup';s.getField('live-export-format').value='json';
+  await s.exportBrowserCookies();assert.equal(downloads,0);assert.match(s.getStatusMessage(),/敏感值权限/);
+});
+test('R4.3.1 grant changes retain draft but scrub previously revealed secret',async()=>{
+  const cookie={name:'sid',domain:'example.com',path:'/',hostOnly:true,session:true};
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{
+    getAll:async args=>args.partitionKey?[]:[cookie],
+    get:async()=>({cookie:{...cookie,value:'SECRET',valueRedacted:false}}),
+    getPartitionKey:async()=>({partitionKey:{topLevelSite:'https://example.com'}})
+  }});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
+  const row=s.liveSnapshot().rows[0];s.openEditor(row);
+  await s.revealBrowserValue(row);assert.equal(s.secretCount(),1);
+  s.getField('cookie-value').value='UNSAVED_MANUAL_VALUE';s.fire('editor-form','input',{isTrusted:true});
+  s.fireRoot('opendesk-cookie-grants-changed');
+  assert.equal(s.secretCount(),0);assert.equal(s.getField('cookie-value').value,'UNSAVED_MANUAL_VALUE');
+  assert.equal(s.getField('editor-panel').hidden,false);await s.settle();
+  s.openEditor(row);assert.equal(s.secretCount(),0);
+});
+test('R4.3.1 write preflight gates intent through existing trusted settings',async()=>{
+  const host=await get('src/ui/sidebar-tools.js');
+  const a=host.indexOf('const requiredCookieGrant=operation=');
+  const b=host.indexOf('cookieSiteRecord(tool,origin)?.[requiredCookieGrant]',a);
+  const c=host.indexOf('const ref=await requestBrowserClick',b);
+  assert(a>=0&&b>a&&c>b);
+  assert.match(host.slice(b,c),/tocSettingsOpen=true;render\(\)/);
+  assert.match(host.slice(b,c),/E_SITE_GRANT_REQUIRED/);
+  const s=await harness();assert.match(s.html,/id="live-export-content"/);
+  assert.match(s.html,/id="browser-editor-slot"/);
+  assert.match(s.css,/live-section-title \.count/);
 });

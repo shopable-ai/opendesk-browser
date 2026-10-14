@@ -1,6 +1,14 @@
-# Cookie Editor R3.3 · 正式 Cookies SDK 安装工具
+# Cookie Editor R4.3.1 · 正式 Cookies SDK 安装工具
 
-**入口：** Side Panel → 工具 → 发现工具 → Cookie Editor。默认中文，官方目录仍为 `installationPolicy: optional`；工具包 **2.0.4 / opendesk.sidebar-tool.v2**。2026-10-14 已在同一隔离 CFT 候选通过真实发现、安装、网站授权、自动读取、新建、Value 编辑、Name 编辑、保存回读与精确删除。所有 Cookie 修改均从已安装工具 UI 发起。完整宽度/面板自身 Zoom、跨 Store/Partition 原生矩阵及最终发布验收仍未关闭；不能宣称最终 95+。
+**入口：** Side Panel → 工具 → 发现工具 → Cookie Editor。默认中文，官方目录仍为 `installationPolicy: optional`；工具包 **2.0.6 / opendesk.sidebar-tool.v2**。2026-10-14 已在同一隔离 CFT 候选通过真实发现、安装、网站授权、自动读取、新建、Value 编辑、Name 编辑、保存回读与精确删除。所有 Cookie 修改均从已安装工具 UI 发起。完整宽度/面板自身 Zoom、跨 Store/Partition 原生矩阵及最终发布验收仍未关闭；不能宣称最终 95+。
+
+## R4.3.1 正式源码增量（2026-10-14）
+
+- 沿用 R4.3 正式工具栏、原位编辑、导入预览和可信组合授权；不创建第二套 Host 或模拟导入。
+- 区分当前范围的含 Value 备份和不含 Value 的 JSON 元数据清单，清单标记 `restoreSupported:false`，不可恢复登录或 Cookie。
+- 缺少写入、清理或观察长期授权时，实际操作请求只展示原有可信权限设置；用户真实点击授权后重试。Host 对具体操作仍作独立确认，不自动重放 UNKNOWN。
+- 授权变化清理旧列表和敏感值、使旧导入预览失效，但保留未保存的用户表单；切换编辑项清理暂时揭示的 Value。
+- 本次源码须重新构建、执行 CI 和与版本/包哈希对应的 Mac Chrome 原生验收；旧版本原生凭据不可算本版本 PASS。
 
 ## 用户能完成什么
 

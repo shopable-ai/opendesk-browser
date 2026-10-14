@@ -1110,6 +1110,16 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       if(['browser.cookies.set','browser.cookies.remove','browser.cookies.clearSite','browser.cookies.observe.start'].includes(operation)&&
          !(operation==='browser.cookies.clearSite'&&payload?.preview===true)){
         const origin=new URL(payload.url).origin;
+        const requiredCookieGrant=operation==='browser.cookies.clearSite'?'clear':
+          operation==='browser.cookies.observe.start'?'observe':'write';
+        if(cookieSiteRecord(tool,origin)?.[requiredCookieGrant]!==true){
+          tocSettingsOpen=true;render();
+          const currentOrigin=websiteOrigin(currentPageTarget?.snapshot?.url);
+          throw Object.assign(new Error(currentOrigin!==origin?
+            '请先激活 '+origin+' 标签页，再通过上方可信 Cookie 网站权限区授权 '+requiredCookieGrant:
+            '请通过上方可信 Cookie 网站权限区授权 '+requiredCookieGrant+'；未保存草稿可保留'),
+          {code:'E_SITE_GRANT_REQUIRED'});
+        }
         const kind=operation==='browser.cookies.clearSite'?'清理该网站的 Host-only Cookie':
           operation==='browser.cookies.observe.start'?'开始临时监听 Cookie 变化':
           operation==='browser.cookies.remove'?'删除指定 Cookie':'写入指定 Cookie';
