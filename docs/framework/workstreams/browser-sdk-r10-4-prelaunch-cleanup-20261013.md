@@ -28,3 +28,8 @@
 - `44f715a64f832ea2b6d3498e280a369bab8d222e`：修正 Network 虚假的 ResourceRef 与 Screenshot 原生 downloadId 公开泄露；使用单一既有 Host、临时内存资源、一次性下载请求和真正 `status:'started'` 回执。受信 Host 在 Network 原生执行后重新验证 Origin 与工具身份；撤权和未知 Chrome 副作用不重试。
 - 更新 Network/Screenshot/R2 Host/Schema 回归断言：Chrome `tabs.create` 无需原生 `tabs` permission，失效 TabRef 或被撤销 Origin 可以在真实用户确认环节提前拒绝；不降低安全约束。
 - 真实既有 CI：`97df746b` 的 Browser SDK R5 implementation contracts 为 101 PASS / 4 FAIL，构建因 Time Review 入口 provenance 禁止进入特权 bundle 而失败；两批 R10.4 提交的其他 CI 存在 FAILURE。新候选的 NODE/BUILD/NATIVE 状态必须依据新运行单独确认，不能将该源修复自动提升为 PASS。
+
+## R10.5 · Host-only 矩阵事实与 SHA 核验（2026-10-14）
+
+- 已查实 `browser.history.searchTrusted` 在 `src/platform/chrome/history.js` 和唯一 `context-menus.js` Host 受信入口有真实代码，`browser.permissions.requestForTool` 在现有 `permission-gate.js` 具备可信 UI 点击路径，相关 R10.6 Host / Trusted / History UI Node 定向测试已编写。两者没有安装工具 SDK 暴露；目前只能写 `SOURCE_WIRED_NATIVE_NOT_TESTED`，不能凭代码写 Chrome NATIVE_PASS。
+- 官方矩阵原先将两者标为 `BUILTIN_HOST_ONLY_IMPLEMENTED`，同时状态却仍为 `DESIGN_APPROVED_NOT_IMPLEMENTED`；已与当前 Registry/Schema Git Blob SHA 一并纠正并加机器校验。53 公开 SDK + 2 可信 Host-only、共 55 项批准保持不变；真实 Mac Chrome 仍 `NOT_TESTED`。

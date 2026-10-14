@@ -43,3 +43,14 @@ test('native and tool grants cannot drift from active Browser Host metadata',()=
  assert.deepEqual(BROWSER_OPERATIONS['browser.tabs.create'].requiredCapabilities,['browser.tabs']);
  assert.equal(BROWSER_OPERATIONS['browser.tabs.create'].requiresUserGesture,true);
 });
+
+test('implemented trusted Host-only rows must never claim design-only status',()=>{
+ for(const id of ['browser.history.searchTrusted','browser.permissions.requestForTool']){
+   const altered=structuredClone(source);
+   const row=altered.approvedOperations.find(x=>x.id===id);
+   assert.equal(row.visibility,'BUILTIN_HOST_ONLY_IMPLEMENTED');
+   assert.equal(row.status,'SOURCE_WIRED_NATIVE_NOT_TESTED');
+   row.status='DESIGN_APPROVED_NOT_IMPLEMENTED';
+   assert(inspectBrowserSdkInterfaceMatrix(altered).some(x=>x.includes('Trusted Host-only implementation status drift '+id)));
+ }
+});
