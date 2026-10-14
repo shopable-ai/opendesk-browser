@@ -15,7 +15,8 @@ import {connect,evaluate} from './sidebar-native-session.mjs';
 import {packageFingerprint} from '../../scripts/verify-package.mjs';
 import {canonical,digest} from '../../src/platform/protocol.js';
 import {taskScriptId} from '../../src/platform/tasks/contract.js';
-import {sidebarToolPackageHash} from '../../src/ui/sidebar-tools/package.js';
+import {sidebarToolPackageHash,sidebarToolStorageKey} from '../../src/ui/sidebar-tools/package.js';
+import {BOOKMARK_OWNED_STORE_PREFIX} from '../../src/framework/sdk/browser-contract.js';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const driverFile=fileURLToPath(import.meta.url);
@@ -322,7 +323,10 @@ async function runNative(){
     await click(client,side,'#sidebar-tool-install',report.trace);
     const selector='[data-sidebar-tool-action="open"][data-sidebar-tool-id="'+pkg.id+'"]';
     await deadline(()=>read(client,side,`!!document.querySelector(${quote(selector)})`),'probe installed');
-    const installed=await read(client,control,`chrome.storage.local.get(["opendesk.sidebar-tools.installed.v1","opendesk.sidebar-tools.revocation-epochs.v1"]).then(r=>({tool:r["opendesk.sidebar-tools.installed.v1"].find(t=>t.id===${quote(pkg.id)}),epoch:r["opendesk.sidebar-tools.revocation-epochs.v1"]?.[${quote(pkg.id)}]??null}))`);
+    const installed=await deadline(async()=>{
+      const value=await read(client,control,`chrome.storage.local.get(["opendesk.sidebar-tools.installed.v1","opendesk.sidebar-tools.revocation-epochs.v1"]).then(r=>({tool:r["opendesk.sidebar-tools.installed.v1"].find(t=>t.id===${quote(pkg.id)}),epoch:r["opendesk.sidebar-tools.revocation-epochs.v1"]?.[${quote(pkg.id)}]??null}))`);
+      return value.tool?.version===pkg.version?value:null;
+    },'exact installed probe revision');
     assert.equal(installed.tool.version,pkg.version);
     installed.fileSha256=sha256(await readFile(file));installed.canonicalPackageHash=await sidebarToolPackageHash(installed.tool);
     await click(client,side,selector,report.trace);installed.frame=await bindTool();return installed;
@@ -714,8 +718,27 @@ async function runNative(){
       const nativeBookmarks=await read(client,control,'chrome.bookmarks.search({title:"OpenDesk R10.6 demo"})');assert.equal(nativeBookmarks.length,1,'upgrade rejection must not delete the orphaned native bookmark');
       return {bookmark,schedule,list,nativeAlarms,nativeBookmarks,installed:report.upgradedInstalled};
     });
+    await recordCase('tool-uninstall-cleans-only-owned-mappings',async()=>{
+      await toolClick('#storage-write');const written=await output('storage-output');assert(!written.error);
+      await click(client,side,'#sidebar-tool-remove',report.trace);
+      await deadline(()=>read(client,side,'!document.querySelector("#sidebar-tool-inline-remove").hidden'),'trusted uninstall review');
+      report.uninstallReview=await read(client,side,'document.querySelector("#sidebar-tool-inline-remove-text").textContent');
+      await click(client,side,'#sidebar-tool-inline-remove-confirm',report.trace);
+      const storageKey=sidebarToolStorageKey('browser-sdk-acceptance');
+      const bookmarkKey=BOOKMARK_OWNED_STORE_PREFIX+'browser-sdk-acceptance';
+      const state=await deadline(async()=>{
+        const value=await read(client,control,`chrome.storage.local.get(["opendesk.sidebar-tools.installed.v1",${quote(storageKey)},${quote(bookmarkKey)}]).then(r=>({installed:r["opendesk.sidebar-tools.installed.v1"],storage:r[${quote(storageKey)}]??null,bookmarks:r[${quote(bookmarkKey)}]??null}))`);
+        return value.installed.every(t=>t.id!=='browser-sdk-acceptance')&&value.storage===null&&value.bookmarks===null?value:null;
+      },'uninstalled tool ownership and namespace cleared');
+      assert(state.installed.some(t=>t.id==='browser-sdk-acceptance-peer'),'uninstall must retain peer installation');
+      const nativeBookmarks=await read(client,control,'chrome.bookmarks.search({title:"OpenDesk demo"})');
+      assert.equal(nativeBookmarks.length,1,'uninstall must preserve orphaned user bookmark');
+      const nativeAlarms=await read(client,control,'chrome.alarms.getAll()');
+      assert(!nativeAlarms.some(x=>x.name==='opendesk.schedule.v1:'+ownershipSchedule));
+      return {state,nativeBookmarks,nativeAlarms,review:report.uninstallReview};
+    });
     report.status=nativeScope==='all'?'CORE_PASS_MORE_CONTRACTS_NOT_TESTED':'OWNER_PASS_OTHER_CONTRACTS_NOT_TESTED';
-    report.remaining=['History real trusted query','Origin revoke','uninstall','Cookies installed consumer native acceptance','remaining public SDK contracts and independent F3/ZIP'];
+    report.remaining=['History real trusted query','Origin revoke','Cookies installed consumer native acceptance','remaining public SDK contracts and independent F3/ZIP'];
     return report;
   }finally{
     if(client&&control&&report.alarmObserver)report.alarmObserverRemoved=await read(client,control,`(()=>{const observer=globalThis[${quote(alarmObserverKey)}];if(!observer)return false;chrome.alarms.onAlarm.removeListener(observer.listener);delete globalThis[${quote(alarmObserverKey)}];return true})()`).catch(error=>({error:String(error)}));
