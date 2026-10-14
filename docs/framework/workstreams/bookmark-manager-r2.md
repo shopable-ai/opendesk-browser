@@ -40,3 +40,16 @@
 ## Native 放行条件
 
 先将 Issue #75 P0 条件全部在 **统一 SDK** 中实现并提供同候选证据；再更新工具 manifest Full capability、批准语言、事件订阅、Host 条件删除和本地服务调用，以真实安装包证明正常 CRUD。安全/核心/性能/无障碍/维护性每维需原生证据才能独立 ≥95。删除 `src/bookmark-manager/` 和旧入口的最后步骤必须以原生数据一致性与消费者审计完成为前提。
+
+## R2 `0.1.0` 首轮 GitHub CI 验证（2026-10-14）
+
+- **经过测试的候选 SHA**：[`fa1eacc9f47616da6e4bf89aee67f31a889db03c`](https://github.com/shopable-ai/opendesk-browser/commit/fa1eacc9f47616da6e4bf89aee67f31a889db03c)；不引用其他 Agent 的后续 `main` 作为该测试身份。
+- **GitHub Actions**：[`38580453628`](https://github.com/shopable-ai/opendesk-browser/actions/runs/38580453628)，job `115908647618`，`completed/success`。
+- **PASS — Node**：`tests/environment/bookmark-manager-r2.test.mjs` **7 / 7**，覆盖工具包、隔离、不能伪造空树、550 项完整搜索、Owned 能力不可访问 Full、缺 Full 绑定拒绝、无 Host 条件票据不删除文件夹。
+- **PASS — Check**：`npm run check`。
+- **PASS — Independent Package Build**：`npm run build:sidebar-tool -- examples/sidebar-tools/bookmark-manager`，生成 `artifacts/sidebar-tools/bookmark-manager/0.1.0/bookmark-manager.opendesk-tool.json`，**31,548 bytes**，构建器 `validated: true, installed: false`；该测试包只会明确阻断缺失的 Full SDK。
+- **PASS — Production Build / Package Verify**：`npm run build` 和 `node scripts/verify-package.mjs dist/production`；生产扩展构建哈希 `c90bea2a13e845c519cb464052eb2e037f9ff5b4d58f39b4bdd4eec35c8a105f`。
+- **PASS — Development Build**：`npm run build:dev`；开发扩展构建哈希 `ad97b97df620d2c61d76a194d2954ad9a5b8a593bd546d8e511118b798bf0ec2`。
+- **CI 发行证据**：[预备包与构建回执 ZIP](https://github.com/shopable-ai/opendesk-browser/actions/runs/38580453628/artifacts/11902529683)（GitHub Actions artifact ID `11902529683`，ZIP SHA-256 `5e28f6b7ed17cae4f76d1fb9839cd11976f054f915432647ea52d1045d7eb41f`，非 Chrome 原生安装证据）。首轮 `d321c55b` CI 失败为测试文案正则与原错误消息不匹配，已通过 `fa1eacc9` 修复并复验。
+- **BLOCKED — Full SDK & Real Chrome**：Issue #75 尚未关闭，缺独立 Full Bookmarks 注册/权限/Host/事件/大树/条件删除。没有用户 Mac Profile 的原生真实安装、读写、跨窗口、撤权、SW 重启、卸载记录；均明确 **NOT_TESTED**。**PASS 仅用于上述实际运行过的 CI 组件，绝不宣称 R2 正式完成。**
+
