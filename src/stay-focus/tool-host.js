@@ -1,12 +1,30 @@
 // Precompiled Stay Focus adapter for the existing trusted tool host. The dynamic
 // package can request an operation; only extension-owned controls approve it.
-import {FOCUS_ID,FOCUS_CAPABILITY,FOCUS_PROTOCOL,FOCUS_OPERATIONS,focusPackageHash} from './policy.js';
+import {FOCUS_ID,FOCUS_CAPABILITY,FOCUS_PROTOCOL,FOCUS_PROBE_OPERATION,FOCUS_SERVICE_VERSION,FOCUS_OPERATIONS,focusPackageHash} from './policy.js';
 import {SIDEBAR_TOOL_STORE} from '../ui/sidebar-tools/package.js';
 import {TOOL_REVOCATION_EPOCHS_STORE,assertSidebarToolEnabled} from '../ui/sidebar-tools/lifecycle.js';
 import {requireCompleteInstalledSidebarTools,sameSidebarToolPackage} from '../ui/sidebar-tools/installation.js';
 
 const trustedOnly=['focus.enable','focus.disable','focus.clear'];
 const error=(message,code)=>Object.assign(new Error(message),{code});
+// Presence of a Side Panel adapter is not evidence of a running MV3 worker.
+// A live, versioned handshake fails closed without granting Chrome authority.
+export async function probeStayFocusService({api}){
+  if(typeof api?.runtime?.sendMessage!=='function')
+    throw error('当前扩展无法连接 Stay Focus 后台服务；请升级或重新加载扩展','E_TOOL_RUNTIME_UNAVAILABLE');
+  let response;
+  try{
+    response=await api.runtime.sendMessage({protocol:FOCUS_PROTOCOL,toolId:FOCUS_ID,
+      operation:FOCUS_PROBE_OPERATION,payload:{}});
+  }catch{
+    throw error('Stay Focus 后台无响应；请重新加载扩展后再安装','E_TOOL_RUNTIME_UNAVAILABLE');
+  }
+  if(response?.ok!==true||response.data?.protocol!==FOCUS_PROTOCOL||
+     response.data?.serviceVersion!==FOCUS_SERVICE_VERSION||response.data?.serviceReady!==true)
+    throw error('当前扩展未提供匹配的 Stay Focus 后台服务：'+
+      String(response?.error?.code||'E_FOCUS_NO_SERVICE'),'E_TOOL_RUNTIME_UNAVAILABLE');
+  return response.data;
+}
 function requireFocusTool(tool){
   if(tool?.id!==FOCUS_ID||!tool.capabilities.includes(FOCUS_CAPABILITY))
     throw error('专注工具未安装或页面已关闭','E_TOOL_CHANGED');

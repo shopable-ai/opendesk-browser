@@ -1140,6 +1140,7 @@ test('R4.8 manual reviewed installation remains available for every offline offi
   globalThis.__opendeskStayFocusTrustedUI=Object.freeze({
     id:FOCUS_ID,capability:FOCUS_CAPABILITY,operations:FOCUS_OPERATIONS,
     request:requestStayFocusOperation,runTrustedOperation:runTrustedStayFocusOperation,
+    probe:async()=>({serviceReady:true}),
     createPermissionControls:createStayFocusPermissionControls
   });
   t.after(()=>{if(previous===undefined)delete globalThis.__opendeskStayFocusTrustedUI;
@@ -1780,6 +1781,7 @@ test('Focus sandbox and trusted settings use the fixed product adapter through t
   const previous=globalThis.__opendeskStayFocusTrustedUI;let runControl;
   globalThis.__opendeskStayFocusTrustedUI={id:FOCUS_ID,capability:FOCUS_CAPABILITY,operations:FOCUS_OPERATIONS,
     request:requestStayFocusOperation,runTrustedOperation:runTrustedStayFocusOperation,
+    probe:async()=>({serviceReady:true}),
     createPermissionControls({runOperation}){runControl=runOperation;return {render(){}};}};
   t.after(()=>{if(previous===undefined)delete globalThis.__opendeskStayFocusTrustedUI;
     else globalThis.__opendeskStayFocusTrustedUI=previous;});
@@ -1821,6 +1823,7 @@ test('R3.1 Focus first-use native controls share a screen with its live sandbox'
   globalThis.__opendeskStayFocusTrustedUI={id:FOCUS_ID,capability:FOCUS_CAPABILITY,
     operations:FOCUS_OPERATIONS,request:requestStayFocusOperation,
     runTrustedOperation:runTrustedStayFocusOperation,
+    probe:async()=>({serviceReady:true}),
     createPermissionControls(){return {render(){}};}};
   t.after(()=>{if(previous===undefined)delete globalThis.__opendeskStayFocusTrustedUI;
     else globalThis.__opendeskStayFocusTrustedUI=previous;});
@@ -1836,6 +1839,7 @@ test('Focus response keeps its acknowledged result when only an unrelated UI bus
   const previous=globalThis.__opendeskStayFocusTrustedUI;let runControl;
   globalThis.__opendeskStayFocusTrustedUI={id:FOCUS_ID,capability:FOCUS_CAPABILITY,operations:FOCUS_OPERATIONS,
     request:requestStayFocusOperation,runTrustedOperation:runTrustedStayFocusOperation,
+    probe:async()=>({serviceReady:true}),
     createPermissionControls({runOperation}){runControl=runOperation;return {render(){}};}};
   t.after(()=>{if(previous===undefined)delete globalThis.__opendeskStayFocusTrustedUI;
     else globalThis.__opendeskStayFocusTrustedUI=previous;});
@@ -1853,4 +1857,28 @@ test('Focus response keeps its acknowledged result when only an unrelated UI bus
   assert.deepEqual(await pending,{state:'confirmed'});
   release.resolve();
   await settle(()=>!f.elements['sidebar-tool-enable'].disabled);
+});
+
+test('R3.2 a sidecar alone cannot install Focus when its worker probe fails',async t=>{
+  const previous=globalThis.__opendeskStayFocusTrustedUI;let probes=0;
+  globalThis.__opendeskStayFocusTrustedUI={id:FOCUS_ID,capability:FOCUS_CAPABILITY,
+    operations:FOCUS_OPERATIONS,request:requestStayFocusOperation,
+    runTrustedOperation:runTrustedStayFocusOperation,
+    probe:async()=>{probes++;throw Object.assign(new Error('Stay Focus 后台无响应'),
+      {code:'E_TOOL_RUNTIME_UNAVAILABLE'});},
+    createPermissionControls:createStayFocusPermissionControls};
+  t.after(()=>{if(previous===undefined)delete globalThis.__opendeskStayFocusTrustedUI;
+    else globalThis.__opendeskStayFocusTrustedUI=previous;});
+  const tool={...sample,id:FOCUS_ID,capabilities:[FOCUS_CAPABILITY]};
+  const f=await hostFixture(t,{store:new Map(),startTool:false});
+  f.elements['sidebar-tool-import-trigger'].emit('click');
+  const serialized=JSON.stringify(tool);
+  f.elements['sidebar-tool-file'].files=[{size:serialized.length,text:async()=>serialized}];
+  f.elements['sidebar-tool-file'].emit('change');
+  await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
+  f.elements['sidebar-tool-install'].emit('click');
+  await settle(()=>probes===1);
+  await settle(()=>f.elements['sidebar-tool-install'].disabled===false);
+  assert.equal(f.store.has(SIDEBAR_TOOL_STORE),false,'failed worker preflight must not install');
+  assert.match(f.elements['sidebar-tool-status'].textContent,/后台无响应/);
 });

@@ -4,9 +4,9 @@ import {setInstalledSidebarToolEnabled,recordToolUninstall,retryUninstalledToolC
   TOOL_CLEANUP_STORE} from '../../src/ui/sidebar-tools/installation.js';
 import {SIDEBAR_TOOL_STORE,sidebarToolStorageKey} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
-import {FOCUS_STORE,FOCUS_RULE_FIRST,FOCUS_PROTOCOL,focusPackageHash} from '../../src/stay-focus/policy.js';
+import {FOCUS_ID,FOCUS_STORE,FOCUS_RULE_FIRST,FOCUS_PROTOCOL,focusPackageHash} from '../../src/stay-focus/policy.js';
 import {TIME_REVIEW_KEY} from '../../src/time-review/model.js';
-import {requestStayFocusOperation,runTrustedStayFocusOperation} from '../../src/stay-focus/tool-host.js';
+import {requestStayFocusOperation,runTrustedStayFocusOperation,probeStayFocusService} from '../../src/stay-focus/tool-host.js';
 import {isSidebarToolHostSender} from '../../src/sidebar-tools/sender.js';
 import {createStayFocusPermissionControls} from '../../src/stay-focus/host-controls.js';
 
@@ -192,4 +192,22 @@ test('Shared sender URL gate binds optional toolId and rejects extra query or cr
   }
   assert.equal(isSidebarToolHostSender(api,sender(url.replace('//extension/','//other/'))),false);
   assert.equal(isSidebarToolHostSender(api,sender(url+'#spoof')),false);
+});
+
+test('R3.2 frontend refuses absent, mismatched, untrusted, or unreachable backend',async()=>{
+  const good={protocol:FOCUS_PROTOCOL,serviceVersion:1,serviceReady:true,
+    permissions:{idle:false,dnr:false,ready:false}};
+  const sent=[];
+  const api={runtime:{async sendMessage(message){sent.push(message);return {ok:true,data:good};}}};
+  assert.deepEqual(await probeStayFocusService({api}),good);
+  assert.deepEqual(sent,[{protocol:FOCUS_PROTOCOL,toolId:FOCUS_ID,operation:'focus.probe',payload:{}}]);
+  for(const response of [undefined,{ok:true,data:{...good,serviceVersion:99}},
+    {ok:true,data:{...good,serviceReady:false}},
+    {ok:false,error:{code:'E_FOCUS_SENDER'}}]){
+    api.runtime.sendMessage=async()=>response;
+    await assert.rejects(probeStayFocusService({api}),{code:'E_TOOL_RUNTIME_UNAVAILABLE'});
+  }
+  api.runtime.sendMessage=async()=>{throw new Error('No receiving end');};
+  await assert.rejects(probeStayFocusService({api}),{code:'E_TOOL_RUNTIME_UNAVAILABLE'});
+  await assert.rejects(probeStayFocusService({api:{runtime:{}}}),{code:'E_TOOL_RUNTIME_UNAVAILABLE'});
 });

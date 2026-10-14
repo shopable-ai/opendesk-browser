@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createStayFocusService} from '../../src/stay-focus/service.js';
-import {FOCUS_PROTOCOL,FOCUS_STORE,FOCUS_PAGE_NOTICE_PROTOCOL,focusPackageHash} from '../../src/stay-focus/policy.js';
+import {FOCUS_PROTOCOL,FOCUS_STORE,FOCUS_PAGE_NOTICE_PROTOCOL,FOCUS_PROBE_OPERATION,FOCUS_SERVICE_VERSION,focusPackageHash} from '../../src/stay-focus/policy.js';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 
@@ -283,4 +283,23 @@ test('R1.4 page threshold is sent from settled Host time, retired on disable and
   assert.equal(f.pageMessages.filter(x=>x.message.kind==='clear').length,clears,
     'after uninstall, normal tab events must not spam every site with another clear');
   assert.equal(f.rules.length,0,'uninstall also retires Stay Focus DNR only');
+});
+
+test('R3.2 worker probe checks live sender and runtime without installing or granting native access',async()=>{
+  const f=fixture();
+  f.stored.delete(SIDEBAR_TOOL_STORE);f.setAllowed(false);
+  const message={protocol:FOCUS_PROTOCOL,toolId:'stay-focus',operation:FOCUS_PROBE_OPERATION,payload:{}};
+  const result=await f.focus.probe(message,f.sender);
+  assert.equal(result.protocol,FOCUS_PROTOCOL);
+  assert.equal(result.serviceVersion,FOCUS_SERVICE_VERSION);
+  assert.equal(result.serviceReady,true);
+  assert.deepEqual(result.permissions,{idle:false,dnr:false,ready:false});
+  assert.equal(f.rules.length,0);
+  assert.equal(f.stored.has(FOCUS_STORE),false,'read-only probe may not create policy');
+  assert.equal(f.alarms.size,0,'read-only probe must not arm an alarm');
+  await assert.rejects(f.focus.probe(message,{...f.sender,id:'spoofed'}),{code:'E_FOCUS_SENDER'});
+  await assert.rejects(f.focus.probe({...message,payload:{mutation:true}},f.sender),{code:'E_FOCUS_REQUEST'});
+  await assert.rejects(f.focus.dispatch(message,f.sender),{code:'E_FOCUS_REQUEST'});
+  f.setAllowed(true);f.api.idle=undefined;
+  await assert.rejects(f.focus.probe(message,f.sender),{code:'E_FOCUS_RUNTIME_UNAVAILABLE'});
 });

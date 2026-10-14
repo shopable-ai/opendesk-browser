@@ -49,6 +49,14 @@ description: Develop, preview, package, review, install and verify OpenDesk Brow
 - 安装→打开→授权→核心运行→停用→卸载→清理失败恢复→重新安装均需有定向证据。Quick Notes/Time Review 是不受影响的对照；任何移除只能处理自有命名空间与自有 DNR ID。
 - Node、构建、CI、真实 Chrome 是不同证据等级：没有与本次最终候选身份一致的 Mac Chrome/CFT 原生凭据就标为 `NOT_TESTED`，不能提前给出 95+ 通过分。
 
+## R3.2 真实运行能力与权限分级
+
+区分 **工具已安装、工具已启用、后台/网页服务真实可用、Chrome 原生权限已批准**。声明 capability、侧栏出现一个 JS 适配器、源码构建通过，都不能证明 Background/Content Script 具有真实工作能力。先核查真实消费者和已有 Browser SDK、Page Relay、Controller/USER_SCRIPT、可信 Host，不为工具新建运行器。
+
+Stay Focus 安装提交前，静态 Side Panel 适配器的 `focus.probe` 对当前 MV3 Service Worker 验证服务协议与必要 Chrome API。此请求不是沙箱公开能力，不需要先安装，也不申请原生权限。缺失、错误版本或不可达服务是 `RUNTIME_UNAVAILABLE`，阻止继续持久化安装并保留已有用户数据；尚未批准 `idle` 或 `declarativeNetRequestWithHostAccess` 是 `PERMISSION_REQUIRED`，在真实可信点击之后申请，不应误报缺失后台。探测正常并不证明计时、提醒、DNR 已在 Chrome 实测。
+
+逐项核对「工具/用户场景 → Sandbox、Side Panel、SW、ISOLATED 或 MAIN → 实际操作 → Manifest/原生权限 → 显式网站授权 → 重启/撤权/停用副作用 → 测试和真实证据」。状态用 `SUPPORTED`、`PERMISSION_REQUIRED`、`RUNTIME_UNAVAILABLE`、`UNSUPPORTED`、`NOT_TESTED`；没有同候选真实 Chrome 证据不能判原生通过。独立安装不要求普通用户有项目源码，但预编译特权服务必须随正式扩展发行。
+
 ## 产品方案与交互预览门槛
 
 新建或显著修改工具 UI 时，先执行 [统一开发规范的 8 阶段设计→预览→实施工作流](../../../docs/api/sidebar-tool-development.zh-CN.md#产品设计与对话预览关卡新建显著改造-ui-时适用)；**在当前对话上下文中直接显示可交互 HTML 原型**并提供独立 HTML 文件，不得只展示包 JSON、截图或一个下载链接就宣称完成产品预览。原型使用模拟数据，无 Chrome/Native 写入权限；用户评审设计后再打包/安装。设计原型不同于下文由 stage 产生的只读包预览。
