@@ -138,6 +138,30 @@ async function admitReadyFire(f,plan,index,{service=f.service,expectedOwner=owne
   return fire;
 }
 
+test('P5 revoked tool Alarm is retired while another installed owner keeps its Alarm',async()=>{
+  for(const change of ['upgrade','epoch','disable','uninstall']){
+    const f=await fixture(),currentOwner=await f.defaultOwner();
+    const peerTool={...toolPackage,id:'scheduler-peer',title:'Scheduler Peer'};
+    const peerOwner={...currentOwner,toolId:peerTool.id,packageHash:await sidebarToolPackageHash(peerTool),epoch:'peer-epoch',installEpoch:'peer-epoch'};
+    f.setToolLocal(SIDEBAR_TOOL_STORE,[toolPackage,peerTool]);
+    f.setToolLocal(TOOL_REVOCATION_EPOCHS_STORE,{[toolPackage.id]:currentOwner.epoch,[peerTool.id]:peerOwner.epoch});
+    const service=createScheduleService({storage:f.storage,api:f.api,clock:{now:f.now},assertHost:async()=>({}),emitToHost:async()=>{}});
+    const own=await service.create(f.request,currentOwner,f.intent);
+    const peer=await service.create(f.request,peerOwner,f.intent);
+    const ownAlarm='opendesk.schedule.v1:'+own.scheduleRef,peerAlarm='opendesk.schedule.v1:'+peer.scheduleRef;
+    assert(f.alarms.has(ownAlarm));assert(f.alarms.has(peerAlarm));
+    if(change==='upgrade')f.setToolLocal(SIDEBAR_TOOL_STORE,[{...toolPackage,version:'1.0.1'},peerTool]);
+    if(change==='epoch')f.setToolLocal(TOOL_REVOCATION_EPOCHS_STORE,{[toolPackage.id]:'retired-epoch',[peerTool.id]:peerOwner.epoch});
+    if(change==='disable')f.setToolLocal(SIDEBAR_TOOL_ENABLE_STORE,{[toolPackage.id]:false});
+    if(change==='uninstall')f.setToolLocal(SIDEBAR_TOOL_STORE,[peerTool]);
+    await service.reconcile();
+    assert.equal(f.alarms.has(ownAlarm),false,change+' must retire the old native Alarm');
+    assert.equal(f.alarms.has(peerAlarm),true,change+' must preserve the other owner Alarm');
+    await assert.rejects(service.listOwn({},currentOwner));
+    assert.equal((await service.listOwn({},peerOwner)).schedules[0].scheduleRef,peer.scheduleRef);
+  }
+});
+
 test('P5 scheduler create/list/cancel owns schedules by installed tool identity',async()=>{
   const f=await fixture(),created=await f.service.create(f.request,owner,f.intent);
   assert.match(created.scheduleRef,/^[A-Za-z0-9_-]{16,160}$/);

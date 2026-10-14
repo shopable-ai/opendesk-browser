@@ -87,11 +87,13 @@ export function createScheduleService({storage,api,clock,session,assertHost,emit
         (session===undefined||row.browserSessionIncarnation===session)));
     await Promise.allSettled(rows.map(row=>emitToHost(row.registrationId,{type:'scheduled-fire-ready'})));
   }
-  async function syncAlarms(){
+  async function syncAlarms(ownerValidity){
     // Test-only broker shims may omit alarms; production MV3 declares the API.
     if(!api.alarms?.getAll||!api.alarms?.create||!api.alarms?.clear)return;
     const definitions=await repo.definitions();
-    const expected=new Map(definitions.filter(d=>!d.paused&&d.nextDueAt!==null)
+    const expected=new Map(definitions.filter(d=>!d.paused&&d.nextDueAt!==null&&
+      (!d.owner||ownerValidity.get(ownerKey(d.owner))!==false&&
+        ownerValidity.get(ownerKey(d.owner)+':'+d.scheduleId)!==false))
       .map(d=>[SCHEDULE_ALARM_PREFIX+d.scheduleId,d.nextDueAt]));
     const actual=await api.alarms.getAll();
     for(const row of actual){
@@ -105,8 +107,9 @@ export function createScheduleService({storage,api,clock,session,assertHost,emit
   }
   async function reconcile(){
     const activeDocumentIds=await scheduledHostDocumentIds(api);
-    const changed=await repo.reconcile({activeDocumentIds,ownerValidity:await currentOwnerValidity()});
-    await syncAlarms();
+    const ownerValidity=await currentOwnerValidity();
+    const changed=await repo.reconcile({activeDocumentIds,ownerValidity});
+    await syncAlarms(ownerValidity);
     if(changed.length)await signal();
     return changed;
   }
