@@ -2575,7 +2575,7 @@
         "negative": "uninstalled/revoked/forged sender/stale epoch, no native effect",
         "native": "same candidate Chrome>=138 actual sender, user click, permission revocation and worker restart"
       },
-      "maxResponseBytes": 20000,
+      "maxResponseBytes": 65536,
       "support": {
         "desktopChromeMinimum": 138,
         "chromeFeatureGate": "feature presence + actual source permission check; never fake Chrome>=138 availability for unknown introduced versions",
@@ -2807,7 +2807,7 @@
         "negative": "uninstalled/revoked/forged sender/stale epoch, no native effect",
         "native": "same candidate Chrome>=138 actual sender, user click, permission revocation and worker restart"
       },
-      "maxResponseBytes": 20000,
+      "maxResponseBytes": 65536,
       "support": {
         "desktopChromeMinimum": 138,
         "chromeFeatureGate": "feature presence + actual source permission check; never fake Chrome>=138 availability for unknown introduced versions",
@@ -2887,7 +2887,7 @@
       ],
       "trust": "INSTALLED_TOOL_WITH_VERIFIED_SENDER",
       "userGesture": true,
-      "maxRequestBytes": 150100,
+      "maxRequestBytes": 170000,
       "errors": [
         "E_SCHEMA",
         "E_CONTEXT",
@@ -3006,7 +3006,7 @@
       ],
       "trust": "INSTALLED_TOOL_WITH_VERIFIED_SENDER",
       "userGesture": true,
-      "maxRequestBytes": 150100,
+      "maxRequestBytes": 170000,
       "errors": [
         "E_SCHEMA",
         "E_CONTEXT",
