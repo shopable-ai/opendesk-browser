@@ -107,8 +107,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   };
   const option=(name,value)=>new Option(name,value);
   function navigate(name,{initial=false}={}) {
+    // Previous Discover URLs now open the local task search in My.
+    if(name==='discover')name='tasks';
     if(name==='debug'&&!debugEnabled)return false;
-    if(!['tasks','discover','workflow','develop','tools','cloud','catalog','debug'].includes(name))return;
+    if(!['tasks','workflow','develop','tools','cloud','catalog','debug'].includes(name))return;
     if(name==='catalog'&&!catalogSurface) {
       // Package import and installation live only in a separate full-size
       // extension tab. Sidebar Discover is a view of installed local tasks.
@@ -118,16 +120,16 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     // Ask the live tool before changing panes or destroying its editor.
     if(toolsViewListener?.(name==='tools' && !catalogSurface,name)===false)return false;
     for(const [element,view] of [
-      ['tasks','tasks'],['local-discover','discover'],['workflow','workflow'],['develop','develop'],['tools','tools'],['cloud','cloud'],['discover','catalog'],['debug','debug']
+      ['tasks','tasks'],['workflow','workflow'],['develop','develop'],['tools','tools'],['cloud','cloud'],['discover','catalog'],['debug','debug']
     ])get('workbench-'+element).hidden=view!==name;
-    for(const [view,id] of [['tasks','tab-my-tasks'],['discover','tab-discover'],['workflow','tab-workflow'],['develop','tab-develop'],['tools','tab-tools'],['cloud','tab-cloud'],...(debugEnabled?[['debug','tab-debug']]:[])]) {
+    for(const [view,id] of [['tasks','tab-my-tasks'],['workflow','tab-workflow'],['develop','tab-develop'],['tools','tab-tools'],['cloud','tab-cloud'],...(debugEnabled?[['debug','tab-debug']]:[])]) {
       const tab=get(id);
       tab.setAttribute('aria-selected',String(name===view));
       tab.tabIndex=name===view?0:-1;
     }
     syncRunDock(name);
     if(doc.documentElement?.dataset)doc.documentElement.dataset.opendeskTab=name;
-    if(name==='discover')renderLocalDiscovery();
+    if(name==='tasks')renderLocalDiscovery();
     if(name==='debug')onNavigate?.('debug');
     if(name==='cloud')onNavigate?.('cloud');
     doc.querySelector?.('.workbench-nav button[aria-selected="true"]')?.scrollIntoView?.({block:'nearest',inline:'nearest'});
@@ -846,13 +848,13 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     working=true;update();
     try{await fn(event);}catch(error){fail(error);}finally{working=false;update();}
   };
-  const tabOrder=[['tasks','tab-my-tasks'],['discover','tab-discover'],['workflow','tab-workflow'],['develop','tab-develop'],['tools','tab-tools'],['cloud','tab-cloud']];
+  const tabOrder=[['tasks','tab-my-tasks'],['tools','tab-tools'],['workflow','tab-workflow'],['develop','tab-develop'],['cloud','tab-cloud']];
   if(debugEnabled)tabOrder.push(['debug','tab-debug']);
   const visibleTabs=()=>tabOrder;
   for(const [tab,id] of tabOrder){
     listen(get(id),'click',()=>{
       if(navigate(tab)===false)return;
-      if(tab==='tasks'||tab==='discover')refresh(undefined,{skipUnchanged:true}).catch(fail);
+      if(tab==='tasks')refresh(undefined,{skipUnchanged:true}).catch(fail);
     });
     listen(get(id),'keydown',event=>{
       const available=visibleTabs(),index=available.findIndex(([view])=>view===tab);
@@ -866,7 +868,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       event.preventDefault();
       if(navigate(available[next][0])===false)return;
       get(available[next][1]).focus?.({preventScroll:true});
-      if(available[next][0]==='tasks'||available[next][0]==='discover')
+      if(available[next][0]==='tasks')
         refresh(undefined,{skipUnchanged:true}).catch(fail);
     });
   }

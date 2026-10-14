@@ -28,7 +28,7 @@ function fixture({store=storage(),debugEnabled=false}={}){
 }
 
 test('Side Panel restores each previously selected product tab after reopening',async()=>{
-  for(const view of ['tasks','discover','workflow','develop','tools','cloud']){
+  for(const view of ['tasks','tools','workflow','develop','cloud']){
     const f=fixture({store:storage({[KEY]:view})});
     await f.memory.restore();
     assert.equal(f.selected,view);
@@ -54,19 +54,19 @@ test('rapid switches are serialized; a slow earlier save cannot overwrite a late
   const shared=storage(),originalSet=shared.set.bind(shared);
   let release;
   shared.set=async update=>{
-    if(update[KEY]==='discover')await new Promise(resolve=>{release=resolve;});
+    if(update[KEY]==='workflow')await new Promise(resolve=>{release=resolve;});
     await originalSet(update);
   };
   const f=fixture({store:shared});
   await f.memory.restore();
-  f.select('discover');
+  f.select('workflow');
   f.select('tools');
   await idle();
   assert.equal(typeof release,'function');
   release();
   await idle();
   assert.equal(shared.state[KEY],'tools');
-  assert.deepEqual(shared.writes.map(row=>row[KEY]),['discover','tools']);
+  assert.deepEqual(shared.writes.map(row=>row[KEY]),['workflow','tools']);
   f.memory.dispose();
 });
 
@@ -89,11 +89,11 @@ test('clicking while storage is loading wins over the old persisted selection',a
 test('navigation before Side Panel surface detection is remembered, not overwritten',async()=>{
   const shared=storage({[KEY]:'workflow'});
   const f=fixture({store:shared});
-  f.select('discover');
+  f.select('tools');
   await f.memory.restore();
   await idle();
-  assert.equal(f.selected,'discover');
-  assert.equal(shared.state[KEY],'discover');
+  assert.equal(f.selected,'tools');
+  assert.equal(shared.state[KEY],'tools');
   f.memory.dispose();
 });
 

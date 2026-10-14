@@ -1,5 +1,19 @@
 import {requireChromePermissions} from '../platform/chrome/permission-gate.js';
 
+// One trusted enable operation for both legacy detail and R4 unified projection.
+// It does not install, convert, or enlarge a Page program's website rules.
+export async function setInstalledPageProgramEnabled({api,client,row}){
+  const installed=row?.installed;
+  if(!installed||installed.manifestHash!==row.manifestHash)
+    throw Object.assign(new Error('已安装网页程序身份已变化，请刷新列表'),{code:'E_PAGE_CHANGED'});
+  if(!installed.enabled)await requireChromePermissions({api,request:{origins:installed.pageRules.matches}});
+  const result=await client.request('setInstalledPageEnabled',{
+    programId:row.programId,manifestHash:installed.manifestHash,enabled:!installed.enabled,
+    expectedGeneration:installed.authorization?.generation??null});
+  if(result.error)throw result.error;
+  return result;
+}
+
 // Read-only projection of the EXISTING Page Installed/Authority records.
 // There is no second Page registry and no Page-to-Sidebar package conversion.
 export function createInstalledPageTools({client,api,doc}){
@@ -60,11 +74,7 @@ export function createInstalledPageTools({client,api,doc}){
         if(!event.isTrusted||busy||disposed)return;
         busy=true;toggle.disabled=true;
         void (async()=>{
-          if(!installed.enabled)await requireChromePermissions({api,request:{origins:installed.pageRules.matches}});
-          const result=await client.request('setInstalledPageEnabled',{
-            programId:row.programId,manifestHash:installed.manifestHash,enabled:!installed.enabled,
-            expectedGeneration:installed.authorization?.generation??null});
-          if(result.error)throw result.error;
+          await setInstalledPageProgramEnabled({api,client,row});
           notice('已确认'+(installed.enabled?'停用':'启用')+'固定网页脚本；不会重新运行当前网页。','success');
         })().catch(error=>notice((error.code||'E_PAGE_INSTALLATION')+'：'+(error.message||error),'error'))
           .finally(()=>{busy=false;if(!disposed)void refresh();});

@@ -13,6 +13,7 @@ import {createSidebarTabMemory} from './sidebar-tab-memory.js';
 import {createWorkflowView} from './workflow/workflow-view.js';
 import {createSidebarTools} from './sidebar-tools-loader.js';
 import {createInstalledPageTools} from './installed-page-tools.js';
+import {createExtensionCenter} from './extension-center.js';
 import {requestedToolId,requestedPreviewId,canonicalToolHostUrl} from './sidebar-tools/navigation.js';
 import {previewStorageKey} from '../native-agent/tool-snapshot.js';
 import {validatePreviewSession} from './sidebar-tools/preview-session.js';
@@ -91,6 +92,11 @@ const workflowView=createWorkflowView({api:chrome,client:foundationClient,host:s
   openCatalog:()=>taskWorkbench.navigate('catalog')});
 const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbench,foundationClient});
 const installedPageTools=createInstalledPageTools({client:foundationClient,api:chrome,doc:document});
+// R4 reuses the same installer form and trusted Tool host, without cloning either.
+const importHost=document.getElementById('extension-center-import-host');
+const originalImport=document.getElementById('sidebar-tool-import');
+if(importHost&&originalImport)importHost.append(originalImport);
+const extensionCenter=createExtensionCenter({api:chrome,client:foundationClient,doc:document,sidebarTools,taskWorkbench});
 const scheduleStatus=message=>{
   for(const id of ['schedule-host-status','schedule-runner-host-status']){
     const label=document.getElementById(id);
@@ -115,7 +121,10 @@ debugWorkbench=debugEnabled?createDebugWorkbench({client:foundationClient,host:s
 window.addEventListener('pagehide',()=>cloudHosting?.dispose(),{once:true});
 taskWorkbench.connectToolsView((visible,destination)=>{
   const accepted=sidebarTools.setVisible(visible,destination);
-  if(visible)void installedPageTools.refresh();
+  if(visible&&accepted!==false){
+    void installedPageTools.refresh();
+    void extensionCenter.refresh();
+  }
   return accepted;
 });
 const pageRefresh=document.getElementById('installed-page-tools-refresh');
@@ -128,6 +137,7 @@ scriptEditor.connectLocalProjects(nativeAgentHost,{onInstalled:({kind,id})=>{
   }else{
     taskWorkbench.navigate('tools');
     void installedPageTools.refresh();
+    void extensionCenter.refresh();
   }
 }});
 const disposeDevelopment=installDevelopment?.({api:chrome,prepareReload:async()=>
@@ -482,7 +492,7 @@ listen(window, 'pagehide', () => {
   for (const {element, event, listener, options} of listeners) element.removeEventListener(event, listener, options);
   listeners.length = 0;
   scheduleHost?.dispose();scheduleUI?.dispose();
-  tabMemory.dispose(); debugWorkbench?.dispose(); workflowView.dispose(); installedPageTools.dispose(); sidebarTools.dispose(); nativeAgentHost.dispose(); siteAccess.dispose(); taskWorkbench.dispose(); scriptEditor.dispose(); currentPageTarget.dispose(); foundationClient.dispose();
+  tabMemory.dispose(); debugWorkbench?.dispose(); workflowView.dispose(); extensionCenter.dispose(); installedPageTools.dispose(); sidebarTools.dispose(); nativeAgentHost.dispose(); siteAccess.dispose(); taskWorkbench.dispose(); scriptEditor.dispose(); currentPageTarget.dispose(); foundationClient.dispose();
 }, {once: true});
 
 }

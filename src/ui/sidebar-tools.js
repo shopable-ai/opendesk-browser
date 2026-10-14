@@ -702,8 +702,12 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(doc.documentElement?.dataset)doc.documentElement.dataset.opendeskTool=visible && active?'active':'list';
   }
   function focusToolInList(id) {
+    // R4 uses one visible list; legacy rows remain in the DOM for the original host.
+    const action=[...doc.querySelectorAll('#extension-center-list button[data-extension-key]')]
+      .find(button=>button.dataset.extensionKey==='app:'+id&&button.dataset.extensionAction==='primary');
     const item=[...list.children].find(node=>node.dataset?.sidebarToolId===id);
-    (item?.children?.[0] || importTrigger).focus?.({preventScroll:true});
+    (action || item?.children?.[0] || doc.getElementById('extension-center-search') || importTrigger)
+      .focus?.({preventScroll:true});
   }
   function cancelRemovalReview(){
     pendingUninstallId=null;pendingUninstallBaseline=null;
@@ -838,6 +842,29 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     }
     mountTool(tool,{launchGate});
     return instance;
+  }
+  // Management never mounts untrusted code. The existing trusted settings UI
+  // owns site grants, enable/disable, version details and uninstall reviews.
+  function openSettings(id){
+    if(disposed||busy||!visible)return false;
+    const tool=toolById(id);
+    if(!tool){notice('找不到已安装的工具',true);return false;}
+    const show=()=>{
+      if(disposed||!visible||busy)return;
+      bookmarkManager?.close();cancelRemovalReview();setImportOpen(false);
+      destroyFrame();active=tool;readOnlyPreview=false;previewDirty=false;
+      tocSettingsOpen=true;tocScope='site';render();backButton.focus?.({preventScroll:true});
+    };
+    if(active&&!canLeave(show))return false;
+    show();return true;
+  }
+  function openImport(){
+    if(disposed||busy||!visible||active)return false;
+    setDiscoveryOpen(false);setImportOpen(true);notice('');return true;
+  }
+  function openBookmarks(){
+    if(disposed||busy||!visible||active||!bookmarkManager)return false;
+    setDiscoveryOpen(false);setImportOpen(false);bookmarkManager.open();render();return true;
   }
   function openReadOnlyPreview(value){
     bookmarkManager?.close();
@@ -1945,11 +1972,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     officialFilter='all';filterAll.setAttribute('aria-pressed','true');
     filterAvailable?.setAttribute('aria-pressed','false');renderOfficialTools();
   });
-  if(bookmarkTrigger&&bookmarkManager)listen(bookmarkTrigger,'click',()=>{
-    if(disposed||busy||!visible||active)return;
-    setDiscoveryOpen(false);setImportOpen(false);
-    bookmarkManager.open();render();
-  });
+  if(bookmarkTrigger&&bookmarkManager)listen(bookmarkTrigger,'click',()=>openBookmarks());
   if(bookmarkRoot&&bookmarkManager)listen(bookmarkRoot,'opendesk-bookmark-manager-back',()=>{
     render();bookmarkTrigger?.focus?.({preventScroll:true});
   });
@@ -2103,7 +2126,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     listeners.push(unsubscribe);
   }
   render();
-  return Object.freeze({ready,openTool,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,openInTab,closeTool,setVisible,dispose(){
+  return Object.freeze({ready,openTool,openSettings,openImport,openBookmarks,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,openInTab,closeTool,setVisible,dispose(){
     if(disposed)return;
     cancelActionReview();bookmarkManager?.dispose();destroyFrame();fileSelection++;disposed=true;visible=false;
     for(const release of listeners.splice(0))release();

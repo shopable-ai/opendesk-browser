@@ -1,13 +1,12 @@
 <!doctype html>
 <html lang="zh-CN">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="frame-src 'self'"><title>OpenDesk Browser</title><link rel="stylesheet" href="design-tokens.css"><link rel="stylesheet" href="design-system.css"><link rel="stylesheet" href="tool-shell.css"><link rel="stylesheet" href="bookmark-manager.css"><link rel="stylesheet" href="time-review.css"><link rel="stylesheet" href="cloud-hosting.css"></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="frame-src 'self'"><title>OpenDesk Browser</title><link rel="stylesheet" href="design-tokens.css"><link rel="stylesheet" href="design-system.css"><link rel="stylesheet" href="tool-shell.css"><link rel="stylesheet" href="bookmark-manager.css"><link rel="stylesheet" href="time-review.css"><link rel="stylesheet" href="cloud-hosting.css"><link rel="stylesheet" href="extension-center.css"></head>
 <body>
 <nav class="workbench-nav" role="tablist" aria-label="工作台" aria-description="较窄时可以横向滚动；左右方向键以及 Home、End 切换页签">
   <button type="button" id="tab-my-tasks" role="tab" tabindex="0" data-workbench-tab="tasks" aria-selected="true" aria-controls="workbench-tasks">我的</button>
-  <button type="button" id="tab-discover" role="tab" tabindex="-1" data-workbench-tab="discover" aria-selected="false" aria-controls="workbench-local-discover">发现</button>
+  <button type="button" id="tab-tools" role="tab" tabindex="-1" data-workbench-tab="tools" aria-selected="false" aria-controls="workbench-tools">扩展</button>
   <button type="button" id="tab-workflow" role="tab" tabindex="-1" data-workbench-tab="workflow" aria-selected="false" aria-controls="workbench-workflow">工作流</button>
   <button type="button" id="tab-develop" role="tab" tabindex="-1" data-workbench-tab="develop" aria-selected="false" aria-controls="workbench-develop">开发</button>
-  <button type="button" id="tab-tools" role="tab" tabindex="-1" data-workbench-tab="tools" aria-selected="false" aria-controls="workbench-tools">工具</button>
   <button type="button" id="tab-cloud" role="tab" tabindex="-1" data-workbench-tab="cloud" aria-selected="false" aria-controls="workbench-cloud">云控</button>
   <button type="button" id="tab-debug" role="tab" tabindex="-1" data-workbench-tab="debug" aria-selected="false" aria-controls="workbench-debug" hidden>调试</button>
 </nav>
@@ -46,6 +45,23 @@
       </details>
       </div>
     </section>
+    <details id="task-local-discovery" class="task-local-discovery od-disclosure"><summary>查找本机任务</summary>
+      <section class="local-discovery-section" aria-label="发现已安装任务">
+      <div class="local-discovery-search-row od-toolbar">
+        <label for="local-discover-search" class="visually-hidden">搜索已安装任务</label>
+        <input type="search" id="local-discover-search" class="od-field" placeholder="搜索已安装任务…" autocomplete="off">
+        <button type="button" id="local-discover-open-catalog" class="local-discovery-import od-button od-button--secondary" aria-label="打开完整任务目录，导入或管理任务">导入</button>
+      </div>
+      <div id="local-discover-filters" class="local-discovery-filters od-segmented" role="group" aria-label="本地任务筛选">
+        <button type="button" id="local-filter-current" data-local-filter="current" aria-pressed="true">当前网页</button>
+        <button type="button" id="local-filter-all" data-local-filter="all" aria-pressed="false">全部</button>
+        <button type="button" id="local-filter-disabled" data-local-filter="disabled" aria-pressed="false">停用</button>
+      </div>
+      <p id="local-discover-count" class="visually-hidden" aria-live="polite"></p>
+      <div id="local-discover-cards" class="local-discovery-list od-surface" aria-label="发现的本机任务"></div>
+      <p id="local-discover-status" class="hint" role="status"></p>
+    </section>
+    </details>
     <section id="scheduled-panel" class="schedule-panel od-stack" aria-label="定时计划" hidden>
       <header class="schedule-header od-page-head">
         <button id="schedule-back" class="od-icon-button" type="button" title="返回我的任务" aria-label="返回我的任务"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m7-7-7 7 7 7"></path></svg></button>
@@ -250,6 +266,49 @@
         </div>
       </section>
       <div id="sidebar-tool-list-view">
+        <section id="extension-center" aria-label="扩展管理">
+          <div id="extension-center-list-view">
+            <div class="ec-toolbar">
+              <label class="ec-search" for="extension-center-search">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 5 5"></path></svg>
+                <input id="extension-center-search" type="search" placeholder="搜索扩展" autocomplete="off">
+              </label>
+              <button id="extension-center-market" class="ec-icon" type="button" title="打开应用市场" aria-label="在新标签页打开应用市场"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16l-1.5-6h-13L4 10Zm2 0v10h12V10M10 20v-6h4v6"></path></svg></button>
+              <div id="extension-center-menu-wrap" class="ec-menu-wrap">
+                <button id="extension-center-more" class="ec-icon" type="button" title="扩展筛选与更多操作" aria-label="筛选和管理扩展" aria-haspopup="true" aria-expanded="false" aria-controls="extension-center-menu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle></svg></button>
+                <div id="extension-center-menu" class="ec-more" role="group" aria-label="扩展筛选和操作" hidden>
+                  <fieldset><legend>类型</legend><div class="ec-filter-group">
+                    <button type="button" data-ec-kind="all" aria-pressed="true">全部</button>
+                    <button type="button" data-ec-kind="app" aria-pressed="false">应用</button>
+                    <button type="button" data-ec-kind="page" aria-pressed="false">网页增强</button>
+                  </div></fieldset>
+                  <fieldset><legend>显示范围</legend><div class="ec-filter-group">
+                    <button type="button" data-ec-scope="smart" aria-pressed="true">默认</button>
+                    <button type="button" data-ec-scope="local" aria-pressed="false">只看本机</button>
+                    <button type="button" data-ec-scope="available" aria-pressed="false">可安装</button>
+                  </div></fieldset>
+                  <button id="extension-center-reset" class="ec-menu-action" type="button">恢复默认筛选</button>
+                  <div class="ec-menu-separator">
+                    <button id="extension-center-import" class="ec-menu-action" type="button">导入本地工具包</button>
+                    <button id="extension-center-bookmarks" class="ec-menu-action" type="button">书签管理</button>
+                    <button id="extension-center-reload" class="ec-menu-action" type="button">刷新扩展</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div id="extension-center-import-host"></div>
+            <span id="extension-center-count" class="visually-hidden" aria-live="polite"></span>
+            <ul id="extension-center-list" class="ec-list" aria-label="本机应用和网页增强列表"></ul>
+            <div id="extension-center-empty" class="ec-empty" hidden>
+              <p id="extension-center-empty-text"></p>
+            </div>
+          </div>
+          <section id="extension-center-detail" class="ec-detail" aria-label="扩展详情" hidden>
+            <button id="extension-center-back" class="ec-detail-back" type="button">← 返回列表</button>
+            <div id="extension-center-detail-body"></div>
+          </section>
+          <p id="extension-center-status" class="ec-message" role="status" aria-live="polite"></p>
+        </section>
         <div class="sidebar-tools-head od-toolbar od-page-head">
           <strong class="od-page-title">已安装工具</strong>
           <div class="sidebar-tools-actions od-toolbar od-page-actions" role="group" aria-label="添加和管理工具">
@@ -507,23 +566,6 @@
         <p id="cloud-status" role="status" aria-live="polite">尚未配对</p>
       </details>
       <p class="hint">云控复用「我的」已安装授权的任务和原 RunHost。切换选项卡不会启动第二个执行器；关闭 Side Panel 后不承诺任务继续运行。</p>
-    </section>
-  </div>
-  <div id="workbench-local-discover" role="tabpanel" aria-labelledby="tab-discover" class="od-page" data-workbench-page="local-discover" hidden>
-    <section class="local-discovery-section" aria-label="发现已安装任务">
-      <div class="local-discovery-search-row od-toolbar">
-        <label for="local-discover-search" class="visually-hidden">搜索已安装任务</label>
-        <input type="search" id="local-discover-search" class="od-field" placeholder="搜索已安装任务…" autocomplete="off">
-        <button type="button" id="local-discover-open-catalog" class="local-discovery-import od-button od-button--secondary" aria-label="打开完整任务目录，导入或管理任务">导入</button>
-      </div>
-      <div id="local-discover-filters" class="local-discovery-filters od-segmented" role="group" aria-label="本地任务筛选">
-        <button type="button" id="local-filter-current" data-local-filter="current" aria-pressed="true">当前网页</button>
-        <button type="button" id="local-filter-all" data-local-filter="all" aria-pressed="false">全部</button>
-        <button type="button" id="local-filter-disabled" data-local-filter="disabled" aria-pressed="false">停用</button>
-      </div>
-      <p id="local-discover-count" class="visually-hidden" aria-live="polite"></p>
-      <div id="local-discover-cards" class="local-discovery-list od-surface" aria-label="发现的本机任务"></div>
-      <p id="local-discover-status" class="hint" role="status"></p>
     </section>
   </div>
   <!-- 完整任务目录仅在扩展独立标签页中显示，不占用 Side Panel。 -->

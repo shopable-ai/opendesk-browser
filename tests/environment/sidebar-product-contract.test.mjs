@@ -50,10 +50,10 @@ test('trusted Side Panel run sends the exact unsaved draft to the original Contr
   assert.doesNotMatch(editor,/\beval\s*\(|scripting\.executeScript/);
 });
 
-test('R6 uses valid tab roles with labelled content panels',async()=>{
+test('R4 uses five labelled product tab panels',async()=>{
   const html=await read('src/ui/tool.html');
   assert.match(html,/<nav class="workbench-nav" role="tablist"/);
-  for(const [id,panel] of [['tab-my-tasks','workbench-tasks'],['tab-discover','workbench-local-discover'],['tab-workflow','workbench-workflow'],['tab-develop','workbench-develop'],['tab-tools','workbench-tools']]){
+  for(const [id,panel] of [['tab-my-tasks','workbench-tasks'],['tab-tools','workbench-tools'],['tab-workflow','workbench-workflow'],['tab-develop','workbench-develop'],['tab-cloud','workbench-cloud']]){
     assert.match(html,new RegExp('id="'+id+'" role="tab"'));
     assert.match(html,new RegExp('id="'+panel+'" role="tabpanel" aria-labelledby="'+id+'"'));
   }
@@ -63,14 +63,14 @@ test('R4 Sidebar sections preserve consumer controls and keep engineering tools 
   const html=await read('src/ui/tool.html'), css=await read('src/ui/tool-shell.css');
   const ids=[...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>id);
   assert.equal(new Set(ids).size,ids.length);
-  for(const id of ['script-current-page-title','developer-results-panel','script-task-status','tool-diagnostics','script-advanced','tab-discover','workbench-local-discover','task-selected-workspace','task-result-panel','task-history-panel','local-discover-open-catalog','open-catalog','task-stop','script-stop','workflow-stop','workflow-run'])assert(ids.includes(id),id);
+  for(const id of ['script-current-page-title','developer-results-panel','script-task-status','tool-diagnostics','script-advanced','task-local-discovery','extension-center-search','task-selected-workspace','task-result-panel','task-history-panel','local-discover-open-catalog','open-catalog','task-stop','script-stop','workflow-stop','workflow-run'])assert(ids.includes(id),id);
   assert.doesNotMatch(html, /id="discover-dock"|id="discover-to-catalog"/,'R5 Discover must not reserve an idle navigation dock');
   assert.doesNotMatch(html, /发现已安装任务<\/h2>|仅展示你明确安装的版本|找到.*个已安装任务.*本机共/);
   assert.match(html, /class="local-discovery-search-row od-toolbar"/);
   assert.match(html,/id="tab-my-tasks"[^>]*>我的<\/button>/);
   assert.ok(html.indexOf('id="sidebar-tools"')>html.indexOf('id="workbench-tools"'));
-  assert.ok(html.indexOf('id="sidebar-tools"')<html.indexOf('id="workbench-local-discover"'),
-    'Tools lives in its own tab panel, never nested under installed Tasks');
+  assert.ok(html.indexOf('id="local-discover-search"')<html.indexOf('id="workbench-tools"'),
+    'Installed task search belongs to My, before Extension Center');
   assert.doesNotMatch(html.slice(html.indexOf('id="workbench-tasks"'),html.indexOf('id="workbench-tools"')),
     /id="sidebar-tool-import"|id="sidebar-tools"/,'My must not contain Tool management');
   assert.match(css,/\.workbench-nav\{[^}]*display:flex;[^}]*overflow-x:auto;/);
@@ -131,6 +131,6 @@ test('Sidebar starts at its five tabs without repeating Chrome extension identit
   assert.match(html,/<body>\s*<nav class="workbench-nav" role="tablist"/,'tabs should be the first visible row');
   assert.doesNotMatch(html,/class="workspace-(?:header|brand|logo)"/,'no duplicate in-page brand');
   assert.doesNotMatch(css,/\.workspace-(?:header|brand|logo)\b/,'remove orphaned header styles');
-  for(const id of ['tab-my-tasks','tab-discover','tab-workflow','tab-develop','tab-tools','workspace-content','workspace-dock'])
+  for(const id of ['tab-my-tasks','tab-tools','tab-workflow','tab-develop','tab-cloud','workspace-content','workspace-dock'])
     assert.match(html,new RegExp('id="'+id+'"'));
 });
