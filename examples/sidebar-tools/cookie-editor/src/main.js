@@ -1072,11 +1072,23 @@ root.addEventListener('opendesk-cookie-grants-changed',()=>{
   if(liveTarget&&!targetPending)void readBrowserMetadata();
 });
 root.addEventListener('opendesk-page-changed',()=>{
-  guarded(()=>{
+  const switchSite=()=>{
+    // Invalidate every in-flight native receipt before any new target is read.
     epoch++;data=null;liveRows=[];busy=false;dirty=false;liveState='idle';
     shown.clear();liveSecrets.clear();observing=null;
     scrubEditors();cancelConfirmation();setBusy(false);render();void refresh();
-  });
+  };
+  if(busy){
+    // A tab change during an outstanding Host mutation is NOT an ordinary
+    // editable draft transition: the old write might already have committed.
+    // Drop stale identity and secrets now; never replay the pending mutation.
+    switchSite();
+    status('网站已切换，上一项 Chrome 操作结果可能未知。请检查实际 Cookie，勿自动重试。','error');
+    return;
+  }
+  // Reject stale confirmation callbacks after the tab/site identity changes.
+  if(pending)cancelConfirmation();
+  guarded(switchSite);
 });
 root.ownerDocument.defaultView?.addEventListener?.('pagehide',()=>{
   epoch++;liveRows=[];data=null;liveTarget=null;shown.clear();liveSecrets.clear();observing=null;scrubEditors();

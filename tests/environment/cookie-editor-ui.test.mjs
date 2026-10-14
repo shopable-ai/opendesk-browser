@@ -774,6 +774,7 @@ test('R4.3 read-only live import can preview without writing and invalidates a c
   s.setSite('example.com');s.setLiveTarget('https://example.com/');
   await s.readBrowserMetadata();
   s.fire('live-import','click',{isTrusted:true});
+  s.getField('import-format').value='auto';
   s.getField('import-text').value='sid=VALUE';
   s.fire('import-text','input',{isTrusted:true});
   s.fire('import-apply','click',{isTrusted:true});
@@ -795,4 +796,20 @@ test('R4.3 text export rejects unrepresentable sensitive attributes rather than 
   assert.equal(s.exportText('json',[row]).includes('abc;def'),true);
   const tabbed=s.normalizeCookie({name:'sid',value:'value\tpart'});
   assert.throws(()=>s.exportText('netscape',[tabbed]),/Netscape/);
+});
+
+test('R4.3 idle unsaved draft survives an external page change until user confirms discarding',async()=>{
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},
+    cookies:{getAll:async()=>[],getPartitionKey:async()=>({partitionKey:{topLevelSite:'https://example.com'}})}});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');
+  await s.readBrowserMetadata();s.openEditor();
+  s.getField('cookie-value').value='LOCAL_UNSAVED_DRAFT';
+  s.fire('editor-form','input',{isTrusted:true});
+  s.fireRoot('opendesk-page-changed');
+  assert.equal(s.getField('confirm-panel').hidden,false,'dirty draft requires user review');
+  assert.equal(s.getField('editor-panel').hidden,false,'do not discard before approval');
+  assert.equal(s.getField('cookie-value').value,'LOCAL_UNSAVED_DRAFT');
+  s.fire('confirm-cancel','click',{isTrusted:true});
+  assert.equal(s.getField('editor-panel').hidden,false,'cancel must preserve draft');
+  assert.equal(s.getField('cookie-value').value,'LOCAL_UNSAVED_DRAFT');
 });
