@@ -92,6 +92,11 @@ jobs:
         run: node tests/framework/local-dev-native-acceptance.mjs
       - run: npm run build:dev
       - run: npm ci --prefix examples/programs/page-npm-lodash --ignore-scripts --no-audit --no-fund
+      - name: Install exact npm dependencies for the two R7.9.4 mixed projects
+        run: |
+          set -euo pipefail
+          npm ci --prefix examples/programs/mixed-import-page --ignore-scripts --no-audit --no-fund
+          npm ci --prefix examples/programs/mixed-import-controller --ignore-scripts --no-audit --no-fund
       - name: Chrome L4 existing ESM Examples and explicit source-edit-run
         env:
           CHROME_FOR_TESTING_BIN: ${{ steps.chrome.outputs.chrome-path }}
