@@ -108,5 +108,16 @@
     "path": "tests/framework/browser-sdk-r106-native.mjs",
     "decision": "Retain uncommitted owner changes; repeated drift before staging blocked snapshot.",
     "currentVerification": "NOT_TESTED"
+  },
+  "delivery": {
+    "integrationCommit": "f4b6f6dcf11bbb1304d61729fbe37914db84d58e",
+    "files": 84,
+    "committedBlobsMatch": true,
+    "normalPushExitCode": 0,
+    "remoteMainConfirmed": "f4b6f6dcf11bbb1304d61729fbe37914db84d58e",
+    "remainingUncommitted": [
+      "tests/framework/browser-sdk-r106-native.mjs"
+    ],
+    "status": "COMPLETE_STABLE_SCOPE"
   }
 }

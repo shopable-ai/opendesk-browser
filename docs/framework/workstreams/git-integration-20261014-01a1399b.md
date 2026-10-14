@@ -1,7 +1,7 @@
 # main 拉取、整合与推送（2026-10-14）
 
 - 负责人：Codex 当前会话 `01a1399b`；用户明确授权「git 拉取 整合 提交，推送」。
-- 状态：IN_PROGRESS；只在 `main` 执行，未创建分支、worktree 或 PR。
+- 状态：COMPLETE（稳定文件整合）；只在 `main` 执行，未创建分支、worktree 或 PR。持续编辑的 SDK 原生驱动保留为原负责人未提交改动。
 - 起始 HEAD：`91c39d72`；远端 `origin/main` 落后本地 2 个提交。`git fetch origin`、`git pull --ff-only origin main` 已完成，远端无新增提交、无合并冲突。
 - 写入范围：本记录；必要整合修复先核对具体文件及 diff。提交范围为备份 manifest 所列 81 个现有修改/新增文件，覆盖侧栏 UI、Workflow、开发构建、测试、文档和已有证据更新；不覆盖或重造原始验收回执。
 - Git 事务由本会话串行负责；起始索引为空，无 index lock、进行中的 merge/rebase 或其他 Git 写入进程。两名原生只读子 Agent 分别核对 UI 与构建/新增文件，不写文件、索引或共享产物。
@@ -34,3 +34,10 @@
 暂存前第二次身份复核发现 `tests/framework/browser-sdk-r106-native.mjs` 再次变化；断言在任何 `git add` 之前拦截，索引仍为空。本次仅排除该实际持续写入文件，保留其全部工作区改动及备份，不覆盖、不暂存、不提交、不阻止其他稳定文件。该文件的当前原生/语法证据由原负责人继续维护，本轮旧语法检查不提升为其最新输入 PASS。
 
 暂存检查另发现新增 `docs/framework/prompts/browser-sdk-r106-continuation-20261014.zh-CN.txt` 末尾空白行；核对其工作副本与暂存字节一致后只移除该空白行，原始内容及字节副本仍保留在恢复目录。新 ignore 规则对已追踪 evidence 父目录给出提示，已核对其指定文件确实进入暂存；仅本次两个新增整合记录使用精确路径 `git add -f`。
+
+## 实际提交与远端核对
+
+- 整合提交：`f4b6f6dcf11bbb1304d61729fbe37914db84d58e`，parent `5972491e`；84 个指定文件的提交后 blob 与暂存 SHA-256 全部一致，索引为空。
+- 推送：普通 `git push --porcelain origin main` 返回 0，远端从 `5972491e` 前进至 `f4b6f6dc`；`git ls-remote origin refs/heads/main` 确认同一完整 SHA，本地与 `origin/main` ahead/behind 为 0/0。
+- 剩余工作区：仅 `tests/framework/browser-sdk-r106-native.mjs` 为修改态，由原负责人持续开发；本会话未暂存、提交或改写。没有其他待整合文件。
+- Git 整合事务及本会话文件范围释放；不占用共享浏览器、端口、dist/ZIP、Native 或数据库。最后仅提交本记录与验证 JSON 的真实完成信息，原生与完整产物验收缺口保持原状态。
