@@ -129,17 +129,18 @@ function setupScene(scene,officialReleases){
   for(const details of document.querySelectorAll('details')){
     if(!originals.has(details))originals.set(details,{kind:'details',open:details.open,hidden:details.hidden});
   }
-  const active=scene.tab;
+  const active=scene.tab==='local-discover'?'tasks':scene.tab;
   for(const item of document.querySelectorAll('[data-workbench-page]'))
     item.hidden=item.dataset.workbenchPage!==active;
   for(const tab of document.querySelectorAll('[data-workbench-tab]'))
-    tab.setAttribute('aria-selected',String(tab.dataset.workbenchTab===(['local-discover','catalog'].includes(active)?'discover':active==='tasks'?'tasks':active)));
+    tab.setAttribute('aria-selected',String(tab.dataset.workbenchTab===(active==='catalog'?'tasks':active)));
   const dock=document.querySelector('#workspace-dock');
-  dock.hidden=['local-discover','catalog','workflow','tools','cloud','debug'].includes(active);
+  dock.hidden=scene.tab==='local-discover'||['catalog','workflow','tools','cloud','debug'].includes(active);
+  document.querySelector('#task-local-discovery').open=scene.tab==='local-discover';
   document.querySelector('#tab-debug').hidden=active!=='debug';
   document.querySelector('#cloud-hosting').open=scene.state==='cloud-open';
   const scheduled=scene.state?.startsWith('schedule-')||false;
-  document.querySelector('.tasks-surface').hidden=scheduled;
+  document.querySelector('.tasks-surface').hidden=scheduled||scene.tab==='local-discover';
   document.querySelector('#scheduled-panel').hidden=!scheduled;
   document.querySelector('#schedule-list-view').hidden=scene.state!=='schedule-empty';
   document.querySelector('#schedule-form').hidden=scene.state!=='schedule-form';
@@ -340,7 +341,7 @@ function measureScene(scene){
   const radius=q=>{const el=get(q);return el?getComputedStyle(el).borderTopLeftRadius:null};
   const box=q=>{const e=get(q);if(!e)return null;const r=e.getBoundingClientRect();return {top:r.top,bottom:r.bottom,width:r.width,height:r.height}};
   const content=get('#workspace-content');
-  const panel=get('[data-workbench-page="'+scene.tab+'"]');
+  const panel=get('[data-workbench-page="'+(scene.tab==='local-discover'?'tasks':scene.tab)+'"]');
   const metrics={
     viewport:{width:innerWidth,height:innerHeight},
     coarsePointer:matchMedia('(pointer:coarse)').matches,

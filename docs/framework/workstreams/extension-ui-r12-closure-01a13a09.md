@@ -33,3 +33,5 @@ R3现有原生驱动增补 PRODUCT_MATRIX：真实UI创建19个暂停计划，20
 ## 2026-10-14 用户导航授权与原生选择复验
 
 用户明确保留 R4 五个正式 Tab：我的、扩展、工作流、开发、云控；现有 R19 精确标签与往返焦点验证改按该契约，历史六 Tab 证据不改写。最新 candidate5 原生失败停在重开表单的任务下拉占位项，真实箭头输入无效；改用现有 PID/前台/AX 约束下的精确可见菜单项 press 并保留实际 value deadline 校验，不写 DOM value、不发 synthetic events。组件返回测试改用用户可见共享 header Back。candidate5 npm verify 已 PASS；新输入驱动需要复验。
+
+R4 五 Tab 复验扩展范围：仅 src/ui/extension-center.css 普通图标/触摸目标样式和现有 tests/environment/extension-center-r4.test.mjs、scripts/tests/sidebar-r19-layout-visual.mjs 源布局场景。该 CSS 当前 main 无未提交修改；不触碰扩展中心 JS、安装/卸载/Authority，也不覆盖 Cookie/Stay Focus 并行修改。现有发现功能在 我的→查找本机任务，R19 应映射到当前 section。

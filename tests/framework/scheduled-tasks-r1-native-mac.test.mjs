@@ -136,8 +136,24 @@ async function select(client,session,selector,index){
     if(info.targetInfo?.type==='page')
       await client.send('Target.activateTarget',{targetId:info.targetInfo.targetId});
     nativeOwnedMacInput('activate');
+    if(selector==='#schedule-task-select'){
+      // Task follows the name field. Keep the control closed and reach it by
+      // genuine macOS Tab; pointer-opened AppKit items can retire during AX
+      // traversal. Verify focus before sending PID-bound selection keys.
+      nativeOwnedMacInput('key','tab');
+      assert.equal(await evaluate(client,'document.activeElement==='+expression,session),true,
+        'native Tab reaches the visible task select');
+      const movingDown=index>original.index;
+      const steps=original.options.filter((option,position)=>!option.disabled&&
+        (movingDown?position>original.index&&position<=index:position<original.index&&position>=index)).length;
+      for(const key of [...Array.from({length:steps},()=>movingDown?'down':'up'),'return'])
+        nativeOwnedMacInput('key',key);
+      await deadline(()=>evaluate(client,expression+'.value==='+JSON.stringify(expected),session),
+        'owned Mac keyboard task selection '+expected,8000);
+      return;
+    }
     await click(client,session,selector);
-    if(selector==='#schedule-timezone'||selector==='#schedule-task-select'){
+    if(selector==='#schedule-timezone'){
       // Pick the actual visible AppKit menu item by its observed option label.
       // The existing helper requires one matching CFT AX control and the owned
       // foreground PID; it never writes select.value or dispatches change.
