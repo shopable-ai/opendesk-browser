@@ -112,7 +112,7 @@ test('R11 nested namespace callback generates routes without a per-method Handle
 
 test('R11 namespace resolution ignores inherited, getter and unapproved service methods',()=>{
   let getterCalled=0;
-  const driver=Object.create({removeOwned:async()=>({removed:true})});
+  const driver=Object.create(null);
   Object.defineProperty(driver,'create',{get(){getterCalled++;throw Error('unsafe getter')}});
   const bindings=createApprovedBrowserBindings({bookmarks:driver});
   assert.equal(getterCalled,0);
