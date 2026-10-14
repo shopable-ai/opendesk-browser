@@ -37,6 +37,9 @@ const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStor
   const get=id=>nodes.get(id)||nodes.get('task-params-form')?.children.find(child=>child.id===id);
   const doc={getElementById:get,querySelector:()=>null,createElement:()=>{const node=new Element();node.ownerDocument=doc;return node;},documentElement:{dataset:{}},activeElement:null};
   for(const node of nodes.values())node.ownerDocument=doc;
+  // This lightweight DOM fake does not parse initial attributes. Reflect the
+  // real HTML collapsed state before dispatching search-toggle clicks.
+  get('task-search-panel').hidden=/<div id="task-search-panel"[^>]*\shidden\b/.test(html);
   const programId='task:demo.form:1.0.0',hash='a'.repeat(64),manifestHash='b'.repeat(64);
   const manifest={title:'表单任务',description:'输入表单',author:'OpenDesk',source:'local',siteOrigins:['https://a.example'],
     permissions:['page.automation'],program:{sourceHash:hash},paramsSchema:{type:'object',
