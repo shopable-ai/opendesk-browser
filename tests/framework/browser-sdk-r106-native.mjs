@@ -748,6 +748,7 @@ async function runNative(){
       return {boundary,sandbox:report.installed.frame};
     });
     await recordCase('trusted-history-user-selected-range',async()=>{
+      await client.send('Target.activateTarget',{targetId:report.cases['side-panel-contexts'].result.shellTarget});await native('activate');
       await click(client,side,'#tab-tools',report.trace);
       await click(client,side,'#trusted-history-panel summary',report.trace);
       const today=await read(client,side,'(()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-")})()');
@@ -756,6 +757,7 @@ async function runNative(){
         // Chromium's actual calendar indicator is at the input's right edge.
         // Clicking the text segment only focuses year; it does not open a picker.
         await click(client,side,selector,report.trace,{rightInset:22});await sleep(250);
+        (report.nativeDatePickers??=[]).push({selector,rows:JSON.parse(await native('dump'))});
         report.screenshots.push(await screenshot(client,side,runDir,selector.slice(1)+'-native-picker'));
         await native('key','return');
         dates[selector]=await read(client,side,`document.querySelector(${quote(selector)}).value`);
