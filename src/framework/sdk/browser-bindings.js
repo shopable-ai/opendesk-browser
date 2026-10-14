@@ -10,13 +10,47 @@ const isRecord=value=>value!==null&&typeof value==='object'&&!Array.isArray(valu
 export function createApprovedBrowserBindings(routes,{registry=BROWSER_OPERATIONS}={}){
   if(!isRecord(routes))throw fail('E_CONTRACT','Trusted Browser binding table required');
   const table=Object.create(null);
-  for(const [operation,run] of Object.entries(routes)){
+  const register=(operation,run)=>{
     const entry=Object.hasOwn(registry,operation)?registry[operation]:null;
     if(!entry||entry.implementation!=='IMPLEMENTED'||
        !entry.supportedContexts?.includes('sidebar-tool')||
        typeof run!=='function'||Object.hasOwn(table,operation))
       throw fail('E_CONTRACT','Unapproved or invalid Browser binding: '+operation);
     table[operation]=run;
+  };
+  for(const [key,handler] of Object.entries(routes)){
+    if(key.startsWith('browser.')){
+      // Keep explicitly composed adapters for exceptional operations.
+      register(key,handler);
+      continue;
+    }
+    // A trusted namespace service is bound ONCE. Its own methods are matched
+    // against the already-approved operation Registry; unmatched methods,
+    // including internal resolve/revokeAll, are never exposed.
+    const parts=key.split('.');
+    if(parts.some(part=>!/^[A-Za-z][A-Za-z0-9]*$/.test(part)||
+       ['constructor','prototype','__proto__'].includes(part))||
+       typeof handler!=='function'&&!isRecord(handler))
+      throw fail('E_CONTRACT','Invalid trusted Browser namespace service: '+key);
+    const namespace='browser.'+key;
+    let matched=0;
+    for(const [operation,entry] of Object.entries(registry)){
+      if(entry?.namespace!==namespace)continue;
+      const method=operation.slice(namespace.length+1);
+      if(!method||method.includes('.'))continue;
+      if(typeof handler==='function'){
+        register(operation,(input,context)=>handler(input,context,operation));
+      }else{
+        // Get the own DATA descriptor; never execute getters or inherited
+        // methods while deriving the finite set of approved routes.
+        const own=Object.getOwnPropertyDescriptor(handler,method);
+        if(!own||typeof own.value!=='function')continue;
+        const fn=own.value;
+        register(operation,(input,context)=>fn.call(handler,input,context));
+      }
+      matched++;
+    }
+    if(!matched)throw fail('E_CONTRACT','No approved methods for trusted service: '+namespace);
   }
   Object.freeze(table);
   return Object.freeze({
