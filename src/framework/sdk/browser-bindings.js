@@ -7,7 +7,53 @@ import {fail,jsonValue} from './registry.js';
 const isRecord=value=>value!==null&&typeof value==='object'&&!Array.isArray(value)&&
   [Object.prototype,null].includes(Object.getPrototypeOf(value));
 
-export function createApprovedBrowserBindings(routes,{registry=BROWSER_OPERATIONS}={}){
+// Native DIRECT mappings are supplied only by the fixed build-generated
+// approval artifact. They never come from an installed package or RPC payload.
+// Only same-named, Promise-based, read-only, no-site-scope calls may use this
+// generic v1 route; any scoped/mutating API continues through its audited Driver.
+function nativeDirectRoute(descriptor,api,registry){
+  if(!isRecord(descriptor)||Object.keys(descriptor).sort().join(',')!==
+     'mode,nativeApi,operation,parameters'||
+     descriptor.mode!=='DIRECT'||typeof descriptor.operation!=='string'||
+     typeof descriptor.nativeApi!=='string'||!Array.isArray(descriptor.parameters))
+    throw fail('E_CONTRACT','Invalid compiled Native DIRECT descriptor');
+  const op=Object.hasOwn(registry,descriptor.operation)?registry[descriptor.operation]:null;
+  if(!op||op.implementation!=='IMPLEMENTED'||!op.supportedContexts?.includes('sidebar-tool')||
+     op.requiresUserGesture||op.effectClass!=='read'||op.siteScope!=='none'||
+     descriptor.nativeApi!=='chrome.'+descriptor.operation.slice('browser.'.length))
+    throw fail('E_CONTRACT','Unsafe or unapproved Native DIRECT operation');
+  const path=descriptor.nativeApi.split('.');
+  if(path.length!==3||path[0]!=='chrome'||path.slice(1).some(part=>
+    !/^[A-Za-z][A-Za-z0-9]*$/.test(part)||['constructor','prototype','__proto__'].includes(part)))
+    throw fail('E_CONTRACT','Invalid Native DIRECT path');
+  if(descriptor.parameters.length>4||descriptor.parameters.some(p=>
+     !isRecord(p)||Object.keys(p).sort().join(',')!=='name,optional,type'||
+     typeof p.name!=='string'||!/^[A-Za-z][A-Za-z0-9]*$/.test(p.name)||
+     ['constructor','prototype','__proto__'].includes(p.name)||
+     typeof p.optional!=='boolean'||typeof p.type!=='string'||
+     !['string','number','integer','boolean','object','array'].includes(p.type)))
+    throw fail('E_CONTRACT','Unsupported Native DIRECT argument signature');
+  // Runtime namespace lookup occurs only for a build-pinned, approved path.
+  // Data descriptors prevent inherited functions or accessors from executing.
+  const ns=Object.getOwnPropertyDescriptor(api??{},path[1]);
+  const owner=ns?.value;
+  const method=owner&&Object.getOwnPropertyDescriptor(owner,path[2]);
+  if(typeof method?.value!=='function')
+    return ()=>{throw fail('E_CHROME_UNSUPPORTED','Approved Chrome API is unavailable')};
+  return input=>{
+    // For one native object parameter the public SDK object is the native
+    // argument itself; scalar and multi-param APIs pick named input fields.
+    const params=descriptor.parameters;
+    const args=params.length===1&&params[0].type==='object'
+      ?[input]:params.map(p=>Object.hasOwn(input,p.name)?input[p.name]:undefined);
+    while(args.length&&args.at(-1)===undefined)args.pop();
+    return method.value.apply(owner,args);
+  };
+}
+
+export function createApprovedBrowserBindings(routes,{
+  registry=BROWSER_OPERATIONS,nativeDirect=null,normalize=normalizeBrowserOperation
+}={}){
   if(!isRecord(routes))throw fail('E_CONTRACT','Trusted Browser binding table required');
   const table=Object.create(null);
   const register=(operation,run)=>{
@@ -52,6 +98,14 @@ export function createApprovedBrowserBindings(routes,{registry=BROWSER_OPERATION
     }
     if(!matched)throw fail('E_CONTRACT','No approved methods for trusted service: '+namespace);
   }
+  if(nativeDirect!==null){
+    if(!isRecord(nativeDirect)||!Array.isArray(nativeDirect.descriptors))
+      throw fail('E_CONTRACT','Compiled Native DIRECT binding list required');
+    // No handler strings are read from tool input. Duplicate/unknown bindings
+    // fail at construction, before any request can reach a native method.
+    for(const descriptor of nativeDirect.descriptors)
+      register(descriptor.operation,nativeDirectRoute(descriptor,nativeDirect.api,registry));
+  }
   Object.freeze(table);
   return Object.freeze({
     has:operation=>typeof operation==='string'&&Object.hasOwn(table,operation),
@@ -64,7 +118,7 @@ export function createApprovedBrowserBindings(routes,{registry=BROWSER_OPERATION
       if(typeof authorize!=='function')
         throw fail('E_CONTEXT','Trusted Browser Host authorizer required');
       const entry=registry[operation];
-      const checked=normalizeBrowserOperation(operation,input??{});
+      const checked=normalize(operation,input??{});
       await authorize(operation,checked,context);
       const result=await table[operation](checked,context);
       // Do not deliver data after revoke/disable/update. For already-completed
