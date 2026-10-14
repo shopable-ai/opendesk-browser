@@ -15,7 +15,7 @@ description: Build or decouple audited first-party features embedded in OpenDesk
 
 ## 先以当前源码确立可信界限
 
-先读 `AGENTS.md`、`docs/framework/testing-guide.md`、`docs/architecture/browser-framework/custom-tool-ui-and-local-development.zh-CN.md`、`docs/api/sidebar-tool-development.zh-CN.md`、`docs/architecture/ui-layout-conventions-r27.zh-CN.md`。再核查实际 `main` 与并行改动，不用旧 GOAL 的状态替代现实。
+先读 `AGENTS.md`、`docs/framework/testing-guide.md`、`docs/architecture/browser-framework/custom-tool-ui-and-local-development.zh-CN.md`、`docs/api/sidebar-tool-development.zh-CN.md`、`docs/architecture/ui-layout-conventions-r27.zh-CN.md`、`docs/architecture/sidebar-multi-section-tab-contract-r28.zh-CN.md`。再核查实际 `main` 与并行改动，不用旧 GOAL 的状态替代现实。
 
 实际共享边界：`src/ui/tool.html`、`src/ui/tool-shell.js`、`src/ui/sidebar-tools.js`、`src/ui/sidebar-tools/{installation,lifecycle,package}.js`、`src/sidebar-tools/official-catalog.js`、`src/entrypoints/sidebar-tool-host.js`，以及各功能自己的 `src/<feature>/` 和 `examples/sidebar-tools/<id>/`。先画出 **代码来源 → 宿主调用 → 权限判定 → 后台生命周期 → 安装/撤权 → UI** 的真实依赖，再决定最小改动。不得仅凭文件名判断谁拥有业务。
 
@@ -53,6 +53,8 @@ description: Build or decouple audited first-party features embedded in OpenDesk
 ## UI、测试及交付
 
 Side Panel 优先复用 `od-page/od-stack/od-surface/od-button/od-field`，真实 token 在 `src/ui/design-tokens.css`；密度遵守 4/8/12/16px、单层 gutter、窄屏及 200% 缩放。动态 iframe 的 CSS 独立映射尺寸，不能向特权 Host 借 JS/CSS 作为安全边界。中文长文案、暗色、键盘/焦点、停止与卸载后的 DOM/事件清理都要验收。
+
+**工具详情标题与创建入口（遵循 R28）**：独立工具/二级视图默认仅显示一个清晰标题和必要操作，禁止惯性在标题下加入固定描述、价值口号、数据来源或重复面包屑；真正的权限/错误/未保存动态状态应独立告知。文件夹等可管理集合的“＋ 新建”必须贴近所属区标题，自定义行级重命名/移动/删除可被键盘和触摸明确发现，根目录不展示不可用动作。先以无真实权限的 HTML 原型检查 320/360/420px 及列表→表单→返回的完整路径，再进入可信源码实施；右侧评审上下文区域不可成为 Side Panel 实际使用时的唯一操作入口。评分按功能、信息架构、可发现性、安全/隔离、响应式和证据分别记录，不以总体分掩盖不达标项。
 
 变更了 Stay Focus 时定向覆盖：
 
