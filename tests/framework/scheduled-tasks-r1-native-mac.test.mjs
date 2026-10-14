@@ -1130,6 +1130,16 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
       }
     }
     const unsaved=await readDraft();
+    await click(client,formSid,'#schedule-manage-tasks');
+    await deadline(()=>evaluate(client,
+      '!document.querySelector("#schedule-task-manager").hidden&&document.querySelector("#schedule-form").hidden',formSid),
+      'real installed Chrome task manager is a separate subview during editing');
+    await click(client,formSid,'#schedule-back');
+    assert.deepEqual(await readDraft(),unsaved,
+      'returning from manager does not discard or rewrite any editor draft field');
+    assert.equal(await evaluate(client,'document.activeElement?.id',formSid),'schedule-manage-tasks',
+      'manager Back restores actual keyboard focus to the original edit-form entry');
+    report.tests.nativeManagerRoundTripPreservesDraft='PASS';
     await click(client,formSid,'#schedule-cancel');
     await deadline(()=>evaluate(client,'!document.querySelector("#schedule-discard-confirm").hidden',formSid),
       'real unsaved draft discard confirmation');

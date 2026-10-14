@@ -963,8 +963,19 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     }
     clearConfirmation();show(destination);focusReturnedView(destination);
   }
+  function leaveManager(){
+    const destination=managerReturn;
+    show(destination);
+    // The global header Back is the only visible Back control in manager.
+    // Restore its originating keyboard context instead of leaving focus in a hidden view.
+    if(destination==='form')get('schedule-manage-tasks').focus({preventScroll:true});
+    else if(destination==='detail')
+      (get('schedule-detail-view').querySelector('.schedule-status-help .od-button')||
+        get('schedule-detail-edit')).focus({preventScroll:true});
+    else focusReturnedView(destination);
+  }
   function navigateBack(){
-    if(activeView==='manager'){show(managerReturn);return;}
+    if(activeView==='manager'){leaveManager();return;}
     if(activeView==='detail'){leaveDetail();return;}
     if(activeView==='form'){
       requestLeaveForm(formReturnView);return;
@@ -1053,7 +1064,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   bind('schedule-new-script','click',enterDeveloper);
   bind('schedule-manage-tasks','click',()=>{managerReturn='form';show('manager');});
   bind('schedule-manager-create','click',enterDeveloper);
-  bind('schedule-manager-back','click',()=>show(managerReturn));
+  bind('schedule-manager-back','click',leaveManager);
   bind('schedule-manager-search','input',renderManager);
   bind('schedule-manager-filter','change',renderManager);
   bind('schedule-uninstall-yes','click',()=>void uninstall());

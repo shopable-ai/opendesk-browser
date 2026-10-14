@@ -518,6 +518,20 @@ test('R2.8 subview navigation clears old editor errors without hiding current fo
     'returning to edit from confirmation keeps the active form state');
 });
 
+test('R1.2 edit-form task manager roundtrip restores origin focus and retains real native coverage',async()=>{
+  const [source,native]=await Promise.all([
+    load('src/ui/scheduled-task-workbench.js'),
+    load('tests/framework/scheduled-tasks-r1-native-mac.test.mjs')
+  ]);
+  assert.match(source,/function leaveManager\(\)/);
+  assert.match(source,/if\(activeView==='manager'\)\{leaveManager\(\);return;\}/);
+  assert.match(source,/if\(destination==='form'\)get\('schedule-manage-tasks'\)\.focus\(\{preventScroll:true\}\)/);
+  assert.match(source,/bind\('schedule-manager-back','click',leaveManager\)/);
+  assert.match(native,/nativeManagerRoundTripPreservesDraft='PASS'/);
+  assert.match(native,/assert\.deepEqual\(await readDraft\(\),unsaved,/);
+  assert.match(native,/manager Back restores actual keyboard focus/);
+});
+
 test('R3 index vs detail navigation and fixed schedule authorization boundaries',async()=>{
   const [html,source,css]=await Promise.all([
     load('src/ui/tool.html'),load('src/ui/scheduled-task-workbench.js'),
