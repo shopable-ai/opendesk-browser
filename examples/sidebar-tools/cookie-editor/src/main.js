@@ -103,11 +103,9 @@ function clearImportPreview(){
   E('live-import-preview').textContent='';E('live-import-confirm').hidden=true;
 }
 function dismiss(){
-  if(busy)return;cancelConfirmation();editor.hidden=true;importer.hidden=true;
-  editing=null;expandedCookieKey=null;E('browser-import-slot').hidden=true;
-  E('offline-import-slot').hidden=true;E('offline-editor-slot').hidden=true;
-  E('live-export-panel').hidden=true;editor.classList.remove('cookie-inline');
-  clearImportPreview();clean();renderBrowser();
+  if(busy)return;cancelConfirmation();
+  // Close and discard sensitive input, not merely hide it in a detached form.
+  scrubEditors();editor.classList.remove('cookie-inline');renderBrowser();
 }
 function guarded(action){
   if(busy||pending)return;
@@ -269,8 +267,7 @@ function render(){
 }
 function openEditor(row=null){
   if(!data||mode==='browser'&&(liveState!=='ready'||!liveTarget||targetPending))return;
-  importer.hidden=true;E('browser-import-slot').hidden=true;E('offline-import-slot').hidden=true;
-  clearImportPreview();E('live-export-panel').hidden=true;
+  scrubEditors();
   editor.hidden=false;editing=row?structuredClone(row):null;
   expandedCookieKey=mode==='browser'&&row?key(row):null;
   if(mode==='offline'){
@@ -812,9 +809,15 @@ function exportText(format,source=null){
   const rows=source??data?.cookies;
   if(!Array.isArray(rows)||!rows.length)throw new Error('当前没有可导出的 Cookie');
   if(format==='json')return JSON.stringify(rows,null,2)+'\n';
-  if(format==='header')return rows.map(row=>row.name+'='+row.value).join('; ')+'\n';
+  if(format==='header'){
+    if(rows.some(row=>/[;\r\n\x00]/.test(row.name)||/[;\r\n\x00]/.test(row.value)))
+      throw new Error('Cookie Header 无法无损表达该名称或值，请选择 JSON');
+    return rows.map(row=>row.name+'='+row.value).join('; ')+'\n';
+  }
   if(format==='netscape'){
     if(rows.some(row=>row.partitionKey))throw new Error('Netscape 不支持分区 Cookie，请使用 JSON 保留完整字段');
+    if(rows.some(row=>[row.name,row.value,row.domain,row.path].some(value=>/[\t\r\n\x00]/.test(value))))
+      throw new Error('Netscape 无法表示包含制表符或换行的字段，请使用 JSON');
     return '# Netscape HTTP Cookie File\n'+rows.map(row=>[
       (row.httpOnly?'#HttpOnly_':'')+row.domain,
       row.hostOnly?'FALSE':'TRUE',row.path,row.secure?'TRUE':'FALSE',
@@ -924,6 +927,7 @@ E('target-url').addEventListener('input',()=>{
   if(busy)return; // the field is disabled during live Host operations
   if(dirty){E('target-url').value=liveTarget?.url||'';
     status('请先保存或取消未保存的 Cookie 内容，再切换网站。','error');return;}
+  if(!editor.hidden||!importer.hidden||!E('live-export-panel').hidden)scrubEditors();
   const wasPending=targetPending;
   targetPending=E('target-url').value!==(liveTarget?.url||'');
   if(targetPending||wasPending){
@@ -944,8 +948,7 @@ E('use-current').addEventListener('click',()=>guarded(()=>{
   scrubEditors();targetOverride='';targetPending=false;E('target-selector').open=false;data=null;void refresh();
 }));
 function openImportPanel(){
-  editor.hidden=true;E('offline-editor-slot').hidden=true;editing=null;expandedCookieKey=null;
-  E('live-export-panel').hidden=true;
+  scrubEditors();
   const browser=mode==='browser',slot=E(browser?'browser-import-slot':'offline-import-slot');
   slot.append(importer);slot.hidden=false;
   E(browser?'offline-import-slot':'browser-import-slot').hidden=true;
@@ -961,9 +964,7 @@ E('live-new').addEventListener('click',()=>guarded(()=>openEditor()));
 E('live-clear').addEventListener('click',()=>{void clearBrowserSite();});
 E('live-import').addEventListener('click',()=>guarded(openImportPanel));
 E('live-export').addEventListener('click',()=>guarded(()=>{
-  importer.hidden=true;E('browser-import-slot').hidden=true;
-  editor.hidden=true;expandedCookieKey=null;editing=null;clearImportPreview();clean();
-  E('live-export-panel').hidden=false;updateExportSummary();renderBrowser();
+  scrubEditors();E('live-export-panel').hidden=false;updateExportSummary();renderBrowser();
   E('live-export-format').focus();
 }));
 for(const id of ['live-export-close','live-export-cancel'])

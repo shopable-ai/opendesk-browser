@@ -36,7 +36,7 @@ async function harness(browser=null,{currentPage=null,initialReadStarted=null,tr
   const instrument=source.replace(marker,
     'const pendingWork=new Set();const track=fn=>(...args)=>{const work=fn(...args);'+
     'pendingWork.add(work);Promise.resolve(work).then(()=>pendingWork.delete(work),()=>pendingWork.delete(work));return work;};'+
-    'refresh=track(refresh);readBrowserMetadata=track(readBrowserMetadata);'+
+    'refresh=track(refresh);readBrowserMetadata=track(readBrowserMetadata);prepareLiveImport=track(prepareLiveImport);'+
     (trackSaves?'saveBrowserCookie=track(saveBrowserCookie);':'')+
     'const settle=async()=>{while(pendingWork.size)await Promise.all([...pendingWork]);};'+
     'globalThis.__cookieTest={normalizeCookie,parseImport,exportText,saveToList,mergeImport,'+
@@ -761,4 +761,38 @@ test('R4.3 live toolbar placement and single inline editor contract',async()=>{
   const host=await get('src/ui/sidebar-tools.js');
   assert.match(host,/允许查看与编辑本站 Cookie/);
   assert.match(host,/仅查看 Cookie/);
+});
+
+test('R4.3 read-only live import can preview without writing and invalidates a changed draft',async()=>{
+  let writes=0;
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{
+    getAll:async()=>[],
+    getCurrentStore:async()=>({storeId:'0'}),
+    getPartitionKey:async()=>({partitionKey:{topLevelSite:'https://example.com',hasCrossSiteAncestor:false}}),
+    set:async()=>{writes++;return {saved:true,verified:true};}
+  }});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');
+  await s.readBrowserMetadata();
+  s.fire('live-import','click',{isTrusted:true});
+  s.getField('import-text').value='sid=VALUE';
+  s.fire('import-text','input',{isTrusted:true});
+  s.fire('import-apply','click',{isTrusted:true});
+  await s.settle();
+  assert.equal(writes,0,'preparing must never ask for write permission or mutate Chrome');
+  assert.equal(s.getField('live-import-preview').hidden,false);
+  assert.equal(s.getField('live-import-confirm').hidden,false);
+  assert.match(s.getField('live-import-preview').textContent,/新增 1/);
+  s.getField('import-text').value='sid=OTHER';
+  s.fire('import-text','input',{isTrusted:true});
+  assert.equal(s.getField('live-import-confirm').hidden,true,'editing invalidates preview');
+  assert.equal(writes,0);
+});
+
+test('R4.3 text export rejects unrepresentable sensitive attributes rather than silently corrupting',async()=>{
+  const s=await harness();s.setSite('example.com');
+  const row=s.normalizeCookie({name:'sid',value:'abc;def'});
+  assert.throws(()=>s.exportText('header',[row]),/Header/);
+  assert.equal(s.exportText('json',[row]).includes('abc;def'),true);
+  const tabbed=s.normalizeCookie({name:'sid',value:'value\tpart'});
+  assert.throws(()=>s.exportText('netscape',[tabbed]),/Netscape/);
 });
