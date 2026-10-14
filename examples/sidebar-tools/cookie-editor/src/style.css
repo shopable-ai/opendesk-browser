@@ -54,8 +54,8 @@ input[type=file]{min-width:0;width:100%;max-width:100%;font-size:12px}.export-ac
 .browser-state{min-width:0;padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-bg)}
 .browser-state strong{display:block;font-size:13px}.browser-state p{margin:var(--space-1) 0 0;font-size:12px;color:var(--od-sub);overflow-wrap:anywhere}
 .live-toolbar{justify-content:flex-end;gap:var(--space-2);flex-wrap:nowrap}
-.live-section-title{display:flex;align-items:baseline;gap:var(--space-2);min-width:0;font-size:12px;font-weight:600;white-space:nowrap}
-.live-toolbar .fill{flex:1;min-width:0}.live-toolbar .icon-button{width:34px;height:34px;flex:0 0 34px}
+.live-section-title{display:flex;align-items:baseline;flex-wrap:wrap;flex:1 1 auto;gap:var(--space-1);min-width:0;font-size:12px;font-weight:600}.live-section-title .count{min-width:0;white-space:normal;overflow-wrap:anywhere}
+.live-toolbar .fill{display:none}.live-toolbar .icon-button{width:34px;height:34px;flex:0 0 34px}
 #live-cookie-list .cookie-row{padding:var(--space-2) var(--space-3);gap:var(--space-1)}
 .cookie-row-trigger{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);width:100%;min-width:0;border:0;background:transparent;padding:var(--space-1) 0;color:var(--od-ink);text-align:left}
 .cookie-row-trigger:hover:not(:disabled) .cookie-row-name{color:var(--od-brand)}
@@ -67,7 +67,8 @@ input[type=file]{min-width:0;width:100%;max-width:100%;font-size:12px}.export-ac
 .inline-operation{min-width:0}.inline-operation p{overflow-wrap:anywhere}
 .sensitive-note{margin:0;font-size:12px;line-height:1.5;color:var(--od-negative);overflow-wrap:anywhere}
 .import-preview{margin:0;padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink);font-size:12px;line-height:1.55;overflow-wrap:anywhere}
-#browser-import-slot,#offline-import-slot,#offline-editor-slot{min-width:0}
+#browser-import-slot,#offline-import-slot,#offline-editor-slot,#browser-editor-slot{min-width:0}
+#browser-editor-slot{display:grid;gap:var(--space-2);padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-bg)}
 .permission-details{padding:var(--space-2) var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-control);color:var(--od-sub);font-size:12px}
 .permission-details summary{cursor:pointer;color:var(--od-ink);font-weight:600}.permission-details p{margin:var(--space-2) 0 0;overflow-wrap:anywhere}
 #live-cookie-list .cookie-row{gap:var(--space-1)}

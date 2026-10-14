@@ -25,12 +25,14 @@
   <section id="live-export-panel" class="editor-panel inline-operation" aria-labelledby="live-export-heading" hidden>
     <div class="section-head"><strong id="live-export-heading">导出本站 Cookie</strong><button id="live-export-close" class="icon-button" type="button" title="关闭导出" aria-label="关闭导出"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
     <p id="live-export-target" class="hint">正在检查目标网站…</p>
+    <div class="field"><label for="live-export-content">导出内容</label><select id="live-export-content" aria-label="选择含敏感值的备份或不含值的元数据清单"><option value="backup">当前范围备份 · 包含 Cookie Value</option><option value="metadata">元数据清单 · 不含 Value（仅 JSON）</option></select></div>
     <div class="field"><label for="live-export-format">导出格式</label><select id="live-export-format" aria-label="真实导出格式"><option value="json">JSON · 当前范围完整属性</option><option value="header">Cookie Header · 仅名称和值</option><option value="netscape">Netscape · 部分属性</option></select></div>
     <p id="live-export-warning" class="hint" role="note">JSON 仅保存当前授权范围的必要属性，不代表浏览器完整备份。</p>
-    <p class="sensitive-note">包含敏感 Cookie Value，可能包含登录凭据；必须独立授权，只通过可信本地下载保存，不会自动上传。</p>
+    <p id="live-export-sensitive" class="sensitive-note">包含敏感 Cookie Value，可能包含登录凭据；必须独立授权，只通过可信本地下载保存，不会自动上传。</p>
     <div class="form-actions"><button id="live-export-cancel" class="text-button" type="button">取消</button><button id="live-export-confirm" class="text-button primary" type="button">确认并下载</button></div>
   </section>
   <div id="browser-import-slot" hidden></div>
+  <div id="browser-editor-slot" class="editor-recovery" hidden><p class="hint" role="status">网站授权或列表已变化，编辑草稿仍保留。重新读取并核对原 Cookie 后再保存。</p></div>
   <div id="live-filters" class="toolbar live-filters" hidden>
     <label for="live-search" class="visually-hidden">搜索浏览器 Cookie</label>
     <input id="live-search" class="search-field" type="search" autocomplete="off" placeholder="搜索名称、域名或路径">
