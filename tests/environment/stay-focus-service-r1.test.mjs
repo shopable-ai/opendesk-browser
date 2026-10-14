@@ -303,3 +303,30 @@ test('R3.2 worker probe checks live sender and runtime without installing or gra
   f.setAllowed(true);f.api.idle=undefined;
   await assert.rejects(f.focus.probe(message,f.sender),{code:'E_FOCUS_RUNTIME_UNAVAILABLE'});
 });
+
+test('R3.2 Marketplace has read-only live worker admission, never Focus mutation authority',async()=>{
+  const f=fixture(),market=f.api.runtime.getURL('ui/marketplace.html')+
+    '?intent=123e4567-e89b-42d3-a456-426614174000#/apps/opendesk/stay-focus';
+  const sender={id:f.sender.id,url:market,frameId:0,documentId:'market-document-1',
+    documentLifecycle:'active',tab:{id:91,incognito:false}};
+  const message={protocol:FOCUS_PROTOCOL,toolId:'stay-focus',operation:FOCUS_PROBE_OPERATION,payload:{}};
+  f.api.runtime.getContexts=async query=>{
+    assert.deepEqual(query,{contextTypes:['TAB'],documentUrls:[market],tabIds:[91]});
+    return [{contextType:'TAB',documentUrl:market,documentId:'market-document-1',
+      frameId:0,tabId:91,incognito:false}];
+  };
+  const response=await f.focus.probe(message,sender);
+  assert.equal(response.serviceReady,true);
+  await assert.rejects(f.focus.dispatch(await f.msg('focus.status'),sender),{code:'E_FOCUS_SENDER'});
+  for(const bad of [
+    {...sender,url:f.api.runtime.getURL('ui/other.html')},
+    {...sender,url:'https://untrusted.example/ui/marketplace.html'},
+    {...sender,id:'another-extension'},
+    {...sender,frameId:1},
+    {...sender,documentId:'retired-document'},
+    {...sender,tab:{id:91,incognito:true}}
+  ])await assert.rejects(f.focus.probe(message,bad),{code:'E_FOCUS_SENDER'});
+  assert.equal(f.rules.length,0);
+  assert.equal(f.alarms.size,0);
+  assert.equal(f.stored.has(FOCUS_STORE),false);
+});

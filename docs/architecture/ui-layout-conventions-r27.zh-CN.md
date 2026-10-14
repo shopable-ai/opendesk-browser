@@ -2,13 +2,13 @@
 
 日期：2026-10-12。状态：**现行跨界面规范**。适用于维护者新建 UI 和增量修改，不代表所有历史页面已迁移或完成原生验收。
 
-这份文件是**跨界面使用约定**；具体变量唯一来源为 [`src/ui/design-tokens.css`](../../src/ui/design-tokens.css)。Side Panel 实施细则继续由 [Sidebar R20/R26](sidebar-design-system-r20.zh-CN.md) 维护，Native Workspace 历史构建/验收证据由 [R22 工作流](../framework/workstreams/native-workspace-tailwind-r22.zh-CN.md) 维护。不要复制出第二份颜色/间距权威表。
+这份文件是**跨界面使用约定**；最新五 Tab 导航与应用/网页增强术语由 [现行 R4 产品规格](../product/sidebar-ui-spec.zh-CN.md) 拥有；具体变量唯一来源为 [`src/ui/design-tokens.css`](../../src/ui/design-tokens.css)。Side Panel 实施细则继续由 [Sidebar R20/R26](sidebar-design-system-r20.zh-CN.md) 维护，Native Workspace 历史构建/验收证据由 [R22 工作流](../framework/workstreams/native-workspace-tailwind-r22.zh-CN.md) 维护。不要复制出第二份颜色/间距权威表。
 
 ## 1. 技术选择与信任边界
 
 | 产品界面 | 真实源码 | 样式及基线 | 禁止事项 |
 | --- | --- | --- | --- |
-| Side Panel 六个正式选项卡（开发版七个）、工具列表/详情 | `src/ui/tool.html`、`src/ui/design-system.css`、`src/ui/tool-shell.css` | 引用设计 token，使用 `od-page / od-toolbar / od-stack / od-surface / od-button / od-field` 原语 | 不因有 Tailwind 依赖就加载 Workspace CSS；不向 sandbox iframe 注入宿主 CSS |
+| Side Panel 五个正式选项卡（开发版另有隐藏调试页）、扩展统一列表/详情 | `src/ui/tool.html`、`src/ui/design-system.css`、`src/ui/tool-shell.css` | 引用设计 token，使用 `od-page / od-toolbar / od-stack / od-surface / od-button / od-field` 原语 | 不因有 Tailwind 依赖就加载 Workspace CSS；不向 sandbox iframe 注入宿主 CSS |
 | Native Workspace | `src/native-agent/workspace.tailwind.css`、`scripts/build-workspace-style.mjs` | **Tailwind CSS v4.3.3 离线编译**，token CSS 在构建阶段内联到单个 `workspace.css` | 不使用 CDN、浏览器端 JIT、`npx` 联网下载；不把 Tailwind Preflight 扩散到 Sidebar |
 | Native Settings | `src/native-agent/settings.css` | 原生 CSS + 共享 tokens，页面允许自然滚动 | 不引入 Sidebar 的 `html,body{overflow:hidden}` |
 | 应用市场扩展标签页 | `src/marketplace/marketplace.css` | 独立响应式排版 + 共享 tokens | 不直接复制窄 Side Panel 的布局约束 |
@@ -87,9 +87,9 @@ Native Workspace 独立编译 Tailwind 时，同等关系可写为：
 
 ### Side Panel 多功能区 Tab 的组合规范
 
-**Side Panel 顶部和详情操作的视觉基准为「工具」Tab。** 使用 [R30 头部与垂直节奏细则](sidebar-design-system-r20.zh-CN.md#r30-工具-tab--工具详情作为跨-tab-排版基准2026-10-14)：12px 标题、34px 浅底带边框 icon、8px 同区域间隔、右侧所属区域动作。详情级动作进详情头部，结果/历史刷新等进各自区域头部；执行与权限确认仍保留明确的文字操作。本次开发页是首个增量消费者，不宣称其他历史页已全部迁移。
+**Side Panel 顶部和详情操作沿用 R30 记录的历史「工具」Tab 布局案例（现行产品入口是「扩展」）。** 使用 [R30 头部与垂直节奏细则](sidebar-design-system-r20.zh-CN.md#r30-工具-tab--工具详情作为跨-tab-排版基准2026-10-14)：12px 标题、34px 浅底带边框 icon、8px 同区域间隔、右侧所属区域动作。详情级动作进详情头部，结果/历史刷新等进各自区域头部；执行与权限确认仍保留明确的文字操作。本次开发页是首个增量消费者，不宣称其他历史页已全部迁移。
 
-当一个现有 Tab 包含多个列表、独立功能区、创建表单、详情或设置，不要仅凭 `od-page/od-stack` 随意堆叠卡片；继承 [R28 多功能区 Tab 布局契约](sidebar-multi-section-tab-contract-r28.zh-CN.md)，以「工具」Tab 真实 Index → Detail/Management 切换为参照，统一主次区域、返回、内联确认、信息密度与首屏优先级。该契约**从属本 R27**，不重定义共享 Tokens 或扩展沙箱权限；首个完整改造目标为「我的 → 定时计划」及独立运行页。
+当一个现有 Tab 包含多个列表、独立功能区、创建表单、详情或设置，不要仅凭 `od-page/od-stack` 随意堆叠卡片；继承 [R28 多功能区 Tab 布局契约](sidebar-multi-section-tab-contract-r28.zh-CN.md)，以历史「工具」Tab 的 Index → Detail/Management 切换作为结构案例（现行扩展中心以 R4 统一列表为准），统一主次区域、返回、内联确认、信息密度与首屏优先级。该契约**从属本 R27**，不重定义共享 Tokens 或扩展沙箱权限；首个完整改造目标为「我的 → 定时计划」及独立运行页。
 
 ## 4. 响应式、状态与无障碍验收
 

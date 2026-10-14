@@ -1,4 +1,6 @@
-# 可安装 Side Panel 小工具示例与统一开发入口
+# 「扩展」应用（Sidebar Tool）示例与统一开发入口
+
+**正式产品入口**：Side Panel「扩展」中的「应用」类型；普通用户不必下载 `examples/` 源码。技术包、目录和宿主协议不因产品改名而迁移。与 Page「网页增强」的区别见 [R4 产品规格](../../docs/product/sidebar-ui-spec.zh-CN.md)。
 
 **同类工具的统一开发方法**：先读 [docs/api/sidebar-tool-development.zh-CN.md](../../docs/api/sidebar-tool-development.zh-CN.md)；查询当前工具包 schema、操作与权限读 [docs/api/sidebar-tools.zh-CN.md](../../docs/api/sidebar-tools.zh-CN.md)；交给 AI/Codex 编辑则读 [工具开发 Skill](../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md) 及根目录 [AGENTS.md](../../AGENTS.md)。
 

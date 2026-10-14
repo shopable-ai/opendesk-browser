@@ -145,6 +145,24 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
     await cdp.send('Input.dispatchMouseEvent',{type:'mouseReleased',...position,button:'left',clickCount:1});
     await pause(150);
   }
+  // Reuse the actual Extension Center import flow for older profiles and
+  // reinstall. Chrome's native file picker binds the fixed release bytes.
+  async function importTocFromFile(panel){
+    await trustedClick(panel,'#extension-center-more');
+    await trustedClick(panel,'#extension-center-import');
+    await panel.send('DOM.enable');
+    const tree=await panel.send('DOM.getDocument',{depth:1});
+    const file=await panel.send('DOM.querySelector',{
+      nodeId:tree.root.nodeId,selector:'#sidebar-tool-file'});
+    assert(file.nodeId,'Visible Extension Center import has no file input');
+    await panel.send('DOM.setFileInputFiles',{
+      files:[resolve('dist/production/official-tools/reading-toc/reading-toc.opendesk-tool.json')],
+      nodeId:file.nodeId});
+    await eventually(()=>evaluate(panel,'!document.querySelector("#sidebar-tool-preview").hidden'),
+      'Real file import did not create a validated tool preview');
+    assert.equal(await evaluate(panel,'document.querySelector("#sidebar-tool-preview-title").textContent'),pkg.title);
+    await trustedClick(panel,'#sidebar-tool-install');
+  }
   const first=await openTab(origin+'/article.html');articlePage=first.cdp;
   const extensionId=await eventually(async()=>{
     const targets=await browser.send('Target.getTargets');
@@ -253,17 +271,9 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
     assert.equal(previousInstall.version,pkg.version,'preinstalled TOC must be the bundled version');
     console.log('TOC_NATIVE_STAGE: official preinstalled TOC verified');
   }else{
-    await trustedClick(host,'#sidebar-tool-discover-toggle');
-    await eventually(()=>evaluate(host,'!document.querySelector("#sidebar-tool-discover-panel").hidden'),
-      'Official discovery is not visible');
-    await eventually(()=>evaluate(host,'(()=>{const b=document.querySelector("#sidebar-tool-official-reading-toc-install");return !!b&&!b.disabled&&!!b.getClientRects().length;})()'),
-      'TOC official install must be a visible, enabled native control');
-    await trustedClick(host,'#sidebar-tool-official-reading-toc-install');
-    await eventually(()=>evaluate(host,'!document.querySelector("#sidebar-tool-preview").hidden'),
-      'Official TOC package was not staged for review');
-    assert.equal(await evaluate(host,'document.querySelector("#sidebar-tool-preview-title").textContent'),pkg.title);
-    console.log('TOC_NATIVE_STAGE: official package preview visible');
-    await trustedClick(host,'#sidebar-tool-install');
+    // Not auto-installed (for example an existing profile): import exactly
+    // the extension-bundled release via the current trusted file UI.
+    await importTocFromFile(host);
   }
   const installed=await eventually(async()=>{
     const rows=await evaluate(host,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1")');
@@ -277,7 +287,8 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   await eventually(()=>evaluate(articlePage,
     'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),
     'Installed built-in reader must mount under default site availability');
-  const tocOpen='#sidebar-tool-list [data-sidebar-tool-action=open][data-sidebar-tool-id=reading-toc]';
+  // The legacy #sidebar-tool-list is deliberately hidden by Extension Center R4.
+  const tocOpen='#extension-center-list button[data-extension-key="app:reading-toc"][data-extension-action="primary"]';
   await trustedClick(host,tocOpen);
   await eventually(()=>evaluate(host,'!document.querySelector("#sidebar-tool-settings-open").hidden'),
     'TOC detail must expose a settings gear');
@@ -514,7 +525,10 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   assert.equal(conversation.data.items[0].sourceId,conversation.data.items[3].sourceId);
   assert.notEqual(conversation.data.items[3].sourceId,conversation.data.items[4].sourceId);
   await browser.send('Target.activateTarget',{targetId:panel.targetId});
-  await trustedClick(host,'#sidebar-tool-settings-open');
+  // Earlier page visibility operations may have left Settings expanded.
+  // Opening an already-open gear would close the actual consent controls.
+  if(await evaluate(host,'document.querySelector("#sidebar-tool-settings-view").hidden'))
+    await trustedClick(host,'#sidebar-tool-settings-open');
   if(!await evaluate(host,'document.querySelector(".sidebar-toc-advanced").open'))
     await trustedClick(host,'.sidebar-toc-advanced summary');
   await trustedClick(host,'#sidebar-tool-settings-deny');
@@ -537,10 +551,14 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   assert(retained['opendesk.sidebar-tools.toc-visibility.v1']?.['reading-toc']?.hiddenPages?.length);
   assert.equal(await evaluate(host,'document.querySelector("#sidebar-tool-settings-scope").hidden'),true,
     'The old page-scope authorization dropdown remains retired');
-  await trustedClick(host,'#sidebar-tool-back'); // Settings -> retained directory.
   await trustedClick(host,'#sidebar-tool-remove');
+  await eventually(()=>evaluate(host,'!document.querySelector("#sidebar-tool-inline-remove").hidden'),
+    'Real uninstall must expose an explicit confirmation');
+  assert.equal(await evaluate(host,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(value=>value["opendesk.sidebar-tools.installed.v1"]?.some(row=>row.id==="reading-toc"))'),true,
+    'Opening an uninstall review must never remove the tool');
+  await trustedClick(host,'#sidebar-tool-inline-remove-confirm');
   await eventually(()=>evaluate(host,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(value=>!value["opendesk.sidebar-tools.installed.v1"]?.some(row=>row.id==="reading-toc"))'),
-    'UI uninstall did not remove the package');
+    'Confirmed UI uninstall did not remove the package');
   const retiredGrant=await evaluate(host,'chrome.storage.local.get("opendesk.sidebar-tools.toc-sites.v1")');
   assert.equal(retiredGrant['opendesk.sidebar-tools.toc-sites.v1']?.['reading-toc'],undefined);
   const retiredVisibility=await evaluate(host,'chrome.storage.local.get("opendesk.sidebar-tools.toc-visibility.v1")');
@@ -554,22 +572,11 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   assert.equal(await evaluate(singlePage,'document.querySelectorAll("[data-opendesk-toc-root]").length'),0);
   assert.equal((await panelSend(origin+'/chat.html','toc.snapshot')).ok,false);
 
-  // After uninstall, the same local reference package is deliberately
-  // imported from disk with the browser's native file-input DevTools command.
-  await trustedClick(side,'#sidebar-tool-import-trigger');
-  await side.send('DOM.enable');
-  const documentTree=await side.send('DOM.getDocument',{depth:1});
-  const fileNode=await side.send('DOM.querySelector',{
-    nodeId:documentTree.root.nodeId,selector:'#sidebar-tool-file'});
-  assert(fileNode.nodeId,'Side Panel import input not present');
-  await side.send('DOM.setFileInputFiles',{
-    files:[resolve('dist/production/official-tools/reading-toc/reading-toc.opendesk-tool.json')],
-
-    nodeId:fileNode.nodeId});
-  await eventually(()=>evaluate(side,'!document.querySelector("#sidebar-tool-preview").hidden'),
-    'Native file import did not create a validated tool preview');
-  assert.equal(await evaluate(side,'document.querySelector("#sidebar-tool-preview-title").textContent'),pkg.title);
-  await trustedClick(side,'#sidebar-tool-install');
+  // Reinstall using the current visible unified Extension Center, not the
+  // retired hidden legacy toolbar. Keep the actual Chrome file-input event.
+  if(!await evaluate(side,'document.querySelector("#sidebar-tool-display").hidden'))
+    await trustedClick(side,'#sidebar-tool-back');
+  await importTocFromFile(side);
   await eventually(async()=>{
     const stored=await evaluate(side,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1")');
     return stored?.['opendesk.sidebar-tools.installed.v1']?.some(item=>item.id==='reading-toc');
@@ -578,7 +585,7 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   // The extension must not open a second blocking JavaScript confirmation.
   await browser.send('Target.activateTarget',{targetId:second.targetId});
   await chatPage.send('Page.bringToFront');
-  const openSelector='#sidebar-tool-list button[data-sidebar-tool-action="open"][data-sidebar-tool-id="reading-toc"]';
+  const openSelector=tocOpen;
   await trustedClick(side,openSelector);
   await trustedClick(side,'#sidebar-tool-settings-open');
   await eventually(()=>evaluate(side,'!document.querySelector("#sidebar-tool-settings-allow").disabled'),

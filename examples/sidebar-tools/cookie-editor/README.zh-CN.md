@@ -1,6 +1,6 @@
 # Cookie Editor R4.3.1 · 正式 Cookies SDK 安装工具
 
-**入口：** Side Panel → 工具 → 发现工具 → Cookie Editor。默认中文，官方目录仍为 `installationPolicy: optional`；工具包 **2.0.6 / opendesk.sidebar-tool.v2**。2026-10-14 已在同一隔离 CFT 候选通过真实发现、安装、网站授权、自动读取、新建、Value 编辑、Name 编辑、保存回读与精确删除。所有 Cookie 修改均从已安装工具 UI 发起。完整宽度/面板自身 Zoom、跨 Store/Partition 原生矩阵及最终发布验收仍未关闭；不能宣称最终 95+。
+**入口：** Side Panel → 工具 → 发现工具 → Cookie Editor。默认中文，官方目录仍为 `installationPolicy: optional`；工具包 **2.0.6 / opendesk.sidebar-tool.v2**。**历史 2.0.4 隔离 CFT 候选**曾通过真实发现、安装、授权、读取、编辑、新建、保存回读和精确删除；该记录仅适用于当时的工具包。**当前 2.0.6 的 Mac Chrome 安装/导入/导出/缩放矩阵仍为 NOT_TESTED**；不能将历史截图、回执或分数延用为当前版本的 PASS/95+。
 
 ## R4.3.1 正式源码增量（2026-10-14）
 
@@ -42,12 +42,12 @@
 | 11 项公开 SDK、Schema、Host 与 Tool Capability | SOURCE_WIRED |
 | 真实读/值/写/删/清理/观察的 UI 调用 | SOURCE_WIRED |
 | V8 JavaScript 语法检查 | PASS（仅语法，不是功能或 Chrome） |
-| Cookie/SDK Node 专项测试 | 旧 111 项证据保留；受影响 UI 45/45、Cookie Driver 31/31、启停 17/17 通过 |
-| 官方工具打包、Check | PASS（本地 2.0.4 候选） |
-| Build、Build:dev、Verify | PASS（隔离源码快照，未替换日常扩展） |
-| 完整 npm test | FAIL：本轮集中集成 2267/2292 通过、23 失败、2 跳过；旧失败证据保留 |
-| Mac Chrome 安装、真实授权、核心操作/导入导出/清理/观察/撤权/启停/卸载/升级 | PASS_SCOPED：核心/Path/部分重命名使用当前隔离候选，其余未受影响项保留前一候选身份限定复用；受控 HTTP 网站、虚构 Cookie；原始截图和回执见原账本 |
-| 宽度与 Zoom | 360 px 无横向溢出，值隐藏；网页 Zoom 100/125/150/200 下 Side Panel 保持自身 100%。其他面板宽度及自身 Zoom NOT_TESTED |
+| Cookie/SDK Node 专项测试 | **2.0.6 CI 148/148 PASS**（[原始运行](https://github.com/shopable-ai/opendesk-browser/actions/runs/38566962748)）；旧版通过记录按旧候选保留 |
+| 官方工具打包、Check | **2.0.6 CI PASS**；工具包 SHA-256 `4c33f88df17b92331dba197cc4c63535940e6117647267458a7fc1024b5284e9`（CI 候选，不是 Mac 已安装包） |
+| Build、Build:dev、Verify | **2.0.6 CI PASS**（未替换或验收 Mac 日常扩展） |
+| 完整 npm test | **2.0.6 CI FAIL：2418 PASS / 1 FAIL / 9 SKIP（共 2428）**；唯一失败为旧 Time Review R1.5.1 静态断言，不属于 Cookie Editor；不删除/降低断言 |
+| Mac Chrome 安装、真实授权、核心操作/导入导出/清理/观察/撤权/启停/卸载/升级 | **2.0.6 NOT_TESTED**。历史 2.0.4 隔离 CFT 核心流程为 PASS_SCOPED，但不能升级为本版结论 |
+| 宽度与 Zoom | **2.0.6 NOT_TESTED**：300/320/360/420/520 CSS px、Side Panel 自身 Zoom、明暗模式均需同包原生截图；旧版 360 px 记录仅供历史参考 |
 | 八项产品级专家评分 | NOT_SCORED |
 
 可在真实 Mac 工作区运行：

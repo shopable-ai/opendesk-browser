@@ -110,7 +110,14 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
     packages.set(row.toolId,JSON.parse(bytes));
     assert.equal(row.installationPolicy,['reading-toc','quick-notes'].includes(row.toolId)?'preinstalled':'optional');
   }
-  assert.deepEqual([...packages.keys()].sort(),Object.keys(controls).filter(id=>id!=='r45-local-tool').sort());
+  // Keep the whole trusted release set aligned with the actual source Catalog.
+  // The UI control fixtures below deliberately exercise only their own products;
+  // adding a new privileged tool must not silently grant it a native consent.
+  const sources=JSON.parse(await readFile(resolve('official-tools/catalog.json'),'utf8'));
+  assert.deepEqual([...packages.keys()].sort(),sources.tools.map(row=>row.id).sort(),
+    'candidate packages must exactly match the audited official tool sources');
+  assert(Object.keys(controls).filter(id=>id!=='r45-local-tool').every(id=>packages.has(id)),
+    'every native UI control fixture must belong to a real packaged tool');
   const manifest=JSON.parse(await readFile(join(extension,'manifest.json')));
   assert.equal(manifest.name,'OpenDesk Browser');
   const buildMode=process.env.OPENDESK_NATIVE_BUILD_MODE||'production';

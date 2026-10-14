@@ -1,8 +1,8 @@
-# Side Panel 可安装小工具 API 参考
+# 扩展中心「应用」Sidebar Tool API 参考
 
 > 本页只说明 **`opendesk.sidebar-tool.v1` 的当前接口合同**。**所有同类型工具的统一开发方法**（选型、目录规范、预览、打包、安装、测试）请先阅读 [Side Panel 工具统一开发规范](sidebar-tool-development.zh-CN.md)。示例见 [examples/sidebar-tools](../../examples/sidebar-tools/README.zh-CN.md)；AI/Codex 用 [开发 Skill](../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md)。
 
-这是 Side Panel「工具」中的可安装 HTML/CSS/JS 工具包，不是单独的 Chrome 扩展，不是 `opendesk.task.v1`，也不是 Controller/Page USER_SCRIPT 项目。**源代码与运行合同的最终依据**为 `src/ui/sidebar-tools/package.js`、`src/ui/sidebar-tools.js`、`src/sidebar-tools/bridge.js`、`src/sidebar-tools/official-catalog.js`、`scripts/build-sidebar-tool.mjs`、`scripts/build-official-tools.mjs`。
+这是 Side Panel「扩展」中的「应用」类型 HTML/CSS/JS Sidebar Tool 包（现行入口见 [R4 产品规格](../product/sidebar-ui-spec.zh-CN.md)），不是单独的 Chrome 扩展，不是 `opendesk.task.v1`，也不是 Controller/Page USER_SCRIPT 项目。**源代码与运行合同的最终依据**为 `src/ui/sidebar-tools/package.js`、`src/ui/sidebar-tools.js`、`src/sidebar-tools/bridge.js`、`src/sidebar-tools/official-catalog.js`、`scripts/build-sidebar-tool.mjs`、`scripts/build-official-tools.mjs`。
 
 ## 1. 工具源配置与运行包的区别
 
@@ -181,7 +181,7 @@ status.textContent = '已保存';
 
 新安装扩展时，可信 Service Worker 只登记一次性意图；后台的可信固定资源立即调用原安装器预装 `reading-toc` 和 `quick-notes`，仅登记到原 `opendesk.sidebar-tools.installed.v1`。未确认的新 Profile、升级、重新打开 Side Panel 不会自动安装。持久初始化状态为 `opendesk.sidebar-tools.bootstrap.v1`；存储异常失败关闭，不重放未知提交。用户卸载或停用选择优先于任何预装策略。
 
-「工具」Tab 默认打开「我的工具」，仅按权威安装记录渲染；「发现工具」默认展示未安装官方候选，支持搜索、可安装/全部切换；“全部”中的已安装版本使用打开/管理入口，更新需再次审阅。完整应用市场（`ui/marketplace.html`）仍承担套装、版本、来源、批量和存储管理。安装≠启用网站权限≠执行：安装不注入网页、不创建 iframe、不自动获取网页数据。
+**R4.8 历史导航说明**：当时「工具」Tab 将「我的工具 / 发现工具」分开显示。**现行 Extension Center R4** 在「扩展」使用单列表，默认优先显示已安装应用和网页增强；搜索或筛选可查看官方候选/可安装项，行内「应用 / 网页增强」仅为类型标签，不是额外的 Tab。已安装项使用打开/管理入口，更新仍需审阅。完整应用市场（`ui/marketplace.html`）仍承担套装、版本、来源、批量和存储管理。安装≠启用网站权限≠执行：安装不注入网页、不创建 iframe、不自动获取网页数据。
 
 R4.8 暂不提供新的全局工具启停按钮；原有“当前网站目录显示/授权”是网站级规则，不是整个工具的停用开关。只有在所有启动入口统一拦截后才可发布全局启停。
 

@@ -1,6 +1,6 @@
 ---
 name: opendesk-extension-runtime
-description: Engineer and review OpenDesk Browser's Chrome MV3/WXT extension runtime across service worker, content scripts, website MAIN, Page USER_SCRIPT, Controller Worker, trusted Side Panel and Go Native/MCP. Preserve one SDK, real sender and Authority, lifecycle, build boundaries; not for UI-only CSS or user-authored scripts.
+description: Engineer Chrome MV3/WXT Background/Content/MAIN, Page USER_SCRIPT, Controller, Side Panel and Native capabilities for 扩展-center apps. Preserve one SDK, sender, Authority and lifecycle boundaries; not for unified-list CSS or sandbox application packaging.
 ---
 
 # OpenDesk Browser · 扩展管理员多运行环境与 Chrome API 工程
@@ -9,7 +9,7 @@ description: Engineer and review OpenDesk Browser's Chrome MV3/WXT extension run
 
 当用户要求修改 OpenDesk Browser 自身 Chrome 插件的 `background / service worker`、Content Script、`page / Controller`、浏览器原生 API、权限、消息桥、扩展入口、WXT Manifest、Native 连接或跨运行环境行为时触发。解决常见混淆：**代码在哪里编译、在哪里实际执行、谁检查来源和授权、结果由谁接收**。
 
-纯 Side Panel/设置/Marketplace 排版用 [扩展 UI Skill](../opendesk-extension-ui/SKILL.md)；第一方 Stay Focus/Time Review 业务与可信 UI 准入用 [可信功能 Skill](../opendesk-trusted-sidebar-feature/SKILL.md)；用户在“开发”输入 JS/React/Vue 则用 [脚本 Skill](../opendesk-script-authoring/SKILL.md)。本 Skill 是既有工程体系的维护规范，不是新 SDK、Host、Runner 或权限注册表。
+现行五 Tab「我的 / 扩展 / 工作流 / 开发 / 云控」见 [R4 产品规格](../../../docs/product/sidebar-ui-spec.zh-CN.md)。扩展中心是一处管理入口，不能因此让每个应用独立成为 Chrome Extension 或直接拥有 SW/Content 权限。纯 Side Panel/设置/Marketplace 排版用 [扩展 UI Skill](../opendesk-extension-ui/SKILL.md)；第一方 Stay Focus/Time Review 业务与可信 UI 准入用 [可信功能 Skill](../opendesk-trusted-sidebar-feature/SKILL.md)；用户在“开发”输入 JS/React/Vue 则用 [脚本 Skill](../opendesk-script-authoring/SKILL.md)；动态应用包归 `opendesk-sidebar-tool-dev`，Page Program 正式安装归 `opendesk-program-publish`。本 Skill 是既有工程体系的维护规范，不是新 SDK、Host、Runner 或权限注册表。
 
 ## 必须先读的权威事实
 
@@ -35,7 +35,7 @@ description: Engineer and review OpenDesk Browser's Chrome MV3/WXT extension run
 | Page `USER_SCRIPT` | 用户已许可网站的 DOM / 受管 Page UI / 明确 Stop | Controller 的 `page/params/axiosx`、直接扩展 `chrome.*` 全局、Sidebar Tool `request` |
 | Controller 独立受控 Worker | Playwright 风格 `page`/Locator/`params` 和受限运行结果 | 网站 `document/window`、特权 `chrome.*`、把 Controller 代码直接注入 MAIN |
 | 可信 Side Panel / 扩展页面 | 静态编译的页面 UI、实际 Chrome 用户手势与受信 Host 连接 | 运行动态用户/市场工具包源码并允许直接访问 `chrome.*` |
-| 动态工具 opaque-origin iframe | 已验证包自有 UI、`OpenDeskTool.root/request` 的被审桥能力 | 任意 Chrome/Native/网页 DOM 直接权限 |
+| 「扩展」应用：动态 Sidebar Tool opaque-origin iframe | 已验证包自有 UI、`OpenDeskTool.root/request` 的被审桥能力 | 任意 Chrome/Native/网页 DOM 直接权限 |
 | Native Go / 授权 Node Provider | 已授权本机来源/文件、Native 协议和有界开发服务 | 未授权磁盘访问、云聊天指令直接签发本地权限 |
 
 选择环境必须基于**行为、生命周期和信任关系**，不能因为“Background 好实现”就塞入全部任务，也不能因关闭 Side Panel 需要持续运行就使用 UI 计时器模拟后台。Controller `page` 是 Worker 词法对象/受控消息路径，不是网站 `window.page`；不要误称一切都在 Content Script 直接运行。

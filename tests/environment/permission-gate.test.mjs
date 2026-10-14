@@ -63,8 +63,10 @@ test('manifest and build verifier accept broad required sites and a finite API p
 
   assert(manifest.permissions.includes('unlimitedStorage'),'storage expansion is a required host permission');
 
-  for (const prohibited of ['debugger','proxy','management'])
+  for (const prohibited of ['debugger','management'])
     assert(!manifest.permissions.includes(prohibited),prohibited+' must not be permanently granted');
+  assert(manifest.permissions.includes('proxy'),'fixed AI Smart Access requires the install-time Chrome proxy grant');
+  assert(!manifest.optional_permissions.includes('proxy'),'Chrome proxy cannot be optional');
   const invalid=structuredClone(manifest);
   invalid.host_permissions=['https://*/*'];
   assert.throws(()=>verifyManifest(invalid),/default all-site/);

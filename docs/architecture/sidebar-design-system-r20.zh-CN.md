@@ -1,6 +1,6 @@
 # OpenDesk Browser Sidebar R20 设计系统和布局契约
 
-日期：2026-10-10，R26 布局补充：2026-10-12；范围：现有 Side Panel 六个正式页签「我的／发现／工作流／开发／工具／云控」，以及共用 `tool.html` 的任务目录、独立工具标签页。
+日期：2026-10-10，R26 布局补充：2026-10-12；现行范围：Side Panel 五个正式页签「我的／扩展／工作流／开发／云控」，以及共用 `tool.html` 的任务目录、独立应用标签页。下文 R20/R26/R30 旧「工具」布局为历史参考，最新产品导航以 [R4 规格](../product/sidebar-ui-spec.zh-CN.md) 为准。
 
 本文件描述 Side Panel 的具体实现规则。**跨页面统一的尺寸、Tailwind 映射、Workspace/Settings/应用市场/沙箱分层及独立评分标准**以 [OpenDesk UI 布局与样式规范 R27](ui-layout-conventions-r27.zh-CN.md) 为准；两者共享 `src/ui/design-tokens.css`，不建立第二套 token 表。
 
@@ -23,7 +23,7 @@
 
 ### R30 工具 Tab / 工具详情作为跨 Tab 排版基准（2026-10-14）
 
-用户指定「工具」索引页顶部及打开工具后的可信详情头部为统一基准。其他 Tab 的新增/调整部分遵循同一契约；本次首先落实开发页，不代表全部历史 Tab 已完成迁移。
+R30 原从旧「工具」索引页顶部及打开应用后的可信详情头部提炼视觉基准；新产品统一「扩展」列表继续借鉴其版面规则，不重建旧「我的工具／发现工具」导航。其他 Tab 的新增/调整部分遵循同一契约；当时先落实开发页，不代表全部历史 Tab 已完成迁移。
 
 - **顶部**：从首行标题/动作开始，沿用 workspace-content 的单一 gutter；不额外加顶部卡片或 padding。复用 `od-page-head`，普通最小高度 `--od-icon-size`，标题用 `od-page-title`（12px、600、1.5 行高）。相关短状态可同行，长文字可换行；详情标题需要单行时保留可访问的完整名称。
 - **垂直节奏**：标题栏到所属内容、同区域相邻控件/折叠项统一 8px；说明与所属内容 4px；真正独立章节 16px；卡片内部仍为 12px。由父容器 gap 负责，不叠加子元素 margin。12px 卡片 padding 不等于所有行都应隔 12px。
@@ -79,7 +79,7 @@
 - 标签、选项组使用 flex/grid 和统一 gap；单选点击高度至少36px，粗指针44px。组内紧密间距4px、标签与组选项8px；不通过额外 margin 或多层 card 堆出空白。300/320/360/420/520/600px 应同排；极窄有效宽度允许自然换行，页面不可水平溢出。
 - 格式说明放在编辑器之后，避免挤占工具栏；只有当前选择的必要提示可见。源码只读下拉与「新建」保持同排，文件名可以截断，操作文字和键盘焦点不可截断。
 - 运行/保存/停止仍由底部 dock 承担，不在每个区域复制操作。保存、切换格式与切换来源不自动运行网页；DOM ID、radio value、执行世界和授权合同保持稳定。
-- 逐页检查「我的」（含定时、云控授权）、发现、工具、工作流、开发及开发版调试：页面只有一层 gutter；主操作同排；关联项4/8px、分组12/16px；说明与技术详情有明确层级；无横向溢出、dock遮挡或隐藏元素留白。CSS选择器必须指向当前真实宿主，不能沿用已迁移的页签 ID。
+- 逐页检查「我的」（含任务搜索、定时、云控授权）、「扩展」（应用/网页增强统一列表、详情和授权）、工作流、开发、云控及开发版隐藏调试：页面只有一层 gutter；主操作同排；关联项4/8px、分组12/16px；说明与技术详情有明确层级；无横向溢出、dock遮挡或隐藏元素留白。CSS选择器必须指向当前真实宿主，不能沿用已迁移的页签 ID。
 - Side Panel 继续复用 `design-tokens.css` 与现有原生 CSS 原语，实现与 Tailwind 相同的统一空间规格；不加载 Workspace 的 Tailwind Preflight，不新增运行时 CDN 或依赖。
 - 专家95分目标须提供评分维度、截图、几何数据、实际加载身份和可信输入记录。布局专项评分、静态渲染、真实扩展交互、主题/缩放、安装与最终验收分别记录；未覆盖或用户要求停止的项目明确保留，不能以均分抵消。
 
@@ -110,7 +110,7 @@ Native Agent 全页 Workspace 和 Settings 具有自己的大屏结构与本地�
 
 ## R28：一个 Tab 中的多功能区、索引和子视图
 
-新增统一规范：[Side Panel 多功能区 Tab 布局契约 R28](sidebar-multi-section-tab-contract-r28.zh-CN.md)。以现有「工具」Tab 的已安装工具 / 已安装网页工具 / 折叠高级能力 / 导入与发现 / 详情返回为真实结构参照，形成 **Tab Root → Index/Section → Detail/Form/Management → Inline Review** 的组合规范。仅抽取信息架构、优先级、视图切换与可访问性，不复制工具 Tab 历史 CSS 或业务授权。R27 继续是尺寸与 Tokens 唯一来源，本文件继续是 Side Panel 视觉原语与 gutter 约定。
+新增统一规范：[Side Panel 多功能区 Tab 布局契约 R28](sidebar-multi-section-tab-contract-r28.zh-CN.md)。以 R28 制定时原「工具」Tab 的已安装工具 / 已安装网页工具 / 高级功能 / 导入 / 详情返回为历史结构案例（现行列表以 R4 为准），形成 **Tab Root → Index/Section → Detail/Form/Management → Inline Review** 的组合规范。仅抽取信息架构、优先级、视图切换与可访问性，不复制工具 Tab 历史 CSS 或业务授权。R27 继续是尺寸与 Tokens 唯一来源，本文件继续是 Side Panel 视觉原语与 gutter 约定。
 
 新增「我的 → 定时计划」与未来在现有 Tab 内嵌多个功能区时，必须遵守 R28：标题只出现一次，二级返回在左，主次区域按真实任务优先，技术信息按需折叠，主要操作和危险操作分层；在原 Trusted Host 内复用 `od-*`、不得新开一级 Tab 或跨用户工具 sandbox 借权限。具体首批应用范围、测试及原生证据见 [Scheduled Tasks R2.4 UI GOAL](../framework/prompts/goal-scheduled-tasks-r2.4-ui-multi-section-final-20261013.zh-CN.md)。
 

@@ -1,18 +1,27 @@
 # OpenDesk Browser · Agent Skills 路由
 
-本目录是**项目已有的唯一** Codex/AI Skill 入口；不新建仓库根目录 `skills/`。每个 Skill 的 frontmatter 用于按用户意图选择，不会因此获得执行权限。实际源码/安全合同仍以 `AGENTS.md`、`docs/api/`、`docs/framework/testing-guide.md` 为准。
+本目录是项目**唯一现行 Agent Skills 入口**，不新建根目录 `skills/`；Skill 是 AI/Codex 指导而不是浏览器安装的扩展。保留技术 slug 与运行协议，用户产品术语统一引用 [R4 正式产品规格](../../docs/product/sidebar-ui-spec.zh-CN.md)。
 
-| 用户意图 | 唯一主 Skill | 不应混淆 |
+| 主职责（唯一主 Skill） | Skill | 禁止混淆 |
 | --- | --- | --- |
-| 「开发」Tab 编写、改错、运行 JS、React JSX、Vue SFC、Controller/Page | [`opendesk-script-authoring`](opendesk-script-authoring/SKILL.md) | 不自动生成安装包，也不能把 Controller `page` 用在 Page |
-| 单文件/多文件项目的固定版本、正式验证、Task/Page 安装或发布 | [`opendesk-program-publish`](opendesk-program-publish/SKILL.md) | Run/Preview/Candidate ≠ Installed/Published |
-| 「工具」Tab 可安装用户/AI HTML/CSS/JS 或预构建 React/Vue 工具 | [`opendesk-sidebar-tool-dev`](opendesk-sidebar-tool-dev/SKILL.md) | `opendesk.sidebar-tool.v1` 在 opaque-origin iframe，不进入可信 Host |
-| 扩展内置的一方可信 Side Panel 功能、Stay Focus/Time Review 解耦及安全准入 | [`opendesk-trusted-sidebar-feature`](opendesk-trusted-sidebar-feature/SKILL.md) | 随扩展静态编译的可信源码 ≠ 任意导入的动态包 |
-| 扩展自身的 Tab/Index/Detail/Form、设置/应用市场排版、R27/R28/R30 视觉与导航 | [`opendesk-extension-ui`](opendesk-extension-ui/SKILL.md) | 只管内置页面的 UI 结构/可访问性，不把动态工具变成特权 UI |
-| Chrome MV3/WXT Background、Content、Page/Controller/Side Panel、Native 的接口/生命周期/权限工程 | [`opendesk-extension-runtime`](opendesk-extension-runtime/SKILL.md) | 不接管 UI-only 样式或用户创作脚本，不新建第二 SDK/Host |
+| 五 Tab、扩展中心搜索/类型标签/详情/安装管理 UI、R27/R28/R30、定时计划交互 | [`opendesk-extension-ui`](opendesk-extension-ui/SKILL.md) | 只负责界面，不擅改运行授权 |
+| 「扩展」中的**应用**（Sidebar Tool），源码、打包、预览、安装、沙箱和 UI | [`opendesk-sidebar-tool-dev`](opendesk-sidebar-tool-dev/SKILL.md) | `opendesk.sidebar-tool.v1/v2`、`OpenDeskTool.request` 仍是原技术合同 |
+| 「开发」中创作或调试 Controller Task、Page USER_SCRIPT、React JSX/Vue SFC | [`opendesk-script-authoring`](opendesk-script-authoring/SKILL.md) | 草稿 Run/Preview ≠ 安装/发布 |
+| 冻结/验证/安装/发布 Task 和 Page Program，已安装 Page 由「扩展 → 网页增强」管理 | [`opendesk-program-publish`](opendesk-program-publish/SKILL.md) | Page Authority ≠ Sidebar Tool 安装器；Task 属于「我的」 |
+| 静态编译/审计的一方可信功能，Stay Focus/Time Review/Cookie Editor 业务解耦 | [`opendesk-trusted-sidebar-feature`](opendesk-trusted-sidebar-feature/SKILL.md) | 不能把动态导入包变为受信 Host 源码 |
+| Chrome MV3/WXT SW、Content、MAIN、Controller/Page、Native 的权限/SDK/生命周期 | [`opendesk-extension-runtime`](opendesk-extension-runtime/SKILL.md) | 不创建第二 Host/Authority，不接管 UI-only 改动 |
 
-**增设技能原则**：一个反复使用、拥有不同源码所有权/权限边界、能独立定向验收的工作流才增设 Skill。不要为 JS/React/Vue、每个具体官方工具、每次测试或文档 GOAL 创建重复 Skill。优先维护现有 Skill 与权威文档。
+## 典型需求：每条仅一个主 Skill
 
-**当前交付范围**：只增加作者路由/安全指导，不修改 `src/` Runtime、Chrome 权限、扩展构建、工具注册表、安装格式或发行渠道。新 Skill 落地后须通过静态路由/链接检查；真实 Node/Chrome 功能验收仍按各业务工作流执行。
+| 用户原话 | 唯一主 Skill | 需要协作时才采用 |
+| --- | --- | --- |
+| 「在扩展里开发一个小应用」 | `opendesk-sidebar-tool-dev` | 需受信后台能力时复核 runtime/trusted |
+| 「为网页安装一个增强脚本」 | `opendesk-program-publish` | 在「开发」写脚本时由 script-authoring 辅助 |
+| 「修改扩展列表和安装管理界面」 | `opendesk-extension-ui` | 安装器/权限协议另行 runtime 审计 |
+| 「开发一个需要后台能力的扩展功能」 | `opendesk-extension-runtime` | 第一方具体业务可按 trusted-feature 所有权细分 |
+| 「在我的任务中创建自动化任务」 | `opendesk-script-authoring` | 正式安装由 program-publish，计划视图 UI 由 extension-ui |
+| 「开发并发布 React/Vue 网页程序」 | `opendesk-program-publish` | 源码编写时可协同 script-authoring，仍为 Page 世界 |
 
-**新建 Skill 的先决条件**：先查看 [Skill 宇宙与独立评分](UNIVERSE.zh-CN.md)。建议评分 ≥95 且非重复职责、存在验证入口时才新增；用户页面中的列表/详情/创建不按每个 Tab 再造一个 Skill。
+**产品与底层分离**：OpenDesk Browser 是一款 Chrome Extension；五个正式 Tab 是「我的 / 扩展 / 工作流 / 开发 / 云控」。「扩展」是管理入口；「应用」是 Sidebar Tool 的列表类型标签，「网页增强」是已安装 Page Program 的类型标签；Controller Task 仍属「我的」，一方可信功能与动态安装包必须安全隔离。Agent Skill 不是安装包。不要因为用户称“扩展”就互换包格式、运行世界或权限。
+
+新建 Skill 前读 [Skill 宇宙与评分](UNIVERSE.zh-CN.md)。一个职责对应一个 Skill，绝不为具体工具、JS 框架或一次测试创建重复 Skill。仅静态文档核验标为 `DOC_STATIC_PASS`；Chrome 原生未实测记 `NOT_TESTED`。
