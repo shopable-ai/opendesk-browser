@@ -43,6 +43,10 @@ on:
       - 'docs/api/browser-capability-universe.zh-CN.md'
       - 'scripts/check-browser-framework-ledger.mjs'
       - 'tests/environment/browser-framework-ledger.test.mjs'
+      - 'examples/sidebar-tools/browser-sdk-acceptance/**'
+      - 'tests/framework/browser-sdk-r106-native.mjs'
+      - 'scripts/check-browser-sdk-coverage.mjs'
+      - 'tests/environment/browser-sdk-coverage.test.mjs'
       - '.github/workflows/browser-sdk-r5.yml'
   workflow_dispatch:
 permissions:
@@ -62,6 +66,18 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: R10.7 public SDK wrapper routes and trusted-boundary regressions
         run: node --test --test-reporter=spec tests/environment/browser-sdk-r107-public-routing.test.mjs
+      - name: R10.7 installed acceptance tool public-call UI and package regression
+        run: node --test --test-reporter=spec tests/environment/browser-sdk-r107-installed-acceptance.test.mjs
+      - name: R10.7 native driver PREPARE (not a Native PASS)
+        run: node --test --test-reporter=spec tests/framework/browser-sdk-r106-native.mjs
+      - name: Preserve preflight receipt, never native success evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-sdk-r107-prepared-${{ github.sha }}
+          retention-days: 7
+          if-no-files-found: warn
+          path: docs/framework/workstreams/evidence/browser-sdk-r106-native-driver/prepare-receipt.json
       - name: Explicit Browser SDK contracts, Host, native API mocks and denial paths
         run: |
           node --test --test-reporter=spec \

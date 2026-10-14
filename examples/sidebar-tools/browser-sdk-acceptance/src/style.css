@@ -10,3 +10,6 @@ pre{margin:0;min-height:44px;max-height:150px;overflow:auto;padding:var(--space-
 .field-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space-2)}label{display:grid;gap:var(--space-1);font-weight:600;font-size:12px;min-width:0}.action-row{flex-wrap:wrap}.action-row button{flex:1 1 96px}.status{margin:0}.status[data-state=success]{color:var(--ok)}.status[data-state=error]{color:var(--bad)}
 :focus-visible{outline:2px solid var(--brand);outline-offset:2px}
 @media(max-width:360px){.field-grid{grid-template-columns:minmax(0,1fr)}.pill{max-width:100%}}
+
+select,textarea{display:block;width:100%;min-width:0;border:1px solid #c8d5e5;border-radius:var(--radius);background:#fff;color:var(--ink);font:inherit;padding:var(--space-2)}
+select{min-height:34px}textarea{resize:vertical;min-height:96px;font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace}

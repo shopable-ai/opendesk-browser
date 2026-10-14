@@ -1,7 +1,7 @@
-<main class="sdk-app" aria-label="Browser SDK R10.6 acceptance">
+<main class="sdk-app" aria-label="Browser SDK R10.7 acceptance">
   <header class="topbar">
     <div class="title-block">
-      <strong>Browser SDK R10.6</strong>
+      <strong>Browser SDK R10.7</strong>
       <span id="sdk-state">Checking SDK...</span>
     </div>
     <button id="refresh-capabilities" class="icon-button" type="button" aria-label="Refresh capabilities" title="Refresh capabilities">
@@ -90,6 +90,24 @@
       <button id="probe-boundaries" type="button">Inspect sandbox boundary</button>
     </div>
     <pre id="probe-output" aria-live="polite"></pre>
+  </section>
+
+  <section class="panel" aria-labelledby="contract-heading">
+    <div class="section-head">
+      <strong id="contract-heading">53 public SDK methods · real call console</strong>
+      <span id="contract-count" class="pill">not loaded</span>
+    </div>
+    <p class="hint">Select an approved operation and edit JSON inputs. Every call goes through the installed tool's OpenDeskSDK.browser and existing trusted Host. High-risk calls still require the real Side Panel approval.</p>
+    <label for="contract-operation">Approved public method</label>
+    <select id="contract-operation" aria-label="Approved Browser SDK operation"></select>
+    <label for="contract-arguments">Input JSON object</label>
+    <textarea id="contract-arguments" rows="4" spellcheck="false" autocomplete="off">{}</textarea>
+    <div class="action-row">
+      <button id="contract-fill" type="button">Load example input</button>
+      <button id="contract-run" type="button">Call public SDK</button>
+    </div>
+    <pre id="contract-output" aria-live="polite"></pre>
+    <p class="hint">A returned receipt is SDK_RETURNED, not NATIVE_PASS. Verify the actual Chrome effect and the same candidate separately. Sensitive fields are redacted; never export private Cookie values.</p>
   </section>
   <p id="status" class="status" role="status" aria-live="polite"></p>
 </main>

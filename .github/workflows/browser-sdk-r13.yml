@@ -29,6 +29,9 @@ on:
       - 'docs/api/chrome-native-api-sources.json'
       - 'vendor/chromium-extension-api/**'
       - 'docs/framework/workstreams/browser-sdk-*'
+      - 'examples/sidebar-tools/browser-sdk-acceptance/**'
+      - 'tests/framework/browser-sdk-r106-native.mjs'
+      - 'tests/environment/browser-sdk-r107-installed-acceptance.test.mjs'
       - '.github/workflows/browser-sdk-r13.yml'
   workflow_dispatch:
     inputs:

@@ -21,6 +21,111 @@ const safeUrl=()=>{
   if(!['http:','https:'].includes(url.protocol)||url.username||url.password)throw new Error('Demo URL must be credential-free HTTP(S)');
   return url.href;
 };
+
+const publicOperations=new Set();
+const refPlaceholder='REPLACE_WITH_OWN_REF';
+const exampleArgs=operation=>({
+  'browser.capabilities.getStatus':{operation:'browser.tabs.create'},
+  'browser.contextMenu.register':{actionIds:['sdk-check']},
+  'browser.clipboard.writeText':{text:'OpenDesk SDK test'},
+  'browser.downloads.text':{text:'OpenDesk SDK test',filename:'sdk-test.txt'},
+  'browser.downloads.download':{url:safeUrl(),filename:'sdk-test.html'},
+  'browser.bookmarks.create':{url:safeUrl(),title:'OpenDesk SDK test'},
+  'browser.scheduler.create':{taskId:'REPLACE_WITH_INSTALLED_TASK_ID',revision:'1',schedule:{kind:'interval',expression:'1m'}},
+  'browser.storage.local.get':{keys:['sdkTest']},
+  'browser.storage.local.set':{items:{sdkTest:'ok'}},
+  'browser.storage.local.remove':{keys:['sdkTest']},
+  'browser.storage.local.clear':{confirm:true},
+  'browser.tabs.create':{url:safeUrl()},
+  'browser.tabs.activateOwned':{tabRef:refPlaceholder},
+  'browser.tabs.getOwned':{tabRef:refPlaceholder},
+  'browser.tabs.pinOwned':{tabRef:refPlaceholder,pinned:true},
+  'browser.tabs.reloadOwned':{tabRef:refPlaceholder},
+  'browser.tabs.navigateOwned':{tabRef:refPlaceholder,url:safeUrl()},
+  'browser.tabs.removeOwned':{tabRef:refPlaceholder},
+  'browser.network.request':{method:'GET',url:safeUrl()},
+  'browser.network.observe.start':{tabRef:refPlaceholder,origins:[new URL(safeUrl()).origin]},
+  'browser.network.observe.getStatus':{observationId:refPlaceholder},
+  'browser.network.observe.stop':{observationId:refPlaceholder},
+  'browser.network.observe.export':{observationId:refPlaceholder,format:'json'},
+  'browser.events.read':{sessionRef:refPlaceholder},
+  'browser.events.close':{sessionRef:refPlaceholder},
+  'browser.screenshot.captureVisible':{tabRef:refPlaceholder},
+  'browser.operations.getStatus':{operationId:refPlaceholder},
+  'browser.operations.cancel':{operationId:refPlaceholder},
+  'browser.bookmarks.removeOwned':{bookmarkRef:bookmarkRef||refPlaceholder},
+  'browser.downloads.getOwned':{downloadRef:downloadRef||refPlaceholder},
+  'browser.downloads.cancelOwned':{downloadRef:downloadRef||refPlaceholder},
+  'browser.scheduler.cancelOwn':{scheduleRef:scheduleRef||refPlaceholder},
+  'browser.cookies.get':{url:safeUrl(),name:'sdk_test'},
+  'browser.cookies.getAll':{url:safeUrl()},
+  'browser.cookies.set':{url:safeUrl(),name:'sdk_test',value:'test'},
+  'browser.cookies.remove':{url:safeUrl(),name:'sdk_test',domain:'127.0.0.1',path:'/'},
+  'browser.cookies.clearSite':{url:safeUrl(),preview:true},
+  'browser.cookies.getCurrentStore':{url:safeUrl()},
+  'browser.cookies.getPartitionKey':{url:safeUrl()},
+  'browser.cookies.observe.start':{url:safeUrl()},
+  'browser.cookies.observe.getStatus':{url:safeUrl(),sessionRef:refPlaceholder},
+  'browser.cookies.observe.read':{url:safeUrl(),sessionRef:refPlaceholder},
+  'browser.cookies.observe.stop':{url:safeUrl(),sessionRef:refPlaceholder}
+})[operation]??{};
+const redact=(value,depth=0)=>{
+  if(depth>6)return '[depth limited]';
+  if(Array.isArray(value))return value.slice(0,30).map(item=>redact(item,depth+1));
+  if(value&&typeof value==='object')return Object.fromEntries(
+    Object.entries(value).slice(0,50).map(([key,item])=>[key,
+      /(?:value|text|selection|content|cookie|header|authorization|token|secret|password|url|title|body|data)/i.test(key)
+        ?'[REDACTED]':redact(item,depth+1)]));
+  return typeof value==='string'&&value.length>400?value.slice(0,400)+'…':value;
+};
+function loadExample(){
+  $('contract-arguments').value=json(exampleArgs($('contract-operation').value));
+}
+function populateContracts(rows){
+  const select=$('contract-operation');
+  const prior=select.value;
+  select.replaceChildren();
+  publicOperations.clear();
+  for(const row of rows){
+    if(typeof row.operation!=='string'||!/^browser\.[A-Za-z.]+$/.test(row.operation))continue;
+    publicOperations.add(row.operation);
+    const option=document.createElement('option');
+    option.value=row.operation;
+    option.textContent=row.operation+(row.status?.callableNow?' · callable':' · '+(row.status?.reasonCode||'check authorization'));
+    select.appendChild(option);
+  }
+  select.value=publicOperations.has(prior)?prior:
+    (publicOperations.has('browser.tabs.create')?'browser.tabs.create':rows[0]?.operation||'');
+  $('contract-count').textContent=publicOperations.size+' public methods';
+  loadExample();
+}
+async function runContract(){
+  if(busy)return;
+  const operation=$('contract-operation').value;
+  setBusy(true);
+  try{
+    if(!publicOperations.has(operation))throw Object.assign(new Error('Not an approved public SDK operation'),{code:'E_OPERATION'});
+    const args=JSON.parse($('contract-arguments').value);
+    if(!args||typeof args!=='object'||Array.isArray(args))throw new Error('Input must be a JSON object');
+    const sdk=browser();
+    if(!sdk)throw Object.assign(new Error('Installed SDK unavailable'),{code:'E_CONTEXT'});
+    let method=sdk;
+    for(const key of operation.slice('browser.'.length).split('.'))method=method?.[key];
+    if(typeof method!=='function')throw Object.assign(new Error('Public SDK method not found'),{code:'E_CONTEXT'});
+    const calledAt=new Date().toISOString();
+    // This is a real sandbox-to-SDK call, never a synthetic Host message.
+    const receipt=await (operation==='browser.clipboard.writeText'?method(args.text):method(args));
+    write('contract-output',{operation,calledAt,outcome:'SDK_RETURNED_NATIVE_NOT_VERIFIED',receipt:redact(receipt)});
+    status(operation+' returned; verify native effect separately.','info');
+  }catch(error){
+    write('contract-output',{operation,outcome:'REJECTED',code:error?.code||'E_CALL',error:String(error?.message||error).slice(0,300)});
+    status(operation+' rejected; check inputs and trusted permissions.','error');
+  }finally{setBusy(false);}
+}
+$('contract-operation').addEventListener('change',loadExample);
+$('contract-fill').addEventListener('click',loadExample);
+$('contract-run').addEventListener('click',()=>runContract());
+
 async function run(label,outputId,fn){
   if(busy)return;
   const sdk=browser();
@@ -39,6 +144,7 @@ async function refreshCapabilities(){
   const sdk=browser();
   if(!sdk){$('sdk-state').textContent='SDK unavailable';$('target-status').textContent='blocked';return;}
   const rows=await sdk.capabilities.list();
+  populateContracts(rows);
   const wanted=['browser.bookmarks.create','browser.bookmarks.removeOwned','browser.storage.local.set',
     'browser.storage.local.get','browser.downloads.download','browser.downloads.getOwned',
     'browser.scheduler.create','browser.scheduler.listOwn','browser.scheduler.cancelOwn'];
