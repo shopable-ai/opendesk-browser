@@ -30,6 +30,7 @@
 #bookmark-manager-panel .bm-hint,#bookmark-manager-panel .bm-consent{color:var(--od-sub);font-size:12px;line-height:1.6}
 #bookmark-manager-panel .bm-consent{padding:12px;border:1px solid var(--od-line);border-radius:12px}
 #bookmark-manager-panel .bm-consent .od-button{margin-top:10px}
+#bookmark-manager-panel .bm-delete-check{display:flex;gap:8px;align-items:flex-start;font-size:12px;line-height:1.5;margin:12px 0;color:var(--od-ink)}
 #bookmark-manager-panel .bm-warning{border:1px solid var(--od-line);border-radius:10px;padding:12px;color:var(--od-ink);font-size:12px;line-height:1.6}
 #bookmark-manager-panel .bm-detail-title{font-weight:730;font-size:13px;overflow-wrap:anywhere}
 #bookmark-manager-panel .bm-detail-url{font-size:12px;color:var(--od-sub);margin-top:6px;overflow-wrap:anywhere}
