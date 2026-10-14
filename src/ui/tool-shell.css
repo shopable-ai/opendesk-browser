@@ -577,7 +577,7 @@
 .workflow-connection-line .workflow-local-status{flex:1 1 auto;min-width:0}
 .workflow-connection-line #workflow-local-connect{flex:none}
 .workflow-connection-line #workflow-local-connect[hidden]{display:none!important}
-.workflow-provider-diagnostics .workflow-actions{justify-content:flex-start}
+.workflow-provider-diagnostics .workflow-actions{justify-content:flex-end}
 .workflow-provider .workflow-actions{gap:var(--space-2)}
 .workflow-provider .workflow-actions button{flex:0 0 auto;min-height:34px;font-size:12px}
 .workflow-local-status{font-size:11px;line-height:1.55;padding:8px 9px;border-radius:var(--radius-control);background:#f1f5fc;color:#435c7a;margin:8px 0}
