@@ -53,3 +53,16 @@
 - **CI 发行证据**：[预备包与构建回执 ZIP](https://github.com/shopable-ai/opendesk-browser/actions/runs/38580453628/artifacts/11902529683)（GitHub Actions artifact ID `11902529683`，ZIP SHA-256 `5e28f6b7ed17cae4f76d1fb9839cd11976f054f915432647ea52d1045d7eb41f`，非 Chrome 原生安装证据）。首轮 `d321c55b` CI 失败为测试文案正则与原错误消息不匹配，已通过 `fa1eacc9` 修复并复验。
 - **BLOCKED — Full SDK & Real Chrome**：Issue #75 尚未关闭，缺独立 Full Bookmarks 注册/权限/Host/事件/大树/条件删除。没有用户 Mac Profile 的原生真实安装、读写、跨窗口、撤权、SW 重启、卸载记录；均明确 **NOT_TESTED**。**PASS 仅用于上述实际运行过的 CI 组件，绝不宣称 R2 正式完成。**
 
+
+## R2.1 · SDK 消费端增量与失败修复（2026-10-14）
+
+**执行边界**：只写独立工具 `examples/sidebar-tools/bookmark-manager/`、专属 Node 测试、CI 和此账本。不修改 SDK R11 owner 正在负责的 `src/framework/sdk/*`、Chrome Driver、权限/Host；无 Mac 本地工作区挂载，不能声明执行了真实本机 Chrome。
+
+- GitHub 主分支真实提交：[`411dce0b`](https://github.com/shopable-ai/opendesk-browser/commit/411dce0bd35255afd141def5415736d050c4a4eb) 增加 Full SDK 单对象 CRUD、500+ 分页快照、条件写入、目录 Host 票据及有界事件会话消费。
+- 上述提交的 [CI #38592116547](https://github.com/shopable-ai/opendesk-browser/actions/runs/38592116547) **FAIL**：Node 13 项中 11 PASS、2 FAIL。旧 Mock 缺新增的 `prepareRemoveTree` 导致旧测试未更新；Check/Build 被跳过。绝不将历史 CI 结果冒充此候选成功。
+- 后续 [`53f5d954`](https://github.com/shopable-ai/opendesk-browser/commit/53f5d95418725b08f3afdf020ae054adb0cdb7af) 修复旧 Mock、同步 Node 测试；在独立 UI 加入 observe.start/read/stop 会话消费、事件缺口时全量同步、输入草稿保存、pagehide 清理；当前页收藏必须 Host 校验的 opaque Tab/Document，不能两次比较 URL。
+- 工具清单保持 `0.2.0` 与 `capabilities: []`；CI 更正工具包产物路径并追加 `npm run verify`，没有通过 Chrome Full 权限的事实不得加入官方 Catalog。
+
+**未来 R11 owner 接口/Host 前置**（Issue [#75](https://github.com/shopable-ai/opendesk-browser/issues/75)）：需要审批 Full Bookmarks Capability、唯一 Registry/Wrapper/Host/Chrome Driver、完整书签树绑定快照分页、书签 CRUD 的原子条件检查、非空目录可信删除票据、Chrome optional bookmarks 真手势授权、身份/包摘要/epoch、撤权/卸载/Worker 重启/事件缺口隔离，以及当前页 documentRef 可信绑定。R11 若修改方法签名，本工具按最终正式合同同步，不自行新增私有 RPC。
+
+**后续状态和验收分级**：本轮 Node/Check/Build/CI 必须以最终候选 SHA 的 Actions 证据来报告；真实 Chrome 安装/Full CRUD/500+/撤权/Worker/升级/卸载与九维 95+ 在 Mac 没有同候选原始收据，均 NOT_TESTED。`src/bookmark-manager/` 在原生闭环完成前保留。旧候选 R2 的 7/7 Node 和生产/开发 Build PASS 只作为历史基线，不覆盖新候选。
