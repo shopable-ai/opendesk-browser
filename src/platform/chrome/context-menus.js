@@ -149,11 +149,12 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   const browserIntents=new Map(),INTENT_TTL=15000;
   // A permission or installed-package change must fence requests that are already in fetch().
   const activeNetworkRequests=new Set();
-  const intentOperations=new Set(['browser.tabs.create','browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.reloadOwned','browser.tabs.navigateOwned','browser.tabs.removeOwned','browser.network.request',
-    'browser.network.observe.start','browser.network.observe.export','browser.screenshot.captureVisible',
-    'browser.cookies.set','browser.cookies.remove','browser.cookies.clearSite','browser.cookies.observe.start',
-    'browser.clipboard.writeText','browser.downloads.text',
-    'browser.downloads.download','browser.downloads.cancelOwned','browser.bookmarks.create','browser.bookmarks.removeOwned','browser.storage.local.clear','browser.scheduler.create']);
+  // The approved Registry, not a second handwritten Host list, defines which
+  // calls require a one-use trusted confirmation. sidePanel.openSelf remains
+  // a separate synchronous foreground-gesture path.
+  const intentOperations=new Set(Object.values(BROWSER_OPERATIONS)
+    .filter(row=>row.requiresUserGesture&&row.operation!=='browser.sidePanel.openSelf')
+    .map(row=>row.operation));
   const observationOperations=new Set(['browser.network.observe.getStatus','browser.network.observe.stop',
     'browser.events.read','browser.events.close']);
   const ownedOperationMethods=new Set(['browser.operations.getStatus','browser.operations.cancel']);
