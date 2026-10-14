@@ -1,9 +1,9 @@
 import {SIDEBAR_TOOL_STORE} from './sidebar-tools/package.js';
-import {requireCompleteInstalledSidebarTools} from './sidebar-tools/installation.js';
+import {requireCompleteInstalledSidebarTools,MARKET_PROVENANCE_STORE} from './sidebar-tools/installation.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords} from './sidebar-tools/lifecycle.js';
 import {loadOfficialCatalog} from '../sidebar-tools/official-catalog.js';
 import {setInstalledPageProgramEnabled} from './installed-page-tools.js';
-import {composeExtensionEntries,filterExtensionEntries} from './extension-center-model.js';
+import {composeExtensionEntries,filterExtensionEntries,describeInstalledAppSource} from './extension-center-model.js';
 
 // One trusted presentation. All writes and launches delegate to the existing hosts.
 export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench}){
@@ -14,6 +14,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   const notice=get('extension-center-status'),workspace=get('workspace-content');
   if(!list)return {refresh:async()=>{},dispose(){}};
   let disposed=false,sequence=0,busy=false,installed=[],pages=[],enabled={},official=[];
+  let sources={};
   let catalogError='',dataError='',query='',kind='all',scope='smart',selectedKey=null;
   let listScroll=0,focusKey=null,focusAction=null,detailFocusAction=null;
   const node=(tag,cls='',value)=>{const element=doc.createElement(tag);if(cls)element.className=cls;
@@ -135,8 +136,12 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     meta.append(node('p','',row.kind==='app'?'版本：v'+row.version:
       '修订：r'+row.version));
     if(row.kind==='app'){
-      meta.append(node('p','',row.installed?'来源以原安装事务和权限记录为准；设置不会自动运行应用。':
-        '正式安装必须在现有应用市场审阅固定包和能力清单。'));
+      if(row.installed){
+        const source=sources[row.id];
+        meta.append(node('p','','来源：'+(source?.label||'暂未读取安装来源')));
+        if(source?.sha256)meta.append(node('p','','固定包 SHA-256：'+source.sha256));
+        meta.append(node('p','','设置不会自动运行应用。'));
+      }else meta.append(node('p','','正式安装必须在现有应用市场审阅固定包和能力清单。'));
     }else{
       const installedPage=row.record.installed;
       const sites=node('section','ec-detail-card');
@@ -167,7 +172,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   async function refresh(){
     const id=++sequence;
     const results=await Promise.allSettled([
-      api.storage.local.get([SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE]),
+      api.storage.local.get([SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,MARKET_PROVENANCE_STORE]),
       client.request('listPagePrograms',{})
     ]);
     if(disposed||id!==sequence)return;
@@ -177,7 +182,10 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       const saved=results[0].value;
       const nextInstalled=requireCompleteInstalledSidebarTools(saved[SIDEBAR_TOOL_STORE]);
       const nextEnabled=requireToolEnableRecords(saved[SIDEBAR_TOOL_ENABLE_STORE]);
-      installed=nextInstalled;enabled=nextEnabled;
+      const nextSources=Object.fromEntries(await Promise.all(nextInstalled.map(async tool=>
+        [tool.id,await describeInstalledAppSource(tool,saved[MARKET_PROVENANCE_STORE]?.[tool.id])])));
+      if(disposed||id!==sequence)return;
+      installed=nextInstalled;enabled=nextEnabled;sources=nextSources;
     }catch(error){errors.push('应用：'+String(error?.message||error));}
     try{
       if(results[1].status!=='fulfilled')throw results[1].reason;
@@ -219,7 +227,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   }};
   doc.addEventListener('click',clickOutside);doc.addEventListener('keydown',keyDown);
   const storageChanged=(changes,area)=>{
-    if(area==='local'&&(SIDEBAR_TOOL_STORE in changes||SIDEBAR_TOOL_ENABLE_STORE in changes||
+    if(area==='local'&&(SIDEBAR_TOOL_STORE in changes||SIDEBAR_TOOL_ENABLE_STORE in changes||MARKET_PROVENANCE_STORE in changes||
       Object.keys(changes).some(key=>key.startsWith('opendesk.page'))))void refresh();
   };
   api.storage.onChanged?.addListener(storageChanged);

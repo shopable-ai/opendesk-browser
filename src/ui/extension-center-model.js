@@ -1,4 +1,14 @@
 // Read-only unified view of existing installed registries and bundled official releases.
+import {sidebarToolPackageHash} from './sidebar-tools/package.js';
+
+export async function describeInstalledAppSource(tool,record){
+  const sha256=await sidebarToolPackageHash(tool);
+  if(record===undefined)return {kind:'local',label:'本地工具包导入（无官方市场安装记录）',sha256};
+  if(record?.marketId==='opendesk/'+tool.id&&record.version===tool.version&&record.sha256===sha256)
+    return {kind:'market',label:'OpenDesk 官方市场 · '+record.marketId,sha256};
+  return {kind:'unverified',label:'安装来源记录与当前固定包不一致',sha256};
+}
+
 const lower=value=>String(value??'').trim().toLocaleLowerCase();
 const newer=(a,b)=>{
   const aa=a.split('.').map(Number),bb=b.split('.').map(Number);
