@@ -72,3 +72,53 @@ test('R11 finite bindings: oversized and non-JSON native receipts cannot cross t
   const effect=createApprovedBrowserBindings({'browser.tabs.create':async()=>({data:'x'.repeat(20000)})});
   await assert.rejects(effect.dispatch('browser.tabs.create',{url:'https://example.com/'},{},{authorize}),match('E_OUTCOME_UNKNOWN'));
 });
+
+test('R11 automatic service names bind every approved same-named method once',async()=>{
+  const calls=[],ref='b'.repeat(32);
+  const service=Object.freeze({
+    async create(args,owner){calls.push(['create',args,owner]);return {bookmarkRef:ref};},
+    async removeOwned(args,owner){calls.push(['removeOwned',args,owner]);return {removed:true};},
+    getTree(){throw Error('Unapproved full-bookmark access must not execute')},
+    revokeAll(){throw Error('Internal Host lifecycle method must not execute')}
+  });
+  const bindings=createApprovedBrowserBindings({bookmarks:service});
+  assert.equal(bindings.has('browser.bookmarks.create'),true);
+  assert.equal(bindings.has('browser.bookmarks.removeOwned'),true);
+  assert.equal(bindings.has('browser.bookmarks.getTree'),false);
+  assert.equal(bindings.has('browser.bookmarks.revokeAll'),false);
+  const owner={toolId:'example-tool'},authorize=async()=>{};
+  assert.deepEqual(await bindings.dispatch('browser.bookmarks.create',
+    {url:'https://example.com/'},owner,{authorize}),{bookmarkRef:ref});
+  assert.deepEqual(await bindings.dispatch('browser.bookmarks.removeOwned',
+    {bookmarkRef:ref},owner,{authorize}),{removed:true});
+  assert.deepEqual(calls.map(x=>x[0]),['create','removeOwned']);
+  assert.strictEqual(calls[0][2],owner);
+});
+
+test('R11 nested namespace callback generates routes without a per-method Handler list',async()=>{
+  const calls=[];
+  const bindings=createApprovedBrowserBindings({
+    'storage.local':(input,context,operation)=>{
+      calls.push([operation,input,context]);return {items:{}};
+    }
+  });
+  for(const name of ['get','set','remove','clear'])
+    assert.equal(bindings.has('browser.storage.local.'+name),true);
+  assert.equal(bindings.has('browser.storage.local.nativeClearAll'),false);
+  const owner={toolId:'settings'},authorize=async()=>{};
+  await bindings.dispatch('browser.storage.local.get',{},owner,{authorize});
+  assert.deepEqual(calls,[['browser.storage.local.get',{},owner]]);
+});
+
+test('R11 namespace resolution ignores inherited, getter and unapproved service methods',()=>{
+  let getterCalled=0;
+  const driver=Object.create({removeOwned:async()=>({removed:true})});
+  Object.defineProperty(driver,'create',{get(){getterCalled++;throw Error('unsafe getter')}});
+  const bindings=createApprovedBrowserBindings({bookmarks:driver});
+  assert.equal(getterCalled,0);
+  assert.equal(bindings.has('browser.bookmarks.create'),false);
+  assert.equal(bindings.has('browser.bookmarks.removeOwned'),false);
+  assert.throws(()=>createApprovedBrowserBindings({bookmarks:{revokeAll() {}}}),match('E_CONTRACT'));
+  assert.throws(()=>createApprovedBrowserBindings(
+    Object.fromEntries([['__proto__',{create(){}}]])),match('E_CONTRACT'));
+});
