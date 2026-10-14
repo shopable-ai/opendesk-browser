@@ -172,8 +172,22 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
     const diagnostic=await evaluate(host,'({url:location.href,ready:document.readyState,title:document.title,text:document.body?.innerText?.slice(0,250),html:document.documentElement?.outerHTML?.slice(0,500),present:!!document.querySelector("#tab-tools")})').catch(e=>({error:String(e)}));
     throw Error(error.message+'; navigation diagnostic='+JSON.stringify(diagnostic)+'; chrome='+stderr.slice(-500));
   }
-  assert.equal(await evaluate(articlePage,'document.querySelectorAll("[data-opendesk-toc-root]").length'),0,
-    'No website should obtain TOC before installation/approval');
+  // Fresh installs may already contain the audited first-party TOC (R4.8).
+  // An overlay is allowed only when the real installed registry owns that exact
+  // approved official tool; imported/uninstalled packages never gain it.
+  const initiallyInstalled=await evaluate(host,
+    'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(value=>value["opendesk.sidebar-tools.installed.v1"]?.find(row=>row.id==="reading-toc")||null)');
+  if(initiallyInstalled){
+    assert.equal(initiallyInstalled.version,pkg.version,'preinstalled TOC must match the bundled release');
+    assert.deepEqual(initiallyInstalled.capabilities,['page.toc']);
+    await eventually(()=>evaluate(articlePage,
+      'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),
+      'Verified default-preinstalled reader must mount on the allowed HTTP page');
+  }else{
+    assert.equal(await evaluate(articlePage,
+      'document.querySelectorAll("[data-opendesk-toc-root]").length'),0,
+      'An uninstalled TOC must not inject a webpage overlay');
+  }
   console.log('TOC_NATIVE_STAGE: extension tool.html loaded');
   // Test the actual official installer HTML event path and bundled JSON, not a
   // synthetic package installed directly into chrome.storage.
@@ -239,7 +253,7 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
     assert.equal(previousInstall.version,pkg.version,'preinstalled TOC must be the bundled version');
     console.log('TOC_NATIVE_STAGE: official preinstalled TOC verified');
   }else{
-    await trustedClick(host,'#sidebar-tool-discover-tab');
+    await trustedClick(host,'#sidebar-tool-discover-toggle');
     await eventually(()=>evaluate(host,'!document.querySelector("#sidebar-tool-discover-panel").hidden'),
       'Official discovery is not visible');
     await eventually(()=>evaluate(host,'(()=>{const b=document.querySelector("#sidebar-tool-official-reading-toc-install");return !!b&&!b.disabled&&!!b.getClientRects().length;})()'),
@@ -258,8 +272,11 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   console.log('TOC_NATIVE_STAGE: installed package recorded');
   assert.equal(installed.version,pkg.version);
   assert.deepEqual(installed.capabilities,['page.toc']);
-  assert.equal(await evaluate(articlePage,'document.querySelectorAll("[data-opendesk-toc-root]").length'),0,
-    'Installed package alone must not expose current page headings');
+  // Unlike a third-party TOC, the installed and enabled built-in reader is
+  // intentionally available on ordinary HTTP(S) pages without another grant.
+  await eventually(()=>evaluate(articlePage,
+    'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),
+    'Installed built-in reader must mount under default site availability');
   const tocOpen='#sidebar-tool-list [data-sidebar-tool-action=open][data-sidebar-tool-id=reading-toc]';
   await trustedClick(host,tocOpen);
   await eventually(()=>evaluate(host,'!document.querySelector("#sidebar-tool-settings-open").hidden'),
