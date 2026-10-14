@@ -37,7 +37,8 @@ export function createBookmarkService(api){
     async update({expected,title,url}){
       const tree=await load(),node=assertFresh(tree,expected);
       const changes={title:displayName(title)};
-      if(!isFolder(node))changes.url=asHttpUrl(url);
+      // Preserve non-HTTP bookmarks when only their title changes; never rewrite them to arbitrary URLs.
+      if(!isFolder(node)&&url!==node.url)changes.url=asHttpUrl(url);
       await requireGrant(api);
       return api.bookmarks.update(node.id,changes);
     },
@@ -48,11 +49,17 @@ export function createBookmarkService(api){
       await requireGrant(api);
       return api.bookmarks.move(node.id,{parentId});
     },
-    async remove({expected,confirmed=false}){
+    async remove({expected,confirmed=false,expectedDescendantIds=null}){
       if(confirmed!==true)throw new Error('删除需要确认');
       const tree=await load(),node=assertFresh(tree,expected);
       await requireGrant(api);
-      if(isFolder(node))return api.bookmarks.removeTree(node.id);
+      if(isFolder(node)){
+        // A folder may gain children in another window after confirmation. Fail closed on any subtree drift.
+        const actual=[...tree.byId.keys()].filter(id=>id!==node.id&&isDescendant(tree,id,node.id)).sort();
+        if(!Array.isArray(expectedDescendantIds)||JSON.stringify([...expectedDescendantIds].sort())!==JSON.stringify(actual))
+          throw stale();
+        return api.bookmarks.removeTree(node.id);
+      }
       return api.bookmarks.remove(node.id);
     },
     onChange(callback){
