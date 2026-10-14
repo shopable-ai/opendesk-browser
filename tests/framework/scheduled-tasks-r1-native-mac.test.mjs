@@ -240,6 +240,36 @@ async function viewportEvidence(client,session,surface,report,
 async function contexts(client,session){
   return evaluate(client,'chrome.runtime.getContexts({})',session);
 }
+function readySidePanelContext(rows,extensionId,documentId=null){
+  return rows.find(row=>{
+    if(row.contextType!=='SIDE_PANEL'||!row.documentId||
+      documentId&&row.documentId!==documentId)return false;
+    try{
+      const url=new globalThis.URL(row.documentUrl);
+      return url.protocol==='chrome-extension:'&&url.hostname===extensionId&&
+        url.pathname==='/ui/tool.html'&&!!url.searchParams.get('hostInstanceId');
+    }catch{return false;}
+  });
+}
+test('native Side Panel observer waits past the initial sender redirect',()=>{
+  const initial={contextType:'SIDE_PANEL',documentId:'initial',documentUrl:'chrome-extension://test/ui/tool.html'};
+  const ready={...initial,documentId:'ready',documentUrl:initial.documentUrl+'?hostInstanceId=owned'};
+  assert.equal(readySidePanelContext([initial],'test'),undefined);
+  assert.equal(readySidePanelContext([initial,ready],'test'),ready);
+});
+test('native Side Panel observer rejects another extension, tab or missing identity',()=>{
+  const ready={contextType:'SIDE_PANEL',documentId:'owned',documentUrl:'chrome-extension://test/ui/tool.html?hostInstanceId=owned'};
+  assert.equal(readySidePanelContext([
+    {...ready,documentUrl:ready.documentUrl.replace('://test/','://other/')},
+    {...ready,contextType:'TAB'}, {...ready,documentId:null},
+    {...ready,documentUrl:'chrome-extension://test/ui/tool.html?hostInstanceId='}
+  ],'test'),undefined);
+});
+test('native Side Panel observer never substitutes a replacement document',()=>{
+  const ready={contextType:'SIDE_PANEL',documentId:'owned',documentUrl:'chrome-extension://test/ui/tool.html?hostInstanceId=owned'};
+  assert.equal(readySidePanelContext([{...ready,documentId:'replacement'}],'test','owned'),undefined);
+  assert.equal(readySidePanelContext([ready],'test','owned'),ready);
+});
 async function attach(client,targetId){
   const {sessionId}=await client.send('Target.attachToTarget',{targetId,flatten:true});
   await client.send('Runtime.enable',{},sessionId);
@@ -468,11 +498,17 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
   await click(client,catalogSid,'#catalog-open-dev-sidebar');
   const sideContext=await deadline(async()=>{
     const rows=await contexts(client,catalogSid);
-    return rows.find(x=>x.contextType==='SIDE_PANEL'&&x.documentUrl?.includes('/ui/tool.html'));
+    // tool.html first replaces its provisional document with a sender-bound URL.
+    return readySidePanelContext(rows,extensionId);
   },'real Chrome SIDE_PANEL document context',18000);
   const sideTarget=await deadline(async()=>{
+    const current=readySidePanelContext(await contexts(client,catalogSid),extensionId,sideContext.documentId);
     const rows=(await client.send('Target.getTargets')).targetInfos;
-    return rows.find(x=>x.url===sideContext.documentUrl);
+    report.sidePanelTargetObservation={expectedDocumentId:sideContext.documentId,
+      expectedUrl:sideContext.documentUrl,current:current??null,
+      targets:rows.filter(row=>row.url?.startsWith('chrome-extension://'+extensionId+'/ui/tool.html'))};
+    if(current?.documentUrl!==sideContext.documentUrl)return null;
+    return rows.find(x=>x.url===current.documentUrl);
   },'real Side Panel DevTools target');
   sideId=sideTarget.targetId;
   const sideSid=await attach(client,sideId);
