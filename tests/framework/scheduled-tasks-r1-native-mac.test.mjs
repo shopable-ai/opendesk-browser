@@ -757,7 +757,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     report.tests.taskDisabledViaRealUI='PASS';
     note('real-task-disabled',{taskId:before.plan.taskId,originalGeneration:before.plan.taskGeneration,
       newGeneration:disabledInstall.generation});
-    await click(client,runnerSid,'#schedule-manager-back');
+    await click(client,runnerSid,'#schedule-back');
     await click(client,runnerSid,'#schedule-cancel');
     await click(client,runnerSid,'#schedule-runner-manage');
     await deadline(()=>evaluate(client,
@@ -816,7 +816,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     report.tests.uninstallKeepsOriginalScheduleAndRunAudit='PASS';
     note('native-task-uninstalled-audit-kept',{scheduleId:before.plan.scheduleId,
       oldTaskGeneration:before.plan.taskGeneration,originalRunId:due.run.runId});
-    await click(client,runnerSid,'#schedule-manager-back');
+    await click(client,runnerSid,'#schedule-back');
     await click(client,runnerSid,'#schedule-cancel');
     await click(client,runnerSid,'#schedule-runner-manage');
     await click(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button:first-child');
@@ -1204,11 +1204,13 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
       generation=saved.generation;report.tests['nativeRule'+kind]='PASS';
       note('native-form-rule-saved',{scheduleId:saved.scheduleId,generation,kind,zone,paused:true});
     }
-    await details(client,formSid,card+' .schedule-history');
+    await click(client,formSid,card+' .schedule-plan-open');
+    await details(client,formSid,'#schedule-detail-view .schedule-history');
     await deadline(()=>evaluate(client,
-      '[...document.querySelectorAll('+JSON.stringify(card+' .schedule-history-row')+')].some(row=>row.textContent.includes("成功")&&row.textContent.includes('+JSON.stringify(due.run.runId)+')&&row.textContent.includes('+JSON.stringify(due.result.resultId)+'))',formSid),
+      '[...document.querySelectorAll('+JSON.stringify('#schedule-detail-view .schedule-history-row')+')].some(row=>row.textContent.includes("成功")&&row.textContent.includes('+JSON.stringify(due.run.runId)+')&&row.textContent.includes('+JSON.stringify(due.result.resultId)+'))',formSid),
       'original real run history remains visible after edits');
     report.tests.nativeEditedHistoryRetained='PASS';
+    await click(client,formSid,'#schedule-back');
     await click(client,formSid,'#schedule-create');
     assert.equal(await evaluate(client,expr('#schedule-timezone')+'.value',formSid),original.timezone,
       'New plan re-identifies the real device zone rather than inheriting the edited zone');
@@ -1233,15 +1235,16 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     report.tests.nativeRuleonce='PASS';
     const secondCard='#schedule-plan-list .schedule-card[data-schedule-id='+JSON.stringify(second.scheduleId)+']';
     report.screenshots.push(await screenshot(client,formSid,'r29-two-paused-plans'));
-    await details(client,formSid,secondCard+' .schedule-more');
-    await click(client,formSid,secondCard+' .schedule-danger-link');
+    await click(client,formSid,secondCard+' .schedule-plan-open');
+    await details(client,formSid,'#schedule-detail-view .schedule-more');
+    await click(client,formSid,'#schedule-detail-view .schedule-danger-link');
     assert.deepEqual((await durable(client,formSid)).plans,two.plans,
       'Delete review preserves both plans, generations, deletion flags and fixed Task identities');
-    await click(client,formSid,secondCard+' .schedule-delete-confirm button:last-of-type');
+    await click(client,formSid,'#schedule-detail-view .schedule-delete-confirm button:last-of-type');
     assert.deepEqual((await durable(client,formSid)).plans,two.plans,
       'Cancelled deletion preserves both plans, generations, deletion flags and fixed Task identities');
-    await click(client,formSid,secondCard+' .schedule-danger-link');
-    await click(client,formSid,secondCard+' .schedule-delete-confirm button:first-of-type');
+    await click(client,formSid,'#schedule-detail-view .schedule-danger-link');
+    await click(client,formSid,'#schedule-detail-view .schedule-delete-confirm button:first-of-type');
     const remaining=await deadline(async()=>{const state=await durable(client,formSid);return state.plans.find(plan=>
       plan.scheduleId===second.scheduleId)?.deleted===true?state:null;},
       'confirmed deletion tombstone for only the second test plan');

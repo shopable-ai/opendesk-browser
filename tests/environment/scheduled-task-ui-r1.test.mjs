@@ -380,9 +380,9 @@ test('R2.8 true host refresh retains keyboard focus, open details and inline con
   assert.match(source,/if\(tasksChanged\)\{taskListSignature=tasksSignature;populateChoices\(\);\}/);
   assert.match(source,/if\(plansChanged\)\{renderPlans\(\);planListSignature=plansSignature;\}/);
   assert.match(source,/if\(tasksChanged\|\|plansChanged\)renderManager\(\)/);
-  assert.match(source,/view\.open=Boolean\(card\.querySelector\('\.schedule-history'\)\?\.open\)/);
-  assert.match(source,/view\.moreOpen=Boolean\(card\.querySelector\('\.schedule-more'\)\?\.open\)/);
-  assert.match(source,/view\.deleteReview=Boolean\(card\.querySelector\('\.schedule-delete-confirm'\)\)/);
+  assert.match(source,/view\.open=Boolean\(root\.querySelector\('\.schedule-history'\)\?\.open\)/);
+  assert.match(source,/view\.moreOpen=Boolean\(root\.querySelector\('\.schedule-more'\)\?\.open\)/);
+  assert.match(source,/view\.deleteReview=Boolean\(root\.querySelector\('\.schedule-delete-confirm'\)\)/);
   assert.match(source,/restored\?\.querySelector\(focusedSelector\)\?\.focus\(\)/);
   assert.match(source,/scheduleId:plan\.scheduleId,offset:view\.records\.length,limit:20/);
   assert.match(source,/const overlap=!latest\.length\|\|!view\.records\.length/);
@@ -438,4 +438,34 @@ test('R2.8 subview navigation clears old editor errors without hiding current fo
     'explicit discard transitions to another view where stale errors are dismissed');
   assert.match(ui,/bind\('schedule-confirm-no','click',\(\)=>\{clearConfirmation\(\);get\('schedule-save'\)\.focus\(\);\}/,
     'returning to edit from confirmation keeps the active form state');
+});
+
+test('R3 index vs detail navigation and fixed schedule authorization boundaries',async()=>{
+  const [html,source,css]=await Promise.all([
+    load('src/ui/tool.html'),load('src/ui/scheduled-task-workbench.js'),
+    load('src/ui/tool-shell.css')
+  ]);
+  assert.match(html,/id="schedule-detail-view"[^>]*hidden/);
+  assert.match(html,/id="schedule-detail-edit"[^>]*aria-label="编辑当前计划"[^>]*hidden/);
+  assert.match(html,/class="schedule-header od-page-head"/);
+  assert.match(html,/id="schedule-panel-title" class="od-page-title"/);
+  const list=source.slice(source.indexOf('  function renderPlans(){'),source.indexOf('  function renderDetail(){'));
+  assert(!list.includes('schedule-history od-disclosure')&&!list.includes('schedule-delete-confirm'),
+    'index cards must not inline history or deletion');
+  assert.match(list,/schedule-plan-open/);
+  assert.match(list,/view\.records=mergeScheduleHistoryView\(latest,overlap\?view\.records:\[\]\)/);
+  assert.match(source,/detail:get\('schedule-detail-view'\)/);
+  assert.match(source,/function openDetail\(scheduleId\)/);
+  assert.match(source,/function leaveDetail\(\)/);
+  assert.match(source,/scroller.scrollTop=listScrollTop/);
+  assert.match(source,/focus\(\{preventScroll:true\}\)/);
+  assert.match(source,/formReturnView=activeView==='detail'\?'detail'/);
+  assert.match(source,/requestLeaveForm\(formReturnView\)/);
+  assert.match(source,/afterSave=editing\?formReturnView/);
+  assert.match(source,/if\(returnAfterDelete&&activeView==='detail'\)leaveDetail\(\)/);
+  assert.match(source,/scheduleId:plan.scheduleId,offset:view.records.length,limit:20/);
+  assert.match(source,/if\(view.deleteReview\)remove.click\(\)/);
+  assert.match(source,/expectedGeneration:plan.generation,action:operation/);
+  assert.match(css,/\.schedule-card-head \.schedule-plan-open\{/);
+  assert.doesNotMatch(source,/chrome\.alarms\.create|new Worker\(/);
 });

@@ -47,11 +47,14 @@
       </div>
     </section>
     <section id="scheduled-panel" class="schedule-panel od-stack" aria-label="定时计划" hidden>
-      <header class="schedule-header od-toolbar">
+      <header class="schedule-header od-page-head">
         <button id="schedule-back" class="od-icon-button" type="button" title="返回我的任务" aria-label="返回我的任务"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m7-7-7 7 7 7"></path></svg></button>
-        <div class="schedule-header-heading"><strong id="schedule-panel-title">定时计划</strong><p id="schedule-panel-subtitle" class="hint">安排已验证安装的自动化任务</p></div>
-        <button id="schedule-create" type="button" class="od-button" hidden>＋ 新建</button>
-        <button id="schedule-stop" type="button" class="od-button od-button--secondary" hidden>停止本次</button>
+        <div class="schedule-header-heading"><strong id="schedule-panel-title" class="od-page-title">定时计划</strong><p id="schedule-panel-subtitle" class="hint" hidden></p></div>
+        <div class="od-page-actions">
+          <button id="schedule-create" type="button" class="od-button" hidden>＋ 新建</button>
+          <button id="schedule-detail-edit" type="button" class="od-icon-button" title="编辑当前计划" aria-label="编辑当前计划" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16 4l4 4-11 11H5v-4L16 4z"></path></svg></button>
+          <button id="schedule-stop" type="button" class="od-button od-button--secondary" hidden>停止本次</button>
+        </div>
       </header>
       <p id="schedule-message" role="status" aria-live="polite" class="hint"></p>
       <section id="schedule-runner-view" class="schedule-runner-view od-stack" aria-label="定时任务运行概览" hidden>
@@ -101,6 +104,7 @@
           <p id="schedule-storage-status" class="hint" role="status" aria-live="polite">历史记录按计划分页展示；未知副作用、未结算执行和审计记录不会自动清除。</p>
         </details>
       </div>
+      <section id="schedule-detail-view" class="schedule-detail-view od-stack" aria-label="计划详情" hidden></section>
       <form id="schedule-form" class="schedule-form od-stack" autocomplete="off" novalidate hidden>
         <section class="schedule-form-section" aria-labelledby="schedule-source-section-title">
           <h3 id="schedule-source-section-title" class="schedule-section-title"><span aria-hidden="true">1</span>名称与执行任务</h3>
@@ -219,7 +223,7 @@
       </form>
       <div id="schedule-task-manager" class="od-stack" hidden>
         <div class="schedule-actions od-toolbar">
-          <button id="schedule-manager-back" type="button" class="od-button od-button--secondary">← 返回计划</button>
+          <button id="schedule-manager-back" type="button" class="od-button od-button--secondary" hidden>← 返回计划</button>
           <button id="schedule-manager-create" type="button" class="od-icon-button" aria-label="新建脚本" title="新建脚本"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8"></path></svg></button>
         </div>
         <label class="od-field" for="schedule-manager-search">搜索已安装任务

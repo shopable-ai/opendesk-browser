@@ -263,7 +263,7 @@ test('actual installed Chrome runner zooms at 125%, 150%, 200% with keyboard and
   const managerShown=await evaluate(client,
     '!document.querySelector("#schedule-task-manager").hidden',session);
   assert.equal(managerShown,true,'native pointer opened the real installed Task manager');
-  await click(client,session,'#schedule-manager-back');
+  await click(client,session,'#schedule-back');
   assert.equal(await evaluate(client,expr('#schedule-title')+'.value',session),longTitle,
     'installed Task manager roundtrip must preserve the unsaved title');
   report.managerReturn={cssViewport:320,source:'actual Chrome pointer',

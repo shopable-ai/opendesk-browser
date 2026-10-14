@@ -153,6 +153,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   let disposed=false,shown=false,busy=false,editing=null,managerReturn='list';
   let pendingCreate=false,pendingCreateFromForm=false,pendingTask=null,confirmUninstall=null,allPlans=[],catalog=[],installed=[];
   let selectedFire=null,lastRefresh=0,activeView='list',runnerFocusId=null;
+  let selectedPlanId=null,detailReturnView='list',formReturnView='list',listScrollTop=0;
   let cloudPanelVisibility;
   let permissionSeq=0,awaitingSave=null,editRevision=0,storageProbeRevision=0;
   let formDirty=false,discardDestination='list';
@@ -208,7 +209,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   }
   const isRunner=()=>doc.documentElement?.dataset?.opendeskSurface==='scheduled-runner';
   const views={runner:get('schedule-runner-view'),list:get('schedule-list-view'),
-    form:get('schedule-form'),manager:get('schedule-task-manager')};
+    detail:get('schedule-detail-view'),form:get('schedule-form'),manager:get('schedule-task-manager')};
   const show=view=>{
     // Inline validation belongs to the editor, not the list or dedicated
     // runner. A deliberate subview change clears stale notices; periodic Host
@@ -217,19 +218,24 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     activeView=view;
     for(const [key,node] of Object.entries(views))node.hidden=key!==view;
     get('schedule-create').hidden=view!=='list';
+    get('schedule-detail-edit').hidden=view!=='detail';
     // The separately visible runner is already a Host, not a second Side Panel.
     text(get('schedule-open-runner'),isRunner()?'再开运行页 ↗':'打开运行页 ↗');
     get('schedule-back').hidden=isRunner()&&view==='runner';
-    const backLabel=view==='form'?'返回定时计划':view==='manager'?
-      (managerReturn==='form'?'返回编辑计划':'返回定时计划'):
+    const backLabel=view==='detail'?(detailReturnView==='runner'?'返回运行概览':'返回计划列表'):
+      view==='form'?(formReturnView==='detail'?'返回计划详情':
+        formReturnView==='manager'?'返回任务管理':'返回定时计划'):
+      view==='manager'?(managerReturn==='form'?'返回编辑计划':
+        managerReturn==='detail'?'返回计划详情':'返回定时计划'):
       isRunner()?'返回运行概览':'返回我的任务';
     get('schedule-back').setAttribute('aria-label',backLabel);
     get('schedule-back').title=backLabel;
-    text(get('schedule-panel-title'),view==='runner'?'OpenDesk 运行页 · 运行概览':
-      view==='manager'?'任务管理':view==='form'?
-      (editing?'编辑定时计划':'创建定时计划'):'定时计划');
-    text(get('schedule-panel-subtitle'),view==='runner'?'已验证任务 · 可见运行页':
-      '安排已验证安装的自动化任务');
+    text(get('schedule-panel-title'),view==='detail'?
+      (allPlans.find(plan=>plan.scheduleId===selectedPlanId)?.title||'计划详情'):
+      view==='runner'?'运行概览':view==='manager'?'任务管理':view==='form'?
+        (editing?'编辑定时计划':'创建定时计划'):'定时计划');
+    text(get('schedule-panel-subtitle'),'');
+    get('schedule-panel-subtitle').hidden=true;
   };
   const showPanel=()=>{
     const cloudPanel=doc.querySelector('#workbench-tasks .cloud-panel');
@@ -412,25 +418,25 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     }
     return row;
   }
+
+  // Keep all loaded Fire pages and disclosure states keyed by the stable plan.
+  function rememberDetailState(){
+    const root=get('schedule-detail-view');
+    const view=historyViews.get(root.dataset.scheduleId);
+    if(!view)return;
+    view.open=Boolean(root.querySelector('.schedule-history')?.open);
+    view.moreOpen=Boolean(root.querySelector('.schedule-more')?.open);
+    view.deleteReview=Boolean(root.querySelector('.schedule-delete-confirm'));
+  }
   function renderPlans(){
+    rememberDetailState();
     const parent=get('schedule-plan-list');
     const focused=doc.activeElement?.closest?.('.schedule-card');
     const focusedId=focused&&parent.contains(focused)?focused.dataset.scheduleId:null;
-    const focusSelectors=[
-      '.schedule-plan-actions button:first-child','.schedule-plan-actions button:nth-child(2)',
-      '.schedule-history > summary','.schedule-load-more','.schedule-more > summary',
-      '.schedule-danger-link','.schedule-delete-confirm button:first-child',
-      '.schedule-delete-confirm button:nth-child(2)'
-    ];
+    const focusSelectors=['.schedule-plan-open','.schedule-plan-actions button:first-child',
+      '.schedule-plan-actions button:nth-child(2)'];
     const focusedSelector=focusedId?focusSelectors.find(selector=>
       doc.activeElement?.matches?.(selector)):null;
-    for(const card of parent.querySelectorAll('.schedule-card')){
-      const view=historyViews.get(card.dataset.scheduleId);
-      if(!view)continue;
-      view.open=Boolean(card.querySelector('.schedule-history')?.open);
-      view.moreOpen=Boolean(card.querySelector('.schedule-more')?.open);
-      view.deleteReview=Boolean(card.querySelector('.schedule-delete-confirm'));
-    }
     const ids=new Set(allPlans.map(plan=>plan.scheduleId));
     for(const id of historyViews.keys())if(!ids.has(id))historyViews.delete(id);
     parent.replaceChildren();
@@ -443,15 +449,18 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       '尚无定时计划');
     if(!allPlans.length){
       parent.append(element(doc,'p','schedule-empty-hint hint',
-        '尚无定时计划。点击「新建计划」安排第一个已验证任务。'));return;
+        '尚无定时计划。点击「新建计划」安排第一个已验证任务。'));
+      renderDetail();return;
     }
     for(const plan of sorted){
       const card=element(doc,'article','schedule-card od-surface');
       card.dataset.scheduleId=plan.scheduleId;
       const head=element(doc,'div','schedule-card-head od-toolbar');
-      head.append(element(doc,'strong',null,plan.title),element(doc,'span','schedule-state',
-        plan.paused?'已暂停':plan.needsAttention?'需要处理':
-          !Number.isFinite(plan.nextDueAt)?'暂无后续':'已启用'));
+      head.append(action(doc,plan.title,()=>openDetail(plan.scheduleId),
+        'od-button od-button--quiet schedule-plan-open'),
+        element(doc,'span','schedule-state',
+          plan.paused?'已暂停':plan.needsAttention?'需要处理':
+            !Number.isFinite(plan.nextDueAt)?'暂无后续':'已启用'));
       const catalogEntry=catalog.find(item=>item.taskId===plan.taskId&&item.version===plan.version);
       const next=element(doc,'p','schedule-next-time',
         plan.paused?'已暂停 · 不会触发':plan.needsAttention?'需要处理后才能执行':
@@ -464,12 +473,49 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       const latest=plan.history||[];
       const overlap=!latest.length||!view.records.length||
         latest.some(fire=>view.records.some(loaded=>loaded.fireId===fire.fireId));
-      // An extended background gap can add 20+ newer Fires. In that case the
-      // first server page no longer overlaps cached older pages. Do not skip a
-      // missing middle page by treating the old row count as a valid offset.
+      // Never skip an unobserved page after a long background gap.
       view.records=mergeScheduleHistoryView(latest,overlap?view.records:[]);
       if(!previous||!overlap)view.hasMore=latest.length===20;
       historyViews.set(plan.scheduleId,view);
+      const toolbar=element(doc,'div','schedule-actions od-toolbar schedule-plan-actions');
+      toolbar.append(action(doc,plan.paused?'恢复':'暂停',
+        ()=>void change(plan,plan.paused?'resume':'pause'),'od-button'));
+      toolbar.append(action(doc,'编辑',()=>edit(plan)));
+      card.append(head,next,info,toolbar);
+      parent.append(card);
+    }
+    renderDetail();
+    if(focusedId&&focusedSelector){
+      const restored=[...parent.querySelectorAll('.schedule-card')].find(card=>
+        card.dataset.scheduleId===focusedId);
+      restored?.querySelector(focusedSelector)?.focus();
+    }
+  }
+  function renderDetail(){
+    const parent=get('schedule-detail-view');
+    const plan=allPlans.find(row=>row.scheduleId===selectedPlanId);
+    if(!plan){parent.replaceChildren();parent.dataset.scheduleId='';return;}
+    const view=historyViews.get(plan.scheduleId);
+    if(!view)return;
+    const focusSelectors=['.schedule-history > summary','.schedule-load-more',
+      '.schedule-more > summary','.schedule-danger-link',
+      '.schedule-delete-confirm button:first-child','.schedule-delete-confirm button:nth-child(2)',
+      '.schedule-detail-actions button'];
+    const focusSelector=parent.contains(doc.activeElement)?
+      focusSelectors.find(selector=>doc.activeElement?.matches?.(selector)):null;
+    const card=element(doc,'div','schedule-detail-card od-stack');
+    const summary=element(doc,'section','schedule-detail-summary od-surface od-surface--padded od-stack');
+    const catalogEntry=catalog.find(item=>item.taskId===plan.taskId&&item.version===plan.version);
+    summary.append(
+      element(doc,'span','schedule-state',plan.paused?'已暂停':plan.needsAttention?'需要处理':
+        !Number.isFinite(plan.nextDueAt)?'暂无后续':'已启用'),
+      element(doc,'p','schedule-next-time',plan.paused?'已暂停 · 不会触发':
+        plan.needsAttention?'需要处理后才能执行':
+        Number.isFinite(plan.nextDueAt)?'下次：'+describeTime(plan.nextDueAt,plan.timezone):'暂无后续执行'),
+      element(doc,'p','schedule-plan-meta hint',
+        frequencyLabel(plan)+' · '+(catalogEntry?.manifest?.title||plan.taskId)),
+      element(doc,'p','schedule-detail-url hint','目标网页：'+plan.targetUrl)
+    );
       const last=view.records[0];
       const warning=plan.needsAttention?
         '当前任务安装身份或网站权限不足；请检查已安装任务，不会自动换绑新版。':
@@ -477,7 +523,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       const hint=warning?element(doc,'p','schedule-status-help',warning):null;
       if(hint&&plan.needsAttention){
         hint.append(' ');
-        hint.append(action(doc,'检查已安装任务',()=>{managerReturn='list';show('manager');},
+        hint.append(action(doc,'检查已安装任务',()=>{managerReturn='detail';show('manager');},
           'od-button od-button--secondary'));
       }
       const history=element(doc,'details','schedule-history od-disclosure od-disclosure--flat');
@@ -511,10 +557,10 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
         historyList.append(more);
       }
       history.append(historyList);
-      const toolbar=element(doc,'div','schedule-actions od-toolbar schedule-plan-actions');
-      toolbar.append(action(doc,plan.paused?'恢复':'暂停',
-        ()=>void change(plan,plan.paused?'resume':'pause'),'od-button'));
-      toolbar.append(action(doc,'编辑',()=>edit(plan)));
+
+    const toolbar=element(doc,'div','schedule-actions od-toolbar schedule-detail-actions');
+    toolbar.append(action(doc,plan.paused?'恢复计划':'暂停计划',
+      ()=>void change(plan,plan.paused?'resume':'pause'),'od-button od-button--secondary'));
       const more=element(doc,'details','schedule-more od-disclosure od-disclosure--flat');
       more.open=view.moreOpen;
       more.append(element(doc,'summary',null,'更多操作与固定版本'));
@@ -532,25 +578,49 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
         card.append(confirm);confirm.querySelector('button')?.focus();
       },'od-button od-button--secondary schedule-danger-link');
       more.append(remove);
-      card.append(head,next,info);
-      if(hint)card.append(hint);
-      card.append(toolbar,history,more);
-      parent.append(card);
-      // This only reopens the original inline review; no delete RPC occurs.
-      if(view.deleteReview)remove.click();
-    }
-    if(focusedId&&focusedSelector){
-      const restored=[...parent.querySelectorAll('.schedule-card')].find(card=>
-        card.dataset.scheduleId===focusedId);
-      restored?.querySelector(focusedSelector)?.focus();
-    }
+
+    card.append(summary);
+    if(hint)card.append(hint);
+    card.append(toolbar,history,more);
+    parent.dataset.scheduleId=plan.scheduleId;
+    parent.replaceChildren(card);
+    // Reopen the inline review only; never invoke its dangerous RPC here.
+    if(view.deleteReview)remove.click();
+    if(focusSelector)card.querySelector(focusSelector)?.focus({preventScroll:true});
+  }
+  function openDetail(scheduleId){
+    if(!allPlans.some(plan=>plan.scheduleId===scheduleId))return;
+    rememberDetailState();
+    if(activeView==='list')listScrollTop=get('workspace-content')?.scrollTop??0;
+    detailReturnView=activeView==='runner'?'runner':'list';
+    selectedPlanId=scheduleId;
+    renderDetail();show('detail');
+    get('schedule-back').focus({preventScroll:true});
+  }
+  function leaveDetail(){
+    rememberDetailState();
+    const scheduleId=selectedPlanId;
+    show(detailReturnView);
+    if(detailReturnView==='list'){
+      const card=[...get('schedule-plan-list').querySelectorAll('.schedule-card')]
+        .find(row=>row.dataset.scheduleId===scheduleId);
+      (card?.querySelector('.schedule-plan-open')||
+        get('schedule-plan-list').querySelector('.schedule-plan-open')||
+        get('schedule-create')).focus({preventScroll:true});
+      const scroller=get('workspace-content');
+      if(scroller)scroller.scrollTop=listScrollTop;
+    }else get('schedule-runner-history').focus({preventScroll:true});
   }
   async function change(plan,operation){
     if(busy)return;busy=true;
     try{
       await client.request('changeSchedule',{scheduleId:plan.scheduleId,
         expectedGeneration:plan.generation,action:operation});
-      await refresh();message(operation==='delete'?'计划已删除':'计划状态已更新');
+      const returnAfterDelete=operation==='delete'&&selectedPlanId===plan.scheduleId;
+      if(returnAfterDelete)selectedPlanId=null;
+      await refresh();
+      if(returnAfterDelete&&activeView==='detail')leaveDetail();
+      message(operation==='delete'?'计划已删除':'计划状态已更新');
     }catch(error){message(error?.message||String(error),true);}finally{busy=false;}
   }
   function switchKind(){
@@ -690,6 +760,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     formDirty=false;get('schedule-discard-confirm').hidden=true;
     clearConfirmation();touched.clear();
     for(const name of Object.keys(formFields))fieldError(name,'');
+    formReturnView=activeView==='detail'?'detail':isRunner()?'runner':'list';
     editing=plan;show('form');
     get('schedule-title').value=plan.title;
     populateChoices();
@@ -768,7 +839,8 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     try{
       await client.request('saveSchedule',pending.input);
       clearConfirmation();formDirty=false;get('schedule-discard-confirm').hidden=true;
-      await refresh();editing=null;show(isRunner()?'runner':'list');
+      const afterSave=editing?formReturnView:isRunner()?'runner':'list';
+      await refresh();editing=null;show(afterSave==='manager'?'list':afterSave);
       message('定时计划已保存，Chrome Alarms 已按照持久计划对账');
     }catch(error){message('无法保存计划：'+(error?.message||String(error)),true);}
     finally{busy=false;get('schedule-confirm-yes').disabled=false;}
@@ -791,7 +863,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
         `${row.taskId} · v${row.version} · ${row.enabled?'已启用':'已停用'} · 关联计划 ${allPlans.filter(p=>p.taskId===row.taskId).length}`));
       card.append(element(doc,'p','hint','网站权限：'+(details?.manifest?.siteOrigins||[]).join('，')));
       const toolbar=element(doc,'div','schedule-actions od-toolbar');
-      toolbar.append(action(doc,'设置定时',()=>{managerReturn='list';show('form');
+      toolbar.append(action(doc,'设置定时',()=>{managerReturn='list';formReturnView='manager';show('form');
         reset();get('schedule-task-select').value=row.enabled?row.taskId:'';
         showTaskVersion();get('schedule-title').value=(details?.manifest?.title||row.taskId)+' 定时';}));
       toolbar.append(action(doc,row.enabled?'停用':'启用',async event=>{
@@ -850,8 +922,9 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   }
   function navigateBack(){
     if(activeView==='manager'){show(managerReturn);return;}
+    if(activeView==='detail'){leaveDetail();return;}
     if(activeView==='form'){
-      requestLeaveForm(isRunner()?'runner':'list');return;
+      requestLeaveForm(formReturnView);return;
     }
     if(isRunner()){show('runner');return;}
     hidePanel();
@@ -866,14 +939,20 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     if(plan)void change(plan,plan.paused?'resume':'pause');
   });
   bind('schedule-runner-history','click',()=>{
-    show('list');
-    const card=[...get('schedule-plan-list').querySelectorAll('.schedule-card')]
-      .find(node=>node.dataset.scheduleId===runnerFocusId);
-    const details=card?.querySelector('.schedule-history');
-    if(details){details.open=true;details.querySelector('summary')?.focus();card.scrollIntoView?.({block:'nearest'});}
+    const plan=allPlans.find(row=>row.scheduleId===runnerFocusId);
+    if(!plan){show('list');return;}
+    openDetail(plan.scheduleId);
+    const details=get('schedule-detail-view').querySelector('.schedule-history');
+    if(details){details.open=true;
+      const view=historyViews.get(plan.scheduleId);if(view)view.open=true;
+      details.querySelector('summary')?.focus();}
   });
-  bind('schedule-create','click',()=>{reset();show('form');get('schedule-title').focus();});
-  bind('schedule-cancel','click',()=>requestLeaveForm(isRunner()?'runner':'list'));
+  bind('schedule-create','click',()=>{formReturnView=isRunner()?'runner':'list';reset();show('form');get('schedule-title').focus();});
+  bind('schedule-detail-edit','click',()=>{
+    const plan=allPlans.find(row=>row.scheduleId===selectedPlanId);
+    if(plan)edit(plan);
+  });
+  bind('schedule-cancel','click',()=>requestLeaveForm(formReturnView));
   bind('schedule-discard-yes','click',()=>{
     formDirty=false;
     get('schedule-discard-confirm').hidden=true;
@@ -960,6 +1039,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       // Task manager launches a NEW plan. Editor launches preserve the current
       // draft; an existing plan must never silently rebind to the new version.
       if(!pendingCreateFromForm)reset();
+      if(!pendingCreateFromForm)formReturnView='manager';
       pendingCreateFromForm=false;
       showPanel();show('form');
       if(!editing){

@@ -758,14 +758,11 @@
 #scheduled-panel[hidden],#scheduled-panel [hidden]{display:none!important}
 .schedule-panel{min-width:0;display:grid;gap:var(--space-3);font-size:12px}
 .schedule-header,.schedule-actions,.schedule-card-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-width:0;flex-wrap:wrap}
-.schedule-header strong{font-size:13px;font-weight:700}
 .schedule-header .hint{margin:4px 0 0}
 .schedule-panel .hint{font-size:12px;line-height:1.5;color:var(--od-sub);overflow-wrap:anywhere}
 #schedule-message:empty{display:none}
 #schedule-message[data-state=error]{color:var(--od-negative)}
 .schedule-panel .od-button{min-height:34px;font-size:12px}
-.schedule-panel .od-icon-button{width:var(--od-icon-size);height:var(--od-icon-size);min-width:var(--od-icon-size);flex:none;padding:7px}
-.schedule-panel .od-icon-button svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .schedule-card,.schedule-manager-card{display:grid;gap:var(--space-2);min-width:0;padding:var(--space-3)}
 .schedule-card p,.schedule-manager-card p{margin:0}
 .schedule-card-head strong{font-size:13px;overflow-wrap:anywhere;min-width:0}
@@ -913,7 +910,7 @@
 .schedule-run-details{margin-top:4px;max-width:100%}
 
 
-/* Scheduled R2: paged history stays within the original plan card. */
+/* Scheduled R3: Fire history and deletion belong to the active detail. */
 .schedule-load-more{justify-self:start;min-height:36px}
 
 
@@ -922,11 +919,20 @@
 .schedule-header{justify-content:flex-start;align-items:center}
 .schedule-header-heading{min-width:0;flex:1 1 130px}
 .schedule-header-heading strong,.schedule-header-heading .hint{overflow-wrap:anywhere}
+.schedule-header .od-page-actions{flex-wrap:wrap}
 .schedule-header #schedule-stop{margin-inline-start:auto}
 .schedule-panel #schedule-list-summary{margin:0;color:var(--od-ink);font-size:12px;font-weight:650;line-height:1.55;overflow-wrap:anywhere}
 .schedule-panel .schedule-card{gap:var(--space-2);padding:var(--space-3);overflow-wrap:anywhere}
 .schedule-card-head{align-items:flex-start;flex-wrap:nowrap}
 .schedule-card-head strong{font-size:14px;line-height:1.5;flex:1 1 auto;min-width:0;white-space:normal}
+.schedule-card-head .schedule-plan-open{min-width:0;flex:1 1 auto;min-height:34px;padding:0;max-width:none;justify-content:flex-start;text-align:left;white-space:normal;overflow-wrap:anywhere;font-size:14px;line-height:1.5;font-weight:700}
+.schedule-card-head .schedule-plan-open:hover{text-decoration:underline}
+.schedule-detail-view,.schedule-detail-card{min-width:0}
+.schedule-detail-summary{gap:var(--space-2)}
+.schedule-detail-summary .schedule-state{justify-self:start}
+.schedule-detail-summary p{margin:0;overflow-wrap:anywhere}
+.schedule-detail-summary .schedule-next-time{font-size:16px;line-height:1.4;font-weight:780;color:var(--od-ink);font-variant-numeric:tabular-nums}
+.schedule-detail-card .schedule-detail-actions{justify-content:flex-start}
 .schedule-state{flex:0 0 auto;white-space:nowrap;font-weight:650}
 .schedule-card .schedule-next-time{font-size:16px;line-height:1.4;font-weight:780;color:var(--od-ink);letter-spacing:-.02em;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .schedule-panel .schedule-plan-meta{margin:0;font-size:12px;line-height:1.5}
