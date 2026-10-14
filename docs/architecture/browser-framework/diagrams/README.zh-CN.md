@@ -52,3 +52,7 @@ Controller 代码在 sandbox iframe 创建的 Dedicated Worker 中运行，`page
 实线/虚线仅表示当前源码能否确认对应**机制/接口**，不是 Chrome PASS。若增加“页面 UI → 固定任务”能力，应复用原 RunHost/Authority、精确 origin/document、程序/Revision、用户手势、受控参数和 Durable Result；禁止新建第二套高权限事件分发/RunHost。
 
 暂不在此文档复制完整 Browser SDK API 数量和完成百分比；具体接口与验收以当前注册表、测试证据及构建候选为准。
+
+## 跨环境消息与旧版功能缺口审计
+
+详细的逐场景状态、当前已有 API 与最小补齐方案，请参阅 [网页 UI、跨运行世界通信与旧版迁移核查](../page-ui-cross-world-communication.zh-CN.md)。该文件只描述现状和建议，未为网页新增任意任务执行权限。
