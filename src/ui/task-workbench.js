@@ -45,7 +45,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   }
   let latestResultDisplay=null;
   let catalogSurface=false, catalogQuery='', catalogFilter='all';
-  let localQuery='', localFilter='current';
+  let localQuery='', localFilter='all';
   const parameterDrafts=new Map();
   let parameterDraftKey, parametersEdited=false, parameterSerial='', parameterWrites=Promise.resolve();
   function rememberParams() {
@@ -102,7 +102,6 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const message=formatTaskError(error);
     get('task-status').textContent=message;
     get('task-catalog-status').textContent=message;
-    get('local-discover-status').textContent=message;
     get('task-dev-status').textContent=message;
   };
   const option=(name,value)=>new Option(name,value);
@@ -129,7 +128,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     }
     syncRunDock(name);
     if(doc.documentElement?.dataset)doc.documentElement.dataset.opendeskTab=name;
-    if(name==='tasks')renderLocalDiscovery();
+    if(name==='tasks')renderInstalledCards();
     if(name==='debug')onNavigate?.('debug');
     if(name==='cloud')onNavigate?.('cloud');
     doc.querySelector?.('.workbench-nav button[aria-selected="true"]')?.scrollIntoView?.({block:'nearest',inline:'nearest'});
@@ -314,21 +313,42 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const focused=doc.activeElement;
     const focusedTaskId=parent.contains?.(focused) && focused?.dataset?.taskId || null;
     const focusedInWorkspace=workspace.contains?.(focused) || false;
-    let replacementFocus=null;
+    let replacementFocus=null,origin=null;
+    if(currentPage?.status==='available') {
+      try {origin=new URL(currentPage.url).origin;} catch { /* No stale URL fallback. */ }
+    }
+    const visible=installed.filter(row=>{
+      const info=candidateFor(row);
+      if(localFilter==='disabled' && row.enabled)return false;
+      if(localFilter==='current' && (!row.enabled || !origin ||
+        !info?.manifest.siteOrigins.includes(origin)))return false;
+      return !localQuery || [info?.manifest.title,info?.manifest.description,
+        row.taskId,...(info?.manifest.siteOrigins||[])].join(' ').toLocaleLowerCase().includes(localQuery);
+    });
+    for(const value of ['all','current','disabled'])
+      get('local-filter-'+value).setAttribute('aria-pressed',String(localFilter===value));
+    get('local-discover-count').textContent=`显示 ${visible.length} 个任务 · 共安装 ${installed.length} 个`;
     // Move the same live controls under the selected card, never recreate them.
-    // Keeping the original nodes preserves input focus, listeners and run ownership.
+    // Filtering is a view only: neither installed identity nor task params change.
     parent.replaceChildren();
-    if(!installed.length){
+    if(!installed.length || !visible.length){
       workspace.hidden=true;
       const empty=doc.createElement('p');
-      empty.className='hint';
-      empty.textContent='暂无任务。点击上方「添加」导入本地任务。';
+      empty.className='task-search-empty';
+      empty.textContent=!installed.length
+        ? '暂无任务。点击上方「添加」导入本地任务。'
+        : localFilter==='current' && !origin
+          ? '当前网页不可用。选择「全部」查看已安装任务。'
+          : localFilter==='disabled' && !localQuery
+            ? '没有已停用任务。'
+            : '没有匹配的任务。试试其他关键词或选择「全部」。';
       parent.append(empty,workspace);
-      if(focusedInWorkspace)get('tab-my-tasks').focus?.({preventScroll:true});
+      if(focusedInWorkspace)
+        (get('task-search-panel').hidden?get('task-search-toggle'):get('local-discover-search')).focus?.({preventScroll:true});
       return;
     }
     let attached=false;
-    for(const row of installed){
+    for(const row of visible){
       const info=candidateFor(row),group=doc.createElement('div'),button=doc.createElement('button');
       group.className='task-card-group'+(row.taskId===selected?' selected':'');
       button.type='button';button.className='task-card';
@@ -360,7 +380,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       parent.append(group);
     }
     if(!attached){workspace.hidden=true;parent.append(workspace);}
-    if(focusedInWorkspace && focused?.isConnected!==false)focused.focus?.({preventScroll:true});
+    if(focusedInWorkspace && !workspace.hidden && focused?.isConnected!==false)
+      focused.focus?.({preventScroll:true});
+    else if(focusedInWorkspace && workspace.hidden)
+      (get('task-search-panel').hidden?get('task-search-toggle'):get('local-discover-search')).focus?.({preventScroll:true});
     else replacementFocus?.focus?.({preventScroll:true});
   }
   function renderInstalled() {
@@ -391,75 +414,6 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     else{renderKey=null;clearChildren(get('task-params-form'));}
     renderInstalledCards();
     update();refreshHistory().catch(fail);
-  }
-  function renderLocalDiscovery() {
-    const parent=get('local-discover-cards');
-    const focused=doc.activeElement;
-    const focusedTaskId=parent.contains?.(focused) && focused?.dataset?.taskId || null;
-    let replacementFocus=null;
-    parent.replaceChildren();
-    let origin=null;
-    if(currentPage?.status==='available') {
-      try {origin=new URL(currentPage.url).origin;} catch { /* No stale site fallback. */ }
-    }
-    for(const value of ['current','all','disabled'])
-      get('local-filter-'+value).setAttribute('aria-pressed',String(localFilter===value));
-    const rows=installed.map(row=>({row,info:candidateFor(row)}))
-      .filter(item=>item.info && (
-        localFilter==='all' ||
-        localFilter==='disabled' && !item.row.enabled ||
-        localFilter==='current' && item.row.enabled && origin &&
-          item.info.manifest.siteOrigins.includes(origin)
-      ))
-      .filter(({row,info})=>[
-        info.manifest.title,info.manifest.description,row.taskId,...info.manifest.siteOrigins
-      ].join(' ').toLocaleLowerCase().includes(localQuery));
-    // Live count is accessible to screen readers; the visible list speaks for itself.
-    get('local-discover-count').textContent=`找到 ${rows.length} 个已安装任务 · 本机共 ${installed.length} 个`;
-    if(!rows.length) {
-      const empty=doc.createElement('p');
-      empty.className='local-discovery-empty';
-      empty.textContent=!installed.length
-        ? '还没有任务，点击「导入」添加。'
-        : localFilter==='current' && !origin
-          ? '当前网页不可用，可切换「全部」查看。'
-          : localFilter==='current' && !localQuery
-            ? '当前网页暂无可用任务，试试「全部」。'
-            : '没有匹配的任务，试试其他关键词。';
-      parent.append(empty);
-    }
-    for(const {row,info} of rows) {
-      const matches=!!origin && info.manifest.siteOrigins.includes(origin);
-      const card=doc.createElement('button');card.type='button';
-      card.className='local-discovery-card';card.dataset.taskId=row.taskId;
-      card.setAttribute('aria-label',`选择 ${info.manifest.title}，返回“我的”。适用网站：${info.manifest.siteOrigins.join('、')}`);
-      const icon=doc.createElement('span');icon.className='task-card-icon';
-      icon.textContent=(info.manifest.title||row.taskId).slice(0,1).toUpperCase();
-      icon.setAttribute('aria-hidden','true');
-      const copy=doc.createElement('span');copy.className='local-discovery-copy';
-      const title=doc.createElement('strong');title.textContent=info.manifest.title;
-      const description=doc.createElement('small');description.textContent=info.manifest.description;
-      copy.append(title,description);
-      const state=doc.createElement('span');
-      state.className='local-discovery-state'+(!row.enabled?' off':!matches?' other':'');
-      state.textContent=!row.enabled?'已停用':matches?(localFilter==='current'?'':'当前网页适用'):'其他网站';
-      card.append(icon,copy,state);
-      if(focusedTaskId===row.taskId)replacementFocus=card;
-      card.addEventListener('click',()=>{
-        if(disposed || !installed.some(value=>value.taskId===row.taskId))return;
-        get('task-installed-list').value=row.taskId;
-        renderInstalledSelection();
-        navigate('tasks'); // Explicit Run click still performs native permission admission.
-        for(const next of get('task-installed-cards').querySelectorAll?.('.task-card')||[])
-          if(next.dataset.taskId===row.taskId){next.focus?.({preventScroll:true});break;}
-      });
-      parent.append(card);
-    }
-    if(focusedTaskId){
-      if(replacementFocus)replacementFocus.focus?.({preventScroll:true});
-      else get('local-discover-search').focus?.({preventScroll:true});
-    }
-    get('local-discover-status').textContent='';
   }
   function renderCatalog(preserve) {
     const sel=get('task-catalog-list'),old=preserve||sel.value;
@@ -582,7 +536,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(disposed||seq!==catalogSequence)return;
     if(skipUnchanged&&JSON.stringify([catalog,installed])===JSON.stringify([result.catalog,result.installed]))return;
     catalog=result.catalog;installed=result.installed;
-    renderInstalled();renderCatalog(preferred);renderLocalDiscovery();
+    renderInstalled();renderCatalog(preferred);
   }
   function describeHistoryResult(run,result) {
     if(!result)return run?.state==='paused_unknown'
@@ -874,14 +828,25 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   }
   listen(get('open-catalog'),'click',()=>navigate('catalog'));
   listen(get('task-open-catalog'),'click',()=>navigate('catalog'));
-  listen(get('local-discover-open-catalog'),'click',()=>navigate('catalog'));
+  listen(get('task-search-toggle'),'click',()=>{
+    const panel=get('task-search-panel'),toggle=get('task-search-toggle');
+    if(panel.hidden){
+      panel.hidden=false;toggle.setAttribute('aria-expanded','true');
+      renderInstalledCards();
+      get('local-discover-search').focus?.({preventScroll:true});
+    }else{
+      panel.hidden=true;toggle.setAttribute('aria-expanded','false');
+      localQuery='';localFilter='all';get('local-discover-search').value='';
+      renderInstalledCards();toggle.focus?.({preventScroll:true});
+    }
+  });
   listen(get('local-discover-search'),'input',()=>{
     localQuery=get('local-discover-search').value.trim().toLocaleLowerCase();
-    renderLocalDiscovery();
+    renderInstalledCards();
   });
-  for(const value of ['current','all','disabled'])
+  for(const value of ['all','current','disabled'])
     listen(get('local-filter-'+value),'click',()=>{
-      localFilter=value;renderLocalDiscovery();
+      localFilter=value;renderInstalledCards();
     });
   listen(get('task-search'),'input',()=>{
     catalogQuery=get('task-search').value.trim().toLocaleLowerCase();
@@ -926,7 +891,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   listen(get('task-uninstall'),'click',asyncAction(uninstall));
   listen(get('task-fork-draft'),'click',asyncAction(fork));
   const unsubscribePage=currentPageTarget?.subscribe(next=>{
-    currentPage=next;update();renderLocalDiscovery();
+    currentPage=next;update();renderInstalledCards();
   });
   const unsubscribeRun=host.subscribe(value=>{
     if(disposed)return;
@@ -964,6 +929,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const selectedRow=installed.find(row=>row.taskId===taskId);
     if(disposed||!selectedRow)return false;
     if(navigate('tasks')===false)return false;
+    // A manager handoff must not leave its explicitly selected task filtered out.
+    localQuery='';localFilter='all';get('local-discover-search').value='';
+    get('task-search-panel').hidden=true;
+    get('task-search-toggle').setAttribute('aria-expanded','false');
     get('task-installed-list').value=taskId;
     renderInstalledSelection();
     return true;

@@ -19,7 +19,19 @@
       <section class="tasks-surface" aria-label="已安装任务">
       <div class="task-section-head od-toolbar">
         <div class="task-section-copy"><strong>自动化任务</strong><span id="task-installed-count" aria-live="polite"></span></div>
-        <div class="task-section-actions"><button id="schedule-open" type="button" class="od-icon-button" title="定时计划" aria-label="打开定时计划" aria-controls="scheduled-panel"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></button><button type="button" id="task-open-catalog" class="od-button" aria-label="打开任务目录添加任务">＋ 添加</button></div>
+        <div class="task-section-actions"><button id="task-search-toggle" type="button" class="od-icon-button" title="搜索和筛选任务" aria-label="搜索和筛选任务" aria-expanded="false" aria-controls="task-search-panel"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 5 5"></path></svg></button><button id="schedule-open" type="button" class="od-icon-button" title="定时计划" aria-label="打开定时计划" aria-controls="scheduled-panel"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></button><button type="button" id="task-open-catalog" class="od-button" aria-label="打开任务目录添加任务">＋ 添加</button></div>
+      </div>
+      <div id="task-search-panel" class="task-search-panel" hidden>
+        <div class="local-discovery-search-row od-toolbar">
+          <label for="local-discover-search" class="visually-hidden">搜索已安装任务</label>
+          <input type="search" id="local-discover-search" class="od-field" placeholder="搜索已安装任务…" autocomplete="off" aria-controls="task-installed-cards">
+        </div>
+        <div id="local-discover-filters" class="local-discovery-filters od-segmented" role="group" aria-label="任务筛选">
+          <button type="button" id="local-filter-all" data-local-filter="all" aria-pressed="true">全部</button>
+          <button type="button" id="local-filter-current" data-local-filter="current" aria-pressed="false">当前网页</button>
+          <button type="button" id="local-filter-disabled" data-local-filter="disabled" aria-pressed="false">已停用</button>
+        </div>
+        <p id="local-discover-count" class="visually-hidden" aria-live="polite"></p>
       </div>
       <label for="task-installed-list" class="visually-hidden">已安装任务</label><select id="task-installed-list" hidden class="od-field"><option value="">读取已安装任务…</option></select>
       <div id="task-installed-cards" class="task-card-list od-stack" aria-label="已安装任务列表"></div>
@@ -45,23 +57,6 @@
       </details>
       </div>
     </section>
-    <details id="task-local-discovery" class="task-local-discovery od-disclosure"><summary>查找本机任务</summary>
-      <section class="local-discovery-section" aria-label="发现已安装任务">
-      <div class="local-discovery-search-row od-toolbar">
-        <label for="local-discover-search" class="visually-hidden">搜索已安装任务</label>
-        <input type="search" id="local-discover-search" class="od-field" placeholder="搜索已安装任务…" autocomplete="off">
-        <button type="button" id="local-discover-open-catalog" class="local-discovery-import od-button od-button--secondary" aria-label="打开完整任务目录，导入或管理任务">导入</button>
-      </div>
-      <div id="local-discover-filters" class="local-discovery-filters od-segmented" role="group" aria-label="本地任务筛选">
-        <button type="button" id="local-filter-current" data-local-filter="current" aria-pressed="true">当前网页</button>
-        <button type="button" id="local-filter-all" data-local-filter="all" aria-pressed="false">全部</button>
-        <button type="button" id="local-filter-disabled" data-local-filter="disabled" aria-pressed="false">停用</button>
-      </div>
-      <p id="local-discover-count" class="visually-hidden" aria-live="polite"></p>
-      <div id="local-discover-cards" class="local-discovery-list od-surface" aria-label="发现的本机任务"></div>
-      <p id="local-discover-status" class="hint" role="status"></p>
-    </section>
-    </details>
     <section id="scheduled-panel" class="schedule-panel od-stack" aria-label="定时计划" hidden>
       <header class="schedule-header od-page-head">
         <button id="schedule-back" class="od-icon-button" type="button" title="返回我的任务" aria-label="返回我的任务"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m7-7-7 7 7 7"></path></svg></button>

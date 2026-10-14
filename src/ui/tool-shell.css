@@ -23,7 +23,7 @@
  * This keeps the outdented sandbox within the panel's measured scroll bounds. */
 #workbench-tools{width:calc(100% + var(--od-page-gutter) + var(--od-page-gutter));margin-inline:calc(0px - var(--od-page-gutter));padding-inline:var(--od-page-gutter)}
 #workspace-content>.od-page:not([hidden]):not(#workbench-workflow):not(#workbench-discover){display:grid;gap:var(--space-2);align-content:start}
-#workspace-content .tasks-surface,#workspace-content .local-discovery-section,#workspace-content .developer-target,#workspace-content .developer-editor{padding:0;border:0;box-shadow:none;background:transparent;margin:0 0 8px}
+#workspace-content .tasks-surface,#workspace-content .developer-target,#workspace-content .developer-editor{padding:0;border:0;box-shadow:none;background:transparent;margin:0 0 8px}
 .workspace-dock{flex:none;background:var(--od-paper);border-top:1px solid var(--line);padding:8px 11px 10px}
 .dock-actions[hidden]{display:none!important}
 .dock-buttons{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:var(--space-2)}
@@ -48,8 +48,8 @@
 .task-card-copy{flex:1;min-width:0}
 .task-card-copy strong{display:block;font-size:13px;font-weight:700;line-height:1.4;overflow-wrap:anywhere}
 .task-card-copy small{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;color:var(--od-sub);font-size:11px;line-height:1.45;margin-top:3px}
-.task-card-state,.local-discovery-state{flex:none;color:var(--od-warning);background:var(--od-muted);border-radius:var(--radius-pill);padding:3px 7px;font-size:11px;white-space:nowrap}
-.task-card-state:empty,.local-discovery-state:empty{display:none}
+.task-card-state{flex:none;color:var(--od-warning);background:var(--od-muted);border-radius:var(--radius-pill);padding:3px 7px;font-size:11px;white-space:nowrap}
+.task-card-state:empty{display:none}
 .task-card-state.off{color:var(--od-sub)}
 .task-card-state:not(.off):not(:empty){background:var(--od-muted);color:var(--od-positive)}
 .task-selected-workspace{min-width:0;border-top:1px solid var(--od-line);padding:11px 12px 12px;background:var(--od-paper)}
@@ -89,28 +89,16 @@
 .catalog-open{background:#eef3ff!important;color:#3657a7!important}
 .task-card-list>.hint{background:var(--od-paper);border:1px dashed var(--line);padding:16px 12px;border-radius:var(--radius-surface);margin:0}
 
-/* Installed-only Discover: search, concise filters, scannable rows. */
-.local-discovery-search-row{display:flex;align-items:center;gap:8px}
-#local-discover-search{flex:1;min-width:0;min-height:38px;font-size:13px;background:var(--od-paper);border-color:var(--od-input-border)}
-.local-discovery-import{flex:none;min-height:38px;background:var(--od-muted);color:var(--od-accent-ink);border:1px solid var(--od-input-border);padding:7px 12px;font-size:12px;font-weight:700;border-radius:var(--radius-control)}
-.local-discovery-filters{display:flex;width:max-content;max-width:100%;flex-wrap:wrap;gap:2px;padding:3px;margin:8px 0 8px;background:var(--od-paper);border:1px solid var(--line);border-radius:var(--radius-surface)}
-.local-discovery-filters button{flex:none;min-height:32px;padding:5px 11px;background:transparent;color:var(--od-sub);border:1px solid transparent;border-radius:var(--radius-control);font-size:12px;font-weight:650}
-.local-discovery-filters button[aria-pressed=true]{background:var(--od-muted);border-color:var(--od-focus);box-shadow:0 1px 2px transparent;color:var(--od-accent-ink)}
-.local-discovery-list{display:grid;gap:0;background:var(--od-paper);border:1px solid var(--line);border-radius:var(--radius-surface);overflow:hidden}
-.local-discovery-list:empty{display:none}
-.local-discovery-card{display:flex;align-items:center;text-align:left;gap:9px;width:100%;min-height:62px;padding:9px 10px!important;border:0!important;border-bottom:1px solid var(--od-line)!important;border-radius:0!important;background:var(--od-paper)!important;color:var(--ink)!important}
-.local-discovery-card:last-child{border-bottom:0!important}
-.local-discovery-card:hover{background:var(--od-muted)!important}
-.local-discovery-card:focus-visible{position:relative;z-index:1;outline:2px solid var(--od-focus);outline-offset:-3px}
-.local-discovery-copy{flex:1;min-width:0;overflow-wrap:anywhere}
-.local-discovery-copy strong{display:block;font-size:13px;line-height:1.35}
-.local-discovery-copy small{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;font-size:12px;line-height:1.4;color:var(--od-sub);margin-top:3px}
-.local-discovery-state{background:var(--od-muted);color:var(--od-positive)}
-.local-discovery-state.other{background:var(--od-muted);color:var(--od-sub)}
-.local-discovery-state.off{background:var(--od-muted);color:var(--od-warning)}
-.local-discovery-empty{padding:18px 12px;margin:0;color:var(--od-sub);font-size:12px;line-height:1.6;text-align:center;overflow-wrap:anywhere}
-#local-discover-status:not(:empty){color:var(--od-negative);font-size:12px;margin:8px 0}
-#local-discover-status:empty{display:none}
+/* Task search expands within the existing installed Task list, never beside schedules. */
+#task-search-panel[hidden]{display:none!important}
+.task-search-panel{display:grid;gap:var(--space-2);min-width:0;margin:0 0 var(--space-2)}
+.local-discovery-search-row{display:flex;align-items:center;gap:var(--space-2);min-width:0}
+#local-discover-search{flex:1;min-width:0;width:100%;min-height:36px;font-size:13px;background:var(--od-paper);border-color:var(--od-input-border)}
+.local-discovery-filters{display:flex;flex-wrap:wrap;width:max-content;max-width:100%;gap:var(--space-1);padding:var(--space-1);margin:0;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface)}
+.local-discovery-filters button{flex:none;min-height:34px;padding:5px var(--space-2);background:transparent;color:var(--od-sub);border:1px solid transparent;border-radius:var(--radius-control);font-size:12px;font-weight:650}
+.local-discovery-filters button[aria-pressed=true]{background:var(--od-muted);border-color:var(--od-focus);color:var(--od-accent-ink)}
+#task-search-toggle[aria-expanded=true]{background:var(--od-muted);border-color:var(--od-input-border)}
+.task-search-empty{margin:0;padding:var(--space-3);border:1px dashed var(--od-line);border-radius:var(--radius-surface);font-size:12px;line-height:1.5;color:var(--od-sub)}
 
 /* Develop: page signal and code first; results, library, DOM and SDK on demand. */
 /* R30: Tools Index/Detail headers and 8px row spacing are the Tab baseline.
@@ -292,13 +280,12 @@
   .workspace-dock{padding:8px 9px}
   .workbench-nav{padding:0 8px}
   .task-selected-workspace{padding:8px 9px}
-  .local-discovery-card{gap:7px;padding:8px!important}
   .local-discovery-filters button{padding:6px 9px}
   .dock-buttons{flex-wrap:wrap}
   .dock-buttons button{flex:1 1 calc(50% - 6px)}
   #script-run{flex-basis:100%}
 }
-@media(prefers-reduced-motion:no-preference){.task-card,.local-discovery-card,.local-discovery-filters button{transition:background-color .12s,border-color .12s}}
+@media(prefers-reduced-motion:no-preference){.task-card,.local-discovery-filters button{transition:background-color .12s,border-color .12s}}
 
 /* Visible only after a userScripts failure; never blocks unrelated Page APIs. */
 .developer-execution-help{min-width:0}

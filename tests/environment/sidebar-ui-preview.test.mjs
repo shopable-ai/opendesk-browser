@@ -54,17 +54,20 @@ test('R4 official sidebar preserves five product views, original host controls, 
   assert.equal(ids.length,new Set(ids).size,'no duplicate DOM IDs');
   for(const value of ['tab-my-tasks','tab-tools','tab-workflow','tab-develop','tab-cloud',
     'workbench-tasks','workbench-workflow','workbench-tools','workbench-cloud','cloud-hosting',
-    'cloud-open-console','task-local-discovery','extension-center','extension-center-search',
+    'cloud-open-console','task-search-toggle','task-search-panel','extension-center','extension-center-search',
     'extension-center-list','extension-center-menu','task-selected-workspace','task-history',
     'task-params-form','task-run','task-stop','workspace-dock','task-result-panel','task-history-panel',
-    'local-discover-open-catalog','script-source','script-run','script-save',
+    'local-discover-search','script-source','script-run','script-save',
     'page-preview-run','sdk-install','task-install-feedback'])assert(ids.includes(value),'preserved '+value);
   const $=load(html),nav=$('.workbench-nav button:not([hidden])');
   assert.deepEqual(nav.toArray().map(el=>$(el).text().trim()),['我的','扩展','工作流','开发','云控']);
-  assert.equal($('#task-local-discovery').closest('#workbench-tasks').length,1,'task search remains in My');
+  assert.equal($('#task-search-panel').closest('.tasks-surface').length,1,'search is inside the same Tasks surface');
+  assert.doesNotMatch(html,/id="task-local-discovery"|id="local-discover-cards"/,
+    'there is no second Discover task list');
   assert.equal($('#extension-center').closest('#workbench-tools').length,1,'extension list retains trusted Tool host');
   assert.doesNotMatch(html,/id="discover-dock"|id="discover-to-catalog"/,'idle Discover should have no persistent footer');
-  assert.match(work,/function renderLocalDiscovery\(/);
+  assert.match(work,/function renderInstalledCards\(/);
+  assert.match(work,/localFilter='all'/);
   assert.match(work,/group\.append\(workspace\)/,'active task owns its details');
   assert.match(work,/new BroadcastChannel|new globalThis\.BroadcastChannel/);
   assert.match(work,/listTaskCatalog/,'broadcast does not replace authoritative data');
@@ -137,19 +140,19 @@ test('R19 Sidebar spacing and corner system is consistent across all five tabs',
   assert.match(body('#workbench-develop .local-project-tools>:not([hidden])'),/margin-block:0/);
   for(const selector of ['#developer-target-detail','.developer-source-switch','#script-source','.program-source-toolbar','.developer-params','.developer-results','#script-library-tools,#page-preview-tools,#script-advanced','#tool-diagnostics'])
     assert.match(body(selector),/margin:(?:0|0;)/,'no competing vertical margins: '+selector);
-  assert.match(body('.local-discovery-filters'),/display:flex;width:max-content;max-width:100%;[^}]*margin:8px 0 8px;[^}]*border-radius:var\(--radius-surface\)/);
+  assert.match(body('.local-discovery-filters'),/display:flex;flex-wrap:wrap;width:max-content;max-width:100%;[^}]*margin:0;[^}]*border-radius:var\(--radius-surface\)/);
   assert.match(body('.local-discovery-filters button'),/border-radius:var\(--radius-control\)/);
   assert.doesNotMatch(body('.local-discovery-filters button'),/border-radius:18px/);
-  assert.match(body('.local-discovery-import'),/border-radius:var\(--radius-control\)/);
-  assert.match(body('#local-discover-status:empty'),/display:none/,'empty discovery message consumes no vertical space');
+  assert.match(body('.task-search-panel'),/display:grid;gap:var\(--space-2\)/);
+  assert.match(body('#task-search-panel[hidden]'),/display:none!important/,'closed search consumes no vertical space');
   assert.match(body('#local-project-status:empty'),/display:none/,'empty local project message consumes no vertical space');
-  for(const selector of ['.task-card-group','.local-discovery-list','.sidebar-tool-row','.sidebar-tool-official','.workflow-composer'])
+  for(const selector of ['.task-card-group','.sidebar-tool-row','.sidebar-tool-official','.workflow-composer'])
     assert.match(body(selector),/border-radius:var\(--radius-surface\)/,'consistent card corners: '+selector);
   assert.match(body('.od-surface',design),/border-radius:var\(--radius-surface\)/,
     'shared surface owns the card radius');
   assert.ok(load(html)('.workflow-card').toArray().every(card=>load(html)(card).hasClass('od-surface')),
     'workflow card must use shared od-surface instead of redefining radius');
-  for(const selector of ['.task-card-state,.local-discovery-state','.local-project-switch-track','.workflow-pill','.catalog-card-state'])
+  for(const selector of ['.task-card-state','.local-project-switch-track','.workflow-pill','.catalog-card-state'])
     assert.match(body(selector),/border-radius:var\(--radius-pill\)/,'semantic pill corners: '+selector);
   for(const selector of ['.workflow-chat-entry','.sidebar-tool-capabilities'])
     assert.match(body(selector),/border-radius:var\(--radius-control\)/,'shared inside-control radius: '+selector);
@@ -162,7 +165,7 @@ test('R19 Sidebar spacing and corner system is consistent across all five tabs',
   assert.ok(load(html)('#script-source').hasClass('od-field'),'editor retains shared field style');
   assert.match(body('.catalog-reader-note'),/border-radius:var\(--radius-control\)/,'catalog hints share control radius');
   assert.match(body('.workbench-nav button'),/border-radius:0/,'tab underline remains square intentionally');
-  assert.match(body('.local-discovery-card'),/border-radius:0!important/,'list rows stay flush intentionally');
+  assert.match(body('.task-card'),/border-radius:0!important/,'the single installed list retains compact rows');
   assert.match(css,/:focus-visible/,'keyboard focus state remains visible');
 });
 
@@ -178,11 +181,13 @@ test('R4/R23 five-tab design system has one token source and a strict trusted as
     assert.ok(html.includes('class="'+toolbar+' od-toolbar"'),'shared toolbar '+toolbar);
   assert.ok(html.includes('class="developer-source-switch od-toolbar od-page-head"'),'shared page head developer-source-switch');
   assert.ok(html.includes('class="sidebar-tools-head od-toolbar od-page-head"'),'shared page head sidebar-tools-head');
-  for(const card of ['local-discovery-list','catalog-reader'])
+  for(const card of ['catalog-reader'])
     assert.ok(html.includes('class="'+card+' od-surface"'),'shared surface '+card);
   assert.ok(html.includes('id="sidebar-tool-official-catalog"'),'official rows render from trusted Catalog');
   assert.match(await read('src/ui/sidebar-tools.js'),/row\.className='sidebar-tool-official od-surface'/,'dynamic official rows retain the shared surface');
   assert.ok(html.includes('class="local-discovery-filters od-segmented"'));
+  assert.ok(html.includes('class="task-search-panel" hidden'));
+  assert.doesNotMatch(html,/class="local-discovery-list od-surface"/);
   assert.ok(html.includes('class="task-card-list od-stack"'));
   assert.ok(html.includes('class="sidebar-tool-list od-stack"'));
   for(const token of ['--od-ink:','--od-sub:','--od-bg:','--od-line:','--od-brand:','--space-2:8px','--radius-control:8px','--radius-surface:12px']){

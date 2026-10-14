@@ -507,6 +507,9 @@ test('R2.8 native runner does not dereference a retired Cloud quick entry',async
   assert.match(source,/const cloudEntry=doc\.querySelector\('#workbench-tasks \.cloud-my-entry'\)/);
   assert.match(source,/if\(cloudEntry\)cloudEntry\.hidden=true/);
   assert.match(source,/if\(cloudEntry\)cloudEntry\.hidden=false/);
+  assert.match(html,/<section class="tasks-surface"[\s\S]*?id="task-search-panel"[\s\S]*?<\/section>\s*<section id="scheduled-panel"/,
+    'Task search stays inside the surface hidden by schedule navigation');
+  assert.doesNotMatch(html,/id="task-local-discovery"/,'old discovery does not leak above schedule editor');
   assert.match(source,/doc\.querySelector\('#workbench-tasks \.tasks-surface'\)\.hidden=true/,
     'present Tasks surface remains the required original view');
   assert.doesNotMatch(source,/querySelector\('#workbench-tasks \.cloud-my-entry'\)\.hidden=/,

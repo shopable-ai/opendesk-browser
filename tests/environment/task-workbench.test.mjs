@@ -172,7 +172,7 @@ test('entering Sidebar task views reads external installations without executing
   const input=f.get('task-param-name');
   input.value='Preserved native input';
   await f.click('tab-tools');
-  assert.equal(f.get('local-discover-cards').children.length,1);
+  assert.equal(f.get('task-search-panel').hidden,true);
   await f.click('tab-my-tasks');
   assert.equal(f.get('task-param-name'),input,'unchanged catalog must not replace the editable form');
   assert.equal(input.value,'Preserved native input');
@@ -181,8 +181,8 @@ test('entering Sidebar task views reads external installations without executing
   // Switching back into My refreshes the original authoritative Task Catalog.
   await f.click('tab-tools');
   await f.click('tab-my-tasks');
-  assert.equal(f.get('local-discover-cards').children.length,1);
-  assert.match(f.get('local-discover-cards').children[0].textContent,/还没有任务/);
+  assert.equal(f.get('task-installed-cards').children.length,2);
+  assert.match(f.get('task-installed-cards').children[0].textContent,/暂无任务/);
 });
 
 test('installed tasks default page, render schema form and freeze the exact saved version/params/target',async t=>{
@@ -206,7 +206,7 @@ test('installed tasks default page, render schema form and freeze the exact save
   assert.equal(f.get('workbench-tools').hidden,false,'Extension Center must show the existing tools panel');
   assert.equal(f.get('workbench-discover').hidden,true,'full catalog must not occupy the Side Panel');
   assert.equal(f.catalogOpens.length,0,'Extension Center navigation must not open a marketplace tab');
-  assert.equal(f.get('local-discover-cards').children.length,1,'matching installed task is discoverable');
+  assert.equal(f.get('task-installed-cards').children.length,1,'installed tasks use the same visible list');
   assert.equal(f.get('task-dock').hidden,false,'task-owned Stop remains accessible across tabs');
   assert.equal(f.get('develop-dock').hidden,true,'Extensions must not expose a second runner');
   await f.click('tab-develop');
@@ -277,43 +277,55 @@ test('task cards retain readable selection and do not surface raw IDs as the mai
   assert.equal(f.get('workbench-discover').hidden,true);
 });
 
-test('R4 My searches installed tasks only and selects a task without running or opening the catalog',async t=>{
-  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
-  await f.click('tab-my-tasks');
-  assert.equal(f.get('workbench-tasks').hidden,false);
-  assert.equal(f.get('workbench-discover').hidden,true);
-  assert.equal(f.get('local-discover-count').textContent.includes('1 个'),true);
-  assert.equal(f.get('local-discover-cards').children.length,1);
-  assert.equal(f.catalogOpens.length,0);
+test('My searches a single installed task list on demand without executing or requesting permissions',async t=>{
+  const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
+  const cards=f.get('task-installed-cards');
+  assert.equal(cards.children.length,2);
+  assert.equal(f.get('task-search-panel').hidden,true,'default view has no persistent search block');
+  await f.click('task-search-toggle');
+  assert.equal(f.get('task-search-panel').hidden,false);
+  assert.equal(f.get('task-search-toggle').attributes['aria-expanded'],'true');
   f.get('local-discover-search').value='不存在的任务';
   f.get('local-discover-search').fire('input');
-  assert.match(f.get('local-discover-count').textContent,/0 个/);
-  assert.equal(f.get('local-discover-cards').children.length,1,'empty search renders an explanation');
-  assert.match(f.get('local-discover-cards').children[0].textContent,/没有匹配/);
+  assert.equal(cards.children.length,2,'empty state and same live workspace, never a second list');
+  assert.match(cards.children[0].textContent,/没有匹配/);
+  assert.match(f.get('local-discover-count').textContent,/0 个任务/);
+  assert.equal(f.get('task-selected-workspace').hidden,true);
   f.get('local-discover-search').value='表单';
   f.get('local-discover-search').fire('input');
-  assert.equal(f.get('local-discover-cards').children.length,1);
-  assert.equal(f.get('local-discover-cards').children[0].dataset.taskId,'demo.form');
-  f.get('local-discover-cards').children[0].fire('click');
-  assert.equal(f.get('workbench-tasks').hidden,false,'selection returns to My Tasks');
+  assert.equal(cards.children.length,1);
+  assert.equal(cards.children[0].children[0].dataset.taskId,'demo.form');
+  cards.children[0].children[0].fire('click');
   assert.equal(f.get('task-installed-list').value,'demo.form');
-  assert.equal(f.starts.length,0,'discover selection must not start a run');
-  assert.equal(f.permissions.length,0,'discover selection must not request new page permissions');
-  assert.equal(f.catalogOpens.length,0);
-  await f.click('open-catalog');
-  assert.equal(f.catalogOpens.length,1,'explicit full catalog opens an extension tab');
+  assert.equal(f.starts.length,0);
+  assert.equal(f.permissions.length,0);
+  await f.click('task-search-toggle');
+  assert.equal(f.get('task-search-panel').hidden,true);
+  assert.equal(f.get('task-search-toggle').attributes['aria-expanded'],'false');
+  assert.equal(cards.children.length,2,'closing search restores all installed tasks');
+  assert.equal(f.get('local-discover-search').value,'','search text resets on collapse');
+  await f.click('task-open-catalog');
+  assert.equal(f.catalogOpens.length,1,'catalog opens only on the explicit Add action');
   assert.equal(f.catalogOpens[0].url,'chrome-extension://extension/ui/tool.html');
 });
 
-test('R4 My installed task filters are real view filters and cannot start another run',async t=>{
-  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
-  await f.click('tab-my-tasks');
+test('My task filters use the one installed list and never run or grant permissions',async t=>{
+  const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
+  f.catalogState.installed[1].enabled=false;
+  f.catalogState.catalog[1].manifest.siteOrigins=['https://elsewhere.example'];
+  await f.ui.refresh();
+  await f.click('task-search-toggle');
   await f.click('local-filter-disabled');
   assert.equal(f.get('local-filter-disabled').attributes['aria-pressed'],'true');
-  assert.match(f.get('local-discover-count').textContent,/0 个/,'enabled task must not show as disabled');
+  assert.equal(f.get('task-installed-cards').children.length,1);
+  assert.equal(f.get('task-installed-cards').children[0].children[0].dataset.taskId,'demo.second');
+  await f.click('local-filter-current');
+  assert.equal(f.get('local-filter-current').attributes['aria-pressed'],'true');
+  assert.equal(f.get('task-installed-cards').children.length,1);
+  assert.equal(f.get('task-installed-cards').children[0].children[0].dataset.taskId,'demo.form');
   await f.click('local-filter-all');
   assert.equal(f.get('local-filter-all').attributes['aria-pressed'],'true');
-  assert.equal(f.get('local-discover-cards').children.length,1);
+  assert.equal(f.get('task-installed-cards').children.length,2);
   assert.equal(f.starts.length,0);
   assert.equal(f.permissions.length,0);
 });
@@ -356,7 +368,7 @@ test('R4 idle Extensions has no fixed footer and My task search import still ope
   await f.click('tab-my-tasks');
   assert.equal(f.get('workspace-dock').hidden,false,'task Run is visible in My Tasks');
   await f.click('tab-my-tasks');
-  await f.click('local-discover-open-catalog');
+  await f.click('task-open-catalog');
   assert.equal(f.catalogOpens.length,1,'inline import opens existing full-page catalog');
   assert.equal(f.starts.length,0);
   assert.equal(f.permissions.length,0);
@@ -453,8 +465,11 @@ test('R4 task selection and My search handoff retain focus restore focus',async 
   assert.equal(f.get('task-installed-list').value,'demo.second');
   assert.equal(f.doc.activeElement,f.get('task-installed-cards').children[1].children[0]);
   await f.click('tab-my-tasks');
-  const discovered=f.get('local-discover-cards').children[0];
-  discovered.focus();discovered.fire('click');
+  await f.click('task-search-toggle');
+  f.get('local-discover-search').value='表单';
+  f.get('local-discover-search').fire('input');
+  const first=f.get('task-installed-cards').children[0].children[0];
+  first.focus();first.fire('click');
   assert.equal(f.doc.activeElement,f.get('task-installed-cards').children[0].children[0]);
   assert.equal(f.starts.length,0);
 });
