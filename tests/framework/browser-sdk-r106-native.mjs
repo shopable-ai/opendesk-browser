@@ -710,7 +710,9 @@ async function runNative(){
       const pkg=await createSidebarToolPackage(toolRoot);const parts=pkg.version.split('.').map(Number);parts[2]++;pkg.version=parts.join('.');
       report.upgradedInstalled=await installProbe(pkg,'browser-sdk-acceptance-upgraded');
       assert.notEqual(report.upgradedInstalled.canonicalPackageHash,report.installed.canonicalPackageHash);
-      assert.notEqual(report.upgradedInstalled.epoch,report.installed.epoch,'upgrade must retire the original installation epoch');
+      assert.notEqual(report.upgradedInstalled.tool.version,report.installed.tool.version);
+      // Upgrade invalidates the composite owner by fixed version/package hash.
+      // The independent revocation epoch changes on disable/uninstall, not every upgrade.
       await toolType('#probe-reference',ownershipBook);await toolClick('#probe-bookmark');const bookmark=await probeOutput();assert(bookmark.result.error&&bookmark.result.code);
       await toolType('#probe-reference',ownershipSchedule);await toolClick('#probe-schedule');const schedule=await probeOutput();assert(schedule.result.error&&schedule.result.code);
       await toolClick('#schedule-list');const list=await output('scheduler-output');assert.deepEqual(list.schedules,[]);
@@ -727,9 +729,10 @@ async function runNative(){
       const storageKey=sidebarToolStorageKey('browser-sdk-acceptance');
       const bookmarkKey=BOOKMARK_OWNED_STORE_PREFIX+'browser-sdk-acceptance';
       const state=await deadline(async()=>{
-        const value=await read(client,control,`chrome.storage.local.get(["opendesk.sidebar-tools.installed.v1",${quote(storageKey)},${quote(bookmarkKey)}]).then(r=>({installed:r["opendesk.sidebar-tools.installed.v1"],storage:r[${quote(storageKey)}]??null,bookmarks:r[${quote(bookmarkKey)}]??null}))`);
+        const value=await read(client,control,`chrome.storage.local.get(["opendesk.sidebar-tools.installed.v1","opendesk.sidebar-tools.revocation-epochs.v1",${quote(storageKey)},${quote(bookmarkKey)}]).then(r=>({installed:r["opendesk.sidebar-tools.installed.v1"],epoch:r["opendesk.sidebar-tools.revocation-epochs.v1"]?.["browser-sdk-acceptance"]??null,storage:r[${quote(storageKey)}]??null,bookmarks:r[${quote(bookmarkKey)}]??null}))`);
         return value.installed.every(t=>t.id!=='browser-sdk-acceptance')&&value.storage===null&&value.bookmarks===null?value:null;
       },'uninstalled tool ownership and namespace cleared');
+      assert.equal(typeof state.epoch,'string');assert.notEqual(state.epoch,report.upgradedInstalled.epoch,'uninstall must retire the old installation epoch');
       assert(state.installed.some(t=>t.id==='browser-sdk-acceptance-peer'),'uninstall must retain peer installation');
       const nativeBookmarks=await read(client,control,'chrome.bookmarks.search({title:"OpenDesk demo"})');
       assert.equal(nativeBookmarks.length,1,'uninstall must preserve orphaned user bookmark');
