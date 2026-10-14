@@ -160,6 +160,14 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   cookieHelp.className='sidebar-toc-settings-hint';
   cookieHelp.textContent='只有在目标网站的活动 Chrome 标签页才能授权；授权后可切换标签继续管理。敏感值单独授权，全部权限可随时撤销。';
   cookiePermissions.append(cookieHeading,cookieTarget,cookieHelp);
+  // Trusted Side Panel first-use actions; an iframe cannot forge a grant.
+  const cookieFirstUse=doc.createElement('div');
+  cookieFirstUse.className='sidebar-tool-cookie-first-use';
+  const cookieReadWrite=doc.createElement('button');cookieReadWrite.type='button';
+  cookieReadWrite.className='od-button';cookieReadWrite.textContent='允许查看与编辑本站 Cookie';
+  const cookieReadOnly=doc.createElement('button');cookieReadOnly.type='button';
+  cookieReadOnly.className='od-button';cookieReadOnly.textContent='仅查看 Cookie';
+  cookieFirstUse.append(cookieReadWrite,cookieReadOnly);cookiePermissions.append(cookieFirstUse);
   const cookieButtons=new Map();
   for(const [cap,label] of cookieCaps){
     const row=doc.createElement('div');
@@ -189,6 +197,11 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(!app)return;
     const origin=websiteOrigin(currentPageTarget?.snapshot?.url),record=cookieSiteRecord(tool,origin);
     cookieTarget.textContent=origin?'当前网站：'+origin:'请选择普通 HTTP(S) 网页才能授权新网站';
+    cookieFirstUse.hidden=record?.read===true||!origin;
+    cookieReadOnly.disabled=busy||!origin||!tool.capabilities.includes('browser.cookies.read');
+    cookieReadWrite.disabled=busy||!origin||
+      !tool.capabilities.includes('browser.cookies.read')||
+      !tool.capabilities.includes('browser.cookies.write');
     for(const [cap,button] of cookieButtons){
       const allowed=record?.[cap]===true;
       button.textContent=allowed?'撤销授权':'授权此网站';
@@ -241,6 +254,27 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     render();notice(all?'已撤销 '+current+' 的 Cookie 网站权限':
       (cookieSiteRecord(tool,current)?.[capability]?'已授权 ':'已撤销 ')+current+' 的 '+capability+' 能力');
   }
+  cookieReadOnly.addEventListener('click',event=>{
+    if(!event?.isTrusted)return;
+    void changeCookieSite({capability:'read'}).then(()=>{
+      tocSettingsOpen=false;render();
+    }).catch(error=>notice((error?.code||'E_COOKIE')+'：'+String(error?.message||error).slice(0,180),true));
+  });
+  cookieReadWrite.addEventListener('click',event=>{
+    if(!event?.isTrusted)return;
+    // One choice, two independent Host authorizations; partial failure is visible.
+    void (async()=>{
+      const origin=websiteOrigin(currentPageTarget?.snapshot?.url),tool=active;
+      if(!tool||!origin)return;
+      if(cookieSiteRecord(tool,origin)?.read!==true)
+        await changeCookieSite({capability:'read'});
+      if(active!==tool||websiteOrigin(currentPageTarget?.snapshot?.url)!==origin)return;
+      if(cookieSiteRecord(tool,origin)?.write!==true)
+        await changeCookieSite({capability:'write'});
+      if(active===tool){tocSettingsOpen=false;render();}
+    })().catch(error=>notice('组合授权未全部完成，已授权项目以可信设置为准（'+
+      (error?.code||'E_COOKIE')+'）：'+String(error?.message||error).slice(0,160),true));
+  });
   for(const [cap,button] of cookieButtons)button.addEventListener('click',event=>{
     if(!event.isTrusted)return;
     void changeCookieSite({capability:cap}).catch(error=>
@@ -587,7 +621,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     settingsButton.setAttribute('aria-expanded',String(show));
     // Time Review uses the same trusted static settings DOM as an inline
     // enrollment card. Do not replace/hide its live stats iframe.
-    const trustedInline=show&&(id===TIME_REVIEW_ID||id===FOCUS_ID);
+    const trustedInline=show&&(id===TIME_REVIEW_ID||id===FOCUS_ID||isCookieTool(active));
     // Native approval/stop remains visible above a live sandbox, never inside it.
     if(trustedInline&&settingsView.nextElementSibling!==frameRoot)frameRoot.before?.(settingsView);
     else if(!trustedInline&&settingsView.previousElementSibling!==retiredDraft)retiredDraft.after?.(settingsView);
@@ -739,7 +773,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   }
   function mountTool(tool,{readOnly=false,launchGate=null,forceSandbox=false}={}) {
     // An installed Focus tool opens with a visible trusted first-use grant.
-    tocSettingsOpen=!readOnly&&tool.id===FOCUS_ID&&tool.capabilities.includes(FOCUS_CAPABILITY);
+    tocSettingsOpen=!readOnly&&(
+      tool.id===FOCUS_ID&&tool.capabilities.includes(FOCUS_CAPABILITY)||
+      isCookieTool(tool)&&cookieSiteRecord(tool,websiteOrigin(currentPageTarget?.snapshot?.url))?.read!==true);
     tocScope='site';destroyFrame();active=tool;readOnlyPreview=readOnly;previewDirty=false;knowledgeDirty=false;
     frameRevocationEpoch=readOnly?null:(revocationEpochs[tool.id]??null);
     instance=crypto.randomUUID();

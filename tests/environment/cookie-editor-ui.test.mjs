@@ -113,7 +113,7 @@ test('Cookie Editor is an optional two-mode tool without private cookies API',as
   assert(s.html.includes('id="live-search"')&&s.html.includes('id="live-filter"')&&
     s.html.includes('id="live-sort"'));
   assert(s.source.includes("E('live-filters').hidden=!hasRead"));
-  assert.equal(s.config.version,'2.0.4');
+  assert.equal(s.config.version,'2.0.5');
   assert(s.html.includes('id="offline-tools"')&&s.html.includes('id="browser-panel"'),
     'Live Chrome management is the default; offline tools are secondary');
   assert(!/\b(?:window|globalThis|chrome)\.cookies\./.test(s.source));
@@ -739,4 +739,26 @@ test('P2 pending set cannot delete, read or replay after '+event,async()=>{
   assert.equal(rows[0].value,'HIDDEN_NATIVE_SECRET');
   assert.equal(s.liveSnapshot().rows.length,0);
   assert.equal(s.getStatusMessage(),message,'late receipt must not publish stale success');
+});
+
+test('R4.3 live toolbar placement and single inline editor contract',async()=>{
+  const s=await harness();
+  const live=s.html.slice(s.html.indexOf('id="browser-panel"'),s.html.indexOf('id="offline-tools"'));
+  const positions=['class="toolbar live-toolbar"','id="live-import"','id="live-export"',
+    'id="live-new"','id="live-filters"','id="live-cookie-list"'].map(x=>live.indexOf(x));
+  assert(positions.every((v,i)=>v>=0&&(!i||v>positions[i-1])));
+  for(const id of ['live-import','live-export','live-new']){
+    const tag=live.match(new RegExp('<button[^>]+id="'+id+'"[^>]+>'))?.[0];
+    assert(tag?.includes('title=')&&tag?.includes('aria-label='));
+    assert(tag.includes('icon-button'));
+  }
+  assert.equal((s.html.match(/id="editor-panel"/g)||[]).length,1);
+  assert.equal((s.html.match(/id="live-export-format"/g)||[]).length,1);
+  assert.match(s.source,/item\.append\(editor\)/);
+  assert.match(s.source,/confirmLiveImport/);
+  assert.match(s.html,/Cookie Header · 仅名称和值/);
+  assert.match(s.css,/\.live-toolbar \.icon-button\{width:34px;height:34px/);
+  const host=await get('src/ui/sidebar-tools.js');
+  assert.match(host,/允许查看与编辑本站 Cookie/);
+  assert.match(host,/仅查看 Cookie/);
 });
