@@ -648,7 +648,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     parent.replaceChildren(card);
     // Reopen the inline review only; never invoke its dangerous RPC here.
     if(view.deleteReview)remove.click();
-    if(focusSelector)card.querySelector(focusSelector)?.focus({preventScroll:true});
+    if(focusSelector)(card.querySelector(focusSelector)||get('schedule-back'))?.focus({preventScroll:true});
     if(focusedRun)[...historyList.querySelectorAll('.schedule-history-row')]
       .find(row=>row.dataset.fireId===focusedRun)?.querySelector('.schedule-run-details > summary')
       ?.focus({preventScroll:true});

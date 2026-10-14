@@ -764,3 +764,14 @@ test('R1.2 background changes retain focus on installed-task recovery action',as
   assert.equal(document.activeElement===get('schedule-detail-view').querySelector('.schedule-status-help button'),true);
   ui.dispose();
 });
+
+test('R1.2 resolved recovery state returns focus to the stable detail header',async()=>{
+  const {get,state,ui,document}=await scheduledDomFixture();
+  state.plans[0].needsAttention=true;await ui.refresh();
+  get('schedule-plan-list').querySelector('.schedule-plan-open').click();
+  get('schedule-detail-view').querySelector('.schedule-status-help button').focus();
+  state.plans[0].needsAttention=false;await ui.refresh();
+  assert.equal(document.activeElement===get('schedule-back'),true,
+    'removing a resolved recovery action must not leave keyboard focus detached');
+  ui.dispose();
+});

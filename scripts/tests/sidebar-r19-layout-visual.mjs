@@ -332,6 +332,21 @@ function setupScene(scene,officialReleases){
   const extensionStatus=document.querySelector('#extension-center-status');
   extensionStatus.textContent=scene.state==='error'?'读取失败，保留最近一次显示。请重试。':'';
   extensionStatus.dataset.state=scene.state==='error'?'error':'info';
+  if(scene.tab==='tools'&&scene.allDetails){
+    document.querySelector('#extension-center-list-view').hidden=true;
+    document.querySelector('#extension-center-detail').hidden=false;
+    const body=document.querySelector('#extension-center-detail-body');body.replaceChildren();
+    const head=document.createElement('div');head.className='ec-detail-head';
+    const copy=document.createElement('div');copy.className='ec-detail-copy';
+    const title=document.createElement('strong');title.textContent='静态详情 · 长中文固定版本名称'.repeat(5);
+    const type=document.createElement('span');type.className='ec-type';type.textContent='网页增强';copy.append(title,type);head.append(copy);
+    const description=document.createElement('p');description.textContent='仅验证现有详情样式、返回与权限范围的几何，不执行安装或授权。';
+    const actions=document.createElement('div');actions.className='ec-detail-actions';
+    for(const label of ['停用自动运行','前往开发']){const button=document.createElement('button');button.type='button';button.textContent=label;actions.append(button);}
+    const sites=document.createElement('ul');sites.className='ec-sites';
+    const site=document.createElement('li');site.textContent='https://example.invalid/'+('long-fixed-revision-path/'.repeat(15));sites.append(site);
+    body.append(head,description,actions,sites);
+  }
   const panel=document.querySelector('[data-workbench-page="'+active+'"]');
   if(scene.allDetails){
     if(active==='tasks')document.querySelector('#task-history-panel').hidden=false;
@@ -476,10 +491,12 @@ function measureScene(scene){
   if(scene.tab==='tools'){
     metrics.corners.card=radius('.ec-list');
     metrics.corners.install=radius('.ec-action');
-    metrics.extensionTargets=[...panel.querySelectorAll('.ec-icon,.ec-row-more,.ec-action')]
+    metrics.extensionTargets=[...panel.querySelectorAll('.ec-icon,.ec-row-more,.ec-action,.ec-name,.ec-detail-back,.ec-detail-actions button')]
       .filter(rendered).map(button=>{const rect=button.getBoundingClientRect();return {
         className:button.className,width:rect.width,height:rect.height,
         label:button.getAttribute('aria-label')||button.textContent.trim()};});
+    metrics.extensionCopySizes=[...panel.querySelectorAll('.ec-type,.ec-description,.ec-sites,.ec-message')]
+      .filter(rendered).map(element=>({className:element.className,fontSize:parseFloat(getComputedStyle(element).fontSize)}));
   }
   if(scene.tab==='debug'){
     metrics.corners.card=radius('.debug-metrics');
@@ -526,6 +543,8 @@ function validate(scene,width,m){
     throw Error('Icon action is not 34px accessible control '+scene.name+' '+width+'px '+JSON.stringify(m.iconButtons));
   if(m.extensionTargets?.some(button=>!button.label||button.width<(m.coarsePointer?43.5:33.5)||button.height<(m.coarsePointer?43.5:33.5)))
     throw Error('Extension action below shared target size '+scene.name+' '+width+'px '+JSON.stringify(m.extensionTargets));
+  if(m.extensionCopySizes?.some(copy=>copy.fontSize<12))
+    throw Error('Extension metadata below readable public size '+scene.name+' '+width+'px '+JSON.stringify(m.extensionCopySizes));
   const expected={tasks:{taskCard:'12px'},'local-discover':{import:'8px',filter:'8px',filterGroup:'12px',list:'12px'},catalog:{},cloud:{},workflow:{card:'12px',icon:'8px'},develop:{page:'0px',editor:'8px'},tools:{card:'12px',install:'8px'},debug:{card:'12px',detail:'12px'}};
   // An empty task list intentionally has no card whose radius could be measured.
   if(scene.tab==='tasks'&&scene.state==='empty')delete expected.tasks.taskCard;

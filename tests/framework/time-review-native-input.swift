@@ -62,6 +62,12 @@ if command == "click-at" {
     let rect=CGRect(origin:origin,size:size);bounds.append("\(rect)");inside=inside||rect.contains(CGPoint(x:x,y:y))
   }
   guard inside else{print("Outside owned CFT windows: \(x),\(y); \(bounds)");exit(7)}
+  // AppKit menus track the real cursor, not CDP's renderer mouse position.
+  // Move inside the same owned window before sending its click sequence.
+  requireForeground()
+  guard let move=CGEvent(mouseEventSource:nil,mouseType:.mouseMoved,mouseCursorPosition:CGPoint(x:x,y:y),mouseButton:.left) else{exit(8)}
+  move.post(tap:.cghidEventTap)
+  RunLoop.current.run(until:Date().addingTimeInterval(0.12))
   for kind in [CGEventType.leftMouseDown,.leftMouseUp]{
     requireForeground()
     let visible=CGWindowListCopyWindowInfo([.optionOnScreenOnly,.excludeDesktopElements],kCGNullWindowID) as? [[String:Any]] ?? []

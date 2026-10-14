@@ -39,3 +39,5 @@ R4 五 Tab 复验扩展范围：仅 src/ui/extension-center.css 普通图标/触
 并行分工：native executor 子 Agent 独占 src/ui/scheduled-task-workbench.js 与 tests/environment/scheduled-task-ui-r1.test.mjs 进行等价任务 option 节点保持修复和回归；leader 不同时编辑这两文件，负责 CSS/R19/native driver/Git 集成。此为组件可复现的元数据更新风险，不宣称已证明 AX 原生失败因果。
 
 文件交接：收到R1.3会话01a13a4b-5823-7461-9e07-c673054fb4fa记录后，leader确认本轮tool.html公共标题改动已提交（当前仅R1.3 diff），本轮不再写tool.html，交还该文件给R1.3。保留workflow-observation-scope/revoke和AI许可新文案。R1.2验收包使用明确提交的git archive；不混入未提交R1.3源码。无日常Chrome/profile占用；独立CFT/43220/output仅R1.2受控测试。Git写入需明确串行窗口。
+
+最终复审补修：帮助恢复按钮消失时焦点回共享header Back（先组件FAIL再修）；EC详情/名称按钮和授权范围字号加入现有R19静态fixture目标与字体验证，保留现有窄宽度R4结构。追加测试辅助scope tests/framework/time-review-native-input.swift，仅click-at先真实mouseMoved再click，PID/bundle/AX/窗口/前台守卫保留，不改任何生产Native命令；原生sourceBinding加入该Swift源码，Profile独立编译，不影响已启动其他CFT。candidate8源码check PASS、Node109/110仅R4旧23px pattern失败（现更新34px），R19全量292静态+110source UI+10nav矩阵PASS；native8已观察真实AXMenuItem坐标但value未变，整体FAIL，不提升为产品PASS。

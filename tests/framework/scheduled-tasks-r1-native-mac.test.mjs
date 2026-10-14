@@ -366,7 +366,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
   const sourceHash=sha(await readFile('src/platform/tasks/schedule-service.js'));
   const sourceBinding=await Promise.all(['src/ui/scheduled-task-workbench.js','src/ui/tool.html',
     'src/ui/tool-shell.css','src/ui/design-system.css','src/ui/design-tokens.css',
-    'tests/framework/scheduled-tasks-r1-native-mac.test.mjs','package-lock.json','wxt.config.mjs']
+    'tests/framework/scheduled-tasks-r1-native-mac.test.mjs','tests/framework/time-review-native-input.swift','package-lock.json','wxt.config.mjs']
     .map(async file=>({file,sha256:sha(await readFile(file))})));
   const packageInfo=await packageFingerprint(EXT);
   const task=JSON.parse(await readFile('examples/tasks/form-fill.v1.opendesk-task.json','utf8'));
