@@ -430,7 +430,7 @@ test('R2.8 native runner does not dereference a retired Cloud quick entry',async
 
 test('R2.8 subview navigation clears old editor errors without hiding current form errors on Host refresh',async()=>{
   const ui=await load('src/ui/scheduled-task-workbench.js');
-  assert.match(ui,/const show=view=>\{[\s\S]*?if\(view!==activeView\)message\(''\);\s*activeView=view;/,
+  assert.match(ui,/const show=view=>\{[\s\S]*?const prior=activeView,changing=view!==prior;[\s\S]*?if\(changing\)message\(''\);\s*activeView=view;/,
     'only a deliberate subview change may clear the previous form notice');
   assert.match(ui,/if\(shown\)\{\s*\/\/ Do not clear a visible inline save\/permission error/,
     '15-second Host polling must preserve actionable validation while editing');
