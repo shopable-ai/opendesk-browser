@@ -175,13 +175,19 @@ export function createBookmarkManager({api,doc,container,currentPageTarget}={}){
       catch(e){s.error=message(e);render()}return;
     }
     if(action==='save-current'){
-      const snapshot=currentPageTarget?.snapshot||{};let url;
-      try{url=asHttpUrl(snapshot.url)}catch{s.error='请先选中普通网页';render();return}
+      // Freeze the exact trusted tab/document on this click; never fall back to
+      // a stale UI projection when the target binding is unavailable.
+      let snapshot,url;
+      try{
+        if(typeof currentPageTarget?.capture!=='function'||typeof currentPageTarget?.revalidate!=='function')
+          throw new Error('当前网页绑定服务不可用，无法安全收藏');
+        snapshot=currentPageTarget.capture();url=asHttpUrl(snapshot.url);
+      }catch(e){s.error=message(e);render();return}
       const existing=[...s.tree.byId.values()].find(x=>x.url===url);
       if(existing){s.selection=existing.id;s.mode='detail';s.info='该网址已收藏';render();return}
       const parentId=selectedFolder();if(!parentId){s.error='没有可写入的书签文件夹';render();return}
       void mutation(async()=>{
-        if(typeof currentPageTarget?.revalidate==='function')await currentPageTarget.revalidate(snapshot);
+        await currentPageTarget.revalidate(snapshot);
         return service.createBookmark({title:snapshot.title||new URL(url).hostname,url,parentId});
       });return;
     }
