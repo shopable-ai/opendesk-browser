@@ -7,6 +7,7 @@ import {createSidebarTools} from '../../src/ui/sidebar-tools.js';
 import {requestStayFocusOperation,runTrustedStayFocusOperation} from '../../src/stay-focus/tool-host.js';
 import {createStayFocusPermissionControls} from '../../src/stay-focus/host-controls.js';
 import {FOCUS_ID,FOCUS_CAPABILITY,FOCUS_OPERATIONS} from '../../src/stay-focus/policy.js';
+import {AI_ID,AI_CAPABILITY,AI_OPERATIONS} from '../../src/ai-smart-access/policy.js';
 import {createCurrentPageTarget} from '../../src/ui/current-page-target.js';
 import {initSidebarToolSandbox} from '../../src/sidebar-tools/bridge.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
@@ -1145,10 +1146,22 @@ test('R4.8 manual reviewed installation remains available for every offline offi
   });
   t.after(()=>{if(previous===undefined)delete globalThis.__opendeskStayFocusTrustedUI;
     else globalThis.__opendeskStayFocusTrustedUI=previous;});
+  // The reviewed AI tool has a fixed first-party host. This generic installer
+  // fixture supplies a matching extension-owned sidecar; the actual PAC and
+  // authorization protocol have independent R1 tests.
+  const previousAi=globalThis.__opendeskAiAccessTrustedUI;
+  globalThis.__opendeskAiAccessTrustedUI=Object.freeze({
+    id:AI_ID,capability:AI_CAPABILITY,operations:AI_OPERATIONS,
+    request:async()=>({}),runTrustedOperation:async()=>({}),
+    probe:async()=>({ready:true}),createPermissionControls:()=>({render(){}})
+  });
+  t.after(()=>{if(previousAi===undefined)delete globalThis.__opendeskAiAccessTrustedUI;
+    else globalThis.__opendeskAiAccessTrustedUI=previousAi;});
   const requested=[],store=new Map();
   const f=await hostFixture(t,{store,startTool:false,fetcher:async(url,options)=>{
     requested.push(new URL(url).pathname);return officialFixtureFetch(url,options);
   }});
+  f.api.permissions={contains:async()=>false}; // No native proxy rights in this installer fixture.
   const {catalog}=await officialFixtures();
   assert.equal(f.elements['sidebar-tool-official-catalog'].children.length,catalog.apps.length);
   assert.deepEqual(requested,['/official-tools/catalog.json'],'first run loads metadata only');

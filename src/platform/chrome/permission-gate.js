@@ -16,6 +16,8 @@ export const REQUIRED_BROWSER_API_PERMISSIONS = Object.freeze([
   "notifications",
   "unlimitedStorage",
   "alarms",
+  // Chrome forbids "proxy" as an optional permission. The fixed, audited AI
+  // Access service is the only product allowed to manage it after a real click.
   "proxy"
 ]);
 export const OPTIONAL_PLUGIN_API_PERMISSIONS = Object.freeze([

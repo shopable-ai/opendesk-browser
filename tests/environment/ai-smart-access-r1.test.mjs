@@ -213,7 +213,7 @@ test('R1 tool disable/uninstall stops proxy and removes only its own data',async
   assert.equal(h.effects.set.length,prior);
   assert.equal(h.effects.clear.length,1);
   const removed=[];
-  await cleanupUninstalledAiAccess(h.api,AI_ID,async key=>{
+  await cleanupUninstalledAiAccess(h.api,AI_ID,async (_api,key)=>{
     removed.push(key);delete h.local[key];
   });
   assert.deepEqual(removed,[AI_STORE]);
