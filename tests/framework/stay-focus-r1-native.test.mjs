@@ -119,7 +119,9 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   assert.ok(BIN&&spawnSync(BIN,['--version'],{stdio:'ignore'}).status===0);
   const packageFile=path.join(ROOT,'official-tools/stay-focus/stay-focus.opendesk-tool.json');
   const bytes=await readFile(packageFile),pkg=JSON.parse(bytes);
-  assert.equal(pkg.id,'stay-focus');assert.equal(pkg.version,'1.0.0');
+  const sourceConfig=JSON.parse(await readFile(path.resolve('examples/sidebar-tools/stay-focus/tool.config.json'),'utf8'));
+  assert.equal(pkg.id,'stay-focus');
+  assert.equal(pkg.version,sourceConfig.version,'native candidate must match the current official source version');
   await mkdir(OUT,{recursive:true});
   const profile=await mkdtemp(path.join(tmpdir(),'opendesk-stay-focus-r1-'));
   const serve=(_req,res)=>{

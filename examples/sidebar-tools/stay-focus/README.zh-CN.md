@@ -10,7 +10,7 @@
 
 
 1. 构建或使用包含此发行条目的 OpenDesk Chrome 扩展。在 Side Panel →「工具」→「发现 / 官方工具」，选择 **Stay Focus · 保持专注**，审阅能力和安装来源，安装后点击「打开」。
-2. 首屏的「快速开始」会在本机按当前网页**域名优先、标题辅助**推荐网站类型与每日额度；也可直接点击 YouTube / 哔哩哔哩 / TikTok / Instagram 的推荐按钮。YouTube 默认每天 15 分钟、社交网站默认 20 分钟。只需要点一次推荐按钮并确认，手动域名、子域名、共享额度等设置默认折叠。
+2. 首屏的「快速开始」会在本机按当前网页**域名优先、标题辅助**推荐网站类型与每日额度；也可直接点击 YouTube / 哔哩哔哩 / TikTok / Instagram 的推荐按钮。已识别的娱乐网站默认共享每日 30 分钟额度，用户可以根据需要调整。只需要点一次推荐按钮并确认，手动域名、子域名、共享额度等设置默认折叠。
 3. 点击外层工具详情「设置」→ **授权并开启网站限制**。浏览器必须明确同意 `idle` 与 `declarativeNetRequestWithHostAccess` 原生权限；之前安装的 Time Review 授权不能代替这里的申请。安装本身**不自动启动限制**。
 4. 在真实浏览器的前台正常使用被限制的网站。只有聚焦 Chrome 的有效标签页且用户不是 idle/locked 时才按检查点结算，多个标签页同一刻只用一份额度。退出 Side Panel 不影响 SW + Alarm 的后台策略。
 5. 当当天限额耗尽，Chrome 的 DNR 动态规则将符合精确域名的主框架导航重定向到扩展内部说明页。已经打开的相关标签页由可信 Host 尽力迁移到说明页；主页不读取或回显原 URL 查询参数。工作时段、专注模式高于额度规则。
@@ -53,7 +53,7 @@ npm run build:dev
 npm run verify
 ```
 
-独立发行应出现在 `artifacts/sidebar-tools/stay-focus/1.0.0/stay-focus.opendesk-tool.json`；Chrome 扩展官方离线副本位于 `dist/production/official-tools/stay-focus/stay-focus.opendesk-tool.json`。
+独立发行应出现在 `artifacts/sidebar-tools/stay-focus/1.0.1/stay-focus.opendesk-tool.json`；Chrome 扩展官方离线副本位于 `dist/production/official-tools/stay-focus/stay-focus.opendesk-tool.json`。
 
 **原生验收不是单元测试**：在 Mac Chrome for Testing 里加载正式 `dist/production`，通过 Side Panel 的实际安装界面授权；用真实 HTTP(S) 服务和 `chrome.declarativeNetRequest.getDynamicRules()` 检查 730000–730199、真实导航至 `chrome-extension://…/stay-focus/blocked-quota.html`，再测试断开 SW、整个 Chrome 重启、撤权、停用、卸载后 `getDynamicRules` 返回空并可重新访问。完成时应保存浏览器/包 SHA、日志、截图和原始规则证据。
 
