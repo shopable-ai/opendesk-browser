@@ -1207,6 +1207,9 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     }
     await click(client,formSid,card+' .schedule-plan-open');
     assert.equal(await evaluate(client,
+      'document.activeElement?.id',formSid),'schedule-back',
+      'native detail Back receives keyboard focus after entering via plan title');
+    assert.equal(await evaluate(client,
       'document.querySelector("#workspace-content").scrollTop',formSid),0,
       'real plan detail starts at top even when its 20-plan index was scrolled');
     assert.equal(await evaluate(client,
@@ -1218,6 +1221,12 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
       'original real run history remains visible after edits');
     report.tests.nativeEditedHistoryRetained='PASS';
     await click(client,formSid,'#schedule-back');
+    assert.equal(await evaluate(client,
+      'document.activeElement?.classList.contains("schedule-plan-open")',formSid),true,
+      'native Back restores focus to the originating list item');
+    assert.equal(await evaluate(client,
+      '!document.querySelector("#schedule-list-view").hidden&&document.querySelector("#schedule-detail-view").hidden',formSid),true,
+      'native Back returns to index without showing details simultaneously');
     await click(client,formSid,'#schedule-create');
     assert.equal(await evaluate(client,expr('#schedule-timezone')+'.value',formSid),original.timezone,
       'New plan re-identifies the real device zone rather than inheriting the edited zone');

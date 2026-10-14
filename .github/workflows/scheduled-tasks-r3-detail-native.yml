@@ -1,0 +1,59 @@
+name: Scheduled Tasks R3 genuine plan detail and form navigation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/scheduled-tasks-r3-detail-native.yml'
+      - 'tests/framework/scheduled-tasks-r1-native-mac.test.mjs'
+      - 'src/ui/scheduled-task-workbench.js'
+      - 'src/ui/tool-shell.css'
+      - 'src/ui/tool.html'
+      - 'tests/environment/scheduled-task-ui-r1.test.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: scheduled-r3-detail-native-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  real-plan-detail:
+    runs-on: macos-15
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Run existing schedule UI regression
+        run: node --test tests/environment/scheduled-task-ui-r1.test.mjs
+      - name: Build and verify actual production WXT extension
+        run: |
+          npm run build
+          node scripts/verify-package.mjs dist/production
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Native plan detail, edit, history and destructive confirmation via real pointer
+        env:
+          OPENDESK_SCHEDULED_NATIVE: '1'
+          SCHEDULE_NATIVE_FORM_MATRIX: '1'
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          SCHEDULE_NATIVE_OUT: artifacts/scheduled-r3-detail-macos
+        run: node --test tests/framework/scheduled-tasks-r1-native-mac.test.mjs
+      - name: Preserve original native screenshots and failure artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scheduled-r3-detail-macos-${{ github.sha }}
+          path: artifacts/scheduled-r3-detail-macos/
+          if-no-files-found: warn
+          retention-days: 14
