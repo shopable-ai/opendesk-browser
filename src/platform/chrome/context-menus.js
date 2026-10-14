@@ -246,7 +246,23 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     'browser.tabs.pinOwned':(input,owner)=>tabHost.pinOwned(input,owner),
     'browser.tabs.reloadOwned':(input,owner)=>tabHost.reloadOwned(input,owner),
     'browser.tabs.navigateOwned':(input,owner)=>tabHost.navigateOwned(input,owner),
-    'browser.tabs.removeOwned':(input,owner)=>tabHost.removeOwned(input,owner)
+    'browser.tabs.removeOwned':(input,owner)=>tabHost.removeOwned(input,owner),
+    'browser.tabs.getOwned':(input,owner)=>tabHost.getOwned(input,owner),
+    'browser.tabs.listOwned':(input,owner)=>tabHost.listOwned(input,owner),
+    'browser.downloads.getOwned':(input,owner)=>downloadHost.getOwned(input,owner),
+    'browser.downloads.listOwned':(input,owner)=>downloadHost.listOwned(input,owner),
+    // Storage uses one existing tool-namespaced service, never raw chrome.*
+    // Names are a finite audited list, not tool-controlled method strings.
+    ...Object.fromEntries(['get','set','remove','clear'].map(action=>{
+      const operation='browser.storage.local.'+action;
+      return [operation,(input,owner)=>executeBrowserToolStorage({
+        api,operation,toolId:owner.toolId,input,
+        authorize:()=>verifyBrowserOwner(owner,operation)
+      })];
+    }))
+  });
+  const dispatchScoped=(operation,input,owner)=>scopedBindings.dispatch(operation,input,owner,{
+    authorize:(method,_input,context)=>verifyBrowserOwner(context,method,context.approvedOrigin)
   });
   const trustedCookies=createTrustedCookieHost({api});
   const trustedHistory=createBrowserHistoryHost({api});
@@ -583,13 +599,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         // in the untrusted iframe or in this approval-only Host branch.
         if(operation==='browser.clipboard.writeText'||operation==='browser.downloads.text')
           return {authorized:true};
-        if(operation==='browser.storage.local.clear')
-          return executeBrowserToolStorage({api,operation,toolId,input:checked,
-            authorize:()=>verifyBrowserOwner(context,operation)});
-        if(scopedBindings.has(operation))return scopedBindings.dispatch(
-          operation,checked,context,{
-            authorize:(method,_input,owner)=>verifyBrowserOwner(owner,method,owner.approvedOrigin)
-          });
+        if(scopedBindings.has(operation))return dispatchScoped(operation,checked,context);
         if(operation==='browser.scheduler.create'){
           if(typeof scheduleService!=='function')throw failure('E_SERVICE_UNSUPPORTED','Existing Scheduler unavailable');
           const scheduleOwner={kind:'installed-tool-owned',toolId,toolVersion,packageHash:hash,
@@ -649,12 +659,15 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
           return result;
         }finally{activeNetworkRequests.delete(controller)}
       }
-      if(['browser.storage.local.get','browser.storage.local.set','browser.storage.local.remove'].includes(operation)){
-        const checked=normalizeBrowserOperation(operation,args),hash=await digestTool(tool);
+      // Never let a newly bound gesture operation bypass exact one-shot
+      // approval merely because it appears in the finite Binding table.
+      if(scopedBindings.has(operation)){
+        if(browserOperation(operation)?.requiresUserGesture)
+          throw failure('E_USER_GESTURE_REQUIRED','This Browser action requires a trusted click');
+        const hash=await digestTool(tool);
         const context={toolId,toolVersion,packageHash:hash,epoch:installEpoch??null,
           installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null};
-        return executeBrowserToolStorage({api,operation,toolId,input:checked,
-          authorize:()=>verifyBrowserOwner(context,operation)});
+        return dispatchScoped(operation,args,context);
       }
       if(operation==='browser.scheduler.listOwn'||operation==='browser.scheduler.cancelOwn'){
         const checked=normalizeBrowserOperation(operation,args),hash=await digestTool(tool);
@@ -665,24 +678,6 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         const result=await scheduleService(operation,checked,owner);
         await verifyBrowserOwner(owner,operation);
         return result;
-      }
-      if(operation==='browser.downloads.getOwned'||operation==='browser.downloads.listOwned'){
-        const checked=normalizeBrowserOperation(operation,args),hash=await digestTool(tool);
-        const context={toolId,toolVersion,packageHash:hash,epoch:installEpoch??null,
-          installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null};
-        await verifyBrowserOwner(context,operation);
-        return operation==='browser.downloads.getOwned'
-          ?downloadHost.getOwned(checked,context):downloadHost.listOwned(checked,context);
-      }
-      if(operation==='browser.tabs.getOwned'||operation==='browser.tabs.listOwned'){
-        const checked=normalizeBrowserOperation(operation,args),packageHash=await digestTool(tool);
-        const context={toolId,toolVersion,packageHash,epoch:installEpoch??null,
-          installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null};
-        await verifyBrowserOwner(context,operation);
-        const value=operation==='browser.tabs.getOwned'
-          ?await tabHost.getOwned(checked,context):await tabHost.listOwned(checked,context);
-        await verifyBrowserOwner(context,operation);
-        return value;
       }
       if(observationOperations.has(operation)||ownedOperationMethods.has(operation)){
         const checked=normalizeBrowserOperation(operation,args),packageHash=await digestTool(tool);

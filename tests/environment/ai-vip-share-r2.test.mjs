@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {runInNewContext} from 'node:vm';
 import {readFile} from 'node:fs/promises';
 import {randomUUID} from 'node:crypto';
-import {AI_ID,AI_PROTOCOL,AI_STORE,AI_DOMAINS,AI_CAPABILITY,
+import {AI_ID,LEGACY_AI_ID,AI_PROTOCOL,AI_STORE,LEGACY_AI_STORE,LEGACY_AI_ALARM,AI_DOMAINS,AI_CAPABILITY,
   compileAiPac,validEndpoint,validLease,desiredAiProxy,matchesAiProxy}
   from '../../src/ai-smart-access/policy.js';
 import {createAiAccessService} from '../../src/ai-smart-access/service.js';
@@ -18,7 +18,7 @@ import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE}
 
 const endpoint={scheme:'socks5',host:'proxy.example.com',port:1080};
 const tool={format:'opendesk.sidebar-tool.v1',id:AI_ID,version:'1.0.0',
-  title:'AI 智能访问',description:'mock fixture',capabilities:[AI_CAPABILITY],
+  title:'AI VIP Share',description:'mock fixture',capabilities:[AI_CAPABILITY],
   html:'<main>AI</main>',css:'',js:'void 0;'};
 const origin='chrome-extension://'+'a'.repeat(32);
 const sender={
@@ -217,4 +217,41 @@ test('R1 tool disable/uninstall stops proxy and removes only its own data',async
     removed.push(key);delete h.local[key];
   });
   assert.deepEqual(removed,[AI_STORE]);
+});
+
+test('R2 renamed tool uses new identity, protocol, state and alarm namespaces',()=>{
+  assert.equal(AI_ID,'ai-vip-share');
+  assert.equal(LEGACY_AI_ID,'ai-smart-access');
+  assert.equal(AI_STORE,'opendesk.ai-vip-share.state.v1');
+  assert.equal(LEGACY_AI_STORE,'opendesk.ai-access.state.v1');
+  assert.notEqual(AI_STORE,LEGACY_AI_STORE);
+  assert.equal(AI_PROTOCOL,'opendesk.ai-vip-share.v1');
+});
+
+test('R2 old activation never enables renamed ID and stale PAC is released on wake',async()=>{
+  const h=await fixture();
+  h.local[LEGACY_AI_STORE]={...EMPTY_AI_STATE,desired:true,deviceId:randomUUID(),
+    lease:{leaseId:'lease-verified-123',expiresAt:expires(),endpoint}};
+  await h.api.proxy.settings.set({value:desiredAiProxy(endpoint),scope:'regular'});
+  assert.equal((await h.rpc('aiAccess.status')).state,'activation_required');
+  await h.svc.reconcile();
+  assert.equal(h.effects.clear.length,1);
+  assert.equal(h.snapshot().level,'controllable_by_this_extension');
+  assert.equal(h.local[AI_STORE].desired,false);
+  assert.equal(h.local[LEGACY_AI_STORE].desired,true,
+    'old lease is kept until old ID is explicitly uninstalled');
+});
+
+test('R2 uninstalling legacy package removes only its state and alarm',async()=>{
+  const h=await fixture();
+  h.local[LEGACY_AI_STORE]={...EMPTY_AI_STATE};
+  h.local[AI_STORE]={...EMPTY_AI_STATE};
+  const removed=[];
+  await cleanupUninstalledAiAccess(h.api,LEGACY_AI_ID,async (_api,key)=>{
+    removed.push(key);delete h.local[key];
+  });
+  assert.deepEqual(removed,[LEGACY_AI_STORE]);
+  assert.deepEqual(h.local[AI_STORE],EMPTY_AI_STATE);
+  assert.equal(h.effects.clear.length,0);
+  assert.equal(LEGACY_AI_ALARM,'opendesk.ai-access.lease-check.v1');
 });

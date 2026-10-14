@@ -1,8 +1,8 @@
 {
-  "id": "ai-smart-access",
+  "id": "ai-vip-share",
   "version": "1.0.0",
-  "title": "AI 智能访问",
-  "description": "一键开启 AI 网站自动代理，其余网站直连；代理与激活由可信后台管理。",
+  "title": "AI VIP Share",
+  "description": "一键开启指定 AI 网站自动代理，其他网站直连；激活与代理由可信框架管理。",
   "capabilities": [
     "ai.access"
   ],

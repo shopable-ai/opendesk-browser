@@ -45,8 +45,8 @@
       "installationPolicy": "optional"
     },
     {
-      "id": "ai-smart-access",
-      "project": "examples/sidebar-tools/ai-smart-access",
+      "id": "ai-vip-share",
+      "project": "examples/sidebar-tools/ai-vip-share",
       "kind": "sidebar-tool",
       "installationPolicy": "optional"
     },

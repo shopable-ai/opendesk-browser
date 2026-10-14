@@ -34,13 +34,13 @@ async function fixture(t){
   }
   return {root,catalog,config,write,save};
 }
-test('R4.8 authored catalog keeps two default tools and includes optional Cookie Editor and AI Smart Access UI',async()=>{
+test('R4.8 authored catalog keeps two default tools and includes optional Cookie Editor and AI VIP Share UI',async()=>{
   const source=await readOfficialSources();
   assert.deepEqual(source.tools.map(row=>row.id).sort(),
-    ['ai-smart-access','cookie-editor','knowledge-inbox','markdown-workbench','quick-notes','reading-toc','stay-focus','time-review','web-markdown-clipper']);
+    ['ai-vip-share','cookie-editor','knowledge-inbox','markdown-workbench','quick-notes','reading-toc','stay-focus','time-review','web-markdown-clipper']);
   const policies=Object.fromEntries(source.tools.map(row=>[row.id,row.installationPolicy]));
   assert.deepEqual(policies,{'reading-toc':'preinstalled','web-markdown-clipper':'optional',
-    'quick-notes':'preinstalled','markdown-workbench':'optional','knowledge-inbox':'optional','time-review':'optional','stay-focus':'optional','cookie-editor':'optional','ai-smart-access':'optional'});
+    'quick-notes':'preinstalled','markdown-workbench':'optional','knowledge-inbox':'optional','time-review':'optional','stay-focus':'optional','cookie-editor':'optional','ai-vip-share':'optional'});
   for(const row of source.tools){
     assert(['optional','preinstalled'].includes(row.installationPolicy));
     assert.equal(Object.hasOwn(row,'version'),false);assert.equal(Object.hasOwn(row,'capabilities'),false);

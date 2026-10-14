@@ -1,11 +1,16 @@
 // Fixed first-party policy. Remote services may supply only a validated endpoint,
 // never PAC JavaScript, website rules, arbitrary URLs or Cookie instructions.
-export const AI_ID='ai-smart-access';
+// Transitional identity until a public managed proxy SDK replaces the R1 host.
+export const AI_ID='ai-vip-share';
+export const LEGACY_AI_ID='ai-smart-access';
 export const AI_CAPABILITY='ai.access';
-export const AI_PROTOCOL='opendesk.ai-access.v1';
+export const AI_PROTOCOL='opendesk.ai-vip-share.v1';
 export const AI_VERSION=1;
-export const AI_STORE='opendesk.ai-access.state.v1';
-export const AI_ALARM='opendesk.ai-access.lease-check.v1';
+// New tool installation cannot inherit the old ID's activation lease.
+export const AI_STORE='opendesk.ai-vip-share.state.v1';
+export const LEGACY_AI_STORE='opendesk.ai-access.state.v1';
+export const AI_ALARM='opendesk.ai-vip-share.lease-check.v1';
+export const LEGACY_AI_ALARM='opendesk.ai-access.lease-check.v1';
 export const AI_OPERATIONS=Object.freeze(['aiAccess.status','aiAccess.enable','aiAccess.disable','aiAccess.activate']);
 export const AI_DOMAINS=Object.freeze([
   'chatgpt.com','openai.com','claude.ai','gemini.google.com','perplexity.ai'
