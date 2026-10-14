@@ -63,7 +63,8 @@ scenes.push(...['tasks','local-discover','catalog','workflow','develop','tools',
   {name:'develop-collapsed',tab:'develop',closedDetails:true},
   {name:'develop-single-open',tab:'develop',singleDetail:'developer-results-panel'}
 );
-const scheduledOnly=process.argv.includes('--scheduled-only');
+const sourceUIOnly=process.argv.includes('--source-ui-only');
+const scheduledOnly=sourceUIOnly||process.argv.includes('--scheduled-only');
 const staticOnly=process.argv.includes('--static-only');
 if(scheduledOnly&&staticOnly)throw Error('Choose either --scheduled-only or --static-only');
 const tabFilter=process.argv.find(arg=>arg.startsWith('--tabs='))?.slice(7).split(',');
@@ -913,7 +914,7 @@ try{
     for(const width of widths){
       await cdp('Emulation.setDeviceMetricsOverride',{width,height:700,deviceScaleFactor:1,mobile:false});
       await evaluate('('+setupScene.toString()+')('+JSON.stringify({name:'my',tab:'tasks'})+','+JSON.stringify(officialReleases)+')');
-      navigationSamples.push(await keyboardNavigation(width,theme));
+      if(!sourceUIOnly)navigationSamples.push(await keyboardNavigation(width,theme));
       if(!staticOnly&&(!tabFilter||tabFilter.includes('tasks')))sourceUISamples.push(...await scheduledSamples(width,theme));
       console.log(sourceUISamples.length?'SIDEBAR_R19_SOURCE_UI_PASS':'SIDEBAR_R19_NAVIGATION_FOCUS_PASS',theme,width);
     }
@@ -924,11 +925,12 @@ try{
     evidence:'STATIC_MARKUP_CHROME',nativeExtension:false,nativeControlEvents:false,
     source:sourceInputs.join(' + '),sourceBinding,inputsStable:true,chromeVersion,samples,keyboardSamples,navigationSamples,sourceUISamples,
     sourceUIEvidence:sourceUISamples.length?'SOURCE_UI_SIMULATION_CHROME':'NOT_TESTED',installedNative:'NOT_TESTED',
+    navigationEvidence:sourceUIOnly?'NOT_TESTED: P0 source UI scope only':'STATIC_MARKUP_CHROME_KEYBOARD',
     limitations:['read-only simulated schedule client; no real Chrome permissions, Run or Native claims','CDP CSS viewport/media emulation; actual Side Panel and browser zoom NOT_TESTED'],
     resources:{profile,port,chromePid:chrome.pid,release:'finally closes socket/server, terminates owned Chrome and removes temporary profile'}
   },null,2)+'\n');
   console.log('SIDEBAR_R21_STATIC_STATES_ALL_PASS '+samples.length);
-  console.log('SIDEBAR_R19_NAVIGATION_ALL_PASS '+navigationSamples.length);
+  console.log(sourceUIOnly?'SIDEBAR_R19_NAVIGATION_NOT_TESTED source-ui-only':'SIDEBAR_R19_NAVIGATION_ALL_PASS '+navigationSamples.length);
   if(sourceUISamples.length)console.log('SIDEBAR_R19_SOURCE_UI_ALL_PASS '+sourceUISamples.length);
 }catch(error){
   await writeFile(join(out,'failure.json'),JSON.stringify({status:'FAIL',error:error.stack,sourceBinding:evidenceBinding,
