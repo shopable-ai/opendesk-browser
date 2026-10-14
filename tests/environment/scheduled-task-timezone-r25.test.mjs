@@ -58,7 +58,10 @@ test('R2.5 production form is a scoped four-part layout with native dropdown and
   assert.match(ui,/get\('schedule-once'\)\.value=formatWallScheduleTime\(selectedZone,Date\.now\(\)\+10\*60000\)/);
   assert.match(ui,/populateTimeZoneSelect\(selectedZone\)/);
   assert.match(ui,/populateTimeZoneSelect\(plan\.timezone\)/);
-  assert.match(ui,/await client\.request\('saveSchedule',pending\.input\)/);
+  assert.match(ui,/\(\)=>client\.request\('saveSchedule',pending\.input\)/,
+    'confirmed form calls the real saveSchedule RPC via the acknowledged mutation helper');
+  assert.match(ui,/const \{refreshError\}=await commitScheduledMutation\(/,
+    'a post-save refresh error cannot rewrite a successful schedule approval as a failure');
   assert.match(preview,/id="field-zone" data-field="zone"/);
   assert.match(preview,/timeZoneChoices\(d\.zone\)/);
 });
@@ -88,7 +91,10 @@ test('R2.6 production IANA search and save-confirmation retain the original auth
   assert.match(ui,/filterScheduleTimeZoneGroups\(all,search,selected\)/);
   assert.match(ui,/populateTimeZoneSelect\(plan\.timezone\)/);
   assert.match(ui,/时区：\$\{zone\}（保存后固定）/);
-  assert.match(ui,/await client\.request\('saveSchedule',pending\.input\)/);
+  assert.match(ui,/\(\)=>client\.request\('saveSchedule',pending\.input\)/,
+    'confirmed form calls the real saveSchedule RPC via the acknowledged mutation helper');
+  assert.match(ui,/const \{refreshError\}=await commitScheduledMutation\(/,
+    'a post-save refresh error cannot rewrite a successful schedule approval as a failure');
   assert.match(ui,/expectedGeneration:editing\.generation/);
   assert.match(css,/\.schedule-form-section\{display:grid;gap:var\(--space-3\)/);
   assert.match(preview,/id="zone-query"[^>]+type="search"|type="search" id="zone-query"/);
