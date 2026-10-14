@@ -1,0 +1,67 @@
+{
+  "format": "opendesk.import-r794.source-connector.v1",
+  "date": "2026-10-14",
+  "sourceHeadAtVerification": "d241149e6f8ae95edee7d79d2465f11d275fc6ed",
+  "method": "GitHub connector fetched original/reference/new files and compared actual UTF-8 source, JSON records, import statements and byte identities",
+  "scope": "SOURCE ONLY; NOT Node AST, npm ci, Webpack, Chrome, build/package or native proof",
+  "sourceBaseline": "examples/programs/page-ui-toc-react-direct",
+  "d3": {
+    "url": "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js",
+    "sha256FromExistingApprovedLock": "691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d",
+    "cacheBytes": 502,
+    "actualNewCacheTextEqualExistingCachedSource": true,
+    "rehashInThisCheck": false
+  },
+  "npm": {
+    "sourceLock": "examples/programs/page-npm-lodash/package-lock.json",
+    "name": "lodash-es",
+    "version": "4.17.21",
+    "lockEntryExactlyEqualOriginal": true,
+    "npmCiActuallyRun": false
+  },
+  "projects": [
+    {
+      "path": "examples/programs/mixed-import-page",
+      "status": "SOURCE_CONNECTOR_PASS",
+      "assertions": {
+        "threeImports": true,
+        "actualFunctionCalls": true,
+        "noUI": true,
+        "relativeModule": true,
+        "pageOrController": true,
+        "defaultUsage": true,
+        "npmManifest": true,
+        "npmLockIdentity": true,
+        "d3CacheMatchesKnownSource": true,
+        "d3Lock": true,
+        "worldCatalogDeclaration": true
+      }
+    },
+    {
+      "path": "examples/programs/mixed-import-controller",
+      "status": "SOURCE_CONNECTOR_PASS",
+      "assertions": {
+        "threeImports": true,
+        "actualFunctionCalls": true,
+        "noUI": true,
+        "relativeModule": true,
+        "pageOrController": true,
+        "defaultUsage": true,
+        "npmManifest": true,
+        "npmLockIdentity": true,
+        "d3CacheMatchesKnownSource": true,
+        "d3Lock": true,
+        "worldCatalogDeclaration": true
+      }
+    }
+  ],
+  "totalChecks": 22,
+  "allChecksPassed": true,
+  "node": "NOT_TESTED",
+  "webpack": "NOT_TESTED",
+  "chromePage": "NOT_TESTED",
+  "chromeController": "NOT_TESTED",
+  "packageHash": null,
+  "chromeRunIds": null,
+  "note": "The source-only comparison has no authority to mark mixed runtime acceptance or release 95+. Run the committed Node/build fixture and actual Chrome first."
+}
