@@ -1,5 +1,24 @@
 ## 2.0.4 当前验收结果（2026-10-14）
 
+### 给人工阅读的测试说明
+
+实际验收的网站是本机受控网页 `http://127.0.0.1:43111/demo-form.html`，不是任意外部网站。操作由已安装的 Cookie Editor 界面发起，使用虚构 Cookie；浏览器回读用来核对保存结果。
+
+| 用户操作 | 已有真实 Chrome 结果 |
+| --- | --- |
+| 授权后获取 Cookie 列表 | 已通过；界面列出当前测试网站的 Cookie，默认隐藏值 |
+| 新建 Cookie | `od_core`，值为 `fictional-one`，浏览器确认存在 |
+| 修改值 | `od_core` 的值改为 `fictional-two`，浏览器回读一致 |
+| 修改名称并填写新值 | 改为 `od_renamed`，值为 `fictional-three`；旧名称不再存在 |
+| 改名但保留隐藏旧值 | 改为 `od_kept`，值仍为 `fictional-three` |
+| 精确删除 | `od_kept` 删除后，浏览器与界面均确认不存在；不同 Path 的同名 Cookie 隔离另有真实验收 |
+
+**不能据此声称：** 你的外部目标网站已经验收；点击“显示值”按钮的完整界面读取流程已独立验收；整个项目已通过。现有核心回执没有单列“点击显示值并核对展示内容”这一项，它需要补测，不代表已发现按钮故障。当前本地全仓仍有 23 个失败，提交 CI 全仓有 72 个失败。
+
+本次负责人 Codex 仅补充原 MD/JSON 账本与[通俗版续接提示词](../prompts/cookie-editor-readable-next-20261014.zh-CN.txt)，不修改产品代码，不重复执行已有测试。原技术交接与原始证据保留在下文。
+
+**本次状态核对及续接：** Codex 仅维护本 MD、同名 JSON 与新的[续接提示词](../prompts/cookie-editor-r33m-evidence-handoff-20261014.zh-CN.txt)，不修改产品源码、不重跑测试。读取时 main 为 `f9fc1a48`；原六项 Cookie 相关源码 SHA 仍一致，原始三组 Native 报告均 complete / candidateUnchanged / cleanup PASS；实际 GitHub CI 仍为 failure。此核对允许复用对应局部证据，不代表当前整个 main 与隔离候选一致。JSON 待办中旧的本地 21 失败已纠正为最新 23 失败，历史结果保留。
+
 **已安装 Cookie Editor 的核心用户旅程已在同一隔离 CFT 候选通过**：发现安装 → 打开 Side Panel → 网站授权 → 自动读取 → 新建 → 修改 Value → 修改 Name → 保存回读 → 精确删除。默认中文、Value 默认隐藏。全仓集成仍 **FAIL**，不宣称正式交付或 95+。
 
 本轮修复保存、精确删除和启停授权：opaque iframe 内原生表单提交被 CSP 阻止，保存改由受控按钮/快捷键入口调用；Chrome `cookies.remove(url,name)` 实际删除不同 Path 的同名 Cookie，Driver 改为精确作用域的过期写入并核验；停用/启用的安装 epoch 变化使有效网站授权失效，生命周期在既有锁内仅迁移同版本、同包、同旧 epoch 的有效授权，旧实例和旧请求继续失效。提交前复核另外复现了 Path 消失后的查询竞态，Host 现传递已审核的脱敏精确身份，Driver 不匹配即在写入前拒绝，保留相邻 Path。重命名是分步操作，**不是原子事务**。
@@ -169,3 +188,16 @@
 - 原生不同 Path 删除暴露真实 Host 缺陷，扩展写入范围为 `src/platform/chrome/cookies.js` 与 R8/R9 Cookie 定向测试；读取当前 diff 确认这些文件无其他未提交修改。继续沿用现有 Driver/Authority，仅替换不精确的原生删除动作，保留原始失败快照和未知结果保守规则。
 - 停用再启用暴露持久授权 epoch 未迁移的问题，新增精确写入范围 `src/ui/sidebar-tools/installation.js`、`tests/environment/sidebar-tool-enable-r26.test.mjs`；当前 diff 为空。保留同包、同旧 epoch 的有效授权，继续更新撤销标识以拒绝旧实例/请求，失败保持停用。
 - 提交前独立复核复现删除竞态：Host 审核的 Path 消失后，Driver 再次 URL 查询可能选择同名父 Path。新增写入范围 `src/platform/chrome/browser-cookie-host.js`（读回 diff 无本地修改）；由 Host 传递已审核的脱敏精确身份，Driver 不匹配则执行前拒绝。定向回归由 Codex 原生子 Agent 独占 `tests/environment/browser-sdk-r9-installed-cookies.test.mjs`，其余文件由当前负责人落盘；冻结候选与原生结果保留，修复后另建独立候选输出并仅补受影响验证。
+
+
+## R34 开发续接与最新范围修正（2026-10-14）
+
+用户明确当前是开发阶段，不包含 ZIP。后续不再执行 ZIP 打包、安装或发布验收；旧文件保留为历史证据。完整项目测试当前仍 FAIL，不能称整个项目通过。
+
+系统 Chrome 的本机页面已真实完成显示值授权及值核对，od_ce_r34_show 已删除。用户明确授权的知乎指定页面中，Hm_lpvt_98beee57fd2ef70ccdd5ca52b9740c49 显示值与原生只读表一致；DATE 从 1791779847935 改为 1791779847936 后已恢复。普通/分区 opendesk_acceptance_visited_at 新建、分区独立修改、精确删除、普通改名及清理成功，临时授权撤销。仅这篇页面有证据，不扩展为所有外部网站通过。
+
+布局独立页 300/420/520px 可见编辑表单及操作按钮；320px 首次实际输入 20px 的失败保留，修正后的底部截图仍异常。原生面板固定宽度没有证实，不能登记通过。另一真实 Store 正向操作未测；Store 1 与越权分区预检拒绝成功。
+
+最新完整测试 development-current-full.log：13 项失败、0 跳过；主要为旧 dist 身份/资产不一致，以及一次 Native 真实权限点击超时。相关源码/测试输入无漂移。定向测试、源码检查与 Node-free 路径夹具修复已有独立通过记录，不覆盖完整失败。
+
+每项网站、Cookie、修改前后、实际结果、原始证据和未测项见 `artifacts/cookie-editor-r34-20261014/development-handoff.md` / `development-results.json`；原 JSON 的 R34 追加记录保留全部旧字段。新对话执行提示词：`docs/framework/prompts/goal-cookie-editor-development-r34-20261014.zh-CN.txt`。

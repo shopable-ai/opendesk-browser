@@ -67,15 +67,8 @@ if(!historyUI?.createScheduledTaskHost)throw new Error('E_TRUSTED_SCHEDULE_HOST_
 const createScheduledTaskHost=historyUI.createScheduledTaskHost;
 if(!historyUI?.createCloudHosting)throw new Error('E_TRUSTED_CLOUD_UI_MISSING');
 const createCloudHosting=historyUI.createCloudHosting;
-historyUI?.mount(document);
-const trustedHistoryWorkbench=historyUI?.create({api:chrome,doc:document,hostInstanceId})??Object.freeze({dispose(){}});
-window.addEventListener('pagehide',()=>trustedHistoryWorkbench.dispose(),{once:true});
-const cookieUI=globalThis.__opendeskTrustedCookieUI;
- if(!cookieUI?.create)console.warn('E_TRUSTED_COOKIE_UI_UNAVAILABLE');
- const trustedCookieWorkbench=cookieUI?.create
-  ?cookieUI.create({api:chrome,currentPageTarget,doc:document,hostInstanceId})
-  :Object.freeze({dispose(){}});
-window.addEventListener('pagehide',()=>trustedCookieWorkbench.dispose(),{once:true});
+let trustedHistoryWorkbench=null,historyClosed=false;
+window.addEventListener('pagehide',()=>{historyClosed=true;trustedHistoryWorkbench?.dispose();},{once:true});
 const scriptEditor = createScriptEditor({client:foundationClient,currentPageTarget,development:Boolean(installDevelopment)});
 let debugWorkbench=null;
 // The full-size tool/catalog page must never overwrite the Side Panel's last tab.
@@ -159,6 +152,10 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
   const actualSidePanel=await isActualSidePanelContext({api:chrome,href:hostUrl.href});
   if(actualSidePanel||!tab?.id){
     sidebarSurface=true;
+    if(actualSidePanel&&!historyClosed){
+      historyUI?.mount(document);
+      trustedHistoryWorkbench=historyUI?.create({api:chrome,doc:document,hostInstanceId})??null;
+    }
     cloudHosting=createCloudHosting({client:foundationClient,host:scriptEditor.host});
     startScheduledHost();
     void tabMemory.restore().catch(error=>console.warn('Sidebar tab restoration unavailable',error));

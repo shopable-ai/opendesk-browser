@@ -1,0 +1,112 @@
+{
+  "date": "2026-10-14",
+  "timezone": "Asia/Shanghai",
+  "owner": "01a1399b",
+  "branch": "main",
+  "initialHead": "91c39d725a065ad54440b6721637c308e0684314",
+  "integrationBase": "5972491e373a9bf6107fdb55e7441de7315d2787",
+  "backup": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-git-integration-20261014-01a1399b-bl3upern",
+  "verificationLevel": "source-and-component-only",
+  "sourceCheck": {
+    "checkedFiles": 677,
+    "exitCode": 0
+  },
+  "jsonCheck": {
+    "files": 16,
+    "errors": 0
+  },
+  "diffCheck": {
+    "exitCode": 0
+  },
+  "initialTargetedTests": {
+    "files": 29,
+    "tests": 331,
+    "pass": 329,
+    "fail": 1,
+    "skipped": 1,
+    "failure": "cloud claim persistence copied output consent from stale pre-network config"
+  },
+  "independentFilesystemTests": {
+    "tests": 10,
+    "pass": 10,
+    "fail": 0
+  },
+  "afterFixCloudAndHostTests": {
+    "tests": 206,
+    "pass": 206,
+    "fail": 0,
+    "skipped": 0
+  },
+  "regressionFix": {
+    "path": "src/cloud-control/service.js",
+    "sha256": "25397e71f7d72f9f295e3aa85a361359dd3c3a8ad1a83d82448844136ca34e4a",
+    "decision": "Select task from current transaction config.tasks after claim response; preserve all identity and authorization fences.",
+    "independentReview": "APPROVE_NARROW_RACE_FIX"
+  },
+  "nativeDriver": {
+    "path": "tests/framework/browser-sdk-r106-native.mjs",
+    "sha256": "9e4584d45a7a00649e3062a605a48a1b1a5714770d355d6bb26f37acfe091207",
+    "syntaxCheckExitCode": 0,
+    "nativeStatus": "NOT_TESTED",
+    "parallelEdits": "Re-read and preserved; no changes made by integration owner."
+  },
+  "skip": "Node-free simulated Native Host test requires OPENDESK_BROWSER_BINARY; not supplied for this integration run.",
+  "reusedEvidence": [
+    {
+      "path": "artifacts/sidebar-develop-r30-20261014/verification.json",
+      "inputsMatched": 17,
+      "componentPass": 164
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/conversation-direct-basic-20261014-01a138ff/component-identity.json",
+      "inputsMatched": 10,
+      "componentPass": 66
+    }
+  ],
+  "notTested": [
+    "Current complete dist/package verification; known separate full-suite artifact mismatches remain in Cookie R34 records.",
+    "Real Chrome/AI/F3/ZIP install acceptance.",
+    "Pre-existing direct-execution value truncation and omitted-click gaps."
+  ],
+  "logs": [
+    {
+      "path": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-git-integration-20261014-01a1399b-bl3upern/source-check.log",
+      "sha256": "451ebc013203f1d750778f20d4a2b0b493702d5da0cefeb28a203f6e156ba2ca"
+    },
+    {
+      "path": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-git-integration-20261014-01a1399b-bl3upern/source-check-after-fix.log",
+      "sha256": "451ebc013203f1d750778f20d4a2b0b493702d5da0cefeb28a203f6e156ba2ca"
+    },
+    {
+      "path": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-git-integration-20261014-01a1399b-bl3upern/targeted-tests.log",
+      "sha256": "ce71985f0380824e7d6ab1357d48ec70d2292d756b297597bde8c815488b4984"
+    },
+    {
+      "path": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-git-integration-20261014-01a1399b-bl3upern/local-dev-preparation.log",
+      "sha256": "bcb8aa1c1c86f3d366e18866e8258fa78781a5633ffa00ff63ea9606fa2e2667"
+    },
+    {
+      "path": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-git-integration-20261014-01a1399b-bl3upern/cloud-and-host-after-fix.log",
+      "sha256": "71e84baa88c6a809bbcbb1e771fcaaad465b4a19a0384dc43b3ca34bf5c5c226"
+    },
+    {
+      "path": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-git-integration-20261014-01a1399b-bl3upern/diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-git-integration-20261014-01a1399b-bl3upern/json-check.json",
+      "sha256": "7a3595136c6ed9b4993565caa7176dbc6639303ede77c7aa5348859f99de01ed"
+    }
+  ],
+  "inputBinding": {
+    "paths": 2354,
+    "before": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-git-integration-20261014-01a1399b-bl3upern/verification-inputs-before.json",
+    "afterFix": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-git-integration-20261014-01a1399b-bl3upern/verification-inputs-after-fix.json",
+    "currentManifest": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-git-integration-20261014-01a1399b-bl3upern/current-integration-manifest.json"
+  },
+  "excludedActiveWrite": {
+    "path": "tests/framework/browser-sdk-r106-native.mjs",
+    "decision": "Retain uncommitted owner changes; repeated drift before staging blocked snapshot.",
+    "currentVerification": "NOT_TESTED"
+  }
+}

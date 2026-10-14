@@ -12,6 +12,7 @@ import {BUILTIN_CATALOG} from '../../src/libs/catalog.js';
 import {BUILTIN_RESOURCE_PATHS} from '../../src/libs/runtime-contract.js';
 import {verifyManifest,verifyBuiltinResourceManifest} from '../../scripts/verify-package.mjs';
 import {resolveMarketChannel,marketExternalConnectable} from '../../scripts/market-channel.mjs';
+import {BROWSER_EDITION_RECORD,DEVELOPER_BROWSER_NAME,editionRecordText} from '../../scripts/browser-editions-r245.mjs';
 
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 const {configureDevelopmentRestarts,publishDevelopment}=development;
@@ -24,7 +25,8 @@ async function officialDevelopmentFixture(t){
   for(const path of await officialToolInputs())await write(path,await readFile(new URL('../../'+path,import.meta.url)));
   const canonical=await readFile(new URL('../../manifest.json',import.meta.url));
   await write('manifest.json',canonical);
-  await write('dist/manifest.json',JSON.stringify({...JSON.parse(canonical),externally_connectable:developmentExternal}));
+  await write('dist/manifest.json',JSON.stringify({...JSON.parse(canonical),name:DEVELOPER_BROWSER_NAME,externally_connectable:developmentExternal}));
+  await write('dist/'+BROWSER_EDITION_RECORD,editionRecordText('developer'));
   for(const path of paths){
     const pinned=path===BUILTIN_CATALOG.bootstrap||path.startsWith('libs/vendor/');
     await write('dist/'+path,pinned?await readFile(new URL('../../src/'+path,import.meta.url)):'fixture '+path+' '.repeat(60));
@@ -200,14 +202,17 @@ test('live publication restores manifest policy, publishes builtin hashes, and r
       await writeFile(join(outDir,path),pinned?await readFile(new URL('../../src/'+path,import.meta.url)):'fixture '+path+' '.repeat(60));
     }
     const manifest=structuredClone(canonical);manifest.host_permissions.push('http://localhost/*');
+    manifest.name=DEVELOPER_BROWSER_NAME;
     manifest.externally_connectable=structuredClone(developmentExternal);
     manifest.content_security_policy.extension_pages+=' http://localhost:43119';
     await writeFile(join(outDir,'manifest.json'),JSON.stringify(manifest));
+    await mkdir(dirname(join(outDir,BROWSER_EDITION_RECORD)),{recursive:true});
+    await writeFile(join(outDir,BROWSER_EDITION_RECORD),editionRecordText('developer'));
     await buildOfficialTools(outDir);
     const wxt={config:{root,outDir},logger:{info(){}}};
     const output={publicAssets:paths.filter(path=>!path.endsWith('.js')).map(fileName=>({fileName})),steps:[{chunks:paths.filter(path=>path.endsWith('.js')).map(fileName=>({fileName}))}]};
     await publishDevelopment(wxt,output);
-    verifyManifest(JSON.parse(await readFile(join(outDir,'manifest.json'))),{mode:'development'});
+    verifyManifest(JSON.parse(await readFile(join(outDir,'manifest.json'))),{mode:'development',edition:'developer'});
     await verifyBuiltinResourceManifest(outDir);
     const markerPath=join(outDir,'development-update.json'),before=await readFile(markerPath,'utf8');
     const row=JSON.parse(before);
@@ -235,7 +240,9 @@ test('required Workspace source failures survive unrelated successful static cop
   try{
     const canonical=await readFile(new URL('../../manifest.json',import.meta.url),'utf8');
     await writeFile(join(root,'manifest.json'),canonical);await mkdir(outDir);
-    await writeFile(join(outDir,'manifest.json'),JSON.stringify({...JSON.parse(canonical),externally_connectable:developmentExternal}));
+    await writeFile(join(outDir,'manifest.json'),JSON.stringify({...JSON.parse(canonical),name:DEVELOPER_BROWSER_NAME,externally_connectable:developmentExternal}));
+    await mkdir(dirname(join(outDir,BROWSER_EDITION_RECORD)),{recursive:true});
+    await writeFile(join(outDir,BROWSER_EDITION_RECORD),editionRecordText('developer'));
     for(const path of paths){
       await mkdir(dirname(join(outDir,path)),{recursive:true});
       const pinned=path===BUILTIN_CATALOG.bootstrap||path.startsWith('libs/vendor/');

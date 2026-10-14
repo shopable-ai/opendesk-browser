@@ -1,0 +1,176 @@
+{
+  "at": "2026-10-13T21:41:42.678744+00:00",
+  "branch": "main",
+  "commit": "28f4730c05d71271c173f5f4f63fddc5aea5e71b",
+  "commitUrl": "https://github.com/shopable-ai/opendesk-browser/commit/28f4730c05d71271c173f5f4f63fddc5aea5e71b",
+  "parentHead": "1cec481638bb58d193b8f8cda609c12219ad1b97",
+  "remoteMainAtVerification": "28f4730c05d71271c173f5f4f63fddc5aea5e71b",
+  "pushed": true,
+  "pushOutput": "To github.com:shopable-ai/opendesk-browser.git\n   1cec4816..28f4730c  main -> main\n",
+  "taskOnlyCommittedPaths": true,
+  "committedPathCount": 811,
+  "candidateInputs": "main-permission-final-inputs.json",
+  "nativePackageHash": "fb3bcd30992521907feda475ea8bf37a71d27a2e9ee555904dea93724e8fce9b",
+  "postCommitReceipt": true,
+  "note": "Post-push receipt and CI API bytes are local artifacts; feature commit already includes immutable raw acceptance, build, input manifests and checksum records.",
+  "ci": [
+    {
+      "name": "R24.3 browser React Vue editor Run Stop without Native",
+      "status": "queued",
+      "conclusion": null,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38472328367",
+      "id": 38472328367,
+      "headSha": "28f4730c05d71271c173f5f4f63fddc5aea5e71b"
+    },
+    {
+      "name": "R3.1 installed permissions real Chrome",
+      "status": "queued",
+      "conclusion": null,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38472328391",
+      "id": 38472328391,
+      "headSha": "28f4730c05d71271c173f5f4f63fddc5aea5e71b"
+    },
+    {
+      "name": "Native Agent R1 components and package",
+      "status": "queued",
+      "conclusion": null,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38472328434",
+      "id": 38472328434,
+      "headSha": "28f4730c05d71271c173f5f4f63fddc5aea5e71b"
+    },
+    {
+      "name": "R24.3 browser compiler worker real Chrome without Native",
+      "status": "queued",
+      "conclusion": null,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38472328438",
+      "id": 38472328438,
+      "headSha": "28f4730c05d71271c173f5f4f63fddc5aea5e71b"
+    },
+    {
+      "name": "R7.4 Page Classic, Controller D04 ESM, D05 Classic and pinned npm import CFT",
+      "status": "queued",
+      "conclusion": null,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38472328278",
+      "id": 38472328278,
+      "headSha": "28f4730c05d71271c173f5f4f63fddc5aea5e71b"
+    },
+    {
+      "name": "R24.3 browser React Vue 40 independent Run Stop without Native",
+      "status": "queued",
+      "conclusion": null,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38472328364",
+      "id": 38472328364,
+      "headSha": "28f4730c05d71271c173f5f4f63fddc5aea5e71b"
+    },
+    {
+      "name": "R24.5 Standard slim and optional Developer compiler editions",
+      "status": "queued",
+      "conclusion": null,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38472328342",
+      "id": 38472328342,
+      "headSha": "28f4730c05d71271c173f5f4f63fddc5aea5e71b"
+    },
+    {
+      "name": "Extension package budgets and library boundaries",
+      "status": "in_progress",
+      "conclusion": null,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38472328820",
+      "id": 38472328820,
+      "headSha": "28f4730c05d71271c173f5f4f63fddc5aea5e71b"
+    },
+    {
+      "name": "React HTTPS ECharts JSON Run Stop and Install",
+      "status": "in_progress",
+      "conclusion": null,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38472328405",
+      "id": 38472328405,
+      "headSha": "28f4730c05d71271c173f5f4f63fddc5aea5e71b"
+    },
+    {
+      "name": "Page userscript dependencies and package",
+      "status": "in_progress",
+      "conclusion": null,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38472328616",
+      "id": 38472328616,
+      "headSha": "28f4730c05d71271c173f5f4f63fddc5aea5e71b"
+    },
+    {
+      "name": "Native Page program source and authorization boundaries",
+      "status": "in_progress",
+      "conclusion": null,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38472328629",
+      "id": 38472328629,
+      "headSha": "28f4730c05d71271c173f5f4f63fddc5aea5e71b"
+    },
+    {
+      "name": "R15.4 WXT production libraries real Chrome",
+      "status": "pending",
+      "conclusion": null,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38472328310",
+      "id": 38472328310,
+      "headSha": "28f4730c05d71271c173f5f4f63fddc5aea5e71b"
+    },
+    {
+      "name": "Site access targeted checks",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38472328406",
+      "id": 38472328406,
+      "headSha": "28f4730c05d71271c173f5f4f63fddc5aea5e71b"
+    },
+    {
+      "name": "R7 axiosx HTTP page + fixture contracts",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38472328600",
+      "id": 38472328600,
+      "headSha": "28f4730c05d71271c173f5f4f63fddc5aea5e71b"
+    },
+    {
+      "name": "Cleanup merged short-lived OpenDesk branches",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38472328769",
+      "id": 38472328769,
+      "headSha": "28f4730c05d71271c173f5f4f63fddc5aea5e71b"
+    },
+    {
+      "name": "Sidebar R1 P0 targeted checks",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38472328661",
+      "id": 38472328661,
+      "headSha": "28f4730c05d71271c173f5f4f63fddc5aea5e71b"
+    },
+    {
+      "name": "R25.1 local install fixed-version contracts",
+      "status": "in_progress",
+      "conclusion": null,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38472328702",
+      "id": 38472328702,
+      "headSha": "28f4730c05d71271c173f5f4f63fddc5aea5e71b"
+    },
+    {
+      "name": "R16.1 axiosx, builtin and development regression",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38472328499",
+      "id": 38472328499,
+      "headSha": "28f4730c05d71271c173f5f4f63fddc5aea5e71b"
+    },
+    {
+      "name": "OpenDesk multi-file source contract",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38472328513",
+      "id": 38472328513,
+      "headSha": "28f4730c05d71271c173f5f4f63fddc5aea5e71b"
+    }
+  ],
+  "lastPagePackageCI": {
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38472328616",
+    "receipt": "ci-page-package-after-push-final.json"
+  }
+}

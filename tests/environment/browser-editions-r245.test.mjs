@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  resolveBrowserEdition,compilerResourcesForEdition,editionOutputName,
+  resolveBrowserEdition,resolveDevelopmentBrowserEdition,compilerResourcesForEdition,editionOutputName,
   editionRecord,editionRecordText,readEditionRecord,DEVELOPER_BROWSER_NAME
 } from '../../scripts/browser-editions-r245.mjs';
 import {PAGE_BROWSER_PRIVATE_FILES} from '../../src/libs/page-frameworks/contract.js';
@@ -35,4 +35,13 @@ test('R24.5 malformed or cross-edition resource markers fail closed',()=>{
     assert.throws(()=>readEditionRecord(input),/E_BROWSER_EDITION_RECORD/);
   assert.throws(()=>resolveBrowserEdition('full'),/E_BROWSER_EDITION/);
   assert.throws(()=>editionOutputName('production1','standard'),/E_BROWSER_EDITION_MODE/);
+});
+
+test('Daily source development retains JSX/SFC while explicit Standard and packaging defaults stay valid',()=>{
+  assert.equal(resolveDevelopmentBrowserEdition(undefined),'developer');
+  assert.equal(resolveDevelopmentBrowserEdition('developer'),'developer');
+  assert.equal(resolveDevelopmentBrowserEdition('standard'),'standard');
+  assert.equal(resolveBrowserEdition(undefined),'standard');
+  assert.equal(compilerResourcesForEdition(resolveDevelopmentBrowserEdition(undefined)),PAGE_BROWSER_PRIVATE_FILES);
+  assert.throws(()=>resolveDevelopmentBrowserEdition('full'),/E_BROWSER_EDITION/);
 });

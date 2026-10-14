@@ -75,9 +75,10 @@ test('new sandbox uses isolated Chrome MV3 resource and a narrow host message pr
 
 
 test('R14 Sidebar tool intake requires separate review, install and explicit launch',async()=>{
-  const [html,css,host,work]=await Promise.all([
+  const [html,css,host,work,design]=await Promise.all([
     readFile('src/ui/tool.html','utf8'),readFile('src/ui/tool-shell.css','utf8'),
-    readFile('src/ui/sidebar-tools.js','utf8'),readFile('src/ui/task-workbench.js','utf8')
+    readFile('src/ui/sidebar-tools.js','utf8'),readFile('src/ui/task-workbench.js','utf8'),
+    readFile('src/ui/design-system.css','utf8')
   ]);
   assert.match(html,/id="sidebar-tool-import" class="sidebar-tool-import od-surface" hidden/);
   assert.match(html,/id="sidebar-tool-preview" class="sidebar-tool-preview" hidden/);
@@ -98,7 +99,9 @@ test('R14 Sidebar tool intake requires separate review, install and explicit lau
   assert.match(host,/setVisible\(next(?:,destination=null)?\)/);
   assert.match(host,/className='sidebar-tool-row'/,'each tool owns one detail entry');
   assert.doesNotMatch(host.slice(host.indexOf('function renderInstalledTools'),host.indexOf('function siteCapability')),/sidebar-tool-list-remove|sidebar-tool-list-tab|sidebar-tool-site-manage/,'list contains no management controls');
-  assert.match(css,/\.sidebar-tools-actions \.od-icon-button\{width:var\(--od-icon-size\)/,'the three compact actions reuse the shared 34px icon size');
+  assert.match(html,/<div class="sidebar-tools-head od-toolbar od-page-head">[\s\S]*<strong class="od-page-title">已安装工具<\/strong>[\s\S]*<div class="sidebar-tools-actions od-toolbar od-page-actions" role="group" aria-label="添加和管理工具">/);
+  assert.match(design,/\.od-icon-button\{[^}]*width:var\(--od-icon-size\)/,'the three compact actions reuse the shared 34px icon size');
+  assert.doesNotMatch(css,/\.sidebar-tools-actions \.od-icon-button\{/,'tool CSS must not restyle shared icon buttons');
   assert.match(html,/id="sidebar-tool-file-error"/);
   assert.match(html,/id="sidebar-tool-update-versions"/);
   assert.match(host,/preview\.hidden=false/);

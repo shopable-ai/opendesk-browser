@@ -1,0 +1,22 @@
+{
+  "at": "2026-10-13T21:44:19.807446+00:00",
+  "featureCommit": "28f4730c05d71271c173f5f4f63fddc5aea5e71b",
+  "localPostPushReceipts": true,
+  "files": [
+    {
+      "path": "delivery-git.json",
+      "bytes": 6985,
+      "sha256": "c8bf3907e03be699a65f8a091be690c545df2f594c15218a115b436e2dab841c"
+    },
+    {
+      "path": "ci-after-r78-push.json",
+      "bytes": 304106,
+      "sha256": "b73f40ed679c8e00c2a0dc69983634e7a53b8e6023fa1370da5194336fcfb1ca"
+    },
+    {
+      "path": "ci-page-package-after-push-final.json",
+      "bytes": 15092,
+      "sha256": "a8e840e23d32f49542f4e5a552e7e8783422712d75fbce697cc9c9111467ffc8"
+    }
+  ]
+}

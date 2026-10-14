@@ -51,7 +51,9 @@ URL import 不代表浏览器会发起远程执行，最终 `program.js` 包含�
 - 缓存与锁文件采取 `O_NOFOLLOW` 读取，并拒绝缓存目录符号链接；缓存按 SHA-256 不可变写入；并行显式锁定采用独占锁目录，一次只能有一个更新操作。异常中断后如有残留 `.opendesk/remote-lock-write`，需开发者确认没有仍在执行的构建进程，再手动清理；不会自动忽略冲突。
 - 默认构建仍然完全离线。特殊的 `fetchImpl` 仅用于可信 Node 测试注入，**不得把普通 `fetch` 作为生产下载器传入**。网络获取允许的是明确触发的开发构建，并不代表批准下载代码的供应链安全性。
 
-Sidebar **手工草稿编辑区**含原始 ESM 时仍报 `E_ESM_BUILD_REQUIRED`，不会将 ESM 当作普通经典脚本或在浏览器内抓取 CDN。**目前** LocalDevResolver v2 对已授权的多文件项目支持精确锁定的 npm 和已锁定/缓存 HTTPS ESM，可直接内存构建后走既有运行链；`E_DEV_DEPENDENCY` 仅适用于缺少项目依赖上下文的单文件等场景。ESM R2 提供了用户在**本地终端**执行的审阅 CLI，**没有**替 Native Provider 的只读 `projects.list/project.resolve` 增加 Browser 远程写锁接口，因此还不能宣称在 Sidebar/Workspace 中点击“一键审阅并锁定”。
+Sidebar **手工草稿编辑区**现可选择 Page ESM 或 Controller ESM，使用标准静态 HTTPS import 和零参数 `async function main()`。源码旁明确准备下载、查看原文并批准固定字节后，扩展用现有离线 Babel 转换器编译，单独点击运行才进入既有执行器。普通草稿限定直接导入的独立 ESM 模块，不支持二级依赖图、相对/裸包、动态 import、顶层 await 或 UMD 自动转换；保存原始 ESM Page 草稿暂不支持。详见 [网络 JavaScript 使用步骤](../../api/network-javascript.zh-CN.md)。
+
+LocalDevResolver v2 继续支持已授权多文件项目的精确锁定 npm 和已锁定/缓存 HTTPS ESM，直接内存构建后走既有运行链。项目 ESM 图仍由本地 CLI 显式审阅/锁定，Native 的只读 `projects.list/project.resolve` 不隐式下载，不能宣称项目图已在侧栏支持一键锁定。两条路径均不在网页运行时拉 CDN。上述 Node DNS/IP 固定策略属于本地项目下载器；侧栏下载复用浏览器 HTTPS、权限和重定向拒绝流程，不能据此声称其同样固定 DNS/IP。
 
 ## 关键技术边界与故障策略
 

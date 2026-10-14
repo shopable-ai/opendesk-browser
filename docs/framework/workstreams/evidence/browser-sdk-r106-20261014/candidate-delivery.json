@@ -1,8 +1,8 @@
 {
   "schemaVersion": "opendesk.browser-sdk.r106-candidate.v1",
-  "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
-  "gitTree": "0b1040a206c09bd53d56b365d0bfa8e2c7d29ccd",
-  "sourceInputFingerprint": "7f3ce64db43a67c5ed1dd9d80fa87b60ee6b4a1c1a0d7f25f2547a88668d7c07",
+  "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+  "gitTree": "e2b4989b55a0061841d3fba56f88876acada789b",
+  "sourceInputFingerprint": "9e7165345a3a2a35fed671f7e98141711dd9978ecfcf1d4b4d705c158c58e4ec",
   "sourceInputs": [
     {
       "path": "docs/contracts/licenses/todo-user-vue-MIT.txt",
@@ -1691,8 +1691,8 @@
     },
     {
       "path": "src/platform/tasks/schedule-service.js",
-      "bytes": 12439,
-      "sha256": "f4cfbd8ba12827da2e452a00e387ad77e8d1b96d5bcc1d5984d5aeb7e645a3e5"
+      "bytes": 12627,
+      "sha256": "f1d944c206ebb4f7d58dd1d238ae3c7da4d7b3018406cc72af58c2dd9cb6fe0b"
     },
     {
       "path": "src/platform/tasks/schedule-time.js",
@@ -2206,8 +2206,8 @@
     },
     {
       "path": "src/ui/sidebar-tools.js",
-      "bytes": 134663,
-      "sha256": "a2802cb8fa601f73d1ec8a57b641c219e155d22fcd116dd33b0866cc3752782b"
+      "bytes": 135028,
+      "sha256": "15b0566c98a3375a550b1b13e3f502f59fc51300eed5cdc7d8545d1e5b0ca13c"
     },
     {
       "path": "src/ui/sidebar-tools/installation.js",
@@ -2281,8 +2281,8 @@
     },
     {
       "path": "src/ui/tool-shell.css",
-      "bytes": 101647,
-      "sha256": "4079463e7ad5f80f20766ced1e375e10009b2c46cafe9c5e7af87aa9af75055a"
+      "bytes": 102002,
+      "sha256": "81afcf6b2da6964c1eb4a9d7fa9bfe69f347699ab62ae59fab3c214a8aef10d8"
     },
     {
       "path": "src/ui/tool-shell.js",
@@ -2355,20 +2355,85 @@
       "sha256": "6d7d80e3ebb145ab4b8e84b1773e90684b2b9c61f973ded1493b64285779ba7c"
     }
   ],
-  "productionPackageHash": "fb5636cc56a85d8451c08c572c529b15857fca9f220eed2c128f014e424e5c61",
-  "developmentPackageHash": "89bf4fc8e37483353cdedcca9530da1f717584f22c7b544292e6981b3cfee33d",
+  "productionPackageHash": "8f46ffac9c0392b2d3be740a9257c76f24b439178e7672537e8d04a2f44aa59e",
+  "developmentPackageHash": "74835caf36730af9e70de7e73f096b6e139713a01651536c1cb001432aa853f6",
   "candidateKind": "untouched committed Git archive; independent dist; no branch/worktree; no source edits",
   "checks": {
     "nodeTests": {
       "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/nodeTests-installed-consent-fixed.log",
-          "sha256": "1ea730177db3664c0d46ac61f4db137e547e52ad4b315f4f903e2adbc01af802",
-          "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/nodeTests-alarm-owner-native-final.log",
+          "sha256": "43e0ff7ac17daaf8484493e20f46f7ee115eebed74808b9df690cbe8a4550187",
+          "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
           "caseId": "R10.6-nodeTests",
           "command": "node --test --test-reporter=spec tests/environment/browser-sdk-r8-catalog.test.mjs tests/environment/browser-sdk-r8-cookies.test.mjs tests/environment/browser-sdk-r7-trusted-cookies.test.mjs tests/environment/browser-sdk-r7-mapping.test.mjs tests/environment/browser-sdk-contract-compat.test.mjs tests/environment/browser-sdk-coverage.test.mjs tests/environment/browser-tabs-host.test.mjs tests/environment/browser-sidepanel-host.test.mjs tests/environment/browser-sdk-r2-host.test.mjs tests/environment/browser-screenshot-host.test.mjs tests/environment/browser-screenshot-resources.test.mjs tests/environment/browser-network-observe-host.test.mjs tests/environment/browser-sdk-approval-timeout.test.mjs tests/environment/browser-sdk-r2-demo.test.mjs tests/environment/browser-sdk-p3-implementation.test.mjs tests/environment/browser-sdk-p3-bookmarks.test.mjs tests/environment/browser-sdk-p4-implementation.test.mjs tests/environment/browser-sdk-r9-installed-cookies.test.mjs tests/environment/browser-sdk-r9-installed-host.test.mjs tests/environment/browser-sdk-p5-scheduler.test.mjs tests/environment/browser-sdk-r106-trusted.test.mjs tests/environment/browser-sdk-r106-history-ui.test.mjs tests/environment/browser-sdk-r106-host.test.mjs tests/environment/scheduled-tasks-r1.test.mjs tests/environment/scheduled-task-timezone-r25.test.mjs tests/environment/browser-sdk-freeze.test.mjs tests/environment/browser-sdk-interface-matrix.test.mjs tests/environment/browser-framework-ledger.test.mjs tests/environment/cookie-editor-ui.test.mjs tests/environment/sidebar-tool-enable-r26.test.mjs tests/environment/official-tools-catalog-r45.test.mjs",
-          "environment": "v24.16.0; macOS; immutable Git archive; independent dist and output guard 43127"
+          "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
+        }
+      ]
+    },
+    "matrix": {
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/matrix-alarm-owner-native-final.log",
+          "sha256": "3c7068b5bfa647f2f45dabe6491007c3f53703328d2f11df0086b07f8147bca8",
+          "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+          "caseId": "R10.6-matrix",
+          "command": "node scripts/check-browser-sdk-interface-matrix.mjs --check",
+          "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
+        }
+      ]
+    },
+    "catalog": {
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/catalog-alarm-owner-native-final.log",
+          "sha256": "8e5d6ca0c24ba6f14e36e93930c11ddd994e1623026e831a8a4d6ca2a8fdd123",
+          "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+          "caseId": "R10.6-catalog",
+          "command": "node scripts/sync-chrome-api-catalog.mjs --check",
+          "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
+        }
+      ]
+    },
+    "coverage": {
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/coverage-alarm-owner-native-final.log",
+          "sha256": "432f3cdd896265ed971d69d44ef3aa444b0a62cac92106dd48c96393b58d1efe",
+          "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+          "caseId": "R10.6-coverage",
+          "command": "node scripts/check-browser-sdk-coverage.mjs --check",
+          "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
+        }
+      ]
+    },
+    "ledger": {
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/ledger-alarm-owner-native-final.log",
+          "sha256": "1395bab75824af803b4966f1790afd50d315e6ed82f102b7a87a73c598d4330b",
+          "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+          "caseId": "R10.6-ledger",
+          "command": "node scripts/check-browser-framework-ledger.mjs --check",
+          "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
+        }
+      ]
+    },
+    "freeze": {
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/freeze-alarm-owner-native-final.log",
+          "sha256": "0b2cccef956fff1f093c7363137bb83f1bcc45b084410c8458789dc23ad1f218",
+          "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+          "caseId": "R10.6-freeze",
+          "command": "node scripts/check-browser-sdk-freeze.mjs",
+          "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
         }
       ]
     },
@@ -2376,12 +2441,12 @@
       "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/check-installed-consent-fixed.log",
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/check-alarm-owner-native-final.log",
           "sha256": "5a3df4fe18df36d0ec280ae65b3a25bc003379937991759117f164f10d6b865b",
-          "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
+          "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
           "caseId": "R10.6-check",
           "command": "npm run check",
-          "environment": "v24.16.0; macOS; immutable Git archive; independent dist and output guard 43127"
+          "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
         }
       ]
     },
@@ -2389,12 +2454,12 @@
       "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildProduction-installed-consent-fixed.log",
-          "sha256": "bfd20c09ef92f8248be46b26d0be8f27c1caa85153beebb91c7a724601718857",
-          "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildProduction-alarm-owner-native-final.log",
+          "sha256": "08da591e90856fb828f34170e8940c806a20107d7ee7665d94c068e8dfd951a0",
+          "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
           "caseId": "R10.6-buildProduction",
           "command": "npm run build",
-          "environment": "v24.16.0; macOS; immutable Git archive; independent dist and output guard 43127"
+          "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
         }
       ]
     },
@@ -2402,12 +2467,12 @@
       "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildDevelopment-installed-consent-fixed.log",
-          "sha256": "7044638710c6e6fa8cbf4a04634ef55af509ed6dba5e53960230d37a45bdf6a4",
-          "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildDevelopment-alarm-owner-native-final.log",
+          "sha256": "d59a044a5b1469e7666f1bc56a6f4d854b6ae2752d00cfb690cf267703752104",
+          "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
           "caseId": "R10.6-buildDevelopment",
           "command": "npm run build:dev",
-          "environment": "v24.16.0; macOS; immutable Git archive; independent dist and output guard 43127"
+          "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
         }
       ]
     },
@@ -2415,12 +2480,12 @@
       "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildSize-installed-consent-fixed.log",
-          "sha256": "c37c9630f3ca304e25ca7af6de2db66fd0cbd07f9d8d7dda7a6569ff290e0e3d",
-          "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildSize-alarm-owner-native-final.log",
+          "sha256": "9fc2048a32452e44a941ec1e4bb8202e806bcb446762d20508de981df47e8f63",
+          "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
           "caseId": "R10.6-buildSize",
           "command": "npm run build:size",
-          "environment": "v24.16.0; macOS; immutable Git archive; independent dist and output guard 43127"
+          "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
         }
       ]
     },
@@ -2428,12 +2493,12 @@
       "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/verify-installed-consent-fixed.log",
-          "sha256": "eb885cf6bf5ba7bbf69368e05d87abe7bb6deac2107ad6a77667c39832db6d8a",
-          "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/verify-alarm-owner-native-final.log",
+          "sha256": "e1506d42acab37e4fc8351e93e32b8fadfee906d6c2f9356b6a22534992e6e78",
+          "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
           "caseId": "R10.6-verify",
           "command": "npm run verify",
-          "environment": "v24.16.0; macOS; immutable Git archive; independent dist and output guard 43127"
+          "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
         }
       ]
     },
@@ -2441,62 +2506,50 @@
       "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/targetedMainRegressions-installed-consent-fixed.log",
-          "sha256": "1682eeaac00c18dd0c7b192d358e8041edf5f323432c369b458c0a31757e2c96",
-          "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/targetedMainRegressions-alarm-owner-native-final.log",
+          "sha256": "f16290e38fb81a4c71455039a31eef24325b007db607652a4ec6435d6b23e161",
+          "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
           "caseId": "R10.6-targetedMainRegressions",
           "command": "node --test --test-reporter=spec tests/environment/browser-sdk-r13.test.mjs tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/official-tools-catalog-r45.test.mjs tests/environment/fixed-entries-audit.test.mjs tests/framework/k4-sdk-reinjection.test.mjs tests/framework/k4-sdk.test.mjs tests/framework/k2-sdk-relay-races.test.mjs tests/environment/boundaries.test.mjs tests/framework/k4-sdk-hello-races.test.mjs tests/framework/k4-sdk-bundle-reinjection.test.mjs",
-          "environment": "v24.16.0; macOS; immutable Git archive; independent dist and output guard 43127"
+          "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
         }
       ]
     },
     "nativeChromeGui": {
       "status": "NOT_TESTED",
-      "evidence": []
+      "evidence": [],
+      "reason": "Partial installed-tool steps do not close all 55 per-interface contracts."
     },
     "nativeChromeWorker": {
       "status": "NOT_TESTED",
-      "evidence": []
-    },
-    "targetedMainCI": {
-      "status": "PASS",
-      "evidence": [
-        {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/actions-installed-consent-fixed.json",
-          "sha256": "c9105e7dc1bc09e56c90c4bd41b6883e4103e24c8d76798eb3190b7b676859a3",
-          "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
-          "caseId": "R10.6-targetedMainCI",
-          "command": "GitHub Actions: Browser SDK targeted main verification",
-          "environment": "GitHub Actions; exact runner details in linked job",
-          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38482325639"
-        }
-      ]
+      "evidence": [],
+      "reason": "Partial installed-tool steps do not close all 55 per-interface contracts."
     },
     "r5CI": {
       "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/actions-installed-consent-fixed.json",
-          "sha256": "c9105e7dc1bc09e56c90c4bd41b6883e4103e24c8d76798eb3190b7b676859a3",
-          "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/actions-4475d042-current.json",
+          "sha256": "2a3bb8fc802adc645f4ffba7828531879f72038bae4e9e68a7c69b5e09f3ddcb",
+          "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
           "caseId": "R10.6-r5CI",
           "command": "GitHub Actions: Browser SDK R5 implementation contracts",
-          "environment": "GitHub Actions; exact runner details in linked job",
-          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38482325798"
+          "environment": "GitHub Actions; exact run result",
+          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098393"
         }
       ]
     },
-    "cookieEditorCI": {
-      "status": "FAIL",
+    "targetedMainCI": {
+      "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/actions-installed-consent-fixed.json",
-          "sha256": "c9105e7dc1bc09e56c90c4bd41b6883e4103e24c8d76798eb3190b7b676859a3",
-          "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
-          "caseId": "R10.6-cookieEditorCI",
-          "command": "GitHub Actions: Cookie Editor R3.3 real SDK and package verification",
-          "environment": "GitHub Actions; preserve actual complete-workflow conclusion",
-          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38482325692"
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/actions-4475d042-current.json",
+          "sha256": "2a3bb8fc802adc645f4ffba7828531879f72038bae4e9e68a7c69b5e09f3ddcb",
+          "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+          "caseId": "R10.6-targetedMainCI",
+          "command": "GitHub Actions: Browser SDK targeted main verification",
+          "environment": "GitHub Actions; exact run result",
+          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098407"
         }
       ]
     },
@@ -2504,13 +2557,32 @@
       "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/actions-installed-consent-fixed.json",
-          "sha256": "c9105e7dc1bc09e56c90c4bd41b6883e4103e24c8d76798eb3190b7b676859a3",
-          "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/actions-4475d042-current.json",
+          "sha256": "2a3bb8fc802adc645f4ffba7828531879f72038bae4e9e68a7c69b5e09f3ddcb",
+          "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
           "caseId": "R10.6-packageBudgetsCI",
           "command": "GitHub Actions: Extension package budgets and library boundaries",
-          "environment": "GitHub Actions; exact runner details in linked job",
-          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38482325830"
+          "environment": "GitHub Actions; exact run result",
+          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098326"
+        }
+      ]
+    },
+    "cookieEditorCI": {
+      "status": "NOT_TESTED",
+      "evidence": [],
+      "reason": "No workflow run for this exact physical source candidate."
+    },
+    "nativeAgentCI": {
+      "status": "FAIL",
+      "evidence": [
+        {
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/actions-4475d042-current.json",
+          "sha256": "2a3bb8fc802adc645f4ffba7828531879f72038bae4e9e68a7c69b5e09f3ddcb",
+          "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+          "caseId": "R10.6-nativeAgentCI",
+          "command": "GitHub Actions: Native Agent R1 components and package",
+          "environment": "GitHub Actions; exact run result",
+          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098420"
         }
       ]
     }
@@ -2530,263 +2602,291 @@
     "NATIVE_PASS": 0
   },
   "extraWorkingTreeWholeRepoNode": {
-    "status": "FAIL",
-    "tests": 2289,
-    "pass": 2266,
-    "fail": 21,
-    "skipped": 2,
-    "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-all-final.log",
-    "scope": "Separate mutable parallel working-tree run, not this clean commit"
+    "status": "HISTORICAL_REFERENCE",
+    "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery-3b1f25b8.json",
+    "reason": "Retained under original candidate; not relabelled as current-candidate evidence."
   },
   "nativeLimitations": [
-    "Same-candidate 55-contract installed Native acceptance remains incomplete",
-    "Actual passing cases are preserved in installedNativeObservations; pending contracts are not promoted",
-    "Unclosed cross-tool, trusted History, Origin revocation, upgrade/uninstall and Cookie consumer contracts need same-candidate evidence",
-    "Final independent F3 and matching ZIP installation are not accepted"
+    "55 formal per-interface Native closures remain NOT_TESTED; steps are not interfaces.",
+    "Cookie missing close/reopen, pending-write revocation, disable, uninstall, fresh reinstall grant now have real same-package evidence.",
+    "Old Cookie loading timeout is retained; it did not reproduce with the diagnostic/current-frame observer; stale iframe hypothesis is unconfirmed.",
+    "Cookie Store/Partition, foreign identity and exact Origin/Document denial contracts still need complete per-interface native closure.",
+    "Bookmarks external edit/delete, Origin revocation and Document change remain NOT_TESTED.",
+    "Downloads normal completion remains NOT_TESTED; existing interrupted/cancelled evidence is not completion.",
+    "Independent final F3 and matching ZIP installation remain NOT_TESTED; NOT_SCORED."
   ],
   "actions": [
     {
-      "name": "Browser SDK R5 implementation contracts",
-      "id": 38482325798,
-      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38482325798",
-      "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
-      "status": "PASS"
-    },
-    {
+      "id": 38492098407,
       "name": "Browser SDK targeted main verification",
-      "id": 38482325639,
-      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38482325639",
-      "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
-      "status": "PASS"
+      "head_sha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098407",
+      "created_at": "2026-10-14T00:47:01Z",
+      "updated_at": "2026-10-14T00:49:55Z"
     },
     {
+      "id": 38492098653,
+      "name": "Scheduled Tasks R2.3 native IndexedDB scale",
+      "head_sha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+      "status": "completed",
+      "conclusion": "failure",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098653",
+      "created_at": "2026-10-14T00:47:01Z",
+      "updated_at": "2026-10-14T05:04:28Z"
+    },
+    {
+      "id": 38492098420,
+      "name": "Native Agent R1 components and package",
+      "head_sha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+      "status": "completed",
+      "conclusion": "failure",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098420",
+      "created_at": "2026-10-14T00:47:01Z",
+      "updated_at": "2026-10-14T06:09:05Z"
+    },
+    {
+      "id": 38492098400,
+      "name": "R25.1 local install fixed-version contracts",
+      "head_sha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098400",
+      "created_at": "2026-10-14T00:47:00Z",
+      "updated_at": "2026-10-14T00:51:17Z"
+    },
+    {
+      "id": 38492098374,
+      "name": "Sidebar R1 P0 targeted checks",
+      "head_sha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098374",
+      "created_at": "2026-10-14T00:47:00Z",
+      "updated_at": "2026-10-14T00:47:51Z"
+    },
+    {
+      "id": 38492098333,
+      "name": "Site access targeted checks",
+      "head_sha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098333",
+      "created_at": "2026-10-14T00:47:00Z",
+      "updated_at": "2026-10-14T00:47:34Z"
+    },
+    {
+      "id": 38492098358,
+      "name": "R7 axiosx HTTP page + fixture contracts",
+      "head_sha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098358",
+      "created_at": "2026-10-14T00:47:00Z",
+      "updated_at": "2026-10-14T00:47:35Z"
+    },
+    {
+      "id": 38492098291,
+      "name": "Cleanup merged short-lived OpenDesk branches",
+      "head_sha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098291",
+      "created_at": "2026-10-14T00:47:00Z",
+      "updated_at": "2026-10-14T00:48:01Z"
+    },
+    {
+      "id": 38492098359,
+      "name": "Cloud Control R5.2 safety and privacy contract",
+      "head_sha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098359",
+      "created_at": "2026-10-14T00:47:00Z",
+      "updated_at": "2026-10-14T00:48:23Z"
+    },
+    {
+      "id": 38492098393,
+      "name": "Browser SDK R5 implementation contracts",
+      "head_sha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098393",
+      "created_at": "2026-10-14T00:47:00Z",
+      "updated_at": "2026-10-14T00:48:28Z"
+    },
+    {
+      "id": 38492098332,
+      "name": "R15 built-in libraries qualification",
+      "head_sha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+      "status": "completed",
+      "conclusion": "failure",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098332",
+      "created_at": "2026-10-14T00:47:00Z",
+      "updated_at": "2026-10-14T00:48:29Z"
+    },
+    {
+      "id": 38492098242,
+      "name": "Scheduled Tasks R1 component and package",
+      "head_sha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098242",
+      "created_at": "2026-10-14T00:47:00Z",
+      "updated_at": "2026-10-14T00:49:43Z"
+    },
+    {
+      "id": 38492098306,
+      "name": "Scheduled Tasks R1 actual Linux Chrome preflight",
+      "head_sha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098306",
+      "created_at": "2026-10-14T00:47:00Z",
+      "updated_at": "2026-10-14T00:50:12Z"
+    },
+    {
+      "id": 38492098348,
+      "name": "Page userscript dependencies and package",
+      "head_sha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098348",
+      "created_at": "2026-10-14T00:47:00Z",
+      "updated_at": "2026-10-14T00:49:27Z"
+    },
+    {
+      "id": 38492098311,
+      "name": "Cloud Control R3 component and package",
+      "head_sha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098311",
+      "created_at": "2026-10-14T00:47:00Z",
+      "updated_at": "2026-10-14T00:49:26Z"
+    },
+    {
+      "id": 38492098326,
       "name": "Extension package budgets and library boundaries",
-      "id": 38482325830,
-      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38482325830",
-      "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
-      "status": "PASS"
+      "head_sha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098326",
+      "created_at": "2026-10-14T00:47:00Z",
+      "updated_at": "2026-10-14T00:50:21Z"
+    },
+    {
+      "id": 38492098336,
+      "name": "Scheduled Tasks R2 native immutable installed Task identity",
+      "head_sha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098336",
+      "created_at": "2026-10-14T00:47:00Z",
+      "updated_at": "2026-10-14T04:56:01Z"
+    },
+    {
+      "id": 38492098327,
+      "name": "R3.1 installed permissions real Chrome",
+      "head_sha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+      "status": "completed",
+      "conclusion": "failure",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098327",
+      "created_at": "2026-10-14T00:47:00Z",
+      "updated_at": "2026-10-14T05:00:04Z"
+    },
+    {
+      "id": 38492098321,
+      "name": "R15.4 WXT production libraries real Chrome",
+      "head_sha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+      "status": "completed",
+      "conclusion": "failure",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098321",
+      "created_at": "2026-10-14T00:47:00Z",
+      "updated_at": "2026-10-14T05:02:09Z"
+    },
+    {
+      "id": 38492098309,
+      "name": "Scheduled Tasks R2 entire Chrome process restart",
+      "head_sha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098309",
+      "created_at": "2026-10-14T00:47:00Z",
+      "updated_at": "2026-10-14T05:08:41Z"
+    },
+    {
+      "id": 38492098301,
+      "name": "Scheduled Tasks R1 installed Task real macOS Chrome",
+      "head_sha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098301",
+      "created_at": "2026-10-14T00:47:00Z",
+      "updated_at": "2026-10-14T05:09:37Z"
+    },
+    {
+      "id": 38492098268,
+      "name": "Scheduled Tasks R2 actual Chrome website permission revocation",
+      "head_sha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098268",
+      "created_at": "2026-10-14T00:47:00Z",
+      "updated_at": "2026-10-14T05:04:33Z"
     }
   ],
   "sameCandidateWholeRepoNode": {
-    "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
     "status": "FAIL",
-    "exitCode": 1,
+    "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
     "command": "npm test",
-    "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-installed-consent-fixed",
-    "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-whole-installed-consent-fixed-bound.log",
-    "environment": "macOS arm64 Node v24.16.0; OPENDESK_BUILD_EVIDENCE_DIR points to same-candidate receipts; private guard43127",
+    "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-alarm-owner-native-final",
+    "buildEvidenceDir": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/builds-alarm-owner-native-final",
+    "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-whole-alarm-owner-native-final-bound.log",
     "counts": {
-      "tests": 2287,
-      "pass": 2282,
+      "tests": 2289,
+      "pass": 2284,
       "fail": 3,
       "skipped": 2
     },
-    "sha256": "3a05778f5610dd948cf7747643325be8f9856768c40439cde1ae0d0a9ce66eec",
-    "scope": "Full repository; preserve failures independently from passing SDK contracts"
+    "sha256": "a4c2bba2a3f6f00aae956777f8f61c8ba61d64c6ea0f4627785c6cd7fc7d5705",
+    "failureLocations": [
+      "tests/environment/native-agent-chrome-real.test.mjs:167",
+      "tests/environment/workflow-focus.test.mjs:243",
+      "tests/environment/wxt-development.test.mjs:89"
+    ]
   },
   "sameCandidateCookieCI": {
-    "status": "FAIL",
-    "evidence": [
-      {
-        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/actions-installed-consent-fixed.json",
-        "sha256": "c9105e7dc1bc09e56c90c4bd41b6883e4103e24c8d76798eb3190b7b676859a3",
-        "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
-        "caseId": "R10.6-cookieEditorCI",
-        "command": "GitHub Actions: Cookie Editor R3.3 real SDK and package verification",
-        "environment": "GitHub Actions; preserve actual complete-workflow conclusion",
-        "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38482325692"
-      }
-    ],
-    "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
-    "previousEvidence": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery-33b3f574.json"
+    "status": "NOT_TESTED",
+    "evidence": [],
+    "reason": "No workflow run for this exact physical source candidate.",
+    "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5"
   },
   "previousCandidate": {
-    "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery-33b3f574.json",
-    "sha256": "c9d37036d084f41dcce458d4f9939b5ebe9357bc7875c989c646814da00a41dd",
-    "candidateSha": "33b3f574f11b557f6c01830b5758f610d59266f8"
+    "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery-3b1f25b8.json",
+    "sha256": "8726252fbd698a7395497d796f1abcb3afd2bb9353809875e5891683309c20dd",
+    "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd"
   },
   "bookmarksTitleFolderProtection": {
-    "status": "SOURCE_WIRED",
-    "node": "PASS",
-    "native": "NOT_TESTED",
-    "migration": "Legacy records without original title and parentId cannot delete native bookmarks"
+    "status": "HISTORICAL_REFERENCE",
+    "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery-3b1f25b8.json",
+    "reason": "Retained under original candidate; not relabelled as current-candidate evidence."
   },
   "consumerVersionMigration": {
-    "clipper": "1.0.1",
-    "workbench": "1.0.2",
-    "knowledgeInbox": "1.2.7",
-    "readingKitRevision": 5,
-    "historicalSnapshots": "UNCHANGED",
-    "marketPublication": "NOT_PERFORMED",
-    "formalInstall": "NOT_TESTED"
+    "status": "HISTORICAL_REFERENCE",
+    "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery-3b1f25b8.json",
+    "reason": "Retained under original candidate; not relabelled as current-candidate evidence."
   },
   "installedNativeObservations": [
     {
-      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-dialog-scoped-task/native-2026-10-13T23-48-24-599Z-7a73b0d9/native-report.json",
-      "sha256": "315cc822ee74da303f7fa15f5e79a0ea4c974b4e702c308b8ca09e69aff52439",
-      "sourceCandidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
-      "packageHash": "fb5636cc56a85d8451c08c572c529b15857fca9f220eed2c128f014e424e5c61",
-      "driverCommit": "ad4a8e709455744d3af1704dac48f9e6e442555a",
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/native-report.json",
+      "sha256": "7a764893f815c23a4acdffc5bb186dad6d17e4c3464cbe11f37d8253ce9c497f",
+      "sourceCandidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+      "packageHash": "8f46ffac9c0392b2d3be740a9257c76f24b439178e7672537e8d04a2f44aa59e",
+      "extensionId": "glmbcklmpoghobhibkjkehciogiakmma",
+      "complete": null,
       "status": "CORE_PASS_MORE_CONTRACTS_NOT_TESTED",
-      "extensionId": "bnfachbadlopkhlnppnkjicgdjldafjf",
-      "cases": {
-        "launch-owned-cft": "PASS",
-        "side-panel-contexts": "PASS",
-        "install-open-tool": "PASS",
-        "active-demo": "PASS",
-        "bookmarks-permission-denied": "PASS",
-        "bookmarks-create": "PASS",
-        "storage-persist": "PASS",
-        "worker-restart-owned-bookmark-and-storage": "PASS",
-        "bookmarks-remove": "PASS",
-        "download-start-and-terminal-state": "PASS",
-        "scheduler-fixed-task-install": "PASS",
-        "scheduler-open-existing-runhost": "PASS",
-        "storage-independent-tool-reopen": "PASS",
-        "scheduler-create-owned-alarm": "PASS",
-        "scheduler-two-independent-runhost-results": "PASS",
-        "scheduler-cancel-owned": "PASS"
-      },
-      "scope": "Actual installed-tool cases only; untested lifecycle and other contracts prevent formal Native promotion"
-    },
-    {
-      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-installed-consent-fixed/native-2026-10-13T23-09-26-313Z-f11dbae0/native-report.json",
-      "sha256": "c3ba3742d36d3075dd4e50a3e520907aee288a883c8a400f0ebe018031130117",
-      "sourceCandidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
-      "packageHash": "fb5636cc56a85d8451c08c572c529b15857fca9f220eed2c128f014e424e5c61",
-      "driverCommit": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
-      "status": "FAIL_OR_BLOCKED",
-      "extensionId": "bnfachbadlopkhlnppnkjicgdjldafjf",
-      "cases": {
-        "launch-owned-cft": "PASS",
-        "side-panel-contexts": "PASS",
-        "install-open-tool": "PASS",
-        "active-demo": "PASS",
-        "bookmarks-permission-denied": "PASS",
-        "bookmarks-create": "PASS",
-        "storage-persist": "PASS",
-        "bookmarks-remove": "PASS",
-        "download-start-and-complete": "FAIL"
-      },
-      "scope": "Actual installed-tool cases only; untested lifecycle and other contracts prevent formal Native promotion"
-    },
-    {
-      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-owner-composite-identity/native-2026-10-14T00-37-51-882Z-02013ba1/native-report.json",
-      "sha256": "bbb664acbd6a7df51b7a295d51c1fb315422a61d85ab6e3a192d474c00f6cef5",
-      "sourceCandidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
-      "packageHash": "fb5636cc56a85d8451c08c572c529b15857fca9f220eed2c128f014e424e5c61",
-      "driverCommit": "fca7d07f17df180764d0766605362e47a555fd63",
-      "status": "FAIL_OR_BLOCKED",
-      "extensionId": "bnfachbadlopkhlnppnkjicgdjldafjf",
-      "cases": {
-        "launch-owned-cft": "PASS",
-        "side-panel-contexts": "PASS",
-        "install-open-tool": "PASS",
-        "active-demo": "PASS",
-        "bookmarks-permission-denied": "PASS",
-        "bookmarks-create": "PASS",
-        "storage-persist": "PASS",
-        "worker-restart-owned-bookmark-and-storage": "PASS",
-        "bookmarks-remove": "PASS",
-        "download-start-and-terminal-state": "PASS",
-        "scheduler-fixed-task-install": "PASS",
-        "scheduler-open-existing-runhost": "PASS",
-        "storage-independent-tool-reopen": "PASS",
-        "scheduler-create-owned-alarm": "PASS",
-        "scheduler-two-independent-runhost-results": "NOT_TESTED",
-        "scheduler-cancel-owned": "PASS",
-        "ownership-source-resources": "PASS",
-        "cross-tool-storage-and-resource-rejection": "PASS",
-        "tool-upgrade-revokes-old-resource-identity": "FAIL"
-      },
-      "scope": "Actual installed-tool cases only; untested lifecycle and other contracts prevent formal Native promotion"
-    },
-    {
-      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-owner-confirm/native-2026-10-14T00-19-51-272Z-3988862c/native-report.json",
-      "sha256": "a6637bd0bb1527fb86d0aad542c0878fcd4d84291841be342a9a80d448e61f8f",
-      "sourceCandidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
-      "packageHash": "fb5636cc56a85d8451c08c572c529b15857fca9f220eed2c128f014e424e5c61",
-      "driverCommit": "9c278be6385c3af8fbf0abdacb66416ecc333363",
-      "status": "FAIL_OR_BLOCKED",
-      "extensionId": "bnfachbadlopkhlnppnkjicgdjldafjf",
-      "cases": {
-        "launch-owned-cft": "PASS",
-        "side-panel-contexts": "PASS",
-        "install-open-tool": "PASS",
-        "active-demo": "FAIL"
-      },
-      "scope": "Actual installed-tool cases only; untested lifecycle and other contracts prevent formal Native promotion"
-    },
-    {
-      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-owner-headless-aware/native-2026-10-14T00-26-26-798Z-910c5c50/native-report.json",
-      "sha256": "f703cab8ca013c89decf0816d4773496104739e45d5c5f2c17b8cdaa614182fa",
-      "sourceCandidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
-      "packageHash": "fb5636cc56a85d8451c08c572c529b15857fca9f220eed2c128f014e424e5c61",
-      "driverCommit": "0aa348ef197aeba1e583787fb07652763c552a86",
-      "status": "FAIL_OR_BLOCKED",
-      "extensionId": "bnfachbadlopkhlnppnkjicgdjldafjf",
-      "cases": {
-        "launch-owned-cft": "PASS",
-        "side-panel-contexts": "PASS",
-        "install-open-tool": "PASS",
-        "active-demo": "PASS",
-        "bookmarks-permission-denied": "PASS",
-        "bookmarks-create": "PASS",
-        "storage-persist": "PASS",
-        "worker-restart-owned-bookmark-and-storage": "PASS",
-        "bookmarks-remove": "PASS",
-        "download-start-and-terminal-state": "PASS",
-        "scheduler-fixed-task-install": "PASS",
-        "scheduler-open-existing-runhost": "PASS",
-        "storage-independent-tool-reopen": "PASS",
-        "scheduler-create-owned-alarm": "PASS",
-        "scheduler-two-independent-runhost-results": "NOT_TESTED",
-        "scheduler-cancel-owned": "PASS",
-        "ownership-source-resources": "PASS",
-        "cross-tool-storage-and-resource-rejection": "PASS",
-        "tool-upgrade-revokes-old-resource-identity": "FAIL"
-      },
-      "scope": "Actual installed-tool cases only; untested lifecycle and other contracts prevent formal Native promotion"
-    },
-    {
-      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-owner-revision-wait/native-2026-10-14T00-34-22-086Z-b3e62ed4/native-report.json",
-      "sha256": "0df86ff61da1ab44335a19dea8a2404d2cba141a424f4cefc7840bdc72623e03",
-      "sourceCandidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
-      "packageHash": "fb5636cc56a85d8451c08c572c529b15857fca9f220eed2c128f014e424e5c61",
-      "driverCommit": "21a51db3f0827f0856c602d23afe9a7b4deb07bf",
-      "status": "FAIL_OR_BLOCKED",
-      "extensionId": "bnfachbadlopkhlnppnkjicgdjldafjf",
-      "cases": {
-        "launch-owned-cft": "PASS",
-        "side-panel-contexts": "PASS",
-        "install-open-tool": "PASS",
-        "active-demo": "PASS",
-        "bookmarks-permission-denied": "PASS",
-        "bookmarks-create": "PASS",
-        "storage-persist": "PASS",
-        "worker-restart-owned-bookmark-and-storage": "PASS",
-        "bookmarks-remove": "PASS",
-        "download-start-and-terminal-state": "PASS",
-        "scheduler-fixed-task-install": "PASS",
-        "scheduler-open-existing-runhost": "PASS",
-        "storage-independent-tool-reopen": "PASS",
-        "scheduler-create-owned-alarm": "PASS",
-        "scheduler-two-independent-runhost-results": "NOT_TESTED",
-        "scheduler-cancel-owned": "PASS",
-        "ownership-source-resources": "PASS",
-        "cross-tool-storage-and-resource-rejection": "PASS",
-        "tool-upgrade-revokes-old-resource-identity": "FAIL"
-      },
-      "scope": "Actual installed-tool cases only; untested lifecycle and other contracts prevent formal Native promotion"
-    },
-    {
-      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-peer-upgrade/native-2026-10-14T00-11-43-068Z-f7bd2eeb/native-report.json",
-      "sha256": "2a1d57561b514f9b4224237fef1f328d7e703df35d1768d455c8697bcd5dc208",
-      "sourceCandidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
-      "packageHash": "fb5636cc56a85d8451c08c572c529b15857fca9f220eed2c128f014e424e5c61",
-      "driverCommit": "b6ad3f22434e43666d75bbcd4a54325e4c0a79c0",
-      "status": "FAIL_OR_BLOCKED",
-      "extensionId": "bnfachbadlopkhlnppnkjicgdjldafjf",
       "cases": {
         "launch-owned-cft": "PASS",
         "side-panel-contexts": "PASS",
@@ -2805,32 +2905,187 @@
         "scheduler-two-independent-runhost-results": "PASS",
         "scheduler-cancel-owned": "PASS",
         "ownership-source-resources": "PASS",
-        "cross-tool-storage-and-resource-rejection": "FAIL"
+        "cross-tool-storage-and-resource-rejection": "PASS",
+        "tool-upgrade-revokes-old-resource-identity": "PASS",
+        "tool-uninstall-cleans-only-owned-mappings": "PASS",
+        "trusted-history-user-selected-range": "PASS",
+        "trusted-history-real-permission-denial": "PASS",
+        "trusted-history-real-permission-and-query": "PASS"
       },
-      "scope": "Actual installed-tool cases only; untested lifecycle and other contracts prevent formal Native promotion"
+      "scope": "Immutable original report; case PASS/FAIL retained; no formal interface Native promotion."
     },
     {
-      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-worker-alarm-bounded/native-2026-10-13T23-41-46-593Z-bfceddc6/native-report.json",
-      "sha256": "5daa210085762879ad7d3391e39f4854564f5cee62ed9bfbe65ee4c263d38bfa",
-      "sourceCandidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
-      "packageHash": "fb5636cc56a85d8451c08c572c529b15857fca9f220eed2c128f014e424e5c61",
-      "driverCommit": "0018e5faf0a7efb4a0d91aaa9bbf72fcdd25aac1",
-      "status": "FAIL_OR_BLOCKED",
-      "extensionId": "bnfachbadlopkhlnppnkjicgdjldafjf",
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/native-report.json",
+      "sha256": "1eb7c36f90a0ce182ba810b8430a5ebd7916f54bd48e0e56d1518757e700c51e",
+      "sourceCandidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+      "packageHash": "8f46ffac9c0392b2d3be740a9257c76f24b439178e7672537e8d04a2f44aa59e",
+      "extensionId": "glmbcklmpoghobhibkjkehciogiakmma",
+      "complete": false,
+      "status": "INCOMPLETE",
       "cases": {
-        "launch-owned-cft": "PASS",
-        "side-panel-contexts": "PASS",
-        "install-open-tool": "PASS",
-        "active-demo": "PASS",
-        "bookmarks-permission-denied": "PASS",
-        "bookmarks-create": "PASS",
-        "storage-persist": "PASS",
-        "worker-restart-owned-bookmark-and-storage": "PASS",
-        "bookmarks-remove": "PASS",
-        "download-start-and-terminal-state": "PASS",
-        "scheduler-fixed-task-install": "FAIL"
+        "launch": "PASS",
+        "product-side-panel": "PASS",
+        "official-install": "PASS",
+        "active-fixture": "PASS",
+        "read-grant": "PASS",
+        "write-grant": "PASS",
+        "new-cookie": "PASS",
+        "edit-value": "PASS",
+        "rename-with-new-value": "PASS",
+        "values-grant": "PASS",
+        "rename-preserve-hidden-value": "PASS",
+        "exact-delete": "PASS",
+        "revoke-values-before-negative-cases": "PASS",
+        "conflict-preserves-original": "PASS",
+        "hidden-value-needs-grant": "PASS",
+        "same-name-path-isolation": "PASS",
+        "import-ui": "PASS",
+        "export-ui": "PASS",
+        "observe-ui": "PASS",
+        "clear-ui": "PASS",
+        "close-and-reopen": "FAIL"
       },
-      "scope": "Actual installed-tool cases only; untested lifecycle and other contracts prevent formal Native promotion"
+      "scope": "Immutable original report; case PASS/FAIL retained; no formal interface Native promotion."
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-lifecycle-continuation/native-core-2026-10-14T01-25-32-235Z-c575f7c9/native-report.json",
+      "sha256": "4079d0ffdcb72f5cc1a77e85438729057bda6faae730835f5c4c8e32334c2ee8",
+      "sourceCandidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+      "packageHash": "8f46ffac9c0392b2d3be740a9257c76f24b439178e7672537e8d04a2f44aa59e",
+      "extensionId": "glmbcklmpoghobhibkjkehciogiakmma",
+      "complete": false,
+      "status": "INCOMPLETE",
+      "cases": {
+        "launch": "PASS",
+        "product-side-panel": "PASS",
+        "official-install": "PASS",
+        "active-fixture": "PASS",
+        "read-grant": "FAIL"
+      },
+      "scope": "Immutable original report; case PASS/FAIL retained; no formal interface Native promotion."
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame/native-core-2026-10-14T07-09-43-616Z-e8c67267/native-report.json",
+      "sha256": "9c1e738db9917b5fad83b1790f475d89425eec09f5e78e480b3d2784880ebd14",
+      "sourceCandidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+      "packageHash": "8f46ffac9c0392b2d3be740a9257c76f24b439178e7672537e8d04a2f44aa59e",
+      "extensionId": "glmbcklmpoghobhibkjkehciogiakmma",
+      "complete": true,
+      "status": "SCOPED_PASS",
+      "cases": {
+        "launch": "PASS",
+        "product-side-panel": "PASS",
+        "official-install": "PASS",
+        "active-fixture": "PASS",
+        "read-grant": "PASS",
+        "write-grant": "PASS",
+        "close-and-reopen": "PASS",
+        "revoked-pending-write": "PASS",
+        "disable-with-pending-write": "PASS",
+        "uninstall-and-clean-grants": "PASS",
+        "reinstall-requires-fresh-grants": "PASS"
+      },
+      "scope": "Immutable original report; case PASS/FAIL retained; no formal interface Native promotion."
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-diagnostic/native-core-2026-10-14T07-06-10-787Z-31027e38/native-report.json",
+      "sha256": "fda198229e3eb6d9140e2c7a7bcdb8026b2de2a8086680a8d6cdf3d8c9941dc5",
+      "sourceCandidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+      "packageHash": "8f46ffac9c0392b2d3be740a9257c76f24b439178e7672537e8d04a2f44aa59e",
+      "extensionId": "glmbcklmpoghobhibkjkehciogiakmma",
+      "complete": true,
+      "status": "SCOPED_PASS",
+      "cases": {
+        "launch": "PASS",
+        "product-side-panel": "PASS",
+        "official-install": "PASS",
+        "active-fixture": "PASS",
+        "read-grant": "PASS",
+        "write-grant": "PASS",
+        "close-and-reopen": "PASS",
+        "revoked-pending-write": "PASS",
+        "disable-with-pending-write": "PASS",
+        "uninstall-and-clean-grants": "PASS",
+        "reinstall-requires-fresh-grants": "PASS"
+      },
+      "scope": "Immutable original report; case PASS/FAIL retained; no formal interface Native promotion."
     }
-  ]
+  ],
+  "currentMainCI": {
+    "candidateSha": "5da04474894182f34e3dda64dc1cbb6833bd1ff6",
+    "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/actions-5da04474-latest.json",
+    "sha256": "d65e32c5dac0151c472d8967ddfe1f2771ed1c6cf902364f0298d00975cf0e4b",
+    "runs": [
+      {
+        "name": "Cleanup merged short-lived OpenDesk branches",
+        "id": 38534271549,
+        "conclusion": "success",
+        "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38534271549"
+      },
+      {
+        "name": "Site access targeted checks",
+        "id": 38534271693,
+        "conclusion": "success",
+        "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38534271693"
+      },
+      {
+        "name": "Sidebar R1 P0 targeted checks",
+        "id": 38534271647,
+        "conclusion": "success",
+        "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38534271647"
+      },
+      {
+        "name": "R7 axiosx HTTP page + fixture contracts",
+        "id": 38534271480,
+        "conclusion": "success",
+        "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38534271480"
+      },
+      {
+        "name": "Browser SDK R5 implementation contracts",
+        "id": 38534271488,
+        "conclusion": "success",
+        "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38534271488"
+      },
+      {
+        "name": "Browser SDK targeted main verification",
+        "id": 38534271645,
+        "conclusion": "success",
+        "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38534271645"
+      },
+      {
+        "name": "Page userscript dependencies and package",
+        "id": 38534271857,
+        "conclusion": "success",
+        "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38534271857"
+      },
+      {
+        "name": "Native Agent R1 components and package",
+        "id": 38534271592,
+        "conclusion": "success",
+        "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38534271592"
+      },
+      {
+        "name": "Extension package budgets and library boundaries",
+        "id": 38534271517,
+        "conclusion": "success",
+        "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38534271517"
+      }
+    ],
+    "cookieWorkflow": "NOT_TRIGGERED",
+    "scope": "Separate newer main CI; does not promote physical447 Native, final working-tree candidate or F3/ZIP."
+  },
+  "previousMainCIObservation": {
+    "candidateSha": "5c959712bbfab4341927f8e8bb953e200224dda3",
+    "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/actions-5c959712-latest.json",
+    "sha256": "f053361f866121465026eacbf4d1abd436bae2132e3263cf94c87496f141f54c",
+    "scope": "Later main commit; WXT 12/12 local and remote WXT passes. Native Agent environment gate fails local-dev-preparation.test.mjs:41 latency assertion. This is not the physical 4475 source candidate or native evidence. SDK/Cookie workflows did not trigger on this one-line path."
+  },
+  "scopedNodeAssertionEvidence": {
+    "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+    "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+    "positiveAssertionPass": 55,
+    "denialAssertionPass": 55,
+    "fullMatrixContractPass": 0,
+    "nativePass": 0
+  }
 }

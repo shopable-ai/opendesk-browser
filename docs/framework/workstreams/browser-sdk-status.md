@@ -1,6 +1,6 @@
 ## R10.6 · 当前 Registry 与独立证据（2026-10-14）
 
-SOURCE_WIRED 55、NODE_PASS 55、BUILD_PASS 55、正式 NATIVE_PASS 0。公开 Registry 53 与可信 Host-only 2 分开登记。固定候选 `3b1f25b83a96aae53f57e7f33a0be9a230bf28dd` 的关联 Node 293/293、定向回归 211/211、Check/双构建/Size/Verify 均 PASS，470 项构建输入一致；完整身份与原始日志见 `docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery.json`。同提交 R5 与 targeted-main Actions PASS；同提交预算 CI PASS。正确绑定新构建收据后的 Mac 全仓回归 3 FAIL；旧环境错误和历史 Cookie CI 失败均保留，不提升为 PASS。书签标题/文件夹编辑与旧映射删除已保守拒绝。正式 Native 全部 NOT_TESTED，95 分目标 NOT_SCORED。
+SOURCE_WIRED 55、BUILD_PASS 55；物理 `4475d0422e107c6a4955db59f3e748468bd2e8d5` 的逐接口限定 Node 正向/拒绝断言各有55项映射，正式 NATIVE_PASS 仍0/55，完整矩阵合同关闭仍0。公开 Registry53 与可信 Host-only2分开登记。原294项日志仅是suite证据；具体调用/断言/源码行与新增补缺驱动见 `evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json`。物理447的Build/Size/Verify及470构建输入事实保留；它与后续main及当前工作区分开。同包主流程23步骤和本轮两次Cookie生命周期各11步骤PASS，不换算为接口。WXT单行已于5c959712提交；其watcher延迟CI失败保留。最新5da04474触发9项CI全部SUCCESS，Cookie工作流未触发。旧receipt、失败及未完整运行保留；旧Cookie超时原因仍未确认。F3/ZIP NOT_TESTED，产品NOT_SCORED。
 
 批准合同 55：当前唯一公开 Registry 53，可信 Host-only 2；Scheduler 已复用已有 Schedule Service / Repository / Alarms / RunHost 接线。创建计划需要精确任务 Revision、当前网站和真实可信确认；工具只能管理自有计划。History 与 Permissions 不进入公开 Registry。当前整体候选验证仍在进行，Native 未有本候选证据的接口保持 NOT_TESTED。
 
@@ -271,3 +271,4 @@ Node/Build/Verify/真实 Chrome 回执仍需在同一源码候选独立验收，
 
 后续同产品输入的 Linux Node22（`5c322c26`）完整回归：2286 项、2277 PASS / 2 FAIL / 7 SKIP；剩余 Workflow Focus 与另一负责人未提交的 WXT 断言修复。Markdown 原生 fixture 在“Discover tools available”超时，未提升为 SDK Native。
 R10.6 同包真实 Chrome 原始步骤：16 项通过，含正式安装、拒绝/允许、Worker 重启、同 Ref 删除、Storage 回读、下载中断及两次实际 onAlarm / RunHost 原生回执。证据：`docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-dialog-scoped-task/native-2026-10-13T23-48-24-599Z-7a73b0d9/native-report.json`。这些具体步骤不替代完整 55 项 Native、安全生命周期或 F3/ZIP 接受。
+R10.6 本轮 Cookies 生命周期证据：`docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/evidence-index.json`；iframe 绑定观察已验证，旧加载超时根因未确认，SDK/Consumer 未作无根据修补。

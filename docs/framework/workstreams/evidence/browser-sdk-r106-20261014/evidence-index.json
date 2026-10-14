@@ -1,6 +1,6 @@
 {
   "schemaVersion": "opendesk.browser-sdk.r106-evidence-index.v1",
-  "auditedCandidate": "d8ae71c285a8c1aaf9eac1c122ec2ac1630bad68",
+  "auditedCandidate": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
   "createdAgainstHead": "22abce369312e385f35dc240bd93b8635d125464",
   "formalNativePass": 0,
   "files": [
@@ -26,8 +26,8 @@
     },
     {
       "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery.json",
-      "bytes": 104292,
-      "sha256": "8726252fbd698a7395497d796f1abcb3afd2bb9353809875e5891683309c20dd"
+      "sha256": "c36358edc1763d07e8e5f627fabee32d4387061f5d4cd80d1b48d204e6aef60f",
+      "bytes": 111193
     },
     {
       "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery-586f979b.json",
@@ -3743,13 +3743,1026 @@
       "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/current-main-product-input-delta.json",
       "bytes": 362,
       "sha256": "4daea6efe69f66125589d867ea613113826a5b7d5d18a4e329a8c13e4cbc06dd"
+    },
+    {
+      "path": "docs/api/browser-sdk-interface-matrix.json",
+      "sha256": "7425a11e3beb8cc44ad163e27f882110f4b690f050d91160834e21bf7882d36a",
+      "bytes": 2364881
+    },
+    {
+      "path": "docs/framework/workstreams/browser-sdk-acceptance.json",
+      "sha256": "c9a35fc619b5d6563e7f4c932154cd18df2c0183548c8be2c52df8ff72142143",
+      "bytes": 344274
+    },
+    {
+      "path": "docs/framework/workstreams/browser-sdk-status.md",
+      "sha256": "9081aa013782c5eeaa8f0fe41e9460447508ded32997f1bd71564ffb5d6a5b30",
+      "bytes": 35635
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildDevelopment-alarm-owner-native-final.log",
+      "sha256": "d59a044a5b1469e7666f1bc56a6f4d854b6ae2752d00cfb690cf267703752104",
+      "bytes": 22497
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildProduction-alarm-owner-native-final.log",
+      "sha256": "08da591e90856fb828f34170e8940c806a20107d7ee7665d94c068e8dfd951a0",
+      "bytes": 17915
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildSize-alarm-owner-native-final.log",
+      "sha256": "9fc2048a32452e44a941ec1e4bb8202e806bcb446762d20508de981df47e8f63",
+      "bytes": 12245
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/builds-alarm-owner-native-final/build-development.json",
+      "sha256": "84d81d233fb91a26dea36c32b8e76be060b8b25c4e8552436bcc8db4552d8239",
+      "bytes": 487924
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/builds-alarm-owner-native-final/build-production.json",
+      "sha256": "f0a2e931d9f9b8cef4d7359c3a4f019122756ea22cfaead2f77cd978668dafa5",
+      "bytes": 465962
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery-3b1f25b8.json",
+      "sha256": "8726252fbd698a7395497d796f1abcb3afd2bb9353809875e5891683309c20dd",
+      "bytes": 104292
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/catalog-alarm-owner-native-final.log",
+      "sha256": "8e5d6ca0c24ba6f14e36e93930c11ddd994e1623026e831a8a4d6ca2a8fdd123",
+      "bytes": 98
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/check-alarm-owner-native-final.log",
+      "sha256": "5a3df4fe18df36d0ec280ae65b3a25bc003379937991759117f164f10d6b865b",
+      "bytes": 208
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/checks-alarm-owner-native-final.json",
+      "sha256": "2a4b74f5870e41f914cfcae2150743cb3d33f58e093adb9d1bfa513ad3a4cc2c",
+      "bytes": 6899
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/ci-handoff-f9fc1a48.json",
+      "sha256": "8556c2b077fd43e6d499b6011a719cdd32605fddd69fa03d2b1aba70dbb86068",
+      "bytes": 1722
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/coverage-alarm-owner-native-final.log",
+      "sha256": "432f3cdd896265ed971d69d44ef3aa444b0a62cac92106dd48c96393b58d1efe",
+      "bytes": 98
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/freeze-alarm-owner-native-final.log",
+      "sha256": "0b2cccef956fff1f093c7363137bb83f1bcc45b084410c8458789dc23ad1f218",
+      "bytes": 453
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/ledger-alarm-owner-native-final.log",
+      "sha256": "1395bab75824af803b4966f1790afd50d315e6ed82f102b7a87a73c598d4330b",
+      "bytes": 260
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/matrix-alarm-owner-native-final.log",
+      "sha256": "3c7068b5bfa647f2f45dabe6491007c3f53703328d2f11df0086b07f8147bca8",
+      "bytes": 187
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-lifecycle-continuation/native-core-2026-10-14T01-25-32-235Z-c575f7c9/active-fixture-receipt.json",
+      "sha256": "03dc5975044ade6312b362988700c931ce231067651137169721dfc9b4bf5efa",
+      "bytes": 38493
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-lifecycle-continuation/native-core-2026-10-14T01-25-32-235Z-c575f7c9/active-fixture.png",
+      "sha256": "b5e7addd57212ee1515c36b024dd00e7a6e90cbf4d9a6ee728867e78055dc398",
+      "bytes": 118994
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-lifecycle-continuation/native-core-2026-10-14T01-25-32-235Z-c575f7c9/cdp-trace.json",
+      "sha256": "cab89ba9901662d638c88829d1d55eeabd57320c7995a8d9009cb7706ca7030b",
+      "bytes": 48153
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-lifecycle-continuation/native-core-2026-10-14T01-25-32-235Z-c575f7c9/launch-receipt.json",
+      "sha256": "ad882cffb688f31ab76f47dbe592b5778c7cc25ac943cefaa5bbb05d39a72950",
+      "bytes": 37792
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-lifecycle-continuation/native-core-2026-10-14T01-25-32-235Z-c575f7c9/launcher-cookie-r33-core-exit.json",
+      "sha256": "89d3d08659aa9fff595bf882d93d063e7cc081681e204ba09ce94fee6d6b7f85",
+      "bytes": 3245
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-lifecycle-continuation/native-core-2026-10-14T01-25-32-235Z-c575f7c9/launcher-cookie-r33-core-raw-failure.json",
+      "sha256": "22fa97b98a1ee2bad836aacdc0ea53d20c60af0ba7a105133ac9730e0d176cea",
+      "bytes": 1480
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-lifecycle-continuation/native-core-2026-10-14T01-25-32-235Z-c575f7c9/launcher-cookie-r33-core-stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-lifecycle-continuation/native-core-2026-10-14T01-25-32-235Z-c575f7c9/launcher-cookie-r33-core-stdout.txt",
+      "sha256": "75c1ebb6990f3acd4c4bd90c216d6406587810ad8874e89ed018a8a5b9258d55",
+      "bytes": 1274
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-lifecycle-continuation/native-core-2026-10-14T01-25-32-235Z-c575f7c9/launcher-cookie-r33-core-summary.json",
+      "sha256": "a772efcdd139ee60431892a716729fd6cb23c58e19f9d0188c75c856b091d745",
+      "bytes": 169
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-lifecycle-continuation/native-core-2026-10-14T01-25-32-235Z-c575f7c9/launcher-cookie-r33-core-verified.json",
+      "sha256": "e719472b192bf228b5984aae4889fd0507e97911ce306d4e8abae44daadc7493",
+      "bytes": 3728
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-lifecycle-continuation/native-core-2026-10-14T01-25-32-235Z-c575f7c9/launcher-cookie-r33-core.json",
+      "sha256": "d24bb9254a0793d195494e2ba61af04a9b9dd61737d6a62d4a5e3e8182e25e4e",
+      "bytes": 1338
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-lifecycle-continuation/native-core-2026-10-14T01-25-32-235Z-c575f7c9/native-report.json",
+      "sha256": "4079d0ffdcb72f5cc1a77e85438729057bda6faae730835f5c4c8e32334c2ee8",
+      "bytes": 53272
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-lifecycle-continuation/native-core-2026-10-14T01-25-32-235Z-c575f7c9/official-install-receipt.json",
+      "sha256": "965574154afc2193787ce309db634bd7f9d973fa6024126ad946cdf4f79b204a",
+      "bytes": 37795
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-lifecycle-continuation/native-core-2026-10-14T01-25-32-235Z-c575f7c9/official-install.png",
+      "sha256": "87aa63d827a93dba377f93755c0e5d5f1359c34b6e2d0b45b29f940dea8327aa",
+      "bytes": 38938
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-lifecycle-continuation/native-core-2026-10-14T01-25-32-235Z-c575f7c9/product-side-panel-receipt.json",
+      "sha256": "95c6e553d18ad4d7eebc4625bb931b8495dd440d1abe3fa5405bd74cbce45551",
+      "bytes": 38086
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-lifecycle-continuation/native-core-2026-10-14T01-25-32-235Z-c575f7c9/product-side-panel.png",
+      "sha256": "ecabdb1ac3f753cb1593dfb171f7a1738e03ec8311950450d5cd317beee85973",
+      "bytes": 82507
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-lifecycle-continuation/native-core-2026-10-14T01-25-32-235Z-c575f7c9/read-grant-failure.png",
+      "sha256": "23fc9c78c4f94d0c137d728fbdd585f88cd3e516fdd3c3053e510bf671b32107",
+      "bytes": 94691
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-lifecycle-continuation/native-core-2026-10-14T01-25-32-235Z-c575f7c9/read-grant-receipt.json",
+      "sha256": "e13d4d4a794c5c4cdabcd260c5797f95df55e04f479f73fb6caaa2ab9e53f8b1",
+      "bytes": 40465
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-lifecycle-continuation/native-core-2026-10-14T01-25-32-235Z-c575f7c9/read-grant-settings.png",
+      "sha256": "cfc99e9dca3c1e38cf21fda11ebc4398f69a7511dd4bc45ac74e9c1f27cf05a9",
+      "bytes": 120822
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/active-fixture-receipt.json",
+      "sha256": "7830659d65856606002ee8d1717a8f7613fe127d9b6904a62b79599343c23bf1",
+      "bytes": 38483
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/active-fixture.png",
+      "sha256": "3aaf1f705973dba4e69706b5f8b031ca8ea222948106b983930aeefbe1b228f4",
+      "bytes": 112777
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/cdp-trace.json",
+      "sha256": "d422913eece3d78dfa384a246bf5bb924ea73ada9ca373a821bf0df7900ce412",
+      "bytes": 436606
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/clear-ui-receipt.json",
+      "sha256": "b447744d77f98b5cf0eec33d11c88c2e1121d8ea855c6b97ce49d72fe9a112cb",
+      "bytes": 37509
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/clear-ui.png",
+      "sha256": "7c52b5c762f2920911df7f89ecf15e7c060f06521f4bdfea2f4e8b38dac51fcc",
+      "bytes": 160060
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/close-and-reopen-failure.png",
+      "sha256": "57eed2c2a6c7a13d86048d3cebf4a84818813cf708a2413af647d3c5e4900fff",
+      "bytes": 111058
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/close-and-reopen-receipt.json",
+      "sha256": "969428e2faf8475e0402b5ee9d241ec1d90ca33bc6574a687e299a43bc05646a",
+      "bytes": 42075
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/conflict-preserves-original-receipt.json",
+      "sha256": "fef0dba2bb409d0a97dc5ae5e4afcd3d7fcb045f7b2e098cf5ea411256c70606",
+      "bytes": 38131
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/conflict-preserves-original.png",
+      "sha256": "f20cbcc0cc809cbf0ba34762477e1bd1ea6f1149079d3a71903be65ea863eda6",
+      "bytes": 143382
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/edit-value-receipt.json",
+      "sha256": "7ecd3ab3e58127382fb08bbd8a8d0c771096b59fea6329556e3df110a5e3e9ba",
+      "bytes": 37899
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/edit-value.png",
+      "sha256": "0684d41ee689a2ed68168fd10c305ca5af6c7c7923f743593421fd771210c978",
+      "bytes": 117292
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/exact-delete-receipt.json",
+      "sha256": "d6dcab0fceadaf2376c3819b28a67150a1d44e56441b3d21e51e6d19489ff8de",
+      "bytes": 37350
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/exact-delete.png",
+      "sha256": "f3b37c83e19ccd54e7fec40484c14e810c60cf3f051a357f8119a2ca9f123210",
+      "bytes": 99945
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/export-ui-receipt.json",
+      "sha256": "28e483f0b01f124faad8656684f77587ce019163343a5ace84c0c9eae8b5c425",
+      "bytes": 37426
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/export-ui.png",
+      "sha256": "6b45b7894bb92c2142d46f1528163ca7216698313f9eaee6b64d1aadfdbc69ff",
+      "bytes": 156662
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/hidden-value-needs-grant-receipt.json",
+      "sha256": "f39b4d8982904d0e1119da9eaa714e052bdfca7516e316f995e39e2dbbcbb6b4",
+      "bytes": 37942
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/hidden-value-needs-grant.png",
+      "sha256": "2f9beaab126d3860ff281ca3bd3c8d80b90f73204830beaadfb3a6de3e7615b1",
+      "bytes": 155204
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/import-ui-receipt.json",
+      "sha256": "2c177c4f9a6151d0ec3e7fdfebfc900f97e47acabb0d029f91cc9bff86e9dcb9",
+      "bytes": 39315
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/import-ui.png",
+      "sha256": "e113004aa87e52e7b3368ad5d8139d14b003874918c2e010a8fad39cbec6a763",
+      "bytes": 129345
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/launch-receipt.json",
+      "sha256": "43c7cc609d90e0079fc39a73c23365e0f539e38e45388ed15f461c0b47cf769f",
+      "bytes": 37782
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/launcher-cookie-r33-core-exit.json",
+      "sha256": "358589384ad96f5110a61dc8c6a6d505cdd69ed6c60a9b3500734c7ae42751f6",
+      "bytes": 3245
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/launcher-cookie-r33-core-raw-failure.json",
+      "sha256": "752c7e6cd04ca43948bb3b098d95dccdc09cf17c5cfdacb59360ed616b20be5e",
+      "bytes": 1480
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/launcher-cookie-r33-core-stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/launcher-cookie-r33-core-stdout.txt",
+      "sha256": "1b5d9f8c4d1832e52898e407d629f085558ff8bfdc4e7fc22f6e560b227c12e3",
+      "bytes": 1274
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/launcher-cookie-r33-core-summary.json",
+      "sha256": "2dc999ca51e61eff494e98b4092c525635d5bbecb45954ed14d52b68cb201d37",
+      "bytes": 169
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/launcher-cookie-r33-core-verified.json",
+      "sha256": "b53f935b9c95326da860115ffdc55b4bb610a8716da367afeb7ae38d7c928ea3",
+      "bytes": 3718
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/launcher-cookie-r33-core.json",
+      "sha256": "d2c35848744a19fb52819e92bc1f35722485d494af5785b883253a0548029852",
+      "bytes": 1338
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/native-report.json",
+      "sha256": "1eb7c36f90a0ce182ba810b8430a5ebd7916f54bd48e0e56d1518757e700c51e",
+      "bytes": 112957
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/new-cookie-receipt.json",
+      "sha256": "bf8f3b4097ac6e098dfaf1c91cd5389f83c61d4f4f05eb97e87d95f292915b6c",
+      "bytes": 37899
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/new-cookie.png",
+      "sha256": "0684d41ee689a2ed68168fd10c305ca5af6c7c7923f743593421fd771210c978",
+      "bytes": 117292
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/observe-ui-receipt.json",
+      "sha256": "69453a275cc8bc9fed40daad0e97968f2add7043f17f4ae8c3c73154fa60835e",
+      "bytes": 37326
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/observe-ui.png",
+      "sha256": "6015fec847c7bd34229cc47327b54e0c76a05e890dc40c46d30175aef9fe52bf",
+      "bytes": 175619
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/official-install-receipt.json",
+      "sha256": "122aa0a7ea0b857669abd88696d9d18eb9a058e02b0069c3399262bef3b983bc",
+      "bytes": 37785
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/official-install.png",
+      "sha256": "87aa63d827a93dba377f93755c0e5d5f1359c34b6e2d0b45b29f940dea8327aa",
+      "bytes": 38938
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/product-side-panel-receipt.json",
+      "sha256": "e28c6fa4f7688a89ad3a04fcf2284a0edc8721504827218800ff18a2e76a9e26",
+      "bytes": 38076
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/product-side-panel.png",
+      "sha256": "ecabdb1ac3f753cb1593dfb171f7a1738e03ec8311950450d5cd317beee85973",
+      "bytes": 82507
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/read-grant-receipt.json",
+      "sha256": "a2e31f6327b41c295c91bb739ac8d5344f8396c9d94286d09c20abc3a08c097e",
+      "bytes": 38270
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/read-grant-settings.png",
+      "sha256": "cfc99e9dca3c1e38cf21fda11ebc4398f69a7511dd4bc45ac74e9c1f27cf05a9",
+      "bytes": 120822
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/read-grant.png",
+      "sha256": "a96ffaeae2c1d7c2f794e0837d8d0941f0b51b3e534a846dd96113bd1808eb4b",
+      "bytes": 110073
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/rename-preserve-hidden-value-receipt.json",
+      "sha256": "8811158862b9f88d0360dfc3ea72e0d37deaf12c970eb9ee6c978921f87ebda4",
+      "bytes": 38120
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/rename-preserve-hidden-value.png",
+      "sha256": "f7ae145530d6b7dd8cd0d4260870758a1a85377304cf184df0179be6efde9338",
+      "bytes": 120430
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/rename-with-new-value-receipt.json",
+      "sha256": "138f15e4e18f23c4d7afb206c41bfcfeb2669d6030278ad8d45370fea003b769",
+      "bytes": 38123
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/rename-with-new-value.png",
+      "sha256": "8f2e3d2d98e1da315ad0f3d88b217c11689e888d38f9df0db80aa193a89065e0",
+      "bytes": 120671
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/revoke-values-before-negative-cases-receipt.json",
+      "sha256": "1ad44c3011f1e00a13757d0bf167d3e426e70c9de04e5e8f1ad467e79412e74f",
+      "bytes": 37294
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/revoke-values-before-negative-cases.png",
+      "sha256": "1e7949fd257ab2c31974c5009c42c0a4b0f46cfa9100c2d16af1575ea1f28c88",
+      "bytes": 110351
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/same-name-path-isolation-receipt.json",
+      "sha256": "1cce1c9f31253cc757f06155ba25dd234f005cddb1289b982fd8b5cecdb76640",
+      "bytes": 38458
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/same-name-path-isolation.png",
+      "sha256": "6d3afaca3dd62a51a907442b3f03df0131082924a087c4f84d4b8c208a2c3dbb",
+      "bytes": 129165
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/values-grant-receipt.json",
+      "sha256": "64d1dd88777aca7d82c8d50ea600817b70b5d7acead42c64659b9b78cd38a15f",
+      "bytes": 37301
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/values-grant.png",
+      "sha256": "59610e0da31cec5433feef87dd7804fca95a2eed460d485e072d9f4dbe21f6aa",
+      "bytes": 130035
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/write-grant-receipt.json",
+      "sha256": "f37a662f846163674d86a11dccc8750a3c20a02137ad80e3b88fd048999c9d2e",
+      "bytes": 37321
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/write-grant.png",
+      "sha256": "9c94eb7131a1394084345ed29154e8f1435e5a406c091f1dcd14b31adcf3e77f",
+      "bytes": 110021
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle.log",
+      "sha256": "aa9ada48f14b3be9fe66b2c6ac6f1fc9e8ae484d9684e488760a25493e019f2d",
+      "bytes": 2241
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/active-demo.png",
+      "sha256": "6fcd0aaaa0145abe6f9fa94be83c8f076c06bdd826d172723004d5b207d6a933",
+      "bytes": 108496
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/bookmarks-create.png",
+      "sha256": "b255730a0bd5fb759fe3da5f880aed3ca8f1d985f2072bcfdbb49fa91aae80a7",
+      "bytes": 125308
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/bookmarks-permission-denied.png",
+      "sha256": "a2b5bb45566932ee5ac5345458330109b1db1a498bb921b386a3dbeced25f842",
+      "bytes": 121673
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/bookmarks-remove.png",
+      "sha256": "5ee849bd8f2e1a6761c544224f252318911b21b0e74f2f4b63dbc77430dc83f8",
+      "bytes": 120215
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/browser-sdk-acceptance-peer.opendesk-tool.json",
+      "sha256": "9d72decf01490e89bbb0b81433943f22e4b6d9ce49df748cdc82ca62c3738795",
+      "bytes": 15536
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/browser-sdk-acceptance-upgraded.opendesk-tool.json",
+      "sha256": "2936bbd4908bc6871bb307a8683851fee61041069464ed386d71d0a244ed9fa3",
+      "bytes": 15526
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/browser-sdk-acceptance.opendesk-tool.json",
+      "sha256": "8c4f3ddc150562d7a9c906f1d6e695a60c53348e6983e567741c24b521586ac7",
+      "bytes": 15526
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/chrome-r106.log",
+      "sha256": "95402d7b6148c5448907a4da0bdb1759c8b2ebd7c2893031a02905524903fd07",
+      "bytes": 548
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/cross-tool-storage-and-resource-rejection.png",
+      "sha256": "7f944d6b5309885f4f43f2413e3e7ddda162374483b7828bbee54eb0e5b97b37",
+      "bytes": 109245
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/download-start-and-terminal-state.png",
+      "sha256": "99d070e4493ffba1597c337ac5f4ea7446f64482b25d690e199e4ed9e33ee3a4",
+      "bytes": 107885
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/install-open-tool.png",
+      "sha256": "6fcd0aaaa0145abe6f9fa94be83c8f076c06bdd826d172723004d5b207d6a933",
+      "bytes": 108496
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/launcher-r106-exit.json",
+      "sha256": "bcecd55a4fb89540833f95ece90781ee02b19897b807f74564a0eb277b10bc3e",
+      "bytes": 3245
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/launcher-r106-raw-failure.json",
+      "sha256": "62b5cfb08d12bf3750e863338ff20cfa5baea612ac0a2d4de6f4db41804ae557",
+      "bytes": 1480
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/launcher-r106-stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/launcher-r106-stdout.txt",
+      "sha256": "9814a8fa809779d7d23ded79c6fccfa695e01b83fd3ef9d06eb3e19109eb417e",
+      "bytes": 1274
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/launcher-r106-summary.json",
+      "sha256": "9713b1510dea527d98fd7b48c2dbf3228a4ef92bbfe05dc295ca11d669ba9fa1",
+      "bytes": 169
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/launcher-r106-verified.json",
+      "sha256": "31b8f901ac9b481e432da1ca53f30825802eefd352bc0dff640d80fb8c657bdf",
+      "bytes": 3713
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/launcher-r106.json",
+      "sha256": "1195c872be6aa12ee8f7ccdd4e7b969d099ae7f5079ae784d9a1c0b11b956e41",
+      "bytes": 1338
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/native-report.json",
+      "sha256": "7a764893f815c23a4acdffc5bb186dad6d17e4c3464cbe11f37d8253ce9c497f",
+      "bytes": 3442764
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/owned-native-input.swift",
+      "sha256": "bb307eb0ef292f1a1b0f9f374e25e59f4d48b3c3ee26cfbfc3df4fcb0617c908",
+      "bytes": 10119
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/ownership-source-resources.png",
+      "sha256": "2b8ee3415ae2a0d01a8a50d166859522c76ce4e5bd015ec9f7ac9d638159c672",
+      "bytes": 97266
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/scheduler-cancel-owned.png",
+      "sha256": "80a2b6670c0abe72691a75aa5b971461b03b870848c56efe23785d625bca6108",
+      "bytes": 92451
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/scheduler-create-owned-alarm.png",
+      "sha256": "6c8c6f6b81d2c6cd9f17346ed1f2df5b388eb5711289f13bcc26d9136803673c",
+      "bytes": 107104
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/scheduler-fixed-task-install.png",
+      "sha256": "53b4d32158bd495928b2399bbd14f6982a0182114c8b0309600a44c1e8e4f4e0",
+      "bytes": 130148
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/scheduler-open-existing-runhost.png",
+      "sha256": "6fcd0aaaa0145abe6f9fa94be83c8f076c06bdd826d172723004d5b207d6a933",
+      "bytes": 108496
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/scheduler-two-independent-runhost-results.png",
+      "sha256": "d98b5122ec4c3f097030f698a527c5a92fbd6c98f392c59d8bc08b941ecedeb0",
+      "bytes": 106787
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/side-panel-contexts.png",
+      "sha256": "ecabdb1ac3f753cb1593dfb171f7a1738e03ec8311950450d5cd317beee85973",
+      "bytes": 82507
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/storage-independent-tool-reopen.png",
+      "sha256": "7f944d6b5309885f4f43f2413e3e7ddda162374483b7828bbee54eb0e5b97b37",
+      "bytes": 109245
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/storage-persist.png",
+      "sha256": "efba8bac9c498375eb0e9cd60920fa2d739225c365361b4718b3979ebd456f97",
+      "bytes": 125417
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/tool-uninstall-cleans-only-owned-mappings.png",
+      "sha256": "22106d90bd090dbfe3b3a4b34b3e39316736749fb7e4f51dedaedfdc0b058b10",
+      "bytes": 109124
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/tool-upgrade-revokes-old-resource-identity.png",
+      "sha256": "4d4ed83131eb0b76aa14bf8c01992693867ca1dd7795e07a52f1dd3b90f451f3",
+      "bytes": 105219
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/trusted-history-end-native-keyboard.png",
+      "sha256": "9474347515c7ca4807aa7bcc286f01489c3324a2ff28f2d9e647ff7401dfa82f",
+      "bytes": 131674
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/trusted-history-real-permission-and-query.png",
+      "sha256": "0b6777a5097ca75c6bbcb85a94af575dd3d8216e873d387730962e84abd19dae",
+      "bytes": 120933
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/trusted-history-real-permission-denial.png",
+      "sha256": "755ee9973b755d4b93b31d4cd3a1e49ea02ced0fec4b2308365d3a944c91d667",
+      "bytes": 133687
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/trusted-history-start-native-keyboard.png",
+      "sha256": "ec436c5c27c8f4aca2dfb492940644b1b26bfe731370946111f44216c299bdf3",
+      "bytes": 130487
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/trusted-history-user-selected-range.png",
+      "sha256": "42cde9047325e37676db6301dd37127a59161757afe9486d6412b69040971fc1",
+      "bytes": 134776
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/worker-restart-owned-bookmark-and-storage.png",
+      "sha256": "efba8bac9c498375eb0e9cd60920fa2d739225c365361b4718b3979ebd456f97",
+      "bytes": 125417
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-whole-alarm-owner-native-final-bound.json",
+      "sha256": "33fafebd8b69f216826efe7a782452b3440435fad8c143dd884a461cbbe63366",
+      "bytes": 935
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-whole-alarm-owner-native-final-bound.log",
+      "sha256": "a4c2bba2a3f6f00aae956777f8f61c8ba61d64c6ea0f4627785c6cd7fc7d5705",
+      "bytes": 238359
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/nodeTests-alarm-owner-native-final.log",
+      "sha256": "43e0ff7ac17daaf8484493e20f46f7ee115eebed74808b9df690cbe8a4550187",
+      "bytes": 28248
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/targetedMainRegressions-alarm-owner-native-final.log",
+      "sha256": "f16290e38fb81a4c71455039a31eef24325b007db607652a4ec6435d6b23e161",
+      "bytes": 20466
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/verify-alarm-owner-native-final.log",
+      "sha256": "e1506d42acab37e4fc8351e93e32b8fadfee906d6c2f9356b6a22534992e6e78",
+      "bytes": 42815
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/actions-4475d042-current.json",
+      "sha256": "2a3bb8fc802adc645f4ffba7828531879f72038bae4e9e68a7c69b5e09f3ddcb",
+      "bytes": 9056
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/actions-f9fc1a48.json",
+      "sha256": "4c88255576026eb51177472e062beb57c23cc87eecf5d2d5e767b90c30ff45e7",
+      "bytes": 14384
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame.log",
+      "sha256": "c28d393485b1dd994534ad0f25105268fe61eee39a32f34e554213af513f4015",
+      "bytes": 7995
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame/native-core-2026-10-14T07-09-43-616Z-e8c67267/active-fixture-receipt.json",
+      "sha256": "6dbd215a3446dfe717eb99514ab427f26dfee9ca2a783073b4b8575a31c5f51b",
+      "bytes": 38500
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame/native-core-2026-10-14T07-09-43-616Z-e8c67267/active-fixture.png",
+      "sha256": "3aaf1f705973dba4e69706b5f8b031ca8ea222948106b983930aeefbe1b228f4",
+      "bytes": 112777
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame/native-core-2026-10-14T07-09-43-616Z-e8c67267/cdp-trace.json",
+      "sha256": "a0b8da7b9db59ac88e4597e5d28ffa11b6105d58b4f368299c7dd9b176ca15f7",
+      "bytes": 160967
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame/native-core-2026-10-14T07-09-43-616Z-e8c67267/close-and-reopen-receipt.json",
+      "sha256": "9671477c0fcf69fbccdc016d765bc996463120bd8e87fe146c47d52e0380073e",
+      "bytes": 38179
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame/native-core-2026-10-14T07-09-43-616Z-e8c67267/close-and-reopen.png",
+      "sha256": "53ed9243886f5fa7b1c0b37f64ecb8ec459336ff6bb12a0e5c01a5418385bad0",
+      "bytes": 101518
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame/native-core-2026-10-14T07-09-43-616Z-e8c67267/disable-with-pending-write-receipt.json",
+      "sha256": "b103f2dab43cb98f059ee1608a096ffe877e18ded0019a972305cfd7d3476cf7",
+      "bytes": 38255
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame/native-core-2026-10-14T07-09-43-616Z-e8c67267/disable-with-pending-write.png",
+      "sha256": "7ed8a40eddb31d4d381ab47e659a058ba31afd1f9610a99eb341df02822327c7",
+      "bytes": 124891
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame/native-core-2026-10-14T07-09-43-616Z-e8c67267/launch-receipt.json",
+      "sha256": "629418407b6a0819e3c9781de1267397f3989e0bbd686764a7bcdf47e9c0000c",
+      "bytes": 37799
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame/native-core-2026-10-14T07-09-43-616Z-e8c67267/launcher-cookie-r33-core-exit.json",
+      "sha256": "044d8a52369e996597c2d997603b39528d44eee5d3b2b07ca83bc46623789f70",
+      "bytes": 3245
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame/native-core-2026-10-14T07-09-43-616Z-e8c67267/launcher-cookie-r33-core-raw-failure.json",
+      "sha256": "5755d58252c8c41ffe7d827bcc77e02af8243f5a1b9bb8bf2efca7e662465525",
+      "bytes": 1480
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame/native-core-2026-10-14T07-09-43-616Z-e8c67267/launcher-cookie-r33-core-stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame/native-core-2026-10-14T07-09-43-616Z-e8c67267/launcher-cookie-r33-core-stdout.txt",
+      "sha256": "ee441b768f1b9c20100348ca3df9e0273db5a5e161b3e943ad9392b6379de8c0",
+      "bytes": 1274
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame/native-core-2026-10-14T07-09-43-616Z-e8c67267/launcher-cookie-r33-core-summary.json",
+      "sha256": "3de0ef7b2cd5ed84778c91591def55528454c0ba3199866ebcee38045d8cb4f0",
+      "bytes": 169
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame/native-core-2026-10-14T07-09-43-616Z-e8c67267/launcher-cookie-r33-core-verified.json",
+      "sha256": "3740f6eb6a9b98ed5c99f0153e2438336665148b4ddfc4bbbdb522c18a8da32f",
+      "bytes": 3735
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame/native-core-2026-10-14T07-09-43-616Z-e8c67267/launcher-cookie-r33-core.json",
+      "sha256": "3b05733943b181f606f5fc7e45250fa171ca2a9bc87a3c7cb58bb4387bf1abc7",
+      "bytes": 1338
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame/native-core-2026-10-14T07-09-43-616Z-e8c67267/native-report.json",
+      "sha256": "9c1e738db9917b5fad83b1790f475d89425eec09f5e78e480b3d2784880ebd14",
+      "bytes": 75262
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame/native-core-2026-10-14T07-09-43-616Z-e8c67267/official-install-receipt.json",
+      "sha256": "baca9f78374923be16d24c3dc32c46682eb103c96bb754fb76482e0021266a76",
+      "bytes": 37802
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame/native-core-2026-10-14T07-09-43-616Z-e8c67267/official-install.png",
+      "sha256": "4afe1ee7a2f3b6fdad6fd45ee62fdd3ee3d04f633eba53f3a3ed000f1ca43b60",
+      "bytes": 61585
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame/native-core-2026-10-14T07-09-43-616Z-e8c67267/product-side-panel-receipt.json",
+      "sha256": "8e5ef89f6d66696715cc5f0853ee6421e8449c90148f8d50a98a15402faf69f1",
+      "bytes": 38197
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame/native-core-2026-10-14T07-09-43-616Z-e8c67267/product-side-panel.png",
+      "sha256": "ecabdb1ac3f753cb1593dfb171f7a1738e03ec8311950450d5cd317beee85973",
+      "bytes": 82507
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame/native-core-2026-10-14T07-09-43-616Z-e8c67267/read-grant-receipt.json",
+      "sha256": "523c9392e87cb38bab77b07c1d4cd38a17bde9df9abca09d54aba9e44e902f14",
+      "bytes": 38287
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame/native-core-2026-10-14T07-09-43-616Z-e8c67267/read-grant-settings.png",
+      "sha256": "cfc99e9dca3c1e38cf21fda11ebc4398f69a7511dd4bc45ac74e9c1f27cf05a9",
+      "bytes": 120822
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame/native-core-2026-10-14T07-09-43-616Z-e8c67267/read-grant.png",
+      "sha256": "a96ffaeae2c1d7c2f794e0837d8d0941f0b51b3e534a846dd96113bd1808eb4b",
+      "bytes": 110073
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame/native-core-2026-10-14T07-09-43-616Z-e8c67267/reinstall-requires-fresh-grants-receipt.json",
+      "sha256": "5265b9041e01973808f794825f6a4fdf0de812a5057f09a931e49fd8fb26872e",
+      "bytes": 38042
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame/native-core-2026-10-14T07-09-43-616Z-e8c67267/reinstall-requires-fresh-grants.png",
+      "sha256": "a39e8fdd2ece501579ccd73f624dd99c7b0defae37a36871ba340176d562b1ac",
+      "bytes": 126698
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame/native-core-2026-10-14T07-09-43-616Z-e8c67267/revoked-pending-write-receipt.json",
+      "sha256": "df52b9690892de0390a300badd9fd791cf1966bf785d3302f3876c15ffecb96e",
+      "bytes": 37831
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame/native-core-2026-10-14T07-09-43-616Z-e8c67267/revoked-pending-write.png",
+      "sha256": "f1ba03677518bce6cec01e39054b543cb3a6f98fd4aa571faee74aa6c1aea642",
+      "bytes": 127021
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame/native-core-2026-10-14T07-09-43-616Z-e8c67267/uninstall-and-clean-grants-receipt.json",
+      "sha256": "c8fa61659b74b493b8b61b7581b5d1abcf996cba31bf6d98a03ae2d6764141ba",
+      "bytes": 38161
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame/native-core-2026-10-14T07-09-43-616Z-e8c67267/uninstall-and-clean-grants.png",
+      "sha256": "b6f11b0e59b60fdffac481f83cfc63692926812fc80de171d50c2267f0dc4125",
+      "bytes": 91672
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame/native-core-2026-10-14T07-09-43-616Z-e8c67267/write-grant-receipt.json",
+      "sha256": "ae20a39b50c3078ead3f203b282c56244fe819475c1211e8ba1a9420e03f6b13",
+      "bytes": 37338
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame/native-core-2026-10-14T07-09-43-616Z-e8c67267/write-grant.png",
+      "sha256": "9c94eb7131a1394084345ed29154e8f1435e5a406c091f1dcd14b31adcf3e77f",
+      "bytes": 110021
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-diagnostic.log",
+      "sha256": "33b9e620235ac4a5e54efd1f6906c3ba00edc44a37af25edb6634514d0aaa1bd",
+      "bytes": 7992
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-diagnostic/native-core-2026-10-14T07-06-10-787Z-31027e38/active-fixture-receipt.json",
+      "sha256": "5f4fd68675c68f90d82f2f2a33bcee8c93fae190ff19598bb6182bab2bdd7f5f",
+      "bytes": 38496
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-diagnostic/native-core-2026-10-14T07-06-10-787Z-31027e38/active-fixture.png",
+      "sha256": "3aaf1f705973dba4e69706b5f8b031ca8ea222948106b983930aeefbe1b228f4",
+      "bytes": 112777
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-diagnostic/native-core-2026-10-14T07-06-10-787Z-31027e38/cdp-trace.json",
+      "sha256": "968088cd77c778a3c6ead27e638dd1e57d07ad47fe4331a2ad30a230cb666105",
+      "bytes": 160297
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-diagnostic/native-core-2026-10-14T07-06-10-787Z-31027e38/close-and-reopen-receipt.json",
+      "sha256": "40341418a7cc2350dabb0dd4fe80a2d9ca6115cb1dfcc73d7f71a61863dddd6e",
+      "bytes": 38175
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-diagnostic/native-core-2026-10-14T07-06-10-787Z-31027e38/close-and-reopen.png",
+      "sha256": "53ed9243886f5fa7b1c0b37f64ecb8ec459336ff6bb12a0e5c01a5418385bad0",
+      "bytes": 101518
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-diagnostic/native-core-2026-10-14T07-06-10-787Z-31027e38/disable-with-pending-write-receipt.json",
+      "sha256": "be07fa2f373ba2d56aabbd61328baaf62cbce03c2bbebe56c67c21e633073cd4",
+      "bytes": 38251
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-diagnostic/native-core-2026-10-14T07-06-10-787Z-31027e38/disable-with-pending-write.png",
+      "sha256": "7ed8a40eddb31d4d381ab47e659a058ba31afd1f9610a99eb341df02822327c7",
+      "bytes": 124891
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-diagnostic/native-core-2026-10-14T07-06-10-787Z-31027e38/launch-receipt.json",
+      "sha256": "ac06c996be0ebe81c2ee77b9fb0725be1c623f7fd88e373e01b5212f21fd2ebf",
+      "bytes": 37795
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-diagnostic/native-core-2026-10-14T07-06-10-787Z-31027e38/launcher-cookie-r33-core-exit.json",
+      "sha256": "85ccde8b64556b4a34ddeeec7d4e976301f6f15e67708d9a1a6e8a72b3b4832e",
+      "bytes": 3245
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-diagnostic/native-core-2026-10-14T07-06-10-787Z-31027e38/launcher-cookie-r33-core-raw-failure.json",
+      "sha256": "8d79f1743d0bfe763a5396f082194a7478e0d791789bfe80c72075c9bfa06aeb",
+      "bytes": 1480
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-diagnostic/native-core-2026-10-14T07-06-10-787Z-31027e38/launcher-cookie-r33-core-stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-diagnostic/native-core-2026-10-14T07-06-10-787Z-31027e38/launcher-cookie-r33-core-stdout.txt",
+      "sha256": "c2e878c5a30e8ac125b72e70d1eb90693dc748c9c5872f538e2646d564247066",
+      "bytes": 1274
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-diagnostic/native-core-2026-10-14T07-06-10-787Z-31027e38/launcher-cookie-r33-core-summary.json",
+      "sha256": "82bac3b3f4dd659e171d5774381a846228cf955a79d51da8e7294ca4f7c6d95a",
+      "bytes": 169
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-diagnostic/native-core-2026-10-14T07-06-10-787Z-31027e38/launcher-cookie-r33-core-verified.json",
+      "sha256": "3bd43a10da08d3a0e79810ddecdaf2d2fce68c525c4fd84569e72930bb65369f",
+      "bytes": 3731
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-diagnostic/native-core-2026-10-14T07-06-10-787Z-31027e38/launcher-cookie-r33-core.json",
+      "sha256": "701447d14e0aefe039e1df106c89100b4ab26270efe016c1d4ea525b6b69cb8a",
+      "bytes": 1338
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-diagnostic/native-core-2026-10-14T07-06-10-787Z-31027e38/native-report.json",
+      "sha256": "fda198229e3eb6d9140e2c7a7bcdb8026b2de2a8086680a8d6cdf3d8c9941dc5",
+      "bytes": 75255
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-diagnostic/native-core-2026-10-14T07-06-10-787Z-31027e38/official-install-receipt.json",
+      "sha256": "5730f7d6c55ec3186196fb672765050cbbc92892d691154a06216b60c327f780",
+      "bytes": 37798
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-diagnostic/native-core-2026-10-14T07-06-10-787Z-31027e38/official-install.png",
+      "sha256": "87aa63d827a93dba377f93755c0e5d5f1359c34b6e2d0b45b29f940dea8327aa",
+      "bytes": 38938
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-diagnostic/native-core-2026-10-14T07-06-10-787Z-31027e38/product-side-panel-receipt.json",
+      "sha256": "29705a279869a0fbee3595ac0de7450b1fddfa7f4dbd6ae578bbf04fee49bcbe",
+      "bytes": 38193
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-diagnostic/native-core-2026-10-14T07-06-10-787Z-31027e38/product-side-panel.png",
+      "sha256": "ecabdb1ac3f753cb1593dfb171f7a1738e03ec8311950450d5cd317beee85973",
+      "bytes": 82507
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-diagnostic/native-core-2026-10-14T07-06-10-787Z-31027e38/read-grant-receipt.json",
+      "sha256": "3abd3d638fdc14b7ade03fa3065b133df024ba618e57bda9ed1086b8907dc9f4",
+      "bytes": 38283
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-diagnostic/native-core-2026-10-14T07-06-10-787Z-31027e38/read-grant-settings.png",
+      "sha256": "cfc99e9dca3c1e38cf21fda11ebc4398f69a7511dd4bc45ac74e9c1f27cf05a9",
+      "bytes": 120822
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-diagnostic/native-core-2026-10-14T07-06-10-787Z-31027e38/read-grant.png",
+      "sha256": "a96ffaeae2c1d7c2f794e0837d8d0941f0b51b3e534a846dd96113bd1808eb4b",
+      "bytes": 110073
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-diagnostic/native-core-2026-10-14T07-06-10-787Z-31027e38/reinstall-requires-fresh-grants-receipt.json",
+      "sha256": "47839cd85494c1f6a11c5e4547e3750db404194b3e66a9662018485e36d53581",
+      "bytes": 38038
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-diagnostic/native-core-2026-10-14T07-06-10-787Z-31027e38/reinstall-requires-fresh-grants.png",
+      "sha256": "a39e8fdd2ece501579ccd73f624dd99c7b0defae37a36871ba340176d562b1ac",
+      "bytes": 126698
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-diagnostic/native-core-2026-10-14T07-06-10-787Z-31027e38/revoked-pending-write-receipt.json",
+      "sha256": "3cb0d35f9599b7af39981cd49a48926533438a0f2046b4835c09c90ff702c0b4",
+      "bytes": 37827
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-diagnostic/native-core-2026-10-14T07-06-10-787Z-31027e38/revoked-pending-write.png",
+      "sha256": "f1ba03677518bce6cec01e39054b543cb3a6f98fd4aa571faee74aa6c1aea642",
+      "bytes": 127021
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-diagnostic/native-core-2026-10-14T07-06-10-787Z-31027e38/uninstall-and-clean-grants-receipt.json",
+      "sha256": "143b5b20b3cc1f9d07adc5806bec2f793548c22141bfcf3e61fbfd56c7389951",
+      "bytes": 38157
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-diagnostic/native-core-2026-10-14T07-06-10-787Z-31027e38/uninstall-and-clean-grants.png",
+      "sha256": "b6f11b0e59b60fdffac481f83cfc63692926812fc80de171d50c2267f0dc4125",
+      "bytes": 91672
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-diagnostic/native-core-2026-10-14T07-06-10-787Z-31027e38/write-grant-receipt.json",
+      "sha256": "6450d5e7d6710c9c4e8b7e8a761f772d3898c407455709ea8092d0a11f9370bd",
+      "bytes": 37334
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-diagnostic/native-core-2026-10-14T07-06-10-787Z-31027e38/write-grant.png",
+      "sha256": "9c94eb7131a1394084345ed29154e8f1435e5a406c091f1dcd14b31adcf3e77f",
+      "bytes": 110021
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/evidence-index.json",
+      "sha256": "6352a3f8ba8197f7e132df5275773df21fb8f2ef696aed62269d5d1b53d8d9b6",
+      "bytes": 67306
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/native-agent-ci-failure-excerpt.log",
+      "sha256": "7f7f9a2d7634ca722cbbe22fa79794203d52bf71033607a5e464f1e8cf132d49",
+      "bytes": 2979
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/freeze.log",
+      "sha256": "0b2cccef956fff1f093c7363137bb83f1bcc45b084410c8458789dc23ad1f218",
+      "bytes": 453
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/matrix.log",
+      "sha256": "3c7068b5bfa647f2f45dabe6491007c3f53703328d2f11df0086b07f8147bca8",
+      "bytes": 187
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/ledger-tests.log",
+      "sha256": "2fa952fba08a4d8af7814df39e850eb38a5a3d8b5e5f50d7bb8e0fea4fc3e5dd",
+      "bytes": 1635
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/coverage.log",
+      "sha256": "432f3cdd896265ed971d69d44ef3aa444b0a62cac92106dd48c96393b58d1efe",
+      "bytes": 98
     }
   ],
   "limitations": [
-    "Latest product candidate R5/targeted/budgets CI PASS; Cookie global CI gate FAIL, clean full Node31 failures.",
-    "All scoped P0 Node/Check/Production/Development/Size/Verify succeeded with identical source inputs.",
-    "Cookie native fragments are different captured working packages; full same-candidate 55-contract Native NOT_TESTED.",
-    "Owned CFT foreground handoff remains unanswered; no synthetic native effects or permissions accepted."
+    "Physical source 4475d042: R5/targeted/budgets CI PASS; no exact-source Cookie workflow; Native Agent CI FAIL and full Mac Node 3 FAIL. Later commits remain separate.",
+    "4475d042 local SDK/targeted/check/production/development/size/verify receipts PASS with matching build inputs; suite receipts do not alone prove every interface positive/denial contract.",
+    "Same 4475 package has main23 partial PASS and two Cookie lifecycle11/11 scoped PASS. Original20-step interrupted run and original read-grant timeout remain immutable.",
+    "Formal 55 per-interface Native closures remain NOT_TESTED. Cookie Origin/Document/Store/Partition and Bookmarks external edit/delete/Origin/Document are still open.",
+    "Download cancellation/interrupted does not prove normal completion. Final F3/ZIP NOT_TESTED; product quality NOT_SCORED.",
+    "WXT assertion API repaired at5c959712; its watcher timing CI failure is retained. Latest5da04474 triggered9 workflows allSUCCESS; Cookie workflow not triggered. Newer CI cannot promote physical447 or final acceptance.",
+    "Leader is authorized to take over the Bookmarks native driver while retaining3 History navigation lines. Cookie ZIP native driver exited; independent CFT resource guard will recheck immediately before native input. No other process was terminated."
   ],
   "omittedLocalArtifacts": [
     "Git archive verification mirrors and fixed node_modules clone",
@@ -3805,5 +4818,14 @@
     "testFollowUpSha": "5c322c26f074b71ab7ff33de1b4a596b6d718dca",
     "formalNativePass": 0,
     "NOT_SCORED": true
+  },
+  "continuation": {
+    "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/evidence-index.json",
+    "sha256": "6352a3f8ba8197f7e132df5275773df21fb8f2ef696aed62269d5d1b53d8d9b6"
+  },
+  "draftArchiveReview": {
+    "script": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/archive-current-evidence.py",
+    "decision": "EXCLUDED_UNEXECUTED",
+    "reason": "Bulk operation positive/denial remapping without individual cases; original draft retained untracked for review."
   }
 }

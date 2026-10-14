@@ -1,0 +1,207 @@
+{
+  "schema": "opendesk.market.release-snapshot.v1",
+  "source": {
+    "kind": "official-builder",
+    "identity": "sha256:93983a86edfd11abf52305fff490bac2d56364bbea05f9dc26b6c038a74afadb"
+  },
+  "catalog": {
+    "schema": "opendesk.official-tools.releases.v1",
+    "sourceRepository": "https://github.com/shopable-ai/opendesk-browser",
+    "apps": [
+      {
+        "id": "opendesk/reading-toc",
+        "toolId": "reading-toc",
+        "kind": "sidebar-tool",
+        "installationPolicy": "preinstalled",
+        "version": "1.0.4",
+        "packageTitle": "阅读目录",
+        "description": "在侧边栏或授权网页中查看章节并精准跳转。",
+        "capabilities": [
+          "page.toc"
+        ],
+        "packagePath": "official-tools/reading-toc/reading-toc.opendesk-tool.json",
+        "bytes": 9388,
+        "sha256": "85f3f48557d7b4970507066a5389fe830b23bec3ec2d6f145c1535b48ba4df52"
+      },
+      {
+        "id": "opendesk/web-markdown-clipper",
+        "toolId": "web-markdown-clipper",
+        "kind": "sidebar-tool",
+        "installationPolicy": "optional",
+        "version": "1.0.0",
+        "packageTitle": "网页剪藏",
+        "description": "在授权的网站上主动剪藏文章、选区、引用和链接为 Markdown。",
+        "capabilities": [
+          "page.clip",
+          "user.export"
+        ],
+        "packagePath": "official-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json",
+        "bytes": 10209,
+        "sha256": "c4d1dc7b605e1d981840f3064a116a157d2ed6a01f720ec585278129d4c111a8"
+      },
+      {
+        "id": "opendesk/quick-notes",
+        "toolId": "quick-notes",
+        "kind": "sidebar-tool",
+        "installationPolicy": "preinstalled",
+        "version": "1.1.8",
+        "packageTitle": "网页笔记",
+        "description": "在侧栏离线管理多条本地笔记，可选择关联当前网页，不自动操作网站。",
+        "capabilities": [
+          "storage.local",
+          "currentPage.read",
+          "tasks.open"
+        ],
+        "packagePath": "official-tools/quick-notes/quick-notes.opendesk-tool.json",
+        "bytes": 23135,
+        "sha256": "99c42ea8573446fc8842f48be6f0567d0242b4d127ee6e96e22b650e9b2f99a7"
+      },
+      {
+        "id": "opendesk/markdown-workbench",
+        "toolId": "markdown-workbench",
+        "kind": "sidebar-tool",
+        "installationPolicy": "optional",
+        "version": "1.0.1",
+        "packageTitle": "Markdown 工作台",
+        "description": "离线编辑、预览、导入和导出 Markdown；无需网页权限。",
+        "capabilities": [
+          "user.export"
+        ],
+        "packagePath": "official-tools/markdown-workbench/markdown-workbench.opendesk-tool.json",
+        "bytes": 15089,
+        "sha256": "106df783a1d8eae5345c49288f0bc48ffdabb7ec85d98a8e8edaaeb79d7f0a91"
+      },
+      {
+        "id": "opendesk/knowledge-inbox",
+        "toolId": "knowledge-inbox",
+        "kind": "sidebar-tool",
+        "installationPolicy": "optional",
+        "version": "1.2.6",
+        "packageTitle": "知识收件箱",
+        "description": "保存 ChatGPT 回答，也可手动新建知识，整理标签、草稿并导出 Markdown。",
+        "capabilities": [
+          "page.capture",
+          "knowledge.store",
+          "user.export"
+        ],
+        "packagePath": "official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json",
+        "bytes": 62327,
+        "sha256": "262157c730eebbe7b0cb4245fb436c1b3440c6971f63a2b50e06a5a92b022119"
+      },
+      {
+        "id": "opendesk/time-review",
+        "toolId": "time-review",
+        "kind": "sidebar-tool",
+        "installationPolicy": "optional",
+        "version": "1.3.1",
+        "packageTitle": "Time Review · 时间回顾",
+        "description": "明确开始后本机记录网站时长；六分类、日期回顾与自愿开启的真实分钟时间线，支持导出与暂停恢复。无登录、无上传。",
+        "capabilities": [
+          "time.review",
+          "user.export"
+        ],
+        "packagePath": "official-tools/time-review/time-review.opendesk-tool.json",
+        "bytes": 36456,
+        "sha256": "d6e5bffd17db96bea08d26d5d437061d4d92790ac921bc7b35bb04e00ee59be5"
+      },
+      {
+        "id": "opendesk/cookie-editor",
+        "toolId": "cookie-editor",
+        "kind": "sidebar-tool",
+        "installationPolicy": "optional",
+        "version": "1.0.0",
+        "packageTitle": "Cookie Editor · Cookie 管理",
+        "description": "Cookie 管理界面：本地临时工作区，可新增、编辑、删除及以 JSON、Header 字符串、Netscape 导入导出。真实浏览器 Cookie API 待接入。",
+        "capabilities": [
+          "currentPage.read",
+          "user.export"
+        ],
+        "packagePath": "official-tools/cookie-editor/cookie-editor.opendesk-tool.json",
+        "bytes": 36371,
+        "sha256": "834855b9e4438110b3badfec20579ab9414f102c62e3102e07bcb555331b5671"
+      }
+    ]
+  },
+  "collections": [
+    {
+      "id": "reading-kit",
+      "revision": 4,
+      "title": "阅读与摘录",
+      "description": "目录、剪藏与网页笔记；固定阅读目录 1.0.4 默认网站可用性的组合。",
+      "members": [
+        {
+          "id": "opendesk/reading-toc",
+          "version": "1.0.4"
+        },
+        {
+          "id": "opendesk/web-markdown-clipper",
+          "version": "1.0.0"
+        },
+        {
+          "id": "opendesk/quick-notes",
+          "version": "1.1.8"
+        }
+      ]
+    },
+    {
+      "id": "reading-kit",
+      "revision": 3,
+      "title": "阅读与摘录",
+      "description": "目录、剪藏与网页笔记；包含网页笔记 1.1.8 窄屏修复的固定组合。",
+      "members": [
+        {
+          "id": "opendesk/reading-toc",
+          "version": "1.0.3"
+        },
+        {
+          "id": "opendesk/web-markdown-clipper",
+          "version": "1.0.0"
+        },
+        {
+          "id": "opendesk/quick-notes",
+          "version": "1.1.8"
+        }
+      ]
+    },
+    {
+      "id": "reading-kit",
+      "revision": 2,
+      "title": "阅读与摘录",
+      "description": "目录、剪藏与网页笔记；2026-10-12 固定版本组合。",
+      "members": [
+        {
+          "id": "opendesk/reading-toc",
+          "version": "1.0.3"
+        },
+        {
+          "id": "opendesk/web-markdown-clipper",
+          "version": "1.0.0"
+        },
+        {
+          "id": "opendesk/quick-notes",
+          "version": "1.1.6"
+        }
+      ]
+    },
+    {
+      "id": "reading-kit",
+      "revision": 1,
+      "title": "阅读与摘录",
+      "description": "从章节导航到剪藏，再把想法写进笔记。",
+      "members": [
+        {
+          "id": "opendesk/reading-toc",
+          "version": "1.0.2"
+        },
+        {
+          "id": "opendesk/web-markdown-clipper",
+          "version": "1.0.0"
+        },
+        {
+          "id": "opendesk/quick-notes",
+          "version": "1.1.1"
+        }
+      ]
+    }
+  ]
+}

@@ -36,6 +36,7 @@ Codex 调 MCP；Sidebar 本地项目读取同一 provider 后使用原执行入�
 | --- | --- | --- |
 | 尽快跑通一次并读结果 | [快速入门](quickstart.zh-CN.md) | [单文件标题](../../examples/programs/single-file/title.js) |
 | 创建或修改 JS / 多文件项目 | [项目格式与授权](local-projects.zh-CN.md) | [相对 ESM Controller](../../examples/programs/local-controller/README.md) |
+| 使用网络 JavaScript：在哪里声明、首次审核准备、运行与失败处理 | [四种入口的完整步骤](network-javascript.zh-CN.md) | [可运行示例与命令](../../examples/network-javascript/README.zh-CN.md) |
 | 让 Codex 调用工具 | [七个 MCP 工具](mcp-local-development.zh-CN.md) | attach → status → run → result |
 | 用 Page / Locator 自动化网页 | [Controller](controller.zh-CN.md) | [完整现代 Page API](../framework/modern-page-api.zh-CN.md) |
 | **直接使用预装第三方库、零参数 main、确认各世界支持什么** | **[预置运行变量与 src/libs 世界矩阵](runtime-globals-and-preinstalled-libraries.zh-CN.md)** | [Controller 零参数](../../examples/programs/controller-globals-zero-arg/README.md) · [Page 零参数](../../examples/programs/page-globals-zero-arg/README.md) · [可信扩展静态导入](../../examples/libs/trusted-imports/README.zh-CN.md) · [工具桥 Demo](../../examples/sidebar-tools/runtime-globals-demo/README.md) |

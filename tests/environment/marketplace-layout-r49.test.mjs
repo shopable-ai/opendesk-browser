@@ -5,11 +5,11 @@ import {readFile} from 'node:fs/promises';
 const read=path=>readFile(path,'utf8');
 
 test('R4.9 tool header groups storefront and import as accessible icon-only actions',async()=>{
-  const [html,css]=await Promise.all([read('src/ui/tool.html'),read('src/ui/tool-shell.css')]);
-  const view=html.match(/<div class="sidebar-tools-head od-toolbar">([\s\S]*?)<\/div>\s*<\/div>/)?.[0];
+  const [html,css,design]=await Promise.all([read('src/ui/tool.html'),read('src/ui/tool-shell.css'),read('src/ui/design-system.css')]);
+  const view=html.match(/<div class="sidebar-tools-head od-toolbar od-page-head">([\s\S]*?)<\/div>\s*<\/div>/)?.[0];
   assert.ok(view,'tool list header and actions group');
-  assert.match(view,/<strong>已安装工具<\/strong>/);
-  assert.match(view,/<div class="sidebar-tools-actions od-toolbar" role="group" aria-label="添加和管理工具">/);
+  assert.match(view,/<strong class="od-page-title">已安装工具<\/strong>/);
+  assert.match(view,/<div class="sidebar-tools-actions od-toolbar od-page-actions" role="group" aria-label="添加和管理工具">/);
   for(const [id,label] of [['sidebar-tool-market','打开应用市场'],['sidebar-tool-import-trigger','导入工具文件']]){
     const button=view.match(new RegExp('<button[^>]*id="'+id+'"[^>]*>[\\s\\S]*?<\\/button>'))?.[0];
     assert.ok(button,id+' button is present');
@@ -23,7 +23,8 @@ test('R4.9 tool header groups storefront and import as accessible icon-only acti
   assert.match(view,/id="sidebar-tool-import-trigger"[^>]*aria-expanded="false" aria-controls="sidebar-tool-import"/);
   assert.match(html,/id="installed-page-tools-refresh"[^>]*aria-label="刷新已安装网页工具"[^>]*><svg/);
   assert.match(css,/\.sidebar-tools-actions\{display:flex;align-items:center;justify-content:flex-end;/);
-  assert.match(css,/\.sidebar-tools-actions \.od-icon-button\{width:var\(--od-icon-size\);height:var\(--od-icon-size\);/);
+  assert.match(design,/\.od-icon-button\{[^}]*width:var\(--od-icon-size\);height:var\(--od-icon-size\);/);
+  assert.doesNotMatch(css,/\.sidebar-tools-actions \.od-icon-button\{/);
 });
 
 test('R4.9 market full-tab CSS owns scrolling, breakpoints and only a local scrollable table',async()=>{

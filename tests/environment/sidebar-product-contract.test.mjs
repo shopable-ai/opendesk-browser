@@ -85,7 +85,7 @@ test('R4 Sidebar sections preserve consumer controls and keep engineering tools 
 test('developer mode uses one accessible switch and keeps page details folded by default',async()=>{
   const [html,css,design]=await Promise.all([read('src/ui/tool.html'),read('src/ui/tool-shell.css'),read('src/ui/design-system.css')]);
   assert.match(html,/id="local-project-mode" type="checkbox" role="switch"/);
-  assert.match(html,/<span>直接编辑<\/span>/);
+  assert.match(html,/<span class="od-page-title">直接编辑<\/span>/);
   assert.doesNotMatch(html,/>手工草稿</);
   assert.match(html,/<details id="local-project-guide" class="local-project-guide(?: [^"]*)?">/,
     'the existing collapsed guide may reuse shared disclosure classes');
@@ -100,10 +100,17 @@ test('developer mode uses one accessible switch and keeps page details folded by
   assert.match(css,/background-position:right 17px center,right 11px center;/);
   assert.doesNotMatch(css,/@import\b|url\s*\(|expression\s*\(/i,'CSS must remain fully self-contained');
   assert.match(html,/id="local-project-tools" class="local-project-tools"[^>]* hidden/);
-  assert.match(html,/<details id="developer-target-detail" class="od-disclosure">\s*<summary class="developer-page-summary">/);
+  assert.match(html,/<details id="developer-target-detail" class="od-disclosure od-disclosure--flat">\s*<summary class="developer-page-summary">/);
   assert.match(html,/id="script-current-page-host"/);
   assert.match(html,/id="script-current-page-status" role="status" aria-live="polite"/);
-  assert.match(html,/id="developer-source-switch" class="developer-source-switch od-toolbar"/);
+  assert.match(html,/id="developer-source-switch" class="developer-source-switch od-toolbar od-page-head"/);
+  assert.ok(html.indexOf('id="developer-source-switch"') < html.indexOf('id="developer-target-detail"'),
+    'developer header stays before current page details');
+  assert.match(html,/<span class="od-page-title">直接编辑<\/span>/);
+  assert.match(html,/<button type="button" id="program-new-script" title="[^"]+" aria-label="新建 JavaScript 草稿" hidden class="od-icon-button">[\s\S]*?<svg[^>]*aria-hidden="true"/);
+  assert.equal([...html.matchAll(/id="program-new-script"/g)].length,1);
+  assert.match(css,/\.developer-source-switch\[data-mode=local\] #program-new-script\{display:none\}/,
+    'local project mode keeps the new-script action hidden through the source header state');
   assert.doesNotMatch(html,/id="local-project-mode"><option/);
   assert.doesNotMatch(html,/查看当前网页详细信息|源码来源|刷新连接/);
   assert.match(css,/input:focus-visible\+\.local-project-switch-track/);
@@ -111,8 +118,8 @@ test('developer mode uses one accessible switch and keeps page details folded by
     'shared native disclosure supplies a 40px semantic summary target');
   assert.match(css,/#script-current-page-host\{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis/);
   assert.match(css,/#script-current-page-status\{flex:none;/);
-  assert.match(css,/\.developer-source-switch label\{[^}]*min-height:36px/,
-    'the developer switch retains the approved 36px compact field target');
+  assert.match(css,/\.developer-source-switch label\{[^}]*min-height:var\(--od-icon-size\)/,
+    'the developer switch aligns with the shared compact icon header target');
 });
 
 test('Sidebar starts at its five tabs without repeating Chrome extension identity',async()=>{

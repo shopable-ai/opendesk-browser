@@ -1972,8 +1972,8 @@
       "phase": "P1",
       "status": "SOURCE_WIRED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -2028,7 +2028,19 @@
         "src/platform/chrome/context-menus.js"
       ],
       "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.capabilities.list')",
-      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.capabilities.list",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.capabilities.getStatus",
@@ -2075,8 +2087,8 @@
       "phase": "P1",
       "status": "SOURCE_WIRED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -2131,7 +2143,19 @@
         "src/platform/chrome/context-menus.js"
       ],
       "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.capabilities.getStatus')",
-      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.capabilities.getStatus",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.contextMenu.getStatus",
@@ -2183,8 +2207,8 @@
       "phase": "P1",
       "status": "SOURCE_WIRED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -2238,7 +2262,19 @@
         "src/platform/chrome/context-menus.js"
       ],
       "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.contextMenu.getStatus')",
-      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.contextMenu.getStatus",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.contextMenu.register",
@@ -2291,8 +2327,8 @@
       "phase": "P1",
       "status": "SOURCE_WIRED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -2346,7 +2382,19 @@
         "src/platform/chrome/context-menus.js"
       ],
       "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.contextMenu.register')",
-      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.contextMenu.register",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.contextMenu.unregister",
@@ -2396,8 +2444,8 @@
       "phase": "P1",
       "status": "SOURCE_WIRED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -2451,7 +2499,19 @@
         "src/platform/chrome/context-menus.js"
       ],
       "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.contextMenu.unregister')",
-      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.contextMenu.unregister",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.launch.consume",
@@ -2502,8 +2562,8 @@
       "phase": "P1",
       "status": "SOURCE_WIRED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -2557,7 +2617,19 @@
         "src/platform/chrome/context-menus.js"
       ],
       "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.launch.consume')",
-      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.launch.consume",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.page.getContext",
@@ -2605,8 +2677,8 @@
       "phase": "P1",
       "status": "SOURCE_WIRED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -2660,7 +2732,19 @@
         "src/platform/chrome/context-menus.js"
       ],
       "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.page.getContext')",
-      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.page.getContext",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.page.getSelection",
@@ -2710,8 +2794,8 @@
       "phase": "P1",
       "status": "SOURCE_WIRED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -2765,7 +2849,19 @@
         "src/platform/chrome/context-menus.js"
       ],
       "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.page.getSelection')",
-      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.page.getSelection",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.clipboard.writeText",
@@ -2813,8 +2909,8 @@
       "phase": "P1",
       "status": "SOURCE_WIRED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -2868,7 +2964,19 @@
         "src/platform/chrome/context-menus.js"
       ],
       "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.clipboard.writeText')",
-      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.clipboard.writeText",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.downloads.text",
@@ -2920,8 +3028,8 @@
       "phase": "P1",
       "status": "SOURCE_WIRED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -2975,7 +3083,19 @@
         "src/platform/downloads/index.js"
       ],
       "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.downloads.text')",
-      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.downloads.text",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.tabs.create",
@@ -3025,8 +3145,8 @@
       "phase": "P3",
       "status": "SOURCE_WIRED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -3080,7 +3200,19 @@
         "src/platform/chrome/browser-tabs.js"
       ],
       "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.tabs.create')",
-      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.tabs.create",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.tabs.activateOwned",
@@ -3135,8 +3267,8 @@
       "phase": "P3",
       "status": "SOURCE_WIRED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -3190,7 +3322,19 @@
         "src/platform/chrome/browser-tabs.js"
       ],
       "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.tabs.activateOwned')",
-      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.tabs.activateOwned",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.tabs.getOwned",
@@ -3244,8 +3388,8 @@
       "phase": "P3",
       "status": "SOURCE_WIRED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -3299,7 +3443,19 @@
         "src/platform/chrome/browser-tabs.js"
       ],
       "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.tabs.getOwned')",
-      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.tabs.getOwned",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.tabs.listOwned",
@@ -3353,8 +3509,8 @@
       "phase": "P3",
       "status": "SOURCE_WIRED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -3408,7 +3564,19 @@
         "src/platform/chrome/browser-tabs.js"
       ],
       "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.tabs.listOwned')",
-      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.tabs.listOwned",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.tabs.pinOwned",
@@ -3463,8 +3631,8 @@
       "phase": "P3",
       "status": "SOURCE_WIRED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -3518,7 +3686,19 @@
         "src/platform/chrome/browser-tabs.js"
       ],
       "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.tabs.pinOwned')",
-      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.tabs.pinOwned",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.tabs.removeOwned",
@@ -3573,8 +3753,8 @@
       "phase": "P3",
       "status": "SOURCE_WIRED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -3628,7 +3808,19 @@
         "src/platform/chrome/browser-tabs.js"
       ],
       "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.tabs.removeOwned')",
-      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.tabs.removeOwned",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.sidePanel.openSelf",
@@ -3680,8 +3872,8 @@
       "phase": "P1",
       "status": "SOURCE_WIRED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -3735,7 +3927,19 @@
         "src/platform/chrome/context-menus.js"
       ],
       "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.sidePanel.openSelf')",
-      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.sidePanel.openSelf",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.network.request",
@@ -3783,8 +3987,8 @@
       "phase": "P1",
       "status": "SOURCE_WIRED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -3838,7 +4042,19 @@
         "src/platform/chrome/browser-network-observe.js / src/platform/chrome/network.js"
       ],
       "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.network.request')",
-      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.network.request",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.network.observe.start",
@@ -3894,8 +4110,8 @@
       "phase": "P1",
       "status": "SOURCE_WIRED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -3949,7 +4165,19 @@
         "src/platform/chrome/browser-network-observe.js / src/platform/chrome/network.js"
       ],
       "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.network.observe.start')",
-      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.network.observe.start",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.network.observe.getStatus",
@@ -4001,8 +4229,8 @@
       "phase": "P1",
       "status": "SOURCE_WIRED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -4056,7 +4284,19 @@
         "src/platform/chrome/browser-network-observe.js / src/platform/chrome/network.js"
       ],
       "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.network.observe.getStatus')",
-      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.network.observe.getStatus",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.network.observe.stop",
@@ -4108,8 +4348,8 @@
       "phase": "P1",
       "status": "SOURCE_WIRED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -4163,7 +4403,19 @@
         "src/platform/chrome/browser-network-observe.js / src/platform/chrome/network.js"
       ],
       "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.network.observe.stop')",
-      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.network.observe.stop",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.network.observe.export",
@@ -4216,8 +4468,8 @@
       "phase": "P1",
       "status": "SOURCE_WIRED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -4272,7 +4524,19 @@
       ],
       "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.network.observe.export')",
       "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
-      "receiptSemantics": "A Chrome JSON Save As download was started; no file-read ResourceRef or raw downloadId is available; unknown native effects are not replayed."
+      "receiptSemantics": "A Chrome JSON Save As download was started; no file-read ResourceRef or raw downloadId is available; unknown native effects are not replayed.",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.network.observe.export",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.events.read",
@@ -4320,8 +4584,8 @@
       "phase": "P1",
       "status": "SOURCE_WIRED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -4375,7 +4639,19 @@
         "src/platform/chrome/context-menus.js"
       ],
       "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.events.read')",
-      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.events.read",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.events.close",
@@ -4423,8 +4699,8 @@
       "phase": "P1",
       "status": "SOURCE_WIRED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -4478,7 +4754,19 @@
         "src/platform/chrome/context-menus.js"
       ],
       "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.events.close')",
-      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.events.close",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.screenshot.captureVisible",
@@ -4534,8 +4822,8 @@
       "phase": "P1",
       "status": "SOURCE_WIRED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -4590,7 +4878,19 @@
       ],
       "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.screenshot.captureVisible')",
       "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
-      "receiptSemantics": "A Chrome PNG Save As download was started; private PNG handoff is consumed and no file-read ResourceRef or raw downloadId is available."
+      "receiptSemantics": "A Chrome PNG Save As download was started; private PNG handoff is consumed and no file-read ResourceRef or raw downloadId is available.",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.screenshot.captureVisible",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.operations.getStatus",
@@ -4638,8 +4938,8 @@
       "phase": "P1",
       "status": "SOURCE_WIRED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -4693,7 +4993,19 @@
         "src/platform/chrome/context-menus.js"
       ],
       "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.operations.getStatus')",
-      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.operations.getStatus",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.operations.cancel",
@@ -4741,8 +5053,8 @@
       "phase": "P1",
       "status": "SOURCE_WIRED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -4796,7 +5108,19 @@
         "src/platform/chrome/context-menus.js"
       ],
       "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.operations.cancel')",
-      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.operations.cancel",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.cookies.get",
@@ -4990,8 +5314,8 @@
       "phase": "P2",
       "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -5048,7 +5372,19 @@
         "src/platform/chrome/cookies.js"
       ],
       "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
-      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.cookies.get')"
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.cookies.get')",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.cookies.get",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.cookies.getAll",
@@ -5216,8 +5552,8 @@
       "phase": "P2",
       "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -5274,7 +5610,19 @@
         "src/platform/chrome/cookies.js"
       ],
       "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
-      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.cookies.getAll')"
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.cookies.getAll')",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.cookies.getAll",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.cookies.set",
@@ -5478,8 +5826,8 @@
       "phase": "P2",
       "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -5536,7 +5884,19 @@
         "src/platform/chrome/cookies.js"
       ],
       "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
-      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.cookies.set')"
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.cookies.set')",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.cookies.set",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.cookies.remove",
@@ -5654,8 +6014,8 @@
       "phase": "P2",
       "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -5712,7 +6072,19 @@
         "src/platform/chrome/cookies.js"
       ],
       "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
-      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.cookies.remove')"
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.cookies.remove')",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.cookies.remove",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.cookies.clearSite",
@@ -5857,8 +6229,8 @@
       "phase": "P2",
       "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -5915,7 +6287,19 @@
         "src/platform/chrome/cookies.js"
       ],
       "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
-      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.cookies.clearSite')"
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.cookies.clearSite')",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.cookies.clearSite",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.cookies.getCurrentStore",
@@ -6014,8 +6398,8 @@
       "phase": "P2",
       "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -6072,7 +6456,19 @@
         "src/platform/chrome/cookies.js"
       ],
       "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
-      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.cookies.getCurrentStore')"
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.cookies.getCurrentStore')",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.cookies.getCurrentStore",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.cookies.getPartitionKey",
@@ -6184,8 +6580,8 @@
       "phase": "P2",
       "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -6242,7 +6638,19 @@
         "src/platform/chrome/cookies.js"
       ],
       "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
-      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.cookies.getPartitionKey')"
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.cookies.getPartitionKey')",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.cookies.getPartitionKey",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.cookies.observe.start",
@@ -6342,8 +6750,8 @@
       "phase": "P2",
       "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -6400,7 +6808,19 @@
         "src/platform/chrome/cookies.js"
       ],
       "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
-      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.cookies.observe.start')"
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.cookies.observe.start')",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.cookies.observe.start",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.cookies.observe.getStatus",
@@ -6507,8 +6927,8 @@
       "phase": "P2",
       "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -6565,7 +6985,19 @@
         "src/platform/chrome/cookies.js"
       ],
       "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
-      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.cookies.observe.getStatus')"
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.cookies.observe.getStatus')",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.cookies.observe.getStatus",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.cookies.observe.read",
@@ -6691,8 +7123,8 @@
       "phase": "P2",
       "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -6749,7 +7181,19 @@
         "src/platform/chrome/cookies.js"
       ],
       "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
-      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.cookies.observe.read')"
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.cookies.observe.read')",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.cookies.observe.read",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.cookies.observe.stop",
@@ -6832,8 +7276,8 @@
       "phase": "P2",
       "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -6890,7 +7334,19 @@
         "src/platform/chrome/cookies.js"
       ],
       "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
-      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.cookies.observe.stop')"
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.cookies.observe.stop')",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.cookies.observe.stop",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.downloads.download",
@@ -6973,8 +7429,8 @@
       "phase": "P3",
       "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -7032,7 +7488,19 @@
         "src/sidebar-tools/bridge.js"
       ],
       "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
-      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.downloads.download')"
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.downloads.download')",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.downloads.download",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.downloads.getOwned",
@@ -7120,8 +7588,8 @@
       "phase": "P3",
       "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -7179,7 +7647,19 @@
         "src/sidebar-tools/bridge.js"
       ],
       "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
-      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.downloads.getOwned')"
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.downloads.getOwned')",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.downloads.getOwned",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.downloads.listOwned",
@@ -7275,8 +7755,8 @@
       "phase": "P3",
       "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -7334,7 +7814,19 @@
         "src/sidebar-tools/bridge.js"
       ],
       "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
-      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.downloads.listOwned')"
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.downloads.listOwned')",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.downloads.listOwned",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.downloads.cancelOwned",
@@ -7404,8 +7896,8 @@
       "phase": "P3",
       "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -7463,7 +7955,19 @@
         "src/sidebar-tools/bridge.js"
       ],
       "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
-      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.downloads.cancelOwned')"
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.downloads.cancelOwned')",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.downloads.cancelOwned",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.bookmarks.create",
@@ -7544,8 +8048,8 @@
       "phase": "P3",
       "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -7596,7 +8100,19 @@
         "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
         "src/platform/chrome/bookmarks.js (NEW adapter in existing host)"
       ],
-      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.bookmarks.create",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.bookmarks.removeOwned",
@@ -7666,8 +8182,8 @@
       "phase": "P3",
       "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -7718,7 +8234,19 @@
         "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
         "src/platform/chrome/bookmarks.js (NEW adapter in existing host)"
       ],
-      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.bookmarks.removeOwned",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.history.searchTrusted",
@@ -7826,8 +8354,8 @@
       "phase": "P3",
       "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -7887,7 +8415,19 @@
       "testPlan": [
         "tests/environment/browser-sdk-r106-trusted.test.mjs"
       ],
-      "maxDateRangeDays": 31
+      "maxDateRangeDays": 31,
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.history.searchTrusted",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.permissions.requestForTool",
@@ -7972,8 +8512,8 @@
       "phase": "P4",
       "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -8031,7 +8571,19 @@
       ],
       "testPlan": [
         "tests/environment/browser-sdk-r106-trusted.test.mjs"
-      ]
+      ],
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.permissions.requestForTool",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.storage.local.get",
@@ -8105,8 +8657,8 @@
       "phase": "P4",
       "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -8157,7 +8709,19 @@
         "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
         "src/platform/storage/index.js"
       ],
-      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test"
+      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.storage.local.get",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.storage.local.set",
@@ -8229,8 +8793,8 @@
       "phase": "P4",
       "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -8281,7 +8845,19 @@
         "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
         "src/platform/storage/index.js"
       ],
-      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test"
+      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.storage.local.set",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.storage.local.remove",
@@ -8357,8 +8933,8 @@
       "phase": "P4",
       "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -8409,7 +8985,19 @@
         "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
         "src/platform/storage/index.js"
       ],
-      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test"
+      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.storage.local.remove",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.storage.local.clear",
@@ -8479,8 +9067,8 @@
       "phase": "P4",
       "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -8531,7 +9119,19 @@
         "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
         "src/platform/storage/index.js"
       ],
-      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test"
+      "schemaStrategy": "INLINE_FROZEN_DESIGN_SCHEMA; implementation MUST copy/adapt into strict runtime validator and test",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.storage.local.clear",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.scheduler.create",
@@ -8635,8 +9235,8 @@
       "phase": "P5",
       "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -8687,7 +9287,19 @@
         "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
         "src/platform/tasks/schedule-service.js"
       ],
-      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.scheduler.create",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.scheduler.listOwn",
@@ -8775,8 +9387,8 @@
       "phase": "P5",
       "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -8827,7 +9439,19 @@
         "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
         "src/platform/tasks/schedule-service.js"
       ],
-      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.scheduler.listOwn",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.scheduler.cancelOwn",
@@ -8898,8 +9522,8 @@
       "phase": "P5",
       "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -8950,7 +9574,19 @@
         "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
         "src/platform/tasks/schedule-service.js"
       ],
-      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA"
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.scheduler.cancelOwn",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.tabs.reloadOwned",
@@ -9004,8 +9640,8 @@
       "phase": "P3",
       "status": "SOURCE_WIRED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -9060,7 +9696,19 @@
       ],
       "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.tabs.pinOwned')",
       "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
-      "requiredPostcondition": "Chrome tabs.reload acknowledges reload request; current opaque TabRef invalid before native effect; new document obtains a new authorization; do not claim page load complete"
+      "requiredPostcondition": "Chrome tabs.reload acknowledges reload request; current opaque TabRef invalid before native effect; new document obtains a new authorization; do not claim page load complete",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.tabs.reloadOwned",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
     },
     {
       "id": "browser.tabs.navigateOwned",
@@ -9115,8 +9763,8 @@
       "phase": "P3",
       "status": "SOURCE_WIRED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
         "native": "NOT_TESTED"
       },
       "testContract": {
@@ -9178,6 +9826,18 @@
         "reason": "R9 user expressly requires owned-tab navigation; code already source-wired. This narrowly scoped public operation was missing from frozen list.",
         "date": "2026-10-13",
         "verification": "NODE_AND_NATIVE_CURRENT_CANDIDATE_NOT_YET_PROVEN"
+      },
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "browser.tabs.navigateOwned",
+        "positive": "PASS",
+        "denial": "PASS",
+        "fullMatrixContractStatus": "NOT_TESTED",
+        "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
       }
     }
   ],
@@ -56583,5 +57243,33 @@
       "build": "NOT_TESTED",
       "nativeChrome": "NOT_TESTED"
     }
-  ]
+  ],
+  "currentVerificationCandidate": {
+    "commitSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+    "packageHash": "8f46ffac9c0392b2d3be740a9257c76f24b439178e7672537e8d04a2f44aa59e",
+    "checks": {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/checks-alarm-owner-native-final.json",
+      "sha256": "2a4b74f5870e41f914cfcae2150743cb3d33f58e093adb9d1bfa513ad3a4cc2c",
+      "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+      "caseId": "R10.6-12-checks",
+      "command": "Original committed candidate verification",
+      "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
+    },
+    "deliveryPath": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery.json",
+    "deliverySha256": "0ffd2c5e893b6faa6e87bf8e6b58464ac06b7d14eacc81291544f5e079e61e4b",
+    "sourceWired": 55,
+    "nodePass": 55,
+    "buildPass": 55,
+    "nativePass": 0,
+    "scope": "Physical447 Build and explicitly mapped scoped Node assertions only; current main/dirty working tree and Native/F3/ZIP are separate.",
+    "nodeAssertionEvidence": {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+      "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+      "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+      "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+      "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+      "caseId": "R10.6-per-interface-scoped-node-assertions"
+    },
+    "fullMatrixContractPass": 0
+  }
 }

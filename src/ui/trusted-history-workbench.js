@@ -7,10 +7,11 @@ const MAX_RANGE_DAYS=31;
 const error=(code,message)=>Object.assign(new Error(message||code),{code});
 
 // This UI is part of the extension's compiled, audited source. Installed
-// packages never supply this DOM or execute in this trusted document.
+// packages never supply this DOM or execute in this trusted document. The
+// list-owned container hides it when the host opens any tool or preview.
 export function mountTrustedHistoryWorkbench(doc=globalThis.document){
   if(doc?.getElementById?.('trusted-history-panel'))return;
-  const parent=doc?.getElementById?.('workbench-tools');
+  const parent=doc?.getElementById?.('sidebar-host-browser-tools');
   if(!parent)return;
   const element=(tag,id,classes,text)=>{
     const node=doc.createElement(tag);if(id)node.id=id;
@@ -30,7 +31,7 @@ export function mountTrustedHistoryWorkbench(doc=globalThis.document){
   const status=element('p','trusted-history-status','od-note','选择最多 31 天的日期范围后查询。');
   status.setAttribute('role','status');
   const results=element('div','trusted-history-results','od-stack');results.setAttribute('aria-live','polite');
-  body.append(search,status,results);panel.append(body);parent.append(panel);
+  body.append(search,status,results);panel.append(body);parent.append(panel);parent.hidden=false;
 }
 
 function readDate(value,endOfDay=false){

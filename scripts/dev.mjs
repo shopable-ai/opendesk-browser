@@ -2,9 +2,14 @@ import {createServer} from 'wxt';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {rm} from 'node:fs/promises';
-import {preparePublic} from './prepare-public.mjs';
 import {acquireDevelopmentLock} from './development-lock.mjs';
-import {drainDevelopment,configureDevelopmentRestarts} from './wxt-development.mjs';
+import {resolveDevelopmentBrowserEdition} from './browser-editions-r245.mjs';
+
+// Select before loading the static-resource catalog: it fixes both the UI
+// compiler flag and the pinned resources copied into the daily extension.
+process.env.OPENDESK_BROWSER_EDITION=resolveDevelopmentBrowserEdition();
+const {preparePublic}=await import('./prepare-public.mjs');
+const {drainDevelopment,configureDevelopmentRestarts}=await import('./wxt-development.mjs');
 
 const root=fileURLToPath(new URL('../',import.meta.url));
 process.chdir(root);
@@ -38,7 +43,8 @@ bootstrapping=(async()=>{
   process.env.OPENDESK_BUILD_MODE='development';
   await preparePublic();
   if(closing)return;
-  server=await createServer({mode:'development'});
+  // Keep Chrome's existing unpacked path/ID even when compiler assets ship.
+  server=await createServer({mode:'development',outDirTemplate:'{{mode}}'});
   if(closing)return;
   restarts=configureDevelopmentRestarts(server,{root,isClosing:()=>closing});
   await server.start();

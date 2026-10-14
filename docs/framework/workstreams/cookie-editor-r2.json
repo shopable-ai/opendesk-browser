@@ -29,9 +29,10 @@
   "r9Blockers": [
     "Complete actual panel widths 300/320/420/520 and panel-self Zoom; Chrome page zoom leaves Side Panel unchanged",
     "Native cross-Store/Partition and public methods not exercised by the installed UI remain NOT_TESTED",
-    "Shared-main full npm test still FAIL (21); preserve unrelated work",
+    "Shared-main full npm test still FAIL (23 of 2292; 2267 passed, 2 skipped); preserve unrelated work",
     "Independent final F3, identical ZIP install and CWS/publication not performed",
-    "Committed main CI full npm test FAIL: 2192/2271 pass, 72 failed, 7 skipped; CI builds and artifact upload not run"
+    "Committed main CI full npm test FAIL: 2192/2271 pass, 72 failed, 7 skipped; CI builds and artifact upload not run",
+    "Native installed UI Show Value button and displayed-value readback have no standalone acceptance case in the final core report; list reads and browser mutation readbacks are evidenced separately"
   ],
   "testsRun": [
     "GitHub source inspection",
@@ -214,9 +215,10 @@
     "pending": [
       "Complete actual panel widths 300/320/420/520 and panel-self Zoom; Chrome page zoom leaves Side Panel unchanged",
       "Native cross-Store/Partition and public methods not exercised by the installed UI remain NOT_TESTED",
-      "Shared-main full npm test still FAIL (21); preserve unrelated work",
+      "Shared-main full npm test still FAIL (23 of 2292; 2267 passed, 2 skipped); preserve unrelated work",
       "Independent final F3, identical ZIP install and CWS/publication not performed",
-      "Committed main CI full npm test FAIL: 2192/2271 pass, 72 failed, 7 skipped; CI builds and artifact upload not run"
+      "Committed main CI full npm test FAIL: 2192/2271 pass, 72 failed, 7 skipped; CI builds and artifact upload not run",
+      "Native installed UI Show Value button and displayed-value readback have no standalone acceptance case in the final core report; list reads and browser mutation readbacks are evidenced separately"
     ],
     "progress": {
       "check": "PASS",
@@ -433,6 +435,9 @@
     "handoff": {
       "ownerReleased": true,
       "currentStatus": "Core/affected Native scoped pass; code pushed main; actual Cookie/SDK CI134 pass, global CI FAIL blocks builds; final F3/ZIP and native matrix remain open; profiles closed",
+      "nextPrompt": "docs/framework/prompts/cookie-editor-r33m-evidence-handoff-20261014.zh-CN.txt",
+      "humanReadablePrompt": "docs/framework/prompts/cookie-editor-readable-next-20261014.zh-CN.txt",
+      "statusReviewedAtMain": "f9fc1a48; six recorded related source hashes match; scoped raw Native reports and completed failure CI checked; no tests rerun",
       "preserve": {
         "prompt": "docs/framework/prompts/cookie-editor-r33l-core-first-handoff-20261014.zh-CN.txt",
         "head": "349a64be5a36419a78770a1154a30db16a871fb0",
@@ -1747,5 +1752,193 @@
     "cookieEditorVersion": "2.0.2",
     "cookieEditorPackageHash": null,
     "extensionPackageHash": null
+  },
+  "r34": {
+    "schema": "opendesk.cookie-editor.development-results.v1",
+    "date": "2026-10-14",
+    "branch": "main",
+    "scope": "开发版 Cookie Editor；不含 ZIP 打包、安装、发布或发布验收",
+    "status": "PARTIAL_DEVELOPMENT_VERIFIED",
+    "cookieEditorVersion": "2.0.4",
+    "cookieEditorPackageSha256": "00034592e094d5a6f513a58bc04233a9793573f1d165a0e990489aead508fa9c",
+    "dailyExtensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "dailyLoadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "results": [
+      {
+        "测试网站": "http://127.0.0.1:43111/demo-form.html",
+        "操作Cookie": "od_ce_r34_show（127.0.0.1，/demo-form.html，Store 0，未分区）",
+        "操作": "新建、真实点击显示值、独立授权、精确删除",
+        "修改前": "不存在；新建后敏感值未读取",
+        "修改后": "新建值 fictional-r34-value-20261014；授权后显示完全一致；最后精确删除",
+        "实际结果": "新建、显示和删除成功；values 授权前点击显示值失败，E_COOKIE_VALUES_REQUIRED 正确拒绝",
+        "证据": [
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/show-value-before-grant.txt",
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/show-value-after-grant.txt",
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/show-value-after-grant.png",
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/cleanup-delete-result.txt",
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/temporary-site-grants-revoked.txt"
+        ],
+        "未测试": "其他 Cookie 的真实值未读取；其他网站不在本项证据范围"
+      },
+      {
+        "测试网站": "https://zhuanlan.zhihu.com/p/428602049",
+        "操作Cookie": "Hm_lpvt_98beee57fd2ef70ccdd5ca52b9740c49（.zhihu.com，/，Store 0，未分区）",
+        "操作": "授权与真实值核对",
+        "修改前": "真实值隐藏",
+        "修改后": "独立 values 授权后显示 1791956260，原值未修改",
+        "实际结果": "真实点击显示值成功，与 Chrome 原生 Cookie 表只读比对一致",
+        "证据": [
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/zhihu-show-before-grant.txt",
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/zhihu-values-grant.txt",
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/zhihu-show-after-grant.txt",
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/zhihu-native-readonly-comparison.txt"
+        ],
+        "未测试": "未修改此 Cookie；知乎截图工具报 native_hook_stdin_oversized，保留原始 AX 记录"
+      },
+      {
+        "测试网站": "https://zhuanlan.zhihu.com/p/428602049",
+        "操作Cookie": "DATE（zhuanlan.zhihu.com，/，Store 0，未分区）",
+        "操作": "修改真实访问日期值并立即恢复",
+        "修改前": "1791779847935",
+        "修改后": "1791779847936；之后恢复 1791779847935",
+        "实际结果": "修改、保存、实际显示值回读及恢复成功",
+        "证据": [
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/zhihu-date-before.txt",
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/zhihu-date-change-result.txt",
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/zhihu-date-change-readback.txt",
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/zhihu-date-restore-result.txt",
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/zhihu-date-restored-readback.txt"
+        ],
+        "未测试": "未测试登录状态；仅本篇已获授权页面"
+      },
+      {
+        "测试网站": "https://zhuanlan.zhihu.com/p/428602049",
+        "操作Cookie": "opendesk_acceptance_visited_at（zhuanlan.zhihu.com，/p/428602049，Store 0；普通与分区两条）",
+        "操作": "通过安装工具导入新建两条并仅修改分区记录",
+        "修改前": "两条均不存在",
+        "修改后": "两条新建值均为真实访问时间 1791956260；分区值改为 1791956261，普通值仍为 1791956260",
+        "实际结果": "新建与分区单独修改成功；普通和分区身份和值明确区分",
+        "证据": [
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/zhihu-partition-import-input.json",
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/zhihu-import-two-result.txt",
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/zhihu-partition-initial-value.txt",
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/zhihu-partition-change-readback.txt",
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/zhihu-partition-and-ordinary-distinct-values.txt"
+        ],
+        "未测试": "未覆盖其他顶层站点或 hasCrossSiteAncestor=true；仅 https://zhihu.com / false 分区键"
+      },
+      {
+        "测试网站": "https://zhuanlan.zhihu.com/p/428602049",
+        "操作Cookie": "opendesk_acceptance_visited_at（同上精确身份；分区键 https://zhihu.com / false）",
+        "操作": "分区精确删除",
+        "修改前": "分区值 1791956261；普通值 1791956260",
+        "修改后": "分区记录删除；普通记录仍存在，值仍为 1791956260",
+        "实际结果": "精确删除分区记录成功，普通同名 Cookie 保留",
+        "证据": [
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/zhihu-partition-delete-host-review.txt",
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/zhihu-partition-delete-result.txt",
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/zhihu-ordinary-survives-partition-delete.txt"
+        ],
+        "未测试": "其他 Store、Path 和分区组合未在本项重复测试"
+      },
+      {
+        "测试网站": "https://zhuanlan.zhihu.com/p/428602049",
+        "操作Cookie": "普通 opendesk_acceptance_visited_at → opendesk_acceptance_visited_at_checked",
+        "操作": "真实改名、回读、清理",
+        "修改前": "旧名，值 1791956260",
+        "修改后": "新名，值 1791956260；旧名精确删除；随后新名也清理",
+        "实际结果": "真实改名、保留值、保存和最终删除成功；新增两条均不存在，临时授权全部撤销",
+        "证据": [
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/zhihu-rename-create-stage.txt",
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/zhihu-rename-result.txt",
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/zhihu-rename-readback.txt",
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/zhihu-new-cookies-cleaned.txt",
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/zhihu-temporary-grants-revoked.txt"
+        ],
+        "未测试": "没有验证所有知乎页面或所有外部网站"
+      },
+      {
+        "测试网站": "http://127.0.0.1:43111/demo-form.html",
+        "操作Cookie": "od_ce_r34_store_reject / od_ce_r34_partition_reject",
+        "操作": "越权 Store / Partition 拒绝",
+        "修改前": "均不存在",
+        "修改后": "仍未写入",
+        "实际结果": "导入失败：Store 1 与非授权 Partition 在预检被正确拒绝",
+        "证据": [
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/store1-import-rejected.txt",
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/partition-import-rejected.txt"
+        ],
+        "未测试": "另一真实 Store 正向 CRUD 未测，当前扩展 incognito 为 not_allowed；本机 HTTP 不作分区正向证据"
+      },
+      {
+        "测试网站": "http://127.0.0.1:43111/demo-form.html",
+        "操作Cookie": "od_ce_r34_layout_draft（仅表单草稿）",
+        "操作": "已安装工具独立页响应式检查，不保存草稿",
+        "修改前": "Cookie 不存在",
+        "修改后": "表单填写 fictional-layout-only 后取消，未保存为 Cookie；临时 read/write 授权撤销",
+        "实际结果": "独立页 300、420、520px 可见表单及操作按钮；320px 部分验证；原生 Side Panel 固定宽度未证实",
+        "证据": [
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/installed-tool-width300-list.png",
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/installed-tool-width300-editor-bottom.png",
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/installed-tool-width420-editor.png",
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/installed-tool-width520-editor.png",
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/installed-tool-width320-editor.txt",
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/installed-tool-width320-verified-editor.txt",
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/installed-tool-width320-verified-editor.png",
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/installed-tool-layout-draft-cancelled.txt",
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/development-layout-grants-revoked.txt"
+        ],
+        "未测试": "首次标注 320 的原始记录实际 Width 20，失败保留；实际 320px 底部截图异常，不能登记完整视觉通过；原生面板拖动未改变宽度"
+      },
+      {
+        "测试网站": "http://127.0.0.1:43111/demo-form.html",
+        "操作Cookie": "od_ce_r34_show（历史缩放证据中的本次虚构 Cookie）",
+        "操作": "实际缩放和恢复",
+        "修改前": "扩展缩放 100%，值 fictional-r34-value-20261014",
+        "修改后": "125%、150%、200% 下观察；150%/200% 实际显示值一致；最后恢复 100%",
+        "实际结果": "当时开发版缩放操作与回读成功；保留依赖身份，不能提升为后续新布局全量通过",
+        "证据": [
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/panel-self-zoom125.txt",
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/zoom150-value-readback.txt",
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/zoom200-value-readback-second.txt",
+          "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/extension-zoom-restored100.txt"
+        ],
+        "未测试": "后续其他负责人更新的布局未做同一候选完整缩放复核"
+      }
+    ],
+    "projectTests": {
+      "当前结果": "完整测试仍失败，不能称整个项目全部通过",
+      "最新原始记录": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/development-current-full.log",
+      "输入核对": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/development-full-result.json",
+      "诊断数量": {
+        "tests": 2355,
+        "pass": 2342,
+        "fail": 13,
+        "skipped": 0
+      },
+      "失败原因": "11 项包验证先被旧 dist 的官方工具字节或额外资产挡住；1 项开发构建图身份不一致；1 项临时 CFT 的真实 Native 权限点击等待超时。需要核对并修复构建环境与观察方法，不能放宽断言。",
+      "定向测试": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/development-current-targeted.log",
+      "源码检查": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/development-current-check.log",
+      "Node-free Native 修复验证": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/node-free-native-after.log",
+      "旧完整结果": "whole-project-final-headed.log 是旧隔离候选的无失败且有跳过结果，不覆盖当前失败",
+      "适用性": "测试数字仅用于诊断，不推导产品完成度"
+    },
+    "cleanup": {
+      "本机及知乎": "本轮实际修改 Cookie 已清理或恢复，临时授权撤销",
+      "布局草稿": "未保存，已取消",
+      "历史独立实例": "opendesk_zip_acceptance 已由工具界面删除，授权全关闭；本轮拥有的 CFT 已退出，旧证据/Profile 保留；后续不做 ZIP 验收",
+      "证据": [
+        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/zip-workflow-stopped-cookie-cleanup.txt",
+        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r34-20261014/zip-workflow-stopped-grants-revoked.txt"
+      ]
+    },
+    "notTested": [
+      "原生 Side Panel 的 300/320/420/520px 实际宽度矩阵",
+      "实际 320px 下完整底部视觉证据",
+      "另一真实 Cookie Store 正向 CRUD",
+      "后续新布局同一候选完整缩放复核",
+      "所有外部网站、全部框架验收合同或正式交付"
+    ],
+    "nextPrompt": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/prompts/goal-cookie-editor-development-r34-20261014.zh-CN.txt"
   }
 }

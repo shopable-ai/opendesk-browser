@@ -198,6 +198,31 @@ async function componentFixture(t,framework,{compilerError,previewError,compileG
   }};
 }
 
+test('Result copy keeps its icon and reports clipboard success, failure and reset separately',async t=>{
+  const f=await fixture();t.after(()=>f.editor.dispose());
+  const button=f.find('script-copy-result'),feedback=f.find('script-copy-feedback');
+  Object.defineProperty(button,'textContent',{get:()=>'',set(){throw Error('Copy icon must not be replaced with text');}});
+  const original=Object.getOwnPropertyDescriptor(globalThis,'navigator');
+  t.after(()=>original?Object.defineProperty(globalThis,'navigator',original):delete globalThis.navigator);
+  const writes=[];let reject=false;
+  Object.defineProperty(globalThis,'navigator',{configurable:true,value:{clipboard:{writeText:async text=>{
+    if(reject)throw Error('Clipboard denied');writes.push(text);
+  }}}});
+  await f.click('script-read');
+  assert.equal(button.title,'复制结果');assert.equal(feedback.hidden,true);
+  f.find('script-result').textContent='{"value":7}';button.disabled=false;
+  await f.click('script-copy-result');
+  assert.deepEqual(writes,['{"value":7}']);
+  assert.equal(feedback.textContent,'已复制');assert.equal(feedback.hidden,false);
+  assert.equal(button['aria-label'],'已复制');
+  reject=true;await f.click('script-copy-result');
+  assert.equal(feedback.textContent,'无法自动复制');
+  assert.equal(button.title,'请选中返回值后手动复制');
+  await f.click('script-read');
+  assert.equal(feedback.hidden,true);assert.equal(button.title,'复制结果');
+  assert.equal(f.starts.length,0);assert.equal(f.commits.length,0);
+});
+
 for(const framework of ['react','vue'])test(framework+' primary Run compiles a managed Page preview and shows its result',async t=>{
   const f=await componentFixture(t,framework);
   assert.equal(f.find('script-run').disabled,false);

@@ -7,6 +7,7 @@ on:
       - '.github/workflows/cookie-editor-r32.yml'
       - 'examples/sidebar-tools/cookie-editor/**'
       - 'tests/environment/cookie-editor-ui.test.mjs'
+      - 'tests/environment/browser-sdk-r106-cookie-contract-gaps.test.mjs'
       - 'tests/environment/browser-sdk-coverage.test.mjs'
       - 'scripts/check-browser-sdk-coverage.mjs'
       - 'docs/framework/workstreams/browser-sdk-acceptance.json'
@@ -51,6 +52,7 @@ jobs:
         run: |
           node --test \
             tests/environment/browser-sdk-r9-installed-cookies.test.mjs \
+            tests/environment/browser-sdk-r106-cookie-contract-gaps.test.mjs \
             tests/environment/browser-sdk-r9-installed-host.test.mjs \
             tests/environment/browser-sdk-r7-trusted-cookies.test.mjs \
             tests/environment/browser-sdk-r8-cookies.test.mjs \

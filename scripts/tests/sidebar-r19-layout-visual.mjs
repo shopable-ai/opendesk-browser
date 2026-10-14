@@ -12,6 +12,7 @@ import {createOfficialToolResources} from '../build-official-tools.mjs';
 const root=resolve('.');
 const out=resolve(process.argv[2]||'artifacts/sidebar-r19-layout-visual');
 const widths=[300,320,360,420,520];
+const sampleWidths=process.argv.includes('--narrow')?[200,240,...widths]:widths;
 const scenes=[
   {name:'my',tab:'tasks'},
   {name:'my-long',tab:'tasks',state:'long'},
@@ -57,10 +58,15 @@ scenes.push(...['tasks','local-discover','catalog','workflow','develop','tools',
   name:tab+'-details-long',tab,allDetails:true,longContent:true,
   ...(tab==='workflow'?{state:'steps'}:{})
 })),
-  {name:'tools-cookie-open',tab:'tools',cookie:true},
+  {name:'tools-installed-long',tab:'tools',state:'installed',longContent:true},
   {name:'develop-collapsed',tab:'develop',closedDetails:true},
   {name:'develop-single-open',tab:'develop',singleDetail:'developer-results-panel'}
 );
+const tabFilter=process.argv.find(arg=>arg.startsWith('--tabs='))?.slice(7).split(',');
+if(tabFilter){
+  scenes.splice(0,scenes.length,...scenes.filter(scene=>tabFilter.includes(scene.tab)));
+  if(!scenes.length)throw Error('No static scenes match --tabs');
+}
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const profile=await mkdtemp(join(tmpdir(),'sidebar-r19-static-'));
 let chrome,server,socket,port,seq=0;
@@ -299,7 +305,6 @@ function setupScene(scene,officialReleases){
     if(active==='cloud')document.querySelector('#cloud-request-detail').hidden=false;
     for(const details of panel.querySelectorAll('details'))details.open=true;
   }
-  if(scene.cookie)for(const details of panel.querySelectorAll('#trusted-cookie-panel,#trusted-cookie-panel details'))details.open=true;
   if(scene.closedDetails||scene.singleDetail){
     for(const details of panel.querySelectorAll('details'))details.open=details.id===scene.singleDetail;
   }
@@ -445,13 +450,10 @@ function measureScene(scene){
   if(scene.tab==='develop'){
     metrics.corners.page=radius('#developer-target-detail');
     metrics.corners.editor=radius('#script-source');
-    const target=box('.developer-target');
-    const switchBox=box('.developer-source-switch');
-    const source=box(scene.local?'#local-project-tools':'#manual-source-editor');
-    metrics.developGaps=[Math.round(switchBox.top-target.bottom),Math.round(source.top-switchBox.bottom)];
-    const children=[...get('.developer-editor').children].filter(e=>!e.hidden&&getComputedStyle(e).display!=='none'&&getComputedStyle(e).position!=='absolute');
+    const children=[...get('.developer-editor').children].filter(e=>!e.hidden&&getComputedStyle(e).display!=='none'&&getComputedStyle(e).position!=='absolute'&&e.getBoundingClientRect().height>0);
     const layout=children.map(e=>e.getBoundingClientRect());
-    metrics.developGaps.push(...layout.slice(1).map((r,i)=>Math.round(r.top-layout[i].bottom)));
+    metrics.developGaps=layout.slice(1).map((r,i)=>Math.round(r.top-layout[i].bottom));
+    metrics.developerHeaderFirst=children[0]?.id==='developer-source-switch';
     // Keep the historical developer metrics key while using the shared contract.
     metrics.developerDisclosureHeaders=metrics.disclosureHeaders;
     if(!scene.local){
@@ -480,17 +482,17 @@ function validate(scene,width,m){
     if(group.buttons.length>1&&group.gap!==8)throw Error('Action spacing is not 8px '+scene.name+' '+JSON.stringify(group));
   }
 
-  if(m.codeType&&(!m.codeType.inline||m.codeType.segments.some(el=>el.height<36||el.fontSize<12)))
+  if(m.codeType&&((width>=300&&!m.codeType.inline)||m.codeType.segments.some(el=>el.height<36||el.fontSize<12)))
     throw Error('Code type label/choices must share a readable, accessible row '+scene.name+' '+width+'px');
-  if(scene.tab==='tools'&&m.iconButtons.some(b=>b.width<33.5||b.height<33.5||b.radius!=='8px'||!b.label||!b.title))
+  if(['tools','develop'].includes(scene.tab)&&m.iconButtons.some(b=>b.width<33.5||b.height<33.5||b.radius!=='8px'||!b.label||!b.title))
     throw Error('Icon action is not 34px accessible control '+scene.name+' '+width+'px '+JSON.stringify(m.iconButtons));
-  const expected={tasks:{taskCard:'12px'},'local-discover':{import:'8px',filter:'8px',filterGroup:'12px',list:'12px'},catalog:{},cloud:{},workflow:{card:'12px',icon:'8px'},develop:{page:'12px',editor:'8px'},tools:{card:'12px',install:'8px'},debug:{card:'12px',detail:'12px'}};
+  const expected={tasks:{taskCard:'12px'},'local-discover':{import:'8px',filter:'8px',filterGroup:'12px',list:'12px'},catalog:{},cloud:{},workflow:{card:'12px',icon:'8px'},develop:{page:'0px',editor:'8px'},tools:{card:'12px',install:'8px'},debug:{card:'12px',detail:'12px'}};
   // An empty task list intentionally has no card whose radius could be measured.
   if(scene.tab==='tasks'&&scene.state==='empty')delete expected.tasks.taskCard;
   for(const [key,value] of Object.entries(expected[scene.tab])){
     if(m.corners[key]!==value)throw Error('Radius mismatch '+scene.name+' '+key+': '+m.corners[key]+' expected '+value);
   }
-  if(scene.tab==='develop'&&m.developGaps.some((gap,index)=>Math.abs(gap-(index===0?8:12))>1))throw Error('Developer gap mismatch '+scene.name+' '+width+'px '+JSON.stringify(m.developGaps));
+  if(scene.tab==='develop'&&(!m.developerHeaderFirst||m.developGaps.some(gap=>Math.abs(gap-8)>1)))throw Error('Developer header/gap mismatch '+scene.name+' '+width+'px '+JSON.stringify(m.developGaps));
   for(const item of m.disclosureHeaders){
     const height=m.coarsePointer?44:item.flat?36:40;
     const fail=reason=>{throw Error('Disclosure '+reason+' '+scene.name+' '+width+'px '+JSON.stringify(item));};
@@ -502,7 +504,7 @@ function validate(scene,width,m){
       item.border.some((b,index)=>b.width!==(item.open&&index===2?1:0)||
         (b.width>0&&(b.style!=='solid'||b.color==='transparent'||b.color==='rgba(0, 0, 0, 0)'))))fail('border/radius mismatch');
     if(item.overflow||item.left<item.containerLeft-1||item.right>item.containerRight+1)fail('header geometry overflow');
-    if(scene.tab==='develop'&&!scene.longContent&&!item.flat&&!item.open&&item.id!=='developer-target-detail'&&Math.abs(item.height-height)>1){
+    if(scene.tab==='develop'&&width>=300&&!scene.longContent&&!item.flat&&!item.open&&item.id!=='developer-target-detail'&&Math.abs(item.height-height)>1){
       fail('closed developer header has extra vertical spacing');
     }
   }
@@ -629,7 +631,7 @@ try{
   }
   if(!ready)throw Error('Real Sidebar HTML/CSS did not load in static Chrome');
   const samples=[];
-  for(const width of widths){
+  for(const width of sampleWidths){
     await cdp('Emulation.setDeviceMetricsOverride',{width,height:700,deviceScaleFactor:1,mobile:false});
     for(const scene of scenes){
       await evaluate('('+setupScene.toString()+')('+JSON.stringify(scene)+','+JSON.stringify(officialReleases)+')');
@@ -646,10 +648,10 @@ try{
   // Coarse-pointer geometry only; this never claims a native touch event or zoom pass.
   await cdp('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
   if(!await evaluate('matchMedia("(pointer:coarse)").matches'))throw Error('Coarse-pointer media emulation unavailable');
-  for(const width of widths){
+  for(const width of sampleWidths){
     await cdp('Emulation.setDeviceMetricsOverride',{width,height:700,deviceScaleFactor:1,mobile:false});
     for(const scene of scenes.filter(s=>['develop','workflow-settings','cloud-hosting-open','tools-installed','schedule-form',
-      'tasks-details-long','workflow-details-long','tools-cookie-open','cloud-details-long','develop-single-open'].includes(s.name))){
+      'tasks-details-long','workflow-details-long','tools-installed-long','cloud-details-long','develop-single-open'].includes(s.name))){
       await evaluate('('+setupScene.toString()+')('+JSON.stringify(scene)+','+JSON.stringify(officialReleases)+')');
       if(scene.state==='cloud-open')await evaluate('document.querySelector("#cloud-hosting").scrollIntoView({block:"start"})');
       const m=await evaluate('('+measureScene.toString()+')('+JSON.stringify(scene)+')');validate(scene,width,m);
@@ -664,21 +666,23 @@ try{
   const keyboardSamples=[];
   for(const [name,selector] of [
     ['develop-collapsed','#developer-target-detail > summary'],
-    ['tools-cookie-open','#trusted-cookie-panel > summary'],
-    ['tools-cookie-open','#trusted-cookie-observe-panel > summary']
+    ['develop-single-open','#developer-results-panel > summary'],
+    ['cloud-hosting-open','#cloud-hosting > summary']
   ]){
     const scene=scenes.find(s=>s.name===name);
+    if(!scene)continue;
     await evaluate('('+setupScene.toString()+')('+JSON.stringify(scene)+','+JSON.stringify(officialReleases)+')');
     keyboardSamples.push(await keyboardDisclosure(scene,selector));
   }
   // Limited media smoke samples reuse the same product HTML and geometry checks.
   for(const [name,width,features] of [
-    ['tools-cookie-open',320,[{name:'prefers-color-scheme',value:'dark'}]],
+    ['tools-installed-long',320,[{name:'prefers-color-scheme',value:'dark'}]],
     ['develop-single-open',520,[{name:'prefers-reduced-motion',value:'reduce'}]]
   ]){
     await cdp('Emulation.setEmulatedMedia',{features});
     await cdp('Emulation.setDeviceMetricsOverride',{width,height:700,deviceScaleFactor:1,mobile:false});
     const scene=scenes.find(s=>s.name===name);
+    if(!scene)continue;
     await evaluate('('+setupScene.toString()+')('+JSON.stringify(scene)+','+JSON.stringify(officialReleases)+')');
     const media=await evaluate('('+JSON.stringify(features)+').map(f=>({name:f.name,value:f.value,matches:matchMedia("("+f.name+":"+f.value+")").matches}))');
     if(media.some(feature=>!feature.matches))throw Error('Static media emulation unavailable '+JSON.stringify(media));

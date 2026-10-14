@@ -20,7 +20,7 @@ export default async function main() {
 }
 ```
 
-**Controller Sidebar 直接编辑／单文件 `async-main`**（Standard 始终支持以下零参数经典脚本；Developer Edition 已接入小型 ESM 转换，当前仍有冗余人工依赖审核 UI（目标是 Run 自动准备），见下文。完整可复制源码：[`controller-globals-zero-arg.js`](../../examples/programs/single-file/controller-globals-zero-arg.js)）：
+**Controller Sidebar 直接编辑／单文件 `async-main`**（Standard 始终支持以下零参数经典脚本；Developer Edition 已接入小型 ESM 转换。推荐 `async function main()`；含静态 HTTPS import 时选 Controller ESM，经准备、查看原文、批准和离线编译后单独运行；兼容命名的 `export default async function main()`，不把它直接当经典源码执行。当前仍有冗余人工依赖审核 UI（目标是 Run 自动准备），见下文。完整可复制源码：[`controller-globals-zero-arg.js`](../../examples/programs/single-file/controller-globals-zero-arg.js)）：
 
 ```js
 async function main() {

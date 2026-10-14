@@ -86,6 +86,8 @@ jobs:
             tests/environment/browser-sdk-r106-trusted.test.mjs \
             tests/environment/browser-sdk-r106-history-ui.test.mjs \
             tests/environment/browser-sdk-r106-host.test.mjs \
+            tests/environment/browser-sdk-r106-core-contract-gaps.test.mjs \
+            tests/environment/browser-sdk-r106-cookie-contract-gaps.test.mjs \
             tests/environment/scheduled-tasks-r1.test.mjs \
             tests/environment/scheduled-task-timezone-r25.test.mjs \
             tests/environment/browser-sdk-freeze.test.mjs

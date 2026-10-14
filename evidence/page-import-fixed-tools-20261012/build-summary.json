@@ -1,0 +1,120 @@
+{
+  "workflow": "page-import-fixed-tools-20261012",
+  "createdAt": "2026-10-12T16:06:09.690Z",
+  "evidenceLevel": "build/component",
+  "runRoot": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/page-import-fixed-tools-20261012/run-20261013T000000",
+  "tools": [
+    {
+      "tool": "react-starter",
+      "packageName": "opendesk-tool-react-starter",
+      "lockfileVersion": 3,
+      "lockPackages": 69,
+      "package": {
+        "id": "react-notes-starter",
+        "version": "1.1.0",
+        "format": "opendesk.sidebar-tool.v1",
+        "capabilities": [
+          "storage.local"
+        ],
+        "bytes": 207748,
+        "sha256": "b0055adc6cfd45fc84d8441c9937fe1f8b06a7af2353bad85a5d2be7563ae173"
+      },
+      "buildReady": {
+        "format": "opendesk.ui-build-ready.v1",
+        "buildId": "55a0188b-f987-480c-8603-7500b7ef09fc",
+        "files": {
+          "dist/tool.js": {
+            "bytes": 199514,
+            "sha256": "d1f188631e134c3e365a05f6f22a26cf3838f1a8f18eb20a37c65cdcfb2b25f7"
+          },
+          "dist/tool.css": {
+            "bytes": 3525,
+            "sha256": "3ee7899931d58e13639b43eabdfd2ff90ff2013439735322d90b403acc4e3e8f"
+          }
+        }
+      },
+      "files": {
+        "package.json": {
+          "bytes": 393,
+          "sha256": "11b67b680a781eba7d1b4a2770117bf5b9206e6b86c435f47aa712a05352acce"
+        },
+        "package-lock.json": {
+          "bytes": 36899,
+          "sha256": "dbf7f2325ee84f5d238daf3158456fb2eb2e3d3fcc744aee434ef830a2dd3804"
+        },
+        "tool.config.json": {
+          "bytes": 340,
+          "sha256": "174a652f228c708acd4b8986cb8d60b8ce3d8f351b9289f5ae46578071f0ed79"
+        },
+        "dist/tool.js": {
+          "bytes": 199514,
+          "sha256": "d1f188631e134c3e365a05f6f22a26cf3838f1a8f18eb20a37c65cdcfb2b25f7"
+        },
+        "dist/tool.css": {
+          "bytes": 3525,
+          "sha256": "3ee7899931d58e13639b43eabdfd2ff90ff2013439735322d90b403acc4e3e8f"
+        },
+        "dist/build-ready.json": {
+          "bytes": 384,
+          "sha256": "d4e12f09059bbc1b908daed2b511ee856df8fba1fb592c04a73ffed4422694aa"
+        }
+      }
+    },
+    {
+      "tool": "vue-starter",
+      "packageName": "opendesk-tool-vue-starter",
+      "lockfileVersion": 3,
+      "lockPackages": 86,
+      "package": {
+        "id": "vue-notes-starter",
+        "version": "1.0.0",
+        "format": "opendesk.sidebar-tool.v1",
+        "capabilities": [
+          "storage.local"
+        ],
+        "bytes": 64338,
+        "sha256": "cf34093674c692fcd732873b781f411eef67ffc3eeffb6c3c9b5cb005e3d977f"
+      },
+      "buildReady": {
+        "format": "opendesk.ui-build-ready.v1",
+        "buildId": "eea4856e-fb10-484b-a448-e9cb5aad542b",
+        "files": {
+          "dist/tool.js": {
+            "bytes": 62441,
+            "sha256": "cb5fbe007b67a3dac7d29323dbbb86574758513538a1ab66fa46e6eea08c3500"
+          },
+          "dist/tool.css": {
+            "bytes": 799,
+            "sha256": "0bede3664dd554bc34620c2aac354cfbd3f826d4ee6a47dfc28f6b894525041c"
+          }
+        }
+      },
+      "files": {
+        "package.json": {
+          "bytes": 362,
+          "sha256": "f7948bbdc9bb228d99afccdc79dd3d56f91a458c77bf9302d21c31cbb57c4188"
+        },
+        "package-lock.json": {
+          "bytes": 44527,
+          "sha256": "49d355dba12bd6054de046f17db6426bedeed8b6788d39e9275a0c9191e41ddd"
+        },
+        "tool.config.json": {
+          "bytes": 311,
+          "sha256": "2b4fa01a40da8ea6372714476ce0c237280661433cf35550a929c18f4b7de682"
+        },
+        "dist/tool.js": {
+          "bytes": 62441,
+          "sha256": "cb5fbe007b67a3dac7d29323dbbb86574758513538a1ab66fa46e6eea08c3500"
+        },
+        "dist/tool.css": {
+          "bytes": 799,
+          "sha256": "0bede3664dd554bc34620c2aac354cfbd3f826d4ee6a47dfc28f6b894525041c"
+        },
+        "dist/build-ready.json": {
+          "bytes": 382,
+          "sha256": "553c0d1e83d9d24438f6661b47f8622adea6842f714e48b56cd894b3ef24f3fe"
+        }
+      }
+    }
+  ]
+}

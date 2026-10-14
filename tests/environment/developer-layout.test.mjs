@@ -33,4 +33,7 @@ test('Dev disclosure typography and content inset inherit the shared component',
   assert.match(design, /\.od-disclosure>:not\(summary\)\{[^}]*max-width:calc\(100% - var\(--space-3\) - var\(--space-3\)\);margin:var\(--space-2\) var\(--space-3\) 0/);
   assert.doesNotMatch(css, /#workbench-develop \.developer-editor>details>summary\{/);
   assert.match(css, /\.developer-run-feedback\{display:flex;align-items:baseline;flex-wrap:wrap/);
+  assert.doesNotMatch(css, /#workbench-develop \.developer-editor \.row\{margin:0\}/,
+    'Direct disclosure rows must keep the shared body inset, including saved scripts and existing webpages');
+  assert.match(css, /\.row:not\(\.od-disclosure>\.row\)\{margin:0\}/);
 });

@@ -1,0 +1,90 @@
+# OpenDesk Browser SDK R10.6 续接：收尾真实 CI、Cookies 生命周期和正式原生验收
+日期：2026-10-14。默认中文。直接实施，保留现有成果；不要重开架构讨论或重新实现已接线接口。
+
+仓库：https://github.com/shopable-ai/opendesk-browser
+本地：/Users/shopme/Documents/workspace/opendesk-browser
+唯一可编辑、提交和推送分支：main。禁止新分支、worktree、PR、force push、破坏性 reset/clean。本任务已授权安全提交及非强制推送 main。遵守 AGENTS.md，保留所有并行修改。
+
+## 当前真实状态
+- 批准合同55：公开 Registry53 + 可信 Host-only2，未实施0。
+- Scheduler create/listOwn/cancelOwn 已接唯一现有 Schedule Service/Repository/Alarms/Controller/RunHost。
+- history.searchTrusted、permissions.requestForTool 已实现，只供可信 Host，绝不能进入普通 Registry。
+- Source/Node/Build 55已有证据；正式 Native PASS仍为0，不能把测试步骤数量当接口数量。
+- 起始 HEAD：89c3b298dc3cf8927b227b041b101770780ce58a。
+- 上轮已推送 HEAD：f9fc1a48bcfcd0d218265f51a3e3358909d5411c。开工重新读取 main/origin/main，不能假定它仍最新。
+- 上轮检查：main，HEAD=origin/main，暂存为空，40项工作区变动；多数属其他对话，不可混入提交。
+
+## 已完成且不要重做
+1. Registry、矩阵、库存和四层账本漂移已修复；Bookmarks 定向回归已进入 SDK CI。
+2. 修复真实 SDK 授权等待：手势操作沿唯一 operation.requiresUserGesture 延长等待，普通操作仍8秒，未降低权限/身份检查。
+3. 修复 Scheduler 撤销后的原生 Alarm残留：schedule-service.reconcile 与 syncAlarms 共用 currentOwnerValidity Map，删除升级/epoch/禁用/卸载/Origin失效计划的 Alarm，保留其他合法 owner；定向50/50 PASS。
+4. workflow-focus 的过期 Apply 测试已迁移到当前直接 RunHost 流程，并补“模型擅自增加未获请求的读取必须拒绝”回归，已提交 f9fc。
+5. 原生观察器已改用 chrome.bookmarks.get(id) 精确核对升级/卸载后原生书签保留；不再用错误标题 search。
+6. 未新增第二套 SDK、Host、Registry、Authority、Scheduler 或任务数据库。
+
+## 已验收物理候选（与观察器 HEAD分开）
+sourceCommit：4475d0422e107c6a4955db59f3e748468bd2e8d5
+证据根 R：docs/framework/workstreams/evidence/browser-sdk-r106-20261014/
+生产包：R/committed-candidate-alarm-owner-native-final/dist/production
+Extension Package SHA-256：8f46ffac9c0392b2d3be740a9257c76f24b439178e7672537e8d04a2f44aa59e
+Chrome for Testing：155.0.8059.39
+Extension ID：glmbcklmpoghobhibkjkehciogiakmma
+
+R/checks-alarm-owner-native-final.json：12/12 PASS。
+SDK Node294/294；targeted main212/212；matrix/catalog/coverage/ledger/freeze、npm run check、build、build:dev、build:size、verify均PASS。
+生产和开发构建有470个一致产品输入、真实回执。源码447之后测试/观察器修改不能自动伪装为新包；任何相关产品输入变化只补受影响验证。
+
+## 最新 GitHub Actions
+f9fc 的 R5 contracts PASS：https://github.com/shopable-ai/opendesk-browser/actions/runs/38494573906
+f9fc targeted main PASS：https://github.com/shopable-ai/opendesk-browser/actions/runs/38494574107
+f9fc Cookie workflow FAIL：https://github.com/shopable-ai/opendesk-browser/actions/runs/38494574049
+失败 job115627304582：全仓2289项，2281 PASS、1 FAIL、7 SKIP；唯一失败 tests/environment/wxt-development.test.mjs:89，assert.notMatch is not a function。
+工作区已存在另一对话的 assert.doesNotMatch 单行修复。上轮已发异步归属/纳入提交问题但未收到回复；不要默认取得它的提交所有权。先核对是否原负责人已提交；若仍未交接，保留其diff，只暂停这一个提交范围，继续独立验收。
+447本地全仓回执2284 PASS/3 FAIL/2 SKIP，其中 workflow-focus 已在f9fc修复。后续 current-main 产品输入等价实验为2283 PASS/5 FAIL/1 SKIP：local-dev notificationToStartMs波动、Native Agent Mac权限弹窗、复制开发包 market配置不匹配两项、WXT一项。保留失败；复制产物导致配置不匹配不得放松包验证器。最新远端只有WXT失败，不能把旧失败都写成当前源码缺陷。
+
+## 已有同候选真实 Chrome 证据
+R/native-final-exact-bookmark-lifecycle/native-2026-10-14T01-11-49-556Z-a195e7e3/native-report.json
+23/23步骤PASS，状态 CORE_PASS_MORE_CONTRACTS_NOT_TESTED；cleanup、候选/驱动/共享Swift未漂移。
+证明了：
+- 正式导入/审核/安装工具10.6.3；真实 Sender/Document。
+- Bookmarks原生拒绝无写入、opaque ref创建、真实Worker停止并换新target、恢复引用与Storage、重启后删除。
+- Downloads真实启动及一次取消，原生interrupted；未证明正常完成。
+- Storage持久化/关闭再开/跨工具隔离/真实clear。
+- 固定Task真实安装；现有Scheduler两个实际chrome.alarms.onAlarm事件，各有独立fireId/runId/resultId、native ACK、retirement released；无再次AI调用。已有Host polling并存，不能宣称独占触发因果。
+- A/B工具跨owner拒绝；升级后旧授权失效并清除旧Alarm；卸载清映射/Namespace、保留其他工具与原生书签。
+- 可信History实际日期范围、原生权限拒绝/允许、返回最小字段；普通工具不具备history/permissions/chromeRuntime/parent权限。
+注意23步骤不等于23接口，更不等于55项正式Native闭环。
+
+## Cookies：下一项具体工作
+现有独立Cookie Editor2.0.4 Consumer保持不动，使用现有SDK。
+R/native-cookie-same-candidate/native-core-2026-10-14T01-16-22-868Z-ad5d8637/native-report.json：
+20步骤PASS，随后因另一有窗口CFT占用 E_NATIVE_RESOURCE_BUSY 自动中止；整体complete=false。
+已证明真实读写授权、创建/值编辑/改名/隐藏值授权与拒绝/精确删除/同名路径隔离/导入导出/Observe脱敏/本站clear。
+R/native-cookie-lifecycle-continuation/native-core-2026-10-14T01-25-32-235Z-c575f7c9/native-report.json：
+4 PASS，read-grant加载超时FAIL；UI停在“正在读取当前网站/正在检查网站”，trace无Runtime.exceptionThrown。complete=false。
+待查而非已确认根因：tests/framework/cookie-editor-r33-native.mjs 的 bindCookieFrame 和 read-grant手工扫描只找 .cookie-app，可能绑定授权后重建前的旧iframe。先对照实际 #sidebar-tool-frame iframe.src、target/Document、Host日志，确认新frame关联；观察方法明确改变后才重试缺失 lifecycle。不能改正确Consumer掩盖SDK缺陷，不能盲目重放未知写入。
+仍缺Cookie close/reopen、pending-write撤权、禁用/卸载/重装fresh grant等原生证据，以及11接口/StoreId/PartitionKey逐合同核对。
+
+## 资源与执行约束
+- 日常 dist/development 由现有 npm dev watcher维护，不覆盖、不换扩展路径/ID/Native配对。
+- 构建在本轮Git archive内，独立证据/产物；不是分支/worktree。私有guard43127。
+- demo复用 http://127.0.0.1:43111/demo-form.html。
+- 只启动独立owned CFT/Profile；原生输入前做资源guard。旧PPID1 CFT及他人进程不终止；独立headless不占桌面，但不能与会操作Mac权限窗的全仓测试同时跑。
+- 使用真实CDP/AX用户输入，不用DOM赋值/synthetic事件/native ack伪造；权限拒绝、Origin/Owner/Document、撤权和未知副作用继续保守处理。
+- tests/framework/time-review-native-input.swift为共享输入助手：观察器仅生成自己独立Swift副本并验证base未变化，不修改共享文件。
+- 不 stage .gitignore、Time Review UI、Cloud/ESM/Workflow并行源码、他人wxt diff；仅逐路径暂存本轮所有权文件，提交遵守Lore trailers。
+
+## 正式账本与剩余收尾
+browser-sdk-acceptance.json/status.md/candidate-delivery.json 目前仍指向旧候选3b1f25b，Native正式0。
+上轮96e42202已提交304份旧证据/748个hash；新447的23步Native、Cookies部分证据和当前CI尚未正式索引。
+R/finalize-bookmark-title-evidence.py 可复用，先修正最新Actions原始object格式、可选历史日志、Cookie complete=false语义与当前剩余限制，不能覆盖旧receipt或提升部分结果。
+先读取AGENTS.md、唯一执行手册、矩阵、正式账本、testing-guide及本轮journal。
+按顺序继续：
+1. 核对最新main和并行diff；处理当前真实CI唯一WXT失败的文件归属，安全交付后检查Actions。
+2. 修正/确认Cookie加载失败根因，只补缺失生命周期原生验收。
+3. 补Bookmarks外部删除/修改、Origin撤权、Document变化和现有53公开+2可信接口未覆盖合同，保持安全拒绝。
+4. 同一最终候选完成所需Node/Check/Build/dev/size/Verify，保存源码SHA/包SHA/Chrome/ID/ToolHash/Epoch/Sender/Document/授权/原生回执。
+5. 更新正式证据索引和逐接口SOURCE_WIRED/NODE_PASS/BUILD_PASS/NATIVE_PASS；未实证保持NOT_TESTED。
+6. 独立最终F3及与验收dist一致的ZIP安装验收；不足不得95评分。目前NOT_SCORED。
+
+不要仅审计或再写总GOAL；直接修复具体失败、验证、保留证据并安全提交推送。每约60秒报告真实进展。

@@ -23,8 +23,8 @@ test('R3 remains immutable reference; R4 preview keeps installed Discover and in
   assert.doesNotThrow(()=>new Script(inline), 'R4 inline JavaScript must parse');
 });
 test('R4.9 Tools has one navigation tier and three accessible add/import/market controls',async()=>{
-  const [html,css,host]=await Promise.all([
-    read('src/ui/tool.html'),read('src/ui/tool-shell.css'),read('src/ui/sidebar-tools.js')
+  const [html,css,host,design]=await Promise.all([
+    read('src/ui/tool.html'),read('src/ui/tool-shell.css'),read('src/ui/sidebar-tools.js'),read('src/ui/design-system.css')
   ]);
   const $=load(html),section=$('#sidebar-tools');
   assert.equal(section.length,1,'one installed-tools surface');
@@ -40,7 +40,9 @@ test('R4.9 Tools has one navigation tier and three accessible add/import/market 
   assert.match(host,/function setDiscoveryOpen\(open\)/);
   assert.doesNotMatch(host,/showToolPane\(|toolPane=|myTab|discoverTab/);
   assert.doesNotMatch(css,/\.sidebar-tool-subtabs/);
-  assert.match(css,/\.sidebar-tools-actions \.od-icon-button\{[^}]*width:var\(--od-icon-size\)/);
+  assert.match(design,/\.od-icon-button\{[^}]*width:var\(--od-icon-size\)/);
+  assert.match(design,/\.od-icon-button svg\{width:18px;height:18px;[^}]*stroke:currentColor;stroke-width:1\.8/);
+  assert.doesNotMatch(css,/\.sidebar-tools-actions \.od-icon-button\{/);
   assert.match(css,/\.sidebar-tool-view-head \.sidebar-tool-icon-action\{flex:0 0 var\(--od-icon-size\)/);
 });
 
@@ -77,24 +79,35 @@ test('R5 keeps one derived interactive prototype with installed-only compact dis
   assert.doesNotThrow(()=>new Script(inline),'R5 prototype script must parse');
 });
 
-test('Developer source selector and new-script action use one narrow Sidebar toolbar',async()=>{
+test('Developer source selector and new-script action belong to their respective headers',async()=>{
   const [html,css,design,source]=await Promise.all([
     read('src/ui/tool.html'),read('src/ui/tool-shell.css'),read('src/ui/design-system.css'),read('src/ui/program-source.js')
   ]);
   const toolbar=html.match(/<div id="program-source-toolbar"[\s\S]*?<\/div>/)?.[0];
+  const header=html.slice(html.indexOf('<div id="developer-source-switch"'),html.indexOf('<section aria-label="当前网页"'));
+  assert.ok(header,'developer source header exists before current-page details');
+  assert.ok(html.indexOf('id="developer-source-switch"') < html.indexOf('id="developer-target-detail"'),
+    'source title/action header must appear before current page details');
+  assert.match(header,/class="developer-source-switch od-toolbar od-page-head" role="group" aria-label="代码来源" data-mode="manual"/);
+  assert.match(header,/<span class="od-page-title">直接编辑<\/span>/);
+  assert.match(header,/<div class="od-page-actions" role="group" aria-label="开发页操作">/);
+  assert.match(header,/<button type="button" id="program-new-script" title="[^"]+" aria-label="新建 JavaScript 草稿" hidden class="od-icon-button">[\s\S]*?<svg[^>]*aria-hidden="true"/);
+  assert.match(header,/id="local-project-mode" type="checkbox" role="switch"/);
+  assert.equal([...html.matchAll(/id="program-new-script"/g)].length,1);
   assert.ok(toolbar,'one shared toolbar exists');
   assert.match(toolbar,/role="group" aria-label="源码视图操作"/);
-  assert.match(toolbar,/id="program-source-files"[\s\S]*id="program-new-script"/);
-  assert.match(toolbar,/<button type="button" id="program-new-script" title="[^"]+" aria-label="新建 JavaScript 草稿" hidden class="od-button od-button--secondary">新建<\/button>/);
+  assert.match(toolbar,/id="program-source-files"/);
+  assert.doesNotMatch(toolbar,/id="program-new-script"/);
   assert.doesNotMatch(toolbar,/新建单文件草稿|aria-haspopup=/,'there is only one create action, not a multi-file creation menu');
   assert.match(css,/\.program-source-toolbar\{display:flex;flex-wrap:nowrap;/);
   assert.match(css,/\.program-source-toolbar #program-source-files\{[^}]*flex:1 1 0;min-width:0;/);
-  assert.match(css,/\.program-source-toolbar #program-new-script\{[^}]*flex:0 0 auto;[^}]*white-space:nowrap;/);
-  assert.match(design,/\.od-button\{[^}]*font:inherit;/,
-    'new action inherits a readable font from the shared button component');
+  assert.doesNotMatch(css,/\.program-source-toolbar #program-new-script\{/);
+  assert.match(design,/\.od-icon-button\{[^}]*width:var\(--od-icon-size\);height:var\(--od-icon-size\);/,
+    'new action inherits the shared icon button component');
   assert.match(design,/:root\{[^}]*font-size:13px;/,
     'Side Panel default text remains readable at narrow widths');
   assert.match(source,/get\('program-source-toolbar'\)\.hidden = !value/);
+  assert.match(source,/get\('program-new-script'\)\.hidden = !value/);
 });
 
 test('R19 Sidebar spacing and corner system is consistent across all five tabs',async()=>{
@@ -110,9 +123,9 @@ test('R19 Sidebar spacing and corner system is consistent across all five tabs',
   assert.match(body(':root',tokens),/--radius-control:8px;\s*--radius-surface:12px;\s*--radius-pill:999px/);
   assert.match(body('button',design),/border-radius:var\(--radius-control\)/);
   assert.match(body('.dock-buttons button'),/border-radius:var\(--radius-control\)/);
-  // R29: independent Dev sections now use the 12px grouping rhythm, while nested editor rows stay 8px.
-  assert.match(body('#workspace-content #workbench-develop'),/display:grid;gap:var\(--space-3\)/);
-  assert.match(body('#workbench-develop .developer-editor'),/display:grid;gap:var\(--space-3\)/);
+  // R30: Dev uses the same 8px Tab rhythm as Tools headers and nested editor rows.
+  assert.match(body('#workspace-content #workbench-develop'),/display:grid;gap:var\(--space-2\)/);
+  assert.match(body('#workbench-develop .developer-editor'),/display:grid;gap:var\(--space-2\)/);
   assert.match(body('#workbench-develop #manual-source-editor'),/display:grid;gap:var\(--space-2\)/);
   assert.match(body('#workbench-develop .local-project-tools>:not([hidden])'),/margin-block:0/);
   for(const selector of ['#developer-target-detail','.developer-source-switch','#script-source','.program-source-toolbar','.developer-params','.developer-results','#script-library-tools,#page-preview-tools,#script-advanced','#tool-diagnostics'])
@@ -154,8 +167,10 @@ test('R20/R23 six-tab design system has one token source and a strict trusted as
   assert.match(html,/<link rel="stylesheet" href="design-tokens\.css"><link rel="stylesheet" href="design-system\.css"><link rel="stylesheet" href="tool-shell\.css">/);
   for(const view of ['tasks','local-discover','workflow','develop','tools'])
     assert.ok(html.includes('class="od-page" data-workbench-page="'+view+'"'),'shared page layout '+view);
-  for(const toolbar of ['task-section-head','local-discovery-search-row','workflow-head','developer-source-switch','sidebar-tools-head'])
+  for(const toolbar of ['task-section-head','local-discovery-search-row','workflow-head'])
     assert.ok(html.includes('class="'+toolbar+' od-toolbar"'),'shared toolbar '+toolbar);
+  assert.ok(html.includes('class="developer-source-switch od-toolbar od-page-head"'),'shared page head developer-source-switch');
+  assert.ok(html.includes('class="sidebar-tools-head od-toolbar od-page-head"'),'shared page head sidebar-tools-head');
   for(const card of ['local-discovery-list','catalog-reader'])
     assert.ok(html.includes('class="'+card+' od-surface"'),'shared surface '+card);
   assert.ok(html.includes('id="sidebar-tool-official-catalog"'),'official rows render from trusted Catalog');

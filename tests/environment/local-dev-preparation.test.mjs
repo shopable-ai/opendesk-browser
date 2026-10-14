@@ -34,10 +34,24 @@ test('30 saves coalesce, atomic save/delete/rename/recovery and latest syntax er
   for(let i=1;i<=30;i++){p.put('src/value.js','export const v='+i+';');await pause(3);}
   await until(()=>p.state().state==='ready'&&p.state().buildCount>builds);assert.ok(p.state().buildCount-builds<=2);
   assert.equal(await evaluate(p.resolver.cache.get(p.id).sourceUtf8),30);
+  const latencyBeforeAtomicRename=p.state().notificationToStartMs;
+  const preparationsBeforeAtomicRename=p.state().preparations;
   p.put('src/atomic.js','export const v=31;');fs.renameSync(path.join(p.root,'src/atomic.js'),path.join(p.root,'src/value.js'));
-  await until(()=>p.state().state==='ready'&&p.resolver.cache.get(p.id).files.find(x=>x.path==='src/value.js')?.sha256===sha256('export const v=31;'));
+  const atomicRenameReady=()=>p.state().state==='ready'&&p.resolver.cache.get(p.id).files.find(x=>x.path==='src/value.js')?.sha256===sha256('export const v=31;');
+  await until(atomicRenameReady);
+  await until(()=>{
+    const state=p.state();
+    return atomicRenameReady()&&state.preparations>preparationsBeforeAtomicRename&&state.notificationToStartMs!==latencyBeforeAtomicRename;
+  });
+  let settledState=p.state(),settledSince=Date.now();
+  await until(()=>{
+    const state=p.state();
+    const settled=atomicRenameReady()&&state.notificationToStartMs===settledState.notificationToStartMs;
+    if(!settled){settledState=state;settledSince=Date.now();return false;}
+    return Date.now()-settledSince>=350;
+  });
   assert.equal(await evaluate(p.resolver.cache.get(p.id).sourceUtf8),31);
-  const latency=p.state().notificationToStartMs;await pause(350);
+  const latency=settledState.notificationToStartMs;await pause(350);
   assert.equal(p.state().notificationToStartMs,latency,'content verification polls do not replace the last watch latency');
   fs.renameSync(path.join(p.root,'src/value.js'),path.join(p.root,'src/removed.js'));
   await until(()=>p.state().state==='source-error');await assert.rejects(p.resolver.resolve(p.id),{code:'E_PROJECT_FILE'});

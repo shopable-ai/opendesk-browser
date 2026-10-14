@@ -188,11 +188,21 @@ export function createScriptEditor({client, currentPageTarget, development=false
     const taskStatus = find('script-task-status');
     taskStatus.hidden = state !== 'results' || !taskStatus.textContent;
   }
+  function displayCopyResult(label) {
+    // Feedback must not replace the icon subtree when results refresh asynchronously.
+    copyResult.title = label;
+    copyResult.setAttribute('aria-label', label);
+    const feedback = find('script-copy-feedback');
+    if (feedback) {
+      feedback.textContent = label === '复制结果' ? '' : label;
+      feedback.hidden = !feedback.textContent;
+    }
+  }
   function beginResult() {
     output.textContent = '正在运行…';
     resultKind.textContent = '等待返回值';
     copyResult.disabled = true;
-    copyResult.textContent = '复制结果';
+    displayCopyResult('复制结果');
   }
   let scriptsCheckSequence = 0;
   if (scriptsRecovery) scriptsRecovery.hidden = true;
@@ -642,7 +652,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       ? `共 ${currentValues.length} 项结果` : Object.hasOwn(visibleResult,'value')
         ? runValueKind(visibleResult.value) : '执行错误';
     copyResult.disabled = !visibleResult || deniedRuns.has(focused?.runId);
-    copyResult.textContent = '复制结果';
+    displayCopyResult('复制结果');
     if (visibleResult?.error?.code === 'E_USER_SCRIPTS_UNAVAILABLE') {
       if (scriptsRecovery?.dataset.state !== 'available') showUserScriptsRecovery();
     } else if (visibleResult) hideUserScriptsRecovery();
@@ -1232,9 +1242,10 @@ export function createScriptEditor({client, currentPageTarget, development=false
     try {
       if (!globalThis.navigator?.clipboard?.writeText) throw new Error('Clipboard unavailable');
       await globalThis.navigator.clipboard.writeText(output.textContent);
-      if (!disposed) copyResult.textContent = '已复制';
+      if (!disposed) displayCopyResult('已复制');
     } catch {
-      copyResult.textContent = '无法自动复制';
+      if (disposed) return;
+      displayCopyResult('无法自动复制');
       copyResult.title = '请选中返回值后手动复制';
     }
   });

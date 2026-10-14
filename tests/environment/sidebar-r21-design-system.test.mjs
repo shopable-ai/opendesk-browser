@@ -20,11 +20,14 @@ test('R21/R4.9 tool list has one Open entry while detail and header actions use 
   assert.match(host,/removeButton\.setAttribute\('aria-label',removeButton\.title\)/,'destructive action is in detail with explicit accessible name');
   for(const id of ['sidebar-tool-back','sidebar-tool-open-tab','sidebar-tool-remove'])
     assert.match(html,new RegExp('id="'+id+'" class="sidebar-tool-icon-action od-icon-button"'));
+  assert.match(html,/<div class="sidebar-tools-head od-toolbar od-page-head">[\s\S]*<strong class="od-page-title">已安装工具<\/strong>[\s\S]*<div class="sidebar-tools-actions od-toolbar od-page-actions" role="group" aria-label="添加和管理工具">/);
   for(const [id,label] of [['sidebar-tool-discover-toggle','添加工具'],['sidebar-tool-market','打开应用市场'],['sidebar-tool-import-trigger','导入工具文件']])
-    assert.match(html,new RegExp('id="'+id+'" class="od-icon-button" aria-label="'+label+'"'));
+    assert.match(html,new RegExp('id="'+id+'" class="od-icon-button" aria-label="'+label+'" title="[^"]+"'));
   assert.match(tokens,/--od-icon-size:34px/);
   assert.match(design,/\.od-icon-button\{[^}]*width:var\(--od-icon-size\);height:var\(--od-icon-size\);/);
-  assert.match(view,/\.sidebar-tools-actions \.od-icon-button\{width:var\(--od-icon-size\);height:var\(--od-icon-size\);/);
+  assert.match(design,/\.od-icon-button svg\{[^}]*stroke:currentColor;stroke-width:1\.8/);
+  assert.match(design,/\.od-icon-button\[aria-expanded=true\]\{background:var\(--od-muted\);border-color:var\(--od-focus\);color:var\(--od-accent-ink\)/);
+  assert.doesNotMatch(view,/\.sidebar-tools-actions \.od-icon-button\{/);
   assert.match(view,/\.sidebar-tool-view-head \.sidebar-tool-icon-action\{flex:0 0 var\(--od-icon-size\)/);
 });
 

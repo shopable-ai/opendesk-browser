@@ -43,14 +43,15 @@ test('R7 35-operation map remains historic and R9 Cookies use explicit scoped me
   assert.equal(typeof publicCookies.observe.read,'function');
 });
 
-test('R7 trusted native workbench is outside installed sandbox bridge; no additional Chrome RPC',async()=>{
+test('R7 legacy Cookie safety stays tested while production has a single installed-tool entry',async()=>{
   const [ui,workbench,host,sidecar,shell,cookieEntry]=await Promise.all([
     read('src/ui/tool.html'),read('src/ui/trusted-cookie-workbench.js'),
     read('src/platform/chrome/context-menus.js'),read('src/entrypoints/context-menus.js'),
     read('src/ui/tool-shell.js'),read('src/entrypoints/trusted-cookie-ui.js')
   ]);
-  assert.match(ui,/<details id="trusted-cookie-panel"/);
-  assert.match(ui,/id="trusted-cookie-value"[^>]*type="password"[^>]*data-sensitive="true"/);
+  assert.doesNotMatch(ui,/id="trusted-cookie-/,'retired Cookie workbench must not appear below installed tools');
+  assert.match(ui,/id="sidebar-tool-list"/);
+  assert.match(ui,/id="sidebar-tool-display"/);
   assert.match(workbench,/event\.isTrusted/);
   assert.match(workbench,/currentPageTarget\.revalidate/);
   assert.match(workbench,/browser\.cookies\.approve/);
@@ -59,19 +60,19 @@ test('R7 trusted native workbench is outside installed sandbox bridge; no additi
   assert.match(host,/createTrustedCookieHost/);
   assert.match(sidecar,/host\[method\]/);
   assert.match(sidecar,/message\.kind==='host'/);
-  // The trusted Cookie workbench lives in a fixed extension-only sidecar
-  // so the monolithic tool-shell stays within the hard IIFE size budget.
-  // Validate the real installation path without granting the iframe a bridge.
+  // Keep the existing sidecar path for History, Schedule and Cloud consumers;
+  // the retired Cookie workbench must no longer be bundled or initialized.
   assert.match(ui,/<script src="trusted-cookie-ui\.js"><\/script>/);
-  assert.match(cookieEntry,/createTrustedCookieWorkbench/);
-  assert.match(cookieEntry,/Object\.defineProperty\(globalThis,'__opendeskTrustedCookieUI'/);
-  assert.match(shell,/__opendeskTrustedCookieUI/);
+  assert.doesNotMatch(cookieEntry,/createTrustedCookieWorkbench|__opendeskTrustedCookieUI/);
+  assert.match(cookieEntry,/__opendeskTrustedHistoryUI/);
+  assert.match(cookieEntry,/createScheduledTaskHost,createCloudHosting/);
+  assert.doesNotMatch(shell,/__opendeskTrustedCookieUI|trustedCookieWorkbench/);
   assert.doesNotMatch(shell,/import\s*\{createTrustedCookieWorkbench\}/);
   assert(!workbench.includes('chrome.cookies.'));
-  // R9 real trusted Cookie UI: explicit start/status/read/stop; event text omits secrets.
+  // Preserve legacy component security coverage without a production UI mount.
   for(const id of ['trusted-cookie-watch-start','trusted-cookie-watch-status-button',
     'trusted-cookie-watch-read','trusted-cookie-watch-stop','trusted-cookie-watch-events'])
-    assert(ui.includes('id="'+id+'"'),'missing actual UI control '+id);
+    assert(workbench.includes(id),'missing legacy component coverage '+id);
   assert(workbench.includes("const op='browser.cookies.observe.'+kind"),'Host-only observation operation is invoked');
   assert(workbench.includes('event.isTrusted&&!busy'),'Every observer control requires a trusted click');
   assert(workbench.includes('watchEventsNode.replaceChildren()'),'Observation events are cleared');

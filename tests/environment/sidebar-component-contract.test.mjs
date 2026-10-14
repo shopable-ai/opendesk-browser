@@ -60,6 +60,16 @@ test('Developer static controls all use shared roles; important IDs and ARIA lin
     'script-read-run', 'script-download', 'script-run', 'script-stop',
     'sdk-install', 'sdk-revoke', 'page-component-framework'
   ]) assert.match(html, new RegExp('\\bid="' + id + '"'));
+  assert.match(element(dev, 'div', 'developer-source-switch'), /\bod-page-head\b/);
+  assert.ok(dev.indexOf('id="developer-source-switch"') < dev.indexOf('id="developer-target-detail"'),
+    'developer header must remain before current page details');
+  assert.match(element(dev, 'button', 'program-new-script'), /\bhidden\b/);
+  assert.match(element(dev, 'button', 'program-new-script'), /\bod-icon-button\b/);
+  assert.match(element(dev, 'button', 'program-new-script'), /\btitle="[^"]+"/);
+  assert.match(element(dev, 'button', 'local-project-refresh'), /\bod-icon-button\b/);
+  assert.match(element(dev, 'button', 'script-copy-result'), /\bod-icon-button\b/);
+  assert.match(element(dev, 'button', 'script-copy-result'), /\bdisabled\b/);
+  assert.match(element(dev, 'button', 'script-read'), /\bod-icon-button\b/);
   assert.match(element(dev, 'details', 'local-project-guide'), /\bod-disclosure--info\b/);
   assert.match(element(dev, 'details', 'developer-results-panel'), /\bod-disclosure\b/);
   assert.match(element(dev, 'textarea', 'script-source'), /\bod-field\b/);
@@ -79,13 +89,14 @@ test('Shared components own normal visual appearance; business CSS retains only 
     '--space-2', '--space-3', '--radius-control', '--radius-surface'])
     assert.ok(tokens.includes(property + ':'), 'No source token: ' + property);
   for (const selector of ['.local-project-controls button',
-    '.program-source-toolbar #program-new-script', '#script-source',
+    '#script-source',
     '#program-source-info', '.workflow-card', '.workflow-icon-button']) {
     const body = declarations(selector);
     assert.doesNotMatch(body, /(?:^|;)\s*(?:background|border(?:-[\w-]+)?|color|padding(?:-[\w-]+)?):/,
       'Legacy appearance override still present in ' + selector);
     assert.doesNotMatch(body, /![ \t]*important/, 'Important appearance override: ' + selector);
   }
+  assert.doesNotMatch(shell, /\.program-source-toolbar #program-new-script\{/);
   assert.doesNotMatch(shell, /#workbench-develop\s+#local-project-guide>summary/);
   assert.doesNotMatch(shell, /#workbench-develop\s+\.developer-editor>details>summary/);
   assert.match(components, /\.od-disclosure--flat\{border:0/);
@@ -107,7 +118,10 @@ test('Developer disclosure headers share the Run Result surface; nested diagnost
   ]) {
     const tag = element(dev, 'details', id);
     assert.ok(has(tag, 'od-disclosure'), 'Missing shared disclosure: ' + id);
-    assert.ok(!has(tag, 'od-disclosure--flat'), 'Top-level disclosure must match Run Result: ' + id);
+    if (id === 'developer-target-detail')
+      assert.ok(has(tag, 'od-disclosure--flat'), 'Current page details should be a flat page-head companion: ' + id);
+    else
+      assert.ok(!has(tag, 'od-disclosure--flat'), 'Top-level disclosure must match Run Result: ' + id);
   }
   for (const id of [
     'page-dependency-panel', 'script-history-panel', 'page-preview-technical-panel',

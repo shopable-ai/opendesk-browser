@@ -32,6 +32,11 @@ details>section{margin-top:var(--space-3)}
 /* Shared primitives: semantics here; state-specific geometry stays in tool-shell.css. */
 .od-page{min-width:0}
 .od-toolbar{display:flex;align-items:center;gap:var(--space-2);min-width:0}
+.od-page-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-height:var(--od-icon-size);min-width:0}
+.od-page-title{min-width:0;margin:0;color:var(--od-ink);font-size:var(--od-note-size);font-weight:600;line-height:1.5;overflow-wrap:anywhere}
+.od-page-actions{display:flex;align-items:center;justify-content:flex-end;gap:var(--space-2);min-width:0;flex:none;margin-inline-start:auto}
+/* Tools Index/Detail is the trusted Tab header baseline; narrow actions wrap as a group. */
+@media(max-width:240px){.od-page-head{flex-wrap:wrap}.od-page-actions{flex-wrap:wrap;max-width:100%}}
 .od-stack{display:grid;gap:var(--space-2);min-width:0}
 /* Public component contract: semantic appearance lives only here; pages own layout. */
 .od-surface{min-width:0;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface)}
@@ -43,7 +48,9 @@ details>section{margin-top:var(--space-3)}
 .od-icon-button{position:relative;display:inline-grid;place-items:center;flex:none;width:var(--od-icon-size);height:var(--od-icon-size);min-width:var(--od-icon-size);min-height:var(--od-icon-size);padding:0;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-sub)}
 .od-icon-button--primary{border-color:var(--od-brand);background:var(--od-brand);color:var(--od-on-brand)}
 .od-icon-button--danger{border-color:var(--od-negative);background:var(--od-negative-bg);color:var(--od-negative)}
-.od-icon-button svg{width:18px;height:18px;display:block;pointer-events:none}
+.od-icon-button svg{width:18px;height:18px;display:block;pointer-events:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.od-icon-button:hover:not(:disabled):not(.od-icon-button--primary):not(.od-icon-button--danger){background:var(--od-muted)}
+.od-icon-button[aria-expanded=true]{background:var(--od-muted);border-color:var(--od-focus);color:var(--od-accent-ink)}
 :is(input,select,textarea).od-field{min-width:0;border:1px solid var(--od-input-border);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink);font-size:var(--od-body-size)}
 :is(input,select,textarea).od-field:disabled,
 :is(input,textarea).od-field[readonly]{background:var(--od-muted);color:var(--od-sub)}

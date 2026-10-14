@@ -81,3 +81,36 @@ UI 子代理已交回四文件占用。主代理追加写入：`src/ui/tool.html
 用户最新已回复“已解锁”，锁屏事实按原时间保留；本机原生工具与新候选 CFT 身份待复核。当前 native/F3/ZIP 安装仍 NOT_TESTED，不将用户回复当作验收结果。先完成当前安全本地提交、释放 Git 窗口，再继续候选 C 原生资源。
 
 全 staged 空白检查发现原始终端日志/失败 TAP/交接补丁的真实行末空白，以及保存 GOAL 的原尾换行；保留原始 bytes/SHA，不为格式检查改写证据。严格源码、测试、正式文档路径的 diff --check 已通过；本轮 UI writer 工作流含原始补丁也保留原样。
+
+## 候选 C 原生续接（2026-10-12，当前会话 01a13005）
+
+状态 IN_PROGRESS；负责人当前 Codex 会话。起始 main HEAD `6084d4dea8c8c6100c6a6794f839e580741fa07d`，本地 origin/main `43e7e47703b0fff40be2d9e5140dde91d7e20279`；不 fetch/pull/push，不改共享 Git 索引。完整续接提示词和 local-commit/candidate-C 回执已核对；保留其他工作流差异。
+
+本次写入仅此工作流、新增 `evidence/cloud-control-r14-final-20261012/continuation-c-*` 原始证据/驱动，以及本任务 `.runtime/cloud-control-r14-final-20261012/provider-c` 的持久服务状态、专属 CFT 新保留 Profile。不修改生产源码、协议、原回执、历史 Profile/IDB/state 或候选 C dist/ZIP。需要源码修复时另登记具体文件与契约。
+
+复用 C 双构建、verify/pack/ZIP 字节一致性和已有组件证据；本次仅补候选 C 未执行原生/视觉验收。专属 CFT 路径 `.runtime/cloud-control-r14-final-20261012/browser/Google Chrome for Testing.app`；使用原保留 Profile 启动器和 mock-keychain 参数，实际 PID/Profile/extensionId 启动后登记。43111 Python PID48261 只读复用；43112 已核对空闲，拟由 Provider C 独占。其他 CFT PID15706/87029 不操作。
+
+用户已解锁，钥匙串诊断 unlocked=true；原生工具 `cua.getState()` 本次超时，尚未证明桌面可操作。改用启动后专属应用绑定，保留失败。历史未知请求不重复 seed/运行，仍 BLOCKED；当前 C native/F3/ZIP 安装均未通过。
+#### 当前网络响应观察驱动范围
+
+- 本会话新增 `evidence/cloud-control-r14-final-20261012/continuation-c-receipt-hold.mjs`，由独立原生子代理负责该单文件；只准备驱动，不操作 CFT/Provider。Leader 独占当前 CFT/Profile 和 43112。
+- 用候选 C 原 SW 的 CDP Fetch 暂停真实 `/v1/receipt` 响应，保留真实 HTTP 请求与 Provider 持久事实；原生 UI 撤权后仅将该真实响应释放为网络失败。不写 DOM/IDB，不造 Receipt/ack，不修改产品或 Provider。须真实命中后才能登记补传撤权证据。
+
+#### 本轮原生发现的 Observer 协议缺口
+
+- Leader 独占写入 `src/ui/cloud-control-console.js`、`tests/environment/cloud-control-console-r3.test.mjs`。两文件当前无他人 diff；不改并行任务的 `broker.js`。
+- 原生从「我的」打开合法 Console，`E_OWNER`。`continuation-c-observer-console-native-sender.json` 证明 sender 的 id/url/documentId/frameId/tab 完整，`continuation-c-native-script-inventory.json` 证明对应唯一真实 TAB context。
+- Console 错用了 `environment.js` 的环境协议，进入 `agents/health-host.js`；Foundation 的 `cloudObserve` 路由未到达。不放宽 sender guard，只改协议引用并锁定发送 envelope 断言。
+- 通过条件：定向 Console 组件测试通过；新候选 D 原生 Console 读取成功、无 Host/Run/Result 新增。C 的目录/包/ZIP/失败证据全部保留。D 仅在真实输入已变化后构建，其他 C 验证不重复也不跨包提升。
+- 新构建资源：Leader 独占 `.runtime/cloud-control-r14-final-20261012/candidate-d` 与 `evidence/cloud-control-r14-final-20261012/continuation-d-*`。D 从 C 物理 APFS 副本生成，仅替换已登记 Console 源码和对应测试；不把根目录同期其他改动带入候选，不覆盖日常 `dist/development` 或 C。
+
+
+## 本轮原生进展交接（用户要求切换新对话）
+
+HEAD 仍为 `6084d4dea8c8c6100c6a6794f839e580741fa07d`；本轮没有新增 commit/push，索引为空。实际源码修复只有 Console 协议引用及其回归测试：旧 3/4，新 4/4 PASS。候选 D 双构建、包验证、ZIP 逐项字节一致性已通过，C 证据保留；D 生产 Console 原生读取/刷新成功，runs/results/frameworkKV 均为 0。C 正常云执行、本地独立运行、运行中 Stop、Task 撤权及补传撤权有原生子场景证据；不是整 Gate PASS。
+
+补传撤权原始核对：同一 Run `066807e0-aa17-4613-b02d-37dfd12cd1ca` / Result `55120e0d-12bb-4635-beb1-67e3faf7721f`，三次真实 200 响应持有后客户端超时；撤权后约 110 秒观察到新 receipt 请求 0，Result 未变，completed/workerRetired/released，本地 delivery pending。Provider 撤权前已持久接收，未声称远端零接收。Driver errors=0、cleanupAcknowledged=true。
+
+事务回滚 v7 因 pending-request 扫描异常 NOT_OBSERVED，未 terminate；v8 修复就绪且仅 ARMED，没有 seed 新 Job。用户要求交接后核对 PID94345 的本驱动命令，用 SIGINT 收尾，进程已退出，不声称正常 finish 或 SW 停止。全部网络/Debugger 驱动和两个子代理已收尾；CFT PID17878、Provider PID23150 及原 Profile/state 保留。最后只读快照活动 Run=0。
+
+真实 300/320px、完整恢复故障、生产 Debug 拒绝、五 Gate、独立最终 F3 和 ZIP 安装仍未关闭；历史未知 fenced/held/无 Receipt 原事实保留。完整下一对话指令为 `docs/framework/prompts/cloud-control-r14-handoff-candidate-d-native-progress-20261012.zh-CN.md`，派生核对/原文件 SHA/seed 防重清单为 `evidence/cloud-control-r14-final-20261012/continuation-native-progress-handoff.json`。不覆盖正式全局账本、旧 receipt 或其他任务改动。

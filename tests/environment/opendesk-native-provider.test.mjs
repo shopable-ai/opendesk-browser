@@ -335,7 +335,8 @@ test('OpenDesk executable is a Node-free Chrome Native Host with CLI parity (sim
   host.stdin.write(frame({v:1,kind:'welcome',extensionId,extensionVersion:'0.1.0',
     localDevVersion:1,localDevMultiVersion:1,localDevAccessVersion:1,localFilesVersion:1}));
   assert.equal((await bounded(modern.next(),'initial files state')).kind,'files.state');
-  const workspace=path.join(home,'wire-workspace');fs.mkdirSync(workspace,{mode:0o700});
+  const workspaceDir=path.join(home,'wire-workspace');fs.mkdirSync(workspaceDir,{mode:0o700});
+  const workspace=fs.realpathSync(workspaceDir);
   const attachment=net.createConnection(path.join(root,'agent.sock'));
   t.after(()=>attachment.destroy());
   const local=collectChrome(attachment,new LineDecoder());

@@ -1,0 +1,102 @@
+# GOAL：补齐现有 Codex 对话直接执行 R1，完成四项基础网页任务的真实验收
+
+工作目录：/Users/shopme/Documents/workspace/opendesk-browser
+本 GOAL 是后续实施入口；生成本文的 2026-10-14 对话只做了证据梳理，没有实施或运行验收。
+
+## 目标与停止条件
+
+用户发送一次明确、安全的网页任务，经已有 Codex transport、Workflow Compiler、Host/Authority、RunHost 和 Page 能力执行，展示真实网页结果及持久回执；不要求采用建议或再次 Run。先完成下面四项基础场景及必要负路径，再验证可选保存与关闭模型后的独立复跑。不重建框架，不新增执行器、Manager、Host、权限系统、第二编译器或依赖。
+
+四场景与负路径都取得身份一致的原始证据且定向组件检查通过，才可关闭本次基础功能验收；有缺口就修复受影响部分或明确保留 NOT_TESTED，不虚构成功。基础验收、可选保存复用、正式 F3/ZIP 分开报告。本 GOAL 不授权最终发布，也不替代既有 603+19/B05/F3/ZIP 合同。
+
+## 必须先读与复用
+
+1. AGENTS.md、docs/framework/testing-guide.md 的跨对话复用入口、docs/framework/parallel-development.md。
+2. docs/framework/workstreams/conversation-direct-solution-20261014.md（本轮事实与缺口）；docs/framework/workstreams/conversation-direct-r1-20261013.md（R1.1 候选与 CI）。
+3. .runtime/tests/r16-r2-macos/01a12e61/continue-01a134ed/conversation-direct-solution-next-chat-20261014.txt。
+4. continue-01a1348f 下 core-chain-verified.json、approved-observation-model-receipt.json、independent-core-review.json、increment-receipt.json，以及 continue-01a134ed 下 increment-receipt.json、handoff-current.md；只读原证据，不重新冻结或覆写。
+5. src/ui/workflow/{direct-execution.js,workflow-view.js,local-codex.js,ai-plan.js,observation.js,data-sharing.js}，src/framework/workflow/{contract.js,compiler.js}，src/run-host.js、tests/environment/workflow-direct-execution.test.mjs；沿实际 imports 查执行授权、持久结果与 UI，不进行全仓库漫游。
+6. examples/tasks/demo-form.html、examples/tasks/README.zh-CN.md，已有 R13.1/R5.2 Locator 记录只按原候选与证据级别复用。
+
+历史核心闭环是批准只读摘要→模型 observe 建议→实际 observe Controller→保存与旧候选独立复跑，不是成功填写。当前 R1 已有 Send→模型步骤→校验→compileWorkflow({verifyFill:true})→RunHost→回执/UI，禁止重复实现或退回采用→Run。R1.1 的 98/98 Node、check、development build 绑定原 CI 候选，不是当前 Mac 真实 Chrome PASS；先比较相关输入/依赖/环境，再决定 REUSE_RECORDED_PASS / AFFECTED_INPUTS / EVIDENCE_INCOMPLETE / NOT_TESTED，只补受影响验证。
+
+本轮文档写入期间 main 已并行更新为 c29f35fa4ea1a465b144e0a1f7751d774bd1ab24（R1.1-P0），本说明已复核其增量：固定观察在原 RunHost 中按当前 request 检查有界 section/form，回执新增 documentId；local-codex 拒绝没有本次获批观察或 fill/click locator 不在真实可见摘要中的方案。对应组件测试已有更新，工作流 G5 尚待该候选 CI；原生仍 NOT_TESTED。不要重复实现这项 P0，也不要用提示词约束或“目标在摘要里”替代“目标符合用户原意图”的检查。执行时再读取最新状态，不以本文冻结远端 main。
+
+## 写入、并行与资源约束
+
+- 只在 main 编辑；不建 branch/worktree/PR，不执行 git add/commit/push/release/publish，不动 Git 索引或他人改动。
+- 实施前在自己的工作流记录精确写入路径、契约负责人、输入身份与需要的资源。先读当前文件及 diff；同文件活跃 owner 由其落盘，本任务提供建议或交接；无关改动不阻止独立工作。不改 public-owner.json 或历史 receipt。
+- 首选写入范围：direct-execution.js、workflow-view.js、对应专用环境测试。compiler.js/local-codex.js/observation.js/data-sharing.js 仅在明确缺口需要时增量修改；contract.js 与持久结果合同变化须由单一负责人协调并同步相关消费者，不复制第二套协议。
+- demo-form.html 只在唯一目标测试状态或顺序观察确有缺口时补最小 fixture；它不是采集/搜索业务产品。测试驱动优先复用既有 R16/R13.1 原生输入和观察器；新增驱动须在自身工作流登记确切文件。
+- 日常 Chrome 保持 dist/development、真实扩展 ID 和已有 dev watcher；不另起构建写入同目录。真实验收用已明确交接的受控 CFT/Profile/端口/候选产物，核对实际加载路径/ID、packageHash、Go doctor local.extensionId 和 Native allowed_origins；禁止靠改写 Native 配置绕过 ID 冲突。
+- 首先修复/验证受影响组件，再一次准备稳定候选。不要先循环扩展重载、授权、打包或全量验收。同一失败仅在代码、环境或观察方法确实改变后重试；未知副作用禁止自动重放。
+
+## 实施顺序：先补现有 R1 的明确缺口
+
+一、建立本次用户意图与目标的宿主约束。
+
+在现有 R1 admission 内核对动作是否完整、数量是否准确、顺序是否一致、目标是否符合原文、填写字面量是否完全一致。模型负责提出方案，不能自己证明方案得到授权。基础范围是单 fill、单安全 click、fill→单安全 click；明确只读核验可附加，不能带入新的业务动作。
+
+- 修复“要求 click 却只返回 fill/observe/wait/assert”仍可放行的缺口；反向检查已存在，不足以替代完整性检查。
+- 校验用户实际给出的完整值，不仅 request.includes(step.text)；短子串、截断值、重复 fill、错顺序、错目标、额外点击均拒绝或准确澄清。
+- 目标由真实可见/可操作候选及用户明确标签/上下文唯一确定；复用最新 P0 的获批摘要 locator 检查，继续验证原意图与目标的对应。不得把模型 selector、关键词匹配或第一个 DOM 元素当作目标符合意图的证明。拒绝多匹配、错误输入框、无关按钮及页面注入指令；不把页面文本当用户授权。
+- 风险检查保守保留。当前 #search-submit 含 submit 会触发字符串门禁，而 role=button/name=搜索可通过；核对真实语义与效果，不能为通过测试整体删除 submit/高风险保护，也不能仅因选择器换名就把未知按钮视为安全。
+- 继续拦截未授权 navigate/confirm、多次 click 和敏感动作；“选择/删除”等填写数据不能赋予动作授权。
+- 复用已有参数/Workflow schema；host-only 的目标/意图绑定如需补充，不允许模型覆盖 origin/sender/owner/document/权限。保持零参数 async function main()、受控词法 page/params 与现有 Compiler。
+
+二、核对一次 Send 的权限与异步生命周期。
+
+网页摘要共享、Chrome 网站许可、Host/Authority 动作授权、本次用户任务意图分别核对。Send 的可信手势只在当时申请必要网站许可；异步模型返回依赖已批准许可和精确 owner/document，不继承永久用户激活。执行前及既有每次能力调用继续核对真实 sender、target、Authority 和撤权。
+
+browser.observe 已有逐 payload 审批；consent.observation=true 是允许请求摘要，不是该摘要已经批准。正常四场景不得出现采用或 Run 的额外通行证；仅缺少真实权限、模型数据授权或目标信息时提示必要操作。若当前数据审批迫使 Send 后再次确认，先沿已有审批做明确披露/摘要预览的前置授权：本次批准绑定实际摘要哈希、大小/截断、provider/session/toolCall、origin/document 和有效范围，再由同一可信 Send 承担明确批准与执行意图；变化即失效。不能静默 auto-approve 或将历史逐次授权升级成永久许可。若此方案无法满足现有授权合同，如实报告阻塞，只继续不依赖它的组件修复，不宣称无追加操作的端到端 PASS。
+
+绑定原请求、模型 turn、计划/源码 hash 与执行 claim。复用现有 planning epoch、busy/abort、owner 和 admission 防重复：同一回调/请求不能再次 dispatch；忙时双击不重复，完成后的用户明确新任务与旧消息重传分开。Stop、撤权、刷新/导航、文档替换、Provider 切换、Native 中断/迟到模型回程均按已有机制停止或拒绝。只有终态/效果确知才展示已完成；paused_unknown、缺回执或 retirement 未 released 禁止自动再跑。
+
+三、让验证与真实效果一一对应。
+
+- fill 后沿既有 Locator.inputValue() 读回完整字符串；成功证据绑定具体 stepId/目标/sourceHash，UI 展示真实读回，不能复述模型建议当结果。
+- click 的动作回执与按钮效果分开；任意后续 assert、includes 子串或预先存在文本不能证明指定 click 生效。明确观察该安全按钮的计数/状态变化，记录前后值；搜索验证点击次数、搜索状态和精确结果。
+- fill→click 严格执行此顺序；搜索 fixture 的 input 会替换按钮并禁用 180ms，复用既有 Locator 重查与等待，不持有旧元素强点；120ms 异步结果要按实际完成读取，不固定 sleep 假定成功。
+- fill 成功后 click 失败不能称全失败无副作用或已全部完成，也不能暗示自动回滚。先查既有调用事件/持久诊断能否准确说明已完成步骤、失败步骤与剩余未执行步骤；不足时最小补既有 Result/Compiler 的进度证据，不另建日志/Result 存储。未知阶段如实为未知，不自行重试。
+- 校验 claim、Run、controller-result 和持久 Result 的 runId/resultId、revision（包括既有精确版本身份）、sourceHash、target/document、状态/outcome 和 retirement released，不能只核对模型输出或 UI 文案。持久错误结果不能因 UI catch 丢失；没有 admission 的拒绝不得伪造运行回执。
+
+四、先跑针对缺口的组件验证，再做同候选真实验收。
+
+已有成功且相关输入未变的测试直接引用。新增覆盖围绕上述反例与 UI/结果投影，不添加镜像实现的空测试。最小命令从以下选择受影响项：
+node --test tests/environment/workflow-direct-execution.test.mjs tests/environment/workflow-local-codex.test.mjs tests/environment/workflow-r15.test.mjs tests/environment/workflow-ai-observation.test.mjs tests/environment/workflow-ai-data-sharing.test.mjs tests/environment/workflow-ai-transport.test.mjs tests/environment/workflow-ui-states.test.mjs
+npm run check
+
+构建仅在候选产品输入改变且需要新原生包时执行一次，并先核对输出目录 owner 与包预算；复用现有构建脚本参数/资源合同。当前仓库没有独立 lint/typecheck script，不虚构命令或 PASS；按实际受影响检查报告。不要为了这四场景重跑整个环境套件/全量 framework campaign。
+
+## 四项真实 Chrome 场景（必验）
+
+统一地址：http://127.0.0.1:43111/demo-form.html
+只有确认端口未被其他 owner 占用后，才用已有服务或启动：
+python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
+
+每例只用产品 Side Panel→本机 Codex→Compiler→RunHost→Page 的真实链。测试驱动输入用可信原生输入；不得 DOM 赋值、synthetic events、CDP Input、直接从观察器调用 fill/click 或伪造 native ack 冒充产品执行。只读 DOM/持久存储观察可以采证，不能替代产品 Page.inputValue 读回。
+
+1. 单次填写：原文“在输入框里填入 ai自动化第一选择”。
+   当前完整 demo-form 有多个输入框，不能硬编码第一个目标。优先复用合法已有目标上下文；没有时仅为 fixture 增加明确可见的单输入框测试状态，使本例真实可操作输入候选唯一，保留完整 lab 默认状态及其他验收合同。原始证据包含这个预置状态，不能让隐藏的测试提示直接指定模型 selector。发送一次，无采用/Run；实际值与同次 Page.inputValue 均完全等于 ai自动化第一选择，其他输入/按钮不变。
+   同时对完整多输入框页面的同一裸请求验证必要澄清/拒绝，不能靠猜测通过本例。
+2. 单安全点击：原文“点击『点击一次』按钮一次”。
+   复用 #click-button/#click-count；计数准确 +1，其他计数/表单/导航不变。展示动作与效果真实证据，无额外动作。
+3. 填写再搜索：原文“在搜索框填入 OpenDesk，然后点击搜索按钮”。
+   复用 #keyword、可替换的 #search-submit、#search-status/#results/#search-count；真实 fill→inputValue(OpenDesk)→click 顺序可追溯。提交计数仅 +1，状态为搜索完成，结果精确为“结果：OpenDesk”；无额外表单提交/导航。既有 fixture 状态足以验证效果；真实顺序由受控调用事件记录，缺可追溯事件才补最小只观察的 fixture 日志。
+4. 找不到目标：明确请求填写一个不存在的标签输入框（如“不存在的基础验收输入框”），使用确定字面量。
+   返回准确定位失败和持久失败 Result；页面无其他副作用、不换到别的输入、不无限重试。若在 admission 前能证明目标不存在，保存现有请求失败诊断并明确无 runId/resultId；另用既有受控运行路径的目标失效负例证明实际 Locator 失败产生真实持久失败结果，不伪造 admission。
+
+## 必要负路径与可选复用（不遗漏）
+
+- 漏 fill、漏 click、只返回观察、错目标、同名/多目标、目标在摘要截断范围外、值子串/改写、重复步骤、click→fill 错序、额外点击、无关/弱断言、页面提示注入；拒绝时 0 dispatch / 0 副作用。
+- 同一 Send/模型完成事件重复、忙时连点、UI 重开；核对本次副作用次数，不能由防多 click 的计划检查代替运行防重。
+- fill 已读回后 click 定位失败/超时：准确部分执行，已填内容保留，其他步骤不执行；没有自动回滚或重放。
+- 执行前/中撤权、模型等待时及执行中 document 变化、Stop、迟到回程、Native 断连/缺 ack、持久结果缺失与 retirement 未释放。每项复用未变化原证据，否则最小补测；未知结果不自动重试，UI 与持久状态一致。
+- 确定模型输出进入受控 Workflow state；不向扩展 DOM/chrome.* 开放模型执行能力。若用户明确要写开发代码草稿，走现有 script-editor/draft 状态更新并校验，不借网站 Page.fill() 操作扩展 UI，不顺便执行用户未要求的草稿。本次不扩建代码编辑产品。
+- 四场景基础成功后，再按需可选保存同一实际已执行源码为固定 Revision，核对真实 Save 完整输入与唯一 native ack；关闭 AI/模型通道后独立 Run×2，分别保留两次真实 Result/sourceHash。既有需要关闭 Native 的独立复跑合同继续保留，只在运行架构允许且身份可核对时声明通过；不能用合成结果替代。保存不是正式安装，不强迫普通任务先保存/采用/Run。
+
+## 每例证据与最终交付
+
+在本任务独立的新证据目录保存原始文件，保留失败，不覆盖旧 receipt。证据包括：可信用户输入与 Send 次数、原文/模型 turn 与输出、批准网页摘要（字段/字节/截断/digest）、provider/session/toolCall 与审批、真实 sender/owner/精确 target Origin/URL/window/tab/frame/document、最终步骤及 Controller 源码/hash、claim、controller-result、runId/resultId、结果自身 revision/sourceHash、真实 Page 读回/fixture 前后状态、调用顺序/次数、retirement released、UI 状态/截图。前置观察与任务 runId 单独列明。
+
+前后核对相关源码/配置/依赖/fixture/观察器和实际加载包身份；相关漂移时只补受影响项，不把结果登记为当前候选 PASS。先报告一屏任务树（实施/证据/剩余任务），再附文件、变更理由、精确验证与未测试项。分别报告 SOURCE_WIRED、NODE_PASS、BUILD_PASS、NATIVE_PASS；所有基础原生场景与负路径在同一稳定候选取得证据前不得宣称完成。可选复用另列；F3/完整 ZIP/发布维持本轮未执行。

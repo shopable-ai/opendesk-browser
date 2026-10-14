@@ -1,0 +1,105 @@
+{
+  "workflow": "page-import-fixed-tools-20261012",
+  "createdAt": "2026-10-12T16:04:13.933Z",
+  "repo": {
+    "branch": "main",
+    "head": "f631e0ef5de5e6aecee37e946b65ac431a0c9e8e"
+  },
+  "files": [
+    {
+      "path": "examples/sidebar-tools/react-starter/package.json",
+      "bytes": 393,
+      "sha256": "11b67b680a781eba7d1b4a2770117bf5b9206e6b86c435f47aa712a05352acce"
+    },
+    {
+      "path": "examples/sidebar-tools/react-starter/package-lock.json",
+      "bytes": 36899,
+      "sha256": "dbf7f2325ee84f5d238daf3158456fb2eb2e3d3fcc744aee434ef830a2dd3804"
+    },
+    {
+      "path": "examples/sidebar-tools/react-starter/README.md",
+      "bytes": 4552,
+      "sha256": "b01d71e0241b82a65142e290830794c604c236c69f899637dd5b00c4596a7f17"
+    },
+    {
+      "path": "examples/sidebar-tools/react-starter/tool.config.json",
+      "bytes": 340,
+      "sha256": "174a652f228c708acd4b8986cb8d60b8ce3d8f351b9289f5ae46578071f0ed79"
+    },
+    {
+      "path": "examples/sidebar-tools/react-starter/src/ActivityChart.jsx",
+      "bytes": 3266,
+      "sha256": "b479a1b79b6c9454147bb1dc435d7470b2bad9f3929fb13e03ec4ff42ccfbaf6"
+    },
+    {
+      "path": "examples/sidebar-tools/react-starter/src/App.jsx",
+      "bytes": 1769,
+      "sha256": "5f931d4b982bedaa03d39aa6d3461d3635fd73da5d1120bdb347dfb49e47f4d7"
+    },
+    {
+      "path": "examples/sidebar-tools/react-starter/src/main.jsx",
+      "bytes": 342,
+      "sha256": "1ee595f9e77756f445762ef0217d92f207fab796a8d93d6ed4f91573c31c832a"
+    },
+    {
+      "path": "examples/sidebar-tools/react-starter/src/root.html",
+      "bytes": 26,
+      "sha256": "8eaf427812eabbe6e47fbbb159c1d9e7a2dd68d544332fca1a2cea7a8e19d5cc"
+    },
+    {
+      "path": "examples/sidebar-tools/react-starter/src/style.css",
+      "bytes": 3679,
+      "sha256": "26ab452f50bd23edec38f01dfd21ada18fd548ed841d346b371dcc8d83190064"
+    },
+    {
+      "path": "examples/sidebar-tools/react-starter/vite.config.mjs",
+      "bytes": 1526,
+      "sha256": "8786a89435513279706d443cd7d50549dc0d6784c2226d1c517dc99f881cc316"
+    },
+    {
+      "path": "examples/sidebar-tools/vue-starter/package.json",
+      "bytes": 362,
+      "sha256": "f7948bbdc9bb228d99afccdc79dd3d56f91a458c77bf9302d21c31cbb57c4188"
+    },
+    {
+      "path": "examples/sidebar-tools/vue-starter/package-lock.json",
+      "bytes": 44527,
+      "sha256": "49d355dba12bd6054de046f17db6426bedeed8b6788d39e9275a0c9191e41ddd"
+    },
+    {
+      "path": "examples/sidebar-tools/vue-starter/README.md",
+      "bytes": 1905,
+      "sha256": "a3b46c61fcd1adeb5e2d6120e388477df1ca33bff5b9877485ee4e50925683e0"
+    },
+    {
+      "path": "examples/sidebar-tools/vue-starter/tool.config.json",
+      "bytes": 311,
+      "sha256": "2b4fa01a40da8ea6372714476ce0c237280661433cf35550a929c18f4b7de682"
+    },
+    {
+      "path": "examples/sidebar-tools/vue-starter/src/App.vue",
+      "bytes": 1075,
+      "sha256": "fb7b3a1d10f0191c90453410a91707faf54d1e906ebe9da2ba6c485e66359128"
+    },
+    {
+      "path": "examples/sidebar-tools/vue-starter/src/main.js",
+      "bytes": 296,
+      "sha256": "121d3d556278ff03faaa250f543d0313b0105df80a0bf1a1a5f4c8b014f520ff"
+    },
+    {
+      "path": "examples/sidebar-tools/vue-starter/src/root.html",
+      "bytes": 26,
+      "sha256": "8eaf427812eabbe6e47fbbb159c1d9e7a2dd68d544332fca1a2cea7a8e19d5cc"
+    },
+    {
+      "path": "examples/sidebar-tools/vue-starter/src/style.css",
+      "bytes": 809,
+      "sha256": "b1b74cf25106adf9f29a1820c1a8b405fd22f2e111095701664d52ab7e229f1f"
+    },
+    {
+      "path": "examples/sidebar-tools/vue-starter/vite.config.mjs",
+      "bytes": 1569,
+      "sha256": "2c7b03be984bf76ba6b3e75ad3040077d2d11d492c149909b930d07e3a0f2598"
+    }
+  ]
+}

@@ -3,6 +3,7 @@ import {resolve,dirname,relative} from 'node:path';
 import {createHash} from 'node:crypto';
 import {watch} from 'node:fs';
 import {STATIC_RESOURCES} from './prepare-public.mjs';
+import {BROWSER_EDITION_RECORD,readEditionRecord} from './browser-editions-r245.mjs';
 import {buildOfficialTools,officialToolInputs,writeOfficialToolResources} from './build-official-tools.mjs';
 import {OFFICIAL_CATALOG_PATH,validateOfficialReleaseCatalog} from '../src/sidebar-tools/official-catalog.js';
 import {WORKSPACE_STYLE_INPUTS,WORKSPACE_STYLE_DEST,compileWorkspaceStyle} from './build-workspace-style.mjs';
@@ -75,7 +76,8 @@ export async function publishDevelopment(wxt,output) {
   const manifest=JSON.parse(await readFile(manifestPath,'utf8'));
   manifest.host_permissions=source.host_permissions;
   manifest.content_security_policy=source.content_security_policy;
-  verifyManifest(manifest,{mode:'development'});
+  const edition=readEditionRecord(await readFile(resolve(wxt.config.outDir,BROWSER_EDITION_RECORD),'utf8'));
+  verifyManifest(manifest,{mode:'development',edition});
   await writeFile(manifestPath,JSON.stringify(manifest,null,2)+'\n');
   const official=validateOfficialReleaseCatalog(JSON.parse(await readFile(resolve(wxt.config.outDir,OFFICIAL_CATALOG_PATH),'utf8')));
   for(const row of official.apps){

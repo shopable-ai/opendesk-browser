@@ -14,6 +14,12 @@ export function resolveBrowserEdition(value=process.env.OPENDESK_BROWSER_EDITION
   return edition;
 }
 
+// Daily source development includes the browser JSX/SFC compiler; packaging
+// still defaults to Standard unless an edition is explicitly selected.
+export function resolveDevelopmentBrowserEdition(value=process.env.OPENDESK_BROWSER_EDITION){
+  return resolveBrowserEdition(value??'developer');
+}
+
 export function compilerResourcesForEdition(edition){
   return resolveBrowserEdition(edition)==='developer'?PAGE_BROWSER_PRIVATE_FILES:[];
 }
