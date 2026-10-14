@@ -20,7 +20,7 @@ export default async function main() {
       params: {mode: 'demo'}
     }),
     defaults: {
-      words: _.words('OpenDesk Browser').length,
+      words: _.words('Browser tools').length,
       date: dayjs('2026-10-14').format('YYYY-MM-DD')
     },
     pageTitle: await page.title()
