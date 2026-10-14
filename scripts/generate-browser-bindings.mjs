@@ -20,6 +20,7 @@ const exact=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 export function deriveBrowserBindingCatalog(matrix,registry=BROWSER_OPERATIONS){
   if(matrix?.schemaVersion!=='opendesk.browser-sdk.interface-matrix.v1'||
      !Array.isArray(matrix.approvedOperations))throw Error('Pinned approved matrix missing');
+  const nativeByName=new Map((matrix.nativeInterfaces??[]).map(row=>[row.nativeApi,row]));
   const rows=matrix.approvedOperations.map(row=>{
     const mode=MODES[row.mappingKind];
     if(!mode||typeof row.id!=='string'||!Array.isArray(row.nativeApis)||
@@ -39,6 +40,14 @@ export function deriveBrowserBindingCatalog(matrix,registry=BROWSER_OPERATIONS){
     return {
       operation:row.id,visibility:row.visibility,mode,
       nativeApis:row.nativeApis,
+      // Exact Chrome names and positional signatures are derived from pinned
+      // Chromium schema rows; never hand-maintain per-method Host wrappers.
+      nativeSignatures:row.nativeApis.map(nativeApi=>{
+        const item=nativeByName.get(nativeApi);
+        if(!item)throw Error('Approved operation has an unknown Chromium mapping: '+row.id);
+        return {nativeApi,kind:item.kind,signature:item.signature,
+          parameters:item.parameters??[],returnType:item.returnType??null};
+      }),
       runtimeSchema:publicSdk?'src/framework/sdk/browser-schemas.js#'+row.id:null,
       chromePermissions:row.chromePermissions,
       toolCapabilities:row.toolCapabilities,
