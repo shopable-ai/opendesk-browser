@@ -77,3 +77,16 @@ test('releases bookmark and permission observers on close',()=>{
  f.bookmarks.onChanged.emit();f.api.permissions.onRemoved.emit();assert.equal(n,2);
  release();f.bookmarks.onChanged.emit();f.api.permissions.onRemoved.emit();assert.equal(n,2);
 });
+
+test('folder removal rejects stale subtree and only removes explicitly reviewed descendants',async()=>{
+ const f=harness(),s=f.service;
+ const folder=await s.createFolder({title:'Nested',parentId:'2'});
+ await s.createBookmark({title:'One',url:'https://one.example/',parentId:folder.id});
+ const before=await s.load(),expected=before.byId.get(folder.id);
+ const oldDescendants=[...before.byId.keys()].filter(id=>id!==folder.id&&isDescendant(before,id,folder.id));
+ await s.createBookmark({title:'New',url:'https://two.example/',parentId:folder.id});
+ await assert.rejects(s.remove({expected,confirmed:true,expectedDescendantIds:oldDescendants}),/变化/);
+ const newest=await s.load(),children=[...newest.byId.keys()].filter(id=>id!==folder.id&&isDescendant(newest,id,folder.id));
+ await s.remove({expected:newest.byId.get(folder.id),confirmed:true,expectedDescendantIds:children});
+ assert.equal((await s.load()).byId.has(folder.id),false);
+});
