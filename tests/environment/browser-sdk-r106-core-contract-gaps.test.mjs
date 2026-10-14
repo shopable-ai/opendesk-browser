@@ -186,6 +186,11 @@ async function frontend(t, f, {target = {snapshot: {status: 'available', title: 
       if (!elements.has(id)) {const node = new Node(); node.ownerDocument = doc; elements.set(id, node);}
       return elements.get(id);
     }, createElement: tag => {const node = new Node(tag); node.ownerDocument = doc; return node;}};
+  // The real src/ui/tool.html renders the trusted action review with [hidden].
+  // Starting this Node surrogate visible races requestActionReview and dispatches
+  // a click before any approval is pending. Mirror its actual initial DOM state.
+  const actionReview = doc.getElementById('sidebar-tool-action-review');
+  actionReview.hidden = true;
   const messages = [];
   f.api.runtime.sendMessage = async envelope => {
     messages.push(structuredClone(envelope));
