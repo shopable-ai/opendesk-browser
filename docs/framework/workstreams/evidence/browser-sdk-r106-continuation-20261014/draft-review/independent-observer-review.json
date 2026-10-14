@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "opendesk.browser-sdk.r106.independent-review.v1",
+  "reviewer": "native subagent Hegel",
+  "scope": [
+    "tests/framework/cookie-editor-r33-native.mjs diff",
+    "cookie-observer-review.json",
+    "cookie-contract-review.json report references",
+    "physical candidate and newer main CI limitations"
+  ],
+  "mustFixFindings": [],
+  "conclusion": "Observer diff can be committed. Node individual mapping not reviewed in this pass.",
+  "driverHashScope": "Current observer dc629ca3 matches current-frame report only; diagnostic6950bc9d is separate supporting lifecycle run.",
+  "limits": [
+    "PPID1 CFT windows still require actual foreground resource ownership before new native input",
+    "Native Agent newest failure is preparation latency, not complete CI closure",
+    "This is not final F3; product NOT_SCORED"
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "opendesk.browser-sdk.r106.observer-review.v1",
+  "path": "tests/framework/cookie-editor-r33-native.mjs",
+  "sha256": "dc629ca334619fedfff38df8fa1c877c20d6595e9620965af496e583d78c8b5b",
+  "syntaxCheck": {
+    "command": [
+      "node",
+      "--check",
+      "tests/framework/cookie-editor-r33-native.mjs"
+    ],
+    "exitCode": 0
+  },
+  "reusedNativeEvidence": {
+    "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame/native-core-2026-10-14T07-09-43-616Z-e8c67267/native-report.json",
+    "sha256": "9c1e738db9917b5fad83b1790f475d89425eec09f5e78e480b3d2784880ebd14",
+    "driverHashMatches": true,
+    "driverUnchanged": true,
+    "candidateUnchanged": true,
+    "cleanupStatus": "PASS",
+    "cases": {
+      "launch": "PASS",
+      "product-side-panel": "PASS",
+      "official-install": "PASS",
+      "active-fixture": "PASS",
+      "read-grant": "PASS",
+      "write-grant": "PASS",
+      "close-and-reopen": "PASS",
+      "revoked-pending-write": "PASS",
+      "disable-with-pending-write": "PASS",
+      "uninstall-and-clean-grants": "PASS",
+      "reinstall-requires-fresh-grants": "PASS"
+    }
+  },
+  "productSourceChanged": false,
+  "oldTimeoutRootCause": "UNCONFIRMED",
+  "scope": "Observer identity/ready check only; lifecycle results do not close 11 API contracts"
+}

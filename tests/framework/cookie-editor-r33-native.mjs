@@ -28,7 +28,8 @@ const report={mode:'headed-owned-macos-CFT',startedAt:new Date().toISOString(),e
   directory,driver:{path:path.relative(root,driverFile),sha256:hash(driverBytes),bytes:driverBytes.length},scope:'Installed Side Panel core CRUD; all Cookie mutations originate in tool UI; Chrome API reads only',
   cases:Object.fromEntries(['launch','product-side-panel','official-install','active-fixture','read-grant']
     .map(id=>[id,{status:'NOT_TESTED'}])),screenshots:[],steps:[],complete:false};
-let launched,client,control,side,website,currentCase,toolSession;
+let launched,client,control,side,sideTargetId,website,currentCase,toolSession;
+const targetSessions=new Map();
 const trace=[];
 const persist=()=>writeFile(path.join(directory,'native-report.json'),JSON.stringify(report,null,2)+'\n');
 function requireNativeResource(){
@@ -69,8 +70,10 @@ async function until(fn,label,ms=12000){
   throw Error(label+' timed out'+(last?': '+last:''));
 }
 async function attach(target){
+  if(targetSessions.has(target.targetId))return targetSessions.get(target.targetId);
   const session=(await client.send('Target.attachToTarget',{targetId:target.targetId,flatten:true})).sessionId;
-  await client.send('Runtime.enable',{},session);await client.send('Page.enable',{},session);return session;
+  await client.send('Runtime.enable',{},session);await client.send('Page.enable',{},session);
+  targetSessions.set(target.targetId,session);return session;
 }
 async function click(session,selector){
   // Scroll with actual input, never scrollIntoView or DOM focus/value writes.
@@ -177,13 +180,31 @@ async function grant(capability){
 }
 async function bindCookieFrame(){
   const frame=await until(async()=>{
+    const src=await read(side,'document.querySelector("#sidebar-tool-frame iframe")?.src');
+    if(!src)return null;
     const targets=(await client.send('Target.getTargets')).targetInfos;
-    for(const target of targets.filter(t=>t.type==='iframe'&&t.url.includes('/sidebar-tools/sandbox.html'))){
+    for(const target of targets.filter(t=>t.type==='iframe'&&t.url===src&&t.parentFrameId===sideTargetId)){
       const session=await attach(target);
-      if(await read(session,'Boolean(document.querySelector(".cookie-app"))'))return {target,session};
+      if(await read(session,'Boolean(document.querySelector(".cookie-app"))&&document.querySelector("#tool-status")?.dataset.state==="ready"'))return {target,session};
     }
   },'Current installed Cookie iframe');
   toolSession=frame.session;return frame.target;
+}
+async function observeCookieFrames(){
+  const host=await read(side,'({url:location.href,frames:[...document.querySelectorAll("#sidebar-tool-frame iframe")].map(n=>({src:n.src,connected:n.isConnected,visible:!!n.getClientRects().length})),status:document.querySelector("#sidebar-tool-status")?.textContent})');
+  const tree=await client.send('Page.getFrameTree',{},side);
+  const targets=(await client.send('Target.getTargets')).targetInfos;
+  const frames=[];
+  for(const target of targets.filter(t=>t.type==='iframe'&&t.url.includes('/sidebar-tools/sandbox.html'))){
+    try{
+      const session=await attach(target);
+      const document=await read(session,'({url:location.href,readyState:document.readyState,timeOrigin:performance.timeOrigin,cookieApp:!!document.querySelector(".cookie-app"),status:document.querySelector("#status")?.textContent,text:document.body.innerText.slice(0,1200),scripts:[...document.scripts].map(n=>({src:n.src,type:n.type}))})');
+      frames.push({target,session,document});
+    }catch(error){frames.push({target,error:error.message});}
+  }
+  const observation={at:new Date().toISOString(),selectedSession:toolSession,host,tree,frames};
+  (report.frameObservations??=[]).push(observation);
+  await persist();return observation;
 }
 async function save(approvals=1){
   await click(toolSession,'#editor-save');
@@ -208,7 +229,7 @@ async function step(id,fn){
   currentCase=id;console.log('COOKIE_NATIVE_START '+id);
   report.cases[id]={status:'RUNNING',startedAt:new Date().toISOString()};await persist();
   try{const observations=await fn();await screenshot(id);report.cases[id]={status:'PASS',observations};}
-  catch(error){report.cases[id]={status:'FAIL',error:error.stack};try{await screenshot(id+'-failure');
+  catch(error){report.cases[id]={status:'FAIL',error:error.stack};try{if(side)await observeCookieFrames();await screenshot(id+'-failure');
     if(toolSession)report.cases[id].ui=await read(toolSession,'({text:document.body.innerText,active:document.activeElement?.id,scroll:scrollY,height:innerHeight,form:[...document.querySelectorAll("#editor-form input,#editor-form textarea,#editor-form button")].map(n=>({id:n.id,value:n.value,disabled:n.disabled,valid:n.validity?.valid,rect:{x:n.getBoundingClientRect().x,y:n.getBoundingClientRect().y}}))})');
   }catch(e){report.cases[id].screenshotError=e.message;}throw error;}
   finally{report.cases[id].finishedAt=new Date().toISOString();await writeFile(path.join(directory,id+'-receipt.json'),
@@ -251,6 +272,7 @@ try{
     report.launch=launched.metadata;guard();
     client=await connect(launched.endpoint,{onCommand:entry=>trace.push({at:new Date().toISOString(),...entry}),
       onEvent:entry=>{if(['Target.targetCreated','Target.targetDestroyed','Runtime.exceptionThrown'].includes(entry.method))trace.push(entry);}});
+    await client.send('Target.setDiscoverTargets',{discover:true});
     const version=await client.send('Browser.getVersion');assert(version.product.includes('Chrome/155.'),'Expected pinned CFT 155');
     const worker=await until(async()=> (await client.send('Target.getTargets')).targetInfos.find(t=>
       t.type==='service_worker'&&t.url.startsWith('chrome-extension://')&&t.url.endsWith('/sw.js')),'Candidate MV3 worker',20000);
@@ -264,6 +286,7 @@ try{
     const context=await until(async()=> (await read(control,"chrome.runtime.getContexts({contextTypes:['SIDE_PANEL']})"))
       .find(c=>c.documentId&&c.documentUrl.startsWith('chrome-extension://'+report.extensionId+'/ui/tool.html')),'Actual SIDE_PANEL context');
     const targetInfo=await until(async()=> (await client.send('Target.getTargets')).targetInfos.find(t=>t.url===context.documentUrl),'Actual Side Panel CDP target');
+    sideTargetId=targetInfo.targetId;
     side=await attach(targetInfo);report.sidePanelContext=context;
     await click(side,'#tab-tools');return {context,targetInfo};
   });
@@ -304,18 +327,11 @@ try{
     await click(side,'[data-cookie-capability="read"]');
     const grant=await until(()=>read(side,'(()=>{const n=document.querySelector("[data-cookie-capability=read]");return n?.dataset.enabled==="true"?{enabled:n.dataset.enabled,text:n.textContent}:null;})()'),'Real trusted read grant',10000);
     await screenshot('read-grant-settings');await click(side,'#sidebar-tool-settings-open');
-    const frame=await until(async()=>{
-      const targets=(await client.send('Target.getTargets')).targetInfos;
-      for(const target of targets.filter(t=>t.type==='iframe'&&t.url.includes('/sidebar-tools/sandbox.html'))){
-        const session=await attach(target);
-        if(await read(session,'Boolean(document.querySelector(".cookie-app"))'))return {target,session};
-      }
-      return null;
-    },'Actual Cookie sandbox iframe');
-    report.sandbox=frame.target;
-    toolSession=frame.session;
-    const ui=await until(()=>read(frame.session,'(()=>{const n=document.querySelector("#browser-state"),create=document.querySelector("#live-new"),filters=document.querySelector("#live-filters");return n?.hidden===true&&create&&!create.disabled&&filters&&!filters.hidden?{statusHidden:n.hidden,newEnabled:!create.disabled,filtersVisible:!filters.hidden,heading:document.querySelector("#browser-state-heading")?.textContent,detail:document.querySelector("#browser-state-detail")?.textContent,count:document.querySelector("#live-count")?.textContent,host:document.querySelector("#site-host")?.textContent}:null;})()'),'Granted Cookie metadata UI ready');
-    assert(ui.host.includes('127.0.0.1'));return {permissions,grant,ui,sandbox:frame.target};
+    const target=await bindCookieFrame();
+    report.sandbox=target;
+    await observeCookieFrames();
+    const ui=await until(()=>read(toolSession,'(()=>{const n=document.querySelector("#browser-state"),create=document.querySelector("#live-new"),filters=document.querySelector("#live-filters");return n?.hidden===true&&create&&!create.disabled&&filters&&!filters.hidden?{statusHidden:n.hidden,newEnabled:!create.disabled,filtersVisible:!filters.hidden,heading:document.querySelector("#browser-state-heading")?.textContent,detail:document.querySelector("#browser-state-detail")?.textContent,count:document.querySelector("#live-count")?.textContent,host:document.querySelector("#site-host")?.textContent}:null;})()'),'Granted Cookie metadata UI ready');
+    assert(ui.host.includes('127.0.0.1'));return {permissions,grant,ui,sandbox:target};
   });
   await step('write-grant',async()=>{await grant('write');return {capability:'write',cookies:await cookies()};});
   if(process.env.COOKIE_NATIVE_SUITE!=='extended'||process.env.COOKIE_NATIVE_STAGE==='all'){

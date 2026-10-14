@@ -1,0 +1,6564 @@
+[
+  {
+    "at": "2026-10-14T07:06:15.710Z",
+    "phase": "send",
+    "id": 1,
+    "method": "Target.setDiscoverTargets",
+    "timeoutMs": 15000
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "204AA3B3EC7F8207FFB1D6AC21CD7E22",
+        "type": "browser_ui",
+        "title": "",
+        "url": "chrome://omnibox-popup.top-chrome/",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "8B4B6A50CF588CC47FF1632A46A625CB"
+      }
+    }
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "9A5F69484AC18FE017EE157909D33C52",
+        "type": "browser_ui",
+        "title": "",
+        "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "8B4B6A50CF588CC47FF1632A46A625CB"
+      }
+    }
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "ED88AADD2F459519E701C0BD41E9B0E4",
+        "type": "browser_ui",
+        "title": "chrome://webui-toolbar.top-chrome",
+        "url": "chrome://webui-toolbar.top-chrome/",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "8B4B6A50CF588CC47FF1632A46A625CB"
+      }
+    }
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "F41DBF8486A46B6B1F91FA1AD0D6F2B2",
+        "type": "page",
+        "title": "about:blank",
+        "url": "about:blank",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "8B4B6A50CF588CC47FF1632A46A625CB"
+      }
+    }
+  },
+  {
+    "at": "2026-10-14T07:06:15.735Z",
+    "phase": "reply",
+    "id": 1,
+    "method": "Target.setDiscoverTargets"
+  },
+  {
+    "at": "2026-10-14T07:06:15.735Z",
+    "phase": "send",
+    "id": 2,
+    "method": "Browser.getVersion",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:15.745Z",
+    "phase": "reply",
+    "id": 2,
+    "method": "Browser.getVersion"
+  },
+  {
+    "at": "2026-10-14T07:06:15.746Z",
+    "phase": "send",
+    "id": 3,
+    "method": "Target.getTargets",
+    "timeoutMs": 15000
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "38567161824DD138472A5EAC0765C4BD",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/thunk.js",
+        "url": "chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/thunk.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "8B4B6A50CF588CC47FF1632A46A625CB"
+      }
+    }
+  },
+  {
+    "at": "2026-10-14T07:06:15.756Z",
+    "phase": "reply",
+    "id": 3,
+    "method": "Target.getTargets"
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "9AC62332C4756F5258954137AAD1066B",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+        "url": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "8B4B6A50CF588CC47FF1632A46A625CB"
+      }
+    }
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "A6574B93045A0CBB785D71710828DFC1",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://glmbcklmpoghobhibkjkehciogiakmma/sw.js",
+        "url": "chrome-extension://glmbcklmpoghobhibkjkehciogiakmma/sw.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "8B4B6A50CF588CC47FF1632A46A625CB"
+      }
+    }
+  },
+  {
+    "at": "2026-10-14T07:06:15.907Z",
+    "phase": "send",
+    "id": 4,
+    "method": "Target.getTargets",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:15.907Z",
+    "phase": "reply",
+    "id": 4,
+    "method": "Target.getTargets"
+  },
+  {
+    "at": "2026-10-14T07:06:15.909Z",
+    "phase": "send",
+    "id": 5,
+    "method": "Target.createTarget",
+    "timeoutMs": 15000
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "CE226D2059778C703B189BE5227925A6",
+        "type": "page",
+        "title": "",
+        "url": "chrome-extension://glmbcklmpoghobhibkjkehciogiakmma/ui/tool.html?hostInstanceId=8ee6b7e9-b825-438a-98ab-1378d065f688",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "8B4B6A50CF588CC47FF1632A46A625CB"
+      }
+    }
+  },
+  {
+    "at": "2026-10-14T07:06:15.938Z",
+    "phase": "reply",
+    "id": 5,
+    "method": "Target.createTarget"
+  },
+  {
+    "at": "2026-10-14T07:06:15.938Z",
+    "phase": "send",
+    "id": 6,
+    "method": "Target.attachToTarget",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:15.945Z",
+    "phase": "reply",
+    "id": 6,
+    "method": "Target.attachToTarget"
+  },
+  {
+    "at": "2026-10-14T07:06:15.945Z",
+    "phase": "send",
+    "id": 7,
+    "method": "Runtime.enable",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:15.953Z",
+    "phase": "reply",
+    "id": 7,
+    "method": "Runtime.enable",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817"
+  },
+  {
+    "at": "2026-10-14T07:06:15.953Z",
+    "phase": "send",
+    "id": 8,
+    "method": "Page.enable",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:15.968Z",
+    "phase": "reply",
+    "id": 8,
+    "method": "Page.enable",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817"
+  },
+  {
+    "at": "2026-10-14T07:06:16.019Z",
+    "phase": "send",
+    "id": 9,
+    "method": "Runtime.evaluate",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:16.056Z",
+    "phase": "reply",
+    "id": 9,
+    "method": "Runtime.evaluate",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817"
+  },
+  {
+    "at": "2026-10-14T07:06:16.255Z",
+    "phase": "send",
+    "id": 10,
+    "method": "Runtime.evaluate",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:16.257Z",
+    "phase": "reply",
+    "id": 10,
+    "method": "Runtime.evaluate",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817"
+  },
+  {
+    "at": "2026-10-14T07:06:16.463Z",
+    "phase": "send",
+    "id": 11,
+    "method": "Runtime.evaluate",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:16.464Z",
+    "phase": "reply",
+    "id": 11,
+    "method": "Runtime.evaluate",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817"
+  },
+  {
+    "at": "2026-10-14T07:06:16.508Z",
+    "phase": "send",
+    "id": 12,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:16.514Z",
+    "phase": "reply",
+    "id": 12,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817"
+  },
+  {
+    "at": "2026-10-14T07:06:16.514Z",
+    "phase": "send",
+    "id": 13,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817",
+    "timeoutMs": 15000
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "B071DE9035E5376E75B1988861588DAC",
+        "type": "other",
+        "title": "",
+        "url": "",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "8B4B6A50CF588CC47FF1632A46A625CB"
+      }
+    }
+  },
+  {
+    "at": "2026-10-14T07:06:16.532Z",
+    "phase": "reply",
+    "id": 13,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817"
+  },
+  {
+    "at": "2026-10-14T07:06:16.587Z",
+    "phase": "send",
+    "id": 14,
+    "method": "Runtime.evaluate",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:16.592Z",
+    "phase": "reply",
+    "id": 14,
+    "method": "Runtime.evaluate",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817"
+  },
+  {
+    "at": "2026-10-14T07:06:16.592Z",
+    "phase": "send",
+    "id": 15,
+    "method": "Target.getTargets",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:16.593Z",
+    "phase": "reply",
+    "id": 15,
+    "method": "Target.getTargets"
+  },
+  {
+    "at": "2026-10-14T07:06:16.593Z",
+    "phase": "send",
+    "id": 16,
+    "method": "Target.attachToTarget",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:16.597Z",
+    "phase": "reply",
+    "id": 16,
+    "method": "Target.attachToTarget"
+  },
+  {
+    "at": "2026-10-14T07:06:16.597Z",
+    "phase": "send",
+    "id": 17,
+    "method": "Runtime.enable",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:16.601Z",
+    "phase": "reply",
+    "id": 17,
+    "method": "Runtime.enable",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:16.601Z",
+    "phase": "send",
+    "id": 18,
+    "method": "Page.enable",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:16.606Z",
+    "phase": "reply",
+    "id": 18,
+    "method": "Page.enable",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:16.661Z",
+    "phase": "send",
+    "id": 19,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:16.663Z",
+    "phase": "reply",
+    "id": 19,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:16.862Z",
+    "phase": "send",
+    "id": 20,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:16.864Z",
+    "phase": "reply",
+    "id": 20,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:16.912Z",
+    "phase": "send",
+    "id": 21,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:16.913Z",
+    "phase": "reply",
+    "id": 21,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:16.914Z",
+    "phase": "send",
+    "id": 22,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:16.917Z",
+    "phase": "reply",
+    "id": 22,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:16.965Z",
+    "phase": "send",
+    "id": 23,
+    "method": "Page.captureScreenshot",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:16.995Z",
+    "phase": "reply",
+    "id": 23,
+    "method": "Page.captureScreenshot",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:17.043Z",
+    "phase": "send",
+    "id": 24,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:17.044Z",
+    "phase": "reply",
+    "id": 24,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:17.255Z",
+    "phase": "send",
+    "id": 25,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:17.255Z",
+    "phase": "reply",
+    "id": 25,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:17.301Z",
+    "phase": "send",
+    "id": 26,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:17.302Z",
+    "phase": "reply",
+    "id": 26,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:17.302Z",
+    "phase": "send",
+    "id": 27,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:17.307Z",
+    "phase": "reply",
+    "id": 27,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:17.351Z",
+    "phase": "send",
+    "id": 28,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:17.351Z",
+    "phase": "reply",
+    "id": 28,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:17.568Z",
+    "phase": "send",
+    "id": 29,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:17.569Z",
+    "phase": "reply",
+    "id": 29,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:17.614Z",
+    "phase": "send",
+    "id": 30,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:17.616Z",
+    "phase": "reply",
+    "id": 30,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:17.616Z",
+    "phase": "send",
+    "id": 31,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:17.618Z",
+    "phase": "reply",
+    "id": 31,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:17.662Z",
+    "phase": "send",
+    "id": 32,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:17.663Z",
+    "phase": "reply",
+    "id": 32,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:17.707Z",
+    "phase": "send",
+    "id": 33,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:17.708Z",
+    "phase": "reply",
+    "id": 33,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:17.752Z",
+    "phase": "send",
+    "id": 34,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:17.753Z",
+    "phase": "reply",
+    "id": 34,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:17.961Z",
+    "phase": "send",
+    "id": 35,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:17.962Z",
+    "phase": "reply",
+    "id": 35,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:18.007Z",
+    "phase": "send",
+    "id": 36,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:18.008Z",
+    "phase": "reply",
+    "id": 36,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:18.009Z",
+    "phase": "send",
+    "id": 37,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:18.011Z",
+    "phase": "reply",
+    "id": 37,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:18.055Z",
+    "phase": "send",
+    "id": 38,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:18.055Z",
+    "phase": "reply",
+    "id": 38,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:18.100Z",
+    "phase": "send",
+    "id": 39,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:18.101Z",
+    "phase": "reply",
+    "id": 39,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:18.145Z",
+    "phase": "send",
+    "id": 40,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:18.145Z",
+    "phase": "reply",
+    "id": 40,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:18.342Z",
+    "phase": "send",
+    "id": 41,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:18.342Z",
+    "phase": "reply",
+    "id": 41,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:18.386Z",
+    "phase": "send",
+    "id": 42,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:18.387Z",
+    "phase": "reply",
+    "id": 42,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:18.387Z",
+    "phase": "send",
+    "id": 43,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:18.391Z",
+    "phase": "reply",
+    "id": 43,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:18.437Z",
+    "phase": "send",
+    "id": 44,
+    "method": "Page.captureScreenshot",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "561A33673E2052C4E6153E7A2FF3C801",
+        "type": "iframe",
+        "title": "",
+        "url": "",
+        "attached": false,
+        "parentId": "B071DE9035E5376E75B1988861588DAC",
+        "canAccessOpener": false,
+        "parentFrameId": "B071DE9035E5376E75B1988861588DAC",
+        "browserContextId": "8B4B6A50CF588CC47FF1632A46A625CB"
+      }
+    }
+  },
+  {
+    "at": "2026-10-14T07:06:18.474Z",
+    "phase": "reply",
+    "id": 44,
+    "method": "Page.captureScreenshot",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:18.476Z",
+    "phase": "send",
+    "id": 45,
+    "method": "Target.createTarget",
+    "timeoutMs": 15000
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "B8AFAC2F0B3C5739327502A2E0F42B26",
+        "type": "page",
+        "title": "",
+        "url": "http://127.0.0.1:43111/demo-form.html",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "8B4B6A50CF588CC47FF1632A46A625CB"
+      }
+    }
+  },
+  {
+    "at": "2026-10-14T07:06:18.496Z",
+    "phase": "reply",
+    "id": 45,
+    "method": "Target.createTarget"
+  },
+  {
+    "at": "2026-10-14T07:06:18.496Z",
+    "phase": "send",
+    "id": 46,
+    "method": "Target.attachToTarget",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:18.500Z",
+    "phase": "reply",
+    "id": 46,
+    "method": "Target.attachToTarget"
+  },
+  {
+    "at": "2026-10-14T07:06:18.500Z",
+    "phase": "send",
+    "id": 47,
+    "method": "Runtime.enable",
+    "sessionId": "5A4918A72106F03499B3F2B30FF3ACE0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:18.514Z",
+    "phase": "reply",
+    "id": 47,
+    "method": "Runtime.enable",
+    "sessionId": "5A4918A72106F03499B3F2B30FF3ACE0"
+  },
+  {
+    "at": "2026-10-14T07:06:18.514Z",
+    "phase": "send",
+    "id": 48,
+    "method": "Page.enable",
+    "sessionId": "5A4918A72106F03499B3F2B30FF3ACE0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:18.557Z",
+    "phase": "reply",
+    "id": 48,
+    "method": "Page.enable",
+    "sessionId": "5A4918A72106F03499B3F2B30FF3ACE0"
+  },
+  {
+    "at": "2026-10-14T07:06:18.558Z",
+    "phase": "send",
+    "id": 49,
+    "method": "Target.activateTarget",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:18.562Z",
+    "phase": "reply",
+    "id": 49,
+    "method": "Target.activateTarget"
+  },
+  {
+    "at": "2026-10-14T07:06:18.612Z",
+    "phase": "send",
+    "id": 50,
+    "method": "Runtime.evaluate",
+    "sessionId": "5A4918A72106F03499B3F2B30FF3ACE0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:18.613Z",
+    "phase": "reply",
+    "id": 50,
+    "method": "Runtime.evaluate",
+    "sessionId": "5A4918A72106F03499B3F2B30FF3ACE0"
+  },
+  {
+    "at": "2026-10-14T07:06:18.660Z",
+    "phase": "send",
+    "id": 51,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:18.660Z",
+    "phase": "reply",
+    "id": 51,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:18.861Z",
+    "phase": "send",
+    "id": 52,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:18.862Z",
+    "phase": "reply",
+    "id": 52,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:18.908Z",
+    "phase": "send",
+    "id": 53,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:18.910Z",
+    "phase": "reply",
+    "id": 53,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:18.910Z",
+    "phase": "send",
+    "id": 54,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:18.916Z",
+    "phase": "reply",
+    "id": 54,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:18.962Z",
+    "phase": "send",
+    "id": 55,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:18.963Z",
+    "phase": "reply",
+    "id": 55,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:19.007Z",
+    "phase": "send",
+    "id": 56,
+    "method": "Runtime.evaluate",
+    "sessionId": "5A4918A72106F03499B3F2B30FF3ACE0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:19.008Z",
+    "phase": "reply",
+    "id": 56,
+    "method": "Runtime.evaluate",
+    "sessionId": "5A4918A72106F03499B3F2B30FF3ACE0"
+  },
+  {
+    "at": "2026-10-14T07:06:19.051Z",
+    "phase": "send",
+    "id": 57,
+    "method": "Page.captureScreenshot",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:19.077Z",
+    "phase": "reply",
+    "id": 57,
+    "method": "Page.captureScreenshot",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:19.123Z",
+    "phase": "send",
+    "id": 58,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:19.124Z",
+    "phase": "reply",
+    "id": 58,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:19.170Z",
+    "phase": "send",
+    "id": 59,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:19.170Z",
+    "phase": "reply",
+    "id": 59,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:19.386Z",
+    "phase": "send",
+    "id": 60,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:19.387Z",
+    "phase": "reply",
+    "id": 60,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:19.432Z",
+    "phase": "send",
+    "id": 61,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:19.433Z",
+    "phase": "reply",
+    "id": 61,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:19.433Z",
+    "phase": "send",
+    "id": 62,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:19.435Z",
+    "phase": "reply",
+    "id": 62,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:19.481Z",
+    "phase": "send",
+    "id": 63,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:19.482Z",
+    "phase": "reply",
+    "id": 63,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:19.527Z",
+    "phase": "send",
+    "id": 64,
+    "method": "Page.captureScreenshot",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:19.554Z",
+    "phase": "reply",
+    "id": 64,
+    "method": "Page.captureScreenshot",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:19.599Z",
+    "phase": "send",
+    "id": 65,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:19.599Z",
+    "phase": "reply",
+    "id": 65,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:19.813Z",
+    "phase": "send",
+    "id": 66,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:19.813Z",
+    "phase": "reply",
+    "id": 66,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:19.858Z",
+    "phase": "send",
+    "id": 67,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:19.859Z",
+    "phase": "reply",
+    "id": 67,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:19.859Z",
+    "phase": "send",
+    "id": 68,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:19.861Z",
+    "phase": "reply",
+    "id": 68,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:19.861Z",
+    "phase": "send",
+    "id": 69,
+    "method": "Target.getTargets",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:19.862Z",
+    "phase": "reply",
+    "id": 69,
+    "method": "Target.getTargets"
+  },
+  {
+    "at": "2026-10-14T07:06:19.862Z",
+    "phase": "send",
+    "id": 70,
+    "method": "Target.attachToTarget",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:19.862Z",
+    "phase": "reply",
+    "id": 70,
+    "method": "Target.attachToTarget"
+  },
+  {
+    "at": "2026-10-14T07:06:19.862Z",
+    "phase": "send",
+    "id": 71,
+    "method": "Runtime.enable",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:19.863Z",
+    "phase": "reply",
+    "id": 71,
+    "method": "Runtime.enable",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F"
+  },
+  {
+    "at": "2026-10-14T07:06:19.863Z",
+    "phase": "send",
+    "id": 72,
+    "method": "Page.enable",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:19.863Z",
+    "phase": "reply",
+    "id": 72,
+    "method": "Page.enable",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F"
+  },
+  {
+    "at": "2026-10-14T07:06:19.908Z",
+    "phase": "send",
+    "id": 73,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:19.909Z",
+    "phase": "reply",
+    "id": 73,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F"
+  },
+  {
+    "at": "2026-10-14T07:06:19.954Z",
+    "phase": "send",
+    "id": 74,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:19.954Z",
+    "phase": "reply",
+    "id": 74,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:19.954Z",
+    "phase": "send",
+    "id": 75,
+    "method": "Page.getFrameTree",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:19.955Z",
+    "phase": "reply",
+    "id": 75,
+    "method": "Page.getFrameTree",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:19.955Z",
+    "phase": "send",
+    "id": 76,
+    "method": "Target.getTargets",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:19.955Z",
+    "phase": "reply",
+    "id": 76,
+    "method": "Target.getTargets"
+  },
+  {
+    "at": "2026-10-14T07:06:19.955Z",
+    "phase": "send",
+    "id": 77,
+    "method": "Target.attachToTarget",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:19.956Z",
+    "phase": "reply",
+    "id": 77,
+    "method": "Target.attachToTarget"
+  },
+  {
+    "at": "2026-10-14T07:06:19.956Z",
+    "phase": "send",
+    "id": 78,
+    "method": "Runtime.enable",
+    "sessionId": "E57B0E5623CD2FAAB379C793477B7BD5",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:19.956Z",
+    "phase": "reply",
+    "id": 78,
+    "method": "Runtime.enable",
+    "sessionId": "E57B0E5623CD2FAAB379C793477B7BD5"
+  },
+  {
+    "at": "2026-10-14T07:06:19.956Z",
+    "phase": "send",
+    "id": 79,
+    "method": "Page.enable",
+    "sessionId": "E57B0E5623CD2FAAB379C793477B7BD5",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:19.956Z",
+    "phase": "reply",
+    "id": 79,
+    "method": "Page.enable",
+    "sessionId": "E57B0E5623CD2FAAB379C793477B7BD5"
+  },
+  {
+    "at": "2026-10-14T07:06:20.000Z",
+    "phase": "send",
+    "id": 80,
+    "method": "Runtime.evaluate",
+    "sessionId": "E57B0E5623CD2FAAB379C793477B7BD5",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:20.001Z",
+    "phase": "reply",
+    "id": 80,
+    "method": "Runtime.evaluate",
+    "sessionId": "E57B0E5623CD2FAAB379C793477B7BD5"
+  },
+  {
+    "at": "2026-10-14T07:06:20.044Z",
+    "phase": "send",
+    "id": 81,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:20.045Z",
+    "phase": "reply",
+    "id": 81,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F"
+  },
+  {
+    "at": "2026-10-14T07:06:20.087Z",
+    "phase": "send",
+    "id": 82,
+    "method": "Page.captureScreenshot",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:20.120Z",
+    "phase": "reply",
+    "id": 82,
+    "method": "Page.captureScreenshot",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:20.167Z",
+    "phase": "send",
+    "id": 83,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:20.168Z",
+    "phase": "reply",
+    "id": 83,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:20.385Z",
+    "phase": "send",
+    "id": 84,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:20.386Z",
+    "phase": "reply",
+    "id": 84,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:20.432Z",
+    "phase": "send",
+    "id": 85,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:20.433Z",
+    "phase": "reply",
+    "id": 85,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:20.433Z",
+    "phase": "send",
+    "id": 86,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:20.434Z",
+    "phase": "reply",
+    "id": 86,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:20.478Z",
+    "phase": "send",
+    "id": 87,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:20.479Z",
+    "phase": "reply",
+    "id": 87,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:20.693Z",
+    "phase": "send",
+    "id": 88,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:20.694Z",
+    "phase": "reply",
+    "id": 88,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:20.740Z",
+    "phase": "send",
+    "id": 89,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:20.741Z",
+    "phase": "reply",
+    "id": 89,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:20.741Z",
+    "phase": "send",
+    "id": 90,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:20.742Z",
+    "phase": "reply",
+    "id": 90,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:20.785Z",
+    "phase": "send",
+    "id": 91,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:20.786Z",
+    "phase": "reply",
+    "id": 91,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:20.831Z",
+    "phase": "send",
+    "id": 92,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:20.832Z",
+    "phase": "reply",
+    "id": 92,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:21.048Z",
+    "phase": "send",
+    "id": 93,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:21.049Z",
+    "phase": "reply",
+    "id": 93,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:21.093Z",
+    "phase": "send",
+    "id": 94,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:21.094Z",
+    "phase": "reply",
+    "id": 94,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:21.094Z",
+    "phase": "send",
+    "id": 95,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:21.095Z",
+    "phase": "reply",
+    "id": 95,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:21.139Z",
+    "phase": "send",
+    "id": 96,
+    "method": "Runtime.evaluate",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:21.140Z",
+    "phase": "reply",
+    "id": 96,
+    "method": "Runtime.evaluate",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817"
+  },
+  {
+    "at": "2026-10-14T07:06:21.184Z",
+    "phase": "send",
+    "id": 97,
+    "method": "Page.captureScreenshot",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:21.211Z",
+    "phase": "reply",
+    "id": 97,
+    "method": "Page.captureScreenshot",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:21.258Z",
+    "phase": "send",
+    "id": 98,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:21.259Z",
+    "phase": "reply",
+    "id": 98,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F"
+  },
+  {
+    "at": "2026-10-14T07:06:21.303Z",
+    "phase": "send",
+    "id": 99,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:21.304Z",
+    "phase": "reply",
+    "id": 99,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:21.508Z",
+    "phase": "send",
+    "id": 100,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:21.508Z",
+    "phase": "reply",
+    "id": 100,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F"
+  },
+  {
+    "at": "2026-10-14T07:06:21.551Z",
+    "phase": "send",
+    "id": 101,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:21.551Z",
+    "phase": "reply",
+    "id": 101,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:21.594Z",
+    "phase": "send",
+    "id": 102,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:21.595Z",
+    "phase": "reply",
+    "id": 102,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:21.595Z",
+    "phase": "send",
+    "id": 103,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:21.599Z",
+    "phase": "reply",
+    "id": 103,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:21.643Z",
+    "phase": "send",
+    "id": 104,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:21.643Z",
+    "phase": "reply",
+    "id": 104,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F"
+  },
+  {
+    "at": "2026-10-14T07:06:21.690Z",
+    "phase": "send",
+    "id": 105,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:21.691Z",
+    "phase": "reply",
+    "id": 105,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F"
+  },
+  {
+    "at": "2026-10-14T07:06:21.739Z",
+    "phase": "send",
+    "id": 106,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:21.740Z",
+    "phase": "reply",
+    "id": 106,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:21.947Z",
+    "phase": "send",
+    "id": 107,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:21.948Z",
+    "phase": "reply",
+    "id": 107,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F"
+  },
+  {
+    "at": "2026-10-14T07:06:21.992Z",
+    "phase": "send",
+    "id": 108,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:21.993Z",
+    "phase": "reply",
+    "id": 108,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:22.202Z",
+    "phase": "send",
+    "id": 109,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:22.202Z",
+    "phase": "reply",
+    "id": 109,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F"
+  },
+  {
+    "at": "2026-10-14T07:06:22.248Z",
+    "phase": "send",
+    "id": 110,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:22.248Z",
+    "phase": "reply",
+    "id": 110,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:22.469Z",
+    "phase": "send",
+    "id": 111,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:22.470Z",
+    "phase": "reply",
+    "id": 111,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F"
+  },
+  {
+    "at": "2026-10-14T07:06:22.519Z",
+    "phase": "send",
+    "id": 112,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:22.520Z",
+    "phase": "reply",
+    "id": 112,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:22.564Z",
+    "phase": "send",
+    "id": 113,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:22.566Z",
+    "phase": "reply",
+    "id": 113,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:22.566Z",
+    "phase": "send",
+    "id": 114,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:22.568Z",
+    "phase": "reply",
+    "id": 114,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:22.611Z",
+    "phase": "send",
+    "id": 115,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:22.612Z",
+    "phase": "reply",
+    "id": 115,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F"
+  },
+  {
+    "at": "2026-10-14T07:06:22.656Z",
+    "phase": "send",
+    "id": 116,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:22.656Z",
+    "phase": "reply",
+    "id": 116,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F"
+  },
+  {
+    "at": "2026-10-14T07:06:22.656Z",
+    "phase": "send",
+    "id": 117,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:22.658Z",
+    "phase": "reply",
+    "id": 117,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:22.658Z",
+    "phase": "send",
+    "id": 118,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:22.659Z",
+    "phase": "reply",
+    "id": 118,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:22.659Z",
+    "phase": "send",
+    "id": 119,
+    "method": "Input.insertText",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:22.661Z",
+    "phase": "reply",
+    "id": 119,
+    "method": "Input.insertText",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:22.705Z",
+    "phase": "send",
+    "id": 120,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:22.705Z",
+    "phase": "reply",
+    "id": 120,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F"
+  },
+  {
+    "at": "2026-10-14T07:06:22.749Z",
+    "phase": "send",
+    "id": 121,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:22.750Z",
+    "phase": "reply",
+    "id": 121,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F"
+  },
+  {
+    "at": "2026-10-14T07:06:22.793Z",
+    "phase": "send",
+    "id": 122,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:22.794Z",
+    "phase": "reply",
+    "id": 122,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:23.005Z",
+    "phase": "send",
+    "id": 123,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:23.006Z",
+    "phase": "reply",
+    "id": 123,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F"
+  },
+  {
+    "at": "2026-10-14T07:06:23.049Z",
+    "phase": "send",
+    "id": 124,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:23.050Z",
+    "phase": "reply",
+    "id": 124,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:23.093Z",
+    "phase": "send",
+    "id": 125,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:23.094Z",
+    "phase": "reply",
+    "id": 125,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:23.094Z",
+    "phase": "send",
+    "id": 126,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:23.095Z",
+    "phase": "reply",
+    "id": 126,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:23.139Z",
+    "phase": "send",
+    "id": 127,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:23.140Z",
+    "phase": "reply",
+    "id": 127,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F"
+  },
+  {
+    "at": "2026-10-14T07:06:23.183Z",
+    "phase": "send",
+    "id": 128,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:23.183Z",
+    "phase": "reply",
+    "id": 128,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F"
+  },
+  {
+    "at": "2026-10-14T07:06:23.183Z",
+    "phase": "send",
+    "id": 129,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:23.184Z",
+    "phase": "reply",
+    "id": 129,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:23.184Z",
+    "phase": "send",
+    "id": 130,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:23.184Z",
+    "phase": "reply",
+    "id": 130,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:23.184Z",
+    "phase": "send",
+    "id": 131,
+    "method": "Input.insertText",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:23.186Z",
+    "phase": "reply",
+    "id": 131,
+    "method": "Input.insertText",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:23.230Z",
+    "phase": "send",
+    "id": 132,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:23.230Z",
+    "phase": "reply",
+    "id": 132,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F"
+  },
+  {
+    "at": "2026-10-14T07:06:23.274Z",
+    "phase": "send",
+    "id": 133,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:23.274Z",
+    "phase": "reply",
+    "id": 133,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F"
+  },
+  {
+    "at": "2026-10-14T07:06:23.317Z",
+    "phase": "send",
+    "id": 134,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:23.317Z",
+    "phase": "reply",
+    "id": 134,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:23.317Z",
+    "phase": "send",
+    "id": 135,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:23.318Z",
+    "phase": "reply",
+    "id": 135,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:23.782Z",
+    "phase": "send",
+    "id": 136,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:23.783Z",
+    "phase": "reply",
+    "id": 136,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F"
+  },
+  {
+    "at": "2026-10-14T07:06:23.827Z",
+    "phase": "send",
+    "id": 137,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:23.827Z",
+    "phase": "reply",
+    "id": 137,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:23.827Z",
+    "phase": "send",
+    "id": 138,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:23.828Z",
+    "phase": "reply",
+    "id": 138,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:24.312Z",
+    "phase": "send",
+    "id": 139,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:24.313Z",
+    "phase": "reply",
+    "id": 139,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F"
+  },
+  {
+    "at": "2026-10-14T07:06:24.357Z",
+    "phase": "send",
+    "id": 140,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:24.358Z",
+    "phase": "reply",
+    "id": 140,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:24.358Z",
+    "phase": "send",
+    "id": 141,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:24.358Z",
+    "phase": "reply",
+    "id": 141,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:24.845Z",
+    "phase": "send",
+    "id": 142,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:24.846Z",
+    "phase": "reply",
+    "id": 142,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F"
+  },
+  {
+    "at": "2026-10-14T07:06:24.890Z",
+    "phase": "send",
+    "id": 143,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:24.891Z",
+    "phase": "reply",
+    "id": 143,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:25.109Z",
+    "phase": "send",
+    "id": 144,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:25.109Z",
+    "phase": "reply",
+    "id": 144,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F"
+  },
+  {
+    "at": "2026-10-14T07:06:25.154Z",
+    "phase": "send",
+    "id": 145,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:25.155Z",
+    "phase": "reply",
+    "id": 145,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:25.199Z",
+    "phase": "send",
+    "id": 146,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:25.200Z",
+    "phase": "reply",
+    "id": 146,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:25.200Z",
+    "phase": "send",
+    "id": 147,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:25.202Z",
+    "phase": "reply",
+    "id": 147,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:25.247Z",
+    "phase": "send",
+    "id": 148,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:25.247Z",
+    "phase": "reply",
+    "id": 148,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F"
+  },
+  {
+    "at": "2026-10-14T07:06:25.289Z",
+    "phase": "send",
+    "id": 149,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:25.290Z",
+    "phase": "reply",
+    "id": 149,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:25.334Z",
+    "phase": "send",
+    "id": 150,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:25.335Z",
+    "phase": "reply",
+    "id": 150,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:25.378Z",
+    "phase": "send",
+    "id": 151,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:25.379Z",
+    "phase": "reply",
+    "id": 151,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:25.595Z",
+    "phase": "send",
+    "id": 152,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:25.596Z",
+    "phase": "reply",
+    "id": 152,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:25.643Z",
+    "phase": "send",
+    "id": 153,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:25.644Z",
+    "phase": "reply",
+    "id": 153,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:25.644Z",
+    "phase": "send",
+    "id": 154,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:25.645Z",
+    "phase": "reply",
+    "id": 154,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:25.690Z",
+    "phase": "send",
+    "id": 155,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:25.690Z",
+    "phase": "reply",
+    "id": 155,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F"
+  },
+  {
+    "at": "2026-10-14T07:06:25.736Z",
+    "phase": "send",
+    "id": 156,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:25.736Z",
+    "phase": "reply",
+    "id": 156,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F"
+  },
+  {
+    "at": "2026-10-14T07:06:25.952Z",
+    "phase": "send",
+    "id": 157,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:25.953Z",
+    "phase": "reply",
+    "id": 157,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F"
+  },
+  {
+    "at": "2026-10-14T07:06:25.998Z",
+    "phase": "send",
+    "id": 158,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:25.999Z",
+    "phase": "reply",
+    "id": 158,
+    "method": "Runtime.evaluate",
+    "sessionId": "20188D1FB17CA1BFE256F40B2D4EBC2F"
+  },
+  {
+    "at": "2026-10-14T07:06:26.041Z",
+    "phase": "send",
+    "id": 159,
+    "method": "Runtime.evaluate",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:26.042Z",
+    "phase": "reply",
+    "id": 159,
+    "method": "Runtime.evaluate",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817"
+  },
+  {
+    "at": "2026-10-14T07:06:26.084Z",
+    "phase": "send",
+    "id": 160,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:26.085Z",
+    "phase": "reply",
+    "id": 160,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:26.301Z",
+    "phase": "send",
+    "id": 161,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:26.302Z",
+    "phase": "reply",
+    "id": 161,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:26.348Z",
+    "phase": "send",
+    "id": 162,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:26.349Z",
+    "phase": "reply",
+    "id": 162,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:26.349Z",
+    "phase": "send",
+    "id": 163,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "method": "Target.targetDestroyed",
+    "params": {
+      "targetId": "561A33673E2052C4E6153E7A2FF3C801"
+    }
+  },
+  {
+    "at": "2026-10-14T07:06:26.352Z",
+    "phase": "reply",
+    "id": 163,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:26.413Z",
+    "phase": "send",
+    "id": 164,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:26.414Z",
+    "phase": "reply",
+    "id": 164,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:26.467Z",
+    "phase": "send",
+    "id": 165,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:26.468Z",
+    "phase": "reply",
+    "id": 165,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:26.665Z",
+    "phase": "send",
+    "id": 166,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:26.666Z",
+    "phase": "reply",
+    "id": 166,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:26.711Z",
+    "phase": "send",
+    "id": 167,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:26.712Z",
+    "phase": "reply",
+    "id": 167,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:26.712Z",
+    "phase": "send",
+    "id": 168,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:26.715Z",
+    "phase": "reply",
+    "id": 168,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:26.715Z",
+    "phase": "send",
+    "id": 169,
+    "method": "Target.getTargets",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:26.715Z",
+    "phase": "reply",
+    "id": 169,
+    "method": "Target.getTargets"
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "66580216183A037A3C71938EB55057F7",
+        "type": "iframe",
+        "title": "",
+        "url": "",
+        "attached": false,
+        "parentId": "B071DE9035E5376E75B1988861588DAC",
+        "canAccessOpener": false,
+        "parentFrameId": "B071DE9035E5376E75B1988861588DAC",
+        "browserContextId": "8B4B6A50CF588CC47FF1632A46A625CB"
+      }
+    }
+  },
+  {
+    "at": "2026-10-14T07:06:26.866Z",
+    "phase": "send",
+    "id": 170,
+    "method": "Target.getTargets",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:26.867Z",
+    "phase": "reply",
+    "id": 170,
+    "method": "Target.getTargets"
+  },
+  {
+    "at": "2026-10-14T07:06:26.867Z",
+    "phase": "send",
+    "id": 171,
+    "method": "Target.attachToTarget",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:26.868Z",
+    "phase": "reply",
+    "id": 171,
+    "method": "Target.attachToTarget"
+  },
+  {
+    "at": "2026-10-14T07:06:26.868Z",
+    "phase": "send",
+    "id": 172,
+    "method": "Runtime.enable",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:26.875Z",
+    "phase": "reply",
+    "id": 172,
+    "method": "Runtime.enable",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:26.875Z",
+    "phase": "send",
+    "id": 173,
+    "method": "Page.enable",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:26.876Z",
+    "phase": "reply",
+    "id": 173,
+    "method": "Page.enable",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:26.926Z",
+    "phase": "send",
+    "id": 174,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:26.927Z",
+    "phase": "reply",
+    "id": 174,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:26.975Z",
+    "phase": "send",
+    "id": 175,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:26.976Z",
+    "phase": "reply",
+    "id": 175,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:27.022Z",
+    "phase": "send",
+    "id": 176,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:27.023Z",
+    "phase": "reply",
+    "id": 176,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:27.069Z",
+    "phase": "send",
+    "id": 177,
+    "method": "Runtime.evaluate",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:27.070Z",
+    "phase": "reply",
+    "id": 177,
+    "method": "Runtime.evaluate",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817"
+  },
+  {
+    "at": "2026-10-14T07:06:27.115Z",
+    "phase": "send",
+    "id": 178,
+    "method": "Page.captureScreenshot",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:27.153Z",
+    "phase": "reply",
+    "id": 178,
+    "method": "Page.captureScreenshot",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:27.203Z",
+    "phase": "send",
+    "id": 179,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:27.204Z",
+    "phase": "reply",
+    "id": 179,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:27.251Z",
+    "phase": "send",
+    "id": 180,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:27.252Z",
+    "phase": "reply",
+    "id": 180,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:27.449Z",
+    "phase": "send",
+    "id": 181,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:27.450Z",
+    "phase": "reply",
+    "id": 181,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:27.497Z",
+    "phase": "send",
+    "id": 182,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:27.497Z",
+    "phase": "reply",
+    "id": 182,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:27.551Z",
+    "phase": "send",
+    "id": 183,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:27.552Z",
+    "phase": "reply",
+    "id": 183,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:27.552Z",
+    "phase": "send",
+    "id": 184,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:27.555Z",
+    "phase": "reply",
+    "id": 184,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:27.606Z",
+    "phase": "send",
+    "id": 185,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:27.607Z",
+    "phase": "reply",
+    "id": 185,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:27.674Z",
+    "phase": "send",
+    "id": 186,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:27.675Z",
+    "phase": "reply",
+    "id": 186,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:27.728Z",
+    "phase": "send",
+    "id": 187,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:27.729Z",
+    "phase": "reply",
+    "id": 187,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:27.932Z",
+    "phase": "send",
+    "id": 188,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:27.933Z",
+    "phase": "reply",
+    "id": 188,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:27.986Z",
+    "phase": "send",
+    "id": 189,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:27.987Z",
+    "phase": "reply",
+    "id": 189,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:28.200Z",
+    "phase": "send",
+    "id": 190,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:28.201Z",
+    "phase": "reply",
+    "id": 190,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:28.250Z",
+    "phase": "send",
+    "id": 191,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:28.251Z",
+    "phase": "reply",
+    "id": 191,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:28.450Z",
+    "phase": "send",
+    "id": 192,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:28.450Z",
+    "phase": "reply",
+    "id": 192,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:28.500Z",
+    "phase": "send",
+    "id": 193,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:28.501Z",
+    "phase": "reply",
+    "id": 193,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:28.548Z",
+    "phase": "send",
+    "id": 194,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:28.549Z",
+    "phase": "reply",
+    "id": 194,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:28.549Z",
+    "phase": "send",
+    "id": 195,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:28.550Z",
+    "phase": "reply",
+    "id": 195,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:28.600Z",
+    "phase": "send",
+    "id": 196,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:28.600Z",
+    "phase": "reply",
+    "id": 196,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:28.648Z",
+    "phase": "send",
+    "id": 197,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:28.648Z",
+    "phase": "reply",
+    "id": 197,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:28.648Z",
+    "phase": "send",
+    "id": 198,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:28.649Z",
+    "phase": "reply",
+    "id": 198,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:28.649Z",
+    "phase": "send",
+    "id": 199,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:28.649Z",
+    "phase": "reply",
+    "id": 199,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:28.649Z",
+    "phase": "send",
+    "id": 200,
+    "method": "Input.insertText",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:28.650Z",
+    "phase": "reply",
+    "id": 200,
+    "method": "Input.insertText",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:28.704Z",
+    "phase": "send",
+    "id": 201,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:28.704Z",
+    "phase": "reply",
+    "id": 201,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:28.752Z",
+    "phase": "send",
+    "id": 202,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:28.753Z",
+    "phase": "reply",
+    "id": 202,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:28.798Z",
+    "phase": "send",
+    "id": 203,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:28.799Z",
+    "phase": "reply",
+    "id": 203,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:28.799Z",
+    "phase": "send",
+    "id": 204,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:28.800Z",
+    "phase": "reply",
+    "id": 204,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:29.275Z",
+    "phase": "send",
+    "id": 205,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:29.276Z",
+    "phase": "reply",
+    "id": 205,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:29.322Z",
+    "phase": "send",
+    "id": 206,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:29.322Z",
+    "phase": "reply",
+    "id": 206,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:29.526Z",
+    "phase": "send",
+    "id": 207,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:29.527Z",
+    "phase": "reply",
+    "id": 207,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:29.572Z",
+    "phase": "send",
+    "id": 208,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:29.572Z",
+    "phase": "reply",
+    "id": 208,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:29.616Z",
+    "phase": "send",
+    "id": 209,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:29.617Z",
+    "phase": "reply",
+    "id": 209,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:29.617Z",
+    "phase": "send",
+    "id": 210,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:29.618Z",
+    "phase": "reply",
+    "id": 210,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:29.663Z",
+    "phase": "send",
+    "id": 211,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:29.664Z",
+    "phase": "reply",
+    "id": 211,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:29.708Z",
+    "phase": "send",
+    "id": 212,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:29.708Z",
+    "phase": "reply",
+    "id": 212,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:29.708Z",
+    "phase": "send",
+    "id": 213,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:29.709Z",
+    "phase": "reply",
+    "id": 213,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:29.709Z",
+    "phase": "send",
+    "id": 214,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:29.709Z",
+    "phase": "reply",
+    "id": 214,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:29.709Z",
+    "phase": "send",
+    "id": 215,
+    "method": "Input.insertText",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:29.710Z",
+    "phase": "reply",
+    "id": 215,
+    "method": "Input.insertText",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:29.756Z",
+    "phase": "send",
+    "id": 216,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:29.756Z",
+    "phase": "reply",
+    "id": 216,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:29.802Z",
+    "phase": "send",
+    "id": 217,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:29.802Z",
+    "phase": "reply",
+    "id": 217,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:29.848Z",
+    "phase": "send",
+    "id": 218,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:29.849Z",
+    "phase": "reply",
+    "id": 218,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:29.849Z",
+    "phase": "send",
+    "id": 219,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:29.850Z",
+    "phase": "reply",
+    "id": 219,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:30.299Z",
+    "phase": "send",
+    "id": 220,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:30.299Z",
+    "phase": "reply",
+    "id": 220,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:30.345Z",
+    "phase": "send",
+    "id": 221,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:30.345Z",
+    "phase": "reply",
+    "id": 221,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:30.345Z",
+    "phase": "send",
+    "id": 222,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:30.346Z",
+    "phase": "reply",
+    "id": 222,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:30.810Z",
+    "phase": "send",
+    "id": 223,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:30.810Z",
+    "phase": "reply",
+    "id": 223,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:30.856Z",
+    "phase": "send",
+    "id": 224,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:30.857Z",
+    "phase": "reply",
+    "id": 224,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:31.058Z",
+    "phase": "send",
+    "id": 225,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:31.059Z",
+    "phase": "reply",
+    "id": 225,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:31.105Z",
+    "phase": "send",
+    "id": 226,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:31.106Z",
+    "phase": "reply",
+    "id": 226,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:31.152Z",
+    "phase": "send",
+    "id": 227,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:31.153Z",
+    "phase": "reply",
+    "id": 227,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:31.153Z",
+    "phase": "send",
+    "id": 228,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:31.155Z",
+    "phase": "reply",
+    "id": 228,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:31.203Z",
+    "phase": "send",
+    "id": 229,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:31.203Z",
+    "phase": "reply",
+    "id": 229,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:31.251Z",
+    "phase": "send",
+    "id": 230,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:31.252Z",
+    "phase": "reply",
+    "id": 230,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:31.299Z",
+    "phase": "send",
+    "id": 231,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:31.299Z",
+    "phase": "reply",
+    "id": 231,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:31.299Z",
+    "phase": "send",
+    "id": 232,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:31.300Z",
+    "phase": "reply",
+    "id": 232,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:31.499Z",
+    "phase": "send",
+    "id": 233,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:31.499Z",
+    "phase": "reply",
+    "id": 233,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:31.499Z",
+    "phase": "send",
+    "id": 234,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:31.500Z",
+    "phase": "reply",
+    "id": 234,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:31.699Z",
+    "phase": "send",
+    "id": 235,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:31.700Z",
+    "phase": "reply",
+    "id": 235,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:31.700Z",
+    "phase": "send",
+    "id": 236,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:31.701Z",
+    "phase": "reply",
+    "id": 236,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:31.902Z",
+    "phase": "send",
+    "id": 237,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:31.903Z",
+    "phase": "reply",
+    "id": 237,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:32.100Z",
+    "phase": "send",
+    "id": 238,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:32.101Z",
+    "phase": "reply",
+    "id": 238,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:32.144Z",
+    "phase": "send",
+    "id": 239,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:32.145Z",
+    "phase": "reply",
+    "id": 239,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:32.145Z",
+    "phase": "send",
+    "id": 240,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:32.147Z",
+    "phase": "reply",
+    "id": 240,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:32.193Z",
+    "phase": "send",
+    "id": 241,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:32.193Z",
+    "phase": "reply",
+    "id": 241,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:32.391Z",
+    "phase": "send",
+    "id": 242,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:32.392Z",
+    "phase": "reply",
+    "id": 242,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:32.435Z",
+    "phase": "send",
+    "id": 243,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:32.436Z",
+    "phase": "reply",
+    "id": 243,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:32.436Z",
+    "phase": "send",
+    "id": 244,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:32.437Z",
+    "phase": "reply",
+    "id": 244,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:32.482Z",
+    "phase": "send",
+    "id": 245,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:32.482Z",
+    "phase": "reply",
+    "id": 245,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:32.529Z",
+    "phase": "send",
+    "id": 246,
+    "method": "Runtime.evaluate",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:32.530Z",
+    "phase": "reply",
+    "id": 246,
+    "method": "Runtime.evaluate",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817"
+  },
+  {
+    "at": "2026-10-14T07:06:32.574Z",
+    "phase": "send",
+    "id": 247,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:32.575Z",
+    "phase": "reply",
+    "id": 247,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:32.619Z",
+    "phase": "send",
+    "id": 248,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:32.619Z",
+    "phase": "reply",
+    "id": 248,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:32.831Z",
+    "phase": "send",
+    "id": 249,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:32.832Z",
+    "phase": "reply",
+    "id": 249,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:32.875Z",
+    "phase": "send",
+    "id": 250,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:32.876Z",
+    "phase": "reply",
+    "id": 250,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:32.876Z",
+    "phase": "send",
+    "id": 251,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:32.877Z",
+    "phase": "reply",
+    "id": 251,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:33.203Z",
+    "phase": "send",
+    "id": 252,
+    "method": "Runtime.evaluate",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:33.204Z",
+    "phase": "reply",
+    "id": 252,
+    "method": "Runtime.evaluate",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817"
+  },
+  {
+    "at": "2026-10-14T07:06:33.250Z",
+    "phase": "send",
+    "id": 253,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:33.251Z",
+    "phase": "reply",
+    "id": 253,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:33.447Z",
+    "phase": "send",
+    "id": 254,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:33.448Z",
+    "phase": "reply",
+    "id": 254,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:33.491Z",
+    "phase": "send",
+    "id": 255,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:33.492Z",
+    "phase": "reply",
+    "id": 255,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:33.493Z",
+    "phase": "send",
+    "id": 256,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:33.493Z",
+    "phase": "reply",
+    "id": 256,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:33.538Z",
+    "phase": "send",
+    "id": 257,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:33.539Z",
+    "phase": "reply",
+    "id": 257,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:33.584Z",
+    "phase": "send",
+    "id": 258,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:33.584Z",
+    "phase": "reply",
+    "id": 258,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:33.801Z",
+    "phase": "send",
+    "id": 259,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:33.802Z",
+    "phase": "reply",
+    "id": 259,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:33.846Z",
+    "phase": "send",
+    "id": 260,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:33.847Z",
+    "phase": "reply",
+    "id": 260,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:33.847Z",
+    "phase": "send",
+    "id": 261,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:33.848Z",
+    "phase": "reply",
+    "id": 261,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:34.178Z",
+    "phase": "send",
+    "id": 262,
+    "method": "Runtime.evaluate",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:34.180Z",
+    "phase": "reply",
+    "id": 262,
+    "method": "Runtime.evaluate",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817"
+  },
+  {
+    "at": "2026-10-14T07:06:34.227Z",
+    "phase": "send",
+    "id": 263,
+    "method": "Runtime.evaluate",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:34.227Z",
+    "phase": "reply",
+    "id": 263,
+    "method": "Runtime.evaluate",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817"
+  },
+  {
+    "at": "2026-10-14T07:06:34.271Z",
+    "phase": "send",
+    "id": 264,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:34.272Z",
+    "phase": "reply",
+    "id": 264,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:34.313Z",
+    "phase": "send",
+    "id": 265,
+    "method": "Page.captureScreenshot",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:34.346Z",
+    "phase": "reply",
+    "id": 265,
+    "method": "Page.captureScreenshot",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:34.393Z",
+    "phase": "send",
+    "id": 266,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:34.393Z",
+    "phase": "reply",
+    "id": 266,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:34.436Z",
+    "phase": "send",
+    "id": 267,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:34.437Z",
+    "phase": "reply",
+    "id": 267,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:34.480Z",
+    "phase": "send",
+    "id": 268,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:34.481Z",
+    "phase": "reply",
+    "id": 268,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:34.701Z",
+    "phase": "send",
+    "id": 269,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:34.702Z",
+    "phase": "reply",
+    "id": 269,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:34.748Z",
+    "phase": "send",
+    "id": 270,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:34.749Z",
+    "phase": "reply",
+    "id": 270,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:34.792Z",
+    "phase": "send",
+    "id": 271,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:34.793Z",
+    "phase": "reply",
+    "id": 271,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:34.793Z",
+    "phase": "send",
+    "id": 272,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:34.795Z",
+    "phase": "reply",
+    "id": 272,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:34.838Z",
+    "phase": "send",
+    "id": 273,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:34.839Z",
+    "phase": "reply",
+    "id": 273,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:34.886Z",
+    "phase": "send",
+    "id": 274,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:34.887Z",
+    "phase": "reply",
+    "id": 274,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:34.933Z",
+    "phase": "send",
+    "id": 275,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:34.934Z",
+    "phase": "reply",
+    "id": 275,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:35.144Z",
+    "phase": "send",
+    "id": 276,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:35.145Z",
+    "phase": "reply",
+    "id": 276,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:35.191Z",
+    "phase": "send",
+    "id": 277,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:35.191Z",
+    "phase": "reply",
+    "id": 277,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:35.392Z",
+    "phase": "send",
+    "id": 278,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:35.393Z",
+    "phase": "reply",
+    "id": 278,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:35.437Z",
+    "phase": "send",
+    "id": 279,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:35.438Z",
+    "phase": "reply",
+    "id": 279,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:35.657Z",
+    "phase": "send",
+    "id": 280,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:35.658Z",
+    "phase": "reply",
+    "id": 280,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:35.702Z",
+    "phase": "send",
+    "id": 281,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:35.703Z",
+    "phase": "reply",
+    "id": 281,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:35.745Z",
+    "phase": "send",
+    "id": 282,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:35.747Z",
+    "phase": "reply",
+    "id": 282,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:35.747Z",
+    "phase": "send",
+    "id": 283,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:35.748Z",
+    "phase": "reply",
+    "id": 283,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:35.793Z",
+    "phase": "send",
+    "id": 284,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:35.793Z",
+    "phase": "reply",
+    "id": 284,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:35.838Z",
+    "phase": "send",
+    "id": 285,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:35.840Z",
+    "phase": "reply",
+    "id": 285,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:35.840Z",
+    "phase": "send",
+    "id": 286,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:35.841Z",
+    "phase": "reply",
+    "id": 286,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:35.841Z",
+    "phase": "send",
+    "id": 287,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:35.841Z",
+    "phase": "reply",
+    "id": 287,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:35.841Z",
+    "phase": "send",
+    "id": 288,
+    "method": "Input.insertText",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:35.842Z",
+    "phase": "reply",
+    "id": 288,
+    "method": "Input.insertText",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:35.889Z",
+    "phase": "send",
+    "id": 289,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:35.890Z",
+    "phase": "reply",
+    "id": 289,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:35.937Z",
+    "phase": "send",
+    "id": 290,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:35.937Z",
+    "phase": "reply",
+    "id": 290,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:35.984Z",
+    "phase": "send",
+    "id": 291,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:35.985Z",
+    "phase": "reply",
+    "id": 291,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:35.985Z",
+    "phase": "send",
+    "id": 292,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:35.989Z",
+    "phase": "reply",
+    "id": 292,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:36.480Z",
+    "phase": "send",
+    "id": 293,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:36.481Z",
+    "phase": "reply",
+    "id": 293,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:36.530Z",
+    "phase": "send",
+    "id": 294,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:36.530Z",
+    "phase": "reply",
+    "id": 294,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:36.746Z",
+    "phase": "send",
+    "id": 295,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:36.747Z",
+    "phase": "reply",
+    "id": 295,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:36.792Z",
+    "phase": "send",
+    "id": 296,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:36.792Z",
+    "phase": "reply",
+    "id": 296,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:36.836Z",
+    "phase": "send",
+    "id": 297,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:36.837Z",
+    "phase": "reply",
+    "id": 297,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:36.837Z",
+    "phase": "send",
+    "id": 298,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:36.838Z",
+    "phase": "reply",
+    "id": 298,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:36.882Z",
+    "phase": "send",
+    "id": 299,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:36.882Z",
+    "phase": "reply",
+    "id": 299,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:36.925Z",
+    "phase": "send",
+    "id": 300,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:36.925Z",
+    "phase": "reply",
+    "id": 300,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:36.925Z",
+    "phase": "send",
+    "id": 301,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:36.926Z",
+    "phase": "reply",
+    "id": 301,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:36.926Z",
+    "phase": "send",
+    "id": 302,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:36.926Z",
+    "phase": "reply",
+    "id": 302,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:36.926Z",
+    "phase": "send",
+    "id": 303,
+    "method": "Input.insertText",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:36.927Z",
+    "phase": "reply",
+    "id": 303,
+    "method": "Input.insertText",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:36.971Z",
+    "phase": "send",
+    "id": 304,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:36.971Z",
+    "phase": "reply",
+    "id": 304,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:37.015Z",
+    "phase": "send",
+    "id": 305,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:37.015Z",
+    "phase": "reply",
+    "id": 305,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:37.058Z",
+    "phase": "send",
+    "id": 306,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:37.059Z",
+    "phase": "reply",
+    "id": 306,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:37.059Z",
+    "phase": "send",
+    "id": 307,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:37.060Z",
+    "phase": "reply",
+    "id": 307,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:37.557Z",
+    "phase": "send",
+    "id": 308,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:37.558Z",
+    "phase": "reply",
+    "id": 308,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:37.604Z",
+    "phase": "send",
+    "id": 309,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:37.605Z",
+    "phase": "reply",
+    "id": 309,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:37.605Z",
+    "phase": "send",
+    "id": 310,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:37.613Z",
+    "phase": "reply",
+    "id": 310,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:38.090Z",
+    "phase": "send",
+    "id": 311,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:38.091Z",
+    "phase": "reply",
+    "id": 311,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:38.137Z",
+    "phase": "send",
+    "id": 312,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:38.137Z",
+    "phase": "reply",
+    "id": 312,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:38.351Z",
+    "phase": "send",
+    "id": 313,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:38.352Z",
+    "phase": "reply",
+    "id": 313,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:38.399Z",
+    "phase": "send",
+    "id": 314,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:38.399Z",
+    "phase": "reply",
+    "id": 314,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:38.443Z",
+    "phase": "send",
+    "id": 315,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:38.444Z",
+    "phase": "reply",
+    "id": 315,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:38.444Z",
+    "phase": "send",
+    "id": 316,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:38.445Z",
+    "phase": "reply",
+    "id": 316,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:38.490Z",
+    "phase": "send",
+    "id": 317,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:38.490Z",
+    "phase": "reply",
+    "id": 317,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:38.535Z",
+    "phase": "send",
+    "id": 318,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:38.535Z",
+    "phase": "reply",
+    "id": 318,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:38.579Z",
+    "phase": "send",
+    "id": 319,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:38.580Z",
+    "phase": "reply",
+    "id": 319,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:38.580Z",
+    "phase": "send",
+    "id": 320,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:38.581Z",
+    "phase": "reply",
+    "id": 320,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:38.799Z",
+    "phase": "send",
+    "id": 321,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:38.799Z",
+    "phase": "reply",
+    "id": 321,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:38.799Z",
+    "phase": "send",
+    "id": 322,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:38.800Z",
+    "phase": "reply",
+    "id": 322,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:39.018Z",
+    "phase": "send",
+    "id": 323,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:39.019Z",
+    "phase": "reply",
+    "id": 323,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:39.019Z",
+    "phase": "send",
+    "id": 324,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:39.020Z",
+    "phase": "reply",
+    "id": 324,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:39.233Z",
+    "phase": "send",
+    "id": 325,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:39.233Z",
+    "phase": "reply",
+    "id": 325,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:39.446Z",
+    "phase": "send",
+    "id": 326,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:39.447Z",
+    "phase": "reply",
+    "id": 326,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:39.489Z",
+    "phase": "send",
+    "id": 327,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:39.490Z",
+    "phase": "reply",
+    "id": 327,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:39.490Z",
+    "phase": "send",
+    "id": 328,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:39.492Z",
+    "phase": "reply",
+    "id": 328,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:39.536Z",
+    "phase": "send",
+    "id": 329,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:39.537Z",
+    "phase": "reply",
+    "id": 329,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:39.750Z",
+    "phase": "send",
+    "id": 330,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:39.751Z",
+    "phase": "reply",
+    "id": 330,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:39.795Z",
+    "phase": "send",
+    "id": 331,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:39.796Z",
+    "phase": "reply",
+    "id": 331,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:39.796Z",
+    "phase": "send",
+    "id": 332,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:39.797Z",
+    "phase": "reply",
+    "id": 332,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:39.840Z",
+    "phase": "send",
+    "id": 333,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:39.840Z",
+    "phase": "reply",
+    "id": 333,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:39.883Z",
+    "phase": "send",
+    "id": 334,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:39.883Z",
+    "phase": "reply",
+    "id": 334,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:39.925Z",
+    "phase": "send",
+    "id": 335,
+    "method": "Runtime.evaluate",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:39.926Z",
+    "phase": "reply",
+    "id": 335,
+    "method": "Runtime.evaluate",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817"
+  },
+  {
+    "at": "2026-10-14T07:06:39.969Z",
+    "phase": "send",
+    "id": 336,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:39.969Z",
+    "phase": "reply",
+    "id": 336,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:40.188Z",
+    "phase": "send",
+    "id": 337,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:40.189Z",
+    "phase": "reply",
+    "id": 337,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:40.234Z",
+    "phase": "send",
+    "id": 338,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:40.235Z",
+    "phase": "reply",
+    "id": 338,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:40.235Z",
+    "phase": "send",
+    "id": 339,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:40.237Z",
+    "phase": "reply",
+    "id": 339,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:40.280Z",
+    "phase": "send",
+    "id": 340,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:40.280Z",
+    "phase": "reply",
+    "id": 340,
+    "method": "Runtime.evaluate",
+    "sessionId": "943BFB6431B72649ABF9CE2BF9189AB2"
+  },
+  {
+    "at": "2026-10-14T07:06:40.322Z",
+    "phase": "send",
+    "id": 341,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:40.323Z",
+    "phase": "reply",
+    "id": 341,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:40.543Z",
+    "phase": "send",
+    "id": 342,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:40.543Z",
+    "phase": "reply",
+    "id": 342,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:40.588Z",
+    "phase": "send",
+    "id": 343,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:40.589Z",
+    "phase": "reply",
+    "id": 343,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:40.589Z",
+    "phase": "send",
+    "id": 344,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:40.590Z",
+    "phase": "reply",
+    "id": 344,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:40.633Z",
+    "phase": "send",
+    "id": 345,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:40.633Z",
+    "phase": "reply",
+    "id": 345,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:40.677Z",
+    "phase": "send",
+    "id": 346,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:40.677Z",
+    "phase": "reply",
+    "id": 346,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:40.719Z",
+    "phase": "send",
+    "id": 347,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:40.720Z",
+    "phase": "reply",
+    "id": 347,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:40.938Z",
+    "phase": "send",
+    "id": 348,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:40.939Z",
+    "phase": "reply",
+    "id": 348,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:40.982Z",
+    "phase": "send",
+    "id": 349,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:40.983Z",
+    "phase": "reply",
+    "id": 349,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:40.983Z",
+    "phase": "send",
+    "id": 350,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:40.986Z",
+    "phase": "reply",
+    "id": 350,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:41.029Z",
+    "phase": "send",
+    "id": 351,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "method": "Target.targetDestroyed",
+    "params": {
+      "targetId": "66580216183A037A3C71938EB55057F7"
+    }
+  },
+  {
+    "at": "2026-10-14T07:06:41.030Z",
+    "phase": "reply",
+    "id": 351,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:41.073Z",
+    "phase": "send",
+    "id": 352,
+    "method": "Runtime.evaluate",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:41.073Z",
+    "phase": "reply",
+    "id": 352,
+    "method": "Runtime.evaluate",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817"
+  },
+  {
+    "at": "2026-10-14T07:06:41.117Z",
+    "phase": "send",
+    "id": 353,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:41.117Z",
+    "phase": "reply",
+    "id": 353,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:41.159Z",
+    "phase": "send",
+    "id": 354,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:41.159Z",
+    "phase": "reply",
+    "id": 354,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:41.376Z",
+    "phase": "send",
+    "id": 355,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:41.377Z",
+    "phase": "reply",
+    "id": 355,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:41.420Z",
+    "phase": "send",
+    "id": 356,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:41.421Z",
+    "phase": "reply",
+    "id": 356,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:41.421Z",
+    "phase": "send",
+    "id": 357,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:41.423Z",
+    "phase": "reply",
+    "id": 357,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:41.468Z",
+    "phase": "send",
+    "id": 358,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:41.468Z",
+    "phase": "reply",
+    "id": 358,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:41.683Z",
+    "phase": "send",
+    "id": 359,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:41.683Z",
+    "phase": "reply",
+    "id": 359,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:41.726Z",
+    "phase": "send",
+    "id": 360,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:41.727Z",
+    "phase": "reply",
+    "id": 360,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:41.727Z",
+    "phase": "send",
+    "id": 361,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:41.728Z",
+    "phase": "reply",
+    "id": 361,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:41.772Z",
+    "phase": "send",
+    "id": 362,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:41.773Z",
+    "phase": "reply",
+    "id": 362,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:41.991Z",
+    "phase": "send",
+    "id": 363,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:41.991Z",
+    "phase": "reply",
+    "id": 363,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:42.035Z",
+    "phase": "send",
+    "id": 364,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:42.036Z",
+    "phase": "reply",
+    "id": 364,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:42.036Z",
+    "phase": "send",
+    "id": 365,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:42.038Z",
+    "phase": "reply",
+    "id": 365,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:42.038Z",
+    "phase": "send",
+    "id": 366,
+    "method": "Target.getTargets",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:42.039Z",
+    "phase": "reply",
+    "id": 366,
+    "method": "Target.getTargets"
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "CB911FEA0F0F44B162C0D0E9A5DDAD74",
+        "type": "iframe",
+        "title": "",
+        "url": "",
+        "attached": false,
+        "parentId": "B071DE9035E5376E75B1988861588DAC",
+        "canAccessOpener": false,
+        "parentFrameId": "B071DE9035E5376E75B1988861588DAC",
+        "browserContextId": "8B4B6A50CF588CC47FF1632A46A625CB"
+      }
+    }
+  },
+  {
+    "at": "2026-10-14T07:06:42.189Z",
+    "phase": "send",
+    "id": 367,
+    "method": "Target.getTargets",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:42.190Z",
+    "phase": "reply",
+    "id": 367,
+    "method": "Target.getTargets"
+  },
+  {
+    "at": "2026-10-14T07:06:42.190Z",
+    "phase": "send",
+    "id": 368,
+    "method": "Target.attachToTarget",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:42.190Z",
+    "phase": "reply",
+    "id": 368,
+    "method": "Target.attachToTarget"
+  },
+  {
+    "at": "2026-10-14T07:06:42.190Z",
+    "phase": "send",
+    "id": 369,
+    "method": "Runtime.enable",
+    "sessionId": "2A712FA1F9A1495AAC8ECC10FDE26206",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:42.191Z",
+    "phase": "reply",
+    "id": 369,
+    "method": "Runtime.enable",
+    "sessionId": "2A712FA1F9A1495AAC8ECC10FDE26206"
+  },
+  {
+    "at": "2026-10-14T07:06:42.191Z",
+    "phase": "send",
+    "id": 370,
+    "method": "Page.enable",
+    "sessionId": "2A712FA1F9A1495AAC8ECC10FDE26206",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:42.191Z",
+    "phase": "reply",
+    "id": 370,
+    "method": "Page.enable",
+    "sessionId": "2A712FA1F9A1495AAC8ECC10FDE26206"
+  },
+  {
+    "at": "2026-10-14T07:06:42.236Z",
+    "phase": "send",
+    "id": 371,
+    "method": "Runtime.evaluate",
+    "sessionId": "2A712FA1F9A1495AAC8ECC10FDE26206",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:42.236Z",
+    "phase": "reply",
+    "id": 371,
+    "method": "Runtime.evaluate",
+    "sessionId": "2A712FA1F9A1495AAC8ECC10FDE26206"
+  },
+  {
+    "at": "2026-10-14T07:06:42.280Z",
+    "phase": "send",
+    "id": 372,
+    "method": "Runtime.evaluate",
+    "sessionId": "2A712FA1F9A1495AAC8ECC10FDE26206",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:42.280Z",
+    "phase": "reply",
+    "id": 372,
+    "method": "Runtime.evaluate",
+    "sessionId": "2A712FA1F9A1495AAC8ECC10FDE26206"
+  },
+  {
+    "at": "2026-10-14T07:06:42.324Z",
+    "phase": "send",
+    "id": 373,
+    "method": "Runtime.evaluate",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:42.325Z",
+    "phase": "reply",
+    "id": 373,
+    "method": "Runtime.evaluate",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817"
+  },
+  {
+    "at": "2026-10-14T07:06:42.367Z",
+    "phase": "send",
+    "id": 374,
+    "method": "Runtime.evaluate",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:42.368Z",
+    "phase": "reply",
+    "id": 374,
+    "method": "Runtime.evaluate",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817"
+  },
+  {
+    "at": "2026-10-14T07:06:42.413Z",
+    "phase": "send",
+    "id": 375,
+    "method": "Page.captureScreenshot",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:42.446Z",
+    "phase": "reply",
+    "id": 375,
+    "method": "Page.captureScreenshot",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:42.492Z",
+    "phase": "send",
+    "id": 376,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:42.493Z",
+    "phase": "reply",
+    "id": 376,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:42.704Z",
+    "phase": "send",
+    "id": 377,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:42.704Z",
+    "phase": "reply",
+    "id": 377,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:42.751Z",
+    "phase": "send",
+    "id": 378,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:42.752Z",
+    "phase": "reply",
+    "id": 378,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:42.752Z",
+    "phase": "send",
+    "id": 379,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:42.753Z",
+    "phase": "reply",
+    "id": 379,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:42.798Z",
+    "phase": "send",
+    "id": 380,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:42.799Z",
+    "phase": "reply",
+    "id": 380,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:43.025Z",
+    "phase": "send",
+    "id": 381,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:43.026Z",
+    "phase": "reply",
+    "id": 381,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:43.069Z",
+    "phase": "send",
+    "id": 382,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:43.070Z",
+    "phase": "reply",
+    "id": 382,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:43.071Z",
+    "phase": "send",
+    "id": 383,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "method": "Target.targetDestroyed",
+    "params": {
+      "targetId": "CB911FEA0F0F44B162C0D0E9A5DDAD74"
+    }
+  },
+  {
+    "at": "2026-10-14T07:06:43.083Z",
+    "phase": "reply",
+    "id": 383,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:43.130Z",
+    "phase": "send",
+    "id": 384,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:43.131Z",
+    "phase": "reply",
+    "id": 384,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:43.176Z",
+    "phase": "send",
+    "id": 385,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:43.177Z",
+    "phase": "reply",
+    "id": 385,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:43.221Z",
+    "phase": "send",
+    "id": 386,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:43.221Z",
+    "phase": "reply",
+    "id": 386,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:43.264Z",
+    "phase": "send",
+    "id": 387,
+    "method": "Runtime.evaluate",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:43.265Z",
+    "phase": "reply",
+    "id": 387,
+    "method": "Runtime.evaluate",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817"
+  },
+  {
+    "at": "2026-10-14T07:06:43.307Z",
+    "phase": "send",
+    "id": 388,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:43.308Z",
+    "phase": "reply",
+    "id": 388,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:43.351Z",
+    "phase": "send",
+    "id": 389,
+    "method": "Page.captureScreenshot",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:43.384Z",
+    "phase": "reply",
+    "id": 389,
+    "method": "Page.captureScreenshot",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:43.430Z",
+    "phase": "send",
+    "id": 390,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:43.431Z",
+    "phase": "reply",
+    "id": 390,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:43.475Z",
+    "phase": "send",
+    "id": 391,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:43.476Z",
+    "phase": "reply",
+    "id": 391,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:43.694Z",
+    "phase": "send",
+    "id": 392,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:43.695Z",
+    "phase": "reply",
+    "id": 392,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:43.739Z",
+    "phase": "send",
+    "id": 393,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:43.740Z",
+    "phase": "reply",
+    "id": 393,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:43.740Z",
+    "phase": "send",
+    "id": 394,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:43.742Z",
+    "phase": "reply",
+    "id": 394,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:43.787Z",
+    "phase": "send",
+    "id": 395,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:43.788Z",
+    "phase": "reply",
+    "id": 395,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:44.001Z",
+    "phase": "send",
+    "id": 396,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:44.002Z",
+    "phase": "reply",
+    "id": 396,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:44.044Z",
+    "phase": "send",
+    "id": 397,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:44.045Z",
+    "phase": "reply",
+    "id": 397,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:44.045Z",
+    "phase": "send",
+    "id": 398,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:44.047Z",
+    "phase": "reply",
+    "id": 398,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:44.090Z",
+    "phase": "send",
+    "id": 399,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:44.090Z",
+    "phase": "reply",
+    "id": 399,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:44.307Z",
+    "phase": "send",
+    "id": 400,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:44.308Z",
+    "phase": "reply",
+    "id": 400,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:44.354Z",
+    "phase": "send",
+    "id": 401,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:44.355Z",
+    "phase": "reply",
+    "id": 401,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:44.355Z",
+    "phase": "send",
+    "id": 402,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:44.356Z",
+    "phase": "reply",
+    "id": 402,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:44.400Z",
+    "phase": "send",
+    "id": 403,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:44.401Z",
+    "phase": "reply",
+    "id": 403,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:44.445Z",
+    "phase": "send",
+    "id": 404,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:44.446Z",
+    "phase": "reply",
+    "id": 404,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:44.663Z",
+    "phase": "send",
+    "id": 405,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:44.664Z",
+    "phase": "reply",
+    "id": 405,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:44.710Z",
+    "phase": "send",
+    "id": 406,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:44.711Z",
+    "phase": "reply",
+    "id": 406,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:44.711Z",
+    "phase": "send",
+    "id": 407,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:44.713Z",
+    "phase": "reply",
+    "id": 407,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:44.713Z",
+    "phase": "send",
+    "id": 408,
+    "method": "Target.getTargets",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:44.714Z",
+    "phase": "reply",
+    "id": 408,
+    "method": "Target.getTargets"
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "3FB837EE1847A95E7EAF7497EF654935",
+        "type": "iframe",
+        "title": "",
+        "url": "",
+        "attached": false,
+        "parentId": "B071DE9035E5376E75B1988861588DAC",
+        "canAccessOpener": false,
+        "parentFrameId": "B071DE9035E5376E75B1988861588DAC",
+        "browserContextId": "8B4B6A50CF588CC47FF1632A46A625CB"
+      }
+    }
+  },
+  {
+    "at": "2026-10-14T07:06:44.864Z",
+    "phase": "send",
+    "id": 409,
+    "method": "Target.getTargets",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:44.865Z",
+    "phase": "reply",
+    "id": 409,
+    "method": "Target.getTargets"
+  },
+  {
+    "at": "2026-10-14T07:06:44.865Z",
+    "phase": "send",
+    "id": 410,
+    "method": "Target.attachToTarget",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:44.865Z",
+    "phase": "reply",
+    "id": 410,
+    "method": "Target.attachToTarget"
+  },
+  {
+    "at": "2026-10-14T07:06:44.865Z",
+    "phase": "send",
+    "id": 411,
+    "method": "Runtime.enable",
+    "sessionId": "D097A79EDBBC7439E98ACF8C000EF6CB",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:44.866Z",
+    "phase": "reply",
+    "id": 411,
+    "method": "Runtime.enable",
+    "sessionId": "D097A79EDBBC7439E98ACF8C000EF6CB"
+  },
+  {
+    "at": "2026-10-14T07:06:44.866Z",
+    "phase": "send",
+    "id": 412,
+    "method": "Page.enable",
+    "sessionId": "D097A79EDBBC7439E98ACF8C000EF6CB",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:44.866Z",
+    "phase": "reply",
+    "id": 412,
+    "method": "Page.enable",
+    "sessionId": "D097A79EDBBC7439E98ACF8C000EF6CB"
+  },
+  {
+    "at": "2026-10-14T07:06:44.914Z",
+    "phase": "send",
+    "id": 413,
+    "method": "Runtime.evaluate",
+    "sessionId": "D097A79EDBBC7439E98ACF8C000EF6CB",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:44.915Z",
+    "phase": "reply",
+    "id": 413,
+    "method": "Runtime.evaluate",
+    "sessionId": "D097A79EDBBC7439E98ACF8C000EF6CB"
+  },
+  {
+    "at": "2026-10-14T07:06:44.958Z",
+    "phase": "send",
+    "id": 414,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:44.959Z",
+    "phase": "reply",
+    "id": 414,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:45.178Z",
+    "phase": "send",
+    "id": 415,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:45.178Z",
+    "phase": "reply",
+    "id": 415,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:45.226Z",
+    "phase": "send",
+    "id": 416,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:45.227Z",
+    "phase": "reply",
+    "id": 416,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:45.227Z",
+    "phase": "send",
+    "id": 417,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:45.229Z",
+    "phase": "reply",
+    "id": 417,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:45.272Z",
+    "phase": "send",
+    "id": 418,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:45.273Z",
+    "phase": "reply",
+    "id": 418,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:45.316Z",
+    "phase": "send",
+    "id": 419,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:45.317Z",
+    "phase": "reply",
+    "id": 419,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:45.512Z",
+    "phase": "send",
+    "id": 420,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:45.513Z",
+    "phase": "reply",
+    "id": 420,
+    "method": "Runtime.evaluate",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:45.557Z",
+    "phase": "send",
+    "id": 421,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:45.558Z",
+    "phase": "reply",
+    "id": 421,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:45.558Z",
+    "phase": "send",
+    "id": 422,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:45.559Z",
+    "phase": "reply",
+    "id": 422,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:45.605Z",
+    "phase": "send",
+    "id": 423,
+    "method": "Runtime.evaluate",
+    "sessionId": "D097A79EDBBC7439E98ACF8C000EF6CB",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:45.605Z",
+    "phase": "reply",
+    "id": 423,
+    "method": "Runtime.evaluate",
+    "sessionId": "D097A79EDBBC7439E98ACF8C000EF6CB"
+  },
+  {
+    "at": "2026-10-14T07:06:45.651Z",
+    "phase": "send",
+    "id": 424,
+    "method": "Runtime.evaluate",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:45.652Z",
+    "phase": "reply",
+    "id": 424,
+    "method": "Runtime.evaluate",
+    "sessionId": "0CF8F52AE98AE649F40C833F0D42C817"
+  },
+  {
+    "at": "2026-10-14T07:06:45.697Z",
+    "phase": "send",
+    "id": 425,
+    "method": "Page.captureScreenshot",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:45.729Z",
+    "phase": "reply",
+    "id": 425,
+    "method": "Page.captureScreenshot",
+    "sessionId": "BCE1B14259D8616475D84798B3AD4AF0"
+  },
+  {
+    "at": "2026-10-14T07:06:45.790Z",
+    "phase": "send",
+    "id": 426,
+    "method": "Browser.close",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:06:45.790Z",
+    "phase": "reply",
+    "id": 426,
+    "method": "Browser.close"
+  }
+]

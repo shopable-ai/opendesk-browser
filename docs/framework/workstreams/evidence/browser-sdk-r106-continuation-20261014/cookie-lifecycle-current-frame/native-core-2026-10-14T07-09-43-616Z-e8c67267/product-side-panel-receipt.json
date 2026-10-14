@@ -1,0 +1,947 @@
+{
+  "candidate": {
+    "extensionFingerprint": {
+      "files": [
+        {
+          "path": "agents/bootstrap.js",
+          "sha256": "fed852b03982bd12fc78b7f688dd376b8cb15a8380da8e5b61db8845da8e3ae9"
+        },
+        {
+          "path": "agents/health-host.js",
+          "sha256": "b31e197f3ed4d5b817a875a2c37b721e876ac857ddbe199c7d20094bbc1a2cd0"
+        },
+        {
+          "path": "agents/health.js",
+          "sha256": "48b43e028694d4fcc376d32539ab2d55ebd58359fce01219cff250fd4b5a6f65"
+        },
+        {
+          "path": "agents/page-agent.js",
+          "sha256": "bcdf07c2bda52f40c36ddb2a2a1b5a72e9156b4e507e7c16a4a54cd4bf901b00"
+        },
+        {
+          "path": "agents/page-relay.js",
+          "sha256": "5031b4ab6a9908482c3d52e88d2e21f254b09795f18ba6080bb37bf281a29496"
+        },
+        {
+          "path": "agents/selection-entry.js",
+          "sha256": "0265146d80cd448c28ecd1231574d0bd6ba9f20d6991b09250478decc3e89fbb"
+        },
+        {
+          "path": "cloud-control/cloud-host.js",
+          "sha256": "94b1232fa0a6ee5f646b1ea1c9b662d8027685e919e612e06710dc15711973e0"
+        },
+        {
+          "path": "framework/browser-edition.json",
+          "sha256": "de42ca5db9d5e2fc8098654789fe1fb65fea8e105fcaeda84641cfc566b053ef"
+        },
+        {
+          "path": "framework/sdk-main.js",
+          "sha256": "404f3417304d51410b5eb0502e9853cbcb98f7ea592dddb4f00fabbb195c21f2"
+        },
+        {
+          "path": "framework/sdk-resources.json",
+          "sha256": "bac9bcd8a98a9fa5af7b6c145f34fe8baa9a6a7533bef42692c8e39eee8a65b0"
+        },
+        {
+          "path": "icons/notification.png",
+          "sha256": "efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"
+        },
+        {
+          "path": "knowledge/knowledge-host.js",
+          "sha256": "7067ffaed0ed95cb8cc8d7e5923c44685aaad5f8942a233128ed8ef7525e67c1"
+        },
+        {
+          "path": "libs/manifest.json",
+          "sha256": "1284ed4cbd4cb98ebe725c2c32e6a68169d62e59b26ebf691e23d5e97bc16fbf"
+        },
+        {
+          "path": "libs/packages/axios.js",
+          "sha256": "0789da5611b9fba153cf268d1406852cf4e68f7b9ba6bbfef6d26000cf8dd7ff"
+        },
+        {
+          "path": "libs/packages/cheerio.js",
+          "sha256": "448707180f9463ccdf7552a70bca57c6211a95099758db7867c4460b4267a628"
+        },
+        {
+          "path": "libs/packages/crypto-js.js",
+          "sha256": "e5e6be74bd2d7e18983813a79facbe0b917d9dabb243e01bcbd3f3d839625320"
+        },
+        {
+          "path": "libs/packages/dayjs.js",
+          "sha256": "9b406af291725ac2b47409930c6d0ffba7545ece163e6579230c21fbccf40164"
+        },
+        {
+          "path": "libs/packages/file-saver.js",
+          "sha256": "629ad9f9c34e1d9db94c8eac7afdd5c373974f956e3be590491be4d7353ae57c"
+        },
+        {
+          "path": "libs/packages/fingerprintjs.js",
+          "sha256": "4fc094ce804c3101b778148b3c401daca79cd14b9a08c8a75bf963eef918430f"
+        },
+        {
+          "path": "libs/packages/js-cookie.js",
+          "sha256": "f6704cba3d28fc26e0db56c73bb0e46d8de9ca43c47ef7953c5bbf07a4f5ef53"
+        },
+        {
+          "path": "libs/packages/lodash.js",
+          "sha256": "40d8258a2333573064f7173010cf6aa4eb07fb7d95a7a9c753a65fc23b9bfc18"
+        },
+        {
+          "path": "libs/packages/query-string.js",
+          "sha256": "ca7c9ac5ad77c09acdf98d231524e8958a00df084c2e6a2a051d10301f6095a9"
+        },
+        {
+          "path": "libs/packages/store.js",
+          "sha256": "280cb61b9c5530f57538767a5927a64901b2be57137cf0632fefc2aac954ffc6"
+        },
+        {
+          "path": "libs/page-frameworks/react-19.2.0.js",
+          "sha256": "d1eec2e96ed42046ad543a10af7de992aee633ac06017f44f6b917e36451c758"
+        },
+        {
+          "path": "libs/page-frameworks/vue-3.5.22.js",
+          "sha256": "2af9ee5acf9bf1cb05c5a871b6d99fd2af11fe1e6f372cfd8acb8b543b95d174"
+        },
+        {
+          "path": "libs/runtime/bootstrap.js",
+          "sha256": "d8b6ff3a7a6a58a3ede0f630cd906f0af134307eeaa8a7db1f096ed24687868d"
+        },
+        {
+          "path": "libs/runtime/page-core.js",
+          "sha256": "98609597268a0d9e778354c11e4b5af3a8191d97c6ce61bd730fd94e79ad5a02"
+        },
+        {
+          "path": "libs/vendor/jquery/3.7.1/jquery.min.js",
+          "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+        },
+        {
+          "path": "libs/vendor/my-utils/1.0.0/index.js",
+          "sha256": "948e074af991e89df08091e28f8c7f42981dc213ae089da013772e755e54c461"
+        },
+        {
+          "path": "licenses/axios-MIT.txt",
+          "sha256": "82761059eaedacb3356803aea8a170d8298609f91b14fc32ee1bfb40d690183c"
+        },
+        {
+          "path": "licenses/cheerio-MIT.txt",
+          "sha256": "61c1e21d3a8ff20f9b69abe15104a75584688080febc22f60a4cbf3854becf4e"
+        },
+        {
+          "path": "licenses/crypto-js-MIT.txt",
+          "sha256": "f729d14b7e1bf8adca0dcc38b93b929d14d53fcd5db56c3d1c9b2daa7aa69396"
+        },
+        {
+          "path": "licenses/dayjs-MIT.txt",
+          "sha256": "5faab7526d055651be3aab769d58897be6bd91f3d39d137f25f12dba1b31d5dc"
+        },
+        {
+          "path": "licenses/file-saver-MIT.txt",
+          "sha256": "2d1d7a93b46e4274355ac2904428707c4ee47ee8c6029fa394ebf405648d3f63"
+        },
+        {
+          "path": "licenses/fingerprintjs-MIT.txt",
+          "sha256": "b7eeaf845cbd307fbabdde266a01c632ab9ca30d08355dbfc7acc463b5ea8ee9"
+        },
+        {
+          "path": "licenses/jquery-MIT.txt",
+          "sha256": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"
+        },
+        {
+          "path": "licenses/js-cookie-MIT.txt",
+          "sha256": "eff040f4184445a6d1f7f76d918101d631402436ff12256b924fb68e4df28a94"
+        },
+        {
+          "path": "licenses/lodash-es-MIT.txt",
+          "sha256": "f71e8ed126b46346494aad5486874cd8f0aafe95092ed67d2e3cb6110f939abc"
+        },
+        {
+          "path": "licenses/my-utils-MIT.txt",
+          "sha256": "8bda717ea4cf7fa207cb97d1a80a1d12aaedbb95eb4bafe56956ef7f9dc2579c"
+        },
+        {
+          "path": "licenses/page-framework-react-MIT.txt",
+          "sha256": "27bc22031f14eda178853577406320a91bd2e6933a5b98bd6b2e39c7dafc0394"
+        },
+        {
+          "path": "licenses/page-framework-vue-MIT.txt",
+          "sha256": "e81b972159df4e7ebdf1f081849579f5cad5c51fa310b99e86070926eb768cf1"
+        },
+        {
+          "path": "licenses/query-string-MIT.txt",
+          "sha256": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3"
+        },
+        {
+          "path": "licenses/store-MIT.txt",
+          "sha256": "af4a0aa33e3a61cf96a6ffa912f9e13a6981e3161c6ea352eb84902af357c271"
+        },
+        {
+          "path": "licenses/todo-user-vue-MIT.txt",
+          "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+        },
+        {
+          "path": "manifest.json",
+          "sha256": "0a1c0bbb926676de97bcc9861c4508b34e93644a259164dd930e6b85cffe3230"
+        },
+        {
+          "path": "marketplace/channel.json",
+          "sha256": "93191846920ecb9dac809162ad05542794a12628665eb8538784e35271dfc1b2"
+        },
+        {
+          "path": "marketplace/market-host.js",
+          "sha256": "89489b56083816552a74fe506193b88a2f9f78408a90927616303847d3931813"
+        },
+        {
+          "path": "native-agent/settings.css",
+          "sha256": "6498ee021d1ce8e50d3498714f2869a084c50a355b38a3ed5de3c8f58a03b6d1"
+        },
+        {
+          "path": "native-agent/settings.html",
+          "sha256": "6aec8bfa8ad9e542d2793efee34ebfc91546c6cc528639d0ef54d9e9b4b82571"
+        },
+        {
+          "path": "native-agent/settings.js",
+          "sha256": "9c82f6ac1c57003f8cd6caa86c3385d0740ec8133a60f4f471be766b36b78866"
+        },
+        {
+          "path": "native-agent/transport.js",
+          "sha256": "69edecc9fa5279062bd2e62b4be7e64e98bce6bdb307a67c4374d55d3d4d2529"
+        },
+        {
+          "path": "native-agent/workspace.css",
+          "sha256": "0825f158407cc1e1d19f2480e9dfd60f08e3097b31956777fc30cc8dcbef0cbe"
+        },
+        {
+          "path": "native-agent/workspace.html",
+          "sha256": "d6b3111a717a397c21785ae1aec260231e61d4a19f42ef9adb6926a510347eba"
+        },
+        {
+          "path": "official-tools/catalog.json",
+          "sha256": "94da5e3eb654dbd57bc4874588e98e4fac5ea92f2bfd7f015f8a104d35c689ec"
+        },
+        {
+          "path": "official-tools/cookie-editor/cookie-editor.opendesk-tool.json",
+          "sha256": "00034592e094d5a6f513a58bc04233a9793573f1d165a0e990489aead508fa9c"
+        },
+        {
+          "path": "official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json",
+          "sha256": "06433d9c8e08993d5c1dc1880f35ce7b472abda78bb733715af4574450e3f59d"
+        },
+        {
+          "path": "official-tools/markdown-workbench/markdown-workbench.opendesk-tool.json",
+          "sha256": "68dbb8d1123cd1634a46139c207160f228a78da42b0f295fce4cde7f6c768b0d"
+        },
+        {
+          "path": "official-tools/quick-notes/quick-notes.opendesk-tool.json",
+          "sha256": "99c42ea8573446fc8842f48be6f0567d0242b4d127ee6e96e22b650e9b2f99a7"
+        },
+        {
+          "path": "official-tools/reading-toc/reading-toc.opendesk-tool.json",
+          "sha256": "85f3f48557d7b4970507066a5389fe830b23bec3ec2d6f145c1535b48ba4df52"
+        },
+        {
+          "path": "official-tools/stay-focus/stay-focus.opendesk-tool.json",
+          "sha256": "afb91cfb1fecf65544ed2864c08e7eb678e864b2b6b5d2cd0e65ce7fb31413af"
+        },
+        {
+          "path": "official-tools/time-review/time-review.opendesk-tool.json",
+          "sha256": "90f5029049ed4b2cadd69fa91c4efaefb45f031bd94c07e708c9f78d5f2776f6"
+        },
+        {
+          "path": "official-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json",
+          "sha256": "c2f0f41b895b8737dd74bd5d304fba2b873526a510bd72fa1ddf01fc9016fefa"
+        },
+        {
+          "path": "platform/context-menus.js",
+          "sha256": "e220c28d7307050a2eec35bf4b009a152a5a261c173b75a3ad4059209e91cf31"
+        },
+        {
+          "path": "scripting/packaged/page-session.js",
+          "sha256": "2b38d8458f4cab592f451c1353ec618b709793a8b237f7215d8b966c538893c3"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.html",
+          "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.js",
+          "sha256": "4b735c3d8d6d6059a549b59122d4d1d56811c121c6ad1b7eeadca6cf3e15640e"
+        },
+        {
+          "path": "scripting/sandbox/worker-runtime.js",
+          "sha256": "6646f3f01facae0a5d52304fa5d3bf4d0a09e04b43a47ce3ecf104009b6949cf"
+        },
+        {
+          "path": "sidebar-tools/bridge.js",
+          "sha256": "7367dcb211d039c2567ad46f07667630f7bb1da3ec7827e82d172ecc8a8f345e"
+        },
+        {
+          "path": "sidebar-tools/preinstall-intent.js",
+          "sha256": "efd94e27ed8df207bc43cdebcfd581adddd26c57f4a49ca7df66896a43a115f4"
+        },
+        {
+          "path": "sidebar-tools/sandbox.html",
+          "sha256": "5b1b0a17190f423e6861048a6607019606faa4b9241e81c5ffe044324831fe1b"
+        },
+        {
+          "path": "stay-focus/blocked-always.html",
+          "sha256": "e5d6b5c1d528cf9d8a929c67abc423b398f74417d0e0053f7140f320b366c524"
+        },
+        {
+          "path": "stay-focus/blocked-quota.html",
+          "sha256": "e5d6b5c1d528cf9d8a929c67abc423b398f74417d0e0053f7140f320b366c524"
+        },
+        {
+          "path": "stay-focus/blocked-schedule.html",
+          "sha256": "e5d6b5c1d528cf9d8a929c67abc423b398f74417d0e0053f7140f320b366c524"
+        },
+        {
+          "path": "stay-focus/blocked-session.html",
+          "sha256": "e5d6b5c1d528cf9d8a929c67abc423b398f74417d0e0053f7140f320b366c524"
+        },
+        {
+          "path": "stay-focus/blocked.css",
+          "sha256": "eb54ba4dcd77e50c07e34eaa8f78f629749623e4e167c1e18dcce759d468aff1"
+        },
+        {
+          "path": "stay-focus/blocked.js",
+          "sha256": "fad70d6fb1a7cd1b4337c191507fc2924d30d484971fa5a05f74710a256b2f93"
+        },
+        {
+          "path": "sw.js",
+          "sha256": "9aa206dccfb07623a949b8ff8487d7dfd9e9c5f632f4451e126b04c38910fe78"
+        },
+        {
+          "path": "time-review/time-review-host.js",
+          "sha256": "71ec07243ee3e141cc8fc223bc2dfe789f3c84491a3b2558c235d9495a805a94"
+        },
+        {
+          "path": "ui/cloud-console.js",
+          "sha256": "40bbf3a4d3fcd7047daa8d02152aba9635b0866da744a8c8f3908f4f5910e8df"
+        },
+        {
+          "path": "ui/cloud-control-console.css",
+          "sha256": "0e1e66a4bdf1ec5605f51b3065f04affff7223270fb565fca5540fe0e63c6adb"
+        },
+        {
+          "path": "ui/cloud-control.html",
+          "sha256": "ffd3650fe65dd08fd6bd8ca45a982372e2230af90375dfa0b509a41d30594e50"
+        },
+        {
+          "path": "ui/cloud-hosting.css",
+          "sha256": "9eeb6ff44477bade32fd49514f4f4778e6f1d2fe409835dc772fa95e2368debb"
+        },
+        {
+          "path": "ui/design-system.css",
+          "sha256": "30cca2ef656d36bab796fe5b99d4ef9df936ea29e13f78077dd26670cb18d0b4"
+        },
+        {
+          "path": "ui/design-tokens.css",
+          "sha256": "a1a7c2059cb09a27986dca580443deb3fc28aae2a76d03ccc9d8f95fa34f1b5b"
+        },
+        {
+          "path": "ui/marketplace.css",
+          "sha256": "f3b085498111ad17fe9933507fc09272dfd5857913c6a9f8e1d0f2e8d8eeb642"
+        },
+        {
+          "path": "ui/marketplace.html",
+          "sha256": "9f1ee3d70829f5e746617cecfe87e8ac24388cd67f29acca8f753b8a931bd24c"
+        },
+        {
+          "path": "ui/marketplace.js",
+          "sha256": "4812192373853a815d623ff40590873da2c49ef4f325620f9780a7c76f71376b"
+        },
+        {
+          "path": "ui/sidebar-tool-host.js",
+          "sha256": "21de70f967492291f76956e1c8b90de8a5909070379dbc6cac44acc1118aa243"
+        },
+        {
+          "path": "ui/stay-focus-controls.js",
+          "sha256": "123e406170e0b7f948fb2ad46f360fbe658b4aae2859bdbfef13debeb4a6cf78"
+        },
+        {
+          "path": "ui/target-bootstrap.html",
+          "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+        },
+        {
+          "path": "ui/time-review.css",
+          "sha256": "ed1bc3424fa5dc934c7fd01b8a5bfa570c1b2cc1c2b919ccb08ffae4a9e86151"
+        },
+        {
+          "path": "ui/tool-shell.css",
+          "sha256": "81afcf6b2da6964c1eb4a9d7fa9bfe69f347699ab62ae59fab3c214a8aef10d8"
+        },
+        {
+          "path": "ui/tool-shell.js",
+          "sha256": "5b6b25c522b780544753359e96432cdc145718a639aba7e5492d71db3d4d630e"
+        },
+        {
+          "path": "ui/tool.html",
+          "sha256": "249e97d62bf0952814766ed07b1badffadaefdd8f185a8470d6b94176d4845b0"
+        },
+        {
+          "path": "ui/trusted-cookie-ui.js",
+          "sha256": "143027abb888536449cd5f71e2951d7473daaf1375cb7417966a2f1081940445"
+        }
+      ],
+      "sha256": "69c0fd0362e54510037fe601d772993d4d67633e6a15687a356b7bc866606dc7"
+    },
+    "toolVersion": "2.0.4",
+    "toolFileSha256": "00034592e094d5a6f513a58bc04233a9793573f1d165a0e990489aead508fa9c",
+    "extensionPackage": {
+      "packageHash": "8f46ffac9c0392b2d3be740a9257c76f24b439178e7672537e8d04a2f44aa59e",
+      "hashRecipe": "SHA256 UTF-8 JSON.stringify(path-sorted [{path,bytes,sha256}]); exact file bytes",
+      "files": [
+        {
+          "path": "agents/bootstrap.js",
+          "bytes": 931,
+          "sha256": "fed852b03982bd12fc78b7f688dd376b8cb15a8380da8e5b61db8845da8e3ae9"
+        },
+        {
+          "path": "agents/health-host.js",
+          "bytes": 8505,
+          "sha256": "b31e197f3ed4d5b817a875a2c37b721e876ac857ddbe199c7d20094bbc1a2cd0"
+        },
+        {
+          "path": "agents/health.js",
+          "bytes": 828,
+          "sha256": "48b43e028694d4fcc376d32539ab2d55ebd58359fce01219cff250fd4b5a6f65"
+        },
+        {
+          "path": "agents/page-agent.js",
+          "bytes": 34423,
+          "sha256": "bcdf07c2bda52f40c36ddb2a2a1b5a72e9156b4e507e7c16a4a54cd4bf901b00"
+        },
+        {
+          "path": "agents/page-relay.js",
+          "bytes": 89598,
+          "sha256": "5031b4ab6a9908482c3d52e88d2e21f254b09795f18ba6080bb37bf281a29496"
+        },
+        {
+          "path": "agents/selection-entry.js",
+          "bytes": 383,
+          "sha256": "0265146d80cd448c28ecd1231574d0bd6ba9f20d6991b09250478decc3e89fbb"
+        },
+        {
+          "path": "cloud-control/cloud-host.js",
+          "bytes": 54386,
+          "sha256": "94b1232fa0a6ee5f646b1ea1c9b662d8027685e919e612e06710dc15711973e0"
+        },
+        {
+          "path": "framework/browser-edition.json",
+          "bytes": 108,
+          "sha256": "de42ca5db9d5e2fc8098654789fe1fb65fea8e105fcaeda84641cfc566b053ef"
+        },
+        {
+          "path": "framework/sdk-main.js",
+          "bytes": 68303,
+          "sha256": "404f3417304d51410b5eb0502e9853cbcb98f7ea592dddb4f00fabbb195c21f2"
+        },
+        {
+          "path": "framework/sdk-resources.json",
+          "bytes": 359,
+          "sha256": "bac9bcd8a98a9fa5af7b6c145f34fe8baa9a6a7533bef42692c8e39eee8a65b0"
+        },
+        {
+          "path": "icons/notification.png",
+          "bytes": 595,
+          "sha256": "efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"
+        },
+        {
+          "path": "knowledge/knowledge-host.js",
+          "bytes": 47295,
+          "sha256": "7067ffaed0ed95cb8cc8d7e5923c44685aaad5f8942a233128ed8ef7525e67c1"
+        },
+        {
+          "path": "libs/manifest.json",
+          "bytes": 4553,
+          "sha256": "1284ed4cbd4cb98ebe725c2c32e6a68169d62e59b26ebf691e23d5e97bc16fbf"
+        },
+        {
+          "path": "libs/packages/axios.js",
+          "bytes": 56622,
+          "sha256": "0789da5611b9fba153cf268d1406852cf4e68f7b9ba6bbfef6d26000cf8dd7ff"
+        },
+        {
+          "path": "libs/packages/cheerio.js",
+          "bytes": 121600,
+          "sha256": "448707180f9463ccdf7552a70bca57c6211a95099758db7867c4460b4267a628"
+        },
+        {
+          "path": "libs/packages/crypto-js.js",
+          "bytes": 66438,
+          "sha256": "e5e6be74bd2d7e18983813a79facbe0b917d9dabb243e01bcbd3f3d839625320"
+        },
+        {
+          "path": "libs/packages/dayjs.js",
+          "bytes": 20304,
+          "sha256": "9b406af291725ac2b47409930c6d0ffba7545ece163e6579230c21fbccf40164"
+        },
+        {
+          "path": "libs/packages/file-saver.js",
+          "bytes": 4131,
+          "sha256": "629ad9f9c34e1d9db94c8eac7afdd5c373974f956e3be590491be4d7353ae57c"
+        },
+        {
+          "path": "libs/packages/fingerprintjs.js",
+          "bytes": 36317,
+          "sha256": "4fc094ce804c3101b778148b3c401daca79cd14b9a08c8a75bf963eef918430f"
+        },
+        {
+          "path": "libs/packages/js-cookie.js",
+          "bytes": 2236,
+          "sha256": "f6704cba3d28fc26e0db56c73bb0e46d8de9ca43c47ef7953c5bbf07a4f5ef53"
+        },
+        {
+          "path": "libs/packages/lodash.js",
+          "bytes": 12832,
+          "sha256": "40d8258a2333573064f7173010cf6aa4eb07fb7d95a7a9c753a65fc23b9bfc18"
+        },
+        {
+          "path": "libs/packages/query-string.js",
+          "bytes": 9274,
+          "sha256": "ca7c9ac5ad77c09acdf98d231524e8958a00df084c2e6a2a051d10301f6095a9"
+        },
+        {
+          "path": "libs/packages/store.js",
+          "bytes": 8689,
+          "sha256": "280cb61b9c5530f57538767a5927a64901b2be57137cf0632fefc2aac954ffc6"
+        },
+        {
+          "path": "libs/page-frameworks/react-19.2.0.js",
+          "bytes": 193163,
+          "sha256": "d1eec2e96ed42046ad543a10af7de992aee633ac06017f44f6b917e36451c758"
+        },
+        {
+          "path": "libs/page-frameworks/vue-3.5.22.js",
+          "bytes": 118131,
+          "sha256": "2af9ee5acf9bf1cb05c5a871b6d99fd2af11fe1e6f372cfd8acb8b543b95d174"
+        },
+        {
+          "path": "libs/runtime/bootstrap.js",
+          "bytes": 876,
+          "sha256": "d8b6ff3a7a6a58a3ede0f630cd906f0af134307eeaa8a7db1f096ed24687868d"
+        },
+        {
+          "path": "libs/runtime/page-core.js",
+          "bytes": 8147,
+          "sha256": "98609597268a0d9e778354c11e4b5af3a8191d97c6ce61bd730fd94e79ad5a02"
+        },
+        {
+          "path": "libs/vendor/jquery/3.7.1/jquery.min.js",
+          "bytes": 87533,
+          "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+        },
+        {
+          "path": "libs/vendor/my-utils/1.0.0/index.js",
+          "bytes": 291,
+          "sha256": "948e074af991e89df08091e28f8c7f42981dc213ae089da013772e755e54c461"
+        },
+        {
+          "path": "licenses/axios-MIT.txt",
+          "bytes": 1084,
+          "sha256": "82761059eaedacb3356803aea8a170d8298609f91b14fc32ee1bfb40d690183c"
+        },
+        {
+          "path": "licenses/cheerio-MIT.txt",
+          "bytes": 1081,
+          "sha256": "61c1e21d3a8ff20f9b69abe15104a75584688080febc22f60a4cbf3854becf4e"
+        },
+        {
+          "path": "licenses/crypto-js-MIT.txt",
+          "bytes": 1169,
+          "sha256": "f729d14b7e1bf8adca0dcc38b93b929d14d53fcd5db56c3d1c9b2daa7aa69396"
+        },
+        {
+          "path": "licenses/dayjs-MIT.txt",
+          "bytes": 1072,
+          "sha256": "5faab7526d055651be3aab769d58897be6bd91f3d39d137f25f12dba1b31d5dc"
+        },
+        {
+          "path": "licenses/file-saver-MIT.txt",
+          "bytes": 1101,
+          "sha256": "2d1d7a93b46e4274355ac2904428707c4ee47ee8c6029fa394ebf405648d3f63"
+        },
+        {
+          "path": "licenses/fingerprintjs-MIT.txt",
+          "bytes": 1074,
+          "sha256": "b7eeaf845cbd307fbabdde266a01c632ab9ca30d08355dbfc7acc463b5ea8ee9"
+        },
+        {
+          "path": "licenses/jquery-MIT.txt",
+          "bytes": 1097,
+          "sha256": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"
+        },
+        {
+          "path": "licenses/js-cookie-MIT.txt",
+          "bytes": 1118,
+          "sha256": "eff040f4184445a6d1f7f76d918101d631402436ff12256b924fb68e4df28a94"
+        },
+        {
+          "path": "licenses/lodash-es-MIT.txt",
+          "bytes": 1952,
+          "sha256": "f71e8ed126b46346494aad5486874cd8f0aafe95092ed67d2e3cb6110f939abc"
+        },
+        {
+          "path": "licenses/my-utils-MIT.txt",
+          "bytes": 1078,
+          "sha256": "8bda717ea4cf7fa207cb97d1a80a1d12aaedbb95eb4bafe56956ef7f9dc2579c"
+        },
+        {
+          "path": "licenses/page-framework-react-MIT.txt",
+          "bytes": 1088,
+          "sha256": "27bc22031f14eda178853577406320a91bd2e6933a5b98bd6b2e39c7dafc0394"
+        },
+        {
+          "path": "licenses/page-framework-vue-MIT.txt",
+          "bytes": 1112,
+          "sha256": "e81b972159df4e7ebdf1f081849579f5cad5c51fa310b99e86070926eb768cf1"
+        },
+        {
+          "path": "licenses/query-string-MIT.txt",
+          "bytes": 1117,
+          "sha256": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3"
+        },
+        {
+          "path": "licenses/store-MIT.txt",
+          "bytes": 1085,
+          "sha256": "af4a0aa33e3a61cf96a6ffa912f9e13a6981e3161c6ea352eb84902af357c271"
+        },
+        {
+          "path": "licenses/todo-user-vue-MIT.txt",
+          "bytes": 1096,
+          "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+        },
+        {
+          "path": "manifest.json",
+          "bytes": 1773,
+          "sha256": "0a1c0bbb926676de97bcc9861c4508b34e93644a259164dd930e6b85cffe3230"
+        },
+        {
+          "path": "marketplace/channel.json",
+          "bytes": 217,
+          "sha256": "93191846920ecb9dac809162ad05542794a12628665eb8538784e35271dfc1b2"
+        },
+        {
+          "path": "marketplace/market-host.js",
+          "bytes": 37014,
+          "sha256": "89489b56083816552a74fe506193b88a2f9f78408a90927616303847d3931813"
+        },
+        {
+          "path": "native-agent/settings.css",
+          "bytes": 2166,
+          "sha256": "6498ee021d1ce8e50d3498714f2869a084c50a355b38a3ed5de3c8f58a03b6d1"
+        },
+        {
+          "path": "native-agent/settings.html",
+          "bytes": 2226,
+          "sha256": "6aec8bfa8ad9e542d2793efee34ebfc91546c6cc528639d0ef54d9e9b4b82571"
+        },
+        {
+          "path": "native-agent/settings.js",
+          "bytes": 100079,
+          "sha256": "9c82f6ac1c57003f8cd6caa86c3385d0740ec8133a60f4f471be766b36b78866"
+        },
+        {
+          "path": "native-agent/transport.js",
+          "bytes": 42744,
+          "sha256": "69edecc9fa5279062bd2e62b4be7e64e98bce6bdb307a67c4374d55d3d4d2529"
+        },
+        {
+          "path": "native-agent/workspace.css",
+          "bytes": 33484,
+          "sha256": "0825f158407cc1e1d19f2480e9dfd60f08e3097b31956777fc30cc8dcbef0cbe"
+        },
+        {
+          "path": "native-agent/workspace.html",
+          "bytes": 15793,
+          "sha256": "d6b3111a717a397c21785ae1aec260231e61d4a19f42ef9adb6926a510347eba"
+        },
+        {
+          "path": "official-tools/catalog.json",
+          "bytes": 5427,
+          "sha256": "94da5e3eb654dbd57bc4874588e98e4fac5ea92f2bfd7f015f8a104d35c689ec"
+        },
+        {
+          "path": "official-tools/cookie-editor/cookie-editor.opendesk-tool.json",
+          "bytes": 82437,
+          "sha256": "00034592e094d5a6f513a58bc04233a9793573f1d165a0e990489aead508fa9c"
+        },
+        {
+          "path": "official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json",
+          "bytes": 62341,
+          "sha256": "06433d9c8e08993d5c1dc1880f35ce7b472abda78bb733715af4574450e3f59d"
+        },
+        {
+          "path": "official-tools/markdown-workbench/markdown-workbench.opendesk-tool.json",
+          "bytes": 15125,
+          "sha256": "68dbb8d1123cd1634a46139c207160f228a78da42b0f295fce4cde7f6c768b0d"
+        },
+        {
+          "path": "official-tools/quick-notes/quick-notes.opendesk-tool.json",
+          "bytes": 23135,
+          "sha256": "99c42ea8573446fc8842f48be6f0567d0242b4d127ee6e96e22b650e9b2f99a7"
+        },
+        {
+          "path": "official-tools/reading-toc/reading-toc.opendesk-tool.json",
+          "bytes": 9388,
+          "sha256": "85f3f48557d7b4970507066a5389fe830b23bec3ec2d6f145c1535b48ba4df52"
+        },
+        {
+          "path": "official-tools/stay-focus/stay-focus.opendesk-tool.json",
+          "bytes": 33024,
+          "sha256": "afb91cfb1fecf65544ed2864c08e7eb678e864b2b6b5d2cd0e65ce7fb31413af"
+        },
+        {
+          "path": "official-tools/time-review/time-review.opendesk-tool.json",
+          "bytes": 41548,
+          "sha256": "90f5029049ed4b2cadd69fa91c4efaefb45f031bd94c07e708c9f78d5f2776f6"
+        },
+        {
+          "path": "official-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json",
+          "bytes": 10230,
+          "sha256": "c2f0f41b895b8737dd74bd5d304fba2b873526a510bd72fa1ddf01fc9016fefa"
+        },
+        {
+          "path": "platform/context-menus.js",
+          "bytes": 175451,
+          "sha256": "e220c28d7307050a2eec35bf4b009a152a5a261c173b75a3ad4059209e91cf31"
+        },
+        {
+          "path": "scripting/packaged/page-session.js",
+          "bytes": 39480,
+          "sha256": "2b38d8458f4cab592f451c1353ec618b709793a8b237f7215d8b966c538893c3"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.html",
+          "bytes": 385,
+          "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.js",
+          "bytes": 4010,
+          "sha256": "4b735c3d8d6d6059a549b59122d4d1d56811c121c6ad1b7eeadca6cf3e15640e"
+        },
+        {
+          "path": "scripting/sandbox/worker-runtime.js",
+          "bytes": 40104,
+          "sha256": "6646f3f01facae0a5d52304fa5d3bf4d0a09e04b43a47ce3ecf104009b6949cf"
+        },
+        {
+          "path": "sidebar-tools/bridge.js",
+          "bytes": 51268,
+          "sha256": "7367dcb211d039c2567ad46f07667630f7bb1da3ec7827e82d172ecc8a8f345e"
+        },
+        {
+          "path": "sidebar-tools/preinstall-intent.js",
+          "bytes": 49738,
+          "sha256": "efd94e27ed8df207bc43cdebcfd581adddd26c57f4a49ca7df66896a43a115f4"
+        },
+        {
+          "path": "sidebar-tools/sandbox.html",
+          "bytes": 560,
+          "sha256": "5b1b0a17190f423e6861048a6607019606faa4b9241e81c5ffe044324831fe1b"
+        },
+        {
+          "path": "stay-focus/blocked-always.html",
+          "bytes": 617,
+          "sha256": "e5d6b5c1d528cf9d8a929c67abc423b398f74417d0e0053f7140f320b366c524"
+        },
+        {
+          "path": "stay-focus/blocked-quota.html",
+          "bytes": 617,
+          "sha256": "e5d6b5c1d528cf9d8a929c67abc423b398f74417d0e0053f7140f320b366c524"
+        },
+        {
+          "path": "stay-focus/blocked-schedule.html",
+          "bytes": 617,
+          "sha256": "e5d6b5c1d528cf9d8a929c67abc423b398f74417d0e0053f7140f320b366c524"
+        },
+        {
+          "path": "stay-focus/blocked-session.html",
+          "bytes": 617,
+          "sha256": "e5d6b5c1d528cf9d8a929c67abc423b398f74417d0e0053f7140f320b366c524"
+        },
+        {
+          "path": "stay-focus/blocked.css",
+          "bytes": 969,
+          "sha256": "eb54ba4dcd77e50c07e34eaa8f78f629749623e4e167c1e18dcce759d468aff1"
+        },
+        {
+          "path": "stay-focus/blocked.js",
+          "bytes": 1726,
+          "sha256": "fad70d6fb1a7cd1b4337c191507fc2924d30d484971fa5a05f74710a256b2f93"
+        },
+        {
+          "path": "sw.js",
+          "bytes": 592202,
+          "sha256": "9aa206dccfb07623a949b8ff8487d7dfd9e9c5f632f4451e126b04c38910fe78"
+        },
+        {
+          "path": "time-review/time-review-host.js",
+          "bytes": 30863,
+          "sha256": "71ec07243ee3e141cc8fc223bc2dfe789f3c84491a3b2558c235d9495a805a94"
+        },
+        {
+          "path": "ui/cloud-console.js",
+          "bytes": 3942,
+          "sha256": "40bbf3a4d3fcd7047daa8d02152aba9635b0866da744a8c8f3908f4f5910e8df"
+        },
+        {
+          "path": "ui/cloud-control-console.css",
+          "bytes": 2846,
+          "sha256": "0e1e66a4bdf1ec5605f51b3065f04affff7223270fb565fca5540fe0e63c6adb"
+        },
+        {
+          "path": "ui/cloud-control.html",
+          "bytes": 3513,
+          "sha256": "ffd3650fe65dd08fd6bd8ca45a982372e2230af90375dfa0b509a41d30594e50"
+        },
+        {
+          "path": "ui/cloud-hosting.css",
+          "bytes": 491,
+          "sha256": "9eeb6ff44477bade32fd49514f4f4778e6f1d2fe409835dc772fa95e2368debb"
+        },
+        {
+          "path": "ui/design-system.css",
+          "bytes": 9127,
+          "sha256": "30cca2ef656d36bab796fe5b99d4ef9df936ea29e13f78077dd26670cb18d0b4"
+        },
+        {
+          "path": "ui/design-tokens.css",
+          "bytes": 2590,
+          "sha256": "a1a7c2059cb09a27986dca580443deb3fc28aae2a76d03ccc9d8f95fa34f1b5b"
+        },
+        {
+          "path": "ui/marketplace.css",
+          "bytes": 9046,
+          "sha256": "f3b085498111ad17fe9933507fc09272dfd5857913c6a9f8e1d0f2e8d8eeb642"
+        },
+        {
+          "path": "ui/marketplace.html",
+          "bytes": 931,
+          "sha256": "9f1ee3d70829f5e746617cecfe87e8ac24388cd67f29acca8f753b8a931bd24c"
+        },
+        {
+          "path": "ui/marketplace.js",
+          "bytes": 99147,
+          "sha256": "4812192373853a815d623ff40590873da2c49ef4f325620f9780a7c76f71376b"
+        },
+        {
+          "path": "ui/sidebar-tool-host.js",
+          "bytes": 190616,
+          "sha256": "21de70f967492291f76956e1c8b90de8a5909070379dbc6cac44acc1118aa243"
+        },
+        {
+          "path": "ui/stay-focus-controls.js",
+          "bytes": 3655,
+          "sha256": "123e406170e0b7f948fb2ad46f360fbe658b4aae2859bdbfef13debeb4a6cf78"
+        },
+        {
+          "path": "ui/target-bootstrap.html",
+          "bytes": 200,
+          "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+        },
+        {
+          "path": "ui/time-review.css",
+          "bytes": 11538,
+          "sha256": "ed1bc3424fa5dc934c7fd01b8a5bfa570c1b2cc1c2b919ccb08ffae4a9e86151"
+        },
+        {
+          "path": "ui/tool-shell.css",
+          "bytes": 102002,
+          "sha256": "81afcf6b2da6964c1eb4a9d7fa9bfe69f347699ab62ae59fab3c214a8aef10d8"
+        },
+        {
+          "path": "ui/tool-shell.js",
+          "bytes": 495305,
+          "sha256": "5b6b25c522b780544753359e96432cdc145718a639aba7e5492d71db3d4d630e"
+        },
+        {
+          "path": "ui/tool.html",
+          "bytes": 102298,
+          "sha256": "249e97d62bf0952814766ed07b1badffadaefdd8f185a8470d6b94176d4845b0"
+        },
+        {
+          "path": "ui/trusted-cookie-ui.js",
+          "bytes": 73180,
+          "sha256": "143027abb888536449cd5f71e2951d7473daaf1375cb7417966a2f1081940445"
+        }
+      ]
+    },
+    "sourceCommit": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+    "buildReceipt": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/builds-alarm-owner-native-final/build-production.json",
+      "sha256": "f0a2e931d9f9b8cef4d7359c3a4f019122756ea22cfaead2f77cd978668dafa5",
+      "bytes": 465962
+    }
+  },
+  "launch": {
+    "pid": 79814,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-be3i6fm0",
+    "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "args": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--use-mock-keychain",
+      "--password-store=basic",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--remote-debugging-address=127.0.0.1",
+      "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-be3i6fm0",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-alarm-owner-native-final/dist/production",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-alarm-owner-native-final/dist/production",
+      "about:blank"
+    ],
+    "log": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-be3i6fm0/chrome.log",
+    "launcherPid": 79810,
+    "python": "/usr/bin/python3",
+    "launcher": "/Users/shopme/.codex/browser-testing/launch.py",
+    "launcherSha256": "e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74",
+    "launcherArgs": [
+      "/Users/shopme/.codex/browser-testing/launch.py",
+      "--executable",
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--report",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/cookie-lifecycle-current-frame/native-core-2026-10-14T07-09-43-616Z-e8c67267/launcher-cookie-r33-core.json",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-alarm-owner-native-final/dist/production",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-alarm-owner-native-final/dist/production",
+      "about:blank"
+    ],
+    "actualMainProcess": "79814 79810 /Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-be3i6fm0 --remote-debugging-port=0 --load-extension=/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-alarm-owner-native-final/dist/production --disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-alarm-owner-native-final/dist/production about:blank",
+    "freshProfileObserved": {
+      "path": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-be3i6fm0",
+      "birthtimeMs": 1791961786682.9058,
+      "previouslyPresent": false,
+      "mode": "0700"
+    },
+    "endpoint": "ws://127.0.0.1:55860/devtools/browser/4b91213e-df54-457c-adf5-dcf5f4a8938b"
+  },
+  "case": {
+    "status": "PASS",
+    "observations": {
+      "context": {
+        "contextId": "0de52fff-d794-470a-b73d-22bded46c9c3",
+        "contextType": "SIDE_PANEL",
+        "documentId": "C2E95E7776EFB603D09CEF1A997A5DE5",
+        "documentOrigin": "chrome-extension://glmbcklmpoghobhibkjkehciogiakmma",
+        "documentUrl": "chrome-extension://glmbcklmpoghobhibkjkehciogiakmma/ui/tool.html?hostInstanceId=3d6888be-bf8e-43ec-a1ee-8e8751ba745a",
+        "frameId": 0,
+        "incognito": false,
+        "tabId": -1,
+        "windowId": -1
+      },
+      "targetInfo": {
+        "targetId": "3139A286CB033F9325B745D0BFFB449F",
+        "type": "page",
+        "title": "OpenDesk Browser",
+        "url": "chrome-extension://glmbcklmpoghobhibkjkehciogiakmma/ui/tool.html?hostInstanceId=3d6888be-bf8e-43ec-a1ee-8e8751ba745a",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "F13711E0AE608E6454FDC90BB91E2D9C"
+      }
+    },
+    "finishedAt": "2026-10-14T07:09:48.426Z"
+  }
+}

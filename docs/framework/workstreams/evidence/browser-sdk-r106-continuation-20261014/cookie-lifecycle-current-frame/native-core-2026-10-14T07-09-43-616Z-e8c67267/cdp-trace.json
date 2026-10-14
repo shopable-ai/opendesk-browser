@@ -1,0 +1,6584 @@
+[
+  {
+    "at": "2026-10-14T07:09:47.207Z",
+    "phase": "send",
+    "id": 1,
+    "method": "Target.setDiscoverTargets",
+    "timeoutMs": 15000
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "18A13F9319E6BE4F88A34A757E381AFB",
+        "type": "browser_ui",
+        "title": "chrome://webui-toolbar.top-chrome",
+        "url": "chrome://webui-toolbar.top-chrome/",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "F13711E0AE608E6454FDC90BB91E2D9C"
+      }
+    }
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "5D4C8F6213DA604CAAE58A63CAB4246D",
+        "type": "page",
+        "title": "about:blank",
+        "url": "about:blank",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "F13711E0AE608E6454FDC90BB91E2D9C"
+      }
+    }
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "83D959E7661DB8946B988DC78006CE6D",
+        "type": "browser_ui",
+        "title": "",
+        "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "F13711E0AE608E6454FDC90BB91E2D9C"
+      }
+    }
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "84759BE854736A8A8CAC67871067134A",
+        "type": "browser_ui",
+        "title": "",
+        "url": "chrome://omnibox-popup.top-chrome/",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "F13711E0AE608E6454FDC90BB91E2D9C"
+      }
+    }
+  },
+  {
+    "at": "2026-10-14T07:09:47.233Z",
+    "phase": "reply",
+    "id": 1,
+    "method": "Target.setDiscoverTargets"
+  },
+  {
+    "at": "2026-10-14T07:09:47.233Z",
+    "phase": "send",
+    "id": 2,
+    "method": "Browser.getVersion",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:47.237Z",
+    "phase": "reply",
+    "id": 2,
+    "method": "Browser.getVersion"
+  },
+  {
+    "at": "2026-10-14T07:09:47.238Z",
+    "phase": "send",
+    "id": 3,
+    "method": "Target.getTargets",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:47.239Z",
+    "phase": "reply",
+    "id": 3,
+    "method": "Target.getTargets"
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "5262227FCC512EBC08575613169A49F5",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/thunk.js",
+        "url": "chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/thunk.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "F13711E0AE608E6454FDC90BB91E2D9C"
+      }
+    }
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "000F1AF5A8C0C2337020C4EBA501D365",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+        "url": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "F13711E0AE608E6454FDC90BB91E2D9C"
+      }
+    }
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "B4457DF58A7F702597F68B090724356A",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://glmbcklmpoghobhibkjkehciogiakmma/sw.js",
+        "url": "chrome-extension://glmbcklmpoghobhibkjkehciogiakmma/sw.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "F13711E0AE608E6454FDC90BB91E2D9C"
+      }
+    }
+  },
+  {
+    "at": "2026-10-14T07:09:47.391Z",
+    "phase": "send",
+    "id": 4,
+    "method": "Target.getTargets",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:47.392Z",
+    "phase": "reply",
+    "id": 4,
+    "method": "Target.getTargets"
+  },
+  {
+    "at": "2026-10-14T07:09:47.393Z",
+    "phase": "send",
+    "id": 5,
+    "method": "Target.createTarget",
+    "timeoutMs": 15000
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "46ADED8F976E0CF0DFC312A393837AAA",
+        "type": "page",
+        "title": "",
+        "url": "chrome-extension://glmbcklmpoghobhibkjkehciogiakmma/ui/tool.html?hostInstanceId=e339e56d-3cc4-40ca-8ee1-d7fc45f78c0e",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "F13711E0AE608E6454FDC90BB91E2D9C"
+      }
+    }
+  },
+  {
+    "at": "2026-10-14T07:09:47.418Z",
+    "phase": "reply",
+    "id": 5,
+    "method": "Target.createTarget"
+  },
+  {
+    "at": "2026-10-14T07:09:47.418Z",
+    "phase": "send",
+    "id": 6,
+    "method": "Target.attachToTarget",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:47.424Z",
+    "phase": "reply",
+    "id": 6,
+    "method": "Target.attachToTarget"
+  },
+  {
+    "at": "2026-10-14T07:09:47.424Z",
+    "phase": "send",
+    "id": 7,
+    "method": "Runtime.enable",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:47.430Z",
+    "phase": "reply",
+    "id": 7,
+    "method": "Runtime.enable",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72"
+  },
+  {
+    "at": "2026-10-14T07:09:47.430Z",
+    "phase": "send",
+    "id": 8,
+    "method": "Page.enable",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:47.434Z",
+    "phase": "reply",
+    "id": 8,
+    "method": "Page.enable",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72"
+  },
+  {
+    "at": "2026-10-14T07:09:47.495Z",
+    "phase": "send",
+    "id": 9,
+    "method": "Runtime.evaluate",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:47.507Z",
+    "phase": "reply",
+    "id": 9,
+    "method": "Runtime.evaluate",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72"
+  },
+  {
+    "at": "2026-10-14T07:09:47.707Z",
+    "phase": "send",
+    "id": 10,
+    "method": "Runtime.evaluate",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:47.708Z",
+    "phase": "reply",
+    "id": 10,
+    "method": "Runtime.evaluate",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72"
+  },
+  {
+    "at": "2026-10-14T07:09:47.903Z",
+    "phase": "send",
+    "id": 11,
+    "method": "Runtime.evaluate",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:47.903Z",
+    "phase": "reply",
+    "id": 11,
+    "method": "Runtime.evaluate",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72"
+  },
+  {
+    "at": "2026-10-14T07:09:47.946Z",
+    "phase": "send",
+    "id": 12,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:47.947Z",
+    "phase": "reply",
+    "id": 12,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72"
+  },
+  {
+    "at": "2026-10-14T07:09:47.947Z",
+    "phase": "send",
+    "id": 13,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72",
+    "timeoutMs": 15000
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "3139A286CB033F9325B745D0BFFB449F",
+        "type": "other",
+        "title": "",
+        "url": "",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "F13711E0AE608E6454FDC90BB91E2D9C"
+      }
+    }
+  },
+  {
+    "at": "2026-10-14T07:09:47.963Z",
+    "phase": "reply",
+    "id": 13,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72"
+  },
+  {
+    "at": "2026-10-14T07:09:48.020Z",
+    "phase": "send",
+    "id": 14,
+    "method": "Runtime.evaluate",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:48.029Z",
+    "phase": "reply",
+    "id": 14,
+    "method": "Runtime.evaluate",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72"
+  },
+  {
+    "at": "2026-10-14T07:09:48.029Z",
+    "phase": "send",
+    "id": 15,
+    "method": "Target.getTargets",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:48.030Z",
+    "phase": "reply",
+    "id": 15,
+    "method": "Target.getTargets"
+  },
+  {
+    "at": "2026-10-14T07:09:48.030Z",
+    "phase": "send",
+    "id": 16,
+    "method": "Target.attachToTarget",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:48.034Z",
+    "phase": "reply",
+    "id": 16,
+    "method": "Target.attachToTarget"
+  },
+  {
+    "at": "2026-10-14T07:09:48.034Z",
+    "phase": "send",
+    "id": 17,
+    "method": "Runtime.enable",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:48.036Z",
+    "phase": "reply",
+    "id": 17,
+    "method": "Runtime.enable",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:48.037Z",
+    "phase": "send",
+    "id": 18,
+    "method": "Page.enable",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:48.041Z",
+    "phase": "reply",
+    "id": 18,
+    "method": "Page.enable",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:48.092Z",
+    "phase": "send",
+    "id": 19,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:48.094Z",
+    "phase": "reply",
+    "id": 19,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:48.293Z",
+    "phase": "send",
+    "id": 20,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:48.296Z",
+    "phase": "reply",
+    "id": 20,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:48.342Z",
+    "phase": "send",
+    "id": 21,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:48.343Z",
+    "phase": "reply",
+    "id": 21,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:48.343Z",
+    "phase": "send",
+    "id": 22,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:48.347Z",
+    "phase": "reply",
+    "id": 22,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:48.392Z",
+    "phase": "send",
+    "id": 23,
+    "method": "Page.captureScreenshot",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:48.425Z",
+    "phase": "reply",
+    "id": 23,
+    "method": "Page.captureScreenshot",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:48.471Z",
+    "phase": "send",
+    "id": 24,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:48.472Z",
+    "phase": "reply",
+    "id": 24,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:48.667Z",
+    "phase": "send",
+    "id": 25,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:48.668Z",
+    "phase": "reply",
+    "id": 25,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:48.712Z",
+    "phase": "send",
+    "id": 26,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:48.714Z",
+    "phase": "reply",
+    "id": 26,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:48.714Z",
+    "phase": "send",
+    "id": 27,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:48.716Z",
+    "phase": "reply",
+    "id": 27,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:48.761Z",
+    "phase": "send",
+    "id": 28,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:48.762Z",
+    "phase": "reply",
+    "id": 28,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:48.955Z",
+    "phase": "send",
+    "id": 29,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:48.956Z",
+    "phase": "reply",
+    "id": 29,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:48.998Z",
+    "phase": "send",
+    "id": 30,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:48.999Z",
+    "phase": "reply",
+    "id": 30,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:48.999Z",
+    "phase": "send",
+    "id": 31,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:49.001Z",
+    "phase": "reply",
+    "id": 31,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:49.046Z",
+    "phase": "send",
+    "id": 32,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:49.047Z",
+    "phase": "reply",
+    "id": 32,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:49.090Z",
+    "phase": "send",
+    "id": 33,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:49.090Z",
+    "phase": "reply",
+    "id": 33,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:49.133Z",
+    "phase": "send",
+    "id": 34,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:49.133Z",
+    "phase": "reply",
+    "id": 34,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:49.327Z",
+    "phase": "send",
+    "id": 35,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:49.328Z",
+    "phase": "reply",
+    "id": 35,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:49.381Z",
+    "phase": "send",
+    "id": 36,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:49.382Z",
+    "phase": "reply",
+    "id": 36,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:49.382Z",
+    "phase": "send",
+    "id": 37,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:49.384Z",
+    "phase": "reply",
+    "id": 37,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:49.429Z",
+    "phase": "send",
+    "id": 38,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:49.430Z",
+    "phase": "reply",
+    "id": 38,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:49.473Z",
+    "phase": "send",
+    "id": 39,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:49.475Z",
+    "phase": "reply",
+    "id": 39,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:49.518Z",
+    "phase": "send",
+    "id": 40,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:49.518Z",
+    "phase": "reply",
+    "id": 40,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:49.714Z",
+    "phase": "send",
+    "id": 41,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:49.714Z",
+    "phase": "reply",
+    "id": 41,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:49.758Z",
+    "phase": "send",
+    "id": 42,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:49.759Z",
+    "phase": "reply",
+    "id": 42,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:49.759Z",
+    "phase": "send",
+    "id": 43,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:49.762Z",
+    "phase": "reply",
+    "id": 43,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:49.809Z",
+    "phase": "send",
+    "id": 44,
+    "method": "Page.captureScreenshot",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "FBD847D6191FA167ABF16BEC70B86BFB",
+        "type": "iframe",
+        "title": "",
+        "url": "",
+        "attached": false,
+        "parentId": "3139A286CB033F9325B745D0BFFB449F",
+        "canAccessOpener": false,
+        "parentFrameId": "3139A286CB033F9325B745D0BFFB449F",
+        "browserContextId": "F13711E0AE608E6454FDC90BB91E2D9C"
+      }
+    }
+  },
+  {
+    "at": "2026-10-14T07:09:49.851Z",
+    "phase": "reply",
+    "id": 44,
+    "method": "Page.captureScreenshot",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:49.854Z",
+    "phase": "send",
+    "id": 45,
+    "method": "Target.createTarget",
+    "timeoutMs": 15000
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "CC54244CBFFFBBB6C5B18BAD21D11C47",
+        "type": "page",
+        "title": "",
+        "url": "http://127.0.0.1:43111/demo-form.html",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "F13711E0AE608E6454FDC90BB91E2D9C"
+      }
+    }
+  },
+  {
+    "at": "2026-10-14T07:09:49.876Z",
+    "phase": "reply",
+    "id": 45,
+    "method": "Target.createTarget"
+  },
+  {
+    "at": "2026-10-14T07:09:49.876Z",
+    "phase": "send",
+    "id": 46,
+    "method": "Target.attachToTarget",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:49.882Z",
+    "phase": "reply",
+    "id": 46,
+    "method": "Target.attachToTarget"
+  },
+  {
+    "at": "2026-10-14T07:09:49.882Z",
+    "phase": "send",
+    "id": 47,
+    "method": "Runtime.enable",
+    "sessionId": "AC1B1189D80A6DE2CB8553B098ED27D3",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:49.922Z",
+    "phase": "reply",
+    "id": 47,
+    "method": "Runtime.enable",
+    "sessionId": "AC1B1189D80A6DE2CB8553B098ED27D3"
+  },
+  {
+    "at": "2026-10-14T07:09:49.922Z",
+    "phase": "send",
+    "id": 48,
+    "method": "Page.enable",
+    "sessionId": "AC1B1189D80A6DE2CB8553B098ED27D3",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:49.935Z",
+    "phase": "reply",
+    "id": 48,
+    "method": "Page.enable",
+    "sessionId": "AC1B1189D80A6DE2CB8553B098ED27D3"
+  },
+  {
+    "at": "2026-10-14T07:09:49.935Z",
+    "phase": "send",
+    "id": 49,
+    "method": "Target.activateTarget",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:49.938Z",
+    "phase": "reply",
+    "id": 49,
+    "method": "Target.activateTarget"
+  },
+  {
+    "at": "2026-10-14T07:09:49.990Z",
+    "phase": "send",
+    "id": 50,
+    "method": "Runtime.evaluate",
+    "sessionId": "AC1B1189D80A6DE2CB8553B098ED27D3",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:49.991Z",
+    "phase": "reply",
+    "id": 50,
+    "method": "Runtime.evaluate",
+    "sessionId": "AC1B1189D80A6DE2CB8553B098ED27D3"
+  },
+  {
+    "at": "2026-10-14T07:09:50.036Z",
+    "phase": "send",
+    "id": 51,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:50.037Z",
+    "phase": "reply",
+    "id": 51,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:50.233Z",
+    "phase": "send",
+    "id": 52,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:50.234Z",
+    "phase": "reply",
+    "id": 52,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:50.278Z",
+    "phase": "send",
+    "id": 53,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:50.279Z",
+    "phase": "reply",
+    "id": 53,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:50.279Z",
+    "phase": "send",
+    "id": 54,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:50.282Z",
+    "phase": "reply",
+    "id": 54,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:50.327Z",
+    "phase": "send",
+    "id": 55,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:50.328Z",
+    "phase": "reply",
+    "id": 55,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:50.370Z",
+    "phase": "send",
+    "id": 56,
+    "method": "Runtime.evaluate",
+    "sessionId": "AC1B1189D80A6DE2CB8553B098ED27D3",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:50.371Z",
+    "phase": "reply",
+    "id": 56,
+    "method": "Runtime.evaluate",
+    "sessionId": "AC1B1189D80A6DE2CB8553B098ED27D3"
+  },
+  {
+    "at": "2026-10-14T07:09:50.414Z",
+    "phase": "send",
+    "id": 57,
+    "method": "Page.captureScreenshot",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:50.442Z",
+    "phase": "reply",
+    "id": 57,
+    "method": "Page.captureScreenshot",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:50.488Z",
+    "phase": "send",
+    "id": 58,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:50.489Z",
+    "phase": "reply",
+    "id": 58,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:50.533Z",
+    "phase": "send",
+    "id": 59,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:50.534Z",
+    "phase": "reply",
+    "id": 59,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:50.729Z",
+    "phase": "send",
+    "id": 60,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:50.730Z",
+    "phase": "reply",
+    "id": 60,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:50.774Z",
+    "phase": "send",
+    "id": 61,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:50.775Z",
+    "phase": "reply",
+    "id": 61,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:50.775Z",
+    "phase": "send",
+    "id": 62,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:50.776Z",
+    "phase": "reply",
+    "id": 62,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:50.847Z",
+    "phase": "send",
+    "id": 63,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:50.848Z",
+    "phase": "reply",
+    "id": 63,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:50.893Z",
+    "phase": "send",
+    "id": 64,
+    "method": "Page.captureScreenshot",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:50.926Z",
+    "phase": "reply",
+    "id": 64,
+    "method": "Page.captureScreenshot",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:50.972Z",
+    "phase": "send",
+    "id": 65,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:50.972Z",
+    "phase": "reply",
+    "id": 65,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:51.168Z",
+    "phase": "send",
+    "id": 66,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:51.168Z",
+    "phase": "reply",
+    "id": 66,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:51.212Z",
+    "phase": "send",
+    "id": 67,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:51.213Z",
+    "phase": "reply",
+    "id": 67,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:51.213Z",
+    "phase": "send",
+    "id": 68,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:51.214Z",
+    "phase": "reply",
+    "id": 68,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:51.260Z",
+    "phase": "send",
+    "id": 69,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:51.260Z",
+    "phase": "reply",
+    "id": 69,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:51.260Z",
+    "phase": "send",
+    "id": 70,
+    "method": "Target.getTargets",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:51.261Z",
+    "phase": "reply",
+    "id": 70,
+    "method": "Target.getTargets"
+  },
+  {
+    "at": "2026-10-14T07:09:51.261Z",
+    "phase": "send",
+    "id": 71,
+    "method": "Target.attachToTarget",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:51.261Z",
+    "phase": "reply",
+    "id": 71,
+    "method": "Target.attachToTarget"
+  },
+  {
+    "at": "2026-10-14T07:09:51.261Z",
+    "phase": "send",
+    "id": 72,
+    "method": "Runtime.enable",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:51.262Z",
+    "phase": "reply",
+    "id": 72,
+    "method": "Runtime.enable",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C"
+  },
+  {
+    "at": "2026-10-14T07:09:51.262Z",
+    "phase": "send",
+    "id": 73,
+    "method": "Page.enable",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:51.262Z",
+    "phase": "reply",
+    "id": 73,
+    "method": "Page.enable",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C"
+  },
+  {
+    "at": "2026-10-14T07:09:51.307Z",
+    "phase": "send",
+    "id": 74,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:51.308Z",
+    "phase": "reply",
+    "id": 74,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C"
+  },
+  {
+    "at": "2026-10-14T07:09:51.352Z",
+    "phase": "send",
+    "id": 75,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:51.352Z",
+    "phase": "reply",
+    "id": 75,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:51.352Z",
+    "phase": "send",
+    "id": 76,
+    "method": "Page.getFrameTree",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:51.353Z",
+    "phase": "reply",
+    "id": 76,
+    "method": "Page.getFrameTree",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:51.353Z",
+    "phase": "send",
+    "id": 77,
+    "method": "Target.getTargets",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:51.353Z",
+    "phase": "reply",
+    "id": 77,
+    "method": "Target.getTargets"
+  },
+  {
+    "at": "2026-10-14T07:09:51.397Z",
+    "phase": "send",
+    "id": 78,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:51.398Z",
+    "phase": "reply",
+    "id": 78,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C"
+  },
+  {
+    "at": "2026-10-14T07:09:51.441Z",
+    "phase": "send",
+    "id": 79,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:51.442Z",
+    "phase": "reply",
+    "id": 79,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C"
+  },
+  {
+    "at": "2026-10-14T07:09:51.486Z",
+    "phase": "send",
+    "id": 80,
+    "method": "Page.captureScreenshot",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:51.517Z",
+    "phase": "reply",
+    "id": 80,
+    "method": "Page.captureScreenshot",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:51.563Z",
+    "phase": "send",
+    "id": 81,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:51.564Z",
+    "phase": "reply",
+    "id": 81,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:51.760Z",
+    "phase": "send",
+    "id": 82,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:51.761Z",
+    "phase": "reply",
+    "id": 82,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:51.804Z",
+    "phase": "send",
+    "id": 83,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:51.805Z",
+    "phase": "reply",
+    "id": 83,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:51.805Z",
+    "phase": "send",
+    "id": 84,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:51.806Z",
+    "phase": "reply",
+    "id": 84,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:51.850Z",
+    "phase": "send",
+    "id": 85,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:51.851Z",
+    "phase": "reply",
+    "id": 85,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:52.046Z",
+    "phase": "send",
+    "id": 86,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:52.047Z",
+    "phase": "reply",
+    "id": 86,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:52.090Z",
+    "phase": "send",
+    "id": 87,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:52.091Z",
+    "phase": "reply",
+    "id": 87,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:52.091Z",
+    "phase": "send",
+    "id": 88,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:52.092Z",
+    "phase": "reply",
+    "id": 88,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:52.137Z",
+    "phase": "send",
+    "id": 89,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:52.138Z",
+    "phase": "reply",
+    "id": 89,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:52.183Z",
+    "phase": "send",
+    "id": 90,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:52.184Z",
+    "phase": "reply",
+    "id": 90,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:52.380Z",
+    "phase": "send",
+    "id": 91,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:52.381Z",
+    "phase": "reply",
+    "id": 91,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:52.424Z",
+    "phase": "send",
+    "id": 92,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:52.425Z",
+    "phase": "reply",
+    "id": 92,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:52.426Z",
+    "phase": "send",
+    "id": 93,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:52.427Z",
+    "phase": "reply",
+    "id": 93,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:52.471Z",
+    "phase": "send",
+    "id": 94,
+    "method": "Runtime.evaluate",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:52.472Z",
+    "phase": "reply",
+    "id": 94,
+    "method": "Runtime.evaluate",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72"
+  },
+  {
+    "at": "2026-10-14T07:09:52.516Z",
+    "phase": "send",
+    "id": 95,
+    "method": "Page.captureScreenshot",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:52.541Z",
+    "phase": "reply",
+    "id": 95,
+    "method": "Page.captureScreenshot",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:52.586Z",
+    "phase": "send",
+    "id": 96,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:52.587Z",
+    "phase": "reply",
+    "id": 96,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C"
+  },
+  {
+    "at": "2026-10-14T07:09:52.631Z",
+    "phase": "send",
+    "id": 97,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:52.632Z",
+    "phase": "reply",
+    "id": 97,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:52.828Z",
+    "phase": "send",
+    "id": 98,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:52.828Z",
+    "phase": "reply",
+    "id": 98,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C"
+  },
+  {
+    "at": "2026-10-14T07:09:52.872Z",
+    "phase": "send",
+    "id": 99,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:52.872Z",
+    "phase": "reply",
+    "id": 99,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:52.916Z",
+    "phase": "send",
+    "id": 100,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:52.917Z",
+    "phase": "reply",
+    "id": 100,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:52.917Z",
+    "phase": "send",
+    "id": 101,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:52.920Z",
+    "phase": "reply",
+    "id": 101,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:52.965Z",
+    "phase": "send",
+    "id": 102,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:52.966Z",
+    "phase": "reply",
+    "id": 102,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C"
+  },
+  {
+    "at": "2026-10-14T07:09:53.012Z",
+    "phase": "send",
+    "id": 103,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:53.013Z",
+    "phase": "reply",
+    "id": 103,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C"
+  },
+  {
+    "at": "2026-10-14T07:09:53.059Z",
+    "phase": "send",
+    "id": 104,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:53.059Z",
+    "phase": "reply",
+    "id": 104,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:53.257Z",
+    "phase": "send",
+    "id": 105,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:53.258Z",
+    "phase": "reply",
+    "id": 105,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C"
+  },
+  {
+    "at": "2026-10-14T07:09:53.304Z",
+    "phase": "send",
+    "id": 106,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:53.305Z",
+    "phase": "reply",
+    "id": 106,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:53.501Z",
+    "phase": "send",
+    "id": 107,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:53.502Z",
+    "phase": "reply",
+    "id": 107,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C"
+  },
+  {
+    "at": "2026-10-14T07:09:53.546Z",
+    "phase": "send",
+    "id": 108,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:53.547Z",
+    "phase": "reply",
+    "id": 108,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:53.742Z",
+    "phase": "send",
+    "id": 109,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:53.742Z",
+    "phase": "reply",
+    "id": 109,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C"
+  },
+  {
+    "at": "2026-10-14T07:09:53.786Z",
+    "phase": "send",
+    "id": 110,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:53.787Z",
+    "phase": "reply",
+    "id": 110,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:53.831Z",
+    "phase": "send",
+    "id": 111,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:53.832Z",
+    "phase": "reply",
+    "id": 111,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:53.832Z",
+    "phase": "send",
+    "id": 112,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:53.833Z",
+    "phase": "reply",
+    "id": 112,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:53.877Z",
+    "phase": "send",
+    "id": 113,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:53.877Z",
+    "phase": "reply",
+    "id": 113,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C"
+  },
+  {
+    "at": "2026-10-14T07:09:53.922Z",
+    "phase": "send",
+    "id": 114,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:53.923Z",
+    "phase": "reply",
+    "id": 114,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C"
+  },
+  {
+    "at": "2026-10-14T07:09:53.923Z",
+    "phase": "send",
+    "id": 115,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:53.923Z",
+    "phase": "reply",
+    "id": 115,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:53.923Z",
+    "phase": "send",
+    "id": 116,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:53.924Z",
+    "phase": "reply",
+    "id": 116,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:53.924Z",
+    "phase": "send",
+    "id": 117,
+    "method": "Input.insertText",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:53.925Z",
+    "phase": "reply",
+    "id": 117,
+    "method": "Input.insertText",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:53.970Z",
+    "phase": "send",
+    "id": 118,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:53.970Z",
+    "phase": "reply",
+    "id": 118,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C"
+  },
+  {
+    "at": "2026-10-14T07:09:54.013Z",
+    "phase": "send",
+    "id": 119,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:54.014Z",
+    "phase": "reply",
+    "id": 119,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C"
+  },
+  {
+    "at": "2026-10-14T07:09:54.060Z",
+    "phase": "send",
+    "id": 120,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:54.061Z",
+    "phase": "reply",
+    "id": 120,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:54.255Z",
+    "phase": "send",
+    "id": 121,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:54.256Z",
+    "phase": "reply",
+    "id": 121,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C"
+  },
+  {
+    "at": "2026-10-14T07:09:54.300Z",
+    "phase": "send",
+    "id": 122,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:54.301Z",
+    "phase": "reply",
+    "id": 122,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:54.345Z",
+    "phase": "send",
+    "id": 123,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:54.346Z",
+    "phase": "reply",
+    "id": 123,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:54.346Z",
+    "phase": "send",
+    "id": 124,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:54.346Z",
+    "phase": "reply",
+    "id": 124,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:54.391Z",
+    "phase": "send",
+    "id": 125,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:54.391Z",
+    "phase": "reply",
+    "id": 125,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C"
+  },
+  {
+    "at": "2026-10-14T07:09:54.436Z",
+    "phase": "send",
+    "id": 126,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:54.436Z",
+    "phase": "reply",
+    "id": 126,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C"
+  },
+  {
+    "at": "2026-10-14T07:09:54.436Z",
+    "phase": "send",
+    "id": 127,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:54.437Z",
+    "phase": "reply",
+    "id": 127,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:54.437Z",
+    "phase": "send",
+    "id": 128,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:54.437Z",
+    "phase": "reply",
+    "id": 128,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:54.437Z",
+    "phase": "send",
+    "id": 129,
+    "method": "Input.insertText",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:54.438Z",
+    "phase": "reply",
+    "id": 129,
+    "method": "Input.insertText",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:54.482Z",
+    "phase": "send",
+    "id": 130,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:54.482Z",
+    "phase": "reply",
+    "id": 130,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C"
+  },
+  {
+    "at": "2026-10-14T07:09:54.526Z",
+    "phase": "send",
+    "id": 131,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:54.527Z",
+    "phase": "reply",
+    "id": 131,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C"
+  },
+  {
+    "at": "2026-10-14T07:09:54.569Z",
+    "phase": "send",
+    "id": 132,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:54.570Z",
+    "phase": "reply",
+    "id": 132,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:54.570Z",
+    "phase": "send",
+    "id": 133,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:54.571Z",
+    "phase": "reply",
+    "id": 133,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:55.016Z",
+    "phase": "send",
+    "id": 134,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:55.017Z",
+    "phase": "reply",
+    "id": 134,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C"
+  },
+  {
+    "at": "2026-10-14T07:09:55.071Z",
+    "phase": "send",
+    "id": 135,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:55.071Z",
+    "phase": "reply",
+    "id": 135,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:55.071Z",
+    "phase": "send",
+    "id": 136,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:55.072Z",
+    "phase": "reply",
+    "id": 136,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:55.517Z",
+    "phase": "send",
+    "id": 137,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:55.518Z",
+    "phase": "reply",
+    "id": 137,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C"
+  },
+  {
+    "at": "2026-10-14T07:09:55.562Z",
+    "phase": "send",
+    "id": 138,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:55.563Z",
+    "phase": "reply",
+    "id": 138,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:55.563Z",
+    "phase": "send",
+    "id": 139,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:55.564Z",
+    "phase": "reply",
+    "id": 139,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:56.016Z",
+    "phase": "send",
+    "id": 140,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:56.016Z",
+    "phase": "reply",
+    "id": 140,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C"
+  },
+  {
+    "at": "2026-10-14T07:09:56.065Z",
+    "phase": "send",
+    "id": 141,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:56.065Z",
+    "phase": "reply",
+    "id": 141,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:56.264Z",
+    "phase": "send",
+    "id": 142,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:56.264Z",
+    "phase": "reply",
+    "id": 142,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C"
+  },
+  {
+    "at": "2026-10-14T07:09:56.310Z",
+    "phase": "send",
+    "id": 143,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:56.311Z",
+    "phase": "reply",
+    "id": 143,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:56.359Z",
+    "phase": "send",
+    "id": 144,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:56.361Z",
+    "phase": "reply",
+    "id": 144,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:56.361Z",
+    "phase": "send",
+    "id": 145,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:56.362Z",
+    "phase": "reply",
+    "id": 145,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:56.409Z",
+    "phase": "send",
+    "id": 146,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:56.410Z",
+    "phase": "reply",
+    "id": 146,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C"
+  },
+  {
+    "at": "2026-10-14T07:09:56.455Z",
+    "phase": "send",
+    "id": 147,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:56.456Z",
+    "phase": "reply",
+    "id": 147,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:56.501Z",
+    "phase": "send",
+    "id": 148,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:56.502Z",
+    "phase": "reply",
+    "id": 148,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:56.548Z",
+    "phase": "send",
+    "id": 149,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:56.548Z",
+    "phase": "reply",
+    "id": 149,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:56.743Z",
+    "phase": "send",
+    "id": 150,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:56.744Z",
+    "phase": "reply",
+    "id": 150,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:56.787Z",
+    "phase": "send",
+    "id": 151,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:56.788Z",
+    "phase": "reply",
+    "id": 151,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:56.788Z",
+    "phase": "send",
+    "id": 152,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:56.789Z",
+    "phase": "reply",
+    "id": 152,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:56.834Z",
+    "phase": "send",
+    "id": 153,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:56.835Z",
+    "phase": "reply",
+    "id": 153,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C"
+  },
+  {
+    "at": "2026-10-14T07:09:56.880Z",
+    "phase": "send",
+    "id": 154,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:56.881Z",
+    "phase": "reply",
+    "id": 154,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C"
+  },
+  {
+    "at": "2026-10-14T07:09:57.077Z",
+    "phase": "send",
+    "id": 155,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:57.078Z",
+    "phase": "reply",
+    "id": 155,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C"
+  },
+  {
+    "at": "2026-10-14T07:09:57.124Z",
+    "phase": "send",
+    "id": 156,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:57.124Z",
+    "phase": "reply",
+    "id": 156,
+    "method": "Runtime.evaluate",
+    "sessionId": "DE0E9148F2D29EE1D73404F45C170C0C"
+  },
+  {
+    "at": "2026-10-14T07:09:57.168Z",
+    "phase": "send",
+    "id": 157,
+    "method": "Runtime.evaluate",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:57.169Z",
+    "phase": "reply",
+    "id": 157,
+    "method": "Runtime.evaluate",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72"
+  },
+  {
+    "at": "2026-10-14T07:09:57.213Z",
+    "phase": "send",
+    "id": 158,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:57.214Z",
+    "phase": "reply",
+    "id": 158,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:57.408Z",
+    "phase": "send",
+    "id": 159,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:57.408Z",
+    "phase": "reply",
+    "id": 159,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:57.452Z",
+    "phase": "send",
+    "id": 160,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:57.453Z",
+    "phase": "reply",
+    "id": 160,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:57.453Z",
+    "phase": "send",
+    "id": 161,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "method": "Target.targetDestroyed",
+    "params": {
+      "targetId": "FBD847D6191FA167ABF16BEC70B86BFB"
+    }
+  },
+  {
+    "at": "2026-10-14T07:09:57.455Z",
+    "phase": "reply",
+    "id": 161,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:57.499Z",
+    "phase": "send",
+    "id": 162,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:57.500Z",
+    "phase": "reply",
+    "id": 162,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:57.543Z",
+    "phase": "send",
+    "id": 163,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:57.543Z",
+    "phase": "reply",
+    "id": 163,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:57.739Z",
+    "phase": "send",
+    "id": 164,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:57.739Z",
+    "phase": "reply",
+    "id": 164,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:57.785Z",
+    "phase": "send",
+    "id": 165,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:57.786Z",
+    "phase": "reply",
+    "id": 165,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:57.786Z",
+    "phase": "send",
+    "id": 166,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:57.789Z",
+    "phase": "reply",
+    "id": 166,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:57.840Z",
+    "phase": "send",
+    "id": 167,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "6E052FD5599C64DD4601B96E9EC5B1D3",
+        "type": "iframe",
+        "title": "",
+        "url": "",
+        "attached": false,
+        "parentId": "3139A286CB033F9325B745D0BFFB449F",
+        "canAccessOpener": false,
+        "parentFrameId": "3139A286CB033F9325B745D0BFFB449F",
+        "browserContextId": "F13711E0AE608E6454FDC90BB91E2D9C"
+      }
+    }
+  },
+  {
+    "at": "2026-10-14T07:09:57.841Z",
+    "phase": "reply",
+    "id": 167,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:57.841Z",
+    "phase": "send",
+    "id": 168,
+    "method": "Target.getTargets",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:57.841Z",
+    "phase": "reply",
+    "id": 168,
+    "method": "Target.getTargets"
+  },
+  {
+    "at": "2026-10-14T07:09:57.842Z",
+    "phase": "send",
+    "id": 169,
+    "method": "Target.attachToTarget",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:57.842Z",
+    "phase": "reply",
+    "id": 169,
+    "method": "Target.attachToTarget"
+  },
+  {
+    "at": "2026-10-14T07:09:57.842Z",
+    "phase": "send",
+    "id": 170,
+    "method": "Runtime.enable",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:57.845Z",
+    "phase": "reply",
+    "id": 170,
+    "method": "Runtime.enable",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:09:57.845Z",
+    "phase": "send",
+    "id": 171,
+    "method": "Page.enable",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:57.845Z",
+    "phase": "reply",
+    "id": 171,
+    "method": "Page.enable",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:09:57.903Z",
+    "phase": "send",
+    "id": 172,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:57.903Z",
+    "phase": "reply",
+    "id": 172,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:09:57.953Z",
+    "phase": "send",
+    "id": 173,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:57.953Z",
+    "phase": "reply",
+    "id": 173,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:09:57.999Z",
+    "phase": "send",
+    "id": 174,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:58.000Z",
+    "phase": "reply",
+    "id": 174,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:09:58.044Z",
+    "phase": "send",
+    "id": 175,
+    "method": "Runtime.evaluate",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:58.045Z",
+    "phase": "reply",
+    "id": 175,
+    "method": "Runtime.evaluate",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72"
+  },
+  {
+    "at": "2026-10-14T07:09:58.090Z",
+    "phase": "send",
+    "id": 176,
+    "method": "Page.captureScreenshot",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:58.116Z",
+    "phase": "reply",
+    "id": 176,
+    "method": "Page.captureScreenshot",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:58.163Z",
+    "phase": "send",
+    "id": 177,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:58.164Z",
+    "phase": "reply",
+    "id": 177,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:09:58.208Z",
+    "phase": "send",
+    "id": 178,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:58.209Z",
+    "phase": "reply",
+    "id": 178,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:58.404Z",
+    "phase": "send",
+    "id": 179,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:58.405Z",
+    "phase": "reply",
+    "id": 179,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:09:58.448Z",
+    "phase": "send",
+    "id": 180,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:58.449Z",
+    "phase": "reply",
+    "id": 180,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:58.493Z",
+    "phase": "send",
+    "id": 181,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:58.495Z",
+    "phase": "reply",
+    "id": 181,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:58.495Z",
+    "phase": "send",
+    "id": 182,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:58.498Z",
+    "phase": "reply",
+    "id": 182,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:58.544Z",
+    "phase": "send",
+    "id": 183,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:58.545Z",
+    "phase": "reply",
+    "id": 183,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:09:58.592Z",
+    "phase": "send",
+    "id": 184,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:58.593Z",
+    "phase": "reply",
+    "id": 184,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:09:58.641Z",
+    "phase": "send",
+    "id": 185,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:58.642Z",
+    "phase": "reply",
+    "id": 185,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:58.839Z",
+    "phase": "send",
+    "id": 186,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:58.840Z",
+    "phase": "reply",
+    "id": 186,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:09:58.886Z",
+    "phase": "send",
+    "id": 187,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:58.886Z",
+    "phase": "reply",
+    "id": 187,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:59.084Z",
+    "phase": "send",
+    "id": 188,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:59.084Z",
+    "phase": "reply",
+    "id": 188,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:09:59.129Z",
+    "phase": "send",
+    "id": 189,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:59.130Z",
+    "phase": "reply",
+    "id": 189,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:59.327Z",
+    "phase": "send",
+    "id": 190,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:59.328Z",
+    "phase": "reply",
+    "id": 190,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:09:59.373Z",
+    "phase": "send",
+    "id": 191,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:59.374Z",
+    "phase": "reply",
+    "id": 191,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:59.573Z",
+    "phase": "send",
+    "id": 192,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:59.573Z",
+    "phase": "reply",
+    "id": 192,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:09:59.620Z",
+    "phase": "send",
+    "id": 193,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:59.621Z",
+    "phase": "reply",
+    "id": 193,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:59.668Z",
+    "phase": "send",
+    "id": 194,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:59.670Z",
+    "phase": "reply",
+    "id": 194,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:59.670Z",
+    "phase": "send",
+    "id": 195,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:59.670Z",
+    "phase": "reply",
+    "id": 195,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:59.717Z",
+    "phase": "send",
+    "id": 196,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:59.718Z",
+    "phase": "reply",
+    "id": 196,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:09:59.765Z",
+    "phase": "send",
+    "id": 197,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:59.765Z",
+    "phase": "reply",
+    "id": 197,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:09:59.765Z",
+    "phase": "send",
+    "id": 198,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:59.766Z",
+    "phase": "reply",
+    "id": 198,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:59.766Z",
+    "phase": "send",
+    "id": 199,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:59.766Z",
+    "phase": "reply",
+    "id": 199,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:59.766Z",
+    "phase": "send",
+    "id": 200,
+    "method": "Input.insertText",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:59.767Z",
+    "phase": "reply",
+    "id": 200,
+    "method": "Input.insertText",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:59.814Z",
+    "phase": "send",
+    "id": 201,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:59.814Z",
+    "phase": "reply",
+    "id": 201,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:09:59.858Z",
+    "phase": "send",
+    "id": 202,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:59.858Z",
+    "phase": "reply",
+    "id": 202,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:09:59.904Z",
+    "phase": "send",
+    "id": 203,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:59.904Z",
+    "phase": "reply",
+    "id": 203,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:09:59.904Z",
+    "phase": "send",
+    "id": 204,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:09:59.905Z",
+    "phase": "reply",
+    "id": 204,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:00.355Z",
+    "phase": "send",
+    "id": 205,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:00.356Z",
+    "phase": "reply",
+    "id": 205,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:10:00.400Z",
+    "phase": "send",
+    "id": 206,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:00.401Z",
+    "phase": "reply",
+    "id": 206,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:00.597Z",
+    "phase": "send",
+    "id": 207,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:00.598Z",
+    "phase": "reply",
+    "id": 207,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:10:00.643Z",
+    "phase": "send",
+    "id": 208,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:00.644Z",
+    "phase": "reply",
+    "id": 208,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:00.689Z",
+    "phase": "send",
+    "id": 209,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:00.691Z",
+    "phase": "reply",
+    "id": 209,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:00.691Z",
+    "phase": "send",
+    "id": 210,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:00.692Z",
+    "phase": "reply",
+    "id": 210,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:00.737Z",
+    "phase": "send",
+    "id": 211,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:00.737Z",
+    "phase": "reply",
+    "id": 211,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:10:00.783Z",
+    "phase": "send",
+    "id": 212,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:00.784Z",
+    "phase": "reply",
+    "id": 212,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:10:00.784Z",
+    "phase": "send",
+    "id": 213,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:00.784Z",
+    "phase": "reply",
+    "id": 213,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:00.784Z",
+    "phase": "send",
+    "id": 214,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:00.785Z",
+    "phase": "reply",
+    "id": 214,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:00.785Z",
+    "phase": "send",
+    "id": 215,
+    "method": "Input.insertText",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:00.786Z",
+    "phase": "reply",
+    "id": 215,
+    "method": "Input.insertText",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:00.831Z",
+    "phase": "send",
+    "id": 216,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:00.831Z",
+    "phase": "reply",
+    "id": 216,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:10:00.875Z",
+    "phase": "send",
+    "id": 217,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:00.876Z",
+    "phase": "reply",
+    "id": 217,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:10:00.921Z",
+    "phase": "send",
+    "id": 218,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:00.922Z",
+    "phase": "reply",
+    "id": 218,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:00.922Z",
+    "phase": "send",
+    "id": 219,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:00.923Z",
+    "phase": "reply",
+    "id": 219,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:01.369Z",
+    "phase": "send",
+    "id": 220,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:01.370Z",
+    "phase": "reply",
+    "id": 220,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:10:01.415Z",
+    "phase": "send",
+    "id": 221,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:01.415Z",
+    "phase": "reply",
+    "id": 221,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:01.415Z",
+    "phase": "send",
+    "id": 222,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:01.416Z",
+    "phase": "reply",
+    "id": 222,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:01.863Z",
+    "phase": "send",
+    "id": 223,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:01.863Z",
+    "phase": "reply",
+    "id": 223,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:10:01.908Z",
+    "phase": "send",
+    "id": 224,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:01.909Z",
+    "phase": "reply",
+    "id": 224,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:02.106Z",
+    "phase": "send",
+    "id": 225,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:02.106Z",
+    "phase": "reply",
+    "id": 225,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:10:02.150Z",
+    "phase": "send",
+    "id": 226,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:02.151Z",
+    "phase": "reply",
+    "id": 226,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:02.196Z",
+    "phase": "send",
+    "id": 227,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:02.198Z",
+    "phase": "reply",
+    "id": 227,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:02.198Z",
+    "phase": "send",
+    "id": 228,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:02.199Z",
+    "phase": "reply",
+    "id": 228,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:02.246Z",
+    "phase": "send",
+    "id": 229,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:02.247Z",
+    "phase": "reply",
+    "id": 229,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:10:02.295Z",
+    "phase": "send",
+    "id": 230,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:02.296Z",
+    "phase": "reply",
+    "id": 230,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:02.342Z",
+    "phase": "send",
+    "id": 231,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:02.342Z",
+    "phase": "reply",
+    "id": 231,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:02.342Z",
+    "phase": "send",
+    "id": 232,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:02.343Z",
+    "phase": "reply",
+    "id": 232,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:02.540Z",
+    "phase": "send",
+    "id": 233,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:02.541Z",
+    "phase": "reply",
+    "id": 233,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:02.541Z",
+    "phase": "send",
+    "id": 234,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:02.542Z",
+    "phase": "reply",
+    "id": 234,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:02.740Z",
+    "phase": "send",
+    "id": 235,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:02.740Z",
+    "phase": "reply",
+    "id": 235,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:02.740Z",
+    "phase": "send",
+    "id": 236,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:02.741Z",
+    "phase": "reply",
+    "id": 236,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:02.939Z",
+    "phase": "send",
+    "id": 237,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:02.940Z",
+    "phase": "reply",
+    "id": 237,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:03.139Z",
+    "phase": "send",
+    "id": 238,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:03.140Z",
+    "phase": "reply",
+    "id": 238,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:03.184Z",
+    "phase": "send",
+    "id": 239,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:03.186Z",
+    "phase": "reply",
+    "id": 239,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:03.186Z",
+    "phase": "send",
+    "id": 240,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:03.188Z",
+    "phase": "reply",
+    "id": 240,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:03.232Z",
+    "phase": "send",
+    "id": 241,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:03.233Z",
+    "phase": "reply",
+    "id": 241,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:03.429Z",
+    "phase": "send",
+    "id": 242,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:03.430Z",
+    "phase": "reply",
+    "id": 242,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:03.475Z",
+    "phase": "send",
+    "id": 243,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:03.476Z",
+    "phase": "reply",
+    "id": 243,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:03.476Z",
+    "phase": "send",
+    "id": 244,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:03.477Z",
+    "phase": "reply",
+    "id": 244,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:03.525Z",
+    "phase": "send",
+    "id": 245,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:03.525Z",
+    "phase": "reply",
+    "id": 245,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:03.572Z",
+    "phase": "send",
+    "id": 246,
+    "method": "Runtime.evaluate",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:03.572Z",
+    "phase": "reply",
+    "id": 246,
+    "method": "Runtime.evaluate",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72"
+  },
+  {
+    "at": "2026-10-14T07:10:03.618Z",
+    "phase": "send",
+    "id": 247,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:03.618Z",
+    "phase": "reply",
+    "id": 247,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:03.662Z",
+    "phase": "send",
+    "id": 248,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:03.663Z",
+    "phase": "reply",
+    "id": 248,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:03.858Z",
+    "phase": "send",
+    "id": 249,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:03.859Z",
+    "phase": "reply",
+    "id": 249,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:03.902Z",
+    "phase": "send",
+    "id": 250,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:03.903Z",
+    "phase": "reply",
+    "id": 250,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:03.903Z",
+    "phase": "send",
+    "id": 251,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:03.905Z",
+    "phase": "reply",
+    "id": 251,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:04.201Z",
+    "phase": "send",
+    "id": 252,
+    "method": "Runtime.evaluate",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:04.202Z",
+    "phase": "reply",
+    "id": 252,
+    "method": "Runtime.evaluate",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72"
+  },
+  {
+    "at": "2026-10-14T07:10:04.247Z",
+    "phase": "send",
+    "id": 253,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:04.248Z",
+    "phase": "reply",
+    "id": 253,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:04.444Z",
+    "phase": "send",
+    "id": 254,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:04.445Z",
+    "phase": "reply",
+    "id": 254,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:04.488Z",
+    "phase": "send",
+    "id": 255,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:04.489Z",
+    "phase": "reply",
+    "id": 255,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:04.489Z",
+    "phase": "send",
+    "id": 256,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:04.490Z",
+    "phase": "reply",
+    "id": 256,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:04.535Z",
+    "phase": "send",
+    "id": 257,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:04.536Z",
+    "phase": "reply",
+    "id": 257,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:04.581Z",
+    "phase": "send",
+    "id": 258,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:04.582Z",
+    "phase": "reply",
+    "id": 258,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:04.778Z",
+    "phase": "send",
+    "id": 259,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:04.779Z",
+    "phase": "reply",
+    "id": 259,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:04.823Z",
+    "phase": "send",
+    "id": 260,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:04.824Z",
+    "phase": "reply",
+    "id": 260,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:04.824Z",
+    "phase": "send",
+    "id": 261,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:04.826Z",
+    "phase": "reply",
+    "id": 261,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:05.123Z",
+    "phase": "send",
+    "id": 262,
+    "method": "Runtime.evaluate",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:05.124Z",
+    "phase": "reply",
+    "id": 262,
+    "method": "Runtime.evaluate",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72"
+  },
+  {
+    "at": "2026-10-14T07:10:05.170Z",
+    "phase": "send",
+    "id": 263,
+    "method": "Runtime.evaluate",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:05.171Z",
+    "phase": "reply",
+    "id": 263,
+    "method": "Runtime.evaluate",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72"
+  },
+  {
+    "at": "2026-10-14T07:10:05.216Z",
+    "phase": "send",
+    "id": 264,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:05.216Z",
+    "phase": "reply",
+    "id": 264,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:10:05.260Z",
+    "phase": "send",
+    "id": 265,
+    "method": "Page.captureScreenshot",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:05.293Z",
+    "phase": "reply",
+    "id": 265,
+    "method": "Page.captureScreenshot",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:05.341Z",
+    "phase": "send",
+    "id": 266,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:05.341Z",
+    "phase": "reply",
+    "id": 266,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:10:05.386Z",
+    "phase": "send",
+    "id": 267,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:05.386Z",
+    "phase": "reply",
+    "id": 267,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:10:05.431Z",
+    "phase": "send",
+    "id": 268,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:05.432Z",
+    "phase": "reply",
+    "id": 268,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:05.629Z",
+    "phase": "send",
+    "id": 269,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:05.629Z",
+    "phase": "reply",
+    "id": 269,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:10:05.673Z",
+    "phase": "send",
+    "id": 270,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:05.673Z",
+    "phase": "reply",
+    "id": 270,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:05.719Z",
+    "phase": "send",
+    "id": 271,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:05.720Z",
+    "phase": "reply",
+    "id": 271,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:05.720Z",
+    "phase": "send",
+    "id": 272,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:05.722Z",
+    "phase": "reply",
+    "id": 272,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:05.769Z",
+    "phase": "send",
+    "id": 273,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:05.770Z",
+    "phase": "reply",
+    "id": 273,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:10:05.814Z",
+    "phase": "send",
+    "id": 274,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:05.815Z",
+    "phase": "reply",
+    "id": 274,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:10:05.861Z",
+    "phase": "send",
+    "id": 275,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:05.862Z",
+    "phase": "reply",
+    "id": 275,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:06.058Z",
+    "phase": "send",
+    "id": 276,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:06.059Z",
+    "phase": "reply",
+    "id": 276,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:10:06.106Z",
+    "phase": "send",
+    "id": 277,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:06.107Z",
+    "phase": "reply",
+    "id": 277,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:06.303Z",
+    "phase": "send",
+    "id": 278,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:06.304Z",
+    "phase": "reply",
+    "id": 278,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:10:06.349Z",
+    "phase": "send",
+    "id": 279,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:06.349Z",
+    "phase": "reply",
+    "id": 279,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:06.545Z",
+    "phase": "send",
+    "id": 280,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:06.546Z",
+    "phase": "reply",
+    "id": 280,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:10:06.589Z",
+    "phase": "send",
+    "id": 281,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:06.590Z",
+    "phase": "reply",
+    "id": 281,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:06.632Z",
+    "phase": "send",
+    "id": 282,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:06.633Z",
+    "phase": "reply",
+    "id": 282,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:06.633Z",
+    "phase": "send",
+    "id": 283,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:06.634Z",
+    "phase": "reply",
+    "id": 283,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:06.678Z",
+    "phase": "send",
+    "id": 284,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:06.678Z",
+    "phase": "reply",
+    "id": 284,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:10:06.721Z",
+    "phase": "send",
+    "id": 285,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:06.722Z",
+    "phase": "reply",
+    "id": 285,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:10:06.722Z",
+    "phase": "send",
+    "id": 286,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:06.722Z",
+    "phase": "reply",
+    "id": 286,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:06.722Z",
+    "phase": "send",
+    "id": 287,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:06.723Z",
+    "phase": "reply",
+    "id": 287,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:06.723Z",
+    "phase": "send",
+    "id": 288,
+    "method": "Input.insertText",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:06.723Z",
+    "phase": "reply",
+    "id": 288,
+    "method": "Input.insertText",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:06.768Z",
+    "phase": "send",
+    "id": 289,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:06.769Z",
+    "phase": "reply",
+    "id": 289,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:10:06.812Z",
+    "phase": "send",
+    "id": 290,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:06.813Z",
+    "phase": "reply",
+    "id": 290,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:10:06.857Z",
+    "phase": "send",
+    "id": 291,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:06.858Z",
+    "phase": "reply",
+    "id": 291,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:06.858Z",
+    "phase": "send",
+    "id": 292,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:06.859Z",
+    "phase": "reply",
+    "id": 292,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:07.306Z",
+    "phase": "send",
+    "id": 293,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:07.308Z",
+    "phase": "reply",
+    "id": 293,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:10:07.354Z",
+    "phase": "send",
+    "id": 294,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:07.356Z",
+    "phase": "reply",
+    "id": 294,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:07.552Z",
+    "phase": "send",
+    "id": 295,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:07.553Z",
+    "phase": "reply",
+    "id": 295,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:10:07.600Z",
+    "phase": "send",
+    "id": 296,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:07.601Z",
+    "phase": "reply",
+    "id": 296,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:07.647Z",
+    "phase": "send",
+    "id": 297,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:07.649Z",
+    "phase": "reply",
+    "id": 297,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:07.649Z",
+    "phase": "send",
+    "id": 298,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:07.649Z",
+    "phase": "reply",
+    "id": 298,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:07.695Z",
+    "phase": "send",
+    "id": 299,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:07.696Z",
+    "phase": "reply",
+    "id": 299,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:10:07.743Z",
+    "phase": "send",
+    "id": 300,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:07.743Z",
+    "phase": "reply",
+    "id": 300,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:10:07.743Z",
+    "phase": "send",
+    "id": 301,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:07.744Z",
+    "phase": "reply",
+    "id": 301,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:07.744Z",
+    "phase": "send",
+    "id": 302,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:07.745Z",
+    "phase": "reply",
+    "id": 302,
+    "method": "Input.dispatchKeyEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:07.745Z",
+    "phase": "send",
+    "id": 303,
+    "method": "Input.insertText",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:07.746Z",
+    "phase": "reply",
+    "id": 303,
+    "method": "Input.insertText",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:07.792Z",
+    "phase": "send",
+    "id": 304,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:07.793Z",
+    "phase": "reply",
+    "id": 304,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:10:07.836Z",
+    "phase": "send",
+    "id": 305,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:07.837Z",
+    "phase": "reply",
+    "id": 305,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:10:07.883Z",
+    "phase": "send",
+    "id": 306,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:07.883Z",
+    "phase": "reply",
+    "id": 306,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:07.883Z",
+    "phase": "send",
+    "id": 307,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:07.884Z",
+    "phase": "reply",
+    "id": 307,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:08.332Z",
+    "phase": "send",
+    "id": 308,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:08.333Z",
+    "phase": "reply",
+    "id": 308,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:10:08.378Z",
+    "phase": "send",
+    "id": 309,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:08.379Z",
+    "phase": "reply",
+    "id": 309,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:08.379Z",
+    "phase": "send",
+    "id": 310,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:08.380Z",
+    "phase": "reply",
+    "id": 310,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:08.827Z",
+    "phase": "send",
+    "id": 311,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:08.828Z",
+    "phase": "reply",
+    "id": 311,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:10:08.873Z",
+    "phase": "send",
+    "id": 312,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:08.874Z",
+    "phase": "reply",
+    "id": 312,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:09.070Z",
+    "phase": "send",
+    "id": 313,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:09.071Z",
+    "phase": "reply",
+    "id": 313,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:10:09.116Z",
+    "phase": "send",
+    "id": 314,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:09.117Z",
+    "phase": "reply",
+    "id": 314,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:09.163Z",
+    "phase": "send",
+    "id": 315,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:09.164Z",
+    "phase": "reply",
+    "id": 315,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:09.164Z",
+    "phase": "send",
+    "id": 316,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:09.165Z",
+    "phase": "reply",
+    "id": 316,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:09.211Z",
+    "phase": "send",
+    "id": 317,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:09.211Z",
+    "phase": "reply",
+    "id": 317,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:10:09.256Z",
+    "phase": "send",
+    "id": 318,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:09.256Z",
+    "phase": "reply",
+    "id": 318,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:09.301Z",
+    "phase": "send",
+    "id": 319,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:09.302Z",
+    "phase": "reply",
+    "id": 319,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:09.302Z",
+    "phase": "send",
+    "id": 320,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:09.303Z",
+    "phase": "reply",
+    "id": 320,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:09.498Z",
+    "phase": "send",
+    "id": 321,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:09.498Z",
+    "phase": "reply",
+    "id": 321,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:09.498Z",
+    "phase": "send",
+    "id": 322,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:09.499Z",
+    "phase": "reply",
+    "id": 322,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:09.696Z",
+    "phase": "send",
+    "id": 323,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:09.696Z",
+    "phase": "reply",
+    "id": 323,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:09.696Z",
+    "phase": "send",
+    "id": 324,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:09.697Z",
+    "phase": "reply",
+    "id": 324,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:09.893Z",
+    "phase": "send",
+    "id": 325,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:09.894Z",
+    "phase": "reply",
+    "id": 325,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:10.089Z",
+    "phase": "send",
+    "id": 326,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:10.090Z",
+    "phase": "reply",
+    "id": 326,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:10.134Z",
+    "phase": "send",
+    "id": 327,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:10.136Z",
+    "phase": "reply",
+    "id": 327,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:10.136Z",
+    "phase": "send",
+    "id": 328,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:10.137Z",
+    "phase": "reply",
+    "id": 328,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:10.183Z",
+    "phase": "send",
+    "id": 329,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:10.184Z",
+    "phase": "reply",
+    "id": 329,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:10.380Z",
+    "phase": "send",
+    "id": 330,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:10.381Z",
+    "phase": "reply",
+    "id": 330,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:10.424Z",
+    "phase": "send",
+    "id": 331,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:10.425Z",
+    "phase": "reply",
+    "id": 331,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:10.425Z",
+    "phase": "send",
+    "id": 332,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:10.426Z",
+    "phase": "reply",
+    "id": 332,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:10.473Z",
+    "phase": "send",
+    "id": 333,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:10.473Z",
+    "phase": "reply",
+    "id": 333,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:10.518Z",
+    "phase": "send",
+    "id": 334,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:10.519Z",
+    "phase": "reply",
+    "id": 334,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:10.582Z",
+    "phase": "send",
+    "id": 335,
+    "method": "Runtime.evaluate",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:10.583Z",
+    "phase": "reply",
+    "id": 335,
+    "method": "Runtime.evaluate",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72"
+  },
+  {
+    "at": "2026-10-14T07:10:10.633Z",
+    "phase": "send",
+    "id": 336,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:10.634Z",
+    "phase": "reply",
+    "id": 336,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:10.844Z",
+    "phase": "send",
+    "id": 337,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:10.844Z",
+    "phase": "reply",
+    "id": 337,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:10.898Z",
+    "phase": "send",
+    "id": 338,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:10.899Z",
+    "phase": "reply",
+    "id": 338,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:10.899Z",
+    "phase": "send",
+    "id": 339,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:10.901Z",
+    "phase": "reply",
+    "id": 339,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:10.951Z",
+    "phase": "send",
+    "id": 340,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:10.951Z",
+    "phase": "reply",
+    "id": 340,
+    "method": "Runtime.evaluate",
+    "sessionId": "0680F2641218E5361038EAFF6ADCCF1F"
+  },
+  {
+    "at": "2026-10-14T07:10:10.997Z",
+    "phase": "send",
+    "id": 341,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:10.998Z",
+    "phase": "reply",
+    "id": 341,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:11.196Z",
+    "phase": "send",
+    "id": 342,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:11.197Z",
+    "phase": "reply",
+    "id": 342,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:11.246Z",
+    "phase": "send",
+    "id": 343,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:11.247Z",
+    "phase": "reply",
+    "id": 343,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:11.247Z",
+    "phase": "send",
+    "id": 344,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:11.247Z",
+    "phase": "reply",
+    "id": 344,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:11.296Z",
+    "phase": "send",
+    "id": 345,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:11.296Z",
+    "phase": "reply",
+    "id": 345,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:11.342Z",
+    "phase": "send",
+    "id": 346,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:11.343Z",
+    "phase": "reply",
+    "id": 346,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:11.388Z",
+    "phase": "send",
+    "id": 347,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:11.389Z",
+    "phase": "reply",
+    "id": 347,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:11.588Z",
+    "phase": "send",
+    "id": 348,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:11.589Z",
+    "phase": "reply",
+    "id": 348,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:11.635Z",
+    "phase": "send",
+    "id": 349,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:11.636Z",
+    "phase": "reply",
+    "id": 349,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:11.636Z",
+    "phase": "send",
+    "id": 350,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:11.640Z",
+    "phase": "reply",
+    "id": 350,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:11.693Z",
+    "phase": "send",
+    "id": 351,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "method": "Target.targetDestroyed",
+    "params": {
+      "targetId": "6E052FD5599C64DD4601B96E9EC5B1D3"
+    }
+  },
+  {
+    "at": "2026-10-14T07:10:11.694Z",
+    "phase": "reply",
+    "id": 351,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:11.744Z",
+    "phase": "send",
+    "id": 352,
+    "method": "Runtime.evaluate",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:11.745Z",
+    "phase": "reply",
+    "id": 352,
+    "method": "Runtime.evaluate",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72"
+  },
+  {
+    "at": "2026-10-14T07:10:11.789Z",
+    "phase": "send",
+    "id": 353,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:11.790Z",
+    "phase": "reply",
+    "id": 353,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:11.835Z",
+    "phase": "send",
+    "id": 354,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:11.836Z",
+    "phase": "reply",
+    "id": 354,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:12.035Z",
+    "phase": "send",
+    "id": 355,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:12.036Z",
+    "phase": "reply",
+    "id": 355,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:12.090Z",
+    "phase": "send",
+    "id": 356,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:12.091Z",
+    "phase": "reply",
+    "id": 356,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:12.091Z",
+    "phase": "send",
+    "id": 357,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:12.094Z",
+    "phase": "reply",
+    "id": 357,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:12.152Z",
+    "phase": "send",
+    "id": 358,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:12.152Z",
+    "phase": "reply",
+    "id": 358,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:12.350Z",
+    "phase": "send",
+    "id": 359,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:12.351Z",
+    "phase": "reply",
+    "id": 359,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:12.397Z",
+    "phase": "send",
+    "id": 360,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:12.398Z",
+    "phase": "reply",
+    "id": 360,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:12.398Z",
+    "phase": "send",
+    "id": 361,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:12.399Z",
+    "phase": "reply",
+    "id": 361,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:12.448Z",
+    "phase": "send",
+    "id": 362,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:12.449Z",
+    "phase": "reply",
+    "id": 362,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:12.651Z",
+    "phase": "send",
+    "id": 363,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:12.652Z",
+    "phase": "reply",
+    "id": 363,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:12.717Z",
+    "phase": "send",
+    "id": 364,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:12.718Z",
+    "phase": "reply",
+    "id": 364,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:12.718Z",
+    "phase": "send",
+    "id": 365,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:12.721Z",
+    "phase": "reply",
+    "id": 365,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:12.796Z",
+    "phase": "send",
+    "id": 366,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "C63DB8B5EBCC219857C5013374EC78A6",
+        "type": "iframe",
+        "title": "",
+        "url": "",
+        "attached": false,
+        "parentId": "3139A286CB033F9325B745D0BFFB449F",
+        "canAccessOpener": false,
+        "parentFrameId": "3139A286CB033F9325B745D0BFFB449F",
+        "browserContextId": "F13711E0AE608E6454FDC90BB91E2D9C"
+      }
+    }
+  },
+  {
+    "at": "2026-10-14T07:10:12.797Z",
+    "phase": "reply",
+    "id": 366,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:12.797Z",
+    "phase": "send",
+    "id": 367,
+    "method": "Target.getTargets",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:12.798Z",
+    "phase": "reply",
+    "id": 367,
+    "method": "Target.getTargets"
+  },
+  {
+    "at": "2026-10-14T07:10:12.798Z",
+    "phase": "send",
+    "id": 368,
+    "method": "Target.attachToTarget",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:12.799Z",
+    "phase": "reply",
+    "id": 368,
+    "method": "Target.attachToTarget"
+  },
+  {
+    "at": "2026-10-14T07:10:12.799Z",
+    "phase": "send",
+    "id": 369,
+    "method": "Runtime.enable",
+    "sessionId": "3C75E41F7668942789AD9CDCDA8966E9",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:12.807Z",
+    "phase": "reply",
+    "id": 369,
+    "method": "Runtime.enable",
+    "sessionId": "3C75E41F7668942789AD9CDCDA8966E9"
+  },
+  {
+    "at": "2026-10-14T07:10:12.807Z",
+    "phase": "send",
+    "id": 370,
+    "method": "Page.enable",
+    "sessionId": "3C75E41F7668942789AD9CDCDA8966E9",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:12.808Z",
+    "phase": "reply",
+    "id": 370,
+    "method": "Page.enable",
+    "sessionId": "3C75E41F7668942789AD9CDCDA8966E9"
+  },
+  {
+    "at": "2026-10-14T07:10:12.887Z",
+    "phase": "send",
+    "id": 371,
+    "method": "Runtime.evaluate",
+    "sessionId": "3C75E41F7668942789AD9CDCDA8966E9",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:12.888Z",
+    "phase": "reply",
+    "id": 371,
+    "method": "Runtime.evaluate",
+    "sessionId": "3C75E41F7668942789AD9CDCDA8966E9"
+  },
+  {
+    "at": "2026-10-14T07:10:13.075Z",
+    "phase": "send",
+    "id": 372,
+    "method": "Runtime.evaluate",
+    "sessionId": "3C75E41F7668942789AD9CDCDA8966E9",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:13.093Z",
+    "phase": "reply",
+    "id": 372,
+    "method": "Runtime.evaluate",
+    "sessionId": "3C75E41F7668942789AD9CDCDA8966E9"
+  },
+  {
+    "at": "2026-10-14T07:10:13.270Z",
+    "phase": "send",
+    "id": 373,
+    "method": "Runtime.evaluate",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:13.271Z",
+    "phase": "reply",
+    "id": 373,
+    "method": "Runtime.evaluate",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72"
+  },
+  {
+    "at": "2026-10-14T07:10:13.342Z",
+    "phase": "send",
+    "id": 374,
+    "method": "Runtime.evaluate",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:13.344Z",
+    "phase": "reply",
+    "id": 374,
+    "method": "Runtime.evaluate",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72"
+  },
+  {
+    "at": "2026-10-14T07:10:13.423Z",
+    "phase": "send",
+    "id": 375,
+    "method": "Page.captureScreenshot",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:13.500Z",
+    "phase": "reply",
+    "id": 375,
+    "method": "Page.captureScreenshot",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:13.702Z",
+    "phase": "send",
+    "id": 376,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:13.704Z",
+    "phase": "reply",
+    "id": 376,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:13.985Z",
+    "phase": "send",
+    "id": 377,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:13.991Z",
+    "phase": "reply",
+    "id": 377,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:14.253Z",
+    "phase": "send",
+    "id": 378,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:14.269Z",
+    "phase": "reply",
+    "id": 378,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:14.269Z",
+    "phase": "send",
+    "id": 379,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:14.273Z",
+    "phase": "reply",
+    "id": 379,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:14.349Z",
+    "phase": "send",
+    "id": 380,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:14.351Z",
+    "phase": "reply",
+    "id": 380,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:14.558Z",
+    "phase": "send",
+    "id": 381,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:14.559Z",
+    "phase": "reply",
+    "id": 381,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:14.622Z",
+    "phase": "send",
+    "id": 382,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:14.624Z",
+    "phase": "reply",
+    "id": 382,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:14.624Z",
+    "phase": "send",
+    "id": 383,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "method": "Target.targetDestroyed",
+    "params": {
+      "targetId": "C63DB8B5EBCC219857C5013374EC78A6"
+    }
+  },
+  {
+    "at": "2026-10-14T07:10:14.628Z",
+    "phase": "reply",
+    "id": 383,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:14.694Z",
+    "phase": "send",
+    "id": 384,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:14.695Z",
+    "phase": "reply",
+    "id": 384,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:14.764Z",
+    "phase": "send",
+    "id": 385,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:14.765Z",
+    "phase": "reply",
+    "id": 385,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:14.826Z",
+    "phase": "send",
+    "id": 386,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:14.827Z",
+    "phase": "reply",
+    "id": 386,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:14.883Z",
+    "phase": "send",
+    "id": 387,
+    "method": "Runtime.evaluate",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:14.884Z",
+    "phase": "reply",
+    "id": 387,
+    "method": "Runtime.evaluate",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72"
+  },
+  {
+    "at": "2026-10-14T07:10:14.945Z",
+    "phase": "send",
+    "id": 388,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:14.948Z",
+    "phase": "reply",
+    "id": 388,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:15.009Z",
+    "phase": "send",
+    "id": 389,
+    "method": "Page.captureScreenshot",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:15.040Z",
+    "phase": "reply",
+    "id": 389,
+    "method": "Page.captureScreenshot",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:15.116Z",
+    "phase": "send",
+    "id": 390,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:15.117Z",
+    "phase": "reply",
+    "id": 390,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:15.245Z",
+    "phase": "send",
+    "id": 391,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:15.250Z",
+    "phase": "reply",
+    "id": 391,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:15.491Z",
+    "phase": "send",
+    "id": 392,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:15.492Z",
+    "phase": "reply",
+    "id": 392,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:15.547Z",
+    "phase": "send",
+    "id": 393,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:15.549Z",
+    "phase": "reply",
+    "id": 393,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:15.549Z",
+    "phase": "send",
+    "id": 394,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:15.550Z",
+    "phase": "reply",
+    "id": 394,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:15.623Z",
+    "phase": "send",
+    "id": 395,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:15.625Z",
+    "phase": "reply",
+    "id": 395,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:15.871Z",
+    "phase": "send",
+    "id": 396,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:15.880Z",
+    "phase": "reply",
+    "id": 396,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:16.048Z",
+    "phase": "send",
+    "id": 397,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:16.052Z",
+    "phase": "reply",
+    "id": 397,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:16.052Z",
+    "phase": "send",
+    "id": 398,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:16.063Z",
+    "phase": "reply",
+    "id": 398,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:16.187Z",
+    "phase": "send",
+    "id": 399,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:16.188Z",
+    "phase": "reply",
+    "id": 399,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:16.500Z",
+    "phase": "send",
+    "id": 400,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:16.501Z",
+    "phase": "reply",
+    "id": 400,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:16.558Z",
+    "phase": "send",
+    "id": 401,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:16.559Z",
+    "phase": "reply",
+    "id": 401,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:16.559Z",
+    "phase": "send",
+    "id": 402,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:16.561Z",
+    "phase": "reply",
+    "id": 402,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:16.650Z",
+    "phase": "send",
+    "id": 403,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:16.656Z",
+    "phase": "reply",
+    "id": 403,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:16.760Z",
+    "phase": "send",
+    "id": 404,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:16.765Z",
+    "phase": "reply",
+    "id": 404,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:16.985Z",
+    "phase": "send",
+    "id": 405,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:16.991Z",
+    "phase": "reply",
+    "id": 405,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:17.076Z",
+    "phase": "send",
+    "id": 406,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:17.083Z",
+    "phase": "reply",
+    "id": 406,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:17.083Z",
+    "phase": "send",
+    "id": 407,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:17.090Z",
+    "phase": "reply",
+    "id": 407,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:17.195Z",
+    "phase": "send",
+    "id": 408,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "method": "Target.targetCreated",
+    "params": {
+      "targetInfo": {
+        "targetId": "BE21138CD93C0E12E10D50EB43C9C70A",
+        "type": "iframe",
+        "title": "",
+        "url": "",
+        "attached": false,
+        "parentId": "3139A286CB033F9325B745D0BFFB449F",
+        "canAccessOpener": false,
+        "parentFrameId": "3139A286CB033F9325B745D0BFFB449F",
+        "browserContextId": "F13711E0AE608E6454FDC90BB91E2D9C"
+      }
+    }
+  },
+  {
+    "at": "2026-10-14T07:10:17.196Z",
+    "phase": "reply",
+    "id": 408,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:17.196Z",
+    "phase": "send",
+    "id": 409,
+    "method": "Target.getTargets",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:17.198Z",
+    "phase": "reply",
+    "id": 409,
+    "method": "Target.getTargets"
+  },
+  {
+    "at": "2026-10-14T07:10:17.198Z",
+    "phase": "send",
+    "id": 410,
+    "method": "Target.attachToTarget",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:17.199Z",
+    "phase": "reply",
+    "id": 410,
+    "method": "Target.attachToTarget"
+  },
+  {
+    "at": "2026-10-14T07:10:17.199Z",
+    "phase": "send",
+    "id": 411,
+    "method": "Runtime.enable",
+    "sessionId": "69EF96D18103B1043F294CFBAF5C8D5A",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:17.201Z",
+    "phase": "reply",
+    "id": 411,
+    "method": "Runtime.enable",
+    "sessionId": "69EF96D18103B1043F294CFBAF5C8D5A"
+  },
+  {
+    "at": "2026-10-14T07:10:17.201Z",
+    "phase": "send",
+    "id": 412,
+    "method": "Page.enable",
+    "sessionId": "69EF96D18103B1043F294CFBAF5C8D5A",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:17.202Z",
+    "phase": "reply",
+    "id": 412,
+    "method": "Page.enable",
+    "sessionId": "69EF96D18103B1043F294CFBAF5C8D5A"
+  },
+  {
+    "at": "2026-10-14T07:10:17.325Z",
+    "phase": "send",
+    "id": 413,
+    "method": "Runtime.evaluate",
+    "sessionId": "69EF96D18103B1043F294CFBAF5C8D5A",
+    "timeoutMs": 15000
+  },
+  {
+    "method": "Target.targetDestroyed",
+    "params": {
+      "targetId": "5262227FCC512EBC08575613169A49F5"
+    }
+  },
+  {
+    "at": "2026-10-14T07:10:17.326Z",
+    "phase": "reply",
+    "id": 413,
+    "method": "Runtime.evaluate",
+    "sessionId": "69EF96D18103B1043F294CFBAF5C8D5A"
+  },
+  {
+    "at": "2026-10-14T07:10:17.419Z",
+    "phase": "send",
+    "id": 414,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "method": "Target.targetDestroyed",
+    "params": {
+      "targetId": "000F1AF5A8C0C2337020C4EBA501D365"
+    }
+  },
+  {
+    "at": "2026-10-14T07:10:17.421Z",
+    "phase": "reply",
+    "id": 414,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:17.642Z",
+    "phase": "send",
+    "id": 415,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:17.643Z",
+    "phase": "reply",
+    "id": 415,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:17.700Z",
+    "phase": "send",
+    "id": 416,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:17.701Z",
+    "phase": "reply",
+    "id": 416,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:17.701Z",
+    "phase": "send",
+    "id": 417,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:17.703Z",
+    "phase": "reply",
+    "id": 417,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:17.765Z",
+    "phase": "send",
+    "id": 418,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:17.766Z",
+    "phase": "reply",
+    "id": 418,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:17.846Z",
+    "phase": "send",
+    "id": 419,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:17.847Z",
+    "phase": "reply",
+    "id": 419,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:18.079Z",
+    "phase": "send",
+    "id": 420,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:18.080Z",
+    "phase": "reply",
+    "id": 420,
+    "method": "Runtime.evaluate",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:18.155Z",
+    "phase": "send",
+    "id": 421,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:18.156Z",
+    "phase": "reply",
+    "id": 421,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:18.156Z",
+    "phase": "send",
+    "id": 422,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:18.157Z",
+    "phase": "reply",
+    "id": 422,
+    "method": "Input.dispatchMouseEvent",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:18.241Z",
+    "phase": "send",
+    "id": 423,
+    "method": "Runtime.evaluate",
+    "sessionId": "69EF96D18103B1043F294CFBAF5C8D5A",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:18.242Z",
+    "phase": "reply",
+    "id": 423,
+    "method": "Runtime.evaluate",
+    "sessionId": "69EF96D18103B1043F294CFBAF5C8D5A"
+  },
+  {
+    "at": "2026-10-14T07:10:18.347Z",
+    "phase": "send",
+    "id": 424,
+    "method": "Runtime.evaluate",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:18.348Z",
+    "phase": "reply",
+    "id": 424,
+    "method": "Runtime.evaluate",
+    "sessionId": "274B68C6CF6364D21197A0E33A678D72"
+  },
+  {
+    "at": "2026-10-14T07:10:18.452Z",
+    "phase": "send",
+    "id": 425,
+    "method": "Page.captureScreenshot",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:18.487Z",
+    "phase": "reply",
+    "id": 425,
+    "method": "Page.captureScreenshot",
+    "sessionId": "D4D4D037BE6F6B89F4CE1775FFDA8494"
+  },
+  {
+    "at": "2026-10-14T07:10:18.608Z",
+    "phase": "send",
+    "id": 426,
+    "method": "Browser.close",
+    "timeoutMs": 15000
+  },
+  {
+    "at": "2026-10-14T07:10:18.609Z",
+    "phase": "reply",
+    "id": 426,
+    "method": "Browser.close"
+  }
+]
