@@ -9,7 +9,7 @@ const REF = 'r'.repeat(32);
 const SESSION = '01234567-89ab-4def-8123-456789abcdef';
 const ORIGIN = 'https://example.org';
 const TARGET_URL = ORIGIN + '/sdk-probe';
-const SAMPLE_ARGS = Object.freeze({
+export const SAMPLE_ARGS = Object.freeze({
   'browser.capabilities.getStatus': {operation: 'browser.tabs.create'},
   'browser.contextMenu.register': {actionIds: ['sdk-probe']},
   'browser.clipboard.writeText': {text: 'sdk probe'},

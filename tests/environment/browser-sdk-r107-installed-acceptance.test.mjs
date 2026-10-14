@@ -5,6 +5,7 @@ import {runInThisContext} from 'node:vm';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 import {BROWSER_OPERATIONS} from '../../src/framework/sdk/browser-contract.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
+import {SAMPLE_ARGS} from './browser-sdk-r107-public-routing.test.mjs';
 
 const project=new URL('../../examples/sidebar-tools/browser-sdk-acceptance/',import.meta.url);
 const tool=await createSidebarToolPackage(project.pathname);
@@ -108,4 +109,21 @@ test('R10.7 UI cannot dispatch unregistered, malformed or unsafe URL calls to re
   assert.equal(unsafe.outcome,'REJECTED');
   assert.equal(unsafe.code,'E_SCHEMA');
   assert.equal(f.calls.length,before,'Neither request reached the SDK Host callback');
+});
+
+test('R10.7 every approved public method can be invoked from the actual installed-tool UI',async()=>{
+  const f=await ready();
+  const initial=f.calls.length;
+  for(const operation of Object.keys(BROWSER_OPERATIONS)){
+    const args=SAMPLE_ARGS[operation]??{};
+    const result=await invoke(f,operation,args);
+    assert.equal(result.operation,operation,operation+': result attributed to wrong method');
+    assert.equal(result.outcome,'SDK_RETURNED_NATIVE_NOT_VERIFIED',
+      operation+': valid UI invocation must not silently skip the actual SDK wrapper');
+    assert.equal(f.calls.at(-1)?.operation,operation,operation+': dispatched the wrong operation');
+    assert.deepEqual(f.calls.at(-1)?.args,args,operation+': UI mutated SDK arguments');
+  }
+  assert.equal(f.calls.length-initial,Object.keys(BROWSER_OPERATIONS).length,
+    'Exactly one SDK wrapper call is required per approved method');
+  // Intentionally only a wrapper/installed UI fixture: this is NOT Host or Chrome PASS.
 });
