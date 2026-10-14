@@ -62,7 +62,7 @@ jobs:
             tests/environment/browser-sdk-interface-matrix.test.mjs \
             tests/environment/browser-sdk-coverage.test.mjs \
             tests/environment/browser-sdk-contract-compat.test.mjs
-      - name: Pack Cookie Editor 2.0.4 and official reviewed tools independently
+      - name: Pack Cookie Editor 2.0.5 and official reviewed tools independently
         run: |
           node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor \
             --out artifacts/cookie-editor-r33/cookie-editor.opendesk-tool.json
@@ -73,7 +73,7 @@ jobs:
             import {validateSidebarToolPackage} from './src/ui/sidebar-tools/package.js';
             const bytes=readFileSync('artifacts/cookie-editor-r33/cookie-editor.opendesk-tool.json');
             const tool=validateSidebarToolPackage(JSON.parse(bytes.toString()));
-            if(tool.id!=='cookie-editor'||tool.version!=='2.0.4')throw Error('Wrong Cookie Editor release');
+            if(tool.id!=='cookie-editor'||tool.version!=='2.0.5')throw Error('Wrong Cookie Editor release');
             const catalog=JSON.parse(readFileSync('artifacts/cookie-editor-r33/official/official-tools/catalog.json'));
             const item=catalog.apps.find(x=>x.toolId==='cookie-editor');
             if(!item||item.installationPolicy!=='optional'||item.version!==tool.version)
