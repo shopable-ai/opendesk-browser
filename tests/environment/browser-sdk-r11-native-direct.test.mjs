@@ -22,7 +22,9 @@ function fixture(){
   const row={
     id:op,visibility:'APPROVED_TOOL_REGISTERED',mappingKind:'DIRECT',
     nativeApis:[native.nativeApi],allowedWorlds:['sidebar-tool'],
-    siteScope:'none',userGesture:false,
+    siteScope:'none',userGesture:false,chromePermissions:[],toolCapabilities:[],
+    maxRequestBytes:12000,maxResponseBytes:12000,lifecycle:'request',
+    support:{desktopChromeMinimum:138},
     inputSchema:{type:'object',properties:{},required:[],additionalProperties:false},
     outputSchema:{type:'object',properties:{os:{type:'string'},arch:{type:'string'}},
       required:['os','arch'],additionalProperties:false}
@@ -32,6 +34,7 @@ function fixture(){
     operation:op,namespace:'browser.runtime',implementation:'IMPLEMENTED',
     supportedContexts:['sidebar-tool'],effectClass:'read',siteScope:'none',
     requiresUserGesture:false,requiredCapabilities:[],requiredChromePermissions:[],
+    inputSchema:row.inputSchema,outputSchema:row.outputSchema,
     maxRequestBytes:12000,maxResponseBytes:12000
   })};
   const descriptors=deriveBrowserDirectBindings(matrix,registry);
