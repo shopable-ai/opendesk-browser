@@ -14,3 +14,9 @@ Scheduled index shows scannable plan title/status/next execution/frequency and p
 ## Verification and handoff
 Remote-current source anchor and V8 syntax checks: performed, **limited**. Real `node --test`, `npm run check`, production/development build, verify, Chrome/WXT screenshots, physical Side Panel widths, real browser 100–200% zoom and user Mac checkout: **NOT_TESTED** (not accessible here). All ten independent 95+ scores: **NOT_SCORED**.
 No user Mac dist/profile/watcher used or released. Existing raw results remain unchanged. Follow-up acceptance must be tied to the actual frozen candidate hash and must correct any real test failures.
+
+## R1 follow-up: exact candidate real Chrome failure triage
+
+- Commit `b04adb9b5c041a136941043c66b86835c2b5177a` triggered Linux native baseline and lifecycle CI [run 38547377566](https://github.com/shopable-ai/opendesk-browser/actions/runs/38547377566), both FAIL. Build and Chrome 155 installed, plan and Chrome Alarm created. The native driver waited for the **old** runner heading containing 「运行页」 at line ~564. The R1 header intentionally now renders 「运行概览」, so this was a stale test expectation, not evidence of a Host/Alarm failure. Changed the expectation to exact single heading while still checking real TAB context, native Side Panel origin, visible runner, geometry, original Host and subsequent real effects.
+- Also fixed view-switch scroll start/return focus: 20-plan list can be scrolled deeper than its shorter detail; entering detail/editor now starts at top, returning list restores prior scroll. Save/discard restores meaningful focus. Extended existing static contract and native installed Task driver to exercise visibility/top-of-detail.
+- Linux native zoom/focus [run 38547377728](https://github.com/shopable-ai/opendesk-browser/actions/runs/38547377728) for prior SHA was SUCCESS but does not prove all interactive states or Mac physical widths. New follow-up candidate requires its own CI evidence.

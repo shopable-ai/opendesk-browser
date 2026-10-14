@@ -458,6 +458,8 @@ test('R3 index vs detail navigation and fixed schedule authorization boundaries'
   assert.match(source,/function openDetail\(scheduleId\)/);
   assert.match(source,/function leaveDetail\(\)/);
   assert.match(source,/scroller.scrollTop=listScrollTop/);
+  assert.match(source,/scroller.scrollTop=view==='list'&&\['detail','form'\].includes\(prior\)\?listScrollTop:0/);
+  assert.match(source,/function focusReturnedView\(view,scheduleId=editing\?\.scheduleId\)/);
   assert.match(source,/focus\(\{preventScroll:true\}\)/);
   assert.match(source,/formReturnView=activeView==='detail'\?'detail'/);
   assert.match(source,/requestLeaveForm\(formReturnView\)/);

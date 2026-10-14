@@ -568,14 +568,15 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
       'viewportWidth:innerWidth,scheduleVisible:!!panel&&!panel.hidden,title:document.querySelector("#schedule-panel-title")?.textContent,openRunnerLabel:document.querySelector("#schedule-open-runner")?.textContent}})()',
       runnerSid);
     return observation.surface==='scheduled-runner'&&observation.scheduleVisible&&
-      observation.title?.includes('运行页')?observation:null;
+      observation.title==='运行概览'?observation:null;
   },'real dedicated visible runner finished its normal product navigation');
   assert.equal(runnerPresentation.surface,'scheduled-runner');
   assert.equal(runnerPresentation.navHidden,true,'dedicated runner must not inherit unrelated workbench tabs');
   assert.equal(runnerPresentation.scheduleVisible,true,'visible runner must retain its real plan manager');
   assert(runnerPresentation.contentWidth>250&&runnerPresentation.contentWidth<=761,
     'wide runner must use a bounded readable content column');
-  assert.match(runnerPresentation.title,/运行页.*运行概览/);
+  assert.equal(runnerPresentation.title,'运行概览',
+    'one human-readable heading identifies the real dedicated runner');
   assert.match(runnerPresentation.openRunnerLabel,/再开运行页/);
   assert.equal(await evaluate(client,
     '!document.querySelector("#schedule-runner-view").hidden && document.querySelector("#schedule-list-view").hidden',runnerSid),
@@ -1205,6 +1206,12 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
       note('native-form-rule-saved',{scheduleId:saved.scheduleId,generation,kind,zone,paused:true});
     }
     await click(client,formSid,card+' .schedule-plan-open');
+    assert.equal(await evaluate(client,
+      'document.querySelector("#workspace-content").scrollTop',formSid),0,
+      'real plan detail starts at top even when its 20-plan index was scrolled');
+    assert.equal(await evaluate(client,
+      '!document.querySelector("#schedule-detail-view").hidden&&document.querySelector("#schedule-list-view").hidden',formSid),true,
+      'only a single real plan detail may be visible');
     await details(client,formSid,'#schedule-detail-view .schedule-history');
     await deadline(()=>evaluate(client,
       '[...document.querySelectorAll('+JSON.stringify('#schedule-detail-view .schedule-history-row')+')].some(row=>row.textContent.includes("成功")&&row.textContent.includes('+JSON.stringify(due.run.runId)+')&&row.textContent.includes('+JSON.stringify(due.result.resultId)+'))',formSid),

@@ -211,12 +211,19 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   const views={runner:get('schedule-runner-view'),list:get('schedule-list-view'),
     detail:get('schedule-detail-view'),form:get('schedule-form'),manager:get('schedule-task-manager')};
   const show=view=>{
+    // Preserve the index position across detail/editor transitions. A new
+    // subview always starts at the top: 20+ plans can scroll far beyond a
+    // short detail and otherwise produce an apparently blank first screen.
+    const prior=activeView,changing=view!==prior;
+    const scroller=get('workspace-content');
+    if(changing&&prior==='list')listScrollTop=scroller?.scrollTop??0;
     // Inline validation belongs to the editor, not the list or dedicated
-    // runner. A deliberate subview change clears stale notices; periodic Host
-    // polling must still preserve the message in the currently active form.
-    if(view!==activeView)message('');
+    // runner. Polling never calls show() so active form errors persist.
+    if(changing)message('');
     activeView=view;
     for(const [key,node] of Object.entries(views))node.hidden=key!==view;
+    if(changing&&scroller)
+      scroller.scrollTop=view==='list'&&['detail','form'].includes(prior)?listScrollTop:0;
     get('schedule-create').hidden=view!=='list';
     get('schedule-detail-edit').hidden=view!=='detail';
     // The separately visible runner is already a Host, not a second Side Panel.
@@ -840,7 +847,9 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       await client.request('saveSchedule',pending.input);
       clearConfirmation();formDirty=false;get('schedule-discard-confirm').hidden=true;
       const afterSave=editing?formReturnView:isRunner()?'runner':'list';
+      const savedPlanId=editing?.scheduleId??null;
       await refresh();editing=null;show(afterSave==='manager'?'list':afterSave);
+      focusReturnedView(afterSave==='manager'?'list':afterSave,savedPlanId);
       message('定时计划已保存，Chrome Alarms 已按照持久计划对账');
     }catch(error){message('无法保存计划：'+(error?.message||String(error)),true);}
     finally{busy=false;get('schedule-confirm-yes').disabled=false;}
@@ -909,6 +918,16 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     if(!selectedFire||host.currentRun!==selectedFire)return;
     void host.stop({runId:selectedFire,controller:true}).catch(error=>message(error.message,true));
   }
+  function focusReturnedView(view,scheduleId=editing?.scheduleId){
+    if(view==='detail')get('schedule-detail-edit').focus({preventScroll:true});
+    else if(view==='list'){
+      const card=[...get('schedule-plan-list').querySelectorAll('.schedule-card')]
+        .find(row=>row.dataset.scheduleId===scheduleId);
+      (card?.querySelector('.schedule-plan-open')||get('schedule-create'))
+        .focus({preventScroll:true});
+    }else if(view==='manager')get('schedule-manager-search').focus({preventScroll:true});
+    else if(view==='runner')get('schedule-runner-history').focus({preventScroll:true});
+  }
   function requestLeaveForm(destination){
     if(busy)return;
     if(formDirty){
@@ -918,7 +937,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       get('schedule-discard-no').focus();
       return;
     }
-    clearConfirmation();show(destination);
+    clearConfirmation();show(destination);focusReturnedView(destination);
   }
   function navigateBack(){
     if(activeView==='manager'){show(managerReturn);return;}
@@ -958,6 +977,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     get('schedule-discard-confirm').hidden=true;
     clearConfirmation();
     show(discardDestination);
+    focusReturnedView(discardDestination);
   });
   bind('schedule-discard-no','click',()=>{
     get('schedule-discard-confirm').hidden=true;
