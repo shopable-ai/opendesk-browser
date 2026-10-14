@@ -1,18 +1,18 @@
 ---
 name: opendesk-script-authoring
-description: Write, modify, debug and verify JavaScript, React JSX and Vue SFC in OpenDesk Browser Side Panel 开发. Choose Controller, Page USER_SCRIPT, managed Page UI or authorized local project by execution world; do not generate installable Sidebar tools with this skill.
+description: Author and debug Controller automation, Page USER_SCRIPT 网页增强, React JSX, Vue SFC and local projects in OpenDesk Browser 开发. Task belongs to 我的; installed Page is 扩展 网页增强 via independent Program Authority, not Sidebar Tool.
 ---
 
 # OpenDesk Browser ·「开发」脚本编写
 
 ## 触发与职责
 
-用户要在 **Side Panel → 开发** 编写、修改、解释或试运行 JS、React、Vue 代码时使用。**先判断代码运行在哪里，再决定源码格式和运行入口**。该 Skill 只指导作者，不是新编译器、Runner、Host、SDK、依赖管理器或权限系统；始终复用现有 Controller Worker / ChromePage `page` / RunHost、Page `USER_SCRIPT`、官方 React/Vue Runtime、受管 UI 和本地 Native/MCP 链。
+用户在 **Side Panel → 开发** 编写、修改、解释或试运行 JS、React、Vue，或编写「我的」中的 Controller 自动化任务、Page 网页增强脚本时使用。现行五 Tab 见 [R4 产品规格](../../../docs/product/sidebar-ui-spec.zh-CN.md)；Page 正式安装后以「扩展 → 网页增强」管理。**先判断代码运行在哪里，再决定源码格式和运行入口**。该 Skill 只指导作者，不是新编译器、Runner、Host、SDK、依赖管理器或权限系统；始终复用现有 Controller Worker / ChromePage `page` / RunHost、Page `USER_SCRIPT`、官方 React/Vue Runtime、受管 UI 和本地 Native/MCP 链。
 
 与其他 Skill 的边界：
 
 - [`opendesk-program-publish`](../opendesk-program-publish/SKILL.md)：冻结、验证、保存为 Task/Page、安装、升级、发布；试运行不等于安装。
-- [`opendesk-sidebar-tool-dev`](../opendesk-sidebar-tool-dev/SKILL.md)：用户/AI 的 **工具 Tab 可安装工具**，`opendesk.sidebar-tool.v1`、iframe 沙箱及 `OpenDeskTool` 桥。
+- [`opendesk-sidebar-tool-dev`](../opendesk-sidebar-tool-dev/SKILL.md)：用户/AI 在 **「扩展」中安装的「应用」（Sidebar Tool）**，`opendesk.sidebar-tool.v1`、iframe 沙箱及 `OpenDeskTool` 桥。
 - [`opendesk-trusted-sidebar-feature`](../opendesk-trusted-sidebar-feature/SKILL.md)：随扩展静态构建、经过审计的 **第一方可信 Side Panel 功能**；不能把动态工具源码改作可信 UI。
 
 ## 先读当前仓库，而不是复述过时教程
@@ -31,8 +31,8 @@ description: Write, modify, debug and verify JavaScript, React JSX and Vue SFC i
 | 当前网页上的 React 按钮/悬浮界面 | 单文件 **React JSX**，`export default function App()` | **Developer Edition** → React JSX → Run/Stop | Standard 浏览器内无 JSX 编译器；不得在网页 MAIN 动态拉 React |
 | 当前网页上的 Vue 模板界面 | 单文件 **Vue SFC**：`<script setup>` + `<template>` | **Developer Edition** → Vue SFC → Run/Stop | Standard 浏览器内无 SFC 编译器；不能把 `.vue` 当普通 JS |
 | Standard 使用 React/Vue 或多个源文件 | React `createElement` / Vue `h` 的 Direct JS，或经 Native/Node 处理的 JSX/SFC 项目 | 开发 → 本地项目 → 授权目录 → 明确 Run | 本地项目不是手工草稿；保存仅准备，不自动运行 |
-| 工具 Tab 里安装独立侧栏工具 | HTML/CSS/JS / 预构建 React/Vue 工具包 | 交给 `opendesk-sidebar-tool-dev` | 不能把 Page UI 当成 Sidebar Tool，也不能共享网站 DOM |
-| 正式安装/计划/发布 | 既有 Task/Page Candidate 和安装 Authority | 交给 `opendesk-program-publish` | Run、Preview、Candidate 均不等于 Installed/Published |
+| 扩展 → 安装侧栏「应用」 | HTML/CSS/JS / 预构建 React/Vue Sidebar Tool | 交给 `opendesk-sidebar-tool-dev` | 不把 Page UI 转成 Sidebar Tool，也不能共享网站 DOM |
+| 正式安装/升级/发布 Task 或 Page | 既有 Task/Page Candidate 与 Authority | 交给 `opendesk-program-publish`；Task 在「我的」，Page 在「扩展」 | Run、Preview、Candidate 均不等于 Installed/Published |
 
 ### 可直接粘贴的最小示例
 

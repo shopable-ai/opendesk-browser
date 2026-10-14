@@ -1,13 +1,15 @@
 ---
 name: opendesk-sidebar-tool-dev
-description: Develop, preview, package, review, install and verify OpenDesk Browser Side Panel tools (v1/v2). Keep each tool's source in examples/sidebar-tools/<id>, separate execution worlds and trusted extension adapters, and preserve the existing sandbox and host.
+description: Develop, preview, package, install and test 扩展 center 应用 (Sidebar Tool v1/v2) in examples/sidebar-tools/<id>, using opaque-origin iframe and OpenDeskTool.request. Not Page 网页增强, Controller Task or audited static first-party features.
 ---
 
-# OpenDesk Browser Side Panel 小工具统一开发 Skill
+# OpenDesk Browser · 扩展中心应用（Sidebar Tool）开发 Skill
 
 ## 触发与文档优先级
 
-当用户让 AI/Codex **创建、修改、打包、预览、安装、验收同类型 Side Panel 可安装小工具**时使用本 Skill。不是某个具体工具（如知识收件箱）的专用规则，也不适用于 Controller/Task v1/Page USER_SCRIPT 项目。
+当用户说「在**扩展**里开发、安装、打开或管理一个**小应用**」或要求 AI/Codex 创建、修改、打包、预览、安装和验收 Side Panel 可安装应用时使用。**「扩展」是一级 Tab，「应用」是行级类型标签**，不是单独 Tab。本 Skill 不负责 Controller Task、Page USER_SCRIPT「网页增强」或第一方可信功能。
+
+先读 [R4 现行产品导航与术语](../../../docs/product/sidebar-ui-spec.zh-CN.md)。保留技术模型 `examples/sidebar-tools/<id>/`、`opendesk.sidebar-tool.v1/v2`、opaque-origin iframe、`OpenDeskTool.request`、打包器、Host 和安装协议，**不因产品叫扩展而改变技术身份**。
 
 必读顺序：
 
@@ -21,7 +23,7 @@ description: Develop, preview, package, review, install and verify OpenDesk Brow
 
 ## 工具项目归属与演进顺序（2026-10-14）
 
-**先在同一仓库模块化，不拆仓库、不新增一套工具体系。** `examples/sidebar-tools/<tool-id>/` 是一个工具自己的项目目录；官方条目在此处的 HTML/CSS/JS 是**真实发行源码**，不是待迁移的演示副本。新增或修改一般工具优先只触碰自己的配置、UI、资产、README 和测试，不为独立二字创建 `opendesk-tools` 仓库、独立 Chrome 扩展、额外 Host 或另一套包格式。顶层“我的/开发/工作流/工具”等 Tab 是宿主产品导航，不能当作各工具的源码边界。
+**先在同一仓库模块化，不拆仓库、不新增一套工具体系。** `examples/sidebar-tools/<tool-id>/` 是一个工具自己的项目目录；官方条目在此处的 HTML/CSS/JS 是**真实发行源码**，不是待迁移的演示副本。新增或修改一般工具优先只触碰自己的配置、UI、资产、README 和测试，不为独立二字创建 `opendesk-tools` 仓库、独立 Chrome 扩展、额外 Host 或另一套包格式。顶层“我的/扩展/工作流/开发/云控”等 Tab 是宿主产品导航，不能当作各工具的源码边界。
 
 **按执行环境辨认代码，不以一个目录对应一个 JS World：**
 
@@ -55,7 +57,7 @@ description: Develop, preview, package, review, install and verify OpenDesk Brow
 
 Stay Focus 安装提交前，静态 Side Panel 适配器的 `focus.probe` 对当前 MV3 Service Worker 验证服务协议与必要 Chrome API。此请求不是沙箱公开能力，不需要先安装，也不申请原生权限。缺失、错误版本或不可达服务是 `RUNTIME_UNAVAILABLE`，阻止继续持久化安装并保留已有用户数据；尚未批准 `idle` 或 `declarativeNetRequestWithHostAccess` 是 `PERMISSION_REQUIRED`，在真实可信点击之后申请，不应误报缺失后台。探测正常并不证明计时、提醒、DNR 已在 Chrome 实测。
 
-逐项核对「工具/用户场景 → Sandbox、Side Panel、SW、ISOLATED 或 MAIN → 实际操作 → Manifest/原生权限 → 显式网站授权 → 重启/撤权/停用副作用 → 测试和真实证据」。状态用 `SUPPORTED`、`PERMISSION_REQUIRED`、`RUNTIME_UNAVAILABLE`、`UNSUPPORTED`、`NOT_TESTED`；没有同候选真实 Chrome 证据不能判原生通过。独立安装不要求普通用户有项目源码，但预编译特权服务必须随正式扩展发行。
+逐项核对「应用/用户场景 → Sandbox、Side Panel、SW、ISOLATED 或 MAIN → 实际操作 → Manifest/原生权限 → 显式网站授权 → 重启/撤权/停用副作用 → 测试和真实证据」。状态用 `SUPPORTED`、`PERMISSION_REQUIRED`、`RUNTIME_UNAVAILABLE`、`UNSUPPORTED`、`NOT_TESTED`；没有同候选真实 Chrome 证据不能判原生通过。独立安装不要求普通用户有项目源码，但预编译特权服务必须随正式扩展发行。
 
 ## 产品方案与交互预览门槛
 
@@ -82,7 +84,7 @@ node scripts/stage-sidebar-tool.mjs examples/sidebar-tools/<id>
 # STAGED_NOT_INSTALLED；并非已安装
 ```
 
-先审阅生成包及申请权限，再让用户在 Side Panel「工具 → ＋ 导入 → 审核 → 确认安装/更新 → 主动打开」。有本地 Workspace/Native 时，**只读预览**需要用户显式点击，不能真实写入/打开任务/控制页面，即使预览包 ID 与已安装工具相同也不得借用安装权限。
+先审阅生成包及申请权限，再让用户在 Side Panel「扩展 → 更多操作 → 导入本地工具包 → 审核 → 确认安装/更新 → 主动打开」。有本地 Workspace/Native 时，**只读预览**需要用户显式点击，不能真实写入/打开任务/控制页面，即使预览包 ID 与已安装工具相同也不得借用安装权限。
 
 ### React/Vue/Tailwind 工具
 

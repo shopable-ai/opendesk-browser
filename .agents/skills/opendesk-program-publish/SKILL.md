@@ -1,11 +1,13 @@
 ---
 name: opendesk-program-publish
-description: Develop, run, review, package and validate OpenDesk Browser programs. Prefer local source with the existing Native/MCP Controller and typed USER_SCRIPT paths; preserve Task v1 and explicit publication boundaries.
+description: Freeze, verify, install, upgrade or publish Controller Tasks and Page USER_SCRIPT/React/Vue programs. Keep Task under 我的 and installed Page under 扩展 网页增强 via independent Authority, never Sidebar Tool packages.
 ---
 
 # OpenDesk Browser · AI 本地开发与发布
 
-本 Skill 指导项目开发，不是运行器，不授予文件、浏览器、安装或发布权限。
+本 Skill 主导 **Controller Task / Page Program 的正式冻结、验证、安装、升级和发布**，不是运行器，不授予文件、浏览器或安装权限。用户说「为网页安装一个增强脚本」或「开发并发布 React/Vue 网页程序」时以本 Skill 为主；创作草稿优先 `opendesk-script-authoring`。
+
+现行五 Tab 见 [R4 产品规格](../../../docs/product/sidebar-ui-spec.zh-CN.md)：Task 归「我的」，Page Program 正式安装后归「扩展 → 网页增强」，仍使用各自的 Authority；不能转成 `opendesk.sidebar-tool.v1/v2`。
 
 ## 先读真实合同
 
@@ -69,7 +71,7 @@ attach.connected:true 仅是本地绑定，status.connected:true 仅表示 Nativ
     node scripts/validate-program-project.mjs <project>
     npm run build:program -- <project>
 
-build:program 不再是本地 Controller / Page 日常开发前置步骤。依赖锁、最终字节哈希、Candidate → Verification → Available → Installed 合同保留。构建、MCP 成功、Git commit 不等于安装或发布。Page 正式安装按类型合同处理，不冒用 Controller 证据。未授权不远端发布或 npm publish。
+build:program 不再是本地 Controller / Page 日常开发前置步骤。依赖锁、最终字节哈希、Candidate → Verification → Available → Installed 合同保留。构建、MCP 成功、Git commit 不等于安装或发布。Page 正式安装使用独立 Page Authority，完成后应在「扩展 → 网页增强」检索和管理；不冒用 Controller 证据，也不打包成侧栏应用。未授权不远端发布或 npm publish。
 
 Local Dev 对已锁定 npm + HTTPS 静态 import 的直连已有实现与定向本机证据。日常见 docs/api/dependencies-and-errors.zh-CN.md；旧 R10.1 GOAL 的“不支持”前置已过时，不重复开发。按实际候选/相关输入复用，分项结果不提升为正式 F3/ZIP。
 

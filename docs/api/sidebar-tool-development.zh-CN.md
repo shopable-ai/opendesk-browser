@@ -1,6 +1,6 @@
-# Side Panel 可安装小工具：统一开发规范与交付流程
+# 扩展中心「应用」（Sidebar Tool）：统一开发规范与交付流程
 
-> 面向**所有** `opendesk.sidebar-tool.v1` 类型工具的开发者和 AI/Codex。本文是共用的**开发方法**，不是阅读目录、网页笔记或知识收件箱的产品说明。
+> 面向「扩展」中的**应用**（底层 `opendesk.sidebar-tool.v1/v2`）开发者和 AI/Codex；当前产品入口见 [R4 产品规格](../product/sidebar-ui-spec.zh-CN.md)。本文是共用的**开发方法**，不是阅读目录、网页笔记或知识收件箱的产品说明。
 >
 > 接口查询：[Side Panel 工具 API](sidebar-tools.zh-CN.md)；示例导航：[工具项目索引](../../examples/sidebar-tools/README.zh-CN.md)；AI 规则：[opendesk-sidebar-tool-dev Skill](../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md)；仓库安全规则：[AGENTS.md](../../AGENTS.md)。
 >
@@ -172,7 +172,7 @@ node scripts/build-sidebar-tool.mjs \
   --out artifacts/sidebar-tools/review/<tool-id>.opendesk-tool.json
 ```
 
-输出的 `artifacts/sidebar-tools/<id>/<version>/<id>.opendesk-tool.json` 是**用户可导入的工具包**。已有可用 OpenDesk 扩展时，Side Panel「工具 → ＋ 导入」选择此 JSON → 阅读权限 → **确认安装/更新** → **主动打开**。常规独立工具修改无需重编整个扩展，但**每次安装/更新仍需用户确认**。注意这与修改扩展自身 `src/` 的工作流不同。
+输出的 `artifacts/sidebar-tools/<id>/<version>/<id>.opendesk-tool.json` 是**用户可导入的工具包**。已有可用 OpenDesk 扩展时，Side Panel「扩展 → 更多操作 → 导入本地工具包」选择此 JSON → 阅读权限 → **确认安装/更新** → **主动打开**。常规独立工具修改无需重编整个扩展，但**每次安装/更新仍需用户确认**。注意这与修改扩展自身 `src/` 的工作流不同。
 
 ### B. 本地只读预览：改得勤但暂不安装
 

@@ -1,11 +1,13 @@
 ---
 name: opendesk-trusted-sidebar-feature
-description: Build or decouple audited first-party features embedded in OpenDesk Browser's trusted Side Panel or extension host (for example Stay Focus, Time Review, Cookie Editor). Keep business code outside generic tool infrastructure and never elevate user/AI-installed tool code.
+description: Build or decouple audited first-party Side Panel/Background/Content features (Stay Focus, Time Review, Cookie Editor), separating static privileged sources from 扩展 center dynamic apps and installed Page 网页增强 without elevating user code.
 ---
 
 # OpenDesk Browser · 第一方可信 Side Panel 功能与最小解耦
 
 ## 什么时候使用
+
+R4 正式五 Tab 见 [产品规格](../../../docs/product/sidebar-ui-spec.zh-CN.md)：「我的 / 扩展 / 工作流 / 开发 / 云控」。**显示在扩展中心不等于可信权限**；纯扩展中心 UI 归 extension-ui，通用 SW/SDK 接线归 extension-runtime。
 
 用户要求创建、改造或解耦随 **OpenDesk 扩展静态编译发布**的第一方功能（如 Stay Focus、Time Review、Cookie Editor）时使用。特别针对「具体工具业务散落到通用 Sidebar 宿主、安装器、桥、CSS」的耦合核查与最小修复。
 

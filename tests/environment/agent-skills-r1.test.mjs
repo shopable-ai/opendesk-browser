@@ -48,12 +48,9 @@ test('Extension UI and runtime skills reference one canonical set of owners, not
 });
 
 test('Every local Markdown link in newly authored Skill docs resolves inside the repo',async()=>{
-  const docs=[
-    '.agents/skills/README.md',
-    '.agents/skills/UNIVERSE.zh-CN.md',
-    '.agents/skills/opendesk-extension-ui/SKILL.md',
-    '.agents/skills/opendesk-extension-runtime/SKILL.md'
-  ];
+  const dirs=(await readdir(skillsRoot,{withFileTypes:true})).filter(entry=>entry.isDirectory()).map(entry=>entry.name);
+  const docs=['.agents/skills/README.md','.agents/skills/UNIVERSE.zh-CN.md',
+    ...dirs.map(name=>'.agents/skills/'+name+'/SKILL.md')];
   for(const filename of docs){
     const source=await read(filename);
     for(const match of source.matchAll(/\]\(([^)#]+)(?:#[^)]*)?\)/g)){
@@ -64,4 +61,46 @@ test('Every local Markdown link in newly authored Skill docs resolves inside the
       await access(resolved);
     }
   }
+});
+
+test('R4 actual HTML has five visible tabs and historical tabs stay historical',async()=>{
+  const [html,spec,ui]=await Promise.all([read('src/ui/tool.html'),read('docs/product/sidebar-ui-spec.zh-CN.md'),read('.agents/skills/opendesk-extension-ui/SKILL.md')]);
+  const tabs=[...html.split('</nav>')[0].matchAll(/<button\b[^>]*\brole="tab"[^>]*>([^<]+)<\/button>/g)];
+  assert.deepEqual(tabs.filter(x=>!/\shidden(?:\s|>)/.test(x[0])).map(x=>x[1]),['我的','扩展','工作流','开发','云控']);
+  assert.ok(tabs.some(x=>x[1]==='调试'&&/\shidden/.test(x[0])));
+  const current=spec.split('# 历史存档：OpenDesk Browser Sidebar UI SPEC · R21')[0];
+  assert.match(current,/正式五个一级 Tab/);
+  assert.match(current,/应用（Sidebar Tool）/);
+  assert.match(current,/网页增强（Page Program）/);
+  assert.doesNotMatch(current,/^\|\s*(?:发现|工具)\s*\|/m);
+  assert.match(ui,/我的 \/ 扩展 \/ 工作流 \/ 开发 \/ 云控/);
+});
+test('R4 common user requests map to one principal Skill each',async()=>{
+  const index=await read('.agents/skills/README.md');
+  for(const [phrase,slug] of [
+    ['在扩展里开发一个小应用','opendesk-sidebar-tool-dev'],
+    ['为网页安装一个增强脚本','opendesk-program-publish'],
+    ['修改扩展列表和安装管理界面','opendesk-extension-ui'],
+    ['开发一个需要后台能力的扩展功能','opendesk-extension-runtime'],
+    ['在我的任务中创建自动化任务','opendesk-script-authoring'],
+    ['开发并发布 React/Vue 网页程序','opendesk-program-publish']
+  ]){
+    const matches=index.split('\n').filter(x=>x.startsWith('| 「'+phrase+'」 |'));
+    assert.equal(matches.length,1,'duplicate/missing route '+phrase);
+    assert.ok(matches[0].includes('| `'+slug+'` |'),'bad primary route '+phrase);
+  }
+});
+test('App/Page/Task execution and permissions remain distinct',async()=>{
+  const [app,publish,trusted,runtime,model,center]=await Promise.all([
+    read('.agents/skills/opendesk-sidebar-tool-dev/SKILL.md'),
+    read('.agents/skills/opendesk-program-publish/SKILL.md'),
+    read('.agents/skills/opendesk-trusted-sidebar-feature/SKILL.md'),
+    read('.agents/skills/opendesk-extension-runtime/SKILL.md'),
+    read('src/ui/extension-center-model.js'),read('src/ui/extension-center.js')]);
+  for(const term of ['examples/sidebar-tools/<id>/','opendesk.sidebar-tool.v1/v2','OpenDeskTool.request','opaque-origin'])
+    assert.ok(app.includes(term),'app contract missing '+term);
+  assert.match(publish,/网页增强/);assert.match(publish,/Authority/);
+  assert.match(trusted,/动态工具包/);assert.match(runtime,/Service Worker/);
+  assert.match(model,/key:'app:'/);assert.match(model,/key:'page:'/);
+  assert.match(center,/row.kind==='page'\?'网页增强':'应用'/);
 });

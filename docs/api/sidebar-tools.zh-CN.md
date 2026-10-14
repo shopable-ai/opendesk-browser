@@ -1,8 +1,8 @@
-# Side Panel 可安装小工具 API 参考
+# 扩展中心「应用」Sidebar Tool API 参考
 
 > 本页只说明 **`opendesk.sidebar-tool.v1` 的当前接口合同**。**所有同类型工具的统一开发方法**（选型、目录规范、预览、打包、安装、测试）请先阅读 [Side Panel 工具统一开发规范](sidebar-tool-development.zh-CN.md)。示例见 [examples/sidebar-tools](../../examples/sidebar-tools/README.zh-CN.md)；AI/Codex 用 [开发 Skill](../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md)。
 
-这是 Side Panel「工具」中的可安装 HTML/CSS/JS 工具包，不是单独的 Chrome 扩展，不是 `opendesk.task.v1`，也不是 Controller/Page USER_SCRIPT 项目。**源代码与运行合同的最终依据**为 `src/ui/sidebar-tools/package.js`、`src/ui/sidebar-tools.js`、`src/sidebar-tools/bridge.js`、`src/sidebar-tools/official-catalog.js`、`scripts/build-sidebar-tool.mjs`、`scripts/build-official-tools.mjs`。
+这是 Side Panel「扩展」中的「应用」类型 HTML/CSS/JS Sidebar Tool 包（现行入口见 [R4 产品规格](../product/sidebar-ui-spec.zh-CN.md)），不是单独的 Chrome 扩展，不是 `opendesk.task.v1`，也不是 Controller/Page USER_SCRIPT 项目。**源代码与运行合同的最终依据**为 `src/ui/sidebar-tools/package.js`、`src/ui/sidebar-tools.js`、`src/sidebar-tools/bridge.js`、`src/sidebar-tools/official-catalog.js`、`scripts/build-sidebar-tool.mjs`、`scripts/build-official-tools.mjs`。
 
 ## 1. 工具源配置与运行包的区别
 

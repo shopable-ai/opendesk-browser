@@ -1,8 +1,38 @@
-# OpenDesk Browser Sidebar UI SPEC · R21（生产六页签）
+# OpenDesk Browser Side Panel · Extension Center R4 现行产品规格（2026-10-14）
 
-> 更新：2026-10-11。当前实现以 `src/ui/tool.html`、`src/ui/design-system.css`、`src/ui/tool-shell.css`、R20 架构决议为准。本节覆盖下方保留的 R5/R6 历史说明；历史章节中的「三个页签」仅描述当时产品，不再是当前导航合同。
+> **唯一现行一级导航与产品术语说明**：以 `src/ui/tool.html`、`src/ui/extension-center.js`、`src/ui/extension-center-model.js` 和任务工作台为准。下方 R21/R5/R6 为历史存档。R27/R28/R30 负责视觉和子视图方法。本文本不构成实际 Chrome 验收证据。
 
-## 现行页面与操作路径
+## 正式五个一级 Tab
+
+| 一级 Tab | 当前职责 | 旧入口关系 |
+| --- | --- | --- |
+| **我的** | 已安装 Controller 任务、任务搜索、运行结果、定时计划和任务管理 | 旧「发现」任务检索合并进「我的」，不再独立成 Tab |
+| **扩展** | 在统一列表查找、筛选、打开、安装、更新、管理应用及已安装网页增强，查看详情和授权 | 原「工具」改为「扩展」；`tab-tools` / `workbench-tools` DOM ID 为兼容而保留 |
+| **工作流** | AI 对话、步骤预览/确认、审批、结果与设置 | 延续原 Workflow |
+| **开发** | JavaScript、Controller、Page、React/Vue 的草稿运行与本地项目创作 | 正式安装的 Page 由「扩展 → 网页增强」管理 |
+| **云控** | 连接、RunHost、队列状态和托管 | 开发版隐藏的「调试」不是正式第六个 Tab |
+
+## 扩展统一列表与运行环境
+
+- **统一列表**：`#extension-center` 组合 Sidebar Tool 已安装条目、官方候选和 Installed Page Program。「应用 / 网页增强」是**单行类型标签**而非 Tab；支持搜索、更多菜单类型/范围筛选、列表/详情/返回、官方市场与本地包导入。默认以已安装项为主，主动搜索或调整范围可看官方候选。
+- **应用（Sidebar Tool）**：原 `examples/sidebar-tools/<id>/` 与 `opendesk.sidebar-tool.v1/v2` 技术合同不变；动态 HTML/CSS/JS 在 opaque-origin iframe 中通过 `OpenDeskTool.request` 请求经过宿主审核的能力。预编译第一方后台/Content 服务可为特定应用提供能力，但动态导入包绝不直接获得 SW、Native 或 `chrome.*` 特权。
+- **网页增强（Page Program）**：Page `USER_SCRIPT`/受管网页 UI 只在完成专用 Installed/Authority、网站授权后作为「网页增强」展示；保留其启停/撤权体系，不打包成 Sidebar Tool JSON。
+- **Controller Task**：在「开发」创作，按 Task Authority 安装，在「我的」运行和定时调度；不因此变成应用或网页增强。
+- **可信功能与 Skill**：OpenDesk Browser 本身是一款 Chrome Extension；产品「扩展」是统一管理入口；第一方静态审计代码、动态应用、Page、Controller、Agent Skill 都必须独立区分。
+
+## 状态、交互与验收
+
+扩展中心使用 **统一列表 → 单项详情 → 返回列表**，筛选/滚动/焦点应保真；安装、更新、网站授权、撤权和运行都由现有可信 Host 与独立 Authority 明确执行。切换页面、预览或安装不能隐式运行源码/扩大权限。UI 遵循 R27/R28/R30、`design-system.css`、`design-tokens.css`、ARIA/键盘、响应式与草稿保护。
+
+Skill/文档或 Node 静态检查最多证明相应合同通过；若没有同候选真实 Chrome 回执，原生项 `NOT_TESTED`，不能宣称产品已达到 95+。
+
+---
+
+# 历史存档：OpenDesk Browser Sidebar UI SPEC · R21（2026-10-11，原六 Tab）
+
+> 2026-10-11 的 R21 **六 Tab 内容为历史记录，不是现行导航合同**；本文件开头 R4 才是当前入口。旧 R5/R6 同属历史，视觉基线应重新与 R27/R28/R30 及真实源码核实。
+
+## R21 当时的页面与操作路径（历史）
 
 | 一级页签 | 主要功能与信息密度 | 重要状态与安全边界 |
 | --- | --- | --- |
@@ -13,16 +43,16 @@
 | 工具 | 已安装工具优先；按需展开官方工具搜索、应用市场与文件导入；版本更新审阅、网页笔记和独立工具运行 | 图标操作必须有 `title`、`aria-label`、焦点状态；工具 iframe 继续隔离，不导入高权限侧栏 CSS |
 | 云控 | 在目标网页旁边查看云端连接、RunHost、队列状态和托管设置；「我的」保留轻量入口 | 只在真正的 Side Panel 中可见，复用固定已安装 Task／原 RunHost；开发「调试」仍只读且生产隐藏 |
 
-导航采用六个正式 `role=tab`，开发构建增加第七个「调试」；每个页面使用独立的 `role=tabpanel`。只有顶部导航在宽度不足时横向滚动，方向键/Home/End 和焦点可见性保持可访问；完整任务目录和独立工具标签页沿用受信任宿主的统一样式，但不授予用户工具新的权限。原有 RunHost、Task v1、权限审批、停止所有权、CurrentPageTarget 与本地服务契约不因视觉调整改变。
+R21 当时导航采用六个正式 `role=tab`，开发构建增加第七个「调试」；每个页面使用独立的 `role=tabpanel`。只有顶部导航在宽度不足时横向滚动，方向键/Home/End 和焦点可见性保持可访问；完整任务目录和独立工具标签页沿用受信任宿主的统一样式，但不授予用户工具新的权限。原有 RunHost、Task v1、权限审批、停止所有权、CurrentPageTarget 与本地服务契约不因视觉调整改变。
 
-### 工具页信息架构（2026-10-11）
+### R21 工具页信息架构（历史 2026-10-11）
 
 - 一级「我的」「发现」用于自动化任务；一级「工具」用于自定义工具。工具页不建立第二套「我的工具／发现工具」Tab 导航。
 - 默认只展示已安装工具和网页工具；标题右侧三个 34px 图标操作分别是**添加工具、应用市场、导入本地文件**，都有标题、无障碍名称和可见焦点；不占用永久第二行导航。
 - 「添加工具」按需在现有列表下方展开官方工具搜索，保留可安装／全部筛选、发行摘要、更新、审阅、明确安装。文件导入与官方搜索互斥展开，安装成功后收起并聚焦新安装的工具。
 - 仅调整展示层：不修改工具包来源验证、安装许可、存储隔离、sandbox 生命周期与 RunHost 权限。验收要覆盖默认、空状态、展开、搜索、取消、安装后返回，以及 300／360／420／520px 和 200% 缩放；不以静态 HTML 通过冒充真实 Chrome 验收。
 
-## 现行 Design System 与响应式合同
+## R21 时代 Design System 与响应式合同（历史）
 
 - 唯一共享基线：`src/ui/design-system.css`；视图差异只在 `src/ui/tool-shell.css`。先复用 `od-page`、`od-toolbar`、`od-stack`、`od-surface`、`od-button`、`od-field`、`od-segmented`、`od-icon-button`。
 - 4／8／12／16px 空间节奏；普通控件 8px 圆角，独立卡片／表面 12px，状态徽章和真实开关轨道才使用胶囊。常规按钮／输入 36px 等级，图标按钮默认 34×34px；特殊工作流工具栏允许经过审查的 36px 变体。
