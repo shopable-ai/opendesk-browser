@@ -9,7 +9,7 @@
 **统一资源、自动固定、权限独立、执行世界隔离。** 相同的 SHA 资产可以复用，程序/Revision/执行世界自动各自建立技术固定记录；**锁不是用户必须逐库点击“批准”的表单**。程序对网站和敏感能力的权限、安装/定时/云控授权各自有效，不能互相继承。不存在所有世界通用的 JS 全局变量。
 
 
-### 2026-10-14 统一使用合同：五种依赖使用方式（R7.9.4，混合实测待执行）
+### 2026-10-14 统一使用合同：五种依赖使用方式（R7.9.4，示例已落库、混合 Chrome 待验收）
 
 **这不是“五条 `import` 语句”或五个互相独立的 Runtime。** 对本地多文件 Controller/Page ESM 项目，**同一个 `src/main.js` 至少使用三条真正的静态 `import`（HTTPS、npm、相对路径），另在同一次 `main()` 中调用一个按需预置库和一个默认内置库**。下面冻结的是目标验收分母；混合五来源的同候选 Chrome PASS 尚无当前证据，不能照搬 R7.7/R7.8 单库 PASS。
 
@@ -249,3 +249,9 @@ Standard Classic 的原始字节经既有 Dependency Manager 内容寻址、按 
 - 验收驱动复用 `r72-dependency-native-cft.yml`，增加真实 Page D3 DOM/返回值/二次零网络/保存和 Controller mitt 裸名/Worker/保存测试；Node mock 与 CFT 驱动源码不是 Chrome 成功证据。当前候选的 NODE、BUILD、CHROME、安装重启离线、用户 Mac 均要分别记录，尤其 `MAC_NATIVE_NOT_TESTED`、`CWS_COMPLIANCE_NOT_CLOSED` 不变。
 
 R7.6 单文件 Page ESM Run 具体落地：`captureForRun/resolveForRun` 在一次真实 Run 手势之后复用既有 Dependency Manager 自动生成 SHA 审核锁；不要求作者在 Run 前额外点击逐库批准；固定资源仍经原 Worker 离线编译。旧锁重复 Run 不下载，同步阻断不同世界、撤权和过期源码；Program 级 ESM 独立锁、完整浏览器重启离线与 CWS 合规尚未关闭。
+
+### R7.9.4 真实源码实例与独立证据（2026-10-14）
+
+[Page 本地项目](../../examples/programs/mixed-import-page/README.zh-CN.md)和 [Controller 本地项目](../../examples/programs/mixed-import-controller/README.zh-CN.md)已经直接写入 `main`，每个 `src/main.js` 同时包含固定 HTTPS D3、锁定的 npm `lodash-es/escape.js` 和 `./lib/scores.js` **三条静态 import**，执行时再分别引用 Page `queryString` / Controller `axios` 按需库和默认 `_`、`dayjs`。这是五种机制，不是五条 import。HTTPS 缓存 SHA `691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d` 沿用已有原始字节，npm 4.17.21 锁复用仓库已有正规生成条目；完整验证由各项目自身 `npm ci` 及实际离线构建负责，不因复制锁文件就自称验收。
+
+[定向测试](../../tests/environment/mixed-import-projects.test.mjs)将来源/锁/构建/返回结果与故障注入独立于作者源码。**尚无本次项目与新候选同包的 Mac Chrome 回执**，不从 R7.7/R7.8 单库成功推断新的综合五机制 PASS。当前来源、Node、Build、Chrome、撤权、离线、包身份分层状态见 [R7.9.4 工作记录](workstreams/import-runtime-r794-20261014.md)。本节不添加新 Registry、Library Loader 或执行世界。
