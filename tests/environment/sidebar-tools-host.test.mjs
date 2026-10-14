@@ -4,6 +4,8 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
 import {createSidebarTools} from '../../src/ui/sidebar-tools.js';
+import {requestStayFocusOperation,runTrustedStayFocusOperation} from '../../src/stay-focus/tool-host.js';
+import {FOCUS_ID,FOCUS_CAPABILITY,FOCUS_OPERATIONS} from '../../src/stay-focus/policy.js';
 import {createCurrentPageTarget} from '../../src/ui/current-page-target.js';
 import {initSidebarToolSandbox} from '../../src/sidebar-tools/bridge.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
@@ -1759,4 +1761,67 @@ test('R1.3 final sandbox delivery rejects selection that expires during frontend
   const response=f.frame.contentWindow.sent.find(row=>row.requestId==='expired-delivery');
   assert.equal(response.ok,false);assert.equal(response.error.code,'E_LAUNCH_EXPIRED');
   assert.equal(response.result,undefined);
+});
+
+test('Focus sandbox and trusted settings use the fixed product adapter through the existing host',async t=>{
+  const previous=globalThis.__opendeskStayFocusTrustedUI;let runControl;
+  globalThis.__opendeskStayFocusTrustedUI={id:FOCUS_ID,capability:FOCUS_CAPABILITY,operations:FOCUS_OPERATIONS,
+    request:requestStayFocusOperation,runTrustedOperation:runTrustedStayFocusOperation,
+    createPermissionControls({runOperation}){runControl=runOperation;return {render(){}};}};
+  t.after(()=>{if(previous===undefined)delete globalThis.__opendeskStayFocusTrustedUI;
+    else globalThis.__opendeskStayFocusTrustedUI=previous;});
+  const tool={...sample,id:FOCUS_ID,capabilities:[FOCUS_CAPABILITY]},store=new Map([[SIDEBAR_TOOL_STORE,[tool]]]);
+  const f=await hostFixture(t,{tool,store}),calls=[];
+  f.api.runtime.sendMessage=async message=>{calls.push(message);return {ok:true,data:{state:'confirmed'}};};
+  f.ask('focus.status',{},'focus-status');
+  await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId==='focus-status'));
+  assert.equal(f.frame.contentWindow.sent.find(row=>row.requestId==='focus-status').ok,true);
+  assert.equal(calls[0].operation,'focus.status');
+  f.ask('focus.disable',{},'sandbox-disable');
+  await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId==='sandbox-disable'));
+  assert.equal(f.frame.contentWindow.sent.find(row=>row.requestId==='sandbox-disable').error.code,'E_FOCUS_TRUSTED_CLICK');
+  assert.equal(calls.length,1);
+  await assert.rejects(runControl('focus.disable',{}, {isTrusted:false}),{code:'E_FOCUS_TRUSTED_CLICK'});
+  assert.deepEqual(await runControl('focus.disable',{}, {isTrusted:true}),{state:'confirmed'});
+  assert.equal(calls.length,2);assert.equal(calls[1].operation,'focus.disable');
+  const sent=deferred(),reply=deferred();
+  f.api.runtime.sendMessage=async message=>{calls.push(message);sent.resolve();return reply.promise;};
+  const pending=runControl('focus.disable',{}, {isTrusted:true});await sent.promise;
+  f.host.closeTool();reply.resolve({ok:true,data:{state:'confirmed'}});
+  await assert.rejects(pending,{code:'E_OUTCOME_UNKNOWN'});
+  assert.equal(calls.length,3,'retiring the host after send must not replay a native effect');
+});
+
+test('Focus capability cannot dispatch without its fixed extension-owned sidecar',async t=>{
+  const previous=globalThis.__opendeskStayFocusTrustedUI;delete globalThis.__opendeskStayFocusTrustedUI;
+  t.after(()=>{if(previous!==undefined)globalThis.__opendeskStayFocusTrustedUI=previous;});
+  const tool={...sample,id:FOCUS_ID,capabilities:[FOCUS_CAPABILITY]},store=new Map([[SIDEBAR_TOOL_STORE,[tool]]]);
+  const f=await hostFixture(t,{tool,store});
+  f.api.runtime.sendMessage=async()=>{throw new Error('Missing sidecar must never dispatch');};
+  f.ask('focus.status',{},'missing-sidecar');
+  await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId==='missing-sidecar'));
+  assert.equal(f.frame.contentWindow.sent.find(row=>row.requestId==='missing-sidecar').ok,false);
+});
+
+test('Focus response keeps its acknowledged result when only an unrelated UI busy flag changes',async t=>{
+  const previous=globalThis.__opendeskStayFocusTrustedUI;let runControl;
+  globalThis.__opendeskStayFocusTrustedUI={id:FOCUS_ID,capability:FOCUS_CAPABILITY,operations:FOCUS_OPERATIONS,
+    request:requestStayFocusOperation,runTrustedOperation:runTrustedStayFocusOperation,
+    createPermissionControls({runOperation}){runControl=runOperation;return {render(){}};}};
+  t.after(()=>{if(previous===undefined)delete globalThis.__opendeskStayFocusTrustedUI;
+    else globalThis.__opendeskStayFocusTrustedUI=previous;});
+  const tool={...sample,id:FOCUS_ID,capabilities:[FOCUS_CAPABILITY]},store=new Map([[SIDEBAR_TOOL_STORE,[tool]]]);
+  const release=deferred(),baseLocks=sharedLocks();let hold=false;
+  const locks={request(name,work){return hold?release.promise.then(()=>baseLocks.request(name,work)):baseLocks.request(name,work);}};
+  const f=await hostFixture(t,{tool,store,locks}),sent=deferred(),reply=deferred();
+  f.api.permissions={async contains(){return false;}};
+  f.api.runtime.sendMessage=async()=>{sent.resolve();return reply.promise;};
+  const pending=runControl('focus.disable',{}, {isTrusted:true});await sent.promise;
+  // Hold the existing enable/disable transaction before it changes authority.
+  hold=true;f.elements['sidebar-tool-enable'].emit('click');
+  await settle(()=>f.elements['sidebar-tool-enable'].disabled);
+  reply.resolve({ok:true,data:{state:'confirmed'}});
+  assert.deepEqual(await pending,{state:'confirmed'});
+  release.resolve();
+  await settle(()=>!f.elements['sidebar-tool-enable'].disabled);
 });

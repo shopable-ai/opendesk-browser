@@ -1,6 +1,6 @@
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolLifecycleChanged} from '../ui/sidebar-tools/lifecycle.js';
 import {SIDEBAR_TOOL_STORE} from '../ui/sidebar-tools/package.js';
-import {isReadingTocToolSender} from '../reading-toc/page.js';
+import {isSidebarToolHostSender} from '../sidebar-tools/sender.js';
 import {CLIP_SITE_STORE,CLIP_PROTOCOL,CLIP_OPERATIONS,clipGrantAllowed} from './policy.js';
 import {chooseArticle,domToMarkdown,safeClipSource} from './convert.js';
 
@@ -8,7 +8,7 @@ export function initPageClip({api=globalThis.chrome,doc=globalThis.document,win=
   if(!api?.runtime?.onMessage||!api?.storage?.local||!doc||!win||win.top!==win)return null;
   let disposed=false;const policyEpochs=new Map();
   const handle=async(message,sender)=>{
-    if(!isReadingTocToolSender(api,sender,message?.toolId)||message?.protocol!==CLIP_PROTOCOL||
+    if(!isSidebarToolHostSender(api,sender,message?.toolId)||message?.protocol!==CLIP_PROTOCOL||
       !CLIP_OPERATIONS.includes(message.operation)||typeof message.toolId!=='string'||
       message.expectedUrl!==win.location.href)
       return {ok:false,error:'剪藏来源或文档已变化'};

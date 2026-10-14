@@ -1,0 +1,95 @@
+
+> opendesk-browser@0.1.0 build
+> node scripts/build.mjs production
+
+ℹ Generating types...
+ℹ Building chrome-mv3 for production with Vite 7.3.6
+[?25l⠋ Preparing...[K⠋ [1/38] axios[K⠙ [1/38] axios[K⠹ [1/38] axios[K⠸ [1/38] axios[K⠼ [1/38] axios[K⠴ [1/38] axios[K⠦ [1/38] axios[K⠧ [1/38] axios[K⠇ [1/38] axios[K⠏ [1/38] axios[K⠋ [1/38] axios[K⠋ [2/38] sw[K⠙ [2/38] sw[K⠹ [2/38] sw[K⠸ [2/38] sw[K⠼ [2/38] sw[K⠴ [2/38] sw[K⠦ [2/38] sw[K⠧ [2/38] sw[K⠇ [2/38] sw[K⠏ [2/38] sw[K⠋ [2/38] sw[K⠙ [2/38] sw[K⠹ [2/38] sw[K⠸ [2/38] sw[K⠼ [2/38] sw[K⠴ [2/38] sw[K⠦ [2/38] sw[K⠧ [2/38] sw[K⠇ [2/38] sw[K⠏ [2/38] sw[K⠋ [2/38] sw[K⠙ [2/38] sw[K⠹ [2/38] sw[K⠸ [2/38] sw[K⠼ [2/38] sw[K⠴ [2/38] sw[K⠦ [2/38] sw[K⠧ [2/38] sw[K⠇ [2/38] sw[K⠏ [2/38] sw[K⠋ [2/38] sw[K⠙ [2/38] sw[K⠹ [2/38] sw[K⠸ [2/38] sw[K⠼ [2/38] sw[K⠴ [2/38] sw[K⠦ [2/38] sw[K⠧ [2/38] sw[K⠇ [2/38] sw[K⠏ [2/38] sw[K⠋ [2/38] sw[K⠙ [2/38] sw[K⠹ [2/38] sw[K⠸ [2/38] sw[K⠼ [2/38] sw[K⠴ [2/38] sw[K⠦ [2/38] sw[K⠧ [2/38] sw[K⠇ [2/38] sw[K⠏ [2/38] sw[K⠋ [2/38] sw[K⠙ [2/38] sw[K⠙ [3/38] blocked[K⠹ [3/38] blocked[K⠹ [4/38] bootstrap[K⠸ [4/38] bootstrap[K⠸ [5/38] bridge[K⠼ [5/38] bridge[K⠴ [5/38] bridge[K⠦ [5/38] bridge[K⠦ [6/38] cheerio[K⠧ [6/38] cheerio[K⠇ [6/38] cheerio[K⠏ [6/38] cheerio[K⠋ [6/38] cheerio[K⠙ [6/38] cheerio[K⠹ [6/38] cheerio[K⠸ [6/38] cheerio[K⠼ [6/38] cheerio[K⠼ [7/38] cloud-console[K⠴ [7/38] cloud-console[K⠴ [8/38] cloud-host[K⠦ [8/38] cloud-host[K⠧ [8/38] cloud-host[K⠇ [8/38] cloud-host[K⠏ [8/38] cloud-host[K⠋ [8/38] cloud-host[K⠋ [9/38] context-menus[K⠙ [9/38] context-menus[K⠹ [9/38] context-menus[K⠸ [9/38] context-menus[K⠼ [9/38] context-menus[K⠴ [9/38] context-menus[K⠦ [9/38] context-menus[K⠧ [9/38] context-menus[K⠇ [9/38] context-menus[K⠏ [9/38] context-menus[K⠋ [9/38] context-menus[K⠙ [9/38] context-menus[K⠙ [10/38] crypto-js[K⠹ [10/38] crypto-js[K⠸ [10/38] crypto-js[K⠼ [10/38] crypto-js[K⠴ [10/38] crypto-js[K⠦ [10/38] crypto-js[K⠧ [10/38] crypto-js[K⠇ [10/38] crypto-js[K⠏ [10/38] crypto-js[K⠋ [10/38] crypto-js[K⠙ [10/38] crypto-js[K⠹ [10/38] crypto-js[K⠸ [10/38] crypto-js[K⠸ [11/38] dayjs[K⠼ [11/38] dayjs[K⠴ [11/38] dayjs[K⠦ [11/38] dayjs[K⠧ [11/38] dayjs[K⠇ [11/38] dayjs[K⠇ [12/38] file-saver[K⠏ [12/38] file-saver[K⠏ [13/38] fingerprintjs[K⠋ [13/38] fingerprintjs[K⠙ [13/38] fingerprintjs[K⠹ [13/38] fingerprintjs[K⠸ [13/38] fingerprintjs[K⠸ [14/38] health-host[K⠼ [14/38] health-host[K⠴ [14/38] health-host[K⠴ [15/38] health[K⠦ [15/38] health[K⠦ [16/38] js-cookie[K⠧ [16/38] js-cookie[K⠧ [17/38] knowledge-host[K⠇ [17/38] knowledge-host[K⠏ [17/38] knowledge-host[K⠋ [17/38] knowledge-host[K⠙ [17/38] knowledge-host[K⠙ [18/38] lodash[K⠹ [18/38] lodash[K⠸ [18/38] lodash[K⠼ [18/38] lodash[K⠼ [19/38] market-host[K⠴ [19/38] market-host[K⠦ [19/38] market-host[K⠧ [19/38] market-host[K⠧ [20/38] marketplace[K⠇ [20/38] marketplace[K⠏ [20/38] marketplace[K⠋ [20/38] marketplace[K⠙ [20/38] marketplace[K⠹ [20/38] marketplace[K⠸ [20/38] marketplace[K⠸ [21/38] page-agent[K⠼ [21/38] page-agent[K⠴ [21/38] page-agent[K⠴ [22/38] page-core[K⠦ [22/38] page-core[K⠧ [22/38] page-core[K⠧ [23/38] page-relay[K⠇ [23/38] page-relay[K⠏ [23/38] page-relay[K⠋ [23/38] page-relay[K⠙ [23/38] page-relay[K⠹ [23/38] page-relay[K⠸ [23/38] page-relay[K⠸ [24/38] page-session[K⠼ [24/38] page-session[K⠴ [24/38] page-session[K⠦ [24/38] page-session[K⠧ [24/38] page-session[K⠧ [25/38] preinstall-intent[K⠇ [25/38] preinstall-intent[K⠏ [25/38] preinstall-intent[K⠋ [25/38] preinstall-intent[K⠙ [25/38] preinstall-intent[K⠙ [26/38] query-string[K⠹ [26/38] query-string[K⠹ [27/38] sandbox[K⠸ [27/38] sandbox[K⠼ [27/38] sandbox[K⠼ [28/38] sdk-main[K⠴ [28/38] sdk-main[K⠦ [28/38] sdk-main[K⠧ [28/38] sdk-main[K⠇ [28/38] sdk-main[K⠇ [29/38] selection-entry[K⠏ [29/38] selection-entry[K⠏ [30/38] settings[K⠋ [30/38] settings[K⠙ [30/38] settings[K⠹ [30/38] settings[K⠸ [30/38] settings[K⠼ [30/38] settings[K⠴ [30/38] settings[K⠴ [31/38] sidebar-tool-host[K⠦ [31/38] sidebar-tool-host[K⠧ [31/38] sidebar-tool-host[K⠇ [31/38] sidebar-tool-host[K⠏ [31/38] sidebar-tool-host[K⠋ [31/38] sidebar-tool-host[K⠙ [31/38] sidebar-tool-host[K⠹ [31/38] sidebar-tool-host[K⠸ [31/38] sidebar-tool-host[K⠼ [31/38] sidebar-tool-host[K⠴ [31/38] sidebar-tool-host[K⠴ [32/38] stay-focus-controls[K⠦ [32/38] stay-focus-controls[K⠧ [32/38] stay-focus-controls[K⠇ [32/38] stay-focus-controls[K⠇ [33/38] store[K⠏ [33/38] store[K⠋ [33/38] store[K⠋ [34/38] time-review-host[K⠙ [34/38] time-review-host[K⠹ [34/38] time-review-host[K⠸ [34/38] time-review-host[K⠼ [34/38] time-review-host[K⠼ [35/38] tool-shell[K⠴ [35/38] tool-shell[K✗ Build failed in 88ms
+[K[?25h[K[?25h
+ ERROR  Could not resolve "../../native-agent/local-project-source-contract.mjs" from "src/native-agent/host-adapter.js"
+file: /Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/native-agent/host-adapter.js
+
+    at getRollupError (node_modules/rollup/dist/es/shared/parseAst.js:319:41)
+    at error (node_modules/rollup/dist/es/shared/parseAst.js:315:42)
+    at ModuleLoader.handleInvalidResolvedId (node_modules/rollup/dist/es/shared/node-entry.js:22597:24)
+    at node_modules/rollup/dist/es/shared/node-entry.js:22557:26
+
+FAILED_BUILD_DIAGNOSTIC=/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/stay-focus-boundary-r1-20261014/build/build-production-failed-1791966071541-55ad9e36-b03c-48f1-834f-52b8ce36c93f.json
+file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/node_modules/wxt/dist/core/utils/building/build-entrypoints.mjs:21
+			throw Error(`Failed to build ${groupNames.join(", ")}`, { cause: err });
+			      ^
+
+Error: Failed to build tool-shell
+    at buildEntrypoints (file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/node_modules/wxt/dist/core/utils/building/build-entrypoints.mjs:21:10)
+    at async rebuild (file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/node_modules/wxt/dist/core/utils/building/rebuild.mjs:34:20)
+    at async internalBuild (file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/node_modules/wxt/dist/core/utils/building/internal-build.mjs:47:31)
+    at async build (file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/node_modules/wxt/dist/core/build.mjs:21:9)
+    at async file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/scripts/build.mjs:36:1 {
+  [cause]: Could not resolve "../../native-agent/local-project-source-contract.mjs" from "src/native-agent/host-adapter.js"
+  file: /Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/native-agent/host-adapter.js
+      at getRollupError (file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/node_modules/rollup/dist/es/shared/parseAst.js:319:41)
+      at error (file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/node_modules/rollup/dist/es/shared/parseAst.js:315:42)
+      at ModuleLoader.handleInvalidResolvedId (file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/node_modules/rollup/dist/es/shared/node-entry.js:22597:24)
+      at file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/node_modules/rollup/dist/es/shared/node-entry.js:22557:26 {
+    code: 'UNRESOLVED_IMPORT',
+    exporter: '../../native-agent/local-project-source-contract.mjs',
+    id: '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/native-agent/host-adapter.js',
+    watchFiles: [
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/entrypoints/tool-shell.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/package.json',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/node_modules/wxt/dist/utils/define-unlisted-script.mjs',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/ui/tool-shell.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/development/page.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/environment.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/ui/debug-workbench.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/framework/sdk/registry.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/framework/sdk/browser-contract.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/ui/sdk-approval.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/ui/resource-diagnostics.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/ui/script-editor.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/platform/host/client.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/ui/current-page-target.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/ui/task-workbench.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/ui/sidebar-tools-loader.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/ui/workflow/workflow-view.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/ui/installed-page-tools.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/ui/scheduled-task-workbench.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/ui/sidebar-tab-memory.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/ui/sidebar-tools/navigation.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/ui/sidebar-tools/preview-session.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/native-agent/tool-snapshot.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/platform/chrome/permission-gate.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/ui/site-access.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/native-agent/host-adapter.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/ui/cloud-status-presentation.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/tool-document-url.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/framework/sdk/browser-schemas.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/platform/protocol.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/framework/sdk/target-origins.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/native-agent/local-project-client.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/platform/page-port/codec.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/native-agent/workflow-ai-client.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/ui/program-source.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/ui/workflow/task-review-handoff.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/ui/run-value-format.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/platform/tasks/contract.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/ui/task-run-diagnostics.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/ui/workflow/ai-plan.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/framework/workflow/contract.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/framework/workflow/compiler.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/ui/workflow/local-codex.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/ui/workflow/observation.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/ui/workflow/view-state.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/ui/workflow/direct-execution.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/node_modules/wxt/dist/utils/storage.mjs',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/ui/sidebar-tools/package.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/platform/tasks/schedule-time.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/ui/sidebar-tools/lifecycle.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/native-agent/protocol.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/scripting/user-scripts/page-program-package.js',
+      '/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/src/scripting/user-scripts/page-program-contract.js'
+    ]
+  }
+}
+
+Node.js v26.3.1

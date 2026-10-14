@@ -1,0 +1,270 @@
+{
+  "candidate": null,
+  "loadedRoot": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/dist/production",
+  "profileDir": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-stay-focus-r1-ywVQwO",
+  "localhostAddresses": [
+    {
+      "address": "::1",
+      "family": 6
+    },
+    {
+      "address": "127.0.0.1",
+      "family": 4
+    }
+  ],
+  "httpListeners": [
+    {
+      "address": "127.0.0.1",
+      "family": "IPv4",
+      "port": 60431
+    },
+    {
+      "address": "::1",
+      "family": "IPv6",
+      "port": 60432
+    }
+  ],
+  "chromeBin": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "swBytes": 592202,
+  "swSHA256": "9aa206dccfb07623a949b8ff8487d7dfd9e9c5f632f4451e126b04c38910fe78",
+  "pkgSHA256": "afb91cfb1fecf65544ed2864c08e7eb678e864b2b6b5d2cd0e65ce7fb31413af",
+  "nativeChrome": "Chrome/155.0.8059.39",
+  "approval": "PASS",
+  "actualNavigation": "NOT_TESTED",
+  "quota": "NOT_TESTED_LIFECYCLE_ONLY",
+  "zeroConfig": "PASS",
+  "pageReminder": "NOT_TESTED",
+  "realSharedTwoHosts": "NOT_TESTED",
+  "quotaTrace": [],
+  "screenshots": [
+    {
+      "file": "installed-stay-focus-native-panel.png",
+      "bytes": 168406,
+      "sha256": "f619c72ace3e9a0f1ee63f3e36e184cbd9dffd9aa16641f8e620a464492925a6"
+    },
+    {
+      "file": "zero-config-30-minute-pool.png",
+      "bytes": 118819,
+      "sha256": "8df9da3983ce5eac8366df50311f99198b8db76a440229c4cc212fb9cf9b6bb6"
+    },
+    {
+      "file": "quota-active-http-before-limit.png",
+      "bytes": 36067,
+      "sha256": "3078dadb39dbc29be85f639777666c65b68ed086467998a5255b73a43f29a594"
+    }
+  ],
+  "background": "PASS",
+  "closedSidePanel": "NOT_TESTED_LIFECYCLE_ONLY",
+  "workerRestart": "PASS_DATA_ONLY_DNR_NOT_TESTED",
+  "permissionRevocation": "NOT_TESTED",
+  "otherTools": "NOT_TESTED",
+  "disabled": "PASS_STATE_ONLY_NO_ACTIVE_DNR",
+  "reenabled": "PASS_STATE_ONLY_QUOTA_NOT_TESTED",
+  "restart": "PASS_DATA_ONLY_EXHAUSTED_DNR_NOT_TESTED",
+  "unregister": "PASS",
+  "uninstall": "PASS_DATA_ONLY_ACTIVE_DNR_NOTICE_NOT_TESTED",
+  "steps": [
+    {
+      "name": "native-zero-config",
+      "managed": 11,
+      "minutes": 30,
+      "used": {},
+      "sites": [
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "youtube.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "bilibili.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "tiktok.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "douyin.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "instagram.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "reddit.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "x.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "weibo.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "netflix.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "twitch.tv",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        },
+        {
+          "enabled": true,
+          "group": "entertainment",
+          "host": "roblox.com",
+          "minutes": 30,
+          "mode": "limit",
+          "subdomains": true
+        }
+      ]
+    },
+    {
+      "name": "native-shared-budget-edited",
+      "minutes": 2,
+      "approvedViaUI": true
+    },
+    {
+      "name": "real-ui-two-minute-shared-quota",
+      "minutes": 2,
+      "domains": [
+        "127.0.0.1",
+        "localhost"
+      ],
+      "storageUsageWasNotModified": true
+    },
+    {
+      "name": "background-does-not-charge",
+      "before": {
+        "usedMs": 0,
+        "rules": [],
+        "notices": {
+          "budgetMs": null,
+          "day": "2026-10-14",
+          "revision": 3,
+          "thresholds": []
+        },
+        "idle": "active",
+        "focused": true,
+        "activeUrl": "about:blank",
+        "tabId": 309218875
+      },
+      "after": {
+        "usedMs": 0,
+        "rules": [],
+        "notices": {
+          "budgetMs": null,
+          "day": "2026-10-14",
+          "revision": 3,
+          "thresholds": []
+        },
+        "idle": "active",
+        "focused": true,
+        "activeUrl": "about:blank",
+        "tabId": 309218875
+      }
+    },
+    {
+      "name": "quota-incomplete",
+      "status": "NOT_TESTED_LIFECYCLE_ONLY",
+      "last": []
+    },
+    {
+      "name": "real-worker-restart",
+      "old": "4C68B6CE261FDC90424DC99F9E9CE739",
+      "current": "B9028A7C8F42D510B71C5AC04C41A6A8",
+      "quota": {
+        "usedMs": 0,
+        "rules": [],
+        "notices": {
+          "budgetMs": null,
+          "day": "2026-10-14",
+          "revision": 3,
+          "thresholds": []
+        },
+        "idle": "active",
+        "focused": true,
+        "activeUrl": "chrome-extension://jfdlhpilkhjigljmcanlhbgjgkhkdhch/ui/tool.html?hostInstanceId=054d0046-0741-4057-923a-a5d028aee847",
+        "tabId": 309218872
+      }
+    },
+    {
+      "name": "trusted-disable-restores-access",
+      "url": "http://127.0.0.1:60431/real-navigation",
+      "ownedRules": 0
+    },
+    {
+      "name": "reenable-state-and-rule-readback",
+      "enabled": true,
+      "ownedQuotaRules": 0,
+      "exhaustedQuotaTested": false
+    },
+    {
+      "name": "chrome-restart-restores-quota-and-navigation",
+      "sameProfile": true,
+      "extensionId": "jfdlhpilkhjigljmcanlhbgjgkhkdhch",
+      "usageMs": 0,
+      "quotaRules": 0
+    },
+    {
+      "name": "uninstall-restores-access",
+      "realHTTP": true,
+      "ownedRules": 0,
+      "hadActiveDnr": false
+    }
+  ],
+  "debugPort": 60433,
+  "extensionId": "jfdlhpilkhjigljmcanlhbgjgkhkdhch",
+  "toolGeometry": {
+    "width": 360,
+    "scrollWidth": 360,
+    "visible": true
+  },
+  "nativePermissionBefore": false,
+  "alwaysMode": "NATIVE_BLOCKED_MACOS_SELECT_MENU",
+  "sitePause": "PASS_UI_STATE_ONLY",
+  "failureUI": [],
+  "passed": false,
+  "chromeErrorTail": "\nDevTools listening on ws://127.0.0.1:60433/devtools/browser/4d241082-f87d-4044-8405-947457e430b6\n[48619:75608770:1014/162511.248045:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[48619:75608770:1014/162536.729858:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n\nDevTools listening on ws://127.0.0.1:60749/devtools/browser/1ac996aa-5173-41b7-a411-c981a4761aac\n[49408:75613096:1014/162621.563608:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n"
+}

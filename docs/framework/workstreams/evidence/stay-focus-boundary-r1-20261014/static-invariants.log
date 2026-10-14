@@ -1,0 +1,1 @@
+PASS: sender function unchanged apart from internal name; all consumers migrated; platform UI has no Focus operation branching; installation has no Focus private keys/DNR implementation

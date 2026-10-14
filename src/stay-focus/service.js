@@ -3,7 +3,7 @@ import {SIDEBAR_TOOL_STORE,validateSidebarToolPackage} from '../ui/sidebar-tools
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolEnabled}
   from '../ui/sidebar-tools/lifecycle.js';
 import {writeVerifiedLocalValue} from '../ui/sidebar-tools/storage-state.js';
-import {isReadingTocToolSender} from '../reading-toc/page.js';
+import {isSidebarToolHostSender} from '../sidebar-tools/sender.js';
 import {FOCUS_ID,FOCUS_STORE,FOCUS_PROTOCOL,FOCUS_CAPABILITY,FOCUS_ALARM,FOCUS_SESSION,
   FOCUS_OPERATIONS,FOCUS_MAX_SITES,FOCUS_PAGE_NOTICE_PROTOCOL,focusPackageHash,focusHost,focusNextMidnight,focusRemovedOriginAffectsSite,focusError} from './policy.js';
 import {readFocus,emptyFocus,focusSite,focusSiteScopesValid,focusSchedule,focusMatchingSite,focusReason,
@@ -50,7 +50,7 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
       epoch:saved[TOOL_REVOCATION_EPOCHS_STORE]?.[FOCUS_ID]??null};
   }
   async function hostDocument(sender,expectedDocumentId=sender?.documentId){
-    if(!isReadingTocToolSender(api,sender,FOCUS_ID)||sender.tab?.incognito||
+    if(!isSidebarToolHostSender(api,sender,FOCUS_ID)||sender.tab?.incognito||
        sender.frameId!==undefined&&sender.frameId!==0||
        sender.documentLifecycle&&sender.documentLifecycle!=='active'||
        sender.tab&&!sender.documentId)

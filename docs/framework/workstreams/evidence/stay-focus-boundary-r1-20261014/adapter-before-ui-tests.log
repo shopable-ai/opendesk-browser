@@ -1,0 +1,20 @@
+✔ Focus stop clears only owned DNR, keeps budget and invalidates the old install epoch (3.187542ms)
+✔ Focus cleanup failure leaves tool stopped and does not acknowledge an unverified rule removal (0.404916ms)
+✔ Focus uninstall failure remains recoverable, retry clears business data without touching another tool (0.632042ms)
+✔ Uninstall recovery cannot remove Focus state or rules if the ID was reinstalled (0.224833ms)
+✔ Stopping another tool never invokes the Focus native adapter (0.186666ms)
+✔ Focus status is read-only RPC with the installed digest and epoch (3.121042ms)
+✔ Focus mutation awaits the trusted host review and rejects a sandbox synthetic approval (0.423584ms)
+✔ Sandbox enable, disable and clear open settings but cannot send a native operation (0.271583ms)
+✔ Focus approval rechecks epoch and live iframe before the native effect (0.238458ms)
+✔ Trusted Focus control refuses stopped or replaced packages and preserves unknown outcomes (0.56575ms)
+✔ Focus RPC failure keeps the backend error and does not cross another tool identity (0.264416ms)
+✔ Shared sender URL gate binds optional toolId and rejects extra query or cross-extension origins (0.403875ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 59.909

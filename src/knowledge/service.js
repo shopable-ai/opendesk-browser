@@ -2,7 +2,7 @@ import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords} from '../ui/sidebar-
 import {SIDEBAR_TOOL_STORE} from '../ui/sidebar-tools/package.js';
 import {TOOL_REVOCATION_EPOCHS_STORE} from '../ui/sidebar-tools/installation.js';
 import {writeVerifiedLocalValue} from '../ui/sidebar-tools/storage-state.js';
-import {isReadingTocToolSender} from '../reading-toc/page.js';
+import {isSidebarToolHostSender} from '../sidebar-tools/sender.js';
 import {KNOWLEDGE_TOOL_ID,KNOWLEDGE_PROTOCOL,KNOWLEDGE_DATA_KEY,CAPTURE_SITE_STORE,
   captureAllowed,installedKnowledgeTool,knowledgePackageHash,chatCaptureOrigin,KNOWLEDGE_WORKSPACE_PREFIX,knowledgeDigest,KNOWLEDGE_OPERATIONS} from './policy.js';
 import {readKnowledgeStore,normalizeCapture,normalizeManualRecord,addKnowledgeRecord,updateKnowledgeRecord,listKnowledge,
@@ -11,7 +11,7 @@ import {readKnowledgeStore,normalizeCapture,normalizeManualRecord,addKnowledgeRe
 const PAGE_OPERATIONS=new Set(['capture.save','capture.download','capture.image']);
 const HOST_OPERATIONS=new Set(KNOWLEDGE_OPERATIONS);
 function isTopHost(api,sender){
-  return isReadingTocToolSender(api,sender,KNOWLEDGE_TOOL_ID)&&!sender.tab?.incognito&&
+  return isSidebarToolHostSender(api,sender,KNOWLEDGE_TOOL_ID)&&!sender.tab?.incognito&&
     (sender.tab?sender.frameId===0:sender.frameId===undefined||sender.frameId===0)&&
     (!sender.documentLifecycle||sender.documentLifecycle==='active');
 }

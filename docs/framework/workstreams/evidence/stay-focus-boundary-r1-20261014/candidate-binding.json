@@ -1,0 +1,175 @@
+{
+  "workflow": "stay-focus-boundary-r1-20261014",
+  "testedSnapshot": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot",
+  "nodeVersion": "v24.16.0",
+  "baseHead": "5c959712bbfab4341927f8e8bb953e200224dda3",
+  "reviewHead": "5da04474894182f34e3dda64dc1cbb6833bd1ff6",
+  "ownProductAndTestFilesMatchSnapshot": true,
+  "ownFiles": [
+    {
+      "path": "src/sidebar-tools/sender.js",
+      "sha256": "a40552f36f497cb5fe7c71ad620d16ed74ecc994686a815f1914b4ca4b6ee91c",
+      "bytes": 956
+    },
+    {
+      "path": "src/reading-toc/page.js",
+      "sha256": "9162f68fd17c76fb001bf10b89c88f5b701cc920fca70ca61f81215fa587146c",
+      "bytes": 17968
+    },
+    {
+      "path": "src/time-review/service.js",
+      "sha256": "a8b48c48e5c359e4c5d928b66936180f8ef1d72b12d97d9331dcee48f6f34656",
+      "bytes": 17473
+    },
+    {
+      "path": "src/stay-focus/service.js",
+      "sha256": "464ede826f58651da3922206442952c56657c941dc26c5774159fab0bc6bb9cc",
+      "bytes": 21296
+    },
+    {
+      "path": "src/page-clip/page.js",
+      "sha256": "88aa76b58355e41e2a924d6aa98890b1b592a7b34de97ee1cba0cbfe06669f49",
+      "bytes": 4414
+    },
+    {
+      "path": "src/knowledge/service.js",
+      "sha256": "1a84f83199c278c35e057be5f5ac0510ee2b2aa8077c18205eec739b70c5ba70",
+      "bytes": 13314
+    },
+    {
+      "path": "src/stay-focus/tool-host.js",
+      "sha256": "788df1d00e28d0913ed1f962024c34c655e3e2a3857c4be5153d06d33d08afe8",
+      "bytes": 4488
+    },
+    {
+      "path": "src/stay-focus/lifecycle.js",
+      "sha256": "e9aa81a512b53ba5741c26e40ebba87266222a9545d51dd84537b1f1c78abae6",
+      "bytes": 669
+    },
+    {
+      "path": "src/entrypoints/stay-focus-controls.js",
+      "sha256": "8e412e9f3e495a5075a73b16ab4bea5bade57915233da48877ba08219f960f2b",
+      "bytes": 941
+    },
+    {
+      "path": "src/ui/sidebar-tools.js",
+      "sha256": "cb51b82fdde3ed26cee3f4fcb0c96deaa469f8513c6957aff806012b33d040ae",
+      "bytes": 131242
+    },
+    {
+      "path": "src/ui/sidebar-tools/installation.js",
+      "sha256": "220c252114b7c9da419283cff3cb237e48c891621c1ae4ed523c0c692a1641d5",
+      "bytes": 25188
+    },
+    {
+      "path": "tests/environment/stay-focus-boundary-r1.test.mjs",
+      "sha256": "6a7a8042b5ef27189b291db94baabc683365dcf5afe1c87e3a46de50ec062a78",
+      "bytes": 10909
+    },
+    {
+      "path": "tests/environment/reading-toc-auth-r41.test.mjs",
+      "sha256": "1fa339fa47859d39553f665498bd6567b293909ba2ef409567734626f0902b82",
+      "bytes": 1578
+    },
+    {
+      "path": "tests/environment/sidebar-tools-host.test.mjs",
+      "sha256": "ef2d7eea3359b454af92113bdd51dc1db1881a0c71be26873fd5f84dfdf32851",
+      "bytes": 122260
+    }
+  ],
+  "builds": {
+    "production": {
+      "status": "passed",
+      "packageHash": "e0f8485af650a2d9b2c9f871af2ab563fa104dca305b9ddd14a1af0b7725dac3",
+      "files": {
+        "sw.js": {
+          "path": "sw.js",
+          "bytes": 592202,
+          "sha256": "9aa206dccfb07623a949b8ff8487d7dfd9e9c5f632f4451e126b04c38910fe78"
+        },
+        "ui/sidebar-tool-host.js": {
+          "path": "ui/sidebar-tool-host.js",
+          "bytes": 188150,
+          "sha256": "e36fa2cd8abc5e0edd158e40fd2ff227e24fec078120e2b823f5b079e8b3cbb6"
+        },
+        "ui/stay-focus-controls.js": {
+          "path": "ui/stay-focus-controls.js",
+          "bytes": 37316,
+          "sha256": "4e0caf6e440475338576ce47fa75d08e3d080708745f7a2d7e28def87c666e6e"
+        },
+        "ui/tool-shell.js": {
+          "path": "ui/tool-shell.js",
+          "bytes": 497388,
+          "sha256": "94eb3360e4a34c90fa65c76d7b76a8e11fe44e0ef0252ee2e41e2f7f4722d644"
+        }
+      },
+      "sourceDriftDuringBuild": []
+    },
+    "development": {
+      "status": "passed",
+      "packageHash": "9096ecc85220c11228e1d02d357398ef65c41304a6fc4f2de43fa131833d3af1",
+      "files": {
+        "sw.js": {
+          "path": "sw.js",
+          "bytes": 592368,
+          "sha256": "f65d0df080aa480edd4df06fccf2922ef8425ba0c7806696a0755a24d5444743"
+        },
+        "ui/sidebar-tool-host.js": {
+          "path": "ui/sidebar-tool-host.js",
+          "bytes": 188411,
+          "sha256": "25b15d4f21a0c2b30590ae913af1d1315778cb5e4c4cb6d5642af5a180e3f790"
+        },
+        "ui/stay-focus-controls.js": {
+          "path": "ui/stay-focus-controls.js",
+          "bytes": 37583,
+          "sha256": "5978caf8baa328e823083c6ba701ad29d4a7b8c432deda1fbb65654e7d29fe2a"
+        },
+        "ui/tool-shell.js": {
+          "path": "ui/tool-shell.js",
+          "bytes": 497628,
+          "sha256": "b1c233c186f2cd5f582d8bf8bea40f804ee83ef4a792d0384f48e402a718ee5e"
+        }
+      },
+      "sourceDriftDuringBuild": []
+    }
+  },
+  "nativeReport": "native-lifecycle/native-report.json",
+  "nativeTotalExitCode": 1,
+  "nativeTotalStatus": "FAIL_ASSERT_QUOTA_UNTESTED_LIFECYCLE_ONLY",
+  "productStatus": "NOT_ACCEPTED",
+  "toolPackageSha256": "afb91cfb1fecf65544ed2864c08e7eb678e864b2b6b5d2cd0e65ce7fb31413af",
+  "knownMainDriftOutsideTask": [
+    "src/platform/chrome/browser-downloads.js",
+    "tests/environment/browser-sdk-p3-implementation.test.mjs"
+  ],
+  "scopeNote": "Build/native attest only the exact immutable snapshot; no full-main/product/F3/ZIP promotion. Task-owned source matches snapshot; concurrent downloads cancellation change is outside Focus adapters.",
+  "verification": {
+    "baseline": {
+      "log": "baseline-tests.log",
+      "pass": 42,
+      "fail": 0
+    },
+    "affected": {
+      "log": "affected-tests-final2.log",
+      "pass": 134,
+      "fail": 0
+    },
+    "consumers": {
+      "log": "consumer-tests.log",
+      "pass": 190,
+      "fail": 0
+    },
+    "check": {
+      "log": "check-snapshot.log",
+      "exitCode": 0
+    },
+    "verify": {
+      "log": "verify.log",
+      "exitCode": 0
+    },
+    "toolBuild": {
+      "log": "tool-build.log",
+      "exitCode": 0
+    }
+  }
+}

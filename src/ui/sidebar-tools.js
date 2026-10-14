@@ -233,7 +233,14 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   });
   const timePermissions=settingsView?createTimeReviewPermissionControls({api,doc,container:settingsView,notice,runOperation:runTrustedTimeReviewOperation}):null;
   const focusPermissions=settingsView&&focus?.createPermissionControls
-    ?focus.createPermissionControls({api,doc,container:settingsView,notice,runOperation:runTrustedFocusOperation}):null;
+    ?focus.createPermissionControls({api,doc,container:settingsView,notice,runOperation:(operation,payload,event)=>{
+      const tool=active;
+      return focus.runTrustedOperation({api,tool,operation,payload,event,assertCurrent:phase=>{
+        if(disposed||!tool||!samePackage(active,tool)||
+           phase==='initial'&&busy||phase!=='after-send'&&readOnlyPreview)
+          throw Object.assign(new Error('工具已关闭或不可用'),{code:'E_TOOL_CHANGED'});
+      }});
+    }}):null;
   const versionOrder=compareToolVersions;
   const readableCapability=id=>capabilities[id]||id;
   const addedCapabilities=(next,prior)=>next.capabilities.filter(id=>!prior.capabilities.includes(id));
@@ -362,32 +369,6 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         protocol:SIDEBAR_TOOL_PROTOCOL,kind:'state-changed',instance,toolId:tool.id
       },'*');
     return response.data;
-  }
-  // Trusted consent/revocation of browser-wide native permissions is not a
-  // general Browser SDK capability and cannot be invoked from tool JS.
-  async function runTrustedFocusOperation(operation,payload,event){
-    if(event?.isTrusted!==true||!['focus.enable','focus.disable','focus.clear'].includes(operation))
-      throw Object.assign(new Error('请在工具详情中主动点击专注权限操作'),{code:'E_FOCUS_TRUSTED_CLICK'});
-    const tool=active;
-    if(disposed||busy||readOnlyPreview||tool?.id!==focus?.id||
-      !tool.capabilities.includes(focus.capability))
-      throw Object.assign(new Error('专注工具未安装或页面已关闭'),{code:'E_TOOL_CHANGED'});
-    await assertSidebarToolEnabled(api,tool.id);
-    const [owned,epochs]=await Promise.all([api.storage.local.get(SIDEBAR_TOOL_STORE),
-      api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE)]);
-    if(!requireCompleteInstalledSidebarTools(owned[SIDEBAR_TOOL_STORE]).some(row=>samePackage(row,tool)))
-      throw Object.assign(new Error('工具已更新或卸载'),{code:'E_TOOL_CHANGED'});
-    const installEpoch=epochs[TOOL_REVOCATION_EPOCHS_STORE]?.[tool.id]??null;
-    const packageHash=await focus.packageHash(tool);
-    if(disposed||!active||!samePackage(active,tool)||readOnlyPreview)
-      throw Object.assign(new Error('专注工具实例已变化'),{code:'E_TOOL_CHANGED'});
-    const result=await api.runtime.sendMessage({protocol:focus.protocol,
-      toolId:tool.id,operation,payload,packageHash,installEpoch});
-    if(!result?.ok)throw Object.assign(new Error(result?.error?.message||'专注 Host 未确认'),
-      {code:result?.error?.code||'E_FOCUS'});
-    if(disposed||!active||!samePackage(active,tool))
-      throw Object.assign(new Error('宿主已改变，请核查 Chrome 规则状态'),{code:'E_OUTCOME_UNKNOWN'});
-    return result.data;
   }
   function destroyFrame() {
     toolDirty=false;toolSaving=false;frameDraft='';
@@ -1184,44 +1165,11 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       if(!response?.ok)throw Object.assign(new Error(response?.error?.message||'时间回顾请求失败'),{code:response?.error?.code||'E_TIME_REVIEW'});
       assertSession(source,token);return response.data;
     }
-    if(focus?.operations?.includes(operation)){
-      if(tool.id!==focus.id)throw new Error('Stay Focus 工具身份不正确');
-      if(['focus.enable','focus.disable','focus.clear'].includes(operation)){
-        tocSettingsOpen=true;render();
-        throw Object.assign(new Error('请从工具详情中的受信任授权与清空按钮操作'),
-          {code:'E_FOCUS_TRUSTED_CLICK'});
-      }
-      const send=async()=>{
-        assertSession(source,token);
-        const [owned,epochs]=await Promise.all([api.storage.local.get(SIDEBAR_TOOL_STORE),
-          api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE)]);
-        if(!requireCompleteInstalledSidebarTools(owned[SIDEBAR_TOOL_STORE]).some(row=>samePackage(row,tool))||
-          (epochs[TOOL_REVOCATION_EPOCHS_STORE]?.[tool.id]??null)!==revocationEpoch)
-          throw Object.assign(new Error('工具身份或授权版本已变化'),{code:'E_TOOL_CHANGED'});
-        const hash=await focus.packageHash(tool);
-        assertSession(source,token);
-        const response=await api.runtime.sendMessage({protocol:focus.protocol,toolId:tool.id,
-          operation,payload,packageHash:hash,installEpoch:revocationEpoch});
-        if(!response?.ok)throw Object.assign(new Error(response?.error?.message||'专注操作未确认'),
-          {code:response?.error?.code||'E_FOCUS'});
-        assertSession(source,token);return response.data;
-      };
-      if(operation==='focus.status')return send();
-      const target=operation==='focus.site.put'?'保存「'+String(payload?.site?.host||'').slice(0,80)+'」的网站限制':
-        operation==='focus.site.remove'?'删除「'+String(payload?.host||'').slice(0,80)+'」的网站限制':
-        operation==='focus.session.start'?'开始 '+String(payload?.minutes)+' 分钟的专注模式':
-        operation==='focus.session.stop'?'结束当前专注模式':
-        operation==='focus.schedule.set'?'修改工作时间限制':
-        operation==='focus.whitelist.set'?'替换允许访问的域名白名单':
-        operation==='focus.group.put'?'保存共享每日额度':
-        operation==='focus.group.remove'?'删除共享每日额度组':'更改专注规则';
-      return requestBrowserClick({toolId:tool.id,
-        message:'「'+tool.title+'」请求'+target+'。此操作可能更新 Chrome 网站拦截规则；请确认。',
-        button:'确认修改',run:event=>{
-          if(!event?.isTrusted)throw Object.assign(new Error('需要真实用户点击'),{code:'E_FOCUS_TRUSTED_CLICK'});
-          return send();
-        }});
-    }
+    if(focus?.operations?.includes(operation))return focus.request({
+      api,tool,operation,payload,revocationEpoch,
+      assertCurrent:()=>assertSession(source,token),requestBrowserClick,
+      openSettings:()=>{tocSettingsOpen=true;render();}
+    });
     if(operation==='knowledge.editorState'){
       if(tool.id!==KNOWLEDGE_TOOL_ID||typeof payload?.dirty!=='boolean')throw new Error('编辑状态无效');
       knowledgeDirty=payload.dirty;

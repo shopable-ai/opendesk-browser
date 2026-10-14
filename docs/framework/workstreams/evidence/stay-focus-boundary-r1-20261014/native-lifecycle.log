@@ -1,0 +1,40 @@
+STAY_FOCUS_NATIVE native-zero-config {"managed":11,"minutes":30,"used":{},"sites":[{"enabled":true,"group":"entertainment","host":"youtube.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"bilibili.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"tiktok.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"douyin.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"instagram.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"reddit.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"x.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"weibo.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"netflix.com","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"twitch.tv","minutes":30,"mode":"limit","subdomains":true},{"enabled":true,"group":"entertainment","host":"roblox.com","minutes":30,"mode":"limit","subdomains":true}]}
+STAY_FOCUS_NATIVE native-shared-budget-edited {"minutes":2,"approvedViaUI":true}
+STAY_FOCUS_NATIVE real-ui-two-minute-shared-quota {"minutes":2,"domains":["127.0.0.1","localhost"],"storageUsageWasNotModified":true}
+STAY_FOCUS_NATIVE background-does-not-charge {"before":{"usedMs":0,"rules":[],"notices":{"budgetMs":null,"day":"2026-10-14","revision":3,"thresholds":[]},"idle":"active","focused":true,"activeUrl":"about:blank","tabId":309218875},"after":{"usedMs":0,"rules":[],"notices":{"budgetMs":null,"day":"2026-10-14","revision":3,"thresholds":[]},"idle":"active","focused":true,"activeUrl":"about:blank","tabId":309218875}}
+STAY_FOCUS_NATIVE quota-incomplete {"status":"NOT_TESTED_LIFECYCLE_ONLY","last":[]}
+STAY_FOCUS_NATIVE real-worker-restart {"old":"4C68B6CE261FDC90424DC99F9E9CE739","current":"B9028A7C8F42D510B71C5AC04C41A6A8","quota":{"usedMs":0,"rules":[],"notices":{"budgetMs":null,"day":"2026-10-14","revision":3,"thresholds":[]},"idle":"active","focused":true,"activeUrl":"chrome-extension://jfdlhpilkhjigljmcanlhbgjgkhkdhch/ui/tool.html?hostInstanceId=054d0046-0741-4057-923a-a5d028aee847","tabId":309218872}}
+STAY_FOCUS_NATIVE trusted-disable-restores-access {"url":"http://127.0.0.1:60431/real-navigation","ownedRules":0}
+STAY_FOCUS_NATIVE reenable-state-and-rule-readback {"enabled":true,"ownedQuotaRules":0,"exhaustedQuotaTested":false}
+STAY_FOCUS_NATIVE chrome-restart-restores-quota-and-navigation {"sameProfile":true,"extensionId":"jfdlhpilkhjigljmcanlhbgjgkhkdhch","usageMs":0,"quotaRules":0}
+STAY_FOCUS_NATIVE uninstall-restores-access {"realHTTP":true,"ownedRules":0,"hadActiveDnr":false}
+✖ Real Chrome default sharing, live page reminder, DNR and uninstall (77142.669125ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 77263.134334
+
+✖ failing tests:
+
+test at tests/framework/stay-focus-r1-native.test.mjs:117:1
+✖ Real Chrome default sharing, live page reminder, DNR and uninstall (77142.669125ms)
+  AssertionError [ERR_ASSERTION]: native shared quota must pass; independent lifecycle evidence does not replace it
+  + actual - expected
+  
+  + 'NOT_TESTED_LIFECYCLE_ONLY'
+  - 'PASS'
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/stay-focus-boundary-r1-20261014/snapshot/tests/framework/stay-focus-r1-native.test.mjs:705:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'NOT_TESTED_LIFECYCLE_ONLY',
+    expected: 'PASS',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

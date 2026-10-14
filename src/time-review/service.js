@@ -1,7 +1,7 @@
 import {SIDEBAR_TOOL_STORE,validateSidebarToolPackage} from '../ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolEnabled,sidebarToolLifecycleChanged} from '../ui/sidebar-tools/lifecycle.js';
 import {writeVerifiedLocalValue} from '../ui/sidebar-tools/storage-state.js';
-import {isReadingTocToolSender} from '../reading-toc/page.js';
+import {isSidebarToolHostSender} from '../sidebar-tools/sender.js';
 import {TIME_REVIEW_KEY,readReview,reviewHost,reviewSettings,reviewClassify,reviewDay,localDay,settleReview,reviewSummary,reviewExport,MAX_OBSERVATION_GAP} from './model.js';
 import {TIME_REVIEW_ID,TIME_REVIEW_PROTOCOL,TIME_REVIEW_CAPABILITY,TIME_REVIEW_ALARM,TIME_REVIEW_SESSION,TIME_REVIEW_OPERATIONS,timeReviewPackageHash,TIME_REVIEW_HOST_API,timeReviewSiteOrigin,timeReviewSiteGranted,changeTimeReviewSiteGrants} from './policy.js';
 import {stageReviewSync,reviewSyncStatus} from './sync-outbox.js';
@@ -35,7 +35,7 @@ export function createTimeReviewService({api=globalThis.chrome,lockManager=globa
   async function hostDocument(sender,expectedDocumentId=sender.documentId){
     // Chrome Side Panels may omit sender.documentId; pin the unique native
     // context ID for the whole request. TAB senders must supply their own ID.
-    if(!isReadingTocToolSender(api,sender,TIME_REVIEW_ID)||sender.tab?.incognito||
+    if(!isSidebarToolHostSender(api,sender,TIME_REVIEW_ID)||sender.tab?.incognito||
       sender.frameId!==undefined&&sender.frameId!==0||sender.documentLifecycle&&sender.documentLifecycle!=='active'||sender.tab&&!sender.documentId)
       throw error('仅允许当前可信工具宿主访问时间记录');
     const type=sender.tab?'TAB':'SIDE_PANEL';
