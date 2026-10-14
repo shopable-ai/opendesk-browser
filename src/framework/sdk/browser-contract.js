@@ -1,7 +1,10 @@
 // Public contract and discovery metadata, not a grant store or an RPC router.
 // Actual admission remains in the trusted Side Panel / Chrome host.
 import {fields,fail,jsonValue,normalizeConfig} from './registry.js';
-import {operationSchemas,assertBrowserSchemaCoverage,validateExportArguments} from './browser-schemas.js';
+import {operationSchemas,assertBrowserSchemaCoverage,validateExportArguments,
+  normalizeDirectBrowserArguments} from './browser-schemas.js';
+import {APPROVED_BROWSER_DIRECT_BINDINGS} from './browser-direct.generated.js';
+const DIRECT_APPROVED_METHODS=new Set(APPROVED_BROWSER_DIRECT_BINDINGS.map(row=>row.operation));
 export const BROWSER_API_VERSION='1.0.0';
 export const BROWSER_HOST_PROTOCOL='opendesk.browser.v1';
 export const BROWSER_MENU_SOURCE_PROTOCOL='opendesk.browser.source-context.v1';
@@ -408,7 +411,15 @@ export function normalizeBrowserOperation(operation,args={}){
          !args.actionIds.every(id=>typeof id==='string'&&/^[a-z][a-z0-9-]{0,39}$/.test(id)))
          throw fail('E_SCHEMA','Invalid context menu action IDs');
       break;
-    default: throw fail('E_SERVICE_UNSUPPORTED','This Browser SDK operation is not executable');
+    default:
+      if(DIRECT_APPROVED_METHODS.has(operation)){
+        const normalized=normalizeDirectBrowserArguments(operation,args);
+        if(new TextEncoder().encode(JSON.stringify(normalized)).byteLength>
+           browserOperation(operation).maxRequestBytes)
+          throw fail('E_LIMIT','Native DIRECT request exceeds the approved limit');
+        return normalized;
+      }
+      throw fail('E_SERVICE_UNSUPPORTED','This Browser SDK operation is not executable');
   }
   return args;
 }
