@@ -2,6 +2,7 @@
 // Read-only design/source scope check. Does not grant Browser SDK permissions,
 // fetch external code, or claim original Chromium source bytes/native Chrome PASS.
 import {readFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
 import {resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {BROWSER_OPERATIONS} from '../src/framework/sdk/browser-contract.js';
@@ -93,11 +94,14 @@ export function inspectBrowserSdkInterfaceMatrix(matrix,registered=Object.keys(B
  for(const a of matrix.approvedOperations.filter(x=>x.visibility==='HOST_ONLY_TRUSTED_COOKIE_UI'))
    if(!a.id.startsWith('browser.cookies.')||registered.includes(a.id))
      errors.push('Trusted Cookie leaked into installed sandbox '+a.id);
- for(const a of matrix.approvedOperations.filter(x=>x.visibility==='BUILTIN_HOST_ONLY_IMPLEMENTED'))
+ for(const a of matrix.approvedOperations.filter(x=>x.visibility==='BUILTIN_HOST_ONLY_IMPLEMENTED')){
    if(!['browser.history.searchTrusted','browser.permissions.requestForTool'].includes(a.id)||
       registered.includes(a.id)||a.sourceRegistry!==(a.id==='browser.permissions.requestForTool'?
         'TRUSTED_UI_DIRECT_GESTURE_ONLY':'TRUSTED_HOST_DISPATCH_ONLY'))
      errors.push('Trusted Host-only leaked into installed sandbox '+a.id);
+   if(a.status!=='SOURCE_WIRED_NATIVE_NOT_TESTED')
+     errors.push('Trusted Host-only implementation status drift '+a.id);
+ }
  const approved=matrix.approvedOperations;
  const count=label=>approved.filter(x=>x.visibility===label).length;
  const counts=matrix.counts??{};
@@ -121,6 +125,15 @@ export function inspectBrowserSdkInterfaceMatrix(matrix,registered=Object.keys(B
 export async function checkBrowserSdkInterfaceMatrix(root=ROOT){
  const matrix=JSON.parse(await readFile(resolve(root,'docs/api/browser-sdk-interface-matrix.json'),'utf8'));
  const errors=inspectBrowserSdkInterfaceMatrix(matrix);
+ // A "current" source hash must identify the exact Git blob of these source bytes.
+ const gitBlobSha=bytes=>createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+ for(const [field,path] of [
+   ['currentRegistrySourceSha','src/framework/sdk/browser-contract.js'],
+   ['currentSchemaSourceSha','src/framework/sdk/browser-schemas.js']]){
+   const bytes=await readFile(resolve(root,path));
+   if(matrix[field]!==gitBlobSha(bytes))
+     errors.push('Current source blob SHA drift '+path);
+ }
  if(errors.length)throw Error(errors.join('\n'));
  return {ok:true,sourceFiles:matrix.sourceFiles.length,
    nativeDiscovered:matrix.nativeInterfaces.length,approved:matrix.approvedOperations.length,

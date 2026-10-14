@@ -7824,7 +7824,7 @@
       "driverFile": "src/platform/chrome/history.js (NEW adapter in existing host)",
       "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable",
       "phase": "P3",
-      "status": "DESIGN_APPROVED_NOT_IMPLEMENTED",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
         "node": "NOT_TESTED",
         "build": "NOT_TESTED",
@@ -7970,7 +7970,7 @@
       "driverFile": "src/platform/chrome/permission-gate.js",
       "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable",
       "phase": "P4",
-      "status": "DESIGN_APPROVED_NOT_IMPLEMENTED",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
       "verification": {
         "node": "NOT_TESTED",
         "build": "NOT_TESTED",
@@ -56502,8 +56502,8 @@
     ],
     "completeness": "Known source consumers identified; exhaustive consumer path enumeration cannot be verified without full repository grep. Phase P1 must enumerate and migrate all current consumers before deleting active alias."
   },
-  "currentRegistrySourceSha": "3eccbf8c7c16e05eaeff6d7b81aec5754880f614",
-  "currentSchemaSourceSha": "6e0c65627218203a042d0e4ccb1e8e6366157264",
+  "currentRegistrySourceSha": "b6810c31faa3128a3341562e7da294192ddf10ba",
+  "currentSchemaSourceSha": "48d799acb3e7e229e7159d81408b3f5e0760119e",
   "contractRevisions": [
     {
       "date": "2026-10-13",
@@ -56570,6 +56570,15 @@
       "id": "R10.5-bounded-capability-discovery",
       "reason": "Full 48-operation typed capability list exceeded legacy 12KB response budget",
       "change": "Only read-only capabilities.list raised to bounded 20KB response; 48 Registry and 55 approvals unchanged, all other IPC budgets unchanged",
+      "node": "NOT_TESTED",
+      "build": "NOT_TESTED",
+      "nativeChrome": "NOT_TESTED"
+    },
+    {
+      "date": "2026-10-14",
+      "id": "R10.5-trusted-host-source-truth",
+      "reason": "Correct Host-only implemented/source status mismatch and stale Registry/Schema blob digests",
+      "change": "History and Permissions SOURCE_WIRED_NATIVE_NOT_TESTED, 53 SDK + 2 Host-only unchanged; true Git source hashes recorded",
       "node": "NOT_TESTED",
       "build": "NOT_TESTED",
       "nativeChrome": "NOT_TESTED"
