@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {BROWSER_OPERATIONS,normalizeBrowserOperation} from '../../src/framework/sdk/browser-contract.js';
+import {normalizeDirectBrowserArguments} from '../../src/framework/sdk/browser-schemas.js';
 import {createApprovedBrowserBindings} from '../../src/framework/sdk/browser-bindings.js';
 import {APPROVED_BROWSER_DIRECT_BINDINGS} from '../../src/framework/sdk/browser-direct.generated.js';
 import {deriveBrowserDirectBindings,renderBrowserDirectModule} from '../../scripts/generate-browser-bindings.mjs';
@@ -140,4 +141,19 @@ test('R11 native: old special operations and custom schema validation stay uncha
   assert.throws(()=>normalizeBrowserOperation('browser.bookmarks.getTree',{}),code('E_SERVICE_UNSUPPORTED'));
   assert.throws(()=>normalizeBrowserOperation('browser.bookmarks.create',{title:'Folder'}),code('E_SCHEMA'));
   assert.throws(()=>normalizeBrowserOperation('browser.tabs.create',{url:'file:///secret'}),code('E_SCHEMA'));
+});
+
+test('R11 native: bounded generic DIRECT argument schemas need no operation switch',()=>{
+  const name='browser.tabs.getOwned';
+  const valid={tabRef:'r'.repeat(24)};
+  assert.deepEqual(normalizeDirectBrowserArguments(name,valid),valid);
+  assert.throws(()=>normalizeDirectBrowserArguments(name,{tabRef:'native-id'}),code('E_SCHEMA'));
+  assert.throws(()=>normalizeDirectBrowserArguments(name,{...valid,forged:true}),code('E_SCHEMA'));
+  const polluted=JSON.parse('{"tabRef":"rrrrrrrrrrrrrrrrrrrrrrrr","__proto__":{"isAdmin":true}}');
+  assert.throws(()=>normalizeDirectBrowserArguments(name,polluted),code('E_VALUE_SERIALIZATION'));
+  assert.equal({}.isAdmin,undefined);
+  const sample='browser.downloads.listOwned';
+  assert.deepEqual(normalizeDirectBrowserArguments(sample,{limit:20}),{limit:20});
+  assert.throws(()=>normalizeDirectBrowserArguments(sample,{limit:1000}),code('E_SCHEMA'));
+  assert.throws(()=>normalizeDirectBrowserArguments(sample,{limit:'20'}),code('E_SCHEMA'));
 });
