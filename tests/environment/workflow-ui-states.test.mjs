@@ -132,6 +132,33 @@ test('compact workflow keeps header actions accessible under 200 percent zoom',a
 });
 
 
+test('workflow R1.7 creates from one header menu and keeps setup or diagnostics out of daily UI',async()=>{
+  const [html,view,css]=await Promise.all([
+    file('src/ui/tool.html'),file('src/ui/workflow/workflow-view.js'),file('src/ui/tool-shell.css')
+  ]);
+  const workflow=html.slice(html.indexOf('id="workbench-workflow"'),html.indexOf('id="workbench-develop"'));
+  const header=workflow.slice(0,workflow.indexOf('id="workflow-new-review"'));
+  const settings=workflow.slice(workflow.indexOf('id="workflow-provider-settings"'),workflow.indexOf('id="workflow-status"'));
+  assert.match(header,/id="workflow-create-toggle"[^>]*aria-expanded="false"/);
+  assert.match(header,/id="workflow-create-menu"[^>]*hidden/);
+  for(const id of ['workflow-ai-new-session','workflow-new','workflow-ai-resume','workflow-new-session-note'])
+    assert.match(header,new RegExp('id="'+id+'"'));
+  assert.equal((workflow.match(/id="workflow-ai-new-session"/g)||[]).length,1);
+  assert.equal((workflow.match(/id="workflow-ai-resume"/g)||[]).length,1);
+  assert.doesNotMatch(settings,/id="workflow-ai-new-session"|id="workflow-ai-resume"/);
+  assert.match(settings,/<details id="workflow-provider-privacy"[^>]*>\s*<summary>数据与隐私<\/summary>/);
+  assert.match(settings,/<details id="workflow-local-diagnostics"[^>]*>\s*<summary>连接诊断<\/summary>/);
+  assert.match(settings,/id="workflow-local-connect"/);
+  assert.doesNotMatch(settings,/撤销网页摘要授权|摘要授权 30 分钟有效/);
+  assert.match(css,/\.workflow-create-menu\[hidden\]\{display:none!important\}/);
+  assert.match(css,/\.workflow-connection-line #workflow-local-connect\[hidden\]\{display:none!important\}/);
+  assert.match(view,/state\.ready\?'Codex 已就绪':state\.message/);
+  assert.match(view,/sessionState\.sessionId&&localCapability\.resumeSupported===false/);
+  assert.match(view,/if\(describeLocalCodex\(localCapability\)\.ready\)closeAISettings\(true\)/);
+  assert.match(view,/get\('workflow-ai-transcript'\)\.replaceChildren\(\)/);
+  assert.match(view,/showCreateMenu\(false\)/);
+});
+
 test('workflow model selector stays minimal without manual creation or custom approval',async()=>{
   const [html,view]=await Promise.all([
     file('src/ui/tool.html'),file('src/ui/workflow/workflow-view.js')

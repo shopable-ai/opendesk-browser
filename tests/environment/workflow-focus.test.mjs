@@ -168,12 +168,17 @@ if(!vm.SourceTextModule) {
       return step.querySelectorAll('[data-workflow-focus]').find(item=>item.dataset.workflowFocus===field);
     };
     const click=async element=>{await element.fire('click');await tick();};
+    const openCreation=async()=>{
+      if(get('workflow-create-menu').hidden)await click(get('workflow-create-toggle'));
+    };
+    const clickNew=async()=>{await openCreation();await click(get('workflow-new'));};
+    const focusNew=async()=>{await openCreation();get('workflow-new').focus();};
     const startPlan=async(request='Observe the page for component focus verification')=>{
       get('workflow-ai-request').value=request;
       const running=get('workflow-ai-plan').fire('click');await tick();
       return {running};
     };
-    return {doc,get,ui,click,control,stepsNow,startPlan,planGate,approvalReady,answers,observations,compiled,
+    return {doc,get,ui,click,openCreation,clickNew,focusNew,control,stepsNow,startPlan,planGate,approvalReady,answers,observations,compiled,
       get plannerOptions(){return plannerOptions;}};
   }
   const fill=id=>({stepId:id,op:'fill',locatorKind:'css',selector:'#keyword',text:''});
@@ -192,6 +197,33 @@ if(!vm.SourceTextModule) {
     assert.equal(f.get('workflow-ai-plan').disabled,false);
     assert.equal(f.get('workflow-ai-disclosure'),undefined);
     assert.match(await readFile('src/ui/tool.html','utf8'),/id="workflow-ai-plan"[^>]*aria-label="发送并执行浏览器任务"/);
+  });
+
+  test('component: one header Create menu is closed by Escape and restores visible focus',async t=>{
+    const f=await make(t);
+    assert.equal(f.get('workflow-create-menu').hidden,true);
+    assert.equal(f.get('workflow-create-toggle').getAttribute('aria-expanded'),'false');
+    await f.openCreation();
+    assert.equal(f.get('workflow-create-menu').hidden,false);
+    assert.equal(f.get('workflow-create-toggle').getAttribute('aria-expanded'),'true');
+    assertFocus(f,f.get('workflow-ai-new-session'));
+    await f.get('workflow-editor').fire('keydown',{key:'Escape',preventDefault(){}});
+    assert.equal(f.get('workflow-create-menu').hidden,true);
+    assertFocus(f,f.get('workflow-create-toggle'));
+  });
+
+  test('component: New conversation clears conversation but keeps current unsaved workflow and draft request',async t=>{
+    const f=await make(t,{steps:[observe('one'),observe('two')]});
+    const priorIds=f.stepsNow().map(item=>item.dataset.stepId);
+    f.get('workflow-ai-transcript').append(f.doc.createElement('div'));
+    f.get('workflow-ai-request').value='尚未发送的输入';
+    await f.openCreation();
+    await f.click(f.get('workflow-ai-new-session'));
+    assert.equal(f.get('workflow-create-menu').hidden,true);
+    assert.equal(f.get('workflow-ai-transcript').children.length,0);
+    assert.deepEqual(f.stepsNow().map(item=>item.dataset.stepId),priorIds);
+    assert.equal(f.get('workflow-ai-request').value,'尚未发送的输入');
+    assertFocus(f,f.get('workflow-ai-request'));
   });
 
   test('component: action and locator changes preserve semantic select in the same expanded step',async t=>{
@@ -250,23 +282,23 @@ if(!vm.SourceTextModule) {
   for(const external of [false,true]) {
     test('component: direct planning keeps Apply hidden and '+(external?'preserves moved focus':'preserves stable request focus'),async t=>{
       const f=await make(t);f.get('workflow-ai-request').focus();const {running}=await f.startPlan();
-      if(external)f.get('workflow-new').focus();
+      if(external)await f.focusNew();
       f.planGate.resolve();await running;
       assert.equal(f.get('workflow-ai-proposal').hidden,true);assert.equal(f.stepsNow()[0].dataset.stepId,'proposed');
       assert(f.compiled.some(row=>row.steps.some(step=>step.stepId==='proposed')));
       assertFocus(f,f.get(external?'workflow-new':'workflow-ai-request'));
     });
     for(const choice of ['cancel','discard'])test('component: new '+choice+' closes review '+(external?'without stealing focus':'with a visible destination'),async t=>{
-      const f=await make(t,{steps:[observe('one')]});await f.click(f.get('workflow-new'));
+      const f=await make(t,{steps:[observe('one')]});await f.clickNew();
       assertFocus(f,f.get('workflow-new-cancel'));
       const button=f.get('workflow-new-'+choice);button.focus();if(external)f.get('workflow-ai-request').focus();
       await f.click(button);assert.equal(f.get('workflow-new-review').hidden,true);
       assert.equal(f.stepsNow().length,choice==='discard'?0:1);
-      assertFocus(f,f.get(external?'workflow-ai-request':'workflow-new'));
+      assertFocus(f,f.get(external||choice==='discard'?'workflow-ai-request':'workflow-create-toggle'));
     });
     test('component: observation denial closes focused approval '+(external?'without stealing focus':'to stable request'),async t=>{
       const f=await make(t,{approval:true});const {running}=await f.startPlan();await f.approvalReady.promise;
-      assertFocus(f,f.get('workflow-ai-deny'));if(external)f.get('workflow-new').focus();
+      assertFocus(f,f.get('workflow-ai-deny'));if(external)await f.focusNew();
       await f.click(f.get('workflow-ai-deny'));assert.equal(f.get('workflow-ai-approval').hidden,true);
       assertFocus(f,f.get(external?'workflow-new':'workflow-ai-request'));
       f.planGate.resolve();await running;assert.equal(f.answers[0].decision,'deny');assert.equal(f.observations.length,0);
@@ -274,7 +306,7 @@ if(!vm.SourceTextModule) {
   }
 
   test('component: clean New preserves an external keyboard destination',async t=>{
-    const f=await make(t);f.get('workflow-ai-request').focus();await f.click(f.get('workflow-new'));
+    const f=await make(t);f.get('workflow-ai-request').focus();await f.clickNew();
     assertFocus(f,f.get('workflow-ai-request'));assert.equal(f.get('workflow-new-review').hidden,true);
     assert.equal(f.get('workflow-plan-panel').hidden,true);
   });
@@ -284,14 +316,14 @@ if(!vm.SourceTextModule) {
     const {running}=await f.startPlan();await f.approvalReady.promise;
     f.get('workflow-ai-approve').focus();await f.click(f.get('workflow-ai-approve'));
     assert.equal(f.get('workflow-ai-approve').disabled,true);assertFocus(f,f.get('workflow-ai-request'));
-    f.get('workflow-new').focus();gate.resolve();await tick();await tick();
+    await f.focusNew();gate.resolve();await tick();await tick();
     assert.equal(f.get('workflow-ai-approval').hidden,true);assertFocus(f,f.get('workflow-new'));
     f.planGate.resolve();await running;assert.equal(f.answers[0].decision,'approve');assert.equal(f.observations.length,1);
   });
 
   for(const external of [false,true])test('component: Stop settles pending approval '+(external?'without stealing focus':'to stable request'),async t=>{
     const f=await make(t,{approval:true});const {running}=await f.startPlan();await f.approvalReady.promise;
-    if(external)f.get('workflow-new').focus();await f.click(f.get('workflow-ai-cancel'));
+    if(external)await f.focusNew();await f.click(f.get('workflow-ai-cancel'));
     assert.equal(f.get('workflow-ai-approval').hidden,true);assertFocus(f,f.get(external?'workflow-new':'workflow-ai-request'));
     f.planGate.resolve();await running;assert.equal(f.answers[0].decision,'deny');assert.equal(f.observations.length,0);
     assert.equal(f.get('workflow-ai-proposal').hidden,true,'cancelled plan cannot publish a proposal');

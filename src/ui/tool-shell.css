@@ -458,6 +458,17 @@
 .workflow-head h2{font-size:13px;line-height:1.35;font-weight:730;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .workflow-head-actions{display:flex;align-items:center;justify-content:flex-end;gap:var(--space-2);flex-shrink:0}
 .workflow-head-actions button{white-space:nowrap}
+.workflow-create-control{position:relative;flex:none}
+.workflow-create-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:25;width:min(232px,calc(100vw - 24px));max-width:calc(100vw - 24px);display:grid;gap:2px;padding:5px;border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper);box-shadow:0 10px 28px rgba(22,40,73,.14)}
+.workflow-create-menu[hidden]{display:none!important}
+.workflow-create-option{display:flex;align-items:center;gap:10px;min-height:45px;min-width:0;width:100%;padding:7px 9px;border:0;border-radius:var(--radius-control);background:transparent;color:var(--od-ink);font:inherit;text-align:left;cursor:pointer;white-space:normal!important}
+.workflow-create-option:hover,.workflow-create-option:focus-visible{background:var(--od-muted)}
+.workflow-create-option:focus-visible{outline:2px solid var(--od-brand);outline-offset:-2px}
+.workflow-create-option:disabled{opacity:.5;cursor:not-allowed}
+.workflow-create-option svg{flex:none;width:17px;height:17px}
+.workflow-create-option span{min-width:0;display:flex;flex-direction:column;gap:2px}
+.workflow-create-option strong{font-size:12px;font-weight:650;line-height:1.35}
+.workflow-create-option small{font-size:10.5px;color:var(--od-sub);line-height:1.4;white-space:normal}
 .workflow-pill{border:1px solid #dfe7f1;background:#f9fbff;color:#607391;border-radius:var(--radius-pill);padding:4px 7px;max-width:97px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px}
 .workflow-icon-button{flex:none}
 .workflow-target-warning{margin-top:var(--space-2);font-size:var(--od-note-size);line-height:1.55}
@@ -559,10 +570,18 @@
 /* R16: model diagnostics stay in settings; live approvals stay beside the chat. */
 .workflow-provider{max-height:min(52vh,350px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;padding-right:2px}
 .workflow-provider select{font-size:12px;min-height:36px}
+.workflow-provider-info,.workflow-provider-diagnostics{margin:5px 0 0}
+.workflow-provider-info>summary,.workflow-provider-diagnostics>summary{font-size:11px;color:var(--od-sub)}
+.workflow-provider-info .workflow-minor-note{margin:5px 0 8px}
+.workflow-connection-line{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}
+.workflow-connection-line .workflow-local-status{flex:1 1 auto;min-width:0}
+.workflow-connection-line #workflow-local-connect{flex:none}
+.workflow-connection-line #workflow-local-connect[hidden]{display:none!important}
+.workflow-provider-diagnostics .workflow-actions{justify-content:flex-start}
 .workflow-provider .workflow-actions{gap:var(--space-2)}
 .workflow-provider .workflow-actions button{flex:0 0 auto;min-height:34px;font-size:12px}
 .workflow-local-status{font-size:11px;line-height:1.55;padding:8px 9px;border-radius:var(--radius-control);background:#f1f5fc;color:#435c7a;margin:8px 0}
-.workflow-local-status[data-state=READY_FOR_TURN]{background:#edf7f1;color:#236346}
+.workflow-local-status[data-state=READY_FOR_TURN]{background:transparent;color:var(--od-sub);padding:6px 0}
 .workflow-session-actions{border-top:1px solid #e5ebf4;padding-top:8px}
 .workflow-ai-progress{margin:8px 0;padding:0;list-style:none;display:grid;gap:5px}
 .workflow-ai-progress li{position:relative;padding:5px 7px 5px 23px;background:#f4f7fc;border-radius:var(--radius-control);color:#526783;font-size:11px;line-height:1.5;overflow-wrap:anywhere}

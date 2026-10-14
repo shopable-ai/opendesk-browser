@@ -612,7 +612,14 @@
         <div class="workflow-head-actions" role="group" aria-label="工作流快捷操作">
           <span id="workflow-saved-state" class="workflow-pill" hidden></span>
           <button type="button" id="workflow-history-toggle" class="workflow-icon-button od-icon-button" aria-label="查看历史版本和设置" aria-expanded="false" aria-controls="workflow-manage-panel" title="历史版本和设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></button>
-          <button type="button" id="workflow-new" class="workflow-icon-button od-icon-button" aria-label="新建工作流" title="新建工作流"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"></path></svg></button>
+          <div class="workflow-create-control">
+            <button type="button" id="workflow-create-toggle" class="workflow-icon-button od-icon-button" aria-label="新建对话或工作流" aria-haspopup="true" aria-expanded="false" aria-controls="workflow-create-menu" title="新建"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"></path></svg></button>
+            <div id="workflow-create-menu" class="workflow-create-menu od-surface" role="group" aria-label="创建操作" hidden>
+              <button type="button" id="workflow-ai-new-session" class="workflow-create-option" aria-label="新对话，保留当前工作流"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H7l-4 2v-5.5A7.5 7.5 0 1 1 20 11.5Z"></path><path d="M9 11.5h7m-3.5-3.5v7"></path></svg><span><strong>新对话</strong><small id="workflow-new-session-note">保留当前工作流</small></span></button>
+              <button type="button" id="workflow-new" class="workflow-create-option" aria-label="新建工作流"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"></path></svg><span><strong>新工作流</strong><small>独立创建，检查草稿</small></span></button>
+              <button type="button" id="workflow-ai-resume" class="workflow-create-option" aria-label="恢复上次对话" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 11a9 9 0 1 1 3 7"></path><path d="M3 4v7h7"></path></svg><span><strong>恢复上次对话</strong><small>仅在本机支持时可用</small></span></button>
+            </div>
+          </div>
         </div>
       </header>
       <section id="workflow-new-review" class="workflow-new-review od-surface" aria-label="未保存工作流" hidden>
@@ -698,19 +705,27 @@
         <label class="visually-hidden" for="workflow-ai-request">描述任务，或告诉 AI 怎样修改步骤</label>
         <textarea id="workflow-ai-request" rows="2" maxlength="4000" placeholder="描述要自动完成的任务…"></textarea>
         <div class="workflow-composer-actions">
-          <button type="button" id="workflow-provider-toggle" class="workflow-icon-button workflow-settings-button od-icon-button" aria-label="配置 AI 模型与数据授权" aria-expanded="false" aria-controls="workflow-provider-settings" title="AI 设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h9m6 0h1M4 17h1m6 0h9"></path><circle cx="16" cy="7" r="3"></circle><circle cx="8" cy="17" r="3"></circle></svg></button>
+          <button type="button" id="workflow-provider-toggle" class="workflow-icon-button workflow-settings-button od-icon-button" aria-label="AI 设置" aria-expanded="false" aria-controls="workflow-provider-settings" title="AI 设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h9m6 0h1M4 17h1m6 0h9"></path><circle cx="16" cy="7" r="3"></circle><circle cx="8" cy="17" r="3"></circle></svg></button>
           <button id="workflow-ai-plan" type="button" class="workflow-send-button od-icon-button od-icon-button--primary" aria-label="发送并执行浏览器任务" title="发送并执行"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 19V5m-7 7 7-7 7 7"></path></svg></button>
           <button id="workflow-ai-cancel" type="button" class="workflow-send-button workflow-ai-cancel od-icon-button od-icon-button--danger" aria-label="停止 AI 规划" title="停止 AI 规划" hidden><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg></button>
         </div>
         <details id="workflow-provider-settings" class="workflow-provider od-disclosure od-disclosure--flat">
-          <summary>模型连接与数据发送授权</summary>
+          <summary>AI 设置</summary>
           <label for="workflow-ai-provider" class="od-field-label">AI 来源</label>
           <select id="workflow-ai-provider" class="od-field"><option value="local_codex">本机 Codex</option><option value="custom_https">自定义 HTTPS 模型接口</option><option value="opendesk_cloud" disabled>OpenDesk 官方 AI（尚未开放）</option></select>
-          <p id="workflow-provider-scope" class="workflow-minor-note">本机 OpenDesk 管理 Codex Agent，模型推理可能联网，已同意的内容可能保存在 Codex 本机对话中。复用官方 CLI 登录，请勿填写 Codex 登录凭据。</p>
+          <details id="workflow-provider-privacy" class="workflow-provider-info od-disclosure od-disclosure--flat">
+            <summary>数据与隐私</summary>
+            <p id="workflow-provider-scope" class="workflow-minor-note">模型推理可能联网，已同意的内容可能保存在 Codex 本机对话中。复用官方 CLI 登录，请勿填写 Codex 登录凭据。</p>
+          </details>
           <div id="workflow-local-settings">
-            <p id="workflow-local-status" class="workflow-local-status" role="status" aria-live="polite">打开设置后检查本机状态。</p>
-            <div class="workflow-actions"><button type="button" id="workflow-local-connect" class="od-button od-button--secondary">连接 OpenDesk</button><button type="button" id="workflow-local-refresh" class="od-button od-button--secondary">重新检查</button><button type="button" id="workflow-local-help" class="od-button od-button--secondary">本机连接设置 ↗</button></div>
-            <div class="workflow-actions workflow-session-actions"><button type="button" id="workflow-ai-new-session" title="结束当前 AI 会话，下次发送开始新对话" hidden class="od-button od-button--secondary">新对话</button><button type="button" id="workflow-ai-resume" hidden class="od-button od-button--secondary">恢复上次对话</button></div>
+            <div class="workflow-connection-line">
+              <p id="workflow-local-status" class="workflow-local-status" role="status" aria-live="polite">打开设置后检查本机状态。</p>
+              <button type="button" id="workflow-local-connect" class="od-button od-button--secondary">连接 OpenDesk</button>
+            </div>
+            <details id="workflow-local-diagnostics" class="workflow-provider-diagnostics od-disclosure od-disclosure--flat">
+              <summary>连接诊断</summary>
+              <div class="workflow-actions"><button type="button" id="workflow-local-refresh" class="od-button od-button--secondary">重新检查</button><button type="button" id="workflow-local-help" class="od-button od-button--secondary">连接设置 ↗</button></div>
+            </details>
           </div>
           <div id="workflow-custom-settings" hidden>
             <label for="workflow-ai-endpoint" class="od-field-label">OpenAI 兼容 HTTPS Chat Completions API</label><input id="workflow-ai-endpoint" type="url" spellcheck="false" value="https://api.openai.com/v1/chat/completions" class="od-field">
