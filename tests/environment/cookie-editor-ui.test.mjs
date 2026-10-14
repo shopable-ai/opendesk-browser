@@ -784,7 +784,9 @@ test('R4.3 read-only live import can preview without writing and invalidates a c
   assert.equal(s.getField('live-import-confirm').hidden,false);
   assert.match(s.getField('live-import-preview').textContent,/新增 1/);
   s.getField('import-text').value='sid=OTHER';
-  s.fire('import-text','input',{isTrusted:true});
+  // Native input events bubble to the importing form; the minimal Node DOM
+  // harness has no propagation engine, so deliver the bubbled event explicitly.
+  s.fire('import-panel','input',{isTrusted:true});
   assert.equal(s.getField('live-import-confirm').hidden,true,'editing invalidates preview');
   assert.equal(writes,0);
 });
