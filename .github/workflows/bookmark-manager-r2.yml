@@ -1,4 +1,4 @@
-name: Bookmark Manager R2 - SDK-only preparation gates
+name: Bookmark Manager R2.1 - SDK-gated preparation and regression
 on:
   push:
     branches: [main]
@@ -33,6 +33,8 @@ jobs:
         run: node scripts/verify-package.mjs dist/production
       - name: Development extension build
         run: npm run build:dev
+      - name: Verify production and development packages
+        run: npm run verify
       - name: Capture preparation artifact (NOT a native Chrome pass)
         if: always()
         uses: actions/upload-artifact@v4
@@ -41,6 +43,6 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
           path: |
-            artifacts/sidebar-tools/bookmark-manager/0.1.0/bookmark-manager.opendesk-tool.json
+            artifacts/sidebar-tools/bookmark-manager/0.2.0/bookmark-manager.opendesk-tool.json
             docs/framework/evidence/wxt/builds/build-production.json
             docs/framework/evidence/wxt/builds/build-development.json

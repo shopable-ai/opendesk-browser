@@ -79,7 +79,7 @@ test('no Full capability even with matching method names must fail closed',async
       requiredCapabilities:['browser.bookmarks'],status:{callableNow:true}})),
     getStatus:async()=>({callableNow:true})
   },bookmarks:{getTree:async()=>[],get:()=>{},search:()=>{},create:()=>{},update:()=>{},
-    move:()=>{},remove:()=>{},removeTree:()=>{},
+    move:()=>{},remove:()=>{},prepareRemoveTree:()=>{},removeTree:()=>{},
     observe:{start:()=>{},read:()=>{},stop:()=>{}}}};
   const result=await ctx.BookmarkR2Service.create(sdk).probe();
   assert.equal(result.ready,false);
@@ -98,14 +98,14 @@ test('folder removeTree is never issued without a trusted atomic precondition',a
     callableNow:true,requiredCapabilities:['browser.bookmarks.full']})},
     bookmarks:{getTree:async()=>roots,get:async()=>[],search:async()=>[],create:async()=>{},
       update:async()=>{},move:async()=>{},remove:async()=>{},
-      removeTree:async()=>{deletes++},
+      prepareRemoveTree:async()=>{},removeTree:async()=>{deletes++},
       observe:{start:async()=>{},read:async()=>{},stop:async()=>{}}}};
   const service=ctx.BookmarkR2Service.create(sdk);
   assert.equal((await service.probe()).ready,true);
   const tree=await service.load();
   const item=tree.byId.get('2'),sig=ctx.BookmarkR2Model.descendantSignatures(tree,item.id);
   await assert.rejects(service.remove({expected:item,confirmed:true,expectedDescendantSignatures:sig}),
-    /Host 端并发校验/);
+    /Host 书签快照/);
   assert.equal(deletes,0);
 });
 
@@ -255,4 +255,17 @@ test('R2.1 event observation is bounded and uses only the public Full SDK',async
   data.sdk.bookmarks.observe.read=async()=>({
     events:[],nextCursor:'2',expiresAt:Date.now()+10000,droppedCount:1});
   await assert.rejects(service.watchRead(watch),{code:'E_BOOKMARK_EVENT_GAP'});
+});
+
+
+test('R2.1 UI guards current-page identity and observes SDK events with teardown',async()=>{
+  const ui=await src('src/main.js');
+  assert.match(ui,/E_DOCUMENT_BINDING_REQUIRED/);
+  assert.match(ui,/sourcePage:\{url,tabRef:first\.tabRef,documentRef:first\.documentRef\}/);
+  assert.doesNotMatch(ui,/current\?\.documentId!==first\.documentId/);
+  assert.match(ui,/service\.watchStart\(\)/);
+  assert.match(ui,/service\.watchRead\(s\.watcher\)/);
+  assert.match(ui,/E_BOOKMARK_EVENT_GAP/);
+  assert.match(ui,/rememberDraft\(\);endWatch\(\)/);
+  assert.match(ui,/addEventListener\?\.\('pagehide',endWatch/);
 });
