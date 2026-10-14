@@ -64,6 +64,30 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
     if(matches.length!==1)throw focusError('可信工具文档已经变化','E_FOCUS_SENDER');
     return matches[0].documentId;
   }
+  // The extension-owned Marketplace may check availability before installation,
+  // but it never gains Focus mutation authority. A live TAB document is required.
+  async function probeDocument(sender){
+    if(isSidebarToolHostSender(api,sender,FOCUS_ID))return hostDocument(sender);
+    try{
+      const url=new URL(sender?.url),market=new URL(api.runtime.getURL('ui/marketplace.html'));
+      if(sender?.id!==api.runtime.id||!sender.tab||
+         !Number.isInteger(sender.tab.id)||sender.tab.id<0||sender.tab.incognito||
+         sender.frameId!==0||typeof sender.documentId!=='string'||!sender.documentId||
+         sender.documentLifecycle&&sender.documentLifecycle!=='active'||
+         url.origin!==market.origin||url.pathname!==market.pathname)
+        throw Error('invalid marketplace');
+      const context=await api.runtime.getContexts({contextTypes:['TAB'],
+        documentUrls:[sender.url],tabIds:[sender.tab.id]});
+      if(context.length!==1||context[0].contextType!=='TAB'||
+         context[0].documentUrl!==sender.url||
+         context[0].documentId!==sender.documentId||
+         context[0].tabId!==sender.tab.id||context[0].frameId!==0||context[0].incognito)
+        throw Error('retired marketplace document');
+      return sender.documentId;
+    }catch{
+      throw focusError('仅当前可信应用市场或工具宿主可探测专注服务','E_FOCUS_SENDER');
+    }
+  }
   async function permissionStatus(){
     const [idle,dnr]=await Promise.all([
       api.permissions.contains({permissions:['idle']}),
@@ -313,7 +337,7 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
        message.operation!==FOCUS_PROBE_OPERATION||!hasOnly(message.payload,[])||
        Object.keys(message).sort().join(',')!=='operation,payload,protocol,toolId')
       throw focusError('Stay Focus 后台探测请求无效','E_FOCUS_REQUEST');
-    const documentId=await hostDocument(sender);
+    const documentId=await probeDocument(sender);
     if(!lockManager?.request||!api.storage?.local?.get||!api.storage?.local?.set||
        !api.storage?.session?.get||!api.alarms?.get||!api.alarms?.create||
        !api.alarms?.clear||!api.tabs?.query||!api.tabs?.update||
@@ -327,7 +351,8 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
        (permissions.dnr&&(!api.declarativeNetRequest?.getDynamicRules||
          !api.declarativeNetRequest?.updateDynamicRules)))
       throw focusError('已授权的 Stay Focus Chrome 能力未接入','E_FOCUS_RUNTIME_UNAVAILABLE');
-    await hostDocument(sender,documentId);
+    if(await probeDocument(sender)!==documentId)
+      throw focusError('应用市场文档已经变化','E_FOCUS_SENDER');
     return {protocol:FOCUS_PROTOCOL,serviceVersion:FOCUS_SERVICE_VERSION,
       serviceReady:true,permissions};
   }

@@ -7,7 +7,7 @@ import {installReviewedSidebarTool,reconcileMarketOperation,recoverMarketOperati
   MARKET_PROVENANCE_STORE,sameSidebarToolPackage,recordToolUninstall,getPendingToolCleanups,
   cleanupUninstalledToolLocked,retryUninstalledToolCleanup,TOOL_CLEANUP_STORE} from '../../src/ui/sidebar-tools/installation.js';
 
-import {strictTransfer} from '../../src/marketplace/page.js';
+import {strictTransfer,verifyMarketplaceToolRuntime} from '../../src/marketplace/page.js';
 import {OFFICIAL_COLLECTIONS,getOfficialCollection,officialMarketApps} from '../../src/marketplace/catalog.js';
 import {officialFixtures} from '../helpers/official-tools.mjs';
 const official=await officialFixtures();
@@ -428,4 +428,24 @@ test('installer fails closed on malformed, duplicated or overflowed local regist
     assert.deepEqual(values[privateKey],{draft:'永远不能意外丢失'});
     assert.equal(operations.some(row=>row.keys?.includes(SIDEBAR_TOOL_STORE)),false);
   }
+});
+
+test('R3.2 Marketplace installation preflight uses real Focus worker handshake without permission or writes',async()=>{
+  const sent=[],focusTool={...tool('stay-focus','1.0.1'),capabilities:['focus.control']};
+  const data={protocol:'opendesk.stay-focus.v1',serviceVersion:1,serviceReady:true,
+    permissions:{idle:false,dnr:false,ready:false}};
+  const api={runtime:{sendMessage:async message=>{sent.push(message);return {ok:true,data};}},
+    storage:{local:{async set(){throw Error('read-only preflight must never write');}}}};
+  assert.equal(await verifyMarketplaceToolRuntime({api,tool:tool('quick-notes')}),null);
+  assert.equal(sent.length,0,'ordinary tools do not use a privileged product service');
+  assert.deepEqual(await verifyMarketplaceToolRuntime({api,tool:focusTool}),data);
+  assert.deepEqual(sent,[{protocol:data.protocol,toolId:'stay-focus',operation:'focus.probe',payload:{}}]);
+  await assert.rejects(verifyMarketplaceToolRuntime({api,tool:{...focusTool,id:'spoofed-focus'}}),
+    {code:'E_TOOL_RUNTIME_UNAVAILABLE'});
+  api.runtime.sendMessage=async()=>undefined;
+  await assert.rejects(verifyMarketplaceToolRuntime({api,tool:focusTool}),
+    {code:'E_TOOL_RUNTIME_UNAVAILABLE'});
+  api.runtime.sendMessage=async()=>{throw Error('No receiving end');};
+  await assert.rejects(verifyMarketplaceToolRuntime({api,tool:focusTool}),
+    {code:'E_TOOL_RUNTIME_UNAVAILABLE'});
 });

@@ -7,6 +7,8 @@ import {admittedSidebarToolPackages,sameSidebarToolPackage,compareToolVersions,
   requireCompleteInstalledSidebarTools,
   TOOL_CLEANUP_STORE,MARKET_OPERATIONS_STORE,MARKET_PROVENANCE_STORE} from '../ui/sidebar-tools/installation.js';
 import {toolPageHref} from '../ui/sidebar-tools/navigation.js';
+import {FOCUS_ID,FOCUS_CAPABILITY} from '../stay-focus/policy.js';
+import {probeStayFocusService} from '../stay-focus/tool-host.js';
 import {MARKET_INTENTS_STORE,loadReviewIntent,marketSubjectRoute,consumeReviewIntent,settleReviewIntent,closeUnjournaledReview} from './intent.js';
 import {MARKET_BATCH_STORE,readMarketBatch,createMarketBatch,marketBatchUnresolved,
   reconcileQueuedAfterInterruption,withMarketBatchLock} from './batch.js';
@@ -20,7 +22,8 @@ const CAPABILITY_NAMES={
   'page.clip':'按网站授权读取正文或选区','user.export':'复制内容或下载文件',
   'page.capture':'授权后在 ChatGPT 页面提供保存按钮',
   'knowledge.store':'管理本机知识收件箱',
-  'time.review':'明确开始后在后台记录聚焦、非空闲网站的域名与时长（仅本机）'
+  'time.review':'明确开始后在后台记录聚焦、非空闲网站的域名与时长（仅本机）',
+  'focus.control':'按用户授权在后台管理网站额度、专注提醒和 Chrome 拦截'
 };
 const capabilityNames=values=>values.map(value=>CAPABILITY_NAMES[value]||value).join('；')||'无';
 const BATCH_STATUS_NAMES={ready:'可安装',reviewed:'已审阅，待核对',skip:'已安装，跳过',blocked:'需要处理',queued:'等待安装',
@@ -39,6 +42,12 @@ const link=(label,href,cls='')=>{
 const para=(s,cls='')=>elem('p',cls,s);
 const badge=s=>elem('span','chip',s);
 const fail=(message,code='E_MARKET')=>Object.assign(new Error(message),{code});
+// A fixed privileged service is a release prerequisite, not a sandbox right.
+export async function verifyMarketplaceToolRuntime({api,tool}){
+  if(!tool?.capabilities?.includes(FOCUS_CAPABILITY))return null;
+  if(tool.id!==FOCUS_ID)throw fail('该工具未获 Stay Focus 可信运行能力','E_TOOL_RUNTIME_UNAVAILABLE');
+  return probeStayFocusService({api});
+}
 const copy=async value=>{
   if(!navigator.clipboard?.writeText)throw fail('当前浏览器不支持写入剪贴板');
   await navigator.clipboard.writeText(value);
@@ -450,6 +459,8 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     state.busy=true;render();
     try{
       await verifyReviewedOfficialTool(review.release,review.tool,{api});
+      // Probe the real worker before consuming a market handoff or committing.
+      await verifyMarketplaceToolRuntime({api,tool:review.tool});
       const result=await installReviewedSidebarTool({api,lockManager,candidate:review.tool,baseline:review.baseline,
         reviewApproved:true,market:{marketId:review.app.id,sha256:review.release.sha256,operationId:review.operationId},
         commitIntent:state.handoff?async()=>{state.handoff=await consumeReviewIntent({api,lockManager,
@@ -602,6 +613,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
           }else if(state.installed.length+count>=MAX_INSTALLED_TOOLS){
             row.status='blocked';row.reason='超过本机 12 个工具上限';
           }else{count++;row.reason='申请能力：'+capabilityNames(tool.capabilities);}
+          if(row.status==='ready')await verifyMarketplaceToolRuntime({api,tool});
         }catch(e){row.status='blocked';row.reason=(e.code||'E_PACKAGE')+' '+e.message;}
         rows.push(row);
       }
@@ -658,6 +670,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
           await save();render();
           try{
             await verifyReviewedOfficialTool(row.release,row.tool,{api});
+            await verifyMarketplaceToolRuntime({api,tool:row.tool});
             const result=await installReviewedSidebarTool({api,lockManager,candidate:row.tool,baseline:row.baseline,
               reviewApproved:true,market:{marketId:row.app.id,sha256:row.release.sha256,operationId:item.operationId},
               approveUpdate:()=>true});
