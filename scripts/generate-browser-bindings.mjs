@@ -28,7 +28,10 @@ export function deriveBrowserBindingCatalog(matrix,registry=BROWSER_OPERATIONS){
        !row.inputSchema||!row.outputSchema)throw Error('Invalid approved binding '+row.id);
     const publicSdk=row.visibility==='APPROVED_TOOL_REGISTERED';
     const runtime=Object.hasOwn(registry,row.id)?registry[row.id]:null;
-    if(publicSdk!==Boolean(runtime))throw Error('Registered/approved visibility drift '+row.id);
+    // Newly approved DIRECT methods are generated into the runtime Registry
+    // from this very matrix, not hand-added before the generator can run.
+    if(publicSdk!==Boolean(runtime)&&!(publicSdk&&mode==='DIRECT'&&!runtime))
+      throw Error('Registered/approved visibility drift '+row.id);
     if(runtime&&(!exact(row.chromePermissions,runtime.requiredChromePermissions)||
        !exact(row.toolCapabilities,runtime.requiredCapabilities)||
        row.userGesture!==runtime.requiresUserGesture||
@@ -88,13 +91,20 @@ export function deriveBrowserDirectBindings(matrix,registry=BROWSER_OPERATIONS){
   for(const row of matrix.approvedOperations){
     if(row.mappingKind!=='DIRECT')continue;
     const runtime=Object.hasOwn(registry,row.id)?registry[row.id]:null;
-    if(row.visibility!=='APPROVED_TOOL_REGISTERED'||!runtime||
-       runtime.effectClass!=='read'||runtime.siteScope!=='none'||
-       runtime.requiresUserGesture||row.userGesture||row.siteScope!=='none'||
+    if(row.visibility!=='APPROVED_TOOL_REGISTERED'||
+       runtime&&(
+         runtime.effectClass!=='read'||runtime.siteScope!=='none'||runtime.requiresUserGesture||
+         !exact(row.chromePermissions,runtime.requiredChromePermissions)||
+         !exact(row.toolCapabilities,runtime.requiredCapabilities)
+       )||
+       row.userGesture||row.siteScope!=='none'||
        row.allowedWorlds?.length!==1||row.allowedWorlds[0]!=='sidebar-tool'||
        row.nativeApis?.length!==1||row.nativeApis[0]!=='chrome.'+row.id.slice('browser.'.length)||
        row.inputSchema?.type!=='object'||row.inputSchema.additionalProperties!==false||
-       !['object','array'].includes(row.outputSchema?.type))
+       !['object','array'].includes(row.outputSchema?.type)||
+       !Array.isArray(row.chromePermissions)||!Array.isArray(row.toolCapabilities)||
+       !Number.isInteger(row.maxRequestBytes)||row.maxRequestBytes<1||
+       !Number.isInteger(row.maxResponseBytes)||row.maxResponseBytes<1)
       throw Error('DIRECT operation has an unsafe native/authority contract: '+row.id);
     const native=source.get(row.nativeApis[0]);
     if(native?.kind!=='METHOD'||!native.returnType?.startsWith('Promise<')||
@@ -117,7 +127,15 @@ export function deriveBrowserDirectBindings(matrix,registry=BROWSER_OPERATIONS){
     if(params.some(p=>p.type==='object')&&
        !(params.length===1&&params[0].type==='object'))
       throw Error('DIRECT API with mixed object arguments needs custom mapping: '+row.id);
-    approved.push({operation:row.id,mode:'DIRECT',nativeApi:row.nativeApis[0],parameters:params});
+    approved.push({
+      operation:row.id,mode:'DIRECT',nativeApi:row.nativeApis[0],parameters:params,
+      requiredCapabilities:row.toolCapabilities,requiredChromePermissions:row.chromePermissions,
+      supportedContexts:row.allowedWorlds,requiresUserGesture:false,siteScope:'none',
+      effectClass:'read',riskLevel:'low',lifecycle:row.lifecycle??'request',
+      maxRequestBytes:row.maxRequestBytes,maxResponseBytes:row.maxResponseBytes,
+      inputSchema:row.inputSchema,outputSchema:row.outputSchema,
+      minChrome:row.support?.desktopChromeMinimum??null
+    });
   }
   return approved.sort((a,b)=>a.operation.localeCompare(b.operation,'en'));
 }
