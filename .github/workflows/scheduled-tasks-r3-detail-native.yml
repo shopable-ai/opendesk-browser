@@ -10,6 +10,7 @@ on:
       - 'src/ui/tool-shell.css'
       - 'src/ui/tool.html'
       - 'tests/environment/scheduled-task-ui-r1.test.mjs'
+      - 'tests/environment/scheduled-task-manager-draft-r12.test.mjs'
   workflow_dispatch:
 
 permissions:
@@ -33,7 +34,7 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Run existing schedule UI regression
-        run: node --test tests/environment/scheduled-task-ui-r1.test.mjs
+        run: node --test tests/environment/scheduled-task-ui-r1.test.mjs tests/environment/scheduled-task-manager-draft-r12.test.mjs
       - name: Build and verify actual production WXT extension
         run: |
           npm run build

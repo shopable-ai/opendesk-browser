@@ -745,9 +745,9 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     await click(client,runnerSid,'#schedule-create');
     await click(client,runnerSid,'#schedule-manage-tasks');
     await deadline(()=>evaluate(client,
-      'document.querySelector("#schedule-manager-list .schedule-manager-card .schedule-actions button:nth-child(2)")?.textContent==="停用"',
+      'document.querySelector("#schedule-manager-list .schedule-manager-card .schedule-manager-toggle")?.textContent==="停用"',
       runnerSid),'real installed Task manager exposes Disable');
-    await click(client,runnerSid,'#schedule-manager-list .schedule-manager-card .schedule-actions button:nth-child(2)');
+    await click(client,runnerSid,'#schedule-manager-list .schedule-manager-card .schedule-manager-toggle');
     const disabled=await deadline(async()=>{
       const state=await durable(client,runnerSid);
       return state.installs.find(x=>x.taskId===before.plan.taskId)?.enabled===false?state:null;
@@ -778,9 +778,9 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     await click(client,runnerSid,'#schedule-create');
     await click(client,runnerSid,'#schedule-manage-tasks');
     await deadline(()=>evaluate(client,
-      'document.querySelector("#schedule-manager-list .schedule-manager-card .schedule-actions button:nth-child(2)")?.textContent==="启用"',
+      'document.querySelector("#schedule-manager-list .schedule-manager-card .schedule-manager-toggle")?.textContent==="启用"',
       runnerSid),'Task can be reenabled from real management interface');
-    await click(client,runnerSid,'#schedule-manager-list .schedule-manager-card .schedule-actions button:nth-child(2)');
+    await click(client,runnerSid,'#schedule-manager-list .schedule-manager-card .schedule-manager-toggle');
     const restored=await deadline(async()=>{
       const state=await durable(client,runnerSid),inst=state.installs.find(x=>x.taskId===before.plan.taskId);
       return inst?.enabled&&inst.generation>disabledInstall.generation?{state,inst}:null;
@@ -803,7 +803,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     assert.equal(await evaluate(client,'!!document.querySelector("#done")',siteSid),false);
     report.tests.rotatedGenerationDeniedNativeRun='PASS';
     note('rotated-generation-fire',{...second});
-    await click(client,runnerSid,'#schedule-manager-list .schedule-manager-card .schedule-actions button:nth-child(4)');
+    await click(client,runnerSid,'#schedule-manager-list .schedule-manager-card .schedule-manager-uninstall');
     await deadline(()=>evaluate(client,
       '!document.querySelector("#schedule-uninstall-confirm").hidden',runnerSid),
       'visible inline uninstall confirmation');
@@ -1134,12 +1134,18 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     await deadline(()=>evaluate(client,
       '!document.querySelector("#schedule-task-manager").hidden&&document.querySelector("#schedule-form").hidden',formSid),
       'real installed Chrome task manager is a separate subview during editing');
+    const managerActions=await evaluate(client,
+      '[...document.querySelectorAll("#schedule-manager-list .schedule-actions button")].map(button=>button.textContent.trim())',formSid);
+    assert(!managerActions.includes('设置定时'),
+      'a task manager reached from an unsaved form cannot replace the draft without review');
+    assert(managerActions.includes('停用'),'normal installed Task actions remain reachable');
     await click(client,formSid,'#schedule-back');
     assert.deepEqual(await readDraft(),unsaved,
       'returning from manager does not discard or rewrite any editor draft field');
     assert.equal(await evaluate(client,'document.activeElement?.id',formSid),'schedule-manage-tasks',
       'manager Back restores actual keyboard focus to the original edit-form entry');
     report.tests.nativeManagerRoundTripPreservesDraft='PASS';
+    report.tests.nativeManagerBlocksDraftOverwrite='PASS';
     await click(client,formSid,'#schedule-cancel');
     await deadline(()=>evaluate(client,'!document.querySelector("#schedule-discard-confirm").hidden',formSid),
       'real unsaved draft discard confirmation');
