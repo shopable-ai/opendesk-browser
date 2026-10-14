@@ -13,6 +13,7 @@ on:
       - 'src/ui/tool-shell.js'
       - 'src/ui/bookmark-manager.css'
       - 'scripts/prepare-public.mjs'
+      - 'scripts/verify-package.mjs'
       - 'src/sw.js'
       - 'examples/sidebar-tools/browser-sdk-r13/**'
       - 'tests/environment/browser-sdk-r13.test.mjs'

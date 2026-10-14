@@ -32,4 +32,18 @@ node scripts/verify-package.mjs dist/production
 
 再在用户 Mac 的**正确扩展 ID 和 `dist/development` 路径**中做真实 Chrome：首次授权/拒绝/撤权；原书签栏、其他及移动端目录；Chrome 管理节点；创建/移动/修改/多窗口编辑/外部同步变化/非空目录删除；长中文、320/360/420px、暗色、200% 缩放；保证动态沙箱工具无法读取 Chrome 书签树。切忌凭 Node Mock 或静态原型声称 Native PASS。
 
-知识整理 AI、阅读提醒、社区、市场等不属于第一版，见 [功能宇宙规划](../../docs/product/bookmark-manager-feature-universe-r12.zh-CN.md)。
+## 本模块的产品资料与维护边界
+
+**模块专属信息以这里为入口，不再散落维护第二份书签管理产品文档：**
+
+- **本 README（当前文件）**：用户流程、P0 行为与安全边界、源码职责、运行/验证方法。界面原则是「单一书签树 + 一行三操作 + 单个页面标题」；不把文件夹和书签拆成两个独立区块。
+- **[ROADMAP.zh-CN.md](ROADMAP.zh-CN.md)**：独立负责 P0–P3 产品机会宇宙，包括重复/失效检测、访问与阅读回顾、AI 目录迁移建议、知识树、定期复习、社区、咨询/服务市场、收费与隐私/平台政策限制。仅是候选规划，不等于已实现。
+- **[交互 HTML 原型](../../prototypes/sidebar/bookmark-manager-preview.html)**：只读设计展示，使用模拟数据；现有预览画廊继续保留原路径，避免在代码目录复制第二份 HTML。
+- **[工程验收工作账本](../../docs/framework/workstreams/bookmark-manager-r1.md)**：管理当前候选 SHA、真实测试输出、PASS/FAIL/NOT_TESTED 与交付缺口，不在 README 中重复记录易过期的分数。
+- **[第一方可信工具 Skill](../../.agents/skills/opendesk-trusted-sidebar-feature/SKILL.md)** 和 [Side Panel R28 通用布局规范](../../docs/architecture/sidebar-multi-section-tab-contract-r28.zh-CN.md)：仅保存跨工具通用约束；书签专用功能、商业探索与 UI 细节仍由本模块维护。
+
+### 规划与 P0 的边界
+
+智能清理、自动阅读/访问统计、按周复习、AI 知识树、主动推荐、社交与服务交易都**尚未交付**。不得因为这些设想扩大 P0 的 `history` / 网络权限、自动上传个人收藏，或把规划项伪装成已实现功能。涉及广告的路线必须遵守 Chrome Web Store 政策：不得将扩展获得的私有浏览/收藏数据及其派生画像用于个性化广告。
+
+

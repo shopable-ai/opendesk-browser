@@ -5,7 +5,7 @@ import {runInThisContext} from 'node:vm';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 import {BROWSER_OPERATIONS} from '../../src/framework/sdk/browser-contract.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
-import {SAMPLE_ARGS} from './browser-sdk-r107-public-routing.test.mjs';
+import {SAMPLE_ARGS} from './browser-sdk-r107-samples.mjs';
 
 const project=new URL('../../examples/sidebar-tools/browser-sdk-acceptance/',import.meta.url);
 const tool=await createSidebarToolPackage(project.pathname);

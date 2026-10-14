@@ -50,6 +50,19 @@ description: Build or decouple audited first-party features embedded in OpenDesk
 
 对 Cookie Editor、订阅管理、计划、其他工具按同样边界核查，但**不得把所有模块强行迁为可信直挂**。单个试点的结果不能推导其余工具均已迁移。
 
+## 工具专属文档归属
+
+对 `src/<feature>/` 中的第一方可信产品，**产品事实归产品目录维护**，不要把每个工具的功能宇宙、交互细则、AI 设想、商业方案和实现说明复制到 `docs/product/`、`docs/api/` 或通用 Host 文档：
+
+- `src/<feature>/README.zh-CN.md` 为模块使用/源码/安全与 P0 交互的唯一入口。
+- 只有路线足够长、需要持续独立维护时，才增设一份 `ROADMAP.zh-CN.md`；P1–P3、商业实验及隐私限制放其中，不为每次讨论新建分散的 GOAL 或大批 Markdown。
+- UI 交互 HTML 可以留在现有 `prototypes/` 统一预览画廊；由模块 README 指向它，不保存两套会漂移的副本。
+- `docs/framework/workstreams/` 和 `evidence/` 继续归属跨会话验收身份、原始证据和资源账本。各模块 README 只引用，不能把静态设计自评分提升为 Chrome PASS。
+- `docs/architecture/`、`docs/api/` 与本 Skill 仅承载**跨工具可复用的规则和 API 合同**；如历史产品文档链接必须保留，改为模块文档的简短导航入口，不复制正文。
+- 用户需求、P0 操作、源码真实能力、未来候选规划和实际验收等级要分开标记；变更时先更新拥有该信息的唯一文件，再核对所有反向引用。
+
+以上是信息归属约定，**不授权改变**工具来源分流、动态沙箱、权限或已批准的 SDK 合同，也不要求为了整理文档移动代码、测试或已有原型。
+
 ## UI、测试及交付
 
 Side Panel 优先复用 `od-page/od-stack/od-surface/od-button/od-field`，真实 token 在 `src/ui/design-tokens.css`；密度遵守 4/8/12/16px、单层 gutter、窄屏及 200% 缩放。动态 iframe 的 CSS 独立映射尺寸，不能向特权 Host 借 JS/CSS 作为安全边界。中文长文案、暗色、键盘/焦点、停止与卸载后的 DOM/事件清理都要验收。

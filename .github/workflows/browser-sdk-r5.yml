@@ -32,6 +32,7 @@ on:
       - 'src/ui/tool-shell.js'
       - 'src/ui/bookmark-manager.css'
       - 'scripts/prepare-public.mjs'
+      - 'scripts/verify-package.mjs'
       - 'src/ui/tool.html'
       - 'src/ui/sidebar-tools.js'
       - 'src/sidebar-tools/bridge.js'

@@ -162,7 +162,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   let pendingCreate=false,pendingCreateFromForm=false,pendingTask=null,confirmUninstall=null,allPlans=[],catalog=[],installed=[];
   let selectedFire=null,lastRefresh=0,activeView='list',runnerFocusId=null;
   let selectedPlanId=null,detailReturnView='list',formReturnView='list',listScrollTop=0;
-  let managerScrollTop=0,managerFocusId=null;
+  let managerScrollTop=0;
   let cloudPanelVisibility;
   let permissionSeq=0,awaitingSave=null,editRevision=0,storageProbeRevision=0,refreshSeq=0;
   let formDirty=false,discardDestination='list';
@@ -994,12 +994,16 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   function openManager(returnView){
     managerReturn=returnView;
     managerScrollTop=get('workspace-content')?.scrollTop??0;
-    managerFocusId=returnView==='form'?'schedule-manage-tasks':'schedule-detail-edit';
     show('manager');get('schedule-manager-search').focus({preventScroll:true});
   }
   function leaveManager(){
-    show(managerReturn);
-    get(managerFocusId)?.focus({preventScroll:true});
+    const destination=managerReturn;
+    show(destination);
+    if(destination==='form')get('schedule-manage-tasks').focus({preventScroll:true});
+    else if(destination==='detail')
+      (get('schedule-detail-view').querySelector('.schedule-status-help .od-button')||
+        get('schedule-detail-edit')).focus({preventScroll:true});
+    else focusReturnedView(destination);
     const scroller=get('workspace-content');if(scroller)scroller.scrollTop=managerScrollTop;
   }
   function navigateBack(){

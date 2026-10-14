@@ -284,7 +284,7 @@ test('R2.6 unsaved editor Back/cancel must review changes while task manager pre
   assert.match(ui,/bind\('schedule-back','click',navigateBack\)/);
   assert.match(ui,/bind\('schedule-cancel','click',\(\)=>requestLeaveForm/);
   assert.match(ui,/bind\('schedule-manager-back','click',leaveManager\)/);
-  assert.match(ui,/function leaveManager\(\)\{\s*show\(managerReturn\)/);
+  assert.match(ui,/function leaveManager\(\)\{\s*const destination=managerReturn;\s*show\(destination\)/);
   assert.match(css,/#schedule-discard-confirm\{display:grid/);
   assert.ok(css.includes(':root[data-opendesk-surface="scheduled-runner"]:has(#schedule-runner-view:not([hidden])) .schedule-header-heading{display:none}'));
   assert.equal(css.includes(':root[data-opendesk-surface="scheduled-runner"] .schedule-header:has(#schedule-stop[hidden]){display:none}'),false,
@@ -419,6 +419,40 @@ test('R2.8 host polling preserves paginated FireId history while a newer result 
   assert.deepEqual(mergeScheduleHistoryView([],[]),[]);
 });
 
+
+test('R1.2 135 loaded Fire records survive a newer poll and remain isolated by plan',()=>{
+  const histories=['plan-A','plan-B'].map((plan,index)=>Array.from({length:135},(_,i)=>({
+    fireId:plan+'-fire-'+(135-i),
+    scheduledAt:2_000_000+index*1_000_000-i*1_000,
+    status:'WAITING_HOST',runId:null,resultId:null
+  })));
+  const loadPages=records=>{
+    let retained=[];
+    for(let offset=0;offset<records.length;offset+=20)
+      retained=mergeScheduleHistoryView(records.slice(0,20),
+        [...retained,...records.slice(offset,offset+20)]);
+    return retained;
+  };
+  const retainedA=loadPages(histories[0]),retainedB=loadPages(histories[1]);
+  assert.equal(retainedA.length,135,'every paginated FireId remains retained');
+  assert.equal(retainedB.length,135);
+  assert.equal(new Set(retainedA.map(fire=>fire.fireId)).size,135);
+  assert.equal(new Set(retainedB.map(fire=>fire.fireId)).size,135);
+  const completed={...histories[0][0],status:'SUCCESS',runId:'original-run',
+    resultId:'original-result'};
+  const newFire={fireId:'plan-A-new',scheduledAt:2_000_001,
+    status:'WAITING_HOST',runId:null,resultId:null};
+  const refreshed=mergeScheduleHistoryView([newFire,completed,...histories[0].slice(1,19)],retainedA);
+  assert.equal(refreshed.length,136,'newer poll adds one Fire without dropping 7 loaded pages');
+  assert.equal(refreshed[0].fireId,newFire.fireId);
+  assert.equal(refreshed.find(row=>row.fireId===completed.fireId).resultId,'original-result',
+    'a later real Run/Result acknowledgement replaces the stale history state');
+  assert.equal(refreshed.at(-1).fireId,histories[0].at(-1).fireId);
+  assert.equal(retainedB.length,135,'refreshing plan A must not mutate the other plan');
+  assert(retainedB.every(fire=>fire.fireId.startsWith('plan-B-')));
+  assert(refreshed.every(fire=>fire.fireId.startsWith('plan-A-')));
+});
+
 test('R2.8 true host refresh retains keyboard focus, open details and inline confirmation',async()=>{
   const source=await load('src/ui/scheduled-task-workbench.js');
   assert.match(source,/const tasksChanged=tasksSignature!==taskListSignature/);
@@ -484,6 +518,20 @@ test('R2.8 subview navigation clears old editor errors without hiding current fo
     'explicit discard transitions to another view where stale errors are dismissed');
   assert.match(ui,/bind\('schedule-confirm-no','click',\(\)=>\{clearConfirmation\(\);get\('schedule-save'\)\.focus\(\);\}/,
     'returning to edit from confirmation keeps the active form state');
+});
+
+test('R1.2 edit-form task manager roundtrip restores origin focus and retains real native coverage',async()=>{
+  const [source,native]=await Promise.all([
+    load('src/ui/scheduled-task-workbench.js'),
+    load('tests/framework/scheduled-tasks-r1-native-mac.test.mjs')
+  ]);
+  assert.match(source,/function leaveManager\(\)/);
+  assert.match(source,/if\(activeView==='manager'\)\{leaveManager\(\);return;\}/);
+  assert.match(source,/if\(destination==='form'\)get\('schedule-manage-tasks'\)\.focus\(\{preventScroll:true\}\)/);
+  assert.match(source,/bind\('schedule-manager-back','click',leaveManager\)/);
+  assert.match(native,/nativeManagerRoundTripPreservesDraft='PASS'/);
+  assert.match(native,/assert\.deepEqual\(await readDraft\(\),unsaved,/);
+  assert.match(native,/manager Back restores actual keyboard focus/);
 });
 
 test('R3 index vs detail navigation and fixed schedule authorization boundaries',async()=>{
