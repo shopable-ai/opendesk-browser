@@ -74,3 +74,18 @@ AI 整理、访问频率追踪、历史权限、定时清理、自动链接检�
 | NOT_TESTED (Chrome) | NOT_TESTED (Chrome) | NOT_TESTED (Chrome) | NOT_TESTED (Chrome) | NOT_TESTED (Chrome) | NOT_TESTED (最终 CI) |
 
 所有维度目标仍是独立 ≥95，必须先具备同一当前构建的原始证据。P1 重复/失效/老化诊断、P2 AI 整理/知识树、P3 社区/市场/广告等均只保留为规划，未实施。书签数据不会因这次修复新增同步、上传或广告画像。
+
+### R1.3 最终源码候选 GitHub CI · VERIFIED（2026-10-14 11:35 UTC）
+
+本节覆盖上文记录的阶段性 `QUEUED` 状态；保留历史失败与观察时间，不改写旧候选原始结果。
+
+- 对应源码/CI 候选 commit：[`15ee2d9562ffef11e7600561e91fa8610f3426c3`](https://github.com/shopable-ai/opendesk-browser/commit/15ee2d9562ffef11e7600561e91fa8610f3426c3)（包括安全收藏当前网页的 document capture + revalidate 及其新增正反 Mock 验证）。
+- 原始 GitHub Actions：[Bookmark Manager R1.3 #38556852913](https://github.com/shopable-ai/opendesk-browser/actions/runs/38556852913)，job `115828031733`，结论 `completed/success`，`2026-10-14T11:35:23Z`。
+- `REPO_NODE_PASS`：Ubuntu / Node 22 环境执行三份定向测试共 **96 tests / 96 pass / 0 fail**，其余两份属于现有 Side Panel Host 和动态工具基线测试。Mock 仅证明组件/契约而非真实 Chrome 用户操作。
+- `CHECK_PASS`：`npm run check` 完成，相关 Security/source 检查保持开启。
+- `BUILD_PASS`：`npm run build` WXT **production standard** 通过，`assets=96`；`packageHash=a0a9651e1ea8f7383681e00480f82e866235066c52692740c93bed07ea05e37b`。
+- `PACKAGE_PASS`：`node scripts/verify-package.mjs dist/production` 输出 `status=passed`、`manifestVersion=3`，与同一个 CI job 的构建步骤绑定。CI 还保留 artifact `bookmark-manager-r13-build-15ee2d9562ffef11e7600561e91fa8610f3426c3`（artifact ID `11891115270`；截至记录时未过期）。**未在 Mac 安装该包、未验证生产包与 Mac development 包一致。**
+- 警示但非本次 CI FAIL：build 输出 `BUILD_SIZE_CRITICAL ui/tool-shell.js 501780/524288`，余量 `22508` bytes；`sw.js 592202 B` 超过软提醒阈值但低于硬限额。书签本轮没有调整预算，也未借此声明产品原生通过。
+- CI 环境未提供真实 Chrome Side Panel/扩展 ID/Profile/本机截图；`REAL_CHROME`、真实授权、收藏/移动/删除、真实竞态、320/360/420 与真 200%、动态工具隔离原生验证**仍为 `NOT_TESTED`**。浏览器扩展 ID、Mac Profile、development package hash：`NOT_TESTED`。**本轮六项专家最终产品评分均 `NOT_TESTED`，不虚设 95+。**
+
+状态：当前网页版能力范围内的主要源码修复与独立 GitHub Node/check/build/package **已闭合**。**P0 整体产品不可宣布完成**：只剩 Mac 真实 Chrome 安装、授权与 CRUD、并发/响应式/隔离闭环需要独立实测，若实测发现缺陷再做最小修复及同候选影响回归。
