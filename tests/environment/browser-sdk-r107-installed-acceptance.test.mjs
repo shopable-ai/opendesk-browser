@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {runInNewContext} from 'node:vm';
+import {runInThisContext} from 'node:vm';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 import {BROWSER_OPERATIONS} from '../../src/framework/sdk/browser-contract.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
@@ -44,8 +44,21 @@ function fixture(){
     if(operation==='browser.cookies.get')return {name:'sid',value:'sensitive-cookie-value'};
     return {operation,confirmed:true};
   }});
-  runInNewContext(tool.js,{OpenDeskTool:{root,setState(){}},OpenDeskSDK:{browser:sdk},
-    document:{createElement(){return {value:'',textContent:''};}},URL},{timeout:1000});
+  // Execute the installed-tool fixture in the same Realm as the actual SDK
+  // wrapper. A separate vm Context has a different Object.prototype and
+  // would produce a false E_SCHEMA result that Chrome's single tool Realm does not.
+  const keys=['OpenDeskTool','OpenDeskSDK','document'];
+  const previous=keys.map(key=>({key,exists:Object.hasOwn(globalThis,key),value:globalThis[key]}));
+  try{
+    globalThis.OpenDeskTool={root,setState(){}};
+    globalThis.OpenDeskSDK={browser:sdk};
+    globalThis.document={createElement(){return {value:'',textContent:''};}};
+    runInThisContext(tool.js,{timeout:1000,filename:'browser-sdk-acceptance/src/main.js'});
+  }finally{
+    for(const item of previous)
+      if(item.exists)globalThis[item.key]=item.value;
+      else delete globalThis[item.key];
+  }
   return {nodes,calls};
 }
 async function ready(){
