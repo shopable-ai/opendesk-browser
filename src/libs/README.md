@@ -251,3 +251,9 @@ npm run pack:dev
 Controller **不默认加载**真实 Axios。只有单文件源码开头 `// @opendesk-lib axios` 或 Controller 项目 `package.json#opendesk.libraries=["axios"]` 才从同一已审计、固定 SHA 的 `libs/packages/axios.js` 读取资源，在受控 Worker 中运行。没有再发布第二份 Axios 或将其打进 SW；Page 继续使用自身的 CORS Axios 实例，Controller 则通过现有 `axiosx` Broker 严格授权。用户均可零参数 `main()` 直接使用 `axios`，Controller 不暴露到网站 MAIN。
 
 [完整零参数 Controller + Axios Demo](../../examples/programs/controller-axios-zero-arg/README.md)。其原生回执不能用单元测试替代；逐请求 AbortSignal、文件上传流和适配器覆盖明确不支持，禁止绕过 Broker。
+
+## R7.9.4 五机制混合 Import · 实际示例
+
+源码示例： [Page USER_SCRIPT](../../examples/programs/mixed-import-page/README.zh-CN.md) / [Controller Worker](../../examples/programs/mixed-import-controller/README.zh-CN.md)。两个项目的作者 `main.js` 各含 **HTTPS、npm、相对文件三条真实静态 ESM import**；`opendesk.libraries` 则按世界启用 Page `query-string` / Controller `axios`（**不写 import**），`_`/`dayjs` 是世界默认库（**不写 import**）。这是复用此目录既有固定包、Catalog 和初始化器，不在此目录新增库、复制 Catalog 或导入任何网站 MAIN 全局。
+
+项目 HTTP(S) 与 npm 固定字节分别来自上游经 SHA 锁定缓存和锁定 npm tarball；Source 与 Node/Build/Chrome 验收必须分开记录。参考 [新增定向测试](../../tests/environment/mixed-import-projects.test.mjs)和 [R7.9.4 原始状态](../../docs/framework/workstreams/import-runtime-r794-20261014.md)，不可把源码示例的预期输出冒充真实 Chrome 结果。
