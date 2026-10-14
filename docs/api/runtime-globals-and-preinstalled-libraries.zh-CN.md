@@ -193,3 +193,11 @@ Controller 支持 `// @opendesk-lib axios`（单文件）或多文件项目的 `
 已实现的范围：`get/post/put/delete/request/create/getUri`、请求/响应拦截器、常见文本/JSON 响应、`validateStatus`、最终 URL 及安全 Header，HTTP 错误在受授权回执基础上生成 AxiosError。拒绝替换 `adapter`、高权限敏感 Header、请求携带 Cookie/凭据、上传/下载流、二进制及逐请求取消令牌。停止任务会通过原 Controller 生命周期中断授权操作。
 
 [完整 Controller Axios 项目](../../examples/programs/controller-axios-zero-arg/README.md)；该环境没有 Page `document` 或网页 `window.axios`。发布/真实 Chrome 验收必须核对实际 Broker 及同候选 SHA。
+
+## R7.9.4 已提交的混合 ESM 项目（Chrome 待验收）
+
+- [Page 三个真实静态 import + query-string 按需 + 默认库](../../examples/programs/mixed-import-page/README.zh-CN.md)：同一个零参数 `main()` 返回 D3 `5`、lodash-es `A &amp; B`、相对 `[2,5,3]`、query-string `demo` 及默认库日期/分词。`document.title` 是 USER_SCRIPT 世界的当前页面 DOM。
+- [Controller 三个真实静态 import + Axios 按需 + 默认库](../../examples/programs/mixed-import-controller/README.zh-CN.md)：同样的三个源，经 Controller Worker 内受控 `page.url()` 和 `page.title()`，使用真实 Axios `getUri()` 生成固定 origin 下的 URL，不额外联网。
+- [独立综合测试](../../tests/environment/mixed-import-projects.test.mjs)验证锁定来源、相对模块/世界、Node 编译后同次返回值和故障隔离。完整 Webpack/VM 测试需各项目运行 `npm ci` 并设置 `OPENDESK_MIXED_IMPORT_BUILD=1`；未运行或 SKIP 不算通过。
+
+五种使用机制仍为 **三条真实 ESM import + 一种显式按需运行库 + 一种默认运行库**，不是五条假 import。项目已写入源码的事实与本提交的 Node/Build/Chrome 实验结果分别记录在 [R7.9.4 工作流](../framework/workstreams/import-runtime-r794-20261014.md)。没有同包 Chrome 回执不能标记混合 Import 产品完成。
