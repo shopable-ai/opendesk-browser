@@ -27,6 +27,32 @@ export const bookmarkTree=roots=>{
   roots.forEach(node=>walk(node));
   return {roots:rootIds,byId,children};
 };
+// Project all reachable rows, but render only a bounded slice. Never hide later
+// bookmarks permanently behind a fixed DOM cap; search traverses the whole tree.
+export const projectBookmarkRows=(tree,{expanded=new Set(),search='',limit=200}={})=>{
+  if(!Number.isSafeInteger(limit)||limit<1)throw new RangeError('书签显示数量无效');
+  const rows=[];let total=0;
+  const include=(item,level)=>{total++;if(rows.length<limit)rows.push({item,level})};
+  const term=String(search).trim().toLocaleLowerCase();
+  if(term){
+    for(const item of tree.byId.values()){
+      if(tree.roots.has(item.id))continue;
+      if((String(item.title||'')+' '+String(item.url||'')).toLocaleLowerCase().includes(term))
+        include(item,0);
+    }
+  }else{
+    const visit=(id,level)=>{
+      const item=tree.byId.get(id);if(!item)return;
+      if(!tree.roots.has(id)){
+        include(item,level);
+        if(!expanded.has(id))return;
+      }
+      for(const childId of tree.children.get(id)||[])visit(childId,level+1);
+    };
+    for(const id of tree.roots)visit(id,-1);
+  }
+  return {rows,total};
+};
 export const isFolder=node=>Boolean(node&&!Object.hasOwn(node,'url'));
 export const isDescendant=(tree,nodeId,ancestor)=>{
   let node=tree.byId.get(nodeId);const visited=new Set();
