@@ -2,10 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {BROWSER_OPERATIONS,normalizeBrowserOperation,deriveBrowserDirectOperations} from '../../src/framework/sdk/browser-contract.js';
-import {normalizeDirectBrowserArguments} from '../../src/framework/sdk/browser-schemas.js';
+import {normalizeDirectBrowserArguments,deriveBrowserDirectSchemas} from '../../src/framework/sdk/browser-schemas.js';
 import {createApprovedBrowserBindings} from '../../src/framework/sdk/browser-bindings.js';
 import {APPROVED_BROWSER_DIRECT_BINDINGS} from '../../src/framework/sdk/browser-direct.generated.js';
-import {deriveBrowserDirectBindings,renderBrowserDirectModule} from '../../scripts/generate-browser-bindings.mjs';
+import {deriveBrowserBindingCatalog,deriveBrowserDirectBindings,renderBrowserDirectModule} from '../../scripts/generate-browser-bindings.mjs';
 
 const pinned=JSON.parse(await readFile(
   new URL('../../docs/api/browser-sdk-interface-matrix.json',import.meta.url),'utf8'));
@@ -38,6 +38,11 @@ function fixture(){
   assert.equal(registry[op].requiredCapabilities.length,0);
   assert.deepEqual(registry[op].inputSchema,row.inputSchema);
   assert.deepEqual(registry[op].outputSchema,row.outputSchema);
+  const pair=deriveBrowserDirectSchemas(descriptors).get(op);
+  assert.deepEqual(pair,[row.inputSchema,row.outputSchema]);
+  const projected=deriveBrowserBindingCatalog(matrix,registry);
+  assert.equal(projected.counts.public,54,'The synthetic approval adds one API only to this test');
+  assert.equal(projected.counts.approved,56);
   return {matrix,registry,descriptors};
 }
 
