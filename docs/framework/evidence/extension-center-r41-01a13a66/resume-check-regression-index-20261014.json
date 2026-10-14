@@ -1,0 +1,81 @@
+{
+  "observedAt": "2026-10-14T15:26:30.450912+00:00",
+  "head": "e16eccbc1513458b130982c2d775b057abbb74e0",
+  "level": "CURRENT_WORKTREE_CHECKS_NOT_FROZEN_PACKAGE_NATIVE",
+  "logs": [
+    {
+      "path": ".runtime/extension-center-r41-01a13a66/resume-affected-regression-20261014.log",
+      "sha256": "f37aee0409e9072d5e20ab7276010f7f417e8df88cd4eece9a66ccca65f1cf1c",
+      "bytes": 19569,
+      "tail": [
+        "✔ Workflow Task review handoff rejects stale/wrong-hash hints without altering Task authority (6.6665ms)",
+        "✔ R6 Workflow handoff overrides an old directory default and clears a mismatched verification RunId (8.044ms)",
+        "✔ R6 user selection during asynchronous handoff read is never overridden (10.347459ms)",
+        "✔ R6 Task reader reveals read-only exact frozen source and typed parameters without execution (9.381292ms)",
+        "ℹ tests 195",
+        "ℹ suites 0",
+        "ℹ pass 195",
+        "ℹ fail 0",
+        "ℹ cancelled 0",
+        "ℹ skipped 0",
+        "ℹ todo 0",
+        "ℹ duration_ms 1296.061708"
+      ]
+    },
+    {
+      "path": ".runtime/extension-center-r41-01a13a66/resume-scheduled-ui-20261014.log",
+      "sha256": "c42705389dc2acd1732e1bd4fda29c4ad06824b395e96bcb3ac3ceb87d6f89f6",
+      "bytes": 4089,
+      "tail": [
+        "✔ R1.2 120-record pagination retains pages and keeps twenty plans isolated on poll (60.760459ms)",
+        "✔ R1.2 successful history retry clears only its local error and preserves final-page focus (13.281333ms)",
+        "✔ R1.2 background changes retain focus on installed-task recovery action (12.547042ms)",
+        "✔ R1.2 resolved recovery state returns focus to the stable detail header (12.089542ms)",
+        "ℹ tests 40",
+        "ℹ suites 0",
+        "ℹ pass 40",
+        "ℹ fail 0",
+        "ℹ cancelled 0",
+        "ℹ skipped 0",
+        "ℹ todo 0",
+        "ℹ duration_ms 493.309167"
+      ]
+    },
+    {
+      "path": ".runtime/extension-center-r41-01a13a66/resume-check-20261014.log",
+      "sha256": "9cb800f19573b389b7b59577f5440c44942e6a7575989fd4d19e2cfe2de202c9",
+      "bytes": 977,
+      "tail": [
+        "    at checkExecSyncError (node:child_process:925:11)",
+        "    at execFileSync (node:child_process:961:15)",
+        "    at file:///Users/shopme/Documents/workspace/opendesk-browser/scripts/check-source.mjs:15:27 {",
+        "  status: 1,",
+        "  signal: null,",
+        "  output: [ null, null, null ],",
+        "  pid: 86816,",
+        "  stdout: null,",
+        "  stderr: null",
+        "}",
+        "",
+        "Node.js v24.16.0"
+      ]
+    },
+    {
+      "path": ".runtime/extension-center-r41-01a13a66/resume-check-after-single-line-20261014.log",
+      "sha256": "8d5c63f83359963612022b7dc415029fc9898525ffb45c6e7c393a1cbf596bdc",
+      "bytes": 208,
+      "tail": [
+        "",
+        "> opendesk-browser@0.1.0 check",
+        "> node scripts/check-source.mjs",
+        "",
+        "Syntax checked 704 source/test/build files; scripts/build-contract.mjs entries, fixed SDK/control entries, strict CSP and original MIT checked"
+      ]
+    }
+  ],
+  "limitations": [
+    "Current check includes the user-authorized one-line fix depending on the other owner uncommitted preceding declaration.",
+    "The one-line removal is not safe as a standalone HEAD commit and is left unstaged.",
+    "These regressions do not imply production native or width/accessibility acceptance."
+  ]
+}
