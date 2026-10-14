@@ -54,11 +54,9 @@ export function scopedNativeHelper(base){
 } else {${traversal}}`;
   assert.equal(base.split('if command == "dump" {').length,2);
   assert.equal(base.split('if command == "press" {').length,2);
-  assert.equal(base.split('case "down":key(125)').length,2);
   return base.replace(traversal,dialog)
     .replace('if command == "dump" {','if command == "dump" || command == "dump-dialog" {')
-    .replace('if command == "press" {','if command == "press" || command == "press-dialog" {')
-    .replace('case "down":key(125)','case "down":key(125)\n    case "open-date-picker":key(125,.maskAlternate)');
+    .replace('if command == "press" {','if command == "press" || command == "press-dialog" {');
 }
 
 async function fileHash(file){
@@ -169,11 +167,11 @@ async function successfulNativeEffects(state,run,manifest){
   }
   return effects;
 }
-async function click(client,session,selector,trace){
+async function click(client,session,selector,trace,{rightInset}={}){
   const point=await deadline(async()=>{
     const value=await read(client,session,`(()=>{const n=document.querySelector(${quote(selector)});
       if(!n||n.disabled||!n.getClientRects().length)return null;
-      const r=n.getBoundingClientRect(),x=r.x+r.width/2,y=r.y+r.height/2;
+      const r=n.getBoundingClientRect(),x=${Number.isFinite(rightInset)?'r.right-'+rightInset:'r.x+r.width/2'},y=r.y+r.height/2;
       return {x,y,w:r.width,h:r.height,hit:x>0&&y>0&&x<innerWidth&&y<innerHeight&&n.contains(document.elementFromPoint(x,y))};})()`);
     if(value&&!value.hit){
       await client.send('Input.dispatchMouseEvent',{type:'mouseWheel',x:180,y:300,deltaX:0,
@@ -755,7 +753,9 @@ async function runNative(){
       const today=await read(client,side,'(()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-")})()');
       const dates={};
       for(const selector of ['#trusted-history-start','#trusted-history-end']){
-        await click(client,side,selector,report.trace);await native('key','open-date-picker');
+        // Chromium's actual calendar indicator is at the input's right edge.
+        // Clicking the text segment only focuses year; it does not open a picker.
+        await click(client,side,selector,report.trace,{rightInset:22});await sleep(250);
         report.screenshots.push(await screenshot(client,side,runDir,selector.slice(1)+'-native-picker'));
         await native('key','return');
         dates[selector]=await read(client,side,`document.querySelector(${quote(selector)}).value`);
