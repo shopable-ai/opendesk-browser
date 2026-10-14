@@ -137,7 +137,7 @@ async function select(client,session,selector,index){
       await client.send('Target.activateTarget',{targetId:info.targetInfo.targetId});
     nativeOwnedMacInput('activate');
     await click(client,session,selector);
-    if(selector==='#schedule-timezone'){
+    if(selector==='#schedule-timezone'||selector==='#schedule-task-select'){
       // Pick the actual visible AppKit menu item by its observed option label.
       // The existing helper requires one matching CFT AX control and the owned
       // foreground PID; it never writes select.value or dispatches change.

@@ -603,7 +603,9 @@ async function keyboardNavigation(width,theme){
   const ids=await evaluate(`(()=>{
     const nav=document.querySelector('.workbench-nav');
     const tabs=[...nav.querySelectorAll('button')].filter(b=>!b.hidden);
-    if(tabs.length!==6)throw Error('Expected six formal navigation tabs');
+    const labels=tabs.map(b=>b.textContent.trim());
+    if(JSON.stringify(labels)!==JSON.stringify(['我的','扩展','工作流','开发','云控']))
+      throw Error('Expected approved R4 five-tab navigation '+JSON.stringify(labels));
     // Source fixture only: make each roving tab reachable with native Tab to
     // measure every CSS ring. This does not test tool-shell's tab routing.
     globalThis.__r19TabIndices=tabs.map(b=>b.tabIndex);
@@ -615,8 +617,9 @@ async function keyboardNavigation(width,theme){
   const records=[];
   try{
     await nativeTab();await nativeTab(true);
-    for(const index of [0,1,2,3,4,5,4,3,2,1,0]){
-      if(records.length)await nativeTab(records.length>=6);
+    const path=[...ids.keys(),...Array.from({length:ids.length-1},(_,i)=>ids.length-2-i)];
+    for(const index of path){
+      if(records.length)await nativeTab(records.length>=ids.length);
       // Fixture reveal only: static HTML has no production tab-navigation JS.
       // Never assigns focus; native Tab above remains the focus authority.
       await evaluate("document.activeElement.scrollIntoView({block:'nearest',inline:'nearest',behavior:'instant'})");
@@ -639,7 +642,7 @@ async function keyboardNavigation(width,theme){
       records.push(m);
     }
     return {evidence:'STATIC_MARKUP_CHROME_KEYBOARD',width,theme,
-      fixture:'six tabindex=0 + scrollIntoView reveal; production routing NOT_TESTED',records};
+      fixture:'approved R4 five tabindex=0 + scrollIntoView reveal; production routing NOT_TESTED',records};
   }finally{
     await evaluate(`document.querySelectorAll('.workbench-nav button:not([hidden])').forEach((b,i)=>b.tabIndex=globalThis.__r19TabIndices[i]);document.querySelector('.workbench-nav').onkeydown=null`);
   }

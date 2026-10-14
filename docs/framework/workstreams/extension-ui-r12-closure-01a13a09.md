@@ -29,3 +29,7 @@ P1 范围确认：导航栏裁切外向焦点框（六 Tab 消费者）及云控
 R3现有原生驱动增补 PRODUCT_MATRIX：真实UI创建19个暂停计划，20计划/长文本/最后详情/返回焦点与滚动、编辑任务管理草稿、技术详情刷新；只用既有可信输入与真实存储，不seed Fire/Run。120历史仍为组件/源码布局模拟，不提升为原生。物理宽度与真实zoom分别记录。
 
 追加写入范围：`scripts/prepare-public.mjs`、`scripts/verify-package.mjs` 的单一现有资产合同。远端 `cd56a564` 在 `tool.html` 引入 `extension-center.css`，两个包装脚本尚未登记，导致新样式无法打包且 HTML 引用校验必失败；只接入静态 CSS 和校验，不修改并行扩展中心业务。实际审阅修复：局部历史错误成功重试清除、最终分页按钮焦点回到历史标题、权限恢复按钮轮询焦点、失败说明12px；原生矩阵改用现有可见 header Back。物理候选4真实Alarm/Run/Result/released通过，360实测；其他宽度未达，原生矩阵随后因旧隐藏Back失败，原始失败保留。
+
+## 2026-10-14 用户导航授权与原生选择复验
+
+用户明确保留 R4 五个正式 Tab：我的、扩展、工作流、开发、云控；现有 R19 精确标签与往返焦点验证改按该契约，历史六 Tab 证据不改写。最新 candidate5 原生失败停在重开表单的任务下拉占位项，真实箭头输入无效；改用现有 PID/前台/AX 约束下的精确可见菜单项 press 并保留实际 value deadline 校验，不写 DOM value、不发 synthetic events。组件返回测试改用用户可见共享 header Back。candidate5 npm verify 已 PASS；新输入驱动需要复验。

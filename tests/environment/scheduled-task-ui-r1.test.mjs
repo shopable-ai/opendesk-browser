@@ -648,7 +648,8 @@ test('R1.2 task manager return keeps editor draft, scroll and visible focus',asy
   get('workspace-content').scrollTop=170;
   get('schedule-manage-tasks').click();
   await ui.refresh();
-  get('schedule-manager-back').click();
+  assert.equal(get('schedule-back').hidden,false,'manager exposes the shared page-header Back');
+  get('schedule-back').click();
   assert.equal(get('schedule-form').hidden,false);
   assert.equal(get('schedule-title').value,'未保存的计划');
   assert.equal(document.activeElement?.id,'schedule-manage-tasks','return receives a visible editor control');
