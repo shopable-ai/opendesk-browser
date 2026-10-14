@@ -282,7 +282,12 @@ test('R2.6 unsaved editor Back/cancel must review changes while task manager pre
   assert.match(ui,/function navigateBack\(\)/);
   assert.match(ui,/bind\('schedule-back','click',navigateBack\)/);
   assert.match(ui,/bind\('schedule-cancel','click',\(\)=>requestLeaveForm/);
-  assert.match(ui,/bind\('schedule-manager-back','click',\(\)=>show\(managerReturn\)\)/);
+  assert.match(ui,/bind\('schedule-manager-back','click',leaveManager\)/,
+    'the manager Back still uses the established navigation action');
+  assert.match(ui,/if\(activeView==='manager'\)\{leaveManager\(\);return;\}/,
+    'the visible header Back uses the same focus-restoring action');
+  assert.match(ui,/if\(destination==='form'\)get\('schedule-manage-tasks'\)\.focus\(\{preventScroll:true\}\)/,
+    'returning to an unsaved editor restores focus to the original management entry');
   assert.match(css,/#schedule-discard-confirm\{display:grid/);
   assert.ok(css.includes(':root[data-opendesk-surface="scheduled-runner"]:has(#schedule-runner-view:not([hidden])) .schedule-header-heading{display:none}'));
   assert.equal(css.includes(':root[data-opendesk-surface="scheduled-runner"] .schedule-header:has(#schedule-stop[hidden]){display:none}'),false,
