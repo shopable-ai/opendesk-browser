@@ -17,7 +17,7 @@ function fixture(){
       {name:'parent',value:'PRIVATE_PARENT',domain:'.shop.example.test',path:'/',storeId:'0',hostOnly:false,secure:true,session:true},
       {name:'foreign',value:'OTHER_STORE',domain:'shop.example.test',path:'/',storeId:'1',hostOnly:true,secure:true,session:true},
       {name:'chips',value:'PARTITIONED',domain:'shop.example.test',path:'/',storeId:'0',hostOnly:true,secure:true,session:true,partitionKey}
-    ],events:[],native:[],allowed:true,values:false,revokeOnSet:false
+    ],events:[],native:[],allowed:true,values:false,revokeOnSet:false,revokeOnGetAll:false
   };
   const samePartition=(a,b)=>JSON.stringify(a??null)===JSON.stringify(b??null);
   const matches=(row,details)=>{
@@ -41,14 +41,20 @@ function fixture(){
   };
   const api={runtime:{lastError:null},cookies:{
     onChanged:{addListener:callback=>state.events.push(callback)},
-    getAll:callback('getAll',d=>choose(d).map(row=>({...row}))),
+    getAll:callback('getAll',d=>{
+      const rows=choose(d).map(row=>({...row}));
+      if(state.revokeOnGetAll)state.allowed=false;
+      return rows;
+    }),
     get:callback('get',d=>choose(d)[0]??null),
     set:callback('set',d=>{
-      const url=new URL(d.url),domain=d.domain??url.hostname,path=d.path??'/';
+      const url=new URL(d.url),domain=d.domain??url.hostname,
+        path=d.path??(url.pathname.slice(0,url.pathname.lastIndexOf('/'))||'/');
       const row={name:d.name,value:d.value,domain,path,
         storeId:d.storeId??'0',hostOnly:d.domain===undefined,
         secure:d.secure===true,httpOnly:d.httpOnly===true,
         sameSite:d.sameSite??'unspecified',session:d.expirationDate===undefined,
+        ...(d.expirationDate!==undefined?{expirationDate:d.expirationDate}:{}),
         ...(d.partitionKey?{partitionKey:d.partitionKey}:{})};
       state.records=state.records.filter(old=>!(old.name===row.name&&
         old.domain===row.domain&&old.path===row.path&&
@@ -272,3 +278,147 @@ test('R9 revocation after native effect returns outcome unknown and never perfor
   assert.equal(f.state.native.filter(x=>x==='set').length,1);
   assert(f.state.records.some(x=>x.name==='changed'));
 });
+
+test('R9 set verifies the exact native identity with getAll despite an earlier same-name domain peer',async()=>{
+  const f=fixture();
+  f.state.records.unshift({name:'saved',value:'SAME_VALUE',domain:'.shop.example.test',path:'/account',
+    storeId:'0',hostOnly:false,secure:true,httpOnly:true,sameSite:'strict',session:true});
+  f.api.cookies.get=()=>{throw new Error('Single-cookie selection is not an exact write readback');};
+  const result=await f.run('set',{name:'saved',value:'SAME_VALUE',path:'/account',secure:true,
+    httpOnly:true,sameSite:'strict'});
+  assert.equal(result.verified,true);
+  assert.equal(result.cookie.domain,'shop.example.test');
+  assert.equal(result.cookie.hostOnly,true);
+  assert.equal(result.cookie.path,'/account');
+  assert.equal(result.cookie.storeId,'0');
+  assert.equal(result.cookie.valueRedacted,true);
+  assert(!JSON.stringify(result).includes('SAME_VALUE'));
+  assert.equal(f.state.native.filter(method=>method==='set').length,1);
+});
+
+test('R9 set rejects a missing exact target even when its same-value root sibling remains',async()=>{
+  const f=fixture(),set=f.api.cookies.set;
+  f.state.records.find(row=>row.name==='sid'&&row.path==='/').value='SAME_VALUE';
+  f.api.cookies.set=(details,callback)=>set(details,row=>{
+    f.state.records=f.state.records.filter(cookie=>cookie!==row);
+    callback(row);
+  });
+  await assert.rejects(f.run('set',{name:'sid',value:'SAME_VALUE',path:'/account',secure:true}),
+    reject('E_OUTCOME_UNKNOWN'));
+  assert.equal(f.state.native.filter(method=>method==='set').length,1);
+  assert(f.state.records.some(row=>row.name==='sid'&&row.path==='/'&&row.value==='SAME_VALUE'));
+});
+
+test('R9 set readback revocation fails closed with one write and no secret receipt',async()=>{
+  const f=fixture(),getAll=f.api.cookies.getAll;
+  f.api.cookies.getAll=(details,callback)=>getAll(details,rows=>{
+    f.state.allowed=false;callback(rows);
+  });
+  await assert.rejects(f.run('set',{name:'changed',value:'SECRET',path:'/',secure:true}),
+    reject('E_OUTCOME_UNKNOWN'));
+  assert.equal(f.state.native.filter(method=>method==='set').length,1);
+  assert(f.state.records.some(row=>row.name==='changed'));
+});
+
+test('R9 installed HTTP Partition supports exact set/remove and keeps Store, site, ancestor and grant checks',async()=>{
+  const f=fixture(),httpPartition={topLevelSite:'http://shop.example.test',hasCrossSiteAncestor:false};
+  const scope=f.grant({partitionKey:httpPartition});
+  const args={name:'http-partition',value:'SECRET',path:'/account',secure:true,storeId:'0',partitionKey:httpPartition};
+  assert.equal((await f.run('set',args,scope)).verified,true);
+  assert.equal((await f.run('getAll',{partitionKey:httpPartition},scope)).length,1);
+  for(const [patch,code] of [
+    [{storeId:'1'},'E_COOKIE_STORE'],
+    [{partitionKey:{...httpPartition,topLevelSite:'http://foreign.test'}},'E_COOKIE_PARTITION'],
+    [{partitionKey:{...httpPartition,hasCrossSiteAncestor:true}},'E_COOKIE_PARTITION']
+  ])await assert.rejects(f.run('set',{...args,...patch},scope),reject(code));
+  assert.equal(f.state.native.filter(method=>method==='set').length,1);
+  const removed=await f.run('remove',{name:args.name,domain:'shop.example.test',path:'/account',
+    storeId:'0',partitionKey:httpPartition},scope);
+  assert.deepEqual(removed,{removed:true,verified:true});
+  assert(f.state.records.some(row=>row.name==='sid'&&row.path==='/account'&&!row.partitionKey));
+  f.state.allowed=false;
+  await assert.rejects(f.run('set',args,scope),reject('E_GRANT_REVOKED'));
+  assert.equal(f.state.native.filter(method=>method==='set').length,2);
+});
+
+test('R9 ifAbsent rejects an existing exact new name before native effect and preserves conflict code',async()=>{
+  const f=fixture(),prior={name:'new-name',value:'EXISTING_LOGIN',domain:'.shop.example.test',path:'/account',
+    storeId:'0',hostOnly:false,secure:true,httpOnly:true,sameSite:'lax',session:true};
+  f.state.records.push(prior);
+  const before=structuredClone(f.state.records);
+  await assert.rejects(f.run('set',{name:prior.name,value:'REPLACEMENT',path:prior.path,
+    secure:true,storeId:'0',ifAbsent:true}),reject('E_COOKIE_CONFLICT'));
+  assert.equal(f.state.native.includes('set'),false);
+  assert.equal(f.state.native.includes('remove'),false);
+  assert.deepEqual(f.state.records,before);
+});
+
+test('R9 ifAbsent allows and preserves same-name peers in other Paths, Stores and Partitions',async()=>{
+  const f=fixture(),common={name:'new-name',value:'PEER_SECRET',domain:'shop.example.test',
+    hostOnly:true,secure:true,httpOnly:true,sameSite:'lax',session:true};
+  const peers=[
+    {...common,path:'/',storeId:'0'},
+    {...common,path:'/account',storeId:'1'},
+    {...common,path:'/account',storeId:'0',partitionKey}
+  ],before=structuredClone(peers),set=f.api.cookies.set,writes=[];
+  f.state.records.push(...peers);
+  f.api.cookies.set=(details,callback)=>{writes.push(details);return set(details,callback);};
+  const saved=await f.run('set',{name:common.name,value:'NEW_VALUE',path:'/account',
+    secure:true,storeId:'0',ifAbsent:true});
+  assert.equal(saved.verified,true);
+  assert.equal(saved.cookie.path,'/account');
+  assert.equal(saved.cookie.storeId,'0');
+  assert.equal(saved.cookie.partitionKey,undefined);
+  assert.equal(writes.length,1);
+  assert.equal(Object.hasOwn(writes[0],'ifAbsent'),false,'Host consumes ifAbsent before Driver schema validation');
+  assert.deepEqual(peers,before);
+  assert(peers.every(peer=>f.state.records.includes(peer)));
+});
+
+test('R9 set verifies persistent domain-cookie attributes and returns only redacted metadata',async()=>{
+  const f=fixture(),expirationDate=Math.floor(Date.now()/1000)+3600;
+  const saved=await f.run('set',{name:'persistent',value:'SECRET',domain:'.shop.example.test',path:'/account',
+    secure:true,httpOnly:true,sameSite:'strict',expirationDate,storeId:'0',partitionKey});
+  assert.equal(saved.verified,true);
+  assert.equal(saved.cookie.domain,'.shop.example.test');
+  assert.equal(saved.cookie.hostOnly,false);
+  assert.equal(saved.cookie.secure,true);
+  assert.equal(saved.cookie.httpOnly,true);
+  assert.equal(saved.cookie.sameSite,'strict');
+  assert.equal(saved.cookie.session,false);
+  assert.equal(saved.cookie.expirationDate,expirationDate);
+  assert.deepEqual(saved.cookie.partitionKey,partitionKey);
+  assert.equal(saved.cookie.valueRedacted,true);
+  assert.equal(Object.hasOwn(saved.cookie,'value'),false);
+});
+
+
+test('R9 revocation during no-overwrite scan prevents native writes',async()=>{
+  const f=fixture();f.state.revokeOnGetAll=true;
+  const before=structuredClone(f.state.records);
+  await assert.rejects(f.run('set',{name:'fictional-revoked-new',value:'never-write',
+    path:'/account',secure:true,storeId:'0',ifAbsent:true}),reject('E_GRANT_REVOKED'));
+  assert.equal(f.state.native.filter(method=>method==='set').length,0);
+  assert.deepEqual(f.state.records,before);
+});
+
+for(const path of ['/a/../b','/account?x']){
+  test('R9 ifAbsent rejects an existing literal Cookie Path '+path+' before any write',async()=>{
+    const f=fixture();
+    f.state.records.push({name:'literal-path',value:'ORIGINAL',domain:'shop.example.test',
+      path,storeId:'0',hostOnly:true,secure:true,httpOnly:false,sameSite:'unspecified',session:true});
+    const before=structuredClone(f.state.records);
+    await assert.rejects(f.run('set',{name:'literal-path',value:'REPLACEMENT',path,
+      secure:true,storeId:'0',ifAbsent:true}),reject('E_COOKIE_CONFLICT'));
+    assert.equal(f.state.native.includes('set'),false);
+    assert.deepEqual(f.state.records,before);
+  });
+  test('R9 ifAbsent creates and verifies a new literal Cookie Path '+path,async()=>{
+    const f=fixture();
+    const result=await f.run('set',{name:'literal-path',value:'NEW_VALUE',path,
+      secure:true,storeId:'0',ifAbsent:true});
+    assert.equal(result.verified,true);
+    assert.equal(result.cookie.path,path);
+    assert.equal(f.state.native.filter(method=>method==='set').length,1);
+  });
+}

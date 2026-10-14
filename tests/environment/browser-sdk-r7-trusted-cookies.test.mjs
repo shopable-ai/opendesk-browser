@@ -42,7 +42,9 @@ function fixture(){
         const row={name:details.name,value:details.value,domain:details.domain??'shop.example.test',
           path:details.path??'/',storeId:details.storeId??'0',
           hostOnly:!details.domain,secure:details.secure??false,httpOnly:details.httpOnly??false,
-          sameSite:details.sameSite??'unspecified',...(details.partitionKey?{partitionKey:details.partitionKey}:{})};
+          sameSite:details.sameSite??'unspecified',session:details.expirationDate===undefined,
+          ...(details.expirationDate===undefined?{}:{expirationDate:details.expirationDate}),
+          ...(details.partitionKey?{partitionKey:details.partitionKey}:{})};
         state.cookies=state.cookies.filter(x=>!(x.name===row.name&&x.domain===row.domain&&
           x.path===row.path&&x.storeId===row.storeId&&
           JSON.stringify(x.partitionKey??null)===JSON.stringify(row.partitionKey??null)));

@@ -20,8 +20,11 @@ function fixture(){
       (d.domain?row.domain===d.domain:new URL(d.url).hostname===row.domain&&
         new URL(d.url).pathname.startsWith(row.path))));},
     set(d,cb){calls.push('set');const value={name:d.name,value:d.value,
-      domain:d.domain??new URL(d.url).hostname,path:d.path??'/',hostOnly:!d.domain,
-      storeId:d.storeId??'0',secure:d.secure??false,
+      domain:d.domain??new URL(d.url).hostname,
+      path:d.path??(new URL(d.url).pathname.slice(0,new URL(d.url).pathname.lastIndexOf('/'))||'/'),hostOnly:!d.domain,
+        storeId:d.storeId??'0',secure:d.secure??false,httpOnly:d.httpOnly??false,
+        sameSite:d.sameSite??'unspecified',session:d.expirationDate===undefined,
+        ...(d.expirationDate!==undefined?{expirationDate:d.expirationDate}:{}),
       ...(d.partitionKey?{partitionKey:d.partitionKey}:{})};
       const same=row=>row.name===value.name&&row.domain===value.domain&&row.path===value.path&&
         row.storeId===value.storeId&&JSON.stringify(row.partitionKey??null)===JSON.stringify(value.partitionKey??null);
@@ -139,4 +142,125 @@ test('R8 clearSite does not misreport surviving same-name paths as failed deleti
   assert.equal(result.removed,2);
   assert.equal(result.remaining,0);
   assert.equal(f.records.length,0);
+});
+
+const writePartition={topLevelSite:'https://example.org',hasCrossSiteAncestor:false};
+const verifiedWrite={url,name:'sid',value:'SAME_VALUE',path:'/account',storeId:'0',
+  partitionKey:writePartition,secure:true,httpOnly:true,sameSite:'strict',expirationDate:2000000000};
+const corruptWrites=[
+  ['Name',{name:'other'}],
+  ['Domain',{domain:'foreign.org'}],
+  ['Path',{path:'/'}],
+  ['Store',{storeId:'other'}],
+  ['Partition site',{partitionKey:{...writePartition,topLevelSite:'https://foreign.org'}}],
+  ['Partition ancestor',{partitionKey:{...writePartition,hasCrossSiteAncestor:true}}],
+  ['HostOnly',{hostOnly:false}],
+  ['Value',{value:'DIFFERENT_VALUE'}],
+  ['Secure',{secure:false}],
+  ['HttpOnly',{httpOnly:false}],
+  ['SameSite',{sameSite:'lax'}],
+  ['Session',{session:true}],
+  ['Expiry',{expirationDate:2000000001}]
+];
+for(const phase of ['receipt','readback'])for(const [label,patch] of corruptWrites)
+test('R8 set rejects mismatched '+phase+' '+label+' without retry',async()=>{
+  const f=fixture();
+  if(phase==='receipt'){
+    const set=f.api.cookies.set;
+    f.api.cookies.set=(details,callback)=>set(details,row=>callback({...row,...patch}));
+  }else{
+    const getAll=f.api.cookies.getAll;
+    f.api.cookies.getAll=(details,callback)=>getAll(details,rows=>callback(rows.map(row=>({...row,...patch}))));
+  }
+  await assert.rejects(f.service.set(verifiedWrite,context),reject('E_OUTCOME_UNKNOWN'));
+  assert.equal(f.calls.filter(method=>method==='set').length,1);
+  assert.equal(f.calls.includes('remove'),false);
+});
+
+test('R8 set cannot verify a vanished target using its same-value shorter Path sibling',async()=>{
+  const f=fixture(),set=f.api.cookies.set;
+  f.records.push({name:'sid',value:'SAME_VALUE',domain:'example.org',path:'/',storeId:'0',
+    hostOnly:true,secure:true,httpOnly:true,sameSite:'strict',session:false,
+    expirationDate:2000000000,partitionKey:writePartition});
+  f.api.cookies.set=(details,callback)=>set(details,row=>{
+    f.records.splice(f.records.indexOf(row),1);
+    callback(row);
+  });
+  await assert.rejects(f.service.set(verifiedWrite,context),reject('E_OUTCOME_UNKNOWN'));
+  assert.equal(f.records.length,1);
+  assert.equal(f.records[0].path,'/');
+  assert.equal(f.calls.filter(method=>method==='set').length,1);
+});
+
+for(const [label,reply] of [
+  ['missing',()=>[]],['duplicate',rows=>[rows[0],{...rows[0]}]],
+  ['invalid',()=>null],['oversized',rows=>Array.from({length:10001},()=>rows[0])]
+])test('R8 set rejects '+label+' exact readback without retry',async()=>{
+  const f=fixture(),getAll=f.api.cookies.getAll;
+  f.api.cookies.getAll=(details,callback)=>getAll(details,rows=>callback(reply(rows)));
+  await assert.rejects(f.service.set(verifiedWrite,context),reject('E_OUTCOME_UNKNOWN'));
+  assert.equal(f.calls.filter(method=>method==='set').length,1);
+});
+
+test('R8 set fails before writing when exact getAll readback is unavailable',async()=>{
+  const f=fixture();delete f.api.cookies.getAll;
+  await assert.rejects(f.service.set(verifiedWrite,context),reject('E_CHROME_UNSUPPORTED'));
+  assert.equal(f.calls.includes('set'),false);
+});
+
+test('R8 HTTP schemeful Partition permits authorized HTTPS writes and exact reads/removal',async()=>{
+  const f=fixture(),partitionKey={topLevelSite:'http://example.org',hasCrossSiteAncestor:false};
+  const args={url,name:'http-partition',value:'SECRET',path:'/',secure:true,storeId:'0',partitionKey};
+  assert.equal((await f.service.set(args,context)).verified,true);
+  assert.equal((await f.service.get({url,name:args.name,storeId:'0',partitionKey},context)).valueRedacted,true);
+  assert.equal((await f.service.getAll({url,storeId:'0',partitionKey},context)).count,1);
+  assert.deepEqual(await f.service.remove({url,name:args.name,storeId:'0',partitionKey},context),
+    {removed:true,verified:true});
+  f.revoke();
+  await assert.rejects(f.service.set(args,context),reject('E_PERMISSION'));
+  assert.equal(f.calls.filter(method=>method==='set').length,2,'Only one create and one expiration');
+});
+
+test('R8 HTTP Partition still rejects non-origin identifiers before any write',async()=>{
+  const f=fixture();
+  for(const topLevelSite of ['http://example.org/path','http://example.org/','http://example.org?x=1',
+    'ftp://example.org','http://user:secret@example.org'])
+    await assert.rejects(f.service.set({...verifiedWrite,partitionKey:{topLevelSite}},context));
+  assert.equal(f.calls.includes('set'),false);
+});
+
+test('R8 set binds omitted Path and Store to native defaults and accepts missing/false partition ancestor',async()=>{
+  const f=fixture(),set=f.api.cookies.set;
+  f.api.cookies.set=(details,callback)=>set(details,row=>{
+    row.partitionKey={topLevelSite:row.partitionKey.topLevelSite};callback(row);
+  });
+  const saved=await f.service.set({url:'https://example.org/account/settings',name:'defaults',
+    value:'SECRET',partitionKey:writePartition},context);
+  assert.equal(saved.verified,true);
+  assert.equal(saved.cookie.path,'/account');
+  assert.equal(saved.cookie.storeId,'0');
+  assert.equal(saved.cookie.hostOnly,true);
+  assert.equal(saved.cookie.session,true);
+  assert.equal(f.calls.includes('get'),false);
+  assert.equal(f.calls.filter(method=>method==='set').length,1);
+});
+
+test('R8 native getAll failure after set returns outcome unknown without replay',async()=>{
+  const f=fixture();
+  f.api.cookies.getAll=(_details,callback)=>{
+    f.calls.push('getAll');f.api.runtime.lastError={message:'Native readback unavailable'};
+    callback(undefined);f.api.runtime.lastError=null;
+  };
+  await assert.rejects(f.service.set(verifiedWrite,context),reject('E_OUTCOME_UNKNOWN'));
+  assert.equal(f.calls.filter(method=>method==='set').length,1);
+  assert.equal(f.records.length,1);
+});
+
+for(const path of ['/a/../b','/account?x'])
+test('R8 exact write readback preserves literal Cookie Path '+path,async()=>{
+  const f=fixture();
+  const saved=await f.service.set({url,name:'literal-path',value:'SECRET',path,storeId:'0'},context);
+  assert.equal(saved.verified,true);
+  assert.equal(saved.cookie.path,path);
+  assert.equal(f.calls.filter(method=>method==='set').length,1);
 });

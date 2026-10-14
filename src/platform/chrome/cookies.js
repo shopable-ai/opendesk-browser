@@ -87,7 +87,7 @@ export function createCookieService({api = globalThis.chrome, authorize, resolve
       fields(args.partitionKey,['topLevelSite','hasCrossSiteAncestor'],['topLevelSite']);
       const p=args.partitionKey;
       if(typeof p.topLevelSite!=='string'||p.topLevelSite.length>256||
-         !p.topLevelSite.startsWith('https://')||new URL(httpUrl(p.topLevelSite)).origin!==p.topLevelSite||
+         new URL(httpUrl(p.topLevelSite)).origin!==p.topLevelSite||
          (p.hasCrossSiteAncestor!==undefined&&typeof p.hasCrossSiteAncestor!=='boolean'))
         throw fail('E_SCHEMA','Invalid exact partition site');
       out.partitionKey={topLevelSite:p.topLevelSite,
@@ -181,18 +181,31 @@ export function createCookieService({api = globalThis.chrome, authorize, resolve
   }
   async function set(args,context){
     const details=scoped(args,'set');await verified(details.url,'set','pre',context);
-    if(typeof api?.cookies?.set!=='function'||typeof api?.cookies?.get!=='function')throw fail('E_CHROME_UNSUPPORTED');
+    if(typeof api?.cookies?.set!=='function'||typeof api?.cookies?.getAll!=='function')throw fail('E_CHROME_UNSUPPORTED');
     try{
       const result=await native('set',details);
-      if(!result||!within(result,details.url))throw Error('Unconfirmed Cookie set');
+      const lookup=new URL(details.url),slash=lookup.pathname.lastIndexOf('/');
+      const expected={name:details.name,domain:lookup.hostname,
+        path:details.path??(slash>0?lookup.pathname.slice(0,slash):'/'),
+        storeId:details.storeId??result?.storeId,partitionKey:details.partitionKey};
+      const matchesWrite=cookie=>Boolean(cookie&&typeof cookie.domain==='string'&&
+        typeof cookie.storeId==='string'&&cookie.storeId.length>0&&
+        sameIdentity({...cookie,domain:cookie.domain.replace(/^\./,'').toLowerCase()},expected)&&
+        cookie.hostOnly===(details.domain===undefined)&&cookie.value===details.value&&
+        cookie.secure===(details.secure??false)&&cookie.httpOnly===(details.httpOnly??false)&&
+        cookie.sameSite===(details.sameSite??'unspecified')&&
+        cookie.session===(details.expirationDate===undefined)&&cookie.expirationDate===details.expirationDate);
+      if(!matchesWrite(result))throw Error('Unconfirmed exact Cookie set');
       await verified(details.url,'set','post',context);
-      const lookup=new URL(details.url);
-      if(details.path)lookup.pathname=details.path;
-      lookup.search='';lookup.hash='';
-      const key={url:lookup.href,name:details.name,...(details.storeId?{storeId:details.storeId}:{}),
-        ...(details.partitionKey?{partitionKey:details.partitionKey}:{})};
-      const check=await native('get',key);
-      if(!check||check.value!==details.value||!within(check,details.url))throw Error('Cookie readback mismatch');
+      // A single get can select a same-value sibling. Bind getAll to the
+      // complete native receipt without URL-normalizing its literal Path.
+      const rows=await native('getAll',{domain:result.domain.replace(/^\./,'').toLowerCase(),
+        name:result.name,path:result.path,storeId:result.storeId,
+        ...(result.partitionKey?{partitionKey:result.partitionKey}:{})});
+      if(!Array.isArray(rows)||rows.length>10000)throw Error('Invalid exact Cookie readback');
+      const matches=rows.filter(row=>sameIdentity(row,result));
+      const check=matches[0];
+      if(matches.length!==1||!matchesWrite(check))throw Error('Cookie readback mismatch');
       await verified(details.url,'set','post',context);
       return {saved:true,verified:true,cookie:redact(check)};
     }catch{throw fail('E_OUTCOME_UNKNOWN','Cookie write effect uncertain; do not automatically retry');}

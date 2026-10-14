@@ -254,7 +254,18 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
     const key={storeId,...(args.partitionKey?{partitionKey:args.partitionKey}:{})};
     const check=(phase,url=args.url)=>authorize({operation:op,phase,url,storeId,
       partitionKey:args.partitionKey??null,includeValues:args.includeValues===true});
-    const context={cookieTool:{authorize:(url,_method,phase)=>check(phase,url)}};
+    const context={cookieTool:{authorize:async(url,_method,phase)=>{
+      await check(phase,url);
+      if(op==='browser.cookies.set'&&phase==='pre'&&args.ifAbsent===true){
+        const domain=(args.domain??new URL(args.url).hostname).replace(/^\./,'').toLowerCase();
+        // Cookie Paths are literal identities; URL.pathname would normalize them.
+        const rows=await scan({domain,name:args.name,path:args.path,...key});
+        if(rows.some(row=>row.name===args.name&&row.path===args.path&&
+          row.domain.replace(/^\./,'').toLowerCase()===domain))
+          throw error('E_COOKIE_CONFLICT','相同域名、路径、存储区和分区的新名称已存在；未覆盖该 Cookie');
+        await check('pre',url);
+      }
+    }}};
     const permitted=row=>row.storeId===storeId&&samePartition(row.partitionKey??null,args.partitionKey??null);
     const redact=(row,values=false)=>{
       if(!row)return null;
@@ -289,7 +300,8 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
       if(!partitionKey)throw error('E_COOKIE_PARTITION');
       result={partitionKey};
     }else if(op==='browser.cookies.set'){
-      result=await existing.set({...args,storeId},context);
+      const {ifAbsent,...nativeArgs}=args;
+      result=await existing.set({...nativeArgs,storeId},context);
     }else if(op==='browser.cookies.remove'){
       const target=new URL(args.url);target.pathname=args.path;target.search='';target.hash='';
       await check('pre',target.href);

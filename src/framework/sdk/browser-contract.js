@@ -318,7 +318,7 @@ export function normalizeBrowserOperation(operation,args={}){
       const sessionOp=tail.startsWith('observe.')&&tail!=='observe.start';
       const allowed=sessionOp?['url','sessionRef','cursor','limit']:
         tail==='observe.start'?['url','durationMs','maxEvents']:
-        tail==='set'?['url','name','value','domain','path','secure','httpOnly','sameSite','expirationDate','storeId','partitionKey']:
+        tail==='set'?['url','name','value','domain','path','secure','httpOnly','sameSite','expirationDate','storeId','partitionKey','ifAbsent']:
         tail==='remove'?['url','name','domain','path','storeId','partitionKey']:
         tail==='clearSite'?['url','storeId','partitionKey','preview','previewRef','expectedCount','maxCookies']:
         tail==='get'?['url','name','domain','path','storeId','partitionKey','includeValues']:
@@ -345,6 +345,9 @@ export function normalizeBrowserOperation(operation,args={}){
       }
       if(args.includeValues!==undefined&&typeof args.includeValues!=='boolean')throw fail('E_SCHEMA');
       if(tail==='set'){
+        if(args.ifAbsent!==undefined&&typeof args.ifAbsent!=='boolean'||
+           args.ifAbsent===true&&args.path===undefined)
+          throw fail('E_SCHEMA','ifAbsent requires an explicit Cookie path');
         if(typeof args.value!=='string'||new TextEncoder().encode(args.value).length>4096)
           throw fail('E_SCHEMA','Invalid Cookie value');
         if(args.domain!==undefined&&(typeof args.domain!=='string'||args.domain.replace(/^\./,'').toLowerCase()!==new URL(url).hostname))
