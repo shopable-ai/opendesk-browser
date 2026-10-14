@@ -38,8 +38,8 @@ test('all R2 sandbox sources remain Classic-only SDK consumers, without Chrome/p
 
 test('invalid or missing tree is an error, not a forged empty bookmark response',async()=>{
   const ctx=await sandbox(),model=ctx.BookmarkR2Model;
-  assert.throws(()=>model.bookmarkTree([]),/无效/);
-  assert.throws(()=>model.bookmarkTree(null),/无效/);
+  assert.throws(()=>model.bookmarkTree([]),/未返回有效/);
+  assert.throws(()=>model.bookmarkTree(null),/未返回有效/);
   assert.throws(()=>model.asHttpUrl('javascript:alert(1)'),/HTTP/);
 });
 
