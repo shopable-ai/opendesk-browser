@@ -2,6 +2,8 @@
 
 更新：2026-10-11，R15.9 交接。实际源码与**规划中的文件**必须分开：部分库已接线但尚未通过最新同候选工程/Chrome 验收，不能因文件存在就视为正式可交付。总需求见 [公共预装合同](../../docs/architecture/browser-framework/public-preinstalled-libraries.contract.zh-CN.md)。
 
+> **按来源选依赖，而不是“见到 `src/libs` 就 import”**：本地多文件混合用法（HTTPS ESM / npm ESM / 相对 ESM **三条真正的 import**，再加项目声明的**按需预置库**与运行器的**默认库**）见[五种依赖使用合同](../../docs/framework/universal-dependency-runtime-usage-contract.zh-CN.md)。当前 Catalog 12 项中默认 3 项、其余 9 项按需且按世界授权；React/Vue 另归 Page Frameworks。扩展构建时打包 ≠ 运行时自动加载 ≠ 同一 JS 实例，不能靠增加 `@opendesk/ui` 挂载 UI 来证明纯 Import 正确。混合五来源仍待同包 Chrome 实测。
+
 ## 首先确认用户代码入口（2026-10-12 补充的不可回退需求）
 
 用户**不需要**把内置变量通过 `main` 参数传入。Controller 多文件 ESM 直接写：
@@ -181,7 +183,7 @@ async function main() {
 
 受浏览器用户激活状态限制，调用返回不能视为文件已保存；拒绝 URL 和路径型文件名。不能把 Page 原生保存误称为扩展 downloads API。
 
-这是真实上游包的受控兼容子集，不是将 WebCrypto 冒充 CryptoJS。上游已停止维护；新加密设计优先 WebCrypto，不默认加载或提供网站 MAIN 特权。现有 parser **每个程序最多允许一个可选 ID**；尚未实现多个可选库同时声明和自动依赖闭包，不能声称全部组合已经可用。
+这是真实上游包的受控兼容子集，不是将 WebCrypto 冒充 CryptoJS。上游已停止维护；新加密设计优先 WebCrypto，不默认加载或提供网站 MAIN 特权。当前 Page 已支持**最多六条可选库声明**（同名去重、顺序受控，禁止 React+Vue、与 @require 混用）；这不是任意上游模块的自动依赖闭包，也不能把未经当次 Chrome 验证的组合称为已交付。
 
 ```js
 async function main() {

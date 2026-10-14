@@ -283,8 +283,13 @@ test('R2.6 unsaved editor Back/cancel must review changes while task manager pre
   assert.match(ui,/function navigateBack\(\)/);
   assert.match(ui,/bind\('schedule-back','click',navigateBack\)/);
   assert.match(ui,/bind\('schedule-cancel','click',\(\)=>requestLeaveForm/);
-  assert.match(ui,/bind\('schedule-manager-back','click',leaveManager\)/);
   assert.match(ui,/function leaveManager\(\)\{\s*const destination=managerReturn;\s*show\(destination\)/);
+  assert.match(ui,/bind\('schedule-manager-back','click',leaveManager\)/,
+    'the manager Back still uses the established navigation action');
+  assert.match(ui,/if\(activeView==='manager'\)\{leaveManager\(\);return;\}/,
+    'the visible header Back uses the same focus-restoring action');
+  assert.match(ui,/if\(destination==='form'\)get\('schedule-manage-tasks'\)\.focus\(\{preventScroll:true\}\)/,
+    'returning to an unsaved editor restores focus to the original management entry');
   assert.match(css,/#schedule-discard-confirm\{display:grid/);
   assert.ok(css.includes(':root[data-opendesk-surface="scheduled-runner"]:has(#schedule-runner-view:not([hidden])) .schedule-header-heading{display:none}'));
   assert.equal(css.includes(':root[data-opendesk-surface="scheduled-runner"] .schedule-header:has(#schedule-stop[hidden]){display:none}'),false,
@@ -552,7 +557,7 @@ test('R3 index vs detail navigation and fixed schedule authorization boundaries'
   assert.match(source,/function openDetail\(scheduleId\)/);
   assert.match(source,/function leaveDetail\(\)/);
   assert.match(source,/scroller.scrollTop=listScrollTop/);
-  assert.match(source,/scroller.scrollTop=view==='list'&&\['detail','form'\].includes\(prior\)\?listScrollTop:0/);
+  assert.match(source,/scroller.scrollTop=view==='list'&&\['detail','form'\].includes\(prior\)\?listScrollTop:\s*view==='form'&&prior==='manager'&&managerReturn==='form'\?formScrollTop:0/);
   assert.match(source,/function focusReturnedView\(view,scheduleId=editing\?\.scheduleId\)/);
   assert.match(source,/focus\(\{preventScroll:true\}\)/);
   assert.match(source,/formReturnView=activeView==='detail'\?'detail'/);

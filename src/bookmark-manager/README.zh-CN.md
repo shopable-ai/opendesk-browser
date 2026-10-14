@@ -4,19 +4,19 @@
 
 ## 第一版用户操作
 
-首次打开显示单一「书签管理」标题及必要的 Chrome `bookmarks` 授权按钮。授权后显示**文件夹与书签混合的一棵文件树**，上方统一搜索和一行「☆ 收藏当前页 / ＋书签 / ＋文件夹」。文件夹可展开、折叠、创建子文件夹、重命名、移动、删除；书签可查看、创建、编辑、移动、打开和删除。删除文件夹会再次确认并核对其真实子树，避免其他窗口刚新增的书签被一起删除。
+首次打开显示单一「书签管理」标题及必要的 Chrome `bookmarks` 授权按钮。授权后显示**文件夹与书签混合的一棵文件树**，上方统一搜索和一行「☆ 收藏当前页 / ＋书签 / ＋文件夹」。文件夹可展开、折叠、创建子文件夹、重命名、移动、删除；书签可查看、创建、编辑、移动、打开和删除。超过 200 个可见结果时出现「显示更多」，每次增加 200 项，完整搜索不截断后面的书签。删除文件夹会再次确认并核对其真实子树，避免其他窗口刚新增的书签被一起删除。
 
-书签数据直接来自当前 Chrome Profile 的 `chrome.bookmarks`，不会被自动上传或另存成 OpenDesk 书签镜像。Chrome 系统根目录和受管理节点只读。创建/编辑网址只接受普通 HTTP(S)；已存在的其他方案书签保持可见，修改标题时不主动改写其 URL。权限被拒绝或撤销时失败关闭，不伪装成空树。
+书签数据直接来自当前 Chrome Profile 的 `chrome.bookmarks`，不会被自动上传或另存成 OpenDesk 书签镜像。Chrome 系统根目录和受管理节点只读。创建/编辑网址只接受普通 HTTP(S)；已存在的其他方案书签保持可见，修改标题时不主动改写其 URL。权限被拒绝或撤销时失败关闭，不伪装成空树；外部授权/撤权可刷新，授权状态未确认时显示检查提示，读取失败有明确重试入口。
 
 ## 核心文件
 
 - `model.js`：Chrome 树、根目录/管理节点判断、父子约束、URL 校验和节点快照。
-- `service.js`：唯一 Chrome bookmarks 适配；读写前核对权限、并发节点变化及删除子树清单；订阅/解绑官方书签事件。
+- `service.js`：唯一 Chrome bookmarks 适配；读写前核对权限、并发节点变化及删除子树清单；订阅/解绑官方书签及精确的 `bookmarks` 可选权限变更事件。
 - `trusted-ui.js`：可信扩展 UI、首次授权/状态/交互。仅使用现有宿主，不运行已安装工具代码。
 - `../ui/bookmark-manager.css`：只作用于工具自身的紧凑排版。
 - `../ui/tool.html` 与 `../ui/sidebar-tools.js`：入口及原有工具 Tab 的最小接线。
 - `../../prototypes/sidebar/bookmark-manager-preview.html`：与主功能区一棵树的交互原型，不接真实书签。
-- `../../tests/environment/bookmark-manager-r1.test.mjs`：树模型、权限、CRUD、撤权、过期写入、非空目录删除的定向 Node 测试。
+- `../../tests/environment/bookmark-manager-r1.test.mjs`：树模型、权限、CRUD、撤权、过期写入、非空目录删除、分页完整性、可信 UI 权限生命周期的定向 Node 测试。
 
 ## 开发验收（不可混同）
 
@@ -47,3 +47,8 @@ node scripts/verify-package.mjs dist/production
 智能清理、自动阅读/访问统计、按周复习、AI 知识树、主动推荐、社交与服务交易都**尚未交付**。不得因为这些设想扩大 P0 的 `history` / 网络权限、自动上传个人收藏，或把规划项伪装成已实现功能。涉及广告的路线必须遵守 Chrome Web Store 政策：不得将扩展获得的私有浏览/收藏数据及其派生画像用于个性化广告。
 
 
+
+## R1.3 验收分级与 CI
+
+- GitHub Actions：`.github/workflows/bookmark-manager-r13.yml` 只对书签源码 / UI CSS / 定向测试变动触发；执行三份定向测试、`npm run check`、`npm run build` 和生产包校验。Actions 的 QUEUED/IN_PROGRESS 不代表 PASS，必须核对同一 SHA 的结论和日志。
+- **原生权限弹窗、真实 Chrome Profile 读写、浏览器多窗口同步、非空目录竞态、原生 Side Panel 320/360/420px 和 200% 缩放均仍需 Mac Chrome 实测。** Mock/CI 编译不能代替这些证据。

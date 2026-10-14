@@ -1,0 +1,29 @@
+{
+  "name": "@opendesk-examples/mixed-import-page",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Pinned mixed HTTPS/npm/relative ESM for page",
+  "dependencies": {
+    "lodash-es": "4.17.21"
+  },
+  "opendesk": {
+    "format": "opendesk.project.v1",
+    "id": "sample.mixed-import-page",
+    "runtimeKind": "page-userscript",
+    "sourceFormat": "esm",
+    "entry": "src/main.js",
+    "pageRules": {
+      "matches": [
+        "http://127.0.0.1/*"
+      ],
+      "excludeMatches": [],
+      "runAt": "document_idle",
+      "allFrames": false,
+      "world": "USER_SCRIPT"
+    },
+    "libraries": [
+      "query-string"
+    ]
+  }
+}

@@ -2,6 +2,8 @@
 
 **权威使用合同｜2026-10-12｜OpenDesk Browser。** 本文用于 Sidebar AI 生成代码、源码 Demo、开发文档和验收任务；`src/libs/runtime-contract.js` / `src/libs/catalog.js` 仍是**实际库的 ID、世界、版本和 API** 权威，本文不建立第二份可执行注册表。**长期产品需求是普通用户零参数直接调用受控能力；它不是把所有库塞进 SW，也不是让每个世界共享同一组全局。**
 
+> **五种依赖使用方式（2026-10-14）**：在**本地多文件** Page/Controller 的同一 `main.js` 中，① 固定 HTTPS ESM `import`、② 精确 npm ESM `import`、③ 相对模块 `import` 是**三条真实静态导入**；④ `opendesk.libraries` 通过项目元数据**按需启用扩展内固定库（不写 import）**；⑤ `_`、`dayjs`、`OpenDeskLibs` 为对应执行世界**默认变量（无需 import）**。详细表格、纯计算示例及尚未验收的边界以[唯一依赖使用合同](../framework/universal-dependency-runtime-usage-contract.zh-CN.md#2026-10-14-统一使用合同五种依赖使用方式r794混合实测待执行)为准。单文件直接编辑器无相对目录上下文；其他执行世界不继承 Controller/Page 默认库。此五来源综合示例尚非 Chrome PASS。
+
 ## 1. 入口合同：推荐零参数，不把内部绑定参数当成用户 API
 
 **Controller 多文件 ESM（`runtimeKind: controller`，`sourceFormat: esm`）**：

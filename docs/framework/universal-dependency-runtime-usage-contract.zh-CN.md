@@ -8,6 +8,60 @@
 
 **统一资源、自动固定、权限独立、执行世界隔离。** 相同的 SHA 资产可以复用，程序/Revision/执行世界自动各自建立技术固定记录；**锁不是用户必须逐库点击“批准”的表单**。程序对网站和敏感能力的权限、安装/定时/云控授权各自有效，不能互相继承。不存在所有世界通用的 JS 全局变量。
 
+
+### 2026-10-14 统一使用合同：五种依赖使用方式（R7.9.4，混合实测待执行）
+
+**这不是“五条 `import` 语句”或五个互相独立的 Runtime。** 对本地多文件 Controller/Page ESM 项目，**同一个 `src/main.js` 至少使用三条真正的静态 `import`（HTTPS、npm、相对路径），另在同一次 `main()` 中调用一个按需预置库和一个默认内置库**。下面冻结的是目标验收分母；混合五来源的同候选 Chrome PASS 尚无当前证据，不能照搬 R7.7/R7.8 单库 PASS。
+
+| 机制 | 作者写法 / 真实函数 | 资产来源、准备与身份 | 使用范围 |
+| --- | --- | --- | --- |
+| **① 固定 HTTPS ESM** | `import max from 'https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js'`，再调用 `max([2,5,3])` | 现有远程模块审阅、固定 URL + 实际内容 SHA、闭包锁和缓存；本地项目首次经 `lock-program-remote.mjs` 合法准备，日常 `dev.run` 不暗中联网补锁 | 获支持的 Page/Controller ESM 项目，不等于 Background 动态远程执行 |
+| **② 精确 npm ESM** | `import escape from 'lodash-es/escape.js'`，再调用 `escape('A & B')` | 项目 `dependencies` 中精确 `lodash-es:4.17.21`、自己的 `package-lock.json` 和已安装模块；实际消费模块须进入构建图 | 本地多文件项目；不是 `src/libs` 的预置别名 |
+| **③ 相对目录 ESM** | `import {getScores} from './lib/scores.js'`，调用 `getScores()` | 已授权的项目目录、真实 `.js/.mjs` 模块、文件身份和源码 SHA，由现有项目 Resolver/Builder 读取 | 多文件项目；普通单文件草稿没有文件目录上下文，不假装支持 |
+| **④ 扩展内已打包但按需启用** | **不写 `import`**：Page `opendesk.libraries: ["query-string"]` → `queryString.parse(...)`；Controller `["axios"]` → `axios.getUri(...)` | 唯一 `src/libs/runtime-contract.js` Catalog、扩展固定资源、manifest 版本/ABI/SHA；声明后在获准世界加载，不需要再从 URL/npm 下载同库 | Page 当前支持可选库声明（最多六项，冲突组合按合同拒绝）；Controller 当前只允许 Axios |
+| **⑤ 默认预装运行变量** | **不写 `import`、不用显式声明**：`_.words(...)`、`dayjs(...)`、`OpenDeskLibs.myUtils.upper(...)` | `src/libs/loader.js` 在 Controller/Page 启动对应程序前准备默认固定资源 | 仅 Controller Worker 和 Page USER_SCRIPT；不是 SW、Content、Tool 或网站 MAIN 共享全局 |
+
+**实物与加载不能混为一谈。** 当前 Catalog 登记 12 项固定库：默认 3 项（Lodash 的受限 `_`、Day.js、myUtils），其余 9 项不是默认加载；React/Vue 的固定资源另属 `page-frameworks`。所谓“随扩展打包”不代表启动时已执行，更不代表每个运行世界都有同名全局。固定物理文件、SHA 缓存共享、拼接后的程序字节、JavaScript 实例共享是四种不同概念。任何当前数量/世界请以唯一 Catalog 和实际产物为准。
+
+#### P0：Page 的三个真实 import + 两种预置使用（纯计算，不引入 UI）
+
+以下是**待新增并经真实 Chrome 验收的项目入口模板**；不是已存在或通过测试的新项目，也不是普通单文件草稿。省略了必须由项目 Schema 验证的其他 `package.json` 字段。
+
+```js
+import max from 'https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js';
+import escape from 'lodash-es/escape.js';
+import {getScores} from './lib/scores.js';
+
+// ④ queryString 在 package.json 的 opendesk.libraries: ["query-string"] 中声明，按需加载。
+// ⑤ _ / dayjs 由 Page USER_SCRIPT 默认提供，无需 import 或重复声明。
+export default async function main() {
+  const scores = getScores();
+  return {
+    imports: {https: max(scores), npm: escape('A & B'), relative: scores},
+    packaged: queryString.parse('mode=demo').mode,
+    defaults: {
+      words: _.words('OpenDesk Browser').length,
+      date: dayjs('2026-10-14').format('YYYY-MM-DD')
+    },
+    pageTitle: document.title
+  };
+}
+```
+
+相对模块 `src/lib/scores.js`：`export function getScores() { return [2, 5, 3]; }`。Page 项目 `package.json` 须声明固定 `dependencies: {"lodash-es":"4.17.21"}`，在 `opendesk` 中声明 `libraries:["query-string"]`、完整的 `runtimeKind:"page-userscript"`、`sourceFormat:"esm"`、`entry:"src/main.js"` 与合法 `pageRules`。测试驱动断言 `https=5`、`npm="A &amp; B"`、`relative=[2,5,3]`、`packaged="demo"`、`words=2`、`date="2026-10-14"` 和真实页面标题。**不在作者源码中堆 `if/throw` 或为了 Import 额外创建 DOM、`createPageUI()`、React/Vue。**
+
+#### P0：Controller 使用同三种 import，另验证自己的按需与默认库
+
+复用同一固定 D3 URL、npm `lodash-es` 和相对 `getScores`；Controller 项目 `opendesk.libraries:["axios"]`，在原受控 Worker 内调用 `axios.getUri({baseURL:'https://example.org',url:'/demo',params:{mode:'demo'}})`（不发送网络请求）、默认 `dayjs()`，并执行 `await page.title()`。用同一次真实 `runId/resultId` 核对值和冻结源码。**Controller 不拥有 `document`，`@opendesk/ui` 只用于确有 Page UI 业务的项目，不拿 UI 挂载冒充 Import 证据。**
+
+#### 独立验证及禁止误判
+
+- **正向硬门槛**：Page 和 Controller **各自**同一 `main.js` 中有 **3 条真正的静态 import + 1 项按需预置库 + 默认库调用**，同一次真实运行五来源均调用成功。不得删掉 npm import，也不得拼接五份不同运行的输出冒充成功。
+- **测试放在哪里**：示例只 `return` 普通值；由现有 Node/Build/Chrome 驱动逐字段断言，同时保存 URL/npm lock、资源 SHA/ABI、模块图、project/sourceHash、Page receipt 或 Controller runId/resultId、候选 packageHash 与执行世界。
+- **负向**：缺/坏 URL SHA、npm lock 不匹配、相对文件缺失/导出错误、按需库未声明、Page-only 库放入 Controller、准备期间源发生变化、无网站/来源授权都必须安全失败。
+- **单文件和其他世界**：Developer 的直接草稿可验证其已支持的固定 URL/bare ESM，但**没有相对目录上下文**；Standard 需按现有 Classic 或本地项目预构建合同执行。Sidebar Tool 的 ESM 属本地构建后 Classic/IIFE 或 v2 固定多 Classic；受信 SW、Content、Side Panel Host 和扩展页面按需**构建时静态 import**，不动态执行用户下载的远程 JS。
+- **证据状态**：现有 R7.7/R7.8 Page/Controller/Tool 单库真实 Chrome 结果可按源码和包身份复用；**上面五来源混合实例尚待创建、锁定、运行**，当前状态 `DESIGN_READY / MIXED_CHROME_NOT_TESTED`。不能将本 Markdown 提升为 NODE、BUILD 或 NATIVE PASS。
+
 ### 2026-10-13 最新产品原则：自己的开发草稿零人工依赖审核
 
 | 场景 | 用户需要做什么 | 系统必须自动做什么 |

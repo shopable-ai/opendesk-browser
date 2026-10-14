@@ -1,6 +1,6 @@
 // Static, audited first-party tool UI. Untrusted tool packages never enter this DOM.
 import {createBookmarkService} from './service.js';
-import {asHttpUrl,isFolder,isDescendant} from './model.js';
+import {asHttpUrl,isFolder,isDescendant,projectBookmarkRows} from './model.js';
 import {requestOptionalPluginPermissions} from '../platform/chrome/permission-gate.js';
 
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -11,49 +11,43 @@ export function createBookmarkManager({api,doc,container,currentPageTarget}={}){
   if(!api?.permissions?.contains||!container?.addEventListener||!doc)return null;
   const service=createBookmarkService(api);
   const s={open:false,permission:false,tree:null,expanded:new Set(),folder:null,selection:null,
-    mode:'tree',menu:null,search:'',draft:null,error:'',info:'',busy:false,revision:0};
+    mode:'tree',menu:null,search:'',draft:null,error:'',info:'',busy:false,revision:0,visibleLimit:200,session:0,composing:false,checkingPermission:true};
   let unsub=null,disposed=false;
   const node=id=>s.tree?.byId.get(id);
   const folders=()=>s.tree?[...s.tree.byId.values()].filter(isFolder):[];
-  const defaultFolder=()=>folders().find(x=>x.folderType==='other'&&!x.unmodifiable)?.id||
-    folders().find(x=>x.folderType==='bookmarks-bar'&&!x.unmodifiable)?.id||
-    folders().find(x=>x.parentId&&s.tree.roots.has(x.parentId)&&!x.unmodifiable)?.id||null;
-  const selectedFolder=()=>node(s.folder)&&isFolder(node(s.folder))?s.folder:defaultFolder();
-  const foldersList=(value,exclude)=>folders().filter(x=>!s.tree.roots.has(x.id)&&
-    (!x.locked||s.tree.roots.has(x.parentId))&&(!exclude||!isDescendant(s.tree,x.id,exclude)))
+  const writableFolder=x=>Boolean(x&&isFolder(x)&&!s.tree.roots.has(x.id)&&
+    x.unmodifiable!=='managed'&&x.folderType!=='managed'&&
+    (!x.locked||s.tree.roots.has(x.parentId)));
+  const defaultFolder=()=>{
+    const allowed=folders().filter(writableFolder);
+    return allowed.find(x=>x.folderType==='other')?.id||
+      allowed.find(x=>x.folderType==='bookmarks-bar')?.id||allowed[0]?.id||null;
+  };
+  const selectedFolder=()=>writableFolder(node(s.folder))?s.folder:defaultFolder();
+  const foldersList=(value,exclude)=>folders().filter(x=>writableFolder(x)&&
+    (!exclude||!isDescendant(s.tree,x.id,exclude)))
     .map(x=>'<option value="'+esc(x.id)+'" '+(x.id===value?'selected':'')+'>'+esc(x.title||'未命名文件夹')+'</option>').join('');
   const toolbar=()=>'<div class="bm-toolbar"><button class="od-button bm-main" data-bm="save-current">☆ 收藏当前页</button>'+
     '<button class="od-button od-button--secondary" data-bm="new-bookmark">＋ 书签</button>'+
     '<button class="od-button od-button--secondary" data-bm="new-folder">＋ 文件夹</button></div>';
   const row=(item,level)=>{
     const folder=isFolder(item),opened=s.expanded.has(item.id),title=esc(item.title||'未命名');
-    return '<div class="bm-node '+(s.folder===item.id?'bm-selected':'')+'" style="padding-left:'+Math.min(level,12)*12+'px">'+
+    return '<div class="bm-node '+(s.folder===item.id?'bm-selected':'')+'" style="padding-left:'+Math.min(level,6)*11+'px">'+
       (folder?'<button class="bm-toggle" data-bm="toggle" data-id="'+esc(item.id)+'" aria-label="'+(opened?'折叠':'展开')+title+'" aria-expanded="'+opened+'">'+(opened?'▾':'▸')+'</button>':'<span class="bm-toggle bm-placeholder"></span>')+
-      '<button class="bm-entry" data-bm="'+(folder?'folder':'detail')+'" data-id="'+esc(item.id)+'"><span aria-hidden="true">'+(folder?'▱':'🔖')+'</span><span class="bm-ellipsis">'+title+'</span></button>'+
+      '<button class="bm-entry" data-bm="'+(folder?'folder':'detail')+'" data-id="'+esc(item.id)+'" title="'+title+'"><span aria-hidden="true">'+(folder?'▱':'🔖')+'</span><span class="bm-ellipsis">'+title+'</span></button>'+
       (folder?'<span class="bm-count">'+(s.tree.children.get(item.id)||[]).length+'</span>':'')+
-      (item.locked?'':'<button class="bm-more" data-bm="menu" data-id="'+esc(item.id)+'" aria-label="管理'+title+'">···</button>')+'</div>'+
+      (item.locked?'':'<button class="bm-more" data-bm="menu" data-id="'+esc(item.id)+'" aria-label="管理'+title+'" aria-expanded="'+(s.menu===item.id)+'">···</button>')+'</div>'+
       (s.menu===item.id?'<div class="bm-node-menu"><button data-bm="edit" data-id="'+esc(item.id)+'">编辑</button><button data-bm="move" data-id="'+esc(item.id)+'">移动</button><button data-bm="delete" data-id="'+esc(item.id)+'">删除</button></div>':'');
   };
   function tree(){
-    const rows=[],limit=200,term=s.search.toLocaleLowerCase().trim(),t=s.tree;
-    if(term){
-      for(const x of t.byId.values()){
-        if(rows.length>=limit)break;
-        if(!t.roots.has(x.id)&&((x.title||'')+' '+(x.url||'')).toLocaleLowerCase().includes(term))rows.push(row(x,0));
-      }
-    }else{
-      const visit=(x,level)=>{
-        if(rows.length>=limit)return;
-        if(!t.roots.has(x.id))rows.push(row(x,level));
-        if(!t.roots.has(x.id)&&!s.expanded.has(x.id))return;
-        for(const id of t.children.get(x.id)||[]){const child=node(id);if(child)visit(child,level+1)}
-      };
-      for(const id of t.roots){const root=node(id);if(root)visit(root,-1)}
-    }
+    const {rows,total}=projectBookmarkRows(s.tree,
+      {expanded:s.expanded,search:s.search,limit:s.visibleLimit});
     return '<label class="bm-search-label"><span class="visually-hidden">搜索书签或文件夹</span>'+
       '<input id="bookmark-manager-search" class="od-field bm-search" type="search" placeholder="搜索书签或文件夹…" value="'+esc(s.search)+'"></label>'+
-      toolbar()+'<div class="bm-tree" role="group" aria-label="Chrome 书签文件树">'+(rows.join('')||'<p class="bm-hint">没有匹配的书签或文件夹</p>')+'</div>'+
-      (rows.length>=limit?'<p class="bm-hint">仅显示前 200 项，请搜索或折叠文件夹。</p>':'');
+      toolbar()+'<div class="bm-tree" role="group" aria-label="Chrome 书签文件树">'+
+      (rows.map(({item,level})=>row(item,level)).join('')||'<p class="bm-hint">没有匹配的书签或文件夹</p>')+'</div>'+
+      (rows.length<total?'<div class="bm-pagination"><span>已显示 '+rows.length+' / '+total+' 项</span>'+
+      '<button type="button" class="od-button od-button--secondary" data-bm="more-results">显示更多</button></div>':'');
   }
   const back=title=>'<div class="bm-subhead"><button class="od-icon-button" data-bm="cancel" aria-label="返回书签树">‹</button><strong>'+title+'</strong></div>';
   function detail(){
@@ -93,9 +87,10 @@ export function createBookmarkManager({api,doc,container,currentPageTarget}={}){
     const notice=s.error?'<p role="alert" class="bm-notice bm-error">'+esc(s.error)+'</p>':
       s.info?'<p role="status" class="bm-notice">'+esc(s.info)+'</p>':'';
     const body=s.busy?'<p class="bm-hint">正在处理…</p>':
+      s.checkingPermission?'<p class="bm-hint">正在检查 Chrome 书签权限…</p>':
       !s.permission?'<div class="bm-consent"><p>需要 Chrome 书签权限才能管理现有书签。数据仅留在浏览器。</p>'+
         '<button class="od-button" data-bm="grant">授权访问书签</button></div>':
-      !s.tree?'<p class="bm-hint">正在读取书签…</p>':
+      !s.tree?(s.error?'<button type="button" class="od-button od-button--secondary" data-bm="retry">重新读取书签</button>':'<p class="bm-hint">正在读取书签…</p>'):
       s.mode==='tree'?tree():s.mode==='detail'?detail():form();
     container.innerHTML='<div class="bm-page-head od-toolbar od-page-head">'+
       '<button class="od-icon-button" data-bm="exit" aria-label="返回工具列表">‹</button>'+
@@ -105,43 +100,75 @@ export function createBookmarkManager({api,doc,container,currentPageTarget}={}){
     const epoch=++s.revision;
     try{
       const granted=await service.hasPermission();if(!s.open||epoch!==s.revision)return;
-      s.permission=granted===true;
+      s.checkingPermission=false;s.permission=granted===true;
       if(!s.permission){s.tree=null;s.mode='tree';render();return}
       const current=await service.load();if(!s.open||epoch!==s.revision)return;
       s.tree=current;s.error='';s.info='';
       if(!s.expanded.size)for(const x of current.byId.values())if(current.roots.has(x.parentId))s.expanded.add(x.id);
       render();
-    }catch(e){if(s.open&&epoch===s.revision){s.tree=null;s.error=message(e);render()}}
+    }catch(e){if(s.open&&epoch===s.revision){s.checkingPermission=false;s.tree=null;s.error=message(e);if(e?.code==='E_BOOKMARK_PERMISSION')s.permission=false;render()}}
   }
   async function mutation(operation){
     if(s.busy||!s.open)return;
+    const session=s.session;
     s.busy=true;s.error='';render();
     try{
-      await operation();s.busy=false;s.mode='tree';s.selection=null;s.draft=null;await refresh();
+      await operation();
+      if(!s.open||disposed||session!==s.session)return;
+      s.busy=false;s.mode='tree';s.selection=null;s.draft=null;await refresh();
+      if(!s.open||disposed||session!==s.session)return;
       s.info='已更新 Chrome 书签';render();
-    }catch(e){s.busy=false;s.error=message(e);render()}
+    }catch(e){
+      if(!s.open||disposed||session!==s.session)return;
+      s.busy=false;s.error=message(e);render();
+    }
+  }
+  function refocus(action,id){
+    for(const item of container.querySelectorAll?.('[data-bm]')||[]){
+      if(item.dataset?.bm===action&&item.dataset?.id===id){
+        item.focus?.({preventScroll:true});return;
+      }
+    }
+  }
+  function focusForm(){
+    container.querySelector?.('#bookmark-manager-form .od-field')?.focus?.({preventScroll:true});
   }
   function clicks(event){
     const btn=event.target.closest('[data-bm]');if(!btn||!container.contains(btn)||!s.open||disposed)return;
     const action=btn.dataset.bm,id=btn.dataset.id;
     if(action==='exit'){close();container.dispatchEvent(new CustomEvent('opendesk-bookmark-manager-back',{bubbles:true}));return}
+    if(action==='retry'){s.error='';render();void refresh();return}
     if(action==='grant'){
       // Native optional-permission prompt must start synchronously on the real click.
       let pending;try{pending=requestOptionalPluginPermissions({api,event,permissions:['bookmarks']})}
       catch(e){s.error=message(e);render();return}
-      Promise.resolve(pending).then(refresh,e=>{s.error=message(e);render()});return;
+      const session=s.session;
+      Promise.resolve(pending).then(()=>{
+        if(s.open&&!disposed&&session===s.session)void refresh();
+      },e=>{
+        if(s.open&&!disposed&&session===s.session){s.error=message(e);render()}
+      });return;
     }
     if(s.busy||!s.permission||!s.tree)return;
     if(action==='cancel'){s.mode='tree';s.selection=null;s.menu=null;s.draft=null;s.error='';render();return}
-    if(action==='toggle'){s.expanded.has(id)?s.expanded.delete(id):s.expanded.add(id);render();return}
-    if(action==='folder'){s.folder=id;s.expanded.add(id);render();return}
-    if(action==='menu'){s.menu=s.menu===id?null:id;render();return}
-    if(action==='detail'){s.selection=id;s.mode='detail';render();return}
-    if(action==='new-bookmark'||action==='new-folder'){s.mode=action;s.selection=null;s.draft=null;render();return}
+    if(action==='more-results'){s.visibleLimit+=200;render();return}
+    if(action==='toggle'){s.expanded.has(id)?s.expanded.delete(id):s.expanded.add(id);render();refocus('toggle',id);return}
+    if(action==='folder'){
+      s.expanded.add(id);
+      if(writableFolder(node(id))){s.folder=id;s.info=''}
+      else{s.folder=null;s.info='该 Chrome 系统或受管理目录只能查看，请选择普通文件夹保存'}
+      render();refocus('folder',id);return;
+    }
+    if(action==='menu'){s.menu=s.menu===id?null:id;render();refocus('menu',id);return}
+    if(action==='detail'){s.selection=id;s.mode='detail';render();container.querySelector?.('[data-bm="cancel"]')?.focus?.({preventScroll:true});return}
+    if(action==='new-bookmark'||action==='new-folder'){s.mode=action;s.selection=null;s.draft=null;render();focusForm();return}
     if(['edit','move','delete'].includes(action)){
       s.selection=id||s.selection;
       if(!node(s.selection)||node(s.selection).locked){s.error='Chrome 根目录或受管理书签不可修改';render();return}
-      s.mode=action;s.menu=null;s.draft=null;render();return;
+      s.mode=action;s.menu=null;s.draft=null;render();
+      if(action==='edit'||action==='move')focusForm();
+      else container.querySelector?.('#bookmark-manager-confirm-children, [data-bm="confirm-delete"]')?.focus?.({preventScroll:true});
+      return;
     }
     if(action==='open-url'){
       try{const url=asHttpUrl(node(s.selection)?.url);Promise.resolve(api.tabs.create({url})).catch(e=>{s.error=message(e);render()})}
@@ -181,6 +208,8 @@ export function createBookmarkManager({api,doc,container,currentPageTarget}={}){
   }
   function searchInput(event){
     if(event.target.id!=='bookmark-manager-search')return;
+    if(event.isComposing||s.composing)return;
+    if(s.search!==event.target.value)s.visibleLimit=200;
     s.search=event.target.value;const index=event.target.selectionStart;render();
     const input=container.querySelector('#bookmark-manager-search');input?.focus();input?.setSelectionRange(index,index);
   }
@@ -189,13 +218,36 @@ export function createBookmarkManager({api,doc,container,currentPageTarget}={}){
     if(kind==='permission'||s.mode==='tree'){void refresh();return;}
     s.info='书签在其他窗口可能已更新，保存前会重新检查';
   }
-  function close(){s.open=false;s.revision++;container.hidden=true;unsub?.();unsub=null}
+  function close(){s.open=false;s.session++;s.revision++;container.hidden=true;unsub?.();unsub=null}
+  function compositionStart(event){if(event.target.id==='bookmark-manager-search')s.composing=true}
+  function compositionEnd(event){
+    if(event.target.id!=='bookmark-manager-search')return;
+    s.composing=false;searchInput(event);
+  }
+  function keys(event){
+    if(!s.open||disposed||event.key!=='Escape')return;
+    if(s.menu){const id=s.menu;s.menu=null;render();refocus('menu',id);event.preventDefault();return}
+    if(s.mode!=='tree'){
+      s.mode='tree';s.selection=null;s.draft=null;s.error='';render();event.preventDefault();
+    }
+  }
   container.addEventListener('click',clicks);
   container.addEventListener('submit',submits);
   container.addEventListener('input',searchInput);
+  container.addEventListener('compositionstart',compositionStart);
+  container.addEventListener('compositionend',compositionEnd);
+  container.addEventListener('keydown',keys);
   return Object.freeze({
-    open(){if(disposed)return;s.open=true;container.hidden=false;unsub??=service.onChange(changed);render();void refresh()},
+    open(){
+      if(disposed)return;
+      s.open=true;s.session++;s.mode='tree';s.selection=null;s.menu=null;s.draft=null;
+      s.busy=false;s.error='';s.info='';s.tree=null;s.visibleLimit=200;s.composing=false;s.checkingPermission=true;
+      container.hidden=false;unsub??=service.onChange(changed);render();void refresh();
+    },
     close,isOpen:()=>s.open,
-    dispose(){close();disposed=true;container.removeEventListener('click',clicks);container.removeEventListener('submit',submits);container.removeEventListener('input',searchInput)}
+    dispose(){close();disposed=true;container.removeEventListener('click',clicks);container.removeEventListener('submit',submits);container.removeEventListener('input',searchInput);
+      container.removeEventListener('compositionstart',compositionStart);
+      container.removeEventListener('compositionend',compositionEnd);
+      container.removeEventListener('keydown',keys)}
   });
 }

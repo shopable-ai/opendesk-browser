@@ -1,5 +1,7 @@
 # Import 场景导航（R7.7）
 
+> **混合 Import 的完整测试分母（R7.9.4，待实现）**：同一个**本地多文件** `main.js` 必须有 3 条真实静态 import：① 固定 HTTPS ESM、② 精确 npm ESM、③ 相对目录文件；同一次运行另调用 ④ `opendesk.libraries` 显式启用的固定预置库（Page `query-string` / Controller `axios`）及 ⑤ 默认 `_`、`dayjs`（**都不再写 import**）。它不同于下列已有**单文件** D3 演示，不能把单库历史 PASS 冒充混合五来源 PASS。完整最小源码、必要锁和验收规则见[五种依赖的唯一使用合同](../../../docs/framework/universal-dependency-runtime-usage-contract.zh-CN.md)。不要为了凑内置 import 加入 `@opendesk/ui`、按钮或 DOM 挂载。
+
 打开标准测试页 `http://127.0.0.1:43111/demo-form.html`，在该网页打开 Side Panel。若服务未启动，仓库根目录运行 `python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks`；已有同内容服务时直接复用。
 
 | 示例 | 入口、真正开始执行的按钮 | 正常结果 |

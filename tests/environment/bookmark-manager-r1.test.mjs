@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createBookmarkService} from '../../src/bookmark-manager/service.js';
-import {bookmarkTree,isDescendant,asHttpUrl} from '../../src/bookmark-manager/model.js';
+import {createBookmarkManager} from '../../src/bookmark-manager/trusted-ui.js';
+import {bookmarkTree,isDescendant,asHttpUrl,parentFolder,projectBookmarkRows} from '../../src/bookmark-manager/model.js';
 
 const initial=()=>[{id:'0',title:'root',children:[
  {id:'1',title:'Bookmarks bar',parentId:'0',folderType:'bookmarks-bar',children:[
@@ -13,7 +14,7 @@ const initial=()=>[{id:'0',title:'root',children:[
 function harness(permission=true){
  let roots=initial(),next=200;
  const listeners={};
- const event=name=>({addListener(fn){(listeners[name]??=new Set()).add(fn)},removeListener(fn){listeners[name]?.delete(fn)},emit(){for(const fn of listeners[name]??[])fn()}});
+ const event=name=>({addListener(fn){(listeners[name]??=new Set()).add(fn)},removeListener(fn){listeners[name]?.delete(fn)},emit(...args){for(const fn of listeners[name]??[])fn(...args)}});
  function tree(){return bookmarkTree(roots)}
  function locate(id){return tree().byId.get(id)}
  function insert(node,parentId){const walk=items=>{for(const it of items){if(it.id===parentId){it.children.push(node);return true}if(it.children&&walk(it.children))return true}return false};walk(roots)}
@@ -26,7 +27,7 @@ function harness(permission=true){
   remove:async id=>deleteNode(id),removeTree:async id=>deleteNode(id),
   onCreated:event('created'),onRemoved:event('removed'),onChanged:event('changed'),onMoved:event('moved'),onChildrenReordered:event('reordered'),onImportEnded:event('imported')
  };
- const api={bookmarks,permissions:{contains:async()=>permission,onRemoved:event('permission-removed')}};
+ const api={bookmarks,permissions:{contains:async()=>permission,onAdded:event('permission-added'),onRemoved:event('permission-removed')}};
  return {service:createBookmarkService(api),api,bookmarks,setPermission(v){permission=v},tree};
 }
 test('system and managed roots remain protected, ordinary children editable',()=>{
@@ -74,8 +75,11 @@ test('reject stale content and permission revoked before mutation',async()=>{
 });
 test('releases bookmark and permission observers on close',()=>{
  const f=harness();let n=0;const release=f.service.onChange(()=>n++);
- f.bookmarks.onChanged.emit();f.api.permissions.onRemoved.emit();assert.equal(n,2);
- release();f.bookmarks.onChanged.emit();f.api.permissions.onRemoved.emit();assert.equal(n,2);
+ f.bookmarks.onChanged.emit();f.api.permissions.onRemoved.emit({permissions:['bookmarks']});assert.equal(n,2);
+ f.api.permissions.onAdded.emit({permissions:['history']});assert.equal(n,2);
+ f.api.permissions.onAdded.emit({permissions:['bookmarks']});assert.equal(n,3);
+ release();f.bookmarks.onChanged.emit();f.api.permissions.onRemoved.emit({permissions:['bookmarks']});
+ f.api.permissions.onAdded.emit({permissions:['bookmarks']});assert.equal(n,3);
 });
 
 test('folder removal rejects stale subtree and only removes explicitly reviewed descendants',async()=>{
@@ -89,4 +93,87 @@ test('folder removal rejects stale subtree and only removes explicitly reviewed 
  const newest=await s.load(),children=[...newest.byId.keys()].filter(id=>id!==folder.id&&isDescendant(newest,id,folder.id));
  await s.remove({expected:newest.byId.get(folder.id),confirmed:true,expectedDescendantIds:children});
  assert.equal((await s.load()).byId.has(folder.id),false);
+});
+
+test('pagination reaches every visible row and search includes items beyond the first 200',()=>{
+ const roots=initial(),children=roots[0].children[0].children;
+ for(let index=0;index<550;index++)children.push({
+   id:String(1000+index),parentId:'1',title:'Needle '+index,url:'https://example.com/item/'+index
+ });
+ const tree=bookmarkTree(roots),expanded=new Set(['1']);
+ const folded=projectBookmarkRows(tree,{expanded:new Set(),limit:200});
+ assert.equal(folded.total,3,'collapsed folder children are not counted as visible rows');
+ const first=projectBookmarkRows(tree,{expanded,limit:200});
+ assert.equal(first.total,554);
+ assert.equal(first.rows.length,200);
+ assert.equal(projectBookmarkRows(tree,{expanded,limit:400}).rows.length,400);
+ const complete=projectBookmarkRows(tree,{expanded,limit:1000});
+ assert.equal(complete.rows.length,complete.total);
+ assert.equal(complete.rows.some(({item})=>item.id==='1549'),true,'all later children stay reachable');
+ const found=projectBookmarkRows(tree,{search:'Needle 549',limit:200});
+ assert.equal(found.total,1);
+ assert.equal(found.rows[0].item.id,'1549','search must not stop at the first 200 tree nodes');
+ const matches=projectBookmarkRows(tree,{search:'Needle',limit:200});
+ assert.equal(matches.total,550);
+ assert.equal(matches.rows.length,200);
+ assert.equal(projectBookmarkRows(tree,{search:'Needle',limit:600}).rows.length,550);
+ assert.throws(()=>projectBookmarkRows(tree,{limit:0}),/数量/);
+});
+
+test('Chrome managed folderType cannot be selected as a writable parent without unmodifiable',()=>{
+ const roots=initial();
+ delete roots[0].children[2].unmodifiable;
+ const tree=bookmarkTree(roots);
+ assert.equal(tree.byId.get('3').locked,true);
+ assert.throws(()=>parentFolder(tree,'3'),/保护/);
+ assert.equal(parentFolder(tree,'1').id,'1','ordinary Chrome root folders remain writable');
+});
+
+test('trusted Side Panel tree shows more than 200 rows, searches later rows and handles revoke/regrant',async()=>{
+ const f=harness();
+ for(let index=0;index<420;index++){
+   await f.bookmarks.create({title:'Needle '+index,url:'https://example.com/'+index,parentId:'1'});
+ }
+ const listeners=new Map(),container={
+   hidden:true,innerHTML:'',
+   addEventListener(name,fn){listeners.set(name,fn)},
+   removeEventListener(name,fn){if(listeners.get(name)===fn)listeners.delete(name)},
+   contains:()=>true,
+   querySelector:()=>({focus(){},setSelectionRange(){}}),
+   querySelectorAll:()=>[]
+ };
+ const manager=createBookmarkManager({api:f.api,doc:{},container});
+ assert.ok(manager);
+ const settled=async predicate=>{
+   for(let n=0;n<50;n++){
+     if(predicate())return;
+     await new Promise(resolve=>setTimeout(resolve,5));
+   }
+   assert.fail('trusted bookmark UI did not settle');
+ };
+ const displayed=()=>[...container.innerHTML.matchAll(/class="bm-node /g)].length;
+ const click=(bm,id)=>{
+   const item={dataset:{bm,id}};
+   listeners.get('click')({target:{closest:()=>item}});
+ };
+ manager.open();
+ await settled(()=>displayed()===200);
+ assert.match(container.innerHTML,/已显示 200 \/ 424 项/);
+ click('more-results');
+ assert.equal(displayed(),400);
+ click('more-results');
+ assert.equal(displayed(),424);
+ assert.doesNotMatch(container.innerHTML,/data-bm="more-results"/);
+ listeners.get('input')({target:{id:'bookmark-manager-search',value:'Needle 419',selectionStart:10},isComposing:false});
+ assert.equal(displayed(),1);
+ assert.match(container.innerHTML,/data-id="619"/,'the last bookmark must be searchable');
+ f.setPermission(false);f.api.permissions.onRemoved.emit({permissions:['bookmarks']});
+ await settled(()=>container.innerHTML.includes('授权访问书签'));
+ assert.equal(displayed(),0,'revoked permissions must not look like an empty tree');
+ f.setPermission(true);f.api.permissions.onAdded.emit({permissions:['bookmarks']});
+ await settled(()=>displayed()===1);
+ manager.close();
+ assert.equal(container.hidden,true);
+ manager.dispose();
+ assert.equal(listeners.size,0,'dispose must retire DOM observers');
 });

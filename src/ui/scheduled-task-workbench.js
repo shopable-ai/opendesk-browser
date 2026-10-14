@@ -22,6 +22,8 @@ const scheduleStatusLabels=Object.freeze({
   NEEDS_ATTENTION:'需要处理'
 });
 const scheduleStatus=status=>scheduleStatusLabels[status]||status||'未知';
+// Task management is a safe detour for an active editor, not a new-plan flow.
+export const canStartScheduleFromManager=returnView=>returnView!=='form';
 const scheduleStatusGuidance=Object.freeze({
   READY:'已排队，等待到期后检查授权及运行条件。',
   WAITING_HOST:'这次触发曾等待合法可见运行宿主；保持运行页打开供后续检查。Chrome 退出时无法执行。',
@@ -161,7 +163,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   let disposed=false,shown=false,busy=false,editing=null,managerReturn='list';
   let pendingCreate=false,pendingCreateFromForm=false,pendingTask=null,confirmUninstall=null,allPlans=[],catalog=[],installed=[];
   let selectedFire=null,lastRefresh=0,activeView='list',runnerFocusId=null;
-  let selectedPlanId=null,detailReturnView='list',formReturnView='list',listScrollTop=0;
+  let selectedPlanId=null,detailReturnView='list',formReturnView='list',listScrollTop=0,formScrollTop=0;
   let managerScrollTop=0;
   let cloudPanelVisibility;
   let permissionSeq=0,awaitingSave=null,editRevision=0,storageProbeRevision=0,refreshSeq=0;
@@ -226,13 +228,15 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     const prior=activeView,changing=view!==prior;
     const scroller=get('workspace-content');
     if(changing&&prior==='list')listScrollTop=scroller?.scrollTop??0;
+    if(changing&&prior==='form'&&view==='manager')formScrollTop=scroller?.scrollTop??0;
     // Inline validation belongs to the editor, not the list or dedicated
     // runner. Polling never calls show() so active form errors persist.
     if(changing)message('');
     activeView=view;
     for(const [key,node] of Object.entries(views))node.hidden=key!==view;
     if(changing&&scroller)
-      scroller.scrollTop=view==='list'&&['detail','form'].includes(prior)?listScrollTop:0;
+      scroller.scrollTop=view==='list'&&['detail','form'].includes(prior)?listScrollTop:
+        view==='form'&&prior==='manager'&&managerReturn==='form'?formScrollTop:0;
     get('schedule-create').hidden=view!=='list';
     get('schedule-detail-edit').hidden=view!=='detail';
     // The separately visible runner is already a Host, not a second Side Panel.
@@ -903,7 +907,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     finally{busy=false;get('schedule-confirm-yes').disabled=false;}
   }
   function enterDeveloper(){
-    pendingCreateFromForm=activeView==='form';
+    pendingCreateFromForm=activeView==='form'||(activeView==='manager'&&managerReturn==='form');
     pendingCreate=true;hidePanel();taskWorkbench.navigate('develop');
     text(get('task-dev-status'),'请先真实运行并验证源码、安装固定版本；安装后返回定时计划。');
   }
@@ -920,9 +924,12 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
         `${row.taskId} · v${row.version} · ${row.enabled?'已启用':'已停用'} · 关联计划 ${allPlans.filter(p=>p.taskId===row.taskId).length}`));
       card.append(element(doc,'p','hint','网站权限：'+(details?.manifest?.siteOrigins||[]).join('，')));
       const toolbar=element(doc,'div','schedule-actions od-toolbar');
-      toolbar.append(action(doc,'设置定时',()=>{managerReturn='list';formReturnView='manager';show('form');
-        reset();get('schedule-task-select').value=row.enabled?row.taskId:'';
-        showTaskVersion();get('schedule-title').value=(details?.manifest?.title||row.taskId)+' 定时';}));
+      // An editor-origin manager must never silently reset the unsaved draft.
+      if(canStartScheduleFromManager(managerReturn)){
+        toolbar.append(action(doc,'设置定时',()=>{managerReturn='list';formReturnView='manager';show('form');
+          reset();get('schedule-task-select').value=row.enabled?row.taskId:'';
+          showTaskVersion();get('schedule-title').value=(details?.manifest?.title||row.taskId)+' 定时';}));
+      }
       toolbar.append(action(doc,row.enabled?'停用':'启用',async event=>{
         if(busy)return;busy=true;
         try{
@@ -933,7 +940,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
             expectedInstallationId:row.installationId??null});
           await refresh();message('任务安装状态已更新');
         }catch(error){message(error?.message||String(error),true);}finally{busy=false;}
-      }));
+      },'od-button od-button--secondary schedule-manager-toggle'));
       toolbar.append(action(doc,'复制到开发',async()=>{
         try{
           const existing=await client.request('getTaskCandidate',{taskId:row.taskId,version:row.version});
@@ -944,9 +951,15 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       toolbar.append(action(doc,'卸载',()=>{
         confirmUninstall=row;get('schedule-uninstall-confirm').hidden=false;
         text(get('schedule-uninstall-label'),`确认卸载「${details?.manifest?.title||row.taskId}」v${row.version}？历史运行记录将保留。`);
-      }));
+      },'od-button od-button--secondary schedule-manager-uninstall'));
       card.append(toolbar);parent.append(card);
     }
+  }
+  function openManager(returnView){
+    managerScrollTop=get('workspace-content')?.scrollTop??0;
+    managerReturn=returnView;
+    renderManager();show('manager');
+    get('schedule-manager-search').focus({preventScroll:true});
   }
   async function uninstall(){
     if(!confirmUninstall||busy)return;busy=true;
@@ -990,11 +1003,6 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       return;
     }
     clearConfirmation();show(destination);focusReturnedView(destination);
-  }
-  function openManager(returnView){
-    managerReturn=returnView;
-    managerScrollTop=get('workspace-content')?.scrollTop??0;
-    show('manager');get('schedule-manager-search').focus({preventScroll:true});
   }
   function leaveManager(){
     const destination=managerReturn;
