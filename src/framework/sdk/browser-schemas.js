@@ -1,6 +1,7 @@
 // Browser operation parameter/response descriptions, keyed by the one authoritative
 // BROWSER_OPERATIONS registry. Metadata never grants permission or admits RPC calls.
 import {fields,fail,jsonValue} from './registry.js';
+import {APPROVED_BROWSER_DIRECT_BINDINGS} from './browser-direct.generated.js';
 const obj=(properties={},required=[])=>({type:'object',additionalProperties:false,properties,required});
 const str=(maxLength=2048,pattern)=>({type:'string',maxLength,...(pattern?{pattern}:{})});
 const ref=str(160,'^[A-Za-z0-9_-]{16,160}$');
@@ -134,12 +135,19 @@ const ops=Object.freeze({
    obj({stopped:bool},['stopped'])],
  'browser.operations.cancel':[oid,obj({state:{enum:['running','completed','failed','cancelled','unknown']},cancelRequested:bool},['state'])]
 });
+// DIRECT methods use the exact approved input/output schemas generated from
+// the one pinned matrix. SCOPED and CUSTOM schemas remain explicitly audited.
+const directOps=new Map(APPROVED_BROWSER_DIRECT_BINDINGS.map(row=>{
+  if(Object.hasOwn(ops,row.operation))throw fail('E_CONTRACT','Duplicate DIRECT Browser schema');
+  return [row.operation,[row.inputSchema,row.outputSchema]];
+}));
 export function operationSchemas(operation){
-  const pair=Object.hasOwn(ops,operation)?ops[operation]:null;
+  const pair=Object.hasOwn(ops,operation)?ops[operation]:directOps.get(operation);
   return pair?{input:pair[0],output:pair[1]}:null;
 }
 export function assertBrowserSchemaCoverage(operations){
-  if(JSON.stringify(Object.keys(operations).sort())!==JSON.stringify(Object.keys(ops).sort()))
+  const declared=[...Object.keys(ops),...directOps.keys()].sort();
+  if(JSON.stringify(Object.keys(operations).sort())!==JSON.stringify(declared))
     throw fail('E_CONTRACT','Browser operation schema drift');
 }
 // Generic argument validation is used ONLY for build-approved DIRECT calls.
