@@ -71,7 +71,7 @@ export const editableNode=(tree,id,{folder=false}={})=>{
 export const parentFolder=(tree,id)=>{
   const parent=tree.byId.get(id);
   if(!parent||!isFolder(parent)||tree.roots.has(parent.id)||parent.unmodifiable==='managed'||
-    (parent.locked&&!tree.roots.has(parent.parentId)))
+    parent.folderType==='managed'||(parent.locked&&!tree.roots.has(parent.parentId)))
     throw new Error('目标文件夹不存在或受保护');
   return parent;
 };
