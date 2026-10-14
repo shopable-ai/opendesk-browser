@@ -12,6 +12,21 @@ test('R11 all approved Chrome Binding descriptors are deterministic and derived,
   const derived=deriveBrowserBindingCatalog(matrix);
   assert.deepEqual(generated,derived);
   assert.deepEqual(generated.counts,{approved:55,public:53,hostOnly:2});
+  const nativeRows=new Map(matrix.nativeInterfaces.map(x=>[x.nativeApi,x]));
+  let mapped=0;
+  for(const binding of generated.bindings){
+    assert.equal(binding.nativeSignatures.length,binding.nativeApis.length);
+    for(const call of binding.nativeSignatures){
+      const source=nativeRows.get(call.nativeApi);
+      assert(source,'The Binding cannot fabricate a Chrome native method');
+      assert.equal(call.kind,source.kind);
+      assert.equal(call.signature,source.signature);
+      assert.deepEqual(call.parameters,source.parameters??[]);
+      assert.equal(call.returnType,source.returnType??null);
+      mapped++;
+    }
+  }
+  assert.equal(mapped,66,'Only currently approved native relationships are counted');
   const publicOps=generated.bindings.filter(x=>x.visibility==='APPROVED_TOOL_REGISTERED');
   assert.deepEqual(publicOps.map(x=>x.operation).sort(),Object.keys(BROWSER_OPERATIONS).sort());
   for(const desc of publicOps){
