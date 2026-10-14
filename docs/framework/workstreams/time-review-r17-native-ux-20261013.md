@@ -166,4 +166,14 @@ Tool shell 硬上限 524,288 B 未改变，production余量 28,983 B、developme
 
 最终 Source74 的 Linux Node CI成功、macOS CI仍QUEUED： https://github.com/shopable-ai/opendesk-browser/actions/runs/38484927491 。本地真实 Chrome 的 PARTIAL 不提升为 CI Native PASS。
 
+### R1.9 · 官方 Stable CFT 环境复验（2026-10-14，IN_PROGRESS）
+
+负责人仍为本会话，仅追加本记录和本任务原始证据；不修改 Cloud/Time Review/共享 SDK 生产源码。当前 main 后续 `b6ad3f22`、`9c278be6` 仅修改其他 SDK 验收工具及驱动，保留其独立未测状态。复用 Source74 驱动与 ccee890c 冻结生产构建；Node 206/206、六项构建/校验不重跑或提升为当前整个工作区结果。
+
+本机七份受控 CFT 均为 155.0.8059.39；官方 last-known-good 清单（2026-10-13T21:22:50.398Z）提供不同 Stable 155.0.8059.79，故环境确有变化，安排现有驱动的独立 `native-run-55` 完整复验。新浏览器仅在 `.runtime/time-review-r19-local-01a1364f/cft-stable-15579/`，独立临时 Profile，沿用模拟钥匙串启动参数；不占用日常 Chrome、其他 CFT 或 watcher。新官方 ZIP 192617424 bytes，SHA-256 `e141a7cbf948780bb7d381860bd5a7944c6736f79b9918b9826fccb199d28ea4`，CRC 无失败，真实二进制 --version 为 155.0.8059.79。两份原始 CFT 的包级 codesign verify 均报告 resources 缺失，已保留原始输出，未重签或宣称签名 PASS。
+
+Cloud 闹钟只读审查：当前 30 秒无条件闹钟是关联线索，尚无实际 firing 因果证据。完整条件化会涉及 enabled/unpairing、撤销网络前的持久重试及异步队列；不能删闹钟制造 Time PASS。此轮不扩展 Cloud 功能或改变其既有安全合同。macOS CI仍 QUEUED。155.0.8059.39 的自然 stopped/running 和失焦后仍 stopped 两项继续 BLOCKED；Stable 复验结果另存，不覆盖原始失败。
+
+Stable 原生 55：150.161 秒，退出 1，13 PASS / 25 NOT_TESTED，complete=false / FAIL。真实原生文件选择器 dump 的 spawnSync status=null，原断言缺失 error/signal，不能认定超时、前台争用或 CFT 缺陷；实际原始因果缺口保留。10 张 PNG（含 failure-side）和 TAP/退出/磁盘日志均保留，Chrome/Profile 自动清理成功。写入范围追加现有 `tests/framework/time-review-r13-native.test.mjs` 的失败诊断：仅记录失败子进程 signal、error、stdout/stderr 的有限输出；保留 12 秒限时、非零拒绝、真实输入和全部 PASS 门槛。原55执行驱动保留后，对该观察变化做56复验；不修改生产代码或构建。
+
 并行差异：当前 main 后续两项既有 SDK 验收夹具/驱动提交已只读核查，不改变 Time Review/共享生产 runtime；其 Native 未测仍保留未测，不提升为本轮 PASS。根工作区另外三项未提交 Workflow 修改仍由其他对话负责，不纳入本轮提交或原生候选。只有冻结产物获上述限域结果，不将其扩大为当前整个工作目录或全框架最终验收。最终证据提交仅指定本任务路径，推送沿用本轮正常 main 授权串行核对，无 release/publish。

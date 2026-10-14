@@ -127,7 +127,15 @@ async function chooseNativeFile(client,session,file,helper,pid){
       assert.equal(foreground.status,0,'owned chooser foreground before '+command+': '+String(foreground.stdout||foreground.stderr||foreground.error));
     }
     const result=spawnSync(helper,[String(pid),command,...(value?[value]:[])],{encoding:'utf8',timeout:12000});
-    assert.equal(result.status,0,'owned native file chooser '+command+': '+String(result.stdout||result.stderr));
+    if(result.status!==0){
+      console.log('TIME_NATIVE native-file-chooser-helper-failure '+JSON.stringify({
+        command,status:result.status,signal:result.signal,
+        error:result.error?{name:result.error.name,code:result.error.code,message:result.error.message}:null,
+        stdoutBytes:Buffer.byteLength(result.stdout||''),stderrBytes:Buffer.byteLength(result.stderr||''),
+        stdout:(result.stdout||'').slice(0,4096),stderr:(result.stderr||'').slice(0,4096),
+      }));
+    }
+    assert.equal(result.status,0,'owned native file chooser '+command+': '+String(result.stdout||result.stderr||result.error||result.signal));
     return result.stdout;
   };
   input('activate');await nativeClick(client,session,'#sidebar-tool-file');

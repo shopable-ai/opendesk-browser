@@ -1,0 +1,22 @@
+{
+  "zipSha256": "e141a7cbf948780bb7d381860bd5a7944c6736f79b9918b9826fccb199d28ea4",
+  "zipBytes": 192617424,
+  "officialUrl": "https://storage.googleapis.com/chrome-for-testing-public/155.0.8059.79/mac-arm64/chrome-mac-arm64.zip",
+  "signatureChecks": [
+    {
+      "version": "155.0.8059.39",
+      "app": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/time-review-r19-local-01a1364f/OpenDesk Time Review R19 CFT.app",
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": ".runtime/time-review-r19-local-01a1364f/OpenDesk Time Review R19 CFT.app: code has no resources but signature indicates they must be present\n"
+    },
+    {
+      "version": "155.0.8059.79",
+      "app": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/time-review-r19-local-01a1364f/cft-stable-15579/unpacked/chrome-mac-arm64/Google Chrome for Testing.app",
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": ".runtime/time-review-r19-local-01a1364f/cft-stable-15579/unpacked/chrome-mac-arm64/Google Chrome for Testing.app: code has no resources but signature indicates they must be present\n"
+    }
+  ],
+  "zipCrcFailure": null
+}
