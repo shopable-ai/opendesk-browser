@@ -1151,7 +1151,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     if(PRODUCT_MATRIX){
       await click(client,formSid,'#schedule-manage-tasks');
       assert.equal(await evaluate(client,'document.activeElement.id',formSid),'schedule-manager-search');
-      await click(client,formSid,'#schedule-manager-back');
+      await click(client,formSid,'#schedule-back');
       assert.deepEqual(await readDraft(),unsaved,'actual task manager roundtrip preserves the unsaved draft');
       assert.equal(await evaluate(client,'document.activeElement.id',formSid),'schedule-manage-tasks',
         'actual manager Back restores a visible editor focus target');

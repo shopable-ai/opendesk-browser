@@ -27,3 +27,5 @@ P1 范围确认：导航栏裁切外向焦点框（六 Tab 消费者）及云控
 本地 npm check 在其他负责人未提交的 `tests/environment/native-agent-chrome-real.test.mjs:302` 遇到重复 extensionId 声明，保留原失败 `/tmp/ui-r12-check.log`，不编辑该文件。为验证已提交输入，使用 main 的 git archive 普通只读源码导出到独立 `.runtime/extension-ui-r12-01a13a09/candidate/`（非Git工作树，不在导出目录改源码），共享 node_modules 只读链接，独立 `.wxt/public` / dist / 输出守护端口43220；日常watcher继续运行。
 
 R3现有原生驱动增补 PRODUCT_MATRIX：真实UI创建19个暂停计划，20计划/长文本/最后详情/返回焦点与滚动、编辑任务管理草稿、技术详情刷新；只用既有可信输入与真实存储，不seed Fire/Run。120历史仍为组件/源码布局模拟，不提升为原生。物理宽度与真实zoom分别记录。
+
+追加写入范围：`scripts/prepare-public.mjs`、`scripts/verify-package.mjs` 的单一现有资产合同。远端 `cd56a564` 在 `tool.html` 引入 `extension-center.css`，两个包装脚本尚未登记，导致新样式无法打包且 HTML 引用校验必失败；只接入静态 CSS 和校验，不修改并行扩展中心业务。实际审阅修复：局部历史错误成功重试清除、最终分页按钮焦点回到历史标题、权限恢复按钮轮询焦点、失败说明12px；原生矩阵改用现有可见 header Back。物理候选4真实Alarm/Run/Result/released通过，360实测；其他宽度未达，原生矩阵随后因旧隐藏Back失败，原始失败保留。

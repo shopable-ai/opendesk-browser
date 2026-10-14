@@ -703,6 +703,8 @@ function measureScheduled(selector){
     historyCount:document.querySelectorAll('.schedule-history-row').length,
     listHidden:document.querySelector('#schedule-list-view').hidden,detailHidden:document.querySelector('#schedule-detail-view').hidden,
     detailPlan:document.querySelector('#schedule-detail-view').dataset.scheduleId,
+    historyMessage:document.querySelector('.schedule-history-status')?.textContent||'',
+    recoveryFontSizes:[...document.querySelectorAll('.schedule-status-guidance')].map(node=>parseFloat(getComputedStyle(node).fontSize)),
     message:document.querySelector('#schedule-message').textContent,reads:globalThis.__r19Reads.slice(),denied:globalThis.__r19Denied.slice()};
 }
 function validateScheduled(m,width,reach=false){
@@ -714,6 +716,12 @@ function validateScheduled(m,width,reach=false){
 }
 async function scheduledSamples(width,theme){
   const samples=[];
+  const clickHistory=async()=>{
+    const point=await evaluate(`(()=>{const b=document.querySelector('.schedule-load-more');if(!b||b.disabled)throw Error('Missing enabled history action');b.scrollIntoView({block:'end'});const r=b.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()`);
+    for(const type of ['mousePressed','mouseReleased'])await cdp('Input.dispatchMouseEvent',{
+      type,...point,button:'left',clickCount:1});
+    await evaluate('new Promise(resolve=>requestAnimationFrame(resolve))');
+  };
   const capture=async(name,selector,reach=false)=>{
     if(selector)await evaluate(`document.querySelector(${JSON.stringify(selector)}).scrollIntoView({block:'end'})`);
     await evaluate('new Promise(resolve=>requestAnimationFrame(resolve))');
@@ -739,8 +747,9 @@ async function scheduledSamples(width,theme){
     samples.push({...keyboard,evidence:'SOURCE_UI_SIMULATION_CHROME_KEYBOARD',width,theme});
     await evaluate('document.querySelector("#schedule-detail-view .schedule-history").open=true');
     for(let i=0;i<6;i++){
-      const state=await evaluate(`(()=>{const b=document.querySelector('.schedule-load-more');if(!b)return 'done';if(b.disabled)throw Error('Pending history request');b.click();return 'loading';})()`);
+      const state=await evaluate(`(()=>{const b=document.querySelector('.schedule-load-more');if(!b)return 'done';if(b.disabled)throw Error('Pending history request');return 'loading';})()`);
       if(state==='done')break;
+      await clickHistory();
       for(let wait=0;wait<50;wait++){
         if(await evaluate('!document.querySelector(".schedule-load-more")?.disabled'))break;
         await sleep(20);
@@ -749,13 +758,19 @@ async function scheduledSamples(width,theme){
     const history=await capture('source-schedule-'+count+'-history120','.schedule-history-row:last-of-type',true);
     if(history.historyCount!==120||history.target.height<=0||history.reads.filter(r=>r.method==='listScheduleHistory').length!==5||
       await evaluate('Boolean(document.querySelector(".schedule-load-more"))'))throw Error('120 source history not fully rendered');
+    if(!history.recoveryFontSizes.length||history.recoveryFontSizes.some(size=>size<12))throw Error('Critical recovery guidance is too small');
+    if(!await evaluate(`document.activeElement===document.querySelector('.schedule-history > summary')`))throw Error('Final history page lost its visible focus target');
     if(!await evaluate(`document.querySelector('.schedule-history').textContent.includes('结果未确认')&&document.querySelector('.schedule-history').textContent.includes('失败')`))throw Error('Missing UNKNOWN/FAILED source status');
   }
   await evaluate('('+setupScheduledSimulation.toString()+')(1,"history-error")');
-  await evaluate('document.querySelector(".schedule-plan-open").click();document.querySelector(".schedule-history").open=true;document.querySelector(".schedule-load-more").click()');
+  await evaluate('document.querySelector(".schedule-plan-open").click();document.querySelector(".schedule-history").open=true');
+  await clickHistory();
   await evaluate('new Promise(resolve=>requestAnimationFrame(resolve))');
   const error=await capture('source-schedule-history-error','.schedule-load-more',true);
-  if(!error.message.includes('源UI模拟历史读取失败')||!await evaluate('document.querySelector(".schedule-load-more").textContent.includes("重试")'))throw Error('History error not actionable');
+  if(!error.historyMessage.includes('源UI模拟历史读取失败')||!await evaluate('document.querySelector(".schedule-load-more").textContent.includes("重试")'))throw Error('History error not actionable');
+  await clickHistory();
+  const recovered=await capture('source-schedule-history-recovered','.schedule-load-more',true);
+  if(recovered.historyMessage||recovered.historyCount!==40||!await evaluate('document.querySelector(".schedule-history-status").hidden'))throw Error('Successful history retry still displays its old failure');
   await evaluate('('+setupScheduledSimulation.toString()+')(1,"read-error")');
   const readError=await capture('source-schedule-read-error');
   if(!readError.message.includes('读取计划失败'))throw Error('Missing simulated read error');
@@ -791,7 +806,9 @@ try{
   if(!staticOnly&&(!tabFilter||tabFilter.includes('tasks')))
     await collectModule(join(root,'src/ui/scheduled-task-workbench.js'));
   const bookmarkStyle=await readFile(join(root,'src/ui/bookmark-manager.css'),'utf8');
+  const extensionCenterStyle=await readFile(join(root,'src/ui/extension-center.css'),'utf8');
   sourceBinding.push({path:'src/ui/bookmark-manager.css',sha256:sha(bookmarkStyle)},
+    {path:'src/ui/extension-center.css',sha256:sha(extensionCenterStyle)},
     {path:'scripts/tests/sidebar-r19-layout-visual.mjs',sha256:sha(await readFile(join(root,'scripts/tests/sidebar-r19-layout-visual.mjs')))});
   evidenceBinding=sourceBinding;
   const html=source.replace(/<script src="tool-shell\.js"><\/script>/,'');
@@ -805,6 +822,7 @@ try{
     else if(name==='/ui/cloud-hosting.css')res.writeHead(200,{'Content-Type':'text/css; charset=utf-8'}).end(hostingStyle);
     else if(name==='/ui/time-review.css')res.writeHead(200,{'Content-Type':'text/css; charset=utf-8'}).end(timeReviewStyle);
     else if(name==='/ui/bookmark-manager.css')res.writeHead(200,{'Content-Type':'text/css; charset=utf-8'}).end(bookmarkStyle);
+    else if(name==='/ui/extension-center.css')res.writeHead(200,{'Content-Type':'text/css; charset=utf-8'}).end(extensionCenterStyle);
     else if(sourceModules.has(root+name))res.writeHead(200,{'Content-Type':'text/javascript; charset=utf-8'}).end(sourceModules.get(root+name));
     else res.writeHead(404).end();
   });

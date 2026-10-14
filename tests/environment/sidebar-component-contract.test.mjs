@@ -11,6 +11,16 @@ const components = read('src/ui/design-system.css');
 const tokens = read('src/ui/design-tokens.css');
 const workflow = read('src/ui/workflow/workflow-view.js');
 
+test('Side Panel linked styles remain in the single production packaging contract',()=>{
+  const preparation=read('scripts/prepare-public.mjs'),verification=read('scripts/verify-package.mjs');
+  const links=[...html.matchAll(/<link[^>]*rel="stylesheet"[^>]*href="([^"]+)"/g)].map(match=>match[1]);
+  const references=verification.slice(verification.indexOf('const HTML_REFERENCES'),verification.indexOf('const HTML_REFERENCES')+1500);
+  for(const css of links){
+    assert(preparation.includes("'ui/"+css+"'"),'source stylesheet is copied into the package: '+css);
+    assert(references.includes("'"+css+"'"),'HTML stylesheet is verified by the existing package gate: '+css);
+  }
+});
+
 function element(tab, tag, id) {
   const found = tab.match(new RegExp('<' + tag + '\\b[^>]*\\bid="' + id + '"[^>]*>', 'i'));
   assert.ok(found, 'Missing ' + tag + '#' + id);

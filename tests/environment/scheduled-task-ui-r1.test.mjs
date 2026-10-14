@@ -575,7 +575,7 @@ test('R3 index vs detail navigation and fixed schedule authorization boundaries'
 
 // Component-only DOM fixture. No Chrome permission, native input, Fire or Result
 // is fabricated as product evidence; genuine native coverage lives in R3.
-async function scheduledDomFixture({count=1,historyCount=1}={}){
+async function scheduledDomFixture({count=1,historyCount=1,historyFailures=0}={}){
   const {document,window}=parseHTML(await load('src/ui/tool.html'));
   let focused=document.body;
   Object.defineProperty(document,'activeElement',{get:()=>focused});
@@ -605,13 +605,16 @@ async function scheduledDomFixture({count=1,historyCount=1}={}){
     paused:true,nextDueAt:null,timezone:'Asia/Shanghai',triggerKind:'daily',
     triggerSpec:{hour:9,minute:0},targetUrl:'https://example.com/'+('long/path/'.repeat(20)),
     params:{keep:'original'},misfirePolicy:'skip',startDeadlineMs:300000,
-    history:i===0?history.slice(0,20):[]})),history,installed:[installed],catalog:[entry],calls:[]};
+    history:i===0?history.slice(0,20):[]})),history,historyFailures,installed:[installed],catalog:[entry],calls:[]};
   const client={async request(method,input){
     state.calls.push({method,input});
     if(method==='listTaskCatalog')return structuredClone({catalog:state.catalog,installed:state.installed});
     if(method==='listSchedules')return {schedules:structuredClone(state.plans)};
-    if(method==='listScheduleHistory')return {history:structuredClone(state.history.slice(input.offset,input.offset+input.limit)),
-      hasMore:input.offset+input.limit<state.history.length};
+    if(method==='listScheduleHistory'){
+      if(state.historyFailures-->0)throw Error('component history unavailable');
+      return {history:structuredClone(state.history.slice(input.offset,input.offset+input.limit)),
+        hasMore:input.offset+input.limit<state.history.length};
+    }
     throw Error('Unexpected component RPC '+method);
   }};
   const ui=createScheduledTaskWorkbench({client,document,
@@ -684,5 +687,32 @@ test('R1.2 120-record pagination retains pages and keeps twenty plans isolated o
   get('schedule-back').click();get('schedule-plan-list').querySelector('.schedule-plan-open').click();
   assert.equal(get('schedule-detail-view').querySelectorAll('.schedule-history-row').length,120);
   assert.deepEqual(state.calls.filter(call=>call.method==='listScheduleHistory').map(call=>call.input.offset),[20,40,60,80,100]);
+  ui.dispose();
+});
+
+test('R1.2 successful history retry clears only its local error and preserves final-page focus',async()=>{
+  const {get,ui,document,flush}=await scheduledDomFixture({historyCount:21,historyFailures:1});
+  get('schedule-plan-list').querySelector('.schedule-plan-open').click();
+  const history=get('schedule-detail-view').querySelector('.schedule-history');history.open=true;
+  const more=history.querySelector('.schedule-load-more');more.click();await flush();
+  assert.match(history.textContent,/component history unavailable/);
+  get('schedule-message').textContent='其他授权反馈应保留';
+  more.focus();more.click();await flush();
+  assert.equal(history.querySelectorAll('.schedule-history-row').length,21);
+  assert.equal(history.querySelector('.schedule-history-status').hidden,true);
+  assert.equal(history.querySelector('.schedule-history-status').textContent,'');
+  assert.equal(get('schedule-message').textContent,'其他授权反馈应保留');
+  assert.equal(document.activeElement===history.querySelector('summary'),true,
+    'removing the final pagination button leaves focus in the visible history');
+  ui.dispose();
+});
+
+test('R1.2 background changes retain focus on installed-task recovery action',async()=>{
+  const {get,state,ui,document}=await scheduledDomFixture({count:2});
+  state.plans[0].needsAttention=true;await ui.refresh();
+  get('schedule-plan-list').querySelector('.schedule-plan-open').click();
+  get('schedule-detail-view').querySelector('.schedule-status-help button').focus();
+  state.plans[1].generation++;await ui.refresh();
+  assert.equal(document.activeElement===get('schedule-detail-view').querySelector('.schedule-status-help button'),true);
   ui.dispose();
 });

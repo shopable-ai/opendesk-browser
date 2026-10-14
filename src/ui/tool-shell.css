@@ -771,8 +771,8 @@
 .schedule-actions{justify-content:flex-end}
 .schedule-card .schedule-actions{justify-content:flex-end}
 
-.schedule-history-row{padding:var(--space-2) 0;border-bottom:1px solid var(--od-line);font-size:11px;overflow-wrap:anywhere}
-.schedule-history-row small{display:block;margin-top:4px;color:var(--od-sub);overflow-wrap:anywhere}
+.schedule-history-row{padding:var(--space-2) 0;border-bottom:1px solid var(--od-line);font-size:12px;overflow-wrap:anywhere}
+.schedule-history-row small{display:block;margin-top:4px;font-size:12px;line-height:1.5;color:var(--od-sub);overflow-wrap:anywhere}
 .schedule-delete-confirm{display:grid;gap:8px;padding:12px;border:1px solid var(--od-line)}
 .schedule-delete-confirm p{margin:0}
 .schedule-form{min-width:0;display:grid;gap:var(--space-4)}

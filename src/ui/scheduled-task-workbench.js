@@ -538,7 +538,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     const focusSelectors=['.schedule-history > summary','.schedule-load-more',
       '.schedule-more > summary','.schedule-danger-link',
       '.schedule-delete-confirm button:first-child','.schedule-delete-confirm button:nth-child(2)',
-      '.schedule-detail-actions button'];
+      '.schedule-detail-actions button','.schedule-status-help button'];
     const focusSelector=parent.contains(doc.activeElement)?
       focusSelectors.find(selector=>doc.activeElement?.matches?.(selector)):null;
     const card=element(doc,'div','schedule-detail-card od-stack');
@@ -568,6 +568,10 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       history.open=view.open;
       history.append(element(doc,'summary',null,
         '运行记录'+(last?` · 最近：${scheduleStatus(last.status)} · ${describeTime(last.scheduledAt,plan.timezone)}`:' · 暂无')));
+      const historyStatus=element(doc,'p','schedule-history-status hint',view.historyError||'');
+      historyStatus.setAttribute('role','status');historyStatus.setAttribute('aria-live','polite');
+      historyStatus.hidden=!view.historyError;
+      history.append(historyStatus);
       const historyList=element(doc,'div','od-stack');
       for(const fire of view.records){
         const row=makeHistoryRow(fire,plan.timezone);
@@ -589,12 +593,18 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
               if(historyList.isConnected)historyList.insertBefore(makeHistoryRow(fire,plan.timezone),more);
             }
             view.hasMore=Boolean(page.hasMore&&page.history.length);
+            view.historyError='';text(historyStatus,'');historyStatus.hidden=true;
             if(!historyList.isConnected){renderPlans();return;}
-            if(!view.hasMore)more.remove();
+            if(!view.hasMore){
+              if(doc.activeElement===more)history.querySelector('summary').focus({preventScroll:true});
+              more.remove();
+            }
             else {more.disabled=false;text(more,'加载更早记录');}
           }catch(error){
             more.disabled=false;text(more,'重试加载记录');
-            message('加载历史失败：'+(error?.message||String(error)),true);
+            view.historyError='加载历史失败：'+(error?.message||String(error));
+            if(historyStatus.isConnected){text(historyStatus,view.historyError);historyStatus.hidden=false;}
+            else renderPlans();
           }
         },'od-button od-button--secondary schedule-load-more');
         historyList.append(more);
