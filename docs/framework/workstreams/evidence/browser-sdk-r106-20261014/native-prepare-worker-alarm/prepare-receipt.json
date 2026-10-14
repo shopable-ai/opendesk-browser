@@ -1,0 +1,64 @@
+{
+  "schema": "opendesk.browser-sdk-r106-native.prepare.v1",
+  "status": "PREPARED_NOT_NATIVE_PASS",
+  "createdAt": "2026-10-13T23:41:45.861Z",
+  "gitHead": "b6dfe6adcd97170d57f86ede8eb7da9790c6c8e6",
+  "toolRoot": "examples/sidebar-tools/browser-sdk-acceptance",
+  "driver": {
+    "path": "tests/framework/browser-sdk-r106-native.mjs",
+    "bytes": 46898,
+    "sha256": "e3f4f9859edde8086bd7968a3c3142406bc85853c72c6e30bffae55c583a3e91"
+  },
+  "toolConfig": {
+    "path": "examples/sidebar-tools/browser-sdk-acceptance/tool.config.json",
+    "bytes": 683,
+    "sha256": "f91f4a4d40849b3c7c765102353bfcff1c935172282ea3c87bdd7891de88c428"
+  },
+  "sourceFiles": [
+    {
+      "path": "examples/sidebar-tools/browser-sdk-acceptance/README.zh-CN.md",
+      "bytes": 2268,
+      "sha256": "d9d33d48c63790685a29508c97ceaf1b7864b9254193d1e991ba5a0507b728eb"
+    },
+    {
+      "path": "examples/sidebar-tools/browser-sdk-acceptance/src/index.html",
+      "bytes": 3738,
+      "sha256": "06b10037c2ef2387d2b56536ba77648388bebdee30e40a2e0eb4a08600a6b001"
+    },
+    {
+      "path": "examples/sidebar-tools/browser-sdk-acceptance/src/main.js",
+      "bytes": 5995,
+      "sha256": "e33741ae8db23e55a705fa694658132e06c5e6a1e2fea76f11deeb9f1874b94b"
+    },
+    {
+      "path": "examples/sidebar-tools/browser-sdk-acceptance/src/style.css",
+      "bytes": 2669,
+      "sha256": "045ae8de7bb68b15f48a1c6b433f85e87a10296c914223e7c3ef02bdb8d10d6f"
+    },
+    {
+      "path": "examples/sidebar-tools/browser-sdk-acceptance/tool.config.json",
+      "bytes": 683,
+      "sha256": "f91f4a4d40849b3c7c765102353bfcff1c935172282ea3c87bdd7891de88c428"
+    }
+  ],
+  "toolPackage": {
+    "id": "browser-sdk-acceptance",
+    "version": "10.6.1",
+    "sha256": "b77b2abaa04919f654cb0cdca2d27d982351abe6a5966ba964b2e04e310b3f48",
+    "bytes": 13340
+  },
+  "demo": {
+    "url": "http://127.0.0.1:43111/demo-form.html",
+    "checked": false
+  },
+  "nativeGate": {
+    "requiredEnv": "OPENDESK_R106_NATIVE=1",
+    "chrome155": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "extensionEnv": "OPENDESK_R106_EXTENSION",
+    "evidenceRoot": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-prepare-worker-alarm"
+  },
+  "restrictions": [
+    "No browser launch, build of shared dist, git branch, storage grant, DOM value assignment, Runtime.evaluate business call, synthetic event, or sender forgery happened in prepare mode.",
+    "Native PASS requires main-dialog execution with owned CFT foreground PID, formal UI file import/install, Host approval, screenshots, raw receipts, worker restart, and scheduler alarm evidence."
+  ]
+}

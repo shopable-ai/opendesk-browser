@@ -1,0 +1,28 @@
+R106_NATIVE_START launch-owned-cft
+R106_NATIVE_PASS launch-owned-cft
+R106_NATIVE_START side-panel-contexts
+R106_NATIVE_PASS side-panel-contexts
+R106_NATIVE_START install-open-tool
+R106_NATIVE_PASS install-open-tool
+R106_NATIVE_START active-demo
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: E_NATIVE_RESOURCE_BUSY [{"pid":99253,"parent":99235}]
+
+1 !== 0
+
+    at requireNativeResource (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:220:12)
+    at recordCase (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:341:7)
+    at async runNative (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:434:5)
+    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:743:3 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 1,
+  expected: 0,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.16.0

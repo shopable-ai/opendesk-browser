@@ -1,0 +1,196 @@
+{
+  "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
+  "gitTree": "0b1040a206c09bd53d56b365d0bfa8e2c7d29ccd",
+  "method": "immutable Git archive, no checkout or worktree",
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-installed-consent-fixed",
+  "nodeVersion": "v24.16.0",
+  "dailyDistUntouched": true,
+  "privateGuardPort": 43127,
+  "steps": [
+    {
+      "key": "nodeTests",
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=spec",
+        "tests/environment/browser-sdk-r8-catalog.test.mjs",
+        "tests/environment/browser-sdk-r8-cookies.test.mjs",
+        "tests/environment/browser-sdk-r7-trusted-cookies.test.mjs",
+        "tests/environment/browser-sdk-r7-mapping.test.mjs",
+        "tests/environment/browser-sdk-contract-compat.test.mjs",
+        "tests/environment/browser-sdk-coverage.test.mjs",
+        "tests/environment/browser-tabs-host.test.mjs",
+        "tests/environment/browser-sidepanel-host.test.mjs",
+        "tests/environment/browser-sdk-r2-host.test.mjs",
+        "tests/environment/browser-screenshot-host.test.mjs",
+        "tests/environment/browser-screenshot-resources.test.mjs",
+        "tests/environment/browser-network-observe-host.test.mjs",
+        "tests/environment/browser-sdk-approval-timeout.test.mjs",
+        "tests/environment/browser-sdk-r2-demo.test.mjs",
+        "tests/environment/browser-sdk-p3-implementation.test.mjs",
+        "tests/environment/browser-sdk-p3-bookmarks.test.mjs",
+        "tests/environment/browser-sdk-p4-implementation.test.mjs",
+        "tests/environment/browser-sdk-r9-installed-cookies.test.mjs",
+        "tests/environment/browser-sdk-r9-installed-host.test.mjs",
+        "tests/environment/browser-sdk-p5-scheduler.test.mjs",
+        "tests/environment/browser-sdk-r106-trusted.test.mjs",
+        "tests/environment/browser-sdk-r106-history-ui.test.mjs",
+        "tests/environment/browser-sdk-r106-host.test.mjs",
+        "tests/environment/scheduled-tasks-r1.test.mjs",
+        "tests/environment/scheduled-task-timezone-r25.test.mjs",
+        "tests/environment/browser-sdk-freeze.test.mjs",
+        "tests/environment/browser-sdk-interface-matrix.test.mjs",
+        "tests/environment/browser-framework-ledger.test.mjs",
+        "tests/environment/cookie-editor-ui.test.mjs",
+        "tests/environment/sidebar-tool-enable-r26.test.mjs",
+        "tests/environment/official-tools-catalog-r45.test.mjs"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "durationSeconds": 0.616,
+      "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/nodeTests-installed-consent-fixed.log"
+    },
+    {
+      "key": "matrix",
+      "argv": [
+        "node",
+        "scripts/check-browser-sdk-interface-matrix.mjs",
+        "--check"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "durationSeconds": 0.042,
+      "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/matrix-installed-consent-fixed.log"
+    },
+    {
+      "key": "catalog",
+      "argv": [
+        "node",
+        "scripts/sync-chrome-api-catalog.mjs",
+        "--check"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "durationSeconds": 0.05,
+      "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/catalog-installed-consent-fixed.log"
+    },
+    {
+      "key": "coverage",
+      "argv": [
+        "node",
+        "scripts/check-browser-sdk-coverage.mjs",
+        "--check"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "durationSeconds": 0.055,
+      "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/coverage-installed-consent-fixed.log"
+    },
+    {
+      "key": "ledger",
+      "argv": [
+        "node",
+        "scripts/check-browser-framework-ledger.mjs",
+        "--check"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "durationSeconds": 0.044,
+      "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/ledger-installed-consent-fixed.log"
+    },
+    {
+      "key": "freeze",
+      "argv": [
+        "node",
+        "scripts/check-browser-sdk-freeze.mjs"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "durationSeconds": 0.058,
+      "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/freeze-installed-consent-fixed.log"
+    },
+    {
+      "key": "check",
+      "argv": [
+        "npm",
+        "run",
+        "check"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "durationSeconds": 17.084,
+      "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/check-installed-consent-fixed.log"
+    },
+    {
+      "key": "buildProduction",
+      "argv": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "durationSeconds": 23.762,
+      "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildProduction-installed-consent-fixed.log"
+    },
+    {
+      "key": "buildDevelopment",
+      "argv": [
+        "npm",
+        "run",
+        "build:dev"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "durationSeconds": 22.808,
+      "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildDevelopment-installed-consent-fixed.log"
+    },
+    {
+      "key": "buildSize",
+      "argv": [
+        "npm",
+        "run",
+        "build:size"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "durationSeconds": 1.1,
+      "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildSize-installed-consent-fixed.log"
+    },
+    {
+      "key": "verify",
+      "argv": [
+        "npm",
+        "run",
+        "verify"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "durationSeconds": 1.96,
+      "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/verify-installed-consent-fixed.log"
+    },
+    {
+      "key": "targetedMainRegressions",
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=spec",
+        "tests/environment/browser-sdk-r13.test.mjs",
+        "tests/environment/sidebar-tools.test.mjs",
+        "tests/environment/sidebar-tools-host.test.mjs",
+        "tests/environment/official-tools-catalog-r45.test.mjs",
+        "tests/environment/fixed-entries-audit.test.mjs",
+        "tests/framework/k4-sdk-reinjection.test.mjs",
+        "tests/framework/k4-sdk.test.mjs",
+        "tests/framework/k2-sdk-relay-races.test.mjs",
+        "tests/environment/boundaries.test.mjs",
+        "tests/framework/k4-sdk-hello-races.test.mjs",
+        "tests/framework/k4-sdk-bundle-reinjection.test.mjs"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "durationSeconds": 1.322,
+      "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/targetedMainRegressions-installed-consent-fixed.log"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
+  "status": "FAIL",
+  "exitCode": 1,
+  "command": "npm test",
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-installed-consent-fixed",
+  "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-whole-installed-consent-fixed-bound.log",
+  "environment": "macOS arm64 Node v24.16.0; OPENDESK_BUILD_EVIDENCE_DIR points to same-candidate receipts; private guard43127",
+  "counts": {
+    "tests": 2287,
+    "pass": 2282,
+    "fail": 3,
+    "skipped": 2
+  }
+}

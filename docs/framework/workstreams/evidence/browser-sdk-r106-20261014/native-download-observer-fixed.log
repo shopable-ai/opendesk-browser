@@ -1,0 +1,29 @@
+R106_NATIVE_START launch-owned-cft
+R106_NATIVE_PASS launch-owned-cft
+R106_NATIVE_START side-panel-contexts
+R106_NATIVE_PASS side-panel-contexts
+R106_NATIVE_START install-open-tool
+R106_NATIVE_PASS install-open-tool
+R106_NATIVE_START active-demo
+R106_NATIVE_PASS active-demo
+R106_NATIVE_START bookmarks-permission-denied
+R106_NATIVE_PASS bookmarks-permission-denied
+R106_NATIVE_START bookmarks-create
+R106_NATIVE_PASS bookmarks-create
+R106_NATIVE_START storage-persist
+R106_NATIVE_PASS storage-persist
+R106_NATIVE_START bookmarks-remove
+R106_NATIVE_PASS bookmarks-remove
+R106_NATIVE_START download-start-and-complete
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+Error: same owned native download complete NOT_OBSERVED
+    at deadline (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:93:9)
+    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:370:20
+    at async recordCase (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:275:20)
+    at async runNative (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:366:5)
+    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:562:3
+
+Node.js v24.16.0

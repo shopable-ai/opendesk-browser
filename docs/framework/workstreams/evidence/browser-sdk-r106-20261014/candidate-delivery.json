@@ -1,8 +1,8 @@
 {
   "schemaVersion": "opendesk.browser-sdk.r106-candidate.v1",
-  "candidateSha": "33b3f574f11b557f6c01830b5758f610d59266f8",
-  "gitTree": "6cc997461d62348860d50517da37d8ab040690c4",
-  "sourceInputFingerprint": "516219d8bd03c85b7825018ff9e024d74a1f4875e471886a7a6e6ba252e2edbe",
+  "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
+  "gitTree": "0b1040a206c09bd53d56b365d0bfa8e2c7d29ccd",
+  "sourceInputFingerprint": "7f3ce64db43a67c5ed1dd9d80fa87b60ee6b4a1c1a0d7f25f2547a88668d7c07",
   "sourceInputs": [
     {
       "path": "docs/contracts/licenses/todo-user-vue-MIT.txt",
@@ -1891,8 +1891,8 @@
     },
     {
       "path": "src/sidebar-tools/bridge.js",
-      "bytes": 11366,
-      "sha256": "bc823baf295d434c89ca217991dc1441d0781d64ffad56bbb036a15411ba2f71"
+      "bytes": 10845,
+      "sha256": "512d1b29ef37b8672257f6c66a76cca2041855f14e18b03dcf5a0b97fd9dc1e4"
     },
     {
       "path": "src/sidebar-tools/default-preinstall.js",
@@ -2355,17 +2355,17 @@
       "sha256": "6d7d80e3ebb145ab4b8e84b1773e90684b2b9c61f973ded1493b64285779ba7c"
     }
   ],
-  "productionPackageHash": "4b7cd19714984a74042be9f90b41ccf9cd36bac8bbfc3ca6f19f32bb3b81eba2",
-  "developmentPackageHash": "6c118c295a711d3c6d300b8d5d2cc0afa6036a7dc0e876d8ae65fb4fcd6df793",
+  "productionPackageHash": "fb5636cc56a85d8451c08c572c529b15857fca9f220eed2c128f014e424e5c61",
+  "developmentPackageHash": "89bf4fc8e37483353cdedcca9530da1f717584f22c7b544292e6981b3cfee33d",
   "candidateKind": "untouched committed Git archive; independent dist; no branch/worktree; no source edits",
   "checks": {
     "nodeTests": {
       "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/nodeTests-versioned-consumers-recovered.log",
-          "sha256": "972ad06d2f9b1dc5db921f9cdabede0676d5e923712424956d447ea6e7b9830f",
-          "candidateSha": "33b3f574f11b557f6c01830b5758f610d59266f8",
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/nodeTests-installed-consent-fixed.log",
+          "sha256": "1ea730177db3664c0d46ac61f4db137e547e52ad4b315f4f903e2adbc01af802",
+          "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
           "caseId": "R10.6-nodeTests",
           "command": "node --test --test-reporter=spec tests/environment/browser-sdk-r8-catalog.test.mjs tests/environment/browser-sdk-r8-cookies.test.mjs tests/environment/browser-sdk-r7-trusted-cookies.test.mjs tests/environment/browser-sdk-r7-mapping.test.mjs tests/environment/browser-sdk-contract-compat.test.mjs tests/environment/browser-sdk-coverage.test.mjs tests/environment/browser-tabs-host.test.mjs tests/environment/browser-sidepanel-host.test.mjs tests/environment/browser-sdk-r2-host.test.mjs tests/environment/browser-screenshot-host.test.mjs tests/environment/browser-screenshot-resources.test.mjs tests/environment/browser-network-observe-host.test.mjs tests/environment/browser-sdk-approval-timeout.test.mjs tests/environment/browser-sdk-r2-demo.test.mjs tests/environment/browser-sdk-p3-implementation.test.mjs tests/environment/browser-sdk-p3-bookmarks.test.mjs tests/environment/browser-sdk-p4-implementation.test.mjs tests/environment/browser-sdk-r9-installed-cookies.test.mjs tests/environment/browser-sdk-r9-installed-host.test.mjs tests/environment/browser-sdk-p5-scheduler.test.mjs tests/environment/browser-sdk-r106-trusted.test.mjs tests/environment/browser-sdk-r106-history-ui.test.mjs tests/environment/browser-sdk-r106-host.test.mjs tests/environment/scheduled-tasks-r1.test.mjs tests/environment/scheduled-task-timezone-r25.test.mjs tests/environment/browser-sdk-freeze.test.mjs tests/environment/browser-sdk-interface-matrix.test.mjs tests/environment/browser-framework-ledger.test.mjs tests/environment/cookie-editor-ui.test.mjs tests/environment/sidebar-tool-enable-r26.test.mjs tests/environment/official-tools-catalog-r45.test.mjs",
           "environment": "v24.16.0; macOS; immutable Git archive; independent dist and output guard 43127"
@@ -2376,9 +2376,9 @@
       "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/check-versioned-consumers-recovered.log",
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/check-installed-consent-fixed.log",
           "sha256": "5a3df4fe18df36d0ec280ae65b3a25bc003379937991759117f164f10d6b865b",
-          "candidateSha": "33b3f574f11b557f6c01830b5758f610d59266f8",
+          "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
           "caseId": "R10.6-check",
           "command": "npm run check",
           "environment": "v24.16.0; macOS; immutable Git archive; independent dist and output guard 43127"
@@ -2389,9 +2389,9 @@
       "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildProduction-versioned-consumers-recovered.log",
-          "sha256": "6c9029f3fca19ebb465d6408c8ecdefba1d0ba8904d3337791014f9bf90e44e0",
-          "candidateSha": "33b3f574f11b557f6c01830b5758f610d59266f8",
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildProduction-installed-consent-fixed.log",
+          "sha256": "bfd20c09ef92f8248be46b26d0be8f27c1caa85153beebb91c7a724601718857",
+          "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
           "caseId": "R10.6-buildProduction",
           "command": "npm run build",
           "environment": "v24.16.0; macOS; immutable Git archive; independent dist and output guard 43127"
@@ -2402,9 +2402,9 @@
       "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildDevelopment-versioned-consumers-recovered.log",
-          "sha256": "9ac7320e2e1231e6b8709c142e5de8bf4e3960518b0006efd2b8d99878c11155",
-          "candidateSha": "33b3f574f11b557f6c01830b5758f610d59266f8",
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildDevelopment-installed-consent-fixed.log",
+          "sha256": "7044638710c6e6fa8cbf4a04634ef55af509ed6dba5e53960230d37a45bdf6a4",
+          "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
           "caseId": "R10.6-buildDevelopment",
           "command": "npm run build:dev",
           "environment": "v24.16.0; macOS; immutable Git archive; independent dist and output guard 43127"
@@ -2415,9 +2415,9 @@
       "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildSize-versioned-consumers-recovered.log",
-          "sha256": "5b70161b0e2ac061774142cb166baa61793ea2a35a7ad9306da3a1aa2f91bb68",
-          "candidateSha": "33b3f574f11b557f6c01830b5758f610d59266f8",
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildSize-installed-consent-fixed.log",
+          "sha256": "c37c9630f3ca304e25ca7af6de2db66fd0cbd07f9d8d7dda7a6569ff290e0e3d",
+          "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
           "caseId": "R10.6-buildSize",
           "command": "npm run build:size",
           "environment": "v24.16.0; macOS; immutable Git archive; independent dist and output guard 43127"
@@ -2428,9 +2428,9 @@
       "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/verify-versioned-consumers-recovered.log",
-          "sha256": "f8410f5f67f1efe8763d658d2aef28cf1656a9c030ef1bad267409ca04a38337",
-          "candidateSha": "33b3f574f11b557f6c01830b5758f610d59266f8",
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/verify-installed-consent-fixed.log",
+          "sha256": "eb885cf6bf5ba7bbf69368e05d87abe7bb6deac2107ad6a77667c39832db6d8a",
+          "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
           "caseId": "R10.6-verify",
           "command": "npm run verify",
           "environment": "v24.16.0; macOS; immutable Git archive; independent dist and output guard 43127"
@@ -2441,9 +2441,9 @@
       "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/targetedMainRegressions-versioned-consumers-recovered.log",
-          "sha256": "1ddae1cbda54a17b913a48cb6281d702d061af9a761749872af7299acfeda136",
-          "candidateSha": "33b3f574f11b557f6c01830b5758f610d59266f8",
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/targetedMainRegressions-installed-consent-fixed.log",
+          "sha256": "1682eeaac00c18dd0c7b192d358e8041edf5f323432c369b458c0a31757e2c96",
+          "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
           "caseId": "R10.6-targetedMainRegressions",
           "command": "node --test --test-reporter=spec tests/environment/browser-sdk-r13.test.mjs tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/official-tools-catalog-r45.test.mjs tests/environment/fixed-entries-audit.test.mjs tests/framework/k4-sdk-reinjection.test.mjs tests/framework/k4-sdk.test.mjs tests/framework/k2-sdk-relay-races.test.mjs tests/environment/boundaries.test.mjs tests/framework/k4-sdk-hello-races.test.mjs tests/framework/k4-sdk-bundle-reinjection.test.mjs",
           "environment": "v24.16.0; macOS; immutable Git archive; independent dist and output guard 43127"
@@ -2462,13 +2462,13 @@
       "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/actions-versioned-consumers-recovered.json",
-          "sha256": "17db2b1f0246605d59a6caf1a2d92425bcb690900afa24f45d8c7eeb7bf4280e",
-          "candidateSha": "33b3f574f11b557f6c01830b5758f610d59266f8",
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/actions-installed-consent-fixed.json",
+          "sha256": "c9105e7dc1bc09e56c90c4bd41b6883e4103e24c8d76798eb3190b7b676859a3",
+          "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
           "caseId": "R10.6-targetedMainCI",
           "command": "GitHub Actions: Browser SDK targeted main verification",
           "environment": "GitHub Actions; exact runner details in linked job",
-          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38478366612"
+          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38482325639"
         }
       ]
     },
@@ -2476,32 +2476,41 @@
       "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/actions-versioned-consumers-recovered.json",
-          "sha256": "17db2b1f0246605d59a6caf1a2d92425bcb690900afa24f45d8c7eeb7bf4280e",
-          "candidateSha": "33b3f574f11b557f6c01830b5758f610d59266f8",
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/actions-installed-consent-fixed.json",
+          "sha256": "c9105e7dc1bc09e56c90c4bd41b6883e4103e24c8d76798eb3190b7b676859a3",
+          "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
           "caseId": "R10.6-r5CI",
           "command": "GitHub Actions: Browser SDK R5 implementation contracts",
           "environment": "GitHub Actions; exact runner details in linked job",
-          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38478366507"
+          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38482325798"
         }
       ]
     },
     "cookieEditorCI": {
-      "status": "NOT_TESTED",
-      "evidence": [],
-      "reason": "This source-only candidate did not trigger the Cookie workflow; the earlier whole-CI failure is preserved in docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery-238e279c.json"
+      "status": "FAIL",
+      "evidence": [
+        {
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/actions-installed-consent-fixed.json",
+          "sha256": "c9105e7dc1bc09e56c90c4bd41b6883e4103e24c8d76798eb3190b7b676859a3",
+          "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
+          "caseId": "R10.6-cookieEditorCI",
+          "command": "GitHub Actions: Cookie Editor R3.3 real SDK and package verification",
+          "environment": "GitHub Actions; preserve actual complete-workflow conclusion",
+          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38482325692"
+        }
+      ]
     },
     "packageBudgetsCI": {
       "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/actions-versioned-consumers-recovered.json",
-          "sha256": "17db2b1f0246605d59a6caf1a2d92425bcb690900afa24f45d8c7eeb7bf4280e",
-          "candidateSha": "33b3f574f11b557f6c01830b5758f610d59266f8",
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/actions-installed-consent-fixed.json",
+          "sha256": "c9105e7dc1bc09e56c90c4bd41b6883e4103e24c8d76798eb3190b7b676859a3",
+          "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
           "caseId": "R10.6-packageBudgetsCI",
           "command": "GitHub Actions: Extension package budgets and library boundaries",
           "environment": "GitHub Actions; exact runner details in linked job",
-          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38478366578"
+          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38482325830"
         }
       ]
     }
@@ -2530,91 +2539,77 @@
     "scope": "Separate mutable parallel working-tree run, not this clean commit"
   },
   "nativeLimitations": [
-    "Full same-candidate 55-contract real Chrome acceptance incomplete",
-    "Own CFT trusted tool import stopped on actual foreground changes; resource handoff pending",
-    "Prepared Scheduler fixed Task/Alarm/RunHost Run×2 driver has no actual Chrome PASS",
-    "Historical Cookie native fragments have distinct physical package hashes and are supplemental"
+    "Same-candidate 55-contract installed Native acceptance remains incomplete",
+    "Actual passing cases are preserved in installedNativeObservations; pending contracts are not promoted",
+    "Unclosed cross-tool, trusted History, Origin revocation, upgrade/uninstall and Cookie consumer contracts need same-candidate evidence",
+    "Final independent F3 and matching ZIP installation are not accepted"
   ],
   "actions": [
     {
       "name": "Browser SDK R5 implementation contracts",
-      "id": 38478366507,
-      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38478366507",
-      "candidateSha": "33b3f574f11b557f6c01830b5758f610d59266f8",
+      "id": 38482325798,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38482325798",
+      "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
       "status": "PASS"
     },
     {
       "name": "Browser SDK targeted main verification",
-      "id": 38478366612,
-      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38478366612",
-      "candidateSha": "33b3f574f11b557f6c01830b5758f610d59266f8",
+      "id": 38482325639,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38482325639",
+      "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
       "status": "PASS"
     },
     {
       "name": "Extension package budgets and library boundaries",
-      "id": 38478366578,
-      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38478366578",
-      "candidateSha": "33b3f574f11b557f6c01830b5758f610d59266f8",
+      "id": 38482325830,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38482325830",
+      "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
       "status": "PASS"
     }
   ],
   "sameCandidateWholeRepoNode": {
-    "candidateSha": "33b3f574f11b557f6c01830b5758f610d59266f8",
-    "command": "npm test",
-    "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-versioned-consumers-recovered",
-    "environment": {
-      "OPENDESK_BUILD_EVIDENCE_DIR": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/builds-versioned-consumers-recovered",
-      "OPENDESK_OUTPUT_GUARD_PORT": "43127"
-    },
-    "exitCode": 1,
+    "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
     "status": "FAIL",
-    "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-whole-versioned-consumers-recovered-bound.log",
+    "exitCode": 1,
+    "command": "npm test",
+    "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-installed-consent-fixed",
+    "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-whole-installed-consent-fixed-bound.log",
+    "environment": "macOS arm64 Node v24.16.0; OPENDESK_BUILD_EVIDENCE_DIR points to same-candidate receipts; private guard43127",
     "counts": {
-      "tests": 2286,
-      "pass": 2280,
-      "fail": 4,
+      "tests": 2287,
+      "pass": 2282,
+      "fail": 3,
       "skipped": 2
     },
-    "sha256": "ed59bb7b8cdc35c39bdeb4927a4c4e2882172df9a36767d1cf0f6b4b60f73ef6",
-    "scope": "Full repository; preserve failures independently from the 292 passing SDK contracts"
+    "sha256": "3a05778f5610dd948cf7747643325be8f9856768c40439cde1ae0d0a9ce66eec",
+    "scope": "Full repository; preserve failures independently from passing SDK contracts"
   },
   "sameCandidateCookieCI": {
-    "status": "NOT_TESTED",
-    "candidateSha": "33b3f574f11b557f6c01830b5758f610d59266f8",
-    "previousEvidence": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery-238e279c.json"
+    "status": "FAIL",
+    "evidence": [
+      {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/actions-installed-consent-fixed.json",
+        "sha256": "c9105e7dc1bc09e56c90c4bd41b6883e4103e24c8d76798eb3190b7b676859a3",
+        "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
+        "caseId": "R10.6-cookieEditorCI",
+        "command": "GitHub Actions: Cookie Editor R3.3 real SDK and package verification",
+        "environment": "GitHub Actions; preserve actual complete-workflow conclusion",
+        "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38482325692"
+      }
+    ],
+    "candidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
+    "previousEvidence": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery-33b3f574.json"
   },
   "previousCandidate": {
-    "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery-238e279c.json",
-    "sha256": "e2c56adcc3f859506c6b5318288207773818df41958fe9599d448bba895f6b74",
-    "candidateSha": "238e279c2f3f07174d640a91e464ad1fbfa12291"
+    "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery-33b3f574.json",
+    "sha256": "c9d37036d084f41dcce458d4f9939b5ebe9357bc7875c989c646814da00a41dd",
+    "candidateSha": "33b3f574f11b557f6c01830b5758f610d59266f8"
   },
   "bookmarksTitleFolderProtection": {
     "status": "SOURCE_WIRED",
     "node": "PASS",
     "native": "NOT_TESTED",
     "migration": "Legacy records without original title and parentId cannot delete native bookmarks"
-  },
-  "subsequentTestOnlyCommit": {
-    "candidateSha": "5c322c26f074b71ab7ff33de1b4a596b6d718dca",
-    "referenceCandidateSha": "33b3f574f11b557f6c01830b5758f610d59266f8",
-    "sourceInputFingerprint": "516219d8bd03c85b7825018ff9e024d74a1f4875e471886a7a6e6ba252e2edbe",
-    "inputCount": 470,
-    "changedCommitPaths": [
-      "docs/framework/workstreams/browser-sdk-r106-20261014.md",
-      "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-markdown-current-version.log",
-      "tests/environment/markdown-tools-r22.test.mjs"
-    ],
-    "productInputDrift": [],
-    "meaning": "Test-only follow-up preserves exact verified product inputs; no new native credit",
-    "targetedRegression": {
-      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/node-markdown-current-version.log",
-      "sha256": "c20fcb6a2fb7714d491b66b2b373aa441fde68f13eb23b3d248932f99ac21f3b",
-      "counts": {
-        "tests": 10,
-        "pass": 10,
-        "fail": 0
-      }
-    }
   },
   "consumerVersionMigration": {
     "clipper": "1.0.1",
@@ -2625,49 +2620,217 @@
     "marketPublication": "NOT_PERFORMED",
     "formalInstall": "NOT_TESTED"
   },
-  "ciPostDeliveryPriorCandidate": {
-    "candidateSha": "e7a35924e933525b13a840bd1dbafb6f515e6017",
-    "status": "FAIL",
-    "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38474069636",
-    "scopedCookies": {
-      "tests": 134,
-      "pass": 134,
-      "fail": 0
+  "installedNativeObservations": [
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-dialog-scoped-task/native-2026-10-13T23-48-24-599Z-7a73b0d9/native-report.json",
+      "sha256": "315cc822ee74da303f7fa15f5e79a0ea4c974b4e702c308b8ca09e69aff52439",
+      "sourceCandidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
+      "packageHash": "fb5636cc56a85d8451c08c572c529b15857fca9f220eed2c128f014e424e5c61",
+      "driverCommit": "ad4a8e709455744d3af1704dac48f9e6e442555a",
+      "status": "CORE_PASS_MORE_CONTRACTS_NOT_TESTED",
+      "extensionId": "bnfachbadlopkhlnppnkjicgdjldafjf",
+      "cases": {
+        "launch-owned-cft": "PASS",
+        "side-panel-contexts": "PASS",
+        "install-open-tool": "PASS",
+        "active-demo": "PASS",
+        "bookmarks-permission-denied": "PASS",
+        "bookmarks-create": "PASS",
+        "storage-persist": "PASS",
+        "worker-restart-owned-bookmark-and-storage": "PASS",
+        "bookmarks-remove": "PASS",
+        "download-start-and-terminal-state": "PASS",
+        "scheduler-fixed-task-install": "PASS",
+        "scheduler-open-existing-runhost": "PASS",
+        "storage-independent-tool-reopen": "PASS",
+        "scheduler-create-owned-alarm": "PASS",
+        "scheduler-two-independent-runhost-results": "PASS",
+        "scheduler-cancel-owned": "PASS"
+      },
+      "scope": "Actual installed-tool cases only; untested lifecycle and other contracts prevent formal Native promotion"
     },
-    "wholeRepository": {
-      "tests": 2286,
-      "pass": 2268,
-      "fail": 11,
-      "skipped": 7
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-installed-consent-fixed/native-2026-10-13T23-09-26-313Z-f11dbae0/native-report.json",
+      "sha256": "c3ba3742d36d3075dd4e50a3e520907aee288a883c8a400f0ebe018031130117",
+      "sourceCandidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
+      "packageHash": "fb5636cc56a85d8451c08c572c529b15857fca9f220eed2c128f014e424e5c61",
+      "driverCommit": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
+      "status": "FAIL_OR_BLOCKED",
+      "extensionId": "bnfachbadlopkhlnppnkjicgdjldafjf",
+      "cases": {
+        "launch-owned-cft": "PASS",
+        "side-panel-contexts": "PASS",
+        "install-open-tool": "PASS",
+        "active-demo": "PASS",
+        "bookmarks-permission-denied": "PASS",
+        "bookmarks-create": "PASS",
+        "storage-persist": "PASS",
+        "bookmarks-remove": "PASS",
+        "download-start-and-complete": "FAIL"
+      },
+      "scope": "Actual installed-tool cases only; untested lifecycle and other contracts prevent formal Native promotion"
     },
-    "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/ci-cookie-post-delivery-job.log"
-  },
-  "subsequentLinuxRegression": {
-    "candidateSha": "5c322c26f074b71ab7ff33de1b4a596b6d718dca",
-    "productInputReuse": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/markdown-version-fix-input-reuse.json",
-    "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38479113497",
-    "jobId": 115577048077,
-    "fullRepository": {
-      "status": "FAIL",
-      "tests": 2286,
-      "pass": 2277,
-      "fail": 2,
-      "skipped": 7
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-owner-composite-identity/native-2026-10-14T00-37-51-882Z-02013ba1/native-report.json",
+      "sha256": "bbb664acbd6a7df51b7a295d51c1fb315422a61d85ab6e3a192d474c00f6cef5",
+      "sourceCandidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
+      "packageHash": "fb5636cc56a85d8451c08c572c529b15857fca9f220eed2c128f014e424e5c61",
+      "driverCommit": "fca7d07f17df180764d0766605362e47a555fd63",
+      "status": "FAIL_OR_BLOCKED",
+      "extensionId": "bnfachbadlopkhlnppnkjicgdjldafjf",
+      "cases": {
+        "launch-owned-cft": "PASS",
+        "side-panel-contexts": "PASS",
+        "install-open-tool": "PASS",
+        "active-demo": "PASS",
+        "bookmarks-permission-denied": "PASS",
+        "bookmarks-create": "PASS",
+        "storage-persist": "PASS",
+        "worker-restart-owned-bookmark-and-storage": "PASS",
+        "bookmarks-remove": "PASS",
+        "download-start-and-terminal-state": "PASS",
+        "scheduler-fixed-task-install": "PASS",
+        "scheduler-open-existing-runhost": "PASS",
+        "storage-independent-tool-reopen": "PASS",
+        "scheduler-create-owned-alarm": "PASS",
+        "scheduler-two-independent-runhost-results": "NOT_TESTED",
+        "scheduler-cancel-owned": "PASS",
+        "ownership-source-resources": "PASS",
+        "cross-tool-storage-and-resource-rejection": "PASS",
+        "tool-upgrade-revokes-old-resource-identity": "FAIL"
+      },
+      "scope": "Actual installed-tool cases only; untested lifecycle and other contracts prevent formal Native promotion"
     },
-    "remainingFailures": [
-      "tests/environment/workflow-focus.test.mjs: parallel workflow adoption contract",
-      "tests/environment/wxt-development.test.mjs: assert.notMatch; other owner has uncommitted correction"
-    ],
-    "markdownPackages": {
-      "tests": 10,
-      "pass": 10,
-      "fail": 0
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-owner-confirm/native-2026-10-14T00-19-51-272Z-3988862c/native-report.json",
+      "sha256": "a6637bd0bb1527fb86d0aad542c0878fcd4d84291841be342a9a80d448e61f8f",
+      "sourceCandidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
+      "packageHash": "fb5636cc56a85d8451c08c572c529b15857fca9f220eed2c128f014e424e5c61",
+      "driverCommit": "9c278be6385c3af8fbf0abdacb66416ecc333363",
+      "status": "FAIL_OR_BLOCKED",
+      "extensionId": "bnfachbadlopkhlnppnkjicgdjldafjf",
+      "cases": {
+        "launch-owned-cft": "PASS",
+        "side-panel-contexts": "PASS",
+        "install-open-tool": "PASS",
+        "active-demo": "FAIL"
+      },
+      "scope": "Actual installed-tool cases only; untested lifecycle and other contracts prevent formal Native promotion"
     },
-    "markdownNativeFixture": {
-      "status": "FAIL",
-      "error": "Native Chrome timeout: Discover tools available",
-      "sdkNativeCredit": 0
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-owner-headless-aware/native-2026-10-14T00-26-26-798Z-910c5c50/native-report.json",
+      "sha256": "f703cab8ca013c89decf0816d4773496104739e45d5c5f2c17b8cdaa614182fa",
+      "sourceCandidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
+      "packageHash": "fb5636cc56a85d8451c08c572c529b15857fca9f220eed2c128f014e424e5c61",
+      "driverCommit": "0aa348ef197aeba1e583787fb07652763c552a86",
+      "status": "FAIL_OR_BLOCKED",
+      "extensionId": "bnfachbadlopkhlnppnkjicgdjldafjf",
+      "cases": {
+        "launch-owned-cft": "PASS",
+        "side-panel-contexts": "PASS",
+        "install-open-tool": "PASS",
+        "active-demo": "PASS",
+        "bookmarks-permission-denied": "PASS",
+        "bookmarks-create": "PASS",
+        "storage-persist": "PASS",
+        "worker-restart-owned-bookmark-and-storage": "PASS",
+        "bookmarks-remove": "PASS",
+        "download-start-and-terminal-state": "PASS",
+        "scheduler-fixed-task-install": "PASS",
+        "scheduler-open-existing-runhost": "PASS",
+        "storage-independent-tool-reopen": "PASS",
+        "scheduler-create-owned-alarm": "PASS",
+        "scheduler-two-independent-runhost-results": "NOT_TESTED",
+        "scheduler-cancel-owned": "PASS",
+        "ownership-source-resources": "PASS",
+        "cross-tool-storage-and-resource-rejection": "PASS",
+        "tool-upgrade-revokes-old-resource-identity": "FAIL"
+      },
+      "scope": "Actual installed-tool cases only; untested lifecycle and other contracts prevent formal Native promotion"
     },
-    "log": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/ci-markdown-version-fixed-job.log"
-  }
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-owner-revision-wait/native-2026-10-14T00-34-22-086Z-b3e62ed4/native-report.json",
+      "sha256": "0df86ff61da1ab44335a19dea8a2404d2cba141a424f4cefc7840bdc72623e03",
+      "sourceCandidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
+      "packageHash": "fb5636cc56a85d8451c08c572c529b15857fca9f220eed2c128f014e424e5c61",
+      "driverCommit": "21a51db3f0827f0856c602d23afe9a7b4deb07bf",
+      "status": "FAIL_OR_BLOCKED",
+      "extensionId": "bnfachbadlopkhlnppnkjicgdjldafjf",
+      "cases": {
+        "launch-owned-cft": "PASS",
+        "side-panel-contexts": "PASS",
+        "install-open-tool": "PASS",
+        "active-demo": "PASS",
+        "bookmarks-permission-denied": "PASS",
+        "bookmarks-create": "PASS",
+        "storage-persist": "PASS",
+        "worker-restart-owned-bookmark-and-storage": "PASS",
+        "bookmarks-remove": "PASS",
+        "download-start-and-terminal-state": "PASS",
+        "scheduler-fixed-task-install": "PASS",
+        "scheduler-open-existing-runhost": "PASS",
+        "storage-independent-tool-reopen": "PASS",
+        "scheduler-create-owned-alarm": "PASS",
+        "scheduler-two-independent-runhost-results": "NOT_TESTED",
+        "scheduler-cancel-owned": "PASS",
+        "ownership-source-resources": "PASS",
+        "cross-tool-storage-and-resource-rejection": "PASS",
+        "tool-upgrade-revokes-old-resource-identity": "FAIL"
+      },
+      "scope": "Actual installed-tool cases only; untested lifecycle and other contracts prevent formal Native promotion"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-peer-upgrade/native-2026-10-14T00-11-43-068Z-f7bd2eeb/native-report.json",
+      "sha256": "2a1d57561b514f9b4224237fef1f328d7e703df35d1768d455c8697bcd5dc208",
+      "sourceCandidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
+      "packageHash": "fb5636cc56a85d8451c08c572c529b15857fca9f220eed2c128f014e424e5c61",
+      "driverCommit": "b6ad3f22434e43666d75bbcd4a54325e4c0a79c0",
+      "status": "FAIL_OR_BLOCKED",
+      "extensionId": "bnfachbadlopkhlnppnkjicgdjldafjf",
+      "cases": {
+        "launch-owned-cft": "PASS",
+        "side-panel-contexts": "PASS",
+        "install-open-tool": "PASS",
+        "active-demo": "PASS",
+        "bookmarks-permission-denied": "PASS",
+        "bookmarks-create": "PASS",
+        "storage-persist": "PASS",
+        "worker-restart-owned-bookmark-and-storage": "PASS",
+        "bookmarks-remove": "PASS",
+        "download-start-and-terminal-state": "PASS",
+        "scheduler-fixed-task-install": "PASS",
+        "scheduler-open-existing-runhost": "PASS",
+        "storage-independent-tool-reopen": "PASS",
+        "scheduler-create-owned-alarm": "PASS",
+        "scheduler-two-independent-runhost-results": "PASS",
+        "scheduler-cancel-owned": "PASS",
+        "ownership-source-resources": "PASS",
+        "cross-tool-storage-and-resource-rejection": "FAIL"
+      },
+      "scope": "Actual installed-tool cases only; untested lifecycle and other contracts prevent formal Native promotion"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-worker-alarm-bounded/native-2026-10-13T23-41-46-593Z-bfceddc6/native-report.json",
+      "sha256": "5daa210085762879ad7d3391e39f4854564f5cee62ed9bfbe65ee4c263d38bfa",
+      "sourceCandidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
+      "packageHash": "fb5636cc56a85d8451c08c572c529b15857fca9f220eed2c128f014e424e5c61",
+      "driverCommit": "0018e5faf0a7efb4a0d91aaa9bbf72fcdd25aac1",
+      "status": "FAIL_OR_BLOCKED",
+      "extensionId": "bnfachbadlopkhlnppnkjicgdjldafjf",
+      "cases": {
+        "launch-owned-cft": "PASS",
+        "side-panel-contexts": "PASS",
+        "install-open-tool": "PASS",
+        "active-demo": "PASS",
+        "bookmarks-permission-denied": "PASS",
+        "bookmarks-create": "PASS",
+        "storage-persist": "PASS",
+        "worker-restart-owned-bookmark-and-storage": "PASS",
+        "bookmarks-remove": "PASS",
+        "download-start-and-terminal-state": "PASS",
+        "scheduler-fixed-task-install": "FAIL"
+      },
+      "scope": "Actual installed-tool cases only; untested lifecycle and other contracts prevent formal Native promotion"
+    }
+  ]
 }

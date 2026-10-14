@@ -1,0 +1,43 @@
+{
+  "pid": 68554,
+  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-r719mxkw",
+  "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "args": [
+    "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "--use-mock-keychain",
+    "--password-store=basic",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-background-networking",
+    "--remote-debugging-address=127.0.0.1",
+    "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-r719mxkw",
+    "--remote-debugging-port=0",
+    "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-installed-consent-fixed/dist/production",
+    "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-installed-consent-fixed/dist/production",
+    "about:blank"
+  ],
+  "log": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-r719mxkw/chrome.log",
+  "launcherPid": 68553,
+  "python": "/usr/bin/python3",
+  "launcher": "/Users/shopme/.codex/browser-testing/launch.py",
+  "launcherSha256": "e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74",
+  "launcherArgs": [
+    "/Users/shopme/.codex/browser-testing/launch.py",
+    "--executable",
+    "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "--report",
+    "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-download-observer-fixed/native-2026-10-13T23-23-53-962Z-84d162bb/launcher-r106.json",
+    "--remote-debugging-port=0",
+    "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-installed-consent-fixed/dist/production",
+    "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-installed-consent-fixed/dist/production",
+    "about:blank"
+  ],
+  "actualMainProcess": "68554 68553 /Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-r719mxkw --remote-debugging-port=0 --load-extension=/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-installed-consent-fixed/dist/production --disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/committed-candidate-installed-consent-fixed/dist/production about:blank",
+  "freshProfileObserved": {
+    "path": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-r719mxkw",
+    "birthtimeMs": 1791933834621.9026,
+    "previouslyPresent": false,
+    "mode": "0700"
+  },
+  "endpoint": "ws://127.0.0.1:53537/devtools/browser/02e94863-cdf4-4075-b0ea-3eef5b4c9e9d"
+}

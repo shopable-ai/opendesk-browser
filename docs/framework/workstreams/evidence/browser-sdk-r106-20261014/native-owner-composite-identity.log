@@ -1,0 +1,47 @@
+R106_NATIVE_START launch-owned-cft
+R106_NATIVE_PASS launch-owned-cft
+R106_NATIVE_START side-panel-contexts
+R106_NATIVE_PASS side-panel-contexts
+R106_NATIVE_START install-open-tool
+R106_NATIVE_PASS install-open-tool
+R106_NATIVE_START active-demo
+R106_NATIVE_PASS active-demo
+R106_NATIVE_START bookmarks-permission-denied
+R106_NATIVE_PASS bookmarks-permission-denied
+R106_NATIVE_START bookmarks-create
+R106_NATIVE_PASS bookmarks-create
+R106_NATIVE_START storage-persist
+R106_NATIVE_PASS storage-persist
+R106_NATIVE_START worker-restart-owned-bookmark-and-storage
+R106_NATIVE_PASS worker-restart-owned-bookmark-and-storage
+R106_NATIVE_START bookmarks-remove
+R106_NATIVE_PASS bookmarks-remove
+R106_NATIVE_START download-start-and-terminal-state
+R106_NATIVE_PASS download-start-and-terminal-state
+R106_NATIVE_START scheduler-fixed-task-install
+R106_NATIVE_PASS scheduler-fixed-task-install
+R106_NATIVE_START scheduler-open-existing-runhost
+R106_NATIVE_PASS scheduler-open-existing-runhost
+R106_NATIVE_START storage-independent-tool-reopen
+R106_NATIVE_PASS storage-independent-tool-reopen
+R106_NATIVE_START scheduler-create-owned-alarm
+R106_NATIVE_PASS scheduler-create-owned-alarm
+R106_NATIVE_START scheduler-cancel-owned
+R106_NATIVE_PASS scheduler-cancel-owned
+R106_NATIVE_START ownership-source-resources
+R106_NATIVE_PASS ownership-source-resources
+R106_NATIVE_START cross-tool-storage-and-resource-rejection
+R106_NATIVE_PASS cross-tool-storage-and-resource-rejection
+R106_NATIVE_START tool-upgrade-revokes-old-resource-identity
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+Error: old owner Alarm retired after upgrade NOT_OBSERVED
+    at deadline (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:121:9)
+    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:719:26
+    at async recordCase (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:351:20)
+    at async runNative (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:709:5)
+    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:774:3
+
+Node.js v24.16.0

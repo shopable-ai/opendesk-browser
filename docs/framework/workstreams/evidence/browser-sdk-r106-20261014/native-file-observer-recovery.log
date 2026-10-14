@@ -1,0 +1,32 @@
+R106_NATIVE_START launch-owned-cft
+R106_NATIVE_PASS launch-owned-cft
+R106_NATIVE_START side-panel-contexts
+R106_NATIVE_PASS side-panel-contexts
+R106_NATIVE_START install-open-tool
+R106_NATIVE_PASS install-open-tool
+R106_NATIVE_START active-demo
+R106_NATIVE_PASS active-demo
+R106_NATIVE_START bookmarks-permission-denied
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
++ actual - expected
+
++ undefined
+- 'E_PERMISSION'
+
+    at file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:344:60
+    at async recordCase (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:272:20)
+    at async runNative (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:342:5)
+    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:551:3 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: 'E_PERMISSION',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.16.0

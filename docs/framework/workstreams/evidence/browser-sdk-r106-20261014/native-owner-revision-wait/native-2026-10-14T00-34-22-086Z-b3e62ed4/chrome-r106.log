@@ -1,0 +1,7 @@
+
+DevTools listening on ws://127.0.0.1:50270/devtools/browser/899e7993-9149-4eaf-a75e-f04564537002
+[11478:74474915:1014/083431.690954:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[11478:74474915:1014/083432.287206:ERROR:google_apis/gcm/engine/mcs_client.cc:702]   Error code: 401  Error message: Authentication Failed: wrong_secret
+[11478:74474915:1014/083432.287276:ERROR:google_apis/gcm/engine/mcs_client.cc:704] Failed to log in to GCM, resetting connection.
+[11478:74474915:1014/083452.667586:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[11478:74474915:1014/083540.874718:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT

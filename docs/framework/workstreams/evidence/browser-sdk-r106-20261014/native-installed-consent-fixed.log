@@ -1,0 +1,40 @@
+R106_NATIVE_START launch-owned-cft
+R106_NATIVE_PASS launch-owned-cft
+R106_NATIVE_START side-panel-contexts
+R106_NATIVE_PASS side-panel-contexts
+R106_NATIVE_START install-open-tool
+R106_NATIVE_PASS install-open-tool
+R106_NATIVE_START active-demo
+R106_NATIVE_PASS active-demo
+R106_NATIVE_START bookmarks-permission-denied
+R106_NATIVE_PASS bookmarks-permission-denied
+R106_NATIVE_START bookmarks-create
+R106_NATIVE_PASS bookmarks-create
+R106_NATIVE_START storage-persist
+R106_NATIVE_PASS storage-persist
+R106_NATIVE_START bookmarks-remove
+R106_NATIVE_PASS bookmarks-remove
+R106_NATIVE_START download-start-and-complete
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
++ actual - expected
+
++ 'in_progress'
+- 'complete'
+
+    at file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:369:59
+    at async recordCase (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:275:20)
+    at async runNative (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:366:5)
+    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:554:3 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 'in_progress',
+  expected: 'complete',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.16.0

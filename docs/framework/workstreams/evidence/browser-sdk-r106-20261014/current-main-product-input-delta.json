@@ -1,0 +1,10 @@
+{
+  "head": "ad4a8e709455744d3af1704dac48f9e6e442555a",
+  "sourceCandidateSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
+  "sourceInputCount": 470,
+  "changedProductInputs": [
+    "src/ui/sidebar-tools.js",
+    "src/ui/tool-shell.css"
+  ],
+  "scope": "Read-only committed main comparison; this does not promote frozen 3b package to current main acceptance"
+}

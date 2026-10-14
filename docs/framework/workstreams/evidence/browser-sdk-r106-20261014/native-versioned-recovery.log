@@ -1,0 +1,34 @@
+R106_NATIVE_START launch-owned-cft
+R106_NATIVE_PASS launch-owned-cft
+R106_NATIVE_START side-panel-contexts
+R106_NATIVE_PASS side-panel-contexts
+R106_NATIVE_START install-open-tool
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+<ref *1> Error: spawnSync /Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-versioned-recovery/native-2026-10-13T22-55-31-331Z-8c2f1903/owned-native-input ETIMEDOUT
+    at Object.spawnSync (node:internal/child_process:1143:20)
+    at spawnSync (node:child_process:911:24)
+    at execFileSync (node:child_process:954:15)
+    at native (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:185:18)
+    at chooseFile (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:209:33)
+    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:321:7
+    at async recordCase (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:270:20)
+    at async runNative (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:317:5)
+    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/browser-sdk-r106-native.mjs:549:3 {
+  errno: -60,
+  code: 'ETIMEDOUT',
+  syscall: 'spawnSync /Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-versioned-recovery/native-2026-10-13T22-55-31-331Z-8c2f1903/owned-native-input',
+  path: '/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-versioned-recovery/native-2026-10-13T22-55-31-331Z-8c2f1903/owned-native-input',
+  spawnargs: [ '58360', 'dump' ],
+  error: [Circular *1],
+  status: null,
+  signal: 'SIGTERM',
+  output: [ null, '', '' ],
+  pid: 58443,
+  stdout: '',
+  stderr: ''
+}
+
+Node.js v24.16.0

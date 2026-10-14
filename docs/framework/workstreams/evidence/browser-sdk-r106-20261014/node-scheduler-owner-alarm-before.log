@@ -1,0 +1,37 @@
+✖ P5 revoked tool Alarm is retired while another installed owner keeps its Alarm (24.623ms)
+✔ P5 scheduler create/list/cancel owns schedules by installed tool identity (3.27375ms)
+✔ P5 scheduler still executes through existing scheduled RunHost admission twice (3.504458ms)
+✔ P5 scheduler converter supports fixed weekly weekday expression and rejects ambiguous forms (0.321167ms)
+✔ P5 scheduler rejects expression mismatches in trusted create intent (0.796041ms)
+✔ P5 scheduler revalidates installed task and website grants before persistence or trigger replay (1.970291ms)
+✔ P5 scheduler default owner verifier admits two fires and blocks revocation without injected owner hook (4.086292ms)
+✔ P5 scheduler default owner verifier marks schedule attention when target origin grant is revoked (1.795ms)
+✔ P5 scheduler prepareAdmission preserves existing manual schedules and rejects forged owner (1.566958ms)
+✔ P5 scheduler fails closed when current installed tool authority changes (1.113167ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 9
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 96.547584
+
+✖ failing tests:
+
+test at tests/environment/browser-sdk-p5-scheduler.test.mjs:141:1
+✖ P5 revoked tool Alarm is retired while another installed owner keeps its Alarm (24.623ms)
+  AssertionError [ERR_ASSERTION]: upgrade must retire the old native Alarm
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/browser-sdk-p5-scheduler.test.mjs:158:12)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

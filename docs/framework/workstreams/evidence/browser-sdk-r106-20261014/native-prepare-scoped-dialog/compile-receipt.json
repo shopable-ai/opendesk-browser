@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "command": "swiftc owned-native-input.swift -o owned-native-input",
+  "native": "NOT_TESTED",
+  "sourceSha256": "bb307eb0ef292f1a1b0f9f374e25e59f4d48b3c3ee26cfbfc3df4fcb0617c908",
+  "baseSha256": "a7180392f2cba814a45541681a8bffef1f02490dd7c7dc36e5c808eb5c3a05b2",
+  "scope": "Own derived helper; attached AXSheet dialog only; shared Time Review helper untouched; no CFT launch"
+}

@@ -1,0 +1,20 @@
+{
+  "status": "PREPARED_NOT_NATIVE_PASS",
+  "receiptFile": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-prepare-scoped-dialog/prepare-receipt.json"
+}
+
+docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-prepare-scoped-dialog/owned-native-input.swift:52:70: error: '+' is not a postfix unary operator
+ 50 |   var sheets:[AXUIElement]=[]
+ 51 |   for window in windows {
+ 52 |     let candidates=(value(window,"AXSheets") as? [AXUIElement] ?? [])+
+    |                                                                      `- error: '+' is not a postfix unary operator
+ 53 |       (value(window,kAXChildrenAttribute) as? [AXUIElement] ?? []).filter{text($0,kAXRoleAttribute)=="AXSheet"}
+ 54 |     for sheet in candidates {if !sheets.contains(where:{CFEqual($0,sheet)}){sheets.append(sheet)}}
+
+docs/framework/workstreams/evidence/browser-sdk-r106-20261014/native-prepare-scoped-dialog/owned-native-input.swift:53:68: warning: result of call to 'filter' is unused [#no-usage]
+ 51 |   for window in windows {
+ 52 |     let candidates=(value(window,"AXSheets") as? [AXUIElement] ?? [])+
+ 53 |       (value(window,kAXChildrenAttribute) as? [AXUIElement] ?? []).filter{text($0,kAXRoleAttribute)=="AXSheet"}
+    |                                                                    `- warning: result of call to 'filter' is unused [#no-usage]
+ 54 |     for sheet in candidates {if !sheets.contains(where:{CFEqual($0,sheet)}){sheets.append(sheet)}}
+ 55 |   }
