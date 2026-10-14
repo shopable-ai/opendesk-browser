@@ -48,14 +48,20 @@ function nativeDirectRoute(descriptor,api,registry){
   const method=owner&&Object.getOwnPropertyDescriptor(owner,path[2]);
   if(typeof method?.value!=='function')
     return ()=>{throw fail('E_CHROME_UNSUPPORTED','Approved Chrome API is unavailable')};
-  return input=>{
+  return async input=>{
     // For one native object parameter the public SDK object is the native
     // argument itself; scalar and multi-param APIs pick named input fields.
     const params=descriptor.parameters;
     const args=params.length===1&&params[0].type==='object'
       ?[input]:params.map(p=>Object.hasOwn(input,p.name)?input[p.name]:undefined);
     while(args.length&&args.at(-1)===undefined)args.pop();
-    return method.value.apply(owner,args);
+    let promise;
+    try{promise=method.value.apply(owner,args)}
+    catch{throw fail('E_CHROME','Approved Chrome API call failed')}
+    if(!promise||typeof promise.then!=='function')
+      throw fail('E_CHROME_UNSUPPORTED','Approved Chrome Promise method is unavailable');
+    try{return await promise}
+    catch{throw fail('E_CHROME','Approved Chrome API call failed')}
   };
 }
 
