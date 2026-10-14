@@ -11,7 +11,7 @@ export function createBookmarkManager({api,doc,container,currentPageTarget}={}){
   if(!api?.permissions?.contains||!container?.addEventListener||!doc)return null;
   const service=createBookmarkService(api);
   const s={open:false,permission:false,tree:null,expanded:new Set(),folder:null,selection:null,
-    mode:'tree',menu:null,search:'',draft:null,error:'',info:'',busy:false,revision:0,visibleLimit:200,session:0,composing:false};
+    mode:'tree',menu:null,search:'',draft:null,error:'',info:'',busy:false,revision:0,visibleLimit:200,session:0,composing:false,checkingPermission:true};
   let unsub=null,disposed=false;
   const node=id=>s.tree?.byId.get(id);
   const folders=()=>s.tree?[...s.tree.byId.values()].filter(isFolder):[];
@@ -87,9 +87,10 @@ export function createBookmarkManager({api,doc,container,currentPageTarget}={}){
     const notice=s.error?'<p role="alert" class="bm-notice bm-error">'+esc(s.error)+'</p>':
       s.info?'<p role="status" class="bm-notice">'+esc(s.info)+'</p>':'';
     const body=s.busy?'<p class="bm-hint">正在处理…</p>':
+      s.checkingPermission?'<p class="bm-hint">正在检查 Chrome 书签权限…</p>':
       !s.permission?'<div class="bm-consent"><p>需要 Chrome 书签权限才能管理现有书签。数据仅留在浏览器。</p>'+
         '<button class="od-button" data-bm="grant">授权访问书签</button></div>':
-      !s.tree?'<p class="bm-hint">正在读取书签…</p>':
+      !s.tree?(s.error?'<button type="button" class="od-button od-button--secondary" data-bm="retry">重新读取书签</button>':'<p class="bm-hint">正在读取书签…</p>'):
       s.mode==='tree'?tree():s.mode==='detail'?detail():form();
     container.innerHTML='<div class="bm-page-head od-toolbar od-page-head">'+
       '<button class="od-icon-button" data-bm="exit" aria-label="返回工具列表">‹</button>'+
@@ -99,13 +100,13 @@ export function createBookmarkManager({api,doc,container,currentPageTarget}={}){
     const epoch=++s.revision;
     try{
       const granted=await service.hasPermission();if(!s.open||epoch!==s.revision)return;
-      s.permission=granted===true;
+      s.checkingPermission=false;s.permission=granted===true;
       if(!s.permission){s.tree=null;s.mode='tree';render();return}
       const current=await service.load();if(!s.open||epoch!==s.revision)return;
       s.tree=current;s.error='';s.info='';
       if(!s.expanded.size)for(const x of current.byId.values())if(current.roots.has(x.parentId))s.expanded.add(x.id);
       render();
-    }catch(e){if(s.open&&epoch===s.revision){s.tree=null;s.error=message(e);if(e?.code==='E_BOOKMARK_PERMISSION')s.permission=false;render()}}
+    }catch(e){if(s.open&&epoch===s.revision){s.checkingPermission=false;s.tree=null;s.error=message(e);if(e?.code==='E_BOOKMARK_PERMISSION')s.permission=false;render()}}
   }
   async function mutation(operation){
     if(s.busy||!s.open)return;
@@ -136,6 +137,7 @@ export function createBookmarkManager({api,doc,container,currentPageTarget}={}){
     const btn=event.target.closest('[data-bm]');if(!btn||!container.contains(btn)||!s.open||disposed)return;
     const action=btn.dataset.bm,id=btn.dataset.id;
     if(action==='exit'){close();container.dispatchEvent(new CustomEvent('opendesk-bookmark-manager-back',{bubbles:true}));return}
+    if(action==='retry'){s.error='';render();void refresh();return}
     if(action==='grant'){
       // Native optional-permission prompt must start synchronously on the real click.
       let pending;try{pending=requestOptionalPluginPermissions({api,event,permissions:['bookmarks']})}
@@ -239,7 +241,7 @@ export function createBookmarkManager({api,doc,container,currentPageTarget}={}){
     open(){
       if(disposed)return;
       s.open=true;s.session++;s.mode='tree';s.selection=null;s.menu=null;s.draft=null;
-      s.busy=false;s.error='';s.info='';s.tree=null;s.visibleLimit=200;s.composing=false;
+      s.busy=false;s.error='';s.info='';s.tree=null;s.visibleLimit=200;s.composing=false;s.checkingPermission=true;
       container.hidden=false;unsub??=service.onChange(changed);render();void refresh();
     },
     close,isOpen:()=>s.open,
