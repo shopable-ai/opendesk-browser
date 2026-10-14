@@ -1,0 +1,1316 @@
+{
+  "schemaVersion": "opendesk.browser-sdk.bindings.generated.r11.v1",
+  "authoritativeSource": "docs/api/browser-sdk-interface-matrix.json",
+  "generationPolicy": "DERIVED_METADATA_ONLY_NOT_A_PERMISSION_GRANT",
+  "chromiumSourceCommit": "b5485910372708cd11d9a814a3e382fe8da57df3",
+  "counts": {
+    "approved": 55,
+    "public": 53,
+    "hostOnly": 2
+  },
+  "bindings": [
+    {
+      "operation": "browser.bookmarks.create",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.bookmarks.create"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.create",
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "exact selected URL; trusted confirmation; tool-owned bookmark mapping",
+      "userGesture": true,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable"
+    },
+    {
+      "operation": "browser.bookmarks.removeOwned",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.bookmarks.remove"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.removeOwned",
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "tool-created bookmark only, no global delete tree",
+      "userGesture": true,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable"
+    },
+    {
+      "operation": "browser.capabilities.getStatus",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "CUSTOM",
+      "nativeApis": [],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.capabilities.getStatus",
+      "chromePermissions": [],
+      "toolCapabilities": [],
+      "supportedContexts": [
+        "sidebar-tool",
+        "page-sdk"
+      ],
+      "siteScope": "none",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request"
+    },
+    {
+      "operation": "browser.capabilities.list",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "CUSTOM",
+      "nativeApis": [],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.capabilities.list",
+      "chromePermissions": [],
+      "toolCapabilities": [],
+      "supportedContexts": [
+        "sidebar-tool",
+        "page-sdk"
+      ],
+      "siteScope": "none",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 20000,
+      "lifecycle": "request"
+    },
+    {
+      "operation": "browser.clipboard.writeText",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "CUSTOM",
+      "nativeApis": [],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.clipboard.writeText",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "user.export"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "none",
+      "userGesture": true,
+      "minChrome": 138,
+      "maxRequestBytes": 170000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request"
+    },
+    {
+      "operation": "browser.contextMenu.getStatus",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.contextMenus.onClicked"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.contextMenu.getStatus",
+      "chromePermissions": [
+        "contextMenus"
+      ],
+      "toolCapabilities": [
+        "browser.contextMenu"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "approved-origin",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request"
+    },
+    {
+      "operation": "browser.contextMenu.register",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.contextMenus.create",
+        "chrome.contextMenus.update"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.contextMenu.register",
+      "chromePermissions": [
+        "contextMenus"
+      ],
+      "toolCapabilities": [
+        "browser.contextMenu"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "approved-origin",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "tool-install"
+    },
+    {
+      "operation": "browser.contextMenu.unregister",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.contextMenus.remove"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.contextMenu.unregister",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.contextMenu"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "approved-origin",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "tool-install"
+    },
+    {
+      "operation": "browser.cookies.clearSite",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.cookies.getAll",
+        "chrome.cookies.remove"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.clearSite",
+      "chromePermissions": [
+        "cookies"
+      ],
+      "toolCapabilities": [
+        "browser.cookies.clear"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "explicit approved HTTP(S) Origin + one non-incognito Chrome store + approved partition, no active tab required for repeat reads",
+      "userGesture": true,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "one-use bounded previewRef (60s) plus fresh trusted confirmation for mutation"
+    },
+    {
+      "operation": "browser.cookies.get",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.cookies.getAll"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.get",
+      "chromePermissions": [
+        "cookies"
+      ],
+      "toolCapabilities": [
+        "browser.cookies.read"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "explicit approved HTTP(S) Origin + one non-incognito Chrome store + approved partition, no active tab required for repeat reads",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request"
+    },
+    {
+      "operation": "browser.cookies.getAll",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.cookies.getAll"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.getAll",
+      "chromePermissions": [
+        "cookies"
+      ],
+      "toolCapabilities": [
+        "browser.cookies.read"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "explicit approved HTTP(S) Origin + one non-incognito Chrome store + approved partition, no active tab required for repeat reads",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request"
+    },
+    {
+      "operation": "browser.cookies.getCurrentStore",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.cookies.getAllCookieStores"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.getCurrentStore",
+      "chromePermissions": [
+        "cookies"
+      ],
+      "toolCapabilities": [
+        "browser.cookies.read"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "explicit approved HTTP(S) Origin + one non-incognito Chrome store + approved partition, no active tab required for repeat reads",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request"
+    },
+    {
+      "operation": "browser.cookies.getPartitionKey",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.cookies.getPartitionKey"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.getPartitionKey",
+      "chromePermissions": [
+        "cookies"
+      ],
+      "toolCapabilities": [
+        "browser.cookies.read"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "explicit approved HTTP(S) Origin + one non-incognito Chrome store + approved partition, no active tab required for repeat reads",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request"
+    },
+    {
+      "operation": "browser.cookies.observe.getStatus",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.cookies.onChanged"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.observe.getStatus",
+      "chromePermissions": [
+        "cookies"
+      ],
+      "toolCapabilities": [
+        "browser.cookies.observe"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "explicit approved HTTP(S) Origin + one non-incognito Chrome store + approved partition, no active tab required for repeat reads",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "bounded-session"
+    },
+    {
+      "operation": "browser.cookies.observe.read",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.cookies.onChanged"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.observe.read",
+      "chromePermissions": [
+        "cookies"
+      ],
+      "toolCapabilities": [
+        "browser.cookies.observe"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "explicit approved HTTP(S) Origin + one non-incognito Chrome store + approved partition, no active tab required for repeat reads",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "bounded-session"
+    },
+    {
+      "operation": "browser.cookies.observe.start",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.cookies.onChanged",
+        "chrome.cookies.getPartitionKey"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.observe.start",
+      "chromePermissions": [
+        "cookies"
+      ],
+      "toolCapabilities": [
+        "browser.cookies.observe"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "explicit approved HTTP(S) Origin + one non-incognito Chrome store + approved partition, no active tab required for repeat reads",
+      "userGesture": true,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "bounded-session"
+    },
+    {
+      "operation": "browser.cookies.observe.stop",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.cookies.onChanged"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.observe.stop",
+      "chromePermissions": [
+        "cookies"
+      ],
+      "toolCapabilities": [
+        "browser.cookies.observe"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "explicit approved HTTP(S) Origin + one non-incognito Chrome store + approved partition, no active tab required for repeat reads",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "bounded-session"
+    },
+    {
+      "operation": "browser.cookies.remove",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.cookies.getAll",
+        "chrome.cookies.remove"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.remove",
+      "chromePermissions": [
+        "cookies"
+      ],
+      "toolCapabilities": [
+        "browser.cookies.write"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "explicit approved HTTP(S) Origin + one non-incognito Chrome store + approved partition, no active tab required for repeat reads",
+      "userGesture": true,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request"
+    },
+    {
+      "operation": "browser.cookies.set",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.cookies.set"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.set",
+      "chromePermissions": [
+        "cookies"
+      ],
+      "toolCapabilities": [
+        "browser.cookies.write"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "explicit approved HTTP(S) Origin + one non-incognito Chrome store + approved partition, no active tab required for repeat reads",
+      "userGesture": true,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request"
+    },
+    {
+      "operation": "browser.downloads.cancelOwned",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.downloads.cancel"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.downloads.cancelOwned",
+      "chromePermissions": [
+        "downloads"
+      ],
+      "toolCapabilities": [
+        "user.export"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "own in-progress download only",
+      "userGesture": true,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable"
+    },
+    {
+      "operation": "browser.downloads.download",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.downloads.download"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.downloads.download",
+      "chromePermissions": [
+        "downloads"
+      ],
+      "toolCapabilities": [
+        "user.export"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "explicit approved-origin URL; tool owns generated downloadRef",
+      "userGesture": true,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable"
+    },
+    {
+      "operation": "browser.downloads.getOwned",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.downloads.search"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.downloads.getOwned",
+      "chromePermissions": [
+        "downloads"
+      ],
+      "toolCapabilities": [
+        "user.export"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "own download only",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable"
+    },
+    {
+      "operation": "browser.downloads.listOwned",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.downloads.search"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.downloads.listOwned",
+      "chromePermissions": [
+        "downloads"
+      ],
+      "toolCapabilities": [
+        "user.export"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "own downloads only; no global download history",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable"
+    },
+    {
+      "operation": "browser.downloads.text",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.downloads.download"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.downloads.text",
+      "chromePermissions": [
+        "downloads"
+      ],
+      "toolCapabilities": [
+        "user.export"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "none",
+      "userGesture": true,
+      "minChrome": 138,
+      "maxRequestBytes": 170000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request"
+    },
+    {
+      "operation": "browser.events.close",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "CUSTOM",
+      "nativeApis": [],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.events.close",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.events"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "owned-session",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request"
+    },
+    {
+      "operation": "browser.events.read",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "CUSTOM",
+      "nativeApis": [],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.events.read",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.events"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "owned-session",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request"
+    },
+    {
+      "operation": "browser.history.searchTrusted",
+      "visibility": "BUILTIN_HOST_ONLY_IMPLEMENTED",
+      "mode": "DENIED",
+      "nativeApis": [
+        "chrome.history.search"
+      ],
+      "runtimeSchema": null,
+      "chromePermissions": [
+        "history"
+      ],
+      "toolCapabilities": [],
+      "supportedContexts": [
+        "TRUSTED_SIDE_PANEL_HOST",
+        "TRUSTED_SERVICE_WORKER"
+      ],
+      "siteScope": "trusted UI only, explicit scope; NEVER installed-tool raw history",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable"
+    },
+    {
+      "operation": "browser.launch.consume",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "CUSTOM",
+      "nativeApis": [
+        "chrome.contextMenus.onClicked",
+        "chrome.webNavigation.getFrame"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.launch.consume",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.contextMenu"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "clicked-document",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 65536,
+      "lifecycle": "single-use-60s"
+    },
+    {
+      "operation": "browser.network.observe.export",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "CUSTOM",
+      "nativeApis": [
+        "chrome.downloads.download"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.network.observe.export",
+      "chromePermissions": [
+        "webRequest",
+        "downloads"
+      ],
+      "toolCapabilities": [
+        "browser.network.observe"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "approved-tab",
+      "userGesture": true,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "bounded-session"
+    },
+    {
+      "operation": "browser.network.observe.getStatus",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "CUSTOM",
+      "nativeApis": [
+        "chrome.webRequest.onBeforeRequest"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.network.observe.getStatus",
+      "chromePermissions": [
+        "webRequest"
+      ],
+      "toolCapabilities": [
+        "browser.network.observe"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "approved-tab",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "bounded-session"
+    },
+    {
+      "operation": "browser.network.observe.start",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "CUSTOM",
+      "nativeApis": [
+        "chrome.webRequest.onBeforeRequest",
+        "chrome.webRequest.onCompleted",
+        "chrome.webRequest.onErrorOccurred"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.network.observe.start",
+      "chromePermissions": [
+        "tabs",
+        "webNavigation",
+        "webRequest"
+      ],
+      "toolCapabilities": [
+        "browser.network.observe"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "approved-tab",
+      "userGesture": true,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "bounded-session"
+    },
+    {
+      "operation": "browser.network.observe.stop",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "CUSTOM",
+      "nativeApis": [
+        "chrome.webRequest.onBeforeRequest"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.network.observe.stop",
+      "chromePermissions": [
+        "webRequest"
+      ],
+      "toolCapabilities": [
+        "browser.network.observe"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "approved-tab",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "bounded-session"
+    },
+    {
+      "operation": "browser.network.request",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "CUSTOM",
+      "nativeApis": [],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.network.request",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "network"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "target-origin",
+      "userGesture": true,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request"
+    },
+    {
+      "operation": "browser.operations.cancel",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.operations.cancel",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.operations"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "owned-operation",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request"
+    },
+    {
+      "operation": "browser.operations.getStatus",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.operations.getStatus",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.operations"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "owned-operation",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request"
+    },
+    {
+      "operation": "browser.page.getContext",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "CUSTOM",
+      "nativeApis": [],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.page.getContext",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "currentPage.read"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "current-page",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request"
+    },
+    {
+      "operation": "browser.page.getSelection",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "CUSTOM",
+      "nativeApis": [
+        "chrome.contextMenus.onClicked"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.page.getSelection",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.contextMenu"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "clicked-document",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 65536,
+      "lifecycle": "request"
+    },
+    {
+      "operation": "browser.permissions.requestForTool",
+      "visibility": "BUILTIN_HOST_ONLY_IMPLEMENTED",
+      "mode": "DENIED",
+      "nativeApis": [
+        "chrome.permissions.contains",
+        "chrome.permissions.request"
+      ],
+      "runtimeSchema": null,
+      "chromePermissions": [],
+      "toolCapabilities": [],
+      "supportedContexts": [
+        "TRUSTED_SIDE_PANEL_HOST",
+        "TRUSTED_SERVICE_WORKER"
+      ],
+      "siteScope": "manifest-declared OPTIONAL permission only, exact requested Origin, actual trusted click",
+      "userGesture": true,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable"
+    },
+    {
+      "operation": "browser.scheduler.cancelOwn",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "CUSTOM",
+      "nativeApis": [
+        "chrome.alarms.clear"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.scheduler.cancelOwn",
+      "chromePermissions": [
+        "alarms"
+      ],
+      "toolCapabilities": [
+        "browser.scheduler"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "own schedule only; maintain installed task safe revoke",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable"
+    },
+    {
+      "operation": "browser.scheduler.create",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "CUSTOM",
+      "nativeApis": [
+        "chrome.alarms.create"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.scheduler.create",
+      "chromePermissions": [
+        "alarms"
+      ],
+      "toolCapabilities": [
+        "browser.scheduler"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "installed fixed task revision, explicit user grant, existing Scheduler service",
+      "userGesture": true,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable"
+    },
+    {
+      "operation": "browser.scheduler.listOwn",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "CUSTOM",
+      "nativeApis": [
+        "chrome.alarms.getAll"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.scheduler.listOwn",
+      "chromePermissions": [
+        "alarms"
+      ],
+      "toolCapabilities": [
+        "browser.scheduler"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "installed tool + task owner only",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable"
+    },
+    {
+      "operation": "browser.screenshot.captureVisible",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.tabs.captureVisibleTab",
+        "chrome.downloads.download"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.screenshot.captureVisible",
+      "chromePermissions": [
+        "tabs",
+        "webNavigation",
+        "activeTab",
+        "downloads"
+      ],
+      "toolCapabilities": [
+        "browser.screenshot"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "selected-tab",
+      "userGesture": true,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request"
+    },
+    {
+      "operation": "browser.sidePanel.openSelf",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.sidePanel.open"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.sidePanel.openSelf",
+      "chromePermissions": [
+        "sidePanel"
+      ],
+      "toolCapabilities": [
+        "browser.sidePanel"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "user-gesture",
+      "userGesture": true,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request"
+    },
+    {
+      "operation": "browser.storage.local.clear",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.storage.local.remove"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.storage.local.clear",
+      "chromePermissions": [
+        "storage"
+      ],
+      "toolCapabilities": [
+        "browser.storage"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "tool-owned namespace clear ONLY (never chrome.storage.local.clear)",
+      "userGesture": true,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable"
+    },
+    {
+      "operation": "browser.storage.local.get",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.storage.local.get"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.storage.local.get",
+      "chromePermissions": [
+        "storage"
+      ],
+      "toolCapabilities": [
+        "browser.storage"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "owner toolId + packageHash + installEpoch, own namespace only",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable"
+    },
+    {
+      "operation": "browser.storage.local.remove",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.storage.local.remove"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.storage.local.remove",
+      "chromePermissions": [
+        "storage"
+      ],
+      "toolCapabilities": [
+        "browser.storage"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "tool-owned keys only",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable"
+    },
+    {
+      "operation": "browser.storage.local.set",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.storage.local.set"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.storage.local.set",
+      "chromePermissions": [
+        "storage"
+      ],
+      "toolCapabilities": [
+        "browser.storage"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "per-tool quota and exact ownership; no global keys",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable"
+    },
+    {
+      "operation": "browser.tabs.activateOwned",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.tabs.get",
+        "chrome.tabs.update",
+        "chrome.windows.update"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.tabs.activateOwned",
+      "chromePermissions": [
+        "tabs",
+        "webNavigation"
+      ],
+      "toolCapabilities": [
+        "browser.tabs"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "tab-ref",
+      "userGesture": true,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request"
+    },
+    {
+      "operation": "browser.tabs.create",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.tabs.create"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.tabs.create",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.tabs"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "explicit-url",
+      "userGesture": true,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request"
+    },
+    {
+      "operation": "browser.tabs.getOwned",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.tabs.get",
+        "chrome.webNavigation.getFrame"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.tabs.getOwned",
+      "chromePermissions": [
+        "tabs",
+        "webNavigation"
+      ],
+      "toolCapabilities": [
+        "browser.tabs"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "tab-ref",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request"
+    },
+    {
+      "operation": "browser.tabs.listOwned",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.tabs.get",
+        "chrome.webNavigation.getFrame"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.tabs.listOwned",
+      "chromePermissions": [
+        "tabs",
+        "webNavigation"
+      ],
+      "toolCapabilities": [
+        "browser.tabs"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "owned-tabs",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request"
+    },
+    {
+      "operation": "browser.tabs.navigateOwned",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.tabs.get",
+        "chrome.tabs.update",
+        "chrome.webNavigation.getFrame"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.tabs.navigateOwned",
+      "chromePermissions": [
+        "tabs",
+        "webNavigation"
+      ],
+      "toolCapabilities": [
+        "browser.tabs"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "same-Origin own TabRef only; retire old TabRef before chrome.tabs.update({url}); never retry unknown native effect",
+      "userGesture": true,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request"
+    },
+    {
+      "operation": "browser.tabs.pinOwned",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.tabs.get",
+        "chrome.tabs.update",
+        "chrome.webNavigation.getFrame"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.tabs.pinOwned",
+      "chromePermissions": [
+        "tabs",
+        "webNavigation"
+      ],
+      "toolCapabilities": [
+        "browser.tabs"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "tab-ref",
+      "userGesture": true,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request"
+    },
+    {
+      "operation": "browser.tabs.reloadOwned",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.tabs.reload",
+        "chrome.webNavigation.getFrame"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.tabs.reloadOwned",
+      "chromePermissions": [
+        "tabs",
+        "webNavigation"
+      ],
+      "toolCapabilities": [
+        "browser.tabs"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "tab-ref; tabRef retired BEFORE native reload and never revived after unknown effect",
+      "userGesture": true,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request"
+    },
+    {
+      "operation": "browser.tabs.removeOwned",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.tabs.get",
+        "chrome.tabs.remove",
+        "chrome.webNavigation.getFrame"
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.tabs.removeOwned",
+      "chromePermissions": [
+        "tabs",
+        "webNavigation"
+      ],
+      "toolCapabilities": [
+        "browser.tabs"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "tab-ref",
+      "userGesture": true,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request"
+    }
+  ]
+}
