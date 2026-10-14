@@ -158,11 +158,11 @@ test('trusted Side Panel tree shows more than 200 rows, searches later rows and 
  };
  manager.open();
  await settled(()=>displayed()===200);
- assert.match(container.innerHTML,/已显示 200 \/ 424 项/);
+ assert.match(container.innerHTML,/已显示 200 \/ 425 项/,'managed descendant also appears when its parent expands');
  click('more-results');
  assert.equal(displayed(),400);
  click('more-results');
- assert.equal(displayed(),424);
+ assert.equal(displayed(),425);
  assert.doesNotMatch(container.innerHTML,/data-bm="more-results"/);
  listeners.get('input')({target:{id:'bookmark-manager-search',value:'Needle 419',selectionStart:10},isComposing:false});
  assert.equal(displayed(),1);
