@@ -11,6 +11,8 @@ on:
       - 'src/ui/sidebar-tools.js'
       - 'src/ui/sidebar-tools/**'
       - 'src/ui/tool-shell.js'
+      - 'src/ui/bookmark-manager.css'
+      - 'scripts/prepare-public.mjs'
       - 'src/sw.js'
       - 'examples/sidebar-tools/browser-sdk-r13/**'
       - 'tests/environment/browser-sdk-r13.test.mjs'

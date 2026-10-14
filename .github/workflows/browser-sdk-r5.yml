@@ -30,6 +30,8 @@ on:
       - 'src/platform/host/controller-methods.js'
       - 'src/run-host.js'
       - 'src/ui/tool-shell.js'
+      - 'src/ui/bookmark-manager.css'
+      - 'scripts/prepare-public.mjs'
       - 'src/ui/tool.html'
       - 'src/ui/sidebar-tools.js'
       - 'src/sidebar-tools/bridge.js'
