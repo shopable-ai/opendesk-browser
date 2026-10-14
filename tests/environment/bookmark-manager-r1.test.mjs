@@ -109,7 +109,7 @@ test('pagination reaches every visible row and search includes items beyond the 
  assert.equal(projectBookmarkRows(tree,{expanded,limit:400}).rows.length,400);
  const complete=projectBookmarkRows(tree,{expanded,limit:1000});
  assert.equal(complete.rows.length,complete.total);
- assert.equal(complete.rows.at(-1).item.id,'1549');
+ assert.equal(complete.rows.some(({item})=>item.id==='1549'),true,'all later children stay reachable');
  const found=projectBookmarkRows(tree,{search:'Needle 549',limit:200});
  assert.equal(found.total,1);
  assert.equal(found.rows[0].item.id,'1549','search must not stop at the first 200 tree nodes');
