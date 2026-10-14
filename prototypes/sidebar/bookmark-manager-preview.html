@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>OpenDesk Browser · 书签管理 / 交互原型</title>
+<title>OpenDesk Browser · 书签管理 R1.2 / 文件树原型</title>
 <style>
 :root{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;color:#182234;background:#f5f7fb;--ink:#182234;--muted:#65748b;--line:#e5e9f1;--accent:#365fee;--soft:#eef2ff;--surface:#fff;--danger:#cc4351}
 *{box-sizing:border-box}
@@ -141,6 +141,23 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .form-row{margin:14px 0}
 .sideview .warning p{font-size:12px;line-height:1.65}
 .index-intro .subheading{display:none}
+/* R1.2: folders and bookmarks form ONE navigable tree and share ONE create toolbar. */
+.tree-view{display:grid;gap:2px;margin-top:7px;min-width:0}
+.tree-row{display:flex;align-items:center;min-width:0;gap:2px;border-radius:8px}
+.tree-row.selected{background:#eef2ff}
+.tree-row:hover{background:#f6f8fc}
+.tree-row .toggle{border:0;background:transparent;width:22px;height:35px;flex-shrink:0;color:#62718a;border-radius:6px;padding:0;font-size:11px}
+.tree-row .toggle:hover{background:#e9edfa}
+.tree-row .entry{display:flex;flex:1;min-width:0;align-items:center;text-align:left;gap:7px;border:0;background:transparent;height:37px;padding:4px 5px;border-radius:7px;color:#3e4d65;font-size:12px}
+.tree-row .entry .folder-name,.tree-row .entry .bookmark-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tree-row .entry .bookmark-name{font-weight:500}
+.tree-row .entry .folder-name{font-weight:650}
+.tree-row .tiny-domain{font-weight:400;font-size:10px;color:#71809a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:88px}
+.tree-row .folder-more{flex:0 0 31px}
+.tree-row .letter{width:22px;height:22px;font-size:11px;border-radius:6px}
+.tree-meta{font-size:11px;color:#65748b;margin:10px 4px 5px;display:flex;justify-content:space-between}
+.toolbar .blue-btn,.toolbar .outline-btn{flex:0 0 auto;min-width:0}
+@media(max-width:360px){.toolbar .blue-btn,.toolbar .outline-btn{padding:0 7px;font-size:11px}.toolbar{gap:5px}.tree-row .tiny-domain{max-width:72px}}
 @media(max-width:360px){.toolbar .blue-btn,.toolbar .outline-btn{padding:0 10px}.folder-row .folder{font-size:12px}}
 </style>
 </head>
@@ -187,7 +204,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
     {id:'other',name:'其他书签',parent:null,locked:true}
   ];
   const s={bookmarks:[],folders:[],screen:'manager',lastScreen:null,folder:'all',selected:'b1',selectedFolder:null,
-    query:'',sort:'recent',menu:null,formMode:'new',error:'',counter:20};
+    query:'',sort:'recent',menu:null,formMode:'new',error:'',counter:20,expanded:new Set(['all','bar','dev','design','other'])};
   const lookup=id=>s.folders.find(x=>x.id===id);
   const folderTitle=id=>lookup(id)?.name||'未知文件夹';
   const current=()=>s.bookmarks.find(x=>x.id===s.selected)||null;
@@ -223,18 +240,38 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
   };
   const heading=(name,back='manager')=>`<div class="detail-header"><button class="icon-btn" type="button" data-action="back" data-destination="${back}" aria-label="返回" title="返回">‹</button><h2 class="heading">${esc(name)}</h2></div>`;
   const saveButtons=(text)=>`<div class="actions" style="margin-top:18px"><button type="submit" class="blue-btn">${esc(text)}</button><button type="button" class="outline-btn" data-action="back" data-destination="manager">取消</button></div>`;
-  const folderSection=()=>`<div class="folder-label"><strong>文件夹</strong><button type="button" class="section-add" data-action="new-folder" aria-label="新建文件夹">＋ 新建文件夹</button></div>
-    <div class="folder-tree" aria-label="书签文件夹">${tree().map(f=>`
-      <div class="folder-row ${s.folder===f.id?'selected':''}"><button type="button" class="folder ${s.folder===f.id?'selected':''}" data-folder="${esc(f.id)}" style="padding-left:${10+f.depth*14}px" aria-pressed="${s.folder===f.id}"><span class="folder-icon" aria-hidden="true">${f.id==='all'?'▤':'▱'}</span><span class="folder-name">${esc(f.name)}</span><span class="cnt">${count(f.id)}</span></button>
-      ${f.locked?'':`<button type="button" class="folder-more" data-folder-menu="${esc(f.id)}" aria-label="管理${esc(f.name)}" title="管理文件夹" aria-expanded="${s.menu===f.id}">···</button>`}</div>
-      ${s.menu===f.id?`<div class="folder-menu" role="group" aria-label="${esc(f.name)}的管理操作"><button type="button" data-folder-op="rename" data-folder-id="${esc(f.id)}">重命名</button><button type="button" data-folder-op="move" data-folder-id="${esc(f.id)}">移动</button><button type="button" data-folder-op="delete" data-folder-id="${esc(f.id)}" class="danger">删除</button></div>`:''}
-    `).join('')}</div>`;
+  const orderedLinks=folder=>s.bookmarks.filter(b=>b.folder===folder).sort((a,b)=>s.sort==='title'?a.title.localeCompare(b.title,'zh-CN'):b.added.localeCompare(a.added));
+  const treeRows=()=>{
+    if(s.query.trim()){
+      const folders=s.folders.filter(f=>f.id!=='all'&&f.name.toLocaleLowerCase().includes(s.query.toLocaleLowerCase()));
+      const match=visible();
+      return `<div class="tree-meta">搜索结果 <span>${folders.length+match.length} 项</span></div><div class="tree-view" role="tree" aria-label="书签搜索结果">
+      ${folders.map(f=>`<div class="tree-row"><span class="toggle">▱</span><button class="entry" data-folder="${esc(f.id)}"><span class="folder-name">${esc(f.name)}</span><span class="tiny-domain">文件夹</span></button></div>`).join('')}
+      ${match.map(b=>`<div class="tree-row"><span class="toggle"></span><button class="entry" data-bookmark="${esc(b.id)}"><span class="letter ${esc(b.tone)}">${esc(b.icon)}</span><span class="bookmark-name">${esc(b.title)}</span><span class="tiny-domain">${esc(folderTitle(b.folder))}</span></button></div>`).join('')}
+      ${!folders.length&&!match.length?'<div class="empty">没有匹配的书签或文件夹</div>':''}</div>`;
+    }
+    const out=[];
+    const visit=(id,depth)=>{
+      const f=lookup(id);
+      const pad=depth*12;
+      const expanded=s.expanded.has(id);
+      out.push(`<div class="tree-row ${s.folder===id?'selected':''}" role="treeitem" aria-expanded="${expanded}" style="padding-left:${pad}px">
+        <button type="button" class="toggle" data-expand="${esc(id)}" aria-label="${expanded?'折叠':'展开'}${esc(f.name)}">${expanded?'▾':'▸'}</button>
+        <button type="button" class="entry" data-folder="${esc(id)}" aria-label="浏览${esc(f.name)}"><span aria-hidden="true">${id==='all'?'▤':'▱'}</span><span class="folder-name">${esc(f.name)}</span><span class="cnt">${count(id)}</span></button>
+        ${f.locked?'':`<button type="button" class="folder-more" data-folder-menu="${esc(id)}" aria-label="管理${esc(f.name)}" title="管理文件夹" aria-expanded="${s.menu===id}">···</button>`}
+      </div>`);
+      if(s.menu===id)out.push(`<div class="folder-menu" style="margin-left:${pad+28}px" role="group" aria-label="${esc(f.name)}的管理操作"><button data-folder-op="rename" data-folder-id="${esc(id)}">重命名</button><button data-folder-op="move" data-folder-id="${esc(id)}">移动</button><button data-folder-op="delete" data-folder-id="${esc(id)}" class="danger">删除</button></div>`);
+      if(!expanded)return;
+      for(const child of s.folders.filter(x=>x.parent===(id==='all'?null:id)&&x.id!=='all'))visit(child.id,depth+1);
+      if(id!=='all')for(const b of orderedLinks(id))out.push(`<div class="tree-row" role="treeitem" style="padding-left:${pad+20}px"><span class="toggle"></span><button class="entry" type="button" data-bookmark="${esc(b.id)}"><span class="letter ${esc(b.tone)}">${esc(b.icon)}</span><span class="bookmark-name">${esc(b.title)}</span><span class="tiny-domain">${esc(host(b.url))}</span></button></div>`);
+    };
+    visit('all',0);
+    return `<div class="tree-meta"><span>书签与文件夹</span><span>${s.bookmarks.length} 条书签</span></div><div class="tree-view" role="tree" aria-label="Chrome 书签文件树">${out.join('')}</div>`;
+  };
   const manager=()=>`${heading('书签管理','index')}
-      <label class="search-wrap"><span class="search-glyph" aria-hidden="true">⌕</span><input id="search" class="search" type="search" autocomplete="off" placeholder="搜索标题或网址…" aria-label="搜索书签" value="${esc(s.query)}"></label>
-      <div class="toolbar"><button type="button" class="blue-btn" data-action="save-current">☆ 收藏当前页</button><button type="button" class="outline-btn" data-action="new-bookmark">＋ 添加书签</button></div>
-      ${folderSection()}
-      <div class="divider"></div><div class="list-caption"><b>书签</b><small>${visible().length} 项</small><select id="sort" aria-label="书签排序"><option value="recent" ${s.sort==='recent'?'selected':''}>最近添加</option><option value="title" ${s.sort==='title'?'selected':''}>名称 A-Z</option></select></div>
-      <div class="bookmark-list">${visible().length?visible().map(b=>`<button type="button" data-bookmark="${esc(b.id)}" class="bookmark-row ${s.selected===b.id?'selected':''}"><span class="letter ${esc(b.tone)}">${esc(b.icon)}</span><span class="btext"><span class="btitle">${esc(b.title)}</span><span class="burl">${esc(host(b.url))}</span></span><span class="ellipsis">›</span></button>`).join(''):`<div class="empty">${s.bookmarks.length?'没有匹配的书签':'还没有书签'}<div style="margin-top:7px"><button type="button" class="outline-btn" data-action="new-bookmark">添加书签</button></div></div>`}</div>`;
+    <label class="search-wrap"><span class="search-glyph" aria-hidden="true">⌕</span><input id="search" class="search" type="search" autocomplete="off" placeholder="搜索书签或文件夹…" aria-label="搜索书签或文件夹" value="${esc(s.query)}"></label>
+    <div class="toolbar"><button type="button" class="blue-btn" data-action="save-current">☆ 收藏当前页</button><button type="button" class="outline-btn" data-action="new-bookmark">＋ 书签</button><button type="button" class="outline-btn" data-action="new-folder">＋ 文件夹</button></div>
+    ${treeRows()}`;
   function folderForm(){
     const editing=s.formMode==='edit';const f=lookup(s.selectedFolder);
     if(editing&&(!f||f.locked))return heading('无法编辑文件夹');
@@ -271,7 +308,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
   function bookmarkDetail(){const b=current();return `${heading('书签详情')}${b?`<div class="preview-card small-card"><span class="letter ${esc(b.tone)}">${esc(b.icon)}</span><div style="min-width:0"><div class="btitle" style="white-space:normal">${esc(b.title)}</div><div class="burl" style="white-space:normal;overflow-wrap:anywhere">${esc(b.url)}</div></div></div>
     <dl class="fields"><div class="info-row compact-row"><dt>文件夹</dt><dd>${esc(folderTitle(b.folder))}</dd></div><div class="info-row compact-row"><dt>添加日期</dt><dd>${esc(b.added)}</dd></div></dl><div class="actions"><button type="button" class="blue-btn" data-action="open-url">打开网页 ↗</button><button type="button" class="outline-btn" data-action="edit-bookmark">编辑</button><button type="button" class="outline-btn" data-action="move-bookmark">移动</button><button type="button" class="outline-btn dangerous" data-action="delete-bookmark">删除</button></div>`:'<div class="empty">所选书签已不存在</div>'}`;}
   function index(){return `<div class="detail-header"><h2 class="heading">已安装工具</h2><span class="spacer"></span><button type="button" class="icon-btn" data-action="discover" aria-label="发现工具" title="发现工具">＋</button></div>
-    <button type="button" class="toolitem" data-action="open-manager"><span class="tile">▣</span><span class="btext"><span class="name">书签管理</span><span class="desc">收藏、整理与搜索</span></span><span class="ellipsis">›</span></button>
+    <button type="button" class="toolitem" data-action="open-manager"><span class="tile">▣</span><span class="btext"><span class="name">书签管理</span></span><span class="ellipsis">›</span></button>
     <button type="button" class="toolitem" data-action="other"><span class="tile">◷</span><span class="btext"><span class="name">时间回顾</span></span><span class="ellipsis">›</span></button>
     <button type="button" class="toolitem" data-action="other"><span class="tile">✎</span><span class="btext"><span class="name">快捷笔记</span></span><span class="ellipsis">›</span></button>
     <div class="section-title">已安装网页工具</div><div class="index-bottom">已安装网页工具与独立 Side Panel 工具分区展示。</div>`;}
@@ -300,11 +337,11 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
     }
     if(s.screen==='bookmark-form'||s.screen==='bookmark-move'||s.screen==='bookmark-delete')return `<div class="marker">书签操作 · 模拟</div><h2>侧栏内完成操作</h2><p>创建、修改、移动和删除都在左侧的同一工具二级视图操作，不要求用户在右侧额外完成表单。</p>`;
     if(s.screen==='info')return `<div class="marker">实现边界</div><h2>权限与安全</h2><p>只有固定、经审计的第一方组件可经 Chrome bookmarks 可选权限访问完整书签树。安装版动态 HTML 不继承此特权。</p>`;
-    if(!b)return `<div class="marker">书签预览</div><h2>选择一条书签</h2><p>点击左侧书签可查看详情；使用「文件夹 → ＋ 新建文件夹」创建目录。</p>`;
+    if(!b)return `<div class="marker">书签预览</div><h2>选择一条书签</h2><p>点击左侧文件树中任意书签可查看详情；「＋ 书签」和「＋ 文件夹」位于同一工具栏。</p>`;
     return `<div class="marker">${s.screen==='bookmark-detail'?'书签详情':'选中的书签'} · 模拟</div><h2>${esc(b.title)}</h2>
       <div class="preview-card"><div class="large-letter">${esc(b.icon)}</div><div style="min-width:0"><h3>${esc(b.title)}</h3><div class="url">${esc(b.url)}</div></div></div>
       <dl class="fields"><div class="info-row"><dt>文件夹</dt><dd>${esc(folderTitle(b.folder))}</dd></div><div class="info-row"><dt>添加日期</dt><dd>${esc(b.added)}</dd></div><div class="info-row"><dt>数据来源</dt><dd>演示数据（非 Chrome 实际书签）</dd></div></dl>
-      <div class="note">上方侧栏只保留主标题。文件夹创建入口贴近文件夹区，而不混在书签操作栏里。</div>`;
+      <div class="note">上方侧栏只保留主标题。书签与文件夹属于同一文件树；三个创建按钮共用一行，不额外分成两个区域。</div>`;
   }
   function render({focusId=null,keepScroll=false}={}){
     const root=$('sideview'),scroll=keepScroll?root.scrollTop:0;
@@ -318,7 +355,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
   const go=(screen,focusId)=>{s.screen=screen;s.menu=null;s.error='';render({focusId})};
   const reset=()=>{
     s.bookmarks=original.map(x=>({...x}));s.folders=initialFolders.map(x=>({...x}));s.screen='manager';s.folder='all';
-    s.selected='b1';s.selectedFolder=null;s.query='';s.sort='recent';s.menu=null;s.counter=20;s.formMode='new';s.error='';render();
+    s.selected='b1';s.selectedFolder=null;s.query='';s.sort='recent';s.menu=null;s.counter=20;s.formMode='new';s.error='';s.expanded=new Set(['all','bar','dev','design','other']);render();
   };
   function handleFolderOp(op,id){
     const f=lookup(id);if(!f||f.locked){notice('Chrome 系统目录不可重命名或删除');return}
@@ -333,8 +370,10 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
     const menu=event.target.closest('[data-folder-menu]');
     if(menu){s.menu=s.menu===menu.dataset.folderMenu?null:menu.dataset.folderMenu;render({keepScroll:true});return}
     const op=event.target.closest('[data-folder-op]');if(op){handleFolderOp(op.dataset.folderOp,op.dataset.folderId);return}
+    const expand=event.target.closest('[data-expand]');
+    if(expand){const id=expand.dataset.expand;s.expanded.has(id)?s.expanded.delete(id):s.expanded.add(id);render({keepScroll:true});return;}
     const folder=event.target.closest('[data-folder]');
-    if(folder){s.folder=folder.dataset.folder;s.menu=null;s.selected=visible()[0]?.id||null;render({keepScroll:true});return}
+    if(folder){const id=folder.dataset.folder;s.folder=id;s.expanded.add(id);s.menu=null;s.selected=visible()[0]?.id||null;render({keepScroll:true});return}
     const book=event.target.closest('[data-bookmark]');if(book){s.selected=book.dataset.bookmark;go('bookmark-detail');return}
     const button=event.target.closest('[data-action]');if(!button)return;
     const action=button.dataset.action;
@@ -375,21 +414,21 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
       const parent=edit?target?.parent:form.querySelector('#folder-parent')?.value;
       if(!title){$('inline-error').textContent='请输入文件夹名称';return}
       if(s.folders.some(f=>f.id!==target?.id&&f.parent===parent&&f.name===title)){$('inline-error').textContent='当前目录下已有同名文件夹';return}
-      if(edit){if(!target||target.locked){notice('系统文件夹不可修改');return}target.name=title;s.folder=target.id}
-      else{if(!lookup(parent)){notice('目标目录不存在');return}const id='f'+(++s.counter);s.folders.push({id,name:title,parent,locked:false});s.folder=id}
+      if(edit){if(!target||target.locked){notice('系统文件夹不可修改');return}target.name=title;s.folder=target.id;s.expanded.add(target.id)}
+      else{if(!lookup(parent)){notice('目标目录不存在');return}const id='f'+(++s.counter);s.folders.push({id,name:title,parent,locked:false});s.folder=id;s.expanded.add(parent);s.expanded.add(id)}
       s.selected=visible()[0]?.id||null;go('manager');notice(edit?'已重命名演示文件夹':'已新建演示文件夹');return;
     }
     if(form.id==='folder-move-form'){
       const f=lookup(s.selectedFolder),target=form.querySelector('#folder-target')?.value;
       if(!f||f.locked||!lookup(target)||descendant(target,f.id)){notice('不允许将文件夹移动到自身或子文件夹');return}
-      f.parent=target;s.folder=f.id;go('manager');notice('已移动演示文件夹');return;
+      f.parent=target;s.folder=f.id;s.expanded.add(target);s.expanded.add(f.id);go('manager');notice('已移动演示文件夹');return;
     }
     if(form.id==='folder-delete-form'){
       const f=lookup(s.selectedFolder);if(!f||f.locked){notice('系统文件夹不可删除');return}
       const ids=new Set(s.folders.filter(x=>descendant(x.id,f.id)).map(x=>x.id));
       if((count(f.id)>0||ids.size>1)&&!form.querySelector('#confirm-children')?.checked){notice('请先确认要删除包含的内容');return}
       s.bookmarks=s.bookmarks.filter(x=>!ids.has(x.folder));s.folders=s.folders.filter(x=>!ids.has(x.id));
-      s.folder='all';s.selected=s.bookmarks[0]?.id||null;go('manager');notice('已删除演示文件夹和其中内容');return;
+      s.folder='all';s.selected=s.bookmarks[0]?.id||null;for(const id of ids)s.expanded.delete(id);go('manager');notice('已删除演示文件夹和其中内容');return;
     }
     if(form.id==='bookmark-form'){
       const title=form.querySelector('#bookmark-title').value.trim(),url=form.querySelector('#bookmark-url').value.trim();
@@ -399,11 +438,11 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
       if(!title||!lookup(parent)){$('inline-error').textContent='名称或文件夹无效';return}
       if(s.formMode==='edit'&&current())Object.assign(current(),{title,url:parsed.href,folder:parent,icon:title[0].toUpperCase()});
       else{const id='b'+(++s.counter);s.bookmarks.unshift({id,title,url:parsed.href,folder:parent,added:today(),icon:title[0].toUpperCase(),tone:'blue'});s.selected=id}
-      s.folder='all';go('bookmark-detail');notice('已保存演示书签');return;
+      s.folder='all';s.expanded.add(parent);go('bookmark-detail');notice('已保存演示书签');return;
     }
     if(form.id==='bookmark-move-form'){
       if(current())current().folder=form.querySelector('#bookmark-target').value;
-      s.folder='all';go('bookmark-detail');notice('已移动演示书签');
+      s.folder='all';s.expanded.add(current()?.folder);go('bookmark-detail');notice('已移动演示书签');
     }
   });
   $('reset').addEventListener('click',()=>{reset();notice('已重置演示数据')});
