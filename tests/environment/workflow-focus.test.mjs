@@ -202,13 +202,13 @@ if(!vm.SourceTextModule) {
   test('component: one header Create menu is closed by Escape and restores visible focus',async t=>{
     const f=await make(t);
     assert.equal(f.get('workflow-create-menu').hidden,true);
-    assert.equal(f.get('workflow-create-toggle').getAttribute('aria-expanded'),'false');
     await f.openCreation();
     assert.equal(f.get('workflow-create-menu').hidden,false);
     assert.equal(f.get('workflow-create-toggle').getAttribute('aria-expanded'),'true');
     assertFocus(f,f.get('workflow-ai-new-session'));
     await f.get('workflow-editor').fire('keydown',{key:'Escape',preventDefault(){}});
     assert.equal(f.get('workflow-create-menu').hidden,true);
+    assert.equal(f.get('workflow-create-toggle').getAttribute('aria-expanded'),'false');
     assertFocus(f,f.get('workflow-create-toggle'));
   });
 
