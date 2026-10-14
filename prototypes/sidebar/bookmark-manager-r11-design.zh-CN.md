@@ -1,5 +1,8 @@
 # OpenDesk Browser · 书签管理工具 R1｜设计与交付工作流
 
+> **已被 R1.2 替代的 UI 设计说明**：R1.1 把「文件夹」与「书签」拆开，用户反馈占行过多、概念重复。现以[统一书签文件树与功能宇宙 R1.2](../../docs/product/bookmark-manager-feature-universe-r12.zh-CN.md)和更新后的 [HTML 原型](bookmark-manager-preview.html) 为准。原 R1.1 说明保留作历史决策记录。
+
+
 日期：2026-10-14。状态：R1.1 HTML 原型交互修订并完成受控 Chromium 模拟测试；真实 Chrome 书签模块仍未实现、未验收。
 目标仓库：https://github.com/shopable-ai/opendesk-browser ，代码分支 main。
 
