@@ -40,3 +40,11 @@
 #bookmark-manager-open .bm-open-symbol{font-size:18px;color:var(--od-brand)}
 #bookmark-manager-open .bm-open-chevron{margin-left:auto;color:var(--od-sub)}
 @media(max-width:340px){#bookmark-manager-panel .bm-toolbar{gap:4px}#bookmark-manager-panel .bm-toolbar .od-button{padding:5px 5px;font-size:10.5px}}
+#bookmark-manager-panel .bm-pagination{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:10px;color:var(--od-sub);font-size:11px;font-variant-numeric:tabular-nums}
+#bookmark-manager-panel .bm-pagination .od-button{min-height:32px;padding:5px 11px}
+@media(max-width:280px){
+  #bookmark-manager-panel .bm-toolbar{flex-wrap:wrap}
+  #bookmark-manager-panel .bm-toolbar .bm-main{flex:1 1 100%}
+  #bookmark-manager-panel .bm-toolbar .od-button:not(.bm-main){flex:1 1 0}
+  #bookmark-manager-panel .bm-count{display:none}
+}
