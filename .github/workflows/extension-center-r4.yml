@@ -15,6 +15,7 @@ on:
       - 'scripts/prepare-public.mjs'
       - 'scripts/verify-package.mjs'
       - 'tests/environment/extension-center-r4.test.mjs'
+      - 'tests/environment/task-workbench.test.mjs'
       - 'tests/environment/sidebar-product-contract.test.mjs'
       - 'tests/environment/sidebar-tab-memory.test.mjs'
       - 'tests/environment/cloud-control-sidebar-r28.test.mjs'
@@ -48,3 +49,8 @@ jobs:
         run: |
           test -s dist/production/ui/extension-center.css
           node scripts/verify-package.mjs dist/production
+      - name: Development package and reproducible resource verification
+        run: |
+          npm run build:dev
+          npm run verify
+          test -s dist/development/ui/extension-center.css

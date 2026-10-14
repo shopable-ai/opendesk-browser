@@ -171,14 +171,16 @@ test('entering Sidebar task views reads external installations without executing
   assert.equal(f.get('task-run').disabled,false);
   const input=f.get('task-param-name');
   input.value='Preserved native input';
-  await f.click('tab-discover');
+  await f.click('tab-tools');
   assert.equal(f.get('local-discover-cards').children.length,1);
   await f.click('tab-my-tasks');
   assert.equal(f.get('task-param-name'),input,'unchanged catalog must not replace the editable form');
   assert.equal(input.value,'Preserved native input');
   assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
   f.catalogState.installed=[];
-  await f.click('tab-discover');
+  // Switching back into My refreshes the original authoritative Task Catalog.
+  await f.click('tab-tools');
+  await f.click('tab-my-tasks');
   assert.equal(f.get('local-discover-cards').children.length,1);
   assert.match(f.get('local-discover-cards').children[0].textContent,/还没有任务/);
 });
@@ -200,13 +202,13 @@ test('installed tasks default page, render schema form and freeze the exact save
   assert.deepEqual(f.starts[0].params,{name:'Bob'});
   assert.deepEqual(f.starts[0].target,{mode:'borrowed',tabId:9,frameId:0,documentId:'doc-9',
     expectedUrl:'https://a.example/',expectedWindowId:7});
-  await f.click('tab-discover');
-  assert.equal(f.get('workbench-local-discover').hidden,false,'Sidebar Discover must show installed local tasks');
+  await f.click('tab-tools');
+  assert.equal(f.get('workbench-tools').hidden,false,'Extension Center must show the existing tools panel');
   assert.equal(f.get('workbench-discover').hidden,true,'full catalog must not occupy the Side Panel');
-  assert.equal(f.catalogOpens.length,0,'Sidebar Discover must not open a marketplace tab');
+  assert.equal(f.catalogOpens.length,0,'Extension Center navigation must not open a marketplace tab');
   assert.equal(f.get('local-discover-cards').children.length,1,'matching installed task is discoverable');
-  assert.equal(f.get('task-dock').hidden,false,'task-owned Stop remains accessible in Discover');
-  assert.equal(f.get('develop-dock').hidden,true,'Discover must not expose a second runner');
+  assert.equal(f.get('task-dock').hidden,false,'task-owned Stop remains accessible across tabs');
+  assert.equal(f.get('develop-dock').hidden,true,'Extensions must not expose a second runner');
   await f.click('tab-develop');
   assert.equal(f.get('workbench-develop').hidden,false);
   assert.equal(f.get('task-dock').hidden,false,'task-owned Stop remains accessible in Developer');
@@ -218,8 +220,8 @@ test('installed tasks default page, render schema form and freeze the exact save
   assert.match(latest.children[0].textContent,/成功/);
   assert.doesNotMatch(latest.children[0].textContent,/run-task-1/,'ordinary history line hides internal IDs');
   assert.match(latest.children[2].children[1].textContent,/run-task-1/,'advanced record retains exact identity');
-  await f.click('tab-discover');
-  assert.equal(f.get('task-dock').hidden,true,'idle Discover should not show a Run dock');
+  await f.click('tab-tools');
+  assert.equal(f.get('task-dock').hidden,true,'idle Extensions must not expose a borrowed Run dock');
 });
 
 test('installed task can be explicitly forked into an independent unsaved editor draft',async t=>{
@@ -275,10 +277,10 @@ test('task cards retain readable selection and do not surface raw IDs as the mai
   assert.equal(f.get('workbench-discover').hidden,true);
 });
 
-test('Sidebar Discover searches installed tasks only and selects a task without running or opening the catalog',async t=>{
+test('R4 My searches installed tasks only and selects a task without running or opening the catalog',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
-  await f.click('tab-discover');
-  assert.equal(f.get('workbench-local-discover').hidden,false);
+  await f.click('tab-my-tasks');
+  assert.equal(f.get('workbench-tasks').hidden,false);
   assert.equal(f.get('workbench-discover').hidden,true);
   assert.equal(f.get('local-discover-count').textContent.includes('1 个'),true);
   assert.equal(f.get('local-discover-cards').children.length,1);
@@ -303,9 +305,9 @@ test('Sidebar Discover searches installed tasks only and selects a task without 
   assert.equal(f.catalogOpens[0].url,'chrome-extension://extension/ui/tool.html');
 });
 
-test('Discover filter controls are real view filters and cannot start another run',async t=>{
+test('R4 My installed task filters are real view filters and cannot start another run',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
-  await f.click('tab-discover');
+  await f.click('tab-my-tasks');
   await f.click('local-filter-disabled');
   assert.equal(f.get('local-filter-disabled').attributes['aria-pressed'],'true');
   assert.match(f.get('local-discover-count').textContent,/0 个/,'enabled task must not show as disabled');
@@ -347,13 +349,13 @@ test('full-size catalog keeps its own reader after real install and re-reads the
   assert.equal(f.get('task-run').disabled,false,'installed task is eligible on its own website');
 });
 
-test('idle Discover has no fixed footer and inline import still opens the authenticated catalog',async t=>{
+test('R4 idle Extensions has no fixed footer and My task search import still opens the authenticated catalog',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
-  await f.click('tab-discover');
+  await f.click('tab-tools');
   assert.equal(f.get('workspace-dock').hidden,true,'idle local search leaves all height for results');
   await f.click('tab-my-tasks');
   assert.equal(f.get('workspace-dock').hidden,false,'task Run is visible in My Tasks');
-  await f.click('tab-discover');
+  await f.click('tab-my-tasks');
   await f.click('local-discover-open-catalog');
   assert.equal(f.catalogOpens.length,1,'inline import opens existing full-page catalog');
   assert.equal(f.starts.length,0);
@@ -364,7 +366,7 @@ test('R5 result/history stay out of sight until a task has runs',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
   assert.equal(f.get('task-result-panel').hidden,true);
   assert.equal(f.get('task-history-panel').hidden,true);
-  await f.click('tab-discover');
+  await f.click('tab-tools');
   assert.equal(f.get('task-result-panel').hidden,true);
   await f.click('tab-my-tasks');
   assert.equal(f.get('task-history-panel').hidden,true);
@@ -376,7 +378,7 @@ test('card view retains original action identities, history and parameter form a
     assert(f.get(id),'existing action node exists: '+id);
   const form=f.get('task-params-form'),field=form.children.find(node=>node.dataset.taskParam==='name');
   field.value='unchanged';
-  await f.click('tab-discover');await f.click('tab-develop');await f.click('tab-my-tasks');
+  await f.click('tab-tools');await f.click('tab-develop');await f.click('tab-my-tasks');
   assert.equal(form.children.find(node=>node.dataset.taskParam==='name').value,'unchanged');
   assert.equal(f.get('task-installed-cards').children[0].children[1],f.get('task-selected-workspace'));
 });
@@ -413,34 +415,34 @@ test('switching between two installed tasks preserves each independent unsaved p
   assert.equal(f.permissions.length,0,'card selection never requests permission');
 });
 
-test('R6 accessible roving tabs support Arrow and Home/End',async t=>{
+test('R4 accessible five production tabs support Arrow and Home/End',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
   assert.equal(f.get('tab-my-tasks').tabIndex,0);
-  assert.equal(f.get('tab-discover').tabIndex,-1);
+  assert.equal(f.get('tab-tools').tabIndex,-1);
   let prevented=false;
   f.get('tab-my-tasks').fire('keydown',{key:'ArrowRight',preventDefault(){prevented=true;}});
   assert.equal(prevented,true);
-  assert.equal(f.get('workbench-local-discover').hidden,false);
-  assert.equal(f.get('tab-discover').tabIndex,0);
-  assert.equal(f.doc.activeElement,f.get('tab-discover'));
-  f.get('tab-discover').fire('keydown',{key:'End',preventDefault(){}});
-  assert.equal(f.get('workbench-cloud').hidden,false,'End selects the last production Cloud tab');
+  assert.equal(f.get('workbench-tools').hidden,false);
+  assert.equal(f.get('tab-tools').tabIndex,0);
+  assert.equal(f.doc.activeElement,f.get('tab-tools'));
+  f.get('tab-tools').fire('keydown',{key:'End',preventDefault(){}});
+  assert.equal(f.get('workbench-cloud').hidden,false,'End selects Cloud, the last production tab');
   assert.equal(f.get('tab-cloud').attributes['aria-selected'],'true');
   assert.equal(f.get('tab-cloud').tabIndex,0);
   f.get('tab-cloud').fire('keydown',{key:'ArrowLeft',preventDefault(){}});
   assert.equal(f.get('workbench-cloud').hidden,true);
-  assert.equal(f.get('workbench-tools').hidden,false);
-  assert.equal(f.get('tab-tools').attributes['aria-selected'],'true');
-  assert.equal(f.get('tab-tools').tabIndex,0);
-  f.get('tab-tools').fire('keydown',{key:'ArrowLeft',preventDefault(){}});
   assert.equal(f.get('workbench-develop').hidden,false);
-  assert.equal(f.get('tab-develop').attributes['aria-selected'],'true');
-  f.get('tab-develop').fire('keydown',{key:'Home',preventDefault(){}});
+  assert.equal(f.get('tab-develop').tabIndex,0);
+  f.get('tab-develop').fire('keydown',{key:'ArrowLeft',preventDefault(){}});
+  assert.equal(f.get('workbench-workflow').hidden,false);
+  f.get('tab-workflow').fire('keydown',{key:'ArrowLeft',preventDefault(){}});
+  assert.equal(f.get('workbench-tools').hidden,false);
+  assert.equal(f.get('tab-tools').tabIndex,0);
+  f.get('tab-tools').fire('keydown',{key:'Home',preventDefault(){}});
   assert.equal(f.get('workbench-tasks').hidden,false);
   assert.equal(f.get('tab-my-tasks').tabIndex,0);
 });
-
-test('R6 task card refresh, keyboard selection and Discover handoff restore focus',async t=>{
+test('R4 task selection and My search handoff retain focus restore focus',async t=>{
   const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
   const before=f.get('task-installed-cards').children[0].children[0];
   before.focus();await f.ui.refresh();
@@ -450,7 +452,7 @@ test('R6 task card refresh, keyboard selection and Discover handoff restore focu
   second.focus();second.fire('click');
   assert.equal(f.get('task-installed-list').value,'demo.second');
   assert.equal(f.doc.activeElement,f.get('task-installed-cards').children[1].children[0]);
-  await f.click('tab-discover');
+  await f.click('tab-my-tasks');
   const discovered=f.get('local-discover-cards').children[0];
   discovered.focus();discovered.fire('click');
   assert.equal(f.doc.activeElement,f.get('task-installed-cards').children[0].children[0]);
@@ -462,7 +464,7 @@ test('R32 visible Cloud tab selects its existing panel without execution or perm
   await f.click('tab-cloud');
   assert.equal(f.doc.documentElement.dataset.opendeskTab,'cloud');
   assert.equal(f.get('workbench-cloud').hidden,false);
-  for(const id of ['workbench-tasks','workbench-local-discover','workbench-workflow','workbench-develop','workbench-tools'])
+  for(const id of ['workbench-tasks','workbench-workflow','workbench-develop','workbench-tools'])
     assert.equal(f.get(id).hidden,true,id);
   assert.equal(f.get('tab-cloud').attributes['aria-selected'],'true');
   assert.equal(f.get('tab-cloud').tabIndex,0);
@@ -599,7 +601,7 @@ test('R6.1 task-owned Stop is the sole cross-view action and names the launching
   assert.equal(f.get('workspace-dock').dataset.stopOnly,'true','a different selected task cannot own Run actions');
   assert.equal(f.get('task-run').disabled,true);
   assert.match(f.get('task-stop').attributes['aria-label'],/表单任务/,'Stop names the real launch owner, not selected B');
-  await f.click('tab-discover');
+  await f.click('tab-tools');
   assert.equal(f.get('task-dock').hidden,false);
   assert.equal(f.get('develop-dock').hidden,true);
   assert.equal(f.get('workspace-dock').dataset.stopOnly,'true');
@@ -613,23 +615,23 @@ test('R6.1 task-owned Stop is the sole cross-view action and names the launching
   assert.equal(f.starts.length,1,'Cloud navigation never restarts the owning Task');
   f.host.complete({ok:true});await tick();await tick();await tick();
   assert.equal(f.get('workspace-dock').dataset.stopOnly,'false','stop-only mode retires with the owning run');
-  await f.click('tab-discover');
-  assert.equal(f.get('workspace-dock').hidden,true,'idle Discover remains completely footer-free');
+  await f.click('tab-tools');
+  assert.equal(f.get('workspace-dock').hidden,true,'idle Extensions remain free of borrowed Run actions');
 });
 
-test('R6.1 a draft-owned run exposes only its Stop when viewing Tasks or Discover',async t=>{
+test('R4 draft-owned run exposes only its Stop while viewing My or Extensions',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
   await f.host.start({source:{kind:'draft',sourceUtf8:'return 1;'}});
   f.ui.navigate('tasks');
   assert.equal(f.get('task-dock').hidden,true);
   assert.equal(f.get('develop-dock').hidden,false);
   assert.equal(f.get('workspace-dock').dataset.stopOnly,'true');
-  f.ui.navigate('discover');
+  f.ui.navigate('tools');
   assert.equal(f.get('workspace-dock').dataset.stopOnly,'true');
   f.ui.navigate('develop');
   assert.equal(f.get('workspace-dock').dataset.stopOnly,'false','owner view retains saved-version actions');
   f.host.complete({ok:true});
-  f.ui.navigate('discover');
+  f.ui.navigate('tools');
   assert.equal(f.get('workspace-dock').hidden,true);
 });
 

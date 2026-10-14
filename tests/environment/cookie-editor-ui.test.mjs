@@ -36,7 +36,7 @@ async function harness(browser=null,{currentPage=null,initialReadStarted=null,tr
   const instrument=source.replace(marker,
     'const pendingWork=new Set();const track=fn=>(...args)=>{const work=fn(...args);'+
     'pendingWork.add(work);Promise.resolve(work).then(()=>pendingWork.delete(work),()=>pendingWork.delete(work));return work;};'+
-    'refresh=track(refresh);readBrowserMetadata=track(readBrowserMetadata);'+
+    'refresh=track(refresh);readBrowserMetadata=track(readBrowserMetadata);prepareLiveImport=track(prepareLiveImport);'+
     (trackSaves?'saveBrowserCookie=track(saveBrowserCookie);':'')+
     'const settle=async()=>{while(pendingWork.size)await Promise.all([...pendingWork]);};'+
     'globalThis.__cookieTest={normalizeCookie,parseImport,exportText,saveToList,mergeImport,'+
@@ -113,7 +113,7 @@ test('Cookie Editor is an optional two-mode tool without private cookies API',as
   assert(s.html.includes('id="live-search"')&&s.html.includes('id="live-filter"')&&
     s.html.includes('id="live-sort"'));
   assert(s.source.includes("E('live-filters').hidden=!hasRead"));
-  assert.equal(s.config.version,'2.0.4');
+  assert.equal(s.config.version,'2.0.5');
   assert(s.html.includes('id="offline-tools"')&&s.html.includes('id="browser-panel"'),
     'Live Chrome management is the default; offline tools are secondary');
   assert(!/\b(?:window|globalThis|chrome)\.cookies\./.test(s.source));
@@ -739,4 +739,79 @@ test('P2 pending set cannot delete, read or replay after '+event,async()=>{
   assert.equal(rows[0].value,'HIDDEN_NATIVE_SECRET');
   assert.equal(s.liveSnapshot().rows.length,0);
   assert.equal(s.getStatusMessage(),message,'late receipt must not publish stale success');
+});
+
+test('R4.3 live toolbar placement and single inline editor contract',async()=>{
+  const s=await harness();
+  const live=s.html.slice(s.html.indexOf('id="browser-panel"'),s.html.indexOf('id="offline-tools"'));
+  const positions=['class="toolbar live-toolbar"','id="live-import"','id="live-export"',
+    'id="live-new"','id="live-filters"','id="live-cookie-list"'].map(x=>live.indexOf(x));
+  assert(positions.every((v,i)=>v>=0&&(!i||v>positions[i-1])));
+  for(const id of ['live-import','live-export','live-new']){
+    const tag=live.match(new RegExp('<button[^>]+id="'+id+'"[^>]+>'))?.[0];
+    assert(tag?.includes('title=')&&tag?.includes('aria-label='));
+    assert(tag.includes('icon-button'));
+  }
+  assert.equal((s.html.match(/id="editor-panel"/g)||[]).length,1);
+  assert.equal((s.html.match(/id="live-export-format"/g)||[]).length,1);
+  assert.match(s.source,/item\.append\(editor\)/);
+  assert.match(s.source,/confirmLiveImport/);
+  assert.match(s.html,/Cookie Header · 仅名称和值/);
+  assert.match(s.css,/\.live-toolbar \.icon-button\{width:34px;height:34px/);
+  const host=await get('src/ui/sidebar-tools.js');
+  assert.match(host,/允许查看与编辑本站 Cookie/);
+  assert.match(host,/仅查看 Cookie/);
+});
+
+test('R4.3 read-only live import can preview without writing and invalidates a changed draft',async()=>{
+  let writes=0;
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{
+    getAll:async()=>[],
+    getCurrentStore:async()=>({storeId:'0'}),
+    getPartitionKey:async()=>({partitionKey:{topLevelSite:'https://example.com',hasCrossSiteAncestor:false}}),
+    set:async()=>{writes++;return {saved:true,verified:true};}
+  }});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');
+  await s.readBrowserMetadata();
+  s.fire('live-import','click',{isTrusted:true});
+  s.getField('import-format').value='auto';
+  s.getField('import-text').value='sid=VALUE';
+  s.fire('import-text','input',{isTrusted:true});
+  s.fire('import-apply','click',{isTrusted:true});
+  await s.settle();
+  assert.equal(writes,0,'preparing must never ask for write permission or mutate Chrome');
+  assert.equal(s.getField('live-import-preview').hidden,false);
+  assert.equal(s.getField('live-import-confirm').hidden,false);
+  assert.match(s.getField('live-import-preview').textContent,/新增 1/);
+  s.getField('import-text').value='sid=OTHER';
+  // Native input events bubble to the importing form; the minimal Node DOM
+  // harness has no propagation engine, so deliver the bubbled event explicitly.
+  s.fire('import-panel','input',{isTrusted:true});
+  assert.equal(s.getField('live-import-confirm').hidden,true,'editing invalidates preview');
+  assert.equal(writes,0);
+});
+
+test('R4.3 text export rejects unrepresentable sensitive attributes rather than silently corrupting',async()=>{
+  const s=await harness();s.setSite('example.com');
+  const row=s.normalizeCookie({name:'sid',value:'abc;def'});
+  assert.throws(()=>s.exportText('header',[row]),/Header/);
+  assert.equal(s.exportText('json',[row]).includes('abc;def'),true);
+  const tabbed=s.normalizeCookie({name:'sid',value:'value\tpart'});
+  assert.throws(()=>s.exportText('netscape',[tabbed]),/Netscape/);
+});
+
+test('R4.3 idle unsaved draft survives an external page change until user confirms discarding',async()=>{
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},
+    cookies:{getAll:async()=>[],getPartitionKey:async()=>({partitionKey:{topLevelSite:'https://example.com'}})}});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');
+  await s.readBrowserMetadata();s.openEditor();
+  s.getField('cookie-value').value='LOCAL_UNSAVED_DRAFT';
+  s.fire('editor-form','input',{isTrusted:true});
+  s.fireRoot('opendesk-page-changed');
+  assert.equal(s.getField('confirm-panel').hidden,false,'dirty draft requires user review');
+  assert.equal(s.getField('editor-panel').hidden,false,'do not discard before approval');
+  assert.equal(s.getField('cookie-value').value,'LOCAL_UNSAVED_DRAFT');
+  s.fire('confirm-cancel','click',{isTrusted:true});
+  assert.equal(s.getField('editor-panel').hidden,false,'cancel must preserve draft');
+  assert.equal(s.getField('cookie-value').value,'LOCAL_UNSAVED_DRAFT');
 });

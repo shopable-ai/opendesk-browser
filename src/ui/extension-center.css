@@ -53,4 +53,21 @@
 #extension-center button:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
 @media(max-width:330px){.ec-toolbar{gap:5px}.ec-row{grid-template-columns:30px minmax(0,1fr) auto 34px;gap:5px;padding:8px 6px;min-height:68px}.ec-glyph{width:30px;height:30px}.ec-type{padding:1px 3px}.ec-action{padding:4px;min-width:34px}}
 @media(pointer:coarse){.ec-row{grid-template-columns:34px minmax(0,1fr) auto 44px}.ec-toolbar .ec-icon,.ec-row-more{width:44px;min-width:44px;min-height:44px}.ec-action,.ec-more button{min-width:44px;min-height:44px}}
+/* Preserve the R4 narrow index while keeping its real actions reachable. */
+@media(max-width:240px){
+  .ec-toolbar{flex-wrap:wrap}
+  .ec-search{order:0;flex:1 1 100%;width:100%}
+  .ec-toolbar>#extension-center-market{order:1}
+  .ec-menu-wrap{order:2;margin-left:auto}
+  .ec-row{grid-template-columns:26px minmax(0,1fr) 34px;gap:4px;min-height:82px}
+  .ec-glyph{width:26px;height:26px;grid-row:1}
+  .ec-copy{grid-column:2/4;grid-row:1}
+  .ec-name-line{flex-wrap:wrap;gap:3px}
+  .ec-name{flex:1 1 70px;max-width:100%}
+  .ec-description{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+  .ec-action{grid-column:2;grid-row:2;justify-self:start}
+  .ec-row-more{grid-column:3;grid-row:2}
+  .ec-more{right:0;max-width:calc(100vw - 20px)}
+}
+@media(pointer:coarse) and (max-width:240px){.ec-row{grid-template-columns:26px minmax(0,1fr) 44px}}
 @media(prefers-color-scheme:dark){.ec-more{box-shadow:0 12px 32px #0007}}

@@ -53,18 +53,46 @@ input[type=file]{min-width:0;width:100%;max-width:100%;font-size:12px}.export-ac
 .target-entry button{flex:0 0 auto}
 .browser-state{min-width:0;padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-bg)}
 .browser-state strong{display:block;font-size:13px}.browser-state p{margin:var(--space-1) 0 0;font-size:12px;color:var(--od-sub);overflow-wrap:anywhere}
-.live-toolbar{justify-content:space-between}.live-toolbar .text-button{min-width:112px}
+.live-toolbar{justify-content:flex-end;gap:var(--space-2);flex-wrap:nowrap}
+.live-section-title{display:flex;align-items:baseline;gap:var(--space-2);min-width:0;font-size:12px;font-weight:600;white-space:nowrap}
+.live-toolbar .fill{flex:1;min-width:0}.live-toolbar .icon-button{width:34px;height:34px;flex:0 0 34px}
+#live-cookie-list .cookie-row{padding:var(--space-2) var(--space-3);gap:var(--space-1)}
+.cookie-row-trigger{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);width:100%;min-width:0;border:0;background:transparent;padding:var(--space-1) 0;color:var(--od-ink);text-align:left}
+.cookie-row-trigger:hover:not(:disabled) .cookie-row-name{color:var(--od-brand)}
+.cookie-row-trigger .cookie-row-name{min-width:0;flex:1;font-size:13px;line-height:1.4}
+.row-chevron{flex:none;width:16px;height:16px;color:var(--od-sub);transition:transform .12s ease}
+.cookie-row-trigger[aria-expanded=true] .row-chevron{transform:rotate(180deg)}
+.cookie-row-expanded{border-color:#b2c5e8;background:var(--od-paper)}
+#editor-panel.cookie-inline{margin-top:var(--space-2);padding:var(--space-3) 0 0;border:0;border-top:1px solid var(--od-line);border-radius:0;background:transparent}
+.inline-operation{min-width:0}.inline-operation p{overflow-wrap:anywhere}
+.sensitive-note{margin:0;font-size:12px;line-height:1.5;color:var(--od-negative);overflow-wrap:anywhere}
+.import-preview{margin:0;padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink);font-size:12px;line-height:1.55;overflow-wrap:anywhere}
+#browser-import-slot,#offline-import-slot,#offline-editor-slot{min-width:0}
 .permission-details{padding:var(--space-2) var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-control);color:var(--od-sub);font-size:12px}
 .permission-details summary{cursor:pointer;color:var(--od-ink);font-weight:600}.permission-details p{margin:var(--space-2) 0 0;overflow-wrap:anywhere}
 #live-cookie-list .cookie-row{gap:var(--space-1)}
-@media(max-width:340px){.target-entry input{flex-basis:100%}.target-entry button{flex:1}.live-toolbar{flex-wrap:wrap}}
+@media(max-width:340px){.target-entry input{flex-basis:100%}.target-entry button{flex:1}}
 @media(min-width:800px){.cookie-app{max-width:760px;margin-inline:auto}}
 .live-filters{flex-wrap:wrap}.live-filters input{flex:1 1 150px}.live-filters select{width:auto;min-width:94px;max-width:120px}
 
 /* Browser Cookie action controls reuse R27 spacing and compact button styles. */
-.live-toolbar{flex-wrap:wrap}.live-toolbar .text-button{min-width:0}
 .browser-advanced-actions{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-2);margin-top:var(--space-3)}
 .browser-advanced-actions select{width:auto;max-width:125px;min-width:94px}
 .browser-observe{margin-top:var(--space-3);border-top:1px solid var(--od-line);padding-top:var(--space-3)}
 .browser-observe summary{cursor:pointer}.browser-observe .cookie-row{font-size:12px}
 @media(max-width:320px){.browser-advanced-actions>*{flex:1 1 auto}}
+
+@media(prefers-color-scheme:dark){
+  :root{color-scheme:dark;background:#142033;color:#e5edfa;--od-ink:#e5edfa;--od-sub:#b3c1d6;--od-line:#3a4c65;--od-paper:#1e2b40;--od-bg:#16243a;--od-brand:#8badff;--od-negative:#ffacb3}
+  .cookie-row,.text-button,.icon-button,.row-action,.mode-button.active,.confirmation{background:var(--od-paper);color:var(--od-ink);border-color:var(--od-line)}
+  .cookie-row-trigger{color:var(--od-ink)}
+  input[type=text],input[type=url],input[type=search],input[type=datetime-local],textarea,select{background:var(--od-paper);color:var(--od-ink);border-color:var(--od-line)}
+  .field input:read-only{background:#263752;color:#d1dcef}
+  .permission-help,.preview-banner{background:#223554;color:#dbe9ff;border-color:#475f84}
+  .cookie-row-expanded{border-color:#708bc2}
+  .text-button.primary{color:white;background:#365ed3;border-color:#365ed3}
+  .danger-button{color:white;background:#a03a43;border-color:#a03a43}
+  .row-action:hover:not(:disabled),.icon-button:hover:not(:disabled),.text-button:hover:not(:disabled){background:#2d3e5b}
+  .text-button.primary:hover:not(:disabled){background:#2747aa}
+  .cookie-row-value{background:#152236}
+}
