@@ -1,6 +1,8 @@
 {
-  "format": "opendesk.mixed-import-node-evidence.v1",
-  "level": "NODE_BUILD_VM_NOT_CHROME",
+  "format": "opendesk.import-runtime-r794-node-ci-evidence.v1",
+  "level": "CI_NODE_BUILD_VM_PASS_NOT_CHROME",
+  "originalDiagnosticFormat": "opendesk.mixed-import-node-evidence.v1",
+  "originalDiagnosticLevel": "NODE_BUILD_VM_NOT_CHROME",
   "source": {
     "provider": "GitHub Actions",
     "workflow": "OpenDesk multi-file source contract",
