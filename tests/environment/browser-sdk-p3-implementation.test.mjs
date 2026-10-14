@@ -149,3 +149,31 @@ test('P3 own-download state enumeration revalidates exact Origin after each Chro
   await assert.rejects(f.host.getOwned({downloadRef:started.downloadRef},owner),
     error('E_SITE_PERMISSION_REVOKED'));
 });
+
+test('P3 cancelOwned checks revoked Origin after Chrome search, before any cancel side effect',async()=>{
+  const f=fixture(),started=await f.host.download(request,owner);
+  f.revokeOnSearch();
+  await assert.rejects(f.host.cancelOwned({downloadRef:started.downloadRef},owner),
+    error('E_SITE_PERMISSION_REVOKED'));
+  assert.equal(f.called.filter(([op])=>op==='cancel').length,0);
+  assert(f.auth.filter(x=>x.operation==='browser.downloads.cancelOwned'&&x.origin==='https://files.example').length>=2);
+});
+test('P3 revocation while Chrome searches an owned download cannot cancel a stale ref',async()=>{
+  const f=fixture(),started=await f.host.download(request,owner);
+  const search=f.api.downloads.search;
+  let entered,release;
+  const searchEntered=new Promise(resolve=>{entered=resolve});
+  const holdSearch=new Promise(resolve=>{release=resolve});
+  f.api.downloads.search=async args=>{
+    entered();
+    await holdSearch;
+    return search(args);
+  };
+  const pending=f.host.cancelOwned({downloadRef:started.downloadRef},owner);
+  await searchEntered;
+  f.host.revokeAll();
+  release();
+  await assert.rejects(pending,error('E_GRANT_REVOKED'));
+  assert.equal(f.called.filter(([op])=>op==='cancel').length,0,
+    'Revoked DownloadRef must not reach chrome.downloads.cancel');
+});

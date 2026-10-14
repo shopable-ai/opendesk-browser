@@ -134,6 +134,13 @@ export function createBrowserDownloadsHost({api=globalThis.chrome,authorize,
     const row=owned(input.downloadRef,context);
     await guard('browser.downloads.cancelOwned',context,row.origin);
     const before=await details(row);
+    // chrome.downloads.search is asynchronous: the site permission, installation
+    // and download ownership can disappear while Chrome resolves that request.
+    // Recheck immediately before ANY native cancellation side effect, even if
+    // the same tool was later re-enabled with a new generation.
+    await guard('browser.downloads.cancelOwned',context,row.origin);
+    if(row.generation!==generation||records.get(input.downloadRef)!==row)
+      throw fail('E_GRANT_REVOKED','Download reference revoked during Chrome lookup');
     if(before.state!=='in_progress'){
       await guard('browser.downloads.cancelOwned',context,row.origin);
       return {cancelled:false};
