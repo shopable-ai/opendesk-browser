@@ -98,3 +98,15 @@ AI 整理、访问频率追踪、历史权限、定时清理、自动链接检�
 - 定向回归：新增“不改变 ID 的子项编辑”拒绝删除和“空目录必须明确快照”场景，保留原新增子节点竞态检查。请以本次提交 SHA 的 CI 为准。
 - Chrome `removeTree` 没有原子条件删除功能，校验后的极小并发窗口仍不能从 API 层彻底消除。须以真实 Mac Chrome 多窗口验证与用户数据保护为准。
 - Mac 本地工作区、实际 Chrome Profile/扩展 ID、真实授权/CRUD、视觉缩放、动态工具原生隔离尚 `NOT_TESTED`。六项最终产品评分均待真实证据，不提前给 95+。
+
+### R1.4 同候选 GitHub Actions CI · VERIFIED（2026-10-14）
+
+- 被验证的**书签修复源码候选**：[`6f5e7ff36e1e8cbf60f8be85180e0fc78689f572`](https://github.com/shopable-ai/opendesk-browser/commit/6f5e7ff36e1e8cbf60f8be85180e0fc78689f572)，其六处变更仅涉及书签 model/service/trusted-ui、专项测试、README 和工作账本。
+- 同 SHA 工作流：[`Bookmark Manager` #38564426496](https://github.com/shopable-ai/opendesk-browser/actions/runs/38564426496)，job `115853357349`，最终 `completed/success`。
+- `NODE_CURRENT_PASS`：Node 22 / GitHub Ubuntu，三份定向测试共 **99 tests / 99 pass / 0 fail**。包含新增子书签内容变化、空目录快照回归；这仍是 Node Mock，不是安装扩展的原生 Chrome。
+- `CHECK_CURRENT_PASS`：`npm run check`。
+- `BUILD_CURRENT_PASS`：`npm run build` (WXT production)。
+- `PACKAGE_CURRENT_PASS`：`node scripts/verify-package.mjs dist/production` 输出 `"status":"passed"`、`"manifestVersion":3`。该 CI 记录的包哈希 `89dc28b266bd407252c90f8b2a387553c9a0a391b5fbc747cdeda8fd43677ec9`；artifact `bookmark-manager-r13-build-6f5e7ff36e1e8cbf60f8be85180e0fc78689f572` (ID `11894255336`)。
+- 共享构建容量风险：该构建记录 `ui/tool-shell.js` 为 518100 B，接近现有 524288 B 预算，尚余 6188 B。此次没有改变全局构建预算、共享文件或工具 Host；应交由相应构建工作流处理。
+- `REAL_CHROME`、权限原生弹窗、当前 Chrome Profile CRUD、跨窗口内容变化删除拒绝、320/360/420 CSS px、真 200% 缩放、动态安装工具原生隔离，依然全部 **NOT_TESTED**。需要在用户 Mac 安装本 SHA 对应的 development 扩展后验证，严禁把 CI 成功当作 Chrome 用户验收通过。
+- 原生特别场景：在测试专用文件夹展开确认删除后，从另一 Chrome 窗口只更改原有子书签的**标题或 URL**（不增删节点），返回确认删除应提示已变化并完整保留该目录与修改后的内容；随后新建子节点再试也应拒绝。
