@@ -60,6 +60,8 @@ jobs:
         with:
           node-version: '22'
       - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: R10.7 public SDK wrapper routes and trusted-boundary regressions
+        run: node --test --test-reporter=spec tests/environment/browser-sdk-r107-public-routing.test.mjs
       - name: Explicit Browser SDK contracts, Host, native API mocks and denial paths
         run: |
           node --test --test-reporter=spec \
