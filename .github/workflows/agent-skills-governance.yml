@@ -1,0 +1,25 @@
+name: Agent Skills governance
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.agents/skills/**'
+      - 'tests/environment/agent-skills-r1.test.mjs'
+      - '.github/workflows/agent-skills-governance.yml'
+  pull_request:
+    paths:
+      - '.agents/skills/**'
+      - 'tests/environment/agent-skills-r1.test.mjs'
+      - '.github/workflows/agent-skills-governance.yml'
+permissions:
+  contents: read
+jobs:
+  validate-skills:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/environment/agent-skills-r1.test.mjs
