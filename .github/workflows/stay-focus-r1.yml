@@ -55,8 +55,9 @@ jobs:
       - name: Build independent user-installable Stay Focus release
         run: |
           npm run build:sidebar-tool -- examples/sidebar-tools/stay-focus
-          test -s artifacts/sidebar-tools/stay-focus/1.0.0/stay-focus.opendesk-tool.json
-          sha256sum artifacts/sidebar-tools/stay-focus/1.0.0/stay-focus.opendesk-tool.json
+          version=$(node -p "JSON.parse(require('fs').readFileSync('examples/sidebar-tools/stay-focus/tool.config.json','utf8')).version")
+          test -s "artifacts/sidebar-tools/stay-focus/$version/stay-focus.opendesk-tool.json"
+          sha256sum "artifacts/sidebar-tools/stay-focus/$version/stay-focus.opendesk-tool.json"
       - name: Full source security and both production/development WXT packages
         run: |
           npm run check
@@ -74,7 +75,7 @@ jobs:
           retention-days: 14
           path: |
             dist/production/
-            artifacts/sidebar-tools/stay-focus/1.0.0/
+            artifacts/sidebar-tools/stay-focus/
             docs/framework/evidence/wxt/builds/build-production.json
             docs/framework/evidence/wxt/builds/build-development.json
       - name: Preserve source/build failure diagnostics
@@ -85,7 +86,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
           path: |
-            artifacts/sidebar-tools/stay-focus/1.0.0/
+            artifacts/sidebar-tools/stay-focus/
             docs/framework/evidence/wxt/builds/
   native-mac-chrome:
     needs: source-and-build

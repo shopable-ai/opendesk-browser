@@ -15,6 +15,13 @@ const at=new Date(2026,9,13,12,0,0).getTime();
 const mkSite=(host,overrides={})=>({host,subdomains:true,enabled:true,mode:'limit',minutes:15,group:'',...overrides});
 const tick=(state,time,site=null,options={})=>settleFocus(state,{at:time,session:'this-browser-session',
   current:site?{host:site.host,site,tabId:3,windowId:1}:null,...options});
+test('R3.1 Stay Focus CI resolves the current package version instead of pinning old artifacts',()=>{
+  const workflow=readFileSync(new URL('../../.github/workflows/stay-focus-r1.yml',import.meta.url),'utf8');
+  assert.match(workflow,/examples\/sidebar-tools\/stay-focus\/tool\.config\.json/);
+  assert.match(workflow,/artifacts\/sidebar-tools\/stay-focus\/\$version\/stay-focus\.opendesk-tool\.json/);
+  assert.doesNotMatch(workflow,/artifacts\/sidebar-tools\/stay-focus\/1\.0\.0\//);
+});
+
 test('strict hostname and IDN do not substring-match attacker domains',()=>{
   assert.equal(focusHost('HTTPS://YouTube.com/watch?v=secret'),'youtube.com');
   assert.equal(focusHost('https://例子.测试/path?token=secret'),'xn--fsqu00a.xn--0zwm56d');
