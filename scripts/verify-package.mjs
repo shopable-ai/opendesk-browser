@@ -401,7 +401,8 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
   const js = files.filter(path => path.endsWith('.js'));
   if (!same(js, expectedJS)) throw new Error(`Unexpected JS/chunks: ${js}`);
   const allowed = [...required, ...generatedJS.map(path => `${path}.map`)];
-  if (files.some(path => !allowed.includes(path))) throw new Error('Unexpected packaged asset');
+  const unexpectedFiles = files.filter(path => !allowed.includes(path));
+  if (unexpectedFiles.length) throw new Error('Unexpected packaged asset: ' + unexpectedFiles.join(', '));
   const mapFiles = files.filter(path => path.endsWith('.map'));
   if (mapFiles.length && mapFiles.length !== generatedJS.length) throw new Error('Incomplete source map asset set');
   const mode=mapFiles.length?'development':'production';

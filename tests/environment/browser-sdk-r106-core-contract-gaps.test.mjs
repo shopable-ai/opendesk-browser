@@ -29,13 +29,17 @@ const ACTION = 'capture-selection';
 const SELECTED = 'R10.6 选区合同';
 const locks = {request: (_name, work) => Promise.resolve().then(work)};
 const code = value => error => error?.code === value;
-const pause = () => new Promise(resolve => setImmediate(resolve));
+// Poll a bounded *wall-clock* interval, not 200 zero-delay event-loop turns.
+// Chrome/Host fixture hashing uses asynchronous crypto; CI scheduling can need
+// real milliseconds even when the product's original dispatch is correct.
+const pause = () => new Promise(resolve => setTimeout(resolve, 10));
 async function settle(check) {
-  for (let attempt = 0; attempt < 200; attempt++) {
+  const deadline = Date.now() + 3000;
+  do {
     if (check()) return;
     await pause();
-  }
-  assert.fail('R10.6 Host fixture did not settle');
+  } while (Date.now() < deadline);
+  assert.fail('R10.6 Host fixture did not settle within 3000ms');
 }
 function tool(id = 'core-contract-tool', capabilities = [
   'browser.contextMenu', 'currentPage.read', 'user.export',

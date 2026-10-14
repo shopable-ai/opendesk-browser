@@ -12,6 +12,7 @@ on:
       - 'scripts/remote-esm-network.mjs'
       - 'scripts/build-program-project.mjs'
       - 'tests/environment/program-project.test.mjs'
+      - 'tests/environment/mixed-import-projects.test.mjs'
       - 'tests/environment/page-component-entry-r243.test.mjs'
       - 'tests/environment/page-jsx-component-r243.test.mjs'
       - 'tests/environment/page-vue-sfc-compiler-r243.test.mjs'
@@ -173,6 +174,12 @@ jobs:
           node scripts/build-program-project.mjs examples/programs/controller-title
           node scripts/build-program-project.mjs examples/programs/sidebar-page-demo
           node scripts/build-program-project.mjs examples/programs/sidebar-controller-demo
+      - name: Real pinned mixed-import Page and Controller builds (no SKIP)
+        run: |
+          set -euo pipefail
+          npm ci --prefix examples/programs/mixed-import-page --ignore-scripts --no-audit --no-fund
+          npm ci --prefix examples/programs/mixed-import-controller --ignore-scripts --no-audit --no-fund
+          OPENDESK_MIXED_IMPORT_BUILD=1 node --test --test-reporter=tap tests/environment/mixed-import-projects.test.mjs
       - run: npm run check
       - uses: actions/setup-node@v4
         with:

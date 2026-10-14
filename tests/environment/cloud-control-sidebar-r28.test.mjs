@@ -9,7 +9,7 @@ test('Side Panel keeps Cloud as a dedicated product tab and development-only Deb
   const [html,shell]=await Promise.all([
     read('src/ui/tool.html'),read('src/ui/tool-shell.js')]);
   const tabs=[...html.matchAll(/data-workbench-tab="([^"]+)"/g)].map(m=>m[1]);
-  assert.deepEqual(tabs,['tasks','discover','workflow','develop','tools','cloud','debug']);
+  assert.deepEqual(tabs,['tasks','tools','workflow','develop','cloud','debug']);
   assert.match(html,/id="tab-cloud"/);
   assert.match(html,/id="workbench-cloud"/);
   assert.doesNotMatch(shell,/setCloudAvailable/);
@@ -28,7 +28,7 @@ test('only tab navigation scrolls horizontally and Cloud cards wrap on narrow pa
 
 test('hosting control rules match the dedicated Cloud container and wrap action buttons',async()=>{
   const [html,css]=await Promise.all([read('src/ui/tool.html'),read('src/ui/cloud-hosting.css')]);
-  const cloud=html.slice(html.indexOf('id="workbench-cloud"'),html.indexOf('id="workbench-local-discover"'));
+  const cloud=html.slice(html.indexOf('id="workbench-cloud"'),html.indexOf('id="workbench-discover"'));
   assert.match(cloud,/id="cloud-hosting"/);
   assert.match(html,/<link\b[^>]*\bhref="cloud-hosting\.css"/);
   assert.match(css,/#workbench-tasks #cloud-hosting>div\{[^}]*display:flex;flex-wrap:wrap;gap:var\(--space-2\)/);
@@ -38,7 +38,7 @@ test('hosting control rules match the dedicated Cloud container and wrap action 
 test('Cloud controls exist once within Cloud and refresh stays read-only',async()=>{
   const [html,cloud,shell]=await Promise.all([
     read('src/ui/tool.html'),read('src/ui/cloud-hosting.js'),read('src/ui/tool-shell.js')]);
-  const panel=html.slice(html.indexOf('id="workbench-cloud"'),html.indexOf('id="workbench-local-discover"'));
+  const panel=html.slice(html.indexOf('id="workbench-cloud"'),html.indexOf('id="workbench-discover"'));
   for(const id of ['cloud-hosting','cloud-pair','cloud-approve','cloud-stop','cloud-refresh','cloud-overview-refresh','cloud-request-samples'])
     assert.ok(panel.includes('id="'+id+'"'),id);
   assert.match(cloud,/async function dispatchNext\(/);
