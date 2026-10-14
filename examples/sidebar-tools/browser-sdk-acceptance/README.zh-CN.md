@@ -11,7 +11,7 @@
 
 所有需要真实用户意图或高风险写入的操作都应由正式 Side Panel Host 弹出可信审批；工具沙箱只显示按钮和回执，不写授权、不灌 storage、不伪造 sender。
 
-10.6.2 增加 opaque Ref 拒绝探针。驱动可通过正式 UI 安装第二个普通工具 ID，验证跨工具数据隔离、资源拒绝，以及升级后的旧身份拒绝；这些按钮不绕过 SDK 或 Host。
+10.6.3 增加 opaque Ref 拒绝探针，并为明确清空按钮传入正式 Schema 要求的 `confirm:true`。驱动可通过正式 UI 安装第二个普通工具 ID，验证跨工具数据隔离、资源拒绝，以及升级后的旧身份拒绝；这些按钮不绕过 SDK 或 Host。
 
 ## 构建
 
@@ -40,3 +40,5 @@ node tests/framework/browser-sdk-r106-native.mjs --native
 ```
 
 驱动核对实际包与成功构建收据，并逐一核对声明源码提交的构建输入。执行日志中的部分通过不能代替完整 55 项验收；未执行的 Native 合同继续保持 `NOT_TESTED`。
+
+已有相同扩展物理包的两次 Alarm / RunHost 原始证据时，`OPENDESK_R106_NATIVE_SCOPE=owner` 可只复验新改动影响的工具隔离与升级路径；被省略的 Run×2 在本次报告中明确为 `NOT_TESTED`，不能冒充重新执行。

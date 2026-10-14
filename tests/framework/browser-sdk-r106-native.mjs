@@ -195,13 +195,15 @@ async function runNative(){
   assert.equal(process.env.OPENDESK_R106_NATIVE,'1','Native run requires OPENDESK_R106_NATIVE=1');
   assert.equal(process.platform,'darwin','R10.6 native driver is headed macOS CFT only');
   const extension=path.resolve(assertEnv('OPENDESK_R106_EXTENSION'));
+  const nativeScope=process.env.OPENDESK_R106_NATIVE_SCOPE||'all';
+  assert(['all','owner'].includes(nativeScope),'Supported native scope: all or owner');
   const binary=path.resolve(process.env.OPENDESK_R106_CHROME_BIN||chrome155);
   assert.equal(await realpath(binary),await realpath(chrome155),'Use the pinned CFT155 executable');
   assert(!extension.endsWith('/dist/development'),'Do not use shared daily dist/development as immutable native candidate');
   const runDir=path.join(evidenceRoot,'native-'+safeName(now())+'-'+randomUUID().slice(0,8));
   await mkdir(runDir,{recursive:true});
   const report={schema:'opendesk.browser-sdk-r106-native.v1',status:'RUNNING',startedAt:now(),
-    gitHead:gitHead(),workingChanges:execFileSync('git',['status','--porcelain'],{cwd:root,encoding:'utf8'}),
+    gitHead:gitHead(),nativeScope,workingChanges:execFileSync('git',['status','--porcelain'],{cwd:root,encoding:'utf8'}),
     driver:await fileHash(driverFile),
     runDir,extension,binary,demoUrl,cases:{},screenshots:[],trace:[],
     constraints:['No Runtime.evaluate business SDK calls','No storage writes/grants outside formal Host UI','No DOM value assignment or synthetic DOM events','No forged sender']};
@@ -343,6 +345,7 @@ async function runNative(){
     }catch(error){
       report.cases[id]={status:'FAIL',error:String(error?.stack||error),finishedAt:now()};
       report.status='FAIL_OR_BLOCKED';
+      if(tool)report.cases[id].toolUi=await read(client,tool,'({text:document.body.innerText,outputs:[...document.querySelectorAll("pre")].map(n=>({id:n.id,text:n.textContent}))})').catch(error=>({error:String(error)}));
       if(side)report.cases[id].ui=await read(client,side,'({text:document.body.innerText,files:[...document.querySelectorAll("input[type=file]")].map(n=>({id:n.id,files:[...n.files].map(f=>f.name)}))})').catch(error=>({error:String(error)}));
       if(side)report.screenshots.push(await screenshot(client,side,runDir,id+'-failure').catch(e=>({error:String(e)})));
       throw error;
@@ -617,7 +620,7 @@ async function runNative(){
       assert.equal(list.schedules.filter(x=>x.scheduleRef===scheduleRef).length,1);
       return {summary,result,persisted,list};
     });
-    await recordCase('scheduler-two-independent-runhost-results',async()=>{
+    if(nativeScope==='all')await recordCase('scheduler-two-independent-runhost-results',async()=>{
       console.log('R106_NATIVE_WAIT actual 1-minute Alarm/RunHost twice; no AI or fire injection');
       let firstEffect;
       const results=await deadline(async()=>{
@@ -656,6 +659,7 @@ async function runNative(){
       return {runnerTarget,runnerContext,results,firstEffect,secondEffect,
         causality:'Two real Chrome onAlarm events matched to separate durable FireIds, RunIds and Results; existing Host polling remains active, exclusive callback causality not asserted'};
     });
+    else report.cases['scheduler-two-independent-runhost-results']={status:'NOT_TESTED',reason:'Owner-only affected verification; original same-package Run×2 proof remains separate and is not rerun or promoted here.'};
     await recordCase('scheduler-cancel-owned',async()=>{
       await toolClick('#schedule-cancel');const result=await output('scheduler-output');
       assert.equal(result.cancelled,true);
@@ -694,7 +698,7 @@ async function runNative(){
       return {empty,clearConsent,cleared,afterClear,schedules,downloads,bookmark,schedule,download,boundary,nativeBookmarks,nativeAlarms,primary};
     });
     await recordCase('tool-upgrade-revokes-old-resource-identity',async()=>{
-      const pkg=await createSidebarToolPackage(toolRoot);pkg.version='10.6.3';
+      const pkg=await createSidebarToolPackage(toolRoot);const parts=pkg.version.split('.').map(Number);parts[2]++;pkg.version=parts.join('.');
       report.upgradedInstalled=await installProbe(pkg,'browser-sdk-acceptance-upgraded');
       assert.notEqual(report.upgradedInstalled.canonicalPackageHash,report.installed.canonicalPackageHash);
       assert.notEqual(report.upgradedInstalled.epoch,report.installed.epoch,'upgrade must retire the original installation epoch');
@@ -705,7 +709,7 @@ async function runNative(){
       const nativeBookmarks=await read(client,control,'chrome.bookmarks.search({title:"OpenDesk R10.6 demo"})');assert.equal(nativeBookmarks.length,1,'upgrade rejection must not delete the orphaned native bookmark');
       return {bookmark,schedule,list,nativeAlarms,nativeBookmarks,installed:report.upgradedInstalled};
     });
-    report.status='CORE_PASS_MORE_CONTRACTS_NOT_TESTED';
+    report.status=nativeScope==='all'?'CORE_PASS_MORE_CONTRACTS_NOT_TESTED':'OWNER_PASS_OTHER_CONTRACTS_NOT_TESTED';
     report.remaining=['History real trusted query','Origin revoke','uninstall','Cookies installed consumer native acceptance','remaining public SDK contracts and independent F3/ZIP'];
     return report;
   }finally{

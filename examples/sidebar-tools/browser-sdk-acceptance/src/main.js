@@ -83,7 +83,7 @@ $('storage-remove').addEventListener('click',()=>run('Storage remove','storage-o
   $('storage-status').textContent='removed';return result;
 }));
 $('storage-clear').addEventListener('click',()=>run('Storage clear own','storage-output',async sdk=>{
-  return sdk.storage.local.clear();
+  return sdk.storage.local.clear({confirm:true});
 }));
 $('download-start').addEventListener('click',()=>run('Download demo','download-output',async sdk=>{
   const result=await sdk.downloads.download({url:safeUrl(),filename:'opendesk-r106-demo-form.html'});
