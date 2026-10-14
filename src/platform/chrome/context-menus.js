@@ -6,6 +6,7 @@ import {createBrowserScreenshotHost} from './browser-screenshot.js';
 import {createBrowserScreenshotResources} from './browser-screenshot-resources.js';
 import {createBrowserDownloadsHost} from './browser-downloads.js';
 import {createBrowserBookmarksHost} from './bookmarks.js';
+import {createApprovedBrowserBindings} from '../../framework/sdk/browser-bindings.js';
 import {validateTrustedScheduleIntent} from '../tasks/schedule-contract.js';
 import {createBrowserHistoryHost} from './history.js';
 import {executeBrowserToolStorage} from '../../ui/sidebar-tools/storage-state.js';
@@ -232,6 +233,21 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       throw failure('E_SITE_GRANT_REQUIRED','Bookmark Origin changed after approval');
     await verifyBrowserOwner(context,operation,origin);
   }});
+  // Finite bindings to EXISTING scoped drivers: Sender, installed identity,
+  // one-shot user intent and Origin were checked before this dispatcher runs.
+  // No dynamic access to chrome[namespace][method] is permitted.
+  const scopedBindings=createApprovedBrowserBindings({
+    'browser.downloads.download':(input,owner)=>downloadHost.download(input,owner),
+    'browser.downloads.cancelOwned':(input,owner)=>downloadHost.cancelOwned(input,owner),
+    'browser.bookmarks.create':(input,owner)=>bookmarkHost.create(input,owner),
+    'browser.bookmarks.removeOwned':(input,owner)=>bookmarkHost.removeOwned(input,owner),
+    'browser.tabs.create':(input,owner)=>tabHost.create(input,owner),
+    'browser.tabs.activateOwned':(input,owner)=>tabHost.activateOwned(input,owner),
+    'browser.tabs.pinOwned':(input,owner)=>tabHost.pinOwned(input,owner),
+    'browser.tabs.reloadOwned':(input,owner)=>tabHost.reloadOwned(input,owner),
+    'browser.tabs.navigateOwned':(input,owner)=>tabHost.navigateOwned(input,owner),
+    'browser.tabs.removeOwned':(input,owner)=>tabHost.removeOwned(input,owner)
+  });
   const trustedCookies=createTrustedCookieHost({api});
   const trustedHistory=createBrowserHistoryHost({api});
   const screenshotHost=createBrowserScreenshotHost({api,
@@ -570,10 +586,10 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         if(operation==='browser.storage.local.clear')
           return executeBrowserToolStorage({api,operation,toolId,input:checked,
             authorize:()=>verifyBrowserOwner(context,operation)});
-        if(operation==='browser.downloads.download')return downloadHost.download(checked,context);
-        if(operation==='browser.downloads.cancelOwned')return downloadHost.cancelOwned(checked,context);
-        if(operation==='browser.bookmarks.create')return bookmarkHost.create(checked,context);
-        if(operation==='browser.bookmarks.removeOwned')return bookmarkHost.removeOwned(checked,context);
+        if(scopedBindings.has(operation))return scopedBindings.dispatch(
+          operation,checked,context,{
+            authorize:(method,_input,owner)=>verifyBrowserOwner(owner,method,owner.approvedOrigin)
+          });
         if(operation==='browser.scheduler.create'){
           if(typeof scheduleService!=='function')throw failure('E_SERVICE_UNSUPPORTED','Existing Scheduler unavailable');
           const scheduleOwner={kind:'installed-tool-owned',toolId,toolVersion,packageHash:hash,
@@ -582,12 +598,6 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
           await verifyBrowserOwner(context,operation);
           return result;
         }
-        if(operation==='browser.tabs.create')return tabHost.create(checked,context);
-        if(operation==='browser.tabs.activateOwned')return tabHost.activateOwned(checked,context);
-        if(operation==='browser.tabs.pinOwned')return tabHost.pinOwned(checked,context);
-        if(operation==='browser.tabs.reloadOwned')return tabHost.reloadOwned(checked,context);
-        if(operation==='browser.tabs.navigateOwned')return tabHost.navigateOwned(checked,context);
-        if(operation==='browser.tabs.removeOwned')return tabHost.removeOwned(checked,context);
         if(operation==='browser.screenshot.captureVisible'){
           // One-use approval was spent above; only the trusted Host may assert
           // that it came from the visible extension UI's verified click.
