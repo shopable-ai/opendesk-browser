@@ -417,6 +417,40 @@ test('R2.8 host polling preserves paginated FireId history while a newer result 
   assert.deepEqual(mergeScheduleHistoryView([],[]),[]);
 });
 
+
+test('R1.2 135 loaded Fire records survive a newer poll and remain isolated by plan',()=>{
+  const histories=['plan-A','plan-B'].map((plan,index)=>Array.from({length:135},(_,i)=>({
+    fireId:plan+'-fire-'+(135-i),
+    scheduledAt:2_000_000+index*1_000_000-i*1_000,
+    status:'WAITING_HOST',runId:null,resultId:null
+  })));
+  const loadPages=records=>{
+    let retained=[];
+    for(let offset=0;offset<records.length;offset+=20)
+      retained=mergeScheduleHistoryView(records.slice(0,20),
+        [...retained,...records.slice(offset,offset+20)]);
+    return retained;
+  };
+  const retainedA=loadPages(histories[0]),retainedB=loadPages(histories[1]);
+  assert.equal(retainedA.length,135,'every paginated FireId remains retained');
+  assert.equal(retainedB.length,135);
+  assert.equal(new Set(retainedA.map(fire=>fire.fireId)).size,135);
+  assert.equal(new Set(retainedB.map(fire=>fire.fireId)).size,135);
+  const completed={...histories[0][0],status:'SUCCESS',runId:'original-run',
+    resultId:'original-result'};
+  const newFire={fireId:'plan-A-new',scheduledAt:2_000_001,
+    status:'WAITING_HOST',runId:null,resultId:null};
+  const refreshed=mergeScheduleHistoryView([newFire,completed,...histories[0].slice(1,19)],retainedA);
+  assert.equal(refreshed.length,136,'newer poll adds one Fire without dropping 7 loaded pages');
+  assert.equal(refreshed[0].fireId,newFire.fireId);
+  assert.equal(refreshed.find(row=>row.fireId===completed.fireId).resultId,'original-result',
+    'a later real Run/Result acknowledgement replaces the stale history state');
+  assert.equal(refreshed.at(-1).fireId,histories[0].at(-1).fireId);
+  assert.equal(retainedB.length,135,'refreshing plan A must not mutate the other plan');
+  assert(retainedB.every(fire=>fire.fireId.startsWith('plan-B-')));
+  assert(refreshed.every(fire=>fire.fireId.startsWith('plan-A-')));
+});
+
 test('R2.8 true host refresh retains keyboard focus, open details and inline confirmation',async()=>{
   const source=await load('src/ui/scheduled-task-workbench.js');
   assert.match(source,/const tasksChanged=tasksSignature!==taskListSignature/);
