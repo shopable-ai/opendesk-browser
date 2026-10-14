@@ -48,3 +48,9 @@ Other agents advanced `main` concurrently. Commits above were written to `main` 
 - R3 historical real two-plan deletion/History, and R2.3 runner TAB zoom, do not satisfy the complete list of physical scenarios.
 - Ten independent product scores remain **NOT_SCORED** pending those genuine UI and accessibility receipts; the 95+ gate is not declared accepted.
 - Do not alter Browser SDK, fixed Task authorization, generation/installation identity, visible RunHost, Scheduler or tool iframe trust boundaries in local acceptance.
+
+### Final same-session correction and verified static evidence
+- `3efaa587`: fixes the remaining R2.6 editor/manager legacy source assertion; preserves BOTH header Back and subordinate Back paths through `leaveManager()` plus focus. Triggered fresh R1/R21/R2.3/R3 on that SHA; queued at last read. Prior `b1409dd` R1/R21 and `1d28dc0` Linux zoom failures came from this exact test pattern, not from a demonstrated Runtime/Chrome failure. No failing case removed.
+- R19 on `b1409dd` [38554942134](https://github.com/shopable-ai/opendesk-browser/actions/runs/38554942134) **SUCCESS**: actual **static markup Chrome** dimensions and multi-Tab audit. Artifact `sidebar-r19-and-quick-notes-static-visual` ID `11889920479`; this is not a physical Side Panel test.
+- R2.3 actual macOS Chrome on `89f608f` artifact `scheduled-r23-real-zoom-macos-89f608f7a9786c190695a7d7150260b7673d6122` ID `11890130027`; CI green macOS at [38554200123](https://github.com/shopable-ai/opendesk-browser/actions/runs/38554200123).
+- CI is currently running/queued on later source candidates. This note deliberately does not assert a pass for a queued run or reuse prior package SHA-256 for a new candidate.
