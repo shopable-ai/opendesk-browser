@@ -22,6 +22,7 @@ const PRODUCT_MATRIX=process.env.SCHEDULE_NATIVE_PRODUCT_MATRIX==='1';
 const EXPECTED_PLATFORM=process.env.SCHEDULE_NATIVE_PLATFORM||'darwin';
 const CONTROL_MODIFIER=process.platform==='darwin'?4:2;
 let nativeOwnedMacInput=null; // Set after the uniquely owned Chrome PID is observed.
+const nativeSelectObservations=[];
 const CI_UNSANDBOXED_LINUX=process.platform==='linux' &&
   EXPECTED_PLATFORM==='linux' && process.env.CI==='true' &&
   process.env.GITHUB_ACTIONS==='true' &&
@@ -136,24 +137,22 @@ async function select(client,session,selector,index){
     if(info.targetInfo?.type==='page')
       await client.send('Target.activateTarget',{targetId:info.targetInfo.targetId});
     nativeOwnedMacInput('activate');
-    if(selector==='#schedule-task-select'){
-      // Task follows the name field. Keep the control closed and reach it by
-      // genuine macOS Tab; pointer-opened AppKit items can retire during AX
-      // traversal. Verify focus before sending PID-bound selection keys.
-      nativeOwnedMacInput('key','tab');
-      assert.equal(await evaluate(client,'document.activeElement==='+expression,session),true,
-        'native Tab reaches the visible task select');
-      const movingDown=index>original.index;
-      const steps=original.options.filter((option,position)=>!option.disabled&&
-        (movingDown?position>original.index&&position<=index:position<original.index&&position>=index)).length;
-      for(const key of [...Array.from({length:steps},()=>movingDown?'down':'up'),'return'])
-        nativeOwnedMacInput('key',key);
-      await deadline(()=>evaluate(client,expression+'.value==='+JSON.stringify(expected),session),
-        'owned Mac keyboard task selection '+expected,8000);
-      return;
-    }
     await click(client,session,selector);
-    if(selector==='#schedule-timezone'){
+    if(selector==='#schedule-task-select'){
+      // Observe the genuine AppKit menu after opening it. Select by the fresh
+      // PID-owned AXMenuItem geometry rather than a retired AXPress element.
+      const label=original.options[index].label;
+      const rows=JSON.parse(nativeOwnedMacInput('dump'));
+      const matches=rows.filter(row=>row.role==='AXMenuItem'&&
+        [row.title,row.description].includes(label)&&row.enabled&&
+        row.size?.width>0&&row.size?.height>0&&row.position);
+      nativeSelectObservations.push({selector,expected,label,matches,
+        controls:rows.filter(row=>[row.title,row.description,row.value].includes(label))});
+      assert.equal(matches.length,1,'one observed native Task menu item '+label);
+      const item=matches[0];
+      nativeOwnedMacInput('click-at',[String(item.position.x+item.size.width/2),
+        String(item.position.y+item.size.height/2)]);
+    }else if(selector==='#schedule-timezone'){
       // Pick the actual visible AppKit menu item by its observed option label.
       // The existing helper requires one matching CFT AX control and the owned
       // foreground PID; it never writes select.value or dispatches change.
@@ -435,7 +434,8 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     assert.equal(compiled.status,0,'PID-bound macOS CGEvent helper compile: '+
       String(compiled.stderr||compiled.error||'').slice(-900));
     nativeOwnedMacInput=(command,value)=>{
-      const result=spawnSync(keyboard,[String(proc.pid),command,...(value?[value]:[])],
+      const result=spawnSync(keyboard,[String(proc.pid),command,
+        ...(Array.isArray(value)?value.map(String):value?[value]:[])],
         {encoding:'utf8',timeout:12000});
       const diagnostic=[result.stdout,result.stderr,result.error?.message].filter(Boolean).join('\n').trim();
       if(result.status!==0){
@@ -453,6 +453,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
       return String(result.stdout).trim();
     };
     report.macosInput='real owned CGEvent, preexisting AX grant required';
+    report.nativeSelectObservations=nativeSelectObservations;
   }
   const port=await deadline(async()=>{
     const rows=(await readFile(path.join(profile,'DevToolsActivePort'),'utf8').catch(()=>'' )).split('\n');

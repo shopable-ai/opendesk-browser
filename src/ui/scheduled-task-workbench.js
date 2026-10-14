@@ -315,27 +315,36 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
         candidate.stage==='available'&&candidate.manifestHash===row.manifestHash));
   }
   function candidate(row){return catalog.find(c=>c.taskId===row?.taskId&&c.version===row?.version);}
-  function populateChoices(){
-    const select=get('schedule-task-select'),previous=select.value;
-    select.replaceChildren(element(doc,'option',null,'请选择已安装并验证的任务'));
-    select.firstChild.value='';
-    for(const row of eligible()){
-      const option=element(doc,'option',null,(candidate(row)?.manifest?.title||row.taskId)+' · v'+row.version);
-      option.value=row.taskId;select.append(option);
-    }
+  function taskChoiceProjection(rows){
+    const choices=[{value:'',label:'请选择已安装并验证的任务',disabled:false}];
+    for(const row of rows)choices.push({value:row.taskId,
+      label:(candidate(row)?.manifest?.title||row.taskId)+' · v'+row.version,disabled:false});
     // Existing schedules are bound to exact Task + version + installation identity.
     // Preserve an unavailable historical choice as a readable, disabled option,
     // never silently substitute another installed version during editing.
-    if(editing&&!eligible().some(row=>row.taskId===editing.taskId)){
-      const unavailable=element(doc,'option',null,
-        '原固定任务 · v'+editing.version+'（已不可用，需检查安装与授权）');
-      unavailable.value=editing.taskId;unavailable.disabled=true;select.append(unavailable);
-    }
-    if(editing)select.value=editing.taskId;
-    else if(eligible().some(row=>row.taskId===previous))select.value=previous;
-    else select.value='';
-    select.disabled=Boolean(editing);
-    get('schedule-task-empty').hidden=Boolean(editing)||eligible().length>0;
+    if(editing&&!rows.some(row=>row.taskId===editing.taskId))
+      choices.push({value:editing.taskId,
+        label:'原固定任务 · v'+editing.version+'（已不可用，需检查安装与授权）',disabled:true});
+    return choices;
+  }
+  function taskChoicesMatch(select,choices){
+    const options=[...select.querySelectorAll('option')];
+    return options.length===choices.length&&options.every((option,index)=>
+      option.value===choices[index].value&&option.textContent===choices[index].label&&
+      Boolean(option.disabled)===choices[index].disabled);
+  }
+  function populateChoices(){
+    const select=get('schedule-task-select'),previous=select.value;
+    const rows=eligible(),choices=taskChoiceProjection(rows);
+    if(!taskChoicesMatch(select,choices))select.replaceChildren(...choices.map(choice=>{
+      const option=element(doc,'option',null,choice.label);
+      option.value=choice.value;option.disabled=choice.disabled;return option;
+    }));
+    const nextValue=editing?editing.taskId:rows.some(row=>row.taskId===previous)?previous:'';
+    if(select.value!==nextValue)select.value=nextValue;
+    const disabled=Boolean(editing);
+    if(select.disabled!==disabled)select.disabled=disabled;
+    get('schedule-task-empty').hidden=disabled||rows.length>0;
     showTaskVersion();
   }
   async function showTaskVersion(){

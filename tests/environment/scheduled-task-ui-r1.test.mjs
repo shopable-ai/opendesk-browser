@@ -302,10 +302,10 @@ test('R2.6 locked editing Task identity survives uninstall and script-install ro
     load('src/ui/scheduled-task-workbench.js'),load('src/ui/tool-shell.css'),
     load('examples/ui/scheduled-tasks-r2.5-preview.html')
   ]);
-  assert.match(ui,/if\(editing&&!eligible\(\)\.some\(row=>row\.taskId===editing\.taskId\)\)/);
-  assert.match(ui,/unavailable\.value=editing\.taskId;unavailable\.disabled=true/);
-  assert.match(ui,/if\(editing\)select\.value=editing\.taskId/);
-  assert.match(ui,/select\.disabled=Boolean\(editing\)/);
+  assert.match(ui,/if\(editing&&!rows\.some\(row=>row\.taskId===editing\.taskId\)\)/);
+  assert.match(ui,/choices\.push\(\{value:editing\.taskId,[\s\S]*?disabled:true\}\)/);
+  assert.match(ui,/const nextValue=editing\?editing\.taskId/);
+  assert.match(ui,/if\(select\.disabled!==disabled\)select\.disabled=disabled/);
   assert.match(ui,/get\('schedule-task-select'\)\.disabled=false/);
   assert.match(ui,/原计划固定任务不可用；请恢复相同安装身份与网站授权/);
   assert.match(ui,/pendingCreateFromForm=activeView==='form'/);
@@ -372,7 +372,7 @@ test('R2.7 unavailable Controller task has an actionable, truthful empty state',
   assert.match(html,/id="schedule-task-empty"[^>]*hidden/);
   assert.match(html,/id="schedule-task-empty-create"/);
   assert.match(html,/请先在「开发」中验证并安装 Controller Task/);
-  assert.match(ui,/get\('schedule-task-empty'\)\.hidden=Boolean\(editing\)\|\|eligible\(\)\.length>0/);
+  assert.match(ui,/get\('schedule-task-empty'\)\.hidden=disabled\|\|rows\.length>0/);
   assert.match(ui,/bind\('schedule-task-empty-create','click',enterDeveloper\)/);
   assert.match(ui,/bind\('scheduled-panel','keydown'/);
   assert.match(ui,/event\.key!=='Escape'/);
@@ -636,6 +636,53 @@ test('R1.2 polling preserves expanded per-Fire technical detail and keyboard foc
   assert.equal(updated.open,true,'background result update must retain the expanded actual Fire');
   assert.equal(document.activeElement===updated.querySelector('summary'),true,'keyboard focus stays on the same Fire');
   assert.equal(get('workspace-content').scrollTop,260,'poll must not jump the detail scroll');
+  ui.dispose();
+});
+
+test('R1.2 task poll with identical choices preserves option nodes, selection, focus and draft',async()=>{
+  const {get,state,ui,document}=await scheduledDomFixture();
+  get('schedule-create').click();
+  const select=get('schedule-task-select');
+  select.value='sample.task';
+  select.focus();
+  get('schedule-title').value='未保存草稿';
+  get('schedule-title').dispatchEvent(new document.defaultView.Event('input',{bubbles:true}));
+  const options=[...select.querySelectorAll('option')];
+  state.catalog[0]={...state.catalog[0],receipt:{generatedAt:Date.now(),note:'metadata-only'}};
+  state.installed[0]={...state.installed[0],lastSeenAt:Date.now()};
+  await ui.refresh();
+  const refreshed=[...select.querySelectorAll('option')];
+  assert.equal(refreshed.length,options.length);
+  refreshed.forEach((option,index)=>assert.equal(option===options[index],true,
+    'metadata-only refresh with the same value/label/disabled projection must not rebuild options'));
+  assert.equal(select.value,'sample.task','selected task remains fixed on the draft');
+  assert.equal(document.activeElement===select,true,'focused native select node remains active');
+  assert.equal(get('schedule-title').value,'未保存草稿','unrelated draft fields remain untouched');
+  get('schedule-cancel').click();
+  assert.equal(get('schedule-discard-confirm').hidden,false,'dirty draft state remains visible');
+  ui.dispose();
+});
+
+test('R1.2 real task choice changes update options without rebinding a locked edit plan',async()=>{
+  const {get,state,ui}=await scheduledDomFixture();
+  get('schedule-plan-list').querySelector('.schedule-plan-open').click();
+  get('schedule-detail-edit').click();
+  const select=get('schedule-task-select');
+  assert.equal(select.disabled,true);
+  assert.equal(select.value,'sample.task');
+  const before=[...select.querySelectorAll('option')];
+  state.installed=[{taskId:'other.task',version:'1.0.0',enabled:true,
+    installationId:'install-other',manifestHash:'manifest-other',generation:1}];
+  state.catalog=[{...state.installed[0],stage:'available',
+    manifest:{title:'另一个任务',siteOrigins:['https://example.com']}}];
+  await ui.refresh();
+  const after=[...select.querySelectorAll('option')];
+  assert.equal(after.some((option,index)=>option!==before[index]),true,
+    'actual uninstall/replacement changes the visible choices');
+  assert.equal(after.at(-1).value,'sample.task','locked editor keeps the original task value available');
+  assert.equal(after.at(-1).disabled,true,'unavailable fixed task is shown as disabled review state');
+  assert.equal(select.value,'sample.task','editing does not silently rebind to the newly installed task');
+  assert.equal(select.disabled,true,'editing still forbids task changes after refresh');
   ui.dispose();
 });
 

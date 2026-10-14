@@ -305,6 +305,33 @@ function setupScene(scene,officialReleases){
   toolStatus.hidden=scene.state!=='error';
   toolStatus.dataset.state=scene.state==='error'?'error':'';
   toolStatus.textContent=scene.state==='error'?'静态示例 · 工具状态无法读取':'';
+  // R4's current index replaces the hidden legacy catalogs. These rows are
+  // STATIC_MARKUP fixtures only; no install, permission or host RPC is issued.
+  const extensionList=document.querySelector('#extension-center-list');
+  extensionList.replaceChildren();
+  document.querySelector('#extension-center-list-view').hidden=false;
+  document.querySelector('#extension-center-detail').hidden=true;
+  document.querySelector('#extension-center-menu').hidden=scene.state!=='import';
+  document.querySelector('#extension-center-import-host').append(toolImport);
+  if(scene.state!=='empty'){
+    for(const title of ['网页笔记','阅读目录 · '+(scene.longContent?'长中文名称用于窄宽度索引扫描'.repeat(8):'当前固定版本')]){
+      const row=document.createElement('li');row.className='ec-row';
+      const glyph=document.createElement('span');glyph.className='ec-glyph';glyph.textContent='▦';glyph.setAttribute('aria-hidden','true');
+      const copy=document.createElement('div');copy.className='ec-copy';
+      const line=document.createElement('div');line.className='ec-name-line';
+      const name=document.createElement('button');name.type='button';name.className='ec-name';name.textContent=title;name.title=title;
+      const kind=document.createElement('span');kind.className='ec-type';kind.textContent='应用';line.append(name,kind);
+      const description=document.createElement('span');description.className='ec-description';description.textContent='静态示例 · 原安装记录与网站权限不变';copy.append(line,description);
+      const primary=document.createElement('button');primary.type='button';primary.className='ec-action';primary.textContent='打开';primary.setAttribute('aria-label','打开「'+title+'」');
+      const more=document.createElement('button');more.type='button';more.className='ec-row-more';more.textContent='⋮';more.setAttribute('aria-label','查看「'+title+'」管理详情');
+      row.append(glyph,copy,primary,more);extensionList.append(row);
+    }
+  }
+  document.querySelector('#extension-center-empty').hidden=scene.state!=='empty';
+  document.querySelector('#extension-center-empty-text').textContent='还没有已安装扩展，可搜索官方目录或打开应用市场。';
+  const extensionStatus=document.querySelector('#extension-center-status');
+  extensionStatus.textContent=scene.state==='error'?'读取失败，保留最近一次显示。请重试。':'';
+  extensionStatus.dataset.state=scene.state==='error'?'error':'info';
   const panel=document.querySelector('[data-workbench-page="'+active+'"]');
   if(scene.allDetails){
     if(active==='tasks')document.querySelector('#task-history-panel').hidden=false;
@@ -447,8 +474,12 @@ function measureScene(scene){
     metrics.corners.icon=radius('.workflow-icon-button');
   }
   if(scene.tab==='tools'){
-    metrics.corners.card=radius('.sidebar-tool-official');
-    metrics.corners.install=radius('[data-official-install="reading-toc"]');
+    metrics.corners.card=radius('.ec-list');
+    metrics.corners.install=radius('.ec-action');
+    metrics.extensionTargets=[...panel.querySelectorAll('.ec-icon,.ec-row-more,.ec-action')]
+      .filter(rendered).map(button=>{const rect=button.getBoundingClientRect();return {
+        className:button.className,width:rect.width,height:rect.height,
+        label:button.getAttribute('aria-label')||button.textContent.trim()};});
   }
   if(scene.tab==='debug'){
     metrics.corners.card=radius('.debug-metrics');
@@ -493,9 +524,12 @@ function validate(scene,width,m){
     throw Error('Code type label/choices must share a readable, accessible row '+scene.name+' '+width+'px');
   if(['tools','develop'].includes(scene.tab)&&m.iconButtons.some(b=>b.width<33.5||b.height<33.5||b.radius!=='8px'||!b.label||!b.title))
     throw Error('Icon action is not 34px accessible control '+scene.name+' '+width+'px '+JSON.stringify(m.iconButtons));
+  if(m.extensionTargets?.some(button=>!button.label||button.width<(m.coarsePointer?43.5:33.5)||button.height<(m.coarsePointer?43.5:33.5)))
+    throw Error('Extension action below shared target size '+scene.name+' '+width+'px '+JSON.stringify(m.extensionTargets));
   const expected={tasks:{taskCard:'12px'},'local-discover':{import:'8px',filter:'8px',filterGroup:'12px',list:'12px'},catalog:{},cloud:{},workflow:{card:'12px',icon:'8px'},develop:{page:'0px',editor:'8px'},tools:{card:'12px',install:'8px'},debug:{card:'12px',detail:'12px'}};
   // An empty task list intentionally has no card whose radius could be measured.
   if(scene.tab==='tasks'&&scene.state==='empty')delete expected.tasks.taskCard;
+  if(scene.tab==='tools'&&scene.state==='empty')delete expected.tools.install;
   for(const [key,value] of Object.entries(expected[scene.tab])){
     if(m.corners[key]!==value)throw Error('Radius mismatch '+scene.name+' '+key+': '+m.corners[key]+' expected '+value);
   }
