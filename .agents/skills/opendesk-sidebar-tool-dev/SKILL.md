@@ -1,6 +1,6 @@
 ---
 name: opendesk-sidebar-tool-dev
-description: Develop, preview, package, review, install and verify any OpenDesk Browser opendesk.sidebar-tool.v1 Side Panel tool. Use existing vanilla/React/Vue templates and strict trusted-host boundaries; do not confuse tool snapshots with installation or extension builds.
+description: Develop, preview, package, review, install and verify OpenDesk Browser Side Panel tools (v1/v2). Keep each tool's source in examples/sidebar-tools/<id>, separate execution worlds and trusted extension adapters, and preserve the existing sandbox and host.
 ---
 
 # OpenDesk Browser Side Panel 小工具统一开发 Skill
@@ -19,11 +19,32 @@ description: Develop, preview, package, review, install and verify any OpenDesk 
 
 源码中的 `src/ui/sidebar-tools/package.js`、`src/ui/sidebar-tools.js`、`scripts/build-sidebar-tool.mjs` 是可执行事实；本文不覆盖它们。
 
+## 工具项目归属与演进顺序（2026-10-14）
+
+**先在同一仓库模块化，不拆仓库、不新增一套工具体系。** `examples/sidebar-tools/<tool-id>/` 是一个工具自己的项目目录；官方条目在此处的 HTML/CSS/JS 是**真实发行源码**，不是待迁移的演示副本。新增或修改一般工具优先只触碰自己的配置、UI、资产、README 和测试，不为独立二字创建 `opendesk-tools` 仓库、独立 Chrome 扩展、额外 Host 或另一套包格式。顶层“我的/开发/工作流/工具”等 Tab 是宿主产品导航，不能当作各工具的源码边界。
+
+**按执行环境辨认代码，不以一个目录对应一个 JS World：**
+
+| 世界 | 工具的典型责任 | 当前源码落点与接入方式 |
+| --- | --- | --- |
+| Sandbox 工具 UI | 表单、展示、`OpenDeskTool.request` | `examples/sidebar-tools/<id>/src/`；独立构建安装的 JSON，opaque-origin iframe；不接触 `chrome.*` |
+| 扩展 Background / MV3 SW | 长期策略、Alarm、Chrome DNR、事件恢复 | 确需可信服务时由 `src/<feature>/` 的**固定预编译**代码通过现有 `src/sw.js` 接线；SW 可休眠，业务状态须持久化 |
+| Content Script / ISOLATED | 限定目标文档中的提醒、授权后的 DOM 操作 | 确需时经既有静态 `src/entrypoints/page-relay.js` 接线；不能依赖 Side Panel 持续打开 |
+| Page / MAIN | 极少数需要网页 JS 上下文的操作 | 默认**无**此入口；如必须使用，沿用既有明确授权的 SDK/User Script 世界合同，严禁把可信宿主权限送入网站 |
+| 可信 Side Panel / 扩展页面 | 真实点击、Chrome 原生权限申请、危险操作确认 | `src/<feature>/tool-host.js`、`host-controls.js` 等审计代码由固定扩展构建入口引用；不能从动态工具包导入 JS |
+| 扩展拦截说明页 | DNR 导航说明、无敏感信息显示 | 经固定资源清单编译；不加载可安装 UI 的动态字节 |
+
+**以已经完成最小整理的 Stay Focus 为完整例子**：`examples/sidebar-tools/stay-focus/` 保留为官方 UI 项目；`src/stay-focus/` 保留为可信后台、产品模型、页面提醒和规则适配模块；既有 `tool-host.js`、`lifecycle.js` 与 `src/sidebar-tools/sender.js` 已承担明确职责。见 [业务目录说明](../../../src/stay-focus/README.zh-CN.md) 及 [现有整理证据](../../../docs/framework/workstreams/stay-focus-boundary-r1-20261014.md)。**不为路径美观二次搬动已通过的代码**。
+
+依赖方向以 `工具 UI → 受控工具请求 → 现有可信宿主/授权 → 工具受信任服务 → Chrome 能力` 为准。共用宿主可以有**固定、审计的组合入口**，但不得继续长出某个工具的业务策略、确认文案、私有存储/DNR 清理细节；这些属于该工具的受信任模块。反过来，工具也不能复制通用安装器、消息授权、SW 或构建器。
+
+**未来抽离的触发条件**：只有当独立发布节奏、跨产品复用或跨团队维护出现可验证的实际需求，并且现有 Catalog、源码哈希、固定入口、调试与验收可安全消费外部版本化源码时，才评估单独仓库或包。当前不引入跨仓库同步、符号链接式运行时加载、远程特权 JS 或自动扫描工具目录并授予权限。目录独立与安全隔离是两个不同指标。
+
 ## 任务判断（先选一条，再改代码）
 
 - **普通工具 / UI**：编辑 `examples/sidebar-tools/<id>/tool.config.json` 及 `src/index.html/style.css/main.js`。依赖少则经典 JS，不为简单表单新建 React 应用。
 - **复杂组件**：复用 `react-starter` 或 `vue-starter`，编译成一个本地 IIFE + 静态 CSS；Tailwind 仅作为构建期可选工具。先成功本地构建再调用统一打包器。
-- **网站按钮、DOM 内容捕获、Native/受信任数据**：只有确切必要才审计 `src/` 的既有 Content Script、宿主路由、权限与测试；不能借工具 JSON 的 `page.toc/page.clip/page.capture/knowledge.store` 越权或自行重造框架。
+- **网站按钮、DOM 内容捕获、Native/受信任数据**：先明确操作处于 Background、ISOLATED、MAIN 还是可信宿主；只有确切必要才审计 `src/<feature>/` 与既有固定接线、权限及测试；不能借工具 JSON 的 `page.toc/page.clip/page.capture/knowledge.store` 越权或自行重造框架。
 - **普通工具导入**：给用户生成 JSON 即可；**官方可选工具**须维护可信源码与 `official-tools/catalog.json` 的项目登记，再构建整个扩展自动生成发行资源；不要手工维护生成 JSON 副本。
 
 ## 最短闭环：编辑 → 快照/打包 → 明确使用
@@ -56,7 +77,7 @@ npm run build:dev
 npm run verify
 ```
 
-确认最终固定资源为 `dist/{production,development}/official-tools/<id>/<id>.opendesk-tool.json`，发行目录包含实际包版本、能力、大小和摘要。五个当前官方候选均为 optional；资源存在不等于已安装，不启动代码，不给网站授权。新增候选无需新增硬编码安装按钮或构建复制映射。
+确认最终固定资源为 `dist/{production,development}/official-tools/<id>/<id>.opendesk-tool.json`，发行目录包含实际包版本、能力、大小和摘要。以当前 `official-tools/catalog.json` 的每项 `installationPolicy` 为准，不能假定所有候选都为 optional；资源存在不等于已安装，不启动代码，不给网站授权。新增候选无需新增硬编码安装按钮或构建复制映射。
 
 仅 UI 工具热迭代**不必**重编整个扩展；修改 `src/` 可信宿主或更新内置发行资源才走完整扩展链路。别把 `dist/production/` Chrome 加载目录与单个 `.opendesk-tool.json` 导入包混为一谈；生成/观看快照也不是自动热安装。
 
@@ -71,7 +92,7 @@ npm run verify
 
 ## 质量门槛与交付
 
-1. `npm run check`、`node --test tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs`；增改权限/宿主/具体工具时加影响范围对应回归。
+1. `npm run check`、`node --test tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs`；增改权限/宿主/具体工具时加影响范围对应回归。Stay Focus 类可信工具先复核已有 `stay-focus-boundary-r1`、`stay-focus-service-r1` 和其他被影响的测试，检查目录源码归属、跨 World 接线、撤权、旧 epoch、未知副作用、DNR 自有规则与跨工具清理；不要重复创建一份空洞的目录专用测试。
 2. 官方扩展变更：`npm run build` + `node scripts/verify-package.mjs dist/production`；如执行 `npm run build:dev`，则 `npm run verify`。组件 PASS 不等于 Chrome PASS。
 3. 真实 Chrome 检查文件选择/审批/安装、iframe 主动打开/关闭、预览只读、窄屏/暗色/键盘、拒绝未知权限、更新/撤权/卸载和数据处理。官网实际网页与 Mac Native 只能用各自真实证据判定。
 4. **文档归属**：通用方法仅改 `docs/api/sidebar-tool-development.zh-CN.md`；公共 API `docs/api/sidebar-tools.zh-CN.md`；具体使用 `examples/sidebar-tools/<id>/README`；特殊开发说明 `DEVELOPMENT.zh-CN.md`；AI 局部约束 `AGENTS.md`；产品路线 `docs/product/`；原始测试 `docs/framework/workstreams/`。

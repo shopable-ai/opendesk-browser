@@ -17,10 +17,12 @@
 
 **默认从轻量工具开始**；出现确切组件复用需要时再选 React/Vue。既有 Side Panel 的工具宿主、RunHost、权限、Native 通道与 Design System 不重新搭建第二套。
 
+**当前选型决定（2026-10-14）：保留同仓库的 `examples/sidebar-tools/<id>/` 独立工具项目，不迁出为 `opendesk-tools` 仓库。** 用户界面与发行源码归各自项目；确需特权的 Background、Content Script 或可信 Side Panel 代码继续在已有 `src/<feature>/` 静态模块中，由固定入口编译接入。目录外观与真正耦合度不能混为一谈，先治理依赖方向，再考虑移动文件。
+
 ## 2. 共用目录与源码组织
 
 ```text
-examples/sidebar-tools/<tool-id>/            # 本仓库示例或官方工具的规范源码
+examples/sidebar-tools/<tool-id>/            # 独立工具项目；官方工具的真实可发行 UI 源
   tool.config.json                            # 唯一打包清单
   src/
     index.html                                # 工具主体 HTML 片段
@@ -35,7 +37,7 @@ official-tools/catalog.json                 # 官方可信源码登记，无版�
 src/sidebar-tools/                          # 框架 bridge/sandbox/可信目录解析
 .wxt/public/official-tools/                  # WXT 暂存生成资源
 dist/{production,development}/official-tools/ # 最终固定 Catalog + 按 ID 分目录的工具 JSON
-src/<feature>/                               # **仅经审查的可信扩展功能**，非每个工具都需要
+src/<feature>/                               # 确需时才有：静态审计的产品服务/权限/页面适配
 tests/environment/<feature>.test.mjs          # 组件/打包/权限/存储负例
 tests/framework/<feature>-native*.test.mjs    # 需要 Chrome 原生验收时
 
@@ -43,6 +45,25 @@ artifacts/sidebar-tools/<tool-id>/<version>/  # 默认打包输出，本机产�
 examples/sidebar-tools/<id>/.opendesk-preview # 可选只读开发快照，本机产物
 dist/production/、dist/development/           # 整个 Chrome 扩展构建产物
 ```
+
+### 一个项目，多种执行环境（不是多个插件）
+
+`examples/sidebar-tools/<id>/` 是项目归属，**不代表所有代码在同一 JS World 中执行**。普通工具只需要可安装的沙箱 UI；Stay Focus 这类工具还需要浏览器预编译能力：
+
+| 环境 | 对应职责 | 边界 |
+| --- | --- | --- |
+| 工具 Sandbox UI | `examples/sidebar-tools/<id>/src/` 生成的安装包 UI | `OpenDeskTool.root/request`；opaque origin；不能直接用 `chrome.*` |
+| 扩展 MV3 Background | `src/<feature>/service.js` 等，经既有 SW 固定引用 | Alarm/DNR/存储由可信代码执行；SW 非常驻，恢复必须读取持久状态 |
+| ISOLATED Content Script | `src/<feature>/page*.js` 等，经原 `page-relay` 审核接入 | 只在获准站点/文档运行；不把消息当作授权 |
+| MAIN 网页世界 | 默认无需创建 | 若确需网站原生 JS，复用现有 Page/SDK 世界合同；不能沿用后台/宿主全局对象 |
+| 可信 Side Panel | `src/<feature>/tool-host.js`、`host-controls.js` 等静态模块 | 真实点击、权限申请、当前包 hash/epoch/真实 document 二次复核 |
+| 扩展阻止页 | 固定 HTML/CSS/JS 资源 | 由 manifest/WAR 和正式打包器限定；不得插入动态工具 JS |
+
+具体例子：`examples/sidebar-tools/stay-focus/` 是官方真实 UI 源；`src/stay-focus/` 是经过审计的专属后台/受信任产品模块，不应因为位于扩展 `src/` 就误判为必须迁出。已完成的最小职责整理见 [Stay Focus 源码说明](../../src/stay-focus/README.zh-CN.md) 和 [测试证据](../framework/workstreams/stay-focus-boundary-r1-20261014.md)。**本阶段保持这两个路径，不重写打包器、Catalog、Host、DNR 或 Chrome 权限**。
+
+平台依赖只能向通用能力流动：`工具 UI → 既有沙箱消息桥 → 可信宿主/授权 → 静态产品服务 → Chrome`。平台可在明示的编译期接入点引用特定产品，但通用安装器、UI Host、Bridge 不应内嵌某个产品的业务算法、策略文案、私有状态/规则清理。特权源码即使被移到 `examples/` 也**不能动态从可安装包提升权限**；必须先进入受审计的固定扩展构建闭包。
+
+什么时候才考虑独立仓库？当工具确实需要独立版本发布、被其他产品消费、或多团队长期维护，且已证明跨仓库构建输入、版本锁、回滚、CI、真实 Chrome 验收与本地开发体验不降低时再决定。仅为目录整齐而立即搬走会牵动当前 Catalog 的 `project` 路径、`build-official-tools.mjs` 的安全 realpath 检查、`build-contract.mjs` 固定入口和 Verify 闭包，属于不必要的迁移风险。
 
 - `src/index.html` 是**HTML 片段**，不要写 `script`、`style`、`iframe`、`link`、内联 `on*=` 或自带另一个文档外壳；`src/style.css` 仅影响隔离工具界面，不向宿主注入 CSS。
 - `src/main.js` 中通过 `globalThis.OpenDeskTool` 获取 `root`、`request`。事件只绑定到自己的 `root`，使用 `textContent` 渲染未经信任的用户内容；不要假定能访问浏览器扩展全局 `chrome`。

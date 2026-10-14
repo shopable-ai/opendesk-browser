@@ -11,6 +11,8 @@
 | **受信任网页剪藏** | 文章/选区，按网站独立授权 | [web-markdown-clipper](web-markdown-clipper/README.md) |
 | **受信任 ChatGPT 内容保存** | 官方内容抓取、可信数据服务、Workspace 交接 | [knowledge-inbox](knowledge-inbox/README.zh-CN.md)、[专项开发](knowledge-inbox/DEVELOPMENT.zh-CN.md) |
 
+**目前的源码组织原则（2026-10-14）**：一个 `examples/sidebar-tools/<id>/` 就是一个工具的独立项目目录，不是要立即创建新的仓库。官方工具此处的 UI 文件是真正的发行源，不是镜像或随手写的样例。确实需要 Chrome 后台、网页 Content Script、可信授权或 DNR 的产品（如 Stay Focus），继续使用现有 `src/<feature>/` 预编译模块和固定入口；普通工具不需要这些模块。不要把沙箱 UI 运行时脚本注入 SW/Content Script，也不要因目录整齐而改写现有 Catalog、Host、权限或构建器。具体执行世界和单向依赖规则参阅 [统一工具开发规范](../../docs/api/sidebar-tool-development.zh-CN.md#一个项目多种执行环境不是多个插件)。
+
 **最小工具与全局变量区别**：`runtime-globals-demo/` 是可打包安装的独立小工具。它只能访问工具自身的 `OpenDeskTool`，没有 Controller 的词法 `page`，也不会继承 `_`、`dayjs`。可信 Side Panel Host 若要用 Day.js，应在[自己受信的入口](../libs/trusted-imports/README.zh-CN.md)静态 import，不是向用户工具 iframe 隐式注入。
 
 普通工具的标准源码是 `tool.config.json` + `src/index.html` / `style.css` / `main.js`；React/Vue 先编译为单文件经典 JS 和静态 CSS，再交给**同一个** `scripts/build-sidebar-tool.mjs`。其他官方工具可能还修改 `src/` 内的可信扩展代码，不能假定普通工具通过 JSON 就获得相同能力。
