@@ -318,17 +318,21 @@ test('My task filters use the one installed list and never run or grant permissi
   f.catalogState.catalog[1].manifest.siteOrigins=['https://elsewhere.example'];
   await f.ui.refresh();
   await f.click('task-search-toggle');
+  const visibleTaskIds=()=>f.get('task-installed-cards').children
+    .filter(node=>node.className?.split(' ').includes('task-card-group'))
+    .map(group=>group.children[0].dataset.taskId);
   await f.click('local-filter-disabled');
   assert.equal(f.get('local-filter-disabled').attributes['aria-pressed'],'true');
-  assert.equal(f.get('task-installed-cards').children.length,1);
-  assert.equal(f.get('task-installed-cards').children[0].children[0].dataset.taskId,'demo.second');
+  assert.deepEqual(visibleTaskIds(),['demo.second']);
+  assert.equal(f.get('task-selected-workspace').hidden,true,
+    'filtered-out selected task keeps its live form without showing unrelated controls');
   await f.click('local-filter-current');
   assert.equal(f.get('local-filter-current').attributes['aria-pressed'],'true');
-  assert.equal(f.get('task-installed-cards').children.length,1);
-  assert.equal(f.get('task-installed-cards').children[0].children[0].dataset.taskId,'demo.form');
+  assert.deepEqual(visibleTaskIds(),['demo.form']);
+  assert.equal(f.get('task-selected-workspace').hidden,false);
   await f.click('local-filter-all');
   assert.equal(f.get('local-filter-all').attributes['aria-pressed'],'true');
-  assert.equal(f.get('task-installed-cards').children.length,2);
+  assert.deepEqual(visibleTaskIds(),['demo.form','demo.second']);
   assert.equal(f.starts.length,0);
   assert.equal(f.permissions.length,0);
 });
