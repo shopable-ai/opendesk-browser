@@ -51,11 +51,11 @@ export async function lockMockRemoteExample(project){
 
 export async function prepareEsmExamples({root,workspace,origin,record}){
   const result={};
-  for(const name of ['sidebar-page-demo','sidebar-controller-demo','remote-esm-page','page-heading','controller-title','page-npm-lodash']){
+  for(const name of ['sidebar-page-demo','sidebar-controller-demo','remote-esm-page','page-heading','controller-title','page-npm-lodash','mixed-import-page','mixed-import-controller']){
     const dir=path.join(workspace,name);fs.cpSync(path.join(root,'examples/programs',name),dir,{recursive:true});
     const pkg=JSON.parse(fs.readFileSync(path.join(dir,'package.json'))),originalScope=pkg.opendesk.pageRules||pkg.opendesk.siteOrigins;
     if(pkg.opendesk.runtimeKind==='controller')pkg.opendesk.siteOrigins=[origin];
-    if(['remote-esm-page','page-heading','page-npm-lodash'].includes(name))pkg.opendesk.pageRules.matches=[origin+'/*'];
+    if(['remote-esm-page','page-heading','page-npm-lodash','mixed-import-page'].includes(name))pkg.opendesk.pageRules.matches=[origin+'/*'];
     fs.writeFileSync(path.join(dir,'package.json'),JSON.stringify(pkg,null,2)+'\n');
     record('esm.test-copy',{name,path:dir,projectId:pkg.opendesk.id,originalScope,
       authorizedTestScope:pkg.opendesk.pageRules||pkg.opendesk.siteOrigins,source:'existing committed Example'});
@@ -249,9 +249,39 @@ export async function runEsmExamples({projects,project,mcpClient,mcp,until,repor
     if(name==='page-npm-lodash')assert.deepEqual(actual,{text:dom.heading,safeHtml:dom.heading});
     record('esm.additional-example',{name,actual,started:value.started,result:value.result});
   }
+  // R7.9.4: exact HTTPS + npm + relative static imports execute with
+  // one opt-in packaged library and default globals in each native world.
+  const mixedExpected={imports:{https:5,npm:'A &amp; B',relative:[2,5,3]},
+    defaults:{words:2,date:'2026-10-14'}};
+  let mixedPageBinding;
+  for(const name of ['mixed-import-page','mixed-import-controller']){
+    const kind=name==='mixed-import-controller'?'controller':'page-userscript';
+    const attached=await mcpClient.tool('attach',{path:projects[name]});
+    if(name==='mixed-import-page')mixedPageBinding=attached;
+    const frozen=await inspectSource(projects[name]);
+    assert.equal(frozen.files.filter(row=>row.path.endsWith('.js')).length,2);
+    const value=await run(attached.bindingId,kind);
+    assert.equal(value.result.sourceHash,frozen.sourceHash);
+    const actual=kind==='controller'?value.result.value:JSON.parse(value.result.result.resultText);
+    const dom=await readDOM();
+    const expected={imports:mixedExpected.imports,
+      packaged:kind==='controller'?origin+'/demo-form.html?mode=demo':'demo',
+      defaults:mixedExpected.defaults,pageTitle:dom.title};
+    assert.deepEqual(actual,expected,'all five mechanisms must execute in one real Chrome main()');
+    const identity=kind==='controller'?{runId:value.started.runId,resultId:value.result.results[0].resultId,
+      retirement:value.result.run.retirementState}:{previewId:value.started.previewId,
+      documentId:value.result.result.documentId,world:value.result.result.world};
+    if(kind==='controller')assert.equal(identity.retirement,'released');
+    else assert.equal(identity.world,'USER_SCRIPT');
+    record('esm.mixed-import.native',{name,kind,actual,expected,identity,
+      sourceHash:frozen.sourceHash,inputHash:frozen.inputHash,files:frozen.files});
+    report.tests.push({name:'mixed-import-'+kind+'-all-five-in-one-real-Chrome-main',
+      status:'PASS',level:'L4',...identity,sourceHash:frozen.sourceHash,inputHash:frozen.inputHash});
+  }
+  assert.ok(mixedPageBinding?.bindingId);
   await setUserScripts(false);
   const deniedId='esm-user-scripts-revoked-'+crypto.randomUUID();
-  const denied=await mcpClient.tool('run',{bindingId:pageBinding.bindingId,requestId:deniedId});
+  const denied=await mcpClient.tool('run',{bindingId:mixedPageBinding.bindingId,requestId:deniedId});
   const deniedResult=await until(async()=>{
     const row=await mcpClient.tool('result',{previewId:denied.previewId});return row.state!=='preview-pending'?row:null;
   },'USER_SCRIPT revoked result');

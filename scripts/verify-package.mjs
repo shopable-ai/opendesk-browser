@@ -500,7 +500,7 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
   const explorerJS=await readFile(join(root,'native-agent/settings.js'),'utf8');
   if(!['data-variant','folder-open','tree-caret','file-icon'].every(value=>explorerJS.includes(value)))
     throw Error('Workspace explorer runtime is stale: packaged settings.js lacks SVG file-tree icons');
-  for(const cssPath of ['ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css','ui/bookmark-manager.css','ui/time-review.css','ui/cloud-hosting.css','ui/extension-center.css','ui/cloud-control-console.css','native-agent/settings.css','native-agent/workspace.css','stay-focus/blocked.css']) {
+  for(const cssPath of ['ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css','ui/extension-center.css','ui/bookmark-manager.css','ui/time-review.css','ui/cloud-hosting.css','ui/cloud-control-console.css','native-agent/settings.css','native-agent/workspace.css','stay-focus/blocked.css']) {
     const css = await readFile(join(root,cssPath),'utf8');
     if(/@(?:import|source|apply|tailwind|config|plugin)\b|url\s*\(|expression\s*\(/i.test(css)) throw new Error('Unsafe CSS resources in '+cssPath);
     if(cssPath==='native-agent/workspace.css')inspectWorkspaceStyle(css);

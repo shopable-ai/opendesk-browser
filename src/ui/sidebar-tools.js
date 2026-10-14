@@ -41,7 +41,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(tool.id!==FOCUS_ID||focus?.id!==FOCUS_ID||focus.capability!==FOCUS_CAPABILITY||
        !Array.isArray(focus.operations)||!focus.operations.includes('focus.status')||
        typeof focus.request!=='function'||typeof focus.runTrustedOperation!=='function'||
-       typeof focus.createPermissionControls!=='function')
+       typeof focus.createPermissionControls!=='function'||typeof focus.probe!=='function')
       throw Object.assign(new Error('当前 OpenDesk Browser 缺少 Stay Focus 所需的可信运行能力；请升级扩展后再安装或打开工具。'),
         {code:'E_TOOL_RUNTIME_UNAVAILABLE'});
   }
@@ -1863,6 +1863,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       if(release){
         await verifyReviewedOfficialTool(release,candidate,{api,fetcher});
       }
+      // A static adapter cannot substitute for a live MV3 worker protocol.
+      // Missing optional idle/DNR grants do not block installation.
+      if(candidate.capabilities.includes(FOCUS_CAPABILITY))await focus.probe({api});
       const result=await installReviewedSidebarTool({api,lockManager,candidate,
         baseline,reviewApproved:true,
         market:release?{marketId:release.id,sha256:release.sha256,operationId}:null,

@@ -2,6 +2,9 @@
 export const FOCUS_ID='stay-focus';
 export const FOCUS_CAPABILITY='focus.control';
 export const FOCUS_PROTOCOL='opendesk.stay-focus.v1';
+// Static Side Panel to MV3 Service Worker handshake, never a sandbox operation.
+export const FOCUS_PROBE_OPERATION='focus.probe';
+export const FOCUS_SERVICE_VERSION=1;
 export const FOCUS_STORE='opendesk.stay-focus.state.v1';
 export const FOCUS_SESSION='opendesk.stay-focus.session.v1';
 export const FOCUS_ALARM='opendesk.stay-focus.heartbeat.v1';

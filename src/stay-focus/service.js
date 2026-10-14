@@ -5,7 +5,7 @@ import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolEnable
 import {writeVerifiedLocalValue} from '../ui/sidebar-tools/storage-state.js';
 import {isSidebarToolHostSender} from '../sidebar-tools/sender.js';
 import {FOCUS_ID,FOCUS_STORE,FOCUS_PROTOCOL,FOCUS_CAPABILITY,FOCUS_ALARM,FOCUS_SESSION,
-  FOCUS_OPERATIONS,FOCUS_MAX_SITES,FOCUS_PAGE_NOTICE_PROTOCOL,focusPackageHash,focusHost,focusNextMidnight,focusRemovedOriginAffectsSite,focusError} from './policy.js';
+  FOCUS_OPERATIONS,FOCUS_PROBE_OPERATION,FOCUS_SERVICE_VERSION,FOCUS_MAX_SITES,FOCUS_PAGE_NOTICE_PROTOCOL,focusPackageHash,focusHost,focusNextMidnight,focusRemovedOriginAffectsSite,focusError} from './policy.js';
 import {readFocus,emptyFocus,focusSite,focusSiteScopesValid,focusSchedule,focusMatchingSite,focusReason,
   focusSummary,settleFocus,focusPool,focusDueReminder} from './model.js';
 import {FOCUS_DEFAULT_GROUP,FOCUS_DEFAULT_MINUTES,focusDefaultSites} from './catalog.js';
@@ -306,6 +306,31 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
     return {...focusSummary(state,at),permissions:fresh,ruleReceipt,tabs};
   }
   const tick=options=>lock(()=>reconcileLocked(options));
+  // A read-only worker roundtrip before installation. This API can never modify
+  // tool authority, state, alarms, website content, or any DNR rule.
+  async function probe(message,sender){
+    if(message?.protocol!==FOCUS_PROTOCOL||message.toolId!==FOCUS_ID||
+       message.operation!==FOCUS_PROBE_OPERATION||!hasOnly(message.payload,[])||
+       Object.keys(message).sort().join(',')!=='operation,payload,protocol,toolId')
+      throw focusError('Stay Focus 后台探测请求无效','E_FOCUS_REQUEST');
+    const documentId=await hostDocument(sender);
+    if(!lockManager?.request||!api.storage?.local?.get||!api.storage?.local?.set||
+       !api.storage?.session?.get||!api.alarms?.get||!api.alarms?.create||
+       !api.alarms?.clear||!api.tabs?.query||!api.tabs?.update||
+       !api.tabs?.sendMessage||!api.windows?.getLastFocused||
+       !api.permissions?.contains)
+      throw focusError('当前扩展未加载完整 Stay Focus 后台服务','E_FOCUS_RUNTIME_UNAVAILABLE');
+    // Confirm registry access without creating an installation or permission.
+    await api.storage.local.get(SIDEBAR_TOOL_STORE);
+    const permissions=await permissionStatus();
+    if((permissions.idle&&!api.idle?.queryState)||
+       (permissions.dnr&&(!api.declarativeNetRequest?.getDynamicRules||
+         !api.declarativeNetRequest?.updateDynamicRules)))
+      throw focusError('已授权的 Stay Focus Chrome 能力未接入','E_FOCUS_RUNTIME_UNAVAILABLE');
+    await hostDocument(sender,documentId);
+    return {protocol:FOCUS_PROTOCOL,serviceVersion:FOCUS_SERVICE_VERSION,
+      serviceReady:true,permissions};
+  }
   async function dispatch(message,sender){
     if(message?.protocol!==FOCUS_PROTOCOL||message.toolId!==FOCUS_ID||
        !FOCUS_OPERATIONS.includes(message.operation)||typeof message.packageHash!=='string'||
@@ -325,7 +350,7 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
       return result;
     });
   }
-  return {tick,dispatch,invalidate};
+  return {tick,dispatch,probe,invalidate};
 }
 export function installStayFocusService({api=globalThis.chrome,...options}={}){
   const service=createStayFocusService({api,...options}),removers=[];
@@ -334,7 +359,9 @@ export function installStayFocusService({api=globalThis.chrome,...options}={}){
     error?.code||'E_FOCUS',String(error?.message||error).slice(0,200)));};
   listen(api.runtime.onMessage,(message,sender,reply)=>{
     if(message?.protocol!==FOCUS_PROTOCOL)return false;
-    void service.dispatch(message,sender).then(data=>reply({ok:true,data}),
+    const request=message.operation===FOCUS_PROBE_OPERATION?
+      service.probe(message,sender):service.dispatch(message,sender);
+    void request.then(data=>reply({ok:true,data}),
       error=>reply({ok:false,error:{code:error?.code||'E_FOCUS',message:String(error?.message||error).slice(0,240)}}));
     return true;
   });
