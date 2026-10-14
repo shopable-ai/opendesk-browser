@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<title>OpenDesk · AdBlock R1 交互原型（非真实广告拦截）</title>
+<title>广告拦截 · UI 原型（不执行真实过滤）</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px;line-height:1.5;font-synthesis:none;color:#24334e;background:#edf2f9}
 *{box-sizing:border-box}[hidden]{display:none!important}body{margin:0}button,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.48}button:focus-visible,select:focus-visible{outline:3px solid #6a8fff;outline-offset:3px}
@@ -40,49 +40,39 @@
 <div id="stage" class="stage">
  <div class="layout">
   <div class="frame" aria-label="AdBlock Side Panel 交互演示">
-   <div class="frame-top"><div class="crumb"><strong>OpenDesk</strong><span>›</span><span>扩展 / AdBlock</span></div><span class="fake-dots" aria-hidden="true"><i></i><i></i><i></i></span></div>
    <main class="panel">
     <section id="overview">
      <header class="toolhead">
-      <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 8 3v6c0 5-3.4 8.6-8 11-4.6-2.4-8-6-8-11V5l8-3Z"/><path d="m8.7 12.1 2.2 2.2 4.6-4.9"/></svg></div>
-      <div class="tooltitle"><h1>AdBlock</h1><p>广告拦截 · 安静浏览</p></div>
+      <div class="tooltitle"><h1>广告拦截</h1></div>
       <button class="iconbtn" type="button" id="open-settings" aria-label="打开设置" title="设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15.2a1.7 1.7 0 0 0 .3 1.9l-1.6 1.6a1.7 1.7 0 0 0-1.9-.3l-.8.4a1.7 1.7 0 0 0-1 1.5V21h-2.3v-.7a1.7 1.7 0 0 0-1-1.5l-.8-.4a1.7 1.7 0 0 0-1.9.3l-1.6-1.6a1.7 1.7 0 0 0 .3-1.9l-.4-.8a1.7 1.7 0 0 0-1.5-1H4v-2.3h.7a1.7 1.7 0 0 0 1.5-1l.4-.8a1.7 1.7 0 0 0-.3-1.9L7.9 5a1.7 1.7 0 0 0 1.9.3l.8-.4a1.7 1.7 0 0 0 1-1.5V3h2.3v.7a1.7 1.7 0 0 0 1 1.5l.8.4a1.7 1.7 0 0 0 1.9-.3l1.6 1.6a1.7 1.7 0 0 0-.3 1.9l.4.8a1.7 1.7 0 0 0 1.5 1h.7v2.3h-.7a1.7 1.7 0 0 0-1.5 1l-.4.8Z" transform="translate(-.3 -.3) scale(.98)"/></svg></button>
      </header>
      <section class="card global-card" aria-label="全局保护">
-      <div class="card-row"><div><h2 class="text-main">全局保护</h2><p class="text-sub">为所有支持的网站启用</p></div><button id="global-switch" class="toggle" type="button" role="switch" aria-label="全局广告拦截" aria-checked="true"><span class="knob"></span></button></div>
+      <div class="card-row"><div><h2 class="text-main">广告拦截</h2></div><button id="global-switch" class="toggle" type="button" role="switch" aria-label="全局广告拦截" aria-checked="true"><span class="knob"></span></button></div>
       <p class="status-line" id="global-status"><span class="status-dot" aria-hidden="true"></span><span id="global-status-text">已开启保护</span></p>
      </section>
      <section class="card site-card" aria-label="当前网站">
       <div class="eyebrow">当前网站</div>
-      <div class="site-ident"><div class="site-avatar" id="site-avatar" aria-hidden="true">N</div><div><div class="site-host" id="site-host">news.example.com</div><div class="site-sub" id="site-meta">普通网页 · 可以使用拦截</div></div></div>
-      <div class="card-row"><div><h2 class="text-main">在此网站拦截</h2><p class="text-sub" id="site-description">仅影响当前域名</p></div><button id="site-switch" class="toggle" type="button" role="switch" aria-label="当前网站广告拦截" aria-checked="true"><span class="knob"></span></button></div>
-      <div class="site-divider"></div>
-      <div class="site-summary"><div><span class="count" id="blocked-count">18</span><span class="count-description" id="count-label">本网站已拦截的请求</span></div><span class="sample">演示数据</span></div>
-      <p class="help" id="site-help">网页显示异常时，关闭本网站拦截即可排除。</p>
+      <div class="site-ident"><div><div class="site-host" id="site-host">news.example.com</div><div class="site-sub" id="site-meta">普通网页 · 可以使用拦截</div></div></div>
+      <div class="card-row"><div><h2 class="text-main">在此网站拦截</h2></div><button id="site-switch" class="toggle" type="button" role="switch" aria-label="当前网站广告拦截" aria-checked="true"><span class="knob"></span></button></div>
+      
      </section>
-     <section class="card preset" aria-label="过滤规则"><div class="preset-top"><b>过滤规则</b><span>默认推荐</span></div><p>拦截常见广告及跟踪请求，无需手动配置</p></section>
      <button class="linkrow" type="button" id="open-allowlist"><span class="left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3.5" y="4.5" width="17" height="15" rx="3"/><path d="M8 9.5h8M8 14h5"/></svg><span>管理已停用的网站</span><span id="allow-count" style="color:var(--muted,#8392a8);font-size:11px">0</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m9 5 7 7-7 7"/></svg></button>
     </section>
     <section id="allowlist" hidden>
      <div class="page-heading"><button class="iconbtn back" type="button" aria-label="返回概览" title="返回"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m15 5-7 7 7 7"/></svg></button><h2>已停用的网站</h2><small id="allow-summary">0 个网站</small></div>
-     <p class="list-intro">这些网站将不使用广告过滤。你可以在这里恢复，也可以返回网站直接打开开关。</p>
+     
      <div class="card list-card" id="allow-rows" aria-live="polite"></div>
     </section>
     <section id="settings" hidden>
      <div class="page-heading"><button class="iconbtn back" type="button" aria-label="返回概览" title="返回"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m15 5-7 7 7 7"/></svg></button><h2>设置</h2></div>
-     <div class="card list-card"><div class="setting-row"><h3>默认过滤</h3><p>安装后默认使用内置推荐规则，适用于大多数网站。</p><span class="mini">推荐模式（V1 固定）</span></div><div class="setting-row"><h3>网站例外</h3><p>关闭单个网站的拦截时，自动添加到例外列表。</p><button class="secondary" type="button" id="settings-allowlist">查看例外列表</button></div><div class="setting-row"><h3>网页异常处理</h3><p>遇到功能异常时，请优先临时关闭当前网站的拦截，再重新载入网页。</p></div></div>
-     <p class="setting-muted" style="margin-top:14px">高级过滤、手动元素屏蔽与订阅源管理留到后续版本。原型不会修改真实 Chrome 权限或网络规则。</p>
+     <div class="card list-card"><div class="setting-row"><h3>网站例外</h3><p>关闭单个网站的拦截时，自动添加到例外列表。</p><button class="secondary" type="button" id="settings-allowlist">查看例外列表</button></div></div>
+     
     </section>
-    <p class="footline">交互原型 · 不执行真实广告过滤或读取网页</p>
+    
    </main>
   </div>
   <aside class="notes" aria-label="原型操作说明">
-   <div class="demo-flag"><i aria-hidden="true"></i>可交互产品原型 · R1</div>
-   <div class="kicker">OPENDESK · EXTENSION DESIGN</div>
-   <h2>广告拦截，<br>保持简单。</h2>
-   <p>一眼看清是否生效；一键对整个浏览器或当前网站启停。复杂过滤规则不占用日常界面。</p>
    <div class="controls"><h3>体验不同场景</h3><label for="domain-select">模拟当前网页</label><select id="domain-select"><option value="news.example.com">news.example.com · 新闻网站</option><option value="video.example.com">video.example.com · 视频网站</option><option value="shop.example.com">shop.example.com · 购物网站</option><option value="chrome://settings">chrome://settings · 浏览器受限页面</option></select><div class="buttons"><button type="button" id="theme-button">切换深色模式</button><button type="button" id="reset-button">重置原型</button></div></div>
-   <div class="explain"><h3>本次设计覆盖</h3><ul><li>全局启停：一键影响所有网站</li><li>本站启停：关闭后加入例外列表</li><li>例外管理：查看并恢复网站</li><li>限制页面：提示不可用，不伪装成功</li><li>推荐规则：默认开启，暂不堆高级配置</li></ul></div>
    <p class="fine-print">数据和开关只保存在此页面的本地演示状态。正式版本必须通过已审计的后台、Chrome DNR 和权限确认完成规则写入回读，才能提示“已生效”。</p>
   </aside>
  </div>
