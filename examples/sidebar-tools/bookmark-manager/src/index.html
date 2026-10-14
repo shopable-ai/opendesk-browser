@@ -1,0 +1,37 @@
+<main class="bm" aria-label="书签管理">
+  <header class="bm-head"><strong>书签管理</strong><button id="bm-refresh" type="button" class="bm-icon" aria-label="刷新书签" title="刷新书签">↻</button></header>
+  <p id="bm-notice" class="bm-notice" role="status" aria-live="polite"></p>
+  <section id="bm-gate" class="bm-gate" aria-label="SDK 与书签权限检查">
+    <p id="bm-gate-reason">正在检查 Full Bookmarks SDK 与安装权限…</p>
+    <button id="bm-check" type="button" class="bm-button">重新检查 SDK 与权限</button>
+    <p class="bm-help">首次授权必须在 OpenDesk 可信扩展界面完成。此工具不会自行申请 Chrome 权限，也不会伪造空书签。</p>
+  </section>
+  <section id="bm-workspace" hidden>
+    <section id="bm-explorer" aria-label="书签文件树">
+      <label class="bm-search-label">搜索书签与文件夹<input id="bm-search" type="search" autocomplete="off" placeholder="搜索全部书签…" aria-label="搜索全部书签与文件夹"></label>
+      <div class="bm-toolbar" role="group" aria-label="书签主要操作">
+        <button id="bm-current" type="button" class="bm-button bm-primary">☆ 收藏当前页</button>
+        <button id="bm-new-bookmark" type="button" class="bm-button">＋ 书签</button>
+        <button id="bm-new-folder" type="button" class="bm-button">＋ 文件夹</button>
+      </div>
+      <div id="bm-list" class="bm-list" role="tree" aria-label="Chrome 书签与文件夹"></div>
+      <div class="bm-more-line"><span id="bm-counter"></span><button id="bm-more" class="bm-button" type="button" hidden>显示更多</button></div>
+    </section>
+    <section id="bm-form-view" aria-label="书签编辑" hidden>
+      <div class="bm-subhead"><button id="bm-back" type="button" class="bm-icon" aria-label="返回书签树">‹</button><strong id="bm-form-title"></strong></div>
+      <form id="bm-form">
+        <label id="bm-name-row">名称<input id="bm-name" maxlength="256" autocomplete="off" required></label>
+        <label id="bm-url-row">网址<input id="bm-url" type="url" autocomplete="off"></label>
+        <label id="bm-parent-row">目标文件夹<select id="bm-parent" required></select></label>
+        <div id="bm-detail-url" class="bm-detail-url" hidden></div>
+        <div class="bm-actions"><button id="bm-save" type="submit" class="bm-button bm-primary">保存</button><button id="bm-cancel" type="button" class="bm-button">取消</button></div>
+      </form>
+    </section>
+    <section id="bm-delete-view" aria-label="安全删除确认" hidden>
+      <div class="bm-subhead"><button id="bm-delete-back" type="button" class="bm-icon" aria-label="返回书签树">‹</button><strong>删除确认</strong></div>
+      <p id="bm-delete-desc" class="bm-warning"></p>
+      <label id="bm-delete-children-row" class="bm-check" hidden><input id="bm-delete-children" type="checkbox"> 我确认删除目录及全部子项</label>
+      <div class="bm-actions"><button id="bm-delete-confirm" type="button" class="bm-button bm-danger">确认删除</button><button id="bm-delete-cancel" type="button" class="bm-button">取消</button></div>
+    </section>
+  </section>
+</main>

@@ -1,0 +1,17 @@
+{
+  "format": "opendesk.sidebar-tool.v2",
+  "id": "bookmark-manager",
+  "version": "0.1.0",
+  "title": "书签管理 · SDK R2 预备",
+  "description": "独立安装的完整书签管理 UI 迁移预备包；Full Bookmarks SDK R11 未就绪前安全阻止访问，不包含 Chrome 特权代码。",
+  "capabilities": [],
+  "requires": {"browserSdk": "1.0.0"},
+  "contributes": {"contextMenus": []},
+  "files": {
+    "html": "src/index.html",
+    "css": "src/style.css",
+    "js": "src/main.js",
+    "dependencies": ["src/model.js", "src/service.js"]
+  },
+  "assets": []
+}

@@ -1,0 +1,46 @@
+name: Bookmark Manager R2 - SDK-only preparation gates
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'examples/sidebar-tools/bookmark-manager/**'
+      - 'docs/framework/workstreams/bookmark-manager-r2.md'
+      - 'tests/environment/bookmark-manager-r2.test.mjs'
+      - '.github/workflows/bookmark-manager-r2.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  bookmark-r2-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: SDK-only and fail-closed Node tests
+        run: node --test tests/environment/bookmark-manager-r2.test.mjs
+      - name: Shared source and security checks
+        run: npm run check
+      - name: Independent v2 tool package
+        run: npm run build:sidebar-tool -- examples/sidebar-tools/bookmark-manager
+      - name: Production extension build
+        run: npm run build
+      - name: Verify production extension
+        run: node scripts/verify-package.mjs dist/production
+      - name: Development extension build
+        run: npm run build:dev
+      - name: Capture preparation artifact (NOT a native Chrome pass)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bookmark-manager-r2-preparation-${{ github.sha }}
+          retention-days: 7
+          if-no-files-found: ignore
+          path: |
+            artifacts/sidebar-tools/bookmark-manager/0.1.0/bookmark-manager.opendesk-tool.json
+            docs/framework/evidence/wxt/builds/build-production.json
+            docs/framework/evidence/wxt/builds/build-development.json
