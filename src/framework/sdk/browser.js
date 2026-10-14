@@ -2,6 +2,32 @@
 // request boundary. The website Page SDK exposes only LOCAL status discovery.
 import {BROWSER_OPERATIONS,browserCapabilityList,deniedBrowserStatus,normalizeBrowserOperation} from './browser-contract.js';
 import {fail,fields} from './registry.js';
+// Build the finite public method tree from the one approved operation Registry.
+// The tool supplies only parameters, never native API paths or permissions.
+function declaredFacade(ask){
+  const root=Object.create(null);
+  for(const operation of Object.keys(BROWSER_OPERATIONS)){
+    if(!operation.startsWith('browser.'))throw fail('E_CONTRACT','Invalid Browser operation');
+    const path=operation.slice('browser.'.length).split('.');
+    if(path.some(part=>!/^[A-Za-z][A-Za-z0-9]*$/.test(part)||
+      ['constructor','prototype','__proto__'].includes(part)))
+      throw fail('E_CONTRACT','Unsafe public Browser operation');
+    let node=root;
+    for(const segment of path.slice(0,-1)){
+      if(!Object.hasOwn(node,segment))node[segment]=Object.create(null);
+      if(typeof node[segment]!=='object')throw fail('E_CONTRACT','Namespace conflict');
+      node=node[segment];
+    }
+    const method=path.at(-1);
+    if(Object.hasOwn(node,method))throw fail('E_CONTRACT','Duplicate Browser method');
+    node[method]=(input={})=>ask(operation,input??{});
+  }
+  return root;
+}
+function freezeFacade(node){
+  for(const value of Object.values(node))if(value&&typeof value==='object')freezeFacade(value);
+  return Object.freeze(node);
+}
 export function createBrowserSdk({request,context='sidebar-tool'}={}){
   const page=context==='page-sdk';
   const ask=(name,args={})=>{
@@ -21,7 +47,7 @@ export function createBrowserSdk({request,context='sidebar-tool'}={}){
   if(page)return Object.freeze({apiVersion:'1.0.0',capabilities,
     // Explicit denial does not add any browser method to the admitted Page RPC list.
     contextMenu:Object.freeze({register:()=>Promise.reject(fail('E_CONTEXT','Page SDK cannot register context menus'))})});
-  const method=(name)=>args=>ask(name,args??{});
+  const facade=declaredFacade(ask);
   // Public developer convenience, not a second RPC operation or a new grant.
   // A watch remains an opaque, tool-owned session: each handle method uses the
   // SAME canonical browser.* operation and trusted Host authority as the
@@ -56,46 +82,10 @@ export function createBrowserSdk({request,context='sidebar-tool'}={}){
       close:()=>ask('browser.events.close',{sessionRef:observationId})
     });
   };
-  return Object.freeze({apiVersion:'1.0.0',capabilities,
-    contextMenu:Object.freeze({getStatus:()=>ask('browser.contextMenu.getStatus'),
-      register:method('browser.contextMenu.register'),unregister:()=>ask('browser.contextMenu.unregister')}),
-    launch:Object.freeze({consume:()=>ask('browser.launch.consume')}),
-    page:Object.freeze({getContext:()=>ask('browser.page.getContext'),getSelection:()=>ask('browser.page.getSelection')}),
-    clipboard:Object.freeze({writeText:text=>ask('browser.clipboard.writeText',{text})}),
-    downloads:Object.freeze({text:method('browser.downloads.text'),
-      download:method('browser.downloads.download'),getOwned:method('browser.downloads.getOwned'),
-      listOwned:method('browser.downloads.listOwned'),cancelOwned:method('browser.downloads.cancelOwned')}),
-    bookmarks:Object.freeze({create:method('browser.bookmarks.create'),
-      removeOwned:method('browser.bookmarks.removeOwned')}),
-    scheduler:Object.freeze({create:method('browser.scheduler.create'),
-      listOwn:method('browser.scheduler.listOwn'),cancelOwn:method('browser.scheduler.cancelOwn')}),
-    storage:Object.freeze({local:Object.freeze({
-      get:method('browser.storage.local.get'),set:method('browser.storage.local.set'),
-      remove:method('browser.storage.local.remove'),clear:method('browser.storage.local.clear')})}),
-    tabs:Object.freeze({create:method('browser.tabs.create'),activateOwned:method('browser.tabs.activateOwned'),
-      getOwned:method('browser.tabs.getOwned'),listOwned:method('browser.tabs.listOwned'),
-      pinOwned:method('browser.tabs.pinOwned'),
-      reloadOwned:method('browser.tabs.reloadOwned'),
-      navigateOwned:method('browser.tabs.navigateOwned'),
-      removeOwned:method('browser.tabs.removeOwned')}),
-    cookies:Object.freeze({
-      get:method('browser.cookies.get'),getAll:method('browser.cookies.getAll'),
-      set:method('browser.cookies.set'),remove:method('browser.cookies.remove'),
-      clearSite:method('browser.cookies.clearSite'),
-      getCurrentStore:method('browser.cookies.getCurrentStore'),
-      getPartitionKey:method('browser.cookies.getPartitionKey'),
-      observe:Object.freeze({start:method('browser.cookies.observe.start'),
-        getStatus:method('browser.cookies.observe.getStatus'),
-        read:method('browser.cookies.observe.read'),stop:method('browser.cookies.observe.stop')})
-    }),
-    sidePanel:Object.freeze({openSelf:()=>ask('browser.sidePanel.openSelf')}),
-    network:Object.freeze({request:method('browser.network.request'),watch,
-      observe:Object.freeze({start:method('browser.network.observe.start'),
-        getStatus:method('browser.network.observe.getStatus'),
-        stop:method('browser.network.observe.stop'),export:method('browser.network.observe.export')})}),
-    events:Object.freeze({read:method('browser.events.read'),close:method('browser.events.close')}),
-    screenshot:Object.freeze({captureVisible:method('browser.screenshot.captureVisible')}),
-    operations:Object.freeze({getStatus:method('browser.operations.getStatus'),
-      cancel:method('browser.operations.cancel')})
-  });
+  // Overrides preserve existing documented convenience shapes; neither adds RPC.
+  facade.capabilities.list=capabilities.list;
+  facade.capabilities.getStatus=capabilities.getStatus;
+  facade.clipboard.writeText=text=>ask('browser.clipboard.writeText',{text});
+  facade.network.watch=watch;
+  return freezeFacade(Object.assign(facade,{apiVersion:'1.0.0'}));
 }

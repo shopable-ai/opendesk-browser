@@ -25,6 +25,7 @@ const scenes=[
   {name:'schedule-empty',tab:'tasks',state:'schedule-empty'},
   {name:'schedule-form',tab:'tasks',state:'schedule-form'},
   {name:'schedule-manager',tab:'tasks',state:'schedule-manager'},
+  // Keep screenshot scene identifiers stable; these now exercise the single My search panel.
   {name:'discover',tab:'local-discover'},
   {name:'discover-long',tab:'local-discover',state:'long'},
   {name:'discover-empty',tab:'local-discover',state:'empty'},
@@ -129,18 +130,22 @@ function setupScene(scene,officialReleases){
   for(const details of document.querySelectorAll('details')){
     if(!originals.has(details))originals.set(details,{kind:'details',open:details.open,hidden:details.hidden});
   }
-  const active=scene.tab==='local-discover'?'tasks':scene.tab;
+  const searching=scene.tab==='local-discover';
+  const active=searching?'tasks':scene.tab;
   for(const item of document.querySelectorAll('[data-workbench-page]'))
     item.hidden=item.dataset.workbenchPage!==active;
   for(const tab of document.querySelectorAll('[data-workbench-tab]'))
     tab.setAttribute('aria-selected',String(tab.dataset.workbenchTab===(active==='catalog'?'tasks':active)));
   const dock=document.querySelector('#workspace-dock');
-  dock.hidden=scene.tab==='local-discover'||['catalog','workflow','tools','cloud','debug'].includes(active);
-  document.querySelector('#task-local-discovery').open=scene.tab==='local-discover';
+  dock.hidden=searching||['catalog','workflow','tools','cloud','debug'].includes(active);
+  // Search is now an inline toolbar; no second Discover cards or disclosure exists.
+  document.querySelector('#task-search-panel').hidden=!searching;
+  document.querySelector('#task-search-toggle').setAttribute('aria-expanded',String(searching));
+  document.querySelector('#local-discover-search').value=searching&&scene.state==='long'?'很长的本机自动化任务名称'.repeat(5):'';
   document.querySelector('#tab-debug').hidden=active!=='debug';
   document.querySelector('#cloud-hosting').open=scene.state==='cloud-open';
   const scheduled=scene.state?.startsWith('schedule-')||false;
-  document.querySelector('.tasks-surface').hidden=scheduled||scene.tab==='local-discover';
+  document.querySelector('.tasks-surface').hidden=scheduled;
   document.querySelector('#scheduled-panel').hidden=!scheduled;
   document.querySelector('#schedule-list-view').hidden=scene.state!=='schedule-empty';
   document.querySelector('#schedule-form').hidden=scene.state!=='schedule-form';
@@ -168,18 +173,29 @@ function setupScene(scene,officialReleases){
   // Static-only states; never dispatches trusted Run/Stop, install, permission, or network events.
   const taskList=document.querySelector('#task-installed-cards');
   taskList.replaceChildren();
-  document.querySelector('#task-selected-workspace').hidden=scene.tab==='tasks'&&scene.state==='empty';
+  document.querySelector('#task-selected-workspace').hidden=searching||scene.tab==='tasks'&&scene.state==='empty';
   const taskStatus=document.querySelector('#task-status');
   taskStatus.textContent=scene.tab==='tasks'&&scene.state==='running'?'静态示例 · 正在运行…':
+    searching&&scene.state==='error'?'静态示例 · 无法读取已安装任务':
     scene.tab==='tasks'&&scene.state==='error'?'静态示例 · 当前网页不可用':'';
   taskStatus.dataset.state=scene.state==='error'?'error':'';
+  document.querySelector('#local-discover-count').textContent=searching
+    ?'静态示例 · 已安装任务筛选':'';
+  for(const value of ['all','current','disabled'])
+    document.querySelector('#local-filter-'+value).setAttribute('aria-pressed',
+      String(value===(searching&&scene.state==='empty'?'current':'all')));
   document.querySelector('#task-run').disabled=scene.tab==='tasks'&&scene.state==='running';
   document.querySelector('#task-stop').disabled=scene.state!=='running';
-  if(scene.tab==='tasks'&&scene.state==='empty'){
-    const empty=document.createElement('p');empty.className='hint';
-    empty.textContent='还没有安装任务。';taskList.append(empty);
+  if((scene.tab==='tasks'||searching)&&scene.state==='empty'){
+    const empty=document.createElement('p');
+    empty.className=searching?'task-search-empty':'hint';
+    empty.textContent=searching?'当前网页暂无匹配任务，选择「全部」查看已安装任务。':'还没有安装任务。';
+    taskList.append(empty);
   }else{
-    for(const value of ['获取网页标题','读取表格并保存结果','检查网页状态']){
+    const names=searching
+      ?['获取网页标题','网页表单演示','有较长标题的自动化任务名称','网页图片数量统计']
+      :['获取网页标题','读取表格并保存结果','检查网页状态'];
+    for(const value of names){
       const group=document.createElement('div');group.className='task-card-group';
       const btn=document.createElement('button');btn.className='task-card';btn.type='button';
       const icon=document.createElement('span');icon.className='task-card-icon';icon.textContent='◈';
@@ -188,22 +204,6 @@ function setupScene(scene,officialReleases){
       name.textContent=scene.state==='long'?value.repeat(7):value;
       const desc=document.createElement('small');desc.textContent='仅用于静态布局验证的示例说明';
       label.append(name,desc);btn.append(icon,label);group.append(btn);taskList.append(group);
-    }
-  }
-  const discover=document.querySelector('#local-discover-cards');
-  discover.replaceChildren();
-  const discoverStatus=document.querySelector('#local-discover-status');
-  discoverStatus.textContent=scene.tab==='local-discover'&&scene.state==='error'?'静态示例 · 无法读取本地任务':'';
-  if(scene.tab==='local-discover'&&scene.state==='empty'){
-    const empty=document.createElement('p');empty.className='local-discovery-empty';
-    empty.textContent='当前筛选下没有任务。';discover.append(empty);
-  }else{
-    for(const value of ['获取网页标题','网页表单演示','有较长标题的自动化任务名称','网页图片数量统计']){
-      const item=document.createElement('button');item.className='local-discovery-card';item.type='button';
-      const copy=document.createElement('span');copy.className='local-discovery-copy';
-      const title=document.createElement('strong');title.textContent=scene.state==='long'?value.repeat(9):value;
-      const desc=document.createElement('small');desc.textContent='静态示例 · 验证紧凑列表与长文本换行';
-      copy.append(title,desc);item.append(copy);discover.append(item);
     }
   }
   const editor=document.querySelector('#workflow-editor');
@@ -479,10 +479,10 @@ function measureScene(scene){
   });
   if(scene.tab==='tasks')metrics.corners.taskCard=radius('.task-card-group');
   if(scene.tab==='local-discover'){
-    metrics.corners.import=radius('#local-discover-open-catalog');
+    metrics.corners.search=radius('#local-discover-search');
     metrics.corners.filter=radius('.local-discovery-filters button');
     metrics.corners.filterGroup=radius('.local-discovery-filters');
-    metrics.corners.list=radius('.local-discovery-list');
+    if(scene.state!=='empty')metrics.corners.taskCard=radius('.task-card-group');
   }
   if(scene.tab==='workflow'){
     metrics.corners.card=radius('.workflow-card');
@@ -545,9 +545,10 @@ function validate(scene,width,m){
     throw Error('Extension action below shared target size '+scene.name+' '+width+'px '+JSON.stringify(m.extensionTargets));
   if(m.extensionCopySizes?.some(copy=>copy.fontSize<12))
     throw Error('Extension metadata below readable public size '+scene.name+' '+width+'px '+JSON.stringify(m.extensionCopySizes));
-  const expected={tasks:{taskCard:'12px'},'local-discover':{import:'8px',filter:'8px',filterGroup:'12px',list:'12px'},catalog:{},cloud:{},workflow:{card:'12px',icon:'8px'},develop:{page:'0px',editor:'8px'},tools:{card:'12px',install:'8px'},debug:{card:'12px',detail:'12px'}};
+  const expected={tasks:{taskCard:'12px'},'local-discover':{search:'8px',filter:'8px',filterGroup:'12px',taskCard:'12px'},catalog:{},cloud:{},workflow:{card:'12px',icon:'8px'},develop:{page:'0px',editor:'8px'},tools:{card:'12px',install:'8px'},debug:{card:'12px',detail:'12px'}};
   // An empty task list intentionally has no card whose radius could be measured.
   if(scene.tab==='tasks'&&scene.state==='empty')delete expected.tasks.taskCard;
+  if(scene.tab==='local-discover'&&scene.state==='empty')delete expected['local-discover'].taskCard;
   if(scene.tab==='tools'&&scene.state==='empty')delete expected.tools.install;
   for(const [key,value] of Object.entries(expected[scene.tab])){
     if(m.corners[key]!==value)throw Error('Radius mismatch '+scene.name+' '+key+': '+m.corners[key]+' expected '+value);
