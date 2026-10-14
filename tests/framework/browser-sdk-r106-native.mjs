@@ -754,14 +754,25 @@ async function runNative(){
       const today=await read(client,side,'(()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-")})()');
       const dates={};
       for(const selector of ['#trusted-history-start','#trusted-history-end']){
-        // Chromium's actual calendar indicator is at the input's right edge.
-        // Clicking the text segment only focuses year; it does not open a picker.
-        await click(client,side,selector,report.trace,{rightInset:22});await sleep(250);
-        (report.nativeDatePickers??=[]).push({selector,rows:JSON.parse(await native('dump'))});
-        report.screenshots.push(await screenshot(client,side,runDir,selector.slice(1)+'-native-picker'));
-        await native('key','return');
+        await click(client,side,selector,report.trace);
+        const key=async value=>{
+          const arrow=value==='ArrowLeft'?37:value==='ArrowRight'?39:null;
+          await client.send('Input.dispatchKeyEvent',{type:arrow?'rawKeyDown':'keyDown',key:value,
+            windowsVirtualKeyCode:arrow??value.charCodeAt(0),...(arrow?{}:{text:value,unmodifiedText:value})},side);
+          await client.send('Input.dispatchKeyEvent',{type:'keyUp',key:value,windowsVirtualKeyCode:arrow??value.charCodeAt(0)},side);
+          report.trace.push({at:now(),kind:'trusted-cdp-date-key',selector,key:value});
+        };
+        // This pinned Mac CFT displays year/month/day fields. Reset to the
+        // first segment before each component so automatic advance is harmless.
+        const parts=today.split('-');
+        for(let segment=0;segment<parts.length;segment++){
+          for(let i=0;i<6;i++)await key('ArrowLeft');
+          for(let i=0;i<segment;i++)await key('ArrowRight');
+          for(const digit of parts[segment])await key(digit);
+        }
+        report.screenshots.push(await screenshot(client,side,runDir,selector.slice(1)+'-native-keyboard'));
         dates[selector]=await read(client,side,`document.querySelector(${quote(selector)}).value`);
-        assert.equal(dates[selector],today,'Native date picker must select the actual displayed current day');
+        assert.equal(dates[selector],today,'Actual Chrome date keyboard must enter the complete user-selected day');
       }
       await typeText(client,side,'#trusted-history-text','demo-form',report.trace);
       return {dates,query:'demo-form',limit:await read(client,side,'document.querySelector("#trusted-history-limit").value'),sidePanel:report.sidePanelContext};
