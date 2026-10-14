@@ -9,6 +9,7 @@ import {createBrowserSdk} from '../src/framework/sdk/browser.js';
 import {TRUSTED_COOKIE_OPERATIONS} from '../src/platform/chrome/browser-cookie-host.js';
 import {checkBrowserSdkInterfaceMatrix} from './check-browser-sdk-interface-matrix.mjs';
 import {syncNativeCatalog} from './sync-chrome-api-catalog.mjs';
+import {syncBrowserBindings} from './generate-browser-bindings.mjs';
 
 const ROOT=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const stable=values=>[...values].sort();
@@ -56,6 +57,9 @@ export async function checkBrowserSdkFreeze({root=ROOT}={}){
      TRUSTED_COOKIE_OPERATIONS.length!==cookieHost.length)
     throw Error('Public Cookies registry and single Cookie Host disagree');
   const matrix=await checkBrowserSdkInterfaceMatrix(root);
+  const bindings=await syncBrowserBindings({root,check:true});
+  if(bindings.approved!==matrix.approved)
+    throw Error('Generated Browser Bindings drift from the approved matrix');
   if(matrix.callableRegistry!==wrapper.registered)
     throw Error('Matrix checker and live registry disagree');
   // The existing catalog generator checks Git blob hashes for the eight
@@ -69,6 +73,7 @@ export async function checkBrowserSdkFreeze({root=ROOT}={}){
   // the existing matrix checker. Do not claim full offline reproducibility.
   return {
     ok:true,registeredOperations:wrapper.registered,publicWrapperMethods:wrapper.wrappers,
+    generatedBindingsChecked:true,
     cookieOperations:cookieRegistry.length,approvedOperations:matrix.approved,
     nativeDiscovered:matrix.nativeDiscovered,
     partialJsonSnapshot:{chromiumCommit:source.chromiumCommit,
