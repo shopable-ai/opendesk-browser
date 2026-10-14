@@ -7,6 +7,7 @@ import {createBrowserScreenshotResources} from './browser-screenshot-resources.j
 import {createBrowserDownloadsHost} from './browser-downloads.js';
 import {createBrowserBookmarksHost} from './bookmarks.js';
 import {createApprovedBrowserBindings} from '../../framework/sdk/browser-bindings.js';
+import {APPROVED_BROWSER_DIRECT_BINDINGS} from '../../framework/sdk/browser-direct.generated.js';
 import {validateTrustedScheduleIntent} from '../tasks/schedule-contract.js';
 import {createBrowserHistoryHost} from './history.js';
 import {executeBrowserToolStorage} from '../../ui/sidebar-tools/storage-state.js';
@@ -249,6 +250,11 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       api,operation,toolId:owner.toolId,input,
       authorize:()=>verifyBrowserOwner(owner,operation)
     })
+  },{
+    // Approved Promise-native DIRECT calls are compiled from the pinned matrix.
+    // Existing trusted Host Sender, package, permission and lifetime checks
+    // apply exactly as they do for scoped service bindings.
+    nativeDirect:{api,descriptors:APPROVED_BROWSER_DIRECT_BINDINGS}
   });
   const dispatchScoped=(operation,input,owner)=>scopedBindings.dispatch(operation,input,owner,{
     authorize:(method,_input,context)=>verifyBrowserOwner(context,method,context.approvedOrigin)
