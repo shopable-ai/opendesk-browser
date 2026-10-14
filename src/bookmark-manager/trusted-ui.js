@@ -1,6 +1,6 @@
 // Static, audited first-party tool UI. Untrusted tool packages never enter this DOM.
 import {createBookmarkService} from './service.js';
-import {asHttpUrl,isFolder,isDescendant,projectBookmarkRows} from './model.js';
+import {asHttpUrl,isFolder,isDescendant,projectBookmarkRows,descendantSignatures} from './model.js';
 import {requestOptionalPluginPermissions} from '../platform/chrome/permission-gate.js';
 
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -193,12 +193,12 @@ export function createBookmarkManager({api,doc,container,currentPageTarget}={}){
     }
     if(action==='confirm-delete'){
       const expected=node(s.selection);if(!expected)return;
-      const expectedDescendantIds=isFolder(expected)?
-        [...s.tree.byId.keys()].filter(x=>x!==expected.id&&isDescendant(s.tree,x,expected.id)):[];
-      if(expectedDescendantIds.length&&!container.querySelector('#bookmark-manager-confirm-children')?.checked){
+      const expectedDescendantSignatures=isFolder(expected)?
+        descendantSignatures(s.tree,expected.id):[];
+      if(expectedDescendantSignatures.length&&!container.querySelector('#bookmark-manager-confirm-children')?.checked){
         s.error='请先确认删除文件夹内的全部内容';render();return;
       }
-      void mutation(()=>service.remove({expected,confirmed:true,expectedDescendantIds}));
+      void mutation(()=>service.remove({expected,confirmed:true,expectedDescendantSignatures}));
     }
   }
   function submits(event){

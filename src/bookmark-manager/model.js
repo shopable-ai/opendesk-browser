@@ -75,4 +75,10 @@ export const parentFolder=(tree,id)=>{
     throw new Error('目标文件夹不存在或受保护');
   return parent;
 };
-export const nodeSignature=node=>JSON.stringify([node?.id,node?.parentId,node?.title,node?.url??null,node?.unmodifiable??null]);
+export const nodeSignature=node=>JSON.stringify([
+  node?.id,node?.parentId,node?.title,node?.url??null,node?.unmodifiable??null,node?.folderType??null
+]);
+// Verify reviewed descendant contents; a stable ID alone does not imply unchanged content.
+export const descendantSignatures=(tree,folderId)=>[...tree.byId.values()]
+  .filter(node=>node.id!==folderId&&isDescendant(tree,node.id,folderId))
+  .map(node=>nodeSignature(node)).sort();
