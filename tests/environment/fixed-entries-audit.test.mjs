@@ -4,7 +4,7 @@ import {mkdtemp,mkdir,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,dirname} from 'node:path';
 import {createHash} from 'node:crypto';
-import {BUILD_POLICY} from '../../scripts/build-contract.mjs';
+import {BUILD_POLICY,entryByteBudget} from '../../scripts/build-contract.mjs';
 import {assertClassicIIFE,inspectScript} from '../../scripts/verify-package.mjs';
 import {FIXED_ENTRY_PATHS,summarizeFixedEntries,summarizePackageResources,measureFixedEntries,measurePackageResources} from '../../scripts/audit-fixed-entries.mjs';
 import {BUILTIN_CATALOG} from '../../src/libs/catalog.js';
@@ -28,6 +28,8 @@ test('all approved fixed entries use actual minified byte counts and retain a no
   assert.equal(summary.fixedEntryCount,FIXED_ENTRY_PATHS.length);
   assert.equal(summary.productionBudgetBytes,512 * 1024);
   assert.equal(summary.fixedEntryReviewBytes,320 * 1024);
+  assert.equal(summary.toolShellProductionBudgetBytes,1024 * 1024);
+  assert.equal(summary.toolShellReviewBytes,640 * 1024);
   assert.deepEqual(summary.critical,[]);
   assert.deepEqual(summary.reviewRequired,[]);
   assert.equal(summary.serviceWorkerProductionBudgetBytes,1024*1024);
@@ -159,18 +161,48 @@ test('SW review at 512 KiB is non-blocking and 1 MiB hard cap blocks +1 byte',()
   setBytes(BUILD_POLICY.serviceWorkerProductionBytes+1);
   assert.throws(()=>summarizeFixedEntries(f.receipt,f.measured),/exceeds configured/);
 });
-test('Sidebar and other generated scripts may cross 320 KiB, but 512 KiB remains a strict limit',()=>{
+test('only the fixed Side Panel host receives 1 MiB; other fixed outputs retain the 512 KiB limit',()=>{
+  assert.equal(entryByteBudget('ui/tool-shell.js','production'),1024*1024);
+  assert.equal(entryByteBudget('ui/tool-shell.js','development'),1024*1024);
+  assert.equal(entryByteBudget('sw.js','production'),1024*1024);
+  assert.equal(entryByteBudget('sw.js','development'),1536*1024);
+  for(const target of ['ui/sidebar-tool-host.js','agents/page-relay.js','libs/packages/axios.js']){
+    assert.equal(entryByteBudget(target,'production'),512*1024);
+    assert.equal(entryByteBudget(target,'development'),512*1024);
+  }
+  assert.throws(()=>entryByteBudget('ui/tool-shell.js','unknown'),/Unknown build mode/);
+});
+test('Side Panel host 640 KiB soft review and 1 MiB hard limit apply to exact output only',()=>{
   const f=fixture(),path='ui/tool-shell.js',row=f.receipt.bundleModules.find(item=>item.target===path);
+  const setBytes=bytes=>{
+    row.bytes=bytes;f.measured[path].bytes=bytes;
+    f.receipt.report.files.find(item=>item.path===path).bytes=bytes;
+  };
+  setBytes(BUILD_POLICY.toolShellReviewBytes-1);
+  assert.deepEqual(summarizeFixedEntries(f.receipt,f.measured).reviewRequired,[]);
+  setBytes(BUILD_POLICY.toolShellReviewBytes);
+  let report=summarizeFixedEntries(f.receipt,f.measured);
+  assert.deepEqual(report.reviewRequired,[path]);
+  assert.equal(report.entries.find(item=>item.path===path).risk,'normal');
+  assert.equal(report.entries.find(item=>item.path===path).budgetBytes,BUILD_POLICY.toolShellProductionBytes);
+  setBytes(BUILD_POLICY.toolShellProductionBytes);
+  report=summarizeFixedEntries(f.receipt,f.measured);
+  assert.equal(report.entries.find(item=>item.path===path).remainingBytes,0);
+  setBytes(BUILD_POLICY.toolShellProductionBytes+1);
+  assert.throws(()=>summarizeFixedEntries(f.receipt,f.measured),/exceeds configured/);
+});
+test('other fixed entries still receive 320 KiB review and fail closed above 512 KiB',()=>{
+  const f=fixture(),path='ui/sidebar-tool-host.js',row=f.receipt.bundleModules.find(item=>item.target===path);
   const setBytes=bytes=>{
     row.bytes=bytes;f.measured[path].bytes=bytes;
     f.receipt.report.files.find(item=>item.path===path).bytes=bytes;
   };
   setBytes(BUILD_POLICY.fixedEntryReviewBytes-1);
   assert.deepEqual(summarizeFixedEntries(f.receipt,f.measured).reviewRequired,[]);
-  setBytes(BUILD_POLICY.fixedEntryReviewBytes+1);
+  setBytes(BUILD_POLICY.fixedEntryReviewBytes);
   let report=summarizeFixedEntries(f.receipt,f.measured);
   assert.deepEqual(report.reviewRequired,[path]);
-  assert.equal(report.entries.find(item=>item.path===path).risk,'normal');
+  assert.equal(report.entries.find(item=>item.path===path).budgetBytes,512*1024);
   setBytes(BUILD_POLICY.productionBytes);
   report=summarizeFixedEntries(f.receipt,f.measured);
   assert.equal(report.entries.find(item=>item.path===path).remainingBytes,0);
@@ -186,7 +218,7 @@ test('development distinguishes SW budget and source maps from executable code',
   f.receipt.report.files.push({path:'sw.js.map',...f.measured['sw.js.map']});
   const report=summarizePackageResources(f.receipt,f.measured);
   assert.equal(report.entries.find(row=>row.path==='sw.js').budgetBytes,1536*1024);
-  assert.equal(report.entries.find(row=>row.path==='ui/tool-shell.js').budgetBytes,512*1024);
+  assert.equal(report.entries.find(row=>row.path==='ui/tool-shell.js').budgetBytes,1024*1024);
   assert.equal(report.sourceMapBytes,500000);
 });
 test('fails closed on missing, duplicated, unmeasured or mismatched fixed entries',()=>{

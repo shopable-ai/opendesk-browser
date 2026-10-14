@@ -56,7 +56,9 @@ function summarizeGeneratedEntries(receipt,measuredFiles) {
     }
     if (recorded.bytes > budget) throw Error('Fixed entry exceeds configured byte budget: ' + row.target);
     const reviewThresholdBytes=receipt.mode==='production'
-      ? row.target==='sw.js'?BUILD_POLICY.serviceWorkerReviewBytes:BUILD_POLICY.fixedEntryReviewBytes
+      ? row.target==='sw.js'?BUILD_POLICY.serviceWorkerReviewBytes
+        : row.target==='ui/tool-shell.js'?BUILD_POLICY.toolShellReviewBytes
+          : BUILD_POLICY.fixedEntryReviewBytes
       : null;
     const ratio = recorded.bytes / budget;
     return {
@@ -77,6 +79,8 @@ function summarizeGeneratedEntries(receipt,measuredFiles) {
     budgetSource: 'scripts/build-contract.mjs',
     productionBudgetBytes: BUILD_POLICY.productionBytes,
     fixedEntryReviewBytes: BUILD_POLICY.fixedEntryReviewBytes,
+    toolShellProductionBudgetBytes: BUILD_POLICY.toolShellProductionBytes,
+    toolShellReviewBytes: BUILD_POLICY.toolShellReviewBytes,
     serviceWorkerProductionBudgetBytes: BUILD_POLICY.serviceWorkerProductionBytes,
     serviceWorkerDevelopmentBudgetBytes: BUILD_POLICY.developmentBytes,
     serviceWorkerReviewBytes: BUILD_POLICY.serviceWorkerReviewBytes,

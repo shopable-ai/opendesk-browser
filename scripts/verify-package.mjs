@@ -79,8 +79,9 @@ function editionFiles(edition){
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 // SW shipping cap: 1 MiB (512 KiB review); development SW: 1.5 MiB.
-// Other generated JS remains capped at 512 KiB; safety scans are unchanged.
-if (!same(BUILD_POLICY, {productionBytes: 512 * 1024, fixedEntryReviewBytes: 320 * 1024, serviceWorkerProductionBytes: 1024 * 1024, serviceWorkerReviewBytes: 512 * 1024, developmentBytes: 1536 * 1024, splitChunks: false, runtimeChunk: false, formats: ['iife'], sourcemap: {production: false, development: true}})) throw new Error('Unexpected build policy contract');
+// Only ui/tool-shell.js has a 1 MiB cap (640 KiB review); all other generated
+// JS remains capped at 512 KiB. The AST/CSP and exact-package guards remain.
+if (!same(BUILD_POLICY, {productionBytes: 512 * 1024, fixedEntryReviewBytes: 320 * 1024, toolShellProductionBytes: 1024 * 1024, toolShellReviewBytes: 640 * 1024, serviceWorkerProductionBytes: 1024 * 1024, serviceWorkerReviewBytes: 512 * 1024, developmentBytes: 1536 * 1024, splitChunks: false, runtimeChunk: false, formats: ['iife'], sourcemap: {production: false, development: true}})) throw new Error('Unexpected build policy contract');
 if (Object.entries(PACKAGE_ENTRIES).some(([name]) => name !== 'sw' && FIXED_OUTPUTS[name.split('/').at(-1)] !== `${name}.js`)) throw new Error('Unexpected fixed output contract');
 if (!Object.isFrozen(SDK_RESOURCE_PATHS) || !same(SDK_RESOURCE_PATHS, ['framework/sdk-main.js', 'agents/page-relay.js']) || SDK_RESOURCE_MANIFEST !== 'framework/sdk-resources.json') throw new Error('Unexpected SDK resource contract');
 export async function filesAt(root, prefix = '') {
