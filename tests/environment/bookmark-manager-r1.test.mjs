@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createBookmarkService} from '../../src/bookmark-manager/service.js';
+import {createBookmarkManager} from '../../src/bookmark-manager/trusted-ui.js';
 import {bookmarkTree,isDescendant,asHttpUrl,parentFolder,projectBookmarkRows} from '../../src/bookmark-manager/model.js';
 
 const initial=()=>[{id:'0',title:'root',children:[
@@ -126,4 +127,53 @@ test('Chrome managed folderType cannot be selected as a writable parent without 
  assert.equal(tree.byId.get('3').locked,true);
  assert.throws(()=>parentFolder(tree,'3'),/保护/);
  assert.equal(parentFolder(tree,'1').id,'1','ordinary Chrome root folders remain writable');
+});
+
+test('trusted Side Panel tree shows more than 200 rows, searches later rows and handles revoke/regrant',async()=>{
+ const f=harness();
+ for(let index=0;index<420;index++){
+   await f.bookmarks.create({title:'Needle '+index,url:'https://example.com/'+index,parentId:'1'});
+ }
+ const listeners=new Map(),container={
+   hidden:true,innerHTML:'',
+   addEventListener(name,fn){listeners.set(name,fn)},
+   removeEventListener(name,fn){if(listeners.get(name)===fn)listeners.delete(name)},
+   contains:()=>true,
+   querySelector:()=>({focus(){},setSelectionRange(){}}),
+   querySelectorAll:()=>[]
+ };
+ const manager=createBookmarkManager({api:f.api,doc:{},container});
+ assert.ok(manager);
+ const settled=async predicate=>{
+   for(let n=0;n<50;n++){
+     if(predicate())return;
+     await new Promise(resolve=>setTimeout(resolve,5));
+   }
+   assert.fail('trusted bookmark UI did not settle');
+ };
+ const displayed=()=>[...container.innerHTML.matchAll(/class="bm-node /g)].length;
+ const click=(bm,id)=>{
+   const item={dataset:{bm,id}};
+   listeners.get('click')({target:{closest:()=>item}});
+ };
+ manager.open();
+ await settled(()=>displayed()===200);
+ assert.match(container.innerHTML,/已显示 200 \/ 424 项/);
+ click('more-results');
+ assert.equal(displayed(),400);
+ click('more-results');
+ assert.equal(displayed(),424);
+ assert.doesNotMatch(container.innerHTML,/data-bm="more-results"/);
+ listeners.get('input')({target:{id:'bookmark-manager-search',value:'Needle 419',selectionStart:10},isComposing:false});
+ assert.equal(displayed(),1);
+ assert.match(container.innerHTML,/data-id="619"/,'the last bookmark must be searchable');
+ f.setPermission(false);f.api.permissions.onRemoved.emit({permissions:['bookmarks']});
+ await settled(()=>container.innerHTML.includes('授权访问书签'));
+ assert.equal(displayed(),0,'revoked permissions must not look like an empty tree');
+ f.setPermission(true);f.api.permissions.onAdded.emit({permissions:['bookmarks']});
+ await settled(()=>displayed()===1);
+ manager.close();
+ assert.equal(container.hidden,true);
+ manager.dispose();
+ assert.equal(listeners.size,0,'dispose must retire DOM observers');
 });
