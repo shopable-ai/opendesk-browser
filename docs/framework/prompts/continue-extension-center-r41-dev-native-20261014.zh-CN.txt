@@ -1,0 +1,59 @@
+继续 OpenDesk Browser Extension Center R4.1 的开发修复与最终 Mac Chrome 原生验收，默认中文。不要重新设计 R4，不另写总 GOAL 或 HTML 原型来替代执行。
+
+仓库：/Users/shopme/Documents/workspace/opendesk-browser
+仅 main 可编辑、提交及正常推送；不得创建分支、worktree、PR，不得混入他人改动。按当前授权安全提交，不 release/publish。
+
+第一步：读取 AGENTS.md、docs/framework/extension-development-r131.zh-CN.md、docs/framework/testing-guide.md、docs/framework/parallel-development.md，以及本轮唯一续接工作流：
+docs/framework/workstreams/extension-center-r41-native-01a13a66.md
+检查 git status、最新本地/远端 main、相关文件 diff、实际 watcher、浏览器 Profile/扩展路径和资源 owner。main 的其他文件有并行改动不构成全局停工理由。
+
+必须纠正的开发方式
+
+1. 上轮运行的是独立 CFT 中的 production 静态验收包，无「调试」Tab、无热更新；它用于正式验收，不应继续承担反复修改循环。
+2. 日常源码修复使用已有 npm run dev watcher，Chrome 固定加载仓库 dist/development，保留正常扩展 ID。不要新建 local-dev-会话目录，不要把隔离验收包替换进日常 Chrome。
+3. 交接时 npm 父 PID 33560 / watcher PID 33580 持有 .wxt/public 和 dist/development，端口 43119/43120。PID 只是线索，先确认仍存活及实际 owner；不得停别人的服务、另起第二个 writer 或覆盖输出。
+4. 「调试」来自 MODE=development；build:dev 也显示它，但没有 serve 客户端。只有开发服务连接成功、实际构建指纹匹配且浏览器接收到更新，才可称持续开发。Chrome 开发者模式、产品「开发」Tab、Developer edition 分别核对，不能混为一谈。dev 当前默认 Developer edition；正式候选仍须核对目标 edition。
+5. 验证已有更新机制：tool-shell.css 同文档热加载；HTML/Sidebar JS 保存草稿后安全刷新；Background/宿主等等待资源释放后安全重载。其他 CSS/资源的实际分类读现有实现，不能宣称任意模块都能 HMR。不得为测试更新自动运行草稿、重放网页效果或绕过 unknown/stop/native 栅栏。
+6. 首条报告当前运行方式、实际加载路径、连接状态、缺口和通过条件。先确认持续开发链路，再继续必要修复。若现有服务/Chrome 归另一会话，按资源协议核对并协调，只暂停受影响资源；不要擅自接管，也不要退回反复静态打包作为默认开发方案。
+7. 功能收敛后再冻结一次正式 production 候选，在独立验收 Profile 验证五 Tab、权限与完整用户流程；只补变化影响的验证，不重复无关的全量验收。development PASS 不自动变成 production PASS。
+
+已经完成的工作，先复用证据
+
+- 真实验收旧候选：30586c0457d04503becf73103dcf99d33d2e6e67；production hash eac0d67dc08a9c1675c5aad99b0f76a915066b6eba930dffaef16b4c7a224805。
+- 已在 main 提交两项实际缺陷修复：6b15d3f4 搜索放大镜黑点；3727bc01 已安装应用真实来源及固定包 SHA 展示，复用原市场 provenance。先读最新源码和 diff，不重复开发。
+- 194 项 R4/Sidebar 等定向回归 PASS；candidate3 check 检查 689 文件 PASS，production/development 构建及双包 verify PASS。日志在下述证据目录；仅限该冻结快照，不涵盖最新 main 的其他并行变化。
+- candidate3 production hash 7e80bd981a0f9059dc2972a7b100fa60f044065c2d717f479ca631a9de58e044；development hash 3875c0ae10f27ad24b1f8cc572be40aef5e0c0d981697e5be1228ca1001041aa。
+- 原始证据目录：docs/framework/evidence/extension-center-r41-01a13a66/。保留全部成功和失败，新增使用新文件名；不能重写 receipt。
+- 已完成的旧包真实操作包括：五 Tab、混合应用/Page 连续列表、搜索和部分筛选/空态、官方 Markdown 应用安装打开/启停/更新/卸载、Page 创建验证安装/新文档自动运行/禁用、本地包导入知识收件箱、真实书签权限与收藏、任务参数运行/结果/搜索、一次性 Chrome Alarm 成功、部分返回焦点与草稿保护、浅色/深色与 360px 观察。细节看工作流及原始 JSON。
+- 安装任务 run 5e6b8044-3a39-4f15-bed2-c0619b22612b / result 124e3c74-cad5-411c-90f4-6f1668faa45e；定时 run fd324f7a-35bd-4004-a7a4-e582489e2f79 / result 896a5e02-a017-4bc5-810b-d3a68b6d71c0。结果 completed、retirement released，源码 hash 1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63。不要伪造或重建运行回执。
+- 独立十维评审为 PARTIAL，旧包限定分 88/90/86/92/90/94/88/75/93/85；不是最新包正式得分，不能认定 95+。
+
+验收专属环境交接（不是日常开发目录）
+
+- .runtime/extension-center-r41-01a13a66/chrome-launch.json 记录本轮 CFT PID 13199、独立 profile、可执行文件。先验证 PID/参数/归属，不能仅按旧 PID 操作。
+- app bundle ID dev.opendesk.extcenter.r41.01a13a66；extension ID mldjeihjkmpfkdekkkinfppihccmmfkf。
+- 独立加载路径 .runtime/extension-center-r41-01a13a66/candidate/dist/production。
+- 原包已保存在 candidate/dist-30586-frozen/production；在扩展停用后，同一验收路径已换为 candidate3 并重新启用，保留相同 ID/测试数据。handoff-after-package-replacement.json 仅证明新 hash 的目录与 BACKGROUND 启动。交接时 Side Panel 尚未重新打开，两项修复的原生确认仍 NOT_TESTED。
+- tests/framework/extension-center-r41-native-observer.mjs 是只读观察器；所有产品操作使用受控 CFT 的真实原生输入，不能用 DOM 赋值、synthetic events 或伪造 privileged RPC。
+- 标准网页 http://127.0.0.1:43111/demo-form.html；已有服务先复用。
+
+继续完成的验收范围
+
+1. production 正式 Sidebar 只有「我的、扩展、工作流、开发、云控」；development 额外「调试」不作为正式导航缺陷。
+2. 默认本机已安装应用与 Page 网页增强混在单一连续列表；完整搜索、类型/范围筛选、恢复默认、清空、键盘焦点。
+3. 官方市场真实审阅/安装/打开应用；启停、设置、版本更新、真实来源/固定 SHA、网站授权、卸载，保留 Chrome 手势及固定身份。
+4. 从开发创建真实 Page 网页增强，验证安装、网站范围、自动运行和禁用，不绕过 userscripts 许可或 frame 合同。
+5. 我的：任务搜索、参数、运行、停止、历史结果、定时计划。上轮停止尚未完成，要用真正可停止的合法任务验证，不能用 Developer 草稿 Stop 代替已安装任务 Stop。
+6. 更多菜单：本地工具包导入、书签管理和真实权限。
+7. 列表→详情→设置/应用→返回的滚动、焦点、未保存草稿保护。
+8. 正式 Side Panel 实体宽度 300/320/360/420/520 CSS px，浏览器缩放 100/125/150/200%，浅/深色、长名称/说明、空态、错误态、大量扩展，图标/按钮基线。
+9. Tab/Escape/键盘筛选、屏幕阅读器名称和焦点恢复。AX 树存在不等于完整无障碍通过。
+10. 保持一个 Tool Installer、一个 Page Installed Registry、原 Task Controller/RunHost/权限系统，不重建 SDK、数据库或消息总线。
+
+已知验证方法限制：原生 AX 调整分隔条未改变 360px；坐标拖动出现 windowNotFoundAtPosition。125% Chrome 缩放只改变业务页，Side Panel 仍 360px/dpr2。这些是方法/平台行为记录，不是其他实体宽度或 Side Panel 缩放已通过。不能用 HTML 原型、普通扩展 tab、CDP emulation 或 CSS scale 充当正式实体面板矩阵。只有代码、环境或方法明确变化才重试同一失败。
+
+完成条件
+
+读取实际失败日志并修复根因；不删测试、不降断言。按 testing-guide 先复用同输入结果，再跑受影响 R4/Sidebar/Task/Page 回归、npm run check、正式与开发构建和包校验；共享输出须先协调，或使用已有独立冻结快照/输出/守卫，禁止覆盖运行中的 watcher。
+同一最终候选保留真实操作截图、AX、日志、source/package hash、必要 runId/resultId 和释放回执。十维分别独立评分：导航架构、列表 UI、搜索筛选、安装管理、网页增强、任务兼容、视觉响应式、无障碍、安全权限、工程维护性；每项 >=95 才能认定完成。缺项写 NOT_TESTED，未达标继续修复，不虚构分数或成功。
+沿用本工作流记录负责人、写入文件/契约、资源、复用证据和剩余项；只对本任务指定路径安全暂存与 Lore 提交，不混入其他会话的 Cookie/Workflow/tool.html 等改动。交付真实证据、缺陷修复、未通过项及最终 SHA，不能只给下一份计划。

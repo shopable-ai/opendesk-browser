@@ -16,6 +16,10 @@ YOU ARE AN AUTONOMOUS CODING AGENT. EXECUTE AUTHORIZED TASKS TO COMPLETION WITHO
 
 日常修改扩展源码时，Chrome 固定加载本仓库的 `dist/development`，由 `npm run dev` 持续更新；不得自行复制到 `~/.opendesk-browser/extensions/local-dev-<会话标识>` 等新目录并替换日常扩展。隔离构建、验收包只用于对应工作流的独立 CFT/Profile。修复本地项目开发或 Native 接入问题时，优先保留正常加载目录和扩展 ID，不把某次隔离候选安装进日常 Chrome 作为快捷修复。
 
+**开发修复与最终验收必须分清（用户于2026-10-14明确）：** 日常修复使用已有 `npm run dev` watcher 和上述固定目录，先核对实际加载路径、ID、开发服务连接及构建指纹；不得把每次修改后的全量 `build`、复制静态包、重装扩展作为默认迭代方式。正式版为五个产品 Tab；development 构建额外显示「调试」，但 `npm run build:dev` 仍是静态构建，只有 `npm run dev` 的 serve 客户端连接成功才启用持续更新。Chrome 的「开发者模式」、产品「开发」Tab、Standard/Developer edition 均不能替代这项检查。更新依当前实现分别为 CSS 热加载、工具文档安全刷新或扩展安全重载，不能承诺所有源码都原地 HMR，也不能绕过任务/原生请求/草稿的安全栅栏。
+
+缺陷收敛后再冻结候选，在验收专属 CFT/Profile 加载 production 静态包，验证正式五 Tab、权限和最终包身份；发现缺陷回到持续开发环境修复，随后仅重建和复验受影响的候选。开发模式证据不得冒充 production 验收，旧候选不得冒充新包。已有 watcher 的输出不得由第二个 dev/build 覆盖；收尾构建须先协调该 writer，或依现有协议使用独立快照、输出和守卫，不能擅自停止其他会话服务。首条及模式切换时说明当前是「持续开发 / 静态开发包 / production 验收包」，并给出实际路径与连接状态。
+
 核对 Chrome 实际启用扩展的加载路径、真实 ID、Go doctor 的 `local.extensionId` 及 Native manifest 的 `allowed_origins`，不能用仓库 HEAD、目录名或版本号替代配对检查。用户明确要求切换或删除历史副本时，先保留必要证据和可恢复备份、收尾连接，再使用所属 owner 的官方命令修复配对；跨 ID 的 `E_EXTENSION_ID_CONFLICT` 不得靠直接改写或删除 Native 配置绕过。日常源码开发详见 `docs/framework/extension-development-r131.zh-CN.md`。
 
 ## Browser SDK 唯一设计封版与实施入口（2026-10-13）

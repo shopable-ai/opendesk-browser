@@ -2,6 +2,22 @@
 
 这页用于修改 OpenDesk 扩展自身的 `src/` 源码。Sidebar 编写用户脚本、Native/MCP 读取本地项目，请继续使用[程序开发指南](../product/program-development-dual-format-and-sidebar.zh-CN.md)。源码更新不会替你运行用户脚本。
 
+## 先确认当前运行方式（2026-10-14）
+
+| 运行方式 | 一级 Tab | 自动更新 | 用途 |
+| --- | --- | --- | --- |
+| `npm run dev`，Chrome 加载本仓库 `dist/development`，开发客户端连接成功 | 五个产品 Tab +「调试」 | 监听源码、增量编译；按变更类别热加载或安全刷新/重载 | 日常开发和缺陷修复 |
+| `npm run build:dev` 的静态 development 包 | 五个产品 Tab +「调试」 | 没有持续开发客户端；保存源码不会自动更新已加载包 | 静态开发包检查 |
+| `npm run build` 的 production 包 | 我的、扩展、工作流、开发、云控 | 没有开发服务或热更新 | 冻结候选及正式产品验收 |
+
+这三种方式以 `src/entrypoints/tool-shell.js` 的 `MODE`（调试 Tab）与 `COMMAND==='serve'`（开发连接）分别控制。**看见「调试」只证明 development UI 被启用，不能证明热更新已连接。** Chrome「开发者模式」只是允许加载未打包扩展；产品「开发」Tab 是用户脚本工作台，都不等同于扩展源码的持续开发。
+
+Standard/Developer edition 是另一个打包维度；当前 `npm run dev` 默认 Developer edition，静态构建默认 Standard。实际名称、edition、权限和包身份分别核对，开发版的行为不能直接当作 Standard production 的验收结果。
+
+先在持续开发环境修复并做定向验证，收敛后再冻结 production 候选，在验收专属 CFT/Profile 检查正式五 Tab 和真实流程。验收发现缺陷，回到持续开发环境修改，再对新候选补受影响验证。不要把反复全量构建、复制 production 目录及重新安装作为日常修改循环；也不要用开发截图代替正式包证据。
+
+开始工作及切换模式时，记录实际加载路径、扩展 ID、构建模式/edition、开发连接状态和指纹。已有 watcher 存活时复用它，不再启动第二个写入者；只有完成对应资源协调后才能停服务或构建共享目录。独立冻结快照仍遵循现有并行开发协议。
+
 ## 第一次启动
 
 要求 Node.js >=22.12.0，Chrome >=138。
