@@ -114,9 +114,9 @@ export function deriveBrowserDirectBindings(matrix,registry=BROWSER_OPERATIONS){
 }
 export function renderBrowserDirectModule(descriptors){
   const encoded=JSON.stringify(descriptors,null,2);
-  return '// Generated from the pinned, approved Browser SDK matrix. Do not edit.\\n'+
-    '// Runtime import is a finite allowlist, not a Chrome RPC surface.\\n'+
-    'export const APPROVED_BROWSER_DIRECT_BINDINGS=Object.freeze('+encoded+');\\n';
+  return '// Generated from the pinned, approved Browser SDK matrix. Do not edit.\n'+
+    '// Runtime import is a finite allowlist, not a Chrome RPC surface.\n'+
+    'export const APPROVED_BROWSER_DIRECT_BINDINGS=Object.freeze('+encoded+');\n';
 }
 
 export async function syncBrowserBindings({root=ROOT,check=false}={}){
