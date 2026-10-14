@@ -236,30 +236,18 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   // Finite bindings to EXISTING scoped drivers: Sender, installed identity,
   // one-shot user intent and Origin were checked before this dispatcher runs.
   // No dynamic access to chrome[namespace][method] is permitted.
+  // Bind each audited service ONCE. Approved method names are resolved at
+  // startup from BROWSER_OPERATIONS and own service methods, not package data.
+  // Browser Sender, one-use gesture, tool identity, scope and revoke fencing
+  // remain in this existing trusted Host + each scoped Driver.
   const scopedBindings=createApprovedBrowserBindings({
-    'browser.downloads.download':(input,owner)=>downloadHost.download(input,owner),
-    'browser.downloads.cancelOwned':(input,owner)=>downloadHost.cancelOwned(input,owner),
-    'browser.bookmarks.create':(input,owner)=>bookmarkHost.create(input,owner),
-    'browser.bookmarks.removeOwned':(input,owner)=>bookmarkHost.removeOwned(input,owner),
-    'browser.tabs.create':(input,owner)=>tabHost.create(input,owner),
-    'browser.tabs.activateOwned':(input,owner)=>tabHost.activateOwned(input,owner),
-    'browser.tabs.pinOwned':(input,owner)=>tabHost.pinOwned(input,owner),
-    'browser.tabs.reloadOwned':(input,owner)=>tabHost.reloadOwned(input,owner),
-    'browser.tabs.navigateOwned':(input,owner)=>tabHost.navigateOwned(input,owner),
-    'browser.tabs.removeOwned':(input,owner)=>tabHost.removeOwned(input,owner),
-    'browser.tabs.getOwned':(input,owner)=>tabHost.getOwned(input,owner),
-    'browser.tabs.listOwned':(input,owner)=>tabHost.listOwned(input,owner),
-    'browser.downloads.getOwned':(input,owner)=>downloadHost.getOwned(input,owner),
-    'browser.downloads.listOwned':(input,owner)=>downloadHost.listOwned(input,owner),
-    // Storage uses one existing tool-namespaced service, never raw chrome.*
-    // Names are a finite audited list, not tool-controlled method strings.
-    ...Object.fromEntries(['get','set','remove','clear'].map(action=>{
-      const operation='browser.storage.local.'+action;
-      return [operation,(input,owner)=>executeBrowserToolStorage({
-        api,operation,toolId:owner.toolId,input,
-        authorize:()=>verifyBrowserOwner(owner,operation)
-      })];
-    }))
+    bookmarks:bookmarkHost,
+    tabs:tabHost,
+    downloads:downloadHost,
+    'storage.local':(input,owner,operation)=>executeBrowserToolStorage({
+      api,operation,toolId:owner.toolId,input,
+      authorize:()=>verifyBrowserOwner(owner,operation)
+    })
   });
   const dispatchScoped=(operation,input,owner)=>scopedBindings.dispatch(operation,input,owner,{
     authorize:(method,_input,context)=>verifyBrowserOwner(context,method,context.approvedOrigin)
