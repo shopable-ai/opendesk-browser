@@ -1,6 +1,6 @@
 ---
 name: opendesk-extension-runtime
-description: Engineer Chrome MV3/WXT Background/Content/MAIN, Page USER_SCRIPT, Controller, Side Panel and Native capabilities for 扩展-center apps. Preserve one SDK, sender, Authority and lifecycle boundaries; not for unified-list CSS or sandbox application packaging.
+description: Engineer Chrome MV3/WXT Background/Content/MAIN, SDK/Host/Authority installation, revocation and lifecycle across Controller/Page/Side Panel/Native. Own shared Page Program Authority implementation; not first-party feature logic, unified-list UI, sandbox app packaging or user program publishing.
 ---
 
 # OpenDesk Browser · 扩展管理员多运行环境与 Chrome API 工程

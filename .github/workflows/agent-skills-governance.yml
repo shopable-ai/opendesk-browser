@@ -6,11 +6,33 @@ on:
       - '.agents/skills/**'
       - 'tests/environment/agent-skills-r1.test.mjs'
       - '.github/workflows/agent-skills-governance.yml'
+      - 'docs/product/sidebar-ui-spec.zh-CN.md'
+      - 'docs/architecture/ui-layout-conventions-r27.zh-CN.md'
+      - 'docs/architecture/sidebar-multi-section-tab-contract-r28.zh-CN.md'
+      - 'docs/architecture/sidebar-design-system-r20.zh-CN.md'
+      - 'docs/api/sidebar-tools.zh-CN.md'
+      - 'docs/api/sidebar-tool-development.zh-CN.md'
+      - 'examples/sidebar-tools/README.zh-CN.md'
+      - 'src/ui/tool.html'
+      - 'src/ui/extension-center.js'
+      - 'src/ui/extension-center-model.js'
+      - 'src/ui/extension-center.css'
   pull_request:
     paths:
       - '.agents/skills/**'
       - 'tests/environment/agent-skills-r1.test.mjs'
       - '.github/workflows/agent-skills-governance.yml'
+      - 'docs/product/sidebar-ui-spec.zh-CN.md'
+      - 'docs/architecture/ui-layout-conventions-r27.zh-CN.md'
+      - 'docs/architecture/sidebar-multi-section-tab-contract-r28.zh-CN.md'
+      - 'docs/architecture/sidebar-design-system-r20.zh-CN.md'
+      - 'docs/api/sidebar-tools.zh-CN.md'
+      - 'docs/api/sidebar-tool-development.zh-CN.md'
+      - 'examples/sidebar-tools/README.zh-CN.md'
+      - 'src/ui/tool.html'
+      - 'src/ui/extension-center.js'
+      - 'src/ui/extension-center-model.js'
+      - 'src/ui/extension-center.css'
 permissions:
   contents: read
 jobs:
@@ -23,3 +45,4 @@ jobs:
         with:
           node-version: '22'
       - run: node --test tests/environment/agent-skills-r1.test.mjs
+      - run: node --test tests/environment/sidebar-r21-design-system.test.mjs
