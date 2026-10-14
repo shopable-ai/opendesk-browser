@@ -1,4 +1,4 @@
-name: Bookmark Manager R2.1 - SDK-gated preparation and regression
+name: Bookmark Manager R2.2 - SDK-gated preparation and regression
 on:
   push:
     branches: [main]
@@ -43,6 +43,6 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
           path: |
-            artifacts/sidebar-tools/bookmark-manager/0.2.0/bookmark-manager.opendesk-tool.json
+            artifacts/sidebar-tools/bookmark-manager/0.2.1/bookmark-manager.opendesk-tool.json
             docs/framework/evidence/wxt/builds/build-production.json
             docs/framework/evidence/wxt/builds/build-development.json

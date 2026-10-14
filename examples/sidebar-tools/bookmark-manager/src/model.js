@@ -16,15 +16,29 @@ const displayName=value=>{
 };
 const bookmarkTree=(roots,{snapshotRef=null}={})=>{
   if(!Array.isArray(roots)||!roots.length)fail('Chrome 未返回有效的书签树；不能当作空树');
+  if(roots.length!==1)fail('Chrome 书签树缺少唯一根节点');
   const byId=new Map(),children=new Map(),rootIds=new Set();
   const walk=(node,parent=null,managedAncestor=false,depth=0)=>{
-    if(depth>100||byId.size>=20000||typeof node?.id!=='string'||byId.has(node.id))fail('Chrome 书签树无效或超出展示安全上限');
+    if(depth>100||byId.size>=20000||!node||typeof node!=='object'||
+      Array.isArray(node)||typeof node.id!=='string'||!node.id||byId.has(node.id))
+      fail('Chrome 书签树无效或超出展示安全上限');
+    const folder=!Object.hasOwn(node,'url');
+    if(parent){
+      if(node.parentId!=null&&node.parentId!==parent.id)
+        fail('Chrome 书签树父目录不一致');
+    }else if(node.parentId!=null||!folder)fail('Chrome 书签根节点无效');
+    // getTree must include each folder's children, including empty folders.
+    // Never accept a partial hierarchy and silently omit user bookmarks.
+    if(folder&&!Array.isArray(node.children))
+      fail('Chrome 书签文件夹缺少完整子项');
+    if(!folder&&(typeof node.url!=='string'||Object.hasOwn(node,'children')))
+      fail('Chrome 书签节点类型无效');
     const managed=managedAncestor||node.unmodifiable==='managed'||node.folderType==='managed';
     const value={...node,locked:managed||!parent||!parent.parentId,parentId:node.parentId??parent?.id??null};
     byId.set(node.id,value);
     if(!parent)rootIds.add(node.id);
     if(parent){const list=children.get(parent.id)||[];list.push(node.id);children.set(parent.id,list)}
-    if(Array.isArray(node.children))node.children.forEach(child=>walk(child,value,managed,depth+1));
+    if(folder)node.children.forEach(child=>walk(child,value,managed,depth+1));
   };
   roots.forEach(node=>walk(node));
   return {roots:rootIds,byId,children,snapshotRef};
@@ -52,7 +66,7 @@ const bookmarkFlatTree=(nodes,{snapshotRef}={})=>{
     if(!parent||!Array.isArray(parent.children))fail('分页书签缺少合法的父目录');
     parent.children.push(node);
   }
-  if(!roots.length)fail('分页书签缺少根节点');
+  if(roots.length!==1)fail('分页书签缺少唯一根节点');
   const visited=new Set();
   const visit=(node,active,depth)=>{
     if(active.has(node.id)||visited.has(node.id)||depth>100)

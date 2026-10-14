@@ -18,7 +18,7 @@ const sandbox=async()=>{
 test('R2 builds with existing v2 packer; does not claim a nonexistent Full capability',async()=>{
   const pkg=await createSidebarToolPackage(root);
   assert.equal(pkg.id,'bookmark-manager');
-  assert.equal(pkg.version,'0.2.0');
+  assert.equal(pkg.version,'0.2.1');
   assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
   assert.deepEqual(pkg.capabilities,[]);
   assert.equal(pkg.scripts.length,2);
@@ -53,6 +53,27 @@ test('R1 tree projection retains complete 550-bookmark search with 200-row initi
   assert.equal(projected.total,550);assert.equal(projected.rows.length,200);
   assert.equal(model.projectBookmarkRows(tree,{search:'Needle 549'}).rows.length,1);
   assert.equal(model.projectBookmarkRows(tree,{search:'Needle',limit:600}).rows.length,550);
+});
+
+test('R2.2 refuses partial, misparented and multiple-root native trees',async()=>{
+  const ctx=await sandbox(),model=ctx.BookmarkR2Model;
+  const make=children=>[{id:'0',title:'root',children:[
+    {id:'1',title:'bar',parentId:'0',children}]}];
+  const partial=make([{id:'2',title:'folder',parentId:'1'}]);
+  assert.throws(()=>model.bookmarkTree(partial),/完整子项/);
+  assert.throws(()=>model.bookmarkTree(make([{id:'2',title:'leaf',
+    parentId:'wrong',url:'https://example.org/'}])),/父目录不一致/);
+  assert.throws(()=>model.bookmarkTree(make([{id:'2',title:'leaf',
+    parentId:'1',url:'https://example.org/',children:[]}])),/节点类型无效/);
+  assert.throws(()=>model.bookmarkTree([...make([]),
+    {id:'999',title:'extra',children:[]}]),/唯一根节点/);
+  assert.throws(()=>model.bookmarkFlatTree([
+    {id:'0',title:'root'},{id:'1',title:'bar',parentId:'0'},
+    {id:'2',title:'orphan',url:'https://example.org/'}],
+    {snapshotRef:'abcdefghijklmnop'}),/唯一根节点/);
+  const data=fullSdk(ctx,{roots:partial});
+  await assert.rejects(ctx.BookmarkR2Service.create(data.sdk).load(),/完整子项/);
+  assert.equal(data.calls.some(([op])=>['create','update','move','remove','removeTree'].includes(op)),false);
 });
 
 test('Owned-only installed SDK cannot cause any Full bookmark reads or writes',async()=>{

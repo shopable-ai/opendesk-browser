@@ -78,3 +78,14 @@
 - **NOT_TESTED — Native**：实际 Mac Chrome Profile 的 Full 书签 CRUD、500+ 原生树、Chrome optional 权限、拒绝/撤权、Worker 重启、并发删除、工具升级/卸载均没有同一候选原始收据。九维产品专家 95+ 不能据此打分。
 
 后续如有无关主线提交，引用以上精确 SHA 及 Actions 结果；若本目录或 Browser SDK 相关输入发生变化，必须补受影响的定向验证。`src/bookmark-manager/` 旧可信模块仍需保留至真实迁移门禁关闭。
+
+## R2.2 · SDK 前置受阻下的独立树完整性修复（2026-10-15）
+
+**Owner：Bookmark Manager 独立消费端；仅改独立工具、定向测试、专属 CI 和本账本。**
+
+- Chrome-shaped getTree 新增唯一根、文件夹 children 完整性、父子 parentId 一致性及节点类型检查；分页平面快照拒绝多个根，避免数据静默缺失。
+- Node 回归覆盖部分文件夹、伪造 parentId、URL 节点混有 children、多根与拒绝后续写入。
+- 预备包提升版本 0.2.1，调整 README、定向 CI 产物路径，不进入官方 Catalog，不改变 SDK/Host/Driver/权限架构。
+- R11 Full SDK：BLOCKED；真实 Mac Chrome、Native CRUD/500+/撤权/Worker/卸载：NOT_TESTED；旧宿主 src/bookmark-manager 保留。
+
+**本轮测试**：以同候选 GitHub Actions 最终 Node、Check、Build、Package Verify、Verify 为准；无 Mac Profile 时不能报告 Native 通过。
