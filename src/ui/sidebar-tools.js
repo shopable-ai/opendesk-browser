@@ -2013,7 +2013,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   });
   if(bookmarkTrigger&&bookmarkManager)listen(bookmarkTrigger,'click',()=>openBookmarks());
   if(bookmarkRoot&&bookmarkManager)listen(bookmarkRoot,'opendesk-bookmark-manager-back',()=>{
-    render();bookmarkTrigger?.focus?.({preventScroll:true});
+    render();(get('extension-center-more')||bookmarkTrigger)?.focus?.({preventScroll:true});
   });
   const marketButton=get('sidebar-tool-market');
   if(marketButton)listen(marketButton,'click',action(()=>api.tabs.create({url:api.runtime.getURL('ui/marketplace.html')})));

@@ -15,7 +15,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   if(!list)return {refresh:async()=>{},dispose(){}};
   let disposed=false,sequence=0,busy=false,installed=[],pages=[],enabled={},official=[];
   let catalogError='',dataError='',query='',kind='all',scope='smart',selectedKey=null;
-  let listScroll=0,focusKey=null,focusAction=null;
+  let listScroll=0,focusKey=null,focusAction=null,detailFocusAction=null;
   const node=(tag,cls='',value)=>{const element=doc.createElement(tag);if(cls)element.className=cls;
     if(value!==undefined)element.textContent=String(value);return element;};
   const button=(value,fn,cls='')=>{const b=node('button',cls,value);b.type='button';b.addEventListener('click',fn);return b;};
@@ -92,20 +92,20 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   function openDetail(key){
     const row=find(key);if(!row)return;
     focusKey=key;focusAction=doc.activeElement?.dataset?.extensionAction||'detail';
-    listScroll=workspace?.scrollTop||0;selectedKey=key;
+    listScroll=workspace?.scrollTop||0;selectedKey=key;detailFocusAction=null;
     closeMenu();listing.hidden=true;detail.hidden=false;
     renderDetail();workspace?.scrollTo?.({top:0});
     get('extension-center-back')?.focus({preventScroll:true});
   }
   function back(){
-    selectedKey=null;detail.hidden=true;listing.hidden=false;
+    selectedKey=null;detailFocusAction=null;detail.hidden=true;listing.hidden=false;
     workspace?.scrollTo?.({top:listScroll});
     restoreRowFocus(focusKey,focusAction);
   }
   function renderDetail(){
     const row=find(selectedKey);
     if(!row){back();return;}
-    const area=get('extension-center-detail-body'),focused=doc.activeElement?.dataset?.ecDetailAction;
+    const area=get('extension-center-detail-body'),focused=doc.activeElement?.dataset?.ecDetailAction||detailFocusAction;
     area.replaceChildren();
     const head=node('div','ec-detail-head'),glyph=node('span','ec-glyph');
     glyph.textContent=row.kind==='page'?'◇':'▦';glyph.setAttribute('aria-hidden','true');
@@ -119,14 +119,14 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     if(row.kind==='app'){
       if(!row.installed)actions.append(detailButton('在应用市场审阅并安装',()=>openMarket(row.release),'install'));
       else{
-        if(row.enabled)actions.append(detailButton('打开应用',()=>sidebarTools.openTool(row.id),'open'));
-        actions.append(detailButton('设置与权限',()=>sidebarTools.openSettings(row.id),'settings'));
+        if(row.enabled)actions.append(detailButton('打开应用',()=>{backIfNeeded();sidebarTools.openTool(row.id);},'open'));
+        actions.append(detailButton('设置与权限',()=>{backIfNeeded();sidebarTools.openSettings(row.id);},'settings'));
         if(row.update&&row.release)actions.append(detailButton('审阅新版',()=>openMarket(row.release),'update'));
       }
     }else if(row.installed){
       actions.append(detailButton(row.enabled?'停用自动运行':'启用自动运行',
         event=>togglePage(row,event),'toggle'));
-      actions.append(detailButton('前往开发',()=>taskWorkbench.navigate('develop'),'develop'));
+      actions.append(detailButton('前往开发',()=>{if(taskWorkbench.navigate('develop')!==false)backIfNeeded();},'develop'));
     }
     area.append(actions);
     const meta=node('section','ec-detail-card');
@@ -148,15 +148,15 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         '网站访问受限；需要按照原授权规则重新授权。':
         '启用时仅按现有固定网站规则申请必要权限，不扩大安装范围。'));
       area.append(meta,sites);
-      if(focused)area.querySelector('[data-ec-detail-action="'+focused+'"]')?.focus({preventScroll:true});
+      if(focused&&!busy)area.querySelector('[data-ec-detail-action="'+focused+'"]')?.focus({preventScroll:true});
       return;
     }
     area.append(meta);
-    if(focused)area.querySelector('[data-ec-detail-action="'+focused+'"]')?.focus({preventScroll:true});
+    if(focused&&!busy)area.querySelector('[data-ec-detail-action="'+focused+'"]')?.focus({preventScroll:true});
   }
   async function togglePage(row,event){
     if(!event.isTrusted||busy||row.kind!=='page')return;
-    busy=true;renderDetail();
+    detailFocusAction='toggle';busy=true;renderDetail();
     try{
       await setInstalledPageProgramEnabled({api,client,row:row.record});
       message('已按原 Page 授权服务确认自动运行状态。','success');
