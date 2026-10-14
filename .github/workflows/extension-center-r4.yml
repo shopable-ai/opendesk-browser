@@ -1,0 +1,50 @@
+name: Extension Center R4 core and package
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/ui/extension-center.js'
+      - 'src/ui/extension-center-model.js'
+      - 'src/ui/extension-center.css'
+      - 'src/ui/tool.html'
+      - 'src/ui/tool-shell.js'
+      - 'src/ui/sidebar-tools.js'
+      - 'src/ui/task-workbench.js'
+      - 'src/ui/installed-page-tools.js'
+      - 'src/ui/sidebar-tab-memory.js'
+      - 'scripts/prepare-public.mjs'
+      - 'scripts/verify-package.mjs'
+      - 'tests/environment/extension-center-r4.test.mjs'
+      - 'tests/environment/sidebar-product-contract.test.mjs'
+      - 'tests/environment/sidebar-tab-memory.test.mjs'
+      - 'tests/environment/cloud-control-sidebar-r28.test.mjs'
+      - '.github/workflows/extension-center-r4.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  core:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Record exact commit
+        run: git rev-parse HEAD
+      - name: Install pinned toolchain
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Validate extension projection and existing authority contracts
+        run: |
+          node --test tests/environment/extension-center-r4.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/sidebar-tab-memory.test.mjs tests/environment/installed-page-tools-r251.test.mjs
+          node --test tests/environment/cloud-control-sidebar-r28.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/task-workbench.test.mjs
+      - name: Validate source and production package
+        run: |
+          npm run check
+          npm run build
+      - name: Confirm R4 static CSS actually ships
+        run: |
+          test -s dist/production/ui/extension-center.css
+          node scripts/verify-package.mjs dist/production
