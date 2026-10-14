@@ -136,12 +136,24 @@ test('R11 native: denial precedes call, revoke fences results, and malformed ret
   }),code('E_TOOL_DISABLED'));
   assert.equal(effects,1);
   const invalid=createApprovedBrowserBindings({},{
-    registry,nativeDirect:{api:{runtime:{getPlatformInfo:()=>JSON.parse('{"__proto__":{"polluted":true}}')}},descriptors},
+    registry,nativeDirect:{api:{runtime:{getPlatformInfo:async()=>JSON.parse('{"__proto__":{"polluted":true}}')}},descriptors},
     normalize:(_,args)=>args
   });
   await assert.rejects(invalid.dispatch(op,{}, {},{authorize:async()=>{}}),
     code('E_VALUE_SERIALIZATION'));
   assert.equal({}.polluted,undefined);
+  const noPromise=createApprovedBrowserBindings({},{
+    registry,nativeDirect:{api:{runtime:{getPlatformInfo:()=>({os:'mac'})}},descriptors},
+    normalize:(_,args)=>args
+  });
+  await assert.rejects(noPromise.dispatch(op,{}, {},{authorize:async()=>{}}),
+    code('E_CHROME_UNSUPPORTED'));
+  const rejected=createApprovedBrowserBindings({},{
+    registry,nativeDirect:{api:{runtime:{getPlatformInfo:()=>Promise.reject(Error('raw native detail'))}},descriptors},
+    normalize:(_,args)=>args
+  });
+  await assert.rejects(rejected.dispatch(op,{}, {},{authorize:async()=>{}}),
+    code('E_CHROME'));
 });
 
 test('R11 native: old special operations and custom schema validation stay unchanged',()=>{
