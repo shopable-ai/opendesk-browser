@@ -114,10 +114,8 @@ test('R11 namespace resolution ignores inherited, getter and unapproved service 
   let getterCalled=0;
   const driver=Object.create(null);
   Object.defineProperty(driver,'create',{get(){getterCalled++;throw Error('unsafe getter')}});
-  const bindings=createApprovedBrowserBindings({bookmarks:driver});
-  assert.equal(getterCalled,0);
-  assert.equal(bindings.has('browser.bookmarks.create'),false);
-  assert.equal(bindings.has('browser.bookmarks.removeOwned'),false);
+  assert.throws(()=>createApprovedBrowserBindings({bookmarks:driver}),match('E_CONTRACT'));
+  assert.equal(getterCalled,0,'An accessor must never run during Binding discovery');
   assert.throws(()=>createApprovedBrowserBindings({bookmarks:{revokeAll() {}}}),match('E_CONTRACT'));
   assert.throws(()=>createApprovedBrowserBindings(
     Object.fromEntries([['__proto__',{create(){}}]])),match('E_CONTRACT'));
