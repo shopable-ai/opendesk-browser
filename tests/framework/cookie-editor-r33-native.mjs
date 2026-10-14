@@ -150,7 +150,17 @@ async function createCookie(name,value,path='/'){
 async function scopedAction(name,path,action){
   const index=await read(toolSession,`[...document.querySelectorAll('#live-cookie-list .cookie-row')].findIndex(n=>
     n.querySelector('.cookie-row-name')?.textContent===${quote(name)}&&n.querySelector('.cookie-row-meta')?.textContent.startsWith(${quote('127.0.0.1'+path+' ·')}))`);
-  assert(index>=0,'Visible exact scoped row');return '#live-cookie-list .cookie-row:nth-child('+(index+1)+') button[aria-label='+quote(action+' '+name)+']';
+  assert(index>=0,'Visible exact scoped row');
+  const selector='#live-cookie-list .cookie-row:nth-child('+(index+1)+')';
+  return action==='展开编辑'?selector+' .cookie-row-trigger':
+    selector+' button[aria-label='+quote(action+' '+name)+']';
+}
+async function editCookie(name,path='/'){
+  const selector=await scopedAction(name,path,'展开编辑');
+  if((await read(toolSession,'document.querySelector('+quote(selector)+')?.getAttribute("aria-expanded")'))!=='true')
+    await click(toolSession,selector);
+  await until(()=>read(toolSession,'!document.querySelector("#editor-panel").hidden&&document.querySelector('+
+    quote(selector)+')?.getAttribute("aria-expanded")==="true"'),'Installed inline editor '+name);
 }
 async function approveHost(){
   await until(()=>read(side,'!document.querySelector("#sidebar-tool-action-review").hidden'),'Trusted Host approval');
@@ -158,7 +168,9 @@ async function approveHost(){
   await click(side,'#sidebar-tool-action-continue');return message;
 }
 async function deleteCookie(name,path='/'){
-  await click(toolSession,await scopedAction(name,path,'删除'));await click(toolSession,'#confirm-accept');
+  await editCookie(name,path);
+  await click(toolSession,await scopedAction(name,path,'删除 Cookie'));
+  await click(toolSession,'#confirm-accept');
   const message=await approveHost();
   await until(async()=>!(await cookies()).some(c=>c.name===name&&c.path===path),'Exact deleted slot');
   await until(()=>read(toolSession,'!document.querySelector("#live-new").disabled'),'Delete refresh');
@@ -218,7 +230,7 @@ async function save(approvals=1){
   await until(()=>read(toolSession,'!document.querySelector("#live-new").disabled'),'Refreshed Cookie UI');
   return {messages,status:await read(toolSession,'document.querySelector("#status").textContent'),cookies:await cookies()};
 }
-const rowAction=(name,action)=>'#live-cookie-list button[aria-label='+quote(action+' '+name)+']';
+// R4.3 editor/delete operations are scoped by exact name and Cookie Path.
 async function screenshot(name){
   if(!side)return;
   guard();const image=await client.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false},side);
@@ -246,7 +258,8 @@ try{
   const catalog=JSON.parse(await readFile(path.join(extension,'official-tools/catalog.json'),'utf8'));
   const release=catalog.apps.find(row=>row.toolId==='cookie-editor');assert(release,'Official Cookie release missing');
   const pkgBytes=await readFile(path.join(extension,'official-tools/cookie-editor/cookie-editor.opendesk-tool.json'));
-  const pkg=JSON.parse(pkgBytes);assert.equal(pkg.version,process.env.COOKIE_NATIVE_VERSION||'2.0.4');assert.equal(pkg.version,release.version);
+  const pkg=JSON.parse(pkgBytes);const declared=JSON.parse(await readFile(path.join(root,'examples/sidebar-tools/cookie-editor/tool.config.json'),'utf8'));
+  assert.equal(pkg.version,process.env.COOKIE_NATIVE_VERSION||declared.version);assert.equal(pkg.version,release.version);
   assert.equal(hash(pkgBytes),release.sha256);assert.equal(manifest.manifest_version,3);
   report.candidate={extensionFingerprint:await fingerprint(),toolVersion:pkg.version,toolFileSha256:hash(pkgBytes)};
   report.candidate.extensionPackage=await packageFingerprint(extension);
@@ -343,23 +356,25 @@ try{
     return result;
   });
   await step('edit-value',async()=>{
-    await click(toolSession,rowAction('od_core','编辑'));await type('#cookie-value','fictional-two');
+    await editCookie('od_core');await type('#cookie-value','fictional-two');
     const result=await save();assert(result.cookies.some(c=>c.name==='od_core'&&c.value==='fictional-two'));return result;
   });
   await step('rename-with-new-value',async()=>{
-    await click(toolSession,rowAction('od_core','编辑'));await type('#cookie-name','od_renamed');await type('#cookie-value','fictional-three');
+    await editCookie('od_core');await type('#cookie-name','od_renamed');await type('#cookie-value','fictional-three');
     const result=await save(2);assert(!result.cookies.some(c=>c.name==='od_core'));
     assert(result.cookies.some(c=>c.name==='od_renamed'&&c.value==='fictional-three'));return result;
   });
   await step('values-grant',async()=>{await grant('values');return {capability:'values'};});
   await step('rename-preserve-hidden-value',async()=>{
-    await click(toolSession,rowAction('od_renamed','编辑'));assert.equal(await read(toolSession,'document.querySelector("#cookie-value").value'),'');
+    await editCookie('od_renamed');assert.equal(await read(toolSession,'document.querySelector("#cookie-value").value'),'');
     await type('#cookie-name','od_kept');const result=await save(2);
     assert(!result.cookies.some(c=>c.name==='od_renamed'));assert(result.cookies.some(c=>c.name==='od_kept'&&c.value==='fictional-three'));
     return result;
   });
   await step('exact-delete',async()=>{
-    await click(toolSession,rowAction('od_kept','删除'));await click(toolSession,'#confirm-accept');
+    await editCookie('od_kept');
+    await click(toolSession,await scopedAction('od_kept','/','删除 Cookie'));
+    await click(toolSession,'#confirm-accept');
     await until(()=>read(side,'!document.querySelector("#sidebar-tool-action-review").hidden'),'Trusted delete confirmation');
     await click(side,'#sidebar-tool-action-continue');
     await until(async()=>!(await cookies()).some(c=>c.name==='od_kept'),'Native exact Cookie absence');
@@ -412,15 +427,15 @@ try{
         await click(side,'#sidebar-tool-official-cookie-editor-install');
         await until(()=>read(side,'!document.querySelector("#sidebar-tool-preview").hidden'),'New official package review');
         const review=await read(side,'({versions:document.querySelector("#sidebar-tool-update-versions").textContent,warning:document.querySelector("#sidebar-tool-update-warning").textContent})');
-        assert(review.versions.includes('2.0.3')&&review.versions.includes('2.0.4'));
+        assert(review.versions.includes('2.0.3')&&review.versions.includes(pkg.version));
         await click(side,'#sidebar-tool-install');
-        await until(()=>read(side,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>v["opendesk.sidebar-tools.installed.v1"]?.find(t=>t.id==="cookie-editor")?.version==="2.0.4")'),'Explicit upgraded package persisted');
+        await until(()=>read(side,`chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>v["opendesk.sidebar-tools.installed.v1"]?.find(t=>t.id==="cookie-editor")?.version===${quote(pkg.version)})`),'Explicit upgraded package persisted');
         await click(side,'[data-sidebar-tool-action="open"][data-sidebar-tool-id="cookie-editor"]');await bindCookieFrame();
         await click(side,'#sidebar-tool-settings-open');
         const grants=await read(side,'[...document.querySelectorAll("[data-cookie-capability]")].map(n=>({cap:n.dataset.cookieCapability,enabled:n.dataset.enabled}))');
         assert(grants.every(row=>row.enabled==='false'),'Old package grants cannot authorize the new revision');
         await click(side,'#sidebar-tool-settings-open');await grant('read');await grant('write');
-        return {review,grants,toolVersion:'2.0.4'};
+        return {review,grants,toolVersion:pkg.version};
       });
       await step('upgraded-tool-save-and-delete',async()=>{
         const result=await createCookie('od_upgrade','invented-upgrade');assert(result.cookies.some(c=>c.name==='od_upgrade'));
@@ -429,7 +444,7 @@ try{
     }
     if(stage==='partial'){
       await step('rename-partial-cancelled-old-delete',async()=>{
-        await createCookie('od_partial','invented-old');await click(toolSession,rowAction('od_partial','编辑'));
+        await createCookie('od_partial','invented-old');await editCookie('od_partial');
         await type('#cookie-name','od_partial_new');await type('#cookie-value','invented-new');await click(toolSession,'#editor-save');
         const write=await approveHost();
         await until(()=>read(side,'!document.querySelector("#sidebar-tool-action-review").hidden'),'Separate old-name delete approval');
@@ -445,7 +460,7 @@ try{
     if(!stage||stage==='negative'){
     await step('conflict-preserves-original',async()=>{
       await createCookie('od_original','invented-original');await createCookie('od_taken','invented-protected');
-      await click(toolSession,rowAction('od_original','编辑'));await type('#cookie-name','od_taken');await type('#cookie-value','invented-replacement');
+      await editCookie('od_original');await type('#cookie-name','od_taken');await type('#cookie-value','invented-replacement');
       await click(toolSession,'#editor-save');
       await until(()=>read(toolSession,'document.querySelector("#status").textContent.includes("已存在")'),'Same slot rename conflict');
       const rows=await cookies();assert(rows.some(c=>c.name==='od_original'&&c.value==='invented-original'));
@@ -454,7 +469,7 @@ try{
       await closeEditor();return {cookies:rows,status:await read(toolSession,'document.querySelector("#status").textContent')};
     });
     await step('hidden-value-needs-grant',async()=>{
-      await click(toolSession,rowAction('od_original','编辑'));await type('#cookie-name','od_hidden_blocked');await click(toolSession,'#editor-save');
+      await editCookie('od_original');await type('#cookie-name','od_hidden_blocked');await click(toolSession,'#editor-save');
       await until(()=>read(toolSession,'document.querySelector("#status").textContent.includes("保留旧值需")'),'Hidden old value authorization gate');
       const rows=await cookies();assert(!rows.some(c=>c.name==='od_hidden_blocked'));assert(rows.some(c=>c.name==='od_original'&&c.value==='invented-original'));
       await closeEditor();return {cookies:rows};
@@ -469,20 +484,32 @@ try{
     }
     if(!stage||stage==='advanced'){
     await step('import-ui',async()=>{
-      await advanced();await click(toolSession,'#live-import');
+      // R4.3: do not confuse read-only preview with actual native mutation.
+      await click(toolSession,'#live-import');
       await type('#import-text',JSON.stringify([{name:'od_import_a',value:'invented-import-a',domain:'127.0.0.1',path:'/',hostOnly:true,session:true},
         {name:'od_import_b',value:'invented-import-b',domain:'127.0.0.1',path:'/',hostOnly:true,session:true}]));
-      await click(toolSession,'#import-apply');await click(toolSession,'#confirm-accept');const messages=[];
+      await click(toolSession,'#import-apply');
+      const preview=await until(()=>read(toolSession,'(()=>{const n=document.querySelector("#live-import-preview");return n&&!n.hidden&&n.textContent.includes("新增 2")?n.textContent:null;})()'),'Read-only import preview');
+      assert(!(await cookies()).some(c=>c.name==='od_import_a'),'Preview never writes Chrome');
+      await click(toolSession,'#live-import-confirm');
+      await click(toolSession,'#confirm-accept');
+      const messages=[];
       messages.push(await approveHost());messages.push(await approveHost());
       await until(()=>read(toolSession,'document.querySelector("#status").textContent.includes("确认导入 2 条")'),'Verified import');
       const rows=await cookies();assert(rows.some(c=>c.name==='od_import_a'&&c.value==='invented-import-a'));
-      assert(rows.some(c=>c.name==='od_import_b'&&c.value==='invented-import-b'));return {messages,cookies:rows};
+      assert(rows.some(c=>c.name==='od_import_b'&&c.value==='invented-import-b'));return {preview,messages,cookies:rows};
     });
     await step('values-grant',async()=>{await grant('values');return {capability:'values'};});
     await step('export-ui',async()=>{
       const downloads=path.join(directory,'downloads');await mkdir(downloads,{recursive:true});
       await client.send('Browser.setDownloadBehavior',{behavior:'allow',downloadPath:downloads,eventsEnabled:true});
-      await advanced();await click(toolSession,'#live-export');await approveHost();
+      await click(toolSession,'#live-export');
+      await until(()=>read(toolSession,'!document.querySelector("#live-export-panel").hidden'),'Inline export panel');
+      assert.equal(await read(toolSession,'document.querySelector("#live-export-content").value'),'backup');
+      assert.equal(await read(toolSession,'document.querySelector("#live-export-format").value'),'json');
+      await click(toolSession,'#live-export-confirm');
+      await click(toolSession,'#confirm-accept');
+      await approveHost();
       const files=await until(async()=>{const rows=(await readdir(downloads)).filter(n=>n.endsWith('.json'));return rows.length?rows:null;},'Real downloaded JSON');
       const bytes=await readFile(path.join(downloads,files[0]));const text=bytes.toString('utf8');
       assert(text.includes('invented-import-a'));return {files,sha256:hash(bytes),bytes:bytes.length};
