@@ -184,7 +184,11 @@ export function createBookmarkManager({api,doc,container,currentPageTarget}={}){
     s.search=event.target.value;const index=event.target.selectionStart;render();
     const input=container.querySelector('#bookmark-manager-search');input?.focus();input?.setSelectionRange(index,index);
   }
-  function changed(){if(s.open&&s.mode==='tree')void refresh();else if(s.open)s.info='书签在其他窗口可能已更新，保存前会重新检查';}
+  function changed(kind){
+    if(!s.open)return;
+    if(kind==='permission'||s.mode==='tree'){void refresh();return;}
+    s.info='书签在其他窗口可能已更新，保存前会重新检查';
+  }
   function close(){s.open=false;s.revision++;container.hidden=true;unsub?.();unsub=null}
   container.addEventListener('click',clicks);
   container.addEventListener('submit',submits);
