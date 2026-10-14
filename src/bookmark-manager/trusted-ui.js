@@ -52,7 +52,7 @@ export function createBookmarkManager({api,doc,container,currentPageTarget}={}){
     }
     return '<label class="bm-search-label"><span class="visually-hidden">搜索书签或文件夹</span>'+
       '<input id="bookmark-manager-search" class="od-field bm-search" type="search" placeholder="搜索书签或文件夹…" value="'+esc(s.search)+'"></label>'+
-      toolbar()+'<div class="bm-tree" role="tree" aria-label="Chrome 书签文件树">'+(rows.join('')||'<p class="bm-hint">没有匹配的书签或文件夹</p>')+'</div>'+
+      toolbar()+'<div class="bm-tree" role="group" aria-label="Chrome 书签文件树">'+(rows.join('')||'<p class="bm-hint">没有匹配的书签或文件夹</p>')+'</div>'+
       (rows.length>=limit?'<p class="bm-hint">仅显示前 200 项，请搜索或折叠文件夹。</p>':'');
   }
   const back=title=>'<div class="bm-subhead"><button class="od-icon-button" data-bm="cancel" aria-label="返回书签树">‹</button><strong>'+title+'</strong></div>';
