@@ -525,7 +525,10 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   assert.equal(conversation.data.items[0].sourceId,conversation.data.items[3].sourceId);
   assert.notEqual(conversation.data.items[3].sourceId,conversation.data.items[4].sourceId);
   await browser.send('Target.activateTarget',{targetId:panel.targetId});
-  await trustedClick(host,'#sidebar-tool-settings-open');
+  // Earlier page visibility operations may have left Settings expanded.
+  // Opening an already-open gear would close the actual consent controls.
+  if(await evaluate(host,'document.querySelector("#sidebar-tool-settings-view").hidden'))
+    await trustedClick(host,'#sidebar-tool-settings-open');
   if(!await evaluate(host,'document.querySelector(".sidebar-toc-advanced").open'))
     await trustedClick(host,'.sidebar-toc-advanced summary');
   await trustedClick(host,'#sidebar-tool-settings-deny');
