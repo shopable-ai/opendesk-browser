@@ -5,6 +5,7 @@ import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
 import {createSidebarTools} from '../../src/ui/sidebar-tools.js';
 import {requestStayFocusOperation,runTrustedStayFocusOperation} from '../../src/stay-focus/tool-host.js';
+import {createStayFocusPermissionControls} from '../../src/stay-focus/host-controls.js';
 import {FOCUS_ID,FOCUS_CAPABILITY,FOCUS_OPERATIONS} from '../../src/stay-focus/policy.js';
 import {createCurrentPageTarget} from '../../src/ui/current-page-target.js';
 import {initSidebarToolSandbox} from '../../src/sidebar-tools/bridge.js';
@@ -1131,6 +1132,16 @@ test('knowledge editor protects user navigation, clears after save, and never ve
 });
 
 test('R4.8 manual reviewed installation remains available for every offline official package',async t=>{
+  // The shipping extension includes the fixed audited Focus sidecar. A fixture
+  // without it is intentionally an older browser and must refuse Focus.
+  const previous=globalThis.__opendeskStayFocusTrustedUI;
+  globalThis.__opendeskStayFocusTrustedUI=Object.freeze({
+    id:FOCUS_ID,capability:FOCUS_CAPABILITY,operations:FOCUS_OPERATIONS,
+    request:requestStayFocusOperation,runTrustedOperation:runTrustedStayFocusOperation,
+    createPermissionControls:createStayFocusPermissionControls
+  });
+  t.after(()=>{if(previous===undefined)delete globalThis.__opendeskStayFocusTrustedUI;
+    else globalThis.__opendeskStayFocusTrustedUI=previous;});
   const requested=[],store=new Map();
   const f=await hostFixture(t,{store,startTool:false,fetcher:async(url,options)=>{
     requested.push(new URL(url).pathname);return officialFixtureFetch(url,options);
