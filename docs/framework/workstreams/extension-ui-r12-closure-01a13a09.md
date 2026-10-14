@@ -41,3 +41,5 @@ R4 五 Tab 复验扩展范围：仅 src/ui/extension-center.css 普通图标/触
 文件交接：收到R1.3会话01a13a4b-5823-7461-9e07-c673054fb4fa记录后，leader确认本轮tool.html公共标题改动已提交（当前仅R1.3 diff），本轮不再写tool.html，交还该文件给R1.3。保留workflow-observation-scope/revoke和AI许可新文案。R1.2验收包使用明确提交的git archive；不混入未提交R1.3源码。无日常Chrome/profile占用；独立CFT/43220/output仅R1.2受控测试。Git写入需明确串行窗口。
 
 最终复审补修：帮助恢复按钮消失时焦点回共享header Back（先组件FAIL再修）；EC详情/名称按钮和授权范围字号加入现有R19静态fixture目标与字体验证，保留现有窄宽度R4结构。追加测试辅助scope tests/framework/time-review-native-input.swift，仅click-at先真实mouseMoved再click，PID/bundle/AX/窗口/前台守卫保留，不改任何生产Native命令；原生sourceBinding加入该Swift源码，Profile独立编译，不影响已启动其他CFT。candidate8源码check PASS、Node109/110仅R4旧23px pattern失败（现更新34px），R19全量292静态+110source UI+10nav矩阵PASS；native8已观察真实AXMenuItem坐标但value未变，整体FAIL，不提升为产品PASS。
+
+最终候选9=f1fe23d6：111 Node、688语法、R19 292静态/110模拟UI/10导航、production/development/verify及运行页真实Tab缩放均PASS。生产包0b5bea01…、development bf840d2b…；tool-shell518416B低于原524288门槛。native9真实坐标+mouseMoved仍无法选中Task，失败保留。已读取R3 run38560934811原始日志：f2e35833产品矩阵开启、38Node/1macOS原生PASS、生产包52cf63bf…、Alarm/Run/result/released真实。恢复这一已验证AX菜单press并撤回本机未证明的鼠标试验；不改生产功能，也不删除选值deadline。当前原生复验缺口保持FAIL/NOT_TESTED。
