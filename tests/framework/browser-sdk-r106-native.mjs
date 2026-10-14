@@ -216,6 +216,11 @@ async function runNative(){
       .map(line=>line.trim().match(/^(\d+)\s+(\d+)\s+(.+)$/)).filter(Boolean)
       .filter(([,pid,parent,command])=>command.includes('Chrome for Testing')&&
         !command.includes('/Helpers/')&&parent!=='1'&&Number(pid)!==launched?.metadata?.pid)
+      .filter(([,pid])=>{
+        // Independent headless profiles do not own the desktop input resource.
+        try{return !/(^|\s)--headless(?:=|\s|$)/.test(execFileSync('ps',['-p',pid,'-ww','-o','command='],{encoding:'utf8'}));}
+        catch{return false;} // The process disappeared between snapshots.
+      })
       .map(([,pid,parent])=>({pid:Number(pid),parent:Number(parent)}));
     assert.equal(active.length,0,'E_NATIVE_RESOURCE_BUSY '+JSON.stringify(active));
   }
