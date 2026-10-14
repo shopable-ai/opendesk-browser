@@ -8,6 +8,10 @@ const root=fileURLToPath(new URL('../../',import.meta.url));
 const skillsRoot=path.join(root,'.agents/skills');
 const file=relative=>path.join(root,relative);
 const read=relative=>readFile(file(relative),'utf8');
+const CANONICAL_SKILLS=[
+  'opendesk-extension-runtime','opendesk-extension-ui','opendesk-program-publish',
+  'opendesk-script-authoring','opendesk-sidebar-tool-dev','opendesk-trusted-sidebar-feature'
+];
 
 test('Skills directory routes every canonical Skill exactly once with valid frontmatter',async()=>{
   const [index,universe,entries]=await Promise.all([
@@ -15,7 +19,7 @@ test('Skills directory routes every canonical Skill exactly once with valid fron
     readdir(skillsRoot,{withFileTypes:true})
   ]);
   const dirs=entries.filter(entry=>entry.isDirectory()).map(entry=>entry.name).sort();
-  assert.ok(dirs.length>=6,'six canonical skills after this addition');
+  assert.deepEqual(dirs,CANONICAL_SKILLS,'exactly six canonical skills; no duplicate or seventh route');
   const descriptions=new Set();
   for(const name of dirs){
     const content=await read('.agents/skills/'+name+'/SKILL.md');
@@ -90,6 +94,57 @@ test('R4 common user requests map to one principal Skill each',async()=>{
     assert.ok(matches[0].includes('| `'+slug+'` |'),'bad primary route '+phrase);
   }
 });
+test('R4 ambiguous requests retain one documented principal owner, not simulated AI routing',async()=>{
+  const index=await read('.agents/skills/README.md');
+  assert.match(index,/TRIGGER_NOT_TESTED/,'static contract must not claim a real Agent trigger');
+  for(const [phrase,slug] of [
+    ['修复 Cookie Editor 的可信后台权限','opendesk-trusted-sidebar-feature'],
+    ['只修改 Cookie Editor 沙箱应用 UI','opendesk-sidebar-tool-dev'],
+    ['给网页增加 React 悬浮组件','opendesk-script-authoring'],
+    ['修改 Page Program 的安装和撤权','opendesk-extension-runtime'],
+    ['修改「我的」定时计划页面','opendesk-extension-ui'],
+    ['修复 MV3 Service Worker 生命周期','opendesk-extension-runtime'],
+    ['导入已有 Sidebar Tool JSON','opendesk-sidebar-tool-dev'],
+    ['更新已经发布的 Page Program','opendesk-program-publish']
+  ]){
+    const matches=index.split('\n').filter(row=>row.startsWith('| 「'+phrase+'」 |'));
+    assert.equal(matches.length,1,'ambiguous request has missing/duplicate owner: '+phrase);
+    assert.ok(matches[0].includes('| `'+slug+'` |'),'incorrect primary Skill for '+phrase);
+  }
+});
+
+test('R4 hides historical Tools-only UI while preserving the original Host nodes',async()=>{
+  const [html,css]=await Promise.all([
+    read('src/ui/tool.html'),read('src/ui/extension-center.css')
+  ]);
+  assert.match(html,/id="extension-center"/);
+  for(const selector of [
+    '#sidebar-tool-list-view>.sidebar-tools-head',
+    '#sidebar-tool-list-view>#sidebar-tool-my-panel',
+    '#sidebar-tool-list-view>#sidebar-tool-discover-panel'
+  ])assert.ok(css.includes(selector),'old user-visible Tools-only section not hidden: '+selector);
+  assert.match(css,/#sidebar-tool-list-view>[^\n]+\{display:none!important\}/);
+});
+
+test('R4 source-of-truth and Skill routing changes trigger governance CI',async()=>{
+  const workflow=await read('.github/workflows/agent-skills-governance.yml');
+  for(const name of [
+    '.agents/skills/**',
+    'tests/environment/agent-skills-r1.test.mjs',
+    'docs/product/sidebar-ui-spec.zh-CN.md',
+    'docs/architecture/ui-layout-conventions-r27.zh-CN.md',
+    'docs/architecture/sidebar-multi-section-tab-contract-r28.zh-CN.md',
+    'docs/architecture/sidebar-design-system-r20.zh-CN.md',
+    'docs/api/sidebar-tools.zh-CN.md',
+    'docs/api/sidebar-tool-development.zh-CN.md',
+    'examples/sidebar-tools/README.zh-CN.md',
+    'src/ui/tool.html','src/ui/extension-center.js',
+    'src/ui/extension-center-model.js','src/ui/extension-center.css'
+  ])assert.ok(workflow.includes("      - '"+name+"'"),'governance path filter misses '+name);
+  assert.match(workflow,/node --test tests\/environment\/agent-skills-r1\.test\.mjs/);
+  assert.match(workflow,/node --test tests\/environment\/sidebar-r21-design-system\.test\.mjs/);
+});
+
 test('App/Page/Task execution and permissions remain distinct',async()=>{
   const [app,publish,trusted,runtime,model,center]=await Promise.all([
     read('.agents/skills/opendesk-sidebar-tool-dev/SKILL.md'),

@@ -93,7 +93,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   };
   function dismissNewReview(){
     newReviewSignature=null;
-    hidePanel('workflow-new-review','workflow-new');
+    hidePanel('workflow-new-review','workflow-create-toggle');
   }
   const currentOrigin=()=>currentPageTarget?.snapshot?.status==='available'
     ? currentPageTarget.snapshot.origin:null;
@@ -167,9 +167,11 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     get('workflow-ai-plan').disabled=busy||provider()==='opendesk_cloud';
     get('workflow-ai-plan').hidden=phase==='planning';
     get('workflow-ai-cancel').hidden=phase!=='planning';
-    get('workflow-ai-new-session').hidden=!localPlanner.snapshot().sessionId;
+    const sessionState=localPlanner.snapshot();
+    get('workflow-new-session-note').textContent=sessionState.sessionId&&localCapability.resumeSupported===false
+      ?'结束后旧对话不可恢复':'保留当前工作流';
     get('workflow-ai-new-session').disabled=busy;
-    get('workflow-ai-resume').hidden=!localPlanner.snapshot().resumable;
+    get('workflow-ai-resume').hidden=provider()!=='local_codex'||!sessionState.resumable;
     get('workflow-ai-resume').disabled=busy;
     const savedStatus=get('workflow-saved-state');
     savedStatus.hidden=!revision;
@@ -602,24 +604,40 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     get('workflow-provider-toggle').setAttribute('aria-expanded','true');
     get(focus).focus?.({preventScroll:true});
   }
+  function closeAISettings(focus=false) {
+    get('workflow-provider-settings').open=false;
+    get('workflow-provider-toggle').setAttribute('aria-expanded','false');
+    if(focus)get('workflow-ai-request').focus?.({preventScroll:true});
+  }
+  function showCreateMenu(open,focusFirst=false) {
+    const menu=get('workflow-create-menu');
+    if(!open&&menu.contains(doc.activeElement))
+      get('workflow-create-toggle').focus?.({preventScroll:true});
+    menu.hidden=!open;
+    get('workflow-create-toggle').setAttribute('aria-expanded',String(open));
+    if(open&&focusFirst)get('workflow-ai-new-session').focus?.({preventScroll:true});
+  }
   function renderProvider() {
     const selected=provider(),local=selected==='local_codex',custom=selected==='custom_https';
     get('workflow-local-settings').hidden=!local;
     get('workflow-custom-settings').hidden=!custom;
     get('workflow-provider-scope').textContent=local
-      ?'本机 OpenDesk 管理 Codex Agent，模型推理可能联网，已同意的内容可能保存在 Codex 本机对话中。复用官方 CLI 登录，请勿填写 Codex 登录凭据。'
-      :custom?'需求和步骤只发送到你填写的 HTTPS 接口。此来源生成单次计划提议。'
-      :'OpenDesk 官方 AI 服务接口已预留，目前尚未开放。';
+      ?'Codex 在本机管理对话，模型推理可能联网；已同意的内容可能保存在 Codex 本机对话中。使用官方 CLI 登录，请勿填写 Codex 登录凭据。网页摘要仍需针对本次文档明确批准。'
+      :custom?'需求和经最小化处理的工作流内容发送到你配置的 HTTPS 模型接口；API Key 只保存在当前窗口，不用于本机浏览器工具。'
+      :'OpenDesk 官方 AI 服务目前尚未开放。';
     updateLocalStatus();updateButtons();
   }
   function updateLocalStatus() {
     if(disposed)return;
     const state=describeLocalCodex(localCapability),element=get('workflow-local-status');
-    element.textContent=localChecking?'正在检查 OpenDesk 与 Codex 的真实状态…':
-      localCapability.connecting?'正在连接本机 OpenDesk…':state.message;
+    element.textContent=localChecking?'正在检查连接…':
+      localCapability.connecting?'正在连接 OpenDesk…':
+        state.ready?'Codex 已就绪':state.message;
     element.dataset.state=state.state;
     get('workflow-local-refresh').disabled=localChecking;
-    get('workflow-local-connect').disabled=localChecking||localCapability.nativeConnected===true||state.ready;
+    const connect=get('workflow-local-connect');
+    connect.hidden=localChecking||localCapability.nativeConnected===true||state.ready;
+    connect.disabled=localChecking;
   }
   async function refreshLocal() {
     if(localChecking||disposed||provider()!=='local_codex')return;
@@ -813,6 +831,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           request:frozen.request,workflow:frozen.workflow,signal:abort.signal});
       }
       planningCurrent(epoch,frozen.serial,frozen.selected);
+      if(get('workflow-provider-settings').open)closeAISettings();
       const prepared=prepareDirectExecution({request:frozen.request,workflow:result,target:captured});
       const freeze=await compileWorkflow(result,{verifyFill:true});
       planningCurrent(epoch,frozen.serial,frozen.selected);
@@ -862,6 +881,20 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     get('workflow-history-toggle').setAttribute('aria-expanded','false');
     get('workflow-history-toggle').focus?.({preventScroll:true});
   });
+  listen(get('workflow-create-toggle'),'click',event=>{
+    if(!event.isTrusted)return;
+    showCreateMenu(get('workflow-create-menu').hidden,true);
+  });
+  listen(get('workflow-editor'),'keydown',event=>{
+    if(event.key==='Escape'&&!get('workflow-create-menu').hidden){
+      showCreateMenu(false);event.preventDefault?.();
+    }
+  });
+  listen(get('workflow-editor'),'click',event=>{
+    if(!get('workflow-create-menu').hidden &&
+       !get('workflow-create-toggle').parentElement.contains(event.target))
+      showCreateMenu(false);
+  });
   listen(get('workflow-provider-toggle'),'click',()=>{
     const settings=get('workflow-provider-settings');
     settings.open=!settings.open;
@@ -899,7 +932,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       localCapability=await client.requestWorkflowAI('ai.connection.enable');
       if(localCapability.nativeConnected&&localCapability.protocolAvailable)localCapability=await localPlanner.probe();
     })().catch(error=>{if(!disposed){localCapability={state:'NATIVE_PERMISSION_REQUIRED',readyForTurn:false};status(format(error),true);}})
-      .finally(()=>{localChecking=false;if(!disposed){updateLocalStatus();updateButtons();}});
+      .finally(()=>{localChecking=false;if(!disposed){
+        updateLocalStatus();updateButtons();
+        if(describeLocalCodex(localCapability).ready)closeAISettings(true);
+      }});
   });
   listen(get('workflow-ai-cancel'),'click',event=>{
     if(!event.isTrusted||phase!=='planning')return;
@@ -916,17 +952,18 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   listen(get('workflow-ai-deny'),'click',event=>answerObservation(event,false));
   listen(get('workflow-ai-new-session'),'click',event=>{
     if(!event.isTrusted||busy)return;
+    showCreateMenu(false);
     get('workflow-ai-transcript').replaceChildren();
     proposal=null;proposalBase=null;proposalSerial=null;get('workflow-ai-proposal').hidden=true;
+    get('workflow-ai-request').focus?.({preventScroll:true});
     const stopped=stopPlanning({close:true,remember:true}),epoch=planningGeneration;
     void stopped.then(()=>{
-      if(disposed||epoch!==planningGeneration)return;updateButtons();status(localPlanner.snapshot().resumable
-        ?'下次发送将开始新的 AI 对话；也可恢复本窗口刚结束的对话。'
-        :'已结束本机对话。当前 Codex 版本不支持所需的受限恢复，下次发送将开始新对话。');
+      if(disposed||epoch!==planningGeneration)return;updateButtons();status('');
     },error=>{if(!disposed&&epoch===planningGeneration)status(localFailure(error),true);});
   });
   listen(get('workflow-ai-resume'),'click',event=>{
     if(!event.isTrusted||busy||provider()!=='local_codex')return;
+    showCreateMenu(false);
     // This explicit action only resumes the selected local provider, not web observation.
     const consent={model:true,workflow:true,observation:false};
     
@@ -952,11 +989,13 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     get('workflow-history-toggle').setAttribute('aria-expanded','false');
     get('workflow-ai-request').value='';
     render();persistDraft();
+    get('workflow-ai-request').focus?.({preventScroll:true});
     status('');
   }
   const workflowReviewSignature=()=>JSON.stringify([workflow,proposal,phase]);
   listen(get('workflow-new'),'click',event=>{
     if(!event.isTrusted||busy&&phase!=='planning')return;
+    showCreateMenu(false);
     const dirty=Boolean(workflow.steps.length || proposal ||
       workflow.title!=='新工作流' || workflow.description) && !matchesRevision();
     if(dirty){

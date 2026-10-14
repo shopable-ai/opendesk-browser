@@ -63,9 +63,13 @@ test('R4 Sidebar sections preserve consumer controls and keep engineering tools 
   const html=await read('src/ui/tool.html'), css=await read('src/ui/tool-shell.css');
   const ids=[...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>id);
   assert.equal(new Set(ids).size,ids.length);
-  for(const id of ['script-current-page-title','developer-results-panel','script-task-status','tool-diagnostics','script-advanced','task-local-discovery','extension-center-search','task-selected-workspace','task-result-panel','task-history-panel','local-discover-open-catalog','open-catalog','task-stop','script-stop','workflow-stop','workflow-run'])assert(ids.includes(id),id);
+  for(const id of ['script-current-page-title','developer-results-panel','script-task-status','tool-diagnostics','script-advanced','task-search-toggle','task-search-panel','extension-center-search','task-selected-workspace','task-result-panel','task-history-panel','local-discover-search','open-catalog','task-stop','script-stop','workflow-stop','workflow-run'])assert(ids.includes(id),id);
   assert.doesNotMatch(html, /id="discover-dock"|id="discover-to-catalog"/,'R5 Discover must not reserve an idle navigation dock');
-  assert.doesNotMatch(html, /发现已安装任务<\/h2>|仅展示你明确安装的版本|找到.*个已安装任务.*本机共/);
+  assert.doesNotMatch(html, /查找本机任务|id="task-local-discovery"|id="local-discover-cards"|local-discover-open-catalog/);
+  assert.match(html, /id="task-search-panel"[^>]*hidden/);
+  assert.match(html, /id="task-search-toggle"[^>]*aria-expanded="false"/);
+  assert.ok(html.indexOf('id="task-search-panel"')<html.indexOf('id="task-installed-cards"'),
+    'Search controls filter the existing installed task list');
   assert.match(html, /class="local-discovery-search-row od-toolbar"/);
   assert.match(html,/id="tab-my-tasks"[^>]*>我的<\/button>/);
   assert.ok(html.indexOf('id="sidebar-tools"')>html.indexOf('id="workbench-tools"'));

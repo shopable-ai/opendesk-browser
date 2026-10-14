@@ -22,6 +22,21 @@
 | 「在我的任务中创建自动化任务」 | `opendesk-script-authoring` | 正式安装由 program-publish，计划视图 UI 由 extension-ui |
 | 「开发并发布 React/Vue 网页程序」 | `opendesk-program-publish` | 源码编写时可协同 script-authoring，仍为 Page 世界 |
 
+## 易混淆请求：按实际需要修改的对象选择主 Skill
+
+以下是**静态路由合同**，不是一次真实 Codex/Agent 模型选择记录（真实触发未观测时记 `TRIGGER_NOT_TESTED`）。同一产品可有不同主 Skill：修改沙箱应用 UI、第一方可信服务、通用 SDK/Authority、统一列表 UI，属于不同职责。
+
+| 用户原话 | 唯一主 Skill | 判定边界或协作 |
+| --- | --- | --- |
+| 「修复 Cookie Editor 的可信后台权限」 | `opendesk-trusted-sidebar-feature` | 第一方专有服务/授权逻辑；通用 Chrome 权限桥由 runtime 辅助 |
+| 「只修改 Cookie Editor 沙箱应用 UI」 | `opendesk-sidebar-tool-dev` | 仅修改可安装 iframe 内的界面，不触及可信 Host |
+| 「给网页增加 React 悬浮组件」 | `opendesk-script-authoring` | 开发/试运行 Page JSX，不代表正式安装 |
+| 「修改 Page Program 的安装和撤权」 | `opendesk-extension-runtime` | 指底层 Authority、安装事务与撤权实现；具体版本发布由 program-publish 协作 |
+| 「修改「我的」定时计划页面」 | `opendesk-extension-ui` | 仅调整已有计划列表/表单交互，不更改定时执行引擎 |
+| 「修复 MV3 Service Worker 生命周期」 | `opendesk-extension-runtime` | 修复 Background 生命周期，不创造新 Worker |
+| 「导入已有 Sidebar Tool JSON」 | `opendesk-sidebar-tool-dev` | 用原包审阅与安装协议；只改导入入口视觉则 extension-ui 协作 |
+| 「更新已经发布的 Page Program」 | `opendesk-program-publish` | 版本冻结/验证/升级，保留 Page Authority 和网页增强类型 |
+
 **产品与底层分离**：OpenDesk Browser 是一款 Chrome Extension；五个正式 Tab 是「我的 / 扩展 / 工作流 / 开发 / 云控」。「扩展」是管理入口；「应用」是 Sidebar Tool 的列表类型标签，「网页增强」是已安装 Page Program 的类型标签；Controller Task 仍属「我的」，一方可信功能与动态安装包必须安全隔离。Agent Skill 不是安装包。不要因为用户称“扩展”就互换包格式、运行世界或权限。
 
 新建 Skill 前读 [Skill 宇宙与评分](UNIVERSE.zh-CN.md)。一个职责对应一个 Skill，绝不为具体工具、JS 框架或一次测试创建重复 Skill。仅静态文档核验标为 `DOC_STATIC_PASS`；Chrome 原生未实测记 `NOT_TESTED`。

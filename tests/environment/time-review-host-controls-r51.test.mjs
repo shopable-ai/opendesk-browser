@@ -92,8 +92,16 @@ test('R1.5.1 sandbox start stays inline until genuine trusted Host confirmation'
 
 test('R1.5.1 Time Review consent preserves shared trusted inline card without replacing the iframe',async()=>{
   const shell=await readFile('src/ui/sidebar-tools.js','utf8');
-  assert.match(shell,/const trustedInline=show&&\(id===TIME_REVIEW_ID\|\|id===FOCUS_ID\|\|isCookieTool\(active\)\)/);
-  assert.match(shell,/frameRoot\.hidden=\(show&&!trustedInline\)\|\|!\(frame\|\|nativeUI\)/);
+  // Keep the original trusted Time Review, Focus and Cookie identities gated.
+  // Additional audited tools must not make the prior regression test obsolete.
+  const inlinePredicate=shell.match(/const trustedInline=show&&\(([^;\n]+)\);/);
+  assert(inlinePredicate,'trusted inline controls must remain identity-gated');
+  for(const required of ['id===TIME_REVIEW_ID','id===FOCUS_ID','isCookieTool(active)'])
+    assert(inlinePredicate[1].includes(required),'trusted-inline identity lost: '+required);
+  const frameVisibility=shell.match(/frameRoot\.hidden=([^;\n]+);/);
+  assert(frameVisibility,'trusted host must control iframe visibility');
+  assert.match(frameVisibility[1],/\(show&&!trustedInline\)/);
+  assert.match(frameVisibility[1],/!\(frame\|\|nativeUI\)/);
   assert.match(shell,/display\.setAttribute\('data-trusted-tool-inline'/);
   assert.match(shell,/api\.permissions\.contains\(\{permissions:\['idle'\]\}\)/);
   assert.match(shell,/api\.storage\.local\.get\(TIME_REVIEW_KEY\)/);

@@ -1,6 +1,6 @@
 ---
 name: opendesk-program-publish
-description: Freeze, verify, install, upgrade or publish Controller Tasks and Page USER_SCRIPT/React/Vue programs. Keep Task under 我的 and installed Page under 扩展 网页增强 via independent Authority, never Sidebar Tool packages.
+description: Freeze, verify, install, upgrade or publish Controller Tasks and Page USER_SCRIPT/React/Vue programs through existing Authority. Task stays under 我的 and installed Page under 扩展 网页增强; not shared Authority/revocation implementation or Sidebar Tool packages.
 ---
 
 # OpenDesk Browser · AI 本地开发与发布

@@ -40,7 +40,7 @@ test('R4 source retains one trusted installer, one combined list and high-zoom r
   assert.match(html,/id="extension-center-list" class="ec-list"/);
   assert.match(html,/id="extension-center-menu"/);
   assert.match(html,/id="extension-center-import-host"/);
-  assert.match(html,/id="task-local-discovery"/);
+  assert.match(html,/id="task-search-panel" class="task-search-panel" hidden/);
   assert.doesNotMatch(html,/id="tab-discover"|id="workbench-local-discover"/);
   assert.match(shell,/importHost\.append\(originalImport\)/,'trusted installer is physically reused');
   assert.match(center,/restoreRowFocus\(focusKey,focusAction\)/,'return retains list keyboard identity');

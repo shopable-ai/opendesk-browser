@@ -8,6 +8,7 @@ on:
       - 'examples/sidebar-tools/cookie-editor/**'
       - 'tests/environment/cookie-editor-ui.test.mjs'
       - 'tests/environment/time-review-host-controls-r51.test.mjs'
+      - 'tests/environment/static-import-drafts-ui.test.mjs'
       - 'tests/environment/browser-sdk-r106-cookie-contract-gaps.test.mjs'
       - 'tests/environment/browser-sdk-coverage.test.mjs'
       - 'scripts/check-browser-sdk-coverage.mjs'
