@@ -137,10 +137,12 @@ async function select(client,session,selector,index){
       await client.send('Target.activateTarget',{targetId:info.targetInfo.targetId});
     nativeOwnedMacInput('activate');
     await click(client,session,selector);
-    if(selector==='#schedule-timezone'||selector==='#schedule-task-select'){
+    if(selector==='#schedule-timezone'||selector==='#schedule-task-select'||selector==='#schedule-kind'){
       // Pick the actual visible AppKit menu item by its observed option label.
       // The existing helper requires one matching CFT AX control and the owned
       // foreground PID; it never writes select.value or dispatches change.
+      // Rule menus also consume arrow keys without reliably selecting an item.
+      // Keep the same native menu action and actual-value deadline for all three.
       nativeOwnedMacInput('press',original.options[index].label);
     }else{
       const movingDown=index>original.index;

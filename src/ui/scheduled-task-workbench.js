@@ -485,7 +485,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       '尚无定时计划');
     if(!allPlans.length){
       parent.append(element(doc,'p','schedule-empty-hint hint',
-        '尚无定时计划。点击「新建计划」安排第一个已验证任务。'));
+        '尚无定时计划。点击「＋ 新建」安排第一个已验证任务。'));
       renderDetail();return;
     }
     for(const plan of sorted){
