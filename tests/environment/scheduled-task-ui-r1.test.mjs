@@ -190,7 +190,10 @@ test('R2 create form validates URL, JSON and wall-time inline and requires an ex
   assert.match(ui,/fail\('params'/);
   assert.match(ui,/awaitingSave=\{input\}/);
   assert.match(ui,/bind\('schedule-confirm-yes','click'/);
-  assert.match(ui,/await client\.request\('saveSchedule',pending\.input\)/);
+  assert.match(ui,/\(\)=>client\.request\('saveSchedule',pending\.input\)/,
+    'the confirmation must still call the real authorized saveSchedule RPC');
+  assert.match(ui,/const \{refreshError\}=await commitScheduledMutation\(/,
+    'a committed save must not be reported as a failed write when only refresh fails');
   assert.match(ui,/原计划绑定的任务版本或授权已变化/);
   assert.match(css,/schedule-field-error:empty\{display:none\}/);
   assert.doesNotMatch(ui,/window\.(?:alert|prompt|confirm)\(/);
