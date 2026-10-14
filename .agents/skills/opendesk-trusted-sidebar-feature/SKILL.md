@@ -71,3 +71,6 @@ node --test tests/environment/time-review-r16-trusted-native.test.mjs tests/envi
 涉及通用 Host/安装器还要覆盖不同工具的安装、更新/卸载、启停、改包与假 ID、跨来源撤权、后台/Sidebar 重启；按影响执行 `npm run check`、实际构建/包校验及 `tests/framework/stay-focus-r1-native.test.mjs` / `time-review-r13-native.test.mjs` 等真实 Chrome 驱动。先核对测试指南、现有证据与资源归属，不争抢 Profile；测试文件存在或 Node mock PASS 不等于新候选 Chrome PASS。
 
 交付时说明：哪些具体耦合被修复、共享 Host 增减了什么、第一方静态代码和动态工具如何区别、原安装/权限/存储合同是否保持、哪项负向测试在真实 Chrome 通过。质量目标 `≥95/100`：安全来源/权限 25、正确业务边界 20、架构复用 15、功能/生命周期 15、跨工具负向回归 15、UI 可访问性 5、文档与证据 5。未做同候选实测一律标 `NOT_TESTED`，不凭文档自报 95+。
+
+
+**R1.2 例外（统一书签文件树）**：文件夹和书签属于同一父子树时，不能机械套用「按集合拆区/区标题各放新增」；合并为单棵可折叠树，一行「收藏当前页 / ＋书签 / ＋文件夹」。详情见 R28；AI 重排、社区和商业推荐只能在独立已批准阶段开发，私人书签/历史及派生画像不得用于个性化广告。
