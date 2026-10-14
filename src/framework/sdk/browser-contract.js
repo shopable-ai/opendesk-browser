@@ -90,7 +90,8 @@ const MANUAL_BROWSER_OPERATIONS=Object.freeze({
 // Ordinary DIRECT methods are built from the approved Chromium/SDK matrix.
 // An additional safe DIRECT method now needs no manually maintained Registry
 // entry, Schema table case, SDK wrapper, Host branch or Chrome call adapter.
-const generatedBrowserDirect=Object.fromEntries(APPROVED_BROWSER_DIRECT_BINDINGS.map(row=>{
+export function deriveBrowserDirectOperations(rows=APPROVED_BROWSER_DIRECT_BINDINGS){
+  return Object.fromEntries(rows.map(row=>{
   if(Object.hasOwn(MANUAL_BROWSER_OPERATIONS,row.operation)||row.mode!=='DIRECT'||
      row.siteScope!=='none'||row.effectClass!=='read'||row.requiresUserGesture||
      !Array.isArray(row.requiredCapabilities)||!Array.isArray(row.requiredChromePermissions)||
@@ -106,9 +107,10 @@ const generatedBrowserDirect=Object.fromEntries(APPROVED_BROWSER_DIRECT_BINDINGS
     effectClass:'read',riskLevel:row.riskLevel,siteScope:'none',requiresUserGesture:false,
     lifecycle:row.lifecycle,inputSchema:row.inputSchema,outputSchema:row.outputSchema
   })];
-}));
+  }));
+}
 export const BROWSER_OPERATIONS=Object.freeze({
-  ...MANUAL_BROWSER_OPERATIONS,...generatedBrowserDirect
+  ...MANUAL_BROWSER_OPERATIONS,...deriveBrowserDirectOperations()
 });
 assertBrowserSchemaCoverage(BROWSER_OPERATIONS);
 export function browserOperation(name){return Object.hasOwn(BROWSER_OPERATIONS,name)?BROWSER_OPERATIONS[name]:null;}
