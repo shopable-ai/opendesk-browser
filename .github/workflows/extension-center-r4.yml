@@ -49,3 +49,8 @@ jobs:
         run: |
           test -s dist/production/ui/extension-center.css
           node scripts/verify-package.mjs dist/production
+      - name: Development package and reproducible resource verification
+        run: |
+          npm run build:dev
+          npm run verify
+          test -s dist/development/ui/extension-center.css
