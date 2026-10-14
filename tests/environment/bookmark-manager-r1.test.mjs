@@ -142,7 +142,17 @@ test('trusted Side Panel tree shows more than 200 rows, searches later rows and 
    querySelector:()=>({focus(){},setSelectionRange(){}}),
    querySelectorAll:()=>[]
  };
- const manager=createBookmarkManager({api:f.api,doc:{},container});
+ let captures=0,validations=0,documentChanged=true;
+ const page={capture(){
+   captures++;
+   return Object.freeze({status:'available',windowId:8,tabId:9,frameId:0,documentId:'main-1',
+     origin:'https://safe.example',url:'https://safe.example/path',title:'Safe page'});
+ },async revalidate(snapshot){
+   validations++;assert.equal(snapshot.documentId,'main-1');
+   if(documentChanged)throw new Error('当前网页已切换');
+   return snapshot;
+ }};
+ const manager=createBookmarkManager({api:f.api,doc:{},container,currentPageTarget:page});
  assert.ok(manager);
  const settled=async predicate=>{
    for(let n=0;n<50;n++){
@@ -172,6 +182,17 @@ test('trusted Side Panel tree shows more than 200 rows, searches later rows and 
  assert.equal(displayed(),0,'revoked permissions must not look like an empty tree');
  f.setPermission(true);f.api.permissions.onAdded.emit({permissions:['bookmarks']});
  await settled(()=>displayed()===1);
+ click('save-current');
+ await settled(()=>container.innerHTML.includes('当前网页已切换'));
+ assert.equal(captures,1);assert.equal(validations,1);
+ assert.equal([...f.tree().byId.values()].some(x=>x.url==='https://safe.example/path'),false,
+   'a switched document must not create a bookmark');
+ documentChanged=false;
+ click('save-current');
+ await settled(()=>container.innerHTML.includes('已更新 Chrome 书签'));
+ assert.equal(captures,2);assert.equal(validations,2);
+ assert.equal([...f.tree().byId.values()].some(x=>x.url==='https://safe.example/path'),true,
+   'confirmed active documents may be bookmarked');
  manager.close();
  assert.equal(container.hidden,true);
  manager.dispose();
