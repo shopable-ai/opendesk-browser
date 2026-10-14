@@ -130,7 +130,7 @@ function render(){
   else if(s.mode==='delete')renderDelete();
   else renderForm();
 }
-// The SDK owns bounded event sessions. Never listen to chrome.bookmarks here.
+// The SDK owns bounded event sessions; no native bookmark listeners in the sandbox.
 function rememberDraft(){
   if(!['new-bookmark','new-folder','edit','move'].includes(s.mode))return;
   s.draft={title:q('bm-name').value,url:q('bm-url').value,parentId:q('bm-parent').value};
