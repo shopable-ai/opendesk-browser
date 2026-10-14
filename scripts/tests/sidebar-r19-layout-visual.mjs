@@ -813,6 +813,7 @@ try{
   chrome=spawn(process.env.CHROME_BIN||'google-chrome',[
     '--headless=new','--no-sandbox','--disable-dev-shm-usage','--disable-gpu',
     '--hide-scrollbars','--no-first-run','--no-default-browser-check',
+    ...(process.platform==='darwin'?['--use-mock-keychain','--password-store=basic']:[]),
     '--user-data-dir='+profile,'--remote-debugging-port=0','about:blank'
   ],{stdio:'ignore'});
   await connect();
