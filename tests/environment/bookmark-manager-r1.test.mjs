@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createBookmarkService} from '../../src/bookmark-manager/service.js';
 import {createBookmarkManager} from '../../src/bookmark-manager/trusted-ui.js';
-import {bookmarkTree,isDescendant,asHttpUrl,parentFolder,projectBookmarkRows} from '../../src/bookmark-manager/model.js';
+import {bookmarkTree,isDescendant,asHttpUrl,parentFolder,projectBookmarkRows,descendantSignatures} from '../../src/bookmark-manager/model.js';
 
 const initial=()=>[{id:'0',title:'root',children:[
  {id:'1',title:'Bookmarks bar',parentId:'0',folderType:'bookmarks-bar',children:[
@@ -87,11 +87,33 @@ test('folder removal rejects stale subtree and only removes explicitly reviewed 
  const folder=await s.createFolder({title:'Nested',parentId:'2'});
  await s.createBookmark({title:'One',url:'https://one.example/',parentId:folder.id});
  const before=await s.load(),expected=before.byId.get(folder.id);
- const oldDescendants=[...before.byId.keys()].filter(id=>id!==folder.id&&isDescendant(before,id,folder.id));
+ const oldDescendants=descendantSignatures(before,folder.id);
  await s.createBookmark({title:'New',url:'https://two.example/',parentId:folder.id});
- await assert.rejects(s.remove({expected,confirmed:true,expectedDescendantIds:oldDescendants}),/变化/);
- const newest=await s.load(),children=[...newest.byId.keys()].filter(id=>id!==folder.id&&isDescendant(newest,id,folder.id));
- await s.remove({expected:newest.byId.get(folder.id),confirmed:true,expectedDescendantIds:children});
+ await assert.rejects(s.remove({expected,confirmed:true,expectedDescendantSignatures:oldDescendants}),/变化/);
+ const newest=await s.load(),children=descendantSignatures(newest,folder.id);
+ await s.remove({expected:newest.byId.get(folder.id),confirmed:true,expectedDescendantSignatures:children});
+ assert.equal((await s.load()).byId.has(folder.id),false);
+});
+
+test('folder delete rejects edited descendant content with unchanged IDs',async()=>{
+ const f=harness(),s=f.service;
+ const folder=await s.createFolder({title:'Reviewed',parentId:'2'});
+ const nested=await s.createFolder({title:'Nested',parentId:folder.id});
+ const child=await s.createBookmark({title:'Original',url:'https://example.com/old',parentId:nested.id});
+ const before=await s.load(),expected=before.byId.get(folder.id);
+ const reviewed=descendantSignatures(before,folder.id);
+ await f.bookmarks.update(child.id,{title:'Updated elsewhere',url:'https://example.com/new'});
+ await assert.rejects(s.remove({expected,confirmed:true,expectedDescendantSignatures:reviewed}),/变化/);
+ assert.equal((await s.load()).byId.has(folder.id),true);
+ assert.equal((await s.load()).byId.get(child.id).url,'https://example.com/new');
+ await assert.rejects(s.remove({expected,confirmed:true}),/变化/);
+});
+test('empty folder deletion requires explicit empty review snapshot',async()=>{
+ const f=harness(),s=f.service;
+ const folder=await s.createFolder({title:'Empty',parentId:'2'});
+ const expected=(await s.load()).byId.get(folder.id);
+ await assert.rejects(s.remove({expected,confirmed:true}),/变化/);
+ await s.remove({expected,confirmed:true,expectedDescendantSignatures:[]});
  assert.equal((await s.load()).byId.has(folder.id),false);
 });
 

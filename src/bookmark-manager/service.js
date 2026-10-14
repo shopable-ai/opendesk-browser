@@ -1,5 +1,5 @@
 import {BOOKMARK_PERMISSION,asHttpUrl,displayName,bookmarkTree,isFolder,isDescendant,
-  editableNode,parentFolder,nodeSignature} from './model.js';
+  editableNode,parentFolder,nodeSignature,descendantSignatures} from './model.js';
 
 const requireGrant=async api=>{
   if(!api?.bookmarks?.getTree||await api.permissions?.contains(BOOKMARK_PERMISSION)!==true){
@@ -49,14 +49,15 @@ export function createBookmarkService(api){
       await requireGrant(api);
       return api.bookmarks.move(node.id,{parentId});
     },
-    async remove({expected,confirmed=false,expectedDescendantIds=null}){
+    async remove({expected,confirmed=false,expectedDescendantSignatures=null}){
       if(confirmed!==true)throw new Error('删除需要确认');
       const tree=await load(),node=assertFresh(tree,expected);
       await requireGrant(api);
       if(isFolder(node)){
         // A folder may gain children in another window after confirmation. Fail closed on any subtree drift.
-        const actual=[...tree.byId.keys()].filter(id=>id!==node.id&&isDescendant(tree,id,node.id)).sort();
-        if(!Array.isArray(expectedDescendantIds)||JSON.stringify([...expectedDescendantIds].sort())!==JSON.stringify(actual))
+        const actual=descendantSignatures(tree,node.id);
+        if(!Array.isArray(expectedDescendantSignatures)||
+           JSON.stringify([...expectedDescendantSignatures].sort())!==JSON.stringify(actual))
           throw stale();
         return api.bookmarks.removeTree(node.id);
       }
