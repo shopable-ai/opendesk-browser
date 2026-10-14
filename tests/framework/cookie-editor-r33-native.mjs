@@ -334,19 +334,28 @@ try{
         buttons:[...p.querySelectorAll('[data-cookie-capability]')].map(n=>({capability:n.dataset.cookieCapability,enabled:n.dataset.enabled,disabled:n.disabled}))}:null;})()`),'Cookie settings bound to active canonical fixture');
     return {targetId:target.targetId,url:await read(website,'location.href'),settings:state};
   });
-  await step('read-grant',async()=>{
+  await step('first-use-combined-grant',async()=>{
     const permissions=await read(side,'Promise.all([chrome.permissions.contains({permissions:["cookies"]}),chrome.permissions.contains({origins:["http://127.0.0.1/*"]})]).then(([cookies,site])=>({cookies,site}))');
     report.nativePermissionObservation=permissions;
-    await click(side,'[data-cookie-capability="read"]');
-    const grant=await until(()=>read(side,'(()=>{const n=document.querySelector("[data-cookie-capability=read]");return n?.dataset.enabled==="true"?{enabled:n.dataset.enabled,text:n.textContent}:null;})()'),'Real trusted read grant',10000);
-    await screenshot('read-grant-settings');await click(side,'#sidebar-tool-settings-open');
+    // Only the trusted Side Panel can receive this real user's combined grant.
+    const firstUse=await read(side,'!document.querySelector(".sidebar-tool-cookie-first-use").hidden');
+    assert(firstUse,'Official first-use review is visible');
+    await click(side,'.sidebar-tool-cookie-first-use button:first-child');
+    const grant=await until(()=>read(side,'(()=>{const read=document.querySelector("[data-cookie-capability=read]"),write=document.querySelector("[data-cookie-capability=write]");return read?.dataset.enabled==="true"&&write?.dataset.enabled==="true"?{read:true,write:true}:null;})()'),'Combined trusted read/write grant',10000);
+    await screenshot('first-use-combined-grant-settings');
+    if(await read(side,'!document.querySelector("#sidebar-tool-settings-view").hidden'))
+      await click(side,'#sidebar-tool-settings-open');
     const target=await bindCookieFrame();
     report.sandbox=target;
     await observeCookieFrames();
     const ui=await until(()=>read(toolSession,'(()=>{const n=document.querySelector("#browser-state"),create=document.querySelector("#live-new"),filters=document.querySelector("#live-filters");return n?.hidden===true&&create&&!create.disabled&&filters&&!filters.hidden?{statusHidden:n.hidden,newEnabled:!create.disabled,filtersVisible:!filters.hidden,heading:document.querySelector("#browser-state-heading")?.textContent,detail:document.querySelector("#browser-state-detail")?.textContent,count:document.querySelector("#live-count")?.textContent,host:document.querySelector("#site-host")?.textContent}:null;})()'),'Granted Cookie metadata UI ready');
     assert(ui.host.includes('127.0.0.1'));return {permissions,grant,ui,sandbox:target};
   });
-  await step('write-grant',async()=>{await grant('write');return {capability:'write',cookies:await cookies()};});
+  await step('write-grant-reuse',async()=>{
+    const grant=await read(side,'document.querySelector("[data-cookie-capability=write]").dataset.enabled');
+    assert.equal(grant,'true','First-use combined grant already included write; no repeated prompt');
+    return {capability:'write',alreadyGranted:true,cookies:await cookies()};
+  });
   if(process.env.COOKIE_NATIVE_SUITE!=='extended'||process.env.COOKIE_NATIVE_STAGE==='all'){
   await step('new-cookie',async()=>{
     await click(toolSession,'#live-new');await type('#cookie-name','od_core');await type('#cookie-value','fictional-one');
