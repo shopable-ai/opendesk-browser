@@ -4,12 +4,53 @@ import {readFile} from 'node:fs/promises';
 import {canonicalToolHostUrl} from '../../src/ui/sidebar-tools/navigation.js';
 import {toolDocumentIdentity} from '../../src/tool-document-url.js';
 import {isToolSender} from '../../src/environment.js';
-import {mergeScheduleHistoryView} from '../../src/ui/scheduled-task-workbench.js';
+import {mergeScheduleHistoryView,commitScheduledMutation} from '../../src/ui/scheduled-task-workbench.js';
 
 const load=path=>readFile(path,'utf8');
 const extension='chrome-extension://abcdefghijklmnopabcdefghijklmnop/';
 const base=extension+'ui/tool.html';
 const host='12345678-1234-4123-8123-123456789abc';
+
+test('R1.2 acknowledged schedule mutations remain successful when the next list read fails',async()=>{
+  const phases=[],saved={scheduleId:'schedule-real',generation:4};
+  const result=await commitScheduledMutation(async()=>{
+    phases.push('committed');return saved;
+  },async()=>{
+    phases.push('refresh-attempted');
+    throw new Error('host disconnected after commit');
+  });
+  assert.strictEqual(result.result,saved,'the authoritative successful mutation receipt is retained');
+  assert.equal(result.refreshError?.message,'host disconnected after commit',
+    'the UI must present refresh failure separately from the successful write');
+  assert.deepEqual(phases,['committed','refresh-attempted']);
+  const refreshed=await commitScheduledMutation(async()=>saved,async()=>true);
+  assert.strictEqual(refreshed.result,saved);
+  assert.equal(refreshed.refreshError,null);
+
+  let wasRefreshed=false;
+  await assert.rejects(()=>commitScheduledMutation(async()=>{
+    throw new Error('E_GENERATION: task changed');
+  },async()=>{wasRefreshed=true;}),/E_GENERATION/);
+  assert.equal(wasRefreshed,false,'a rejected write must never be treated as committed or trigger a misleading refresh');
+});
+
+test('R1.2 UI fences late poll responses and distinguishes committed writes from reload failure',async()=>{
+  const source=await load('src/ui/scheduled-task-workbench.js');
+  assert.match(source,/const requestSeq=\+\+refreshSeq/);
+  assert.match(source,/if\(disposed\|\|requestSeq!==refreshSeq\)return/,
+    'old list/catalog response must not repaint a newer snapshot');
+  const change=source.slice(source.indexOf('  async function change(plan,operation){'),source.indexOf('  function switchKind(){'));
+  const save=source.slice(source.indexOf('  async function confirmSave(){'),source.indexOf('  function enterDeveloper(){'));
+  const uninstall=source.slice(source.indexOf('  async function uninstall(){'),source.indexOf('  async function open(view='));
+  for(const [name,section] of [['pause/resume/delete',change],['create/edit',save],['uninstall',uninstall]]){
+    assert.match(section,/commitScheduledMutation\(/,name+' must preserve backend commit acknowledgment');
+    assert.match(section,/refreshError/,name+' must show a post-commit refresh warning');
+    assert.match(section,/列表刷新失败/,name+' must not claim the write failed after a successful RPC');
+  }
+  assert.match(change,/expectedGeneration:plan\.generation,action:operation/);
+  assert.match(save,/clearConfirmation\(\);formDirty=false/);
+  assert.doesNotMatch(source,/chrome\.alarms\.create|new Worker\(/);
+});
 
 test('official scheduled plan is nested inside 我的 and keeps icon-only task actions',async()=>{
   const html=await load('src/ui/tool.html');
