@@ -32,7 +32,7 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Direct-send provider, payload minimization and workflow regressions
         run: |
-          node --test tests/environment/workflow-direct-execution.test.mjs tests/environment/workflow-local-codex.test.mjs tests/environment/workflow-r15.test.mjs tests/environment/workflow-ai-observation.test.mjs tests/environment/workflow-ai-data-sharing.test.mjs tests/environment/workflow-ai-transport.test.mjs tests/environment/workflow-ui-states.test.mjs
+          node --test tests/environment/workflow-direct-execution.test.mjs tests/environment/workflow-local-codex.test.mjs tests/environment/workflow-r15.test.mjs tests/environment/workflow-ai-observation.test.mjs tests/environment/workflow-ai-data-sharing.test.mjs tests/environment/workflow-ai-transport.test.mjs tests/environment/workflow-ui-states.test.mjs tests/environment/workflow-focus.test.mjs
       - name: Real source verification
         run: npm run check
       - name: Real development build
