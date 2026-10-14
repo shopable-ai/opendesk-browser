@@ -98,3 +98,9 @@
 5. **最后再谈综合评分与发布**：设计维度可给独立专家评分，代码与原生验收达标须另有当次原始证据，不能仅凭文档自评 95+。
 
 **停止条件**：无需更多“规划版”GOAL，至少交付一个可复制、可点击、可追踪、可安全失败的真实网页 → 固定任务闭环；已通过的 Controller/Page/D3/工具路径不重复扩展。
+
+## 6. 混合 Import 在各功能领域的消费边界（R7.9.4）
+
+本地 Page 及 Controller 的**三个标准 ESM import**（HTTPS / npm / 相对路径）及按需/默认库示例，分别见 [Page 综合示例](../../../examples/programs/mixed-import-page/README.zh-CN.md) 与 [Controller 综合示例](../../../examples/programs/mixed-import-controller/README.zh-CN.md)。Page 仅通过 USER_SCRIPT 的 `document` 读网页标题；Controller 只能通过原受控 `page` 代理读取网页，按需 Axios 走现有 Broker，二者绝不通过网站 MAIN 共享默认全局或权限。普通 Tool、SW、Host、Content Script 只保留其已有真实静态依赖用法，不自动继承 Page/Controller 库。
+
+这个源码样例不是跨环境消息 Bridge，也不实现网页按钮触发 Controller；本轮权限/缓存/Revision 仍由既有 RunHost、Authority、Resolver 和固定库 Loader 负责。同候选真实 Chrome 以及离线、撤权验收状态在 [R7.9.4 工作流](../../framework/workstreams/import-runtime-r794-20261014.md)，未运行必须写 `NOT_TESTED`。
