@@ -40,6 +40,12 @@ description: Develop, preview, package, review, install and verify OpenDesk Brow
 
 **未来抽离的触发条件**：只有当独立发布节奏、跨产品复用或跨团队维护出现可验证的实际需求，并且现有 Catalog、源码哈希、固定入口、调试与验收可安全消费外部版本化源码时，才评估单独仓库或包。当前不引入跨仓库同步、符号链接式运行时加载、远程特权 JS 或自动扫描工具目录并授予权限。目录独立与安全隔离是两个不同指标。
 
+## 产品方案与交互预览门槛
+
+新建或显著修改工具 UI 时，先执行 [统一开发规范的 8 阶段设计→预览→实施工作流](../../../docs/api/sidebar-tool-development.zh-CN.md#产品设计与对话预览关卡新建显著改造-ui-时适用)；**在当前对话上下文中直接显示可交互 HTML 原型**并提供独立 HTML 文件，不得只展示包 JSON、截图或一个下载链接就宣称完成产品预览。原型使用模拟数据，无 Chrome/Native 写入权限；用户评审设计后再打包/安装。设计原型不同于下文由 stage 产生的只读包预览。
+
+独立工具页不堆静态描述：依照 [R28 多功能区 Tab 契约](../../../docs/architecture/sidebar-multi-section-tab-contract-r28.zh-CN.md)，头部默认只有返回、当前标题和必要操作；文件夹/列表等集合“＋ 新建”放在所属区域标题右侧，条目管理入口必须能在窄屏/键盘下找到。真正的授权/错误等动态提示放到状态区，不借口信息完整性常驻重复描述。
+
 ## 任务判断（先选一条，再改代码）
 
 - **普通工具 / UI**：编辑 `examples/sidebar-tools/<id>/tool.config.json` 及 `src/index.html/style.css/main.js`。依赖少则经典 JS，不为简单表单新建 React 应用。
