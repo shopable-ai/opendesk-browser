@@ -12,7 +12,7 @@ const setBusy=value=>{
   for(const button of root.querySelectorAll('button'))button.disabled=value;
   $('bookmark-remove').disabled=value||!bookmarkRef;
   $('download-status').disabled=value||!downloadRef;
-    $('download-cancel').disabled=value||!downloadRef;
+  $('download-cancel').disabled=value||!downloadRef;
   $('schedule-cancel').disabled=value||!scheduleRef;
 };
 const safeUrl=()=>{
@@ -82,6 +82,9 @@ $('storage-remove').addEventListener('click',()=>run('Storage remove','storage-o
   const result=await sdk.storage.local.remove({keys:[key]});
   $('storage-status').textContent='removed';return result;
 }));
+$('storage-clear').addEventListener('click',()=>run('Storage clear own','storage-output',async sdk=>{
+  return sdk.storage.local.clear();
+}));
 $('download-start').addEventListener('click',()=>run('Download demo','download-output',async sdk=>{
   const result=await sdk.downloads.download({url:safeUrl(),filename:'opendesk-r106-demo-form.html'});
   downloadRef=result.downloadRef;$('download-ref').textContent=downloadRef;return result;
@@ -89,9 +92,27 @@ $('download-start').addEventListener('click',()=>run('Download demo','download-o
 $('download-status').addEventListener('click',()=>run('Download status','download-output',async sdk=>{
   return sdk.downloads.getOwned({downloadRef});
 }));
-  $('download-cancel').addEventListener('click',()=>run('Download cancel','download-output',async sdk=>{
-    return sdk.downloads.cancelOwned({downloadRef});
-  }));
+$('download-cancel').addEventListener('click',()=>run('Download cancel','download-output',async sdk=>{
+  return sdk.downloads.cancelOwned({downloadRef});
+}));
+$('download-list').addEventListener('click',()=>run('Download list own','download-output',async sdk=>{
+  return sdk.downloads.listOwned();
+}));
+$('probe-bookmark').addEventListener('click',()=>run('Probe bookmark owner','probe-output',async sdk=>{
+  return sdk.bookmarks.removeOwned({bookmarkRef:$('probe-reference').value.trim()});
+}));
+$('probe-download').addEventListener('click',()=>run('Probe download owner','probe-output',async sdk=>{
+  return sdk.downloads.getOwned({downloadRef:$('probe-reference').value.trim()});
+}));
+$('probe-schedule').addEventListener('click',()=>run('Probe schedule owner','probe-output',async sdk=>{
+  return sdk.scheduler.cancelOwn({scheduleRef:$('probe-reference').value.trim()});
+}));
+$('probe-boundaries').addEventListener('click',()=>run('Probe trusted boundary','probe-output',async sdk=>{
+  let parentReadable=false;
+  try{parentReadable=!!parent.document;}catch{}
+  return {historyExposed:typeof sdk.history!=='undefined',permissionsExposed:typeof sdk.permissions!=='undefined',
+    chromeRuntimeExposed:typeof globalThis.chrome?.runtime?.sendMessage==='function',parentReadable};
+}));
 $('schedule-create').addEventListener('click',()=>run('Schedule create','scheduler-output',async sdk=>{
   const taskId=$('task-id').value.trim(),revision=$('task-revision').value.trim();
   const result=await sdk.scheduler.create({taskId,revision,schedule:{kind:'interval',expression:'1m'}});

@@ -254,7 +254,9 @@ async function runNative(){
   async function bindTool(){
     const frame=await deadline(()=>read(client,side,'(()=>{const n=document.querySelector("#sidebar-tool-frame iframe");return n?{url:n.src}:null})()'),'installed sandbox');
     const target=await deadline(async()=> (await client.send('Target.getTargets')).targetInfos.find(t=>t.type==='iframe'&&t.url===frame.url),'opaque sandbox target');
-    toolTarget=target;tool=await attach(client,target.targetId);return frame;
+    toolTarget=target;tool=await attach(client,target.targetId);
+    await deadline(()=>read(client,tool,'document.querySelector("#target-status")?.textContent==="ready"'),'actual installed SDK capability readiness');
+    return frame;
   }
   async function toolClick(selector){
     requireNativeResource();
@@ -294,6 +296,29 @@ async function runNative(){
     await deadline(()=>read(client,side,'!document.querySelector("#sidebar-tool-action-review").hidden'),'trusted review');
     const summary=await read(client,side,'document.querySelector("#sidebar-tool-action-summary").textContent');
     await click(client,side,'#sidebar-tool-action-continue',report.trace);return summary;
+  }
+  async function probeOutput(){
+    let consent;
+    await deadline(async()=>{
+      if(await read(client,side,'!document.querySelector("#sidebar-tool-action-review").hidden'))consent=await approve();
+      return ['success','error'].includes(await read(client,tool,'document.querySelector("#status").dataset.state'));
+    },'one probe request settles');
+    return {consent,result:await output('probe-output')};
+  }
+  async function installProbe(pkg,name){
+    if(await read(client,side,'!!document.querySelector("#sidebar-tool-back")?.getClientRects().length'))
+      await click(client,side,'#sidebar-tool-back',report.trace);
+    const file=path.join(runDir,name+'.opendesk-tool.json');await writeFile(file,JSON.stringify(pkg));
+    await click(client,side,'#sidebar-tool-import-trigger',report.trace);
+    await chooseFile(side,'#sidebar-tool-file',file);
+    await deadline(()=>read(client,side,`!document.querySelector("#sidebar-tool-preview").hidden&&document.querySelector("#sidebar-tool-preview-title").textContent.includes(${quote(pkg.title)})&&document.querySelector("#sidebar-tool-preview-version").textContent.includes(${quote(pkg.version)})`),'exact probe package review');
+    await click(client,side,'#sidebar-tool-install',report.trace);
+    const selector='[data-sidebar-tool-action="open"][data-sidebar-tool-id="'+pkg.id+'"]';
+    await deadline(()=>read(client,side,`!!document.querySelector(${quote(selector)})`),'probe installed');
+    const installed=await read(client,control,`chrome.storage.local.get(["opendesk.sidebar-tools.installed.v1","opendesk.sidebar-tools.revocation-epochs.v1"]).then(r=>({tool:r["opendesk.sidebar-tools.installed.v1"].find(t=>t.id===${quote(pkg.id)}),epoch:r["opendesk.sidebar-tools.revocation-epochs.v1"]?.[${quote(pkg.id)}]??null}))`);
+    assert.equal(installed.tool.version,pkg.version);
+    installed.fileSha256=sha256(await readFile(file));installed.canonicalPackageHash=await sidebarToolPackageHash(installed.tool);
+    await click(client,side,selector,report.trace);installed.frame=await bindTool();return installed;
   }
   async function permissionChoice(allow){
     await native('activate');
@@ -639,8 +664,49 @@ async function runNative(){
       assert(!(await read(client,side,'chrome.alarms.getAll()')).some(x=>x.name==='opendesk.schedule.v1:'+scheduleRef));
       return {result,list};
     });
+    let ownershipBook,ownershipSchedule;
+    await recordCase('ownership-source-resources',async()=>{
+      await toolClick('#bookmark-create');const bookmarkConsent=await approve();const bookmark=await output('bookmarks-output');
+      assert(bookmark.bookmarkRef&&!bookmark.id);ownershipBook=bookmark.bookmarkRef;
+      await toolClick('#schedule-create');const scheduleConsent=await approve();const schedule=await output('scheduler-output');
+      assert.equal(schedule.status,'active');ownershipSchedule=schedule.scheduleRef;
+      return {bookmarkConsent,bookmark,scheduleConsent,schedule};
+    });
+    await recordCase('cross-tool-storage-and-resource-rejection',async()=>{
+      const pkg=await createSidebarToolPackage(toolRoot);pkg.id='browser-sdk-acceptance-peer';pkg.title='Browser SDK Acceptance Peer';
+      report.peerInstalled=await installProbe(pkg,'browser-sdk-acceptance-peer');
+      await toolClick('#storage-read');const empty=await output('storage-output');assert(!Object.hasOwn(empty.items,'R106Proof'));
+      await toolType('#storage-value','peer-only');await toolClick('#storage-write');assert.equal((await output('storage-output')).written,1);
+      await toolClick('#storage-clear');const clearConsent=await approve();const cleared=await output('storage-output');assert(!cleared.error);
+      await toolClick('#storage-read');const afterClear=await output('storage-output');assert(!Object.hasOwn(afterClear.items,'R106Proof'));
+      await toolClick('#schedule-list');const schedules=await output('scheduler-output');assert.deepEqual(schedules.schedules,[]);
+      await toolClick('#download-list');const downloads=await output('download-output');assert.deepEqual(downloads.items,[]);
+      await toolType('#probe-reference',ownershipBook);await toolClick('#probe-bookmark');const bookmark=await probeOutput();assert(bookmark.result.error&&bookmark.result.code);
+      await toolType('#probe-reference',ownershipSchedule);await toolClick('#probe-schedule');const schedule=await probeOutput();assert(schedule.result.error&&schedule.result.code);
+      const originalDownload=report.cases['download-start-and-terminal-state'].result.start.downloadRef;
+      await toolType('#probe-reference',originalDownload);await toolClick('#probe-download');const download=await probeOutput();assert(download.result.error&&download.result.code);
+      await toolClick('#probe-boundaries');const boundary=await output('probe-output');assert.deepEqual(boundary,{historyExposed:false,permissionsExposed:false,chromeRuntimeExposed:false,parentReadable:false});
+      const nativeBookmarks=await read(client,control,'chrome.bookmarks.search({title:"OpenDesk R10.6 demo"})');assert.equal(nativeBookmarks.length,1,'foreign rejection must not delete the original bookmark');
+      const nativeAlarms=await read(client,control,'chrome.alarms.getAll()');assert(nativeAlarms.some(x=>x.name==='opendesk.schedule.v1:'+ownershipSchedule),'foreign cancellation must not remove the original Alarm');
+      await click(client,side,'#sidebar-tool-back',report.trace);
+      await click(client,side,'[data-sidebar-tool-action="open"][data-sidebar-tool-id="browser-sdk-acceptance"]',report.trace);await bindTool();
+      await toolClick('#storage-read');const primary=await output('storage-output');assert.equal(primary.items.R106Proof.value,'first-run','clearing B cannot clear A');
+      return {empty,clearConsent,cleared,afterClear,schedules,downloads,bookmark,schedule,download,boundary,nativeBookmarks,nativeAlarms,primary};
+    });
+    await recordCase('tool-upgrade-revokes-old-resource-identity',async()=>{
+      const pkg=await createSidebarToolPackage(toolRoot);pkg.version='10.6.3';
+      report.upgradedInstalled=await installProbe(pkg,'browser-sdk-acceptance-upgraded');
+      assert.notEqual(report.upgradedInstalled.canonicalPackageHash,report.installed.canonicalPackageHash);
+      assert.notEqual(report.upgradedInstalled.epoch,report.installed.epoch,'upgrade must retire the original installation epoch');
+      await toolType('#probe-reference',ownershipBook);await toolClick('#probe-bookmark');const bookmark=await probeOutput();assert(bookmark.result.error&&bookmark.result.code);
+      await toolType('#probe-reference',ownershipSchedule);await toolClick('#probe-schedule');const schedule=await probeOutput();assert(schedule.result.error&&schedule.result.code);
+      await toolClick('#schedule-list');const list=await output('scheduler-output');assert.deepEqual(list.schedules,[]);
+      const nativeAlarms=await deadline(async()=>{const alarms=await read(client,control,'chrome.alarms.getAll()');return alarms.some(x=>x.name==='opendesk.schedule.v1:'+ownershipSchedule)?null:alarms;},'old owner Alarm retired after upgrade');
+      const nativeBookmarks=await read(client,control,'chrome.bookmarks.search({title:"OpenDesk R10.6 demo"})');assert.equal(nativeBookmarks.length,1,'upgrade rejection must not delete the orphaned native bookmark');
+      return {bookmark,schedule,list,nativeAlarms,nativeBookmarks,installed:report.upgradedInstalled};
+    });
     report.status='CORE_PASS_MORE_CONTRACTS_NOT_TESTED';
-    report.remaining=['cross-tool isolation','History real trusted query','Origin revoke','upgrade/uninstall','Cookies installed consumer native acceptance'];
+    report.remaining=['History real trusted query','Origin revoke','uninstall','Cookies installed consumer native acceptance','remaining public SDK contracts and independent F3/ZIP'];
     return report;
   }finally{
     if(client&&control&&report.alarmObserver)report.alarmObserverRemoved=await read(client,control,`(()=>{const observer=globalThis[${quote(alarmObserverKey)}];if(!observer)return false;chrome.alarms.onAlarm.removeListener(observer.listener);delete globalThis[${quote(alarmObserverKey)}];return true})()`).catch(error=>({error:String(error)}));

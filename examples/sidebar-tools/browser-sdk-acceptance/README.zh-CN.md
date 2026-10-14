@@ -5,11 +5,13 @@
 ## 覆盖范围
 
 - `bookmarks.create/removeOwned`：创建并移除本工具拥有的书签 Ref。
-- `storage.local.set/get/remove`：验证已安装工具命名空间内的隔离持久存储。
-- `downloads.download/getOwned/cancelOwned`：请求下载 `http://127.0.0.1:43111/demo-form.html`，只使用 opaque `downloadRef`；未完成时可显式取消，完成和中断分别记录。
+- `storage.local.set/get/remove/clear`：验证已安装工具命名空间内的隔离持久存储；清空必须经过可信审批。
+- `downloads.download/getOwned/listOwned/cancelOwned`：请求下载 `http://127.0.0.1:43111/demo-form.html`，只使用 opaque `downloadRef`；未完成时可显式取消，完成和中断分别记录。
 - `scheduler.create/listOwn/cancelOwn`：为已安装固定 Task Revision 创建、列出并取消本工具自有 schedule。
 
 所有需要真实用户意图或高风险写入的操作都应由正式 Side Panel Host 弹出可信审批；工具沙箱只显示按钮和回执，不写授权、不灌 storage、不伪造 sender。
+
+10.6.2 增加 opaque Ref 拒绝探针。驱动可通过正式 UI 安装第二个普通工具 ID，验证跨工具数据隔离、资源拒绝，以及升级后的旧身份拒绝；这些按钮不绕过 SDK 或 Host。
 
 ## 构建
 

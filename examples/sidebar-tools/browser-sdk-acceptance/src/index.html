@@ -44,6 +44,7 @@
       <button id="storage-write" type="button">Write</button>
       <button id="storage-read" type="button">Read</button>
       <button id="storage-remove" type="button">Remove</button>
+      <button id="storage-clear" type="button">Clear own namespace</button>
     </div>
     <pre id="storage-output" aria-live="polite"></pre>
   </section>
@@ -57,6 +58,7 @@
       <button id="download-start" type="button">Download demo</button>
       <button id="download-status" type="button" disabled>Status</button>
       <button id="download-cancel" type="button" disabled>Cancel owned download</button>
+      <button id="download-list" type="button">List own downloads</button>
     </div>
     <pre id="download-output" aria-live="polite"></pre>
   </section>
@@ -78,5 +80,16 @@
     <pre id="scheduler-output" aria-live="polite"></pre>
   </section>
 
+  <section class="panel" aria-labelledby="boundary-heading">
+    <strong id="boundary-heading">Ownership and trusted Host boundary</strong>
+    <label>Opaque reference <input id="probe-reference" type="text" autocomplete="off" spellcheck="false"></label>
+    <div class="action-row">
+      <button id="probe-bookmark" type="button">Try bookmark removal</button>
+      <button id="probe-download" type="button">Try download read</button>
+      <button id="probe-schedule" type="button">Try schedule cancellation</button>
+      <button id="probe-boundaries" type="button">Inspect sandbox boundary</button>
+    </div>
+    <pre id="probe-output" aria-live="polite"></pre>
+  </section>
   <p id="status" class="status" role="status" aria-live="polite"></p>
 </main>
