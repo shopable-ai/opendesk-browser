@@ -46,16 +46,23 @@ test('R4.9 Tools has one navigation tier and three accessible add/import/market 
   assert.match(css,/\.sidebar-tool-view-head \.sidebar-tool-icon-action\{flex:0 0 var\(--od-icon-size\)/);
 });
 
-test('R15 official sidebar preserves six product views, privileged controls, compact discovery and task history',async()=>{
+test('R4 official sidebar preserves five product views, original host controls, local task search and history',async()=>{
   const [html,css,work]=await Promise.all([
     read('src/ui/tool.html'),read('src/ui/tool-shell.css'),read('src/ui/task-workbench.js')
   ]);
   const ids=[...html.matchAll(/id="([^"]+)"/g)].map(match=>match[1]);
   assert.equal(ids.length,new Set(ids).size,'no duplicate DOM IDs');
-  for(const value of ['tab-my-tasks','tab-discover','tab-workflow','tab-develop','tab-tools','tab-cloud','workbench-workflow','workbench-tools','workbench-cloud','cloud-hosting','cloud-open-console','workbench-local-discover',
-    'task-selected-workspace','task-history','task-params-form','task-run','task-stop',
-    'workspace-dock','task-result-panel','task-history-panel','local-discover-open-catalog','script-source','script-run','script-save',
+  for(const value of ['tab-my-tasks','tab-tools','tab-workflow','tab-develop','tab-cloud',
+    'workbench-tasks','workbench-workflow','workbench-tools','workbench-cloud','cloud-hosting',
+    'cloud-open-console','task-local-discovery','extension-center','extension-center-search',
+    'extension-center-list','extension-center-menu','task-selected-workspace','task-history',
+    'task-params-form','task-run','task-stop','workspace-dock','task-result-panel','task-history-panel',
+    'local-discover-open-catalog','script-source','script-run','script-save',
     'page-preview-run','sdk-install','task-install-feedback'])assert(ids.includes(value),'preserved '+value);
+  const $=load(html),nav=$('.workbench-nav button:not([hidden])');
+  assert.deepEqual(nav.toArray().map(el=>$(el).text().trim()),['我的','扩展','工作流','开发','云控']);
+  assert.equal($('#task-local-discovery').closest('#workbench-tasks').length,1,'task search remains in My');
+  assert.equal($('#extension-center').closest('#workbench-tools').length,1,'extension list retains trusted Tool host');
   assert.doesNotMatch(html,/id="discover-dock"|id="discover-to-catalog"/,'idle Discover should have no persistent footer');
   assert.match(work,/function renderLocalDiscovery\(/);
   assert.match(work,/group\.append\(workspace\)/,'active task owns its details');
@@ -117,7 +124,7 @@ test('R19 Sidebar spacing and corner system is consistent across all five tabs',
     assert.ok(at>=0,'missing CSS rule '+selector);
     return source.slice(at+selector.length+1,source.indexOf('}',at));
   };
-  for(const tab of ['tasks','local-discover','workflow','develop','tools'])
+  for(const tab of ['tasks','tools','workflow','develop','cloud'])
     assert.match(html,new RegExp('data-workbench-page="'+tab+'"'),'preserved view '+tab);
   assert.match(body(':root',tokens),/--space-2:8px;\s*--space-3:12px/);
   assert.match(body(':root',tokens),/--radius-control:8px;\s*--radius-surface:12px;\s*--radius-pill:999px/);
@@ -159,13 +166,13 @@ test('R19 Sidebar spacing and corner system is consistent across all five tabs',
   assert.match(css,/:focus-visible/,'keyboard focus state remains visible');
 });
 
-test('R20/R23 six-tab design system has one token source and a strict trusted asset pipeline',async()=>{
+test('R4/R23 five-tab design system has one token source and a strict trusted asset pipeline',async()=>{
   const [html,tokens,design,css,prepare,verify,visual]=await Promise.all([
     read('src/ui/tool.html'),read('src/ui/design-tokens.css'),read('src/ui/design-system.css'),read('src/ui/tool-shell.css'),
     read('scripts/prepare-public.mjs'),read('scripts/verify-package.mjs'),read('scripts/tests/sidebar-r19-layout-visual.mjs')
   ]);
   assert.match(html,/<link rel="stylesheet" href="design-tokens\.css"><link rel="stylesheet" href="design-system\.css"><link rel="stylesheet" href="tool-shell\.css">/);
-  for(const view of ['tasks','local-discover','workflow','develop','tools'])
+  for(const view of ['tasks','tools','workflow','develop','cloud'])
     assert.ok(html.includes('class="od-page" data-workbench-page="'+view+'"'),'shared page layout '+view);
   for(const toolbar of ['task-section-head','local-discovery-search-row','workflow-head'])
     assert.ok(html.includes('class="'+toolbar+' od-toolbar"'),'shared toolbar '+toolbar);
@@ -193,7 +200,7 @@ test('R20/R23 six-tab design system has one token source and a strict trusted as
   assert.match(prepare,/'src\/ui\/design-system\.css':'ui\/design-system\.css'/);
   assert.match(prepare,/'src\/ui\/bookmark-manager\.css':'ui\/bookmark-manager\.css'/,
     'the trusted bookmark CSS used by Tools is a whitelisted WXT asset');
-  assert.ok(verify.includes("'ui/tool.html': ['design-tokens.css', 'design-system.css', 'tool-shell.css', 'bookmark-manager.css', 'time-review.css', 'cloud-hosting.css', 'sidebar-tool-host.js', 'stay-focus-controls.js', 'trusted-cookie-ui.js', 'tool-shell.js']"),
+  assert.ok(verify.includes("'ui/tool.html': ['design-tokens.css', 'design-system.css', 'tool-shell.css', 'bookmark-manager.css', 'time-review.css', 'cloud-hosting.css', 'extension-center.css', 'sidebar-tool-host.js', 'stay-focus-controls.js', 'trusted-cookie-ui.js', 'tool-shell.js']"),
     'the fixed asset verifier must require cloud hosting CSS and the precise trusted sidecars before the main shell');
   assert.match(html, /<script src="sidebar-tool-host\.js"><\/script>\s*<script src="stay-focus-controls\.js"><\/script>\s*<script src="trusted-cookie-ui\.js"><\/script>\s*<script src="tool-shell\.js"><\/script>/,
     'the native Cookie/Stay Focus controls load in a verified order before the Side Panel shell');
@@ -201,7 +208,7 @@ test('R20/R23 six-tab design system has one token source and a strict trusted as
   // without weakening the original token, shell and workspace audit closure.
   const auditedCSS=[...verify.matchAll(/for\(const cssPath of \[([^\]]+)\]\)/g)]
     .flatMap(([,list])=>[...list.matchAll(/'([^']+\.css)'/g)].map(([,path])=>path));
-  for(const path of ['ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css',
+  for(const path of ['ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css','ui/extension-center.css',
     'ui/cloud-control-console.css','native-agent/settings.css','native-agent/workspace.css'])
     assert(auditedCSS.includes(path),'CSS build verification audits '+path);
   assert.match(verify,/if\(cssPath==='native-agent\/workspace\.css'\)inspectWorkspaceStyle\(css\)/,'Workspace CSS extends the original closed asset audit');

@@ -178,7 +178,9 @@ test('entering Sidebar task views reads external installations without executing
   assert.equal(input.value,'Preserved native input');
   assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
   f.catalogState.installed=[];
+  // Switching back into My refreshes the original authoritative Task Catalog.
   await f.click('tab-tools');
+  await f.click('tab-my-tasks');
   assert.equal(f.get('local-discover-cards').children.length,1);
   assert.match(f.get('local-discover-cards').children[0].textContent,/还没有任务/);
 });
