@@ -1,0 +1,132 @@
+{
+  "format": "opendesk.mixed-import-node-evidence.v1",
+  "level": "NODE_BUILD_VM_NOT_CHROME",
+  "source": {
+    "provider": "GitHub Actions",
+    "workflow": "OpenDesk multi-file source contract",
+    "runId": 38561369143,
+    "jobId": 115842977875,
+    "headSha": "4bcf2b9a5607de1c0fc10fd9f5cc1ec7d3de6539",
+    "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38561369143",
+    "rawStep": "Real pinned mixed-import Page and Controller builds (no SKIP)",
+    "observed": "2026-10-14T12:08:06Z"
+  },
+  "tests": {
+    "total": 14,
+    "passed": 14,
+    "failed": 0,
+    "skipped": 0
+  },
+  "projects": {
+    "page": {
+      "sourceHash": "3156034dabe8be51db089521c907df5e56c9c9ec766bfa0669f176bf7429e8b6",
+      "sourceBytes": 2561,
+      "npmLockSha256": "d42e3fb452a0e53cf31a5a9121b500db4eafea48933423f55f510aea1794ef6d",
+      "npmDependencies": [
+        {
+          "name": "lodash-es",
+          "version": "4.17.21",
+          "resolved": "https://registry.npmjs.org/lodash-es/-/lodash-es-4.17.21.tgz",
+          "integrity": "sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw=="
+        }
+      ],
+      "npmBundledModules": [
+        "node_modules/lodash-es/_Symbol.js",
+        "node_modules/lodash-es/_arrayMap.js",
+        "node_modules/lodash-es/_baseGetTag.js",
+        "node_modules/lodash-es/_basePropertyOf.js",
+        "node_modules/lodash-es/_baseToString.js",
+        "node_modules/lodash-es/_escapeHtmlChar.js",
+        "node_modules/lodash-es/_freeGlobal.js",
+        "node_modules/lodash-es/_getRawTag.js",
+        "node_modules/lodash-es/_objectToString.js",
+        "node_modules/lodash-es/_root.js",
+        "node_modules/lodash-es/escape.js",
+        "node_modules/lodash-es/isArray.js",
+        "node_modules/lodash-es/isObjectLike.js",
+        "node_modules/lodash-es/isSymbol.js",
+        "node_modules/lodash-es/toString.js"
+      ],
+      "remoteModules": [
+        {
+          "url": "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js",
+          "sha256": "691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d",
+          "bytes": 502
+        }
+      ]
+    },
+    "controller": {
+      "sourceHash": "946ae21b21024a27eb92cdfc697a3f45fd49cf2c2b10351f5e1da6cb21c5d578",
+      "sourceBytes": 2506,
+      "npmLockSha256": "1dc684e735a880f00c5463b9f1f462ed80986ed23b1bd059253c7afecb222d53",
+      "npmDependencies": [
+        {
+          "name": "lodash-es",
+          "version": "4.17.21",
+          "resolved": "https://registry.npmjs.org/lodash-es/-/lodash-es-4.17.21.tgz",
+          "integrity": "sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw=="
+        }
+      ],
+      "npmBundledModules": [
+        "node_modules/lodash-es/_Symbol.js",
+        "node_modules/lodash-es/_arrayMap.js",
+        "node_modules/lodash-es/_baseGetTag.js",
+        "node_modules/lodash-es/_basePropertyOf.js",
+        "node_modules/lodash-es/_baseToString.js",
+        "node_modules/lodash-es/_escapeHtmlChar.js",
+        "node_modules/lodash-es/_freeGlobal.js",
+        "node_modules/lodash-es/_getRawTag.js",
+        "node_modules/lodash-es/_objectToString.js",
+        "node_modules/lodash-es/_root.js",
+        "node_modules/lodash-es/escape.js",
+        "node_modules/lodash-es/isArray.js",
+        "node_modules/lodash-es/isObjectLike.js",
+        "node_modules/lodash-es/isSymbol.js",
+        "node_modules/lodash-es/toString.js"
+      ],
+      "remoteModules": [
+        {
+          "url": "https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js",
+          "sha256": "691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d",
+          "bytes": 502
+        }
+      ]
+    }
+  },
+  "results": {
+    "page": {
+      "imports": {
+        "https": 5,
+        "npm": "A &amp; B",
+        "relative": [
+          2,
+          5,
+          3
+        ]
+      },
+      "packaged": "demo",
+      "defaults": {
+        "words": 2,
+        "date": "2026-10-14"
+      },
+      "pageTitle": "OpenDesk Mixed Import Fixture"
+    },
+    "controller": {
+      "imports": {
+        "https": 5,
+        "npm": "A &amp; B",
+        "relative": [
+          2,
+          5,
+          3
+        ]
+      },
+      "packaged": "http://127.0.0.1:43111/demo-form.html?mode=demo",
+      "defaults": {
+        "words": 2,
+        "date": "2026-10-14"
+      },
+      "pageTitle": "OpenDesk Mixed Import Fixture"
+    }
+  }
+}
