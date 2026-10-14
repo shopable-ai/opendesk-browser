@@ -1,6 +1,6 @@
 // Reused by the existing installation transaction. It already holds the
 // per-tool/catalog lock; never re-enter that lock from here.
-import {AI_ID,AI_STORE,AI_ALARM,controlLevel,aiError} from './policy.js';
+import {AI_ID,AI_STORE,AI_ALARM,LEGACY_AI_ID,LEGACY_AI_STORE,LEGACY_AI_ALARM,controlLevel,aiError} from './policy.js';
 import {writeVerifiedLocalValue} from '../ui/sidebar-tools/storage-state.js';
 export const EMPTY_AI_STATE=Object.freeze({schema:1,desired:false,releasePending:false,deviceId:null,lease:null});
 export function parseAiState(value){
@@ -42,6 +42,13 @@ export async function stopAiAccessForTool(api,toolId){
   await storeAiState(api,stopping,{...stopping,releasePending:false});
 }
 export async function cleanupUninstalledAiAccess(api,toolId,removeVerifiedKey){
+  if(toolId===LEGACY_AI_ID){
+    // The legacy ID never owns the new ID's activation or live proxy preference.
+    // Worker reconciliation is responsible for releasing orphaned owned PAC.
+    await api.alarms?.clear?.(LEGACY_AI_ALARM);
+    await removeVerifiedKey(api,LEGACY_AI_STORE);
+    return;
+  }
   if(toolId!==AI_ID)return;
   await stopAiAccessForTool(api,toolId);
   await removeVerifiedKey(api,AI_STORE);

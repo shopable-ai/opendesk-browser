@@ -6,7 +6,7 @@ export function createAiAccessPermissionControls({api,doc,container,notice,runOp
   section.id='ai-access-trusted-controls';
   section.className='time-review-trusted-actions';
   section.hidden=true;
-  const heading=doc.createElement('strong');heading.textContent='AI 智能访问';
+  const heading=doc.createElement('strong');heading.textContent='AI VIP Share';
   const status=doc.createElement('p');status.id='ai-access-status';
   status.setAttribute('role','status');status.setAttribute('aria-live','polite');
   const action=doc.createElement('button');
