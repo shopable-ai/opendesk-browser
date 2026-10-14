@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-// STATIC_MARKUP_CHROME ONLY. Real product HTML/CSS; CDP keyboard tests native HTML
-// details semantics only, never extension authorization or native control events.
+// STATIC_MARKUP_CHROME plus SOURCE_UI_SIMULATION_CHROME (read-only fixture client).
+// CDP keyboard input tests browser focus/HTML semantics, never installed extension
+// authorization, scheduling, Run, Chrome permissions or Native control events.
 import {spawn} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {createServer} from 'node:http';
@@ -62,6 +63,9 @@ scenes.push(...['tasks','local-discover','catalog','workflow','develop','tools',
   {name:'develop-collapsed',tab:'develop',closedDetails:true},
   {name:'develop-single-open',tab:'develop',singleDetail:'developer-results-panel'}
 );
+const scheduledOnly=process.argv.includes('--scheduled-only');
+const staticOnly=process.argv.includes('--static-only');
+if(scheduledOnly&&staticOnly)throw Error('Choose either --scheduled-only or --static-only');
 const tabFilter=process.argv.find(arg=>arg.startsWith('--tabs='))?.slice(7).split(',');
 if(tabFilter){
   scenes.splice(0,scenes.length,...scenes.filter(scene=>tabFilter.includes(scene.tab)));
@@ -69,7 +73,8 @@ if(tabFilter){
 }
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const profile=await mkdtemp(join(tmpdir(),'sidebar-r19-static-'));
-let chrome,server,socket,port,seq=0;
+let chrome,server,socket,port,seq=0,evidenceBinding=[],evidenceChromeVersion=null;
+const partialEvidence={samples:[],keyboardSamples:[],navigationSamples:[],sourceUISamples:[]};
 const pending=new Map();
 function cdp(method,params={}){
   const id=++seq;
@@ -587,6 +592,176 @@ async function keyboardDisclosure(scene,selector){
   if(!space.focused||space.open!==before.open||!space.focusVisible)throw Error('Static Space did not restore summary '+selector+' '+JSON.stringify({before,enter,space}));
   return {evidence:'STATIC_MARKUP_CHROME_KEYBOARD',scene:scene.name,selector,before,enter,space};
 }
+
+async function nativeTab(reverse=false){
+  const params={key:'Tab',code:'Tab',windowsVirtualKeyCode:9,modifiers:reverse?8:0};
+  await cdp('Input.dispatchKeyEvent',{type:'rawKeyDown',...params});
+  await cdp('Input.dispatchKeyEvent',{type:'keyUp',...params});
+}
+async function keyboardNavigation(width,theme){
+  const ids=await evaluate(`(()=>{
+    const nav=document.querySelector('.workbench-nav');
+    const tabs=[...nav.querySelectorAll('button')].filter(b=>!b.hidden);
+    if(tabs.length!==6)throw Error('Expected six formal navigation tabs');
+    // Source fixture only: make each roving tab reachable with native Tab to
+    // measure every CSS ring. This does not test tool-shell's tab routing.
+    globalThis.__r19TabIndices=tabs.map(b=>b.tabIndex);
+    globalThis.__r19NavEvents=[];
+    nav.onkeydown=e=>globalThis.__r19NavEvents.push({key:e.key,shift:e.shiftKey,isTrusted:e.isTrusted});
+    tabs.forEach(b=>b.tabIndex=0);tabs[0].focus();
+    return tabs.map(b=>b.id);
+  })()`);
+  const records=[];
+  try{
+    await nativeTab();await nativeTab(true);
+    for(const index of [0,1,2,3,4,5,4,3,2,1,0]){
+      if(records.length)await nativeTab(records.length>=6);
+      // Fixture reveal only: static HTML has no production tab-navigation JS.
+      // Never assigns focus; native Tab above remains the focus authority.
+      await evaluate("document.activeElement.scrollIntoView({block:'nearest',inline:'nearest',behavior:'instant'})");
+      const m=await evaluate(`(async()=>{
+        await new Promise(resolve=>requestAnimationFrame(resolve));
+        const b=document.activeElement,nav=document.querySelector('.workbench-nav'),s=getComputedStyle(b);
+        const r=b.getBoundingClientRect(),n=nav.getBoundingClientRect(),ns=getComputedStyle(nav);
+        const extent=parseFloat(s.outlineWidth)+parseFloat(s.outlineOffset);
+        return {id:b.id,focusVisible:b.matches(':focus-visible'),outlineWidth:parseFloat(s.outlineWidth),
+          outlineOffset:parseFloat(s.outlineOffset),outlineStyle:s.outlineStyle,outlineColor:s.outlineColor,
+          outline:{left:r.left-extent,right:r.right+extent,top:r.top-extent,bottom:r.bottom+extent},
+          clip:{left:Math.max(0,n.left),right:Math.min(innerWidth,n.right),top:n.top,bottom:n.bottom},
+          overflowY:ns.overflowY,scrollLeft:nav.scrollLeft,events:globalThis.__r19NavEvents.slice()};
+      })()`);
+      if(m.id!==ids[index]||!m.focusVisible||m.outlineWidth<2||m.outlineOffset!==-3||
+        ['none','hidden'].includes(m.outlineStyle)||['transparent','rgba(0, 0, 0, 0)'].includes(m.outlineColor)||
+        m.overflowY!=='hidden'||m.outline.left<m.clip.left-.5||m.outline.right>m.clip.right+.5||
+        m.outline.top<m.clip.top-.5||m.outline.bottom>m.clip.bottom+.5||
+        !m.events.length||m.events.some(e=>!e.isTrusted))throw Error('Navigation focus clipped '+JSON.stringify({width,theme,index,m}));
+      records.push(m);
+    }
+    return {evidence:'STATIC_MARKUP_CHROME_KEYBOARD',width,theme,
+      fixture:'six tabindex=0 + scrollIntoView reveal; production routing NOT_TESTED',records};
+  }finally{
+    await evaluate(`document.querySelectorAll('.workbench-nav button:not([hidden])').forEach((b,i)=>b.tabIndex=globalThis.__r19TabIndices[i]);document.querySelector('.workbench-nav').onkeydown=null`);
+  }
+}
+// Imported production renderer, explicitly simulated data and denied mutations.
+async function setupScheduledSimulation(count,mode){
+  globalThis.__r19Scheduled?.dispose();
+  for(const page of document.querySelectorAll('[data-workbench-page]'))page.hidden=page.dataset.workbenchPage!=='tasks';
+  document.querySelector('#tab-debug').hidden=true;
+  document.querySelector('#workspace-dock').hidden=true;
+  const {createScheduledTaskWorkbench}=await import('/src/ui/scheduled-task-workbench.js');
+  document.querySelector('#schedule-plan-list').replaceChildren();
+  document.querySelector('#schedule-detail-view').replaceChildren();
+  document.querySelector('#schedule-detail-view').dataset.scheduleId='';
+  const now=Date.UTC(2026,9,14,1);
+  const history=Array.from({length:120},(_,i)=>({fireId:'simulation-fire-'+i,
+    scheduledAt:now-i*60000,status:i%3===0?'UNKNOWN':i%3===1?'FAILED':'SUCCESS',
+    runId:'simulation-run-'+i,resultId:i%3===2?'simulation-result-'+i:null,
+    retirementState:i%3===2?'released':'pending'}));
+  const plans=Array.from({length:count},(_,i)=>({scheduleId:'simulation-plan-'+i,
+    title:'源UI模拟只读计划 '+(i+1)+' · 每日核对项目进度与长中文说明、失败处理和结果人工确认'.repeat(3),
+    taskId:'simulation-task',version:'1.0.0',generation:1,timezone:'Asia/Shanghai',
+    triggerKind:'daily',triggerSpec:{hour:9,minute:0},nextDueAt:now+i*60000,
+    targetUrl:'https://example.invalid/'+('very-long-target-path-'.repeat(12)),
+    paused:false,needsAttention:i===count-1&&count>1,params:{},history:history.slice(0,20)}));
+  globalThis.__r19Reads=[];globalThis.__r19Denied=[];
+  let historyFailure=mode==='history-error';
+  const client={async request(method,input){
+    globalThis.__r19Reads.push({method,input});
+    if(method==='listTaskCatalog')return {catalog:[],installed:[]};
+    if(method==='listSchedules'){
+      if(mode==='read-error')throw Error('源UI模拟读取失败；未连接真实调度器');
+      return {schedules:plans};
+    }
+    if(method==='listScheduleHistory'){
+      if(input.scheduleId!=='simulation-plan-0'||input.limit!==20)throw Error('Unexpected simulated history request');
+      if(historyFailure){historyFailure=false;throw Error('源UI模拟历史读取失败');}
+      return {history:history.slice(input.offset,input.offset+input.limit),hasMore:input.offset+input.limit<history.length};
+    }
+    globalThis.__r19Denied.push(method);throw Error('Read-only simulation denied '+method);
+  }};
+  const denied=()=>{globalThis.__r19Denied.push('host/api');throw Error('No real Chrome/Host capabilities in source UI simulation');};
+  globalThis.__r19Scheduled=createScheduledTaskWorkbench({client,
+    host:{currentRun:null,stop:denied},api:{permissions:{contains:denied,request:denied},tabs:{create:denied},runtime:{getURL:denied}},
+    taskWorkbench:{navigate(tab){if(tab!=='tasks')denied();},setScheduledSurfaceActive(){}},
+    onOpen(){document.querySelector('#workspace-dock').hidden=true;}});
+  await globalThis.__r19Scheduled.open();
+  await new Promise(resolve=>requestAnimationFrame(resolve));
+}
+function measureScheduled(selector){
+  const content=document.querySelector('#workspace-content'),panel=document.querySelector('#scheduled-panel');
+  const rect=el=>{const r=el.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};};
+  const root=document.documentElement,c=rect(content);
+  const visible=el=>el.getClientRects().length>0;
+  const offenders=[...panel.querySelectorAll('*')].filter(visible).map(el=>({tag:el.tagName,id:el.id,className:el.className,
+    ...rect(el),clientWidth:el.clientWidth,scrollWidth:el.scrollWidth})).filter(r=>r.left<c.left-1||r.right>c.right+1||r.scrollWidth>r.clientWidth+1);
+  const target=selector?document.querySelector(selector):null;
+  return {viewportWidth:innerWidth,darkMedia:matchMedia('(prefers-color-scheme:dark)').matches,root:{clientWidth:root.clientWidth,scrollWidth:root.scrollWidth},
+    content:{...c,clientWidth:content.clientWidth,scrollWidth:content.scrollWidth,scrollTop:content.scrollTop,scrollHeight:content.scrollHeight,clientHeight:content.clientHeight},
+    panel:{...rect(panel),clientWidth:panel.clientWidth,scrollWidth:panel.scrollWidth},offenders,
+    target:target?rect(target):null,cardCount:document.querySelectorAll('.schedule-card').length,
+    historyCount:document.querySelectorAll('.schedule-history-row').length,
+    listHidden:document.querySelector('#schedule-list-view').hidden,detailHidden:document.querySelector('#schedule-detail-view').hidden,
+    detailPlan:document.querySelector('#schedule-detail-view').dataset.scheduleId,
+    message:document.querySelector('#schedule-message').textContent,reads:globalThis.__r19Reads.slice(),denied:globalThis.__r19Denied.slice()};
+}
+function validateScheduled(m,width,reach=false){
+  if(m.viewportWidth!==width||m.root.scrollWidth>width+1||m.content.scrollWidth>m.content.clientWidth+1||
+    m.panel.scrollWidth>m.panel.clientWidth+1||m.panel.width<=0||m.offenders.length||m.denied.length)
+    throw Error('Source scheduled horizontal overflow/capability failure '+JSON.stringify(m));
+  if(reach&&(!m.target||m.target.height<=0||m.target.top<m.content.top-1||m.target.bottom>m.content.bottom+1||
+    m.target.left<m.content.left-1||m.target.right>m.content.right+1))throw Error('Source scheduled last row unreachable '+JSON.stringify(m));
+}
+async function scheduledSamples(width,theme){
+  const samples=[];
+  const capture=async(name,selector,reach=false)=>{
+    if(selector)await evaluate(`document.querySelector(${JSON.stringify(selector)}).scrollIntoView({block:'end'})`);
+    await evaluate('new Promise(resolve=>requestAnimationFrame(resolve))');
+    const m=await evaluate('('+measureScheduled.toString()+')('+JSON.stringify(selector||null)+')');
+    validateScheduled(m,width,reach);
+    if(m.darkMedia!==(theme==='dark'))throw Error('Source UI theme emulation mismatch');
+    samples.push({evidence:'SOURCE_UI_SIMULATION_CHROME',scene:name,width,theme,...m});
+    const screenshot=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false,fromSurface:true});
+    await writeFile(join(out,name+'-'+theme+'-'+width+'x700.png'),Buffer.from(screenshot.data,'base64'));
+    return m;
+  };
+  for(const count of [1,20]){
+    await evaluate('('+setupScheduledSimulation.toString()+')('+count+',"normal")');
+    const m=await capture('source-schedule-'+count+'-last-card','.schedule-card:last-child',true);
+    if(m.cardCount!==count||m.listHidden||!m.detailHidden||m.historyCount)throw Error('Expected compact source index '+JSON.stringify(m));
+    if(count===20&&m.content.scrollHeight<=m.content.clientHeight)throw Error('Long list fixture did not exercise scrolling');
+    // Fixture navigation is intentionally separate from native keyboard evidence.
+    await evaluate('document.querySelector(".schedule-plan-open").click()');
+    const detail=await capture('source-schedule-'+count+'-detail');
+    if(!detail.listHidden||detail.detailHidden||detail.detailPlan!=='simulation-plan-0')throw Error('Detail is not independent '+JSON.stringify(detail));
+    const keyboard=await keyboardDisclosure({name:'source-schedule-'+count+'-detail'},'#schedule-detail-view .schedule-history > summary');
+    if(keyboard.before.outlineOffset<=0)throw Error('Non-nav focus must retain positive outline offset');
+    samples.push({...keyboard,evidence:'SOURCE_UI_SIMULATION_CHROME_KEYBOARD',width,theme});
+    await evaluate('document.querySelector("#schedule-detail-view .schedule-history").open=true');
+    for(let i=0;i<6;i++){
+      const state=await evaluate(`(()=>{const b=document.querySelector('.schedule-load-more');if(!b)return 'done';if(b.disabled)throw Error('Pending history request');b.click();return 'loading';})()`);
+      if(state==='done')break;
+      for(let wait=0;wait<50;wait++){
+        if(await evaluate('!document.querySelector(".schedule-load-more")?.disabled'))break;
+        await sleep(20);
+      }
+    }
+    const history=await capture('source-schedule-'+count+'-history120','.schedule-history-row:last-of-type',true);
+    if(history.historyCount!==120||history.target.height<=0||history.reads.filter(r=>r.method==='listScheduleHistory').length!==5||
+      await evaluate('Boolean(document.querySelector(".schedule-load-more"))'))throw Error('120 source history not fully rendered');
+    if(!await evaluate(`document.querySelector('.schedule-history').textContent.includes('结果未确认')&&document.querySelector('.schedule-history').textContent.includes('失败')`))throw Error('Missing UNKNOWN/FAILED source status');
+  }
+  await evaluate('('+setupScheduledSimulation.toString()+')(1,"history-error")');
+  await evaluate('document.querySelector(".schedule-plan-open").click();document.querySelector(".schedule-history").open=true;document.querySelector(".schedule-load-more").click()');
+  await evaluate('new Promise(resolve=>requestAnimationFrame(resolve))');
+  const error=await capture('source-schedule-history-error','.schedule-load-more',true);
+  if(!error.message.includes('源UI模拟历史读取失败')||!await evaluate('document.querySelector(".schedule-load-more").textContent.includes("重试")'))throw Error('History error not actionable');
+  await evaluate('('+setupScheduledSimulation.toString()+')(1,"read-error")');
+  const readError=await capture('source-schedule-read-error');
+  if(!readError.message.includes('读取计划失败'))throw Error('Missing simulated read error');
+  await evaluate('globalThis.__r19Scheduled.dispose();globalThis.__r19Scheduled=null');
+  return samples;
+}
 try{
   await mkdir(out,{recursive:true});
   const officialReleases=(await createOfficialToolResources()).catalog.apps;
@@ -602,6 +777,23 @@ try{
   const sourceInputs=['src/ui/tool.html','src/ui/design-tokens.css','src/ui/design-system.css','src/ui/tool-shell.css','src/ui/cloud-hosting.css','examples/sidebar-tools/time-review/src/style.css'];
   const sha=value=>createHash('sha256').update(value).digest('hex');
   const sourceBinding=[source,tokens,design,style,hostingStyle,timeReviewStyle].map((contents,index)=>({path:sourceInputs[index],sha256:sha(contents)}));
+  const sourceModules=new Map();
+  async function collectModule(path){
+    if(sourceModules.has(path))return;
+    if(!path.startsWith(join(root,'src')+'/')||!path.endsWith('.js'))throw Error('Outside required source module closure '+path);
+    const code=await readFile(path,'utf8');sourceModules.set(path,code);
+    sourceBinding.push({path:path.slice(root.length+1),sha256:sha(code)});
+    for(const match of code.matchAll(/(?:import|export)\s+(?:[^'";]*?\sfrom\s*)?['"]([^'"]+)['"]/g)){
+      if(!match[1].startsWith('.'))throw Error('Nonlocal source module dependency '+match[1]);
+      await collectModule(resolve(path,'..',match[1]));
+    }
+  }
+  if(!staticOnly&&(!tabFilter||tabFilter.includes('tasks')))
+    await collectModule(join(root,'src/ui/scheduled-task-workbench.js'));
+  const bookmarkStyle=await readFile(join(root,'src/ui/bookmark-manager.css'),'utf8');
+  sourceBinding.push({path:'src/ui/bookmark-manager.css',sha256:sha(bookmarkStyle)},
+    {path:'scripts/tests/sidebar-r19-layout-visual.mjs',sha256:sha(await readFile(join(root,'scripts/tests/sidebar-r19-layout-visual.mjs')))});
+  evidenceBinding=sourceBinding;
   const html=source.replace(/<script src="tool-shell\.js"><\/script>/,'');
   if(html===source)throw Error('Expected script marker missing: refusing native JS execution in static fixture');
   server=createServer((req,res)=>{
@@ -612,6 +804,8 @@ try{
     else if(name==='/ui/tool-shell.css')res.writeHead(200,{'Content-Type':'text/css; charset=utf-8'}).end(style);
     else if(name==='/ui/cloud-hosting.css')res.writeHead(200,{'Content-Type':'text/css; charset=utf-8'}).end(hostingStyle);
     else if(name==='/ui/time-review.css')res.writeHead(200,{'Content-Type':'text/css; charset=utf-8'}).end(timeReviewStyle);
+    else if(name==='/ui/bookmark-manager.css')res.writeHead(200,{'Content-Type':'text/css; charset=utf-8'}).end(bookmarkStyle);
+    else if(sourceModules.has(root+name))res.writeHead(200,{'Content-Type':'text/javascript; charset=utf-8'}).end(sourceModules.get(root+name));
     else res.writeHead(404).end();
   });
   await new Promise(ok=>server.listen(0,'127.0.0.1',ok));
@@ -630,10 +824,12 @@ try{
     await sleep(100);
   }
   if(!ready)throw Error('Real Sidebar HTML/CSS did not load in static Chrome');
-  const samples=[];
+  const chromeVersion=await cdp('Browser.getVersion');evidenceChromeVersion=chromeVersion;
+  const staticScenes=scheduledOnly?[]:scenes;
+  const samples=partialEvidence.samples;
   for(const width of sampleWidths){
     await cdp('Emulation.setDeviceMetricsOverride',{width,height:700,deviceScaleFactor:1,mobile:false});
-    for(const scene of scenes){
+    for(const scene of staticScenes){
       await evaluate('('+setupScene.toString()+')('+JSON.stringify(scene)+','+JSON.stringify(officialReleases)+')');
       if(scene.state==='cloud-open')await evaluate('document.querySelector("#cloud-hosting").scrollIntoView({block:"start"})');
       const m=await evaluate('('+measureScene.toString()+')('+JSON.stringify(scene)+')');
@@ -650,7 +846,7 @@ try{
   if(!await evaluate('matchMedia("(pointer:coarse)").matches'))throw Error('Coarse-pointer media emulation unavailable');
   for(const width of sampleWidths){
     await cdp('Emulation.setDeviceMetricsOverride',{width,height:700,deviceScaleFactor:1,mobile:false});
-    for(const scene of scenes.filter(s=>['develop','workflow-settings','cloud-hosting-open','tools-installed','schedule-form',
+    for(const scene of staticScenes.filter(s=>['develop','workflow-settings','cloud-hosting-open','tools-installed','schedule-form',
       'tasks-details-long','workflow-details-long','tools-installed-long','cloud-details-long','develop-single-open'].includes(s.name))){
       await evaluate('('+setupScene.toString()+')('+JSON.stringify(scene)+','+JSON.stringify(officialReleases)+')');
       if(scene.state==='cloud-open')await evaluate('document.querySelector("#cloud-hosting").scrollIntoView({block:"start"})');
@@ -663,13 +859,13 @@ try{
   }
   await cdp('Emulation.setTouchEmulationEnabled',{enabled:false});
   await cdp('Emulation.setDeviceMetricsOverride',{width:320,height:700,deviceScaleFactor:1,mobile:false});
-  const keyboardSamples=[];
+  const keyboardSamples=partialEvidence.keyboardSamples;
   for(const [name,selector] of [
     ['develop-collapsed','#developer-target-detail > summary'],
     ['develop-single-open','#developer-results-panel > summary'],
     ['cloud-hosting-open','#cloud-hosting > summary']
   ]){
-    const scene=scenes.find(s=>s.name===name);
+    const scene=staticScenes.find(s=>s.name===name);
     if(!scene)continue;
     await evaluate('('+setupScene.toString()+')('+JSON.stringify(scene)+','+JSON.stringify(officialReleases)+')');
     keyboardSamples.push(await keyboardDisclosure(scene,selector));
@@ -681,7 +877,7 @@ try{
   ]){
     await cdp('Emulation.setEmulatedMedia',{features});
     await cdp('Emulation.setDeviceMetricsOverride',{width,height:700,deviceScaleFactor:1,mobile:false});
-    const scene=scenes.find(s=>s.name===name);
+    const scene=staticScenes.find(s=>s.name===name);
     if(!scene)continue;
     await evaluate('('+setupScene.toString()+')('+JSON.stringify(scene)+','+JSON.stringify(officialReleases)+')');
     const media=await evaluate('('+JSON.stringify(features)+').map(f=>({name:f.name,value:f.value,matches:matchMedia("("+f.name+":"+f.value+")").matches}))');
@@ -692,16 +888,44 @@ try{
     await writeFile(join(out,scene.name+'-'+features[0].value+'-'+width+'x700.png'),Buffer.from(image.data,'base64'));
   }
   await cdp('Emulation.setEmulatedMedia',{features:[]});
+  const {navigationSamples,sourceUISamples}=partialEvidence;
+  for(const theme of ['light','dark']){
+    await cdp('Emulation.setEmulatedMedia',{features:[{name:'prefers-color-scheme',value:theme}]});
+    for(const width of widths){
+      await cdp('Emulation.setDeviceMetricsOverride',{width,height:700,deviceScaleFactor:1,mobile:false});
+      await evaluate('('+setupScene.toString()+')('+JSON.stringify({name:'my',tab:'tasks'})+','+JSON.stringify(officialReleases)+')');
+      navigationSamples.push(await keyboardNavigation(width,theme));
+      if(!staticOnly&&(!tabFilter||tabFilter.includes('tasks')))sourceUISamples.push(...await scheduledSamples(width,theme));
+      console.log(sourceUISamples.length?'SIDEBAR_R19_SOURCE_UI_PASS':'SIDEBAR_R19_NAVIGATION_FOCUS_PASS',theme,width);
+    }
+  }
+  await cdp('Emulation.setEmulatedMedia',{features:[]});
   for(const item of sourceBinding)if(sha(await readFile(join(root,item.path)))!==item.sha256)throw Error('Relevant input drift '+item.path);
   await writeFile(join(out,'metrics.json'),JSON.stringify({
     evidence:'STATIC_MARKUP_CHROME',nativeExtension:false,nativeControlEvents:false,
-    source:sourceInputs.join(' + '),sourceBinding,inputsStable:true,samples,keyboardSamples
+    source:sourceInputs.join(' + '),sourceBinding,inputsStable:true,chromeVersion,samples,keyboardSamples,navigationSamples,sourceUISamples,
+    sourceUIEvidence:sourceUISamples.length?'SOURCE_UI_SIMULATION_CHROME':'NOT_TESTED',installedNative:'NOT_TESTED',
+    limitations:['read-only simulated schedule client; no real Chrome permissions, Run or Native claims','CDP CSS viewport/media emulation; actual Side Panel and browser zoom NOT_TESTED'],
+    resources:{profile,port,chromePid:chrome.pid,release:'finally closes socket/server, terminates owned Chrome and removes temporary profile'}
   },null,2)+'\n');
   console.log('SIDEBAR_R21_STATIC_STATES_ALL_PASS '+samples.length);
+  console.log('SIDEBAR_R19_NAVIGATION_ALL_PASS '+navigationSamples.length);
+  if(sourceUISamples.length)console.log('SIDEBAR_R19_SOURCE_UI_ALL_PASS '+sourceUISamples.length);
+}catch(error){
+  await writeFile(join(out,'failure.json'),JSON.stringify({status:'FAIL',error:error.stack,sourceBinding:evidenceBinding,
+    chromeVersion:evidenceChromeVersion,partialEvidence,installedNative:'NOT_TESTED'},null,2)+'\n');
+  throw error;
 }finally{
   try{socket?.close()}catch{}
-  try{server?.close()}catch{}
+  if(server?.listening)await new Promise(resolve=>server.close(resolve));
   try{chrome?.kill('SIGTERM')}catch{}
-  await sleep(350);
+  for(let i=0;i<30&&chrome?.exitCode===null&&chrome?.signalCode===null;i++)await sleep(100);
+  if(chrome?.exitCode===null&&chrome?.signalCode===null){
+    chrome.kill('SIGKILL');
+    await new Promise(resolve=>chrome.once('exit',resolve));
+  }
   await rm(profile,{recursive:true,force:true,maxRetries:5,retryDelay:100});
+  await writeFile(join(out,'resources-released.json'),JSON.stringify({status:'released',profile,profileRemoved:true,
+    port,serverClosed:!server?.listening,chromePid:chrome?.pid,chromeExitCode:chrome?.exitCode,chromeSignal:chrome?.signalCode,
+    distWritten:false,publicWritten:false},null,2)+'\n');
 }

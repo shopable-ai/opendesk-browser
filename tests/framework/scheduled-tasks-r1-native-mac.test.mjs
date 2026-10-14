@@ -403,6 +403,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     '--no-first-run','--no-default-browser-check','--disable-background-networking',
     '--remote-allow-origins=*','--remote-debugging-address=127.0.0.1','--remote-debugging-port=0',
     '--user-data-dir='+profile,'--disable-extensions-except='+EXT,'--load-extension='+EXT,
+    ...(process.platform==='darwin'?['--use-mock-keychain']:[]),
     ...(CI_UNSANDBOXED_LINUX?['--no-sandbox']:[]),'about:blank'];
   proc=spawn(BIN,args,{stdio:['ignore','ignore','pipe']});
   proc.stderr.on('data',bytes=>{chromeStderr=(chromeStderr+String(bytes)).slice(-7000);});
@@ -1121,7 +1122,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     await type(client,formSid,'#schedule-target',URL);
     if(process.env.SCHEDULE_NATIVE_PHYSICAL_WIDTH==='1'){
       assert.equal(VIEWPORT,false,'Physical width cannot share viewport emulation');
-      for(const width of [320,360,420]){
+      for(const width of [300,320,360,420,520]){
         const readGeometry=()=>evaluate(client,
           '({url:location.href,widthCSS:innerWidth,heightCSS:innerHeight,dpr:devicePixelRatio,scale:visualViewport?.scale,scrollWidth:document.documentElement.scrollWidth})',formSid);
         const request={requestId:randomUUID(),requestedWidth:width,requestedAt:new Date().toISOString(),
