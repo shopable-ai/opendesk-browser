@@ -70,10 +70,14 @@ export function createBookmarkService(api){
         if(!emitter?.addListener)continue;
         const listener=()=>callback('bookmark');emitter.addListener(listener);active.push([emitter,listener]);
       }
-      const onPermission=()=>callback('permission');
+      const onPermission=details=>{
+        if(details?.permissions?.includes('bookmarks'))callback('permission');
+      };
+      api.permissions?.onAdded?.addListener(onPermission);
       api.permissions?.onRemoved?.addListener(onPermission);
       return ()=>{
         for(const [emitter,listener] of active)emitter.removeListener?.(listener);
+        api.permissions?.onAdded?.removeListener(onPermission);
         api.permissions?.onRemoved?.removeListener(onPermission);
       };
     }
