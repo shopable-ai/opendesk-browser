@@ -155,7 +155,10 @@ test('export default zero-argument main without imports waits for inspect, then 
 });
 test('corrupt displayed bytes never enable approval',async t=>{
   const f=fixture({readCode:code+'//changed'});t.after(()=>f.dispose());await settle();
-  await f.click('network-js-prepare');f.find('network-js-sources').children[0].fire('click');await settle();
+  await f.click('network-js-prepare');f.find('network-js-sources').children[0].fire('click');
+  // WebCrypto SHA-256 resolves asynchronously; setImmediate ticks are not a
+  // completion barrier under parallel full-suite CI load.
+  await waitFor(()=>/E_DEPENDENCY_HASH/.test(f.find('network-js-status').textContent));
   f.find('network-js-consent').checked=true;f.find('network-js-consent').fire('change');
   assert.match(f.find('network-js-status').textContent,/E_DEPENDENCY_HASH/);
   assert.equal(f.find('network-js-approve').disabled,true);assert.equal(f.approved.size,0);
