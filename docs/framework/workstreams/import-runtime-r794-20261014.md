@@ -31,3 +31,13 @@
 **原 R7.7/R7.8 单独的 D3/native PASS 不能证明新两项目的混合执行；源码写入和 Node L2 也不能替代 Chrome。** 网页 GitHub 连接器无法读取用户 Mac 的工作区差异、日常扩展 Profile、真实安装与本地持久 Result；本轮不凭空提供 runId、packageHash 或假回执。
 
 下一唯一动作：Mac `/Users/shopme/Documents/workspace/opendesk-browser` 核对当前 main 与保留并行改动，分别 `npm ci --ignore-scripts`、运行本轮新综合测试和定向构建，再使用已有受控 Chrome 测试/开发入口对两个真实项目分别完成同一次 main() 的最终回执、离线/撤权负向、产物校验；实际失败先修再提交。最终确保测试 PASS 而非 SKIP，绑定准确源码/构建/扩展身份。
+
+## 当前实际 GitHub 提交与 Source 校验
+
+- 综合 Page/Controller 项目首次源码提交：`701344988b247831e6337a309a08ecc7c89a5631`（12 个真实项目文件）。
+- Node/Build 及安全负向综合测试已写入：`2ee88c5a6243694ea732746a1d0875d8396a510f`（`tests/environment/mixed-import-projects.test.mjs`）。仅表示测试源码已提交，不表示这些测试已经运行。
+- 两个 README 和本工作流提交：`495968d8b77e83699050955edd823b8b9bfb299d`；现有使用文档导航随后已更新。
+- Mac Codex 最终测试修复提示词：[`goal-import-runtime-r794-mac-codex-acceptance-20261014.zh-CN.md`](../prompts/goal-import-runtime-r794-mac-codex-acceptance-20261014.zh-CN.md)。
+- GitHub 连接器实际回读两个项目及原始 D3/npm 锁后进行 11 项/项目，共 22 项**源码级**检查：`SOURCE_CONNECTOR_PASS`。原始对照：[source-connector-verification.json](evidence/import-r794-20261014/source-connector-verification.json)。它未对 D3 执行本地重新哈希、未运行 npm/Node/Chrome，不能提升至 L2/Native PASS。
+
+仍然是：`NODE_NOT_TESTED / WEBPACK_NOT_TESTED / CHROME_PAGE_NOT_TESTED / CHROME_CONTROLLER_NOT_TESTED / MAC_NATIVE_NOT_TESTED / PACKAGE_HASH_UNAVAILABLE`。此状态优先于历史其他版本的 PASS。
