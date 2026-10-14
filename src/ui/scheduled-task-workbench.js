@@ -154,6 +154,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   let pendingCreate=false,pendingCreateFromForm=false,pendingTask=null,confirmUninstall=null,allPlans=[],catalog=[],installed=[];
   let selectedFire=null,lastRefresh=0,activeView='list',runnerFocusId=null;
   let selectedPlanId=null,detailReturnView='list',formReturnView='list',listScrollTop=0;
+  let managerScrollTop=0,managerFocusId=null;
   let cloudPanelVisibility;
   let permissionSeq=0,awaitingSave=null,editRevision=0,storageProbeRevision=0;
   let formDirty=false,discardDestination='list';
@@ -414,6 +415,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   function makeHistoryRow(fire,zone){
     const row=element(doc,'div','schedule-history-row',
       `${describeTime(fire.scheduledAt,zone)} · ${scheduleStatus(fire.status)}`);
+    row.dataset.fireId=fire.fireId;
     const guidance=scheduleStatusGuidance[fire.status];
     if(guidance)row.append(element(doc,'small','schedule-status-guidance',guidance));
     if(fire.runId){
@@ -434,6 +436,9 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     view.open=Boolean(root.querySelector('.schedule-history')?.open);
     view.moreOpen=Boolean(root.querySelector('.schedule-more')?.open);
     view.deleteReview=Boolean(root.querySelector('.schedule-delete-confirm'));
+    view.expandedRuns=new Set([...root.querySelectorAll('.schedule-history-row')]
+      .filter(row=>row.querySelector('.schedule-run-details')?.open)
+      .map(row=>row.dataset.fireId));
   }
   function renderPlans(){
     rememberDetailState();
@@ -501,9 +506,20 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   function renderDetail(){
     const parent=get('schedule-detail-view');
     const plan=allPlans.find(row=>row.scheduleId===selectedPlanId);
-    if(!plan){parent.replaceChildren();parent.dataset.scheduleId='';return;}
+    if(!plan){
+      parent.replaceChildren();parent.dataset.scheduleId='';
+      if(activeView==='detail'){
+        leaveDetail();selectedPlanId=null;
+        message('此计划已被移除，已返回计划列表');
+      }
+      return;
+    }
     const view=historyViews.get(plan.scheduleId);
     if(!view)return;
+    const scrollTop=get('workspace-content')?.scrollTop??0;
+    const focusedRun=parent.contains(doc.activeElement)&&
+      doc.activeElement?.matches?.('.schedule-run-details > summary')?
+        doc.activeElement.closest('.schedule-history-row')?.dataset.fireId:null;
     const focusSelectors=['.schedule-history > summary','.schedule-load-more',
       '.schedule-more > summary','.schedule-danger-link',
       '.schedule-delete-confirm button:first-child','.schedule-delete-confirm button:nth-child(2)',
@@ -530,7 +546,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       const hint=warning?element(doc,'p','schedule-status-help',warning):null;
       if(hint&&plan.needsAttention){
         hint.append(' ');
-        hint.append(action(doc,'检查已安装任务',()=>{managerReturn='detail';show('manager');},
+        hint.append(action(doc,'检查已安装任务',()=>openManager('detail'),
           'od-button od-button--secondary'));
       }
       const history=element(doc,'details','schedule-history od-disclosure od-disclosure--flat');
@@ -538,7 +554,12 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       history.append(element(doc,'summary',null,
         '运行记录'+(last?` · 最近：${scheduleStatus(last.status)} · ${describeTime(last.scheduledAt,plan.timezone)}`:' · 暂无')));
       const historyList=element(doc,'div','od-stack');
-      for(const fire of view.records)historyList.append(makeHistoryRow(fire,plan.timezone));
+      for(const fire of view.records){
+        const row=makeHistoryRow(fire,plan.timezone);
+        const technical=row.querySelector('.schedule-run-details');
+        if(technical)technical.open=Boolean(view.expandedRuns?.has(fire.fireId));
+        historyList.append(row);
+      }
       if(view.hasMore){
         const more=action(doc,'加载更早记录',async()=>{
           if(more.disabled)return;
@@ -594,6 +615,13 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     // Reopen the inline review only; never invoke its dangerous RPC here.
     if(view.deleteReview)remove.click();
     if(focusSelector)card.querySelector(focusSelector)?.focus({preventScroll:true});
+    if(focusedRun)[...historyList.querySelectorAll('.schedule-history-row')]
+      .find(row=>row.dataset.fireId===focusedRun)?.querySelector('.schedule-run-details > summary')
+      ?.focus({preventScroll:true});
+    if(activeView==='detail'){
+      text(get('schedule-panel-title'),plan.title);
+      const scroller=get('workspace-content');if(scroller)scroller.scrollTop=scrollTop;
+    }
   }
   function openDetail(scheduleId){
     if(!allPlans.some(plan=>plan.scheduleId===scheduleId))return;
@@ -939,8 +967,19 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     }
     clearConfirmation();show(destination);focusReturnedView(destination);
   }
+  function openManager(returnView){
+    managerReturn=returnView;
+    managerScrollTop=get('workspace-content')?.scrollTop??0;
+    managerFocusId=returnView==='form'?'schedule-manage-tasks':'schedule-detail-edit';
+    show('manager');get('schedule-manager-search').focus({preventScroll:true});
+  }
+  function leaveManager(){
+    show(managerReturn);
+    get(managerFocusId)?.focus({preventScroll:true});
+    const scroller=get('workspace-content');if(scroller)scroller.scrollTop=managerScrollTop;
+  }
   function navigateBack(){
-    if(activeView==='manager'){show(managerReturn);return;}
+    if(activeView==='manager'){leaveManager();return;}
     if(activeView==='detail'){leaveDetail();return;}
     if(activeView==='form'){
       requestLeaveForm(formReturnView);return;
@@ -1027,9 +1066,9 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     }
   });
   bind('schedule-new-script','click',enterDeveloper);
-  bind('schedule-manage-tasks','click',()=>{managerReturn='form';show('manager');});
+  bind('schedule-manage-tasks','click',()=>openManager('form'));
   bind('schedule-manager-create','click',enterDeveloper);
-  bind('schedule-manager-back','click',()=>show(managerReturn));
+  bind('schedule-manager-back','click',leaveManager);
   bind('schedule-manager-search','input',renderManager);
   bind('schedule-manager-filter','change',renderManager);
   bind('schedule-uninstall-yes','click',()=>void uninstall());

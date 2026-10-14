@@ -1,0 +1,23 @@
+# Extension UI R1.2 产品闭环 · 2026-10-14
+
+状态：ACTIVE。负责人：Codex 会话 `01a13a09-3d6b-70b0-ac41-745a99a8d6ce`，main。
+
+起始本地 HEAD：`a851ee5ec0adcde72eb0d922f6b314cb339b0d78`；首次远端核查：`000c8aca43476a9926cb96dda2ac46782dace268`。仅 main，不创建分支/worktree/PR。
+
+负责路径：`src/ui/scheduled-task-workbench.js`、`src/ui/tool-shell.css`、`src/ui/design-system.css`、必要时 `src/ui/tool.html`；测试 `tests/environment/scheduled-task-ui-r1.test.mjs`、`tests/environment/sidebar-component-contract.test.mjs`、`tests/framework/scheduled-tasks-r1-native-mac.test.mjs`；本记录。扩展前核查 diff。Cookie Editor/Workflow/Stay Focus/书签业务由其他负责人维护，不覆盖其文件。
+
+导航：我的 → 定时计划列表 → 单个详情 → 创建/编辑 → 来源详情或列表；任务管理独立子视图；运行页复用 `tool.html?scheduledRunner=1`。验证草稿、轮询、历史与返回焦点，不增加 Runtime/Authority。
+
+通过条件：定向 Node 证明实际修复；构建与包校验；新增 Chrome 断言绑定真实输入/几何/截图。R3/R19/R21/R2.3 先核对输入，旧包结果保持原身份；评分缺证据保持 NOT_SCORED/NOT_TESTED。
+
+资源：已有 npm dev PID 33560 独占 `dist/development` 和 `.wxt/public`；保留 watcher，不绕过构建锁。原生使用本轮输出 `artifacts/extension-ui-r12-01a13a09/` 与现有驱动临时 CFT Profile；不占个人 Chrome、不改 Native 配对。Git index/HEAD 写入在最终集成窗口串行。
+
+只读子 Agent：已有证据/CI影响核查、六 Tab 缺陷审查；共享源码由本负责人落盘。初始目标文件无未提交改动。
+
+P0 基线 74/74 PASS；新增组件回归先复现 3 个 FAIL（详情技术展开/焦点丢失、管理返回焦点/滚动、外部删除留空），最小源码修复后 78/78 PASS。120 条模拟历史分页与 20 条模拟计划隔离通过，仅 NODE_COMPONENT。
+
+P1 范围确认：导航栏裁切外向焦点框（六 Tab 消费者）及云控页首未复用 od-page-title（只改标题，不改云控行为）。新增验证写入现有 `scripts/tests/sidebar-r19-layout-visual.mjs` 和 R3 workflow；共享 runtime、SDK、动态工具信任边界无修改。
+
+本地双构建由开发锁阻止（PID 33580 / 43120），不绕过 guard 或停 watcher；使用 GitHub Actions 构建当前提交包。R3 原候选26/26 + 原生1/1经连接器日志核实，保留其原SHA/包身份；本轮受影响项单独验证。
+
+集成窗口：远端 `68badfe4` 已含另一轮计划保存成功/刷新失败区分及晚到轮询保护，属于兼容的已提交变化。FF 因本轮两个目标文件有本地改动而安全拒绝，未覆盖任何文件。先提交本轮已通过组件验证的独立补丁，再在 main 合并最新远端并保留双方测试/修复；只处理明确冲突的 import 行，不 stash 其他工作。

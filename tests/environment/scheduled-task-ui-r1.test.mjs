@@ -4,7 +4,8 @@ import {readFile} from 'node:fs/promises';
 import {canonicalToolHostUrl} from '../../src/ui/sidebar-tools/navigation.js';
 import {toolDocumentIdentity} from '../../src/tool-document-url.js';
 import {isToolSender} from '../../src/environment.js';
-import {mergeScheduleHistoryView} from '../../src/ui/scheduled-task-workbench.js';
+import {parseHTML} from 'linkedom';
+import {createScheduledTaskWorkbench,mergeScheduleHistoryView} from '../../src/ui/scheduled-task-workbench.js';
 
 const load=path=>readFile(path,'utf8');
 const extension='chrome-extension://abcdefghijklmnopabcdefghijklmnop/';
@@ -238,7 +239,8 @@ test('R2.6 unsaved editor Back/cancel must review changes while task manager pre
   assert.match(ui,/function navigateBack\(\)/);
   assert.match(ui,/bind\('schedule-back','click',navigateBack\)/);
   assert.match(ui,/bind\('schedule-cancel','click',\(\)=>requestLeaveForm/);
-  assert.match(ui,/bind\('schedule-manager-back','click',\(\)=>show\(managerReturn\)\)/);
+  assert.match(ui,/bind\('schedule-manager-back','click',leaveManager\)/);
+  assert.match(ui,/function leaveManager\(\)\{\s*show\(managerReturn\)/);
   assert.match(css,/#schedule-discard-confirm\{display:grid/);
   assert.ok(css.includes(':root[data-opendesk-surface="scheduled-runner"]:has(#schedule-runner-view:not([hidden])) .schedule-header-heading{display:none}'));
   assert.equal(css.includes(':root[data-opendesk-surface="scheduled-runner"] .schedule-header:has(#schedule-stop[hidden]){display:none}'),false,
@@ -470,4 +472,119 @@ test('R3 index vs detail navigation and fixed schedule authorization boundaries'
   assert.match(source,/expectedGeneration:plan.generation,action:operation/);
   assert.match(css,/\.schedule-card-head \.schedule-plan-open\{/);
   assert.doesNotMatch(source,/chrome\.alarms\.create|new Worker\(/);
+});
+
+
+// Component-only DOM fixture. No Chrome permission, native input, Fire or Result
+// is fabricated as product evidence; genuine native coverage lives in R3.
+async function scheduledDomFixture({count=1,historyCount=1}={}){
+  const {document,window}=parseHTML(await load('src/ui/tool.html'));
+  let focused=document.body;
+  Object.defineProperty(document,'activeElement',{get:()=>focused});
+  const prepare=node=>{
+    node.focus=()=>{focused=node;};
+    if(node.tagName==='SELECT'){
+      let value=node.querySelector('option')?.value||'';
+      Object.defineProperty(node,'value',{get:()=>value,set:next=>{value=String(next);},configurable:true});
+    }
+    return node;
+  };
+  document.querySelectorAll('*').forEach(prepare);
+  const create=document.createElement.bind(document);
+  document.createElement=(...args)=>prepare(create(...args));
+  document.getElementById('schedule-form').reset=()=>{};
+  const now=Date.now();
+  const history=Array.from({length:historyCount},(_,i)=>({fireId:'fire-'+i,
+    scheduledAt:now-i*60000,status:i===0?'UNKNOWN':'SUCCESS',runId:'run-'+i,
+    resultId:'result-'+i,retirementState:'released'}));
+  const installed={taskId:'sample.task',version:'1.0.0',enabled:true,
+    installationId:'install',manifestHash:'manifest',generation:1};
+  const entry={...installed,stage:'available',manifest:{title:'很长的中文任务名称'.repeat(6),
+    siteOrigins:['https://example.com']}};
+  const state={plans:Array.from({length:count},(_,i)=>({scheduleId:'plan-'+i,generation:1,
+    title:'计划'+i+'长中文名称'.repeat(8),taskId:installed.taskId,version:installed.version,
+    sourceHash:'source',manifestHash:installed.manifestHash,installationId:'install',taskGeneration:1,
+    paused:true,nextDueAt:null,timezone:'Asia/Shanghai',triggerKind:'daily',
+    triggerSpec:{hour:9,minute:0},targetUrl:'https://example.com/'+('long/path/'.repeat(20)),
+    params:{keep:'original'},misfirePolicy:'skip',startDeadlineMs:300000,
+    history:i===0?history.slice(0,20):[]})),history,installed:[installed],catalog:[entry],calls:[]};
+  const client={async request(method,input){
+    state.calls.push({method,input});
+    if(method==='listTaskCatalog')return structuredClone({catalog:state.catalog,installed:state.installed});
+    if(method==='listSchedules')return {schedules:structuredClone(state.plans)};
+    if(method==='listScheduleHistory')return {history:structuredClone(state.history.slice(input.offset,input.offset+input.limit)),
+      hasMore:input.offset+input.limit<state.history.length};
+    throw Error('Unexpected component RPC '+method);
+  }};
+  const ui=createScheduledTaskWorkbench({client,document,
+    host:{},taskWorkbench:{navigate(){}},api:{permissions:{contains:async()=>true}}});
+  await ui.open();
+  return {document,window,state,ui,get:id=>document.getElementById(id),
+    flush:()=>new Promise(resolve=>setImmediate(resolve))};
+}
+
+test('R1.2 polling preserves expanded per-Fire technical detail and keyboard focus',async()=>{
+  const {get,state,ui,document}=await scheduledDomFixture();
+  get('schedule-plan-list').querySelector('.schedule-plan-open').click();
+  const history=get('schedule-detail-view').querySelector('.schedule-history');history.open=true;
+  const technical=history.querySelector('.schedule-run-details');technical.open=true;
+  technical.querySelector('summary').focus();
+  get('workspace-content').scrollTop=260;
+  state.plans[0].history[0].status='FAILED';await ui.refresh();
+  const updated=get('schedule-detail-view').querySelector('.schedule-run-details');
+  assert.equal(updated.open,true,'background result update must retain the expanded actual Fire');
+  assert.equal(document.activeElement===updated.querySelector('summary'),true,'keyboard focus stays on the same Fire');
+  assert.equal(get('workspace-content').scrollTop,260,'poll must not jump the detail scroll');
+  ui.dispose();
+});
+
+test('R1.2 task manager return keeps editor draft, scroll and visible focus',async()=>{
+  const {get,ui,document}=await scheduledDomFixture();
+  get('schedule-plan-list').querySelector('.schedule-plan-open').click();
+  get('schedule-detail-edit').click();
+  get('schedule-title').value='未保存的计划';
+  get('schedule-title').dispatchEvent(new document.defaultView.Event('input',{bubbles:true}));
+  get('workspace-content').scrollTop=170;
+  get('schedule-manage-tasks').click();
+  await ui.refresh();
+  get('schedule-manager-back').click();
+  assert.equal(get('schedule-form').hidden,false);
+  assert.equal(get('schedule-title').value,'未保存的计划');
+  assert.equal(document.activeElement?.id,'schedule-manage-tasks','return receives a visible editor control');
+  assert.equal(get('workspace-content').scrollTop,170);
+  get('schedule-cancel').click();
+  assert.equal(get('schedule-discard-confirm').hidden,false,'unsaved draft still requires review');
+  ui.dispose();
+});
+
+test('R1.2 externally removed detail returns to a usable index',async()=>{
+  const {get,state,ui,document}=await scheduledDomFixture({count:2});
+  get('schedule-plan-list').querySelector('.schedule-plan-open').click();
+  state.plans.shift();await ui.refresh();
+  assert.equal(get('schedule-detail-view').hidden,true,'removed plan must not leave a blank detail');
+  assert.equal(get('schedule-list-view').hidden,false);
+  assert.equal(document.activeElement===get('schedule-plan-list').querySelector('.schedule-plan-open'),true);
+  assert.match(get('schedule-message').textContent,/已.*移除|已.*删除/);
+  ui.dispose();
+});
+
+test('R1.2 120-record pagination retains pages and keeps twenty plans isolated on poll',async()=>{
+  const {get,state,ui,flush}=await scheduledDomFixture({count:20,historyCount:120});
+  assert.equal(get('schedule-plan-list').querySelectorAll('.schedule-card').length,20);
+  get('schedule-plan-list').querySelector('.schedule-plan-open').click();
+  get('schedule-detail-view').querySelector('.schedule-history').open=true;
+  for(let page=0;page<5;page++){
+    get('schedule-detail-view').querySelector('.schedule-load-more').click();await flush();
+  }
+  assert.equal(get('schedule-detail-view').querySelectorAll('.schedule-history-row').length,120);
+  assert.equal(get('schedule-detail-view').querySelector('.schedule-load-more'),null);
+  state.plans[0].generation++;await ui.refresh();
+  assert.equal(get('schedule-detail-view').querySelectorAll('.schedule-history-row').length,120);
+  get('schedule-back').click();
+  get('schedule-plan-list').querySelectorAll('.schedule-plan-open')[1].click();
+  assert.equal(get('schedule-detail-view').querySelectorAll('.schedule-history-row').length,0);
+  get('schedule-back').click();get('schedule-plan-list').querySelector('.schedule-plan-open').click();
+  assert.equal(get('schedule-detail-view').querySelectorAll('.schedule-history-row').length,120);
+  assert.deepEqual(state.calls.filter(call=>call.method==='listScheduleHistory').map(call=>call.input.offset),[20,40,60,80,100]);
+  ui.dispose();
 });

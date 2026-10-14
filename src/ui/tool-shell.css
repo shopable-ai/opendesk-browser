@@ -15,6 +15,8 @@
 .workbench-nav{flex:none;display:flex;gap:0;min-width:0;max-width:100%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scroll-padding-inline:var(--od-page-gutter);scrollbar-width:thin;padding:0 var(--od-page-gutter);border-bottom:1px solid var(--line);background:#fff}
 .workbench-nav button{flex:0 0 auto;min-width:50px;min-height:40px;padding:10px 7px 9px;white-space:nowrap;scroll-snap-align:start;background:transparent;color:#63758e;border:0;border-bottom:2px solid transparent;border-radius:0;font-size:12px;font-weight:650}
 .workbench-nav button[aria-selected=true]{color:#2852bb;border-bottom-color:var(--blue);background:transparent}
+/* The horizontally scrolling tablist clips outward outlines vertically. */
+.workbench-nav button:focus-visible{outline-offset:-3px}
 #workspace-content{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scroll-padding-bottom:16px;max-width:980px;width:100%;padding:10px var(--od-page-gutter);margin:0 auto}
 #workspace-content>div[hidden]{display:none!important}
 /* The Tools panel is itself full-canvas; its inner inset matches trusted headers.
@@ -714,7 +716,6 @@
 .cloud-panel{min-width:0;gap:var(--space-3)}
 .cloud-panel-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-width:0}
 .cloud-panel-heading{min-width:0}
-.cloud-panel-heading strong{font-size:14px}
 .cloud-panel-heading .hint{font-size:11px;line-height:1.5;margin:var(--space-1) 0 0;color:var(--od-sub)}
 .cloud-overview,.cloud-requests{min-width:0;padding:var(--space-3)}
 #cloud-overview-state{margin:0 0 var(--space-3);font-size:12px;line-height:1.5;overflow-wrap:anywhere}

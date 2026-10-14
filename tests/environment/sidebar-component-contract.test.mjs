@@ -79,6 +79,9 @@ test('Developer static controls all use shared roles; important IDs and ARIA lin
 });
 
 test('Shared components own normal visual appearance; business CSS retains only layout', () => {
+  assert.match(html,/<div class="cloud-panel-heading"><strong class="od-page-title">云控<\/strong>/);
+  assert.doesNotMatch(shell,/\.cloud-panel-heading strong\{font-size:/);
+  assert.match(shell,/\.workbench-nav button:focus-visible\{outline-offset:-3px\}/);
   for (const role of ['od-button', 'od-button--secondary', 'od-button--danger',
     'od-icon-button', 'od-icon-button--primary', 'od-field-label',
     'od-field-help', 'od-surface', 'od-disclosure', 'od-disclosure--flat',
