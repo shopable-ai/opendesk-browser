@@ -1,14 +1,6 @@
-# Cookie Editor R4.3.1 · 正式 Cookies SDK 安装工具
+# Cookie Editor · 正式 Cookies SDK 安装工具
 
-**入口：** Side Panel → 工具 → 发现工具 → Cookie Editor。默认中文，官方目录仍为 `installationPolicy: optional`；工具包 **2.0.6 / opendesk.sidebar-tool.v2**。**历史 2.0.4 隔离 CFT 候选**曾通过真实发现、安装、授权、读取、编辑、新建、保存回读和精确删除；该记录仅适用于当时的工具包。**当前 2.0.6 的 Mac Chrome 安装/导入/导出/缩放矩阵仍为 NOT_TESTED**；不能将历史截图、回执或分数延用为当前版本的 PASS/95+。
-
-## R4.3.1 正式源码增量（2026-10-14）
-
-- 沿用 R4.3 正式工具栏、原位编辑、导入预览和可信组合授权；不创建第二套 Host 或模拟导入。
-- 区分当前范围的含 Value 备份和不含 Value 的 JSON 元数据清单，清单标记 `restoreSupported:false`，不可恢复登录或 Cookie。
-- 缺少写入、清理或观察长期授权时，实际操作请求只展示原有可信权限设置；用户真实点击授权后重试。Host 对具体操作仍作独立确认，不自动重放 UNKNOWN。
-- 授权变化清理旧列表和敏感值、使旧导入预览失效，但保留未保存的用户表单；切换编辑项清理暂时揭示的 Value。
-- 本次源码须重新构建、执行 CI 和与版本/包哈希对应的 Mac Chrome 原生验收；旧版本原生凭据不可算本版本 PASS。
+**入口：** Side Panel → 工具 → 发现工具 → Cookie Editor。默认中文，官方目录仍为 `installationPolicy: optional`；工具包 **2.0.6 / opendesk.sidebar-tool.v2**。**历史 2.0.4 隔离 CFT 候选**曾通过真实发现、安装、授权、读取、编辑、新建、保存回读和精确删除；该记录仅适用于当时的工具包。**当前 2.0.6 的 Mac Chrome 安装/导入/导出/缩放矩阵仍为 NOT_TESTED**；不能将历史截图、回执或分数延用为当前版本的 PASS/95+。所有 Cookie 修改均从已安装工具 UI 发起。
 
 ## 用户能完成什么
 
@@ -64,9 +56,3 @@ npm run check && npm test && npm run build && npm run build:dev && npm run verif
 R3.3 新候选：授权变化后经已有 Bridge 自动检查当前网站；拒绝与读取失败显示独立状态；未完成 Host 操作期间锁定网站与模式控件；普通确认不再采用危险操作红色样式。正式产品默认不进入离线工作区。历史 1.0.0 官方发行仍是离线包，已安装用户必须在「发现工具」明确升级；不能静默同版本替换。
 
 2026-10-14：上述核心旅程、导入导出、清理、观察、升级和生命周期已取得隔离 CFT 的限定原生证据；宽度、Side Panel 自身 Zoom、真实跨 Store/Partition、F3/ZIP 等缺口与全仓 FAIL 继续保留。当前核心、Path 隔离及部分重命名绑定身份保护修复后的候选；未受影响项保留前一候选身份限定复用。本轮原始证据和 Git/CI 状态见原工作流 `r33Local` 与 [续接提示词](../../../docs/framework/prompts/cookie-editor-r33l-core-first-handoff-20261014.zh-CN.txt)。
-
-## R4.3 / 2.0.5 网页源码修订（2026-10-14）
-
-三个 34px 纯图标在真实浏览器 Cookie 列表标题中直接可见；导入先预览 Store/Partition、新增与覆盖，再经可信 Host 逐条写入；导出先声明网站、范围、敏感值和格式损失，依然走可信本地下载。Cookie 编辑和新建复用一个表单并嵌入当前列表行；未保存内容需明确确认才能放弃。首次组合授权由受信任 Side Panel 提供，敏感值另行授权，不能由沙箱自授权。
-
-本条仅记录源码变更，**2.0.5 的 Node、构建、CI、Mac Chrome 原生安装及完整缩放矩阵需另行按同一候选复核**。2.0.4 的历史原生 PASS 不自动转移。

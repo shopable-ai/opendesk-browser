@@ -129,7 +129,7 @@ status.textContent = '已保存';
 
 ## 4. 维护和排错入口
 
-- **Cookie Editor UI 示例**：[本地临时工作区](../../examples/sidebar-tools/cookie-editor/README.zh-CN.md)。当前仅用 `currentPage.read` 和 `user.export`，不提供 `chrome.cookies` 能力；不能把内存改动当作浏览器 Cookie 变更。
+- **Cookie Editor**：[已安装工具与权限说明](../../examples/sidebar-tools/cookie-editor/README.zh-CN.md)。默认通过 `OpenDeskSDK.browser.cookies.*` 管理已授权网站的真实 Cookie；元数据、敏感值和修改分别授权，离线工作区仍只操作临时内存。`cookies.set` 可选 `ifAbsent:true`（须显式 Path）在真实确认后的写入前拒绝同身份冲突，用于新建和改名；Chrome 不提供原子改名。
 - **开发方法**：[统一开发规范](sidebar-tool-development.zh-CN.md)。
 - **示例**：[quick-notes](../../examples/sidebar-tools/quick-notes/README.md)、[React starter](../../examples/sidebar-tools/react-starter/README.md)、[Vue starter](../../examples/sidebar-tools/vue-starter/README.md)。
 - **专项网页工具**：[阅读目录](../../examples/sidebar-tools/reading-toc/README.md)（含文章/AI 对话手工 fixture）、[网页剪藏](../../examples/sidebar-tools/web-markdown-clipper/README.md)、[知识收件箱](../../examples/sidebar-tools/knowledge-inbox/README.zh-CN.md)。
