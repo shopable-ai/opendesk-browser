@@ -131,6 +131,7 @@ test('R4 source-of-truth and Skill routing changes trigger governance CI',async(
   for(const name of [
     '.agents/skills/**',
     'tests/environment/agent-skills-r1.test.mjs',
+    'scripts/agent-skills-r22-eval.mjs',
     'docs/product/sidebar-ui-spec.zh-CN.md',
     'docs/architecture/ui-layout-conventions-r27.zh-CN.md',
     'docs/architecture/sidebar-multi-section-tab-contract-r28.zh-CN.md',
@@ -143,6 +144,7 @@ test('R4 source-of-truth and Skill routing changes trigger governance CI',async(
   ])assert.ok(workflow.includes("      - '"+name+"'"),'governance path filter misses '+name);
   assert.match(workflow,/node --test tests\/environment\/agent-skills-r1\.test\.mjs/);
   assert.match(workflow,/node --test tests\/environment\/sidebar-r21-design-system\.test\.mjs/);
+  assert.ok(workflow.includes('node scripts/agent-skills-r22-eval.mjs --self-test'));
 });
 
 test('App/Page/Task execution and permissions remain distinct',async()=>{

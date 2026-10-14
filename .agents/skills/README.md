@@ -40,3 +40,17 @@
 **产品与底层分离**：OpenDesk Browser 是一款 Chrome Extension；五个正式 Tab 是「我的 / 扩展 / 工作流 / 开发 / 云控」。「扩展」是管理入口；「应用」是 Sidebar Tool 的列表类型标签，「网页增强」是已安装 Page Program 的类型标签；Controller Task 仍属「我的」，一方可信功能与动态安装包必须安全隔离。Agent Skill 不是安装包。不要因为用户称“扩展”就互换包格式、运行世界或权限。
 
 新建 Skill 前读 [Skill 宇宙与评分](UNIVERSE.zh-CN.md)。一个职责对应一个 Skill，绝不为具体工具、JS 框架或一次测试创建重复 Skill。仅静态文档核验标为 `DOC_STATIC_PASS`；Chrome 原生未实测记 `NOT_TESTED`。
+
+## R2.2 真实 Codex 触发验收（本机手动运行）
+
+仓库自带 [只读触发评测工具](../../scripts/agent-skills-r22-eval.mjs)，包含 12 次核心请求复测、8 次易混淆请求、6 次显式调用、6 次负向对照、3 次上下文请求和 3 次真实只读任务，共 **38 次独立 Codex 会话**。不创建第七个 Skill，也不安装第二套路由器。先阅读本机 `codex exec --help`、确认登录已就绪，再在 Mac 的项目根目录执行：
+
+```bash
+node scripts/agent-skills-r22-eval.mjs --self-test
+node scripts/agent-skills-r22-eval.mjs --repo "$PWD" --mode core --max-tests 2
+node scripts/agent-skills-r22-eval.mjs --repo "$PWD" --mode all
+```
+
+评测仅使用 `codex exec --json --sandbox read-only`，输出存入本机 `~/.codex-evals/opendesk-r22/`（权限 0700，原始文件 0600），不提交含私密会话信息的 JSONL。Codex 调用可能计费并将提示词发送至当前配置的推理服务；CI **只运行离线自测**，不调用模型。
+
+**证据等级**：`PASS` 要求观测到对应 Skill 的调用事件且有成功读取该 `SKILL.md` 的记录；仅能看到调用时使用 `IMPLICIT_TRIGGER_OBSERVED`，仅能确认读取时使用 `SKILL_READ_OBSERVED`，无法观察时使用 `TRIGGER_NOT_OBSERVABLE`。负向对照缺少可观测事件不能直接判 PASS，任何跨 SHA/工作树漂移必须重新核验。静态 14/14 不等于真实 AI 14/14，不能据此宣布真实自动路由 ≥95%。

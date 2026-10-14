@@ -5,6 +5,7 @@ on:
     paths:
       - '.agents/skills/**'
       - 'tests/environment/agent-skills-r1.test.mjs'
+      - 'scripts/agent-skills-r22-eval.mjs'
       - '.github/workflows/agent-skills-governance.yml'
       - 'docs/product/sidebar-ui-spec.zh-CN.md'
       - 'docs/architecture/ui-layout-conventions-r27.zh-CN.md'
@@ -21,6 +22,7 @@ on:
     paths:
       - '.agents/skills/**'
       - 'tests/environment/agent-skills-r1.test.mjs'
+      - 'scripts/agent-skills-r22-eval.mjs'
       - '.github/workflows/agent-skills-governance.yml'
       - 'docs/product/sidebar-ui-spec.zh-CN.md'
       - 'docs/architecture/ui-layout-conventions-r27.zh-CN.md'
@@ -46,3 +48,4 @@ jobs:
           node-version: '22'
       - run: node --test tests/environment/agent-skills-r1.test.mjs
       - run: node --test tests/environment/sidebar-r21-design-system.test.mjs
+      - run: node scripts/agent-skills-r22-eval.mjs --self-test
