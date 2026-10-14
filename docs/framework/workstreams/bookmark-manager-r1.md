@@ -32,3 +32,45 @@
 ## 非本次交付
 
 AI 整理、访问频率追踪、历史权限、定时清理、自动链接检测、社区、在线同步、商业市场、个性化广告全部未在 P0 开发，也未申请 `history` 权限。需求实验与政策风险见功能宇宙文档。
+
+## R1.3 · GitHub 源码修复与独立证据（2026-10-14）
+
+### 写入范围 / 并行资源
+
+- 执行人：本对话经连接的 GitHub 直接写入，仅允许 `main`，只修改本工作流的书签源码、CSS、README、定向测试与专属 CI；未修改共享 Tool Host/Browser SDK、其他 Agent 工作流、全局 owner 或历史证据。
+- 启动时核对的远端 `main` 为 `89f608f7a9786c190695a7d7150260b7673d6122`（此前用户给的 `68badfe4...` 仅历史定位）；其后 `main` 有并行的独立提交。每次目标文件写入均基于刚读取的 blob SHA，避免覆盖同路径修改。
+- 当前环境 **无用户 Mac 本地文件和 Chrome Profile / GUI 权限**；未占用本机 Chrome、端口、`dist/development`、共享浏览器测试资源，不能核查 Mac 的未提交工作区状态。远端当前文件可核查，不等价于本地 `git status`。
+
+### 已实施的核心修复
+
+- `src/bookmark-manager/model.js`：`projectBookmarkRows` 对全部可见树节点 / 全树搜索做投影，并支持 200 项分批加载；`parentFolder` 拒绝只有 `folderType=managed` 标记的只读父文件夹。
+- `src/bookmark-manager/service.js`：监听并解绑 `bookmarks` 可选权限的 onAdded/onRemoved，忽略不相关权限事件，保留所有写操作前的再次授权检查。
+- `src/bookmark-manager/trusted-ui.js`：统一树的「显示更多」交互、受管理目录只读提示、首次权限检查占位/读取失败重试、中文 IME 输入保护、键盘 Escape 与树操作焦点恢复；重开新实例时以 session 阻止旧异步结果污染新 UI；「收藏当前页」要求同步调用现有可信 `currentPageTarget.capture()`，写入前必须 `revalidate(captured)`，缺绑定或页面漂移则失败关闭。
+- `src/ui/bookmark-manager.css`：分页按钮布局、极窄视口下按钮可换行、长目录缩进上限，保留 320px 以上的一行三操作。
+- `tests/environment/bookmark-manager-r1.test.mjs`：增加 550 项树投影/全量搜索、managed 无 unmodifiable、权限新增/撤销监听释放、可信 UI 420 项加载/搜索/撤权/重授权、当前文档切换前后收藏的 Mock 正反例。
+- `src/bookmark-manager/README.zh-CN.md` 与 `.github/workflows/bookmark-manager-r13.yml`：更新产品边界，并添加隔离的真实仓库 Node → check → production build → package CI。没有加入第二套 Runner/Host/数据库或 Chrome 权限。
+
+### 测试与原始证据（各阶段互不替代）
+
+- 历史 `NODE_LOCAL_PASS 7/7` 是 R1.2 Mock，保留历史级别，**不升格**为 R1.3 同候选 PASS。
+- GitHub Actions [R1.3 首轮失败记录](https://github.com/shopable-ai/opendesk-browser/actions/runs/38555943292)：`ed76668e4aed730d5b36d3a40d7c0ed580ca74ef`，Node 96 项中 94 PASS / 2 FAIL。均为新增测试的树顺序/受管子目录计数预期有误，已修正测试断言而非放宽功能，详见后续 `3abecf42...`、`44faf3e...` 提交。该旧候选的后续 check/build/package 为 SKIPPED。
+- 本轮更新后的工作候选：`15ee2d9562ffef11e7600561e91fa8610f3426c3`；[本候选 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38556852913)。记录时仍为 `QUEUED`，**不能标 PASS**，须核对后续完整日志、Node 结论、check、build 与 package。
+- `NODE_CURRENT / CHECK_CURRENT / BUILD_CURRENT / PACKAGE_CURRENT`：等待同一候选 GitHub Actions 的最终结论，当前暂记 `NOT_TESTED/QUEUED`。
+- `REAL_CHROME / FIRST_GESTURE_PERMISSION / PROFILE_BOOKMARK_CRUD / MULTI_WINDOW / PERMISSION_REVOKE / CHROME_200_PERCENT / RESPONSIVE_SCREENSHOTS / DYNAMIC_TOOL_ISOLATION_NATIVE`：本会话均 `NOT_TESTED`。代码审计与 Mock/CI 不能替代安装过的扩展真实用户操作。
+
+### Mac 本地 Codex 最小接力（优先核心，按此顺序）
+
+1. 与其他写入者协调 `main` 最新本地工作区，核查书签本轮提交和现有 `dist/development` 负责人；只在获授权的正确 Chrome Profile 中加载真实扩展，保存扩展 ID、manifest、dist 与 commit/package 哈希，禁止覆盖共享 watcher。
+2. 首次授权：工具 → 书签管理 → 真实手势 Chrome 弹窗 → 原 Profile 真正的书签树；拒绝后重新授权、已授权不重复提示；撤权必须拒绝 CRUD，保存权限记录与错误屏。
+3. CRUD：使用独立测试目录收藏当前 HTTP(S) 网页，创建书签/子目录，修改 URL/标题，移动书签/目录，重进后检查 Chrome 自身数据；别把已有个人书签作为可删除测试样本。
+4. 删除与变化：删除测试书签、空/非空测试目录；确认页打开后在另一个 Chrome 窗口新增子项，确认必须拒绝并保留数据；更换活动网页后原收藏动作应被拒绝；对受管目录和非 HTTP(S) 历史数据仅作安全观察。
+5. 用真实 Side Panel 在 320/360/420 CSS px、浅/深主题及 Chrome 真 200% 缩放中验证三按钮、500+ 项显示更多/全量搜索、深层目录、长文件名、中文输入法、Tab/Shift+Tab/Enter/Space/Escape、错误恢复和关闭重开；留截图、操作日志。
+6. 确认普通动态工具的 sandbox 无 `chrome.bookmarks` 直读权，已有工具启停/卸载与 Time Review 未发生新回归。全部测试用临时目录并清理，避免触碰用户个人资料。
+
+### 六维独立质量评估（严禁凭源码预评分）
+
+| 核心功能正确性 | 树和操作效率 | 权限/隔离 | 并发/生命周期 | 响应式/可访问性 | 维护性/回归 |
+| --- | --- | --- | --- | --- | --- |
+| NOT_TESTED (Chrome) | NOT_TESTED (Chrome) | NOT_TESTED (Chrome) | NOT_TESTED (Chrome) | NOT_TESTED (Chrome) | NOT_TESTED (最终 CI) |
+
+所有维度目标仍是独立 ≥95，必须先具备同一当前构建的原始证据。P1 重复/失效/老化诊断、P2 AI 整理/知识树、P3 社区/市场/广告等均只保留为规划，未实施。书签数据不会因这次修复新增同步、上传或广告画像。
