@@ -137,10 +137,13 @@ const ops=Object.freeze({
 });
 // DIRECT methods use the exact approved input/output schemas generated from
 // the one pinned matrix. SCOPED and CUSTOM schemas remain explicitly audited.
-const directOps=new Map(APPROVED_BROWSER_DIRECT_BINDINGS.map(row=>{
-  if(Object.hasOwn(ops,row.operation))throw fail('E_CONTRACT','Duplicate DIRECT Browser schema');
-  return [row.operation,[row.inputSchema,row.outputSchema]];
-}));
+export function deriveBrowserDirectSchemas(rows=APPROVED_BROWSER_DIRECT_BINDINGS){
+  return new Map(rows.map(row=>{
+    if(Object.hasOwn(ops,row.operation))throw fail('E_CONTRACT','Duplicate DIRECT Browser schema');
+    return [row.operation,[row.inputSchema,row.outputSchema]];
+  }));
+}
+const directOps=deriveBrowserDirectSchemas();
 export function operationSchemas(operation){
   const pair=Object.hasOwn(ops,operation)?ops[operation]:directOps.get(operation);
   return pair?{input:pair[0],output:pair[1]}:null;
