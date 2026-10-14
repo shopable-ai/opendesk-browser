@@ -104,3 +104,21 @@ test('App/Page/Task execution and permissions remain distinct',async()=>{
   assert.match(model,/key:'app:'/);assert.match(model,/key:'page:'/);
   assert.match(center,/row.kind==='page'\?'网页增强':'应用'/);
 });
+
+
+test('R27/R28/R30 and Sidebar Tool API current navigation agree with R4',async()=>{
+  const [r27,r28,r30,api,development]=await Promise.all([
+    read('docs/architecture/ui-layout-conventions-r27.zh-CN.md'),
+    read('docs/architecture/sidebar-multi-section-tab-contract-r28.zh-CN.md'),
+    read('docs/architecture/sidebar-design-system-r20.zh-CN.md'),
+    read('docs/api/sidebar-tools.zh-CN.md'),
+    read('docs/api/sidebar-tool-development.zh-CN.md')]);
+  assert.match(r27,/Side Panel 五个正式选项卡/);
+  assert.match(r28,/五个现行一级页签「我的 \/ 扩展 \/ 工作流 \/ 开发 \/ 云控」/);
+  assert.match(r30,/五个正式页签「我的／扩展／工作流／开发／云控」/);
+  assert.doesNotMatch(r28,/六个既有一级页签/);
+  assert.match(api,/现行 Extension Center R4/);
+  assert.doesNotMatch(api,/「工具」Tab 默认打开「我的工具」/);
+  assert.match(development,/「扩展」统一列表中以「网页增强」标签管理/);
+  assert.doesNotMatch(development,/「工具 → 已安装网页工具」/);
+});

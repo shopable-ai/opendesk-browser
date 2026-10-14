@@ -302,4 +302,4 @@ npm run pack
 
 ## R25.1：与本地开发选项卡的交付关系
 
-Side Panel 工具继续以 `opendesk.sidebar-tool.v1` 包交付，使用现有打包校验、共享安装器和工具数据空间。**不要把运行成功的 Page USER_SCRIPT 或 Controller 代码直接包装成 Side Panel 工具 JSON**；它们已有独立冻结/授权/安装合同。开发选项卡「本地项目」的保存按钮仅对支持的 `page-userscript`、`controller` 项目开放，分别落入「工具 → 已安装网页工具」和「我的 → 已安装任务」。独立的 Side Panel 本地包应按照本文项目构建、审阅并安装，不存在自动转换器。在线市场上传、作者身份、草稿和版本托管接口尚未交付，不要在 UI 或文档宣称发布成功。
+Side Panel 工具继续以 `opendesk.sidebar-tool.v1` 包交付，使用现有打包校验、共享安装器和工具数据空间。**不要把运行成功的 Page USER_SCRIPT 或 Controller 代码直接包装成 Side Panel 工具 JSON**；它们已有独立冻结/授权/安装合同。开发选项卡「本地项目」的保存按钮仅对支持的 `page-userscript`、`controller` 项目开放，在按各自 Authority 完成正式安装后，分别于「扩展」统一列表中以「网页增强」标签管理，以及在「我的 → 已安装任务」管理；仅保存源码不等于安装完成。独立的 Side Panel 本地包应按照本文项目构建、审阅并安装，不存在自动转换器。在线市场上传、作者身份、草稿和版本托管接口尚未交付，不要在 UI 或文档宣称发布成功。
