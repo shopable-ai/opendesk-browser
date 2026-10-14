@@ -7,7 +7,8 @@ const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;
 const message=error=>String(error?.message||error||'操作失败').slice(0,280);
 
 export function createBookmarkManager({api,doc,container,currentPageTarget}={}){
-  if(!api?.bookmarks||!container?.addEventListener||!doc)return null;
+  // Optional Chrome APIs may not be exposed until permission is granted.
+  if(!api?.permissions?.contains||!container?.addEventListener||!doc)return null;
   const service=createBookmarkService(api);
   const s={open:false,permission:false,tree:null,expanded:new Set(),folder:null,selection:null,
     mode:'tree',menu:null,search:'',draft:null,error:'',info:'',busy:false,revision:0};
