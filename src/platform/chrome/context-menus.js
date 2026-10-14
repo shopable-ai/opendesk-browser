@@ -432,7 +432,14 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     const isMenu=operation.startsWith('browser.contextMenu')||operation.startsWith('browser.launch')||
       operation==='browser.page.getSelection';
     const menuApiAvailable=Boolean(api.contextMenus?.create&&api.contextMenus?.onClicked);
-    const platformSupported=(!isMenu||['browser.contextMenu.getStatus','browser.contextMenu.unregister'].includes(operation)||menuApiAvailable)&&(
+    const approvedDirect=APPROVED_BROWSER_DIRECT_BINDINGS.find(row=>row.operation===operation);
+    const directPresent=!approvedDirect||(()=>{
+      const parts=approvedDirect.nativeApi.split('.');
+      const namespace=Object.getOwnPropertyDescriptor(api,parts[1])?.value;
+      return typeof (namespace&&Object.getOwnPropertyDescriptor(namespace,parts[2])?.value)==='function';
+    })();
+    const platformSupported=directPresent&&
+      (!isMenu||['browser.contextMenu.getStatus','browser.contextMenu.unregister'].includes(operation)||menuApiAvailable)&&(
       operation==='browser.tabs.create'?Boolean(api.tabs?.create):
       operation==='browser.tabs.activateOwned'?Boolean(api.tabs?.get&&api.tabs?.update&&api.webNavigation?.getFrame):
       operation==='browser.tabs.getOwned'||operation==='browser.tabs.listOwned'?Boolean(api.tabs?.get&&api.webNavigation?.getFrame):
