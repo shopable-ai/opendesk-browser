@@ -317,6 +317,8 @@ test('My task filters use the one installed list and never run or grant permissi
   f.catalogState.installed[1].enabled=false;
   f.catalogState.catalog[1].manifest.siteOrigins=['https://elsewhere.example'];
   await f.ui.refresh();
+  assert.equal(f.get('task-run').disabled,false,'selected enabled Task is runnable before filtering');
+  const form=f.get('task-params-form');
   await f.click('task-search-toggle');
   const visibleTaskIds=()=>f.get('task-installed-cards').children
     .filter(node=>node.className?.split(' ').includes('task-card-group'))
@@ -324,12 +326,17 @@ test('My task filters use the one installed list and never run or grant permissi
   await f.click('local-filter-disabled');
   assert.equal(f.get('local-filter-disabled').attributes['aria-pressed'],'true');
   assert.deepEqual(visibleTaskIds(),['demo.second']);
+  assert.equal(f.get('task-run').disabled,true,'hidden selected Task cannot be triggered from the Run dock');
+  assert.equal(f.get('task-params-form'),form,'filtering preserves the live unsaved Task form');
+  await f.click('task-run');
+  assert.equal(f.starts.length,0,'a disabled hidden selection cannot run');
   assert.equal(f.get('task-selected-workspace').hidden,true,
     'filtered-out selected task keeps its live form without showing unrelated controls');
   await f.click('local-filter-current');
   assert.equal(f.get('local-filter-current').attributes['aria-pressed'],'true');
   assert.deepEqual(visibleTaskIds(),['demo.form']);
   assert.equal(f.get('task-selected-workspace').hidden,false);
+  assert.equal(f.get('task-run').disabled,false,'returning to the visible Task restores its Run action');
   await f.click('local-filter-all');
   assert.equal(f.get('local-filter-all').attributes['aria-pressed'],'true');
   assert.deepEqual(visibleTaskIds(),['demo.form','demo.second']);

@@ -279,6 +279,15 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     }
     return validateTaskParams(schema,result);
   }
+  // Filtering never changes the selected Task, but a hidden selection must not be runnable.
+  function taskMatchesView(row,info,origin) {
+    if(!row)return false;
+    if(localFilter==='disabled' && row.enabled)return false;
+    if(localFilter==='current' && (!row.enabled || !origin ||
+      !info?.manifest.siteOrigins.includes(origin)))return false;
+    return !localQuery || [info?.manifest.title,info?.manifest.description,
+      row.taskId,...(info?.manifest.siteOrigins||[])].join(' ').toLocaleLowerCase().includes(localQuery);
+  }
   function update() {
     if(disposed)return;
     const row=installedRow(),info=candidateFor(row),selected=candidate();
@@ -293,7 +302,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     get('task-current-site').textContent=siteMessage;
     get('task-current-site').dataset.state=siteState;
     get('task-current-site').title=origin || '';
-    get('task-run').disabled=working||running||!!host.currentRun||!available||!siteAvailable;
+    get('task-run').disabled=working||running||!!host.currentRun||!available||!siteAvailable||
+      !taskMatchesView(row,info,origin);
     get('task-stop').disabled=!activeRunId || host.currentRun!==activeRunId;
     get('task-fork-draft').disabled=!row||working;
     get('task-toggle').disabled=!row||working;
@@ -317,14 +327,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(currentPage?.status==='available') {
       try {origin=new URL(currentPage.url).origin;} catch { /* No stale URL fallback. */ }
     }
-    const visible=installed.filter(row=>{
-      const info=candidateFor(row);
-      if(localFilter==='disabled' && row.enabled)return false;
-      if(localFilter==='current' && (!row.enabled || !origin ||
-        !info?.manifest.siteOrigins.includes(origin)))return false;
-      return !localQuery || [info?.manifest.title,info?.manifest.description,
-        row.taskId,...(info?.manifest.siteOrigins||[])].join(' ').toLocaleLowerCase().includes(localQuery);
-    });
+    const visible=installed.filter(row=>taskMatchesView(row,candidateFor(row),origin));
     for(const value of ['all','current','disabled'])
       get('local-filter-'+value).setAttribute('aria-pressed',String(localFilter===value));
     get('local-discover-count').textContent=`显示 ${visible.length} 个任务 · 共安装 ${installed.length} 个`;
@@ -684,7 +687,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     }
   }
   function run(event) {
-    if(!event.isTrusted||disposed||running||working||host.currentRun)return;
+    if(!event.isTrusted||disposed||running||working||host.currentRun||get('task-run').disabled)return;
     let chosen,params,site,permission,captured;
     try {
       chosen=installedRow();const info=candidateFor(chosen);
@@ -832,21 +835,21 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const panel=get('task-search-panel'),toggle=get('task-search-toggle');
     if(panel.hidden){
       panel.hidden=false;toggle.setAttribute('aria-expanded','true');
-      renderInstalledCards();
+      renderInstalledCards();update();
       get('local-discover-search').focus?.({preventScroll:true});
     }else{
       panel.hidden=true;toggle.setAttribute('aria-expanded','false');
       localQuery='';localFilter='all';get('local-discover-search').value='';
-      renderInstalledCards();toggle.focus?.({preventScroll:true});
+      renderInstalledCards();update();toggle.focus?.({preventScroll:true});
     }
   });
   listen(get('local-discover-search'),'input',()=>{
     localQuery=get('local-discover-search').value.trim().toLocaleLowerCase();
-    renderInstalledCards();
+    renderInstalledCards();update();
   });
   for(const value of ['all','current','disabled'])
     listen(get('local-filter-'+value),'click',()=>{
-      localFilter=value;renderInstalledCards();
+      localFilter=value;renderInstalledCards();update();
     });
   listen(get('task-search'),'input',()=>{
     catalogQuery=get('task-search').value.trim().toLocaleLowerCase();
