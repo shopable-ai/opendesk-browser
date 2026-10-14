@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {BROWSER_OPERATIONS,normalizeBrowserOperation} from '../../src/framework/sdk/browser-contract.js';
+import {BROWSER_OPERATIONS,normalizeBrowserOperation,deriveBrowserDirectOperations} from '../../src/framework/sdk/browser-contract.js';
 import {normalizeDirectBrowserArguments} from '../../src/framework/sdk/browser-schemas.js';
 import {createApprovedBrowserBindings} from '../../src/framework/sdk/browser-bindings.js';
 import {APPROVED_BROWSER_DIRECT_BINDINGS} from '../../src/framework/sdk/browser-direct.generated.js';
@@ -30,15 +30,14 @@ function fixture(){
       required:['os','arch'],additionalProperties:false}
   };
   matrix.approvedOperations.push(row);
-  const registry={...BROWSER_OPERATIONS,[op]:Object.freeze({
-    operation:op,namespace:'browser.runtime',implementation:'IMPLEMENTED',
-    supportedContexts:['sidebar-tool'],effectClass:'read',siteScope:'none',
-    requiresUserGesture:false,requiredCapabilities:[],requiredChromePermissions:[],
-    inputSchema:row.inputSchema,outputSchema:row.outputSchema,
-    maxRequestBytes:12000,maxResponseBytes:12000
-  })};
-  const descriptors=deriveBrowserDirectBindings(matrix,registry);
+  // No hand-written Registry row: compile the same approved descriptor and
+  // expose it to the existing Host/SDK operation table automatically.
+  const descriptors=deriveBrowserDirectBindings(matrix);
   assert.equal(descriptors.length,1);
+  const registry={...BROWSER_OPERATIONS,...deriveBrowserDirectOperations(descriptors)};
+  assert.equal(registry[op].requiredCapabilities.length,0);
+  assert.deepEqual(registry[op].inputSchema,row.inputSchema);
+  assert.deepEqual(registry[op].outputSchema,row.outputSchema);
   return {matrix,registry,descriptors};
 }
 
