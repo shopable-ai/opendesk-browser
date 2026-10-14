@@ -1,0 +1,44 @@
+name: Bookmark Manager R1.3 - source and package gates
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/bookmark-manager/**'
+      - 'src/ui/bookmark-manager.css'
+      - 'tests/environment/bookmark-manager-r1.test.mjs'
+      - '.github/workflows/bookmark-manager-r13.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  bookmark-manager-core:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Test book tree, permission, CRUD, trusted view and existing tool host
+        run: |
+          node --test \
+            tests/environment/bookmark-manager-r1.test.mjs \
+            tests/environment/sidebar-tools-host.test.mjs \
+            tests/environment/sidebar-tools.test.mjs
+      - name: Check source integrity and security contracts
+        run: npm run check
+      - name: Build production extension
+        run: npm run build
+      - name: Verify real packaged production resources
+        run: node scripts/verify-package.mjs dist/production
+      - name: Retain available build receipts (not native acceptance)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bookmark-manager-r13-build-${{ github.sha }}
+          retention-days: 7
+          if-no-files-found: ignore
+          path: |
+            docs/framework/evidence/wxt/builds/build-production.json
