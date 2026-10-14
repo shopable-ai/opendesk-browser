@@ -68,9 +68,9 @@ export function createBookmarkService(api){
       for(const key of events){
         const emitter=api.bookmarks?.[key];
         if(!emitter?.addListener)continue;
-        const listener=()=>callback();emitter.addListener(listener);active.push([emitter,listener]);
+        const listener=()=>callback('bookmark');emitter.addListener(listener);active.push([emitter,listener]);
       }
-      const onPermission=()=>callback();
+      const onPermission=()=>callback('permission');
       api.permissions?.onRemoved?.addListener(onPermission);
       return ()=>{
         for(const [emitter,listener] of active)emitter.removeListener?.(listener);

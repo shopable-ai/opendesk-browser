@@ -1,10 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {runInNewContext} from 'node:vm';
+import {runInThisContext} from 'node:vm';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 import {BROWSER_OPERATIONS} from '../../src/framework/sdk/browser-contract.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
+import {SAMPLE_ARGS} from './browser-sdk-r107-public-routing.test.mjs';
 
 const project=new URL('../../examples/sidebar-tools/browser-sdk-acceptance/',import.meta.url);
 const tool=await createSidebarToolPackage(project.pathname);
@@ -22,7 +23,7 @@ test('R10.7 actual installed package admits every public capability but still ha
   assert(!tool.js.includes('browser.permissions.requestForTool'));
 });
 
-function fixture(){
+async function fixture(){
   const ids=[...tool.html.matchAll(/id="([^"]+)"/g)].map(m=>m[1]);
   const nodes=new Map(ids.map(id=>[id,{
     id,value:'',disabled:false,textContent:'',dataset:{},children:[],listeners:new Map(),
@@ -44,21 +45,42 @@ function fixture(){
     if(operation==='browser.cookies.get')return {name:'sid',value:'sensitive-cookie-value'};
     return {operation,confirmed:true};
   }});
-  runInNewContext(tool.js,{OpenDeskTool:{root,setState(){}},OpenDeskSDK:{browser:sdk},
-    document:{createElement(){return {value:'',textContent:''};}},URL},{timeout:1000});
-  return {nodes,calls};
+  // Execute the installed-tool fixture in the same Realm as the actual SDK
+  // wrapper. A separate vm Context has a different Object.prototype and
+  // would produce a false E_SCHEMA result that Chrome's single tool Realm does not.
+  const withToolGlobals=async callback=>{
+    const keys=['OpenDeskTool','OpenDeskSDK','document'];
+    const previous=keys.map(key=>({key,exists:Object.hasOwn(globalThis,key),value:globalThis[key]}));
+    try{
+      globalThis.OpenDeskTool={root,setState(){}};
+      globalThis.OpenDeskSDK={browser:sdk};
+      globalThis.document={createElement(){return {value:'',textContent:''};}};
+      return await callback();
+    }finally{
+      for(const item of previous)
+        if(item.exists)globalThis[item.key]=item.value;
+        else delete globalThis[item.key];
+    }
+  };
+  await withToolGlobals(async()=>{
+    runInThisContext(tool.js,{timeout:1000,filename:'browser-sdk-acceptance/src/main.js'});
+    // Capability discovery awaits the SDK; keep global injection for this turn.
+    await new Promise(resolve=>setImmediate(resolve));
+  });
+  return {nodes,calls,withToolGlobals};
 }
 async function ready(){
-  const f=fixture();
-  await new Promise(resolve=>setImmediate(resolve));
+  const f=await fixture();
   assert.equal(f.nodes.get('contract-operation').children.length,Object.keys(BROWSER_OPERATIONS).length);
   return f;
 }
 async function invoke(f,operation,args){
-  f.nodes.get('contract-operation').value=operation;
-  f.nodes.get('contract-arguments').value=JSON.stringify(args);
-  await f.nodes.get('contract-run').listeners.get('click')();
-  return JSON.parse(f.nodes.get('contract-output').textContent);
+  return f.withToolGlobals(async()=>{
+    f.nodes.get('contract-operation').value=operation;
+    f.nodes.get('contract-arguments').value=JSON.stringify(args);
+    await f.nodes.get('contract-run').listeners.get('click')();
+    return JSON.parse(f.nodes.get('contract-output').textContent);
+  });
 }
 
 test('R10.7 installed UI real SDK wrapper call reports receipt but never claims Chrome PASS',async()=>{
@@ -87,4 +109,21 @@ test('R10.7 UI cannot dispatch unregistered, malformed or unsafe URL calls to re
   assert.equal(unsafe.outcome,'REJECTED');
   assert.equal(unsafe.code,'E_SCHEMA');
   assert.equal(f.calls.length,before,'Neither request reached the SDK Host callback');
+});
+
+test('R10.7 every approved public method can be invoked from the actual installed-tool UI',async()=>{
+  const f=await ready();
+  const initial=f.calls.length;
+  for(const operation of Object.keys(BROWSER_OPERATIONS)){
+    const args=SAMPLE_ARGS[operation]??{};
+    const result=await invoke(f,operation,args);
+    assert.equal(result.operation,operation,operation+': result attributed to wrong method');
+    assert.equal(result.outcome,'SDK_RETURNED_NATIVE_NOT_VERIFIED',
+      operation+': valid UI invocation must not silently skip the actual SDK wrapper');
+    assert.equal(f.calls.at(-1)?.operation,operation,operation+': dispatched the wrong operation');
+    assert.deepEqual(f.calls.at(-1)?.args,args,operation+': UI mutated SDK arguments');
+  }
+  assert.equal(f.calls.length-initial,Object.keys(BROWSER_OPERATIONS).length,
+    'Exactly one SDK wrapper call is required per approved method');
+  // Intentionally only a wrapper/installed UI fixture: this is NOT Host or Chrome PASS.
 });

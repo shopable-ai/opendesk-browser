@@ -48,6 +48,14 @@ export function mergeScheduleHistoryView(latest=[],loaded=[]){
     ids.add(fire.fireId);return true;
   }).sort((a,b)=>b.scheduledAt-a.scheduledAt);
 }
+// A mutation acknowledged by the authoritative scheduler has succeeded even
+// when the following read cannot refresh the UI. Never encourage a duplicate
+// create/delete/retry by presenting a post-commit read error as a write failure.
+export async function commitScheduledMutation(commit,refreshView){
+  const result=await commit();
+  try{await refreshView();return {result,refreshError:null};}
+  catch(refreshError){return {result,refreshError};}
+}
 const pad2=value=>String(value).padStart(2,'0');
 const frequencyLabel=plan=>{
   const kind=plan.triggerKind,rule=plan.triggerSpec||{};
@@ -156,7 +164,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   let selectedPlanId=null,detailReturnView='list',formReturnView='list',listScrollTop=0;
   let managerScrollTop=0,managerFocusId=null;
   let cloudPanelVisibility;
-  let permissionSeq=0,awaitingSave=null,editRevision=0,storageProbeRevision=0;
+  let permissionSeq=0,awaitingSave=null,editRevision=0,storageProbeRevision=0,refreshSeq=0;
   let formDirty=false,discardDestination='list';
   let taskListSignature='',planListSignature='';
   const historyViews=new Map();
@@ -271,9 +279,12 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   }
   async function refresh(){
     if(disposed)return;
+    const requestSeq=++refreshSeq;
     const [tasks,plans]=await Promise.all([client.request('listTaskCatalog',{}),
       client.request('listSchedules',{})]);
-    if(disposed)return;
+    // A later poll/manual refresh may have returned first. Do not render an
+    // obsolete catalog/plan generation over a newer user-visible snapshot.
+    if(disposed||requestSeq!==refreshSeq)return;
     catalog=tasks.catalog||[];installed=tasks.installed||[];
     allPlans=plans.schedules||[];lastRefresh=Date.now();
     // Polling must not destroy an open native <select>, focused buttons or
@@ -649,13 +660,19 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   async function change(plan,operation){
     if(busy)return;busy=true;
     try{
-      await client.request('changeSchedule',{scheduleId:plan.scheduleId,
-        expectedGeneration:plan.generation,action:operation});
       const returnAfterDelete=operation==='delete'&&selectedPlanId===plan.scheduleId;
-      if(returnAfterDelete)selectedPlanId=null;
-      await refresh();
+      const {refreshError}=await commitScheduledMutation(
+        ()=>client.request('changeSchedule',{scheduleId:plan.scheduleId,
+          expectedGeneration:plan.generation,action:operation}),
+        async()=>{
+          if(returnAfterDelete)selectedPlanId=null;
+          await refresh();
+        });
       if(returnAfterDelete&&activeView==='detail')leaveDetail();
-      message(operation==='delete'?'计划已删除':'计划状态已更新');
+      const outcome=operation==='delete'?'计划已删除':'计划状态已更新';
+      message(refreshError?outcome+'，但列表刷新失败：'+
+        (refreshError?.message||String(refreshError))+'；请重新打开定时计划核对。':outcome,
+        Boolean(refreshError));
     }catch(error){message(error?.message||String(error),true);}finally{busy=false;}
   }
   function switchKind(){
@@ -872,13 +889,16 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     busy=true;get('schedule-confirm-yes').disabled=true;
     const pending=awaitingSave;
     try{
-      await client.request('saveSchedule',pending.input);
+      const {refreshError}=await commitScheduledMutation(
+        ()=>client.request('saveSchedule',pending.input),refresh);
       clearConfirmation();formDirty=false;get('schedule-discard-confirm').hidden=true;
       const afterSave=editing?formReturnView:isRunner()?'runner':'list';
       const savedPlanId=editing?.scheduleId??null;
-      await refresh();editing=null;show(afterSave==='manager'?'list':afterSave);
+      editing=null;show(afterSave==='manager'?'list':afterSave);
       focusReturnedView(afterSave==='manager'?'list':afterSave,savedPlanId);
-      message('定时计划已保存，Chrome Alarms 已按照持久计划对账');
+      message(refreshError?'定时计划已保存，但列表刷新失败：'+
+        (refreshError?.message||String(refreshError))+'；请重新打开定时计划核对。':
+        '定时计划已保存，Chrome Alarms 已按照持久计划对账',Boolean(refreshError));
     }catch(error){message('无法保存计划：'+(error?.message||String(error)),true);}
     finally{busy=false;get('schedule-confirm-yes').disabled=false;}
   }
@@ -932,10 +952,14 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     if(!confirmUninstall||busy)return;busy=true;
     const row=confirmUninstall;
     try{
-      await client.request('uninstallTask',{taskId:row.taskId,version:row.version,
-        expectedGeneration:row.generation??null,expectedInstallationId:row.installationId??null});
+      const {refreshError}=await commitScheduledMutation(
+        ()=>client.request('uninstallTask',{taskId:row.taskId,version:row.version,
+          expectedGeneration:row.generation??null,expectedInstallationId:row.installationId??null}),
+        refresh);
       get('schedule-uninstall-confirm').hidden=true;confirmUninstall=null;
-      await refresh();message('已卸载固定版本；关联计划需重新安装授权');
+      message(refreshError?'固定版本已卸载，但列表刷新失败：'+
+        (refreshError?.message||String(refreshError))+'；请重新进入任务管理核对。':
+        '已卸载固定版本；关联计划需重新安装授权',Boolean(refreshError));
     }catch(error){message(error?.message||String(error),true);}finally{busy=false;}
   }
   async function open(view='list'){
