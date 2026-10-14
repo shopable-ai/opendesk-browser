@@ -14,8 +14,10 @@ test('other fixed entries can grow from 320 KiB to 512 KiB without weakening pac
   assert.equal(BUILD_POLICY.productionBytes,512*1024);
   assert.equal(BUILD_POLICY.fixedEntryReviewBytes,320*1024);
   assert(BUILD_POLICY.fixedEntryReviewBytes<BUILD_POLICY.productionBytes);
-  for(const file of ['ui/tool-shell.js','native-agent/transport.js','framework/sdk-main.js','agents/page-agent.js'])
+  for(const file of ['native-agent/transport.js','framework/sdk-main.js','agents/page-agent.js'])
     for(const mode of ['production','development'])assert.equal(entryByteBudget(file,mode),512*1024);
+  for(const mode of ['production','development'])assert.equal(entryByteBudget('ui/tool-shell.js',mode),1024*1024);
+  assert.equal(BUILD_POLICY.toolShellReviewBytes,640*1024);
   assert.throws(()=>entryByteBudget('sw.js','release'),/Unknown build mode/);
 });
 test('security-sensitive classic packaging settings were not loosened',()=>{
