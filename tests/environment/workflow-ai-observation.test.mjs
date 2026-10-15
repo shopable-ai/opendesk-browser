@@ -148,3 +148,34 @@ test('cancellation before a late RunHost claim stops that exact run and withhold
     assert.equal(snapshots,0);assert.equal(f.calls.length,1);
   }
 });
+
+test('post-click observation includes a result status containing the bounded query',async()=>{
+  const requests=[];
+  const row=(name,role,id)=>({role,name,text:name,state:{visible:true},
+    locator:{kind:'css',value:'[id="'+id+'"]'}});
+  const page={
+    async observe(options){
+      requests.push(options);
+      const nodes=options.root==='[id="lab-search"]'
+        ?[row('搜索完成','status','search-status'),
+          row('结果：OpenDesk','status','results')]
+        :options.root?[row('其他信息','status','other')]
+          :[row('首页导航','navigation','nav')];
+      return {kind:'semantic-dom-summary',
+        document:{documentId:'doc-live',url:'https://example.com/demo'},
+        nodes,truncated:false};
+    },
+    locator(selector){
+      assert.equal(selector,'section[id],form[id]');
+      return {count:async()=>2,nth:i=>({getAttribute:async()=>i?'lab-search':'other-form'})};
+    }
+  };
+  const result=await runInNewContext(WORKFLOW_OBSERVE_SOURCE+';main()',
+    {page,params:{request:'OpenDesk'}});
+  assert.ok(result.nodes.some(node=>node.text==='结果：OpenDesk'));
+  assert.ok(result.nodes.some(node=>node.text==='搜索完成'));
+  assert.ok(!result.nodes.some(node=>node.text==='其他信息'));
+  assert.ok(result.nodes.length<=24);
+  assert.equal(requests.length,3);
+  assert.ok(requests.every(options=>options.maxNodes<=24&&options.maxChars<=4000));
+});

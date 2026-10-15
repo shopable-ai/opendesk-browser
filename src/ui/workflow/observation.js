@@ -18,9 +18,17 @@ export const WORKFLOW_OBSERVE_SOURCE=String.raw`async function main() {
       const id=await regions.nth(i).getAttribute('id');
       if(!/^[A-Za-z][\w-]{0,79}$/.test(id||''))continue;
       const part=await page.observe({root:'[id='+JSON.stringify(id)+']',maxDepth:7,maxNodes:14,maxChars:2400});
-      const match=row=>row?.state?.visible===true&&[row.name,row.text].some(value=>
-        typeof value==='string'&&value.trim().length>=2&&value.length<=40&&
-          query.includes(value.replace(/\s+/g,'')));
+      // A planning request may contain a short control label ("搜索"), while
+      // a post-click effect observation may contain only the search term.
+      // Match bounded, visible result text containing that term as well.
+      const match=row=>row?.state?.visible===true&&[row.name,row.text].some(value=>{
+        if(typeof value!=='string')return false;
+        const text=value.replace(/\s+/g,'').toLocaleLowerCase();
+        const term=query.toLocaleLowerCase();
+        return text.length>=2&&text.length<=120&&
+          (text.length<=40&&term.includes(text)||
+            term.length>=2&&term.length<=120&&text.includes(term));
+      });
       if(!part.nodes.some(match))continue;
       for(const row of [...part.nodes].sort((a,b)=>Number(match(b))-Number(match(a)))){
         if(!row.locator||row.locator.parent||row.state?.visible!==true)continue;
