@@ -165,8 +165,11 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     // A cleanup journal is not an installed app or a trusted Catalog release.
     // Show a recovery-only control in discovery even if the catalog is offline.
     const recovery=get('extension-center-cleanups');
-    const orphaned=scope==='available'&&appStatusKnown?
-      [...pendingCleanups].filter(id=>!official.some(release=>release.toolId===id)):[];
+    const orphaned=scope==='available'&&appStatusKnown&&kind!=='page'?
+      [...pendingCleanups].filter(id=>!official.some(release=>release.toolId===id)&&
+        (!query||id.toLocaleLowerCase().replace(/[\s-]+/g,'').includes(
+          query.toLocaleLowerCase().replace(/[\s-]+/g,''))||
+          '卸载清理待恢复'.includes(query))):[];
     if(recovery){
       recovery.hidden=orphaned.length===0;
       recovery.replaceChildren();
