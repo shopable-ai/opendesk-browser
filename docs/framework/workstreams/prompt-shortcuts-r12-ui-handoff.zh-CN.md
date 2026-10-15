@@ -289,3 +289,13 @@
 - **真实 Chromium 页面加载与操作**：使用 Linux `/usr/bin/chromium` headless + Playwright `page.set_content` 加载对应完整原始 HTML（本环境未将 `file://` 导航当作通过证据）。原有 **14/14** 模拟回归通过（固定三行与内部滚动、中文/Emoji、空正文与 UTF-8 上限、写入失败/冲突/未知、取消和宿主返回草稿保护、列表增删改排序/启停、两个独立全局开关、320/360/420/520px）；新增 **6/6** 紧凑表单针对性检查通过（默认折叠、左右栅格、无形状控件、自动/手填和单项开关、编辑回读、旧圆形值保留、暗色模式和各宽度）。本次页面 JavaScript 异常 **0**。
 - **实际布局测量（380px 侧栏）：** 同浏览器原旧版展开设置区 `388px` → 新版 `169px`，减少约 **56%**；展开表单整体 `725px` → `479px`；正文 textarea 的实际高度仍约 `80.4px`。320/360/420/520px 未发现 Side Panel 水平溢出。原始 Chromium 截图及修改后的完整 HTML 作为本次 ChatGPT 对话附件供用户视觉评审，不把图像生成结果当作浏览器证据。
 - **证据界限：** 这是独立浏览器中的**HTML 模拟预览验证**，不是 Mac 原生 Chrome 已安装的 OpenDesk 工具、真实 `storage.set`、IME、真实 ChatGPT DOM 或主观九维专家评分。用户对新布局的明确视觉确认 **PENDING**；九维产品目标当前仍 **NOT_SCORED**，正式保存“你好”失败 P0 仍未关闭。不得在确认前迁移正式 UI 或覆盖工具安装包。
+
+## 12. R1.12 — 默认展开和无标题兼容（2026-10-16）
+
+**用户反馈：** 「按钮设置」默认展开；提示词列表需要兼容根本没有手动标题的项，视觉目标为专家 95+/100。仅修改唯一管理预览 `examples/sidebar-tools/prompt-shortcuts/preview/index.html`，正式扩展和 `preview/mock.html` 未改。
+
+- **最新源码基准**：开始时 GitHub `main` 上已有另一轮 R1.11 正文优先列表和直接使用功能，原始 Git blob 为 `5241518c82b06458d4e9fb0f477e42a7b3ec0234`；本轮在其上安全增量提交 [`74bfecf`](https://github.com/shopable-ai/opendesk-browser/commit/74bfecf5bf44d820451539d889b56b0e4afbae43)；新 Git blob `9d6301262b42e19cc11a3a7bf135fe2659ae169d`，与完整 Chromium 测试源文件哈希一致。
+- **新建/编辑展开行为**：HTML 原生 `<details open>` 且每次进入表单执行 `advancedOptions.open=true`；手动收起之后填写正文不重开，下次进入重新展开。保留 R1.10 三行紧凑布局、正文三行高度、短标签/名称自动生成功能及旧圆形值保留。
+- **无标题列表**：新增 `customTitle` / `itemIdentity` 处理手动标题、自动名称及空名。卡片正文始终第一行，`nameAuto=true` 或空 `name` 时不渲染次级空白名称或重复标签；手工名称次级展示。默认模拟库包含一个空 `name` 的旧数据样例；正文片段作为无标题项的编辑、更多、停用和删除确认及网页按钮 ARIA 语义。原有 R1.11 点击正文优先填写模拟 ChatGPT 输入框，其他情况回退剪贴板的交互仍保持。
+- **真实 Chromium 验证**：Python Playwright + 本环境 `/usr/bin/chromium` headless，使用 `page.set_content` 加载逐字节匹配的 HTML 候选，**15/15 项 PASS，页面 JavaScript 异常 0**：默认展开与对齐、键盘 Enter 收起/展开及重新进入、空名称旧数据、只写“你好”自动名称、手动名称次级、无名称编辑回读、无名称启停、三行正文与百行内滚、Unicode Emoji、空内容与 8192B 校验、保存失败保留、结果未知核对、取消和宿主返回保护、320/360/400/440px 与深色不溢出且操作区域不重叠、点击正文直接插入。测试脚本和原始截图保存在本轮会话附件，不当作本机安装证据。
+- **未验收**：本环境不具备用户 Mac 原生安装 Chrome、真实 ChatGPT DOM/IME 和 Host `storage.set` 验收；正式“你好”保存失败 P0 没有在本轮修复。九维专家评分仍 **`NOT_SCORED`**，目标 >=95，而非据 15 项模拟通过就虚报专家分数。用户尚未明确批准 R1.12 预览进入正式迁移，保持 **PREVIEW_APPROVAL_PENDING**。
