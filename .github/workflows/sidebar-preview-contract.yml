@@ -62,6 +62,10 @@ jobs:
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
         run: node scripts/tests/sidebar-preview-runtime-chrome.mjs artifacts/preview-chrome
+      - name: R2.6 Bookmark Manager interactive source-bound preview in Chrome
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: node scripts/tests/bookmark-manager-r26-preview-chrome.mjs artifacts/preview-chrome
       - uses: actions/upload-artifact@v4
         with:
           name: quick-notes-contract-previews
