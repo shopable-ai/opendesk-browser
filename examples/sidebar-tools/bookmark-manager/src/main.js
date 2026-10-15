@@ -573,7 +573,9 @@ function promptDraftSwitch(action,id){
   s.pending={action,id};
   q('bm-draft-context').textContent='「'+current+'」还有未保存的修改。'+
     '若要'+destination+'，须先明确放弃草稿；不会自动保存。';
-  q('bm-discard-switch').textContent='放弃草稿并'+destination;
+  q('bm-discard-switch').textContent=['folder','detail'].includes(action)?
+    '放弃草稿并查看':action==='edit'?'放弃草稿并编辑':
+    action==='move'?'放弃草稿并移动':'放弃草稿并继续';
   q('bm-form-view').hidden=true;
   q('bm-draft-guard').hidden=false;
   q('bm-keep-draft').focus({preventScroll:true});
