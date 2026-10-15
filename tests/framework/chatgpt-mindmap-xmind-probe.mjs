@@ -135,12 +135,35 @@ try{
   await previewPage.waitForFunction(()=>document.querySelector('[data-testid="conversation-turn-1"] [data-opendesk-chatgpt-mindmap="viewer"]')?.shadowRoot?.querySelector('[aria-label="展开或折叠分支"]')?.textContent==='展开');
   assert.equal(await viewer(2).getByRole('button',{name:'展开或折叠分支',exact:true}).textContent(),'折叠');
   passed('R2.1 standalone A/B controllers and state are independent');
+  await btn(3).click();
+  await viewer(3).and(previewPage.locator('[data-ready="true"]')).waitFor({timeout:15000});
+  assert.ok(await viewer(3).locator('.topic:visible').count()>3);
+  passed('R2.2 third answer renders real XMind from table/code/quote content');
+  await viewer(3).getByRole('button',{name:'恢复本条回复原文',exact:true}).click();
+  await viewer(3).waitFor({state:'detached'});
+  await previewPage.getByRole('button',{name:'将 C 切换为大型导图'}).click();
+  await previewPage.waitForTimeout(850);
+  await btn(3).click();
+  await viewer(3).and(previewPage.locator('[data-ready="true"]')).waitFor({timeout:20000});
+  const largeTopicCount=await viewer(3).locator('.topic:visible').count();
+  assert.ok(largeTopicCount>=90,`Expected at least 90 real visible XMind topics, got ${largeTopicCount}`);
+  report.largeTopicCount=largeTopicCount;
+  passed('R2.2 large multi-layer tree uses real SDK without duplicate renderer');
+  await previewPage.screenshot({path:join(out,'r22-local-html-wide.png'),fullPage:true});
   await previewPage.getByRole('button',{name:'切换 320px 容器'}).click();
+  const narrowWidth=await previewPage.locator('#preview-conversation').evaluate(
+    element=>element.getBoundingClientRect().width);
+  assert.ok(narrowWidth<=321,`Expected 320px preview container, got ${narrowWidth}`);
+  report.previewNarrowWidth=narrowWidth;
+  passed('R2.2 standalone real XMind preview uses actual 320px narrow container');
   await previewPage.screenshot({path:join(out,'r21-local-html-xmind.png'),fullPage:true});
   await previewPage.getByRole('button',{name:'Stop 并检查残余样式'}).click();
   await previewPage.waitForFunction(()=>window.mindmapPreview?.sdk==='STOPPED');
   const diagnostic=await previewPage.evaluate(()=>window.mindmapPreview);
   report.preview={level:'LOCAL_HTML_REAL_SDK',diagnostic};
+  assert.equal(diagnostic.styleIsolation,'BLOCKED_GLOBAL_STYLE_RESIDUE');
+  assert.ok(diagnostic.globalSdkStyles.includes('snowbrush_style'));
+  // Browser proof must report a real isolation blocker, not re-label it clean.
   assert.equal(diagnostic.remainingOwnNodes,0);
   assert.equal(await previewPage.locator('.markdown').count(),3);
   passed('R2.1 standalone Stop restores DOM and explicitly counts global style residue');

@@ -16,6 +16,8 @@ test('preview uses product answer registry and real SDK, never a replacement ren
   assert.match(registry,/from '\.\/view\.js'/);
   assert.match(html,/__fixed_xmind\/snowbrush-2c2b5d62b5\.js/);
   assert.match(html,/data-message-author-role="assistant"/);
+  assert.match(html,/id="preview-large"/);
+  assert.match(app,/cContent.replaceChildren/);
   assert.doesNotMatch(html,/<canvas|data:image\/svg|https:\/\/cdn\./);
   assert.match(PREVIEW_CSP,/script-src 'self'/);
   assert.doesNotMatch(PREVIEW_CSP,/unsafe-eval/);

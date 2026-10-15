@@ -89,6 +89,43 @@ async function start(){
     const narrow=conversation.classList.toggle('is-narrow');
     event.currentTarget.setAttribute('aria-pressed',String(narrow));
   });
+  // Fixture-only input generation. All parsing, conversion and canvas
+  // rendering still use exactly the same product modules as the real program.
+  const cContent=answer(3).querySelector('.markdown');
+  const originalC=[...cContent.childNodes].map(node=>node.cloneNode(true));
+  bind(document.getElementById('preview-large'),'click',event=>{
+    const button=event.currentTarget;
+    const large=button.getAttribute('aria-pressed')!=='true';
+    button.setAttribute('aria-pressed',String(large));
+    button.textContent=large?'恢复 C 默认回复':'将 C 切换为大型导图';
+    if(!large){
+      cContent.replaceChildren(...originalC.map(node=>node.cloneNode(true)));
+      return;
+    }
+    const nodes=[];
+    const heading=document.createElement('h2');
+    heading.textContent='大型多层级导图：95 个内容节点';
+    nodes.push(heading);
+    for(let section=1;section<=5;section++){
+      const title=document.createElement('h3');
+      title.textContent='工作流阶段 '+section;
+      const list=document.createElement('ul');
+      for(let item=1;item<=6;item++){
+        const li=document.createElement('li');
+        li.append(document.createTextNode('任务 '+section+'.'+item+'：真实节点与分支'));
+        const children=document.createElement('ul');
+        for(let depth=1;depth<=2;depth++){
+          const sub=document.createElement('li');
+          sub.textContent='检查项 '+section+'.'+item+'.'+depth+'：内容与生命周期';
+          children.append(sub);
+        }
+        li.append(children);
+        list.append(li);
+      }
+      nodes.push(title,list);
+    }
+    cContent.replaceChildren(...nodes);
+  });
   bind(document.getElementById('preview-redraw'),'click',()=>{
     const bar=answer(2).querySelector('.actions');
     bar.replaceWith(bar.cloneNode(true));
