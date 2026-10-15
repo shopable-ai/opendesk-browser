@@ -434,3 +434,13 @@ ADR 风险升级触发条件：Codex CLI 版本改变、Chrome Origin/Host 处�
 **Go Native Gateway**：Go 新旧这些跨平台 stub 改动均不触碰 `internal/browserai/http_gateway.go`、同进程 `h.ai` 或安全配对边界。Go `master@7225ac72` 的 [Native Messaging Go bridge #38720342867](https://github.com/shopable-ai/opendesk/actions/runs/38720342867) Ubuntu transport job **SUCCESS**，其余 jobs 等新候选判断；Browser `local-http.js` 不接入，`pairingReady:false`，HTTP F4 仍 `SAFE_DISABLED / PAIRING_OPEN`。
 
 **下一最小实现**：先核实新增 Go Windows 最新候选在编译步骤是否已过，若仍是跨平台接口不一致，仅修复最小接口；`test-architecture` 的几十项未分类历史账本由其 Owner 单独处理。P0 下一切片应针对已授权且可独立读取的特定网页业务效果定义真实 Oracle；未证明的 click 继续停在 `EXECUTION_RECEIPT_VERIFIED`。后续 T2 真实 Chrome 与 T4 Save→关 AI 固定 Revision Run×2 明确 `NOT_TESTED`，不得以 122/122 Node PASS 宣称生产闭环验收。
+
+### 12.7 P0 Native Codex Locator 来源统一：读、等待与断言也必须有可信观察（2026-10-15）
+
+**新增 Browser `main` 提交**：`3219e7deda2a6a72e3cb24b3367bc83d5390e16e` 修改 `src/ui/workflow/local-codex.js`；`274d963ba9a1012b27ef8b87e01678a91d5e8069` 修改现有 `tests/environment/workflow-local-codex.test.mjs`。属于本轮最小 P0 增量，不新建 Browser Executor、权限系统、Codex 管理器或替代 Store。
+
+**实际收敛**：原 Native Planner 在 `scope.observation` 时强制有本轮 Codex 工具 `browser.observe` 批准的 RunHost 摘要，但最终只对 `fill/click` 核对 Locator 是否属于 `observedNodes`；`wait/extract/assert` 的任意猜测定位未受同样约束。现直接复用 Cloud 已有的纯 `assertResponseLocators(normalized,{nodes:observedNodes})`，覆盖 **`fill/click/wait/extract/assert`** 五种带定位器的操作；fill/click 继续要求可见、非复合父定位且不是 index 位置。缺失定位器时统一 `E_AI_LOCATOR_UNOBSERVED`，不执行浏览器网页代码；原 `observe` 不需要定位器。受限观察节点仍来自 Native 授权、准确 Document、原 RunHost，不向 Native 之外的 Provider 跨会话复用。
+
+**定向回归**：新增 Native `wait/extract/assert` 正确观察定位可规划、凭空编造名称拒绝的六种 fixture 分支；不扩展模型工具能力或真实网页读写权限。新增提交 `274d963ba9` 的 [Workflow AI CI #38722002409](https://github.com/shopable-ai/opendesk-browser/actions/runs/38722002409) 在本节写入时 **CI_PENDING**，与此前 `3f160f8e` 的 Node 122/122 PASS 不混用。无用户 Mac/真实 Chrome，业务效果及 Save 后无 AI Run×2 均 `NOT_TESTED`。
+
+**Go 补充已完成的具体作业**：Go `master@7225ac72` [Native Messaging Bridge #38720342867](https://github.com/shopable-ai/opendesk/actions/runs/38720342867) 的 Ubuntu transport、macOS transport 和模拟 Chrome 的真实 Go 可执行文件三个 job 已分别 **SUCCESS**，属于各自 Go 功能/平台证据；未覆盖更新后的 `27765894` Windows 桩修复或本地 HTTP 用户配对。Go `master@27765894` Windows [#38721532772](https://github.com/shopable-ai/opendesk/actions/runs/38721532772) 仍按其最终结果独立判定，不能宣称 PASS。
