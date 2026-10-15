@@ -5,6 +5,9 @@ on:
     paths:
       - '.agents/skills/**'
       - '.agents/workflows/**'
+      - 'tests/environment/browser-tool-creation-workflow-r21.test.mjs'
+      - 'docs/framework/browser-tool-creation-workflow.zh-CN.md'
+      - 'docs/framework/workstreams/browser-tool-creation-workflow-r2-20261015.md'
       - '.github/workflows/extension-creation-intake.md'
       - '.github/workflows/extension-creation-intake.lock.yml'
       - 'tests/environment/agent-skills-r1.test.mjs'
@@ -25,6 +28,9 @@ on:
     paths:
       - '.agents/skills/**'
       - '.agents/workflows/**'
+      - 'tests/environment/browser-tool-creation-workflow-r21.test.mjs'
+      - 'docs/framework/browser-tool-creation-workflow.zh-CN.md'
+      - 'docs/framework/workstreams/browser-tool-creation-workflow-r2-20261015.md'
       - '.github/workflows/extension-creation-intake.md'
       - '.github/workflows/extension-creation-intake.lock.yml'
       - 'tests/environment/agent-skills-r1.test.mjs'
@@ -55,6 +61,7 @@ jobs:
       - run: node --test tests/environment/agent-skills-r1.test.mjs
       - run: node --test tests/environment/sidebar-r21-design-system.test.mjs
       - run: node scripts/agent-skills-r22-eval.mjs --self-test
+      - run: node --test tests/environment/browser-tool-creation-workflow-r21.test.mjs
       # Compiler-only: read-only GH token, no model call, no PR, no repository write.
       - name: Install pinned gh-aw compiler
         uses: github/gh-aw/actions/setup-cli@v0.92.0

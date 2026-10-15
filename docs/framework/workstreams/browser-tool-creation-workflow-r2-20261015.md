@@ -278,3 +278,9 @@ F-BM-000 书签管理
 
 **下一最小行动**：在仓库 Actions 页主动运行已编译的 **Extension Creation Intake**，输入 Quick Notes 单句需求并核对真实模型推理结果与历史决策；只有用户授权并具备真实 Chrome 环境，才继续复用既有 Sidebar Tool 打包/安装链验证实际数据持久化。不要创建另一个总 Workflow 或重新审计整仓。
 
+### R2.2 CI 触发范围收敛（避免文档变更引起整套 Chrome 重跑）
+
+- 仅修改 `.agents/workflows/`、AI 工作流旧导航、Skill 路由、阶段交接或 R2.1 追踪测试时，沿用 **`agent-skills-governance.yml` 的 Node 追踪+gh-aw 编译/锁文件新鲜度**（无需浏览器、SDK 重建或重复安装）。
+- **`sidebar-preview-contract.yml` 仅在实际工具 HTML/CSS/JS、共享 Token、预览构建及其专项测试变化时运行**；它仍可在真实源码变化时执行 R2.1 功能映射校验，但不会仅因流程 Markdown 更新重跑 headless Chrome。
+- 两种 CI 的 PASS/FAIL 按自己负责的来源范围报告；不会因 AdBlock 模拟页面失败就让 AI 开发流程规范看似没有通过，也不会把需求文档通过当作工具安装已验收。
+

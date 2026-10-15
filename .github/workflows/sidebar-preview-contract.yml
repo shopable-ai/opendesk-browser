@@ -20,10 +20,6 @@ on:
       - 'examples/sidebar-tools/adblock/**'
       - 'tests/environment/adblock-preview-contract.test.mjs'
       - 'tests/environment/sidebar-preview-contract.test.mjs'
-      - 'tests/environment/browser-tool-creation-workflow-r21.test.mjs'
-      - 'docs/framework/browser-tool-creation-workflow.zh-CN.md'
-      - '.agents/workflows/**'
-      - 'docs/framework/workstreams/browser-tool-creation-workflow-r2-20261015.md'
       - 'contracts/ui-preview/**'
       - '.github/workflows/sidebar-preview-contract.yml'
   workflow_dispatch:
