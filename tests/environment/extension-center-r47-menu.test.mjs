@@ -80,7 +80,13 @@ test('R4.7 accessible context menu and low frequency controls, no invented previ
   assert.match(center,/if\(event\.key==='Escape'\)\{event\.preventDefault\(\);closeRowMenu\(true\);return;\}/);
   assert.match(center,/\['ArrowDown','ArrowUp','Home','End'\]/);
   assert.match(center,/doc\.addEventListener\('scroll',onScroll,true\)/);
-  assert.match(center,/if\(!row\.installed\)actions\.append\(detailButton\('审阅并安装'/);
+  // Candidates never get a one-click install shortcut. Detail shows the trusted
+  // review only after a pending uninstall cleanup has been recovered.
+  assert.match(center,/if\(row\.kind==='app'\)\{\s*if\(!row\.installed\)\{\s*if\(row\.cleanupPending\)\s*actions\.append\(detailButton\('恢复卸载清理'/);
+  assert.match(center,/else actions\.append\(detailButton\('审阅并安装',\(\)=>openReview\(row\.key\),'install'\)\)/);
+  assert.match(center,/if\(row\.cleanupPending\)\{message\('此应用卸载清理未完成/);
+  assert.match(center,/if\(resolveExtensionRowIntent\(row\)==='detail'\)\{openDetail\(key,'main'\);return;\}/);
+  assert.doesNotMatch(center,/if\(!row\.installed\)actions\.append\(detailButton\('审阅并安装'/);
   assert.doesNotMatch(center,/const actionName=!row\.installed/);
   assert.doesNotMatch(center,/button\('预览'/);
   assert.match(css,/\.ec-context-menu\{position:fixed;z-index:1000/);
