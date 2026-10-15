@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OpenDesk Browser · 提示词快捷按钮｜Side Panel 交互预览 R1.3</title>
+<title>OpenDesk Browser · 提示词快捷按钮｜Side Panel 交互预览 R1.9</title>
 <meta name="description" content="OpenDesk Prompt Shortcuts 独立侧边栏交互原型。仅模拟、不安装、无真实权限请求。">
 <style>
 /* Offline design contract: semantic values mirror src/ui/design-tokens.css (blob 134dd7871da4bf0ee26b6d0135e69e7273fdabdb).
@@ -48,7 +48,7 @@ button,input,textarea{font:inherit}button{cursor:pointer}button:disabled{cursor:
 .od-icon-button{width:34px;height:34px;display:grid;place-items:center;padding:0;border:1px solid var(--od-line);border-radius:8px;background:var(--od-paper);color:var(--od-ink);font-size:15px;flex:none}
 .od-icon-button:hover:not(:disabled){background:var(--od-muted)}
 .od-field{display:block;width:100%;min-width:0;min-height:36px;padding:8px 10px;border:1px solid var(--od-input-border);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink)}
-textarea.od-field{line-height:1.65;min-height:210px;resize:vertical;font-size:13px}
+textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 .od-surface{border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper)}
 .canvas{display:flex;gap:16px;align-items:stretch;max-width:1540px;min-height:748px;margin:0 auto;padding:8px 22px 24px;min-width:0}
 /* The sidepanel is sized independently of the simulated ChatGPT content, as in the real Chrome Side Panel. */
@@ -123,7 +123,7 @@ textarea.od-field{line-height:1.65;min-height:210px;resize:vertical;font-size:13
 .view-top{display:flex;align-items:center;gap:7px;margin-bottom:16px}.view-top .back{padding-left:7px}.view-top h2{font-size:16px;margin:0}
 .form-fields{display:grid;gap:13px}.form-label{display:block;font-size:12px;font-weight:700;margin-bottom:6px}
 .primary-content{padding:12px;border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-bg)}
-.primary-content textarea.od-field{min-height:238px;background:var(--od-paper)}
+.primary-content textarea.od-field{background:var(--od-paper)}
 .required-mark{color:var(--od-accent-ink);font-size:11px;font-weight:600}
 .optional-section{padding:12px}
 .optional-title{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 12px}
@@ -155,6 +155,47 @@ textarea.od-field{line-height:1.65;min-height:210px;resize:vertical;font-size:13
 @media(max-width:1030px){.canvas{gap:10px;padding:6px 12px 16px}.demo-header{padding:14px 12px}.message-inner{width:calc(100% - 76px);margin-left:60px;margin-right:16px}.web-compose{width:calc(100% - 76px);margin-left:60px;margin-right:16px}}
 @media(max-width:720px){.canvas{display:block}.sidepanel{margin:14px auto 0;max-width:100%;min-height:620px}.web-mock{min-height:400px;height:430px}.message-area{min-height:220px}.web-compose{margin-bottom:10px}.demo-title h1{font-size:17px}}
 @media(max-width:380px){.demo-header,.demo-footer{padding-left:10px;padding-right:10px}.canvas{padding-left:7px;padding-right:7px}.panel-body{--od-page-gutter:9px}.prompt-main{grid-template-columns:34px minmax(0,1fr) auto;gap:6px}.prompt-actions{gap:2px}.prompt-actions .od-button{padding:4px 6px}.prompt-card{padding:8px}}
+
+/* R1.9 mock host only. Installed tools must use the existing trusted host header. */
+.tool-host-head{min-height:48px;display:flex;align-items:center;gap:10px;padding:6px 11px;border-bottom:1px solid var(--od-line);background:var(--od-paper);flex:none}
+.tool-host-head strong{flex:1;min-width:0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tool-host-head .host-meta{font-size:10px;color:var(--od-sub)}
+.tool-host-head .od-icon-button{font-size:19px;font-weight:600}
+.panel-head--list{align-items:center;margin:0 0 12px}
+.panel-head--list h2{font-size:13px;font-weight:750;line-height:1.5}
+.panel-head--list small{font-size:11px;color:var(--od-sub);display:block;margin-top:2px}
+.panel-body>.status{margin:0 0 11px}
+.view-top--compact{margin:0 0 12px}.view-top--compact h2{font-size:15px}
+.primary-content{padding:11px}
+.primary-content textarea.od-field{
+ /* 3 × 20.8px text line + 8px top/bottom padding + 2px border = 80.4px. */
+ height:calc(20.8px + 20.8px + 20.8px + 18px);min-height:0;max-height:calc(20.8px + 20.8px + 20.8px + 18px);
+ line-height:20.8px;font-size:13px;resize:none;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;
+ white-space:pre-wrap;overflow-wrap:anywhere;background:var(--od-paper)
+}
+.primary-content textarea.od-field[aria-invalid="true"]{border-color:var(--od-negative)}
+.form-fields{gap:10px}.primary-content .meter{margin-top:7px}.primary-content .form-hint{margin:7px 0 0}
+.body-error{margin:7px 0 0}.quota-help{margin:7px 0 0;font-size:11px;color:var(--od-negative)}
+.effective-preview{margin:0;padding:9px 11px;align-items:center}
+.optional-section{padding:0;overflow:visible}
+.optional-section>summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px;font-weight:700;font-size:12px}
+.optional-section>summary::-webkit-details-marker{display:none}
+.optional-section>summary::after{content:"展开";font-size:11px;font-weight:500;color:var(--od-sub)}
+.optional-section[open]>summary::after{content:"收起"}
+.optional-section>summary:focus-visible{outline:3px solid var(--od-focus);outline-offset:2px}
+.optional-section .optional-fields{padding:0 12px 12px}
+.form-feedback{position:sticky;bottom:-20px;z-index:3;background:var(--od-paper);border-top:1px solid var(--od-line);margin-top:10px;padding:10px 0 8px;box-shadow:0 -6px 16px #08172c07}
+.form-feedback .inline-error{margin:0 0 8px}.form-save-status{font-size:11px;line-height:1.5;color:var(--od-sub);margin:0 0 8px}
+.form-actions{margin:0}.inline-error:focus{outline:2px solid var(--od-focus);outline-offset:2px}
+.tool-list-placeholder{padding:15px}.tool-list-placeholder p{font-size:12px;line-height:1.6;color:var(--od-sub)}
+.tool-list-placeholder button{width:100%;text-align:left;white-space:normal}
+.demo-scenarios{position:relative;min-width:140px;font-size:11px}
+.demo-scenarios summary{cursor:pointer;min-height:30px;display:flex;align-items:center;justify-content:center;padding:4px 10px;border:1px solid var(--od-line);border-radius:8px;background:var(--od-paper);font-weight:650}
+.demo-scenarios .scenario-body{position:absolute;right:0;top:calc(100% + 5px);z-index:30;width:min(330px,calc(100vw - 20px));border:1px solid var(--od-line);border-radius:12px;background:var(--od-paper);box-shadow:0 12px 38px #08172c23;padding:12px}
+.demo-scenarios .scenario-body p{margin:0 0 9px;color:var(--od-sub)}
+.demo-scenarios .scenario-body .row{display:flex;gap:7px;flex-wrap:wrap}
+.demo-scenarios .scenario-body small{display:block;margin-top:8px;color:var(--od-sub)}
+@media(max-width:720px){.demo-scenarios .scenario-body{left:auto;right:0}}
 </style>
 </head>
 <body>
@@ -170,6 +211,11 @@ textarea.od-field{line-height:1.65;min-height:210px;resize:vertical;font-size:13
   <button id="size520" class="od-button od-button--small" type="button">520px</button>
   <button id="themeButton" class="od-button od-button--small" type="button">深色模式</button>
   <button id="resetButton" class="od-button od-button--small" type="button">重置模拟数据</button>
+  <details class="demo-scenarios" id="scenarioTools"><summary>保存异常测试 ▾</summary><div class="scenario-body"><p>仅预览实验台：选择下一次保存结果，不会请求真实存储。</p><div class="row">
+   <button id="simulateWriteFail" type="button" class="od-button od-button--small">写入失败</button>
+   <button id="simulateConflict" type="button" class="od-button od-button--small">版本冲突</button>
+   <button id="simulateUnknown" type="button" class="od-button od-button--small">结果未知</button>
+  </div><small id="failureStatus" role="status">当前：正常保存</small></div></details>
  </div>
 </header>
 <main class="canvas">
@@ -193,51 +239,64 @@ textarea.od-field{line-height:1.65;min-height:210px;resize:vertical;font-size:13
  </section>
  <aside class="sidepanel" id="sidepanel" aria-label="OpenDesk Browser 侧边栏模拟界面">
   <div class="panel-brand"><span class="mini-logo" aria-hidden="true">OD</span><div><strong>OpenDesk Browser</strong><small>Side Panel · 扩展管理</small></div><span style="margin-left:auto;font-size:11px;color:var(--od-sub)">预览</span></div>
-  <nav class="product-tabs" aria-label="正式五个产品 Tab（展示）"><span>我的</span><span class="active" aria-current="page">扩展</span><span>工作流</span><span>开发</span><span>云控</span></nav>
+  <nav class="product-tabs" aria-label="OpenDesk 产品 Tab（展示）"><span>我的</span><span class="active" aria-current="page">扩展</span><span>工作流</span><span>开发</span><span>云控</span></nav>
+  <div class="tool-host-head" id="hostToolHead" aria-label="模拟正式宿主工具标题栏">
+   <button id="hostBack" class="od-icon-button" type="button" title="返回已安装工具" aria-label="返回已安装工具列表">‹</button>
+   <strong id="hostToolTitle">提示词快捷按钮</strong><span class="host-meta">已安装 · 模拟</span>
+  </div>
   <div class="panel-body" id="panelBody">
+   <div id="panelStatus" class="status" role="status" aria-live="polite" hidden></div>
+   <section id="toolListView" hidden class="tool-list-placeholder od-surface" aria-labelledby="toolListHeading">
+    <h2 id="toolListHeading" class="heading-mini">已安装应用</h2>
+    <p>已模拟返回宿主工具列表。选择下方工具可重新进入管理页。</p>
+    <button id="reopenTool" type="button" class="od-button">提示词快捷按钮 · 打开工具 ›</button>
+   </section>
    <section id="indexView" aria-labelledby="indexHeading">
-    <p class="crumb">扩展 / 我的应用 / 提示词快捷按钮</p>
-    <div class="panel-head"><div><h2 id="indexHeading">提示词快捷按钮</h2><p>在 ChatGPT 内容区左侧快速插入完整提示词</p></div><button id="addButton" class="od-button od-button--primary od-button--small" type="button">＋ 新建</button></div>
-    <div class="section-heading"><h3 class="heading-mini">我的提示词</h3><small id="listCount">4 个快捷按钮</small></div>
+    <div class="panel-head panel-head--list"><div><h2 id="indexHeading">我的提示词</h2><small id="listCount">4 个 · 4 个启用</small></div><button id="addButton" class="od-button od-button--primary od-button--small" type="button">＋ 新建</button></div>
     <div id="promptList" class="shortcuts-list"></div>
-    <p class="notice">只需填写提示词内容即可创建；短标签和名称留空时自动取内容开头两个字。</p>
-    <div class="section-heading"><h3 class="heading-mini">使用设置</h3><small>不影响已保存提示词</small></div>
-    <div class="setting-card od-surface"><div class="setting-copy"><strong>网页左侧快捷按钮</strong><p>在 ChatGPT 主内容区左边缘垂直居中显示</p></div><label class="switch" title="显示或隐藏网页左侧快捷按钮"><input id="showBarSwitch" type="checkbox" role="switch" checked aria-label="网页左侧快捷按钮"><span class="switch-track" aria-hidden="true"></span></label></div>
-    <div class="setting-card od-surface"><div class="setting-copy"><strong>选中文字快速添加</strong><p>启用后可通过原生右键菜单预填新建提示词</p></div><label class="switch" title="启用或关闭右键快速添加"><input id="contextSwitch" type="checkbox" role="switch" checked aria-label="选中文字快速添加"><span class="switch-track" aria-hidden="true"></span></label></div>
+    <div class="section-heading"><h3 class="heading-mini">使用设置</h3></div>
+    <div class="setting-card od-surface"><div class="setting-copy"><strong>网页左侧快捷按钮</strong><p>在已授权 ChatGPT 内容区显示快捷按钮</p></div><label class="switch" title="显示或隐藏网页左侧快捷按钮"><input id="showBarSwitch" type="checkbox" role="switch" checked aria-label="网页左侧快捷按钮"><span class="switch-track" aria-hidden="true"></span></label></div>
+    <div class="setting-card od-surface"><div class="setting-copy"><strong>选中文字快速添加</strong><p>通过原生右键菜单预填新提示词</p></div><label class="switch" title="启用或关闭右键快速添加"><input id="contextSwitch" type="checkbox" role="switch" checked aria-label="选中文字快速添加"><span class="switch-track" aria-hidden="true"></span></label></div>
     <div class="permission-strip"><span class="dot" id="permissionDot" aria-hidden="true"></span><span class="text" id="permissionSummary">chatgpt.com · 模拟已授权</span><button id="openPermissions" type="button">设置权限 ›</button></div>
-    <div id="copyFallback" class="copy-box od-surface" hidden><strong>复制完整提示词</strong><p class="notice">当前浏览器未允许直接写入剪贴板。选中文本后手动复制。</p><textarea id="copyText" class="od-field" readonly aria-label="待复制的完整提示词"></textarea><div class="row"><button id="copySelect" class="od-button od-button--small" type="button">选中全部</button><button id="copyClose" class="od-button od-button--small" type="button">关闭</button></div></div>
-    <p class="notice">提示词列表和网页按钮始终展示最终保存的名称及正文。侧栏关闭后正式工具仍应保持启用。</p>
+    <div id="copyFallback" class="copy-box od-surface" hidden><strong>复制完整提示词</strong><p class="notice">浏览器未允许直接写入剪贴板，请手动复制以下完整正文。</p><textarea id="copyText" class="od-field" readonly aria-label="待复制的完整提示词"></textarea><div class="row"><button id="copySelect" class="od-button od-button--small" type="button">选中全部</button><button id="copyClose" class="od-button od-button--small" type="button">关闭</button></div></div>
    </section>
    <section id="formView" hidden aria-labelledby="formHeading">
-    <div class="view-top"><button id="formBack" type="button" class="od-button od-button--small od-button--subtle back">← 返回</button><h2 id="formHeading">新建提示词</h2></div>
+    <div class="view-top view-top--compact"><h2 id="formHeading">新建提示词</h2></div>
     <form id="promptForm" novalidate>
      <div class="form-fields">
-      <div class="primary-content"><label class="form-label" for="promptBody">提示词内容 <span class="required-mark">· 唯一必填</span></label><textarea id="promptBody" class="od-field" name="promptBody" spellcheck="true" placeholder="在这里输入提示词，支持多行。仅填写此项即可保存，点击按钮只插入草稿，不自动发送。" required aria-describedby="contentHint"></textarea><div id="quotaMeter" class="meter"><span>单项模拟存储上限 8 KiB</span><span id="quotaValue">0 / 8192 B</span></div><p class="form-hint" id="contentHint">保留完整换行与中文；其他字段均可留空。保存时按完整 JSON UTF-8 字节数校验。</p></div>
-      <section class="optional-section od-surface" aria-labelledby="optionalHeading"><div class="optional-title"><h3 id="optionalHeading">按钮展示与偏好</h3><span>均为选填 · 默认即可使用</span></div>
+      <div class="primary-content"><label class="form-label" for="promptBody">提示词内容 <span class="required-mark">· 必填</span></label>
+       <textarea id="promptBody" class="od-field" name="promptBody" rows="3" spellcheck="true" placeholder="输入完整提示词，支持多行；保存后点击按钮可插入草稿。" required aria-required="true" aria-describedby="contentHint quotaValue bodyError"></textarea>
+       <p id="bodyError" class="inline-error body-error" role="alert" hidden></p>
+       <div id="quotaMeter" class="meter"><span>整个提示词库 · JSON UTF-8</span><span id="quotaValue">0 / 8192 B</span></div>
+       <p id="quotaHint" class="quota-help" role="status" hidden></p>
+       <p class="form-hint" id="contentHint">完整保留换行、空行及 Emoji。仅填写正文即可保存。</p>
+      </div>
+      <div class="effective-preview" aria-label="按钮显示即时预览"><span>保存后展示</span><strong class="preview-short" id="effectiveShort">待生成</strong><span>名称</span><strong id="effectiveName">待生成</strong></div>
+      <details id="advancedOptions" class="optional-section od-surface"><summary id="optionalHeading">按钮外观与更多设置 <span style="font-weight:400;color:var(--od-sub)">均为选填</span></summary>
        <div class="optional-fields">
-        <div><label class="form-label" for="shortLabel">按钮短标签 <span style="color:var(--od-sub);font-weight:400">（选填）</span></label><input id="shortLabel" class="od-field" name="shortLabel" maxlength="24" placeholder="留空：自动取内容前两个字" autocomplete="off"><p class="form-hint">可自定义 1–2 个可见字符，两个字符上下排列；支持中文、英文及表情。</p></div>
-        <div><label class="form-label" for="fullName">显示名称 <span style="color:var(--od-sub);font-weight:400">（选填）</span></label><input id="fullName" class="od-field" name="fullName" maxlength="60" placeholder="留空：自动取内容前两个字" autocomplete="off"><p class="form-hint">可填写更详细的名称，用于列表、Tooltip 和屏幕阅读器；留空时同短标签默认规则。</p></div>
-        <div class="effective-preview" aria-label="当前自动计算的按钮展示"><span>保存后展示</span><strong class="preview-short" id="effectiveShort">待生成</strong><span>名称：</span><strong id="effectiveName">待生成</strong></div>
-        <div class="form-appearance"><div><span class="form-label">按钮形状（选填）</span><div class="shape-options"><label><input type="radio" name="shape" value="square" checked> 圆角方形</label><label><input type="radio" name="shape" value="round"> 圆形</label></div></div><div><span class="form-label">启用状态（选填）</span><div class="form-switch od-surface"><span style="font-size:11px">显示此按钮（默认开启）</span><label class="switch"><input id="itemEnabled" type="checkbox" role="switch" aria-label="显示此按钮" checked><span class="switch-track" aria-hidden="true"></span></label></div></div></div>
+        <div><label class="form-label" for="shortLabel">按钮短标签（选填）</label><input id="shortLabel" class="od-field" name="shortLabel" maxlength="24" placeholder="留空自动提取前两个可见字素" autocomplete="off"><p class="form-hint">支持 1–2 个 Unicode 字素，包括组合 Emoji。</p></div>
+        <div><label class="form-label" for="fullName">显示名称（选填）</label><input id="fullName" class="od-field" name="fullName" maxlength="60" placeholder="留空自动生成" autocomplete="off"></div>
+        <div class="form-appearance"><div><span class="form-label" id="shapeLabel">按钮形状</span><div class="shape-options" role="group" aria-labelledby="shapeLabel"><label><input type="radio" name="shape" value="square" checked> 圆角方形</label><label><input type="radio" name="shape" value="round"> 圆形</label></div></div>
+         <div><span class="form-label">单项启停</span><div class="form-switch od-surface"><span style="font-size:11px">网页显示此按钮</span><label class="switch"><input id="itemEnabled" type="checkbox" role="switch" aria-label="显示此按钮" checked><span class="switch-track" aria-hidden="true"></span></label></div></div>
+        </div>
        </div>
-      </section>
+      </details>
      </div>
-     <div id="formError" class="inline-error" role="alert" hidden></div>
-     <div id="leaveConfirm" class="warning-box" hidden><strong>存在未保存的编辑</strong><p>返回将放弃当前草稿。可以留在页面继续保存，也可以明确放弃更改。</p><div class="row"><button id="stayEditing" type="button" class="od-button od-button--small">继续编辑</button><button id="discardEditing" type="button" class="od-button od-button--danger od-button--small">放弃更改</button></div></div>
-     <div class="form-actions"><button id="cancelForm" type="button" class="od-button">取消</button><button id="saveButton" type="submit" class="od-button od-button--primary">保存提示词</button></div>
+     <div id="leaveConfirm" class="warning-box" hidden aria-labelledby="leaveHeading"><strong id="leaveHeading">存在未保存的提示词草稿</strong><p>可以继续编辑，也可以主动放弃更改。取消仅返回列表，宿主返回则退出工具。</p><div class="row"><button id="stayEditing" type="button" class="od-button od-button--small">继续编辑</button><button id="discardEditing" type="button" class="od-button od-button--danger od-button--small">放弃更改</button></div></div>
+     <div class="form-feedback" id="formFeedback"><div id="formError" class="inline-error" role="alert" tabindex="-1" hidden></div><p id="formSaveStatus" class="form-save-status" role="status" aria-live="polite" hidden></p>
+      <div class="form-actions"><button id="cancelForm" type="button" class="od-button">取消</button><button id="saveButton" type="submit" class="od-button od-button--primary">保存提示词</button></div>
+     </div>
     </form>
-    <div class="warning-box" style="margin-top:18px"><strong>模拟错误场景</strong><p>选择下次保存结果，检查配额、并发冲突或未知写入结果时是否保留草稿。</p><div class="row"><button id="simulateWriteFail" type="button" class="od-button od-button--small">下次保存失败</button><button id="simulateConflict" type="button" class="od-button od-button--small">下次保存冲突</button><button id="simulateUnknown" type="button" class="od-button od-button--small">下次结果未知</button></div><small id="failureStatus">当前：正常保存</small></div>
    </section>
    <section id="permissionView" hidden aria-labelledby="permissionHeading" class="permissions-body">
-    <div class="view-top"><button id="permissionBack" type="button" class="od-button od-button--small od-button--subtle back">← 返回</button><h2 id="permissionHeading">网站权限与快捷入口</h2></div>
-    <p>正式扩展需要单独校验已安装工具、启停状态、网站权限和原生右键菜单授权。此页面只模拟授权结果，不会调用 Chrome API。</p>
+    <div class="view-top view-top--compact"><h2 id="permissionHeading">网站权限与快捷入口</h2></div>
+    <p>此处只演示站点授权状态，不会调用真实 Chrome 权限。</p>
     <div class="od-surface" style="padding:12px"><div class="permission-title">chatgpt.com</div><div class="permission-value" id="permissionStateText">模拟已授权（不代表真实 Chrome 权限）</div><div style="display:flex;justify-content:flex-end;gap:7px;flex-wrap:wrap;margin-top:12px"><button type="button" class="od-button od-button--small" id="mockRevoke">模拟撤销</button><button type="button" class="od-button od-button--small od-button--primary" id="mockGrant">模拟授权</button></div></div>
-    <h3>权限边界</h3><p>工具只在已批准的 ChatGPT 站点展示按钮；选中文字必须由用户主动发起右键菜单，预填后仍需人工保存。关闭右键入口不会删除已保存提示词。</p>
-    <p style="font-size:11px">这里不收集对话正文、不上传提示词，也不运行远端脚本。</p>
+    <h3>权限边界</h3><p>正式工具必须独立校验安装身份、授权和 Chrome 原生选区票据；不会自动保存或发送内容。此原型不请求权限、不上传文本。</p>
+    <button id="permissionBack" type="button" class="od-button" style="margin-top:12px">返回提示词列表</button>
    </section>
-   <div id="panelStatus" class="status" role="status" aria-live="polite">模拟数据已加载。可创建、编辑、排序、复制和删除提示词。</div>
   </div>
-  <footer class="panel-footer"><span>仅交互原型 · 不使用真实 Chrome 权限</span><span id="revisionIndicator">Mock r1</span></footer>
+  <footer class="panel-footer"><span>模拟管理视图</span><span id="revisionIndicator">Mock r1</span></footer>
  </aside>
 </main>
 <footer class="demo-footer">原型关联：<a href="./mock.html" target="_blank" rel="noopener">查看已确认的 ChatGPT 左侧网页完整原型</a>。本页侧边栏与左侧模拟按钮使用同一份内存数据；两个独立 HTML 文件之间不宣称跨标签同步。正式版的存储、权限与生命周期仍待源码接线和原生验收。</footer>
@@ -252,20 +311,22 @@ textarea.od-field{line-height:1.65;min-height:210px;resize:vertical;font-size:13
  const $=selector=>document.querySelector(selector), el=id=>document.getElementById(id), encoder=new TextEncoder();
  const COPY=()=>INITIAL.map(item=>({...item}));
  let state={version:1,revision:1,settings:{showBar:true,contextMenu:true},items:COPY(),granted:true};
- let currentView='index', editId=null,baselineForm='',revisionAtEdit=1,dirty=false,expandedId=null,deleteId=null,copyId=null,tipButton=null,noticeKind='info',nextSaveFailure=null;
+ let currentView='index', editId=null,baselineForm='',revisionAtEdit=1,dirty=false,saving=false,pendingDestination='index',expandedId=null,deleteId=null,copyId=null,tipButton=null,noticeKind='info',nextSaveFailure=null;
  const create=(tag,classes,text)=>{const n=document.createElement(tag);if(classes)n.className=classes;if(text!==undefined)n.textContent=text;return n;};
  function action(parent,label,callback,{small=false,subtle=false,disabled=false,title='',danger=false}={}){
   const b=create('button','od-button'+(small?' od-button--small':'')+(subtle?' od-button--subtle':'')+(danger?' od-button--danger':''),label);b.type='button';b.disabled=disabled;if(title)b.title=title;
   b.addEventListener('click',callback);parent.append(b);return b;
  }
- function notice(message,kind='info'){const n=el('panelStatus');n.textContent=message;n.dataset.kind=kind;noticeKind=kind;}
+ function notice(message,kind='info'){const n=el('panelStatus');n.textContent=message;n.dataset.kind=kind;n.hidden=!message;noticeKind=kind;}
  function bytes(value){return encoder.encode(JSON.stringify(value)).byteLength;}
  const segmenter=typeof Intl.Segmenter==='function'?new Intl.Segmenter('zh',{granularity:'grapheme'}):null;
  function glyphs(text){return segmenter?Array.from(segmenter.segment(text),part=>part.segment):Array.from(text);}
- function defaultShort(body){return glyphs(body.trimStart()).filter(char=>!/\s/u.test(char)).slice(0,2).join('');}
+ function visible(char){return /[\p{L}\p{N}\p{M}\p{P}\p{S}]/u.test(char);}
+ function validLabel(label){const chars=glyphs(label);return chars.length>=1&&chars.length<=2&&chars.every(visible);}
+ function defaultShort(body){return glyphs(body).filter(visible).slice(0,2).join('');}
  function stack(label){const n=create('span','stack');for(const char of glyphs(label))n.append(create('span','',char));return n;}
  function countText(){const enabled=state.items.filter(item=>item.enabled).length;return `${state.items.length} 个 · ${enabled} 个启用`;}
- function setView(next){currentView=next;for(const v of ['index','form','permission'])el(v+'View').hidden=v!==next;el('panelBody').scrollTop=0;}
+ function setView(next){currentView=next;for(const v of ['index','form','permission','toolList'])el(v+'View').hidden=v!==next;el('hostToolHead').hidden=next==='toolList';el('panelBody').scrollTop=0;}
  function mockAuthorized(){return state.granted===true;}
  function setSettings(){el('showBarSwitch').checked=state.settings.showBar;el('contextSwitch').checked=state.settings.contextMenu;el('permissionDot').classList.toggle('denied',!mockAuthorized());el('permissionSummary').textContent=mockAuthorized()?'chatgpt.com · 模拟已授权':'chatgpt.com · 模拟未授权';
   el('permissionStateText').textContent=mockAuthorized()?'模拟已授权（不代表真实 Chrome 权限）':'模拟已撤销（不代表真实 Chrome 权限）';}
@@ -304,31 +365,84 @@ textarea.od-field{line-height:1.65;min-height:210px;resize:vertical;font-size:13
  function rawFormValues(){const shape=document.querySelector('input[name="shape"]:checked');return {label:el('shortLabel').value.trim(),name:el('fullName').value.trim(),body:el('promptBody').value,enabled:el('itemEnabled').checked,shape:shape?.value||'square'};}
  function formValues(){const raw=rawFormValues(),fallback=defaultShort(raw.body);return {...raw,label:raw.label||fallback,name:raw.name||fallback,labelAuto:!raw.label,nameAuto:!raw.name};}
  function projection(){const value=formValues(),next=state.items.map(x=>({...x}));const idx=next.findIndex(x=>x.id===editId);if(idx>=0)next[idx]={...next[idx],...value};else next.push({id:'preview-new',...value});return {version:1,revision:state.revision+1,settings:state.settings,items:next};}
- function updateMeter(){const value=formValues(),current=bytes(projection());el('quotaValue').textContent=current+' / 8192 B';el('quotaMeter').classList.toggle('error',current>8192);el('effectiveShort').textContent=value.label||'待生成';el('effectiveName').textContent=value.name||'待生成';dirty=JSON.stringify(rawFormValues())!==baselineForm;el('leaveConfirm').hidden=true;}
- function showFormError(message){el('formError').textContent=message;el('formError').hidden=false;notice(message,'error');}
- function openForm(id=null,preset=null){if(currentView==='form'&&dirty){showFormError('当前表单有未保存内容，请先处理草稿，再打开另一个提示词。');return;}
-  editId=id;const value=state.items.find(item=>item.id===id);if(id&&!value){notice('待编辑项已删除，请刷新确认','error');return;}
-  el('formHeading').textContent=id?'编辑提示词':'新建提示词';el('promptBody').value=value?.body??preset?.body??'';el('shortLabel').value=value?.labelAuto?'':(value?.label??preset?.label??'');el('fullName').value=value?.nameAuto?'':(value?.name??preset?.name??'');
-  for(const input of document.querySelectorAll('input[name="shape"]'))input.checked=input.value===(value?.shape||'square');el('itemEnabled').checked=value?.enabled??true;
-  el('formError').hidden=true;el('leaveConfirm').hidden=true;revisionAtEdit=state.revision;baselineForm=JSON.stringify(rawFormValues());dirty=false;nextSaveFailure=null;el('failureStatus').textContent='当前：正常保存';updateMeter();setView('form');el('promptBody').focus({preventScroll:true});
+
+ function updateMeter(){
+  const value=formValues(),current=bytes(projection());
+  el('quotaValue').textContent=current+' / 8192 B';
+  el('quotaMeter').classList.toggle('error',current>8192);
+  el('quotaHint').hidden=current<=8192;
+  el('quotaHint').textContent=current>8192?'已超出 '+(current-8192)+' B，请精简提示词或删除不再使用的条目；草稿完整保留。':'';
+  el('effectiveShort').textContent=value.label||'待生成';
+  el('effectiveName').textContent=value.name||'待生成';
+  dirty=JSON.stringify(rawFormValues())!==baselineForm;
+  el('leaveConfirm').hidden=true;el('bodyError').hidden=true;el('formError').hidden=true;
+  for(const id of ['promptBody','shortLabel','fullName'])el(id).removeAttribute('aria-invalid');
  }
- function requestBack(){if(currentView!=='form')return;if(!dirty){returnIndex();return;}el('leaveConfirm').hidden=false;el('leaveConfirm').scrollIntoView({block:'nearest'});}
+ function showFormError(message,field='save'){
+  const body=field==='body',target=body?el('bodyError'):el('formError');
+  target.textContent=message;target.hidden=false;el('formSaveStatus').hidden=true;
+  if(body){el('promptBody').setAttribute('aria-invalid','true');el('promptBody').focus({preventScroll:true});el('promptBody').scrollIntoView({block:'nearest'});}
+  else if(field==='label'){el('shortLabel').setAttribute('aria-invalid','true');el('advancedOptions').open=true;el('shortLabel').focus({preventScroll:true});el('shortLabel').scrollIntoView({block:'nearest'});}
+  else if(field==='name'){el('fullName').setAttribute('aria-invalid','true');el('advancedOptions').open=true;el('fullName').focus({preventScroll:true});el('fullName').scrollIntoView({block:'nearest'});}
+  else{target.focus({preventScroll:true});target.scrollIntoView({block:'nearest'});}
+ }
+ function openForm(id=null,preset=null){
+  if(saving){showFormError('当前保存尚未结束，请确认结果后再操作。');return;}
+  if(currentView==='form'&&dirty){showFormError('当前表单有未保存草稿，请先保存或取消。');return;}
+  editId=id;const value=state.items.find(item=>item.id===id);
+  if(id&&!value){notice('待编辑项不存在，请核对列表。','error');return;}
+  el('formHeading').textContent=id?'编辑提示词':'新建提示词';
+  el('promptBody').value=value?.body??preset?.body??'';
+  el('shortLabel').value=value?.labelAuto?'':(value?.label??preset?.label??'');
+  el('fullName').value=value?.nameAuto?'':(value?.name??preset?.name??'');
+  for(const input of document.querySelectorAll('input[name="shape"]'))input.checked=input.value===(value?.shape||'square');
+  el('itemEnabled').checked=value?.enabled??true;
+  el('advancedOptions').open=!!(value&&(!value.labelAuto||!value.nameAuto||value.shape==='round'||!value.enabled));
+  el('bodyError').hidden=true;el('formError').hidden=true;el('formSaveStatus').hidden=true;el('leaveConfirm').hidden=true;
+  el('saveButton').disabled=false;el('saveButton').textContent='保存提示词';
+  revisionAtEdit=state.revision;baselineForm=JSON.stringify(rawFormValues());dirty=false;
+  nextSaveFailure=null;el('failureStatus').textContent='当前：正常保存';
+  notice('');setView('form');updateMeter();el('promptBody').focus({preventScroll:true});
+ }
+ function exitTool(){editId=null;dirty=false;notice('');setView('toolList');el('reopenTool').focus({preventScroll:true});}
+ function requestBack(destination='index'){
+  if(saving){showFormError('保存中…请先确认当前操作的结果，草稿不会丢失。');return;}
+  if(currentView!=='form'){if(destination==='host')exitTool();else returnIndex();return;}
+  if(!dirty){if(destination==='host')exitTool();else returnIndex();return;}
+  pendingDestination=destination;el('leaveConfirm').hidden=false;
+  el('stayEditing').focus({preventScroll:true});el('leaveConfirm').scrollIntoView({block:'nearest'});
+ }
  function returnIndex(){editId=null;dirty=false;setView('index');renderIndex();renderRail();el('addButton').focus({preventScroll:true});}
- function saveForm(event){event.preventDefault();el('formError').hidden=true;const value=formValues();
-  if(!value.body.trim()){showFormError('提示词内容是唯一必填项，请输入后保存。');el('promptBody').focus();return;}
-  if(!value.label||glyphs(value.label).length>2||/\s/u.test(value.label)){showFormError('短标签只能包含 1–2 个可见字符；留空时将自动从正文生成。');return;}
-  if(!value.name||value.name.length>60){showFormError('显示名称不得超过 60 字符；留空时将自动从正文生成。');return;}
-  if(value.body.includes('\u0000')){showFormError('提示词正文不能包含 NUL 字符。');return;}
-  if(bytes(projection())>8192){showFormError('本工具模拟单项 JSON 已超过 8 KiB；当前草稿完整保留，请精简内容后保存。');return;}
-  if(revisionAtEdit!==state.revision){showFormError('E_STORAGE_CONFLICT：其他窗口已更改数据。草稿保留，请先核对最新版本。');return;}
+ async function saveForm(event){
+  event.preventDefault();if(saving)return;
+  el('bodyError').hidden=true;el('formError').hidden=true;el('formSaveStatus').hidden=true;
+  const value=formValues(),snapshot=JSON.stringify(rawFormValues()),quota=bytes(projection());
+  if(!value.body.trim()){showFormError('请输入提示词内容。','body');return;}
+  if(!value.label||!validLabel(value.label)){showFormError('短标签须为 1–2 个可见 Unicode 字素，或留空自动生成。','label');return;}
+  if(!value.name||value.name.length>60){showFormError('名称不能超过 60 字符；留空将自动生成。','name');return;}
+  if(value.body.includes('\u0000')){showFormError('正文含不支持的 NUL 字符，请移除后保存。','body');return;}
+  if(quota>8192){showFormError('整个提示词库为 '+quota+' / 8192 B，超出 '+(quota-8192)+' B；请精简内容，草稿完整保留。','body');return;}
+  if(revisionAtEdit!==state.revision){showFormError('E_STORAGE_CONFLICT：提示词库已有新版本，请核对列表后处理草稿；不会自动覆盖。');return;}
+  saving=true;el('saveButton').disabled=true;el('saveButton').textContent='保存中…';el('promptForm').setAttribute('aria-busy','true');
+  const status=el('formSaveStatus');status.hidden=false;status.textContent='正在保存当前提示词（模拟），请勿重复提交。';
   const fail=nextSaveFailure;nextSaveFailure=null;el('failureStatus').textContent='当前：正常保存';
-  if(fail==='write'){showFormError('E_HOST_STORAGE_WRITE：模拟写入失败，未确认保存。草稿未丢失。');return;}
-  if(fail==='conflict'){showFormError('E_STORAGE_CONFLICT：模拟其他窗口已修改该项，草稿保留。');return;}
-  if(fail==='unknown'){showFormError('E_OUTCOME_UNKNOWN：模拟结果未知；请先核对本地状态，避免直接重复提交。');return;}
-  const idx=state.items.findIndex(x=>x.id===editId),updated={id:editId||'mock-'+cryptoRandom(),...value};if(idx>=0)state.items[idx]=updated;else state.items.push(updated);
-  state.revision++;notice('「'+value.name+'」已在本页模拟数据中保存，可在左侧网页区域查看按钮。');returnIndex();
+  try{
+   await new Promise(resolve=>setTimeout(resolve,350));
+   if(revisionAtEdit!==state.revision){showFormError('E_STORAGE_CONFLICT：保存期间数据发生变化，草稿已保留。');return;}
+   if(fail==='write'){showFormError('E_HOST_STORAGE_WRITE：模拟存储写入失败，可能是权限或空间问题。请检查工具状态后重试；草稿完整保留。');return;}
+   if(fail==='conflict'){showFormError('E_STORAGE_CONFLICT：模拟其他页面修改了提示词库；不会覆盖新版本。请核对列表，草稿保留。');return;}
+   if(fail==='unknown'){showFormError('E_OUTCOME_UNKNOWN：模拟请求超时，无法确认保存是否成功。请先核对列表，避免重复写入；当前草稿保留。');return;}
+   const idx=state.items.findIndex(x=>x.id===editId),updated={id:editId||'mock-'+cryptoRandom(),...value};
+   if(idx>=0)state.items[idx]=updated;else state.items.push(updated);
+   state.revision++;revisionAtEdit=state.revision;
+   if(snapshot!==JSON.stringify(rawFormValues())){
+    baselineForm=snapshot;dirty=true;status.hidden=false;status.textContent='先前版本已保存；保存期间又输入的新内容尚未保存，请再次点击保存。';renderRail();return;
+   }
+   returnIndex();notice('已保存「'+value.name+'」（仅本页模拟）。列表已更新。','success');
+  }catch(error){showFormError('E_PREVIEW_SAVE：模拟保存出现异常：'+(error?.message||String(error))+'。草稿保留，请核对后操作。');}
+  finally{saving=false;el('saveButton').disabled=false;el('saveButton').textContent='保存提示词';el('promptForm').removeAttribute('aria-busy');}
  }
- function cryptoRandom(){return typeof crypto?.randomUUID==='function'?crypto.randomUUID().slice(0,12):String(Date.now());}
+ function cryptoRandom(){return typeof globalThis.crypto?.randomUUID==='function'?globalThis.crypto.randomUUID().slice(0,12):String(Date.now())+'-'+Math.random().toString(36).slice(2,8);}
  function prepareSelection(){el('mockContextMenu').hidden=true;if(!state.settings.contextMenu){notice('“选中文字快速添加”已关闭，请先开启开关。','error');return;}
   if(!mockAuthorized()){notice('当前模拟网站权限已撤销，不能从右键创建。','error');return;}
   if(currentView==='form'&&dirty){showFormError('草稿尚未保存，先处理当前编辑再添加选区。');return;}
@@ -337,9 +451,10 @@ textarea.od-field{line-height:1.65;min-height:210px;resize:vertical;font-size:13
   if(!text.trim()){notice('当前没有有效模拟选区。','error');return;}
   openForm(null,{body:text});notice('已预填选中文字；只需确认正文即可保存，短标签和名称可留空自动生成。');}
  el('mockSelection').addEventListener('click',prepareSelection);el('mockMenuAdd').addEventListener('click',confirmSelection);
- el('addButton').addEventListener('click',()=>openForm());el('formBack').addEventListener('click',requestBack);el('cancelForm').addEventListener('click',requestBack);
- el('stayEditing').addEventListener('click',()=>{el('leaveConfirm').hidden=true;el('promptBody').focus();});el('discardEditing').addEventListener('click',()=>{notice('已主动放弃未保存更改。');returnIndex();});
- el('promptForm').addEventListener('submit',saveForm);el('promptForm').addEventListener('input',updateMeter);el('promptForm').addEventListener('change',updateMeter);
+ el('addButton').addEventListener('click',()=>openForm());el('cancelForm').addEventListener('click',()=>requestBack('index'));
+ el('hostBack').addEventListener('click',()=>requestBack('host'));el('reopenTool').addEventListener('click',()=>{setView('index');renderIndex();renderRail();el('addButton').focus({preventScroll:true});});
+ el('stayEditing').addEventListener('click',()=>{el('leaveConfirm').hidden=true;el('promptBody').focus();});el('discardEditing').addEventListener('click',()=>{const destination=pendingDestination;pendingDestination='index';if(destination==='host')exitTool();else returnIndex();notice('已主动放弃未保存更改。');});
+ el('promptForm').addEventListener('submit',event=>void saveForm(event));el('promptForm').addEventListener('input',updateMeter);el('promptForm').addEventListener('change',updateMeter);
  for(const [id,key] of [['showBarSwitch','showBar'],['contextSwitch','contextMenu']])el(id).addEventListener('change',event=>{
   state.settings[key]=event.currentTarget.checked;state.revision++;renderIndex();renderRail();el('mockContextMenu').hidden=true;
   notice(key==='showBar'?(state.settings.showBar?'左侧按钮栏已开启（模拟）':'左侧按钮栏已关闭，提示词仍保留（模拟）'):(state.settings.contextMenu?'右键快捷添加已开启（模拟）':'右键快捷添加已关闭，现有按钮保留（模拟）'));
@@ -354,6 +469,7 @@ textarea.od-field{line-height:1.65;min-height:210px;resize:vertical;font-size:13
   state={version:1,revision:1,settings:{showBar:true,contextMenu:true},items:COPY(),granted:true};nextSaveFailure=null;expandedId=null;deleteId=null;copyId=null;el('mockDraft').value='';el('mockContextMenu').hidden=true;el('copyFallback').hidden=true;returnIndex();notice('已重置为初始模拟数据。');});
  for(const [id,mode,label] of [['simulateWriteFail','write','写入失败'],['simulateConflict','conflict','并发冲突'],['simulateUnknown','unknown','结果未知']])el(id).addEventListener('click',()=>{nextSaveFailure=mode;el('failureStatus').textContent='下次保存将模拟：'+label;notice('已设置下次保存模拟：'+label+'，当前草稿会保留。');});
  document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!el('mockContextMenu').hidden){el('mockContextMenu').hidden=true;el('mockSelection').focus();}else if(event.key==='Escape'&&!el('webTooltip').hidden){el('webTooltip').hidden=true;tipButton=null;}});
+ window.addEventListener('beforeunload',event=>{if(currentView==='form'&&dirty){event.preventDefault();event.returnValue='';}});
  setView('index');renderIndex();renderRail();
 })();
 </script>
