@@ -221,3 +221,11 @@ Chrome API 失败不假装卸载成功。
 ### R3 并行 SDK 修复后的完整专项验证
 
 此前 `#38756274935` 曾因并行 SDK `browser-schemas.js:56` 语法损坏失败。并行 Agent 修复后，提交 `f4790e843467bd4a0dfc9c03163d4dc5c776c66d` 对应的 [GitHub Actions #38757685815](https://github.com/shopable-ai/opendesk-browser/actions/runs/38757685815) **两项 Job 均 SUCCESS**：原生 Page Program 生命周期和 UI `41/41 PASS`、XMind 源码 `17/17 PASS`、原始四文件、确定性 Build、`npm run check`、真实 Chromium 独立 HTML XMind 绘图。历史失败仅保留排障事实，当前正式程序仍无受信原始 XMind Runtime、正式安装和真实 ChatGPT 自动运行证据。
+
+## R3.2 · ChatGPT 用户视角 HTML 与设计 MD 归档
+
+为避免把技术实验台误当作用户最终界面，新增 preview/chatgpt.html、preview/chatgpt.css、preview/chatgpt.js、preview/design.md。新的 ChatGPT 模拟页面展示三条真实 DOM 格式的 AI 回复；预览 app.js 继续调用同一套正式 answer-registry、extract、view、xmind-adapter 与四份固定 XMind JS，自动在每条回复操作区域插入按钮并渲染真实导图。模拟壳没有第二个渲染引擎，不向真实 ChatGPT 注入脚本。
+
+原 preview/index.html、四份引擎、serve.mjs 的原有启动 URL 和安全边界保留；新页面仅由同一个通过 Hash 校验的 loopback 服务提供。开发控制项折叠，不属于正式应用 UI。design.md 记录 UI 层级、状态、文件责任、安全界限、逐维验收及 **PENDING_USER_CONFIRMATION**，并明确正式安装、样式隔离和 Snowbrush/GSAP 许可仍然阻塞。
+
+本次需检查 Git 跟踪、Node 静态/HTTP 回归以及真实 Chromium 模拟页的按钮注入与 XMind 操作；通过后只能声明 MOCK_CHATGPT_PREVIEW_VERIFIED，不能声明 CHATGPT_NATIVE_VERIFIED。

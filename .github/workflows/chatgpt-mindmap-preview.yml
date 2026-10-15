@@ -7,6 +7,7 @@ on:
       - 'tests/environment/chatgpt-mindmap-preview.test.mjs'
       - 'tests/environment/chatgpt-mindmap-r1.test.mjs'
       - 'tests/framework/chatgpt-mindmap-xmind-probe.mjs'
+      - 'tests/framework/chatgpt-mindmap-chatgpt-probe.mjs'
       - 'src/scripting/user-scripts/installed-programs.js'
       - 'src/platform/host/broker.js'
       - 'src/ui/page-program-library.js'
@@ -90,7 +91,7 @@ jobs:
           import {startXmindPreview} from './examples/programs/chatgpt-mindmap/preview/serve.mjs';
           const session=await startXmindPreview();
           try{
-            const urls=['/index.html',
+            const urls=['/index.html','/chatgpt.html',
               '/jszip.min.js',
               '/polyfill-45b9836beb.min.js',
               '/xmind-sdk.bundle.js',
@@ -166,6 +167,14 @@ jobs:
             --browser "$XMIND_CHROME" \
             --playwright "$GITHUB_WORKSPACE/node_modules/playwright-core/index.mjs" \
             --out "${RUNNER_TEMP}/r22-xmind-proof"
+      - name: ChatGPT simulated UI with real XMind answer registry / interaction
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tests/framework/chatgpt-mindmap-chatgpt-probe.mjs \
+            --browser "$XMIND_CHROME" \
+            --playwright "$GITHUB_WORKSPACE/node_modules/playwright-core/index.mjs" \
+            --out "${RUNNER_TEMP}/r22-xmind-proof"
       - name: Preserve only screenshots and result (never SDK vendor bytes)
         if: always()
         uses: actions/upload-artifact@v4
@@ -173,11 +182,11 @@ jobs:
           name: r22-local-html-xmind-proof
           path: |
             ${{ runner.temp }}/r22-xmind-proof/*.png
-            ${{ runner.temp }}/r22-xmind-proof/result.json
+            ${{ runner.temp }}/r22-xmind-proof/*.json
           retention-days: 7
           if-no-files-found: ignore
       - name: Declare proof scope
         if: always()
         run: |
-          echo 'LOCAL_HTML_CHROMIUM_ONLY. No native USER_SCRIPT install, style isolation approval or logged-in ChatGPT verified.'
+          echo 'LOCAL_HTML_CHROMIUM_ONLY including ChatGPT simulation. No native USER_SCRIPT install, style isolation approval or logged-in ChatGPT verified.'
           echo 'No vendor JS or installation bundles are uploaded.'

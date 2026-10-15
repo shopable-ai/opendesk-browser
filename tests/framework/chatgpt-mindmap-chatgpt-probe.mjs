@@ -1,0 +1,89 @@
+// Real Chromium smoke for the product-style ChatGPT fixture.
+// Uses the original four Git-tracked XMind JS and the SAME product registry,
+// not a second engine or an installed/real-chatgpt.com claim.
+import assert from 'node:assert/strict';
+import {mkdir,writeFile} from 'node:fs/promises';
+import {resolve,join} from 'node:path';
+import {pathToFileURL} from 'node:url';
+import {startXmindPreview} from '../../examples/programs/chatgpt-mindmap/preview/serve.mjs';
+
+const argv=process.argv.slice(2),args={};
+for(let i=0;i<argv.length;i+=2){
+  if(!argv[i]?.startsWith('--')||!argv[i+1])throw Error('Usage: --browser path --playwright module --out dir');
+  args[argv[i].slice(2)]=argv[i+1];
+}
+for(const required of ['browser','playwright','out'])assert.ok(args[required],'Missing '+required);
+const out=resolve(args.out);
+await mkdir(out,{recursive:true});
+const report={scope:'LOCAL_CHATGPT_SIMULATION_ONLY',nativeInstalled:'NOT_TESTED',
+  loggedInChatGPT:'NOT_TESTED',productionStyleIsolation:'BLOCKED',
+  engine:'ORIGINAL_FOUR_GIT_TRACKED_JS',externalRequests:[],errors:[],checks:[]};
+let browser=null,session=null,success=false;
+try{
+  const {chromium}=await import(pathToFileURL(resolve(args.playwright)).href);
+  browser=await chromium.launch({executablePath:resolve(args.browser),
+    headless:true,args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu']});
+  session=await startXmindPreview();
+  const page=await browser.newPage({viewport:{width:1220,height:860}});
+  const origin=new URL(session.url).origin;
+  await page.route('**/*',route=>{
+    const url=route.request().url();
+    if(url.startsWith(origin+'/'))return route.continue();
+    report.externalRequests.push(url);return route.abort();
+  });
+  page.on('pageerror',error=>report.errors.push(String(error.stack||error)));
+  await page.goto(new URL('/chatgpt.html',session.url).href);
+  await page.waitForFunction(()=>window.mindmapPreview?.sdk==='FIXED_RESOURCES_LOADED',
+    null,{timeout:25000});
+  const t=n=>page.locator('[data-testid="conversation-turn-'+n+'"]');
+  const button=n=>t(n).locator('[data-opendesk-chatgpt-mindmap="button"] button');
+  const viewer=n=>t(n).locator('[data-opendesk-chatgpt-mindmap="viewer"]');
+  const count=await page.locator('[data-opendesk-chatgpt-mindmap="button"]').count();
+  assert.equal(count,3,'Product answer registry must auto-inject once per AI answer');
+  assert.equal(await page.locator('[data-opendesk-chatgpt-mindmap="viewer"]').count(),0);
+  report.checks.push('THREE_AUTO_INJECTED_REAL_PRODUCT_BUTTONS');
+  await page.screenshot({path:join(out,'chatgpt-before.png'),fullPage:true});
+  await button(1).click();
+  await viewer(1).and(page.locator('[data-ready="true"]')).waitFor({timeout:20000});
+  report.topicsA=await viewer(1).locator('.topic:visible').count();
+  assert.ok(report.topicsA>1,'XMind must render actual SDK topics');
+  assert.equal(await t(1).locator('.markdown').isVisible(),false);
+  await button(2).click();
+  await viewer(2).and(page.locator('[data-ready="true"]')).waitFor({timeout:20000});
+  report.topicsB=await viewer(2).locator('.topic:visible').count();
+  assert.ok(report.topicsB>1);
+  assert.ok(await viewer(1).locator('.topic:visible').count()>1,'A remains open while B opens');
+  report.checks.push('REAL_XMIND_A_AND_B_INDEPENDENT');
+  await page.screenshot({path:join(out,'chatgpt-xmind.png'),fullPage:true});
+  await viewer(1).getByRole('button',{name:'恢复本条回复原文'}).click();
+  await viewer(1).waitFor({state:'detached',timeout:15000});
+  assert.equal(await t(1).locator('.markdown').isVisible(),true);
+  assert.ok(await viewer(2).locator('.topic:visible').count()>1);
+  report.checks.push('RESTORE_A_DOES_NOT_CLOSE_B');
+  await page.getByRole('button',{name:'切换模拟页面深浅色主题'}).click();
+  assert.equal(await page.locator('html').getAttribute('data-theme'),'dark');
+  assert.equal(await viewer(2).getAttribute('data-dark'),'true');
+  report.checks.push('DARK_MODE_PROPAGATES_TO_PRODUCT_VIEWER');
+  await page.locator('#developer-lab summary').click();
+  await page.getByRole('button',{name:'切换 320px 容器'}).click();
+  await page.waitForFunction(()=>document.getElementById('preview-conversation').getBoundingClientRect().width<=321);
+  report.narrowWidth=await page.locator('#preview-conversation').evaluate(node=>node.getBoundingClientRect().width);
+  report.checks.push('TRUE_320PX_CONTENT_CONTAINER');
+  await page.getByRole('button',{name:'Stop 并检查残余样式'}).click();
+  await page.waitForFunction(()=>window.mindmapPreview?.sdk==='STOPPED');
+  report.stop=await page.evaluate(()=>window.mindmapPreview);
+  assert.equal(report.stop.remainingOwnNodes,0,'Program-owned nodes must be removed after Stop');
+  report.checks.push('STOP_RETIRES_OWNED_UI');
+  report.styleIsolation=report.stop.styleIsolation;
+  assert.equal(report.externalRequests.length,0,'No external requests from this fixture');
+  assert.equal(report.errors.length,0,'No uncaught JavaScript errors');
+  success=true;
+  console.log('CHATGPT_MINDMAP_REAL_ENGINE_PREVIEW_PASS '+JSON.stringify({
+    checks:report.checks,topicsA:report.topicsA,topicsB:report.topicsB,
+    styleIsolation:report.styleIsolation,narrowWidth:report.narrowWidth}));
+}finally{
+  report.success=success;
+  await writeFile(join(out,'chatgpt-result.json'),JSON.stringify(report,null,2)+'\n');
+  await browser?.close().catch(()=>{});
+  await session?.close().catch(()=>{});
+}

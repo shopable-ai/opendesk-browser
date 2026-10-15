@@ -4,7 +4,11 @@
 
 ```text
 examples/programs/chatgpt-mindmap/preview/
-├── index.html
+├── index.html                   原始 XMind 技术实验台（保留）
+├── chatgpt.html                ChatGPT 用户视角模拟页面
+├── chatgpt.css                 模拟站点外观
+├── chatgpt.js                  模拟壳主题/复制/评价（不含 Renderer）
+├── design.md                   产品功能与交互设计候选
 ├── jszip.min.js                 97,630 B
 ├── polyfill-45b9836beb.min.js  104,563 B
 ├── xmind-sdk.bundle.js         401,113 B
@@ -34,6 +38,18 @@ git ls-files examples/programs/chatgpt-mindmap/preview
 ```
 
 `index.html` 需要本地 HTTP 服务，因为业务 ESM 模块采用同源 `/src/` 路由；**不能把 `file://` 双击当成完整产品执行入口**。
+
+## 用户视角 ChatGPT 模拟预览（优先审核）
+
+同一条启动命令会打印 REAL_XMIND_CHATGPT_PREVIEW http://127.0.0.1:<port>/chatgpt.html，打开这条地址即可查看 ChatGPT 风格的聊天工作区；三条 AI 回复的思维导图按钮由正式 createAnswerRegistry 自动插入，点击后使用真正的原始 XMind，不是静态图片或第二个 Renderer。
+
+- chatgpt.html：模拟聊天、原生操作栏、用户气泡、深浅主题和 320px 响应式；绝不手写思维导图触发按钮。
+- chatgpt.css / chatgpt.js：仅模拟网站壳、主题切换和原生复制/评价，不承担导图业务。
+- 开发诊断、大型导图、内容更新和 Stop 功能放在页面底部折叠的实验台，**不属于正式程序 UI**。
+- design.md：保存本程序的功能、视觉、交互和安全验收要求；**状态 PENDING_USER_CONFIRMATION**，须用户实际核对后才批准为 UI 基准。
+- index.html：原始真实 XMind 技术验收页面，完全保留。
+
+模拟站点仅在本地 loopback 预览服务器运行，不连接真实 ChatGPT、不发送消息、没有安装能力。预览与正式 Chrome 安装的证据不能互换。
 
 ## 真正的产品代码与交互
 
