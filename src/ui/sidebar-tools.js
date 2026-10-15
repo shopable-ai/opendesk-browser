@@ -157,6 +157,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     'focus.control':'按单独批准的网站执行每日额度、时段与专注限制，Chrome DNR 拦截（仅本机）',
     'adblock.control':'经可信 Chrome 授权启停第三方广告过滤，仅管理本工具规则',
     'ai.access':'仅由可信按钮管理 AI 网站自动代理，需要 Chrome 代理权限；其余网站直连',
+    'browser.proxy.managed':'经可信确认管理浏览器级独占代理；仅提交有限域名及 HTTPS/SOCKS5 端点',
     'browser.runtime':'读取操作系统和处理器架构，用于工具兼容性判断',
     'browser.i18n':'读取浏览器语言偏好并识别工具提供的文本语言',
     'browser.contextMenu':'在明确授权的网站显示 Chrome 右键菜单（最多三项）',
@@ -1159,7 +1160,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       }
       if(['browser.tabs.create','browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.reloadOwned','browser.tabs.navigateOwned','browser.tabs.removeOwned','browser.network.request',
         'browser.network.observe.start','browser.network.observe.export',
-        'browser.screenshot.captureVisible','browser.downloads.download','browser.downloads.cancelOwned','browser.bookmarks.createOwned','browser.bookmarks.removeOwned','browser.bookmarks.create','browser.bookmarks.update','browser.bookmarks.move','browser.bookmarks.remove','browser.bookmarks.removeTree','browser.storage.local.clear'].includes(operation)){
+        'browser.screenshot.captureVisible','browser.downloads.download','browser.downloads.cancelOwned','browser.bookmarks.createOwned','browser.bookmarks.removeOwned','browser.bookmarks.create','browser.bookmarks.update','browser.bookmarks.move','browser.bookmarks.remove','browser.bookmarks.removeTree','browser.storage.local.clear',
+        'browser.proxy.managed.requestEnable','browser.proxy.managed.requestDisable'].includes(operation)){
         const target=operation==='browser.tabs.navigateOwned'?'将本工具标签页导航到同源站点 '+new URL(payload.url).origin+'（原 TabRef 将失效）':
           operation==='browser.tabs.reloadOwned'?'重新加载本工具拥有的标签页（原 TabRef 将失效）':
           operation==='browser.tabs.pinOwned'?(payload.pinned?'固定此工具此前打开的标签页':'取消固定此工具此前打开的标签页'):
@@ -1179,6 +1181,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
           operation==='browser.bookmarks.removeTree'?'递归删除 Chrome 非空文件夹 '+payload.id+' 及其全部子项（不可撤销）':
           operation==='browser.bookmarks.removeOwned'?'删除本工具创建的书签 '+payload.bookmarkRef.slice(0,8)+'…':
           operation==='browser.storage.local.clear'?'清空本工具保存的数据（不影响其他工具）':
+          operation==='browser.proxy.managed.requestEnable'?'启用 Chrome 浏览器级分流代理；端点 '+payload.config.endpoint.scheme+'://'+payload.config.endpoint.host+':'+payload.config.endpoint.port+'；目标域名 '+payload.config.domains.join('、')+'；将影响匹配网站的所有标签页':
+          operation==='browser.proxy.managed.requestDisable'?'停止当前安装确实拥有的 Chrome 分流代理（不会清除其他工具或扩展的配置）':
             '向 '+new URL(payload.url).origin+' 发送 '+payload.method+' HTTP 请求';
         let bookmarkConsent,bookmarkPrepared,bookmarkSender;
         if(['browser.bookmarks.createOwned','browser.bookmarks.removeOwned'].includes(operation)){
