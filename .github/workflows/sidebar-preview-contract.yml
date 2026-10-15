@@ -7,6 +7,7 @@ on:
       - 'src/ui/design-system.css'
       - 'scripts/build-sidebar-tool.mjs'
       - 'scripts/preview/**'
+      - 'scripts/tests/sidebar-preview-runtime-chrome.mjs'
       - 'examples/sidebar-tools/quick-notes/**'
       - 'tests/environment/sidebar-preview-contract.test.mjs'
       - 'contracts/ui-preview/**'
@@ -43,8 +44,16 @@ jobs:
           for scenario in empty error loading permission-denied untrusted; do
             node scripts/preview/build-preview.mjs --tool quick-notes --surface side-panel --scenario "$scenario" --theme light --width 360
           done
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+      - name: Run generated offline preview in real headless Chrome
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: node scripts/tests/sidebar-preview-runtime-chrome.mjs artifacts/preview-chrome
       - uses: actions/upload-artifact@v4
         with:
           name: quick-notes-contract-previews
-          path: artifacts/previews/quick-notes/*.html
+          path: |
+            artifacts/previews/quick-notes/*.html
+            artifacts/preview-chrome/
           if-no-files-found: error
