@@ -1,8 +1,8 @@
 # Extension Creation Workflow R2 · 一句话需求推理三案例验证
 
-> 日期：2026-10-15；Owner：当前 Extension Creation Workflow R2 文档任务；状态：**THREE_CASE_REASONING_DESK_REVIEW / STRUCTURAL_CHECK_PENDING / REPEATED_MODEL_EVAL_NOT_TESTED / NATIVE_NOT_TESTED**。
+> 日期：2026-10-15；Owner：当前 Extension Creation Workflow R2 文档任务；状态：**THREE_CASE_REASONING_DESK_REVIEW / STRUCTURAL_CHECK_PASS / REPEATED_MODEL_EVAL_NOT_TESTED / NATIVE_NOT_TESTED**。
 >
-> 写入边界：本文件与 `docs/framework/browser-tool-creation-workflow.zh-CN.md`；仅 GitHub `main`，基线 `f77e2ca143c96e9849107b0ceee6f55382867d9a`（写前只读，最终以每个文件的提交 SHA 为准）。不占用 Mac、Chrome/CFT、Native、`dist/development`、watcher、端口或共享本地 Git 索引；不写其他工具源码、已有交接和 Skill，不接管并行开发者。
+> 写入边界：本文件与 `docs/framework/browser-tool-creation-workflow.zh-CN.md`、`.agents/skills/README.md`、`.agents/skills/opendesk-sidebar-tool-dev/SKILL.md` 的最小上游路由说明；仅 GitHub `main`，基线 `f77e2ca143c96e9849107b0ceee6f55382867d9a`（写前只读，最终以每个文件的提交 SHA 为准）。不占用 Mac、Chrome/CFT、Native、`dist/development`、watcher、端口或共享本地 Git 索引；不写其他工具源码、已有交接和 Skill，不接管并行开发者。
 >
 > 这是**一次有源码佐证的人工/模型需求推理演练**，不是三个独立的联网模型盲测，不是 UI 交互实验，也不是产品已实现证明。测试输入每例仅一句；“参考答案”来自当前仓库和可核实的历史产品决定，后验对照不得偷换为“用户一开始说过”。
 
@@ -137,9 +137,21 @@ F-BM-000 书签管理
 
 **本次实测边界**：已经逐案产生一次具体的场景→功能→验收候选，并与所列源码/产品决定做桌面审阅；不是通过独立 AI 重复运行得到的成功率。下一步真正验证 AI 稳定性时，固定每例的**单句输入**与可读 source SHA，在独立隔离会话多次调用同一主 Skill，盲判 P0 缺失、捏造能力、越权以及冲突历史决定；AI 自己写的样例不能直接担任独立评分者。**本轮不报 95+**。
 
+## 本轮已执行的静态结构与负向校验
+
+2026-10-15 通过已连接的 GitHub 读取真实 main 文件内容，在本对话运行只读 JS 结构核对（**未运行仓库 Node/CI、未调用另一个 AI 模型或 Chrome**）。输入身份：通用合同 blob `1c30a788e49b998adff4823db1a2161114689208`，案例 blob `58d3e692dd7018e537b6b8574aec5b0765cafbb4`。
+
+- 9/9 阶段均包含门禁/恢复合同，**静态 PASS**。
+- 3/3 案例包含位于追踪表**之前**的分层功能树；23/23 F-ID 叶子在本案例内恰好出现一次且有对应 S-ID 和 A-ID，**静态 PASS**。
+- 三个故意破坏的样本：复制重复 F-ID、移除 S-ID、从树中删去一个叶子；校验均按预期捕获错误（**负向控制 PASS**），这些反例不代表用户行为已实测。
+- 两个 Prompt Shortcuts 既有 HTML 原型文件均可读取；Quick Notes 配置 `1.1.9` 与 README `1.1.8` 漂移可复现；Bookmark Manager 配置 `0.3.5` 可核对。
+- Markdown 围栏初次检查曾出现字面转义，已按失败结果定向修正并**重新检查 PASS**，保留该异常事实而不是伪称一次成功。
+
+**结论只到 `STATIC_TRACE_PASS`**，不等于“AI 能稳定从一句话推理完整需求”已达 95。独立多次 AI 调用、网页交互、真实安装、数据/权限、同候选生产验收均 `NOT_TESTED`。改变树或 F/S/A 后必须重新核对；新的源码版本/原型需单独重新绑定其证据。
+
 ## 写入、验证与下一次最小接续
 
-- 写入所有权：只管理本文件与通用主工作流文档；Quick Notes README 版本漂移仅登记，不自行覆盖该工具 owner；Prompt Shortcuts 两份 HTML、Bookmark Manager 核心源码均只读。
+- 写入所有权：只管理本文件、通用主工作流与现有 Skill 路由/工具开发 Skill 的简短上游指引；Quick Notes README 版本漂移仅登记，不自行覆盖该工具 owner；Prompt Shortcuts 两份 HTML、Bookmark Manager 核心源码均只读。
 - 可重复静态检查：校验各案例每个表格 F-ID 唯一且有对应 S-ID/A-ID、P0 含异常/撤权/保存/删除必需场景，反例确实引用功能编号；核对两篇仓库文档互相链接、工具目录与当前 SHA。它只证明静态追踪完整性，不证明模型泛化或产品。
 - 待实证：独立多轮真实 AI 对话触发 Skill `REPEATED_MODEL_EVAL_NOT_TESTED`；HTML 交互 `NOT_TESTED`；三个候选同版本安装/权限/数据的 Mac Chrome `NOT_TESTED`；逐维 95+ `NOT_SCORED`。
 - **最小下一步**：只选 Case A，按同一短句完成一次真实 Skill 读取→需求清单→可交互 HTML 的闭环，记录实际缺漏与纠正回合数；完成后再用 B/C 对照复杂权限和历史一致性，不提前添加新的编排器。
