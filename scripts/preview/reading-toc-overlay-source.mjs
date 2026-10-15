@@ -16,7 +16,7 @@ export async function readingTocOverlayPreview({scenario='success',locale='zh-CN
   ]);
   const imports=[
     "import {readTocPlacement,tocViewport,tocClampPoint,tocPlacementFromPoint,tocPlacementPoint} from './placement.js';",
-    "import readingTocCatalog from '../../examples/sidebar-tools/reading-toc/locales.json' with {type:'json'};",
+    "import readingTocCatalog from './locales.generated.js';",
     "import {uiMessage,resolveUiLocale} from '../ui/app-localization.js';"
   ];
   if(!imports.every(item=>view.includes(item)))throw Error('E_TOC_PREVIEW_SOURCE_IMPORTS');
