@@ -29,12 +29,13 @@ export function createAdblockPermissionControls({api,doc,container,notice,runOpe
   function paint(){
     const verified=Boolean(enabled&&state?.rules?.verified===true&&state.permissions?.dnr);
     const on=Boolean(verified&&state.enabled);
-    global.button.textContent=!enabled?'工具已停用':!state?'状态未确认':on?'开启':'关闭';
+    global.button.textContent=!enabled?'工具已停用':!state?'状态未确认':state.restartRequired?'需重启 Chrome':on?'开启':'关闭';
     global.button.setAttribute('aria-checked',String(on));
-    global.button.disabled=!visible||!enabled||busy||!state;
+    global.button.disabled=!visible||!enabled||busy||!state||Boolean(state.restartRequired);
     global.hint.textContent=!enabled?'在工具设置中启用后才可操作':
       !state?'正在核对 Chrome 规则':
       !state.permissions?.dnr?'需先批准 Chrome DNR 权限':
+      state.restartRequired?'Chrome 首次授权需完整退出并重新打开浏览器；过滤尚未开启，重启后请手动开启':
       !state.rules?.verified?'尚未通过 Chrome 原生读回':
       on?'广告与跟踪过滤已开启':'所有 AdBlock 规则已停止';
     const host=state?.currentHost||null;
@@ -64,7 +65,7 @@ export function createAdblockPermissionControls({api,doc,container,notice,runOpe
     refreshPending=false;reading=true;
     try{
       const data=await runOperation('adblock.status',{},null);
-      if(visible&&captured===sequence){state=data;report('');paint();}
+      if(visible&&captured===sequence){state=data;report(data.restartRequired?'Chrome 权限已批准，广告过滤尚未开启。':'');paint();}
     }catch(e){if(visible&&captured===sequence){state=null;report('状态读取失败：'+String(e.message||e),true);paint();}}
     finally{reading=false;if(refreshPending)void refresh();}
   }

@@ -14,6 +14,7 @@ on:
       - 'official-tools/catalog.json'
       - 'scripts/bundle-provenance.mjs'
       - 'tests/environment/adblock-r12.test.mjs'
+      - 'tests/environment/adblock-host-controls-r13.test.mjs'
       - 'tests/framework/adblock-r12-native.test.mjs'
       - '.github/workflows/adblock-r12.yml'
   workflow_dispatch:
@@ -39,7 +40,7 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Independent AdBlock boundary and adversarial tests
         run: |
-          node --test tests/environment/adblock-r12.test.mjs tests/environment/stay-focus-boundary-r1.test.mjs
+          node --test tests/environment/adblock-r12.test.mjs tests/environment/adblock-host-controls-r13.test.mjs tests/environment/stay-focus-boundary-r1.test.mjs
           node --check tests/framework/adblock-r12-native.test.mjs
       - name: Build independently installable official AdBlock tool
         run: |

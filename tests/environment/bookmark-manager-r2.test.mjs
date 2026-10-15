@@ -38,7 +38,7 @@ test('R2.4 official optional registration replaces all legacy host/UI/CI paths',
 test('R11.2 builds with v2 packer and independently declares Full Bookmark permission',async()=>{
   const pkg=await createSidebarToolPackage(root);
   assert.equal(pkg.id,'bookmark-manager');
-  assert.equal(pkg.version,'0.3.2');
+  assert.equal(pkg.version,'0.3.4');
   assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
   assert.deepEqual(pkg.capabilities,['browser.bookmarks.full','currentPage.read']);
   assert.equal(pkg.scripts.length,2);
@@ -153,11 +153,12 @@ test('folder removeTree is never issued without a trusted atomic precondition',a
 
 function fullSdk(ctx,{roots,read,prepared}={}){
   const calls=[];
+  const now=()=>ctx.Date?.now()??Date.now();
   const methods=ctx.BookmarkR2Service.METHODS;
-  const list=async()=>Array.from(methods,operation=>({
+  const list=async()=>{calls.push(['capabilities.list']);return Array.from(methods,operation=>({
     operation:'browser.bookmarks.'+operation,
     requiredCapabilities:['browser.bookmarks.full'],status:{callableNow:true}
-  }));
+  }))};
   const bookmarks={
     getTree:async input=>{calls.push(['getTree',input]);return read?read(input):roots},
     get:async input=>{calls.push(['get',input]);return []},
@@ -172,14 +173,16 @@ function fullSdk(ctx,{roots,read,prepared}={}){
     removeTree:async input=>{calls.push(['removeTree',input]);return {removed:true}},
     observe:{
       start:async input=>{calls.push(['observe.start',input]);return {
-        sessionRef:'abcdefghijklmnopqrstuvwxyz',cursor:'0',expiresAt:Date.now()+30000}},
+        sessionRef:'abcdefghijklmnopqrstuvwxyz',cursor:'0',expiresAt:now()+30000}},
       read:async input=>{calls.push(['observe.read',input]);return {
-        events:[],nextCursor:'1',expiresAt:Date.now()+30000,gapCount:0,droppedCount:0}},
+        events:[],nextCursor:'1',expiresAt:now()+30000,gapCount:0,droppedCount:0}},
       stop:async input=>{calls.push(['observe.stop',input]);return {stopped:true}}
     }
   };
-  return {calls,sdk:{capabilities:{list,getStatus:async()=>({
-    callableNow:true,requiredCapabilities:['browser.bookmarks.full']})},bookmarks}};
+  return {calls,sdk:{capabilities:{list,getStatus:async input=>{
+    calls.push(['capabilities.getStatus',input]);
+    return {callableNow:true,requiredCapabilities:['browser.bookmarks.full']};
+  }},bookmarks}};
 }
 const sample=()=>[{id:'0',title:'root',children:[
   {id:'1',title:'书签栏',parentId:'0',children:[
@@ -299,7 +302,7 @@ test('R2.1 current-page bookmark requires an opaque document and tab binding',as
     'abcdefghijklmnop');
 });
 
-test('R2.2 revoked Full capability fails closed before native write or event read',async()=>{
+test('R2.2 revoked Full capability blocks tree/write preflight and SDK event reads fail closed',async()=>{
   const ctx=await sandbox(),data=fullSdk(ctx,{roots:sample()}),ops=ctx.BookmarkR2Service.METHODS;
   data.sdk.capabilities.list=async()=>Array.from(ops,operation=>({
     operation:'browser.bookmarks.'+operation,
@@ -312,9 +315,14 @@ test('R2.2 revoked Full capability fails closed before native write or event rea
   await assert.rejects(service.load(),{code:'E_BOOKMARK_PERMISSION'});
   await assert.rejects(service.createFolder({title:'Blocked',parentId:'1'}),
     {code:'E_BOOKMARK_PERMISSION'});
+  data.sdk.bookmarks.observe.read=async input=>{
+    data.calls.push(['observe.read',input]);
+    throw Object.assign(new Error('Host denied revoked Full authority'),{code:'E_BOOKMARK_PERMISSION'});
+  };
   await assert.rejects(service.watchRead({sessionRef:'abcdefghijklmnop',cursor:'0'}),
     {code:'E_BOOKMARK_PERMISSION'});
-  assert.equal(data.calls.filter(([op])=>['getTree','create','observe.read'].includes(op)).length,0);
+  assert.equal(data.calls.filter(([op])=>['getTree','create'].includes(op)).length,0);
+  assert.equal(data.calls.filter(([op])=>op==='observe.read').length,1);
 });
 
 test('R2.1 event observation is bounded and uses only the public Full SDK',async()=>{
@@ -347,10 +355,44 @@ test('R2.3 unavailable capability/status transports fail closed regardless of er
   data.sdk.capabilities.getStatus=async()=>{
     throw Object.assign(new Error('transport'),{code:'E_HOST_TIMEOUT'});
   };
-  await assert.rejects(service.watchRead({
-    sessionRef:'abcdefghijklmnop',cursor:'0'
-  }),{code:'E_SDK_STATUS'});
-  assert.equal(data.calls.filter(([op])=>['getTree','observe.read'].includes(op)).length,0);
+  await assert.rejects(service.load(),{code:'E_SDK_STATUS'});
+  assert.equal(data.calls.filter(([op])=>op==='getTree').length,0);
+});
+
+test('R2.5 event polling uses one SDK RPC and preserves Host authorization failures',async()=>{
+  const ctx=await sandbox(),data=fullSdk(ctx,{roots:sample()}),
+    service=ctx.BookmarkR2Service.create(data.sdk);
+  data.sdk.capabilities.list=async()=>{throw Error('discovery is not an event-read preflight')};
+  data.sdk.capabilities.getStatus=async()=>{throw Error('status is not an event-read preflight')};
+  const session={sessionRef:'abcdefghijklmnop',cursor:'0'};
+  await service.watchRead(session);
+  assert.deepEqual(data.calls.map(([op])=>op),['observe.read']);
+  data.sdk.bookmarks.observe.read=async()=>{throw failure('E_GRANT_REVOKED')};
+  await assert.rejects(service.watchRead(session),{code:'E_GRANT_REVOKED'});
+});
+
+test('R2.5 pagination checks Full authority at both ends and propagates mid-page Host revocation',async()=>{
+  const ctx=await sandbox(),flat=[{id:'0',title:'root'},{id:'1',parentId:'0',title:'bar'}];
+  const data=fullSdk(ctx,{read:({cursor})=>({nodes:[flat[cursor?1:0]],
+    snapshotRef:'abcdefghijklmnop',nextCursor:cursor?null:'next'})});
+  const service=ctx.BookmarkR2Service.create(data.sdk);
+  await service.load();
+  assert.deepEqual(data.calls.map(([op])=>op),[
+    'capabilities.list','capabilities.getStatus','getTree','getTree',
+    'capabilities.list','capabilities.getStatus'
+  ]);
+  data.sdk.bookmarks.getTree=async({cursor})=>{
+    if(cursor)throw failure('E_GRANT_REVOKED');
+    return {nodes:[flat[0]],snapshotRef:'abcdefghijklmnop',nextCursor:'next'};
+  };
+  await assert.rejects(service.load(),{code:'E_GRANT_REVOKED'});
+  const list=data.sdk.capabilities.list;
+  let probes=0;
+  data.sdk.capabilities.list=async()=>{
+    if(++probes===2)throw failure('E_HOST_TIMEOUT');return list();
+  };
+  data.sdk.bookmarks.getTree=async()=>({nodes:flat,snapshotRef:'abcdefghijklmnop',nextCursor:null});
+  await assert.rejects(service.load(),{code:'E_SDK_STATUS'},'final preflight is still mandatory');
 });
 
 test('R2.3 rejects missing, negative or malformed event gap counters',async()=>{
@@ -440,22 +482,39 @@ test('R2.1 UI guards current-page identity and observes SDK events with teardown
 
 // Run the actual UI, model and service against the public SDK boundary. Timers
 // advance explicitly so recovery/teardown assertions cannot pass by timing luck.
-async function bookmarkUi(configure=()=>{}){
+async function bookmarkUi(configure=()=>{},Clock=Date){
   const dom=new Map(),timers=new Map(),lifecycle=new Map();let timerId=0;
   const element=tag=>({tag,children:[],listeners:new Map(),dataset:{},style:{},
-    value:'',hidden:false,disabled:false,textContent:'',
+    value:'',hidden:false,disabled:false,textContent:'',attributes:{},
+    // HTML URL constraints run before submit; an ancestor's hidden attribute
+    // does not bar validation. Model that gate separately from event dispatch.
+    get willValidate(){return this.tag==='input'&&!this.disabled&&!this.readOnly&&this.type!=='hidden'},
+    checkValidity(){
+      if(!this.willValidate)return true;
+      if(!this.value)return !this.required;
+      if(this.type==='url'){try{new URL(this.value)}catch{return false}}
+      return true;
+    },
     addEventListener(type,handler){this.listeners.set(type,handler)},
-    setAttribute(){},focus(){},
+    setAttribute(name,value){this.attributes[name]=value},
+    getAttribute(name){return this.attributes[name]},focus(){},
     append(...children){this.children.push(...children.flatMap(child=>
       child.tag==='fragment'?child.children:[child]))},
     replaceChildren(...children){this.children=[];this.append(...children)},
     fire(type,event={}){return this.listeners.get(type)?.({preventDefault(){},target:this,...event})}
   });
+  for(const [,tag,attrs,id] of (await src('src/index.html')).matchAll(
+    /<(button|input|select|form)\b([^>]*\bid="([^"]+)"[^>]*)>/g)){
+    const el=element(tag);el.type=/\btype="([^"]+)"/.exec(attrs)?.[1]||'text';
+    el.required=/\brequired\b/.test(attrs);dom.set('#'+id,el);
+  }
+  const descendants=el=>el.children.flatMap(child=>[child,...descendants(child)]);
   const rootNode={querySelector(selector){
     if(!dom.has(selector))dom.set(selector,element('div'));
     return dom.get(selector);
-  },querySelectorAll(){return [...dom.values()]},addEventListener(){}};
-  const ctx=createContext({URL,document:{createElement:element,
+  },querySelectorAll(tag){return [...dom.values()].flatMap(el=>[el,...descendants(el)])
+    .filter(el=>el.tag===tag)},addEventListener(){}};
+  const ctx=createContext({URL,Date:Clock,document:{createElement:element,
     createDocumentFragment:()=>element('fragment')},OpenDeskTool:{root:rootNode},
     setTimeout(fn,delay){const id=++timerId;timers.set(id,{fn,delay});return id},
     clearTimeout(id){timers.delete(id)},
@@ -470,12 +529,137 @@ async function bookmarkUi(configure=()=>{}){
   const text=el=>el.textContent+el.children.map(text).join('');
   return {data,get,timers,settle,text,
     async click(id){get(id).fire('click');await settle()},
+    async action(label){
+      const button=rootNode.querySelectorAll('button').find(el=>
+        el.getAttribute('aria-label')===label||el.textContent===label);
+      assert.ok(button,label);button.fire('click');await settle();
+    },
+    async submit(){
+      if(![...dom.values()].every(el=>el.checkValidity()))return false;
+      get('bm-form').fire('submit');await settle();return true;
+    },
     async tick(){
       assert.equal(timers.size,1,'one polling/recovery timer must own the epoch');
       const [id,{fn}]=timers.entries().next().value;timers.delete(id);fn();await settle();
     },close(){lifecycle.get('pagehide')?.()}};
 }
 const failure=code=>Object.assign(new Error(code),{code});
+
+test('R2.5 hidden URL never blocks new-folder submission',async()=>{
+  const ui=await bookmarkUi();await ui.click('bm-new-folder');
+  ui.get('bm-name').value='Native folder';ui.get('bm-parent').value='1';
+  assert.equal(ui.get('bm-url-row').hidden,true);
+  assert.equal(await ui.submit(),true,'HTML constraints must permit the folder submit');
+  const writes=ui.data.calls.filter(([op])=>op==='create');
+  assert.equal(writes.length,1);assert.equal(writes[0][1].title,'Native folder');
+  assert.equal(writes[0][1].url,undefined);ui.close();
+});
+
+test('R2.5 folder edit and moves exclude hidden URL constraints',async()=>{
+  for(const [title,action,operation] of [
+    ['folder','编辑','update'],['folder','移动','move'],['other','移动','move']
+  ]){
+    const ui=await bookmarkUi();await ui.action('管理 '+title);await ui.action(action);
+    assert.equal(ui.get('bm-url-row').hidden,true);
+    ui.get('bm-url').value='https://';ui.get('bm-name').value='Updated folder';
+    ui.get('bm-parent').value='1';
+    assert.equal(await ui.submit(),true,title+' '+action);
+    assert.equal(ui.data.calls.filter(([op])=>op===operation).length,1);
+    ui.close();
+  }
+});
+
+test('R2.5 busy reset preserves hidden URL exclusion and visible URL validation',async()=>{
+  const ui=await bookmarkUi(({sdk})=>{
+    sdk.bookmarks.create=async()=>{throw failure('E_SCHEMA')};
+  });
+  await ui.click('bm-new-folder');ui.get('bm-name').value='Retry folder';
+  ui.get('bm-parent').value='1';ui.get('bm-url').value='https://';
+  assert.equal(await ui.submit(),true);
+  assert.equal(ui.get('bm-save').disabled,false,'failed write has left busy state');
+  assert.equal(ui.get('bm-url').disabled,true,'busy(false) must not enable hidden URL');
+  assert.equal(ui.get('bm-url').checkValidity(),true);
+  await ui.click('bm-cancel');await ui.click('bm-new-bookmark');
+  ui.get('bm-name').value='Bookmark';ui.get('bm-parent').value='1';
+  assert.equal(ui.get('bm-url-row').hidden,false);
+  assert.equal(ui.get('bm-url').disabled,false);
+  assert.equal(ui.get('bm-url').type,'url');
+  assert.equal(await ui.submit(),false,'visible https:// still fails URL constraints');
+  assert.equal(ui.get('bm-notice').textContent,'','invalid URL never reached submit handler');
+  ui.get('bm-url').value='https://example.net/';
+  assert.equal(await ui.submit(),true);
+  assert.match(ui.get('bm-notice').textContent,/E_SCHEMA/);
+  await ui.click('bm-cancel');await ui.action('管理 other');await ui.action('编辑');
+  assert.equal(ui.get('bm-url-row').hidden,false);
+  assert.equal(ui.get('bm-url').disabled,false);
+  ui.get('bm-url').value='https://';
+  assert.equal(await ui.submit(),false,'editing a bookmark retains native URL constraints');
+  ui.close();
+});
+
+test('R2.5 2159-node tree plus one quiet minute stays within 120 total SDK RPCs',async t=>{
+  let now=Date.now(),rpcs=0,treeReads=0,started=0;
+  const firstTime=now,sessions=new Map(),limits=[],visited=new Set();
+  class Clock extends Date {static now(){return now}}
+  const flat=[{id:'0',title:'root'},{id:'1',parentId:'0',title:'bar'},
+    {id:'2',parentId:'1',title:'Native test'},{id:'7',parentId:'0',title:'other'}];
+  let index=0;
+  for(const [group,count] of [100,500,550,1001].entries()){
+    const parentId=String(group+3);flat.push({id:parentId,parentId:'2',title:'Group '+count});
+    for(let n=0;n<count;n++,index++)flat.push({id:String(index+100),parentId,
+      title:'URL '+index+' 原生预算验证'.repeat(3),
+      url:'https://example.org/native-budget/'+index+'?source=100-500-550-1001'});
+  }
+  assert.equal(flat.length,2159);
+  const ui=await bookmarkUi(({sdk})=>{
+    sdk.bookmarks.getTree=async({cursor,limit})=>{
+      treeReads++;limits.push(limit);
+      const offset=Number(cursor||0),nodes=[];
+      for(let i=offset;i<flat.length&&nodes.length<Math.min(limit,100);i++){
+        const candidate={nodes:[...nodes,flat[i]],snapshotRef:'abcdefghijklmnop',
+          nextCursor:i+1<flat.length?String(i+1):null};
+        if(Buffer.byteLength(JSON.stringify(candidate))>10500)break;
+        nodes.push(flat[i]);visited.add(flat[i].id);
+      }
+      assert.ok(nodes.length);
+      return {nodes,snapshotRef:'abcdefghijklmnop',
+        nextCursor:offset+nodes.length<flat.length?String(offset+nodes.length):null};
+    };
+    sdk.bookmarks.observe.start=async()=>{
+      const row={sessionRef:'budget-session-'+String(++started).padStart(4,'0'),
+        cursor:'0',expiresAt:now+30000};sessions.set(row.sessionRef,row);return row;
+    };
+    sdk.bookmarks.observe.read=async({sessionRef})=>{
+      const row=sessions.get(sessionRef);
+      if(!row||row.expiresAt<=now)throw failure('E_SESSION_EXPIRED');
+      return {events:[],nextCursor:'0',expiresAt:row.expiresAt,gapCount:0,droppedCount:0};
+    };
+    sdk.bookmarks.observe.stop=async({sessionRef})=>{sessions.delete(sessionRef);return {stopped:true}};
+    for(const api of [sdk.capabilities,sdk.bookmarks,sdk.bookmarks.observe]){
+      for(const [name,fn] of Object.entries(api))if(typeof fn==='function')api[name]=async input=>{
+        if(++rpcs>120)throw failure('E_TOOL');return fn(input);
+      };
+    }
+  },Clock);
+  assert.equal(ui.get('bm-workspace').hidden,false,'first full tree must fit the unchanged Host quota');
+  assert.equal(visited.size,2159);
+  assert.ok(limits.every(limit=>limit===100));
+  assert.ok(treeReads>22,'the byte ceiling, not just the node ceiling, determines page count');
+  const initialReads=treeReads;
+  for(let ticks=0;ticks<100;ticks++){
+    assert.equal(ui.timers.size,1);
+    const {delay}=[...ui.timers.values()][0];
+    if(now-firstTime+delay>=60000)break;
+    now+=delay;await ui.tick();
+  }
+  assert.ok(started>=3,'the minute must include two session rotations');
+  assert.equal(treeReads,initialReads,'quiet rotations must not reload the 2159-node tree');
+  ui.get('bm-search').value='URL 2150';ui.get('bm-search').fire('input');
+  assert.match(ui.text(ui.get('bm-list')),/URL 2150/,'the final URL remains searchable');
+  ui.close();await ui.settle();
+  assert.ok(rpcs<=120,'all capability, snapshot, observer and cleanup RPCs count');
+  t.diagnostic(treeReads+' snapshot pages; '+rpcs+' total RPCs including two quiet rotations');
+});
 
 test('R2.5 watch-start transport failure schedules recovery before a fresh snapshot',async()=>{
   let attempts=0;

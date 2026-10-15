@@ -29,13 +29,13 @@ const sender={id:senderId,url:hostUrl,documentId:'live-doc',frameId:0,
 const focusRule={id:FOCUS_RULE_FIRST,priority:28,action:{
   type:'redirect',redirect:{extensionPath:'/stay-focus/blocked-quota.html'}},
   condition:{urlFilter:'||blocked.example^',resourceTypes:['main_frame']}};
-async function fixture(){
+async function fixture({permission:initialPermission=true,sessionFailure=null}={}){
   const tool=await createSidebarToolPackage(PROJECT),hash=await sidebarToolPackageHash(tool);
   assert.equal(tool.capabilities.includes(ADBLOCK_CAPABILITY),true);
   const bytes=encodeSidebarToolPackage(tool),stored=new Map([
     [SIDEBAR_TOOL_STORE,[tool]],[SIDEBAR_TOOL_ENABLE_STORE,{}],
     [TOOL_REVOCATION_EPOCHS_STORE,{[ADBLOCK_ID]:'epoch-1'}]]);
-  let current='https://news.example.com/story',permission=true,dropUpdates=false,
+  let current='https://news.example.com/story',permission=initialPermission,dropUpdates=false,
     unknownWrite=false,corruptNative=false;
   let rules=[structuredClone(focusRule)],sessionRules=[],enabledRulesets=[];
   const event=()=>{
@@ -45,6 +45,20 @@ async function fixture(){
   };
   const storageChanged=event(),permissionRemoved=event(),permissionAdded=event();
   const locks=[],changes=[],actions=[];
+  const sessionStored=new Map([['other-runtime',{untouched:true}]]),sessionChanges=[];
+  let sessionReads=0;
+  const sessionStorage={async get(key){
+    sessionReads++;
+    if(sessionFailure==='read'||sessionFailure==='readback'&&sessionReads>1)
+      throw Error('session read failed');
+    return sessionStored.has(key)?{[key]:structuredClone(sessionStored.get(key))}:{};
+  },async set(values){
+    if(sessionFailure==='write')throw Error('session write failed');
+    for(const [key,value] of Object.entries(values)){
+      sessionChanges.push(key);
+      if(sessionFailure!=='drop-write')sessionStored.set(key,structuredClone(value));
+    }
+  }};
   const storage={async get(keys){
     const list=Array.isArray(keys)?keys:keys===null?[...stored.keys()]:[keys];
     return Object.fromEntries(list.filter(key=>stored.has(key))
@@ -63,7 +77,8 @@ async function fixture(){
     runtime:{id:senderId,getURL:path=>'chrome-extension://'+senderId+'/'+path,
       getContexts:async()=>[{contextType:'SIDE_PANEL',documentUrl:hostUrl,
         documentId:'live-doc',frameId:0,incognito:false}]},
-    storage:{local:storage,onChanged:storageChanged},
+    storage:{local:storage,session:sessionFailure==='missing'?undefined:sessionStorage,
+      onChanged:storageChanged},
     permissions:{async contains(){return permission;},onRemoved:permissionRemoved,onAdded:permissionAdded},
     tabs:{async query(){return [{id:1,url:current,active:true,incognito:false}];}},
     declarativeNetRequest:{
@@ -96,6 +111,8 @@ async function fixture(){
   const message=(operation,payload={})=>({protocol:ADBLOCK_PROTOCOL,toolId:ADBLOCK_ID,
     operation,payload,packageHash:hash,installEpoch:'epoch-1'});
   return {tool,hash,api,stored,service,lockManager,fetcher,changes,locks,actions,message,
+    sessionStored,sessionChanges,
+    restartService:()=>createAdblockService({api,lockManager,fetcher}),
     get rules(){return rules;},
     sessionRules,enabledRulesets,permissionRemoved,permissionAdded,
     get permission(){return permission;},
@@ -107,8 +124,7 @@ async function fixture(){
     setUnknownWrite:value=>{unknownWrite=value;}};
 }
 test('installation probe accepts Chrome hiding ungranted optional DNR but rejects a broken granted runtime',async()=>{
-  const f=await fixture();
-  f.setPermission(false);
+  const f=await fixture({permission:false});
   delete f.api.declarativeNetRequest;
   const before=structuredClone([...f.stored]);
   const probe=f.message('adblock.probe');delete probe.installEpoch;
@@ -118,6 +134,75 @@ test('installation probe accepts Chrome hiding ungranted optional DNR but reject
   assert.deepEqual([...f.stored],before,'probing never installs, grants, or changes intent');
   f.setPermission(true);
   await assert.rejects(f.service.probe(probe,sender),{code:'E_ADBLOCK_RUNTIME'});
+});
+test('first optional DNR grant requires reload before enabling or writing Chrome rules',async()=>{
+  const f=await fixture({permission:false});
+  const probe=f.message('adblock.probe');delete probe.installEpoch;
+  assert.equal((await f.service.probe(probe,sender)).permissions.dnr,false);
+  const before=structuredClone([...f.stored]);
+  f.setPermission(true);
+  const status=await f.service.dispatch(f.message('adblock.status'),sender);
+  assert.equal(status.permissions.dnr,true);assert.equal(status.restartRequired,true);
+  assert.equal(status.enabled,false);assert.equal(status.rules.verified,false);
+  await assert.rejects(f.service.dispatch(f.message('adblock.enable'),sender),{
+    code:'E_ADBLOCK_RESTART_REQUIRED'});
+  assert.deepEqual([...f.stored],before,'first grant must not persist enabled intent');
+  assert.equal(f.actions.length,0,'never submit to the uninitialized Chrome queue');
+  assert.deepEqual(f.sessionStored.get('other-runtime'),{untouched:true});
+  assert.equal(f.sessionChanges.length,1);
+});
+test('SW recreation retains the false DNR session fence; a new browser session can initialize ready',async()=>{
+  const f=await fixture({permission:false});await f.service.tick();
+  f.setPermission(true);
+  const worker=f.restartService();
+  const status=await worker.tick();
+  assert.equal(status.restartRequired,true);assert.equal(status.enabled,false);
+  await assert.rejects(worker.dispatch(f.message('adblock.enable'),sender),{
+    code:'E_ADBLOCK_RESTART_REQUIRED'});
+  assert.equal(f.actions.length,0);assert.equal(f.sessionChanges.length,1);
+  // Chrome clears storage.session on extension reload/browser restart, not SW stop.
+  for(const key of f.sessionChanges)f.sessionStored.delete(key);
+  const reloaded=f.restartService();
+  const fresh=await reloaded.tick();
+  assert.equal(fresh.restartRequired,false);assert.equal(fresh.enabled,false);
+  assert.equal((await reloaded.dispatch(f.message('adblock.enable'),sender)).enabled,true);
+  assert.equal(f.actions.length,1,'only the fresh explicit enable writes DNR');
+  assert.deepEqual(f.sessionStored.get('other-runtime'),{untouched:true});
+});
+test('session initialization failure is unknown, with no local intent or DNR writes',async t=>{
+  for(const sessionFailure of ['missing','read','write','readback','drop-write']){
+    await t.test(sessionFailure,async()=>{
+      const f=await fixture({sessionFailure}),before=structuredClone([...f.stored]);
+      await assert.rejects(f.service.tick(),{code:'E_OUTCOME_UNKNOWN'});
+      await assert.rejects(f.service.dispatch(f.message('adblock.enable'),sender),{
+        code:'E_OUTCOME_UNKNOWN'});
+      const probe=f.message('adblock.probe');delete probe.installEpoch;
+      await assert.rejects(f.service.probe(probe,sender),{code:'E_OUTCOME_UNKNOWN'});
+      assert.deepEqual([...f.stored],before);assert.equal(f.actions.length,0);
+      assert.deepEqual(f.sessionStored.get('other-runtime'),{untouched:true});
+    });
+  }
+});
+test('malformed DNR session fence remains unknown and is not overwritten on SW recreation',async()=>{
+  const f=await fixture();await f.service.tick();
+  const key=f.sessionChanges[0];f.sessionStored.set(key,{ready:true});
+  const before=structuredClone([...f.sessionStored]),worker=f.restartService();
+  await assert.rejects(worker.tick(),{code:'E_OUTCOME_UNKNOWN'});
+  assert.deepEqual([...f.sessionStored],before);assert.equal(f.actions.length,0);
+});
+test('blocked DNR initialization never confirms uninstall or corrupt-authority cleanup',async()=>{
+  const f=await fixture({permission:false});await f.service.tick();f.setPermission(true);
+  await f.api.declarativeNetRequest.updateDynamicRules({
+    addRules:wantedAdblockRules({enabled:true,exceptions:[]})});
+  f.stored.set(SIDEBAR_TOOL_STORE,[]);
+  const status=await f.service.tick();
+  assert.equal(status.installed,false);assert.equal(status.restartRequired,true);
+  assert.equal(status.rules.verified,false);
+  f.stored.set(SIDEBAR_TOOL_STORE,{broken:true});
+  await assert.rejects(f.service.tick(),{code:'E_OUTCOME_UNKNOWN'});
+  assert.equal(f.actions.length,1,'guarded cleanup cannot call updateDynamicRules');
+  assert.ok(f.rules.some(rule=>rule.id===ADBLOCK_RULE_FIRST));
+  assert.deepEqual(f.stored.get(SIDEBAR_TOOL_STORE),{broken:true});
 });
 test('official AdBlock optional catalog entry and no generated source package copies',async()=>{
   const sources=await readOfficialSources();

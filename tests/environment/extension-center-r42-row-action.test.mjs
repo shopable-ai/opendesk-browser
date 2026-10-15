@@ -64,3 +64,30 @@ test('R4.2 compact row keeps 72/68/82px minimums, touch action and keyboard focu
   assert.match(css,/@media\(pointer:coarse\)\{\.ec-row\{grid-template-columns:minmax\(0,1fr\) auto 44px\}/);
   assert.match(css,/#extension-center \.ec-row-main:focus-visible\{outline-offset:-2px\}/);
 });
+
+test('R4.3 list and detail foregrounds remain readable against normal and hover surfaces in both themes',async()=>{
+  const css=await readFile('src/ui/extension-center.css','utf8');
+  const tokens=await readFile('src/ui/design-tokens.css','utf8');
+  const declarations=body=>Object.fromEntries([...body.matchAll(/(--[\w-]+):([^;]+);/g)].map(([,key,value])=>[key,value]));
+  const roots=[...tokens.matchAll(/:root\{([^}]+)\}/g)].map(([,body])=>declarations(body));
+  const luminance=hex=>{
+    const full=hex.length===4?'#'+[...hex.slice(1)].map(c=>c+c).join(''):hex;
+    return [0.2126,0.7152,0.0722].reduce((sum,weight,i)=>{
+      const v=parseInt(full.slice(1+2*i,3+2*i),16)/255;
+      return sum+weight*(v<=0.04045?v/12.92:((v+0.055)/1.055)**2.4);
+    },0);
+  };
+  for(const theme of ['light','dark']){
+    const palette={...roots[0],...(theme==='dark'?roots[1]:{})};
+    const resolve=value=>value.replace(/var\((--[\w-]+)\)/g,(_,name)=>resolve(palette[name]));
+    for(const [selector,minimum] of [['.ec-action',4.5],['.ec-detail-back',4.5],['.ec-detail-actions button',4.5],['.ec-glyph',3]]){
+      const rule=css.slice(css.indexOf(selector+'{')+selector.length+1).split('}')[0];
+      const foreground=resolve(rule.match(/(?:^|;)color:([^;]+)/)[1]);
+      for(const background of ['--od-paper','--od-muted']){
+        const values=[luminance(foreground),luminance(resolve(palette[background]))].sort((a,b)=>a-b);
+        const ratio=(values[1]+0.05)/(values[0]+0.05);
+        assert.ok(ratio>=minimum,`${theme} ${selector} against ${background}: ${ratio.toFixed(2)} < ${minimum}`);
+      }
+    }
+  }
+});

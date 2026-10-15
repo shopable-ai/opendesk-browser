@@ -9,7 +9,7 @@ const service=globalThis.BookmarkR2Service.create(sdk);
 const q=id=>root.querySelector('#'+id);
 const s={tree:null,expanded:new Set(),search:'',limit:200,folder:null,selection:null,
   mode:'tree',menu:null,draft:null,reviewed:null,busy:false,session:0,composing:false,
-  watcher:null,watchEpoch:0,watchTimer:null,watchRetries:0};
+  watcher:null,watchEpoch:0,watchTimer:null,watchRetries:0,watchDirty:false};
 const make=(tag,cls,value)=>{
   const el=document.createElement(tag);if(cls)el.className=cls;
   if(value!==undefined)el.textContent=value;return el;
@@ -115,7 +115,9 @@ function renderForm(){
   q('bm-parent-row').hidden=detail||s.mode==='edit';
   const title=q('bm-name'),url=q('bm-url');
   title.value=s.draft?.title??(isNew?'':selected?.title||'');
-  url.value=s.draft?.url??(isNew?'https://':selected?.url||'');
+  // Hidden ancestors do not exclude type=url from native form validation.
+  url.disabled=moving||folder||detail;
+  url.value=s.draft?.url??(isNew&&!folder?'https://':selected?.url||'');
   title.readOnly=detail;url.readOnly=detail;
   if(!detail){
     const box=q('bm-parent');box.replaceChildren();
@@ -152,7 +154,7 @@ function rememberDraft(){
   s.draft={title:q('bm-name').value,url:q('bm-url').value,parentId:q('bm-parent').value};
 }
 function endWatch(){
-  s.watchEpoch++;
+  s.watchEpoch++;s.watchDirty=false;
   if(s.watchTimer!==null){clearTimeout(s.watchTimer);s.watchTimer=null}
   const old=s.watcher;s.watcher=null;
   if(old)void service.watchStop(old).catch(()=>{});
@@ -181,15 +183,45 @@ function recoverWatch(error){
   };
   s.watchTimer=setTimeout(resume,7000);
 }
+async function rotateWatch(epoch){
+  const old=s.watcher,watcher=await service.watchStart();
+  if(epoch!==s.watchEpoch){void service.watchStop(watcher).catch(()=>{});return}
+  // Overlap the two bounded sessions. Changes between the preceding read and
+  // start belong to the old session; changes after start also reach the new.
+  s.watcher=watcher;
+  let changed=false,cursor=old;
+  try{
+    // The old session holds at most 100 events, read in pages of at most 50.
+    // Any event invalidates the whole snapshot, including concurrent arrivals.
+    for(let page=0;page<2;page++){
+      const result=await service.watchRead(cursor);
+      if(epoch!==s.watchEpoch)return;
+      changed=changed||result.events.length>0;
+      cursor={...cursor,cursor:result.nextCursor};
+      if(result.events.length<50)break;
+    }
+  }finally{await service.watchStop(old).catch(()=>{})}
+  if(epoch!==s.watchEpoch)return;
+  const result=await service.watchRead(s.watcher);
+  if(epoch!==s.watchEpoch)return;
+  return {...result,changed};
+}
 async function pollWatch(epoch){
   if(epoch!==s.watchEpoch||!s.watcher||!s.tree)return;
   if(s.busy||s.composing){scheduleWatch(epoch);return}
   try{
-    const result=await service.watchRead(s.watcher);
+    let result=await service.watchRead(s.watcher);
     if(epoch!==s.watchEpoch)return;
     s.watcher={...s.watcher,cursor:result.nextCursor,expiresAt:result.expiresAt};
+    if(!result.events.length&&result.expiresAt<=Date.now()+4000){
+      result=await rotateWatch(epoch);
+      if(epoch!==s.watchEpoch||!result)return;
+      s.watcher={...s.watcher,cursor:result.nextCursor,expiresAt:result.expiresAt};
+    }
     s.watchRetries=0;
-    if(result.events.length||result.expiresAt<=Date.now()+4000){
+    s.watchDirty=s.watchDirty||result.events.length>0||Boolean(result.changed);
+    if(s.watchDirty){
+      if(s.busy||s.composing){scheduleWatch(epoch);return}
       void refresh();return;
     }
     scheduleWatch(epoch);

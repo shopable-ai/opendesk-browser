@@ -8,7 +8,7 @@
 
 2026-10-15 的 R11.2 提交 `b63c9e3c` 为正式 Registry、Schema、Host、独立 `browser.bookmarks.full` 和安装工具的可信书签授权按钮完成了**源码接线**。独立 Full 与 Owned 的 `browser.bookmarks.createOwned/removeOwned` 是不同权限；Chrome manifest 已声明 optional `bookmarks`，安装工具的声明并不等于用户已批准 Full 或 Chrome 权限。
 
-- 工具版本 **0.3.2**：`capabilities: ["browser.bookmarks.full", "currentPage.read"]`。安装包更新需按现有流程重新审阅；Full Bookmarks 授权和 Chrome optional 权限仍独立申请。
+- 工具版本 **0.3.4**：`capabilities: ["browser.bookmarks.full", "currentPage.read"]`。安装包更新需按现有流程重新审阅；Full Bookmarks 授权和 Chrome optional 权限仍独立申请。
 - **已在 `official-tools/catalog.json` 正式登记为 optional**。发行构建器必须生成签名固定的本地官方资源，用户通过「扩展」中心审阅、安装、授权、打开。源码登记不等于在用户 Chrome 中安装；Node/CI 成功也不是 Native PASS。
 - 不满足 Full Capability 状态、Host 权限、包身份或可信回执时，客户端失败关闭并隐藏已失权树；新增识别 `E_BOOKMARK_FULL_CONSENT_REQUIRED` / `E_TOOL_CHANGED` / `E_OWNER` 并在写入失败时清屏，不会回退至 Owned 能力伪造全量结果。
 - **已删除旧 `src/bookmark-manager/` 及内置书签面板与专属 R1 CI**。业务消费者仅存在于独立工具，公共 SDK / Host / Chrome Drivers 仍保留；Git 历史保存旧实现，不创建兼容副本。
@@ -17,7 +17,7 @@
 
 | 需求 | 正式 SDK 方法 / 消费端边界 |
 | --- | --- |
-| 全量树、搜索与读取 | `getTree({limit:80,cursor?})` 按单一 `snapshotRef` 分页；`get({id})`、`search({query})` 属于独立 Full 能力 |
+| 全量树、搜索与读取 | `getTree({limit:100,cursor?})` 按单一 `snapshotRef` 分页；Host 同时限制每页 100 节点/10.5 KB，可能返回更少节点；`get({id})`、`search({query})` 属于独立 Full 能力 |
 | 新建/更新/移动/删除 | `create`、`update`、`move`、`remove`；读取预期节点快照并由 Host 复验 |
 | 非空目录递归删除 | `prepareRemoveTree({id,snapshotRef,expected,descendantCount})` → 一次性短期 `ticket` → `removeTree({id,ticket})`；并发子树变化由 Host 拒绝 |
 | 跨窗口变动 | `observe.start/read/stop` 有界事件；缺 `gapCount/droppedCount`、丢失事件或 Worker 会话失效时重新读取完整树 |
@@ -37,7 +37,19 @@ Host 快照池仍最多 8 份，达到上限时仅回收同一安装身份的最
 每隔 7 秒最多自动重试 3 次，只重新观察和读取快照，不重放写入。成功读取事件或用户
 手动刷新后重置预算；权限或真实点击被拒绝时不自动重试。刷新及 pagehide 使旧 epoch 的
 回调失效，关闭后不再展示晚到快照；授权门禁清除列表、菜单及表单中的私有内容。
-这仍是源码与 Node VM 验证，0.3.2 的真实 Chrome 安装与恢复行为保持 NOT_TESTED。
+后续真实 CFT 已安装 0.3.2，导入专用 2151 URL 时暴露首次全树读取的 `E_TOOL`
+请求频率错误；保留该候选和失败原始证据，不将旧版本结果登记为 0.3.3 通过。
+
+0.3.3 收敛上述 RPC 预算：加载仅首尾核验完整能力，中间页和每次事件读取直接走公开
+SDK，由 Host 逐次鉴权。会话临近到期时先新建、排空旧会话（最多两页共 100 事件）、
+停止旧会话，再立即读取新会话；无事件不重读全树，有事件、过期或 gap 仍同步完整快照。
+交接中的撤权、关闭、草稿及未知写入保护保留。2159 节点/一分钟 RPC 预算与轮换回归是
+Node VM 证据。后续真实 Native 已通过市场正式升级 0.3.3，授权复核后成功显示 2159 节点；
+新建文件夹保存被隐藏 URL 输入的原生校验拦截，其他 CRUD 尚待该阻塞解除后验证。
+
+0.3.4 仅修复该表单阻塞：新建/编辑文件夹、移动及详情中的 URL 输入不参与校验，
+只有可见的网址编辑保留 `type=url` 原生校验及 SDK 的 URL 检查。写入结束解除 busy
+不重新启用隐藏 URL。Node VM 覆盖上述模式与失败后恢复；0.3.4 真机 CRUD 仍为 NOT_TESTED。
 
 现有公共合同限制：节点最多 20,000、深度 100、快照 8 MB、读取标题最多 256 字符、
 既有 URL 最多 4,096 字符。既有非 HTTP(S) 书签可保留读取，新增 URL 仍只允许 HTTP(S)。
@@ -49,7 +61,7 @@ Host 快照池仍最多 8 份，达到上限时仅回收同一安装身份的最
 node --test tests/environment/bookmark-manager-r2.test.mjs
 node --test tests/environment/bookmark-manager-r24-lifecycle.test.mjs tests/environment/browser-sdk-r112-full-bookmarks.test.mjs
 npm run build:sidebar-tool -- examples/sidebar-tools/bookmark-manager
-# artifacts/sidebar-tools/bookmark-manager/0.3.2/bookmark-manager.opendesk-tool.json
+# artifacts/sidebar-tools/bookmark-manager/0.3.4/bookmark-manager.opendesk-tool.json
 npm run check
 npm run build
 npm run build:dev

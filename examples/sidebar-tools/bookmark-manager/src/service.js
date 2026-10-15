@@ -61,7 +61,7 @@ function create(sdk){
     await requireReady('getTree');
     // R11 contract: one bounded snapshot, cursor pages, opaque snapshotRef.
     // A small complete Chrome-shaped getTree array is also acceptable.
-    const first=await sdk.bookmarks.getTree({limit:80});
+    const first=await sdk.bookmarks.getTree({limit:100});
     if(Array.isArray(first)){
       const tree=model.bookmarkTree(first);
       await requireReady('getTree');
@@ -92,8 +92,9 @@ function create(sdk){
       if(typeof cursor!=='string'||!cursor||cursor.length>512||cursors.has(cursor)||
         page.nodes.length===0)fail('E_BOOKMARK_RESPONSE','书签分页游标无效或循环');
       cursors.add(cursor);
-      await requireReady('getTree');
-      page=await sdk.bookmarks.getTree({cursor,limit:80});
+      // The public SDK/Host authorizes every page. Discovery at both ends
+      // retains the Full contract check without spending three RPCs per page.
+      page=await sdk.bookmarks.getTree({cursor,limit:100});
     }
     fail('E_LIMIT','书签分页次数超过安全上限');
   }
@@ -180,7 +181,8 @@ function create(sdk){
   async function watchRead(session){
     if(!SESSION.test(session?.sessionRef||'')||typeof session.cursor!=='string')
       fail('E_BOOKMARK_EVENT','书签事件会话无效');
-    await requireReady('observe.read');
+    // The public SDK/Host revalidates this installed session on every read;
+    // repeating the entire capability discovery would exhaust the RPC budget.
     const data=await sdk.bookmarks.observe.read({
       sessionRef:session.sessionRef,cursor:session.cursor,limit:50
     });

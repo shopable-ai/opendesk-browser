@@ -4,7 +4,9 @@
 
 ## 正式安装及使用
 
-在 OpenDesk Browser 的「扩展」→「发现」中选择 **广告拦截**，审阅权限并安装。工具的全局开关和「当前网站」开关由浏览器固定、可信的 Side Panel 宿主创建；首次开启调用 Chrome 原生 declarativeNetRequestWithHostAccess 授权。沙箱工具仅能读取实际状态和展示「已停用的网站」列表，恢复例外要在外层可信宿主再次确认。本站规则更改后需刷新网页，以便更新主框架和子框架过滤。
+在 OpenDesk Browser 的「扩展」统一列表搜索 **广告拦截**，点击安装、审阅权限，再打开工具。工具的全局开关和「当前网站」开关由浏览器固定、可信的 Side Panel 宿主创建；首次开启调用 Chrome 原生 declarativeNetRequestWithHostAccess 授权。沙箱工具仅能读取实际状态和展示「已停用的网站」列表，恢复例外要在外层可信宿主再次确认。本站规则更改后需刷新网页，以便更新主框架和子框架过滤。
+
+Chrome 首次授予可选 DNR 权限存在[已确认的初始化缺陷](https://issues.chromium.org/issues/551296620)：读规则可用，但写规则可能永久等待。本工具因此保持过滤关闭并提示完整退出、重新打开 Chrome；重启后仍须手动开启。Service Worker 单独恢复不会解除这个提示。不将权限改为强制权限，不自动重载扩展或重放操作。
 
 工具类型为 optional，可通过正式安装器停用、启用、卸载；没有附带另一套 Service Worker、安装器或工具路由。未安装、未获批准及已停用时不应有本工具的 Chrome 过滤副作用。
 
@@ -15,7 +17,7 @@
 - 过滤第三方的 script、image、xmlhttprequest、sub_frame、ping、media 和 other 资源，不拦截正常 main_frame。保守避免主站登录、支付和正常导航被域名黑名单屏蔽。
 - Chrome Manifest V3 唯一过滤引擎为 dynamic DNR。专属 ID 为 741000–741199，block 优先级 1，例外优先级 2；Stay Focus 使用 730000–730199，其重定向优先级高于 20，故本工具例外不得覆盖 Stay Focus 的限制。
 - 例外只匹配精确 HTTP(S) hostname，不会把 example.com.evil.test 误作 example.com；在 Chrome DNR 主框架和子框架上配置 allowAllRequests，以传播到站内第三方资源。最多 100 个例外。
-- 扩展启动和状态变更必须回读 Chrome DNR；已有规则清理仅限 AdBlock ID，不能清空别人的规则。检测到其他工具低优先级动态拦截规则时安全拒绝例外并清理本工具规则，防止覆盖。
+- 扩展启动和状态变更必须回读 Chrome DNR；已有规则清理仅限 AdBlock ID，不能清空别人的规则。检测到其他工具低优先级 dynamic/session 拦截规则、已启用 static 规则集或无法核对优先级时，安全拒绝例外、持久停用并清理本工具规则，防止覆盖；冲突消失不会自动恢复过滤。
 - 首次用户操作明确获批后，才存储固定官方工具包摘要和安装 Epoch。状态及例外使用 opendesk.adblock.state.v1，仅保留规范化域名，不保存 URL、查询参数、浏览历史或模拟计数。
 - 不依赖 Chrome 145 的 topDomains/excludedTopDomains，仓库要求最低 Chrome 138。其能力不等同 AdGuard / uBlock Origin Lite 的全部规则引擎或页面元素隐藏功能。
 

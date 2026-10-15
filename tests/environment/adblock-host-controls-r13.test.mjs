@@ -184,3 +184,17 @@ test('preview and dispose release only their own listeners and suppress stale re
   assert.equal(f.storage.listeners.size,0);assert.equal(f.added.listeners.size,0);
   assert.equal(f.removed.listeners.size,0);assert.equal(b.container.hidden,true);
 });
+
+
+test('first optional DNR grant explains Chrome restart without presenting active filtering',async()=>{
+  const f=fixture();let requests=0;
+  f.api.permissions.request=()=>{requests++;return Promise.resolve(true);};
+  const panel=f.mount(async()=>({...status(false),restartRequired:true,rules:{verified:false}}));
+  panel.controls.render(tool,false,true);await tick();
+  assert.equal(panel.global.attributes['aria-checked'],'false');
+  assert.equal(panel.global.textContent,'需重启 Chrome');
+  assert.equal(panel.global.disabled,true);assert.equal(panel.site.disabled,true);
+  assert.match(panel.global.textContent,/重启 Chrome/);
+  assert.match(panel.info.textContent,/尚未开启/);
+  panel.global.listeners.click({isTrusted:false});assert.equal(requests,0);
+});

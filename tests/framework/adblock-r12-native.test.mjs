@@ -130,7 +130,7 @@ async function getOwned(c,session){
 }
 async function clickSandbox(c,side,frame,selector){
   const point=await until(async()=>{
-    const p=await evaluate(c,frame,'(()=>{const x=document.querySelector('+JSON.stringify(selector)+');'+
+    const p=await evaluate(c,frame,'(()=>{const x=(globalThis.OpenDeskTool?.root||document).querySelector('+JSON.stringify(selector)+');'+
       'if(!x||x.disabled)return null;const r=x.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};})()');
     if(!p)return null;
     const f=await evaluate(c,side,'(()=>{const r=document.querySelector("#sidebar-tool-frame iframe").getBoundingClientRect();'+
@@ -271,7 +271,7 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   const workerSession=(await client.send('Target.attachToTarget',{targetId:worker.targetId,flatten:true})).sessionId;
   await client.send('Runtime.enable',{},workerSession);
   const visit=await client.send('Target.createTarget',{url:page});
-  const site=await attach(client,visit.targetId);
+  let site=await attach(client,visit.targetId);
   await until(()=>evaluate(client,site,'document.querySelector("h1")?.textContent==="Network fixture ready"'),'first-party fixture');
   const baseline=await probe(client,site,adUrl());
   assert.equal(baseline.success,true,'without AdBlock approval, actual ad host request must load');
@@ -281,7 +281,7 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
 
   const ui=await client.send('Target.createTarget',
     {url:'chrome-extension://'+id+'/ui/tool.html?hostInstanceId='+randomUUID()});
-  const uid=await attach(client,ui.targetId);
+  let uid=await attach(client,ui.targetId);
   await until(()=>evaluate(client,uid,'!!document.querySelector("#catalog-open-dev-sidebar")'),
     'extension native launcher');
   await click(client,uid,'#catalog-open-dev-sidebar');
@@ -289,7 +289,7 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
     const entries=await evaluate(client,uid,'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]})');
     return entries.find(x=>x.documentUrl?.includes('/ui/tool.html')&&x.documentId)||null;
   },'actual Side Panel document');
-  const panel=await until(async()=>{
+  let panel=await until(async()=>{
     const targets=(await client.send('Target.getTargets')).targetInfos;
     return targets.find(x=>x.url===context.documentUrl)||null;
   },'actual Side Panel target');
@@ -336,6 +336,43 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
     report.screenshots.push(await screenshot(client,sid,'native-chrome-permission-blocked'));
     throw Error('Chrome native permission not granted; cannot report ad blocking PASS');}
   report.nativePermission='PASS';
+  // Chromium issue 551296620: the first optional DNR grant does not initialize
+  // the native rules API queue. The PRODUCT must explain this and keep intent
+  // OFF; a full browser restart is the supported recovery, never a test pregrant.
+  await until(()=>evaluate(client,sid,
+    'document.querySelector("#sidebar-tool-adblock-native")?.textContent.includes("完整退出")'),
+    'product explains first-grant Chrome restart without claiming filtering');
+  const pending=await getOwned(client,uid);
+  assert.equal(pending.state?.enabled===true,false,'initial grant must not persist filtering intent');
+  assert.equal(pending.owned.length,0);
+  report.screenshots.push(await screenshot(client,sid,'first-grant-restart-required'));
+  note('first-grant-native-initialization',{nativePermission:true,enabled:false,ownedRules:0,
+    chromiumIssue:'https://issues.chromium.org/issues/551296620'});
+  await writeFile(path.join(OUT,'cdp-before-first-restart.json'),JSON.stringify(client.events,null,2)+'\n');
+  const initialChrome=chrome;
+  await client.send('Browser.close').catch(()=>{});
+  await until(()=>initialChrome.exitCode!==null||initialChrome.signalCode!==null,'Chrome exits after first permission',25000);
+  client.close();client=null;
+  await rm(path.join(profile,'DevToolsActivePort'),{force:true});
+  chrome=launch();capture(chrome);
+  first=await connected();client=first.socket;
+  const launchAgain=await client.send('Target.createTarget',
+    {url:'chrome-extension://'+id+'/ui/tool.html?hostInstanceId='+randomUUID()});
+  uid=await attach(client,launchAgain.targetId);
+  await until(()=>evaluate(client,uid,'!!document.querySelector("#catalog-open-dev-sidebar")'),'launcher after native initialization');
+  const readyOff=await until(async()=>{const r=await getOwned(client,uid);
+    return r.owned.length===0&&r.state?.enabled!==true?r:null;},'restart does not enable filtering by itself');
+  assert.equal(readyOff.owned.length,0);
+  const fixtureAgain=await client.send('Target.createTarget',{url:page});
+  site=await attach(client,fixtureAgain.targetId);
+  await until(()=>evaluate(client,site,'document.querySelector("h1")?.textContent==="Network fixture ready"'),'fixture after initial restart');
+  await click(client,uid,'#catalog-open-dev-sidebar');
+  const reopenedContext=await until(()=>evaluate(client,uid,'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]}).then(x=>x.find(c=>c.documentUrl.includes("/ui/tool.html")))'),'Side Panel after initial restart');
+  panel=await until(async()=>(await client.send('Target.getTargets')).targetInfos.find(x=>x.url===reopenedContext.documentUrl),'native Side Panel target after initial restart');
+  sid=await attach(client,panel.targetId);
+  await click(client,sid,'#tab-tools');await click(client,sid,installed);
+  await until(()=>evaluate(client,sid,'(()=>{const b=document.querySelector('+JSON.stringify(global)+');return b&&!b.disabled&&b.getAttribute("aria-checked")==="false"})()'),'manual filtering remains available after restart');
+  await click(client,sid,global);
   const enabled=await until(async()=>{
     const r=await getOwned(client,uid);
     return r.state?.enabled===true&&r.owned.some(x=>x.id===F)?r:null;
@@ -363,6 +400,23 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   assert.equal(reblocked.success,false,'trusted ON must block the ad again');
   report.globalToggle='PASS';note('trusted-global-pause-resume',
     {paused,reenabled:reblocked,ownedRuleId:F});
+  // Keyboard changes must traverse the shipped tab order and generate Chrome
+  // trusted input. No element.focus(), DOM click, or synthetic keyboard event.
+  for(let i=0;i<40;i++){
+    if(await evaluate(client,sid,'document.activeElement?.getAttribute("aria-label")==="全局广告拦截"'))break;
+    for(const type of ['keyDown','keyUp'])await client.send('Input.dispatchKeyEvent',
+      {type,key:'Tab',code:'Tab',windowsVirtualKeyCode:9},sid);
+  }
+  assert.equal(await evaluate(client,sid,'document.activeElement?.getAttribute("aria-label")'),'全局广告拦截');
+  for(const type of ['keyDown','keyUp'])await client.send('Input.dispatchKeyEvent',
+    {type,key:' ',code:'Space',windowsVirtualKeyCode:32},sid);
+  await until(async()=>{const r=await getOwned(client,uid);return r.state?.enabled===false&&r.owned.length===0;},'Space disables filtering');
+  assert.equal((await probe(client,site,adUrl())).success,true);
+  for(const type of ['keyDown','keyUp'])await client.send('Input.dispatchKeyEvent',
+    {type,key:' ',code:'Space',windowsVirtualKeyCode:32},sid);
+  await until(async()=>{const r=await getOwned(client,uid);return r.state?.enabled===true&&r.owned.length===1;},'Space reenables filtering');
+  assert.equal((await probe(client,site,adUrl())).network.errorText,'net::ERR_BLOCKED_BY_CLIENT');
+  note('native-keyboard-switch',{tabOrder:true,spaceOffOn:true,ariaVerified:true});
 
   // Real tab selection: no test writes the tool's Chrome state or DNR data.
   await evaluate(client,uid,'(async()=>{const t=(await chrome.tabs.query({url:'+JSON.stringify(page)+'}))[0];'+
@@ -410,7 +464,20 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
     'await chrome.tabs.update(t.id,{active:true});await chrome.windows.update(t.windowId,{focused:true});})()');
   await until(()=>evaluate(client,sid,'document.querySelector('+JSON.stringify(siteSelector)+')?.getAttribute("aria-checked")==="false"'),
     'site switch now off');
-  await click(client,sid,siteSelector);
+  const sandboxTarget=await until(async()=>{
+    const url=await evaluate(client,sid,'document.querySelector("#sidebar-tool-frame iframe")?.src');
+    return (await client.send('Target.getTargets')).targetInfos.find(x=>x.type==='iframe'&&x.url===url);
+  },'installed AdBlock sandbox document');
+  const sandbox=await attach(client,sandboxTarget.targetId);
+  const restoreSelector='button[aria-label="恢复 127.0.0.1 的广告过滤"]';
+  await until(()=>evaluate(client,sandbox,
+    '(globalThis.OpenDeskTool?.root||document).querySelector('+JSON.stringify(restoreSelector)+')?.disabled===false'),
+    'real disabled-sites list offers restore');
+  report.screenshots.push(await screenshot(client,sid,'real-site-exception-list'));
+  await clickSandbox(client,sid,sandbox,restoreSelector);
+  await until(()=>evaluate(client,sid,'!document.querySelector("#sidebar-tool-action-review").hidden'),
+    'sandbox restore requires trusted host review');
+  await click(client,sid,'#sidebar-tool-action-continue');
   await until(async()=>{const r=await getOwned(client,uid);
     return r.state?.exceptions?.length===0&&r.owned.length===1?r:null;},'site filter restored');
   await client.send('Page.reload',{ignoreCache:true},site);
@@ -435,6 +502,7 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   await client.send('Browser.close').catch(()=>{});
   await until(()=>prior.exitCode!==null||prior.signalCode!==null,'real Chrome browser exited',25000);
   client.close();client=null;
+  await rm(path.join(profile,'DevToolsActivePort'),{force:true});
   chrome=launch();capture(chrome);
   first=await connected();client=first.socket;
   const idAgain=await until(async()=>{
@@ -464,6 +532,9 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   },'worker handles native permission removal');
   report.revocation='PASS_STATE_AND_NATIVE_PERMISSION';
   note('native-permission-revoked',{adblockIntent:false});
+  const revokedRequest=await probe(client,pageAgain,adUrl());
+  assert.equal(revokedRequest.success,true,'native permission revocation must actually restore network');
+  note('revoked-network-restored',{request:revokedRequest,adServerHits:counts.ad});
   // Native revocation may make DNR API inaccessible; do not infer removal
   // of persisted rule bytes without native network and re-grant evidence.
 
