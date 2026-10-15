@@ -15,6 +15,18 @@ const make=(tag,cls,value)=>{
   const el=document.createElement(tag);if(cls)el.className=cls;
   if(value!==undefined)el.textContent=value;return el;
 };
+// Tool icons use the shared design system's stroke size/colors, not platform-
+// specific Unicode glyphs or a second icon dependency.
+const nodeIcon=folder=>{
+  const ns='http://www.w3.org/2000/svg';
+  const svg=document.createElementNS(ns,'svg'),path=document.createElementNS(ns,'path');
+  svg.classList.add('bm-node-icon');
+  svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');
+  path.setAttribute('d',folder?
+    'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z':
+    'M6 4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18l-6-4-6 4Z');
+  svg.append(path);return svg;
+};
 const errorText=error=>String(error?.message||error||'操作失败').slice(0,280);
 const authorityLost=error=>[
   'E_BOOKMARK_PERMISSION','E_GRANT_REVOKED','E_BOOKMARK_SCOPE',
@@ -135,7 +147,7 @@ function renderList(){
     entry.setAttribute('aria-current',String(item.id===s.selection));
     entry.setAttribute('aria-label',(folder?'文件夹 ':'书签 ')+(item.title||'未命名')+
       (s.search?'，搜索结果':'，层级 '+Math.max(1,level+1)));
-    entry.append(make('span','',folder?'▱':'↗'),make('span','',item.title||'未命名'));
+    entry.append(nodeIcon(folder),make('span','',item.title||'未命名'));
     entry.title=item.title||'未命名';row.append(entry);
     if(folder)row.append(make('span','bm-count',String(s.tree.children.get(item.id)?.length||0)));
     if(!item.locked){
@@ -174,7 +186,7 @@ function renderList(){
 function renderInspector(){
   const item=node(s.selection);
   if(!item)return;
-  q('bm-inspector-icon').textContent=isFolder(item)?'▱':'↗';
+  q('bm-inspector-icon').replaceChildren(nodeIcon(isFolder(item)));
   q('bm-inspector-title').textContent=item.title||'未命名';
   q('bm-inspector-kind').textContent=isFolder(item)?
     '文件夹 · '+(s.tree.children.get(item.id)?.length||0)+' 个直接子项':'网页书签';
