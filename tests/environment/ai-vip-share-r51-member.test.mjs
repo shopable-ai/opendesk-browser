@@ -57,7 +57,7 @@ const member=({entitlements=[],redemptions=[],account}={})=>({
   account:account??{state:'bound',id:'customer-123',displayNameMasked:'m***@example.org'},
   entitlements,redemptions
 });
-const time=(expiresAt=Date.UTC(2026,9,18))=>({type:'time',status:'active',
+const time=(expiresAt=Date.now()+3*86400000)=>({type:'time',status:'active',
   title:'3 天体验权益',expiresAt});
 const quota={type:'quota',status:'active',title:'请求配额',remaining:17,total:100,unit:'次'};
 function node(env,name){return env.nodes.get('ai-vip-'+name)}
