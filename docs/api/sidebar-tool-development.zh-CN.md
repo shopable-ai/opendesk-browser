@@ -174,6 +174,8 @@ node scripts/build-sidebar-tool.mjs \
 
 输出的 `artifacts/sidebar-tools/<id>/<version>/<id>.opendesk-tool.json` 是**用户可导入的工具包**。已有可用 OpenDesk 扩展时，Side Panel「扩展 → 更多操作 → 导入本地工具包」选择此 JSON → 阅读权限 → **确认安装/更新** → **主动打开**。常规独立工具修改无需重编整个扩展，但**每次安装/更新仍需用户确认**。注意这与修改扩展自身 `src/` 的工作流不同。
 
+**可选：把已经构建好的安装包放在工具目录中。** 对希望其他开发者无需安装 Node.js 就能导入的工具，可提交 `examples/sidebar-tools/<id>/<id>.opendesk-tool.json`。只要它已经是常规文件，不带 `--out` 的默认打包命令就会从**同一份源码**同步刷新它，并继续输出到 `artifacts/`；未选择此方式的工具没有额外生成文件。首次生成可用 `npm run build:sidebar-tool -- examples/sidebar-tools/<id> --out examples/sidebar-tools/<id>/<id>.opendesk-tool.json`。显式 `--out` 只生成指定路径。维护这种预生成包时，添加测试逐字节比较 `serializeSidebarToolPackage(await createSidebarToolPackage(project))` 和发布文件，防止过期。**它是构建快照，不是第二份可编辑源码，也不等于已安装/授权。**
+
 ### B. 本地只读预览：改得勤但暂不安装
 
 ```sh
