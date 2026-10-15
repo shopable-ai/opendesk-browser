@@ -848,7 +848,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       await permission;
       if(disposed)throw {code:'E_HOST_CLOSED',message:'Sidebar 已关闭，本次未运行'};
       const source=await localProject.resolve(binding);
-      await currentPageTarget.revalidate(captured);await localProject.assertReady(binding);localProject.assertCaptured(binding);
+      await currentPageTarget.revalidate(captured);await localProject.assertReady(binding,source.sourceHash);localProject.assertCaptured(binding);
       page=source.runtimeKind==='page-userscript';
       const params=page?{}:JSON.parse(paramsText);
       if((!page||source.siteOrigins?.length)&&!source.siteOrigins?.includes(captured.origin))throw {code:'E_DEV_ORIGIN',message:'当前网站不在本地项目的允许范围内'};

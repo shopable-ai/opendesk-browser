@@ -179,7 +179,21 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{},
       ...(p?.state==='ready'&&/^[a-f0-9]{64}$/.test(p.sourceHash||'')?{preparedSourceHash:p.sourceHash}:{}),
       ...(p?.state==='ready'&&/^[a-f0-9]{64}$/.test(p.sourceRevision||'')?{preparedSourceRevision:p.sourceRevision}:{})};}
   function assertCaptured(captured){if(disposed||!active()||checking||!connected||preparationError||backgroundError||nativeUpdateError||selected()?.preparation?.state==='source-error'||captured.generation!==generation||captured.bindingId!==selection||captured.providerEpoch!==epoch)throw failure('E_DEV_CONFLICT','本地项目或连接已变化，本次未运行');}
-  async function assertReady(captured){while(preparationCheck)await preparationCheck;if(backgroundRead)await backgroundRead;assertCaptured(captured);}
+  async function assertReady(captured,expectedSourceHash=null){
+    while(preparationCheck)await preparationCheck;
+    if(backgroundRead)await backgroundRead;
+    assertCaptured(captured);
+    const preparation=selected()?.preparation;
+    // An authoritative in-progress build cannot dispatch previously resolved
+    // bytes, even if the older SHA-256 remains internally consistent.
+    if(preparation?.state!==undefined&&preparation.state!=='ready')
+      throw failure('E_DEV_CONFLICT','最新源码尚未准备就绪；本次未运行，请在准备完成后重新运行');
+    if(preparation?.state==='ready'&&(
+      captured.preparedSourceHash&&preparation.sourceHash&&captured.preparedSourceHash!==preparation.sourceHash||
+      captured.preparedSourceRevision&&preparation.sourceRevision&&captured.preparedSourceRevision!==preparation.sourceRevision||
+      expectedSourceHash&&/^[a-f0-9]{64}$/.test(preparation.sourceHash||'')&&expectedSourceHash!==preparation.sourceHash))
+      throw failure('E_DEV_CONFLICT','准备版本在运行前发生变化；本次未运行，请重新运行最新源码');
+  }
   async function resolve(captured){
     assertCaptured(captured);
     render('正在更新');
@@ -195,7 +209,7 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{},
       typeof value.sourceUtf8!=='string'||!/^[a-f0-9]{64}$/.test(value.sourceHash||'')||
       (value.inputHash!==undefined&&!/^[a-f0-9]{64}$/.test(value.inputHash))||
       value.sourceBytes!==new TextEncoder().encode(value.sourceUtf8).length||value.sourceHash!==await sha256Utf8(value.sourceUtf8))throw failure('E_DEV_HASH','本地源码字节或执行身份不一致');
-    await assertReady(captured);
+    await assertReady(captured,value.sourceHash);
     const row=selected(),currentPreparation=row?.preparation;
     if((row?.runtimeKind&&row.runtimeKind!==value.runtimeKind)||
       (captured.preparedSourceHash&&captured.preparedSourceHash!==value.sourceHash)||

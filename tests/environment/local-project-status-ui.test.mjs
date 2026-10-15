@@ -245,3 +245,44 @@ test('read-only resolution does not claim the verified bytes already ran',async 
   assert.match(f.find('local-project-status').title,/最近读取源码（不代表已执行）/);
   assert.doesNotMatch(f.find('local-project-status').title,/上次运行源码/);
 });
+
+test('an authoritative updating source cannot dispatch a previously compiled valid hash',async t=>{
+  const f=fixture(t,{connected:true});
+  const sourceUtf8='async function main(){return 101;}';
+  const sourceHash=(await import('node:crypto')).createHash('sha256').update(sourceUtf8).digest('hex');
+  f.setProjects([{...project,preparation:{state:'updating',sourceHash}}]);
+  const request=f.client.requestLocalProject;
+  f.client.requestLocalProject=async(method,params)=>method==='project.resolve'?
+    {bindingId:params.bindingId,providerEpoch:'epoch-a',runtimeKind:'page-userscript',
+      sourceUtf8,sourceHash,sourceBytes:Buffer.byteLength(sourceUtf8)}:request(method,params);
+  await tick();
+  f.find('local-project-refresh').fire('click');await tick();
+  assert.equal(f.view.readyForRun(),false);
+  await assert.rejects(f.view.resolve(f.view.capture()),{code:'E_DEV_CONFLICT'});
+  f.setProjects([{...project,preparation:{state:'ready',sourceHash}}]);
+  f.notify({connected:true,nativeConnected:true,providerEpoch:'epoch-a'});
+  await tick();await tick();
+  assert.equal(f.view.readyForRun(),true);
+  assert.equal((await f.view.resolve(f.view.capture())).sourceHash,sourceHash);
+});
+
+test('final dispatch gate rejects an authoritative hash changed after a successful Resolve',async t=>{
+  const f=fixture(t,{connected:true});
+  const sourceUtf8='async function main(){return 102;}';
+  const createHash=(await import('node:crypto')).createHash;
+  const sourceHash=createHash('sha256').update(sourceUtf8).digest('hex');
+  const laterHash=createHash('sha256').update(sourceUtf8+'// edited').digest('hex');
+  f.setProjects([{...project,preparation:{state:'ready',sourceHash}}]);
+  const request=f.client.requestLocalProject;
+  f.client.requestLocalProject=async(method,params)=>method==='project.resolve'?
+    {bindingId:params.bindingId,providerEpoch:'epoch-a',runtimeKind:'page-userscript',
+      sourceUtf8,sourceHash,sourceBytes:Buffer.byteLength(sourceUtf8)}:request(method,params);
+  await tick();
+  f.find('local-project-refresh').fire('click');await tick();
+  const binding=f.view.capture();
+  assert.equal((await f.view.resolve(binding)).sourceHash,sourceHash);
+  f.setProjects([{...project,preparation:{state:'ready',sourceHash:laterHash}}]);
+  f.notify({connected:true,nativeConnected:true,providerEpoch:'epoch-a'});
+  await tick();await tick();
+  await assert.rejects(f.view.assertReady(binding,sourceHash),{code:'E_DEV_CONFLICT'});
+});
