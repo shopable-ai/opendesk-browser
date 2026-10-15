@@ -1,5 +1,6 @@
 import {createPageUI} from '@opendesk/ui';
 import {createAnswerRegistry} from './answer-registry.js';
+import {requireXmindRuntime} from './xmind-adapter.js';
 
 const pageRules={matches:['https://chatgpt.com/*'],excludeMatches:[],
   runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'};
@@ -8,6 +9,9 @@ const pageRules={matches:['https://chatgpt.com/*'],excludeMatches:[],
 // sentinel is not a visible floating button; the answer adapter controls
 // placement strictly and never relies on the Page UI's floating fallback.
 export default async function main({assets}={}) {
+  // Fail before modifying any answer when the trusted runtime is unavailable.
+  // No CDN, MAIN-world lookup, eval or SVG fallback is permitted.
+  requireXmindRuntime(window);
   const owner=createPageUI({
     id:'opendesk.chatgpt-mindmap.lifecycle',assets,pageRules,baseStyles:false
   });

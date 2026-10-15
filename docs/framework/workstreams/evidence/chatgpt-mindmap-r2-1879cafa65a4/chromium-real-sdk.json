@@ -1,0 +1,122 @@
+{
+  "level": "LINUX_CHROMIUM_REAL_SDK_DOM_FIXTURE",
+  "chatgpt": "NOT_TESTED",
+  "installed": "NOT_TESTED",
+  "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; object-src 'none'",
+  "launchArgs": [
+    "--no-sandbox",
+    "--disable-dev-shm-usage",
+    "--disable-gpu"
+  ],
+  "assets": [
+    {
+      "name": "jszip.min.js",
+      "gitBlob": "ff4cfd5e8fdc49176c2d1d409afa897f40be01f4",
+      "bytes": 97630,
+      "sha256": "acc7e41455a80765b5fd9c7ee1b8078a6d160bbbca455aeae854de65c947d59e"
+    },
+    {
+      "name": "polyfill-45b9836beb.min.js",
+      "gitBlob": "80922170f416950927615a3c089acb28bf91fdcf",
+      "bytes": 104563,
+      "sha256": "59173f786dd1f3802f7ab26fd339aac4099dc10c6cb54a6a92213e6af277592a"
+    },
+    {
+      "name": "xmind-sdk.bundle.js",
+      "gitBlob": "ed8540218a334b6dc0b806887a2cf4ca6cc6960f",
+      "bytes": 401113,
+      "sha256": "e3fa6927652a2abb0d8c32af267a9f2a531f3997c7df69332d434a4cbcb7e70b"
+    },
+    {
+      "name": "snowbrush-2c2b5d62b5.js",
+      "gitBlob": "762e20010368d86733de5caea0ced69baa73cec3",
+      "bytes": 3439267,
+      "sha256": "036ed215959338eef9af16ac9fa5164f41075cf529ed4b66df5f84f4cfedee8a"
+    }
+  ],
+  "cases": [
+    {
+      "name": "Missing runtime restores original without an alternate renderer",
+      "status": "PASS"
+    },
+    {
+      "name": "Closing while real SDK initializes closes the late controller",
+      "status": "PASS"
+    },
+    {
+      "name": "Six answers each have one button",
+      "status": "PASS"
+    },
+    {
+      "name": "A/B both render actual XMind topics",
+      "status": "PASS"
+    },
+    {
+      "name": "Toolbar calls real SDK zoom",
+      "status": "PASS"
+    },
+    {
+      "name": "Real Workbook branch flags collapse and expand rendered topics",
+      "status": "PASS"
+    },
+    {
+      "name": "Fullscreen/Escape returns to A",
+      "status": "PASS"
+    },
+    {
+      "name": "Identical replies keep independent SDK controllers and toolbar state",
+      "status": "PASS"
+    },
+    {
+      "name": "Toolbar replacement does not duplicate buttons",
+      "status": "PASS"
+    },
+    {
+      "name": "Refresh recreates B from its updated content",
+      "status": "PASS"
+    },
+    {
+      "name": "20 actual SDK open/close cycles",
+      "status": "PASS"
+    },
+    {
+      "name": "Removed answer releases controller",
+      "status": "PASS"
+    },
+    {
+      "name": "SPA releases all answer views",
+      "status": "PASS"
+    },
+    {
+      "name": "Stop calls close on every controller and restores originals",
+      "status": "PASS"
+    },
+    {
+      "name": "No external network request from synthetic content",
+      "status": "PASS"
+    }
+  ],
+  "errors": [],
+  "externalRequests": [],
+  "browser": "149.0.7827.0",
+  "actualFold": {
+    "expandedCount": 8,
+    "foldedCount": 2
+  },
+  "foldObservation": {
+    "beforeFold": 2,
+    "afterFold": 2
+  },
+  "narrowOverflow": false,
+  "lifecycle": {
+    "created": 28,
+    "closed": 28,
+    "remaining": 0,
+    "hidden": false
+  },
+  "globalStyleCount": 6,
+  "status": "PASS",
+  "productRelease": "BLOCKED",
+  "visualAcceptance": "NOT_PASSED",
+  "reason": "Vendor license provenance/resource admission/style isolation and logged-in ChatGPT installation not verified"
+}

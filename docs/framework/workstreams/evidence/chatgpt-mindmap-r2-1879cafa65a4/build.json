@@ -1,0 +1,172 @@
+{
+  "format": "opendesk.build-artifact.v1",
+  "status": "BUILT_UNVERIFIED",
+  "installable": false,
+  "runtimeKind": "page-userscript",
+  "programId": "opendesk.chatgpt-mindmap",
+  "version": "0.2.0",
+  "sourceFormat": "esm",
+  "entryFormat": "async-main",
+  "entry": "src/main.js",
+  "buildMode": "production",
+  "buildHash": "45ab0cd685da4158e4b7cebcd858969d90291b1606efd69135cbf5550819e808",
+  "sourceModules": [
+    {
+      "path": "src/answer-registry.js",
+      "bytes": 11605,
+      "sha256": "afb3ff58c15d13aa9dfaa244ae64361b9c6793fcd207efa76ca3233687f31d61"
+    },
+    {
+      "path": "src/chatgpt-adapter.js",
+      "bytes": 3540,
+      "sha256": "be85bcb15947a38ce6946c7b0ad3323bc2aad4272dd89a3f16272163d3bd63e8"
+    },
+    {
+      "path": "src/extract.js",
+      "bytes": 5278,
+      "sha256": "afabadcc60063484f34b318612cd3589383887bbc884cdeeae44b3cbcb8e4d21"
+    },
+    {
+      "path": "src/main.js",
+      "bytes": 1311,
+      "sha256": "2adcf1882c7ae041931384f12ee759a4732d95f3c206341a9832a56bafce3fdb"
+    },
+    {
+      "path": "src/view.js",
+      "bytes": 4170,
+      "sha256": "f451fc77bb8c8bf1779b82bead6ab8597ee8ee71d8e40bedf936a4e449cd0dba"
+    },
+    {
+      "path": "src/xmind-adapter.js",
+      "bytes": 6400,
+      "sha256": "bf6a3e0ad24a0db72cf166a2aa002de2304089197cfb01f289f07419a8989f72"
+    },
+    {
+      "path": "src/xmind-convert.js",
+      "bytes": 8733,
+      "sha256": "f6e88051d258a776e0500032c61579ccf435e399c516d11b28e22a1c59fed5f5"
+    }
+  ],
+  "sourceFiles": [
+    {
+      "path": "src/answer-registry.js",
+      "bytes": 11605,
+      "sha256": "afb3ff58c15d13aa9dfaa244ae64361b9c6793fcd207efa76ca3233687f31d61"
+    },
+    {
+      "path": "src/chatgpt-adapter.js",
+      "bytes": 3540,
+      "sha256": "be85bcb15947a38ce6946c7b0ad3323bc2aad4272dd89a3f16272163d3bd63e8"
+    },
+    {
+      "path": "src/extract.js",
+      "bytes": 5278,
+      "sha256": "afabadcc60063484f34b318612cd3589383887bbc884cdeeae44b3cbcb8e4d21"
+    },
+    {
+      "path": "src/main.js",
+      "bytes": 1311,
+      "sha256": "2adcf1882c7ae041931384f12ee759a4732d95f3c206341a9832a56bafce3fdb"
+    },
+    {
+      "path": "src/view.js",
+      "bytes": 4170,
+      "sha256": "f451fc77bb8c8bf1779b82bead6ab8597ee8ee71d8e40bedf936a4e449cd0dba"
+    },
+    {
+      "path": "src/xmind-adapter.js",
+      "bytes": 6400,
+      "sha256": "bf6a3e0ad24a0db72cf166a2aa002de2304089197cfb01f289f07419a8989f72"
+    },
+    {
+      "path": "src/xmind-convert.js",
+      "bytes": 8733,
+      "sha256": "f6e88051d258a776e0500032c61579ccf435e399c516d11b28e22a1c59fed5f5"
+    }
+  ],
+  "assets": [
+    {
+      "path": "assets/ui.css",
+      "kind": "css",
+      "sha256": "b32513c0d4da56361dc49cfa956e01a468de83112e98786199f10ea0f886b5e2",
+      "bytes": 2573
+    }
+  ],
+  "npmPackages": [],
+  "npmDependencies": [],
+  "npmBundledModules": [],
+  "npmLockSha256": null,
+  "sourceFile": "program.js",
+  "sourceHash": "45ab0cd685da4158e4b7cebcd858969d90291b1606efd69135cbf5550819e808",
+  "sourceBytes": 44322,
+  "draftFile": "program.opendesk-draft.json",
+  "authoring": {
+    "files": [
+      {
+        "path": "src/answer-registry.js",
+        "bytes": 11605,
+        "sha256": "afb3ff58c15d13aa9dfaa244ae64361b9c6793fcd207efa76ca3233687f31d61"
+      },
+      {
+        "path": "src/chatgpt-adapter.js",
+        "bytes": 3540,
+        "sha256": "be85bcb15947a38ce6946c7b0ad3323bc2aad4272dd89a3f16272163d3bd63e8"
+      },
+      {
+        "path": "src/extract.js",
+        "bytes": 5278,
+        "sha256": "afabadcc60063484f34b318612cd3589383887bbc884cdeeae44b3cbcb8e4d21"
+      },
+      {
+        "path": "src/main.js",
+        "bytes": 1311,
+        "sha256": "2adcf1882c7ae041931384f12ee759a4732d95f3c206341a9832a56bafce3fdb"
+      },
+      {
+        "path": "src/view.js",
+        "bytes": 4170,
+        "sha256": "f451fc77bb8c8bf1779b82bead6ab8597ee8ee71d8e40bedf936a4e449cd0dba"
+      },
+      {
+        "path": "src/xmind-adapter.js",
+        "bytes": 6400,
+        "sha256": "bf6a3e0ad24a0db72cf166a2aa002de2304089197cfb01f289f07419a8989f72"
+      },
+      {
+        "path": "src/xmind-convert.js",
+        "bytes": 8733,
+        "sha256": "f6e88051d258a776e0500032c61579ccf435e399c516d11b28e22a1c59fed5f5"
+      }
+    ],
+    "assets": [
+      {
+        "path": "assets/ui.css",
+        "kind": "css",
+        "sha256": "b32513c0d4da56361dc49cfa956e01a468de83112e98786199f10ea0f886b5e2",
+        "bytes": 2573
+      }
+    ],
+    "webpackModules": [
+      "src/answer-registry.js",
+      "src/chatgpt-adapter.js",
+      "src/extract.js",
+      "src/main.js",
+      "src/view.js",
+      "src/xmind-adapter.js",
+      "src/xmind-convert.js"
+    ],
+    "buildMode": "production",
+    "buildHash": "45ab0cd685da4158e4b7cebcd858969d90291b1606efd69135cbf5550819e808"
+  },
+  "pageRules": {
+    "matches": [
+      "https://chatgpt.com/*"
+    ],
+    "excludeMatches": [],
+    "runAt": "document_idle",
+    "allFrames": false,
+    "world": "USER_SCRIPT"
+  },
+  "note": "Fixed build bytes only. Not Chrome verified, Available, Installed or automatically permitted.",
+  "outputDirectory": "/workspace/scratch/1879cafa65a4/opendesk-browser/artifacts/programs/opendesk.chatgpt-mindmap/0.2.0/r31-production/45ab0cd685da4158-2f325af8d196"
+}

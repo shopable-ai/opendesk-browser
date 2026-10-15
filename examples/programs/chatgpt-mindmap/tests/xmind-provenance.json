@@ -1,0 +1,59 @@
+{
+  "repository": "shopable-ai/shopable-station",
+  "commit": "b76abf4b95e34c1234a33927051ea13165d92715",
+  "path": "apps/web/public/lib/xmind",
+  "distribution": "BLOCKED_UNVERIFIED_LICENSE_AND_RESOURCE_ADMISSION",
+  "note": "Audit/test input identities only. Not a production runtime catalog or permission grant. Vendor bytes are not redistributed.",
+  "assets": [
+    {
+      "name": "jszip.min.js",
+      "gitBlob": "ff4cfd5e8fdc49176c2d1d409afa897f40be01f4",
+      "bytes": 97630,
+      "sha256": "acc7e41455a80765b5fd9c7ee1b8078a6d160bbbca455aeae854de65c947d59e"
+    },
+    {
+      "name": "polyfill-45b9836beb.min.js",
+      "gitBlob": "80922170f416950927615a3c089acb28bf91fdcf",
+      "bytes": 104563,
+      "sha256": "59173f786dd1f3802f7ab26fd339aac4099dc10c6cb54a6a92213e6af277592a"
+    },
+    {
+      "name": "xmind-sdk.bundle.js",
+      "gitBlob": "ed8540218a334b6dc0b806887a2cf4ca6cc6960f",
+      "bytes": 401113,
+      "sha256": "e3fa6927652a2abb0d8c32af267a9f2a531f3997c7df69332d434a4cbcb7e70b"
+    },
+    {
+      "name": "snowbrush-2c2b5d62b5.js",
+      "gitBlob": "762e20010368d86733de5caea0ced69baa73cec3",
+      "bytes": 3439267,
+      "sha256": "036ed215959338eef9af16ac9fa5164f41075cf529ed4b66df5f84f4cfedee8a"
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/web/src/sites/mindbank/mind/components/MindbankMindMapPanel.tsx",
+      "gitBlob": "e37c7a703b46ff0f4495d38f6c2ad256c83cc66f"
+    },
+    {
+      "path": "apps/web/src/sites/mindbank/mind/utils/mind-tree.ts",
+      "gitBlob": "4a0584460fa593b1d1859f226d5ba918a7335b5f"
+    },
+    {
+      "path": "apps/web/src/sites/mindbank/mind/renderers/xmind-renderer.ts",
+      "gitBlob": "6a061bd15c04690d1f5418094a9b942704a1e965"
+    },
+    {
+      "path": "apps/web/src/sites/mindbank/mind/renderers/xmind-renderer-seams.ts",
+      "gitBlob": "0dc7d948c004c0542ce5e27ff6022847727ccbba"
+    },
+    {
+      "path": "apps/web/src/sites/mindbank/mind/renderers/xmind/convert.ts",
+      "gitBlob": "37b38c63d601080999f3e1148949e595c66d9be6"
+    },
+    {
+      "path": "apps/web/src/sites/mindbank/mind/renderers/xmind/skin.ts",
+      "gitBlob": "2cd1cdf6956f0e2cfb9b447a1965961b076cf51c"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+✔ headings, nested lists, code and body text preserve their own semantics (3.106304ms)
+✔ no-heading paragraphs become nodes; identical content has no shared identities (0.571824ms)
+✔ long or unsafe text remains plain bounded data; never parsed as HTML (0.381353ms)
+✔ large lists never exceed the fixed node quota (2.347514ms)
+✔ opening bare text survives headings; inline links and bold retain visible text (0.2982ms)
+✔ nested table inside a list is not discarded (0.375784ms)
+✔ note budget includes separators and does not split emoji surrogate pairs (0.452007ms)
+✔ excluded-only DOM does not leak script/style text through a fallback (0.197161ms)
+✔ missing runtime fails closed without falling back to another engine (0.830365ms)
+✔ original XMind skin is copied afresh for each workbook (0.477936ms)
+✔ REAL SDK: Workbook/Topic/Dumper/JSZip preserve duplicate titles, notes and root content (98.003698ms)
+✔ REAL SDK: branch state follows paths instead of duplicate visible titles (19.775256ms)
+✔ REAL SDK: HTML visible text is not reinterpreted as Markdown or task status (17.644166ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 280.837067

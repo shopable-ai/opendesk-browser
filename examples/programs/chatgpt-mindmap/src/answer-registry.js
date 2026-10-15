@@ -11,7 +11,7 @@ const make=(doc,tag,text)=>{
 const dark=doc=>doc.documentElement.classList.contains('dark')||
   doc.documentElement.getAttribute('data-theme')==='dark';
 
-function makeButton(doc,css,handleClick){
+function makeButton(doc,css,owner,handleClick){
   const host=make(doc,'span');
   host.setAttribute('data-opendesk-chatgpt-mindmap','button');
   host.style.cssText='display:inline-flex;vertical-align:middle;max-width:100%;';
@@ -30,23 +30,25 @@ function makeButton(doc,css,handleClick){
     path.setAttribute('d',d);glyph.append(path);
   }
   button.prepend(glyph);
-  button.addEventListener('click',handleClick);
-  shadow.append(style,button);
-  return {host,button,destroy:()=>{
-    button.removeEventListener('click',handleClick);host.remove();
+  const remove=owner.on(button,'click',handleClick);
+  const error=make(doc,'span');error.hidden=true;error.className='odmm-error';error.setAttribute('role','alert');
+  shadow.append(style,button,error);
+  return {host,button,error,destroy:()=>{
+    remove();host.remove();
   }};
 }
 
 function answerController({document,window,owner,css,parts,coordinator}){
   let {root,content,bar}=parts;
   let hidden=null,view=null,disposed=false,revision=0,viewRevision=-1,lastChange=0;
+  let messageId=root.getAttribute('data-message-id');
   let busyTimer=null,buttonRef=null;
-  const handleClick=()=>{
+  const handleClick=async()=>{
     if(disposed||buttonRef?.button.disabled)return;
-    if(view){close();return;}
-    open();
+    if(view){await close();return;}
+    await open();
   };
-  buttonRef=makeButton(document,css,handleClick);
+  buttonRef=makeButton(document,css,owner,handleClick);
   function syncTheme(){
     const theme=dark(document)?'true':'false';
     buttonRef.host.setAttribute('data-dark',theme);
@@ -94,16 +96,26 @@ function answerController({document,window,owner,css,parts,coordinator}){
   }
   function close({focus=false}={}){
     if(coordinator.full===api)coordinator.setFull(null);
-    view?.destroy();view=null;restore();syncButton();
+    const previous=view;view=null;restore();syncButton();
+    const retired=coordinator.retire(previous);
     if(focus&&buttonRef.host.isConnected)buttonRef.button.focus();
+    return retired;
   }
-  function open(){
+  async function failed(error){
+    await close();
+    if(disposed)return;
+    buttonRef.error.hidden=false;buttonRef.error.textContent="XMind 打开失败，原文已恢复。";
+    buttonRef.button.title=String(error?.code||"E_XMIND_RENDER");
+  }
+  async function open(){
     if(disposed||!root.isConnected||!content.isConnected||!bar.isConnected)return;
     // Recover from late generation; do not take a snapshot during stream.
     if(isStreaming(root)||Date.now()-lastChange<STABLE_MS)return;
+    buttonRef.error.hidden=true;
     const result=extractAnswerTree(content);
     if(!result.nodeCount)return;
-    const nextView=createAnswerView({document,window,css,...result,
+    const nextView=createAnswerView({document,window,owner,css,...result,
+      onError:failed,
       onOriginal:()=>close({focus:true}),
       onRefresh:()=>refresh(),
       onFullscreen:()=>coordinator.setFull(coordinator.full===api?null:api)});
@@ -111,14 +123,18 @@ function answerController({document,window,owner,css,parts,coordinator}){
       // The original content remains connected, immutable and restorable.
       if(content.contains(document.activeElement))buttonRef.button.focus();
       content.insertAdjacentElement('afterend',nextView.host);
-      view=nextView;viewRevision=revision;conceal();syncTheme();syncButton();view.fit();
-    }catch(error){nextView.destroy();restore();throw error;}
+      view=nextView;viewRevision=revision;conceal();syncTheme();syncButton();
+      await nextView.start();
+    }catch(error){
+      if(view===nextView)await failed(error);
+      else await coordinator.retire(nextView);
+    }
   }
-  function refresh(){
+  async function refresh(){
     if(disposed||!view||!content.isConnected)return;
     if(isStreaming(root)||Date.now()-lastChange<STABLE_MS)return;
     const full=coordinator.full===api;
-    close();open();
+    await close();await open();
     if(full&&view)coordinator.setFull(api);
   }
   const api={
@@ -127,7 +143,10 @@ function answerController({document,window,owner,css,parts,coordinator}){
     get buttonHost(){return buttonRef.host;},get button(){return buttonRef.button;},
     reconcile(next){
       if(disposed)return;
-      if(next.content!==content){close();content=next.content;lastChange=0;revision++;}
+      const nextId=root.getAttribute('data-message-id');
+      if(next.content!==content||nextId!==messageId){
+        close();content=next.content;messageId=nextId;lastChange=0;revision++;
+      }
       bar=next.bar;
       insertButton(bar);syncTheme();syncButton();
       // If the original content was re-rendered, the old viewer cannot be
@@ -142,9 +161,10 @@ function answerController({document,window,owner,css,parts,coordinator}){
       if(view&&viewRevision!==revision)view.markStale();
       syncButton();
     },
-    setFull(value){
+    async setFull(value){
       if(disposed||!view)return;
-      view.setFull(value);
+      const current=view;await current.setFull(value);
+      if(disposed||view!==current)return;
       if(!value&&root.isConnected&&content.isConnected&&!view.host.isConnected){
         content.insertAdjacentElement('afterend',view.host);
       }
@@ -154,7 +174,7 @@ function answerController({document,window,owner,css,parts,coordinator}){
       if(disposed)return;disposed=true;
       // setFull(null) must not return an orphan viewer to a removed answer.
       if(coordinator.full===api)coordinator.setFull(null);
-      view?.destroy();view=null;restore();
+      coordinator.retire(view);view=null;restore();
       buttonRef.destroy();
     }
   };
@@ -166,11 +186,19 @@ export function createAnswerRegistry({document,window,owner,css}){
   const byRoot=new WeakMap(),controllers=new Set();
   let disposed=false,pending=false,route=window.location.pathname+window.location.search;
   let full=null,lastScanned=0;
-  const coordinator={get full(){return full;},setFull(next){
+  const retiring=new Set(),cleanupErrors=[];
+  function retire(view){
+    if(!view)return Promise.resolve();
+    const pending=Promise.resolve().then(()=>view.destroy());
+    retiring.add(pending);
+    pending.then(()=>retiring.delete(pending),error=>{retiring.delete(pending);cleanupErrors.push(error);});
+    return pending;
+  }
+  const coordinator={retire,get full(){return full;},setFull(next){
     if(full===next)return;
     const old=full;full=null;
-    if(old)old.setFull(false);
-    if(next&&next.view&&next.root.isConnected){full=next;next.setFull(true);}
+    if(old)old.setFull(false).catch(error=>cleanupErrors.push(error));
+    if(next&&next.view&&next.root.isConnected){full=next;next.setFull(true).catch(error=>cleanupErrors.push(error));}
   }};
   function scan(){
     if(disposed||!owner.active())return;
@@ -204,6 +232,7 @@ export function createAnswerRegistry({document,window,owner,css}){
   function mutations(records){
     if(disposed)return;
     for(const record of records){
+      if(record.type==='attributes'){schedule();continue;}
       const root=answerRootOf(record.target);
       const controller=root&&byRoot.get(root);
       if(controller&&controllers.has(controller)&&controller.content.contains(record.target)){
@@ -226,16 +255,19 @@ export function createAnswerRegistry({document,window,owner,css}){
       previous.button.focus();event.preventDefault();
     }
   };
-  function destroy(){
-    if(disposed)return;disposed=true;
+  async function destroy(){
+    if(disposed){await Promise.all([...retiring]);return;}disposed=true;
     coordinator.setFull(null);
     for(const controller of controllers)controller.destroy();
     controllers.clear();
+    await Promise.all([...retiring]);
+    if(cleanupErrors.length)throw new AggregateError(cleanupErrors,"E_XMIND_CLEANUP");
   }
   function start(){
     if(disposed)throw new Error('E_MINDMAP_DESTROYED');
     owner.observe(document.documentElement,mutations,
-      {subtree:true,childList:true,characterData:true});
+      {subtree:true,childList:true,characterData:true,attributes:true,
+        attributeFilter:['data-is-streaming','aria-busy','data-message-id']});
     owner.on(window,'keydown',keydown);
     owner.observe(document.documentElement,()=>schedule(),
       {attributes:true,attributeFilter:['class','data-theme']});

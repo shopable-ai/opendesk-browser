@@ -68,7 +68,8 @@ test('long or unsafe text remains plain bounded data; never parsed as HTML',()=>
   const payload='<img src=x onerror=alert(1)> '+('长'.repeat(10000));
   const {tree,truncated}=extractAnswerTree(e('div',e('h1','主标题'),e('p',payload)));
   assert.equal(truncated,true);
-  assert.ok(tree.children[0].content.startsWith('<img src=x onerror=alert(1)>'));+  assert.ok(tree.children[0].content.length<=1200);
+  assert.ok(tree.children[0].content.startsWith('<img src=x onerror=alert(1)>'));
+  assert.ok(tree.children[0].content.length<=1200);
 });
 
 test('large lists never exceed the fixed node quota',()=>{
@@ -76,4 +77,25 @@ test('large lists never exceed the fixed node quota',()=>{
   const out=extractAnswerTree(e('div',e('ul',...lines)));
   assert.equal(out.nodeCount,159);
   assert.equal(out.truncated,true);
+});
+
+test('opening bare text survives headings; inline links and bold retain visible text',()=>{
+  const out=extractAnswerTree(e('div','开头正文',e('h2','Heading'),e('p','阅读 ',e('a','链接'),e('strong','加粗'))));
+  assert.equal(out.tree.children[0].title,'开头正文');
+  assert.equal(out.tree.children[1].content,'阅读 链接加粗');
+});
+test('nested table inside a list is not discarded',()=>{
+  const out=extractAnswerTree(e('div',e('ul',e('li','Item',e('table',e('tr',e('td','A'),e('td','B')))))));
+  assert.equal(out.tree.children[0].children[0].kind,'table');
+  assert.equal(out.tree.children[0].children[0].children[0].title,'A ｜ B');
+});
+test('note budget includes separators and does not split emoji surrogate pairs',()=>{
+  const out=extractAnswerTree(e('div',e('h2','Heading'),e('p','a'.repeat(1198)),e('p','😀😀')));
+  assert.ok(out.tree.children[0].content.length<=1200);
+  assert.ok(!/[\uD800-\uDBFF]$/.test(out.tree.children[0].content));
+  assert.equal(out.truncated,true);
+});
+
+test('excluded-only DOM does not leak script/style text through a fallback',()=>{
+  assert.equal(extractAnswerTree(e('div',e('script','private script'),e('style','css'))).nodeCount,0);
 });
