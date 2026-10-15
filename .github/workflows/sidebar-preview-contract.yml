@@ -81,7 +81,7 @@ jobs:
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
         run: node scripts/tests/sidebar-preview-runtime-chrome.mjs artifacts/preview-chrome
-      - name: AdBlock source-bound preview interactions in real headless Chrome
+      - name: AdBlock offline DOM and message preview in Chrome (not user gesture)
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
         run: node scripts/tests/adblock-preview-chrome.mjs artifacts/preview-chrome
