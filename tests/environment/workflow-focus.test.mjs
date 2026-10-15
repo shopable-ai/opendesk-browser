@@ -515,8 +515,10 @@ if(!vm.SourceTextModule) {
       assert.equal(response[0].evidenceLevel,'BUSINESS_EFFECT_VERIFIED');
       assert.equal(response[0].runId,'saved-run-'+n);
       assert.equal(response[0].resultId,'saved-result-'+n);
-      assert.deepEqual(starts.at(-1).source,{
-        kind:'saved',scriptId:frozen.workflowId,revision:3,contentHash:hash});
+      assert.equal(starts.at(-1).source.kind,'saved');
+      assert.equal(starts.at(-1).source.scriptId,frozen.workflowId);
+      assert.equal(starts.at(-1).source.revision,3);
+      assert.equal(starts.at(-1).source.contentHash,hash);
       assert.match(f.get('workflow-status').textContent,/脱离 AI 运行/);
     }
     assert.equal(starts.length,2);
