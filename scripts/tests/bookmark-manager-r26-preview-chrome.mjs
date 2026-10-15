@@ -186,7 +186,7 @@ async function exercise(mode){
     x.textContent.includes('0001')),'second search');
   q('bm-list').querySelector('.bm-entry').click();
   await wait(()=>!q('bm-draft-guard').hidden,'protect dirty switch');
-  check(q('bm-form-view').hidden&&!q('bm-inspector-read').hidden===false,
+  check(q('bm-form-view').hidden&&q('bm-inspector-read').hidden,
     'switching away from dirty editor hides form rather than editing the clicked item');
   check(q('bm-draft-context').textContent.includes('模拟书签 0001')&&
     q('bm-draft-context').textContent.includes('未保存'),
