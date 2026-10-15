@@ -1,4 +1,4 @@
-name: Prompt Shortcuts R1.4 scoped tests
+name: Prompt Shortcuts R1.5 scoped tests and portable v2 package
 
 on:
   push:
@@ -42,3 +42,29 @@ jobs:
           node --check examples/sidebar-tools/prompt-shortcuts/trusted/model.js
           node --check examples/sidebar-tools/prompt-shortcuts/trusted/page.js
           node --check examples/sidebar-tools/prompt-shortcuts/trusted/policy.js
+      - name: Build and validate real portable v2 tool package
+        run: |
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/prompt-shortcuts --out artifacts/sidebar-tools/prompt-shortcuts/1.0.0/prompt-shortcuts.opendesk-tool.json
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {createHash} from 'node:crypto';
+          import {readFileSync} from 'node:fs';
+          import {validateSidebarToolPackage} from './src/ui/sidebar-tools/package.js';
+          const path='artifacts/sidebar-tools/prompt-shortcuts/1.0.0/prompt-shortcuts.opendesk-tool.json';
+          const bytes=readFileSync(path);
+          const pkg=validateSidebarToolPackage(JSON.parse(bytes.toString('utf8')));
+          assert.equal(pkg.id,'prompt-shortcuts');
+          assert.equal(pkg.version,'1.0.0');
+          assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
+          assert(pkg.capabilities.includes('page.prompts'));
+          assert(pkg.capabilities.includes('browser.contextMenu'));
+          assert.equal(pkg.contributes.contextMenus.length,1);
+          assert.equal(pkg.scripts.length,1);
+          console.log('PROMPT_SHORTCUTS_PORTABLE_V2_PACKAGE_PASS',bytes.length,createHash('sha256').update(bytes).digest('hex'));
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: prompt-shortcuts-v2-${{ github.sha }}
+          path: artifacts/sidebar-tools/prompt-shortcuts/1.0.0/prompt-shortcuts.opendesk-tool.json
+          if-no-files-found: error
+          retention-days: 7
