@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {emptyWorkflow} from '../../src/framework/workflow/contract.js';
 import {compileWorkflow} from '../../src/framework/workflow/compiler.js';
-import {prepareDirectExecution,verifyDirectExecutionReceipt,directExecutionEvidenceLevel} from '../../src/ui/workflow/direct-execution.js';
+import {prepareDirectExecution,verifyDirectExecutionReceipt,directExecutionEvidenceLevel,verifyDirectFillReadbacks,verifySearchBusinessEffect} from '../../src/ui/workflow/direct-execution.js';
 const origin='https://example.test';
 const target={windowId:1,tabId:2,frameId:0,documentId:'doc-1',url:origin+'/form',origin};
 const hash='a'.repeat(64);
@@ -64,9 +64,9 @@ test('a single send may fill and click search, but literals cannot authorize ext
     {code:'E_AI_UNREQUESTED_ACTION'});
   const afterAssert=workflow([...search.steps,{stepId:'assert',op:'assert',locatorKind:'css',
     selector:'#result',text:'OpenDesk'}]);
-  assert.equal(prepareDirectExecution({
+  assert.throws(()=>prepareDirectExecution({
     request:'填入 OpenDesk 并点击搜索按钮',workflow:afterAssert,target
-  }).hasUnprovenClick,true);
+  }),{code:'E_AI_REVIEW_REQUIRED'}); // A stale Document cannot license a post-click assert.
 });
 test('a harmless fill can contain a sensitive-sounding literal without granting effects',()=>{
   const plain=workflow([{...fill,text:'删除'}]);
@@ -152,4 +152,84 @@ test('proposal, durable receipt, and observed input effect remain different evid
     'BUSINESS_EFFECT_VERIFIED');
   assert.equal(directExecutionEvidenceLevel({receiptVerified:true,hasReadback:true,
     hasUnprovenClick:true}), 'EXECUTION_RECEIPT_VERIFIED');
+});
+
+
+test('a final observed search button exposes only a bounded effect expectation',()=>{
+  const searchClick={stepId:'search',op:'click',locatorKind:'role',selector:'button',roleName:'搜索'};
+  const w=workflow([{...fill,text:'OpenDesk'},searchClick]);
+  const observation={summary:{origin,documentId:target.documentId,nodes:[
+    {role:'button',name:'搜索',state:{visible:true},
+      locator:{kind:'role',value:'button',name:'搜索'}}
+  ]}};
+  const accepted=prepareDirectExecution({request:'在搜索框填入 OpenDesk 并点击搜索',
+    workflow:w,target,observation});
+  assert.deepEqual(accepted.effectExpectation,{kind:'search-results-v1',query:'OpenDesk'});
+  const unobserved=prepareDirectExecution({request:'在搜索框填入 OpenDesk 并点击搜索',
+    workflow:w,target});
+  assert.equal(unobserved.effectExpectation,null);
+  assert.equal(prepareDirectExecution({request:'在搜索框填入 OpenDesk',
+    workflow:workflow([{...fill,text:'OpenDesk'}]),target}).effectExpectation,null);
+  assert.throws(()=>prepareDirectExecution({request:'在搜索框填入 OpenDesk 并点击搜索',
+    workflow:workflow([searchClick,{...fill,text:'OpenDesk'}]),target,observation}),
+  {code:'E_AI_REVIEW_REQUIRED'});
+});
+
+test('direct fill proof checks decoded readback values for every step',()=>{
+  const w=workflow([{...fill,text:'OpenDesk'},{...fill,stepId:'fill-2',selector:'#second',text:'Desk'}]);
+  const values={'fill-1':{kind:'input-readback',matched:true,value:'OpenDesk'},
+    'fill-2':{kind:'input-readback',matched:true,value:'Desk'}};
+  assert.equal(verifyDirectFillReadbacks({workflow:w,values}),true);
+  for(const bad of [
+    {'fill-1':values['fill-1']},
+    {...values,'fill-2':{...values['fill-2'],value:'unexpected'}},
+    {...values,'fill-2':{...values['fill-2'],matched:false}},
+    {...values,'fill-1':{kind:'assert',matched:true,value:'OpenDesk'}},
+  ])assert.equal(verifyDirectFillReadbacks({workflow:w,values:bad}),false);
+  assert.equal(verifyDirectFillReadbacks({workflow:workflow([]),values}),false);
+});
+
+test('search oracle requires a new visible result state and a verified post-click observation',()=>{
+  const before={summary:{origin,documentId:target.documentId,
+    nodes:[{role:'link',name:'Home',state:{visible:true},locator:{kind:'role',value:'link',name:'Home'}}]}};
+  const resultTarget={...target,documentId:'doc-results',url:origin+'/search?q=OpenDesk'};
+  const resultLink={role:'link',name:'OpenDesk documentation',state:{visible:true},
+    locator:{kind:'role',value:'link',name:'OpenDesk documentation'}};
+  const resultHeading={role:'heading',name:'Search results',state:{visible:true}};
+  const after={format:'opendesk.workflow-observation.v1',runId:'observe-after',resultId:'result-after',
+    sourceHash:hash,summary:{origin,documentId:resultTarget.documentId,
+      nodes:[resultHeading,resultLink]}};
+  const args={expectation:{kind:'search-results-v1',query:'OpenDesk'},
+    before,after,actionTarget:target,resultTarget};
+  assert.deepEqual(verifySearchBusinessEffect(args),
+    {kind:'search-results',visibleResultLinks:1});
+  for(const bad of [
+    {...args,resultTarget:{...resultTarget,tabId:99}},
+    {...args,resultTarget:{...resultTarget,origin:'https://evil.test'}},
+    {...args,after:{...after,runId:null}},
+    {...args,after:{...after,summary:{...after.summary,documentId:'other'}}},
+    {...args,after:{...after,summary:{...after.summary,nodes:[resultLink]}}},
+    {...args,after:{...after,summary:{...after.summary,nodes:[resultHeading]}}},
+    {...args,resultTarget:{...resultTarget,url:origin+'/search?q=Different'}},
+    {...args,before:{summary:{...before.summary,documentId:'old-doc'}}}
+  ])assert.equal(verifySearchBusinessEffect(bad),null);
+  const empty={...after,summary:{...after.summary,nodes:[
+    {role:'status',name:'没有找到搜索结果',state:{visible:true}}]}};
+  assert.deepEqual(verifySearchBusinessEffect({...args,after:empty}),
+    {kind:'search-empty',visibleResultLinks:0});
+  const unchanged={...args,resultTarget:target,after:{...after,summary:{
+    ...after.summary,documentId:target.documentId}}};
+  assert.equal(verifySearchBusinessEffect(unchanged),null);
+});
+
+test('search evidence does not promote an unverified run or unrelated click',()=>{
+  assert.equal(directExecutionEvidenceLevel({
+    receiptVerified:true,hasUnprovenClick:true,searchEffectVerified:true
+  }),'BUSINESS_EFFECT_VERIFIED');
+  assert.equal(directExecutionEvidenceLevel({
+    receiptVerified:false,hasUnprovenClick:true,searchEffectVerified:true
+  }),'PROPOSAL_VALID');
+  assert.equal(directExecutionEvidenceLevel({
+    receiptVerified:true,hasUnprovenClick:true,hasReadback:true
+  }),'EXECUTION_RECEIPT_VERIFIED');
 });
