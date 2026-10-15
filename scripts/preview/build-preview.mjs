@@ -200,7 +200,10 @@ export async function generatePreview({
       '.preview-diagnostic-area p{overflow-wrap:anywhere}'
     ].join('\n');
     const headClose='</head>';
-    if(outputHtml.split(headClose).length!==2||!outputHtml.endsWith('</body></html>'))
+    // The checked-in shell intentionally ends with a trailing newline.
+    if(outputHtml.split(headClose).length!==2||
+      !outputHtml.trimEnd().endsWith('</body></html>')||
+      outputHtml.split('</body></html>').length!==2)
       fail('canonical head/body markers changed');
     outputHtml=outputHtml.replace(headClose,
       '<style id="od-preview-bookmark-lab-style">\n'+labCss+'\n</style>\n'+headClose);
