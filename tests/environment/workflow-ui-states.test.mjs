@@ -201,3 +201,10 @@ test('R5.2 unsaved workflow starts a non-modal explicit discard or cancel review
   assert.match(css,/\.workflow-new-review\[hidden\]\{display:none!important\}/);
   assert.doesNotMatch(view,/(?:globalThis\.|window\.)?confirm\s*\(/);
 });
+
+test('later AI Send retains committed Controller revision for optimistic Save',async()=>{
+  const view=await file('src/ui/workflow/workflow-view.js');
+  assert.match(view,/const previous=revision\?\.workflow\?\.workflowId===freeze\.workflow\.workflowId\?revision\.revision:0/);
+  assert.match(view,/workflow=structuredClone\(result\);touched=true;lastTrustedRun=null/);
+  assert.doesNotMatch(view,/workflow=structuredClone\(result\);touched=true;revision=null/);
+});
