@@ -33,6 +33,7 @@
     mount.innerHTML=snapshots[name];
   }
   function notifySandbox(){
+    if(scenario==='untrusted')return; // preserve malicious-string fixture without changing production state
     frame.contentWindow?.postMessage({type:'opendesk.preview.adblock.state',
       enabled:state.enabled,exceptions:[...state.exceptions]},'*');
   }
@@ -67,7 +68,10 @@
   window.addEventListener('message',event=>{
     if(event.source!==frame.contentWindow||!event.data||typeof event.data!=='object')return;
     const message=event.data;
-    if(message.type==='opendesk.preview.adblock.restore-request'){
+    if(message.type==='opendesk.preview.adblock.height'){
+      if(Number.isFinite(message.height)&&message.height>=0&&message.height<100000)
+        frame.style.height=Math.max(140,Math.min(1600,Math.ceil(message.height)))+'px';
+    }else if(message.type==='opendesk.preview.adblock.restore-request'){
       if(!live||!Number.isSafeInteger(message.requestId)||message.requestId<1||
          message.host!=='news.example.com'||pending)return;
       pending={requestId:message.requestId,host:message.host};
