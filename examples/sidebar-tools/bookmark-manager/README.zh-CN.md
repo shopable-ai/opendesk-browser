@@ -4,6 +4,14 @@
 
 本项目 `examples/sidebar-tools/bookmark-manager/` 是唯一独立书签工具业务源码：`tool.config.json`、`src/index.html`、`src/style.css`、`src/model.js`、`src/service.js`、`src/main.js`。继续使用官方 Sidebar Tool v2 打包器、Opaque Origin iframe 和 `OpenDeskSDK.browser.bookmarks.*`；没有私有 Host、第二套 SDK 或直接 `chrome.*` 调用。
 
+
+## 需求与预览归档入口（2026-10-15）
+
+- **[正式产品与交互需求](REQUIREMENTS.zh-CN.md)**：记录书签树、只读选择、显式编辑、脏草稿保护、权限和安全删除，以及后续改进的验收边界。
+- **[R2.8 历史候选预览](preview/index.html)**：存储从 CI `f76dab1b` 原样保存的 360px 可操作离线 HTML。**用户认为这一版视觉/交互质量仍不理想；仅作版本留存，尚未批准为最终设计。**
+- 该 HTML 的原始 SHA-256 为 `16792a707abfba8b1d6564fa0ad7b671e59aea4e3679594fd5c4bc259e8765b2`。它是旧候选的快照，不是可安装包，也不随最新 `main` 自动更新；生产 UI 仍由 `src/` 和 `tool.config.json` 唯一决定。
+- 下一轮视觉优化先对照这个保存版本提出新候选并征得确认，不得误删、迁移到非扩展目录或无理由覆盖归档版本；所有评审、版本和来源都记录在 `REQUIREMENTS.zh-CN.md` 中。
+
 ## 当前 R11.2 合同与安装状态
 
 2026-10-15 的 R11.2 提交 `b63c9e3c` 为正式 Registry、Schema、Host、独立 `browser.bookmarks.full` 和安装工具的可信书签授权按钮完成了**源码接线**。独立 Full 与 Owned 的 `browser.bookmarks.createOwned/removeOwned` 是不同权限；Chrome manifest 已声明 optional `bookmarks`，安装工具的声明并不等于用户已批准 Full 或 Chrome 权限。
