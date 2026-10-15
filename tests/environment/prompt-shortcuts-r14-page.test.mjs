@@ -165,3 +165,31 @@ test('R1.5 IME composition prevents edit; corrupted line breaks never count as i
     assert.equal(f.calls.length,1,'never retry an ambiguous native insert automatically');
   }finally{controller?.dispose();}
 });
+
+test('R1.5 reconstructs sibling editor paragraphs and empty lines without relying on flattened textContent',async()=>{
+  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const model=globalThis.OpenDeskPromptShortcutsModel;
+  const row=model.draft({body:'第一行\n\n第三行'},null,()=> 'prompt-r15-blocks');
+  const grant=await changePromptSiteGrant({},pkg,'first',true);
+  const f=fixture({pkg,grants:grant,library:{schema:1,items:[row],settings:{webButtons:true}},
+    insertText:(node,value)=>{
+      assert.equal(value,'\n第一行\n\n第三行');
+      const children=value.split('\n').slice(1).map(part=>({
+        tagName:'P',innerText:part||'\n',textContent:part
+      }));
+      node.children.push(...children);
+      // The real DOM's textContent drops the structural <p> line breaks.
+      node.textContent=node.children.map(part=>part.textContent).join('');
+    }});
+  f.editor.children=[{tagName:'P',innerText:'已有草稿',textContent:'已有草稿'}];
+  const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
+  try{
+    await settle();assert.equal(f.buttons().length,1);
+    f.buttons()[0].emit('click',{isTrusted:true});await settle();
+    assert.equal(f.calls.length,1);
+    assert.equal(f.editor.textContent,'已有草稿第一行第三行');
+    const host=f.root.children.find(item=>item.attributes['data-opendesk-prompts']!==undefined);
+    const fallback=host?.shadow?.children.find(item=>item.className==='fallback');
+    assert.equal(fallback?.hidden,true,'complete structural newlines validate successfully');
+  }finally{controller?.dispose();}
+});
