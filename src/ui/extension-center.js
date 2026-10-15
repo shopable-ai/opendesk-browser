@@ -18,7 +18,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   let disposed=false,sequence=0,busy=false,pendingKey=null,installed=[],pages=[],enabled={},official=[];
   let appStatusKnown=false,pageStatusKnown=false;
   let sources={};
-  let catalogError='',dataError='',hasLoaded=false,query='',kind='all',scope='smart',selectedKey=null;
+  let catalogError='',dataError='',statusOrigin='loading',hasLoaded=false,query='',kind='all',scope='smart',selectedKey=null;
   let listScroll=0,focusKey=null,focusAction=null,detailFocusAction=null;
   const node=(tag,cls='',value)=>{const element=doc.createElement(tag);if(cls)element.className=cls;
     if(value!==undefined)element.textContent=String(value);return element;};
@@ -37,7 +37,9 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   const typeOf=row=>row.kind==='page'?'网页增强':'应用';
   const all=()=>composeExtensionEntries({installed,pages,official,enabled,appStatusKnown,pageStatusKnown});
   const find=key=>all().find(row=>row.key===key);
-  const message=(value='',state='info')=>{notice.textContent=value;notice.dataset.state=state;};
+  const message=(value='',state='info',origin='action')=>{
+    statusOrigin=origin;notice.textContent=value;notice.dataset.state=state;
+  };
   function closeMenu(returnFocus=false){menu.hidden=true;more.setAttribute('aria-expanded','false');if(returnFocus)more.focus({preventScroll:true});}
   function showMenu(){menu.hidden=false;more.setAttribute('aria-expanded','true');}
   function syncFilters(){
@@ -329,16 +331,20 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       pages=response.catalog;pageStatusKnown=true;
     }catch(error){pageStatusKnown=false;errors.push('网页增强：'+String(error?.message||error));}
     dataError=errors.join('；');hasLoaded=true;
-    if(dataError)message('读取失败，保留最近一次显示。'+dataError,'error');
-    else if(notice.dataset.state==='error'||notice.dataset.state==='loading')
+    if(dataError)message('读取失败，保留最近一次显示。'+dataError,'error','read');
+    else if(statusOrigin==='read'||statusOrigin==='loading'||statusOrigin==='catalog')
       message(catalogError?'官方目录暂不可用：'+catalogError:'',
-        catalogError?'error':'info');
+        catalogError?'error':'info',catalogError?'catalog':'read');
     draw();if(selectedKey)renderDetail();
   }
   async function readOfficial(){
-    try{const result=await loadOfficialCatalog({api});if(!disposed){official=result.apps;catalogError='';draw();}}
+    try{const result=await loadOfficialCatalog({api});if(!disposed){
+      official=result.apps;catalogError='';
+      if(statusOrigin==='catalog'&&!dataError)message('','info','read');
+      draw();
+    }}
     catch(error){if(!disposed){catalogError=String(error?.message||error);
-      message('内置官方目录暂不可用，不会显示或安装未经核验的候选：'+catalogError,'error');draw();}}
+      message('内置官方目录暂不可用，不会显示或安装未经核验的候选：'+catalogError,'error','catalog');draw();}}
   }
   const languageInput=get('extension-center-language');
   const syncLanguage=()=>{if(disposed)return;
@@ -361,7 +367,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     closeMenu();backIfNeeded();sidebarTools.openImport();get('sidebar-tool-file')?.focus({preventScroll:true});
   });
   get('extension-center-reload').addEventListener('click',()=>{
-    closeMenu();void readOfficial();void refresh();
+    closeMenu();message('正在刷新扩展…','loading','loading');void readOfficial();void refresh();
   });
   get('extension-center-market').addEventListener('click',()=>openMarket());
   get('extension-center-back').addEventListener('click',back);
@@ -397,7 +403,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   };
   api.storage.onChanged?.addListener(storageChanged);
   const connChanged=client.subscribeConnection?.(state=>{if(state.connected)void refresh();});
-  message('正在读取已安装扩展与授权状态…','loading');draw();
+  message('正在读取已安装扩展与授权状态…','loading','loading');draw();
   void readOfficial();void refresh();
   return {refresh,dispose(){disposed=true;sequence++;closeRowMenu();rowMenu.remove();
     doc.removeEventListener('click',clickOutside);

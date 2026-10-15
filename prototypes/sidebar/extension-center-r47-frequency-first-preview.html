@@ -138,14 +138,13 @@ const initial=[
 let items=initial.map(x=>({...x})),scenario='normal',selected=null,menuTrigger=null,menuId=null,kind='all',scope='smart';
 const el=(tag,cls='',text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=String(text);return n;};
 const btn=(text,callback,cls='')=>{const b=el('button',cls,text);b.type='button';b.addEventListener('click',callback);return b;};
-const primary=row=>scenario!=='busy'&&row.installed&&row.kind==='app'&&row.enabled===true&&row.known?'打开':null;
+const primary=row=>row.installed&&row.kind==='app'&&row.enabled===true&&row.known?'打开':null;
 const label=row=>row.kind==='page'?'网页增强':'应用';
 const visible=()=>items.filter(row=>{
  if(scenario==='empty')return false;
  if(scenario==='disabled'&&row.id!=='prompt')return false;
  if(scenario==='page'&&row.kind!=='page')return false;
  if(scenario==='unknown'&&!['unknown','restricted'].includes(row.id))return false;
- if(scenario==='busy'&&row.id!=='notes')return false;
  if(scenario==='candidate'&&row.id!=='candidate')return false;
  if(kind!=='all'&&row.kind!==kind)return false;
  if(scope==='local'&&!row.installed)return false;
@@ -166,6 +165,7 @@ function syncFilters(){
  $('preview-more').dataset.active=String(kind!=='all'||scope!=='smart');
 }
 function open(row){
+ if(scenario==='busy')return;
  closeGlobalMenu();
  if(primary(row)){say('模拟打开「'+row.title+'」；正式产品由可信工具宿主启动。');return;}
  selected=row.id;render();
@@ -176,6 +176,7 @@ function closeMenu(focus){
  if(focus&&old?.isConnected)old.focus({preventScroll:true});
 }
 function openMenu(row,trigger){
+ if(scenario==='busy')return;
  closeGlobalMenu();
  if(!menu.hidden&&menuId===row.id){closeMenu(true);return;}
  closeMenu(false);menuId=row.id;menuTrigger=trigger;trigger.setAttribute('aria-expanded','true');
@@ -236,23 +237,23 @@ function render(){
  for(const row of rows){
    const li=el('li','ec-row');li.dataset.extensionId=(row.kind==='app'?'app:':'page:')+row.id;
    if(primary(row))li.classList.add('ec-row--has-primary');
-   const processing=scenario==='busy'&&row.id==='notes';
+   const processing=scenario==='busy'&&row.id==='notes',blocked=scenario==='busy';
    if(processing)li.setAttribute('aria-busy','true');
    const main=btn('',()=>open(row),'ec-row-main');main.setAttribute('aria-label',(primary(row)||'查看详情')+'「'+row.title+'」');
    main.dataset.extensionKey=li.dataset.extensionId;main.dataset.extensionAction='main';
-   main.disabled=processing;
+   main.disabled=blocked;
    const glyph=el('span','ec-glyph',row.kind==='page'?'◇':'▦'),copy=el('span','ec-copy'),line=el('span','ec-name-line');
    const name=el('span','ec-name');name.append(el('span','ec-name-text',row.title));
  line.append(name,el('span','ec-type',label(row)));
    copy.append(line,el('span','ec-description',status(row)));main.append(glyph,copy);
    const actions=el('span','ec-row-actions');
    if(primary(row)){const primaryButton=btn('打开',()=>open(row),'ec-action od-button od-button--secondary');
-     primaryButton.dataset.extensionKey=li.dataset.extensionId;primaryButton.dataset.extensionAction='primary';actions.append(primaryButton);}
+     primaryButton.dataset.extensionKey=li.dataset.extensionId;primaryButton.dataset.extensionAction='primary';primaryButton.disabled=blocked;actions.append(primaryButton);}
    if(row.installed){
      const more=btn('⋮',()=>openMenu(row,more),'ec-row-more od-icon-button');
      more.setAttribute('aria-label','管理「'+row.title+'」');more.setAttribute('aria-haspopup','menu');
      more.setAttribute('aria-expanded','false');more.dataset.extensionKey=li.dataset.extensionId;
-     more.dataset.extensionAction='more';more.disabled=processing;actions.append(more);
+     more.dataset.extensionAction='more';more.disabled=blocked;actions.append(more);
    }
    if(!actions.childElementCount)li.classList.add('ec-row--no-actions');
    li.append(main,actions);root.append(li);
@@ -268,7 +269,7 @@ $('preview-language').addEventListener('change',()=>say('仅模拟选择界面�
 $('preview-import').addEventListener('click',()=>{closeGlobalMenu();say('正式产品将打开可信导入审阅；此演示不读写文件。');});
 $('preview-back').addEventListener('click',()=>{selected=null;render();$('preview-search').focus();});
 $('preview-market').addEventListener('click',()=>say('正式应用市场只负责固定包审阅与安装；本页面不会安装。'));
-$('preview-reload').addEventListener('click',()=>{closeGlobalMenu();items=initial.map(x=>({...x}));selected=null;scenario='normal';kind='all';scope='smart';$('preview-search').value='';render();say('已恢复本地演示状态。');});
+$('preview-reload').addEventListener('click',()=>{closeGlobalMenu();render();say('仅模拟重新读取目录；当前搜索、筛选、详情和模拟启停状态保持不变。');});
 document.querySelectorAll('[data-scenario]').forEach(b=>b.addEventListener('click',()=>{
  scenario=b.dataset.scenario;selected=null;kind='all';scope='smart';$('preview-search').value='';render();
 }));

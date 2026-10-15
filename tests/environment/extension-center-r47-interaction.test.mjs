@@ -381,6 +381,36 @@ test('R4.8 detail actions use the official secondary button without a duplicate 
   assert.match(css,/\.ec-detail-actions \.od-button\{font-size:12px;color:var\(--od-accent-ink\)\}/);
 });
 
+test('R4.9 rejected app toggle keeps an actionable error after the mandatory registry readback',async t=>{
+  const f=fixture(t,{disabled:true});await f.ui.refresh();
+  f.sidebarTools.toggleEnabled=()=>Promise.reject(Object.assign(
+    new Error('用户取消了未保存草稿的启停操作'),{code:'E_DRAFT_CANCELLED'}));
+  f.button('app:quick-notes','more').dispatch('click');
+  f.menuItem('启用应用').dispatch('click');
+  await settle(()=>f.button('app:quick-notes','more')?.disabled===false);
+  assert.match(f.nodes['extension-center-status'].textContent,/E_DRAFT_CANCELLED/);
+  assert.equal(f.nodes['extension-center-status'].dataset.state,'error');
+  assert.equal(f.button('app:quick-notes','primary'),undefined,'cancelled enable must never launch');
+  assert.deepEqual(f.store.get(SIDEBAR_TOOL_ENABLE_STORE),{[app.id]:false});
+  await f.ui.refresh();
+  assert.match(f.nodes['extension-center-status'].textContent,/E_DRAFT_CANCELLED/,
+    'a successful background read must not erase the failed user action');
+});
+
+test('R4.9 rejected Page grant remains visible after unrelated refresh',async t=>{
+  const f=fixture(t);await f.ui.refresh();
+  f.programs[0].installed.enabled=false;
+  await f.ui.refresh();f.setAllowed(false);
+  f.button('page:reader','more').dispatch('click');
+  f.menuItem('启用自动运行').dispatch('click');
+  await settle(()=>f.nodes['extension-center-status'].textContent.includes('E_PERMISSION'));
+  assert.equal(f.writes.length,0,'missing grant must not reach Page Authority mutation');
+  await f.ui.refresh();
+  assert.match(f.nodes['extension-center-status'].textContent,/E_PERMISSION/,
+    'a refreshed list must not hide a real permission rejection');
+  assert.equal(f.programs[0].installed.enabled,false);
+});
+
 test('R4.8 source-bound prototype has the identical production toolbar and shell styles',async()=>{
   const [html,preview]=await Promise.all([
     readFile('src/ui/tool.html','utf8'),
@@ -402,4 +432,11 @@ test('R4.8 source-bound prototype has the identical production toolbar and shell
   assert.match(preview,/SIMULATED_PREVIEW \/ NOT_NATIVE_CHROME/);
   assert.match(preview,/globalMenu\.hidden/);
   assert.doesNotMatch(preview,/class="tabs"/);
+  assert.doesNotMatch(preview,/scenario==='busy'&&row\.id!=='notes'/,
+    'busy preview must keep unrelated rows visible just like the product');
+  assert.match(preview,/main\.disabled=blocked/);
+  assert.match(preview,/primaryButton\.disabled=blocked/);
+  assert.match(preview,/more\.disabled=blocked/);
+  assert.doesNotMatch(preview,/scenario='normal';kind='all';scope='smart'/,
+    'refresh must preserve user filters and current scenario');
 });
