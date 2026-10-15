@@ -229,6 +229,7 @@ test('R4.7 missing Page grant forbids enable; unreadable app status never fabric
   // First turn Page off through its installed authority.
   f.button('page:reader','more').dispatch('click');f.menuItem('停用自动运行').dispatch('click');
   await settle(()=>f.programs[0].installed.enabled===false);
+  await settle(()=>f.button('page:reader','more')?.disabled===false);
   await f.ui.refresh();f.setAllowed(false);
   f.button('page:reader','more').dispatch('click');f.menuItem('启用自动运行').dispatch('click');
   await settle(()=>f.nodes['extension-center-status'].textContent.includes('E_PERMISSION'));
@@ -284,4 +285,18 @@ test('R4.7 async app toggle is single-flight and exposes processing without a se
   assert.equal(f.button('app:quick-notes','more').disabled,false);
   assert.equal(f.list.children.find(node=>node.dataset.extensionId==='app:quick-notes')
     .textContent.includes('处理中'),false);
+});
+
+
+test('R4.7 menu detail Back restores the menu origin independent of pointer focus',async t=>{
+  const f=fixture(t);await f.ui.refresh();
+  const more=f.button('page:reader','more');
+  more.dispatch('click');
+  const detail=f.menuItem('查看详情');
+  f.doc.activeElement=f.nodes['extension-center-search'];
+  detail.dispatch('click');
+  assert.equal(f.nodes['extension-center-detail'].hidden,false);
+  f.nodes['extension-center-back'].dispatch('click');
+  assert.equal(f.doc.activeElement.dataset.extensionKey,'page:reader');
+  assert.equal(f.doc.activeElement.dataset.extensionAction,'more');
 });
