@@ -263,3 +263,18 @@ F-BM-000 书签管理
 - 本轮调整属于源码所有权和工作流编排入口迁移；旧 65/65 Node、13 个离线 Chrome 结果仅是当时同候选历史证据。**迁移后结果以新 CI 为准；模型现场推理/gh-aw 运行以及真实 Chrome 安装仍为 NOT_TESTED。**
 - 基线（写入前）`main@700764a1022edb003b3082f06a087fe94cf6320e`；与其他 Agent 并行时，只更新上述明确文件，不强制覆盖最新 main。
 
+
+## R2.2 .agents/workflows 迁移与 gh-aw 实际编译闭环（2026-10-15）
+
+**实际写入范围和所有权**：唯一可复用 AI 工作流现为 [`.agents/workflows/extension-creation.md`](../../../.agents/workflows/extension-creation.md)。原 `docs/framework/browser-tool-creation-workflow.zh-CN.md` 缩为旧链接兼容导航；历史 R2/R2.1 全部规则保留在新文件，`workstreams/` 继续仅保存证据。根 `AGENTS.md` 新增唯一入口指引；`.agents/skills/README.md`、开发 Skill、`docs/api/sidebar-tool-development.zh-CN.md`、R2.1 追踪测试与既有 Sidebar Preview CI 均更新来源路径。没有新建第二 Skill/Runner/SDK/Host 或业务安装器。
+
+**GitHub Agentic Workflows 正式适配**：
+- [`.github/workflows/extension-creation-intake.md`](../../../.github/workflows/extension-creation-intake.md)：`workflow_dispatch` 输入一句话，`imports: /.agents/workflows/extension-creation.md` 编译期复用唯一规范。采用 `engine: copilot`、`contents: read`、`copilot-requests: write`（仅用于模型推理计费授权）、`safe-outputs.upload-artifact`，**不提供仓库写入、PR、静默安装或发布**；默认不计划触发。实际模型执行需拥有组织 Copilot 推理权限，未验证账户授权时标 `MODEL_RUN_NOT_TESTED`。
+- [`.github/workflows/extension-creation-intake.lock.yml`](../../../.github/workflows/extension-creation-intake.lock.yml) 是真正 `github/gh-aw@v0.92.0` 在 GitHub Actions 编译生成并恢复的 **131250 字节**原始文件，不是人工编造。首次官方编译 [run #38747263061](https://github.com/shopable-ai/opendesk-browser/actions/runs/38747263061) 的 `gh aw compile extension-creation-intake` **PASS**；同轮首次“检查已提交锁文件”因尚未提交而按预期 FAIL，并在成功生成后正常补交锁文件 `f4a6d71e`。
+- 现有 [`.github/workflows/agent-skills-governance.yml`](../../../.github/workflows/agent-skills-governance.yml) 增加官方 CLI 编译和 `git diff` 新鲜度校验，不再打印临时锁文件内容；在提交 `f4a6d71e` 后的 [run #38747741250](https://github.com/shopable-ai/opendesk-browser/actions/runs/38747741250) **SUCCESS**，移除临时导出后的 [run #38747816713](https://github.com/shopable-ai/opendesk-browser/actions/runs/38747816713) **SUCCESS**。这只证明真正编译和稳定性，并非 gh-aw 已调用 Copilot 或已生成/安装工具。
+- 首次归属迁移提交 [`f1130454`](https://github.com/shopable-ai/opendesk-browser/commit/f11304545b37ad1c82c5340a307b1be35cab37ba)，CI 接线 [`2e1743a1`](https://github.com/shopable-ai/opendesk-browser/commit/2e1743a1844132230df05b1081a3ef8ef87aa35e)，锁文件 [`f4a6d71e`](https://github.com/shopable-ai/opendesk-browser/commit/f4a6d71e710a75353ce2a32d2d904a6419e4857a)，正式编译检查收敛 [`75ac5d36`](https://github.com/shopable-ai/opendesk-browser/commit/75ac5d36a3e8d31f6f2ac8db55bea8306011e3a6)，根入口 [`9732cd20`](https://github.com/shopable-ai/opendesk-browser/commit/9732cd20ac08e9f0e3bd7dd8b2dbbb2f71c2dabb)。均是 `main` 非强制提交。
+
+**证据分级与并行边界**：迁移后原 `sidebar-preview-contract` 的新运行 [#38746996098](https://github.com/shopable-ai/opendesk-browser/actions/runs/38746996098) 中 Node 追踪及 Quick Notes 离线 Chrome 已 PASS，但最终 Job 因独立 AdBlock 交互预览的 `fail-closed permission-denied` 断言失败，**总体仍 FAIL**；与本流程目录迁移无关，不擅修其他 owner 的 AdBlock。并行 Agent 同时修改 `tests/environment/browser-tool-creation-workflow-r21.test.mjs`，本轮一次可选额外测试写入遭遇 GitHub 409，已停止覆盖并保留对方改动。真实用户一句话触发 Copilot、真实源码开发、Mac Chrome 安装与业务结果读回仍是 `NOT_TESTED/NOT_IMPLEMENTED`，不能冒充 95+ 产品验收。
+
+**下一最小行动**：在仓库 Actions 页主动运行已编译的 **Extension Creation Intake**，输入 Quick Notes 单句需求并核对真实模型推理结果与历史决策；只有用户授权并具备真实 Chrome 环境，才继续复用既有 Sidebar Tool 打包/安装链验证实际数据持久化。不要创建另一个总 Workflow 或重新审计整仓。
+
