@@ -110,7 +110,15 @@ async function run(){
   await click('.prompt-use');x=await state();assert(x.draft.startsWith('已有内容'));report.preservedExisting=true;
   await click('.prompt-actions button[aria-label^="编辑"]');
   x=await state();assert.equal(x.editing,true);assert.equal(x.shapeInputs,0);
-  await shot('edit-440px');report.editView=true;
+  await shot('edit-440px');
+  for(const width of [320,360]){
+    await click('#size'+width);
+    x=await state();
+    assert.equal(x.width,width,'narrow form width '+width);
+    assert.equal(x.overflow,false,'narrow form has no horizontal overflow '+width);
+    await shot('edit-'+width+'px');
+  }
+  report.editView=true;
   await click('#cancelForm');assert.equal((await state()).leaving,false);
   await click('#addButton');await click('#cancelForm');
   x=await state();assert.equal(x.editing,false);assert.equal(x.leaving,false);report.pristineForm=true;
