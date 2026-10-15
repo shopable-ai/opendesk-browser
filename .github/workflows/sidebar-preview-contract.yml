@@ -16,6 +16,9 @@ on:
       - 'examples/sidebar-tools/quick-notes/**'
       - 'examples/sidebar-tools/bookmark-manager/**'
       - 'tests/environment/sidebar-preview-contract.test.mjs'
+      - 'tests/environment/browser-tool-creation-workflow-r21.test.mjs'
+      - 'docs/framework/browser-tool-creation-workflow.zh-CN.md'
+      - 'docs/framework/workstreams/browser-tool-creation-workflow-r2-20261015.md'
       - 'contracts/ui-preview/**'
       - '.github/workflows/sidebar-preview-contract.yml'
   workflow_dispatch:
@@ -42,7 +45,7 @@ jobs:
           node --check scripts/preview/bookmark-manager-mock.js
           node scripts/preview/check-preview-contract.mjs
       - name: Verify package identity, mock safety and negative guards
-        run: node --test tests/environment/sidebar-preview-shell.test.mjs tests/environment/sidebar-preview-contract.test.mjs tests/environment/sidebar-quick-notes.test.mjs tests/environment/sidebar-preview-kit.test.mjs
+        run: node --test tests/environment/sidebar-preview-shell.test.mjs tests/environment/sidebar-preview-contract.test.mjs tests/environment/sidebar-quick-notes.test.mjs tests/environment/sidebar-preview-kit.test.mjs tests/environment/browser-tool-creation-workflow-r21.test.mjs
       - name: Build official tool and offline preview matrix
         run: |
           node scripts/build-sidebar-tool.mjs examples/sidebar-tools/quick-notes --out artifacts/quick-notes-preview-proof.opendesk-tool.json
