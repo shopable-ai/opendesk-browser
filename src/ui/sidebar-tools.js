@@ -34,7 +34,7 @@ import {admitsTrustedTimeReview,TRUSTED_TIME_REVIEW_VERSION,trustedTimeReviewPro
 // Trusted Side Panel shell for untrusted, opaque-origin UI documents.
 // No user code, markup, or CSS is ever inserted into this extension document.
 export function createSidebarTools({api=globalThis.chrome,doc=globalThis.document,
-  currentPageTarget,taskWorkbench,foundationClient,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch}) {
+  currentPageTarget,taskWorkbench,foundationClient,localeController=null,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch}) {
   // Native focus controls load from an audited extension-only classic WXT entry.
   // A missing sidecar fails closed; user-owned opaque sandbox cannot supply it.
   const focus=globalThis.__opendeskStayFocusTrustedUI||null;
@@ -942,7 +942,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         if(!sameInstance(frame?.contentWindow,token))return;
       }
       frame.contentWindow.postMessage({
-        protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:token,tool},'*');
+        protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:token,tool,
+        locale:localeController?.getLocale()||'zh-CN'},'*');
     };
     frameRoot.append(frame);render();backButton.focus?.({preventScroll:true});
     notice(readOnly?'正在加载隔离只读预览（不会安装或保存）…':'正在打开「'+tool.title+'」…');
@@ -2395,6 +2396,13 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       },'*');
     });
     listeners.push(unsubscribe);
+  }
+  if(localeController?.subscribe){
+    listeners.push(localeController.subscribe(locale=>{
+      if(frame&&active&&instance)frame.contentWindow?.postMessage({
+        protocol:SIDEBAR_TOOL_PROTOCOL,kind:'locale-changed',instance,toolId:active.id,locale
+      },'*');
+    }));
   }
   render();
   return Object.freeze({ready,openTool,openSettings,toggleEnabled,openOfficialReview,openImport,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,openInTab,closeTool,setVisible,dispose(){
