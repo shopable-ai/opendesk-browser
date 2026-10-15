@@ -37,6 +37,7 @@ on:
       - 'tests/environment/sidebar-tools-host.test.mjs'
       - 'tests/environment/ai-vip-share-r2.test.mjs'
       - 'tests/environment/ai-vip-share-r21-lifecycle.test.mjs'
+      - 'tests/environment/ai-vip-share-r5-ui.test.mjs'
       - 'src/ai-smart-access/**'
       - 'src/entrypoints/sidebar-tool-host.js'
       - 'tests/environment/tool-stage.test.mjs'
@@ -114,5 +115,43 @@ jobs:
             artifacts/sidebar-tools/quick-notes/quick-notes.opendesk-tool.json
             artifacts/sidebar-tools/runtime-globals-demo/1.0.0/runtime-globals-demo.opendesk-tool.json
             dist/production/official-tools/
+            docs/framework/evidence/wxt/builds/build-production.json
+            docs/framework/evidence/wxt/builds/build-development.json
+
+  # R5 evidence stays independent: legacy R2.1 lifecycle and Cookie Editor
+  # portable-baseline failures predate this change and must remain visible red.
+  ai-vip-share-r5-candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: R5 installed UI, trusted Chrome click and canonical CSS
+        run: node --test tests/environment/ai-vip-share-r5-ui.test.mjs
+      - name: Package exact v1.1.0 AI VIP Share official tool
+        run: |
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ai-vip-share --out artifacts/sidebar-tools/ai-vip-share/1.1.0/ai-vip-share.opendesk-tool.json
+          node --input-type=module -e "import {readFileSync} from 'node:fs';const p=JSON.parse(readFileSync('artifacts/sidebar-tools/ai-vip-share/1.1.0/ai-vip-share.opendesk-tool.json','utf8'));if(p.id!=='ai-vip-share'||p.version!=='1.1.0'||!p.css.includes('opendesk.shared-design.v1'))throw Error('AI VIP R5 official design/package identity invalid');console.log('AI_VIP_SHARE_R5_TOOL_PACKAGE_PASS')"
+      - name: R5 source validation
+        run: npm run check
+      - name: R5 production and development Browser candidates
+        run: |
+          npm run build
+          cmp artifacts/sidebar-tools/ai-vip-share/1.1.0/ai-vip-share.opendesk-tool.json dist/production/official-tools/ai-vip-share/ai-vip-share.opendesk-tool.json
+          npm run build:dev
+          npm run verify
+      - name: Preserve exact R5 candidate, not native acceptance
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-vip-share-r5-candidate
+          retention-days: 7
+          if-no-files-found: error
+          path: |
+            artifacts/sidebar-tools/ai-vip-share/1.1.0/ai-vip-share.opendesk-tool.json
+            dist/production/official-tools/ai-vip-share/ai-vip-share.opendesk-tool.json
             docs/framework/evidence/wxt/builds/build-production.json
             docs/framework/evidence/wxt/builds/build-development.json
