@@ -5,6 +5,8 @@ on:
     paths:
       - 'examples/sidebar-tools/bookmark-manager/**'
       - 'docs/framework/workstreams/bookmark-manager-r2.md'
+      - 'scripts/tests/bookmark-manager-r26-preview-chrome.mjs'
+      - 'scripts/preview/bookmark-manager-mock.js'
       - 'tests/environment/bookmark-manager-r2.test.mjs'
       - 'tests/environment/bookmark-manager-r24-lifecycle.test.mjs'
       - 'tests/environment/browser-sdk-r112-full-bookmarks.test.mjs'
@@ -35,6 +37,32 @@ jobs:
         run: npm run check
       - name: Independent v2 tool package
         run: npm run build:sidebar-tool -- examples/sidebar-tools/bookmark-manager
+      # Reuse the single production-source preview runner independently of the
+      # shared AdBlock preview matrix. No second UI, bridge or preview engine.
+      # Browser extension building still follows, with every safety gate intact.
+      - name: Install CJK fonts for readable Chinese visual evidence
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk
+          fc-match 'Noto Sans CJK SC'
+      - uses: browser-actions/setup-chrome@v2
+        id: bookmark-chrome
+      - name: Bookmark Manager source-bound Chrome interaction (Mock, not installed)
+        env:
+          CHROME_BIN: ${{ steps.bookmark-chrome.outputs.chrome-path }}
+        run: node scripts/tests/bookmark-manager-r26-preview-chrome.mjs artifacts/preview-chrome
+      - name: Capture Bookmark source-bound HTML and Chrome screenshots (NOT Native)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bookmark-manager-r27-visual-${{ github.sha }}
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            artifacts/previews/bookmark-manager/*.html
+            artifacts/preview-chrome/bookmark-r26-*.png
+            artifacts/preview-chrome/bookmark-r27-*.png
+            artifacts/preview-chrome/bookmark-r26-interaction.json
       - name: Production extension build
         run: npm run build
       - name: Verify production extension
