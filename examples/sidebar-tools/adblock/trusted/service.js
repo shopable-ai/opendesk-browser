@@ -107,7 +107,13 @@ export function createAdblockService({
     const auth=await authority();
     let hasPermission=false;
     try{hasPermission=await permission();}catch{}
-    const validPackage=Boolean(auth.tool&&await sidebarToolPackageHash(auth.tool)===await compiledPackage());
+    let validPackage=false;
+    try{validPackage=Boolean(auth.tool&&await sidebarToolPackageHash(auth.tool)===await compiledPackage());}
+    catch(error){
+      // Missing/corrupt compiled official bytes MUST NOT leave stale DNR active.
+      if(hasPermission)await clearAdblockRules(api);
+      throw error;
+    }
     if(!validPackage||!auth.enabled){
       // Extension update, uninstallation, disable and same-ID impostor all
       // retire ONLY AdBlock-owned rules. No silent startup filtering.
@@ -131,6 +137,9 @@ export function createAdblockService({
     }
     if(operation==='adblock.enable'){
       if(!hasPermission)fail('E_ADBLOCK_PERMISSION','请在可信控制区批准 Chrome 广告过滤权限');
+      // Only a fresh trusted click can renew a natively revoked approval.
+      // A permission-onAdded event alone never clears the revoked fence.
+      revoked=false;
       state={...state,enabled:true,approvedHash:hash,approvedEpoch:auth.epoch};
     }else if(operation==='adblock.disable'){
       state={...state,enabled:false,approvedHash:null,approvedEpoch:null};

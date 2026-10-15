@@ -93,6 +93,7 @@ export function createAdblockPermissionControls({api,doc,container,notice,runOpe
     const changed=nextKey!==toolKey||enabled!==Boolean(active&&toolEnabled);
     toolKey=nextKey;visible=Boolean(active);enabled=Boolean(active&&toolEnabled);
     section.hidden=!visible;
+    container.hidden=!visible;
     if(changed){state=null;paint();if(enabled)void refresh();}
     else paint();
   }
