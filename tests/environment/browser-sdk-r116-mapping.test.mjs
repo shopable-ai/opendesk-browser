@@ -13,7 +13,7 @@ test('R11.6 generated SCOPED/EXISTING_SERVICE metadata has one approved source',
   const ids=['browser.storage.local.keys','browser.tabs.create','browser.tabs.getOwned'];
   assert.deepEqual(deriveBrowserScopedServiceBindings(matrix),APPROVED_BROWSER_SCOPED_BINDINGS);
   assert.deepEqual(APPROVED_BROWSER_SCOPED_BINDINGS.map(row=>row.operation),ids);
-  assert.equal(Object.keys(BROWSER_OPERATIONS).length,70);
+  assert.equal(Object.keys(BROWSER_OPERATIONS).length,73);
   for(const id of ids){
     const approval=matrix.approvedOperations.find(row=>row.id===id);
     const live=BROWSER_OPERATIONS[id];
@@ -28,7 +28,7 @@ test('R11.6 generated SCOPED/EXISTING_SERVICE metadata has one approved source',
     assert.equal(schemas.includes("'"+id+"':["),false);
   }
   assert.equal((await syncBrowserBindings({check:true})).scoped,3);
-  assert.equal((await syncBrowserDeveloperSurface({check:true})).publicCount,70);
+  assert.equal((await syncBrowserDeveloperSurface({check:true})).publicCount,73);
   const types=await readFile(new URL('../../docs/api/browser-sdk.developer.generated.d.ts',import.meta.url),'utf8');
   assert(types.includes('declare global {'));
   assert.match(types,/const OpenDeskSDK: OpenDeskDeveloperSdk;/);
