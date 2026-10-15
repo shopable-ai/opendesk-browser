@@ -3,6 +3,7 @@
 > **版本**：R2.1 / 2026-10-15。**状态**：DESIGN_CONTRACT / SOURCE_PARTIAL / INTEGRATION_PARTIAL / NATIVE_NOT_VERIFIED / PRODUCT_NOT_ACCEPTED。**唯一当前架构入口**：本文件；实施账本沿用 [对话式任务执行记录](../../framework/workstreams/conversation-direct-r1-20261013.md)，历史 [R16 方案](workflow-ai-provider-routing-r16.zh-CN.md) 保留。  
 > **源码核对锚点**：Browser `main@a7246887f5d09015b6244a1b2c5da5e232a2d015`；Go `master@310a24a726a6d218ae585df2dbe449b86f13ea62`。这只是编写本设计时的读取基线，不代表冻结或构建身份；后续提交需以最新 Git HEAD、目标文件 blob SHA 和实际源内容复核。  
 > **阅读顺序**：本文件 → 相关源码/接口 → 实施账本 → 对应候选的测试与真实回执。旧 R16 的“生成→采用建议→再运行”是**历史设计**，不覆盖本文件的“发送后经授权安全执行”。
+> **当前产品执行入口（2026-10-15）**：本文件**第 13 节**是最新的用户目标、功能任务树、风险加权估算与 P0 优先级决策；旧第 9/10.3 节的 HTTP F4 优先顺序只是历史快照，不覆盖第 13 节。
 
 ## 0. 文档驱动与验收语义（规范性）
 
@@ -299,6 +300,8 @@ ADR 风险升级触发条件：Codex CLI 版本改变、Chrome Origin/Host 处�
 
 本次继续**功能开发**；下表基于代码与历史账本，未以仓库源码存在推断运行已完成。
 
+> **2026-10-15 产品优先级更新**：F0–F5 保留 R2.1 技术历史；当前下一步应按本文件**第 13 节 P0-C/P0-D**实现真实业务效果与 AI-free Run×2，而不是将 F4 HTTP 接线作为前置条件。
+
 | 阶段/依赖 | 最小可交付范围与代码 | 已知状态 | 当前阻塞与通过定义 |
 |---|---|---|---|
 | **F0** 源码差异核对 | Browser `workflow-view/provider/ai-plan/responses`；Go `browserai/host_ai/http_gateway`；R16/现有账本 | **SOURCE_RECONCILED**（本文件读取基线） | 完成事实表、无第二引擎；未来每次只增量复核变更 |
@@ -444,3 +447,105 @@ ADR 风险升级触发条件：Codex CLI 版本改变、Chrome Origin/Host 处�
 **定向回归**：新增 Native `wait/extract/assert` 正确观察定位可规划、凭空编造名称拒绝的六种 fixture 分支；不扩展模型工具能力或真实网页读写权限。新增提交 `274d963ba9` 的 [Workflow AI CI #38722002409](https://github.com/shopable-ai/opendesk-browser/actions/runs/38722002409) 在本节写入时 **CI_PENDING**，与此前 `3f160f8e` 的 Node 122/122 PASS 不混用。无用户 Mac/真实 Chrome，业务效果及 Save 后无 AI Run×2 均 `NOT_TESTED`。
 
 **Go 补充已完成的具体作业**：Go `master@7225ac72` [Native Messaging Bridge #38720342867](https://github.com/shopable-ai/opendesk/actions/runs/38720342867) 的 Ubuntu transport、macOS transport 和模拟 Chrome 的真实 Go 可执行文件三个 job 已分别 **SUCCESS**，属于各自 Go 功能/平台证据；未覆盖更新后的 `27765894` Windows 桩修复或本地 HTTP 用户配对。Go `master@27765894` Windows [#38721532772](https://github.com/shopable-ai/opendesk/actions/runs/38721532772) 仍按其最终结果独立判定，不能宣称 PASS。
+
+## 13. R2.3 产品优先执行总纲：核心功能树、完成度口径与下一阶段闸门（2026-10-15）
+
+> **本节是当前最新的产品优先级与进度表达合同。** 第 9 节的 F0–F5 是 R2.1 技术切片历史计划，第 10.3 节“下一次从 F4 HTTP 继续”是彼时快照，**不能覆盖此处的 P0 用户业务闭环优先决策**。不改变既有 Provider、Workflow Engine、Compiler、RunHost、Authority、Controller、Task/Revision 和 Go Codex Manager 的唯一 Owner。进度估算不等于原生验收或专家评分。
+
+### 13.1 一句话目标、用户场景和明确边界
+
+**用户产品目标（P0）**：不懂编程的用户在 Workflow Tab 描述当前网页任务 → 一次 Send → 原 CurrentPageTarget 及网站/数据分享授权 → 固定有界 DOM 观察及可信持久回执 → 选定 Provider 生成受限 WorkflowProposal → 本地 Schema/意图/Locator/副作用校验 → 原 Compiler/RunHost 执行 → 可信 Durable Result 与必要的网页实际读回 → 可选保存 Workflow + 固定 Revision → 关闭 AI 后在有效权限下独立执行两次。安全已明示的操作不恢复历史“采用建议→再次运行”确认。
+
+验收示例：**A** 当前 demo-form 输入框写入用户指定的“ai自动化第一选择”，同次读回精确匹配；**B** 同会话安全搜索/点击后在有独立、受信业务 Oracle 的场景证明结果，不允许模型自行追加一个 assert 就声称业务成功；**C** Save 固定版本并在关闭 AI、不可再调用 Provider 的条件下 Run×2；**N** Stop、撤权、文档换代、Native 断连、晚到回复、未知副作用均拒绝越权或盲目重发。
+
+首期限于用户明确授权的当前 HTTP(S) 网站、安全填写、只读观察/提取、受控等待、受限点击及可信断言。跨站自主导航、删除/购买/支付/发信/发布、高影响未知副作用、任意 Agent shell/CDP 及开放式跨站自主执行**不是为了提高百分比而自动纳入的目标**；不恢复采集/语音/任务树产品 UI。
+
+### 13.2 以实际用户行为为轴的功能任务树（状态是证据等级，不是勾选代替验收）
+
+```text
+OpenDesk Browser Workflow：自然语言 → 真实执行 → 结果验证 → 保存 → 无 AI 复跑
+├── P0 核心用户产品闭环【不得被 HTTP/F4 阻塞】
+│   ├── A 任务输入与 AI 规划【SOURCE_WIRED / REAL_CHROME_NOT_TESTED】
+│   │   ├── 已有：一次 Send、Cloud Responses/Native Codex/旧 HTTPS Facade
+│   │   ├── 已有：WorkflowProposal 规范化、意图/参数/Locator 门禁
+│   │   └── 待证：真实模型基于当前页产生符合本轮意图的合法方案
+│   ├── B 当前网页授权和观察【SOURCE_WIRED / COMPONENT_VERIFIED】
+│   │   ├── 已有：CurrentPageTarget，独立网站与数据分享权限
+│   │   ├── 已有：固定 RunHost 观察、限额 DOM、完整持久回执身份
+│   │   └── 待证：真实 Chrome permission/document/revoke/出站范围
+│   ├── C 受控执行与业务效果【SOURCE_WIRED / EFFECT_PARTIAL】
+│   │   ├── 已有：原 Compiler/RunHost、确切定位与执行回执
+│   │   ├── 已有：填写 inputValue() 读回、三层证据状态显示
+│   │   ├── 未闭合：独立定义并验证安全搜索/点击后业务 Oracle
+│   │   └── 待证：真实 Chrome 的一次 Send → 页面实际读回
+│   ├── D 保存和脱离 AI 复跑【SOURCE_IMPLEMENTED / RUNx2_NOT_TESTED】
+│   │   ├── 已有：WorkflowDefinition、源码哈希、乐观 Revision、加载核验
+│   │   ├── 待证：固定 Revision 在 Provider 不可用时真实独立 Run×2
+│   │   └── 待证：两个 Run 的 target/receipt/sourceHash/页面效果一致
+│   ├── E 连续操作及异常安全【SOURCE_PARTIAL / NATIVE_NOT_TESTED】
+│   │   ├── 已有：Provider 业务上下文与 Stop、撤权/文档身份栅栏
+│   │   └── 待证：连续对话、未知结果不重试、断连/晚到/恢复
+│   └── F 真实 UI 体验【SOURCE_WIRED / PRODUCT_NOT_ACCEPTED】
+│       ├── 已有：单 Send、运行状态、结果证据分级、Save/历史入口
+│       └── 待证：真实操作/错误恢复/焦点/状态可解释及可发现性
+├── P1 可选本机 HTTP 扩展【GATE=PAIRING_OPEN / SAFE_DISABLED】
+│   ├── 已有：Go 同一 Native Host/h.ai 的受限 loopback Gateway
+│   ├── 已有：Browser local-http.js 受限传输适配器（未接 Facade/UI）
+│   └── 待完成：可信 pairing、短期 Bearer、轮换/撤权、Host/Origin/CORS
+│       └── 仅证明确实需要 Browser HTTP 且安全合同闭合后才接入
+├── P2 工程与构建【PARTIAL】
+│   ├── Browser Workflow 定向 Node/源码检查已有绑定候选的成功证据
+│   ├── Go Native transport/模拟 Chrome 有成功的同候选 CI
+│   ├── Go Windows 主要编译可通过，测试分类账本审计仍失败
+│   └── Browser 完整 build 受并行 AdBlock Trusted source SHA 漂移阻塞
+└── T1–T6 分级验收【非重复开发任务】
+    ├── T1 同候选 Provider/Compiler/Go 协议定向检查及必要构建
+    ├── T2 真实 Mac Chrome：一次 Send → 填写 → 精确读回
+    ├── T3 同会话安全搜索/点击 → 独立业务效果证明
+    ├── T4 Save → 停用 AI/断开 Provider → 固定 Revision Run×2
+    ├── T5 Stop/撤权/Document 变更/断连/unknown/晚到回执
+    └── T6 同一 production 候选、安装身份、F3、ZIP、独立逐维评审
+```
+
+**每个任务的 Done 定义**：真实用户动作 + 预期可见效果 + 适用权限与失败条件 + 修改的最小源文件 + 同源候选 SHA/可复现测试 + 独立实际回执；只存在源码称 SOURCE_IMPLEMENTED，生产 UI 可达才 SOURCE_WIRED，真实 Chrome/Codex/业务结果必须单独举证。三种成功级别仅在证据成立时为 `PROPOSAL_VALID`、`EXECUTION_RECEIPT_VERIFIED` 和 `BUSINESS_EFFECT_VERIFIED`，未验证 click 最多为执行回执。
+
+### 13.3 冻结的阶段性进度估算口径（非质量评分、非生产百分比）
+
+**规划快照：约 52%（51.5/100），置信度有限。** 这是 2026-10-15 对用户旅程重要性、源码连接状态和剩余原生证据缺口的**主观风险加权估计**，不是代码行数/单测数量/等权模块平均值，更不是当前已实现“52%业务成功率”。后续只能在**相同任务边界、权重、证据与估算规则**下比较；未取得实际证据的分项不得因文档、测试数量或 UI 原型涨分。
+
+| 领域 | 权重 | 规划估算 | 加权点数 | 主要阻塞 |
+| --- | ---: | ---: | ---: | --- |
+| A 自然语言与 Provider 入口 | 10 | 85% | 8.50 | 真实推理/Chrome 未实证 |
+| B 真实网页授权和可信观察 | 15 | 85% | 12.75 | 实际 Chrome 授权与读回未实证 |
+| C Compiler/RunHost 执行路径 | 15 | 70% | 10.50 | 原生执行未实证 |
+| C2 独立业务效果证明 | 15 | 35% | 5.25 | click/search Oracle 有缺口 |
+| D Save/Revision/AI-free Run×2 | 15 | 50% | 7.50 | 两次独立运行未实证 |
+| E Stop/撤权/未知结果安全 | 5 | 70% | 3.50 | 原生负路径未实证 |
+| P1 可选 HTTP pairing 与 Browser 接线 | 5 | 25% | 1.25 | 安全配对未完成、保守禁用 |
+| P2 CI/构建/工程质量 | 5 | 45% | 2.25 | 跨项目 build/audit 仍 FAIL |
+| T2–T6 真实 Chrome/production 验收 | 15 | 0% | 0.00 | 缺同候选原生验收证据 |
+| **总计** | **100** | — | **51.50** | **仅管理估算，PRODUCT_NOT_ACCEPTED** |
+
+权重分配刻意优先用户核心操作、可独立验证的效果和保存复跑，而不是按 Provider 文件数或测试条数分配；权重选择仍含判断性。**更重要的发布闸门**：T2、T4、T5 与 T6 的必要真机/候选证据未通过前，不允许宣称产品完成度或逐维专家评分达到 95+。可同时报告“源码路径较完整”，但不能把它写成“用户产品验收通过”。
+
+### 13.4 后续执行顺序、源码 owner 和精确完成条件
+
+| 顺序/最小任务 | 最小责任源文件与既有 Owner | 通过条件与失败保护 |
+| --- | --- | --- |
+| **M0 增量恢复** | `workflow-view.js`,`direct-execution.js`,`observation.js`；R2 本文、既有 workstream、Browser/Go AGENTS；各现有测试 CI | 先找最新源码/并行 Agent 已修复的缺口；**不重复开发**、不拿旧候选成功冒充 HEAD |
+| **M1 C 真实效果** | Browser 原 `direct-execution.js`、`workflow-view.js`、`src/framework/workflow/compiler.js` 与 RunHost/Task Durable Result；按实际缺口最小写入 | 明确可独立读回的用户期望，受信 readback 证明才报 BUSINESS_EFFECT_VERIFIED；无法独立证明的 click 保持 EXECUTION_RECEIPT_VERIFIED；不得用模型自写 assert 伪造 Oracle |
+| **M2 D 固定版本复跑** | `workflow-view.js`、现有 Controller Revision journal/Task API 和现存针对性测试 | 保证 Definition/sourceUtf8/sourceHash/Revision 一致，Provider 关闭时 `run()` 仅用冻结源码、不调用模型；无真实 Chrome 则记可运行源码/NOT_TESTED，不制造结果 |
+| **M3 T2/T3 实测** | 固定 `dist/development`（原 `npm run dev` watcher 所有）、真实 Chrome/已配对 Native、`examples/tasks/demo-form.html` | 准确记录扩展 ID/路径、目标 document、运行及持久结果、实际输入值；没有 Mac/Chrome 权限则只登记 NOT_TESTED，其他编码可继续 |
+| **M4 T5 安全负路径** | 原 Stop、Authority、CurrentPageTarget、Native RPC、RunHost | 撤权、刷新、cancel、disconnect、unknown、副作用已可能发生时无越权、无自动重放、无虚假业务成功 |
+| **M5 P2/T6 产品收尾** | Browser AdBlock Trusted SHA 问题交其 Owner；Go test-architecture 分类账本交 Go Owner；再固定候选 | 浏览器/Go 定向 CI 分别真实 PASS，构建指纹和 installed ID 与 F3/ZIP 同一候选，无跨任务偷改他人可信源 |
+| **H 可选 HTTP** | Go `internal/browserai/{http_gateway,manager}.go` / `internal/browserbridge/host_ai_unix.go`；Browser `local-http.js` | 独立 Native pairing Owner / bearer rotation & revocation / closed Origin/Host/CORS 合同完全闭合前 `SAFE_DISABLED`；Native 默认路径优先，不阻塞 M1–M5 |
+
+**推进约束**：M1 → M2 优先实施与定向验证；M3/M4 需要真实 Mac/Chrome 时才做对应正式验收，不假装网页对话具有用户本地资源。M5 的其他 Agent 构建问题可平行协调，H 可延后甚至不接 Browser。任何公共协议变更先更新本合同并协调单写入 Owner。每完成一个可运行切片，将实际源路径、提交 SHA、所跑测试与结果、仍未测项和下一步写入唯一既有工作账本。**只提交范围内文件，Browser 仅 main、Go 仅实际批准的现有分支；禁止新分支/Worktree/PR/强推、第二执行器或第二 Codex Manager。**
+
+### 13.5 2026-10-15 可追溯的候选 CI/真实未测事实
+
+- Browser Workflow 候选 [#38731748525](https://github.com/shopable-ai/opendesk-browser/actions/runs/38731748525)（其自身 SHA 为 `cd51517e67d08f37389d946a6491fe9e55ed34d2`）：Node **123/123 PASS**，`npm run check` **PASS（742 files）**，`build:dev` 被 `examples/sidebar-tools/adblock/trusted/host-controls.js` Trusted source pin 不一致阻挡，**整条 workflow FAIL**；不外推为随后不断更新的 Browser main CI。
+- Go `master@27765894058885ce497f60d52d32582a4e53f82a` 的 [Native Messaging #38721532953](https://github.com/shopable-ai/opendesk/actions/runs/38721532953) **整体 SUCCESS**（macOS/Ubuntu transport + 模拟 Chrome 可执行文件）；[Windows Core #38721532772](https://github.com/shopable-ai/opendesk/actions/runs/38721532772) **整体 FAIL**，源码编译/Windows 构建相关步骤通过，失败出在测试架构分类审计（当时 current Go tests 356、reviewed rows 297，包括未登记项）。
+- 浏览器真正加载的 `dist/development` 路径/扩展身份、当前用户登录态 Codex/Cloud 真实规划、真实网页效果、AI 停用后同 Revision Run×2 与 production F3/ZIP：**NOT_TESTED**。GitHub HEAD、Node 模拟、headless Chrome UI/trace 检查不能充当这些证据。
+
+**本轮优先级最终决定：先以 P0 C/D 和真实业务证据完成核心产品，再决定 HTTP 是否需要由 Browser 消费。** 旧 F4 技术切片继续作为参考，不再是推进主线的前置条件。

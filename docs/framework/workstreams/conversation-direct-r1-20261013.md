@@ -169,3 +169,19 @@ Go `master@2c003149` [38713903230](https://github.com/shopable-ai/opendesk/actio
 - **证据状态**：Browser [Workflow AI #38722002409](https://github.com/shopable-ai/opendesk-browser/actions/runs/38722002409) 初始为 `CI_PENDING`；前一候选 `3f160f8e` 的 Node 122/122 PASS 不自动继承到本提交。真实网页操作/业务效果/关闭 AI 保存工作流独立 Run×2 为 `NOT_TESTED`。
 - **Go 同候选进展**：Go `7225ac72` [Native Messaging bridge #38720342867](https://github.com/shopable-ai/opendesk/actions/runs/38720342867) 的 Ubuntu/macOS transport 和模拟 Chrome 可执行文件三个 job 各 **SUCCESS**；新的 Windows Context stub 去重候选 `27765894058885ce497f60d52d32582a4e53f82a` 尚需新 CI，历史 Windows `test-architecture` 分类账本 FAIL 不属于 HTTP Gateway 本身。
 - **安全边界**：`Browser→Native→同进程 h.ai` 继续默认路径；Browser `local_http` 保持不可选择，HTTP 配对/令牌撤权/Origin 合同未闭合，`SAFE_DISABLED / PAIRING_OPEN`。本切片仅补“模型提议目标可信”一处，未扩大 P0 业务操作或 P1 信任边界。
+
+## R2.3 产品主目标 / 加权规划进度 / 执行任务树入库（2026-10-15）
+
+**范围与所有者**：本轮由用户明确要求把已讨论的解决方案转为仓库权威文档，通过已连接 GitHub 对 Browser `main` 进行仅文档增量修改；Go `master` 只读核对。更改候选仅限 `docs/architecture/browser-framework/workflow-ai-provider-routing-r2.zh-CN.md`、本账本、该架构 README 入口和单个可复用后续 GOAL（`docs/framework/prompts/goal-workflow-r23-product-first-next-20261015.zh-CN.md`）。不新建第二套总设计或工作引擎，不触碰 Mac、Chrome Profile、watcher、Native 进程、生产凭据、Go 源码或其他 Agent 的提交。
+
+**唯一权威决策**：正式 R2 设计文件 **第 13 节**新增以用户“自然语言→可信观察→原 RunHost 执行→实际业务效果→Save→停用 AI 后 Run×2”为中心的 P0 功能任务树、各功能源码/实际验证状态、P1 HTTP 的可选定位、P2 构建阻塞、T1–T6 后置闸门，以及 M0–M5/H 的下一步文件/完成条件。**覆盖旧第 9 节和第 10.3 节把 F4 HTTP 视为下一首要步骤的计划优先级；不改写它们当时的源码历史和测试事实。** 本账本只保存当前恢复点与证据，具体产品合同不复制维护。
+
+**进度口径**：上次讨论的 **约 52%（51.5/100）只是一次明确标注权重/领域估值、置信度有限的风险加权管理估算**，非统计测量、测试覆盖率、GitHub 成功率或独立产品评分。对应领域与权重仅见正式合同第 13.3 节，不能把“52%”变成产品已验收完成度，也不得靠重复写文档增分；没有真实 Chrome/固定 Revision Run×2/production 同候选收尾不得声称 95+。
+
+**读取快照及真实证据（2026-10-15）**：开始本次写入时 Browser `main@9b34956516f6b3dfaaf0d359a4f43ff8d9259a05`、Go `master@27765894058885ce497f60d52d32582a4e53f82a`，文件/HEAD 若更新须以提交时最新状态为准。Browser [Workflow CI #38731748525](https://github.com/shopable-ai/opendesk-browser/actions/runs/38731748525) Node **123/123 PASS**、源码检查 **PASS（742 files）**、`build:dev` 因 AdBlock Trusted pin 漂移 **FAIL**，故总 CI FAIL。Go [Native #38721532953](https://github.com/shopable-ai/opendesk/actions/runs/38721532953) 整体 SUCCESS；[Windows Core #38721532772](https://github.com/shopable-ai/opendesk/actions/runs/38721532772) 因独立 test-architecture 分类账本 FAIL、整体 FAIL（不能把编译成功等同总 PASS）。这些 CI 都是指定旧候选，**不是当前 Browser HEAD 的构建或用户 Mac 原生验收**。
+
+**未完成与安全合同**：用户真实 Chrome Send→填写读回/安全搜索点击业务效果、固定 Revision 在 AI 关闭后 Run×2、Stop/撤权/未知/晚到事件的原生证据和 production F3/ZIP 均 `NOT_TESTED`。Go HTTP 源码存在，Browser `local-http.js` 仍 `SAFE_DISABLED / PAIRING_OPEN`；token 颁发/撤权及 Browser Origin/CORS 合同未闭合，不能为接线开放全局 CORS，也不得让 HTTP 阻塞 Native/Cloud 核心旅程。
+
+**下一最小开发动作**：新对话执行 GOAL 文件，读取本文和第 13 节/当前源/AGENTS，先核对并行 Agent 已修复部分，再优先处理 `src/ui/workflow/direct-execution.js` 与 `workflow-view.js` 的有限安全操作业务 Oracle、Save/Revision 及 AI-free Run×2 的可运行路径；只改真实未完成切片。用匹配源 SHA 的最短 Node/Go 定向测试；真实 Mac 不可达就继续其他源码并将 T2–T6 标 `NOT_TESTED`。每个切片记录新的 source commit SHA、CI/证据级别及待解决的下一个文件，不以 GOAL 或描述代替实现。
+
+**本次文档修改验证范围**：只核对 Markdown 结构、关键内容/链接及 GitHub 保存的文件身份；无代码修改，不运行完整 Node、Go、build、Chrome、Codex 或正式验收。提交 SHA 在本轮交付回答中以 GitHub 实际提交结果列明。
