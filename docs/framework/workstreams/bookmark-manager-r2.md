@@ -53,3 +53,45 @@
 - **CI 发行证据**：[预备包与构建回执 ZIP](https://github.com/shopable-ai/opendesk-browser/actions/runs/38580453628/artifacts/11902529683)（GitHub Actions artifact ID `11902529683`，ZIP SHA-256 `5e28f6b7ed17cae4f76d1fb9839cd11976f054f915432647ea52d1045d7eb41f`，非 Chrome 原生安装证据）。首轮 `d321c55b` CI 失败为测试文案正则与原错误消息不匹配，已通过 `fa1eacc9` 修复并复验。
 - **BLOCKED — Full SDK & Real Chrome**：Issue #75 尚未关闭，缺独立 Full Bookmarks 注册/权限/Host/事件/大树/条件删除。没有用户 Mac Profile 的原生真实安装、读写、跨窗口、撤权、SW 重启、卸载记录；均明确 **NOT_TESTED**。**PASS 仅用于上述实际运行过的 CI 组件，绝不宣称 R2 正式完成。**
 
+
+## R2.1 · SDK 消费端增量与失败修复（2026-10-14）
+
+**执行边界**：只写独立工具 `examples/sidebar-tools/bookmark-manager/`、专属 Node 测试、CI 和此账本。不修改 SDK R11 owner 正在负责的 `src/framework/sdk/*`、Chrome Driver、权限/Host；无 Mac 本地工作区挂载，不能声明执行了真实本机 Chrome。
+
+- GitHub 主分支真实提交：[`411dce0b`](https://github.com/shopable-ai/opendesk-browser/commit/411dce0bd35255afd141def5415736d050c4a4eb) 增加 Full SDK 单对象 CRUD、500+ 分页快照、条件写入、目录 Host 票据及有界事件会话消费。
+- 上述提交的 [CI #38592116547](https://github.com/shopable-ai/opendesk-browser/actions/runs/38592116547) **FAIL**：Node 13 项中 11 PASS、2 FAIL。旧 Mock 缺新增的 `prepareRemoveTree` 导致旧测试未更新；Check/Build 被跳过。绝不将历史 CI 结果冒充此候选成功。
+- 后续 [`53f5d954`](https://github.com/shopable-ai/opendesk-browser/commit/53f5d95418725b08f3afdf020ae054adb0cdb7af) 修复旧 Mock、同步 Node 测试；在独立 UI 加入 observe.start/read/stop 会话消费、事件缺口时全量同步、输入草稿保存、pagehide 清理；当前页收藏必须 Host 校验的 opaque Tab/Document，不能两次比较 URL。
+- 工具清单保持 `0.2.0` 与 `capabilities: []`；CI 更正工具包产物路径并追加 `npm run verify`，没有通过 Chrome Full 权限的事实不得加入官方 Catalog。
+
+**未来 R11 owner 接口/Host 前置**（Issue [#75](https://github.com/shopable-ai/opendesk-browser/issues/75)）：需要审批 Full Bookmarks Capability、唯一 Registry/Wrapper/Host/Chrome Driver、完整书签树绑定快照分页、书签 CRUD 的原子条件检查、非空目录可信删除票据、Chrome optional bookmarks 真手势授权、身份/包摘要/epoch、撤权/卸载/Worker 重启/事件缺口隔离，以及当前页 documentRef 可信绑定。R11 若修改方法签名，本工具按最终正式合同同步，不自行新增私有 RPC。
+
+**后续状态和验收分级**：本轮 Node/Check/Build/CI 必须以最终候选 SHA 的 Actions 证据来报告；真实 Chrome 安装/Full CRUD/500+/撤权/Worker/升级/卸载与九维 95+ 在 Mac 没有同候选原始收据，均 NOT_TESTED。`src/bookmark-manager/` 在原生闭环完成前保留。旧候选 R2 的 7/7 Node 和生产/开发 Build PASS 只作为历史基线，不覆盖新候选。
+
+### R2.1 同源候选 CI 实测回执（2026-10-14）
+
+- **PASS — source SHA**：[`054b4f0cdf0279a43955ad18025364c730458bc5`](https://github.com/shopable-ai/opendesk-browser/commit/054b4f0cdf0279a43955ad18025364c730458bc5)（此前的失败候选 `411dce0b` 和 `53f5d954` 仍保留失败历史，不被覆盖）。
+- **PASS — GitHub Actions**：[`38593735852`](https://github.com/shopable-ai/opendesk-browser/actions/runs/38593735852)，job `115954977381`，completed/success。
+- **PASS — Node**：`node --test tests/environment/bookmark-manager-r2.test.mjs` **14/14**，0 failures；涵盖 Owned/Full 权限隔离、550 项树与分页、坏游标、SDK 单对象 CRUD、目录可信票据失败关闭及正向 Mock、文档绑定和事件会话。
+- **PASS — Check/Build**：`npm run check`、`npm run build:sidebar-tool -- examples/sidebar-tools/bookmark-manager`、`npm run build`、`node scripts/verify-package.mjs dist/production`、`npm run build:dev`、`npm run verify`，均为相同 Actions job 成功步骤。
+- **PASS — package schema, NOT INSTALLED**：唯一打包器生成 `artifacts/sidebar-tools/bookmark-manager/0.2.0/bookmark-manager.opendesk-tool.json`，**41,252 bytes**、`validated:true`、`installed:false`。该包仍 `capabilities: []`，没有 Full Chrome 读取权限；CI 上传 Artifact 不代表安装。
+- **BLOCKED — R11**：当前 Registry/Wrapper/Host 仍未声明独立 Full Bookmarks；Issue #75 未关闭。SDK Node Mock/打包成功不等于 Chrome 原生映射可调用。
+- **NOT_TESTED — Native**：实际 Mac Chrome Profile 的 Full 书签 CRUD、500+ 原生树、Chrome optional 权限、拒绝/撤权、Worker 重启、并发删除、工具升级/卸载均没有同一候选原始收据。九维产品专家 95+ 不能据此打分。
+
+后续如有无关主线提交，引用以上精确 SHA 及 Actions 结果；若本目录或 Browser SDK 相关输入发生变化，必须补受影响的定向验证。`src/bookmark-manager/` 旧可信模块仍需保留至真实迁移门禁关闭。
+
+## R2.2 · SDK 前置受阻下的独立树完整性修复（2026-10-15）
+
+**Owner：Bookmark Manager 独立消费端；仅改独立工具、定向测试、专属 CI 和本账本。**
+
+- Chrome-shaped getTree 新增唯一根、文件夹 children 完整性、父子 parentId 一致性及节点类型检查；分页平面快照拒绝多个根，避免数据静默缺失。
+- Node 回归覆盖部分文件夹、伪造 parentId、URL 节点混有 children、多根与拒绝后续写入。
+- 预备包提升版本 0.2.1，调整 README、定向 CI 产物路径，不进入官方 Catalog，不改变 SDK/Host/Driver/权限架构。
+- R11 Full SDK：BLOCKED；真实 Mac Chrome、Native CRUD/500+/撤权/Worker/卸载：NOT_TESTED；旧宿主 src/bookmark-manager 保留。
+
+**本轮测试**：以同候选 GitHub Actions 最终 Node、Check、Build、Package Verify、Verify 为准；无 Mac Profile 时不能报告 Native 通过。
+
+### R2.2 增量：权限失效即时保护
+
+- Full SDK Registry 存在而 capability status 不可调用时，消费端区分 E_BOOKMARK_PERMISSION 与 E_R11_BOOKMARKS_INCOMPLETE；Node Mock 验证撤权后不请求 getTree/create/observe.read。
+- 事件启动/读取、CRUD 遇到已知 SDK/权限/工具身份失效，独立 UI 立即隐藏旧书签树；不改 Host，实际 Chrome revoke 时序仍 NOT_TESTED。
+- 仍是未正式发行的预备包 0.2.1；Native 和官方安装 BLOCKED/NOT_TESTED。

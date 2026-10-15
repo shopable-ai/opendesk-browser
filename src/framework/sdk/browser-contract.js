@@ -1,7 +1,10 @@
 // Public contract and discovery metadata, not a grant store or an RPC router.
 // Actual admission remains in the trusted Side Panel / Chrome host.
 import {fields,fail,jsonValue,normalizeConfig} from './registry.js';
-import {operationSchemas,assertBrowserSchemaCoverage,validateExportArguments} from './browser-schemas.js';
+import {operationSchemas,assertBrowserSchemaCoverage,validateExportArguments,
+  normalizeDirectBrowserArguments} from './browser-schemas.js';
+import {APPROVED_BROWSER_DIRECT_BINDINGS} from './browser-direct.generated.js';
+const DIRECT_APPROVED_METHODS=new Set(APPROVED_BROWSER_DIRECT_BINDINGS.map(row=>row.operation));
 export const BROWSER_API_VERSION='1.0.0';
 export const BROWSER_HOST_PROTOCOL='opendesk.browser.v1';
 export const BROWSER_MENU_SOURCE_PROTOCOL='opendesk.browser.source-context.v1';
@@ -29,7 +32,7 @@ function entry(operation,capability,contexts,chromePermissions,effect,risk,siteS
     inputSchema:operationSchemas(operation)?.input,outputSchema:operationSchemas(operation)?.output});
 }
 const tool=['sidebar-tool'],both=['sidebar-tool','page-sdk'];
-export const BROWSER_OPERATIONS=Object.freeze({
+const MANUAL_BROWSER_OPERATIONS=Object.freeze({
   'browser.capabilities.list':entry('browser.capabilities.list',null,both,[],'read','low'),
   'browser.capabilities.getStatus':entry('browser.capabilities.getStatus',null,both,[],'read','low'),
   'browser.contextMenu.getStatus':entry('browser.contextMenu.getStatus','browser.contextMenu',tool,['contextMenus'],'read','low','approved-origin'),
@@ -83,6 +86,31 @@ export const BROWSER_OPERATIONS=Object.freeze({
   'browser.cookies.observe.read':entry('browser.cookies.observe.read','browser.cookies.observe',tool,['cookies'],'read','high','approved-cookie-site','IMPLEMENTED','bounded-session'),
   'browser.cookies.observe.stop':entry('browser.cookies.observe.stop','browser.cookies.observe',tool,['cookies'],'write','high','approved-cookie-site','IMPLEMENTED','bounded-session'),
   'browser.operations.cancel':entry('browser.operations.cancel','browser.operations',tool,[],'write','medium','owned-operation','IMPLEMENTED')
+});
+// Ordinary DIRECT methods are built from the approved Chromium/SDK matrix.
+// An additional safe DIRECT method now needs no manually maintained Registry
+// entry, Schema table case, SDK wrapper, Host branch or Chrome call adapter.
+export function deriveBrowserDirectOperations(rows=APPROVED_BROWSER_DIRECT_BINDINGS){
+  return Object.fromEntries(rows.map(row=>{
+  if(Object.hasOwn(MANUAL_BROWSER_OPERATIONS,row.operation)||row.mode!=='DIRECT'||
+     row.siteScope!=='none'||row.effectClass!=='read'||row.requiresUserGesture||
+     !Array.isArray(row.requiredCapabilities)||!Array.isArray(row.requiredChromePermissions)||
+     !Array.isArray(row.supportedContexts)||row.supportedContexts.length!==1||
+     row.supportedContexts[0]!=='sidebar-tool')
+    throw fail('E_CONTRACT','Invalid generated Browser DIRECT registration');
+  return [row.operation,Object.freeze({...shared,operation:row.operation,
+    namespace:row.operation.split('.').slice(0,-1).join('.'),
+    maxRequestBytes:row.maxRequestBytes,maxResponseBytes:row.maxResponseBytes,
+    implementation:'IMPLEMENTED',supportedContexts:Object.freeze([...row.supportedContexts]),
+    requiredCapabilities:Object.freeze([...row.requiredCapabilities]),
+    requiredChromePermissions:Object.freeze([...row.requiredChromePermissions]),
+    effectClass:'read',riskLevel:row.riskLevel,siteScope:'none',requiresUserGesture:false,
+    lifecycle:row.lifecycle,inputSchema:row.inputSchema,outputSchema:row.outputSchema
+  })];
+  }));
+}
+export const BROWSER_OPERATIONS=Object.freeze({
+  ...MANUAL_BROWSER_OPERATIONS,...deriveBrowserDirectOperations()
 });
 assertBrowserSchemaCoverage(BROWSER_OPERATIONS);
 export function browserOperation(name){return Object.hasOwn(BROWSER_OPERATIONS,name)?BROWSER_OPERATIONS[name]:null;}
@@ -408,7 +436,15 @@ export function normalizeBrowserOperation(operation,args={}){
          !args.actionIds.every(id=>typeof id==='string'&&/^[a-z][a-z0-9-]{0,39}$/.test(id)))
          throw fail('E_SCHEMA','Invalid context menu action IDs');
       break;
-    default: throw fail('E_SERVICE_UNSUPPORTED','This Browser SDK operation is not executable');
+    default:
+      if(DIRECT_APPROVED_METHODS.has(operation)){
+        const normalized=normalizeDirectBrowserArguments(operation,args);
+        if(new TextEncoder().encode(JSON.stringify(normalized)).byteLength>
+           browserOperation(operation).maxRequestBytes)
+          throw fail('E_LIMIT','Native DIRECT request exceeds the approved limit');
+        return normalized;
+      }
+      throw fail('E_SERVICE_UNSUPPORTED','This Browser SDK operation is not executable');
   }
   return args;
 }

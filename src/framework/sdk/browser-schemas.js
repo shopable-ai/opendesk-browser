@@ -1,6 +1,7 @@
 // Browser operation parameter/response descriptions, keyed by the one authoritative
 // BROWSER_OPERATIONS registry. Metadata never grants permission or admits RPC calls.
-import {fields,fail} from './registry.js';
+import {fields,fail,jsonValue} from './registry.js';
+import {APPROVED_BROWSER_DIRECT_BINDINGS} from './browser-direct.generated.js';
 const obj=(properties={},required=[])=>({type:'object',additionalProperties:false,properties,required});
 const str=(maxLength=2048,pattern)=>({type:'string',maxLength,...(pattern?{pattern}:{})});
 const ref=str(160,'^[A-Za-z0-9_-]{16,160}$');
@@ -134,14 +135,89 @@ const ops=Object.freeze({
    obj({stopped:bool},['stopped'])],
  'browser.operations.cancel':[oid,obj({state:{enum:['running','completed','failed','cancelled','unknown']},cancelRequested:bool},['state'])]
 });
+// DIRECT methods use the exact approved input/output schemas generated from
+// the one pinned matrix. SCOPED and CUSTOM schemas remain explicitly audited.
+export function deriveBrowserDirectSchemas(rows=APPROVED_BROWSER_DIRECT_BINDINGS){
+  return new Map(rows.map(row=>{
+    if(Object.hasOwn(ops,row.operation))throw fail('E_CONTRACT','Duplicate DIRECT Browser schema');
+    return [row.operation,[row.inputSchema,row.outputSchema]];
+  }));
+}
+const directOps=deriveBrowserDirectSchemas();
 export function operationSchemas(operation){
-  const pair=Object.hasOwn(ops,operation)?ops[operation]:null;
+  const pair=Object.hasOwn(ops,operation)?ops[operation]:directOps.get(operation);
   return pair?{input:pair[0],output:pair[1]}:null;
 }
 export function assertBrowserSchemaCoverage(operations){
-  if(JSON.stringify(Object.keys(operations).sort())!==JSON.stringify(Object.keys(ops).sort()))
+  const declared=[...Object.keys(ops),...directOps.keys()].sort();
+  if(JSON.stringify(Object.keys(operations).sort())!==JSON.stringify(declared))
     throw fail('E_CONTRACT','Browser operation schema drift');
 }
+// Generic argument validation is used ONLY for build-approved DIRECT calls.
+// SCOPED/CUSTOM operations retain their audited, operation-specific normalizers.
+export function normalizeDirectBrowserArguments(operation,value){
+  const schema=operationSchemas(operation)?.input;
+  if(schema?.type!=='object'||schema.additionalProperties!==false)
+    throw fail('E_CONTRACT','A bounded direct-call object schema is required');
+  jsonValue(value);
+  const validate=(item,rule,depth=0)=>{
+    if(depth>12||!rule||typeof rule!=='object')
+      throw fail('E_CONTRACT','Unsupported direct-call input schema');
+    if(Array.isArray(rule.anyOf)){
+      const matches=rule.anyOf.some(choice=>{try{validate(item,choice,depth+1);return true}catch{return false}});
+      if(!matches)throw fail('E_SCHEMA','Direct Chrome API argument type mismatch');
+      return;
+    }
+    if(Object.hasOwn(rule,'const')&&item!==rule.const||
+       Array.isArray(rule.enum)&&!rule.enum.includes(item))
+      throw fail('E_SCHEMA','Direct Chrome API argument value mismatch');
+    if(rule.type===undefined&&(Array.isArray(rule.enum)||Object.hasOwn(rule,'const')))return;
+    switch(rule.type){
+      case 'object':{
+        fields(item,Object.keys(rule.properties??{}),rule.required??[]);
+        if(rule.additionalProperties!==false)
+          throw fail('E_CONTRACT','DIRECT schema must reject undeclared fields');
+        if(rule.maxProperties!==undefined&&Object.keys(item).length>rule.maxProperties)
+          throw fail('E_SCHEMA','Too many direct-call fields');
+        for(const [key,part] of Object.entries(item))
+          validate(part,rule.properties[key],depth+1);
+        return;
+      }
+      case 'array':
+        if(!Array.isArray(item)||rule.maxItems!==undefined&&item.length>rule.maxItems||
+           rule.minItems!==undefined&&item.length<rule.minItems)
+          throw fail('E_SCHEMA','Invalid direct-call array');
+        if(rule.uniqueItems&&new Set(item.map(x=>JSON.stringify(x))).size!==item.length)
+          throw fail('E_SCHEMA','Duplicate direct-call array entries');
+        for(const part of item)validate(part,rule.items,depth+1);
+        return;
+      case 'string':
+        if(typeof item!=='string'||rule.minLength!==undefined&&item.length<rule.minLength||
+           rule.maxLength!==undefined&&item.length>rule.maxLength||
+           rule.pattern!==undefined&&!new RegExp(rule.pattern).test(item))
+          throw fail('E_SCHEMA','Invalid direct-call string');
+        return;
+      case 'integer':
+      case 'number':
+        if(typeof item!=='number'||!Number.isFinite(item)||
+           rule.type==='integer'&&!Number.isSafeInteger(item)||
+           rule.minimum!==undefined&&item<rule.minimum||
+           rule.maximum!==undefined&&item>rule.maximum)
+          throw fail('E_SCHEMA','Invalid direct-call number');
+        return;
+      case 'boolean':
+        if(typeof item!=='boolean')throw fail('E_SCHEMA','Invalid direct-call boolean');
+        return;
+      case 'null':
+        if(item!==null)throw fail('E_SCHEMA','Invalid direct-call null');
+        return;
+      default:throw fail('E_CONTRACT','Unsupported direct-call schema type');
+    }
+  };
+  validate(value,schema);
+  return value;
+}
+
 export function validateExportArguments(operation,value){
   if(operation==='browser.clipboard.writeText')fields(value,['text'],['text']);
   else if(operation==='browser.downloads.text')fields(value,['text','filename'],['text','filename']);

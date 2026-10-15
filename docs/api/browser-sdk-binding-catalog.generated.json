@@ -16,6 +16,21 @@
       "nativeApis": [
         "chrome.bookmarks.create"
       ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.bookmarks.create",
+          "kind": "METHOD",
+          "signature": "create(bookmark: $ref:CreateDetails): Promise<$ref:BookmarkTreeNode>",
+          "parameters": [
+            {
+              "name": "bookmark",
+              "type": "$ref:CreateDetails",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<$ref:BookmarkTreeNode>"
+        }
+      ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.create",
       "chromePermissions": [
         "bookmarks"
@@ -40,6 +55,21 @@
       "nativeApis": [
         "chrome.bookmarks.remove"
       ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.bookmarks.remove",
+          "kind": "METHOD",
+          "signature": "remove(id: string): Promise<void>",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "string",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<void>"
+        }
+      ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.removeOwned",
       "chromePermissions": [
         "bookmarks"
@@ -62,6 +92,7 @@
       "visibility": "APPROVED_TOOL_REGISTERED",
       "mode": "CUSTOM",
       "nativeApis": [],
+      "nativeSignatures": [],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.capabilities.getStatus",
       "chromePermissions": [],
       "toolCapabilities": [],
@@ -81,6 +112,7 @@
       "visibility": "APPROVED_TOOL_REGISTERED",
       "mode": "CUSTOM",
       "nativeApis": [],
+      "nativeSignatures": [],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.capabilities.list",
       "chromePermissions": [],
       "toolCapabilities": [],
@@ -100,6 +132,7 @@
       "visibility": "APPROVED_TOOL_REGISTERED",
       "mode": "CUSTOM",
       "nativeApis": [],
+      "nativeSignatures": [],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.clipboard.writeText",
       "chromePermissions": [],
       "toolCapabilities": [
@@ -121,6 +154,26 @@
       "mode": "SCOPED",
       "nativeApis": [
         "chrome.contextMenus.onClicked"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.contextMenus.onClicked",
+          "kind": "EVENT",
+          "signature": "onClicked(info: $ref:OnClickData, tab?: $ref:tabs.Tab): ChromeEvent",
+          "parameters": [
+            {
+              "name": "info",
+              "type": "$ref:OnClickData",
+              "optional": false
+            },
+            {
+              "name": "tab",
+              "type": "$ref:tabs.Tab",
+              "optional": true
+            }
+          ],
+          "returnType": "void/callback"
+        }
       ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.contextMenu.getStatus",
       "chromePermissions": [
@@ -147,6 +200,39 @@
         "chrome.contextMenus.create",
         "chrome.contextMenus.update"
       ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.contextMenus.create",
+          "kind": "METHOD",
+          "signature": "create(createProperties: $ref:CreateProperties): Promise<void>",
+          "parameters": [
+            {
+              "name": "createProperties",
+              "type": "$ref:CreateProperties",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<void>"
+        },
+        {
+          "nativeApi": "chrome.contextMenus.update",
+          "kind": "METHOD",
+          "signature": "update(id: choices, updateProperties: object): Promise<void>",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "choices",
+              "optional": false
+            },
+            {
+              "name": "updateProperties",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<void>"
+        }
+      ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.contextMenu.register",
       "chromePermissions": [
         "contextMenus"
@@ -171,6 +257,21 @@
       "nativeApis": [
         "chrome.contextMenus.remove"
       ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.contextMenus.remove",
+          "kind": "METHOD",
+          "signature": "remove(menuItemId: choices): Promise<void>",
+          "parameters": [
+            {
+              "name": "menuItemId",
+              "type": "choices",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<void>"
+        }
+      ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.contextMenu.unregister",
       "chromePermissions": [],
       "toolCapabilities": [
@@ -193,6 +294,34 @@
       "nativeApis": [
         "chrome.cookies.getAll",
         "chrome.cookies.remove"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.cookies.getAll",
+          "kind": "METHOD",
+          "signature": "getAll(details: object): Promise<array>",
+          "parameters": [
+            {
+              "name": "details",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<array>"
+        },
+        {
+          "nativeApi": "chrome.cookies.remove",
+          "kind": "METHOD",
+          "signature": "remove(details: $ref:CookieDetails): Promise<object>",
+          "parameters": [
+            {
+              "name": "details",
+              "type": "$ref:CookieDetails",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<object>"
+        }
       ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.clearSite",
       "chromePermissions": [
@@ -218,6 +347,21 @@
       "nativeApis": [
         "chrome.cookies.getAll"
       ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.cookies.getAll",
+          "kind": "METHOD",
+          "signature": "getAll(details: object): Promise<array>",
+          "parameters": [
+            {
+              "name": "details",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<array>"
+        }
+      ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.get",
       "chromePermissions": [
         "cookies"
@@ -241,6 +385,21 @@
       "mode": "SCOPED",
       "nativeApis": [
         "chrome.cookies.getAll"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.cookies.getAll",
+          "kind": "METHOD",
+          "signature": "getAll(details: object): Promise<array>",
+          "parameters": [
+            {
+              "name": "details",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<array>"
+        }
       ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.getAll",
       "chromePermissions": [
@@ -266,6 +425,15 @@
       "nativeApis": [
         "chrome.cookies.getAllCookieStores"
       ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.cookies.getAllCookieStores",
+          "kind": "METHOD",
+          "signature": "getAllCookieStores(): Promise<array>",
+          "parameters": [],
+          "returnType": "Promise<array>"
+        }
+      ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.getCurrentStore",
       "chromePermissions": [
         "cookies"
@@ -289,6 +457,21 @@
       "mode": "SCOPED",
       "nativeApis": [
         "chrome.cookies.getPartitionKey"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.cookies.getPartitionKey",
+          "kind": "METHOD",
+          "signature": "getPartitionKey(details: $ref:FrameDetails): Promise<object>",
+          "parameters": [
+            {
+              "name": "details",
+              "type": "$ref:FrameDetails",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<object>"
+        }
       ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.getPartitionKey",
       "chromePermissions": [
@@ -314,6 +497,21 @@
       "nativeApis": [
         "chrome.cookies.onChanged"
       ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.cookies.onChanged",
+          "kind": "EVENT",
+          "signature": "onChanged(changeInfo: object): ChromeEvent",
+          "parameters": [
+            {
+              "name": "changeInfo",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "void/callback"
+        }
+      ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.observe.getStatus",
       "chromePermissions": [
         "cookies"
@@ -337,6 +535,21 @@
       "mode": "SCOPED",
       "nativeApis": [
         "chrome.cookies.onChanged"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.cookies.onChanged",
+          "kind": "EVENT",
+          "signature": "onChanged(changeInfo: object): ChromeEvent",
+          "parameters": [
+            {
+              "name": "changeInfo",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "void/callback"
+        }
       ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.observe.read",
       "chromePermissions": [
@@ -363,6 +576,34 @@
         "chrome.cookies.onChanged",
         "chrome.cookies.getPartitionKey"
       ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.cookies.onChanged",
+          "kind": "EVENT",
+          "signature": "onChanged(changeInfo: object): ChromeEvent",
+          "parameters": [
+            {
+              "name": "changeInfo",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "void/callback"
+        },
+        {
+          "nativeApi": "chrome.cookies.getPartitionKey",
+          "kind": "METHOD",
+          "signature": "getPartitionKey(details: $ref:FrameDetails): Promise<object>",
+          "parameters": [
+            {
+              "name": "details",
+              "type": "$ref:FrameDetails",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<object>"
+        }
+      ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.observe.start",
       "chromePermissions": [
         "cookies"
@@ -386,6 +627,21 @@
       "mode": "SCOPED",
       "nativeApis": [
         "chrome.cookies.onChanged"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.cookies.onChanged",
+          "kind": "EVENT",
+          "signature": "onChanged(changeInfo: object): ChromeEvent",
+          "parameters": [
+            {
+              "name": "changeInfo",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "void/callback"
+        }
       ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.observe.stop",
       "chromePermissions": [
@@ -412,6 +668,34 @@
         "chrome.cookies.getAll",
         "chrome.cookies.remove"
       ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.cookies.getAll",
+          "kind": "METHOD",
+          "signature": "getAll(details: object): Promise<array>",
+          "parameters": [
+            {
+              "name": "details",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<array>"
+        },
+        {
+          "nativeApi": "chrome.cookies.remove",
+          "kind": "METHOD",
+          "signature": "remove(details: $ref:CookieDetails): Promise<object>",
+          "parameters": [
+            {
+              "name": "details",
+              "type": "$ref:CookieDetails",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<object>"
+        }
+      ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.remove",
       "chromePermissions": [
         "cookies"
@@ -435,6 +719,21 @@
       "mode": "SCOPED",
       "nativeApis": [
         "chrome.cookies.set"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.cookies.set",
+          "kind": "METHOD",
+          "signature": "set(details: object): Promise<$ref:Cookie>",
+          "parameters": [
+            {
+              "name": "details",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<$ref:Cookie>"
+        }
       ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.set",
       "chromePermissions": [
@@ -460,6 +759,15 @@
       "nativeApis": [
         "chrome.downloads.cancel"
       ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.downloads.cancel",
+          "kind": "METHOD",
+          "signature": "static Promise<undefined> cancel(long downloadId);",
+          "parameters": [],
+          "returnType": "Promise<undefined>"
+        }
+      ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.downloads.cancelOwned",
       "chromePermissions": [
         "downloads"
@@ -483,6 +791,15 @@
       "mode": "SCOPED",
       "nativeApis": [
         "chrome.downloads.download"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.downloads.download",
+          "kind": "METHOD",
+          "signature": "static Promise<long> download(DownloadOptions options);",
+          "parameters": [],
+          "returnType": "Promise<long>"
+        }
       ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.downloads.download",
       "chromePermissions": [
@@ -508,6 +825,15 @@
       "nativeApis": [
         "chrome.downloads.search"
       ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.downloads.search",
+          "kind": "METHOD",
+          "signature": "static Promise<sequence<DownloadItem>> search(DownloadQuery query);",
+          "parameters": [],
+          "returnType": "Promise<sequence<DownloadItem>>"
+        }
+      ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.downloads.getOwned",
       "chromePermissions": [
         "downloads"
@@ -531,6 +857,15 @@
       "mode": "SCOPED",
       "nativeApis": [
         "chrome.downloads.search"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.downloads.search",
+          "kind": "METHOD",
+          "signature": "static Promise<sequence<DownloadItem>> search(DownloadQuery query);",
+          "parameters": [],
+          "returnType": "Promise<sequence<DownloadItem>>"
+        }
       ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.downloads.listOwned",
       "chromePermissions": [
@@ -556,6 +891,15 @@
       "nativeApis": [
         "chrome.downloads.download"
       ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.downloads.download",
+          "kind": "METHOD",
+          "signature": "static Promise<long> download(DownloadOptions options);",
+          "parameters": [],
+          "returnType": "Promise<long>"
+        }
+      ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.downloads.text",
       "chromePermissions": [
         "downloads"
@@ -578,6 +922,7 @@
       "visibility": "APPROVED_TOOL_REGISTERED",
       "mode": "CUSTOM",
       "nativeApis": [],
+      "nativeSignatures": [],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.events.close",
       "chromePermissions": [],
       "toolCapabilities": [
@@ -598,6 +943,7 @@
       "visibility": "APPROVED_TOOL_REGISTERED",
       "mode": "CUSTOM",
       "nativeApis": [],
+      "nativeSignatures": [],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.events.read",
       "chromePermissions": [],
       "toolCapabilities": [
@@ -619,6 +965,21 @@
       "mode": "DENIED",
       "nativeApis": [
         "chrome.history.search"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.history.search",
+          "kind": "METHOD",
+          "signature": "search(query: object): Promise<array>",
+          "parameters": [
+            {
+              "name": "query",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<array>"
+        }
       ],
       "runtimeSchema": null,
       "chromePermissions": [
@@ -644,6 +1005,39 @@
         "chrome.contextMenus.onClicked",
         "chrome.webNavigation.getFrame"
       ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.contextMenus.onClicked",
+          "kind": "EVENT",
+          "signature": "onClicked(info: $ref:OnClickData, tab?: $ref:tabs.Tab): ChromeEvent",
+          "parameters": [
+            {
+              "name": "info",
+              "type": "$ref:OnClickData",
+              "optional": false
+            },
+            {
+              "name": "tab",
+              "type": "$ref:tabs.Tab",
+              "optional": true
+            }
+          ],
+          "returnType": "void/callback"
+        },
+        {
+          "nativeApi": "chrome.webNavigation.getFrame",
+          "kind": "METHOD",
+          "signature": "getFrame(details: object): Promise<object>",
+          "parameters": [
+            {
+              "name": "details",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<object>"
+        }
+      ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.launch.consume",
       "chromePermissions": [],
       "toolCapabilities": [
@@ -665,6 +1059,15 @@
       "mode": "CUSTOM",
       "nativeApis": [
         "chrome.downloads.download"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.downloads.download",
+          "kind": "METHOD",
+          "signature": "static Promise<long> download(DownloadOptions options);",
+          "parameters": [],
+          "returnType": "Promise<long>"
+        }
       ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.network.observe.export",
       "chromePermissions": [
@@ -690,6 +1093,21 @@
       "mode": "CUSTOM",
       "nativeApis": [
         "chrome.webRequest.onBeforeRequest"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.webRequest.onBeforeRequest",
+          "kind": "EVENT",
+          "signature": "onBeforeRequest(details: object): ChromeEvent",
+          "parameters": [
+            {
+              "name": "details",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "$ref:BlockingResponse"
+        }
       ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.network.observe.getStatus",
       "chromePermissions": [
@@ -717,6 +1135,47 @@
         "chrome.webRequest.onCompleted",
         "chrome.webRequest.onErrorOccurred"
       ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.webRequest.onBeforeRequest",
+          "kind": "EVENT",
+          "signature": "onBeforeRequest(details: object): ChromeEvent",
+          "parameters": [
+            {
+              "name": "details",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "$ref:BlockingResponse"
+        },
+        {
+          "nativeApi": "chrome.webRequest.onCompleted",
+          "kind": "EVENT",
+          "signature": "onCompleted(details: object): ChromeEvent",
+          "parameters": [
+            {
+              "name": "details",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "void/callback"
+        },
+        {
+          "nativeApi": "chrome.webRequest.onErrorOccurred",
+          "kind": "EVENT",
+          "signature": "onErrorOccurred(details: object): ChromeEvent",
+          "parameters": [
+            {
+              "name": "details",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "void/callback"
+        }
+      ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.network.observe.start",
       "chromePermissions": [
         "tabs",
@@ -743,6 +1202,21 @@
       "nativeApis": [
         "chrome.webRequest.onBeforeRequest"
       ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.webRequest.onBeforeRequest",
+          "kind": "EVENT",
+          "signature": "onBeforeRequest(details: object): ChromeEvent",
+          "parameters": [
+            {
+              "name": "details",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "$ref:BlockingResponse"
+        }
+      ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.network.observe.stop",
       "chromePermissions": [
         "webRequest"
@@ -765,6 +1239,7 @@
       "visibility": "APPROVED_TOOL_REGISTERED",
       "mode": "CUSTOM",
       "nativeApis": [],
+      "nativeSignatures": [],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.network.request",
       "chromePermissions": [],
       "toolCapabilities": [
@@ -785,6 +1260,7 @@
       "visibility": "APPROVED_TOOL_REGISTERED",
       "mode": "SCOPED",
       "nativeApis": [],
+      "nativeSignatures": [],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.operations.cancel",
       "chromePermissions": [],
       "toolCapabilities": [
@@ -805,6 +1281,7 @@
       "visibility": "APPROVED_TOOL_REGISTERED",
       "mode": "SCOPED",
       "nativeApis": [],
+      "nativeSignatures": [],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.operations.getStatus",
       "chromePermissions": [],
       "toolCapabilities": [
@@ -825,6 +1302,7 @@
       "visibility": "APPROVED_TOOL_REGISTERED",
       "mode": "CUSTOM",
       "nativeApis": [],
+      "nativeSignatures": [],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.page.getContext",
       "chromePermissions": [],
       "toolCapabilities": [
@@ -846,6 +1324,26 @@
       "mode": "CUSTOM",
       "nativeApis": [
         "chrome.contextMenus.onClicked"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.contextMenus.onClicked",
+          "kind": "EVENT",
+          "signature": "onClicked(info: $ref:OnClickData, tab?: $ref:tabs.Tab): ChromeEvent",
+          "parameters": [
+            {
+              "name": "info",
+              "type": "$ref:OnClickData",
+              "optional": false
+            },
+            {
+              "name": "tab",
+              "type": "$ref:tabs.Tab",
+              "optional": true
+            }
+          ],
+          "returnType": "void/callback"
+        }
       ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.page.getSelection",
       "chromePermissions": [],
@@ -870,6 +1368,34 @@
         "chrome.permissions.contains",
         "chrome.permissions.request"
       ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.permissions.contains",
+          "kind": "METHOD",
+          "signature": "contains(permissions: $ref:Permissions): Promise<boolean>",
+          "parameters": [
+            {
+              "name": "permissions",
+              "type": "$ref:Permissions",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<boolean>"
+        },
+        {
+          "nativeApi": "chrome.permissions.request",
+          "kind": "METHOD",
+          "signature": "request(permissions: $ref:Permissions): Promise<boolean>",
+          "parameters": [
+            {
+              "name": "permissions",
+              "type": "$ref:Permissions",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<boolean>"
+        }
+      ],
       "runtimeSchema": null,
       "chromePermissions": [],
       "toolCapabilities": [],
@@ -890,6 +1416,15 @@
       "mode": "CUSTOM",
       "nativeApis": [
         "chrome.alarms.clear"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.alarms.clear",
+          "kind": "METHOD",
+          "signature": "static Promise<boolean> clear(optional DOMString name);",
+          "parameters": [],
+          "returnType": "Promise<boolean>"
+        }
       ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.scheduler.cancelOwn",
       "chromePermissions": [
@@ -915,6 +1450,15 @@
       "nativeApis": [
         "chrome.alarms.create"
       ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.alarms.create",
+          "kind": "METHOD",
+          "signature": "static Promise<undefined> create( optional DOMString name, AlarmCreateInfo alarmInfo);",
+          "parameters": [],
+          "returnType": "Promise<undefined>"
+        }
+      ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.scheduler.create",
       "chromePermissions": [
         "alarms"
@@ -938,6 +1482,15 @@
       "mode": "CUSTOM",
       "nativeApis": [
         "chrome.alarms.getAll"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.alarms.getAll",
+          "kind": "METHOD",
+          "signature": "static Promise<sequence<Alarm>> getAll();",
+          "parameters": [],
+          "returnType": "Promise<sequence<Alarm>>"
+        }
       ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.scheduler.listOwn",
       "chromePermissions": [
@@ -963,6 +1516,33 @@
       "nativeApis": [
         "chrome.tabs.captureVisibleTab",
         "chrome.downloads.download"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.tabs.captureVisibleTab",
+          "kind": "METHOD",
+          "signature": "captureVisibleTab(windowId?: integer, options?: $ref:extensionTypes.ImageDetails): Promise<string>",
+          "parameters": [
+            {
+              "name": "windowId",
+              "type": "integer",
+              "optional": true
+            },
+            {
+              "name": "options",
+              "type": "$ref:extensionTypes.ImageDetails",
+              "optional": true
+            }
+          ],
+          "returnType": "Promise<string>"
+        },
+        {
+          "nativeApi": "chrome.downloads.download",
+          "kind": "METHOD",
+          "signature": "static Promise<long> download(DownloadOptions options);",
+          "parameters": [],
+          "returnType": "Promise<long>"
+        }
       ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.screenshot.captureVisible",
       "chromePermissions": [
@@ -991,6 +1571,15 @@
       "nativeApis": [
         "chrome.sidePanel.open"
       ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.sidePanel.open",
+          "kind": "METHOD",
+          "signature": "static void open( OpenOptions options, VoidCallback callback);",
+          "parameters": [],
+          "returnType": "void"
+        }
+      ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.sidePanel.openSelf",
       "chromePermissions": [
         "sidePanel"
@@ -1014,6 +1603,21 @@
       "mode": "SCOPED",
       "nativeApis": [
         "chrome.storage.local.remove"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.storage.local.remove",
+          "kind": "METHOD",
+          "signature": "remove(keys: choices): Promise<void>",
+          "parameters": [
+            {
+              "name": "keys",
+              "type": "choices",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<void>"
+        }
       ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.storage.local.clear",
       "chromePermissions": [
@@ -1039,6 +1643,21 @@
       "nativeApis": [
         "chrome.storage.local.get"
       ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.storage.local.get",
+          "kind": "METHOD",
+          "signature": "get(keys?: choices): Promise<object>",
+          "parameters": [
+            {
+              "name": "keys",
+              "type": "choices",
+              "optional": true
+            }
+          ],
+          "returnType": "Promise<object>"
+        }
+      ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.storage.local.get",
       "chromePermissions": [
         "storage"
@@ -1063,6 +1682,21 @@
       "nativeApis": [
         "chrome.storage.local.remove"
       ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.storage.local.remove",
+          "kind": "METHOD",
+          "signature": "remove(keys: choices): Promise<void>",
+          "parameters": [
+            {
+              "name": "keys",
+              "type": "choices",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<void>"
+        }
+      ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.storage.local.remove",
       "chromePermissions": [
         "storage"
@@ -1086,6 +1720,21 @@
       "mode": "SCOPED",
       "nativeApis": [
         "chrome.storage.local.set"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.storage.local.set",
+          "kind": "METHOD",
+          "signature": "set(items: object): Promise<void>",
+          "parameters": [
+            {
+              "name": "items",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<void>"
+        }
       ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.storage.local.set",
       "chromePermissions": [
@@ -1113,6 +1762,57 @@
         "chrome.tabs.update",
         "chrome.windows.update"
       ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.tabs.get",
+          "kind": "METHOD",
+          "signature": "get(tabId: integer): Promise<$ref:Tab>",
+          "parameters": [
+            {
+              "name": "tabId",
+              "type": "integer",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<$ref:Tab>"
+        },
+        {
+          "nativeApi": "chrome.tabs.update",
+          "kind": "METHOD",
+          "signature": "update(tabId?: integer, updateProperties: object): Promise<$ref:Tab>",
+          "parameters": [
+            {
+              "name": "tabId",
+              "type": "integer",
+              "optional": true
+            },
+            {
+              "name": "updateProperties",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<$ref:Tab>"
+        },
+        {
+          "nativeApi": "chrome.windows.update",
+          "kind": "METHOD",
+          "signature": "update(windowId: integer, updateInfo: object): Promise<$ref:Window>",
+          "parameters": [
+            {
+              "name": "windowId",
+              "type": "integer",
+              "optional": false
+            },
+            {
+              "name": "updateInfo",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<$ref:Window>"
+        }
+      ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.tabs.activateOwned",
       "chromePermissions": [
         "tabs",
@@ -1138,6 +1838,21 @@
       "nativeApis": [
         "chrome.tabs.create"
       ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.tabs.create",
+          "kind": "METHOD",
+          "signature": "create(createProperties: object): Promise<$ref:Tab>",
+          "parameters": [
+            {
+              "name": "createProperties",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<$ref:Tab>"
+        }
+      ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.tabs.create",
       "chromePermissions": [],
       "toolCapabilities": [
@@ -1160,6 +1875,34 @@
       "nativeApis": [
         "chrome.tabs.get",
         "chrome.webNavigation.getFrame"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.tabs.get",
+          "kind": "METHOD",
+          "signature": "get(tabId: integer): Promise<$ref:Tab>",
+          "parameters": [
+            {
+              "name": "tabId",
+              "type": "integer",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<$ref:Tab>"
+        },
+        {
+          "nativeApi": "chrome.webNavigation.getFrame",
+          "kind": "METHOD",
+          "signature": "getFrame(details: object): Promise<object>",
+          "parameters": [
+            {
+              "name": "details",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<object>"
+        }
       ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.tabs.getOwned",
       "chromePermissions": [
@@ -1186,6 +1929,34 @@
       "nativeApis": [
         "chrome.tabs.get",
         "chrome.webNavigation.getFrame"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.tabs.get",
+          "kind": "METHOD",
+          "signature": "get(tabId: integer): Promise<$ref:Tab>",
+          "parameters": [
+            {
+              "name": "tabId",
+              "type": "integer",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<$ref:Tab>"
+        },
+        {
+          "nativeApi": "chrome.webNavigation.getFrame",
+          "kind": "METHOD",
+          "signature": "getFrame(details: object): Promise<object>",
+          "parameters": [
+            {
+              "name": "details",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<object>"
+        }
       ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.tabs.listOwned",
       "chromePermissions": [
@@ -1214,6 +1985,52 @@
         "chrome.tabs.update",
         "chrome.webNavigation.getFrame"
       ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.tabs.get",
+          "kind": "METHOD",
+          "signature": "get(tabId: integer): Promise<$ref:Tab>",
+          "parameters": [
+            {
+              "name": "tabId",
+              "type": "integer",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<$ref:Tab>"
+        },
+        {
+          "nativeApi": "chrome.tabs.update",
+          "kind": "METHOD",
+          "signature": "update(tabId?: integer, updateProperties: object): Promise<$ref:Tab>",
+          "parameters": [
+            {
+              "name": "tabId",
+              "type": "integer",
+              "optional": true
+            },
+            {
+              "name": "updateProperties",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<$ref:Tab>"
+        },
+        {
+          "nativeApi": "chrome.webNavigation.getFrame",
+          "kind": "METHOD",
+          "signature": "getFrame(details: object): Promise<object>",
+          "parameters": [
+            {
+              "name": "details",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<object>"
+        }
+      ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.tabs.navigateOwned",
       "chromePermissions": [
         "tabs",
@@ -1241,6 +2058,52 @@
         "chrome.tabs.update",
         "chrome.webNavigation.getFrame"
       ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.tabs.get",
+          "kind": "METHOD",
+          "signature": "get(tabId: integer): Promise<$ref:Tab>",
+          "parameters": [
+            {
+              "name": "tabId",
+              "type": "integer",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<$ref:Tab>"
+        },
+        {
+          "nativeApi": "chrome.tabs.update",
+          "kind": "METHOD",
+          "signature": "update(tabId?: integer, updateProperties: object): Promise<$ref:Tab>",
+          "parameters": [
+            {
+              "name": "tabId",
+              "type": "integer",
+              "optional": true
+            },
+            {
+              "name": "updateProperties",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<$ref:Tab>"
+        },
+        {
+          "nativeApi": "chrome.webNavigation.getFrame",
+          "kind": "METHOD",
+          "signature": "getFrame(details: object): Promise<object>",
+          "parameters": [
+            {
+              "name": "details",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<object>"
+        }
+      ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.tabs.pinOwned",
       "chromePermissions": [
         "tabs",
@@ -1266,6 +2129,39 @@
       "nativeApis": [
         "chrome.tabs.reload",
         "chrome.webNavigation.getFrame"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.tabs.reload",
+          "kind": "METHOD",
+          "signature": "reload(tabId?: integer, reloadProperties?: object): Promise<void>",
+          "parameters": [
+            {
+              "name": "tabId",
+              "type": "integer",
+              "optional": true
+            },
+            {
+              "name": "reloadProperties",
+              "type": "object",
+              "optional": true
+            }
+          ],
+          "returnType": "Promise<void>"
+        },
+        {
+          "nativeApi": "chrome.webNavigation.getFrame",
+          "kind": "METHOD",
+          "signature": "getFrame(details: object): Promise<object>",
+          "parameters": [
+            {
+              "name": "details",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<object>"
+        }
       ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.tabs.reloadOwned",
       "chromePermissions": [
@@ -1293,6 +2189,47 @@
         "chrome.tabs.get",
         "chrome.tabs.remove",
         "chrome.webNavigation.getFrame"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.tabs.get",
+          "kind": "METHOD",
+          "signature": "get(tabId: integer): Promise<$ref:Tab>",
+          "parameters": [
+            {
+              "name": "tabId",
+              "type": "integer",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<$ref:Tab>"
+        },
+        {
+          "nativeApi": "chrome.tabs.remove",
+          "kind": "METHOD",
+          "signature": "remove(tabIds: choices): Promise<void>",
+          "parameters": [
+            {
+              "name": "tabIds",
+              "type": "choices",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<void>"
+        },
+        {
+          "nativeApi": "chrome.webNavigation.getFrame",
+          "kind": "METHOD",
+          "signature": "getFrame(details: object): Promise<object>",
+          "parameters": [
+            {
+              "name": "details",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<object>"
+        }
       ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.tabs.removeOwned",
       "chromePermissions": [

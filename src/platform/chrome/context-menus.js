@@ -7,6 +7,7 @@ import {createBrowserScreenshotResources} from './browser-screenshot-resources.j
 import {createBrowserDownloadsHost} from './browser-downloads.js';
 import {createBrowserBookmarksHost} from './bookmarks.js';
 import {createApprovedBrowserBindings} from '../../framework/sdk/browser-bindings.js';
+import {APPROVED_BROWSER_DIRECT_BINDINGS} from '../../framework/sdk/browser-direct.generated.js';
 import {validateTrustedScheduleIntent} from '../tasks/schedule-contract.js';
 import {createBrowserHistoryHost} from './history.js';
 import {executeBrowserToolStorage} from '../../ui/sidebar-tools/storage-state.js';
@@ -149,11 +150,12 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   const browserIntents=new Map(),INTENT_TTL=15000;
   // A permission or installed-package change must fence requests that are already in fetch().
   const activeNetworkRequests=new Set();
-  const intentOperations=new Set(['browser.tabs.create','browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.reloadOwned','browser.tabs.navigateOwned','browser.tabs.removeOwned','browser.network.request',
-    'browser.network.observe.start','browser.network.observe.export','browser.screenshot.captureVisible',
-    'browser.cookies.set','browser.cookies.remove','browser.cookies.clearSite','browser.cookies.observe.start',
-    'browser.clipboard.writeText','browser.downloads.text',
-    'browser.downloads.download','browser.downloads.cancelOwned','browser.bookmarks.create','browser.bookmarks.removeOwned','browser.storage.local.clear','browser.scheduler.create']);
+  // The approved Registry, not a second handwritten Host list, defines which
+  // calls require a one-use trusted confirmation. sidePanel.openSelf remains
+  // a separate synchronous foreground-gesture path.
+  const intentOperations=new Set(Object.values(BROWSER_OPERATIONS)
+    .filter(row=>row.requiresUserGesture&&row.operation!=='browser.sidePanel.openSelf')
+    .map(row=>row.operation));
   const observationOperations=new Set(['browser.network.observe.getStatus','browser.network.observe.stop',
     'browser.events.read','browser.events.close']);
   const ownedOperationMethods=new Set(['browser.operations.getStatus','browser.operations.cancel']);
@@ -236,30 +238,23 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   // Finite bindings to EXISTING scoped drivers: Sender, installed identity,
   // one-shot user intent and Origin were checked before this dispatcher runs.
   // No dynamic access to chrome[namespace][method] is permitted.
+  // Bind each audited service ONCE. Approved method names are resolved at
+  // startup from BROWSER_OPERATIONS and own service methods, not package data.
+  // Browser Sender, one-use gesture, tool identity, scope and revoke fencing
+  // remain in this existing trusted Host + each scoped Driver.
   const scopedBindings=createApprovedBrowserBindings({
-    'browser.downloads.download':(input,owner)=>downloadHost.download(input,owner),
-    'browser.downloads.cancelOwned':(input,owner)=>downloadHost.cancelOwned(input,owner),
-    'browser.bookmarks.create':(input,owner)=>bookmarkHost.create(input,owner),
-    'browser.bookmarks.removeOwned':(input,owner)=>bookmarkHost.removeOwned(input,owner),
-    'browser.tabs.create':(input,owner)=>tabHost.create(input,owner),
-    'browser.tabs.activateOwned':(input,owner)=>tabHost.activateOwned(input,owner),
-    'browser.tabs.pinOwned':(input,owner)=>tabHost.pinOwned(input,owner),
-    'browser.tabs.reloadOwned':(input,owner)=>tabHost.reloadOwned(input,owner),
-    'browser.tabs.navigateOwned':(input,owner)=>tabHost.navigateOwned(input,owner),
-    'browser.tabs.removeOwned':(input,owner)=>tabHost.removeOwned(input,owner),
-    'browser.tabs.getOwned':(input,owner)=>tabHost.getOwned(input,owner),
-    'browser.tabs.listOwned':(input,owner)=>tabHost.listOwned(input,owner),
-    'browser.downloads.getOwned':(input,owner)=>downloadHost.getOwned(input,owner),
-    'browser.downloads.listOwned':(input,owner)=>downloadHost.listOwned(input,owner),
-    // Storage uses one existing tool-namespaced service, never raw chrome.*
-    // Names are a finite audited list, not tool-controlled method strings.
-    ...Object.fromEntries(['get','set','remove','clear'].map(action=>{
-      const operation='browser.storage.local.'+action;
-      return [operation,(input,owner)=>executeBrowserToolStorage({
-        api,operation,toolId:owner.toolId,input,
-        authorize:()=>verifyBrowserOwner(owner,operation)
-      })];
-    }))
+    bookmarks:bookmarkHost,
+    tabs:tabHost,
+    downloads:downloadHost,
+    'storage.local':(input,owner,operation)=>executeBrowserToolStorage({
+      api,operation,toolId:owner.toolId,input,
+      authorize:()=>verifyBrowserOwner(owner,operation)
+    })
+  },{
+    // Approved Promise-native DIRECT calls are compiled from the pinned matrix.
+    // Existing trusted Host Sender, package, permission and lifetime checks
+    // apply exactly as they do for scoped service bindings.
+    nativeDirect:{api,descriptors:APPROVED_BROWSER_DIRECT_BINDINGS}
   });
   const dispatchScoped=(operation,input,owner)=>scopedBindings.dispatch(operation,input,owner,{
     authorize:(method,_input,context)=>verifyBrowserOwner(context,method,context.approvedOrigin)
@@ -437,7 +432,14 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     const isMenu=operation.startsWith('browser.contextMenu')||operation.startsWith('browser.launch')||
       operation==='browser.page.getSelection';
     const menuApiAvailable=Boolean(api.contextMenus?.create&&api.contextMenus?.onClicked);
-    const platformSupported=(!isMenu||['browser.contextMenu.getStatus','browser.contextMenu.unregister'].includes(operation)||menuApiAvailable)&&(
+    const approvedDirect=APPROVED_BROWSER_DIRECT_BINDINGS.find(row=>row.operation===operation);
+    const directPresent=!approvedDirect||(()=>{
+      const parts=approvedDirect.nativeApi.split('.');
+      const namespace=Object.getOwnPropertyDescriptor(api,parts[1])?.value;
+      return typeof (namespace&&Object.getOwnPropertyDescriptor(namespace,parts[2])?.value)==='function';
+    })();
+    const platformSupported=directPresent&&
+      (!isMenu||['browser.contextMenu.getStatus','browser.contextMenu.unregister'].includes(operation)||menuApiAvailable)&&(
       operation==='browser.tabs.create'?Boolean(api.tabs?.create):
       operation==='browser.tabs.activateOwned'?Boolean(api.tabs?.get&&api.tabs?.update&&api.webNavigation?.getFrame):
       operation==='browser.tabs.getOwned'||operation==='browser.tabs.listOwned'?Boolean(api.tabs?.get&&api.webNavigation?.getFrame):
