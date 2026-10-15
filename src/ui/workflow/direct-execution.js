@@ -169,6 +169,17 @@ export function directExecutionEvidenceLevel({receiptVerified=false,hasReadback=
   return 'EXECUTION_RECEIPT_VERIFIED';
 }
 
+// A stored script is still the same revision only if every independently
+// durable source identity agrees. Used by AI-free manual runs as well.
+export function verifySavedWorkflowRevision({source,claim,completed,view,result}={}) {
+  if(source?.kind!=='saved'||typeof source.scriptId!=='string'||
+    !Number.isSafeInteger(source.revision)||source.revision<=0||
+    !/^[a-f0-9]{64}$/.test(source.contentHash||''))return false;
+  return [claim?.revision,completed?.result?.revision,view?.run?.revision,result?.revision]
+    .every(row=>row?.scriptId===source.scriptId&&row.revision===source.revision&&
+      row.sourceHash===source.contentHash);
+}
+
 // A RunHost completion is not automatically a successful web-page effect.
 // Bind all independently durable run/result/revision/document identities and
 // the released Worker/target before presenting a verified success to the user.
