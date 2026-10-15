@@ -302,8 +302,65 @@ try{
     const screenshot=await cdp('Page.captureScreenshot',{format:'png'});
     await writeFile(join(out,'bookmark-r26-'+mode+'.png'),
       Buffer.from(screenshot.data,'base64'));
+    // Capture actual production-sourced HTML in read, edit and conflict states.
+    // The preceding end-state screenshot can be a revoked gate, not a useful UI
+    // design review. Visuals remain clearly marked as installed:false / Mock.
+    contexts.clear();
+    await cdp('Page.navigate',{url:pathToFileURL(built.output).href});
+    const visualCtx=await findFrame();
+    const visualRead=await evaluate(`(async()=>{
+      const q=id=>document.getElementById(id);
+      for(let i=0;i<160&&q('bm-workspace').hidden;i++)
+        await new Promise(done=>setTimeout(done,65));
+      if(q('bm-workspace').hidden)throw Error('visual bookmark tree did not load');
+      const search=q('bm-search');
+      search.value='OpenDesk 产品资料';
+      search.dispatchEvent(new Event('input',{bubbles:true}));
+      const row=[...q('bm-list').querySelectorAll('.bm-entry')].find(el=>
+        el.textContent.includes('OpenDesk 产品资料'));
+      if(!row)throw Error('visual sample bookmark missing');
+      row.click();
+      return {detailsVisible:!q('bm-inspector-read').hidden,
+        listVisible:!q('bm-explorer').hidden};
+    })()`,visualCtx);
+    assert.ok(visualRead?.detailsVisible&&visualRead?.listVisible,
+      'visual read state uses same source as real editor');
+    const shots=[];
+    const capture=async state=>{
+      const filename='bookmark-r27-'+mode+'-'+state+'.png';
+      const image=await cdp('Page.captureScreenshot',{format:'png'});
+      await writeFile(join(out,filename),Buffer.from(image.data,'base64'));
+      shots.push(filename);
+    };
+    await capture('details');
+    const visualEdit=await evaluate(`(()=>{
+      const q=id=>document.getElementById(id);
+      q('bm-inspector-edit').click();
+      const name=q('bm-name');
+      name.value='OpenDesk 产品资料 · 正在原位编辑';
+      name.dispatchEvent(new Event('input',{bubbles:true}));
+      return {editing:!q('bm-form-view').hidden,
+        explorer:!q('bm-explorer').hidden,dirty:name.value.includes('正在原位编辑')};
+    })()`,visualCtx);
+    assert.ok(visualEdit?.editing&&visualEdit?.explorer&&visualEdit?.dirty);
+    await capture('editing');
+    const visualConflict=await evaluate(`(async()=>{
+      const q=id=>document.getElementById(id);
+      const diagnostic=[...document.querySelectorAll('details button')].find(x=>
+        x.textContent==='模拟外部冲突');
+      if(!diagnostic)throw Error('visual conflict diagnostic missing');
+      diagnostic.click();q('bm-save').click();
+      for(let i=0;i<160&&q('bm-conflict-review').hidden;i++)
+        await new Promise(done=>setTimeout(done,65));
+      return !q('bm-conflict-review').hidden&&!q('bm-form-view').hidden;
+    })()`,visualCtx);
+    assert.ok(visualConflict,'visual conflict must be visible with draft preserved');
+    await capture('conflict');
+    assert.deepEqual(network,[],'visual review must remain fully offline');
+    assert.deepEqual(exceptions,[],'visual review must not throw');
     reports.push({...report,sourceCommit:built.sourceCommit,
-      designSha256:built.designSha256,uiSha256:built.uiSha256});
+      designSha256:built.designSha256,uiSha256:built.uiSha256,
+      visualEvidence:shots});
   }
   await writeFile(join(out,'bookmark-r26-interaction.json'),
     JSON.stringify({status:'MOCK_BROWSER_INTERACTION_PASS_NOT_INSTALLED',cases:reports},null,2)+'\n');
