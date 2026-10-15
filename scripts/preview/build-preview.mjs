@@ -7,11 +7,13 @@ import {fileURLToPath,pathToFileURL} from 'node:url';
 import {createSidebarToolPackage} from '../build-sidebar-tool.mjs';
 import {officialDesignSources,canonicalThemeOverride} from './shared-tool-design.mjs';
 import {sidebarPreviewShellSource} from './sidebar-shell-source.mjs';
+import {canonicalAdblockPreviewHost} from './adblock-host-source.mjs';
 
 export const PREVIEW_FORMAT='opendesk.ui-preview.v1';
 export const PREVIEW_CONTEXT_FORMAT='opendesk.ui-preview-context.v1';
 export const PREVIEW_SCENARIOS=Object.freeze(['success','empty','error','loading','permission-denied','untrusted']);
 export const PREVIEW_MOCK_OPERATIONS=Object.freeze(['storage.get','storage.set','currentPage.info','tasks.open']);
+export const PREVIEW_ADBLOCK_OPERATIONS=Object.freeze(['adblock.status','adblock.site.restore']);
 export const PREVIEW_BOOKMARK_OPERATIONS=Object.freeze([
   'getTree','get','search','create','update','move','remove','prepareRemoveTree','removeTree',
   'observe.start','observe.read','observe.stop'
@@ -31,7 +33,7 @@ export async function generatePreview({
   if(!/^[a-z0-9-]{1,64}$/.test(tool))fail('invalid tool ID');
   // Fail closed: injected-page/standalone need their own real production mounting adapter.
   if(surface!=='side-panel')fail('surface '+surface+' has no verified production preview adapter');
-  if(!['quick-notes','bookmark-manager'].includes(tool))fail('mock SDK adapter is not implemented for '+tool);
+  if(!['quick-notes','bookmark-manager','adblock'].includes(tool))fail('mock SDK adapter is not implemented for '+tool);
   if(!PREVIEW_SCENARIOS.includes(scenario))fail('unsupported scenario');
   if(!['light','dark'].includes(theme))fail('unsupported theme');
   if(!Number.isInteger(width)||width<240||width>1440||
@@ -48,6 +50,13 @@ export async function generatePreview({
       fail('mock and real UI request operations do not match');
     mock=await readFile(new URL('./quick-notes-mock.js',import.meta.url));
     operations=PREVIEW_MOCK_OPERATIONS;
+  }else if(tool==='adblock'){
+    const invoked=[...pkg.js.matchAll(/\brequest\s*\(\s*['"]([^'"]+)['"]/g)].map(match=>match[1]);
+    if(invoked.length!==2||invoked.some(op=>!PREVIEW_ADBLOCK_OPERATIONS.includes(op))||
+       PREVIEW_ADBLOCK_OPERATIONS.some(op=>!invoked.includes(op)))
+      fail('AdBlock mock and real sandbox request operations do not match');
+    mock=await readFile(new URL('./adblock-mock.js',import.meta.url));
+    operations=PREVIEW_ADBLOCK_OPERATIONS;
   }else{
     if(!pkg.js.includes('BookmarkR2Model')||!pkg.js.includes('BookmarkR2Service')||
        !pkg.js.includes('OpenDeskSDK'))
@@ -58,6 +67,7 @@ export async function generatePreview({
   const {tokens,components,digest}=await officialDesignSources();
   const override=await canonicalThemeOverride(theme);
   const shell=await sidebarPreviewShellSource();
+  const adblock=tool==='adblock'?await canonicalAdblockPreviewHost():null;
   const shellTemplate=await readFile(new URL('../templates/sidebar-tool-preview-shell.html',import.meta.url),'utf8');
   const lightShellOverride=await canonicalThemeOverride('light');
   let commit;
@@ -95,12 +105,32 @@ export async function generatePreview({
   // diagnostic scenario without adding a theme switch to the preview UI.
   const safeJS=value=>JSON.stringify(value).replaceAll('<','\\u003c')
     .replaceAll('\u2028','\\u2028').replaceAll('\u2029','\\u2029');
+  const adblockScript=adblock?await readFile(new URL('./adblock-host-preview.js',import.meta.url),'utf8'):'';
+  const hostKey=scenario==='success'?'on-site-off':scenario==='empty'||
+    scenario==='permission-denied'?'no-permission':
+    scenario==='untrusted'?'on-site-on':scenario;
+  const hostMarkup=adblock?adblock.snapshots[hostKey]:'';
+  const adblockDialog=adblock?[
+    '<dialog class="preview-confirm od-surface" id="od-preview-adblock-restore-dialog" aria-labelledby="od-preview-adblock-restore-title" aria-describedby="od-preview-adblock-restore-description">',
+    '<h2 id="od-preview-adblock-restore-title">模拟恢复网站过滤？</h2>',
+    '<p id="od-preview-adblock-restore-description"></p>',
+    '<div class="preview-confirm-actions">',
+    '<button id="od-preview-adblock-restore-cancel" class="od-button od-button--secondary" type="button">取消</button>',
+    '<button id="od-preview-adblock-restore-accept" class="od-button" type="button">确认恢复</button>',
+    '</div></dialog>'
+  ].join(''):'';
   const values=Object.freeze({
     PAGE_TITLE:htmlEscape(viewportTitle),
     TOOL_NAME:htmlEscape(pkg.title),TOOL_NAME_JSON:safeJS(pkg.title),
     SCENARIO:htmlEscape(scenario),TOOL_THEME:htmlEscape(theme),
     TOKENS:tokens,COMPONENTS:components,SHELL_CSS:shell.css,
-    LIGHT_CSS:lightShellOverride,WIDTH:String(width),HEIGHT:String(height),
+    ADBLOCK_HOST_CSS:adblock?.css||'',
+    ADBLOCK_HOST:hostMarkup,
+    ADBLOCK_RESTORE_DIALOG:adblockDialog,
+    ADBLOCK_SNAPSHOTS_JSON:safeJS(adblock?{scenario,snapshots:adblock.snapshots}:{}),
+    ADBLOCK_PREVIEW_SCRIPT:adblockScript,
+    LIGHT_CSS:lightShellOverride,WIDTH:String(width),
+    HEIGHT:String(tool==='adblock'?140:height),
     NAV:shell.nav,HEADER:shell.head,
     SOURCE_COMMIT:commit,DESIGN_SHA:digest,SHELL_SHA:shell.digest,UI_SHA:uiDigest,
     MANIFEST_JSON:safeJS(manifest),FRAME_BASE64:base64(frameHtml)
@@ -126,7 +156,8 @@ export function previewReviewContext(preview){
     toolId:manifest.tool,surface:manifest.surface,
     view:'extension-tool-detail',activeTab:'扩展',
     // Tool interactions remain owned by the real packaged HTML/JS, not a summary registry.
-    hostInteractions:['五个顶部页签（非扩展仅占位）','返回精简列表与重新进入','模拟卸载、取消和确认'],
+    hostInteractions:['五个顶部页签（非扩展仅占位）','返回精简列表与重新进入','模拟卸载、取消和确认',
+      ...(manifest.tool==='adblock'?['可信宿主全局与当前网站开关（离线模拟）','网站例外恢复确认（离线模拟）']:[])],
     scenario:manifest.scenario,viewportCssPx:manifest.viewport,
     source:{commit:manifest.sourceCommit,designSha256:manifest.designSha256,
       shellSha256:manifest.shellSha256,uiSha256:manifest.uiSha256},
@@ -150,7 +181,7 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).hr
     ['--theme','theme'],['--width','width'],['--height','height'],['--out','out']]);
   try {
     for(let i=0;i<args.length;i+=2){
-      if(!opts.has(args[i])||i+1>=args.length)fail('usage: --tool quick-notes --surface side-panel --scenario success --theme light --width 360 [--height 760] [--out file]');
+      if(!opts.has(args[i])||i+1>=args.length)fail('usage: --tool quick-notes|bookmark-manager|adblock --surface side-panel --scenario success --theme light --width 360 [--height 760] [--out file]');
       const key=opts.get(args[i]);
       parsed[key]=['width','height'].includes(key)?Number(args[i+1]):args[i+1];
     }
