@@ -101,3 +101,29 @@ Date: 2026-10-15. Branch: `main` (only). Scope: `examples/programs/chatgpt-mindm
 - 提交 `4f788bef73e699550092743db1ce16909c7ceeed` 修复预览 Stop 误判：Snowbrush **脚本加载时**注入的 `head style#snowbrush_style` 已可能存在于最初计数中，不能因 Stop 后 style 数量变化为 0 就宣称样式隔离完成。当前 Stop 同时检查 `snowbrush_style` / `.workbook-item` / `.sb-container` 全局样式节点，并显式标记 `BLOCKED_GLOBAL_STYLE_RESIDUE`。
 - 提交 `4f788bef73e699550092743db1ce16909c7ceeed` 绑定的定向 GitHub Actions [38725804241](https://github.com/shopable-ai/opendesk-browser/actions/runs/38725804241)：**SUCCESS**（job `116391229754`），16 tests / 13 PASS / 0 FAIL / 3 SKIP（真实 SDK 缺失）；程序校验和构建 PASS，但仍 `BUILT_UNVERIFIED / installable:false`。
 - R2.1 的独立 Chrome HTML **正向**渲染、清理后实际样式节点统计、用户 Mac 正式安装、登录 ChatGPT 仍 **NOT_TESTED**。旧版 R2 Linux Chromium fixture 的历史成功不提升为 R2.1 新 HTML 实测。
+
+## R2.2 增量：原始字节接入隔离 CI + 真实 HTML Gate 1 已验证（2026-10-15）
+
+**证据只绑定本次实际测试候选，不把此前 R2/R2.1 fixture 的成功混用。**
+
+- 关键 CI: [38733159512](https://github.com/shopable-ai/opendesk-browser/actions/runs/38733159512)，head `15ef1cb44ed43753aa627ebe04648d045aed0e25`，`offline-source-contract` + `real-local-xmind-html` **SUCCESS**。
+- 原始引擎字节本轮确实被读取/执行核验：隔离 Runner 临时目录使用 Browser 仓库**已有历史源码快照**中的 polyfill、xmind-sdk、snowbrush 三个完全一致 Git blob，再从 npm `jszip@3.10.1` 发布 tarball 取其 `dist/jszip.min.js`。严格调用正式预览的 `verifyFixedXmindAssets` 对 **四个文件共 4,042,573 B** 重新检验长度、SHA-256、Git blob 和顺序；`REAL_XMIND_SHA256_AND_GIT_BLOB_PASS: 4/4`。JSZip npm 字节实际与固定清单相同，不是降级替代；**没有提交、上传或创建新的 vendor 镜像**。
+- 真实引擎 Node：**16 tests / 16 PASS / 0 FAIL / 0 SKIP**；默认静态测试 job、项目源验证、`build:program`、`npm run check` 亦为 SUCCESS。Node SDK 测试此轮不是缺资源 SKIP。
+- 真实浏览器：隔离 Linux Google Chrome `154.0.8037.97`，原始 `_SB_.createWorkbookEditor` 实际绘图、A/B/C 三条回复、相同标题隔离、放大/折叠、C 大型多层级样例 **97 个真实主题**、原文、内容刷新、操作栏重建、全屏/Escape、320px 实际容器宽度、20 次开关、SPA/Stop 生命周期等，**21 browser cases PASS**。生成 `light-fixture.png`、`narrow-fixture.png`、`r22-local-html-wide.png`、`r21-local-html-xmind.png` 及 `result.json`；当前仅留存在同一 CI run 的限期内部证据中，不是产品包或对用户提供的 ZIP。
+- 浏览器诊断继续实测 `styleIsolation: BLOCKED_GLOBAL_STYLE_RESIDUE`，且 `globalSdkStyles` 包含 `snowbrush_style`。SDK 控制器全关/自有 UI 清理，不代表外层文档样式被隔离。页面视觉与原 Mindbank 比对、200% 原生浏览器缩放、触控板、多层图交互质感与正式深浅色仍未完成独立验收。
+
+正式产品修复：`src/xmind-convert.js` 不再给任何可见备注插入 `[nodeKey:…]` 内部元数据；只读导图的折叠仍由路径身份跟踪。`tests/xmind-adapter.test.mjs` 使用真实 SDK 断言重复标题下原始 notes 不被污染。本轮还在**同源** `preview/` 增加 C/大型导图场景，而非创建第二套引擎。开发测试一度因错误测试正则（随后修复）及 CSS 宽度 transition 过早断言失败；最终成功候选已修复，不抹除中间失败记录。
+
+### 五道 Gate 当前准确状态
+
+| Gate | 状态 | 本轮实际证据 / 下一阻塞 |
+| --- | --- | --- |
+| 1 HTML_ENGINE_VERIFIED | **PASS（隔离 CI Chrome）** | 四字节 SHA/Git blob 校验、真实 HTML + SDK 操作、截图和结果；不等于视觉 95 分 |
+| 2 RUNTIME_ADMITTED | **BLOCKED** | Snowbrush 合并产物/传递依赖许可待核实；全局 CSS 残留；现行 `USER_SCRIPT` 512KiB 源/固定可选库上限无法容纳 3.44MB 原包；未实现或批准新的可信本地隔离资源入口 |
+| 3 PRODUCT_FUNCTIONAL | **PARTIAL / fixture PASS** | 本地 A/B/C、97 节点、原文/Stop 通过；真实 ChatGPT DOM、200% 原生缩放、触控板、备注 UI/视觉比对仍 NOT_TESTED |
+| 4 INSTALLATION_VERIFIED | **NOT_TESTED / BLOCKED** | `BUILT_UNVERIFIED / installable:false`；无同源 candidate、receipt、USER_SCRIPT 自动运行及撤权/卸载正式证据 |
+| 5 CHATGPT_NATIVE_VERIFIED | **NOT_TESTED** | 未在登录后的实际 ChatGPT/用户 Mac 执行；不能称安装一次以后自动运行成功 |
+
+**下一阶段最小必要缺口：** 精确权利来源与 NOTICE/SBOM、受现有 Authority 管理且不向 ChatGPT MAIN/全局样式泄漏的通用离线绘图边界、正式固定 Runtime 接线、同候选安装验收、真实 ChatGPT UI/视觉与输入操作验收。不可为了本地 Gate 1 PASS 强行改 `installable:false`，不可把 legacy 快照路径或 npm 作为安装时动态 JS 获取地址。
+
+三个原 Snowbrush / XMind 固定 blob **此前就已存在于 Browser 仓库的旧项目源码快照**，这不等于它们是获批准、可分发的新产品依赖；这里没有新增 vendor 文件。以前“vendor 字节未在当前项目分发”的表述精确理解为“**不包含在思维导图正式 Program 构建/安装包中**”。

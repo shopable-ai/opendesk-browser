@@ -31,3 +31,13 @@ node examples/programs/chatgpt-mindmap/preview/serve.mjs \
 - 后续通用 HTML UI 预览复用仓库已有 `.agents/skills/opendesk-ui-preview/SKILL.md`；本预览只拥有 XMind 引擎固定资源的专项验证，不新增通用 Skill/权限/安装器。
 
 **准入状态：独立真实引擎预览的源码入口已具备；未提供原始四份文件或未在浏览器运行时，`REAL_SDK_BROWSER` 必须为 `NOT_TESTED`；正式安装与已登录 ChatGPT 均为 `NOT_TESTED/BLOCKED`。**
+
+## R2.2 可重复的真实浏览器 CI 入口
+
+专项工作流：`.github/workflows/chatgpt-mindmap-preview.yml` 的 `real-local-xmind-html` job。实际 [Chrome/原始 SDK 通过记录](https://github.com/shopable-ai/opendesk-browser/actions/runs/38733159512)，绑定源码 `15ef1cb44ed43753aa627ebe04648d045aed0e25`。该 Job 不把四个原资源塞入当前 Program 或对外分发：仅在隔离 Runner 临时目录取得三份**仓库现存 legacy source snapshots** 和 npm 精确版本 `jszip@3.10.1` 的 `dist/jszip.min.js`，经过 `verifyFixedXmindAssets` 四文件大小、SHA-256、Git blob 验证之后才执行真实 Chromium。
+
+对应验收驱动为 `tests/framework/chatgpt-mindmap-xmind-probe.mjs`，使用 `preview/serve.mjs` 打开本文件，实际验证 A/B/C、C 大型 97 主题、原生 SDK 缩放/折叠、320px 窄容器、操作栏重建、Stop 和显式全局样式残留诊断。预览操作区可点击「将 C 切换为大型导图」再打开 C；关闭 C 后可恢复默认内容。产品代码仍唯一来自 `src/`。
+
+本轮成功 CI 报告 **4/4 原资源 HASH PASS、16/16 Node PASS、21/21 Chrome browser cases PASS**。截图（测试夹具而非 Mindbank 对照图）和结果为该 CI 的短期内部证据，不是可安装产品。确认运行成功要看 `result.json` 的 `status`、`largeTopicCount`、`previewNarrowWidth`、`preview.diagnostic` 和浏览器 screenshot；脚本加载 200/本地服务启动不算实际渲染通过。
+
+**关键阻塞：** 测得 `preview.diagnostic.styleIsolation = BLOCKED_GLOBAL_STYLE_RESIDUE`，残留 `snowbrush_style`。现有 preview 是独立本地文档隔离，尚不能在真实 ChatGPT USER_SCRIPT 中保证无全局样式副作用；固定资源分发许可、正式本地运行时、安装自动启动和真实 ChatGPT 视觉均未批准/验证。没有证据的 200% Chrome 浏览器缩放、触控板和原 Mindbank 产品视觉对比仍为 NOT_TESTED。
