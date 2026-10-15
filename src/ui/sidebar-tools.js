@@ -1029,8 +1029,6 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       const isDiscovery=['browser.capabilities.list','browser.capabilities.getStatus'].includes(operation);
       if(!isDiscovery&&(!browserOperation(operation)||!browserOperation(operation).requiredCapabilities.every(cap=>tool.capabilities.includes(cap))))
         throw Object.assign(new Error('此工具没有获准浏览器能力'),{code:'E_TOOL_CAPABILITY_REQUIRED'});
-      if(operation==='browser.page.getContext')
-        return dispatch('currentPage.info',{},tool,source,token,revocationEpoch);
       const owned=(await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE];
       if(!requireCompleteInstalledSidebarTools(owned).some(row=>samePackage(row,tool)))
         throw Object.assign(new Error('工具已更新或卸载'),{code:'E_TOOL_CHANGED'});
@@ -1044,6 +1042,24 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       const envelope={protocol:BROWSER_HOST_PROTOCOL,kind:'tool',
         operation,args:payload||{},toolId:tool.id,toolVersion:tool.version,
         installEpoch:revocationEpoch,packageHash,toolInstance:token,hostInstanceId};
+      if(operation==='browser.page.getContext'){
+        const target=currentPageTarget?.snapshot;
+        if(target?.status!=='available')return {status:'unavailable',
+          message:String(target?.message||'当前没有可用的普通网页').slice(0,250)};
+        const captured=currentPageTarget.capture();
+        await currentPageTarget.revalidate(captured);
+        assertSession(source,token);
+        const response=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,
+          kind:'host',operation,hostInstanceId,toolId:tool.id,toolVersion:tool.version,
+          toolInstance:token,installEpoch:revocationEpoch,packageHash,
+          document:{tabId:captured.tabId,windowId:captured.windowId,
+            documentId:captured.documentId,url:captured.url,origin:captured.origin,
+            title:String(captured.title||'').slice(0,512)}});
+        assertSession(source,token);
+        if(!response?.ok)throw Object.assign(new Error(response?.error?.message||'当前页引用验证失败'),
+          {code:response?.error?.code||'E_DOCUMENT_STALE'});
+        return response.data;
+      }
       if(operation==='browser.scheduler.create'){
         if(!foundationClient?.request||!currentPageTarget?.capture||!currentPageTarget?.revalidate)
           throw Object.assign(new Error('现有任务与当前网页服务不可用'),{code:'E_SERVICE_UNSUPPORTED'});
