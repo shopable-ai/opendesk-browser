@@ -154,6 +154,39 @@ test('bookmark laboratory is an OUTER preview-only surface across supported tool
   assert.doesNotMatch(script,/chrome\.|permissions\.request|\bfetch\s*\(/);
 });
 
+test('bookmark Mock accepts only named commands from its immediate preview parent',async()=>{
+  const code=await read('scripts/preview/bookmark-manager-mock.js');
+  const ack=[],listeners=new Map();
+  const parent={postMessage(value,origin){ack.push({value,origin})}};
+  const root={querySelector:selector=>selector==='#bm-inspector-id'?
+    {textContent:'100'}:null};
+  const context={
+    document:{getElementById:id=>id==='tool-root'?root:null},
+    __opendeskPreviewScenario:'success',parent,Date,
+    addEventListener:(type,handler)=>listeners.set(type,handler)
+  };
+  context.globalThis=context;
+  vm.runInNewContext(code,context,{timeout:1000});
+  const before=(await context.OpenDeskSDK.browser.bookmarks.get({id:'100'}))[0].title;
+  const send=(source,command,requestId='1')=>listeners.get('message')({
+    source,data:{type:'opendesk.preview.bookmark.command.v1',command,requestId}
+  });
+  send({},'external-conflict');
+  send(parent,'remove-all');
+  send(parent,'external-conflict','../../');
+  assert.equal(ack.length,0,'non-parent, unlisted command and bad request ID are inert');
+  const still=(await context.OpenDeskSDK.browser.bookmarks.get({id:'100'}))[0].title;
+  assert.equal(still,before);
+  send(parent,'external-conflict','17');
+  assert.equal(ack.length,1,'one bounded receipt sent to the external laboratory');
+  assert.equal(ack[0].value.type,'opendesk.preview.bookmark.ack.v1');
+  assert.equal(ack[0].value.command,'external-conflict');
+  assert.equal(ack[0].value.requestId,'17');
+  assert.equal(ack[0].origin,'*','opaque sandbox has no addressable origin');
+  const after=(await context.OpenDeskSDK.browser.bookmarks.get({id:'100'}))[0].title;
+  assert.match(after,/另一窗口修改/);
+});
+
 test('build emits short source-bound review context next to the offline HTML',async()=>{
   const preview=await generatePreview({tool:'quick-notes',scenario:'empty',width:320});
   const brief=previewReviewContext(preview);
