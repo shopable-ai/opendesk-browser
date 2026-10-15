@@ -272,6 +272,9 @@ async function exercise(mode){
   q('bm-inspector-edit').click();
   check(!q('bm-parent-row').open,'folder chooser is collapsed again in a fresh edit');
   const folderSummary=q('bm-parent-row').querySelector('summary');
+  const nativeEnter=new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true});
+  check(folderSummary.dispatchEvent(nativeEnter)&&!nativeEnter.defaultPrevented,
+    'Enter on the disclosure is not hijacked as Save by the form handler');
   folderSummary.click();
   check(q('bm-parent-row').open,'disclosure can be expanded with a real click');
   field('bm-parent','10');
