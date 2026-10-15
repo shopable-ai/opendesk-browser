@@ -22,3 +22,14 @@
 - R4.2 旧离线原型：33 Node、30 Chromium；并非 R5 生产候选 PASS。
 - R2.1 旧生命周期 Node 与 PAC fixture：历史有效性限定于各自候选，不提升为新 Native。
 - R5 新定向：`node --test tests/environment/ai-vip-share-r5-ui.test.mjs`，CI 随 main 执行原定向及 `npm run check`/build/verify。真实结果以 CI workflow run/原生日志判定。
+
+## R5 源码优先交接与 CI 归因（2026-10-15，后续对话直接继承）
+
+本轮成功推送的初次源码提交为 `78168abece1414e390307f48755be5bc596ceecb`，其后 CI 提交为 `bfcd9b5692163f50fdeffd93da7f2d0a4e80b356`、`78dc34b54a4d712051bd873ee79a2c21e9334d7f`。独立工具当前版本 `1.1.0`；正式业务源码归属 `examples/sidebar-tools/ai-vip-share/`。上述提交在 `main`，没有发布到商店，不代表 Native PASS。
+
+- **已落实源码：** 宿主取消了原 `frameRoot.hidden=id===AI_ID`，正式 sandbox 显示会员、兑换、商品主界面；在其后由可信宿主呈现唯一代理启停按钮。原型 R4.2 结构和文案部分迁入；并未把真实会员状态、兑换、支付和安装 ticket 处理迁为可执行生产流程。
+- **已核验事实：** `node --test tests/environment/ai-vip-share-r5-ui.test.mjs` 在 CI 同候选的 5 项测试全部 PASS；工具 `1.1.0` 可打包，`npm run check` PASS。CI [38712410713](https://github.com/shopable-ai/opendesk-browser/actions/runs/38712410713) 全 Browser build 报 `Trusted AdBlock source changed; review and re-pin before fixed build: examples/sidebar-tools/adblock/trusted/host-controls.js`，构建与原生验收必须保持 BLOCKED/NOT_TESTED；不能通过关闭摘要守卫放行。
+- **历史失败归因：** CI [38711315723](https://github.com/shopable-ai/opendesk-browser/actions/runs/38711315723) 有 19 项失败；在 R5 之前的 CI [38710819505](https://github.com/shopable-ai/opendesk-browser/actions/runs/38710819505) 相同名称的 19 项也失败：18 项旧 R2.1 工具锁/生命周期案例、1 项 Cookie Editor 随源可移植包一致性案例。不得计为 R5 新回归，也不得替他人的模块忽略、删除或伪造 PASS。
+- **用户交付方式纠正：** 用户只要求向 GitHub `main` 写入正式源码并通过既有 OpenDesk Browser「扩展」完成安装/升级，不要另外要求下载 `.opendesk-tool.json`、ZIP、CI Artifact。R5 独立 GitHub Actions 的上传步骤已在提交 `4ee02c2dedea92884c7bf406889f2611aa407a69` 删除；内部临时打包/哈希比对仍可以保留为构建检查。历史 CI 归档不构成必须下载的交付路径。
+- **下一轮优先级：**（一）最新 `main` 增量复核并使用真实扩展安装入口确认正式工具显示和 Trusted 卡片交互（有原生条件时）；（二）仅与 AdBlock 负责人协调修复固定源码摘要阻塞后建立 Browser BUILD_PASS，不代改安全审查；（三）会员账号/SKU/权益/幂等兑换/短效激活 ticket 要求真实 Provider 合同，无服务端则保持可读禁用态；（四）商品目录可以通过获批准的 `browser.tabs.create` 打开已审核 HTTPS 外链，不采用弹窗，不编造 URL；（五）完成有候选身份的 Native Chrome 安装升级和冲突/撤权回归。
+- **独立评分：** 仅有源码和 Node 证据；正式视觉/可访问性、生产 Proxy、Provider、原生安装、安全生命周期、完整版构建均 `NOT_SCORED`，不得综合得出 95+。
