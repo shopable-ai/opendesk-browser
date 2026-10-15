@@ -1,32 +1,28 @@
 <main class="ps od-page">
   <section id="ps-index" aria-labelledby="ps-title">
-    <header class="ps-head od-page-head"><div><h2 id="ps-title" class="od-title">提示词快捷按钮</h2><p class="od-note">在 ChatGPT 内容区左侧快速插入完整提示词</p></div><button id="ps-new" class="od-button od-button--primary" type="button">＋ 新建</button></header>
-    <div class="ps-section-heading"><h3>我的提示词</h3><small id="ps-count">0 个 · 0 个启用</small></div>
+    <header class="ps-head od-page-head"><h2 id="ps-title" class="od-title">我的提示词</h2><button id="ps-new" class="od-button od-button--primary" type="button">＋ 新建</button></header>
+    <div class="ps-list-caption"><span>点击正文可直接复制，网页左侧按钮可插入草稿</span><small id="ps-count">0 个 · 0 个启用</small></div>
     <div id="ps-list" class="ps-list"></div>
     <div id="ps-empty" class="ps-empty" hidden><strong>尚未创建提示词</strong><p>点击「＋ 新建」添加第一个快捷按钮。</p></div>
-    <p class="ps-hint">只需填写提示词内容即可创建；短标签和名称留空时自动取正文前两个可见字素。</p>
     <section class="ps-settings" aria-label="使用设置">
-      <div class="ps-section-heading"><h3>使用设置</h3><small>不影响已保存提示词</small></div>
-      <label class="ps-setting-card od-surface"><span class="ps-setting-copy"><strong>网页左侧快捷按钮</strong><small>在 ChatGPT 主内容区左边缘垂直居中显示</small></span><span class="ps-switch"><input id="ps-web" type="checkbox" role="switch" checked aria-label="网页左侧快捷按钮"><span class="ps-switch-track" aria-hidden="true"></span></span></label>
-      <label class="ps-setting-card od-surface"><span class="ps-setting-copy"><strong>选中文字快速添加</strong><small>通过 Chrome 原生右键菜单预填新建提示词</small></span><span class="ps-switch"><input id="ps-menu" type="checkbox" role="switch" aria-label="选中文字快速添加"><span class="ps-switch-track" aria-hidden="true"></span></span></label>
-      <div class="ps-permission-strip"><span class="ps-permission-dot" aria-hidden="true"></span><span><strong id="ps-grant">chatgpt.com · 网页授权请在工具详情确认</strong><small id="ps-menu-state">正在读取原生右键状态…</small></span></div>
-      <p class="ps-hint">网站访问权限请在「扩展 → 工具详情 → 设置」中授权或撤销；不以原生右键许可冒充网页授权。</p>
+      <div class="ps-section-heading"><h3>快捷入口</h3><small>默认开启</small></div>
+      <label class="ps-setting-card od-surface"><span class="ps-setting-copy"><strong>网页左侧快捷按钮</strong><small>ChatGPT 页面直接可用，不需额外授权</small></span><span class="ps-switch"><input id="ps-web" type="checkbox" role="switch" checked aria-label="网页左侧快捷按钮"><span class="ps-switch-track" aria-hidden="true"></span></span></label>
+      <p class="ps-hint">原生右键快捷添加为可选功能，需要时可在工具详情的「设置」中启用。</p>
+
     </section>
     <section id="ps-copy" class="od-surface ps-copy" hidden aria-label="手动复制"><strong>复制完整提示词</strong><p class="ps-hint">浏览器未确认剪贴板写入，请选中以下正文手动复制。</p><textarea id="ps-copy-text" class="od-field" readonly aria-label="待复制的完整正文"></textarea><button id="ps-copy-close" type="button" class="od-button od-button--secondary">关闭</button></section>
   </section>
   <section id="ps-edit" hidden aria-labelledby="ps-form-title">
     <header class="ps-form-head"><button id="ps-back" type="button" class="od-button od-button--quiet">← 返回</button><h2 id="ps-form-title" class="od-title">新建提示词</h2></header>
     <form id="ps-form" novalidate>
-      <div class="ps-primary"><label for="ps-body" class="od-field-label">提示词内容 <span class="ps-required">· 唯一必填</span></label><textarea id="ps-body" class="od-field" rows="9" spellcheck="true" aria-required="true" aria-describedby="ps-body-hint" placeholder="在这里输入完整提示词，支持多行。仅填写此项即可保存；点击网页按钮不会自动发送。"></textarea><div id="ps-quota" class="ps-quota"><span>单项存储上限 8 KiB</span><span id="ps-quota-value">— / 8192 B</span></div><p class="ps-hint" id="ps-body-hint">完整保留多行、空行和 Emoji；按整项 JSON 的 UTF-8 字节数校验。</p></div>
+      <div class="ps-primary"><label for="ps-body" class="od-field-label">提示词内容 <span class="ps-required">· 唯一必填</span></label><textarea id="ps-body" class="od-field" rows="3" spellcheck="true" aria-required="true" aria-describedby="ps-body-hint" placeholder="在这里输入完整提示词，支持多行。仅填写此项即可保存；点击网页按钮不会自动发送。"></textarea><div id="ps-quota" class="ps-quota"><span>单项存储上限 8 KiB</span><span id="ps-quota-value">— / 8192 B</span></div><p class="ps-hint" id="ps-body-hint">完整保留多行、空行和 Emoji；按整项 JSON 的 UTF-8 字节数校验。</p></div>
       <section class="ps-optional od-surface" aria-labelledby="ps-option-title">
-        <div class="ps-optional-head"><h3 id="ps-option-title">按钮展示与偏好</h3><small>均为选填 · 默认即可使用</small></div>
-        <label class="od-field-label" for="ps-label">按钮短标签（选填）</label><input id="ps-label" class="od-field" maxlength="24" placeholder="留空：自动取正文前两个字" autocomplete="off">
-        <p class="ps-hint">可自定义 1–2 个可见字素，两个字符上下排列；支持中文、英文和表情。</p>
-        <label class="od-field-label" for="ps-name">显示名称（选填）</label><input id="ps-name" class="od-field" maxlength="60" placeholder="留空：自动取正文前两个字" autocomplete="off">
-        <p class="ps-hint">完整名称用于列表、网页 Tooltip 和屏幕阅读器。</p>
-        <div class="ps-effective-preview" aria-label="保存后的按钮实时预览"><span>保存后展示</span><span id="ps-preview-glyph" class="ps-preview-glyph"></span><span>名称：</span><strong id="ps-preview-name">待生成</strong></div>
-        <fieldset class="ps-shapes"><legend class="od-field-label">按钮形状（选填）</legend><label><input type="radio" name="ps-shape" value="square" checked> 圆角方形</label><label><input type="radio" name="ps-shape" value="round"> 圆形</label></fieldset>
-        <label class="ps-enabled od-surface"><span>显示此按钮（默认开启）</span><span class="ps-switch"><input id="ps-enabled" type="checkbox" role="switch" checked aria-label="显示此按钮"><span class="ps-switch-track" aria-hidden="true"></span></span></label>
+        <div class="ps-optional-head"><h3 id="ps-option-title">按钮设置</h3><small>选填 · 默认即可用</small></div>
+        <div class="ps-compact-row"><label class="od-field-label" for="ps-label">按钮短标签</label><input id="ps-label" class="od-field" maxlength="24" placeholder="自动生成前 2 字" autocomplete="off"></div>
+        <div class="ps-compact-row"><label class="od-field-label" for="ps-name">显示名称</label><input id="ps-name" class="od-field" maxlength="60" placeholder="留空自动生成" autocomplete="off"></div>
+        <div class="ps-effective-preview" aria-label="保存后的按钮实时预览"><span>快捷按钮</span><span id="ps-preview-glyph" class="ps-preview-glyph"></span><strong id="ps-preview-name">待生成</strong></div>
+
+        <label class="ps-enabled od-surface"><span>网页显示此按钮</span><span class="ps-switch"><input id="ps-enabled" type="checkbox" role="switch" checked aria-label="显示此按钮"><span class="ps-switch-track" aria-hidden="true"></span></span></label>
       </section>
       <p id="ps-error" class="ps-error" role="alert" hidden></p>
       <div id="ps-leave" class="ps-warning" hidden aria-label="未保存草稿确认"><strong>存在未保存的修改</strong><p>返回将放弃当前草稿。可以继续编辑或明确放弃。</p><div class="ps-actions"><button id="ps-stay" type="button" class="od-button od-button--secondary">继续编辑</button><button id="ps-discard" type="button" class="od-button od-button--danger">放弃修改</button></div></div>
