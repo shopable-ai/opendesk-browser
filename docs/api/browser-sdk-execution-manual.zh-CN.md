@@ -1,6 +1,8 @@
-> **R10.6 当前源码事实（2026-10-14）**：55 项批准合同 = 53 项公开 Registry + 2 项可信 Host-only；SOURCE_WIRED 与 Node / Build / Native 分开登记。此前 R5–R10.5 数字保留为历史，不代表当前接口数量或真实 Chrome 验收。当前证据见 [R10.6 工作流](../framework/workstreams/browser-sdk-r106-20261014.md)。
-
 # OpenDesk Browser SDK 唯一冻结执行手册（2026-10-13）
+
+> **当前代码基线（2026-10-15，按 GitHub main 的生成目录核查）**：获批准合同 **72 项**，其中**公开 SDK Registry/Facade 70 项、可信 Host-only 2 项**；公开接口的编译分类 **DIRECT 3 / SCOPED 49 / CUSTOM 18**。这里的 CUSTOM 同时归并部分 EXISTING_SERVICE 和 COMPOSED，不代表 18 个可直接透传的 Chrome API。以上是**源码登记与绑定数**，不是 70 项真实 Chrome 验收通过。历史 114 个候选名称中尚有 **91 个待后续分类处理**，它们不是已经获批的接口。R11.5 架构状态 **PARTIAL**；独立证据和构建阻塞见 [R11.5 工作记录](../framework/workstreams/browser-sdk-r115-architecture-proof-20261015.md)。
+
+> **历史 R10.6 快照（2026-10-14；非当前数量）**：55 项批准合同 = 53 项公开 Registry + 2 项可信 Host-only；SOURCE_WIRED 与 Node / Build / Native 分开登记。此前 R5–R10.5 数字保留为历史，不代表当前接口数量或真实 Chrome 验收。当前证据见 [R10.6 工作流](../framework/workstreams/browser-sdk-r106-20261014.md)。
 
 > **范围：SDK 设计与后续实施合同。不是实现验收报告。**
 > 本手册是 Browser SDK 当前唯一正式实施入口；结构化逐接口事实见 [browser-sdk-interface-matrix.json](browser-sdk-interface-matrix.json)。其余 R7/R8、旧 35 项兼容映射、R5 114 候选和 R9 工作记录只是历史或输入，不得重新替代本手册。
@@ -31,6 +33,84 @@
 固定调用链：OpenDeskSDK.browser → installed-tool bridge → Side Panel 的已安装身份/用户操作校验 → 唯一 Browser Host (真实 Sender 与授权快照再次验证) → namespace Driver/现有服务 → Chrome 原生 API → 有界、脱敏、稳定回执。Page SDK 只提供已有本地 capabilities 发现与明确的 E_CONTEXT 拒绝，不自动拥有浏览器操作。可信内置 UI 走已存在的 Host-only 受信流，**不能以“官方发布”替代真实可信执行世界**。
 
 固定 mappingKind：DIRECT（安全直接绑定）、SCOPED（施加资源/Origin/工具所有权）、COMPOSED（多 API 组成有限操作）、EXISTING_SERVICE（复用当前服务）、HOST_ONLY（只在真实可信 Host）、UNSUPPORTED（有真实平台/版本证据不可实现）。当前 nativeInterfaces 的安全分类不能被当作某项已经注册；每项批准操作的实际 nativeApis、Host、Driver 和能力在 approvedOperations 中精确记录。
+
+
+### 1.1 面向扩展开发者：两条链路（2026-10-15）
+
+**真正的用户目标**：开发者在 OpenDesk Browser 的**已安装独立 Sidebar 工具**中使用 `OpenDeskSDK.browser.*`，以统一、类型明确的接口调用经批准的 Chrome 浏览器能力，而不必为每一个普通 API 重写桥接、Facade、参数封送及 Host 路由。工具包 ID 不决定 Chrome API 的业务分组；“已安装 Sidebar 工具”与“普通网页 Page SDK / Controller / 外部 Chrome 扩展”属于不同执行身份，不能混同授权。
+
+**链路 A：接口开发/编译链路（只负责“如何生产 API”，不执行用户操作）**
+
+```text
+固定 Chromium API JSON/WebIDL/IDL（原生名称、参数、签名与返回类型）
+  → docs/api/browser-sdk-interface-matrix.json
+      ├─ nativeInterfaces：官方发现、固定来源与精确原生签名
+      └─ approvedOperations：唯一已批准的 OpenDesk 接口合同
+          （权限、世界、Scope、手势、效果、SDK 差异）
+  → scripts/generate-browser-bindings.mjs（现有唯一编译入口）
+      ├─ src/framework/sdk/browser-direct.generated.js（仅限批准的 DIRECT）
+      ├─ docs/api/browser-sdk-binding-catalog.generated.json（只读编译目录）
+      ├─ src/framework/sdk/browser-contract.js + browser-schemas.js
+      │   （Registry/Schema 消费结果；非 DIRECT 尚有手写项）
+      └─ scripts/browser-sdk-developer.mjs
+          → browser-sdk.developer.generated.d.ts / .md（生成能力已测试，文件未正式提交）
+```
+
+**链路 A 当前不等于完整自动化**：正式 3 个 DIRECT 接口已从批准矩阵派生 Registry、Schema、绑定并经已有 SDK Facade 挂载；生成器目前对 DIRECT 的实际限制是**同名、只读、Promise、无网站 Scope**。参数标量别名只在测试夹具证明，**不同 SDK/Chrome 方法名、复合参数和返回值转换没有正式闭环**。目前不少 SCOPED/EXISTING_SERVICE/COMPOSED 仍要在 `browser-contract.js`、`browser-schemas.js` 手工定义，不能因为生成了目录或开发者类型就声称人工维护成本已达标。Chromium 官方签名只用于可验证的类型推导，发现条目**不能直接批准权限**。
+
+**链路 B：安装工具的真实调用/安全执行链路（运行期）**
+
+```text
+examples/sidebar-tools/<tool-id>/tool.config.json（声明所需 capability）
+  → 用户的工具 JavaScript：OpenDeskSDK.browser.<namespace>.<method>(...)
+  → src/framework/sdk/browser.js（统一公开 Facade、校验输入）
+  → src/sidebar-tools/bridge.js（不可信工具 iframe 通过消息请求）
+  → src/ui/sidebar-tools.js（安装身份、权限、包 hash、epoch、站点/用户意图）
+  → src/platform/chrome/context-menus.js（原有唯一可信 Browser Host）
+      （真实 Sender/Document、Chrome 权限、授权复核、撤销与生命周期）
+  → src/framework/sdk/browser-bindings.js（只允许编译过的已批准绑定）
+      ├─ DIRECT → 有限且固定的 Chrome Promise API
+      └─ SCOPED / EXISTING_SERVICE / COMPOSED
+           → 既有可信 Driver / Service → Chrome 原生 API
+  → JSON/大小/返回值检查 + 结束前再验权限
+  → Bridge → 开发者得到安全结果或明确错误
+```
+
+**两个真实已登记示例**：
+
+```js
+// DIRECT：已安装工具声明 browser.i18n 能力。
+const language = await OpenDeskSDK.browser.i18n.detectLanguage({text:'Hello OpenDesk'});
+
+// SCOPED：需已有权限及可信界面实际点击确认。
+// Driver 调用 chrome.tabs.create，返回 SDK 安全 tabRef 而非原生 tabId。
+const {tabRef} = await OpenDeskSDK.browser.tabs.create({url:'https://example.org/'});
+```
+
+**边界**：已安装工具声明 capability 不等于自动获权；浏览器能力发现不等于接口获批；不提供动态 `chrome[namespace][method]` 代理、任意 tabId 或广域 Cookie。对 Browser Tabs、Downloads、Cookies、操作手势等必须保持原 Host/Driver 中的精确站点、Document、工具身份、撤权与副作用未知处理。Page SDK 只可进行现有本地只读能力发现，不能因为本文的 SDK 例子而获得 Chrome 特权。
+
+### 1.2 目前到底完成多少（按类型与验收等级分开）
+
+| 口径 | 数量 / 状态 | 正确理解 |
+| --- | --- | --- |
+| Chromium Schema 发现 | 191 个源文件、1,830 个发现条目 | 是接口发现目录；未在每次 CI 完整重解析全部上游原始字节 |
+| 正式批准合同 | 72 | `approvedOperations`；不是 72 个原生验收成功 |
+| 已登记的公开 SDK 方法 | 70 | Registry/Facade 已有相应源码：DIRECT 3、SCOPED 49、CUSTOM 18 |
+| 不公开的可信 Host-only | 2 | 不允许普通安装工具直接使用 |
+| 可复用的正式 DIRECT 自动生成 | 3 | `runtime.getPlatformInfo` / `i18n.getAcceptLanguages` / `i18n.detectLanguage`；有 Node/Host 假 Chrome 路径证据 |
+| 复杂映射、Schema 去重复 | PARTIAL | 带作用域 Driver 已有，但通用映射生成和去手写工作尚未证明 |
+| 开发者类型/API 文档 | 生成器有 Node 证据 | `.d.ts`、`.md` 正式生成文件尚未提交；漂移检查需纳入持续验收 |
+| 剩余历史候选 | 91 个名称 | 不是 91 项已经批准或需要无条件开放的 Chrome API |
+| 本轮所有接口的真实 Chrome / 独立产品评分 | NOT_TESTED / NOT_SCORED | Node PASS、源码登记与 Build/Native 绝不互相替代 |
+
+上述数字可用 `docs/api/browser-sdk-binding-catalog.generated.json#counts` 和 `bindings[].mode` 复核。下文 R10.6 `55/53` 属于其日期对应的历史快照，不能作为当前统计。每轮重新核对最新 `main`，不能把本节 2026-10-15 的快照长期当作动态真值。
+
+### 1.3 下一阶段怎样推进（拒绝重复造框架）
+
+1. **先完成可执行映射机制，不按 API 数量冲业绩**：三个验证场景分别为正式同名 DIRECT（`i18n.detectLanguage`）、正式有权限/返回转换的 SCOPED（`tabs.create` + 可信 Driver/TabRef）、未额外获批的测试夹具（SDK/Chrome 名称或参数不同）。再选一个现有 EXISTING_SERVICE 做去重复回归，但不能把工具存储当作主要业务目标。
+2. **减少实际人工维护**：在现有批准矩阵和 `generate-browser-bindings.mjs` 内完成原生签名类型推导、必须人工审核的差异、预编译映射、Registry/Schema/SDK/`.d.ts`/`.md` 一致派生。禁止出现第二份手工 Registry 或新的动态 Chrome RPC；特殊作用域继续复用旧 Driver，不生成权限决策。
+3. **证明能够复用到第二个不同方法**：用前后源代码差异统计人工必改文件、手写代码点和同一 Host 调用/拒绝结果。普通获批接口不再逐项手写 Facade/Schema/Host 分支，才可标记 `ARCHITECTURE_PROVEN`。修改只是减少 JSON 行数、生成额外报表或迁移一个孤立方法，仍标记 PARTIAL。
+4. **分级交付**：定向 Node 正反向、冻结检查、真实生成并检查类型/文档、生产/开发构建、安装工具调用与真实 Chrome 分开记录；不能绕过其他并行扩展的安全构建门禁。架构证明通过后，按现有 91 项分类、实际需求、用户价值和权限风险逐批推进，优先复用已有 canonical SDK 能力。
 
 ## 2. 全接口目录的事实约束与分类
 
