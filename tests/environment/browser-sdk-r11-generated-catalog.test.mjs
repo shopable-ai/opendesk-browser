@@ -19,7 +19,7 @@ const err=pattern=>error=>pattern.test(String(error?.message||error));
 test('R11 all approved Chrome Binding descriptors are deterministic and derived, never permission grants',async()=>{
   const derived=deriveBrowserBindingCatalog(matrix);
   assert.deepEqual(generated,derived);
-  assert.deepEqual(generated.counts,{approved:72,public:70,hostOnly:2});
+  assert.deepEqual(generated.counts,{approved:75,public:73,hostOnly:2});
   const nativeRows=new Map(matrix.nativeInterfaces.map(x=>[x.nativeApi,x]));
   let mapped=0;
   for(const binding of generated.bindings){
@@ -34,7 +34,7 @@ test('R11 all approved Chrome Binding descriptors are deterministic and derived,
       mapped++;
     }
   }
-  assert.equal(mapped,90,'Only currently approved native relationships are counted');
+  assert.equal(mapped,93,'Only currently approved native relationships are counted');
   const publicOps=generated.bindings.filter(x=>x.visibility==='APPROVED_TOOL_REGISTERED');
   assert.deepEqual(publicOps.map(x=>x.operation).sort(),Object.keys(BROWSER_OPERATIONS).sort());
   for(const desc of publicOps){
