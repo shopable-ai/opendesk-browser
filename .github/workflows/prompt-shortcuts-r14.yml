@@ -6,8 +6,11 @@ on:
     paths:
       - '.github/workflows/prompt-shortcuts-r14.yml'
       - 'examples/sidebar-tools/prompt-shortcuts/**'
-      - 'tests/environment/prompt-shortcuts-r14.test.mjs'
+      - 'tests/environment/prompt-shortcuts-r14*.test.mjs'
       - 'src/ui/sidebar-tools/package.js'
+      - 'src/ui/sidebar-tools/installation.js'
+      - 'src/ui/sidebar-tools.js'
+      - 'src/entrypoints/page-relay.js'
       - 'src/ui/sidebar-tools/lifecycle.js'
       - 'src/ui/design-tokens.css'
       - 'src/ui/design-system.css'
@@ -32,7 +35,7 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Validate independent tool, storage and fixed-adapter provenance
-        run: node --test tests/environment/prompt-shortcuts-r14.test.mjs
+        run: node --test tests/environment/prompt-shortcuts-r14*.test.mjs
       - name: Check standalone and trusted JavaScript syntax
         run: |
           node --check examples/sidebar-tools/prompt-shortcuts/src/main.js
