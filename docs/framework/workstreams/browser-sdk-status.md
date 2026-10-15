@@ -1,3 +1,13 @@
+## Managed Proxy SDK R1 — 2026-10-15
+
+3 项高风险代理操作经独立 Installed Tool Capability + Chrome `proxy` 权限管理；ENABLE / STOP 经过可信 Side Panel 单次点击，仅公共 Host 执行有限声明式 PAC。旧 `ai-smart-access` 暂保留历史身份与资源收敛，不得移除保护后直接删除。新增能力当前仅代表 **SOURCE_WIRED**，旧候选的 PASS 不能视为本轮新能力的验证。
+
+| API | Implementation | Exposure | Positive | Denial | Native Chrome |
+| --- | --- | --- | --- | --- | --- |
+| `browser.proxy.managed.getStatus` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.proxy.managed.requestEnable` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.proxy.managed.requestDisable` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+
 ## R11.4 · 工具隔离存储 EXISTING_SERVICE 批次（2026-10-15）
 
 正式批准 72 = 70 项公开 + 2 项 Host-only；DIRECT 仍为 3 项。新增 `browser.storage.local.keys()` 和 `browser.storage.local.getQuota()`，只访问已安装工具自己的存储命名空间，复用正式 Facade → Host → Dispatcher → 受信 `executeBrowserToolStorage`，无手写逐接口 Wrapper、无 Chrome 全局枚举、无新权限。历史候选 `browser.storage.keys/getQuota` 继续不予开放，复用正式方法。书签合同及 `browser.storage.local.clear` 的真实点击授权均未修改。
