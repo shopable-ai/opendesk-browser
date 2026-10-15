@@ -389,7 +389,7 @@ test('one authorized local project is selected automatically without starting ex
   f.find('local-project-mode').checked=true;f.find('local-project-mode').fire('change');await tick();
   assert.equal(f.find('developer-source-switch').dataset.mode,'local');
   assert.equal(f.find('local-project-select').value,'local-only');
-  assert.equal(f.find('local-project-status').dataset.state,'connected');
+  assert.equal(f.find('local-project-status').dataset.state,'preparing','未开始读取时不宣称源码已准备，但已授权项目可直接点击 Run 并按原链路获取当前源码');
   assert.equal(f.find('local-project-select').disabled,false);
   assert.equal(f.find('script-run').textContent,'运行本地项目');
   assert.equal(f.starts.length,0);

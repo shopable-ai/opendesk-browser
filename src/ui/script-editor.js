@@ -360,7 +360,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       find('script-save').disabled=editingBusy||running||stopping||previewBusy||!localInstaller.canSave();
       find('script-save').textContent=localInstaller.saveLabel();
       find('script-run').textContent='运行本地项目';
-      find('script-run').disabled=stopping||editingBusy||previewBusy||running||!projection?.slotAvailable||!!host.currentRun||!localProject.readyForRun()||currentPageState?.status!=='available';
+      find('script-run').disabled=stopping||editingBusy||previewBusy||running||!projection?.slotAvailable||!!host.currentRun||!localProject.connected()||currentPageState?.status!=='available';
       find('script-version').textContent='本地项目模式 · 手工草稿已保留；正式任务请使用打包安装流程';
     }else {
       find('script-save').hidden=false;

@@ -103,7 +103,7 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{},
           !['controller','page-userscript'].includes(source.runtimeKind)||
           typeof source.sourceUtf8!=='string'||!source.sourceUtf8.trim()||
           !/^[a-f0-9]{64}$/.test(source.sourceHash||'')||
-          !/^[a-f0-9]{64}$/.test(source.inputHash||'')||
+          (source.inputHash!==undefined&&!/^[a-f0-9]{64}$/.test(source.inputHash))||
           source.sourceBytes!==new TextEncoder().encode(source.sourceUtf8).length||
           source.sourceHash!==await sha256Utf8(source.sourceUtf8))
           throw failure('E_DEV_HASH','准备的源码字节、版本或授权绑定不一致');
@@ -159,7 +159,9 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{},
       choices();syncPreparation();render();
     }catch(error){if(!disposed&&version===generation){
       if(!statusKnown)nativeConnected=false;
-      connected=false;epoch=null;resetBackground();choices();
+      // An invalid/disconnected catalog cannot remain an online selection.
+      // Keep only the selected project's saved label, never its stale entries.
+      connected=false;epoch=null;projects=[];resetBackground();choices();
       diagnostic=`${error?.code||'E_DEV_DISCONNECTED'}：${error?.message||'连接失败'}`;
       errorMessage=error?.code==='E_DEV_PROVIDER_UNAVAILABLE'?sourceUnavailable:error?.code==='E_DEV_DISCONNECTED'
         ?'本地项目服务未连接。请检查本机 OpenDesk 连接；文件工作区、Go 单文件和 MCP 来源可分别保持各自状态。'
@@ -168,7 +170,9 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{},
     }}
     finally{if(version===generation){checking=false;render(errorMessage);}}
   }
-  function capture(){if(!active()||checking||!connected||!selected())throw failure('E_DEV_DISCONNECTED','请选择已连接的本地项目');if(nativeUpdateError)throw failure('E_NATIVE_UPDATE_REQUIRED',nativeUpdateMessage);if(preparationError||backgroundError||selected().preparation?.state==='source-error')throw failure('E_DEV_SOURCE','本地项目状态尚未通过核对，请修复后刷新');if(!readyForRun())throw failure('E_DEV_PREPARING','源码准备尚未完成，禁止运行旧版本');return {generation,bindingId:selection,providerEpoch:epoch};}
+  function capture(){if(!active()||checking||!connected||!selected())throw failure('E_DEV_DISCONNECTED','请选择已连接的本地项目');if(nativeUpdateError)throw failure('E_NATIVE_UPDATE_REQUIRED',nativeUpdateMessage);if(preparationError||backgroundError||selected().preparation?.state==='source-error')throw failure('E_DEV_SOURCE','本地项目状态尚未通过核对，请修复后刷新');// Background readiness is a hint, not execution authority: a trusted Run
+    // always resolves and SHA-checks the latest bytes before dispatch.
+    return {generation,bindingId:selection,providerEpoch:epoch};}
   function assertCaptured(captured){if(disposed||!active()||checking||!connected||preparationError||backgroundError||nativeUpdateError||selected()?.preparation?.state==='source-error'||captured.generation!==generation||captured.bindingId!==selection||captured.providerEpoch!==epoch)throw failure('E_DEV_CONFLICT','本地项目或连接已变化，本次未运行');}
   async function assertReady(captured){while(preparationCheck)await preparationCheck;if(backgroundRead)await backgroundRead;assertCaptured(captured);}
   async function resolve(captured){
@@ -183,7 +187,8 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{},
     }
     assertCaptured(captured);
     if(value.providerEpoch!==captured.providerEpoch||value.bindingId!==captured.bindingId||!['controller','page-userscript'].includes(value.runtimeKind)||
-      typeof value.sourceUtf8!=='string'||!/^[a-f0-9]{64}$/.test(value.sourceHash||'')||!/^[a-f0-9]{64}$/.test(value.inputHash||'')||
+      typeof value.sourceUtf8!=='string'||!/^[a-f0-9]{64}$/.test(value.sourceHash||'')||
+      (value.inputHash!==undefined&&!/^[a-f0-9]{64}$/.test(value.inputHash))||
       value.sourceBytes!==new TextEncoder().encode(value.sourceUtf8).length||value.sourceHash!==await sha256Utf8(value.sourceUtf8))throw failure('E_DEV_HASH','本地源码字节或执行身份不一致');
     await assertReady(captured);last={inputHash:value.inputHash,sourceHash:value.sourceHash,cacheHit:value.cacheHit,timings:value.timings};render();return value;
   }

@@ -153,6 +153,6 @@ Page 项目可选设置 `"framework":"react"` 或 `"framework":"vue"`，而无�
 
 **三个分离的状态：** A 为 Chrome Native Messaging 已连接；B 为源码 Provider 已注册且具有已授权项目；C 为 `http://127.0.0.1:43111/demo-form.html` 本地浏览器测试目标。它们不能互相推定，也不代表新的目录授权。首次授权继续使用现有 `opendesk browser dev .` / `opendesk-dev .` 或单文件 `opendesk browser project add`。刷新/断线/Provider 代次变化必须重新校验 `bindingId` 和 `providerEpoch`。
 
-Node Resolver 可在源码保存后自动准备。在 `projects.list` 包含 `preparation.state` 时呈现 Provider 的真实状态；若当前 Go 聚合清单暂不透传准备元数据，则浏览器只对**当前选中的已授权项目**经现有只读 `project.resolve` 核验最新源码字节、`sourceHash`、`inputHash`、运行类型和 Provider epoch，且只保留哈希摘要（不保留后台读取的源码正文）；目录改变与 Provider 通知会重新核验，2 秒状态轮询不会重复编译。未准备、错误或版本变化会禁用运行按钮。每次明确运行仍会重新读取最新源码、按 SHA-256 校验、校验当前网页权限/目标与 Controller/Page 运行合同；保存不会执行网页业务。诊断字段放在折叠区域。
+Node Resolver 可在源码保存后自动准备。在 `projects.list` 包含 `preparation.state` 时呈现 Provider 的真实状态；若当前 Go 聚合清单暂不透传准备元数据，则浏览器只对**当前选中的已授权项目**经现有只读 `project.resolve` 核验最新源码字节、`sourceHash`、`inputHash`、运行类型和 Provider epoch，且只保留哈希摘要（不保留后台读取的源码正文）；目录改变与 Provider 通知会重新核验，2 秒状态轮询不会重复编译。源码错误会拒绝运行；准备进度仅作为只读提示，用户在状态更新前明确点击 Run 时仍通过原 project.resolve 重新核验并只执行最新源码（不直接运行旧缓存）。每次明确运行仍会重新读取最新源码、按 SHA-256 校验、校验当前网页权限/目标与 Controller/Page 运行合同；保存不会执行网页业务。诊断字段放在折叠区域。
 
 **跨仓库待验收限制：** OpenDesk Go `internal/browserbridge/host_dev_multi_unix.go` 当前对目录项目进行聚合时未完整转发 Node 的 `preparation` 元数据。这次 Browser 只读兼容层不另建多客户端 Native 系统；Go 后续须复用 GOAL 2 协议演进。Go 仓库默认写入分支为 `master`，不属于本任务已授权的唯一 `main` 写入范围，因此未修改 Go。Mac 已安装 Native、Go CLI、Chrome Profile 与 `127.0.0.1:43111` 的真实验收必须另行记录，不能用 Node Mock 代替。
