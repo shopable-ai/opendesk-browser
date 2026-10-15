@@ -63,8 +63,7 @@ export async function canonicalAdblockPreviewHost(){
     fail('canonical Side Panel no longer has the trusted AdBlock mount');
   const rows=toolCss.split('\n');
   const selectors=['.sidebar-toc-settings-hint{','.sidebar-toc-settings-row{',
-    '.sidebar-tool-adblock-native{','.sidebar-tool-adblock-native>.od-surface{',
-    '.sidebar-tool-adblock-native .sidebar-toc-settings-row{',
+    '.sidebar-tool-adblock-native{','.sidebar-tool-adblock-native .sidebar-toc-settings-row{',
     '.sidebar-tool-adblock-native button[role=switch]{',
     '.sidebar-tool-adblock-native button[role=switch][aria-checked=true]{'];
   for(const selector of selectors)
