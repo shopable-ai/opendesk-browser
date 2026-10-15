@@ -32,7 +32,7 @@ function reviewedCompiledTimeReview(target,path,root){
 // inputs are exact file-blob pinned; the bundle still has a fixed entry point,
 // a single output and independently enforced release/package identity.
 const compiledAdblockInputs=Object.freeze({
-  'examples/sidebar-tools/adblock/trusted/service.js':'f73d0444b1fad46eebd7f3fb99c501f496471d74',
+  'examples/sidebar-tools/adblock/trusted/service.js':'12d625dadb1c38814c316f938df52a39d1a39496',
   'examples/sidebar-tools/adblock/trusted/policy.js':'6736074a6c4fe956f2ce62c6099df11f4daca6d4',
   'examples/sidebar-tools/adblock/trusted/rules.js':'8100276a38117c3e6f88f04f65a4a6ea1a7cddc6',
   'examples/sidebar-tools/adblock/trusted/lifecycle.js':'f6789d278c59c8f4148ed0c0c4e55b29c68758d0',
