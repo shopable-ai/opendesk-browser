@@ -2,6 +2,16 @@
 export const SIDEBAR_TOOL_ENABLE_STORE='opendesk.sidebar-tools.enabled.v1';
 export const TOOL_REVOCATION_EPOCHS_STORE='opendesk.sidebar-tools.revocation-epochs.v1';
 const toolIdPattern=/^[a-z][a-z0-9-]{1,39}$/;
+// Uninstall must protect the SAME instance revocation authority as enable/disable.
+// A corrupt epoch map cannot be repaired by spreading it into a new object.
+export function requireToolRevocationEpochs(value){
+  if(value===undefined)return {};
+  if(!value||typeof value!=='object'||Array.isArray(value)||
+    Object.entries(value).some(([id,epoch])=>!toolIdPattern.test(id)||typeof epoch!=='string'))
+    throw Object.assign(new Error('工具实例撤销记录损坏；已停止安装生命周期修改以保护原始数据'),
+      {code:'E_STORAGE_CORRUPT'});
+  return value;
+}
 export function requireToolEnableRecords(value){
   if(value===undefined)return {};
   if(!value||typeof value!=='object'||Array.isArray(value)||
