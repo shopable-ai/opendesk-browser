@@ -15,10 +15,12 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{},
   const preparationLabels={ready:'已准备',updating:'正在准备',merging:'正在准备',unprepared:'等待准备','source-error':'源码有错误'};
   const active=()=>mode.checked;
   const selected=()=>projects.find(row=>row.bindingId===selection);
+  const canAttemptRun=()=>active()&&connected&&!checking&&!nativeUpdateError&&!preparationError&&!backgroundError&&
+    !!selected()&&selected()?.preparation?.state!=='source-error';
   const readyForRun=()=>{
     const row=selected(),state=row?.preparation?.state;
     return !!(active()&&connected&&!checking&&!nativeUpdateError&&!preparationError&&!backgroundError&&row&&
-      ['controller','page-userscript'].includes(row.runtimeKind)&&
+      ['controller','page-userscript'].includes(row.runtimeKind||prepared?.runtimeKind)&&
       (state==='ready'||state===undefined&&prepared?.bindingId===row.bindingId&&prepared?.providerEpoch===epoch));
   };
   const listen=(node,event,callback)=>{node.addEventListener(event,callback);listeners.push([node,event,callback]);};
@@ -47,7 +49,7 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{},
       backgroundError||preparation?.state==='source-error'?
         '源码有错误：'+(backgroundError?.code||preparation?.error?.code||'E_DEV_SOURCE')+'；修改后自动复查':
       preparationError?'准备状态暂不可用，正在重新核对…':
-      ready?'已准备 · 点击「运行本地项目」才会执行':
+      ready?(preparation?.state==='ready'?'已准备 · 点击「运行本地项目」才会执行':'源码已核验 · 运行前将再次读取最新版本'):
       preparationLabels[preparation?.state]||'正在准备最新源码…'
     );
     const report=prepared||(preparation?.state==='ready'?preparation:null);
@@ -63,7 +65,7 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{},
       report?.sourceHash?'源码 SHA-256：'+report.sourceHash:'',
       report?.inputHash?'输入版本：'+report.inputHash:'',
       preparationError?'状态读取错误：'+(preparationError.code||'E_DEV_STATUS'):'',
-      last?'上次运行源码：'+last.sourceHash+'；输入版本：'+last.inputHash+'；最近运行核验：'+(last.cacheHit?'复用已准备产物':'本次准备')+
+      last?'最近读取源码（不代表已执行）：'+last.sourceHash+'；输入版本：'+last.inputHash+'；源码读取：'+(last.cacheHit?'复用已准备产物':'本次准备')+
         '；编译 '+Math.round(last.timings?.webpackMs||0)+'ms；总计 '+Math.round(last.timings?.totalMs||0)+
         'ms；构建 '+(last.timings?.buildCount??'未知')+' 次':''
     ].filter(Boolean).join('；');
@@ -109,7 +111,7 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{},
           throw failure('E_DEV_HASH','准备的源码字节、版本或授权绑定不一致');
         if(!current())return;
         prepared={bindingId:ticket.bindingId,providerEpoch:ticket.epoch,
-          sourceHash:source.sourceHash,inputHash:source.inputHash};
+          sourceHash:source.sourceHash,inputHash:source.inputHash,runtimeKind:source.runtimeKind};
       })().catch(error=>{
         if(!current())return;
         if(error?.code==='E_NATIVE_UPDATE_REQUIRED')nativeUpdateError=error;
@@ -172,7 +174,10 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{},
   }
   function capture(){if(!active()||checking||!connected||!selected())throw failure('E_DEV_DISCONNECTED','请选择已连接的本地项目');if(nativeUpdateError)throw failure('E_NATIVE_UPDATE_REQUIRED',nativeUpdateMessage);if(preparationError||backgroundError||selected().preparation?.state==='source-error')throw failure('E_DEV_SOURCE','本地项目状态尚未通过核对，请修复后刷新');// Background readiness is a hint, not execution authority: a trusted Run
     // always resolves and SHA-checks the latest bytes before dispatch.
-    return {generation,bindingId:selection,providerEpoch:epoch};}
+    const p=selected()?.preparation;
+    return {generation,bindingId:selection,providerEpoch:epoch,
+      ...(p?.state==='ready'&&/^[a-f0-9]{64}$/.test(p.sourceHash||'')?{preparedSourceHash:p.sourceHash}:{}),
+      ...(p?.state==='ready'&&/^[a-f0-9]{64}$/.test(p.sourceRevision||'')?{preparedSourceRevision:p.sourceRevision}:{})};}
   function assertCaptured(captured){if(disposed||!active()||checking||!connected||preparationError||backgroundError||nativeUpdateError||selected()?.preparation?.state==='source-error'||captured.generation!==generation||captured.bindingId!==selection||captured.providerEpoch!==epoch)throw failure('E_DEV_CONFLICT','本地项目或连接已变化，本次未运行');}
   async function assertReady(captured){while(preparationCheck)await preparationCheck;if(backgroundRead)await backgroundRead;assertCaptured(captured);}
   async function resolve(captured){
@@ -190,7 +195,14 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{},
       typeof value.sourceUtf8!=='string'||!/^[a-f0-9]{64}$/.test(value.sourceHash||'')||
       (value.inputHash!==undefined&&!/^[a-f0-9]{64}$/.test(value.inputHash))||
       value.sourceBytes!==new TextEncoder().encode(value.sourceUtf8).length||value.sourceHash!==await sha256Utf8(value.sourceUtf8))throw failure('E_DEV_HASH','本地源码字节或执行身份不一致');
-    await assertReady(captured);last={inputHash:value.inputHash,sourceHash:value.sourceHash,cacheHit:value.cacheHit,timings:value.timings};render();return value;
+    await assertReady(captured);
+    const row=selected(),currentPreparation=row?.preparation;
+    if((row?.runtimeKind&&row.runtimeKind!==value.runtimeKind)||
+      (captured.preparedSourceHash&&captured.preparedSourceHash!==value.sourceHash)||
+      (currentPreparation?.state==='ready'&&/^[a-f0-9]{64}$/.test(currentPreparation.sourceHash||'')&&currentPreparation.sourceHash!==value.sourceHash)||
+      (captured.preparedSourceRevision&&/^[a-f0-9]{64}$/.test(currentPreparation?.sourceRevision||'')&&captured.preparedSourceRevision!==currentPreparation.sourceRevision))
+      throw failure('E_DEV_CONFLICT','本地项目运行类型或源码版本已变化；等待准备完成后明确重新运行');
+    last={inputHash:value.inputHash,sourceHash:value.sourceHash,cacheHit:value.cacheHit,timings:value.timings};render();return value;
   }
   listen(mode,'change',()=>{generation++;selectionGeneration++;checking=false;connected=false;nativeConnected=false;epoch=null;last=null;diagnostic='';nativeUpdateError=null;resetBackground();persist();render();if(active())void refresh();});
   listen(select,'change',()=>{generation++;selectionGeneration++;checking=false;selection=select.value;last=null;nativeUpdateError=null;diagnostic='';resetBackground();persist();syncPreparation();render();});
@@ -251,7 +263,7 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{},
   }
   pollTimer=setInterval(refreshPreparation,2000);
   if(!api.storage?.local&&active())void refresh();
-  return {active,connected:()=>connected&&!checking&&!nativeUpdateError&&!!selected(),readyForRun,selectedBindingId:()=>selection,providerEpoch:()=>epoch,
+  return {active,connected:()=>connected&&!checking&&!nativeUpdateError&&!!selected(),canAttemptRun,readyForRun,selectedBindingId:()=>selection,providerEpoch:()=>epoch,
     preparationIdentity:()=>{const p=selected()?.preparation;return JSON.stringify([p?.state??null,p?.inputHash??prepared?.inputHash??null,p?.sourceHash??prepared?.sourceHash??null,p?.buildHash??null]);},
     selectedProject:()=>{const row=selected();return row?{name:sourceName(row.name),sourceId:row.sourceId||''}:null;},
     capture,resolve,assertCaptured,assertReady,

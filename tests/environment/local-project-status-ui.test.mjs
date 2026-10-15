@@ -215,3 +215,33 @@ test('bad background SHA is non-executable and prior project stays visible offli
   assert.match(f.find('local-project-select').children.at(-1).textContent,/离线/);
   assert.equal(f.view.readyForRun(),false);
 });
+
+test('Run admission rejects a changed authoritative source hash and runtime type',async t=>{
+  for(const mismatch of ['source-hash','runtime-kind'])await t.test(mismatch,async t=>{
+    const f=fixture(t,{connected:true});await tick();
+    const {createHash}=await import('node:crypto');
+    const hash=text=>createHash('sha256').update(text).digest('hex');
+    const previous='async function main(){return 1}',next='async function main(){return 2}';
+    f.setProjects([{...project,preparation:{state:'ready',sourceHash:hash(previous),sourceRevision:'a'.repeat(64)}}]);
+    f.find('local-project-refresh').fire('click');await tick();
+    const captured=f.view.capture(),original=f.client.requestLocalProject;
+    f.client.requestLocalProject=async(method,params)=>method==='project.resolve'?{
+      bindingId:params.bindingId,providerEpoch:'epoch-a',runtimeKind:mismatch==='runtime-kind'?'controller':'page-userscript',
+      sourceUtf8:mismatch==='runtime-kind'?previous:next,
+      sourceHash:hash(mismatch==='runtime-kind'?previous:next),sourceBytes:Buffer.byteLength(mismatch==='runtime-kind'?previous:next)
+    }:original(method,params);
+    await assert.rejects(f.view.resolve(captured),{code:'E_DEV_CONFLICT'});
+  });
+});
+test('read-only resolution does not claim the verified bytes already ran',async t=>{
+  const f=fixture(t,{connected:true});await tick();
+  const sourceUtf8='async function main(){return 1}',sourceHash=(await import('node:crypto')).createHash('sha256').update(sourceUtf8).digest('hex');
+  const original=f.client.requestLocalProject;
+  f.client.requestLocalProject=async(method,params)=>method==='project.resolve'?{
+    bindingId:params.bindingId,providerEpoch:'epoch-a',runtimeKind:'page-userscript',sourceUtf8,
+    sourceBytes:Buffer.byteLength(sourceUtf8),sourceHash
+  }:original(method,params);
+  await f.view.resolve(f.view.capture());
+  assert.match(f.find('local-project-status').title,/最近读取源码（不代表已执行）/);
+  assert.doesNotMatch(f.find('local-project-status').title,/上次运行源码/);
+});
