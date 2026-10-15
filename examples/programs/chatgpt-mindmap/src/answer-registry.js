@@ -108,7 +108,7 @@ function answerController({document,window,owner,css,parts,coordinator}){
     const exiting=coordinator.full===api?coordinator.setFull(null):Promise.resolve();
     const previous=view;view=null;restore();syncButton();
     // Finish moving a fullscreen viewer back before SDK teardown.
-    const retired=exiting.then(()=>coordinator.retire(previous));
+    const retired=coordinator.retire(previous,exiting);
     if(focus&&buttonRef.host.isConnected)buttonRef.button.focus();
     return retired;
   }
@@ -189,7 +189,7 @@ function answerController({document,window,owner,css,parts,coordinator}){
       // setFull(null) must not return an orphan viewer to a removed answer.
       const exiting=coordinator.full===api?coordinator.setFull(null):Promise.resolve();
       const previous=view;view=null;restore();
-      exiting.then(()=>coordinator.retire(previous));
+      coordinator.retire(previous,exiting);
       buttonRef.destroy();
     }
   };
@@ -202,9 +202,9 @@ export function createAnswerRegistry({document,window,owner,css}){
   let disposed=false,pending=false,route=window.location.pathname+window.location.search;
   let full=null,lastScanned=0;
   const retiring=new Set(),cleanupErrors=[];
-  function retire(view){
+  function retire(view,after=Promise.resolve()){
     if(!view)return Promise.resolve();
-    const pending=Promise.resolve().then(()=>view.destroy());
+    const pending=Promise.resolve(after).then(()=>view.destroy());
     retiring.add(pending);
     pending.then(()=>retiring.delete(pending),error=>{retiring.delete(pending);cleanupErrors.push(error);});
     return pending;
@@ -264,7 +264,6 @@ export function createAnswerRegistry({document,window,owner,css}){
     const next=window.location.pathname+window.location.search;
     if(next===route)return;
     route=next;
-    coordinator.setFull(null);
     for(const controller of controllers)controller.destroy();
     controllers.clear();schedule();
   }
@@ -277,7 +276,6 @@ export function createAnswerRegistry({document,window,owner,css}){
   };
   async function destroy(){
     if(disposed){await Promise.all([...retiring]);return;}disposed=true;
-    coordinator.setFull(null);
     for(const controller of controllers)controller.destroy();
     controllers.clear();
     await Promise.all([...retiring]);
