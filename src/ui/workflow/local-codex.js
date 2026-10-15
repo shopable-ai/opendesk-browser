@@ -1,5 +1,6 @@
 import {normalizeAiProposal} from '../../framework/workflow/contract.js';
 import {workflowForModel,restoreModelRedactions} from './data-sharing.js';
+import {assertResponseLocators} from './responses.js';
 
 const bytes=value=>new TextEncoder().encode(value).byteLength;
 const fail=(code,message)=>Object.assign(new Error(message),{code});
@@ -347,12 +348,9 @@ export function createLocalCodexPlanner({client,pollIntervalMs=350,timeoutMs=180
           const normalized=normalizeAiProposal(restoreModelRedactions(proposed,original),original);
           if(scope.observation&&!observedNodes.length)
             throw fail('E_AI_OBSERVATION_REQUIRED','Codex 未取得本次网页观察结果，拒绝使用猜测的步骤');
-          if(scope.observation&&normalized.steps.some(step=>['fill','click'].includes(step.op)&&
-            !observedNodes.some(node=>node?.state?.visible===true&&node.locator&&!node.locator.parent&&
-              node.locator.index===undefined&&node.locator.kind===step.locatorKind&&
-              node.locator.value===step.selector&&
-              (step.locatorKind!=='role'||node.locator.name===step.roleName))))
-            throw fail('E_AI_LOCATOR_UNOBSERVED','Codex 的填写或点击目标不在已批准的页面观察结果中');
+          // All Provider adapters reject invented locators for
+          // wait/extract/assert as well as fill/click.
+          if(scope.observation)assertResponseLocators(normalized,{nodes:observedNodes});
           return normalized;
         }
         if(terminalStates.has(batch.state)&&!batch.hasMore)throw fail('E_AI_DISCONNECTED','AI 会话中断，最终提议尚无法确认');
