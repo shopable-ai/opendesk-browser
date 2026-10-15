@@ -7,7 +7,12 @@ import {SIDEBAR_TOOL_ENABLE_STORE} from '../../src/ui/sidebar-tools/lifecycle.js
 
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 async function settle(predicate){
-  for(let i=0;i<80;i++){if(predicate())return;await tick();}
+  // Installed-package digest computation is asynchronous; do not use 80
+  // event-loop ticks as an accidental deadline for a real readback.
+  for(let i=0;i<150;i++){
+    if(predicate())return;
+    await new Promise(resolve=>setTimeout(resolve,10));
+  }
   assert.ok(predicate(),'R4.7 DOM state failed to settle');
 }
 
@@ -248,6 +253,7 @@ test('R4.7 missing Page grant forbids enable; unreadable app status never fabric
   enable.dispatch('click');
   await settle(()=>f.nodes['extension-center-status'].textContent.includes('E_PERMISSION'));
   assert.equal(f.writes.length,1,'missing Chrome grant prevents second authority mutation');
+  await settle(()=>f.button('page:reader','more')?.disabled===false);
   f.setCorrupt(true);await f.ui.refresh();
   assert.equal(f.button('app:quick-notes','primary'),undefined);
   const row=f.list.children.find(node=>node.dataset.extensionId==='app:quick-notes');
