@@ -20,7 +20,7 @@ test('tool build embeds only the official catalog-verified Papa bytes',async()=>
   assert.equal(BROWSER_OPERATIONS['browser.downloads.text'].requiresUserGesture,true);
   assert(BROWSER_OPERATIONS['browser.downloads.text'].requiredChromePermissions.includes('downloads'));
 });
-test('tool's CSV click invokes upstream parser and canonical SDK while preserving bytes',async()=>{
+test('installed CSV click invokes upstream parser and canonical SDK while preserving bytes',async()=>{
   const pkg=await createSidebarToolPackage(project);
   const records=[['Book','18','0000123456789012345'],['Pen','3','0000002'],
     ['苹果, "Pro"','5','0000003'],['=1+2','0','0000004']];
