@@ -10,6 +10,7 @@ const sessionRef='preview-bookmark-session-0123456789';
 const snapshotRef='preview-bookmark-snapshot-0123456789';
 let serial=3000,records=new Map(),tickets=new Map();
 let revoked=false,nextWriteFailure=null;
+if(typeof document.createElement==='function'&&typeof root.before==='function'){
 const previewLab=document.createElement('details');
 previewLab.className='od-disclosure';
 const summary=document.createElement('summary');
@@ -50,6 +51,7 @@ diagnostic('恢复模拟权限',()=>{
 });
 previewLab.append(toolsRow,labMessage);
 root.before(previewLab);
+}
 function beforeWrite(){
   if(revoked)fail('E_GRANT_REVOKED','模拟书签权限已经撤销');
   if(nextWriteFailure){
