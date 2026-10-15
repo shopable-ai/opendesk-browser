@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {emptyWorkflow} from '../../src/framework/workflow/contract.js';
 import {compileWorkflow} from '../../src/framework/workflow/compiler.js';
-import {prepareDirectExecution,verifyDirectExecutionReceipt,directExecutionEvidenceLevel,verifyDirectFillReadbacks,verifySearchBusinessEffect} from '../../src/ui/workflow/direct-execution.js';
+import {prepareDirectExecution,verifyDirectExecutionReceipt,directExecutionEvidenceLevel,verifyDirectFillReadbacks,verifySearchBusinessEffect,verifySavedWorkflowRevision} from '../../src/ui/workflow/direct-execution.js';
 const origin='https://example.test';
 const target={windowId:1,tabId:2,frameId:0,documentId:'doc-1',url:origin+'/form',origin};
 const hash='a'.repeat(64);
@@ -232,4 +232,24 @@ test('search evidence does not promote an unverified run or unrelated click',()=
   assert.equal(directExecutionEvidenceLevel({
     receiptVerified:true,hasUnprovenClick:true,hasReadback:true
   }),'EXECUTION_RECEIPT_VERIFIED');
+});
+
+
+test('AI-off runs prove the same frozen revision across claim, completion and durable records',()=>{
+  const r=proof(),revision={scriptId:'wf-frozen',revision:3,sourceHash:hash};
+  const source={kind:'saved',scriptId:'wf-frozen',revision:3,contentHash:hash};
+  r.claim.revision=revision;r.completed.result.revision=revision;
+  r.view.run.revision=revision;r.view.results[0].revision=revision;
+  assert.equal(verifySavedWorkflowRevision({...r,source,result:r.view.results[0]}),true);
+  for(const wrong of [
+    {...r,source:{...source,revision:2},result:r.view.results[0]},
+    {...r,source:{...source,contentHash:'b'.repeat(64)},result:r.view.results[0]},
+    {...r,source:{...source,kind:'draft'},result:r.view.results[0]},
+    {...r,claim:{...r.claim,revision:{...revision,scriptId:'foreign'}},result:r.view.results[0]},
+    {...r,completed:{...r.completed,result:{...r.completed.result,revision:{...revision,revision:4}}},
+      result:r.view.results[0]},
+    {...r,view:{...r.view,run:{...r.view.run,revision:{...revision,sourceHash:'b'.repeat(64)}}},
+      result:r.view.results[0]},
+    {...r,result:{...r.view.results[0],revision:{...revision,revision:2}}}
+  ])assert.equal(verifySavedWorkflowRevision(wrong),false);
 });
