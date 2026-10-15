@@ -25,7 +25,11 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   const button=(value,fn,cls='')=>{const b=node('button',cls,value);b.type='button';b.addEventListener('click',fn);return b;};
   const language=()=>localeController?.getLocale?.()||'zh-CN';
   const readingTocOfficial=row=>row.kind==='app'&&row.id==='reading-toc'&&
-    row.title===readingTocCatalog.messages['zh-CN'].title;
+    row.title===readingTocCatalog.messages['zh-CN'].title&&
+    row.release?.toolId==='reading-toc'&&
+    (!row.installed||(
+      sources[row.id]?.sha256===row.release.sha256&&row.version===row.release.version
+    ));
   const titleOf=row=>readingTocOfficial(row)?uiMessage(readingTocCatalog,language(),'title'):row.title||row.id;
   const descriptionOf=row=>readingTocOfficial(row)&&
     row.description===readingTocCatalog.messages['zh-CN'].description?
