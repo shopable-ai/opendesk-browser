@@ -2,6 +2,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {resolve} from 'node:path';
+import {describeBundle} from '../../scripts/bundle-provenance.mjs';
 import {runInNewContext} from 'node:vm';
 import {webcrypto} from 'node:crypto';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
@@ -11,7 +13,7 @@ import {CHATGPT_ORIGIN,PROMPT_ID,PROMPT_CAPABILITY,installedPromptTool,
 
 const ROOT='examples/sidebar-tools/prompt-shortcuts';
 async function model(){
-  const source=await readFile(ROOT+'/src/model.js','utf8'),sandbox={
+  const source=await readFile(ROOT+'/trusted/model.js','utf8'),sandbox={
     Intl,TextEncoder,crypto:webcrypto
   };
   runInNewContext(source,sandbox);
@@ -60,7 +62,7 @@ test('R1.4 single v2 package builds from shared design and pins only one native 
   assert.deepEqual(pack.contributes.contextMenus[0].documentUrlPatterns,['https://chatgpt.com/*']);
   assert.deepEqual(pack.contributes.contextMenus[0].contexts,['selection']);
   assert.equal(pack.contributes.contextMenus[0].handler,'open-self');
-  assert.equal(pack.scripts.length,1);assert.equal(pack.scripts[0].name,'src/model.js');
+  assert.equal(pack.scripts.length,1);assert.equal(pack.scripts[0].name,'trusted/model.js');
   assert.match(pack.css,/opendesk\.shared-design\.v1/);
   assert.deepEqual(validateSidebarToolPackage(pack),pack);
 });
@@ -99,4 +101,22 @@ test('R1.4 fixed controller only uses scoped selectors, native insertion and no 
   assert.match(shell,/browser\.contextMenu\.unregister/);
   assert.doesNotMatch(page,/chrome\.tabs\.executeScript|eval\(|new Function\(/);
   assert.doesNotMatch(page,/\.click\(\).*send|send-button|conversation-history/);
+});
+
+test('R1.4 provenance pins only audited trusted tool modules to exact fixed entry points',()=>{
+  const fixtures=[
+    ['trusted/model.js','f015386060e97ad336c3bbaf35d6e9033b7ba2ee'],
+    ['trusted/policy.js','d393ee2c2511f4786265e8abc23c5c755aae51a6'],
+    ['trusted/page.js','8e9f2cedefe83f5b2d61a00f4d3ccd83297db803']
+  ];
+  const examined=(path,target)=>describeBundle({chunk:{fileName:target,
+      modules:{[resolve(ROOT+'/'+path)]:{renderedLength:1,originalLength:1}}},
+    root:process.cwd(),lock:{packages:{}}}).modules[0];
+  for(const [path,sha] of fixtures){
+    assert.equal(examined(path,'agents/page-relay.js').reviewedFirstPartyBlob,sha);
+    assert.equal(examined(path,'ui/sidebar-tool-host.js').reviewedFirstPartyBlob,sha);
+    assert.throws(()=>examined(path,'sw.js'),/Historical\/user\/vendor code cannot enter/);
+  }
+  assert.throws(()=>examined('src/main.js','agents/page-relay.js'),
+    /Historical\/user\/vendor code cannot enter/);
 });

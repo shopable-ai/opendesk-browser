@@ -1,4 +1,4 @@
-import '../src/model.js';
+import './model.js';
 import {SIDEBAR_TOOL_STORE} from '../../../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../../../src/ui/sidebar-tools/lifecycle.js';
 import {PROMPT_ID,PROMPT_SITE_STORE,PROMPT_DATA_STORE,supportedOrigin,allowedPromptSite} from './policy.js';
@@ -6,6 +6,7 @@ const MODEL=globalThis.OpenDeskPromptShortcutsModel;
 const SLOT='__openDeskPromptShortcutsPageV1';
 const STYLE=String.raw`
 :host{all:initial;position:fixed;z-index:2147483600;pointer-events:none;color-scheme:light;font:13px/1.4 system-ui,sans-serif}
+:host([hidden]){display:none!important}
 .rail{pointer-events:auto;display:flex;flex-direction:column;align-items:center;gap:6px;max-height:min(68vh,420px);overflow-y:auto;overflow-x:hidden;width:48px;padding:5px;border:1px solid #d9dbe2;border-radius:14px;background:#fffefb;box-shadow:0 5px 20px #0002;scrollbar-width:thin}
 button{font:inherit;cursor:pointer;color:#293549;background:#f9fafb;border:1px solid #d9dbe2;border-radius:10px;outline-offset:2px;box-sizing:border-box}
 button:focus-visible{outline:2px solid #2563eb}
@@ -68,7 +69,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     hideTip();fallback.replaceChildren();
     const title=doc.createElement('strong'),note=doc.createElement('p');
     title.textContent='手动复制完整提示词';
-    note.textContent=reason||'编辑器未确认文本插入。未自动发送或替换现有草稿。';
+    note.textContent=(reason||'编辑器未确认文本插入。')+' 请先核对草稿中是否已有部分内容，避免重复粘贴。未自动发送。';
     const textarea=doc.createElement('textarea');textarea.readOnly=true;textarea.value=body;
     const copy=doc.createElement('button');copy.type='button';copy.textContent='复制';
     copy.addEventListener('click',event=>{

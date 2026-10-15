@@ -112,3 +112,12 @@
 5. 真实测试 IME、Undo、SPA、BFCache、不同 Chrome viewport、并发写入/未知结果。分别在此处追加候选 SHA 和 PASS/FAIL/NOT_TESTED。未通过真实路径前不宣称 95+ 或最终验收。
 
 **正式目标始终是用户完整操作闭环，而不是文件数、原型数量或宣称的通过率。**
+
+
+### 6.4 第一轮主分支 CI 后的安全构建修正
+
+首次提交 bf72ab8c（2026-10-15）触发的 production bundle gate **FAIL**：scripts/bundle-provenance.mjs 正确拒绝 examples/sidebar-tools/prompt-shortcuts/src/model.js 直接进入受信任 page-relay。保持此安全 gate，不扩大通配目录。
+
+修复原则：仅将模型作为审计过的 trusted/model.js 同源资源（仍位于独立工具目录）；Side Panel 沙箱通过 tool.config.json 的 v2 fixed Classic dependency 加载同一源码，可信网页适配器从固定 trusted/model.js 静态导入。固定 bundle provenance 只对白名单内三个完整 Git blob（model/policy/page）以及已存在的 agents/page-relay.js、ui/sidebar-tool-host.js 两个产物放行。每次修改这些代码必须重新核对其 Git blob SHA 并重新审计；不是目录级通配或提升沙箱权限。
+
+首次 CI 中另有大量并行 AI VIP Share 锁模拟与 Cookie Editor 便携包快照不一致；这些失败不归属 Prompt Shortcuts，本任务不修改其源码以粉饰全仓通过率。**修复版是否能通过真实 build，以后续同一修复候选的 CI 结果为准。**

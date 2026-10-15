@@ -33,7 +33,7 @@
     "css": "src/style.css",
     "js": "src/main.js",
     "dependencies": [
-      "src/model.js"
+      "trusted/model.js"
     ]
   },
   "assets": []

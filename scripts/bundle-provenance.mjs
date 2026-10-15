@@ -53,6 +53,28 @@ function reviewedCompiledAdblock(target,path,root){
   return hash;
 }
 
+// Prompt Shortcuts is a reviewed fixed, site-specific content adapter.
+// The Classic model is exactly the same audited resource declared in the
+// independent tool package; only these three immutable blobs may enter
+// the pre-existing fixed Host/relay bundles. This is NOT a wildcard exception.
+const compiledPromptShortcutInputs=Object.freeze({
+  'examples/sidebar-tools/prompt-shortcuts/trusted/model.js':'f015386060e97ad336c3bbaf35d6e9033b7ba2ee',
+  'examples/sidebar-tools/prompt-shortcuts/trusted/policy.js':'d393ee2c2511f4786265e8abc23c5c755aae51a6',
+  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'8e9f2cedefe83f5b2d61a00f4d3ccd83297db803'
+});
+const promptFixedTargets=new Set(['agents/page-relay.js','ui/sidebar-tool-host.js']);
+function reviewedCompiledPromptShortcuts(target,path,root){
+  if(!promptFixedTargets.has(target)||!Object.hasOwn(compiledPromptShortcutInputs,path))return null;
+  const file=resolve(root,path);
+  if(realpathSync(file)!==file)
+    throw Error('Trusted Prompt Shortcuts source must not be a symlink: '+path);
+  const bytes=readFileSync(file);
+  const hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+  if(hash!==compiledPromptShortcutInputs[path])
+    throw Error('Trusted Prompt Shortcuts source changed; review and re-pin before fixed build: '+path);
+  return hash;
+}
+
 const npmOwners=new Map(Object.values(BUILTIN_CATALOG.libraries).filter(row=>row.origin==='npm')
   .map(row=>[row.npm,row.output]));
 export function assertLibraryModuleBoundary(target,path,npmName) {
@@ -84,7 +106,8 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
     const path=modulePath(id,root);
     assertLibraryModuleBoundary(chunk.fileName,path);
     const reviewedSource=reviewedCompiledTimeReview(chunk.fileName,path,root)||
-      reviewedCompiledAdblock(chunk.fileName,path,root);
+      reviewedCompiledAdblock(chunk.fileName,path,root)||
+      reviewedCompiledPromptShortcuts(chunk.fileName,path,root);
     if(!reviewedSource&&/^(?:docs\/contracts\/source-snapshots\/|examples\/|src\/vendor\/)/.test(path))
       throw Error('Historical/user/vendor code cannot enter a privileged fixed bundle: '+path);
     const row={path,renderedLength:info.renderedLength,originalLength:info.originalLength,
