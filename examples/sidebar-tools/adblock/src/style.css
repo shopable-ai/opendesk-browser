@@ -1,17 +1,15 @@
-*{box-sizing:border-box}
-.adblock-tool{font:13px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text,#263a58);background:transparent;max-width:100%;padding:0 2px 9px;overflow-wrap:anywhere}
-.adblock-section{border:1px solid #dce5f1;border-radius:11px;padding:14px;margin:8px 0;background:#fff}
-.adblock-title{display:flex;align-items:center;gap:8px;margin:0 0 7px}
-.adblock-title h2{font-weight:650;font-size:13px;line-height:1.5;margin:0}
-.adblock-count{border-radius:99px;padding:1px 7px;color:#496388;background:#edf2fb;font-size:11px}
-.adblock-empty,.adblock-message{font-size:12px;color:#6b7890;margin:7px 0 0}
-.adblock-list{margin-top:5px}
-.adblock-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid #edf0f5}
+/* @opendesk-shared-design */
+/* All component colors, buttons, surfaces and focus states are compiled from canonical OpenDesk UI. */
+.adblock-tool{max-width:100%;padding:0 var(--space-2) var(--space-3);overflow-wrap:anywhere}
+.adblock-section{margin:var(--space-2) 0 0}
+.adblock-title{gap:var(--space-2)}
+.adblock-count{flex:none;min-width:1.5em;text-align:right}
+.adblock-list{margin-top:var(--space-1)}
+.adblock-row{display:flex;justify-content:space-between;align-items:center;gap:var(--space-2);padding:var(--space-2) 0;border-top:1px solid var(--od-line);min-width:0}
 .adblock-row:first-child{border-top:0}
-.adblock-domain{min-width:0;overflow-wrap:anywhere;font-weight:550}
-.adblock-restore{font:inherit;cursor:pointer;flex:none;background:transparent;border:1px solid #c6d5ee;color:#3157a6;border-radius:7px;padding:5px 9px;min-height:32px}
-.adblock-restore:hover{background:#f0f5ff}.adblock-restore:disabled{opacity:.5;cursor:wait}
-.adblock-message[data-error="true"]{color:#b42332}
-button:focus-visible{outline:2px solid #4488ee;outline-offset:2px}
-@media(prefers-color-scheme:dark){.adblock-tool{color:#e2ecfa}.adblock-section{background:#1c2c41;border-color:#344961}.adblock-count{background:#293f60;color:#bcd4ff}.adblock-row{border-color:#344961}.adblock-message,.adblock-empty{color:#aabbd2}.adblock-restore{color:#bfd4fc;border-color:#506d94}.adblock-restore:hover{background:#2a4363}.adblock-message[data-error=true]{color:#ffb3b3}}
-@media(max-width:340px){.adblock-section{padding:10px}.adblock-row{gap:6px}.adblock-restore{padding:5px 7px}}
+.adblock-domain{min-width:0;flex:1;overflow-wrap:anywhere;word-break:break-word;font-weight:600}
+.adblock-restore{flex:none;white-space:nowrap}
+.adblock-empty{margin:var(--space-2) 0 0}
+.adblock-message{margin:var(--space-2) var(--space-1) 0}
+.adblock-message[data-error="true"]{color:var(--od-negative)}
+@media(max-width:300px){.adblock-tool{padding-inline:var(--space-1)}.adblock-row{flex-wrap:wrap}.adblock-restore{margin-inline-start:auto}}
