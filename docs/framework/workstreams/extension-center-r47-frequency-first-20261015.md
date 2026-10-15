@@ -107,3 +107,34 @@
 - 顶栏预览的模拟「＋」「↻」和正式产品的真实市场/筛选/语言/刷新在**功能意义上并不等价**；后续应以真实功能与原版设计规范为准审计差异，不为了像素匹配直接替换正式菜单或静默丢掉任何功能。
 - 现有 211/211 定向通过及 build 阻断为历史候选证据，不是本轮新候选的测试结果；当前修复尚待同候选 CI。Mac 原生 Chrome **NOT_TESTED**；无权威截图/计算样式时「预览与正式一致性 ≥95」仍 **NOT_SCORED**。
 - 文件归属仅为本轮具体改动：`src/ui/extension-center.js`、`tests/environment/extension-center-r47-interaction.test.mjs`、上述新 GOAL 与本段记录。保留其它并行 Agent 对本文件之前的新增内容。
+
+## R4.8 · 正式 UI 源码与预览同源修复记录（2026-10-15）
+
+**实施方式与权限：** 本轮通过已连接的 GitHub API 在唯一 `main` 修改现有文件；每次写入按最新文件 Blob SHA 守护，未建立分支/PR/Worktree，未强推。当前执行容器无法访问用户 Mac 路径 `/Users/shopme/Documents/workspace/opendesk-browser`、Chrome 已安装 Profile 或 `npm run dev` watcher。因此下列远程代码检查、GitHub CI、静态预览和 Mac 原生 Chrome 严格分级。
+
+### 本轮已实际落地的修改
+
+- [`50749db3`](https://github.com/shopable-ai/opendesk-browser/commit/50749db330713d1c6051073c5c6b4140fc2d3379) · `src/ui/extension-center.js`：首次读取时展示真实 loading，不将未返回的目录误报为空；异步菜单刷新恢复行级键盘焦点，记录被删除时返回焦点落在搜索框；详情低频操作复用 `od-button od-button--secondary`，处理中禁止重复触发。
+- [`e1785ed1`](https://github.com/shopable-ai/opendesk-browser/commit/e1785ed18a2d1d3e2742ffd58d010d1a62c801ca) · `src/ui/extension-center.css`：移除详情按钮自行实现的背景/边框/圆角，交给正式 Design System。
+- [`c9c23975`](https://github.com/shopable-ai/opendesk-browser/commit/c9c23975a029ea76122f280cb5b0a9afab4a26ff) · `tests/environment/extension-center-r47-interaction.test.mjs`：增加 loading、后台刷新焦点、已移除 Page 的详情返回、共用按钮的 DOM 回归。
+- [`9e0a4126`](https://github.com/shopable-ai/opendesk-browser/commit/9e0a4126eec2457a85fbb2755b0dcc920d1126b4) · **原位置** `prototypes/sidebar/extension-center-r47-frequency-first-preview.html`：引入正式 `tool-shell.css` 与 `workbench-nav/workspace-content/workbench-tools` 容器，顶部市场+全局菜单结构直接摘取最新 `src/ui/tool.html`，独立 Mock 支持筛选、语言反馈、导入说明、刷新和 Escape；保留 `SIMULATED_PREVIEW / NOT_NATIVE_CHROME`。
+- [`df3d7f8f`](https://github.com/shopable-ai/opendesk-browser/commit/df3d7f8f0810cba5512371f96ecbc257188ca276) · 正式/预览工具栏结构逐字同步的自动合同，避免预览退回“模拟 +/↻”而生产失去真实菜单的老问题。
+
+### 独立证据与功能验收
+
+| 用户路径或质量项 | 当前阶段 | 可复核证据 / 限制 |
+| --- | --- | --- |
+| 启用 App 的主按钮/整行进入同一宿主 | SOURCE_WIRED · NATIVE_NOT_TESTED | 原 R4.7 源码+既有 DOM 双桩；尚无本次 Chrome 实际启动 |
+| 停用 App 经行菜单启用且不自运行 | SOURCE_WIRED · NATIVE_NOT_TESTED | 保留 Sidebar Host `toggleEnabled` 与原包撤销栅栏；未以 Mock 代替 |
+| Page 网站授权/注册/撤权与 generation | SOURCE_WIRED · NATIVE_NOT_TESTED | 不修改原 `installed-page-tools.js` 与权限流程；本机实装验证未做 |
+| 未安装候选点击与固定包审阅 | SOURCE_WIRED · NATIVE_NOT_TESTED | 行无“安装”主按钮，进入详情后走既有可信 review |
+| loading/状态未知/菜单异步刷新/焦点兜底 | SOURCE_CHANGED · NODE_CI_PENDING | 新增 R4.8 DOM 回归；不可等价为真人键盘/VoiceOver |
+| 正式五 Tab、市场、菜单、类型/范围、语言、刷新 | SOURCE_PARITY_CHECK · NATIVE_NOT_TESTED | GitHub 读取同一主干文件并执行 JS 字符串逐字对照，顶部正式 DOM 与 Mock 顶栏结构一致；页面 UI 仍需真实 Chrome computed style |
+| R4.7 原始 preview Mock | SIMULATED_ONLY | HTML 内仅使用内存数据，不修改 Chrome、真实工具或本机权限；真实 Page 用户入口无核实通用 API 时保持 0 主按钮 |
+| 本次产品逐维 95+、最终功能完成率 | NOT_SCORED / PARTIAL | 缺少同候选 Mac Chrome、权限拒绝与故障恢复的原始证据，不能声称达标 |
+
+**静态检查：** 使用当前 GitHub 源文件直接比较 formal/preview toolbar（仅将 `preview-` ID 规范化），结果 EQUAL；正式 JS 与预览内联 Mock JS 均做了解析检查 `PARSE_PASS_ONLY`，不代表 Node 测试、真实 DOM 截图或原生 Chrome。
+
+**本轮对应 CI：** [Extension Center R4，run 38755856469](https://github.com/shopable-ai/opendesk-browser/actions/runs/38755856469)，绑定 `df3d7f8f`；记录时为 `QUEUED`，完成前不得写 PASS。此前 Reading TOC `locales.json` 与特权 page-relay 的资源出处、以及 AdBlock 摘要 Pin 风险属于各 Owner；本轮未放宽安全 provenance、未修改这些对象。
+
+**Mac 同候选最终门禁（未执行）：** 在实际加载的 `dist/development` watcher 修复态确认扩展 ID 与本地源码一致；在隔离的 production 候选/Profile 验收同一 Commit + 包 SHA + Chrome 版本：App/网页增强真启停和读回、拒绝权限/撤权、候选安装审阅、未保存草稿、并发失败、行菜单键盘与底部定位、市场/筛选/语言/刷新、原型/正式截图及 computed-style。每一项留原始截图/日志并标 PASS/FAIL，缺证据一律 NOT_TESTED；在这些关闭前不宣称 Extension Center R4.8 正式验收完成。
