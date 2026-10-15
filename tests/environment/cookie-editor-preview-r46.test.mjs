@@ -95,3 +95,19 @@ test('explicit scenario switch retains modified fake data outside empty view',as
   h.scene('blocked');assert.equal(h.state().chrome,false);
   h.scene('ready');h.scene('dark');assert.equal(h.state().dark,true);
 });
+
+test('editing a redacted Value and then clearing is an intentional empty-value write',async()=>{
+  const h=await harness();
+  h.action('expand',{id:'1'});assert.equal(h.dirty(),false);
+  h.edit('value','temporary-secret');assert.equal(h.dirty(),true);
+  h.edit('value','');assert.equal(h.dirty(),true);
+  assert.equal(h.state().valueEdited,true);
+  h.action('save');assert.equal(h.state().confirm,'save');
+  h.action('commit');assert.equal(h.state().rows.find(x=>x.id===1).value,'');
+  h.action('expand',{id:'1'});h.edit('value','undo-this');
+  assert.equal(h.dirty(),true);
+  h.action('resetValue');assert.equal(h.state().valueEdited,false);
+  assert.equal(h.state().draft.value,'');
+  assert.equal(h.dirty(),false);
+  h.action('cancelEdit');assert.equal(h.state().expanded,null);
+});
