@@ -2,7 +2,7 @@
   <header class="bm-head od-page-head">
     <div class="bm-heading"><h1 class="od-page-title">书签管理</h1><p class="od-note">在当前工作区查看、整理与编辑书签</p></div>
     <span id="bm-total" class="od-technical" aria-label="已加载项目数量"></span>
-    <button id="bm-refresh" type="button" class="od-icon-button bm-icon" aria-label="刷新书签" title="刷新书签">↻</button>
+    <button id="bm-refresh" type="button" class="od-icon-button bm-icon" aria-label="刷新书签" title="刷新书签"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.9-3M4 4v4h4M4 13a8 8 0 0 0 14.9 3M20 20v-4h-4"/></svg></button>
   </header>
   <p id="bm-notice" class="bm-notice od-note" role="status" aria-live="polite"></p>
   <section id="bm-gate" class="bm-gate od-surface od-surface--padded" aria-label="SDK 与书签权限检查">
@@ -17,7 +17,7 @@
         <div class="bm-toolbar od-toolbar" role="group" aria-label="新建操作">
           <button id="bm-new-bookmark" type="button" class="od-button bm-button">＋ 新建书签</button>
           <button id="bm-new-folder" type="button" class="od-button od-button--secondary bm-button">新建文件夹</button>
-          <button id="bm-current" type="button" class="od-button od-button--quiet bm-button" title="安全收藏当前网页">☆ 收藏当前页</button>
+          <button id="bm-current" type="button" class="od-icon-button bm-current-action" aria-label="收藏当前页" title="收藏当前页"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3Z"/></svg></button>
         </div>
       </div>
       <div class="bm-list-heading"><strong>我的书签</strong><span id="bm-location" class="od-note">全部目录</span></div>
