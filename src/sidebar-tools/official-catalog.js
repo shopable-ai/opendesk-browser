@@ -47,8 +47,10 @@ export function validateOfficialReleaseCatalog(value){
     // Reuse the existing package metadata/capability validator. These inert
     // placeholders only validate the descriptor; executable bytes load later.
     const hasMenus=Array.isArray(row.capabilities)&&row.capabilities.includes('browser.contextMenu');
+    // V2 may expose approved Browser SDK services beyond Cookies/Bookmarks.
+    // Reuse the one package validator; do not invent special product exceptions.
     const hasSdk=hasMenus||Array.isArray(row.capabilities)&&row.capabilities.some(cap=>
-      cap.startsWith('browser.cookies.')||cap==='browser.bookmarks.full');
+      cap.startsWith('browser.')||cap==='network'||cap==='page.prompts');
     validateSidebarToolPackage({format:hasSdk?SIDEBAR_TOOL_FORMAT_V2:SIDEBAR_TOOL_FORMAT,
       id:row.toolId,version:row.version,
       title:row.packageTitle,description:row.description,capabilities:row.capabilities,
