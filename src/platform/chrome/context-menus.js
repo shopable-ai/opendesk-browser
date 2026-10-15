@@ -1,5 +1,6 @@
 import {isToolSender,resolveToolSender,permissionPattern} from '../../environment.js';
 import {createBrowserTabHost} from './browser-tabs.js';
+import {createCurrentPageReferences} from './current-page-refs.js';
 import {createNetworkService} from './network.js';
 import {createBrowserNetworkObserver} from './browser-network-observe.js';
 import {createBrowserScreenshotHost} from './browser-screenshot.js';
@@ -219,6 +220,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
          Boolean(grant.partitionKey.hasCrossSiteAncestor)))throw failure('E_COOKIE_PARTITION');
     return {origin,storeId:grant.storeId,partitionKey:grant.partitionKey??null,grantEpoch:grant.grantEpoch};
   }
+  const currentPageRefs=createCurrentPageReferences({api});
   const tabHost=createBrowserTabHost({api,authorize:async({operation,origin,context})=>{
     if(context.approvedOrigin!==null&&context.approvedOrigin!==origin)throw failure('E_SITE_GRANT_REQUIRED','Tab origin changed');
     await verifyBrowserOwner(context,operation,origin);
@@ -246,9 +248,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   const fullBookmarkHost=createBrowserFullBookmarksHost({api,
      authorize:async({operation,context})=>verifyBrowserOwner(context,operation),
      verifySourcePage:async(source,context)=>{
-       const tab=await tabHost.resolve(source.tabRef,context);
-       if(tab.url!==source.url||tab.documentId!==source.documentRef)
-         throw failure('E_DOCUMENT_CHANGED','Bookmark source differs from exact Chrome document');
+       // Never use an Owned TabRef to authenticate an arbitrary active page.
+       await currentPageRefs.verify(source,context);
        await verifyBrowserOwner(context,'browser.bookmarks.create');
      }
    });
@@ -298,6 +299,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     downloadHost.revokeAll();
     bookmarkHost.revokeAll();
     fullBookmarkHost.revokeAll();
+    currentPageRefs.revokeAll();
     browserIntents.clear();
     for(const controller of activeNetworkRequests)
       controller.abort(failure('E_GRANT_REVOKED','Installed tool authority changed during HTTP request'));
@@ -371,7 +373,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   }
   const epochKey=(tabId,frameId)=>String(tabId)+':'+String(frameId);
   function noteNavigation(tabId,frameId=0){
-    if(frameId===0){networkObserver.invalidateTab(tabId);screenshotResources.revokeTab(tabId);trustedCookies.noteNavigation(tabId);}
+    if(frameId===0){networkObserver.invalidateTab(tabId);screenshotResources.revokeTab(tabId);trustedCookies.noteNavigation(tabId);currentPageRefs.invalidateTab(tabId);}
     const key=epochKey(tabId,frameId);
     documentEpochs.set(key,(documentEpochs.get(key)||0)+1);
     if(frameId===0){
@@ -578,7 +580,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       if(cookieCapabilities[operation]){
         const checked=normalizeBrowserOperation(operation,args),hash=await digestTool(tool);
         const owner={toolId,toolVersion,packageHash:hash,epoch:installEpoch??null,
-          installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null};
+          installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null,
+          hostInstanceId,toolInstance};
         const needsClick=intentOperations.has(operation)&&
           !(operation==='browser.cookies.clearSite'&&checked.preview===true);
         let intent=null;
@@ -608,7 +611,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       if(intentOperations.has(operation)||operation==='browser.sidePanel.openSelf'){
         const checked=normalizeBrowserOperation(operation,args),hash=await digestTool(tool);
         const owner={toolId,toolVersion,packageHash:hash,epoch:installEpoch??null,
-          installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null};
+          installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null,
+          hostInstanceId,toolInstance};
         if(operation==='browser.sidePanel.openSelf'){
           await verifyBrowserOwner(owner,operation);
           return {requiresVisibleUserClick:true};
@@ -701,7 +705,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
           throw failure('E_USER_GESTURE_REQUIRED','This Browser action requires a trusted click');
         const hash=await digestTool(tool);
         const context={toolId,toolVersion,packageHash:hash,epoch:installEpoch??null,
-          installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null};
+          installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null,
+          hostInstanceId,toolInstance};
         return dispatchScoped(operation,args,context);
       }
       if(operation==='browser.scheduler.listOwn'||operation==='browser.scheduler.cancelOwn'){
@@ -843,6 +848,24 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     if(!validId(toolId))throw failure('E_OWNER','Wrong OpenDesk tool host');
     return serial(()=>runLocked(toolId,async()=>{
 
+      if(operation==='browser.page.getContext'){
+        // HOST_ONLY: the approved Side Panel is the only sender that may
+        // exchange its verified current-page capture for opaque document refs.
+        normalizeBrowserOperation(operation,{});
+        if(typeof toolInstance!=='string'||!/^[0-9a-f-]{36}$/i.test(toolInstance))
+          throw failure('E_OWNER','Current-page tool instance unavailable');
+        const sources=await readSources(api),tool=admittedTool(sources.tools,toolId);
+        const hash=await digestTool(tool);
+        if(!sidebarToolEnabled(sources.enabled,toolId)||tool.version!==toolVersion||
+           hash!==packageHash||(sources.epochs[toolId]??null)!==(installEpoch??null))
+          throw failure('E_TOOL_CHANGED','Installed current-page tool changed');
+        const ctx={toolId,toolVersion,packageHash:hash,epoch:installEpoch??null,
+          installEpoch:String(installEpoch??'initial-install'),hostInstanceId,toolInstance};
+        await verifyBrowserOwner(ctx,operation);
+        const output=await currentPageRefs.issue({document,context:ctx});
+        await verifyBrowserOwner(ctx,operation);
+        return output;
+      }
       if(operation==='browser.bookmarks.fullConsent'){
         if(typeof enabled!=='boolean')throw failure('E_SCHEMA','Explicit Full Bookmarks consent decision required');
         const source=await readSources(api),tool=admittedTool(source.tools,toolId);
@@ -863,6 +886,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
           ...source.grants,[toolId]:{...record,bookmarkFull:enabled}
         });
         fullBookmarkHost.revokeAll();
+        currentPageRefs.revokeAll();
         return {enabled};
       }
       if(operation==='browser.cookies.userGrant'){
@@ -1124,8 +1148,9 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       revokeBrowserOperations();
     // Cookie site changes revoke only Cookie sessions and ephemeral approvals.
     // Never dispose unrelated owned Tabs/Network/Screenshot on a Cookie grant.
-    if(area==='local'&&Object.hasOwn(changes,BROWSER_MENU_GRANTS_STORE))
-      trustedCookies.revoke();
+    if(area==='local'&&Object.hasOwn(changes,BROWSER_MENU_GRANTS_STORE)){
+      trustedCookies.revoke();currentPageRefs.revokeAll();
+    }
     if(area==='local'&&Object.hasOwn(changes,SIDEBAR_TOOL_ENABLE_STORE))
       void revokeLaunches().catch(error=>logger.warn('OpenDesk disabled-tool launch cleanup',error));
     if(area==='local'&&(Object.hasOwn(changes,SIDEBAR_TOOL_ENABLE_STORE)||
@@ -1134,6 +1159,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
        Object.hasOwn(changes,TOOL_REVOCATION_EPOCHS_STORE)))void sync().catch(e=>logger.warn('OpenDesk menu reconcile',e));
   });
   const invalidateTab=(tabId,frameId=0)=>serial(async()=>{
+    if(frameId===0)currentPageRefs.invalidateTab(tabId);
     const rows=(await api.storage.session.get(BROWSER_MENU_LAUNCH_STORE))[BROWSER_MENU_LAUNCH_STORE]||{};
     const next={...rows},invalidated=[];
     for(const [id,row] of Object.entries(rows)){

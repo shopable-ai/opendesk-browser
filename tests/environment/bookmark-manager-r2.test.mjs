@@ -15,12 +15,32 @@ const sandbox=async()=>{
   return ctx;
 };
 
+test('R2.4 official optional registration replaces all legacy host/UI/CI paths',async()=>{
+  const catalog=JSON.parse(await readFile('official-tools/catalog.json','utf8'));
+  const release=catalog.tools.filter(row=>row.id==='bookmark-manager');
+  assert.equal(release.length,1);
+  assert.equal(release[0].installationPolicy,'optional');
+  assert.equal(release[0].project,'examples/sidebar-tools/bookmark-manager');
+  for(const old of ['src/bookmark-manager/model.js','src/bookmark-manager/service.js',
+    'src/bookmark-manager/trusted-ui.js','src/ui/bookmark-manager.css',
+    '.github/workflows/bookmark-manager-r13.yml',
+    'tests/environment/bookmark-manager-r1.test.mjs'])
+    await assert.rejects(readFile(old,'utf8'),{code:'ENOENT'},old+' must be removed');
+  const html=await readFile('src/ui/tool.html','utf8');
+  const host=await readFile('src/ui/sidebar-tools.js','utf8');
+  const packer=await readFile('scripts/prepare-public.mjs','utf8');
+  const verifier=await readFile('scripts/verify-package.mjs','utf8');
+  for(const source of [html,host,packer,verifier])
+    assert.doesNotMatch(source,/bookmark-manager\.css|bookmark-manager-(?:open|panel)|src\/bookmark-manager\//);
+  assert.doesNotMatch(host,/createBookmarkManager|openBookmarks/);
+});
+
 test('R11.2 builds with v2 packer and independently declares Full Bookmark permission',async()=>{
   const pkg=await createSidebarToolPackage(root);
   assert.equal(pkg.id,'bookmark-manager');
-  assert.equal(pkg.version,'0.2.4');
+  assert.equal(pkg.version,'0.3.0');
   assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
-  assert.deepEqual(pkg.capabilities,['browser.bookmarks.full']);
+  assert.deepEqual(pkg.capabilities,['browser.bookmarks.full','currentPage.read']);
   assert.equal(pkg.scripts.length,2);
   assert.ok(pkg.js.includes('OpenDeskSDK'));
 });
@@ -169,6 +189,21 @@ const sample=()=>[{id:'0',title:'root',children:[
     {id:'4',parentId:'1',title:'other',url:'https://example.org/'}
   ]}
 ]}];
+
+test('R2.4 allows authorized tree reads while separate write/observer operations remain click-gated',async()=>{
+  const ctx=await sandbox(),data=fullSdk(ctx,{roots:sample()});
+  const original=data.sdk.capabilities.list;
+  data.sdk.capabilities.list=async()=>(await original()).map(row=>({
+    ...row,status:{callableNow:['getTree','get','search'].some(name=>
+      row.operation==='browser.bookmarks.'+name),
+      reasonCode:'E_USER_GESTURE_REQUIRED'}
+  }));
+  const service=ctx.BookmarkR2Service.create(data.sdk);
+  const result=await service.probe();
+  assert.equal(result.ready,true);
+  assert.ok(result.unapproved.length>0);
+  assert.equal((await service.load()).byId.size>1,true);
+});
 
 test('R2.1 loads 550 paged native nodes without dropping children or truncating search',async()=>{
   const ctx=await sandbox(),children=Array.from({length:550},(_,i)=>({

@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>ChatGPT 多回复导图 · DOM Fixture（非真实 ChatGPT）</title>
+<style>
+:root{color-scheme:light;background:#fafafa;color:#222;font:15px/1.6 system-ui,sans-serif}
+body{margin:0;display:flex;min-height:100vh}
+aside{width:195px;background:#f2f2f2;padding:18px;font-size:14px;flex-shrink:0}
+main{width:min(860px,calc(100% - 30px));margin:0 auto;padding:18px 14px 70px}
+h1{font-size:18px;font-weight:600}.chat-turn{padding:24px 8px;border-bottom:1px solid #e6e6e6}
+.chat-turn .markdown{font-size:15px;max-width:780px}.chat-turn h2{font-size:21px;margin:0 0 10px}
+.chat-turn ul{padding-left:30px;margin-bottom:12px}.chat-turn p{margin:8px 0}
+.chat-turn .actions{display:flex;gap:8px;align-items:center;margin-top:11px}
+.chat-turn .actions button{background:transparent;color:#5b6067;border:0;border-radius:7px;padding:7px 9px;cursor:pointer}
+.chat-turn .actions button:hover{background:#eee}
+#fixture-results{margin:0 0 10px;white-space:pre-wrap;padding:8px;background:#eaf2ff;border-radius:10px;font:12px/1.6 monospace}
+@media(max-width:700px){aside{display:none}main{width:100%}}
+</style>
+</head>
+<body>
+<aside><strong>ChatGPT</strong><p>此页面是测试夹具，不是 ChatGPT 官方网站。</p><p>对话记录</p></aside>
+<main>
+<h1>多回复思维导图测试 · 本地夹具</h1>
+<div id="fixture-results">测试即将执行</div>
+<div id="turns">
+  <article class="chat-turn" data-testid="conversation-turn-1">
+    <div data-message-author-role="assistant" data-message-id="a1"><div class="markdown prose"><h2>实施方案</h2><p>这里是第一条回复，仅用于验证本地导图与状态独立。</p><ul><li>确定结构<ul><li>识别标题</li><li>识别列表</li></ul></li><li>原文可逆切换</li><li>完整的键盘操作</li></ul><h3>安全设计</h3><p>消息仅在浏览器本地读取，无网络外传。</p></div></div>
+    <div class="actions" role="toolbar"><button data-testid="copy-turn-action-button" aria-label="Copy">复制</button><button aria-label="Good response">赞</button><button aria-label="Bad response">踩</button></div>
+  </article>
+  <article class="chat-turn" data-testid="conversation-turn-2">
+    <div data-message-author-role="assistant" data-message-id="a2"><div class="markdown prose"><h2>实施方案</h2><p>这里是第二条回复，它的标题和上一条相同。</p><ul><li>唯一 DOM 身份</li><li>单独的节点缩放</li></ul></div></div>
+    <div class="actions" role="toolbar"><button data-testid="copy-turn-action-button" aria-label="Copy">复制</button><button>赞</button></div>
+  </article>
+  <article class="chat-turn" data-testid="conversation-turn-3">
+    <div data-message-author-role="assistant" data-message-id="a3"><div class="markdown prose"><p>没有标题也可以显示导图。</p><p>第二段内容。</p><pre><code class="language-markdown"># 不能成为标题\n- 不能成为列表</code></pre><blockquote>这里是引用语义。</blockquote></div></div>
+    <div class="actions" role="toolbar"><button data-testid="copy-turn-action-button">复制</button><button>更多</button></div>
+  </article>
+  <article class="chat-turn" data-testid="conversation-turn-4">
+    <div data-message-author-role="assistant" data-message-id="a4"><div class="markdown prose"><h3>表格说明</h3><table><thead><tr><th>阶段</th><th>结果</th></tr></thead><tbody><tr><td>开发</td><td>PASS</td></tr><tr><td>原生</td><td>NOT_TESTED</td></tr></tbody></table></div></div>
+    <div class="actions" role="toolbar"><button data-testid="copy-turn-action-button">复制</button><button>重试</button></div>
+  </article>
+  <article class="chat-turn" data-testid="conversation-turn-5">
+    <div data-message-author-role="assistant" data-message-id="a5"><div class="markdown prose"><h2>完全相同</h2><p>两条回答完全相同。</p></div></div>
+    <div class="actions" role="toolbar"><button data-testid="copy-turn-action-button">复制</button><button>👍</button></div>
+  </article>
+  <article class="chat-turn" data-testid="conversation-turn-6">
+    <div data-message-author-role="assistant" data-message-id="a6"><div class="markdown prose"><h2>完全相同</h2><p>两条回答完全相同。</p></div></div>
+    <div class="actions" role="toolbar"><button data-testid="copy-turn-action-button">复制</button><button>👍</button></div>
+  </article>
+</div>
+<script type="module">
+import {createAnswerRegistry} from '../../examples/programs/chatgpt-mindmap/src/answer-registry.js';
+import {extractAnswerTree} from '../../examples/programs/chatgpt-mindmap/src/extract.js';
+const result=document.getElementById('fixture-results');
+const turns=[...document.querySelectorAll('.chat-turn')];
+const css=await (await fetch('../../examples/programs/chatgpt-mindmap/assets/ui.css')).text();
+let active=true;
+const cleanups=[];
+const owner={
+ active:()=>active,
+ on(target,type,cb,options){target.addEventListener(type,cb,options);cleanups.push(()=>target.removeEventListener(type,cb,options));},
+ observe(target,cb,options){const x=new MutationObserver(cb);x.observe(target,options);cleanups.push(()=>x.disconnect());return x;},
+ setTimeout(cb,ms){const x=setTimeout(cb,ms);cleanups.push(()=>clearTimeout(x));return x;},
+ setInterval(cb,ms){const x=setInterval(cb,ms);cleanups.push(()=>clearInterval(x));return x;},
+ dispose(){active=false;registry.destroy();for(const fn of cleanups.splice(0).reverse())fn();}
+};
+const registry=createAnswerRegistry({document,window,owner,css});registry.start();
+const delay=ms=>new Promise(ok=>setTimeout(ok,ms));
+const verify=(condition,msg)=>{if(!condition)throw Error(msg);};
+const trigger=t=>t.querySelector('[data-opendesk-chatgpt-mindmap="button"]')?.shadowRoot.querySelector('button');
+const viewer=t=>t.querySelector('[data-opendesk-chatgpt-mindmap="viewer"]');
+const toolbarButton=(t,label)=>[...viewer(t)?.shadowRoot.querySelectorAll('button')||[]].find(x=>x.textContent===label);
+const count=()=>document.querySelectorAll('[data-opendesk-chatgpt-mindmap="button"]').length;
+const show=(text,ok)=>{result.textContent=text;document.documentElement.dataset.testResult=ok?'pass':'fail';};
+try{
+ verify(registry.count===6&&count()===6,'six unique answer triggers');
+ verify(turns.every(x=>x.querySelectorAll('[data-opendesk-chatgpt-mindmap="button"]').length===1),'one button each');
+ verify(turns.every(x=>x.querySelector('.actions').querySelectorAll('button').length>=2),'official actions preserved');
+ const initial=extractAnswerTree(turns[2].querySelector('.markdown'));
+ verify(initial.tree.children.some(n=>n.kind==='code'),'code node present');
+ verify(!initial.tree.children.some(n=>n.title.includes('不能成为标题')),'fence is not a heading');
+ verify(initial.tree.children.some(n=>n.kind==='paragraph'),'no heading fallback');
+ verify(extractAnswerTree(turns[3].querySelector('.markdown')).tree.children[0].children.some(n=>n.kind==='table'),'table semantics');
+ trigger(turns[0]).click();trigger(turns[1]).click();
+ verify(viewer(turns[0])&&viewer(turns[1]),'A and B maps simultaneously');
+ verify(turns[0].querySelector('.markdown').style.display==='none'&&turns[1].querySelector('.markdown').style.display==='none','both originals hidden');
+ verify(turns[2].querySelector('.markdown').style.display!=='none','other replies unaffected');
+ verify(viewer(turns[0]).shadowRoot.textContent.includes('个主题'),'A map rendered');
+ toolbarButton(turns[0],'全屏').click();
+ verify(registry.activeFullscreen&&document.body.querySelector('[data-opendesk-chatgpt-mindmap="viewer"]'),'A entered viewport fullscreen');
+ window.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+ verify(!registry.activeFullscreen&&viewer(turns[0]),'Escape restores A inline');
+ trigger(turns[4]).click();trigger(turns[5]).click();
+ verify(viewer(turns[4])!==viewer(turns[5]),'identical answers remain independent');
+ toolbarButton(turns[4],'折叠').click();
+ verify(toolbarButton(turns[4],'展开')&&toolbarButton(turns[5],'折叠'),'fold state independent');
+ const originalDisplay=turns[0].querySelector('.markdown').style.display;
+ toolbarButton(turns[0],'原文').click();
+ verify(!viewer(turns[0])&&turns[0].querySelector('.markdown').style.display!== 'none'&&originalDisplay==='none','original restored');
+ // React-style action bar replacement should result in exactly one new button.
+ const bar=turns[1].querySelector('.actions');const replaced=bar.cloneNode(true);bar.replaceWith(replaced);
+ await delay(340);
+ verify(count()===6&&turns[1].querySelectorAll('[data-opendesk-chatgpt-mindmap="button"]').length===1,'toolbar redraw still one button');
+ // Simulate streamed content update then explicit refresh path.
+ turns[1].querySelector('.markdown p').append('（已更新）');
+ await delay(180);
+ verify(viewer(turns[1]).shadowRoot.textContent.includes('原回复内容已变化'),'content revision marked stale');
+ await delay(800);
+ toolbarButton(turns[1],'刷新').click();
+ verify(viewer(turns[1])&&viewer(turns[1]).shadowRoot.textContent.includes('只读'),'refresh same message');
+ if(location.search.includes('preview')){
+   trigger(turns[0]).click();
+   // Keep A and B visible for evidence screenshot. Do not mislabel this fixture as real ChatGPT.
+   show('FIXTURE_PASS · 6 条 AI 回复 / 两张导图并行 / 页面内原位切换 / 全屏与刷新 / 无串扰',true);
+ }else{
+   for(let k=0;k<8;k++){trigger(turns[2]).click();trigger(turns[2]).click();}
+   verify(count()===6,'20+ switching cycles do not create duplicate triggers');
+   // SPA removal and new answer identity.
+   turns[4].remove();turns[5].remove();
+   history.pushState({},'', '/c/new-conversation');
+   await delay(1300);
+   verify(count()===4&&registry.count===4,'removed answer cleanup after SPA');
+   owner.dispose();
+   verify(count()===0&&document.querySelectorAll('[data-opendesk-chatgpt-mindmap="viewer"]').length===0,'Stop cleans all owned DOM');
+   verify(turns[1].querySelector('.markdown').style.display!=='none','Stop restores original answer');
+   show('FIXTURE_PASS · 6回复/同题与同文独立/代码与表格/重绘/SPA/Stop/刷新/全屏/多次切换',true);
+ }
+}catch(error){show('FIXTURE_FAIL: '+String(error?.stack||error),false);}
+</script>
+</main>
+</body>
+</html>

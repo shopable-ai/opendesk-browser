@@ -43,8 +43,7 @@ test('Develop primary accordions use consistent paper cards and nested diagnosti
   const primaryIds = [
     'developer-target-detail','manual-project-params-tools','developer-results-panel',
     'developer-run-technical','page-preview-tools','script-library-tools',
-    'script-advanced','tool-diagnostics','local-project-params-tools',
-    'page-dependency-panel','program-generated'
+    'script-advanced','tool-diagnostics','local-project-params-tools'
   ];
   for (const id of primaryIds) {
     const tag = html.match(new RegExp('<details\\b[^>]*\\bid="'+id+'"[^>]*>'))?.[0];
@@ -52,11 +51,15 @@ test('Develop primary accordions use consistent paper cards and nested diagnosti
     assert.match(tag, /\bod-disclosure\b/, 'shared card '+id);
     assert.doesNotMatch(tag, /od-disclosure--flat/, 'primary section should not be borderless: '+id);
   }
-  assert.match(dev, /<details class="od-disclosure"><summary>高级诊断<\/summary><p id="local-project-diagnostics"/);
+  assert.match(dev, /<details class="od-disclosure od-disclosure--flat"><summary>高级诊断<\/summary><p id="local-project-diagnostics"/);
   assert.match(dev, /id="script-history-panel" class="result-history od-disclosure od-disclosure--flat"/);
+  for (const id of ['page-dependency-panel','program-generated']) {
+    const tag = html.match(new RegExp('<details\\b[^>]*\\bid="'+id+'"[^>]*>'))?.[0];
+    assert.match(tag || '', /od-disclosure--flat/, 'Nested technical detail: '+id);
+  }
   assert.match(design, /\.od-disclosure\{[^}]*border:1px solid var\(--od-line\);[^}]*background:var\(--od-paper\)/);
-  assert.match(css, /#workspace-content #workbench-develop\{display:grid;gap:var\(--space-3\)/);
-  assert.match(css, /#workbench-develop \.developer-editor\{display:grid;gap:var\(--space-3\)/);
-  assert.match(css, /details\.od-disclosure>summary\{min-height:44px\}/);
+  assert.match(css, /#workspace-content #workbench-develop\{display:grid;gap:var\(--space-4\)/);
+  assert.match(css, /#workbench-develop \.developer-editor\{display:grid;gap:var\(--space-4\)/);
+  assert.match(design, /\.od-disclosure>summary\{[^}]*min-height:44px/);
   assert.match(css, /#tool-diagnostics>section\{[^}]*background:var\(--od-paper\)/);
 });

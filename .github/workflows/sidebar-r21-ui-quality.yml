@@ -18,6 +18,10 @@ on:
       - 'examples/sidebar-tools/quick-notes/**'
       - 'tests/environment/sidebar-tool-spacing-contract.test.mjs'
       - 'tests/environment/ui-layout-conventions-r27.test.mjs'
+      - 'tests/environment/sidebar-component-contract.test.mjs'
+      - 'tests/environment/developer-layout.test.mjs'
+      - '.agents/skills/opendesk-extension-ui/SKILL.md'
+      - 'docs/architecture/sidebar-multi-section-tab-contract-r28.zh-CN.md'
       - 'tests/framework/sidebar-develop-layout-r29.test.mjs'
       - 'docs/architecture/ui-layout-conventions-r27.zh-CN.md'
       - 'docs/architecture/sidebar-design-system-r20.zh-CN.md'
@@ -51,7 +55,7 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: R21 and affected Sidebar/Tools/Workflow contracts
         run: |
-          node --test tests/environment/sidebar-product-contract.test.mjs tests/environment/scheduled-task-ui-r1.test.mjs
+          node --test tests/environment/sidebar-product-contract.test.mjs tests/environment/scheduled-task-ui-r1.test.mjs tests/environment/sidebar-component-contract.test.mjs tests/environment/developer-layout.test.mjs
           node --test tests/environment/sidebar-tab-memory.test.mjs
           node --test tests/framework/sidebar-develop-layout-r29.test.mjs
           node --test tests/environment/ui-r23-design-boundaries.test.mjs tests/environment/sidebar-r21-design-system.test.mjs tests/environment/sidebar-ui-preview.test.mjs tests/environment/sidebar-tool-spacing-contract.test.mjs tests/environment/ui-layout-conventions-r27.test.mjs tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/workflow-ui-states.test.mjs tests/environment/task-workbench.test.mjs

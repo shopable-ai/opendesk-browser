@@ -3,6 +3,11 @@
 正式工具 ID：`ai-vip-share`；源码目录：`examples/sidebar-tools/ai-vip-share/`。
 用户从 OpenDesk Browser「扩展」安装，不需要持有浏览器项目源码；本工具不提供任意节点、PAC 编辑器、Cookie 会话移植或常驻日志。
 
+## 产品设计与原型（R4）
+
+会员账号、兑换码/时长、专属激活链接、安装引导及更多商品的**待实现**规范：[`DESIGN.zh-CN.md`](DESIGN.zh-CN.md)。
+可离线交互的 HTML 评审页：[`preview/ai-vip-share-r4-preview.html`](preview/ai-vip-share-r4-preview.html)，仅供审查，不接入真实账号、支付或代理。
+
 ## 本地构建与验证
 
 ```sh

@@ -1,5 +1,8 @@
 # Universal Dependency Runtime｜新旧场景、用法、文件与验收的长期合同
 
+> **2026-10-15 CSV 选择更新：** 新的 CSV 解析/导出代码优先使用 Papa Parse 5.7.0：Page USER_SCRIPT 可用 `// @opendesk-lib papa-parse` + `Papa.parse/unparse`；Controller Developer 可以使用固定 npm ESM `import Papa from 'papaparse@5.7.0'`（仍需真实下载/运行验收）。本文件历史 `@vanillaes/csv@4.1.3` D04 三模块锁定测试/证据不删除、不误称为正式内置依赖。详见 [Page 示例](../../examples/programs/single-file/page-papaparse-csv.README.md)。
+
+
 > 2026-10-13。**这是“按用户场景看依赖系统”的单一导航文档**，而不是第二个 Dependency Manager 或新源码运行时。仅描述源码核查事实、冻结决策和下一阶段验收标准。运行时库 ID/版本/世界仍以 `src/libs/runtime-contract.js`、`src/libs/catalog.js` 为准；最新实现/证据以指定 SHA 的源码、`docs/framework/workstreams/universal-dependency-file-first-r7-20261013.md` 及原始测试为准。过时的历史 snapshot 不等于 Chrome PASS。
 
 ## 0. 不可偏移的用户目标

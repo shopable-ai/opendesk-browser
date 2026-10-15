@@ -61,6 +61,12 @@
       "project": "examples/sidebar-tools/cookie-editor",
       "kind": "sidebar-tool",
       "installationPolicy": "preinstalled"
+    },
+    {
+      "id": "bookmark-manager",
+      "project": "examples/sidebar-tools/bookmark-manager",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional"
     }
   ]
 }

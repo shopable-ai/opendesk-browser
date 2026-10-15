@@ -133,13 +133,20 @@ test('R19 Sidebar spacing and corner system is consistent across all five tabs',
   assert.match(body(':root',tokens),/--radius-control:8px;\s*--radius-surface:12px;\s*--radius-pill:999px/);
   assert.match(body('button',design),/border-radius:var\(--radius-control\)/);
   assert.match(body('.dock-buttons button'),/border-radius:var\(--radius-control\)/);
-  // R30: Dev uses the same 8px Tab rhythm as Tools headers and nested editor rows.
-  assert.match(body('#workspace-content #workbench-develop'),/display:grid;gap:var\(--space-2\)/);
-  assert.match(body('#workbench-develop .developer-editor'),/display:grid;gap:var\(--space-2\)/);
+  // R31: independent sections use 16px; related subgroups keep the shared 8px rhythm.
+  assert.match(body('#workspace-content #workbench-develop'),/display:grid;gap:var\(--space-4\)/);
+  assert.match(body('#workbench-develop .developer-editor'),/display:grid;gap:var\(--space-4\)/);
+  assert.ok(html.includes('class="developer-context od-stack"'));
+  assert.ok(html.includes('class="developer-run-area od-stack"'));
+  assert.match(body('.od-stack',design),/gap:var\(--space-2\)/);
   assert.match(body('#workbench-develop #manual-source-editor'),/display:grid;gap:var\(--space-2\)/);
   assert.match(body('#workbench-develop .local-project-tools>:not([hidden])'),/margin-block:0/);
-  for(const selector of ['#developer-target-detail','.developer-source-switch','#script-source','.program-source-toolbar','.developer-params','.developer-results','#script-library-tools,#page-preview-tools,#script-advanced','#tool-diagnostics'])
-    assert.match(body(selector),/margin:(?:0|0;)/,'no competing vertical margins: '+selector);
+  for(const selector of ['.developer-source-switch','#script-source','.program-source-toolbar','#tool-diagnostics'])
+    assert.match(body(selector),/margin:(?:0|0;)/,'view-owned vertical margin: '+selector);
+  assert.match(body('#workbench-develop .developer-context .developer-target>details,\n#workbench-develop .developer-run-area>:not([hidden])'),
+    /margin-block:0/, 'related groups do not add default detail margins');
+  for(const selector of ['.od-disclosure','.od-disclosure>summary'])
+    assert.ok(body(selector,design).includes('var(--od-'), 'public appearance is in Design System: '+selector);
   assert.match(body('.local-discovery-filters'),/display:flex;flex-wrap:wrap;width:max-content;max-width:100%;[^}]*margin:0;[^}]*border-radius:var\(--radius-surface\)/);
   assert.match(body('.local-discovery-filters button'),/border-radius:var\(--radius-control\)/);
   assert.doesNotMatch(body('.local-discovery-filters button'),/border-radius:18px/);
@@ -203,9 +210,9 @@ test('R4/R23 five-tab design system has one token source and a strict trusted as
   assert.doesNotMatch(design,/@import\b|url\s*\(|expression\s*\(/i);
   assert.match(prepare,/'src\/ui\/design-tokens\.css':'ui\/design-tokens\.css'/);
   assert.match(prepare,/'src\/ui\/design-system\.css':'ui\/design-system\.css'/);
-  assert.match(prepare,/'src\/ui\/bookmark-manager\.css':'ui\/bookmark-manager\.css'/,
-    'the trusted bookmark CSS used by Tools is a whitelisted WXT asset');
-  assert.ok(verify.includes("'ui/tool.html': ['design-tokens.css', 'design-system.css', 'tool-shell.css', 'bookmark-manager.css', 'time-review.css', 'cloud-hosting.css', 'extension-center.css', 'sidebar-tool-host.js', 'stay-focus-controls.js', 'trusted-cookie-ui.js', 'tool-shell.js']"),
+  assert.doesNotMatch(prepare,/bookmark-manager\.css/,
+    'legacy bookmark styles must not be copied into the trusted package');
+  assert.ok(verify.includes("'ui/tool.html': ['design-tokens.css', 'design-system.css', 'tool-shell.css', 'time-review.css', 'cloud-hosting.css', 'extension-center.css', 'sidebar-tool-host.js', 'stay-focus-controls.js', 'trusted-cookie-ui.js', 'tool-shell.js']"),
     'the fixed asset verifier must require cloud hosting CSS and the precise trusted sidecars before the main shell');
   assert.match(html, /<script src="sidebar-tool-host\.js"><\/script>\s*<script src="stay-focus-controls\.js"><\/script>\s*<script src="trusted-cookie-ui\.js"><\/script>\s*<script src="tool-shell\.js"><\/script>/,
     'the native Cookie/Stay Focus controls load in a verified order before the Side Panel shell');

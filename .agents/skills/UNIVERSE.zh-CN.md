@@ -4,7 +4,7 @@
 
 ## 一、为什么需要统一宇宙
 
-初建时有 4 个技能负责脚本、发布、沙箱应用和第一方可信业务；如今另有 UI、Runtime，**总计六个已有 Skill**，不改稳定 slug。缺口是两类**扩展维护者**的稳定工作流：
+初建时有 4 个技能负责脚本、发布、沙箱应用和第一方可信业务；之后新增 UI、Runtime。本次根据可复用的独立 JSON 构建/校验/交付合同，增加一个打包 Skill，**当前七个活跃 Skill**，保留原有稳定 slug；另外仅预留一个不参与路由的市场发布目录。历史缺口是两类**扩展维护者**的稳定工作流：
 
 - **扩展内置界面开发**：创建/修改“我的、扩展、工作流、开发、云控”五个正式 Tab 的列表、详情、表单、折叠内容与返回，不应每次重新发明样式。
 - **Chrome MV3 多世界工程**：分清 Background / Content Script / MAIN / Page USER_SCRIPT / Controller Worker / trusted Side Panel / Native Go，避免业务/权限/生命周期混写。
@@ -25,13 +25,14 @@
 
 准入门槛：`≥95` 且边界清楚、有真实入口/测试、不会造第二套权威，允许本轮新增；`85–94` 先增强对应既有 Skill 或等待新的重复失败证据；`<85` 默认不新增。**门槛不是机械批准**：如果候选与已有核心 Skill 重复，即使 ≥95 也合并而非创建；已存在的 Skill 不再重复创建。新增后还要完成静态检查及后续真实变更的原生验收。
 
-## 三、已有六项（保持 slug，不重复建）
+## 三、已有七项（保持原 slug，不重复建）
 
 | Skill | 主要用户意图 | 当前决策 |
 | --- | --- | --- |
 | `opendesk-script-authoring` | 开发 Tab 编写 JavaScript / React / Vue、Controller/Page 试运行 | 已存在，保留 |
 | `opendesk-program-publish` | 本地项目、冻结 Candidate、安装/升级/发布及结果归属 | 已存在，保留 |
-| `opendesk-sidebar-tool-dev` | 在「扩展」中安装的「应用」——Sidebar Tool v1/v2 | 已存在，保留 |
+| `opendesk-sidebar-tool-dev` | Sidebar App 的 UI、业务源码、开发预览与沙箱交互 | 已存在，保留 |
+| `opendesk-sidebar-tool-package` | Sidebar Tool v1/v2 的统一编译、可导入 JSON、项目目录安装包一致性、离线发行与本地安装验收 | **本轮正式新增**；不管理在线市场上架 |
 | `opendesk-trusted-sidebar-feature` | 随扩展发布的 Time Review/Stay Focus 等第一方可信业务与最小解耦 | 已存在，保留 |
 | `opendesk-extension-ui` | 五 Tab、扩展中心统一列表/详情/安装管理 UI | 已存在，保留 |
 | `opendesk-extension-runtime` | MV3、WXT、SDK/Host/Authority 多世界工程 | 已存在，保留 |
@@ -40,6 +41,7 @@
 
 | 候选 Skill / 能力域 | F/25 | I/25 | B/20 | T/20 | C/10 | 独立得分 | 结论 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| `opendesk-sidebar-tool-package`：独立 JSON 构建/同步/版本/原生安装验收 | 25 | 25 | 19 | 19 | 8 | **96** | **本轮新增**；实际单一打包器、版本保护与测试合同，和源码创作明确分离；静态规划评分不是实测成功率 |
 | `opendesk-extension-ui`：内置 Tab/列表/详情/表单/排版 | 25 | 25 | 20 | 19 | 9 | **98** | **已创建**（初建评分） |
 | `opendesk-extension-runtime`：MV3 多世界、WXT/Host/Authority | 25 | 25 | 19 | 18 | 9 | **96** | **已创建**（初建评分），与 UI 分开 |
 | `opendesk-ui-visual-acceptance`：缩放/主题/键盘/截图 | 24 | 25 | 15 | 20 | 8 | **92** | **融合到 extension-ui**，先不增独立技能 |
@@ -62,10 +64,16 @@
 
 分数是在**当前仓库和已知实际反复问题下的专家预测**，不声称经过独立用户访谈或量化生产事故统计。主要价值是能解释“为什么建/为什么不建”，未来新证据允许逐项调整评分与结论，不整体修改其它候选的分数。
 
+### 市场发布预留：未激活，不参与正式 Skill 路由
+
+- 未来预留名称：`opendesk-marketplace-publish`，文件只存在于 [RESERVED.md](opendesk-marketplace-publish/RESERVED.md)；**当前不创建 `SKILL.md`**，不计入七个活跃 Skill。独立发布流程将涉及作者身份、包上传、审查、线上分发、签名、撤销、正式 HTTPS 与可证明的服务器回执，现有 Catalog/R5 网页有限交接不满足上线前置条件。
+- 这是 **FUTURE_SCOPE / BLOCKED** 的职责占位，不是声称当前产品已完成、发布功能 96/100 或可被 Agent 执行的能力。真正开发时按本页 95+ 准入重新评分并完成源码测试，不能以预留名直接启用发布。
+- UI 的市场列表/详情继续由 `opendesk-extension-ui` 负责；官方离线来源与本地包由 `opendesk-sidebar-tool-package` 负责；可信安装与权限由已有 Runtime/Host 负责，避免市场形成第二条执行授权链。
+
 ### Extension Center R4 的唯一触发边界
 
 - 「扩展」统一列表、搜索、筛选、类型标签、详情、安装管理 UI → `opendesk-extension-ui`。
-- 「扩展」中创建或安装 Sidebar「应用」 → `opendesk-sidebar-tool-dev`，保留 `opendesk.sidebar-tool.v1/v2`、`OpenDeskTool.request` 和 iframe 安全合同。
+- 「扩展」中创作 Sidebar「应用」的源码/iframe UI → `opendesk-sidebar-tool-dev`；构建与校验 `.opendesk-tool.json`、本地导入更新、官方离线固定资源 → `opendesk-sidebar-tool-package`，继续复用唯一打包器及 `opendesk.sidebar-tool.v1/v2` 合同。
 - Page 网页增强源码 → `opendesk-script-authoring`；冻结验证、正式安装和发布 → `opendesk-program-publish`，保留 Page USER_SCRIPT 与 Installed/Authority。
 - Controller 自动化任务源码 → `opendesk-script-authoring`；正式安装与发布 → `opendesk-program-publish`；任务在「我的」。
 - 后台/Content Script/跨世界 Host 及浏览器 SDK → `opendesk-extension-runtime`；静态第一方功能的业务代码 → `opendesk-trusted-sidebar-feature`。
@@ -87,6 +95,6 @@ UI Skill 的历史验收起点（需按当前代码复核）：
 
 - 每个技能必须：非重叠触发、真实源码入口、引用唯一权威、至少一个失败/验证场景、维护人或归属范围；
 - 一次新需求先查本目录“已存在”和候选评分，能补原技能即不增新技能；
-- 创建新 Skill 时同步 `.agents/skills/README.md`、本宇宙及对应专属工作流；
+- 创建新 Skill 时同步 `.agents/skills/README.md`、本宇宙及对应专属工作流；预留目录只能有 RESERVED.md，不得被当成真实 SKILL.md 或假装远端发布成功；
 - 自动化测试核对目录 slug/frontmatter、README 路由、宇宙登记及新 Skill 的关键引用；这只是 `DOC_STATIC_PASS`；
 - 每次真实产品 UI 变更才执行相关源码测试、构建和原生 Chrome 视觉/行为验收。`95` 作为实际质量门槛不能靠 Skill 自评或静态检查代替。

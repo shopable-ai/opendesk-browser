@@ -17,7 +17,7 @@ test('Develop history retains unique DOM IDs, labels and nested disclosure struc
   for(const id of ids)
     assert.equal((html.match(new RegExp('id="'+id+'"','g'))||[]).length,1,'missing/duplicate '+id);
   const start=html.indexOf('<details id="script-history-panel"');
-  const end=html.indexOf('\n  </div></details>\n  <details id="developer-run-technical"',start);
+  const end=html.indexOf('\n  </div></details>\n    </div>\n  <details id="developer-run-technical"',start);
   assert(start>=0&&end>start,'History must remain inside results panel');
   const markup=html.slice(start,end);
   assert(markup.includes('<summary>运行记录与技术信息</summary>'));
@@ -46,8 +46,8 @@ test('Existing history actions stay connected to the same Controller RunHost',()
 });
 
 test('Develop styles follow R27 tokens and reflow actions below 380 CSS px',()=>{
-  assert(css.includes('#workbench-develop .developer-editor>.od-disclosure{'),
-    'Developer layout must scope the shared disclosure component');
+  assert(css.includes('#workbench-develop .developer-context>.developer-target{margin:0;padding:0}'),
+    'Developer view owns target alignment, not shared disclosure appearance');
   assert(components.includes('.od-disclosure>summary{display:flex;align-items:center'),
     'All disclosure headings must share the public centered typography');
   assert(css.includes('#workbench-develop .developer-history-field{display:grid;gap:var(--space-2)'),
@@ -58,6 +58,10 @@ test('Develop styles follow R27 tokens and reflow actions below 380 CSS px',()=>
     'Wide history select and action must fit without fixed input widths');
   assert(css.includes('@media(max-width:380px)'),
     'Narrow Sidebar needs stacked history actions');
+  assert(css.includes('#workbench-develop .developer-editor{display:grid;gap:var(--space-4)'),
+    'Independent developer sections need 16px spacing');
+  assert(html.includes('class="developer-run-area od-stack"'),
+    'Output status and result must stay in one 8px group');
   assert(components.includes('.od-disclosure{min-width:0;'),
     'Shared accordion must not overflow a narrow parent');
   assert(components.includes('.od-disclosure>summary>*{min-width:0}'),

@@ -1,0 +1,31 @@
+{
+  "production": {
+    "packageHash": "a0255dcc59398c52ec93496d116131778e86ad3b10370ec7c0cba0cf192bea36",
+    "status": "passed",
+    "attemptId": "589d2894-c3cb-4bf1-af1d-88f74e8b47f6",
+    "sourceDriftDuringBuild": [],
+    "sourceInputsSha256": "76e741a4b73a2d964022c9cf19de11d5d525865142736e6a7dc60ce443ef5c8a"
+  },
+  "development": {
+    "packageHash": "eb61f6ef6e4c49c31eed1de9b647d96ba7fa1f2239c9f13bc5bc4c036b841a9c",
+    "status": "passed",
+    "attemptId": "9a0617b3-9761-4f05-9975-142709e8e28f",
+    "sourceDriftDuringBuild": [],
+    "sourceInputsSha256": "76e741a4b73a2d964022c9cf19de11d5d525865142736e6a7dc60ce443ef5c8a"
+  },
+  "tool": {
+    "version": "0.3.0",
+    "bytes": 43327,
+    "sha256": "9c41c26a2c7f9087523734f295eeedcba309eda3d9e418e0fbeeb30d82445289",
+    "installed": false
+  },
+  "codeCommit": "f508dc60296934d83114daa2f3cddc5e0c84c76d",
+  "native": "NOT_TESTED",
+  "fullTests": {
+    "pass": 2562,
+    "fail": 14,
+    "skip": 9,
+    "total": 2585,
+    "note": "Before the concurrent additive official-only test; final focused 38/38 includes that test."
+  }
+}

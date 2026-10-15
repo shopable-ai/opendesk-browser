@@ -1,6 +1,5 @@
 import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_GRANTS_STORE,normalizeBrowserOperation,browserOperation} from '../framework/sdk/browser-contract.js';
 import {createSidePanelOpenCoordinator} from '../platform/chrome/browser-side-panel.js';
-import {createBookmarkManager} from '../bookmark-manager/trusted-ui.js';
 import {createToolPermissionConsent} from '../platform/chrome/permission-gate.js';
 import {scheduleSpecFromExpression} from '../platform/tasks/schedule-time.js';
 import {validateTaskParams} from '../platform/tasks/contract.js';
@@ -68,9 +67,6 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const nativeTimeReview=globalThis.__opendeskTrustedTimeReviewUI||null;
   const get=id=>doc.getElementById(id);
   const list=get('sidebar-tool-list'), listView=get('sidebar-tool-list-view');
-  const bookmarkRoot=get('bookmark-manager-panel'),bookmarkTrigger=get('bookmark-manager-open');
-  // Static first-party module: no installed tool package gains Chrome bookmark access.
-  const bookmarkManager=bookmarkRoot?createBookmarkManager({api,doc,container:bookmarkRoot,currentPageTarget}):null;
   const empty=get('sidebar-tool-empty'), backButton=get('sidebar-tool-back');
   const display=get('sidebar-tool-display'), frameRoot=get('sidebar-tool-frame');
   const status=get('sidebar-tool-status'), fileInput=get('sidebar-tool-file');
@@ -772,9 +768,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(pendingUninstallId&&!installed.some(row=>row.id===pendingUninstallId&&samePackage(row,pendingUninstallBaseline)))
       cancelRemovalReview();
     renderInstalledTools();
-    empty.hidden=installed.length!==0||installedReadError||Boolean(bookmarkManager);
+    empty.hidden=installed.length!==0||installedReadError;
     renderOfficialTools();
-    listView.hidden=Boolean(active)||Boolean(bookmarkManager?.isOpen());
+    listView.hidden=Boolean(active);
     display.hidden=!active;
     title.textContent=active?active.title+(readOnlyPreview?' · 只读预览':''):'';
     title.title=active?'v'+active.version:'';
@@ -929,7 +925,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     notice(readOnly?'正在加载隔离只读预览（不会安装或保存）…':'正在打开「'+tool.title+'」…');
   }
   function openTool(id,{launchGate=null}={}) {
-    bookmarkManager?.close();
+    
     cancelRemovalReview();
     if(disposed||busy||!visible)return;
     if(launchGate&&active&&(toolSaving||toolDirty||isDirty())){
@@ -957,7 +953,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(!tool){notice('找不到已安装的工具',true);return false;}
     const show=()=>{
       if(disposed||!visible||busy)return;
-      bookmarkManager?.close();cancelRemovalReview();setImportOpen(false);
+      cancelRemovalReview();setImportOpen(false);
       destroyFrame();active=tool;readOnlyPreview=false;previewDirty=false;
       tocSettingsOpen=true;tocScope='site';render();backButton.focus?.({preventScroll:true});
     };
@@ -976,12 +972,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(disposed||busy||!visible||active)return false;
     setDiscoveryOpen(false);setImportOpen(true);notice('');return true;
   }
-  function openBookmarks(){
-    if(disposed||busy||!visible||active||!bookmarkManager)return false;
-    setDiscoveryOpen(false);setImportOpen(false);bookmarkManager.open();render();return true;
-  }
   function openReadOnlyPreview(value){
-    bookmarkManager?.close();
+    
     if(disposed||busy||!visible)throw new Error('预览页面已经关闭或不可用');
     const tool=validateSidebarToolPackage(value);
     if(active&&!canLeave(()=>{if(visible&&!busy)mountTool(tool,{readOnly:true});}))return false;
@@ -998,11 +990,11 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   function setVisible(next,destination=null) {
     if(disposed)return;
     if(!next&&visible&&!canLeave(()=>{
-      bookmarkManager?.close();suspendTool();
+      suspendTool();
       if(destination&&destination!=='tools')taskWorkbench.navigate?.(destination);
     }))return false;
     visible=Boolean(next);
-    if(!visible){bookmarkManager?.close();suspendTool();return;}
+    if(!visible){suspendTool();return;}
     // Entering the Tools tab only shows the list: an iframe requires an explicit Open.
     render();
   }
@@ -1029,8 +1021,6 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       const isDiscovery=['browser.capabilities.list','browser.capabilities.getStatus'].includes(operation);
       if(!isDiscovery&&(!browserOperation(operation)||!browserOperation(operation).requiredCapabilities.every(cap=>tool.capabilities.includes(cap))))
         throw Object.assign(new Error('此工具没有获准浏览器能力'),{code:'E_TOOL_CAPABILITY_REQUIRED'});
-      if(operation==='browser.page.getContext')
-        return dispatch('currentPage.info',{},tool,source,token,revocationEpoch);
       const owned=(await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE];
       if(!requireCompleteInstalledSidebarTools(owned).some(row=>samePackage(row,tool)))
         throw Object.assign(new Error('工具已更新或卸载'),{code:'E_TOOL_CHANGED'});
@@ -1044,6 +1034,24 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       const envelope={protocol:BROWSER_HOST_PROTOCOL,kind:'tool',
         operation,args:payload||{},toolId:tool.id,toolVersion:tool.version,
         installEpoch:revocationEpoch,packageHash,toolInstance:token,hostInstanceId};
+      if(operation==='browser.page.getContext'){
+        const target=currentPageTarget?.snapshot;
+        if(target?.status!=='available')return {status:'unavailable',
+          message:String(target?.message||'当前没有可用的普通网页').slice(0,250)};
+        const captured=currentPageTarget.capture();
+        await currentPageTarget.revalidate(captured);
+        assertSession(source,token);
+        const response=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,
+          kind:'host',operation,hostInstanceId,toolId:tool.id,toolVersion:tool.version,
+          toolInstance:token,installEpoch:revocationEpoch,packageHash,
+          document:{tabId:captured.tabId,windowId:captured.windowId,
+            documentId:captured.documentId,url:captured.url,origin:captured.origin,
+            title:String(captured.title||'').slice(0,512)}});
+        assertSession(source,token);
+        if(!response?.ok)throw Object.assign(new Error(response?.error?.message||'当前页引用验证失败'),
+          {code:response?.error?.code||'E_DOCUMENT_STALE'});
+        return response.data;
+      }
       if(operation==='browser.scheduler.create'){
         if(!foundationClient?.request||!currentPageTarget?.capture||!currentPageTarget?.revalidate)
           throw Object.assign(new Error('现有任务与当前网页服务不可用'),{code:'E_SERVICE_UNSUPPORTED'});
@@ -2120,10 +2128,6 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     officialFilter='all';filterAll.setAttribute('aria-pressed','true');
     filterAvailable?.setAttribute('aria-pressed','false');renderOfficialTools();
   });
-  if(bookmarkTrigger&&bookmarkManager)listen(bookmarkTrigger,'click',()=>openBookmarks());
-  if(bookmarkRoot&&bookmarkManager)listen(bookmarkRoot,'opendesk-bookmark-manager-back',()=>{
-    render();(get('extension-center-more')||bookmarkTrigger)?.focus?.({preventScroll:true});
-  });
   const marketButton=get('sidebar-tool-market');
   if(marketButton)listen(marketButton,'click',action(()=>api.tabs.create({url:api.runtime.getURL('ui/marketplace.html')})));
   listen(importTrigger,'click',()=>{
@@ -2304,9 +2308,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     listeners.push(unsubscribe);
   }
   render();
-  return Object.freeze({ready,openTool,openSettings,openOfficialReview,openImport,openBookmarks,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,openInTab,closeTool,setVisible,dispose(){
+  return Object.freeze({ready,openTool,openSettings,openOfficialReview,openImport,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,openInTab,closeTool,setVisible,dispose(){
     if(disposed)return;
-    cancelActionReview();bookmarkManager?.dispose();destroyFrame();fileSelection++;disposed=true;visible=false;
+    cancelActionReview();destroyFrame();fileSelection++;disposed=true;visible=false;
     for(const release of listeners.splice(0))release();
     queued.clear();
   }});

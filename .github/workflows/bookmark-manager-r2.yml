@@ -1,4 +1,4 @@
-name: Bookmark Manager R2.3 - SDK-gated preparation and regression
+name: Bookmark Manager R2.4 - official SDK consumer and legacy removal
 on:
   push:
     branches: [main]
@@ -6,6 +6,12 @@ on:
       - 'examples/sidebar-tools/bookmark-manager/**'
       - 'docs/framework/workstreams/bookmark-manager-r2.md'
       - 'tests/environment/bookmark-manager-r2.test.mjs'
+      - 'tests/environment/browser-sdk-r124-current-page.test.mjs'
+      - 'src/platform/chrome/current-page-refs.js'
+      - 'src/platform/chrome/bookmarks-full.js'
+      - 'src/platform/chrome/context-menus.js'
+      - 'src/framework/sdk/browser-schemas.js'
+      - 'official-tools/catalog.json'
       - '.github/workflows/bookmark-manager-r2.yml'
   workflow_dispatch:
 permissions:
@@ -21,8 +27,8 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
-      - name: SDK-only and fail-closed Node tests
-        run: node --test tests/environment/bookmark-manager-r2.test.mjs
+      - name: SDK Full / current document and installed consumer regression
+        run: node --test tests/environment/bookmark-manager-r2.test.mjs tests/environment/browser-sdk-r112-full-bookmarks.test.mjs tests/environment/browser-sdk-r124-current-page.test.mjs
       - name: Shared source and security checks
         run: npm run check
       - name: Independent v2 tool package
@@ -35,14 +41,14 @@ jobs:
         run: npm run build:dev
       - name: Verify production and development packages
         run: npm run verify
-      - name: Capture preparation artifact (NOT a native Chrome pass)
+      - name: Capture independent package artifact (NOT a native Chrome pass)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: bookmark-manager-r2-preparation-${{ github.sha }}
+          name: bookmark-manager-r24-source-${{ github.sha }}
           retention-days: 7
           if-no-files-found: ignore
           path: |
-            artifacts/sidebar-tools/bookmark-manager/0.2.4/bookmark-manager.opendesk-tool.json
+            artifacts/sidebar-tools/bookmark-manager/0.3.0/bookmark-manager.opendesk-tool.json
             docs/framework/evidence/wxt/builds/build-production.json
             docs/framework/evidence/wxt/builds/build-development.json

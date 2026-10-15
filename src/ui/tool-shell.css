@@ -100,13 +100,14 @@
 #task-search-toggle[aria-expanded=true]{background:var(--od-muted);border-color:var(--od-input-border)}
 .task-search-empty{margin:0;padding:var(--space-3);border:1px dashed var(--od-line);border-radius:var(--radius-surface);font-size:12px;line-height:1.5;color:var(--od-sub)}
 
-/* Develop: page signal and code first; results, library, DOM and SDK on demand. */
-/* R30: Tools Index/Detail headers and 8px row spacing are the Tab baseline.
- * Controls use 8px, surfaces 12px, and only state badges stay fully rounded. */
-#workspace-content #workbench-develop{display:grid;gap:var(--space-3);align-content:start}
+/* Develop: related od-stack rows use 8px; separate sections use 16px; card padding is owned by the design system. */
+#workspace-content #workbench-develop{display:grid;gap:var(--space-4);align-content:start}
 #workspace-content #workbench-develop>.developer-target,#workspace-content #workbench-develop>.developer-editor{margin:0;padding:0}
-#workbench-develop .developer-editor{display:grid;gap:var(--space-3);align-content:start;font-size:var(--od-body-size);line-height:1.55}
-#workbench-develop .developer-editor>.developer-target{margin:0;padding:0}
+#workbench-develop .developer-editor{display:grid;gap:var(--space-4);align-content:start;font-size:var(--od-body-size);line-height:1.55}
+#workbench-develop .developer-context>.developer-target{margin:0;padding:0}
+/* Normalize only layout margins at group boundaries; public visual skin remains shared. */
+#workbench-develop .developer-context .developer-target>details,
+#workbench-develop .developer-run-area>:not([hidden]){margin-block:0}
 #workbench-develop .developer-editor>:not([hidden]){margin-block:0}
 #workbench-develop #manual-source-editor{display:grid;gap:var(--space-2);min-width:0}
 #workbench-develop #manual-source-editor>:not([hidden]){margin-block:0}
@@ -117,7 +118,6 @@
 #workbench-develop .developer-editor>:not([hidden]){min-width:0}
 #workbench-develop .developer-editor :is(input,select,textarea).od-field{line-height:1.5}
 #workbench-develop .result-toolbar{margin-bottom:0}
-#developer-target-detail{margin:0}
 .developer-page-label{flex:none;font-weight:650}
 #script-current-page-host{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--sub)}
 #script-current-page-status{flex:none;white-space:nowrap;font-size:11px;font-weight:650}
@@ -175,34 +175,17 @@
 .program-source-toolbar{display:flex;flex-wrap:nowrap;align-items:center;gap:var(--space-2);min-width:0;width:100%;margin:0}
 .program-source-toolbar #program-source-files{flex:1 1 0;min-width:0;width:0;max-width:none;margin:0;min-height:36px;font-size:12px;text-overflow:ellipsis;white-space:nowrap}
 #program-generated pre{max-height:260px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px}
-.developer-params{margin:0}
 .developer-run-feedback{display:flex;align-items:baseline;flex-wrap:wrap;column-gap:4px;row-gap:0;margin:0;min-width:0}
 .developer-run-feedback:not(:has(>span:not([hidden]):not(:empty))){display:none}
 .developer-run-feedback>span{min-width:0;overflow-wrap:anywhere}
 #script-status,#script-task-status{font-size:12px;line-height:1.5;font-weight:400;margin:0}
 #script-status[data-state=results],#script-task-status{white-space:normal}
 #script-status:empty,#script-task-status:empty{display:none}
-.developer-run-technical{margin:0}
 .developer-run-technical p{font-size:var(--od-meta-size);overflow-wrap:anywhere}
-.developer-results{margin:0}
 .developer-results-body{display:grid;gap:var(--space-2)}
 #script-result{max-height:250px}
 #workbench-develop .developer-results .row{margin:0}
 #workbench-develop .developer-results label{margin:0}
-#script-library-tools,#page-preview-tools,#script-advanced{min-width:0;margin:0}
-/* Main Dev accordions share the canonical bordered paper surface; nested
- * technical disclosures remain --flat to avoid double-framed detail cards. */
-#workbench-develop .developer-editor>.od-disclosure{min-width:0}
-#workbench-develop :is(.developer-editor,.developer-target,.local-project-tools,#manual-source-editor)>details.od-disclosure,
-#workbench-develop>details.od-disclosure{width:100%;min-width:0;margin:0}
-#workbench-develop :is(.developer-editor,.developer-target,.local-project-tools,#manual-source-editor)>details.od-disclosure>summary,
-#workbench-develop>details.od-disclosure>summary{min-height:44px}
-#workbench-develop :is(.developer-editor,.developer-target,.local-project-tools,#manual-source-editor)>details.od-disclosure>summary:hover,
-#workbench-develop>details.od-disclosure>summary:hover{background:var(--od-muted)}
-#workbench-develop :is(.developer-editor,.developer-target,.local-project-tools,#manual-source-editor)>details.od-disclosure:not([open])>summary:hover,
-#workbench-develop>details.od-disclosure:not([open])>summary:hover{border-radius:var(--radius-surface)}
-#workbench-develop :is(.developer-editor,.developer-target,.local-project-tools,#manual-source-editor)>details.od-disclosure[open]>summary:hover,
-#workbench-develop>details.od-disclosure[open]>summary:hover{border-radius:var(--radius-surface) var(--radius-surface) 0 0}
 #workbench-develop .result-toolbar{margin-bottom:0;flex-wrap:wrap}
 #workbench-develop .developer-history-content{display:grid;gap:var(--space-3);min-width:0}
 #workbench-develop .developer-editor .developer-history-content>:not(summary){margin:0}
@@ -216,7 +199,6 @@
 #workbench-develop .developer-history-actions>select{width:100%;min-width:0;margin:0}
 #workbench-develop .developer-history-actions>button{white-space:nowrap;overflow-wrap:normal}
 #workbench-develop .developer-history-control-row{display:flex;gap:var(--space-2);min-width:0}
-#workbench-develop .developer-history-disclosure{min-width:0;margin:0}
 #workbench-develop .developer-history-disclosure>pre{max-height:240px;overflow:auto;overflow-wrap:anywhere}
 #workbench-develop .developer-history-disclosure>p{font-size:12px;line-height:1.5}
 #workbench-develop .developer-history-disclosure>.developer-history-field:not(:first-of-type){margin-top:var(--space-3)}
@@ -225,6 +207,7 @@
   #workbench-develop .developer-history-actions>button{width:100%}
 }
 #tool-diagnostics{margin:0}
+/* Legacy embedded SDK/health diagnostics: intentionally scoped; not a disclosure header. */
 #tool-diagnostics>section{border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper);padding:var(--space-3);margin-bottom:var(--space-2)}
 #tool-diagnostics>section:last-of-type{margin-bottom:0}
 #tool-diagnostics h2{font-size:14px;margin:0 0 8px}

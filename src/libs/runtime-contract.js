@@ -38,6 +38,10 @@ export const BUILTIN_RUNTIME_CATALOG=Object.freeze({
       worlds:Object.freeze(['USER_SCRIPT']),default:false}),
     fingerprintjs:Object.freeze({id:'fingerprintjs',version:'5.3.0',output:'libs/packages/fingerprintjs.js',
       worlds:Object.freeze(['USER_SCRIPT']),default:false}),
+    papaParse:Object.freeze({id:'papaParse',version:'5.7.0',
+      output:'libs/vendor/papaparse/5.7.0/papaparse.min.js',
+      sha256:'4d5d2d6e3282b66aafaa5e6de8ca3ae06f8d3440111ae99c6a30f6c00cfac33e',bytes:18874,
+      worlds:Object.freeze(['USER_SCRIPT']),default:false}),
     jquery:Object.freeze({id:'jquery',version:'3.7.1',license:'MIT',
       output:'libs/vendor/jquery/3.7.1/jquery.min.js',
       sha256:'fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a',bytes:87533,
@@ -50,7 +54,7 @@ export const BUILTIN_RESOURCE_PATHS=Object.freeze([
   BUILTIN_RUNTIME_CATALOG.pageCore,BUILTIN_RUNTIME_CATALOG.controllerCore,
   'licenses/lodash-es-MIT.txt','licenses/dayjs-MIT.txt',
   'licenses/my-utils-MIT.txt','licenses/jquery-MIT.txt',
-  'licenses/js-cookie-MIT.txt','licenses/crypto-js-MIT.txt','licenses/file-saver-MIT.txt','licenses/query-string-MIT.txt','licenses/axios-MIT.txt','licenses/store-MIT.txt','licenses/cheerio-MIT.txt','licenses/fingerprintjs-MIT.txt'
+  'licenses/js-cookie-MIT.txt','licenses/crypto-js-MIT.txt','licenses/file-saver-MIT.txt','licenses/query-string-MIT.txt','licenses/axios-MIT.txt','licenses/store-MIT.txt','licenses/cheerio-MIT.txt','licenses/fingerprintjs-MIT.txt','licenses/papaparse-MIT.txt'
 ]);
 
 // Public Page directive aliases are derived exclusively from the runtime

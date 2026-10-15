@@ -1,6 +1,6 @@
 ---
 name: opendesk-sidebar-tool-dev
-description: Develop, preview, package, install and test 扩展 center 应用 (Sidebar Tool v1/v2) in examples/sidebar-tools/<id>, using opaque-origin iframe and OpenDeskTool.request. Not Page 网页增强, Controller Task or audited static first-party features.
+description: Author, iterate and preview sandboxed 扩展 center Sidebar App UI and business logic in examples/sidebar-tools/<id> with OpenDeskTool.request; hand off packaging, install verification and offline release to opendesk-sidebar-tool-package, not Page/Task or audited trusted runtime features.
 ---
 
 # OpenDesk Browser · 扩展中心应用（Sidebar Tool）开发 Skill
@@ -65,6 +65,12 @@ Stay Focus 安装提交前，静态 Side Panel 适配器的 `focus.probe` 对当
 
 独立工具页不堆静态描述：依照 [R28 多功能区 Tab 契约](../../../docs/architecture/sidebar-multi-section-tab-contract-r28.zh-CN.md)，头部默认只有返回、当前标题和必要操作；文件夹/列表等集合“＋ 新建”放在所属区域标题右侧，条目管理入口必须能在窄屏/键盘下找到。真正的授权/错误等动态提示放到状态区，不借口信息完整性常驻重复描述。
 
+## 与编译、发行和未来市场 Skill 的明确分工
+
+- **本 Skill 主责**：HTML/CSS/JS、React/Vue 组件的功能实现、用户界面、源码正确性、隔离预览和开发侧功能测试。修改 `examples/sidebar-tools/<id>/src/`、`tool.config.json` 等真实业务源码。
+- **编译/JSON/独立目录安装包/安装确认**：转交 [Sidebar Tool 打包 Skill](../opendesk-sidebar-tool-package/SKILL.md)，它持有 `build-sidebar-tool.mjs`、可再现性、版本、输出、生成包一致性、离线 Catalog 和安装验收的详细流程。本 Skill 不建立第二种构建命令或打包器。
+- **第三方线上市场上传/审核/上架**：当前仅 [预留说明](../opendesk-marketplace-publish/RESERVED.md)，尚无可调用发布接口；不得标记已上架。市场 UI 属 `opendesk-extension-ui`，授权/Host 属 Runtime。
+
 ## 任务判断（先选一条，再改代码）
 
 - **普通工具 / UI**：编辑 `examples/sidebar-tools/<id>/tool.config.json` 及 `src/index.html/style.css/main.js`。依赖少则经典 JS，不为简单表单新建 React 应用。
@@ -72,41 +78,18 @@ Stay Focus 安装提交前，静态 Side Panel 适配器的 `focus.probe` 对当
 - **网站按钮、DOM 内容捕获、Native/受信任数据**：先明确操作处于 Background、ISOLATED、MAIN 还是可信宿主；只有确切必要才审计 `src/<feature>/` 与既有固定接线、权限及测试；不能借工具 JSON 的 `page.toc/page.clip/page.capture/knowledge.store` 越权或自行重造框架。
 - **普通工具导入**：给用户生成 JSON 即可；**官方可选工具**须维护可信源码与 `official-tools/catalog.json` 的项目登记，再构建整个扩展自动生成发行资源；不要手工维护生成 JSON 副本。
 
-## 最短闭环：编辑 → 快照/打包 → 明确使用
+## 最短开发交接：源码 → 只读预览 → 打包 Skill
 
-### 经典 JS 工具
+```bash
+# 普通 Sidebar App 源码在此目录维护：
+# examples/sidebar-tools/<id>/tool.config.json + src/index.html/style.css/main.js
 
-```sh
-npm run build:sidebar-tool -- examples/sidebar-tools/<id>
-# artifacts/sidebar-tools/<id>/<version>/<id>.opendesk-tool.json
+# 可选：不安装的只读测试/预览快照
 node scripts/stage-sidebar-tool.mjs examples/sidebar-tools/<id>
-# .opendesk-preview/<id>/<sha256>.opendesk-tool.json
-# STAGED_NOT_INSTALLED；并非已安装
+# STAGED_NOT_INSTALLED，不授予网站、Cookie 或浏览器权限
 ```
 
-**随工具目录提供直接导入的 JSON（编译/发布阶段）**：仅当工具根目录已经存在常规文件 `<id>.opendesk-tool.json`，上述**不带 `--out`** 的统一打包命令才会同步更新该文件，同时保留 `artifacts/sidebar-tools/<id>/<version>/` 原输出；其他工具不会在源码树内凭空出现生成文件。预生成包须随源码提交、版本一致，并用源码与包的字节一致性测试防止过期；用户获得工具目录便能直接导入。显式 `--out` 只输出指定文件。**开发和打包属于一个 Skill 的两个阶段，无需再建同职责 Skill**；安装、启动和站点授权仍须真实用户确认。
-
-先审阅生成包及申请权限，再让用户在 Side Panel「扩展 → 更多操作 → 导入本地工具包 → 审核 → 确认安装/更新 → 主动打开」。有本地 Workspace/Native 时，**只读预览**需要用户显式点击，不能真实写入/打开任务/控制页面，即使预览包 ID 与已安装工具相同也不得借用安装权限。
-
-### React/Vue/Tailwind 工具
-
-在对应 starter 的项目目录显式 `npm install` 建锁、审查并保留 lockfile，正式后续使用 `npm ci` → `npm run build` → `node ../../../scripts/stage-sidebar-tool.mjs "$PWD"`。持续构建时一个终端 `npm run build:watch`，另一个 `node ../../../scripts/watch-sidebar-tool.mjs "$PWD"`；只接受最后完成并带 `dist/build-ready.json`/hash 的构建。watcher 不替用户执行 npm、安装工具或授予权限。
-
-### 官方可选发行工具
-
-读取 [官方 Catalog 合同](../../../docs/api/official-tools-catalog.zh-CN.md)，维护 `examples/sidebar-tools/<id>/` 的配置、源码与资产；版本和能力不在 Catalog 重复登记。
-
-```sh
-node scripts/build-official-tools.mjs --out artifacts/official-tools-release
-npm run check
-npm run build
-npm run build:dev
-npm run verify
-```
-
-确认最终固定资源为 `dist/{production,development}/official-tools/<id>/<id>.opendesk-tool.json`，发行目录包含实际包版本、能力、大小和摘要。以当前 `official-tools/catalog.json` 的每项 `installationPolicy` 为准，不能假定所有候选都为 optional；资源存在不等于已安装，不启动代码，不给网站授权。新增候选无需新增硬编码安装按钮或构建复制映射。
-
-仅 UI 工具热迭代**不必**重编整个扩展；修改 `src/` 可信宿主或更新内置发行资源才走完整扩展链路。别把 `dist/production/` Chrome 加载目录与单个 `.opendesk-tool.json` 导入包混为一谈；生成/观看快照也不是自动热安装。
+React/Vue 可复用项目本身的已有预编译配置，源码创建和 UI 调试由本 Skill 负责；**正式 JSON 生成、项目目录预构建包、版本/原始字节核对及本地导入/离线发行**统一按 [`opendesk-sidebar-tool-package`](../opendesk-sidebar-tool-package/SKILL.md) 执行。源码/UI 调整本身不意味着已经安装、运行、获准读 Cookie 或完成 Chrome 原生测试。不重复定义 `--out`、Catalog、Host、SW 或市场上传协议。
 
 ## 必须始终保护的合同
 

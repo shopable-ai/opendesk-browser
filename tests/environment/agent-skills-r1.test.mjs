@@ -10,7 +10,8 @@ const file=relative=>path.join(root,relative);
 const read=relative=>readFile(file(relative),'utf8');
 const CANONICAL_SKILLS=[
   'opendesk-extension-runtime','opendesk-extension-ui','opendesk-program-publish',
-  'opendesk-script-authoring','opendesk-sidebar-tool-dev','opendesk-trusted-sidebar-feature'
+  'opendesk-script-authoring','opendesk-sidebar-tool-dev',
+  'opendesk-sidebar-tool-package','opendesk-trusted-sidebar-feature'
 ];
 
 test('Skills directory routes every canonical Skill exactly once with valid frontmatter',async()=>{
@@ -19,9 +20,15 @@ test('Skills directory routes every canonical Skill exactly once with valid fron
     readdir(skillsRoot,{withFileTypes:true})
   ]);
   const dirs=entries.filter(entry=>entry.isDirectory()).map(entry=>entry.name).sort();
-  assert.deepEqual(dirs,CANONICAL_SKILLS,'exactly six canonical skills; no duplicate or seventh route');
+  const active=dirs.filter(name=>CANONICAL_SKILLS.includes(name));
+  assert.deepEqual(active,CANONICAL_SKILLS,'exactly seven active Skills with no duplicate routes');
+  const reserved=dirs.filter(name=>!CANONICAL_SKILLS.includes(name));
+  assert.deepEqual(reserved,['opendesk-marketplace-publish'],'only one explicitly reserved inactive directory');
+  await access(file('.agents/skills/opendesk-marketplace-publish/RESERVED.md'));
+  await assert.rejects(access(file('.agents/skills/opendesk-marketplace-publish/SKILL.md')),{code:'ENOENT'},
+    'planned online marketplace publishing must not appear as an active Skill');
   const descriptions=new Set();
-  for(const name of dirs){
+  for(const name of active){
     const content=await read('.agents/skills/'+name+'/SKILL.md');
     const meta=content.match(/^---\r?\nname: ([^\n]+)\r?\ndescription: ([^\n]+)\r?\n---(?:\r?\n|$)/);
     assert.ok(meta,'Skill frontmatter missing '+name);
@@ -36,6 +43,25 @@ test('Skills directory routes every canonical Skill exactly once with valid fron
   assert.match(universe,/独立评分规则/);
   for(const name of ['opendesk-extension-ui','opendesk-extension-runtime'])
     assert.match(universe,new RegExp('`'+name+'`[^\\n]*\\*\\*(?:98|96)\\*\\*'),'new Skill must be individually scored '+name);
+});
+
+test('Packaging is an active standalone Skill while remote marketplace publishing stays non-executable',async()=>{
+  const [index,universe,dev,pack,planned]=await Promise.all([
+    read('.agents/skills/README.md'),read('.agents/skills/UNIVERSE.zh-CN.md'),
+    read('.agents/skills/opendesk-sidebar-tool-dev/SKILL.md'),
+    read('.agents/skills/opendesk-sidebar-tool-package/SKILL.md'),
+    read('.agents/skills/opendesk-marketplace-publish/RESERVED.md')
+  ]);
+  assert.match(index,/opendesk-marketplace-publish\/RESERVED\.md/);
+  assert.match(universe,/opendesk-sidebar-tool-package`[^\n]*\*\*96\*\*/);
+  assert.match(dev,/opendesk-sidebar-tool-package\/SKILL\.md/);
+  for(const phrase of ['build-sidebar-tool.mjs','artifacts/sidebar-tools/','--out',
+    'official-tools/catalog.json','serializeSidebarToolPackage','NOT_TESTED'])
+    assert.ok(pack.includes(phrase),'build and package Skill missing '+phrase);
+  assert.match(pack,/不是第三方在线市场发布|远程市场发布并未/);
+  for(const word of ['RESERVED_ONLY','NOT_AN_ACTIVE_SKILL','发布者','签名','审核','未启用'])
+    assert.ok(planned.includes(word),'planned market scope missing '+word);
+  assert.match(planned,/不得创建带 frontmatter 的 SKILL\.md/);
 });
 
 test('Extension UI and runtime skills reference one canonical set of owners, not duplicate systems',async()=>{
@@ -54,7 +80,8 @@ test('Extension UI and runtime skills reference one canonical set of owners, not
 test('Every local Markdown link in newly authored Skill docs resolves inside the repo',async()=>{
   const dirs=(await readdir(skillsRoot,{withFileTypes:true})).filter(entry=>entry.isDirectory()).map(entry=>entry.name);
   const docs=['.agents/skills/README.md','.agents/skills/UNIVERSE.zh-CN.md',
-    ...dirs.map(name=>'.agents/skills/'+name+'/SKILL.md')];
+    ...CANONICAL_SKILLS.map(name=>'.agents/skills/'+name+'/SKILL.md'),
+    '.agents/skills/opendesk-marketplace-publish/RESERVED.md'];
   for(const filename of docs){
     const source=await read(filename);
     for(const match of source.matchAll(/\]\(([^)#]+)(?:#[^)]*)?\)/g)){
@@ -83,6 +110,7 @@ test('R4 common user requests map to one principal Skill each',async()=>{
   const index=await read('.agents/skills/README.md');
   for(const [phrase,slug] of [
     ['在扩展里开发一个小应用','opendesk-sidebar-tool-dev'],
+    ['编译 Cookie Editor 并生成可导入 JSON','opendesk-sidebar-tool-package'],
     ['为网页安装一个增强脚本','opendesk-program-publish'],
     ['修改扩展列表和安装管理界面','opendesk-extension-ui'],
     ['开发一个需要后台能力的扩展功能','opendesk-extension-runtime'],
@@ -104,7 +132,7 @@ test('R4 ambiguous requests retain one documented principal owner, not simulated
     ['修改 Page Program 的安装和撤权','opendesk-extension-runtime'],
     ['修改「我的」定时计划页面','opendesk-extension-ui'],
     ['修复 MV3 Service Worker 生命周期','opendesk-extension-runtime'],
-    ['导入已有 Sidebar Tool JSON','opendesk-sidebar-tool-dev'],
+    ['导入已有 Sidebar Tool JSON','opendesk-sidebar-tool-package'],
     ['更新已经发布的 Page Program','opendesk-program-publish']
   ]){
     const matches=index.split('\n').filter(row=>row.startsWith('| 「'+phrase+'」 |'));

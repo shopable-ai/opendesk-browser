@@ -104,7 +104,7 @@ test('developer mode uses one accessible switch and keeps page details folded by
   assert.match(css,/background-position:right 17px center,right 11px center;/);
   assert.doesNotMatch(css,/@import\b|url\s*\(|expression\s*\(/i,'CSS must remain fully self-contained');
   assert.match(html,/id="local-project-tools" class="local-project-tools"[^>]* hidden/);
-  assert.match(html,/<details id="developer-target-detail" class="od-disclosure od-disclosure--flat">\s*<summary class="developer-page-summary">/);
+  assert.match(html,/<details id="developer-target-detail" class="od-disclosure">\s*<summary class="developer-page-summary">/);
   assert.match(html,/id="script-current-page-host"/);
   assert.match(html,/id="script-current-page-status" role="status" aria-live="polite"/);
   assert.match(html,/id="developer-source-switch" class="developer-source-switch od-toolbar od-page-head"/);
@@ -118,8 +118,8 @@ test('developer mode uses one accessible switch and keeps page details folded by
   assert.doesNotMatch(html,/id="local-project-mode"><option/);
   assert.doesNotMatch(html,/查看当前网页详细信息|源码来源|刷新连接/);
   assert.match(css,/input:focus-visible\+\.local-project-switch-track/);
-  assert.match(design,/\.od-disclosure>summary\{display:flex;[^}]*min-height:40px/,
-    'shared native disclosure supplies a 40px semantic summary target');
+  assert.match(design,/\.od-disclosure>summary\{display:flex;[^}]*min-height:44px/,
+    'shared native disclosure supplies a 44px semantic summary target');
   assert.match(css,/#script-current-page-host\{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis/);
   assert.match(css,/#script-current-page-status\{flex:none;/);
   assert.match(css,/\.developer-source-switch label\{[^}]*min-height:var\(--od-icon-size\)/,

@@ -129,7 +129,7 @@ export async function compileLockedPageSource({sourceUtf8, entryFormat, entries 
       const optional=BUILTIN_RUNTIME_CATALOG.libraries[pageOptionalLibraryId(name)];
       const optionalSource=assets[ids.indexOf(optional.id)];
     // Same admitted USER_SCRIPT world; never overwrite preexisting globals.
-    const globalName=optional.id==='jsCookie'?'Cookies':optional.id==='cryptoJs'?'CryptoJS':optional.id==='fileSaver'?'FileSaver':optional.id==='queryString'?'queryString':optional.id==='store'?'store':optional.id==='cheerio'?'cheerio':optional.id==='fingerprintjs'?'FingerprintJS':'axios';
+    const globalName=optional.id==='jsCookie'?'Cookies':optional.id==='cryptoJs'?'CryptoJS':optional.id==='fileSaver'?'FileSaver':optional.id==='queryString'?'queryString':optional.id==='store'?'store':optional.id==='cheerio'?'cheerio':optional.id==='fingerprintjs'?'FingerprintJS':optional.id==='papaParse'?'Papa':'axios';
     sources.push('if(Object.hasOwn(globalThis,'+JSON.stringify(globalName)+'))throw Error("E_BUILTIN_COLLISION")');
     if(optional.id==='store'){
       invariant(storeOwnerId===undefined||typeof storeOwnerId==='string'&&storeOwnerId.length>0&&storeOwnerId.length<=512,
@@ -155,6 +155,8 @@ export async function compileLockedPageSource({sourceUtf8, entryFormat, entries 
                 ?"if(typeof globalThis.cheerio?.load!=='function')throw Error('E_DEPENDENCY_NOT_READY')"
                 :optional.id==='fingerprintjs'
                   ?"if(typeof globalThis.FingerprintJS?.load!=='function'||typeof globalThis.FingerprintJS?.hashComponents!=='function')throw Error('E_DEPENDENCY_NOT_READY')"
+                :optional.id==='papaParse'
+                  ?"if(typeof globalThis.Papa?.parse!=='function'||typeof globalThis.Papa?.unparse!=='function')throw Error('E_DEPENDENCY_NOT_READY')"
                   :"if(typeof globalThis.axios!=='function'||typeof globalThis.axios?.create!=='function'||typeof globalThis.axios?.interceptors?.request?.use!=='function')throw Error('E_DEPENDENCY_NOT_READY')");
     }
   }

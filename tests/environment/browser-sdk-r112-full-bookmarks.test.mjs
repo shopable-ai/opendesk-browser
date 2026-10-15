@@ -245,3 +245,35 @@ test('R11.2 SDK facade and single approved Dispatcher execute the eight Full CRU
   // The trusted Side Panel's one-shot Chrome write-intent and real permission
   // prompts are separate Host admission checks, not emulated in this Node test.
 });
+
+test('R2.4 revocation during asynchronous write preflight prevents every native write',async()=>{
+  for(const operation of ['create','update','move','remove']){
+    const f=fixture(1),host=f.make();
+    const node=f.expected('10');
+    const original=f.bookmarks.get;
+    f.bookmarks.get=async id=>{
+      const result=await original(id);
+      // Native reads can resolve after the installed Full grant was revoked.
+      f.allowed=false;
+      return result;
+    };
+    const args={
+      create:{title:'Denied',parentId:'2'},
+      update:{id:'10',expected:node,changes:{title:'Denied'}},
+      move:{id:'10',expected:node,destination:{parentId:'1'}},
+      remove:{id:'10',expected:node}
+    }[operation];
+    await assert.rejects(host[operation](args,owner),error('E_BOOKMARK_FULL_CONSENT_REQUIRED'));
+    assert.equal(f.effects.length,0,operation+' must not reach Chrome after revocation');
+  }
+});
+
+test('R2.4 create and move reject destinations below a managed ancestor',async()=>{
+  const f=fixture(1),host=f.make();
+  f.rows.set('3',{id:'3',title:'Managed',parentId:'1',index:1,unmodifiable:'managed'});
+  f.rows.set('4',{id:'4',title:'Unmarked child',parentId:'3',index:0});
+  await assert.rejects(host.create({title:'Denied',parentId:'4'},owner),error('E_BOOKMARK_PROTECTED'));
+  await assert.rejects(host.move({id:'10',expected:f.expected('10'),destination:{parentId:'4'}},owner),
+    error('E_BOOKMARK_PROTECTED'));
+  assert.equal(f.effects.length,0);
+});

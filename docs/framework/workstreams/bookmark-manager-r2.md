@@ -2,6 +2,17 @@
 
 日期：2026-10-14；仅 `main`；归属 `examples/sidebar-tools/bookmark-manager/`、专属测试与 CI。
 
+## R2.4 独立工具正式接管（2026-10-15）
+
+> 本节是 **R2.4 实际源码状态更新**；上文 R2/R2.3 记录均为当时历史候选，不再代表最新正式入口。
+
+- 已从 `main` 删除全部 `src/bookmark-manager/` 五个遗留源码/文档文件、内置书签 UI CSS、旧 R1 测试及专属 R1 CI，不建立备份兼容目录。已有行为回归由 `tests/environment/bookmark-manager-r2.test.mjs`、`browser-sdk-r112-full-bookmarks.test.mjs` 及新增 `browser-sdk-r124-current-page.test.mjs` 承接。
+- 唯一书签管理业务位于 `examples/sidebar-tools/bookmark-manager/`，版本 `0.3.0`，正式 Full Capability `browser.bookmarks.full` 与 `currentPage.read`。
+- `official-tools/catalog.json` 已登记 `optional`。已移除 `tool.html` 内置入口及 `sidebar-tools.js` 对 `createBookmarkManager` 的依赖，普通用户使用现有「扩展」目录内的安装、审阅授权、启动/停用/卸载路径；不是 GitHub Artifact/ZIP 导入。
+- `browser.page.getContext()` 的可信 Side Panel 调用通过原 Browser Host 发放短期 `tabRef/documentRef`，与 Owned TabRef 不可互换；Chrome 标签窗口、活动状态、URL、主 Document 和工具身份均被复核，刷新、撤权、导航和 Worker 重启使旧引用失效。书签写入前二次核验；SDK 客户端把读取授权与写入需用户点击的授权状态区分开。
+- `scripts/prepare-public.mjs` 与 `scripts/verify-package.mjs` 的资源白名单已同步删除旧 CSS。独立 R2 CI 已更新到 v0.3.0 和新身份回归。
+- 验收证据边界：本轮 GitHub 源码提交与隔离 V8 语法/单元冒烟检查**不能**代替 Node、`npm run check`、构建、GitHub CI 或真正 Mac Chrome。各门禁应凭最终提交对应结果单独标为 PASS / FAIL / QUEUED / NOT_TESTED；原生 1001 项、跨窗口并发删除、真实授权与 Worker 生命周期在完成原生测试之前均为 **NOT_TESTED**。不能宣称九维 95+。
+
 ## 真实核查（R11 前置）
 
 核查基线远端 `main` 提交 `ac472c41abc6bacef22a67180505e5416cc4b84a`，后续主线会变化，执行 Native 前必须重读 HEAD：

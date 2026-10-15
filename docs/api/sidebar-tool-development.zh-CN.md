@@ -154,6 +154,8 @@ dist/production/、dist/development/           # 整个 Chrome 扩展构建产�
 
 所有工具都不能直接调用 `chrome.tabs`、`chrome.storage`、任意 Native Host、跨站 HTTP 代理或在网页中注入远端 JS。运行环境是 opaque-origin 沙箱，消息由可信宿主复核当前 iframe、session、工具包和权限。**安装 ≠ 打开 ≠ 当前网站已授权 ≠ 在后台持续运行**。
 
+**Skill 路由（实施分工）**：独立工具的 UI/业务源码、交互设计与只读预览归 `.agents/skills/opendesk-sidebar-tool-dev/SKILL.md`；可导入 JSON、随目录构建副本、正式离线资源、版本/摘要及本地安装更新验收归 `.agents/skills/opendesk-sidebar-tool-package/SKILL.md`。两者共用下面的既有打包器和权限/安装服务，**不是两套构建实现**。线上第三方作者上传/审核/上架尚未实现，仅保留 `.agents/skills/opendesk-marketplace-publish/RESERVED.md`，不视为已经有市场发布 API。
+
 ## 5. 三种开发循环，避免每次都重编整个扩展
 
 ### A. 简单 HTML/CSS/JS 工具：最快的默认路线

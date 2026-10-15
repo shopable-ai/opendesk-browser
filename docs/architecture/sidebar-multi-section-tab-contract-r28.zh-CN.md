@@ -37,10 +37,10 @@ R28 编写时旧「工具」Tab 曾包含以下可信入口（当前「扩展」
     </div>
   </div>
   <div class="od-stack" aria-label="主要内容">
-    <article class="od-surface">标题、最重要的状态、简短摘要、操作入口</article>
+    <article class="od-surface od-surface--padded">标题、最重要的状态、简短摘要、操作入口</article>
   </div>
   <section aria-label="其他内容">次要区域标题与列表</section>
-  <details><summary>高级信息</summary>可诊断内容</details>
+  <details class="od-disclosure od-disclosure--flat"><summary>高级信息</summary>可诊断内容</details>
 </section>
 ```
 
@@ -60,6 +60,11 @@ R28 编写时旧「工具」Tab 曾包含以下可信入口（当前「扩展」
 - Loading、empty、error、waiting、needs attention、running、settling、unknown、success 和 paused 等状态区分明确；状态文案不是原始枚举，不能仅凭颜色表达。常驻警告仅在真正需要行动时出现。
 - 行内确认应展示对象、操作、权限范围和后果；已有被验证并安装的固定版本身份必须保留。没有合法可见 Host 时不能假装后台执行。
 
+### R31：区块语义与细节密度分开（2026-10-15）
+
+`Section` 是信息架构角色；它的可信折叠外观不在此文件重复定义，而直接使用 R20 的 `od-disclosure`。一级「当前网页」「参数 JSON」「运行结果」「版本管理」是可以独立展开/关闭的功能区，统一使用有框公共组件；内部「依赖 SHA」「编译源码」「完整历史」「权限身份」属于次级信息，使用 `--flat` 避免多重边框。需要首次说明时使用 `--info`，不按页面 ID 新建独立 CSS 皮肤。
+
+同一区域 8px，卡片内部 12px，独立区域 16px；由对应父布局负责 gap，不把这三层全部改为 12px。外观 Token 和实际 CSS 仍以 R27/R20 引用的源码为唯一权威。业务 CSS 允许专用布局、编辑器尺寸和滚动，不应重写通用标题 Hover/圆角。自动组件合同、静态 Chrome 计算样式与真实扩展验收分别保留其证据等级。
 ## 4. 响应式与操作密度
 
 继承 R27/R20 的 `--od-page-gutter`、`--space-1/2/3/4`、`--od-icon-size` 等权威值，不引入新的全局间距。

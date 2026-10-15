@@ -174,12 +174,14 @@ try{
     ['node_modules/cheerio/LICENSE','licenses/cheerio-MIT.txt'],
     ['node_modules/@fingerprintjs/fingerprintjs/LICENSE','licenses/fingerprintjs-MIT.txt']
   ])await copyFile(path.join(root,source),path.join(extension,destination));
+  // Always copy the actual one-Catalog vendor assets, never maintain a
+  // second native-fixture allowlist that forgets newly reviewed libraries.
+  const vendorAssets=Object.values(BUILTIN_CATALOG.libraries)
+    .filter(row=>row.origin==='vendor')
+    .flatMap(row=>[[row.source,row.output],[row.licenseSource,row.licensePath]]);
   for(const [source,destination] of [
     ['src/libs/runtime/bootstrap.js','libs/runtime/bootstrap.js'],
-    ['src/libs/vendor/my-utils/1.0.0/index.js','libs/vendor/my-utils/1.0.0/index.js'],
-    ['src/libs/vendor/my-utils/1.0.0/LICENSE.txt','licenses/my-utils-MIT.txt'],
-    ['src/libs/vendor/jquery/3.7.1/jquery.min.js','libs/vendor/jquery/3.7.1/jquery.min.js'],
-    ['src/libs/vendor/jquery/3.7.1/LICENSE.txt','licenses/jquery-MIT.txt']
+    ...vendorAssets
   ]){
     const full=path.join(extension,destination);
     await mkdir(path.dirname(full),{recursive:true});

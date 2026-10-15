@@ -46,7 +46,7 @@ export const FIXED_ASSETS = Object.freeze({
   'licenses/jquery-MIT.txt': {bytes: 1097, sha256: 'd4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d'}
 });
 const HTML_REFERENCES = Object.freeze({
-  'ui/tool.html': ['design-tokens.css', 'design-system.css', 'tool-shell.css', 'bookmark-manager.css', 'time-review.css', 'cloud-hosting.css', 'extension-center.css', 'sidebar-tool-host.js', 'stay-focus-controls.js', 'trusted-cookie-ui.js', 'tool-shell.js'],
+  'ui/tool.html': ['design-tokens.css', 'design-system.css', 'tool-shell.css', 'time-review.css', 'cloud-hosting.css', 'extension-center.css', 'sidebar-tool-host.js', 'stay-focus-controls.js', 'trusted-cookie-ui.js', 'tool-shell.js'],
   'ui/cloud-control.html': ['design-tokens.css', 'design-system.css', 'cloud-control-console.css', 'cloud-console.js'],
   'ui/marketplace.html': ['design-tokens.css', 'marketplace.css', 'marketplace.js'],
   'native-agent/settings.html': ['../ui/design-tokens.css', 'settings.css', 'settings.js'],
@@ -73,7 +73,7 @@ function editionFiles(edition){
   const required=['manifest.json',BROWSER_EDITION_RECORD,MARKET_CHANNEL_PATH,SDK_RESOURCE_MANIFEST,BUILTIN_RESOURCE_MANIFEST,
     ...BUILTIN_RESOURCE_PATHS,...frameworkLicenses,...browserCompilerESM,
     ...(edition==='developer'?[PAGE_BROWSER_COMPILER.licensePath]:[]),
-    ...Object.keys(HTML_REFERENCES),'stay-focus/blocked.css','ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css','ui/bookmark-manager.css','ui/time-review.css','ui/cloud-hosting.css','ui/extension-center.css','ui/cloud-control-console.css','native-agent/settings.css','native-agent/workspace.css','ui/marketplace.css',...officialPaths,...expectedJS,...Object.keys(FIXED_ASSETS)].sort();
+    ...Object.keys(HTML_REFERENCES),'stay-focus/blocked.css','ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css','ui/time-review.css','ui/cloud-hosting.css','ui/extension-center.css','ui/cloud-control-console.css','native-agent/settings.css','native-agent/workspace.css','ui/marketplace.css',...officialPaths,...expectedJS,...Object.keys(FIXED_ASSETS)].sort();
   return {compilerFiles,expectedJS,required};
 }
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
@@ -250,6 +250,22 @@ function assertPinnedFrameworkIIFE(text,file){
 }
 export function assertClassicIIFE(text, file) {
   const ast = parseScript(text,file,'script'), declaration=ast.body[0];
+  // The official unchanged Papa Parse 5.7.0 release is a two-argument UMD
+  // wrapper, NOT WXT's own var-assigned IIFE. Permit this exact single
+  // published byte stream and audited bootstrap syntax only; all generic
+  // packaged programs still require the original classic WXT IIFE contract.
+  const papaRow=BUILTIN_CATALOG.libraries.papaParse;
+  const papaCall=declaration?.expression;
+  if(file===papaRow.output&&papaRow.version==='5.7.0'&&
+    digest(Buffer.from(text,'utf8'))===papaRow.sha256&&
+    ast.body.length===1&&declaration.type==='ExpressionStatement'&&
+    papaCall?.type==='CallExpression'&&
+    papaCall.callee?.type==='ArrowFunctionExpression'&&
+    papaCall.callee.params.length===2&&!papaCall.callee.async&&
+    papaCall.arguments.length===2&&papaCall.arguments[0]?.type==='ThisExpression'&&
+    papaCall.arguments[1]?.type==='FunctionExpression'&&
+    papaCall.arguments[1].params.length===0&&!papaCall.arguments[1].async)
+    return;
   // WXT/Terser can emit a side-effect-only tool-shell as !function(){...}().
   // Accept ONLY that one fixed resource and ONLY this exact no-argument
   // synchronous IIFE. It is not a bypass for extra statements or dynamic JS.
@@ -326,6 +342,13 @@ export function inspectScript(text, file, options = {}) {
   const captures = declarations.filter(d => asyncConstructor(d.init));
   if (captures.length !== (file === CONTROL_WORKER ? 1 : 0)) throw new Error(`Unapproved dynamic execution boundary in ${file}`);
   const approved = captures[0], binding = approved && bindings.get(approved);
+  // PapaParse 5.7.0's *unchanged* upstream MIT asset contains one
+  // value.constructor === Date type check and four prototype constructor
+  // assignments. The exact fixed raw-file identity is required; arbitrary
+  // page scripts or changed upstream bytes never inherit this exception.
+  const papaRow=BUILTIN_CATALOG.libraries.papaParse;
+  const pinnedPapaParse=file===papaRow.output&&papaRow.version==='5.7.0'&&
+    digest(Buffer.from(text,'utf8'))===papaRow.sha256;
   let uses = 0;
   function resolveBinding(node) { for (let s = scopes.get(node); s; s = s.parent) if (s.names.has(node.name)) return s.names.get(node.name); }
   walk(ast, (node, ancestors) => {
@@ -353,7 +376,29 @@ export function inspectScript(text, file, options = {}) {
         parent.arguments[2]===node&&parent.callee?.type==='MemberExpression'&&
         parent.callee.computed===false&&parent.callee.object?.type==='Identifier'&&
         parent.callee.object.name==='Reflect'&&parent.callee.property?.name==='construct';
-      if(!reviewedCryptoJsNewTarget)
+      // In this exact pinned upstream artifact, these operations only test
+      // Date identity or restore the constructor of freshly created prototypes.
+      // They never call, return, or read a dynamic Function constructor.
+      const reviewedPapaDateType=pinnedPapaParse&&node.computed===false&&
+        node.object?.type==='Identifier'&&parent?.type==='BinaryExpression'&&
+        parent.operator==='==='&&parent.left===node&&
+        parent.right?.type==='Identifier'&&parent.right.name==='Date';
+      const prototype=node.object;
+      const reviewedPapaPrototype=pinnedPapaParse&&node.computed===false&&
+        parent?.type==='AssignmentExpression'&&parent.operator==='='&&
+        parent.left===node&&parent.right?.type==='Identifier'&&
+        prototype?.type==='AssignmentExpression'&&prototype.operator==='='&&
+        prototype.left?.type==='MemberExpression'&&
+        prototype.left.object?.type==='Identifier'&&
+        prototype.left.object.name===parent.right.name&&
+        !prototype.left.computed&&property(prototype.left)==='prototype'&&
+        prototype.right?.type==='CallExpression'&&
+        isMember(prototype.right.callee,'Object','create')&&
+        prototype.right.arguments.length===1&&
+        prototype.right.arguments[0]?.type==='MemberExpression'&&
+        !prototype.right.arguments[0].computed&&
+        property(prototype.right.arguments[0])==='prototype';
+      if(!reviewedCryptoJsNewTarget&&!reviewedPapaDateType&&!reviewedPapaPrototype)
         throw new Error(`Unapproved dynamic constructor reference in ${file} offset=${node.start} nearby=${JSON.stringify(text.slice(Math.max(0,node.start-100),node.end+100))}`);
     }
     if (['CallExpression', 'NewExpression'].includes(node.type) && node.callee.type === 'Identifier' && ['eval', 'Function', 'AsyncFunction', 'importScripts'].includes(node.callee.name) && !approvedNativeImport(node.callee,node,file)) throw new Error(`Dynamic execution in ${file}: ${node.callee.name}`);
@@ -501,7 +546,7 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
   const explorerJS=await readFile(join(root,'native-agent/settings.js'),'utf8');
   if(!['data-variant','folder-open','tree-caret','file-icon'].every(value=>explorerJS.includes(value)))
     throw Error('Workspace explorer runtime is stale: packaged settings.js lacks SVG file-tree icons');
-  for(const cssPath of ['ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css','ui/extension-center.css','ui/bookmark-manager.css','ui/time-review.css','ui/cloud-hosting.css','ui/cloud-control-console.css','native-agent/settings.css','native-agent/workspace.css','stay-focus/blocked.css']) {
+  for(const cssPath of ['ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css','ui/extension-center.css','ui/time-review.css','ui/cloud-hosting.css','ui/cloud-control-console.css','native-agent/settings.css','native-agent/workspace.css','stay-focus/blocked.css']) {
     const css = await readFile(join(root,cssPath),'utf8');
     if(/@(?:import|source|apply|tailwind|config|plugin)\b|url\s*\(|expression\s*\(/i.test(css)) throw new Error('Unsafe CSS resources in '+cssPath);
     if(cssPath==='native-agent/workspace.css')inspectWorkspaceStyle(css);

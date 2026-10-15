@@ -103,6 +103,13 @@ export function createBrowserFullBookmarksHost({api=globalThis.chrome,authorize,
   const parentFolder=async id=>{
     const p=await getNode(id);
     if(Object.hasOwn(p,'url')||p.parentId===null||managed(p))throw fail('E_BOOKMARK_PROTECTED','Invalid parent folder');
+    let current=p;const seen=new Set();
+    while(current.parentId!==null){
+      if(seen.has(current.id)||seen.size>=100)
+        throw fail('E_BOOKMARK_PROTECTED','Unsafe parent ancestry');
+      seen.add(current.id);current=await getNode(current.parentId);
+      if(managed(current))throw fail('E_BOOKMARK_PROTECTED','Managed destination ancestry is immutable');
+    }
     return p;
   };
   const subtree=async id=>{
@@ -178,6 +185,9 @@ export function createBrowserFullBookmarksHost({api=globalThis.chrome,authorize,
     }
     if(args.parentId)await parentFolder(args.parentId);
     if(!args.title.trim())throw fail('E_SCHEMA','Bookmark title is empty');
+    // Prior awaited parent checks could have allowed another document to load.
+    await auth('create',ctx);
+    if(args.sourcePage)await verifySourcePage(args.sourcePage,ctx);
     const {sourcePage,...details}=args,epoch=generation,result=await write('create',details);
     if(epoch!==generation)throw fail('E_OUTCOME_UNKNOWN');
     return project(result);
@@ -187,6 +197,7 @@ export function createBrowserFullBookmarksHost({api=globalThis.chrome,authorize,
     const node=await editable(args.id,args.expected);
     if(!Object.keys(args.changes).length||!Object.hasOwn(node,'url')&&args.changes.url!==undefined)
       throw fail('E_SCHEMA','Invalid folder/bookmark changes');
+    await auth('update',ctx);
     const epoch=generation,result=await write('update',args.id,args.changes);
     if(epoch!==generation)throw fail('E_OUTCOME_UNKNOWN');
     return project(result);
@@ -199,6 +210,8 @@ export function createBrowserFullBookmarksHost({api=globalThis.chrome,authorize,
       if(ancestor.id===args.id||seen.has(ancestor.id))throw fail('E_BOOKMARK_PROTECTED','Cycle move refused');
       seen.add(ancestor.id);ancestor=await getNode(ancestor.parentId);
     }
+    await editable(args.id,args.expected);
+    await auth('move',ctx);
     const epoch=generation,result=await write('move',args.id,args.destination);
     if(epoch!==generation)throw fail('E_OUTCOME_UNKNOWN');
     return project(result);
@@ -207,6 +220,7 @@ export function createBrowserFullBookmarksHost({api=globalThis.chrome,authorize,
     await auth('remove',ctx);
     await editable(args.id,args.expected);
     if((await subtree(args.id)).length!==1)throw fail('E_BOOKMARK_NOT_EMPTY','Nonempty folder requires removeTree');
+    await auth('remove',ctx);
     const epoch=generation;await write('remove',args.id);
     if(epoch!==generation)throw fail('E_OUTCOME_UNKNOWN');
     return {removed:true};

@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="zh-CN">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="frame-src 'self'"><title>OpenDesk Browser</title><link rel="stylesheet" href="design-tokens.css"><link rel="stylesheet" href="design-system.css"><link rel="stylesheet" href="tool-shell.css"><link rel="stylesheet" href="bookmark-manager.css"><link rel="stylesheet" href="time-review.css"><link rel="stylesheet" href="cloud-hosting.css"><link rel="stylesheet" href="extension-center.css"></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="frame-src 'self'"><title>OpenDesk Browser</title><link rel="stylesheet" href="design-tokens.css"><link rel="stylesheet" href="design-system.css"><link rel="stylesheet" href="tool-shell.css"><link rel="stylesheet" href="time-review.css"><link rel="stylesheet" href="cloud-hosting.css"><link rel="stylesheet" href="extension-center.css"></head>
 <body>
 <nav class="workbench-nav" role="tablist" aria-label="工作台" aria-description="较窄时可以横向滚动；左右方向键以及 Home、End 切换页签">
   <button type="button" id="tab-my-tasks" role="tab" tabindex="0" data-workbench-tab="tasks" aria-selected="true" aria-controls="workbench-tasks">我的</button>
@@ -285,7 +285,6 @@
                   <button id="extension-center-reset" class="ec-menu-action" type="button">恢复默认筛选</button>
                   <div class="ec-menu-separator">
                     <button id="extension-center-import" class="ec-menu-action" type="button">导入本地工具包</button>
-                    <button id="extension-center-bookmarks" class="ec-menu-action" type="button">书签管理</button>
                     <button id="extension-center-reload" class="ec-menu-action" type="button">刷新扩展</button>
                   </div>
                 </div>
@@ -340,7 +339,6 @@
           </div>
         </div>
         <section id="sidebar-tool-my-panel" aria-label="已安装工具列表">
-          <button id="bookmark-manager-open" type="button" aria-label="打开书签管理" title="打开内置书签管理"><span class="bm-open-symbol" aria-hidden="true">▣</span><span>书签管理</span><span class="bm-open-chevron" aria-hidden="true">›</span></button>
           <div id="sidebar-tool-list" class="sidebar-tool-list od-stack" aria-label="已安装自定义工具"></div>
           <p id="sidebar-tool-empty" class="sidebar-tool-empty" hidden>还没有已安装工具。点击上方「添加工具」浏览官方工具，或导入本地文件。</p>
         <section id="sidebar-installed-page-tools" class="od-stack" aria-label="已安装网页脚本">
@@ -365,7 +363,6 @@
           <div id="sidebar-tool-official-catalog" aria-label="官方工具发现结果"></div>
         </section>
       </div>
-      <section id="bookmark-manager-panel" class="bookmark-manager" aria-label="书签管理" hidden></section>
       <section id="sidebar-tool-display" class="sidebar-tool-display" aria-label="当前工具界面" hidden>
         <div class="sidebar-tool-view-head od-toolbar od-page-head">
           <button type="button" id="sidebar-tool-back" class="sidebar-tool-icon-action od-icon-button" title="返回工具列表" aria-label="返回自定义工具列表"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5-7 7 7 7M7 12h14"></path></svg></button>
@@ -736,6 +733,7 @@
   </div>
   <div id="workbench-develop" role="tabpanel" aria-labelledby="tab-develop" class="od-page" data-workbench-page="develop" hidden>
   <section class="developer-editor" aria-label="代码开发">
+    <div class="developer-context od-stack">
     <div id="developer-source-switch" class="developer-source-switch od-toolbar od-page-head" role="group" aria-label="代码来源" data-mode="manual">
       <span class="od-page-title">直接编辑</span>
       <div class="od-page-actions" role="group" aria-label="开发页操作">
@@ -759,6 +757,7 @@
       </div>
     </details>
   </section>
+    </div>
     <section id="local-project-tools" class="local-project-tools" aria-label="本地项目连接" hidden>
       <p class="local-project-intro od-note">在编辑器或 Codex 中保存，系统自动准备；点击「运行本地项目」执行最新代码。保存文件不会自动运行。</p>
       <div class="local-project-controls od-toolbar">
@@ -775,7 +774,7 @@
         <div class="row"><button id="local-install-confirm" type="button" disabled class="od-button">确认安装固定版本</button><button id="local-install-cancel" type="button" class="od-button od-button--secondary">取消</button></div>
         <p id="local-install-status" role="status" aria-live="polite"></p>
       </section>
-      <details class="od-disclosure"><summary>高级诊断</summary><p id="local-project-diagnostics">运行后显示版本与准备耗时。</p></details>
+      <details class="od-disclosure od-disclosure--flat"><summary>高级诊断</summary><p id="local-project-diagnostics">运行后显示版本与准备耗时。</p></details>
       <button id="local-project-connect" class="local-project-connect od-button od-button--secondary" type="button">连接本机 OpenDesk ↗</button>
       <details id="local-project-guide" class="local-project-guide od-disclosure od-disclosure--info">
         <summary>首次使用：连接方法</summary>
@@ -811,7 +810,7 @@
   return {title: await page.title(), url: await page.url(), value: params.value};
 }</textarea>
     <p id="page-component-hint" class="hint">保存草稿不会运行网页</p>
-    <details id="page-dependency-panel" class="od-stack od-disclosure" aria-label="第三方 Classic JS 依赖固定详情" hidden>
+    <details id="page-dependency-panel" class="od-stack od-disclosure od-disclosure--flat" aria-label="第三方 Classic JS 依赖固定详情" hidden>
       <summary>第三方 JS 依赖 · 自动固定与缓存（高级详情）</summary>
       <p id="page-dependency-status" role="status" aria-live="polite">点击运行会自动固定安全依赖；这里仅显示高级详情。</p>
       <div id="page-dependency-list" class="od-stack" role="group" aria-label="每项依赖来源与下载方式"></div>
@@ -834,10 +833,11 @@
       <div class="od-toolbar"><button id="page-component-remote-prepare" type="button" class="od-button od-button--secondary">检查依赖</button><button id="page-component-remote-cancel" type="button" hidden class="od-button od-button--secondary">取消准备</button></div>
       <details id="page-component-remote-details" hidden class="od-disclosure od-disclosure--flat"><summary>固定模块、许可证与 SHA-256</summary><pre id="page-component-remote-detail-body"></pre></details>
     </section>
-    <details id="program-generated" hidden class="od-disclosure"><summary>高级诊断：查看编译产物</summary><pre id="program-generated-source"></pre></details>
+    <details id="program-generated" hidden class="od-disclosure od-disclosure--flat"><summary>高级诊断：查看编译产物</summary><pre id="program-generated-source"></pre></details>
     </div>
     <details id="manual-project-params-tools" class="developer-params od-disclosure"><summary>参数 JSON（可选）</summary><label for="script-params" class="od-field-label">参数 JSON</label><textarea id="script-params" rows="3" spellcheck="false" class="od-field">{"value":0}</textarea></details>
 
+    <div class="developer-run-area od-stack">
     <p id="developer-run-feedback" class="developer-run-feedback" role="status" aria-live="polite"><span id="script-status" data-state="loading">正在连接公共运行入口…</span><span id="script-task-status" class="developer-task-status" hidden></span></p>
     <div id="script-user-scripts-recovery" class="developer-execution-help od-alert od-alert--warning" data-state="blocked" hidden>
       <p id="script-user-scripts-recovery-status" role="status" aria-live="polite"></p>
@@ -889,6 +889,7 @@
       </div>
     </details>
   </div></details>
+    </div>
   <details id="developer-run-technical" class="developer-run-technical od-disclosure"><summary>运行目标与版本</summary>
     <p id="script-task-id" class="identity">尚未运行</p>
     <p id="script-running-target" class="identity" data-state="idle">运行目标：尚未建立</p>

@@ -70,7 +70,8 @@ async function fixture() {
   let siteAllowed = true;
   const document = {tabId: 21, windowId: 7, documentId: 'target-document',
     url: TARGET_URL, origin: ORIGIN};
-  tabs.set(document.tabId, {id: document.tabId, windowId: document.windowId, url: TARGET_URL});
+  tabs.set(document.tabId, {id: document.tabId, windowId: document.windowId, url: TARGET_URL,
+    active:true,status:'complete',title:'Contract form'});
   const store = map => ({
     get: async keys => Object.fromEntries((keys === null ? [...map.keys()] :
       Array.isArray(keys) ? keys : [keys]).map(key => [key, structuredClone(map.get(key))])),
@@ -178,6 +179,10 @@ class Node {
   focus() {this.ownerDocument.activeElement = this;}
 }
 async function frontend(t, f, {target = {snapshot: {status: 'available', title: 'Contract form', url: TARGET_URL}}} = {}) {
+  target.capture??=()=>({...f.document,title:'Contract form'});
+  target.revalidate??=async captured=>{
+    assert.equal(captured.documentId,f.document.documentId);
+  };
   const originals = new Map(['window', 'location', 'navigator'].map(key =>
     [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
   const win = new Node('window'), elements = new Map(), copied = [];
@@ -315,18 +320,23 @@ for (const operation of ['browser.launch.consume', 'browser.page.getSelection'])
 
 test('browser.page.getContext: existing Side Panel returns bounded current page and explicit unavailable receipt', async t => {
   const f = await fixture(), front = await frontend(t, f);
-  assert.deepEqual(await front.sdk.page.getContext(), {status: 'available', title: 'Contract form', url: TARGET_URL});
+  const first=await front.sdk.page.getContext();
+  assert.deepEqual({...first,tabRef:undefined,documentRef:undefined},
+    {status:'available',title:'Contract form',url:TARGET_URL,tabRef:undefined,documentRef:undefined});
+  assert.match(first.tabRef,/^[A-Za-z0-9_-]{16,160}$/);
+  assert.match(first.documentRef,/^[A-Za-z0-9_-]{16,160}$/);
   const longUrl = TARGET_URL + '?q=' + 'x'.repeat(5000);
   front.target.snapshot = {status: 'available', title: '界'.repeat(600), url: longUrl};
-  assert.deepEqual(await front.sdk.page.getContext(), {status: 'available', title: '界'.repeat(512), url: longUrl.slice(0, 4096)});
+  assert.deepEqual(await front.sdk.page.getContext(),first,
+    'a display snapshot cannot override the trusted captured Chrome document');
   front.target.snapshot = {status: 'unavailable', message: '页面已关闭'};
   assert.deepEqual(await front.sdk.page.getContext(), {status: 'unavailable', message: '页面已关闭'});
-  assert.equal(front.messages.length, 0, 'current page receipt uses existing frontend service');
+  assert.equal(front.messages.length,2,'available receipts pass through the existing trusted Host');
 });
 
 test('browser.page.getContext: real frontend rejects uninstalled package', async t => {
   const f = await fixture(), front = await frontend(t, f);
-  f.uninstall(); await assert.rejects(front.sdk.page.getContext(), {code: 'E_TOOL', message: '工具已更新或卸载'});
+  f.uninstall(); await assert.rejects(front.sdk.page.getContext(), {code: 'E_TOOL_CHANGED', message: '工具已更新或卸载'});
 });
 
 test('browser.page.getContext: real frontend denies a package without currentPage.read', async t => {
