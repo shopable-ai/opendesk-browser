@@ -739,6 +739,20 @@ test('R5.0 incomplete cleanup record blocks a new tool even when no orphan paylo
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
 });
 
+test('R5.1 uninstall refuses corrupt revocation authority before writing cleanup intent',async t=>{
+  const epochs={'other-tool':123},key=sidebarToolStorageKey(sample.id);
+  const privateData={memo:'must be preserved'};
+  const store=new Map([[SIDEBAR_TOOL_STORE,[sample]],[TOOL_REVOCATION_EPOCHS_STORE,epochs],
+    [key,privateData]]);
+  const f=await hostFixture(t,{store,startTool:false});
+  await assert.rejects(recordToolUninstall(f.api,sample),{code:'E_STORAGE_CORRUPT'});
+  assert.deepEqual(store.get(TOOL_REVOCATION_EPOCHS_STORE),epochs,
+    'corrupt revocation state must not be spread into another owner record');
+  assert.equal(store.has(TOOL_CLEANUP_STORE),false,'a failed intent must not claim registry removal');
+  assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[sample]);
+  assert.deepEqual(store.get(key),privateData);
+});
+
 test('R5.1 corrupted uninstall cleanup cannot be treated as absent or bypassed by reinstall',async t=>{
   const key=sidebarToolStorageKey(sample.id),privateData={memo:'other owner data must survive'};
   const malformed={[sample.id]:{version:'broken',createdAt:1}};
