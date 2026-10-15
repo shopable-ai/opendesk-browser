@@ -4,7 +4,7 @@ import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords} from './sidebar-tool
 import {loadOfficialCatalog} from '../sidebar-tools/official-catalog.js';
 import {setInstalledPageProgramEnabled} from './installed-page-tools.js';
 import {composeExtensionEntries,filterExtensionEntries,describeInstalledAppSource,resolveExtensionRowIntent,resolveExtensionPrimaryAction} from './extension-center-model.js';
-import readingTocCatalog from '../../examples/sidebar-tools/reading-toc/locales.json' with {type:'json'};
+import readingTocCatalog from '../reading-toc/locales.generated.js';
 import {uiMessage,resolveUiLocale} from './app-localization.js';
 
 // One trusted presentation. All writes and launches delegate to the existing hosts.
