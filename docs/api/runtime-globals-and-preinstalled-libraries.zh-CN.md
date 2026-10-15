@@ -61,7 +61,7 @@ export default async function main() {
 - Controller 浏览器内 ESM 当前上限为 32 模块、单模块 128 KiB、总图 256 KiB、编译输出 48 KB；保存执行代码加作者快照最大约 52 KB。
 - 保存固定执行产物并保留可编辑作者源码，读取同一 SHA 资产不得联网，Program A/B 可以共用内容字节但不能共用锁或敏感网站权限。
 - 真实 Chrome/CFT、完整退出离线、撤权后的已安装运行以及 CWS 审查仍须分别通过，不能以 Node VM / 已提交源码声明产品 95+。
-**真实未预装 CSV 第三方库样例：**[Controller @vanillaes/csv@4.1.3](../../examples/programs/single-file/controller-vanillaes-csv-esm.README.md) 完整提供作者代码、确切 MIT 来源、原始模块字节与 SHA-256、预期返回 `count:2`/`total:21`。其 `index.js` 静态再导出 `parse.js` 与 `stringify.js`，验证真正的传递依赖和缓存图，而不是使用手写 CSV 伪装第三方库。Node/Chrome 证据须按特定候选分别记录。
+**CSV 新业务首选：**按需固定的 Papa Parse 5.7.0，Page USER_SCRIPT 声明 `// @opendesk-lib papa-parse`，使用原生 `Papa.parse()` / `Papa.unparse()`；[可复制 Page 示例](../../examples/programs/single-file/page-papaparse-csv.README.md)。可信 Sidebar Tool 应在其独立构建中引入自己的固定依赖，不能假设已拥有 Page 全局。**历史 ESM 锁测试保留：**[Controller @vanillaes/csv@4.1.3](../../examples/programs/single-file/controller-vanillaes-csv-esm.README.md) 完整提供作者代码、确切 MIT 来源、原始模块字节与 SHA-256、预期返回 `count:2`/`total:21`。其 `index.js` 静态再导出 `parse.js` 与 `stringify.js`，验证真正的传递依赖和缓存图，而不是使用手写 CSV 伪装第三方库。Node/Chrome 证据须按特定候选分别记录。
 
 **Page USER_SCRIPT 网页运行**（有 `document`，没有 Controller `page`）：
 

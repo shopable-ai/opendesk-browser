@@ -2,7 +2,7 @@
 
 更新：2026-10-11，R15.9 交接。实际源码与**规划中的文件**必须分开：部分库已接线但尚未通过最新同候选工程/Chrome 验收，不能因文件存在就视为正式可交付。总需求见 [公共预装合同](../../docs/architecture/browser-framework/public-preinstalled-libraries.contract.zh-CN.md)。
 
-> **按来源选依赖，而不是“见到 `src/libs` 就 import”**：本地多文件混合用法（HTTPS ESM / npm ESM / 相对 ESM **三条真正的 import**，再加项目声明的**按需预置库**与运行器的**默认库**）见[五种依赖使用合同](../../docs/framework/universal-dependency-runtime-usage-contract.zh-CN.md)。当前 Catalog 12 项中默认 3 项、其余 9 项按需且按世界授权；React/Vue 另归 Page Frameworks。扩展构建时打包 ≠ 运行时自动加载 ≠ 同一 JS 实例，不能靠增加 `@opendesk/ui` 挂载 UI 来证明纯 Import 正确。混合五来源仍待同包 Chrome 实测。
+> **按来源选依赖，而不是“见到 `src/libs` 就 import”**：本地多文件混合用法（HTTPS ESM / npm ESM / 相对 ESM **三条真正的 import**，再加项目声明的**按需预置库**与运行器的**默认库**）见[五种依赖使用合同](../../docs/framework/universal-dependency-runtime-usage-contract.zh-CN.md)。当前 Catalog 13 项中默认 3 项、其余 10 项按需且按世界授权；React/Vue 另归 Page Frameworks。扩展构建时打包 ≠ 运行时自动加载 ≠ 同一 JS 实例，不能靠增加 `@opendesk/ui` 挂载 UI 来证明纯 Import 正确。混合五来源仍待同包 Chrome 实测。
 
 ## 首先确认用户代码入口（2026-10-12 补充的不可回退需求）
 
@@ -61,6 +61,7 @@ src/libs/
     vue-LICENSE.txt
   vendor/
     jquery/3.7.1/              已实现，原样 JS+许可证，Page opt-in
+    papaparse/5.7.0/           官方 MIT 原样发布文件，Papa.parse/unparse，Page opt-in
     my-utils/1.0.0/            自有演示库+许可证，保留 ABI 兼容
 ```
 
@@ -75,7 +76,7 @@ src/libs/
 
 真实体积报告运行 `npm run build:size`，结果位于 `artifacts/package-size-production.json`。其中 `totalPackageBytes` 是 **dist 文件原始字节数之和，不等于压缩 ZIP 大小**（开发包还含 source map），`loadingGroups` 是彼此**重叠、不能相加**的典型资源集合；`runtimeResourcePlan` 明列 SW 启动、Page/Controller 默认资源及每项按需资源的独立字节数、真实加载器允许的上限和剩余空间。React/Vue 独立固定资源当前按其 **256 KiB** 运行时读取限制计，不得错误当成普通 JS 的 512 KiB 上限。报告不是内存峰值或性能基准；若需得到真正的运行开销，应使用实际 Chrome 内存和网络记录。
 
-`npm run libs:list` 当前登记 Lodash、Day.js、my-utils、jQuery、js-cookie、CryptoJS、FileSaver、query-string、Axios、store.js、Cheerio、FingerprintJS，React/Vue 通过已有独立 `page-frameworks/contract.js` 而非另一个 WXT/npm wrapper 注册。不要重复新增 `packages/react.js`、`packages/react-dom.js`、`packages/vue.js`，造成双份运行时。
+`npm run libs:list` 当前登记 Lodash、Day.js、my-utils、jQuery、js-cookie、CryptoJS、FileSaver、query-string、Axios、store.js、Cheerio、FingerprintJS、Papa Parse，React/Vue 通过已有独立 `page-frameworks/contract.js` 而非另一个 WXT/npm wrapper 注册。不要重复新增 `packages/react.js`、`packages/react-dom.js`、`packages/vue.js`，造成双份运行时。
 
 ## 2. 目前用户代码怎么用
 
@@ -172,6 +173,26 @@ async function main() {
 }
 ```
 
+### CSV：Papa Parse 5.7.0（按需固定资源）
+
+主流 CSV 解析与生成直接使用官方 `Papa.parse()` 和 `Papa.unparse()`，不维护第二套 CSV 编码器。
+
+```js
+// @opendesk-lib papa-parse
+async function main() {
+  const csv = Papa.unparse([{name:'Book',price:18},{name:'Pen',price:3}],{
+    columns:['name','price'],newline:'\r\n',escapeFormulae:true
+  });
+  return {csv,records:Papa.parse(csv,{header:true,skipEmptyLines:true}).data};
+}
+```
+
+正式 Page 源码声明 `// @opendesk-lib papa-parse`，由既有 Catalog/manifest/固定 SHA 加载到隔离 USER_SCRIPT，不注入网站 MAIN、不进入 SW；打开网页本身不会加载。官方发布源码固定在 `src/libs/vendor/papaparse/5.7.0/`，实际 Chrome 验收仍需当次回执。文件下载按需组合 `// @opendesk-lib file-saver` 和 `FileSaver.saveAs(new Blob(['\uFEFF',csv],{type:'text/csv;charset=utf-8'}),'products.csv')`；保存必须在有效的用户手势上下文中进行，返回值不能当落盘回执。已安装 Sidebar Tool 不继承 Page 全局，应在工具本地构建中固定导入 Papa Parse，再使用现有获授权 Host 通道下载。
+
+[单文件 Page 示例](../../examples/programs/single-file/page-papaparse-csv.js) · [用法与迁移说明](../../examples/programs/single-file/page-papaparse-csv.README.md) · [Controller 开发版 ESM 示例](../../examples/programs/single-file/controller-papaparse-esm.js)。
+
+历史 `@vanillaes/csv@4.1.3` 仅保留为真实三模块 ESM 传递依赖/离线锁回归证据；不作为新业务默认推荐，也不强行改写已有已固定程序。
+
 FileSaver 仅在 Page USER_SCRIPT 显式声明时执行，不需要 Chrome downloads 权限：
 
 ```js
@@ -204,6 +225,7 @@ async function main() {
 | CryptoJS | packages/crypto-js.js | R15.8 已接入真实 crypto-js@4.2.0，Page 显式声明、限制 SHA256/HmacSHA256/AES/enc；工程及 Chrome 同候选证据待确认；上游停止维护，默认不注入 |
 | query-string | packages/query-string.js | R15.9 接入真实 query-string@9.5.1、三项真实传递依赖和许可，Page USER_SCRIPT 显式 opt-in，支持 parse/stringify/parseUrl/stringifyUrl/extract/pick/exclude；Controller 仍未开放，工程/Chrome 待同候选验收 |
 | store.js | packages/store.js | R16.0 已接入真实 store@2.0.12 的 Page 同步适配，仅网站 localStorage、由编译器给程序分配前缀，clearAll 不影响其他程序/网站；Controller 尚缺、同候选验收待检查 |
+| Papa Parse | vendor/papaparse/5.7.0/papaparse.min.js | 官方 5.7.0 MIT 原样资源，Page USER_SCRIPT `@opendesk-lib papa-parse` 按需，原生 `Papa.parse/unparse`；真实 Chrome 原生验收待核验 |
 | FileSaver | packages/file-saver.js | R15.8 已接入真实 file-saver@2.0.5，仅允许 Blob/File 与显式 Page 声明；下载用户手势及落盘回执仍待 Chrome 验收 |
 | Cheerio | packages/cheerio.js | R16.1 真实 Cheerio 1.2.0 browser slim 入口，仅 Page USER_SCRIPT `cheerio.load(html)`，无网络抓取/HTML 清洗功能；同候选工程与 Chrome 验收待核查 |
 | FingerprintJS | packages/fingerprintjs.js | R16.3 已接入 MIT 的真实 @fingerprintjs/fingerprintjs@5.3.0，仅显式 Page opt-in；导入时不执行 load/get、任何 load 都强制 monitoring:false，debug:true 拒绝；正式 CI 与实际 Chrome 待验收，不宣称自动授权上报 |

@@ -1,5 +1,7 @@
 # Controller 单文件 ESM：真实第三方 CSV 库
 
+**历史保留说明（2026-10-15）：** 本样例用于真实 ESM 三模块图、固定版本及缓存回归验证。新的业务 CSV 默认方案已切换为 [Papa Parse 5.7.0（Page）](page-papaparse-csv.README.md) 和 [Papa Parse 固定版本 Controller ESM](controller-papaparse-esm.js)。不得以更换业务首选库为由删除本样例及离线测试夹具；已安装程序不得静默替换依赖。
+
 **Developer Edition R4 验收样例，非 Standard 版直接 ESM**。复制 [controller-vanillaes-csv-esm.js](controller-vanillaes-csv-esm.js) 到 Side Panel「开发」→ JavaScript 编辑器，脚本 ID 选例如 `sample.real-csv-413`。
 
 第三方库：`@vanillaes/csv@4.1.3`（MIT），来源：<https://github.com/vanillaes/csv/tree/v4.1.3>。这不是内置库，也不是模拟 Papa Parse。

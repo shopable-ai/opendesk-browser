@@ -9,7 +9,7 @@ import {fakeBuiltinSource} from './builtin-support.mjs';
 globalThis.crypto ||= webcrypto;
 const libraries=[['js-cookie','jsCookie'],['crypto-js','cryptoJs'],['file-saver','fileSaver'],
   ['query-string','queryString'],['axios','axios'],['store','store'],['cheerio','cheerio'],
-  ['fingerprintjs','fingerprintjs']];
+  ['fingerprintjs','fingerprintjs'],['papa-parse','papaParse']];
 const header=lines=>['// ==UserScript==',...lines.map(line=>'// '+line),
   '// ==/UserScript==','async function main(){return true;}'].join('\n');
 const compile=(sourceUtf8,options={})=>compileLockedPageSource({sourceUtf8,entryFormat:'async-main',
