@@ -103,10 +103,6 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 .switch-track:after{content:"";position:absolute;left:3px;top:3px;width:16px;height:16px;background:white;border-radius:50%;transition:transform .16s;box-shadow:0 1px 3px #0003}
 .switch input:checked+.switch-track{background:var(--od-brand)}.switch input:checked+.switch-track:after{transform:translateX(14px)}
 .switch input:focus-visible+.switch-track{outline:3px solid var(--od-focus);outline-offset:3px}
-.permission-strip{display:flex;align-items:center;gap:9px;margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--od-bg);font-size:11px;flex-wrap:wrap}
-.permission-strip .dot{width:7px;height:7px;background:var(--od-positive);border-radius:50%;flex:none}.permission-strip .dot.denied{background:var(--od-negative)}
-.permission-strip .text{flex:1;min-width:100px;color:var(--od-sub)}
-.permission-strip button{border:0;background:none;color:var(--od-accent-ink);padding:2px;font-weight:600}
 .shortcuts-list{display:grid;gap:8px}
 .prompt-card{border:1px solid var(--od-line);border-radius:12px;padding:10px;background:var(--od-paper)}
 .prompt-main{display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:10px}
@@ -147,9 +143,6 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 .copy-box .row{display:flex;align-items:center;justify-content:flex-end;gap:7px;margin-top:8px}
 .status{font-size:11px;border-radius:9px;padding:10px 11px;margin-top:14px;background:var(--od-bg);color:var(--od-sub);overflow-wrap:anywhere}
 .status[data-kind="error"]{background:var(--od-negative-bg);color:var(--od-negative)}
-.permissions-body h3{font-size:13px;margin:14px 0 7px}.permissions-body p{font-size:12px;color:var(--od-sub);line-height:1.6}
-.permissions-body .permission-title{font-size:13px;font-weight:750}
-.permissions-body .permission-value{margin-top:8px;font-size:11px;padding:10px;border-radius:9px;background:var(--od-bg);overflow-wrap:anywhere}
 .demo-footer{max-width:1540px;margin:0 auto;padding:0 22px 22px;font-size:12px;color:var(--od-sub);line-height:1.7}
 .demo-footer a{font-weight:600}
 @media(max-width:1030px){.canvas{gap:10px;padding:6px 12px 16px}.demo-header{padding:14px 12px}.message-inner{width:calc(100% - 76px);margin-left:60px;margin-right:16px}.web-compose{width:calc(100% - 76px);margin-left:60px;margin-right:16px}}
@@ -256,6 +249,18 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  .prompt-use{gap:6px}.prompt-icon{width:29px;height:29px;min-width:29px}
  .prompt-card{padding:7px}.prompt-actions .od-button{min-width:28px;width:28px}
 }
+/* R1.13: compact host tool settings, no website-consent card. */
+.host-settings{display:grid;gap:10px;align-content:start;min-width:0}
+.host-settings .view-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.host-settings .view-top small{font-size:11px;color:var(--od-sub)}
+.host-setting-row{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;padding:10px}
+.host-setting-row:not(.od-surface){border-bottom:1px solid var(--od-line);padding:10px 1px}
+.host-setting-row>span:first-child{min-width:0;flex:1;display:grid;gap:3px}
+.host-setting-row strong{font-size:12px}
+.host-setting-row small,.host-setting-note{font-size:11px;color:var(--od-sub);line-height:1.5;overflow-wrap:anywhere}
+.host-setting-value{font-size:11px;font-weight:700;color:var(--od-positive);white-space:nowrap}
+.host-setting-note{background:var(--od-bg);padding:10px;border-radius:8px;margin:0}
+.host-settings #settingsBack{justify-self:start}
 </style>
 </head>
 <body>
