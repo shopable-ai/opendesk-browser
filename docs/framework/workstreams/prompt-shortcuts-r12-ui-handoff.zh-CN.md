@@ -237,7 +237,7 @@
 ### 10.1 阶段界限与原始证据
 
 - 本轮在 GitHub 已读取 `AGENTS.md`、本需求文档、原预览、`preview/mock.html`、正式 `src`、`trusted/model.js`、宿主 `tool.html` / `sidebar-tools.js`、Design Tokens / System 与相关历史提交。起始 `main` HEAD 为 `30cc8f63e80efd22957e929e1796e114d5a5c9ac`；宿主已有 `sidebar-tool-back` / `sidebar-tool-title`，正式 `src/main.js` 的 `save()` 存在 `!ready || busy || mode !== 'form'` 无提示提前返回的待确认风险。
-- 唯一变更的交互预览是 `examples/sidebar-tools/prompt-shortcuts/preview/index.html`，保留原始 Git 历史，不增加平行原型。预览增量提交：[`49ffae7`](https://github.com/shopable-ai/opendesk-browser/commit/49ffae733a8174cdacec075d4f5b6e0fa07470f3)（布局/状态）、[`a53a1c3`](https://github.com/shopable-ai/opendesk-browser/commit/a53a1c3267489e491505b4b05f15060fb3034092)（未知结果核对/精确库额度）、[`d038a4e`](https://github.com/shopable-ai/opendesk-browser/commit/d038a4e618c99fa96b3f300bf5bccddaf5cf9e2a)（未知结果持久反馈）。
+- 唯一变更的交互预览是 `examples/sidebar-tools/prompt-shortcuts/preview/index.html`，保留原始 Git 历史，不增加平行原型。预览增量提交：[`49ffae7`](https://github.com/shopable-ai/opendesk-browser/commit/49ffae733a8174cdacec075d4f5b6e0fa07470f3)（布局/状态）、[`a53a1c3`](https://github.com/shopable-ai/opendesk-browser/commit/a53a1c3267489e491505b4b05f15060fb3034092)（未知结果核对/精确库额度）、[`d038a4e`](https://github.com/shopable-ai/opendesk-browser/commit/d038a4e618c99fa96b3f300bf5bccddaf5cf9e2a)（未知结果持久反馈）、[`20be3c3`](https://github.com/shopable-ai/opendesk-browser/commit/20be3c376bb844b9de82cddcdd372bea20a3520e)（R1.9 明示版本、模拟 UUID 额度和保存中的离开保护）。
 - 新 UX 合同已追加至 `examples/sidebar-tools/prompt-shortcuts/REQUIREMENTS.zh-CN.md`，提交 [`d3e165a`](https://github.com/shopable-ai/opendesk-browser/commit/d3e165a4fa6526ed928365f84c3bc72e577ef3be)。之前的 Claude/Gemini/Perplexity/DeepSeek/Grok/Cursor Web/ComfyUI 跨平台长期需求完整保留。
 - `preview/mock.html` **未修改**（Git blob `025ec9b2c1ed6e9b011c9e3c2a6ce5a87d263eae`）；正式 `src/index.html` / `src/style.css` / `src/main.js` **未修改**（分别为 `9ba23d10bb63be377db0d6c08ff2ec5da091282e`、`7598de9164d3f2017cb8d376d9539d0df1c60a59`、`83404d404bd73ad59546dd25fdaedf33951841ad`）。正式单一 JSON **未刷新/晋升**，版本仍为 `1.0.1`，Git blob `6bc4c87e027cb0a10656a4a992d8982e173190fc`。
 
@@ -267,7 +267,7 @@
 
 ### 10.4 静态检查、逐维评分与剩余风险
 
-- 已对 GitHub 最新预览做源代码静态验收：**81 个 HTML id 无重复，所有 `el('id')` 静态引用可解析，`<aside>` 标签嵌套平衡，唯一宿主标题/表单视图标题，`rows=3`/内部滚动/禁止拖拽、无残留 `min-height:238px`、无旧 `formBack` / 面包屑，模拟失败控件在产品 `<main>` 外，保存中/冲突/未知/核对分支与 A11y 状态属性均在源码中。**结果 `STATIC_PASS`。这不是 Node、浏览器 DOM 或视觉截图执行。
+- 已对 GitHub 最新预览做源代码静态验收：**81 个 HTML id 无重复，所有 `el('id')` 静态引用可解析，`<aside>` 标签嵌套平衡，唯一宿主标题/表单视图标题，`rows=3`/内部滚动/禁止拖拽、无残留 `min-height:238px`、无旧 `formBack` / 面包屑，模拟失败控件在产品 `<main>` 外，保存中/冲突/未知/核对分支与 A11y 状态属性均在源码中。**结果 `STATIC_PASS`。从 GitHub 读取最终 HTML，提取内联脚本以 JavaScript `new Function(source)` 进行**仅编译不执行**的语法校验，`SYNTAX_PASS`。这不是 Node、浏览器 DOM、真实用户交互或视觉截图执行。
 - 九个专家目标维度：信息架构、导航去重、正文输入体验、创建编辑效率、表单密度、成功/失败反馈、键盘焦点与无障碍、Design Token 一致性、错误状态恢复，当前分别均标记 **`NOT_SCORED`**。依据：尚无同一预览的真实浏览器交互实测、计算样式/聚焦/滚动测量、Mac IME、辅助技术、异常注入录屏或独立产品评审。不得将 `STATIC_PASS` 虚报为逐维 95+。待实际浏览器 A–I 通过后才能逐维评分；任何维度低于 95 要定向修复和复验。
 - GitHub 连接能读取、增量写入 `main`，但无法直接读用户 Mac 的 `/Users/shopme/Documents/workspace/opendesk-browser`，也未核对其 `git status`、开发 watcher、正式安装、原生 Chrome 身份和本机输入法。**现有已安装版本保存失败 P0 尚未关闭。**用户在本地手动输入“你好”无错误反馈的复现仍是独立事实。
 - 尚未运行浏览器交互测试、Node 定向测试、官方临时构建/`--promote-from`/`--check-project`、原生安装/重启持久化/ChatGPT/IME/原生右键。对应 `NODE_PASS`、`PACKAGE_PASS`、`INSTALLED_CHROME_PASS`、`REAL_CHATGPT_PASS`、`MAC_IME_PASS` 均 **`NOT_TESTED`**；本阶段不触碰原正式 JSON。
