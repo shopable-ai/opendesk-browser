@@ -154,14 +154,16 @@ async function getState(api,owner){
   let snapshot=null,control='unknown';
   try{if(permission){snapshot=await chromeState(api);control=levelOf(snapshot);}}catch{}
   const owns=sameOwner(saved?.owner,owner);
-  let state='disabled',reason=null,canStop=false;
+  // An owned, unresolved STOP remains actionable even after Chrome permission
+  // is revoked. A visible recovery affordance is NOT permission to clear: the
+  // native STOP path still validates permission and exact PAC ownership.
+  let state='disabled',reason=null,canStop=Boolean(saved&&owns&&saved.phase!=='released');
   if(!permission){state='unavailable';reason='Chrome proxy permission unavailable';}
   else if(control==='controlled_by_other_extensions'||control==='not_controllable'){
     state='conflict';reason='Chrome proxy controlled outside OpenDesk';
   }else if(saved&&saved.phase!=='released'&&!owns){
     state='conflict';reason='Browser-wide proxy is owned by another verified installation';
   }else if(saved&&owns&&saved.phase!=='released'){
-    canStop=true;
     state=saved.phase==='enabled'&&control==='controlled_by_this_extension'&&
       matchesSettings(snapshot?.value,saved)?'enabled':'unavailable';
     if(state!=='enabled')reason='Proxy operation is pending or native ownership cannot be confirmed';
