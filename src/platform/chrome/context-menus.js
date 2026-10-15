@@ -9,6 +9,7 @@ import {createBrowserDownloadsHost} from './browser-downloads.js';
 import {createBrowserBookmarksHost} from './bookmarks.js';
 import {createBrowserFullBookmarksHost} from './bookmarks-full.js';
 import {createApprovedBrowserBindings} from '../../framework/sdk/browser-bindings.js';
+import {createBrowserManagedProxy} from './browser-managed-proxy.js';
 import {APPROVED_BROWSER_DIRECT_BINDINGS} from '../../framework/sdk/browser-direct.generated.js';
 import {validateTrustedScheduleIntent} from '../tasks/schedule-contract.js';
 import {createBrowserHistoryHost} from './history.js';
@@ -268,6 +269,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     'bookmarks.observe':fullBookmarkHost.observe,
     tabs:tabHost,
     downloads:downloadHost,
+    'proxy.managed':createBrowserManagedProxy({api,lockManager}),
     'storage.local':(input,owner,operation)=>executeBrowserToolStorage({
       api,operation,toolId:owner.toolId,input,
       authorize:()=>verifyBrowserOwner(owner,operation)
@@ -474,6 +476,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       operation==='browser.sidePanel.openSelf'?Boolean(api.sidePanel?.open):
       operation.startsWith('browser.scheduler.')?typeof scheduleService==='function':
       operation.startsWith('browser.storage.local.')?Boolean(api.storage?.local?.get&&api.storage?.local?.set):
+      operation.startsWith('browser.proxy.managed.')?Boolean(api.proxy?.settings?.get&&api.proxy?.settings?.set&&api.proxy?.settings?.clear&&api.storage?.local?.set):
       operation==='browser.bookmarks.createOwned'?Boolean(api.bookmarks?.create&&api.storage?.local?.set):
       operation==='browser.bookmarks.removeOwned'?Boolean(api.bookmarks?.get&&api.bookmarks?.remove&&api.storage?.local?.set):
       operation.startsWith('browser.bookmarks.')?Boolean(
