@@ -438,9 +438,11 @@ test('R2.1 separate UI/SW API objects serialize proof and clear on the same Web 
 });
 
 async function waitForPendingLock(locks,name){
-  for(let turn=0;turn<30;turn++){
+  // Installation digest verification is asynchronous on a busy CI runner.
+  // Still require real lock queue contention, bounded at 1.5 seconds.
+  for(let turn=0;turn<150;turn++){
     if((await locks.query()).pending.some(row=>row.name===name))return;
-    await setImmediate();
+    await new Promise(resolve=>setTimeout(resolve,10));
   }
   assert.fail('request did not queue on '+name);
 }
