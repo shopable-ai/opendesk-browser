@@ -155,3 +155,11 @@ F-BM-000 书签管理
 - 可重复静态检查：校验各案例每个表格 F-ID 唯一且有对应 S-ID/A-ID、P0 含异常/撤权/保存/删除必需场景，反例确实引用功能编号；核对两篇仓库文档互相链接、工具目录与当前 SHA。它只证明静态追踪完整性，不证明模型泛化或产品。
 - 待实证：独立多轮真实 AI 对话触发 Skill `REPEATED_MODEL_EVAL_NOT_TESTED`；HTML 交互 `NOT_TESTED`；三个候选同版本安装/权限/数据的 Mac Chrome `NOT_TESTED`；逐维 95+ `NOT_SCORED`。
 - **最小下一步**：只选 Case A，按同一短句完成一次真实 Skill 读取→需求清单→可交互 HTML 的闭环，记录实际缺漏与纠正回合数；完成后再用 B/C 对照复杂权限和历史一致性，不提前添加新的编排器。
+
+## R2 交接提交与状态（供新对话直接读取）
+
+- **通用工作流**：`docs/framework/browser-tool-creation-workflow.zh-CN.md`，R2 正式内容最后格式修复提交 [`05349bfe`](https://github.com/shopable-ai/opendesk-browser/commit/05349bfe95e93428957551346b12c6b4687312bd)。
+- **三案例证据**：本文件首次建立 `c10ac8e3`；完成显式功能树、Markdown 修正和静态检查账本前的提交 `88ae56f6`。当前文档内容以远端最新 blob 为准，不用旧 SHA 冒充当前成果。
+- **只增加上游路由文字**：`.agents/skills/README.md` [`1ebebf44`](https://github.com/shopable-ai/opendesk-browser/commit/1ebebf44406caeec3698f05ac143aa6d3c2c7a4e)；`.agents/skills/opendesk-sidebar-tool-dev/SKILL.md` [`09b37872`](https://github.com/shopable-ai/opendesk-browser/commit/09b37872bd03b5909296fd193ba6650b667e378d)。未增加第九个 Skill、Runner、产品发布入口或 Runtime 代码。
+- **最后一次远端回读**：上述四文件可读，R2 内容和引用均存在，Markdown 转义缺陷清除；当时 `main@8ee6c2c3999de7a68bb9f8e80ea242a9bf60c9bf` 已包含本次最后 Skill 提交，并已被其他独立提交正常快进。新对话重新取 HEAD/各 blob，而不把这个 HEAD 写成永久冻结。
+- **完成边界**：`DOC_INCREMENT_COMMITTED` / `THREE_CASE_DESK_REVIEWED` / `STATIC_TRACE_PASS`；真实重复 AI 推理、现有 Skill 自动调用成功率、HTML 交互、Mac Chrome 产品验收 **NOT_TESTED**；工作流一键安装 **NOT_IMPLEMENTED**。下一轮先 Case A 原样复现，不能借此声明产品 ≥95。
