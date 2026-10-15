@@ -2,8 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
+import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 
-const scriptUrl=new URL('../../examples/sidebar-tools/reading-toc/src/main.js',import.meta.url);
+const packagedScript=async()=>(await createSidebarToolPackage('examples/sidebar-tools/reading-toc')).js;
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 class Node{
  constructor(tag='div'){this.tagName=tag.toUpperCase();this.children=[];this.attrs=new Map();this.events=new Map();this.style={setProperty(){}};this.dataset={};this.textContent='';this.value='';this.hidden=false;this.disabled=false;}
@@ -21,7 +22,9 @@ function harness(script){
  const nodes=Object.fromEntries(ids.map(id=>[id,new Node(id==='toc-source'?'select':'div')]));
  nodes['toc-empty'].hidden=true;nodes['toc-error'].hidden=true;
  const modes=['top','focus','full'].map(mode=>{const button=new Node('button');button.dataset.tocMode=mode;return button;});
- const root={querySelector:selector=>nodes[selector.slice(1)],querySelectorAll:()=>modes};
+ const containers=Object.fromEntries(['.toc-panel','.toc-title','.toc-modes','.toc-scroll']
+   .map(selector=>[selector,new Node(selector==='.toc-panel'?'main':'div')]));
+ const root={querySelector:selector=>selector.startsWith('#')?nodes[selector.slice(1)]:containers[selector],querySelectorAll:()=>modes};
  const document={createElement:tag=>new Node(tag),createDocumentFragment:()=>new Node('fragment'),hidden:false,
    events:new Map(),addEventListener:Node.prototype.addEventListener,fire:Node.prototype.fire};
  const window={events:new Map(),addEventListener:Node.prototype.addEventListener,fire:Node.prototype.fire};
@@ -29,7 +32,7 @@ function harness(script){
  const setTimeout=(fn,delay)=>{timers.set(++timerId,{fn,delay});return timerId;};
  const clearTimeout=id=>timers.delete(id);
  const request=(name,payload)=>new Promise((resolve,reject)=>{requests.push({name,payload,resolve,reject});});
- runInNewContext(script,{globalThis:{OpenDeskTool:{root,request}},document,window,setTimeout,clearTimeout});
+ runInNewContext(script,{globalThis:{OpenDeskTool:{root,request,locale:'zh-CN'}},document,window,setTimeout,clearTimeout});
  const advance=async()=>{const id=[...timers.keys()][0];assert(id,'scheduled retry');const {fn}=timers.get(id);timers.delete(id);fn();await tick();};
  return {nodes,modes,window,requests,advance};
 }
@@ -37,7 +40,7 @@ function sample(label='正文'){return {url:'https://example.com/article',active
  items:[{id:'h-1',sourceId:'s-1',label,depth:0,topId:'h-1'}],overview:{'s-1':{ids:['h-1'],hiddenCount:0}}};}
 
 test('R4.8 last-good fallback disables stale links; manual force and auto retry recover',async()=>{
- const f=harness(await readFile(scriptUrl,'utf8'));
+ const f=harness(await packagedScript());
  assert.match(f.nodes['toc-error'].textContent,/正在读取/);
  assert.equal(f.nodes['toc-empty'].hidden,true,'loading differs from empty');
  f.window.fire('focus');f.nodes['toc-refresh'].fire('click');
@@ -56,7 +59,7 @@ test('R4.8 last-good fallback disables stale links; manual force and auto retry 
  assert.equal(f.nodes['toc-error'].hidden,true);
 });
 test('R4.8 empty snapshot schedules forced second scan for asynchronous headings',async()=>{
- const f=harness(await readFile(scriptUrl,'utf8'));
+ const f=harness(await packagedScript());
  f.requests[0].resolve({...sample(),items:[],sources:[],activeId:'',overview:{}});await tick();
  assert.equal(f.nodes['toc-empty'].hidden,false);
  await f.advance();assert.deepEqual(JSON.parse(JSON.stringify(f.requests[1].payload)),{refresh:true});
