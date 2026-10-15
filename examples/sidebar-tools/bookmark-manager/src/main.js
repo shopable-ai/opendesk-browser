@@ -105,6 +105,11 @@ const button=(title,action,id,cls='bm-button')=>{
 function renderList(){
   const list=q('bm-list'),pane=q('bm-inspector'),slot=q('bm-inline-slot');
   const previousScroll=s.renderedSearch===s.search?(list.scrollTop||0):0;
+  // A row action rebuilds just the projected list. Restore the equivalent
+  // real button so keyboard navigation does not fall back to document.body.
+  const active=document.activeElement,row=active?.closest?.('.bm-row');
+  const focusId=row?.querySelector('.bm-entry')?.dataset.nodeId;
+  const focusClass=['bm-toggle','bm-entry','bm-menu'].find(name=>active?.classList?.contains(name));
   // The inspector is the SAME DOM component, not a second mobile editor.
   // Detach before replacing rows so no form value or input listener is destroyed.
   if(pane.parentNode&&pane.parentNode!==q('bm-workspace'))q('bm-workspace').append(pane);
@@ -151,6 +156,11 @@ function renderList(){
   }
   if(!rows.length)frag.append(make('p','bm-help','没有匹配的书签或文件夹'));
   list.append(frag);
+  if(focusId&&focusClass){
+    const currentRow=[...list.querySelectorAll('.bm-row')].find(row=>
+      row.querySelector('.bm-entry')?.dataset.nodeId===focusId);
+    currentRow?.querySelector('.'+focusClass)?.focus({preventScroll:true});
+  }
   if(narrow&&!pane.hidden&&!placed){
     slot.append(pane);slot.hidden=false;
   }
@@ -410,6 +420,9 @@ async function refresh(manual=false){
       'E_TOOL_RUNTIME_UNAVAILABLE','E_TRANSPORT','E_SESSION_EXPIRED',
       'E_BOOKMARK_EVENT_GAP'].includes(error?.code);
     if(s.tree&&transient){
+      // The observation session started before the failed read remains bounded
+      // and can still detect a later native change without granting authority.
+      if(s.watcher)scheduleWatch(epoch);
       notice('刷新暂时失败，已保留当前列表与未保存草稿。请手动重试：'+errorText(error),true);
     }else{
       gate('读取失败：'+errorText(error)+'。检查权限后可重新尝试。');
