@@ -130,14 +130,21 @@ function trimmedOperations(ops) {
 // This journal records an acknowledged uninstall intent, not an authority grant.
 // A retry MUST hold the same tool/catalog locks and MUST first re-read the registry.
 const toolIdPattern=/^[a-z][a-z0-9-]{1,39}$/;
-function pendingCleanups(value){
-  if(!value||typeof value!=='object'||Array.isArray(value))return {};
-  return Object.fromEntries(Object.entries(value).filter(([id,row])=>
-    toolIdPattern.test(id)&&row&&typeof row==='object'&&
-    typeof row.version==='string'&&/^\d+\.\d+\.\d+$/.test(row.version)));
+// An unreadable or malformed cleanup journal must never become "no pending cleanup".
+// Filtering invalid entries would let a subsequent install bypass the previous owner's
+ // unfinished removal and would hide the recovery problem from Extension Center.
+export function requirePendingToolCleanups(value){
+  if(value===undefined)return {};
+  if(!value||typeof value!=='object'||Array.isArray(value)||
+    Object.entries(value).some(([id,row])=>
+      !toolIdPattern.test(id)||!row||typeof row!=='object'||Array.isArray(row)||
+      typeof row.version!=='string'||!/^\d+\.\d+\.\d+$/.test(row.version)||
+      (Object.hasOwn(row,'createdAt')&&(!Number.isSafeInteger(row.createdAt)||row.createdAt<0))))
+    throw error('工具卸载恢复记录损坏；已停止安装与卸载清理以保护原始数据','E_STORAGE_CORRUPT');
+  return value;
 }
 export async function getPendingToolCleanups(api){
-  return pendingCleanups((await api.storage.local.get(TOOL_CLEANUP_STORE))[TOOL_CLEANUP_STORE]);
+  return requirePendingToolCleanups((await api.storage.local.get(TOOL_CLEANUP_STORE))[TOOL_CLEANUP_STORE]);
 }
 export async function recordToolUninstall(api,tool){
   // Independent of package bytes: an old iframe must stay revoked even when
@@ -178,7 +185,10 @@ export async function cleanupUninstalledToolLocked(api,id){
     await stopManagedProxyForTool(api,id,{removeVerifiedKey});
     for(const store of [SIDEBAR_TOOL_ENABLE_STORE,READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,READING_TOC_PAGE_RULES_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE,PROMPT_SHORTCUTS_SITE_CLEANUP_STORE,MARKET_PROVENANCE_STORE,BROWSER_MENU_GRANTS_STORE]){
       const raw=(await api.storage.local.get(store))[store];
-      const original=store===SIDEBAR_TOOL_ENABLE_STORE?requireToolEnableRecords(raw):(raw||{});
+      const original=store===SIDEBAR_TOOL_ENABLE_STORE?requireToolEnableRecords(raw):
+        raw===undefined?{}:raw;
+      if(!original||typeof original!=='object'||Array.isArray(original))
+        throw error('卸载权限或来源记录损坏，已停止清理以保护其他工具数据','E_STORAGE_CORRUPT');
       if(!Object.hasOwn(original,id))continue;
       const updated={...original};delete updated[id];
       await writeVerifiedLocalValue(api,store,updated,original,'卸载权限与来源清理');
