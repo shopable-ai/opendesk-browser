@@ -1918,12 +1918,12 @@
       "TRUSTED_HOST_OR_EXISTING_SERVICE": 315,
       "VERSION_GATED": 1
     },
-    "approvedOperations": 70,
-    "approvedRegistered": 68,
+    "approvedOperations": 72,
+    "approvedRegistered": 70,
     "approvedCookieHostOnly": 0,
     "approvedPlannedNew": 0,
     "nativeMappedApproved": 53,
-    "approvedWithInputAndOutputSchemas": 70,
+    "approvedWithInputAndOutputSchemas": 72,
     "approvedTrustedHostImplemented": 2
   },
   "parseErrors": [],
@@ -11340,6 +11340,274 @@
         "negative": "missing capability, forged sender, stale package/epoch, unsupported API, bad input/output, revoke during read",
         "native": "same candidate installed-tool sender and real Chrome API; NOT_TESTED"
       }
+    },
+    {
+      "id": "browser.storage.local.keys",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "migrationDecision": "NEW",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js",
+      "callSignature": "OpenDeskSDK.browser.storage.local.keys()",
+      "returnSignature": "Promise<{keys:string[]}>",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {},
+        "required": []
+      },
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "keys": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 128,
+              "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,127}$"
+            },
+            "maxItems": 32
+          }
+        },
+        "required": [
+          "keys"
+        ]
+      },
+      "nativeApis": [
+        "chrome.storage.local.get"
+      ],
+      "chromePermissions": [
+        "storage"
+      ],
+      "toolCapabilities": [
+        "browser.storage"
+      ],
+      "siteScope": "owner toolId + packageHash + installEpoch, own namespace only",
+      "allowedWorlds": [
+        "sidebar-tool"
+      ],
+      "trust": "INSTALLED_TOOL_EXPLICIT_CAPABILITY_AND_ORIGIN",
+      "userGesture": false,
+      "errors": [
+        "E_SCHEMA",
+        "E_CONTEXT",
+        "E_SERVICE_UNSUPPORTED",
+        "E_CHROME_PERMISSION_REQUIRED",
+        "E_USER_GESTURE_REQUIRED",
+        "E_OWNER",
+        "E_DOCUMENT_CHANGED",
+        "E_OUTCOME_UNKNOWN",
+        "E_LIMIT"
+      ],
+      "sdkFile": "src/framework/sdk/browser.js",
+      "registryFile": "src/framework/sdk/browser-contract.js",
+      "schemaFile": "src/framework/sdk/browser-schemas.js",
+      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
+      "authority": "src/ui/sidebar-tools.js + src/platform/chrome/context-menus.js (REUSE)",
+      "driverFile": "src/ui/sidebar-tools/storage-state.js",
+      "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable",
+      "phase": "P4",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
+      "verification": {
+        "node": "NOT_TESTED",
+        "build": "NOT_TESTED",
+        "native": "NOT_TESTED"
+      },
+      "testContract": {
+        "existing": [
+          "tests/environment/browser-sdk-p4-implementation.test.mjs"
+        ],
+        "positive": "verified installed tool, read only own namespace",
+        "negative": "bad input, missing capability, stale sender or install identity, revoked grant",
+        "native": "Same candidate Chrome and real installed sender required"
+      },
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "support": {
+        "desktopChromeMinimum": 138,
+        "chromeFeatureGate": "feature presence + actual source permission check; never fake Chrome>=138 availability for unknown introduced versions",
+        "executionWorlds": [
+          "sidebar-tool"
+        ],
+        "incognito": "DENIED_BY_DEFAULT"
+      },
+      "nativeTestConditions": {
+        "kind": "NATIVE_PASS_REQUIRES_REAL_CHROME",
+        "sameCandidate": [
+          "commitSha",
+          "extensionPackageSha256",
+          "chromeVersion",
+          "extensionId",
+          "realSenderDocumentId",
+          "toolPackageHashAndInstallEpoch",
+          "permissionAndOriginSnapshot",
+          "nativeAckOrEffectId",
+          "workerLifecycleEvidence",
+          "redactedLogs"
+        ],
+        "denials": [
+          "permissionRevoked",
+          "foreignTool",
+          "staleDocument",
+          "badOrigin",
+          "staleEpoch"
+        ],
+        "nodeAndBuildDoNotPromote": true
+      },
+      "mappingKind": "EXISTING_SERVICE",
+      "statusVerificationPolicy": "Current source path and all current evidence statuses are separate; NEVER treat source-wired as native Chrome PASS",
+      "targetFiles": [
+        "src/framework/sdk/browser-contract.js",
+        "src/framework/sdk/browser.js",
+        "src/framework/sdk/browser-schemas.js",
+        "src/platform/chrome/context-menus.js",
+        "src/ui/sidebar-tools/storage-state.js"
+      ],
+      "schemaStrategy": "AUDITED_EXISTING_SERVICE_RUNTIME_SCHEMA",
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#browser.storage.local.keys"
+    },
+    {
+      "id": "browser.storage.local.getQuota",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "migrationDecision": "NEW",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js",
+      "callSignature": "OpenDeskSDK.browser.storage.local.getQuota()",
+      "returnSignature": "Promise<{usedBytes:number,maxBytes:number,keyCount:number,maxKeys:number,maxItemBytes:number}>",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {},
+        "required": []
+      },
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "usedBytes": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "maxBytes": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "keyCount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "maxKeys": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "maxItemBytes": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "usedBytes",
+          "maxBytes",
+          "keyCount",
+          "maxKeys",
+          "maxItemBytes"
+        ]
+      },
+      "nativeApis": [
+        "chrome.storage.local.get"
+      ],
+      "chromePermissions": [
+        "storage"
+      ],
+      "toolCapabilities": [
+        "browser.storage"
+      ],
+      "siteScope": "owner toolId + packageHash + installEpoch, own namespace only",
+      "allowedWorlds": [
+        "sidebar-tool"
+      ],
+      "trust": "INSTALLED_TOOL_EXPLICIT_CAPABILITY_AND_ORIGIN",
+      "userGesture": false,
+      "errors": [
+        "E_SCHEMA",
+        "E_CONTEXT",
+        "E_SERVICE_UNSUPPORTED",
+        "E_CHROME_PERMISSION_REQUIRED",
+        "E_USER_GESTURE_REQUIRED",
+        "E_OWNER",
+        "E_DOCUMENT_CHANGED",
+        "E_OUTCOME_UNKNOWN",
+        "E_LIMIT"
+      ],
+      "sdkFile": "src/framework/sdk/browser.js",
+      "registryFile": "src/framework/sdk/browser-contract.js",
+      "schemaFile": "src/framework/sdk/browser-schemas.js",
+      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost (REUSE)",
+      "authority": "src/ui/sidebar-tools.js + src/platform/chrome/context-menus.js (REUSE)",
+      "driverFile": "src/ui/sidebar-tools/storage-state.js",
+      "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable",
+      "phase": "P4",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
+      "verification": {
+        "node": "NOT_TESTED",
+        "build": "NOT_TESTED",
+        "native": "NOT_TESTED"
+      },
+      "testContract": {
+        "existing": [
+          "tests/environment/browser-sdk-p4-implementation.test.mjs"
+        ],
+        "positive": "verified installed tool, read only own namespace",
+        "negative": "bad input, missing capability, stale sender or install identity, revoked grant",
+        "native": "Same candidate Chrome and real installed sender required"
+      },
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "support": {
+        "desktopChromeMinimum": 138,
+        "chromeFeatureGate": "feature presence + actual source permission check; never fake Chrome>=138 availability for unknown introduced versions",
+        "executionWorlds": [
+          "sidebar-tool"
+        ],
+        "incognito": "DENIED_BY_DEFAULT"
+      },
+      "nativeTestConditions": {
+        "kind": "NATIVE_PASS_REQUIRES_REAL_CHROME",
+        "sameCandidate": [
+          "commitSha",
+          "extensionPackageSha256",
+          "chromeVersion",
+          "extensionId",
+          "realSenderDocumentId",
+          "toolPackageHashAndInstallEpoch",
+          "permissionAndOriginSnapshot",
+          "nativeAckOrEffectId",
+          "workerLifecycleEvidence",
+          "redactedLogs"
+        ],
+        "denials": [
+          "permissionRevoked",
+          "foreignTool",
+          "staleDocument",
+          "badOrigin",
+          "staleEpoch"
+        ],
+        "nodeAndBuildDoNotPromote": true
+      },
+      "mappingKind": "EXISTING_SERVICE",
+      "statusVerificationPolicy": "Current source path and all current evidence statuses are separate; NEVER treat source-wired as native Chrome PASS",
+      "targetFiles": [
+        "src/framework/sdk/browser-contract.js",
+        "src/framework/sdk/browser.js",
+        "src/framework/sdk/browser-schemas.js",
+        "src/platform/chrome/context-menus.js",
+        "src/ui/sidebar-tools/storage-state.js"
+      ],
+      "schemaStrategy": "AUDITED_EXISTING_SERVICE_RUNTIME_SCHEMA",
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#browser.storage.local.getQuota"
     }
   ],
   "nativeInterfaces": [
@@ -45402,7 +45670,9 @@
       "sdkExposure": "APPROVED_SCOPED_OPERATION_MAPPING",
       "runtimeStatus": "NOT_TESTED",
       "approvedOperationIds": [
-        "browser.storage.local.get"
+        "browser.storage.local.get",
+        "browser.storage.local.keys",
+        "browser.storage.local.getQuota"
       ],
       "testGate": "REGISTERED_OR_PLANNED_OPERATION_NEEDS_NODE_BUILD_NATIVE",
       "disposition": "APPROVED_MAPPED_OPERATION"
@@ -58587,10 +58857,10 @@
   "coverageAudit": {
     "seedNativeCatalogEntries": 119,
     "seedNativeCatalogMissing": 0,
-    "registeredOperations": 68,
+    "registeredOperations": 70,
     "trustedCookieHostOperations": 0,
     "approvedNewDesignOperations": 0,
-    "approvedTotal": 70,
+    "approvedTotal": 72,
     "orphanNativeMappings": [],
     "parseErrors": [],
     "sourceFilesTypeOnly": [
@@ -58702,8 +58972,8 @@
     ],
     "completeness": "Known source consumers identified; exhaustive consumer path enumeration cannot be verified without full repository grep. Phase P1 must enumerate and migrate all current consumers before deleting active alias."
   },
-  "currentRegistrySourceSha": "c4b8bd2234c2b6091c7638f49b256ce339e0a745",
-  "currentSchemaSourceSha": "3132cd31c420272cbfeedafcd38254fdd4e7ba17",
+  "currentRegistrySourceSha": "b2f202ba47da655b99064ec7aebab19846c99f7b",
+  "currentSchemaSourceSha": "f9f64da8d86eb83a83b0b15ab9dbe1752c042caf",
   "contractRevisions": [
     {
       "date": "2026-10-13",
@@ -59005,7 +59275,8 @@
       "owner": "SDK",
       "reason": "复用工具 storage.local 命名空间和配额；不新增全局 Storage 入口",
       "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
-      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+      "nextStep": "消费端采用正式隔离存储方法；历史名称不批准、不添加重复 Wrapper",
+      "canonicalTarget": "browser.storage.local.keys"
     },
     {
       "id": "browser.storage.clear",
@@ -59024,7 +59295,8 @@
       "owner": "SDK",
       "reason": "复用工具 storage.local 命名空间和配额；不新增全局 Storage 入口",
       "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
-      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+      "nextStep": "消费端采用正式隔离存储方法；历史名称不批准、不添加重复 Wrapper",
+      "canonicalTarget": "browser.storage.local.getQuota"
     },
     {
       "id": "browser.downloads.getOwn",

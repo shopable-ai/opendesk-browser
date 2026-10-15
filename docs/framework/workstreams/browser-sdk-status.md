@@ -1,3 +1,13 @@
+## R11.4 · 工具隔离存储 EXISTING_SERVICE 批次（2026-10-15）
+
+正式批准 72 = 70 项公开 + 2 项 Host-only；DIRECT 仍为 3 项。新增 `browser.storage.local.keys()` 和 `browser.storage.local.getQuota()`，只访问已安装工具自己的存储命名空间，复用正式 Facade → Host → Dispatcher → 受信 `executeBrowserToolStorage`，无手写逐接口 Wrapper、无 Chrome 全局枚举、无新权限。历史候选 `browser.storage.keys/getQuota` 继续不予开放，复用正式方法。书签合同及 `browser.storage.local.clear` 的真实点击授权均未修改。
+新增方法证据在当前提交的 CI 运行前仅为 SOURCE_WIRED；Node、Build、Native 均 NOT_TESTED。
+
+| API | Registry | Exposure | Node 正向 | Node 拒绝 | Chrome 原生 |
+| --- | --- | --- | --- | --- | --- |
+| `browser.storage.local.keys` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.storage.local.getQuota` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+
 ## R11.3 · 正式 DIRECT 批次（2026-10-15）
 
 70 项批准 = 68 项公开 + 2 项 Host-only。3 项 DIRECT 为正式矩阵生成，非测试批准夹具；验证候选 `0c4d4a885efb09b467148009e0ebe4981a1ae2da`：3 项 DIRECT 的正式 Host 正向/拒绝 Node PASS，双构建 PASS，Native NOT_TESTED。437 项相关回归与 SDK 两条 CI 通过；市场原生旧入口超时仍 FAIL。原始证据见 `evidence/browser-sdk-r113-map-first/summary.json`。

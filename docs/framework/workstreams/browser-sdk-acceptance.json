@@ -12,9 +12,9 @@
     "auditOnly": true
   },
   "summary": {
-    "operationCount": 68,
+    "operationCount": 70,
     "implementationCounts": {
-      "IMPLEMENTED": 68,
+      "IMPLEMENTED": 70,
       "PLANNED": 0,
       "HOST_ONLY": 0,
       "NOT_EXPOSED": 0
@@ -5444,6 +5444,92 @@
       "commits": [
         "0c4d4a885efb09b467148009e0ebe4981a1ae2da"
       ],
+      "evidence": []
+    },
+    {
+      "api": "browser.storage.local.keys",
+      "module": "browser.storage.local",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.storage.local.keys:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.storage.local.keys:output",
+      "chromePermissions": [
+        "storage"
+      ],
+      "toolCapabilities": [
+        "browser.storage"
+      ],
+      "effectClass": "read",
+      "riskLevel": "low",
+      "siteScope": "owned-storage",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/ui/sidebar-tools/storage-state.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Same-candidate Node/Build/Native evidence pending"
+      ],
+      "nextTask": "R11.4 scoped storage Host positive/denial CI and real Chrome installed tool verification",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.storage.local.getQuota",
+      "module": "browser.storage.local",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.storage.local.getQuota:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.storage.local.getQuota:output",
+      "chromePermissions": [
+        "storage"
+      ],
+      "toolCapabilities": [
+        "browser.storage"
+      ],
+      "effectClass": "read",
+      "riskLevel": "low",
+      "siteScope": "owned-storage",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/ui/sidebar-tools/storage-state.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Same-candidate Node/Build/Native evidence pending"
+      ],
+      "nextTask": "R11.4 scoped storage Host positive/denial CI and real Chrome installed tool verification",
+      "commits": [],
       "evidence": []
     }
   ],

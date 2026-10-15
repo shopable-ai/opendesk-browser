@@ -69,6 +69,8 @@ const MANUAL_BROWSER_OPERATIONS=Object.freeze({
   'browser.scheduler.listOwn':entry('browser.scheduler.listOwn','browser.scheduler',tool,['alarms'],'read','medium','owned-schedules','IMPLEMENTED','tool-install'),
   'browser.scheduler.cancelOwn':entry('browser.scheduler.cancelOwn','browser.scheduler',tool,['alarms'],'write','medium','owned-schedules','IMPLEMENTED','tool-install'),
   'browser.storage.local.get':entry('browser.storage.local.get','browser.storage',tool,['storage'],'read','low','owned-storage'),
+  'browser.storage.local.keys':entry('browser.storage.local.keys','browser.storage',tool,['storage'],'read','low','owned-storage'),
+  'browser.storage.local.getQuota':entry('browser.storage.local.getQuota','browser.storage',tool,['storage'],'read','low','owned-storage'),
   'browser.storage.local.set':entry('browser.storage.local.set','browser.storage',tool,['storage'],'write','medium','owned-storage'),
   'browser.storage.local.remove':entry('browser.storage.local.remove','browser.storage',tool,['storage'],'write','medium','owned-storage'),
   'browser.storage.local.clear':entry('browser.storage.local.clear','browser.storage',tool,['storage'],'write','high','owned-storage'),
@@ -242,6 +244,9 @@ export function normalizeBrowserOperation(operation,args={}){
       if(typeof args.scheduleRef!=='string'||!/^[A-Za-z0-9_-]{16,160}$/.test(args.scheduleRef))
         throw fail('E_SCHEMA','Opaque owned scheduleRef required');
       return {scheduleRef:args.scheduleRef};
+    case 'browser.storage.local.keys':
+    case 'browser.storage.local.getQuota':
+      fields(args,[]);return {};
     case 'browser.storage.local.get':
     case 'browser.storage.local.remove':{
       fields(args,['keys'],operation==='browser.storage.local.remove'?['keys']:[]);

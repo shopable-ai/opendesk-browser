@@ -102,7 +102,7 @@ test('R11 nested namespace callback generates routes without a per-method Handle
       calls.push([operation,input,context]);return {items:{}};
     }
   });
-  for(const name of ['get','set','remove','clear'])
+  for(const name of ['get','keys','getQuota','set','remove','clear'])
     assert.equal(bindings.has('browser.storage.local.'+name),true);
   assert.equal(bindings.has('browser.storage.local.nativeClearAll'),false);
   const owner={toolId:'settings'},authorize=async()=>{};

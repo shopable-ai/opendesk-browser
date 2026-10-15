@@ -44,7 +44,7 @@ export async function executeBrowserToolStorage({api,operation,toolId,input={},a
      typeof api?.storage?.local?.set!=='function')
     throw sdkStorageFail('E_CONTEXT','Trusted Browser Host and existing Chrome storage required');
   const action=operation?.slice('browser.storage.local.'.length);
-  if(!['get','set','remove','clear'].includes(action)||!operation.startsWith('browser.storage.local.'))
+  if(!['get','keys','getQuota','set','remove','clear'].includes(action)||!operation.startsWith('browser.storage.local.'))
     throw sdkStorageFail('E_SERVICE_UNSUPPORTED');
   if(input===null||typeof input!=='object'||Array.isArray(input))
     throw sdkStorageFail('E_SCHEMA');
@@ -64,6 +64,17 @@ export async function executeBrowserToolStorage({api,operation,toolId,input={},a
        keys.some(key=>!sdkStorageKey(key))||new Set(keys).size!==keys.length)||
       action==='remove'&&!Array.isArray(keys)))
     throw sdkStorageFail('E_SCHEMA','Invalid tool-owned storage keys');
+  if(action==='keys'||action==='getQuota'){
+    // Tool-local read only: never enumerate extension-global storage keys or quota.
+    const ownKeys=Object.keys(current);
+    const result=action==='keys'?{keys:ownKeys.sort()}:{
+      usedBytes:sdkStorageBytes(current),maxBytes:SIDEBAR_TOOL_DATA_LIMITS.totalBytes,
+      keyCount:ownKeys.length,maxKeys:SIDEBAR_TOOL_DATA_LIMITS.maxKeys,
+      maxItemBytes:SIDEBAR_TOOL_DATA_LIMITS.itemBytes
+    };
+    await authorize();
+    return result;
+  }
   if(action==='get'){
     const selected={};
     for(const key of keys??Object.keys(current))

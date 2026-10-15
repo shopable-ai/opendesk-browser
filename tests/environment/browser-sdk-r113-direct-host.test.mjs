@@ -107,5 +107,5 @@ test('R11.3 missing Chrome method is unsupported; page SDK never exposes DIRECT 
   const page=createBrowserSdk({context:'page-sdk'});
   assert.equal(page.runtime,undefined);assert.equal(page.i18n,undefined);
   assert.equal((await page.capabilities.getStatus({operation:'browser.i18n.detectLanguage'})).reasonCode,'E_CONTEXT');
-  assert.equal(Object.keys(BROWSER_OPERATIONS).length,68);
+  assert.equal(Object.keys(BROWSER_OPERATIONS).length,70);
 });

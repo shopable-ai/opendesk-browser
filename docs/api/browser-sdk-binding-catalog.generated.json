@@ -4,8 +4,8 @@
   "generationPolicy": "DERIVED_METADATA_ONLY_NOT_A_PERMISSION_GRANT",
   "chromiumSourceCommit": "b5485910372708cd11d9a814a3e382fe8da57df3",
   "counts": {
-    "approved": 70,
-    "public": 68,
+    "approved": 72,
+    "public": 70,
     "hostOnly": 2
   },
   "bindings": [
@@ -2325,6 +2325,84 @@
         }
       ],
       "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.storage.local.get",
+      "chromePermissions": [
+        "storage"
+      ],
+      "toolCapabilities": [
+        "browser.storage"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "owner toolId + packageHash + installEpoch, own namespace only",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable"
+    },
+    {
+      "operation": "browser.storage.local.getQuota",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "CUSTOM",
+      "nativeApis": [
+        "chrome.storage.local.get"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.storage.local.get",
+          "kind": "METHOD",
+          "signature": "get(keys?: choices): Promise<object>",
+          "parameters": [
+            {
+              "name": "keys",
+              "type": "choices",
+              "optional": true
+            }
+          ],
+          "returnType": "Promise<object>"
+        }
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.storage.local.getQuota",
+      "chromePermissions": [
+        "storage"
+      ],
+      "toolCapabilities": [
+        "browser.storage"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "owner toolId + packageHash + installEpoch, own namespace only",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable"
+    },
+    {
+      "operation": "browser.storage.local.keys",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "CUSTOM",
+      "nativeApis": [
+        "chrome.storage.local.get"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.storage.local.get",
+          "kind": "METHOD",
+          "signature": "get(keys?: choices): Promise<object>",
+          "parameters": [
+            {
+              "name": "keys",
+              "type": "choices",
+              "optional": true
+            }
+          ],
+          "returnType": "Promise<object>"
+        }
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.storage.local.keys",
       "chromePermissions": [
         "storage"
       ],
