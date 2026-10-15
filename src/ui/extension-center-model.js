@@ -44,6 +44,11 @@ export function composeExtensionEntries({installed=[],pages=[],official=[],enabl
   }
   return entries.sort((a,b)=>a.title.localeCompare(b.title,'zh-CN')||a.key.localeCompare(b.key));
 }
+// Presentation routing only: trusted hosts still own installation, grants and execution.
+export function resolveExtensionRowIntent(row){
+  if(!row?.installed||row.kind!=='app')return 'detail';
+  return row.enabled===true?'launch':'settings';
+}
 export function filterExtensionEntries(entries,{query='',kind='all',scope='smart'}={}){
   const needle=lower(query);
   return entries.filter(row=>(kind==='all'||row.kind===kind)&&

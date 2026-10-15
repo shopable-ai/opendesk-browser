@@ -3,7 +3,7 @@ import {requireCompleteInstalledSidebarTools,MARKET_PROVENANCE_STORE} from './si
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords} from './sidebar-tools/lifecycle.js';
 import {loadOfficialCatalog} from '../sidebar-tools/official-catalog.js';
 import {setInstalledPageProgramEnabled} from './installed-page-tools.js';
-import {composeExtensionEntries,filterExtensionEntries,describeInstalledAppSource} from './extension-center-model.js';
+import {composeExtensionEntries,filterExtensionEntries,describeInstalledAppSource,resolveExtensionRowIntent} from './extension-center-model.js';
 
 // One trusted presentation. All writes and launches delegate to the existing hosts.
 export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench}){
@@ -48,16 +48,24 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     list.replaceChildren();
     for(const row of rows){
       const item=node('li','ec-row');item.dataset.extensionId=row.key;
+      const intent=resolveExtensionRowIntent(row);
+      // Native button covers icon, title, description and the full left-hand blank area.
+      const main=button('',()=>openRow(row.key),'ec-row-main');
+      main.dataset.extensionKey=row.key;main.dataset.extensionAction='main';
+      main.setAttribute('aria-label',
+        (row.kind==='page'?'管理':intent==='launch'?'打开':intent==='settings'?'设置':'查看详情')+
+        '「'+titleOf(row)+'」');
+      main.title=main.getAttribute('aria-label');
       const glyph=node('span','ec-glyph');glyph.setAttribute('aria-hidden','true');
       glyph.textContent=row.kind==='page'?'◇':'▦';
       const copy=node('div','ec-copy'),line=node('div','ec-name-line');
-      const name=button(titleOf(row),()=>openDetail(row.key),'ec-name');
+      const name=node('span','ec-name',titleOf(row));
       name.title=titleOf(row);
-      name.dataset.extensionKey=row.key;name.dataset.extensionAction='detail';
       const type=node('span','ec-type',typeOf(row));
       const description=node('span','ec-description',row.installed?
         (row.enabled?row.description:'已停用 · '+row.description):row.description);
       line.append(name,type);copy.append(line,description);
+      main.append(glyph,copy);
       const actionName=!row.installed?'安装':row.kind==='page'?'管理':
         !row.enabled?'设置':'打开';
       const primary=button(actionName,()=>primaryAction(row.key),'ec-action');
@@ -65,8 +73,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       primary.setAttribute('aria-label',actionName+'「'+titleOf(row)+'」');
       const manage=button('⋮',()=>openDetail(row.key),'ec-row-more');
       manage.dataset.extensionKey=row.key;manage.dataset.extensionAction='more';
-      manage.setAttribute('aria-label','查看「'+titleOf(row)+'」管理详情');
-      item.append(glyph,copy,primary,manage);list.append(item);
+      manage.setAttribute('aria-label','查看「'+titleOf(row)+'」详情与管理');
+      item.append(main,primary,manage);list.append(item);
     }
     get('extension-center-empty').hidden=rows.length>0;
     get('extension-center-empty-text').textContent=dataError?
@@ -87,6 +95,12 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     const row=find(key);if(!row||row.kind!=='app'||!row.release)return;
     backIfNeeded();
     if(!sidebarTools.openOfficialReview(row.id))openMarket(row.release);
+  }
+  // Only installed apps can launch. Uninstalled rows show detail without installing.
+  function openRow(key){
+    const row=find(key);if(!row||busy)return;
+    if(resolveExtensionRowIntent(row)==='detail'){openDetail(key);return;}
+    primaryAction(key);
   }
   function primaryAction(key){
     const row=find(key);if(!row||busy)return;

@@ -41,8 +41,10 @@ function fixture(){
   const pair=deriveBrowserDirectSchemas(descriptors).get(op);
   assert.deepEqual(pair,[row.inputSchema,row.outputSchema]);
   const projected=deriveBrowserBindingCatalog(matrix,registry);
-  assert.equal(projected.counts.public,54,'The synthetic approval adds one API only to this test');
-  assert.equal(projected.counts.approved,56);
+  assert.equal(projected.counts.public,Object.keys(BROWSER_OPERATIONS).length+1,
+    'The synthetic approval adds exactly one public API only to this test');
+  assert.equal(projected.counts.approved,pinned.approvedOperations.length+1,
+    'The approved discovery matrix is unchanged outside this test');
   return {matrix,registry,descriptors};
 }
 

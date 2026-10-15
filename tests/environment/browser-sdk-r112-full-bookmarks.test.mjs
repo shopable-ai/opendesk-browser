@@ -117,8 +117,10 @@ test('R11.2 snapshot pages do not truncate or include mid-stream inserts; cursor
   await f.bookmarks.create({parentId:'2',title:'External',url:'https://example.net/'});
   const rows=await pages(host,owner,70,first);
   assert.equal(rows.length,553,'snapshot remained anchored at 550 initial leaves');
+  // A forged package identity is rejected by the trusted authority before the
+  // snapshot lookup. Missing/expired snapshots are a separate failure mode.
   await assert.rejects(host.getTree({cursor:first.nextCursor,limit:70},
-    {...owner,packageHash:'b'.repeat(64)}),error('E_SNAPSHOT_EXPIRED'));
+    {...owner,packageHash:'b'.repeat(64)}),error('E_OWNER'));
   await assert.rejects(f.make().getTree({cursor:first.nextCursor,limit:70},owner),error('E_SNAPSHOT_EXPIRED'));
   const after=await pages(host);assert.equal(after.length,554);
 });
@@ -191,4 +193,55 @@ test('R11.2 Full authorization blocks writes and reads before Chrome and any wri
     {title:'One',parentId:'1'},owner,{authorize:async()=>{if(++passes===2)
       throw Object.assign(Error('post-effect revoked'),{code:'E_TOOL_DISABLED'})}}),error('E_OUTCOME_UNKNOWN'));
   assert.equal(creates,1);
+});
+
+test('R11.2 SDK facade and single approved Dispatcher execute the eight Full CRUD calls',async()=>{
+  const mock=fixture(2),full=mock.make();
+  const service=Object.fromEntries(Object.entries(full).filter(([key])=>
+    key!=='revokeAll'&&key!=='observe'));
+  const bindings=createApprovedBrowserBindings({
+    bookmarks:service,'bookmarks.observe':full.observe
+  });
+  const expectedRoutes=['getTree','get','search','create','update','move','remove',
+    'prepareRemoveTree','removeTree','observe.start','observe.read','observe.stop'];
+  for(const method of expectedRoutes)
+    assert.equal(bindings.has('browser.bookmarks.'+method),true,method+' must use the one Dispatcher');
+  assert.equal(bindings.has('browser.bookmarks.revokeAll'),false);
+  let admissions=0;
+  const sdk=createBrowserSdk({request:(operation,args)=>
+    bindings.dispatch(operation,args,owner,{authorize:async(method,_input,context)=>{
+      assert.equal(context,owner);
+      assert.deepEqual(BROWSER_OPERATIONS[method].requiredCapabilities,['browser.bookmarks.full']);
+      admissions++;
+    }})
+  });
+  const first=await sdk.bookmarks.getTree({limit:20});
+  assert.equal(first.nodes.length,5);
+  assert.equal((await sdk.bookmarks.get({id:'10'}))[0].id,'10');
+  assert.equal((await sdk.bookmarks.search({query:'Bookmark 0',limit:20})).nodes[0].id,'10');
+  const folder=await sdk.bookmarks.create({parentId:'1',title:'SDK folder'});
+  const link=await sdk.bookmarks.create({parentId:folder.id,title:'SDK link',
+    url:'https://example.org/sdk-link'});
+  const updated=await sdk.bookmarks.update({id:link.id,expected:mock.expected(link.id),
+    changes:{title:'SDK edited'}});
+  assert.equal(updated.title,'SDK edited');
+  const moved=await sdk.bookmarks.move({id:link.id,expected:mock.expected(link.id),
+    destination:{parentId:'2'}});
+  assert.equal(moved.parentId,'2');
+  assert.deepEqual(await sdk.bookmarks.remove({id:link.id,expected:mock.expected(link.id)}),
+    {removed:true});
+  const snapshot=await sdk.bookmarks.getTree({limit:20});
+  const prepared=await sdk.bookmarks.prepareRemoveTree({id:'2',
+    snapshotRef:snapshot.snapshotRef,expected:mock.expected('2'),descendantCount:2});
+  assert.deepEqual(await sdk.bookmarks.removeTree({id:'2',ticket:prepared.ticket}),{removed:true});
+  const watch=await sdk.bookmarks.observe.start({maxEvents:3,durationMs:10000});
+  mock.emit('onChanged','1',{title:'Bookmarks bar'});
+  const read=await sdk.bookmarks.observe.read({sessionRef:watch.sessionRef,cursor:'0',limit:3});
+  assert.equal(read.events.length,1);
+  assert.deepEqual(await sdk.bookmarks.observe.stop({sessionRef:watch.sessionRef}),{stopped:true});
+  assert(admissions>=expectedRoutes.length*2,
+    'Every approved method must pass authorization both before and after the native effect');
+  assert.deepEqual(mock.effects.filter(x=>x[0]==='removeTree').map(x=>x[1]),['2']);
+  // The trusted Side Panel's one-shot Chrome write-intent and real permission
+  // prompts are separate Host admission checks, not emulated in this Node test.
 });

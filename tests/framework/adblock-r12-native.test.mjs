@@ -205,12 +205,23 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   },'actual Side Panel target');
   let sid=await attach(client,panel.targetId);
   await click(client,sid,'#tab-tools');
-  await click(client,sid,'#sidebar-tool-discover-toggle');
-  await click(client,sid,'#sidebar-tool-official-adblock-install');
+  // The R4 extension center is the only visible installation surface. The
+  // historical discovery button still exists in markup but is CSS-hidden.
+  await until(()=>evaluate(client,sid,'!document.querySelector("#workbench-tools").hidden'),
+    'real Extension Center tab is selected');
+  await click(client,sid,'#extension-center-search');
+  await client.send('Input.insertText',{text:'广告拦截'},sid);
+  const official='#extension-center-list button[data-extension-key="app:adblock"][data-extension-action="primary"]';
+  await until(()=>evaluate(client,sid,'(()=>{const b=document.querySelector('+
+    JSON.stringify(official)+');return !!b&&!b.disabled&&b.textContent.trim()==="安装"})()'),
+    'official optional AdBlock visible after real search');
+  await click(client,sid,official);
   await until(()=>evaluate(client,sid,'!document.querySelector("#sidebar-tool-preview").hidden'),'review fixed AdBlock');
   await click(client,sid,'#sidebar-tool-install');
-  const installed='[data-sidebar-tool-action=open][data-sidebar-tool-id=adblock]';
-  await until(()=>evaluate(client,sid,'!!document.querySelector('+JSON.stringify(installed)+')'),'official AdBlock installed');
+  const installed='#extension-center-list button[data-extension-key="app:adblock"][data-extension-action="primary"]';
+  await until(()=>evaluate(client,sid,'(()=>{const b=document.querySelector('+
+    JSON.stringify(installed)+');return !!b&&!b.disabled&&b.textContent.trim()==="打开"})()'),
+    'reviewed official AdBlock installed and directly runnable in the unified list');
   await click(client,sid,installed);
   await until(()=>evaluate(client,sid,'(()=>{const x=document.querySelector("#sidebar-tool-adblock-native");return !!x&&!x.hidden&&!!x.querySelector("[role=switch]")})()'),
     'trusted AdBlock switches visible');
