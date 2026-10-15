@@ -47,7 +47,7 @@ export function addReadingTocControls(html,{sidePanelHtml,overlayHtml,scenario,s
   'page-overlay':${JSON.stringify(b64(overlayHtml))}
  });
  const decode=value=>new TextDecoder().decode(Uint8Array.from(atob(value),c=>c.charCodeAt(0)));
- const post=kind,value=>iframe.contentWindow?.postMessage({kind,...value},'*');
+ const post=(kind,value)=>iframe.contentWindow?.postMessage({kind,...value},'*');
  function sync(){
   post('opendesk-toc-preview-locale',{locale:language.value});
   post('opendesk-toc-preview-scenario',{scenario:scenario.value});

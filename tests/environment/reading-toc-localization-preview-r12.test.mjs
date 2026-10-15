@@ -4,6 +4,7 @@ import {readFile,mkdtemp,rm} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {createHash} from 'node:crypto';
+import vm from 'node:vm';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 import {generatePreview,buildPreview,previewReviewContext}
   from '../../scripts/preview/build-preview.mjs';
@@ -100,4 +101,17 @@ test('R1.2 preview and review sidecar write reproducibly outside source tree',as
     assert.equal(context.simulation.mock,true);
     assert.equal(context.source.uiSha256,built.uiSha256);
   }finally{await rm(dir,{recursive:true,force:true});}
+});
+
+test('R1.3 both generated TOC preview entrypoints contain executable inline JS',async()=>{
+  // A valid-looking HTML fixture can silently lose every locale/scenario control
+  // when the browser rejects a preview-only script. Parse what was actually emitted.
+  for(const surface of ['side-panel','page-overlay']){
+    const preview=await generatePreview({tool:'reading-toc',surface,theme:'light',scenario:'success',width:360});
+    const scripts=[...preview.html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(match=>match[1]);
+    assert(scripts.length>=2,'Preview must include the real shell and interactive controls');
+    for(const script of scripts)assert.doesNotThrow(()=>new vm.Script(script),
+      'Generated '+surface+' preview contains invalid browser JavaScript');
+    assert.match(preview.html,/const post=\(kind,value\)=>/);
+  }
 });
