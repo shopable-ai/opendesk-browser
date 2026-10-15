@@ -41,8 +41,8 @@ jobs:
             tests/environment/chatgpt-mindmap-preview.test.mjs
       - name: Installed Page native lifecycle and UI regression
         run: |
-          node --test --test-reporter=spec \\
-            tests/environment/page-installed-programs.test.mjs \\
+          node --test --test-reporter=spec \
+            tests/environment/page-installed-programs.test.mjs \
             tests/environment/page-program-library.test.mjs
       - name: Validate authoring and deterministic program build (not runtime installation)
         run: |

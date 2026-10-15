@@ -117,7 +117,7 @@ export function createPageProgramLibrary({client,currentPageTarget,api,document:
     // Explicit destructive confirmation, tied to the currently selected
     // persisted installation rather than whichever candidate is displayed.
     const confirmed=doc.defaultView?.confirm?.(
-      '确定卸载「'+(row.installed.title||row.installed.programId)+'」的自动运行安装吗？\\n已打开的网页需刷新才能清除既有脚本效果。');
+      '确定卸载「'+(row.installed.title||row.installed.programId)+'」的自动运行安装吗？\n已打开的网页需刷新才能清除既有脚本效果。');
     if(confirmed!==true)return '已取消卸载。';
     const result=await client.request('uninstallPageProgram',{
       programId:row.installed.programId,manifestHash:row.installed.manifestHash,
