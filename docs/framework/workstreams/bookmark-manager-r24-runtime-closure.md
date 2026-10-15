@@ -237,3 +237,45 @@ HTML 设计评审另有一份在线对话内的可交互纯内存原型；该设
 ### R2.5 production-source-bound preview CI confirmation
 
 [Sidebar Preview Contract #38716711733](https://github.com/shopable-ai/opendesk-browser/actions/runs/38716711733) 在 `44fed81162c232f1001bbe794d9e58e18497660a` **PASS**：共享设计源锁、组件与模拟边界负例、工具打包/预览生成、既有 Quick Notes headless Chrome 回归全部通过。其独立产物 [bookmark-manager-source-bound-preview（Artifact 11961999146）](https://github.com/shopable-ai/opendesk-browser/actions/runs/38716711733/artifacts/11961999146) 包含真实 Bookmark Manager 同包 HTML/CSS/JS 的 success、empty、error、loading、permission-denied、untrusted 共六个离线 HTML。**这些新 Bookmark Manager HTML 在本 CI 只通过生成及 Node 合同，尚无同候选独立 Chrome 真实点击/视觉截图证据**；Quick Notes 的 Chrome 浏览器通过不得冒充 Bookmark Manager 的 Browser Native。Notebook、用户 Mac 安装与授权持续 NOT_TESTED。
+
+## R2.6 · 原位编辑工作区与交互预览闭环（2026-10-15）
+
+**候选版本：0.3.6；状态：PRODUCTION_SOURCE_CHANGED / REAL_CHROME_OFFLINE_MOCK_INTERACTION_PASS / NODE_75_PASS / CHECK_PASS / INDEPENDENT_PACKAGE_PASS / SHARED_BROWSER_BUILD_BLOCKED / NATIVE_NOT_TESTED / EXPERT_95_NOT_SCORED / ISSUE_75_OPEN。**
+
+本轮由用户提出“编辑名称、URL 不应跳转到独立页面”的反馈触发。R2.5 源码确认普通编辑使用 `s.mode` 切换使整个列表隐藏，窄面板详情距离当前条目较远，已确认写入后清除选择。上述均为源代码证据；Chrome Native 未重现前不得包装为用户 Mac 端实测。
+
+### 交互决策、生产修改及风险合同
+
+- **统一 Inspector**：`src/index.html`、`src/main.js`、`src/style.css` 将已有只读详情、编辑表单、移动及危险删除确认放入同一个 DOM 详情区域，不再开普通编辑子页面；Wide 为 740px 起列表/详情左右分栏，窄侧栏复用同一详情 DOM 挂在选中列表项附近，当前检索条件和展开目录不消失。CSS 只写布局，公共 `od-*` 外观与 Token 继续由唯一正式 `src/ui/design-system.css` 和 `src/ui/design-tokens.css` 构建时注入；不引入 React/Radix/private IPC。
+- **保存与上下文**：已确认 SDK 写入后重新读取原生树，再保留/选中真实新节点的 ID；列表、选择和搜索持续显示；取消无写入；保存失败保留草稿；显式草稿切换闸；F2/Escape/Enter 有操作入口；目标文件夹按路径检索，禁止文件夹自身/后代目标继续由 Model/Service 校验。编辑同时涉及名称/URL/移动时，服务端 SDK 拆分两步，中间先读回检查，不能核实或部分成功即阻断盲目重试，**不伪称跨 Chrome 两种写操作的原子事务**。
+- **冲突保护**：仍基于审阅时的节点签名做预检和 Host 检查；外部变化引发的 `E_BOOKMARK_STALE` 不自动覆盖。手动“重新读取并对比”后，用户才可以明确采用最新 Chrome 版本作为基线并重新保存；草稿保留。未知结果禁用重复提交；撤权清空私有 DOM、草稿、搜索及 SDK 观察者。危险的非空文件夹删除保留已审阅子项签名、Host 短时一次性票据与明确二次确认。
+- **严格 iframe 的保存修复**：生产 `bm-save` 使用 `type=button` 并直接从点击/Enter 的用户手势运行原有受校验的 SDK 逻辑；不放宽 Preview/工具 iframe 的 `sandbox`、不开放 `allow-forms`、不通过表单 HTTP 提交。这是正式浏览器点击测试暴露的实际可操作性缺口，旧 Node 人工派发 `submit` 未能证明真实保存按钮能用。
+- **正式依赖加载修复**：既有 `scripts/preview/build-preview.mjs` 漏载工具包 `pkg.scripts`（书签 `model.js`、`service.js`），之前会输出“看起来可用”但实际无法启动的 HTML。R2.6 改为在入口 JS 前按正式包验证后的顺序注入依赖，使用依赖字节参与预览 UI digest，更新唯一既有 `contracts/ui-preview/quick-notes.lock.json`；没有新建第二套 Preview Builder/Skill。
+- **独立 Mock 实验台**：`scripts/preview/bookmark-manager-mock.js` 以折叠控制区模拟保存明确失败、未知结果、外部改动及授权撤销，仅操作内存；这些控件不在生产 `src/index.html` 中。已有 2159 节点分页/搜索数据未减少。新增 `scripts/tests/bookmark-manager-r26-preview-chrome.mjs`，让同源正式 HTML/JS/CSS 在真正无头 Chrome（非安装态）执行窄 360px、宽 960px 交互并生成截图/JSON；CI 触发器只增加这一已拥有脚本，不改变其他工具的正式 UI。
+
+### R2.5 与 R2.6 的用户操作路径
+
+| 用户操作 | R2.5 | R2.6 |
+| --- | --- | --- |
+| 查看并编辑已有书签 | 点列表、进入独立表单视图，列表隐藏 | 选中书签即显示同区详情，点编辑在当前位置输入，列表仍可见 |
+| 保存 | 保存后无条件清除选择，需再定位原项目 | SDK 读回成功后保持/选中修改后的 ID，同步详情及搜索结果 |
+| 切换草稿 | 缺少完整的未保存切换提示 | 仅用户明确放弃草稿才切换，或继续编辑 |
+| 目录移动 | 很长的原生下拉 | 输入路径关键字筛选目标目录，安全预检仍用原 Service |
+| 新建 | 新表单独立视图 | 同区新建；读回验证后自动选中新节点 |
+
+此对比为源代码操作状态的路径差异，非计时基准；图片、焦点质量与键盘可达性不能仅凭此表给出 95 分。
+
+### 同候选 CI 证据与真实限制
+
+- [正式书签工具源码 CI #38723734914](https://github.com/shopable-ai/opendesk-browser/actions/runs/38723734914)，在提交 `d527a8356ac16817f3338864bb2a0d92b7609c19`：原有书签 SDK/生命周期等 **75 PASS / 0 FAIL**；`npm run check` **PASS**；0.3.6 独立工具包 **PASS**。之后全 Browser `npm run build` **FAIL**，因并行任务范围内 `examples/sidebar-tools/adblock/trusted/host-controls.js` 的可信源码指纹校验。没有绕过审计/重置其他代理提交；后续 Browser verify / development build **BLOCKED / NOT_RUN**。
+- [正式 Source-Bound Preview CI #38723734762](https://github.com/shopable-ai/opendesk-browser/actions/runs/38723734762)，同一候选 `d527a835`：原 Preview Kit 的合同、隔离、安全反例、正式工具打包、生成矩阵、Quick Notes 既有 Chrome smoke 均 **PASS**；新书签专项真实 Chrome 中 **`MOCK_BROWSER_INTERACTION_PASS_NOT_INSTALLED`，2 视口**。覆盖 2159 尾部搜索、选中原位编辑、保存后保持选择、取消不写入、未保存草稿切换、按路径移动、明确失败后手动重试、外部冲突显式审阅与再次保存、未知结果写锁、撤权清理、无外部网络、无脚本异常和无横向页面溢出。预览截图及机读记录位于此 CI 的 `quick-notes-contract-previews` Artifact 内 `artifacts/preview-chrome/bookmark-r26-{narrow,wide}.png` 与 `bookmark-r26-interaction.json`。
+- **可打开的正式来源 HTML**：[bookmark-manager-source-bound-preview — Artifact 11967260379](https://github.com/shopable-ai/opendesk-browser/actions/runs/38723734762/artifacts/11967260379)。提取 `artifacts/previews/bookmark-manager/side-panel-success-light-360.html` / `side-panel-success-light-960.html`，直接在浏览器打开；独立沙箱仅 Mock，不读取/修改真实 Chrome 书签。6 种原有 Preview 场景仍可生成。源码、依赖、设计 Token 与正式工具同源。
+- **Native**：0.3.6 的真实 Chrome 安装/升级、Full Bookmarks 授权、真实保存及删除、跨窗口冲突、Safari 及 Mac Profile 等均 **NOT_TESTED**。用户对视觉/操作的实际主观反馈尚待确认，独立 95+ 视觉审查、无障碍审计、各种分辨率截图审阅均 **NOT_SCORED**；不发布、不关闭 Issue #75。
+
+### 逐维验收门禁（不得以均分遮掩）
+
+视觉 7 维（整体品质、设计系统一致性、信息层级、排版/图标/密度、列表/交互状态、窄栏、宽页面）：**正式设计源一致性与响应式 CSS 有构建/浏览器 Mock 证据；独立视觉逐维评分仍为 NOT_SCORED**，不能仅凭样式代码给 95。
+
+交互 8 维（浏览导航、原位编辑、新建/修改、文件夹移动、草稿/保存、错误/冲突、键盘/无障碍、2159 项规模）：**上述核心操作已经真实 Chrome 离线 Mock 自动化验证**；真实授权 SDK Host 写入、完整真实 Chrome 键盘辅助技术、触摸和长时大量书签仍待独立验收。尚不能为每个维度提供独立 95+ 专家分数，统一标记 `MOCK_PASS / NATIVE_NOT_TESTED / 95_NOT_SCORED`。
+
+下一候选行动：确认这份源代码不被并行 Agent 覆盖；与 AdBlock 所有者协调可信指纹阻塞，不私下绕过；在真实 Mac Chrome 用正式 Extension Center 安装 0.3.6，授权 Full Bookmarks，逐项验证选中→编辑→保存及 URL/目录变化确实反映 Chrome 原生树、滚动焦点、撤权及非空文件夹危险删除。收集原生安装 ID、工具版本、运行时哈希、Chrome 操作回执和视觉/键盘截图后再逐项给分。Issue #75 继续 OPEN。
