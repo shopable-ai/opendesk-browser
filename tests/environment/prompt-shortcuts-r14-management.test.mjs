@@ -14,6 +14,16 @@ class FakeNode{
     this.tagName=tag.toUpperCase();this.id=id;this.className='';this.dataset={};
     this.hidden=false;this.disabled=false;this.checked=false;this.value='';
     this.children=[];this.textContent='';this.attributes={};this.handlers=new Map();
+    // Keep dynamic class tokens consistent with the current production markup.
+    this.classList={
+      contains:token=>this.className.split(/\s+/).includes(token),
+      add:(...tokens)=>{const set=new Set(this.className.split(/\s+/).filter(Boolean));
+        for(const token of tokens)set.add(token);this.className=[...set].join(' ');},
+      toggle:(token,force)=>{const set=new Set(this.className.split(/\s+/).filter(Boolean));
+        const enabled=force===undefined?!set.has(token):Boolean(force);
+        if(enabled)set.add(token);else set.delete(token);
+        this.className=[...set].join(' ');return enabled;}
+    };
   }
   append(...nodes){this.children.push(...nodes);}
   prepend(...nodes){this.children.unshift(...nodes);}
@@ -46,7 +56,7 @@ async function fixture(){
   ]);
   const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(x=>x[1]);
   const nodes=Object.fromEntries(ids.map(id=>[id,new FakeNode('div',id)]));
-  for(const id of ['ps-edit','ps-leave','ps-delete','ps-copy','ps-empty','ps-error'])nodes[id].hidden=true;
+  for(const id of ['ps-edit','ps-leave','ps-copy','ps-empty','ps-error'])nodes[id].hidden=true;
   nodes['ps-body'].tagName='TEXTAREA';
   nodes['ps-label'].tagName='INPUT';nodes['ps-name'].tagName='INPUT';
   nodes['ps-enabled'].checked=true;nodes['ps-web'].checked=true;
@@ -56,6 +66,8 @@ async function fixture(){
     ownerDocument:{createElement:tag=>new FakeNode(tag)},
     querySelector(selector){
       if(selector.startsWith('#'))return nodes[selector.slice(1)]||null;
+      if(selector.startsWith('.'))return allDescendants(nodes['ps-list'])
+        .find(node=>node.classList.contains(selector.slice(1)))||null;
       if(selector==='input[name="ps-shape"]:checked')
         return shapes.round.checked?shapes.round:shapes.square;
       const match=selector.match(/^input\[name="ps-shape"\]\[value="(square|round)"\]$/);
@@ -95,16 +107,20 @@ async function fixture(){
     chooseShape:value=>{shapes.square.checked=value==='square';shapes.round.checked=value==='round';}
   };
 }
-test('R1.4 actual Sandbox UI: body-only create, draft veto, copy, disable, delete and quota recovery',async()=>{
+test('R1.7 actual Sandbox UI: content-first create, inline confirm, draft guard and quota recovery',async()=>{
   const f=await fixture(),n=f.nodes;
   assert.equal(n['ps-index'].hidden,false);
   assert.equal(n['ps-edit'].hidden,true);
-  assert.equal(n['ps-count'].textContent,'0 个快捷按钮');
+  assert.equal(n['ps-count'].textContent,'0 个 · 0 个启用');
   n['ps-new'].emit('click');
   assert.equal(n['ps-edit'].hidden,false);
   assert.equal(n['ps-body'].focused,true);
   n['ps-body'].value=' 中文项目\n第二行';n['ps-form'].emit('input');
   assert.equal(f.states.at(-1).dirty,true);
+  assert.deepEqual(n['ps-preview-glyph'].children.map(x=>x.textContent),['中','文']);
+  assert.equal(n['ps-preview-name'].textContent,'中文');
+  assert.match(n['ps-quota-value'].textContent,/^\d+ \/ 8192 B$/);
+  assert.equal(n['ps-quota'].dataset.error,'false');
   n['ps-form'].emit('submit',{preventDefault(){}});
   await settle();
   assert.equal(f.writes(),1);
@@ -134,13 +150,14 @@ test('R1.4 actual Sandbox UI: body-only create, draft veto, copy, disable, delet
   assert.equal(f.stored().settings.webButtons,false);
   assert.equal(f.stored().items.length,1);
 
-  buttonByText(n['ps-list'],'更多').emit('click');
+  buttonByText(n['ps-list'],'⋯').emit('click');
   buttonByText(n['ps-list'],'停用').emit('click');await settle();
   assert.equal(f.stored().items[0].enabled,false);
 
   // Oversized body cannot silently truncate or overwrite the earlier item.
   n['ps-new'].emit('click');
   n['ps-body'].value='多'.repeat(4000);n['ps-form'].emit('input');
+  assert.equal(n['ps-quota'].dataset.error,'true','oversized complete JSON flagged before save');
   const earlier=f.writes();
   n['ps-form'].emit('submit',{preventDefault(){}});await settle();
   assert.equal(f.writes(),earlier);
@@ -151,9 +168,15 @@ test('R1.4 actual Sandbox UI: body-only create, draft veto, copy, disable, delet
   assert.equal(f.stored().items.length,1);
 
   if(!allDescendants(n['ps-list']).some(item=>item.tagName==='BUTTON'&&item.textContent==='删除'))
-    buttonByText(n['ps-list'],'更多').emit('click');
+    buttonByText(n['ps-list'],'⋯').emit('click');
   buttonByText(n['ps-list'],'删除').emit('click');
-  assert.equal(n['ps-delete'].hidden,false);
-  n['ps-delete-yes'].emit('click');await settle();
+  const confirmation=allDescendants(n['ps-list']).find(node=>node.classList.contains('ps-confirm'));
+  assert(confirmation,'delete confirmation must appear inside the prompt card');
+  assert.match(confirmation.children[0].textContent,/确认删除/);
+  const action=buttonByText(confirmation,'确认删除');
+  assert.equal(action.disabled,false);
+  action.emit('click');await settle();
   assert.equal(f.stored().items.length,0);
+  assert.equal(n['ps-count'].textContent,'0 个 · 0 个启用');
+  assert.equal(n['ps-empty'].hidden,false);
 });
