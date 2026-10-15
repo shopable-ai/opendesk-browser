@@ -182,12 +182,14 @@ function renderFolderOptions(preferred){
     !isFolder(node(s.selection))||!model.isDescendant(s.tree,item.id,s.selection));
   const matches=source.filter(item=>!filter||pathOf(item.id).toLocaleLowerCase().includes(filter));
   select.replaceChildren();
-  for(const item of matches.slice(0,120)){
+  const displayed=matches.slice(0,120);
+  for(const item of displayed){
     const option=make('option','',pathOf(item.id)||item.title||'未命名');
     option.value=item.id;option.selected=item.id===selected;select.append(option);
   }
-  // Preserve the actual selection even if a search excludes it.
-  if(selected&&source.some(item=>item.id===selected)&&!matches.some(item=>item.id===selected)){
+  // A selected folder may also lie beyond the first 120 matching rows.
+  // Keep it selectable while preserving the bounded DOM.
+  if(selected&&source.some(item=>item.id===selected)&&!displayed.some(item=>item.id===selected)){
     const option=make('option','',pathOf(selected)+'（当前选择）');
     option.value=selected;option.selected=true;select.append(option);
   }
@@ -197,8 +199,15 @@ function renderFolderOptions(preferred){
     '匹配 '+matches.length+' 个可用文件夹 · 方向键可选择';
 }
 function renderForm(){
-  const selected=node(s.selection),isNew=s.mode.startsWith('new-');
+  const isNew=s.mode.startsWith('new-'),live=node(s.selection);
+  const selected=live||s.reviewed;
   if(!isNew&&!selected){s.mode='tree';s.draft=null;render();return}
+  if(!isNew&&!live){
+    // An external delete must not silently throw away the user's local draft.
+    // There is no longer a safe write target: review/copy, then explicitly cancel.
+    s.saveNeedsReview=true;
+    q('bm-form-error').textContent='原书签已在其他窗口删除。草稿仍保留，请复制需要的内容后取消；不能覆盖已删除项目。';
+  }
   const folder=s.mode==='new-folder'||isFolder(selected),moving=s.mode==='move';
   q('bm-form-title').textContent=(moving?'移动':isNew?'新建':'编辑')+(folder?'文件夹':'书签');
   q('bm-name-row').hidden=moving;
@@ -250,7 +259,8 @@ function render(){
   const to=restore&&typeof active.selectionEnd==='number'?active.selectionEnd:null;
   const showForm=editingMode(),isDelete=s.mode==='delete',isRead=s.mode==='tree';
   q('bm-explorer').hidden=false;
-  q('bm-inspector').hidden=!(node(s.selection)||s.mode.startsWith('new-'));
+  q('bm-inspector').hidden=!(node(s.selection)||s.mode.startsWith('new-')||
+    (editingMode()&&s.reviewed));
   q('bm-inspector-read').hidden=!isRead;
   q('bm-form-view').hidden=!showForm;
   q('bm-delete-view').hidden=!isDelete;
@@ -393,8 +403,18 @@ async function refresh(manual=false){
     else recoverWatch(watchError);
   }catch(error){
     if(session!==s.session||epoch!==s.watchEpoch)return;
-    gate('读取失败：'+errorText(error)+'。检查权限后可重新尝试。');
-    notice('无法读取 Chrome 书签',true);
+    // Keep an authorized, already-loaded workspace and its unsaved draft when
+    // a *known transient* read transport fails. Never do this on revocation,
+    // unknown permission status, malformed snapshots or a new authorization.
+    const transient=['E_HOST_TIMEOUT','E_TIMEOUT','E_HOST_CLOSED',
+      'E_TOOL_RUNTIME_UNAVAILABLE','E_TRANSPORT','E_SESSION_EXPIRED',
+      'E_BOOKMARK_EVENT_GAP'].includes(error?.code);
+    if(s.tree&&transient){
+      notice('刷新暂时失败，已保留当前列表与未保存草稿。请手动重试：'+errorText(error),true);
+    }else{
+      gate('读取失败：'+errorText(error)+'。检查权限后可重新尝试。');
+      notice('无法读取 Chrome 书签',true);
+    }
   }finally{if(session===s.session&&epoch===s.watchEpoch)q('bm-refresh').disabled=false}
 }
 function confirmedWrite(tree,receipt,expectation){
@@ -433,7 +453,11 @@ async function mutation(run,expectation=null){
     s.draft=null;s.initialDraft=null;s.reviewed=null;s.reviewedDescendants=null;
     s.saveNeedsReview=false;s.menu=null;s.pending=null;s.conflict=false;s.conflictReviewed=false;
     q('bm-form-error').textContent='';
-    render();notice('已更新并重新读取 Chrome 书签');
+    render();
+    const outsideSearch=Boolean(s.search&&s.selection&&
+      ![...root.querySelectorAll('.bm-entry')].some(entry=>entry.dataset.nodeId===s.selection));
+    notice(outsideSearch?'已保存并确认原生结果；当前搜索未匹配该项目，清空搜索可在列表中查看。':
+      '已更新并重新读取 Chrome 书签');
   }catch(error){
     if(session!==s.session)return;
     const unknown=wrote||['E_OUTCOME_UNKNOWN','E_EFFECT_UNKNOWN','E_WRITE_NOT_CONFIRMED'].includes(error?.code);
