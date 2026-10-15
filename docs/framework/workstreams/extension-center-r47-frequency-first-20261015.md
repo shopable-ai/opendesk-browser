@@ -98,3 +98,12 @@
 2. 构建前让 Reading TOC/固定资源 Owner 按真实审计修复 `locales.json` 与 `page-relay` 的归属；**不可添加 `examples/**` 全局许可、关闭 Source Pin 或虚构 SHA**。再复检与 AdBlock Pin 的实际独立问题。完整顺序：`npm ci --ignore-scripts --no-audit --no-fund` → `npm run check` → `node --test tests/environment/extension-center-r4.test.mjs tests/environment/extension-center-r42-row-action.test.mjs tests/environment/extension-center-r47-menu.test.mjs tests/environment/extension-center-r47-interaction.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/installed-page-tools-r251.test.mjs` → `npm run build` → `npm run build:dev` → `npm run verify`。仅同提交成功结果可记 PASS。
 3. 固定候选并在用户 Mac 已安装 Chrome 扩展中验证：启用 App 的整行和“打开”进入同一应用；停用 App 只有“⋮→启用”且启用不自启动；自动运行 Page 无伪主按钮、菜单启停确实注册/撤销；候选行仅打开详情及安装审阅；缺网站权限/撤权/过期 manifest 与未保存草稿真实拒绝；并发单事务与异常恢复；菜单底部不被剪裁，Tab/↑↓/Home/End/Escape/焦点往返；与浅色 Demo 同一场景的正式 CSS 截图/计算样式逐项对比。
 4. 每条原生用户路径绑定候选 Commit SHA、固定构建 Hash、Chrome 版本与 Profile、真实用户点击方式、真实状态读回、截图/日志、PASS/FAIL。无证据保持 NOT_TESTED。对失败的路径做最小源代码修复后只复验受影响项，再给十一维**真正独立的**定量评分。所有维度实证 ≥95 才可关闭 R4.7。
+
+
+## R4.8：既有浅色预览到正式产品的最小差异修复（2026-10-15）
+
+- 用户新目标：对照现有 `prototypes/sidebar/extension-center-r47-frequency-first-preview.html`，**直接修改浏览器扩展的正式 `src/ui/` 界面**，避免仅改善 HTML Mock。专用续接 GOAL 已保存到 `docs/framework/prompts/goal-extension-center-r48-preview-to-real-chrome-20261015.zh-CN.md`。
+- 本轮确认的差异：正式已启用 App 的详情多出冗余「打开应用」（列表已经有相同主动作），与当前预览不一致；正式详情的首段说明也未复用列表已停用/权限/未知状态语义。修复只涉及 `extension-center.js` 展示层，保留原 Host/Open/授权/安装审阅逻辑，并在现有 DOM 组件测试增加详情差异回归。
+- 顶栏预览的模拟「＋」「↻」和正式产品的真实市场/筛选/语言/刷新在**功能意义上并不等价**；后续应以真实功能与原版设计规范为准审计差异，不为了像素匹配直接替换正式菜单或静默丢掉任何功能。
+- 现有 211/211 定向通过及 build 阻断为历史候选证据，不是本轮新候选的测试结果；当前修复尚待同候选 CI。Mac 原生 Chrome **NOT_TESTED**；无权威截图/计算样式时「预览与正式一致性 ≥95」仍 **NOT_SCORED**。
+- 文件归属仅为本轮具体改动：`src/ui/extension-center.js`、`tests/environment/extension-center-r47-interaction.test.mjs`、上述新 GOAL 与本段记录。保留其它并行 Agent 对本文件之前的新增内容。

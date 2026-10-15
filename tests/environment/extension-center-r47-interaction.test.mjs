@@ -316,3 +316,24 @@ test('R4.7 menu detail Back restores the menu origin independent of pointer focu
   assert.equal(f.doc.activeElement.dataset.extensionKey,'page:reader');
   assert.equal(f.doc.activeElement.dataset.extensionAction,'more');
 });
+
+
+test('R4.8 app detail matches the R4.7 preview: no duplicate Open and visible stopped status',async t=>{
+  const enabled=fixture(t);await enabled.ui.refresh();
+  enabled.button('app:quick-notes','more').dispatch('click');
+  enabled.menuItem('查看详情').dispatch('click');
+  assert.equal(enabled.nodes['extension-center-detail'].hidden,false);
+  const enabledActions=enabled.nodes['extension-center-detail-body'].querySelectorAll('button')
+    .map(button=>button.textContent);
+  assert.deepEqual(enabledActions,['设置与权限'],
+    'the verified primary Open belongs on the list, not duplicated inside Details');
+  assert.equal(enabled.nodes['extension-center-detail-body'].textContent.includes('已停用'),false);
+
+  const disabled=fixture(t,{disabled:true});await disabled.ui.refresh();
+  disabled.button('app:quick-notes','main').dispatch('click');
+  assert.equal(disabled.nodes['extension-center-detail'].hidden,false);
+  assert.match(disabled.nodes['extension-center-detail-body'].textContent,/已停用 · 记录内容/,
+    'detail introduction preserves the same stopped-state message as the list and preview');
+  assert.deepEqual(disabled.nodes['extension-center-detail-body'].querySelectorAll('button')
+    .map(button=>button.textContent),['设置与权限']);
+});

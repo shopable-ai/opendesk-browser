@@ -229,7 +229,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     glyph.textContent=row.kind==='page'?'◇':'▦';glyph.setAttribute('aria-hidden','true');
     const copy=node('div','ec-detail-copy');
     copy.append(node('strong','',titleOf(row)),node('span','ec-type',typeOf(row)));
-    head.append(glyph,copy);area.append(head,node('p','',descriptionOf(row)));
+    head.append(glyph,copy);area.append(head,node('p','',rowDescription(row)));
     const actions=node('div','ec-detail-actions');
     function detailButton(label,fn,action){
       const b=button(label,fn);b.dataset.ecDetailAction=action;b.disabled=busy;return b;
@@ -237,7 +237,6 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     if(row.kind==='app'){
       if(!row.installed)actions.append(detailButton('审阅并安装',()=>openReview(row.key),'install'));
       else{
-        if(resolveExtensionPrimaryAction(row))actions.append(detailButton('打开应用',()=>{backIfNeeded();sidebarTools.openTool(row.id);},'open'));
         actions.append(detailButton('设置与权限',()=>{backIfNeeded();sidebarTools.openSettings(row.id);},'settings'));
         if(row.update&&row.release)actions.append(detailButton('审阅新版',()=>openReview(row.key),'update'));
       }
