@@ -231,3 +231,51 @@
 - 远端逐字节核对：`pkg.html === src/index.html`、`pkg.js === src/main.js`、CSS 的本工具私有布局后缀与 `src/style.css` 对应部分一致、`pkg.scripts[0].code === trusted/model.js`、`tool.config.json` 与正式包版本均为 `1.0.1`；这是**远端静态同源核验，不冒充官方 CLI 的本机执行**。
 - 源码准入 SHA 对应 `trusted/model.js`、`trusted/policy.js`、`trusted/page.js` 三项均与目前精确 blob pin 相同，无目录或目标通配许可。先前历史 AdBlock `host-controls.js` 固定 SHA 失配经当前源码检查已不再存在（实际与批准值同为 `c2d9fb892c76669b169c34de2cb4c168f91402cf`），但本次**未执行 production 整包 build**。
 - Scoped CI 已自动触发：[Run 38764735559](https://github.com/shopable-ai/opendesk-browser/actions/runs/38764735559)，运行绑定上述提交；截至最后一次读取仍为 `queued`，**NODE_PASS / PACKAGE_PASS 未取得，不得声称 CI PASS**。需读取该 Run 中真实测试、官方包生成日志和可安装包摘要后再关闭技术门禁。真实 Chrome/IME 独立验收继续 `NOT_TESTED`。
+
+## 10. R1.9 — PREVIEW FIRST / SAVE FAILURE RECOVERY（2026-10-16）
+
+### 10.1 阶段界限与原始证据
+
+- 本轮在 GitHub 已读取 `AGENTS.md`、本需求文档、原预览、`preview/mock.html`、正式 `src`、`trusted/model.js`、宿主 `tool.html` / `sidebar-tools.js`、Design Tokens / System 与相关历史提交。起始 `main` HEAD 为 `30cc8f63e80efd22957e929e1796e114d5a5c9ac`；宿主已有 `sidebar-tool-back` / `sidebar-tool-title`，正式 `src/main.js` 的 `save()` 存在 `!ready || busy || mode !== 'form'` 无提示提前返回的待确认风险。
+- 唯一变更的交互预览是 `examples/sidebar-tools/prompt-shortcuts/preview/index.html`，保留原始 Git 历史，不增加平行原型。预览增量提交：[`49ffae7`](https://github.com/shopable-ai/opendesk-browser/commit/49ffae733a8174cdacec075d4f5b6e0fa07470f3)（布局/状态）、[`a53a1c3`](https://github.com/shopable-ai/opendesk-browser/commit/a53a1c3267489e491505b4b05f15060fb3034092)（未知结果核对/精确库额度）、[`d038a4e`](https://github.com/shopable-ai/opendesk-browser/commit/d038a4e618c99fa96b3f300bf5bccddaf5cf9e2a)（未知结果持久反馈）。
+- 新 UX 合同已追加至 `examples/sidebar-tools/prompt-shortcuts/REQUIREMENTS.zh-CN.md`，提交 [`d3e165a`](https://github.com/shopable-ai/opendesk-browser/commit/d3e165a4fa6526ed928365f84c3bc72e577ef3be)。之前的 Claude/Gemini/Perplexity/DeepSeek/Grok/Cursor Web/ComfyUI 跨平台长期需求完整保留。
+- `preview/mock.html` **未修改**（Git blob `025ec9b2c1ed6e9b011c9e3c2a6ce5a87d263eae`）；正式 `src/index.html` / `src/style.css` / `src/main.js` **未修改**（分别为 `9ba23d10bb63be377db0d6c08ff2ec5da091282e`、`7598de9164d3f2017cb8d376d9539d0df1c60a59`、`83404d404bd73ad59546dd25fdaedf33951841ad`）。正式单一 JSON **未刷新/晋升**，版本仍为 `1.0.1`，Git blob `6bc4c87e027cb0a10656a4a992d8982e173190fc`。
+
+### 10.2 R1.9 预览交互修改（候选设计，等待用户确认）
+
+| 原始问题 / 预期行为 | 本轮源码改动 | 当前证据与风险 |
+| --- | --- | --- |
+| 宿主与工具同时绘制标题/返回 | 新增仅用于原型的宿主单行导航，工具首页只显示“我的提示词”，编辑页只有“新建/编辑提示词”和“取消”；宿主返回与表单取消走不同目的地，草稿变更有确认。 | `SOURCE_WIRED`：原重复 `formBack` 与面包屑移除；真实宿主 `dirty/busy` 事件仍须后阶段测试。 |
+| textarea 238px 不合理 | `rows=3`，CSS 三行文本行高加内边距的固定可视高度约 80.4px、`overflow-y:auto`、`resize:none`、可换行；不因 10/100 行撑高表单。 | `STATIC_PASS`：源码符合；实际布局测量、macOS 中文 IME、光标内部滚动 `NOT_TESTED`。 |
+| 新建只输入正文即可保存 | 自动 Unicode 两字素预览直接展示，名称/标签/圆角形状/启停收进原生可访问 `<details>`；手动编辑或非默认状态时自动展开。 | `SOURCE_WIRED`：组合字符处理和折叠行为；键盘/辅助技术真实检查 `NOT_TESTED`。 |
+| 保存无状态、失败找不到错误 | 保存中禁用提交按钮；空正文就近报警与聚焦；全库精确 JSON 8192B 模拟配额；写入失败、冲突、未知结果持续反馈，保留正文；未知结果可在不离开表单的情况下核对当前模拟列表。 | `SOURCE_WIRED`，模拟 Promise 与模拟内存，绝不当成真实 storage.set/Host/ETag 的验收。 |
+| 实验台混入正式工具内容 | “写入失败/冲突/结果未知”选项移动到整个原型上方独立实验台；预览状态区在产品内不再重复常驻说明。 | `STATIC_PASS`：三个实验按钮位于 `<main>` 之外；迁移正式 UI 时禁止拷贝实验台。 |
+
+### 10.3 验收场景与证据等级（A–I）
+
+| 场景 | 源码检查 | 独立浏览器执行结果 |
+| --- | --- | --- |
+| A. 新建 → 只输入“你好” → 保存 → 列表出现 | `SOURCE_WIRED`（内存模拟成功路径） | `NOT_TESTED` |
+| B. 空正文保存 → 就近错误和焦点 | `SOURCE_WIRED` | `NOT_TESTED` |
+| C. 十行/百行正文 → 固定三行内滚 | `STATIC_PASS`（CSS 规则） | `NOT_TESTED` |
+| D. 中文/Emoji/组合字素自动标签，编辑回读 | `SOURCE_WIRED` | `NOT_TESTED` |
+| E. 全库 JSON 超出 8192 B → 拒绝，草稿保留 | `SOURCE_WIRED` | `NOT_TESTED` |
+| F. 模拟写入失败 → 可见错误，不丢草稿 | `SOURCE_WIRED` | `NOT_TESTED` |
+| G. 模拟写入结果未知 → 不重试、核对列表、保留草稿 | `SOURCE_WIRED` | `NOT_TESTED` |
+| H. 宿主返回 → 有草稿先确认，放弃后退出工具 | `SOURCE_WIRED` | `NOT_TESTED` |
+| I. 表单取消 → 有草稿先确认，放弃后只回列表 | `SOURCE_WIRED` | `NOT_TESTED` |
+
+### 10.4 静态检查、逐维评分与剩余风险
+
+- 已对 GitHub 最新预览做源代码静态验收：**81 个 HTML id 无重复，所有 `el('id')` 静态引用可解析，`<aside>` 标签嵌套平衡，唯一宿主标题/表单视图标题，`rows=3`/内部滚动/禁止拖拽、无残留 `min-height:238px`、无旧 `formBack` / 面包屑，模拟失败控件在产品 `<main>` 外，保存中/冲突/未知/核对分支与 A11y 状态属性均在源码中。**结果 `STATIC_PASS`。这不是 Node、浏览器 DOM 或视觉截图执行。
+- 九个专家目标维度：信息架构、导航去重、正文输入体验、创建编辑效率、表单密度、成功/失败反馈、键盘焦点与无障碍、Design Token 一致性、错误状态恢复，当前分别均标记 **`NOT_SCORED`**。依据：尚无同一预览的真实浏览器交互实测、计算样式/聚焦/滚动测量、Mac IME、辅助技术、异常注入录屏或独立产品评审。不得将 `STATIC_PASS` 虚报为逐维 95+。待实际浏览器 A–I 通过后才能逐维评分；任何维度低于 95 要定向修复和复验。
+- GitHub 连接能读取、增量写入 `main`，但无法直接读用户 Mac 的 `/Users/shopme/Documents/workspace/opendesk-browser`，也未核对其 `git status`、开发 watcher、正式安装、原生 Chrome 身份和本机输入法。**现有已安装版本保存失败 P0 尚未关闭。**用户在本地手动输入“你好”无错误反馈的复现仍是独立事实。
+- 尚未运行浏览器交互测试、Node 定向测试、官方临时构建/`--promote-from`/`--check-project`、原生安装/重启持久化/ChatGPT/IME/原生右键。对应 `NODE_PASS`、`PACKAGE_PASS`、`INSTALLED_CHROME_PASS`、`REAL_CHATGPT_PASS`、`MAC_IME_PASS` 均 **`NOT_TESTED`**；本阶段不触碰原正式 JSON。
+
+### 10.5 用户确认后第二阶段执行门禁
+
+1. 用户先打开并操作 [`preview/index.html`](../../../examples/sidebar-tools/prompt-shortcuts/preview/index.html) 确认单一导航、三行高度、折叠选项与保存错误路径；若不同意，先定向完善这一唯一预览，不提前迁正式。
+2. 再用真实已安装工具重现只输入“你好”无法保存的问题：记录当前包 SHA/版本/运行时、submit 是否触发、`ready/busy/mode` 提前返回、`model.draft`、`crypto.randomUUID` / `Intl.Segmenter`、SDK `storage.set` payload/Host 回执/ETag、列表刷新与关闭重开读回；未经证据不宣称任何特定根因。
+3. 经预览确认后把必要结构和反馈迁至 `src/index.html` / `src/style.css` / `src/main.js`，不复制模拟数据或假宿主头；维持可信页面代码不变，除非实际缺陷证据要求修改。
+4. 运行 `node --test tests/environment/prompt-shortcuts-r14*.test.mjs` 等定向测试和共享设计安全来源检查；使用官方候选包 → 测试 → `--promote-from` → `--check-project`，按官方版本升级语义审查递增 `1.0.2`，同步唯一正式 JSON，绝不同版本异字节覆盖。
+5. 同候选在真实 Chrome 测试 “你好” 保存、重新打开仍存在、多行/Emoji/100 行、空/超限/失败/冲突/未知、草稿保护、按钮/Tooltip、Cmd+Z/IME、原生选区右键和停用/撤权/重装，并提供可复核操作证据。任何不具备的场景继续 `NOT_TESTED`。
