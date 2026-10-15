@@ -1,0 +1,41 @@
+name: ChatGPT Mind Map R2.1 local preview source contract
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'examples/programs/chatgpt-mindmap/**'
+      - 'tests/environment/chatgpt-mindmap-preview.test.mjs'
+      - 'tests/environment/chatgpt-mindmap-r1.test.mjs'
+      - 'tests/framework/chatgpt-mindmap-xmind-probe.mjs'
+      - '.github/workflows/chatgpt-mindmap-preview.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-source-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Real XMind adapter and preview source/regression checks
+        run: |
+          node --test --test-reporter=spec \
+            tests/environment/chatgpt-mindmap-r1.test.mjs \
+            tests/environment/chatgpt-mindmap-preview.test.mjs
+      - name: Validate authoring and deterministic program build (not runtime installation)
+        run: |
+          node scripts/validate-program-project.mjs examples/programs/chatgpt-mindmap
+          npm run build:program -- examples/programs/chatgpt-mindmap
+      - name: Source safety checks
+        run: npm run check
+      - name: Declare actual evidence limitations
+        run: |
+          echo 'COMPONENT_TESTED_ONLY: vendor asset / Chrome / USER_SCRIPT installed / ChatGPT NOT_TESTED'
+          echo 'No vendor redistribution or fixed production runtime admission in this workflow'
