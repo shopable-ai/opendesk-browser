@@ -50,9 +50,17 @@ function answerController({document,window,owner,css,parts,coordinator}){
   };
   buttonRef=makeButton(document,css,owner,handleClick);
   function syncTheme(){
+    if(disposed)return;
     const theme=dark(document)?'true':'false';
-    buttonRef.host.setAttribute('data-dark',theme);
-    view?.host.setAttribute('data-dark',theme);
+    if(buttonRef.host.getAttribute('data-dark')!==theme){
+      buttonRef.host.setAttribute('data-dark',theme);
+    }
+    if(view&&view.host.getAttribute('data-dark')!==theme){
+      view.host.setAttribute('data-dark',theme);
+      // Keep the original XMind workbook skin in step with the host, not
+      // just the shadow-toolbar colors. Rendering is serialized per answer.
+      view.setTheme(theme==='true').catch(failed);
+    }
   }
   function syncButton(){
     if(disposed)return;
@@ -138,6 +146,7 @@ function answerController({document,window,owner,css,parts,coordinator}){
     if(full&&view)coordinator.setFull(api);
   }
   const api={
+    syncTheme,
     get root(){return root;},get content(){return content;},get bar(){return bar;},
     get view(){return view;},get revision(){return revision;},
     get buttonHost(){return buttonRef.host;},get button(){return buttonRef.button;},
@@ -269,8 +278,12 @@ export function createAnswerRegistry({document,window,owner,css}){
       {subtree:true,childList:true,characterData:true,attributes:true,
         attributeFilter:['data-is-streaming','aria-busy','data-message-id']});
     owner.on(window,'keydown',keydown);
-    owner.observe(document.documentElement,()=>schedule(),
-      {attributes:true,attributeFilter:['class','data-theme']});
+    // A theme mutation is visible at the next microtask, before a delayed
+    // 140 ms answer rescan. This also updates already-open A/B viewers.
+    owner.observe(document.documentElement,()=>{
+      if(disposed)return;
+      for(const controller of controllers)controller.syncTheme();
+    },{attributes:true,attributeFilter:['class','data-theme']});
     owner.setInterval(checkRoute,1100);
     scan();
   }

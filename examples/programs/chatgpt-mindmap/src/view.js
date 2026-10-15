@@ -16,6 +16,7 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
   toolbar.setAttribute('role','toolbar');toolbar.setAttribute('aria-label','思维导图操作');
   const actions=[],renderActions=[];
   let renderer=null,fullscreen=false,disposed=false,closing=null,inlineParent=null,inlineNext=null;
+  let preferredSkin=null;
   function action(label,fn,title,{render=false}={}){
     const button=el('button','odmm-tool',label);button.type='button';
     button.title=title;button.setAttribute('aria-label',title);
@@ -44,14 +45,31 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
   shell.append(toolbar,canvas,status);shadow.append(style,shell);
   async function start(){
     if(disposed)return;
-    renderer=createXmindRenderer({window,canvas,tree,
-      skinMode:host.getAttribute('data-dark')==='true'?'dark':'light'});
+    preferredSkin=host.getAttribute('data-dark')==='true'?'dark':'light';
+    renderer=createXmindRenderer({window,canvas,tree,skinMode:preferredSkin});
     await renderer.ready;
     if(disposed)return;
     await renderer.fit();
     if(disposed)return;
     renderActions.forEach(button=>{button.disabled=false;});
     status.textContent='';status.hidden=true;host.dataset.ready='true';
+    if(!host.dataset.skinPending)host.dataset.skinReady=preferredSkin;
+  }
+  async function setTheme(isDark){
+    if(disposed)return;
+    const next=isDark?'dark':'light';
+    if(preferredSkin===next)return;
+    preferredSkin=next;
+    // A still-loading renderer accepts a queued skin switch after ready.
+    // Do not dispose/reopen this answer, or affect any sibling viewer.
+    if(renderer){
+      host.dataset.skinPending=next;
+      await renderer.setTheme(next);
+      if(!disposed&&preferredSkin===next){
+        host.dataset.skinReady=next;
+        delete host.dataset.skinPending;
+      }
+    }
   }
   async function setFull(value){
     if(disposed||fullscreen===value)return;
@@ -83,6 +101,6 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
     closing=(async()=>{try{await renderer?.destroy();}finally{host.remove();}})();
     return closing;
   }
-  return Object.freeze({host,start,destroy,setFull,markStale,
+  return Object.freeze({host,start,destroy,setFull,setTheme,markStale,
     get fullscreen(){return fullscreen;},nodeCount});
 }

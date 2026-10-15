@@ -16,6 +16,7 @@ export function requireXmindRuntime(scope=globalThis){
 export function createXmindRenderer({window,canvas,tree,skinMode='light'}){
   const sdk=requireXmindRuntime(window);
   let controller=null,mount=null,disposed=false,folded=false,closing=null;
+  let appliedSkin=skinMode,desiredSkin=skinMode;
   let operations=Promise.resolve();
   const frame=()=>new Promise(resolve=>{
     // Background documents may suspend rAF; Stop must still finish.
@@ -23,14 +24,14 @@ export function createXmindRenderer({window,canvas,tree,skinMode='light'}){
     const timer=window.setTimeout(done,40),id=window.requestAnimationFrame(done);
   });
   const settled=async()=>{await frame();await frame();};
-  async function render(defaultFolded,{preserve=false}={}){
+  async function render(defaultFolded,{preserve=false,mode=appliedSkin}={}){
     if(!canvas.isConnected||canvas.clientWidth<=0||canvas.clientHeight<=0)
       throw Object.assign(new Error('XMind 画布尚不可测量'),{code:'E_XMIND_MOUNT'});
     const previous=controller,previousMount=mount;
     const previousZoom=preserve&&previous?previous.getZoomPencentage():null;
     const scroller=previousMount?.querySelector('.workbook-item');
     const scroll=preserve&&scroller?{left:scroller.scrollLeft,top:scroller.scrollTop}:null;
-    const blob=await mindTreeToXmindBlob(sdk,tree,skinMode,{defaultFolded});
+    const blob=await mindTreeToXmindBlob(sdk,tree,mode,{defaultFolded});
     if(disposed)return;
     // Port of Mindbank's staging-mount/controller swap and scroll restoration.
     const nextMount=canvas.ownerDocument.createElement('div');
@@ -109,6 +110,19 @@ export function createXmindRenderer({window,canvas,tree,skinMode='light'}){
   }):null;
   resize?.observe(canvas);
   return Object.freeze({ready,fit,destroy,
+    setTheme(mode){
+      if(mode!=='light'&&mode!=='dark')return Promise.reject(new Error('E_XMIND_THEME'));
+      if(disposed)return Promise.resolve();
+      // Update the requested skin before queuing so rapid light/dark/light
+      // switches cannot finish on an obsolete theme.
+      desiredSkin=mode;
+      return command(async()=>{
+        if(appliedSkin===desiredSkin)return;
+        const target=desiredSkin;
+        await render(folded,{preserve:true,mode:target});
+        appliedSkin=target;
+      }).then(()=>fit());
+    },
     zoomBy:factor=>command(c=>c.zoom(Math.max(50,Math.min(400,c.getZoomPencentage()*factor)))),
     async toggleAll(){
       await command(async c=>{

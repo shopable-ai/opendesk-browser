@@ -96,6 +96,10 @@ test('ChatGPT simulated product UI and design MD are source-bound, not a second 
   assert.match(css,/\.actions-row\{display:flex/);
   assert.match(css,/\.preview-conversation\.is-narrow\{max-width:320px/);
   assert.match(shell,/data-theme/);
+  assert.match(shell,/replaceChildren\(mockIcon\(icon\)\)/,
+    'Native-looking action icons belong only to the simulated shell');
+  assert.match(shell,/document\.getElementById\('preview-conversation'\)\?\.addEventListener\('click'/,
+    'Delegated mock actions survive DOM replacement without changing product controls');
   assert.doesNotMatch(shell,/createWorkbookEditor|createXmindRenderer|createAnswerRegistry/);
   assert.match(design,/PENDING_USER_CONFIRMATION/);
   assert.match(design,/src\/answer-registry\.js/);
@@ -122,4 +126,21 @@ test('verified loopback serves the ChatGPT simulation with same CSP and denies a
     assert.equal((await fetch(new URL('/preview/design.md',session.url))).status,404);
     assert.equal((await fetch(new URL('/preview/.runtime/engine.js',session.url))).status,404);
   }finally{await session.close();}
+});
+
+test('R3.3 production code alone owns theme, workbook skin and answer identity',async()=>{
+  const [registry,view,adapter]=await Promise.all([
+    readFile(new URL('src/answer-registry.js',root),'utf8'),
+    readFile(new URL('src/view.js',root),'utf8'),
+    readFile(new URL('src/xmind-adapter.js',root),'utf8')
+  ]);
+  assert.match(registry,/for\(const controller of controllers\)controller\.syncTheme\(\)/,
+    'Open viewers must switch themes without the delayed answer rescan');
+  assert.match(registry,/view\.setTheme\(theme==='true'\)/);
+  assert.match(view,/renderer\.setTheme\(next\)/);
+  assert.match(view,/host\.dataset\.skinReady=next/);
+  assert.match(adapter,/await render\(folded,\{preserve:true,mode:target\}\)/,
+    'Workbook skin is reloaded through the original SDK, preserving viewport');
+  assert.doesNotMatch(registry,/createWorkbookEditor|document\.createElement\('canvas'\)/,
+    'No parallel renderer may be created by the answer registry');
 });
