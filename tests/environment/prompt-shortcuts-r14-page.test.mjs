@@ -31,6 +31,7 @@ function mockElement(tag='div'){
     focus(){node.focused=true;},
     select(){node.selected=true;},
     matches(){return false;},
+    closest(){return null;},
     contains(other){return node.children.includes(other);},
     attachShadow(){node.shadow=mockElement('shadow');return node.shadow;},
     getBoundingClientRect(){return {left:260,top:80,width:900,height:640};}
