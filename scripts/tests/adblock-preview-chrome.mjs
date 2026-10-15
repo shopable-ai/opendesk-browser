@@ -156,10 +156,11 @@ async function click(selector,ctx=null){
     const element=document.elementFromPoint(x,y);
     return {tag:element?.tagName,id:element?.id,html:element?.outerHTML?.slice(0,220)};
   }.toString()+')('+JSON.stringify(rect.x)+','+JSON.stringify(rect.y)+')');
-  // Opaque srcdoc may be hosted in a separate process; a top-level CDP
-  // Input message is not guaranteed to route into its target session.
+  // Opaque srcdoc is an OOPIF. Send to its attached CDP target, but
+  // Input.dispatchMouseEvent coordinates are relative to the MAIN viewport,
+  // even when the target session belongs to an iframe.
   const targetSession=ctx?.session||null;
-  const point=targetSession?localCoords:rect;
+  const point=rect;
   console.log('ADBLOCK_CLICK_TARGET '+selector+' '+JSON.stringify({
     parentPoint:{x:rect.x,y:rect.y},localPoint:localCoords,
     targetSession:targetSession||'top',hit}));
