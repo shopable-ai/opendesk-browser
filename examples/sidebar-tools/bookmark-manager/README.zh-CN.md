@@ -8,7 +8,7 @@
 
 2026-10-15 的 R11.2 提交 `b63c9e3c` 为正式 Registry、Schema、Host、独立 `browser.bookmarks.full` 和安装工具的可信书签授权按钮完成了**源码接线**。独立 Full 与 Owned 的 `browser.bookmarks.createOwned/removeOwned` 是不同权限；Chrome manifest 已声明 optional `bookmarks`，安装工具的声明并不等于用户已批准 Full 或 Chrome 权限。
 
-- 工具版本 **0.3.4**：`capabilities: ["browser.bookmarks.full", "currentPage.read"]`。安装包更新需按现有流程重新审阅；Full Bookmarks 授权和 Chrome optional 权限仍独立申请。
+- 工具版本 **0.3.5**：`capabilities: ["browser.bookmarks.full", "currentPage.read"]`。安装包更新需按现有流程重新审阅；Full Bookmarks 授权和 Chrome optional 权限仍独立申请。
 - **已在 `official-tools/catalog.json` 正式登记为 optional**。发行构建器必须生成签名固定的本地官方资源，用户通过「扩展」中心审阅、安装、授权、打开。源码登记不等于在用户 Chrome 中安装；Node/CI 成功也不是 Native PASS。
 - 不满足 Full Capability 状态、Host 权限、包身份或可信回执时，客户端失败关闭并隐藏已失权树；新增识别 `E_BOOKMARK_FULL_CONSENT_REQUIRED` / `E_TOOL_CHANGED` / `E_OWNER` 并在写入失败时清屏，不会回退至 Owned 能力伪造全量结果。
 - **已删除旧 `src/bookmark-manager/` 及内置书签面板与专属 R1 CI**。业务消费者仅存在于独立工具，公共 SDK / Host / Chrome Drivers 仍保留；Git 历史保存旧实现，不创建兼容副本。
@@ -51,6 +51,8 @@ Node VM 证据。后续真实 Native 已通过市场正式升级 0.3.3，授权�
 只有可见的网址编辑保留 `type=url` 原生校验及 SDK 的 URL 检查。写入结束解除 busy
 不重新启用隐藏 URL。Node VM 覆盖上述模式与失败后恢复；0.3.4 真机 CRUD 仍为 NOT_TESTED。
 
+0.3.5 R2.5 源码候选：在既有独立工具页面新增树与选中详情的主从信息视图，`od-*` 正式设计语义样式来自构建期 canonical Token 和组件 CSS；表单不再让隐藏字段触发原生校验，校验失败显示可见错误；异步刷新时继续捕获输入草稿。危险删除确认绑定最初审阅的节点及子树签名，外部变化拒绝继续。0.3.5 仍需独立真实 Chrome 安装、写入/刷新及多设备验证，不能将源码修改标为 Native PASS。新增 `scripts/preview/bookmark-manager-mock.js`，生产包同源的 `scripts/preview/build-preview.mjs --tool bookmark-manager` 以纯内存数据展示，不拥有真实书签能力。该预览只验证设计/组件与离线事件，不代表实际安装权限。
+
 现有公共合同限制：节点最多 20,000、深度 100、快照 8 MB、读取标题最多 256 字符、
 既有 URL 最多 4,096 字符。既有非 HTTP(S) 书签可保留读取，新增 URL 仍只允许 HTTP(S)。
 超出合同明确报错，不截断数据；任意长度历史书签兼容仍是后续合同扩展缺口。
@@ -61,7 +63,7 @@ Node VM 证据。后续真实 Native 已通过市场正式升级 0.3.3，授权�
 node --test tests/environment/bookmark-manager-r2.test.mjs
 node --test tests/environment/bookmark-manager-r24-lifecycle.test.mjs tests/environment/browser-sdk-r112-full-bookmarks.test.mjs
 npm run build:sidebar-tool -- examples/sidebar-tools/bookmark-manager
-# artifacts/sidebar-tools/bookmark-manager/0.3.4/bookmark-manager.opendesk-tool.json
+# 依据 tool.config.json 当前版本查询 artifacts/sidebar-tools/bookmark-manager/ 产物
 npm run check
 npm run build
 npm run build:dev

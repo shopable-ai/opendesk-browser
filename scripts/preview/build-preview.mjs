@@ -10,6 +10,10 @@ import {officialDesignSources,canonicalThemeOverride} from './shared-tool-design
 export const PREVIEW_FORMAT='opendesk.ui-preview.v1';
 export const PREVIEW_SCENARIOS=Object.freeze(['success','empty','error','loading','permission-denied','untrusted']);
 export const PREVIEW_MOCK_OPERATIONS=Object.freeze(['storage.get','storage.set','currentPage.info','tasks.open']);
+export const PREVIEW_BOOKMARK_OPERATIONS=Object.freeze([
+  'getTree','get','search','create','update','move','remove','prepareRemoveTree','removeTree',
+  'observe.start','observe.read','observe.stop'
+]);
 const repoRoot=fileURLToPath(new URL('../../',import.meta.url));
 const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
 const base64=bytes=>Buffer.from(bytes).toString('base64');
@@ -26,7 +30,7 @@ export async function generatePreview({
   if(!/^[a-z0-9-]{1,64}$/.test(tool))fail('invalid tool ID');
   // Fail closed: injected-page/standalone need their own real production mounting adapter.
   if(surface!=='side-panel')fail('surface '+surface+' has no verified production preview adapter');
-  if(tool!=='quick-notes')fail('mock SDK adapter is not implemented for '+tool);
+  if(!['quick-notes','bookmark-manager'].includes(tool))fail('mock SDK adapter is not implemented for '+tool);
   if(!PREVIEW_SCENARIOS.includes(scenario))fail('unsupported scenario');
   if(!['light','dark'].includes(theme))fail('unsupported theme');
   if(!Number.isInteger(width)||width<240||width>1440||
@@ -35,11 +39,21 @@ export async function generatePreview({
   const pkg=await createSidebarToolPackage(project);
   if(!pkg.css.startsWith('/* opendesk.shared-design.v1 sha256='))
     fail('official design CSS is missing from the validated tool package');
-  const invoked=[...pkg.js.matchAll(/\brequest\s*\(\s*['"]([^'"]+)['"]/g)].map(match=>match[1]);
-  if(!invoked.length||invoked.some(operation=>!PREVIEW_MOCK_OPERATIONS.includes(operation))||
-    PREVIEW_MOCK_OPERATIONS.some(operation=>!invoked.includes(operation)))
-    fail('mock and real UI request operations do not match');
-  const mock=await readFile(new URL('./quick-notes-mock.js',import.meta.url));
+  let mock,operations;
+  if(tool==='quick-notes'){
+    const invoked=[...pkg.js.matchAll(/\brequest\s*\(\s*['"]([^'"]+)['"]/g)].map(match=>match[1]);
+    if(!invoked.length||invoked.some(operation=>!PREVIEW_MOCK_OPERATIONS.includes(operation))||
+      PREVIEW_MOCK_OPERATIONS.some(operation=>!invoked.includes(operation)))
+      fail('mock and real UI request operations do not match');
+    mock=await readFile(new URL('./quick-notes-mock.js',import.meta.url));
+    operations=PREVIEW_MOCK_OPERATIONS;
+  }else{
+    if(!pkg.js.includes('BookmarkR2Model')||!pkg.js.includes('BookmarkR2Service')||
+       !pkg.js.includes('OpenDeskSDK'))
+      fail('bookmark-manager package is missing the real SDK consumer');
+    mock=await readFile(new URL('./bookmark-manager-mock.js',import.meta.url));
+    operations=PREVIEW_BOOKMARK_OPERATIONS;
+  }
   const {tokens,digest}=await officialDesignSources();
   const override=await canonicalThemeOverride(theme);
   let commit;
@@ -63,7 +77,7 @@ export async function generatePreview({
     format:PREVIEW_FORMAT,tool:pkg.id,toolVersion:pkg.version,surface,scenario,theme,
     viewport:{width,height},sourceCommit:commit,designSha256:digest,uiSha256:uiDigest,
     previewBuild:'R1',mock:true,installed:false,permissionsGranted:false,
-    operations:PREVIEW_MOCK_OPERATIONS
+    operations
   });
   const viewportTitle='OpenDesk Browser · '+pkg.title+' · 仅供离线模拟';
   const viewerCss=[

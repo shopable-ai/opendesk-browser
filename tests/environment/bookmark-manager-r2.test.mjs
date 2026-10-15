@@ -811,3 +811,40 @@ test('R2.5 unknown mutation outcome is not replayed by observation recovery',asy
   assert.equal(ui.get('bm-name').value,'Uncertain');
   ui.close();
 });
+
+
+test('R2.5 delete confirmation binds the originally reviewed descendants across external refresh',async()=>{
+  let changed=false;
+  const ui=await bookmarkUi(({sdk})=>{
+    sdk.bookmarks.getTree=async()=>{
+      const tree=sample();
+      if(changed)tree[0].children[0].children[0].children[0].title='externally changed';
+      return tree;
+    };
+  });
+  await ui.action('管理 folder');await ui.action('删除');
+  changed=true;await ui.click('bm-refresh');
+  ui.get('bm-delete-children').checked=true;
+  await ui.click('bm-delete-confirm');
+  assert.match(ui.get('bm-notice').textContent,/子项发生变化|外部修改/);
+  assert.equal(ui.data.calls.filter(([name])=>['remove','prepareRemoveTree','removeTree'].includes(name)).length,0);
+  ui.close();
+});
+
+test('R2.5 foreground editing survives a refresh that finishes after further typing',async()=>{
+  let delay=false,release=null;
+  const ui=await bookmarkUi(({sdk})=>{
+    sdk.bookmarks.getTree=async()=>{
+      if(delay)return new Promise(resolve=>{release=()=>resolve(sample())});
+      return sample();
+    };
+  });
+  await ui.action('管理 other');await ui.action('编辑');
+  ui.get('bm-name').value='Draft A';ui.get('bm-name').fire('input');
+  delay=true;await ui.click('bm-refresh');
+  assert.equal(typeof release,'function');
+  ui.get('bm-name').value='Draft B';ui.get('bm-name').fire('input');
+  delay=false;release();await ui.settle();await ui.settle();
+  assert.equal(ui.get('bm-name').value,'Draft B','the latest draft must win over the earlier refresh');
+  ui.close();
+});

@@ -90,3 +90,34 @@ test('mock bridge stores only in memory, refuses live task actions and preserves
   await assert.rejects(launch('permission-denied').request('storage.get',{key:'notes'}),/权限/);
   await assert.rejects(launch('error').request('storage.get',{key:'notes'}),/存储故障/);
 });
+
+test('bookmark manager R2.5 shares its real package UI with an isolated full-bookmarks mock',async()=>{
+  const project=resolve('examples/sidebar-tools/bookmark-manager');
+  const pkg=await createSidebarToolPackage(project);
+  assert.match(pkg.css,/^\/\* opendesk\.shared-design\.v1 sha256=/);
+  assert.match(pkg.html,/class="od-button/);
+  assert.match(pkg.html,/id="bm-inspector"/);
+  const preview=await generatePreview({tool:'bookmark-manager',scenario:'success',width:360});
+  assert.equal(preview.manifest.tool,'bookmark-manager');
+  assert.equal(preview.manifest.mock,true);
+  assert.equal(preview.manifest.permissionsGranted,false);
+  assert.equal(preview.manifest.operations.length,12);
+  assert.ok(preview.frameHtml.includes('data:text/javascript;base64,'+Buffer.from(pkg.js).toString('base64')));
+  const mock=await read('scripts/preview/bookmark-manager-mock.js');
+  const context={document:{getElementById:id=>id==='tool-root'?{}:null},
+    __opendeskPreviewScenario:'success',Date};
+  context.globalThis=context;
+  vm.runInNewContext(mock,context,{timeout:1000});
+  const sdk=context.OpenDeskSDK.browser;
+  const first=await sdk.bookmarks.getTree({limit:100});
+  assert.equal(first.nodes.length,100);
+  assert.ok(first.nextCursor);
+  const created=await sdk.bookmarks.create({title:'Only in mock',parentId:'1'});
+  assert.ok(created.id);
+  const update=await sdk.bookmarks.update({id:created.id,
+    expected:created,changes:{title:'Renamed in mock'}});
+  assert.equal(update.title,'Renamed in mock');
+  assert.equal((await sdk.bookmarks.getTree({limit:100})).nodes.length,100);
+  await assert.rejects(generatePreview({tool:'bookmark-manager',surface:'injected-page'}),
+    /no verified production preview adapter/);
+});

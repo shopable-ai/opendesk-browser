@@ -8,7 +8,7 @@ const model=globalThis.BookmarkR2Model;
 const service=globalThis.BookmarkR2Service.create(sdk);
 const q=id=>root.querySelector('#'+id);
 const s={tree:null,expanded:new Set(),search:'',limit:200,folder:null,selection:null,
-  mode:'tree',menu:null,draft:null,reviewed:null,busy:false,session:0,composing:false,
+  mode:'tree',menu:null,draft:null,reviewed:null,reviewedDescendants:null,busy:false,session:0,composing:false,
   watcher:null,watchEpoch:0,watchTimer:null,watchRetries:0,watchDirty:false};
 const make=(tag,cls,value)=>{
   const el=document.createElement(tag);if(cls)el.className=cls;
@@ -42,9 +42,10 @@ function gate(text){
   // A late successful read must never resurrect sensitive data after revocation.
   s.session++;
   endWatch();
-  s.tree=null;s.reviewed=null;s.draft=null;
+  s.tree=null;s.reviewed=null;s.reviewedDescendants=null;s.draft=null;
   s.expanded.clear();s.search='';
   q('bm-list').replaceChildren();q('bm-parent').replaceChildren();
+  q('bm-inspector').hidden=true;q('bm-total').textContent='';q('bm-form-error').textContent='';
   for(const id of ['bm-name','bm-url','bm-parent','bm-search'])q(id).value='';
   for(const id of ['bm-detail-url','bm-delete-desc','bm-counter'])q(id).textContent='';
   q('bm-delete-children').checked=false;
@@ -61,7 +62,12 @@ function enable(tree){
   render();
 }
 const button=(title,action,id,cls='bm-button')=>{
-  const el=make('button',cls,title);el.type='button';el.addEventListener('click',()=>onAction(action,id));
+  const classes=cls==='bm-entry'?'od-button od-button--quiet bm-entry':
+    cls==='bm-toggle'?'od-icon-button bm-toggle':
+    cls==='bm-menu'?'od-icon-button bm-menu':
+    cls.includes('bm-danger')?'od-button od-button--danger bm-button':
+    'od-button od-button--secondary bm-button';
+  const el=make('button',classes,title);el.type='button';el.addEventListener('click',()=>onAction(action,id));
   return el;
 };
 function renderList(){
@@ -71,18 +77,18 @@ function renderList(){
   const frag=document.createDocumentFragment();
   for(const {item,level} of rows){
     const folder=isFolder(item),opened=s.expanded.has(item.id);
-    const row=make('div','bm-row');row.dataset.selected=String(item.id===s.folder);
+    const row=make('div','bm-row');row.dataset.selected=String(item.id===s.selection||item.id===s.folder);
     row.setAttribute('role','treeitem');row.setAttribute('aria-level',String(Math.max(1,level+1)));
     if(folder)row.setAttribute('aria-expanded',String(opened));
-    const indent=make('span');indent.style.width=Math.min(Math.max(level,0),6)*11+'px';
+    const indent=make('span');indent.style.width=Math.min(Math.max(level,0),6)*10+'px';
     indent.style.flex='none';indent.setAttribute('aria-hidden','true');row.append(indent);
     if(folder){
       const toggle=button(opened?'▾':'▸','toggle',item.id,'bm-toggle');
       toggle.setAttribute('aria-label',(opened?'折叠':'展开')+(item.title||'未命名文件夹'));
       row.append(toggle);
-    }else row.append(make('span','bm-toggle'));
+    }else row.append(make('span','bm-toggle-placeholder'));
     const entry=button('',folder?'folder':'detail',item.id,'bm-entry');
-    entry.append(make('span','',folder?'▱':'🔖'),make('span','',item.title||'未命名'));
+    entry.append(make('span','',folder?'▱':'↗'),make('span','',item.title||'未命名'));
     entry.title=item.title||'未命名';row.append(entry);
     if(folder)row.append(make('span','bm-count',String(s.tree.children.get(item.id)?.length||0)));
     if(!item.locked){
@@ -102,6 +108,20 @@ function renderList(){
   list.append(frag);
   q('bm-counter').textContent=total?('已显示 '+rows.length+' / '+total+' 项'):'';
   q('bm-more').hidden=rows.length>=total;
+  q('bm-total').textContent=s.tree.byId.size.toLocaleString('zh-CN')+' 项';
+  q('bm-location').textContent=s.search?'全局搜索':'全部目录';
+}
+function renderInspector(){
+  const item=node(s.selection),pane=q('bm-inspector');
+  pane.hidden=s.mode!=='tree'||!item;
+  if(pane.hidden)return;
+  q('bm-inspector-icon').textContent=isFolder(item)?'▱':'↗';
+  q('bm-inspector-title').textContent=item.title||'未命名';
+  q('bm-inspector-kind').textContent=isFolder(item)?'文件夹 · '+(s.tree.children.get(item.id)?.length||0)+' 个直接子项':'网页书签';
+  q('bm-inspector-parent').textContent=node(item.parentId)?.title||'根目录';
+  q('bm-inspector-url').textContent=item.url||'—';
+  q('bm-inspector-id').textContent=item.id;
+  for(const id of ['bm-inspector-edit','bm-inspector-move','bm-inspector-delete'])q(id).disabled=Boolean(item.locked);
 }
 function renderForm(){
   const selected=node(s.selection),isNew=s.mode.startsWith('new-');
@@ -117,6 +137,9 @@ function renderForm(){
   title.value=s.draft?.title??(isNew?'':selected?.title||'');
   // Hidden ancestors do not exclude type=url from native form validation.
   url.disabled=moving||folder||detail;
+  url.required=!url.disabled;
+  title.disabled=moving;
+  q('bm-parent').disabled=detail||s.mode==='edit';
   url.value=s.draft?.url??(isNew&&!folder?'https://':selected?.url||'');
   title.readOnly=detail;url.readOnly=detail;
   if(!detail){
@@ -134,17 +157,18 @@ function renderForm(){
 }
 function renderDelete(){
   const item=node(s.selection);if(!item){s.mode='tree';render();return}
-  const descendants=isFolder(item)?model.descendantSignatures(s.tree,item.id):[];
+  const descendants=s.reviewedDescendants||[];
   q('bm-delete-desc').textContent='确认删除「'+(item.title||'未命名')+'」？'+
     (isFolder(item)?'将同时删除 '+descendants.length+' 个子项，可能同步至其他设备。':'该操作可能同步至其他设备。');
   q('bm-delete-children-row').hidden=!descendants.length;
   q('bm-delete-children').checked=false;
 }
 function render(){
+  q('bm-inspector').hidden=s.mode!=='tree'||!s.selection;
   q('bm-explorer').hidden=s.mode!=='tree';
   q('bm-form-view').hidden=!['new-bookmark','new-folder','detail','edit','move'].includes(s.mode);
   q('bm-delete-view').hidden=s.mode!=='delete';
-  if(s.mode==='tree'){q('bm-search').value=s.search;renderList()}
+  if(s.mode==='tree'){q('bm-search').value=s.search;renderList();renderInspector()}
   else if(s.mode==='delete')renderDelete();
   else renderForm();
 }
@@ -287,7 +311,7 @@ async function mutation(run){
   try{
     await run();
     if(session!==s.session)return;
-    s.mode='tree';s.selection=null;s.draft=null;s.reviewed=null;s.menu=null;
+    s.mode='tree';s.selection=null;s.draft=null;s.reviewed=null;s.reviewedDescendants=null;s.menu=null;
     // Do not turn an unknown outcome into an automatic replay.
     busy(false);await refresh();
     if(s.tree&&!q('bm-workspace').hidden)notice('已更新 Chrome 书签');
@@ -301,7 +325,7 @@ async function mutation(run){
   }
 }
 function cancel(){
-  s.mode='tree';s.selection=null;s.menu=null;s.draft=null;s.reviewed=null;notice('');render();
+  s.mode='tree';s.selection=null;s.menu=null;s.draft=null;s.reviewed=null;s.reviewedDescendants=null;notice('');q('bm-form-error').textContent='';render();
   q('bm-search').focus({preventScroll:true});
 }
 async function saveCurrent(){
@@ -338,25 +362,28 @@ function onAction(action,id){
     s.expanded.add(id);
     if(isWritableFolder(node(id))){s.folder=id;notice('')}
     else{s.folder=null;notice('Chrome 系统或受管理目录不可修改，请选择普通文件夹')}
-    renderList();return;
+    s.selection=id;renderList();renderInspector();return;
   }
   if(action==='menu'){s.menu=s.menu===id?null:id;renderList();return}
   if(action==='save-current'){void saveCurrent();return}
   if(action==='more'){s.limit+=200;renderList();return}
   if(action==='cancel'){cancel();return}
   if(action==='new-bookmark'||action==='new-folder'){
-    s.mode=action;s.selection=null;s.draft=null;s.reviewed=null;render();q('bm-name').focus();return;
+    s.mode=action;s.selection=null;s.draft=null;s.reviewed=null;s.reviewedDescendants=null;q('bm-form-error').textContent='';render();q('bm-name').focus();return;
   }
   const target=id||s.selection;
   if(!node(target)){notice('书签已变化，请刷新',true);return}
   if(action==='detail'){
-    s.mode='detail';s.selection=target;s.menu=null;s.draft=null;render();q('bm-back').focus();return;
+    s.mode='tree';s.selection=target;s.menu=null;s.draft=null;render();return;
   }
   if(['edit','move','delete'].includes(action)){
     if(node(target).locked){notice('Chrome 系统根目录或受管理节点不可修改',true);return}
     // Keep the reviewed version even when an event refresh replaces s.tree.
     // The service and Host must reject a conflicting external edit on save.
+    q('bm-form-error').textContent='';
     s.reviewed=Object.freeze({...node(target)});
+    s.reviewedDescendants=action==='delete'&&isFolder(node(target))?
+      model.descendantSignatures(s.tree,target):[];
     s.mode=action;s.selection=target;s.menu=null;s.draft=null;render();
     if(action==='delete')q('bm-delete-confirm').focus();
     else (action==='move'?q('bm-parent'):q('bm-name')).focus();
@@ -378,6 +405,19 @@ q('bm-back').addEventListener('click',cancel);
 q('bm-cancel').addEventListener('click',cancel);
 q('bm-delete-back').addEventListener('click',cancel);
 q('bm-delete-cancel').addEventListener('click',cancel);
+for(const [id,action] of [['bm-inspector-edit','edit'],['bm-inspector-move','move'],['bm-inspector-delete','delete']]){
+  q(id).addEventListener('click',()=>onAction(action,s.selection));
+}
+for(const id of ['bm-name','bm-url','bm-parent']){
+  q(id).addEventListener(id==='bm-parent'?'change':'input',()=>rememberDraft());
+}
+for(const [id,message] of [['bm-name','请输入有效的书签名称'],['bm-url','请输入完整的 HTTP(S) 网址'],['bm-parent','请选择可写入的目标文件夹']]){
+  q(id).addEventListener('invalid',event=>{
+    event.preventDefault();notice(message,true);
+    q('bm-form-error').textContent=message;
+    event.target.setAttribute('aria-invalid','true');
+  });
+}
 q('bm-search').addEventListener('compositionstart',()=>{s.composing=true});
 q('bm-search').addEventListener('compositionend',()=>{s.composing=false;s.search=q('bm-search').value;s.limit=200;renderList()});
 q('bm-search').addEventListener('input',event=>{
@@ -387,6 +427,8 @@ q('bm-search').addEventListener('input',event=>{
 q('bm-form').addEventListener('submit',event=>{
   event.preventDefault();
   if(s.busy||!s.tree||s.mode==='detail')return;
+  q('bm-form-error').textContent='';
+  for(const id of ['bm-name','bm-url','bm-parent'])q(id).removeAttribute?.('aria-invalid');
   const payload={title:q('bm-name').value,url:q('bm-url').value,parentId:q('bm-parent').value};
   const mode=s.mode,expected=s.reviewed;s.draft=payload;
   if(mode==='new-bookmark')void mutation(()=>service.createBookmark(payload));
@@ -395,8 +437,15 @@ q('bm-form').addEventListener('submit',event=>{
   if(mode==='move'&&expected)void mutation(()=>service.move({expected,parentId:payload.parentId}));
 });
 q('bm-delete-confirm').addEventListener('click',()=>{
-  const expected=node(s.selection);if(!expected)return;
-  const signatures=isFolder(expected)?model.descendantSignatures(s.tree,expected.id):[];
+  const expected=s.reviewed;if(!expected||s.selection!==expected.id)return;
+  const current=node(expected.id);
+  if(!current||model.nodeSignature(current)!==model.nodeSignature(expected)){
+    notice('书签已被外部修改，请取消并重新审阅删除内容',true);return;
+  }
+  const signatures=s.reviewedDescendants||[];
+  if(isFolder(expected)&&JSON.stringify(model.descendantSignatures(s.tree,expected.id))!==JSON.stringify(signatures)){
+    notice('文件夹子项发生变化，请取消并重新审阅',true);return;
+  }
   if(signatures.length&&!q('bm-delete-children').checked){
     notice('请先确认删除整个文件夹和子项',true);return;
   }
