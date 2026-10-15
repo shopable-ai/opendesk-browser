@@ -16,6 +16,8 @@ export const PREVIEW_INPUTS=Object.freeze([
   'examples/sidebar-tools/quick-notes/assets/mark.png',
   'scripts/build-sidebar-tool.mjs',
   'scripts/preview/shared-tool-design.mjs',
+  'scripts/preview/sidebar-shell-source.mjs',
+  'scripts/templates/sidebar-tool-preview-shell.html',
   'scripts/preview/build-preview.mjs',
   'scripts/preview/quick-notes-mock.js',
   'scripts/preview/check-preview-contract.mjs'

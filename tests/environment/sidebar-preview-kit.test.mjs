@@ -14,7 +14,11 @@ const change = fn => { const $ = load(kit.html); fn($); return $.html(); };
 
 test('self-contained preview uses the exact current canonical CSS and passes contract', async () => {
   const $ = load(kit.html);
-  assert.equal($('#od-preview-tokens').text(), await readFile(join(root,'src/ui/design-tokens.css'),'utf8'));
+  const originalTokens=await readFile(join(root,'src/ui/design-tokens.css'),'utf8');
+  assert.ok($('#od-preview-tokens').text().startsWith(originalTokens+'\n'),
+    'canonical token source is embedded unchanged');
+  assert.match($('#od-preview-tokens').text(), /:root\{color-scheme:light;/,
+    'preview restores the original light palette even for dark-mode operating systems');
   assert.equal($('#od-preview-components').text(), await readFile(join(root,'src/ui/design-system.css'),'utf8'));
   assert.equal((await checkPreview(kit.html)).ok, true);
   assert.equal(kit.manifest.nativeChrome, 'NOT_TESTED');

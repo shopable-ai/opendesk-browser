@@ -11,8 +11,10 @@
     "examples/sidebar-tools/quick-notes/assets/mark.png": "a8920cb7fdbb3fc95d4e4323dc83ba6fa4a19b1e",
     "scripts/build-sidebar-tool.mjs": "03cd7a99c25de6cba5e97e3e2446b5d685490e96",
     "scripts/preview/shared-tool-design.mjs": "d5f8fba474ff934298c6b897db45c2c3fff82981",
-    "scripts/preview/build-preview.mjs": "1a663fb1e4fe9c8cb2c6e65ce24ade7b0b9a375b",
+    "scripts/preview/sidebar-shell-source.mjs": "f20eb823f253495c185d0d12454f94f97ad054e6",
+    "scripts/templates/sidebar-tool-preview-shell.html": "c95cb62e24089780951f97642d24ed0648536a6c",
+    "scripts/preview/build-preview.mjs": "68d71c95a7f2297f818e55a04ff9b518a975544a",
     "scripts/preview/quick-notes-mock.js": "65f447314af901386eb3b32136d2f224701dd7b6",
-    "scripts/preview/check-preview-contract.mjs": "b61a27832bc0660e6c3ff2e16c4185fc567e2d98"
+    "scripts/preview/check-preview-contract.mjs": "0fc4aa33ee084c864884f57fcce224e3b86e3770"
   }
 }

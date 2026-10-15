@@ -54,3 +54,16 @@ node --test tests/environment/sidebar-preview-contract.test.mjs tests/environmen
 可选 `--scenario success|empty|error|loading|permission-denied|untrusted`、`--theme light|dark`、`--width 320|360|400|480`，离线自包含结果在 `artifacts/previews/quick-notes/`。输入变动后**先重新生成并审核**，再显式 `node scripts/preview/check-preview-contract.mjs --update-lock`；CI 会依据原始正式资源与源码 SHA 检出陈旧产物。生成 HTML 不允许手修，Mock 无真实 Chrome/网络/存储/任务权限；动态内容仍走业务 JS 的安全文本赋值。不得替 sandbox 注入宿主完整 CSS。
 
 必须运行非法自定义按钮样式与过期 Token 两项反例测试，记录 Node/CI 结果。Mac 实装 Chrome 和网页注入环境是另一证据等级：截图、计算样式、键盘交互、缩放及包身份没有验证，不写 95+ PASS。新工具应在最小范围实现正式共享 UI 及对应 Mock 适配，再扩大 CLI 允许范围；仍由原官方安装器管理权限和生命周期。
+
+
+## R1.2：浅色 Side Panel 外壳模板（正式预览必须遵守）
+
+先读 [预览模板与七步推进计划](../../../docs/architecture/browser-framework/ui-preview-shell-template-r12.zh-CN.md)。**预览外壳只有浅色**，禁止再添加主题选择器、手工深色 Palette 或给 AI 输出独立的黑白两套模板。正式扩展的暗色支持不改；旧 `--theme dark` 只可用于明确要求的工具暗色诊断，宿主预览外壳仍为浅色。
+
+- 对话设计稿继续通过 `scripts/sidebar-preview-kit.mjs create/check` 调用 `scripts/templates/sidebar-preview.html`；不复制 CSS。
+- 正式安装包同源预览通过 `scripts/preview/build-preview.mjs` 调用 `scripts/templates/sidebar-tool-preview-shell.html`。导航和工具页头必须由 `scripts/preview/sidebar-shell-source.mjs` 从 `src/ui/tool.html` 及正式 `tool-shell.css` 提取。禁止复制所有五个选项卡的内容、复制专用按钮 CSS，或把整套可信宿主权限脚本加入工具 iframe。
+- 五个一级标签只作为可见上下文；预览中只有“扩展”有真实业务 UI。保留真实 Back/Title/卸载位置，卸载二次确认只关闭模拟 iframe，返回仅需精简的工具列表占位。列表中点击打开、在新标签打开等非关键流程默认省略；具体工具确需 Settings/网页注入开关时再按正式源码启用。
+- 每轮至少检查正常、空、失败、权限不足、加载与不可信输入。对话中**直接展示可交互 HTML**并附上可打开的正式生成文件，未具备 HTML 执行能力就说明限制；只给图片、下载包或仓库 URL 不能代替当前上下文预览。
+- 生成后执行 `node scripts/preview/check-preview-contract.mjs`、`node --test tests/environment/sidebar-preview-shell.test.mjs tests/environment/sidebar-preview-contract.test.mjs`；明确记载生产已安装 Chrome 尚未验证部分。模板/正式依赖修改后重新生成并审阅，不准手改生成的 HTML 解决视觉问题。
+
+为了节省 AI 上下文，传递“工具/展示面/当前视图 + 关键状态/交互 + 设计来源与 commit/Mock 声明”的短提要即可；详细源码和编译产物留在仓库并按需加载。不要把 5 个 Tab、真实包 JS、全部 CSS 内联进每轮文字提示词。

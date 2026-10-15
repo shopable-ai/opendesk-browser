@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{PAGE_TITLE}}</title>
+<!-- Generated from real Side Panel markup/styles; no separately maintained design palette. -->
+<style id="od-preview-production-css">
+{{TOKENS}}
+{{COMPONENTS}}
+{{SHELL_CSS}}
+{{LIGHT_CSS}}
+</style>
+<style id="od-preview-shell-layout">
+html,body{height:auto;min-height:100%;overflow:auto}
+:root{color-scheme:light}
+body{display:block;margin:0;background:var(--od-bg);color:var(--od-ink)}
+.preview-meta{max-width:880px;margin:0 auto;padding:var(--space-3);display:grid;gap:var(--space-1)}
+.preview-meta p{margin:0;font-size:var(--od-note-size)}
+.preview-notice{font-weight:650;color:var(--od-negative)}
+.preview-provenance{color:var(--od-sub);font-size:var(--od-meta-size);overflow-wrap:anywhere}
+.preview-stage{padding:var(--space-2) var(--space-1);display:flex;justify-content:center;align-items:flex-start;min-width:0}
+.preview-device{width:{{WIDTH}}px;max-width:100%;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface);overflow:hidden}
+.preview-device .workbench-nav{width:100%;max-width:100%;background:var(--od-paper)}
+/* Light-only preview shell wins even when the operating system is in dark mode. */
+:root .preview-device .workbench-nav{background:var(--od-paper)}
+:root .preview-device .workbench-nav button{color:var(--od-sub)}
+:root .preview-device .workbench-nav button[aria-selected=true]{color:var(--od-brand);border-bottom-color:var(--od-brand)}
+.preview-body{padding:var(--space-2) var(--od-page-gutter) var(--space-3);min-width:0}
+.preview-body>section{min-width:0}
+.preview-device .sidebar-tool-view-head{min-height:var(--od-icon-size)}
+.preview-device #sidebar-tool-open-tab,.preview-device #sidebar-tool-settings-open,.preview-device #sidebar-tool-visibility,.preview-device #sidebar-tool-context-menu{display:none!important}
+.preview-device #opendesk-preview-frame{height:{{HEIGHT}}px;min-height:0;max-height:none;background:var(--od-paper)}
+.preview-placeholder{display:grid;gap:var(--space-3);padding:var(--space-3);margin-top:var(--space-2)}
+.preview-placeholder>p{margin:0}
+.preview-placeholder .od-button{justify-self:start}
+.preview-confirm{max-width:min(420px,calc(100vw - var(--space-4)));padding:var(--space-4)}
+.preview-confirm::backdrop{background:color-mix(in srgb,var(--od-ink) 25%,transparent)}
+.preview-confirm h2{font-size:var(--od-body-size);margin:0}
+.preview-confirm p{margin:var(--space-3) 0;color:var(--od-sub)}
+.preview-confirm-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:var(--space-2)}
+</style>
+</head>
+<body>
+<aside class="preview-meta" aria-label="预览来源和安全范围">
+  <p class="preview-notice">模拟预览 · 非真实安装、权限或网络执行</p>
+  <p class="preview-provenance">工具：{{TOOL_NAME}} · 场景：{{SCENARIO}} · 工具主题：{{TOOL_THEME}} · 预览外壳：浅色</p>
+  <p class="preview-provenance">Source: {{SOURCE_COMMIT}} · Design SHA-256: {{DESIGN_SHA}} · Shell SHA-256: {{SHELL_SHA}} · UI SHA-256: {{UI_SHA}}</p>
+</aside>
+<div class="preview-stage">
+  <section class="preview-device" aria-label="OpenDesk Browser Side Panel 真实布局来源的离线预览">
+    {{NAV}}
+    <main class="preview-body">
+      <section id="od-preview-extension-detail" aria-label="当前扩展工具">
+        {{HEADER}}
+        <div id="sidebar-tool-frame" class="sidebar-tool-frame">
+          <iframe id="opendesk-preview-frame" class="sidebar-tool-iframe" title="{{PAGE_TITLE}}" sandbox="allow-scripts" referrerpolicy="no-referrer"></iframe>
+        </div>
+      </section>
+      <section id="od-preview-return" class="od-surface od-surface--padded preview-placeholder" aria-label="返回模拟" hidden>
+        <strong class="od-page-title">扩展 · 工具列表（简化预览）</strong>
+        <p class="od-note">为减少预览内容，仅保留返回后的导航状态。正式产品中的完整列表、筛选与安装入口仍由真实扩展管理。</p>
+        <button id="od-preview-reopen" type="button" class="od-button">重新查看当前工具</button>
+      </section>
+      <section id="od-preview-other" class="od-surface od-surface--padded preview-placeholder" aria-label="其他选项卡" hidden>
+        <strong id="od-preview-other-title" class="od-page-title"></strong>
+        <p class="od-note">这里只展示选项卡导航上下文；不复制其他工作台页面的业务代码。</p>
+        <button id="od-preview-to-extensions" class="od-button" type="button">返回「扩展」预览</button>
+      </section>
+      <section id="od-preview-uninstalled" class="od-surface od-surface--padded preview-placeholder" aria-label="模拟卸载结果" role="status" hidden>
+        <strong class="od-page-title">模拟卸载完成</strong>
+        <p class="od-note">仅关闭当前预览 iframe，未卸载真实工具、删除数据或更改权限。</p>
+        <button id="od-preview-reset" type="button" class="od-button od-button--secondary">重新加载模拟工具</button>
+      </section>
+    </main>
+  </section>
+</div>
+<dialog class="preview-confirm od-surface" id="od-preview-confirm-uninstall" aria-labelledby="od-preview-confirm-title" aria-describedby="od-preview-confirm-description">
+  <h2 id="od-preview-confirm-title">模拟卸载此工具？</h2>
+  <p id="od-preview-confirm-description">这是预览中的交互演示，不会执行真实卸载或清除持久数据。</p>
+  <div class="preview-confirm-actions">
+    <button id="od-preview-cancel-uninstall" class="od-button od-button--secondary" type="button">取消</button>
+    <button id="od-preview-accept-uninstall" class="od-button od-button--danger" type="button">模拟卸载</button>
+  </div>
+</dialog>
+<script type="application/json" id="opendesk-preview-manifest">{{MANIFEST_JSON}}</script>
+<script>
+(()=>{
+  'use strict';
+  const byId=id=>document.getElementById(id);
+  const safeFrameBytes=Uint8Array.from(atob('{{FRAME_BASE64}}'),char=>char.charCodeAt(0));
+  const trustedFrameHtml=new TextDecoder().decode(safeFrameBytes);
+  const iframe=byId('opendesk-preview-frame');
+  const nav=[...document.querySelectorAll('.workbench-nav [role="tab"]')].filter(tab=>!tab.hidden);
+  const panels={detail:byId('od-preview-extension-detail'),list:byId('od-preview-return'),
+    other:byId('od-preview-other'),uninstalled:byId('od-preview-uninstalled')};
+  const back=byId('sidebar-tool-back'),remove=byId('sidebar-tool-remove');
+  const modal=byId('od-preview-confirm-uninstall');
+  let extensionPage='detail';
+  byId('sidebar-tool-title').textContent={{TOOL_NAME_JSON}};
+  byId('sidebar-tool-open-tab').hidden=true;
+  remove.disabled=false;
+  iframe.srcdoc=trustedFrameHtml;
+  function showPanel(name){
+    for(const [id,node] of Object.entries(panels))node.hidden=id!==name;
+  }
+  function activateTab(tab){
+    if(!tab||!nav.includes(tab))return;
+    for(const current of nav){
+      const active=current===tab;
+      current.setAttribute('aria-selected',String(active));
+      current.tabIndex=active?0:-1;
+    }
+    if(tab.id==='tab-tools')showPanel(extensionPage);
+    else{
+      byId('od-preview-other-title').textContent=tab.textContent.trim()+' · 预览占位';
+      showPanel('other');
+    }
+  }
+  nav.forEach(tab=>{
+    tab.addEventListener('click',()=>activateTab(tab));
+    tab.addEventListener('keydown',event=>{
+      if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
+      event.preventDefault();
+      const index=nav.indexOf(tab);
+      const target=event.key==='Home'?nav[0]:event.key==='End'?nav.at(-1):
+        nav[(index+(event.key==='ArrowLeft'?-1:1)+nav.length)%nav.length];
+      activateTab(target);target.focus();
+    });
+  });
+  activateTab(byId('tab-tools'));
+  back.addEventListener('click',()=>{
+    extensionPage='list';activateTab(byId('tab-tools'));
+    byId('od-preview-reopen').focus();
+  });
+  byId('od-preview-reopen').addEventListener('click',()=>{
+    extensionPage='detail';activateTab(byId('tab-tools'));back.focus();
+  });
+  byId('od-preview-to-extensions').addEventListener('click',()=>{
+    activateTab(byId('tab-tools'));byId('tab-tools').focus();
+  });
+  remove.addEventListener('click',()=>modal.showModal());
+  byId('od-preview-cancel-uninstall').addEventListener('click',()=>{modal.close();remove.focus();});
+  byId('od-preview-accept-uninstall').addEventListener('click',()=>{
+    modal.close();
+    iframe.srcdoc='';extensionPage='uninstalled';activateTab(byId('tab-tools'));
+    byId('od-preview-reset').focus();
+  });
+  byId('od-preview-reset').addEventListener('click',()=>{
+    iframe.srcdoc=trustedFrameHtml;extensionPage='detail';activateTab(byId('tab-tools'));back.focus();
+  });
+})();
+</script>
+</body></html>

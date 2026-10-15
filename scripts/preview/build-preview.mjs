@@ -6,6 +6,7 @@ import {resolve,join,dirname} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {createSidebarToolPackage} from '../build-sidebar-tool.mjs';
 import {officialDesignSources,canonicalThemeOverride} from './shared-tool-design.mjs';
+import {sidebarPreviewShellSource} from './sidebar-shell-source.mjs';
 
 export const PREVIEW_FORMAT='opendesk.ui-preview.v1';
 export const PREVIEW_SCENARIOS=Object.freeze(['success','empty','error','loading','permission-denied','untrusted']);
@@ -21,7 +22,6 @@ const dataUrl=(mime,bytes)=>'data:'+mime+';base64,'+base64(bytes);
 const htmlEscape=value=>String(value).replaceAll('&','&amp;').replaceAll('<','&lt;')
   .replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
 const fail=message=>{throw Error('E_UI_PREVIEW: '+message);};
-const toText=bytes=>Buffer.from(bytes).toString('utf8');
 
 export async function generatePreview({
   tool='quick-notes',surface='side-panel',scenario='success',theme='light',
@@ -54,8 +54,11 @@ export async function generatePreview({
     mock=await readFile(new URL('./bookmark-manager-mock.js',import.meta.url));
     operations=PREVIEW_BOOKMARK_OPERATIONS;
   }
-  const {tokens,digest}=await officialDesignSources();
+  const {tokens,components,digest}=await officialDesignSources();
   const override=await canonicalThemeOverride(theme);
+  const shell=await sidebarPreviewShellSource();
+  const shellTemplate=await readFile(new URL('../templates/sidebar-tool-preview-shell.html',import.meta.url),'utf8');
+  const lightShellOverride=await canonicalThemeOverride('light');
   let commit;
   try {commit=execFileSync('git',['-C',repoRoot,'rev-parse','HEAD'],{encoding:'utf8'}).trim();}
   catch {fail('a checked-out Git source revision is required');}
@@ -76,36 +79,36 @@ export async function generatePreview({
   const manifest=Object.freeze({
     format:PREVIEW_FORMAT,tool:pkg.id,toolVersion:pkg.version,surface,scenario,theme,
     viewport:{width,height},sourceCommit:commit,designSha256:digest,uiSha256:uiDigest,
-    previewBuild:'R1',mock:true,installed:false,permissionsGranted:false,
+    shellSha256:shell.digest,shellTheme:'light',previewBuild:'R1.1',
+    mock:true,installed:false,permissionsGranted:false,
     operations
   });
   const viewportTitle='OpenDesk Browser · '+pkg.title+' · 仅供离线模拟';
-  const viewerCss=[
-    'body{margin:0;padding:var(--space-3);background:var(--od-bg);color:var(--od-ink);font:var(--od-body-size)/1.5 system-ui,sans-serif}',
-    '.preview-meta{padding:var(--space-3);margin:0 auto var(--space-3);max-width:900px;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface)}',
-    '.preview-meta strong{display:block}.preview-meta small{display:block;color:var(--od-sub);overflow-wrap:anywhere}',
-    '.preview-device{width:max-content;max-width:100%;margin:auto}.preview-device iframe{display:block;width:'+width+'px;height:'+height+'px;max-width:100%;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-control)}',
-    '.preview-notice{margin:0 0 var(--space-2);color:var(--od-negative);font-weight:650}'
-  ].join('\n');
-  const outputHtml=[
-    '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">',
-    '<meta name="viewport" content="width=device-width,initial-scale=1">',
-    '<title>'+htmlEscape(viewportTitle)+'</title>',
-    '<style>'+tokens+'\n'+override+'\n'+viewerCss+'</style>',
-    '</head><body><section class="preview-meta" aria-label="预览来源与模拟限制">',
-    '<p class="preview-notice">模拟预览 · 非真实安装、权限或网络执行</p>',
-    '<strong>'+htmlEscape(pkg.title)+' · '+htmlEscape(scenario)+' · '+htmlEscape(theme)+'</strong>',
-    '<small>Source: '+commit+' · Design SHA-256: '+digest+' · UI SHA-256: '+uiDigest+'</small>',
-    '<small>环境：Side Panel 沙箱 · 视口：'+width+' × '+height+' CSS px · 操作：仅内存模拟</small>',
-    '</section><main class="preview-device">',
-    '<iframe id="opendesk-preview-frame" title="'+htmlEscape(viewportTitle)+'" sandbox="allow-scripts" referrerpolicy="no-referrer"></iframe>',
-    '</main>',
-    '<script type="application/json" id="opendesk-preview-manifest">'+JSON.stringify(manifest).replaceAll('<','\\u003c')+'</script>',
-    '<script>(()=>{const encoded="'+base64(frameHtml)+'";',
-    'const bytes=Uint8Array.from(atob(encoded),x=>x.charCodeAt(0));',
-    'document.getElementById("opendesk-preview-frame").srcdoc=new TextDecoder().decode(bytes);})();</script>',
-    '</body></html>'
-  ].join('');
+  // The maintainable preview template has no copy of official component markup,
+  // colors or button styling: its real Side Panel tabs/header/CSS are extracted.
+  // This outer shell is always light; the inner tool may explicitly use a dark
+  // diagnostic scenario without adding a theme switch to the preview UI.
+  const safeJS=value=>JSON.stringify(value).replaceAll('<','\\u003c')
+    .replaceAll('\u2028','\\u2028').replaceAll('\u2029','\\u2029');
+  const values=Object.freeze({
+    PAGE_TITLE:htmlEscape(viewportTitle),
+    TOOL_NAME:htmlEscape(pkg.title),TOOL_NAME_JSON:safeJS(pkg.title),
+    SCENARIO:htmlEscape(scenario),TOOL_THEME:htmlEscape(theme),
+    TOKENS:tokens,COMPONENTS:components,SHELL_CSS:shell.css,
+    LIGHT_CSS:lightShellOverride,WIDTH:String(width),HEIGHT:String(height),
+    NAV:shell.nav,HEADER:shell.head,
+    SOURCE_COMMIT:commit,DESIGN_SHA:digest,SHELL_SHA:shell.digest,UI_SHA:uiDigest,
+    MANIFEST_JSON:safeJS(manifest),FRAME_BASE64:base64(frameHtml)
+  });
+  const used=new Set();
+  const outputHtml=shellTemplate.replace(/\{\{([A-Z_]+)\}\}/g,(_,key)=>{
+    if(!Object.hasOwn(values,key))fail('unsupported preview template slot '+key);
+    used.add(key);return values[key];
+  });
+  for(const key of Object.keys(values))
+    if(!used.has(key))fail('preview template is missing required slot '+key);
+  if(/\{\{[A-Z_]+\}\}/.test(outputHtml)
+    fail('unresolved preview template slot');
   const output=resolve(out||join(repoRoot,'artifacts/previews',pkg.id,
     [surface,scenario,theme,String(width)].join('-')+'.html'));
   return Object.freeze({manifest,frameHtml,html:outputHtml,output});

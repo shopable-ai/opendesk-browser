@@ -7,6 +7,7 @@ on:
       - 'src/ui/design-system.css'
       - 'scripts/build-sidebar-tool.mjs'
       - 'scripts/preview/**'
+      - 'scripts/templates/sidebar-tool-preview-shell.html'
       - 'scripts/tests/sidebar-preview-runtime-chrome.mjs'
       - 'examples/sidebar-tools/quick-notes/**'
       - 'examples/sidebar-tools/bookmark-manager/**'
@@ -28,13 +29,14 @@ jobs:
       - name: Validate syntax and source freshness
         run: |
           node --check scripts/preview/shared-tool-design.mjs
+          node --check scripts/preview/sidebar-shell-source.mjs
           node --check scripts/preview/build-preview.mjs
           node --check scripts/preview/check-preview-contract.mjs
           node --check scripts/preview/quick-notes-mock.js
           node --check scripts/preview/bookmark-manager-mock.js
           node scripts/preview/check-preview-contract.mjs
       - name: Verify package identity, mock safety and negative guards
-        run: node --test tests/environment/sidebar-preview-contract.test.mjs tests/environment/sidebar-quick-notes.test.mjs
+        run: node --test tests/environment/sidebar-preview-shell.test.mjs tests/environment/sidebar-preview-contract.test.mjs tests/environment/sidebar-quick-notes.test.mjs
       - name: Build official tool and offline preview matrix
         run: |
           node scripts/build-sidebar-tool.mjs examples/sidebar-tools/quick-notes --out artifacts/quick-notes-preview-proof.opendesk-tool.json
