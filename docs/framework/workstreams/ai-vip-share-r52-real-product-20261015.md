@@ -32,3 +32,12 @@
 3. 激活 ticket + 安装回跳服务具备短效签发与单次核验后再实现客户端三路径续接，不静默安装、不直接消费。
 4. SDK Owner 审准 Managed Proxy 安全合同后迁移消费端；保留完整 Web Lock/STOP/owner/epoch/撤权保护，解除遗留模块只能单独验收。
 5. AdBlock 阻塞归属 Owner 修复后，同候选 Browser 构建、真实 CFT/Mac Chrome 安装更新/账号/兑换/代理 STOP/冲突/撤权验收。
+
+## 同候选 GitHub 执行结论（2026-10-15）
+
+- 正式源码原子提交并经 normal fast-forward 推送 main：[`da64a05873a131d3c38e6d1dd3932b2ebfe4bd44`](https://github.com/shopable-ai/opendesk-browser/commit/da64a05873a131d3c38e6d1dd3932b2ebfe4bd44)，共 8 个本任务路径，无额外分支/Worktree/PR，无生产业务或代理基础设施更改。开始于 main `405df8a3f404fc0ae22b892a9bfd0564b426e0cd`，其他 Agent 的 HEAD 继续前进不改变该提交证据。
+- GitHub Actions 同候选运行 [`38720997498`](https://github.com/shopable-ai/opendesk-browser/actions/runs/38720997498)，job `116375225790`：正式 `R5.2 durable redemption recovery, member UI and trusted STOP` **18/18 NODE_PASS**（13 个既有专项 + 5 个 R5.2 新恢复场景）；`Package exact v1.2.0 AI VIP Share official tool` **PASS**；`npm run check` **PASS**。既有 SDK/单按钮组件 PASS 不升级为真代理连通证明。
+- 同候选 Browser production build **BLOCKED / BUILD_PASS=false**：`[opendesk-fixed-sidebar-tool-host] Trusted AdBlock source changed; review and re-pin before fixed build: examples/sidebar-tools/adblock/trusted/host-controls.js`。安全校验保持开启，未修改可信指纹或 AdBlock Owner 文件；本次构建失败后 `build:dev`、`verify` 未进入，不能继承其他历史候选的通过证据。
+- 同 run 综合 `sidebar-tool-contract-and-package` job `116375226060`：**260 tests / 241 PASS / 19 FAIL**。失败明细与历史一致：18 个 R2.1 旧代理生命周期 / Worker / Web Lock 测试（cases 12–25、27–30）和 1 个 Cookie Editor 官方目录检查（case 49）。这说明全局构建/综合门禁没有关闭，但不能把该 19 项当作本次新增恢复用例失败。
+- JavaScript source 已经做语法检查；另外在独立 JS 模拟环境完成「POST 效果未知 → 页面重新创建恢复锁定 → 显式查询最终拒绝 → 解除锁定，未重复发出 POST」检查。后者不是 GitHub Actions、真实 Provider 或 Native 验收。
+- 产品维度证据：**SOURCE_WIRED + NODE_PASS**：兑换持久防重与前端查询终态、安装升级需审阅存储权限；**PROVIDER_BLOCKED**：账号认证 / 商品 / 真实消费 / 服务端终态 / ticket / 商城；**SDK_BLOCKED**：公共 Managed Proxy；**NOT_TESTED**：真实 Mac Chrome 安装/权限升级、320/360/390px、主题/键盘焦点、Worker 重启/代理冲突、真实网络；视觉、交互、可访问性、会员、兑换和代理安全各维度无独立 Native/Provider 数据，均 **NOT_SCORED**，不自评 95 分。
