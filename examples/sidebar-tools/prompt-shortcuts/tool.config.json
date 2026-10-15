@@ -1,9 +1,9 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "prompt-shortcuts",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "title": "提示词快捷按钮",
-  "description": "内容优先管理提示词；在明确授权的 ChatGPT 网站显示左侧快捷按钮，支持原生选区右键快速预填。",
+  "description": "内容优先管理提示词；安装启用后可在 ChatGPT 网页直接使用左侧快捷按钮，原生右键快捷添加为可选功能。",
   "capabilities": [
     "storage.local",
     "user.export",
