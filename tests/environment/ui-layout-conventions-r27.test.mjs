@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 
 const read=path=>readFile(path,'utf8');
 
@@ -54,7 +55,13 @@ test('R27 each trusted page uses only its appropriate stylesheet and sandbox sta
   assert.match(market,/href="design-tokens\.css"/);
   assert.match(sandbox,/default-src 'none'/);
   assert.doesNotMatch(sandbox,/tailwind|design-system\.css|design-tokens\.css/i);
-  assert.match(notes,/--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px/);
+  assert.match(notes,/^\/\* @opendesk-shared-design \*\//);
+  assert.doesNotMatch(notes,/:root\s*\{|--space-1\s*:/,
+    'sandbox sources must not duplicate the shared palette/spacing tokens');
+  const tool=await createSidebarToolPackage('examples/sidebar-tools/quick-notes');
+  const official=await read('src/ui/design-tokens.css');
+  assert.ok(tool.css.includes(official),'the isolated sandbox package embeds canonical token bytes');
+  assert.match(tool.css,/\.od-icon-button\{/,'public visuals were compiled into sandbox CSS');
   assert.doesNotMatch(notes,/@import\b|url\(\s*['"]?\s*https?:/);
 });
 

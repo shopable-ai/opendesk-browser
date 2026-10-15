@@ -13,10 +13,12 @@ export const PREVIEW_INPUTS=Object.freeze([
   'examples/sidebar-tools/quick-notes/src/index.html',
   'examples/sidebar-tools/quick-notes/src/main.js',
   'examples/sidebar-tools/quick-notes/src/style.css',
+  'examples/sidebar-tools/quick-notes/assets/mark.png',
   'scripts/build-sidebar-tool.mjs',
   'scripts/preview/shared-tool-design.mjs',
   'scripts/preview/build-preview.mjs',
-  'scripts/preview/quick-notes-mock.js'
+  'scripts/preview/quick-notes-mock.js',
+  'scripts/preview/check-preview-contract.mjs'
 ]);
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const lockPath=resolve(root,'contracts/ui-preview/quick-notes.lock.json');

@@ -11,12 +11,14 @@
 | 冻结/验证/安装/发布 Task 和 Page Program，已安装 Page 由「扩展 → 网页增强」管理 | [`opendesk-program-publish`](opendesk-program-publish/SKILL.md) | Page Authority ≠ Sidebar Tool 安装器；Task 属于「我的」 |
 | 静态编译/审计的一方可信功能，Stay Focus/Time Review/Cookie Editor 业务解耦 | [`opendesk-trusted-sidebar-feature`](opendesk-trusted-sidebar-feature/SKILL.md) | 不能把动态导入包变为受信 Host 源码 |
 | Chrome MV3/WXT SW、Content、MAIN、Controller/Page、Native 的权限/SDK/生命周期 | [`opendesk-extension-runtime`](opendesk-extension-runtime/SKILL.md) | 不创建第二 Host/Authority，不接管 UI-only 改动 |
+| **ChatGPT 同规范 HTML 原型、正式源码同源离线预览、来源锁与模拟场景** | [`opendesk-ui-preview`](opendesk-ui-preview/SKILL.md) | 设计稿与真实工具预览分级；不替代原有打包器、SDK 或原生验收 |
 
 ## 典型需求：每条仅一个主 Skill
 
 | 用户原话 | 唯一主 Skill | 需要协作时才采用 |
 | --- | --- | --- |
 | 「在扩展里开发一个小应用」 | `opendesk-sidebar-tool-dev` | 需受信后台能力时复核 runtime/trusted |
+| 「生成正式工具同源 HTML 预览并检查是否过期」 | `opendesk-ui-preview` | 真实工具仍由 sidebar-tool-dev / sidebar-tool-package 开发和安装 |
 | 「编译 Cookie Editor 并生成可导入 JSON」 | `opendesk-sidebar-tool-package` | 本地包交付；不自动安装、不执行线上发布 |
 | 「为网页安装一个增强脚本」 | `opendesk-program-publish` | 在「开发」写脚本时由 script-authoring 辅助 |
 | 「修改扩展列表和安装管理界面」 | `opendesk-extension-ui` | 安装器/权限协议另行 runtime 审计 |
@@ -43,7 +45,7 @@
 
 **产品与底层分离**：OpenDesk Browser 是一款 Chrome Extension；五个正式 Tab 是「我的 / 扩展 / 工作流 / 开发 / 云控」。「扩展」是管理入口；「应用」是 Sidebar Tool 的列表类型标签，「网页增强」是已安装 Page Program 的类型标签；Controller Task 仍属「我的」，一方可信功能与动态安装包必须安全隔离。Agent Skill 不是安装包。不要因为用户称“扩展”就互换包格式、运行世界或权限。
 
-新建 Skill 前读 [Skill 宇宙与评分](UNIVERSE.zh-CN.md)。**现有七个活跃 Skill + 一个市场占位目录**；一个职责对应一个 Skill，绝不为具体工具、JS 框架或一次测试创建重复 Skill。仅静态文档核验标为 `DOC_STATIC_PASS`；Chrome 原生未实测记 `NOT_TESTED`。
+新建 Skill 前读 [Skill 宇宙与评分](UNIVERSE.zh-CN.md)。**现有八个活跃 Skill + 一个市场占位目录**；一个职责对应一个 Skill，绝不为具体工具、JS 框架或一次测试创建重复 Skill。仅静态文档核验标为 `DOC_STATIC_PASS`；Chrome 原生未实测记 `NOT_TESTED`。
 
 ## R2.2 真实 Codex 触发验收（本机手动运行）
 

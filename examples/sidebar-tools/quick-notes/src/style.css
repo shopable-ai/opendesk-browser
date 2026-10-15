@@ -40,3 +40,5 @@
 }
 @media(max-width:360px){.note-chip{max-width:108px}}
 @media(min-width:800px){.notes-app{max-width:760px;margin-inline:auto}}
+/* Layout-only compact wrap: 160px viewport cannot fit two complete standard buttons. */
+@media(max-width:175px){.confirm-actions button{flex:1 1 100%}}

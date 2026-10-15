@@ -113,8 +113,14 @@ function validate(width,state,m){
   if(state==='confirm'){
     eq(m.text.x,m.confirmation.x,'Inline confirmation left edge');
     assert.equal(m.confirmButtons.length,2,'Inline confirmation contains two buttons');
-    eq(m.confirmButtons[0].y,m.confirmButtons[1].y,'Confirmation buttons stay on the same row');
-    eq(m.confirmButtons[1].x-m.confirmButtons[0].right,8,'Confirmation button gap');
+    if(width<=175){
+      assert.ok(m.confirmButtons[1].y>=m.confirmButtons[0].y+m.confirmButtons[0].height,
+        'Extreme narrow width stacks intact confirmation buttons '+width);
+      eq(m.confirmButtons[0].x,m.confirmButtons[1].x,'Stacked confirmation left edge');
+    }else{
+      eq(m.confirmButtons[0].y,m.confirmButtons[1].y,'Confirmation buttons stay on the same row');
+      eq(m.confirmButtons[1].x-m.confirmButtons[0].right,8,'Confirmation button gap');
+    }
     eq(m.confirmButtons[1].right,m.confirmation.right-13,'Confirmation buttons align to card inner edge');
     for(const button of m.confirmButtons)assert.ok(button.height>=34&&button.height<=44,'Confirmation text must not wrap');
   }

@@ -11,7 +11,8 @@ const read=relative=>readFile(file(relative),'utf8');
 const CANONICAL_SKILLS=[
   'opendesk-extension-runtime','opendesk-extension-ui','opendesk-program-publish',
   'opendesk-script-authoring','opendesk-sidebar-tool-dev',
-  'opendesk-sidebar-tool-package','opendesk-trusted-sidebar-feature'
+  'opendesk-sidebar-tool-package','opendesk-trusted-sidebar-feature',
+  'opendesk-ui-preview'
 ];
 
 test('Skills directory routes every canonical Skill exactly once with valid frontmatter',async()=>{
@@ -21,7 +22,7 @@ test('Skills directory routes every canonical Skill exactly once with valid fron
   ]);
   const dirs=entries.filter(entry=>entry.isDirectory()).map(entry=>entry.name).sort();
   const active=dirs.filter(name=>CANONICAL_SKILLS.includes(name));
-  assert.deepEqual(active,CANONICAL_SKILLS,'exactly seven active Skills with no duplicate routes');
+  assert.deepEqual(active,CANONICAL_SKILLS,'all eight active Skills have distinct responsibilities and routes');
   const reserved=dirs.filter(name=>!CANONICAL_SKILLS.includes(name));
   assert.deepEqual(reserved,['opendesk-marketplace-publish'],'only one explicitly reserved inactive directory');
   await access(file('.agents/skills/opendesk-marketplace-publish/RESERVED.md'));
@@ -43,6 +44,20 @@ test('Skills directory routes every canonical Skill exactly once with valid fron
   assert.match(universe,/独立评分规则/);
   for(const name of ['opendesk-extension-ui','opendesk-extension-runtime'])
     assert.match(universe,new RegExp('`'+name+'`[^\\n]*\\*\\*(?:98|96)\\*\\*'),'new Skill must be individually scored '+name);
+});
+
+test('UI preview Skill routes to the original kit and real package adapter without a second design system',async()=>{
+  const [index,skill,contract]=await Promise.all([
+    read('.agents/skills/README.md'),
+    read('.agents/skills/opendesk-ui-preview/SKILL.md'),
+    read('docs/architecture/browser-framework/ui-preview-contract-r1.zh-CN.md')
+  ]);
+  assert.match(index,/正式源码同源离线预览/);
+  assert.match(skill,/scripts\/sidebar-preview-kit\.mjs create/);
+  assert.match(skill,/scripts\/preview\/build-preview\.mjs/);
+  assert.match(skill,/scripts\/preview\/check-preview-contract\.mjs/);
+  assert.match(contract,/src\/ui\/design-tokens\.css/);
+  assert.match(contract,/scripts\/build-sidebar-tool\.mjs/);
 });
 
 test('Packaging is an active standalone Skill while remote marketplace publishing stays non-executable',async()=>{
