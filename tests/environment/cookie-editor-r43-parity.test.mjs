@@ -6,17 +6,30 @@ import {createHash} from 'node:crypto';
 const root='examples/sidebar-tools/cookie-editor';
 const read=name=>readFile(root+'/'+name,'utf8');
 
-test('approved original R4.3 interactive preview is preserved inside the Cookie Editor tool',async()=>{
+test('R4.3 preview retains its design while fixing pristine draft prompts',async()=>{
   const preview=await read('preview/cookie-editor-r4.3-preview.html');
-  assert.equal(Buffer.byteLength(preview,'utf8'),45133);
   const sha=createHash('sha1').update('blob '+Buffer.byteLength(preview,'utf8')+String.fromCharCode(0)).update(preview).digest('hex');
-  assert.equal(sha,'7a129f509814805ab78827eaccbc77a64b20010f');
+  assert.notEqual(sha,'7a129f509814805ab78827eaccbc77a64b20010f','old false dirty state must be fixed');
+  assert.match(preview,/draftBaseline/);
   assert.match(preview,/<title>Cookie Editor R4\.3/);
   assert.match(preview,/data-scene="first"/);
   assert.match(preview,/data-scene="ready"/);
   assert.match(preview,/function ioPanel\(\)/);
   assert.match(preview,/function editor\(\)/);
   assert.match(preview,/模拟数据原型/);
+});
+test('Preview new form stays clean until edited and becomes clean again on undo',async()=>{
+  const html=await read('preview/cookie-editor-r4.3-preview.html');
+  const fnLine=html.split('\n').find(line=>line.includes('function hasChanges()'));
+  const changed=new Function('S',fnLine+'\nreturn hasChanges();');
+  const initial={name:'',value:'',domain:'example.com',path:'/',secure:true,httpOnly:false,session:true,sameSite:'Lax'};
+  const S={expanded:'new',draft:{...initial},draftBaseline:{...initial}};
+  assert.equal(changed(S),false);
+  S.draft.name='created';assert.equal(changed(S),true);
+  S.draft.name='';assert.equal(changed(S),false);
+  S.draft.secure=false;assert.equal(changed(S),true);
+  S.draft.secure=true;assert.equal(changed(S),false);
+  S.expanded=null;assert.equal(changed(S),false);
 });
 
 test('R4.3 installed HTML presents visible import/export/new actions without entering advanced settings',async()=>{
@@ -40,7 +53,7 @@ test('R4.3 installed HTML presents visible import/export/new actions without ent
   assert.match(js,/originalExpiryInput/);
   assert.match(css,/#live-cookie-list \.cookie-row\{/);
   assert.match(html,/<option value="metadata" selected>/);
-  assert.equal(pkg.version,'2.0.9');
+  assert.equal(pkg.version,'2.0.10');
   assert.equal(pkg.html,html);
   assert.equal(pkg.js,js);
   assert.equal(pkg.css,css);

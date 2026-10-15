@@ -84,6 +84,69 @@ test('committed Cookie Editor bundle exactly matches canonical source packaging'
   assert.equal(ready,generated,'预构建 JSON 与当前配置/HTML/CSS/JS 不一致：请重新打包并提交');
   assert.equal(JSON.parse(ready).id,'cookie-editor');
 });
+test('New and import forms only warn for real changes and recover on undo',async()=>{
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{getAll:async()=>[]}});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
+  s.openEditor();assert.equal(s.isDirty(),false);
+  s.fire('editor-form','input');assert.equal(s.isDirty(),false);
+  s.fire('editor-cancel','click');assert.equal(s.getField('confirm-panel').hidden,true);
+  s.openEditor();s.getField('cookie-name').value='temporary';
+  s.fire('editor-form','input');assert.equal(s.isDirty(),true);
+  s.getField('cookie-name').value='';s.fire('editor-form','input');
+  assert.equal(s.isDirty(),false);
+  s.fire('editor-cancel','click');assert.equal(s.getField('confirm-panel').hidden,true);
+  s.fire('live-import','click');assert.equal(s.isDirty(),false);
+  s.getField('import-format').value='json';s.fire('import-panel','change');
+  assert.equal(s.isDirty(),false,'import format-only choice is clean');
+  s.getField('import-text').value='{"sample":"fictional"}';
+  s.fire('import-panel','input');assert.equal(s.isDirty(),true);
+  s.fire('import-cancel','click');assert.equal(s.getField('confirm-panel').hidden,false);
+  s.fire('confirm-cancel','click');assert.equal(s.getField('confirm-panel').hidden,true);
+  s.getField('import-text').value=' ';
+  s.fire('import-panel','input');assert.equal(s.isDirty(),false);
+  s.fire('import-cancel','click');
+  assert.equal(s.getField('confirm-panel').hidden,true);
+  assert.equal(s.getField('import-panel').hidden,true);
+});
+test('Unchanged edit avoids Chrome write and pristine new form can navigate away',async()=>{
+  let writes=0;
+  const row={name:'demo',domain:'example.com',path:'/',hostOnly:true,
+    secure:false,httpOnly:false,sameSite:'lax',session:true,value:'sensitive'};
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{
+    getAll:async()=>[row],set:async()=>{writes++;return {saved:true,verified:true};}
+  }});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
+  s.openEditor(s.liveSnapshot().rows[0]);assert.equal(s.isDirty(),false);
+  s.getField('cookie-secure').checked=true;s.fire('editor-form','change');
+  assert.equal(s.isDirty(),true);
+  s.getField('cookie-secure').checked=false;s.fire('editor-form','change');
+  assert.equal(s.isDirty(),false);
+  s.fire('editor-save','click');
+  assert.equal(writes,0);assert.equal(s.getField('editor-panel').hidden,true);
+  s.openEditor();assert.equal(s.isDirty(),false);
+  s.fireRoot('opendesk-page-changed',{});
+  assert.equal(s.getField('confirm-panel').hidden,true);
+  await s.settle();
+});
+test('Redacted value input reverted to empty preserves old value during metadata edit',async()=>{
+  const saved=[];
+  const row={name:'demo',domain:'example.com',path:'/',hostOnly:true,
+    secure:false,httpOnly:false,sameSite:'lax',session:true,value:'original-secret'};
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{
+    getAll:async()=>[row],get:async()=>({cookie:{...row,valueRedacted:false}}),
+    set:async options=>{saved.push(options);return {saved:true,verified:true};}
+  }});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
+  s.openEditor(s.liveSnapshot().rows[0]);
+  s.getField('cookie-value').value='temporary';
+  s.fire('cookie-value','input',{isTrusted:true});
+  s.getField('cookie-value').value='';
+  s.fire('cookie-value','input',{isTrusted:true});
+  s.getField('cookie-secure').checked=true;
+  await s.saveBrowserCookie();
+  assert.equal(saved.length,1);
+  assert.equal(saved[0].value,'original-secret');
+});
 async function harness(browser=null,{currentPage=null,initialReadStarted=null,trackSaves=false}={}){
   const [source,html,css,config]=await Promise.all([
     get(project+'/src/main.js'),get(project+'/src/index.html'),
@@ -122,7 +185,7 @@ async function harness(browser=null,{currentPage=null,initialReadStarted=null,tr
     'setTargetPending:value=>{targetPending=value},'+
     'liveSnapshot:()=>({rows:liveRows,state:liveState,message:liveMessage}),'+
     'settle,render,getSiteHeading:()=>E("site-host").textContent,'+
-    'getStatusMessage:()=>E("status").textContent,getField:id=>E(id),'+
+    'getStatusMessage:()=>E("status").textContent,isDirty:()=>dirty,getField:id=>E(id),'+
     'setSite:host=>{data={hostname:host,origin:"https://"+host,cookies:[]}},'+
     'setRows:rows=>{data={...data,cookies:rows}}};void refresh();\n})();');
   const fixtureBrowser=browser?.cookies?.getAll&&!browser.cookies.getPartitionKey?
@@ -190,7 +253,7 @@ test('Cookie Editor is an optional two-mode tool without private cookies API',as
   assert(s.html.includes('id="live-search"')&&s.html.includes('id="live-filter"')&&
     s.html.includes('id="live-sort"'));
   assert(s.source.includes("E('live-filters').hidden=!hasRead"));
-  assert.equal(s.config.version,'2.0.7');
+  assert.equal(s.config.version,'2.0.10');
   assert(s.html.includes('id="offline-tools"')&&s.html.includes('id="browser-panel"'),
     'Live Chrome management is the default; offline tools are secondary');
   assert(!/\b(?:window|globalThis|chrome)\.cookies\./.test(s.source));

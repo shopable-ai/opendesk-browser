@@ -8,6 +8,7 @@ let data=null,epoch=0,dirty=false,busy=false,editing=null,pending=null,returnFoc
 let mode='browser',targetOverride='',targetPending=false,liveTarget=null,liveRows=[],liveState='idle',liveMessage='';
 let expandedCookieKey=null,importPreview=null;
 const liveSecrets=new Map();let observing=null,observeCursor='0',liveValueEdited=false,originalExpiryInput='';
+let editorBaseline=null;
 const browserSdk=()=>globalThis.OpenDeskSDK?.browser||null;
 function parseTarget(input){
   if(typeof input!=='string'||input.length>2048||input.trim()!==input)throw new Error('请输入不超过 2048 字符的 HTTP(S) 网页地址');
@@ -76,7 +77,29 @@ const setBusy=value=>{
   E('editor-delete').disabled=value;E('editor-reveal-value').disabled=value;
 };
 const clean=()=>{dirty=false;notify();};
-const mark=()=>{dirty=true;notify();};
+// Dirty means an actual difference from the initial editor snapshot, not a focus,
+// input or change event. Never capture hidden Chrome Cookie values here.
+function editorSnapshot(){
+  const session=E('cookie-session').checked;
+  return {name:E('cookie-name').value,value:E('cookie-value').value,
+    domain:E('cookie-domain').value,path:E('cookie-path').value,
+    sameSite:E('cookie-same-site').value,hostOnly:E('cookie-host-only').checked,
+    secure:E('cookie-secure').checked,httpOnly:E('cookie-http-only').checked,
+    session,expiry:session?'':E('cookie-expiry').value};
+}
+function hasUnsavedChanges(){
+  if(!editor.hidden){
+    if(!editorBaseline)return false;
+    const current=editorSnapshot();
+    return Object.keys(current).some(field=>current[field]!==editorBaseline[field]);
+  }
+  // Formatting an empty import or opening its panel is not an unsaved draft.
+  return !importer.hidden&&E('import-text').value.trim().length>0;
+}
+const mark=()=>{
+  const next=hasUnsavedChanges();
+  if(next!==dirty){dirty=next;notify();}
+};
 function blockBehindConfirmation(value){
   for(const id of ['browser-panel','cookie-content','editor-panel','import-panel'])E(id).inert=value;
   E('refresh').disabled=value;
@@ -111,6 +134,7 @@ function dismiss(){
 }
 function guarded(action){
   if(busy||pending)return;
+  mark(); // Recheck autofill and changes that did not emit a normal input event.
   if(!dirty){action();return;}
   ask('当前有未保存的 Cookie 编辑或导入内容，确定放弃？','放弃修改',()=>{clean();action();});
 }
@@ -329,7 +353,7 @@ function openEditor(row=null){
   E('cookie-host-only').disabled=Boolean(row);
   E('cookie-value').placeholder=mode==='browser'&&row?.valueRedacted===true?
     '留空将尝试保留旧值（需已有敏感值权限）':'输入 Cookie 值';
-  clean();E('cookie-name').focus();
+  editorBaseline=editorSnapshot();clean();E('cookie-name').focus();
 }
 function formCookie(){
   const expiry=E('cookie-expiry').value;
@@ -971,7 +995,7 @@ function prepareImport(){
 }
 function scrubEditors(){
   E('cookie-value').value='';E('import-text').value='';E('import-file').value='';
-  editing=null;expandedCookieKey=null;liveValueEdited=false;dirty=false;
+  editing=null;editorBaseline=null;expandedCookieKey=null;liveValueEdited=false;dirty=false;
   E('editor-reveal-value').hidden=true;E('editor-revealed-value').hidden=true;
   E('editor-revealed-value').textContent='';E('editor-delete').hidden=true;
   editor.hidden=true;importer.hidden=true;E('browser-import-slot').hidden=true;
@@ -994,6 +1018,7 @@ E('mode-browser').addEventListener('click',()=>changeMode('browser'));
 E('mode-offline').addEventListener('click',()=>changeMode('offline'));
 E('target-url').addEventListener('input',()=>{
   if(busy)return; // the field is disabled during live Host operations
+  mark();
   if(dirty){E('target-url').value=liveTarget?.url||'';
     status('请先保存或取消未保存的 Cookie 内容，再切换网站。','error');return;}
   if(!editor.hidden||!importer.hidden||!E('live-export-panel').hidden)scrubEditors();
@@ -1101,12 +1126,15 @@ for(const id of ['input','change']){
 }
 E('cookie-value').addEventListener('input',event=>{
   if(event?.isTrusted!==false&&mode==='browser'&&editing?.valueRedacted===true)
-    liveValueEdited=true;
+    liveValueEdited=E('cookie-value').value!=='';
 });
 // Installed opaque sandboxes forbid native form submission, including submit
 // events. Save through the actual button without relaxing allow-forms or CSP.
 function saveEditor(){
-  if(!data||busy||!E('editor-form').reportValidity())return;
+  if(!data||busy)return;
+  mark();
+  if(editing&&!dirty){dismiss();status('Cookie 内容没有变化，无需写入。');return;}
+  if(!E('editor-form').reportValidity())return;
   if(mode==='browser')void saveBrowserCookie();
   else void mutate('cookies.save',{cookie:formCookie(),
     ...(editing?{previous:editing}:{})},'Cookie 已保存。');
@@ -1171,6 +1199,7 @@ root.addEventListener('keydown',event=>{
   }
 });
 root.addEventListener('opendesk-cookie-grants-changed',()=>{
+  mark();
   const wasBusy=busy,preserveDraft=!wasBusy&&dirty&&(!editor.hidden||!importer.hidden);
   liveSecrets.clear();observing=null;
   E('editor-revealed-value').textContent='';
