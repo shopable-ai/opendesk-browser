@@ -86,7 +86,7 @@ const page=()=>({programId:'reader',manifestHash:'a'.repeat(64),installed:{
   pageRules:{matches:['https://example.com/*']}
 }});
 
-function fixture(t,{disabled=false,readError=false}={}){
+function fixture(t,{disabled=false,readError=false,installedRows=[app]}={}){
   const doc={listeners:new Map(),defaultView:{innerWidth:360,innerHeight:640},
     documentElement:{clientWidth:360,clientHeight:640}};
   doc.createElement=tag=>new ElementDouble(tag,doc);
@@ -114,7 +114,7 @@ function fixture(t,{disabled=false,readError=false}={}){
   nodes['extension-center-detail'].append(nodes['extension-center-back'],nodes['extension-center-detail-body']);
   doc.body.append(nodes['extension-center-list-view'],nodes['extension-center-detail'],
     nodes['extension-center-status'],nodes['extension-center-menu-wrap'],nodes['workspace-content']);
-  const store=new Map([[SIDEBAR_TOOL_STORE,[app]],[SIDEBAR_TOOL_ENABLE_STORE,{[app.id]:!disabled}]]);
+  const store=new Map([[SIDEBAR_TOOL_STORE,structuredClone(installedRows)],[SIDEBAR_TOOL_ENABLE_STORE,{[app.id]:!disabled}]]);
   let corrupt=readError,programs=[page()],failPages=false,allowed=true,pageAckOnly=false;
   const writes=[],invocations=[],changes=new Set();
   const api={
@@ -256,13 +256,34 @@ test('R4.7 missing Page grant forbids enable; unreadable app status never fabric
   await settle(()=>f.button('page:reader','more')?.disabled===false);
   f.setCorrupt(true);await f.ui.refresh();
   assert.equal(f.button('app:quick-notes','primary'),undefined);
-  const row=f.list.children.find(node=>node.dataset.extensionId==='app:quick-notes');
-  assert.match(row.children[0].textContent,/状态待核对/);
-  f.button('app:quick-notes','more').dispatch('click');
-  assert.equal(f.menuItem('停用应用'),undefined);
-  assert.equal(f.menuItem('启用应用'),undefined);
-  assert.ok(f.menuItem('设置、权限与卸载'));
+  assert.equal(f.button('app:quick-notes','more'),undefined);
+  assert.equal(f.button('app:quick-notes','main'),undefined,
+    'an unverified cached registry is not an installed-app fact');
+  assert.match(f.nodes['extension-center-status'].textContent,/读取失败/);
+  assert.match(f.nodes['extension-center-empty-text'].textContent,/安装状态读取失败/);
   assert.equal(f.invocations.some(x=>x[0]==='toggle'),false);
+});
+
+test('R5.0 uninstall from a second window retires installed details, search and old row actions',async t=>{
+  const f=fixture(t);await f.ui.refresh();
+  f.button('app:quick-notes','more').dispatch('click');
+  f.menuItem('查看详情').dispatch('click');
+  assert.equal(f.nodes['extension-center-detail'].hidden,false);
+  // Independent storage authority removes the installed package.
+  f.store.set(SIDEBAR_TOOL_STORE,[]);
+  await f.ui.refresh();
+  assert.equal(f.nodes['extension-center-detail'].hidden,true);
+  assert.equal(f.button('app:quick-notes','main'),undefined);
+  assert.equal(f.doc.activeElement,f.nodes['extension-center-search']);
+  f.nodes['extension-center-search'].value='quick-notes';
+  f.nodes['extension-center-search'].dispatch('input');
+  assert.equal(f.list.children.length,0,'search must not resurrect a catalog candidate');
+  await f.ui.refresh();
+  assert.equal(f.list.children.length,0,'refresh cannot resurrect an uninstalled app');
+  const restart=fixture(t,{installedRows:[]});
+  await restart.ui.refresh();
+  assert.equal(restart.button('app:quick-notes','main'),undefined,
+    'a new controller session must honor persistent removal');
 });
 
 test('R4.7 context menu closes on outside click/scroll and never stays outside viewport',async t=>{
