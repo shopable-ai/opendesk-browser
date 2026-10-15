@@ -156,7 +156,7 @@ test('R5.4 validates config and permissions before any proxy mutation',async()=>
     {...CONFIG,pac:'function FindProxyForURL(){return "DIRECT";}'}
   ];
   for(const config of bad){
-    await assert.rejects(f.sdk.proxy.managed.requestEnable({config}),error=>
+    await assert.rejects(Promise.resolve().then(()=>f.sdk.proxy.managed.requestEnable({config})),error=>
       ['E_SCHEMA','E_PROXY_CONFIG'].includes(error.code));
   }
   assert.equal(f.events.set.length,0);

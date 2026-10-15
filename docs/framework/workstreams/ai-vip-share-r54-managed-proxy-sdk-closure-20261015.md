@@ -68,3 +68,7 @@ npm run check
 - 在原有 Host `verifyBrowserOwner` 保留工具 capability、已安装 packageHash、installEpoch、启用状态及可信用户点击校验的前提下，**仅** `browser.proxy.managed.getStatus` 和 `browser.proxy.managed.requestDisable` 可在 `proxy` 权限缺失时进入 Driver。实际 Chrome settings 的读取、清理和精确 PAC 所有权核验仍由 Driver 严格要求 `proxy` 权限。
 - 权限丢失时 `getStatus` 返回 `permission:false`、拥有者 `canStop:true`；用户真正点击 STOP 后先持久化 `stopping`，等待权限恢复由 Worker 恢复处理，不允许直接清理或覆盖其他代理。ENABLE 无此例外。
 - 增加 Host→Facade→Driver Node 回归：代理启用、撤销权限、查询状态、可信 STOP 写意图、禁止 Chrome clear、权限恢复后 reconcile 释放。结果以此提交后 CI 为准。
+
+### R1.1 R5 CI 首次扩大覆盖后的真实失败及修复
+
+- `f401738eac0be409c8293b1c400a36896b7a3875` 的 [Browser SDK R5 run 38772097189](https://github.com/shopable-ai/opendesk-browser/actions/runs/38772097189)：新增 `browser-sdk-managed-proxy-r54.test.mjs` 后，25 条 Managed Proxy Node 测试中 **24 PASS / 1 FAIL**；失败源于 fixture 将 SDK 对非法 `scheme` 的同步 `E_SCHEMA` 抛异常当作异步 Promise rejection 捕捉，非真实 Proxy Driver 行为失败。修复仅调整拒绝断言捕获同步/异步异常，不改变验证规则或 Host 权限。以修复后的新候选 CI 为准。
