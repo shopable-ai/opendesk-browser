@@ -50,16 +50,49 @@ async function attach(c,targetId){
   return s;
 }
 async function click(c,session,selector){
-  const p=await until(()=>evaluate(c,session,
-    '(()=>{const x=document.querySelector('+JSON.stringify(selector)+');'+
-    'if(!x||x.disabled||x.closest("[hidden]"))return null;'+
-    'const r=x.getBoundingClientRect(),mx=r.left+r.width/2,my=r.top+r.height/2;'+
-    'return {x:mx,y:my,valid:r.width>0&&r.height>0&&mx>=0&&'+
-    'mx<innerWidth&&my>=0&&my<innerHeight&&x.contains(document.elementFromPoint(mx,my))};})()')
-    .then(value=>value?.valid?value:null),'visible real input '+selector);
-  await c.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:p.x,y:p.y},session);
+  // CDP Input is genuine Chrome pointer/wheel input. Do not use DOM .click(),
+  // scrollIntoView(), synthetic events, or mutate styles/scrollTop to bypass
+  // a hidden or unapproved control. The reviewed install button commonly sits
+  // below the Side Panel's narrow, vertically scrollable viewport.
+  let last=null,point;
+  try{
+    point=await until(async()=>{
+      const p=await evaluate(c,session,
+        '(()=>{const x=document.querySelector('+JSON.stringify(selector)+');'+
+        'if(!x)return {missing:true};'+
+        'const r=x.getBoundingClientRect(),mx=r.left+r.width/2,my=r.top+r.height/2;'+
+        'const sc=document.querySelector("#workspace-content"),w=sc?.getBoundingClientRect();'+
+        'const scroll=w?{top:w.top,bottom:w.bottom,x:Math.min(innerWidth-8,Math.max(8,w.left+w.width/2)),'+
+        'y:Math.min(innerHeight-8,Math.max(8,w.top+w.height/2)),'+
+        'scrollTop:sc.scrollTop,scrollHeight:sc.scrollHeight,clientHeight:sc.clientHeight}:null;'+
+        'const hidden=!!x.closest("[hidden]"),styled=getComputedStyle(x);'+
+        'const hit=!hidden&&!x.disabled&&r.width>0&&r.height>0&&mx>=0&&my>=0&&'+
+        'mx<innerWidth&&my<innerHeight&&x.contains(document.elementFromPoint(mx,my));'+
+        'return {x:mx,y:my,width:r.width,height:r.height,hidden,disabled:x.disabled,'+
+        'display:styled.display,visibility:styled.visibility,hit,scroll};})()');
+      last=p;
+      if(p?.hit)return p;
+      if(p?.hidden||p?.missing||p?.disabled||!p?.scroll)return false;
+      const bounds=p.scroll;
+      const movement=p.y>bounds.bottom-22?315:p.y<bounds.top+22?-315:0;
+      if(movement!==0&&bounds.scrollHeight>bounds.clientHeight+2){
+        await c.send('Input.dispatchMouseEvent',{
+          type:'mouseWheel',x:bounds.x,y:bounds.y,deltaX:0,deltaY:movement},session);
+        await pause(130);
+      }
+      return false;
+    },'visible real input '+selector);
+  }catch(error){
+    const name='input-unreachable-'+Date.now();
+    await writeFile(path.join(OUT,name+'.json'),JSON.stringify({selector,last,
+      error:String(error.message||error),evidenceType:'read-only-DOM-geometry-and-native-wheel'},null,2)+'\n').catch(()=>{});
+    await screenshot(c,session,name).catch(()=>{});
+    throw error;
+  }
+  await c.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:point.x,y:point.y},session);
   for(const type of ['mousePressed','mouseReleased'])
-    await c.send('Input.dispatchMouseEvent',{type,x:p.x,y:p.y,button:'left',clickCount:1},session);
+    await c.send('Input.dispatchMouseEvent',
+      {type,x:point.x,y:point.y,button:'left',clickCount:1},session);
 }
 async function screenshot(c,s,name){
   const value=await c.send('Page.captureScreenshot',{format:'png'},s);
