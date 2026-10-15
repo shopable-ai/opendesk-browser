@@ -549,3 +549,54 @@ OpenDesk Browser Workflow：自然语言 → 真实执行 → 结果验证 → �
 - 浏览器真正加载的 `dist/development` 路径/扩展身份、当前用户登录态 Codex/Cloud 真实规划、真实网页效果、AI 停用后同 Revision Run×2 与 production F3/ZIP：**NOT_TESTED**。GitHub HEAD、Node 模拟、headless Chrome UI/trace 检查不能充当这些证据。
 
 **本轮优先级最终决定：先以 P0 C/D 和真实业务证据完成核心产品，再决定 HTTP 是否需要由 Browser 消费。** 旧 F4 技术切片继续作为参考，不再是推进主线的前置条件。
+
+
+### 13.6 Workflow R2.4：真实业务效果、连续任务、Save 中断恢复与 AI-Off 复跑（2026-10-15）
+
+**R2.4 是第 13 节的增量实施，不是新的架构。** 原 Provider、Authority、Compiler、RunHost、Controller Revision、Task/Durable Result 保持唯一 Owner。以下源码已接线不等于真实 Chrome、真实模型或正式安装已验收。
+
+**用户行为和安全收敛合同**
+
+1. **填写实际值**：Compiler 仍在原 RunHost 内用 `inputValue()` 精确读回；新增对 Durable Result 解码后的每个 `input-readback` 的期望值、`matched` 和步骤身份再次核对。纯填写要保留同一 Document；不能将执行成功当作服务器数据已提交。
+2. **安全搜索**：一轮最多一次点击且点击必须是该固定 Controller 的最后一步。只有用户明确请求搜索、唯一已提供的关键词、可信观察匹配搜索按钮时才设置 `search-results-v1` 预期。先证明原执行 claim/completion/Result/retirement，再使用**原 RunHost 的固定只读观察器**和当前新鲜 Target/网站权限读取点击后页面（同窗口、同 Tab、同 Origin）。只有查询 URL 或结果语义标记关联关键词，且独立观察显示新增可见结果链接或明确无结果标记，才能把点击效果提升为 `BUSINESS_EFFECT_VERIFIED`。新增链接数只是有界 DOM 观察的下限，**不是服务器总结果数/相关性证明**。通用按钮、异步未落地页面、页面变化/撤权/读回失败均留在 `EXECUTION_RECEIPT_VERIFIED`（待核对），不能自动重复点击。
+3. **安全换页**：已授权的最后一次点击可能正常换 Document；旧计划不会继续在新 Document 执行其他步骤。下一次读是重新捕获、重新检查权限和可信回执的独立只读动作。规划期其它 Document 换代仍废弃旧计划；晚到结果不能更新已取消的规划历史。
+4. **连续自然语言**：Cloud Responses 与 Native Codex 只继承最多 4 项已验证的用户任务事实，包括请求、已验证状态、输入读回、步骤数及可选的 `input-readback`/`search-results`/`search-empty` 效果种类和有界可见结果数。`data-sharing.js` 的统一校验不允许原始 DOM/网页敏感文本、凭据、原生 Provider threadId 或未经验证的点击混入；Provider 的原生会话身份仍独立，跨 Tab/Origin 清理有限业务摘要。历史事实只提供语义，不授权重放副作用。
+5. **Save → AI-Off**：保存前核对原 Controller 最新 head；若最新已提交的 bytes/hash 与本次冻结源码完全相同，复用该 Revision 恢复“Controller 已提交但 chrome.storage.local 写入失败”的中断；不同内容则仅在 CAS 期望版本相符时提交，否则报冲突，绝不覆盖他人修改。加载仍重新编译并检查固定源码。关闭 AI 后的手动 `saved` Run 不调用 Provider，额外核对 claim/completion/run/result 四处一致的 `scriptId + revision + sourceHash`。同一冻结版本真实 Run×2 仍需现场证明。
+6. **验收分级**：Browser `9447aeff` 的真实 Workflow AI CI `38736377385`：Node **127/127 PASS**、JS 解析及源码检查 PASS、`build:dev` 因并行 AdBlock Trusted pin 漂移 FAIL。新 R2.4 追加提交不能借旧 SHA 的 127 PASS 冒充自己通过；真实 Mac/Chrome、真 Codex/Cloud、AI-Off Run×2、production F3/ZIP 均 `NOT_TESTED`。
+
+**语义化产品功能树（文档追踪，不开发树 UI）**
+
+```text
+OpenDesk Browser Workflow — 自然语言完成网页任务并保存独立复跑
+├── 理解用户需求：一次 Send → Provider 规划 → Proposal 与意图校验
+├── 认识当前网页：Target 身份 → 网站/摘要披露授权 → 原 RunHost 观察与可信 Locator
+├── 真正执行任务：Compiler 固定代码 → 原 RunHost → Durable Result 核对
+├── 确认业务效果：填写值读回 → 独立安全搜索 Oracle → 其他点击待核对
+├── 连续完成任务：已验证事实 → 当前页重观察 → 不重放旧操作
+├── 保存并重复运行：Definition → CAS Revision/断点恢复 → AI-Off 同版 Run×2
+└── 安全交付：Stop/撤权/unknown → HTTP 安全禁用 → CI、Chrome、production 验收
+```
+
+**功能树执行矩阵**。每个叶节点包括状态、Owner、源码、依赖、缺口、通过条件、SHA 和证据；SHA 为对应实现提交，不表示原生验收。
+
+| 语义化功能节点 | 状态 | Owner / 源码 | 依赖 | 剩余缺口 | 通过条件 | 提交 SHA | 证据 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 需求／一次 Send | SOURCE_WIRED | Workflow UI / `workflow-view.js` | Provider / Target | 真实模型未测 | 一次明确需求直接进入受控执行 | `9447aeff` | 生产链路、Node |
+| 需求／Cloud 与 Native 规划 | SOURCE_WIRED | Provider / `provider.js`,`local-codex.js`,`ai-plan.js` | 可信观察 | 真模型响应未测 | 同一语义和提议边界 | `49752f4f` | 定向测试，原生 NOT_TESTED |
+| 认识／精确网页身份与授权 | COMPONENT_VERIFIED | Existing Authority / `workflow-view.js` | Chrome Permission、CurrentPageTarget | 真实撤权/换页未测 | 不带授权或旧 Document 不执行 | `f3f776fb` | 历史 Node |
+| 认识／可信语义 DOM 观察 | COMPONENT_VERIFIED | `observation.js` | 原 RunHost | 真 Chrome DOM 未测 | 源码/Run/Result/Target/retirement 一致 | `f3f776fb` | 原定向 CI |
+| 执行／Proposal 与 Locator 约束 | COMPONENT_VERIFIED | `direct-execution.js`/`responses.js` | 本轮受控观察 | 真模型误判未采样 | 未要求写操作及第二次点击拒绝 | `d1be7315` | 127 Node PASS 对应旧候选 |
+| 执行／原 Compiler 和 Durable Result | SOURCE_WIRED | `compiler.js`/`workflow-view.js` | RunHost Authority | 真 Chrome 未测 | 完整 run/result/sourceHash 可信回执 | `9447aeff` | Node 127 PASS，Chrome NOT_TESTED |
+| 效果／实际输入值读回 | COMPONENT_VERIFIED | `direct-execution.js`/`workflow-view.js` | 编译 verifyFill | 真 DOM 输入待测 | 每一步实际值精确匹配 | `9447aeff` | Node，真机 NOT_TESTED |
+| 效果／安全搜索结果 Oracle | SOURCE_WIRED | `direct-execution.js`/`workflow-view.js` | 已核对执行 + 新只读观察 | 结构识别有限；真机未测 | 查询关联及新增结果/空结果独立证明 | `9447aeff` | 纯函数测试，真实业务 NOT_TESTED |
+| 效果／一般点击实际效果 | NOT_TESTED | Direct Execution / `direct-execution.js` | 业务特定 Oracle | 无通用独立证明 | 不把点击回执伪称业务成功 | `d1be7315` | 保守待核对 |
+| 连续／跨 Provider 事实继承 | SOURCE_WIRED | `data-sharing.js`/`provider.js`/`ai-plan.js`/`local-codex.js` | 已核对上轮效果 | 真多轮未测 | 最多 4 项 allowlist、无未经核实历史 | `683f7c18` | 新测试待同 SHA CI |
+| 连续／页面换代与无副作用重放 | SOURCE_WIRED | `workflow-view.js`/`direct-execution.js` | Document、权限、Stop | 实际导航/晚到未测 | 点击后不在旧计划上继续操作 | `2b6b6f6b` | Node，真机 NOT_TESTED |
+| 保存／冻结定义、源码及 CAS | SOURCE_WIRED | `workflow-view.js`/原 Controller | 原 Revision journal | 中断故障注入未测 | 保存/加载源码与 Revision 相同 | `c1d595b1` | 源码 |
+| 保存／Commit 后记录中断恢复 | SOURCE_IMPLEMENTED | `workflow-view.js` | Controller head | 注入 storage 失败未测 | 相同源码复用 Revision，冲突拒绝 | `c1d595b1` | 源码，场景 NOT_TESTED |
+| 保存／AI-Off 固定 Run×2 | NOT_TESTED | `workflow-view.js`/原 RunHost | `saved` revision + Source Hash | **无真实 Chrome/AI Off Run×2** | 关闭 AI 后同一 Revision 独立成功两次 | `c1d595b1` | 身份单测不等于真实复跑 |
+| 安全／Stop、撤权、unknown | SOURCE_WIRED | Existing RunHost/Authority/Workflow UI | 精确 owner/Target | 真实负路径未测 | 不越权、不重放、晚到不污染 | `9447aeff` | 历史组件测试 |
+| 安全／本机 HTTP 配对 | BLOCKED | Go Gateway/Browser `local-http.js` | Token 配对、撤权、Origin/CORS | PAIRING_OPEN | 安全闭合前不接 Browser | Go `27765894` | SAFE_DISABLED |
+| 产品／production/Chrome 验收 | NOT_TESTED | Existing Build/Installer | AdBlock Trusted、Chrome 身份 | build FAIL、无用户 Mac | 同候选 build/F3/ZIP/真实任务独立 95+ | Browser `9447aeff` | Node PASS，build FAIL |
+
+**管理估算**：维持 13.3 的相同权重；新增 P0 生产实现可暂估 **约 54%（低置信、非产品验收）**，原基线 51.5/100。对真实 Chrome、AI-Off Run×2、生产安装等没有证据的评分维度仍为 `NOT_SCORED`，不得声称 95+。下一最小任务为同安装身份的真实 Chrome T2 填写读回、T3 安全搜索，再关闭 Provider 验证同 Revision Run×2；不可访问 Mac 则均标 `NOT_TESTED`，并继续 CI/源码切片。Go HTTP 继续安全禁用。
