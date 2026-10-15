@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
+import {performance} from 'node:perf_hooks';
 import {createHash} from 'node:crypto';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 
@@ -21,7 +22,7 @@ function element(id=''){
     focus(){this.focused=true;}
   };
 }
-async function runtime({configured=false,provider,store={value:null}}={}){
+async function runtime({configured=false,provider,store={value:null},clockShiftMs=0}={}){
   const [html,script]=await Promise.all([readFile(htmlPath,'utf8'),readFile(sourcePath,'utf8')]);
   const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(row=>row[1]);
   const nodes=new Map(ids.map(id=>[id,element(id)]));
@@ -44,13 +45,15 @@ async function runtime({configured=false,provider,store={value:null}}={}){
   const document={createElement:tag=>element(tag)};
   const scriptText=configured?script.replace(originalConfig,testConfig):script;
   if(configured)assert.notEqual(scriptText,script,'fixture must override ONLY the release-disabled endpoints');
-  vm.runInNewContext(scriptText,{window,document,URL,Date,Intl,Math,Set,Number,Array,
+  vm.runInNewContext(scriptText,{window,document,URL,
+    Date:class extends Date {static now(){return Date.now()+clockShiftMs;}},
+    performance,Intl,Math,Set,Number,Array,
     Promise,crypto:{randomUUID:()=> '11111111-1111-4111-8111-111111111111'}}, {timeout:2000});
   await flush();await flush();
   return {nodes,calls,storageCalls,store,flush};
 }
 const member=({entitlements=[],redemptions=[],account}={})=>({
-  schemaVersion:1,serverNow:Date.UTC(2026,9,15),
+  schemaVersion:1,serverNow:Date.now(),
   account:account??{state:'bound',id:'customer-123',displayNameMasked:'m***@example.org'},
   entitlements,redemptions
 });
@@ -112,7 +115,7 @@ test('R5.1 two-step voucher flow confirms account and passes exactly one idempot
     if(args.url.endsWith('/preview'))return {status:200,data:{
       previewId:'pre-012345',accountId:'customer-123',skuTitle:'请求配额包',
       grantSummary:'增加 20 次请求',voucherPreviewMasked:'***-99',
-      expiresAt:Date.now()+300000}};
+      expiresAt:Date.now()+120000}};
     if(args.url.endsWith('/redeem'))return {status:200,data:{
       status:'redeemed',idempotencyKey:args.data.idempotencyKey,accountId:'customer-123',
       redemptionId:'r-002',redeemedAt:Date.now(),
@@ -141,7 +144,7 @@ test('R5.1 ambiguous redemption never auto-retries an unknown side effect',async
     if(args.url.endsWith('/member'))return {status:200,data:member()};
     if(args.url.endsWith('/preview'))return {status:200,data:{
       previewId:'pre-unknown',accountId:'customer-123',skuTitle:'权益',
-      grantSummary:'服务端预览',voucherPreviewMasked:'****',expiresAt:Date.now()+300000}};
+      grantSummary:'服务端预览',voucherPreviewMasked:'****',expiresAt:Date.now()+120000}};
     if(args.url.endsWith('/redeem')){posts++;throw Error('timeout unknown');}
     throw Error('unhandled');
   }});
@@ -172,7 +175,7 @@ test('R5.2 write-ahead survives restart, never repeats consumption and reconcile
     if(args.url.endsWith('/member'))return {status:200,data:member()};
     if(args.url.endsWith('/preview'))return {status:200,data:{
       previewId:'pre-durable',accountId:'customer-123',skuTitle:'体验权益',
-      grantSummary:'增加额度',voucherPreviewMasked:'****99',expiresAt:Date.now()+300000}};
+      grantSummary:'增加额度',voucherPreviewMasked:'****99',expiresAt:Date.now()+120000}};
     if(args.url.endsWith('/redeem')){
       assert.equal(store.value?.idempotencyKey,args.data.idempotencyKey,'journal precedes POST');
       throw Error('response disappeared after possible consumption');
@@ -250,7 +253,7 @@ test('R5.2 storage failure blocks voucher POST before side effect',async()=>{
     if(args.url.endsWith('/member'))return {status:200,data:member()};
     if(args.url.endsWith('/preview'))return {status:200,data:{
       previewId:'pre-storage',accountId:'customer-123',skuTitle:'权益',
-      grantSummary:'服务端核验',voucherPreviewMasked:'****',expiresAt:Date.now()+300000}};
+      grantSummary:'服务端核验',voucherPreviewMasked:'****',expiresAt:Date.now()+120000}};
     if(args.url.endsWith('/redeem'))posts++;
     throw Error('expected');
   }});
@@ -271,7 +274,7 @@ test('R5.2 lost storage acknowledgement confirmed by readback sends once',async(
     if(args.url.endsWith('/member'))return {status:200,data:member()};
     if(args.url.endsWith('/preview'))return {status:200,data:{
       previewId:'pre-ack',accountId:'customer-123',skuTitle:'权益',
-      grantSummary:'服务端核验',voucherPreviewMasked:'****',expiresAt:Date.now()+300000}};
+      grantSummary:'服务端核验',voucherPreviewMasked:'****',expiresAt:Date.now()+120000}};
     if(args.url.endsWith('/redeem')){posts++;throw Error('unknown');}
     throw Error('unhandled');
   }});
@@ -284,4 +287,133 @@ test('R5.2 lost storage acknowledgement confirmed by readback sends once',async(
   assert.equal(posts,1);
   assert.equal(store.value?.accountId,'customer-123');
   assert.equal(node(e,'redeem').disabled,true);
+});
+
+test('R5.2 device clock skew cannot extend preview or strand a persisted unknown POST',async()=>{
+  for(const clientShift of [86400000,-86400000]){
+    const store={value:null};
+    let posts=0;
+    const provider=async args=>{
+      if(args.url.endsWith('/member'))return {status:200,data:member()};
+      if(args.url.endsWith('/preview'))return {status:200,data:{
+        previewId:'skew-preview',accountId:'customer-123',skuTitle:'权益',
+        grantSummary:'服务端预检',voucherPreviewMasked:'****',expiresAt:Date.now()+90000}};
+      if(args.url.endsWith('/redeem')){posts++;throw Error('unknown after possible use');}
+      if(args.url.endsWith('/status'))return {status:200,data:{
+        status:'rejected',final:true,accountId:'customer-123',
+        idempotencyKey:store.value.idempotencyKey}};
+      throw Error('Unexpected endpoint');
+    };
+    const first=await runtime({configured:true,store,provider,clockShiftMs:clientShift});
+    node(first,'redeem-code').value='CLOCK-SKEW';
+    node(first,'redeem-code').listeners.input();
+    node(first,'redeem').listeners.click({isTrusted:true});
+    await flush();await flush();
+    assert.equal(node(first,'redeem').textContent,'确认兑换');
+    node(first,'redeem').listeners.click({isTrusted:true});
+    for(let i=0;i<6;i++)await flush();
+    assert.equal(posts,1);
+    assert(store.value,'a journal survives an unknown POST despite local clock drift');
+    const second=await runtime({configured:true,store,provider,clockShiftMs:-clientShift});
+    assert.equal(node(second,'recovery-check').disabled,false);
+    node(second,'recovery-check').listeners.click({isTrusted:true});
+    for(let i=0;i<6;i++)await flush();
+    assert.equal(store.value,null,'authoritative final rejection unlocks despite a shifted local date');
+    assert.equal(posts,1,'recovery never repeats voucher consumption');
+  }
+});
+
+test('R5.2 rechecks live account before creating any consumption journal',async()=>{
+  const store={value:null};
+  let currentAccount='customer-123',posts=0;
+  const provider=async args=>{
+    if(args.url.endsWith('/member'))return {status:200,data:member({
+      account:{state:'bound',id:currentAccount,displayNameMasked:'masked user'}})};
+    if(args.url.endsWith('/preview'))return {status:200,data:{
+      previewId:'before-account-change',accountId:'customer-123',skuTitle:'权益',
+      grantSummary:'服务端预检',voucherPreviewMasked:'****',expiresAt:Date.now()+90000}};
+    if(args.url.endsWith('/redeem'))posts++;
+    throw Error('Unexpected endpoint');
+  };
+  const e=await runtime({configured:true,store,provider});
+  node(e,'redeem-code').value='ACCOUNT-CHANGE';
+  node(e,'redeem-code').listeners.input();
+  node(e,'redeem').listeners.click({isTrusted:true});
+  await flush();await flush();
+  assert.equal(node(e,'redeem-preview').hidden,false);
+  currentAccount='other-customer';
+  node(e,'redeem').listeners.click({isTrusted:true});
+  for(let i=0;i<5;i++)await flush();
+  assert.equal(posts,0);
+  assert.equal(store.value,null,'changed account must not write an unknown transaction');
+  assert.equal(node(e,'redeem-preview').hidden,true);
+  assert.equal(node(e,'recovery').hidden,true);
+  assert.match(node(e,'redeem-status').textContent,/未提交兑换/);
+});
+
+test('R5.2 pre-submit member failure remains safely retryable without phantom journal',async()=>{
+  const store={value:null};
+  let memberCalls=0,posts=0;
+  const e=await runtime({configured:true,store,provider:async args=>{
+    if(args.url.endsWith('/member')){
+      memberCalls++;
+      if(memberCalls===1)return {status:200,data:member()};
+      throw Error('identity offline before write-ahead');
+    }
+    if(args.url.endsWith('/preview'))return {status:200,data:{
+      previewId:'retry-after-auth',accountId:'customer-123',skuTitle:'权益',
+      grantSummary:'预检通过',voucherPreviewMasked:'****',expiresAt:Date.now()+90000}};
+    if(args.url.endsWith('/redeem'))posts++;
+    throw Error('unexpected');
+  }});
+  node(e,'redeem-code').value='CHECK-AGAIN';
+  node(e,'redeem-code').listeners.input();
+  node(e,'redeem').listeners.click({isTrusted:true});
+  await flush();await flush();
+  node(e,'redeem').listeners.click({isTrusted:true});
+  for(let i=0;i<5;i++)await flush();
+  assert.equal(posts,0);
+  assert.equal(store.value,null);
+  assert.equal(node(e,'recovery').hidden,true,'no phantom unknown-effect record');
+  assert.equal(node(e,'redeem-code').disabled,false,'can re-preview when connection recovers');
+  assert.match(node(e,'redeem-status').textContent,/未提交兑换/);
+});
+
+test('R5.2 explicit status lookup rechecks account after the UI was opened',async()=>{
+  const store={value:{schemaVersion:1,toolId:'ai-vip-share',packageVersion:'1.2.0',
+    accountId:'customer-123',idempotencyKey:'33333333-3333-4333-8333-333333333333',
+    createdAt:Date.now()}};
+  let currentAccount='customer-123',statusRequests=0;
+  const e=await runtime({configured:true,store,provider:async args=>{
+    if(args.url.endsWith('/member'))return {status:200,data:member({
+      account:{state:'bound',id:currentAccount,displayNameMasked:'masked user'}})};
+    if(args.url.endsWith('/status')){statusRequests++;throw Error('should not read old account');}
+    throw Error('No voucher consumption allowed');
+  }});
+  assert.equal(node(e,'recovery-check').disabled,false);
+  currentAccount='other-customer';
+  node(e,'recovery-check').listeners.click({isTrusted:true});
+  for(let i=0;i<5;i++)await flush();
+  assert.equal(statusRequests,0);
+  assert(store.value,'unknown effect retained for its rightful account');
+  assert.equal(node(e,'recovery-check').disabled,true);
+  assert.match(node(e,'recovery-status').textContent,/账号不一致/);
+});
+
+test('R5.2 rejects overlong previews even with a valid server member timestamp',async()=>{
+  const e=await runtime({configured:true,provider:async args=>{
+    if(args.url.endsWith('/member'))return {status:200,data:member()};
+    if(args.url.endsWith('/preview'))return {status:200,data:{
+      previewId:'too-long',accountId:'customer-123',skuTitle:'权益',
+      grantSummary:'不可无限期确认',voucherPreviewMasked:'****',
+      expiresAt:Date.now()+900000}};
+    throw Error('no redemption should be sent');
+  }});
+  node(e,'redeem-code').value='TOO-LONG-PREVIEW';
+  node(e,'redeem-code').listeners.input();
+  node(e,'redeem').listeners.click({isTrusted:true});
+  for(let i=0;i<4;i++)await flush();
+  assert.equal(node(e,'redeem-preview').hidden,true);
+  assert.match(node(e,'redeem-status').textContent,/无法核验兑换码/);
+  assert(!e.calls.some(args=>args.url.endsWith('/redeem')));
 });

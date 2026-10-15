@@ -79,7 +79,17 @@
   const storeRequest=window.OpenDeskTool.request;
   let snapshot=null,pending=null,recovery=null,recoveryFault=null;
   let recoveryReady=false,busy=false,seq=0;
-  let lastVerifiedAt=null;
+  // Provider clock, not device Date.now(), determines preview validity.
+  // A stale member snapshot cannot authorize a new voucher side effect.
+  const PREVIEW_MAX_LIFETIME_MS=5*60*1000;
+  let serverSampleAt=null;
+  function estimatedServerNow(){
+    if(!snapshot||serverSampleAt===null)return null;
+    const elapsed=performance.now()-serverSampleAt;
+    if(!Number.isFinite(elapsed)||elapsed<0||
+      elapsed>PREVIEW_MAX_LIFETIME_MS)return null;
+    return snapshot.serverNow+elapsed;
+  }
   const clear=(node)=>node.replaceChildren();
   function addRow(list,title,detail){
     const item=document.createElement('li');
@@ -111,7 +121,9 @@
       raw.schemaVersion!==1||raw.toolId!=='ai-vip-share'||
       raw.packageVersion!==PACKAGE_VERSION||!safeString(raw.accountId,120)||
       !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(raw.idempotencyKey)||
-      dateMs(raw.createdAt)===null||raw.createdAt>Date.now()+60000)
+      // Diagnostic local timestamp only: clock rollback must not hide an
+      // unresolved POST or prevent an account-bound server status check.
+      dateMs(raw.createdAt)===null)
       fail('E_RECOVERY_RECORD','上次兑换记录版本或身份无法安全核验');
     return raw;
   }
@@ -240,7 +252,6 @@
   function renderMember(){
     if(!snapshot)return;
     const {account,entitlements,redemptions,serverNow}=snapshot;
-    lastVerifiedAt=Date.now();
     accountName.textContent=account.state==='bound'?account.name:'尚未登录或绑定账号';
     const active=entitlements.filter(e=>e.status==='active');
     const primary=active.find(e=>e.type==='time')||active[0]||entitlements[0]||null;
@@ -309,6 +320,15 @@
       fail('E_PROVIDER_RESPONSE','会员服务拒绝请求或响应无效');
     return result.data;
   }
+  function acceptMemberSnapshot(data){
+    snapshot=data;
+    serverSampleAt=performance.now();
+    if(pending&&pending.accountId!==data.account.id){
+      pending=null;code.value='';
+      redeemNotice('账号已变化，本次兑换预检已取消；未提交兑换。',true);
+    }
+    renderMember();
+  }
   async function refreshMember(){
     if(!endpoints||busy)return;
     const current=++seq;
@@ -319,11 +339,11 @@
     try{
       const data=verifiedMember(await businessRequest('GET',endpoints.member));
       if(current!==seq)return;
-      snapshot=data;
-      renderMember();
+      acceptMemberSnapshot(data);
     }catch(error){
       if(current!==seq)return;
-      snapshot=null;
+      snapshot=null;serverSampleAt=null;
+      pending=null;code.value='';
       memberState.textContent='无法核验';
       accountName.textContent='账号状态待核验';
       productName.textContent='无法确认会员身份';
@@ -342,13 +362,15 @@
     }
   }
   function validatePreview(data){
+    const now=estimatedServerNow();
     if(!plain(data)||!safeString(data.previewId,160)||
       !safeString(data.accountId,120)||data.accountId!==snapshot?.account.id||
       !safeString(data.skuTitle,100)||!safeString(data.grantSummary,180)||
       !safeString(data.voucherPreviewMasked,48)||
       !data.voucherPreviewMasked.includes('*')||
-      dateMs(data.expiresAt)===null||data.expiresAt<=Date.now())
-      fail('E_PREVIEW','兑换预检与当前账号不符或已失效');
+      dateMs(data.expiresAt)===null||now===null||
+      data.expiresAt<=now||data.expiresAt-now>PREVIEW_MAX_LIFETIME_MS)
+      fail('E_PREVIEW','兑换预检与当前账号不符、超出安全时限或已失效');
     return {id:data.previewId,accountId:data.accountId,title:data.skuTitle,
       summary:data.grantSummary,masked:data.voucherPreviewMasked,expiresAt:data.expiresAt};
   }
@@ -384,8 +406,10 @@
       }finally{busy=false;renderRedeem();}
       return;
     }
-    if(pending.accountId!==snapshot.account.id||pending.expiresAt<=Date.now()){
-      pending=null;redeemNotice('预检已过期或账号变化，请重新核对兑换码。',true);
+    const previewNow=estimatedServerNow();
+    if(pending.accountId!==snapshot.account.id||previewNow===null||
+      pending.expiresAt<=previewNow){
+      pending=null;redeemNotice('预检已过期、服务端时间已失效或账号变化，请重新核对兑换码。',true);
       renderRedeem();return;
     }
     let key;
@@ -394,6 +418,23 @@
     }
     const accountId=pending.accountId,previewId=pending.id;
     busy=true;renderRedeem();
+    redeemNotice('正在重新核对当前账号与预检时限；尚未提交兑换。');
+    try{
+      // Validate current identity before creating a write-ahead journal.
+      // The Provider must also bind the actual POST to its authenticated session.
+      const latest=verifiedMember(await businessRequest('GET',endpoints.member));
+      acceptMemberSnapshot(latest);
+      const currentServerNow=estimatedServerNow();
+      if(latest.account.state!=='bound'||latest.account.id!==accountId||
+        pending?.id!==previewId||currentServerNow===null||
+        pending.expiresAt<=currentServerNow)
+        fail('E_PRE_SUBMIT','账号或预检状态发生变化');
+    }catch{
+      pending=null;code.value='';busy=false;
+      redeemNotice('账号或预检状态无法重新核验，本次未提交兑换；请重新预检。',true);
+      renderRedeem();
+      return;
+    }
     redeemNotice('正在持久保存兑换事务，再提交服务端；请勿重复操作。');
     try{
       await beginRecovery(accountId,key); // Write-ahead and verified readback.
@@ -425,6 +466,10 @@
       if(!saved||saved.idempotencyKey!==recovery.idempotencyKey||
         saved.accountId!==recovery.accountId)
         fail('E_RECOVERY_CHANGED','本地事务已变化');
+      const latest=verifiedMember(await businessRequest('GET',endpoints.member));
+      acceptMemberSnapshot(latest);
+      if(latest.account.state!=='bound'||latest.account.id!==saved.accountId)
+        fail('E_RECOVERY_ACCOUNT','当前服务端账号与待核对事务归属不同');
       const data=await businessRequest('POST',endpoints.voucherStatus,{
         accountId:saved.accountId,idempotencyKey:saved.idempotencyKey});
       if(!plain(data)||data.accountId!==saved.accountId||
