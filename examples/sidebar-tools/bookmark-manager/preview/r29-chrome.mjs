@@ -530,6 +530,15 @@ try{
       popupReport?.read&&popupReport?.visible,
       'row menu must fit the iframe viewport without triggering editing');
     await capture('menu-open');
+    const escape=await evaluate(`(()=>{
+      const button=document.querySelector('#bm-floating-menu button');
+      button.focus();button.dispatchEvent(new KeyboardEvent('keydown',
+        {key:'Escape',bubbles:true,cancelable:true}));
+      return {closed:!document.getElementById('bm-floating-menu'),
+        restored:document.activeElement?.classList?.contains('bm-menu')};
+    })()`,visualCtx);
+    assert.ok(escape?.closed&&escape?.restored,
+      'Escape must restore focus to row action trigger');
     const deleteVisual=await evaluate(`(()=>{
       const q=id=>document.getElementById(id);
       const input=q('bm-search');input.value='设计资料';
@@ -547,15 +556,7 @@ try{
       'non-empty folder must show a danger confirmation with unchecked subtree consent');
     await capture('delete-confirm');
     await evaluate("document.getElementById('bm-delete-cancel').click()",visualCtx);
-    const escape=await evaluate(`(()=>{
-      const button=document.querySelector('#bm-floating-menu button');
-      button.focus();button.dispatchEvent(new KeyboardEvent('keydown',
-        {key:'Escape',bubbles:true,cancelable:true}));
-      return {closed:!document.getElementById('bm-floating-menu'),
-        restored:document.activeElement?.classList?.contains('bm-menu')};
-    })()`,visualCtx);
-    assert.ok(escape?.closed&&escape?.restored,
-      'Escape must restore focus to row action trigger');
+
     // Real pointer click on the OUTER preview-only diagnostic control. It must
     // post only an allowlisted Mock request to the opaque iframe, then display
     // the validated result in the outer feedback region.
