@@ -231,7 +231,17 @@ test('R4.7 missing Page grant forbids enable; unreadable app status never fabric
   await settle(()=>f.programs[0].installed.enabled===false);
   await settle(()=>f.button('page:reader','more')?.disabled===false);
   await f.ui.refresh();f.setAllowed(false);
-  f.button('page:reader','more').dispatch('click');f.menuItem('启用自动运行').dispatch('click');
+  const pageMore=f.button('page:reader','more');
+  assert.ok(pageMore,'Page menu trigger must survive authority refresh');
+  pageMore.dispatch('click');
+  const enable=f.menuItem('启用自动运行');
+  assert.ok(enable,'Page re-enable menu missing: '+JSON.stringify({
+    disabled:pageMore.disabled,expanded:pageMore.getAttribute('aria-expanded'),
+    menuHidden:f.rowMenu().hidden,menuLabels:f.rowMenu().children.map(x=>x.textContent),
+    pageEnabled:f.programs[0].installed.enabled,
+    rowText:f.list.children.find(x=>x.dataset.extensionId==='page:reader')?.textContent
+  }));
+  enable.dispatch('click');
   await settle(()=>f.nodes['extension-center-status'].textContent.includes('E_PERMISSION'));
   assert.equal(f.writes.length,1,'missing Chrome grant prevents second authority mutation');
   f.setCorrupt(true);await f.ui.refresh();
