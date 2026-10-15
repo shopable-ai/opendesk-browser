@@ -50,3 +50,25 @@ Date: 2026-10-15. Branch: `main` (only). Scope: `examples/programs/chatgpt-mindm
 2. 对四个文件完成许可/来源闭包与逐项安全评估：提供原 SDK/viewer 与 Snowbrush 合并产物的精确版本、著作权归属、第三方 NOTICE/LICENSE、打包/再分发依据。没有材料只阻塞正式分发，不阻塞私有源码分析和组件测试。
 3. 复用现有受审静态库/安装签名/运行世界，先证明可行，再给共享框架追加**最小**固定资源接线；检查 Stop、撤权、升级、卸载、BFCache 和文档隔离。不得因本预览通过而添加宽泛 `@require` 或任意远端 JS 能力。
 4. 对同一个冻结产物走真实 Candidate→Verification→Available→Installed，记录 package/build hash、runtime hash、扩展与程序安装身份、Page Authority 回执以及登录后 ChatGPT 页面实测，之后再进行独立专家逐维打分。
+
+
+## 固定二进制的新增许可发现（R2.1 原始 blob 只读抽查）
+
+对原始 Git blob 逐项读取可解码代码及注释，不改变本仓库 vendor 分发策略。以下是 **已在原始字节中观察到的嵌入标头**，不是完整软件组成清单或独立权利审批。
+
+| 固定文件 | 实际可见版本 / 授权痕迹 | 尚缺 |
+| --- | --- | --- |
+| `jszip.min.js` | 头部写明 **JSZip 3.10.1**，MIT 或 GPLv3 双许可证；标注内含 MIT pako | 与所包含版本完全一致的 LICENSE/NOTICE 及发布保留方式 |
+| `polyfill-45b9836beb.min.js` | 未找到足以识别完整传递依赖的版权/许可标头 | 精确源码图谱、构建锁和所有对应许可证 |
+| `xmind-sdk.bundle.js` | 包含 JSZip 兼容代码；自身未检出明确完整合并清单 | 与 XMind SDK 官方 MIT 发行版的构建对应、原始依赖许可证 |
+| `snowbrush-2c2b5d62b5.js` | 内含 **jQuery 3.5.1/Sizzle 2.3.5**（MIT）、**Hammer.js 2.0.7**（MIT）、buffer（MIT）、ieee754（BSD-3-Clause），以及 **GSAP 3.5.1 / CSSPlugin 3.5.1**（GreenSock Standard License 自有条款） | XMind/Snowbrush 原始合并包权利凭证；GSAP 3.5.1 原许可及当前授权适用范围；完整 SBOM/NOTICE 和专有部分授权 |
+
+原 Snowbrush 同时包含插入全局 `<style id="snowbrush_style">` 的调用；这与 R2 fixture 实测样式未随控制器关闭全部清理相符。**不能只调用 controller.close() 就宣布在真实 ChatGPT 中已完全清理。**
+
+第三方许可重要细节：官方 XMind SDK 和 XMind Viewer 自称 MIT，不能推导包含它们的任意合并文件全体 MIT。GSAP 于 **2025-04-30** 改为更宽松的 Standard "No Charge" 许可，但仍存在禁止竞争性可视动画构建器等限制；对此固定二进制中的旧版 GSAP 3.5.1，**不能直接假定新条款已无条件追溯、也不能据此判定禁止分发**。源头：
+- https://github.com/xmindltd/xmind-sdk-js
+- https://github.com/xmindltd/xmind-viewer
+- https://webflow.com/updates/gsap-becomes-free
+- https://gsap.com/standard-license/
+
+完成正式分发前需要：**完整原始合并构建记录/精确版本→逐依赖版权和许可证→NOTICE/声明保留→对固定实际二进制与 OpenDesk 安装包分发方式的权利确认**。这是一项明确的第三方权利批准门槛，不能被本地 HASH PASS 替代；继续保持全部 vendor 资产不入库、无 CDN、无 MAIN 注入。
