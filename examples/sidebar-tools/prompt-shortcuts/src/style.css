@@ -57,9 +57,9 @@
 .ps-list-caption{display:flex;justify-content:space-between;gap:var(--space-2);align-items:baseline;flex-wrap:wrap;color:var(--od-sub);font-size:var(--od-meta-size);margin:0 0 var(--space-1)}
 .ps-list-caption small{font-size:var(--od-meta-size);white-space:nowrap}
 .ps-card{display:grid;gap:7px;padding:8px}
-.ps-card-use{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;white-space:pre-wrap;word-break:break-word;max-width:100%;width:100%;min-height:34px;padding:1px 2px;text-align:left;border:0;background:transparent;color:var(--od-ink);font-size:var(--od-body-size);font-weight:540;line-height:1.55}
-.ps-card-use:hover:not(:disabled){background:var(--od-bg)}
-.ps-card-use:disabled{opacity:.55;cursor:default}
+.ps-card-use{width:100%;min-width:0;min-height:36px;justify-content:flex-start;text-align:left}
+.ps-card-preview{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;white-space:pre-wrap;word-break:break-word;max-width:100%;font-size:var(--od-body-size);font-weight:540;line-height:1.55}
+.ps-card-use:disabled{cursor:default}
 .ps-card-meta{display:flex;align-items:center;gap:var(--space-2);min-width:0}
 .ps-glyph{width:30px;height:30px;min-width:30px;font-size:10px;border-radius:9px}
 .ps-info-name{min-width:0;flex:1;color:var(--od-sub);font-size:var(--od-meta-size);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
