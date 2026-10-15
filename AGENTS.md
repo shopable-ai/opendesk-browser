@@ -96,6 +96,10 @@ Native Workspace 已采用 Tailwind v4 的离线固定构建，必须保持 `rem
 
 浏览器插件手工调试、Sidebar 草稿和现代 Page API 的标准测试页面为 `examples/tasks/demo-form.html`。启动 `python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks` 后，统一访问 `http://127.0.0.1:43111/demo-form.html`；参照 `examples/tasks/README.zh-CN.md` 和 `tests/environment/basic-browser-page.test.mjs`。不要沿用历史会话或旧测试服务产生的临时 `/fixture` 地址，也不要因手工演示入口统一而删除 `tests/prototypes/**/fixture/`、`contracts/fixtures/` 或原生测试专用路由。任何删除必须先核对运行器和证据引用。已在其他会话做过的真实 Chrome 测试，首先核对结果绑定的候选 SHA；没有新增差异就不重复无意义的全量验收。
 
+## AI 自然语言创建扩展的唯一 Workflow 入口（2026-10-15）
+
+用户只用一句话要求新建/完善 Sidebar Tool 时，先读取 [`.agents/workflows/extension-creation.md`](.agents/workflows/extension-creation.md) 恢复已确认需求与进度，再按既有 `.agents/skills/README.md` 选主 Skill；不得重新写第二份总工作流。GitHub 自动推理入口仅在 [`.github/workflows/extension-creation-intake.md`](.github/workflows/extension-creation-intake.md) 中只读接入，权限/安装/升级仍由既有产品机制和用户确认负责；`src/framework/workflow/contract.js` 的网页任务自动化与扩展创建编排不是同一个运行器。
+
 ## 实施与验收
 
 按旧功能/旧符号→新职责模块→实际消费者→真实产品入口→必要验证组织任务。每项区分已实施、已有组件证据、已有原生证据、正式关闭与具体缺口。历史 blocker 必须对照当前代码确认，不制造修改，不重新审计已冻结材料以替代实施。
