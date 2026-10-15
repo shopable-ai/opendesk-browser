@@ -133,13 +133,14 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     const action=active?.dataset?.extensionAction;
     closeRowMenu();
     const rows=filterExtensionEntries(all().map(row=>({...row,title:titleOf(row),description:descriptionOf(row)})),{query,kind,scope});
+    list.setAttribute('aria-busy',String(Boolean(busy||pendingKey)));
     list.replaceChildren();
     for(const row of rows){
       const item=node('li','ec-row');item.dataset.extensionId=row.key;
       const primaryAction=resolveExtensionPrimaryAction(row);
       if(primaryAction)item.classList.add('ec-row--has-primary');
-      const rowBusy=busy||pendingKey===row.key;
-      if(rowBusy)item.setAttribute('aria-busy','true');
+      const rowBusy=busy||Boolean(pendingKey);
+      if(busy||pendingKey===row.key)item.setAttribute('aria-busy','true');
       // The full row and explicit primary button share one handler.
       const main=button('',()=>openRow(row.key),'ec-row-main');
       main.dataset.extensionKey=row.key;main.dataset.extensionAction='main';
@@ -186,7 +187,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       kind==='page'?'暂无符合条件的网页增强':'还没有已安装扩展，可搜索官方目录或打开应用市场。';
     get('extension-center-count').textContent=rows.length+' 个扩展';
     syncFilters();
-    if(key&&!busy)restoreRowFocus(key,action);
+    if(key&&!busy&&!pendingKey)restoreRowFocus(key,action);
   }
   function openMarket(release=null){
     const route=release?'#/apps/'+release.id+'/versions/'+release.version:'';

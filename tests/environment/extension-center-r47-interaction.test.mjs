@@ -287,12 +287,18 @@ test('R4.7 async app toggle is single-flight and exposes processing without a se
   assert.equal(row.getAttribute('aria-busy'),'true');
   assert.equal(f.button('app:quick-notes','main').disabled,true);
   assert.equal(f.button('app:quick-notes','more').disabled,true);
+  assert.equal(f.button('page:reader','main').disabled,true,
+    'unrelated row must not appear clickable when the host blocks all actions');
+  assert.equal(f.button('page:reader','more').disabled,true);
+  assert.equal(f.list.getAttribute('aria-busy'),'true');
   oldAction.dispatch('click');
   assert.equal(requested,1,'stale menu click cannot start concurrent action');
   f.store.set(SIDEBAR_TOOL_ENABLE_STORE,{[app.id]:true});
   release(true);
   await settle(()=>f.button('app:quick-notes','primary')!==undefined);
   assert.equal(f.button('app:quick-notes','more').disabled,false);
+  assert.equal(f.button('page:reader','more').disabled,false);
+  assert.equal(f.list.getAttribute('aria-busy'),'false');
   assert.equal(f.list.children.find(node=>node.dataset.extensionId==='app:quick-notes')
     .textContent.includes('处理中'),false);
 });
