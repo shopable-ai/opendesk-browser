@@ -101,7 +101,10 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
           // Only a true Host result AND a fresh matching persistent record earn success.
           void (async()=>{
             let outcome,operationError,readback=false;
-            try{outcome=await result;}catch(error){operationError=error;}
+            try{outcome=await result;}catch(error){
+              operationError=error;
+              if(!disposed)message((error?.code||'E_TOOL')+'：'+String(error?.message||error),'error');
+            }
             try{readback=await refresh();}catch(error){operationError??=error;}
             pendingKey=null;
             if(disposed)return;
@@ -318,7 +321,11 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     try{
       let result,operationError,readback=false;
       try{result=await setInstalledPageProgramEnabled({api,client,row:row.record});}
-      catch(error){operationError=error;}
+      catch(error){
+        operationError=error;
+        if(!disposed)message((error?.code||'E_PAGE_INSTALLATION')+'：'+
+          String(error?.message||error),'error');
+      }
       try{readback=await refresh();}catch(error){operationError??=error;}
       if(disposed)return;
       const current=find(row.key);
