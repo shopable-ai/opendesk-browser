@@ -19,3 +19,12 @@
 - **定向自动回归：** `node --test tests/environment/cookie-editor-preview-r46.test.mjs`。这些测试是模拟状态与 DOM 事件回归，不能替代 Playwright/Chromium 真浏览器截图及真实 Chrome Cookie Host 验收。
 - **R4.6.1 Value 语义：** 编辑已有 Cookie 时，空白 Value 输入框初始代表“未触碰、保留旧值”；用户输入后再次清空是明确写入空字符串的待保存意图。可点击“撤销值修改 · 保留旧值”回到 clean 状态。新建时输入后删空则恢复初始 clean。此处仅预览模拟，不修改正式 Chrome Cookie。
 - **R4.6.2 Partition 安全：** 预览导入不将已分区 Cookie 与同名、同域、同路径的未分区 Cookie 当作同一身份；没有精确 PartitionKey 的分区 JSON 直接报错，不会隐式转为普通 Cookie。正式产品须继续使用可信 Host 的 Store/Partition 精确身份。
+
+## R4.7 — 导出文本复制与文件下载双入口（2026-10-16）
+
+- 唯一主预览仍为 `preview/index.html`；在原位导出表单中显示「复制到剪贴板」和「导出文件」，不再显示「导出模拟文件」等不适合正式产品的按钮文字。原 384px 视觉、R4.3 黄金 Blob、导入、编辑、Dirty 逻辑保持不变。
+- 两个操作从同一个格式化过程生成相同内容；默认 JSON 仅导出不含 Value 的元数据清单，不可恢复登录。Cookie Header / Netscape 需要敏感值并受格式损失和分区限制约束。
+- 「包含 Cookie 值」时，分别使用本站值读取授权及每次操作的最终确认；复制确认文案明确提醒系统剪贴板可被其他应用读取，下载确认说明文件泄露风险。取消确认不产生复制或文件。
+- 复制采用浏览器页面 `navigator.clipboard.writeText` 演示成功／拒绝／不支持场景；仅在写入 Promise 实际完成后报成功，失败保留导出面板并提示可使用「导出文件」。文件采用原下载机制。**此处只操作虚构数据，不代表 Chrome/Host 已授权或真实复制能力已验收。**
+- 定向回归文件 `tests/environment/cookie-editor-preview-r46.test.mjs` 新增剪贴板模拟测试。后续正式扩展迁移必须使用**现有公开 SDK** `OpenDeskSDK.browser.cookies`、`OpenDeskSDK.browser.clipboard` 和 `OpenDeskSDK.browser.downloads`（以实际 SDK 接口为准），继承真实网站身份、Store/Partition 精确权限、敏感值读授权、Epoch 失效保护，**不得把预览模拟脚本迁入产品**。
+- 正式 `../src/index.html`、`../src/style.css`、`../src/main.js`、`../tool.config.json` 和安装包本轮均未改动；用户在新一轮明确授权后方可迁移正式 UI。
