@@ -84,6 +84,8 @@ node --test tests/environment/sidebar-preview-contract.test.mjs tests/environmen
 有正式工具的 Source-Bound Preview 严格划分 **实际工具区域** 与 **离线预览辅助工具**：
 
 - \`src/index.html\` / 正式安装包 / \`iframe#opendesk-preview-frame\` 只包含生产业务 UI。**禁止**将“预览实验台”、模拟权限切换、故障注入、测试菜单、CI 操作按钮插入工具容器、详情、页面顶部或 sandbox iframe，即使它们标注“不是正式工具”也不行。
+
+- **跨工具零漂移约束**：书签专属实验台由预览 Builder 仅在 `tool==='bookmark-manager'` 时追加到已生成的外层 HTML；不得在共享 `sidebar-tool-preview-shell.html` 新增对所有工具生效的空 `<script>`、占位符、CSS 或实验台节点。Quick Notes、AdBlock、Reading TOC 的源 HTML 必须保持无关字节不变，且显式测试工具包 / 内层 iframe 无诊断控件。
 - 诊断 UI 只允许由 \`scripts/preview/build-preview.mjs\` 在外部 \`sidebar-tool-preview-shell.html\` 的 **\`.preview-device\` 之外**按工具 ID 显式构建。默认折叠、明确“非正式工具”，真实截图/用户观察首先呈现不带诊断的正式 Side Panel。临时故障注入不得改变正式 SDK/Host、权限、发布包或浏览器持久数据。
 - 若外层诊断需要改变离线 iframe 的测试状态，只能调用工具专有的 Mock 允许列表，经有界的仅预览消息协议发送到 opaque iframe，核对来源 WindowProxy 和离线确认消息；不得借 \`allow-same-origin\`、直接 \`chrome.*\`、外部网络、跨世界 DOM 访问或通用特权 Bridge。
 - Chrome 回归须分别断言：真实包内无实验台；生成 frameHtml 内无实验台控件；外部 \`.preview-device\` 之外可找到实验台；控件点击只修改 Mock 内存。用户点击书签行只查看只读详情；仅“编辑”操作进入输入态。编辑草稿未保存而选其他行时，先显示清晰的放弃/保留决定，不得把新行呈现为仍在编辑的表单。
