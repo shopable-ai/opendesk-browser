@@ -122,8 +122,8 @@ html[data-preview-theme=dark]{color-scheme:dark;--line:#344159;background:#151b2
   if(scene==='locked')Object.assign(s,{owner:'locked',ownPreference:true,desired:true,mode:'managed'});
   if(scene==='unknown')Object.assign(s,{owner:'unknown',ownPreference:true,desired:true,mode:'managed'});
   if(['stop-failed','provider-stop','expired-stop'].includes(scene))Object.assign(s,{owner:'self',ownPreference:true,desired:true,mode:'managed',failures:scene==='stop-failed'?1:0});
-  if(['guest','expired','expired-stop','link-install','link-host'].includes(scene))s.member=false;
-  if(['blocked','provider-stop','link-install','link-host'].includes(scene))s.provider=false;
+  if(['guest','expired','expired-stop','link-install','link-host','recovery'].includes(scene))s.member=false;
+  if(['blocked','provider-stop','link-install','link-host','recovery'].includes(scene))s.provider=false;
   return s;
  }
  function canStop(s){return s.desired||s.ownPreference||s.operation==='starting'||s.operation==='stop_failed';}
@@ -196,7 +196,8 @@ const fixtures=Object.freeze({'DEMO-ACCESS-2026':'ready','DEMO-USED-2026':'used'
 function preflight(raw,scenario){
  const code=typeof raw==='string'?raw.trim():'';
  if(!/^[A-Za-z0-9_-]{6,120}$/.test(code))return {status:'invalid',message:'请输入 6–120 位正确格式的兑换码。'};
- if(scenario==='blocked')return {status:'unavailable',message:'服务端未配置，不能核验兑换码。'};
+ if(['blocked','link-install','link-host','recovery'].includes(scenario))return {status:'unavailable',message:'服务端未配置、安装未完成或上次兑换未核对，不能发起新兑换。'};
+ if(scenario==='guest')return {status:'login_required',message:'请先登录或绑定会员账号，不能将权益发给其他账号。'};
  const state=fixtures[code];
  if(state==='used')return {status:state,message:'演示：兑换码已使用。'};
  if(state==='expired')return {status:state,message:'演示：兑换码已过期。'};
@@ -233,7 +234,7 @@ function renderExtra(){
  for(const line of rows[s]||rows[s==='expired-stop'?'expired':'member']){const li=document.createElement('li');li.textContent=line;benefits.append(li);}
  if(s==='quota'){$('member-pill').textContent='额度有效（演示）';$('remaining').innerHTML='12<span>次</span>';$('expiry').textContent='总额度 20 次';$('time-bar').style.width='60%';$('time-meta').textContent='额度类权益不转换成会员天数。';}
  if(s==='feature'){$('member-pill').textContent='功能有效（演示）';$('remaining').textContent='有效';$('expiry').textContent='非时长权益';$('time-bar').style.width='100%';$('time-meta').textContent='按功能授权展示，不推算到期时间。';}
- if(s==='recovery'){$('member-pill').textContent='回执待核对';$('last-order').textContent='待核对兑换事务（演示）';}
+ if(s==='recovery'){$('member-pill').textContent='回执待核对';$('remaining').textContent='—';$('expiry').textContent='权益变化尚未核验';$('time-bar').style.width='0%';$('time-meta').textContent='不能根据未确认的兑换结果更新会员权益。';$('last-order').textContent='待核对兑换事务（演示）';}
 }
 redeem.addEventListener('click',event=>{
  event.preventDefault();event.stopImmediatePropagation();if(redeem.disabled||pending||submitted)return;
