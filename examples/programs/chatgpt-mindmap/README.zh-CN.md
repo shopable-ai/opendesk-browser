@@ -10,10 +10,11 @@
 
 ## 独立真实 XMind HTML 预览（R2.1）
 
-新增 [preview/index.html](preview/index.html) 与 [预览运行说明](preview/README.md)：它与正式程序**共享** `src/answer-registry.js`、`src/xmind-adapter.js`、`src/xmind-convert.js` 和 `assets/ui.css`，不会另造绘图器或复制一份可能漂移的业务源码。开发者在旧资源目录可访问时运行：
+新增 [preview/index.html](preview/index.html) 与 [预览运行说明](preview/README.md)：它与正式程序**共享** `src/answer-registry.js`、`src/xmind-adapter.js`、`src/xmind-convert.js` 和 `assets/ui.css`，不会另造绘图器或复制一份可能漂移的业务源码。开发者检出最新 `main` 即可运行，四份真实 JS 已直接位于 `preview/` 并由 Git 跟踪，不再需要旧仓库绝对路径：
 
 ```sh
-node examples/programs/chatgpt-mindmap/preview/serve.mjs --assets /absolute/audited/xmind
+node examples/programs/chatgpt-mindmap/preview/serve.mjs
+node examples/programs/chatgpt-mindmap/preview/verify-assets.mjs
 node --test tests/environment/chatgpt-mindmap-preview.test.mjs
 ```
 

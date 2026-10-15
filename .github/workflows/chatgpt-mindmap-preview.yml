@@ -1,4 +1,4 @@
-name: ChatGPT Mind Map R2.1 local preview source contract
+name: ChatGPT Mind Map original JS direct preview and browser proof
 on:
   push:
     branches: [main]
@@ -24,7 +24,11 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Verify original four in-place JS before all source tests
+        run: node examples/programs/chatgpt-mindmap/preview/verify-assets.mjs
       - name: Real XMind adapter and preview source/regression checks
+        env:
+          XMIND_REFERENCE_DIR: ${{ github.workspace }}/examples/programs/chatgpt-mindmap/preview
         run: |
           node --test --test-reporter=spec \
             tests/environment/chatgpt-mindmap-r1.test.mjs \
@@ -37,12 +41,12 @@ jobs:
         run: npm run check
       - name: Declare actual evidence limitations
         run: |
-          echo 'COMPONENT_TESTED_ONLY: vendor asset / Chrome / USER_SCRIPT installed / ChatGPT NOT_TESTED'
-          echo 'No vendor redistribution or fixed production runtime admission in this workflow'
+          echo 'PREVIEW_DIRECT_JS_VERIFIED; native USER_SCRIPT installation / ChatGPT still NOT_TESTED'
+          echo 'Checked-in preview JS are NOT declared production Program runtime assets'
 
   real-local-xmind-html:
-    # Only test exact historical source snapshots in a disposable CI browser.
-    # Never publish vendor JS or admit it to the installed Page runtime.
+    # Test four Git-tracked original JS bytes directly from preview/, not .runtime.
+    # Keep these scripts out of the installed Page USER_SCRIPT.
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -55,14 +59,19 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - name: Prepare four actual preview-local engine files using the public entrypoint
+      - name: Prove four original JS are Git-tracked directly in preview/
         shell: bash
         run: |
           set -euo pipefail
-          # Same developer entrypoint as preview/serve.mjs. Exact four hashes
-          # are verified BEFORE the browser can use any engine code.
-          node examples/programs/chatgpt-mindmap/preview/prepare-assets.mjs
-          echo "XMIND_REFERENCE_DIR=$GITHUB_WORKSPACE/examples/programs/chatgpt-mindmap/preview/.runtime/xmind" >> "$GITHUB_ENV"
+          dir="examples/programs/chatgpt-mindmap/preview"
+          for name in jszip.min.js polyfill-45b9836beb.min.js xmind-sdk.bundle.js snowbrush-2c2b5d62b5.js; do
+            git ls-files --error-unmatch "$dir/$name" > /dev/null
+            test -s "$dir/$name"
+          done
+          test ! -d "$dir/.runtime"
+          node "$dir/verify-assets.mjs"
+          echo "XMIND_REFERENCE_DIR=$GITHUB_WORKSPACE/$dir" >> "$GITHUB_ENV"
+          echo 'REPOSITORY_PREVIEW_DIRECT_FOUR_JS_PASS'
       - name: Verify preview starts without external --assets parameter
         shell: bash
         run: |
@@ -71,10 +80,10 @@ jobs:
           const session=await startXmindPreview();
           try{
             const urls=['/index.html',
-              '/__fixed_xmind/jszip.min.js',
-              '/__fixed_xmind/polyfill-45b9836beb.min.js',
-              '/__fixed_xmind/xmind-sdk.bundle.js',
-              '/__fixed_xmind/snowbrush-2c2b5d62b5.js'];
+              '/jszip.min.js',
+              '/polyfill-45b9836beb.min.js',
+              '/xmind-sdk.bundle.js',
+              '/snowbrush-2c2b5d62b5.js'];
             for(const suffix of urls){
               const response=await fetch(new URL(suffix,session.url));
               if(!response.ok)throw new Error('E_XMIND_PREVIEW_ROUTE:'+suffix);
@@ -107,7 +116,7 @@ jobs:
             assert.match(output,/PREVIEW_ASSETS_READY 4/);
             const response=await fetch(url);
             assert.equal(response.status,200);
-            assert.match(await response.text(),/__fixed_xmind\/snowbrush-2c2b5d62b5\.js/);
+            assert.match(await response.text(),/\.\/snowbrush-2c2b5d62b5\.js/);
             console.log('REAL_XMIND_PREVIEW_SPAWNED_CLI_PASS '+url);
           }finally{child.kill('SIGTERM');}
           NODE

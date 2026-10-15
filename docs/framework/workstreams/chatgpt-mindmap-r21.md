@@ -149,3 +149,13 @@ Date: 2026-10-15. Branch: `main` (only). Scope: `examples/programs/chatgpt-mindm
 - [CI #38743226832](https://github.com/shopable-ai/opendesk-browser/actions/runs/38743226832)（`b5f78970`）：**offline-source-contract PASS**；真实浏览器 job **FAIL**，在 CDP `Emulation.setPageScaleFactor(2)` 模拟双指缩放后，Playwright 鼠标点 B 的「适配」发生跨回复命中，30s 超时。**不属于 4 个 XMind JS 字节验收失败；亦不能说 200% 输入已通过。**
 - [CI #38743388207](https://github.com/shopable-ai/opendesk-browser/actions/runs/38743388207)（`9acd97da`）：**真实 CLI 子步骤 PASS**，输出 `REAL_XMIND_PREVIEW_SPAWNED_CLI_PASS http://127.0.0.1:.../index.html?autostart=1` 且 GET HTML 成功；整个浏览器 Job 因相同的 CDP 鼠标命中测试失败。不能把 Job 标记为成功。
 - 修正提交 `1855ebc2896d6cfb408a80a3171c538015da8ec0` 改为先聚焦真实 Shadow DOM「适配」按钮，再在 CDP 2× pinch view 下真实键盘 Enter 触发；仅验收 **CDP 可视视口 + 键盘输入**，鼠标命中和 Chrome 菜单原生 200% 缩放仍未放行。对应 [CI #38744348312](https://github.com/shopable-ai/opendesk-browser/actions/runs/38744348312) 此条记录时仍在队列；最终结论必须以该运行的完整工作结果为准。
+
+
+## R2.4 纠偏：四份真实 XMind JS 直接在 preview/（2026-10-15）
+
+**根因：** 先前为隔离未经正式产品许可/Runtime 准入的引擎，误把 CI 临时资源目录当成预览交付物。用户明确要求四份原始 JS 直接保存在仓库 `examples/programs/chatgpt-mindmap/preview/`，而不是 `.runtime/xmind/`；历史 CI 的 `4/4 PASS` 只能证明运行时曾临时取得字节，不能证明仓库目标目录已完整。本轮按实际文件交付纠偏。
+
+- 直接引用现有仓库 Git Blob + 历史同组织原版 JSZip Git Blob，不修改四份文件内容：`jszip.min.js` 97,630 B / `ff4cfd5e8fdc49176c2d1d409afa897f40be01f4`；`polyfill-45b9836beb.min.js` 104,563 B / `80922170f416950927615a3c089acb28bf91fdcf`；`xmind-sdk.bundle.js` 401,113 B / `ed8540218a334b6dc0b806887a2cf4ca6cc6960f`；`snowbrush-2c2b5d62b5.js` 3,439,267 B / `762e20010368d86733de5caea0ced69baa73cec3`。总计 4,042,573 B。
+- `preview/index.html` 现在直接按顺序加载同级 `./jszip.min.js`、`./polyfill-45b9836beb.min.js`、`./xmind-sdk.bundle.js`、`./snowbrush-2c2b5d62b5.js`。`serve.mjs` 在监听本地端口前核验这四份文件的 SHA-256、Git Blob 和长度；不再下载 npm 包、复制旧快照或创建隐藏缓存；新增 `verify-assets.mjs` 核验 CLI，删除 `prepare-assets.mjs` 和原本仅忽略隐藏缓存的 `.gitignore`。
+- 专项 CI 新增 `git ls-files --error-unmatch` 确认目标目录四件套已被 Git 真正跟踪，再直接对同一份实际文件进行负向篡改、HTTP 字节、真正 Chromium 绘图和交互验证。
+- 这些是可见的**开发预览资源**，不意味着第三方版权许可/正式安装分发权利已经获得批准；现有 Program manifest 未声明四份正式资源，`installable:false`、`BLOCKED_GLOBAL_STYLE_RESIDUE` 和原有安全门槛均保持不变。

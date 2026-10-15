@@ -2,8 +2,8 @@
   "repository": "shopable-ai/shopable-station",
   "commit": "b76abf4b95e34c1234a33927051ea13165d92715",
   "path": "apps/web/public/lib/xmind",
-  "distribution": "BLOCKED_UNVERIFIED_LICENSE_AND_RESOURCE_ADMISSION",
-  "note": "Audit/test input identities only. Not a production runtime catalog or permission grant. Vendor bytes are not redistributed.",
+  "distribution": "PREVIEW_GIT_TRACKED_PRODUCTION_BLOCKED_UNVERIFIED_LICENSE_AND_RESOURCE_ADMISSION",
+  "note": "Four exact original JS blobs are checked into examples/programs/chatgpt-mindmap/preview/ for local HTML preview only; this is not production installation, permission, or a declaration of redistribution rights.",
   "assets": [
     {
       "name": "jszip.min.js",

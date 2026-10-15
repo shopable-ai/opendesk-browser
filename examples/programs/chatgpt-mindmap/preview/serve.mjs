@@ -1,16 +1,16 @@
-// Serve a REAL engine-only local HTML preview. Never copies or redistributes vendor code.
-// This is not the installed USER_SCRIPT path. No CDN, eval, second extension or proxy.
+// Serve the 4 original Git-tracked preview/*.js bytes, never generated copies.
+// Preview-only: production USER_SCRIPT admission and third-party licenses are separate.
 import {createHash} from 'node:crypto';
 import {spawn} from 'node:child_process';
 import {readFile,realpath} from 'node:fs/promises';
 import {createServer} from 'node:http';
 import {dirname,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {prepareXmindPreviewAssets} from './prepare-assets.mjs';
 
 const PROJECT_DIR=fileURLToPath(new URL('../',import.meta.url));
+export const PREVIEW_ASSETS_DIR=join(PROJECT_DIR,'preview');
 const SOURCE_COMMIT='b76abf4b95e34c1234a33927051ea13165d92715';
-const RESOURCE_PREFIX='/__fixed_xmind/';
+const RESOURCE_PREFIX='/';
 const ORDER=['jszip.min.js','polyfill-45b9836beb.min.js',
   'xmind-sdk.bundle.js','snowbrush-2c2b5d62b5.js'];
 export const PREVIEW_CSP="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; "+
@@ -31,7 +31,7 @@ const mime=path=>path.endsWith('.html')?'text/html; charset=utf-8':
 const hash=(kind,bytes)=>createHash(kind).update(bytes).digest('hex');
 const blobHash=bytes=>createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
 
-export async function verifyFixedXmindAssets(directory){
+export async function verifyFixedXmindAssets(directory=PREVIEW_ASSETS_DIR){
   if(typeof directory!=='string'||!directory.trim())throw new Error('E_XMIND_ASSETS_REQUIRED');
   const manifest=JSON.parse(await readFile(join(PROJECT_DIR,'tests/xmind-provenance.json'),'utf8'));
   if(manifest.commit!==SOURCE_COMMIT||
@@ -55,7 +55,7 @@ export async function verifyFixedXmindAssets(directory){
 }
 export async function startXmindPreview({assetsDirectory}={}){
   // No listening socket exists until every original resource has passed admission.
-  const directory=assetsDirectory??await prepareXmindPreviewAssets({verify:verifyFixedXmindAssets});
+  const directory=assetsDirectory??PREVIEW_ASSETS_DIR;
   const resources=await verifyFixedXmindAssets(directory);
   const server=createServer(async(request,response)=>{
     try{
@@ -98,16 +98,13 @@ function openLocalPreview(url){
 }
 async function cli(){
   const args=process.argv.slice(2);
-  let assetsDirectory,autoOpen=true;
-  for(let i=0;i<args.length;i++){
-    if(args[i]==='--no-open')autoOpen=false;
-    else if(args[i]==='--assets'&&i+1<args.length)assetsDirectory=args[++i];
-    else throw new Error('Usage: node examples/programs/chatgpt-mindmap/preview/serve.mjs [--no-open] [--assets /absolute/audited/xmind]');
-  }
-  const session=await startXmindPreview({assetsDirectory});
+  if(args.length>1||(args.length===1&&args[0]!=='--no-open'))
+    throw new Error('Usage: node examples/programs/chatgpt-mindmap/preview/serve.mjs [--no-open]');
+  const autoOpen=args.length===0;
+  const session=await startXmindPreview();
   const interactive=new URL(session.url);
   interactive.searchParams.set('autostart','1');
-  console.log('PREVIEW_ASSETS_READY 4 verified original XMind JS; local preview only');
+  console.log('PREVIEW_ASSETS_READY 4 original XMind JS directly in preview/ (SHA-256/Git Blob/size verified)');
   console.log('REAL_XMIND_LOCAL_PREVIEW '+interactive.href);
   console.log('Only loopback, exact four SHA-256 + Git blob verified resources; NOT an installed extension.');
   if(autoOpen)openLocalPreview(interactive.href);
