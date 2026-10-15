@@ -138,3 +138,11 @@
 **本轮对应 CI：** [Extension Center R4，run 38755856469](https://github.com/shopable-ai/opendesk-browser/actions/runs/38755856469)，绑定 `df3d7f8f`；记录时为 `QUEUED`，完成前不得写 PASS。此前 Reading TOC `locales.json` 与特权 page-relay 的资源出处、以及 AdBlock 摘要 Pin 风险属于各 Owner；本轮未放宽安全 provenance、未修改这些对象。
 
 **Mac 同候选最终门禁（未执行）：** 在实际加载的 `dist/development` watcher 修复态确认扩展 ID 与本地源码一致；在隔离的 production 候选/Profile 验收同一 Commit + 包 SHA + Chrome 版本：App/网页增强真启停和读回、拒绝权限/撤权、候选安装审阅、未保存草稿、并发失败、行菜单键盘与底部定位、市场/筛选/语言/刷新、原型/正式截图及 computed-style。每一项留原始截图/日志并标 PASS/FAIL，缺证据一律 NOT_TESTED；在这些关闭前不宣称 Extension Center R4.8 正式验收完成。
+
+### R4.8 CI 失败归因与最小补丁（2026-10-15 UTC 15:07）
+
+- [CI 38755856469](https://github.com/shopable-ai/opendesk-browser/actions/runs/38755856469) 对 `df3d7f8f` 的核心组 50 PASS / 2 FAIL：原 R4.3 对比度测试仍引用旧详情选择器（本轮负责），另有并行 SDK 模块语法错误（非 Extension Center 所有权）。build/check/verify 被跳过，不可标 PASS。
+- 已修复本轮对比度：[`2286832d`](https://github.com/shopable-ai/opendesk-browser/commit/2286832d0b2ff8bb06a065f23a3097598b41ea73) 保留次级按钮共享背景、边框与尺寸，仅以正式 `--od-accent-ink` 确保小字号文本可读；按当前 Tokens 对实际 `--od-action-bg` 计算，浅色 **5.19:1**，深色 **7.60:1**，均超过 4.5:1；[`e0b8b5bb`](https://github.com/shopable-ai/opendesk-browser/commit/e0b8b5bb69937d03f54aee8f2c67feb3ec1f4b6d)、[`cd1f18d4`](https://github.com/shopable-ai/opendesk-browser/commit/cd1f18d4918a98737bf56065ee9718cbc4723a99) 同步更新既有与新增的可读性测试，未放宽阈值。
+- [CI 38757140564](https://github.com/shopable-ai/opendesk-browser/actions/runs/38757140564)（`cd1f18d4`）**51 PASS / 1 FAIL**；原对比度断言恢复通过，唯一失败是 `src/framework/sdk/browser-schemas.js:56` 的 `SyntaxError: Invalid or unexpected token`，导致 `extension-center-r47-interaction.test.mjs` 模块初始化失败、R4.8 新增 DOM 测试全部未执行。其最近所属 SDK 提交 [`5d630f7a`](https://github.com/shopable-ai/opendesk-browser/commit/5d630f7a0f6dacd9ff0b96b54d5349e368e41d23)；应由 SDK Owner 修复，Extension Center 不越权改 SDK、schema 或放宽检查。其他后续构建步骤仍 SKIPPED。
+- [`66cce077`](https://github.com/shopable-ai/opendesk-browser/commit/66cce077772d14e93e9c5084748bc2fb5d1821ff) 给原有 `.github/workflows/extension-center-r4.yml` 添加 **R4.7 唯一预览 HTML** 的 push path，确保仅改预览也会重新执行正式/预览同源测试。没有创建第二个工作流。
+- **当前真实交付级别：SOURCE_CHANGED / DIRECT_SOURCE_PARSE_PASS / TOOLBAR_STRUCTURE_EQUAL / CI_BLOCKED_BY_SDK / BUILD_NOT_EXECUTED / MAC_CHROME_NOT_TESTED / PRODUCT_NOT_ACCEPTED**。R4.8 所有原生 P0 尚无同候选真实 Mac Chrome 证据，不对十一维打 95+，也不提交虚假的百分比。
