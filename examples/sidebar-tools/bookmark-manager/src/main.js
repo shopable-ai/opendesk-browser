@@ -8,7 +8,7 @@ const model=globalThis.BookmarkR2Model;
 const service=globalThis.BookmarkR2Service.create(sdk);
 const q=id=>root.querySelector('#'+id);
 const s={tree:null,expanded:new Set(),search:'',limit:200,folder:null,selection:null,
-  mode:'tree',menu:null,draft:null,reviewed:null,reviewedDescendants:null,busy:false,session:0,composing:false,
+  mode:'tree',menu:null,draft:null,reviewed:null,reviewedDescendants:null,saveNeedsReview:false,busy:false,session:0,composing:false,
   watcher:null,watchEpoch:0,watchTimer:null,watchRetries:0,watchDirty:false};
 const make=(tag,cls,value)=>{
   const el=document.createElement(tag);if(cls)el.className=cls;
@@ -37,12 +37,17 @@ const node=id=>s.tree?.byId.get(id);
 const busy=value=>{
   s.busy=value;
   for(const button of root.querySelectorAll('button'))button.disabled=value;
+  if(!value){
+    const locked=Boolean(node(s.selection)?.locked);
+    for(const id of ['bm-inspector-edit','bm-inspector-move','bm-inspector-delete'])q(id).disabled=locked;
+    q('bm-save').disabled=s.saveNeedsReview;
+  }
 };
 function gate(text){
   // A late successful read must never resurrect sensitive data after revocation.
   s.session++;
   endWatch();
-  s.tree=null;s.reviewed=null;s.reviewedDescendants=null;s.draft=null;
+  s.tree=null;s.reviewed=null;s.reviewedDescendants=null;s.draft=null;s.saveNeedsReview=false;
   s.expanded.clear();s.search='';
   q('bm-list').replaceChildren();q('bm-parent').replaceChildren();
   q('bm-inspector').hidden=true;q('bm-total').textContent='';q('bm-form-error').textContent='';
@@ -304,28 +309,61 @@ async function refresh(manual=false){
     notice('无法读取 Chrome 书签',true);
   }finally{if(session===s.session&&epoch===s.watchEpoch)q('bm-refresh').disabled=false}
 }
-async function mutation(run){
-  if(s.busy)return;
+function confirmedWrite(tree,receipt,expectation){
+  if(!expectation)return true;
+  const targetId=expectation.id||receipt?.id;
+  if(typeof targetId!=='string'||!targetId)return false;
+  const node=tree.byId.get(targetId);
+  if(expectation.deleted)return !node;
+  if(!node||node.title!==expectation.title&&expectation.title!==undefined||
+    expectation.parentId!==undefined&&node.parentId!==expectation.parentId)return false;
+  if(expectation.url!==undefined&&node.url!==expectation.url)return false;
+  return true;
+}
+async function mutation(run,expectation=null){
+  if(s.busy||s.saveNeedsReview)return;
   const session=s.session;
   busy(true);notice('正在通过 SDK 核对 Chrome 原生书签…');
+  let wrote=false;
   try{
-    await run();
+    const receipt=await run();
+    wrote=true;
     if(session!==s.session)return;
-    s.mode='tree';s.selection=null;s.draft=null;s.reviewed=null;s.reviewedDescendants=null;s.menu=null;
-    // Do not turn an unknown outcome into an automatic replay.
-    busy(false);await refresh();
-    if(s.tree&&!q('bm-workspace').hidden)notice('已更新 Chrome 书签');
+    // Only a fresh authorized native tree read can confirm the SDK write's effect.
+    // A resolved RPC alone is not a user-visible "saved" result.
+    const tree=await service.load();
+    if(session!==s.session)return;
+    enable(tree);
+    if(!confirmedWrite(tree,receipt,expectation)){
+      s.saveNeedsReview=true;
+      throw Object.assign(new Error('SDK 已返回，但刷新后未能核实目标变化；请先检查原生书签，勿重复提交'),
+        {code:'E_WRITE_NOT_CONFIRMED'});
+    }
+    s.mode='tree';s.selection=null;s.draft=null;s.reviewed=null;
+    s.reviewedDescendants=null;s.saveNeedsReview=false;s.menu=null;
+    render();notice('已更新并重新读取 Chrome 书签');
   }catch(error){
     if(session!==s.session)return;
-    busy(false);
-    const unknown=['E_OUTCOME_UNKNOWN','E_EFFECT_UNKNOWN'].includes(error?.code);
-    notice(errorText(error)+(unknown?'；写入结果未知，请检查 Chrome 数据后再操作，勿直接重试。':''),true);
+    const unknown=wrote||['E_OUTCOME_UNKNOWN','E_EFFECT_UNKNOWN','E_WRITE_NOT_CONFIRMED'].includes(error?.code);
+    s.saveNeedsReview=s.saveNeedsReview||unknown;
+    const message=errorText(error)+(unknown&&error?.code!=='E_WRITE_NOT_CONFIRMED'?
+      '；写入结果未知或暂无法核实，请检查 Chrome 数据后再操作，勿直接重试。':'');
+    notice(message,true);
+    if(s.mode!=='tree'){
+      q('bm-form-error').textContent=message;
+      q('bm-save').disabled=s.saveNeedsReview;
+    }
     if(authorityLost(error))
       gate('完整书签 SDK 或授权已失效；请到可信扩展界面重新审阅。');
+  }finally{
+    if(session===s.session){
+      busy(false);
+      if(s.saveNeedsReview)q('bm-save').disabled=true;
+    }
   }
 }
 function cancel(){
-  s.mode='tree';s.selection=null;s.menu=null;s.draft=null;s.reviewed=null;s.reviewedDescendants=null;notice('');q('bm-form-error').textContent='';render();
+  s.mode='tree';s.selection=null;s.menu=null;s.draft=null;s.reviewed=null;s.reviewedDescendants=null;s.saveNeedsReview=false;notice('');q('bm-form-error').textContent='';render();
   q('bm-search').focus({preventScroll:true});
 }
 async function saveCurrent(){
@@ -352,7 +390,7 @@ async function saveCurrent(){
         throw Object.assign(new Error('网页已发生变化，请重新点击收藏'),{code:'E_DOCUMENT_STALE'});
       return service.createBookmark({title:first.title||new URL(url).hostname,url,parentId,
         sourcePage:{url,tabRef:first.tabRef,documentRef:first.documentRef}});
-    });
+    },{title:(first.title||new URL(url).hostname).trim(),url,parentId});
   }catch(error){notice(errorText(error),true)}
 }
 function onAction(action,id){
@@ -369,7 +407,7 @@ function onAction(action,id){
   if(action==='more'){s.limit+=200;renderList();return}
   if(action==='cancel'){cancel();return}
   if(action==='new-bookmark'||action==='new-folder'){
-    s.mode=action;s.selection=null;s.draft=null;s.reviewed=null;s.reviewedDescendants=null;q('bm-form-error').textContent='';render();q('bm-name').focus();return;
+    s.mode=action;s.selection=null;s.draft=null;s.reviewed=null;s.reviewedDescendants=null;s.saveNeedsReview=false;q('bm-form-error').textContent='';render();q('bm-name').focus();return;
   }
   const target=id||s.selection;
   if(!node(target)){notice('书签已变化，请刷新',true);return}
@@ -380,7 +418,7 @@ function onAction(action,id){
     if(node(target).locked){notice('Chrome 系统根目录或受管理节点不可修改',true);return}
     // Keep the reviewed version even when an event refresh replaces s.tree.
     // The service and Host must reject a conflicting external edit on save.
-    q('bm-form-error').textContent='';
+    q('bm-form-error').textContent='';s.saveNeedsReview=false;
     s.reviewed=Object.freeze({...node(target)});
     s.reviewedDescendants=action==='delete'&&isFolder(node(target))?
       model.descendantSignatures(s.tree,target):[];
@@ -409,7 +447,13 @@ for(const [id,action] of [['bm-inspector-edit','edit'],['bm-inspector-move','mov
   q(id).addEventListener('click',()=>onAction(action,s.selection));
 }
 for(const id of ['bm-name','bm-url','bm-parent']){
-  q(id).addEventListener(id==='bm-parent'?'change':'input',()=>rememberDraft());
+  q(id).addEventListener(id==='bm-parent'?'change':'input',()=>{
+    rememberDraft();
+    if(!s.saveNeedsReview){
+      q(id).removeAttribute?.('aria-invalid');
+      q('bm-form-error').textContent='';
+    }
+  });
 }
 for(const [id,message] of [['bm-name','请输入有效的书签名称'],['bm-url','请输入完整的 HTTP(S) 网址'],['bm-parent','请选择可写入的目标文件夹']]){
   q(id).addEventListener('invalid',event=>{
@@ -427,14 +471,27 @@ q('bm-search').addEventListener('input',event=>{
 q('bm-form').addEventListener('submit',event=>{
   event.preventDefault();
   if(s.busy||!s.tree||s.mode==='detail')return;
+  if(s.saveNeedsReview){notice('请先检查原生书签并重新进入编辑，禁止重复提交未知结果',true);return}
   q('bm-form-error').textContent='';
   for(const id of ['bm-name','bm-url','bm-parent'])q(id).removeAttribute?.('aria-invalid');
   const payload={title:q('bm-name').value,url:q('bm-url').value,parentId:q('bm-parent').value};
   const mode=s.mode,expected=s.reviewed;s.draft=payload;
-  if(mode==='new-bookmark')void mutation(()=>service.createBookmark(payload));
-  if(mode==='new-folder')void mutation(()=>service.createFolder(payload));
-  if(mode==='edit'&&expected)void mutation(()=>service.update({expected,...payload}));
-  if(mode==='move'&&expected)void mutation(()=>service.move({expected,parentId:payload.parentId}));
+  const normalTitle=mode==='move'?undefined:payload.title.trim();
+  let expectedUrl;
+  if(mode==='new-bookmark'||mode==='edit'&&expected?.url!==undefined){
+    if(payload.url===expected?.url)expectedUrl=expected.url;
+    else try{expectedUrl=model.asHttpUrl(payload.url)}catch{
+      // Let the existing Service report the invalid URL through mutation().
+    }
+  }
+  if(mode==='new-bookmark')void mutation(()=>service.createBookmark(payload),
+    {title:normalTitle,url:expectedUrl,parentId:payload.parentId});
+  if(mode==='new-folder')void mutation(()=>service.createFolder(payload),
+    {title:normalTitle,parentId:payload.parentId});
+  if(mode==='edit'&&expected)void mutation(()=>service.update({expected,...payload}),
+    {id:expected.id,title:normalTitle,...(expectedUrl!==undefined?{url:expectedUrl}:{})});
+  if(mode==='move'&&expected)void mutation(()=>service.move({expected,parentId:payload.parentId}),
+    {id:expected.id,parentId:payload.parentId});
 });
 q('bm-delete-confirm').addEventListener('click',()=>{
   const expected=s.reviewed;if(!expected||s.selection!==expected.id)return;
@@ -449,7 +506,7 @@ q('bm-delete-confirm').addEventListener('click',()=>{
   if(signatures.length&&!q('bm-delete-children').checked){
     notice('请先确认删除整个文件夹和子项',true);return;
   }
-  void mutation(()=>service.remove({expected,confirmed:true,expectedDescendantSignatures:signatures}));
+  void mutation(()=>service.remove({expected,confirmed:true,expectedDescendantSignatures:signatures}),{id:expected.id,deleted:true});
 });
 globalThis.addEventListener?.('pagehide',endWatch,{once:true});
 void refresh();

@@ -848,3 +848,39 @@ test('R2.5 foreground editing survives a refresh that finishes after further typ
   assert.equal(ui.get('bm-name').value,'Draft B','the latest draft must win over the earlier refresh');
   ui.close();
 });
+
+test('R2.5 a resolved create RPC without a changed native tree is not shown as saved',async()=>{
+  const ui=await bookmarkUi();
+  await ui.click('bm-new-folder');
+  ui.get('bm-name').value='Unconfirmed folder';
+  ui.get('bm-parent').value='1';
+  assert.equal(await ui.submit(),true);
+  assert.match(ui.get('bm-notice').textContent,/未能核实目标变化/);
+  assert.equal(ui.get('bm-name').value,'Unconfirmed folder','unverified write keeps the draft');
+  assert.equal(ui.get('bm-save').disabled,true,'unverified write blocks repeat submission');
+  ui.get('bm-form').fire('submit');
+  await ui.settle();
+  assert.equal(ui.data.calls.filter(([op])=>op==='create').length,1,
+    'no implicit or repeated hazardous write');
+  ui.close();
+});
+
+test('R2.5 confirms a folder save only after a fresh tree read contains the created node',async()=>{
+  const roots=sample();
+  const ui=await bookmarkUi(({sdk})=>{
+    sdk.bookmarks.getTree=async()=>roots;
+    sdk.bookmarks.create=async args=>{
+      const created={id:'50',title:args.title,parentId:args.parentId,children:[]};
+      roots[0].children[0].children.push(created);
+      return {id:created.id,title:created.title,parentId:created.parentId};
+    };
+  });
+  await ui.click('bm-new-folder');
+  ui.get('bm-name').value='Verified native-like folder';
+  ui.get('bm-parent').value='1';
+  assert.equal(await ui.submit(),true);
+  assert.match(ui.get('bm-notice').textContent,/已更新并重新读取/);
+  assert.equal(ui.get('bm-form-view').hidden,true);
+  assert.equal(ui.get('bm-save').disabled,false);
+  ui.close();
+});

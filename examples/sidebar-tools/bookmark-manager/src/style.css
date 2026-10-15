@@ -64,4 +64,5 @@
  .bm-workspace:has(#bm-inspector:not([hidden])) .bm-inspector{grid-column:2}
  .bm-list{max-height:65vh}
 }
+@media(max-width:739px){.bm-inspector{order:-1}}
 @media(max-width:380px){.bm-toolbar>button{flex:1 1 42%}}
