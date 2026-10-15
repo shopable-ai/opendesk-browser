@@ -197,6 +197,12 @@ function renderInspector(){
   for(const id of ['bm-inspector-edit','bm-inspector-move','bm-inspector-delete'])
     q(id).disabled=Boolean(item.locked);
 }
+function updateFolderSummary(){
+  const chosen=q('bm-parent').value||s.draft?.parentId;
+  const location=pathOf(chosen)||'请选择可用文件夹';
+  q('bm-parent-summary').textContent=(s.mode==='edit'?'所在文件夹：':
+    s.mode==='move'?'移动到：':'保存到：')+location;
+}
 function renderFolderOptions(preferred){
   const select=q('bm-parent'),filter=q('bm-folder-query').value.trim().toLocaleLowerCase();
   const selected=preferred||select.value||s.draft?.parentId||targetFolder();
@@ -249,6 +255,10 @@ function renderForm(){
   title.readOnly=false;url.readOnly=false;
   q('bm-folder-query').disabled=false;
   renderFolderOptions(s.draft.parentId);
+  // Ordinary name/URL editing stays compact; creation/move always exposes
+  // the target. If no valid folder is available, expose the invalid selector.
+  if(!parent.value)q('bm-parent-row').open=true;
+  updateFolderSummary();
   parent.disabled=false;
   q('bm-save').textContent=isNew?'创建':moving?'确认移动':'保存修改';
   q('bm-save').disabled=s.saveNeedsReview;
@@ -573,6 +583,7 @@ function onAction(action,id){
     s.mode=action;s.draft=null;s.initialDraft=null;s.reviewed=null;
     s.reviewedDescendants=null;s.saveNeedsReview=false;s.conflict=false;s.conflictReviewed=false;
     q('bm-folder-query').value='';q('bm-form-error').textContent='';
+    q('bm-parent-row').open=true;
     render();q('bm-name').focus({preventScroll:true});return;
   }
   const target=id||s.selection;
@@ -591,6 +602,7 @@ function onAction(action,id){
     s.mode=action;s.selection=target;s.menu=null;s.draft=null;s.initialDraft=null;
     s.conflict=false;s.conflictReviewed=false;
     q('bm-folder-query').value='';
+    if(action!=='delete')q('bm-parent-row').open=action==='move';
     render();
     if(action==='delete')q('bm-delete-confirm').focus({preventScroll:true});
     else (action==='move'?q('bm-folder-query'):q('bm-name')).focus({preventScroll:true});
@@ -632,7 +644,7 @@ q('bm-discard-switch').addEventListener('click',()=>{
   onAction(pending.action,pending.id);
 });
 q('bm-folder-query').addEventListener('input',()=>{
-  if(editingMode())renderFolderOptions(s.draft?.parentId);
+  if(editingMode()){renderFolderOptions(s.draft?.parentId);updateFolderSummary()}
 });
 q('bm-review').addEventListener('click',()=>{
   if(!s.conflict||s.busy)return;
@@ -658,6 +670,7 @@ for(const [id,action] of [['bm-inspector-edit','edit'],['bm-inspector-move','mov
 for(const id of ['bm-name','bm-url','bm-parent']){
   q(id).addEventListener(id==='bm-parent'?'change':'input',()=>{
     rememberDraft();
+    if(id==='bm-parent')updateFolderSummary();
     if(!s.saveNeedsReview){
       q(id).removeAttribute?.('aria-invalid');
       q('bm-form-error').textContent='';
