@@ -1,3 +1,5 @@
+> **R5 跨域 UserScript 发现（2026-10-15）**：从 [24 领域 × 网站页面任务](domain-relevance-universe-r5.zh-CN.md) 和 [脚本/竞品具体 ID、版权及适配判定](script-market-discovery-r5.zh-CN.md) 开始；本文件 G0–G3 是功能分级规划，绝非全量 GM 通过。任何“直接运行/授权适配”都须重新核验 `@match/@grant/@license`、依赖锁、真实 Chrome、源码/权限世界；不把热门脚本改名即分发。
+
 # UserScript / Website Tools 生态：真实基础与优先缺口
 
 > 2026-10-12 审计基于远端 `main` 的指定文件、R8 原始 188 项和 GM 矩阵。不是“全面 Tampermonkey 兼容”声明。

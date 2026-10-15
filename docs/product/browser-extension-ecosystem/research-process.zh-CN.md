@@ -45,3 +45,13 @@
 - 机会保持 [OPP 唯一表](opportunity-register.json)，工程能力仍按 R8 188 项，工程任务仍按 E01–E40。新 [EXP 台账](commercial-experiments.json) 只记录购买者、渠道、假设、测试、订单与经济性证据；**不是第二份功能表**。一个机会可有多个 EXP；一个 EXP 可关联多个已有 OPP，不能靠换名称增加数量。
 - 没有真实访谈、实际收入、真实浏览器验收、独立客户成交时，保留 null/NOT_TESTED/NOT_MEASURED；商业优先级不能替换源代码验收等级。机密企业原始网页、个人数据、Cookie、订单和合同只能留在获授权的私有环境，不写公开仓库。
 - 日后每周可人工审查 CWS 规则和竞争变化；每月检查 EXP 真实证据；每季度决定继续/转向/暂停与 OPP 排名。详细流程见 [商业发现](commercial-opportunity-framework.zh-CN.md)、[盈利模式](monetization-unit-economics.zh-CN.md) 与 [商业验证](distribution-and-validation.zh-CN.md)。**本轮没有创建定时任务。**
+
+## R5 全球领域脚本研究流程增量（2026-10-15）
+
+首读 [Domain & Relevance Universe R5](domain-relevance-universe-r5.zh-CN.md) → [Script Market Discovery R5](script-market-discovery-r5.zh-CN.md) → [JSON 种子](domain-relevance-universe-r5.seed.json)。D01–D24 / sitePageKey / taskKey 仅研究索引，不是新 OPP 或产品 ID。
+
+按 **W1 D03/D01/D04/D07/D13/D14/D22 → W2 D02/D08/D10/D18/D06/D05 → W3 D09/D11/D12/D15/D17/D19/D23 → W4 D16/D20/D21/D24** 的顺序逐域发现与排名脚本。这是检索和权限成本顺序，**非**真实市场流量排序。研究程序消费 24 域 JSON，对全球/中国/日本独立查询；提取脚本和扩展永久 ID、作者、版本/许可证、网站页面动作、`@grant/@match` 与官方来源；出现同一任务先映射现有 OPP，禁止换名新增机会。
+
+可比公开指标需要多次、同平台、带时间戳的快照；每日/累计安装、商店公开用户、Star 均不能替代活跃/付费。大众榜与专业榜独立记录分项和原始证据，缺失填 null/NOT_MEASURED；版权、隐私、平台规则、安全能力分别否决，不能被平均分遮蔽。没有访问许可就记 ACCESS_RESTRICTED，不抓账号、Cookie、私有合同和财务明细。研究输出是快照，只有经过审批的结论才更新原 84 OPP / 8 EXP，不建立第二账本。
+
+研究脚本执行器、第二套 SDK、CWS 正式发布、自动监控任务均**未在 R5 创建**。下一阶段才按发现→权利审核→真实竞品任务对照→兼容实测→用户价值进行试点。

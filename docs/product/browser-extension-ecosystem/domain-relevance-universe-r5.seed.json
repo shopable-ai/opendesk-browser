@@ -1,0 +1,1181 @@
+{
+  "schemaVersion": "opendesk.domain-relevance-universe-seed.v1",
+  "asOf": "2026-10-15",
+  "role": "DISCOVERY_QUERY_SEEDS_NOT_AN_OPPORTUNITY_REGISTER",
+  "rankingsProduced": false,
+  "authority": {
+    "opportunities": "opportunity-register.json",
+    "experiments": "commercial-experiments.json",
+    "capabilities": "../browser-automation-feature-catalog-r8.zh-CN.md",
+    "engineering": "../browser-automation-r8-implementation-plan.zh-CN.md"
+  },
+  "sourceSeeds": [
+    {
+      "id": "greasyfork",
+      "url": "https://greasyfork.org/en/search"
+    },
+    {
+      "id": "scriptcat",
+      "url": "https://docs.scriptcat.org/"
+    },
+    {
+      "id": "chromewebstore",
+      "url": "https://chromewebstore.google.com/"
+    },
+    {
+      "id": "edgeaddons",
+      "url": "https://microsoftedge.microsoft.com/addons"
+    },
+    {
+      "id": "firefoxaddons",
+      "url": "https://addons.mozilla.org/"
+    }
+  ],
+  "marketMetricMeaning": {
+    "totalInstalls": "cumulative installer count snapshot, NOT active use",
+    "dailyInstalls": "platform-reported count, NOT DAU",
+    "displayedUsers": "store public figure, NOT retention",
+    "paidCustomers": "null until proven"
+  },
+  "domains": [
+    {
+      "domainId": "D01",
+      "name": "网页体验",
+      "personas": "网页读者/重度标签用户",
+      "regionalResearch": "全球 Wikipedia/Medium；中国 知乎/公众号；日本 note/Qiita",
+      "siteTasks": [
+        {
+          "sitePageKey": "D01-S1",
+          "taskKey": "D01-T1",
+          "siteHost": "wikipedia.org",
+          "pageType": "长文章",
+          "action": "提取目录跳转",
+          "hypothesizedOutput": "目录",
+          "status": "SITE_TASK_HYPOTHESIS"
+        },
+        {
+          "sitePageKey": "D01-S2",
+          "taskKey": "D01-T2",
+          "siteHost": "zhihu.com",
+          "pageType": "问答",
+          "action": "折叠干扰内容",
+          "hypothesizedOutput": "阅读布局",
+          "status": "SITE_TASK_HYPOTHESIS"
+        }
+      ],
+      "scriptQueries": [
+        "reading mode",
+        "table of contents"
+      ],
+      "competitorSeeds": [
+        "Stylus",
+        "OneTab"
+      ],
+      "runtimeCandidates": [
+        "P",
+        "T"
+      ],
+      "riskQuestions": "DOM与无障碍兼容",
+      "existingOpportunityIds": [
+        "OPP-054",
+        "OPP-023"
+      ],
+      "marketEvidenceStatus": "NOT_MEASURED",
+      "sourceCodeUseStatus": "NOT_LICENSE_REVIEWED",
+      "exampleScript": null
+    },
+    {
+      "domainId": "D02",
+      "name": "搜索增强",
+      "personas": "研究者/搜索用户/SEO人员",
+      "regionalResearch": "全球 Google/Bing；中国 百度/必应；日本 Google/Yahoo Japan",
+      "siteTasks": [
+        {
+          "sitePageKey": "D02-S1",
+          "taskKey": "D02-T1",
+          "siteHost": "google.com",
+          "pageType": "搜索结果",
+          "action": "标注来源及去重",
+          "hypothesizedOutput": "结果清单",
+          "status": "SITE_TASK_HYPOTHESIS"
+        },
+        {
+          "sitePageKey": "D02-S2",
+          "taskKey": "D02-T2",
+          "siteHost": "baidu.com",
+          "pageType": "搜索结果",
+          "action": "本地过滤无关条目",
+          "hypothesizedOutput": "结果清单",
+          "status": "SITE_TASK_HYPOTHESIS"
+        }
+      ],
+      "scriptQueries": [
+        "search filter",
+        "SERP enhancement"
+      ],
+      "competitorSeeds": [
+        "SEOquake",
+        "Ahrefs SEO Toolbar"
+      ],
+      "runtimeCandidates": [
+        "P",
+        "T"
+      ],
+      "riskQuestions": "搜索平台政策/结果准确性",
+      "existingOpportunityIds": [
+        "OPP-075",
+        "OPP-077"
+      ],
+      "marketEvidenceStatus": "NOT_MEASURED",
+      "sourceCodeUseStatus": "NOT_LICENSE_REVIEWED",
+      "exampleScript": null
+    },
+    {
+      "domainId": "D03",
+      "name": "AI 网站",
+      "personas": "AI用户/提示词团队",
+      "regionalResearch": "全球 ChatGPT/Claude/Gemini；中国 DeepSeek/豆包；日本 ChatGPT/Gemini",
+      "siteTasks": [
+        {
+          "sitePageKey": "D03-S1",
+          "taskKey": "D03-T1",
+          "siteHost": "chatgpt.com",
+          "pageType": "输入框",
+          "action": "点击模板填入",
+          "hypothesizedOutput": "待发送草稿",
+          "status": "SITE_TASK_HYPOTHESIS"
+        },
+        {
+          "sitePageKey": "D03-S2",
+          "taskKey": "D03-T2",
+          "siteHost": "claude.ai",
+          "pageType": "对话页",
+          "action": "手动选区复制",
+          "hypothesizedOutput": "本地记录",
+          "status": "SITE_TASK_HYPOTHESIS"
+        }
+      ],
+      "scriptQueries": [
+        "prompt shortcuts",
+        "prompt manager"
+      ],
+      "competitorSeeds": [
+        "Text Blaze",
+        "Magical"
+      ],
+      "runtimeCandidates": [
+        "P",
+        "T"
+      ],
+      "riskQuestions": "AI对话隐私/编辑器频繁变化",
+      "existingOpportunityIds": [
+        "OPP-027",
+        "OPP-034"
+      ],
+      "marketEvidenceStatus": "NOT_MEASURED",
+      "sourceCodeUseStatus": "NOT_LICENSE_REVIEWED",
+      "exampleScript": {
+        "listingName": "My Prompt",
+        "sourceListing": "https://greasyfork.org/en/scripts/by-site/github.com",
+        "status": "LISTING_FOUND_ONLY"
+      }
+    },
+    {
+      "domainId": "D04",
+      "name": "视频播放",
+      "personas": "视频观众/语言学习者",
+      "regionalResearch": "全球 YouTube/Twitch；中国 Bilibili/腾讯视频；日本 Niconico/YouTube",
+      "siteTasks": [
+        {
+          "sitePageKey": "D04-S1",
+          "taskKey": "D04-T1",
+          "siteHost": "youtube.com",
+          "pageType": "播放页",
+          "action": "使用倍速与热键",
+          "hypothesizedOutput": "播放状态",
+          "status": "SITE_TASK_HYPOTHESIS"
+        },
+        {
+          "sitePageKey": "D04-S2",
+          "taskKey": "D04-T2",
+          "siteHost": "bilibili.com",
+          "pageType": "播放页",
+          "action": "跳转字幕章节",
+          "hypothesizedOutput": "定位信息",
+          "status": "SITE_TASK_HYPOTHESIS"
+        }
+      ],
+      "scriptQueries": [
+        "video hotkeys",
+        "HTML5 video"
+      ],
+      "competitorSeeds": [
+        "Language Reactor"
+      ],
+      "runtimeCandidates": [
+        "P"
+      ],
+      "riskQuestions": "媒体版权/播放器版本",
+      "existingOpportunityIds": [
+        "OPP-050",
+        "OPP-056"
+      ],
+      "marketEvidenceStatus": "NOT_MEASURED",
+      "sourceCodeUseStatus": "NOT_LICENSE_REVIEWED",
+      "exampleScript": {
+        "listingName": "HTML5 Video Playing Tools",
+        "sourceListing": "https://greasyfork.org/en/scripts/by-site/bilibili.com",
+        "status": "LISTING_FOUND_ONLY"
+      }
+    },
+    {
+      "domainId": "D05",
+      "name": "多媒体音频",
+      "personas": "播客用户/音频工作者",
+      "regionalResearch": "全球 Spotify/SoundCloud；中国 喜马拉雅；日本 radiko",
+      "siteTasks": [
+        {
+          "sitePageKey": "D05-S1",
+          "taskKey": "D05-T1",
+          "siteHost": "open.spotify.com",
+          "pageType": "播放页",
+          "action": "调整播放快捷键",
+          "hypothesizedOutput": "播放状态",
+          "status": "SITE_TASK_HYPOTHESIS"
+        },
+        {
+          "sitePageKey": "D05-S2",
+          "taskKey": "D05-T2",
+          "siteHost": "soundcloud.com",
+          "pageType": "音轨页",
+          "action": "添加时间书签",
+          "hypothesizedOutput": "来源笔记",
+          "status": "SITE_TASK_HYPOTHESIS"
+        }
+      ],
+      "scriptQueries": [
+        "audio controls",
+        "media shortcuts"
+      ],
+      "competitorSeeds": [
+        "Loom",
+        "Stylus"
+      ],
+      "runtimeCandidates": [
+        "P",
+        "T"
+      ],
+      "riskQuestions": "DRM/音频授权",
+      "existingOpportunityIds": [
+        "OPP-022",
+        "OPP-024"
+      ],
+      "marketEvidenceStatus": "NOT_MEASURED",
+      "sourceCodeUseStatus": "NOT_LICENSE_REVIEWED",
+      "exampleScript": null
+    },
+    {
+      "domainId": "D06",
+      "name": "图片与设计",
+      "personas": "设计师/素材管理者",
+      "regionalResearch": "全球 Pinterest/Canva；中国 站酷/花瓣；日本 pixiv/Canva",
+      "siteTasks": [
+        {
+          "sitePageKey": "D06-S1",
+          "taskKey": "D06-T1",
+          "siteHost": "pinterest.com",
+          "pageType": "作品页",
+          "action": "保存素材来源",
+          "hypothesizedOutput": "出处卡",
+          "status": "SITE_TASK_HYPOTHESIS"
+        },
+        {
+          "sitePageKey": "D06-S2",
+          "taskKey": "D06-T2",
+          "siteHost": "canva.com",
+          "pageType": "编辑页",
+          "action": "检查alt与出处",
+          "hypothesizedOutput": "发布清单",
+          "status": "SITE_TASK_HYPOTHESIS"
+        }
+      ],
+      "scriptQueries": [
+        "image metadata",
+        "image tools"
+      ],
+      "competitorSeeds": [
+        "GoFullPage",
+        "Loom"
+      ],
+      "runtimeCandidates": [
+        "P",
+        "T"
+      ],
+      "riskQuestions": "著作权/水印/平台条款",
+      "existingOpportunityIds": [
+        "OPP-031",
+        "OPP-033"
+      ],
+      "marketEvidenceStatus": "NOT_MEASURED",
+      "sourceCodeUseStatus": "NOT_LICENSE_REVIEWED",
+      "exampleScript": null
+    },
+    {
+      "domainId": "D07",
+      "name": "阅读与翻译",
+      "personas": "学生/外语读者/工程师",
+      "regionalResearch": "全球 Wikipedia/GitHub；中国 英文论文/GitHub；日本 英文技术文档/Qiita",
+      "siteTasks": [
+        {
+          "sitePageKey": "D07-S1",
+          "taskKey": "D07-T1",
+          "siteHost": "github.com",
+          "pageType": "项目页",
+          "action": "翻译导航标签",
+          "hypothesizedOutput": "术语提示",
+          "status": "SITE_TASK_HYPOTHESIS"
+        },
+        {
+          "sitePageKey": "D07-S2",
+          "taskKey": "D07-T2",
+          "siteHost": "wikipedia.org",
+          "pageType": "文章页",
+          "action": "划词翻译",
+          "hypothesizedOutput": "原文对照",
+          "status": "SITE_TASK_HYPOTHESIS"
+        }
+      ],
+      "scriptQueries": [
+        "GitHub Internationalization",
+        "word translate"
+      ],
+      "competitorSeeds": [
+        "Readlang",
+        "Language Reactor"
+      ],
+      "runtimeCandidates": [
+        "P",
+        "T"
+      ],
+      "riskQuestions": "文本数据隐私/译文误导",
+      "existingOpportunityIds": [
+        "OPP-051",
+        "OPP-068"
+      ],
+      "marketEvidenceStatus": "NOT_MEASURED",
+      "sourceCodeUseStatus": "NOT_LICENSE_REVIEWED",
+      "exampleScript": {
+        "listingName": "GitHub Internationalization",
+        "sourceListing": "https://greasyfork.org/en/scripts/by-site/github.com",
+        "status": "LISTING_FOUND_ONLY"
+      }
+    },
+    {
+      "domainId": "D08",
+      "name": "购物与消费",
+      "personas": "比价者/个人采购",
+      "regionalResearch": "全球 Amazon/eBay；中国 淘宝/京东；日本 Rakuten/Amazon JP",
+      "siteTasks": [
+        {
+          "sitePageKey": "D08-S1",
+          "taskKey": "D08-T1",
+          "siteHost": "amazon.com",
+          "pageType": "商品页",
+          "action": "比对公开规格",
+          "hypothesizedOutput": "商品卡",
+          "status": "SITE_TASK_HYPOTHESIS"
+        },
+        {
+          "sitePageKey": "D08-S2",
+          "taskKey": "D08-T2",
+          "siteHost": "rakuten.co.jp",
+          "pageType": "商品页",
+          "action": "手动计算到手价",
+          "hypothesizedOutput": "价格清单",
+          "status": "SITE_TASK_HYPOTHESIS"
+        }
+      ],
+      "scriptQueries": [
+        "shopping price",
+        "product comparison"
+      ],
+      "competitorSeeds": [
+        "Keepa",
+        "Honey",
+        "Rakuten"
+      ],
+      "runtimeCandidates": [
+        "P",
+        "T"
+      ],
+      "riskQuestions": "价格准确性/联盟披露",
+      "existingOpportunityIds": [
+        "OPP-010",
+        "OPP-013"
+      ],
+      "marketEvidenceStatus": "NOT_MEASURED",
+      "sourceCodeUseStatus": "NOT_LICENSE_REVIEWED",
+      "exampleScript": null
+    },
+    {
+      "domainId": "D09",
+      "name": "电商卖家",
+      "personas": "商家/运营专员",
+      "regionalResearch": "全球 Shopify/Seller Central；中国 千牛/抖店；日本 Rakuten RMS/Shopify",
+      "siteTasks": [
+        {
+          "sitePageKey": "D09-S1",
+          "taskKey": "D09-T1",
+          "siteHost": "admin.shopify.com",
+          "pageType": "产品编辑",
+          "action": "Listing字段清单",
+          "hypothesizedOutput": "待核对字段",
+          "status": "SITE_TASK_HYPOTHESIS"
+        },
+        {
+          "sitePageKey": "D09-S2",
+          "taskKey": "D09-T2",
+          "siteHost": "sellercentral.amazon.com",
+          "pageType": "商品列表",
+          "action": "人工SKU核对",
+          "hypothesizedOutput": "异常清单",
+          "status": "SITE_TASK_HYPOTHESIS"
+        }
+      ],
+      "scriptQueries": [
+        "seller listing",
+        "sku export"
+      ],
+      "competitorSeeds": [
+        "Helium 10",
+        "Jungle Scout"
+      ],
+      "runtimeCandidates": [
+        "P",
+        "T",
+        "C"
+      ],
+      "riskQuestions": "私有卖家数据/网站协议/维护高",
+      "existingOpportunityIds": [
+        "OPP-015",
+        "OPP-016",
+        "OPP-020"
+      ],
+      "marketEvidenceStatus": "NOT_MEASURED",
+      "sourceCodeUseStatus": "NOT_LICENSE_REVIEWED",
+      "exampleScript": null
+    },
+    {
+      "domainId": "D10",
+      "name": "社交媒体",
+      "personas": "社群管理员/重度用户",
+      "regionalResearch": "全球 X/Reddit；中国 微博/小红书；日本 X/LINE",
+      "siteTasks": [
+        {
+          "sitePageKey": "D10-S1",
+          "taskKey": "D10-T1",
+          "siteHost": "x.com",
+          "pageType": "时间线",
+          "action": "本地关键词过滤",
+          "hypothesizedOutput": "简化列表",
+          "status": "SITE_TASK_HYPOTHESIS"
+        },
+        {
+          "sitePageKey": "D10-S2",
+          "taskKey": "D10-T2",
+          "siteHost": "reddit.com",
+          "pageType": "帖子页",
+          "action": "保存引用链接",
+          "hypothesizedOutput": "来源笔记",
+          "status": "SITE_TASK_HYPOTHESIS"
+        }
+      ],
+      "scriptQueries": [
+        "feed filter",
+        "Better X"
+      ],
+      "competitorSeeds": [
+        "Stylus",
+        "Glasp"
+      ],
+      "runtimeCandidates": [
+        "P",
+        "T"
+      ],
+      "riskQuestions": "反自动化/账户风控/个人信息",
+      "existingOpportunityIds": [
+        "OPP-023",
+        "OPP-034"
+      ],
+      "marketEvidenceStatus": "NOT_MEASURED",
+      "sourceCodeUseStatus": "NOT_LICENSE_REVIEWED",
+      "exampleScript": null
+    },
+    {
+      "domainId": "D11",
+      "name": "内容创作者",
+      "personas": "博主/编辑团队",
+      "regionalResearch": "全球 YouTube Studio/TikTok；中国 B站创作中心/小红书；日本 YouTube/note",
+      "siteTasks": [
+        {
+          "sitePageKey": "D11-S1",
+          "taskKey": "D11-T1",
+          "siteHost": "studio.youtube.com",
+          "pageType": "发布页",
+          "action": "检查版权字段和描述",
+          "hypothesizedOutput": "发布清单",
+          "status": "SITE_TASK_HYPOTHESIS"
+        },
+        {
+          "sitePageKey": "D11-S2",
+          "taskKey": "D11-T2",
+          "siteHost": "note.com",
+          "pageType": "编辑页",
+          "action": "核验引文链接",
+          "hypothesizedOutput": "来源记录",
+          "status": "SITE_TASK_HYPOTHESIS"
+        }
+      ],
+      "scriptQueries": [
+        "creator checklist",
+        "studio helper"
+      ],
+      "competitorSeeds": [
+        "Loom",
+        "Grammarly"
+      ],
+      "runtimeCandidates": [
+        "P",
+        "T"
+      ],
+      "riskQuestions": "版权/私有数据/公开发布",
+      "existingOpportunityIds": [
+        "OPP-031",
+        "OPP-032"
+      ],
+      "marketEvidenceStatus": "NOT_MEASURED",
+      "sourceCodeUseStatus": "NOT_LICENSE_REVIEWED",
+      "exampleScript": null
+    },
+    {
+      "domainId": "D12",
+      "name": "广告营销",
+      "personas": "广告代理/增长负责人",
+      "regionalResearch": "全球 Google Ads/Meta；中国 巨量/腾讯广告；日本 LINE Ads/Google Ads",
+      "siteTasks": [
+        {
+          "sitePageKey": "D12-S1",
+          "taskKey": "D12-T1",
+          "siteHost": "ads.google.com",
+          "pageType": "广告编辑",
+          "action": "校验UTM字段",
+          "hypothesizedOutput": "链接草稿",
+          "status": "SITE_TASK_HYPOTHESIS"
+        },
+        {
+          "sitePageKey": "D12-S2",
+          "taskKey": "D12-T2",
+          "siteHost": "business.facebook.com",
+          "pageType": "报表页",
+          "action": "标注归因口径",
+          "hypothesizedOutput": "审核说明",
+          "status": "SITE_TASK_HYPOTHESIS"
+        }
+      ],
+      "scriptQueries": [
+        "utm builder",
+        "marketing helper"
+      ],
+      "competitorSeeds": [
+        "Ahrefs SEO Toolbar",
+        "SEOquake"
+      ],
+      "runtimeCandidates": [
+        "P",
+        "T"
+      ],
+      "riskQuestions": "预算隐私/归因误解/平台条款",
+      "existingOpportunityIds": [
+        "OPP-030",
+        "OPP-083"
+      ],
+      "marketEvidenceStatus": "NOT_MEASURED",
+      "sourceCodeUseStatus": "NOT_LICENSE_REVIEWED",
+      "exampleScript": null
+    },
+    {
+      "domainId": "D13",
+      "name": "开发者与测试",
+      "personas": "程序员/测试工程师",
+      "regionalResearch": "全球 GitHub/GitLab；中国 Gitee/GitHub；日本 GitHub/Qiita",
+      "siteTasks": [
+        {
+          "sitePageKey": "D13-S1",
+          "taskKey": "D13-T1",
+          "siteHost": "github.com",
+          "pageType": "PR页",
+          "action": "保存变更定位",
+          "hypothesizedOutput": "问题笔记",
+          "status": "SITE_TASK_HYPOTHESIS"
+        },
+        {
+          "sitePageKey": "D13-S2",
+          "taskKey": "D13-T2",
+          "siteHost": "localhost",
+          "pageType": "授权测试页",
+          "action": "DOM定位",
+          "hypothesizedOutput": "选择器线索",
+          "status": "SITE_TASK_HYPOTHESIS"
+        }
+      ],
+      "scriptQueries": [
+        "GitHub Enhancement",
+        "GitHub Plus"
+      ],
+      "competitorSeeds": [
+        "Requestly",
+        "Wappalyzer",
+        "Selenium IDE"
+      ],
+      "runtimeCandidates": [
+        "P",
+        "T",
+        "C"
+      ],
+      "riskQuestions": "源码机密/测试授权/网络修改",
+      "existingOpportunityIds": [
+        "OPP-001",
+        "OPP-003",
+        "OPP-005"
+      ],
+      "marketEvidenceStatus": "NOT_MEASURED",
+      "sourceCodeUseStatus": "NOT_LICENSE_REVIEWED",
+      "exampleScript": {
+        "listingName": "Github Enhancement - High Speed Download",
+        "sourceListing": "https://greasyfork.org/en/scripts/by-site/github.com",
+        "status": "LISTING_FOUND_ONLY"
+      }
+    },
+    {
+      "domainId": "D14",
+      "name": "办公与表单",
+      "personas": "行政/流程操作员",
+      "regionalResearch": "全球 Google Forms/M365；中国 飞书/钉钉；日本 kintone/M365",
+      "siteTasks": [
+        {
+          "sitePageKey": "D14-S1",
+          "taskKey": "D14-T1",
+          "siteHost": "forms.google.com",
+          "pageType": "表单",
+          "action": "填充可审阅模板",
+          "hypothesizedOutput": "草稿字段",
+          "status": "SITE_TASK_HYPOTHESIS"
+        },
+        {
+          "sitePageKey": "D14-S2",
+          "taskKey": "D14-T2",
+          "siteHost": "office.com",
+          "pageType": "文档页",
+          "action": "插入短语",
+          "hypothesizedOutput": "文本草稿",
+          "status": "SITE_TASK_HYPOTHESIS"
+        }
+      ],
+      "scriptQueries": [
+        "form filler",
+        "text snippets"
+      ],
+      "competitorSeeds": [
+        "Text Blaze",
+        "Magical"
+      ],
+      "runtimeCandidates": [
+        "P",
+        "T",
+        "C"
+      ],
+      "riskQuestions": "误提交/敏感字段/授权",
+      "existingOpportunityIds": [
+        "OPP-057",
+        "OPP-059"
+      ],
+      "marketEvidenceStatus": "NOT_MEASURED",
+      "sourceCodeUseStatus": "NOT_LICENSE_REVIEWED",
+      "exampleScript": null
+    },
+    {
+      "domainId": "D15",
+      "name": "CRM与客服",
+      "personas": "销售/客服/客户成功",
+      "regionalResearch": "全球 Salesforce/HubSpot；中国 企微/纷享销客；日本 Zoho/Salesforce",
+      "siteTasks": [
+        {
+          "sitePageKey": "D15-S1",
+          "taskKey": "D15-T1",
+          "siteHost": "salesforce.com",
+          "pageType": "联系人页",
+          "action": "关联备注模板",
+          "hypothesizedOutput": "待审核笔记",
+          "status": "SITE_TASK_HYPOTHESIS"
+        },
+        {
+          "sitePageKey": "D15-S2",
+          "taskKey": "D15-T2",
+          "siteHost": "hubspot.com",
+          "pageType": "工单页",
+          "action": "客服回复草稿",
+          "hypothesizedOutput": "待发送文本",
+          "status": "SITE_TASK_HYPOTHESIS"
+        }
+      ],
+      "scriptQueries": [
+        "crm snippets",
+        "support templates"
+      ],
+      "competitorSeeds": [
+        "Apollo",
+        "HubSpot Sales",
+        "Text Blaze"
+      ],
+      "runtimeCandidates": [
+        "P",
+        "T",
+        "C"
+      ],
+      "riskQuestions": "客户PII/权限/高维护",
+      "existingOpportunityIds": [
+        "OPP-036",
+        "OPP-038",
+        "OPP-041"
+      ],
+      "marketEvidenceStatus": "NOT_MEASURED",
+      "sourceCodeUseStatus": "NOT_LICENSE_REVIEWED",
+      "exampleScript": null
+    },
+    {
+      "domainId": "D16",
+      "name": "企业采购",
+      "personas": "采购与供应商管理",
+      "regionalResearch": "全球 SAP Ariba/Coupa；中国 企业ERP/京东慧采；日本 Ariba/采购门户",
+      "siteTasks": [
+        {
+          "sitePageKey": "D16-S1",
+          "taskKey": "D16-T1",
+          "siteHost": "ariba.com",
+          "pageType": "询价流程",
+          "action": "人工报价比较",
+          "hypothesizedOutput": "核对单",
+          "status": "SITE_TASK_HYPOTHESIS"
+        },
+        {
+          "sitePageKey": "D16-S2",
+          "taskKey": "D16-T2",
+          "siteHost": "coupa.com",
+          "pageType": "审批页面",
+          "action": "检查填报字段",
+          "hypothesizedOutput": "审核提示",
+          "status": "SITE_TASK_HYPOTHESIS"
+        }
+      ],
+      "scriptQueries": [
+        "procurement quote",
+        "approval forms"
+      ],
+      "competitorSeeds": [
+        "Text Blaze",
+        "Magical"
+      ],
+      "runtimeCandidates": [
+        "P",
+        "T",
+        "C"
+      ],
+      "riskQuestions": "保密合同/主体许可/误审批",
+      "existingOpportunityIds": [
+        "OPP-057",
+        "OPP-060"
+      ],
+      "marketEvidenceStatus": "NOT_MEASURED",
+      "sourceCodeUseStatus": "NOT_LICENSE_REVIEWED",
+      "exampleScript": null
+    },
+    {
+      "domainId": "D17",
+      "name": "数据报表",
+      "personas": "分析师/部门负责人",
+      "regionalResearch": "全球 GA4/Looker；中国 飞书表格/腾讯文档；日本 GA4/kintone",
+      "siteTasks": [
+        {
+          "sitePageKey": "D17-S1",
+          "taskKey": "D17-T1",
+          "siteHost": "analytics.google.com",
+          "pageType": "报表",
+          "action": "标记日期口径",
+          "hypothesizedOutput": "快照备注",
+          "status": "SITE_TASK_HYPOTHESIS"
+        },
+        {
+          "sitePageKey": "D17-S2",
+          "taskKey": "D17-T2",
+          "siteHost": "lookerstudio.google.com",
+          "pageType": "看板",
+          "action": "检查字段解释",
+          "hypothesizedOutput": "说明卡",
+          "status": "SITE_TASK_HYPOTHESIS"
+        }
+      ],
+      "scriptQueries": [
+        "dashboard snapshot",
+        "table export"
+      ],
+      "competitorSeeds": [
+        "Glasp",
+        "Workona"
+      ],
+      "runtimeCandidates": [
+        "T",
+        "C"
+      ],
+      "riskQuestions": "指标口径/隐私/数据所有权",
+      "existingOpportunityIds": [
+        "OPP-078",
+        "OPP-080",
+        "OPP-081"
+      ],
+      "marketEvidenceStatus": "NOT_MEASURED",
+      "sourceCodeUseStatus": "NOT_LICENSE_REVIEWED",
+      "exampleScript": null
+    },
+    {
+      "domainId": "D18",
+      "name": "教育学习",
+      "personas": "学生/线上课程老师",
+      "regionalResearch": "全球 Coursera/Udemy；中国 Bilibili/MOOC；日本 Schoo/YouTube",
+      "siteTasks": [
+        {
+          "sitePageKey": "D18-S1",
+          "taskKey": "D18-T1",
+          "siteHost": "coursera.org",
+          "pageType": "课程页",
+          "action": "提取章节笔记",
+          "hypothesizedOutput": "学习卡",
+          "status": "SITE_TASK_HYPOTHESIS"
+        },
+        {
+          "sitePageKey": "D18-S2",
+          "taskKey": "D18-T2",
+          "siteHost": "udemy.com",
+          "pageType": "视频页",
+          "action": "双语划词",
+          "hypothesizedOutput": "生词单",
+          "status": "SITE_TASK_HYPOTHESIS"
+        }
+      ],
+      "scriptQueries": [
+        "study subtitles",
+        "vocabulary helper"
+      ],
+      "competitorSeeds": [
+        "Language Reactor",
+        "Readlang"
+      ],
+      "runtimeCandidates": [
+        "P",
+        "T"
+      ],
+      "riskQuestions": "课程版权/账号规则",
+      "existingOpportunityIds": [
+        "OPP-050",
+        "OPP-051",
+        "OPP-053"
+      ],
+      "marketEvidenceStatus": "NOT_MEASURED",
+      "sourceCodeUseStatus": "NOT_LICENSE_REVIEWED",
+      "exampleScript": null
+    },
+    {
+      "domainId": "D19",
+      "name": "招聘求职",
+      "personas": "招聘顾问/求职者",
+      "regionalResearch": "全球 LinkedIn/Indeed；中国 BOSS直聘/猎聘；日本 リクナビ/Indeed",
+      "siteTasks": [
+        {
+          "sitePageKey": "D19-S1",
+          "taskKey": "D19-T1",
+          "siteHost": "linkedin.com",
+          "pageType": "职位页",
+          "action": "记录JD字段",
+          "hypothesizedOutput": "职位卡",
+          "status": "SITE_TASK_HYPOTHESIS"
+        },
+        {
+          "sitePageKey": "D19-S2",
+          "taskKey": "D19-T2",
+          "siteHost": "indeed.com",
+          "pageType": "职位页",
+          "action": "手动版本对照",
+          "hypothesizedOutput": "差异提示",
+          "status": "SITE_TASK_HYPOTHESIS"
+        }
+      ],
+      "scriptQueries": [
+        "job description",
+        "recruitment snippets"
+      ],
+      "competitorSeeds": [
+        "Text Blaze",
+        "Magical"
+      ],
+      "runtimeCandidates": [
+        "P",
+        "T"
+      ],
+      "riskQuestions": "简历PII/平台自动化条款",
+      "existingOpportunityIds": [
+        "OPP-043",
+        "OPP-049"
+      ],
+      "marketEvidenceStatus": "NOT_MEASURED",
+      "sourceCodeUseStatus": "NOT_LICENSE_REVIEWED",
+      "exampleScript": null
+    },
+    {
+      "domainId": "D20",
+      "name": "隐私与调试",
+      "personas": "授权安全测试者",
+      "regionalResearch": "全球 DevTools/OWASP练习站；中国 企业测试站；日本 企业测试站",
+      "siteTasks": [
+        {
+          "sitePageKey": "D20-S1",
+          "taskKey": "D20-T1",
+          "siteHost": "localhost",
+          "pageType": "自有测试站",
+          "action": "查看Storage字段",
+          "hypothesizedOutput": "脱敏报告",
+          "status": "SITE_TASK_HYPOTHESIS"
+        },
+        {
+          "sitePageKey": "D20-S2",
+          "taskKey": "D20-T2",
+          "siteHost": "example.com",
+          "pageType": "示例页面",
+          "action": "说明安全请求头",
+          "hypothesizedOutput": "演示记录",
+          "status": "SITE_TASK_HYPOTHESIS"
+        }
+      ],
+      "scriptQueries": [
+        "cookie debug",
+        "network inspect"
+      ],
+      "competitorSeeds": [
+        "uBlock Origin Lite",
+        "AdGuard",
+        "Requestly"
+      ],
+      "runtimeCandidates": [
+        "T",
+        "C"
+      ],
+      "riskQuestions": "凭据/越权/高危网络改写",
+      "existingOpportunityIds": [
+        "OPP-002",
+        "OPP-005",
+        "OPP-007"
+      ],
+      "marketEvidenceStatus": "NOT_MEASURED",
+      "sourceCodeUseStatus": "NOT_LICENSE_REVIEWED",
+      "exampleScript": null
+    },
+    {
+      "domainId": "D21",
+      "name": "跨站自动化",
+      "personas": "运营团队/企业流程负责人",
+      "regionalResearch": "全球 Gmail/Sheets/CRM；中国 飞书/企业微信；日本 Gmail/kintone",
+      "siteTasks": [
+        {
+          "sitePageKey": "D21-S1",
+          "taskKey": "D21-T1",
+          "siteHost": "mail.google.com",
+          "pageType": "草稿",
+          "action": "人工审阅动作",
+          "hypothesizedOutput": "草稿确认",
+          "status": "SITE_TASK_HYPOTHESIS"
+        },
+        {
+          "sitePageKey": "D21-S2",
+          "taskKey": "D21-T2",
+          "siteHost": "docs.google.com",
+          "pageType": "授权表格",
+          "action": "字段准备",
+          "hypothesizedOutput": "待导入数据",
+          "status": "SITE_TASK_HYPOTHESIS"
+        }
+      ],
+      "scriptQueries": [
+        "workflow automation",
+        "form automation"
+      ],
+      "competitorSeeds": [
+        "Automa",
+        "Ui.Vision",
+        "Axiom.ai"
+      ],
+      "runtimeCandidates": [
+        "P",
+        "T",
+        "C"
+      ],
+      "riskQuestions": "跨源权限/不可逆动作/审计",
+      "existingOpportunityIds": [
+        "OPP-059",
+        "OPP-060",
+        "OPP-083"
+      ],
+      "marketEvidenceStatus": "NOT_MEASURED",
+      "sourceCodeUseStatus": "NOT_LICENSE_REVIEWED",
+      "exampleScript": null
+    },
+    {
+      "domainId": "D22",
+      "name": "研究与知识管理",
+      "personas": "研究员/学生/PM",
+      "regionalResearch": "全球 Scholar/Notion；中国 知网/语雀；日本 CiNii/Notion",
+      "siteTasks": [
+        {
+          "sitePageKey": "D22-S1",
+          "taskKey": "D22-T1",
+          "siteHost": "scholar.google.com",
+          "pageType": "文章页",
+          "action": "剪藏出处",
+          "hypothesizedOutput": "引用卡",
+          "status": "SITE_TASK_HYPOTHESIS"
+        },
+        {
+          "sitePageKey": "D22-S2",
+          "taskKey": "D22-T2",
+          "siteHost": "notion.so",
+          "pageType": "笔记页",
+          "action": "引用字段核对",
+          "hypothesizedOutput": "待修复引用",
+          "status": "SITE_TASK_HYPOTHESIS"
+        }
+      ],
+      "scriptQueries": [
+        "web clipping",
+        "citation helper"
+      ],
+      "competitorSeeds": [
+        "Readwise Reader",
+        "Glasp"
+      ],
+      "runtimeCandidates": [
+        "P",
+        "T"
+      ],
+      "riskQuestions": "私有全文/引文与版权",
+      "existingOpportunityIds": [
+        "OPP-022",
+        "OPP-025"
+      ],
+      "marketEvidenceStatus": "NOT_MEASURED",
+      "sourceCodeUseStatus": "NOT_LICENSE_REVIEWED",
+      "exampleScript": null
+    },
+    {
+      "domainId": "D23",
+      "name": "旅行与生活",
+      "personas": "游客/差旅管理员",
+      "regionalResearch": "全球 Booking/Maps；中国 携程/高德；日本 乐天旅游/じゃらん",
+      "siteTasks": [
+        {
+          "sitePageKey": "D23-S1",
+          "taskKey": "D23-T1",
+          "siteHost": "booking.com",
+          "pageType": "酒店页",
+          "action": "保存可见取消条款",
+          "hypothesizedOutput": "条款卡",
+          "status": "SITE_TASK_HYPOTHESIS"
+        },
+        {
+          "sitePageKey": "D23-S2",
+          "taskKey": "D23-T2",
+          "siteHost": "travel.rakuten.co.jp",
+          "pageType": "房型页",
+          "action": "比较入住条件",
+          "hypothesizedOutput": "对比清单",
+          "status": "SITE_TASK_HYPOTHESIS"
+        }
+      ],
+      "scriptQueries": [
+        "travel clip",
+        "hotel compare"
+      ],
+      "competitorSeeds": [
+        "Readwise Reader",
+        "OneTab"
+      ],
+      "runtimeCandidates": [
+        "P",
+        "T"
+      ],
+      "riskQuestions": "价格时效/用户行程/条款",
+      "existingOpportunityIds": [
+        "OPP-064",
+        "OPP-065",
+        "OPP-066"
+      ],
+      "marketEvidenceStatus": "NOT_MEASURED",
+      "sourceCodeUseStatus": "NOT_LICENSE_REVIEWED",
+      "exampleScript": null
+    },
+    {
+      "domainId": "D24",
+      "name": "财务与结算",
+      "personas": "卖家财务/经营会计",
+      "regionalResearch": "全球 Shopify Finance/Stripe；中国 支付宝商家/电商账单；日本 Shopify/商户支付后台",
+      "siteTasks": [
+        {
+          "sitePageKey": "D24-S1",
+          "taskKey": "D24-T1",
+          "siteHost": "admin.shopify.com",
+          "pageType": "结算页",
+          "action": "用户手动导出CSV",
+          "hypothesizedOutput": "本地文件",
+          "status": "SITE_TASK_HYPOTHESIS"
+        },
+        {
+          "sitePageKey": "D24-S2",
+          "taskKey": "D24-T2",
+          "siteHost": "dashboard.stripe.com",
+          "pageType": "报表页",
+          "action": "导出后核对费用字段",
+          "hypothesizedOutput": "异常清单",
+          "status": "SITE_TASK_HYPOTHESIS"
+        }
+      ],
+      "scriptQueries": [
+        "payout audit",
+        "csv reconciliation"
+      ],
+      "competitorSeeds": [
+        "Excel",
+        "A2X",
+        "Shopify 原生"
+      ],
+      "runtimeCandidates": [
+        "T"
+      ],
+      "riskQuestions": "财务数据/金钱准确性/原生替代强",
+      "existingOpportunityIds": [
+        "OPP-078",
+        "OPP-081"
+      ],
+      "marketEvidenceStatus": "NOT_MEASURED",
+      "sourceCodeUseStatus": "NOT_LICENSE_REVIEWED",
+      "exampleScript": null
+    }
+  ],
+  "domainCount": 24,
+  "taskSeedCount": 48
+}

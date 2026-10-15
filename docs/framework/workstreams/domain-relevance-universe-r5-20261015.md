@@ -1,0 +1,9 @@
+# Domain & Relevance Universe R5 · Workstream
+
+- Date: 2026-10-15. Owner: current ChatGPT documentation-only research session. Target: GitHub remote `main`; initial scoped-review HEAD `c8d52ef41fde83cec61d8cdd86a5ceea099591ef`.
+- Files: `docs/product/browser-extension-ecosystem/domain-relevance-universe-r5.zh-CN.md`, `script-market-discovery-r5.zh-CN.md`, `domain-relevance-universe-r5.seed.json`; incremental updates only to `README.zh-CN.md`, `userscript-ecosystem.zh-CN.md`, `competitor-research.zh-CN.md`, `research-process.zh-CN.md`, `product-priorities.zh-CN.md`, `commercial-mvp-workflow-r4-20261013.zh-CN.md`, and this workstream record.
+- Canonical references are read-only: `opportunity-register.json` (84 IDs), `commercial-experiments.json` (8), R8 188 capabilities, E01–E40; no new chance ledger, runtime, Browser SDK or install manager.
+- Parallel safety: fetch latest target blobs and main SHA; create detached blobs/tree/commit; inspect exact diff; update main only by expected-old-SHA fast-forward, no force, no branches/worktrees/PRs, no other agent files.
+- Local Mac project `/Users/shopme/Documents/workspace/opendesk-browser` is **NOT_ACCESSIBLE** to this remote connector session; local `git status`, staged files, running Agents, Chrome extension installation and real Chrome remain **NOT_TESTED**. No attempt to change local index, watchers, dist or Chrome.
+- Review gates: 24 domain IDs × 3 regions × 2 page tasks; legitimate OPP references; JSON parse; unchanged 84 OPP / 8 EXP; R4/Shopify historical-only correction; separate consumer/professional leaderboards; copyright/privacy/platform/security hard veto; no fabricated market or payment values.
+- Follow-up: wave-by-wave detailed script discovery, permanent IDs, source rights, per-website technical tests and buyer research before selecting any implementation.

@@ -1,3 +1,5 @@
+> **R5 跨市场竞品研究入口（2026-10-15）**：[24 领域网站任务](domain-relevance-universe-r5.zh-CN.md) · [两榜独立评分、许可证、时点证据与竞品反证](script-market-discovery-r5.zh-CN.md)。以下原有 43 个参照对象保留为种子；未经官方最新版、商店权限、功能体验、日期快照核实，不能称为 2026-10-15 市场排名。商店安装用户、Greasy Fork 累计安装、GitHub Star 不等于实际活跃、留存或收入。
+
 # 竞品与公开证据台账（2026-10-12）
 
 > 共 43 个**代表性参照对象**，横跨脚本、自动化、开发者、购物、运营、研究、SEO、客服、学习等方向。证据等级明确标出；`FOLLOWUP_VERIFY` / `CATEGORY_REPORT` 只说明候选名称/官网入口，未逐产品读取当日完整版本及评论；不能用此表证明下载量、市场规模、留存或真实使用频率。R8 的深度脚本研究请见[原报告](../../architecture/browser-framework/userscript-competitor-research-r8-20261008.zh-CN.md)。

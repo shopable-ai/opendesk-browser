@@ -1,3 +1,5 @@
+> **R5 历史定位更正（2026-10-15）**：本文 R4 的“首先开发与验证”是当时 Seller Payout / CSV 对账方向的**工程候选计划**；它仍是 `RESEARCH / NOT_IMPLEMENTED / NOT_PAID_VALIDATED`，**不是全球浏览器脚本/工具市场默认第一产品**，不再自动触发工程开发。依照 [全球 24 领域研究宇宙](domain-relevance-universe-r5.zh-CN.md) 与 [独立双榜及合法转换](script-market-discovery-r5.zh-CN.md) 重新比选；原研发方案保留供追溯，不更改原 EXP-005 含义。
+
 
 # OpenDesk Browser R4 商业工作流：插件功能、开发任务与首款付费闭环 MVP
 
