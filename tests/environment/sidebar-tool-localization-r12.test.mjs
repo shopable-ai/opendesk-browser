@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
-import {validateSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
+import {validateSidebarToolPackage,serializeSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 import {
   canonicalUiLocale,resolveUiLocale,compileToolLocaleCatalog,uiMessage,
   createUiLocaleController,UI_LOCALE_STORE
@@ -58,6 +58,9 @@ test('R1.2 existing v1 package stays strict, with all reviewed words embedded of
   assert(pkg.js.includes('Refresh table of contents'));
   assert(pkg.js.includes('正在读取当前网页目录'));
   assert(pkg.js.includes('onLocaleChange'));
+  assert.equal(await readFile(root+'reading-toc.opendesk-tool.json','utf8'),
+    serializeSidebarToolPackage(pkg),
+    'source-directory manual install file must be byte-identical to the official packer');
   assert(!/fetch\s*\(|https?:\/\//.test(pkg.js),'tool translation needs no remote translation service');
 });
 
