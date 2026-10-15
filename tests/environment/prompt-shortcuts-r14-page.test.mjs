@@ -38,7 +38,7 @@ function mockElement(tag='div'){
   };
   return node;
 }
-function fixture({pkg,library,grants}){
+function fixture({pkg,library,grants,insertText=null}){
   const values=new Map([
     [SIDEBAR_TOOL_STORE,[pkg]],[PROMPT_DATA_STORE,{library}],
     [SIDEBAR_TOOL_ENABLE_STORE,{}],[TOOL_REVOCATION_EPOCHS_STORE,{[PROMPT_ID]:'first'}],
@@ -69,7 +69,8 @@ function fixture({pkg,library,grants}){
     createRange:()=>range,getSelection:()=>selection,
     execCommand(command,_show,text){
       calls.push({command,text});
-      editor.textContent+=text;
+      if(insertText)insertText(editor,text);
+      else editor.textContent+=text;
       return true;
     },
     addEventListener(name,fn){docEvents.set(name,fn);},
@@ -87,7 +88,7 @@ function fixture({pkg,library,grants}){
   const rail=()=>root.children.find(item=>item.attributes['data-opendesk-prompts']!==undefined)
     ?.shadow?.children.find(item=>item.tagName==='nav');
   const buttons=()=>rail()?.children.filter(item=>item.className.includes('item'))||[];
-  return {api,doc,win,values,change,calls,buttons,rail,root,editor,events,siteEvents};
+  return {api,doc,win,values,change,calls,buttons,rail,root,editor,events,siteEvents,docEvents};
 }
 test('R1.4 dynamic ChatGPT rail: origin grant, click-to-draft and independent revocation',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
@@ -106,6 +107,7 @@ test('R1.4 dynamic ChatGPT rail: origin grant, click-to-draft and independent re
     f.buttons()[0].emit('click',{isTrusted:false});
     await settle();assert.equal(f.calls.length,0,'untrusted click cannot edit a draft');
     f.buttons()[0].emit('click',{isTrusted:true});
+    f.buttons()[0].emit('click',{isTrusted:true}); // concurrent click must never double-insert
     await settle();
     const host=f.root.children.find(item=>item.attributes['data-opendesk-prompts']!==undefined);
     const fallback=host?.shadow?.children.find(item=>item.className==='fallback');
@@ -133,4 +135,33 @@ test('R1.4 dynamic ChatGPT rail: origin grant, click-to-draft and independent re
     await settle();assert.equal(f.buttons().length,0,'cross-origin SPA navigation revokes');
   }finally{controller?.dispose();}
   assert.equal(f.siteEvents.size,0,'controller removes storage observer on dispose');
+});
+
+test('R1.5 IME composition prevents edit; corrupted line breaks never count as insertion success',async()=>{
+  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const model=globalThis.OpenDeskPromptShortcutsModel;
+  const row=model.draft({body:'第一行\n\n第三行🧑‍💻'},null,()=> 'prompt-r15');
+  const library={schema:1,items:[row],settings:{webButtons:true}};
+  const grant=await changePromptSiteGrant({},pkg,'first',true);
+  const f=fixture({pkg,library,grants:grant,insertText:(node,value)=>{
+    // A broken rich-text bridge may preserve characters but drop paragraph breaks.
+    node.textContent+=value.replace(/\n/g,'');
+  }});
+  const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
+  try{
+    await settle();assert.equal(f.buttons().length,1);
+    f.docEvents.get('compositionstart')?.();
+    f.buttons()[0].emit('click',{isTrusted:true});
+    await settle();assert.equal(f.calls.length,0,'do not edit while IME is composing');
+    f.docEvents.get('compositionend')?.();
+    f.buttons()[0].emit('click',{isTrusted:true});
+    await settle();
+    assert.equal(f.calls.length,1,'native edit is attempted once');
+    assert.equal(f.editor.textContent,'已有草稿第一行第三行🧑‍💻');
+    const host=f.root.children.find(item=>item.attributes['data-opendesk-prompts']!==undefined);
+    const fallback=host?.shadow?.children.find(item=>item.className==='fallback');
+    assert.equal(fallback?.hidden,false,'missing line breaks are an uncertain edit, not success');
+    assert.match(fallback.children[1].textContent,/草稿正文或换行未得到完整确认/);
+    assert.equal(f.calls.length,1,'never retry an ambiguous native insert automatically');
+  }finally{controller?.dispose();}
 });

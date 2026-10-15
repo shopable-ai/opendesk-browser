@@ -138,3 +138,35 @@
 **已执行 CI**：[Run 38737382042](https://github.com/shopable-ai/opendesk-browser/actions/runs/38737382042)，候选提交 `d9c53b0bec7528ba88b0884f0ee81fed59f0593b`，**8/8 Node PASS、语法检查 PASS**。最初模拟元素遗漏标准 `closest()` 导致新增动态测试 FAIL，原始失败 [Run 38736747724](https://github.com/shopable-ai/opendesk-browser/actions/runs/38736747724) 保留；补齐模拟 DOM 标准方法后获得完整成功，不修改生产插入函数以迎合测试。
 
 **证据分级**：Node 动态模拟为 `COMPONENT_PASS`，并非 `INSTALLED_CHROME_PASS` / `REAL_CHATGPT_PASS` / `MAC_IME_PASS`。正式 production bundle 仍受到并行 AdBlock 固定源码摘要漂移阻断；不要绕过原安全审计，也不要将本工具 8/8 当作全仓 95+ 或最终产品交付。下一阶段须协调构建者冻结候选，并在真实 Chrome+ChatGPT 上验证多行/Undo/中文 IME/原生菜单/卸载清理。
+
+
+## 7. R1.5 真实产品闭环前的 ChatGPT 草稿安全收敛（2026-10-15）
+
+**本节仅追加当前新增修复和证据；R1.4 已通过的 9 组 Node 测试保留历史提交身份。真实安装与真实 ChatGPT 仍未验收。**
+
+### 7.1 本次只修复一个产品关键路径
+
+- 只改动正式 \`trusted/page.js\` 的 ChatGPT 输入读取/插入确认和点击并发保护：通过受控编辑器读回原草稿、原生 \`execCommand('insertText')\` 插入、再核对完整原文与多行提示词（包括段落边界和空行），而不再用压平所有空白的 \`includes()\` 误报成功。现代 ChatGPT 富文本段落的 \`textContent\` 不携带换行，因此对直接段落子节点逐段读取；其他 DOM 形态保守读回并按一致的完整草稿规则验证。
+- 保存 \`page.prompts\` 的严格网站授权、安装身份、隔离存储和唯一可信适配器。若本次原生插入的结果不明确，显示手动核对/复制提示，不自动重试、重发或篡改 React/ProseMirror 状态；同一时间只允许一个进行中的插入请求。
+- 组合输入期间（包括异步站点授权校验期间新开始的组合）直接拒绝网页按钮插入，不强制转移焦点到 fallback 文本框。保留关闭 Side Panel 后页面独立运行、SPA、授权撤销及存储失败保守停止的既有路径。
+- 由于可信 \`trusted/page.js\` 是固定源码模块，其 Git blob SHA 已审核并同步精确更新 \`scripts/bundle-provenance.mjs\` 和 \`tests/environment/prompt-shortcuts-r14.test.mjs\`。没有放宽任意目录通配、敏感目标文件或 SDK 权限。
+- 增强现有动态 Node 页面控制器测试：双击仅插入一次、输入法组合期无插入，以及“文字保留但换行丢失”必须拒绝成功判定。保持原测试文件，不新增竞争性引擎或 HTML 预览。
+
+### 7.2 候选证据与待验收边界
+
+| 项目 | 结果 | 适用范围 |
+| --- | --- | --- |
+| R1.4 既有独立 CI | **9/9 NODE_PASS**，Run [38738460330](https://github.com/shopable-ai/opendesk-browser/actions/runs/38738460330)，SHA \`374d920fe961c8329dd1a5dfa3a5d3bbf1b25b01\` | 历史候选；不自动升级为 R1.5 测试 |
+| Linux headless Chromium \`144.0.7559.96\` 独立 HTML 插入实验 | **6/6 仅模拟编辑器插入且 6/6 撤销成功**：段落、DIV、TEXTAREA；已有草稿、空草稿、换行、空行、中文、Emoji | **模拟 Chromium DOM**；未使用本仓库完整扩展或真实 ChatGPT |
+| R1.5 GitHub Scoped Node/CI | **NOT_TESTED**（提交后以 GitHub Actions 实际运行结果更新） | 不能预先声称通过 |
+| 官方 production 整包构建、固定来源全局 gate | **NOT_TESTED**；若被并行 AdBlock 摘要阻断，应将其与本工具独立归因 | 不修改 AdBlock 文件或放宽来源安全限制 |
+| 已安装 OpenDesk Browser + 实时 ChatGPT 草稿 | **NOT_TESTED** | 需相同安装候选下亲自验证完整正文、焦点、Undo、输入法与刷新 |
+| 原生 Chrome 选区菜单和一次性领取 | **NOT_TESTED** | Node 接线/模拟不能替代菜单点击 |
+| 关闭侧栏、SPA/BFCache、撤权、卸载/重装完整链 | **NOT_TESTED** | 需要真实已安装环境 |
+| 逐维产品质量 95+ | **NOT_SCORED** | 不虚构产品验收分数 |
+
+### 7.3 最近的实际阻塞与最小下一步
+
+- 在当前网页会话没有用户 Mac Chrome Profile、已登录 ChatGPT DOM 或本机 \`npm run dev\` watcher 的访问能力。不可把模拟编辑器、官方 packer 的 Node 检查或历史候选视为真实安装证明。
+- 下一步先读取 R1.5 同提交作用范围内的 GitHub Actions 结果；有真实 FAIL 则仅修受影响的可信适配器和测试，保持来源 SHA 白名单同步。再由具备隔离测试 Profile 的运行环境做官网 optional 安装、真实 ChatGPT 草稿、中文 IME、原生菜单、关闭侧栏以及撤权/卸载验收。
+- 官方整包构建必须使用隔离 CI/CFT 或已协调的唯一 build writer，不覆盖本地共享 \`dist/development\`。如全局构建失败，记录首个实际错误及所属文件；不可将其他项目的阻断伪装成 Prompt Shortcuts 的缺陷。

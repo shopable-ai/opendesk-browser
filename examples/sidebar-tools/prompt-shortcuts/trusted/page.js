@@ -29,7 +29,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   if(win[SLOT])return win[SLOT];
   let model=MODEL,disposed=false,paused=false,epoch=0,href=win.location.href,visible=false;
   let host=null,shadow=null,rail=null,tip=null,fallback=null,items=[],observer=null,layoutTimer=0;
-  let locationTimer=0,folded=false,composing=false;
+  let locationTimer=0,folded=false,composing=false,inserting=false;
   const stop=()=>{
     visible=false;items=[];observer?.disconnect();observer=null;
     win.clearTimeout(layoutTimer);layoutTimer=0;
@@ -89,8 +89,23 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     const box=node.getBoundingClientRect();
     return box.width>0&&box.height>0?node:null;
   };
+  const readDraft=target=>{
+    if(!target.isContentEditable)return target.value;
+    // Paragraph textContent drops all line breaks; paragraph innerText can
+    // produce double separators. Reconstruct sibling blocks as draft lines.
+    const children=Array.from(target.children||[]);
+    if(children.length&&children.every(node=>node.tagName==='P'||node.tagName==='DIV')){
+      return children.map(node=>{
+        const text=typeof node.innerText==='string'?node.innerText:node.textContent;
+        return text==='\n'?'':text;
+      }).join('\n');
+    }
+    return typeof target.innerText==='string'?target.innerText:target.textContent;
+  };
+  const normalizeDraft=text=>text.replace(/\r\n?/gu,'\n').replace(/\u00a0/gu,' ');
   async function insert(row,event){
-    if(event?.isTrusted!==true||!visible||disposed||paused)return;
+    if(event?.isTrusted!==true||!visible||disposed||paused||inserting||composing)return;
+    inserting=true;
     const location=win.location.href,token=epoch;
     try{
       // Recheck installation, exact origin, grant, enable and data before effect.
@@ -105,8 +120,10 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       if(token!==epoch||location!==win.location.href)throw Error('页面已切换');
       const target=editor();
       if(!target)throw Error('找不到受支持的 ChatGPT 草稿编辑器');
-      if(composing)throw Error('输入法正在组合文字，请完成输入后重试');
-      const before=target.isContentEditable?target.textContent:target.value;
+      // Composition may have started while the async grant read was pending.
+      // Return without focusing the editor or a fallback textarea.
+      if(composing)return;
+      const before=readDraft(target);
       if(typeof before!=='string')throw Error('编辑器无法确认当前草稿');
       target.focus();
       if(target.isContentEditable){
@@ -119,13 +136,15 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       // dispatch synthetic input events, click Send, or replace a selection.
       const insertion=(before.trim()? '\n':'')+row.body;
       if(!doc.execCommand('insertText',false,insertion))throw Error('编辑器未确认插入');
-      const after=target.isContentEditable?target.textContent:target.value;
-      // Rich-text block boundaries may not preserve literal newlines in textContent.
-      const flat=text=>text.replace(/\s+/gu,'');
-      if(typeof after!=='string'||after===before||!flat(after).includes(flat(row.body)))
-        throw Error('编辑器未观察到完整插入，请手动复制');
+      const after=readDraft(target);
+      // Check unchanged prefix, complete multiline suffix and ordering.
+      // "includes(prompt)" would misreport success if it already existed.
+      if(!target.isConnected||typeof after!=='string'||
+        normalizeDraft(after)!==normalizeDraft(before+insertion))
+        throw Error('草稿正文或换行未得到完整确认，请核对并手动复制');
       hideTip();if(fallback)fallback.hidden=true;
     }catch(error){fallbackCopy(row.body,error.message);}
+    finally{inserting=false;}
   }
   function render(){
     if(!visible)return;
