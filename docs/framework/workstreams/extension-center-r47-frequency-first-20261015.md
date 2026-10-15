@@ -229,3 +229,8 @@ Chrome 验收身份待补：用户 Mac 实际 Chrome/Profile/扩展 ID、加载�
 - **下一最小行动**：①复核最新 main 的 Extension Center 专属 CI 与文件归属，关闭并行 `tool.html`/preview 的合同差异；②本地 Codex 对已加载 `dist/development` 的真实 ID/路径及 `opendesk browser doctor` 的 Native 配对进行只读检查；③在资源 Owner 允许的受控 CFT/Profile 冻结单一包与 Package Hash，完成上述九类真正点击/键盘/权限/草稿/Authority 读回/截图和 Computed Style；④逐维据同包真实证据评分，不达 95 不宣告 FINAL_ACCEPTED。
 
 **证据门禁结论**：R5.0 有确实完成的源码修复与一个精确候选完整 CI PASS；并行 main 仍在前进，最终 Native Chrome 产品级验收 **BLOCKED / NOT_TESTED**；产品状态不是 FINAL_ACCEPTED。
+
+
+### R5.0 并行预览同步回执（本轮记录之后）
+
+在上文首次核验 `tool.html` 与旧预览出现文字/筛选范围差异之后，并行 Owner 已提交 [`0d8a73b`](https://github.com/shopable-ai/opendesk-browser/commit/0d8a73b747041bdc4443d081270fef730045130c)，直接更新**原有唯一** `prototypes/sidebar/extension-center-r47-frequency-first-preview.html`：现有已安装/发现双范围、Cookie Editor 卸载和审阅后重新安装均提供模拟状态。此前的「预览尚未同步」仅为记录时快照，**不能作为此提交后的当前缺陷**。该 HTML 仍明确标注 SIMULATED_PREVIEW / NOT_NATIVE_CHROME，且最新正式 / 预览同源、SDK 安全测试及 Mac Native 验收仍须绑定更新后的新 CI/包身份。未触碰当前 Owner 的并行文件，不凭静态 HTML 推断真正产品验收通过。
