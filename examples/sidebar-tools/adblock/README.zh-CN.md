@@ -1,36 +1,43 @@
-# OpenDesk AdBlock · R1 产品交互原型
+# OpenDesk Browser · 广告拦截 R1.2
 
-**状态：`DESIGN_PREVIEW_ONLY`（2026-10-14）**。本目录与 `examples/sidebar-tools/reading-toc/` 同级，计划成为独立安装的「AdBlock · 广告拦截」应用。**目前只有独立 HTML 交互原型和本说明，没有正式 `tool.config.json`、可安装包、过滤规则/后台服务、Catalog 登记或真实 Chrome 拦截。** 浏览器里打开原型可以操作开关、查看交互状态，但不会改动任何网页请求、权限或真实标签页。
+**2026-10-15：正式代码已接入 main；实际 Chrome 网络级验收以独立原生证据为准。** 不能把原型模拟数据或单元测试当作真正的广告拦截通过。
 
-## 查看原型
+## 正式安装及使用
 
-双击打开 `adblock-r1-interactive-preview.html`（单文件离线 HTML，无 CDN）。右侧选择模拟网页、切换深色模式、重置；左侧尝试全局启停、本站启停、例外列表恢复、设置和 Chrome 受限页面提示。原型数据为预设演示值，不能当作真实拦截统计。状态仅尝试写入当前浏览器的 localStorage，禁止上传或读取真实网页信息。
+在 OpenDesk Browser 的「扩展」→「发现」中选择 **广告拦截**，审阅权限并安装。工具的全局开关和「当前网站」开关由浏览器固定、可信的 Side Panel 宿主创建；首次开启调用 Chrome 原生 declarativeNetRequestWithHostAccess 授权。沙箱工具仅能读取实际状态和展示「已停用的网站」列表，恢复例外要在外层可信宿主再次确认。本站规则更改后需刷新网页，以便更新主框架和子框架过滤。
 
-## 产品定位与第一阶段边界
+工具类型为 optional，可通过正式安装器停用、启用、卸载；没有附带另一套 Service Worker、安装器或工具路由。未安装、未获批准及已停用时不应有本工具的 Chrome 过滤副作用。
 
-参考 [AdGuard Browser Extension](https://github.com/AdguardTeam/AdguardBrowserExtension)、[uBlock Origin Lite](https://github.com/uBlockOrigin/uBOL-home) 和 [Chrome declarativeNetRequest](https://developer.chrome.com/docs/extensions/reference/api/declarativeNetRequest)。第一版只交付常用核心，不复制复杂配置：
+## 离线广告过滤规则和来源
 
-| 阶段 | 能力 | 需要达到的真实产品行为 |
-| --- | --- | --- |
-| **P0** | 全局启停 | 有效关闭所有**本工具**过滤规则；重新开启后安全恢复，状态与真实 DNR 完成回读一致 |
-| **P0** | 当前网站启停 | 仅 HTTP(S) 当前域名例外；不会把关闭本站误解成全局停用；权限不支持时禁用而非假报成功 |
-| **P0** | 例外网站管理 | 增加、查看、恢复域名；重启后保持，卸载时按既有清理协议清除本工具数据 |
-| **P0** | 推荐拦截规则 | 内置、版本固定、审查过的 MV3 DNR 规则（广告及常见跟踪请求）；保守排除主框架请求，避免误拦截整个站点 |
-| **P0** | 实际过滤证明 | 原生 Chrome 网络级阻断、全局开关、例外优先级、浏览器重启、卸载回归；真实请求测试、规则所有权证明、失败处理 |
-| **P1** | 页面元素隐藏 | 网络拦截后残余广告占位的 CSS cosmetic filtering，按站点权限，先验证安全与性能 |
-| **P1** | 临时暂停、选择元素屏蔽、用户规则 | 只有真实 P0 稳定后才进入详细设计 |
-| **P2** | 远端订阅源、复杂规则编辑器、统计图表 | 暂不进入首页；若不能可靠统计网络拦截数，产品不能展示伪精确数字 |
+- 独立第一方人工整理的固定名单，共 **67 个域名**（47 广告投放域名 + 20 跟踪域名），不使用第三方订阅源，也不下载可执行脚本。
+- 源文件 rules/domains.js，规则版本 2026-10-15.1；原始 UTF-8 文件 SHA-256 为 ac9f0766958a06c81e27e0d2cf292a200b6bcec8f50ddf34ce03b49d4da543ec。元信息保存在 rules/manifest.json，许可描述为仓库维护的原创数据编集（未复制受第三方许可约束的过滤规则集）；遵循本仓库原创代码的许可安排。
+- 过滤第三方的 script、image、xmlhttprequest、sub_frame、ping、media 和 other 资源，不拦截正常 main_frame。保守避免主站登录、支付和正常导航被域名黑名单屏蔽。
+- Chrome Manifest V3 唯一过滤引擎为 dynamic DNR。专属 ID 为 741000–741199，block 优先级 1，例外优先级 2；Stay Focus 使用 730000–730199，其重定向优先级高于 20，故本工具例外不得覆盖 Stay Focus 的限制。
+- 例外只匹配精确 HTTP(S) hostname，不会把 example.com.evil.test 误作 example.com；在 Chrome DNR 主框架和子框架上配置 allowAllRequests，以传播到站内第三方资源。最多 100 个例外。
+- 扩展启动和状态变更必须回读 Chrome DNR；已有规则清理仅限 AdBlock ID，不能清空别人的规则。检测到其他工具低优先级动态拦截规则时安全拒绝例外并清理本工具规则，防止覆盖。
+- 首次用户操作明确获批后，才存储固定官方工具包摘要和安装 Epoch。状态及例外使用 opendesk.adblock.state.v1，仅保留规范化域名，不保存 URL、查询参数、浏览历史或模拟计数。
+- 不依赖 Chrome 145 的 topDomains/excludedTopDomains，仓库要求最低 Chrome 138。其能力不等同 AdGuard / uBlock Origin Lite 的全部规则引擎或页面元素隐藏功能。
 
-## 架构实施原则
+## 可信源码和构建
 
-- 业务项目归属 `examples/sidebar-tools/adblock/`；未来正式 UI 为 `tool.config.json + src/index.html + src/style.css + src/main.js`，通过现有 Sidebar Tool packer/安装器发行，不创建另一套 Chrome 扩展或另一个工具安装系统。
-- Sandbox UI **不得直接调用 `chrome.declarativeNetRequest`、`chrome.tabs` 或任意远程代码**。在 Browser SDK 已具备经过审计、按工具身份分配权限的能力时优先复用其正式声明映射。若尚缺可靠 DNR 工具隔离，由已有固定构建入口增加最小可信 Host/Worker 适配层；项目过滤规则、配置和产品模型不散落在宿主通用模块。
-- DNR 规则持有者按工具命名空间清理，并与 `stay-focus` 的 `730000–730199` 完全隔离；全局停用、例外修改、SW 重启、撤权、卸载必须仅影响 AdBlock 自己的规则。DNR 写入须回读验证，拒绝/失败明确告知用户，不得在还未完成时显示“已开启”。
-- 不请求 Cookie、历史记录或用户账号；默认不上传 URL、访问记录或个人数据。官方规则源的版本与许可需固定并核查；不允许动态第三方工具包提权修改浏览器网络规则。
-- 需要静态打包过滤规则时遵守 Chrome MV3/DNR 的规则容量与权限合同；先确认 Manifest 与跨版本配额，不能用远程可执行脚本/全量 `webRequestBlocking` 绕过。
+可信宿主的 AdBlock 固定业务源码位于 trusted/；离线数据位于 rules/；沙箱界面在 src/。既有 SW 和 Side Panel 通过预编译 import 静态链接固定模块，动态安装包不能替换 JS 提权。scripts/bundle-provenance.mjs 将七个审核过的特权 AdBlock 源文件按 Git Blob SHA-1 逐个锁定，源文件变更必须重新做代码审查及更新对应指纹。
 
-## 当前验证及下一步
+构建/测试命令：
 
-- **已验证（原型）：** Headless Chromium 加载并无 JS 异常；点击全局开关、本站开关、添加/恢复例外、受限页面禁用；320/360/420/760/1220px 没有页面横向溢出；深色切换和独立设置页可操作。
-- **未实施：** `tool.config.json`、正式 UI 源码、受信任 Browser SDK/DNR 接入、权限审计、过滤规则内容、真实安装/卸载、Chrome 网络拦截、原生 Mac 验收与 CI。它们全部标记为 `NOT_IMPLEMENTED` / `NOT_TESTED`；**不得把原型的模拟统计与按钮当作已交付的广告拦截功能**。
-- **继续次序：** 先确认交互 → 建立可安装独立工具 → 接入统一 SDK/最小可信 DNR 代理及内置保守规则 → 真机验收全局启停/例外/重启/卸载 → 审计与产品评分。没有真实请求证据前不得评为产品 95+ PASS。
+    npm run build:sidebar-tool -- examples/sidebar-tools/adblock
+    node --test tests/environment/adblock-r12.test.mjs
+    npm run check
+    npm run build
+    npm run build:dev
+    node scripts/verify-package.mjs dist/production
+    npm run verify
+    sha256sum examples/sidebar-tools/adblock/rules/domains.js
+
+正式工具项目版本：1.0.0。独立工具包由现有 build:sidebar-tool 生成到 artifacts/sidebar-tools/adblock/1.0.0/；官方发行包经 Catalog 生成到 dist/production/official-tools/adblock/，不得把构建输出手工写回 examples。用户使用正式发行版，不需要自行下载源码或安装 Node。
+
+## 实际验收边界
+
+测试包括工具包结构、身份防伪、授权撤销、启停、域名规范化、DNR 所有权与跨工具优先级、状态失败回读、并发、浏览器恢复和卸载。**这些自动化测试是工程证据，不是 Mac 原生请求结果。** 原生验收须使用隔离 Profile、Chrome for Testing、真实请求和可信用户输入，并保存 DNR 回读与网络请求两套证据。Mac 未运行时标记 NOT_TESTED，不可虚构 95+ 评分。
+
+保留唯一的 adblock-r1-interactive-preview.html 供交互参考，所有操作明确属于 SIMULATION，不作为真实网络过滤证据。

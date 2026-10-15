@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {resolve} from 'node:path';
+import {readFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
 import {createSidebarToolPackage,encodeSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 import {sidebarToolPackageHash,SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
@@ -96,7 +98,7 @@ test('build-ready official project, current version, one declared restricted cap
   assert.deepEqual(pkg.capabilities,[ADBLOCK_CAPABILITY]);
   assert.ok(pkg.js.includes("adblock.site.restore"));
 });
-test('68-domain offline snapshot compiles to one third-party-only DNR block',()=>{
+test('67-domain offline snapshot compiles to one third-party-only DNR block',()=>{
   const rules=wantedAdblockRules({enabled:true,exceptions:[]});
   assert.equal(rules.length,1);
   assert.equal(rules[0].id,ADBLOCK_RULE_FIRST);
@@ -105,6 +107,14 @@ test('68-domain offline snapshot compiles to one third-party-only DNR block',()=
   assert.ok(rules[0].condition.requestDomains.length>=60);
   assert.equal(rules[0].condition.domainType,'thirdParty');
   assert.ok(!rules[0].condition.resourceTypes.includes('main_frame'));
+});
+test('independent offline rule provenance SHA-256 and version match the bytes',async()=>{
+  const bytes=await readFile(resolve(PROJECT,'rules/domains.js'));
+  const meta=JSON.parse(await readFile(resolve(PROJECT,'rules/manifest.json'),'utf8'));
+  assert.equal(meta.rules.totalUnique,67);
+  assert.equal(meta.version,'2026-10-15.1');
+  assert.equal(createHash('sha256').update(bytes).digest('hex'),meta.sha256);
+  assert.equal(meta.origin.includes('first-party'),true);
 });
 test('hostname normalization refuses path/host confusion and exact example.com.evil.test spoof',()=>{
   assert.equal(adblockHost('https://BÜCHER.example./path',{asUrl:true}),'xn--bcher-kva.example');
