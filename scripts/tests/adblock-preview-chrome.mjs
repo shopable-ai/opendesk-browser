@@ -70,6 +70,7 @@ async function connect(){
     }
   });
   await cdp('Page.enable');await cdp('Runtime.enable');await cdp('Network.enable');
+  await cdp('Page.bringToFront');
   await cdp('Target.setAutoAttach',{autoAttach:true,waitForDebuggerOnStart:false,flatten:true});
 }
 async function evaluate(expression,ctx=null){
@@ -145,10 +146,13 @@ async function click(selector,ctx=null){
       return document.activeElement===button;
     }.toString()+')('+JSON.stringify(selector)+')',ctx);
     assert.equal(focused,true,'sandbox button receives keyboard focus');
+    const topFocus=await evaluate('document.activeElement?.id');
+    console.log('ADBLOCK_KEY_TARGET '+JSON.stringify({topFocus,hasOopSession:!!ctx.session}));
+    // Keyboard input goes to Chrome's focused frame through its top page target.
     await cdp('Input.dispatchKeyEvent',{type:'rawKeyDown',key:'Enter',code:'Enter',
-      windowsVirtualKeyCode:13,nativeVirtualKeyCode:13},ctx.session);
+      windowsVirtualKeyCode:13,nativeVirtualKeyCode:13});
     await cdp('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',
-      windowsVirtualKeyCode:13,nativeVirtualKeyCode:13},ctx.session);
+      windowsVirtualKeyCode:13,nativeVirtualKeyCode:13});
     return;
   }
   const rect=await evaluate('('+function(sel){
