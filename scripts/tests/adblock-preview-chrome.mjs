@@ -141,8 +141,9 @@ async function click(selector,ctx=null){
     const focused=await evaluate('('+function(sel){
       const button=document.querySelector(sel);
       if(!button||button.disabled)throw Error('Missing enabled target '+sel);
-      button.focus();button.click();
-      return document.activeElement===button;
+      button.focus();const receivedFocus=document.activeElement===button;
+      button.click();
+      return receivedFocus;
     }.toString()+')('+JSON.stringify(selector)+')',ctx);
     assert.equal(focused,true,'sandbox button receives focus');
     console.log('ADBLOCK_CHROME_DOM_SIMULATION_NOT_TRUSTED '+selector);
