@@ -34,12 +34,12 @@ Mac 本地工作目录：/Users/shopme/Documents/workspace/opendesk-browser（�
 
 本仓库现有事实（执行前须从最新 main 复核）：
 
-- Side Panel 主体由原生 HTML/JS + \`design-tokens.css\` / \`design-system.css\` / \`tool-shell.css\` 驱动，已有 \`od-*\` 公共视觉类，但不等于拥有完整交互组件框架。
+- Side Panel 主体由原生 HTML/JS + `design-tokens.css` / `design-system.css` / `tool-shell.css` 驱动，已有 `od-*` 公共视觉类，但不等于拥有完整交互组件框架。
 - Native Workspace 已离线编译 Tailwind v4；**Tailwind 是样式工具，不是 Tree、菜单、对话框的完整行为库**。Side Panel 当前不必先迁移 Tailwind。
-- \`examples/sidebar-tools/react-starter/\` 已有 React 19 + Vite → 单个本地 IIFE JS + 静态 CSS → 现有独立工具打包器的路径，无需为了试点重建工具安装框架。
-- \`examples/sidebar-tools/bookmark-manager/\` 是独立 Sidebar Tool。现有 Tree、行菜单、目标文件夹 select 主要靠手写 DOM/事件；用户已指出 Tree 体验差，历史曾发生“可以读取详情，编辑保存失败”的问题。**这两类问题分别审计；换 React 不自动修好 SDK/Host 写入。**
+- `examples/sidebar-tools/react-starter/` 已有 React 19 + Vite → 单个本地 IIFE JS + 静态 CSS → 现有独立工具打包器的路径，无需为了试点重建工具安装框架。
+- `examples/sidebar-tools/bookmark-manager/` 是独立 Sidebar Tool。现有 Tree、行菜单、目标文件夹 select 主要靠手写 DOM/事件；用户已指出 Tree 体验差，历史曾发生“可以读取详情，编辑保存失败”的问题。**这两类问题分别审计；换 React 不自动修好 SDK/Host 写入。**
 - 普通安装工具仍在 opaque-origin iframe 内运行，经现有 SDK/Host 请求能力。React、组件库、CSS 和 Shadow DOM 不能授予新的 Chrome/Native 权限，不得把动态工具 JS 放进受信宿主 DOM。
-- R31 已收敛 \`od-*\` 公共外观；复用其语义 Token，不创建并行设计系统。
+- R31 已收敛 `od-*` 公共外观；复用其语义 Token，不创建并行设计系统。
 - 首版工具 R1 文档已写明容量为可复核预算，具体数值缺乏完整量化推导。既不能恢复为不可变硬门槛，也不能直接改成无限大。
 
 读者不能把“有一个 React Starter”“文档里提过 UI Kit”“网页预览能点击”误写成“React Kit 已正式完成 / 书签真实保存已通过”。
@@ -52,15 +52,15 @@ Mac 本地工作目录：/Users/shopme/Documents/workspace/opendesk-browser（�
 
 先读（GitHub 直连即可，不预设可访问 Mac）：
 
-- \`AGENTS.md\`、\`docs/framework/parallel-development.md\`、\`docs/framework/testing-guide.md\`
-- \`docs/architecture/browser-ui-r23.zh-CN.md\`（现行平台及容量决策）
-- \`docs/framework/workstreams/ui-platform-r32-20261015.md\`（已完成及未测）
-- \`.agents/skills/opendesk-ui-preview/SKILL.md\`
-- \`.agents/skills/opendesk-sidebar-tool-dev/SKILL.md\`
-- \`.agents/skills/opendesk-sidebar-tool-package/SKILL.md\`
-- \`examples/sidebar-tools/bookmark-manager/src/{index.html,main.js,style.css,model.js,service.js}\`、\`tool.config.json\`
-- \`examples/sidebar-tools/react-starter/{package.json,vite.config.mjs,tool.config.json}\`
-- \`src/ui/design-{tokens,system}.css\`、\`src/ui/sidebar-tools/package.js\`、\`scripts/build-sidebar-tool.mjs\`
+- `AGENTS.md`、`docs/framework/parallel-development.md`、`docs/framework/testing-guide.md`
+- `docs/architecture/browser-ui-r23.zh-CN.md`（现行平台及容量决策）
+- `docs/framework/workstreams/ui-platform-r32-20261015.md`（已完成及未测）
+- `.agents/skills/opendesk-ui-preview/SKILL.md`
+- `.agents/skills/opendesk-sidebar-tool-dev/SKILL.md`
+- `.agents/skills/opendesk-sidebar-tool-package/SKILL.md`
+- `examples/sidebar-tools/bookmark-manager/src/{index.html,main.js,style.css,model.js,service.js}`、`tool.config.json`
+- `examples/sidebar-tools/react-starter/{package.json,vite.config.mjs,tool.config.json}`
+- `src/ui/design-{tokens,system}.css`、`src/ui/sidebar-tools/package.js`、`scripts/build-sidebar-tool.mjs`
 
 必要时再扩展到现有预览器、安装器、测试，勿以全仓研究拖延用户预览。
 
@@ -96,7 +96,7 @@ Mac 本地工作目录：/Users/shopme/Documents/workspace/opendesk-browser（�
 首先解释：技术框架不是为了追求流行，而是解决多处独立工具手工构造 DOM、状态、ARIA、Focus 导致的重复开发和不稳定交互。
 
 最小真实候选必须比较：
-1. 保留 HTML/JS + \`od-*\` + 有界公共行为层。
+1. 保留 HTML/JS + `od-*` + 有界公共行为层。
 2. React + React Aria Components。
 3. React + Radix + 实际 Tree 实现（不能只装 Radix 就声称具备 Tree）。
 
@@ -115,14 +115,14 @@ Mac 本地工作目录：/Users/shopme/Documents/workspace/opendesk-browser（�
 
 ### P1 / Phase 3：最小平台 UI Kit 与可复用开发路径
 
-先复用已有 Design Tokens、公共非特权视觉提取、React Starter、\`opendesk-ui-preview\` 和工具打包器，不发明第二个安装包格式、SDK、Host、设计系统或主题表。
+先复用已有 Design Tokens、公共非特权视觉提取、React Starter、`opendesk-ui-preview` 和工具打包器，不发明第二个安装包格式、SDK、Host、设计系统或主题表。
 
 为确定的复杂工具路线设计或在具备执行条件时实现**第一批 3 个公共组件**：
 - Tree（含键盘、焦点、只读、层级及可扩展性）；
 - Select/Combobox（文件夹/项目选择、搜索与表单校验）；
 - Dropdown Menu（可发现、ESC、焦点恢复、危险操作）。
 
-明确职责：\`UI Core\` 为轻量原生工具，\`UI React\` 为编译期按需引入的复杂交互组件；\`Templates / Skill / Preview\` 让 AI 直接使用组件而不是每次重写。以上是逻辑分层，具体源码位置先审计现有目录再决定，不创建多个空壳 npm 包。
+明确职责：`UI Core` 为轻量原生工具，`UI React` 为编译期按需引入的复杂交互组件；`Templates / Skill / Preview` 让 AI 直接使用组件而不是每次重写。以上是逻辑分层，具体源码位置先审计现有目录再决定，不创建多个空壳 npm 包。
 
 要求给出**至少一个 AI 能复制使用的最小工具代码示例**，说明组件 API、主题映射、事件/业务 SDK 分离和构建/安装入口。不得把未实现的 API 写成已经发布的正式 SDK。各工具只打包实际引用的控件，不能因平台包含组件目录就让所有工具初始加载全部库。
 
@@ -136,7 +136,7 @@ Mac 本地工作目录：/Users/shopme/Documents/workspace/opendesk-browser（�
 
 **容量决策包含三种合法结果**：保留旧预算；有实证地提高/拆分预算；或采用经过安全论证的固定资源复用。不要拍新的任意大数，也不要为多几 KB 引入一个第二套复杂运行时。
 
-本次已授权原则上可以调整内部工具包容量，但**实施时必须覆盖整个消费链**：源读取 → 预编译 → 打包/JSON → 导入 → Host → 消息/存储 → Sandbox Bridge → 更新/恢复 → 验证。不能只改一个 \`MAX_PACKAGE_BYTES\`，导致打包成功而运行失败。保留固定哈希、真实身份、CSP、能力许可、有限资源保护、旧包兼容和边界拒绝；预算变化不自动意味着用户授权调整所有存储配额或安装数量。
+本次已授权原则上可以调整内部工具包容量，但**实施时必须覆盖整个消费链**：源读取 → 预编译 → 打包/JSON → 导入 → Host → 消息/存储 → Sandbox Bridge → 更新/恢复 → 验证。不能只改一个 `MAX_PACKAGE_BYTES`，导致打包成功而运行失败。保留固定哈希、真实身份、CSP、能力许可、有限资源保护、旧包兼容和边界拒绝；预算变化不自动意味着用户授权调整所有存储配额或安装数量。
 
 若缺乏有效构建/测试环境，本轮先保存容量调整设计和实测缺口，不在黑箱环境中盲改安全相关校验。
 
@@ -144,18 +144,18 @@ Mac 本地工作目录：/Users/shopme/Documents/workspace/opendesk-browser（�
 
 ### P1 / Phase 5：小范围源码实施、回归与文档同步
 
-优先在 \`examples/sidebar-tools/bookmark-manager/\` 改良组件 UI，而不是先迁移宿主 \`tool.html\` 五 Tab；业务模型/Service/SDK/权限继续使用现有路径。若需要对工具包容量进行源码修改，应先列明测试范围及全链所有权，并遵循并行开发协议。
+优先在 `examples/sidebar-tools/bookmark-manager/` 改良组件 UI，而不是先迁移宿主 `tool.html` 五 Tab；业务模型/Service/SDK/权限继续使用现有路径。若需要对工具包容量进行源码修改，应先列明测试范围及全链所有权，并遵循并行开发协议。
 
-先跑 Tree/表单/包验证的必要定向测试，再按修改范围执行 \`npm run check\`、\`npm run build:sidebar-tool\` 和相关构建；现有 \`npm run dev\` watcher 负责 \`dist/development\`，不能覆盖并行资源。无本地 Chrome 权限时真实安装/读写、500+ 数据、键盘、Zoom、撤权、重启一律 NOT_TESTED，不能借静态截图冒充原生验收。
+先跑 Tree/表单/包验证的必要定向测试，再按修改范围执行 `npm run check`、`npm run build:sidebar-tool` 和相关构建；现有 `npm run dev` watcher 负责 `dist/development`，不能覆盖并行资源。无本地 Chrome 权限时真实安装/读写、500+ 数据、键盘、Zoom、撤权、重启一律 NOT_TESTED，不能借静态截图冒充原生验收。
 
 **每完成一个阶段，就立即在现有权威文件保存结论**：
-- \`docs/architecture/browser-ui-r23.zh-CN.md\`：React/组件分层、技术选择、容量政策和架构理由。
-- \`docs/framework/workstreams/ui-platform-r32-20261015.md\`：执行状态、原始证据、失败、未测、SHA、下一步。
-- \`.agents/skills/opendesk-ui-preview/SKILL.md\` 和 \`.agents/skills/opendesk-sidebar-tool-package/SKILL.md\`：当预览/打包合同真正变化时同步。
+- `docs/architecture/browser-ui-r23.zh-CN.md`：React/组件分层、技术选择、容量政策和架构理由。
+- `docs/framework/workstreams/ui-platform-r32-20261015.md`：执行状态、原始证据、失败、未测、SHA、下一步。
+- `.agents/skills/opendesk-ui-preview/SKILL.md` 和 `.agents/skills/opendesk-sidebar-tool-package/SKILL.md`：当预览/打包合同真正变化时同步。
 - 现有工具开发/API 文档：只有实际公开用法与源码改变时同步。
 - 本 GOAL：执行步骤确需修订时原位更新，避免新建互相竞争的总 GOAL。
 
-保存公开可审阅的理由，不要求恢复旧 AI 的内部推理。文档和源码的 \`SOURCE_WIRED / NODE_PASS / BUILD_PASS / STATIC_CHROME_PASS / NATIVE_PASS / NOT_TESTED\` 必须严格区分。对已验证且输入不变的结果允许复用；未测留空而不是填 95 分。
+保存公开可审阅的理由，不要求恢复旧 AI 的内部推理。文档和源码的 `SOURCE_WIRED / NODE_PASS / BUILD_PASS / STATIC_CHROME_PASS / NATIVE_PASS / NOT_TESTED` 必须严格区分。对已验证且输入不变的结果允许复用；未测留空而不是填 95 分。
 
 ---
 
