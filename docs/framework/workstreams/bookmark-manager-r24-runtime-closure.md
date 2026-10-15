@@ -191,3 +191,9 @@ npm run verify
 **Git 与产物**：本轮生产文件新增/删除/净变更均为 **0**；测试代码改动 **1 文件**；本轮新增一份可机读失败回执到既有 R2.4 evidence 目录、在本工作流追加上述状态。GitHub 真实源码提交 `c8d52ef4`，证据提交与其分开保存；本会话没有用户 Mac 的 Chrome 版本、Profile、扩展 ID、加载目录、0.3.4 包 SHA、installEpoch 或同候选打包指纹，全部保留 `NOT_TESTED`/空值，不使用历史包身份填充。
 
 **下一个可执行断点**：先由 Cookie Editor、阅读套装/Quick Notes、AdBlock 对应负责范围解决真实构建/组件断言；在稳定的最新 `main` 上仅补受影响 CI。然后使用未被其他 watcher 占用的隔离输出和真实 Mac CFT，按 `AGENTS.md`、`testing-guide.md` 冻结候选并通过正式扩展中心审阅 0.3.4；先验证拒绝/允许/2159 树和实际文件夹/书签 CRUD，再进入其余 12 方法、安全与生命周期。**实际打包命令**是 `npm run build:sidebar-tool -- examples/sidebar-tools/bookmark-manager`，从 `tool.config.json` 读取版本定位产物，不再使用上文历史固定的 0.3.1 路径；`build:dev` 必须先核对 watcher 所拥有的输出，不擅自覆盖。全阶段通过后方可决定关闭 Issue #75。
+
+### 并行提交后复核：更新输入而非重写历史 PASS
+
+本轮证据提交前后，其他任务的 `2cbfbb454ce111e0b0ada487611e48602946e63f` 继续修改了同一市场原生驱动的末尾**键盘/焦点**场景，将仍指向隐藏 Discover 控件的旧断言迁移到 R4 正式列表。最新读取 `tests/framework/app-market-r3-native.test.mjs` blob 为 `3e0a00adaef2c1435fda70870f026cbb083e096f`；我方 `c8d52ef4` 的 blob `a378b976...` 是它的历史父输入，**不是当前完整脚本的通过身份**。后续原生测试请对更新后的完整脚本重新执行，且该共享文件新增代码由相应原生测试工作负责人维护，不以旧版本覆盖。
+
+同期统一 SDK 新增独立工具 `browser.storage.local.keys/getQuota` 合同，`src/framework/sdk/browser-contract.js` blob `b2f202ba47da655b99064ec7aebab19846c99f7b`、`src/framework/sdk/browser-schemas.js` blob `f9f64da8d86eb83a83b0b15ab9dbe1752c042caf` 已改变，另有 `src/ui/sidebar-tools/storage-state.js` 的通用受控存储实现改动。即使不改变书签 Full Driver，也必须将最终 Browser 构建输入标为 **AFFECTED_INPUTS**，不能沿用 `c8d52ef4` 的完整包/Native 身份。核查时 `main=``7a29f545fc78f46fd35cb8ce266645e3b5030c05`；相关组件/Native 尚未在此 SHA 上取得 PASS。证据档案仅作为各自历史候选的原始收据。
