@@ -598,7 +598,11 @@ function onAction(action,id){
   }
 }
 root.addEventListener('keydown',event=>{
-  if(event.key==='Escape'&&s.pending){event.preventDefault();s.pending=null;q('bm-draft-guard').hidden=true;return}
+  if(event.key==='Escape'&&s.pending){
+    event.preventDefault();s.pending=null;q('bm-draft-guard').hidden=true;
+    (s.mode==='move'?q('bm-folder-query'):q('bm-name')).focus({preventScroll:true});
+    return;
+  }
   if(event.key==='Escape'&&s.mode!=='tree'){event.preventDefault();cancel();return}
   if(event.key==='F2'&&s.mode==='tree'&&s.selection&&!node(s.selection)?.locked){
     event.preventDefault();onAction('edit',s.selection);return
