@@ -133,15 +133,15 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: R5.2 durable redemption recovery, member UI and trusted STOP
         run: node --test tests/environment/ai-vip-share-r5-ui.test.mjs tests/environment/ai-vip-share-r51-member.test.mjs
-      - name: Package exact v1.2.0 AI VIP Share official tool
+      - name: Package exact v1.3.0 AI VIP Share official tool
         run: |
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ai-vip-share --out artifacts/sidebar-tools/ai-vip-share/1.2.0/ai-vip-share.opendesk-tool.json
-          node --input-type=module -e "import {readFileSync} from 'node:fs';const p=JSON.parse(readFileSync('artifacts/sidebar-tools/ai-vip-share/1.2.0/ai-vip-share.opendesk-tool.json','utf8'));if(p.id!=='ai-vip-share'||p.version!=='1.2.0'||!p.css.includes('opendesk.shared-design.v1'))throw Error('AI VIP R5 official design/package identity invalid');console.log('AI_VIP_SHARE_R5_TOOL_PACKAGE_PASS')"
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ai-vip-share --out artifacts/sidebar-tools/ai-vip-share/1.3.0/ai-vip-share.opendesk-tool.json
+          node --input-type=module -e "import {readFileSync} from 'node:fs';const p=JSON.parse(readFileSync('artifacts/sidebar-tools/ai-vip-share/1.3.0/ai-vip-share.opendesk-tool.json','utf8'));if(p.id!=='ai-vip-share'||p.version!=='1.3.0'||!p.css.includes('opendesk.shared-design.v1'))throw Error('AI VIP R5 official design/package identity invalid');console.log('AI_VIP_SHARE_R5_TOOL_PACKAGE_PASS')"
       - name: R5 source validation
         run: npm run check
       - name: R5 production and development Browser candidates
         run: |
           npm run build
-          cmp artifacts/sidebar-tools/ai-vip-share/1.2.0/ai-vip-share.opendesk-tool.json dist/production/official-tools/ai-vip-share/ai-vip-share.opendesk-tool.json
+          cmp artifacts/sidebar-tools/ai-vip-share/1.3.0/ai-vip-share.opendesk-tool.json dist/production/official-tools/ai-vip-share/ai-vip-share.opendesk-tool.json
           npm run build:dev
           npm run verify
