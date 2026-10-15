@@ -15,7 +15,7 @@
 | Chrome MV3/WXT SW、Content、MAIN、Controller/Page、Native 的权限/SDK/生命周期 | [`opendesk-extension-runtime`](opendesk-extension-runtime/SKILL.md) | 不创建第二 Host/Authority，不接管 UI-only 改动 |
 | **ChatGPT 同规范 HTML 原型、正式源码同源离线预览、来源锁与模拟场景** | [`opendesk-ui-preview`](opendesk-ui-preview/SKILL.md) | 设计稿与真实工具预览分级；不替代原有打包器、SDK 或原生验收 |
 
-**安装包归档默认规则（2026-10-15）：** 对需要交付并实际安装验收的 Sidebar Tool，只由上表的 Sidebar Tool 打包主 Skill 负责“忽略目录临时打包→测试→验证候选→显式晋升工具根目录唯一 `<id>.opendesk-tool.json`→同源码提交”。`opendesk-sidebar-tool-dev` 和自然语言创建工作流仅调用它，不自己造第二个打包器；不为每次迭代保存 R/日期后缀安装包。具体命令与真实安装证据分级见 [打包 Skill](opendesk-sidebar-tool-package/SKILL.md)。
+**安装包归档默认规则（2026-10-15）：** 对需要交付并实际安装验收的 Sidebar Tool，只由上表的 Sidebar Tool 打包主 Skill 负责“忽略目录临时打包→测试→验证候选→显式晋升工具根目录唯一 `<id>.opendesk-tool.json`→同源码提交”。`opendesk-sidebar-tool-dev` 和自然语言创建工作流仅调用它，不自己造第二个打包器；不为每次迭代保存 R/日期后缀安装包。具体命令与真实安装证据分级见上表中唯一的 Sidebar Tool 打包 Skill。
 
 ## 典型需求：每条仅一个主 Skill
 
