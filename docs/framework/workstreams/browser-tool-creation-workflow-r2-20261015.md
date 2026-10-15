@@ -163,3 +163,70 @@ F-BM-000 书签管理
 - **只增加上游路由文字**：`.agents/skills/README.md` [`1ebebf44`](https://github.com/shopable-ai/opendesk-browser/commit/1ebebf44406caeec3698f05ac143aa6d3c2c7a4e)；`.agents/skills/opendesk-sidebar-tool-dev/SKILL.md` [`09b37872`](https://github.com/shopable-ai/opendesk-browser/commit/09b37872bd03b5909296fd193ba6650b667e378d)。未增加第九个 Skill、Runner、产品发布入口或 Runtime 代码。
 - **最后一次远端回读**：上述四文件可读，R2 内容和引用均存在，Markdown 转义缺陷清除；当时 `main@8ee6c2c3999de7a68bb9f8e80ea242a9bf60c9bf` 已包含本次最后 Skill 提交，并已被其他独立提交正常快进。新对话重新取 HEAD/各 blob，而不把这个 HEAD 写成永久冻结。
 - **完成边界**：`DOC_INCREMENT_COMMITTED` / `THREE_CASE_DESK_REVIEWED` / `STATIC_TRACE_PASS`；真实重复 AI 推理、现有 Skill 自动调用成功率、HTML 交互、Mac Chrome 产品验收 **NOT_TESTED**；工作流一键安装 **NOT_IMPLEMENTED**。下一轮先 Case A 原样复现，不能借此声明产品 ≥95。
+
+
+## R2.1 Quick Notes 同源执行链（唯一低风险样板，新增可验证追踪）
+
+**产品目标原句**：「我想在浏览器侧栏随手记点东西。」此任务已有独立实现 `examples/sidebar-tools/quick-notes/`，不复制新的 Quick Notes 工具。Source `tool.config.json` 的正式 ID 是 `quick-notes`，当前版本 **1.1.9**；README 仍有 1.1.8 历史引用，不能用它作为包身份。权限来自现有配置的 `storage.local/currentPage.read/tasks.open`；不申请远程同步、网站 DOM 或静默安装。
+
+**以下是从第 1 案例 F/S/A 到真正文件的静态源码追踪表（不是新 Registry）。** UI 列为 `src/index.html` 的 ID，CODE 列为 `src/main.js` 的实际标识符，TEST 列为 `tests/environment/sidebar-quick-notes.test.mjs` 的已存在测试标题。此映射只证明能找到对应测试、未改变现有笔记行为；真正 PASS 必须再执行测试，数据/权限与 Chrome 另计。
+
+| F-ID | S-ID | A-ID | UI（同源 HTML ID） | CODE（实际 JS 标识） | TEST（现有 Node 用例标题） |
+| --- | --- | --- | --- | --- | --- |
+| F-QN-001 | S-QN-001 | A-QN-001 | note-count,note-list | renderList | offline mode restores R1 note, preserves content on upgrade, and supports multiple notes |
+| F-QN-002 | S-QN-002 | A-QN-002 | note-text,save-note,note-status | saveNote | Cmd+S saves after focus moves from the editor to another tool control |
+| F-QN-003 | S-QN-003 | A-QN-003 | note-list,add-note,note-confirm | confirmDiscard | sandbox inline confirmation cancels and accepts dirty navigation without native modal APIs |
+| F-QN-004 | S-QN-004 | A-QN-004 | delete-note,note-confirm-cancel,note-confirm-accept | deleteConfirmed | inline delete cancellation has no write and explicit acceptance removes migrated note |
+| F-QN-005 | S-QN-005 | A-QN-005 | note-text,note-status | notesEtag | R18.1 two panels reject stale whole-array writes while keeping the losing draft |
+| F-QN-006 | S-QN-006 | A-QN-006 | note-text,note-count | restore | offline mode restores R1 note, preserves content on upgrade, and supports multiple notes |
+| F-QN-007 | S-QN-007 | A-QN-007 | attach-page,page-summary | refreshPage | HTTP page metadata is opt-in and never requires network for offline save |
+
+**实际同源预览路线，不能用模拟执行冒充安装：**
+
+```text
+用户一句话 → R2 Phase 0–3 / Gate A（本 R2 案例推理与追踪）
+→ 已有 quick-notes 的真实 index.html / main.js / style.css
+→ scripts/build-sidebar-tool.mjs（原 JSON 包，稳定 tool ID）
+→ scripts/preview/build-preview.mjs（同包 UI，仅替换安全 Mock SDK）
+→ tests/environment/sidebar-quick-notes.test.mjs（保存/删除/并发/恢复 Node）
+→ scripts/preview/check-preview-contract.mjs（包/Token/Source 新鲜度锁）
+→ scripts/tests/sidebar-preview-runtime-chrome.mjs（离线 Chrome 模拟 HTML 与异常）
+→ 真正安装扩展并确认安装 Quick Notes → 真机输入/保存/重开/升级/撤权读回
+```
+
+**运行的唯一现有 CI**：`.github/workflows/sidebar-preview-contract.yml`。它在 GitHub runner 上构建正式工具 JSON、生成 source-bound HTML、运行 Node 与 headless Chrome **离线 Mock**，这不授予真实 Chrome Extension、storage 或原生用户授权。未拿到本 R2.1 对应真实日志前这些步骤仍标 `CI_PENDING`。Mac 固定 `dist/development` 或正式候选 Profile **没有在本会话安装**。
+
+**原生最后一段最小用户验收**（必须在可用 Mac Chrome、受控正式候选中执行，不盲用现有日常 Profile）：
+
+1. 核对 `main` SHA、扩展实际加载路径/ID、`quick-notes` 包版本和 Hash；通过已有「扩展 → 导入/安装 → 审阅权限 → 确认安装 → 主动打开」完成实际授权，不得直接改 storage 伪装安装。
+2. 新建「中文🙂两行笔记」→ 保存 → 退出工具→重开→读回完全一致；两窗口分别改同一条，验证旧 ETag 拒绝并保留败方草稿；错误/配额状态须可恢复。
+3. 选择删除→取消应仍在；再次确认删除后必须真正重开仍无该笔记；未经确认不触发。
+4. 使用旧格式 `note` 的**独立测试数据**演示升级到 `notes` 并验证旧数据未丢；版本更新要通过原安装器审阅而非卸载重装；安装失败/效果未知先查真实安装版本/包 Hash 和数据，禁止盲重试。
+5. 检查停用/撤权/卸载的界面与数据效果，记录 Chrome 版本、Profile、扩展 ID、包 Hash、动作、原始结果、失败/截图及具体 A-ID。是否需要真实网页信息与 Tasks 是已有可选能力，不能被新一句话推定为 P0。
+
+**最小状态投影（文档断点，不是运行时状态机）**：`需求/场景/功能树=DESK_REVIEWED`；`UI/正式源码=SOURCE_VERIFIED`；`Mock/Node/构建/离线 Chrome=CI_PENDING`（请以本轮相关 Actions 复核）；`安装/升级及用户数据读回=NOT_TESTED`；`自动调 Skill 完整交付=NOT_IMPLEMENTED`。
+
+## R2.1 可测增量差异、对照实验与所有权
+
+### 定向需求变化示例
+
+- Prompt Shortcuts：「从输入框旁改为主内容左边缘」已经符合历史 R1.2 决策 → 先按最新两份原型与目标源码读回，当前只需确认 `F-PS-004 / S-PS-004 / A-PS-004`，不改两开关、`storage`、选区右键或 Host。若真实可信网页模块尚不存在，记 `CODE_NOT_IMPLEMENTED` 而非编造文件名。
+- Quick Notes：「在刚才的笔记增加搜索」 → 候选为已有 `notes` 的本地只读过滤。先确认是否搜索标题/正文、列表范围、空结果；影响 `F-QN-001/003` 的列表操作、新的 A-ID、同源 HTML 及相应 Node/预览测试；默认不新建 Tool ID、不加权限或云端、**不迁移旧数据**。若采用持久搜索索引/新 schema，才重新分析迁移并再次确认。
+
+### 有证据才报告效率提升
+
+`scripts/agent-skills-r22-eval.mjs --mode reasoning` 在原 Codex 只读评测入口提供六个短句（简单/复杂/模糊/冲突/危险）× base/guided 共 **12 次候选独立推理会话**。模型实际调用会使用用户本地已登录账户，输出私有 JSONL。评测中关键词覆盖是人工语义审阅的提示项，**不是正确率 PASS**；至少检查不完整输入补齐能力、重大错误、用户确认状态、最新源码、禁自动删除/发送、零新权限与 P0 覆盖。Base 只是未显式要求阅读 R2；若模型主动读规范，应记录此污染，不能制造不公平对照。
+
+此会话**未在用户 Mac 运行 12 次模型**，所以目前没有 base/guided 的实际耗时、追加问答、返工次数或效率百分比。只能记录真实开发所需修改/测试文件数，不能以 23/23 静态功能追踪冒充模型语义正确率。
+
+### 文档/Skill/执行归属核对
+
+| 唯一 Owner | 保存内容 | 本 R2.1 实际操作 |
+| --- | --- | --- |
+| `docs/framework/browser-tool-creation-workflow.zh-CN.md` | 唯一通用阶段、推理、状态投影、恢复、变更、升级合同 | 更新 |
+| **本 workstream 文件** | 三案例对照、Quick Notes 映射、真实测试/阻塞/提交断点 | 更新 |
+| `.agents/skills/README.md`、各现有 SKILL | 主 Skill 路由、自己职责的进入/退出；不复制十阶段全文 | 复用，不新建 |
+| `examples/sidebar-tools/<id>/README` 或唯一正式需求 | 单一工具的用户决定、功能/场景/验收及数据边界 | **本轮对并行工具只读**；演练映射暂存在本 workstream，正式迭代再经其 owner 回写 |
+| `prototypes/sidebar/` / `scripts/preview/` | 可交互 HTML 源、共享预览、Mock 与同包来源 | 复用既有工具；不创建重复 Quick Notes 原型 |
+| `examples/sidebar-tools/<id>/src/` / `tests/environment/` | 正式代码及真实测试 | 工具业务源码不改；仅在本轮范围内增量测试评测合同 |
+| `src/framework/workflow/` / `src/platform/tasks/` | 受限网页自动化/Task 与 RunHost Authority | **不改**；不得把它冒充扩展源码自动生成入口 |
