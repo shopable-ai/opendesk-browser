@@ -1,0 +1,70 @@
+name: Bookmark Manager R2.9 Preview-only Chromium
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'examples/sidebar-tools/bookmark-manager/preview/**'
+      - '.github/workflows/bookmark-manager-r29-preview.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  r29-preview-chrome:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check saved iframe JS and preview security contract
+        run: |
+          node --check examples/sidebar-tools/bookmark-manager/preview/r29-chrome.mjs
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile} from 'node:fs/promises';
+          import {Script} from 'node:vm';
+          const source=await readFile('examples/sidebar-tools/bookmark-manager/preview/index.html','utf8');
+          const iframeBytes=source.match(/atob\('([A-Za-z0-9+/=]+)'\)/)?.[1];
+          assert.ok(iframeBytes);
+          const html=Buffer.from(iframeBytes,'base64').toString('utf8');
+          const scripts=[...html.matchAll(/src="data:text\/javascript;base64,([A-Za-z0-9+/=]+)"/g)];
+          assert.equal(scripts.length,4);
+          for(const [i,s] of scripts.entries()){
+            new Script(Buffer.from(s[1],'base64').toString('utf8'),{filename:'bookmark-r29-'+i+'.js'});
+          }
+          const js=Buffer.from(scripts[3][1],'base64').toString('utf8');
+          assert.match(js,/s\.listSignature===signature/);
+          assert.doesNotMatch(js,/frag\.append\(pane\)/);
+          assert.match(html,/bookmark-r29-design-prototype/);
+          assert.match(html,/已选择 · 只读详情/);
+          assert.match(source,/sandbox="allow-scripts"/);
+          assert.doesNotMatch(source,/sandbox="[^"]*allow-same-origin/);
+          const manifest=JSON.parse(source.match(/id="opendesk-preview-manifest">([^<]+)<\/script>/)[1]);
+          assert.equal(manifest.designStatus,'DESIGN_PROTOTYPE_NOT_SOURCE_BOUND');
+          assert.equal(manifest.sourceBound,false);
+          assert.equal(manifest.nativeVerified,false);
+          assert.equal(JSON.parse(await readFile('examples/sidebar-tools/bookmark-manager/tool.config.json','utf8')).version,'0.3.8');
+          console.log('R29_PREVIEW_JS_AND_SANDBOX_STATIC_PASS');
+          NODE
+      - name: Install CJK fonts for screenshots
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+      - name: Open exact R2.9 preview in real Headless Chrome (MOCK, not Native)
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: node examples/sidebar-tools/bookmark-manager/preview/r29-chrome.mjs artifacts/preview-chrome-r29
+      - name: Upload exact prototype and actual Chrome screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bookmark-manager-r29-chromium-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            examples/sidebar-tools/bookmark-manager/preview/index.html
+            artifacts/preview-chrome-r29/bookmark-r29-*.png
+            artifacts/preview-chrome-r29/bookmark-r29-interaction.json
