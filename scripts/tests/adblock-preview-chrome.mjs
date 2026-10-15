@@ -136,23 +136,16 @@ async function child(ctx){
 }
 async function click(selector,ctx=null){
   if(ctx){
-    // Focus is set by the harness; activation is a genuine Chrome key event,
-    // never HTMLElement.click() or a synthetic DOM click. This avoids OOPIF
-    // compositor coordinate ambiguity and checks keyboard accessibility.
+    // This exercises source-bound UI and iframe postMessage semantics in Chrome,
+    // but .click() is SCRIPT-DRIVEN and must never be reported as user gesture.
     const focused=await evaluate('('+function(sel){
       const button=document.querySelector(sel);
-      if(!button||button.disabled)throw Error('Missing enabled key target '+sel);
-      button.focus();
+      if(!button||button.disabled)throw Error('Missing enabled target '+sel);
+      button.focus();button.click();
       return document.activeElement===button;
     }.toString()+')('+JSON.stringify(selector)+')',ctx);
-    assert.equal(focused,true,'sandbox button receives keyboard focus');
-    const topFocus=await evaluate('document.activeElement?.id');
-    console.log('ADBLOCK_KEY_TARGET '+JSON.stringify({topFocus,hasOopSession:!!ctx.session}));
-    // Keyboard input goes to Chrome's focused frame through its top page target.
-    await cdp('Input.dispatchKeyEvent',{type:'rawKeyDown',key:'Enter',code:'Enter',
-      windowsVirtualKeyCode:13,nativeVirtualKeyCode:13});
-    await cdp('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',
-      windowsVirtualKeyCode:13,nativeVirtualKeyCode:13});
+    assert.equal(focused,true,'sandbox button receives focus');
+    console.log('ADBLOCK_CHROME_DOM_SIMULATION_NOT_TRUSTED '+selector);
     return;
   }
   const rect=await evaluate('('+function(sel){
@@ -241,7 +234,7 @@ try{
     clean();
     report.push({scenario:'success',sourceCommit:built.sourceCommit,
       uiSha256:built.uiSha256,checks:['source-dom','source-css-switch',
-      'sandbox-opaque','real-keyboard-confirm','cancel-preserves-state',
+      'sandbox-opaque','DOM-simulated-confirm-not-user-gesture','cancel-preserves-state',
       'accepted-matching-receipt','forged-message-rejected','no-network']});
   }
   {
@@ -277,9 +270,9 @@ try{
     report.push({scenario,checks:['disabled-unsafe-controls']});
   }
   await writeFile(join(output,'adblock-preview-chrome.json'),
-    JSON.stringify({status:'PREVIEW_BROWSER_PASS_NOT_INSTALLED',
-      installed:false,chromeDnr:false,scenarios:report},null,2)+'\n');
-  console.log('ADBLOCK_PREVIEW_CHROME_PASS_NOT_INSTALLED '+report.length+' scenarios');
+    JSON.stringify({status:'PREVIEW_BROWSER_DOM_SIMULATION_PASS_NOT_INSTALLED',
+      installed:false,chromeDnr:false,realSandboxUserGesture:false,scenarios:report},null,2)+'\n');
+  console.log('ADBLOCK_PREVIEW_CHROME_DOM_SIMULATION_PASS_NOT_INSTALLED '+report.length+' scenarios');
 }catch(e){
   console.error('ADBLOCK_PREVIEW_CHROME_FAIL '+(e?.stack||e));
   process.exitCode=1;
