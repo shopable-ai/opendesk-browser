@@ -1,6 +1,6 @@
 # OpenDesk Browser SDK 唯一冻结执行手册（2026-10-13）
 
-> **当前代码基线（2026-10-15，按 GitHub main 的生成目录核查）**：获批准合同 **72 项**，其中**公开 SDK Registry/Facade 70 项、可信 Host-only 2 项**；公开接口的编译分类 **DIRECT 3 / SCOPED 49 / CUSTOM 18**。这里的 CUSTOM 同时归并部分 EXISTING_SERVICE 和 COMPOSED，不代表 18 个可直接透传的 Chrome API。以上是**源码登记与绑定数**，不是 70 项真实 Chrome 验收通过。历史 114 个候选名称中尚有 **91 个待后续分类处理**，它们不是已经获批的接口。R11.5 架构状态 **PARTIAL**；独立证据和构建阻塞见 [R11.5 工作记录](../framework/workstreams/browser-sdk-r115-architecture-proof-20261015.md)。
+> **当前代码基线（2026-10-15，按 GitHub main 的生成目录核查）**：获批准合同 **72 项**，其中**公开 SDK Registry/Facade 70 项、可信 Host-only 2 项**；公开接口的编译分类 **DIRECT 3 / SCOPED 49 / CUSTOM 18**。这里的 CUSTOM 同时归并部分 EXISTING_SERVICE 和 COMPOSED，不代表 18 个可直接透传的 Chrome API。以上是**源码登记与绑定数**，不是 70 项真实 Chrome 验收通过。历史 114 个候选名称中尚有 **91 个待后续分类处理**，它们不是已经获批的接口。R11.6 架构状态 **PARTIAL（Node 已通过；Build 与 Native 未完成）**；R11.5 历史证据仍见 [R11.5 工作记录](../framework/workstreams/browser-sdk-r115-architecture-proof-20261015.md)。
 
 > **历史 R10.6 快照（2026-10-14；非当前数量）**：55 项批准合同 = 53 项公开 Registry + 2 项可信 Host-only；SOURCE_WIRED 与 Node / Build / Native 分开登记。此前 R5–R10.5 数字保留为历史，不代表当前接口数量或真实 Chrome 验收。当前证据见 [R10.6 工作流](../framework/workstreams/browser-sdk-r106-20261014.md)。
 
@@ -48,15 +48,16 @@
       └─ approvedOperations：唯一已批准的 OpenDesk 接口合同
           （权限、世界、Scope、手势、效果、SDK 差异）
   → scripts/generate-browser-bindings.mjs（现有唯一编译入口）
-      ├─ src/framework/sdk/browser-direct.generated.js（仅限批准的 DIRECT）
+      ├─ src/framework/sdk/browser-direct.generated.js（批准的 DIRECT 固定原生调用）
+      ├─ src/framework/sdk/browser-services.generated.js（批准的 TRUSTED_SERVICE 有限元数据）
       ├─ docs/api/browser-sdk-binding-catalog.generated.json（只读编译目录）
       ├─ src/framework/sdk/browser-contract.js + browser-schemas.js
-      │   （Registry/Schema 消费结果；非 DIRECT 尚有手写项）
+      │   （由同一批准矩阵派生 Registry/Schema；特殊操作保留人工安全审计）
       └─ scripts/browser-sdk-developer.mjs
-          → browser-sdk.developer.generated.d.ts / .md（生成能力已测试，文件未正式提交）
+          → browser-sdk.developer.generated.d.ts / .md（正式提交；持续字节级漂移检查）
 ```
 
-**链路 A 当前不等于完整自动化**：正式 3 个 DIRECT 接口已从批准矩阵派生 Registry、Schema、绑定并经已有 SDK Facade 挂载；生成器目前对 DIRECT 的实际限制是**同名、只读、Promise、无网站 Scope**。参数标量别名只在测试夹具证明，**不同 SDK/Chrome 方法名、复合参数和返回值转换没有正式闭环**。目前不少 SCOPED/EXISTING_SERVICE/COMPOSED 仍要在 `browser-contract.js`、`browser-schemas.js` 手工定义，不能因为生成了目录或开发者类型就声称人工维护成本已达标。Chromium 官方签名只用于可验证的类型推导，发现条目**不能直接批准权限**。
+**链路 A 当前边界（R11.6）**：正式 3 个 DIRECT 接口已共享矩阵生成 Registry/Schema、有限原生调用与 Facade；正式 3 个 TRUSTED_SERVICE 接口（`tabs.create`、`tabs.getOwned`、`storage.local.keys`）也已从手工 Registry/Schema 迁到同一编译管线，依旧调用原 Host/Driver。测试夹具已经证明不同 SDK/Chrome **方法名**及标量**参数名**的有界映射，但尚未为正式方法引入不同的 Native 名称，更不支持任意工具指定 Chrome 方法。复合参数和返回值转换由受信 Driver 承担，**尚没有通用且安全审计通过的编译期转换语言**。剩余 SCOPED/COMPOSED/EXISTING_SERVICE 的复杂接口仍有手工维护，不能宣称全量自动化。官方原生签名属于发现证据而非权限批准。
 
 **链路 B：安装工具的真实调用/安全执行链路（运行期）**
 
@@ -98,8 +99,8 @@ const {tabRef} = await OpenDeskSDK.browser.tabs.create({url:'https://example.org
 | 已登记的公开 SDK 方法 | 70 | Registry/Facade 已有相应源码：DIRECT 3、SCOPED 49、CUSTOM 18 |
 | 不公开的可信 Host-only | 2 | 不允许普通安装工具直接使用 |
 | 可复用的正式 DIRECT 自动生成 | 3 | `runtime.getPlatformInfo` / `i18n.getAcceptLanguages` / `i18n.detectLanguage`；有 Node/Host 假 Chrome 路径证据 |
-| 复杂映射、Schema 去重复 | PARTIAL | 带作用域 Driver 已有，但通用映射生成和去手写工作尚未证明 |
-| 开发者类型/API 文档 | 生成器有 Node 证据 | `.d.ts`、`.md` 正式生成文件尚未提交；漂移检查需纳入持续验收 |
+| 复杂映射、Schema 去重复 | PARTIAL | 3 个正式可信服务接口已去除重复 Registry/Schema，更多复杂接口、参数/回执转换仍需审计 |
+| 开发者类型/API 文档 | 已正式提交并纳入 CI 检查 | `.d.ts` / `.md` 由同一批准矩阵与运行时 Registry 自动投影，`--check-developer` 验证漂移 |
 | 剩余历史候选 | 91 个名称 | 不是 91 项已经批准或需要无条件开放的 Chrome API |
 | 本轮所有接口的真实 Chrome / 独立产品评分 | NOT_TESTED / NOT_SCORED | Node PASS、源码登记与 Build/Native 绝不互相替代 |
 
@@ -111,6 +112,14 @@ const {tabRef} = await OpenDeskSDK.browser.tabs.create({url:'https://example.org
 2. **减少实际人工维护**：在现有批准矩阵和 `generate-browser-bindings.mjs` 内完成原生签名类型推导、必须人工审核的差异、预编译映射、Registry/Schema/SDK/`.d.ts`/`.md` 一致派生。禁止出现第二份手工 Registry 或新的动态 Chrome RPC；特殊作用域继续复用旧 Driver，不生成权限决策。
 3. **证明能够复用到第二个不同方法**：用前后源代码差异统计人工必改文件、手写代码点和同一 Host 调用/拒绝结果。普通获批接口不再逐项手写 Facade/Schema/Host 分支，才可标记 `ARCHITECTURE_PROVEN`。修改只是减少 JSON 行数、生成额外报表或迁移一个孤立方法，仍标记 PARTIAL。
 4. **分级交付**：定向 Node 正反向、冻结检查、真实生成并检查类型/文档、生产/开发构建、安装工具调用与真实 Chrome 分开记录；不能绕过其他并行扩展的安全构建门禁。架构证明通过后，按现有 91 项分类、实际需求、用户价值和权限风险逐批推进，优先复用已有 canonical SDK 能力。
+
+### 1.4 R11.6 实施证据与继续推进（2026-10-15）
+
+- **已提交源码**：统一生成器 `scripts/generate-browser-bindings.mjs` 新增有限 `TRUSTED_SERVICE` 编译和编译期方法名映射；`src/framework/sdk/browser-services.generated.js` 是同一批准矩阵的**只读运行时生成产物**，不提供动态 `chrome[namespace][method]`；正式 `browser-contract.js` / `browser-schemas.js` 对 `tabs.create`、`tabs.getOwned`、`storage.local.keys` 无需逐项重复手写 Registry/Schema。原 `context-menus.js` 和 `browser-tabs.js` 的 Sender、手势、站点、TabRef、撤权、未知副作用校验均未被替换。
+- **两个不同接口前后对照**：`tabs.create` 原先在 `browser-contract.js` 与 `browser-schemas.js` 各维护一处，需沿用 Host/Driver；现在批准矩阵提供有界安全合同，运行时两处由同一生成器输出，原有 TabRef Driver 不变。`storage.local.keys` 原先也分别手写 Registry/Schema 与输入 case；现在在同一批准矩阵中提供 `compiledBinding: TRUSTED_SERVICE`，输入与回执合同随服务绑定生成、原存储 namespace Host 不变。增量新增**已接入 Service 的普通接口**从至少 2 个重复源码声明处减到 0 个；需要不同权限/作用域或特殊输入时仍必须人工审核 Driver/批准差异，不能直接批量编译。
+- **精确交付 SHA**：第一轮源码 [cc8be79](https://github.com/shopable-ai/opendesk-browser/commit/cc8be79a565d6f2c1d3b1300dbe27eecca8687c8)、测试夹具修正 [a85cc34](https://github.com/shopable-ai/opendesk-browser/commit/a85cc340dc8635af1aad164779a75b01b5a45428)、编译与文档 CI 接线 [8a7854f](https://github.com/shopable-ai/opendesk-browser/commit/8a7854f35aa23ba4e3b38341f49eddb10a13cbd8) / [3c699b2](https://github.com/shopable-ai/opendesk-browser/commit/3c699b2362121383a48cdc371cc9f318fad34c53)、原有 `owned-storage` 机器作用域恢复 [46e5252](https://github.com/shopable-ai/opendesk-browser/commit/46e5252853efdff7bc4498972b1ccafeff67aa9d)。
+- **证据分级**：提交 `46e5252` 的 [SDK R5 Node CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38751193950) `sdk-host-contracts` 已完成成功（包括 R11.6 生成器、别名与受限服务用例、合同/源码测试）。同候选生产构建受 `reading-toc/locales.json` 误进入特权 `page-relay` 的来源隔离门禁阻断，该问题与 SDK 编译代码区分记录，不得降低来源门禁。并行 Cookie Editor 变动还可使旧 `official-tools-catalog-r45.test.mjs` 快照失败。**SDK 源码/Node 已验证，不宣称完整 BUILD_PASS；真实安装 Sender + Chrome Native 未测（`NATIVE_NOT_TESTED`）。**
+- **下一项实施**：保持 `ARCHITECTURE_PROVEN` 门槛未放行，不开放 91 个候选。优先在无关打包来源门禁恢复后以**同一提交候选**完成生产/开发 Build 验收与隔离 Chrome 实际安装、授权、拒绝、撤权；再研究单一批准矩阵下的安全参数/回执转换（不得引入第二套权限或 Registry），从现有 SCOPED 方法中选择下一个无特殊 Driver 改动的高频样本证明可复用性。
 
 ## 2. 全接口目录的事实约束与分类
 
