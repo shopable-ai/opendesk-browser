@@ -91,8 +91,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     const grant=observationApproval,active=validObservationApproval({
       sessionId:localPlanner.snapshot().sessionId,captured:{origin:currentOrigin()},selected:provider()
     });
-    get('workflow-observation-scope').textContent=provider()==='cloud_responses'
-      ?'Cloud Responses：每次发送都须明确批准本轮网页摘要；仅发送最多 24 项语义节点，不保存远端模型会话。'
+    get('workflow-observation-scope').textContent=provider()!=='local_codex'
+      ?'HTTPS 模型：每次发送都须明确批准本轮网页摘要；仅发送最多 24 项语义节点，不复用其他 Provider 的会话。'
       :active?grant.origin+' → Codex：摘要授权 30 分钟有效，任务逐次绑定文档。'
       :'当前对话未授权；读取前说明网站、接收方与操作范围。';
     get('workflow-observation-revoke').disabled=!grant;
@@ -638,7 +638,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     get('workflow-provider-scope').textContent=local
       ?'Codex 在本机管理对话，模型推理可能联网；已同意的内容可能保存在 Codex 本机对话中。使用官方 CLI 登录，请勿填写 Codex 登录凭据。网页摘要按当前对话、网站与摘要范围授权，任务逐次绑定文档。'
       :cloud?'网页数据仅在每轮明确批准后发送至配置的 Responses HTTPS 接口；store:false，不使用 previous_response_id。后续上下文仅携带本窗口的已验证任务概要。API Key 不保存。'
-      :custom?'旧接口仅保留向后兼容；不具备本轮受控网页观察与连续工作流保证。API Key 不保存。'
+      :custom?'旧版 HTTPS Chat Completions 仅支持单轮 JSON 规划；网页观察须逐次批准，Locator 通过本轮可信摘要校验。不提供服务端续聊或工具调用；API Key 不保存。'
       :'OpenDesk 官方 AI 服务目前尚未开放。';
     updateLocalStatus();updateButtons();
   }
@@ -726,9 +726,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         }
         get('workflow-ai-approval-title').textContent='允许本次网页任务？';
         get('workflow-ai-approval-scope').textContent='网站：'+captured.origin+
-          (selected==='cloud_responses'?' → Cloud Responses':' → 本机 Codex')+
+          (selected==='cloud_responses'?' → Cloud Responses':
+             selected==='custom_https'?' → 自定义 HTTPS 接口':' → 本机 Codex')+
           '：最多 24 项结构、名称、相关文字，可能含敏感文字；无截图/完整 URL。任务：'+request+
-          (selected==='cloud_responses'
+          (selected!=='local_codex'
             ?'。仅本次发送有效，不授予模型浏览器执行权限，数据发送后不可撤回。'
             :'。同网站、对话、摘要范围有效 30 分钟，AI 设置可撤销；逐次绑定文档。')+
           (row.siteGranted?'':'还需 Chrome 网站权限确认。');
@@ -796,7 +797,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       if(captured.frameId!==0||captured.origin!==workflow.siteOrigin)
         throw err('E_WORKFLOW_ORIGIN','请先打开目标网站，再发送要执行的浏览器任务');
       frozen={selected,request,workflow:snapshot(),serial:stable(),
-        consent:{model:true,workflow:true,observation:selected!=='custom_https'}};
+        consent:{model:true,workflow:true,observation:true}};
       if(selected!=='local_codex') {
         frozen.endpoint=get('workflow-ai-endpoint').value.trim();
         frozen.apiKey=get('workflow-ai-key').value;frozen.model=get('workflow-ai-model').value.trim();
@@ -869,16 +870,16 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       } else {
         if(!await permission)throw err('E_AI_PERMISSION','未授权访问模型网站');
         planningCurrent(epoch,frozen.serial,frozen.selected);
-        if(frozen.selected==='cloud_responses') {
-          // The existing trusted observer and approval UI is used before data leaves
-          // the extension. Cloud never gets the Native session approval by default.
+        if(frozen.selected!=='local_codex') {
+          // Both HTTPS transports require the current RunHost observation and
+          // one-turn disclosure. Neither inherits Native session approval.
           const decision=await offerObservation(
             {type:'tool.request',tool:'browser.observe',canApprove:true},
             {signal:abort.signal,requestId:'cloud-'+crypto.randomUUID()},
             {epoch,serial:frozen.serial,selected:frozen.selected,captured,request:frozen.request});
           planningCurrent(epoch,frozen.serial,frozen.selected);
           if(decision?.decision!=='approve'||!decision.result)
-            throw err('E_AI_APPROVAL','本轮 Cloud 网页摘要未获得明确批准；未调用模型');
+            throw err('E_AI_APPROVAL','本轮 HTTPS 网页摘要未获得明确批准；未调用模型');
         }
       }
       planned=await workflowProviders.generateWorkflow({
@@ -902,7 +903,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       if(!await api.permissions.contains({origins:[permissionPattern(captured.url)]}))
         throw err('E_PERMISSION','网站权限已撤销，本次没有执行');
       planningCurrent(epoch,frozen.serial,frozen.selected);
-      workflow=structuredClone(result);touched=true;revision=null;lastTrustedRun=null;
+      // Keep the last committed Controller Revision as Save's optimistic base.
+      // matchesRevision() still treats newly generated steps as unsaved.
+      workflow=structuredClone(result);touched=true;lastTrustedRun=null;
       directVerifiedSerial=stable();
       render();persistDraft();
       const executionSerial=stable();
