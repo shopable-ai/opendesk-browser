@@ -37,4 +37,23 @@ node --test tests/environment/prompt-shortcuts-r14*.test.mjs
 - 富文本段落不能仅用 `textContent` 或“忽略全部空白后包含正文”确认成功。当前可信 ChatGPT 模块会核对原有正文、顺序及完整多行内容。结果不明确则提示检查并手动复制，绝不自动重试或发送。
 - R1.5 已有独立 Chromium **模拟编辑器** 的多行与撤销实验，仍需在安装的 Chrome 和**真实 ChatGPT** 富文本编辑器中验收；可持续查看同一 [交接文档](../../../../docs/framework/workstreams/prompt-shortcuts-r12-ui-handoff.zh-CN.md) 的状态。
 
-**R1.5 最新独立验证：** [GitHub Actions 38743743798](https://github.com/shopable-ai/opendesk-browser/actions/runs/38743743798)（候选 `1bc0fab`）在干净 CI runner 上 **11/11 Node PASS、语法 PASS**，并使用现有官方构建器生成经 v2 验证的 `prompt-shortcuts.opendesk-tool.json`（35,083 bytes）。[下载该次候选 ZIP](https://github.com/shopable-ai/opendesk-browser/actions/runs/38743743798/artifacts/11976707456)（CI 附件保留期 7 天）。其仅为独立工具 JSON 包，**不代表整个 OpenDesk Browser 的 production Chrome 安装通过**。整包构建因并行 AdBlock 固定源码摘要不一致仍受阻，真实 ChatGPT、Mac 中文输入法、原生右键以及卸载/重装均待人工实测。详见主交接文档。
+## 仓库内正式可安装工具包与本地测试
+
+**直接使用本目录的正式文件：** [`prompt-shortcuts.opendesk-tool.json`](./prompt-shortcuts.opendesk-tool.json)。
+这是随 `main` 提交的 **Sidebar Tool v2** 可移植 JSON 包，不需要下载 CI ZIP，也不是独立 Chrome Extension。
+首次入库提交：[`ddd386ba2`](https://github.com/shopable-ai/opendesk-browser/commit/ddd386ba220213192bc7b0bf3a4ea8d8bbcc77a1)；当时大小 35,083 bytes，SHA-256
+`1f09804545c2a654cccab76c1a863c29453b1239b7e387e0d6e4225df3bed412`。
+
+本地更新源码后，在仓库根目录运行既有官方构建命令：
+
+```sh
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/prompt-shortcuts
+```
+
+**无需 `--out`**：既有构建器检测到本目录已经存在同名正常文件，会一并更新此文件与忽略入库的 `artifacts/` 产物。
+提交修改时需同时检查 `git diff -- examples/sidebar-tools/prompt-shortcuts/`，保存源码与包的同一候选身份。
+`main` 定向 CI 在包测试成功后也会将验证过的工具 JSON 按内容更新回本目录；如候选源码在排队期间被后续提交替换，会保守跳过旧包。**不运行第二个安装器，不覆盖共享 `dist/development`。**
+
+本地真实安装：先确认日常 OpenDesk 浏览器仍加载标准 `dist/development` 与现有唯一 `npm run dev` watcher；在 OpenDesk「扩展」的已有工具导入入口选择上述 **JSON 文件**，完成原有权限/来源审阅后安装并打开。若同 ID/版本的正式官方工具已经安装，先核对当前包身份与原有数据，禁止绕过版本、授权或更新审核硬替换。也可使用已有「官方可选工具」入口安装，二者不能造成第二个工具身份。
+
+**R1.5 CI 证据：** [Run 38743743798](https://github.com/shopable-ai/opendesk-browser/actions/runs/38743743798) 为 **11/11 Node PASS、语法 PASS、可移植 v2 PACKAGE_PASS**；[Run 38747308859](https://github.com/shopable-ai/opendesk-browser/actions/runs/38747308859) 验证并提交了本目录的同字节工具包。它们仍不代表完整 production WXT 构建、真实 Chrome、ChatGPT 富文本、Mac 中文 IME、原生右键或卸载/重装已经通过；原始证据和缺口记录在唯一 [交接文档](../../../../docs/framework/workstreams/prompt-shortcuts-r12-ui-handoff.zh-CN.md)。
