@@ -122,6 +122,9 @@ async function exercise(mode){
   q('bm-inspector-edit').click();
   await wait(()=>!q('bm-form-view').hidden,'same inspector switches read to edit');
   check(!q('bm-explorer').hidden,'tree never disappears on edit');
+  check(!q('bm-parent-row').open,'ordinary edit initially hides the tall folder picker');
+  check(q('bm-parent-summary').textContent.includes('所在文件夹：'),
+    'collapsed editor shows the current directory as an accessible disclosure');
   field('bm-name','模拟书签 2152 · 已编辑');
   field('bm-url','https://example.org/updated-2152');
   check(q('bm-search').value==='模拟书签 2152','search context stays while typing');
@@ -166,6 +169,7 @@ async function exercise(mode){
     'explicitly abandon draft and select new bookmark');
   q('bm-inspector-move').click();
   await wait(()=>!q('bm-form-view').hidden,'move inside same inspector');
+  check(q('bm-parent-row').open,'explicit move exposes folder search immediately');
   field('bm-folder-query','产品研究');
   await wait(()=>[...q('bm-parent').options].some(x=>x.value==='11'),'searchable folder path');
   q('bm-parent').value='11';q('bm-parent').dispatchEvent(new Event('change',{bubbles:true}));
@@ -243,6 +247,7 @@ async function exercise(mode){
   field('bm-search','这条搜索不会匹配新书签');
   q('bm-new-bookmark').click();
   await wait(()=>!q('bm-form-view').hidden,'new bookmark stays inline');
+  check(q('bm-parent-row').open,'create requires the destination to stay visible');
   field('bm-name','R2.7 新建流程书签');
   field('bm-url','https://example.org/r27-create');
   submit();
@@ -265,6 +270,18 @@ async function exercise(mode){
   [...q('bm-list').querySelectorAll('.bm-entry')].find(x=>
     x.textContent.includes('R2.7 新建流程书签')).click();
   q('bm-inspector-edit').click();
+  check(!q('bm-parent-row').open,'folder chooser is collapsed again in a fresh edit');
+  const folderSummary=q('bm-parent-row').querySelector('summary');
+  folderSummary.click();
+  check(q('bm-parent-row').open,'disclosure can be expanded with a real click');
+  field('bm-parent','10');
+  field('bm-name','R2.7 新建流程书签 · 组合编辑');
+  submit();
+  await wait(()=>q('bm-form-view').hidden&&
+    q('bm-inspector-title').textContent.includes('组合编辑')&&
+    q('bm-inspector-parent').textContent.includes('设计资料'),
+    'combined edit and move require both Host-safe SDK steps and native readback');
+  q('bm-inspector-edit').click();
   field('bm-name','外部删除后仍需保留的草稿');
   diagnostic('模拟外部删除当前书签');q('bm-refresh').click();
   await wait(()=>q('bm-save').disabled&&q('bm-form-error').textContent.includes('已在其他窗口删除'),
@@ -280,7 +297,8 @@ async function exercise(mode){
   return {mode,initial:2159,inlineEdit:true,selectedAfterSave:true,cancel:true,
     dirtyGuard:true,searchableMove:true,saveFailure:true,conflict:true,
     outcomeUnknown:true,transientRefresh:true,folderLimit:true,createBookmark:true,
-    createFolder:true,keyboardFocus:true,externalDeleteDraft:true,revocation:true,overflow:false,
+    createFolder:true,compactEdit:true,combinedEditMove:true,keyboardFocus:true,
+    externalDeleteDraft:true,revocation:true,overflow:false,
     source:'production-source-bound-mock'};
 }
 try{
@@ -340,9 +358,11 @@ try{
       name.value='OpenDesk 产品资料 · 正在原位编辑';
       name.dispatchEvent(new Event('input',{bubbles:true}));
       return {editing:!q('bm-form-view').hidden,
-        explorer:!q('bm-explorer').hidden,dirty:name.value.includes('正在原位编辑')};
+        explorer:!q('bm-explorer').hidden,compact:!q('bm-parent-row').open,
+        dirty:name.value.includes('正在原位编辑')};
     })()`,visualCtx);
-    assert.ok(visualEdit?.editing&&visualEdit?.explorer&&visualEdit?.dirty);
+    assert.ok(visualEdit?.editing&&visualEdit?.explorer&&visualEdit?.dirty&&
+      visualEdit?.compact,'visual edit stays compact until folder change is requested');
     await capture('editing');
     const visualConflict=await evaluate(`(async()=>{
       const q=id=>document.getElementById(id);
