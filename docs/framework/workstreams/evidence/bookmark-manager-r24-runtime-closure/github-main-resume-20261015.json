@@ -1,0 +1,131 @@
+{
+  "schema": "opendesk.bookmark-manager-r24.github-main-resume.v1",
+  "recordedDate": "2026-10-15",
+  "execution": "ChatGPT web + authorized GitHub connector; no user Mac filesystem or Chrome Profile",
+  "branch": "main",
+  "history": {
+    "r24NodePassSha": "a2be6815ad1f58907b10da1dc31df738b1bcacce",
+    "r24EvidenceCommit": "37684523e6a7869dc9ddb75af9375232924ac88d",
+    "sdkR113Sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+    "originalSummary": "docs/framework/workstreams/evidence/bookmark-manager-r24-runtime-closure/summary.json",
+    "originalSummaryUntouched": true
+  },
+  "source": {
+    "initialMain": "6b111e5537e63b0809bbd4e2daec8d7de9c8b4fa",
+    "nativeTestPatchCommit": "c8d52ef41fde83cec61d8cdd86a5ceea099591ef",
+    "nativeTestFile": "tests/framework/app-market-r3-native.test.mjs",
+    "nativeTestBlob": "a378b976d1bc806bf1f1e64fe4731e38e0524456",
+    "headBeforeRecord": "1e5dc8554adca1778a869120ccadfbbcca342b23",
+    "toolVersionObserved": "0.3.4",
+    "priorNativeVersion": "0.3.3",
+    "sameCandidateNative": false
+  },
+  "phases": [
+    {
+      "phase": "baseline",
+      "status": "REUSE_RECORDED_PASS_AND_AFFECTED_INPUTS",
+      "evidence": "historical 81/81 at a2be6815; 437/437 SDK at 0c4d4a88; newer tool 0.3.4 and UI contract not identical"
+    },
+    {
+      "phase": "visible_official_install_entry",
+      "status": "EVIDENCE_INCOMPLETE",
+      "sourceFix": "c8d52ef41fde83cec61d8cdd86a5ceea099591ef",
+      "nativeResult": "NOT_TESTED_AT_NEW_COMMIT",
+      "reason": "market CI blocked by component assertions before Chrome started"
+    },
+    {
+      "phase": "minimum_native_bookmarks",
+      "status": "PARTIAL_HISTORICAL_OTHER_CANDIDATE_AND_NOT_TESTED_CURRENT",
+      "reason": "project README records actual 0.3.3 native upgrade and 2159-node read; native CRUD failed on hidden URL form; fix in 0.3.4 has not been verified in user Mac"
+    },
+    {
+      "phase": "full_native_safety_and_lifecycle",
+      "status": "NOT_TESTED_CURRENT",
+      "reason": "12 live methods, 1001+, destructive ticket and lifecycle unavailable at same candidate"
+    },
+    {
+      "phase": "same_candidate_regression",
+      "status": "BLOCKED",
+      "reason": "bookmark production build refused unreviewed changed fixed AdBlock source; official-market pre-native tests failed"
+    },
+    {
+      "phase": "independent_release_review",
+      "status": "NOT_SCORED",
+      "reason": "missing same-candidate production+Native evidence; no independent 95+ review"
+    }
+  ],
+  "validations": {
+    "staticPatchV8Syntax": "PASS_AFTER_STRIPPING_IMPORTS_ONLY_NOT_NODE_OR_NATIVE",
+    "market": {
+      "runId": 38708321527,
+      "commit": "c8d52ef41fde83cec61d8cdd86a5ceea099591ef",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38708321527",
+      "result": "FAIL_PRE_NATIVE",
+      "jobs": [
+        {
+          "id": 116333171835,
+          "platform": "ubuntu",
+          "stage": "production component",
+          "passed": 161,
+          "failed": 1,
+          "blocker": "Cookie Editor portable package unequal to current source packager output"
+        },
+        {
+          "id": 116333172326,
+          "platform": "macos-15",
+          "stage": "R5 component",
+          "passed": 100,
+          "failed": 1,
+          "blocker": "reading-kit current version quick-notes 1.1.8 versus tool 1.1.9"
+        },
+        {
+          "id": 116333172425,
+          "platform": "ubuntu",
+          "stage": "R5 component",
+          "passed": 100,
+          "failed": 1,
+          "blocker": "reading-kit current version quick-notes 1.1.8 versus tool 1.1.9"
+        }
+      ]
+    },
+    "bookmark": {
+      "runId": 38707598882,
+      "commit": "b34962112f9fd8993c18ae0808a58de569f06796",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38707598882",
+      "node": {
+        "pass": 71,
+        "fail": 0
+      },
+      "overall": "FAIL",
+      "blocker": "Trusted AdBlock source changed; review and re-pin before fixed build: examples/sidebar-tools/adblock/trusted/host-controls.js"
+    },
+    "sidebar": {
+      "runId": 38708321524,
+      "commit": "c8d52ef41fde83cec61d8cdd86a5ceea099591ef",
+      "status": "success",
+      "scope": "Sidebar R1 P0 only; not bookmark Native"
+    }
+  },
+  "ownership": {
+    "extensionCenter": "R4.1 independent UI workstream; no product UI files touched",
+    "adblock": "adblock-r12-20261015 workstream owns fingerprinted source",
+    "cookieEditor": "separate product; no takeover",
+    "readingKit": "shared release policy; do not silently update immutable revision"
+  },
+  "produced": {
+    "fileChanges": [
+      {
+        "file": "tests/framework/app-market-r3-native.test.mjs",
+        "kind": "native test navigation only"
+      }
+    ],
+    "productionFilesChanged": 0,
+    "actualSameCandidatePackageHash": null,
+    "actualInstallEpoch": null,
+    "actualChromeId": null,
+    "actualChromeProfile": null,
+    "actualChromeVersion": null,
+    "actualFullNativeResult": null
+  },
+  "next": "Release owners resolve pre-native failing component gate and trusted AdBlock provenance; freeze candidate with real package hash; rerun affected CI then use dedicated user Mac Chrome/Profile for the complete bookmark native gate, including 0.3.4 CRUD. Keep Issue #75 OPEN until evidence and review."
+}
