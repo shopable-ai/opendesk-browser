@@ -150,40 +150,18 @@ async function click(selector,ctx=null){
     return;
   }
   const rect=await evaluate('('+function(sel){
-    const el=document.querySelector(sel);
-    if(!el)throw Error('missing element '+sel);
-    el.scrollIntoView({block:'nearest',inline:'nearest'});
-    const r=el.getBoundingClientRect();
-    const x=r.left+r.width/2,y=r.top+r.height/2;
-    return {x,y,w:r.width,h:r.height,localHit:document.elementFromPoint(x,y)?.outerHTML?.slice(0,220),scrollTop:document.documentElement.scrollTop};
-  }.toString()+')('+JSON.stringify(selector)+')',ctx);
-  assert.ok(rect.w>0&&rect.h>0,'clickable target: '+selector);
-  const localCoords={x:rect.x,y:rect.y};
-  if(ctx){
-    const offset=await evaluate('('+function(){
-      const b=document.getElementById('opendesk-preview-frame').getBoundingClientRect();
-      return {x:b.left,y:b.top};
-    }.toString()+')()');
-    console.log('ADBLOCK_FRAME_OFFSET '+JSON.stringify({frame:offset,element:rect}));
-    rect.x+=offset.x;rect.y+=offset.y;
-  }
-  const hit=await evaluate('('+function(x,y){
-    const element=document.elementFromPoint(x,y);
-    return {tag:element?.tagName,id:element?.id,html:element?.outerHTML?.slice(0,220)};
-  }.toString()+')('+JSON.stringify(rect.x)+','+JSON.stringify(rect.y)+')');
-  // Opaque srcdoc is an OOPIF. Send to its attached CDP target, but
-  // Input.dispatchMouseEvent coordinates are relative to the MAIN viewport,
-  // even when the target session belongs to an iframe.
-  const targetSession=ctx?.session||null;
-  const point=rect;
-  console.log('ADBLOCK_CLICK_TARGET '+selector+' '+JSON.stringify({
-    parentPoint:{x:rect.x,y:rect.y},localPoint:localCoords,
-    targetSession:targetSession||'top',hit}));
-  await cdp('Input.dispatchMouseEvent',{type:'mouseMoved',x:point.x,y:point.y},targetSession);
-  await cdp('Input.dispatchMouseEvent',{type:'mousePressed',x:point.x,y:point.y,
-    button:'left',clickCount:1},targetSession);
-  await cdp('Input.dispatchMouseEvent',{type:'mouseReleased',x:point.x,y:point.y,
-    button:'left',clickCount:1},targetSession);
+    const target=document.querySelector(sel);
+    if(!target)throw Error('Missing control '+sel);
+    target.scrollIntoView({block:'nearest',inline:'nearest'});
+    const r=target.getBoundingClientRect();
+    return {x:r.left+r.width/2,y:r.top+r.height/2,w:r.width,h:r.height};
+  }.toString()+')('+JSON.stringify(selector)+')');
+  assert.ok(rect.w>0&&rect.h>0,'visible pointer target '+selector);
+  await cdp('Input.dispatchMouseEvent',{type:'mouseMoved',x:rect.x,y:rect.y});
+  await cdp('Input.dispatchMouseEvent',{type:'mousePressed',x:rect.x,y:rect.y,
+    button:'left',clickCount:1});
+  await cdp('Input.dispatchMouseEvent',{type:'mouseReleased',x:rect.x,y:rect.y,
+    button:'left',clickCount:1});
 }
 async function screenshot(name){
   const shot=await cdp('Page.captureScreenshot',{format:'png'});
