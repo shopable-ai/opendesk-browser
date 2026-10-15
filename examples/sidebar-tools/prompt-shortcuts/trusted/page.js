@@ -12,7 +12,6 @@ button{font:inherit;cursor:pointer;color:#293549;background:#fff;border:1px soli
 button:focus-visible{outline:2px solid #365eda}
 button:hover{background:#eef2ff;border-color:#365eda}
 .item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:38px;height:38px;min-height:38px;padding:3px;font-weight:650;font-size:12px;line-height:1.05}
-.round{border-radius:50%}
 .fold{display:none}
 .rail.narrow .fold{display:flex;align-items:center;justify-content:center;width:38px;height:38px;min-height:38px;background:#365eda;border-color:#365eda;color:#fff}
 .rail.narrow.folded{max-height:48px;overflow:hidden}
@@ -21,9 +20,12 @@ button:hover{background:#eef2ff;border-color:#365eda}
 .tip strong{display:block;margin-bottom:8px;font-size:13px}
 .tip pre{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;margin:0;font:12px/1.7 system-ui,sans-serif}
 .tip small{display:block;margin-top:12px;padding-top:8px;border-top:1px solid #ccd2df;color:#53647e;font-size:11px}
-.fallback{pointer-events:auto;position:absolute;left:60px;top:0;width:min(350px,calc(100vw - 90px));max-height:55vh;overflow:auto;background:#fff;color:#263347;border:1px solid #ccd2df;border-radius:12px;box-shadow:0 8px 28px #0003;padding:12px}
-.fallback textarea{display:block;width:100%;min-height:120px;box-sizing:border-box;margin:8px 0;resize:vertical;white-space:pre-wrap}
-.fallback button{padding:6px 10px;margin-right:8px}
+/* No blocking fallback dialog: status is announced without changing focus. */
+.feedback{pointer-events:none;position:absolute;left:60px;top:0;width:min(300px,calc(100vw - 84px));
+ background:#fff;color:#263347;border:1px solid #d9dbe2;border-radius:10px;box-shadow:0 7px 20px #0000001b;
+ padding:10px 12px;font:12px/1.55 system-ui,sans-serif;overflow-wrap:anywhere}
+.feedback[data-kind="error"]{color:#992f42;border-color:#d79ba6}
+.feedback[data-kind="success"]{color:#157255;border-color:#9accbc}
 `;
 const KEYS=[SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,
   PROMPT_SITE_STORE,PROMPT_DATA_STORE];
@@ -33,13 +35,13 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   if(win[SLOT])return win[SLOT];
   let model=MODEL,disposed=false,paused=false,epoch=0,href=win.location.href,visible=false;
   let host=null,shadow=null,rail=null,tip=null,tipOwner=null,hideTipTimer=0,toggleButton=null;
-  let fallback=null,items=[],observer=null,layoutTimer=0;
+  let feedback=null,items=[],observer=null,layoutTimer=0;
   let locationTimer=0,folded=false,narrowMode=null,composing=false,inserting=false,lastAttempt=0,lastAttemptId=null;
   const stop=()=>{
     visible=false;items=[];observer?.disconnect();observer=null;
     win.clearTimeout(layoutTimer);layoutTimer=0;win.clearTimeout(hideTipTimer);hideTipTimer=0;
     host?.remove();host=null;rail=null;shadow=null;tip=null;tipOwner=null;toggleButton=null;
-    fallback=null;narrowMode=null;folded=false;
+    feedback=null;narrowMode=null;folded=false;
   };
   const mainRegion=()=>{
     const node=doc.querySelector('main#main')||doc.querySelector('main');
@@ -89,7 +91,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     hint.textContent='点击仅追加到草稿，不会自动发送';
     tip.append(title,content,hint);tip.hidden=false;
     button.setAttribute('aria-describedby',tip.id);
-    if(fallback)fallback.hidden=true;
+    if(feedback)feedback.hidden=true;
     const hostRect=host.getBoundingClientRect(),buttonRect=button.getBoundingClientRect();
     const tipHeight=tip.getBoundingClientRect().height||240;
     const maxTop=win.innerHeight-hostRect.top-tipHeight-12;
@@ -99,24 +101,22 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     tip.style.left=freeRight<260?'auto':'60px';
     tip.style.right=freeRight<260?'55px':'auto';
   };
-  const fallbackCopy=(body,reason)=>{
-    if(!fallback)return;
-    hideTip();fallback.replaceChildren();
-    const title=doc.createElement('strong'),note=doc.createElement('p');
-    title.textContent='手动复制完整提示词';
-    note.textContent=(reason||'编辑器未确认文本插入。')+' 请先核对草稿中是否已有部分内容，避免重复粘贴。未自动发送。';
-    const textarea=doc.createElement('textarea');textarea.readOnly=true;textarea.value=body;
-    const copy=doc.createElement('button');copy.type='button';copy.textContent='复制';
-    copy.addEventListener('click',event=>{
-      if(event.isTrusted!==true)return;
-      if(!win.navigator.clipboard?.writeText){textarea.focus();textarea.select();return;}
-      void win.navigator.clipboard.writeText(body).then(()=>{note.textContent='已复制完整正文，可粘贴到聊天输入框。';})
-        .catch(()=>{textarea.focus();textarea.select();note.textContent='请选择并手动复制正文。';});
-    });
-    const close=doc.createElement('button');close.type='button';close.textContent='关闭';
-    close.addEventListener('click',()=>{fallback.hidden=true;});
-    fallback.append(title,note,textarea,copy,close);fallback.hidden=false;
-    textarea.focus();textarea.select();
+  const showFeedback=(message,kind='info')=>{
+    if(!feedback||!host?.isConnected)return;
+    feedback.textContent=message;feedback.dataset.kind=kind;feedback.hidden=false;
+  };
+  const fallbackCopy=async(body,reason)=>{
+    hideTip();
+    try{
+      if(!win.navigator?.clipboard?.writeText)throw Error('浏览器没有提供可用的剪贴板写入接口');
+      await win.navigator.clipboard.writeText(body);
+      showFeedback(reason?
+        '编辑器插入未确认；已复制完整提示词。请先检查草稿再粘贴，避免重复。':
+        '已复制提示词，可直接粘贴。','success');
+    }catch(error){
+      showFeedback('插入失败，复制也失败：'+(error?.message||'剪贴板访问被拒绝')+
+        '。请检查网页与剪贴板权限后重试。','error');
+    }
   };
   const editor=()=>{
     const node=doc.querySelector('main #prompt-textarea[contenteditable="true"],main [data-testid="composer-text-input"][contenteditable="true"],main textarea#prompt-textarea');
@@ -181,8 +181,8 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       if(!target.isConnected||typeof after!=='string'||
         normalizeDraft(after)!==normalizeDraft(before+insertion))
         throw Error('草稿正文或换行未得到完整确认，请核对并手动复制');
-      hideTip();if(fallback)fallback.hidden=true;
-    }catch(error){fallbackCopy(row.body,error.message);}
+      hideTip();showFeedback('已插入输入框，未发送。','success');
+    }catch(error){await fallbackCopy(row.body,error.message);}
     finally{inserting=false;}
   }
   function render(){
@@ -196,9 +196,10 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       tip.setAttribute('tabindex','0');
       tip.addEventListener('mouseenter',()=>win.clearTimeout(hideTipTimer));
       tip.addEventListener('mouseleave',delayHideTip);
-      shadow.addEventListener('keydown',event=>{if(event.key==='Escape'){hideTip();if(fallback)fallback.hidden=true;}});
-      fallback=doc.createElement('aside');fallback.className='fallback';fallback.hidden=true;
-      shadow.append(style,rail,tip,fallback);doc.documentElement.append(host);
+      shadow.addEventListener('keydown',event=>{if(event.key==='Escape'){hideTip();if(feedback)feedback.hidden=true;}});
+      feedback=doc.createElement('div');feedback.className='feedback';feedback.hidden=true;
+      feedback.setAttribute('role','status');feedback.setAttribute('aria-live','polite');
+      shadow.append(style,rail,tip,feedback);doc.documentElement.append(host);
     }
     rail.replaceChildren();
     const toggle=doc.createElement('button');toggle.type='button';toggle.className='fold';
@@ -207,7 +208,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     rail.append(toggle);
     for(const row of items){
       const button=doc.createElement('button');button.type='button';
-      button.className='item'+(row.shape==='round'?' round':'');
+      button.className='item';
       button.setAttribute('aria-label','插入提示词：'+row.name);
       button.title=row.name; // Full multiline details appear on focus/hover.
       for(const part of model.parts(row.label)){
