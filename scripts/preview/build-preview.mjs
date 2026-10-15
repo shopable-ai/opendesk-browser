@@ -189,11 +189,10 @@ export async function generatePreview({
     // Insert only for this OFFLINE tool, beyond .preview-device. The shared
     // Quick Notes, Reading TOC and AdBlock preview HTML is byte-identical.
     const marker='</div>\n<dialog class="preview-confirm od-surface" id="od-preview-confirm-uninstall"';
-    const actualMarker=marker.replace('\n','\n');
     const insertion='</div>\n'+bookmarkLab+'\n<dialog class="preview-confirm od-surface" id="od-preview-confirm-uninstall"';
-    if(!outputHtml.includes(actualMarker)||outputHtml.split(actualMarker).length!==2)
+    if(!outputHtml.includes(marker)||outputHtml.split(marker).length!==2)
       fail('canonical outer preview location is unavailable');
-    outputHtml=outputHtml.replace(actualMarker,insertion);
+    outputHtml=outputHtml.replace(marker,insertion);
     const labCss=[
       '.preview-diagnostic-area{max-width:880px;margin:var(--space-3) auto;padding-inline:var(--space-2);min-width:0}',
       '.preview-diagnostic-area .od-toolbar{flex-wrap:wrap}',
