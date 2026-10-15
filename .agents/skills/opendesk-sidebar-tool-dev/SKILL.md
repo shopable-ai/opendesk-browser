@@ -118,3 +118,7 @@ React/Vue 可复用项目本身的已有预编译配置，源码创建和 UI 调
 
 
 **R1.2 同类资源树例外**：书签/文件夹这类父子文件树共用创建工具栏，不为文件夹和书签各增加一行区域标题。回归检查 320px 单行三个按钮、折叠/搜索和自定义行菜单；特殊 Chrome 全量书签能力必须落在受审第一方源码，不可由沙箱工具借用。
+
+## 渐进式 UI 本地化
+
+正常创建 Sidebar Tool 时**只写一种源语言**；用户明确要求某种目标语言时，在原 ID 的同一工程加入 `locales.json` 与构建配置 `locales`，使用现有 `scripts/build-sidebar-tool.mjs` 对翻译的源文案、占位符、纯文字约束与离线嵌入执行校验。运行时使用框架提供的只读 `OpenDeskTool.locale` 与 `onLocaleChange` 更新显示，严格禁止通过 `chrome.i18n`、Browser SDK `i18n` 或存储直接改全局语言。交付仍按现有工具打包、同 ID 升级与同源预览规则执行；宿主权限译文不可由用户包覆盖。详情：[正式本地化合同](../../../docs/api/sidebar-tool-localization.zh-CN.md)。
