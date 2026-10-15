@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>OpenDesk Browser · Extension Center R4.8 · 源码同源交互预览</title>
+<title>OpenDesk Browser · Extension Center R5.0 · 已安装 / 发现分离交互预览</title>
 <!-- Visual rules are loaded from the SAME repository design tokens, system and Extension Center CSS. -->
 <link rel="stylesheet" href="../../src/ui/design-tokens.css">
 <link rel="stylesheet" href="../../src/ui/design-system.css">
@@ -44,7 +44,7 @@
             <div class="ec-toolbar">
               <label class="ec-search" for="preview-search">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 5 5"></path></svg>
-                <input id="preview-search" type="search" placeholder="搜索扩展" autocomplete="off">
+                <input id="preview-search" type="search" placeholder="搜索当前列表" autocomplete="off">
               </label>
               <button id="preview-market" class="ec-icon" type="button" title="打开应用市场" aria-label="在新标签页打开应用市场"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16l-1.5-6h-13L4 10Zm2 0v10h12V10M10 20v-6h4v6"></path></svg></button>
               <div id="preview-menu-wrap" class="ec-menu-wrap">
@@ -62,9 +62,8 @@
                     </select>
                   </fieldset>
                   <fieldset><legend>显示范围</legend><div class="ec-filter-group">
-                    <button type="button" data-ec-scope="smart" aria-pressed="true">默认</button>
-                    <button type="button" data-ec-scope="local" aria-pressed="false">只看本机</button>
-                    <button type="button" data-ec-scope="available" aria-pressed="false">可安装</button>
+                    <button type="button" data-ec-scope="smart" aria-pressed="true">已安装</button>
+                    <button type="button" data-ec-scope="available" aria-pressed="false">可安装 / 更新</button>
                   </div></fieldset>
                   <button id="preview-reset" class="ec-menu-action" type="button">恢复默认筛选</button>
                   <div class="ec-menu-separator">
@@ -76,7 +75,7 @@
             </div>
           <div id="preview-import-host"></div>
           <span id="preview-count" class="visually-hidden" aria-live="polite"></span>
-          <ul id="extension-center-list" class="ec-list" aria-label="扩展项目"></ul>
+          <ul id="extension-center-list" class="ec-list" aria-label="扩展中心当前筛选列表"></ul>
           <div id="preview-empty" class="ec-empty" hidden><p id="preview-empty-text">没有符合条件的扩展</p></div>
         </div>
         <section id="extension-center-detail" class="ec-detail" aria-label="扩展详情" hidden>
@@ -91,7 +90,7 @@
     </main>
   </div>
   <aside class="notes">
-    <h1>扩展列表 · R4.8</h1>
+    <h1>扩展列表 · R5.0</h1>
     <p>本页面复用正式 <code>tool-shell.css</code>、设计 Tokens、组件 CSS 和 Extension Center CSS；顶栏工具条 DOM 来自正式 <code>tool.html</code>，交互数据完全模拟。</p>
     <h2>测试典型状态</h2>
     <button class="od-button od-button--secondary" type="button" data-scenario="normal">默认列表</button>
@@ -147,9 +146,7 @@ const visible=()=>items.filter(row=>{
  if(scenario==='unknown'&&!['unknown','restricted'].includes(row.id))return false;
  if(scenario==='candidate'&&row.id!=='candidate')return false;
  if(kind!=='all'&&row.kind!==kind)return false;
- if(scope==='local'&&!row.installed)return false;
- if(scope==='available'&&row.installed)return false;
- if(scope==='smart'&&!row.installed&&row.installationPolicy!=='preinstalled'&&!$('preview-search').value.trim())return false;
+ if(scope==='available'?row.installed&&!row.update:!row.installed)return false;
  return [row.title,row.description,row.id].some(text=>text.toLowerCase().includes($('preview-search').value.trim().toLowerCase()));
 });
 function status(row){
@@ -233,7 +230,7 @@ function render(){
  const rows=visible();$('preview-empty').hidden=rows.length>0;
  $('preview-count').textContent=rows.length+' 个扩展';
  $('extension-center-list').setAttribute('aria-busy',String(scenario==='busy'));
- $('preview-empty-text').textContent=$('preview-search').value.trim()?'没有找到匹配的扩展':scope==='available'?'没有可安装的官方候选':'没有符合条件的扩展';
+ $('preview-empty-text').textContent=$('preview-search').value.trim()?'没有找到匹配的扩展':scope==='available'?'没有可安装或可更新的官方候选':'还没有已安装扩展，请主动切换发现范围';
  for(const row of rows){
    const li=el('li','ec-row');li.dataset.extensionId=(row.kind==='app'?'app:':'page:')+row.id;
    if(primary(row))li.classList.add('ec-row--has-primary');
@@ -271,7 +268,7 @@ $('preview-back').addEventListener('click',()=>{selected=null;render();$('previe
 $('preview-market').addEventListener('click',()=>say('正式应用市场只负责固定包审阅与安装；本页面不会安装。'));
 $('preview-reload').addEventListener('click',()=>{closeGlobalMenu();render();say('仅模拟重新读取目录；当前搜索、筛选、详情和模拟启停状态保持不变。');});
 document.querySelectorAll('[data-scenario]').forEach(b=>b.addEventListener('click',()=>{
- scenario=b.dataset.scenario;selected=null;kind='all';scope='smart';$('preview-search').value='';render();
+ scenario=b.dataset.scenario;selected=null;kind='all';scope=b.dataset.scenario==='candidate'?'available':'smart';$('preview-search').value='';render();
 }));
 document.addEventListener('click',e=>{if(!menu.hidden&&!menu.contains(e.target)&&!menuTrigger?.contains(e.target))closeMenu(false);
  if(!globalMenu.hidden&&!$('preview-menu-wrap').contains(e.target))closeGlobalMenu();});
