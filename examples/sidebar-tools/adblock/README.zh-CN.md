@@ -42,8 +42,8 @@ Chrome 首次授予可选 DNR 权限存在[已确认的初始化缺陷](https://
 
 测试包括工具包结构、身份防伪、授权撤销、启停、域名规范化、DNR 所有权与跨工具优先级、状态失败回读、并发、浏览器恢复和卸载。**这些自动化测试是工程证据，不是 Mac 原生请求结果。** 原生验收须使用隔离 Profile、Chrome for Testing、真实请求和可信用户输入，并保存 DNR 回读与网络请求两套证据。Mac 未运行时标记 NOT_TESTED，不可虚构 95+ 评分。
 
-## 两种预览：原始设计 vs 正式验收
+## 两种预览：交互设计 vs 正式验收
 
-- **用户确认的 AdBlock R1 原始交互设计**：[`preview/adblock-r1-interactive-preview.html`](preview/adblock-r1-interactive-preview.html)。2026-10-15 按用户提供的原件原样保存，字节级 SHA-256 `c0a030441720ee74e599e47d9e61d7725b5f947aa62da9324e5ac5b56356c8b7`。该文件是正式 UI 修复时要对照的**原始视觉与交互基准**，不能因 CI 重新生成而覆盖；具体规则见 [`preview/README.md`](preview/README.md)。
-- **正式来源驱动的离线验收 HTML**：[`adblock-r1-interactive-preview.html`](adblock-r1-interactive-preview.html)。该文件由 `scripts/preview/build-preview.mjs` 使用工具源码和可信 Side Panel 快照生成，是测试快照与实际正式源码的契约，并不替代原始设计。
-- 两份文件均不产生真实 Chrome DNR/网络拦截效果。正式安装 UI 需逐项对照用户批准的原始设计，同时保留既有宿主授权、真实状态回读、沙箱隔离。若因安全或技术限制与设计有差异，明确记录和验收，不能把模拟数据当真实业务能力。
+- **AdBlock 交互设计**：[`preview/index.html`](preview/index.html)，独立、可直接打开的 Mock 页面。2026-10-16 按用户要求由旧预览文件重命名并规范顶部标题栏（盾牌图标、「广告拦截」标题、34px 设置图标），保留已确认的交互流程。原件 SHA-256 `c0a030441720ee74e599e47d9e61d7725b5f947aa62da9324e5ac5b56356c8b7` 与 Git blob `f10b6f6671480b3ea4828a04541e7bffa4e4d58a` 仅用于历史追溯，不作为当前文件校验值；详见 [`preview/README.md`](preview/README.md)。
+- **生产源码驱动的离线验收 HTML**：[`adblock-r1-interactive-preview.html`](adblock-r1-interactive-preview.html)，由 `scripts/preview/build-preview.mjs` 生成，不复制或覆盖上述设计基准。
+- 两者均非已安装的真实 Chrome 界面，不产生真实 Chrome DNR/网络效果。正式产品应将当前设计稿作为信息架构基准，与同源预览及原生安装结果逐项对照并分别验收。
