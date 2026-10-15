@@ -230,3 +230,26 @@ F-BM-000 书签管理
 | `prototypes/sidebar/` / `scripts/preview/` | 可交互 HTML 源、共享预览、Mock 与同包来源 | 复用既有工具；不创建重复 Quick Notes 原型 |
 | `examples/sidebar-tools/<id>/src/` / `tests/environment/` | 正式代码及真实测试 | 工具业务源码不改；仅在本轮范围内增量测试评测合同 |
 | `src/framework/workflow/` / `src/platform/tasks/` | 受限网页自动化/Task 与 RunHost Authority | **不改**；不得把它冒充扩展源码自动生成入口 |
+
+
+## R2.1 同候选 CI 核验与下一步（2026-10-15）
+
+**在 GitHub 上实际执行的证据，不是预写 PASS**：
+
+- `scripts/agent-skills-r22-eval.mjs` 增量修复八 Skill 预检查并新增 `--mode reasoning`（六个短句×base/guided 共 12 个待运行只读评测）。首次提交 [`f98df764`](https://github.com/shopable-ai/opendesk-browser/commit/f98df764f132ec9830ae16c04fd940cd487243b0) 的 [Agent Skills governance #38723888175](https://github.com/shopable-ai/opendesk-browser/actions/runs/38723888175) **SUCCESS**；原始日志包含 `SELF_TEST_PASS`、Skill 目录 12/12、其他治理测试 5/5。其后仅修正“6 对/12 次”的自测文案，提交 [`bb648101`](https://github.com/shopable-ai/opendesk-browser/commit/bb648101d8783c7277f4646de202bc4545f9c48c)，自身治理 CI [#38725043435](https://github.com/shopable-ai/opendesk-browser/actions/runs/38725043435) **SUCCESS**。以上仅是静态配置/评分保守性测试，**并未真正执行 12 次 Codex 模型推理**。
+- 新增 `tests/environment/browser-tool-creation-workflow-r21.test.mjs`，只使用已有 Node `node:test`，校验 10 阶段映射、7 个 Quick Notes F↔S↔A、真实 HTML ID/JS 标识/既有测试对应，以及三个故意缺失/伪造的反例；没有新增 Runner、状态 Registry 或工具业务代码。测试合入既有 `.github/workflows/sidebar-preview-contract.yml`，源提交 [`98dae8d1`](https://github.com/shopable-ai/opendesk-browser/commit/98dae8d1db4a22acb06e54847695574d97b4f2f2) 的 [Sidebar Preview Contract #38724726739](https://github.com/shopable-ai/opendesk-browser/actions/runs/38724726739) **SUCCESS**。
+- 该 Actions 完整日志：`check-preview-contract` 返回 **SOURCE_LOCK_AND_DETERMINISM_PASS**；含 R2.1 新测试的 Node **65 PASS / 0 FAIL**；真实工具源码经原 packer 产生 JSON 和 source-bound HTML；Linux Chrome for Testing **155.0.8059.79** 的 Quick Notes 离线 Mock **13 场景通过**，日志状态 **STATIC_OFFLINE_CHROME_PASS_NOT_INSTALLED**；同 CI 的 Bookmark Manager 离线 Mock 2 视口通过，不代表 Bookmark Manager 已安装。原始截图/HTML： [Quick Notes Artifact 11968300211](https://github.com/shopable-ai/opendesk-browser/actions/runs/38724726739/artifacts/11968300211)。这个 CI 的 `head_sha` 明确是 `98dae8d1...`，与以后独立文档提交不能无条件混为一件原生验收。
+- 此 GitHub 对话通过远端 Connector 增量改动并正常推进 `main`；没有访问用户 `/Users/shopme/`、Mac Chrome、真实扩展 ID/Profile 或 Native 的能力，也没有更换 `dist/development` 或运行第二个 watcher。
+
+| 链路检查点 | 当前真实状态 | 继续条件 |
+| --- | --- | --- |
+| 一句话需求→S/F/A 产品推理 | `DESK_REVIEWED`；静态映射 **PASS**，独立模型正确率 `NOT_TESTED` | 本机 `--mode reasoning` 实际运行 + 人工语义/过度推断盲审 |
+| 功能树→既有 Quick Notes UI/正式 JS/Node | `SOURCE_VERIFIED / TRACE_NODE_PASS`（本次 65 Node 含源追踪） | 变更 F-ID 或源码时重新验证影响映射 |
+| 源码→正式 JSON→同源 HTML→离线 Chrome | `PACKAGE_BUILD_CI_PASS / STATIC_OFFLINE_CHROME_PASS_NOT_INSTALLED`，证据 SHA `98dae8d1...` | 固定同候选真实扩展安装/Chrome 手势/权限存储验证 |
+| 已安装 Side Panel 的真实用户保存、删除、重开、升级 | **NOT_TESTED**，没有 Mac 设备/授权/包身份回执 | 依上一节 5 步清单作独立真实 Chrome 验收 |
+| 用户一句话→AI 自动路由 Skill→写工具源码→安全安装 | **PRODUCT_ENTRY_NOT_IMPLEMENTED**；当前只可由 AI/人按既有 Skill 分阶段工作 | 先完成一条完整真实样板证据，再决定是否需要原产品入口最小接线 |
+| 与无规范流程的实际工时/返工/成本对比 | **NOT_TESTED**（未运行 6 对 Codex，未有独立评价） | 固定同一模型/HEAD/输入，存私有原始事件，评审语义与返工/文件改动量 |
+
+**当前重要阻塞不是再加需求文档，而是最后的两类真实证据**：一是独立 Codex 自然语言推理的实际正确性/返工测量，二是候选工具在用户授权的真实 Chrome 里的实际安装/更新、数据持久化和恢复。R2.1 不把 `Node+Mock` 升格为这两类 PASS。
+
+**下一次最小执行**：先在用户 Mac 的当前 `main` 只读核对并运行 `node scripts/agent-skills-r22-eval.mjs --repo "$PWD" --mode reasoning --max-tests 2`（一对真实模型输出，需已登录/知晓费用，不动源码）；由独立评审识别 P0 遗漏及未经授权新增。随后选 `quick-notes`，在明确的隔离 Chrome 验收 Profile 通过唯一安装器升级并真实验证 A-QN-002/004/005/006。无需重跑已同源且输入未变的模拟视觉测试。
