@@ -1,0 +1,29 @@
+:root{color-scheme:light;--paper:#fff;--bg:#f6f7fa;--ink:#202632;--sub:#657084;--line:#e2e6ed;--brand:#3969cb;--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans CJK SC",sans-serif;background:var(--bg);color:var(--ink)}
+*{box-sizing:border-box}body{margin:0;min-height:100vh}button{font:inherit;cursor:pointer}button:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.preview-frame{max-width:1120px;margin:0 auto;padding:28px 24px 64px}
+.preview-header{display:flex;gap:24px;justify-content:space-between;align-items:center;margin-bottom:24px}
+.eyebrow{font-size:11px;font-weight:750;letter-spacing:.12em;color:var(--brand)}
+h1{font-size:25px;line-height:1.3;letter-spacing:-.02em;margin:8px 0}.title-note{font-size:16px;font-weight:500;color:var(--sub)}
+.preview-header p{margin:0;color:var(--sub)}.preview-brand{width:64px;height:64px;border-radius:18px;display:grid;place-items:center;background:#e9f0ff;color:#3162b8;font-weight:800;font-size:23px;flex:none}
+.preview-info{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 0 16px}
+.preview-info>div{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;gap:12px;align-items:center;font-size:12px}
+.preview-info strong{color:var(--brand);font-size:16px}.preview-status{border:1px solid #cddcf6;background:#eff5ff;color:#28539b;padding:12px 14px;border-radius:10px;margin-bottom:12px;overflow-wrap:anywhere}
+.preview-status[data-state="error"]{border-color:#e8c4c4;color:#992f2f;background:#fff4f4}
+.preview-status[data-state="stopped"]{border-color:#e7d3ae;color:#72511c;background:#fff7e9}
+.preview-controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.preview-controls button{min-height:36px;background:#fff;color:var(--ink);border:1px solid #d5dce8;border-radius:8px;padding:6px 12px}
+.preview-controls button:hover{background:#eef3fb}.preview-controls button.danger{margin-left:auto;color:#9d3d3d}
+.preview-conversation{margin:0 auto;max-width:880px;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:12px 28px;min-width:0;transition:max-width .15s ease}
+.preview-conversation.is-narrow{max-width:320px;padding:8px}
+.conversation-label{font-size:12px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;color:var(--brand);border-bottom:1px solid var(--line);padding:12px 2px}
+.conversation-label span{color:var(--sub)}.chat-turn{display:flex;gap:14px;border-bottom:1px solid var(--line);padding:24px 0;min-width:0}
+.chat-turn:last-child{border-bottom:0}.turn-avatar{width:29px;height:29px;border-radius:9px;display:grid;place-items:center;background:#161f32;color:#fff;font-size:11px;flex:none}
+.turn-content{flex:1;min-width:0}.markdown{font-size:14px;line-height:1.7;overflow-wrap:anywhere}.markdown h2{font-size:18px;margin:0 0 10px}.markdown h3{font-size:15px;margin:14px 0 6px}.markdown p{margin:0 0 10px}
+.markdown ul{padding-left:22px}.markdown ul ul{margin:4px 0}.markdown blockquote{border-left:3px solid #bdd0ef;padding-left:12px;margin:12px 0;color:#505f73}
+.markdown pre{background:#f1f4f9;padding:10px;overflow:auto;font-size:12px;border-radius:8px}
+.markdown table{border-collapse:collapse;width:100%;font-size:12px}.markdown th,.markdown td{border:1px solid var(--line);padding:6px;text-align:left}
+.markdown a{color:var(--brand)}.actions{display:flex;align-items:center;gap:4px;flex-wrap:wrap;min-width:0;margin-top:8px}
+.actions button{min-height:34px;padding:6px 10px;color:var(--sub);border:0;border-radius:8px;background:transparent}
+.actions button:hover{background:#eef2f7}.preview-footer{margin:20px auto 0;max-width:880px;color:var(--sub);font-size:12px;line-height:1.7}
+@media(max-width:600px){.preview-frame{padding:16px 12px 40px}.preview-header{align-items:flex-start}.preview-brand{display:none}.preview-info{grid-template-columns:1fr}.preview-controls button.danger{margin-left:0}.preview-conversation{padding:8px 10px;border-radius:10px}.chat-turn{gap:7px}.turn-avatar{width:24px;height:24px}.title-note{display:block}}
+@media(prefers-reduced-motion:reduce){.preview-conversation{transition:none}}

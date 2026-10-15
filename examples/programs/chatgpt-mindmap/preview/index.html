@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ChatGPT 思维导图 · 真实 XMind 本地预览</title>
+  <link rel="stylesheet" href="/preview/preview.css">
+  <!-- Exact local scripts only. The loopback server verifies every byte before serving. -->
+  <script defer src="/__fixed_xmind/jszip.min.js"></script>
+  <script defer src="/__fixed_xmind/polyfill-45b9836beb.min.js"></script>
+  <script defer src="/__fixed_xmind/xmind-sdk.bundle.js"></script>
+  <script defer src="/__fixed_xmind/snowbrush-2c2b5d62b5.js"></script>
+  <script type="module" src="/preview/app.js"></script>
+</head>
+<body>
+  <div class="preview-frame">
+    <header class="preview-header">
+      <div><span class="eyebrow">OPENDESK · LOCAL ENGINE PROOF</span>
+        <h1>ChatGPT 思维导图 <span class="title-note">真实 XMind 预览</span></h1>
+        <p>直接运行当前插件的回复识别、内容提取与 XMind 只读绘图代码，不是设计稿或模拟引擎。</p>
+      </div>
+      <div class="preview-brand" aria-hidden="true">XM</div>
+    </header>
+    <section class="preview-info" aria-label="验收范围">
+      <div><strong>01</strong><span>固定引擎文件 SHA-256 校验</span></div>
+      <div><strong>02</strong><span>真实 Workbook → 原 XMind Canvas</span></div>
+      <div><strong>03</strong><span>多回复独立缩放／折叠／清理</span></div>
+    </section>
+    <div class="preview-status" id="preview-status" role="status" aria-live="polite">正在检查本地 XMind 引擎…</div>
+    <div class="preview-controls" role="group" aria-label="预览验证操作">
+      <button type="button" id="preview-width" aria-pressed="false">切换 320px 容器</button>
+      <button type="button" id="preview-redraw">重建 B 操作栏</button>
+      <button type="button" id="preview-update">更新 B 回复正文</button>
+      <button type="button" id="preview-stop" class="danger">Stop 并检查残余样式</button>
+    </div>
+    <div class="preview-conversation" id="preview-conversation">
+      <div class="conversation-label">本地 ChatGPT DOM fixture <span>点击每条回复操作栏旁的「思维导图」</span></div>
+      <article class="chat-turn" data-testid="conversation-turn-1">
+        <div class="turn-avatar" aria-hidden="true">AI</div>
+        <div class="turn-content">
+          <div data-message-author-role="assistant" data-message-id="preview-answer-A">
+            <div class="markdown prose">
+              <h2>功能实施计划</h2>
+              <p>这是第一条独立回复。导图必须能准确保留开头正文、标题层次、列表以及备注。</p>
+              <h3>核心功能</h3>
+              <ul><li>内容结构解析<ul><li>识别真实标题和段落</li><li>保留嵌套列表</li></ul></li>
+                <li>按回复独立缩放</li><li>折叠和展开真实分支</li></ul>
+              <h3>安全与生命周期</h3>
+              <p>全部计算在本地；关闭时恢复原始 HTML，不能遗留有权限的后台任务。</p>
+            </div>
+          </div>
+          <div class="actions" role="toolbar" data-testid="message-actions">
+            <button data-testid="copy-turn-action-button" type="button" aria-label="Copy">复制</button>
+            <button type="button" aria-label="Good response">赞</button>
+            <button type="button" aria-label="Bad response">踩</button>
+          </div>
+        </div>
+      </article>
+      <article class="chat-turn" data-testid="conversation-turn-2">
+        <div class="turn-avatar" aria-hidden="true">AI</div>
+        <div class="turn-content">
+          <div data-message-author-role="assistant" data-message-id="preview-answer-B">
+            <div class="markdown prose">
+              <h2>功能实施计划</h2>
+              <p>标题与 A 相同，但这是另一个回复，缩放、折叠与控制器必须独立。</p>
+              <ul><li>独立节点身份</li><li>独立画布和缩放</li><li>恢复本条原文</li></ul>
+            </div>
+          </div>
+          <div class="actions" role="toolbar" data-testid="message-actions">
+            <button data-testid="copy-turn-action-button" type="button" aria-label="Copy">复制</button>
+            <button type="button" aria-label="Good response">赞</button>
+          </div>
+        </div>
+      </article>
+      <article class="chat-turn" data-testid="conversation-turn-3">
+        <div class="turn-avatar" aria-hidden="true">AI</div>
+        <div class="turn-content">
+          <div data-message-author-role="assistant" data-message-id="preview-answer-C">
+            <div class="markdown prose">
+              <p>这条回答没有标题，包含引用、表格、代码和链接。</p>
+              <blockquote>引用必须保持可见语义，而不是丢失内容。</blockquote>
+              <table><thead><tr><th>验证项目</th><th>状态</th></tr></thead>
+                <tbody><tr><td>真实引擎</td><td>待点击运行验证</td></tr><tr><td>正式安装</td><td>NOT_TESTED</td></tr></tbody></table>
+              <pre><code>function render() {
+  return "literal # heading";
+}</code></pre>
+              <p>参考链接：<a href="https://chatgpt.com/" rel="noreferrer">ChatGPT</a>。</p>
+            </div>
+          </div>
+          <div class="actions" role="toolbar" data-testid="message-actions">
+            <button data-testid="copy-turn-action-button" type="button" aria-label="Copy">复制</button>
+            <button type="button" aria-label="Good response">赞</button>
+          </div>
+        </div>
+      </article>
+    </div>
+    <footer class="preview-footer">仅证明离线本地预览；不能代替 USER_SCRIPT 正式安装、ChatGPT 已登录页面、原 Mindbank 视觉比对或许可证批准。四份引擎资源不包含在此仓库中。</footer>
+  </div>
+</body>
+</html>
