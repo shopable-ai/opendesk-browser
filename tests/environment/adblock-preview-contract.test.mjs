@@ -109,3 +109,58 @@ test('untrusted scenario uses text only, and in-memory mock refuses unlisted API
   await assert.rejects(init('permission-denied').request('adblock.status',{}),/尚未授权/);
   await assert.rejects(init('error').request('adblock.status',{}),/读取模拟 DNR/);
 });
+
+
+test('AdBlock preview first DNR grant is restart-fenced and messages stay bounded',async()=>{
+  const code=await source('scripts/preview/adblock-host-preview.js');
+  const handlers=new Map(),messages=[],buttons=[{disabled:false,focus(){}},{disabled:false,focus(){}}];
+  let click;
+  const mount={innerHTML:'',contains:node=>buttons.includes(node),
+    querySelectorAll:()=>buttons,addEventListener:(name,fn)=>{if(name==='click')click=fn;}};
+  const frame={style:{},contentWindow:{postMessage:msg=>messages.push(msg)},addEventListener(){}};
+  const dialog={open:false,showModal(){this.open=true;},close(){this.open=false;},addEventListener(){}};
+  const elements={
+    'od-preview-adblock-host':mount,'opendesk-preview-frame':frame,
+    'opendesk-preview-adblock-snapshots':{textContent:JSON.stringify({
+      scenario:'empty',snapshots:{'no-permission':'no-permission','restart':'restart',
+      'off':'off','on-site-on':'on-site-on','on-site-off':'on-site-off'}})},
+    'od-preview-adblock-restore-dialog':dialog,
+    'od-preview-adblock-restore-description':{textContent:''},
+    'od-preview-adblock-feedback':{textContent:''},
+    'od-preview-adblock-restore-cancel':{addEventListener(){},focus(){}},
+    'od-preview-adblock-restore-accept':{addEventListener(){}},
+    'od-preview-reset':{addEventListener(){}}
+  };
+  vm.runInNewContext(code,{
+    window:{addEventListener:(name,fn)=>handlers.set(name,fn)},
+    document:{getElementById:id=>elements[id]||null}
+  },{timeout:1000});
+  assert.equal(mount.innerHTML,'no-permission');
+  click({isTrusted:true,target:{closest:()=>buttons[0]}});
+  assert.equal(mount.innerHTML,'restart');
+  assert.equal(messages.at(-1).enabled,false);
+  assert.equal(messages.at(-1).granted,true);
+  assert.equal(messages.at(-1).restartRequired,true);
+  assert.match(elements['od-preview-adblock-feedback'].textContent,/重启 Chrome/);
+  click({isTrusted:true,target:{closest:()=>buttons[0]}});
+  assert.equal(mount.innerHTML,'restart','cannot enable until restart');
+  handlers.get('message')({source:frame.contentWindow,origin:'https://evil.example',
+    data:{type:'opendesk.preview.adblock.height',height:400}});
+  assert.equal(frame.style.height,undefined);
+  handlers.get('message')({source:frame.contentWindow,origin:'null',
+    data:{type:'opendesk.preview.adblock.height',height:140}});
+  assert.equal(frame.style.height,'140px');
+});
+
+test('AdBlock offline restore requires accepted matching receipt and product initial height',async()=>{
+  const [host,mock,builder]=await Promise.all([
+    source('scripts/preview/adblock-host-preview.js'),
+    source('scripts/preview/adblock-mock.js'),
+    source('scripts/preview/build-preview.mjs')
+  ]);
+  assert.match(host,/pendingAck=null/);
+  assert.match(host,/message\.requestId!==pendingAck\.requestId/);
+  assert.match(host,/!state\.exceptions\.includes\(site\)/);
+  assert.match(mock,/announce\(data\.requestId\)/);
+  assert.match(builder,/HEIGHT:String\(tool==='adblock'\?220:height\)/);
+});

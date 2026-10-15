@@ -130,7 +130,7 @@ export async function generatePreview({
     ADBLOCK_SNAPSHOTS_JSON:safeJS(adblock?{scenario,snapshots:adblock.snapshots}:{}),
     ADBLOCK_PREVIEW_SCRIPT:adblockScript,
     LIGHT_CSS:lightShellOverride,WIDTH:String(width),
-    HEIGHT:String(tool==='adblock'?140:height),
+    HEIGHT:String(tool==='adblock'?220:height),
     NAV:shell.nav,HEADER:shell.head,
     SOURCE_COMMIT:commit,DESIGN_SHA:digest,SHELL_SHA:shell.digest,UI_SHA:uiDigest,
     MANIFEST_JSON:safeJS(manifest),FRAME_BASE64:base64(frameHtml)

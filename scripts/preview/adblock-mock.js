@@ -21,8 +21,8 @@
   const pending=new Map();
   let seq=0;
   const fault=message=>{throw Error('[离线模拟] '+message);};
-  const announce=()=>window.parent.postMessage({
-    type:'opendesk.preview.adblock.exceptions',exceptions:[...state.exceptions]},'*');
+  const announce=requestId=>window.parent.postMessage({
+    type:'opendesk.preview.adblock.exceptions',requestId,exceptions:[...state.exceptions]},'*');
   async function request(operation,payload={}){
     if(operation!=='adblock.status'&&operation!=='adblock.site.restore')
       return fault('未批准的 API 操作');
@@ -55,15 +55,16 @@
       }
       state.exceptions=state.exceptions.filter(host=>host!==pendingRequest.host);
       pendingRequest.resolve(clone({...state,rules:{verified:true},refreshRequired:true}));
-      announce();
+      announce(data.requestId);
     }else if(data.type==='opendesk.preview.adblock.state'){
       if(scenario!=='success'&&scenario!=='empty'&&scenario!=='untrusted')return;
-      if(typeof data.enabled!=='boolean'||!Array.isArray(data.exceptions)||
+      if(typeof data.enabled!=='boolean'||typeof data.granted!=='boolean'||typeof data.restartRequired!=='boolean'||!Array.isArray(data.exceptions)||
          data.exceptions.length>3||
          data.exceptions.some(host=>!ordinary.includes(host)))return;
-      state.enabled=data.enabled;
-      state.permissions.dnr=true;
-      state.rules.verified=true;
+      state.enabled=data.enabled&&!data.restartRequired;
+      state.restartRequired=data.restartRequired;
+      state.permissions.dnr=data.granted;
+      state.rules.verified=data.granted&&!data.restartRequired;
       state.exceptions=[...new Set(data.exceptions)];
       window.dispatchEvent(new Event('focus'));
     }
