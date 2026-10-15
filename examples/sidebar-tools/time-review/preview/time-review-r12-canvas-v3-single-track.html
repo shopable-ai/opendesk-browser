@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>OpenDesk Browser · Time Review R1.2 · 单行 24 小时时间线 V3 原型</title>
+<style>
+:root{color-scheme:light;--ink:#1b2c49;--sub:#53647e;--line:#e1e8f1;--brand:#365eda;--paper:#fff;--bg:#f5f7fb;--positive:#138263;--negative:#ae3d4b;--radius:12px}
+*{box-sizing:border-box}html{min-height:100%}body{margin:0;background:#eff3f9;font:13px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,sans-serif;color:var(--ink)}[hidden]{display:none!important}button,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.55;cursor:not-allowed}button:focus-visible,select:focus-visible,canvas:focus-visible{outline:2px solid var(--brand);outline-offset:2px}p,h1,h2,h3{margin:0}button{touch-action:manipulation}
+.stage{max-width:1100px;padding:22px 18px;margin:0 auto}.stage-header{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:15px}.eyebrow{font-size:11px;font-weight:800;color:#5c73a5;letter-spacing:.11em}.stage-header h1{font-size:22px;letter-spacing:-.03em}.stage-desc{font-size:12px;color:var(--sub)}.layout{display:grid;grid-template-columns:minmax(0,385px) minmax(0,1fr);gap:24px;align-items:start}.preview-col{min-width:0}.demo-controls{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:10px}.demo-controls span{font-size:11px;color:#687b94;margin-right:3px}.demo-controls button{border:1px solid #d4dfef;background:#fff;border-radius:8px;padding:6px 10px;color:#576e8e;font-size:11px}.demo-controls button[aria-pressed="true"]{background:#ecf1ff;border-color:#a9bff3;color:#2e55bd;font-weight:750}
+.panel{min-width:0;overflow:hidden;border:1px solid #cbd8e9;border-radius:15px;background:var(--bg);box-shadow:0 14px 30px #24406115}.shell{background:#fff;display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid var(--line);padding:10px 13px}.brand{font-weight:800;display:flex;align-items:center;gap:7px;white-space:nowrap}.brand i{background:var(--brand);display:grid;place-items:center;color:white;border-radius:6px;font-size:16px;width:24px;height:24px;font-style:normal}.shell-links{display:flex;align-items:center;gap:10px;font-size:11px;color:#6d7f99}.shell-links b{background:#ebf0ff;color:#3158c5;border-radius:7px;padding:5px 8px}.toolhead{display:flex;justify-content:space-between;align-items:center;gap:12px;background:white;padding:10px 13px;border-bottom:1px solid var(--line)}.toolinfo{display:flex;align-items:center;gap:9px;min-width:0}.toolicon{display:grid;place-items:center;width:36px;height:36px;border-radius:10px;background:#eaf0ff;color:var(--brand);font-size:22px;flex:none}.toolinfo h2{font-size:15px;line-height:1.3}.toolinfo small{display:block;color:#7386a2;font-size:10px;margin-top:3px}.icon-button{display:grid;place-items:center;width:32px;height:32px;flex:none;background:#fff;border:1px solid var(--line);border-radius:8px;color:#4b6694;font-size:17px}
+.content{padding:12px;max-height:850px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#c9d5e5 transparent;min-height:575px}.datebar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}.datebar button{height:30px;width:30px;border:1px solid #dde6f0;background:white;color:#4f6488;border-radius:8px;font-size:17px}.date-center{text-align:center}.date-center b{display:block;font-size:12px}.date-center small{color:#7a8ca4;font-size:10px}.sample-pill{padding:3px 7px;border-radius:999px;font-size:10px;color:#95601f;background:#fff1d7;font-weight:700}
+.hero{background:#fff;border:1px solid #dce5f0;border-radius:12px;padding:13px}.hero-metrics{display:grid;grid-template-columns:1.12fr 1fr;gap:8px}.hero-metric small{display:block;color:#687b97;font-size:11px}.hero-metric b{display:block;font-size:22px;line-height:1.3;margin-top:4px;font-variant-numeric:tabular-nums;letter-spacing:-.03em}.hero-metric.main b{font-size:25px}.hero-metric.important{border-left:1px solid #e2eaf3;padding-left:13px}.hero-metric.important b{color:#2756b5}.hero-footer{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:11px;padding-top:10px;border-top:1px solid #eef1f7}.rate{display:flex;align-items:center;gap:9px}.rate strong{font-size:20px;color:#234f9b;line-height:1}.rate small{font-size:10px;color:#6e7e95}.compare{font-size:10px;text-align:right;color:#62758f}.compare b{color:#168066;display:block;font-size:11px}.eff-track{height:6px;border-radius:6px;background:#eaf0f9;overflow:hidden;margin-top:11px}.eff-track i{display:block;background:#4270d7;width:0;height:100%;border-radius:6px;transition:width .15s}
+.sectionbar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:14px 0 8px}.sectionbar h3{font-size:12px;font-weight:800;letter-spacing:-.005em}.sectionbar span,.sectionbar button{font-size:10px;color:#7586a1}.sectionbar button{border:0;background:none;color:#3159bc;padding:4px 0;font-weight:700}.surface{border:1px solid #dfe6f0;background:#fff;border-radius:11px;padding:11px}.compact-label{display:flex;align-items:center;justify-content:space-between;gap:5px;color:#70829c;font-size:10px;margin:0 0 8px}.distribution{display:flex;gap:2px;background:#edf2f7;border-radius:5px;overflow:hidden;height:10px}.distribution i{display:block;min-width:0;height:100%}.quadrants{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:10px}.qcard{display:flex;flex-direction:column;align-items:stretch;text-align:left;gap:4px;border:1px solid #e4eaf3;border-radius:9px;background:#fff;padding:9px;min-width:0;color:var(--ink);border-top:3px solid var(--cat);min-height:93px}.qcard:hover{background:#f8faff;border-color:#b4c8ec;border-top-color:var(--cat)}.qcard .q-name{display:block;font-weight:750;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.qcard .q-desc{display:block;color:#7587a0;font-size:10px}.qcard .q-bottom{display:flex;justify-content:space-between;align-items:baseline;gap:4px;margin-top:auto}.qcard .q-bottom b{font-size:15px;font-variant-numeric:tabular-nums}.qcard .q-bottom small{color:#71849b;font-size:10px}.qcard .q-meter{display:block;height:3px;background:#eef3f9;border-radius:4px;overflow:hidden}.qcard .q-meter i{display:block;background:var(--cat);height:100%}.extra-categories{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:8px}.extra-card{display:flex;align-items:center;justify-content:space-between;gap:5px;min-width:0;padding:8px 9px;background:#f9fafc;border:1px solid #e4eaf3;border-radius:8px;text-align:left;color:var(--ink)}.extra-card .extra-name{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:750}.extra-card .dot{display:inline-block;height:7px;width:7px;flex:none;border-radius:3px;background:var(--cat)}.extra-card .extra-min{font-weight:750;font-size:12px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.timeline-card{background:#fff;border:1px solid #dce5f0;padding:11px;border-radius:11px}.timeline-canvas{display:block;max-width:100%;width:100%;height:54px;touch-action:pan-y;cursor:crosshair;border-radius:6px;background:#fcfdff}.timeline-readout{display:flex;gap:8px;align-items:center;min-height:31px;padding:7px 9px;background:#f5f8fd;border-radius:8px;color:#4c6284;font-size:11px;margin-top:7px}.timeline-readout i{width:8px;height:8px;border-radius:3px;background:#a9b7c9;flex:none}.timeline-readout b{font-variant-numeric:tabular-nums}
+.current-card{background:#fff;border:1px solid #dce5f0;border-radius:11px;padding:11px}.site-first{display:flex;justify-content:space-between;align-items:start;gap:8px}.site-first b{font-size:12px}.site-first small{display:block;color:#72849d;font-size:10px;margin-top:3px}.site-first>strong{font-size:13px;white-space:nowrap}.site-category{display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid #eef1f7;margin-top:9px;padding-top:9px;font-size:11px}.site-category span{color:#6c7e98}.site-category b{color:#355a9d}.text-link{padding:3px;border:0;background:none;color:#3159bb;font-size:11px;font-weight:750}.inline-edit{display:flex;gap:7px;margin-top:8px}.inline-edit select{min-width:0;flex:1;background:white;border:1px solid #cbd8eb;border-radius:8px;padding:7px}.inline-edit button{background:var(--brand);color:#fff;border:0;border-radius:8px;padding:7px 11px}.actions{display:flex;gap:8px;margin-top:11px}.actions button{flex:1;padding:9px 5px;font-size:11px;font-weight:750;border:1px solid #d0daee;background:white;color:#315aa3;border-radius:8px}.actions button.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+.footer{display:flex;align-items:center;gap:7px;padding:9px 12px;background:white;border-top:1px solid #e2e9f3;font-size:10px;color:#687c97}.footer .status-dot{width:7px;height:7px;border-radius:100%;background:#178663}.footer .status-dot.warn{background:#c18b34}.footer .status-dot.idle{background:#a6b4c6}.footer button{margin-left:auto;color:#355db8;border:0;background:transparent;font-weight:750;font-size:10px}.toast{background:#edf3ff;color:#3156a5;padding:9px 12px;font-size:11px;border-top:1px solid #c9d8f6}
+.view-top{display:flex;justify-content:space-between;align-items:center;gap:5px;margin-bottom:12px}.view-top button{border:0;background:transparent;padding:5px 0;color:#365eba}.view-top h3{font-size:14px}.detail-list{display:grid;gap:7px}.detail-item{border:1px solid var(--line);background:white;padding:10px;border-radius:9px;display:flex;justify-content:space-between;gap:10px;align-items:center}.detail-item>span{min-width:0}.detail-item b,.detail-item small{display:block}.detail-item b{font-size:12px;overflow:hidden;text-overflow:ellipsis}.detail-item small{color:#71849b;font-size:10px;margin-top:4px}.detail-item>strong{font-size:12px;white-space:nowrap}.pill-back{background:white;border:1px solid #d5e0f0;border-radius:8px;padding:8px;color:#3457a6;margin-top:9px}.setting{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);background:white;border-radius:10px;padding:11px;margin-bottom:8px}.setting b,.setting small{display:block}.setting small{margin-top:4px;font-size:10px;color:#71849b}.switch{width:36px;height:21px;border:0;background:#a9b6c8;border-radius:20px;padding:3px;flex:none;display:flex;align-items:center}.switch i{width:15px;height:15px;border-radius:50%;background:white;transition:transform .12s}.switch[aria-checked="true"]{background:var(--brand)}.switch[aria-checked="true"] i{transform:translateX(15px)}.setting .smallbtn{border:1px solid #dce5f2;background:white;color:#3558a3;border-radius:7px;padding:6px 8px}.footnote{font-size:10px;color:#788aa2;line-height:1.7;margin-top:9px}
+.aside{min-width:0}.aside h2{font-size:15px;margin:3px 0 10px}.aside-card{border:1px solid #dde6f0;border-radius:12px;background:white;padding:16px;margin-bottom:11px}.aside-card h3{font-size:13px;margin-bottom:8px}.aside-card p{font-size:12px;color:#62748d;line-height:1.8;margin-top:6px}.aside-card code{font-size:11px;overflow-wrap:anywhere;color:#305d9e;background:#f1f5fb;padding:2px 4px;border-radius:4px}.aside-list{padding-left:18px;font-size:12px;color:#60738e;line-height:1.95;margin:5px 0}.aside-card a{font-size:12px;color:#3159b6;text-decoration:none}.aside-card a:hover{text-decoration:underline}.legend{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}.legend div{font-size:11px;padding:9px;background:#f5f8fc;border-radius:8px}.legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px}.notice{font-size:11px;color:#84632d;background:#fff8eb;border-left:3px solid #d7aa56;padding:11px;border-radius:0 7px 7px 0}
+@media(max-width:795px){.layout{grid-template-columns:1fr}.preview-col{max-width:440px}.aside{max-width:630px}.stage{max-width:670px}}@media(max-width:390px){.stage{padding:12px 8px}.content{padding:10px}.hero{padding:11px}.hero-metric b{font-size:19px}.hero-metric.main b{font-size:22px}.qcard{padding:8px}.qcard .q-name{font-size:10px}.qcard .q-bottom b{font-size:13px}.sample-pill{padding:3px 5px}}
+@media(prefers-reduced-motion:reduce){.eff-track i,.qcard .q-meter i,.switch i{transition:none}}
+</style>
+</head>
+<body>
+<main class="stage" id="tr-canvas-v2">
+  <header class="stage-header"><div><div class="eyebrow">OPENDESK · TIME REVIEW</div><h1>R1.2 · 六分类时间复盘 / 单行 V3</h1></div><p class="stage-desc">仅供界面设计验收 · 所有数据均为合成示例</p></header>
+  <div class="layout">
+    <div class="preview-col">
+      <div class="demo-controls" aria-label="切换原型场景"><span>状态预览</span><button data-scene="demo" aria-pressed="true">今日记录</button><button data-scene="offline" aria-pressed="false">同步异常</button><button data-scene="empty" aria-pressed="false">无数据</button></div>
+      <section class="panel" aria-label="Time Review Side Panel 预览">
+        <div class="shell"><div class="brand"><i aria-hidden="true">◈</i>OpenDesk</div><div class="shell-links"><span>任务</span><b>工具</b><span>开发</span></div></div>
+        <div class="toolhead"><div class="toolinfo"><div class="toolicon" aria-hidden="true">◷</div><div><h2>时间回顾</h2><small>看见时间去向，持续改进</small></div></div><button class="icon-button" data-action="settings" type="button" aria-label="工具设置" title="工具设置">⚙</button></div>
+        <div class="content" id="overview">
+          <div class="datebar"><button type="button" data-action="prev" aria-label="前一天">‹</button><div class="date-center"><b id="date">2026年10月11日</b><small>按当天时间归类统计</small></div><button type="button" data-action="next" aria-label="后一天">›</button><span class="sample-pill">示例</span></div>
+          <div id="has-data">
+            <section class="hero" aria-label="今日时间质量"><div class="hero-metrics"><div class="hero-metric main"><small>今日已记录</small><b id="total-time">5小时12分</b></div><div class="hero-metric important"><small>重要时间 · 工作＋学习</small><b id="important-time">3小时24分</b></div></div><div class="hero-footer"><div class="rate"><strong id="efficiency">65%</strong><small>生产率</small></div><div class="compare">与昨日相比（模拟） <b id="comparison">+4 个百分点</b></div></div><div class="eff-track"><i id="eff-bar" style="width:65%"></i></div></section>
+            <div class="sectionbar"><h3>时间分类</h3><span>四象限 + 生活 + 未分类</span></div>
+            <section class="surface" aria-label="六分类时间分布"><div class="compact-label"><span>各类别占已记录时间的比例</span><strong id="total-category">合计 5小时12分</strong></div><div class="distribution" id="distribution" aria-hidden="true"></div><div class="quadrants" id="quadrants"></div><div class="extra-categories" id="extra-categories"></div></section>
+            <div class="sectionbar"><h3>今日时间线</h3></div>
+            <section class="timeline-card" aria-label="今日 24 小时时间分布"><canvas id="minute-canvas" class="timeline-canvas" width="680" height="108" tabindex="0" role="img" aria-label="全天单行 24 小时时间线。左右方向键移动10分钟，上下方向键移动1小时，Home 和 End 定位当天起终点" aria-describedby="timeline-readout"></canvas><div id="timeline-readout" class="timeline-readout" aria-live="polite" hidden><i id="timeline-swatch"></i><span id="timeline-text"></span></div></section>
+            <div class="sectionbar"><h3>当前网站</h3><button data-action="records" type="button">全部明细 →</button></div>
+            <section class="current-card"><div class="site-first"><div><b>example.dev</b><small>本页模拟网站 · 今日累计</small></div><strong id="site-time">1小时31分</strong></div><div class="site-category"><span>分类：<b id="site-category">工作/生产</b></span><button type="button" class="text-link" data-action="edit">修改分类</button></div><div class="inline-edit" id="inline-edit" hidden><select id="type-select" aria-label="将该网站归入"><option value="1">工作/生产</option><option value="2">阅读学习</option><option value="3">聊天/新闻</option><option value="4">娱乐</option><option value="5">生活</option><option value="0">未分类</option></select><button type="button" data-action="save">应用</button></div></section>
+            <div class="actions"><button class="primary" type="button" data-action="records">分类明细</button><button type="button" data-action="report">完整时间报告 ↗</button></div>
+          </div>
+          <div class="surface" id="no-data" hidden><h3>这一天暂无时间记录</h3><p style="font-size:11px;color:#70829b;margin:9px 0">没有真实账号连接，示例仅提供 2026年10月11日 的演示数据。</p><button class="pill-back" type="button" data-action="today">返回示例日期</button></div>
+        </div>
+        <div class="content" id="records" hidden><div class="view-top"><button type="button" data-action="back">‹ 返回</button><h3 id="filter-heading">分类明细</h3></div><div class="hero"><div class="hero-metrics"><div class="hero-metric"><small>当前分类</small><b id="record-type" style="font-size:16px">全部</b></div><div class="hero-metric important"><small>分类时长</small><b id="record-time" style="font-size:17px">—</b></div></div></div><div class="sectionbar"><h3>网站与活动</h3><span id="record-count">仅合成示例</span></div><div class="detail-list" id="record-list"></div><button type="button" class="pill-back" data-action="all">查看全部分类</button></div>
+        <div class="content" id="settings" hidden><div class="view-top"><button type="button" data-action="back">‹ 返回概览</button><h3>工具设置</h3></div><div class="sectionbar"><h3>记录与同步</h3></div><div class="setting"><div><b>记录浏览活动</b><small>新版独立记录开关 · 尚未接后台</small></div><button class="switch" type="button" role="switch" id="record-switch" aria-label="记录浏览活动" aria-checked="true" data-action="record-toggle"><i></i></button></div><div class="setting"><div><b>账号与同步</b><small id="settings-sync">没有真实服务端连接</small></div><button class="smallbtn" type="button" data-action="sync">检查</button></div><div class="sectionbar"><h3>独立的专注管理</h3></div><div class="setting"><div><b>网站限时</b><small>历史 focusState，不等于时间记录开关</small></div><button class="switch" type="button" role="switch" id="focus-switch" aria-label="网站限时" aria-checked="false" data-action="focus-toggle"><i></i></button></div><p class="footnote">原型没有授权弹窗、不收集 Token、不联网，所有状态只在页面内模拟。</p></div>
+        <footer class="footer"><i class="status-dot" id="status-dot"></i><span id="status-label">演示数据 · 未连接真实后端</span><button type="button" data-action="settings">设置</button></footer>
+        <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+      </section>
+    </div>
+    <aside class="aside">
+      <h2>为什么重新设计时间线？</h2>
+      <div class="aside-card"><h3>复用旧版 Canvas 思路，改进侧栏阅读</h3><p>旧版 <code>time-review.vue</code> 的 <code>drawTimeFragment()</code> 将一天展开为 1440 个分钟槽位，按类别逐分钟着色，并绘制每小时与每 10 分钟刻度。另有由 <code>TodoTimeChartUtil</code> 生成的 10 分钟碎片小格图，二者并不是同一张图。</p><p>新版保留每分钟的分类数据口径，但在狭窄 Side Panel 把 24 小时分为上下两个 12 小时带，避免压缩成难以辨识的一条彩色横线。</p></div>
+      <div class="aside-card"><h3>重要信息重新排序</h3><ol class="aside-list"><li>顶部一张浅色摘要卡，同时呈现总时间、重要时间、生产率与昨日对比，避免多个重量级卡片抢占视线。</li><li>四象限使用 2 × 2 的紧凑卡片；生活和未分类保持独立。</li><li>Canvas 支持鼠标悬停、点击/触摸和键盘左右方向键定位分钟，直接查看时间与来源。</li><li>保留网站分类修改、明细下钻、同步状态与设置入口，减少顶部重复操作。</li></ol></div>
+      <div class="aside-card"><h3>六分类颜色与语义</h3><div class="legend"><div><i style="background:#1976d2"></i>工作/生产</div><div><i style="background:#3b8ad9"></i>阅读学习</div><div><i style="background:#b64f4f"></i>聊天/新闻</div><div><i style="background:#ec5d5d"></i>娱乐</div><div><i style="background:#c8992d"></i>生活</div><div><i style="background:#788494"></i>未分类</div></div></div>
+      <div class="notice"><b>演示范围：</b>页面中所有分钟、网站、昨日对比均为合成数据；分类保存不会调用网络。当前工具尚不能因原型完成而被判定为已正式安装或已接通后端。</div>
+    </aside>
+  </div>
+</main>
+<script>
+(()=>{'use strict';
+const root=document.getElementById('tr-canvas-v2');if(!root)return;
+const $=sel=>root.querySelector(sel);
+const categories=[
+{id:0,name:'未分类',quadrant:'待归类',color:'#788494'},
+{id:1,name:'工作/生产',quadrant:'重要且紧急',color:'#1976d2'},
+{id:2,name:'阅读学习',quadrant:'重要不紧急',color:'#3b8ad9'},
+{id:3,name:'聊天/新闻',quadrant:'紧急不重要',color:'#b64f4f'},
+{id:4,name:'娱乐',quadrant:'不重要不紧急',color:'#ec5d5d'},
+{id:5,name:'生活',quadrant:'独立生活类',color:'#c8992d'}];
+const sample=[
+{domain:'example.dev',title:'开发工作',type:1,start:'09:20',end:'10:11'},
+{domain:'learn.example',title:'技术阅读',type:2,start:'10:20',end:'11:11'},
+{domain:'docs.example',title:'整理项目需求',type:1,start:'11:30',end:'12:05'},
+{domain:'life.example',title:'生活日常',type:5,start:'12:20',end:'12:50'},
+{domain:'chat.example',title:'资讯沟通',type:3,start:'13:00',end:'13:42'},
+{domain:'example.dev',title:'开发工作',type:1,start:'14:30',end:'15:10'},
+{domain:'learn.example',title:'技术阅读',type:2,start:'15:20',end:'15:47'},
+{domain:'video.example',title:'休闲娱乐',type:4,start:'16:00',end:'16:24'},
+{domain:'unknown.example',title:'待整理网页',type:0,start:'16:30',end:'16:42'}];
+const model={scene:'demo',date:new Date(2026,9,11,12),view:'overview',selected:null,filter:null,changed:{},editing:false,record:true,focus:false};
+let lastSummary=null,canvasLayout=null;
+const dayString=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const toMinute=t=>{const [h,m]=t.split(':').map(Number);return h*60+m};
+const minLabel=m=>`${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;
+const showMins=n=>n>=60?`${Math.floor(n/60)}小时${n%60?n%60+'分':''}`:`${n}分`;
+const events=()=>model.scene==='empty'||dayString(model.date)!=='2026-10-11'?[]:sample.map(e=>({...e,type:Object.prototype.hasOwnProperty.call(model.changed,e.domain)?model.changed[e.domain]:e.type}));
+function summarize(rows){
+ const bins=Array(1440).fill(null);for(const e of rows){let start=Math.max(0,toMinute(e.start)),end=Math.min(1440,toMinute(e.end));for(let m=start;m<end;m++){// 浏览器优先；当前演示无重叠。保留 type 0：不能把未分类当成空白。
+  if(bins[m]===null)bins[m]={type:e.type,domain:e.domain,title:e.title};
+ }}
+ const counts=Array(6).fill(0),sites=new Map();for(let m=0;m<1440;m++){const x=bins[m];if(!x)continue;counts[x.type]++;let t=sites.get(x.domain);if(!t){t={domain:x.domain,type:x.type,title:x.title,minutes:0};sites.set(x.domain,t)}t.minutes++}
+ const total=counts.reduce((a,b)=>a+b,0),important=counts[1]+counts[2],rate=total?Math.round(important*100/total):0;
+ return{bins,counts,sites,total,important,rate};
+}
+function el(type,klass,txt){const n=document.createElement(type);if(klass)n.className=klass;if(txt!==undefined)n.textContent=txt;return n}
+function tip(msg){const n=$('#toast');n.textContent=msg;n.hidden=false}
+function paintCanvas(){
+ const c=$('#minute-canvas'),data=lastSummary;if(!c||!data)return;
+ const r=c.getBoundingClientRect(),w=Math.max(1,r.width||c.clientWidth||320),h=54,dpr=Math.min(window.devicePixelRatio||1,3);
+ if(c.width!==Math.round(w*dpr)||c.height!==Math.round(h*dpr)){c.width=Math.round(w*dpr);c.height=Math.round(h*dpr)}
+ const ctx=c.getContext('2d');if(!ctx)return;
+ ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);ctx.font='10px -apple-system,system-ui,sans-serif';ctx.textBaseline='middle';
+ const left=0,bw=w,barY=7,laneHeight=18;canvasLayout={left,bw,barY,laneHeight,w};
+ ctx.save();ctx.beginPath();if(typeof ctx.roundRect==='function')ctx.roundRect(left,barY,bw,laneHeight,5);else ctx.rect(left,barY,bw,laneHeight);ctx.clip();
+ ctx.fillStyle='#eef2f8';ctx.fillRect(left,barY,bw,laneHeight);
+ for(let j=0;j<1440;){const item=data.bins[j];let k=j+1;while(k<1440&&data.bins[k]?.type===item?.type)k++;
+  if(item){ctx.fillStyle=categories[item.type].color;ctx.fillRect(left+j/1440*bw,barY,Math.max((k-j)/1440*bw,.5),laneHeight)}j=k;
+ }
+ ctx.restore();
+ ctx.fillStyle='#798ba3';const tickStep=bw<110?4:bw<230?2:1;
+ for(let q=0;q<=4;q+=tickStep){const tm=q*360,x=left+q*bw/4;ctx.textAlign=q===0?'left':q===4?'right':'center';ctx.fillText(minLabel(tm),x,barY+laneHeight+14)}
+ if(model.selected!==null){const x=left+model.selected/1440*bw;ctx.fillStyle='#203047';ctx.fillRect(Math.max(left,Math.min(left+bw-1,x)),barY-3,1.5,laneHeight+6)}
+}
+function renderPeek(){const s=lastSummary;if(!s||model.selected===null)return;const m=Math.max(0,Math.min(1439,model.selected??0)),item=s.bins[m];$('#timeline-text').textContent=item?`${minLabel(m)} · ${categories[item.type].name} · ${item.domain}`:`${minLabel(m)} · 未记录（不等于未分类）`;$('#timeline-swatch').style.background=item?categories[item.type].color:'#b3c0d0'}
+function render(){
+ root.querySelectorAll('[data-scene]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.scene===model.scene)));
+ for(const v of ['overview','records','settings'])$('#'+v).hidden=model.view!==v;
+ $('#date').textContent=`${model.date.getFullYear()}年${model.date.getMonth()+1}月${model.date.getDate()}日`;
+ const s=summarize(events());lastSummary=s;const valid=s.total>0;if(!valid){model.selected=null;$('#timeline-readout').hidden=true}$('#has-data').hidden=!valid;$('#no-data').hidden=valid;
+ $('#total-time').textContent=valid?showMins(s.total):'—';$('#important-time').textContent=valid?showMins(s.important):'—';$('#efficiency').textContent=valid?s.rate+'%':'—';
+ $('#comparison').textContent=valid?`${s.rate>=61?'+':''}${s.rate-61} 个百分点`:'暂无对比';$('#comparison').style.color=s.rate>=61?'#168066':'#b65a4a';$('#eff-bar').style.width=(valid?s.rate:0)+'%';
+ $('#total-category').textContent=`合计 ${valid?showMins(s.total):'0分'}`;
+ const dist=$('#distribution');dist.replaceChildren();for(const id of [1,2,0,3,4,5]){const n=el('i');n.style.width=(s.total?s.counts[id]/s.total*100:0)+'%';n.style.background=categories[id].color;n.title=categories[id].name+' '+showMins(s.counts[id]);dist.appendChild(n)}
+ const quad=$('#quadrants');quad.replaceChildren();for(const id of [1,2,3,4]){const t=categories[id],n=el('button','qcard');n.type='button';n.dataset.cat=String(id);n.style.setProperty('--cat',t.color);const name=el('span','q-name',t.quadrant),desc=el('span','q-desc',t.name),bottom=el('span','q-bottom'),value=el('b','',showMins(s.counts[id])),pct=el('small','',`${s.total?Math.round(s.counts[id]/s.total*100):0}%`),meter=el('span','q-meter'),fill=el('i');fill.style.width=(s.total?s.counts[id]/s.total*100:0)+'%';meter.append(fill);bottom.append(value,pct);n.append(name,desc,bottom,meter);quad.append(n)}
+ const extra=$('#extra-categories');extra.replaceChildren();for(const id of [5,0]){const t=categories[id],n=el('button','extra-card');n.type='button';n.dataset.cat=String(id);n.style.setProperty('--cat',t.color);const l=el('span','extra-name'),d=el('i','dot');l.append(d,document.createTextNode(t.name));n.append(l,el('span','extra-min',showMins(s.counts[id])));extra.append(n)}
+ const site=s.sites.get('example.dev');$('#site-time').textContent=site?showMins(site.minutes):'—';$('#site-category').textContent=site?categories[site.type].name:'—';$('#type-select').value=String(site?.type??1);$('#inline-edit').hidden=!model.editing;
+ const status=$('#status-dot');status.className='status-dot'+(model.scene==='offline'?' warn':!valid?' idle':'');$('#status-label').textContent=model.scene==='offline'?'模拟同步异常 · 数据仅在本页':valid?'演示数据 · 未连接真实后端':'无数据 · 未连接真实后端';$('#settings-sync').textContent=model.scene==='offline'?'模拟同步异常':'没有真实服务端连接';
+ $('#record-switch').setAttribute('aria-checked',String(model.record));$('#focus-switch').setAttribute('aria-checked',String(model.focus));
+ $('#record-type').textContent=model.filter===null?'全部分类':categories[model.filter].name;
+ const rows=[...s.sites.values()].filter(it=>model.filter===null||it.type===model.filter).sort((a,b)=>b.minutes-a.minutes);$('#record-time').textContent=showMins(rows.reduce((p,it)=>p+it.minutes,0));$('#record-count').textContent=`${rows.length} 个网站 · 模拟`;const list=$('#record-list');list.replaceChildren();if(rows.length===0)list.append(el('div','surface','当前分类暂无记录'));for(const it of rows){const row=el('div','detail-item'),info=el('span'),name=el('b','',it.domain),sub=el('small','',it.title+' · '+categories[it.type].name);info.append(name,sub);row.append(info,el('strong','',showMins(it.minutes)));list.append(row)}
+ requestAnimationFrame(()=>{if(model.view==='overview'&&valid){paintCanvas();renderPeek()}});
+}
+function selectMinute(event){
+ const c=$('#minute-canvas'),r=c.getBoundingClientRect(),p=canvasLayout;if(!p)return;
+ const x=Math.max(0,Math.min(p.bw,event.clientX-r.left-p.left));
+ model.selected=Math.max(0,Math.min(1439,Math.floor(x/p.bw*1440)));
+ $('#timeline-readout').hidden=false;paintCanvas();renderPeek();
+}
+$('#minute-canvas').addEventListener('pointerdown',selectMinute);
+$('#minute-canvas').addEventListener('pointermove',e=>{if(e.pointerType==='mouse')selectMinute(e)});
+$('#minute-canvas').addEventListener('keydown',e=>{
+ const k=e.key;if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(k))return;
+ e.preventDefault();
+ if(k==='Home')model.selected=0;else if(k==='End')model.selected=1439;
+ else model.selected=Math.max(0,Math.min(1439,(model.selected??0)+({ArrowRight:10,ArrowLeft:-10,ArrowUp:-60,ArrowDown:60}[k]||0)));
+ $('#timeline-readout').hidden=false;paintCanvas();renderPeek();
+});
+root.addEventListener('click',e=>{
+ const b=e.target.closest('button');if(!b||!root.contains(b))return;if(b.dataset.scene){model.scene=b.dataset.scene;model.view='overview';model.editing=false;model.selected=null;$('#timeline-readout').hidden=true;$('#toast').hidden=true;render();return}
+ if(b.dataset.cat!==undefined){model.filter=Number(b.dataset.cat);model.view='records';render();return}
+ switch(b.dataset.action){
+ case 'prev':model.date.setDate(model.date.getDate()-1);model.editing=false;break;
+ case 'next':model.date.setDate(model.date.getDate()+1);model.editing=false;break;
+ case 'today':model.date=new Date(2026,9,11,12);model.scene='demo';break;
+ case 'records':model.filter=null;model.view='records';break;
+ case 'back':model.view='overview';break;
+ case 'all':model.filter=null;break;
+ case 'settings':model.view=model.view==='settings'?'overview':'settings';break;
+ case 'edit':model.editing=!model.editing;break;
+ case 'save':{if(!events().length){tip('当前无可修改的演示记录');break}model.changed['example.dev']=Number($('#type-select').value);model.editing=false;tip('已在此预览重新计算分类、占比及时间线；未保存到服务器。');break}
+ case 'report':tip('原报告路由 /todo/time-review，正式地址和登录态待核实。');break;
+ case 'record-toggle':model.record=!model.record;tip('仅模拟记录开关，不影响 Chrome 或后台。');break;
+ case 'focus-toggle':model.focus=!model.focus;tip('仅模拟网站限时开关；不会修改真实设置。');break;
+ case 'sync':tip('这是离线交互原型，没有发起网络请求。');break;
+ }
+ render();
+});
+if(typeof ResizeObserver!=='undefined'){const obs=new ResizeObserver(()=>{if(model.view==='overview'&&lastSummary?.total)requestAnimationFrame(()=>{paintCanvas();renderPeek()})});obs.observe($('#minute-canvas'))}else window.addEventListener('resize',()=>{paintCanvas();renderPeek()});
+render();
+})();
+</script>
+</body>
+</html>
