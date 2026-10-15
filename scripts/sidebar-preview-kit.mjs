@@ -49,7 +49,13 @@ export async function checkPreview(html, {repoRoot = ROOT} = {}) {
   if (Buffer.byteLength(html) > 500000) return {ok:false, errors:['预览超过 500KB'], evidence:'STATIC_CONTRACT_ONLY'};
   const $ = load(html), title = $('title').text().replace(/ · OpenDesk 交互预览$/, '');
   let kit;
-  try { kit = await createPreviewKit({title, repoRoot}); } catch (e) { return {ok:false, errors:[e.message], evidence:'STATIC_CONTRACT_ONLY'}; }
+  try { kit = await createPreviewKit({title, repoRoot}); } catch (e) {
+    const message=String(e.message||e);
+    return {ok:false,
+      errors:[message.includes('E_PREVIEW_KIT_LIGHT')
+        ? '源身份过期或正式浅色 Token 不可用：'+message : message],
+      evidence:'STATIC_CONTRACT_ONLY'};
+  }
   const expected = load(kit.html);
   if ($('meta[name="od-preview-source"]').attr('content') !== kit.manifest.sourceHash) errors.push('源身份过期或缺失：请重生成模板并迁移可编辑区域');
   if (JSON.stringify(shape($.root()[0])) !== JSON.stringify(shape(expected.root()[0]))) errors.push('保护区被修改：保留外壳、声明、CSP 与原样式');
