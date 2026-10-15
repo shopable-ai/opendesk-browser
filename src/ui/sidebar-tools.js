@@ -1,5 +1,8 @@
 import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_GRANTS_STORE,normalizeBrowserOperation,browserOperation} from '../framework/sdk/browser-contract.js';
 import {browserTextDownloadUrl} from '../framework/sdk/browser-schemas.js';
+import readingTocCatalog from '../reading-toc/locales.generated.js';
+import {uiMessage} from './app-localization.js';
+import {readingTocHostText} from './reading-toc-settings-localization.js';
 import {createSidePanelOpenCoordinator} from '../platform/chrome/browser-side-panel.js';
 import {createToolPermissionConsent} from '../platform/chrome/permission-gate.js';
 import {scheduleSpecFromExpression} from '../platform/tasks/schedule-time.js';
@@ -688,6 +691,22 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     aiProxyContainer.hidden=!(managed&&id===AI_ID&&enabled&&(frame||nativeUI));
     const sitePending=siteTogglePending.has(id);
     const isToc=managed&&id===READING_TOC_TOOL_ID&&active.capabilities.includes(TOC_CAPABILITY);
+    // Settings live in the trusted Host. Repaint text, never iframe content or permissions.
+    const tocLocale=isToc?localeController?.getLocale?.()||'zh-CN':'zh-CN';
+    const tocText=key=>readingTocHostText(tocLocale,key);
+    for(const element of settingsView.querySelectorAll?.('[data-toc-host-text]')||[])
+      element.textContent=tocText(element.getAttribute('data-toc-host-text'));
+    settingsView.setAttribute('aria-label',tocText('settingsTitle'));
+    settingsButton.title=tocText('settingsTitle');
+    settingsButton.setAttribute('aria-label',settingsButton.title);
+    backButton.title=tocText('backAction');
+    backButton.setAttribute('aria-label',backButton.title);
+    if(openTabButton){
+      openTabButton.title=tocText('openTabAction');
+      openTabButton.setAttribute('aria-label',openTabButton.title);
+    }
+    get('sidebar-tool-generic-site-binary')?.setAttribute('aria-label',
+      isToc?tocText('siteGroup'):'当前网站授权');
     if(!managed)tocSettingsOpen=false;
     const show=managed&&tocSettingsOpen;
     settingsButton.hidden=!managed;settingsButton.disabled=busy||sitePending;
@@ -709,12 +728,14 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     fullBookmarkButton.disabled=busy||!enabled||!isFullBookmarkTool(active);
     fullBookmarkButton.setAttribute('aria-pressed',String(hasFullBookmarkConsent));
     removeButton.hidden=readOnlyPreview;if(openTabButton)openTabButton.hidden=readOnlyPreview;
-    if(enableButton){enableButton.textContent=enabled?'停用工具':'启用工具';enableButton.disabled=busy||enableReadError;
+    if(enableButton){enableButton.textContent=isToc?tocText(enabled?'disable':'enable'):enabled?'停用工具':'启用工具';enableButton.disabled=busy||enableReadError;
       enableButton.setAttribute('aria-pressed',String(enabled));}
-    if(enableHint)enableHint.textContent=enableReadError?'启停状态读取异常；已保护性停止运行。':
+    if(enableHint)enableHint.textContent=isToc?
+      tocText(enableReadError?'enableError':enabled?'enabledHint':'disabledHint'):
+      enableReadError?'启停状态读取异常；已保护性停止运行。':
       enabled?'工具已启用。启用不会自动运行代码。':'工具已停用。数据、网站授权和显示偏好保留。';
     if(launchButton){launchButton.hidden=!managed||Boolean(frame||nativeUI||nativePending);launchButton.disabled=busy||!enabled;
-      launchButton.textContent=enabled?'打开工具':'已停用，请在设置中启用';}
+      launchButton.textContent=isToc?tocText(enabled?'launch':'launchDisabled'):enabled?'打开工具':'已停用，请在设置中启用';}
     const url=currentPageTarget?.snapshot?.url,capability=siteCapability(active);
     const origin=capability===PROMPT_CAPABILITY?supportedOrigin(url):
       capability===CAPTURE_CAPABILITY?chatCaptureOrigin(url):websiteOrigin(url);
@@ -729,9 +750,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     const pageAllowed=readingTocPageAllowed(tocPageRules,id,url);
     if(eyeButton){
       eyeButton.hidden=!isToc;eyeButton.disabled=busy||sitePending||!enabled||!origin||!grant||!pageAllowed;
-      eyeButton.title=!enabled?'工具已停用，请先在设置中启用':!origin?'请切换到普通 HTTP(S) 网页':
-        !grant?'当前网站已停用，请在设置中恢复':!pageAllowed?'当前页面已排除，请在设置中恢复':
-        appearance.show?'隐藏此网站的悬浮目录':'显示此网站的悬浮目录（同时恢复当前页面）';
+      eyeButton.title=tocText(!enabled?'eyeToolDisabled':!origin?'eyeUnsupported':
+        !grant?'eyeSiteDisabled':!pageAllowed?'eyePageExcluded':
+        appearance.show?'eyeHide':'eyeShow');
       eyeButton.setAttribute('aria-label',eyeButton.title);eyeButton.setAttribute('aria-pressed',String(appearance.show));
     }
     if(!show)return;
@@ -743,29 +764,29 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       const node=get(id);if(node)node.hidden=!capabilityOnly;
     }
     settingsHint.hidden=!capabilityOnly;
-    settingsScopeLabel.textContent=isToc?'当前网站可用性':'当前网站授权';
-    settingsTarget.textContent=capability?(origin||'请选择适用网页'):'此工具不需要网站授权';
+    settingsScopeLabel.textContent=isToc?tocText('siteAvailability'):'当前网站授权';
+    settingsTarget.textContent=capability?(origin||(isToc?tocText('selectPage'):'请选择适用网页')):'此工具不需要网站授权';
     settingsScopeButton.hidden=true;
     for(const [button,chosen] of [[settingsAllow,grant],[settingsDeny,!grant]]){
-      button.textContent=isToc?(button===settingsAllow?'启用当前网站':'停用当前网站'):
+      button.textContent=isToc?tocText(button===settingsAllow?'siteEnable':'siteDisable'):
         button===settingsAllow?'授权当前网站':'撤销当前网站授权';
       button.hidden=!capability;button.disabled=busy||sitePending||!origin;button.setAttribute('aria-pressed',String(Boolean(origin)&&chosen));
     }
-    settingsHint.textContent=isToc?'阅读目录默认可用于所有 HTTP(S) 网页；可在此停用当前网站或排除单页。'+
-      (!origin?'当前页面不支持目录。':grant?'当前网站可用。':'当前网站已停用。'):
+    settingsHint.textContent=isToc?tocText('tocIntro')+
+      tocText(!origin?'unsupportedPage':grant?'siteAvailable':'siteDisabled'):
       !capability?'工具能力以安装时的审阅为准。':!origin?'请切换到适用网页，设置仍可管理。':
       grant?'当前网站已授权；授权与工具启停、外观显隐互相独立。':
         '点击授权后直接生效：'+readableCapability(capability)+'。仅适用于上方网站，可随时撤销。';
     if(visibilitySection)visibilitySection.hidden=!isToc;
     if(pageExceptionSection)pageExceptionSection.hidden=!isToc;
     for(const [button,hidden] of [[settingsSiteVisibility,appearance.hiddenOnSite],[settingsPageVisibility,appearance.hiddenOnPage]]){
-      button.hidden=!isToc;button.textContent=hidden?'恢复显示':'隐藏';button.setAttribute('aria-pressed',String(!hidden));
+      button.hidden=!isToc;button.textContent=isToc?tocText(hidden?'restore':'hide'):hidden?'恢复显示':'隐藏';button.setAttribute('aria-pressed',String(!hidden));
       button.disabled=busy||sitePending||!enabled||!grant||!origin;
     }
     const origins=isToc?blockedTocOrigins(grants):capability===PROMPT_CAPABILITY?
       (grant?[CHATGPT_ORIGIN]:[]):capability?grantedOrigins(grants,id):[],denied=isToc?disabledTocPages(tocPageRules,id):[];
-    if(settingsSitesTitle)settingsSitesTitle.textContent=isToc?'已停用的网站':'已授权的网站';
-    const identity=JSON.stringify([id,origins,denied,busy,sitePending]);
+    if(settingsSitesTitle)settingsSitesTitle.textContent=isToc?tocText('disabledSites'):'已授权的网站';
+    const identity=JSON.stringify([id,origins,denied,busy,sitePending,isToc?tocLocale:null]);
     if(identity===lastTocSettingsRows)return;lastTocSettingsRows=identity;
     const section=(container,items,handler,emptyLabel)=>{
       container.replaceChildren();
@@ -774,16 +795,16 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         const row=doc.createElement('div');row.className='sidebar-tool-site-entry';
         const label=doc.createElement('span');label.textContent=entry;label.title=entry;
         const button=doc.createElement('button');button.type='button';button.className='sidebar-tool-site-revoke';
-        button.textContent=container===settingsSites&&!isToc?'撤销':'恢复';button.setAttribute('aria-label',button.textContent+' '+entry);
+        button.textContent=container===settingsSites&&!isToc?'撤销':tocText('restore');button.setAttribute('aria-label',button.textContent+' '+entry);
         button.disabled=busy||sitePending;
         button.addEventListener('click',action(()=>runSiteToggle(id,()=>handler(entry))));
         row.append(label,button);container.append(row);
       }
     };
-    section(settingsPages,denied,url=>setTocPageAvailability(true,url),'没有排除的页面');
+    section(settingsPages,denied,url=>setTocPageAvailability(true,url),isToc?tocText('noPages'):'没有排除的页面');
     section(settingsSites,origins,url=>capability===PROMPT_CAPABILITY?changePromptSite(id,url,false):
       capability===CAPTURE_CAPABILITY?changeCaptureSite(id,url,false):
-      capability===CLIP_CAPABILITY?revokeClipOrigin(id,url):revokeTocOrigin(id,url,isToc),isToc?'没有停用的网站；默认全部可用':'尚未授权任何网站');
+      capability===CLIP_CAPABILITY?revokeClipOrigin(id,url):revokeTocOrigin(id,url,isToc),isToc?tocText('noSites'):'尚未授权任何网站');
   }
   function render() {
     if(disposed)return;
@@ -794,9 +815,20 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     renderOfficialTools();
     listView.hidden=Boolean(active);
     display.hidden=!active;
-    title.textContent=active?active.title+(readOnlyPreview?' · 只读预览':''):'';
+    const trustedTocTitle=active?.id===READING_TOC_TOOL_ID&&
+      active?.capabilities.includes(TOC_CAPABILITY)&&
+      active?.title===readingTocCatalog.messages['zh-CN'].title;
+    const currentTocLocale=localeController?.getLocale?.()||'zh-CN';
+    const visibleTitle=trustedTocTitle?
+      uiMessage(readingTocCatalog,currentTocLocale,'title'):active?.title;
+    title.textContent=active?visibleTitle+(readOnlyPreview?' · '+(trustedTocTitle?
+      readingTocHostText(currentTocLocale,'readonly'):'只读预览'):''):'';
     title.title=active?'v'+active.version:'';
-    removeButton.title=readOnlyPreview?'只读预览尚未安装，不能卸载':active?'卸载「'+active.title+'」及其本地数据':'卸载工具';
+    removeButton.title=readOnlyPreview?'只读预览尚未安装，不能卸载':
+      active?(trustedTocTitle?
+        readingTocHostText(currentTocLocale,'uninstallPrefix')+visibleTitle+
+        readingTocHostText(currentTocLocale,'uninstallSuffix'):
+        '卸载「'+active.title+'」及其本地数据'):'卸载工具';
     removeButton.setAttribute('aria-label',removeButton.title);
     removeButton.disabled=!active || busy || readOnlyPreview;
     if(openTabButton)openTabButton.disabled=!active||busy||readOnlyPreview;
@@ -2403,6 +2435,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   }
   if(localeController?.subscribe){
     listeners.push(localeController.subscribe(locale=>{
+      // Presentation-only: retain the live tool iframe, TOC snapshot, and website policy.
+      if(active?.id===READING_TOC_TOOL_ID)render();
       if(frame&&active&&instance)frame.contentWindow?.postMessage({
         protocol:SIDEBAR_TOOL_PROTOCOL,kind:'locale-changed',instance,toolId:active.id,locale
       },'*');
