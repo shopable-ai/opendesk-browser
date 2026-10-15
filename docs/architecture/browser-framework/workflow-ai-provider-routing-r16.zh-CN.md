@@ -1,5 +1,7 @@
 # OpenDesk Browser R16：工作流 AI Provider 路由、本机 Codex App Server 与远程 Agent 架构合同
 
+> **后续当前正式设计：**[Workflow R2.1 Provider / Responses / 本机 HTTP Gateway 合同](workflow-ai-provider-routing-r2.zh-CN.md)（2026-10-15）。本 R16 是实施历史与当时的验证等级，保留原文，不再作为当前“先采用建议、再执行”的 UI 规范；真实运行状态以 R2.1 所列的最新源码核对与原始测试证据为准。
+
 > 日期：2026-10-10。状态：DESIGN_ACCEPTED / SOURCE_IMPLEMENTED / COMPONENT_VERIFIED / REAL_CODEX_PARTIAL。Sidebar → 原 Native → Go Codex App Server 的真实会话代码已实现；受审计 Codex 0.159.2 的 Linux 实际登录、同线程多轮、流式取消与 Workflow JSON 已验证。当前版本不支持安全冷恢复。**macOS / 原生 Chrome / Browser 工具往返 / 保存后关闭 AI 重复运行仍为 NOT_TESTED，未宣布整体 95+ 验收通过。** 见 [本轮实现、证据和独立验收记录](../../framework/workstreams/r16-local-codex-20261010.md)。以下第 2 节保留实施前设计基线；实际能力以本轮记录和相同候选测试为准。
 
 ## 1. 核心决策
