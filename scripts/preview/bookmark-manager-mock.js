@@ -9,7 +9,7 @@ const clone=x=>JSON.parse(JSON.stringify(x));
 const sessionRef='preview-bookmark-session-0123456789';
 const snapshotRef='preview-bookmark-snapshot-0123456789';
 let serial=3000,records=new Map(),tickets=new Map();
-let revoked=false,nextWriteFailure=null;
+let revoked=false,nextWriteFailure=null,nextReadFailure=null;
 if(typeof document.createElement==='function'&&typeof root.before==='function'){
 const previewLab=document.createElement('details');
 previewLab.className='od-disclosure';
@@ -42,11 +42,27 @@ diagnostic('模拟外部冲突',()=>{
   row.title+='（由另一窗口修改）';
   labMessage.textContent='已在 Mock 原始记录中修改 '+id+'；保存旧草稿应遭拒绝。';
 });
+diagnostic('下一次读取超时',()=>{
+  nextReadFailure='E_HOST_TIMEOUT';
+  labMessage.textContent='下一次 Mock getTree 会超时，不会撤销现有授权。';
+});
+diagnostic('新增 130 个模拟文件夹',()=>{
+  for(let i=1;i<=130;i++)
+    push(String(++serial),'性能文件夹 '+String(i).padStart(4,'0'),'2');
+  labMessage.textContent='新增 130 个离线目标目录，请刷新列表。';
+});
+diagnostic('模拟外部删除当前书签',()=>{
+  const id=root.querySelector('#bm-inspector-id')?.textContent?.trim();
+  const row=records.get(id);
+  if(!row||!row.url){labMessage.textContent='请先选中普通书签后再模拟删除。';return}
+  records.delete(id);
+  labMessage.textContent='已从 Mock 原始记录删除 '+id+'；刷新必须保留草稿且禁止提交。';
+});
 diagnostic('模拟撤销权限',()=>{
   revoked=true;labMessage.textContent='Mock 权限已撤销，请点击正式界面的刷新按钮验证清除。';
 });
 diagnostic('恢复模拟权限',()=>{
-  revoked=false;nextWriteFailure=null;
+  revoked=false;nextWriteFailure=null;nextReadFailure=null;
   labMessage.textContent='Mock 已恢复；请在正式界面重新检查权限。';
 });
 previewLab.append(toolsRow,labMessage);
@@ -87,6 +103,9 @@ function descendants(id){const all=[];const visit=key=>{for(const row of records
 const writeRow=(id,input)=>{const old=records.get(id);if(!old)fail('E_BOOKMARK_STALE','原书签不存在');return old}
 const bookmarks={
  async getTree({cursor,limit=100}={}){const wait=check();if(wait)return wait;
+  if(nextReadFailure){
+    const code=nextReadFailure;nextReadFailure=null;fail(code,'模拟读取超时');
+  }
   const offset=cursor?Number(cursor):0,all=[...records.values()];
   if(!Number.isSafeInteger(offset)||offset<0||offset>all.length)
     fail('E_BOOKMARK_RESPONSE','非法分页游标');
