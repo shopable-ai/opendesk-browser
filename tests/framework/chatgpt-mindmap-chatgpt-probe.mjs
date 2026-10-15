@@ -68,6 +68,26 @@ try{
   await page.goto(new URL('/chatgpt.html',session.url).href);
   await page.waitForFunction(()=>window.mindmapPreview?.sdk==='FIXED_RESOURCES_LOADED',
     null,{timeout:25000});
+  const geometry=async n=>page.evaluate(n=>{
+    const host=document.querySelector('[data-testid="conversation-turn-'+n+'"] [data-opendesk-chatgpt-mindmap="viewer"]');
+    if(!host)return null;
+    const canvas=host.shadowRoot.querySelector('.odmm-canvas');
+    const frame=canvas.getBoundingClientRect();
+    const nodes=[...host.shadowRoot.querySelectorAll('.topic')];
+    const boxes=nodes.map(el=>el.getBoundingClientRect()).filter(r=>r.width&&r.height);
+    if(!boxes.length)return null;
+    const root=boxes[0];
+    const union={left:Math.min(...boxes.map(b=>b.left)),
+      right:Math.max(...boxes.map(b=>b.right)),
+      top:Math.min(...boxes.map(b=>b.top)),
+      bottom:Math.max(...boxes.map(b=>b.bottom))};
+    return {topicCount:boxes.length,canvas:{x:frame.x,y:frame.y,width:frame.width,height:frame.height},
+      root:{x:root.x,width:root.width,visibleWidth:Math.max(0,Math.min(frame.right,root.right)-Math.max(frame.left,root.left))},
+      union,overhangLeft:Math.max(0,frame.left-union.left),
+      overhangRight:Math.max(0,union.right-frame.right),
+      fitScrollOverhang:{left:canvas.dataset.fitOverhangLeft,right:canvas.dataset.fitOverhangRight},
+      fitWidth:canvas.dataset.fitWidth};
+  },n);
   const t=n=>page.locator('[data-testid="conversation-turn-'+n+'"]');
   const button=n=>t(n).locator('[data-opendesk-chatgpt-mindmap="button"] button');
   const viewer=n=>t(n).locator('[data-opendesk-chatgpt-mindmap="viewer"]');
@@ -103,6 +123,17 @@ try{
   await capture('chatgpt-xmind.png',{fullPage:true});
   await capture('chatgpt-answer-A-light.png',{target:t(1),answer:'A'});
   await capture('chatgpt-answer-B-light.png',{target:t(2),answer:'B'});
+  report.desktopA=await geometry(1);
+  report.desktopB=await geometry(2);
+  assert.ok(report.desktopA?.root.visibleWidth>=Math.min(90,report.desktopA.root.width*.5),
+    'A root topic must be visibly readable in the desktop reply');
+  // When geometry CAN fit in the actual canvas, clipping is a fit regression.
+  const aCanvas=report.desktopA.canvas.width;
+  const aTopicWidth=report.desktopA.union.right-report.desktopA.union.left;
+  if(aTopicWidth<=aCanvas-24)assert.ok(report.desktopA.overhangRight<=16&&
+    report.desktopA.overhangLeft<=16,
+    'A real SDK map fits geometrically but is clipped by the desktop viewport');
+  report.checks.push('DESKTOP_A_REAL_TOPIC_GEOMETRY_AUDITED');
   const zoomWidth=async n=>(await viewer(n).locator('.topic:visible').first().boundingBox()).width;
   const aBeforeZoom=await zoomWidth(1);
   const bBeforeZoom=await zoomWidth(2);
@@ -230,6 +261,11 @@ try{
     return (host?.shadowRoot?.querySelector('.topic')?.getBoundingClientRect().width||0)>=115;
   },null,{timeout:20000});
   report.narrowRootWidth=(await viewer(2).locator('.topic').first().boundingBox()).width;
+  report.narrowGeometry=await geometry(2);
+  assert.ok(report.narrowGeometry?.root.visibleWidth>=
+    Math.min(48,report.narrowGeometry.root.width*.3),
+    'At 320px, the actual root topic must be visible enough to understand');
+  report.checks.push('MOBILE_320_ROOT_ACTUALLY_VISIBLE');
   report.narrowToolbar=await viewer(2).locator('.odmm-toolbar').evaluate(node=>({
     client:node.clientWidth,scroll:node.scrollWidth}));
   assert.ok(report.narrowToolbar.scroll<=report.narrowToolbar.client+1,
