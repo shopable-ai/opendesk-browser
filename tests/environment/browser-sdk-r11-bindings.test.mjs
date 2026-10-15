@@ -8,7 +8,8 @@ const ref='r'.repeat(32);
 test('R11 finite bindings: approved operation invokes audited handler only after Host authorization',async()=>{
   const events=[],bindings=createApprovedBrowserBindings({
     'browser.tabs.getOwned':async (args,context)=>{
-      events.push(['driver',args,context]);return {tabRef:args.tabRef};
+      events.push(['driver',args,context]);return {tabRef:args.tabRef,
+        url:'https://example.org/',origin:'https://example.org',expiresAt:1000};
     }
   });
   assert.equal(Object.isFrozen(bindings),true);
@@ -18,7 +19,8 @@ test('R11 finite bindings: approved operation invokes audited handler only after
   const result=await bindings.dispatch('browser.tabs.getOwned',args,context,{
     authorize:async(operation,input,owner)=>events.push(['authorize',operation,input,owner])
   });
-  assert.deepEqual(result,{tabRef:ref});
+  assert.deepEqual(result,{tabRef:ref,
+    url:'https://example.org/',origin:'https://example.org',expiresAt:1000});
   assert.deepEqual(events.map(x=>x[0]),['authorize','driver','authorize']);
   assert.equal(events[0][1],'browser.tabs.getOwned');
   assert.deepEqual(events[1][1],args);
