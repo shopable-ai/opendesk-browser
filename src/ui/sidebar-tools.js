@@ -166,7 +166,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     'browser.runtime':'读取操作系统和处理器架构，用于工具兼容性判断',
     'browser.i18n':'读取浏览器语言偏好并识别工具提供的文本语言',
     'browser.contextMenu':'在明确授权的网站显示 Chrome 右键菜单（最多三项）',
-    'page.prompts':'在授权的 ChatGPT 主内容区域显示提示词快捷按钮（仅插入草稿）',
+    'page.prompts':'在 ChatGPT 主内容区域显示提示词快捷按钮（安装启用后直接可用，仅插入草稿）',
     'browser.scheduler':'经确认定时执行已安装的固定任务版本，只管理本工具的计划',
     'browser.tabs':'经用户单次批准打开或聚焦自己获准的标签页',
     'browser.sidePanel':'经真实点击打开 OpenDesk 自己的侧边栏',
@@ -761,8 +761,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     removeButton.hidden=readOnlyPreview;if(openTabButton)openTabButton.hidden=readOnlyPreview;
     if(enableButton){enableButton.textContent=isToc?tocText(enabled?'disable':'enable'):enabled?'停用工具':'启用工具';enableButton.disabled=busy||enableReadError;
       enableButton.setAttribute('aria-pressed',String(enabled));}
-    if(enableHint)enableHint.textContent=isToc?
-      tocText(enableReadError?'enableError':enabled?'enabledHint':'disabledHint'):
+    if(enableHint)enableHint.textContent=promptSettings?
+      (enableReadError?'工具状态读取异常，已保护性停止运行。':enabled?'已启用 · 基础快捷按钮可直接使用':'已停用 · 已保存提示词保留'):
+      isToc?tocText(enableReadError?'enableError':enabled?'enabledHint':'disabledHint'):
       enableReadError?'启停状态读取异常；已保护性停止运行。':
       enabled?'工具已启用。启用不会自动运行代码。':'工具已停用。数据、网站授权和显示偏好保留。';
     if(launchButton){launchButton.hidden=!managed||Boolean(frame||nativeUI||nativePending);launchButton.disabled=busy||!enabled;
