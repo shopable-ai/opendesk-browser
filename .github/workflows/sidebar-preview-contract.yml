@@ -8,6 +8,7 @@ on:
       - 'scripts/build-sidebar-tool.mjs'
       - 'scripts/preview/**'
       - 'scripts/tests/bookmark-manager-r26-preview-chrome.mjs'
+      - 'scripts/tests/adblock-preview-chrome.mjs'
       - 'scripts/tests/sidebar-preview-runtime-chrome.mjs'
       - 'scripts/templates/sidebar-tool-preview-shell.html'
       - 'scripts/templates/sidebar-preview.html'
@@ -49,6 +50,7 @@ jobs:
           node --check scripts/preview/adblock-host-source.mjs
           node --check scripts/preview/adblock-mock.js
           node --check scripts/preview/adblock-host-preview.js
+          node --check scripts/tests/adblock-preview-chrome.mjs
           node --check tests/environment/adblock-preview-contract.test.mjs
           node scripts/preview/check-preview-contract.mjs
       - name: Verify package identity, mock safety and negative guards
@@ -79,6 +81,10 @@ jobs:
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
         run: node scripts/tests/sidebar-preview-runtime-chrome.mjs artifacts/preview-chrome
+      - name: AdBlock source-bound preview interactions in real headless Chrome
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: node scripts/tests/adblock-preview-chrome.mjs artifacts/preview-chrome
       - name: R2.6 Bookmark Manager interactive source-bound preview in Chrome
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
