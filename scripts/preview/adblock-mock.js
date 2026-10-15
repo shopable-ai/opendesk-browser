@@ -34,6 +34,7 @@
     if(!payload||Object.keys(payload).join(',')!=='host'||
        typeof host!=='string'||!state.exceptions.includes(host))
       return fault('例外已变化，请重新读取');
+    if(!ordinary.includes(host))return fault('无法恢复不可信演示域名');
     const requestId=++seq;
     return new Promise((resolve,reject)=>{
       pending.set(requestId,{host,resolve,reject});
