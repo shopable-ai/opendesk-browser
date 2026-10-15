@@ -8,6 +8,7 @@ on:
       - 'scripts/tests/bookmark-manager-r26-preview-chrome.mjs'
       - 'scripts/preview/bookmark-manager-mock.js'
       - 'scripts/preview/bookmark-manager-lab.js'
+      - 'scripts/preview/build-preview.mjs'
       - 'tests/environment/bookmark-manager-r2.test.mjs'
       - 'tests/environment/bookmark-manager-r24-lifecycle.test.mjs'
       - 'tests/environment/browser-sdk-r112-full-bookmarks.test.mjs'
