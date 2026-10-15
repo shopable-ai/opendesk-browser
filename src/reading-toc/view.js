@@ -1,5 +1,5 @@
 import {readTocPlacement,tocViewport,tocClampPoint,tocPlacementFromPoint,tocPlacementPoint} from './placement.js';
-import readingTocCatalog from '../../examples/sidebar-tools/reading-toc/locales.json' with {type:'json'};
+import readingTocCatalog from './locales.generated.js';
 import {uiMessage,resolveUiLocale} from '../ui/app-localization.js';
 
 // Same compact R3 layout as the official sandbox tool, but implemented only in
