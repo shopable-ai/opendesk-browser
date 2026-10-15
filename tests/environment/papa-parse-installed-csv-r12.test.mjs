@@ -36,9 +36,12 @@ test('installed CSV click invokes upstream parser and canonical SDK while preser
   const browser=createBrowserSdk({request:async(operation,args)=>{
     assert.equal(operation,'browser.downloads.text');requests.push(args);return {started:true};
   }});
+  // An actual iframe RPC crosses a structured-clone boundary. This VM test
+  // injects the SDK from Node, so explicitly clone the VM request first.
+  const bridged={downloads:{text:args=>browser.downloads.text(structuredClone(args))}};
   const context=vm.createContext({OpenDeskTool:{
     root:{querySelector:selector=>elements[selector]},setState:state=>states.push(state)
-  },OpenDeskSDK:{browser}});
+  },OpenDeskSDK:{browser:bridged}});
   vm.runInContext(pkg.scripts[0].code,context,{timeout:3000});
   vm.runInContext(pkg.js,context,{timeout:3000});
   assert.equal(typeof click,'function');
@@ -76,7 +79,8 @@ test('tool reports SDK revocation, never a false disk-success receipt',async()=>
   const browser=createBrowserSdk({request:async()=>{
     throw Object.assign(Error('permission revoked'),{code:'E_GRANT_REVOKED'});
   }});
-  const context=vm.createContext({OpenDeskTool:{root,setState(){}},OpenDeskSDK:{browser}});
+  const bridged={downloads:{text:args=>browser.downloads.text(structuredClone(args))}};
+  const context=vm.createContext({OpenDeskTool:{root,setState(){}},OpenDeskSDK:{browser:bridged}});
   vm.runInContext(pkg.scripts[0].code,context);
   vm.runInContext(pkg.js,context);
   await click({isTrusted:true});
