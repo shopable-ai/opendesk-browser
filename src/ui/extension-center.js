@@ -1,5 +1,5 @@
 import {SIDEBAR_TOOL_STORE} from './sidebar-tools/package.js';
-import {requireCompleteInstalledSidebarTools,MARKET_PROVENANCE_STORE,TOOL_CLEANUP_STORE,sameSidebarToolPackage} from './sidebar-tools/installation.js';
+import {requireCompleteInstalledSidebarTools,requirePendingToolCleanups,MARKET_PROVENANCE_STORE,TOOL_CLEANUP_STORE,sameSidebarToolPackage} from './sidebar-tools/installation.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords} from './sidebar-tools/lifecycle.js';
 import {loadOfficialCatalog} from '../sidebar-tools/official-catalog.js';
 import {setInstalledPageProgramEnabled} from './installed-page-tools.js';
@@ -431,11 +431,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       const saved=results[0].value;
       const nextInstalled=requireCompleteInstalledSidebarTools(saved[SIDEBAR_TOOL_STORE]);
       const nextEnabled=requireToolEnableRecords(saved[SIDEBAR_TOOL_ENABLE_STORE]);
-      const cleanups=saved[TOOL_CLEANUP_STORE];
-      if(cleanups!==undefined&&(!cleanups||typeof cleanups!=='object'||Array.isArray(cleanups)))
-        throw new Error('卸载恢复记录结构异常');
-      const nextCleanups=new Set(Object.entries(cleanups||{}).filter(([,row])=>
-        row&&typeof row==='object'&&/^\d+\.\d+\.\d+$/.test(row.version)).map(([toolId])=>toolId));
+      const cleanups=requirePendingToolCleanups(saved[TOOL_CLEANUP_STORE]);
+      const nextCleanups=new Set(Object.keys(cleanups));
       const nextSources=Object.fromEntries(await Promise.all(nextInstalled.map(async tool=>
         [tool.id,await describeInstalledAppSource(tool,saved[MARKET_PROVENANCE_STORE]?.[tool.id])])));
       if(disposed||id!==sequence)return false;
