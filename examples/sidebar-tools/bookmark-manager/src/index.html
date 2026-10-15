@@ -1,55 +1,72 @@
 <main class="bm od-page" aria-label="书签管理">
   <header class="bm-head od-page-head">
-    <div class="bm-heading"><h1 class="od-page-title">书签管理</h1><p class="od-note">整理、查找与编辑 Chrome 书签</p></div>
-    <span id="bm-total" class="od-technical" aria-label="已加载书签数量"></span>
+    <div class="bm-heading"><h1 class="od-page-title">书签管理</h1><p class="od-note">在当前工作区查看、整理与编辑书签</p></div>
+    <span id="bm-total" class="od-technical" aria-label="已加载项目数量"></span>
     <button id="bm-refresh" type="button" class="od-icon-button bm-icon" aria-label="刷新书签" title="刷新书签">↻</button>
   </header>
   <p id="bm-notice" class="bm-notice od-note" role="status" aria-live="polite"></p>
   <section id="bm-gate" class="bm-gate od-surface od-surface--padded" aria-label="SDK 与书签权限检查">
     <p id="bm-gate-reason">正在检查 Full Bookmarks SDK 与安装权限…</p>
     <button id="bm-check" type="button" class="od-button od-button--secondary bm-button">重新检查 SDK 与权限</button>
-    <p class="bm-help od-note">首次授权须在 OpenDesk 可信扩展界面完成。此工具不自行请求 Chrome 权限，也不会伪造空数据。</p>
+    <p class="bm-help od-note">首次授权须在 OpenDesk 可信扩展界面完成。此工具不会自行请求 Chrome 权限。</p>
   </section>
   <section id="bm-workspace" class="bm-workspace" hidden>
-    <section id="bm-explorer" class="bm-explorer od-surface" aria-label="书签文件树">
+    <section id="bm-explorer" class="bm-explorer od-surface" aria-label="书签浏览与搜索">
       <div class="bm-explorer-head">
-        <label class="bm-search-label od-form-field" for="bm-search"><span class="od-field-label">查找书签</span><input id="bm-search" class="od-field" type="search" autocomplete="off" placeholder="搜索全部书签和文件夹…" aria-label="搜索全部书签与文件夹"></label>
-        <div class="bm-toolbar od-toolbar" role="group" aria-label="书签主要操作">
+        <label class="bm-search-label od-form-field" for="bm-search"><span class="od-field-label">搜索全部书签与文件夹</span><input id="bm-search" class="od-field" type="search" autocomplete="off" placeholder="输入名称或网址…" aria-label="搜索全部书签与文件夹"></label>
+        <div class="bm-toolbar od-toolbar" role="group" aria-label="新建操作">
           <button id="bm-new-bookmark" type="button" class="od-button bm-button">＋ 新建书签</button>
-          <button id="bm-new-folder" type="button" class="od-button od-button--secondary bm-button">＋ 文件夹</button>
-          <button id="bm-current" type="button" class="od-button od-button--quiet bm-button" title="安全收藏当前网页">☆ 当前页</button>
+          <button id="bm-new-folder" type="button" class="od-button od-button--secondary bm-button">新建文件夹</button>
+          <button id="bm-current" type="button" class="od-button od-button--quiet bm-button" title="安全收藏当前网页">☆ 收藏当前页</button>
         </div>
       </div>
       <div class="bm-list-heading"><strong>我的书签</strong><span id="bm-location" class="od-note">全部目录</span></div>
-      <div id="bm-list" class="bm-list" role="tree" aria-label="Chrome 书签与文件夹"></div>
+      <div id="bm-inline-slot" class="bm-inline-slot" hidden></div>
+      <div id="bm-list" class="bm-list" role="list" aria-label="书签和文件夹层级列表"></div>
       <div class="bm-more-line"><span id="bm-counter"></span><button id="bm-more" class="od-button od-button--secondary bm-button" type="button" hidden>显示更多</button></div>
     </section>
-    <section id="bm-inspector" class="bm-inspector od-surface od-surface--padded" aria-label="选中书签详情" hidden>
-      <div class="bm-inspector-heading"><span id="bm-inspector-icon" class="bm-inspector-icon" aria-hidden="true"></span><div><strong id="bm-inspector-title" class="od-title"></strong><p id="bm-inspector-kind" class="od-note"></p></div></div>
-      <dl class="bm-facts"><div><dt>所在目录</dt><dd id="bm-inspector-parent"></dd></div><div><dt>网址</dt><dd id="bm-inspector-url"></dd></div><div><dt>节点 ID</dt><dd id="bm-inspector-id"></dd></div></dl>
-      <div class="bm-inspector-actions">
-        <button id="bm-inspector-edit" type="button" class="od-button bm-button">编辑</button>
-        <button id="bm-inspector-move" type="button" class="od-button od-button--secondary bm-button">移动</button>
-        <button id="bm-inspector-delete" type="button" class="od-button od-button--danger bm-button">删除</button>
+    <section id="bm-inspector" class="bm-inspector od-surface od-surface--padded" aria-label="书签详情及原位编辑" hidden>
+      <div id="bm-inspector-read">
+        <div class="bm-inspector-heading"><span id="bm-inspector-icon" class="bm-inspector-icon" aria-hidden="true"></span><div><strong id="bm-inspector-title" class="od-title"></strong><p id="bm-inspector-kind" class="od-note"></p></div></div>
+        <dl class="bm-facts"><div><dt>所在目录</dt><dd id="bm-inspector-parent"></dd></div><div id="bm-read-url-row"><dt>网址</dt><dd id="bm-inspector-url"></dd></div></dl>
+        <details class="od-disclosure od-disclosure--flat bm-advanced"><summary>技术信息</summary><p class="od-technical">Chrome 节点 ID：<span id="bm-inspector-id"></span></p></details>
+        <div class="bm-inspector-actions">
+          <button id="bm-inspector-edit" type="button" class="od-button bm-button">编辑信息</button>
+          <button id="bm-inspector-move" type="button" class="od-button od-button--secondary bm-button">移动</button>
+          <button id="bm-inspector-delete" type="button" class="od-button od-button--quiet bm-button">删除…</button>
+        </div>
       </div>
-    </section>
-    <section id="bm-form-view" class="bm-form-view od-surface od-surface--padded" aria-label="书签编辑" hidden>
-      <div class="bm-subhead"><button id="bm-back" type="button" class="od-icon-button bm-icon" aria-label="返回书签树">‹</button><h2 id="bm-form-title" class="od-title"></h2></div>
-      <form id="bm-form">
-        <label id="bm-name-row" class="od-form-field"><span class="od-field-label">名称</span><input id="bm-name" class="od-field" maxlength="256" autocomplete="off" required aria-describedby="bm-form-error"></label>
-        <label id="bm-url-row" class="od-form-field"><span class="od-field-label">网页网址</span><input id="bm-url" class="od-field" type="url" autocomplete="off" aria-describedby="bm-form-error"></label>
-        <label id="bm-parent-row" class="od-form-field"><span class="od-field-label">目标文件夹</span><select id="bm-parent" class="od-field" required aria-describedby="bm-form-error"></select></label>
-        <div id="bm-detail-url" class="bm-detail-url od-technical" hidden></div>
-        <p id="bm-form-error" class="od-field-error" role="alert"></p>
-        <p class="bm-help od-note">修改会通过已授权的公开书签 SDK 写入；发生冲突时保留当前输入。</p>
-        <div class="bm-actions"><button id="bm-save" type="submit" class="od-button bm-button">保存修改</button><button id="bm-cancel" type="button" class="od-button od-button--secondary bm-button">取消</button></div>
-      </form>
-    </section>
-    <section id="bm-delete-view" class="bm-delete-view od-surface od-surface--padded" aria-label="安全删除确认" hidden>
-      <div class="bm-subhead"><button id="bm-delete-back" type="button" class="od-icon-button bm-icon" aria-label="返回书签树">‹</button><h2 class="od-title">确认删除</h2></div>
-      <p id="bm-delete-desc" class="bm-warning od-alert od-alert--warning"></p>
-      <label id="bm-delete-children-row" class="bm-check od-note" hidden><input id="bm-delete-children" type="checkbox"> 我确认删除目录及全部子项</label>
-      <div class="bm-actions"><button id="bm-delete-confirm" type="button" class="od-button od-button--danger bm-button">确认删除</button><button id="bm-delete-cancel" type="button" class="od-button od-button--secondary bm-button">取消</button></div>
+      <section id="bm-form-view" aria-label="原位编辑表单" hidden>
+        <div class="bm-subhead"><h2 id="bm-form-title" class="od-title"></h2><span class="bm-edit-label od-note">直接在这里修改，无需返回列表</span></div>
+        <form id="bm-form">
+          <label id="bm-name-row" class="od-form-field"><span class="od-field-label">名称</span><input id="bm-name" class="od-field" maxlength="256" autocomplete="off" required aria-describedby="bm-form-error"></label>
+          <label id="bm-url-row" class="od-form-field"><span class="od-field-label">网页网址</span><input id="bm-url" class="od-field" type="url" autocomplete="off" aria-describedby="bm-form-error"></label>
+          <div id="bm-parent-row" class="od-form-field">
+            <label for="bm-folder-query" class="od-field-label">所在文件夹</label>
+            <input id="bm-folder-query" class="od-field" type="search" autocomplete="off" placeholder="搜索目标文件夹…" aria-label="筛选目标文件夹">
+            <select id="bm-parent" class="od-field bm-folder-list" size="5" required aria-label="选择目标文件夹" aria-describedby="bm-form-error"></select>
+            <p id="bm-folder-hint" class="od-field-help">可按名称筛选，使用方向键选择文件夹。</p>
+          </div>
+          <div id="bm-detail-url" class="bm-detail-url od-technical" hidden></div>
+          <p id="bm-form-error" class="od-field-error" role="alert"></p>
+          <div id="bm-conflict-review" class="bm-conflict-review od-alert od-alert--warning" hidden>
+            <strong>检测到外部修改</strong><p id="bm-conflict-summary" class="od-note"></p>
+            <button id="bm-review" class="od-button od-button--secondary bm-button" type="button">重新读取并对比</button>
+          </div>
+          <p class="bm-help od-note">保存将通过已授权的书签 SDK 核实原生结果；如遇冲突会保留草稿。</p>
+          <div class="bm-actions"><button id="bm-save" type="submit" class="od-button bm-button">保存修改</button><button id="bm-cancel" type="button" class="od-button od-button--secondary bm-button">取消</button></div>
+        </form>
+      </section>
+      <section id="bm-delete-view" aria-label="安全删除确认" hidden>
+        <h2 class="od-title">确认删除</h2>
+        <p id="bm-delete-desc" class="bm-warning od-alert od-alert--warning"></p>
+        <label id="bm-delete-children-row" class="bm-check od-note" hidden><input id="bm-delete-children" type="checkbox"> 我确认删除目录及全部子项</label>
+        <div class="bm-actions"><button id="bm-delete-confirm" type="button" class="od-button od-button--danger bm-button">确认删除</button><button id="bm-delete-cancel" type="button" class="od-button od-button--secondary bm-button">取消</button></div>
+      </section>
+      <div id="bm-draft-guard" class="bm-draft-guard od-alert od-alert--warning" role="alert" hidden>
+        <strong>当前有未保存的修改</strong><p class="od-note">请先处理草稿，避免切换书签时丢失内容。</p>
+        <div class="bm-actions"><button id="bm-keep-draft" type="button" class="od-button bm-button">继续编辑</button><button id="bm-discard-switch" type="button" class="od-button od-button--secondary bm-button">放弃修改并切换</button></div>
+      </div>
     </section>
   </section>
 </main>
