@@ -49,6 +49,7 @@ export const SAMPLE_ARGS = Object.freeze({
   'browser.tabs.reloadOwned': {tabRef: REF},
   'browser.tabs.navigateOwned': {tabRef: REF, url: TARGET_URL},
   'browser.tabs.removeOwned': {tabRef: REF},
+  'browser.proxy.managed.requestEnable': {config:{endpoint:{scheme:'https',host:'proxy.example.com',port:443},domains:['chatgpt.com']}},
   'browser.network.request': {method: 'GET', url: TARGET_URL},
   'browser.network.observe.start': {tabRef: REF, origins: [ORIGIN]},
   'browser.network.observe.getStatus': {observationId: REF},
