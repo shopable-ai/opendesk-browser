@@ -151,6 +151,10 @@ try{
   passed('R2.2 large multi-layer tree uses real SDK without duplicate renderer');
   await previewPage.screenshot({path:join(out,'r22-local-html-wide.png'),fullPage:true});
   await previewPage.getByRole('button',{name:'切换 320px 容器'}).click();
+  // The light-only preview animates max-width for 150ms. Assert the final
+  // computed width after layout settles, not the pre-transition 880px frame.
+  await previewPage.waitForFunction(()=>document.getElementById('preview-conversation')
+    ?.getBoundingClientRect().width<=321,null,{timeout:4000});
   const narrowWidth=await previewPage.locator('#preview-conversation').evaluate(
     element=>element.getBoundingClientRect().width);
   assert.ok(narrowWidth<=321,`Expected 320px preview container, got ${narrowWidth}`);
