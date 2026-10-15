@@ -7,6 +7,7 @@ on:
       - 'src/ui/design-system.css'
       - 'scripts/build-sidebar-tool.mjs'
       - 'scripts/preview/**'
+      - 'scripts/tests/bookmark-manager-r26-preview-chrome.mjs'
       - 'scripts/templates/sidebar-tool-preview-shell.html'
       - 'scripts/templates/sidebar-preview.html'
       - 'scripts/sidebar-preview-kit.mjs'
