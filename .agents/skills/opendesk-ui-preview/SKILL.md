@@ -1,6 +1,6 @@
 ---
 name: opendesk-ui-preview
-description: Generate and check an offline OpenDesk Sidebar App HTML design preview using canonical buttons and tokens, with an attachable ChatGPT prompt. Use for conversation prototypes that must match extension UI; not runtime tool packaging or arbitrary website design.
+description: Generate and check an offline OpenDesk Sidebar App HTML design preview using canonical buttons and tokens, with an attachable ChatGPT prompt OR generate a source-bound offline preview from an existing installed tool package; not arbitrary website design.
 ---
 
 # OpenDesk 规范化 HTML 设计预览
@@ -26,3 +26,22 @@ node scripts/sidebar-preview-kit.mjs check /absolute/path/returned-preview.html
 失败则针对错误修订；过期则重生成并迁移两个可编辑区域。lint 通过只证明静态合同，不能证明任意 JS 安全、真实模型读取附件、视觉或原生功能。用独立离线浏览器上下文进行真实点击/键盘、深浅色与 computed style 检查，再独立评审方案；无证据项记 NOT_TESTED。默认不做缩放或 Side Panel 物理宽度专项测试。
 
 完整目标、验收表、网页附件回收、生产迁移边界见 [预览套件合同](../../../docs/api/sidebar-preview-kit.zh-CN.md)。真实实现按 [应用开发 skill](../opendesk-sidebar-tool-dev/SKILL.md) 接续；不可把完整宿主 CSS/脚本从此设计文档注入动态工具 iframe，也不可把静态设计稿当作可安装包。独立方案评分逐维 ≥95 后才报告方案达标；产品通过须另有同候选原生证据。
+
+
+## 生产工具同源预览（Preview Contract R1）
+
+**阶段区别**：前面的 `sidebar-preview-kit.mjs` 是可编辑的网页对话**设计稿**，并非正式工具组件。已存在真实独立工具时，使用以下**安装包同源预览**，不要把设计稿直接冒充可安装工具，也不要创建另一套 UI Skill。新增能力以 [生产预览构建/验收合同](../../../docs/architecture/browser-framework/ui-preview-contract-r1.zh-CN.md) 为准。
+
+源码→共享资源→正式包→预览：`src/ui/design-tokens.css` / `src/ui/design-system.css` → `scripts/preview/shared-tool-design.mjs`（构建期提取非特权视觉规则）→ `scripts/build-sidebar-tool.mjs`（现有正式可安装包）→ `scripts/preview/build-preview.mjs`（同样的 HTML、CSS、业务 JS，只有 SDK 适配边界切换为内存 Mock）。本轮**只有 quick-notes / side-panel** 拥有真实适配；网页注入和独立页面请求必须报未实现，不能用 iframe 假装正式 ShadowRoot。
+
+从仓库根目录执行：
+
+```sh
+node scripts/preview/build-preview.mjs --tool quick-notes --surface side-panel --scenario success --theme light --width 360 --height 760
+node scripts/preview/check-preview-contract.mjs
+node --test tests/environment/sidebar-preview-contract.test.mjs tests/environment/sidebar-quick-notes.test.mjs
+```
+
+可选 `--scenario success|empty|error|loading|permission-denied|untrusted`、`--theme light|dark`、`--width 320|360|400|480`，离线自包含结果在 `artifacts/previews/quick-notes/`。输入变动后**先重新生成并审核**，再显式 `node scripts/preview/check-preview-contract.mjs --update-lock`；CI 会依据原始正式资源与源码 SHA 检出陈旧产物。生成 HTML 不允许手修，Mock 无真实 Chrome/网络/存储/任务权限；动态内容仍走业务 JS 的安全文本赋值。不得替 sandbox 注入宿主完整 CSS。
+
+必须运行非法自定义按钮样式与过期 Token 两项反例测试，记录 Node/CI 结果。Mac 实装 Chrome 和网页注入环境是另一证据等级：截图、计算样式、键盘交互、缩放及包身份没有验证，不写 95+ PASS。新工具应在最小范围实现正式共享 UI 及对应 Mock 适配，再扩大 CLI 允许范围；仍由原官方安装器管理权限和生命周期。

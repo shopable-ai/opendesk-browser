@@ -1,0 +1,16 @@
+{
+  "format": "opendesk.ui-preview-source-lock.v1",
+  "tool": "quick-notes",
+  "files": {
+    "src/ui/design-tokens.css": "134dd7871da4bf0ee26b6d0135e69e7273fdabdb",
+    "src/ui/design-system.css": "d3ccfe2e65e5eb6947cb8e88ceda2024796c6357",
+    "examples/sidebar-tools/quick-notes/tool.config.json": "8021a892a51d96cf002d60e7211fd0a861fa8d0b",
+    "examples/sidebar-tools/quick-notes/src/index.html": "0f221b61d64d2e3bc28b69916f5d9daf1a0c697a",
+    "examples/sidebar-tools/quick-notes/src/main.js": "4bb061a4b40d8204823939efc967081260426c95",
+    "examples/sidebar-tools/quick-notes/src/style.css": "27525f1a627da9445a3f25499ef26f90c44b7c98",
+    "scripts/build-sidebar-tool.mjs": "03cd7a99c25de6cba5e97e3e2446b5d685490e96",
+    "scripts/preview/shared-tool-design.mjs": "d5f8fba474ff934298c6b897db45c2c3fff82981",
+    "scripts/preview/build-preview.mjs": "3f0a8202407c488a2d8afa266ea168b1fc0c9e94",
+    "scripts/preview/quick-notes-mock.js": "65f447314af901386eb3b32136d2f224701dd7b6"
+  }
+}

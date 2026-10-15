@@ -2,6 +2,7 @@
 // STATIC_SOURCE_CHROME: renders the actual official Quick Notes HTML/CSS without
 // installing an extension or executing imported tool JS. No native PASS claim.
 import assert from 'node:assert/strict';
+import {createSidebarToolPackage} from '../build-sidebar-tool.mjs';
 import {spawn} from 'node:child_process';
 import {readFile,writeFile,mkdir,mkdtemp,rm} from 'node:fs/promises';
 import {resolve,join} from 'node:path';
@@ -12,15 +13,13 @@ const states=['empty','long','expanded','confirm'];
 const sourceRoot=resolve(process.env.OPENDESK_SOURCE_ROOT||'.');
 const output=resolve(process.argv[2]||'artifacts/quick-notes-layout-visual');
 const toolRoot=join(sourceRoot,'examples/sidebar-tools/quick-notes');
-const [css,html,image]=await Promise.all([
-  readFile(join(toolRoot,'src/style.css'),'utf8'),
-  readFile(join(toolRoot,'src/index.html'),'utf8'),
-  readFile(join(toolRoot,'assets/mark.png'))
-]);
-assert.match(html,/class="notes-app"/);
-assert.match(css,/\.notes-app\{/);
+// STATIC_SOURCE_CHROME uses the validated official package, not uncompiled layout CSS.
+const packed=await createSidebarToolPackage(toolRoot);
+const css=packed.css,html=packed.html;
+assert.match(html,/class="notes-app od-page"/);
+assert.match(css,/opendesk.shared-design.v1/);
 assert(!/@import\b|url\(\s*['"]?\s*https?:/i.test(css),'No remote stylesheet');
-const fragment=html.replace('{{asset:assets/mark.png}}','data:image/png;base64,'+image.toString('base64'));
+const fragment=html;
 assert(!fragment.includes('{{asset:'),'Unresolved bundled asset');
 const pageHtml='<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>'+css+'</style></head><body>'+fragment+'</body></html>';
 const profile=await mkdtemp(join(tmpdir(),'opendesk-quick-notes-layout-'));
@@ -69,7 +68,7 @@ function setFixtureState(state){
   el('page-url').textContent='https://www.example.com/path/long/long/中文内容/very-long-unbroken-path-name-for-overflow-regression';
   const list=el('note-list');list.replaceChildren();
   if(state!=='empty')for(const name of ['第一条网页笔记：标题非常长，用来验证多条标签的局部滚动','第二条笔记｜长中文标题','第三条笔记']){
-    const button=document.createElement('button');button.type='button';button.className='note-chip';button.textContent=name;
+    const button=document.createElement('button');button.type='button';button.className='od-button od-button--secondary note-chip';button.textContent=name;
     list.append(button);
   }
   el('note-text').value='含长段中文的已保存笔记内容与换行：'.repeat(24);
