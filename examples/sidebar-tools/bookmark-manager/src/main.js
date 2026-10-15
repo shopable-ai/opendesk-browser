@@ -763,8 +763,10 @@ function saveFromGesture(){
 }
 q('bm-save').addEventListener('click',saveFromGesture);
 q('bm-form').addEventListener('keydown',event=>{
-  if(event.key!=='Enter'||event.isComposing||event.target?.id==='bm-folder-query'||
-     event.target?.tagName==='BUTTON')return;
+  // Enter on the folder disclosure, <select>, and buttons must keep native
+  // keyboard semantics; only the editable title/URL fields mean "save".
+  if(event.key!=='Enter'||event.isComposing||
+    !['bm-name','bm-url'].includes(event.target?.id))return;
   event.preventDefault();saveFromGesture();
 });
 q('bm-delete-confirm').addEventListener('click',()=>{
