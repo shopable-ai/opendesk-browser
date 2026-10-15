@@ -29,7 +29,7 @@
     const list=el('note-list');list.replaceChildren();
     for(const note of notes) {
       const button=root.ownerDocument.createElement('button');
-      button.type='button';button.className='note-chip';button.textContent=label(note);
+      button.type='button';button.className='od-button od-button--secondary note-chip';button.textContent=label(note);
       button.disabled=!ready||busy||Boolean(confirmation);
       button.title=label(note);button.dataset.selected=String(note.id===selectedId);
       button.setAttribute('aria-label','编辑笔记：'+label(note));

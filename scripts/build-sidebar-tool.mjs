@@ -6,6 +6,7 @@ import {pathToFileURL,fileURLToPath} from 'node:url';
 import {BUILTIN_CATALOG} from '../src/libs/catalog.js';
 import {createHash} from 'node:crypto';
 import {validateSidebarToolPackage,SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_FORMAT_V2,serializeSidebarToolPackage} from '../src/ui/sidebar-tools/package.js';
+import {compileSharedToolCss} from './preview/shared-tool-design.mjs';
 const fail=(message)=>{throw new Error('E_TOOL_BUILD: '+message);};
 function rel(value) {
   if(typeof value!=='string'||value.length>180||!value||
@@ -41,6 +42,8 @@ export async function createSidebarToolPackage(projectPath) {
     fail('tool.config.json needs exactly HTML, CSS and JS file paths');
   const html=await source(root,meta.files.html,64000);
   let css=await source(root,meta.files.css,120000);
+  // Only opted-in tools import the canonical non-privileged component CSS at build time.
+  css=await compileSharedToolCss(css);
   const js=await source(root,meta.files.js,220000);
   const libraries=meta.files.dependencies||[];
   if(!Array.isArray(libraries)||libraries.length>8||

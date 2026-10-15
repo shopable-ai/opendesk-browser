@@ -1,45 +1,42 @@
-/* Sandboxed tool theme: matching values, not imported host CSS. */
-:root{font:13px/1.45 -apple-system,BlinkMacSystemFont,"PingFang SC",system-ui,sans-serif;color:#263952;background:#fff;color-scheme:light;--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--radius-control:8px;--radius-surface:12px;--notes-icon-size:34px}
-*{box-sizing:border-box}body{margin:0}button,input,textarea{font:inherit}[hidden]{display:none!important}
+/* @opendesk-shared-design */
+/* Layout, local content and list-selection state ONLY.
+ * Color, controls, focus, hover and surface geometry come from the official build. */
 .notes-app{width:100%;min-width:0;margin:0;padding:var(--space-3)}
-.page-context{display:flex;align-items:flex-start;gap:var(--space-2);min-width:0;padding-bottom:var(--space-3);border-bottom:1px solid #e9edf4}
+.page-context{display:flex;align-items:flex-start;gap:var(--space-2);min-width:0;padding-bottom:var(--space-3);border-bottom:1px solid var(--od-line)}
 .notes-mark{display:block;flex:none;width:24px;height:24px;object-fit:contain}
-.page-meta{flex:1;min-width:0}.page-summary{font-size:12px;font-weight:600;line-height:1.45;margin:0;overflow-wrap:anywhere}
-.page-url{font-size:11px;line-height:1.4;margin:var(--space-1) 0 0;color:#596b83;overflow-wrap:anywhere;word-break:break-word}
-.icon-button{position:relative;display:grid;place-items:center;flex:none;width:var(--notes-icon-size);height:var(--notes-icon-size);padding:0;border:1px solid #dfe6f0;background:#fff;border-radius:var(--radius-control);color:#506783;cursor:pointer}
-.icon-button svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.icon-button:hover:not(:disabled){background:#f1f5fb}.icon-button:disabled{opacity:.4;cursor:default}
-.icon-button.primary{background:#365ed3;border-color:#365ed3;color:#fff}.icon-button.primary:hover{background:#2851bf}
-.icon-button.danger{color:#a54b52}.icon-button.danger:hover:not(:disabled){background:#fff1f2;border-color:#f1cdd1}
-.icon-button:focus-visible::after{content:attr(aria-label);position:absolute;bottom:calc(100% + var(--space-1));right:0;z-index:5;background:#243854;color:#fff;font-size:11px;font-weight:500;white-space:nowrap;border-radius:var(--space-1);padding:var(--space-1) var(--space-2);pointer-events:none;box-shadow:0 2px 8px #15284a28}
-:focus-visible{outline:2px solid #365ed3;outline-offset:2px}
-.notes-heading{display:flex;align-items:center;gap:var(--space-2);min-height:34px;margin:var(--space-2) 0 var(--space-1)}
-.notes-heading label{font-size:13px;font-weight:700;margin:0}.note-count{color:#596b83;font-size:11px}.notes-heading .icon-button{margin-left:auto}
+.page-meta{flex:1;min-width:0}
+.page-summary{margin:0;overflow-wrap:anywhere}
+.page-url{margin:var(--space-1) 0 0;overflow-wrap:anywhere;word-break:break-word}
+.notes-heading{display:flex;align-items:center;gap:var(--space-2);min-height:var(--od-icon-size);margin:var(--space-2) 0 var(--space-1)}
+.notes-heading label{margin:0}
+.note-count{white-space:nowrap}
+.notes-heading .icon-button{margin-left:auto}
 .note-list{display:flex;min-width:0;gap:var(--space-2);overflow-x:auto;padding:0 0 var(--space-2);scrollbar-width:thin}
-.note-list:empty{display:none}.note-chip{flex:none;max-width:140px;min-height:32px;padding:var(--space-1) var(--space-2);border:1px solid #e2e8f2;background:#f8faff;border-radius:var(--radius-control);font-size:11px;color:#596b83;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
-.note-chip[data-selected="true"]{border-color:#a9bff2;background:#eaf0ff;color:#2e54ac;font-weight:650}.note-chip:hover{background:#eef3ff}
-#note-text{display:block;min-width:0;width:100%;min-height:126px;max-height:480px;padding:var(--space-3) var(--space-2);border:1px solid #cad6e7;border-radius:var(--radius-control);resize:vertical;color:#283a52;background:#fff;font-size:13px;line-height:1.55;font-family:inherit;overflow-wrap:anywhere}
-#note-text::placeholder{color:#60728a}#note-text:focus-visible{outline:2px solid #365ed3;outline-offset:0;border-color:transparent}
-.editor-actions{display:flex;align-items:center;gap:var(--space-2);min-height:34px;margin-top:var(--space-2)}.action-spacer{flex:1}
-/* 200% zoom can leave only ~160 CSS px: give the checkbox a complete row,
- * then keep the destructive/primary actions anchored at the right edge. */
-@media(max-width:220px){.editor-actions{display:grid;grid-template-columns:minmax(0,1fr) var(--notes-icon-size) var(--notes-icon-size);align-items:center}.editor-actions .page-attach{grid-column:1/-1;justify-self:start;white-space:nowrap}.editor-actions .action-spacer{display:none}.editor-actions .icon-button.danger{grid-column:2}.editor-actions .icon-button.primary{grid-column:3}}
-.page-attach{display:inline-flex;align-items:center;gap:var(--space-2);margin:0;min-width:0;min-height:34px;font-size:11px;color:#60728a;cursor:pointer}
-.page-attach input{margin:0;accent-color:#365ed3}.page-attach input:disabled{opacity:.45}
-.note-attachment{color:#65758d;font-size:11px;margin:var(--space-1) 0 0;overflow-wrap:anywhere}
-#note-status{font-size:11px;line-height:1.4;color:#506783;margin:var(--space-1) 0 0;overflow-wrap:anywhere}
-#note-status[data-state="success"]{color:#236d52}
-#note-status[data-state="error"]{color:#a03a43}
-.task-shortcut{border-top:1px solid #e9edf4;margin-top:var(--space-4);padding-top:var(--space-3);font-size:11px;color:#60718a}
-.task-shortcut summary{cursor:pointer;display:list-item;font-size:11px}.task-shortcut summary:focus-visible{outline-offset:2px}
-.task-row{display:flex;align-items:center;gap:var(--space-2);margin-top:var(--space-2)}.task-row input{flex:1;min-width:0;height:34px;border:1px solid #cbd6e6;border-radius:var(--radius-control);padding:var(--space-1) var(--space-2);font-size:12px}
-.visually-hidden{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;clip-path:inset(50%)}
-@media(max-width:360px){.note-chip{max-width:108px}}
-/* Standalone tool tabs should not stretch an editor to the full desktop width. */
-@media(min-width:800px){.notes-app{max-width:760px;margin-inline:auto}}
-@media(prefers-reduced-motion:no-preference){.icon-button{transition:background .12s ease}}
-.note-confirm{margin-top:var(--space-3);padding:var(--space-3);border:1px solid #cbd6e6;border-radius:var(--radius-surface);background:#f8faff}
-.note-confirm p{margin:0 0 var(--space-3);font-size:13px}
+.note-list:empty{display:none}
+.note-chip{flex:none;max-width:140px;width:auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.note-chip[data-selected="true"]{border-color:var(--od-focus);background:var(--od-muted);color:var(--od-accent-ink)}
+#note-text{display:block;width:100%;min-width:0;min-height:126px;max-height:480px;margin:0;resize:vertical;overflow-wrap:anywhere}
+.editor-actions{display:flex;align-items:center;gap:var(--space-2);min-height:var(--od-icon-size);margin-top:var(--space-2)}
+.action-spacer{flex:1}
+.page-attach{display:inline-flex;align-items:center;gap:var(--space-2);margin:0;min-width:0;min-height:var(--od-icon-size);font-size:var(--od-note-size);color:var(--od-sub);cursor:pointer}
+.page-attach input{margin:0;accent-color:var(--od-brand)}
+.note-attachment{margin:var(--space-1) 0 0;overflow-wrap:anywhere}
+#note-status{margin:var(--space-1) 0 0;overflow-wrap:anywhere}
+#note-status[data-state="success"]{color:var(--od-positive)}
+#note-status[data-state="error"]{color:var(--od-negative)}
+.task-shortcut{margin-top:var(--space-4);padding-top:var(--space-3);border-top:1px solid var(--od-line)}
+.task-row{display:flex;align-items:center;gap:var(--space-2);margin-top:var(--space-2);min-width:0}
+.task-row input{flex:1;min-width:0}
+.note-confirm{margin-top:var(--space-3)}
+.note-confirm p{margin:0 0 var(--space-3)}
 .confirm-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:var(--space-2)}
-.confirm-actions button{min-height:34px;white-space:nowrap;flex:none;padding:var(--space-2);border:1px solid #cbd6e6;border-radius:var(--radius-control);background:#fff;color:#263952;cursor:pointer}
-#note-confirm-accept{border-color:#365ed3;background:#365ed3;color:#fff}
+.confirm-actions button{flex:none;white-space:nowrap}
+@media(max-width:220px){
+  .editor-actions{display:grid;grid-template-columns:minmax(0,1fr) var(--od-icon-size) var(--od-icon-size);align-items:center}
+  .editor-actions .page-attach{grid-column:1/-1;justify-self:start;white-space:nowrap}
+  .editor-actions .action-spacer{display:none}
+  .editor-actions #delete-note{grid-column:2}
+  .editor-actions #save-note{grid-column:3}
+}
+@media(max-width:360px){.note-chip{max-width:108px}}
+@media(min-width:800px){.notes-app{max-width:760px;margin-inline:auto}}
