@@ -6,6 +6,8 @@ on:
       - 'examples/sidebar-tools/bookmark-manager/**'
       - 'docs/framework/workstreams/bookmark-manager-r2.md'
       - 'tests/environment/bookmark-manager-r2.test.mjs'
+      - 'tests/environment/bookmark-manager-r24-lifecycle.test.mjs'
+      - 'tests/environment/browser-sdk-r112-full-bookmarks.test.mjs'
       - 'tests/environment/browser-sdk-r124-current-page.test.mjs'
       - 'src/platform/chrome/current-page-refs.js'
       - 'src/platform/chrome/bookmarks-full.js'
@@ -28,7 +30,7 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: SDK Full / current document and installed consumer regression
-        run: node --test tests/environment/bookmark-manager-r2.test.mjs tests/environment/browser-sdk-r112-full-bookmarks.test.mjs tests/environment/browser-sdk-r124-current-page.test.mjs
+        run: node --test tests/environment/bookmark-manager-r2.test.mjs tests/environment/bookmark-manager-r24-lifecycle.test.mjs tests/environment/browser-sdk-r112-full-bookmarks.test.mjs tests/environment/browser-sdk-r124-current-page.test.mjs
       - name: Shared source and security checks
         run: npm run check
       - name: Independent v2 tool package
@@ -49,6 +51,6 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
           path: |
-            artifacts/sidebar-tools/bookmark-manager/0.3.0/bookmark-manager.opendesk-tool.json
+            artifacts/sidebar-tools/bookmark-manager/*/bookmark-manager.opendesk-tool.json
             docs/framework/evidence/wxt/builds/build-production.json
             docs/framework/evidence/wxt/builds/build-development.json

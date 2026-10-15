@@ -62,7 +62,11 @@ export function createBrowserFullBookmarksHost({api=globalThis.chrome,authorize,
   clock=Date,makeRef=()=>crypto.randomUUID()}={}){
   if(typeof authorize!=='function')throw fail('E_CONTEXT','Full Bookmarks trusted authorization required');
   const snapshots=new Map(),tickets=new Map(),sessions=new Map();
-  let generation=0;
+  let generation=0,revision=0;
+  const live=(epoch,reviewed)=>{
+    if(epoch!==generation)throw fail('E_GRANT_REVOKED','Bookmark authority changed during preflight');
+    if(reviewed!==revision)throw fail('E_BOOKMARK_STALE','Bookmark change observed during preflight; review again');
+  };
   const auth=(operation,context)=>authorize({operation:'browser.bookmarks.'+operation,context,origin:null});
   const native=name=>{
     if(typeof api?.bookmarks?.[name]!=='function')throw fail('E_CHROME_UNSUPPORTED','Missing chrome.bookmarks.'+name);
@@ -90,7 +94,7 @@ export function createBrowserFullBookmarksHost({api=globalThis.chrome,authorize,
     const node=await getNode(id),rootId=await root();
     if(node.parentId===null||node.parentId===rootId||managed(node))
       throw fail('E_BOOKMARK_PROTECTED','Root or special/managed folder cannot be modified');
-    if(expected&&sig(node)!==JSON.stringify(expected))
+    if(expected&&sig(node)!==sig(expected))
       throw fail('E_BOOKMARK_STALE','Bookmark no longer matches its reviewed version');
     let current=node,visited=new Set();
     while(current.parentId&&current.parentId!==rootId){
@@ -152,9 +156,17 @@ export function createBrowserFullBookmarksHost({api=globalThis.chrome,authorize,
   };
   const snapshot=(nodes,ctx,kind,limit)=>{
     prune(snapshots);
+    const owner=identity(ctx);
+    // Routine refreshes must not exhaust the finite pool for two minutes.
+    // Recycle only this installation's oldest snapshot; never evict another
+    // owner. A consumer still paging that snapshot gets E_SNAPSHOT_EXPIRED.
+    if(snapshots.size>=8){
+      const oldest=[...snapshots].find(([,row])=>row.owner===owner);
+      if(oldest)snapshots.delete(oldest[0]);
+    }
     if(snapshots.size>=8)throw fail('E_LIMIT','Too many bookmark snapshots');
     const ref=newRef(snapshots);
-    const data={owner:identity(ctx),nodes,kind,generation,expiresAt:clock.now()+120000};
+    const data={owner,nodes,kind,generation,expiresAt:clock.now()+120000};
     snapshots.set(ref,data);return page(ref,data,0,limit);
   };
   async function getTree(args,ctx){
@@ -177,6 +189,7 @@ export function createBrowserFullBookmarksHost({api=globalThis.chrome,authorize,
     return snapshot(nodes,ctx,'search',args.limit);
   }
   async function create(args,ctx){
+    const epoch=generation,reviewed=revision;
     await auth('create',ctx);
     if(args.sourcePage){
       if(!args.url||args.url!==args.sourcePage.url)throw fail('E_DOCUMENT_BINDING_REQUIRED','Source URL mismatch');
@@ -188,21 +201,25 @@ export function createBrowserFullBookmarksHost({api=globalThis.chrome,authorize,
     // Prior awaited parent checks could have allowed another document to load.
     await auth('create',ctx);
     if(args.sourcePage)await verifySourcePage(args.sourcePage,ctx);
-    const {sourcePage,...details}=args,epoch=generation,result=await write('create',details);
+    live(epoch,reviewed);
+    const {sourcePage,...details}=args,result=await write('create',details);
     if(epoch!==generation)throw fail('E_OUTCOME_UNKNOWN');
     return project(result);
   }
   async function update(args,ctx){
+    const epoch=generation,reviewed=revision;
     await auth('update',ctx);
     const node=await editable(args.id,args.expected);
     if(!Object.keys(args.changes).length||!Object.hasOwn(node,'url')&&args.changes.url!==undefined)
       throw fail('E_SCHEMA','Invalid folder/bookmark changes');
     await auth('update',ctx);
-    const epoch=generation,result=await write('update',args.id,args.changes);
+    live(epoch,reviewed);
+    const result=await write('update',args.id,args.changes);
     if(epoch!==generation)throw fail('E_OUTCOME_UNKNOWN');
     return project(result);
   }
   async function move(args,ctx){
+    const epoch=generation,reviewed=revision;
     await auth('move',ctx);
     await editable(args.id,args.expected);await parentFolder(args.destination.parentId);
     let ancestor=await getNode(args.destination.parentId),seen=new Set();
@@ -212,38 +229,44 @@ export function createBrowserFullBookmarksHost({api=globalThis.chrome,authorize,
     }
     await editable(args.id,args.expected);
     await auth('move',ctx);
-    const epoch=generation,result=await write('move',args.id,args.destination);
+    live(epoch,reviewed);
+    const result=await write('move',args.id,args.destination);
     if(epoch!==generation)throw fail('E_OUTCOME_UNKNOWN');
     return project(result);
   }
   async function remove(args,ctx){
+    const epoch=generation,reviewed=revision;
     await auth('remove',ctx);
     await editable(args.id,args.expected);
     if((await subtree(args.id)).length!==1)throw fail('E_BOOKMARK_NOT_EMPTY','Nonempty folder requires removeTree');
     await auth('remove',ctx);
-    const epoch=generation;await write('remove',args.id);
+    live(epoch,reviewed);await write('remove',args.id);
     if(epoch!==generation)throw fail('E_OUTCOME_UNKNOWN');
     return {removed:true};
   }
   async function prepareRemoveTree(args,ctx){
+    const epoch=generation,reviewed=revision;
     await auth('prepareRemoveTree',ctx);
     const snapshotData=access(args.snapshotRef,ctx,'tree');
     const original=descendants(snapshotData.nodes,args.id);
     if(original.length!==args.descendantCount+1||original.length<2||
-      sig(original[0])!==JSON.stringify(args.expected))throw fail('E_BOOKMARK_STALE','Reviewed tree does not match');
+      sig(original[0])!==sig(args.expected))throw fail('E_BOOKMARK_STALE','Reviewed tree does not match');
     await editable(args.id,args.expected);
     const current=await subtree(args.id);
     if(current.length!==original.length||current.some(managed)||
       current.map(sig).join('\n')!==original.map(sig).join('\n'))
       throw fail('E_BOOKMARK_STALE','Subtree changed since reviewed snapshot');
-    await auth('prepareRemoveTree',ctx);prune(tickets);
+    await auth('prepareRemoveTree',ctx);
+    const signature=await digest(current);live(epoch,reviewed);
+    prune(tickets);
     if(tickets.size>=16)throw fail('E_LIMIT','Too many pending folder deletes');
     const ticket=newRef(tickets),expiresAt=clock.now()+15000;
-    tickets.set(ticket,{owner:identity(ctx),generation,expiresAt,id:args.id,
-      expected:args.expected,descendantCount:args.descendantCount,digest:await digest(current)});
+    tickets.set(ticket,{owner:identity(ctx),generation:epoch,expiresAt,id:args.id,
+      expected:args.expected,descendantCount:args.descendantCount,digest:signature});
     return {ticket,targetId:args.id,descendantCount:args.descendantCount,expiresAt};
   }
   async function removeTree(args,ctx){
+    const epoch=generation,reviewed=revision;
     await auth('removeTree',ctx);
     // Spend one-use ticket before all awaits, including validation and Chrome.
     const ticket=tickets.get(args.ticket);tickets.delete(args.ticket);
@@ -255,11 +278,16 @@ export function createBrowserFullBookmarksHost({api=globalThis.chrome,authorize,
     if(current.length!==ticket.descendantCount+1||current.some(managed)||
        await digest(current)!==ticket.digest)throw fail('E_BOOKMARK_STALE','Folder changed; delete cancelled');
     await auth('removeTree',ctx);
-    const epoch=generation;await write('removeTree',args.id);
+    live(epoch,reviewed);
+    if(ticket.expiresAt<=clock.now())throw fail('E_BOOKMARK_CONFIRM_EXPIRED','Deletion approval expired during preflight');
+    await write('removeTree',args.id);
     if(epoch!==generation)throw fail('E_OUTCOME_UNKNOWN');
     return {removed:true};
   }
   function publish(kind,id,details){
+    // Fence native events observed during awaited preflight, including the
+    // final permission check. Chrome still provides no atomic read/write CAS.
+    revision++;
     const compact=details&&Object.fromEntries(Object.entries(details).filter(([,value])=>value!==undefined));
     const item={kind,timestamp:clock.now(),...(typeof id==='string'&&ID.test(id)?{id}:{}),
       ...(compact&&Object.keys(compact).length?{details:compact}:{})};

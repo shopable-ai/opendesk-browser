@@ -8,7 +8,7 @@ const model=globalThis.BookmarkR2Model;
 const service=globalThis.BookmarkR2Service.create(sdk);
 const q=id=>root.querySelector('#'+id);
 const s={tree:null,expanded:new Set(),search:'',limit:200,folder:null,selection:null,
-  mode:'tree',menu:null,draft:null,busy:false,session:0,composing:false,
+  mode:'tree',menu:null,draft:null,reviewed:null,busy:false,session:0,composing:false,
   watcher:null,watchEpoch:0,watchTimer:null};
 const make=(tag,cls,value)=>{
   const el=document.createElement(tag);if(cls)el.className=cls;
@@ -42,7 +42,7 @@ function gate(text){
   // A late successful read must never resurrect sensitive data after revocation.
   s.session++;
   endWatch();
-  s.tree=null;
+  s.tree=null;s.reviewed=null;s.draft=null;
   busy(false);
   q('bm-refresh').disabled=false;s.selection=null;s.mode='tree';s.folder=null;s.menu=null;
   q('bm-workspace').hidden=true;q('bm-gate').hidden=false;
@@ -185,17 +185,14 @@ async function beginWatch(session){
   const epoch=++s.watchEpoch;
   try{
     const watcher=await service.watchStart();
-    if(epoch!==s.watchEpoch||session!==s.session||!s.tree){
+    if(epoch!==s.watchEpoch||session!==s.session){
       void service.watchStop(watcher).catch(()=>{});return;
     }
-    s.watcher=watcher;scheduleWatch(epoch);
+    s.watcher=watcher;
   }catch(error){
     if(epoch!==s.watchEpoch)return;
-    if(authorityLost(error)){
-      gate('完整书签 SDK 或授权已失效；请在可信扩展界面重新检查。');
-      notice(errorText(error),true);return;
-    }
-    notice('书签事件同步不可用，请手动刷新：'+errorText(error),true);
+    if(authorityLost(error))throw error;
+    return '书签事件同步不可用，请手动刷新：'+errorText(error);
   }
 }
 async function refresh(){
@@ -214,10 +211,14 @@ async function refresh(){
       notice('当前不可读取或修改 Chrome 书签',true);
       return;
     }
+    // Observe before reading: changes during a paginated snapshot remain in
+    // this session and trigger another full sync instead of falling in a gap.
+    const watchWarning=await beginWatch(session);
+    if(session!==s.session)return;
     const tree=await service.load();
     if(session!==s.session)return;
-    enable(tree);notice('');
-    void beginWatch(session);
+    enable(tree);notice(watchWarning||'',Boolean(watchWarning));
+    if(s.watcher)scheduleWatch(s.watchEpoch,0);
   }catch(error){
     if(session!==s.session)return;
     gate('读取失败：'+errorText(error)+'。检查权限后可重新尝试。');
@@ -231,7 +232,7 @@ async function mutation(run){
   try{
     await run();
     if(session!==s.session)return;
-    s.mode='tree';s.selection=null;s.draft=null;s.menu=null;
+    s.mode='tree';s.selection=null;s.draft=null;s.reviewed=null;s.menu=null;
     // Do not turn an unknown outcome into an automatic replay.
     busy(false);await refresh();
     if(s.tree&&!q('bm-workspace').hidden)notice('已更新 Chrome 书签');
@@ -245,7 +246,7 @@ async function mutation(run){
   }
 }
 function cancel(){
-  s.mode='tree';s.selection=null;s.menu=null;s.draft=null;notice('');render();
+  s.mode='tree';s.selection=null;s.menu=null;s.draft=null;s.reviewed=null;notice('');render();
   q('bm-search').focus({preventScroll:true});
 }
 async function saveCurrent(){
@@ -289,7 +290,7 @@ function onAction(action,id){
   if(action==='more'){s.limit+=200;renderList();return}
   if(action==='cancel'){cancel();return}
   if(action==='new-bookmark'||action==='new-folder'){
-    s.mode=action;s.selection=null;s.draft=null;render();q('bm-name').focus();return;
+    s.mode=action;s.selection=null;s.draft=null;s.reviewed=null;render();q('bm-name').focus();return;
   }
   const target=id||s.selection;
   if(!node(target)){notice('书签已变化，请刷新',true);return}
@@ -298,6 +299,9 @@ function onAction(action,id){
   }
   if(['edit','move','delete'].includes(action)){
     if(node(target).locked){notice('Chrome 系统根目录或受管理节点不可修改',true);return}
+    // Keep the reviewed version even when an event refresh replaces s.tree.
+    // The service and Host must reject a conflicting external edit on save.
+    s.reviewed=Object.freeze({...node(target)});
     s.mode=action;s.selection=target;s.menu=null;s.draft=null;render();
     if(action==='delete')q('bm-delete-confirm').focus();
     else (action==='move'?q('bm-parent'):q('bm-name')).focus();
@@ -329,7 +333,7 @@ q('bm-form').addEventListener('submit',event=>{
   event.preventDefault();
   if(s.busy||!s.tree||s.mode==='detail')return;
   const payload={title:q('bm-name').value,url:q('bm-url').value,parentId:q('bm-parent').value};
-  const mode=s.mode,expected=node(s.selection);s.draft=payload;
+  const mode=s.mode,expected=s.reviewed;s.draft=payload;
   if(mode==='new-bookmark')void mutation(()=>service.createBookmark(payload));
   if(mode==='new-folder')void mutation(()=>service.createFolder(payload));
   if(mode==='edit'&&expected)void mutation(()=>service.update({expected,...payload}));
