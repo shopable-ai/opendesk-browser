@@ -1,13 +1,13 @@
 ---
 name: opendesk-sidebar-tool-package
-description: Build, validate, synchronize and install portable OpenDesk Sidebar Tool v1/v2 JSON packages and official offline catalog releases; handle reproducible packaging and local upgrade acceptance, not UI authoring, Page/Task publishing or remote marketplace upload.
+description: Build, validate, synchronize and install portable OpenDesk Sidebar Tool v1/v2 JSON packages and official offline catalog releases; handle reproducible packaging, evidence-based capacity changes and local upgrade acceptance, not UI authoring, Page/Task publishing or remote marketplace upload.
 ---
 
 # OpenDesk Browser · Sidebar Tool 编译、打包与本地交付
 
 ## 唯一职责、触发与分工
 
-当任务是「编译应用」「生成可导入 JSON」「把安装包放在工具项目目录」「校验安装包是否与源码一致」「离线分发」「官方固定资源打包」「安装/更新验收」时，以本 Skill 为**唯一主 Skill**。常规 UI、交互、业务逻辑的创作以 [工具开发 Skill](../opendesk-sidebar-tool-dev/SKILL.md) 为主；可信 Chrome 服务由 `opendesk-trusted-sidebar-feature`、通用 SDK/Host 由 `opendesk-extension-runtime` 管理；扩展中心的市场列表 UI 由 `opendesk-extension-ui` 管理。Controller/Page Program 的构建和 Authority 归 `opendesk-program-publish`，**不是本格式**。
+当任务是「编译应用」「生成可导入 JSON」「把安装包放在工具项目目录」「校验安装包是否与源码一致」「离线分发」「安装/更新验收」时，以本 Skill 为**唯一主 Skill**。常规 UI、交互、业务逻辑的创作以 [工具开发 Skill](../opendesk-sidebar-tool-dev/SKILL.md) 为主；可信 Chrome 服务由 `opendesk-trusted-sidebar-feature`、通用 SDK/Host 由 `opendesk-extension-runtime` 管理；扩展中心的市场列表 UI 由 `opendesk-extension-ui` 管理。Controller/Page Program 的构建和 Authority 归 `opendesk-program-publish`，**不是本格式**。
 
 **远程市场发布并未作为本 Skill 的能力实现。** 已有扩展内官方离线市场、固定 Catalog 与 R5 受限网页交接，不等于作者注册、上传 API、公开审核、版本托管或生产签名发布。未来职责预留在 [市场发布占位说明](../opendesk-marketplace-publish/RESERVED.md)，不能把本地 JSON 或 Git commit 宣称为线上上架成功。
 
@@ -18,6 +18,16 @@ description: Build, validate, synchronize and install portable OpenDesk Sidebar 
 3. 官方离线发行继续使用 `official-tools/catalog.json` 与 `scripts/build-official-tools.mjs`，以 [官方 Catalog 合同](../../../docs/api/official-tools-catalog.zh-CN.md) 为准，`version/capabilities` 取自工具自身 `tool.config.json`，不在 Catalog 复制版本。
 4. 首先检查工具项目的 `tool.config.json`、`src/index.html`、`src/style.css`、`src/main.js`（如有 `files.dependencies` 也检查）。`tool.config.json` 是输入，`<id>.opendesk-tool.json` 才是可导入文件；后者不是 Chrome Manifest，也不是第二份可以手工编辑的源码。
 5. 正式发布时审核源码/版本/许可证/权限差异。Cookie 等敏感数据和密钥不能出现在构建输入、提交文件、日志或交付包中。
+
+## R32.3：容量可调整，安全机制不跳过
+
+用户于 2026-10-15 明确允许重评和调整早期 AI 设置的工具容量。现行政策与来源见 [UI 架构文档](../../../docs/architecture/browser-ui-r23.zh-CN.md)，不在 Skill 新建另一份容量数值表。
+
+**不能因为 React/Tree/Combobox 超出旧预算就拒绝组件路线。** 旧值是当前版本的实际校验值，不是不可修改的 Chrome 硬限制。具体容量实施获授权后允许直接同步更新预算、消费者及回归，不必仅因越过旧值重复申请同类批准；不得只改测试、跳过安全检查或改成无限制。
+
+先分类外部限制、内部预算与身份安全机制，记录原值/单位/来源、代表性应用、目标设备、新值理由与验证范围。初期证据不足可用明确标注的暂定预算，继续原型和核心开发。同步源文件读取、打包/编码、导入、Host、消息/预览/stage、存储、Sandbox Bridge 及升级全链，不能出现“打包通过、运行按旧值拒绝”。UTF-16 长度、UTF-8 字节、JSON 转义、gzip/Brotli 和 ZIP 分别测量。
+
+调整数值不改变 capability、真实 sender、安装代际、来源/哈希、CSP、沙箱、路径或撤权语义；保留临界值、超限和异常拒绝回归及旧包可读性。每次结论形成后同步架构、工具开发/API 文档、对应 Skill 和工作流证据；未修改代码和实测时不宣称新容量已生效。
 
 ## 三条明确构建路径
 
