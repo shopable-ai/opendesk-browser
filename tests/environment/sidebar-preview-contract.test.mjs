@@ -1,10 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
+import {readFile,mkdtemp,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import {resolve} from 'node:path';
 import vm from 'node:vm';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
-import {generatePreview,PREVIEW_SCENARIOS} from '../../scripts/preview/build-preview.mjs';
+import {generatePreview,buildPreview,previewReviewContext,PREVIEW_CONTEXT_FORMAT,PREVIEW_SCENARIOS} from '../../scripts/preview/build-preview.mjs';
 import {assertLayoutOnly,compileSharedToolCss,officialDesignSources,SHARED_DESIGN_MARKER} from '../../scripts/preview/shared-tool-design.mjs';
 import {PREVIEW_INPUTS,previewSourceHashes,assertPreviewLock} from '../../scripts/preview/check-preview-contract.mjs';
 
@@ -120,4 +122,27 @@ test('bookmark manager R2.5 shares its real package UI with an isolated full-boo
   assert.equal((await sdk.bookmarks.getTree({limit:100})).nodes.length,100);
   await assert.rejects(generatePreview({tool:'bookmark-manager',surface:'injected-page'}),
     /no verified production preview adapter/);
+});
+
+test('build emits short source-bound review context next to the offline HTML',async()=>{
+  const preview=await generatePreview({tool:'quick-notes',scenario:'empty',width:320});
+  const brief=previewReviewContext(preview);
+  assert.equal(brief.format,PREVIEW_CONTEXT_FORMAT);
+  assert.equal(brief.toolId,'quick-notes');
+  assert.equal(brief.activeTab,'扩展');
+  assert.equal(brief.view,'extension-tool-detail');
+  assert.equal(brief.scenario,'empty');
+  assert.equal(brief.viewportCssPx.width,320);
+  assert.equal(brief.source.shellSha256,preview.manifest.shellSha256);
+  assert.equal(brief.simulation.realUninstall,false);
+  assert.ok(brief.hostInteractions.some(action=>action.includes('卸载')));
+  assert.ok(JSON.stringify(brief).length<1800,'do not copy HTML/CSS/JS into brief');
+  const dir=await mkdtemp(join(tmpdir(),'od-preview-r13-'));
+  try{
+    const result=await buildPreview({out:join(dir,'preview.html'),scenario:'empty',width:320});
+    const disk=JSON.parse(await readFile(result.context,'utf8'));
+    assert.equal(disk.html,result.output);
+    assert.equal(disk.source.uiSha256,result.uiSha256);
+    assert.match(await readFile(result.output,'utf8'),/id="opendesk-preview-frame"/);
+  }finally{await rm(dir,{recursive:true,force:true});}
 });

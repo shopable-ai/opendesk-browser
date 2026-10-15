@@ -42,6 +42,10 @@ test('one light preview shell frames the same real sandboxed tool without other 
     assert.ok(preview.html.includes('id="od-preview-confirm-uninstall"'));
     assert.ok(preview.html.includes('id="od-preview-reopen"'));
     assert.ok(preview.html.includes('id="od-preview-reset"'));
+    assert.ok(preview.html.includes('role="tabpanel"'));
+    assert.ok(preview.html.includes("current.setAttribute('aria-controls',current.id==='tab-tools'?"));
+    assert.ok(preview.html.includes("modal.addEventListener('close'"));
+    assert.ok(preview.html.includes('模拟卸载当前工具（不会删除真实数据）'));
     assert.ok(preview.html.includes('id="tab-tools"'));
     assert.ok(!preview.html.includes('id="workbench-workflow"'),
       'five navigation items must not embed five complete workbench pages');

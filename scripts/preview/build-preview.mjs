@@ -9,6 +9,7 @@ import {officialDesignSources,canonicalThemeOverride} from './shared-tool-design
 import {sidebarPreviewShellSource} from './sidebar-shell-source.mjs';
 
 export const PREVIEW_FORMAT='opendesk.ui-preview.v1';
+export const PREVIEW_CONTEXT_FORMAT='opendesk.ui-preview-context.v1';
 export const PREVIEW_SCENARIOS=Object.freeze(['success','empty','error','loading','permission-denied','untrusted']);
 export const PREVIEW_MOCK_OPERATIONS=Object.freeze(['storage.get','storage.set','currentPage.info','tasks.open']);
 export const PREVIEW_BOOKMARK_OPERATIONS=Object.freeze([
@@ -117,11 +118,31 @@ export async function generatePreview({
     [surface,scenario,theme,String(width)].join('-')+'.html'));
   return Object.freeze({manifest,frameHtml,html:outputHtml,output});
 }
+// A small source-bound sidecar for AI review; never a second rendering pipeline.
+export function previewReviewContext(preview){
+  const {manifest,output}=preview;
+  return Object.freeze({
+    format:PREVIEW_CONTEXT_FORMAT,
+    toolId:manifest.tool,surface:manifest.surface,
+    view:'extension-tool-detail',activeTab:'扩展',
+    // Tool interactions remain owned by the real packaged HTML/JS, not a summary registry.
+    hostInteractions:['五个顶部页签（非扩展仅占位）','返回精简列表与重新进入','模拟卸载、取消和确认'],
+    scenario:manifest.scenario,viewportCssPx:manifest.viewport,
+    source:{commit:manifest.sourceCommit,designSha256:manifest.designSha256,
+      shellSha256:manifest.shellSha256,uiSha256:manifest.uiSha256},
+    simulation:{mock:true,installed:false,permissionsGranted:false,network:false,
+      realUninstall:false,sdkOperations:manifest.operations},
+    html:output,inlinePreview:'REQUIRES_CLIENT_RENDER_CHECK'
+  });
+}
 export async function buildPreview(options={}){
   const preview=await generatePreview(options);
+  const contextPath=preview.output.endsWith('.html')?
+    preview.output.slice(0,-5)+'.context.json':preview.output+'.context.json';
   await mkdir(dirname(preview.output),{recursive:true});
   await writeFile(preview.output,preview.html,'utf8');
-  return {output:preview.output,...preview.manifest};
+  await writeFile(contextPath,JSON.stringify(previewReviewContext(preview),null,2)+'\n','utf8');
+  return {output:preview.output,context:contextPath,...preview.manifest};
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
   const args=process.argv.slice(2),parsed={};

@@ -63,3 +63,25 @@ node --test tests/environment/sidebar-preview-shell.test.mjs tests/environment/s
 - **容量**：HTML/JS/CSS 包预算须受原安装链约束，预览 HTML 容量不等于可安装工具包可支持同样大小；必要时实施预览快照压缩和按需加载，但不能让正式应用引用远程 CDN。
 - **模拟边界**：只在 SDK/service 层 Mock，不伪造真实 Chrome 操作。预览中的“卸载”只是视图和 iframe 生命周期演示。
 - **多 Agent**：写入 `main` 前比较 SHA，仅追加本任务所有的文件；不修改其他对话的 SDK、权限、安装器或旧验收证据。
+
+## 7. R1.3：原生 HTML 与对话内适配层不可混淆
+
+延续 R1.2 的浅色、正式设计 token、五 Tab 外壳、受限 iframe 和两套不同职责的模板，不建立第三个 HTML 生成器。生产工具预览的完整权威文件继续从 `node scripts/preview/build-preview.mjs --tool quick-notes --surface side-panel --scenario success --theme light --width 360 --height 760` 生成。
+
+执行上述命令时，除 `*.html` 外，还写入同名 `*.context.json`。后者只记录当前工具、surface、详情视图、激活的扩展 Tab、Shell 关键模拟交互、场景与 CSS 宽度、来源 commit 与设计/工具/外壳 SHA、SDK Mock 能力边界及正式 HTML 路径。**它不是单独维护的组件注册表，也不复制 HTML/CSS/JS。** 模板/正式工具源码改动后必须重新生成文件，不手工修改旧产物。
+
+聊天中的展示证据严格区分：
+
+1. `SOURCE_HTML_INLINE`：聊天容器实际执行本次生成的完整 HTML 字节，且记录其来源指纹，可以声称“同源 HTML 已嵌入”。
+2. `CHAT_ADAPTER_NOT_SOURCE_HTML`：不具备原始 HTML 执行能力时，改用聊天可视化适配层演示关键按钮/状态；必须醒目标识与源 HTML 不同，说明 DOM/CSS、iframe/Mock 与生产包行为不完全等价。**可操作不代表源 HTML 已在聊天中运行。**
+3. `LINK_ONLY_NOT_ACCEPTED`：只给仓库链接、截图或文件下载，即使 CI PASS，也不满足对话内交互目标。
+
+导航和页头实际来自 `src/ui/tool.html`。生产 `aria-controls` 原本指向完整 Tab 页面，R1.3 在预览运行时只重指向已有 `tabpanel`，不更改源模板。工具卸载在预览中重新设置明确的模拟 aria-label，取消按钮或 Escape 会将焦点恢复到卸载按钮；确认时只清空模拟 iframe，可重新进入。其他四个 Tab 不载入业务，正式 Token/组件样式仍由构建期抽取。
+
+必要定向检查：
+```sh
+node scripts/preview/check-preview-contract.mjs
+node --test tests/environment/sidebar-preview-shell.test.mjs tests/environment/sidebar-preview-contract.test.mjs tests/environment/sidebar-preview-kit.test.mjs
+```
+
+GitHub CI 的 Headless Chrome 结果限于 `STATIC_OFFLINE_CHROME_PASS_NOT_INSTALLED`；同候选 Mac 真实 Chrome 扩展/Side Panel/iframe 的完整安装、键盘和计算样式无原始证据则记 `NATIVE_CHROME=NOT_TESTED`。不要因为静态回归通过就填 95+ 最终产品评分。

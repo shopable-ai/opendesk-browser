@@ -67,3 +67,13 @@ node --test tests/environment/sidebar-preview-contract.test.mjs tests/environmen
 - 生成后执行 `node scripts/preview/check-preview-contract.mjs`、`node --test tests/environment/sidebar-preview-shell.test.mjs tests/environment/sidebar-preview-contract.test.mjs`；明确记载生产已安装 Chrome 尚未验证部分。模板/正式依赖修改后重新生成并审阅，不准手改生成的 HTML 解决视觉问题。
 
 为了节省 AI 上下文，传递“工具/展示面/当前视图 + 关键状态/交互 + 设计来源与 commit/Mock 声明”的短提要即可；详细源码和编译产物留在仓库并按需加载。不要把 5 个 Tab、真实包 JS、全部 CSS 内联进每轮文字提示词。
+
+## R1.3：聊天内交互展示与极简上下文（2026-10-15）
+
+沿用前述 **两个既有生成器**，不再创建 HTML 框架、设计系统或总 Registry。详见 [模板的 R1.3 正式合同](../../../docs/architecture/browser-framework/ui-preview-shell-template-r12.zh-CN.md)。
+
+- 日常入口：“使用 OpenDesk 正式预览模板，设计 XXX 工具，直接在当前对话展示可交互的浅色 HTML。” 先确认工具所属环境和已有源码；已有工具使用 `scripts/preview/build-preview.mjs`，全新设计稿使用 `sidebar-preview-kit.mjs create`。
+- 正式工具生成时保存同名 `.context.json` 轻量文件，优先提供 `view/scenario/hostInteractions/source/simulation`，不把五个 Tab 的 JS/CSS 或整个业务包塞进每轮对话。
+- **只有客户端确实载入正式生成 HTML 字节，才能宣称 `SOURCE_HTML_INLINE`。** 如果只可以用聊天交互组件近似还原，必须显著标注 `CHAT_ADAPTER_NOT_SOURCE_HTML`，报告差异，另外交付正式离线 HTML 路径。图或 URL 不算对话内交互通过。
+- 正式 Side Panel 导航从真实宿主提取，预览时仅把 `aria-controls` 绑定到确实存在的模拟面板；模拟卸载明确不清理真实数据；取消/Escape 正常恢复触发按钮焦点。
+- 离线 Node、Headless Chrome、用户 Mac 已安装扩展是**三种独立证据**。无同候选 Mac Chrome 记录，`NATIVE_CHROME=NOT_TESTED`，不得用静态评分补齐。

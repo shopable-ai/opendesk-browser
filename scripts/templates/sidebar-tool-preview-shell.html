@@ -51,24 +51,25 @@ body{display:block;margin:0;background:var(--od-bg);color:var(--od-ink)}
   <section class="preview-device" aria-label="OpenDesk Browser Side Panel 真实布局来源的离线预览">
     {{NAV}}
     <main class="preview-body">
-      <section id="od-preview-extension-detail" aria-label="当前扩展工具">
+      <section id="od-preview-extension-detail" role="tabpanel" tabindex="-1" aria-label="当前扩展工具">
         {{HEADER}}
         <div id="sidebar-tool-frame" class="sidebar-tool-frame">
           <iframe id="opendesk-preview-frame" class="sidebar-tool-iframe" title="{{PAGE_TITLE}}" sandbox="allow-scripts" referrerpolicy="no-referrer"></iframe>
         </div>
       </section>
-      <section id="od-preview-return" class="od-surface od-surface--padded preview-placeholder" aria-label="返回模拟" hidden>
+      <section id="od-preview-return" role="tabpanel" tabindex="-1" class="od-surface od-surface--padded preview-placeholder" aria-label="返回模拟" hidden>
         <strong class="od-page-title">扩展 · 工具列表（简化预览）</strong>
         <p class="od-note">为减少预览内容，仅保留返回后的导航状态。正式产品中的完整列表、筛选与安装入口仍由真实扩展管理。</p>
         <button id="od-preview-reopen" type="button" class="od-button">重新查看当前工具</button>
       </section>
-      <section id="od-preview-other" class="od-surface od-surface--padded preview-placeholder" aria-label="其他选项卡" hidden>
+      <section id="od-preview-other" role="tabpanel" tabindex="-1" class="od-surface od-surface--padded preview-placeholder" aria-label="其他选项卡" hidden>
         <strong id="od-preview-other-title" class="od-page-title"></strong>
         <p class="od-note">这里只展示选项卡导航上下文；不复制其他工作台页面的业务代码。</p>
         <button id="od-preview-to-extensions" class="od-button" type="button">返回「扩展」预览</button>
       </section>
-      <section id="od-preview-uninstalled" class="od-surface od-surface--padded preview-placeholder" aria-label="模拟卸载结果" role="status" hidden>
+      <section id="od-preview-uninstalled" role="tabpanel" tabindex="-1" class="od-surface od-surface--padded preview-placeholder" aria-label="模拟卸载结果" hidden>
         <strong class="od-page-title">模拟卸载完成</strong>
+        <p class="od-note" role="status" aria-live="polite">当前模拟工具实例已关闭。</p>
         <p class="od-note">仅关闭当前预览 iframe，未卸载真实工具、删除数据或更改权限。</p>
         <button id="od-preview-reset" type="button" class="od-button od-button--secondary">重新加载模拟工具</button>
       </section>
@@ -100,21 +101,28 @@ body{display:block;margin:0;background:var(--od-bg);color:var(--od-ink)}
   byId('sidebar-tool-title').textContent={{TOOL_NAME_JSON}};
   byId('sidebar-tool-open-tab').hidden=true;
   remove.disabled=false;
+  // This preview must never claim the real tool and its stored data will be removed.
+  remove.setAttribute('aria-label','模拟卸载当前工具（不会删除真实数据）');
+  remove.title='模拟卸载（不会删除真实数据）';
   iframe.srcdoc=trustedFrameHtml;
-  function showPanel(name){
+  function showPanel(name,tab){
     for(const [id,node] of Object.entries(panels))node.hidden=id!==name;
+    panels[name].setAttribute('aria-labelledby',tab.id);
   }
   function activateTab(tab){
     if(!tab||!nav.includes(tab))return;
     for(const current of nav){
       const active=current===tab;
       current.setAttribute('aria-selected',String(active));
+      // Remap production aria-controls to the panels which actually exist in this mock.
+      current.setAttribute('aria-controls',current.id==='tab-tools'?
+        panels[extensionPage].id:panels.other.id);
       current.tabIndex=active?0:-1;
     }
-    if(tab.id==='tab-tools')showPanel(extensionPage);
+    if(tab.id==='tab-tools')showPanel(extensionPage,tab);
     else{
       byId('od-preview-other-title').textContent=tab.textContent.trim()+' · 预览占位';
-      showPanel('other');
+      showPanel('other',tab);
     }
   }
   nav.forEach(tab=>{
@@ -140,10 +148,15 @@ body{display:block;margin:0;background:var(--od-bg);color:var(--od-ink)}
     activateTab(byId('tab-tools'));byId('tab-tools').focus();
   });
   remove.addEventListener('click',()=>modal.showModal());
-  byId('od-preview-cancel-uninstall').addEventListener('click',()=>{modal.close();remove.focus();});
+  // The close event fires for both the cancel button and the native Escape key.
+  modal.addEventListener('close',()=>{
+    if(extensionPage==='detail'&&!panels.detail.hidden)remove.focus();
+  });
+  byId('od-preview-cancel-uninstall').addEventListener('click',()=>modal.close());
   byId('od-preview-accept-uninstall').addEventListener('click',()=>{
+    extensionPage='uninstalled';
     modal.close();
-    iframe.srcdoc='';extensionPage='uninstalled';activateTab(byId('tab-tools'));
+    iframe.srcdoc='';activateTab(byId('tab-tools'));
     byId('od-preview-reset').focus();
   });
   byId('od-preview-reset').addEventListener('click',()=>{

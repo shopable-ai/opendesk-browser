@@ -64,3 +64,9 @@ node scripts/tests/sidebar-preview-kit-browser.mjs <套件目录> <新的独立�
 4. 生产实现：按工具类型将已确认结构迁入既有源码；动态工具只在自身作用域映射 token/组件语义；可信 UI 由固定预编译入口接入。复用原打包、stage 和同候选真实 Chrome 验收。
 
 当前状态、专家原文、原始日志和剩余项见 [R1 工作流](../framework/workstreams/sidebar-preview-kit-r1-20261015.md)。
+
+## R1.3：既有生产预览的轻量复用
+
+对于已有正式工具，执行 `node scripts/preview/build-preview.mjs --tool quick-notes --surface side-panel --scenario success --theme light --width 360 --height 760`，输出 `artifacts/previews/quick-notes/side-panel-success-light-360.html` 及同名 `.context.json`。日常对话使用后者的短摘要，必要时提供完整正式 HTML。不要以仓库文件路径冒充 ChatGPT 已收到/执行了完整 HTML。
+
+简短自然语言入口：“**使用 OpenDesk 正式预览模板，设计一个 XXX 工具，直接在当前对话展示可交互的浅色 HTML。**” AI 先核对聊天执行能力：可运行原始完整 HTML 则记录 `SOURCE_HTML_INLINE`；只能用聊天组件实现近似则声明 `CHAT_ADAPTER_NOT_SOURCE_HTML` 并说明来源差异。已有工具优先正式源码同源，新增设计稿沿用 `sidebar-preview-kit.mjs create/check`。详细证据分层和交互清单以 [权威外壳文档](../architecture/browser-framework/ui-preview-shell-template-r12.zh-CN.md) 为准。

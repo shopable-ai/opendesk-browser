@@ -162,6 +162,64 @@ try{
     check(scenario,theme,width,rendered);
     assert.equal(network.length,0,'remote request: '+network.join(','));
     assert.deepEqual(errors,[],'unhandled script exception');
+    // The original host shell also needs a real Chrome interaction check.
+    if(width===360&&theme==='light'&&scenario==='success'){
+      const probe=await cdp('Runtime.evaluate',{
+        expression:'('+async function(){
+          const q=id=>document.getElementById(id);
+          const tabs=[...document.querySelectorAll('.workbench-nav [role="tab"]')]
+            .filter(tab=>!tab.hidden);
+          if(tabs.length!==5||tabs.some(tab=>!q(tab.getAttribute('aria-controls'))))
+            throw Error('preview tabs must target existing panels');
+          if(q('tab-tools').getAttribute('aria-selected')!=='true')
+            throw Error('extensions tab must start active');
+          q('sidebar-tool-back').click();
+          if(q('od-preview-return').hidden||!q('od-preview-extension-detail').hidden)
+            throw Error('return must show simplified list');
+          q('od-preview-reopen').click();
+          if(q('od-preview-extension-detail').hidden)throw Error('reopen failed');
+          q('sidebar-tool-remove').click();
+          if(!q('od-preview-confirm-uninstall').open)throw Error('confirmation missing');
+          q('od-preview-cancel-uninstall').click();
+          await new Promise(done=>setTimeout(done,0));
+          if(q('od-preview-confirm-uninstall').open||
+             document.activeElement!==q('sidebar-tool-remove'))
+            throw Error('cancel must restore focus');
+          q('sidebar-tool-remove').click();
+          return {tabs:tabs.length,modalOpen:q('od-preview-confirm-uninstall').open,
+            simulatedLabel:q('sidebar-tool-remove').getAttribute('aria-label')};
+        }.toString()+')()',awaitPromise:true,returnByValue:true
+      });
+      if(probe.exceptionDetails)throw Error('shell interactions: '+probe.exceptionDetails.text);
+      assert.equal(probe.result.value?.tabs,5);
+      assert.equal(probe.result.value?.modalOpen,true);
+      assert.match(probe.result.value?.simulatedLabel||'',/模拟卸载/);
+      await cdp('Input.dispatchKeyEvent',
+        {type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
+      await cdp('Input.dispatchKeyEvent',
+        {type:'keyUp',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
+      await delay(80);
+      const dismissed=await cdp('Runtime.evaluate',{expression:
+        '({open:document.getElementById("od-preview-confirm-uninstall").open,'+
+        'focus:document.activeElement?.id})',returnByValue:true});
+      assert.equal(dismissed.result.value?.open,false,'Escape closes native confirmation');
+      assert.equal(dismissed.result.value?.focus,'sidebar-tool-remove','Escape restores focus');
+      const accepted=await cdp('Runtime.evaluate',{
+        expression:'('+function(){
+          const q=id=>document.getElementById(id);
+          q('sidebar-tool-remove').click();
+          q('od-preview-accept-uninstall').click();
+          if(q('od-preview-uninstalled').hidden||q('opendesk-preview-frame').srcdoc!=='')
+            throw Error('uninstall must only clear the simulated frame');
+          q('od-preview-reset').click();
+          if(q('od-preview-extension-detail').hidden||!q('opendesk-preview-frame').srcdoc)
+            throw Error('reset must recreate simulated frame');
+          return {simulatedUninstall:true,reset:true};
+        }.toString()+')()',returnByValue:true
+      });
+      if(accepted.exceptionDetails)throw Error('shell lifecycle: '+accepted.exceptionDetails.text);
+      assert.equal(accepted.result.value?.reset,true);
+    }
     const shot=await cdp('Page.captureScreenshot',{format:'png'});
     const basename=[scenario,theme,String(width)].join('-');
     await writeFile(join(output,basename+'.png'),Buffer.from(shot.data,'base64'));
