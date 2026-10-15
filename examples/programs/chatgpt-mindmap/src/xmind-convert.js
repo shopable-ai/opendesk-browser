@@ -90,7 +90,12 @@ function getXmindStyleData(mode) {
   if (mode === "light") {
     style = style.replace(/#FFFFFF/g, "#000000").replace(/#282828/g, "#ffffff");
   }
-  return JSON.parse(style);
+  const data=JSON.parse(style);
+  // Accessible contrast for the central topic in both Workbook skins.
+  // Keep every other original XMind theme token and all renderer JS intact.
+  data.theme.centralTopic.properties['svg:fill']='#1D75C1';
+  data.theme.centralTopic.properties['fo:color']='#FFFFFF';
+  return data;
 }
 export {
   getXmindStyleData,

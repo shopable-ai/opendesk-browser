@@ -71,3 +71,6 @@ Linux Chromium 需有中文字体（CI 安装 Noto CJK）；200% CDP 页面视�
 - 启动 `node examples/programs/chatgpt-mindmap/preview/serve.mjs --no-open` 后检查上述页面；原 `preview/index.html` 仍是保留的真实 XMind 技术实验台，不可删除、覆盖、转成 Mock。
 - GitHub Actions 的 `ChatGPT Mind Map original JS direct preview and browser proof` 任务在真实 Chromium 中输出 `chatgpt-before.png`、`chatgpt-answer-A-light.png`、`chatgpt-answer-B-light.png`、`chatgpt-answer-B-dark.png`、`chatgpt-answer-C-structured.png`、`chatgpt-original-restored.png`、`chatgpt-fullscreen.png`、`chatgpt-narrow-320.png`、`chatgpt-mobile-320.png`、兼容截图 `chatgpt-xmind.png`、`chatgpt-result.json`，作为 Actions artifact 保存 7 天。必须实际检查运行是否成功和截图是否可读，不能只凭文件名宣称通过。
 - 唯一 UI 设计合同 `preview/design.md` 的状态始终为 **PENDING_USER_CONFIRMATION**；用户逐屏确认前不设定专家 95+ 完成分，也不把模拟页面的结果冒充实际登录 ChatGPT、原生安装、许可证和 Snowbrush 全局样式隔离已经通过。
+### 截图复查后的 R3.3 可读性补充
+
+320px 不再强行缩到看清所有节点的微型全图：正式 XMind 适配器将狭窄画布的最小缩放设置为 100%，使用真实引擎的拖动、滚轮浏览其它分支。全屏必须等待真实 SDK 适配完成才截图；截图新增 `chatgpt-answer-B-narrow-320.png` 和中心主题可读性几何检查。中心主题采用满足正常文字对比度目标的 `#1D75C1` + 白字，修改的是正式转换 Skin，不是四份引擎 JS。

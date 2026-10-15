@@ -53,6 +53,7 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
     if(disposed)return;
     renderActions.forEach(button=>{button.disabled=false;});
     status.textContent='';status.hidden=true;host.dataset.ready='true';
+    host.dataset.layoutReady='inline';
     if(!host.dataset.skinPending)host.dataset.skinReady=preferredSkin;
   }
   async function setTheme(isDark){
@@ -74,6 +75,7 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
   async function setFull(value){
     if(disposed||fullscreen===value)return;
     fullscreen=value;
+    host.dataset.layoutReady='pending';
     if(value){
       inlineParent=host.parentNode;inlineNext=host.nextSibling;
       host.classList.add('odmm-fullscreen');document.body.append(host);
@@ -88,6 +90,9 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
     }
     full.setAttribute('aria-pressed',String(value));
     await renderer?.fit();
+    if(!disposed&&fullscreen===value){
+      host.dataset.layoutReady=value?'fullscreen':'inline';
+    }
   }
   function markStale(){
     status.hidden=false;refresh.hidden=false;

@@ -156,3 +156,10 @@
 - `.github/workflows/chatgpt-mindmap-preview.yml` 负责无外部静态资源的 Node 测试、CJK 字体及真实 Chromium 演练，将截图和 JSON 作为短期 Actions artifact 保存；截图保存**不等于已人工批准**。
 - `node examples/programs/chatgpt-mindmap/preview/verify-assets.mjs`；`node examples/programs/chatgpt-mindmap/preview/serve.mjs --no-open`；`node --test tests/environment/chatgpt-mindmap-preview.test.mjs`；`node --test tests/environment/chatgpt-mindmap-r1.test.mjs`；`npm run check` 是本地最小检验入口。
 - 评分只能在**逐项记录实测值/截图、实际 UI 人工审阅**后填写 0–100，所有维度目标 ≥95；未测试显示 `NOT_TESTED`，失败显示 `FAIL/BLOCKED`，绝不虚构 95+。本轮的真实 ChatGPT 登录页及原生安装另设验收门槛。
+## 10. R3.3 截图复查后的视觉修正规则
+
+- 已在 CI 的真实截图中发现：320px 时原来的“把全图塞进窄框”会让中文变成无法阅读的小字，即使布局不溢出也不能达到 95+。正式 XMind 适配器现在在小于 420px 的画布设置 **至少 100% 的阅读缩放**，优先展示中心主题及临近分支，允许通过原始 SDK 拖动/滚轮浏览其它分支。用户主动点“适配”也不能再次退化成无法阅读的小字。
+- 全屏样式 class 可以先于引擎 fit 完成，因此 Chromium 截图与交互必须等待真实 `data-layout-ready="fullscreen"`，退出后等待 `data-layout-ready="inline"`，不可把过渡瞬间的半幅导图标记为最终效果。全屏 B 的 6 个真实主题应全部落入画布横向范围（容许 16px 测量差异），否则验收 FAIL。
+- 调整转换后的 XMind **中心主题配色**为 `#1D75C1` 背景、`#FFFFFF` 文字；正常文本对比度约 4.8:1。它是正式 `xmind-convert.js` 中的 Skin 参数，不修改或重新打包原始四份引擎 JS。
+- 响应式证据增加 `chatgpt-answer-B-narrow-320.png` 局部截图，以及 B 中心 XMind 主题的真实渲染宽度（至少 115px），不能仅凭“无水平滚动”评高分。新截图在等待临时评价 Toast 消失后采集，确保是稳定的用户交互状态。
+- UI 逐维分数仍需用户确认截图；真实原生安装、沙箱 style/许可问题仍为 BLOCKED。上述三项属于 R3.3 视觉修复增量，不改变预览文件目录、程序 ID 或引擎来源。

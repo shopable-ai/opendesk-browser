@@ -14,6 +14,10 @@ test('original XMind skin is copied afresh for each workbook',()=>{
   const a=getXmindStyleData('dark'),b=getXmindStyleData('light');
   assert.equal(a.theme.map.properties['svg:fill'],'#282828');
   assert.equal(b.theme.map.properties['svg:fill'],'#ffffff');
+  assert.equal(a.theme.centralTopic.properties['fo:color'],'#FFFFFF');
+  assert.equal(b.theme.centralTopic.properties['fo:color'],'#FFFFFF');
+  assert.equal(a.theme.centralTopic.properties['svg:fill'],'#1D75C1');
+  assert.equal(b.theme.centralTopic.properties['svg:fill'],'#1D75C1');
   a.theme.map.properties['svg:fill']='mutated';
   assert.equal(getXmindStyleData('dark').theme.map.properties['svg:fill'],'#282828');
 });

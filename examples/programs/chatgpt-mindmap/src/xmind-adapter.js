@@ -73,24 +73,57 @@ export function createXmindRenderer({window,canvas,tree,skinMode='light'}){
     return operation;
   }
   function fit(){return command(async c=>{
-    // This exact SDK has no fitMap/fit/center. Measure its rendered topics and
-    // call real SDK zoom, then center its own scroll container. Never redraw.
-    const topics=[...mount.querySelectorAll('.topic')].map(n=>n.getBoundingClientRect())
-      .filter(r=>r.width&&r.height);
-    if(!topics.length)return;
-    const width=Math.max(...topics.map(r=>r.right))-Math.min(...topics.map(r=>r.left));
-    const height=Math.max(...topics.map(r=>r.bottom))-Math.min(...topics.map(r=>r.top));
-    const ratio=Math.min((canvas.clientWidth-32)/width,(canvas.clientHeight-32)/height);
-    c.zoom(Math.max(50,Math.min(200,Math.floor(c.getZoomPencentage()*ratio))));
-    await settled();
+    // Use the original SDK zoom and its own scroll container. Do not render a
+    // substitute map. On a narrow viewport, legibility takes precedence over
+    // fitting an entire multi-branch workbook into illegible microtext.
+    const narrow=canvas.clientWidth<420;
+    const minimumZoom=narrow?100:50;
+    const widthAvailable=Math.max(120,canvas.clientWidth-32);
+    const heightAvailable=Math.max(120,canvas.clientHeight-32);
+    const bounds=()=>[...mount.querySelectorAll('.topic')]
+      .map(node=>node.getBoundingClientRect()).filter(rect=>rect.width&&rect.height);
+    const span=rects=>({
+      left:Math.min(...rects.map(r=>r.left)),
+      right:Math.max(...rects.map(r=>r.right)),
+      top:Math.min(...rects.map(r=>r.top)),
+      bottom:Math.max(...rects.map(r=>r.bottom))
+    });
+    for(let pass=0;pass<3;pass++){
+      if(disposed)return;
+      const rects=bounds();
+      if(!rects.length)return;
+      const box=span(rects);
+      const ratio=Math.min(widthAvailable/(box.right-box.left),
+        heightAvailable/(box.bottom-box.top));
+      // The first pass computes the normal fit; later passes correct actual
+      // SDK geometry after zoom. Do not zoom in again on correction passes.
+      if(pass>0&&ratio>=.99)break;
+      if(pass>0&&ratio>1)break;
+      const previous=c.getZoomPencentage();
+      const suggested=Math.floor(previous*ratio*(pass===0?1:.98));
+      const next=Math.max(minimumZoom,Math.min(200,suggested));
+      if(Math.abs(next-previous)<1)break;
+      c.zoom(next);
+      await settled();
+    }
     if(disposed)return;
     const scroller=mount.querySelector('.workbook-item')||canvas;
-    const bounds=[...mount.querySelectorAll('.topic')].map(n=>n.getBoundingClientRect())
-      .filter(r=>r.width&&r.height);
-    if(!bounds.length)return;
+    const rects=bounds();
+    if(!rects.length)return;
     const box=canvas.getBoundingClientRect();
-    scroller.scrollLeft+=(Math.min(...bounds.map(r=>r.left))+Math.max(...bounds.map(r=>r.right)))/2-(box.left+box.width/2);
-    scroller.scrollTop+=(Math.min(...bounds.map(r=>r.top))+Math.max(...bounds.map(r=>r.bottom)))/2-(box.top+box.height/2);
+    if(narrow){
+      // Give the root topic and first branches a readable starting position.
+      // The rest stays accessible using native XMind drag and wheel scrolling.
+      const root=mount.querySelector('.topic')?.getBoundingClientRect();
+      if(root){
+        scroller.scrollLeft+=root.left-(box.left+16);
+        scroller.scrollTop+=(root.top+root.bottom)/2-(box.top+box.height/2);
+      }
+    }else{
+      const union=span(rects);
+      scroller.scrollLeft+=(union.left+union.right)/2-(box.left+box.width/2);
+      scroller.scrollTop+=(union.top+union.bottom)/2-(box.top+box.height/2);
+    }
   });}
   function destroy(){
     if(closing)return closing;

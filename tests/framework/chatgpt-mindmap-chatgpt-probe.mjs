@@ -100,11 +100,29 @@ try{
   await viewer(2).getByRole('button',{name:'切换全屏'}).click();
   await page.locator('[data-opendesk-chatgpt-mindmap="viewer"].odmm-fullscreen')
     .waitFor({timeout:12000});
+  // The DOM class changes before the real SDK finishes its fit. Wait for
+  // actual renderer completion before taking a visual acceptance screenshot.
+  await page.locator('[data-opendesk-chatgpt-mindmap="viewer"].odmm-fullscreen[data-layout-ready="fullscreen"]')
+    .waitFor({timeout:20000});
+  report.fullBounds=await page.locator('[data-opendesk-chatgpt-mindmap="viewer"].odmm-fullscreen')
+    .evaluate(host=>{
+      const canvas=host.shadowRoot.querySelector('.odmm-canvas').getBoundingClientRect();
+      const rects=[...host.shadowRoot.querySelectorAll('.topic')]
+        .map(n=>n.getBoundingClientRect()).filter(r=>r.width&&r.height);
+      return {canvasLeft:canvas.left,canvasRight:canvas.right,
+        topicLeft:Math.min(...rects.map(r=>r.left)),
+        topicRight:Math.max(...rects.map(r=>r.right))};
+    });
+  assert.ok(report.fullBounds.topicLeft>=report.fullBounds.canvasLeft-16&&
+    report.fullBounds.topicRight<=report.fullBounds.canvasRight+16,
+    'Fullscreen fit must not clip the real six-topic B workbook horizontally');
+  report.checks.push('FULLSCREEN_REAL_SDK_FIT_COMPLETE_AND_VISIBLE');
   await page.screenshot({path:join(out,'chatgpt-fullscreen.png')});
   await page.keyboard.press('Escape');
   await page.locator('[data-opendesk-chatgpt-mindmap="viewer"].odmm-fullscreen')
     .waitFor({state:'detached',timeout:12000});
   assert.equal(await viewer(2).count(),1,'Fullscreen Escape must return to the original answer');
+  await viewer(2).and(page.locator('[data-layout-ready="inline"]')).waitFor({timeout:20000});
   report.checks.push('NATIVE_FULLSCREEN_ESCAPE_RESTORES_POSITION');
   await viewer(1).getByRole('button',{name:'恢复本条回复原文'}).click();
   await viewer(1).waitFor({state:'detached',timeout:15000});
@@ -171,13 +189,27 @@ try{
   await page.getByRole('button',{name:'切换 320px 容器'}).click();
   await page.waitForFunction(()=>document.getElementById('preview-conversation').getBoundingClientRect().width<=321);
   report.narrowWidth=await page.locator('#preview-conversation').evaluate(node=>node.getBoundingClientRect().width);
+  await page.waitForFunction(()=>{
+    const host=document.querySelector('[data-testid="conversation-turn-2"] [data-opendesk-chatgpt-mindmap="viewer"]');
+    return (host?.shadowRoot?.querySelector('.topic')?.getBoundingClientRect().width||0)>=115;
+  },null,{timeout:20000});
+  report.narrowRootWidth=(await viewer(2).locator('.topic').first().boundingBox()).width;
   report.narrowToolbar=await viewer(2).locator('.odmm-toolbar').evaluate(node=>({
     client:node.clientWidth,scroll:node.scrollWidth}));
   assert.ok(report.narrowToolbar.scroll<=report.narrowToolbar.client+1,
     'The real product toolbar must wrap rather than overflow at 320px');
+  const focusViewer=()=>viewer(2).evaluate(node=>{
+    const transcript=node.closest('.transcript');
+    if(transcript)transcript.scrollTop+=
+      node.getBoundingClientRect().top-transcript.getBoundingClientRect().top-8;
+  });
+  await page.locator('#mock-action-status').waitFor({state:'hidden',timeout:5000});
   await page.locator('#developer-lab summary').click();
+  await focusViewer();
   await page.screenshot({path:join(out,'chatgpt-narrow-320.png'),fullPage:true});
+  await viewer(2).screenshot({path:join(out,'chatgpt-answer-B-narrow-320.png')});
   await page.setViewportSize({width:320,height:760});
+  await focusViewer();
   const mobile=await page.evaluate(()=>({
     scrollWidth:document.documentElement.scrollWidth,
     viewportWidth:document.documentElement.clientWidth}));
@@ -185,7 +217,8 @@ try{
     '320px screen must never gain page-level horizontal scrolling');
   report.mobile=mobile;
   await page.screenshot({path:join(out,'chatgpt-mobile-320.png'),fullPage:true});
-  report.checks.push('TRUE_320PX_CONTENT_CONTAINER','NARROW_TOOLBAR_WRAP','MOBILE_320_NO_OVERFLOW');
+  report.checks.push('TRUE_320PX_CONTENT_CONTAINER','NARROW_TOOLBAR_WRAP',
+    'NARROW_READABLE_XMIND_ZOOM','MOBILE_320_NO_OVERFLOW');
   await page.locator('#developer-lab summary').click();
   await page.getByRole('button',{name:'Stop 并检查残余样式'}).click();
   await page.waitForFunction(()=>window.mindmapPreview?.sdk==='STOPPED');
