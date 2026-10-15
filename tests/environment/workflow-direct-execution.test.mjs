@@ -253,3 +253,17 @@ test('AI-off runs prove the same frozen revision across claim, completion and du
     {...r,result:{...r.view.results[0],revision:{...revision,revision:2}}}
   ])assert.equal(verifySavedWorkflowRevision(wrong),false);
 });
+
+
+test('continuation: view search results reads the page without replaying search',()=>{
+  const read=workflow([{stepId:'read-results',op:'observe'}]);
+  const request='查看搜索结果';
+  const p=prepareDirectExecution({request,workflow:read,target});
+  assert.deepEqual(p.params,{});
+  assert.equal(p.hasUnprovenClick,false);
+  assert.equal(p.hasReadback,false);
+  const repeat=workflow([{stepId:'search-again',op:'click',locatorKind:'role',
+    selector:'button',roleName:'搜索'}]);
+  assert.throws(()=>prepareDirectExecution({request,workflow:repeat,target}),
+    {code:'E_AI_UNREQUESTED_ACTION'});
+});
