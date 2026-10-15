@@ -72,3 +72,25 @@ Date: 2026-10-15. Branch: `main` (only). Scope: `examples/programs/chatgpt-mindm
 - https://gsap.com/standard-license/
 
 完成正式分发前需要：**完整原始合并构建记录/精确版本→逐依赖版权和许可证→NOTICE/声明保留→对固定实际二进制与 OpenDesk 安装包分发方式的权利确认**。这是一项明确的第三方权利批准门槛，不能被本地 HASH PASS 替代；继续保持全部 vendor 资产不入库、无 CDN、无 MAIN 注入。
+
+
+## 本轮已提交增量及真实 CI 身份
+
+以下为本次 R2.1 实际写入/验证，避免混淆预览编译通过与真实用户安装。
+
+- `3e32a54244755b1ceacda3c994915d3fcc9c2a0a`：新增 `preview/{index.html,preview.css,app.js,serve.mjs,README.md}`、独立预览源测试及本工作流。
+- `6a4c00564f3430a6e159edaf9d5ee61769025190`：正式项目 README 接入预览入口。
+- `3f4cf12188fde7184c0b317515054b3498fc12f4`：原固定资源 Chromium probe 新增同源独立 HTML 正向验证和截图、Stop 样式统计（**测试代码已写，浏览器案例未在本轮运行**）。
+- `04924eae4e4978b391e6b12bfe763a6cd5b464fc`：独立 GitHub Actions 静态/构建检查，不能从其成功推导出 XMind SDK 浏览器或安装通过。
+- `1474ab58ba6ae9f80d0d2472e53d3271033cbd10`：Snowbrush 内部 GSAP 3.5.1 等依赖许可证源头核对并记录。
+
+精确 CI 链接：https://github.com/shopable-ai/opendesk-browser/actions/runs/38725149159
+
+- 对应源码提交 `04924eae4e4978b391e6b12bfe763a6cd5b464fc`；offline-source-contract job `116389024656` **SUCCESS**。
+- Node: **16 tests, 13 PASS, 0 FAIL, 3 SKIP**。3 项是缺少 `XMIND_REFERENCE_DIR` 的真实 SDK Workbook 测试，仍为 **NOT_TESTED**。
+- `validate-program-project`：PASS。`npm run build:program`：PASS，但产物 `BUILT_UNVERIFIED / installable:false`。`npm run check`：PASS。
+- 编译源 / 构建 SHA-256：`45ab0cd685da4158e4b7cebcd858969d90291b1606efd69135cbf5550819e808`（与 R2 一致；预览目录不被误塞入正式用户脚本）。
+- 正式软件包的独立 CI 工作流 `38724267175` **FAIL**，在 `scripts/bundle-provenance.mjs` 审核 `examples/sidebar-tools/adblock/trusted/host-controls.js` 时显示“Trusted AdBlock source changed; review and re-pin”。该生产构建阻塞来自另一个可信 AdBlock 固定源码合同，不是本轮 XMind 资源成功/失败证明；不在思维导图任务范围擅自改动。
+- R2 Chromium 真实引擎 fixture 旧记录 15 PASS 可作为历史证据继续保留，但本次新增独立 HTML Chromium 案例 **NOT_TESTED**，无浏览器 screenshot；授权后的 USER_SCRIPT / 登录 ChatGPT / 用户 Mac / 原 Mindbank 视觉相似度仍是 **NOT_TESTED**。
+
+**下一道明确执行关卡**：带四份原始固定资源执行 `node tests/framework/chatgpt-mindmap-xmind-probe.mjs --assets ... --browser ... --playwright ... --out ...`，打开 `preview/serve.mjs` 提供的真实浏览器地址完成视觉/动作回归，然后推进许可批准、唯一受信 Runtime 安装链与原生验证。尚未获得许可证及安全隔离/同候选安装凭据时不得把 `installable:false` 改为真。
