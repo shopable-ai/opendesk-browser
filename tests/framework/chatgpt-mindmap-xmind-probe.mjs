@@ -7,6 +7,7 @@ import {createHash} from 'node:crypto';
 import {resolve,join,extname,dirname} from 'node:path';
 import {pathToFileURL,fileURLToPath} from 'node:url';
 import assert from 'node:assert/strict';
+import {startXmindPreview} from '../../examples/programs/chatgpt-mindmap/preview/serve.mjs';
 const args=Object.fromEntries(Array.from({length:(process.argv.length-2)/2},(_,i)=>[process.argv[2+i*2].slice(2),process.argv[3+i*2]]));
 for(const key of ['assets','browser','playwright','out'])assert.ok(args[key],`--${key} required`);
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
@@ -101,6 +102,49 @@ try{
  assert.equal(report.lifecycle.created,report.lifecycle.closed);assert.equal(report.lifecycle.remaining,0);assert.equal(report.lifecycle.hidden,false);passed('Stop calls close on every controller and restores originals');
  report.globalStyleCount=await page.locator('style').count();
  assert.equal(report.externalRequests.length,0);passed('No external network request from synthetic content');
+ // R2.1: independent product-facing HTML is tested with the same ORIGINAL SDK.
+ // Separate loopback origin + isolated browser page; no installed extension claim.
+ const preview=await startXmindPreview({assetsDirectory:args.assets});
+ const previewPage=await browser.newPage({viewport:{width:1000,height:800}});
+ const previewOrigin=new URL(preview.url).origin;
+ try{
+  await previewPage.route('**/*',route=>{
+   const url=route.request().url();
+   if(!url.startsWith(previewOrigin+'/')){
+    report.externalRequests.push(url);return route.abort();
+   }
+   return route.continue();
+  });
+  previewPage.on('pageerror',error=>report.errors.push(error.stack));
+  await previewPage.goto(preview.url);
+  await previewPage.waitForFunction(()=>window.mindmapPreview?.sdk==='FIXED_RESOURCES_LOADED');
+  const t=n=>previewPage.locator('[data-testid="conversation-turn-'+n+'"]');
+  const btn=n=>t(n).locator('[data-opendesk-chatgpt-mindmap="button"] button');
+  const viewer=n=>t(n).locator('[data-opendesk-chatgpt-mindmap="viewer"]');
+  assert.equal(await btn(1).count(),1);
+  assert.equal(await btn(2).count(),1);
+  await btn(1).click();
+  await viewer(1).and(previewPage.locator('[data-ready="true"]')).waitFor({timeout:15000});
+  await btn(2).click();
+  await viewer(2).and(previewPage.locator('[data-ready="true"]')).waitFor({timeout:15000});
+  assert.ok(await viewer(1).locator('.topic:visible').count()>1);
+  assert.ok(await viewer(2).locator('.topic:visible').count()>1);
+  passed('R2.1 real standalone HTML opens A/B XMind from product code');
+  await viewer(1).getByRole('button',{name:'放大',exact:true}).click();
+  await viewer(1).getByRole('button',{name:'展开或折叠分支',exact:true}).click();
+  await previewPage.waitForFunction(()=>document.querySelector('[data-testid="conversation-turn-1"] [data-opendesk-chatgpt-mindmap="viewer"]')?.shadowRoot?.querySelector('[aria-label="展开或折叠分支"]')?.textContent==='展开');
+  assert.equal(await viewer(2).getByRole('button',{name:'展开或折叠分支',exact:true}).textContent(),'折叠');
+  passed('R2.1 standalone A/B controllers and state are independent');
+  await previewPage.getByRole('button',{name:'切换 320px 容器'}).click();
+  await previewPage.screenshot({path:join(out,'r21-local-html-xmind.png'),fullPage:true});
+  await previewPage.getByRole('button',{name:'Stop 并检查残余样式'}).click();
+  await previewPage.waitForFunction(()=>window.mindmapPreview?.sdk==='STOPPED');
+  const diagnostic=await previewPage.evaluate(()=>window.mindmapPreview);
+  report.preview={level:'LOCAL_HTML_REAL_SDK',diagnostic};
+  assert.equal(diagnostic.remainingOwnNodes,0);
+  assert.equal(await previewPage.locator('.markdown').count(),3);
+  passed('R2.1 standalone Stop restores DOM and explicitly counts global style residue');
+ }finally{await previewPage.close();await preview.close();}
  report.status=report.errors.length?'FAIL':'PASS';
  report.productRelease='BLOCKED';report.visualAcceptance='NOT_PASSED';report.reason='Vendor license provenance/resource admission/style isolation and logged-in ChatGPT installation not verified';
 }catch(error){report.status='FAIL';report.failure=error.stack;process.exitCode=1;}
