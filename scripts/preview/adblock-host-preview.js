@@ -9,7 +9,7 @@
   const data=JSON.parse(byId('opendesk-preview-adblock-snapshots').textContent);
   const scenario=data.scenario;
   const snapshots=data.snapshots;
-  const live=['success','empty','untrusted'].includes(scenario);
+  const live=['success','empty','untrusted','permission-denied'].includes(scenario);
   const initial=()=>({enabled:scenario==='success'||scenario==='untrusted',
     granted:scenario!=='empty'&&scenario!=='permission-denied',
     restartRequired:false,
@@ -50,6 +50,11 @@
     const buttons=[...mount.querySelectorAll('button[role=switch]')];
     const index=buttons.indexOf(button);
     if(index===0){
+      if(!state.granted&&scenario==='permission-denied'){
+        // Denying optional Chrome permission never grants mock DNR rights.
+        note('离线模拟：用户拒绝 Chrome DNR 授权；过滤仍关闭，可再次申请。');
+        return;
+      }
       if(!state.granted){
         // First optional grant must not enable filtering until a full Chrome restart.
         state.granted=true;state.restartRequired=true;state.enabled=false;
