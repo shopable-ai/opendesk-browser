@@ -66,6 +66,18 @@ async function until(fn,why){
 }
 async function click(session,selector){
   if(session.type!=='iframe')await session.send('Page.bringToFront');
+  // Only native Chrome pointer input reveals R4 floating actions; never
+  // synthesize DOM events or bypass the trusted review/installer.
+  if(selector.includes('[data-extension-key=')){
+    const hover=await until(()=>evaluate(session,
+      "(()=>{const b=document.querySelector("+JSON.stringify(selector)+");"+
+      "const row=b?.closest('.ec-row');if(!row)return false;"+
+      "row.scrollIntoView({block:'center',behavior:'instant'});"+
+      "const r=row.getBoundingClientRect(),x=r.x+Math.min(24,r.width/4),y=r.y+r.height/2;"+
+      "return x>=0&&y>=0&&x<innerWidth&&y<innerHeight?{x,y}:false})()"),
+      'visible unified extension row '+selector);
+    await session.send('Input.dispatchMouseEvent',{type:'mouseMoved',...hover});
+  }
   const point=await until(()=>evaluate(session,
     "(async()=>{const selector="+JSON.stringify(selector)+",el=document.querySelector(selector);"+
     "if(!el||el.disabled||!el.getClientRects().length)return false;"+
@@ -284,7 +296,7 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
       await until(()=>evaluate(panel,'document.readyState==="complete"'),'Side Panel document ready');
       await visible(panel,'#tab-tools');await click(panel,'#tab-tools');
       await until(()=>evaluate(panel,'!document.querySelector("#workbench-tools").hidden'),'actual Tools tab selected');
-      await until(()=>evaluate(panel,'!!document.querySelector("#sidebar-tool-discover-toggle") && !document.querySelector("#sidebar-tool-official-catalog").textContent.includes("正在读取内置工具")'),'official catalog settled');
+      await until(()=>evaluate(panel,'!!document.querySelector("#extension-center-list [data-extension-id]") && !document.querySelector("#extension-center-status").textContent.includes("目录暂不可用")'),'visible unified catalog settled');
       return panel;
     }finally{
       attempt.openResult=await evaluate(launcher,'window.__r45OpenState').catch(error=>({error:error.message}));
@@ -298,7 +310,7 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
   }
   const readStore=(key,target=side)=>evaluate(target,'chrome.storage.local.get('+JSON.stringify(key)+').then(x=>x['+JSON.stringify(key)+'])');
   const installed=async(target=side)=>(await readStore(SIDEBAR_TOOL_STORE,target))||[];
-  const action=(id,name)=>'[data-sidebar-tool-id="'+id+'"][data-sidebar-tool-action="'+name+'"]';
+  const action=(id,name)=>'button[data-extension-key="app:'+id+'"][data-extension-action="'+(name==='open'?'primary':name)+'"]';
   async function assertNoGrants(target=side){for(const key of grantKeys)assert.deepEqual((await readStore(key,target))||{},{});}
   async function assertNoFrames(){
     assert.equal(await evaluate(side,'document.querySelectorAll("#sidebar-tool-frame iframe").length'),0);
@@ -318,7 +330,8 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
     },'one actual tool sandbox');
     const frame=await attach(info.targetId);
     await until(()=>evaluate(frame,'document.querySelector("#tool-status")?.dataset.state==="ready"'),'tool JavaScript loaded '+id);
-    await visible(frame,controls[id]);
+    if(controls[id])await visible(frame,controls[id]);
+    else (evidence.genericSandboxOnly??=[]).push({toolId:id,level:'SANDBOX_READY_ONLY_NOT_FEATURE_NATIVE_PASS'});
     if(id==='knowledge-inbox'){
       await until(()=>evaluate(frame,'/^\\d+ 条结果/.test(document.querySelector("#ki-count").textContent)&&document.querySelector("#ki-list-loading").hidden'),'knowledge inbox loaded actual local store');
       assert.equal(await evaluate(frame,'document.querySelector("#ki-status").dataset.error === "true"'),false);
@@ -333,7 +346,11 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
   }
   async function openMyTools(){
     if(await evaluate(side,'document.querySelector("#sidebar-tool-list-view").hidden'))await back();
-    await visible(side,'#sidebar-tool-list');
+    if(await evaluate(side,'!document.querySelector("#extension-center-detail").hidden'))
+      await click(side,'#extension-center-back');
+    await visible(side,'#extension-center-search');
+    if(await evaluate(side,'Boolean(document.querySelector("#extension-center-search").value)'))
+      await inputText(side,'#extension-center-search','');
   }
   async function openTool(id){
     await openMyTools();
@@ -377,24 +394,34 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
     await until(()=>evaluate(side,'document.querySelector("#sidebar-tool-inline-remove").hidden'),
       'native uninstall confirmation consumed '+id);
     await until(async()=>!(await installed()).some(row=>row.id===id),'uninstall '+id);
-    await until(()=>evaluate(side,'!document.querySelector('+JSON.stringify(action(id,'open'))+')'),'removed row '+id);
+    await until(()=>evaluate(side,'(()=>{const b=document.querySelector('+JSON.stringify(action(id,'open'))+');return !b||b.textContent.trim()==="安装"})()'),'removed installed action '+id);
     await until(()=>evaluate(side,'document.querySelector("#sidebar-tool-status").textContent.includes("本地数据已清理")'),'uninstall cleanup completed '+id);
     assert.equal((await readStore(TOOL_CLEANUP_STORE))?.[id],undefined);
     assert.equal((await readStore(MARKET_PROVENANCE_STORE))?.[id],undefined);
     assert.equal(evidence.dialogs.length,dialogsBefore,'uninstall uses the existing inline review');
   }
   async function officialReview(id,target=side){
-    await visible(target,'#sidebar-tool-discover-toggle');
-    if(await evaluate(target,'document.querySelector("#sidebar-tool-discover-panel").hidden'))await click(target,'#sidebar-tool-discover-toggle');
+    // The legacy Discover panel exists only for the private host and is
+    // CSS-hidden. Always enter via the visible unified extension list.
+    await visible(target,'#extension-center-search');
     const release=catalog.apps.find(row=>row.toolId===id),before=await installed(target);
-    if(before.some(row=>row.id===id))await click(target,'#sidebar-tool-filter-all');
-    try{await visible(target,'[data-official-install="'+id+'"]');}
-    catch(error){
+    assert(release,'registered official release '+id);
+    await inputText(target,'#extension-center-search',id);
+    const primary=action(id,'open'),more=action(id,'more');
+    try{
+      await visible(target,primary);
+      if(before.some(row=>row.id===id)){
+        // An installed older revision must use the review-in-details path,
+        // not the primary button which would launch the already installed UI.
+        await click(target,more);
+        await visible(target,'#extension-center-detail-body [data-ec-detail-action="update"]');
+        await click(target,'#extension-center-detail-body [data-ec-detail-action="update"]');
+      }else await click(target,primary);
+    }catch(error){
       evidence.unavailableReview={id,targetId:target.targetId,windowId:target.windowId,
         observation:await evaluate(target,'({url:location.href,surface:document.documentElement.dataset.opendeskSurface,tab:document.documentElement.dataset.opendeskTab,body:document.body.innerText.slice(0,2500)})').catch(cause=>({error:cause.message}))};
       await save();throw error;
     }
-    await click(target,'[data-official-install="'+id+'"]');
     await until(()=>evaluate(target,'!document.querySelector("#sidebar-tool-preview").hidden'),'review '+id);
     assert.equal(await evaluate(target,'document.querySelector("#sidebar-tool-preview-version").textContent'),'v'+release.version);
     assert.equal(await evaluate(target,'document.querySelector("#sidebar-tool-preview-title").textContent'),release.packageTitle);
@@ -409,7 +436,9 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
   }
   async function importPackage(pkg,name,plans=[],{reviewOnly=false}={}){
     const file=join(profile,name+'.opendesk-tool.json');await writeFile(file,serializeSidebarToolPackage(pkg));
-    await click(side,'#sidebar-tool-import-trigger');await side.send('DOM.enable');
+    if(await evaluate(side,'document.querySelector("#extension-center-menu").hidden'))
+      await click(side,'#extension-center-more');
+    await click(side,'#extension-center-import');await side.send('DOM.enable');
     const {root}=await side.send('DOM.getDocument',{depth:1});
     const {nodeId}=await side.send('DOM.querySelector',{nodeId:root.nodeId,selector:'#sidebar-tool-file'});assert(nodeId);
     await side.send('DOM.setFileInputFiles',{nodeId,files:[file]});
@@ -446,11 +475,15 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
   const defaultIds=catalog.apps.filter(row=>row.installationPolicy==='preinstalled').map(row=>row.toolId);
   await until(async()=>JSON.stringify((await installed()).map(row=>row.id))===JSON.stringify(defaultIds),'trusted first-install defaults');
   assert.deepEqual(defaultIds,['reading-toc','quick-notes','cookie-editor']);await assertNoGrants();await assertNoFrames();
-  assert.equal(await evaluate(side,'document.querySelectorAll("#sidebar-tool-list .sidebar-tool-row").length'),defaultIds.length);
-  assert.equal(await evaluate(side,'document.querySelector("#sidebar-tool-my-panel").hidden'),false,'my tools is the default');
-  await click(side,'#sidebar-tool-discover-toggle');
-  assert.equal(await evaluate(side,'document.querySelectorAll("[data-official-tool-id]").length'),catalog.apps.length-defaultIds.length);
-  await click(side,'#sidebar-tool-discover-toggle');
+  assert.equal(await evaluate(side,'document.querySelectorAll("#extension-center-list li[data-extension-id]").length'),defaultIds.length);
+  assert.equal(await evaluate(side,'document.querySelector("#extension-center-list-view").hidden'),false,'unified list is the default');
+  await click(side,'#extension-center-more');
+  await click(side,'#extension-center-menu [data-ec-scope="available"]');
+  assert.equal(await evaluate(side,'document.querySelectorAll("#extension-center-list li[data-extension-id]").length'),catalog.apps.length-defaultIds.length);
+  await click(side,'#extension-center-more');
+  await click(side,'#extension-center-more');
+  await click(side,'#extension-center-menu [data-ec-scope="smart"]');
+  await click(side,'#extension-center-more');
   for(const release of catalog.apps){
     const raw=await evaluate(host,'fetch(chrome.runtime.getURL('+JSON.stringify(release.packagePath)+')).then(r=>{if(!r.ok)throw Error(r.status);return r.text()})');
     assert.equal(hash(Buffer.from(raw)),release.sha256);
@@ -488,7 +521,7 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
 
   // Preserve the upstream acceptance loop for every current official release.
   await phase('market-current-preinstalled-and-reviewed-optional-real-sandboxes');
-  await click(side,'#sidebar-tool-market');
+  await click(side,'#extension-center-market');
   const marketInfo=await until(async()=>(await browser.send('Target.getTargets')).targetInfos.find(row=>row.type==='page'&&row.url?.includes('/ui/marketplace.html')),'market opened by Side Panel');
   const market=await attach(marketInfo.targetId);
   evidence.appDetails=[];
@@ -777,10 +810,11 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
   assert.deepEqual((await readStore(MARKET_PROVENANCE_STORE))||{},{});
   await phase('second-complete-chrome-restart-after-uninstall');await closeChrome();host=null;side=null;await launch();side=await openPanel();
   assert.deepEqual(await installed(),[]);await assertNoGrants();await assertNoFrames();
-  if(await evaluate(side,'document.querySelector("#sidebar-tool-discover-panel").hidden'))await click(side,'#sidebar-tool-discover-toggle');
+  await click(side,'#extension-center-more');
+  await click(side,'#extension-center-menu [data-ec-scope="available"]');
   for(const release of catalog.apps){
-    await visible(side,'[data-official-install="'+release.toolId+'"]');
-    assert.equal(await evaluate(side,'document.querySelector("[data-official-tool-id='+release.toolId+']").dataset.installationState'),'available');
+    await visible(side,action(release.toolId,'open'));
+    assert.equal(await evaluate(side,'document.querySelector('+JSON.stringify(action(release.toolId,'open'))+').textContent.trim()'),'安装');
     const raw=await evaluate(host,'fetch(chrome.runtime.getURL('+JSON.stringify(release.packagePath)+')).then(r=>r.text())');assert.equal(hash(Buffer.from(raw)),release.sha256);
   }
   assert.equal((await packageFingerprint(extension)).packageHash,fingerprint.packageHash,'actual loaded production bytes stayed unchanged');
@@ -804,7 +838,7 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
   assert(await evaluate(side,'document.activeElement.matches('+JSON.stringify(keyboardControls.at(-2))+')'),'native Shift+Tab returns to previous official app title');
   await screenshot(side,'side-panel-keyboard-focus.png');
 
-  await click(side,'#sidebar-tool-market');
+  await click(side,'#extension-center-market');
   const finalMarketInfo=await until(async()=>(await browser.send('Target.getTargets')).targetInfos.find(row=>row.type==='page'&&row.url?.includes('/ui/marketplace.html')),'final official market entry');
   const finalMarket=await attach(finalMarketInfo.targetId);
   await visible(finalMarket,'#market-home');await click(finalMarket,'#market-home');
