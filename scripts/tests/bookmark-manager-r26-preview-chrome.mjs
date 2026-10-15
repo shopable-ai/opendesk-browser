@@ -199,6 +199,66 @@ async function exercise(mode){
     'unknown write outcome locks submit');
   check(q('bm-name').value==='未知结果不自动重试','unknown outcome retains draft');
   q('bm-cancel').click();
+  // R2.7: a transient read error must not destroy an authorized in-progress
+  // editor, whereas revocation must still clear the entire workspace.
+  q('bm-inspector-edit').click();
+  field('bm-name','刷新超时后保留的草稿');
+  diagnostic('下一次读取超时');q('bm-refresh').click();
+  await wait(()=>q('bm-notice').textContent.includes('刷新暂时失败'),
+    'transient refresh failure is non-destructive');
+  check(!q('bm-form-view').hidden&&q('bm-name').value==='刷新超时后保留的草稿',
+    'failed read preserves typed draft and editor');
+  check(!q('bm-refresh').disabled,'refresh is re-enabled after transient failure');
+  q('bm-cancel').click();
+  // More than 120 folders: filtering must retain a selected path even after
+  // the query is cleared and the selected option lies beyond the DOM budget.
+  diagnostic('新增 130 个模拟文件夹');q('bm-refresh').click();
+  await wait(()=>q('bm-total').textContent.includes('2,289'),
+    '130 additional folders available after refresh');
+  q('bm-inspector-move').click();
+  field('bm-folder-query','性能文件夹 0130');
+  await wait(()=>[...q('bm-parent').options].some(x=>x.textContent.includes('0130')),
+    'deep folder is searchable');
+  const farFolder=[...q('bm-parent').options].find(x=>x.textContent.includes('0130')).value;
+  field('bm-parent',farFolder);
+  field('bm-folder-query','');
+  check(q('bm-parent').value===farFolder&&
+    [...q('bm-parent').options].some(x=>x.value===farFolder),
+    'selected folder beyond first 120 stays selectable');
+  check(q('bm-parent').options.length<=121,'target folder DOM remains bounded');
+  q('bm-cancel').click();
+  field('bm-search','这条搜索不会匹配新书签');
+  q('bm-new-bookmark').click();
+  await wait(()=>!q('bm-form-view').hidden,'new bookmark stays inline');
+  field('bm-name','R2.7 新建流程书签');
+  field('bm-url','https://example.org/r27-create');
+  submit();
+  await wait(()=>q('bm-form-view').hidden&&
+    q('bm-inspector-title').textContent==='R2.7 新建流程书签',
+    'new bookmark SDK readback selects created ID');
+  check(q('bm-search').value==='这条搜索不会匹配新书签'&&
+    q('bm-notice').textContent.includes('当前搜索未匹配'),
+    'creation preserves search and explains hidden row');
+  field('bm-search','');
+  q('bm-new-folder').click();
+  await wait(()=>!q('bm-form-view').hidden,'new folder stays inline');
+  field('bm-name','R2.7 新建文件夹');submit();
+  await wait(()=>q('bm-form-view').hidden&&
+    q('bm-inspector-title').textContent==='R2.7 新建文件夹',
+    'new folder SDK readback selects created ID');
+  field('bm-search','R2.7 新建流程书签');
+  await wait(()=>[...q('bm-list').querySelectorAll('.bm-entry')].some(x=>
+    x.textContent.includes('R2.7 新建流程书签')),'find created bookmark');
+  [...q('bm-list').querySelectorAll('.bm-entry')].find(x=>
+    x.textContent.includes('R2.7 新建流程书签')).click();
+  q('bm-inspector-edit').click();
+  field('bm-name','外部删除后仍需保留的草稿');
+  diagnostic('模拟外部删除当前书签');q('bm-refresh').click();
+  await wait(()=>q('bm-save').disabled&&q('bm-form-error').textContent.includes('已在其他窗口删除'),
+    'external delete does not silently discard draft');
+  check(!q('bm-form-view').hidden&&q('bm-name').value==='外部删除后仍需保留的草稿',
+    'external delete keeps read-only draft available for copying');
+  q('bm-cancel').click();
   diagnostic('模拟撤销权限');q('bm-refresh').click();
   await wait(()=>!q('bm-gate').hidden&&q('bm-workspace').hidden,
     'revocation clears private workspace');
@@ -206,7 +266,8 @@ async function exercise(mode){
     'no draft or private tree remains on permission loss');
   return {mode,initial:2159,inlineEdit:true,selectedAfterSave:true,cancel:true,
     dirtyGuard:true,searchableMove:true,saveFailure:true,conflict:true,
-    outcomeUnknown:true,revocation:true,overflow:false,
+    outcomeUnknown:true,transientRefresh:true,folderLimit:true,createBookmark:true,
+    createFolder:true,externalDeleteDraft:true,revocation:true,overflow:false,
     source:'production-source-bound-mock'};
 }
 try{
