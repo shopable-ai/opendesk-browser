@@ -364,3 +364,41 @@ ADR 风险升级触发条件：Codex CLI 版本改变、Chrome Origin/Host 处�
 - Go `master@2c003149d534ce2bd47629d1d046d88be39ef4f2` 的 [Native Messaging CI #38713903230](https://github.com/shopable-ai/opendesk/actions/runs/38713903230) **整体 FAIL**：该候选 `transport (macos-latest)` 与模拟 Chrome 可执行任务 SUCCESS；Ubuntu 的 `internal/browserai` 包（含 gateway 定向测试）PASS，但 `internal/browsercli/admission_unix_test.go:32` 使用 Linux 不存在的 `/private/tmp` 致任务失败。不得将该工作流汇总为 PASS。
 - 同一 Go 候选的 [Windows Core #38713903198](https://github.com/shopable-ai/opendesk/actions/runs/38713903198) **FAIL**：`internal/browsercli/command.go:187` 编译时调用 `Host.Close`，非 Unix 平台的 `*browserbridge.Host` 无该方法。这是 Go 跨平台编译阻塞，交给 Go Native/Windows 代码所有者协调；不可为修复它另造 Codex Manager。
 - Browser 其他 Agent 的 [Workflow 数据 CI](https://github.com/shopable-ai/opendesk-browser/actions/workflows/workflow-ai-data-r16.yml) 与正在跑的工作流仍随 main 快速演进。以前的 109/109 定向 PASS 仅按其当时 commit 范围承认；不声称覆盖本轮新 `local-http.js` / 测试文件的 Node 执行。最新构建若被并行 AdBlock provenance 修改挡住，也必须依 owner/具体 SHA 独立报告。
+
+## 12. R2.3 源码闭环修复与 HTTP 安全禁用决策（2026-10-15）
+
+> 这是唯一 R2 正式设计合同的增量实施记录；上方 R2.1/R2.2 为历史基线，不修改其当时事实。本节以 GitHub 本轮提交为准，**代码存在不等于真实业务验收**。
+
+### 12.1 实际生产路径与增量修复
+
+- **本轮 Browser 源码修复（`main`）**：`0e9bb6c3` (`provider.js`)、`eb4372d9` (`ai-plan.js`)、`d43fb996` (`workflow-view.js`)、`9997dbb2` (`direct-execution.js`)。回归测试增量：`9c500003` (`workflow-provider-facade.test.mjs`)、`f0f50e69` (`workflow-ui-states.test.mjs`)、`11ea3e70` (`workflow-direct-execution.test.mjs`)。原 Compiler/RunHost/Authority/Task/Controller journal 未改动。
+- **Native Codex 核对**：`provider.js` **原本已经传递 `target`** 给 `localPlanner.plan`；未发现缺少目标参数的问题，本轮没有凭误判修改其调用。真实本机 Codex 推理仍 `NOT_TESTED`。
+- **HTTPS 模型收敛（P0）**：正式 UI 的 `cloud_responses` 与 `custom_https` 都需先经同一真实网站授权、独立本次数据分享确认、原 RunHost 固定观察；经 `provider.js` 统一入口调用 `ai-plan.js`。旧版 `custom_https` 在缺少本轮观察时于发网络请求前拒绝；收到观察后只传有界 `authorizedObservation`，将模型 JSON 规范化并逐个核对 Locator 是否出现在可信观察中，随后才能走原 `prepareDirectExecution`、Compiler、RunHost。旧版独立 Chat Completions 调用方仍可只生成未授权执行的提议，不得到直接网页执行授权。
+- **Save/Revision（P0）**：AI 在同一 `workflowId` 内更新工作流后保留上次 Controller 已提交 `revision`，供 `save()` 的 `expectedRevision` 乐观锁继续提交下一版；`matchesRevision()` 比较完整 Definition 和源码哈希，因此新草稿仍显示未保存，且 `run()` 继续使用 draft 而非旧 saved bytes。版本不匹配时仍由原 Controller journal 拒绝，不强行覆盖。保存的 Definition、验证模式、源码与固定 Revision 仍按原合同加载并核对；无 AI 运行仍使用原 RunHost。
+- **不虚报业务效果（P0）**：任意后续 `assert` 不再自动证明前一 `click` 的业务效果；`hasUnprovenClick` 对所有 click 保守为真。在缺少与用户实际目标独立绑定的读回 Oracle 时，仅可声明 `EXECUTION_RECEIPT_VERIFIED`，不可声明 `BUSINESS_EFFECT_VERIFIED`，也不可把点击经历放进后续 Provider 的“已验证业务历史”。原 `verifyFill` 的 `inputValue()` 读回保持有效，但不能外推出服务端业务提交成功。
+
+### 12.2 Go 受限 HTTP / 编译阻塞
+
+- **Go `master` 本轮修复**：`d892a5b6` 在 `internal/browserbridge/unsupported.go` 为不支持的平台提供无资源持有的 `Host.Close()`，与 CLI 关闭调用保持编译期一致；`7225ac72` 在 `internal/browsercli/admission_unix_test.go` 把仅 Darwin 存在的 `/private/tmp` 测试根路径改为已有其他测试使用的跨 Unix `/tmp`。这些是源码修改，Windows/Linux 定向 CI 仍需以新候选结果单独核对；没有声明目标机器原生验证通过。
+- **HTTP/Owner 决策未变**：Native Messaging 是 Browser 本机默认可信路径；Go 的显式 HTTP 环回入口复用同一 Native Host 的 `h.ai` Manager。独立已配对本机客户端可以按严格 `stream:false`/受限 JSON Responses 使用；Browser `local-http.js` 仍保持 `pairingReady:false`、未导入 Facade/UI。当前 `Origin`/CORS 默认禁止跨源浏览器调用，不允许以放开 CORS 或向页面公开 token 完成 F4。
+- **F4 仍为 OPEN / SAFE_DISABLED**：没有经真实 Native 所有者颁发、限定客户端身份、轮换/撤权的 Browser HTTP Bearer 交付机制；环境变量 `OPENDESK_CODEX_HTTP_ADDR/TOKEN` 不是自动配对。未交付配对前既不启用 Browser HTTP Provider，也不声称 Chrome 可以直接使用此端口。Go Gateway 不新建 Codex Manager；原响应子集的 unsupported 仍 fail closed。
+
+### 12.3 实施与证据分级
+
+| 范围 | 本轮实际状态 | 证据与限制 |
+| --- | --- | --- |
+| Native / Cloud Facade | `SOURCE_WIRED` | 原路径保留；目标身份、会话 ID 不跨 Provider 使用；用户 Mac Native / Cloud 真模型 `NOT_TESTED` |
+| Custom HTTPS 可信执行 | `SOURCE_WIRED / NOT_VERIFIED` | 新观察门禁、逐一 Locator 校验与测试源码已提交；CI/真实 Chrome 待新 SHA 验证 |
+| 同工作流 Save 新 Revision | `SOURCE_IMPLEMENTED / NOT_VERIFIED` | 移除自动规划时丢弃修订基线，保留乐观锁；真实保存/复跑证据待测 |
+| Click 业务效果 | `SAFE_UNVERIFIED` | 严禁把不相关后置断言提升业务效果；独立业务 Oracle 尚未完成 |
+| Go 平台编译/测试修复 | `SOURCE_IMPLEMENTED / CI_PENDING` | Go `d892a5b6`、`7225ac72`，等待同候选 Windows/Linux 实际 CI |
+| Go HTTP Gateway | `SOURCE_WIRED / PAIRING_OPEN` | 未修改网关授权及 Native Owner；不能对普通跨源网页开放 |
+| Browser Local HTTP | `SOURCE_IMPLEMENTED_NOT_WIRED` | 安全禁用；Browser 使用 HTTP 必须先解决 Native 配对/来源绑定 |
+| Chrome 真实 Send → 效果 → Save → Run×2 | `NOT_TESTED` | 本轮无用户 Mac/真实 Chrome，可先继续无冲突的源码开发 |
+
+### 12.4 下一最小工作及验收边界
+
+1. 先以更新后的 Browser/Go 候选 CI 核实定向测试及 Windows/Linux 编译；失败只修复归本轮改动的部分，旧候选 PASS 不迁移。
+2. P0 后续：在原 `direct-execution.js` / `workflow-view.js` 和原 Durable Result 合同中定义**可审计的独立业务效果 Oracle**，只对确实能读取到结果的场景报告 `BUSINESS_EFFECT_VERIFIED`；未有 Oracle 的 click 保持效果未验证。
+3. P1 后续：由 Go Native Owner 先完成已绑定客户端身份、可撤销的 HTTP token 颁发/生命周期；Browser 端完成安全 Origin 适配合同之前禁止接入 HTTP Facade/UI。若产品暂不需要 Browser HTTP，继续保持 Native 默认与 HTTP 仅用于受信本机客户端。
+4. 后置 T1–T6 按用户批准的独立阶段执行；本轮没有 Windows/macOS 真机、Codex 已登录状态、生产安装候选或真实 Chrome 页面副作用证据，不能宣称正式验收与逐维 95+。
