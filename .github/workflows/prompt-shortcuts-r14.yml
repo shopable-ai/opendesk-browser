@@ -1,0 +1,41 @@
+name: Prompt Shortcuts R1.4 scoped tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/prompt-shortcuts-r14.yml'
+      - 'examples/sidebar-tools/prompt-shortcuts/**'
+      - 'tests/environment/prompt-shortcuts-r14.test.mjs'
+      - 'src/ui/sidebar-tools/package.js'
+      - 'src/ui/sidebar-tools/lifecycle.js'
+      - 'src/ui/design-tokens.css'
+      - 'src/ui/design-system.css'
+      - 'scripts/build-sidebar-tool.mjs'
+      - 'scripts/preview/shared-tool-design.mjs'
+      - 'scripts/bundle-provenance.mjs'
+      - 'official-tools/catalog.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  prompt-shortcuts-scope:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Validate independent tool, storage and fixed-adapter provenance
+        run: node --test tests/environment/prompt-shortcuts-r14.test.mjs
+      - name: Check standalone and trusted JavaScript syntax
+        run: |
+          node --check examples/sidebar-tools/prompt-shortcuts/src/main.js
+          node --check examples/sidebar-tools/prompt-shortcuts/trusted/model.js
+          node --check examples/sidebar-tools/prompt-shortcuts/trusted/page.js
+          node --check examples/sidebar-tools/prompt-shortcuts/trusted/policy.js
