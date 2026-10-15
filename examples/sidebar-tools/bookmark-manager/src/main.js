@@ -507,6 +507,9 @@ async function mutation(run,expectation=null){
         s.conflict=true;s.conflictReviewed=false;
         q('bm-conflict-review').hidden=false;q('bm-adopt').hidden=true;
         q('bm-conflict-summary').textContent='书签在编辑期间发生变化。点击「重新读取并对比」，草稿不会被覆盖。';
+        // The review action must be visible even in a narrow Side Panel; the
+        // draft fields remain untouched and no retry/write is dispatched.
+        if(inNarrow())q('bm-conflict-review').scrollIntoView?.({block:'nearest'});
       }
     }
     if(authorityLost(error))
