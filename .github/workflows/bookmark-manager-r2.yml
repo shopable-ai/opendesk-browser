@@ -83,3 +83,56 @@ jobs:
             artifacts/sidebar-tools/bookmark-manager/*/bookmark-manager.opendesk-tool.json
             docs/framework/evidence/wxt/builds/build-production.json
             docs/framework/evidence/wxt/builds/build-development.json
+  bookmark-r28-ui:
+    # Independent product proof: the Full SDK / security build job above is
+    # intentionally NOT skipped or relaxed when a parallel SDK change fails.
+    # This job reuses the SAME production package and preview Chrome runner.
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Production bookmark model and editor lifecycle tests
+        run: node --test tests/environment/bookmark-manager-r2.test.mjs tests/environment/bookmark-manager-r24-lifecycle.test.mjs
+      - name: Build R2.8 official isolated tool package
+        run: npm run build:sidebar-tool -- examples/sidebar-tools/bookmark-manager
+      - name: Confirm official package never embeds preview laboratory
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {createSidebarToolPackage} from './scripts/build-sidebar-tool.mjs';
+          const pkg=await createSidebarToolPackage('examples/sidebar-tools/bookmark-manager');
+          assert.equal(pkg.version,'0.3.8');
+          assert.doesNotMatch(pkg.html,/od-preview-bookmark-lab|预览测试辅助工具|data-bookmark-diagnostic/);
+          assert.doesNotMatch(pkg.js,/opendesk\.preview\.bookmark\.command|__opendeskBookmarkMockDiagnostic/);
+          assert.deepEqual(pkg.capabilities,['browser.bookmarks.full','currentPage.read']);
+          console.log('BOOKMARK_R28_PACKAGE_NO_PREVIEW_LAB_PASS');
+          NODE
+      - name: Install Chinese fonts for source-bound screenshots
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk
+          fc-match 'Noto Sans CJK SC'
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+      - name: Real headless Chrome: read-only selection, draft switching and external lab
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: node scripts/tests/bookmark-manager-r26-preview-chrome.mjs artifacts/preview-chrome
+      - name: Preserve R2.8 source-bound HTML, screenshot and interaction evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bookmark-manager-r28-ui-${{ github.sha }}
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            artifacts/sidebar-tools/bookmark-manager/*/bookmark-manager.opendesk-tool.json
+            artifacts/previews/bookmark-manager/*.html
+            artifacts/preview-chrome/bookmark-r26-interaction.json
+            artifacts/preview-chrome/bookmark-r26-*.png
+            artifacts/preview-chrome/bookmark-r27-*.png
