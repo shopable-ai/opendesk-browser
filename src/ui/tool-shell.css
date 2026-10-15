@@ -598,8 +598,7 @@
 .sidebar-toc-settings-row{display:flex;justify-content:space-between;align-items:center;gap:7px;margin:7px 0;min-height:31px}
 .sidebar-toc-settings-row>span{min-width:0;flex:1}
 /* AdBlock: trusted, first-party switch presentation. The sandbox does not get these controls. */
-.sidebar-tool-adblock-native{margin:var(--space-2) 0}
-.sidebar-tool-adblock-native>.od-surface{padding:var(--space-3)}
+.sidebar-tool-adblock-native{margin:var(--space-2) 0;padding:var(--space-3)}
 .sidebar-tool-adblock-native .sidebar-toc-settings-row{gap:var(--space-3);padding:var(--space-2) 0}
 .sidebar-tool-adblock-native .sidebar-toc-settings-row+.sidebar-toc-settings-row{border-top:1px solid var(--od-line)}
 .sidebar-tool-adblock-native .sidebar-toc-settings-row>div{flex:1;min-width:0}
