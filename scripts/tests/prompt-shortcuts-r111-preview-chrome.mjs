@@ -101,6 +101,24 @@ async function run(){
     assert.equal(x.width,width);assert.equal(x.overflow,false,'panel overflow '+width);
     await shot('list-'+width+'px');report.scenes.push({width,overflow:x.overflow,screenshot:'list-'+width+'px.png'});
   }
+  // R1.13 trusted settings: no extra website authorization page.
+  await click('#hostSettings');
+  assert.equal(await evalChrome('!document.querySelector("#settingsView").hidden'),true);
+  assert.equal(await evalChrome('document.querySelector("#permissionView")===null'),true);
+  for(const width of [320,360,400,440]){
+    await click('#size'+width);x=await state();
+    assert.equal(x.overflow,false,'compact settings overflow '+width);
+    await shot('settings-'+width+'px');
+  }
+  await click('#toolEnabledButton');
+  assert.equal(await evalChrome('document.querySelector("#pageRail").hidden'),true);
+  await click('#toolEnabledButton');
+  assert.equal(await evalChrome('document.querySelector("#pageRail").hidden'),false);
+  await click('#contextButton');
+  assert.equal(await evalChrome('document.querySelector("#contextButton").getAttribute("aria-pressed")'),"true");
+  await click('#settingsBack');
+  assert.equal(await evalChrome('!document.querySelector("#indexView").hidden'),true);
+  report.compactHostSettings=true;
   await click('#resetButton');
   await click('.prompt-use');x=await state();
   assert(x.draft.includes('请在不改变原意的前提下润色以下文字：\n1. '));
