@@ -62,3 +62,15 @@ contracts/ui-preview/quick-notes.lock.json 是**输入源码的 Git blob SHA-1 �
 ## 扩展到其他工具时
 
 先审计工具发行平台和正式挂载形式。再保留它原有 SDK 行为，新增专有模拟 SDK 边界，并把静态 HTML/CSS/JS 构建升级为与正式产品一致的契约。禁止把 Mock SDK 合入安装包或把第一方宿主特权脚本放入动态工具 iframe。首个样板验证后，再评估组件抽取而非一次性重写所有旧工具。
+
+## R1.4：诊断控件归属与选择/编辑状态边界
+
+书签 R2.8 暴露出两种容易被 Mock PASS 掩盖的 UI 混淆：其一，将“预览实验台”直接挂在 iframe 的 \`#tool-root\` 前，用户看到的工具似乎内置了测试菜单；其二，编辑时点击其他书签，由于未保存草稿确认提示位于编辑器底部，用户误以为点击新书签直接弹出了编辑器。这两种表现均违反正式产品交互归属。
+
+必须遵守：
+
+1. **生产内层**：\`examples/sidebar-tools/<tool-id>/src/\` 与官方 \`createSidebarToolPackage()\` 的 HTML/CSS/JS 只呈现真正安装后的业务 UI。条目点击首先只读详情；明确点击“编辑”才转为表单。
+2. **预览外层**：测试操作板只能作为 \`scripts/templates/sidebar-tool-preview-shell.html\` 中模拟设备区 **之外** 的 \`aside\`/折叠区出现，由 builder 为需要的工具显式启用。没有测试需求的其他工具不能显示书签实验台。正式安装 JSON 不得打包外层测试代码。
+3. **消息与权限**：外层 \`bookmark-manager-lab.js\` 的固定 8 项命令通过 \`postMessage\` 给 opaque iframe 中的 \`bookmark-manager-mock.js\`。内层检查 \`event.source===parent\`、精确消息类型、请求 ID、命令白名单；外层检查 \`event.source===iframe.contentWindow\`、opaque 来源 \`null\`、请求一致性再显示回执。消息只触发内存故障模拟，不获得真实书签/权限、网络、Storage 或 Host 写入能力。工具沙箱继续 **仅** \`sandbox="allow-scripts"\`。
+4. **草稿与选择**：切换到其他书签时，干净的表单直接关闭并显示新节点只读详情；脏草稿维持旧选择、暂停编辑呈现并展示目标名称和保留/放弃操作，不能默许丢弃或自动保存；确认放弃后打开新节点**只读**详情；Escape/保留返回原草稿与焦点。
+5. **证据分级**：分别通过正式包无实验台、外层/内层 DOM 隔离、CDP 真实点击外部辅助按钮、Chrome read/edit/dirty-switch 三状态与 2159 节点回归。Source-Bound/Mock 不升级为正式 Chrome Native PASS。更改模板/packer/工具 UI 后更新同候选源码锁，并记录失败与跨 Agent 输入变动。
