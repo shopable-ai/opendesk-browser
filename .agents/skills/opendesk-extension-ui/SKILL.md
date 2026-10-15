@@ -62,8 +62,23 @@ description: Improve OpenDesk Browser five-tab UI (我的/扩展/工作流/开�
 | 版心与间距 | 单一 `--od-page-gutter`；`--space-1/2/3/4` 分别 4/8/12/16px；34px 图标、36px 常规控件 | 重复容器 padding、魔法 7/9/11px、无依据 `!important` |
 | 响应式 | `min-width:0` / `minmax(0,1fr)`；按钮换行、文本可换行、局部滚动 | 小屏强压 20px 图标、整页横向滚动、200% 缩放裁切 |
 
-R30 首行的普通标题为 12px/600；同区域 8px、说明紧邻 4px、独立区域 16px。只在确切产品密度差异有说明和回归时采用例外。**公共规范的修改必须服务至少两个真实消费者；新页面不得重新声明 :root、颜色 token 或另一套 Toolbar。** Side Panel 不为了统一界面而全量引入 Tailwind/Quasar；Workspace Tailwind 不能渗入沙箱或普通网页。
+R30 首行的普通标题为 12px/600；R31 明确「当前网页」属于有边框的一级 `od-disclosure`，不是历史描述中易被误解的 `--flat`。同区域 8px、说明紧邻 4px、独立区域 16px。只在确切产品密度差异有说明和回归时采用例外。**公共规范的修改必须服务至少两个真实消费者；新页面不得重新声明 :root、颜色 token 或另一套 Toolbar。** Side Panel 不为了统一界面而全量引入 Tailwind/Quasar；Workspace Tailwind 不能渗入沙箱或普通网页。
 
+## R31：HTML 直接复用与 CSS 所有权（必检）
+
+```html
+<details class="od-disclosure"><summary>一级功能区</summary><div>正文</div></details>
+<details class="od-disclosure od-disclosure--flat"><summary>依赖 SHA / 技术历史</summary><pre class="od-result">按需查看</pre></details>
+<details class="od-disclosure od-disclosure--info"><summary>首次说明</summary><p>说明文字</p></details>
+<div class="od-surface od-surface--padded">普通卡片</div>
+<input class="od-field" aria-label="输入值">
+```
+
+**视觉所有权：**公共背景、边框、圆角、标题最小高度、展开/关闭 Hover、Focus、深浅色和粗指针规则仅在 `design-system.css`；全部语义值仅在 `design-tokens.css`。业务 `tool-shell.css` 可以设置父 Grid/Flex/gap、局部宽高、编辑器滚动和真正特殊的动态状态，不得写 `#workbench-develop … > summary` 类公共视觉覆盖。普通标题默认 44px，内部 `--flat` 默认 36px（粗指针至少 44px）；本 Skill 不另维护相竞争的数值表，真实值以 CSS 为准。
+
+开发页中「来源与当前网站」「运行状态与结果」分别是 8px 的关联组；卡片 padding 由 `od-surface--padded` 提供 12px；彼此独立的主章节由父容器 `--space-4` 分隔 16px。新增 Modifier 须先证明至少两个真实消费者确需同一语义。保留 `#developer-target-detail` 等 ID/ARIA、Run/Save/Stop/安装/权限的原绑定，当前网页域名与可运行状态仍动态展示，不能写成固定网址。
+
+**强制检验：**`sidebar-component-contract.test.mjs` 的 CSS 规则/声明所有权扫描，`sidebar-r19-layout-visual.mjs` 的开发 `#developer-results-panel` 和云控 `#cloud-hosting` computed-style、Hover、深浅色及展开态比较；现有键盘/窄屏/粗指针覆盖不可删除。源码合同、静态 Chrome、日常 `dist/development`、真实安装生产包与 Mac Chrome 缩放必须分级记录，未执行标 `NOT_TESTED`。仅可信 Side Panel 可直接复用完整宿主 CSS；Workspace、Settings、Marketplace 使用各自隔离构建/主题映射，独立工具 iframe 与目标网站严禁导入宿主特权 CSS/JS。
 ## 「我的 → 定时计划」专项防退化示例
 
 当前真实实现已在 `#workbench-tasks` 下包含 `#scheduled-panel`，以及 `#schedule-list-view`、`#schedule-form`、任务管理与独立 runner；`src/ui/scheduled-task-workbench.js` 的 `show(view)` 切换视图。它的计划列表卡片目前还内嵌较重的历史/更多/删除确认。**这不是已经存在完整单计划 Detail 页的证明。**

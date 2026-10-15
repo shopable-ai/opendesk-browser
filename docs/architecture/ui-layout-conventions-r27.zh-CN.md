@@ -69,7 +69,7 @@ Tailwind 源码仍使用固定依赖版本、`@import "tailwindcss" source(none)
 <section class="od-page">
   <div class="od-toolbar"><strong>区块标题</strong><button class="od-icon-button" aria-label="刷新" title="刷新">…</button></div>
   <div class="od-stack">
-    <div class="od-surface"><!-- 卡片内部用当前区域约定的 12px 内边距 --></div>
+    <div class="od-surface od-surface--padded"><!-- 公共类提供卡片内部留白 --></div>
   </div>
 </section>
 ```
@@ -85,6 +85,21 @@ Native Workspace 独立编译 Tailwind 时，同等关系可写为：
 
 以上是布局约定示例，不是可直接塞进第三方 sandbox 的完整可执行工具。正式程序保留原 JS 生命周期、DOM ID、受信触发和已有数据写入语义。Vue/React 可选择对应组件封装，但仍需满足同样尺寸和作用域规则。
 
+### R31：HTML 语义类即公共 CSS 外观契约（2026-10-15）
+
+**唯一运行时权威：** `design-tokens.css` 定义全局语义值；`design-system.css` 实现可信 Side Panel 的 `od-*` 组件外观；`tool-shell.css` 只排列业务区块。Markdown/Skill 是开发约定，不是第二份 CSS 或尺寸配置。不得以 `#workbench-xxx > details > summary` 重新绘制标题高度、边框、圆角、背景、Hover、Focus 和暗色主题。
+
+| 语义场景 | HTML 直接使用 | 现行规则 |
+| --- | --- | --- |
+| 一级独立可折叠功能区（包括当前网页、结果、参数、版本） | `<details class="od-disclosure"><summary>…</summary>…</details>` | 默认有边框和纸面、共享圆角、44px 最小标题高度，Hover/Focus 统一 |
+| 内部技术信息、依赖 SHA、编译源码与历史 | `od-disclosure od-disclosure--flat` | 无外框的次级条目；默认 36px 标题，粗指针仍按 44px 处理 |
+| 第一次使用说明 | `od-disclosure od-disclosure--info` | 只强调摘要标题，不给普通段落染色 |
+| 普通内容卡片 | `od-surface od-surface--padded` | 共享边框、圆角和 12px 内边距；单独 `od-surface` 不自带内边距 |
+| 控件、操作与结果 | `od-field`、`od-button`、`od-icon-button`、`od-toolbar`、`od-result` | 公共外观归 `design-system.css`；`od-toolbar` 负责同行对齐 |
+
+同组内容使用 `od-stack` 的 8px gap；卡片内边距由 `od-surface--padded` 负责；独立主章节使用父容器的 `--space-4` 16px gap。开发页的来源行与当前网站属于一个上下文组，状态行与运行结果属于一个结果组，不能因为都在编辑页就把所有间距改成 12px。真实专用的编辑器尺寸、目标 URL 截断、状态色、局部滚动仍可由页面 CSS 维护，但不重绘公共 `summary` 外观。新增 Modifier 需先枚举至少两个语义一致的真实消费者。
+
+这些 `od-*` 类可直接用于**加载了共享 CSS 的受信任 Sidebar HTML**；Native Workspace、Settings 与 Marketplace 仅映射视觉语义并保持各自样式构建，独立工具 opaque-origin iframe 及目标网页不得导入宿主 CSS/JS。结构性的源码合同与两 Tab 的真实 CSS 计算样式检查用于防退化；静态 Chrome、日常 `dist/development`、真实安装版及 Mac Chrome 缩放的证据等级必须分开，未运行标 `NOT_TESTED`。
 ### Side Panel 多功能区 Tab 的组合规范
 
 **Side Panel 顶部和详情操作沿用 R30 记录的历史「工具」Tab 布局案例（现行产品入口是「扩展」）。** 使用 [R30 头部与垂直节奏细则](sidebar-design-system-r20.zh-CN.md#r30-工具-tab--工具详情作为跨-tab-排版基准2026-10-14)：12px 标题、34px 浅底带边框 icon、8px 同区域间隔、右侧所属区域动作。详情级动作进详情头部，结果/历史刷新等进各自区域头部；执行与权限确认仍保留明确的文字操作。本次开发页是首个增量消费者，不宣称其他历史页已全部迁移。

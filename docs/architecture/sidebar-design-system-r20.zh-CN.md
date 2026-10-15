@@ -30,7 +30,7 @@ R30 原从旧「工具」索引页顶部及打开应用后的可信详情头部�
 - **头部动作区**：`od-page-actions` 靠右，动作间隔 8px。添加/导入/刷新/复制/设置等短、熟悉的操作用 `od-icon-button`：34×34px、8px 圆角、18px 图标；普通按钮为 paper 背景、line 边框、sub 图标，hover 为 muted，展开状态使用 focus 边框与 accent ink。每个动作有 title、aria-label 和可见焦点，保留 hidden/disabled。
 - **背景类型**：常规头部操作使用上述浅底带边框型；主要执行用现有 primary；危险动作用现有 danger，保留确认；工具详情的返回使用 muted 背景，低频设置可保持 quiet 类型。颜色只引用 tokens，不按页面重建。不能把普通刷新/复制涂成主要执行按钮。
 - **详情动作归属**：返回在标题左侧；作用于整个详情的打开独立页、设置、显示/隐藏、卸载放右侧头部。只作用于结果、历史或项目集合的复制/刷新放所属区域头部，不散落正文或放进 summary 内成为第二个交互控件。运行/停止、安装确认、权限批准等需要明确语义的动作保留文字及现有确认区。
-- **开发页映射**：来源/本地项目开关是第一行；只读源码的「新建」在该行右侧；当前网页是轻量展开信息；本地项目刷新、结果复制、历史刷新各在其区域头部。代码类型、编辑器、参数、状态和结果沿用 8px 同区域间隔，编辑器仍至少 216px。当前网页不是新的主要卡片标题。
+- **开发页映射（历史 R30，由现行 R31 补充）**：来源/本地项目开关是第一行；只读源码的「新建」在该行右侧。当前网页虽然是轻量上下文信息，但**属于一级独立的有边框 `od-disclosure`**，不是 `--flat`；动态网页 host 与状态仍保持原始语义。技术详情才使用 `--flat`。来源行与网页、状态与结果分别同组 8px，独立章节 16px，卡片内部 12px，编辑器至少 216px；本地项目刷新、结果复制、历史刷新留在所属区域。
 - **窄宽度**：不得缩小 icon；≤240px 可让动作组换行，粗指针实际命中区域至少 44px。验收分别记录静态 CSS 布局、实际浏览器 zoom 和已安装扩展证据，不能互相提升。
 
 共享头部/按钮外观由 `design-system.css` 维护；`tool-shell.css` 只负责业务排版和状态差异。参考实现为 `sidebar-tool-list-view`、`sidebar-tool-display`、`developer-source-switch`。
@@ -160,6 +160,27 @@ Native Agent 全页 Workspace 和 Settings 具有自己的大屏结构与本地�
 **防退化与验证级别：**`tests/environment/sidebar-component-contract.test.mjs` 是受影响的源码合同检查；已有 `scripts/tests/sidebar-r19-layout-visual.mjs` 用于真实 HTML/CSS 的静态 Chrome 渲染检查，不能代替用户 Mac 的已安装 Side Panel 原生验收。没有完成的检查保持 `NOT_TESTED`；95+ 只按实证评分。
 
 
+## R31：公共组件唯一视觉所有权（2026-10-15）
+
+这是**已有 R20/R30 的修正**，并非第二套 Design System。跨界面范围及 HTML 语义矩阵见 [R27](ui-layout-conventions-r27.zh-CN.md)，多 Section 的组织见 [R28](sidebar-multi-section-tab-contract-r28.zh-CN.md)。
+
+- `src/ui/design-tokens.css`：语义颜色、暗色值、间距及圆角的唯一变量来源。
+- `src/ui/design-system.css`：共享 `od-disclosure`（一级边框、paper、标题、Hover、Focus）、`--flat`（次级无框）、`--info`（标题说明）、`od-surface--padded`、按钮/字段/工具栏/提示及结果的**唯一视觉实现**。普通标题 44px、flat 36px；粗指针统一至少 44px，后续取值以源码为准。
+- `src/ui/tool-shell.css`：只管理视图 Grid/Flex、父容器 gap、局部宽高/滚动与真实业务状态；不得复制通用 `summary` 的最小高度、Hover 背景或边框圆角。开发页同组 `developer-context`、`developer-run-area` 使用 `od-stack` 8px，独立区块父 Grid 16px。
+- **不要嵌套重复边框**：主功能独立 `od-disclosure`；依赖 SHA、编译产物和运行历史使用内部 `od-disclosure od-disclosure--flat`；首次说明使用 `--info`。普通卡片需要 padding 时同时使用 `od-surface od-surface--padded`。
+- **隔离边界**：这些 CSS 原语只为可信 Side Panel/共用可信工具页提供直接复用。Native Workspace、Settings、Marketplace、可安装工具 iframe 及目标网页仍按 R27 各自隔离构建与主题映射，不扩大权限或跨执行世界加载宿主 CSS。
+- **验收**：用 `sidebar-component-contract.test.mjs` 的 CSS 规则/声明检查保护外观所有权，`sidebar-r19-layout-visual.mjs` 比较开发与云控两 Tab 的计算背景、边框、圆角、标题、Hover、深浅色；静态 Chrome 结果不能冒充 Mac 原生扩展、真实缩放、权限或安装验收。缺证据标 `NOT_TESTED`。
+
+直接复用的 HTML：
+
+```html
+<details class="od-disclosure">
+  <summary>当前网页 <span id="script-current-page-host">正在识别…</span></summary>
+  <div>地址与可运行状态由现有业务代码动态维护</div>
+</details>
+<details class="od-disclosure od-disclosure--flat"><summary>依赖 SHA</summary><pre class="od-result">按需查看</pre></details>
+<div class="od-surface od-surface--padded">普通内容卡片</div>
+```
 ## R31 目标适配：第一方可信工具 UI 不必默认 iframe（2026-10-13）
 
 这是 [官方预编译 UI / 动态工具隔离决策](browser-framework/custom-tool-ui-and-local-development.zh-CN.md#r16-设计决策官方预编译-ui-与动态工具隔离并存2026-10-13) 在 **Side Panel 布局**上的增量规则，**当前尚未实施**；不改变上文对现行 iframe 工具的 R26/R30 约束。

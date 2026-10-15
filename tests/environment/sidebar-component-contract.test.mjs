@@ -131,21 +131,18 @@ test('Developer disclosure headers share the Run Result surface; nested diagnost
   ]) {
     const tag = element(dev, 'details', id);
     assert.ok(has(tag, 'od-disclosure'), 'Missing shared disclosure: ' + id);
-    if (id === 'developer-target-detail')
-      assert.ok(has(tag, 'od-disclosure--flat'), 'Current page details should be a flat page-head companion: ' + id);
-    else
-      assert.ok(!has(tag, 'od-disclosure--flat'), 'Top-level disclosure must match Run Result: ' + id);
+    assert.ok(!has(tag, 'od-disclosure--flat'), 'First-level section must match Run Result: ' + id);
   }
   for (const id of [
-    'page-dependency-panel', 'script-history-panel', 'page-preview-technical-panel',
-    'task-package-dev', 'site-access'
+    'page-dependency-panel', 'program-generated', 'script-history-panel',
+    'page-preview-technical-panel', 'task-package-dev', 'site-access'
   ])
     assert.ok(has(element(dev, 'details', id), 'od-disclosure--flat'),
       'Nested technical disclosure should not create another card: ' + id);
   const summary = components.match(/\.od-disclosure>summary\{([^}]*)\}/)?.[1] || '';
   for (const rule of [
     'display:flex', 'align-items:center', 'flex-wrap:wrap',
-    'gap:var(--space-2)', 'min-height:40px',
+    'gap:var(--space-2)', 'min-height:44px',
     'padding:var(--space-2) var(--space-3)',
     'font-size:var(--od-body-size)', 'font-weight:650',
     'color:var(--od-ink)'
@@ -167,6 +164,30 @@ test('Developer disclosure headers share the Run Result surface; nested diagnost
     'Unindented nested disclosure body must not inherit the card inset');
 });
 
+test('R31 detects view-owned public disclosure appearance from parsed CSS declarations', () => {
+  // These are selector/declaration checks, not a frozen CSS substring snapshot.
+  const appearance = /^(?:background(?:-[\w-]+)?|border(?:-[\w-]+)?|color|font(?:-[\w-]+)?|min-height|height|padding(?:-[\w-]+)?|box-shadow|outline(?:-[\w-]+)?)$/;
+  for (const [path, css] of [
+    ['tool-shell.css', shell], ['cloud-hosting.css', read('src/ui/cloud-hosting.css')]
+  ]) {
+    const clean = css.replace(/\/\*[\s\S]*?\*\//g, '');
+    for (const [, rawSelector, declarations] of clean.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      const selector = rawSelector.trim();
+      if (!/\.od-disclosure|>\s*summary/.test(selector)) continue;
+      const forbidden = declarations.split(';').map(value => value.trim().split(':')[0]?.trim())
+        .filter(property => appearance.test(property));
+      assert.deepEqual(forbidden, [], path + ' redefines the shared disclosure in ' + selector);
+    }
+  }
+  assert.match(components, /\.od-disclosure>summary:hover\{background:var\(--od-muted\)\}/);
+  assert.match(components, /\.od-disclosure--flat:is\(:not\(\[open\]\),\[open\]\)>summary:hover/);
+  for (const id of ['developer-target-detail','developer-results-panel','cloud-hosting','task-history-panel'])
+    assert.ok(has(element(html,'details',id),'od-disclosure'), 'Shared Tab primitive: ' + id);
+  const developer = section('workbench-develop', 'workbench-debug');
+  assert.match(developer, /class="developer-context od-stack"/);
+  assert.match(developer, /class="developer-run-area od-stack"/);
+  assert.match(shell, /#workbench-develop \.developer-editor\{display:grid;gap:var\(--space-4\)/);
+});
 test('Other formal tabs reuse shared actions without restyling their unique filters', () => {
   for (const [id,variant] of [
     ['task-refresh','secondary'], ['task-uninstall','danger'],

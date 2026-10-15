@@ -417,6 +417,7 @@ function measureScene(scene){
       scrollOverflow:summary.scrollWidth-summary.clientWidth,
       textRectCount:textRects.length,textRects:textRects.slice(0,8).map(rect=>({left:rect.left,right:rect.right,width:rect.width,top:rect.top,bottom:rect.bottom})),
       fontFamily:style.fontFamily,letterSpacing:style.letterSpacing,
+      surfaceBackground:outer.backgroundColor,headerBackground:style.backgroundColor,headerInk:style.color,
       flat:details.classList.contains('od-disclosure--flat'),open:details.open,
       wrapping:{whiteSpace:style.whiteSpace,wordBreak:style.wordBreak,overflowWrap:style.overflowWrap,lineBreak:style.lineBreak,
         children:[...summary.children].map(child=>{const s=getComputedStyle(child);return {whiteSpace:s.whiteSpace,wordBreak:s.wordBreak,overflowWrap:s.overflowWrap,lineBreak:s.lineBreak,font:s.font,flex:s.flex};})},
@@ -508,7 +509,7 @@ function measureScene(scene){
     const children=[...get('.developer-editor').children].filter(e=>!e.hidden&&getComputedStyle(e).display!=='none'&&getComputedStyle(e).position!=='absolute'&&e.getBoundingClientRect().height>0);
     const layout=children.map(e=>e.getBoundingClientRect());
     metrics.developGaps=layout.slice(1).map((r,i)=>Math.round(r.top-layout[i].bottom));
-    metrics.developerHeaderFirst=children[0]?.id==='developer-source-switch';
+    metrics.developerHeaderFirst=children[0]?.classList.contains('developer-context')&&children[0]?.firstElementChild?.id==='developer-source-switch';
     // Keep the historical developer metrics key while using the shared contract.
     metrics.developerDisclosureHeaders=metrics.disclosureHeaders;
     if(!scene.local){
@@ -545,7 +546,7 @@ function validate(scene,width,m){
     throw Error('Extension action below shared target size '+scene.name+' '+width+'px '+JSON.stringify(m.extensionTargets));
   if(m.extensionCopySizes?.some(copy=>copy.fontSize<12))
     throw Error('Extension metadata below readable public size '+scene.name+' '+width+'px '+JSON.stringify(m.extensionCopySizes));
-  const expected={tasks:{taskCard:'12px'},'local-discover':{search:'8px',filter:'8px',filterGroup:'12px',taskCard:'12px'},catalog:{},cloud:{},workflow:{card:'12px',icon:'8px'},develop:{page:'0px',editor:'8px'},tools:{card:'12px',install:'8px'},debug:{card:'12px',detail:'12px'}};
+  const expected={tasks:{taskCard:'12px'},'local-discover':{search:'8px',filter:'8px',filterGroup:'12px',taskCard:'12px'},catalog:{},cloud:{},workflow:{card:'12px',icon:'8px'},develop:{page:'12px',editor:'8px'},tools:{card:'12px',install:'8px'},debug:{card:'12px',detail:'12px'}};
   // An empty task list intentionally has no card whose radius could be measured.
   if(scene.tab==='tasks'&&scene.state==='empty')delete expected.tasks.taskCard;
   if(scene.tab==='local-discover'&&scene.state==='empty')delete expected['local-discover'].taskCard;
@@ -553,9 +554,9 @@ function validate(scene,width,m){
   for(const [key,value] of Object.entries(expected[scene.tab])){
     if(m.corners[key]!==value)throw Error('Radius mismatch '+scene.name+' '+key+': '+m.corners[key]+' expected '+value);
   }
-  if(scene.tab==='develop'&&(!m.developerHeaderFirst||m.developGaps.some(gap=>Math.abs(gap-8)>1)))throw Error('Developer header/gap mismatch '+scene.name+' '+width+'px '+JSON.stringify(m.developGaps));
+  if(scene.tab==='develop'&&(!m.developerHeaderFirst||m.developGaps.some(gap=>Math.abs(gap-16)>1)))throw Error('Developer header/gap mismatch '+scene.name+' '+width+'px '+JSON.stringify(m.developGaps));
   for(const item of m.disclosureHeaders){
-    const height=m.coarsePointer?44:item.flat?36:40;
+    const height=m.coarsePointer?44:item.flat?36:44;
     const fail=reason=>{throw Error('Disclosure '+reason+' '+scene.name+' '+width+'px '+JSON.stringify(item));};
     if(!item.component)fail('missing trusted component class');
     if(item.height<height-.5||item.minHeight!==height||item.fontSize!==(item.flat?12:13)||item.fontWeight!==650||
@@ -565,7 +566,7 @@ function validate(scene,width,m){
       item.border.some((b,index)=>b.width!==(item.open&&index===2?1:0)||
         (b.width>0&&(b.style!=='solid'||b.color==='transparent'||b.color==='rgba(0, 0, 0, 0)'))))fail('border/radius mismatch');
     if(item.overflow||item.left<item.containerLeft-1||item.right>item.containerRight+1)fail('header geometry overflow');
-    if(scene.tab==='develop'&&width>=300&&!scene.longContent&&!item.flat&&!item.open&&item.id!=='developer-target-detail'&&Math.abs(item.height-height)>1){
+    if(scene.tab==='develop'&&width>=300&&!scene.longContent&&!item.flat&&!item.open&&Math.abs(item.height-height)>1){
       fail('closed developer header has extra vertical spacing');
     }
   }
@@ -948,6 +949,31 @@ try{
     await evaluate('('+setupScene.toString()+')('+JSON.stringify(scene)+','+JSON.stringify(officialReleases)+')');
     keyboardSamples.push(await keyboardDisclosure(scene,selector));
   }
+  // R31: compare rendered public disclosures from two distinct trusted Tabs.
+  // Hover is CDP input on source HTML/CSS, not an installed extension or native acceptance.
+  for(const width of widths){
+    await cdp('Emulation.setDeviceMetricsOverride',{width,height:700,deviceScaleFactor:1,mobile:false});
+    for(const theme of ['light','dark']){
+      await cdp('Emulation.setEmulatedMedia',{features:[{name:'prefers-color-scheme',value:theme}]});
+      const pair=[];
+      for(const [scene,selector] of [
+        [{name:'develop-single-open',tab:'develop',singleDetail:'developer-results-panel'},'#developer-results-panel > summary'],
+        [{name:'cloud-hosting-open',tab:'cloud',state:'cloud-open'},'#cloud-hosting > summary']
+      ]){
+        await evaluate('('+setupScene.toString()+')('+JSON.stringify(scene)+','+JSON.stringify(officialReleases)+')');
+        const sel=JSON.stringify(selector);
+        const rect=await evaluate('(()=>{const e=document.querySelector('+sel+');if(!e)throw Error("Missing R31 header");e.scrollIntoView({block:"center"});const r=e.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2}})()');
+        await cdp('Input.dispatchMouseEvent',{type:'mouseMoved',x:rect.x,y:rect.y});
+        const value=await evaluate('(()=>{const e=document.querySelector('+sel+'),s=getComputedStyle(e),o=getComputedStyle(e.parentElement);return {hovered:e.matches(":hover"),open:e.parentElement.open,surface:o.backgroundColor,border:o.borderTopColor,radius:o.borderTopLeftRadius,headerBackground:s.backgroundColor,color:s.color,minHeight:s.minHeight,padding:s.padding,borderBottom:s.borderBottomColor}})()');
+        if(!value.hovered||!value.open)throw Error('Missing disclosure Hover/Open contract '+scene.name+' '+width+' '+theme+' '+JSON.stringify(value));
+        pair.push({scene:scene.name,...value});
+      }
+      for(const key of ['surface','border','radius','headerBackground','color','minHeight','padding','borderBottom'])
+        if(pair[0][key]!==pair[1][key])throw Error('Cross-Tab disclosure computed-style mismatch '+theme+' '+width+' '+key+' '+JSON.stringify(pair));
+      samples.push({evidence:'STATIC_MARKUP_CHROME_COMPONENT_EQUIVALENCE',width,theme,pair});
+    }
+  }
+  await cdp('Emulation.setEmulatedMedia',{features:[]});
   // Limited media smoke samples reuse the same product HTML and geometry checks.
   for(const [name,width,features] of [
     ['tools-installed-long',320,[{name:'prefers-color-scheme',value:'dark'}]],
