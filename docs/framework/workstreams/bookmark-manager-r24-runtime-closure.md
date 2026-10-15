@@ -279,3 +279,35 @@ HTML 设计评审另有一份在线对话内的可交互纯内存原型；该设
 交互 8 维（浏览导航、原位编辑、新建/修改、文件夹移动、草稿/保存、错误/冲突、键盘/无障碍、2159 项规模）：**上述核心操作已经真实 Chrome 离线 Mock 自动化验证**；真实授权 SDK Host 写入、完整真实 Chrome 键盘辅助技术、触摸和长时大量书签仍待独立验收。尚不能为每个维度提供独立 95+ 专家分数，统一标记 `MOCK_PASS / NATIVE_NOT_TESTED / 95_NOT_SCORED`。
 
 下一候选行动：确认这份源代码不被并行 Agent 覆盖；与 AdBlock 所有者协调可信指纹阻塞，不私下绕过；在真实 Mac Chrome 用正式 Extension Center 安装 0.3.6，授权 Full Bookmarks，逐项验证选中→编辑→保存及 URL/目录变化确实反映 Chrome 原生树、滚动焦点、撤权及非空文件夹危险删除。收集原生安装 ID、工具版本、运行时哈希、Chrome 操作回执和视觉/键盘截图后再逐项给分。Issue #75 继续 OPEN。
+
+
+## R2.7 · 生产 UX 修复、原位编辑安全边界与同源 Chrome 证据（2026-10-15）
+
+**状态截至提交 3b418bec：PRODUCTION_SOURCE_CHANGED / SOURCE_BOUND_PREVIEW_PASS / HEADLESS_CHROME_MOCK_PASS / NATIVE_NOT_TESTED / 95_NOT_SCORED / ISSUE_75_OPEN。** 本轮继续使用 0.3.6 正式工具；保留宿主和公开 SDK 的权限、安全删除、冲突预检和未知写入结果保护；不得将离线 Mock 的读回视为 Mac 正式安装 Native 回执。
+
+### 本轮已改生产代码（增量实现，非另建原型）
+
+- **瞬时读取失败和草稿保护**：\`examples/sidebar-tools/bookmark-manager/src/main.js\` 只对已加载且仍有授权的工作区、明确识别的暂时传输错误保留列表及编辑草稿；撤权、状态未知或数据不可用继续 fail-closed。外部窗口删除当前选中书签后，编辑草稿仍可复制，但提交禁用、提示不能覆盖已删除项。保存并读回确认后如项目不匹配当前搜索，显示可理解的提示，不隐式清空搜索。
+- **大目录选择**：目标文件夹有超过 120 个匹配时仍保留第 121 项以后的已选项，避免清空过滤条件后移动目标无声改变；候选 DOM 仍保持 120 项上限加 1 个已选项。
+- **键盘与视觉**：列表行重新渲染后恢复原来的展开/条目/菜单按钮焦点；Escape 取消草稿切换提示后焦点返回编辑控件。正式工具的刷新、当前页收藏、文件夹/书签图标改用已有共享 \`od-icon-button\` 和 token 驱动 SVG，创建书签/文件夹优先级清晰，未引入自有颜色、设计 token 或图标包。正式 \`src/index.html\`、\`src/style.css\` 与 \`src/main.js\` 为唯一生产实现。
+- **新增模拟诊断与交互**：仅 \`scripts/preview/bookmark-manager-mock.js\` 添加下一次分页读取超时、额外 130 文件夹及外部删除；\`scripts/tests/bookmark-manager-r26-preview-chrome.mjs\` 在原运行器补充了新建书签和文件夹、搜索上下文反馈、超限文件夹选择、瞬时刷新错误保留草稿、外部删除写锁、Escape/列表焦点及撤权反例。在同源生成的真实 HTML/JS/CSS 上生成窄 360px、宽 960px 详情/编辑/冲突各三张截图，不复制长期分叉 UI。
+- **R2.7 Node Fixture**：正式 UI 改为合法的 SVG 命名空间创建后，原 Node 手工 DOM fixture 不支持 \`createElementNS\`，曾使下游用例错误性地报告授权 UI 不可用。只在 \`tests/environment/bookmark-manager-r2.test.mjs\`、\`tests/environment/bookmark-manager-r24-lifecycle.test.mjs\` 补齐 SVG 节点模拟，不修改正式产品逻辑或删除用例。
+
+涉及正式与测试提交（全部在主分支正常非强制更新）：
+\`d26018d\`、\`2ce5d8a\`、\`a2b0678\`、\`29e0390\`、\`f17a2af\`、\`27fcb09\`、\`d5b3013\`、\`518859b\`、\`185da9c\`、\`bc2ce6a\`、\`3b418be\`、\`67dc6b1\`、\`4837f2b\`。并行开发不断更新 \`main\`，不要把上面列出的某一 SHA 冒充永远不变的 HEAD。
+
+### CI、构建、预览身份（分级，不越级声称 Native）
+
+| 验证 | 同候选/状态 |
+| --- | --- |
+| R2.7 最新源码预览契约 | [CI #38738814513](https://github.com/shopable-ai/opendesk-browser/actions/runs/38738814513) 在 \`3b418bec\` 上 **PASS**：Preview 输入源码锁、共享设计/包、负向安全合同，以及真实 headless Chrome 离线模拟交互共 2 视口；Chrome Mock 标记 \`MOCK_BROWSER_INTERACTION_PASS_NOT_INSTALLED\`，不是原生插件 |
+| Chrome 新视觉截图/JSON | [quick-notes-contract-previews Artifact 11975955068](https://github.com/shopable-ai/opendesk-browser/actions/runs/38738814513/artifacts/11975955068) 内 \`artifacts/preview-chrome/bookmark-r27-{narrow,wide}-{details,editing,conflict}.png\` 共 6 张，交互日志 \`bookmark-r26-interaction.json\` 包含额外视觉文件名与 SDK/设计源指纹 |
+| 可操作生产同源 HTML | [bookmark-manager-source-bound-preview Artifact 11975955075](https://github.com/shopable-ai/opendesk-browser/actions/runs/38738814513/artifacts/11975955075) 内 \`artifacts/previews/bookmark-manager/side-panel-success-light-360.html\`；直接打开，属隔离离线 Mock，不连接用户书签 |
+| R2.7 首次专项 Node | [CI #38738178026](https://github.com/shopable-ai/opendesk-browser/actions/runs/38738178026) 在 \`d5b3013\` 上 **51 PASS / 24 FAIL**；旧 DOM fixture 不支持新合法 SVG，完整构建尚未进入。失败历史保留，不能用 Preview CI 覆盖 |
+| SVG Fixture 后复测 | [CI #38739585579](https://github.com/shopable-ai/opendesk-browser/actions/runs/38739585579) 于此记录时为 **QUEUED / NOT_YET_VERIFIED**，需核对最终 Node、check、包和 Browser Build 分步骤回执；不得继承 R2.6 的 Node 75 PASS 为当前结果 |
+| 正式 Mac Chrome 安装/Full Bookmarks/CRUD | **NOT_TESTED**：没有用户专属 Profile、扩展 ID、安装 epoch、同源原生数据收据。不能宣称 Native PASS |
+| 视觉七维、交互八维及工程评分 | **NOT_SCORED / NOT_FULLY_ACCEPTED**：CI Chrome 离线点击与新截图提供可复核样本，不能替代独立真实用户视觉及 Native 审查，未有逐维 95+ 结论 |
+
+### 剩余产品验收
+
+先确认专项 Node 75/75 与 \`npm run check\`、独立官方包、全 Browser Build 的 **当前** 结果；若 AdBlock 可信指纹或其他并行安全门禁失败，不跳过、不盲目重新计算指纹。随后在隔离正式 Chrome Profile、同一候选安装版本及授权身份下，人工点击并录入原生读回回执：Full Bookmarks 首次授权/撤权、书签及文件夹创建重命名、原位 URL 编辑、混合更新与目录移动、非空子树安全删除/票据、外部窗口编辑/删除、未知写入结果禁止盲目重试、滚动/键盘/焦点和 2159+ 数据真实性。所有 Chrome Native 工作待有可访问的正式 Mac/Chrome 环境才可执行；Issue #75 继续 OPEN，逐维产品专家 95 分数不可凭 Mock 自动宣称。
