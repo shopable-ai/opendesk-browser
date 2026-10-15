@@ -10,7 +10,7 @@ import {createWorkflowProviderFacade} from './provider.js';
 import {deriveWorkflowViewState} from './view-state.js';
 import {createLocalCodexPlanner,describeLocalCodex} from './local-codex.js';
 import {createWorkflowObservation} from './observation.js';
-import {prepareDirectExecution,verifyDirectExecutionReceipt,directExecutionEvidenceLevel} from './direct-execution.js';
+import {prepareDirectExecution,verifyDirectExecutionReceipt,directExecutionEvidenceLevel,verifyDirectFillReadbacks,verifySearchBusinessEffect} from './direct-execution.js';
 import {createTaskReviewHandoff,taskReviewHandoffKey} from './task-review-handoff.js';
 
 const STORAGE_PREFIX = 'opendesk.sidebar.workflow.v1:';
@@ -528,21 +528,52 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       if(!disposed) {
         const decoded=resultDisplay(claim.runId,view);
         if(prepared) {
-          if(prepared.hasReadback)await currentPageTarget.revalidate(captured);
           let proof=null;
           try{proof=verifyDirectExecutionReceipt({claim,completed,view,sourceHash:freeze.sourceHash,target:captured});}
           catch(error){status(format(error),true);}
           lastRun=proof&&decoded?'success':'failed';
+          let readbackVerified=false;
+          if(lastRun==='success'&&prepared.hasReadback) {
+            try{readbackVerified=verifyDirectFillReadbacks({workflow:freeze.workflow,params,
+              values:decodeValue(result.outcome.valueWire)});}catch{}
+            // For a standalone fill, the same original Document must still be
+            // current. A search click may navigate *after* the fill readback,
+            // so its previous Document cannot be revalidated as post-click.
+            if(readbackVerified&&!prepared.hasUnprovenClick) {
+              try {
+                await currentPageTarget.revalidate(captured);
+                readbackVerified=await api.permissions.contains({origins:[permissionPattern(captured.url)]});
+              }catch{readbackVerified=false;}
+            }
+          }
+          let effect=null;
+          if(lastRun==='success'&&prepared.effectExpectation&&!prepared.signal?.aborted) {
+            try {
+              const resultTarget=currentPageTarget.capture();
+              if(resultTarget.origin===captured.origin&&resultTarget.windowId===captured.windowId&&
+                resultTarget.tabId===captured.tabId&&resultTarget.frameId===0) {
+                // A new read-only RunHost execution, bound to a fresh Document
+                // and checked by observation's own durable receipt verifier.
+                // No provider, click retry, JS injection or cross-origin read.
+                const post=await observation.observe(resultTarget,{signal:prepared.signal,
+                  requestId:'search-effect-'+crypto.randomUUID(),
+                  request:prepared.effectExpectation.query});
+                if(!disposed&&!prepared.signal?.aborted)effect=verifySearchBusinessEffect({
+                  expectation:prepared.effectExpectation,before:prepared.beforeObservation,
+                  after:post,actionTarget:captured,resultTarget});
+              }
+            }catch{ /* Observation is optional; never promote or replay unknown click effects. */ }
+          }
           const evidenceLevel=directExecutionEvidenceLevel({
-            receiptVerified:lastRun==='success',
-            hasReadback:prepared.hasReadback,
-            hasUnprovenClick:prepared.hasUnprovenClick
+            receiptVerified:lastRun==='success',hasReadback:readbackVerified,
+            hasUnprovenClick:prepared.hasUnprovenClick,searchEffectVerified:Boolean(effect)
           });
           if(lastRun==='success')
             lastTrustedRun={runId:claim.runId,sourceHash:freeze.sourceHash,siteOrigin:captured.origin};
           if(lastRun==='failed' && !hasError)
             status('运行未成功或结果无法确认，请检查真实结果及页面效果；不会自动重试。',true);
-          return {ok:lastRun==='success',runId:claim.runId,resultId:proof?.resultId||null,evidenceLevel};
+          return {ok:lastRun==='success',runId:claim.runId,resultId:proof?.resultId||null,
+            evidenceLevel,readbackVerified,effect};
         }
         lastRun=completed?.state==='completed'&&completed?.retirement?.state==='released'&&
           !completed?.pendingSettlement&&result?.state==='completed'&&result?.outcome?.ok===true&&decoded&&
@@ -914,24 +945,35 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       directVerifiedSerial=stable();
       render();persistDraft();
       const executionSerial=stable();
+      // A click is the terminal action in the compiled plan. Its expected
+      // navigation invalidates the prior Document, but only a new authorized
+      // observation may read the destination; no old steps run there.
+      if(prepared.hasUnprovenClick)planningTarget=null;
       const execution=await run(null,{freeze,captured,params:prepared.params,hasReadback:prepared.hasReadback,
         permission:Promise.resolve(true),signal:abort.signal,hasUnprovenClick:prepared.hasUnprovenClick,
+        beforeObservation:planningObservation,effectExpectation:prepared.effectExpectation,
         assertCurrent:()=>planningCurrent(epoch,executionSerial,frozen.selected)});
+      planningCurrent(epoch,executionSerial,frozen.selected);
       if(execution?.ok) {
         if(execution.evidenceLevel==='BUSINESS_EFFECT_VERIFIED')verifiedTurnHistory=[...verifiedTurnHistory,{
           request:frozen.request.slice(0,4000),outcome:'verified',
-          readbackVerified:prepared.hasReadback===true,stepCount:result.steps.length}].slice(-4);
+          readbackVerified:execution.readbackVerified===true,stepCount:result.steps.length}].slice(-4);
         appendChat('模型来源',lastProviderTurn.source+
           (lastProviderTurn.metadata.responseId?' · response '+lastProviderTurn.metadata.responseId:'')+
           ' · 工作流 '+lastProviderTurn.businessWorkflowId+
           ' · 本次结果 '+execution.resultId);
-        appendChat('执行结果','已通过 RunHost 核对持久执行回执：'+execution.runId+' / '+execution.resultId+
-          (execution.evidenceLevel==='BUSINESS_EFFECT_VERIFIED'
-            ?'。页面输入值已在同次运行中独立读回匹配（不代表服务器已提交）。'
-            :'。页面业务效果尚未独立验证，不能将执行完成当作业务成功。'));
-        status(execution.evidenceLevel==='BUSINESS_EFFECT_VERIFIED'
-          ?'已验证页面输入读回；可以保存工作流。'
-          :'执行回执已验证，业务效果仍待核对；可以保存工作流。');
+        const effectMessage=execution.effect?.kind==='search-results'
+          ?'。已独立观察到与搜索关键词关联的结果状态和至少 '+execution.effect.visibleResultLinks+' 个新出现的可见链接；不代表结果相关性已验证。'
+          :execution.effect?.kind==='search-empty'
+            ?'。已独立观察到与搜索关键词关联的“无结果”页面状态。'
+            :execution.evidenceLevel==='BUSINESS_EFFECT_VERIFIED'
+              ?'。页面输入值已在同次运行中核对匹配（不代表服务器已提交）。'
+              :'。网页业务效果仍待核对，不会自动重复搜索或提交。';
+        appendChat('执行结果','已通过 RunHost 核对持久执行回执：'+execution.runId+' / '+execution.resultId+effectMessage);
+        status(execution.effect?'已独立核对搜索页面效果；可以保存工作流。':
+          execution.evidenceLevel==='BUSINESS_EFFECT_VERIFIED'
+            ?'已验证页面输入读回；可以保存工作流。'
+            :'执行回执已验证，业务效果仍待核对；可以保存工作流。');
       } else {
         appendChat('执行结果','本次未能确认成功；不会自动重试。请检查真实网页与运行详情。');
       }
