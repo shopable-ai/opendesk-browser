@@ -600,3 +600,13 @@ OpenDesk Browser Workflow — 自然语言完成网页任务并保存独立复�
 | 产品／production/Chrome 验收 | NOT_TESTED | Existing Build/Installer | AdBlock Trusted、Chrome 身份 | build FAIL、无用户 Mac | 同候选 build/F3/ZIP/真实任务独立 95+ | Browser `9447aeff` | Node PASS，build FAIL |
 
 **管理估算**：维持 13.3 的相同权重；新增 P0 生产实现可暂估 **约 54%（低置信、非产品验收）**，原基线 51.5/100。对真实 Chrome、AI-Off Run×2、生产安装等没有证据的评分维度仍为 `NOT_SCORED`，不得声称 95+。下一最小任务为同安装身份的真实 Chrome T2 填写读回、T3 安全搜索，再关闭 Provider 验证同 Revision Run×2；不可访问 Mac 则均标 `NOT_TESTED`，并继续 CI/源码切片。Go HTTP 继续安全禁用。
+
+#### 13.6.1 R2.3 NEXT：AI-Free 保存版本复跑的逐次源码读回与证据补强（2026-10-15）
+
+**本节是对 13.6 已实施能力的增量验收记账，不建立第二套架构。** 并行 Agent 新增的 search-results-v1 前后可信观察 Oracle、Controller CAS 保存中断恢复和 verifySavedWorkflowRevision 四处身份一致性均直接继承，未重复开发。
+
+- **复跑前再验字节**：在 src/ui/workflow/workflow-view.js 中，每次识别为 saved 的 RunHost start 前，按 scriptId+revision 从原 Controller journal 重新读取字节；sourceUtf8/contentHash 与重新编译的冻结 Definition 不一致，即 E_WORKFLOW_HASH 且拒绝启动。未引入 Provider、HTTP/CDP 或新数据库。
+- **无 AI 页面填写的业务等级**：保留原 verifyDirectExecutionReceipt 及 saved 版本身份校验。只有冻结 fill-readback、所有填写逐字段 inputValue 精确匹配、原 Document 重新验证、网站权限仍有效且没有未验证点击，才将结果报告为 BUSINESS_EFFECT_VERIFIED；仅代表 DOM 值，不代表远端提交。普通点击/搜索的 AI-off 手动复跑没有独立 Oracle 时仍只报告 EXECUTION_RECEIPT_VERIFIED，未知副作用不自动重试。
+- **原组件测试**：扩展 tests/environment/workflow-focus.test.mjs，驱动真实 workflow-view 组件配合测试专用 Host/Controller 完成固定 Revision 两次不同 runId/resultId 的 saved 执行；第三次在 journal 字节变化时验证 RunHost.start 不再被调用。修补跨 VM fixture 的参数对象 Realm 差异，保留严格 schema 校验。上述是组件测试，不等于用户真实 Chrome。
+- **本切片源码提交**：4202985f8c3042bb6faa7f2c4fe4a28694f8bca5；测试及夹具提交 403e6014ad041dc63ed2c4162c772d9a0507e53b / 58851434318709bc6703c95300a2be577256f93d / 7ed633d4fabc5de3dbcfc38878904d5d4278ac6e / 1e126028f49d69f82cad09536ca7a3f75e45810b。
+- **CI 闸门**：58851434 对应 Workflow AI #38738021493 的定向 Node FAILED（跨 VM 参数夹具，整条 FAIL）；新 1e126028 候选 [Workflow AI #38739012994](https://github.com/shopable-ai/opendesk-browser/actions/runs/38739012994) 以实际最终状态为准，记录时 CI_PENDING，不把旧 SHA 的 127 PASS 外推。Go 本切片无源码修改，Browser HTTP SAFE_DISABLED；真实 Mac Chrome、真 Provider、关闭 AI 原生 Run×2 与生产安装均 NATIVE_NOT_TESTED。
