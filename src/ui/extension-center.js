@@ -365,7 +365,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       pages=response.catalog;pageStatusKnown=true;
     }catch(error){pageStatusKnown=false;errors.push('网页增强：'+String(error?.message||error));}
     dataError=errors.join('；');hasLoaded=true;
-    if(dataError)message('读取失败，保留最近一次显示。'+dataError,'error','read');
+    if(dataError&&statusOrigin!=='action')
+      message('读取失败，保留最近一次显示。'+dataError,'error','read');
     else if(statusOrigin==='read'||statusOrigin==='loading'||statusOrigin==='catalog')
       message(catalogError?'官方目录暂不可用：'+catalogError:'',
         catalogError?'error':'info',catalogError?'catalog':'read');
