@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {composeExtensionEntries,resolveExtensionRowIntent} from '../../src/ui/extension-center-model.js';
+import {composeExtensionEntries,resolveExtensionRowIntent,resolveExtensionPrimaryAction} from '../../src/ui/extension-center-model.js';
 
 test('R4.2 enabled installed app launches its installed package; missing app opens detail',()=>{
   const installed={id:'notes',title:'Notes',description:'编辑笔记',version:'1.0.0'};
@@ -15,69 +15,75 @@ test('R4.2 enabled installed app launches its installed package; missing app ope
   assert.equal(resolveExtensionRowIntent({installed:true,kind:'unknown',enabled:true}),'detail');
 });
 
-test('R4.2 disabled apps use existing settings; Pages are always managed',()=>{
-  for(const enabled of [false,undefined])
-    assert.equal(resolveExtensionRowIntent({installed:true,kind:'app',enabled}),'settings');
-  for(const enabled of [true,false])
-    assert.equal(resolveExtensionRowIntent({installed:true,kind:'page',enabled}),'detail');
+test('R4.7 main action is genuinely optional for disabled/unknown/Page/candidates',()=>{
+  for(const enabled of [false,undefined,null]){
+    const row={installed:true,kind:'app',enabled};
+    assert.equal(resolveExtensionRowIntent(row),'detail');
+    assert.equal(resolveExtensionPrimaryAction(row),null);
+  }
+  for(const enabled of [true,false]){
+    const row={installed:true,kind:'page',enabled};
+    assert.equal(resolveExtensionRowIntent(row),'detail');
+    assert.equal(resolveExtensionPrimaryAction(row),null);
+  }
+  for(const row of [
+    null,{installed:false,kind:'app',release:{id:'genuine'},enabled:false},
+    {installed:true,kind:'app',enabled:true,stateKnown:false},
+    {installed:true,kind:'unknown',enabled:true}
+  ]){
+    assert.equal(resolveExtensionPrimaryAction(row),null,'unverified preview/open cannot be invented');
+  }
+  assert.deepEqual(resolveExtensionPrimaryAction({installed:true,kind:'app',enabled:true}),
+    {id:'open',label:'打开'});
 });
 
-test('R4.3 full-row main target retains trusted actions and independent floating buttons',async()=>{
+test('R4.7 full row delegates to exactly the same optional primary action',async()=>{
   const center=await readFile('src/ui/extension-center.js','utf8');
   for(const marker of [
+    'resolveExtensionPrimaryAction(row)',
     "const main=button('',()=>openRow(row.key),'ec-row-main')",
-    "const copy=node('span','ec-copy'),line=node('span','ec-name-line')",
-    "const name=node('span','ec-name')",
-    "name.append(node('span','ec-name-text',titleOf(row)))",
-    "main.append(glyph,copy)",
     "const actions=node('span','ec-row-actions')",
-    "actions.append(primary,manage)",
-    "item.append(main,actions)",
-    "main.dataset.extensionAction='main'",
-    "primary.dataset.extensionAction='primary'",
+    "if(primaryAction){",
+    "const primary=button(primaryAction.label,()=>openRow(row.key)",
+    "if(row.installed){",
     "manage.dataset.extensionAction='more'",
+    "event=>showRowMenu(row.key,event.currentTarget)",
+    "item.append(main,actions)",
+    "restoreRowFocus(focusKey,focusAction)",
     "if(resolveExtensionRowIntent(row)==='detail'){openDetail(key);return;}",
-    "sidebarTools.openTool(row.id)",
-    "sidebarTools.openSettings(row.id)",
-    "sidebarTools.openOfficialReview(row.id)",
-    "restoreRowFocus(focusKey,focusAction)"
-  ])assert.ok(center.includes(marker),'missing route/semantics '+marker);
-  assert.match(center,/ec-action od-button od-button--secondary/);
-  assert.match(center,/ec-row-more od-icon-button/);
-  assert.match(center,/description\.title=description\.textContent/);
-  assert.match(center,/primary\.title=primary\.getAttribute\('aria-label'\)/);
-  assert.doesNotMatch(center,/item\.append\(main,primary,manage\)/,
-    'actions should overlay the row, not reserve sibling grid columns');
-  assert.doesNotMatch(center,/点击主要区域直接使用|点击主要区域查看详情/);
+    "if(resolveExtensionPrimaryAction(row)?.id==='open')sidebarTools.openTool(row.id)"
+  ])assert.ok(center.includes(marker),'missing row/route contract '+marker);
+  assert.doesNotMatch(center,/const actionName=!row\.installed/);
+  assert.doesNotMatch(center,/!row\.enabled\?sidebarTools\.openSettings/);
+  assert.doesNotMatch(center,/if\(!row\.installed\)\{openReview\(key\);return;\}/);
+  assert.match(center,/closeRowMenu\(true\);fn\(event\)/);
+  assert.match(center,/rowMenu\.setAttribute\('role','menu'\)/);
+  assert.match(center,/doc\.addEventListener\('scroll',onScroll,true\)/);
+  assert.match(center,/row\.stateKnown===false\?'状态待核对'/);
+  assert.match(center,/row\.enabled===false\?'已停用'/);
+  assert.match(center,/row\.kind==='page'&&row\.record\?\.installed\?\.authorization\?\.status==='suspended'/);
+  assert.match(center,/setInstalledPageProgramEnabled\(\{api,client,row:row\.record\}\)/);
 });
 
-test('R4.3 row hover spans full item while floating buttons reveal on hover or focus',async()=>{
+test('R4.7 actions remain visible, overflow is not clipped and touch stays reachable',async()=>{
   const css=await readFile('src/ui/extension-center.css','utf8');
   const row=css.match(/\.ec-row\{([^}]*)\}/)?.[1]||'';
   const main=css.match(/\.ec-row-main\{([^}]*)\}/)?.[1]||'';
   const overlay=css.match(/\.ec-row-actions\{([^}]*)\}/)?.[1]||'';
-  const name=css.match(/\.ec-name\{([^}]*)\}/)?.[1]||'';
   assert.match(row,/position:relative/);
   assert.match(row,/min-height:72px/);
-  assert.doesNotMatch(row,/grid-template-columns/);
-  assert.match(main,/width:100%/);
   assert.match(main,/grid-template-columns:34px minmax\(0,1fr\)/);
-  assert.match(main,/max-width:none/);
-  assert.match(main,/padding:9px 108px 9px 10px/);
-  assert.doesNotMatch(main,/margin:-9px|position:absolute/);
+  assert.match(main,/width:100%/);
   assert.match(overlay,/position:absolute/);
-  assert.match(overlay,/opacity:0;pointer-events:none/);
-  assert.match(css,/\.ec-row:hover,\.ec-row:focus-within\{background:var\(--od-muted\)\}/);
-  assert.match(css,/\.ec-row:hover \.ec-row-actions,\.ec-row:focus-within \.ec-row-actions\{opacity:1;pointer-events:auto\}/);
-  assert.match(css,/\.ec-row:hover \.ec-glyph,\.ec-row:focus-within \.ec-glyph\{background:var\(--od-paper\)\}/);
-  assert.match(name,/min-height:34px/);
-  assert.match(css,/\.ec-name-text\{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap\}/);
-  assert.match(css,/@media\(max-width:330px\)\{[\s\S]*?\.ec-row-main\{[^}]*min-height:68px/);
-  assert.match(css,/@media\(max-width:240px\)\{[\s\S]*?\.ec-row-main\{[^}]*min-height:82px/);
-  assert.match(css,/@media\(hover:none\),\(pointer:coarse\)\{[\s\S]*?\.ec-row-actions\{opacity:1;pointer-events:auto\}/);
-  assert.match(css,/\.ec-action,\.ec-row-more\{min-width:44px;min-height:44px\}/);
-  assert.match(css,/@media\(prefers-reduced-motion:reduce\)\{\.ec-row-actions\{transition:none\}\}/);
-  assert.match(css,/#extension-center \.ec-row-main:focus-visible\{outline-offset:-2px\}/);
+  assert.match(overlay,/opacity:1;pointer-events:auto/);
+  assert.match(css,/\.ec-row--has-primary \.ec-row-main\{padding-right:108px\}/);
+  assert.match(css,/\.ec-row--no-actions \.ec-row-main\{padding-right:10px\}/);
+  assert.match(css,/\.ec-context-menu\{position:fixed;z-index:1000/);
+  assert.match(css,/\.ec-context-menu\[hidden\]\{display:none!important\}/);
+  assert.match(css,/@media\(hover:none\),\(pointer:coarse\)/);
+  assert.match(css,/@media\(max-width:240px\)/);
+  assert.match(css,/#extension-center \.ec-row-main:focus-visible/);
+  assert.doesNotMatch(css,/\.ec-row-actions\{[^}]*opacity:0/);
 });
 
 test('R4.3 list and detail foregrounds remain readable against normal and hover surfaces in both themes',async()=>{

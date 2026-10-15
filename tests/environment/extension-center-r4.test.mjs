@@ -66,7 +66,7 @@ test('R4 source retains one trusted installer, one combined list and high-zoom r
     'installed version is directly runnable even when an update is available');
   assert.doesNotMatch(center,/if\(row\.update\)\{if\(row\.release\)openMarket/,
     'an update cannot hijack the installed app primary action');
-  assert.match(center,/detailFocusAction='toggle'/,'Page switch can restore focus after async authority update');
+  assert.match(center,/detailFocusAction=inDetail\?'toggle':null/,'Page switch can restore focus after async authority update');
   assert.match(css,/@media\(max-width:240px\)/,'200 percent zoom retains wrapped controls');
   assert.match(css,/\.ec-name-line\{flex-wrap:wrap/);
   assert.match(css,/@media\(max-width:240px\)\{[\s\S]*?\.ec-row-actions\{top:auto;right:6px;bottom:6px;transform:none\}/,

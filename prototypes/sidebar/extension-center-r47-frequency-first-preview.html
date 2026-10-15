@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>OpenDesk Browser · Extension Center R4.7 · 交互设计预览</title>
+<!-- Visual rules are loaded from the SAME repository design tokens, system and Extension Center CSS. -->
+<link rel="stylesheet" href="../../src/ui/design-tokens.css">
+<link rel="stylesheet" href="../../src/ui/design-system.css">
+<link rel="stylesheet" href="../../src/ui/extension-center.css">
+<style>
+  /* Preview host chrome only: never override .ec-row/.ec-action or duplicate product tokens. */
+  body{margin:0;padding:20px;background:#f5f7fb;color:var(--od-ink);font:13px/1.5 system-ui,"PingFang SC",sans-serif}
+  .demo{max-width:900px;margin:0 auto;display:grid;grid-template-columns:minmax(0,360px) minmax(210px,1fr);gap:20px;align-items:start}
+  .panel{height:670px;display:flex;flex-direction:column;border:1px solid var(--od-line);border-radius:12px;overflow:hidden;background:var(--od-paper);box-shadow:0 9px 25px #14244518}
+  .tabs{flex:none;display:flex;gap:0;padding:0 6px;border-bottom:1px solid var(--od-line)}
+  .tabs button{flex:1;min-height:42px;min-width:0;border:0;border-bottom:2px solid transparent;background:transparent;color:var(--od-sub);font-size:12px}
+  .tabs button[aria-selected=true]{border-bottom-color:var(--od-accent-ink);color:var(--od-accent-ink);font-weight:700}
+  .viewport{flex:1;min-width:0;overflow-y:auto;padding:12px}
+  .notes{padding:16px;border:1px solid var(--od-line);border-radius:10px;background:var(--od-paper)}
+  .notes h1{margin:0 0 8px;font-size:18px}.notes h2{margin:16px 0 8px;font-size:13px}
+  .notes p{line-height:1.65;color:var(--od-sub)}.notes button{margin:2px 3px 4px 0}
+  .notes .demo-note{font-size:11px;color:var(--od-sub)}
+  .ec-row{list-style:none}
+  .ec-message{min-height:20px}
+  .ec-context-menu{font-family:inherit}
+  @media(max-width:670px){body{padding:8px}.demo{grid-template-columns:minmax(0,1fr)}.panel{width:100%;max-width:400px;margin:auto}.notes{max-width:400px;margin:auto}}
+</style>
+</head>
+<body>
+<div class="demo">
+  <div class="panel" aria-label="浅色 Side Panel 交互预览">
+    <nav class="tabs" aria-label="OpenDesk 五个一级标签">
+      <button type="button">我的</button><button type="button" aria-selected="true">扩展</button>
+      <button type="button">工作流</button><button type="button">开发</button><button type="button">云控</button>
+    </nav>
+    <div class="viewport" id="preview-viewport">
+      <section id="extension-center" aria-label="扩展管理">
+        <div id="extension-center-list-view">
+          <div class="ec-toolbar">
+            <label class="ec-search" for="preview-search">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 5 5"></path></svg>
+              <input type="search" id="preview-search" placeholder="搜索扩展" autocomplete="off">
+            </label>
+            <button type="button" class="ec-icon" id="preview-market" aria-label="应用市场（模拟）" title="应用市场（模拟）">＋</button>
+            <button type="button" class="ec-icon" id="preview-reload" aria-label="重新载入演示" title="重新载入演示">↻</button>
+          </div>
+          <ul id="extension-center-list" class="ec-list" aria-label="扩展项目"></ul>
+          <div id="preview-empty" class="ec-empty" hidden>没有符合条件的扩展</div>
+        </div>
+        <section id="extension-center-detail" class="ec-detail" aria-label="扩展详情" hidden>
+          <button class="ec-detail-back" id="preview-back" type="button">← 返回列表</button>
+          <div id="extension-center-detail-body"></div>
+        </section>
+        <p class="ec-message" id="preview-notice" aria-live="polite"></p>
+      </section>
+    </div>
+  </div>
+  <aside class="notes">
+    <h1>扩展列表 · R4.7</h1>
+    <p>本页面加载仓库正式的 <code>design-tokens.css</code>、<code>design-system.css</code> 和 <code>extension-center.css</code>，交互使用隔离的示例数据。</p>
+    <h2>测试典型状态</h2>
+    <button class="od-button od-button--secondary" type="button" data-scenario="normal">默认列表</button>
+    <button class="od-button od-button--secondary" type="button" data-scenario="disabled">停用应用</button>
+    <button class="od-button od-button--secondary" type="button" data-scenario="page">网页增强</button>
+    <button class="od-button od-button--secondary" type="button" data-scenario="unknown">异常与权限</button>
+    <button class="od-button od-button--secondary" type="button" data-scenario="candidate">未安装候选</button>
+    <button class="od-button od-button--secondary" type="button" data-scenario="empty">空状态</button>
+    <h2>操作提示</h2>
+    <p>可点击整行、可见「打开」和「⋮」；菜单支持 ↑/↓、Home/End、Escape 和点击外部关闭。停用与权限变化只更改演示数据。</p>
+    <p class="demo-note"><strong>SIMULATED_PREVIEW / NOT_NATIVE_CHROME</strong>：不安装/卸载真实扩展，不调用 Chrome 权限或 Page Authority，不执行应用代码；真实 Page 用户 UI 和未安装候选安全预览尚无受证据支持的通用入口，因此不展示虚假按钮。源代码运行与正式交互仍需独立测试。</p>
+  </aside>
+</div>
+<div id="demo-context-menu" class="ec-context-menu" role="menu" hidden></div>
+<script>
+"use strict";
+const $=id=>document.getElementById(id),menu=$('demo-context-menu');
+const initial=[
+ {id:'notes',title:'快速笔记',kind:'app',installed:true,enabled:true,known:true,description:'记录与整理当前想法'},
+ {id:'prompt',title:'提示词快捷工具',kind:'app',installed:true,enabled:false,known:true,description:'快速插入常用提示词'},
+ {id:'reader',title:'网页阅读增强',kind:'page',installed:true,enabled:true,known:true,description:'适用于指定网站'},
+ {id:'restricted',title:'页面内容助手',kind:'page',installed:true,enabled:true,known:true,authorization:'suspended',description:'网站访问需要恢复授权'},
+ {id:'unknown',title:'同步服务',kind:'app',installed:true,enabled:null,known:false,description:'安装记录状态待核对'},
+ {id:'candidate',title:'官方候选工具',kind:'app',installed:false,enabled:false,known:true,description:'需审阅固定包和权限后安装'}
+];
+let items=initial.map(x=>({...x})),scenario='normal',selected=null,menuTrigger=null,menuId=null;
+const el=(tag,cls='',text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=String(text);return n;};
+const btn=(text,callback,cls='')=>{const b=el('button',cls,text);b.type='button';b.addEventListener('click',callback);return b;};
+const primary=row=>row.installed&&row.kind==='app'&&row.enabled===true&&row.known?'打开':null;
+const label=row=>row.kind==='page'?'网页增强':'应用';
+const visible=()=>items.filter(row=>{
+ if(scenario==='empty')return false;
+ if(scenario==='disabled'&&row.id!=='prompt')return false;
+ if(scenario==='page'&&row.kind!=='page')return false;
+ if(scenario==='unknown'&&!['unknown','restricted'].includes(row.id))return false;
+ if(scenario==='candidate'&&row.id!=='candidate')return false;
+ return [row.title,row.description,row.id].some(text=>text.toLowerCase().includes($('preview-search').value.trim().toLowerCase()));
+});
+function status(row){
+ const reason=!row.installed?'尚未安装':!row.known?'状态待核对':!row.enabled?'已停用':
+  row.authorization==='suspended'?'网站访问受限':'';
+ return reason?reason+' · '+row.description:row.description;
+}
+function say(text){$('preview-notice').textContent=text;}
+function open(row){
+ if(primary(row)){say('模拟打开「'+row.title+'」；正式产品由可信工具宿主启动。');return;}
+ selected=row.id;render();
+}
+function closeMenu(focus){
+ const old=menuTrigger;menu.hidden=true;menu.replaceChildren();menuTrigger=null;menuId=null;
+ old?.setAttribute('aria-expanded','false');
+ if(focus&&old?.isConnected)old.focus({preventScroll:true});
+}
+function openMenu(row,trigger){
+ if(!menu.hidden&&menuId===row.id){closeMenu(true);return;}
+ closeMenu(false);menuId=row.id;menuTrigger=trigger;trigger.setAttribute('aria-expanded','true');
+ menu.setAttribute('aria-label','管理「'+row.title+'」');
+ const option=(text,fn)=>{
+   const b=btn(text,()=>{closeMenu(true);fn();},'ec-context-action');b.setAttribute('role','menuitem');menu.append(b);
+ };
+ if(row.known)option(row.kind==='page'?(row.enabled?'停用自动运行':'启用自动运行'):
+   (row.enabled?'停用应用':'启用应用'),()=>{
+     row.enabled=!row.enabled;say('仅模拟修改「'+row.title+'」的启停状态。');render();
+   });
+ if(row.kind==='app')option('设置、权限与卸载…',()=>say('此项在正式产品中打开原可信设置与卸载确认。'));
+ else option('前往开发',()=>say('正式产品进入开发页；本演示不会修改用户草稿。'));
+ option('查看详情',()=>{selected=row.id;render();});
+ menu.hidden=false;
+ const rect=trigger.getBoundingClientRect(),w=menu.offsetWidth,h=menu.offsetHeight;
+ menu.style.left=Math.max(8,Math.min(rect.right-w,innerWidth-w-8))+'px';
+ menu.style.top=(rect.bottom+h+8<innerHeight?rect.bottom+3:Math.max(8,rect.top-h-3))+'px';
+ menu.querySelector('button')?.focus();
+}
+function render(){
+ closeMenu(false);
+ const detail=items.find(x=>x.id===selected);
+ $('extension-center-list-view').hidden=!!detail;
+ $('extension-center-detail').hidden=!detail;
+ if(detail){
+   const root=$('extension-center-detail-body');root.replaceChildren();
+   const header=el('div','ec-detail-head'),glyph=el('span','ec-glyph',detail.kind==='page'?'◇':'▦'),copy=el('div','ec-detail-copy');
+   copy.append(el('strong','',detail.title),el('span','ec-type',label(detail)));header.append(glyph,copy);
+   root.append(header,el('p','',status(detail)));
+   const actions=el('div','ec-detail-actions');
+   if(!detail.installed)actions.append(btn('前往正式安装审阅（模拟）',()=>say('本 HTML 不安装工具；真实应用市场必须审阅固定版本和权限。')));
+   if(detail.kind==='app'&&detail.installed)actions.append(btn('设置与权限（模拟）',()=>say('请在真实浏览器中打开可信设置。')));
+   if(detail.kind==='page'&&detail.installed)actions.append(btn(detail.enabled?'停用自动运行（模拟）':'启用自动运行（模拟）',()=>{
+     detail.enabled=!detail.enabled;render();say('仅修改演示数据，没有调用 Page Authority。');
+   }));
+   root.append(actions);
+   const meta=el('section','ec-detail-card');
+   meta.append(el('h3','','安装与来源'),el('p','',detail.installed?'本机已安装（示例）':'官方候选（示例）'));
+   root.append(meta);return;
+ }
+ const root=$('extension-center-list');root.replaceChildren();
+ const rows=visible();$('preview-empty').hidden=rows.length>0;
+ for(const row of rows){
+   const li=el('li','ec-row');li.dataset.extensionId=(row.kind==='app'?'app:':'page:')+row.id;
+   if(primary(row))li.classList.add('ec-row--has-primary');
+   const main=btn('',()=>open(row),'ec-row-main');main.setAttribute('aria-label',(primary(row)||'查看详情')+'「'+row.title+'」');
+   const glyph=el('span','ec-glyph',row.kind==='page'?'◇':'▦'),copy=el('span','ec-copy'),line=el('span','ec-name-line');
+   line.append(el('span','ec-name',row.title),el('span','ec-type',label(row)));
+   copy.append(line,el('span','ec-description',status(row)));main.append(glyph,copy);
+   const actions=el('span','ec-row-actions');
+   if(primary(row))actions.append(btn('打开',()=>open(row),'ec-action od-button od-button--secondary'));
+   if(row.installed){
+     const more=btn('⋮',()=>openMenu(row,more),'ec-row-more od-icon-button');
+     more.setAttribute('aria-label','管理「'+row.title+'」');more.setAttribute('aria-haspopup','menu');
+     more.setAttribute('aria-expanded','false');actions.append(more);
+   }
+   if(!actions.childElementCount)li.classList.add('ec-row--no-actions');
+   li.append(main,actions);root.append(li);
+ }
+}
+$('preview-search').addEventListener('input',()=>{selected=null;render();});
+$('preview-back').addEventListener('click',()=>{selected=null;render();$('preview-search').focus();});
+$('preview-market').addEventListener('click',()=>say('正式应用市场只负责固定包审阅与安装；本页面不会安装。'));
+$('preview-reload').addEventListener('click',()=>{items=initial.map(x=>({...x}));selected=null;scenario='normal';$('preview-search').value='';render();say('已恢复本地演示状态。');});
+document.querySelectorAll('[data-scenario]').forEach(b=>b.addEventListener('click',()=>{
+ scenario=b.dataset.scenario;selected=null;$('preview-search').value='';render();
+}));
+document.addEventListener('click',e=>{if(!menu.hidden&&!menu.contains(e.target)&&!menuTrigger?.contains(e.target))closeMenu(false);});
+document.addEventListener('scroll',()=>{if(!menu.hidden)closeMenu(false);},true);
+document.addEventListener('keydown',e=>{
+ if(menu.hidden)return;
+ if(e.key==='Escape'){e.preventDefault();closeMenu(true);return;}
+ if(['ArrowUp','ArrowDown','Home','End'].includes(e.key)){
+  const rows=[...menu.querySelectorAll('button')],i=rows.indexOf(document.activeElement);
+  const next=e.key==='Home'?0:e.key==='End'?rows.length-1:(i+(e.key==='ArrowDown'?1:-1)+rows.length)%rows.length;
+  e.preventDefault();rows[next]?.focus();
+ }else if(e.key==='Tab')closeMenu(false);
+});
+render();
+</script>
+</body>
+</html>

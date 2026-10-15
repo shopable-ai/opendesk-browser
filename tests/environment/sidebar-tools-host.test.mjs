@@ -42,7 +42,7 @@ test('R26 stopped details remain manageable and enabling waits for an explicit O
   row.children[0].emit('click');
   assert.equal(f.elements['sidebar-tool-display'].hidden,false);assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
   assert.equal(f.elements['sidebar-tool-settings-open'].hidden,false);assert.equal(f.elements['sidebar-tool-visibility'].hidden,true);
-  f.elements['sidebar-tool-enable'].emit('click');
+  f.elements['sidebar-tool-enable'].emit('click',{isTrusted:true});
   await settle(()=>store.get(SIDEBAR_TOOL_ENABLE_STORE)?.[sample.id]===true&&!f.elements['sidebar-tool-enable'].disabled);
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'enable cannot execute code');
   assert.deepEqual(store.get(key),{note:'keep'});assert.deepEqual(store.get(READING_TOC_SITE_STORE),grants);
@@ -1621,6 +1621,20 @@ test('native menu cannot defer an unbound launch behind the current tool dirty r
   assert.equal(f.elements['sidebar-tool-action-review'].hidden,true,'no deferred mount without ticket binding');
 });
 
+test('R4.7 row overflow shares the real guarded sidebar lifecycle and rejects spoofed clicks',async t=>{
+  const store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]);
+  const f=await hostFixture(t,{store,startTool:false});
+  assert.equal(typeof f.host.toggleEnabled,'function');
+  assert.equal(await f.host.toggleEnabled(sample.id,{isTrusted:false}),false);
+  assert.equal(store.get(SIDEBAR_TOOL_ENABLE_STORE),undefined,'untrusted event must not write');
+  assert.equal(await f.host.toggleEnabled(sample.id,{isTrusted:true}),true);
+  assert.equal(store.get(SIDEBAR_TOOL_ENABLE_STORE)[sample.id],false);
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'disabling never creates sandbox');
+  assert.equal(await f.host.toggleEnabled(sample.id,{isTrusted:true}),true);
+  assert.equal(store.get(SIDEBAR_TOOL_ENABLE_STORE)[sample.id],true);
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'enabling never auto-launches');
+});
+
 test('R56 dirty tool enable/disable uses a cancellable inline review and cannot lose data',async t=>{
   const key=sidebarToolStorageKey(sample.id),privateData={notes:'keep after stop'},
     store=new Map([[SIDEBAR_TOOL_STORE,[sample]],[key,privateData]]);
@@ -1632,7 +1646,7 @@ test('R56 dirty tool enable/disable uses a cancellable inline review and cannot 
       kind:'edit-state',dirty,busy}});
   editorState(true,false);
   f.elements['sidebar-tool-settings-open'].emit('click');
-  f.elements['sidebar-tool-enable'].emit('click');
+  f.elements['sidebar-tool-enable'].emit('click',{isTrusted:true});
   await settle(()=>f.elements['sidebar-tool-action-review'].hidden===false);
   assert.equal(f.elements['sidebar-tool-action-review'].hidden,false,'dirty stop must open inline review');
   assert.notEqual(store.get(SIDEBAR_TOOL_ENABLE_STORE)?.[sample.id],false,'opening review does not stop');
@@ -1640,7 +1654,7 @@ test('R56 dirty tool enable/disable uses a cancellable inline review and cannot 
   assert.equal(f.elements['sidebar-tool-frame'].children[0],frame,'Cancel must preserve live unsaved editor');
   assert.notEqual(store.get(SIDEBAR_TOOL_ENABLE_STORE)?.[sample.id],false);
 
-  f.elements['sidebar-tool-enable'].emit('click');
+  f.elements['sidebar-tool-enable'].emit('click',{isTrusted:true});
   await settle(()=>f.elements['sidebar-tool-action-review'].hidden===false);
   editorState(true,true);
   f.elements['sidebar-tool-action-continue'].emit('click');
@@ -1650,7 +1664,7 @@ test('R56 dirty tool enable/disable uses a cancellable inline review and cannot 
   assert.equal(f.elements['sidebar-tool-frame'].children[0],frame);
 
   editorState(true,false);
-  f.elements['sidebar-tool-enable'].emit('click');
+  f.elements['sidebar-tool-enable'].emit('click',{isTrusted:true});
   await settle(()=>f.elements['sidebar-tool-action-review'].hidden===false);
   f.elements['sidebar-tool-action-continue'].emit('click');
   await settle(()=>store.get(SIDEBAR_TOOL_ENABLE_STORE)?.[sample.id]===false);
@@ -1658,7 +1672,7 @@ test('R56 dirty tool enable/disable uses a cancellable inline review and cannot 
   assert.deepEqual(store.get(key),privateData,'stop never deletes tool data');
   assert.equal(dialogs,0,'all choices remain non-modal');
 
-  f.elements['sidebar-tool-enable'].emit('click');
+  f.elements['sidebar-tool-enable'].emit('click',{isTrusted:true});
   await settle(()=>store.get(SIDEBAR_TOOL_ENABLE_STORE)?.[sample.id]===true);
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'re-enable never auto-launches code');
   assert.deepEqual(store.get(key),privateData);
@@ -1875,7 +1889,7 @@ test('Focus response keeps its acknowledged result when only an unrelated UI bus
   f.api.runtime.sendMessage=async()=>{sent.resolve();return reply.promise;};
   const pending=runControl('focus.disable',{}, {isTrusted:true});await sent.promise;
   // Hold the existing enable/disable transaction before it changes authority.
-  hold=true;f.elements['sidebar-tool-enable'].emit('click');
+  hold=true;f.elements['sidebar-tool-enable'].emit('click',{isTrusted:true});
   await settle(()=>f.elements['sidebar-tool-enable'].disabled);
   reply.resolve({ok:true,data:{state:'confirmed'}});
   assert.deepEqual(await pending,{state:'confirmed'});

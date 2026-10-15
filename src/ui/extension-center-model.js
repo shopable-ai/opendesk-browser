@@ -15,7 +15,7 @@ const newer=(a,b)=>{
   for(let i=0;i<3;i++){if(aa[i]!==bb[i])return aa[i]>bb[i];}
   return false;
 };
-export function composeExtensionEntries({installed=[],pages=[],official=[],enabled={}}={}){
+export function composeExtensionEntries({installed=[],pages=[],official=[],enabled={},appStatusKnown=true,pageStatusKnown=true}={}){
   const entries=[],releases=new Map(official.map(row=>[row.toolId,row])),ids=new Set();
   for(const tool of installed){
     if(!tool?.id||ids.has(tool.id))continue;
@@ -23,7 +23,8 @@ export function composeExtensionEntries({installed=[],pages=[],official=[],enabl
     const release=releases.get(tool.id)||null;
     entries.push({key:'app:'+tool.id,id:tool.id,kind:'app',title:tool.title,
       description:tool.description,version:tool.version,installed:true,
-      enabled:enabled[tool.id]!==false,release,update:!!release&&newer(release.version,tool.version),record:tool});
+      enabled:appStatusKnown?enabled[tool.id]!==false:null,stateKnown:appStatusKnown,
+      release,update:!!release&&newer(release.version,tool.version),record:tool});
   }
   const pageIds=new Set();
   for(const row of pages){
@@ -33,21 +34,27 @@ export function composeExtensionEntries({installed=[],pages=[],official=[],enabl
     const p=row.installed;
     entries.push({key:'page:'+row.programId,id:row.programId,kind:'page',title:p.title||row.programId,
       description:(p.pageRules?.matches||[]).join('、')||'已安装网页增强',version:p.revision,
-      installed:true,enabled:p.enabled===true,release:null,update:false,record:row});
+      installed:true,enabled:pageStatusKnown?p.enabled===true:null,stateKnown:pageStatusKnown,
+      release:null,update:false,record:row});
   }
   for(const release of official){
     if(!release?.toolId||ids.has(release.toolId))continue;
     ids.add(release.toolId);
     entries.push({key:'app:'+release.toolId,id:release.toolId,kind:'app',
       title:release.packageTitle,description:release.description,version:release.version,
-      installed:false,enabled:false,release,update:false,record:null});
+      installed:false,enabled:false,stateKnown:true,release,update:false,record:null});
   }
   return entries.sort((a,b)=>a.title.localeCompare(b.title,'zh-CN')||a.key.localeCompare(b.key));
 }
-// Presentation routing only: trusted hosts still own installation, grants and execution.
+// Presentation-only decision. No installed Page UI / candidate-preview entry is verified yet.
+// Null is intentional: rows without a real high-frequency action lead to details.
+export function resolveExtensionPrimaryAction(row){
+  if(row?.kind==='app'&&row.installed===true&&row.enabled===true&&row.stateKnown!==false)
+    return {id:'open',label:'打开'};
+  return null;
+}
 export function resolveExtensionRowIntent(row){
-  if(!row?.installed||row.kind!=='app')return 'detail';
-  return row.enabled===true?'launch':'settings';
+  return resolveExtensionPrimaryAction(row)?'launch':'detail';
 }
 export function filterExtensionEntries(entries,{query='',kind='all',scope='smart'}={}){
   const needle=lower(query);

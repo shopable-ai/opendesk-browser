@@ -823,8 +823,11 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   }
   function focusToolInList(id) {
     // R4 uses one visible list; legacy rows remain in the DOM for the original host.
-    const action=[...doc.querySelectorAll('#extension-center-list button[data-extension-key]')]
-      .find(button=>button.dataset.extensionKey==='app:'+id&&button.dataset.extensionAction==='primary');
+    const controls=[...doc.querySelectorAll('#extension-center-list button[data-extension-key]')]
+      .filter(button=>button.dataset.extensionKey==='app:'+id);
+    const action=controls.find(button=>button.dataset.extensionAction==='primary')||
+      controls.find(button=>button.dataset.extensionAction==='more')||
+      controls.find(button=>button.dataset.extensionAction==='main');
     const item=[...list.children].find(node=>node.dataset?.sidebarToolId===id);
     (action || item?.children?.[0] || doc.getElementById('extension-center-search') || importTrigger)
       .focus?.({preventScroll:true});
@@ -2296,32 +2299,45 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   };
   listen(settingsAllow,'click',action(()=>runSiteToggle(active?.id,()=>setSitePermission(true))));
   listen(settingsDeny,'click',action(()=>runSiteToggle(active?.id,()=>setSitePermission(false))));
-  if(enableButton)listen(enableButton,'click',action(async()=>{
-    if(!active||readOnlyPreview||busy||enableReadError)return;
-    const tool=active,session=instance;
-    const wasEnabled=sidebarToolEnabled(enableRecords,tool.id),enabled=!wasEnabled;
+  // The Extension Center overflow and this settings button share one guarded lifecycle.
+  // Never expose the raw storage mutation to a presentation caller.
+  async function toggleEnabled(id,event){
+    if(!event?.isTrusted||disposed||busy||!visible||enableReadError||toolSaving)return false;
+    const tool=toolById(id);
+    if(!tool||readOnlyPreview&&active?.id===id){
+      notice('工具不可用，请刷新扩展列表。',true);return false;
+    }
+    const wasEnabled=sidebarToolEnabled(enableRecords,id),enabled=!wasEnabled;
+    const session=instance,activeId=active?.id;
     const apply=async()=>{
-      // The inline "discard and continue" may be clicked after the tool was
-      // saved, replaced or closed. Never commit an outdated or busy action.
-      if(disposed||busy||toolSaving||enableReadError||!active||
-         !samePackage(active,tool)||instance!==session||
-         sidebarToolEnabled(enableRecords,tool.id)!==wasEnabled){
+      // The user might confirm discarding a draft after a newer install, update
+      // or state change. Lock down all original assumptions before the mutation.
+      if(disposed||busy||toolSaving||!visible||enableReadError||
+        !samePackage(toolById(id),tool)||active?.id!==activeId||
+        (activeId===id&&instance!==session)||
+        sidebarToolEnabled(enableRecords,id)!==wasEnabled){
         notice('工具状态或编辑内容已变化；请核对后重新点击启停。',true);
-        return;
+        return false;
       }
       busy=true;render();
       try{
         await setInstalledSidebarToolEnabled({api,lockManager,tool,enabled});
-        destroyFrame();toolDirty=false;toolSaving=false;knowledgeDirty=false;tocSettingsOpen=true;
+        if(active?.id===id){
+          destroyFrame();toolDirty=false;toolSaving=false;knowledgeDirty=false;tocSettingsOpen=true;
+        }
         await Promise.all([loadEnableRecords(),loadInstalled()]);
         notice(enabled?'已启用；点击“打开工具”后运行':'已停用；数据和授权保留');
+        return true;
       }finally{busy=false;render();}
     };
-    // Pass the deferred mutation into the existing non-modal review. Previously
-    // canLeave() without a callback showed a Continue button that did nothing.
-    if(!canLeave(apply))return;
-    await apply();
-  }));
+    // Changing another tool never discards the current tool's unsaved draft.
+    if(active?.id===id&&!canLeave(apply))return false;
+    return apply();
+  }
+  if(enableButton)listen(enableButton,'click',event=>{
+    void toggleEnabled(active?.id,event).catch(error=>notice(
+      (error?.code||'E_TOOL')+'：'+String(error?.message||error).slice(0,240),true));
+  });
   if(launchButton)listen(launchButton,'click',action(()=>openTool(active?.id)));
   if(eyeButton)listen(eyeButton,'click',action(()=>runSiteToggle(READING_TOC_TOOL_ID,
     ()=>toggleTocDisplay(READING_TOC_TOOL_ID,'quick'))));
@@ -2381,7 +2397,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     listeners.push(unsubscribe);
   }
   render();
-  return Object.freeze({ready,openTool,openSettings,openOfficialReview,openImport,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,openInTab,closeTool,setVisible,dispose(){
+  return Object.freeze({ready,openTool,openSettings,toggleEnabled,openOfficialReview,openImport,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,openInTab,closeTool,setVisible,dispose(){
     if(disposed)return;
     cancelActionReview();destroyFrame();fileSelection++;disposed=true;visible=false;
     adblockControls?.dispose?.();

@@ -3,7 +3,7 @@ import {requireCompleteInstalledSidebarTools,MARKET_PROVENANCE_STORE} from './si
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords} from './sidebar-tools/lifecycle.js';
 import {loadOfficialCatalog} from '../sidebar-tools/official-catalog.js';
 import {setInstalledPageProgramEnabled} from './installed-page-tools.js';
-import {composeExtensionEntries,filterExtensionEntries,describeInstalledAppSource,resolveExtensionRowIntent} from './extension-center-model.js';
+import {composeExtensionEntries,filterExtensionEntries,describeInstalledAppSource,resolveExtensionRowIntent,resolveExtensionPrimaryAction} from './extension-center-model.js';
 
 // One trusted presentation. All writes and launches delegate to the existing hosts.
 export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench}){
@@ -14,6 +14,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   const notice=get('extension-center-status'),workspace=get('workspace-content');
   if(!list)return {refresh:async()=>{},dispose(){}};
   let disposed=false,sequence=0,busy=false,installed=[],pages=[],enabled={},official=[];
+  let appStatusKnown=false,pageStatusKnown=false;
   let sources={};
   let catalogError='',dataError='',query='',kind='all',scope='smart',selectedKey=null;
   let listScroll=0,focusKey=null,focusAction=null,detailFocusAction=null;
@@ -22,7 +23,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   const button=(value,fn,cls='')=>{const b=node('button',cls,value);b.type='button';b.addEventListener('click',fn);return b;};
   const titleOf=row=>row.title||row.id;
   const typeOf=row=>row.kind==='page'?'网页增强':'应用';
-  const all=()=>composeExtensionEntries({installed,pages,official,enabled});
+  const all=()=>composeExtensionEntries({installed,pages,official,enabled,appStatusKnown,pageStatusKnown});
   const find=key=>all().find(row=>row.key===key);
   const message=(value='',state='info')=>{notice.textContent=value;notice.dataset.state=state;};
   function closeMenu(returnFocus=false){menu.hidden=true;more.setAttribute('aria-expanded','false');if(returnFocus)more.focus({preventScroll:true});}
@@ -35,26 +36,94 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     more.dataset.active=String(kind!=='all'||scope!=='smart');
   }
   const restoreRowFocus=(key,action)=>{
-    const target=[...list.querySelectorAll('button[data-extension-key]')]
-      .find(b=>b.dataset.extensionKey===key&&b.dataset.extensionAction===action);
-    target?.focus({preventScroll:true});
+    const buttons=[...list.querySelectorAll('button[data-extension-key]')]
+      .filter(b=>b.dataset.extensionKey===key);
+    (buttons.find(b=>b.dataset.extensionAction===action)||
+      buttons.find(b=>b.dataset.extensionAction==='more')||
+      buttons.find(b=>b.dataset.extensionAction==='main'))?.focus({preventScroll:true});
   };
+  const rowMenu=node('div','ec-context-menu');
+  rowMenu.id='extension-center-row-menu';rowMenu.setAttribute('role','menu');rowMenu.hidden=true;
+  doc.body.append(rowMenu);
+  let rowMenuKey=null,rowMenuTrigger=null;
+  function closeRowMenu(returnFocus=false){
+    const key=rowMenuKey,trigger=rowMenuTrigger;
+    rowMenu.hidden=true;rowMenu.replaceChildren();rowMenuKey=null;rowMenuTrigger=null;
+    trigger?.setAttribute('aria-expanded','false');
+    if(returnFocus){
+      if(trigger?.isConnected)trigger.focus({preventScroll:true});
+      else if(key)restoreRowFocus(key,'more');
+    }
+  }
+  function showRowMenu(key,trigger){
+    if(busy||disposed)return;
+    if(!rowMenu.hidden&&rowMenuKey===key){closeRowMenu(true);return;}
+    const row=find(key);if(!row?.installed)return;
+    closeRowMenu();closeMenu();
+    rowMenuKey=key;rowMenuTrigger=trigger;
+    trigger.setAttribute('aria-expanded','true');
+    rowMenu.setAttribute('aria-label','管理「'+titleOf(row)+'」');
+    const add=(label,fn,actionId)=>{
+      const b=button(label,event=>{
+        if(!event.isTrusted||busy)return;
+        closeRowMenu(true);fn(event);
+      },'ec-context-action');
+      b.dataset.ecContextAction=actionId;b.setAttribute('role','menuitem');
+      rowMenu.append(b);
+    };
+    if(row.kind==='app'){
+      if(row.stateKnown!==false&&typeof sidebarTools.toggleEnabled==='function')
+        add(row.enabled?'停用应用':'启用应用',event=>{
+          void Promise.resolve(sidebarTools.toggleEnabled(row.id,event))
+            .then(changed=>{if(changed===true){message('已确认应用启停状态。','success');
+              void refresh().then(()=>restoreRowFocus(row.key,'more'));}})
+            .catch(error=>message((error?.code||'E_TOOL')+'：'+String(error?.message||error),'error'));
+        },'toggle');
+      add('设置、权限与卸载…',()=>{backIfNeeded();sidebarTools.openSettings(row.id);},'settings');
+      if(row.update&&row.release)add('审阅新版…',()=>openReview(row.key),'update');
+    }else if(row.kind==='page'){
+      if(row.stateKnown!==false)add(row.enabled?'停用自动运行':'启用自动运行',
+        event=>{void togglePage(row,event);},'toggle');
+      add('前往开发',()=>{if(taskWorkbench.navigate('develop')!==false)backIfNeeded();},'develop');
+    }
+    add('查看详情',()=>openDetail(key),'detail');
+    rowMenu.hidden=false;
+    // Fixed positioning escapes the clipped list and fits inside the Side Panel.
+    const rect=trigger.getBoundingClientRect();
+    const view=doc.defaultView,screenW=view?.innerWidth||doc.documentElement.clientWidth;
+    const screenH=view?.innerHeight||doc.documentElement.clientHeight;
+    const width=rowMenu.offsetWidth,height=rowMenu.offsetHeight,gutter=8;
+    rowMenu.style.left=Math.max(gutter,Math.min(rect.right-width,screenW-width-gutter))+'px';
+    rowMenu.style.top=(rect.bottom+height+gutter<=screenH?rect.bottom+3:
+      Math.max(gutter,rect.top-height-3))+'px';
+    rowMenu.querySelector('button')?.focus({preventScroll:true});
+  }
+  function rowDescription(row){
+    const reason=!row.installed?'尚未安装':row.stateKnown===false?'状态待核对':
+      row.enabled===false?'已停用':
+      row.kind==='page'&&row.record?.installed?.authorization?.status==='suspended'?'网站访问受限':
+      row.kind==='page'&&row.record?.installed?.nativeState&&
+        row.record.installed.nativeState!=='registered'?'注册待核对':'';
+    return reason?reason+' · '+(row.description||''):(row.description||'');
+  }
   function draw(){
     if(disposed)return;
     const active=doc.activeElement;
     const key=list.contains(active)?active?.dataset?.extensionKey:null;
     const action=active?.dataset?.extensionAction;
+    closeRowMenu();
     const rows=filterExtensionEntries(all(),{query,kind,scope});
     list.replaceChildren();
     for(const row of rows){
       const item=node('li','ec-row');item.dataset.extensionId=row.key;
-      const intent=resolveExtensionRowIntent(row);
-      // The main button covers the full row; floating sibling actions stay independent.
+      const primaryAction=resolveExtensionPrimaryAction(row);
+      if(primaryAction)item.classList.add('ec-row--has-primary');
+      if(busy)item.setAttribute('aria-busy','true');
+      // The full row and explicit primary button share one handler.
       const main=button('',()=>openRow(row.key),'ec-row-main');
       main.dataset.extensionKey=row.key;main.dataset.extensionAction='main';
-      main.setAttribute('aria-label',
-        (row.kind==='page'?'管理':intent==='launch'?'打开':intent==='settings'?'设置':'查看详情')+
-        '「'+titleOf(row)+'」');
+      main.disabled=busy;
+      main.setAttribute('aria-label',(primaryAction?.label||'查看详情')+'「'+titleOf(row)+'」');
       main.title=main.getAttribute('aria-label');
       const glyph=node('span','ec-glyph');glyph.setAttribute('aria-hidden','true');
       glyph.textContent=row.kind==='page'?'◇':'▦';
@@ -63,23 +132,30 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       name.append(node('span','ec-name-text',titleOf(row)));
       name.title=titleOf(row);
       const type=node('span','ec-type',typeOf(row));
-      const description=node('span','ec-description',row.installed?
-        (row.enabled?row.description:'已停用 · '+row.description):row.description);
+      const description=node('span','ec-description',rowDescription(row));
       line.append(name,type);copy.append(line,description);
       description.title=description.textContent;
       main.append(glyph,copy);
-      const actionName=!row.installed?'安装':row.kind==='page'?'管理':
-        !row.enabled?'设置':'打开';
-      const primary=button(actionName,()=>primaryAction(row.key),'ec-action od-button od-button--secondary');
-      primary.dataset.extensionKey=row.key;primary.dataset.extensionAction='primary';
-      primary.setAttribute('aria-label',actionName+'「'+titleOf(row)+'」');
-      primary.title=primary.getAttribute('aria-label');
-      const manage=button('⋮',()=>openDetail(row.key),'ec-row-more od-icon-button');
-      manage.dataset.extensionKey=row.key;manage.dataset.extensionAction='more';
-      manage.setAttribute('aria-label','查看「'+titleOf(row)+'」详情与管理');
-      manage.title=manage.getAttribute('aria-label');
       const actions=node('span','ec-row-actions');
-      actions.append(primary,manage);
+      if(primaryAction){
+        const primary=button(primaryAction.label,()=>openRow(row.key),
+          'ec-action od-button od-button--secondary');
+        primary.dataset.extensionKey=row.key;primary.dataset.extensionAction='primary';
+        primary.setAttribute('aria-label',primaryAction.label+'「'+titleOf(row)+'」');
+        primary.title=primary.getAttribute('aria-label');primary.disabled=busy;
+        actions.append(primary);
+      }
+      if(row.installed){
+        const manage=button('⋮',event=>showRowMenu(row.key,event.currentTarget),
+          'ec-row-more od-icon-button');
+        manage.dataset.extensionKey=row.key;manage.dataset.extensionAction='more';
+        manage.setAttribute('aria-label','管理「'+titleOf(row)+'」');
+        manage.setAttribute('aria-haspopup','menu');manage.setAttribute('aria-expanded','false');
+        manage.setAttribute('aria-controls',rowMenu.id);
+        manage.title=manage.getAttribute('aria-label');manage.disabled=busy;
+        actions.append(manage);
+      }
+      if(!actions.childElementCount)item.classList.add('ec-row--no-actions');
       item.append(main,actions);list.append(item);
     }
     get('extension-center-empty').hidden=rows.length>0;
@@ -89,7 +165,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       kind==='page'?'暂无符合条件的网页增强':'还没有已安装扩展，可搜索官方目录或打开应用市场。';
     get('extension-center-count').textContent=rows.length+' 个扩展';
     syncFilters();
-    if(key)restoreRowFocus(key,action);
+    if(key&&!busy)restoreRowFocus(key,action);
   }
   function openMarket(release=null){
     const route=release?'#/apps/'+release.id+'/versions/'+release.version:'';
@@ -102,22 +178,15 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     backIfNeeded();
     if(!sidebarTools.openOfficialReview(row.id))openMarket(row.release);
   }
-  // Only installed apps can launch. Uninstalled rows show detail without installing.
+  // An installed, enabled, verified app may open; all other rows lead to details.
   function openRow(key){
     const row=find(key);if(!row||busy)return;
     if(resolveExtensionRowIntent(row)==='detail'){openDetail(key);return;}
-    primaryAction(key);
-  }
-  function primaryAction(key){
-    const row=find(key);if(!row||busy)return;
-    if(!row.installed){openReview(key);return;}
-    if(row.kind==='page'){openDetail(key);return;}
-    if(!row.enabled){sidebarTools.openSettings(row.id);return;}
-    // A newer release cannot hide or replace the runnable installed version.
-    sidebarTools.openTool(row.id);
+    if(resolveExtensionPrimaryAction(row)?.id==='open')sidebarTools.openTool(row.id);
   }
   function openDetail(key){
     const row=find(key);if(!row)return;
+    closeRowMenu();
     focusKey=key;focusAction=doc.activeElement?.dataset?.extensionAction||'detail';
     listScroll=workspace?.scrollTop||0;selectedKey=key;detailFocusAction=null;
     closeMenu();listing.hidden=true;detail.hidden=false;
@@ -146,19 +215,19 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     if(row.kind==='app'){
       if(!row.installed)actions.append(detailButton('审阅并安装',()=>openReview(row.key),'install'));
       else{
-        if(row.enabled)actions.append(detailButton('打开应用',()=>{backIfNeeded();sidebarTools.openTool(row.id);},'open'));
+        if(resolveExtensionPrimaryAction(row))actions.append(detailButton('打开应用',()=>{backIfNeeded();sidebarTools.openTool(row.id);},'open'));
         actions.append(detailButton('设置与权限',()=>{backIfNeeded();sidebarTools.openSettings(row.id);},'settings'));
         if(row.update&&row.release)actions.append(detailButton('审阅新版',()=>openReview(row.key),'update'));
       }
     }else if(row.installed){
-      actions.append(detailButton(row.enabled?'停用自动运行':'启用自动运行',
+      if(row.stateKnown!==false)actions.append(detailButton(row.enabled?'停用自动运行':'启用自动运行',
         event=>togglePage(row,event),'toggle'));
       actions.append(detailButton('前往开发',()=>{if(taskWorkbench.navigate('develop')!==false)backIfNeeded();},'develop'));
     }
     area.append(actions);
     const meta=node('section','ec-detail-card');
     meta.append(node('h3','','安装与来源'));
-    meta.append(node('p','',row.installed?'本机已安装 · '+(row.enabled?'已启用':'已停用'):'官方目录中的固定发行候选 · 尚未安装'));
+    meta.append(node('p','',row.installed?'本机已安装 · '+(row.stateKnown===false?'状态待核对':row.enabled?'已启用':'已停用'):'官方目录中的固定发行候选 · 尚未安装'));
     meta.append(node('p','',row.kind==='app'?'版本：v'+row.version:
       '修订：r'+row.version));
     if(row.kind==='app'){
@@ -187,13 +256,20 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   }
   async function togglePage(row,event){
     if(!event.isTrusted||busy||row.kind!=='page')return;
-    detailFocusAction='toggle';busy=true;renderDetail();
+    if(row.stateKnown===false)return;
+    if(find(row.key)?.record!==row.record){
+      message('网页增强状态已变化，请刷新后重试。','error');void refresh();return;
+    }
+    const inDetail=selectedKey===row.key;
+    detailFocusAction=inDetail?'toggle':null;
+    busy=true;draw();if(inDetail)renderDetail();
     try{
       await setInstalledPageProgramEnabled({api,client,row:row.record});
       message('已按原 Page 授权服务确认自动运行状态。','success');
       await refresh();
     }catch(error){message((error.code||'E_PAGE_INSTALLATION')+'：'+String(error.message||error),'error');}
-    finally{busy=false;if(!disposed)renderDetail();}
+    finally{busy=false;if(!disposed){draw();if(selectedKey)renderDetail();
+      else restoreRowFocus(row.key,'more');}}
   }
   async function refresh(){
     const id=++sequence;
@@ -211,14 +287,14 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       const nextSources=Object.fromEntries(await Promise.all(nextInstalled.map(async tool=>
         [tool.id,await describeInstalledAppSource(tool,saved[MARKET_PROVENANCE_STORE]?.[tool.id])])));
       if(disposed||id!==sequence)return;
-      installed=nextInstalled;enabled=nextEnabled;sources=nextSources;
-    }catch(error){errors.push('应用：'+String(error?.message||error));}
+      installed=nextInstalled;enabled=nextEnabled;sources=nextSources;appStatusKnown=true;
+    }catch(error){appStatusKnown=false;errors.push('应用：'+String(error?.message||error));}
     try{
       if(results[1].status!=='fulfilled')throw results[1].reason;
       const response=results[1].value;
       if(!Array.isArray(response?.catalog))throw new Error('Page 目录响应格式无效');
-      pages=response.catalog;
-    }catch(error){errors.push('网页增强：'+String(error?.message||error));}
+      pages=response.catalog;pageStatusKnown=true;
+    }catch(error){pageStatusKnown=false;errors.push('网页增强：'+String(error?.message||error));}
     dataError=errors.join('；');
     if(dataError)message('读取失败，保留最近一次显示。'+dataError,'error');
     else if(notice.dataset.state==='error')message('');
@@ -230,7 +306,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       message('内置官方目录暂不可用，不会显示或安装未经核验的候选：'+catalogError,'error');draw();}}
   }
   search.addEventListener('input',()=>{query=search.value.trim();draw();});
-  more.addEventListener('click',()=>menu.hidden?showMenu():closeMenu());
+  more.addEventListener('click',()=>{closeRowMenu();menu.hidden?showMenu():closeMenu();});
   for(const b of menu.querySelectorAll('[data-ec-kind]'))b.addEventListener('click',()=>{kind=b.dataset.ecKind;draw();});
   for(const b of menu.querySelectorAll('[data-ec-scope]'))b.addEventListener('click',()=>{scope=b.dataset.ecScope;draw();});
   get('extension-center-reset').addEventListener('click',()=>{kind='all';scope='smart';draw();});
@@ -243,12 +319,31 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   get('extension-center-market').addEventListener('click',()=>openMarket());
   get('extension-center-back').addEventListener('click',back);
   function backIfNeeded(){if(selectedKey)back();}
-  const clickOutside=event=>{if(!menu.hidden&&!get('extension-center-menu-wrap').contains(event.target))closeMenu();};
-  const keyDown=event=>{if(event.key==='Escape'){
-    if(!menu.hidden){event.preventDefault();closeMenu(true);}
-    else if(selectedKey&&!detail.hidden){event.preventDefault();back();}
-  }};
+  const clickOutside=event=>{
+    if(!menu.hidden&&!get('extension-center-menu-wrap').contains(event.target))closeMenu();
+    if(!rowMenu.hidden&&!rowMenu.contains(event.target)&&
+       !rowMenuTrigger?.contains(event.target))closeRowMenu();
+  };
+  const keyDown=event=>{
+    if(!rowMenu.hidden){
+      if(event.key==='Escape'){event.preventDefault();closeRowMenu(true);return;}
+      if(['ArrowDown','ArrowUp','Home','End'].includes(event.key)){
+        event.preventDefault();
+        const buttons=[...rowMenu.querySelectorAll('button')],index=buttons.indexOf(doc.activeElement);
+        const next=event.key==='Home'?0:event.key==='End'?buttons.length-1:
+          (index+(event.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length;
+        buttons[next]?.focus({preventScroll:true});return;
+      }
+      if(event.key==='Tab')closeRowMenu();
+    }
+    if(event.key==='Escape'){
+      if(!menu.hidden){event.preventDefault();closeMenu(true);}
+      else if(selectedKey&&!detail.hidden){event.preventDefault();back();}
+    }
+  };
+  const onScroll=()=>{if(!rowMenu.hidden)closeRowMenu();};
   doc.addEventListener('click',clickOutside);doc.addEventListener('keydown',keyDown);
+  doc.addEventListener('scroll',onScroll,true);
   const storageChanged=(changes,area)=>{
     if(area==='local'&&(SIDEBAR_TOOL_STORE in changes||SIDEBAR_TOOL_ENABLE_STORE in changes||MARKET_PROVENANCE_STORE in changes||
       Object.keys(changes).some(key=>key.startsWith('opendesk.page'))))void refresh();
@@ -256,6 +351,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   api.storage.onChanged?.addListener(storageChanged);
   const connChanged=client.subscribeConnection?.(state=>{if(state.connected)void refresh();});
   void readOfficial();void refresh();
-  return {refresh,dispose(){disposed=true;sequence++;doc.removeEventListener('click',clickOutside);
-    doc.removeEventListener('keydown',keyDown);api.storage.onChanged?.removeListener(storageChanged);connChanged?.();}};
+  return {refresh,dispose(){disposed=true;sequence++;closeRowMenu();rowMenu.remove();
+    doc.removeEventListener('click',clickOutside);
+    doc.removeEventListener('keydown',keyDown);doc.removeEventListener('scroll',onScroll,true);
+    api.storage.onChanged?.removeListener(storageChanged);connChanged?.();}};
 }
