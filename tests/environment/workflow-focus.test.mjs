@@ -132,7 +132,12 @@ if(!vm.SourceTextModule) {
       '../../platform/page-port/codec.js':{decodeValue:value=>value},
       '../task-run-diagnostics.js':{presentTaskValue:value=>({text:String(value)}),formatTaskError:String},
       '../run-value-format.js':{formatRunValue:String},
-      './ai-plan.js':{requestWorkflowPlan:()=>{throw new Error('No HTTPS AI in focus suite');}},
+      './provider.js':{createWorkflowProviderFacade:({localPlanner})=>({
+        async generateWorkflow(options){
+          assert.equal(options.source,'local_codex','focus suite only simulates Native');
+          return {proposal:await localPlanner.plan(options),metadata:{provider:'local_codex'}};
+        }
+      })},
       './view-state.js':{deriveWorkflowViewState},
       './data-sharing.js':dataSharing,
       './task-review-handoff.js':taskReviewHandoff,
