@@ -1,7 +1,7 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "bookmark-manager",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "title": "书签管理",
   "description": "独立 SDK 书签管理：请求单独的 Chrome 全部书签授权；修改和危险删除经可信界面确认。",
   "capabilities": [
