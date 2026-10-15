@@ -3,8 +3,8 @@
   "sourceOfTruth": "src/framework/sdk/browser-contract.js",
   "repository": "shopable-ai/opendesk-browser",
   "branch": "main",
-  "auditedMainSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
-  "auditedDate": "2026-10-14",
+  "auditedMainSha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+  "auditedDate": "2026-10-15",
   "apiVersion": "1.0.0",
   "capacityUniverse": {
     "domains": 18,
@@ -19,265 +19,214 @@
       "HOST_ONLY": 0,
       "NOT_EXPOSED": 0
     },
-    "callableVerified": 0
+    "callableVerified": 3
   },
   "candidateChecks": {
     "nodeTests": {
-      "status": "BLOCKED",
+      "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/nodeTests-alarm-owner-native-final.log",
-          "sha256": "43e0ff7ac17daaf8484493e20f46f7ee115eebed74808b9df690cbe8a4550187",
-          "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
-          "caseId": "R10.6-nodeTests",
-          "command": "node --test --test-reporter=spec tests/environment/browser-sdk-r8-catalog.test.mjs tests/environment/browser-sdk-r8-cookies.test.mjs tests/environment/browser-sdk-r7-trusted-cookies.test.mjs tests/environment/browser-sdk-r7-mapping.test.mjs tests/environment/browser-sdk-contract-compat.test.mjs tests/environment/browser-sdk-coverage.test.mjs tests/environment/browser-tabs-host.test.mjs tests/environment/browser-sidepanel-host.test.mjs tests/environment/browser-sdk-r2-host.test.mjs tests/environment/browser-screenshot-host.test.mjs tests/environment/browser-screenshot-resources.test.mjs tests/environment/browser-network-observe-host.test.mjs tests/environment/browser-sdk-approval-timeout.test.mjs tests/environment/browser-sdk-r2-demo.test.mjs tests/environment/browser-sdk-p3-implementation.test.mjs tests/environment/browser-sdk-p3-bookmarks.test.mjs tests/environment/browser-sdk-p4-implementation.test.mjs tests/environment/browser-sdk-r9-installed-cookies.test.mjs tests/environment/browser-sdk-r9-installed-host.test.mjs tests/environment/browser-sdk-p5-scheduler.test.mjs tests/environment/browser-sdk-r106-trusted.test.mjs tests/environment/browser-sdk-r106-history-ui.test.mjs tests/environment/browser-sdk-r106-host.test.mjs tests/environment/scheduled-tasks-r1.test.mjs tests/environment/scheduled-task-timezone-r25.test.mjs tests/environment/browser-sdk-freeze.test.mjs tests/environment/browser-sdk-interface-matrix.test.mjs tests/environment/browser-framework-ledger.test.mjs tests/environment/cookie-editor-ui.test.mjs tests/environment/sidebar-tool-enable-r26.test.mjs tests/environment/official-tools-catalog-r45.test.mjs",
-          "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/integrated.tap.gz",
+          "sha256": "285c35b86e974207111097e9c631b65b6dbb45cefd0d4bb49492c16fb9e48bcf",
+          "candidateSha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+          "caseId": "SDK/Host/consumer regression 437/437",
+          "command": "node --test selected Browser SDK, browser-tabs-host, bookmark-manager, sidebar-tools and four-layer ledger suites",
+          "environment": "Linux x64 Node v24.19.0; production Host/Driver with Chrome fixtures; NOT native Chrome"
         }
-      ],
-      "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
-      "historicalReportedStatus": "PASS"
+      ]
     },
     "matrix": {
-      "status": "BLOCKED",
+      "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/matrix-alarm-owner-native-final.log",
-          "sha256": "3c7068b5bfa647f2f45dabe6491007c3f53703328d2f11df0086b07f8147bca8",
-          "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
-          "caseId": "R10.6-matrix",
-          "command": "node scripts/check-browser-sdk-interface-matrix.mjs --check",
-          "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/integrated-freeze.log.gz",
+          "sha256": "132fd1bfe40edcd336c96b9a91cbfd9e36771213073658572809f231b4e37431",
+          "candidateSha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+          "caseId": "matrix/registry/source consistency",
+          "command": "node scripts/check-browser-sdk-freeze.mjs",
+          "environment": "Linux x64 Node v24.19.0; production Host/Driver with Chrome fixtures; NOT native Chrome"
         }
-      ],
-      "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
-      "historicalReportedStatus": "PASS"
+      ]
     },
     "catalog": {
-      "status": "BLOCKED",
+      "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/catalog-alarm-owner-native-final.log",
-          "sha256": "8e5d6ca0c24ba6f14e36e93930c11ddd994e1623026e831a8a4d6ca2a8fdd123",
-          "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
-          "caseId": "R10.6-catalog",
-          "command": "node scripts/sync-chrome-api-catalog.mjs --check",
-          "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/integrated-freeze.log.gz",
+          "sha256": "132fd1bfe40edcd336c96b9a91cbfd9e36771213073658572809f231b4e37431",
+          "candidateSha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+          "caseId": "generated binding catalog consistency",
+          "command": "node scripts/check-browser-sdk-freeze.mjs",
+          "environment": "Linux x64 Node v24.19.0; production Host/Driver with Chrome fixtures; NOT native Chrome"
         }
-      ],
-      "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
-      "historicalReportedStatus": "PASS"
+      ]
     },
     "coverage": {
-      "status": "BLOCKED",
+      "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/coverage-alarm-owner-native-final.log",
-          "sha256": "432f3cdd896265ed971d69d44ef3aa444b0a62cac92106dd48c96393b58d1efe",
-          "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
-          "caseId": "R10.6-coverage",
-          "command": "node scripts/check-browser-sdk-coverage.mjs --check",
-          "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/integrated-freeze.log.gz",
+          "sha256": "132fd1bfe40edcd336c96b9a91cbfd9e36771213073658572809f231b4e37431",
+          "candidateSha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+          "caseId": "coverage guard",
+          "command": "node scripts/check-browser-sdk-freeze.mjs",
+          "environment": "Linux x64 Node v24.19.0; production Host/Driver with Chrome fixtures; NOT native Chrome"
         }
-      ],
-      "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
-      "historicalReportedStatus": "PASS"
+      ]
     },
     "ledger": {
-      "status": "BLOCKED",
+      "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/ledger-alarm-owner-native-final.log",
-          "sha256": "1395bab75824af803b4966f1790afd50d315e6ed82f102b7a87a73c598d4330b",
-          "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
-          "caseId": "R10.6-ledger",
-          "command": "node scripts/check-browser-framework-ledger.mjs --check",
-          "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/integrated-freeze.log.gz",
+          "sha256": "132fd1bfe40edcd336c96b9a91cbfd9e36771213073658572809f231b4e37431",
+          "candidateSha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+          "caseId": "existing four-layer classification",
+          "command": "node scripts/check-browser-sdk-freeze.mjs",
+          "environment": "Linux x64 Node v24.19.0; production Host/Driver with Chrome fixtures; NOT native Chrome"
         }
-      ],
-      "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
-      "historicalReportedStatus": "PASS"
+      ]
     },
     "freeze": {
-      "status": "BLOCKED",
+      "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/freeze-alarm-owner-native-final.log",
-          "sha256": "0b2cccef956fff1f093c7363137bb83f1bcc45b084410c8458789dc23ad1f218",
-          "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
-          "caseId": "R10.6-freeze",
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/integrated-freeze.log.gz",
+          "sha256": "132fd1bfe40edcd336c96b9a91cbfd9e36771213073658572809f231b4e37431",
+          "candidateSha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+          "caseId": "70 approved / 68 public / 3 DIRECT",
           "command": "node scripts/check-browser-sdk-freeze.mjs",
-          "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
+          "environment": "Linux x64 Node v24.19.0; production Host/Driver with Chrome fixtures; NOT native Chrome"
         }
-      ],
-      "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
-      "historicalReportedStatus": "PASS"
+      ]
     },
     "check": {
-      "status": "BLOCKED",
+      "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/check-alarm-owner-native-final.log",
-          "sha256": "5a3df4fe18df36d0ec280ae65b3a25bc003379937991759117f164f10d6b865b",
-          "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
-          "caseId": "R10.6-check",
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/integrated-check.log.gz",
+          "sha256": "8cc462ae51ef0b024429a855bf76f1dae7c51aac2ed06b0922d5549400e74df8",
+          "candidateSha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+          "caseId": "712 files syntax check",
           "command": "npm run check",
-          "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
+          "environment": "Linux x64 Node v24.19.0; production Host/Driver with Chrome fixtures; NOT native Chrome"
         }
-      ],
-      "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
-      "historicalReportedStatus": "PASS"
+      ]
     },
     "buildProduction": {
-      "status": "BLOCKED",
+      "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildProduction-alarm-owner-native-final.log",
-          "sha256": "08da591e90856fb828f34170e8940c806a20107d7ee7665d94c068e8dfd951a0",
-          "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
-          "caseId": "R10.6-buildProduction",
-          "command": "npm run build",
-          "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/build-production.json.gz",
+          "sha256": "46d964363fb14d02f3c893345fbe5f3239d71746853de22e62e6bdae0378d626",
+          "candidateSha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+          "caseId": "506 source inputs, zero drift, production package",
+          "command": "OPENDESK_BUILD_EVIDENCE_DIR=/tmp/r113-integrated-build-evidence npm run build",
+          "environment": "Linux x64 Node v24.19.0; production Host/Driver with Chrome fixtures; NOT native Chrome"
         }
-      ],
-      "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
-      "historicalReportedStatus": "PASS"
+      ]
     },
     "buildDevelopment": {
-      "status": "BLOCKED",
+      "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildDevelopment-alarm-owner-native-final.log",
-          "sha256": "d59a044a5b1469e7666f1bc56a6f4d854b6ae2752d00cfb690cf267703752104",
-          "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
-          "caseId": "R10.6-buildDevelopment",
-          "command": "npm run build:dev",
-          "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/build-development.json.gz",
+          "sha256": "ae38ca8297011495b696126103cdb29cf633f5de6e12e134c8157979742c3bb5",
+          "candidateSha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+          "caseId": "506 source inputs, zero drift, development package",
+          "command": "OPENDESK_BUILD_EVIDENCE_DIR=/tmp/r113-integrated-build-evidence npm run build:dev",
+          "environment": "Linux x64 Node v24.19.0; production Host/Driver with Chrome fixtures; NOT native Chrome"
         }
-      ],
-      "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
-      "historicalReportedStatus": "PASS"
+      ]
     },
     "buildSize": {
-      "status": "BLOCKED",
+      "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildSize-alarm-owner-native-final.log",
-          "sha256": "9fc2048a32452e44a941ec1e4bb8202e806bcb446762d20508de981df47e8f63",
-          "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
-          "caseId": "R10.6-buildSize",
-          "command": "npm run build:size",
-          "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/integrated-build-size-retry.log.gz",
+          "sha256": "08c5e71a2e9206c63ffc7f67d1eed38de986b3bec8929044876c10c82138a7e9",
+          "candidateSha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+          "caseId": "physical production package budgets",
+          "command": "OPENDESK_BUILD_EVIDENCE_DIR=/tmp/r113-integrated-build-evidence npm run build:size",
+          "environment": "Linux x64 Node v24.19.0; production Host/Driver with Chrome fixtures; NOT native Chrome"
         }
-      ],
-      "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
-      "historicalReportedStatus": "PASS"
+      ]
     },
     "verify": {
-      "status": "BLOCKED",
+      "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/verify-alarm-owner-native-final.log",
-          "sha256": "e1506d42acab37e4fc8351e93e32b8fadfee906d6c2f9356b6a22534992e6e78",
-          "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
-          "caseId": "R10.6-verify",
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/integrated-verify.log.gz",
+          "sha256": "426c450b193552238aab505661333e197b028e746ad9d3b875c300b37280b7ae",
+          "candidateSha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+          "caseId": "production and development physical package verify",
           "command": "npm run verify",
-          "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
+          "environment": "Linux x64 Node v24.19.0; production Host/Driver with Chrome fixtures; NOT native Chrome"
         }
-      ],
-      "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
-      "historicalReportedStatus": "PASS"
+      ]
     },
     "targetedMainRegressions": {
-      "status": "BLOCKED",
+      "status": "PASS",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/targetedMainRegressions-alarm-owner-native-final.log",
-          "sha256": "f16290e38fb81a4c71455039a31eef24325b007db607652a4ec6435d6b23e161",
-          "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
-          "caseId": "R10.6-targetedMainRegressions",
-          "command": "node --test --test-reporter=spec tests/environment/browser-sdk-r13.test.mjs tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/official-tools-catalog-r45.test.mjs tests/environment/fixed-entries-audit.test.mjs tests/framework/k4-sdk-reinjection.test.mjs tests/framework/k4-sdk.test.mjs tests/framework/k2-sdk-relay-races.test.mjs tests/environment/boundaries.test.mjs tests/framework/k4-sdk-hello-races.test.mjs tests/framework/k4-sdk-bundle-reinjection.test.mjs",
-          "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/targeted-ci-regression.tap.gz",
+          "sha256": "621650a1cbc4f99a16eb20bb91989db6ef6718dfbc5acfe1b3a904ae0da4e1a7",
+          "candidateSha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+          "caseId": "124/124 unaffected targeted CI subset",
+          "command": "node --test targeted Browser SDK R13, official catalog, fixed entry and package-boundary suites",
+          "environment": "Linux x64 Node v24.19.0; production Host/Driver with Chrome fixtures; NOT native Chrome"
         }
-      ],
-      "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
-      "historicalReportedStatus": "PASS"
+      ]
+    },
+    "r5CI": {
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/ci-jobs.json",
+          "sha256": "d9b36fa9ec9ef96a59c1182c7a42d4950622a06462bc1c7b03deb7eaf14de7e6",
+          "candidateSha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+          "caseId": "38701274073 both jobs success",
+          "command": "GitHub Actions browser-sdk-r5.yml at 0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+          "environment": "Linux x64 Node v24.19.0; production Host/Driver with Chrome fixtures; NOT native Chrome"
+        }
+      ]
+    },
+    "targetedMainCI": {
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/ci-jobs.json",
+          "sha256": "d9b36fa9ec9ef96a59c1182c7a42d4950622a06462bc1c7b03deb7eaf14de7e6",
+          "candidateSha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+          "caseId": "38701274046 contracts/bundles success; native restart skipped",
+          "command": "GitHub Actions browser-sdk-r13.yml at 0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+          "environment": "Linux x64 Node v24.19.0; production Host/Driver with Chrome fixtures; NOT native Chrome"
+        }
+      ]
     },
     "nativeChromeGui": {
       "status": "NOT_TESTED",
       "evidence": [],
-      "reason": "Partial installed-tool steps do not close all 55 per-interface contracts."
+      "reason": "No same-candidate installed-tool native acceptance"
     },
     "nativeChromeWorker": {
       "status": "NOT_TESTED",
       "evidence": [],
-      "reason": "Partial installed-tool steps do not close all 55 per-interface contracts."
+      "reason": "No same-candidate installed-tool native acceptance"
     },
-    "r5CI": {
-      "status": "BLOCKED",
-      "evidence": [
-        {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/actions-4475d042-current.json",
-          "sha256": "2a3bb8fc802adc645f4ffba7828531879f72038bae4e9e68a7c69b5e09f3ddcb",
-          "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
-          "caseId": "R10.6-r5CI",
-          "command": "GitHub Actions: Browser SDK R5 implementation contracts",
-          "environment": "GitHub Actions; exact run result",
-          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098393"
-        }
-      ],
-      "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
-      "historicalReportedStatus": "PASS"
-    },
-    "targetedMainCI": {
-      "status": "BLOCKED",
-      "evidence": [
-        {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/actions-4475d042-current.json",
-          "sha256": "2a3bb8fc802adc645f4ffba7828531879f72038bae4e9e68a7c69b5e09f3ddcb",
-          "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
-          "caseId": "R10.6-targetedMainCI",
-          "command": "GitHub Actions: Browser SDK targeted main verification",
-          "environment": "GitHub Actions; exact run result",
-          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098407"
-        }
-      ],
-      "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
-      "historicalReportedStatus": "PASS"
-    },
-    "packageBudgetsCI": {
-      "status": "BLOCKED",
-      "evidence": [
-        {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/actions-4475d042-current.json",
-          "sha256": "2a3bb8fc802adc645f4ffba7828531879f72038bae4e9e68a7c69b5e09f3ddcb",
-          "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
-          "caseId": "R10.6-packageBudgetsCI",
-          "command": "GitHub Actions: Extension package budgets and library boundaries",
-          "environment": "GitHub Actions; exact run result",
-          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098326"
-        }
-      ],
-      "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
-      "historicalReportedStatus": "PASS"
-    },
-    "cookieEditorCI": {
-      "status": "NOT_TESTED",
-      "evidence": [],
-      "reason": "No workflow run for this exact physical source candidate."
-    },
-    "nativeAgentCI": {
+    "officialMarketNativeCI": {
       "status": "FAIL",
       "evidence": [
         {
-          "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/actions-4475d042-current.json",
-          "sha256": "2a3bb8fc802adc645f4ffba7828531879f72038bae4e9e68a7c69b5e09f3ddcb",
-          "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
-          "caseId": "R10.6-nativeAgentCI",
-          "command": "GitHub Actions: Native Agent R1 components and package",
-          "environment": "GitHub Actions; exact run result",
-          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098420"
+          "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/ci-jobs.json",
+          "sha256": "d9b36fa9ec9ef96a59c1182c7a42d4950622a06462bc1c7b03deb7eaf14de7e6",
+          "candidateSha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+          "caseId": "38701273920 selector timeout before tool acceptance",
+          "command": "GitHub Actions official-market native workflows",
+          "environment": "Linux x64 Node v24.19.0; production Host/Driver with Chrome fixtures; NOT native Chrome"
         }
-      ]
+      ],
+      "reason": "#sidebar-tool-discover-toggle is not visibly clickable in current shared UI; inherited failure, UI/native-test owner"
     }
   },
   "phases": {
@@ -330,18 +279,291 @@
       "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery-3b1f25b8.json",
       "sha256": "8726252fbd698a7395497d796f1abcb3afd2bb9353809875e5891683309c20dd",
       "scope": "Original 3b1f25b8 receipt preserved byte-for-byte"
+    },
+    {
+      "scope": "Pre-R11.3 ledger snapshot; historical claims retained without promotion",
+      "auditedMainSha": "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd",
+      "candidateChecks": {
+        "nodeTests": {
+          "status": "BLOCKED",
+          "evidence": [
+            {
+              "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/nodeTests-alarm-owner-native-final.log",
+              "sha256": "43e0ff7ac17daaf8484493e20f46f7ee115eebed74808b9df690cbe8a4550187",
+              "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+              "caseId": "R10.6-nodeTests",
+              "command": "node --test --test-reporter=spec tests/environment/browser-sdk-r8-catalog.test.mjs tests/environment/browser-sdk-r8-cookies.test.mjs tests/environment/browser-sdk-r7-trusted-cookies.test.mjs tests/environment/browser-sdk-r7-mapping.test.mjs tests/environment/browser-sdk-contract-compat.test.mjs tests/environment/browser-sdk-coverage.test.mjs tests/environment/browser-tabs-host.test.mjs tests/environment/browser-sidepanel-host.test.mjs tests/environment/browser-sdk-r2-host.test.mjs tests/environment/browser-screenshot-host.test.mjs tests/environment/browser-screenshot-resources.test.mjs tests/environment/browser-network-observe-host.test.mjs tests/environment/browser-sdk-approval-timeout.test.mjs tests/environment/browser-sdk-r2-demo.test.mjs tests/environment/browser-sdk-p3-implementation.test.mjs tests/environment/browser-sdk-p3-bookmarks.test.mjs tests/environment/browser-sdk-p4-implementation.test.mjs tests/environment/browser-sdk-r9-installed-cookies.test.mjs tests/environment/browser-sdk-r9-installed-host.test.mjs tests/environment/browser-sdk-p5-scheduler.test.mjs tests/environment/browser-sdk-r106-trusted.test.mjs tests/environment/browser-sdk-r106-history-ui.test.mjs tests/environment/browser-sdk-r106-host.test.mjs tests/environment/scheduled-tasks-r1.test.mjs tests/environment/scheduled-task-timezone-r25.test.mjs tests/environment/browser-sdk-freeze.test.mjs tests/environment/browser-sdk-interface-matrix.test.mjs tests/environment/browser-framework-ledger.test.mjs tests/environment/cookie-editor-ui.test.mjs tests/environment/sidebar-tool-enable-r26.test.mjs tests/environment/official-tools-catalog-r45.test.mjs",
+              "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
+            }
+          ],
+          "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+          "historicalReportedStatus": "PASS"
+        },
+        "matrix": {
+          "status": "BLOCKED",
+          "evidence": [
+            {
+              "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/matrix-alarm-owner-native-final.log",
+              "sha256": "3c7068b5bfa647f2f45dabe6491007c3f53703328d2f11df0086b07f8147bca8",
+              "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+              "caseId": "R10.6-matrix",
+              "command": "node scripts/check-browser-sdk-interface-matrix.mjs --check",
+              "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
+            }
+          ],
+          "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+          "historicalReportedStatus": "PASS"
+        },
+        "catalog": {
+          "status": "BLOCKED",
+          "evidence": [
+            {
+              "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/catalog-alarm-owner-native-final.log",
+              "sha256": "8e5d6ca0c24ba6f14e36e93930c11ddd994e1623026e831a8a4d6ca2a8fdd123",
+              "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+              "caseId": "R10.6-catalog",
+              "command": "node scripts/sync-chrome-api-catalog.mjs --check",
+              "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
+            }
+          ],
+          "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+          "historicalReportedStatus": "PASS"
+        },
+        "coverage": {
+          "status": "BLOCKED",
+          "evidence": [
+            {
+              "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/coverage-alarm-owner-native-final.log",
+              "sha256": "432f3cdd896265ed971d69d44ef3aa444b0a62cac92106dd48c96393b58d1efe",
+              "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+              "caseId": "R10.6-coverage",
+              "command": "node scripts/check-browser-sdk-coverage.mjs --check",
+              "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
+            }
+          ],
+          "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+          "historicalReportedStatus": "PASS"
+        },
+        "ledger": {
+          "status": "BLOCKED",
+          "evidence": [
+            {
+              "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/ledger-alarm-owner-native-final.log",
+              "sha256": "1395bab75824af803b4966f1790afd50d315e6ed82f102b7a87a73c598d4330b",
+              "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+              "caseId": "R10.6-ledger",
+              "command": "node scripts/check-browser-framework-ledger.mjs --check",
+              "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
+            }
+          ],
+          "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+          "historicalReportedStatus": "PASS"
+        },
+        "freeze": {
+          "status": "BLOCKED",
+          "evidence": [
+            {
+              "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/freeze-alarm-owner-native-final.log",
+              "sha256": "0b2cccef956fff1f093c7363137bb83f1bcc45b084410c8458789dc23ad1f218",
+              "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+              "caseId": "R10.6-freeze",
+              "command": "node scripts/check-browser-sdk-freeze.mjs",
+              "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
+            }
+          ],
+          "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+          "historicalReportedStatus": "PASS"
+        },
+        "check": {
+          "status": "BLOCKED",
+          "evidence": [
+            {
+              "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/check-alarm-owner-native-final.log",
+              "sha256": "5a3df4fe18df36d0ec280ae65b3a25bc003379937991759117f164f10d6b865b",
+              "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+              "caseId": "R10.6-check",
+              "command": "npm run check",
+              "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
+            }
+          ],
+          "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+          "historicalReportedStatus": "PASS"
+        },
+        "buildProduction": {
+          "status": "BLOCKED",
+          "evidence": [
+            {
+              "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildProduction-alarm-owner-native-final.log",
+              "sha256": "08da591e90856fb828f34170e8940c806a20107d7ee7665d94c068e8dfd951a0",
+              "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+              "caseId": "R10.6-buildProduction",
+              "command": "npm run build",
+              "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
+            }
+          ],
+          "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+          "historicalReportedStatus": "PASS"
+        },
+        "buildDevelopment": {
+          "status": "BLOCKED",
+          "evidence": [
+            {
+              "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildDevelopment-alarm-owner-native-final.log",
+              "sha256": "d59a044a5b1469e7666f1bc56a6f4d854b6ae2752d00cfb690cf267703752104",
+              "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+              "caseId": "R10.6-buildDevelopment",
+              "command": "npm run build:dev",
+              "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
+            }
+          ],
+          "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+          "historicalReportedStatus": "PASS"
+        },
+        "buildSize": {
+          "status": "BLOCKED",
+          "evidence": [
+            {
+              "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/buildSize-alarm-owner-native-final.log",
+              "sha256": "9fc2048a32452e44a941ec1e4bb8202e806bcb446762d20508de981df47e8f63",
+              "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+              "caseId": "R10.6-buildSize",
+              "command": "npm run build:size",
+              "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
+            }
+          ],
+          "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+          "historicalReportedStatus": "PASS"
+        },
+        "verify": {
+          "status": "BLOCKED",
+          "evidence": [
+            {
+              "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/verify-alarm-owner-native-final.log",
+              "sha256": "e1506d42acab37e4fc8351e93e32b8fadfee906d6c2f9356b6a22534992e6e78",
+              "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+              "caseId": "R10.6-verify",
+              "command": "npm run verify",
+              "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
+            }
+          ],
+          "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+          "historicalReportedStatus": "PASS"
+        },
+        "targetedMainRegressions": {
+          "status": "BLOCKED",
+          "evidence": [
+            {
+              "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/targetedMainRegressions-alarm-owner-native-final.log",
+              "sha256": "f16290e38fb81a4c71455039a31eef24325b007db607652a4ec6435d6b23e161",
+              "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+              "caseId": "R10.6-targetedMainRegressions",
+              "command": "node --test --test-reporter=spec tests/environment/browser-sdk-r13.test.mjs tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/official-tools-catalog-r45.test.mjs tests/environment/fixed-entries-audit.test.mjs tests/framework/k4-sdk-reinjection.test.mjs tests/framework/k4-sdk.test.mjs tests/framework/k2-sdk-relay-races.test.mjs tests/environment/boundaries.test.mjs tests/framework/k4-sdk-hello-races.test.mjs tests/framework/k4-sdk-bundle-reinjection.test.mjs",
+              "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
+            }
+          ],
+          "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+          "historicalReportedStatus": "PASS"
+        },
+        "nativeChromeGui": {
+          "status": "NOT_TESTED",
+          "evidence": [],
+          "reason": "Partial installed-tool steps do not close all 55 per-interface contracts."
+        },
+        "nativeChromeWorker": {
+          "status": "NOT_TESTED",
+          "evidence": [],
+          "reason": "Partial installed-tool steps do not close all 55 per-interface contracts."
+        },
+        "r5CI": {
+          "status": "BLOCKED",
+          "evidence": [
+            {
+              "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/actions-4475d042-current.json",
+              "sha256": "2a3bb8fc802adc645f4ffba7828531879f72038bae4e9e68a7c69b5e09f3ddcb",
+              "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+              "caseId": "R10.6-r5CI",
+              "command": "GitHub Actions: Browser SDK R5 implementation contracts",
+              "environment": "GitHub Actions; exact run result",
+              "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098393"
+            }
+          ],
+          "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+          "historicalReportedStatus": "PASS"
+        },
+        "targetedMainCI": {
+          "status": "BLOCKED",
+          "evidence": [
+            {
+              "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/actions-4475d042-current.json",
+              "sha256": "2a3bb8fc802adc645f4ffba7828531879f72038bae4e9e68a7c69b5e09f3ddcb",
+              "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+              "caseId": "R10.6-targetedMainCI",
+              "command": "GitHub Actions: Browser SDK targeted main verification",
+              "environment": "GitHub Actions; exact run result",
+              "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098407"
+            }
+          ],
+          "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+          "historicalReportedStatus": "PASS"
+        },
+        "packageBudgetsCI": {
+          "status": "BLOCKED",
+          "evidence": [
+            {
+              "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/actions-4475d042-current.json",
+              "sha256": "2a3bb8fc802adc645f4ffba7828531879f72038bae4e9e68a7c69b5e09f3ddcb",
+              "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+              "caseId": "R10.6-packageBudgetsCI",
+              "command": "GitHub Actions: Extension package budgets and library boundaries",
+              "environment": "GitHub Actions; exact run result",
+              "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098326"
+            }
+          ],
+          "reason": "Historical R10.6 report was local-only and is absent from the current GitHub repository; retained SHA/path are historical claims, not reproducible PASS evidence.",
+          "historicalReportedStatus": "PASS"
+        },
+        "cookieEditorCI": {
+          "status": "NOT_TESTED",
+          "evidence": [],
+          "reason": "No workflow run for this exact physical source candidate."
+        },
+        "nativeAgentCI": {
+          "status": "FAIL",
+          "evidence": [
+            {
+              "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/actions-4475d042-current.json",
+              "sha256": "2a3bb8fc802adc645f4ffba7828531879f72038bae4e9e68a7c69b5e09f3ddcb",
+              "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+              "caseId": "R10.6-nativeAgentCI",
+              "command": "GitHub Actions: Native Agent R1 components and package",
+              "environment": "GitHub Actions; exact run result",
+              "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38492098420"
+            }
+          ]
+        }
+      },
+      "currentLimitations": [
+        "Full same-candidate 55-contract real Chrome acceptance incomplete",
+        "Own CFT trusted tool import stopped on actual foreground changes; resource handoff pending",
+        "Prepared Scheduler fixed Task/Alarm/RunHost Run×2 driver has no actual Chrome PASS",
+        "Historical Cookie native fragments have distinct physical package hashes and are supplemental",
+        "Exact-candidate scoped Node288/288 and targeted211/211, all six P0 commands PASS; R5/targeted CI PASS. Full Mac suite28 FAIL and Cookie CI33 FAIL preserved. Three isolated fixture failures have separate16/16 PASS, not retroactive full-suite PASS.",
+        "Current consumer versions are fixed at Clipper 1.0.1 / Workbench 1.0.2 / Knowledge Inbox 1.2.7 and Reading Kit 5; immutable historical snapshots unchanged. Test-only 5c322c26 has identical 470 product inputs and 10/10 Markdown regression. The prior e7 Cookie full-CI 11 failures are preserved; current full-CI closure pending.",
+        "WXT single-line assert.doesNotMatch repair is committed at5c959712 with fresh12/12; 5c watcher timing CI failure retained. Newer5da04474 triggered9 workflows allSUCCESS; Cookie workflow not triggered at5da. These are separate from physical447 candidate.",
+        "WXT single-line assert.doesNotMatch repair is committed at5c959712 with fresh12/12; 5c watcher timing CI failure retained. Newer5da04474 triggered9 workflows allSUCCESS; Cookie workflow not triggered at5da. These are separate from physical447 candidate.",
+        "Node positives/denials are now per-interface explicit mapped call/assertion evidence; fullMatrixContractPass=0, formal Native0/55. New verification drivers did not change physical447 product inputs. New downloads cancellation fix on5da is not in447 native package."
+      ]
     }
   ],
   "currentLimitations": [
-    "Full same-candidate 55-contract real Chrome acceptance incomplete",
-    "Own CFT trusted tool import stopped on actual foreground changes; resource handoff pending",
-    "Prepared Scheduler fixed Task/Alarm/RunHost Run×2 driver has no actual Chrome PASS",
-    "Historical Cookie native fragments have distinct physical package hashes and are supplemental",
-    "Exact-candidate scoped Node288/288 and targeted211/211, all six P0 commands PASS; R5/targeted CI PASS. Full Mac suite28 FAIL and Cookie CI33 FAIL preserved. Three isolated fixture failures have separate16/16 PASS, not retroactive full-suite PASS.",
-    "Current consumer versions are fixed at Clipper 1.0.1 / Workbench 1.0.2 / Knowledge Inbox 1.2.7 and Reading Kit 5; immutable historical snapshots unchanged. Test-only 5c322c26 has identical 470 product inputs and 10/10 Markdown regression. The prior e7 Cookie full-CI 11 failures are preserved; current full-CI closure pending.",
-    "WXT single-line assert.doesNotMatch repair is committed at5c959712 with fresh12/12; 5c watcher timing CI failure retained. Newer5da04474 triggered9 workflows allSUCCESS; Cookie workflow not triggered at5da. These are separate from physical447 candidate.",
-    "WXT single-line assert.doesNotMatch repair is committed at5c959712 with fresh12/12; 5c watcher timing CI failure retained. Newer5da04474 triggered9 workflows allSUCCESS; Cookie workflow not triggered at5da. These are separate from physical447 candidate.",
-    "Node positives/denials are now per-interface explicit mapped call/assertion evidence; fullMatrixContractPass=0, formal Native0/55. New verification drivers did not change physical447 product inputs. New downloads cancellation fix on5da is not in447 native package."
+    "68 public methods are SOURCE_WIRED; 3 production DIRECT methods have newly retained per-operation real Host positive/denial Node evidence. This is not 68/68 Native proof.",
+    "437 selected SDK/Host/Bookmark/installation tests passed on integrated runtime inputs. The full repository npm test was not rerun in this SDK session; historical unrelated failures are preserved in the Bookmark workstream.",
+    "All 12 Full methods have actual Facade/Dispatcher/Full Driver component calls; current-page identity, 500/550/1001 pagination and revocation were rechecked. Existing per-interface historic ledger states are not bulk promoted.",
+    "SDK R5, targeted main and Bookmark CI passed on 0c4d4a8; targeted native-restart job was skipped.",
+    "Official market native CI failed before Bookmark/SDK acceptance at #sidebar-tool-discover-toggle in Linux production and Linux/macOS HTTP. Same failure predates this source commit; UI/native-test owner must resolve it.",
+    "No Mac Profile, actual installed-tool Full gesture or all-method native acceptance in this session. Native NOT_TESTED; product and independent scores NOT_SCORED.",
+    "Production sw.js 631839 bytes exceeds 524288 review threshold but passes the 1048576 hard budget. No budget was relaxed.",
+    "Full native schema discovery remains 1830 from the pinned matrix; only 8 pinned JSON files were byte revalidated here, not all 191 source files."
   ],
   "operations": [
     {
@@ -5063,23 +5285,43 @@
       "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/framework/sdk/browser-bindings.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "NOT_TESTED",
-        "evidence": []
+        "status": "PASS",
+        "evidence": [
+          {
+            "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/host.tap.gz",
+            "sha256": "7ae57bca5b16401cd175e5e79fb2145e450a21c41bde3ad54c7279d47cc7e0f5",
+            "candidateSha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+            "caseId": "R11.3 formal Host positive and capability denial: browser.runtime.getPlatformInfo",
+            "command": "node --test tests/environment/browser-sdk-r113-direct-host.test.mjs",
+            "environment": "Linux x64 Node v24.19.0; production Host/Driver with Chrome fixtures; NOT native Chrome"
+          }
+        ]
       },
       "denialTest": {
-        "status": "NOT_TESTED",
-        "evidence": []
+        "status": "PASS",
+        "evidence": [
+          {
+            "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/host.tap.gz",
+            "sha256": "7ae57bca5b16401cd175e5e79fb2145e450a21c41bde3ad54c7279d47cc7e0f5",
+            "candidateSha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+            "caseId": "R11.3 installed sender/package/epoch isolation: browser.runtime.getPlatformInfo; schema/budget/unapproved-method cases",
+            "command": "node --test tests/environment/browser-sdk-r113-direct-host.test.mjs",
+            "environment": "Linux x64 Node v24.19.0; production Host/Driver with Chrome fixtures; NOT native Chrome"
+          }
+        ]
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
         "evidence": []
       },
-      "callableNowVerification": "NOT_TESTED",
+      "callableNowVerification": "PASS",
       "blockers": [
         "Same-candidate Chrome native acceptance unavailable"
       ],
-      "nextTask": "Run R11.3 formal Host suite then installed Chrome acceptance",
-      "commits": [],
+      "nextTask": "Installed Chrome acceptance of the same candidate, explicit package capability and trusted sender",
+      "commits": [
+        "0c4d4a885efb09b467148009e0ebe4981a1ae2da"
+      ],
       "evidence": []
     },
     {
@@ -5104,23 +5346,43 @@
       "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/framework/sdk/browser-bindings.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "NOT_TESTED",
-        "evidence": []
+        "status": "PASS",
+        "evidence": [
+          {
+            "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/host.tap.gz",
+            "sha256": "7ae57bca5b16401cd175e5e79fb2145e450a21c41bde3ad54c7279d47cc7e0f5",
+            "candidateSha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+            "caseId": "R11.3 formal Host positive and capability denial: browser.i18n.getAcceptLanguages",
+            "command": "node --test tests/environment/browser-sdk-r113-direct-host.test.mjs",
+            "environment": "Linux x64 Node v24.19.0; production Host/Driver with Chrome fixtures; NOT native Chrome"
+          }
+        ]
       },
       "denialTest": {
-        "status": "NOT_TESTED",
-        "evidence": []
+        "status": "PASS",
+        "evidence": [
+          {
+            "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/host.tap.gz",
+            "sha256": "7ae57bca5b16401cd175e5e79fb2145e450a21c41bde3ad54c7279d47cc7e0f5",
+            "candidateSha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+            "caseId": "R11.3 installed sender/package/epoch isolation: browser.i18n.getAcceptLanguages; schema/budget/unapproved-method cases",
+            "command": "node --test tests/environment/browser-sdk-r113-direct-host.test.mjs",
+            "environment": "Linux x64 Node v24.19.0; production Host/Driver with Chrome fixtures; NOT native Chrome"
+          }
+        ]
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
         "evidence": []
       },
-      "callableNowVerification": "NOT_TESTED",
+      "callableNowVerification": "PASS",
       "blockers": [
         "Same-candidate Chrome native acceptance unavailable"
       ],
-      "nextTask": "Run R11.3 formal Host suite then installed Chrome acceptance",
-      "commits": [],
+      "nextTask": "Installed Chrome acceptance of the same candidate, explicit package capability and trusted sender",
+      "commits": [
+        "0c4d4a885efb09b467148009e0ebe4981a1ae2da"
+      ],
       "evidence": []
     },
     {
@@ -5145,23 +5407,43 @@
       "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/framework/sdk/browser-bindings.js",
       "sdkEntry": "src/framework/sdk/browser.js",
       "positiveTest": {
-        "status": "NOT_TESTED",
-        "evidence": []
+        "status": "PASS",
+        "evidence": [
+          {
+            "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/host.tap.gz",
+            "sha256": "7ae57bca5b16401cd175e5e79fb2145e450a21c41bde3ad54c7279d47cc7e0f5",
+            "candidateSha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+            "caseId": "R11.3 formal Host positive and capability denial: browser.i18n.detectLanguage",
+            "command": "node --test tests/environment/browser-sdk-r113-direct-host.test.mjs",
+            "environment": "Linux x64 Node v24.19.0; production Host/Driver with Chrome fixtures; NOT native Chrome"
+          }
+        ]
       },
       "denialTest": {
-        "status": "NOT_TESTED",
-        "evidence": []
+        "status": "PASS",
+        "evidence": [
+          {
+            "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/host.tap.gz",
+            "sha256": "7ae57bca5b16401cd175e5e79fb2145e450a21c41bde3ad54c7279d47cc7e0f5",
+            "candidateSha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+            "caseId": "R11.3 installed sender/package/epoch isolation: browser.i18n.detectLanguage; schema/budget/unapproved-method cases",
+            "command": "node --test tests/environment/browser-sdk-r113-direct-host.test.mjs",
+            "environment": "Linux x64 Node v24.19.0; production Host/Driver with Chrome fixtures; NOT native Chrome"
+          }
+        ]
       },
       "nativeChrome": {
         "status": "NOT_TESTED",
         "evidence": []
       },
-      "callableNowVerification": "NOT_TESTED",
+      "callableNowVerification": "PASS",
       "blockers": [
         "Same-candidate Chrome native acceptance unavailable"
       ],
-      "nextTask": "Run R11.3 formal Host suite then installed Chrome acceptance",
-      "commits": [],
+      "nextTask": "Installed Chrome acceptance of the same candidate, explicit package capability and trusted sender",
+      "commits": [
+        "0c4d4a885efb09b467148009e0ebe4981a1ae2da"
+      ],
       "evidence": []
     }
   ],

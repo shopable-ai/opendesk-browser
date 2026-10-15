@@ -11151,9 +11151,11 @@
       "phase": "P6",
       "status": "SOURCE_WIRED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
-        "native": "NOT_TESTED"
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
+        "native": "NOT_TESTED",
+        "candidateSha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+        "evidence": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/summary.json"
       },
       "approvalReason": "Platform compatibility hints; bounded non-identifying OS/architecture only.",
       "sourceRegistry": "src/framework/sdk/browser-direct.generated.js",
@@ -11215,9 +11217,11 @@
       "phase": "P6",
       "status": "SOURCE_WIRED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
-        "native": "NOT_TESTED"
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
+        "native": "NOT_TESTED",
+        "candidateSha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+        "evidence": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/summary.json"
       },
       "approvalReason": "Choose language for tool content from explicitly declared browser preferences.",
       "sourceRegistry": "src/framework/sdk/browser-direct.generated.js",
@@ -11314,9 +11318,11 @@
       "phase": "P6",
       "status": "SOURCE_WIRED",
       "verification": {
-        "node": "NOT_TESTED",
-        "build": "NOT_TESTED",
-        "native": "NOT_TESTED"
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
+        "native": "NOT_TESTED",
+        "candidateSha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+        "evidence": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/summary.json"
       },
       "approvalReason": "Detect language of tool-provided text only; no page or browsing data access.",
       "sourceRegistry": "src/framework/sdk/browser-direct.generated.js",
@@ -58779,32 +58785,14 @@
     }
   ],
   "currentVerificationCandidate": {
-    "commitSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
-    "packageHash": "8f46ffac9c0392b2d3be740a9257c76f24b439178e7672537e8d04a2f44aa59e",
-    "checks": {
-      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/checks-alarm-owner-native-final.json",
-      "sha256": "2a4b74f5870e41f914cfcae2150743cb3d33f58e093adb9d1bfa513ad3a4cc2c",
-      "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
-      "caseId": "R10.6-12-checks",
-      "command": "Original committed candidate verification",
-      "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
-    },
-    "deliveryPath": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery.json",
-    "deliverySha256": "0ffd2c5e893b6faa6e87bf8e6b58464ac06b7d14eacc81291544f5e079e61e4b",
-    "sourceWired": 55,
-    "nodePass": 55,
-    "buildPass": 55,
+    "commitSha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+    "sourceWired": 68,
+    "explicitDirectHostNodePass": 3,
+    "buildPass": 68,
     "nativePass": 0,
-    "scope": "Physical447 Build and explicitly mapped scoped Node assertions only; current main/dirty working tree and Native/F3/ZIP are separate.",
-    "nodeAssertionEvidence": {
-      "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
-      "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
-      "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
-      "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
-      "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
-      "caseId": "R10.6-per-interface-scoped-node-assertions"
-    },
-    "fullMatrixContractPass": 0
+    "packageHash": "c24842bde26128c0a3b2aa016616e02e46901853383a3388cf8c81bdf086578c",
+    "scope": "Current public source/build plus explicitly mapped DIRECT Host Node evidence; not all-contract native acceptance",
+    "evidence": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/summary.json"
   },
   "candidateExecutionDecisions": [
     {
@@ -59639,6 +59627,36 @@
       "reason": "复用 capabilities 与诊断服务，导出前脱敏并限制结果大小",
       "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
       "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    }
+  ],
+  "previousVerificationCandidates": [
+    {
+      "commitSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+      "packageHash": "8f46ffac9c0392b2d3be740a9257c76f24b439178e7672537e8d04a2f44aa59e",
+      "checks": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/checks-alarm-owner-native-final.json",
+        "sha256": "2a4b74f5870e41f914cfcae2150743cb3d33f58e093adb9d1bfa513ad3a4cc2c",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "caseId": "R10.6-12-checks",
+        "command": "Original committed candidate verification",
+        "environment": "macOS arm64 Node v24.16.0; immutable committed candidate; private guard43127"
+      },
+      "deliveryPath": "docs/framework/workstreams/evidence/browser-sdk-r106-20261014/candidate-delivery.json",
+      "deliverySha256": "0ffd2c5e893b6faa6e87bf8e6b58464ac06b7d14eacc81291544f5e079e61e4b",
+      "sourceWired": 55,
+      "nodePass": 55,
+      "buildPass": 55,
+      "nativePass": 0,
+      "scope": "Physical447 Build and explicitly mapped scoped Node assertions only; current main/dirty working tree and Native/F3/ZIP are separate.",
+      "nodeAssertionEvidence": {
+        "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
+        "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
+        "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
+        "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
+        "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
+        "caseId": "R10.6-per-interface-scoped-node-assertions"
+      },
+      "fullMatrixContractPass": 0
     }
   ]
 }

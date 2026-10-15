@@ -1,0 +1,799 @@
+{
+  "candidateSha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+  "localSourceCommit": "b3018c4e57d7de78b373b4ae43acd376395d9bbf",
+  "baseline": "8dc346e0432e11115862b39614b2d46a04f5cebb",
+  "parallelBookmarkSource": "a2be6815ad1f58907b10da1dc31df738b1bcacce",
+  "deliveryParent": "37684523e6a7869dc9ddb75af9375232924ac88d",
+  "branch": "main",
+  "delivery": "GitHub Git objects; expected-head, force=false; all 26 file blobs match local git hashes",
+  "counts": {
+    "discovered": 1830,
+    "approved": 70,
+    "publicSourceWired": 68,
+    "hostOnly": 2,
+    "direct": 3,
+    "scoped": 49,
+    "existingService": 11,
+    "composed": 5,
+    "historicalCandidate": 91,
+    "uniqueCurrentHistoricalNames": 159,
+    "nativePass": 0
+  },
+  "direct": {
+    "browser.runtime.getPlatformInfo": {
+      "status": [
+        "APPROVED",
+        "SOURCE_WIRED",
+        "NODE_PASS",
+        "BUILD_PASS"
+      ],
+      "native": "NOT_TESTED",
+      "hostEvidence": "host.tap.gz"
+    },
+    "browser.i18n.getAcceptLanguages": {
+      "status": [
+        "APPROVED",
+        "SOURCE_WIRED",
+        "NODE_PASS",
+        "BUILD_PASS"
+      ],
+      "native": "NOT_TESTED",
+      "hostEvidence": "host.tap.gz"
+    },
+    "browser.i18n.detectLanguage": {
+      "status": [
+        "APPROVED",
+        "SOURCE_WIRED",
+        "NODE_PASS",
+        "BUILD_PASS"
+      ],
+      "native": "NOT_TESTED",
+      "hostEvidence": "host.tap.gz"
+    }
+  },
+  "historicalExecutionClasses": {
+    "EXISTING_SERVICE": 39,
+    "SCOPED": 24,
+    "HOST_ONLY": 20,
+    "DENIED": 4,
+    "COMPOSED": 3,
+    "DIRECT_CANDIDATE": 1
+  },
+  "node": {
+    "integrated": {
+      "passed": 437,
+      "failed": 0
+    },
+    "formalDirectHost": {
+      "passed": 8,
+      "failed": 0
+    },
+    "targetedCiSubset": {
+      "passed": 124,
+      "failed": 0
+    },
+    "nativeDriverPrepare": {
+      "passed": 1,
+      "nativePass": false
+    },
+    "note": "Runs overlap; do not add them as independent feature coverage"
+  },
+  "buildInputs": {
+    "candidateSha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+    "modes": {
+      "production": {
+        "inputCount": 506,
+        "mismatches": [],
+        "packageHash": "c24842bde26128c0a3b2aa016616e02e46901853383a3388cf8c81bdf086578c",
+        "status": "passed"
+      },
+      "development": {
+        "inputCount": 506,
+        "mismatches": [],
+        "packageHash": "53884afa819ec2c92133debb963dfba9c4d9230c6da3626df0542bd15be19a10",
+        "status": "passed"
+      }
+    }
+  },
+  "ci": {
+    "candidateSha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+    "runs": [
+      {
+        "id": 38701273860,
+        "name": "Native Agent R1 components and package",
+        "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+        "status": "queued",
+        "conclusion": null,
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701273860",
+        "created_at": "2026-10-15T07:48:45Z",
+        "updated_at": "2026-10-15T07:48:45Z"
+      },
+      {
+        "id": 38701273864,
+        "name": "Cleanup merged short-lived OpenDesk branches",
+        "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701273864",
+        "created_at": "2026-10-15T07:48:45Z",
+        "updated_at": "2026-10-15T07:48:57Z"
+      },
+      {
+        "id": 38701274092,
+        "name": "Sidebar R1 P0 targeted checks",
+        "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701274092",
+        "created_at": "2026-10-15T07:48:45Z",
+        "updated_at": "2026-10-15T07:49:25Z"
+      },
+      {
+        "id": 38701273947,
+        "name": "Site access targeted checks",
+        "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701273947",
+        "created_at": "2026-10-15T07:48:45Z",
+        "updated_at": "2026-10-15T07:49:29Z"
+      },
+      {
+        "id": 38701274042,
+        "name": "R7 axiosx HTTP page + fixture contracts",
+        "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701274042",
+        "created_at": "2026-10-15T07:48:45Z",
+        "updated_at": "2026-10-15T07:49:33Z"
+      },
+      {
+        "id": 38701274129,
+        "name": "Bookmark Manager R2.4 - official SDK consumer and legacy removal",
+        "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701274129",
+        "created_at": "2026-10-15T07:48:45Z",
+        "updated_at": "2026-10-15T07:50:38Z"
+      },
+      {
+        "id": 38701274032,
+        "name": "SDK axiosx native Chrome auto-install",
+        "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701274032",
+        "created_at": "2026-10-15T07:48:45Z",
+        "updated_at": "2026-10-15T07:51:17Z"
+      },
+      {
+        "id": 38701274107,
+        "name": "Sidebar R19 - real markup static layout audit",
+        "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701274107",
+        "created_at": "2026-10-15T07:48:45Z",
+        "updated_at": "2026-10-15T07:50:00Z"
+      },
+      {
+        "id": 38701274046,
+        "name": "Browser SDK targeted main verification",
+        "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701274046",
+        "created_at": "2026-10-15T07:48:45Z",
+        "updated_at": "2026-10-15T07:51:22Z"
+      },
+      {
+        "id": 38701274012,
+        "name": "Extension Center R4 core and package",
+        "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701274012",
+        "created_at": "2026-10-15T07:48:45Z",
+        "updated_at": "2026-10-15T07:51:26Z"
+      },
+      {
+        "id": 38701274130,
+        "name": "Knowledge inbox R1 - components and Chrome fixture",
+        "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+        "status": "completed",
+        "conclusion": "failure",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701274130",
+        "created_at": "2026-10-15T07:48:45Z",
+        "updated_at": "2026-10-15T07:51:31Z"
+      },
+      {
+        "id": 38701273950,
+        "name": "Page userscript dependencies and package",
+        "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701273950",
+        "created_at": "2026-10-15T07:48:45Z",
+        "updated_at": "2026-10-15T07:51:53Z"
+      },
+      {
+        "id": 38701273920,
+        "name": "OpenDesk official catalog R4.5 and market R3 native Chrome",
+        "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+        "status": "completed",
+        "conclusion": "failure",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701273920",
+        "created_at": "2026-10-15T07:48:45Z",
+        "updated_at": "2026-10-15T07:52:05Z"
+      },
+      {
+        "id": 38701274063,
+        "name": "SDK grant authority and revocation regression",
+        "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701274063",
+        "created_at": "2026-10-15T07:48:45Z",
+        "updated_at": "2026-10-15T07:52:08Z"
+      },
+      {
+        "id": 38701274073,
+        "name": "Browser SDK R5 implementation contracts",
+        "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701274073",
+        "created_at": "2026-10-15T07:48:45Z",
+        "updated_at": "2026-10-15T07:52:25Z"
+      },
+      {
+        "id": 38701274045,
+        "name": "Extension package budgets and library boundaries",
+        "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701274045",
+        "created_at": "2026-10-15T07:48:45Z",
+        "updated_at": "2026-10-15T07:52:56Z"
+      },
+      {
+        "id": 38701274058,
+        "name": "Sidebar R21 integrated UI quality",
+        "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701274058",
+        "created_at": "2026-10-15T07:48:45Z",
+        "updated_at": "2026-10-15T07:53:13Z"
+      },
+      {
+        "id": 38701274043,
+        "name": "Sidebar user tools R1 - package and build",
+        "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701274043",
+        "created_at": "2026-10-15T07:48:45Z",
+        "updated_at": "2026-10-15T07:53:15Z"
+      },
+      {
+        "id": 38701273750,
+        "name": "Markdown tools R22 - packages and native Chrome",
+        "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+        "status": "completed",
+        "conclusion": "failure",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701273750",
+        "created_at": "2026-10-15T07:48:45Z",
+        "updated_at": "2026-10-15T07:53:37Z"
+      },
+      {
+        "id": 38701274036,
+        "name": "Stay Focus R1 - independent Chrome restrictions and native evidence",
+        "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+        "status": "completed",
+        "conclusion": "failure",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701274036",
+        "created_at": "2026-10-15T07:48:45Z",
+        "updated_at": "2026-10-15T07:54:08Z"
+      },
+      {
+        "id": 38701273953,
+        "name": "Time Review R1.6 - trusted native macOS Chrome Side Panel",
+        "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+        "status": "completed",
+        "conclusion": "failure",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701273953",
+        "created_at": "2026-10-15T07:48:45Z",
+        "updated_at": "2026-10-15T07:55:42Z"
+      },
+      {
+        "id": 38701274096,
+        "name": "Cookie Editor R3.3 real SDK and package verification",
+        "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+        "status": "completed",
+        "conclusion": "failure",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701274096",
+        "created_at": "2026-10-15T07:48:45Z",
+        "updated_at": "2026-10-15T07:55:45Z"
+      },
+      {
+        "id": 38701274061,
+        "name": "Reading TOC R4.1-R4.6 - responsive height, visibility, native and build",
+        "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+        "status": "completed",
+        "conclusion": "failure",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701274061",
+        "created_at": "2026-10-15T07:48:45Z",
+        "updated_at": "2026-10-15T07:55:12Z"
+      },
+      {
+        "id": 38701274087,
+        "name": "AdBlock R1.2 - trusted DNR, offline release and native macOS Chrome",
+        "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+        "status": "completed",
+        "conclusion": "failure",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701274087",
+        "created_at": "2026-10-15T07:48:45Z",
+        "updated_at": "2026-10-15T07:55:22Z"
+      }
+    ]
+  },
+  "failuresPreserved": [
+    "initial 4 acceptance fixture failures repaired",
+    "completed own build lock blocked production/development attempts; archived before targeted stale lock cleanup",
+    "build:size initially read default old receipt; retry explicitly used the same integrated evidence directory",
+    "market native selector timeout at all three jobs; preexisting same failure in Bookmark workstream"
+  ],
+  "fullBookmarks": {
+    "methods": [
+      "getTree",
+      "get",
+      "search",
+      "create",
+      "update",
+      "move",
+      "remove",
+      "prepareRemoveTree",
+      "removeTree",
+      "observe.start",
+      "observe.read",
+      "observe.stop"
+    ],
+    "source": "SOURCE_WIRED",
+    "component": "NODE_PASS",
+    "build": "BUILD_PASS",
+    "native": "NOT_TESTED",
+    "consumerVersion": "0.3.1",
+    "contractChangeRequired": false
+  },
+  "currentPage": {
+    "source": "SOURCE_WIRED",
+    "component": "NODE_PASS",
+    "native": "NOT_TESTED",
+    "contract": "browser.page.getContext() -> {status,title,url,tabRef,documentRef}; create({title,url,parentId?,sourcePage:{url,tabRef,documentRef}})",
+    "ownership": "Opaque current Document refs never imply Owned Tab rights"
+  },
+  "remaining": [
+    {
+      "owner": "SDK",
+      "task": "Next approved batches from existing matrix decisions; keep scope/permission-specific approval and Driver reuse"
+    },
+    {
+      "owner": "Extension Center / market native-test owner",
+      "task": "Repair visible official entry navigation in real UI tests; do not synthesize clicks or bypass trusted input"
+    },
+    {
+      "owner": "Bookmark R2.4 / Mac Chrome acceptance",
+      "task": "0.3.1 real installation, Full permission gesture, CRUD/current document/events/restarts on same candidate"
+    }
+  ],
+  "scores": {
+    "architecture": "NOT_SCORED",
+    "security": "NOT_SCORED",
+    "mappingScale": "NOT_SCORED",
+    "bookmarkCompatibility": "NOT_SCORED",
+    "regression": "NOT_SCORED",
+    "nativeProduct": "NOT_SCORED"
+  },
+  "sourceFiles": [
+    {
+      "path": ".github/workflows/browser-sdk-r13.yml",
+      "sha": "66f3956214d80a871dc33a9c085dcfbef2075d09",
+      "characters": 8617
+    },
+    {
+      "path": ".github/workflows/browser-sdk-r5.yml",
+      "sha": "9d5a53e714559596205f94b09355e42ecf7e5f9d",
+      "characters": 8429
+    },
+    {
+      "path": "docs/api/browser-framework-four-layer-ledger.zh-CN.md",
+      "sha": "e15c8fb3b2a43c1cb0b49f83474b4b9f34e7c6c2",
+      "characters": 14741
+    },
+    {
+      "path": "docs/api/browser-sdk-binding-catalog.generated.json",
+      "sha": "63488993c81b052ed9151a002dd33a3cb0a24fbc",
+      "characters": 85663
+    },
+    {
+      "path": "docs/api/browser-sdk-interface-matrix.json",
+      "sha": "d40f43785d448c246ec9d51dc1baa7bbd0ec8d2e",
+      "characters": 2502992
+    },
+    {
+      "path": "docs/framework/workstreams/browser-framework-four-layer-ledger.json",
+      "sha": "a5e8cb0956fcaf5a66b917126645a516d4be5857",
+      "characters": 203590
+    },
+    {
+      "path": "docs/framework/workstreams/browser-sdk-acceptance.json",
+      "sha": "6691d3ac5e823705fc170022c9154197494c114a",
+      "characters": 268797
+    },
+    {
+      "path": "docs/framework/workstreams/browser-sdk-r113-map-first.md",
+      "sha": "ab15473d9ba161e3939782a0c1877a4198bba5fe",
+      "characters": 4675
+    },
+    {
+      "path": "docs/framework/workstreams/browser-sdk-status.md",
+      "sha": "ef9da2cc63ccc4a8bd5bd9647acee511e51716cf",
+      "characters": 31244
+    },
+    {
+      "path": "examples/sidebar-tools/browser-sdk-acceptance/README.zh-CN.md",
+      "sha": "f04304205345565c2e21fbcbb3664495ac3f7c2e",
+      "characters": 2058
+    },
+    {
+      "path": "examples/sidebar-tools/browser-sdk-acceptance/src/main.js",
+      "sha": "4c0bdf5011aea57b1f124c214ecd75bc87668214",
+      "characters": 13451
+    },
+    {
+      "path": "examples/sidebar-tools/browser-sdk-acceptance/tool.config.json",
+      "sha": "c2dd50f7631e55bf4578acf6d1bf06dbec5426df",
+      "characters": 1299
+    },
+    {
+      "path": "scripts/check-browser-framework-ledger.mjs",
+      "sha": "4ca7e5e4abf5edf18fd3594f882048047471753b",
+      "characters": 9774
+    },
+    {
+      "path": "scripts/check-browser-sdk-coverage.mjs",
+      "sha": "9840fc07856762e93a7c6795b321be36d7a72552",
+      "characters": 9780
+    },
+    {
+      "path": "scripts/generate-browser-bindings.mjs",
+      "sha": "28c0ff4d40e6453b27a55c2fb70e300d2fe0fd43",
+      "characters": 10409
+    },
+    {
+      "path": "src/framework/sdk/browser-bindings.js",
+      "sha": "63c443d98a9d8c7a3bd69edc0f12bc9e3979d582",
+      "characters": 9325
+    },
+    {
+      "path": "src/framework/sdk/browser-contract.js",
+      "sha": "c4b8bd2234c2b6091c7638f49b256ce339e0a745",
+      "characters": 37169
+    },
+    {
+      "path": "src/framework/sdk/browser-direct.generated.js",
+      "sha": "16c3ecafdf24f6539d83392a4b4157c994f7642f",
+      "characters": 3798
+    },
+    {
+      "path": "src/framework/sdk/browser-schemas.js",
+      "sha": "3132cd31c420272cbfeedafcd38254fdd4e7ba17",
+      "characters": 20005
+    },
+    {
+      "path": "src/ui/sidebar-tools.js",
+      "sha": "d322a71c7cc505fb4ce741551f492f5d1debbbfc",
+      "characters": 137633
+    },
+    {
+      "path": "src/ui/sidebar-tools/package.js",
+      "sha": "e541c4538a3b040212f04a7e48d3f418214aba0c",
+      "characters": 8605
+    },
+    {
+      "path": "tests/environment/browser-sdk-r107-installed-acceptance.test.mjs",
+      "sha": "bd2da15177d31b2fb6de15462f3d83a44d9c0819",
+      "characters": 7156
+    },
+    {
+      "path": "tests/environment/browser-sdk-r107-samples.mjs",
+      "sha": "a0407327e82ea06f19a960e98a91eec27606e88b",
+      "characters": 4095
+    },
+    {
+      "path": "tests/environment/browser-sdk-r11-generated-catalog.test.mjs",
+      "sha": "2dfeef63ca7a38f46cc7f92534d45073786417a6",
+      "characters": 3489
+    },
+    {
+      "path": "tests/environment/browser-sdk-r11-native-direct.test.mjs",
+      "sha": "47cb88e9e11b0e2531930958491f69b616e1204c",
+      "characters": 10480
+    },
+    {
+      "path": "tests/environment/browser-sdk-r113-direct-host.test.mjs",
+      "sha": "247373f21b658afe6153a899ba7ff97c092dfd4b",
+      "characters": 7670
+    }
+  ],
+  "evidenceFiles": [
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/build-development-latest.json.gz",
+      "bytes": 176,
+      "sha256": "2e23f8e8871bf35fde22d23026f1c5336ecdc9fa9152b5c957d1ca8e3acd7706"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/build-development.json.gz",
+      "bytes": 71012,
+      "sha256": "ae38ca8297011495b696126103cdb29cf633f5de6e12e134c8157979742c3bb5"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/build-production-latest.json.gz",
+      "bytes": 175,
+      "sha256": "daf3e82a0495b640ee42264cf49c53ab22e7977c51cebb601c4576ed2e54657d"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/build-production.json.gz",
+      "bytes": 65866,
+      "sha256": "46d964363fb14d02f3c893345fbe5f3239d71746853de22e62e6bdae0378d626"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/ci-jobs.json",
+      "bytes": 43500,
+      "sha256": "d9b36fa9ec9ef96a59c1182c7a42d4950622a06462bc1c7b03deb7eaf14de7e6"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/ci-source.json",
+      "bytes": 9801,
+      "sha256": "6a1fdfcdbc9c915c2b74096a6a7f0bef0980b17ff12f5cacffa19cfa4c584bb6"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/completed-build-lock.json.gz",
+      "bytes": 158,
+      "sha256": "7e0728f98ef1e771bb3e907136a6042b2edf3b01c011a621a8c432dc4e0882d0"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/completed-integrated-build-lock.json.gz",
+      "bytes": 156,
+      "sha256": "93b0f2fb32c328bb8da133a275f92f670dd9415209d90f0dfa22ec8833c04079"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/consumer.tap.gz",
+      "bytes": 594,
+      "sha256": "d25512c456becd3708b0b2f9f2c84bc95968d890e2c784d5dfc83ec8d7d45013"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/direct.tap.gz",
+      "bytes": 1253,
+      "sha256": "34dd5c2904b14f95cab317f0bf6d59b82665feead8482d7ec622e4a050311dee"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/final-ledger.log.gz",
+      "bytes": 198,
+      "sha256": "0e2111d428398ce9dbc655fa039928df80c9ae78b84b1a5b9fb38d6b7c930e30"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/final-metadata-freeze.log.gz",
+      "bytes": 343,
+      "sha256": "132fd1bfe40edcd336c96b9a91cbfd9e36771213073658572809f231b4e37431"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/host.tap.gz",
+      "bytes": 410,
+      "sha256": "7ae57bca5b16401cd175e5e79fb2145e450a21c41bde3ad54c7279d47cc7e0f5"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/integrated-build-dev-retry.log.gz",
+      "bytes": 3591,
+      "sha256": "fcc3af068fc4a8b607ca92dfb29e197498137d262bd553d2b93d3ca4fd05d0d3"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/integrated-build-dev.log.gz",
+      "bytes": 416,
+      "sha256": "d3599f9efb60ebd91a82ff8f193acd68976ca84b458876016c72d9c86f5ac482"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/integrated-build-prod-retry.log.gz",
+      "bytes": 3234,
+      "sha256": "d329ddadd2388c3a6804e46b8f3094f8ca2c72f4f9f22f282c5aceedfd8c28db"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/integrated-build-prod.log.gz",
+      "bytes": 417,
+      "sha256": "dda96863fa07e43ab84b5d339d32493bd125270d6b8914c253c79a2ca1f1ed8d"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/integrated-build-size-retry.log.gz",
+      "bytes": 2799,
+      "sha256": "08c5e71a2e9206c63ffc7f67d1eed38de986b3bec8929044876c10c82138a7e9"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/integrated-build-size.log.gz",
+      "bytes": 306,
+      "sha256": "7c0b8ae8dd721e44a923b3dcd2e2bde95b7d936f078bad86ae19cc112b9b4a30"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/integrated-check.log.gz",
+      "bytes": 237,
+      "sha256": "8cc462ae51ef0b024429a855bf76f1dae7c51aac2ed06b0922d5549400e74df8"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/integrated-freeze.log.gz",
+      "bytes": 343,
+      "sha256": "132fd1bfe40edcd336c96b9a91cbfd9e36771213073658572809f231b4e37431"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/integrated-verify.log.gz",
+      "bytes": 10836,
+      "sha256": "426c450b193552238aab505661333e197b028e746ad9d3b875c300b37280b7ae"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/integrated.tap.gz",
+      "bytes": 14686,
+      "sha256": "285c35b86e974207111097e9c631b65b6dbb45cefd0d4bb49492c16fb9e48bcf"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/market-job-116309777062.log.gz",
+      "bytes": 24768,
+      "sha256": "f0cc34213ba645811566bc58c88b2c743c45cb633ea6b277da1294cf1b38a764"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/market-job-116309777459.log.gz",
+      "bytes": 49855,
+      "sha256": "b5c351201bf78114e4a37c1b537e80d90a408b7f0a7502fbb6109edff1d7d5d9"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/market-job-116309777647.log.gz",
+      "bytes": 24295,
+      "sha256": "c8c6cb5c9f9a1c01f67f036a04224ce9163676584ff6ef6edd71e92bcac03b5e"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/native-prepare.tap.gz",
+      "bytes": 170,
+      "sha256": "1acb8184eaac19e0243a1ab0b279eb4a8fcdf8406576885346e0e9bf45961e53"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/other-ci-errors.json",
+      "bytes": 3262,
+      "sha256": "1120e07ad6f39a75e89649c79675db833f1410062a564bd11edc102e273b8d01"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/other-job-116309776777.log.gz",
+      "bytes": 241417,
+      "sha256": "0ca7e31769bc105ac0a6f9e07083bca91df1b8ee1210e2e4edf996f6923a4650"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/other-job-116309778208.log.gz",
+      "bytes": 252044,
+      "sha256": "d64e932ecee0edea5bbf0da4fd735816373788d80f3237501d723442b69eb38d"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/other-job-116309778387.log.gz",
+      "bytes": 47670,
+      "sha256": "5c55661628fa53357b2a6b6fdf72d85885c92b2366e069c8c42eeecfba8f8187"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/other-job-116309778447.log.gz",
+      "bytes": 40937,
+      "sha256": "175e1d9f4d55a1e65f3799f45b76ae0349c975370f66f58e5460ab0aa7ac8178"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/other-job-116309778508.log.gz",
+      "bytes": 255101,
+      "sha256": "de2dc238432320bde25053461e97d7d1ddefceeaa55ab72d3fcb4cd9f30606b7"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/other-job-116311128637.log.gz",
+      "bytes": 7160,
+      "sha256": "38b7b7f65d9453ac88a94dab019bfb7a367ea27d81da303cb6a6fbaaaf9535b7"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/other-job-116311298122.log.gz",
+      "bytes": 7166,
+      "sha256": "c21edee2db97a769adc3793dd7ced33f70d7f8a1ee7ae50b86a2748254c439a5"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/regression.tap.gz",
+      "bytes": 14780,
+      "sha256": "935674eee5609c268e773425e1dfbd30edd1347cc8d0a21d7208e689adb8d4ec"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/remote-source-match.json",
+      "bytes": 463,
+      "sha256": "d01edcbef6c694f30b3954a9f642b0bd8d51dadfd9746422d060fb26916e7ac9"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/targeted-ci-regression.tap.gz",
+      "bytes": 4965,
+      "sha256": "621650a1cbc4f99a16eb20bb91989db6ef6718dfbc5acfe1b3a904ae0da4e1a7"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/tool-bookmark-final.log.gz",
+      "bytes": 190,
+      "sha256": "a8749f5f2d86a96fe8964ebb2505e557fb82fd4aa013938622e261faf2997b81"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/browser-sdk-r113-map-first/tool-sdk.log.gz",
+      "bytes": 309,
+      "sha256": "488baae8fefce250ab589738eb9a53f8807e9e9c918bd93f505ff94e45becf14"
+    }
+  ],
+  "otherCiFailures": [
+    {
+      "run": "Knowledge inbox R1 - components and Chrome fixture",
+      "id": 116309778387,
+      "failures": [
+        "2026-10-15T07:51:27.9769610Z not ok 1 - Knowledge R1 Chrome: reviewed install, capture, persistent editor and inline confirmation",
+        "2026-10-15T07:51:27.9772152Z   error: 'Native Chrome timeout: actionable control #sidebar-tool-discover-tab'"
+      ]
+    },
+    {
+      "run": "Markdown tools R22 - packages and native Chrome",
+      "id": 116309776777,
+      "failures": [
+        "2026-10-15T07:51:56.6376308Z not ok 1 - R22 Chrome: official clipper consent, real content read and local workbench import",
+        "2026-10-15T07:51:56.6380838Z   error: 'Native Chrome timeout: tools section'",
+        "2026-10-15T07:53:33.4569081Z # SyntaxError: The requested module '../../src/libs/catalog.js' does not provide an export named 'PAGE_OPTIONAL_LIBRARY_IDS'",
+        "2026-10-15T07:53:33.4572678Z not ok 195 - tests/environment/papa-parse-r1.test.mjs",
+        "2026-10-15T07:53:33.4575186Z   error: 'test failed'"
+      ]
+    },
+    {
+      "run": "Stay Focus R1 - independent Chrome restrictions and native evidence",
+      "id": 116311128637,
+      "failures": [
+        "2026-10-15T07:53:57.7670590Z not ok 1 - Real Chrome default sharing, live page reminder, DNR and uninstall",
+        "2026-10-15T07:53:57.7805590Z   error: 'Visible real control #sidebar-tool-discover-toggle timed out'"
+      ]
+    },
+    {
+      "run": "Time Review R1.6 - trusted native macOS Chrome Side Panel",
+      "id": 116309778447,
+      "failures": [
+        "2026-10-15T07:55:36.3715680Z not ok 1 - Time Review R1.9 actual Mac Chrome native product acceptance",
+        "2026-10-15T07:55:36.3727260Z   error: 'actionable #sidebar-tool-discover-toggle timed out'"
+      ]
+    },
+    {
+      "run": "Cookie Editor R3.3 real SDK and package verification",
+      "id": 116309778508,
+      "failures": [
+        "2026-10-15T07:55:41.9676405Z # SyntaxError: The requested module '../../src/libs/catalog.js' does not provide an export named 'PAGE_OPTIONAL_LIBRARY_IDS'",
+        "2026-10-15T07:55:41.9679617Z not ok 195 - tests/environment/papa-parse-r1.test.mjs",
+        "2026-10-15T07:55:41.9681419Z   error: 'test failed'"
+      ]
+    },
+    {
+      "run": "Reading TOC R4.1-R4.6 - responsive height, visibility, native and build",
+      "id": 116309778208,
+      "failures": [
+        "2026-10-15T07:53:15.3308656Z not ok 1 - R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and revokes page UI",
+        "2026-10-15T07:53:15.3313904Z   error: 'Trusted control not visible/enabled: #sidebar-tool-settings-deny'",
+        "2026-10-15T07:55:09.5527368Z # SyntaxError: The requested module '../../src/libs/catalog.js' does not provide an export named 'PAGE_OPTIONAL_LIBRARY_IDS'",
+        "2026-10-15T07:55:09.5530777Z not ok 195 - tests/environment/papa-parse-r1.test.mjs",
+        "2026-10-15T07:55:09.5532685Z   error: 'test failed'"
+      ]
+    },
+    {
+      "run": "AdBlock R1.2 - trusted DNR, offline release and native macOS Chrome",
+      "id": 116311298122,
+      "failures": [
+        "2026-10-15T07:55:17.3952830Z not ok 1 - macOS Chrome actual AdBlock DNR and network lifecycle",
+        "2026-10-15T07:55:17.4011950Z   error: 'reviewed official AdBlock installed and directly runnable in the unified list timed out'"
+      ]
+    }
+  ]
+}

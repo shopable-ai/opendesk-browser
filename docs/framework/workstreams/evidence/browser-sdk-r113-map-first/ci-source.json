@@ -1,0 +1,245 @@
+{
+  "candidateSha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+  "runs": [
+    {
+      "id": 38701273860,
+      "name": "Native Agent R1 components and package",
+      "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+      "status": "queued",
+      "conclusion": null,
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701273860",
+      "created_at": "2026-10-15T07:48:45Z",
+      "updated_at": "2026-10-15T07:48:45Z"
+    },
+    {
+      "id": 38701273864,
+      "name": "Cleanup merged short-lived OpenDesk branches",
+      "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701273864",
+      "created_at": "2026-10-15T07:48:45Z",
+      "updated_at": "2026-10-15T07:48:57Z"
+    },
+    {
+      "id": 38701274092,
+      "name": "Sidebar R1 P0 targeted checks",
+      "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701274092",
+      "created_at": "2026-10-15T07:48:45Z",
+      "updated_at": "2026-10-15T07:49:25Z"
+    },
+    {
+      "id": 38701273947,
+      "name": "Site access targeted checks",
+      "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701273947",
+      "created_at": "2026-10-15T07:48:45Z",
+      "updated_at": "2026-10-15T07:49:29Z"
+    },
+    {
+      "id": 38701274042,
+      "name": "R7 axiosx HTTP page + fixture contracts",
+      "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701274042",
+      "created_at": "2026-10-15T07:48:45Z",
+      "updated_at": "2026-10-15T07:49:33Z"
+    },
+    {
+      "id": 38701274129,
+      "name": "Bookmark Manager R2.4 - official SDK consumer and legacy removal",
+      "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701274129",
+      "created_at": "2026-10-15T07:48:45Z",
+      "updated_at": "2026-10-15T07:50:38Z"
+    },
+    {
+      "id": 38701274032,
+      "name": "SDK axiosx native Chrome auto-install",
+      "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701274032",
+      "created_at": "2026-10-15T07:48:45Z",
+      "updated_at": "2026-10-15T07:51:17Z"
+    },
+    {
+      "id": 38701274107,
+      "name": "Sidebar R19 - real markup static layout audit",
+      "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701274107",
+      "created_at": "2026-10-15T07:48:45Z",
+      "updated_at": "2026-10-15T07:50:00Z"
+    },
+    {
+      "id": 38701274046,
+      "name": "Browser SDK targeted main verification",
+      "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701274046",
+      "created_at": "2026-10-15T07:48:45Z",
+      "updated_at": "2026-10-15T07:51:22Z"
+    },
+    {
+      "id": 38701274012,
+      "name": "Extension Center R4 core and package",
+      "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701274012",
+      "created_at": "2026-10-15T07:48:45Z",
+      "updated_at": "2026-10-15T07:51:26Z"
+    },
+    {
+      "id": 38701274130,
+      "name": "Knowledge inbox R1 - components and Chrome fixture",
+      "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+      "status": "completed",
+      "conclusion": "failure",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701274130",
+      "created_at": "2026-10-15T07:48:45Z",
+      "updated_at": "2026-10-15T07:51:31Z"
+    },
+    {
+      "id": 38701273950,
+      "name": "Page userscript dependencies and package",
+      "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701273950",
+      "created_at": "2026-10-15T07:48:45Z",
+      "updated_at": "2026-10-15T07:51:53Z"
+    },
+    {
+      "id": 38701273920,
+      "name": "OpenDesk official catalog R4.5 and market R3 native Chrome",
+      "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+      "status": "completed",
+      "conclusion": "failure",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701273920",
+      "created_at": "2026-10-15T07:48:45Z",
+      "updated_at": "2026-10-15T07:52:05Z"
+    },
+    {
+      "id": 38701274063,
+      "name": "SDK grant authority and revocation regression",
+      "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701274063",
+      "created_at": "2026-10-15T07:48:45Z",
+      "updated_at": "2026-10-15T07:52:08Z"
+    },
+    {
+      "id": 38701274073,
+      "name": "Browser SDK R5 implementation contracts",
+      "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701274073",
+      "created_at": "2026-10-15T07:48:45Z",
+      "updated_at": "2026-10-15T07:52:25Z"
+    },
+    {
+      "id": 38701274045,
+      "name": "Extension package budgets and library boundaries",
+      "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701274045",
+      "created_at": "2026-10-15T07:48:45Z",
+      "updated_at": "2026-10-15T07:52:56Z"
+    },
+    {
+      "id": 38701274058,
+      "name": "Sidebar R21 integrated UI quality",
+      "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701274058",
+      "created_at": "2026-10-15T07:48:45Z",
+      "updated_at": "2026-10-15T07:53:13Z"
+    },
+    {
+      "id": 38701274043,
+      "name": "Sidebar user tools R1 - package and build",
+      "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701274043",
+      "created_at": "2026-10-15T07:48:45Z",
+      "updated_at": "2026-10-15T07:53:15Z"
+    },
+    {
+      "id": 38701273750,
+      "name": "Markdown tools R22 - packages and native Chrome",
+      "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+      "status": "completed",
+      "conclusion": "failure",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701273750",
+      "created_at": "2026-10-15T07:48:45Z",
+      "updated_at": "2026-10-15T07:53:37Z"
+    },
+    {
+      "id": 38701274036,
+      "name": "Stay Focus R1 - independent Chrome restrictions and native evidence",
+      "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+      "status": "completed",
+      "conclusion": "failure",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701274036",
+      "created_at": "2026-10-15T07:48:45Z",
+      "updated_at": "2026-10-15T07:54:08Z"
+    },
+    {
+      "id": 38701273953,
+      "name": "Time Review R1.6 - trusted native macOS Chrome Side Panel",
+      "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+      "status": "completed",
+      "conclusion": "failure",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701273953",
+      "created_at": "2026-10-15T07:48:45Z",
+      "updated_at": "2026-10-15T07:55:42Z"
+    },
+    {
+      "id": 38701274096,
+      "name": "Cookie Editor R3.3 real SDK and package verification",
+      "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+      "status": "completed",
+      "conclusion": "failure",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701274096",
+      "created_at": "2026-10-15T07:48:45Z",
+      "updated_at": "2026-10-15T07:55:45Z"
+    },
+    {
+      "id": 38701274061,
+      "name": "Reading TOC R4.1-R4.6 - responsive height, visibility, native and build",
+      "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+      "status": "completed",
+      "conclusion": "failure",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701274061",
+      "created_at": "2026-10-15T07:48:45Z",
+      "updated_at": "2026-10-15T07:55:12Z"
+    },
+    {
+      "id": 38701274087,
+      "name": "AdBlock R1.2 - trusted DNR, offline release and native macOS Chrome",
+      "head_sha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+      "status": "completed",
+      "conclusion": "failure",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38701274087",
+      "created_at": "2026-10-15T07:48:45Z",
+      "updated_at": "2026-10-15T07:55:22Z"
+    }
+  ]
+}

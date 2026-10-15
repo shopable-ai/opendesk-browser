@@ -2233,10 +2233,10 @@
         "siteScope": "none"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
-        "callableNow": "NOT_TESTED",
+        "callableNow": "PASS",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
       },
       "candidateOrigin": null
@@ -2265,10 +2265,10 @@
         "siteScope": "none"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
-        "callableNow": "NOT_TESTED",
+        "callableNow": "PASS",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
       },
       "candidateOrigin": null
@@ -2297,10 +2297,10 @@
         "siteScope": "none"
       },
       "layer4": {
-        "positive": "NOT_TESTED",
-        "denial": "NOT_TESTED",
+        "positive": "PASS",
+        "denial": "PASS",
         "macChrome": "NOT_TESTED",
-        "callableNow": "NOT_TESTED",
+        "callableNow": "PASS",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
       },
       "candidateOrigin": null

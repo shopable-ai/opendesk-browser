@@ -1,0 +1,17 @@
+{
+  "candidateSha": "0c4d4a885efb09b467148009e0ebe4981a1ae2da",
+  "modes": {
+    "production": {
+      "inputCount": 506,
+      "mismatches": [],
+      "packageHash": "c24842bde26128c0a3b2aa016616e02e46901853383a3388cf8c81bdf086578c",
+      "status": "passed"
+    },
+    "development": {
+      "inputCount": 506,
+      "mismatches": [],
+      "packageHash": "53884afa819ec2c92133debb963dfba9c4d9230c6da3626df0542bd15be19a10",
+      "status": "passed"
+    }
+  }
+}
