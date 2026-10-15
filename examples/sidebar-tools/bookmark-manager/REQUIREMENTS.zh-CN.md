@@ -130,3 +130,8 @@
 ### 验收门禁（尚未完成）
 
 必须在实际 Chromium 对本候选跑 360/400/960、必要时 125%/150% 缩放；覆盖选择/重复选中/文件夹箭头、编辑保存取消、干净切换、脏草稿守卫与输入焦点恢复、新建/移动/删除、全树搜索、2000+ 数据、100+ 目录、长文本、错误和权限撤销，保留可复核截图。Node、**本次新候选** Headless Chrome Mock、已安装 Native Chrome 需要单独给出证据；未执行记 NOT_TESTED，所有十维度暂 NOT_SCORED，不能继承 R2.8 CI 分数或宣称 95+。
+
+
+### R2.9 第二轮截图复审（2026-10-16）
+
+首次 Chromium Mock CI [38772642879](https://github.com/shopable-ai/opendesk-browser/actions/runs/38772642879) 已在 360/400/960 真正打开存档 HTML，26 个文件保存 21 张关键状态截图、3 张流程终态图、HTML 和 JSON。人工查看截图发现：预览元数据（冗长 Source 哈希）遮挡第一屏、窄屏 Inspector 较长、行菜单位于滚动溢出容器内可能被裁切。第二轮已把来源元数据折叠、收紧 Inspector 只读信息密度，并把 row actions 变成同一 opaque iframe 内 #tool-root 子节点的固定定位菜单；Esc 恢复触发器焦点，撤权移除菜单，选择其他对象清除失效旧错误。新测试截图 \`menu-open.png\`、弹层视口完整性与 Esc 被新增至 r29-chrome.mjs，须以第二轮 CI 为准，不继承首次 CI。正式 src/、SDK、Host、工具安装包保持不变；DESIGN_PROTOTYPE_NOT_SOURCE_BOUND，Native/UX≥95 仍须独立证据。

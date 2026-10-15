@@ -499,6 +499,29 @@ try{
     assert.ok(visualSaved?.read&&visualSaved?.formHidden&&visualSaved?.title.includes('已保存'),
       'written mock bookmark returns to read-only details');
     await capture('saved-readonly');
+    const popupReport=await evaluate(`(()=>{
+      const q=id=>document.getElementById(id);
+      q('bm-list').querySelector('.bm-menu').click();
+      const menu=q('bm-floating-menu');
+      if(!menu)throw Error('row popup missing');
+      const box=menu.getBoundingClientRect();
+      return {buttons:menu.querySelectorAll('button').length,
+        parent:menu.parentElement.id,read:!q('bm-inspector-read').hidden,
+        visible:box.top>=0&&box.bottom<=innerHeight&&box.left>=0&&box.right<=innerWidth};
+    })()`,visualCtx);
+    assert.ok(popupReport?.buttons===3&&popupReport?.parent==='tool-root'&&
+      popupReport?.read&&popupReport?.visible,
+      'row menu must fit the iframe viewport without triggering editing');
+    await capture('menu-open');
+    const escape=await evaluate(`(()=>{
+      const button=document.querySelector('#bm-floating-menu button');
+      button.focus();button.dispatchEvent(new KeyboardEvent('keydown',
+        {key:'Escape',bubbles:true,cancelable:true}));
+      return {closed:!document.getElementById('bm-floating-menu'),
+        restored:document.activeElement?.classList?.contains('bm-menu')};
+    })()`,visualCtx);
+    assert.ok(escape?.closed&&escape?.restored,
+      'Escape must restore focus to row action trigger');
     // Real pointer click on the OUTER preview-only diagnostic control. It must
     // post only an allowlisted Mock request to the opaque iframe, then display
     // the validated result in the outer feedback region.
