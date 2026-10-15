@@ -8,12 +8,15 @@ import {createSidebarToolPackage} from '../build-sidebar-tool.mjs';
 import {officialDesignSources,canonicalThemeOverride} from './shared-tool-design.mjs';
 import {sidebarPreviewShellSource} from './sidebar-shell-source.mjs';
 import {canonicalAdblockPreviewHost} from './adblock-host-source.mjs';
+import {readingTocOverlayPreview} from './reading-toc-overlay-source.mjs';
+import {addReadingTocControls} from './reading-toc-controls.mjs';
 
 export const PREVIEW_FORMAT='opendesk.ui-preview.v1';
 export const PREVIEW_CONTEXT_FORMAT='opendesk.ui-preview-context.v1';
 export const PREVIEW_SCENARIOS=Object.freeze(['success','empty','error','loading','permission-denied','untrusted']);
 export const PREVIEW_MOCK_OPERATIONS=Object.freeze(['storage.get','storage.set','currentPage.info','tasks.open']);
 export const PREVIEW_ADBLOCK_OPERATIONS=Object.freeze(['adblock.status','adblock.site.restore']);
+export const PREVIEW_TOC_OPERATIONS=Object.freeze(['toc.snapshot','toc.navigate']);
 export const PREVIEW_BOOKMARK_OPERATIONS=Object.freeze([
   'getTree','get','search','create','update','move','remove','prepareRemoveTree','removeTree',
   'observe.start','observe.read','observe.stop'
@@ -32,15 +35,17 @@ export async function generatePreview({
 }={}){
   if(!/^[a-z0-9-]{1,64}$/.test(tool))fail('invalid tool ID');
   // Fail closed: injected-page/standalone need their own real production mounting adapter.
-  if(surface!=='side-panel')fail('surface '+surface+' has no verified production preview adapter');
-  if(!['quick-notes','bookmark-manager','adblock'].includes(tool))fail('mock SDK adapter is not implemented for '+tool);
+  if(surface!=='side-panel'&&!(tool==='reading-toc'&&surface==='page-overlay'))
+    fail('surface '+surface+' has no verified production preview adapter');
+  if(!['quick-notes','bookmark-manager','adblock','reading-toc'].includes(tool))fail('mock SDK adapter is not implemented for '+tool);
   if(!PREVIEW_SCENARIOS.includes(scenario))fail('unsupported scenario');
   if(!['light','dark'].includes(theme))fail('unsupported theme');
+  if(tool==='reading-toc'&&theme!=='light')fail('Reading TOC preview shell is light only');
   if(!Number.isInteger(width)||width<240||width>1440||
     !Number.isInteger(height)||height<320||height>2400)fail('invalid CSS viewport');
   const project=join(repoRoot,'examples/sidebar-tools',tool);
   const pkg=await createSidebarToolPackage(project);
-  if(!pkg.css.startsWith('/* opendesk.shared-design.v1 sha256='))
+  if(tool!=='reading-toc'&&!pkg.css.startsWith('/* opendesk.shared-design.v1 sha256='))
     fail('official design CSS is missing from the validated tool package');
   let mock,operations;
   if(tool==='quick-notes'){
@@ -50,6 +55,11 @@ export async function generatePreview({
       fail('mock and real UI request operations do not match');
     mock=await readFile(new URL('./quick-notes-mock.js',import.meta.url));
     operations=PREVIEW_MOCK_OPERATIONS;
+  }else if(tool==='reading-toc'){
+    if(!PREVIEW_TOC_OPERATIONS.every(op=>pkg.js.includes("request('"+op+"'")))
+      fail('Reading TOC preview cannot reproduce the real tool request contract');
+    mock=await readFile(new URL('./reading-toc-mock.js',import.meta.url));
+    operations=PREVIEW_TOC_OPERATIONS;
   }else if(tool==='adblock'){
     const invoked=[...pkg.js.matchAll(/\brequest\s*\(\s*['"]([^'"]+)['"]/g)].map(match=>match[1]);
     if(invoked.length!==2||invoked.some(op=>!PREVIEW_ADBLOCK_OPERATIONS.includes(op))||
@@ -67,6 +77,7 @@ export async function generatePreview({
   const {tokens,components,digest}=await officialDesignSources();
   const override=await canonicalThemeOverride(theme);
   const shell=await sidebarPreviewShellSource();
+  const tocOverlay=tool==='reading-toc'?await readingTocOverlayPreview({scenario}):null;
   const adblock=tool==='adblock'?await canonicalAdblockPreviewHost():null;
   const shellTemplate=await readFile(new URL('../templates/sidebar-tool-preview-shell.html',import.meta.url),'utf8');
   const lightShellOverride=await canonicalThemeOverride('light');
@@ -91,10 +102,13 @@ export async function generatePreview({
     '<script src="'+dataUrl('text/javascript',pkg.js)+'"></script>',
     '</body></html>'
   ].join('');
+  const frameForDisplay=surface==='page-overlay'?tocOverlay?.html:frameHtml;
   const manifest=Object.freeze({
     format:PREVIEW_FORMAT,tool:pkg.id,toolVersion:pkg.version,surface,scenario,theme,
     viewport:{width,height},sourceCommit:commit,designSha256:digest,uiSha256:uiDigest,
-    shellSha256:shell.digest,shellTheme:'light',previewBuild:'R1.1',
+    shellSha256:shell.digest,shellTheme:'light',previewBuild:tool==='reading-toc'?'R1.2-reading-toc':'R1.1',
+    ...(tocOverlay?{trustedOverlaySourceSha256:tocOverlay.sourceSha256,
+      trustedOverlayModuleSha256:tocOverlay.moduleSha256}:{}),
     mock:true,installed:false,permissionsGranted:false,
     operations
   });
@@ -161,10 +175,10 @@ export async function generatePreview({
     HEIGHT:String(tool==='adblock'?220:height),
     NAV:shell.nav,HEADER:shell.head,
     SOURCE_COMMIT:commit,DESIGN_SHA:digest,SHELL_SHA:shell.digest,UI_SHA:uiDigest,
-    MANIFEST_JSON:safeJS(manifest),FRAME_BASE64:base64(frameHtml)
+    MANIFEST_JSON:safeJS(manifest),FRAME_BASE64:base64(frameForDisplay)
   });
   const used=new Set();
-  const outputHtml=shellTemplate.replace(/\{\{([A-Z0-9_]+)\}\}/g,(_,key)=>{
+  let outputHtml=shellTemplate.replace(/\{\{([A-Z0-9_]+)\}\}/g,(_,key)=>{
     if(!Object.hasOwn(values,key))fail('unsupported preview template slot '+key);
     used.add(key);return values[key];
   });
@@ -172,6 +186,11 @@ export async function generatePreview({
     if(!used.has(key))fail('preview template is missing required slot '+key);
   if(/\{\{[A-Z0-9_]+\}\}/.test(outputHtml))
     fail('unresolved preview template slot');
+  if(tocOverlay){
+    outputHtml=addReadingTocControls(outputHtml,{
+      sidePanelHtml:frameHtml,overlayHtml:tocOverlay.html,scenario,surface
+    });
+  }
   const output=resolve(out||join(repoRoot,'artifacts/previews',pkg.id,
     [surface,scenario,theme,String(width)].join('-')+'.html'));
   return Object.freeze({manifest,frameHtml,html:outputHtml,output});
@@ -186,7 +205,8 @@ export function previewReviewContext(preview){
     // Tool interactions remain owned by the real packaged HTML/JS, not a summary registry.
     hostInteractions:['五个顶部页签（非扩展仅占位）','返回精简列表与重新进入','模拟卸载、取消和确认',
       ...(manifest.tool==='adblock'?['可信宿主全局与当前网站开关（离线模拟）','网站例外恢复确认（离线模拟）']:[]),
-      ...(manifest.tool==='bookmark-manager'?['外层预览测试控制（不属于正式工具）']:[])],
+      ...(manifest.tool==='bookmark-manager'?['外层预览测试控制（不属于正式工具）']:[]),
+      ...(manifest.tool==='reading-toc'?['简体中文/English 原位切换（离线模拟）','Side Panel / 可信网页悬浮源代码切换','章节/空态/加载/错误模拟']:[])],
     scenario:manifest.scenario,viewportCssPx:manifest.viewport,
     source:{commit:manifest.sourceCommit,designSha256:manifest.designSha256,
       shellSha256:manifest.shellSha256,uiSha256:manifest.uiSha256},
@@ -210,7 +230,7 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).hr
     ['--theme','theme'],['--width','width'],['--height','height'],['--out','out']]);
   try {
     for(let i=0;i<args.length;i+=2){
-      if(!opts.has(args[i])||i+1>=args.length)fail('usage: --tool quick-notes|bookmark-manager|adblock --surface side-panel --scenario success --theme light --width 360 [--height 760] [--out file]');
+      if(!opts.has(args[i])||i+1>=args.length)fail('usage: --tool quick-notes|bookmark-manager|adblock|reading-toc --surface side-panel --scenario success --theme light --width 360 [--height 760] [--out file]');
       const key=opts.get(args[i]);
       parsed[key]=['width','height'].includes(key)?Number(args[i+1]):args[i+1];
     }
