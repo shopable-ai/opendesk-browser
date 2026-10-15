@@ -54,3 +54,10 @@ python3 -m http.server 48762 --bind 127.0.0.1
 3. 语义提取是确定性结构化呈现，不调用 AI 改写或总结；对大纲、表格和长代码做有界截断，原文始终保留。
 4. UI 没有 XMind 编辑/导出，安全与包体积优先；目前不承诺 CSP 严格页面、320px、真实 200%、触控板及所有 ChatGPT 版本均 PASS。
 5. 不修改 `shopable-station`、不复制其 XMind SDK/JSX/Next.js 代码，复用 `{id,title,content,depth,children}` 数据模型的概念与“只读、折叠、缩放、原文切换”的交互原则；避免许可证、4 MB 资源和页面执行世界耦合。
+
+## R1.1：Mindbank XMind 真实源码移植
+
+- `src/mindbank-xmind-theme.js` **直接从参考仓库移植并实际调用** `xmind-renderer-seams.ts` 的路径 ID、解析与分支色算法，以及 `xmind/skin.ts` 的完整静态主题 JSON；来源 blob SHA 在新模块顶部。
+- 显示复用：蓝色中心节点、分支渐变颜色、层级递进、圆角主题和曲线连接。主入口仍是逐条 ChatGPT AI 回复。
+- **不是完整版 XMind SDK**。参考实现依赖 `JSZip/Workbook/Topic/Dumper/_SB_` 和四个全局 JS 文件，约 4.04 MB。当前 Page Program 执行代码和资源预算不支持直接打入这套二进制；分发授权/CSP 也未核实。保留本地 SVG 只读渲染，不能宣称像素级完全一致。
+- ChatGPT DOM 是渲染 HTML，不是原 Markdown；`extract.js` 是必要的网页语义适配。真实登录 Chrome 的操作栏与视觉效果仍须现场验收。

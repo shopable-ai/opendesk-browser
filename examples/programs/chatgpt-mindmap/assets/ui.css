@@ -58,3 +58,23 @@ button:disabled{opacity:.5;cursor:progress}
 .odmm-warning{padding:5px 12px;background:#fff2d2;color:#704b07;font-size:12px}
 @media (max-width:420px){.odmm-shell{height:340px}.odmm-toolbar{gap:4px;padding:6px}.odmm-tool{padding:4px 7px}}
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+
+/* Design parity with Mindbank XMind: blue center and colored curved branches. */
+.odmm-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:13px 16px;border-bottom:1px solid var(--mm-line);background:var(--mm-bg)}
+.odmm-title-block{display:flex;flex-direction:column;gap:2px;min-width:0}
+.odmm-title{font-size:15px;font-weight:700;letter-spacing:-.02em;color:var(--mm-fg)}
+.odmm-subtitle{font-size:11px;color:var(--mm-muted)}
+.odmm-mode{border:1px solid var(--mm-line);padding:4px 9px;border-radius:999px;
+  color:var(--mm-muted);background:var(--mm-soft);font-size:11px;white-space:nowrap}
+.odmm-shell{height:440px;border-radius:16px;box-shadow:0 5px 28px #0a192614}
+.odmm-toolbar{gap:6px;padding:9px 14px}
+.odmm-tool{background:var(--mm-bg);font-weight:550;transition:background .12s,border-color .12s}
+.odmm-tool:hover{background:var(--mm-soft);border-color:var(--mm-accent)}
+.odmm-canvas{background-size:22px 22px;background-image:radial-gradient(var(--mm-line) .75px,transparent .75px)}
+.odmm-edge{stroke-width:2.3;stroke-linecap:round;opacity:.87}
+.odmm-topic{stroke-width:1.7;filter:drop-shadow(0 3px 3px #00000010)}
+.odmm-topic.root{fill:#1D88E5;stroke:#1D88E5}
+.odmm-topic-rail{pointer-events:none;opacity:.9}
+.odmm-node:hover .odmm-topic{stroke-width:2.5}
+@media(max-width:420px){.odmm-heading{padding:11px}.odmm-mode{display:none}.odmm-shell{height:400px}}

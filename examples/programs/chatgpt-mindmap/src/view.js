@@ -15,6 +15,10 @@ export function createAnswerView({document,window,css,tree,nodeCount,truncated,
   const shadow=host.attachShadow({mode:'open'});
   const style=el('style');style.textContent=css;
   const shell=el('div','odmm-shell');
+  const heading=el('div','odmm-heading');
+  const titleBlock=el('div','odmm-title-block');
+  titleBlock.append(el('strong','odmm-title','思维导图'),el('span','odmm-subtitle','来自本条 AI 回复 · 本地生成'));
+  heading.append(titleBlock,el('span','odmm-mode','只读'));
   const toolbar=el('div','odmm-toolbar');
   const actions=[];
   function action(label,fn,title){
@@ -41,7 +45,7 @@ export function createAnswerView({document,window,css,tree,nodeCount,truncated,
     const warning=el('div','odmm-warning','导图内容较长，已按节点、深度或备注上限截断；原文保持完整。');
     warning.setAttribute('role','status');shell.append(warning);
   }
-  shell.append(toolbar,canvas,note,footer);shadow.append(style,shell);
+  shell.append(heading,toolbar,canvas,note,footer);shadow.append(style,shell);
   let renderer=createMindMapRenderer({document,window,canvas,tree,onSelection:node=>{
     note.hidden=false;
     note.textContent=node.content?`${node.title}\n${node.content}`:node.title;

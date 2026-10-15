@@ -1,5 +1,9 @@
-// Lightweight local SVG renderer. No foreignObject, innerHTML, CDN, dynamic
-// JavaScript or XMind runtime. Nodes and labels are always textContent.
+import {buildXmindNodeKey,resolveXmindBranchLineColor,getXmindStyleData} from './mindbank-xmind-theme.js';
+// Read-only local SVG rendering actually uses Mindbank XMind topic keys, branch
+// palette and central color. Vendor SDK browser globals are not bundled.
+const skin=getXmindStyleData('dark');
+const CENTER_COLOR=skin.theme.centralTopic.properties['svg:fill'];
+const CENTER_LINE=skin.theme.centralTopic.properties['line-color'];
 const SVG='http://www.w3.org/2000/svg';
 const W=196,STEP=244,GAP=18,YPAD=14,MAX_SCALE=2.5,MIN_SCALE=.16;
 const svgEl=(doc,tag,attrs={})=>{
@@ -34,17 +38,19 @@ export function layoutMindTree(root,collapsed=new Set()) {
     return result;
   }
   measure(root);
-  function position(node,start,depth,parent){
+  function position(node,start,depth,parent,path=[]){
+    const nodeKey=path.length?buildXmindNodeKey(path):'';
+    const branchColor=resolveXmindBranchLineColor(nodeKey);
     const m=sizes.get(node),x=20+depth*STEP;
     const y=start+(m.span-m.height)/2;
-    coords.push({node,x,y,width:W,height:m.height});
+    coords.push({node,x,y,width:W,height:m.height,nodeKey,branchColor});
     maxRight=Math.max(maxRight,x+W);
-    if(parent)edges.push({from:parent,to:{x,y:y+m.height/2}});
+    if(parent)edges.push({from:parent,to:{x,y:y+m.height/2},color:branchColor});
     let next=start+(m.span-m.childSizes.reduce((s,c)=>s+c.span,0)-
       GAP*Math.max(0,m.childSizes.length-1))/2;
     for(let i=0;i<m.visible.length;i++){
       const child=m.visible[i],size=m.childSizes[i];
-      position(child,next,depth+1,{x:x+W,y:y+m.height/2});
+      position(child,next,depth+1,{x:x+W,y:y+m.height/2},[...path,i]);
       next+=size.span+GAP;
     }
   }
@@ -80,18 +86,24 @@ export function createMindMapRenderer({document,window,canvas,tree,onSelection})
     if(destroyed)return;
     layout=layoutMindTree(tree,folded);
     const fragment=document.createDocumentFragment();
-    for(const {from,to} of layout.edges){
+    for(const {from,to,color} of layout.edges){
       const d=`M ${from.x} ${from.y} C ${from.x+24} ${from.y}, ${to.x-24} ${to.y}, ${to.x} ${to.y}`;
-      fragment.append(svgEl(document,'path',{d,class:'odmm-edge'}));
+      fragment.append(svgEl(document,'path',{d,class:'odmm-edge',stroke:color||CENTER_LINE}));
     }
-    for(const {node,x,y,width,height} of layout.coords){
+    for(const {node,x,y,width,height,nodeKey,branchColor} of layout.coords){
       const group=svgEl(document,'g',{class:'odmm-node',transform:`translate(${x} ${y})`,
-        'data-mm-node':node.id,tabindex:'0',role:'button',
+        'data-mm-node':node.id,'data-mm-topic-key':nodeKey,tabindex:'0',role:'button',
         'aria-label':node.title+(node.children.length?'，点击展开或折叠':'，查看正文备注')});
       if(node.children.length)group.setAttribute('aria-expanded',String(!folded.has(node.id)));
       const kind=node.kind==='root'?' root':node.kind==='heading'?' heading':'';
       const box=svgEl(document,'rect',{x:0,y:0,width,height,rx:11,class:'odmm-topic'+kind});
       group.append(box);
+      if(node.kind==='root')box.setAttribute('fill',CENTER_COLOR);
+      else if(branchColor){
+        box.setAttribute('stroke',branchColor);
+        group.append(svgEl(document,'rect',{x:0,y:2,width:4,height:height-4,rx:2,
+          fill:branchColor,class:'odmm-topic-rail'}));
+      }
       const text=svgEl(document,'text',{class:'odmm-topic-label'});
       const rows=linesOf(node.title);
       rows.forEach((line,index)=>{
