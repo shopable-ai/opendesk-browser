@@ -84,3 +84,16 @@
 - 当前 `workflow-view.js` 已由并行工作增加观察授权与 `planningObservation` 传递；当前 `direct-execution.js` 已有受观察约束的安全搜索例外。后续必须增量复用这两者，不用早期 UI 补丁覆盖，更不能删除敏感点击边界。
 - **下一步按功能先行：** F0 当前真实 UI 与 Provider 配置打通云端 Responses 的受控观察及受限工作流生成，复用原 RunHost；F1 统一云端与本地 Codex 的最小业务规划合同；F2 核对 OpenDesk Go 实际服务和安装版 Codex App Server schema，再在同一 Go 本机服务按需实现 loopback、配对鉴权、能力声明的最小 HTTP /v1/responses 兼容子集（先 stream:false）。此阶段先针对新增单元运行最短 smoke，不开启大规模 CI/全套原生验收。
 - 完成功能后另起阶段：仓库定向回归→单条真实 Chrome A→A2/B/C→保存后无 AI Run×2→负路径→production 同候选正式验收。未取得上述证据之前，原生各 Gate、体积预算、Go 网关及总评分均保持 **NOT_TESTED / NOT_ACCEPTED**。
+
+
+## R2.1：当前源码/正式架构合同同步（2026-10-15）
+
+**工作所有者/修改范围：**本次普通 ChatGPT GitHub 连接会话；仅在 Browser `main` 增量写入 `docs/architecture/browser-framework/workflow-ai-provider-routing-r2.zh-CN.md`、`docs/architecture/browser-framework/README.md`、历史 R16 的单行版本入口及本既有工作流账本；核心代码独立文件见后续记录。未触及用户 Mac、`dist/development`、Chrome profile、Native 端口与其他 Agent 的工作区。**Go 网关源码是并行 Go 开发提交，本轮只读核验，不宣称由本记录作者实现。**
+
+**重要版本纠偏（不改历史段）：**上文记录的 `UI_NOT_WIRED / LOCAL_HTTP_NOT_IMPLEMENTED` 是先前候选的真实状态，已经不适用于本次源代码快照。核对 Browser `main@a7246887f5d09015b6244a1b2c5da5e232a2d015`、Go `master@310a24a726a6d218ae585df2dbe449b86f13ea62`，Browser `src/ui/workflow/provider.js` + `workflow-view.js` 现为 `SOURCE_WIRED` 的统一 Facade；Cloud Responses 已从 UI Send 通过批准的网页观察接入实际 `responses.js`、`ai-plan.js`、原 Compiler/RunHost；原生外部模型及 Chrome `NOT_VERIFIED`。Go 新 `internal/browserai/http_gateway.go` 在同一 Native Host 的 `host_ai_unix.go/host_unix.go` 中复用 `h.ai` Manager，需显式 `OPENDESK_CODEX_HTTP_ADDR/TOKEN`，默认禁 listener，已有 `POST /v1/responses` + `GET /opendesk/v1/capabilities` 严格子集源码；**仅 SOURCE_WIRED，未运行验证，Browser HTTP Provider 未接线**。
+
+**架构决策：**在 [唯一 R2 正式设计合同](../../architecture/browser-framework/workflow-ai-provider-routing-r2.zh-CN.md) 固化单一 Facade、原 RunHost/Authority/Task/Revision、Native 优先+HTTP 可选、同一个 Go Codex Manager、云端直接 HTTPS、HTTP unsupported fail closed、三类不同任务成功级别；新增文档不替代代码。本轮未新建第二 Codex 进程管理器或 Browser Executor。
+
+**核心阶段：**F0 `SOURCE_RECONCILED`；F1 `SOURCE_WIRED/NATIVE_NOT_VERIFIED`；F2 `SOURCE_WIRED/PARTIAL`；F3 Go HTTP `SOURCE_WIRED/NOT_VERIFIED`；F4 Native/Cloud 已接线，但 Browser HTTP `NOT_IMPLEMENTED`；F5 `IN_PROGRESS`。下一最小动作是由 Go 网关/Browser Provider 两个 owner 约定安全 pairing、token 获取与撤权、`Origin` 禁止策略和只接收 `input:string` + strict schema 的协议映射，随后把 Browser HTTP adapter 接入统一 Facade；不得绕过当前拒绝条件开启宽松 CORS。
+
+**验证状态/资源：**本轮不运行 full Node、build、Mac Chrome、Go 原生或生产验收；此前 CI 98/98 和历史 Linux Codex 验证不转换为 R2 新候选 PASS；真实 HTTP Gateway/Extension Origin/真实网页登录和业务读回、Save 关闭模型后的 Run×2 均 `NOT_TESTED`。本次文档提交和随后源码提交使用 GitHub Blob SHA 乐观写入，未占用本地 git index 或开发 watcher；每次写入前重新获取目标文件 SHA，并保留无关新增提交。
