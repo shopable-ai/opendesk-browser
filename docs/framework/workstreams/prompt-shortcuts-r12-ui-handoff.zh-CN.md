@@ -146,20 +146,21 @@
 
 ### 7.1 本次只修复一个产品关键路径
 
-- 只改动正式 \`trusted/page.js\` 的 ChatGPT 输入读取/插入确认和点击并发保护：通过受控编辑器读回原草稿、原生 \`execCommand('insertText')\` 插入、再核对完整原文与多行提示词（包括段落边界和空行），而不再用压平所有空白的 \`includes()\` 误报成功。现代 ChatGPT 富文本段落的 \`textContent\` 不携带换行，因此对直接段落子节点逐段读取；其他 DOM 形态保守读回并按一致的完整草稿规则验证。
-- 保存 \`page.prompts\` 的严格网站授权、安装身份、隔离存储和唯一可信适配器。若本次原生插入的结果不明确，显示手动核对/复制提示，不自动重试、重发或篡改 React/ProseMirror 状态；同一时间只允许一个进行中的插入请求。
+- 只改动正式 `trusted/page.js` 的 ChatGPT 输入读取/插入确认和点击并发保护：通过受控编辑器读回原草稿、原生 `execCommand('insertText')` 插入、再核对完整原文与多行提示词（包括段落边界和空行），而不再用压平所有空白的 `includes()` 误报成功。现代 ChatGPT 富文本段落的 `textContent` 不携带换行，因此对直接段落子节点逐段读取；其他 DOM 形态保守读回并按一致的完整草稿规则验证。
+- 保存 `page.prompts` 的严格网站授权、安装身份、隔离存储和唯一可信适配器。若本次原生插入的结果不明确，显示手动核对/复制提示，不自动重试、重发或篡改 React/ProseMirror 状态；同一时间只允许一个进行中的插入请求。
 - 组合输入期间（包括异步站点授权校验期间新开始的组合）直接拒绝网页按钮插入，不强制转移焦点到 fallback 文本框。保留关闭 Side Panel 后页面独立运行、SPA、授权撤销及存储失败保守停止的既有路径。
-- 由于可信 \`trusted/page.js\` 是固定源码模块，其 Git blob SHA 已审核并同步精确更新 \`scripts/bundle-provenance.mjs\` 和 \`tests/environment/prompt-shortcuts-r14.test.mjs\`。没有放宽任意目录通配、敏感目标文件或 SDK 权限。
-- 增强现有动态 Node 页面控制器测试：双击仅插入一次、输入法组合期无插入，以及“文字保留但换行丢失”必须拒绝成功判定。保持原测试文件，不新增竞争性引擎或 HTML 预览。
+- 由于可信 `trusted/page.js` 是固定源码模块，其 Git blob SHA 已审核并同步精确更新 `scripts/bundle-provenance.mjs` 和 `tests/environment/prompt-shortcuts-r14.test.mjs`。没有放宽任意目录通配、敏感目标文件或 SDK 权限。
+- 增强现有动态 Node 页面控制器测试：双击仅插入一次、输入法组合期无插入，以及“文字保留但换行丢失”必须拒绝成功判定，另补充结构化段落与空行正确通过的定向用例。保持原测试文件，不新增竞争性引擎或 HTML 预览。
 
 ### 7.2 候选证据与待验收边界
 
 | 项目 | 结果 | 适用范围 |
 | --- | --- | --- |
-| R1.4 既有独立 CI | **9/9 NODE_PASS**，Run [38738460330](https://github.com/shopable-ai/opendesk-browser/actions/runs/38738460330)，SHA \`374d920fe961c8329dd1a5dfa3a5d3bbf1b25b01\` | 历史候选；不自动升级为 R1.5 测试 |
-| Linux headless Chromium \`144.0.7559.96\` 独立 HTML 插入实验 | **6/6 仅模拟编辑器插入且 6/6 撤销成功**：段落、DIV、TEXTAREA；已有草稿、空草稿、换行、空行、中文、Emoji | **模拟 Chromium DOM**；未使用本仓库完整扩展或真实 ChatGPT |
-| R1.5 GitHub Scoped Node/CI | **NOT_TESTED**（提交后以 GitHub Actions 实际运行结果更新） | 不能预先声称通过 |
-| 官方 production 整包构建、固定来源全局 gate | **NOT_TESTED**；若被并行 AdBlock 摘要阻断，应将其与本工具独立归因 | 不修改 AdBlock 文件或放宽来源安全限制 |
+| R1.4 既有独立 CI | **9/9 NODE_PASS**，Run [38738460330](https://github.com/shopable-ai/opendesk-browser/actions/runs/38738460330)，SHA `374d920fe961c8329dd1a5dfa3a5d3bbf1b25b01` | 历史候选；不自动升级为 R1.5 测试 |
+| Linux headless Chromium `144.0.7559.96` 独立 HTML 插入实验 | **6/6 仅模拟编辑器插入且 6/6 撤销成功**：段落、DIV、TEXTAREA；已有草稿、空草稿、换行、空行、中文、Emoji | **模拟 Chromium DOM**；未使用本仓库完整扩展或真实 ChatGPT |
+| R1.5 GitHub Scoped Node/CI | **10/10 NODE_PASS**，Run [38742882938](https://github.com/shopable-ai/opendesk-browser/actions/runs/38742882938)，候选 `d564f951def2d2ae5f13b6505d4cfb36acf5f29b`；后续新增段落回归与文件构建候选 `1bc0fabcf2e3355decedc6a8df5eea51ed292a3e` 仍待 CI | 仅 Node 动态模拟与静态合同；非原生 Chrome |
+| 官方 production 整包构建、固定来源全局 gate | **BLOCKED**，Run [38742882742](https://github.com/shopable-ai/opendesk-browser/actions/runs/38742882742)，首次失败：`[opendesk-fixed-sidebar-tool-host] Trusted AdBlock source changed`，文件 `examples/sidebar-tools/adblock/trusted/host-controls.js` | AdBlock 并行源码固定摘要漂移，非本工具的来源校验失败；不得放宽门槛 |
+| 独立 portable v2 package JSON | **NOT_TESTED**；官方 CLI、包校验及 artifact 上传已加入现有 `.github/workflows/prompt-shortcuts-r14.yml`，候选 `1bc0fab` CI 尚在排队 | 即使通过也只是安装候选，不代表完整 WXT production Chrome 扩展 |
 | 已安装 OpenDesk Browser + 实时 ChatGPT 草稿 | **NOT_TESTED** | 需相同安装候选下亲自验证完整正文、焦点、Undo、输入法与刷新 |
 | 原生 Chrome 选区菜单和一次性领取 | **NOT_TESTED** | Node 接线/模拟不能替代菜单点击 |
 | 关闭侧栏、SPA/BFCache、撤权、卸载/重装完整链 | **NOT_TESTED** | 需要真实已安装环境 |
@@ -167,6 +168,6 @@
 
 ### 7.3 最近的实际阻塞与最小下一步
 
-- 在当前网页会话没有用户 Mac Chrome Profile、已登录 ChatGPT DOM 或本机 \`npm run dev\` watcher 的访问能力。不可把模拟编辑器、官方 packer 的 Node 检查或历史候选视为真实安装证明。
+- 在当前网页会话没有用户 Mac Chrome Profile、已登录 ChatGPT DOM 或本机 `npm run dev` watcher 的访问能力。不可把模拟编辑器、官方 packer 的 Node 检查或历史候选视为真实安装证明。
 - 下一步先读取 R1.5 同提交作用范围内的 GitHub Actions 结果；有真实 FAIL 则仅修受影响的可信适配器和测试，保持来源 SHA 白名单同步。再由具备隔离测试 Profile 的运行环境做官网 optional 安装、真实 ChatGPT 草稿、中文 IME、原生菜单、关闭侧栏以及撤权/卸载验收。
-- 官方整包构建必须使用隔离 CI/CFT 或已协调的唯一 build writer，不覆盖本地共享 \`dist/development\`。如全局构建失败，记录首个实际错误及所属文件；不可将其他项目的阻断伪装成 Prompt Shortcuts 的缺陷。
+- 官方整包构建必须使用隔离 CI/CFT 或已协调的唯一 build writer，不覆盖本地共享 `dist/development`。如全局构建失败，记录首个实际错误及所属文件；不可将其他项目的阻断伪装成 Prompt Shortcuts 的缺陷。
