@@ -1,0 +1,16 @@
+{
+  "at": "2026-10-15T14:25:52.301549+00:00",
+  "realGoDiagnostic": "TestInstalledCodexContinuousSession failed E_PROVIDER providerCode=other (7.91s)",
+  "officialCliError": {
+    "status": 400,
+    "type": "invalid_request_error",
+    "message": "The 'gpt-5.5' model is not supported when using Codex with a ChatGPT account."
+  },
+  "realChromeThreads": [
+    "01a13fe4-9d0c-7fc0-9386-cb9c22681332",
+    "01a13feb-fb55-7c50-a8e6-2ab8bea345c4"
+  ],
+  "pageActionExecuted": false,
+  "autoRetryObserved": false,
+  "diagnosticOnlyNotChromePass": true
+}

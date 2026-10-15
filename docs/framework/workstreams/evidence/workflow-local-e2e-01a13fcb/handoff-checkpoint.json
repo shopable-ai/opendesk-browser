@@ -1,0 +1,22 @@
+{
+  "at": "2026-10-15T15:05:47.080332+00:00",
+  "head": "cd1f18d4918a98737bf56065ee9718cbc4723a99",
+  "branch": "main",
+  "status": "## main...origin/main\n M examples/sidebar-tools/ai-vip-share/dev/local-test/ARCHITECTURE-REVIEW.zh-CN.md\n M examples/sidebar-tools/ai-vip-share/dev/local-test/README.zh-CN.md\n M examples/sidebar-tools/ai-vip-share/dev/local-test/local-fixture-server.mjs\n M examples/sidebar-tools/ai-vip-share/dev/local-test/local-fixture-server.test.mjs\n M src/ai-smart-access/host-controls.js\n M src/ai-smart-access/lifecycle.js\n M src/ai-smart-access/policy.js\n M src/ai-smart-access/provider-config.js\n M src/ai-smart-access/service.js\n M src/framework/sdk/browser-schemas.js\n M src/ui/workflow/workflow-view.js\n M tests/environment/ai-vip-share-r21-lifecycle.test.mjs\n M wxt.config.mjs\n?? tests/environment/ai-vip-share-r53-development.test.mjs\n?? tests/framework/ai-vip-share-r53-local-proxy.mjs\n",
+  "files": {
+    "src/ui/workflow/workflow-view.js": "abad1d8069034a77473dcd0dbde05e9908dae7a7f0272aab22fe0d4b17507652",
+    "src/framework/sdk/browser-schemas.js": "a345b8764a74aeda8b99688f403295310b678518e373a123af55165387b0a966",
+    "src/ui/workflow/direct-execution.js": "4477694e69a0bdfcb3b271c15b008ec2d5a1066025d3dadfb2e893c09f965c60",
+    "src/ui/workflow/observation.js": "7816ff60e316a5df6d32db6af2ee2e0094ea8b2e79ad61d1109b68493305d9eb",
+    "src/framework/workflow/compiler.js": "2c50227d4bd9bfa5b75312a2965872052c47fd7f47748d366cbd543672aa7b1d"
+  },
+  "ownSourceUncommitted": [
+    "src/ui/workflow/workflow-view.js",
+    "src/framework/sdk/browser-schemas.js"
+  ],
+  "sourceFixChromeRetest": "NOT_TESTED",
+  "commitPush": "NOT_DONE",
+  "permissionPrompt": "CFT Chrome 127.0.0.1 allow prompt remains open; user explicitly authorized agent to operate it; do not ask again",
+  "stopReason": "User requested copyable handoff prompt to continue in new chat",
+  "nativeDisconnectLateAckHeldWorkerTamper": "NOT_TESTED"
+}

@@ -1,0 +1,374 @@
+Window: "OpenDesk Browser · Browser Test Lab", App: Google Chrome for Testing.
+0 标准窗口 OpenDesk Browser · Browser Test Lab - Google Chrome for Testing, URL: 127.0.0.1:43111/demo-form.html#lab-search, Secondary Actions: Raise
+	1 container OpenDesk Browser · Browser Test Lab - Google Chrome for Testing, URL: 127.0.0.1:43111/demo-form.html#lab-search
+		2 container
+			3 工具栏
+				4 滚动区
+					5 container chrome://webui-toolbar.top-chrome/
+						6 工具栏
+							7 按钮 返回, Help: 点击后退，长按查看历史记录
+							8 按钮 (disabled) 前进, Help: 点击前进，长按查看历史记录
+							9 按钮 重新加载, Help: 重新加载此页
+				10 container
+					11 弹出式按钮 查看网站信息
+					12 文本栏 (settable) 地址和搜索栏, Value: 127.0.0.1:43111/demo-form.html#lab-search, Placeholder: 问问 Google 或输入网址
+					13 按钮 为此标签页添加书签
+				14 container
+					15 弹出式按钮 已允许在此网站上使用扩展程序。选择即可打开菜单
+					16 按钮 关闭侧边栏
+				17 按钮 您
+				18 弹出式按钮 Chromium
+			19 container
+				20 滚动区
+					21 HTML 内容 OpenDesk Browser · Browser Test Lab, URL: 127.0.0.1:43111/demo-form.html#lab-search
+						22 container
+							23 text OpenDesk Browser BROWSER TEST LAB LOCAL FIXTURE · 43111
+							24 按钮 ↺ 重置场景
+						25 container
+							26 container Browser Test Lab
+								27 文本 AUTOMATION / INTERACTION / LOCATOR
+								28 标题 Browser Test Lab, Value: 1
+									29 文本 Browser Test Lab
+								30 文本 OpenDesk Browser 的浏览器交互实验台：操作真实 DOM，检查选择器与响应状态，并为 Sidebar 草稿和 Page API 提供稳定验收目标。
+								31 text 原生 DOM 现代 Locator 异步与取消 Fetch / axiosx
+								32 文本 07
+								33 文本 SCENES
+								34 文本 一个入口 · 可复现测试
+							35 container 测试场景导航
+								36 link 01 文本与列表, Value: 127.0.0.1:43111/demo-form.html#lab-text
+								37 link 02 点击与显隐, Value: 127.0.0.1:43111/demo-form.html#lab-click
+								38 link 03 异步与取消, Value: 127.0.0.1:43111/demo-form.html#lab-async
+								39 link 04 基础表单, Value: 127.0.0.1:43111/demo-form.html#lab-form
+								40 link 05 动态搜索, Value: 127.0.0.1:43111/demo-form.html#lab-search
+								41 link 06 真实 HTTP 请求, Value: 127.0.0.1:43111/demo-form.html#lab-api
+								42 link 07 Locator 专项, Value: 127.0.0.1:43111/demo-form.html#lab-locator
+							43 文本 01 — 06 / CORE INTERACTIONS
+							44 container 文本读取
+								45 文本 01
+								46 标题 文本读取, Value: 2
+									47 文本 文本读取
+								48 标题 周末阅读清单, Value: 3
+									49 文本 周末阅读清单
+								50 container 网页原位扩展入口测试
+									51 文本 扩展按钮位置
+									52 按钮 模拟区域重绘
+									53 文本 0
+								54 文本 本周共有 3 项阅读计划，当前状态：等待开始。
+								55 内容列表
+									56 文本 产品设计
+									57 文本 浏览器技术
+									58 文本 交互体验
+								59 文本 当前网页标题
+								60 文本栏 (settable) 当前网页标题, Value: OpenDesk Browser · Browser Test Lab
+								61 按钮 更新网页标题
+								62 文本 供 Page UI 点击时读取标题验收使用。
+							63 container 按钮与 DOM 变化
+								64 文本 02
+								65 标题 按钮与 DOM 变化, Value: 2
+									66 文本 按钮与 DOM 变化
+								67 按钮 点击一次
+								68 按钮 展开文字
+								69 container
+									70 text 累计点击  0  次
+							71 container 网络请求与异步等待
+								72 文本 03
+								73 标题 网络请求与异步等待, Value: 2
+									74 文本 网络请求与异步等待
+								75 文本 显示延迟
+								76 弹出式按钮 显示延迟, Value: 1.2 秒
+									77 (selected) 1.2 秒
+								78 按钮 请求成功
+								79 按钮 HTTP 404
+								80 按钮 模拟超时
+								81 按钮 (disabled) 取消
+								82 文本 尚未发起请求
+							83 container 简单表单
+								84 文本 04
+								85 标题 简单表单, Value: 2
+									86 文本 简单表单
+								87 container
+									88 文本 姓名
+									89 文本栏 (settable) 姓名, Placeholder: 例如 Alice
+									90 文本 咨询类型
+									91 弹出式按钮 咨询类型, Value: 一般问题
+										92 (selected) 一般问题
+									93 按钮 提交
+							94 container 动态搜索 · Locator 测试
+								95 文本 05
+								96 标题 动态搜索 · Locator 测试, Value: 2
+									97 文本 动态搜索 · Locator 测试
+								98 container
+									99 文本 搜索关键词
+									100 搜索文本字段 (settable) 搜索关键词, Value: ai自动化第一选择
+									101 按钮 搜索
+								102 文本 提交次数：0
+							103 container 真实 HTTP · SDK axiosx / Fetch 对照
+								104 文本 06
+								105 标题 真实 HTTP · SDK axiosx / Fetch 对照, Value: 2
+									106 文本 真实 HTTP · SDK axiosx / Fetch 对照
+								107 文本 请求 URL
+								108 文本栏 (settable) 请求 URL, Value: https://httpbingo.org/get?source=opendesk
+								109 文本 请求通道
+								110 弹出式按钮 请求通道, Value: OpenDesk SDK axiosx（默认）
+									111 (selected) OpenDesk SDK axiosx（默认）
+								112 文本 HTTP Method
+								113 弹出式按钮 HTTP Method, Value: GET
+									114 (selected) GET
+								115 文本 超时 (ms)
+								116 步进器 (settable, float) 超时 (ms), Value: 8000
+								117 文本 示例地址（只填入，不发送）
+								118 弹出式按钮 示例地址（只填入，不发送）, Value: 第三方 GET JSON · axiosx 默认
+									119 (selected) 第三方 GET JSON · axiosx 默认
+								120 按钮 发送 GET
+								121 按钮 (disabled) 取消请求
+								122 文本 默认以 OpenDesk SDK axiosx 请求第三方 HTTPS 测试服务；Fetch 仅供对照，不能作为 SDK 成功依据。只在点击发送后请求，网络驱动不携带 Cookie；第三方会看到请求及来源公网 IP。扩展自动提供 SDK axiosx；同源及本地实验页的固定第三方测试 Origin 无需逐页批准。只在点击发送后访问网络；其他跨站目标仍受控，绝不回退 Fetch。SDK 不支持此页面的取消接口。
+								123 文本 尚未发送请求
+								124 定义列表
+									125 container HTTP
+										126 文本 HTTP
+									127 文本 —
+									128 container 耗时
+										129 文本 耗时
+									130 文本 —
+									131 container 响应类型
+										132 文本 响应类型
+									133 文本 —
+								134 开合三角标记 响应 Headers
+									135 文本 响应 Headers
+							136 文本 07 / LOCATOR ACCEPTANCE PLAYGROUND
+							137 container Locator 专项 · 唯一性与可操作性
+								138 文本 07
+								139 标题 Locator 专项 · 唯一性与可操作性, Value: 2
+									140 文本 Locator 专项 · 唯一性与可操作性
+								141 文本 以下是可重复操作的真实 DOM Fixture。页面不会伪造 PASS；请通过扩展 Controller 的运行回执判定自动化成功。
+								142 container 同名元素与严格匹配
+									143 文本 LOCATOR / 01
+									144 标题 同名元素与严格匹配, Value: 3
+										145 文本 同名元素与严格匹配
+									146 container
+										147 text 两个按钮同名， getByRole('button',{name:'确认记录',exact:true})  的计数应为 2，提交前必须唯一定位。
+									148 container 分区 A
+										149 按钮 确认记录
+									150 container 分区 B
+										151 按钮 确认记录
+									152 文本 等待操作 · 两个同名目标
+								153 container 禁用、ARIA 与只读
+									154 文本 LOCATOR / 02
+									155 标题 禁用、ARIA 与只读, Value: 3
+										156 文本 禁用、ARIA 与只读
+									157 文本 检查 disabled、aria-disabled 和 readonly；不可操作项不得被无意写入或提交。
+									158 文本 只读样本
+									159 文本栏 只读样本, Value: 不可覆盖
+									160 按钮 (disabled) 原生禁用
+									161 按钮 (disabled) ARIA 禁用
+									162 文本 预期：禁用元素不能提交；只读输入不能被 fill 覆盖。
+								163 container 遮挡与真实命中
+									164 文本 LOCATOR / 03
+									165 标题 遮挡与真实命中, Value: 3
+										166 文本 遮挡与真实命中
+									167 文本 先保持覆盖层，验证目标不可点击；解除后验证可点击且不会重复触发。
+									168 按钮 被遮挡的按钮
+									169 切换按钮 解除遮挡, Value: 0
+									170 container
+										171 text 实际点击次数： 0
+								172 container 延迟插入与等待
+									173 文本 LOCATOR / 04
+									174 标题 延迟插入与等待, Value: 3
+										175 文本 延迟插入与等待
+									176 文本 点击后约 700ms 才生成目标。可验证 waitFor(visible)；重置取消尚未生效的回调。
+									177 按钮 延迟生成目标
+									178 文本 尚未生成目标
+								179 container
+									180 text 边界提示： 这里的可视化 DOM 结果不是 Chrome 扩展验收证据。当前 Page API 不等于完整 Playwright；不承诺 Shadow DOM、跨 Frame、原生可信输入等能力。
+								181 开合三角标记 展开 Sidebar「开发」可运行的现代 Locator 示例
+									182 文本 展开 Sidebar「开发」可运行的现代 Locator 示例
+							183 文本 PRODUCT TOOL / EXP-005 · LOCAL SELLER WORKFLOW
+							184 container Listing / SKU · 本地卖家数据检查
+								185 文本 EXP-005
+								186 标题 Listing / SKU · 本地卖家数据检查, Value: 2
+									187 文本 Listing / SKU · 本地卖家数据检查
+								188 文本 这是可审计的本地商品测试数据，非真实商家后台。下方按钮只改变本区域字段；需在 OpenDesk「开发」手动运行 Listing 检查项目，再点击面板「检查当前商品」。不上传、不发布商品。
+								189 container 商品检查测试场景
+									190 按钮 正常商品
+									191 按钮 字段缺失
+									192 按钮 SKU 重复
+									193 按钮 变体异常
+								194 文本 当前场景：正常商品（可继续手动编辑字段）
+								195 文本 商品标题
+								196 文本栏 (settable) 商品标题, Value: 便携式阅读灯 · 暖白色
+								197 文本 主 SKU
+								198 文本栏 (settable) 主 SKU, Value: READ-LAMP-001
+								199 文本 商品描述
+								200 文本栏 (settable) 商品描述, Value: USB 供电，暖白色光，手动调节亮度
+								201 表格 商品 SKU 变体测试表
+									202 row
+										203 列标题
+											204 文本 变体 SKU
+										205 列标题
+											206 文本 规格选项
+										207 列标题
+											208 文本 测试价格
+										209 列标题
+											210 文本 测试库存
+									211 row
+										212 单元格
+											213 文本栏 (settable) 变体 1 SKU, Value: READ-WARM-01
+										214 单元格
+											215 文本栏 (settable) 变体 1 规格, Value: 暖白 / 小号
+										216 单元格
+											217 文本栏 (settable) 变体 1 价格, Value: 129.00
+										218 单元格
+											219 文本栏 (settable) 变体 1 库存, Value: 8
+									220 row
+										221 单元格
+											222 文本栏 (settable) 变体 2 SKU, Value: READ-COOL-02
+										223 单元格
+											224 文本栏 (settable) 变体 2 规格, Value: 冷白 / 小号
+										225 单元格
+											226 文本栏 (settable) 变体 2 价格, Value: 139.00
+										227 单元格
+											228 文本栏 (settable) 变体 2 库存, Value: 12
+								229 文本 测试数据无币种、平台费率或售卖身份；价格仅作格式校验，不进行毛利或真实售价建议。手动编辑字段后，回到工具面板点击「检查当前商品」读取新数据。
+							230 文本 本地服务只托管测试 HTML。第 03 组以同源 fetch 验证 DOM 异步；第 06 组经授权的网页 SDK axiosx 测试真实公网 HTTP。仅用户点击才发请求，原生回执另查扩展后台。
+						231 container 网页目录
+							232 按钮 拖动阅读目录；方向键移动，Home 归位, Help: 拖动目录；方向键调整位置，Shift 加速，Home 归位
+							233 container 目录视图
+								234 切换按钮 章节概览（自动补充子章节）, Value: 0
+									235 图像
+								236 切换按钮 当前章节, Value: 1
+									237 图像
+								238 切换按钮 完整目录, Value: 0
+									239 图像
+							240 按钮 将阅读目录归位, Help: 归位：恢复网页目录默认位置
+							241 内容列表
+								242 按钮 Browser Test Lab
+								243 按钮 文本读取
+								244 按钮 周末阅读清单
+								245 按钮 按钮与 DOM 变化
+								246 按钮 网络请求与异步等待
+								247 按钮 简单表单
+								248 按钮 动态搜索 · Locator 测试
+								249 按钮 真实 HTTP · SDK axiosx / Fetch 对照
+								250 按钮 Locator 专项 · 唯一性与可操作性
+								251 按钮 同名元素与严格匹配
+								252 按钮 禁用、ARIA 与只读
+								253 按钮 遮挡与真实命中
+								254 按钮 延迟插入与等待
+								255 按钮 Listing / SKU · 本地卖家数据检查
+			256 container 信息栏容器
+				257 container 信息栏
+					258 文本 Chrome 测试版 v155.0.8059.39 仅适用于自动测试。若要进行常规浏览，请使用可自动更新的标准版 Chrome。
+					259 链接 下载 Chrome
+			260 滚动区
+				261 HTML 内容 OpenDesk Browser, URL: chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/ui/tool.html?hostInstanceId=2587e8b3-fc93-4b05-9cf0-e86efe09dd4e
+					262 标签组 工作台
+						263 标签 (settable, integer) 我的, Value: 0
+						264 标签 (settable, integer) 扩展, Value: 0
+						265 标签 (selected) 工作流, Value: 1
+						266 标签 (settable, integer) 开发, Value: 0
+						267 标签 (settable, integer) 云控, Value: 0
+						268 标签 (settable, integer) 调试, Value: 0
+					269 container
+						270 文本 访问受限：Chrome 已限制网站访问。
+						271 按钮 恢复全部网站访问
+						272 container 工作流
+							273 container AI 语义工作流
+								274 container
+									275 标题 填写搜索关键词, Value: 2
+										276 文本 填写搜索关键词
+									277 container 工作流快捷操作
+										278 文本 已保存
+										279 按钮 查看历史版本和设置, Help: 历史版本和设置
+										280 弹出式按钮 新建对话或工作流, Help: 新建
+								281 container
+									282 container 想自动完成什么操作？
+									283 container 可编辑语义步骤
+										284 标题 执行步骤, Value: 3
+											285 文本 执行步骤
+										286 文本 1 步
+										287 container 工作流步骤列表
+											288 开合三角标记 1. 填写内容 · 搜索关键词
+												289 文本 1. 填写内容 · 搜索关键词
+										290 按钮 ＋ 添加步骤
+									291 container 工作流运行参数
+										292 标题 运行前确认, Value: 3
+											293 文本 运行前确认
+										294 文本 只影响本次运行
+										295 复选框 我已检查本次填写和点击操作，允许运行, Value: 0
+									296 container 工作流运行结果
+										297 标题 运行结果, Value: 3
+											298 文本 运行结果
+										299 container 本次持久运行结果
+											300 文本 {
+  "fillSearchKeyword": {
+    "kind": "input-readback",
+    "matched": true,
+    "value": "ai自动化第一选择"
+  }
+}
+										301 container
+											302 开合三角标记 Run / Result / Revision 技术身份
+												303 文本 Run / Result / Revision 技术身份
+											304 文本 {
+  "runId": "3c9e78e5-7705-49b9-9a7e-b3ec9bbf292d",
+  "state": "completed",
+  "revision": {
+    "scriptId": "wf-76cc8e59-2104-405e-8e7d-91f2add7e84f",
+    "revision": 1,
+    "builtinIdentity": {
+      "abi": "opendesk-builtins.v10",
+      "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+      "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+    },
+    "sourceHash": "698ed06ad8270ea300f4b0b6b03bb78aabf5fbe13be6eb8e47fe0132d78e7487",
+    "
+									305 container 历史版本和高级设置
+										306 标题 版本与设置, Value: 3
+											307 文本 版本与设置
+										308 按钮 收起版本与设置, Help: 收起
+										309 文本 选择版本
+										310 弹出式按钮 选择版本, Value: 填写搜索关键词 · r1 · http://127.0.0.1:43111
+											311 (selected) 填写搜索关键词 · r1 · http://127.0.0.1:43111
+										312 按钮 打开版本
+										313 按钮 刷新已保存版本, Help: 刷新列表
+										314 开合三角标记 名称、用途和当前网站
+											315 文本 名称、用途和当前网站
+										316 开合三角标记 参数定义和高级编辑
+											317 文本 参数定义和高级编辑
+										318 开合三角标记 生成源码、校验与发布
+											319 文本 生成源码、校验与发布
+								320 文本 描述任务，或告诉 AI 怎样修改步骤
+								321 文本输入区 (settable) 描述任务，或告诉 AI 怎样修改步骤, Placeholder: 描述要自动完成的任务…
+								322 按钮 AI 设置
+								323 按钮 发送并执行浏览器任务, Help: 发送并执行
+								324 文本 固定 r1 已脱离 AI 运行（SHA-256：698ed06ad827…）。页面输入值已读回匹配，不代表服务器提交。
+					325 container
+						326 按钮 运行工作流
+						327 按钮 保存版本
+			328 滑块 侧边栏大小调整手柄（可拖动）, Secondary Actions: Decrement, Increment
+			329 container
+				330 文本 OpenDesk Browser Developer
+				331 复选框 固定到工具栏, Value: 0
+				332 按钮 关闭侧边栏
+			333 弹出式按钮 标签页搜索
+			334 container
+				335 标签组
+					336 标签 (selected, settable, boolean) OpenDesk Browser · Browser Test Lab, Value: on
+						337 按钮 关闭
+			338 按钮 新标签页
+	339 关闭按钮
+	340 全屏幕按钮 Help: 此按钮也可以执行缩放窗口的操作, Secondary Actions: 缩放窗口
+	341 最小化按钮
+342 menu bar
+	343 Google Chrome for Testing
+	344 文件
+	345 编辑
+	346 显示
+	347 历史记录
+	348 书签
+	349 个人资料
+	350 标签页
+	351 窗口
+	352 帮助
+
+The focused UI element is 302 开合三角标记 Run / Result / Revision 技术身份

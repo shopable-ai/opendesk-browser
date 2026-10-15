@@ -1,0 +1,8 @@
+{
+  "at": "2026-10-15T14:47:08.546038+00:00",
+  "threadCount": 9,
+  "newestCreatedAt": 1792074783,
+  "provider": "cloud_responses",
+  "apiKeyPresent": false,
+  "evidenceScope": "UI configuration + saved Run source path + native Codex thread count; no cloud packet capture"
+}

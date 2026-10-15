@@ -1,0 +1,38 @@
+✔ explicit fill compiles with opt-in readback and retains old source hash (5.404ms)
+✔ unrequested clicks, irreversible actions, and changed sites fail closed (0.778708ms)
+✔ unprovided values, missing params, and navigation do not dispatch (0.382291ms)
+✔ a single send may fill and click search, but literals cannot authorize extra actions (0.579791ms)
+✔ a harmless fill can contain a sensitive-sounding literal without granting effects (0.090834ms)
+✔ sensitive click targets and unintended fills are rejected (0.212667ms)
+✔ submit in a CSS id needs fresh observed search semantics, not blanket submission authority (0.482791ms)
+✔ durable proof binds matching run/document/source/worker retirement (0.268625ms)
+✔ instruction sentence punctuation is not a terminal fill literal unless explicitly quoted (0.181125ms)
+✔ input textContent assertions are refused before the fill dispatch; host readback verifies values (0.156834ms)
+✔ core actions must be complete and search field labels do not authorize clicks (0.326083ms)
+✔ proposal, durable receipt, and observed input effect remain different evidence levels (0.063417ms)
+✔ a final observed search button exposes only a bounded effect expectation (0.224375ms)
+✔ direct fill proof checks decoded readback values for every step (0.100833ms)
+✔ search oracle requires a new visible result state and a verified post-click observation (0.566917ms)
+✔ search evidence does not promote an unverified run or unrelated click (0.035209ms)
+✔ AI-off runs prove the same frozen revision across claim, completion and durable records (0.123708ms)
+✔ continuation: view search results reads the page without replaying search (0.189042ms)
+✔ trusted same-document search proves demo-form inline result without fabricating links (0.368666ms)
+✔ workflow UI phases are independently derived, not stored as execution authority (1.321084ms)
+✔ workflow default structure prioritizes AI conversation and hides advanced sections (3.491583ms)
+✔ no new privileged workflow executor, no default visible version manager (0.6845ms)
+✔ updated offline prototype covers ten user-visible states without claiming execution (0.689625ms)
+✔ R15.3 compact workflow header and composer use meaningful icons without redundant metadata (1.107917ms)
+✔ R15.3 standalone compact preview preserves all ten scenarios with icon keyboard labels (0.511292ms)
+✔ compact workflow keeps header actions accessible under 200 percent zoom (0.577792ms)
+✔ workflow R1.7 creates from one header menu and keeps setup or diagnostics out of daily UI (0.826958ms)
+✔ workflow model selector stays minimal without manual creation or custom approval (0.91ms)
+✔ R5.2 unsaved workflow starts a non-modal explicit discard or cancel review (1.216917ms)
+✔ later AI Send retains committed Controller revision for optimistic Save (0.34175ms)
+ℹ tests 30
+ℹ suites 0
+ℹ pass 30
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 59.145375

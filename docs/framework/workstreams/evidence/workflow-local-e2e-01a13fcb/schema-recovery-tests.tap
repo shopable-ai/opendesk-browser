@@ -1,0 +1,167 @@
+TAP version 13
+# Subtest: R9 Browser SDK exposes only real implemented operations and typed metadata
+ok 1 - R9 Browser SDK exposes only real implemented operations and typed metadata
+  ---
+  duration_ms: 0.613292
+  type: 'test'
+  ...
+# Subtest: Capability discovery schemas represent Host authorization and failure receipts
+ok 2 - Capability discovery schemas represent Host authorization and failure receipts
+  ---
+  duration_ms: 0.411625
+  type: 'test'
+  ...
+# Subtest: Browser wrapper requests use canonical authenticated operation names
+ok 3 - Browser wrapper requests use canonical authenticated operation names
+  ---
+  duration_ms: 1.228
+  type: 'test'
+  ...
+# Subtest: Page discovery validates inputs and does not expose privileged browser methods
+ok 4 - Page discovery validates inputs and does not expose privileged browser methods
+  ---
+  duration_ms: 0.408042
+  type: 'test'
+  ...
+# Subtest: Browser exports reject unsafe values before canonical dispatch
+ok 5 - Browser exports reject unsafe values before canonical dispatch
+  ---
+  duration_ms: 0.672875
+  type: 'test'
+  ...
+# Subtest: Removed prelaunch placeholder operations cannot be invoked or discovered
+ok 6 - Removed prelaunch placeholder operations cannot be invoked or discovered
+  ---
+  duration_ms: 0.25825
+  type: 'test'
+  ...
+# Subtest: R5 public Tabs wrappers route through original Host with no raw native tabId
+ok 7 - R5 public Tabs wrappers route through original Host with no raw native tabId
+  ---
+  duration_ms: 0.412584
+  type: 'test'
+  ...
+# Subtest: resource export schemas never advertise Chrome-global download IDs
+ok 8 - resource export schemas never advertise Chrome-global download IDs
+  ---
+  duration_ms: 0.081125
+  type: 'test'
+  ...
+# Subtest: CSV text export keeps the existing Browser SDK Host gesture, filename and MIME contract
+ok 9 - CSV text export keeps the existing Browser SDK Host gesture, filename and MIME contract
+  ---
+  duration_ms: 0.810167
+  type: 'test'
+  ...
+# Subtest: R11 all approved Chrome Binding descriptors are deterministic and derived, never permission grants
+not ok 10 - R11 all approved Chrome Binding descriptors are deterministic and derived, never permission grants
+  ---
+  duration_ms: 11.922292
+  type: 'test'
+  location: '/Users/shopme/Documents/workspace/opendesk-browser/tests/environment/browser-sdk-r11-generated-catalog.test.mjs:19:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+    +   approved: 75,
+    -   approved: 72,
+        hostOnly: 2,
+    +   public: 73
+    -   public: 70
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    approved: 72
+    public: 70
+    hostOnly: 2
+  actual:
+    approved: 75
+    public: 73
+    hostOnly: 2
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/browser-sdk-r11-generated-catalog.test.mjs:22:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1306:25)
+    Test.start (node:internal/test_runner/test:1177:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17)
+  ...
+# Subtest: R11 generator rejects privilege drift, invented public Binding and unsafe Host-only exposure
+ok 11 - R11 generator rejects privilege drift, invented public Binding and unsafe Host-only exposure
+  ---
+  duration_ms: 20.073917
+  type: 'test'
+  ...
+# Subtest: R11.5 developer types/docs use one approved compiler for DIRECT and EXISTING_SERVICE
+ok 12 - R11.5 developer types/docs use one approved compiler for DIRECT and EXISTING_SERVICE
+  ---
+  duration_ms: 2.80975
+  type: 'test'
+  ...
+# Subtest: R11.5 existing trusted service accepts generated Facade calls but denies lost authority
+ok 13 - R11.5 existing trusted service accepts generated Facade calls but denies lost authority
+  ---
+  duration_ms: 1.370958
+  type: 'test'
+  ...
+# Subtest: R11.5 test-only positional alias compiler does not grant a new Native API
+ok 14 - R11.5 test-only positional alias compiler does not grant a new Native API
+  ---
+  duration_ms: 5.69775
+  type: 'test'
+  ...
+# Subtest: R11.5 real generator writes and rechecks deterministic developer types/docs
+ok 15 - R11.5 real generator writes and rechecks deterministic developer types/docs
+  ---
+  duration_ms: 42.894667
+  type: 'test'
+  ...
+# Subtest: R11.6 generated SCOPED/EXISTING_SERVICE metadata has one approved source
+not ok 16 - R11.6 generated SCOPED/EXISTING_SERVICE metadata has one approved source
+  ---
+  duration_ms: 9.3855
+  type: 'test'
+  location: '/Users/shopme/Documents/workspace/opendesk-browser/tests/environment/browser-sdk-r116-mapping.test.mjs:12:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    73 !== 70
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 70
+  actual: 73
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/browser-sdk-r116-mapping.test.mjs:16:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1306:25)
+    Test.start (node:internal/test_runner/test:1177:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17)
+  ...
+# Subtest: R11.6 positional alias and differently named SDK call require reciprocal Native mapping
+ok 17 - R11.6 positional alias and differently named SDK call require reciprocal Native mapping
+  ---
+  duration_ms: 8.54625
+  type: 'test'
+  ...
+# Subtest: R11.6 scoped service preserves opaque TabRef, permissions and negative return checks
+ok 18 - R11.6 scoped service preserves opaque TabRef, permissions and negative return checks
+  ---
+  duration_ms: 8.558833
+  type: 'test'
+  ...
+1..18
+# tests 18
+# suites 0
+# pass 16
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 145.87175

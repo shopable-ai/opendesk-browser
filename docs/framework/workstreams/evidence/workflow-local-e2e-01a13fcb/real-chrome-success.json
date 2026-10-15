@@ -1,0 +1,92 @@
+{
+  "recordedAt": "2026-10-15T15:00:44.084768+00:00",
+  "evidenceKind": "transcription of real CFT native accessibility/screenshot observations in this Codex conversation; not an exported raw RPC receipt",
+  "browser": {
+    "pid": 12922,
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "extensionPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "mode": "continuous development",
+    "observedConnectedBuild": "40ef91d096742b1ec8d804b97d87991e99263ab034986b652edbc3cf2b2a299d",
+    "currentCandidateCaveat": "Shared watcher later published other revisions. No per-run build stamp was captured; this proves actual product runs, not final HEAD/build acceptance."
+  },
+  "url": "http://127.0.0.1:43111/demo-form.html#lab-search",
+  "viewportPrecondition": "fixture search section brought into view through fixture navigation; initial offscreen fill timed out without replay",
+  "workflowId": "wf-76cc8e59-2104-405e-8e7d-91f2add7e84f",
+  "savedRevision": 1,
+  "sourceHash": "698ed06ad8270ea300f4b0b6b03bb78aabf5fbe13be6eb8e47fe0132d78e7487",
+  "sourceBytes": 567,
+  "sourceEvidence": "saved source/hash inspected in real product; expected bytes independently reproduced through compiler; not raw Controller DB export",
+  "aiFill": {
+    "runId": "b17b3fd9-3847-4f1a-b4ec-4c2715d7bc0c",
+    "resultId": "bed2feb6-af6d-4c80-a4fc-5ecba90f6eb2",
+    "inputValue": "ai自动化第一选择",
+    "matched": true,
+    "submitCount": 0,
+    "evidenceLevel": "INPUT_READBACK_VERIFIED",
+    "oneSendExecuted": true
+  },
+  "search": {
+    "runId": "b1c028e2-adcf-422c-8c66-8ac4ec6670e0",
+    "resultId": "cbaf19ae-bbcf-452d-941d-e24a069303c2",
+    "inputValue": "OpenDesk",
+    "observedTexts": [
+      "搜索完成",
+      "结果：OpenDesk"
+    ],
+    "submitCount": 1,
+    "evidenceLevel": "BUSINESS_EFFECT_VERIFIED"
+  },
+  "followup": {
+    "runId": "695c8aea-9060-4dcb-b306-e4cc966c4652",
+    "resultId": "2423b053-5a61-4404-a275-bba40c9977f5",
+    "stepCount": 1,
+    "operation": "extract",
+    "extractedValue": "结果：OpenDesk",
+    "submitCount": 1,
+    "evidenceLevel": "EXECUTION_RECEIPT_VERIFIED"
+  },
+  "aiOff": {
+    "provider": "cloud_responses",
+    "apiKeyPresent": false,
+    "nativePlanningSessionClosed": true,
+    "nativeCodexThreadCountBefore": 9,
+    "nativeCodexThreadCountAfter": 9,
+    "nativeCodexNewestCreatedAtBefore": 1792074783,
+    "nativeCodexNewestCreatedAtAfter": 1792074783,
+    "proofLimit": "No packet capture of Cloud endpoint; blank API key and saved-source execution path plus no new native threads. Runtime did not require provider readiness."
+  },
+  "aiOffRuns": [
+    {
+      "runId": "99e2c57c-9832-404b-be54-6781124c0164",
+      "resultId": "e63812c7-bbe9-42bc-a939-7adc77b471c9",
+      "scriptId": "wf-76cc8e59-2104-405e-8e7d-91f2add7e84f",
+      "revision": 1,
+      "sourceHash": "698ed06ad8270ea300f4b0b6b03bb78aabf5fbe13be6eb8e47fe0132d78e7487",
+      "resultSourceHash": "698ed06ad8270ea300f4b0b6b03bb78aabf5fbe13be6eb8e47fe0132d78e7487",
+      "documentId": "7E19EF473325B3C40CA0AE0B69C29324",
+      "state": "completed",
+      "workerRetired": true,
+      "retirement": "released",
+      "pageBefore": "旧的预填内容",
+      "inputValue": "ai自动化第一选择",
+      "matched": true,
+      "submitCount": 0
+    },
+    {
+      "runId": "9e130998-618e-4fa0-888f-27ee8b5f273a",
+      "resultId": "2d38fbf5-fc96-42c5-89ff-858a092de29f",
+      "scriptId": "wf-76cc8e59-2104-405e-8e7d-91f2add7e84f",
+      "revision": 1,
+      "sourceHash": "698ed06ad8270ea300f4b0b6b03bb78aabf5fbe13be6eb8e47fe0132d78e7487",
+      "resultSourceHash": "698ed06ad8270ea300f4b0b6b03bb78aabf5fbe13be6eb8e47fe0132d78e7487",
+      "documentId": "7E19EF473325B3C40CA0AE0B69C29324",
+      "state": "completed",
+      "workerRetired": true,
+      "retirement": "released",
+      "pageBefore": "旧的预填内容",
+      "inputValue": "ai自动化第一选择",
+      "matched": true,
+      "submitCount": 0
+    }
+  ]
+}

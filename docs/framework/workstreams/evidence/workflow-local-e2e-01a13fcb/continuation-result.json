@@ -1,0 +1,129 @@
+{
+  "capturedAt": "2026-10-15T15:41:33.745847+00:00",
+  "status": "TARGETED_FIX_VERIFIED_FULL_CANDIDATE_BLOCKED",
+  "language": "zh-CN",
+  "mode": "continuous-development",
+  "sourceIntegration": {
+    "savedCommit": "1cd236cf8461de2765f3a3fac57a806f3f36fa77",
+    "mergeCommit": "6629e1b4b0a62c901555e0f51f8ae20c51ad0c98",
+    "pushedMainBeforeEvidence": "3b621c6f6edd36e121c3bfeb48d1e05958b09bb3",
+    "owner": "parallel authorized Git integration; evidence-only commit follows"
+  },
+  "candidateEvidence": "continuation-candidate.json",
+  "nativeEvidence": [
+    "continuation-native-doctor.json",
+    "continuation-pairing.json"
+  ],
+  "targetedRegression": {
+    "status": "TARGETED_CHROME_PASS",
+    "previousRunId": "3c9e78e5-7705-49b9-9a7e-b3ec9bbf292d",
+    "workflowId": "wf-76cc8e59-2104-405e-8e7d-91f2add7e84f",
+    "savedRevision": 1,
+    "sourceHash": "698ed06ad8270ea300f4b0b6b03bb78aabf5fbe13be6eb8e47fe0132d78e7487",
+    "checks": {
+      "previousRunVisible": true,
+      "previousRunCompleted": true,
+      "previousRevisionOne": true,
+      "expectedSourceHashVisible": true,
+      "realInputMatches": true,
+      "sameRunReadbackMatched": true,
+      "permissionDeniedAndNotRun": true,
+      "oldRunIdentityAbsent": true,
+      "anyRunIdentityAbsent": true,
+      "fixtureInputUnchanged": true,
+      "fixtureSubmitCountZero": true
+    },
+    "evidence": [
+      "permission-retest-before.ax.txt",
+      "permission-retest-before.png",
+      "permission-retest-revoked.ax.txt",
+      "permission-retest-denied.ax.txt",
+      "permission-retest-denied.png",
+      "permission-retest-restored.ax.txt"
+    ],
+    "newResultId": "NOT_CAPTURED_AX_TRUNCATED",
+    "newRetirementFields": "NOT_CAPTURED_AX_TRUNCATED",
+    "scope": "Local UI reset after real successful r1 and real permission Deny. Does not prove entire new extension candidate applied."
+  },
+  "reusedChromeEvidence": [
+    {
+      "cases": [
+        "single-send-input-readback",
+        "single-search",
+        "followup-extract-only",
+        "saved-r1-ai-off-run-x2"
+      ],
+      "status": "REUSED_PASS",
+      "file": "real-chrome-success.json"
+    },
+    {
+      "cases": [
+        "stop",
+        "document-replaced",
+        "permission-revoked",
+        "unknown-not-replayed"
+      ],
+      "status": "REUSED_PASS",
+      "file": "negative-ui-evidence.json"
+    }
+  ],
+  "nodeEvidence": [
+    {
+      "file": "recovery-targeted-tests.tap",
+      "passed": 48,
+      "failed": 0
+    },
+    {
+      "file": "official-catalog-recovery-tests-final.tap",
+      "passed": 18,
+      "failed": 0
+    },
+    {
+      "file": "recovery-check-source-final.log",
+      "checkedFiles": 771,
+      "status": "PASS"
+    },
+    {
+      "file": "../../git-sync-20261015-01a13f27.md",
+      "status": "REUSED_67_PASS",
+      "scope": "Post-merge schemas/catalog; see workstream integration record"
+    }
+  ],
+  "preservedFailures": [
+    "schema-recovery-tests.tap",
+    "official-catalog-recovery-tests.tap"
+  ],
+  "pendingRunAfterOriginalAllow": {
+    "runId": "4c46980e-cb63-4cbf-b687-a87d2d7052d1",
+    "status": "OBSERVED_FAILURE",
+    "outcome": "E_TIMEOUT / Controller fenced",
+    "scope": "Operator observation only; no success claim and no blind replay."
+  },
+  "fullCandidate": {
+    "status": "NOT_TESTED",
+    "blocker": "BLOCKED_SAFE_UPDATE",
+    "browserAppliedRevision": "f19ff445b41dc18bbea4a7c282ea13534daa391f06c98f75c83f8206f1ce865d",
+    "publishedRevision": "046658be8d488c442d7d350ccfe587684082d0cc2652b80ef2e59baa20b5fab8",
+    "evidence": [
+      "continuation-dev-service.ax.txt",
+      "continuation-dev-service.png"
+    ],
+    "noForcedReloadOrLedgerMutation": true
+  },
+  "notTested": [
+    "native-disconnect-during-run",
+    "worker-not-released",
+    "late-ai-or-runhost-ack",
+    "saved-bytes-or-sha-tamper",
+    "production",
+    "independent-final-f3",
+    "zip-install"
+  ],
+  "finalState": {
+    "websitePermission": "restored via Chrome normal UI",
+    "fixtureInput": "旧的预填内容",
+    "fixtureSubmitCount": 0,
+    "workflowOutput": "E_PERMISSION; not run; no automatic replay",
+    "evidence": "continuation-final-ui.ax.txt"
+  }
+}

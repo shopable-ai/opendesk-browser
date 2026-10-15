@@ -1,0 +1,298 @@
+TAP version 13
+# Subtest: R9 Browser SDK exposes only real implemented operations and typed metadata
+ok 1 - R9 Browser SDK exposes only real implemented operations and typed metadata
+  ---
+  duration_ms: 0.620708
+  type: 'test'
+  ...
+# Subtest: Capability discovery schemas represent Host authorization and failure receipts
+ok 2 - Capability discovery schemas represent Host authorization and failure receipts
+  ---
+  duration_ms: 0.381708
+  type: 'test'
+  ...
+# Subtest: Browser wrapper requests use canonical authenticated operation names
+ok 3 - Browser wrapper requests use canonical authenticated operation names
+  ---
+  duration_ms: 1.127042
+  type: 'test'
+  ...
+# Subtest: Page discovery validates inputs and does not expose privileged browser methods
+ok 4 - Page discovery validates inputs and does not expose privileged browser methods
+  ---
+  duration_ms: 0.348167
+  type: 'test'
+  ...
+# Subtest: Browser exports reject unsafe values before canonical dispatch
+ok 5 - Browser exports reject unsafe values before canonical dispatch
+  ---
+  duration_ms: 0.64925
+  type: 'test'
+  ...
+# Subtest: Removed prelaunch placeholder operations cannot be invoked or discovered
+ok 6 - Removed prelaunch placeholder operations cannot be invoked or discovered
+  ---
+  duration_ms: 0.233625
+  type: 'test'
+  ...
+# Subtest: R5 public Tabs wrappers route through original Host with no raw native tabId
+ok 7 - R5 public Tabs wrappers route through original Host with no raw native tabId
+  ---
+  duration_ms: 0.367292
+  type: 'test'
+  ...
+# Subtest: resource export schemas never advertise Chrome-global download IDs
+ok 8 - resource export schemas never advertise Chrome-global download IDs
+  ---
+  duration_ms: 0.072084
+  type: 'test'
+  ...
+# Subtest: CSV text export keeps the existing Browser SDK Host gesture, filename and MIME contract
+ok 9 - CSV text export keeps the existing Browser SDK Host gesture, filename and MIME contract
+  ---
+  duration_ms: 0.643042
+  type: 'test'
+  ...
+# Subtest: R11 all approved Chrome Binding descriptors are deterministic and derived, never permission grants
+ok 10 - R11 all approved Chrome Binding descriptors are deterministic and derived, never permission grants
+  ---
+  duration_ms: 21.551375
+  type: 'test'
+  ...
+# Subtest: R11 generator rejects privilege drift, invented public Binding and unsafe Host-only exposure
+ok 11 - R11 generator rejects privilege drift, invented public Binding and unsafe Host-only exposure
+  ---
+  duration_ms: 19.095041
+  type: 'test'
+  ...
+# Subtest: R11.5 developer types/docs use one approved compiler for DIRECT and EXISTING_SERVICE
+ok 12 - R11.5 developer types/docs use one approved compiler for DIRECT and EXISTING_SERVICE
+  ---
+  duration_ms: 2.937834
+  type: 'test'
+  ...
+# Subtest: R11.5 existing trusted service accepts generated Facade calls but denies lost authority
+ok 13 - R11.5 existing trusted service accepts generated Facade calls but denies lost authority
+  ---
+  duration_ms: 1.451708
+  type: 'test'
+  ...
+# Subtest: R11.5 test-only positional alias compiler does not grant a new Native API
+ok 14 - R11.5 test-only positional alias compiler does not grant a new Native API
+  ---
+  duration_ms: 6.473792
+  type: 'test'
+  ...
+# Subtest: R11.5 real generator writes and rechecks deterministic developer types/docs
+ok 15 - R11.5 real generator writes and rechecks deterministic developer types/docs
+  ---
+  duration_ms: 35.330209
+  type: 'test'
+  ...
+# Subtest: R11.6 generated SCOPED/EXISTING_SERVICE metadata has one approved source
+ok 16 - R11.6 generated SCOPED/EXISTING_SERVICE metadata has one approved source
+  ---
+  duration_ms: 29.517667
+  type: 'test'
+  ...
+# Subtest: R11.6 positional alias and differently named SDK call require reciprocal Native mapping
+ok 17 - R11.6 positional alias and differently named SDK call require reciprocal Native mapping
+  ---
+  duration_ms: 7.194166
+  type: 'test'
+  ...
+# Subtest: R11.6 scoped service preserves opaque TabRef, permissions and negative return checks
+ok 18 - R11.6 scoped service preserves opaque TabRef, permissions and negative return checks
+  ---
+  duration_ms: 6.977958
+  type: 'test'
+  ...
+# Subtest: explicit fill compiles with opt-in readback and retains old source hash
+ok 19 - explicit fill compiles with opt-in readback and retains old source hash
+  ---
+  duration_ms: 6.200209
+  type: 'test'
+  ...
+# Subtest: unrequested clicks, irreversible actions, and changed sites fail closed
+ok 20 - unrequested clicks, irreversible actions, and changed sites fail closed
+  ---
+  duration_ms: 0.784292
+  type: 'test'
+  ...
+# Subtest: unprovided values, missing params, and navigation do not dispatch
+ok 21 - unprovided values, missing params, and navigation do not dispatch
+  ---
+  duration_ms: 0.393875
+  type: 'test'
+  ...
+# Subtest: a single send may fill and click search, but literals cannot authorize extra actions
+ok 22 - a single send may fill and click search, but literals cannot authorize extra actions
+  ---
+  duration_ms: 0.577333
+  type: 'test'
+  ...
+# Subtest: a harmless fill can contain a sensitive-sounding literal without granting effects
+ok 23 - a harmless fill can contain a sensitive-sounding literal without granting effects
+  ---
+  duration_ms: 0.095792
+  type: 'test'
+  ...
+# Subtest: sensitive click targets and unintended fills are rejected
+ok 24 - sensitive click targets and unintended fills are rejected
+  ---
+  duration_ms: 0.215916
+  type: 'test'
+  ...
+# Subtest: submit in a CSS id needs fresh observed search semantics, not blanket submission authority
+ok 25 - submit in a CSS id needs fresh observed search semantics, not blanket submission authority
+  ---
+  duration_ms: 0.51225
+  type: 'test'
+  ...
+# Subtest: durable proof binds matching run/document/source/worker retirement
+ok 26 - durable proof binds matching run/document/source/worker retirement
+  ---
+  duration_ms: 0.2925
+  type: 'test'
+  ...
+# Subtest: instruction sentence punctuation is not a terminal fill literal unless explicitly quoted
+ok 27 - instruction sentence punctuation is not a terminal fill literal unless explicitly quoted
+  ---
+  duration_ms: 0.188791
+  type: 'test'
+  ...
+# Subtest: input textContent assertions are refused before the fill dispatch; host readback verifies values
+ok 28 - input textContent assertions are refused before the fill dispatch; host readback verifies values
+  ---
+  duration_ms: 0.178666
+  type: 'test'
+  ...
+# Subtest: core actions must be complete and search field labels do not authorize clicks
+ok 29 - core actions must be complete and search field labels do not authorize clicks
+  ---
+  duration_ms: 0.363958
+  type: 'test'
+  ...
+# Subtest: proposal, durable receipt, and observed input effect remain different evidence levels
+ok 30 - proposal, durable receipt, and observed input effect remain different evidence levels
+  ---
+  duration_ms: 0.064125
+  type: 'test'
+  ...
+# Subtest: a final observed search button exposes only a bounded effect expectation
+ok 31 - a final observed search button exposes only a bounded effect expectation
+  ---
+  duration_ms: 0.234125
+  type: 'test'
+  ...
+# Subtest: direct fill proof checks decoded readback values for every step
+ok 32 - direct fill proof checks decoded readback values for every step
+  ---
+  duration_ms: 0.107542
+  type: 'test'
+  ...
+# Subtest: search oracle requires a new visible result state and a verified post-click observation
+ok 33 - search oracle requires a new visible result state and a verified post-click observation
+  ---
+  duration_ms: 0.597708
+  type: 'test'
+  ...
+# Subtest: search evidence does not promote an unverified run or unrelated click
+ok 34 - search evidence does not promote an unverified run or unrelated click
+  ---
+  duration_ms: 0.039375
+  type: 'test'
+  ...
+# Subtest: AI-off runs prove the same frozen revision across claim, completion and durable records
+ok 35 - AI-off runs prove the same frozen revision across claim, completion and durable records
+  ---
+  duration_ms: 0.126666
+  type: 'test'
+  ...
+# Subtest: continuation: view search results reads the page without replaying search
+ok 36 - continuation: view search results reads the page without replaying search
+  ---
+  duration_ms: 0.205042
+  type: 'test'
+  ...
+# Subtest: trusted same-document search proves demo-form inline result without fabricating links
+ok 37 - trusted same-document search proves demo-form inline result without fabricating links
+  ---
+  duration_ms: 0.409834
+  type: 'test'
+  ...
+# Subtest: workflow UI phases are independently derived, not stored as execution authority
+ok 38 - workflow UI phases are independently derived, not stored as execution authority
+  ---
+  duration_ms: 1.294416
+  type: 'test'
+  ...
+# Subtest: workflow default structure prioritizes AI conversation and hides advanced sections
+ok 39 - workflow default structure prioritizes AI conversation and hides advanced sections
+  ---
+  duration_ms: 3.710042
+  type: 'test'
+  ...
+# Subtest: no new privileged workflow executor, no default visible version manager
+ok 40 - no new privileged workflow executor, no default visible version manager
+  ---
+  duration_ms: 0.852042
+  type: 'test'
+  ...
+# Subtest: updated offline prototype covers ten user-visible states without claiming execution
+ok 41 - updated offline prototype covers ten user-visible states without claiming execution
+  ---
+  duration_ms: 0.976
+  type: 'test'
+  ...
+# Subtest: R15.3 compact workflow header and composer use meaningful icons without redundant metadata
+ok 42 - R15.3 compact workflow header and composer use meaningful icons without redundant metadata
+  ---
+  duration_ms: 1.192292
+  type: 'test'
+  ...
+# Subtest: R15.3 standalone compact preview preserves all ten scenarios with icon keyboard labels
+ok 43 - R15.3 standalone compact preview preserves all ten scenarios with icon keyboard labels
+  ---
+  duration_ms: 0.778583
+  type: 'test'
+  ...
+# Subtest: compact workflow keeps header actions accessible under 200 percent zoom
+ok 44 - compact workflow keeps header actions accessible under 200 percent zoom
+  ---
+  duration_ms: 0.996875
+  type: 'test'
+  ...
+# Subtest: workflow R1.7 creates from one header menu and keeps setup or diagnostics out of daily UI
+ok 45 - workflow R1.7 creates from one header menu and keeps setup or diagnostics out of daily UI
+  ---
+  duration_ms: 1.347917
+  type: 'test'
+  ...
+# Subtest: workflow model selector stays minimal without manual creation or custom approval
+ok 46 - workflow model selector stays minimal without manual creation or custom approval
+  ---
+  duration_ms: 0.824667
+  type: 'test'
+  ...
+# Subtest: R5.2 unsaved workflow starts a non-modal explicit discard or cancel review
+ok 47 - R5.2 unsaved workflow starts a non-modal explicit discard or cancel review
+  ---
+  duration_ms: 1.449791
+  type: 'test'
+  ...
+# Subtest: later AI Send retains committed Controller revision for optimistic Save
+ok 48 - later AI Send retains committed Controller revision for optimistic Save
+  ---
+  duration_ms: 0.4945
+  type: 'test'
+  ...
+1..48
+# tests 48
+# suites 0
+# pass 48
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 149.05425

@@ -1,0 +1,25 @@
+{
+  "capturedAt": "2026-10-15T15:40:09.744509+00:00",
+  "head": "3b621c6f6edd36e121c3bfeb48d1e05958b09bb3",
+  "mode": "continuous-development",
+  "writerPid": 8026,
+  "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+  "publishedRevision": "046658be8d488c442d7d350ccfe587684082d0cc2652b80ef2e59baa20b5fab8",
+  "toolShellSha256": "4956a0bba11666ce6f31f269c8bf4fd5a77a175f5ef77426f7be47bf7e5b7912",
+  "declaredFileCount": 112,
+  "declaredFileHashMismatches": [],
+  "sourceSha256": {
+    "src/ui/workflow/workflow-view.js": "abad1d8069034a77473dcd0dbde05e9908dae7a7f0272aab22fe0d4b17507652",
+    "src/framework/sdk/browser-schemas.js": "d72eafae51a881ad3d82cf315db33518c0de624f0640dec5222cd4f23c277676",
+    "src/sidebar-tools/official-catalog.js": "0751571d92ba095454a001e654622c1ceda8fdd53a988a63225f512e3f6dcce9",
+    "src/ui/workflow/direct-execution.js": "4477694e69a0bdfcb3b271c15b008ec2d5a1066025d3dadfb2e893c09f965c60",
+    "src/ui/workflow/observation.js": "7816ff60e316a5df6d32db6af2ee2e0094ea8b2e79ad61d1109b68493305d9eb",
+    "src/framework/workflow/compiler.js": "2c50227d4bd9bfa5b75312a2965872052c47fd7f47748d366cbd543672aa7b1d",
+    "tests/environment/browser-sdk-r11-generated-catalog.test.mjs": "7fb1ee5fa73e6980cd7faf0536185cea09e5606d493640b466f44ad52cd2c639",
+    "tests/environment/browser-sdk-r116-mapping.test.mjs": "aa0c6865c729cccc9788d1a4bc6058c55b987364ba1c33573eb385704b114022",
+    "tests/environment/official-tools-catalog-r45.test.mjs": "99413152aa75a6ee12be665017bc7d11c0f698fbf9a378f7d0b0ad0b74d9f1c3"
+  },
+  "browserAppliedRevision": "f19ff445b41dc18bbea4a7c282ea13534daa391f06c98f75c83f8206f1ce865d",
+  "browserStatus": "源码已编译；任务、原生请求或未知结果仍未释放，自动刷新已延后。",
+  "scope": "Disk bytes verified; browser full-candidate application NOT_TESTED; never a production candidate."
+}

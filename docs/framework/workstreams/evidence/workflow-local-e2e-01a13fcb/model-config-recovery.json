@@ -1,0 +1,11 @@
+{
+  "at": "2026-10-15T14:25:20.081222+00:00",
+  "path": ".runtime/conversation-r13-01a13a4b/native-codex-home/config.toml",
+  "beforeSha256": "892e803d0800b65114ae6af460611e32074cda50cece5a47f6877ae834523e77",
+  "afterSha256": "82e7bfcd7e12fe9668a59b85b83bab486934f547be85a81ab0ce9324bb7eece4",
+  "model": "gpt-6.1-sol",
+  "reasoning": "low",
+  "globalConfigChanged": false,
+  "credentialsChanged": false,
+  "reason": "Official endpoint rejected gpt-5.5 with HTTP 400; official account model catalog lists gpt-6.1-sol."
+}

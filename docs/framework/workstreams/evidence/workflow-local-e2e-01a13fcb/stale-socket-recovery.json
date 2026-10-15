@@ -1,0 +1,9 @@
+{
+  "state": "STALE_SOCKET_QUARANTINED",
+  "original": "/Users/shopme/.opendesk-browser/native-agent-r1/agent.sock",
+  "backup": "/Users/shopme/.opendesk-browser/native-agent-r1/agent.sock.stale-workflow-01a13fcb-1792072455",
+  "inode": 30475686,
+  "owner": 502,
+  "connectError": "ECONNREFUSED",
+  "pairingConfigChanged": false
+}

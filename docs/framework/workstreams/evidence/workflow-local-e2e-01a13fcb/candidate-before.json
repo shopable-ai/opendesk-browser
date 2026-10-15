@@ -1,0 +1,47 @@
+{
+  "at": "2026-10-15T14:00:56.955915+00:00",
+  "head": "0b4899f22dcac82ae78fd0702625078edf0cda0b",
+  "files": {
+    "src/ui/workflow/workflow-view.js": "8f8e43da2a0e88255efd052b99ae2bdc59b6cb22dca0d20a7548388b58c675ea",
+    "src/ui/workflow/direct-execution.js": "ff3e35a2f483a5ce916a04bf41fb2759a9dce53c890d9d5aa138e2be0383ce05",
+    "src/ui/workflow/observation.js": "7816ff60e316a5df6d32db6af2ee2e0094ea8b2e79ad61d1109b68493305d9eb",
+    "src/ui/workflow/local-codex.js": "534b31f99fc12c2fdf711d62abd4c1cd258201b8c77ee40b34aa96f845a81c47",
+    "src/framework/workflow/compiler.js": "2c50227d4bd9bfa5b75312a2965872052c47fd7f47748d366cbd543672aa7b1d",
+    "src/native-agent/workflow-ai-service.js": "443161599a42dbc257b80414a24ee61154fe11106ecb0b2c92710b85c7b7d559",
+    "src/ui/tool.html": "5a58d4367977ea50f1f0eefbd688b4669f9c40b9ad6514b486129950f5e6c2f7",
+    "examples/tasks/demo-form.html": "269b01a2581d7f325b3bede32f870f258ac6b3eac8dce494112e02a60dc8c5ce",
+    "package.json": "1cd91786935988573e1330a980aab32cb0c973c76b2b833c92ac6e468db52407",
+    "package-lock.json": "63bd16ac21bb1c3c6653849af8946bcbc7fc8c4bbe7b0bee39087bb393c6146c",
+    "wxt.config.mjs": "6d7d80e3ebb145ab4b8e84b1773e90684b2b9c61f973ded1493b64285779ba7c",
+    "dist/development/manifest.json": "b5e3065f825cb7111db58dba32615322dfdeacdff401d001eebd90de5799498e",
+    "dist/development/ui/tool-shell.js": "9664ed0dcef31703d8ec6ebc029e2ef387708e3771761dc68098b01163084b0c",
+    "dist/development/sw.js": "a6c866c3852a51082ba79c9c8df1908facd1e636af4e0e39de618cef7ab7d339",
+    "dist/development/development-update.json": "4aa4914364800a46b83068b9a5d64c769b58c6e5b92a3595a61310e1e47f5915"
+  },
+  "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+  "extensionPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+  "devRevision": "2afedcd9d5bb5599577ed592dc6db1d092038d06beacdd4a5fa3064a76dc7e6b",
+  "mode": "continuous-development",
+  "watcherPid": 8026,
+  "nativeInstance": "wf-e2e-01a13fcb",
+  "chrome": {
+    "pid": 12922,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-m7d4gv0_",
+    "executable": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/workflow-local-e2e-01a13fcb/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "args": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/workflow-local-e2e-01a13fcb/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--use-mock-keychain",
+      "--password-store=basic",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--remote-debugging-address=127.0.0.1",
+      "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-m7d4gv0_",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "http://127.0.0.1:43111/demo-form.html"
+    ],
+    "log": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-m7d4gv0_/chrome.log"
+  },
+  "pending": "Chrome nativeMessaging permission; no model/browser workflow run yet"
+}

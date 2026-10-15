@@ -1,0 +1,127 @@
+TAP version 13
+# Subtest: R4.8 authored catalog includes default Cookie Editor and optional AI VIP Share UI
+not ok 1 - R4.8 authored catalog includes default Cookie Editor and optional AI VIP Share UI
+  ---
+  duration_ms: 3.698042
+  type: 'test'
+  location: '/Users/shopme/Documents/workspace/opendesk-browser/tests/environment/official-tools-catalog-r45.test.mjs:38:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection: official source trees contain no generated package copies'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/official-tools-catalog-r45.test.mjs:57:7)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+  ...
+# Subtest: R4.8 only trusted source and exact release policy can authorize preinstalled descriptor
+ok 2 - R4.8 only trusted source and exact release policy can authorize preinstalled descriptor
+  ---
+  duration_ms: 83.440958
+  type: 'test'
+  ...
+# Subtest: managed proxy release metadata uses v2 while unknown capabilities remain denied
+ok 3 - managed proxy release metadata uses v2 while unknown capabilities remain denied
+  ---
+  duration_ms: 0.390791
+  type: 'test'
+  ...
+# Subtest: R4.8 first-install intent uses fixed classic WXT resource without bundling the installer into SW
+ok 4 - R4.8 first-install intent uses fixed classic WXT resource without bundling the installer into SW
+  ---
+  duration_ms: 1.323041
+  type: 'test'
+  ...
+# Subtest: R4.5 exact bytes, versions and capabilities are reproducible from the existing packer
+ok 5 - R4.5 exact bytes, versions and capabilities are reproducible from the existing packer
+  ---
+  duration_ms: 77.538
+  type: 'test'
+  ...
+# Subtest: R4.5 adding a source catalog entry supplies release and marketplace without new UI mappings
+ok 6 - R4.5 adding a source catalog entry supplies release and marketplace without new UI mappings
+  ---
+  duration_ms: 7.280875
+  type: 'test'
+  ...
+# Subtest: R4.5 source change updates only its release bytes and catalog, with declared input identity
+ok 7 - R4.5 source change updates only its release bytes and catalog, with declared input identity
+  ---
+  duration_ms: 12.990084
+  type: 'test'
+  ...
+# Subtest: R4.5 catalog rejects automatic install, duplicate identity, arbitrary paths and foreign sources
+ok 8 - R4.5 catalog rejects automatic install, duplicate identity, arbitrary paths and foreign sources
+  ---
+  duration_ms: 0.485625
+  type: 'test'
+  ...
+# Subtest: R4.5 package config identity mismatch, missing source and invalid JavaScript fail before publication
+ok 9 - R4.5 package config identity mismatch, missing source and invalid JavaScript fail before publication
+  ---
+  duration_ms: 15.949792
+  type: 'test'
+  ...
+# Subtest: R4.5 official source and output symlinks cannot escape or write outside the selected root
+ok 10 - R4.5 official source and output symlinks cannot escape or write outside the selected root
+  ---
+  duration_ms: 10.312167
+  type: 'test'
+  ...
+# Subtest: R4.5 source project and catalog symlinks, oversized catalog and unresolved assets are rejected
+ok 11 - R4.5 source project and catalog symlinks, oversized catalog and unresolved assets are rejected
+  ---
+  duration_ms: 8.4
+  type: 'test'
+  ...
+# Subtest: R4.5 removing an optional candidate removes only previously generated resource files
+ok 12 - R4.5 removing an optional candidate removes only previously generated resource files
+  ---
+  duration_ms: 10.676625
+  type: 'test'
+  ...
+# Subtest: R4.5 runtime fetches only extension-owned bytes; catalog alone has no install or execution effects
+ok 13 - R4.5 runtime fetches only extension-owned bytes; catalog alone has no install or execution effects
+  ---
+  duration_ms: 30.552708
+  type: 'test'
+  ...
+# Subtest: R4.5 corrupt, missing, redirected and over-limit resources cannot be reviewed as official
+ok 14 - R4.5 corrupt, missing, redirected and over-limit resources cannot be reviewed as official
+  ---
+  duration_ms: 1.947792
+  type: 'test'
+  ...
+# Subtest: R4.5 generated catalog rejects forged paths, duplicate releases, persisted user state and policies
+ok 15 - R4.5 generated catalog rejects forged paths, duplicate releases, persisted user state and policies
+  ---
+  duration_ms: 0.165125
+  type: 'test'
+  ...
+# Subtest: R4.5 all official tools derive availability, update and installed states from the same versions
+ok 16 - R4.5 all official tools derive availability, update and installed states from the same versions
+  ---
+  duration_ms: 1.032625
+  type: 'test'
+  ...
+# Subtest: R4.5 knowledge lifecycle correction is an upgrade from the shipped 1.1.0
+ok 17 - R4.5 knowledge lifecycle correction is an upgrade from the shipped 1.1.0
+  ---
+  duration_ms: 0.149792
+  type: 'test'
+  ...
+# Subtest: R2.4 official build fingerprints ordered v2 Classic dependencies
+ok 18 - R2.4 official build fingerprints ordered v2 Classic dependencies
+  ---
+  duration_ms: 17.540459
+  type: 'test'
+  ...
+1..18
+# tests 18
+# suites 0
+# pass 17
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 341.553291

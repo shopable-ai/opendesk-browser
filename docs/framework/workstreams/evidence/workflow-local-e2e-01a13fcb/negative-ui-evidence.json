@@ -1,0 +1,49 @@
+{
+  "evidenceKind": "transcribed real Chrome UI observation in this conversation",
+  "stop": {
+    "runId": "e362c117-7f84-45c1-b8c2-434aa3039d62",
+    "state": "stopped",
+    "code": "E_CANCELLED",
+    "pageValue": "旧的预填内容",
+    "submitCount": 0,
+    "automaticReplay": false
+  },
+  "documentRefresh": {
+    "runId": "e0fcc202-ccee-4eca-b817-4eb18d7654ca",
+    "state": "stopped",
+    "code": "E_DOCUMENT_REPLACED",
+    "pageValue": "旧的预填内容",
+    "submitCount": 0,
+    "automaticReplay": false
+  },
+  "permissionRevoked": {
+    "chromeSiteToggle": "off then Chrome-requested Reload",
+    "permissionRequestResponse": "Deny",
+    "code": "E_PERMISSION",
+    "status": "未运行；失败不会自动重放",
+    "pageValue": "旧的预填内容",
+    "submitCount": 0,
+    "foundUiBug": "old e0fcc202 technical identity remained below the new permission error"
+  },
+  "unknown": {
+    "aiThreads": [
+      "01a13fe4-9d0c-7fc0-9386-cb9c22681332",
+      "01a13feb-fb55-7c50-a8e6-2ab8bea345c4"
+    ],
+    "uiCode": "E_OUTCOME_UNKNOWN",
+    "proposalOrAction": false,
+    "automaticReplay": false
+  },
+  "offscreenTimeout": {
+    "runId": "489ffa06-cffe-4546-8a0d-3ff2492793dc",
+    "code": "E_TIMEOUT",
+    "automaticReplay": false,
+    "scope": "Known viewport actionability precondition; do not silently add scrolling to read-only prepare"
+  },
+  "remaining": [
+    "native disconnect during run",
+    "held worker non-release",
+    "late AI/RunHost ack injection",
+    "saved Controller byte/SHA mismatch in real Chrome"
+  ]
+}

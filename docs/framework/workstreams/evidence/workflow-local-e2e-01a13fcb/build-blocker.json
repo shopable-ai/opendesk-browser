@@ -1,0 +1,26 @@
+{
+  "at": "2026-10-15T15:01:40.732448+00:00",
+  "head": "1ac3f8687033398ffb50c0aa3a17206e35bee5b7",
+  "blockerFile": "src/framework/sdk/browser-schemas.js",
+  "blockerSha256": "ab291ef337d50074594f7da2072dded7e36b0aafe4caae6483415e9b51b6e9a7",
+  "introducedBy": "5d630f7a0f6dacd9ff0b96b54d5349e368e41d23",
+  "nodeCheckExitCode": 1,
+  "nodeCheck": "/Users/shopme/Documents/workspace/opendesk-browser/src/framework/sdk/browser-schemas.js:56\n  host:str(253,'^[a-z0-9.-]+\n               ^^^^^^^^^^^^^\n\nSyntaxError: Invalid or unexpected token\n    at checkSyntax (node:internal/main/check_syntax:72:5)\n\nNode.js v24.16.0\n",
+  "watcherLatestRelevantLines": [
+    "ℹ [OpenDesk dev] Output ready 40ef91d09674; browser applies updates only after its safety checks.",
+    "ℹ [OpenDesk dev] Output ready 40ef91d09674; browser applies updates only after its safety checks.",
+    "ℹ [OpenDesk dev] Output ready 40ef91d09674; browser applies updates only after its safety checks.",
+    "ℹ [OpenDesk dev] Output ready 40ef91d09674; browser applies updates only after its safety checks.",
+    "ℹ [OpenDesk dev] Output ready 40ef91d09674; browser applies updates only after its safety checks.",
+    "ℹ [OpenDesk dev] Output ready 81b22ac6a056; browser applies updates only after its safety checks.",
+    "ℹ [OpenDesk dev] Output ready f19ff445b41d; browser applies updates only after its safety checks.",
+    " ERROR  [OpenDesk dev] Workspace/static publish failed: 工具能力声明超出当前支持范围",
+    " ERROR  src/framework/sdk/browser-schemas.js (56:15): Unterminated string constant",
+    "  [cause]: Unterminated string constant",
+    " ERROR  src/framework/sdk/browser-schemas.js (56:15): Unterminated string constant",
+    "  [cause]: Unterminated string constant"
+  ],
+  "distRevision": "f19ff445b41dc18bbea4a7c282ea13534daa391f06c98f75c83f8206f1ce865d",
+  "effect": "own workflow-view.js one-line fix not built and not Chrome-retested yet; production not tested",
+  "pinPolicy": "No AdBlock trusted pin modified"
+}

@@ -1,0 +1,3 @@
+{"event": "before_explicit_send", "at": "2026-10-15T14:16:21.272978+00:00", "priorThread": "01a13fe4-9d0c-7fc0-9386-cb9c22681332", "priorUI": "OUTCOME_UNKNOWN; no automatic retry", "pageValue": "\u65e7\u7684\u9884\u586b\u5185\u5bb9", "searchCount": 0, "observation": "Chrome native accessibility"}
+{"at": "2026-10-15T14:16:38.358202+00:00", "newestThread": "01a13feb-fb55-7c50-a8e6-2ab8bea345c4", "createdAt": 1792073792, "processCount": 0, "processPids": []}
+{"at": "2026-10-15T14:17:39.339531+00:00", "event": "ui_unknown", "pageValue": "\u65e7\u7684\u9884\u586b\u5185\u5bb9", "searchCount": 0, "thread": "01a13feb-fb55-7c50-a8e6-2ab8bea345c4"}
