@@ -70,6 +70,8 @@ contracts/ui-preview/quick-notes.lock.json 是**输入源码的 Git blob SHA-1 �
 必须遵守：
 
 1. **生产内层**：\`examples/sidebar-tools/<tool-id>/src/\` 与官方 \`createSidebarToolPackage()\` 的 HTML/CSS/JS 只呈现真正安装后的业务 UI。条目点击首先只读详情；明确点击“编辑”才转为表单。
+
+6. **共享模板不漂移**：专有诊断的 CSS、脚本和测试控件按目标工具 ID 由 `build-preview.mjs` 注入生成后的外层 HTML；不能改变所有工具共用模板的产物结构（包括插入空脚本或空容器），不得迫使 AdBlock/Quick Notes/Reading TOC 的正式同源预览因书签专有实验台而变化。编译后对三个非目标工具分别检查不含书签诊断脚本与节点。
 2. **预览外层**：测试操作板只能作为 \`scripts/templates/sidebar-tool-preview-shell.html\` 中模拟设备区 **之外** 的 \`aside\`/折叠区出现，由 builder 为需要的工具显式启用。没有测试需求的其他工具不能显示书签实验台。正式安装 JSON 不得打包外层测试代码。
 3. **消息与权限**：外层 \`bookmark-manager-lab.js\` 的固定 8 项命令通过 \`postMessage\` 给 opaque iframe 中的 \`bookmark-manager-mock.js\`。内层检查 \`event.source===parent\`、精确消息类型、请求 ID、命令白名单；外层检查 \`event.source===iframe.contentWindow\`、opaque 来源 \`null\`、请求一致性再显示回执。消息只触发内存故障模拟，不获得真实书签/权限、网络、Storage 或 Host 写入能力。工具沙箱继续 **仅** \`sandbox="allow-scripts"\`。
 4. **草稿与选择**：切换到其他书签时，干净的表单直接关闭并显示新节点只读详情；脏草稿维持旧选择、暂停编辑呈现并展示目标名称和保留/放弃操作，不能默许丢弃或自动保存；确认放弃后打开新节点**只读**详情；Escape/保留返回原草稿与焦点。
