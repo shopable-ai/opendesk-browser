@@ -86,6 +86,14 @@ export function prepareDirectExecution({request,workflow,target,observation}) {
   return {params,hasReadback:fills.length>0,hasUnprovenClick:clicks.length>0};
 }
 
+// Execution receipt, actual page readback, and a valid proposal are independent
+// evidence levels; never promote a click using an unrelated assertion.
+export function directExecutionEvidenceLevel({receiptVerified=false,hasReadback=false,hasUnprovenClick=false}={}) {
+  if(!receiptVerified)return 'PROPOSAL_VALID';
+  if(hasReadback&&!hasUnprovenClick)return 'BUSINESS_EFFECT_VERIFIED';
+  return 'EXECUTION_RECEIPT_VERIFIED';
+}
+
 // A RunHost completion is not automatically a successful web-page effect.
 // Bind all independently durable run/result/revision/document identities and
 // the released Worker/target before presenting a verified success to the user.
