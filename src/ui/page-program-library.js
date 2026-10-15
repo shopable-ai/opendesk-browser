@@ -28,6 +28,7 @@ export function createPageProgramLibrary({client,currentPageTarget,api,document:
     button('install').textContent=needsConfirmation?'重新确认安装':install&&row?.authorizationChange?.requiresConfirmation?'确认新增权限并升级':install?'安装此版本':'安装自动运行';
     button('toggle').disabled=busy||!install;
     button('toggle').textContent=install?.enabled?'停用自动运行':'启用自动运行';
+    button('uninstall').disabled=busy||!install;
     button('refresh').disabled=busy;
     const selectedIsInstalled=install?.manifestHash===row?.manifestHash;
     const restricted=selectedIsInstalled&&grant?.status==='suspended';
@@ -110,6 +111,20 @@ export function createPageProgramLibrary({client,currentPageTarget,api,document:
       expectedGeneration:row.installed.authorization?.generation??null});
     if(result.error)throw result.error;
     return enabled?'已启用；下次进入匹配网页自动运行。':'已停用后续自动执行。刷新原网页可清除旧脚本的界面、监听器和计时器；已发生的效果不会回滚。';
+  });
+  operation('uninstall',async row=>{
+    if(!row?.installed)throw new Error('尚未安装');
+    // Explicit destructive confirmation, tied to the currently selected
+    // persisted installation rather than whichever candidate is displayed.
+    const confirmed=doc.defaultView?.confirm?.(
+      '确定卸载「'+(row.installed.title||row.installed.programId)+'」的自动运行安装吗？\\n已打开的网页需刷新才能清除既有脚本效果。');
+    if(confirmed!==true)return '已取消卸载。';
+    const result=await client.request('uninstallPageProgram',{
+      programId:row.installed.programId,manifestHash:row.installed.manifestHash,
+      expectedGeneration:row.installed.authorization?.generation??null});
+    if(result.uninstalled!==true||result.nativeState!=='unregistered')
+      throw new Error('浏览器尚未确认原生注销');
+    return '已注销原生自动运行并移除安装授权；请刷新已打开的网页以清除旧页面效果。';
   });
   operation('restore',(row,event)=>{
     if(!row)throw new Error('请选择脚本');

@@ -159,3 +159,38 @@ Date: 2026-10-15. Branch: `main` (only). Scope: `examples/programs/chatgpt-mindm
 - `preview/index.html` 现在直接按顺序加载同级 `./jszip.min.js`、`./polyfill-45b9836beb.min.js`、`./xmind-sdk.bundle.js`、`./snowbrush-2c2b5d62b5.js`。`serve.mjs` 在监听本地端口前核验这四份文件的 SHA-256、Git Blob 和长度；不再下载 npm 包、复制旧快照或创建隐藏缓存；新增 `verify-assets.mjs` 核验 CLI，删除 `prepare-assets.mjs` 和原本仅忽略隐藏缓存的 `.gitignore`。
 - 专项 CI 新增 `git ls-files --error-unmatch` 确认目标目录四件套已被 Git 真正跟踪，再直接对同一份实际文件进行负向篡改、HTTP 字节、真正 Chromium 绘图和交互验证。
 - 这些是可见的**开发预览资源**，不意味着第三方版权许可/正式安装分发权利已经获得批准；现有 Program manifest 未声明四份正式资源，`installable:false`、`BLOCKED_GLOBAL_STYLE_RESIDUE` 和原有安全门槛均保持不变。
+
+## R3 · 2026-10-15 · GitHub main 原生链增量修复与仍未解除的阻塞
+
+本次先核对 `main` 中的真实 Page Program 链路：
+`src/scripting/user-scripts/installed-programs.js` 已有
+`verifyPageCandidate → makePageAvailable → installPageProgram → chrome.userScripts.register`
+以及 `setInstalledPageEnabled`；`src/scripting/user-scripts/preview.js` 的已安装执行路径
+通过 `chrome.userScripts.execute` 进入命名 USER_SCRIPT world；
+但正式程序 `src/main.js` 在创建任何按钮前需要同一全局
+`JSZip / Workbook / Topic / Dumper / _SB_.createWorkbookEditor`，
+而正式资源合同只批准小体积 CSS/JSON/图片，不能承载 4,042,573 B
+原始 XMind JS，也没有可信隔离文档。四份唯一真源已位于
+`examples/programs/chatgpt-mindmap/preview/`，不得复制出第二份引擎或使用 CDN。
+
+本轮直接补齐了**通用** Page Program 原生卸载缺口，不为 ChatGPT 新建框架：
+`uninstallPageProgram` 在原 Broker 中复用 Host Authority、持久安装 CAS、
+token 轮换、禁用状态及 Native `userScripts.unregister/getScripts`，
+完全成功后才删除安装行；失败则留可重试的已禁用安装。
+UI 需要显式确认并告知已打开页面仍需刷新；新增组件回归以验证
+旧引导 token 不能重新运行、卸载必须以旧安装版本和 generation 为准、
+Chrome API 失败不假装卸载成功。
+
+**不能夸大当前成果：** 新增的卸载并不执行已存在 USER_SCRIPT
+环境的即时 teardown；这涉及当前 `preview.executeInstalled` 创建的
+世界、生命周期句柄及 BFCache 悬挂文档。已有受管 UI 的
+`managed-ui-lifecycle.js` 仅应用于受管预览，未完整接线到安装
+生命周期。真实 ChatGPT DOM 选择器、隔离文档双向消息、Snowbrush
+`style#snowbrush_style` 残留、第三方 GSAP 3.5.1 与完整 Snowbrush
+合并包生产许可仍处于 `BLOCKED/NOT_TESTED`。
+不能仅因 `JSZip` 本身是 MIT/GPL 双许可或 XMind SDK 相关上游
+有许可证，就推断合并 Snowbrush 的全部分发权利。
+需取得对应锁定字节的第三方 NOTICE/许可证清单、合法来源和再分发授权，
+并在真实 Chrome 通过独立文档隔离与退出清理后，才可谈
+`RUNTIME_ADMITTED` / `CANDIDATE_VERIFIED` / `AVAILABLE` / `INSTALLED`。
+当前预览历史 CI 仅可证明当时的预览代码，不证明本轮原生安装验收。

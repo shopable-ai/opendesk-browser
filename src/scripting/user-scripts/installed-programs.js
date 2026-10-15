@@ -265,6 +265,52 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       return publicInstall(await read(tx=>tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,row.programId))));
     });
   }
+  // Explicit native uninstall uses the same owner, revision CAS and serialized
+  // registration fence as disable. Persist the disabled generation *before*
+  // unregister so even a delayed old bootstrap cannot dispatch user source.
+  // A failed native unregister leaves a disabled recoverable record, never an
+  // apparent successful uninstall. This does not undo effects in live pages.
+  async function uninstallPageProgram(request,sender){
+    request=structuredClone(request);
+    fields(request,['programId','manifestHash','expectedGeneration']);
+    return ordered(async()=>{
+      const installKey=key(INSTALL_KEY_KIND,namespace,request.programId);
+      const previous=await read(tx=>tx.get(PAGE_STORE,installKey));
+      invariant(previous?.tag===PAGE_INSTALL_TAG&&previous.manifestHash===request.manifestHash&&
+        (previous.authorization?.generation??null)===request.expectedGeneration,
+        PAGE_REVISION_ERROR,'卸载必须针对当前真实安装版本和授权代数');
+      const authorization=assertPageInstallAuthorization(previous);
+      const row={...previous,enabled:false,token:crypto.randomUUID().replaceAll('-',''),
+        nativeState:'pending',error:null,authorization:{...authorization,
+          generation:authorization.generation+1,status:'disabled'}};
+      await scoped(sender,PAGE_WRITE,async tx=>{
+        const current=await tx.get(PAGE_STORE,installKey);
+        invariant(current?.tag===PAGE_INSTALL_TAG&&current.token===previous.token&&
+          current.manifestHash===previous.manifestHash&&
+          current.authorization?.generation===request.expectedGeneration,
+          PAGE_REVISION_ERROR,'卸载期间安装身份已改变');
+        await tx.put(PAGE_STORE,row,installKey);
+      });
+      await reconcileOne(row);
+      const after=await read(tx=>tx.get(PAGE_STORE,installKey));
+      invariant(after?.token===row.token&&after.authorization?.generation===row.authorization.generation,
+        PAGE_REVISION_ERROR,'原生撤销后的安装身份已改变');
+      invariant(after.nativeState==='disabled','E_PAGE_UNINSTALL_PENDING',
+        '自动运行已停用，但原生注销尚未确认；修复 Chrome 用户脚本访问后重试卸载');
+      const native=await nativeAPI();
+      invariant((await native.getScripts({ids:[row.nativeId]})).length===0,
+        'E_PAGE_UNINSTALL_PENDING','原生注册仍存在，不能标记已卸载');
+      await scoped(sender,PAGE_WRITE,async tx=>{
+        const current=await tx.get(PAGE_STORE,installKey);
+        invariant(current?.token===row.token&&current.nativeState==='disabled'&&
+          current.authorization?.generation===row.authorization.generation,
+          PAGE_REVISION_ERROR,'最终卸载时安装身份已改变');
+        await tx.delete(PAGE_STORE,installKey);
+      });
+      return {programId:row.programId,manifestHash:row.manifestHash,
+        uninstalled:true,nativeState:'unregistered',livePagesNeedRefresh:true};
+    });
+  }
   function nativeEqual(actual,expected){return actual&&['id','matches','excludeMatches','runAt','allFrames','world','worldId','js']
     .every(k=>equal(actual[k]??(k==='excludeMatches'?[]:null),expected[k]));}
   async function reconcileOne(row){
@@ -510,6 +556,6 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       throw error;
     });executions=next.catch(()=>{});return next;
   }
-  return Object.freeze({verifyPageCandidate,makePageAvailable,installPageProgram,setInstalledPageEnabled,
+  return Object.freeze({verifyPageCandidate,makePageAvailable,installPageProgram,setInstalledPageEnabled,uninstallPageProgram,
     listPagePrograms,recoverExecutions,reconcile,revokePermissions,handleBoot});
 }

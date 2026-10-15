@@ -7,6 +7,12 @@ on:
       - 'tests/environment/chatgpt-mindmap-preview.test.mjs'
       - 'tests/environment/chatgpt-mindmap-r1.test.mjs'
       - 'tests/framework/chatgpt-mindmap-xmind-probe.mjs'
+      - 'src/scripting/user-scripts/installed-programs.js'
+      - 'src/platform/host/broker.js'
+      - 'src/ui/page-program-library.js'
+      - 'src/ui/tool.html'
+      - 'tests/environment/page-installed-programs.test.mjs'
+      - 'tests/environment/page-program-library.test.mjs'
       - '.github/workflows/chatgpt-mindmap-preview.yml'
   workflow_dispatch:
 permissions:
@@ -33,6 +39,11 @@ jobs:
           node --test --test-reporter=spec \
             tests/environment/chatgpt-mindmap-r1.test.mjs \
             tests/environment/chatgpt-mindmap-preview.test.mjs
+      - name: Installed Page native lifecycle and UI regression
+        run: |
+          node --test --test-reporter=spec \\
+            tests/environment/page-installed-programs.test.mjs \\
+            tests/environment/page-program-library.test.mjs
       - name: Validate authoring and deterministic program build (not runtime installation)
         run: |
           node scripts/validate-program-project.mjs examples/programs/chatgpt-mindmap

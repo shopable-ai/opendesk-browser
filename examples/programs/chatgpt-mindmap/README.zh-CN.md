@@ -65,7 +65,7 @@ node --test tests/environment/chatgpt-mindmap-preview.test.mjs
 | `snowbrush-2c2b5d62b5.js` | 3,439,267 |
 | 合计 | 4,042,573 |
 
-**这些 vendor 字节未随本项目/扩展分发。** 以下缺口尚未关闭：
+**四份 vendor 字节已提交在本项目公开仓库的 `preview/` 中，但尚未纳入正式扩展的受信生产资源封装。公开存在不等于取得其完整生产再分发许可。** 以下缺口尚未关闭：
 
 1. **许可/来源闭包**：参考目录没有附带完整许可证和可复现版本锁。JSZip 头部声明 MIT/GPL；XMind 官方 SDK、viewer 包装项目的 MIT 不能直接证明这个 Snowbrush 合并产物和其中全部第三方资源的再分发许可。Snowbrush 内含多个第三方许可头，需要将其与固定字节对应。没有证据宣称它禁止分发，也没有证据宣称已审核通过。
 2. **现有资源合同装不下**：普通 Program builder 输出上限 100,000 B；linked Page 资源/compiled source 512 KiB；可选本地库单项 512 KiB，React/Vue 专用资源 256 KiB。Page assets 仅 CSS/JSON/图片，不能把 3.44 MB JS 冒充 JSON/CSS。未修改这些合同或以远端锁绕过。
@@ -107,3 +107,18 @@ node tests/framework/chatgpt-mindmap-xmind-probe.mjs \
 **正式状态：Source → Build 已完成；Candidate / Verification / Available / Installed 未完成。**
 源码或远端提交不代表用户 Mac 的日常 `dist/development`、Chrome 扩展身份或安装状态发生变化。
 下一步首先补齐固定资源的许可/隔离准入，再沿原 Page Authority 完成同候选验证与安装；不恢复 SVG。
+
+## R3 原生安装链新增核查（2026-10-15）
+
+现有 Page Program 宿主已具备真实 Candidate / Verified / Available / Install / Disable，
+但 R2.4 原生安装尚缺正式 XMind Runtime 准入。R3 增加通用 Page Program
+`uninstallPageProgram`：受宿主身份、安装版本和授权代数 CAS 约束，先撤销持久自动
+运行授权、旋转引导 token，再等待 Chrome `userScripts.unregister` 和
+`getScripts` 对账，成功才删除安装记录；失败保留禁用的可重试记录。
+工具管理页同时增加需显式确认的「卸载程序」。这不等于思维导图已经可安装。
+
+**特别注意：** 禁用和卸载尚不能可靠销毁已注入且仍然打开的文档中的
+USER_SCRIPT 全部回调，也未解决 Snowbrush 全局样式残留。UI 会明确提示刷新原网页。
+卸载接口的组件测试只是 Native 模拟测试，必须进一步由真实 Chrome
+验收撤销、刷新、BFCache 和权限移除。许可证和可信绘图文档没有审批前，
+本程序仍须保持不可安装，不能把通用卸载功能视为 XMind Runtime 接线完成。

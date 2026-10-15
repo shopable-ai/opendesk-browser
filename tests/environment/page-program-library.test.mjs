@@ -18,8 +18,10 @@ const rules=site=>({matches:[site],excludeMatches:[],runAt:'document_idle',allFr
 const candidate=(revision=1,site='https://a.example/*')=>({programId:'page-a',revision,manifestHash:String(revision).repeat(64),sourceHash:'a'.repeat(64),
   stage:'Verified',pageRules:rules(site),installed:null,authorizationChange:{requiresConfirmation:false,addedSites:[],removedExclusions:[],changedExecution:false}});
 async function fixture(catalog=[candidate()]){
-  const nodes=new Map(['list','status','detail','load','verify','install','toggle','refresh','restore'].map(id=>[id,new Element()]));
-  const doc={getElementById:id=>nodes.get(id.replace('page-program-','')),createElement:()=>new Element()};
+  const nodes=new Map(['list','status','detail','load','verify','install','toggle','uninstall','refresh','restore'].map(id=>[id,new Element()]));
+  let confirmation=true;
+  const doc={getElementById:id=>nodes.get(id.replace('page-program-','')),
+    createElement:()=>new Element(),defaultView:{confirm:()=>confirmation}};
   const grants=new Set(['https://a.example/*']),requests=[],calls=[];
   const api={permissions:{onAdded:events(),onRemoved:events(),contains:async request=>(request.origins||[]).every(value=>grants.has(value)),
     request:request=>{requests.push(structuredClone(request));for(const origin of request.origins||[])grants.add(origin);return Promise.resolve(true);}}};
@@ -38,12 +40,18 @@ async function fixture(catalog=[candidate()]){
       row.installed.enabled=input.enabled;row.installed.authorization.status=input.enabled?'active':'disabled';
       row.installed.authorization.generation++;return row.installed;
     }
+    if(method==='uninstallPageProgram'){
+      row.installed=null;
+      return {programId:input.programId,manifestHash:input.manifestHash,
+        uninstalled:true,nativeState:'unregistered',livePagesNeedRefresh:true};
+    }
     throw Error('Unexpected '+method);
   }};
   const target={capture:()=>({tabId:1,documentId:'document-a',url:'https://a.example/',windowId:1}),revalidate:async()=>true};
   const ui=createPageProgramLibrary({client,currentPageTarget:target,api,document:doc,onLoad:async()=>{}});
   await tick();await tick();
-  return{ui,api,client,target,catalog,grants,requests,calls,get:id=>nodes.get(id),
+  return{ui,api,client,target,catalog,grants,requests,calls,
+    setConfirmation:value=>{confirmation=value;},get:id=>nodes.get(id),
     click:async id=>{nodes.get(id).fire('click',{isTrusted:true});await tick();await tick();}};
 }
 
@@ -119,4 +127,19 @@ test('permission revocation invalidates the preflight and a closed panel never i
   f.get('install').fire('click',{isTrusted:true});assert.equal(f.requests.length,1);
   f.ui.dispose();f.grants.add('https://a.example/*');release(true);await tick();await tick();
   assert.equal(f.calls.filter(row=>row.method==='installPageProgram').length,0);
+});
+
+test('Page uninstall needs explicit confirmation and passes installed identity instead of selected candidate',async t=>{
+  const row=candidate(2);row.installed={...candidate(1),title:'旧版本',enabled:false,
+    authorization:{installationId,generation:7,status:'disabled'}};
+  const f=await fixture([row]);t.after(()=>f.ui.dispose());
+  f.setConfirmation(false);await f.click('uninstall');
+  assert.equal(f.calls.filter(x=>x.method==='uninstallPageProgram').length,0);
+  f.setConfirmation(true);await f.click('uninstall');
+  const requests=f.calls.filter(x=>x.method==='uninstallPageProgram');
+  assert.equal(requests.length,1);
+  assert.deepEqual(requests[0].input,{programId:'page-a',
+    manifestHash:'1'.repeat(64),expectedGeneration:7});
+  assert.equal(row.installed,null);
+  assert.match(f.get('status').textContent,/请刷新已打开的网页/);
 });

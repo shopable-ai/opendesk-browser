@@ -557,3 +557,40 @@ test('installed Page rejects missing legacy identity and CORE byte/catalog/ABI u
     assert.equal(f.rows().find(row=>row.tag==='page-verification-v1').status,'Available');
   }
 });
+
+test('explicit Page uninstall fences stale native boots, CAS-deletes its installation and permits a fresh install',async()=>{
+  const f=fixture(),installed=await f.install(),oldBoot=f.message();
+  await fails(()=>f.service.uninstallPageProgram({programId:'script',
+    manifestHash:'0'.repeat(64),expectedGeneration:installed.authorization.generation},{}),'E_REVISION');
+  assert.equal(f.native.size,1);
+  const result=await f.service.uninstallPageProgram({programId:'script',manifestHash:installed.manifestHash,
+    expectedGeneration:installed.authorization.generation},{});
+  assert.deepEqual(result,{programId:'script',manifestHash:installed.manifestHash,
+    uninstalled:true,nativeState:'unregistered',livePagesNeedRefresh:true});
+  assert.equal(f.installation(),undefined);
+  assert.equal(f.native.size,0);
+  await fails(()=>f.service.handleBoot(oldBoot,f.sender),'E_PERMISSION');
+  const again=await f.service.installPageProgram({programId:'script',revision:1,
+    manifestHash:installed.manifestHash,expectedInstalledManifestHash:null},{});
+  assert.equal(again.nativeState,'registered');
+  assert.equal(f.native.size,1);
+});
+
+test('uninstall fails closed and retains disabled recovery record until native unregister is confirmed',async()=>{
+  const f=fixture(),installed=await f.install(),oldBoot=f.message();
+  f.access=false;
+  await fails(()=>f.service.uninstallPageProgram({programId:'script',manifestHash:installed.manifestHash,
+    expectedGeneration:installed.authorization.generation},{}),'E_PAGE_UNINSTALL_PENDING');
+  const suspended=f.installation();
+  assert.equal(suspended.enabled,false);
+  assert.equal(suspended.authorization.status,'disabled');
+  assert.equal(suspended.nativeState,'blocked');
+  assert.equal(f.native.size,1);
+  f.access=true;
+  await fails(()=>f.service.handleBoot(oldBoot,f.sender),'E_PERMISSION');
+  const result=await f.service.uninstallPageProgram({programId:'script',manifestHash:installed.manifestHash,
+    expectedGeneration:suspended.authorization.generation},{});
+  assert.equal(result.nativeState,'unregistered');
+  assert.equal(f.native.size,0);
+  assert.equal(f.installation(),undefined);
+});

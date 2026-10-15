@@ -163,7 +163,7 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
   const routes = {
     ...createMethodRoutes(authority,['cloudStatus','cloudPair','cloudApprove','cloudRevokeResults','cloudStop','cloudUnpair','cloudClients','cloudClientGrant','cloudClientRevoke','cloudNext','cloudResolve','commitControllerScript','getControllerScript','listControllerScripts','startControllerRun','controllerOperation','stopControllerRun','finishControllerRun','snapshotControllerRun','retireControllerTarget','tombstoneControllerScript','garbageCollectControllerScript','importTaskPackage','listTaskCatalog','getTaskCandidate','verifyTaskCandidate','makeTaskAvailable','installTask','setInstalledTaskEnabled','uninstallTask','resolveInstalledTask','saveSchedule','changeSchedule','listSchedules','listScheduleHistory','listDueSchedules','setScheduleFireState','grantSdk','inspectSdkGrant','revokeSdkGrant','registerHost']),
     ...createMethodRoutes(pageDependencies,['importPageCandidate','getPageCandidate']),
-    ...createMethodRoutes(installedPages,['listPagePrograms','verifyPageCandidate','makePageAvailable','installPageProgram','setInstalledPageEnabled']),
+    ...createMethodRoutes(installedPages,['listPagePrograms','verifyPageCandidate','makePageAvailable','installPageProgram','setInstalledPageEnabled','uninstallPageProgram']),
     ...createMethodRoutes(downloads,['prepareArtifact','prepareAttempt','retirePreparedArtifact','dispatchDownload','reconcileDownload','recordResourceRelease']),
     ...(INCLUDE_DORMANT_TEMPLATE_RUNTIME ? createMethodRoutes(downloads,['prepareAttempts']) : {}),
     previewPageScript:(p,s)=>pageScriptPreview.preview(p,s),
