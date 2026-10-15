@@ -114,7 +114,9 @@ function fixture(t,{disabled=false,readError=false,installedRows=[app],cleanupRo
   nodes['extension-center-menu'].hidden=true;
   const installedScope=doc.createElement('button');installedScope.dataset.ecScope='smart';
   const availableScope=doc.createElement('button');availableScope.dataset.ecScope='available';
-  nodes['extension-center-menu'].append(installedScope,availableScope);
+  const appKind=doc.createElement('button');appKind.dataset.ecKind='app';
+  const pageKind=doc.createElement('button');pageKind.dataset.ecKind='page';
+  nodes['extension-center-menu'].append(installedScope,availableScope,appKind,pageKind);
   nodes['extension-center-list-view'].append(nodes['extension-center-cleanups']);
   nodes['extension-center-detail'].append(nodes['extension-center-back'],nodes['extension-center-detail-body']);
   doc.body.append(nodes['extension-center-list-view'],nodes['extension-center-detail'],
@@ -333,6 +335,17 @@ test('R5.0 catalog-offline cleanup remains recoverable only from discovery',asyn
   const recovery=f.nodes['extension-center-cleanups'];
   assert.equal(recovery.hidden,false,'recovery remains reachable without a Catalog release');
   assert.match(recovery.textContent,/cookie-editor/);
+  // The recovery-only row has to obey the same discovery search and kind filter.
+  f.nodes['extension-center-search'].value='unrelated';
+  f.nodes['extension-center-search'].dispatch('input');
+  assert.equal(recovery.hidden,true,'unrelated search cannot expose an orphan cleanup');
+  f.nodes['extension-center-search'].value='Cookie Editor';
+  f.nodes['extension-center-search'].dispatch('input');
+  assert.equal(recovery.hidden,false,'same-ID cleanup stays searchable by readable tool name');
+  f.nodes['extension-center-menu'].querySelector('button[data-ec-kind="page"]').dispatch('click');
+  assert.equal(recovery.hidden,true,'Page-only filter cannot display App cleanup');
+  f.nodes['extension-center-menu'].querySelector('button[data-ec-kind="app"]').dispatch('click');
+  assert.equal(recovery.hidden,false,'App filter restores matching cleanup action');
   recovery.querySelector('button').dispatch('click');
   await settle(()=>recovery.hidden===true&&f.nodes['extension-center-status'].dataset.state==='success');
   assert.deepEqual(f.invocations.filter(x=>x[0]==='cleanup'),[['cleanup','cookie-editor']]);
