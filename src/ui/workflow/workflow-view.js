@@ -10,7 +10,7 @@ import {createWorkflowProviderFacade} from './provider.js';
 import {deriveWorkflowViewState} from './view-state.js';
 import {createLocalCodexPlanner,describeLocalCodex} from './local-codex.js';
 import {createWorkflowObservation} from './observation.js';
-import {prepareDirectExecution,verifyDirectExecutionReceipt,directExecutionEvidenceLevel,verifyDirectFillReadbacks,verifySearchBusinessEffect} from './direct-execution.js';
+import {prepareDirectExecution,verifyDirectExecutionReceipt,directExecutionEvidenceLevel,verifyDirectFillReadbacks,verifySearchBusinessEffect,verifySavedWorkflowRevision} from './direct-execution.js';
 import {createTaskReviewHandoff,taskReviewHandoffKey} from './task-review-handoff.js';
 
 const STORAGE_PREFIX = 'opendesk.sidebar.workflow.v1:';
@@ -430,10 +430,23 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       const verifyFill=directVerifiedSerial===serial;
       const freeze=await compileWorkflow(frozen,{verifyFill});
       const previous=revision?.workflow?.workflowId===freeze.workflow.workflowId?revision.revision:0;
-      // Only the existing Controller revision journal can claim the executable bytes.
+      // Recover an exact already-committed Controller head when storage.local
+      // failed after commit. Do not create a second Revision or overwrite an
+      // unrelated concurrent head. The Controller journal remains the owner.
       if(serial!==stable())throw err('E_WORKFLOW_STALE','保存期间草稿已变化');
-      const saved=await host.controller.commitControllerScript({scriptId:freeze.workflow.workflowId,
-        expectedRevision:previous,sourceUtf8:freeze.sourceUtf8});
+      let head=null;
+      try{head=await host.controller.getControllerScript({scriptId:freeze.workflow.workflowId});}
+      catch(error){if(error?.code!=='E_TOMBSTONE')throw error;}
+      if(serial!==stable())throw err('E_WORKFLOW_STALE','保存期间草稿已变化');
+      let saved;
+      if(head?.sourceUtf8===freeze.sourceUtf8&&head.contentHash===freeze.sourceHash) {
+        saved={revision:head.revision,contentHash:head.contentHash};
+      }else{
+        if((head?.revision||0)!==previous)
+          throw err('E_WORKFLOW_REVISION','当前 Controller 已由其他版本更新；请检查历史版本后再保存');
+        saved=await host.controller.commitControllerScript({scriptId:freeze.workflow.workflowId,
+          expectedRevision:previous,sourceUtf8:freeze.sourceUtf8});
+      }
       if(saved.contentHash!==freeze.sourceHash)throw err('E_WORKFLOW_HASH','Controller 源码哈希不匹配');
       const record={format:'opendesk.workflow-revision.v1',workflow:freeze.workflow,
         revision:saved.revision,sourceHash:freeze.sourceHash,savedAt:Date.now(),
@@ -575,11 +588,18 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           return {ok:lastRun==='success',runId:claim.runId,resultId:proof?.resultId||null,
             evidenceLevel,readbackVerified,effect};
         }
+        let receiptProof=null;
+        try{receiptProof=verifyDirectExecutionReceipt({
+          claim,completed,view,sourceHash:freeze.sourceHash,target:captured
+        });}catch(error){status(format(error),true);}
+        const frozenRevisionValid=source.kind!=='saved'||verifySavedWorkflowRevision({
+          source,claim,completed,view,result
+        });
         lastRun=completed?.state==='completed'&&completed?.retirement?.state==='released'&&
           !completed?.pendingSettlement&&result?.state==='completed'&&result?.outcome?.ok===true&&decoded&&
           result?.resultId===claim.resultId&&view?.run?.resultId===claim.resultId&&
           view?.run?.state==='completed'&&view.run.workerRetired===true&&
-          view.run.retirementState==='released'?'success':'failed';
+          view.run.retirementState==='released'&&receiptProof&&frozenRevisionValid?'success':'failed';
         if(lastRun==='success' && view?.run?.state==='completed' && view.run.workerRetired===true &&
           view.run.retirementState==='released' && view.run.runId===claim.runId &&
           view.run.target?.documentId===captured.documentId &&
@@ -589,6 +609,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           lastTrustedRun={runId:claim.runId,sourceHash:freeze.sourceHash,siteOrigin:captured.origin};
         if(lastRun==='failed'&&!hasError)
           status('运行未成功或结果无法确认，请检查真实结果及页面效果；不会自动重试。',true);
+        if(lastRun==='success'&&source.kind==='saved')
+          status('已独立运行固定 r'+source.revision+'（SHA-256：'+source.contentHash.slice(0,12)+
+            '…）；运行回执已验证，页面业务效果仍须按步骤核对。');
         return {ok:lastRun==='success',runId:claim.runId,resultId:result?.resultId||null};
       }
     })().catch(error=>{
