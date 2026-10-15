@@ -66,7 +66,10 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
       if(glyph)button.replaceChildren(icon(document,glyph));
       if(label){button.title=label;button.setAttribute('aria-label',label);}
       if(disabled!==undefined)button.disabled=disabled;
-      if(pressed!==undefined)button.setAttribute('aria-pressed',String(pressed));
+      if(pressed!==undefined){
+        if(button.getAttribute('role')==='menuitem')button.removeAttribute('aria-pressed');
+        else button.setAttribute('aria-pressed',String(pressed));
+      }
       if(hidden!==undefined)button.hidden=hidden;
     }
   }
@@ -140,7 +143,19 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
     if(menuOpen)menu.querySelector('button:not([hidden])')?.focus();
   }));
   removers.push(owner.on(shadow,'keydown',event=>{
-    if(event.key==='Escape'&&menuOpen){closeMenu({restoreFocus:true});event.stopPropagation();}
+    if(!menuOpen)return;
+    if(event.key==='Escape'){
+      closeMenu({restoreFocus:true});event.stopPropagation();event.preventDefault();
+      return;
+    }
+    if(!['ArrowDown','ArrowUp','Home','End'].includes(event.key))return;
+    const items=[...menu.querySelectorAll('button:not([hidden]):not(:disabled)')];
+    if(!items.length)return;
+    const index=items.indexOf(shadow.activeElement);
+    const target=event.key==='Home'?0:event.key==='End'?items.length-1:
+      event.key==='ArrowDown'?(index+1)%items.length:
+      (index<0?0:index-1+items.length)%items.length;
+    items[target].focus();event.preventDefault();
   }));
   removers.push(owner.on(document,'pointerdown',event=>{
     if(menuOpen&&!event.composedPath().includes(menuGroup))closeMenu();
