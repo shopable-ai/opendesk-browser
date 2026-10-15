@@ -597,6 +597,20 @@
 .sidebar-toc-settings-hint{margin:4px 0 9px;line-height:1.5;color:#697a91}
 .sidebar-toc-settings-row{display:flex;justify-content:space-between;align-items:center;gap:7px;margin:7px 0;min-height:31px}
 .sidebar-toc-settings-row>span{min-width:0;flex:1}
+/* AdBlock: trusted, first-party switch presentation. The sandbox does not get these controls. */
+.sidebar-tool-adblock-native{margin:var(--space-2) 0}
+.sidebar-tool-adblock-native>.od-surface{padding:var(--space-3)}
+.sidebar-tool-adblock-native .sidebar-toc-settings-row{gap:var(--space-3);padding:var(--space-2) 0}
+.sidebar-tool-adblock-native .sidebar-toc-settings-row+.sidebar-toc-settings-row{border-top:1px solid var(--od-line)}
+.sidebar-tool-adblock-native .sidebar-toc-settings-row>div{flex:1;min-width:0}
+.sidebar-tool-adblock-native .sidebar-toc-settings-row strong{display:block;color:var(--od-ink);font-size:var(--od-body-size);font-weight:650}
+.sidebar-tool-adblock-native .sidebar-toc-settings-hint{margin:var(--space-1) 0 0;font-size:var(--od-note-size);color:var(--od-sub);line-height:1.5}
+.sidebar-tool-adblock-native button[role=switch]{display:inline-flex;align-items:center;justify-content:flex-start;flex:none;width:46px;min-width:46px;height:27px;min-height:27px;padding:2px;border:1px solid var(--od-input-border);border-radius:999px;background:var(--od-muted);color:transparent;font-size:0;line-height:0;white-space:nowrap;overflow:hidden}
+.sidebar-tool-adblock-native button[role=switch]::after{content:"";display:block;width:21px;height:21px;flex:none;border-radius:50%;background:var(--od-paper);box-shadow:0 1px 4px color-mix(in srgb,var(--od-ink) 24%,transparent);transition:transform .15s ease}
+.sidebar-tool-adblock-native button[role=switch][aria-checked=true]{background:var(--od-brand);border-color:var(--od-brand)}
+.sidebar-tool-adblock-native button[role=switch][aria-checked=true]::after{transform:translateX(19px)}
+.sidebar-tool-adblock-native button[role=switch]:disabled{opacity:.45;cursor:not-allowed}
+@media(prefers-reduced-motion:reduce){.sidebar-tool-adblock-native button[role=switch]::after{transition:none}}
 .sidebar-toc-visibility-toggle{flex:none;min-height:34px;min-width:52px;padding:4px 9px;border:1px solid #d9e3f2;background:#fff;border-radius:var(--radius-control);font-size:11px;color:#536982;cursor:pointer}
 .sidebar-toc-visibility-toggle[aria-pressed=true]{border-color:#b9c9ef;background:#edf2ff;color:#3157b1;font-weight:700}
 .sidebar-toc-visibility-toggle:disabled{opacity:.5;cursor:not-allowed}
