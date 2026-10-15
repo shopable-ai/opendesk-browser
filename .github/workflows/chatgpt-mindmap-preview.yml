@@ -82,6 +82,35 @@ jobs:
             console.log('REAL_XMIND_PREVIEW_ONE_COMMAND_BOOT_PASS');
           }finally{await session.close();}
           NODE
+      - name: Spawn exactly the documented one-command CLI and GET its real autostart HTML
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import {spawn} from 'node:child_process';
+          import assert from 'node:assert/strict';
+          const child=spawn(process.execPath,[
+            'examples/programs/chatgpt-mindmap/preview/serve.mjs','--no-open'
+          ],{env:{...process.env,CI:'true'},stdio:['ignore','pipe','pipe']});
+          let output='',errors='';
+          child.stderr.on('data',b=>{errors+=b;});
+          try{
+            const url=await new Promise((resolve,reject)=>{
+              const timeout=setTimeout(()=>reject(new Error('E_XMIND_CLI_TIMEOUT '+output+' '+errors)),15000);
+              child.once('error',reject);
+              child.once('exit',code=>reject(new Error('E_XMIND_CLI_EXIT '+code+' '+errors)));
+              child.stdout.on('data',bytes=>{
+                output+=bytes.toString();
+                const match=output.match(/REAL_XMIND_LOCAL_PREVIEW (http:\/\/127\.0\.0\.1:\d+\/index\.html\?autostart=1)/);
+                if(match){clearTimeout(timeout);resolve(match[1]);}
+              });
+            });
+            assert.match(output,/PREVIEW_ASSETS_READY 4/);
+            const response=await fetch(url);
+            assert.equal(response.status,200);
+            assert.match(await response.text(),/__fixed_xmind\/snowbrush-2c2b5d62b5\.js/);
+            console.log('REAL_XMIND_PREVIEW_SPAWNED_CLI_PASS '+url);
+          }finally{child.kill('SIGTERM');}
+          NODE
       - name: REAL SDK Workbook and product preview source tests
         run: |
           node --test --test-reporter=spec tests/environment/chatgpt-mindmap-r1.test.mjs tests/environment/chatgpt-mindmap-preview.test.mjs
