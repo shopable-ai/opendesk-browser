@@ -197,3 +197,38 @@ npm run verify
 本轮证据提交前后，其他任务的 `2cbfbb454ce111e0b0ada487611e48602946e63f` 继续修改了同一市场原生驱动的末尾**键盘/焦点**场景，将仍指向隐藏 Discover 控件的旧断言迁移到 R4 正式列表。最新读取 `tests/framework/app-market-r3-native.test.mjs` blob 为 `3e0a00adaef2c1435fda70870f026cbb083e096f`；我方 `c8d52ef4` 的 blob `a378b976...` 是它的历史父输入，**不是当前完整脚本的通过身份**。后续原生测试请对更新后的完整脚本重新执行，且该共享文件新增代码由相应原生测试工作负责人维护，不以旧版本覆盖。
 
 同期统一 SDK 新增独立工具 `browser.storage.local.keys/getQuota` 合同，`src/framework/sdk/browser-contract.js` blob `b2f202ba47da655b99064ec7aebab19846c99f7b`、`src/framework/sdk/browser-schemas.js` blob `f9f64da8d86eb83a83b0b15ab9dbe1752c042caf` 已改变，另有 `src/ui/sidebar-tools/storage-state.js` 的通用受控存储实现改动。即使不改变书签 Full Driver，也必须将最终 Browser 构建输入标为 **AFFECTED_INPUTS**，不能沿用 `c8d52ef4` 的完整包/Native 身份。核查时 `main=``7a29f545fc78f46fd35cb8ce266645e3b5030c05`；相关组件/Native 尚未在此 SHA 上取得 PASS。证据档案仅作为各自历史候选的原始收据。
+
+
+## R2.5 NEXT · Save verification and product UI (2026-10-15)
+
+**状态：SOURCE_TEST_PASS / STANDALONE_TOOL_BUILD_PASS / SHARED_BUILD_BLOCKED / NATIVE_NOT_TESTED / NOT_SCORED。** 本节追加在既有 R2.4 台账，不重写 0.3.3/0.3.4 历史 Chrome 2159 节点及隐藏 URL 表单故障证据；当时的成功读取不能替代当前 0.3.5 的 Chrome 写入验收。
+
+### 用户问题、查明的缺陷与解决
+
+- 用户报告旧界面编辑/保存失败。历史 0.3.3 非可见 URL 字段参与原生表单校验是**已证实的一种**保存阻断；0.3.4 只有 Node 回归，其他保存失败原因尚不能排除。
+- R2.5 源码核查确认原表单 native `invalid` 不进入 `submit`，因而可能没有明确反馈；写入 SDK 请求返回后，UI 未核实刷新后的原生树却直接显示“已更新”；后台读取过程中发生的进一步编辑可能被旧草稿覆盖；删除确认也曾引用最新树而非原来审阅的子树。以上属于**源码确认的设计和可靠性风险**，并非宣称已在用户 Mac 上分别复现。
+- 0.3.5 将非适用字段置为 disabled 以排除原生校验；每个有效字段仍经过 Service 校验。校验错误具备可见文本、ARIA；`input/change` 保留最新草稿；删除确认对原审阅节点和签名做比对。
+- 0.3.5 写入成功回执**仅代表请求返回**。客户端随后通过 Full SDK 重新读取整棵原生树并按 ID、标题、URL、parentId 或删除结果验证；不能核实则保留原草稿并锁住重复危险提交，提示用户先检查原生书签。读回失败、`E_OUTCOME_UNKNOWN` 均不得自动重放。Chrome API 不支持原子 CAS；只读核验不承诺跨设备无竞态或永久持久化。
+- 独立工具依然只调用 `OpenDeskSDK.browser.bookmarks.*`，不复制 Host、Driver 或第二套业务层，旧 `src/bookmark-manager/` 不恢复。工具配置为 `0.3.5`，需要正式安装/升级重新审阅。
+
+### UI 方案对比与统一预览
+
+方案 A：单栏多级钻取，窄窗口结构简单，但查看详情、编辑、返回目录反复往返；在桌面大面积空白。方案 B：响应式主从视图，宽窗口左侧树/搜索、右侧详情；窄 Side Panel 选中详情优先展示，可就地编辑、移动、删除。**本轮选择 B**，保留已有 Model/Service/分页/SDK，使用 `od-page`、`od-button`、`od-icon-button`、`od-field`、`od-surface` 语义组件；样式仅负责树、选中态和排版。原有颜色及按钮规则不再由工具覆盖；官方构建从唯一 `design-tokens.css` / `design-system.css` 编译合法公共 CSS。
+
+延伸既有 `scripts/preview/build-preview.mjs` 的 Bookmark Manager 适配，将**同一正式工具 HTML/CSS/JS**置于受限离线 iframe，只替换 `OpenDeskSDK` Mock 边界。新的 `scripts/preview/bookmark-manager-mock.js` 提供受控内存分页/CRUD/事件、最多 2159 条虚拟节点及六种场景；不持久化或读写真实 Chrome，不伪造安装身份。可运行：
+
+```sh
+node scripts/preview/build-preview.mjs --tool bookmark-manager --surface side-panel --scenario success --theme light --width 360 --height 760
+node scripts/preview/build-preview.mjs --tool bookmark-manager --surface side-panel --scenario permission-denied --theme light --width 360 --height 760
+```
+
+HTML 设计评审另有一份在线对话内的可交互纯内存原型；该设计稿不属于签名生产包和 Source-Bound Preview 的原件，不能替代后者的证据。
+
+### 源码、测试与发布门禁
+
+- 版本升级与 UI/Preview 初始提交：[0f620b94](https://github.com/shopable-ai/opendesk-browser/commit/0f620b94aa9c8875bf4a50a8a8b34e06c23d2611)；版本测试断言修复：[0f010917](https://github.com/shopable-ai/opendesk-browser/commit/0f0109176665189d0c5fb43e117578eb5035463b)；最终写后读回、未确认状态禁止重复危险提交：[503efc31](https://github.com/shopable-ai/opendesk-browser/commit/503efc31fff492e6361c019bbb406e2b44b623b8)。均经正常非强制 main 更新提交，不改写其他 Agent 的输入。
+- [书签专项 Actions #38716096582](https://github.com/shopable-ai/opendesk-browser/actions/runs/38716096582)：四套相关专项 **75 PASS、0 FAIL**；`npm run check` **PASS**；官方 `npm run build:sidebar-tool -- examples/sidebar-tools/bookmark-manager` **PASS**，输出 `artifacts/sidebar-tools/bookmark-manager/0.3.5/bookmark-manager.opendesk-tool.json`。可下载[该候选构建证据包](https://github.com/shopable-ai/opendesk-browser/actions/runs/38716096582/artifacts/11963017433)（不是 Chrome Native）。
+- 同一 Actions 的 **全 Browser `npm run build` FAIL**，证据为预先存在的共享 AdBlock `examples/sidebar-tools/adblock/trusted/host-controls.js` 源码指纹门禁：`Trusted AdBlock source changed; review and re-pin`。未擅自重设可信哈希、放宽断言或改写独立所有者文件。其后 production verify、development build 和 `npm run verify` **SKIPPED / BLOCKED**。
+- [首次 Production Source-Bound Preview CI #38715068068](https://github.com/shopable-ai/opendesk-browser/actions/runs/38715068068) **PASS**（含新 Bookmark Manager 模拟预览合同）；当时提交尚未包含上述最终 UI 写后确认逻辑，不能将其绑定为最终同候选 Chrome 实测证明。
+- **真实 Chrome 0.3.5**：正式安装/授权、编辑及创建/移动/删除、查看刷新后原生结果、撤权、跨窗口/Worker、全部十二方法与 2000+ 大规模操作均 **NOT_TESTED**。设计视觉与键盘/无障碍的独立原生审阅亦 **NOT_SCORED**。
+- **专家门禁**：设计七维、真实产品九维继续逐项独立判定。当前仅能确认源码和静态/Node 合同；所有需要独立视觉复核或真实 Chrome 收据的评分保留 **NOT_SCORED**，不存在跨维平均分或“已经达到 95+”结论。Issue #75 仍保持 **OPEN**，不可发布。

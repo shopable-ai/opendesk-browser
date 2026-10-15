@@ -9,6 +9,7 @@ on:
       - 'scripts/preview/**'
       - 'scripts/tests/sidebar-preview-runtime-chrome.mjs'
       - 'examples/sidebar-tools/quick-notes/**'
+      - 'examples/sidebar-tools/bookmark-manager/**'
       - 'tests/environment/sidebar-preview-contract.test.mjs'
       - 'contracts/ui-preview/**'
       - '.github/workflows/sidebar-preview-contract.yml'
@@ -30,6 +31,7 @@ jobs:
           node --check scripts/preview/build-preview.mjs
           node --check scripts/preview/check-preview-contract.mjs
           node --check scripts/preview/quick-notes-mock.js
+          node --check scripts/preview/bookmark-manager-mock.js
           node scripts/preview/check-preview-contract.mjs
       - name: Verify package identity, mock safety and negative guards
         run: node --test tests/environment/sidebar-preview-contract.test.mjs tests/environment/sidebar-quick-notes.test.mjs
@@ -44,6 +46,9 @@ jobs:
           for scenario in empty error loading permission-denied untrusted; do
             node scripts/preview/build-preview.mjs --tool quick-notes --surface side-panel --scenario "$scenario" --theme light --width 360
           done
+          for scenario in success empty error loading permission-denied untrusted; do
+            node scripts/preview/build-preview.mjs --tool bookmark-manager --surface side-panel --scenario "$scenario" --theme light --width 360
+          done
       - uses: browser-actions/setup-chrome@v2
         id: chrome
       - name: Run generated offline preview in real headless Chrome
@@ -56,4 +61,9 @@ jobs:
           path: |
             artifacts/previews/quick-notes/*.html
             artifacts/preview-chrome/
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bookmark-manager-source-bound-preview
+          path: artifacts/previews/bookmark-manager/*.html
           if-no-files-found: error
