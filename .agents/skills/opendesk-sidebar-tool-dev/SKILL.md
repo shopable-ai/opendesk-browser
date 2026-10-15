@@ -84,6 +84,8 @@ node scripts/stage-sidebar-tool.mjs examples/sidebar-tools/<id>
 # STAGED_NOT_INSTALLED；并非已安装
 ```
 
+**随工具目录提供直接导入的 JSON（编译/发布阶段）**：仅当工具根目录已经存在常规文件 `<id>.opendesk-tool.json`，上述**不带 `--out`** 的统一打包命令才会同步更新该文件，同时保留 `artifacts/sidebar-tools/<id>/<version>/` 原输出；其他工具不会在源码树内凭空出现生成文件。预生成包须随源码提交、版本一致，并用源码与包的字节一致性测试防止过期；用户获得工具目录便能直接导入。显式 `--out` 只输出指定文件。**开发和打包属于一个 Skill 的两个阶段，无需再建同职责 Skill**；安装、启动和站点授权仍须真实用户确认。
+
 先审阅生成包及申请权限，再让用户在 Side Panel「扩展 → 更多操作 → 导入本地工具包 → 审核 → 确认安装/更新 → 主动打开」。有本地 Workspace/Native 时，**只读预览**需要用户显式点击，不能真实写入/打开任务/控制页面，即使预览包 ID 与已安装工具相同也不得借用安装权限。
 
 ### React/Vue/Tailwind 工具
