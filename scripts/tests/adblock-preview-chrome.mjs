@@ -241,12 +241,30 @@ try{
     await screenshot('untrusted');clean();
     report.push({scenario:'untrusted',checks:['text-only-untrusted-domain']});
   }
-  for(const scenario of ['error','loading','permission-denied']){
+  for(const scenario of ['error','loading']){
     await open(scenario);
     const host=await parent();
-    assert.equal(host.switches[0].disabled,true,'fail-closed '+scenario);
+    assert.equal(host.switches[0].disabled,true,'unknown state fails closed: '+scenario);
+    assert.equal(host.switches[1].disabled,true,'site cannot mutate unknown state');
     await screenshot(scenario);clean();
     report.push({scenario,checks:['disabled-unsafe-controls']});
+  }
+  {
+    await open('permission-denied');
+    const before=await parent();
+    assert.equal(before.switches[0].disabled,false,
+      'trusted host must allow a user to request missing Chrome DNR permission');
+    assert.equal(before.switches[0].checked,false);
+    assert.equal(before.switches[1].disabled,true);
+    await click('#od-preview-adblock-host button[role=switch]');
+    const denied=await parent();
+    assert.match(denied.note,/拒绝 Chrome DNR 授权/);
+    assert.equal(denied.switches[0].checked,false,'denial cannot enable DNR');
+    assert.equal(denied.switches[0].disabled,false,'retry remains user initiated');
+    assert.equal(denied.switches[1].disabled,true);
+    await screenshot('permission-denied');clean();
+    report.push({scenario:'permission-denied',checks:[
+      'real-click-denied','no-fake-grant','retry-available','site-disabled']});
   }
   await writeFile(join(output,'adblock-preview-chrome.json'),
     JSON.stringify({status:'PREVIEW_BROWSER_DOM_SIMULATION_PASS_NOT_INSTALLED',
