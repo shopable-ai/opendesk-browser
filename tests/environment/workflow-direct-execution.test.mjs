@@ -190,7 +190,8 @@ test('direct fill proof checks decoded readback values for every step',()=>{
 });
 
 test('search oracle requires a new visible result state and a verified post-click observation',()=>{
-  const before={summary:{origin,documentId:target.documentId,
+  const before={format:'opendesk.workflow-observation.v1',runId:'observe-before',
+    resultId:'result-before',sourceHash:hash,summary:{origin,documentId:target.documentId,
     nodes:[{role:'link',name:'Home',state:{visible:true},locator:{kind:'role',value:'link',name:'Home'}}]}};
   const resultTarget={...target,documentId:'doc-results',url:origin+'/search?q=OpenDesk'};
   const resultLink={role:'link',name:'OpenDesk documentation',state:{visible:true},
@@ -207,6 +208,7 @@ test('search oracle requires a new visible result state and a verified post-clic
     {...args,resultTarget:{...resultTarget,tabId:99}},
     {...args,resultTarget:{...resultTarget,origin:'https://evil.test'}},
     {...args,after:{...after,runId:null}},
+    {...args,before:{...before,resultId:null}},
     {...args,after:{...after,summary:{...after.summary,documentId:'other'}}},
     {...args,after:{...after,summary:{...after.summary,nodes:[resultLink]}}},
     {...args,after:{...after,summary:{...after.summary,nodes:[resultHeading]}}},
@@ -266,4 +268,36 @@ test('continuation: view search results reads the page without replaying search'
     selector:'button',roleName:'搜索'}]);
   assert.throws(()=>prepareDirectExecution({request,workflow:repeat,target}),
     {code:'E_AI_UNREQUESTED_ACTION'});
+});
+
+test('trusted same-document search proves demo-form inline result without fabricating links',()=>{
+  const locator={kind:'css',value:'[id="results"]'};
+  const beforeNodes=[{role:null,text:'',state:{visible:true},locator}];
+  const status={role:'status',name:'搜索完成',text:'搜索完成',
+    state:{visible:true},locator:{kind:'css',value:'[id="search-status"]'}};
+  const result={role:null,name:'',text:'结果：OpenDesk',state:{visible:true},locator};
+  const afterNodes=[status,result];
+  const before={format:'opendesk.workflow-observation.v1',runId:'before-run',
+    resultId:'before-result',sourceHash:hash,
+    summary:{origin,documentId:target.documentId,nodes:beforeNodes}};
+  const after={format:'opendesk.workflow-observation.v1',runId:'after-run',
+    resultId:'after-result',sourceHash:hash,
+    summary:{origin,documentId:target.documentId,nodes:afterNodes}};
+  const args={expectation:{kind:'search-results-v1',query:'OpenDesk'},before,after,
+    actionTarget:target,resultTarget:target};
+  assert.deepEqual(verifySearchBusinessEffect(args),{kind:'search-inline'});
+  for(const invalid of [
+    {...args,after:{...after,summary:{...after.summary,nodes:[result]}}},
+    {...args,after:{...after,summary:{...after.summary,nodes:[
+      status,{...result,text:'结果：Other'}]}}},
+    {...args,before:{...before,summary:{...before.summary,nodes:afterNodes}}},
+    {...args,before:{...before,summary:{...before.summary,nodes:[]}}},
+    {...args,after:{...after,sourceHash:''}},
+    {...args,after:{...after,summary:{...after.summary,nodes:[
+      status,{...result,state:{visible:false}}]}}},
+    {...args,resultTarget:{...target,documentId:'different'}},
+    {...args,resultTarget:{...target,url:origin+'/other'}},
+    {...args,after:{...after,summary:{...after.summary,nodes:[
+      status,{...result,locator:{...locator,parent:{kind:'css',value:'#else'}}}]}}}
+  ])assert.equal(verifySearchBusinessEffect(invalid),null);
 });

@@ -126,6 +126,7 @@ export function verifySearchBusinessEffect({expectation,before,after,actionTarge
   if(expectation?.kind!=='search-results-v1'||typeof expectation.query!=='string')return null;
   const query=expectation.query.trim().toLocaleLowerCase();
   if(query.length<2||query.length>120||!before?.summary||!after?.summary||
+    before.format!=='opendesk.workflow-observation.v1'||!before.runId||!before.resultId||!before.sourceHash||
     after.format!=='opendesk.workflow-observation.v1'||!after.runId||!after.resultId||!after.sourceHash||
     !Array.isArray(before.summary.nodes)||!Array.isArray(after.summary.nodes)||
     after.summary.nodes.length>24||!actionTarget||!resultTarget)return null;
@@ -145,6 +146,30 @@ export function verifySearchBusinessEffect({expectation,before,after,actionTarge
   const emptyMarker=/没有(?:找到|搜索到|匹配)|未找到|无搜索结果|0\s*(?:条|个)?(?:搜索)?结果|no results|nothing found/i;
   const mark=node=>visible(node)&&['heading','region','status','alert','list'].includes(node.role)&&
     (resultMarker.test(label(node))||emptyMarker.test(label(node)));
+  // A same-document search may render a text result without new hyperlinks.
+  // Require two independently observed website states: completion status and
+  // the exact user-query result in a previously observed DOM container.
+  // An LLM-generated assert or an unobserved result cannot be its oracle.
+  const inlineText=value=>{
+    if(typeof value!=='string')return false;
+    const match=value.trim().match(/^(?:搜索结果|查询结果|结果|search results?|results?)\s*[:：]\s*(.+)$/i);
+    return Boolean(match&&match[1].trim().toLocaleLowerCase()===query);
+  };
+  const inlineRow=node=>visible(node)&&node?.locator?.kind==='css'&&
+    !node.locator.parent&&node.locator.index===undefined&&
+    (node.role===null||['status','region','alert'].includes(node.role))&&
+    [node.name,node.text].some(inlineText);
+  const completion=node=>visible(node)&&['status','alert'].includes(node?.role)&&
+    [node.name,node.text].some(value=>typeof value==='string'&&
+      /^(?:搜索完成|查询完成|检索完成|search complete(?:d)?|search finished)$/i.test(value.trim()));
+  if(resultTarget.documentId===actionTarget.documentId&&resultTarget.url===actionTarget.url&&
+    after.summary.nodes.some(completion)&&
+    after.summary.nodes.some(node=>inlineRow(node)&&before.summary.nodes.some(prior=>
+      prior?.state?.visible===true&&prior?.locator?.kind==='css'&&
+      JSON.stringify(prior.locator)===JSON.stringify(node.locator)&&
+      ![prior.name,prior.text].some(inlineText)))) {
+    return {kind:'search-inline'};
+  }
   const beforeMarkers=new Set(before.summary.nodes.filter(mark).map(label));
   const markers=after.summary.nodes.filter(mark);
   const changed=markers.some(node=>!beforeMarkers.has(label(node)))||

@@ -1014,7 +1014,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
             request:frozen.request.slice(0,4000),outcome:'verified',
             readbackVerified:execution.readbackVerified===true,stepCount:result.steps.length,
             effectKind:execution.effect?.kind||'input-readback',
-            ...(execution.effect?{visibleResultLinks:execution.effect.visibleResultLinks}:{})
+            ...(Number.isSafeInteger(execution.effect?.visibleResultLinks)
+              ?{visibleResultLinks:execution.effect.visibleResultLinks}:{})
           }].slice(-4);
           verifiedContextTarget={windowId:captured.windowId,tabId:captured.tabId,origin:captured.origin};
         }
@@ -1026,7 +1027,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           ?'。已独立观察到与搜索关键词关联的结果状态和至少 '+execution.effect.visibleResultLinks+' 个新出现的可见链接；不代表结果相关性已验证。'
           :execution.effect?.kind==='search-empty'
             ?'。已独立观察到与搜索关键词关联的“无结果”页面状态。'
-            :execution.evidenceLevel==='BUSINESS_EFFECT_VERIFIED'
+            :execution.effect?.kind==='search-inline'
+              ?'。已核对“搜索完成”和精确关键词对应的新增页内结果文本；不代表服务器数据已提交。'
+              :execution.evidenceLevel==='BUSINESS_EFFECT_VERIFIED'
               ?'。页面输入值已在同次运行中核对匹配（不代表服务器已提交）。'
               :'。网页业务效果仍待核对，不会自动重复搜索或提交。';
         appendChat('执行结果','已通过 RunHost 核对持久执行回执：'+execution.runId+' / '+execution.resultId+effectMessage);

@@ -50,10 +50,11 @@ export function verifiedWorkflowHistory(history=[]) {
     typeof item.request!=='string'||item.request.length>4000||
     item.outcome!=='verified'||typeof item.readbackVerified!=='boolean'||
     !Number.isSafeInteger(item.stepCount)||item.stepCount<0||item.stepCount>32||
-    (item.effectKind!==undefined&&!['input-readback','search-results','search-empty'].includes(item.effectKind))||
+    (item.effectKind!==undefined&&!['input-readback','search-results','search-empty','search-inline'].includes(item.effectKind))||
     (item.visibleResultLinks!==undefined&&
       (!Number.isSafeInteger(item.visibleResultLinks)||item.visibleResultLinks<0||
        item.visibleResultLinks>24||!['search-results','search-empty'].includes(item.effectKind)))||
+    (Object.hasOwn(item,'visibleResultLinks')&&item.visibleResultLinks===undefined)||
     (item.effectKind==='search-results'&&!(item.visibleResultLinks>0))||
     (item.effectKind==='search-empty'&&item.visibleResultLinks!==0)
   ))throw Object.assign(new Error('只能继承经独立验证的有限业务事实'),{code:'E_AI_CONFIG'});

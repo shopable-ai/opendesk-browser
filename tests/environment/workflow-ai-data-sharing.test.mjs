@@ -81,8 +81,10 @@ test('Native and Cloud may inherit only bounded verified business facts',()=>{
     stepCount:1,effectKind:'input-readback'};
   const search={request:'搜索 OpenDesk',outcome:'verified',readbackVerified:true,
     stepCount:2,effectKind:'search-results',visibleResultLinks:2};
-  const facts=verifiedWorkflowHistory([fill,search]);
-  assert.deepEqual(facts,[fill,search]);facts[0].request='changed';
+  const inline={request:'搜索 OpenDesk',outcome:'verified',readbackVerified:true,
+    stepCount:2,effectKind:'search-inline'};
+  const facts=verifiedWorkflowHistory([fill,search,inline]);
+  assert.deepEqual(facts,[fill,search,inline]);facts[0].request='changed';
   assert.equal(fill.request,'填入 OpenDesk');
   assert.match(workflowCodexInput('查看结果',{
     siteOrigin:'https://demo.example',title:'',description:'',
@@ -94,6 +96,8 @@ test('Native and Cloud may inherit only bounded verified business facts',()=>{
     [{...search,visibleResultLinks:30}],
     [{...search,effectKind:'click-confirmed'}],
     [{...search,effectKind:'search-empty',visibleResultLinks:1}],
+    [{...inline,visibleResultLinks:0}],
+    [{...inline,visibleResultLinks:undefined}],
     [{...fill,observedNodes:[{text:'SECRET'}]}],
     [fill,fill,fill,fill,fill]
   ])assert.throws(()=>verifiedWorkflowHistory(invalid),{code:'E_AI_CONFIG'});
