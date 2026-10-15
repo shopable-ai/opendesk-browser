@@ -19,7 +19,8 @@ const authorityLost=error=>[
   'E_BOOKMARK_PERMISSION','E_GRANT_REVOKED','E_BOOKMARK_SCOPE',
   'E_CHROME_PERMISSION_REQUIRED','E_TOOL_CAPABILITY_REQUIRED',
   'E_R11_BOOKMARKS_INCOMPLETE','E_TOOL_DISABLED','E_CONTEXT',
-  'E_SDK_MISSING','E_SDK_STATUS'
+  'E_SDK_MISSING','E_SDK_STATUS',
+  'E_BOOKMARK_FULL_CONSENT_REQUIRED','E_TOOL_CHANGED','E_OWNER'
 ].includes(error?.code);
 const notice=(message='',error=false)=>{
   const el=q('bm-notice');el.textContent=message;el.dataset.error=String(error);

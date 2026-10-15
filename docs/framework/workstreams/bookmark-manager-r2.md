@@ -110,3 +110,7 @@
 - 本任务未修改公共 SDK/Host/Permission，复核发现 `tool.config.json` 在首次把 `capabilities: []` 改为 `["browser.bookmarks.full"]` 后仍使用原预备版本 `0.2.2`，存在同版本不同包字节/权限声明问题。本轮将工具版本提升至 **0.2.3**，同时更新测试、专属 CI 构建产物路径与独立工具 README。旧 `0.2.2` 历史包不变，绝不自动提权。
 - `browser.page.getContext()` 公开响应 Schema 仍仅含 `status/title/url/message`，无法给独立工具 Host 可核验的 `tabRef/documentRef`；当前页收藏维持 `BLOCKED / FAIL_CLOSED`，公共 SDK owner 需显式完成该合同及真实 Native 验证。
 - 其他全量读写、分页、事件、并发删除与授权路径已有源码接线，待同候选 Node/Check/Build/Chrome Native 实际证据，不能因声明 Full 就登记官方 Catalog。正式安装、权限撤销、跨窗口、Worker、550 项、升级/卸载仍 `NOT_TESTED`；保留 `src/bookmark-manager/`。
+
+### R2.3 · R11.2 撤权错误码对齐 / 0.2.4（2026-10-15）
+
+真实 Full Host 新增 `E_BOOKMARK_FULL_CONSENT_REQUIRED`，旧安装包身份失效返回 `E_TOOL_CHANGED`，无效身份返回 `E_OWNER`。消费者的写入回包错误若不识别这些代码，可能在用户撤权后继续展示旧书签树。本轮仅修改独立工具 `src/main.js` 的 `authorityLost`，在失效时同步清树、注销未完成读取；在既有 UI VM 回归中注入实际异步拒绝验证。为避免 0.2.3 同版本不同源码包，更新预备版本为 **0.2.4** 并同步专属测试、CI artifact 路径和 README。其 Native、Catalog、旧模块清理仍未放行。

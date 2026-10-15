@@ -43,6 +43,6 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
           path: |
-            artifacts/sidebar-tools/bookmark-manager/0.2.3/bookmark-manager.opendesk-tool.json
+            artifacts/sidebar-tools/bookmark-manager/0.2.4/bookmark-manager.opendesk-tool.json
             docs/framework/evidence/wxt/builds/build-production.json
             docs/framework/evidence/wxt/builds/build-development.json

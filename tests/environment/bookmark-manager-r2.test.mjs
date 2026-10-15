@@ -18,7 +18,7 @@ const sandbox=async()=>{
 test('R11.2 builds with v2 packer and independently declares Full Bookmark permission',async()=>{
   const pkg=await createSidebarToolPackage(root);
   assert.equal(pkg.id,'bookmark-manager');
-  assert.equal(pkg.version,'0.2.3');
+  assert.equal(pkg.version,'0.2.4');
   assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
   assert.deepEqual(pkg.capabilities,['browser.bookmarks.full']);
   assert.equal(pkg.scripts.length,2);
@@ -379,6 +379,16 @@ test('R2.3 revoked UI gate rejects a late tree load and unlocks pending writes',
   ctx.__r2Test.gate('授权已失效');
   complete();await writing;
   assert.equal(ctx.__r2Test.state.busy,false);
+  for(const code of ['E_BOOKMARK_FULL_CONSENT_REQUIRED','E_TOOL_CHANGED','E_OWNER']){
+    ctx.__r2Test.state.tree=tree;
+    await ctx.__r2Test.mutation(async()=>{
+      throw Object.assign(new Error('Authority revoked'),{code});
+    });
+    assert.equal(ctx.__r2Test.state.tree,null,'lost Full authority must hide tree: '+code);
+    assert.equal(rootNode.querySelector('#bm-gate').hidden,false);
+    assert.equal(rootNode.querySelector('#bm-workspace').hidden,true);
+    assert.equal(ctx.__r2Test.state.busy,false);
+  }
 });
 
 test('R2.1 UI guards current-page identity and observes SDK events with teardown',async()=>{
