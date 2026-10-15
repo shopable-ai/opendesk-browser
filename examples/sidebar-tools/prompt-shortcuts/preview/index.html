@@ -185,7 +185,13 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 .optional-section>summary:focus-visible{outline:3px solid var(--od-focus);outline-offset:2px}
 .optional-section .optional-fields{padding:0 12px 12px}
 .form-feedback{position:sticky;bottom:-20px;z-index:3;background:var(--od-paper);border-top:1px solid var(--od-line);margin-top:10px;padding:10px 0 8px;box-shadow:0 -6px 16px #08172c07}
-.form-feedback .inline-error{margin:0 0 8px}.form-save-status{font-size:11px;line-height:1.5;color:var(--od-sub);margin:0 0 8px}
+.form-feedback .inline-error{margin:0 0 8px}
+.save-verification{border:1px solid var(--od-line);border-radius:9px;padding:9px;margin:7px 0;background:var(--od-bg);font-size:11px;overflow-wrap:anywhere}
+.save-verification strong{display:block;font-size:12px;margin-bottom:5px}
+.save-verification #verificationRows{max-height:100px;overflow:auto;line-height:1.7}
+.save-verification p{margin:6px 0;color:var(--od-sub)}
+#verifySaved{margin:0 0 8px;white-space:normal;text-align:left}
+.form-save-status{font-size:11px;line-height:1.5;color:var(--od-sub);margin:0 0 8px}
 .form-actions{margin:0}.inline-error:focus{outline:2px solid var(--od-focus);outline-offset:2px}
 .tool-list-placeholder{padding:15px}.tool-list-placeholder p{font-size:12px;line-height:1.6;color:var(--od-sub)}
 .tool-list-placeholder button{width:100%;text-align:left;white-space:normal}
@@ -283,7 +289,10 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
       </details>
      </div>
      <div id="leaveConfirm" class="warning-box" hidden aria-labelledby="leaveHeading"><strong id="leaveHeading">存在未保存的提示词草稿</strong><p>可以继续编辑，也可以主动放弃更改。取消仅返回列表，宿主返回则退出工具。</p><div class="row"><button id="stayEditing" type="button" class="od-button od-button--small">继续编辑</button><button id="discardEditing" type="button" class="od-button od-button--danger od-button--small">放弃更改</button></div></div>
-     <div class="form-feedback" id="formFeedback"><div id="formError" class="inline-error" role="alert" tabindex="-1" hidden></div><p id="formSaveStatus" class="form-save-status" role="status" aria-live="polite" hidden></p>
+     <div class="form-feedback" id="formFeedback"><div id="formError" class="inline-error" role="alert" tabindex="-1" hidden></div>
+      <div id="verificationPanel" class="save-verification" hidden aria-label="已保存内容核对"><strong>当前模拟保存列表</strong><div id="verificationRows"></div><p>仅展示目前可确认的模拟内存数据，不代表真实 Host 存储。</p><button id="closeVerification" type="button" class="od-button od-button--small">继续编辑当前草稿</button></div>
+      <button id="verifySaved" type="button" class="od-button od-button--small" hidden>核对当前列表（保留草稿）</button>
+      <p id="formSaveStatus" class="form-save-status" role="status" aria-live="polite" hidden></p>
       <div class="form-actions"><button id="cancelForm" type="button" class="od-button">取消</button><button id="saveButton" type="submit" class="od-button od-button--primary">保存提示词</button></div>
      </div>
     </form>
@@ -364,7 +373,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   catch{copyId=item.id;el('copyText').value=item.body;el('copyFallback').hidden=false;el('copyText').focus();el('copyText').select();notice('剪贴板不可用，已显示完整文本供手动复制。');}}
  function rawFormValues(){const shape=document.querySelector('input[name="shape"]:checked');return {label:el('shortLabel').value.trim(),name:el('fullName').value.trim(),body:el('promptBody').value,enabled:el('itemEnabled').checked,shape:shape?.value||'square'};}
  function formValues(){const raw=rawFormValues(),fallback=defaultShort(raw.body);return {...raw,label:raw.label||fallback,name:raw.name||fallback,labelAuto:!raw.label,nameAuto:!raw.name};}
- function projection(){const value=formValues(),next=state.items.map(x=>({...x}));const idx=next.findIndex(x=>x.id===editId);if(idx>=0)next[idx]={...next[idx],...value};else next.push({id:'preview-new',...value});return {version:1,revision:state.revision+1,settings:state.settings,items:next};}
+ function projection(){const value=formValues(),next=state.items.map(x=>({...x}));const idx=next.findIndex(x=>x.id===editId);if(idx>=0)next[idx]={...next[idx],...value};else next.push({id:'preview-new',...value});return {schema:1,settings:{webButtons:state.settings.showBar},items:next.map((row,order)=>({id:row.id,body:row.body,label:row.label,name:row.name,labelAuto:row.labelAuto===true,nameAuto:row.nameAuto===true,shape:row.shape,enabled:row.enabled,order}))};}
 
  function updateMeter(){
   const value=formValues(),current=bytes(projection());
@@ -381,6 +390,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  function showFormError(message,field='save'){
   const body=field==='body',target=body?el('bodyError'):el('formError');
   target.textContent=message;target.hidden=false;el('formSaveStatus').hidden=true;
+  el('verifySaved').hidden=!message.startsWith('E_OUTCOME_UNKNOWN');el('verificationPanel').hidden=true;
   if(body){el('promptBody').setAttribute('aria-invalid','true');el('promptBody').focus({preventScroll:true});el('promptBody').scrollIntoView({block:'nearest'});}
   else if(field==='label'){el('shortLabel').setAttribute('aria-invalid','true');el('advancedOptions').open=true;el('shortLabel').focus({preventScroll:true});el('shortLabel').scrollIntoView({block:'nearest'});}
   else if(field==='name'){el('fullName').setAttribute('aria-invalid','true');el('advancedOptions').open=true;el('fullName').focus({preventScroll:true});el('fullName').scrollIntoView({block:'nearest'});}
@@ -399,6 +409,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   el('itemEnabled').checked=value?.enabled??true;
   el('advancedOptions').open=!!(value&&(!value.labelAuto||!value.nameAuto||value.shape==='round'||!value.enabled));
   el('bodyError').hidden=true;el('formError').hidden=true;el('formSaveStatus').hidden=true;el('leaveConfirm').hidden=true;
+  el('verifySaved').hidden=true;el('verificationPanel').hidden=true;
   el('saveButton').disabled=false;el('saveButton').textContent='保存提示词';
   revisionAtEdit=state.revision;baselineForm=JSON.stringify(rawFormValues());dirty=false;
   nextSaveFailure=null;el('failureStatus').textContent='当前：正常保存';
@@ -453,6 +464,13 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  el('mockSelection').addEventListener('click',prepareSelection);el('mockMenuAdd').addEventListener('click',confirmSelection);
  el('addButton').addEventListener('click',()=>openForm());el('cancelForm').addEventListener('click',()=>requestBack('index'));
  el('hostBack').addEventListener('click',()=>requestBack('host'));el('reopenTool').addEventListener('click',()=>{setView('index');renderIndex();renderRail();el('addButton').focus({preventScroll:true});});
+ el('verifySaved').addEventListener('click',()=>{
+  const target=el('verificationRows');target.replaceChildren();
+  if(!state.items.length)target.append(create('p','','当前还没有已保存的提示词。'));
+  else for(const item of state.items)target.append(create('div','',item.name+' · '+item.label));
+  el('verificationPanel').hidden=false;el('closeVerification').focus({preventScroll:true});
+ });
+ el('closeVerification').addEventListener('click',()=>{el('verificationPanel').hidden=true;el('promptBody').focus({preventScroll:true});});
  el('stayEditing').addEventListener('click',()=>{el('leaveConfirm').hidden=true;el('promptBody').focus();});el('discardEditing').addEventListener('click',()=>{const destination=pendingDestination;pendingDestination='index';if(destination==='host')exitTool();else returnIndex();notice('已主动放弃未保存更改。');});
  el('promptForm').addEventListener('submit',event=>void saveForm(event));el('promptForm').addEventListener('input',updateMeter);el('promptForm').addEventListener('change',updateMeter);
  for(const [id,key] of [['showBarSwitch','showBar'],['contextSwitch','contextMenu']])el(id).addEventListener('change',event=>{
