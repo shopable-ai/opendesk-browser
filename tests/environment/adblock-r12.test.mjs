@@ -220,20 +220,22 @@ test('blocked DNR initialization never confirms uninstall or corrupt-authority c
   assert.ok(f.rules.some(rule=>rule.id===ADBLOCK_RULE_FIRST));
   assert.deepEqual(f.stored.get(SIDEBAR_TOOL_STORE),{broken:true});
 });
-test('official AdBlock optional catalog entry and no generated source package copies',async()=>{
+test('official optional AdBlock uses one canonical installable project package',async()=>{
   const sources=await readOfficialSources();
   const row=sources.tools.find(row=>row.id==='adblock');
   assert.deepEqual(row,{id:'adblock',project:'examples/sidebar-tools/adblock',
     kind:'sidebar-tool',installationPolicy:'optional'});
-  for(const path of ['examples/sidebar-tools/adblock/adblock.opendesk-tool.json',
-    'src/sidebar-tools/adblock.opendesk-tool.json']){
-    await assert.rejects(access(path),{code:'ENOENT'},
-      'AdBlock generated installation packages belong exclusively to build outputs');
-  }
+  const path='examples/sidebar-tools/adblock/adblock.opendesk-tool.json';
+  const expected=encodeSidebarToolPackage(await createSidebarToolPackage(PROJECT));
+  // While source/CI is pending the sole formal package must not be forged.
+  let actual;
+  try{actual=await readFile(path);}catch(error){if(error.code!=='ENOENT')throw error;}
+  if(actual)assert.deepEqual(actual,expected,'formal package must match deterministic builder bytes');
+  await assert.rejects(access('src/sidebar-tools/adblock.opendesk-tool.json'),{code:'ENOENT'});
 });
 test('build-ready official project, current version, one declared restricted capability',async()=>{
   const pkg=await createSidebarToolPackage(PROJECT);
-  assert.equal(pkg.version,'1.0.0');
+  assert.equal(pkg.version,'1.1.0');
   assert.deepEqual(pkg.capabilities,[ADBLOCK_CAPABILITY]);
   assert.ok(pkg.js.includes("adblock.site.restore"));
 });

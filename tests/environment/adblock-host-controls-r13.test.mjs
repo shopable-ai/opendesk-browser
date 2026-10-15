@@ -31,8 +31,14 @@ function fixture(){
     const controls=createAdblockPermissionControls({api,doc:{createElement:()=>new Node()},container,
       notice:(...args)=>notices.push(args),runOperation});
     const section=container.children[0];
-    return {controls,container,notices,global:section.children[0].children[1],
-      site:section.children[1].children[1],info:section.children[2]};
+    const walk=node=>[node,...node.children.flatMap(walk)];
+    const find=check=>walk(section).find(check);
+    return {controls,container,notices,
+      global:find(node=>node.attributes['aria-label']==='全局广告拦截'),
+      site:find(node=>node.attributes.role==='switch'&&node.attributes['aria-label']!=='全局广告拦截'),
+      info:find(node=>node.attributes.role==='status'),
+      action:label=>find(node=>node.attributes['aria-label']===label),
+      find};
   }
   return {api,storage,added,removed,mount,
     change:()=>storage.emit({[ADBLOCK_STORE]:{newValue:{}}},'local')};
@@ -197,4 +203,35 @@ test('first optional DNR grant explains Chrome restart without presenting active
   assert.match(panel.global.textContent,/重启 Chrome/);
   assert.match(panel.info.textContent,/尚未开启/);
   panel.global.listeners.click({isTrusted:false});assert.equal(requests,0);
+});
+
+test('R1.9 trusted product cards and host-owned three-view navigation',async()=>{
+  const f=fixture();let reads=0;
+  const panel=f.mount(async()=>{reads++;return status();});
+  panel.controls.render(tool,false,true);await tick();
+  assert.equal(panel.controls.view(),'overview');
+  assert.ok(panel.find(node=>node.className==='adblock-native-logo'));
+  assert.ok(panel.find(node=>node.className==='adblock-native-card adblock-native-global'));
+  assert.ok(panel.find(node=>node.className==='adblock-native-card adblock-native-site'));
+  assert.ok(panel.find(node=>node.textContent==='暂无可核实统计'));
+  assert.equal(panel.find(node=>node.className==='adblock-native-count').textContent,'—');
+  panel.action('管理已停用的网站').listeners.click({});
+  assert.equal(panel.controls.view(),'exceptions');
+  panel.action('从已停用的网站返回概览').listeners.click({});
+  assert.equal(panel.controls.view(),'overview');
+  panel.action('打开 AdBlock 产品设置').listeners.click({});
+  assert.equal(panel.controls.view(),'settings');
+  panel.action('从设置查看已停用的网站').listeners.click({});
+  assert.equal(panel.controls.view(),'exceptions');
+  assert.equal(reads,1,'navigation must neither remount nor reread');
+});
+
+test('R1.9 missing DNR readback never paints an active native toggle',async()=>{
+  const f=fixture();
+  const panel=f.mount(async()=>({...status(true),rules:{verified:false}}));
+  panel.controls.render(tool,false,true);await tick();
+  assert.equal(panel.global.attributes['aria-checked'],'false');
+  assert.equal(panel.site.attributes['aria-checked'],'false');
+  assert.equal(panel.site.disabled,true);
+  assert.match(panel.find(node=>node.className==='adblock-native-status-copy').textContent,/尚未通过/);
 });

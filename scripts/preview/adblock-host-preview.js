@@ -14,7 +14,7 @@
     granted:scenario!=='empty'&&scenario!=='permission-denied',
     restartRequired:false,
     exceptions:scenario==='success'?['news.example.com']:[]});
-  let state=initial();
+  let state=initial(),page='overview';
   const site='news.example.com';
   const dialog=byId('od-preview-adblock-restore-dialog');
   const description=byId('od-preview-adblock-restore-description');
@@ -30,9 +30,10 @@
     return state.exceptions.includes(site)?'on-site-off':'on-site-on';
   }
   function render(){
-    const name=key();
+    const name=key()+(page==='overview'?'':'/'+page);
     if(!Object.hasOwn(snapshots,name))throw Error('E_ADBLOCK_PREVIEW_SNAPSHOT: '+name);
     mount.innerHTML=snapshots[name];
+    frame.hidden=page!=='exceptions';
   }
   function notifySandbox(){
     if(scenario==='untrusted')return; // preserve malicious-string fixture without changing production state
@@ -41,10 +42,18 @@
       restartRequired:state.restartRequired,exceptions:[...state.exceptions]},'*');
   }
   function reset(){
-    state=initial();pending=null;pendingAck=null;if(dialog.open)dialog.close();note('');
+    state=initial();page='overview';pending=null;pendingAck=null;if(dialog.open)dialog.close();note('');
     render();notifySandbox();
   }
   mount.addEventListener('click',event=>{
+    const nav=event.target.closest?.('button[data-adblock-nav]');
+    const destination=nav?.getAttribute?.('data-adblock-nav');
+    if(destination&&['overview','exceptions','settings'].includes(destination)){
+      page=destination;render();
+      if(page==='exceptions')notifySandbox();
+      mount.querySelector?.('[data-adblock-nav="overview"]')?.focus?.();
+      return;
+    }
     const button=event.target.closest('button[role=switch]');
     if(!button||!mount.contains(button)||!event.isTrusted||button.disabled||!live)return;
     const buttons=[...mount.querySelectorAll('button[role=switch]')];

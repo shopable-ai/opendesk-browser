@@ -61,7 +61,8 @@ export async function generatePreview({
     mock=await readFile(new URL('./reading-toc-mock.js',import.meta.url));
     operations=PREVIEW_TOC_OPERATIONS;
   }else if(tool==='adblock'){
-    const invoked=[...pkg.js.matchAll(/\brequest\s*\(\s*['"]([^'"]+)['"]/g)].map(match=>match[1]);
+    // One approved operation may be called more than once for post-write readback.
+    const invoked=[...new Set([...pkg.js.matchAll(/\brequest\s*\(\s*['"]([^'"]+)['"]/g)].map(match=>match[1]))];
     if(invoked.length!==2||invoked.some(op=>!PREVIEW_ADBLOCK_OPERATIONS.includes(op))||
        PREVIEW_ADBLOCK_OPERATIONS.some(op=>!invoked.includes(op)))
       fail('AdBlock mock and real sandbox request operations do not match');
