@@ -106,7 +106,10 @@ test('R1.4 dynamic ChatGPT rail: origin grant, click-to-draft and independent re
     await settle();assert.equal(f.calls.length,0,'untrusted click cannot edit a draft');
     f.buttons()[0].emit('click',{isTrusted:true});
     await settle();
-    assert.equal(f.calls.length,1);
+    const host=f.root.children.find(item=>item.attributes['data-opendesk-prompts']!==undefined);
+    const fallback=host?.shadow?.children.find(item=>item.className==='fallback');
+    const diagnostic={controller:controller.diagnostics(),fallback:fallback?.children.map(node=>node.textContent)};
+    assert.equal(f.calls.length,1,JSON.stringify(diagnostic));
     assert.equal(f.calls[0].command,'insertText');
     assert.equal(f.calls[0].text,'\n检查项目\n列出风险');
     assert.equal(f.editor.textContent,'已有草稿\n检查项目\n列出风险');
