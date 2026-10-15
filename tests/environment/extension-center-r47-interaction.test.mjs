@@ -259,7 +259,8 @@ test('R4.7 missing Page grant forbids enable; unreadable app status never fabric
   assert.equal(f.button('app:quick-notes','more'),undefined);
   assert.equal(f.button('app:quick-notes','main'),undefined,
     'an unverified cached registry is not an installed-app fact');
-  assert.match(f.nodes['extension-center-status'].textContent,/读取失败/);
+  assert.equal(f.nodes['extension-center-status'].dataset.state,'error',
+    'an existing permission failure remains visible while registry authority is unavailable');
   assert.match(f.nodes['extension-center-empty-text'].textContent,/安装状态读取失败/);
   assert.equal(f.invocations.some(x=>x[0]==='toggle'),false);
 });
