@@ -148,6 +148,22 @@ try{
   await previewPage.waitForFunction(()=>document.querySelector('[data-testid="conversation-turn-1"] [data-opendesk-chatgpt-mindmap="viewer"]')?.shadowRoot?.querySelector('[aria-label="展开或折叠分支"]')?.textContent==='展开');
   assert.equal(await viewer(2).getByRole('button',{name:'展开或折叠分支',exact:true}).textContent(),'折叠');
   passed('R2.1 standalone A/B controllers and state are independent');
+  // CDP page-scale is a real Chromium visual viewport zoom, NOT equivalent
+  // to a user's Chrome-toolbar text/layout zoom. Preserve that distinction.
+  const cdp=await previewPage.context().newCDPSession(previewPage);
+  try{
+    await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:2});
+    const scale=await previewPage.evaluate(()=>visualViewport.scale);
+    assert.ok(Math.abs(scale-2)<0.05,`Expected Chromium 2x visual viewport scale, got ${scale}`);
+    await viewer(2).getByRole('button',{name:'适配画布',exact:true}).click();
+    assert.ok(await viewer(2).locator('.topic:visible').count()>1);
+    report.chromiumPageScale={requested:2,observed:scale,kind:'CDP_VISUAL_VIEWPORT_PINCH_NOT_BROWSER_TOOLBAR_ZOOM'};
+    passed('R2.3 Chromium 200% CDP visual viewport scale retains real XMind fit interaction');
+    await previewPage.screenshot({path:join(out,'r23-cdp-200-percent.png'),fullPage:false});
+  }finally{
+    await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:1});
+    await cdp.detach();
+  }
   await btn(3).click();
   await viewer(3).and(previewPage.locator('[data-ready="true"]')).waitFor({timeout:15000});
   assert.ok(await viewer(3).locator('.topic:visible').count()>3);
