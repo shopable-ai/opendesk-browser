@@ -24,7 +24,7 @@ const tool={id:'ai-vip-share',capabilities:['ai.access']};
 test('R5 official tool compiles member, redeem and store UI with canonical design',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/ai-vip-share');
   assert.equal(pkg.id,'ai-vip-share');
-  assert.equal(pkg.version,'1.1.0');
+  assert.equal(pkg.version,'1.1.1');
   assert.deepEqual(pkg.capabilities,['ai.access']);
   assert.match(pkg.css,/opendesk\.shared-design\.v1/);
   for(const text of ['AI 会员','兑换激活','立即兑换','查看更多商品','待核验'])
@@ -122,4 +122,35 @@ test('R5 no Provider, SKU or shop can invent business success',async()=>{
   assert.match(script,/sdk\.create\(\{url:catalog\}\)/);
   assert(!/fetch\(|showModal\(|window\.open\(/.test(script));
   assert(!/aiAccess\.activate|aiAccess\.enable|chrome\.proxy/.test(script));
+});
+
+test('R5.1 STOP is clickable while ENABLE is pending and ignores its late ack',async()=>{
+  const container=element('div'),calls=[];
+  let finishEnable;
+  const disabled={state:'disabled',canStop:false,reason:null};
+  const ui=createAiAccessPermissionControls({
+    api:{},doc:{createElement:element},container,notice:()=>{},
+    runOperation:(operation,_payload,event)=>{
+      calls.push({operation,trusted:event?.isTrusted===true});
+      if(operation==='aiAccess.status')return Promise.resolve(disabled);
+      if(operation==='aiAccess.enable')return new Promise(resolve=>{
+        finishEnable=()=>resolve({state:'enabled',canStop:true,reason:null});
+      });
+      if(operation==='aiAccess.disable')return Promise.resolve(disabled);
+      throw Error('Unexpected operation');
+    }
+  });
+  ui.render(tool,false,true);
+  await flush();
+  const action=find(container,'ai-access-toggle');
+  action.listeners.click({isTrusted:true});await flush();
+  assert.equal(action.textContent,'停用代理');
+  assert.equal(action.disabled,false);
+  action.listeners.click({isTrusted:true});await flush();await flush();
+  assert.equal(calls.filter(row=>row.operation==='aiAccess.disable').length,1);
+  assert.equal(action.textContent,'启用代理');
+  assert.equal(action.disabled,false);
+  finishEnable();await flush();await flush();
+  assert.equal(action.textContent,'启用代理');
+  assert(!calls.some(row=>row.operation==='aiAccess.disable'&&!row.trusted));
 });

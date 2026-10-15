@@ -38,6 +38,7 @@ on:
       - 'tests/environment/ai-vip-share-r2.test.mjs'
       - 'tests/environment/ai-vip-share-r21-lifecycle.test.mjs'
       - 'tests/environment/ai-vip-share-r5-ui.test.mjs'
+      - 'tests/environment/ai-vip-share-r51-member.test.mjs'
       - 'src/ai-smart-access/**'
       - 'src/entrypoints/sidebar-tool-host.js'
       - 'tests/environment/tool-stage.test.mjs'
@@ -78,7 +79,7 @@ jobs:
           node scripts/build-sidebar-tool.mjs examples/sidebar-tools/papaparse-csv-export --out artifacts/sidebar-tools/papaparse-csv-export/1.0.0/papaparse-csv-export.opendesk-tool.json
       - name: Validate R14 tool isolation and all five Sidebar regressions
         run: |
-          node --test tests/environment/ai-vip-share-r2.test.mjs tests/environment/ai-vip-share-r21-lifecycle.test.mjs tests/environment/ai-vip-share-r5-ui.test.mjs tests/environment/runtime-libs-trusted-worlds.test.mjs tests/environment/official-tools-catalog-r45.test.mjs tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tool-multiscript-r72.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/tool-ui-tab.test.mjs tests/environment/tool-stage.test.mjs tests/environment/tool-snapshot.test.mjs tests/environment/tool-preview-session.test.mjs tests/environment/tool-watch.test.mjs tests/environment/sidebar-quick-notes.test.mjs tests/environment/sidebar-react-cdn-bundle.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/sidebar-ui-preview.test.mjs tests/environment/task-workbench.test.mjs
+          node --test tests/environment/ai-vip-share-r2.test.mjs tests/environment/ai-vip-share-r21-lifecycle.test.mjs tests/environment/ai-vip-share-r5-ui.test.mjs tests/environment/ai-vip-share-r51-member.test.mjs tests/environment/runtime-libs-trusted-worlds.test.mjs tests/environment/official-tools-catalog-r45.test.mjs tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tool-multiscript-r72.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/tool-ui-tab.test.mjs tests/environment/tool-stage.test.mjs tests/environment/tool-snapshot.test.mjs tests/environment/tool-preview-session.test.mjs tests/environment/tool-watch.test.mjs tests/environment/sidebar-quick-notes.test.mjs tests/environment/sidebar-react-cdn-bundle.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/sidebar-ui-preview.test.mjs tests/environment/task-workbench.test.mjs
           npm run check
       - name: Build installable offline notes tool JSON
         run: |
@@ -130,17 +131,17 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
-      - name: R5 installed UI, trusted Chrome click and canonical CSS
-        run: node --test tests/environment/ai-vip-share-r5-ui.test.mjs
-      - name: Package exact v1.1.0 AI VIP Share official tool
+      - name: R5.1 installed member UI, verified business state and trusted STOP
+        run: node --test tests/environment/ai-vip-share-r5-ui.test.mjs tests/environment/ai-vip-share-r51-member.test.mjs
+      - name: Package exact v1.1.1 AI VIP Share official tool
         run: |
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ai-vip-share --out artifacts/sidebar-tools/ai-vip-share/1.1.0/ai-vip-share.opendesk-tool.json
-          node --input-type=module -e "import {readFileSync} from 'node:fs';const p=JSON.parse(readFileSync('artifacts/sidebar-tools/ai-vip-share/1.1.0/ai-vip-share.opendesk-tool.json','utf8'));if(p.id!=='ai-vip-share'||p.version!=='1.1.0'||!p.css.includes('opendesk.shared-design.v1'))throw Error('AI VIP R5 official design/package identity invalid');console.log('AI_VIP_SHARE_R5_TOOL_PACKAGE_PASS')"
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ai-vip-share --out artifacts/sidebar-tools/ai-vip-share/1.1.1/ai-vip-share.opendesk-tool.json
+          node --input-type=module -e "import {readFileSync} from 'node:fs';const p=JSON.parse(readFileSync('artifacts/sidebar-tools/ai-vip-share/1.1.1/ai-vip-share.opendesk-tool.json','utf8'));if(p.id!=='ai-vip-share'||p.version!=='1.1.1'||!p.css.includes('opendesk.shared-design.v1'))throw Error('AI VIP R5 official design/package identity invalid');console.log('AI_VIP_SHARE_R5_TOOL_PACKAGE_PASS')"
       - name: R5 source validation
         run: npm run check
       - name: R5 production and development Browser candidates
         run: |
           npm run build
-          cmp artifacts/sidebar-tools/ai-vip-share/1.1.0/ai-vip-share.opendesk-tool.json dist/production/official-tools/ai-vip-share/ai-vip-share.opendesk-tool.json
+          cmp artifacts/sidebar-tools/ai-vip-share/1.1.1/ai-vip-share.opendesk-tool.json dist/production/official-tools/ai-vip-share/ai-vip-share.opendesk-tool.json
           npm run build:dev
           npm run verify

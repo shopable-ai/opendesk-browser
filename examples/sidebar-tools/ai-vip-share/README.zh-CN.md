@@ -44,3 +44,17 @@ R2.1 核查（2026-10-15）：R11 的批准 Registry 没有 Managed Proxy，发�
 「查看更多商品」设计为**外部商品目录标签页**，不是弹窗。工具内 `PRODUCT_CATALOG_URL` 保持空；取得已审核 HTTPS 商城 URL 后，应升级 v2 包、单独审阅 `browser.tabs` 能力，通过已有 Browser SDK `browser.tabs.create` 打开，不能在 opaque sandbox 中绕过宿主。
 
 状态、测试与阻塞以 [R5 工作流](../../../docs/framework/workstreams/ai-vip-share-r5-production-ui-20261015.md) 和同候选 CI 为准；R4.2 33/30 是历史离线数据。
+
+## R5.1 · 正式源码交互与业务边界（1.1.1）
+
+正式可安装版本已升级为 `1.1.1`。会员中心在经过服务端验证的情况下按商品权益类型显示：时间类按服务端时间与 `expiresAt` 展示剩余天数/到期日；额度类显示 `remaining/total/unit`；功能类显示具体商品功能说明，绝不将所有权益转换成月数。兑换记录只读取服务端已脱敏的账号与券码信息，列表为空或核验失败会明确区分。
+
+兑换码采用 **预检 → 本人确认 → 服务端幂等回执 → 刷新权益**。预检后不在输入框留存原始兑换码，确认前可取消；POST 结果未知时只引导核对记录，禁止自动重复兑换。客户端不会用旧技术 `aiAccess.activate` 代替商业兑换。已准备严格的数据响应和账户一致性验证，但**没有正式商业 Provider，当前发布包仍停用兑换/权益刷新**，没有新申请网络权限，也没有预置生产域名。
+
+未来正式服务的三个固定 HTTPS 端点须经过业务与安全评审后填写到 `src/main.js` 的 `BUSINESS_ENDPOINTS`，并升级为 v2 工具、声明已批准的 `network` 能力，依据既有 SDK `browser.network.request` 走可信宿主授权；不得改变 `sandbox.html` 的 `connect-src 'none'` 安全限制。前端读取服务端版本化数据（`schemaVersion:1`、`serverNow`、`account`、`entitlements`、`redemptions`）；预检返回与账号绑定的短效 `previewId`，消费操作带唯一 `idempotencyKey`，确认回执必须含匹配账号/事务号与真实授予权益。这是**客户端拟接线边界**，不表示后端合同已批准或服务端已部署；最终结构应由审核后的 Provider 决定，必要时同步调整客户端与测试。
+
+「查看更多商品」优先外部 HTTPS 新标签页，`PRODUCT_CATALOG_URL` 仍为空。配置经过审核的无长凭据 URL 后升级 v2 `browser.tabs` 能力，并经既有 `browser.tabs.create` 与受信点击批准。短效激活 ticket、官方安装/回跳仍被正式服务与可信安装合同阻塞，不读取任意网页 URL 来冒充安装/会员授权。
+
+可信代理卡在启用请求尚未返回时允许用户发起停用；只由原可信 Host/Worker 串行处理，晚到启用应答不可覆盖新 STOP 状态。仍保留旧 `src/ai-smart-access/` 模块及所有 Owner/撤权保护；公共 Managed Proxy SDK 未正式批准，`SDK_BLOCKED`。真实启用还依赖旧代理技术 Provider 的已批准租约服务；无该服务时不能声称代理可连通。
+
+定向验证与 GitHub 同候选证据详见 [R5.1 工作流](../../../docs/framework/workstreams/ai-vip-share-r51-source-first-20261015.md)。真实 Mac Chrome 安装与原生停止/重启：`NOT_TESTED`。

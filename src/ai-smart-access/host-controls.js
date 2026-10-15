@@ -35,6 +35,7 @@ export function createAiAccessPermissionControls({api,doc,container,notice,runOp
   section.append(header,status,action,errorText,help);
   container.append(section);
   let activeTool=null,toolEnabled=false,busy=false,statusEpoch=0;
+  let pendingOperation=null,operationEpoch=0;
   let last={state:'unavailable',canStop:false,reason:'正在核对 Chrome 状态'};
   const canStop=data=>data?.canStop===true||data?.state==='enabled';
   function show(data){
@@ -46,8 +47,13 @@ export function createAiAccessPermissionControls({api,doc,container,notice,runOp
     badge.textContent=labels[last.state]||'状态待核对';
     status.textContent=reason||'仅反映 Chrome 实际控制状态，不代表 AI 网站网络连通。';
     const retry=stop&&last.state==='unavailable'&&/停止|清理|结果尚未确认|结果未确认/.test(reason);
-    action.textContent=busy?'正在处理':stop?(retry?'重试停用':'停用代理'):'启用代理';
-    action.disabled=busy||!toolEnabled||!(stop||last.state==='disabled');
+    // STOP remains reachable while an earlier ENABLE is still in flight.
+    const interrupt=busy&&pendingOperation==='aiAccess.enable';
+    action.textContent=interrupt?'停用代理':busy?'正在处理':
+      stop?(retry?'重试停用':'停用代理'):'启用代理';
+    action.disabled=(busy&&!interrupt)||!toolEnabled||
+      !(interrupt||stop||last.state==='disabled');
+    action.setAttribute('aria-busy',String(busy));
     action.setAttribute('aria-pressed',String(last.state==='enabled'&&stop));
   }
   async function refresh(){
@@ -62,36 +68,47 @@ export function createAiAccessPermissionControls({api,doc,container,notice,runOp
     }
   }
   action.addEventListener('click',event=>{
-    if(event?.isTrusted!==true||busy||!toolEnabled)return;
-    const operation=canStop(last)?'aiAccess.disable':
+    if(event?.isTrusted!==true||!toolEnabled||
+      (busy&&pendingOperation!=='aiAccess.enable'))return;
+    const operation=busy?'aiAccess.disable':canStop(last)?'aiAccess.disable':
       last.state==='disabled'?'aiAccess.enable':null;
     if(!operation)return;
     ++statusEpoch;
+    const actionEpoch=++operationEpoch;
     busy=true;
+    pendingOperation=operation;
     errorText.hidden=true;
     show(last);
-    // Genuine extension DOM click; no second confirmation or sandbox-induced mutation.
+    // Host-only trusted click; the Worker serializes state and persists STOP.
+    // A late ENABLE completion cannot replace the newer STOP UI response.
     Promise.resolve().then(()=>runOperation(operation,{},event)).then(
-      ()=>refresh(),
+      ()=>{if(actionEpoch===operationEpoch)return refresh();},
       error=>{
+        if(actionEpoch!==operationEpoch)return;
         const message=(error?.code||'E_AI')+'：'+String(error?.message||error).slice(0,180);
         errorText.textContent=message;
         errorText.hidden=false;
         notice(message,true);
         return refresh(); // Read-only recovery; never retry an unknown write.
       }
-    ).finally(()=>{busy=false;show(last);});
+    ).finally(()=>{
+      if(actionEpoch===operationEpoch){
+        busy=false;pendingOperation=null;show(last);
+      }
+    });
   });
   function render(tool,readOnly=false,enabled=false){
     const visible=!readOnly&&tool?.id===AI_ID&&
       Array.isArray(tool.capabilities)&&tool.capabilities.includes(AI_CAPABILITY);
     if(!visible){
       activeTool=null;toolEnabled=false;section.hidden=true;statusEpoch++;
+      operationEpoch++;busy=false;pendingOperation=null;
       errorText.hidden=true;return;
     }
     const changed=activeTool!==tool||toolEnabled!==Boolean(enabled);
     activeTool=tool;toolEnabled=Boolean(enabled);section.hidden=false;
     if(changed){
+      operationEpoch++;busy=false;pendingOperation=null;
       errorText.hidden=true;
       show({state:'unavailable',reason:'正在核对 Chrome 代理状态'});
       if(toolEnabled)void refresh();

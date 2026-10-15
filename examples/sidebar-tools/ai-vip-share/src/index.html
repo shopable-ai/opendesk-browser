@@ -1,31 +1,68 @@
 <main class="ai-vip" aria-label="AI VIP Share 会员与权益中心">
-  <header class="ai-vip-head"><strong class="od-title">AI VIP Share</strong><span class="od-note">会员与权益中心</span></header>
+  <header class="ai-vip-head">
+    <strong class="od-title">AI VIP Share</strong>
+    <span class="od-note">会员与权益中心</span>
+  </header>
+
   <section class="od-surface od-surface--padded ai-vip-card" aria-labelledby="ai-vip-member-title">
-    <div class="ai-vip-row"><h2 id="ai-vip-member-title" class="od-title">AI 会员</h2><span id="ai-vip-member-state" class="od-note" role="status">待核验</span></div>
+    <div class="ai-vip-row">
+      <h2 id="ai-vip-member-title" class="od-title">AI 会员</h2>
+      <span id="ai-vip-member-state" class="od-note" role="status" aria-live="polite">待核验</span>
+    </div>
     <div class="ai-vip-account">
       <span class="ai-vip-avatar" aria-hidden="true">AI</span>
-      <div class="ai-vip-account-text"><strong id="ai-vip-account-name">账号尚未绑定</strong><p id="ai-vip-product-name" class="od-note">正式会员服务未配置</p></div>
+      <div class="ai-vip-account-text">
+        <strong id="ai-vip-account-name">账号尚未绑定</strong>
+        <p id="ai-vip-product-name" class="od-note">正式会员服务未配置</p>
+      </div>
+      <button id="ai-vip-refresh" type="button" class="od-button od-button--secondary" disabled>刷新权益</button>
     </div>
-    <p class="od-note">剩余会员时间 / 权益额度</p>
-    <div class="ai-vip-metric" aria-label="尚无经过验证的权益数据"><strong id="ai-vip-remaining">—</strong><span id="ai-vip-remaining-unit" class="od-note">待服务核验</span></div>
+    <p id="ai-vip-verified" class="od-note" role="status">服务端数据未核验；不代表已登录或已开通会员。</p>
+    <p class="od-note ai-vip-metric-caption">剩余会员时间 / 权益额度</p>
+    <div class="ai-vip-metric" aria-label="尚无经过验证的权益数据">
+      <strong id="ai-vip-remaining">—</strong>
+      <span id="ai-vip-remaining-unit" class="od-note">待服务核验</span>
+    </div>
     <p id="ai-vip-expiry" class="od-note">到期时间或权益额度尚不可查询</p>
+
     <div class="ai-vip-divider" aria-hidden="true"></div>
-    <p id="ai-vip-history" class="od-note">兑换记录：暂无经过服务端核验的数据</p>
+    <h3 id="ai-vip-benefits-title" class="ai-vip-subtitle">我的权益</h3>
+    <ul id="ai-vip-benefits" class="ai-vip-list" aria-labelledby="ai-vip-benefits-title">
+      <li class="od-note">尚无经过服务端核验的权益数据。</li>
+    </ul>
+    <details id="ai-vip-history-details" class="od-disclosure od-disclosure--flat ai-vip-history">
+      <summary>兑换记录 <span id="ai-vip-history-count" class="od-note">待核验</span></summary>
+      <ol id="ai-vip-history-list" class="ai-vip-list">
+        <li id="ai-vip-history" class="od-note">兑换记录：暂无经过服务端核验的数据</li>
+      </ol>
+    </details>
   </section>
+
   <section class="od-surface od-surface--padded ai-vip-card" aria-labelledby="ai-vip-redeem-title">
     <h2 id="ai-vip-redeem-title" class="od-title">兑换激活</h2>
-    <p class="od-note">输入兑换码或使用专属激活链接，领取对应权益。</p>
+    <p class="od-note">兑换码对应的商品、时长和额度均以服务端核验结果为准。</p>
     <label class="od-field-label" for="ai-vip-redeem-code">兑换码</label>
     <div class="ai-vip-redeem-row">
       <input id="ai-vip-redeem-code" class="od-field" type="password" data-sensitive
         maxlength="120" autocomplete="off" spellcheck="false" placeholder="输入兑换码或激活码" disabled>
       <button id="ai-vip-redeem" class="od-button" type="button" disabled>立即兑换</button>
     </div>
+    <div id="ai-vip-redeem-preview" class="ai-vip-preview" hidden>
+      <strong id="ai-vip-preview-title">待核验兑换内容</strong>
+      <p id="ai-vip-preview-description" class="od-note"></p>
+      <p id="ai-vip-preview-account" class="od-note"></p>
+      <button id="ai-vip-redeem-cancel" class="od-button od-button--secondary" type="button" hidden>取消本次兑换</button>
+    </div>
     <p id="ai-vip-redeem-status" class="od-field-help" role="status" aria-live="polite">兑换服务未配置，暂无法提交。权益仅按服务端回执生效；兑换不会自动开启代理。</p>
-    <p class="od-note">专属激活链接续接须经正式服务验证及 Chrome 安装授权，当前尚未接入。</p>
+    <p id="ai-vip-redeem-error" class="od-field-error" role="alert" hidden></p>
+    <p id="ai-vip-link-status" class="od-note">专属激活链接续接须经正式服务验证及 Chrome 安装授权，当前尚未接入。</p>
   </section>
+
   <section class="ai-vip-shop" aria-label="更多商品">
-    <div><strong class="od-title">更多商品</strong><p id="ai-vip-shop-status" class="od-note" role="status" aria-live="polite">正式商品目录尚未配置。</p></div>
+    <div>
+      <strong class="od-title">更多商品</strong>
+      <p id="ai-vip-shop-status" class="od-note" role="status" aria-live="polite">正式商品目录尚未配置。</p>
+    </div>
     <button id="ai-vip-shop-open" class="od-button od-button--secondary" type="button" disabled>查看更多商品 ↗</button>
   </section>
 </main>
