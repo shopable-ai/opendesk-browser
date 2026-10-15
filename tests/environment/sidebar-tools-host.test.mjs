@@ -348,7 +348,8 @@ test('actual sandbox state object clears host dirty state only after busy work e
     origin:'null',source:f.frame.contentWindow,data});}};
   runInNewContext(`(${initSidebarToolSandbox.toString()})()`,{
     SIDEBAR_TOOL_PROTOCOL:f.loaded.protocol,createBrowserSdk,window:sandboxWindow,parent,
-    document:{getElementById:id=>id==='tool-root'?root:status,head:new Node(),body:new Node(),createElement:tag=>new Node(tag)},
+    document:{getElementById:id=>id==='tool-root'?root:status,documentElement:new Node('html'),
+      head:new Node(),body:new Node(),createElement:tag=>new Node(tag)},
     Blob,URL:{createObjectURL:()=> 'blob:component-contract',revokeObjectURL(){}},
     setTimeout,clearTimeout,requestAnimationFrame:()=>0
   });
