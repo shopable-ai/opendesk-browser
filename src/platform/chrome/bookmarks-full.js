@@ -178,6 +178,8 @@ export function createBrowserFullBookmarksHost({api=globalThis.chrome,authorize,
     }
     if(args.parentId)await parentFolder(args.parentId);
     if(!args.title.trim())throw fail('E_SCHEMA','Bookmark title is empty');
+    // Prior awaited parent checks could have allowed another document to load.
+    if(args.sourcePage)await verifySourcePage(args.sourcePage,ctx);
     const {sourcePage,...details}=args,epoch=generation,result=await write('create',details);
     if(epoch!==generation)throw fail('E_OUTCOME_UNKNOWN');
     return project(result);
