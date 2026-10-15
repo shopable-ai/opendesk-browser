@@ -1,6 +1,6 @@
 // Deterministic local packer for standalone Sidebar UI tools.
 // React/Vue/Tailwind may be compiled BEFORE packing; no npm or remote code runs in Chrome.
-import {readFile,writeFile,mkdir,realpath,stat} from 'node:fs/promises';
+import {readFile,writeFile,mkdir,realpath,stat,lstat} from 'node:fs/promises';
 import {resolve,dirname,join,extname,basename} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {createHash} from 'node:crypto';
@@ -82,7 +82,22 @@ export async function buildSidebarTool(projectPath,{out}={}) {
   const target=resolve(out||join('artifacts','sidebar-tools',pkg.id,pkg.version,pkg.id+'.opendesk-tool.json'));
   await mkdir(dirname(target),{recursive:true});
   await writeFile(target,bytes,{flag:'w'});
-  return {output:target,bytes:bytes.length,id:pkg.id,version:pkg.version,
+  // An existing, regular <id>.opendesk-tool.json is an opt-in portable
+  // distribution artifact. Keep the original artifacts/ output for every tool,
+  // without automatically creating new generated files in other source dirs.
+  // Explicit --out writes only the requested file.
+  let projectOutput;
+  if(out===undefined){
+    const candidate=join(await realpath(projectPath),pkg.id+'.opendesk-tool.json');
+    let existing;
+    try{existing=await lstat(candidate);}catch(error){if(error?.code!=='ENOENT')throw error;}
+    if(existing){
+      if(!existing.isFile())fail('project distributable must be a regular file: '+candidate);
+      await writeFile(candidate,bytes,{flag:'w'});
+      projectOutput=candidate;
+    }
+  }
+  return {output:target,...(projectOutput?{projectOutput}:{}),bytes:bytes.length,id:pkg.id,version:pkg.version,
     capabilities:pkg.capabilities,validated:true,installed:false};
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
