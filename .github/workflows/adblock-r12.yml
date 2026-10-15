@@ -1,0 +1,115 @@
+name: AdBlock R1.2 - trusted DNR, offline release and native macOS Chrome
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'examples/sidebar-tools/adblock/**'
+      - 'src/sw.js'
+      - 'src/entrypoints/sidebar-tool-host.js'
+      - 'src/ui/sidebar-tools.js'
+      - 'src/ui/sidebar-tools/**'
+      - 'src/ui/tool.html'
+      - 'src/sidebar-tools/bridge.js'
+      - 'official-tools/catalog.json'
+      - 'scripts/bundle-provenance.mjs'
+      - 'tests/environment/adblock-r12.test.mjs'
+      - 'tests/framework/adblock-r12-native.test.mjs'
+      - '.github/workflows/adblock-r12.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: adblock-r12-${{ github.sha }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  source-and-package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install exact reviewed dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Independent AdBlock boundary and adversarial tests
+        run: |
+          node --test tests/environment/adblock-r12.test.mjs tests/environment/stay-focus-boundary-r1.test.mjs tests/environment/official-tools-catalog-r45.test.mjs
+          node --check tests/framework/adblock-r12-native.test.mjs
+      - name: Build independently installable official AdBlock tool
+        run: |
+          npm run build:sidebar-tool -- examples/sidebar-tools/adblock
+          test -s artifacts/sidebar-tools/adblock/1.0.0/adblock.opendesk-tool.json
+          sha256sum artifacts/sidebar-tools/adblock/1.0.0/adblock.opendesk-tool.json
+          sha256sum examples/sidebar-tools/adblock/rules/domains.js
+      - name: Source check and complete production and development validation
+        run: |
+          npm run check
+          npm run build
+          npm run build:dev
+          npm run verify
+          node scripts/verify-package.mjs dist/production
+          sha256sum dist/production/official-tools/adblock/adblock.opendesk-tool.json
+      - name: Preserve exact candidate - not native approval yet
+        uses: actions/upload-artifact@v4
+        with:
+          name: adblock-r12-validated-production-${{ github.sha }}
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            dist/production/
+            artifacts/sidebar-tools/adblock/
+            docs/framework/evidence/wxt/builds/build-production.json
+            docs/framework/evidence/wxt/builds/build-development.json
+      - name: Preserve failed source/build diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: adblock-r12-failed-build-${{ github.sha }}
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            artifacts/sidebar-tools/adblock/
+            docs/framework/evidence/wxt/builds/
+
+  native-macos-chrome:
+    needs: source-and-package
+    runs-on: macos-15
+    timeout-minutes: 19
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: adblock-r12-validated-production-${{ github.sha }}
+          path: .
+      - name: Reconfirm candidate and native identity
+        run: |
+          test -s dist/production/manifest.json
+          shasum -a 256 dist/production/sw.js
+          shasum -a 256 dist/production/official-tools/adblock/adblock.opendesk-tool.json
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Real macOS Chrome DNR and network requests - no mocks
+        env:
+          OPENDESK_ADBLOCK_NATIVE: '1'
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          OPENDESK_ADBLOCK_NATIVE_EVIDENCE: artifacts/adblock-r12-native
+        run: node --test tests/framework/adblock-r12-native.test.mjs
+      - name: Preserve real native network and failure receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: adblock-r12-native-chrome-${{ github.sha }}
+          if-no-files-found: warn
+          retention-days: 14
+          path: artifacts/adblock-r12-native/
