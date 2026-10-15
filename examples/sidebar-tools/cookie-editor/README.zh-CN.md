@@ -11,12 +11,15 @@
 ```bash
 npm ci --ignore-scripts --no-audit --no-fund  # 初次准备依赖；已有依赖可省略
 npm run build:sidebar-tool -- examples/sidebar-tools/cookie-editor
-# 生成：artifacts/sidebar-tools/cookie-editor/2.0.6/cookie-editor.opendesk-tool.json
+# 同步更新：examples/sidebar-tools/cookie-editor/cookie-editor.opendesk-tool.json
+# 同时保留：artifacts/sidebar-tools/cookie-editor/2.0.6/cookie-editor.opendesk-tool.json
 ```
 
-然后在当前 Chrome 的 OpenDesk Side Panel →「扩展」→ **更多操作 → 导入本地工具包**，选择上面的 `.opendesk-tool.json` → 核对 ID `cookie-editor`、版本、文件来源和 Cookies 敏感能力 → **确认安装/更新** → 在已安装列表中点击 **打开**。如果原有同 ID 工具已经安装，应走“更新”而不是先卸载（卸载会清除工具本地数据及授权）。每次改完本工具的 `src/...` 后重新执行上述打包并**明确导入确认**；正式发布更新时同步评审并提高 `tool.config.json` 版本。导入动作本身不运行代码，也不自动授予某个网站的 Cookie 访问权限。
+**项目目录已附带可直接导入的 `cookie-editor.opendesk-tool.json`。** 克隆或下载该目录的开发者不需要 Node.js 就能安装测试。它是从 `tool.config.json` 和 `src/` 通过原打包器生成的可移植快照；修改源码后必须用上面命令同步刷新并提交，测试会比较构建结果与提交文件是否完全一致。不要手工编辑生成的 JSON。
 
-**为什么源码目录没有可导入 JSON？** `tool.config.json` 是构建输入，不能直接导入；唯一可导入文件由现有 `scripts/build-sidebar-tool.mjs` 生成到 `artifacts/sidebar-tools/<id>/<version>/`。这些生成文件不作为第二份手工维护源码提交。该工具是 **OpenDesk Sidebar App**，不是能通过 `chrome://extensions`「加载已解压的扩展程序」直接安装的 Chrome Manifest 扩展。
+然后在当前 Chrome 的 OpenDesk Side Panel →「扩展」→ **更多操作 → 导入本地工具包**，选择目录内的 `cookie-editor.opendesk-tool.json`（或原 `artifacts/` 输出文件） → 核对 ID `cookie-editor`、版本、文件来源和 Cookies 敏感能力 → **确认安装/更新** → 在已安装列表中点击 **打开**。如果原有同 ID 工具已经安装，应走“更新”而不是先卸载（卸载会清除工具本地数据及授权）。每次改完本工具的 `src/...` 后重新执行上述打包并**明确导入确认**；正式发布更新时同步评审并提高 `tool.config.json` 版本。导入动作本身不运行代码，也不自动授予某个网站的 Cookie 访问权限。
+
+**两个 JSON 的区别：** `tool.config.json` 是构建配置，不能直接导入；`cookie-editor.opendesk-tool.json` 才是可直接安装的发布包。后者由原有 `scripts/build-sidebar-tool.mjs` 生成，`artifacts/sidebar-tools/<id>/<version>/` 是保留的本机输出。随项目提交的预生成 JSON **不是第二份业务源码**，所有修改应从 `src/` 重新打包，自动一致性测试能防止包与代码漂移。该工具是 **OpenDesk Sidebar App**，不是能通过 `chrome://extensions`「加载已解压的扩展程序」直接安装的 Chrome Manifest 扩展。
 
 **什么时候才需要编译整个 OpenDesk Browser？** 如果刚修改了 `src/` 中的可信 Cookies Host、Browser SDK、权限或 Catalog，或者当前安装的旧扩展缺少相应能力，须在独立开发 Chrome Profile 中从仓库根目录执行 `npm run build:dev`，用 `chrome://extensions`「加载已解压的扩展程序」加载 `dist/development/`，重新打开 Side Panel。**只有本目录 UI/JS/CSS 变化时，不需要重编整个扩展**。验证真实 Cookie 读写前先打开普通 HTTP(S) 网站，并在已安装工具的可信「设置」中按网站和能力分别授权；不要把“工具已安装”误当作“已经有 Cookie 权限”。
 
