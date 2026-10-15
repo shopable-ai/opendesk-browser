@@ -75,7 +75,9 @@
   const businessSdk=window.OpenDeskSDK?.browser?.network;
   // Existing installed-tool storage is bound by Host to package and install epoch.
   // Never store a voucher, password, auth cookie, proxy lease or access token.
-  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.2.0';
+  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.3.0';
+  // Do not strand an unresolved 1.2.0 voucher journal after a tool upgrade.
+  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0']);
   const storeRequest=window.OpenDeskTool.request;
   let snapshot=null,pending=null,recovery=null,recoveryFault=null;
   let recoveryReady=false,busy=false,seq=0;
@@ -119,7 +121,7 @@
     const fields=['accountId','createdAt','idempotencyKey','packageVersion','schemaVersion','toolId'];
     if(!plain(raw)||Object.keys(raw).sort().join(',')!==fields.sort().join(',')||
       raw.schemaVersion!==1||raw.toolId!=='ai-vip-share'||
-      raw.packageVersion!==PACKAGE_VERSION||!safeString(raw.accountId,120)||
+      !RECOVERY_COMPAT_VERSIONS.includes(raw.packageVersion)||!safeString(raw.accountId,120)||
       !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(raw.idempotencyKey)||
       // Diagnostic local timestamp only: clock rollback must not hide an
       // unresolved POST or prevent an account-bound server status check.
