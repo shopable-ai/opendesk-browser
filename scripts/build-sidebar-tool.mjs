@@ -7,6 +7,7 @@ import {BUILTIN_CATALOG} from '../src/libs/catalog.js';
 import {createHash} from 'node:crypto';
 import {validateSidebarToolPackage,SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_FORMAT_V2,serializeSidebarToolPackage} from '../src/ui/sidebar-tools/package.js';
 import {compileSharedToolCss} from './preview/shared-tool-design.mjs';
+import {compileToolLocaleCatalog} from '../src/ui/app-localization.js';
 const fail=(message)=>{throw new Error('E_TOOL_BUILD: '+message);};
 function rel(value) {
   if(typeof value!=='string'||value.length>180||!value||
@@ -31,8 +32,8 @@ export async function createSidebarToolPackage(projectPath) {
   const v2=meta?.format===SIDEBAR_TOOL_FORMAT_V2;
   if(!meta||typeof meta!=='object'||Array.isArray(meta)||
      Object.keys(meta).some(key=>!(v2
-       ?['format','id','version','title','description','capabilities','files','assets','requires','contributes']
-       :['id','version','title','description','capabilities','files','assets']).includes(key))||
+       ?['format','id','version','title','description','capabilities','files','assets','requires','contributes','locales']
+       :['id','version','title','description','capabilities','files','assets','locales']).includes(key))||
      (!v2&&Object.hasOwn(meta,'format'))||
      !meta.files||typeof meta.files!=='object'||Array.isArray(meta.files)||
      Object.keys(meta.files).some(key=>!['html','css','js','dependencies'].includes(key))||
@@ -44,7 +45,20 @@ export async function createSidebarToolPackage(projectPath) {
   let css=await source(root,meta.files.css,120000);
   // Only opted-in tools import the canonical non-privileged component CSS at build time.
   css=await compileSharedToolCss(css);
-  const js=await source(root,meta.files.js,220000);
+  let js=await source(root,meta.files.js,220000);
+  // Build-only opt-in: localized resources are embedded into the SAME signed JS
+  // package bytes. No package Schema change, network load or second runtime.
+  const marker='__OPENDESK_TOOL_MESSAGES__';
+  if(meta.locales!==undefined){
+    if(typeof meta.locales!=='string'||!js.includes(marker)||js.split(marker).length!==2)
+      fail('locales resource or main.js marker invalid');
+    let catalog;
+    try{catalog=compileToolLocaleCatalog(JSON.parse(await source(root,meta.locales,96000)));}
+    catch(error){fail('invalid/stale locale resource: '+String(error?.message||error));}
+    js=js.replace(marker,JSON.stringify(catalog));
+    if(new TextEncoder().encode(js).byteLength>220000)fail('compiled tool JS exceeds budget');
+  }else if(js.includes(marker))fail('tool locale marker without resources');
+
   const libraries=meta.files.dependencies||[];
   if(!Array.isArray(libraries)||libraries.length>8||
       new Set(libraries).size!==libraries.length||libraries.includes(meta.files.js))
