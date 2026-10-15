@@ -465,6 +465,21 @@ test('R5.0 Host false leaves a disabled App unchanged and reports unfinished dra
     'a background read must not swallow the unfinished operation');
 });
 
+test('R5.0 failed background storage read does not replace the original Host action error',async t=>{
+  const f=fixture(t,{disabled:true});await f.ui.refresh();
+  f.sidebarTools.toggleEnabled=()=>false;
+  f.button('app:quick-notes','more').dispatch('click');
+  f.menuItem('启用应用').dispatch('click');
+  await settle(()=>f.button('app:quick-notes','more')?.disabled===false);
+  const actionError=f.nodes['extension-center-status'].textContent;
+  assert.match(actionError,/启停尚未完成/);
+  f.setCorrupt(true);await f.ui.refresh();
+  assert.equal(f.nodes['extension-center-status'].textContent,actionError);
+  assert.equal(f.nodes['extension-center-status'].dataset.state,'error');
+  assert.equal(f.button('app:quick-notes','primary'),undefined,
+    'an unreadable registry cannot regain a fabricated launch button');
+});
+
 test('R5.0 a true Host return without matching persisted enable state is not a success',async t=>{
   const f=fixture(t,{disabled:true});await f.ui.refresh();
   f.sidebarTools.toggleEnabled=()=>true;
