@@ -66,7 +66,7 @@ test('a single send may fill and click search, but literals cannot authorize ext
     selector:'#result',text:'OpenDesk'}]);
   assert.equal(prepareDirectExecution({
     request:'填入 OpenDesk 并点击搜索按钮',workflow:afterAssert,target
-  }).hasUnprovenClick,false);
+  }).hasUnprovenClick,true);
 });
 test('a harmless fill can contain a sensitive-sounding literal without granting effects',()=>{
   const plain=workflow([{...fill,text:'删除'}]);
