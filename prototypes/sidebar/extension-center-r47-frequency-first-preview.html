@@ -192,9 +192,10 @@ function openMenu(row,trigger){
    (row.enabled?'停用应用':'启用应用'),()=>{
      row.enabled=!row.enabled;say('仅模拟修改「'+row.title+'」的启停状态。');render();
    });
- if(row.kind==='app'&&row.installed&&row.known)
-  option('设置、权限与卸载…',()=>{selected=row.id;settingsMode=true;render();});
- else option('前往开发',()=>say('正式产品进入开发页；本演示不会修改用户草稿。'));
+ if(row.kind==='app'){
+   if(row.installed&&row.known)
+    option('设置、权限与卸载…',()=>{selected=row.id;settingsMode=true;render();});
+ }else option('前往开发',()=>say('正式产品进入开发页；本演示不会修改用户草稿。'));
  option('查看详情',()=>{selected=row.id;settingsMode=false;render();});
  menu.hidden=false;
  const rect=trigger.getBoundingClientRect(),w=menu.offsetWidth,h=menu.offsetHeight;
