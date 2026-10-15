@@ -7,6 +7,7 @@ import {reportBrowserCleanupError} from './platform/chrome/lifecycle-errors.js';
 import {installStayFocusService} from './stay-focus/service.js';
 import {installAdblockService} from '../examples/sidebar-tools/adblock/trusted/service.js';
 import {installAiAccessService} from './ai-smart-access/service.js';
+import {reconcileManagedProxy,MANAGED_PROXY_ALARM} from './platform/chrome/browser-managed-proxy.js';
 
 
 export function initServiceWorker({development=null}={}) {
@@ -26,6 +27,12 @@ try{importScripts('platform/context-menus.js');}catch(e){console.warn('E_BROWSER
 try{installStayFocusService({api:chrome});}catch(e){console.warn('E_STAY_FOCUS_HOST_LOAD',e);}
 try{installAdblockService({api:chrome});}catch(e){console.warn('E_ADBLOCK_HOST_LOAD',e);}
 try{installAiAccessService({api:chrome});}catch(e){console.warn('E_AI_ACCESS_HOST_LOAD',e);}
+const recoverManagedProxy=()=>void reconcileManagedProxy(chrome).catch(error=>
+  console.warn('E_MANAGED_PROXY_RECOVER',error?.code||'E_PROXY'));
+chrome.runtime.onStartup?.addListener(recoverManagedProxy);
+chrome.runtime.onInstalled?.addListener(recoverManagedProxy);
+chrome.alarms?.onAlarm?.addListener(alarm=>{if(alarm?.name===MANAGED_PROXY_ALARM)recoverManagedProxy();});
+recoverManagedProxy();
 try{importScripts('cloud-control/cloud-host.js');}catch(e){console.warn('E_CLOUD_LOAD',e);}
 const foundation = createFoundationBroker({api:chrome, ports:hostPorts,downloadEventsAttached:true});
 // Fixed Browser Host sidecar reuses the sole foundation Scheduler instance.
