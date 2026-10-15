@@ -22,7 +22,7 @@ test('capabilities do not misrepresent stateless Cloud as an active server conve
 
 test('local Native plans only; provides session identity without running a browser',async()=>{
   let plans=0;
-  const manager={...fakeNative,async plan(){plans++;return workflow();}};
+  const manager={...fakeNative,async plan(options){plans++;options.onEvent?.({type:'turn.completed',status:'completed',turnId:'native-turn'});return workflow();}};
   const facade=createWorkflowProviderFacade({localPlanner:manager});
   const result=await facade.generateWorkflow({
     source:'local_codex',request:'查看网页',workflow:workflow(),
@@ -31,6 +31,7 @@ test('local Native plans only; provides session identity without running a brows
   assert.equal(plans,1);
   assert.equal(result.metadata.sessionId,'native-session');
   assert.equal(result.metadata.threadId,'native-thread');
+  assert.equal(result.metadata.turnId,'native-turn');
   assert.equal(result.proposal.format,'opendesk.workflow.v1');
 });
 
