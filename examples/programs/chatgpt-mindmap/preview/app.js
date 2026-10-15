@@ -61,11 +61,19 @@ async function stop(){
   const residual=document.querySelectorAll('style').length-initialStyles;
   state.residualStyles=residual;
   state.remainingOwnNodes=document.querySelectorAll('[data-opendesk-chatgpt-mindmap]').length;
-  state.styleIsolation=residual>0?'BLOCKED_STYLE_RESIDUE':'NO_STYLE_GROWTH_OBSERVED';
+  // Snowbrush may insert global styles WHILE its scripts are loading (before
+  // this app gets control), so a 0 style-count delta must NEVER be called clean.
+  const retained=[...document.querySelectorAll('head style, body style')]
+    .filter(node=>node.id==='snowbrush_style'||
+      /\.workbook-item|\.sb-container/.test(node.textContent||''));
+  state.globalSdkStyles=retained.map(node=>node.id||'(unnamed XMind global style)');
+  state.styleIsolation=(retained.length||residual>0)?
+    'BLOCKED_GLOBAL_STYLE_RESIDUE':'NO_MATCHING_GLOBAL_STYLE_OBSERVED';
   state.sdk='STOPPED';
   announce('Stop 已执行；拥有的 UI 节点剩余 '+state.remainingOwnNodes+
-    '；全局 style 节点变化 '+residual+
-    '。此数据属于独立预览文档，不代表 ChatGPT 隔离验收。','stopped');
+    '；全局 style 数量变化 '+residual+
+    '；仍存在的 XMind 全局 style '+retained.length+
+    '。这些脚本样式不属于 ChatGPT 安全沙箱，不能算正式 USER_SCRIPT 隔离验收。','stopped');
 }
 async function start(){
   requireXmindRuntime(window);
