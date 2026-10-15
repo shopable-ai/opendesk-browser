@@ -8,7 +8,7 @@ Date: 2026-10-15. Branch: `main` (only). Scope: `examples/programs/chatgpt-mindm
 
 | 旧项目路径/责任 | 当前项目对照 | 迁移判断 |
 | --- | --- | --- |
-| `public/lib/xmind/{jszip,polyfill,xmind-sdk,snowbrush}` | `tests/xmind-provenance.json` 记录但未携带字节 | **P0 缺口**。原始引擎 4,042,573 B 未进入正式安装包 |
+| `public/lib/xmind/{jszip,polyfill,xmind-sdk,snowbrush}` | 四份原始 Git 文件已直接位于 `preview/`，`tests/xmind-provenance.json` 固定其身份 | 原始引擎 4,042,573 B **仍未纳入正式安装包**；生产许可证和可信隔离尚未批准 |
 | `xmind/convert.ts`、`skin.ts` | `src/xmind-convert.js` | 已迁真实 Workbook、主题、notes、branch 状态；继续保持单一产品实现 |
 | `xmind/sdk.ts` | `src/xmind-adapter.js` 的能力检查 | 目前只做全局存在性检查，缺固定本地资源的正式注入/授权；不能声称安装可运行 |
 | `xmind-renderer.ts` (37,995 B) | `src/xmind-adapter.js` (6,400 B) | 只读 subset：真实 createWorkbookEditor、缩放、展开折叠和 close。未移植旧业务编辑器、命令系统、React 面板，**不能用行数判断漏迁** |
@@ -71,7 +71,7 @@ Date: 2026-10-15. Branch: `main` (only). Scope: `examples/programs/chatgpt-mindm
 - https://webflow.com/updates/gsap-becomes-free
 - https://gsap.com/standard-license/
 
-完成正式分发前需要：**完整原始合并构建记录/精确版本→逐依赖版权和许可证→NOTICE/声明保留→对固定实际二进制与 OpenDesk 安装包分发方式的权利确认**。这是一项明确的第三方权利批准门槛，不能被本地 HASH PASS 替代；继续保持全部 vendor 资产不入库、无 CDN、无 MAIN 注入。
+完成正式分发前需要：**完整原始合并构建记录/精确版本→逐依赖版权和许可证→NOTICE/声明保留→对固定实际二进制与 OpenDesk 安装包分发方式的权利确认**。这是一项明确的第三方权利批准门槛，不能被本地 HASH PASS 替代；四份原始 vendor JS 已归位 Git 跟踪的 `preview/`，仍不得纳入正式可分发安装包、不得通过 CDN 或 MAIN 世界注入。
 
 
 ## 本轮已提交增量及真实 CI 身份
@@ -194,3 +194,30 @@ Chrome API 失败不假装卸载成功。
 并在真实 Chrome 通过独立文档隔离与退出清理后，才可谈
 `RUNTIME_ADMITTED` / `CANDIDATE_VERIFIED` / `AVAILABLE` / `INSTALLED`。
 当前预览历史 CI 仅可证明当时的预览代码，不证明本轮原生安装验收。
+
+### R3 已验证 CI 结果（本节仅绑定实际新提交）
+
+- R3 原生卸载提交：`17faf0db84c2ecfacf9b836bb615fb048e28cdf5`，
+  后续 CI 命令/对话确认修正提交：
+  `c5caac92f32aa2b5bf5c3af4056f7d9ec1012e58`。
+- [GitHub Actions #38756274935](https://github.com/shopable-ai/opendesk-browser/actions/runs/38756274935)
+  的 **Installed Page native lifecycle and UI regression**：`41/41 PASS`；
+  **Real XMind adapter/source regression**：`17/17 PASS`；
+  **原始四字节检查**、**Program 验证/确定性 Build** 均 PASS；
+  **real-local-xmind-html** Job SUCCESS，仍是独立 HTML Chromium 而不是安装版。
+- 同一运行的 `offline-source-contract` Job 因 `npm run check`
+  FAIL，错误不在本轮改动路径：当前并行 SDK
+  `src/framework/sdk/browser-schemas.js:56` 有截断的字符串/Schema，
+  Node 报 `SyntaxError: Invalid or unexpected token`。
+  此错误来自并行 SDK 工作流，未擅自覆盖其他 Agent 源码；必须由该工作流
+  修复后重跑完整 `npm run check`。故 **整个 CI RUN 状态 FAIL**，
+  不能仅据成功步骤宣称 CI 全绿。
+- 当前证据的严格界限：`SOURCE_IMPLEMENTED=PASS`（**通用原生卸载**），
+  `RUNTIME_ADMITTED=BLOCKED`、`REAL_CHROME_FUNCTIONAL=NOT_TESTED`
+  （仅安装版）、`CANDIDATE_VERIFIED=NOT_TESTED`、
+  `AVAILABLE=NOT_TESTED`、`INSTALLED=NOT_TESTED`、
+  `CHATGPT_NATIVE_VERIFIED=NOT_TESTED`。
+
+### R3 并行 SDK 修复后的完整专项验证
+
+此前 `#38756274935` 曾因并行 SDK `browser-schemas.js:56` 语法损坏失败。并行 Agent 修复后，提交 `f4790e843467bd4a0dfc9c03163d4dc5c776c66d` 对应的 [GitHub Actions #38757685815](https://github.com/shopable-ai/opendesk-browser/actions/runs/38757685815) **两项 Job 均 SUCCESS**：原生 Page Program 生命周期和 UI `41/41 PASS`、XMind 源码 `17/17 PASS`、原始四文件、确定性 Build、`npm run check`、真实 Chromium 独立 HTML XMind 绘图。历史失败仅保留排障事实，当前正式程序仍无受信原始 XMind Runtime、正式安装和真实 ChatGPT 自动运行证据。

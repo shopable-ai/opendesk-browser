@@ -6,6 +6,7 @@ on:
       - 'src/ui/extension-center.js'
       - 'src/ui/extension-center-model.js'
       - 'src/ui/extension-center.css'
+      - 'prototypes/sidebar/extension-center-r47-frequency-first-preview.html'
       - 'src/ui/tool.html'
       - 'src/ui/tool-shell.js'
       - 'src/ui/sidebar-tools.js'

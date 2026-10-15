@@ -1,4 +1,4 @@
-# ChatGPT 思维导图 R2 · 真实 XMind 迁移（安装阻塞）
+# ChatGPT 思维导图 R3 · 真实 XMind 预览已通过，正式安装仍阻塞
 
 程序 ID：`opendesk.chatgpt-mindmap`；显示名称：**ChatGPT 思维导图**；版本 `0.2.0`。
 运行目标仅为 `https://chatgpt.com/*` 顶层 `USER_SCRIPT`。
@@ -122,3 +122,13 @@ USER_SCRIPT 全部回调，也未解决 Snowbrush 全局样式残留。UI 会明
 卸载接口的组件测试只是 Native 模拟测试，必须进一步由真实 Chrome
 验收撤销、刷新、BFCache 和权限移除。许可证和可信绘图文档没有审批前，
 本程序仍须保持不可安装，不能把通用卸载功能视为 XMind Runtime 接线完成。
+
+### 本轮专项 CI 证据
+
+[GitHub Actions #38756274935](https://github.com/shopable-ai/opendesk-browser/actions/runs/38756274935)：
+新增原生安装管理回归 `41/41 PASS`，原 XMind 源码回归
+`17/17 PASS`；Chromium 原始 HTML 绘图 Job 通过。
+但整次 RUN 因并行 SDK `browser-schemas.js:56` 语法损坏导致
+`npm run check` 失败。不能据此认定本轮产品安装完成或主仓 CI 全绿。
+
+**R3 最新 CI：** [#38757685815](https://github.com/shopable-ai/opendesk-browser/actions/runs/38757685815) 在并行 SDK 修复后两项 Job SUCCESS（原生管理 41/41、XMind 源码 17/17、Build 和 `npm run check` PASS）。这是独立 HTML 引擎与通用安装链的验证，不等于 ChatGPT 自动运行版正式通过。

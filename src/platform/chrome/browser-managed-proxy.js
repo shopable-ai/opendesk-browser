@@ -154,14 +154,16 @@ async function getState(api,owner){
   let snapshot=null,control='unknown';
   try{if(permission){snapshot=await chromeState(api);control=levelOf(snapshot);}}catch{}
   const owns=sameOwner(saved?.owner,owner);
-  let state='disabled',reason=null,canStop=false;
+  // An owned, unresolved STOP remains actionable even after Chrome permission
+  // is revoked. A visible recovery affordance is NOT permission to clear: the
+  // native STOP path still validates permission and exact PAC ownership.
+  let state='disabled',reason=null,canStop=Boolean(saved&&owns&&saved.phase!=='released');
   if(!permission){state='unavailable';reason='Chrome proxy permission unavailable';}
   else if(control==='controlled_by_other_extensions'||control==='not_controllable'){
     state='conflict';reason='Chrome proxy controlled outside OpenDesk';
   }else if(saved&&saved.phase!=='released'&&!owns){
     state='conflict';reason='Browser-wide proxy is owned by another verified installation';
   }else if(saved&&owns&&saved.phase!=='released'){
-    canStop=true;
     state=saved.phase==='enabled'&&control==='controlled_by_this_extension'&&
       matchesSettings(snapshot?.value,saved)?'enabled':'unavailable';
     if(state!=='enabled')reason='Proxy operation is pending or native ownership cannot be confirmed';
@@ -219,6 +221,12 @@ export function createBrowserManagedProxy({api=globalThis.chrome,
 export async function stopManagedProxyForTool(api,toolId,{
   lockManager=globalThis.navigator?.locks,removeVerifiedKey=null
 }={}){
+  // Called under the already held tool + catalog locks: no new ENABLE from
+  // this tool may start across this read-only preflight. A tool that never
+  // owned Chrome proxy must not need a second global lock just to uninstall.
+  // Re-read under the shared historical lock before ANY native clear.
+  const hint=await storageState(api);
+  if(!hint||hint.owner.toolId!==toolId)return false;
   return mutex(lockManager,async()=>{
     const state=await storageState(api);
     if(!state||state.owner.toolId!==toolId)return false;
@@ -238,7 +246,12 @@ export async function reconcileManagedProxy(api=globalThis.chrome,{
   return mutex(lockManager,async()=>{
     const state=await storageState(api);
     // A lost ENABLE acknowledgement is NOT a STOP command.
-    if(state?.phase==='stopping')await releaseLocked(api,state);
+    if(state?.phase==='stopping'){
+      await releaseLocked(api,state);
+      // An authenticated native STOP may have completed while the old
+      // journal snapshot still says "stopping". Never report stale phase.
+      return (await storageState(api))?.phase??'absent';
+    }
     return state?.phase??'absent';
   });
 }

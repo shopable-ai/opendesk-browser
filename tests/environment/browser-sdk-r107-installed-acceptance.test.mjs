@@ -20,8 +20,11 @@ test('R10.7 installed fixture retains legacy grants without inheriting Full Book
   assert.equal(tool.version,'11.3.0');
   assert(required.has('browser.bookmarks.full'));
   assert(!tool.capabilities.includes('browser.bookmarks.full'));
+  // Browser-wide Managed Proxy is a separate high-risk grant. Never silently
+  // add it to this old acceptance fixture or to any previously installed tool.
+  assert(!tool.capabilities.includes('browser.proxy.managed'));
   for(const capability of required)
-    if(capability!=='browser.bookmarks.full')
+    if(!['browser.bookmarks.full','browser.proxy.managed'].includes(capability))
       assert(tool.capabilities.includes(capability),'Legacy acceptance tool missing '+capability);
   assert(tool.contributes.contextMenus.some(menu=>menu.actionId==='sdk-check'));
   assert(!tool.js.includes('chrome.runtime.sendMessage('));

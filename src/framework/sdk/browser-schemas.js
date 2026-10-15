@@ -64,9 +64,6 @@ const managedProxyStatus=obj({
   permission:bool,canStop:bool,reason:nullableString
 },['state','control','permission','canStop','reason']);
 const ops=Object.freeze({
- 'browser.proxy.managed.getStatus':[empty,managedProxyStatus],
- 'browser.proxy.managed.requestEnable':[obj({config:managedProxyConfig},['config']),managedProxyStatus],
- 'browser.proxy.managed.requestDisable':[empty,managedProxyStatus],
  'browser.capabilities.list':[empty,arr(capabilityListRow,96)],
  'browser.capabilities.getStatus':[obj({operation:str(120,'^browser\\.[A-Za-z][A-Za-z0-9]*(?:\\.[A-Za-z][A-Za-z0-9]*)*$'),url:http},['operation']),
    capabilityStatus],
@@ -140,6 +137,9 @@ const ops=Object.freeze({
    obj({navigationRequested:bool,tabRefRevoked:bool},['navigationRequested','tabRefRevoked'])],
  'browser.tabs.removeOwned':[obj({tabRef:ref},['tabRef']),obj({closed:bool},['closed'])],
  'browser.sidePanel.openSelf':[empty,obj({opened:bool},['opened'])],
+ 'browser.proxy.managed.getStatus':[empty,managedProxyStatus],
+ 'browser.proxy.managed.requestEnable':[obj({config:managedProxyConfig},['config']),managedProxyStatus],
+ 'browser.proxy.managed.requestDisable':[empty,managedProxyStatus],
  'browser.network.request':[obj({method:{enum:['GET','POST','PUT','DELETE']},url:http,
    data:{},config:obj({timeout:num(1,60000),responseType:{enum:['json','text']}})},['method','url']),
    obj({status:num(100,599),data:{}},['status'])],

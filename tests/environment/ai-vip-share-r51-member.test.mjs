@@ -64,8 +64,9 @@ function node(env,name){return env.nodes.get('ai-vip-'+name)}
 
 test('R5.2 official package grants scoped recovery storage but no network permission',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/ai-vip-share');
-  assert.equal(pkg.version,'1.2.0');
-  assert.deepEqual(pkg.capabilities,['ai.access','storage.local']);
+  assert.equal(pkg.version,'1.3.0');
+  assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
+  assert.deepEqual(pkg.capabilities,['storage.local','network','browser.tabs','browser.proxy.managed']);
   assert.match(pkg.css,/opendesk\.shared-design\.v1/);
   assert(pkg.html.includes('id="ai-vip-benefits"'));
   assert(pkg.html.includes('id="ai-vip-history-list"'));

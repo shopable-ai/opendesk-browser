@@ -1,5 +1,5 @@
 <!-- browser-framework-current:start -->
-当前四层账本：70 项正式 / 70 项 SOURCE_WIRED；Cookies 11 项；原始 27 组 114 候选中 23 项同名晋级、91 项未登记。同候选原生 PASS 0 项；各项原始证据见正式验收账本，源码接线不提升 Node、Build 或 Native 状态。
+当前四层账本：73 项正式 / 73 项 SOURCE_WIRED；Cookies 11 项；原始 27 组 114 候选中 23 项同名晋级、91 项未登记。同候选原生 PASS 0 项；各项原始证据见正式验收账本，源码接线不提升 Node、Build 或 Native 状态。
 <!-- browser-framework-current:end -->
 
 **R10.1 当前四层账本（2026-10-13）**：正式 Browser SDK **44 项正式登记 / 44 项 SOURCE_WIRED**，包含 Cookies 11 项及本轮新增 Downloads 自有下载 4 项。真实 Chrome downloads 通过唯一 Browser Host + 受限 Driver，下载及取消均需受信 Side Panel 真点击、Host 一次性批准、安装身份/Chrome 权限验证；任何工具不可获知原生下载 ID 或枚举全局历史。原 114 候选旧命名不因新功能自动复活。**本候选 Node、Build、Mac Chrome 均未取得完整 PASS 证据**；历史 R6/R9 快照数字仅存档。

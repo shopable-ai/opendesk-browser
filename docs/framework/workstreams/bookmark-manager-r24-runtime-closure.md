@@ -362,3 +362,42 @@ HTML 设计评审另有一份在线对话内的可交互纯内存原型；该设
 - 共享 Quick Notes 输入锁再次检查了全部 14 个 Git blob：模板与 builder 变更均经过人工差异审阅；并行 packer 推广保护和 Reading TOC adapter 的合法输入变更也逐项复核后才更新。严禁禁用 stale lock；后续并行代码再变仍须绑定新的候选。
 
 **验收状态**：源代码及测试已经提交于 \`main\`；新 CI 提交入队（含 [Bookmark 专项 #38754049482](https://github.com/shopable-ai/opendesk-browser/actions/runs/38754049482) 与 [Preview #38754049040](https://github.com/shopable-ai/opendesk-browser/actions/runs/38754049040) 历史候选）。这些 run 在本段记录时尚无最终 PASS 证据；不得把 R2.7 0.3.7 的 75/75、Mock 双视口和 Browser Build 结果自动迁移至 R2.8 0.3.8。正式 Mac Chrome Native CRUD / Full 权限 / 视觉逐维 95+ 均 **NOT_TESTED / NOT_SCORED**，Issue #75 继续 OPEN；全 Browser Build 的独立 AdBlock / Reading TOC 等安全门禁不得绕过。
+
+
+### R2.8 同候选验证与跨工具零漂移校正（2026-10-15）
+
+新增独立的 \`bookmark-r28-ui\` GitHub CI job，不替代、不禁用原 \`bookmark-r2-source\` SDK/Browser Build Job。它使用**同一个** \`scripts/build-sidebar-tool.mjs\`、\`scripts/preview/build-preview.mjs\`、\`scripts/tests/bookmark-manager-r26-preview-chrome.mjs\` 与正式工具源码，证明安装包纯净及 Chrome 离线点击，不创建第二套原型或私有 SDK。
+
+[专项 CI #38758243043](https://github.com/shopable-ai/opendesk-browser/actions/runs/38758243043) 在候选 \`f76dab1b75e598805494947cd290a193708f625c\` 的 \`bookmark-r28-ui\` job **PASS**：
+- 正式书签 model + 生命周期 Node **49 PASS / 0 FAIL**；独立 \`bookmark-manager@0.3.8\` 工具包打包通过，源码校验无实验台、Mock 注入 IPC。相同包字节 SHA-256：\`0d018dc9fdf46fe8380e25cf0089de7ee746ede63b832b9fa9a53047b32d9c76\`。
+- Noto Sans CJK SC 字体安装和检索成功；Chromium 360px/960px 两种视口真实执行既有的 2159 条离线书签交互用例，返回 \`MOCK_BROWSER_INTERACTION_PASS_NOT_INSTALLED\`。覆盖：选中只读、手动进入编辑、干净表单再次点选返回只读、脏草稿切换需确认、Escape/继续编辑恢复、明确放弃后的目标只读、保存/取消/组合移动、未知写入结果、外部删除、撤权等。
+- 两视口各生成详情、编辑、外部冲突、**草稿切换提示**、**放弃后只读详情**和**预览外部实验台**六个视觉截图；模拟设备以外的按钮由 Chrome CDP 真实鼠标事件点击并收到限定 Mock 回执，校验 iframe 未获 \`allow-same-origin\`，外部网络请求为零。
+- 官方 HTML/打包 JSON/12 张可读中文视觉截图/交互 JSON 均由 CI 真实生成，证据为 [Artifact 11983899251](https://github.com/shopable-ai/opendesk-browser/actions/runs/38758243043/artifacts/11983899251)。非 Native，任何 PASS 不得提升至用户 Mac 实装 CRUD、Full Bookmarks 授权或发布验收。
+
+**共享 Preview 风险控制**：最初将专属外层诊断脚本占位及 CSS 加入所有工具共用的 HTML 模板，可能让其他工具的生产同源预览产生无关字节漂移。已在后续提交中恢复原 \`scripts/templates/sidebar-tool-preview-shell.html\`，由 \`build-preview.mjs\` **仅在** \`tool==='bookmark-manager'\` 时按可审计的外层标记追加实验台、专属 CSS 和预览诊断脚本；Quick Notes/AdBlock/Reading TOC 不再携带书签专属空节点/脚本。修复时误用严格 \`endsWith('</body></html>')\` 拒绝正式模板尾随换行，CI 明确报 \`E_UI_PREVIEW\`；已修改为不删除原文件换行但严格检查唯一 head/body 边界。共享源码锁使用完整 14 项 Git blob 复核，仅批准实际审阅的 builder/template 变更。依赖更改后的同候选 Chrome PASS 即上方 \`f76dab1b\`，故此为有效预览修复证据。
+
+**仍未闭环**：该 run 的 \`bookmark-r2-source\` 全 SDK/浏览器构建任务另行报告，不得用独立 UI PASS 代替全仓 PASS。Chrome Native 安装、真实 Full 权限、跨窗口原生 CRUD、Browser Build 安全门禁、七维视觉/八维交互逐项专家 95+、Issue #75 都还没有完整同候选证据，继续保持 \`NATIVE_NOT_TESTED / NOT_SCORED / ISSUE_OPEN\`。
+
+
+### R2.8 冻结候选：独立 UI + SDK + 全 Browser 构建同 SHA PASS
+
+**正式候选：\`f76dab1b75e598805494947cd290a193708f625c\`，工具版本 \`bookmark-manager@0.3.8\`。**
+
+[Bookmark Manager 专项 CI #38758243043](https://github.com/shopable-ai/opendesk-browser/actions/runs/38758243043) 的 **两个独立 Job 均已最终 PASS，整条工作流 \`conclusion=success\`**，相互不替代：
+
+| 证据层 | 本候选实际结果 |
+| --- | --- |
+| \`bookmark-r28-ui\` | 49 项独立 Model/编辑生命周期 Node **49 PASS / 0 FAIL**；正式包无 Mock 实验台；Chromium 360px + 960px 真正执行离线交互 **2/2 PASS**；CJK 中文字体正常；无外部网络；截图共 12 张 |
+| \`bookmark-r2-source\` | SDK Full / Current Document / consumer 定向 Node **75 PASS / 0 FAIL**，\`npm run check\` **PASS**（765 源码/测试/构建文件检查） |
+| 独立 Sidebar Tool v2 包 | **PASS**，版本 0.3.8，SHA-256 \`0d018dc9fdf46fe8380e25cf0089de7ee746ede63b832b9fa9a53047b32d9c76\`；不包含任何外层书签实验台或模拟 IPC |
+| Production Browser Build | \`npm run build\` **PASS**；\`node scripts/verify-package.mjs dist/production\` **PASS**；生产 package hash \`d41730fc8c73c84eee69ad96cbadca00de8675df951477b2b23bface8bb33db6\` |
+| Development Browser Build | \`npm run build:dev\` **PASS**；\`npm run verify\` **PASS**；开发 package hash \`e68131926180ec40aee0e3a9934b769455e66eb9a466317a50b60d6b83fddf25\` |
+| Native Chrome 安装与真实 Full Bookmarks CRUD | **NOT_TESTED**（CI 的真实 Chrome 属于 source-bound iframe + Mock，不能提升为已安装原生扩展验收） |
+
+证据档案：
+- [R2.8 工具包 + 360/960 HTML + 12 张 Chromium 截图 + 交互 JSON，Artifact 11983899251](https://github.com/shopable-ai/opendesk-browser/actions/runs/38758243043/artifacts/11983899251)
+- [R2.8 正式包和 WXT 双构建证据，Artifact 11984851892](https://github.com/shopable-ai/opendesk-browser/actions/runs/38758243043/artifacts/11984851892)
+
+这轮特别验证 **脏草稿点击其他书签 → 原编辑表单隐藏、展示带目标名称的放弃/保留确认 → 明确放弃后只读查看新书签**，提供 \`bookmark-r27-{narrow,wide}-{draft-switch,after-switch}.png\` 四张关键截图，并保持旧的外部冲突、安全 Host precondition、非空文件夹删除票据及未知结果禁止重放规则。**预览实验台在 .preview-device 之外**，并经浏览器实际点击与有限 Mock 回执验证；由于书签专属插入只在 Builder 对本工具执行，其他工具的原模板结构未被追加空脚本/空占位。跨工具预览契约仍由共享 Preview CI 独立报告，不擅称其他业务的 Native PASS。
+
+提交后只读比较到远端 \`main\`：\`f76dab1b\` 以后的并行更新在当次比对中没有触及书签正式 UI、已测 SDK、工具包配置或 Preview 构建输入；新并行代码变化后须重新检查来源身份。Issue #75 继续 **OPEN**。视觉/操作的 CI 证据已充实，但还没有用户 Mac Chrome 本地安装和可复核原生 CRUD/键盘辅助技术证据，逐维 95+ **NOT_SCORED**，不能提前关闭正式产品交付。

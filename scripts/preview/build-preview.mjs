@@ -170,7 +170,6 @@ export async function generatePreview({
     ADBLOCK_RESTORE_DIALOG:adblockDialog,
     ADBLOCK_SNAPSHOTS_JSON:safeJS(adblock?{scenario,snapshots:adblock.snapshots}:{}),
     ADBLOCK_PREVIEW_SCRIPT:adblockScript,
-    BOOKMARK_PREVIEW_LAB:bookmarkLab,BOOKMARK_PREVIEW_SCRIPT:bookmarkScript,
     LIGHT_CSS:lightShellOverride,WIDTH:String(width),
     HEIGHT:String(tool==='adblock'?220:height),
     NAV:shell.nav,HEADER:shell.head,
@@ -186,6 +185,31 @@ export async function generatePreview({
     if(!used.has(key))fail('preview template is missing required slot '+key);
   if(/\{\{[A-Z0-9_]+\}\}/.test(outputHtml))
     fail('unresolved preview template slot');
+  if(tool==='bookmark-manager'){
+    // Insert only for this OFFLINE tool, beyond .preview-device. The shared
+    // Quick Notes, Reading TOC and AdBlock preview HTML is byte-identical.
+    const marker='</div>\n<dialog class="preview-confirm od-surface" id="od-preview-confirm-uninstall"';
+    const insertion='</div>\n'+bookmarkLab+'\n<dialog class="preview-confirm od-surface" id="od-preview-confirm-uninstall"';
+    if(!outputHtml.includes(marker)||outputHtml.split(marker).length!==2)
+      fail('canonical outer preview location is unavailable');
+    outputHtml=outputHtml.replace(marker,insertion);
+    const labCss=[
+      '.preview-diagnostic-area{max-width:880px;margin:var(--space-3) auto;padding-inline:var(--space-2);min-width:0}',
+      '.preview-diagnostic-area .od-toolbar{flex-wrap:wrap}',
+      '.preview-diagnostic-area .od-toolbar>button{flex:0 1 auto}',
+      '.preview-diagnostic-area p{overflow-wrap:anywhere}'
+    ].join('\n');
+    const headClose='</head>';
+    // The checked-in shell intentionally ends with a trailing newline.
+    if(outputHtml.split(headClose).length!==2||
+      !outputHtml.trimEnd().endsWith('</body></html>')||
+      outputHtml.split('</body></html>').length!==2)
+      fail('canonical head/body markers changed');
+    outputHtml=outputHtml.replace(headClose,
+      '<style id="od-preview-bookmark-lab-style">\n'+labCss+'\n</style>\n'+headClose);
+    outputHtml=outputHtml.replace('</body></html>',
+      '<script>'+bookmarkScript+'</script>\n</body></html>');
+  }
   if(tocOverlay){
     outputHtml=addReadingTocControls(outputHtml,{
       sidePanelHtml:frameHtml,overlayHtml:tocOverlay.html,scenario,surface

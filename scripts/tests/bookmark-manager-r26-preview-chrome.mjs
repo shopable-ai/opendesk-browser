@@ -430,6 +430,43 @@ try{
     })()`,visualCtx);
     assert.ok(visualConflict,'visual conflict must be visible with draft preserved');
     await capture('conflict');
+    // User-visible proof for the reported bug: clicking another bookmark
+    // cannot reinterpret the target as an editable item. First resolve the
+    // original unsaved draft decision; only an explicit discard may switch.
+    const visualSwitch=await evaluate(`(async()=>{
+      const q=id=>document.getElementById(id);
+      q('bm-search').value='模拟书签 0001';
+      q('bm-search').dispatchEvent(new Event('input',{bubbles:true}));
+      let target=null;
+      for(let i=0;i<100;i++){
+        target=[...q('bm-list').querySelectorAll('.bm-entry')].find(el=>
+          el.textContent.includes('模拟书签 0001'));
+        if(target)break;
+        await new Promise(done=>setTimeout(done,40));
+      }
+      if(!target)throw Error('second bookmark was not projected for switch');
+      target.click();
+      return {oldId:q('bm-inspector-id').textContent,
+        formHidden:q('bm-form-view').hidden,
+        guardVisible:!q('bm-draft-guard').hidden,
+        targetNamed:q('bm-draft-context').textContent.includes('模拟书签 0001')};
+    })()`,visualCtx);
+    assert.ok(visualSwitch?.oldId==='100'&&visualSwitch?.formHidden&&
+      visualSwitch?.guardVisible&&visualSwitch?.targetNamed,
+      'dirty switching must show the explicit discard decision, not an editor on the new row');
+    await capture('draft-switch');
+    const visualAfter=await evaluate(`(()=>{
+      const q=id=>document.getElementById(id);
+      q('bm-discard-switch').click();
+      return {read:!q('bm-inspector-read').hidden,
+        editHidden:q('bm-form-view').hidden,
+        guardHidden:q('bm-draft-guard').hidden,
+        title:q('bm-inspector-title').textContent};
+    })()`,visualCtx);
+    assert.ok(visualAfter?.read&&visualAfter?.editHidden&&
+      visualAfter?.guardHidden&&visualAfter?.title.includes('模拟书签 0001'),
+      'confirmed discard must show a new bookmark read-only');
+    await capture('after-switch');
     // Real pointer click on the OUTER preview-only diagnostic control. It must
     // post only an allowlisted Mock request to the opaque iframe, then display
     // the validated result in the outer feedback region.

@@ -43,6 +43,9 @@ test('R11.2 builds with v2 packer and independently declares Full Bookmark permi
   assert.deepEqual(pkg.capabilities,['browser.bookmarks.full','currentPage.read']);
   assert.equal(pkg.scripts.length,2);
   assert.ok(pkg.js.includes('OpenDeskSDK'));
+  // Production UI must never inherit offline preview lab controls or Mock IPC.
+  assert.doesNotMatch(pkg.html,/od-preview-bookmark-lab|data-bookmark-diagnostic|预览测试辅助工具/);
+  assert.doesNotMatch(pkg.js,/__opendeskBookmarkMockDiagnostic|opendesk\.preview\.bookmark\.command/);
 });
 
 test('all R2 sandbox sources remain Classic-only SDK consumers, without Chrome/private Host',async()=>{
