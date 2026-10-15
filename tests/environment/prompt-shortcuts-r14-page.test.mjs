@@ -90,7 +90,7 @@ function fixture({pkg,library,grants,insertText=null,noEditor=false,rejectCopy=f
   const buttons=()=>rail()?.children.filter(item=>item.className.includes('item'))||[];
   return {api,doc,win,values,change,calls,copied,buttons,rail,root,main,editor,events,siteEvents,docEvents};
 }
-test('R1.4 dynamic ChatGPT rail: origin grant, click-to-draft and independent revocation',async()=>{
+test('R1.13 ChatGPT rail: no second consent, one click-to-draft, independent enable lifecycle',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
   const model=globalThis.OpenDeskPromptShortcutsModel;
   const row=model.draft({body:'检查项目\n列出风险'},null,()=> 'prompt-123456');
@@ -99,10 +99,10 @@ test('R1.4 dynamic ChatGPT rail: origin grant, click-to-draft and independent re
   const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
   try{
     await settle();
-    assert.equal(f.buttons().length,0,'unapproved origin never renders');
+    assert.equal(f.buttons().length,1,'installed and enabled tool renders without a separate grant');
     const grant=await changePromptSiteGrant({},pkg,'first',true);
     f.change(PROMPT_SITE_STORE,grant);await settle();
-    assert.equal(f.buttons().length,1,'granted and installed tool renders one real button');
+    assert.equal(f.buttons().length,1,'legacy authorization record does not duplicate the button');
     assert.equal(controller.diagnostics().items,1);
     f.buttons()[0].emit('click',{isTrusted:false});
     await settle();assert.equal(f.calls.length,0,'untrusted click cannot edit a draft');
@@ -127,7 +127,7 @@ test('R1.4 dynamic ChatGPT rail: origin grant, click-to-draft and independent re
     f.change(SIDEBAR_TOOL_ENABLE_STORE,{});
     await settle();assert.equal(f.buttons().length,1);
     f.change(PROMPT_SITE_STORE,{});await settle();
-    assert.equal(f.buttons().length,0,'site revocation tears down page controls');
+    assert.equal(f.buttons().length,1,'legacy site grant is no longer a separate visibility gate');
     f.change(PROMPT_SITE_STORE,grant);
     await settle();assert.equal(f.buttons().length,1);
     f.win.location.href='https://chatgpt.com.evil.example/c/mock';
