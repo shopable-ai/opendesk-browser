@@ -127,6 +127,14 @@
 
 - 真实 GitHub Actions：`Prompt Shortcuts R1.4 scoped tests`，Run [38735041527](https://github.com/shopable-ai/opendesk-browser/actions/runs/38735041527)，绑定提交 `2872b03544714d61766b40eb2dd1b21dbfbb6983`，**六组 Node 测试 6/6 PASS、固定语法检查 PASS**。测试范围：Unicode/自动默认值、数据验证和旧来源标记、v2 工具包的实际 packer、精确 ChatGPT Origin/安装代际/撤权、网页固定插入路径代码规则、严格 Git blob 来源白名单。不要将此记录提升为真实浏览器测试。
 - 在此之后通过源码复核确认一个新增缺口：通用安装器的卸载恢复和移除能力后的站点授权清理尚未覆盖 `page.prompts` 专用 `opendesk.sidebar-tools.prompt-sites.v1`。可信页面因为还会验证安装身份而保守拒绝，但旧权限元数据可能残留。继续复用原 `cleanupUninstalledToolLocked`，把该键加入已批准的清理集合；存储清理不得影响同一 Store 内其他工具的记录，旧卸载票据不能删除后来重新安装的同 ID 工具。
-- 补充 `tests/environment/prompt-shortcuts-r14.test.mjs` 的真实模拟 `storage.local` 清理测试与同 ID 再安装保护。新补的第七组测试以**本次修复 SHA 的实际 CI 日志**为准，在取得成功日志前不预记 PASS。
+- 补充 `tests/environment/prompt-shortcuts-r14.test.mjs` 的真实模拟 `storage.local` 清理测试与同 ID 再安装保护。第七组模拟 Chrome local storage 的卸载恢复测试已于 [Run 38735823378](https://github.com/shopable-ai/opendesk-browser/actions/runs/38735823378) 执行，绑定 `57bad486096bc1bc476402248cc77a01a2c6a2ac`，**7/7 PASS**；不等于原生卸载验收。
 - 工具使用与安全说明见 `examples/sidebar-tools/prompt-shortcuts/README.zh-CN.md`。正式生成包及真实 ChatGPT、多行草稿/中文 IME/Undo/SPA 的状态仍为 **NOT_TESTED**，本仓库其他 Agent 的 AdBlock provenance 阻断不应凭该局部 CI 冒充修复。
 
+
+### 6.6 固定 ChatGPT 页面控制器的动态模拟验证（2026-10-15）
+
+为避免把源代码模式检查等同于网页运行，新增 `tests/environment/prompt-shortcuts-r14-page.test.mjs`。它直接调用正式 `initPromptShortcuts`，以受控模拟 DOM、Chrome storage 及事件验证：未批准来源不渲染；审批后按钮出现；不可信点击不修改草稿；可信点击在已有内容末尾追加多行提示词；关闭网页按钮设置、停用工具、撤销站点授权、跨来源 SPA 导航时清理悬浮按钮；销毁时注销 storage 监听器。
+
+**已执行 CI**：[Run 38737382042](https://github.com/shopable-ai/opendesk-browser/actions/runs/38737382042)，候选提交 `d9c53b0bec7528ba88b0884f0ee81fed59f0593b`，**8/8 Node PASS、语法检查 PASS**。最初模拟元素遗漏标准 `closest()` 导致新增动态测试 FAIL，原始失败 [Run 38736747724](https://github.com/shopable-ai/opendesk-browser/actions/runs/38736747724) 保留；补齐模拟 DOM 标准方法后获得完整成功，不修改生产插入函数以迎合测试。
+
+**证据分级**：Node 动态模拟为 `COMPONENT_PASS`，并非 `INSTALLED_CHROME_PASS` / `REAL_CHATGPT_PASS` / `MAC_IME_PASS`。正式 production bundle 仍受到并行 AdBlock 固定源码摘要漂移阻断；不要绕过原安全审计，也不要将本工具 8/8 当作全仓 95+ 或最终产品交付。下一阶段须协调构建者冻结候选，并在真实 Chrome+ChatGPT 上验证多行/Undo/中文 IME/原生菜单/卸载清理。
