@@ -516,6 +516,90 @@
       ()=>{shopStatus.textContent='未能打开商品目录，请检查权限或稍后重试。';}
     ).finally(()=>{shop.disabled=false;});
   });
+  // AI domain preferences and provider endpoints belong to this installed tool,
+  // never the public browser-wide proxy Driver. Production remains disabled
+  // until a separately reviewed, authenticated Provider is configured.
+  const AI_PROXY_DOMAINS=Object.freeze([
+    'chatgpt.com','openai.com','claude.ai','gemini.google.com','perplexity.ai'
+  ]);
+  const APPROVED_PROXY_ENDPOINT=null; // Release-owned; never use localhost for production.
+  function setupManagedProxy(){
+    const status=byId('ai-vip-proxy-state'),detail=byId('ai-vip-proxy-detail');
+    const refresh=byId('ai-vip-proxy-refresh'),enable=byId('ai-vip-proxy-enable');
+    const disable=byId('ai-vip-proxy-disable');
+    if(!status||!detail||!refresh||!enable||!disable)return;
+    const sdk=window.OpenDeskSDK?.browser?.proxy?.managed;
+    let current=null,working=false;
+    const safeEndpoint=APPROVED_PROXY_ENDPOINT&&
+      ['https','socks5'].includes(APPROVED_PROXY_ENDPOINT.scheme)&&
+      typeof APPROVED_PROXY_ENDPOINT.host==='string'&&
+      Number.isSafeInteger(APPROVED_PROXY_ENDPOINT.port)?APPROVED_PROXY_ENDPOINT:null;
+    // A technical proxy route alone is NEVER an entitlement. A fresh
+    // real Provider snapshot must independently prove membership.
+    const hasEntitlement=()=>Boolean(endpoints&&snapshot&&estimatedServerNow()!==null&&
+      snapshot.account?.state==='bound'&&snapshot.entitlements?.some(row=>
+        row.status==='active'&&(row.type!=='time'||row.expiresAt>estimatedServerNow())));
+    const paint=()=>{
+      status.textContent=!sdk?'SDK 不可用':!current?'尚未读取':
+        ({enabled:'已启用',disabled:'已停止',conflict:'代理被占用',
+          unavailable:'需要恢复'})[current.state]||'未知';
+      enable.disabled=working||!sdk||!safeEndpoint||
+        current?.state!=='disabled'||!hasEntitlement();
+      disable.disabled=working||!sdk||current?.canStop!==true;
+      refresh.disabled=working||!sdk;
+      if(!sdk)detail.textContent='当前浏览器未提供已批准的 Managed Proxy SDK。';
+      else if(current?.canStop)detail.textContent=
+        '已存在当前安装的代理资源，可独立于会员或 Provider 停止；不会清除其他工具的代理。';
+      else if(current?.state==='conflict')detail.textContent=
+        '浏览器级代理控制权冲突。不会覆盖其他扩展、策略或旧版安装。';
+      else if(!safeEndpoint)detail.textContent=
+        '正式代理 Provider 尚未配置，无法启用；刷新与已有代理 STOP 仍可用。';
+      else if(!hasEntitlement())detail.textContent=
+        '会员权益尚未由正式服务验证，禁止仅凭代理设置启用访问。';
+      else detail.textContent='启用需经可信 Side Panel 单次确认，目标站点采用严格代理分流。';
+    };
+    async function update(){
+      if(!sdk||working)return;
+      working=true;paint();
+      try{
+        const state=await sdk.getStatus();
+        if(!state||typeof state.state!=='string')throw Error('代理状态回执无效');
+        current=state;
+      }catch(error){
+        current=null;
+        detail.textContent='代理状态无法确认（'+String(error?.code||'E_PROXY_STATUS').slice(0,50)+'）。';
+      }finally{working=false;paint();}
+    }
+    refresh.addEventListener('click',event=>{
+      if(event?.isTrusted===true)void update();
+    });
+    enable.addEventListener('click',async event=>{
+      if(event?.isTrusted!==true||working||!safeEndpoint||!hasEntitlement()||
+        current?.state!=='disabled'||typeof sdk?.requestEnable!=='function')return;
+      working=true;paint();
+      try{
+        await sdk.requestEnable({config:{endpoint:{...safeEndpoint},
+          domains:[...AI_PROXY_DOMAINS]}});
+        detail.textContent='已提交可信启用请求，正在核对 Chrome 原生状态。';
+      }catch(error){
+        detail.textContent='启用未确认（'+String(error?.code||'E_PROXY').slice(0,50)+'）；请刷新或明确 STOP，勿盲目重试。';
+      }finally{working=false;paint();void update();}
+    });
+    disable.addEventListener('click',async event=>{
+      if(event?.isTrusted!==true||working||current?.canStop!==true||
+        typeof sdk?.requestDisable!=='function')return;
+      working=true;paint();
+      try{
+        await sdk.requestDisable();
+        detail.textContent='STOP 已请求并核对 Chrome；请刷新确认已释放。';
+      }catch(error){
+        detail.textContent='STOP 仍待确认（'+String(error?.code||'E_PROXY_STOP').slice(0,50)+'），不会覆盖其他代理配置。';
+      }finally{working=false;paint();void update();}
+    });
+    void update();
+  }
+  setupManagedProxy();
+
   // Recover independently of Provider configuration; never silently drop a journal.
   void loadRecovery();
   if(!endpoints){
