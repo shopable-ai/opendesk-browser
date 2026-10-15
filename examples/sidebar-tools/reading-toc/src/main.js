@@ -64,9 +64,13 @@ function render(){
  const overviewIds=new Set(overview?.ids||scoped.filter(item=>item.depth===0).map(item=>item.id));
  const represented=mode==='top'
   ?scoped.find(item=>item.id===(overview?.representedId||current?.topId)):current;
+ // For short outlines the trusted overview already represents every heading.
+ // Keep both distinct H2s beneath two H1s in the default focus view, even
+ // when the labels are identical. Long outlines still focus on the active tree.
+ const compact=Boolean(scoped.length&&scoped.length<=5&&overview?.ids?.length===scoped.length);
  const shown=mode==='full'?scoped:mode==='top'
   ?scoped.filter(item=>overviewIds.has(item.id))
-  :scoped.filter(item=>item.depth===0||item.topId===current?.topId);
+  :compact?scoped:scoped.filter(item=>item.depth===0||item.topId===current?.topId);
  const key=mode+'|'+selected+'|'+shown.map(item=>item.id+':'+item.label+':'+item.depth).join('|');
  if(key!==lastKey){
   const fragment=document.createDocumentFragment();

@@ -31,7 +31,7 @@ test('R1.2 same validated Side Panel JS/CSS executes in source-derived offline s
   const preview=await generatePreview({tool:'reading-toc',surface:'side-panel',width:360,
     scenario:'success',theme:'light'});
   assert.equal(preview.manifest.tool,'reading-toc');
-  assert.equal(preview.manifest.toolVersion,'1.0.6');
+  assert.equal(preview.manifest.toolVersion,'1.0.7');
   assert.equal(preview.manifest.surface,'side-panel');
   assert.deepEqual(preview.manifest.operations,['toc.snapshot','toc.navigate']);
   assert.equal(preview.manifest.mock,true);
