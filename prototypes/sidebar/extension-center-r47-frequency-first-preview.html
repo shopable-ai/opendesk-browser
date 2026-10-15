@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>OpenDesk Browser · Extension Center R5.0 · 已安装 / 发现分离交互预览</title>
+<title>OpenDesk Browser · Extension Center R5.1 · 卸载、发现与原位更新交互预览</title>
 <!-- Visual rules are loaded from the SAME repository design tokens, system and Extension Center CSS. -->
 <link rel="stylesheet" href="../../src/ui/design-tokens.css">
 <link rel="stylesheet" href="../../src/ui/design-system.css">
@@ -90,11 +90,12 @@
     </main>
   </div>
   <aside class="notes">
-    <h1>扩展列表 · R5.0</h1>
+    <h1>扩展列表 · R5.1</h1>
     <p>本页面复用正式 <code>tool-shell.css</code>、设计 Tokens、组件 CSS 和 Extension Center CSS；顶栏工具条 DOM 来自正式 <code>tool.html</code>，交互数据完全模拟。</p>
     <h2>测试典型状态</h2>
     <button class="od-button od-button--secondary" type="button" data-scenario="normal">默认列表</button>
     <button class="od-button od-button--secondary" type="button" data-scenario="cookie">Cookie Editor 卸载/重装</button>
+    <button class="od-button od-button--secondary" type="button" data-scenario="update">Cookie Editor 同 ID 原位更新</button>
     <button class="od-button od-button--secondary" type="button" data-scenario="disabled">停用应用</button>
     <button class="od-button od-button--secondary" type="button" data-scenario="page">网页增强</button>
     <button class="od-button od-button--secondary" type="button" data-scenario="unknown">异常与权限</button>
@@ -103,7 +104,7 @@
     <button class="od-button od-button--secondary" type="button" data-scenario="cleanup">清理待恢复</button>
     <button class="od-button od-button--secondary" type="button" data-scenario="empty">空状态</button>
     <h2>操作提示</h2>
-    <p>可点击整行、可见「打开」与行级「⋮」；默认列表仅显示安装记录，卸载后不会因搜索重新出现；须主动切换至「可安装 / 更新」才能模拟重新安装。全局菜单演示筛选、语言、导入与刷新。行级菜单支持 ↑/↓、Home/End、Escape、焦点恢复和点击外部关闭；所有更改只作用于内存示例。</p>
+    <p>可点击整行、可见「打开」与行级「⋮」；默认列表仅显示安装记录，卸载后不会因搜索重新出现；须主动切换至「可安装 / 更新」才能模拟重新安装。「原位更新」场景明确模拟旧版 v2.0.6 升级至正式候选 v2.0.11；默认场景的 Cookie Editor 为 v2.0.11。全局菜单演示筛选、语言、导入与刷新。行级菜单支持 ↑/↓、Home/End、Escape、焦点恢复和点击外部关闭；所有更改只作用于内存示例。</p>
     <p class="demo-note"><strong>SIMULATED_PREVIEW / NOT_NATIVE_CHROME</strong>：不安装/卸载真实扩展，不调用 Chrome 权限或 Page Authority，不执行应用代码；真实 Page 用户 UI 和未安装候选安全预览尚无受证据支持的通用入口，因此不展示虚假按钮。源代码运行与正式交互仍需独立测试。</p>
   </aside>
 </div>
@@ -131,7 +132,7 @@ const $=id=>document.getElementById(id),menu=$('demo-context-menu'),globalMenu=$
 const initial=[
  {id:'notes',title:'快速笔记',kind:'app',installed:true,enabled:true,known:true,description:'记录与整理当前想法'},
  {id:'cookie-editor',title:'Cookie Editor',kind:'app',installed:true,enabled:true,known:true,
-   version:'2.0.6',installationPolicy:'preinstalled',description:'独立 Cookie 管理工具'},
+   version:'2.0.11',installationPolicy:'preinstalled',description:'独立 Cookie 管理工具'},
  {id:'prompt',title:'提示词快捷工具',kind:'app',installed:true,enabled:false,known:true,description:'快速插入常用提示词'},
  {id:'reader',title:'网页阅读增强',kind:'page',installed:true,enabled:true,known:true,description:'适用于指定网站'},
  {id:'restricted',title:'页面内容助手',kind:'page',installed:true,enabled:true,known:true,authorization:'suspended',description:'网站访问需要恢复授权'},
@@ -211,9 +212,18 @@ function simulateUninstall(row){
 }
 function simulateInstall(row){
  row.installed=true;row.enabled=true;row.known=true;row.update=false;
+ if(row.releaseVersion)row.version=row.releaseVersion;
  selected=null;settingsMode=false;confirmUninstall=false;installReview=false;scope='smart';
  render();$('preview-search').focus({preventScroll:true});
  say('模拟重新安装「'+row.title+'」：已恢复显示；未授予任何真实 Chrome 权限。');
+}
+function simulateUpdate(row){
+ const before=row.version;
+ row.version=row.releaseVersion;row.update=false;
+ selected=null;settingsMode=false;confirmUninstall=false;installReview=false;scope='smart';
+ render();$('preview-search').focus({preventScroll:true});
+ say('模拟原位更新「'+row.title+'」：v'+before+' → v'+row.version+
+   '；工具 ID 未改变、不会自动运行新版代码。本演示未写入真实安装记录或授权。');
 }
 function render(){
  closeMenu(false);syncFilters();
@@ -236,6 +246,16 @@ function render(){
       actions.append(el('p','','模拟审阅：真实安装需要核对 SHA-256、权限和固定 JSON。'));
       actions.append(btn('确认模拟安装',()=>simulateInstall(detail),'od-button od-button--secondary'));
       actions.append(btn('取消',()=>{installReview=false;render();},'od-button od-button--secondary'));
+    }
+   }
+   if(detail.kind==='app'&&detail.installed&&detail.update&&detail.releaseVersion){
+    if(!installReview)actions.append(btn('审阅新版（模拟）',()=>{installReview=true;render();},
+      'od-button od-button--secondary'));
+    else{
+      actions.append(el('p','','模拟审阅固定发行：v'+detail.version+' → v'+detail.releaseVersion+
+        '。正式版本需核对真实包 SHA-256、来源和权限，且必须明确确认；原工具数据保留。'));
+      actions.append(btn('确认模拟原位更新',()=>simulateUpdate(detail),'od-button od-button--secondary'));
+      actions.append(btn('取消更新',()=>{installReview=false;render();},'od-button od-button--secondary'));
     }
    }
    if(detail.kind==='app'&&detail.installed&&detail.known){
@@ -311,10 +331,15 @@ $('preview-market').addEventListener('click',()=>say('正式应用市场只负�
 $('preview-reload').addEventListener('click',()=>{closeGlobalMenu();render();say('仅模拟重新读取目录；当前搜索、筛选、详情和模拟启停状态保持不变。');});
 document.querySelectorAll('[data-scenario]').forEach(b=>b.addEventListener('click',()=>{
  items=initial.map(x=>({...x}));
- scenario=b.dataset.scenario==='cookie'?'normal':b.dataset.scenario;
- selected=b.dataset.scenario==='cookie'?'cookie-editor':null;
+ scenario=['cookie','update'].includes(b.dataset.scenario)?'normal':b.dataset.scenario;
+ if(b.dataset.scenario==='update'){
+   // The explicit old-version scenario is NOT today's verified local install.
+   const cookie=items.find(x=>x.id==='cookie-editor');
+   cookie.version='2.0.6';cookie.update=true;cookie.releaseVersion='2.0.11';
+ }
+ selected=['cookie','update'].includes(b.dataset.scenario)?'cookie-editor':null;
  settingsMode=b.dataset.scenario==='cookie';confirmUninstall=false;installReview=false;
- kind='all';scope=['candidate','cleanup'].includes(b.dataset.scenario)?'available':'smart';
+ kind='all';scope=['candidate','cleanup','update'].includes(b.dataset.scenario)?'available':'smart';
  $('preview-search').value='';render();
 }));
 document.addEventListener('click',e=>{if(!menu.hidden&&!menu.contains(e.target)&&!menuTrigger?.contains(e.target))closeMenu(false);
