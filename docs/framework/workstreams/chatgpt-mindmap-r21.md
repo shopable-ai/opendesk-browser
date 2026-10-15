@@ -217,3 +217,7 @@ Chrome API 失败不假装卸载成功。
   （仅安装版）、`CANDIDATE_VERIFIED=NOT_TESTED`、
   `AVAILABLE=NOT_TESTED`、`INSTALLED=NOT_TESTED`、
   `CHATGPT_NATIVE_VERIFIED=NOT_TESTED`。
+
+### R3 并行 SDK 修复后的完整专项验证
+
+此前 `#38756274935` 曾因并行 SDK `browser-schemas.js:56` 语法损坏失败。并行 Agent 修复后，提交 `f4790e843467bd4a0dfc9c03163d4dc5c776c66d` 对应的 [GitHub Actions #38757685815](https://github.com/shopable-ai/opendesk-browser/actions/runs/38757685815) **两项 Job 均 SUCCESS**：原生 Page Program 生命周期和 UI `41/41 PASS`、XMind 源码 `17/17 PASS`、原始四文件、确定性 Build、`npm run check`、真实 Chromium 独立 HTML XMind 绘图。历史失败仅保留排障事实，当前正式程序仍无受信原始 XMind Runtime、正式安装和真实 ChatGPT 自动运行证据。

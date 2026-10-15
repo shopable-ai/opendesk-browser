@@ -130,3 +130,5 @@ USER_SCRIPT 全部回调，也未解决 Snowbrush 全局样式残留。UI 会明
 `17/17 PASS`；Chromium 原始 HTML 绘图 Job 通过。
 但整次 RUN 因并行 SDK `browser-schemas.js:56` 语法损坏导致
 `npm run check` 失败。不能据此认定本轮产品安装完成或主仓 CI 全绿。
+
+**R3 最新 CI：** [#38757685815](https://github.com/shopable-ai/opendesk-browser/actions/runs/38757685815) 在并行 SDK 修复后两项 Job SUCCESS（原生管理 41/41、XMind 源码 17/17、Build 和 `npm run check` PASS）。这是独立 HTML 引擎与通用安装链的验证，不等于 ChatGPT 自动运行版正式通过。
