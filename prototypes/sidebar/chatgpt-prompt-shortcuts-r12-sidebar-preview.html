@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OpenDesk Browser · 提示词快捷按钮｜Side Panel 交互预览 R1.2</title>
+<title>OpenDesk Browser · 提示词快捷按钮｜Side Panel 交互预览 R1.3</title>
 <meta name="description" content="OpenDesk Prompt Shortcuts 独立侧边栏交互原型。仅模拟、不安装、无真实权限请求。">
 <style>
 /* Offline design contract: semantic values mirror src/ui/design-tokens.css (blob 134dd7871da4bf0ee26b6d0135e69e7273fdabdb).
@@ -121,7 +121,17 @@ textarea.od-field{line-height:1.65;min-height:210px;resize:vertical;font-size:13
 .prompt-delete p{margin:0 0 9px}.prompt-delete .actions{display:flex;gap:6px;flex-wrap:wrap}
 .empty{padding:25px 10px;text-align:center;color:var(--od-sub);border:1px dashed var(--od-line);border-radius:12px}.empty strong{display:block;font-size:13px;color:var(--od-ink)}
 .view-top{display:flex;align-items:center;gap:7px;margin-bottom:16px}.view-top .back{padding-left:7px}.view-top h2{font-size:16px;margin:0}
-.form-fields{display:grid;gap:14px}.form-label{display:block;font-size:12px;font-weight:700;margin-bottom:6px}
+.form-fields{display:grid;gap:13px}.form-label{display:block;font-size:12px;font-weight:700;margin-bottom:6px}
+.primary-content{padding:12px;border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-bg)}
+.primary-content textarea.od-field{min-height:238px;background:var(--od-paper)}
+.required-mark{color:var(--od-accent-ink);font-size:11px;font-weight:600}
+.optional-section{padding:12px}
+.optional-title{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 12px}
+.optional-title h3{font-size:12px;margin:0}.optional-title span{font-size:11px;color:var(--od-sub)}
+.optional-fields{display:grid;gap:13px}.optional-fields .form-appearance{display:grid;gap:13px}
+.effective-preview{margin-top:1px;padding:8px 10px;background:var(--od-bg);border-radius:9px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:11px;color:var(--od-sub);overflow-wrap:anywhere}
+.effective-preview strong{font-size:12px;color:var(--od-ink);font-weight:700}
+.effective-preview .preview-short{display:inline-block;border:1px solid var(--od-line);border-radius:7px;padding:3px 7px;min-width:26px;max-width:100%;background:var(--od-paper);text-align:center}
 .form-hint{font-size:11px;color:var(--od-sub);margin-top:5px;line-height:1.45}.field-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
 .shape-options{display:flex;gap:8px}.shape-options label{flex:1;min-width:0;display:flex;align-items:center;gap:7px;border:1px solid var(--od-line);border-radius:8px;padding:9px 8px;font-size:11px;cursor:pointer}
 .shape-options label:has(input:checked){border-color:var(--od-brand);background:var(--od-bg)}.shape-options input{margin:0;accent-color:var(--od-brand)}
@@ -151,7 +161,7 @@ textarea.od-field{line-height:1.65;min-height:210px;resize:vertical;font-size:13
 <header class="demo-header">
  <div class="demo-title"><span class="logo" aria-hidden="true">OD</span><div>
   <h1>Prompt Shortcuts · Side Panel UI</h1>
-  <p>侧边栏管理交互预览 R1.2 · 与左侧网页按钮共用本页模拟状态</p></div></div>
+  <p>侧边栏管理交互预览 R1.3 · 正文优先、其他选填 · 与左侧按钮共用本页模拟状态</p></div></div>
  <div class="demo-controls" aria-label="预览控制">
   <span class="design-badge">模拟预览 · 非真实安装</span>
   <button id="size320" class="od-button od-button--small" type="button">320px</button>
@@ -188,22 +198,29 @@ textarea.od-field{line-height:1.65;min-height:210px;resize:vertical;font-size:13
    <section id="indexView" aria-labelledby="indexHeading">
     <p class="crumb">扩展 / 我的应用 / 提示词快捷按钮</p>
     <div class="panel-head"><div><h2 id="indexHeading">提示词快捷按钮</h2><p>在 ChatGPT 内容区左侧快速插入完整提示词</p></div><button id="addButton" class="od-button od-button--primary od-button--small" type="button">＋ 新建</button></div>
+    <div class="section-heading"><h3 class="heading-mini">我的提示词</h3><small id="listCount">4 个快捷按钮</small></div>
+    <div id="promptList" class="shortcuts-list"></div>
+    <p class="notice">只需填写提示词内容即可创建；短标签和名称留空时自动取内容开头两个字。</p>
+    <div class="section-heading"><h3 class="heading-mini">使用设置</h3><small>不影响已保存提示词</small></div>
     <div class="setting-card od-surface"><div class="setting-copy"><strong>网页左侧快捷按钮</strong><p>在 ChatGPT 主内容区左边缘垂直居中显示</p></div><label class="switch" title="显示或隐藏网页左侧快捷按钮"><input id="showBarSwitch" type="checkbox" role="switch" checked aria-label="网页左侧快捷按钮"><span class="switch-track" aria-hidden="true"></span></label></div>
     <div class="setting-card od-surface"><div class="setting-copy"><strong>选中文字快速添加</strong><p>启用后可通过原生右键菜单预填新建提示词</p></div><label class="switch" title="启用或关闭右键快速添加"><input id="contextSwitch" type="checkbox" role="switch" checked aria-label="选中文字快速添加"><span class="switch-track" aria-hidden="true"></span></label></div>
     <div class="permission-strip"><span class="dot" id="permissionDot" aria-hidden="true"></span><span class="text" id="permissionSummary">chatgpt.com · 模拟已授权</span><button id="openPermissions" type="button">设置权限 ›</button></div>
-    <div class="section-heading"><h3 class="heading-mini">我的提示词</h3><small id="listCount">4 个快捷按钮</small></div>
-    <div id="promptList" class="shortcuts-list"></div>
     <div id="copyFallback" class="copy-box od-surface" hidden><strong>复制完整提示词</strong><p class="notice">当前浏览器未允许直接写入剪贴板。选中文本后手动复制。</p><textarea id="copyText" class="od-field" readonly aria-label="待复制的完整提示词"></textarea><div class="row"><button id="copySelect" class="od-button od-button--small" type="button">选中全部</button><button id="copyClose" class="od-button od-button--small" type="button">关闭</button></div></div>
-    <p class="notice">按钮短标签仅用于显示；Tooltip 和可访问说明展示完整名称及正文。侧边栏关闭后正式功能应持续生效。</p>
+    <p class="notice">提示词列表和网页按钮始终展示最终保存的名称及正文。侧栏关闭后正式工具仍应保持启用。</p>
    </section>
    <section id="formView" hidden aria-labelledby="formHeading">
     <div class="view-top"><button id="formBack" type="button" class="od-button od-button--small od-button--subtle back">← 返回</button><h2 id="formHeading">新建提示词</h2></div>
     <form id="promptForm" novalidate>
      <div class="form-fields">
-      <div><label class="form-label" for="shortLabel">按钮短标签 <span style="color:var(--od-sub);font-weight:400">（1–2 个汉字）</span></label><input id="shortLabel" class="od-field" name="shortLabel" maxlength="2" placeholder="例如：润色" autocomplete="off" required><p class="form-hint">两字时上下排列；短标签无需写完整提示词。</p></div>
-      <div><label class="form-label" for="fullName">完整名称</label><input id="fullName" class="od-field" name="fullName" maxlength="60" placeholder="例如：专业文字润色" autocomplete="off" required><p class="form-hint">用于提示词列表、悬停说明及屏幕阅读器。</p></div>
-      <div><label class="form-label" for="promptBody">完整提示词正文</label><textarea id="promptBody" class="od-field" name="promptBody" spellcheck="true" placeholder="输入完整的多行提示词。点击按钮后原样插入当前 ChatGPT 草稿。" required></textarea><div id="quotaMeter" class="meter"><span>单项模拟存储上限 8 KiB</span><span id="quotaValue">0 / 8192 B</span></div><p class="form-hint">保留换行和中文；保存前按完整 JSON 的 UTF-8 字节数校验。</p></div>
-      <div class="field-row"><div><span class="form-label">按钮形状</span><div class="shape-options"><label><input type="radio" name="shape" value="square" checked> 圆角方形</label><label><input type="radio" name="shape" value="round"> 圆形</label></div></div><div><span class="form-label">启用状态</span><div class="form-switch od-surface"><span style="font-size:11px">显示此按钮</span><label class="switch"><input id="itemEnabled" type="checkbox" role="switch" aria-label="显示此按钮" checked><span class="switch-track" aria-hidden="true"></span></label></div></div></div>
+      <div class="primary-content"><label class="form-label" for="promptBody">提示词内容 <span class="required-mark">· 唯一必填</span></label><textarea id="promptBody" class="od-field" name="promptBody" spellcheck="true" placeholder="在这里输入提示词，支持多行。仅填写此项即可保存，点击按钮只插入草稿，不自动发送。" required aria-describedby="contentHint"></textarea><div id="quotaMeter" class="meter"><span>单项模拟存储上限 8 KiB</span><span id="quotaValue">0 / 8192 B</span></div><p class="form-hint" id="contentHint">保留完整换行与中文；其他字段均可留空。保存时按完整 JSON UTF-8 字节数校验。</p></div>
+      <section class="optional-section od-surface" aria-labelledby="optionalHeading"><div class="optional-title"><h3 id="optionalHeading">按钮展示与偏好</h3><span>均为选填 · 默认即可使用</span></div>
+       <div class="optional-fields">
+        <div><label class="form-label" for="shortLabel">按钮短标签 <span style="color:var(--od-sub);font-weight:400">（选填）</span></label><input id="shortLabel" class="od-field" name="shortLabel" maxlength="24" placeholder="留空：自动取内容前两个字" autocomplete="off"><p class="form-hint">可自定义 1–2 个可见字符，两个字符上下排列；支持中文、英文及表情。</p></div>
+        <div><label class="form-label" for="fullName">显示名称 <span style="color:var(--od-sub);font-weight:400">（选填）</span></label><input id="fullName" class="od-field" name="fullName" maxlength="60" placeholder="留空：自动取内容前两个字" autocomplete="off"><p class="form-hint">可填写更详细的名称，用于列表、Tooltip 和屏幕阅读器；留空时同短标签默认规则。</p></div>
+        <div class="effective-preview" aria-label="当前自动计算的按钮展示"><span>保存后展示</span><strong class="preview-short" id="effectiveShort">待生成</strong><span>名称：</span><strong id="effectiveName">待生成</strong></div>
+        <div class="form-appearance"><div><span class="form-label">按钮形状（选填）</span><div class="shape-options"><label><input type="radio" name="shape" value="square" checked> 圆角方形</label><label><input type="radio" name="shape" value="round"> 圆形</label></div></div><div><span class="form-label">启用状态（选填）</span><div class="form-switch od-surface"><span style="font-size:11px">显示此按钮（默认开启）</span><label class="switch"><input id="itemEnabled" type="checkbox" role="switch" aria-label="显示此按钮" checked><span class="switch-track" aria-hidden="true"></span></label></div></div></div>
+       </div>
+      </section>
      </div>
      <div id="formError" class="inline-error" role="alert" hidden></div>
      <div id="leaveConfirm" class="warning-box" hidden><strong>存在未保存的编辑</strong><p>返回将放弃当前草稿。可以留在页面继续保存，也可以明确放弃更改。</p><div class="row"><button id="stayEditing" type="button" class="od-button od-button--small">继续编辑</button><button id="discardEditing" type="button" class="od-button od-button--danger od-button--small">放弃更改</button></div></div>
