@@ -36,3 +36,5 @@ node --test tests/environment/prompt-shortcuts-r14*.test.mjs
 - 原生点击插入前再次检查安装、站点授权、按钮和草稿；IME 组合期间拒绝触碰输入框；同一轮异步验证只处理一次点击。
 - 富文本段落不能仅用 `textContent` 或“忽略全部空白后包含正文”确认成功。当前可信 ChatGPT 模块会核对原有正文、顺序及完整多行内容。结果不明确则提示检查并手动复制，绝不自动重试或发送。
 - R1.5 已有独立 Chromium **模拟编辑器** 的多行与撤销实验，仍需在安装的 Chrome 和**真实 ChatGPT** 富文本编辑器中验收；可持续查看同一 [交接文档](../../../../docs/framework/workstreams/prompt-shortcuts-r12-ui-handoff.zh-CN.md) 的状态。
+
+**R1.5 最新独立验证：** [GitHub Actions 38743743798](https://github.com/shopable-ai/opendesk-browser/actions/runs/38743743798)（候选 `1bc0fab`）在干净 CI runner 上 **11/11 Node PASS、语法 PASS**，并使用现有官方构建器生成经 v2 验证的 `prompt-shortcuts.opendesk-tool.json`（35,083 bytes）。[下载该次候选 ZIP](https://github.com/shopable-ai/opendesk-browser/actions/runs/38743743798/artifacts/11976707456)（CI 附件保留期 7 天）。其仅为独立工具 JSON 包，**不代表整个 OpenDesk Browser 的 production Chrome 安装通过**。整包构建因并行 AdBlock 固定源码摘要不一致仍受阻，真实 ChatGPT、Mac 中文输入法、原生右键以及卸载/重装均待人工实测。详见主交接文档。
