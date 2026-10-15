@@ -107,7 +107,7 @@ export async function generatePreview({
   });
   for(const key of Object.keys(values))
     if(!used.has(key))fail('preview template is missing required slot '+key);
-  if(/\{\{[A-Z_]+\}\}/.test(outputHtml)
+  if(/\{\{[A-Z_]+\}\}/.test(outputHtml))
     fail('unresolved preview template slot');
   const output=resolve(out||join(repoRoot,'artifacts/previews',pkg.id,
     [surface,scenario,theme,String(width)].join('-')+'.html'));
