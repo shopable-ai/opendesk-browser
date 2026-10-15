@@ -103,9 +103,9 @@
 /* Develop: page signal and code first; results, library, DOM and SDK on demand. */
 /* R30: Tools Index/Detail headers and 8px row spacing are the Tab baseline.
  * Controls use 8px, surfaces 12px, and only state badges stay fully rounded. */
-#workspace-content #workbench-develop{display:grid;gap:var(--space-2);align-content:start}
+#workspace-content #workbench-develop{display:grid;gap:var(--space-3);align-content:start}
 #workspace-content #workbench-develop>.developer-target,#workspace-content #workbench-develop>.developer-editor{margin:0;padding:0}
-#workbench-develop .developer-editor{display:grid;gap:var(--space-2);align-content:start;font-size:var(--od-body-size);line-height:1.55}
+#workbench-develop .developer-editor{display:grid;gap:var(--space-3);align-content:start;font-size:var(--od-body-size);line-height:1.55}
 #workbench-develop .developer-editor>.developer-target{margin:0;padding:0}
 #workbench-develop .developer-editor>:not([hidden]){margin-block:0}
 #workbench-develop #manual-source-editor{display:grid;gap:var(--space-2);min-width:0}
@@ -153,7 +153,7 @@
 @media(pointer:coarse){#page-component-framework .page-component-choices label{min-height:44px}}
 @media(forced-colors:active){#page-component-framework .page-component-choices label:has(input:checked)>span{border-color:Highlight;color:Highlight}#page-component-framework .page-component-choices label:has(input:focus-visible)>span{outline-color:Highlight}}
 
-.local-project-tools{display:grid;gap:var(--space-2);margin:0}
+.local-project-tools{display:grid;gap:var(--space-3);margin:0}
 .local-project-intro{margin:0}
 .local-project-connect{width:100%;text-align:center}
 /* The first-use guide uses od-disclosure--info; only list indentation is local. */
@@ -190,8 +190,19 @@
 #workbench-develop .developer-results .row{margin:0}
 #workbench-develop .developer-results label{margin:0}
 #script-library-tools,#page-preview-tools,#script-advanced{min-width:0;margin:0}
-/* Developer sections now use od-disclosure; no ID-based card appearance. */
+/* Main Dev accordions share the canonical bordered paper surface; nested
+ * technical disclosures remain --flat to avoid double-framed detail cards. */
 #workbench-develop .developer-editor>.od-disclosure{min-width:0}
+#workbench-develop :is(.developer-editor,.developer-target,.local-project-tools,#manual-source-editor)>details.od-disclosure,
+#workbench-develop>details.od-disclosure{width:100%;min-width:0;margin:0}
+#workbench-develop :is(.developer-editor,.developer-target,.local-project-tools,#manual-source-editor)>details.od-disclosure>summary,
+#workbench-develop>details.od-disclosure>summary{min-height:44px}
+#workbench-develop :is(.developer-editor,.developer-target,.local-project-tools,#manual-source-editor)>details.od-disclosure>summary:hover,
+#workbench-develop>details.od-disclosure>summary:hover{background:var(--od-muted)}
+#workbench-develop :is(.developer-editor,.developer-target,.local-project-tools,#manual-source-editor)>details.od-disclosure:not([open])>summary:hover,
+#workbench-develop>details.od-disclosure:not([open])>summary:hover{border-radius:var(--radius-surface)}
+#workbench-develop :is(.developer-editor,.developer-target,.local-project-tools,#manual-source-editor)>details.od-disclosure[open]>summary:hover,
+#workbench-develop>details.od-disclosure[open]>summary:hover{border-radius:var(--radius-surface) var(--radius-surface) 0 0}
 #workbench-develop .result-toolbar{margin-bottom:0;flex-wrap:wrap}
 #workbench-develop .developer-history-content{display:grid;gap:var(--space-3);min-width:0}
 #workbench-develop .developer-editor .developer-history-content>:not(summary){margin:0}
@@ -214,7 +225,8 @@
   #workbench-develop .developer-history-actions>button{width:100%}
 }
 #tool-diagnostics{margin:0}
-#tool-diagnostics section{border:1px solid var(--line);border-radius:var(--radius-surface);background:#fff;padding:12px;margin-bottom:9px}
+#tool-diagnostics>section{border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper);padding:var(--space-3);margin-bottom:var(--space-2)}
+#tool-diagnostics>section:last-of-type{margin-bottom:0}
 #tool-diagnostics h2{font-size:14px;margin:0 0 8px}
 
 /* Existing authenticated full-size catalog: keep its reader and install UI. */
