@@ -207,8 +207,9 @@ function selfTest(){
   if(score({kind:'negative',expected:null},read)!=='FAIL')throw new Error('negative false positive');
   if(score({kind:'negative',expected:null},analyzeTrace(done,{status:0}))!=='TRIGGER_NOT_OBSERVABLE')throw new Error('unobservable negative wrongly passed');
   if(score({kind:'implicit',expected:'opendesk-extension-ui'},analyzeTrace(completeRead+'\n'+done,{status:1}))!=='RUN_FAILED')throw new Error('failed command wrongly passed');
-  if(casesFor('all').length!==38)throw new Error('fixture count regression');
-  console.log('SELF_TEST_PASS: 38 fixtures; verified invocation+load, failure detection and conservative grading');
+  if(casesFor('all').length!==42)throw new Error('fixture count regression');
+  if(SKILLS.includes('opendesk-marketplace-publish'))throw new Error('unimplemented remote publisher must not be routed as an active Skill');
+  console.log('SELF_TEST_PASS: 42 fixtures; verified invocation+load, failure detection and conservative grading');
 }
 
 if(process.argv.includes('--self-test')){
