@@ -52,24 +52,24 @@
 
 ## 2026-10-15 R4.7 后续修复与验证（增量，只绑定明确提交）
 
-- 原始 R4.7 主操作/管理菜单实现：[\`2819cf98\`](https://github.com/shopable-ai/opendesk-browser/commit/2819cf98c89ea7035c28de98a5c3d703570e0f2e)。DOM/RPC 桩、处理中提示与单事务防重复：[\`bcceea5b\`](https://github.com/shopable-ai/opendesk-browser/commit/bcceea5b817d09d9d0605f25e3ff7454fd5e3eef)。焦点按主区域/管理菜单真实来源恢复：\`74ba1995\`。诊断：\`fc5d6738\`；Locale 变更导致的旧 Host 夹具 HTML 根节点缺失修复：\`bac9cdd0\`；现有 Extension Center CI 关联 Host 生命周期路径：\`e0e46d68\`。
-- 新增并发 UX 修复：[\`7aa26bd1\`](https://github.com/shopable-ai/opendesk-browser/commit/7aa26bd1b592c265fd50a93e352e8188f99e6301)：启停过程中，**全部列表行操作同步禁用**，而不是“其他行看似可点却被 Handler 忽略”；列表标注 \`aria-busy\`，处理中项目本身说明继续显示“处理中”，完成后才恢复操作。相关 DOM/RPC 双桩验证已添加到现有 R4.7 交互测试。
-- **同一 SHA 的最新可复核证据**：\`7aa26bd1\` → [Extension Center CI 38749668719](https://github.com/shopable-ai/opendesk-browser/actions/runs/38749668719)。第一个 Node 分组 **58/58 PASS**，第二分组 **153/153 PASS**，合计 211/211 PASS；\`npm run check\` 检查 **753** 文件 PASS。此为 **DOM_COMPONENT_DOUBLE + UNIT_INTEGRATION + SOURCE_CHECK**，绝不是已安装 Chrome 或最终 F3。
-- **构建 FAIL，未绕过安全门禁**：在 \`npm run build\` 的 \`opendesk-fixed-page-relay\` 资源来源检查中，\`examples/sidebar-tools/reading-toc/locales.json\` 被视为未许可的 \`examples/\` 资源进入特权 fixed bundle 而拒绝。属于 Reading TOC 本地化/固定 Host 输入归属问题，**本 R4.7 不修改该包、不放宽 \`scripts/bundle-provenance.mjs\`、不擅自重锁摘要**。\`npm run build:dev\`、\`npm run verify\` 因上游 build FAIL 而 SKIPPED；所有指标必须保持原状，不将其写作 PASS。
-- 仍有并行 AdBlock \`host-controls.js\` 已审阅 Blob 与固定 Bundle Pin 的漂移风险；若之后 build 越过 Reading TOC 阶段，再按当时实际 CI 观察下一阻断，不擅自替其他工作流更改签名/放行边界。
-- HTML 演示：\`prototypes/sidebar/extension-center-r47-frequency-first-preview.html\`。展示 0/1 主动作、停用、无独立 UI 的 Page、候选、权限受限、状态未知及处理中、菜单和 Escape；使用本仓库正式 Token/Design System/Extension Center CSS，但**交互仍是内存 Demo，绝非生产 HTML 或原生 Chrome 行为**，相同来源视觉/计算样式比对尚未完成。
+- 原始 R4.7 主操作/管理菜单实现：[`2819cf98`](https://github.com/shopable-ai/opendesk-browser/commit/2819cf98c89ea7035c28de98a5c3d703570e0f2e)。DOM/RPC 桩、处理中提示与单事务防重复：[`bcceea5b`](https://github.com/shopable-ai/opendesk-browser/commit/bcceea5b817d09d9d0605f25e3ff7454fd5e3eef)。焦点按主区域/管理菜单真实来源恢复：`74ba1995`。诊断：`fc5d6738`；Locale 变更导致的旧 Host 夹具 HTML 根节点缺失修复：`bac9cdd0`；现有 Extension Center CI 关联 Host 生命周期路径：`e0e46d68`。
+- 新增并发 UX 修复：[`7aa26bd1`](https://github.com/shopable-ai/opendesk-browser/commit/7aa26bd1b592c265fd50a93e352e8188f99e6301)：启停过程中，**全部列表行操作同步禁用**，而不是“其他行看似可点却被 Handler 忽略”；列表标注 `aria-busy`，处理中项目本身说明继续显示“处理中”，完成后才恢复操作。相关 DOM/RPC 双桩验证已添加到现有 R4.7 交互测试。
+- **同一 SHA 的最新可复核证据**：`7aa26bd1` → [Extension Center CI 38749668719](https://github.com/shopable-ai/opendesk-browser/actions/runs/38749668719)。第一个 Node 分组 **58/58 PASS**，第二分组 **153/153 PASS**，合计 211/211 PASS；`npm run check` 检查 **753** 文件 PASS。此为 **DOM_COMPONENT_DOUBLE + UNIT_INTEGRATION + SOURCE_CHECK**，绝不是已安装 Chrome 或最终 F3。
+- **构建 FAIL，未绕过安全门禁**：在 `npm run build` 的 `opendesk-fixed-page-relay` 资源来源检查中，`examples/sidebar-tools/reading-toc/locales.json` 被视为未许可的 `examples/` 资源进入特权 fixed bundle 而拒绝。属于 Reading TOC 本地化/固定 Host 输入归属问题，**本 R4.7 不修改该包、不放宽 `scripts/bundle-provenance.mjs`、不擅自重锁摘要**。`npm run build:dev`、`npm run verify` 因上游 build FAIL 而 SKIPPED；所有指标必须保持原状，不将其写作 PASS。
+- 仍有并行 AdBlock `host-controls.js` 已审阅 Blob 与固定 Bundle Pin 的漂移风险；若之后 build 越过 Reading TOC 阶段，再按当时实际 CI 观察下一阻断，不擅自替其他工作流更改签名/放行边界。
+- HTML 演示：`prototypes/sidebar/extension-center-r47-frequency-first-preview.html`。展示 0/1 主动作、停用、无独立 UI 的 Page、候选、权限受限、状态未知及处理中、菜单和 Escape；使用本仓库正式 Token/Design System/Extension Center CSS，但**交互仍是内存 Demo，绝非生产 HTML 或原生 Chrome 行为**，相同来源视觉/计算样式比对尚未完成。
 
 ### 反方审计补充（按实际修复后的证据分级）
 
 | 对抗性用例 | 真实风险 | 当前处理与可核验证据 | 结果 |
 | --- | --- | --- | --- |
-| 停用工具变为“设置”主按钮 | 低频动作占用高频入口 | \`resolveExtensionPrimaryAction=null\`，DOM 用例及页面文案通过 | SOURCE_PASS / CHROME_NOT_TESTED |
+| 停用工具变为“设置”主按钮 | 低频动作占用高频入口 | `resolveExtensionPrimaryAction=null`，DOM 用例及页面文案通过 | SOURCE_PASS / CHROME_NOT_TESTED |
 | 网页增强误判为必有“管理”/“打开”按钮 | 执行未经验证的 Page UI | 无经 Host 核实的 Page UI 保守保持 0 主按钮；菜单使用独立 Page Authority | SOURCE_PASS / 高价值 Page UI 探索待做 |
-| 主区域与显式主按钮不一致 | 误启动/误安装 | 两者都调用 \`openRow\`；无主动作只去详情；DOM 桩已覆盖 | SOURCE_PASS |
-| 菜单及详情返回丢失焦点 | 键盘使用受阻 | 按 \`main\`/\`more\` 来源返回；DOM 桩检测两类入口 | COMPONENT_PASS / SCREEN_READER_NOT_TESTED |
-| 一个项目启停，其他行仍可点击却静默忽略 | 操作不可预测、并发误判 | \`7aa26bd1\` 统一 disable + \`aria-busy\`；待办事务后恢复 | COMPONENT_PASS / NATIVE_NOT_TESTED |
-| Page 授权缺失或代际变化 | 未授权启动 | 仍调用原 Chrome 权限检查及 \`expectedGeneration\`；失败不提交，已覆盖双桩用例 | COMPONENT_PASS / REAL_PERMISSION_NOT_TESTED |
-| 草稿未保存/身份变更后启停 | 丢数据或旧 iframe 仍活跃 | \`sidebarTools.toggleEnabled\` 复用原 \`canLeave\`、包身份/锁/撤销代际；Host 定向回归通过 | COMPONENT_PASS / MAC_NOT_TESTED |
+| 主区域与显式主按钮不一致 | 误启动/误安装 | 两者都调用 `openRow`；无主动作只去详情；DOM 桩已覆盖 | SOURCE_PASS |
+| 菜单及详情返回丢失焦点 | 键盘使用受阻 | 按 `main`/`more` 来源返回；DOM 桩检测两类入口 | COMPONENT_PASS / SCREEN_READER_NOT_TESTED |
+| 一个项目启停，其他行仍可点击却静默忽略 | 操作不可预测、并发误判 | `7aa26bd1` 统一 disable + `aria-busy`；待办事务后恢复 | COMPONENT_PASS / NATIVE_NOT_TESTED |
+| Page 授权缺失或代际变化 | 未授权启动 | 仍调用原 Chrome 权限检查及 `expectedGeneration`；失败不提交，已覆盖双桩用例 | COMPONENT_PASS / REAL_PERMISSION_NOT_TESTED |
+| 草稿未保存/身份变更后启停 | 丢数据或旧 iframe 仍活跃 | `sidebarTools.toggleEnabled` 复用原 `canLeave`、包身份/锁/撤销代际；Host 定向回归通过 | COMPONENT_PASS / MAC_NOT_TESTED |
 | 菜单超出 Side Panel 或被裁剪 | 隐藏关键管理入口 | fixed 定位、边界估算、滚动关闭；DOM/CSS 桩有范围检查 | SOURCE_PASS / REAL_LAYOUT_NOT_TESTED |
 | 原型“预览”被当作真实工具功能 | 用户授权/安装误判 | 候选无真实预览不显示按钮；HTML 明示模拟且不操作 Chrome | SOURCE_PASS / PARITY_NOT_TESTED |
 | 生产构建失败却通过评分 | 发布不可追溯或绕安全 | 保留 Reading TOC Bundle Provenance 拒绝，不修改跨领域许可 | BUILD_FAIL / RELEASE_BLOCKED |
@@ -94,7 +94,7 @@
 
 ### 下一位本机 Codex / Chrome 验收负责人执行序列
 
-1. **只用 main，不开分支/Worktree/PR**：先 \`git status --short\`、\`git log -1 --format='%H %s'\`，对照本记录 SHA 和最新并行 diff；保留用户本地未提交内容。仅在具体文件写入权明确时修复。
-2. 构建前让 Reading TOC/固定资源 Owner 按真实审计修复 \`locales.json\` 与 \`page-relay\` 的归属；**不可添加 \`examples/**\` 全局许可、关闭 Source Pin 或虚构 SHA**。再复检与 AdBlock Pin 的实际独立问题。完整顺序：\`npm ci --ignore-scripts --no-audit --no-fund\` → \`npm run check\` → \`node --test tests/environment/extension-center-r4.test.mjs tests/environment/extension-center-r42-row-action.test.mjs tests/environment/extension-center-r47-menu.test.mjs tests/environment/extension-center-r47-interaction.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/installed-page-tools-r251.test.mjs\` → \`npm run build\` → \`npm run build:dev\` → \`npm run verify\`。仅同提交成功结果可记 PASS。
+1. **只用 main，不开分支/Worktree/PR**：先 `git status --short`、`git log -1 --format='%H %s'`，对照本记录 SHA 和最新并行 diff；保留用户本地未提交内容。仅在具体文件写入权明确时修复。
+2. 构建前让 Reading TOC/固定资源 Owner 按真实审计修复 `locales.json` 与 `page-relay` 的归属；**不可添加 `examples/**` 全局许可、关闭 Source Pin 或虚构 SHA**。再复检与 AdBlock Pin 的实际独立问题。完整顺序：`npm ci --ignore-scripts --no-audit --no-fund` → `npm run check` → `node --test tests/environment/extension-center-r4.test.mjs tests/environment/extension-center-r42-row-action.test.mjs tests/environment/extension-center-r47-menu.test.mjs tests/environment/extension-center-r47-interaction.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/installed-page-tools-r251.test.mjs` → `npm run build` → `npm run build:dev` → `npm run verify`。仅同提交成功结果可记 PASS。
 3. 固定候选并在用户 Mac 已安装 Chrome 扩展中验证：启用 App 的整行和“打开”进入同一应用；停用 App 只有“⋮→启用”且启用不自启动；自动运行 Page 无伪主按钮、菜单启停确实注册/撤销；候选行仅打开详情及安装审阅；缺网站权限/撤权/过期 manifest 与未保存草稿真实拒绝；并发单事务与异常恢复；菜单底部不被剪裁，Tab/↑↓/Home/End/Escape/焦点往返；与浅色 Demo 同一场景的正式 CSS 截图/计算样式逐项对比。
 4. 每条原生用户路径绑定候选 Commit SHA、固定构建 Hash、Chrome 版本与 Profile、真实用户点击方式、真实状态读回、截图/日志、PASS/FAIL。无证据保持 NOT_TESTED。对失败的路径做最小源代码修复后只复验受影响项，再给十一维**真正独立的**定量评分。所有维度实证 ≥95 才可关闭 R4.7。
