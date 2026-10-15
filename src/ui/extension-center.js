@@ -1,5 +1,5 @@
 import {SIDEBAR_TOOL_STORE} from './sidebar-tools/package.js';
-import {requireCompleteInstalledSidebarTools,MARKET_PROVENANCE_STORE} from './sidebar-tools/installation.js';
+import {requireCompleteInstalledSidebarTools,MARKET_PROVENANCE_STORE,sameSidebarToolPackage} from './sidebar-tools/installation.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords} from './sidebar-tools/lifecycle.js';
 import {loadOfficialCatalog} from '../sidebar-tools/official-catalog.js';
 import {setInstalledPageProgramEnabled} from './installed-page-tools.js';
@@ -15,7 +15,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   const more=get('extension-center-more'),menu=get('extension-center-menu');
   const notice=get('extension-center-status'),workspace=get('workspace-content');
   if(!list)return {refresh:async()=>{},dispose(){}};
-  let disposed=false,sequence=0,busy=false,pendingKey=null,installed=[],pages=[],enabled={},official=[];
+  let disposed=false,sequence=0,officialSequence=0,busy=false,pendingKey=null,installed=[],pages=[],enabled={},official=[];
   let appStatusKnown=false,pageStatusKnown=false;
   let sources={};
   let catalogError='',dataError='',statusOrigin='loading',hasLoaded=false,query='',kind='all',scope='smart',selectedKey=null;
@@ -97,15 +97,27 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
           try{result=sidebarTools.toggleEnabled(row.id,event);}
           catch(error){message((error?.code||'E_TOOL')+'：'+String(error?.message||error),'error');return;}
           pendingKey=row.key;draw();
-          void Promise.resolve(result)
-            .then(changed=>{if(changed===true)message('已确认应用启停状态。','success');})
-            .catch(error=>message((error?.code||'E_TOOL')+'：'+String(error?.message||error),'error'))
-            .finally(async()=>{
-              pendingKey=null;
-              if(disposed)return;
-              await refresh();
-              if(!selectedKey)restoreRowFocus(row.key,'more');
-            });
+          // Host false may mean an unsaved-draft confirmation is pending.
+          // Only a true Host result AND a fresh matching persistent record earn success.
+          void (async()=>{
+            let outcome,operationError,readback=false;
+            try{outcome=await result;}catch(error){operationError=error;}
+            try{readback=await refresh();}catch(error){operationError??=error;}
+            pendingKey=null;
+            if(disposed)return;
+            const current=find(row.key);
+            if(operationError)message((operationError?.code||'E_TOOL')+'：'+
+              String(operationError?.message||operationError),'error');
+            else if(outcome===true&&readback&&appStatusKnown&&current?.installed&&
+              sameSidebarToolPackage(current.record,row.record)&&current.enabled===!row.enabled)
+              message('已从本机安装记录确认应用'+(current.enabled?'启用':'停用')+'。','success');
+            else if(outcome===false)
+              message('启停尚未完成；如有未保存草稿，请先确认或取消，再核对应用状态。','error');
+            else message('未从可信安装记录确认启停结果；请刷新后核对状态。','error');
+            draw();
+            if(selectedKey)renderDetail();
+            else restoreRowFocus(row.key,'more');
+          })();
         },'toggle');
       add('设置、权限与卸载…',()=>{backIfNeeded();sidebarTools.openSettings(row.id);},'settings');
       if(row.update&&row.release)add('审阅新版…',()=>openReview(row.key),'update');
@@ -217,7 +229,12 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   function openRow(key){
     const row=find(key);if(!row||busy||pendingKey)return;
     if(resolveExtensionRowIntent(row)==='detail'){openDetail(key,'main');return;}
-    if(resolveExtensionPrimaryAction(row)?.id==='open')sidebarTools.openTool(row.id);
+    if(resolveExtensionPrimaryAction(row)?.id==='open'){
+      try{
+        if(!sidebarTools.openTool(row.id))
+          message('应用尚未打开；请处理未保存草稿或查看宿主提示后重试。','error');
+      }catch(error){message((error?.code||'E_TOOL_OPEN')+'：'+String(error?.message||error),'error');}
+    }
   }
   function openDetail(key,returnAction='main'){
     const row=find(key);if(!row)return;
@@ -299,11 +316,21 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     detailFocusAction=inDetail?'toggle':null;
     busy=true;pendingKey=row.key;draw();if(inDetail)renderDetail();
     try{
-      await setInstalledPageProgramEnabled({api,client,row:row.record});
-      message('已按原 Page 授权服务确认自动运行状态。','success');
-      await refresh();
-    }catch(error){message((error.code||'E_PAGE_INSTALLATION')+'：'+String(error.message||error),'error');}
-    finally{busy=false;pendingKey=null;if(!disposed){draw();if(selectedKey)renderDetail();
+      let result,operationError,readback=false;
+      try{result=await setInstalledPageProgramEnabled({api,client,row:row.record});}
+      catch(error){operationError=error;}
+      try{readback=await refresh();}catch(error){operationError??=error;}
+      if(disposed)return;
+      const current=find(row.key);
+      if(operationError)
+        message((operationError.code||'E_PAGE_INSTALLATION')+'：'+String(operationError.message||operationError),'error');
+      else if(result===false||result==null||!readback||!pageStatusKnown||
+        current?.record?.manifestHash!==row.record.manifestHash||current.enabled!==!row.enabled)
+        message('网页增强操作尚未由 Page Authority 读回确认；请刷新后检查注册状态。','error');
+      else if(current.enabled&&current.record.installed.nativeState!=='registered')
+        message('已确认启用设置，但 Chrome 原生注册状态仍待核对。','info');
+      else message('已从 Page Authority 确认自动运行状态。','success');
+    }finally{busy=false;pendingKey=null;if(!disposed){draw();if(selectedKey)renderDetail();
       else restoreRowFocus(row.key,'more');}}
   }
   async function refresh(){
@@ -312,7 +339,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       api.storage.local.get([SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,MARKET_PROVENANCE_STORE]),
       client.request('listPagePrograms',{})
     ]);
-    if(disposed||id!==sequence)return;
+    if(disposed||id!==sequence)return false;
     let errors=[];
     try{
       if(results[0].status!=='fulfilled')throw results[0].reason;
@@ -321,7 +348,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       const nextEnabled=requireToolEnableRecords(saved[SIDEBAR_TOOL_ENABLE_STORE]);
       const nextSources=Object.fromEntries(await Promise.all(nextInstalled.map(async tool=>
         [tool.id,await describeInstalledAppSource(tool,saved[MARKET_PROVENANCE_STORE]?.[tool.id])])));
-      if(disposed||id!==sequence)return;
+      if(disposed||id!==sequence)return false;
       installed=nextInstalled;enabled=nextEnabled;sources=nextSources;appStatusKnown=true;
     }catch(error){appStatusKnown=false;errors.push('应用：'+String(error?.message||error));}
     try{
@@ -336,15 +363,22 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       message(catalogError?'官方目录暂不可用：'+catalogError:'',
         catalogError?'error':'info',catalogError?'catalog':'read');
     draw();if(selectedKey)renderDetail();
+    return true;
   }
   async function readOfficial(){
-    try{const result=await loadOfficialCatalog({api});if(!disposed){
+    const id=++officialSequence;
+    try{const result=await loadOfficialCatalog({api});if(!disposed&&id===officialSequence){
       official=result.apps;catalogError='';
       if(statusOrigin==='catalog'&&!dataError)message('','info','read');
       draw();
     }}
-    catch(error){if(!disposed){catalogError=String(error?.message||error);
-      message('内置官方目录暂不可用，不会显示或安装未经核验的候选：'+catalogError,'error','catalog');draw();}}
+    catch(error){if(!disposed&&id===officialSequence){
+      // Fail closed; a prior catalog is not proof of the current refresh.
+      official=[];catalogError=String(error?.message||error);
+      if(statusOrigin!=='action')message(
+        '内置官方目录暂不可用，不会显示或安装未经核验的候选：'+catalogError,'error','catalog');
+      draw();
+    }}
   }
   const languageInput=get('extension-center-language');
   const syncLanguage=()=>{if(disposed)return;
@@ -405,7 +439,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   const connChanged=client.subscribeConnection?.(state=>{if(state.connected)void refresh();});
   message('正在读取已安装扩展与授权状态…','loading','loading');draw();
   void readOfficial();void refresh();
-  return {refresh,dispose(){disposed=true;sequence++;closeRowMenu();rowMenu.remove();
+  return {refresh,dispose(){disposed=true;sequence++;officialSequence++;closeRowMenu();rowMenu.remove();
     doc.removeEventListener('click',clickOutside);
     doc.removeEventListener('keydown',keyDown);doc.removeEventListener('scroll',onScroll,true);
     api.storage.onChanged?.removeListener(storageChanged);connChanged?.();stopLanguage?.();}};
