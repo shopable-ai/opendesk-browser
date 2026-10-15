@@ -1,7 +1,7 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "bookmark-manager",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "title": "书签管理 · SDK R2 预备",
   "description": "独立书签管理 SDK 消费端：Full Bookmarks R11 权限和可信 Host 接通前安全拒绝访问。",
   "capabilities": [],

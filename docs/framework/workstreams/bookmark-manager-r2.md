@@ -95,3 +95,11 @@
 - Full SDK Registry 存在而 capability status 不可调用时，消费端区分 E_BOOKMARK_PERMISSION 与 E_R11_BOOKMARKS_INCOMPLETE；Node Mock 验证撤权后不请求 getTree/create/observe.read。
 - 事件启动/读取、CRUD 遇到已知 SDK/权限/工具身份失效，独立 UI 立即隐藏旧书签树；不改 Host，实际 Chrome revoke 时序仍 NOT_TESTED。
 - 仍是未正式发行的预备包 0.2.1；Native 和官方安装 BLOCKED/NOT_TESTED。
+
+## R2.3 · 撤权异步回包与事件缺口失败关闭（2026-10-15）
+
+- **Owner / 文件范围**：Bookmark Manager 消费端；仅修改 `examples/sidebar-tools/bookmark-manager/src/{main,service}.js`、专属 Node 测试/CI、`tool.config.json`、本工具 README 和本工作流。依赖 SDK R11 Issue #75；**不改**公共 SDK、Chrome Host、权限/安装器、官方 Catalog 或旧 `src/bookmark-manager/`。
+- **修复事实**：权限/API 状态失效时 `gate()` 同步注销 in-flight UI session、清除书签树并恢复被挂起的 UI 操作状态，阻止晚到的成功加载回包将旧书签数据重新展示；`E_SDK_MISSING/E_SDK_STATUS` 同样触发隐藏而非残留旧视图。
+- **事件可靠性**：`observe.read` 必须返回两个非负安全整数 `gapCount/droppedCount`；缺少、类型错误、负值时拒绝异常回执，不能把无法证明连续的事件流当成零丢失。
+- **回归**：专属 Node 测试新增坏事件计数与未完成 `load()`/写入遭遇失权 gate 的运行时模拟。预备版从 `0.2.1` 升至 `0.2.2`，CI artifact 路径同步调整，仍为 `capabilities: []`、**未进入 Catalog、未正式安装**。
+- **证据级别**：写入前仅确认 R2.2 同源 CI #38598911425 在 `c115a821` 为历史 PASS。R2.3 Node/Check/Build/Verify/CI 须按本轮候选的真实 GitHub Actions 另行核查。Mac Chrome Native / SDK Full CRUD / 500+ / 撤权 / Worker / 安装 / 卸载仍 `NOT_TESTED / BLOCKED by R11`。未完成前不允许删除旧可信模块或自评九维 95+。

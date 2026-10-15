@@ -178,7 +178,9 @@ function create(sdk){
       sessionRef:session.sessionRef,cursor:session.cursor,limit:50
     });
     if(!Array.isArray(data?.events)||data.events.length>50||
-      typeof data.nextCursor!=='string'||!Number.isFinite(data.expiresAt))
+      typeof data.nextCursor!=='string'||!Number.isFinite(data.expiresAt)||
+      !Number.isSafeInteger(data.gapCount)||data.gapCount<0||
+      !Number.isSafeInteger(data.droppedCount)||data.droppedCount<0)
       fail('E_BOOKMARK_EVENT','书签事件回执无效，必须重新同步书签树');
     if(data.gapCount>0||data.droppedCount>0)
       fail('E_BOOKMARK_EVENT_GAP','书签事件存在缺口，必须重新读取完整树');
