@@ -81,3 +81,5 @@
 ### 证据提交与远端追赶
 
 证据已提交 `95dd984ca`。首次普通 push 未完成；随后确认远端 main 已从 `3b621c6f6` 前进到 `91a6b6cbf6cfda416d9787f7479a20d5e4e88691`（4 个并行提交：Reading TOC 本地化、Mindmap preview、Prompt Shortcuts 需求）。fetch 后无冲突普通合并，保留双方提交；本任务候选记录所列 9 个源码/测试输入 SHA 未变，旧结果依原边界复用。远端另改了工具页及 Sidebar Tools，不能把此前磁盘指纹说成合并后的完整候选验收；其后的 watcher 产物也未做完整 Chrome 验收。最终只做普通推送并核对远端包含证据提交，不强推、不覆盖并行改动。
+
+第二次普通 push 又遇远端前进至 `b98f24dd7`（Cookie Editor 包、AI VIP 预览、Prompt Shortcuts 需求），继续无冲突普通合并；九个已记录输入 SHA 仍未变，不扩大旧 Chrome 证据适用范围。

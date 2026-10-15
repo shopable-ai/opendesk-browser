@@ -19,7 +19,7 @@
     <strong id="browser-state-heading">正在检查网站…</strong>
     <p id="browser-state-detail">仅读取已授权网站。</p>
   </div>
-  <div class="toolbar live-toolbar" role="group" aria-label="Cookie 列表工具栏">
+  <div id="live-toolbar" class="toolbar live-toolbar" role="group" aria-label="Cookie 列表工具栏">
     <strong class="live-section-title">Cookie 列表 <span id="live-count" class="count">尚未读取</span></strong><span class="fill"></span>
     <button id="live-import" class="icon-button" type="button" disabled title="导入 Cookie" aria-label="导入真实 Chrome Cookie"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v13m-4-4 4 4 4-4M4 17v4h16v-4"/></svg></button>
     <button id="live-export" class="icon-button" type="button" disabled title="导出 Cookie" aria-label="导出真实 Chrome Cookie"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m-4 4 4-4 4 4M4 15v5h16v-5"/></svg></button>
@@ -28,8 +28,8 @@
   <section id="live-export-panel" class="editor-panel inline-operation" aria-labelledby="live-export-heading" hidden>
     <div class="section-head"><strong id="live-export-heading">导出本站 Cookie</strong><button id="live-export-close" class="icon-button" type="button" title="关闭导出" aria-label="关闭导出"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
     <p id="live-export-target" class="hint">正在检查目标网站…</p>
-    <div class="field"><label for="live-export-content">导出内容</label><select id="live-export-content" aria-label="选择含敏感值的备份或不含值的元数据清单"><option value="metadata" selected>元数据清单 · 不含 Value（仅 JSON）</option><option value="backup">当前范围备份 · 包含 Cookie Value（敏感）</option></select></div>
     <div class="field"><label for="live-export-format">导出格式</label><select id="live-export-format" aria-label="真实导出格式"><option value="json">JSON · 当前范围完整属性</option><option value="header">Cookie Header · 仅名称和值</option><option value="netscape">Netscape · 部分属性</option></select></div>
+    <div class="field"><label for="live-export-content">导出内容</label><select id="live-export-content" aria-label="选择含敏感值的备份或不含值的元数据清单"><option value="metadata" selected>元数据清单 · 不含 Value（仅 JSON）</option><option value="backup">当前范围备份 · 包含 Cookie Value（敏感）</option></select></div>
     <p id="live-export-warning" class="hint" role="note">JSON 仅保存当前授权范围的必要属性，不代表浏览器完整备份。</p>
     <p id="live-export-sensitive" class="sensitive-note">包含敏感 Cookie Value，可能包含登录凭据；必须独立授权，只通过可信本地下载保存，不会自动上传。</p>
     <div class="form-actions"><button id="live-export-cancel" class="text-button" type="button">取消</button><button id="live-export-confirm" class="text-button primary" type="button">确认并下载</button></div>
@@ -42,12 +42,20 @@
       <button id="live-filter-toggle" class="icon-button" type="button" aria-label="筛选与排序" title="筛选与排序" aria-expanded="false" aria-controls="live-filter-advanced"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M7 12h10m-7 5h4"/></svg></button>
     </div>
     <div id="live-filter-advanced" class="live-filter-advanced" hidden>
-      <label for="live-filter">筛选</label><select id="live-filter" aria-label="筛选 Cookie"><option value="all">全部</option><option value="secure">Secure</option><option value="httpOnly">HttpOnly</option><option value="session">会话</option><option value="partitioned">分区</option></select>
-      <label for="live-sort">排序</label><select id="live-sort" aria-label="Cookie 排序"><option value="name">按名称</option><option value="domain">按域名</option><option value="path">按路径</option><option value="expiration">按过期时间</option></select>
+      <div class="live-filter-chips" role="group" aria-label="筛选 Cookie 类型">
+        <button type="button" data-cookie-filter="all" class="live-filter-chip sel" aria-pressed="true">全部</button>
+        <button type="button" data-cookie-filter="secure" class="live-filter-chip" aria-pressed="false">Secure</button>
+        <button type="button" data-cookie-filter="httpOnly" class="live-filter-chip" aria-pressed="false">HttpOnly</button>
+        <button type="button" data-cookie-filter="session" class="live-filter-chip" aria-pressed="false">会话</button>
+        <button type="button" data-cookie-filter="partitioned" class="live-filter-chip" aria-pressed="false">分区</button>
+      </div>
+      <div class="live-filter-sort"><label for="live-sort">排序</label><select id="live-sort" aria-label="Cookie 排序"><option value="name">按名称</option><option value="domain">按域名</option><option value="path">按路径</option><option value="expiration">按过期时间</option></select></div>
+      <label for="live-filter" class="visually-hidden">筛选类型</label><select id="live-filter" hidden aria-label="筛选 Cookie"><option value="all">全部</option><option value="secure">Secure</option><option value="httpOnly">HttpOnly</option><option value="session">会话</option><option value="partitioned">分区</option></select>
     </div>
   </div>
   <div id="live-cookie-list" class="cookie-list" role="list" aria-label="真实浏览器 Cookie 元数据"></div>
   <p id="live-empty" class="empty-message">正在检查网站授权与 Cookie…</p>
+  <p id="browser-list-hint" class="browser-list-hint" hidden>点击条目可原位展开编辑；每次只编辑一条。敏感值默认隐藏。</p>
   <details id="browser-permissions" class="permission-details">
     <summary>更多 · 网站清理、变化观察与权限</summary>
     <p>敏感值、清理及观察按网站分别授权；可在工具「设置」中管理。</p>
@@ -87,20 +95,23 @@
 <section id="editor-panel" class="editor-panel" aria-labelledby="editor-heading" hidden>
 <div class="section-head"><strong id="editor-heading">新建 Cookie</strong><button id="editor-close" class="icon-button" type="button" title="关闭编辑" aria-label="关闭编辑"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
 <form id="editor-form">
+<p class="editor-top-tip">可在原位置编辑；实际写入由可信宿主核验并确认。</p>
 <div class="field"><label for="cookie-name">名称</label><input id="cookie-name" type="text" maxlength="256" autocomplete="off" required></div>
-<div class="field"><label for="cookie-value">值</label><textarea id="cookie-value" data-sensitive="true" rows="3" maxlength="4096" autocomplete="off" spellcheck="false"></textarea></div>
+<div class="field cookie-value-field"><div class="value-label"><label for="cookie-value">值</label><button id="editor-reveal-value" class="reveal-value-button" type="button" title="单独读取选中 Cookie 的敏感值" aria-label="显示选中 Cookie 值" hidden>显示值</button></div><textarea id="cookie-value" data-sensitive="true" rows="3" maxlength="4096" autocomplete="off" spellcheck="false" placeholder="输入新值；留空保留原值（需单独授权）"></textarea><code id="editor-revealed-value" class="revealed-cookie-value" data-sensitive="true" hidden></code><span class="field-note">默认不读取旧值；只有保留原值或主动显示时才检查敏感值授权。</span></div>
+<details id="cookie-advanced" class="cookie-advanced"><summary>Cookie 属性与高级设置</summary><div class="cookie-advanced-fields">
 <div class="field-grid">
 <div class="field"><label for="cookie-domain">域名</label><input id="cookie-domain" type="text" maxlength="253" autocomplete="off" required></div>
 <div class="field"><label for="cookie-path">路径</label><input id="cookie-path" type="text" maxlength="1024" value="/" autocomplete="off" required></div></div>
 <div class="field"><label for="cookie-same-site">SameSite</label><select id="cookie-same-site"><option value="unspecified">未指定</option><option value="lax">Lax</option><option value="strict">Strict</option><option value="no_restriction">None</option></select></div>
 <div class="flag-grid"><label class="check-label"><input id="cookie-host-only" type="checkbox" checked>仅当前主机</label><label class="check-label"><input id="cookie-secure" type="checkbox">Secure</label><label class="check-label"><input id="cookie-http-only" type="checkbox">HttpOnly</label><label class="check-label"><input id="cookie-session" type="checkbox" checked>会话 Cookie</label></div>
 <div id="expiry-field" class="field" hidden><label for="cookie-expiry">过期时间</label><input id="cookie-expiry" type="datetime-local" step="1"></div>
+<p id="editor-scope-note" class="field-note">现有 Cookie 的 Domain、Path、Store、Partition 身份保持不变。</p></div></details>
 <p id="editor-help" class="hint">名称可以修改；修改浏览器 Cookie 时按权限保存，Domain/Path/Partition 保持不变。</p>
-<div class="form-actions"><button id="editor-cancel" class="text-button" type="button">取消</button><button id="editor-save" class="text-button primary" type="button">保存 Cookie</button></div></form></section>
+<div class="form-actions"><button id="editor-delete" class="text-button danger-text editor-delete" type="button" title="精确删除此 Cookie" hidden>删除</button><button id="editor-cancel" class="text-button" type="button">取消</button><button id="editor-save" class="text-button primary" type="button">保存 Cookie</button></div></form></section>
 <section id="import-panel" class="editor-panel" aria-labelledby="import-heading" hidden>
 <div class="section-head"><strong id="import-heading">导入离线工作区</strong><button id="import-close" class="icon-button" type="button" title="关闭导入" aria-label="关闭导入"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
-<div class="field"><label for="import-format">导入格式</label><select id="import-format"><option value="auto">自动识别</option><option value="json">JSON（数组或 cookies 对象）</option><option value="header">Cookie Header</option><option value="netscape">Netscape</option></select></div>
 <div class="field"><label for="import-file">选择本地文件（可选）</label><input id="import-file" data-sensitive="true" type="file" accept=".json,.txt,text/plain,application/json"></div>
+<div class="field"><label for="import-format">导入格式</label><select id="import-format"><option value="auto">自动识别</option><option value="json">JSON（数组或 cookies 对象）</option><option value="header">Cookie Header</option><option value="netscape">Netscape</option></select></div>
 <div class="field"><label for="import-text">导入内容</label><textarea id="import-text" data-sensitive="true" rows="5" maxlength="150000" spellcheck="false" placeholder="粘贴或选择本地文件…"></textarea></div>
 <p id="import-help" class="hint">仅操作本地临时工作区，每次最多导入 100 条。会先显示新增/覆盖数量供确认；不会写入真实浏览器。</p>
 <p id="live-import-preview" class="import-preview" role="status" aria-live="polite" hidden></p>

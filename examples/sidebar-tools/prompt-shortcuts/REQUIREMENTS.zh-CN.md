@@ -2,7 +2,7 @@
 
 > 状态：已确认的 R1.2–R1.3 产品需求基线，2026-10-15 汇总；补充 **R1.6 跨 AI 平台扩展需求**。**本文件是产品需求与交互验收合同，不是新 GOAL、测试报告或已完成功能声明。**
 >
-> 工具 ID：`prompt-shortcuts`；正式项目：`examples/sidebar-tools/prompt-shortcuts/`；**目前仅有 ChatGPT（`https://chatgpt.com`）适配源码**，未来目标包含 Claude、Gemini、Perplexity 等 AI 对话网站，ComfyUI 等非聊天式 AI 工具属于后续研究范围；唯一交接/进展文档：`docs/framework/workstreams/prompt-shortcuts-r12-ui-handoff.zh-CN.md`。
+> 工具 ID：`prompt-shortcuts`；正式项目：`examples/sidebar-tools/prompt-shortcuts/`；**目前仅有 ChatGPT（`https://chatgpt.com`）适配源码**，P1 目标包含 Claude、Gemini、Perplexity、DeepSeek、Grok 等 AI 网站及 Cursor AI 编程工具（需单独验证 IDE 接入路径）；ComfyUI 等节点式 AI 工具属于 P2+ 研究范围；唯一交接/进展文档：`docs/framework/workstreams/prompt-shortcuts-r12-ui-handoff.zh-CN.md`。
 >
 > 重要：预览已确认，不要求重新设计 UI。正式产品必须以预览的产品区域为基准，并复用现有真实安装、SDK、权限、存储及可信网页适配器。**Node 通过、可移植包通过与真实 Chrome 验收是不同证据级别。**
 
@@ -18,12 +18,15 @@
 | **Claude**（AI 对话） | 相同提示词库，适配 Claude 实际编辑器与页面布局 | **P1 明确的下一批候选**；未实现、未授权、未验收 |
 | **Gemini**（AI 对话） | 相同提示词库，适配 Gemini 实际编辑器与 SPA 变化 | **P1 明确的下一批候选**；未实现、未授权、未验收 |
 | **Perplexity**（AI 搜索/问答） | 在提问编辑区插入提示词；按实际输入与页面结构适配 | **P1 明确的下一批候选**；未实现、未授权、未验收 |
-| **其他 AI 对话/问答网站**（如 DeepSeek、Grok、Copilot） | 用户需求验证后逐站接入，不复制独立提示词管理工具 | **P2 候选池**；并非兼容承诺 |
+| **DeepSeek**（AI 对话） | 复用同一提示词库，按 DeepSeek 实际网页编辑器与页面布局适配 | **P1 明确的下一批候选**；未实现、未授权、未验收 |
+| **Grok**（AI 对话） | 复用同一提示词库，按 Grok 实际网页编辑器与页面布局适配 | **P1 明确的下一批候选**；未实现、未授权、未验收 |
+| **Cursor**（AI 编程工具/IDE） | 在用户明确选择的 AI 聊天输入区复用提示词；优先核实可被授权的网页入口或经批准的 IDE 集成方式 | **P1 明确的优先适配目标**；接入可行性和接口待核验，未实现、未授权、未验收；**浏览器扩展不能直接视为可操作桌面 IDE** |
+| **其他 AI 对话/问答网站**（如 Copilot） | 用户需求验证后逐站接入，不复制独立提示词管理工具 | **P2 候选池**；并非兼容承诺 |
 | **ComfyUI 等节点/工作流式 AI 工具** | 未来在用户明确选定的文本节点、参数编辑区复用提示词 | **P2+ 研究方向**；编辑器、画布、节点、工作流执行是不同能力，不能沿用“聊天输入框”假设 |
 
-实施顺序：**先完成并证实 P0 ChatGPT 真实产品闭环 → P1 每次只增加一个可验收的平台适配器 → 再根据需求进入 P2/P2+**。排序可依据真实用户频率调整，调整前保留安全和质量准入。每个平台的精确 Origin、登录形态、实际 DOM、内容可编辑性和可选菜单能力须在实施前单独确认；上述平台名称**不是**通配域名授权清单。
+实施顺序：**先完成并证实 P0 ChatGPT 真实产品闭环 → P1 优先目标 Claude / Gemini / Perplexity / DeepSeek / Grok / Cursor 逐个验证、逐个接入 → 再根据需求进入 P2/P2+**。网站类目标每次只增加一个可验收的适配器；Cursor 先核实网页可用入口或必要的受控 IDE 集成通道，不把桌面软件等同于 Chrome 网页。排序可依据真实用户频率调整，调整前保留安全和质量准入。每个网站的精确 Origin、登录形态、实际 DOM、内容可编辑性和可选菜单能力须在实施前单独确认；上述平台名称**不是**通配域名授权清单。
 
-共享行为：提示词数据**默认属于工具自身的全局库**，同一条目可在多个已支持网站复用，无须为 Claude/Gemini/Perplexity 各安装一次，也不为每个网站复制一套管理 UI。未来如需按网站显示/过滤，采用显式、可迁移的可选范围设置；不改变已有条目 ID、正文和用户数据，不把网站能力字段混入纯文本正文。
+共享行为：提示词数据**默认属于工具自身的全局库**，同一条目可在多个已支持网站复用，无须为 Claude/Gemini/Perplexity/DeepSeek/Grok 等已支持的网站各安装一次，也不为每个网站复制一套管理 UI。未来如需按网站显示/过滤，采用显式、可迁移的可选范围设置；不改变已有条目 ID、正文和用户数据，不把网站能力字段混入纯文本正文。
 
 ## 1. 来源优先级与文件所有权
 
@@ -54,7 +57,7 @@
 | S07 | 用户独立开启/关闭网页按钮与右键快捷添加；关闭其中一个不影响另一个，更不删除已保存数据。 |
 | S08 | 关闭 Side Panel、刷新网页、SPA 对话切换、BFCache 返回、多标签数据变动、停用/撤权/卸载后，按钮、授权和数据生命周期正确。 |
 | S09 | 面对超额、并发写入冲突、存储错误、原生输入结果未知或中文输入法组合期间，宁可明确失败并保留数据，也不假装成功或自动重复副作用。 |
-| S10（后续） | 用户在 Claude、Gemini、Perplexity 等**已完成适配并单独授权**的网站复用同一提示词库，体验仍为点击后只插入草稿、由用户自行提交；不能误提示“所有 AI 网站均已支持”。 |
+| S10（后续） | 用户在 Claude、Gemini、Perplexity、DeepSeek、Grok 等**已完成适配并单独授权**的网站复用同一提示词库；在 Cursor 等非网页 AI 工具中，仅在存在专用、经批准的集成通道时复用。点击后只填入目标草稿、由用户自行提交；不能误提示“所有 AI 工具均已支持”。 |
 | S11（后续） | 用户对某个平台授权、停用或撤权，不意外扩展到其他 Origin；在尚未适配或页面结构未知的网站，按钮不误显示，提供清晰的不可用说明或手动复制退路。 |
 | S12（探索） | 用户在 ComfyUI 一类节点式工具中，未来可以**明确选择目标文本节点/参数**并插入内容；绝不自动改变画布图结构、修改其他节点或执行生成工作流。 |
 
@@ -121,14 +124,22 @@
 
 ### F10 — 跨平台网站适配合同（新平台实施时必做，当前不等于已实现）
 
-- **一个产品，一个数据模型：** 继续使用唯一工具 ID `prompt-shortcuts`、现有 Side Panel、`trusted/model.js` 和隔离 `library`，不增加 ChatGPT/Claude/Gemini 的平行工具、第二套 SDK/Host/存储或独立扩展包。不得通过预览 Mock 的内存状态实现多站同步。
+- **一个产品，一个数据模型：** 继续使用唯一工具 ID `prompt-shortcuts`、现有 Side Panel、`trusted/model.js` 和隔离 `library`，不因新增 ChatGPT/Claude/Gemini/Perplexity/DeepSeek/Grok/Cursor 适配而创建平行提示词库、第二套 SDK/Host/存储或独立浏览器扩展包。不得通过预览 Mock 的内存状态实现多站同步。
 - **分层复用：** 列表、默认标签、正文、排序、启停、复制、失败保护、提示词浮层和用户动作语义保持平台中立；各网站仅提供经审计的适配部分：精确 URL/Origin 匹配、页面主内容区锚点、草稿编辑器识别、可靠文本插入与读回、SPA/导航/销毁清理。仅在第二个平台真实实施时，才从现有 `trusted/page.js` / `trusted/policy.js` 提取**最小**共用接口；不预先建立第二个注入引擎或庞大 Provider Registry。
 - **明确能力边界：** 每站独立声明并验证可用能力，例如 `draftInsert`、`selectionToDraft`、`nativeSelectionMenu`、`undoVerified`；不支持的入口须隐藏或说明，而非假装可用。不同站点的文本框、富文本编辑器、Shadow DOM、SPA 与 IME 行为可能不同；不靠单个全站通配选择器猜测。
 - **按钮位置：** 对标准 AI 对话网站，优先沿用 ChatGPT 批准的“主内容区域左缘、整体竖向居中”的体验目标，精确锚点由平台适配器确定。若存在遮挡、布局漂移、无法确认主区域或移动端空间不足，须可安全收起/隐藏并说明，不得随意漂移到输入框、遮住提交控件或强行固定在画布之上。
 - **插入必须可核验：** 仅响应用户点击；先复核工具安装身份/包哈希、启停、精确 Origin、当前文档和站点授权；检查编辑器状态、IME 组合与并发；保留原草稿、多行、Unicode、光标和可撤销性，并读回确认。不确定即明确失败/提示检查与复制，禁止自动重试、发送、启动任务、模拟点击 AI 提交按钮、读取/上传历史消息。
 - **逐站许可：** 每个平台新增独立的、明确展示给用户的精确 Origin allowlist 与必要浏览器可选权限；不得使用 `*://*/*`、全部网站/子域名通配、静默授权。改动现有单站 grant schema 时，必须设计兼容迁移、按 Origin 撤权、卸载/重装失效以及版本/安装代际/包哈希绑定；已有 ChatGPT 授权不得自动扩张到新站点。Chrome 原生右键菜单的 `documentUrlPatterns` 与票据文档身份也需逐站审计，不因网页按钮可用就假定右键可用。
 - **失败回退：** 遇到网站改版、找不到编辑器、只读、权限撤回、DOM 身份不明或无法验证完整插入，必须 fail closed。提示词库的手动复制仍可工作；不得悄悄注入不可信任的编辑器或将草稿送至服务器。
-- **候选进入正式支持的门槛：** 平台适配代码及精确来源白名单审计、隔离存储/权限测试、真实 Chrome 的空草稿与已有草稿、复杂 Unicode/多行、Undo、IME、SPA/多标签、停用/撤权/卸载、平台特有编辑器验证；原生右键仅在实际支持且测试后开放。所有证据标注站点与版本，不得用 ChatGPT PASS 冒充 Claude/Gemini/Perplexity PASS。
+- **候选进入正式支持的门槛：** 网页平台适配代码及精确来源白名单审计、隔离存储/权限测试、真实 Chrome 的空草稿与已有草稿、复杂 Unicode/多行、Undo、IME、SPA/多标签、停用/撤权/卸载、平台特有编辑器验证；原生右键仅在实际支持且测试后开放。所有证据标注站点与版本，不得用 ChatGPT PASS 冒充 Claude/Gemini/Perplexity/DeepSeek/Grok PASS。Cursor 另按下述 IDE 集成边界单独准入，不使用网页测试替代桌面验收。
+
+### F10.1 — P1 Cursor（AI IDE）适配准入：与浏览器网页分开验收
+
+- Cursor 与 Claude/Gemini/DeepSeek/Grok 的普通网页不同，主要使用场景是 AI 编程 IDE。**列入 P1** 表示优先开展真实适配，而不是声称当前 OpenDesk Chrome 扩展能读取或修改原生桌面 Cursor 编辑器。
+- 先核验 Cursor 当前是否提供可供浏览器宿主访问的受支持 AI 草稿界面；如需要 IDE 内能力，必须另行证明现有、受支持的插件/扩展/本机集成接口可用，明确用户授权、进程隔离和数据传递边界。不得未经批准新增 Native 权限、扫描其他进程窗口、自动粘贴、调用不受审计的本机接口。
+- 仍复用用户的一份提示词库；在不同运行环境下要明确同步/传递机制与用户授权，不能为了 Cursor 创建一个不兼容的平行数据模型。只有确认真实接入手段后才实施最小集成；不必预先扩建通用桌面自动化框架。
+- Cursor 场景的用户动作是**显式选择 AI 输入区 → 插入完整提示词 → 用户检查与手动提交**；不可改写源码、自动执行命令、运行 Agent 工作流或发送消息。若只能稳定提供“复制提示词”，必须如实标注能力等级，不宣称已实现插入。
+- 准入证据必须含真实 Cursor 版本/平台/集成路径、最小权限、完整插入与撤销、已有草稿保留、中文/Unicode/多行、停用/撤权/卸载、失败回退及未触发副作用。无真实 IDE 或受支持网页入口的证据一律 `NOT_TESTED`。
 
 ### F11 — ComfyUI 与非聊天式 AI 工具扩展边界（研究性，不在当前交付范围）
 
@@ -147,7 +158,8 @@
 | `preview/mock.html` 的内容区左侧按钮栏与 tooltip | `trusted/page.js` 及其被批准的固定 CSS | 内容区左缘纵向居中、竖排短标签、完整提示、滚动/折叠、键盘交互、SPA 定位 |
 | `preview/mock.html` 的草稿追加 | `trusted/page.js` + `trusted/policy.js` | 真实页面编辑器与安全插入，历史草稿完整保留，不自动发送 |
 | 两份预览的选区右键添加演示 | `src/main.js` + 现有 `browser.contextMenu` / `browser.launch.consume()` | 只能以 Chrome 原生菜单/真实票据、用户显式保存认定 PASS |
-| 后续 Claude / Gemini / Perplexity（尚无批准的独立网站原型） | 经审计的新增站点适配与独立授权；复用既有正式工具和管理 UI | 每站单独验证定位、插入、原生菜单可用性、撤权/SPA；不能以 ChatGPT 预览或 Mock 充作新平台 PASS |
+| P1 Claude / Gemini / Perplexity / DeepSeek / Grok（尚无批准的独立网站原型） | 经审计的新增站点适配与独立授权；复用既有正式工具和管理 UI | 每站单独验证定位、插入、原生菜单可用性、撤权/SPA；不能以 ChatGPT 预览或 Mock 充作新平台 PASS |
+| P1 Cursor（AI IDE，接入方式待核验） | 依 F10.1 核验受支持网页入口或显式授权的 IDE 集成；复用提示词库 | 不以 Chrome 网页 Mock 或手动复制冒充原生 Cursor 输入成功；按真实 Cursor 场景独立验收 |
 | 后续 ComfyUI（研究性） | 需求确认后才定义受限文本字段适配器 | 不套用聊天布局；禁止自动执行工作流、修改其他节点或默认开放本地网络 |
 
 开发者须逐项列出 `PREVIEW_EXPECTED`、`REAL_ACTUAL`、`ROOT_CAUSE`、`MINIMAL_FIX`、`TEST_EVIDENCE`。**不允许因为“功能路径已有代码”而直接省略 UI 对照。**
@@ -166,15 +178,16 @@
 | A08 | 关闭 Side Panel、刷新、SPA、BFCache、多标签同步、工具停用、撤权、卸载/重装均验证真实生命周期。 |
 | A09 | 源码、由官方构建器生成的项目内单一正式 JSON 和已批准的固定源码来源检查一致；提交必须保持 SHA/版本/测试与候选绑定。 |
 | A10（阶段性） | P0 ChatGPT 正式闭环与原有 A01–A09 全部以同一候选实测；增加其他网站不得让 ChatGPT 产生定位漂移、权限越界或插入回归。 |
-| A11（新站逐一） | Claude、Gemini、Perplexity 各自必须给出独立站点的精确 Origin、编辑器/布局核验、用户授权、插入前后完整草稿、撤销/IME、SPA、独立撤权/卸载证据；无证据的站点显示“未支持”，不得计分或宣称兼容。 |
-| A12（权限） | ChatGPT 已有授权不自动授权 Claude/Gemini/Perplexity；撤回一个 Origin 不影响已批准的其他 Origin；未知网站、失效票据、DOM 改版和输入结果未知时不注入、不自动发送。 |
+| A11（新站逐一） | Claude、Gemini、Perplexity、DeepSeek、Grok 各自必须给出独立站点的精确 Origin、编辑器/布局核验、用户授权、插入前后完整草稿、撤销/IME、SPA、独立撤权/卸载证据；无证据的站点显示“未支持”，不得计分或宣称兼容。 |
+| A12（权限） | ChatGPT 已有授权不自动授权 Claude/Gemini/Perplexity/DeepSeek/Grok；撤回一个 Origin 不影响已批准的其他 Origin；Cursor 如需要单独 IDE 集成授权，不继承网页 Origin 许可。未知网站、失效票据、DOM 改版和输入结果未知时不注入、不自动发送。 |
 | A13（仅 P2+） | 若未来支持 ComfyUI，须验证用户明确选定的文本节点或字段被完整写入、其他节点/连线/参数不变、未触发生成；未具备专属审计和实测前不得标为支持。 |
+| A14（P1 Cursor） | 取得明确的网页入口或受支持 IDE 集成合同，并完成真实 Cursor AI 草稿插入、原内容保留、撤销/IME、权限/失效/卸载和不自动执行命令验收；仅支持复制时不得标为正式插入能力 PASS。 |
 
 ### 证据等级
 
 - `SOURCE_WIRED`：源码已有接线，不能认定可用。
 - `NODE_PASS` / `PACKAGE_PASS`：相同候选的定向测试/官方构建已通过，仍不等于浏览器产品通过。
-- `INSTALLED_CHROME_PASS` / `REAL_CHATGPT_PASS` / `MAC_IME_PASS`：必须有同候选真实 Chrome、ChatGPT 或 Mac 操作证据。新增平台应单独标记如 `REAL_CLAUDE_PASS` / `REAL_GEMINI_PASS` / `REAL_PERPLEXITY_PASS`，不可跨平台复用。
+- `INSTALLED_CHROME_PASS` / `REAL_CHATGPT_PASS` / `MAC_IME_PASS`：必须有同候选真实 Chrome、ChatGPT 或 Mac 操作证据。新增平台应单独标记如 `REAL_CLAUDE_PASS` / `REAL_GEMINI_PASS` / `REAL_PERPLEXITY_PASS` / `REAL_DEEPSEEK_PASS` / `REAL_GROK_PASS` / `REAL_CURSOR_PASS`（需真实 IDE/官方网页入口与集成证据），不可跨平台复用。
 - `NOT_TESTED` / `BLOCKED`：缺实测条件必须如实标记；逐维评分缺证据保持 `NOT_SCORED`，不能主观声称 95+。
 
 ## 6. 变更和协作规则

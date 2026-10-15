@@ -73,6 +73,7 @@ const setBusy=value=>{
   for(const id of ['import-text','import-file','import-format','live-export-format','live-export-content'])
     E(id).disabled=value||(id==='live-export-format'&&E('live-export-content').value==='metadata');
   for(const button of root.querySelectorAll('.row-action,.cookie-row-trigger'))button.disabled=value;
+  E('editor-delete').disabled=value;E('editor-reveal-value').disabled=value;
 };
 const clean=()=>{dirty=false;notify();};
 const mark=()=>{dirty=true;notify();};
@@ -117,6 +118,14 @@ function renderBrowser(){
   const sdk=browserSdk(),available=!!liveTarget&&typeof sdk?.cookies?.getAll==='function';
   const hasRead=liveState==='ready';
   E('browser-panel').hidden=mode!=='browser';
+  // Revocation, target changes and re-reads must never leave a disclosed
+  // Cookie value inside an editable DOM tree retained for draft recovery.
+  if(!hasRead||mode!=='browser'){
+    E('editor-revealed-value').textContent='';
+    E('editor-revealed-value').hidden=true;
+    E('editor-reveal-value').hidden=true;
+    E('editor-delete').hidden=true;
+  }
   E('mode-browser').setAttribute('aria-pressed',String(mode==='browser'));
   E('mode-offline').setAttribute('aria-pressed',String(mode==='offline'));
   for(const [id,active] of [['mode-browser',mode==='browser'],['mode-offline',mode==='offline']]){
@@ -149,7 +158,9 @@ function renderBrowser(){
     E(id).disabled=busy||!hasRead||targetPending;
   E('live-observe-start').disabled=busy||!hasRead||!!observing;
   for(const id of ['live-observe-read','live-observe-stop'])E(id).disabled=busy||!observing;
+  E('live-toolbar').hidden=!hasRead;
   E('live-filters').hidden=!hasRead;
+  E('browser-list-hint').hidden=!hasRead;
   E('site-grant-status').textContent=mode==='offline'?'离线':
     !liveTarget?'无网站':targetPending?'待确认':!available?'服务不可用':
     hasRead?'✓ 已授权':liveState==='blocked'?'未授权':
@@ -157,6 +168,11 @@ function renderBrowser(){
   E('site-grant-status').dataset.state=hasRead&&mode==='browser'?'ready':'pending';
   E('site-pick').disabled=busy||mode!=='browser';
   E('live-filter-toggle').disabled=busy||!hasRead;
+  for(const chip of root.querySelectorAll('[data-cookie-filter]')){
+    const selected=chip.dataset.cookieFilter===E('live-filter').value;
+    chip.classList.toggle('sel',selected);
+    chip.setAttribute('aria-pressed',String(selected));
+  }
   if(!E('live-export-panel').hidden)updateExportSummary();
   const term=E('live-search').value.trim().toLocaleLowerCase(),filter=E('live-filter').value||'all';
   const visible=liveRows.filter(row=>
@@ -200,40 +216,42 @@ function renderBrowser(){
     if(!writableHere)toggle.title='请先切换至 '+row.domain+' 并取得写入权限';
     const name=doc.createElement('strong');name.className='cookie-row-name';
     name.textContent=row.name||'（空名称）';
+    const meta=doc.createElement('span');meta.className='cookie-row-meta';
+    meta.textContent=row.domain+row.path;
+    const summary=doc.createElement('span');summary.className='cookie-row-title';
+    summary.append(name,meta);
+    const badgeText=row.partitionKey?'分区':row.httpOnly?'HttpOnly':
+      row.secure?'Secure':row.session?'会话':'';
+    const badge=doc.createElement('span');badge.className='cookie-row-tag';
+    badge.textContent=badgeText;badge.hidden=!badgeText;
     const chev=doc.createElement('svg');chev.className='row-chevron';
     chev.setAttribute('viewBox','0 0 24 24');chev.setAttribute('aria-hidden','true');
     const path=doc.createElement('path');path.setAttribute('d','m6 9 6 6 6-6');
     path.setAttribute('fill','none');path.setAttribute('stroke','currentColor');
-    path.setAttribute('stroke-width','2');chev.append(path);toggle.append(name,chev);
+    path.setAttribute('stroke-width','2');chev.append(path);
+    toggle.append(summary,badge,chev);item.append(toggle);
     toggle.addEventListener('click',()=>guarded(()=>selected?dismiss():openEditor(row)));
-    const meta=doc.createElement('span');meta.className='cookie-row-meta';
-    meta.textContent=row.domain+row.path+(row.hostOnly?' · Host-only':' · Domain')+
-      (row.session?' · 会话':' · 持久')+(row.secure?' · Secure':'')+
-      (row.httpOnly?' · HttpOnly':'')+(row.sameSite?' · SameSite '+row.sameSite:'')+
-      (!row.session&&Number.isFinite(row.expirationDate)?
-        ' · 过期 '+new Date(row.expirationDate*1000).toLocaleString():'')+
-      (row.storeId?' · Store '+row.storeId:'')+
-      (row.partitionKey?' · 分区 '+row.partitionKey.topLevelSite:'');
-    item.append(toggle,meta);
     if(selected){
-      const val=doc.createElement('div');val.className='cookie-row-value';
-      val.setAttribute('data-sensitive','true');
-      val.textContent=liveSecrets.has(key(row))?liveSecrets.get(key(row)):'•••••••• · 敏感值未读取';
-      const actions=doc.createElement('div');actions.className='cookie-row-actions';
-      const action=(label,fn,danger=false)=>{
-        const b=doc.createElement('button');b.type='button';b.className='row-action'+(danger?' delete':'');
-        b.textContent=label;b.disabled=busy;b.setAttribute('aria-label',label+' '+row.name);
-        b.addEventListener('click',fn);actions.append(b);
-      };
-      action(liveSecrets.has(key(row))?'隐藏值':'显示值',()=>{void revealBrowserValue(row);});
-      action('删除 Cookie',()=>guarded(()=>ask('真实删除「'+row.name+'」 · '+row.domain+
-        row.path+'？仅处理精确身份。','确认删除',()=>deleteBrowserCookie(row))),true);
-      item.append(val,actions);editor.classList.add('cookie-inline');item.append(editor);inlineAttached=true;
+      const secret=liveSecrets.has(key(row)),reveal=E('editor-reveal-value');
+      const valueNode=E('editor-revealed-value');
+      reveal.hidden=false;reveal.textContent=secret?'隐藏':'显示值';
+      reveal.setAttribute('aria-label',(secret?'隐藏':'显示')+' Cookie '+row.name+' 的敏感值');
+      valueNode.hidden=!secret;valueNode.textContent=secret?liveSecrets.get(key(row)):'';
+      E('editor-delete').hidden=false;
+      E('editor-scope-note').textContent='身份：'+row.domain+row.path+
+        (row.storeId?' · Store '+row.storeId:'')+
+        (row.partitionKey?' · Partition '+row.partitionKey.topLevelSite:'')+
+        '。修改时保留原有 Domain、Path、Store 和 Partition。';
+      editor.classList.add('cookie-inline');item.append(editor);inlineAttached=true;
     }
     list.append(item);
   }
   // Authorization changes revoke old native metadata, but user input survives.
   if(mode==='browser'&&!editor.hidden&&editing!==null&&!inlineAttached){
+    E('editor-revealed-value').textContent='';
+    E('editor-revealed-value').hidden=true;
+    E('editor-reveal-value').hidden=true;
+    E('editor-delete').hidden=true;
     recovery.hidden=false;editor.classList.add('cookie-inline');recovery.append(editor);
   }
 }
@@ -289,7 +307,8 @@ function openEditor(row=null){
     editor.classList.remove('cookie-inline');E('offline-editor-slot').hidden=false;
     E('offline-editor-slot').append(editor);
   }else{E('offline-editor-slot').hidden=true;renderBrowser();}
-  liveValueEdited=false;
+  liveValueEdited=false;E('cookie-advanced').open=false;
+  if(!row)E('editor-scope-note').textContent='新建 Cookie 默认属于当前网站；Store、Partition 由可信 Host 依据授权作用域确定。';
   E('editor-heading').textContent=(mode==='browser'?'真实 Chrome · ':'')+(row?'编辑 Cookie':'新建 Cookie');
   E('editor-help').textContent=mode==='browser'?
     '名称可以直接修改。重命名会先创建新 Cookie，再删除旧名称；保留旧值需敏感值授权，或填写新值。其他身份字段保持不变。':
@@ -953,6 +972,8 @@ function prepareImport(){
 function scrubEditors(){
   E('cookie-value').value='';E('import-text').value='';E('import-file').value='';
   editing=null;expandedCookieKey=null;liveValueEdited=false;dirty=false;
+  E('editor-reveal-value').hidden=true;E('editor-revealed-value').hidden=true;
+  E('editor-revealed-value').textContent='';E('editor-delete').hidden=true;
   editor.hidden=true;importer.hidden=true;E('browser-import-slot').hidden=true;
   E('offline-import-slot').hidden=true;E('offline-editor-slot').hidden=true;
   E('live-export-panel').hidden=true;E('browser-editor-slot').hidden=true;
@@ -1009,6 +1030,20 @@ function openImportPanel(){
   renderBrowser();E('import-text').focus();
 }
 E('live-new').addEventListener('click',()=>guarded(()=>openEditor()));
+E('editor-reveal-value').addEventListener('click',()=>{
+  if(busy||pending||mode!=='browser'||editor.hidden||editing===null)return;
+  const row=liveRows.find(item=>key(item)===expandedCookieKey);
+  if(row)void revealBrowserValue(row);
+});
+E('editor-delete').addEventListener('click',()=>{
+  if(busy||pending||mode!=='browser'||editor.hidden||!editing)return;
+  const row=liveRows.find(item=>key(item)===expandedCookieKey);
+  if(!row||!sameCookieMetadata(row,editing)){
+    status('Cookie 身份已变化，请先刷新并重新选择。','error');return;
+  }
+  guarded(()=>ask('真实删除「'+row.name+'」 · '+row.domain+
+    row.path+'？仅处理精确身份。','确认删除',()=>deleteBrowserCookie(row)));
+});
 E('live-clear').addEventListener('click',()=>{void clearBrowserSite();});
 E('live-import').addEventListener('click',()=>guarded(openImportPanel));
 E('live-export').addEventListener('click',()=>guarded(()=>{
@@ -1040,7 +1075,12 @@ E('live-filter-toggle').addEventListener('click',()=>{
   if(busy||liveState!=='ready')return;
   const choices=E('live-filter-advanced');choices.hidden=!choices.hidden;
   E('live-filter-toggle').setAttribute('aria-expanded',String(!choices.hidden));
-  if(!choices.hidden)E('live-filter').focus();
+  if(!choices.hidden)choices.querySelector?.('[data-cookie-filter]')?.focus?.();
+});
+E('live-filter-advanced').addEventListener('click',event=>{
+  const chip=event.target?.closest?.('[data-cookie-filter]');
+  if(!chip||busy||liveState!=='ready')return;
+  E('live-filter').value=chip.dataset.cookieFilter;render();
 });
 E('live-search').addEventListener('input',render);
 E('live-filter').addEventListener('change',render);
@@ -1071,6 +1111,10 @@ function saveEditor(){
   else void mutate('cookies.save',{cookie:formCookie(),
     ...(editing?{previous:editing}:{})},'Cookie 已保存。');
 }
+E('editor-form').addEventListener('invalid',event=>{
+  // Fields inside a closed disclosure must become visible for correction.
+  if(E('cookie-advanced').contains?.(event.target))E('cookie-advanced').open=true;
+},true);
 E('editor-save').addEventListener('click',saveEditor);
 E('editor-form').addEventListener('submit',event=>{
   event.preventDefault();saveEditor();
@@ -1129,6 +1173,9 @@ root.addEventListener('keydown',event=>{
 root.addEventListener('opendesk-cookie-grants-changed',()=>{
   const wasBusy=busy,preserveDraft=!wasBusy&&dirty&&(!editor.hidden||!importer.hidden);
   liveSecrets.clear();observing=null;
+  E('editor-revealed-value').textContent='';
+  E('editor-revealed-value').hidden=true;
+  E('editor-reveal-value').hidden=true;
   if(mode!=='browser'){render();return;}
   epoch++;liveRows=[];liveState='idle';liveMessage='';
   // Clear previously read native state; never silently discard unsaved input.
