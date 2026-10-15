@@ -243,6 +243,7 @@ async function run(){
  const tlsResult=await networkRequest('https://'+target+':'+httpsPort+'/proxied-tls');
  assert.equal(tlsResult.body,'FIXTURE_TLS_OK',JSON.stringify(tlsResult));
  assert(forwarded.some(x=>x.host===target&&x.port===httpsPort));
+ const beforeWebSocketProxy=forwarded.length;
  const websocket=await evaluate('(async()=>new Promise(resolve=>{'+
   'if(typeof WebSocket!=="function")return resolve({supported:false});'+
   'const ws=new WebSocket("wss://'+target+':'+httpsPort+'/wss");'+
@@ -250,7 +251,12 @@ async function run(){
   'ws.onopen=()=>{clearTimeout(timer);ws.close();resolve({supported:true,ok:true});};'+
   'ws.onerror=()=>{clearTimeout(timer);resolve({supported:true,ok:false});};'+
   '}))()');
- if(websocket.supported){assert.equal(websocket.ok,true);assert(upgrades>0);}
+ if(websocket.supported){
+  assert.equal(websocket.ok,true);
+  assert(upgrades>0,'WSS handshake never reached the local TLS endpoint');
+  assert(forwarded.slice(beforeWebSocketProxy).some(x=>x.host===target&&x.port===httpsPort),
+    'WSS succeeded without a corresponding SOCKS5 CONNECT; possible DIRECT bypass');
+ }
  await stopProxy();
  const failedHttp=await networkRequest('http://'+target+':'+httpPort+'/outage-http');
  const failedTls=await networkRequest('https://'+target+':'+httpsPort+'/outage-tls');
