@@ -9,6 +9,7 @@
 {{TOKENS}}
 {{COMPONENTS}}
 {{SHELL_CSS}}
+{{ADBLOCK_HOST_CSS}}
 {{LIGHT_CSS}}
 </style>
 <style id="od-preview-shell-layout">
@@ -39,6 +40,8 @@ body{display:block;margin:0;background:var(--od-bg);color:var(--od-ink)}
 .preview-confirm h2{font-size:var(--od-body-size);margin:0}
 .preview-confirm p{margin:var(--space-3) 0;color:var(--od-sub)}
 .preview-confirm-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:var(--space-2)}
+#od-preview-adblock-feedback:empty{display:none}
+#od-preview-adblock-host:empty{display:none}
 </style>
 </head>
 <body>
@@ -53,6 +56,8 @@ body{display:block;margin:0;background:var(--od-bg);color:var(--od-ink)}
     <main class="preview-body">
       <section id="od-preview-extension-detail" role="tabpanel" tabindex="-1" aria-label="当前扩展工具">
         {{HEADER}}
+        <div id="od-preview-adblock-host">{{ADBLOCK_HOST}}</div>
+        <p id="od-preview-adblock-feedback" class="od-note" role="status" aria-live="polite"></p>
         <div id="sidebar-tool-frame" class="sidebar-tool-frame">
           <iframe id="opendesk-preview-frame" class="sidebar-tool-iframe" title="{{PAGE_TITLE}}" sandbox="allow-scripts" referrerpolicy="no-referrer"></iframe>
         </div>
@@ -84,6 +89,8 @@ body{display:block;margin:0;background:var(--od-bg);color:var(--od-ink)}
     <button id="od-preview-accept-uninstall" class="od-button od-button--danger" type="button">模拟卸载</button>
   </div>
 </dialog>
+{{ADBLOCK_RESTORE_DIALOG}}
+<script type="application/json" id="opendesk-preview-adblock-snapshots">{{ADBLOCK_SNAPSHOTS_JSON}}</script>
 <script type="application/json" id="opendesk-preview-manifest">{{MANIFEST_JSON}}</script>
 <script>
 (()=>{
@@ -164,4 +171,5 @@ body{display:block;margin:0;background:var(--od-bg);color:var(--od-ink)}
   });
 })();
 </script>
+<script>{{ADBLOCK_PREVIEW_SCRIPT}}</script>
 </body></html>
