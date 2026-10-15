@@ -380,3 +380,26 @@ test('R4.8 detail actions use the official secondary button without a duplicate 
   assert.doesNotMatch(css,/\.ec-detail-actions button\{[^}]*background:/);
   assert.match(css,/\.ec-detail-actions \.od-button\{font-size:12px\}/);
 });
+
+test('R4.8 source-bound prototype has the identical production toolbar and shell styles',async()=>{
+  const [html,preview]=await Promise.all([
+    readFile('src/ui/tool.html','utf8'),
+    readFile('prototypes/sidebar/extension-center-r47-frequency-first-preview.html','utf8')
+  ]);
+  const toolbar=(source,endMarker)=>{
+    const start=source.indexOf('            <div class="ec-toolbar">');
+    const end=source.indexOf(endMarker,start);
+    assert.ok(start>=0&&end>start,'toolbar not found');
+    return source.slice(start,end).trim();
+  };
+  const formal=toolbar(html,'            <div id="extension-center-import-host"');
+  const demo=toolbar(preview,'          <div id="preview-import-host"');
+  assert.equal(demo.replaceAll('preview-','extension-center-'),formal,
+    'Preview must track the real market/filter/language/import/refresh DOM instead of fake icon buttons');
+  assert.match(preview,/href="\.\.\/\.\.\/src\/ui\/tool-shell\.css"/);
+  assert.match(preview,/<nav class="workbench-nav" role="tablist"/);
+  assert.match(preview,/id="workbench-tools" class="od-page"/);
+  assert.match(preview,/SIMULATED_PREVIEW \/ NOT_NATIVE_CHROME/);
+  assert.match(preview,/globalMenu\.hidden/);
+  assert.doesNotMatch(preview,/class="tabs"/);
+});
