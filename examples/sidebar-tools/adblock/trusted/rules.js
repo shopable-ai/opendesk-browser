@@ -34,7 +34,9 @@ export async function reconcileAdblockRules(api,wanted=[]){
   const dnr=api?.declarativeNetRequest;
   if(!dnr?.getDynamicRules||!dnr?.updateDynamicRules)
     throw adblockError('E_ADBLOCK_DNR','Chrome DNR 接口不可用');
-  const all=await dnr.getDynamicRules();
+  let all;
+  try{all=await dnr.getDynamicRules();}
+  catch{throw adblockError('E_OUTCOME_UNKNOWN','Chrome DNR 现有规则读取失败，不能确认或修改规则');}
   const owned=all.filter(x=>isAdblockRuleId(x.id)).sort((a,b)=>a.id-b.id);
   const desired=[...wanted].sort((a,b)=>a.id-b.id);
   if(desired.some(x=>!isAdblockRuleId(x.id)||!Number.isInteger(x.id))||
