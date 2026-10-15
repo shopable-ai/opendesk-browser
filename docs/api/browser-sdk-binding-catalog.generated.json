@@ -4,8 +4,8 @@
   "generationPolicy": "DERIVED_METADATA_ONLY_NOT_A_PERMISSION_GRANT",
   "chromiumSourceCommit": "b5485910372708cd11d9a814a3e382fe8da57df3",
   "counts": {
-    "approved": 72,
-    "public": 70,
+    "approved": 75,
+    "public": 73,
     "hostOnly": 2
   },
   "bindings": [
@@ -2044,6 +2044,105 @@
       "maxRequestBytes": 12000,
       "maxResponseBytes": 12000,
       "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable"
+    },
+    {
+      "operation": "browser.proxy.managed.getStatus",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.proxy.settings"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.proxy.settings",
+          "kind": "PROPERTY",
+          "signature": "settings: $ref:types.ChromeSetting",
+          "parameters": [],
+          "returnType": null
+        }
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.proxy.managed.getStatus",
+      "chromePermissions": [
+        "proxy"
+      ],
+      "toolCapabilities": [
+        "browser.proxy.managed"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "browser-wide-exclusive",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "durable-proxy-owner"
+    },
+    {
+      "operation": "browser.proxy.managed.requestDisable",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.proxy.settings"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.proxy.settings",
+          "kind": "PROPERTY",
+          "signature": "settings: $ref:types.ChromeSetting",
+          "parameters": [],
+          "returnType": null
+        }
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.proxy.managed.requestDisable",
+      "chromePermissions": [
+        "proxy"
+      ],
+      "toolCapabilities": [
+        "browser.proxy.managed"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "browser-wide-exclusive",
+      "userGesture": true,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "durable-proxy-owner"
+    },
+    {
+      "operation": "browser.proxy.managed.requestEnable",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.proxy.settings"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.proxy.settings",
+          "kind": "PROPERTY",
+          "signature": "settings: $ref:types.ChromeSetting",
+          "parameters": [],
+          "returnType": null
+        }
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.proxy.managed.requestEnable",
+      "chromePermissions": [
+        "proxy"
+      ],
+      "toolCapabilities": [
+        "browser.proxy.managed"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "browser-wide-exclusive",
+      "userGesture": true,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "durable-proxy-owner"
     },
     {
       "operation": "browser.runtime.getPlatformInfo",
