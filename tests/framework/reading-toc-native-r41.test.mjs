@@ -298,6 +298,30 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   assert.equal(await evaluate(host,'document.querySelector("#sidebar-tool-settings-allow").getAttribute("aria-pressed")'),'true',
     'Built-in reader is available without a per-origin grant');
   console.log('TOC_NATIVE_STAGE: default site availability verified');
+
+  // R1.3: real Chrome keyboard/pointer input, not simulated storage writes.
+  await eventually(()=>evaluate(host,
+    '!document.querySelector("#sidebar-tool-toc-language").hidden'),
+    'Reading TOC must expose its trusted language selector');
+  await evaluate(host,
+    'globalThis.__tocFrameBeforeLocale=document.querySelector(".sidebar-tool-iframe")');
+  await trustedClick(host,'#sidebar-tool-toc-language-select');
+  for(const [key,code,windowsVirtualKeyCode] of
+    [['ArrowDown','ArrowDown',40],['Enter','Enter',13]]){
+    await host.send('Input.dispatchKeyEvent',{type:'keyDown',key,code,windowsVirtualKeyCode});
+    await host.send('Input.dispatchKeyEvent',{type:'keyUp',key,code,windowsVirtualKeyCode});
+  }
+  await eventually(()=>evaluate(host,
+    'chrome.storage.local.get("opendesk.ui.locale.v1").then(x=>x["opendesk.ui.locale.v1"]==="en")'),
+    'Native language selector did not save English');
+  await eventually(()=>evaluate(host,
+    'document.querySelector("#sidebar-tool-title").textContent==="Reading TOC"'),
+    'Native trusted Reading TOC title did not switch to English');
+  assert.equal(await evaluate(host,
+    'globalThis.__tocFrameBeforeLocale===document.querySelector(".sidebar-tool-iframe")'),true,
+    'Live locale change must retain the TOC iframe');
+  await capture(host,'toc-r13-english-settings.png');
+  console.log('TOC_NATIVE_STAGE: R1.3 English trusted settings and stable iframe verified');
   await eventually(()=>evaluate(articlePage,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),
     'Actual content script did not mount under default site availability');
   async function panelSend(url,operation,details={}){
