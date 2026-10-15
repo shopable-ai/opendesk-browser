@@ -4,7 +4,7 @@
 >
 > 日期：2026-10-15；Owner：本次 ChatGPT/GitHub 只读考证与文档落库对话；分支：`main`；起始只读远端 HEAD：`11ea3e7025b76d6ea9b195e06dac2a2a3730bed1`。远端继续有其他 Agent 增量提交；历史 commit 不是写入基线。
 >
-> 状态：`DOCS_ONLY`。本次**仅保存知识、设计边界及续接 GOAL**，不宣称任何产品代码已因此完成。无 Mac 工作树、Chrome/CFT、watcher、dist、代理或商业 Provider 资源占用；不更新其他 Agent 的 R5.2 工作记录。
+> 状态：`COMPLETE_DOCS_ONLY / RELEASED`。本次**仅保存知识、设计边界及续接 GOAL**，不宣称任何产品代码已因此完成。无 Mac 工作树、Chrome/CFT、watcher、dist、代理或商业 Provider 资源占用；不更新其他 Agent 的 R5.2 工作记录。
 
 ## 0. 文件级归属与参考入口
 
@@ -126,3 +126,14 @@
 - 验证类型：只读源代码查证与文档完整性检查；`NODE_NOT_RUN` / `BUILD_NOT_RUN` / `NATIVE_NOT_TESTED` / `PROVIDER_NOT_TESTED`。
 - 当前版本可能随并行 R5.2 改变；下一个 Agent 以**最新 main 的实际 diff**决定剩余缺口，不能用本文读点回写旧 `main.js`。
 - 文档文件独立完成后，写入范围视为释放；不存在仍被本对话占用的 Mac/Chrome 资源。
+
+
+## 10. 本次仅文档落库的实际结果（2026-10-15）
+
+- 现代方案/本工作流首次创建：`e1402498a72aefeae81e9d96545d5ebe97b3ee04`。
+- 历史 `WebAppVip` + CSDN Adapter 函数/调用链/代码节选创建：`a40a63e5d991a80152ce87194618cb5c4d9f7eb1`；后续修复跨目录相对引用：`67648dae36f6e76e9d969a2d97b915fc49e732a2`。
+- 可复制的现行 R5.2 增量执行 GOAL 创建：`b043c679f59113d6f7484fbd6d9bf1b6f41ed2e9`。
+- GitHub 重新读取三个实际文件，核实相对 Markdown 链接共 `7/7` 目标路径存在，代码围栏均成对；未发现未替换的节选标记。此为**静态文档验证**，非 CI / Node / 产品功能验证。
+- **GitHub 直接保存于 main**，未创建额外分支/worktree/PR，也未写入 R5.2 正式工具代码或历史快照；没有下载工具包、HTML 或 ZIP。
+- 本次文档写入范围：`RELEASED`。未占用本机 Git 索引、Chrome/CFT、watcher/port、dist/ZIP、商业 Provider、代理或 SDK 合同；产品验证仍 `NOT_TESTED`。
+- 交接方式：继续正在运行的 R5.2，按最新 `main` 只对未完成的真实产品缺口实施；避免同本文重新考古。产品是否 95+ 必须另有同候选实测与独立审查。
