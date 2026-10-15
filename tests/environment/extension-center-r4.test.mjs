@@ -51,7 +51,7 @@ test('R5.0 missing preinstalls and other catalog entries never masquerade as ins
   }
   assert.deepEqual(filterExtensionEntries(afterRemoval,{scope:'available'}).map(row=>row.id).sort(),
     ['cookie-editor','optional-app']);
-  const reinstalled=composeExtensionEntries({installed:[{...tool,id:'cookie-editor',title:'Cookie Editor'}],official:[cookie]});
+  const reinstalled=composeExtensionEntries({installed:[{...tool,id:'cookie-editor',title:'Cookie Editor',version:cookie.version}],official:[cookie]});
   assert.equal(filterExtensionEntries(reinstalled)[0].id,'cookie-editor');
   assert.equal(filterExtensionEntries(reinstalled,{scope:'available'}).length,0);
 });
