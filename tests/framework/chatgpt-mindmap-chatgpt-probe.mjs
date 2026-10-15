@@ -148,7 +148,7 @@ try{
     assert.equal(await page.locator('[data-opendesk-chatgpt-mindmap="button"]').count(),3);
     assert.equal(await t(1).locator('.markdown').evaluate(node=>node.innerHTML),originalA);
   }
-  assert.equal(await viewer(2).locator('.topic:visible').count()>1,
+  assert.ok(await viewer(2).locator('.topic:visible').count()>1,
     'Twenty A cycles must not affect B');
   report.checks.push('TWENTY_OPEN_RESTORE_CYCLES_NO_ORPHAN_UI');
   await page.locator('#developer-lab summary').click();
