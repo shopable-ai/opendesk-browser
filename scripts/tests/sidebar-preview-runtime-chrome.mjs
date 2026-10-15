@@ -181,7 +181,11 @@ try{
           q('sidebar-tool-remove').click();
           if(!q('od-preview-confirm-uninstall').open)throw Error('confirmation missing');
           q('od-preview-cancel-uninstall').click();
-          await new Promise(done=>setTimeout(done,0));
+          // The native dialog close event and focus restoration are asynchronous.
+          // Wait for the actual state; never weaken the focus requirement.
+          for(let i=0;i<30&&(q('od-preview-confirm-uninstall').open||
+               document.activeElement!==q('sidebar-tool-remove'));i++)
+            await new Promise(done=>setTimeout(done,20));
           if(q('od-preview-confirm-uninstall').open||
              document.activeElement!==q('sidebar-tool-remove'))
             throw Error('cancel must restore focus');
