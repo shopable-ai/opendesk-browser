@@ -155,3 +155,52 @@ input[type=file]{min-width:0;width:100%;max-width:100%;font-size:12px}.export-ac
  #editor-panel.cookie-inline{background:var(--od-paper);border-color:#637eae}
  .live-toolbar .icon-button{background:transparent}
 }
+
+/* R4.4: approved R4.3 product surface, excluding its demonstration frame. */
+:root{--od-sub:#75839a;--od-line:#e5eaf2}
+.cookie-app{padding:13px 14px 20px;gap:10px;line-height:1.5}
+.site-bar{padding:10px 11px;gap:10px}
+.site-grant-status{flex:none;max-width:72px}
+.live-toolbar{margin-top:7px;min-height:34px}
+.live-toolbar .icon-button{width:34px;height:34px}
+.live-section-title .count{font-size:13px}
+.live-search-box input{border-color:var(--od-line);font-size:12px}
+.live-filter-advanced{display:grid;gap:8px;padding:7px 9px;background:var(--od-bg);border-radius:8px}
+.live-filter-chips{display:flex;gap:6px;flex-wrap:wrap}
+.live-filter-chip{padding:4px 8px;min-height:27px;border:1px solid var(--od-line);border-radius:7px;background:var(--od-paper);color:var(--od-sub);font-size:11px}
+.live-filter-chip.sel{background:#f0f5ff;color:var(--od-brand);border-color:#b7c7f2}
+.live-filter-sort{display:flex;gap:8px;align-items:center}
+.live-filter-sort label{font-size:11px;color:var(--od-sub);flex:none}
+.live-filter-sort select{min-height:30px;width:auto;flex:1;font-size:11px}
+#live-cookie-list{margin-inline:-14px}
+#live-cookie-list .cookie-row{padding:0;min-height:61px;gap:0}
+#live-cookie-list .cookie-row-trigger{display:flex;align-items:center;gap:7px;width:100%;min-height:61px;padding:11px 14px;text-align:left}
+#live-cookie-list .cookie-row-title{display:grid;gap:2px;flex:1;min-width:0}
+#live-cookie-list .cookie-row-name{font-weight:680;font-size:13px;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#live-cookie-list .cookie-row-meta{padding:0;font-size:11px;line-height:1.5;color:var(--od-sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#live-cookie-list .cookie-row-tag{font-size:10px;line-height:1.45;color:var(--od-sub);background:var(--od-bg);border-radius:5px;padding:3px 5px;white-space:nowrap}
+#live-cookie-list .cookie-row-expanded{background:linear-gradient(to right,#f0f5ff,var(--od-paper) 12%)}
+#live-cookie-list .cookie-row-trigger:hover:not(:disabled){background:#f7faff}
+#editor-panel.cookie-inline{margin:0 10px 10px;padding:12px;border:1px solid var(--od-line);border-left:2px solid var(--od-brand);border-radius:9px;background:var(--od-paper);gap:10px}
+#editor-panel.cookie-inline #editor-form{gap:10px}
+.editor-top-tip{margin:0;padding:6px 8px;border-radius:6px;font-size:11px;color:#258067;background:#edf8f4}
+.cookie-advanced{border-top:1px solid var(--od-line);padding-top:5px}
+.cookie-advanced summary{cursor:pointer;color:var(--od-sub);font-size:11px;font-weight:680}
+.cookie-advanced-fields{display:grid;gap:10px;margin-top:9px}
+.cookie-advanced-fields .field-grid{gap:7px}
+.cookie-advanced-fields .flag-grid{gap:10px}
+.cookie-advanced-fields .field label{font-size:11px}
+.cookie-advanced .field-note,.field-note{font-size:10.5px;line-height:1.55;color:var(--od-sub)}
+.value-label{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.reveal-value-button{border:0;background:transparent;color:var(--od-brand);padding:1px 0;font-size:11px}
+.revealed-cookie-value{display:block;background:var(--od-bg);border:1px solid var(--od-line);border-radius:7px;padding:7px;font:11px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere;white-space:pre-wrap}
+.editor-delete{margin-right:auto;color:var(--od-negative)}
+.browser-list-hint{font-size:11px;line-height:1.6;margin:0;color:var(--od-sub)}
+#live-export-panel,#browser-import-slot:not([hidden])>.editor-panel{gap:9px;margin:0 0 3px;padding:12px;border:1px solid var(--od-line);border-radius:10px;background:var(--od-bg)}
+#live-export-panel .field,#browser-import-slot .field{gap:5px}
+#live-export-panel .field label,#browser-import-slot .field label{font-size:11px}
+.browser-state{text-align:center;padding:24px 12px;border:0;background:transparent}
+.browser-state strong{font-size:16px}
+.browser-state p{font-size:12px;line-height:1.8;max-width:280px;margin:10px auto}
+@media(max-width:335px){.cookie-app{padding-inline:10px}#live-cookie-list{margin-inline:-10px}#live-cookie-list .cookie-row-trigger{padding:10px}#live-cookie-list .cookie-row-tag{display:none}.field-grid{grid-template-columns:1fr}}
+@media(prefers-color-scheme:dark){:root{--od-sub:#a2b1c8;--od-line:#344054}.editor-top-tip{color:#88cdb1;background:#213a37}.live-filter-chip.sel{background:#263754;color:#9ab2ff}.browser-state{background:transparent}#live-cookie-list .cookie-row-expanded{background:linear-gradient(to right,#263754,var(--od-paper) 12%)}}

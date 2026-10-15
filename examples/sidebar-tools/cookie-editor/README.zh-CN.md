@@ -1,6 +1,6 @@
 # Cookie Editor · 正式 Cookies SDK 安装工具
 
-**入口：** Side Panel「扩展」→ **Cookie Editor → 打开**。首次安装浏览器扩展时，可信离线目录自动预装工具包，不运行工具代码、不自动授权 Cookie 网站；旧 Profile 未安装时，直接在「扩展」列表点击「安装」进行可信审阅，然后打开。也可将本目录源码打包为 JSON 后手动导入。默认中文，官方目录为 `installationPolicy: preinstalled`；工具包 **2.0.7 / opendesk.sidebar-tool.v2**。**历史 2.0.4 隔离 CFT 候选**曾通过真实发现、安装、授权、读取、编辑、新建、保存回读和精确删除；该记录仅适用于当时的工具包。**当前 2.0.7 的 Mac Chrome 安装/导入/导出/缩放矩阵仍为 NOT_TESTED**；不能将历史截图、回执或分数延用为当前版本的 PASS/95+。所有 Cookie 修改均从已安装工具 UI 发起。
+**入口：** Side Panel「扩展」→ **Cookie Editor → 打开**。首次安装浏览器扩展时，可信离线目录自动预装工具包，不运行工具代码、不自动授权 Cookie 网站；旧 Profile 未安装时，直接在「扩展」列表点击「安装」进行可信审阅，然后打开。也可将本目录源码打包为 JSON 后手动导入。默认中文，官方目录为 `installationPolicy: preinstalled`；工具包 **2.0.8 / opendesk.sidebar-tool.v2**。**历史 2.0.4 隔离 CFT 候选**曾通过真实发现、安装、授权、读取、编辑、新建、保存回读和精确删除；该记录仅适用于当时的工具包。**当前 2.0.7 的 Mac Chrome 安装/导入/导出/缩放矩阵仍为 NOT_TESTED**；不能将历史截图、回执或分数延用为当前版本的 PASS/95+。所有 Cookie 修改均从已安装工具 UI 发起。
 
 ## 快速开始：使用已安装扩展，或编译本地 JSON
 
@@ -92,3 +92,11 @@ R3.3 新候选：授权变化后经已有 Bridge 自动检查当前网站；拒�
 - **可安装包：** `cookie-editor.opendesk-tool.json` 经既有 packer 的 canonical schema/serializer 与当前 `src/` 一致，版本 2.0.7。`preview/` 不属于发布包。
 - **授权边界：** 模拟 HTML 的“允许查看与编辑”不等于真实 Chrome 授权；正式首次授权须经可信工具设置/Host 的真实用户手势。Sandbox 不自行申请或伪造 Cookie 权限。
 - **分级验收：** Node、CI、安装包一致性与 Mac Chrome 原生各自记录。2.0.7 无同候选原生证据前标记 `NATIVE_NOT_TESTED`。
+
+## R4.4 源码对齐与验收边界（2026-10-15）
+
+- 黄金原版：`preview/cookie-editor-r4.3-preview.html`；Git Blob `7a129f509814805ab78827eaccbc77a64b20010f`。不得改写、打包模拟数据或复制原型实验台。
+- 正式产品：`src/index.html`、`src/style.css`、`src/main.js`。已对齐列表标题右侧高频导入/导出/新建、紧凑名称和 Domain/Path、轻量筛选按钮、原位单条编辑、折叠高级属性、编辑内敏感值显示和精确删除、行内导入导出。宿主已经提供返回/标题/设置，因此不在 Sandbox 内复制演示页首。
+- 权限安全：仅真实 Browser SDK/可信 Host 的 Chrome Cookie 读取、写入与删除；元数据授权和敏感 Value 授权分离。撤权、网站改变、列表失效时立即清除显示出的敏感值；未知写入结果不自动重试；重命名仍先核验写入新名再精确删除旧名。
+- 构建规则：先构建忽略的候选，跑完定向测试，再执行当前脚本的 `--promote-from`，最后 `--check-project` 校验源包字节完全一致。不可手工覆盖可安装包。
+- 验收状态：R4.4 新候选的 `NODE_NOT_TESTED`、`NATIVE_NOT_TESTED`、`CI_NOT_VERIFIED` 在对应真实执行或 CI 证据建立前始终有效；早期工具包截图或模拟事件不作为通过证据。
