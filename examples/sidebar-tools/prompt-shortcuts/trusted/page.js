@@ -7,17 +7,21 @@ const SLOT='__openDeskPromptShortcutsPageV1';
 const STYLE=String.raw`
 :host{all:initial;position:fixed;z-index:2147483600;pointer-events:none;color-scheme:light;font:13px/1.4 system-ui,sans-serif}
 :host([hidden]){display:none!important}
-.rail{pointer-events:auto;display:flex;flex-direction:column;align-items:center;gap:6px;max-height:min(68vh,420px);overflow-y:auto;overflow-x:hidden;width:48px;padding:5px;border:1px solid #d9dbe2;border-radius:14px;background:#fffefb;box-shadow:0 5px 20px #0002;scrollbar-width:thin}
-button{font:inherit;cursor:pointer;color:#293549;background:#f9fafb;border:1px solid #d9dbe2;border-radius:10px;outline-offset:2px;box-sizing:border-box}
-button:focus-visible{outline:2px solid #2563eb}
-button:hover{background:#eff5ff;border-color:#2563eb}
-.item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;width:38px;height:38px;min-height:38px;padding:3px;font-weight:700;font-size:12px;line-height:1.04}
-.round{border-radius:50%}.fold{display:none}.narrow .fold{display:block;min-height:36px;width:38px}
-.narrow.folded .item{display:none}
-.tip{pointer-events:auto;position:absolute;left:55px;top:0;width:min(350px,calc(100vw - 90px));max-height:min(68vh,340px);overflow:auto;background:#fff;color:#263347;border:1px solid #ccd2df;border-radius:12px;box-shadow:0 8px 28px #0003;padding:12px;overflow-wrap:anywhere}
-.tip strong{display:block;margin-bottom:8px}
-.tip pre{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;margin:0;font:12px/1.55 system-ui,sans-serif}
-.fallback{pointer-events:auto;position:absolute;left:55px;top:0;width:min(350px,calc(100vw - 90px));max-height:55vh;overflow:auto;background:#fff;color:#263347;border:1px solid #ccd2df;border-radius:12px;box-shadow:0 8px 28px #0003;padding:12px}
+.rail{pointer-events:auto;display:flex;flex-direction:column;align-items:center;gap:8px;max-height:min(248px,calc(100vh - 24px));overflow-y:auto;overflow-x:hidden;width:48px;padding:4px;border-radius:12px;background:transparent;scrollbar-width:thin;overscroll-behavior:contain}
+button{font:inherit;cursor:pointer;color:#293549;background:#fff;border:1px solid #d9dbe2;border-radius:10px;outline-offset:2px;box-sizing:border-box;box-shadow:0 2px 7px #00000011}
+button:focus-visible{outline:2px solid #365eda}
+button:hover{background:#eef2ff;border-color:#365eda}
+.item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:38px;height:38px;min-height:38px;padding:3px;font-weight:650;font-size:12px;line-height:1.05}
+.round{border-radius:50%}
+.fold{display:none}
+.rail.narrow .fold{display:flex;align-items:center;justify-content:center;width:38px;height:38px;min-height:38px;background:#365eda;border-color:#365eda;color:#fff}
+.rail.narrow.folded{max-height:48px;overflow:hidden}
+.rail.narrow.folded .item{display:none}
+.tip{pointer-events:auto;position:absolute;left:60px;top:0;width:360px;max-width:calc(100vw - 80px);max-height:min(340px,calc(100vh - 24px));overflow:auto;overscroll-behavior:contain;background:#fff;color:#263347;border:1px solid #ccd2df;border-radius:12px;box-shadow:0 10px 32px #00000028;padding:13px 15px;overflow-wrap:anywhere}
+.tip strong{display:block;margin-bottom:8px;font-size:13px}
+.tip pre{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;margin:0;font:12px/1.7 system-ui,sans-serif}
+.tip small{display:block;margin-top:12px;padding-top:8px;border-top:1px solid #ccd2df;color:#53647e;font-size:11px}
+.fallback{pointer-events:auto;position:absolute;left:60px;top:0;width:min(350px,calc(100vw - 90px));max-height:55vh;overflow:auto;background:#fff;color:#263347;border:1px solid #ccd2df;border-radius:12px;box-shadow:0 8px 28px #0003;padding:12px}
 .fallback textarea{display:block;width:100%;min-height:120px;box-sizing:border-box;margin:8px 0;resize:vertical;white-space:pre-wrap}
 .fallback button{padding:6px 10px;margin-right:8px}
 `;
@@ -28,12 +32,14 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     !api?.storage?.local?.get||!api.storage?.onChanged)return null;
   if(win[SLOT])return win[SLOT];
   let model=MODEL,disposed=false,paused=false,epoch=0,href=win.location.href,visible=false;
-  let host=null,shadow=null,rail=null,tip=null,fallback=null,items=[],observer=null,layoutTimer=0;
-  let locationTimer=0,folded=false,composing=false,inserting=false;
+  let host=null,shadow=null,rail=null,tip=null,tipOwner=null,hideTipTimer=0,toggleButton=null;
+  let fallback=null,items=[],observer=null,layoutTimer=0;
+  let locationTimer=0,folded=false,narrowMode=null,composing=false,inserting=false,lastAttempt=0,lastAttemptId=null;
   const stop=()=>{
     visible=false;items=[];observer?.disconnect();observer=null;
-    win.clearTimeout(layoutTimer);layoutTimer=0;
-    host?.remove();host=null;rail=null;shadow=null;tip=null;fallback=null;
+    win.clearTimeout(layoutTimer);layoutTimer=0;win.clearTimeout(hideTipTimer);hideTipTimer=0;
+    host?.remove();host=null;rail=null;shadow=null;tip=null;tipOwner=null;toggleButton=null;
+    fallback=null;narrowMode=null;folded=false;
   };
   const mainRegion=()=>{
     const node=doc.querySelector('main#main')||doc.querySelector('main');
@@ -51,18 +57,47 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     if(host.style.left!==left+'px')host.style.left=left+'px';
     if(host.style.top!==top+'px')host.style.top=top+'px';
     host.style.transform='translateY(-50%)';
-    const narrow=rect.width<560;
+    const narrow=rect.width<680;
+    if(narrow!==narrowMode){narrowMode=narrow;folded=narrow;}
     rail.classList.toggle('narrow',narrow);rail.classList.toggle('folded',narrow&&folded);
+    if(toggleButton){
+      toggleButton.textContent=folded?'＋':'−';
+      toggleButton.setAttribute('aria-label',folded?'展开提示词按钮栏':'收起提示词按钮栏');
+      toggleButton.setAttribute('aria-expanded',String(!folded));
+    }
   };
   const schedule=()=>{if(!layoutTimer)layoutTimer=win.setTimeout(layout,120);};
-  const hideTip=()=>{if(tip)tip.hidden=true;};
-  const showTip=(row)=>{
+  const hideTip=()=>{
+    win.clearTimeout(hideTipTimer);hideTipTimer=0;
+    if(tip)tip.hidden=true;
+    tipOwner?.removeAttribute?.('aria-describedby');tipOwner=null;
+  };
+  const delayHideTip=()=>{
+    win.clearTimeout(hideTipTimer);
+    hideTipTimer=win.setTimeout(()=>{
+      hideTipTimer=0;
+      if(!tip?.matches(':hover')&&shadow?.activeElement!==tipOwner)hideTip();
+    },150);
+  };
+  const showTip=(row,button)=>{
     if(!tip||!host||!host.isConnected)return;
-    tip.replaceChildren();
-    const title=doc.createElement('strong'),content=doc.createElement('pre');
+    win.clearTimeout(hideTipTimer);hideTipTimer=0;
+    if(tipOwner&&tipOwner!==button)tipOwner.removeAttribute?.('aria-describedby');
+    tipOwner=button;tip.replaceChildren();
+    const title=doc.createElement('strong'),content=doc.createElement('pre'),hint=doc.createElement('small');
     title.textContent=row.name;content.textContent=row.body;
-    tip.append(title,content);tip.hidden=false;
+    hint.textContent='点击仅追加到草稿，不会自动发送';
+    tip.append(title,content,hint);tip.hidden=false;
+    button.setAttribute('aria-describedby',tip.id);
     if(fallback)fallback.hidden=true;
+    const hostRect=host.getBoundingClientRect(),buttonRect=button.getBoundingClientRect();
+    const tipHeight=tip.getBoundingClientRect().height||240;
+    const maxTop=win.innerHeight-hostRect.top-tipHeight-12;
+    const minTop=12-hostRect.top;
+    tip.style.top=Math.round(Math.max(minTop,Math.min(buttonRect.top-hostRect.top-12,maxTop)))+'px';
+    const freeRight=win.innerWidth-hostRect.left-60;
+    tip.style.left=freeRight<260?'auto':'60px';
+    tip.style.right=freeRight<260?'55px':'auto';
   };
   const fallbackCopy=(body,reason)=>{
     if(!fallback)return;
@@ -105,7 +140,11 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   const normalizeDraft=text=>text.replace(/\r\n?/gu,'\n').replace(/\u00a0/gu,' ');
   async function insert(row,event){
     if(event?.isTrusted!==true||!visible||disposed||paused||inserting||composing)return;
-    inserting=true;
+    // A second click after the first async operation completes must not
+    // turn one rapid double-click into two edits with ambiguous side effects.
+    const now=Date.now();
+    if(lastAttemptId===row.id&&now-lastAttempt<700)return;
+    lastAttemptId=row.id;lastAttempt=now;inserting=true;
     const location=win.location.href,token=epoch;
     try{
       // Recheck installation, exact origin, grant, enable and data before effect.
@@ -154,27 +193,30 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       const style=doc.createElement('style');style.textContent=STYLE;
       rail=doc.createElement('nav');rail.className='rail';rail.setAttribute('aria-label','提示词快捷按钮');
       tip=doc.createElement('aside');tip.className='tip';tip.id='opendesk-prompt-tooltip';tip.hidden=true;
+      tip.setAttribute('tabindex','0');
+      tip.addEventListener('mouseenter',()=>win.clearTimeout(hideTipTimer));
+      tip.addEventListener('mouseleave',delayHideTip);
+      shadow.addEventListener('keydown',event=>{if(event.key==='Escape'){hideTip();if(fallback)fallback.hidden=true;}});
       fallback=doc.createElement('aside');fallback.className='fallback';fallback.hidden=true;
       shadow.append(style,rail,tip,fallback);doc.documentElement.append(host);
     }
     rail.replaceChildren();
     const toggle=doc.createElement('button');toggle.type='button';toggle.className='fold';
-    toggle.textContent=folded?'展开':'收起';toggle.setAttribute('aria-label',folded?'展开提示词按钮栏':'收起提示词按钮栏');
-    toggle.addEventListener('click',()=>{folded=!folded;schedule();});
+    toggleButton=toggle;
+    toggle.addEventListener('click',event=>{if(event.isTrusted===false)return;folded=!folded;schedule();});
     rail.append(toggle);
     for(const row of items){
       const button=doc.createElement('button');button.type='button';
       button.className='item'+(row.shape==='round'?' round':'');
       button.setAttribute('aria-label','插入提示词：'+row.name);
-      button.setAttribute('aria-describedby',tip.id);
-      button.title=row.name; // Full multiline text is available through hover/focus panel.
+      button.title=row.name; // Full multiline details appear on focus/hover.
       for(const part of model.parts(row.label)){
         const span=doc.createElement('span');span.textContent=part;button.append(span);
       }
-      button.addEventListener('mouseenter',()=>showTip(row));
-      button.addEventListener('focus',()=>showTip(row));
-      button.addEventListener('mouseleave',()=>{if(shadow.activeElement!==button)hideTip();});
-      button.addEventListener('blur',()=>{if(!tip.matches(':hover'))hideTip();});
+      button.addEventListener('mouseenter',()=>showTip(row,button));
+      button.addEventListener('focus',()=>showTip(row,button));
+      button.addEventListener('mouseleave',delayHideTip);
+      button.addEventListener('blur',delayHideTip);
       button.addEventListener('click',event=>void insert(row,event));
       rail.append(button);
     }
@@ -222,6 +264,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     api.storage.onChanged.removeListener(onStorage);
     win.removeEventListener('pageshow',onPageShow);win.removeEventListener('pagehide',onPageHide);
     win.removeEventListener('popstate',onNav);win.removeEventListener('resize',schedule);
+    win.removeEventListener('scroll',schedule,true);
     doc.removeEventListener('compositionstart',onCompositionStart,true);
     doc.removeEventListener('compositionend',onCompositionEnd,true);
     if(win[SLOT]===controller)delete win[SLOT];
@@ -229,6 +272,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   api.storage.onChanged.addListener(onStorage);
   win.addEventListener('pageshow',onPageShow);win.addEventListener('pagehide',onPageHide);
   win.addEventListener('popstate',onNav);win.addEventListener('resize',schedule);
+  win.addEventListener('scroll',schedule,true);
   doc.addEventListener('compositionstart',onCompositionStart,true);
   doc.addEventListener('compositionend',onCompositionEnd,true);
   locationTimer=win.setInterval(()=>{if(href!==win.location.href)void refresh();},1100);

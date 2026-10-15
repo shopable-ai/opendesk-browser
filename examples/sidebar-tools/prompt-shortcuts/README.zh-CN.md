@@ -1,6 +1,6 @@
 # 提示词快捷按钮（Prompt Shortcuts）
 
-> 正式工具 ID：`prompt-shortcuts`，版本 `1.0.0`。当前仅有 ChatGPT 站点适配器。源码在本目录；不是额外的 Chrome Extension。
+> 正式工具 ID：`prompt-shortcuts`，版本 `1.0.1`。当前仅有 ChatGPT 站点适配器。源码在本目录；不是额外的 Chrome Extension。
 
 ## 使用流程
 
@@ -64,3 +64,11 @@ git diff -- examples/sidebar-tools/prompt-shortcuts/
 本地真实安装：先确认日常 OpenDesk 浏览器仍加载标准 `dist/development` 与现有唯一 `npm run dev` watcher；在 OpenDesk「扩展」的已有工具导入入口选择上述 **JSON 文件**，完成原有权限/来源审阅后安装并打开。若同 ID/版本的正式官方工具已经安装，先核对当前包身份与原有数据，禁止绕过版本、授权或更新审核硬替换。也可使用已有「官方可选工具」入口安装，二者不能造成第二个工具身份。
 
 **R1.5 CI 证据：** [Run 38743743798](https://github.com/shopable-ai/opendesk-browser/actions/runs/38743743798) 为 **11/11 Node PASS、语法 PASS、可移植 v2 PACKAGE_PASS**；[Run 38747308859](https://github.com/shopable-ai/opendesk-browser/actions/runs/38747308859) 验证并提交了本目录的同字节工具包。它们仍不代表完整 production WXT 构建、真实 Chrome、ChatGPT 富文本、Mac 中文 IME、原生右键或卸载/重装已经通过；原始证据和缺口记录在唯一 [交接文档](../../../../docs/framework/workstreams/prompt-shortcuts-r12-ui-handoff.zh-CN.md)。
+
+### R1.7 双预览映射与正式工具更新
+
+- `preview/index.html` 和 `preview/mock.html` 是用户确认过的原版设计基准，**没有重建或覆盖**。正式管理 UI 对齐卡片、原位删除、两个独立开关、内容优先表单、最终短标签/形状预览与 8192 B 配额。
+- 网页可信按钮栏紧凑化，修复窄内容区折叠类名，完整长文本 Tooltip 可滚动，针对快速双击增加重复抑制。真实草稿仍采用原生插入、完整读回、撤权及中文输入法组合保护。
+- 工具更新候选版本为 **1.0.1**：通过已有 OpenDesk 扩展安装器审阅和升级，**不能将新字节强行覆盖已安装同版本 1.0.0**；正式包的版本/摘要改变后需要在工具详情重新确认 chatgpt.com 网站授权。
+- 在管理工具沙箱内，无法权威读取网页授权状态时明确要求去宿主工具详情确认，不能根据右键菜单许可推断网站授权。
+- 当前远端开发环境不可访问用户 Mac 的 `dist/development` watcher、真实 Extension ID、Native 配对或已登录 ChatGPT。Node/CI 不等于原生安装、Cmd+Z 或 Mac 中文 IME 验收；详情见唯一主交接文档。

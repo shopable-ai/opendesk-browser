@@ -7,20 +7,35 @@ const KEY='library',MENU_ACTION='add-selection';
 let data=model.defaults(),etag=null,ready=false,busy=false,dirty=false,mode='index',editId=null;
 let baseline='',expanded=null,pendingDelete=null,pendingLeave=null,menuStatus=null;
 function report(){setState({dirty,busy});}
-function status(message='',error=false){el('ps-status').textContent=message;el('ps-status').dataset.error=String(error);}
+function status(message='',isError=false){const n=el('ps-status');n.textContent=message;n.hidden=!message;n.dataset.error=String(isError);}
 function error(message=''){el('ps-error').textContent=message;el('ps-error').hidden=!message;}
 function form(){return {body:el('ps-body').value,label:el('ps-label').value,name:el('ps-name').value,
   shape:root.querySelector('input[name="ps-shape"]:checked')?.value||'square',enabled:el('ps-enabled').checked};}
+function projected(){
+  const draft=form(),old=editId?data.items.find(row=>row.id===editId):null;
+  if(!draft.body.trim())return null;
+  try{
+    const row=model.draft(draft,old,()=> '00000000-0000-4000-8000-000000000000');
+    return model.load({...data,items:old?data.items.map(item=>item.id===old.id?row:item):
+      [...data.items,{...row,order:data.items.length}]});
+  }catch{return null;}
+}
 function preview(){
-  const draft=form(),fallback=model.auto(draft.body);
-  el('ps-preview').textContent='按钮：'+(draft.label.trim()||fallback||'—')+'　名称：'+(draft.name.trim()||fallback||'—');
+  const draft=form(),fallback=model.auto(draft.body),label=draft.label.trim()||fallback;
+  const glyph=el('ps-preview-glyph');
+  glyph.replaceChildren(...model.parts(label||'—').map(char=>dom('span','',char)));
+  glyph.classList.toggle('round',draft.shape==='round');
+  el('ps-preview-name').textContent=draft.name.trim()||fallback||'待生成';
+  const estimate=projected(),bytes=estimate?model.bytes(estimate):null;
+  el('ps-quota-value').textContent=(bytes===null?'—':bytes)+' / 8192 B';
+  el('ps-quota').dataset.error=String(bytes!==null&&bytes>8192);
 }
 function changed(){
   if(mode!=='form')return;
   dirty=JSON.stringify(form())!==baseline;preview();report();
 }
 function lock(){
-  for(const id of ['ps-new','ps-save','ps-web','ps-menu','ps-delete-yes'])
+  for(const id of ['ps-new','ps-save','ps-web','ps-menu'])
     el(id).disabled=!ready||busy;
   for(const b of el('ps-list').querySelectorAll('button'))b.disabled=!ready||busy||b.dataset.locked==='1';
   report();
@@ -28,7 +43,7 @@ function lock(){
 function index(){
   mode='index';editId=null;dirty=false;pendingLeave=null;pendingDelete=null;
   el('ps-index').hidden=false;el('ps-edit').hidden=true;el('ps-leave').hidden=true;
-  el('ps-delete').hidden=true;error('');render();report();
+  el('ps-copy').hidden=true;error('');render();report();
 }
 function back(callback=index){
   if(!dirty){callback();return;}
@@ -53,30 +68,48 @@ function button(parent,text,callback,variant='secondary'){
 }
 function render(){
   const list=el('ps-list');list.replaceChildren();
-  el('ps-count').textContent=data.items.length+' 个快捷按钮';
-  el('ps-empty').hidden=data.items.length>0;el('ps-web').checked=data.settings.webButtons;
+  const enabled=data.items.filter(item=>item.enabled).length;
+  el('ps-count').textContent=data.items.length+' 个 · '+enabled+' 个启用';
+  el('ps-empty').hidden=data.items.length>0;
+  el('ps-web').checked=data.settings.webButtons;
   el('ps-menu').checked=Boolean(menuStatus?.enabled);
-  el('ps-grant').textContent='网页按钮必须在工具详情「设置」授权 chatgpt.com。'+
-    (menuStatus?.enabled?' 当前网站右键快捷添加已启用。':' 原生右键菜单需另行在工具详情启用。');
+  el('ps-menu-state').textContent=menuStatus===null?'原生右键状态未确认':
+    menuStatus.enabled?'Chrome 原生右键快捷添加已启用':'Chrome 原生右键快捷添加未启用';
+  el('ps-grant').textContent='chatgpt.com · 网页授权请在工具详情「设置」确认';
   for(const [i,item] of data.items.entries()){
     const card=dom('article','ps-card'),head=dom('div','ps-card-main');
-    const icon=dom('div','ps-glyph'+(item.shape==='round'?' round':''));
-    for(const p of model.parts(item.label))icon.append(dom('span','',p));
-    const desc=dom('div','ps-info');desc.append(dom('strong','',item.name+(item.enabled?'':' · 已停用')),
-      dom('p','',item.body.replace(/\s+/gu,' ').slice(0,100)));
-    const actions=dom('div','ps-actions');
-    button(actions,'编辑',()=>start(item.id));
-    button(actions,expanded===item.id?'收起':'更多',()=>{expanded=expanded===item.id?null:item.id;render();});
-    head.append(icon,desc,actions);card.append(head);
+    const glyph=dom('div','ps-glyph'+(item.shape==='round'?' round':''));
+    glyph.setAttribute('aria-hidden','true');
+    for(const char of model.parts(item.label))glyph.append(dom('span','',char));
+    const desc=dom('div','ps-info'),title=dom('strong','',item.name);
+    if(!item.enabled)title.append(dom('span','ps-off','已停用'));
+    const excerpt=dom('p','',item.body.replace(/\s+/gu,' ').slice(0,100));
+    excerpt.title=item.body;desc.append(title,excerpt);
+    const actions=dom('div','ps-card-actions');
+    const edit=button(actions,'编辑',()=>start(item.id),'quiet');
+    edit.setAttribute('aria-label','编辑 '+item.name);
+    const more=button(actions,'⋯',()=>{expanded=expanded===item.id?null:item.id;pendingDelete=null;render();},'quiet');
+    more.setAttribute('aria-label','更多操作：'+item.name);
+    more.setAttribute('aria-expanded',String(expanded===item.id));
+    head.append(glyph,desc,actions);card.append(head);
     if(expanded===item.id){
-      const more=dom('div','ps-actions ps-more');
-      button(more,item.enabled?'停用':'启用',()=>void update(item.id,row=>({...row,enabled:!row.enabled})));
-      const up=button(more,'上移',()=>void move(item.id,-1));up.dataset.locked=i===0?'1':'0';
-      const down=button(more,'下移',()=>void move(item.id,1));down.dataset.locked=i===data.items.length-1?'1':'0';
-      button(more,'复制',()=>void copy(item));
-      button(more,'删除',()=>{pendingDelete=item.id;el('ps-delete-name').textContent=item.name+' · 此操作无法撤销';
-        el('ps-delete').hidden=false;el('ps-delete-cancel').focus();},'danger');
-      card.append(more);
+      const commands=dom('div','ps-more');
+      button(commands,item.enabled?'停用':'启用',()=>void update(item.id,row=>({...row,enabled:!row.enabled})));
+      const up=button(commands,'↑ 上移',()=>void move(item.id,-1));up.dataset.locked=i===0?'1':'0';
+      const down=button(commands,'↓ 下移',()=>void move(item.id,1));down.dataset.locked=i===data.items.length-1?'1':'0';
+      button(commands,'复制',()=>void copy(item));
+      button(commands,'删除',()=>{pendingDelete=item.id;render();
+        root.querySelector('.ps-delete-cancel')?.focus();},'danger');
+      card.append(commands);
+    }
+    if(pendingDelete===item.id){
+      const confirm=dom('div','ps-confirm');
+      confirm.append(dom('p','','确认删除「'+item.name+'」？此操作不能撤销。'));
+      const buttons=dom('div','ps-actions');
+      const cancel=button(buttons,'取消',()=>{pendingDelete=null;render();});
+      cancel.classList.add('ps-delete-cancel');
+      button(buttons,'确认删除',()=>void remove(),'danger');
+      confirm.append(buttons);card.append(confirm);
     }
     list.append(card);
   }
@@ -138,7 +171,7 @@ async function remove(){
   if(!pendingDelete||busy)return;
   const next=model.load({...data,items:data.items.filter(item=>item.id!==pendingDelete)
     .map((item,order)=>({...item,order}))});
-  try{await commit(next);pendingDelete=null;expanded=null;el('ps-delete').hidden=true;
+  try{await commit(next);pendingDelete=null;expanded=null;
     render();status('提示词已删除。');}
   catch(e){status('删除未确认，原列表保留：'+(e.code||e.message),true);}
 }
@@ -181,8 +214,6 @@ el('ps-back').addEventListener('click',()=>back());
 el('ps-cancel').addEventListener('click',()=>back());
 el('ps-stay').addEventListener('click',()=>{el('ps-leave').hidden=true;pendingLeave=null;el('ps-body').focus();});
 el('ps-discard').addEventListener('click',()=>{const action=pendingLeave;pendingLeave=null;if(action)action();});
-el('ps-delete-cancel').addEventListener('click',()=>{pendingDelete=null;el('ps-delete').hidden=true;});
-el('ps-delete-yes').addEventListener('click',()=>void remove());
 el('ps-copy-close').addEventListener('click',()=>{el('ps-copy').hidden=true;});
 el('ps-web').addEventListener('change',()=>void changeWeb());
 el('ps-menu').addEventListener('change',()=>void changeMenu());

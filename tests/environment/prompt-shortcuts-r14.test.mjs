@@ -109,7 +109,7 @@ test('R1.4 provenance pins only audited trusted tool modules to exact fixed entr
   const fixtures=[
     ['trusted/model.js','f015386060e97ad336c3bbaf35d6e9033b7ba2ee'],
     ['trusted/policy.js','d393ee2c2511f4786265e8abc23c5c755aae51a6'],
-    ['trusted/page.js','0eeab5f748101d605fea6a28b82d36c4be31ca89']
+    ['trusted/page.js','adbdc28dc0def1ae8306329b6691b8c7ac31c581']
   ];
   const examined=(path,target)=>describeBundle({chunk:{fileName:target,
       modules:{[resolve(ROOT+'/'+path)]:{renderedLength:1,originalLength:1}}},
@@ -153,4 +153,24 @@ test('R1.4 shared uninstall cleanup removes only this tool grant and data, not a
   stored.set(PROMPT_SITE_STORE,{[PROMPT_ID]:{origins:[CHATGPT_ORIGIN]}});
   assert.equal((await cleanupUninstalledToolLocked(api,PROMPT_ID)).state,'still-installed');
   assert.deepEqual(stored.get(PROMPT_SITE_STORE)[PROMPT_ID].origins,[CHATGPT_ORIGIN]);
+});
+
+test('R1.7 preview UI is packaged from exactly the same production source',async()=>{
+  const base='examples/sidebar-tools/prompt-shortcuts/';
+  const [html,css,js,formal]=await Promise.all([
+    readFile(base+'src/index.html','utf8'),readFile(base+'src/style.css','utf8'),
+    readFile(base+'src/main.js','utf8'),readFile(base+'prompt-shortcuts.opendesk-tool.json','utf8')
+  ]);
+  const pkg=await createSidebarToolPackage(ROOT);
+  assert.equal(pkg.version,'1.0.1');
+  assert.deepEqual(JSON.parse(formal),pkg,'official JSON must equal the packer output');
+  for(const id of ['ps-count','ps-empty','ps-quota-value','ps-preview-glyph','ps-menu-state']){
+    assert(html.includes('id="'+id+'"'),id+' expected from confirmed preview');
+  }
+  assert.match(html,/class="ps-permission-strip"/);
+  assert.match(css,/\.ps-switch input:checked\+\.ps-switch-track/);
+  assert.match(css,/\.ps-confirm/);
+  assert.match(js,/root\.querySelector\('\.ps-delete-cancel'\)/);
+  assert.match(js,/model\.bytes\(estimate\)/);
+  assert.doesNotMatch(html,/模拟数据|模拟撤销|mockContextMenu|SIMULATED PREVIEW/);
 });

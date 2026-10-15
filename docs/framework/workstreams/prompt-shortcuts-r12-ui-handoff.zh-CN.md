@@ -204,3 +204,22 @@
 - **原生 E2E 待执行**：`INSTALLED_CHROME_PASS`、`REAL_CHATGPT_PASS`、`MAC_IME_PASS` 一律 `NOT_TESTED`，原生 Chrome 选区右键、SPA/BFCache、退出侧栏、撤权、卸载及重装也均 `NOT_TESTED`；逐维 95+ `NOT_SCORED`。无实机复现缺陷，故本轮不擅改已审核可信模块、不重建任何引擎，也未重新打包覆盖日常运行目录。
 - **本地可操作闭环（保留现有 watcher）**：有 Mac/已登录 Chrome 的执行者先运行 `git status --short`、安全同步 `main` 并核对实际 Chrome ID/`dist/development`/Native 连接；在不争抢 watcher 输出的前提下运行 `node --test tests/environment/prompt-shortcuts-r14*.test.mjs` 及 `node scripts/build-sidebar-tool.mjs examples/sidebar-tools/prompt-shortcuts`，对比生成后 SHA-256 与 `git diff`；接着使用现有导入器审阅同 ID `1.0.0` 包并在真实 ChatGPT 完成“已有草稿 + 多行/空行/Emoji → Cmd+Z → Mac 中文 IME → 原生右键预填但不自动保存 → 关闭侧栏仍运行 → 双开关独立 → SPA/BFCache → 撤权/卸载/重装”。每项保存同一包 SHA、真实加载目录、扩展 ID、操作时间、期望/实际结果；失败先留证再最小修复，相关源码和正式 JSON 同候选提交。
 
+
+## 9. R1.7 双预览正式 UI 对齐（2026-10-15）
+
+**范围与权限**：唯一可写分支 `main`；拥有正式 `src/index.html`、`src/style.css`、`src/main.js`、可信 `trusted/page.js`、工具版本/可安装包、定向回归及精确来源 pin。本轮保留原版 `preview/index.html`、`preview/mock.html`，未复制任何 Mock Browser Chrome、演示菜单或尺寸实验台。无第二份 GOAL 或状态文档。
+
+**并行保护**：读取起点 `main` 为 `3b621c6f6edd36e121c3bfeb48d1e05958b09bb3`。另一并行开发已修改 `REQUIREMENTS.zh-CN.md`（从 Git blob `29d627e...` 演进至 `ecfa83b...`，新增跨平台需求），**本轮不覆盖、不提交该路径**；跨平台支持不属于 ChatGPT R1.7 的完成声明。
+
+| PREVIEW_EXPECTED | REAL_ACTUAL / ROOT_CAUSE | FIX | TEST_EVIDENCE |
+| --- | --- | --- | --- |
+| `index.html` 紧凑卡片，独立 `编辑` 与 `⋯`，提示词启停可辨认 | 旧主行动作继承上外边距且“更多”过大，未明确分离启用数 | 栅格卡片、安静操作、停用胶囊、总数＋启用数、真实空态 | 源码/定向回归；Chrome 截图 `NOT_TESTED` |
+| 列表原位删除确认、失败保留原数据 | 旧确认控件位于整个页面末尾 | 原卡片内部确认、确认焦点；保持 ETag/ifMatch 失败保护 | 组件代码；Chrome `NOT_TESTED` |
+| 两独立设置开关、真实权限信息 | 旧 checkbox 样式与预览不符，右键许可状态易与站点授权混淆 | Token 样式轨道开关；原生右键 status 经 SDK，站点授权指向可信工具详情，不捏造已批准状态 | SDK 路径源码；原生 Chrome `NOT_TESTED` |
+| 内容优先，字素短标签及形状预览，8192B 提示 | 旧表单仅拼接一行文字，没有最终外观和字节计量 | 正文第一、逐字素竖排/圆形预览、完整 `library` 投影计量；实际保存仍执行 8192 UTF-8 上限 | 官方打包 / Unit 需 CI；Side Panel `NOT_TESTED` |
+| `mock.html` 内容区左缘、居中、38px 按钮，窄区折叠、完整长文 Tooltip | 旧浮栏厚重外壳；CSS `.narrow .fold` 未匹配 rail 自身；Tooltip 立即消失难以阅读 | 48px 透明轨道、38px 按钮、`.rail.narrow .fold`，窄区默认折叠，鼠标移动延迟、长文滚动与 Esc；继续跟随主内容区重算位置 | Node 模拟新用例；真实 ChatGPT `NOT_TESTED` |
+| 单次点击追加完整草稿，快速双击不重复 | 原代码只在异步操作进行时排重，操作完成后的第二次快速点击可能重复 | 同条目 700ms 防双击，仍保留原生插入、完整换行读回、组合输入中止、失败仅手动核对 | Node 模拟/源码，真实 Cmd+Z/中文 IME `NOT_TESTED` |
+
+**升级/固定源码边界**：正式工具更新候选版本 `1.0.1`，禁止已装同版本强行覆写。 `trusted/page.js` 原 SHA `0eeab5f748101d605fea6a28b82d36c4be31ca89` 审核后精确变为 Git blob `adbdc28dc0def1ae8306329b6691b8c7ac31c581`；仅更新既有 `scripts/bundle-provenance.mjs` 与 scoped 测试对应单项 pin，不更改 AdBlock 白名单，不放宽目标输出。 `tool.config.json`、正式 JSON 及现有 GitHub scoped CI 版本目录/断言同步至 `1.0.1`。
+
+**环境与证据边界**：本轮 GitHub 连接可以读写源码与 CI；用户 Mac 的 `/Users/shopme/Documents/workspace/opendesk-browser`、`git status --short`、原 `npm run dev` watcher、`dist/development`、Chrome ID/Native 配对、已登录的 ChatGPT DOM、Mac 中文 IME **均不可访问**。不能因模拟或历史 CI 宣称原生完成。当前真实 Side Panel 并排截图、ChatGPT Undo/IME/原生右键/安装/SPA/BFCache/卸载及逐维 95+ 全部 `NOT_TESTED` 或 `NOT_SCORED`；待此候选实际 CI 结果后补充具体 SHA/Run。

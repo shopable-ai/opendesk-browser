@@ -88,7 +88,7 @@ function fixture({pkg,library,grants,insertText=null}){
   const rail=()=>root.children.find(item=>item.attributes['data-opendesk-prompts']!==undefined)
     ?.shadow?.children.find(item=>item.tagName==='nav');
   const buttons=()=>rail()?.children.filter(item=>item.className.includes('item'))||[];
-  return {api,doc,win,values,change,calls,buttons,rail,root,editor,events,siteEvents,docEvents};
+  return {api,doc,win,values,change,calls,buttons,rail,root,main,editor,events,siteEvents,docEvents};
 }
 test('R1.4 dynamic ChatGPT rail: origin grant, click-to-draft and independent revocation',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
@@ -192,4 +192,29 @@ test('R1.5 reconstructs sibling editor paragraphs and empty lines without relyin
     const fallback=host?.shadow?.children.find(item=>item.className==='fallback');
     assert.equal(fallback?.hidden,true,'complete structural newlines validate successfully');
   }finally{controller?.dispose();}
+});
+
+test('R1.7 narrow ChatGPT rail starts folded, expands on click, and tooltip retains entire prompt',async()=>{
+  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const model=globalThis.OpenDeskPromptShortcutsModel;
+  const row=model.draft({body:'首行🧑‍💻\n\n第三行',label:'🧑‍💻中'},null,()=> 'prompt-r17-narrow');
+  const grant=await changePromptSiteGrant({},pkg,'first',true);
+  const f=fixture({pkg,grants:grant,library:{schema:1,items:[row],settings:{webButtons:true}}});
+  f.main.getBoundingClientRect=()=>({left:260,top:80,width:540,height:640});
+  const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
+  try{
+    await settle();
+    assert.equal(f.rail().classList.items.has('narrow'),true);
+    assert.equal(f.rail().classList.items.has('folded'),true);
+    assert.equal(f.buttons().length,1);
+    assert.deepEqual(f.buttons()[0].children.map(span=>span.textContent),['🧑‍💻','中']);
+    f.rail().children[0].emit('click',{isTrusted:true});await settle();
+    assert.equal(f.rail().classList.items.has('folded'),false);
+    f.buttons()[0].emit('mouseenter');
+    const host=f.root.children.find(item=>item.attributes['data-opendesk-prompts']!==undefined);
+    const tooltip=host.shadow.children.find(item=>item.className==='tip');
+    assert.equal(tooltip.hidden,false);
+    assert.equal(tooltip.children[0].textContent,row.name);
+    assert.equal(tooltip.children[1].textContent,row.body);
+  }finally{controller.dispose();}
 });
