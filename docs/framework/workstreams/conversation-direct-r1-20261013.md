@@ -125,3 +125,22 @@
 
 **R2.2 同候选证据补记（2026-10-15）：** Browser `fa4c50d0` 已将 `provider.js` / `responses.js` 语法和新的 Facade 小测试纳入既有 Workflow CI；其 [38714217645](https://github.com/shopable-ai/opendesk-browser/actions/runs/38714217645) 原始日志明确 **112/112 Node PASS、`npm run check` PASS（732 files）**；`build:dev` 因并行 AdBlock Trusted source SHA pin 不一致而 FAIL，**不能称完整 CI PASS**。随后 Browser `72ccc959` / `5cc3d8af` 增加已完成 Native `turnId` 的元数据映射与对应测试；这两个较新 SHA 仍须各自 CI 独立核对，不借前述 112 PASS。
 Go `master@2c003149` [38713903230](https://github.com/shopable-ai/opendesk/actions/runs/38713903230)：**macOS transport PASS、真实 Go 可执行文件配模拟 Chrome 的 build/smoke PASS**；Linux transport FAIL 是 `internal/browsercli/admission_unix_test.go` 对不存在的 `/private/tmp` 的依赖；`internal/browserai` 新 gateway 认证、typed user text、unsupported 字段与现有 Manager 定向测试均 PASS。macOS runner 不是用户真实 Mac，也没有用户登录态 Codex 推理。
+
+## R2.3：核心源码缺口收敛及 HTTP 安全禁用（2026-10-15）
+
+**本轮写入范围与 Owner**：普通 ChatGPT 网页、已连接 GitHub；Browser 仅 `main`；Go 按当前根 AGENTS 使用现有 `master`。只改本条所列文件；未触及 Mac、Chrome 进程、profile、dist、watcher、真实 HTTP 端口或生产凭据；没有创建 branch/PR/worktree、强推或新 Executor。其他 Agent 的 SDK、AdBlock、UI 预览工作保持独立。此前曾初步怀疑 Native `target` 缺失，逐行查证 **`provider.js` 已正确传 `target`**，该怀疑不成立、未修改原调用。
+
+**Browser 本轮提交（已由 GitHub 接受）**：
+- `0e9bb6c3`：`src/ui/workflow/provider.js` 要求 `custom_https` 发网络请求前拥有本轮观察回执和目标身份，保持 Native/Cloud 同 Facade。
+- `eb4372d9`：`src/ui/workflow/ai-plan.js` 的 Chat Completions 生产适配使用有界 `authorizedObservation`，规范化模型提议后逐 Locator 验证；不影响独立不执行的旧调用者。
+- `d43fb996`：`src/ui/workflow/workflow-view.js` 为两个 HTTPS 入口共享一次性可见授权和 RunHost 观察，保留上一次已提交的 Revision 作为同一工作流 Save 乐观锁基线；修改后的 Workflow 不冒称 saved。
+- `9997dbb2`：`src/ui/workflow/direct-execution.js` 不再把 click 后的任意 assert 视为独立业务效果证明。
+- `9c500003`、`f0f50e69`、`11ea3e70`：对应 Facade、版本 Save 源码合同与点击效果边界的最小定向测试源文件。
+
+**Go 本轮提交（已由 GitHub 接受）**：`d892a5b6` 在 `internal/browserbridge/unsupported.go` 补全不支持平台的 `Host.Close()` 编译接口；`7225ac72` 在 `internal/browsercli/admission_unix_test.go` 修复 Linux 上不存在的 `/private/tmp` 测试根路径。Go `http_gateway.go` / `host_ai_unix.go` 没有被重新设计或重复实现。
+
+**HTTP 安全边界**：Go HTTP 显式启用、loopback/Host/Origin 限制及共享 `h.ai` Manager 保持原样，`local-http.js` 保持 `pairingReady:false` 且未正式导入 UI；本轮没有实现 token 配对、撤权/轮换或 Browser CORS 白名单，也没有启用网页直接访问登录态 Codex。F4 仍 `SAFE_DISABLED / PAIRING_OPEN`。
+
+**证据与诚实状态**：以上为 `SOURCE_IMPLEMENTED` / `SOURCE_WIRED` 和 `TEST_SOURCE_ADDED`，不是新的 `COMPONENT_VERIFIED`。本会话未在用户 Mac 跑 Node、Go、Chrome、Codex 或 production build；GitHub Actions 自动触发的 Browser/Go 新 SHA CI 在文档写入时尚未独立取得最终通过日志，标 `CI_PENDING`。T2–T6 和真实当前网页业务读回、Save 后关闭 AI Run×2 均 `NOT_TESTED`，无假造截图/日志。
+
+**下一最小动作**：核对新 SHA 定向 CI；随后优先给 `direct-execution.js`/RunHost 的 click 添加可审计业务 Oracle，而不是把执行回执当网页效果；真实安装验收单独排期。HTTP 必须先完成可信 Native token 配对/撤权/Origin 合同，未完成前不准把 Adapter 强接入 Browser Facade。状态权威设计详见唯一正式 R2 文档第 12 节。
