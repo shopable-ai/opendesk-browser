@@ -12,7 +12,7 @@ const sources=Object.freeze({
     activeConversation:true,coldResume:'PROBE_REQUIRED',cancel:true,
     usage:false,background:false,contextMode:'native-thread'}),
   custom_https:Object.freeze({provider:'custom_https',transport:'https-chat-completions-legacy',
-    streaming:false,structuredOutput:false,observation:false,toolCalls:false,
+    streaming:false,structuredOutput:false,observation:true,toolCalls:false,
     activeConversation:false,coldResume:false,cancel:false,localAbort:true,
     usage:false,background:false,contextMode:'stateless'})
 });
@@ -43,12 +43,14 @@ export function createWorkflowProviderFacade({localPlanner}) {
           threadId:snapshot.threadId||null,turnId:completedTurnId,
           usage:null,termination:'completed'}};
       }
+      if(source==='custom_https'&&(!target||!observationReceipt))
+        throw Object.assign(new Error('旧版 HTTPS 工作流也必须取得本轮可信网页观察'),{code:'E_AI_OBSERVATION_REQUIRED'});
       let metadata={provider:source,usage:null};
       const proposal=await requestWorkflowPlan({
         endpoint:settings.endpoint,apiKey:settings.apiKey,model:settings.model,
         request,workflow,signal,fetchImpl,protocol:source==='cloud_responses'?'responses':'chat_completions',
-        observationReceipt:source==='cloud_responses'?observationReceipt:null,
-        target:source==='cloud_responses'?target:null,
+        observationReceipt,
+        target,
         history:source==='cloud_responses'?history:[],
         jsonSchema:source==='cloud_responses'?jsonSchema:null,
         onProviderResult:value=>{metadata={...metadata,...value};}
