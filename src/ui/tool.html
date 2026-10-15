@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="zh-CN">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="frame-src 'self'"><title>OpenDesk Browser</title><link rel="stylesheet" href="design-tokens.css"><link rel="stylesheet" href="design-system.css"><link rel="stylesheet" href="tool-shell.css"><link rel="stylesheet" href="bookmark-manager.css"><link rel="stylesheet" href="time-review.css"><link rel="stylesheet" href="cloud-hosting.css"><link rel="stylesheet" href="extension-center.css"></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="frame-src 'self'"><title>OpenDesk Browser</title><link rel="stylesheet" href="design-tokens.css"><link rel="stylesheet" href="design-system.css"><link rel="stylesheet" href="tool-shell.css"><link rel="stylesheet" href="time-review.css"><link rel="stylesheet" href="cloud-hosting.css"><link rel="stylesheet" href="extension-center.css"></head>
 <body>
 <nav class="workbench-nav" role="tablist" aria-label="工作台" aria-description="较窄时可以横向滚动；左右方向键以及 Home、End 切换页签">
   <button type="button" id="tab-my-tasks" role="tab" tabindex="0" data-workbench-tab="tasks" aria-selected="true" aria-controls="workbench-tasks">我的</button>
@@ -285,7 +285,6 @@
                   <button id="extension-center-reset" class="ec-menu-action" type="button">恢复默认筛选</button>
                   <div class="ec-menu-separator">
                     <button id="extension-center-import" class="ec-menu-action" type="button">导入本地工具包</button>
-                    <button id="extension-center-bookmarks" class="ec-menu-action" type="button">书签管理</button>
                     <button id="extension-center-reload" class="ec-menu-action" type="button">刷新扩展</button>
                   </div>
                 </div>
@@ -340,7 +339,6 @@
           </div>
         </div>
         <section id="sidebar-tool-my-panel" aria-label="已安装工具列表">
-          <button id="bookmark-manager-open" type="button" aria-label="打开书签管理" title="打开内置书签管理"><span class="bm-open-symbol" aria-hidden="true">▣</span><span>书签管理</span><span class="bm-open-chevron" aria-hidden="true">›</span></button>
           <div id="sidebar-tool-list" class="sidebar-tool-list od-stack" aria-label="已安装自定义工具"></div>
           <p id="sidebar-tool-empty" class="sidebar-tool-empty" hidden>还没有已安装工具。点击上方「添加工具」浏览官方工具，或导入本地文件。</p>
         <section id="sidebar-installed-page-tools" class="od-stack" aria-label="已安装网页脚本">
@@ -365,7 +363,6 @@
           <div id="sidebar-tool-official-catalog" aria-label="官方工具发现结果"></div>
         </section>
       </div>
-      <section id="bookmark-manager-panel" class="bookmark-manager" aria-label="书签管理" hidden></section>
       <section id="sidebar-tool-display" class="sidebar-tool-display" aria-label="当前工具界面" hidden>
         <div class="sidebar-tool-view-head od-toolbar od-page-head">
           <button type="button" id="sidebar-tool-back" class="sidebar-tool-icon-action od-icon-button" title="返回工具列表" aria-label="返回自定义工具列表"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5-7 7 7 7M7 12h14"></path></svg></button>
