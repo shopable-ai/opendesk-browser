@@ -152,13 +152,21 @@ try{
   // to a user's Chrome-toolbar text/layout zoom. Preserve that distinction.
   const cdp=await previewPage.context().newCDPSession(previewPage);
   try{
+    // Focus the actual Shadow DOM toolbar button before pinch-style scaling.
+    // Playwright mouse hit-testing at visualViewport.scale=2 differs from a
+    // Chrome toolbar zoom and can hit a different reply; do not force-click.
+    const fitAtScale=viewer(2).getByRole('button',{name:'适配画布',exact:true});
+    await fitAtScale.focus();
+    assert.ok(await fitAtScale.evaluate(button=>button.getRootNode().activeElement===button));
     await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:2});
     const scale=await previewPage.evaluate(()=>visualViewport.scale);
     assert.ok(Math.abs(scale-2)<0.05,`Expected Chromium 2x visual viewport scale, got ${scale}`);
-    await viewer(2).getByRole('button',{name:'适配画布',exact:true}).click();
+    await previewPage.keyboard.press('Enter');
+    await previewPage.waitForTimeout(250);
     assert.ok(await viewer(2).locator('.topic:visible').count()>1);
-    report.chromiumPageScale={requested:2,observed:scale,kind:'CDP_VISUAL_VIEWPORT_PINCH_NOT_BROWSER_TOOLBAR_ZOOM'};
-    passed('R2.3 Chromium 200% CDP visual viewport scale retains real XMind fit interaction');
+    report.chromiumPageScale={requested:2,observed:scale,kind:'CDP_VISUAL_VIEWPORT_PINCH_NOT_BROWSER_TOOLBAR_ZOOM',
+      interaction:'NATIVE_KEYBOARD_ENTER_ON_FOCUSED_REAL_FIT_BUTTON',mouseHitTesting:'NOT_VERIFIED'};
+    passed('R2.3 Chromium 200% CDP page scale supports real XMind keyboard Fit');
     await previewPage.screenshot({path:join(out,'r23-cdp-200-percent.png'),fullPage:false});
   }finally{
     await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:1});
