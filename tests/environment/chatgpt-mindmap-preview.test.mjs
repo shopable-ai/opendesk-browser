@@ -23,7 +23,12 @@ test('preview uses product answer registry and real SDK, never a replacement ren
   assert.doesNotMatch(PREVIEW_CSP,/unsafe-eval/);
 });
 test('resource admission fails closed before opening any local server',async()=>{
-  await assert.rejects(startXmindPreview({}),/E_XMIND_ASSETS_REQUIRED/);
+  await assert.rejects(verifyFixedXmindAssets(),/E_XMIND_ASSETS_REQUIRED/);
+  const prep=await readFile(new URL('preview/prepare-assets.mjs',root),'utf8');
+  const serve=await readFile(new URL('preview/serve.mjs',root),'utf8');
+  assert.match(prep,/PREVIEW_XMIND_RUNTIME_DIR/);
+  assert.match(prep,/npm.*pack|\['pack','jszip@3\.10\.1'/);
+  assert.match(serve,/prepareXmindPreviewAssets\(\{verify:verifyFixedXmindAssets\}\)/);
   const directory=await mkdtemp(join(tmpdir(),'odmm-preview-'));
   try{
     await writeFile(join(directory,'jszip.min.js'),'tampered');

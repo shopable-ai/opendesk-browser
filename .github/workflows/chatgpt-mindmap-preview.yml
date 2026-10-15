@@ -55,28 +55,33 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - name: Prepare exact audited inputs (fail closed on mismatch)
+      - name: Prepare four actual preview-local engine files using the public entrypoint
         shell: bash
         run: |
           set -euo pipefail
-          dir="${RUNNER_TEMP}/xmind-r22-audited"
-          mkdir -p "$dir"
-          # Original blobs are tracked as legacy source snapshots, NOT runtime assets.
-          old="docs/contracts/source-snapshots/scrapyJsChrome/www/lib/xmind"
-          cp "$old/polyfill-45b9836beb.min.js" "$dir/"
-          cp "$old/xmind-sdk.bundle.js" "$dir/"
-          cp "$old/snowbrush-2c2b5d62b5.js" "$dir/"
-          # JSZip's npm dist is a pinned acquisition candidate, not a
-          # substitute for matching all hashes of the original four files.
-          npm pack jszip@3.10.1 --pack-destination "${RUNNER_TEMP}" --silent
-          tar -xOf "${RUNNER_TEMP}/jszip-3.10.1.tgz" package/dist/jszip.min.js > "$dir/jszip.min.js"
-          node --input-type=module - "$dir" <<'NODE'
-          import {verifyFixedXmindAssets} from './examples/programs/chatgpt-mindmap/preview/serve.mjs';
-          const resources=await verifyFixedXmindAssets(process.argv[2]);
-          if(resources.size!==4)throw Error('E_XMIND_FOUR_ASSETS_REQUIRED');
-          console.log('REAL_XMIND_SHA256_AND_GIT_BLOB_PASS: 4/4 original fixed files');
+          # Same developer entrypoint as preview/serve.mjs. Exact four hashes
+          # are verified BEFORE the browser can use any engine code.
+          node examples/programs/chatgpt-mindmap/preview/prepare-assets.mjs
+          echo "XMIND_REFERENCE_DIR=$GITHUB_WORKSPACE/examples/programs/chatgpt-mindmap/preview/.runtime/xmind" >> "$GITHUB_ENV"
+      - name: Verify preview starts without external --assets parameter
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import {startXmindPreview} from './examples/programs/chatgpt-mindmap/preview/serve.mjs';
+          const session=await startXmindPreview();
+          try{
+            const urls=['/index.html',
+              '/__fixed_xmind/jszip.min.js',
+              '/__fixed_xmind/polyfill-45b9836beb.min.js',
+              '/__fixed_xmind/xmind-sdk.bundle.js',
+              '/__fixed_xmind/snowbrush-2c2b5d62b5.js'];
+            for(const suffix of urls){
+              const response=await fetch(new URL(suffix,session.url));
+              if(!response.ok)throw new Error('E_XMIND_PREVIEW_ROUTE:'+suffix);
+            }
+            console.log('REAL_XMIND_PREVIEW_ONE_COMMAND_BOOT_PASS');
+          }finally{await session.close();}
           NODE
-          echo "XMIND_REFERENCE_DIR=$dir" >> "$GITHUB_ENV"
       - name: REAL SDK Workbook and product preview source tests
         run: |
           node --test --test-reporter=spec tests/environment/chatgpt-mindmap-r1.test.mjs tests/environment/chatgpt-mindmap-preview.test.mjs

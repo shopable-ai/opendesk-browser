@@ -2,14 +2,22 @@
 
 这是 **HTML 入口 + 原程序共享模块 + 固定本地 XMind 资源**，不是第二套绘图实现，也不是可直接分发的独立单文件 HTML。
 
-浏览器打开 `preview/index.html` 之前，使用下列命令启动仅绑定 `127.0.0.1` 的开发验证服务（不依赖仓库内额外扩展、不下载 CDN）：
+### 一条命令启动真实 XMind HTML（R2.3）
 
 ```bash
-node examples/programs/chatgpt-mindmap/preview/serve.mjs \
-  --assets /absolute/path/to/shopable-station/apps/web/public/lib/xmind
+node examples/programs/chatgpt-mindmap/preview/serve.mjs
 ```
 
-服务输出 `REAL_XMIND_LOCAL_PREVIEW http://127.0.0.1:<port>/index.html`，在浏览器中打开该地址。若本机有旧项目，直接指向旧项目的原始资源目录，**不用复制四份文件**。服务器启动前按 `tests/xmind-provenance.json` 逐个复核文件名、顺序、大小、SHA-256、Git blob；缺失或变更立即失败，绝不提供假 XMind 画布。
+**无需用户再输入旧仓库的绝对路径。** 首次启动会在 `preview/.runtime/xmind/`（Git 忽略的本地目录）准备四份**真实** JS。三份来自本仓库已经存在的历史源码快照；JSZip 来自明确锁定的 npm `jszip@3.10.1` 发行包（首次准备需 npm 网络连接）。启动前使用唯一 `tests/xmind-provenance.json` 核验四个文件的大小、SHA-256、Git Blob 和顺序；失败会中止，绝不使用模拟引擎。二次启动复用已核验的四个字节文件。JSZip 无法取得、缓存损坏或许可未获批准正式分发时，不宣称独立可安装产品已交付。
+
+服务成功输出 `REAL_XMIND_LOCAL_PREVIEW http://127.0.0.1:<port>/index.html`。浏览器访问该地址后加载真实 XMind 引擎及正式产品源码，不是 `file://` 单击即运行的自包含 HTML。
+
+如已取得外部经审计四件套，保留可选显式路径：
+```bash
+node examples/programs/chatgpt-mindmap/preview/serve.mjs --assets /absolute/audited/xmind
+```
+
+**交付边界：** `preview/.runtime/xmind/` 中运行时实际存在四份核心 JS，但它是本地构建结果，不提交公共仓库，也不纳入 Program/Extension 安装包。取得重新分发许可前，不能把它伪称为 GitHub 仓库中已经自包含可分发的产品资源；当前聊天中的截图图册也不能冒充正在交互的原 XMind HTML。
 
 页面从 `src/answer-registry.js` 进入完整产品链（包括 `chatgpt-adapter.js`、`extract.js`、`view.js`、`xmind-adapter.js`、`xmind-convert.js`），ShadowRoot 样式也直接读取 `assets/ui.css`。换句话说，修改产品绘图或内容解析后，预览**自动使用同一份实现**，不需要人工复制 Demo JS。
 

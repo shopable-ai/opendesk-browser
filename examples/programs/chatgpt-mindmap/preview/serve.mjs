@@ -5,6 +5,7 @@ import {readFile,realpath} from 'node:fs/promises';
 import {createServer} from 'node:http';
 import {dirname,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {prepareXmindPreviewAssets} from './prepare-assets.mjs';
 
 const PROJECT_DIR=fileURLToPath(new URL('../',import.meta.url));
 const SOURCE_COMMIT='b76abf4b95e34c1234a33927051ea13165d92715';
@@ -53,7 +54,8 @@ export async function verifyFixedXmindAssets(directory){
 }
 export async function startXmindPreview({assetsDirectory}={}){
   // No listening socket exists until every original resource has passed admission.
-  const resources=await verifyFixedXmindAssets(assetsDirectory);
+  const directory=assetsDirectory??await prepareXmindPreviewAssets({verify:verifyFixedXmindAssets});
+  const resources=await verifyFixedXmindAssets(directory);
   const server=createServer(async(request,response)=>{
     try{
       if(!['GET','HEAD'].includes(request.method)){
@@ -82,10 +84,10 @@ export async function startXmindPreview({assetsDirectory}={}){
 }
 async function cli(){
   const args=process.argv.slice(2);
-  if(args.length!==2||args[0]!=='--assets'){
-    throw new Error('Usage: node examples/programs/chatgpt-mindmap/preview/serve.mjs --assets /absolute/audited/xmind');
+  if(args.length!==0&&(args.length!==2||args[0]!=='--assets')){
+    throw new Error('Usage: node examples/programs/chatgpt-mindmap/preview/serve.mjs [--assets /absolute/audited/xmind]');
   }
-  const session=await startXmindPreview({assetsDirectory:args[1]});
+  const session=await startXmindPreview({assetsDirectory:args.length?args[1]:undefined});
   console.log('REAL_XMIND_LOCAL_PREVIEW '+session.url);
   console.log('Only loopback, exact four SHA-256 + Git blob verified resources; NOT an installed extension.');
   const shutdown=()=>{session.close().then(()=>process.exit(0)).catch(()=>process.exit(1));};
