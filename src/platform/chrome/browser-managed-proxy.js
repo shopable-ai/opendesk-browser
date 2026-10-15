@@ -221,6 +221,12 @@ export function createBrowserManagedProxy({api=globalThis.chrome,
 export async function stopManagedProxyForTool(api,toolId,{
   lockManager=globalThis.navigator?.locks,removeVerifiedKey=null
 }={}){
+  // Called under the already held tool + catalog locks: no new ENABLE from
+  // this tool may start across this read-only preflight. A tool that never
+  // owned Chrome proxy must not need a second global lock just to uninstall.
+  // Re-read under the shared historical lock before ANY native clear.
+  const hint=await storageState(api);
+  if(!hint||hint.owner.toolId!==toolId)return false;
   return mutex(lockManager,async()=>{
     const state=await storageState(api);
     if(!state||state.owner.toolId!==toolId)return false;
