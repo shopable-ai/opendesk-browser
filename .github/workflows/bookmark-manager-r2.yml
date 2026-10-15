@@ -119,7 +119,7 @@ jobs:
           fc-match 'Noto Sans CJK SC'
       - uses: browser-actions/setup-chrome@v2
         id: chrome
-      - name: Real headless Chrome: read-only selection, draft switching and external lab
+      - name: 'Real headless Chrome - read-only selection, draft switching and external lab'
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
         run: node scripts/tests/bookmark-manager-r26-preview-chrome.mjs artifacts/preview-chrome
