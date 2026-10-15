@@ -227,6 +227,13 @@ async function exercise(mode){
     'selected folder beyond first 120 stays selectable');
   check(q('bm-parent').options.length<=121,'target folder DOM remains bounded');
   q('bm-cancel').click();
+  field('bm-search','');
+  const firstToggle=q('bm-list').querySelector('.bm-toggle');
+  check(Boolean(firstToggle),'expanded folder has a keyboard toggle');
+  firstToggle.focus();firstToggle.click();
+  check(document.activeElement?.classList?.contains('bm-toggle')&&
+    document.activeElement?.getAttribute('aria-expanded')!==null,
+    'keyboard focus survives list rebuild after toggle');
   field('bm-search','这条搜索不会匹配新书签');
   q('bm-new-bookmark').click();
   await wait(()=>!q('bm-form-view').hidden,'new bookmark stays inline');
@@ -267,7 +274,7 @@ async function exercise(mode){
   return {mode,initial:2159,inlineEdit:true,selectedAfterSave:true,cancel:true,
     dirtyGuard:true,searchableMove:true,saveFailure:true,conflict:true,
     outcomeUnknown:true,transientRefresh:true,folderLimit:true,createBookmark:true,
-    createFolder:true,externalDeleteDraft:true,revocation:true,overflow:false,
+    createFolder:true,keyboardFocus:true,externalDeleteDraft:true,revocation:true,overflow:false,
     source:'production-source-bound-mock'};
 }
 try{
