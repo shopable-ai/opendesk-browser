@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OpenDesk Prompt Shortcuts R1.2 · 内容区左边缘 + 选区右键快捷添加（模拟）</title>
+<style>
+:root{--od-ink:#1b2c49;--od-sub:#53647e;--od-line:#e1e8f1;--od-brand:#365eda;--od-paper:#fff;--od-bg:#f5f7fb;--od-muted:#f5f7fb;--radius-control:8px;--radius-surface:12px;--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--stage-bg:#fff;--stage-ink:#222;--stage-border:#e6e6e6;--stage-secondary:#777;--stage-bubble:#f3f3f3}
+*{box-sizing:border-box}body{margin:0;font:13px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--od-bg);color:var(--od-ink)}button,input,textarea,select{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid var(--od-brand);outline-offset:2px}button:disabled{opacity:.44;cursor:not-allowed}[hidden]{display:none!important}
+.shell{max-width:1320px;margin:auto;padding:16px;display:grid;gap:12px}.header,.toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.header h1{font-size:17px;margin:0}.meta{color:var(--od-sub);font-size:12px}.toolbar{background:var(--od-paper);border:1px solid var(--od-line);border-radius:12px;padding:10px 12px}.toolbar .group{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.btn{border:1px solid var(--od-line);border-radius:8px;padding:7px 12px;background:var(--od-paper);color:var(--od-ink)}.btn.selected{background:var(--od-brand);border-color:var(--od-brand);color:#fff}.btn.danger{color:#ae3d4b}.stage{height:630px;background:var(--stage-bg);border:1px solid var(--od-line);border-radius:14px;overflow:hidden;display:grid;grid-template-columns:204px minmax(0,1fr);color:var(--stage-ink);position:relative;box-shadow:0 8px 26px #13203608}.stage.nonav{grid-template-columns:0 minmax(0,1fr)}.stage.nonav .chatnav{padding:0;border:0;visibility:hidden;pointer-events:none}.stage.dark{--stage-bg:#212121;--stage-ink:#ececec;--stage-border:#444;--stage-secondary:#b3b3b3;--stage-bubble:#303030}.stage.compact{max-width:640px;margin:auto;grid-template-columns:165px minmax(0,1fr)}.stage.compact.nonav{grid-template-columns:0 minmax(0,1fr)}.chatnav{background:var(--stage-bubble);border-right:1px solid var(--stage-border);padding:20px 12px;overflow:hidden;white-space:nowrap}.chatnav .brand{font-weight:650;font-size:16px;margin-bottom:22px}.chatnav .navitem{padding:9px 10px;border-radius:8px;margin:4px 0}.chatnav .navitem.active{background:color-mix(in srgb,var(--stage-ink) 9%,transparent)}.chatmain{position:relative;display:flex;flex-direction:column;min-width:0;overflow:hidden}.chathead{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;color:var(--stage-ink)}.fakebadge{font-size:11px;color:var(--stage-secondary);border:1px solid var(--stage-border);border-radius:20px;padding:4px 8px}/* ChatGPT main content surface, not its input or the center-aligned text column, is the positioning reference. */
+.conversation-area{position:relative;flex:1;min-height:0}
+.conversation{width:min(720px,calc(100% - 144px));height:100%;margin:0 auto;overflow-y:auto;overflow-x:hidden;padding:30px 0 12px;scrollbar-width:thin}
+.conversation p{margin:0 0 23px;font-size:14px;line-height:1.8}
+.conversation .user{margin-left:auto;background:var(--stage-bubble);border-radius:18px;padding:10px 16px;max-width:80%;width:max-content}
+.composewrap{position:relative;width:min(720px,calc(100% - 144px));margin:0 auto 32px;min-height:134px;flex-shrink:0}
+.compose{border:1px solid var(--stage-border);border-radius:22px;min-height:124px;background:var(--stage-bubble);padding:15px 18px;display:flex;flex-direction:column;gap:12px}
+.compose textarea{width:100%;height:66px;resize:none;background:none;color:var(--stage-ink);border:0;outline:0;font-size:14px;line-height:1.7}
+.compose textarea:focus-visible{outline:2px solid var(--od-brand);border-radius:4px}
+.composefoot{display:flex;justify-content:space-between;color:var(--stage-secondary);font-size:12px}
+.send{border:0;border-radius:50%;width:28px;height:28px;font-weight:700;background:var(--stage-ink);color:var(--stage-bg)}
+/* Horizontal: near the chat MAIN AREA left edge; vertical: at half the visible conversation-area height. */
+.shortcuts{position:absolute;left:8px;top:50%;transform:translateY(-50%);width:48px;max-height:min(248px,calc(100% - 20px));overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;align-items:center;gap:8px;padding:4px;scrollbar-width:thin;z-index:5;border-radius:12px}
+.shortcuts button{flex:none;width:38px;height:38px;min-height:38px;padding:3px 0;border:1px solid var(--stage-border);border-radius:10px;background:var(--stage-bubble);color:var(--stage-ink);box-shadow:0 2px 7px #00000011;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:600;line-height:1.05;font-size:12px;gap:2px}
+.shortcuts button span{display:block}
+.shortcuts button:hover,.shortcuts button:focus-visible{border-color:var(--od-brand);background:color-mix(in srgb,var(--od-brand) 12%,var(--stage-bubble))}
+.shortcuts button.round{border-radius:50%}
+.shortcuts button.foldButton{display:none}
+.shortcuts.folded{max-height:48px;overflow:hidden}
+.shortcuts.folded button:not(.foldButton){display:none}
+/* Portal-style tooltip lives beside the rail, NOT inside the scrolling rail. */
+.shortcut-tooltip{position:absolute;left:60px;top:10px;z-index:15;width:360px;max-width:calc(100% - 16px);max-height:min(340px,calc(100% - 16px));overflow:auto;overscroll-behavior:contain;border:1px solid var(--stage-border);border-radius:12px;padding:13px 15px;background:var(--stage-bg);color:var(--stage-ink);box-shadow:0 10px 32px #00000028;scrollbar-width:thin;overflow-wrap:anywhere}
+.tooltip-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.tooltip-head strong{font-size:13px;line-height:1.45}
+.tooltip-short{border-radius:6px;background:color-mix(in srgb,var(--od-brand) 13%,var(--stage-bg));color:var(--stage-ink);font-size:11px;font-weight:700;padding:2px 6px;white-space:nowrap}
+.tooltip-label{font-size:11px;color:var(--stage-secondary);margin-bottom:5px;font-weight:600}
+.tooltip-body{white-space:pre-wrap;font-size:12px;line-height:1.7;overflow-wrap:anywhere;margin:0}
+.tooltip-footer{font-size:11px;color:var(--stage-secondary);border-top:1px solid var(--stage-border);padding-top:8px;margin-top:12px}
+.stage.is-narrow .conversation{width:calc(100% - 64px);margin-left:56px;margin-right:8px}
+.stage.is-narrow .composewrap{width:calc(100% - 28px);margin-bottom:20px}
+.stage.is-narrow .shortcuts{max-height:min(200px,calc(100% - 20px))}
+.stage.is-narrow .shortcuts button{width:36px;height:36px;min-height:36px}
+.stage.is-narrow .shortcuts button.foldButton{display:flex;background:var(--od-brand);color:#fff;border-color:var(--od-brand)}
+.stage.is-narrow .shortcuts:not(.folded) button.foldButton{order:-1}
+.management{background:var(--od-paper);border-radius:12px;padding:22px;border:1px solid var(--od-line);min-height:620px}.mghead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}.mghead h2{font-size:17px;margin:0}.mglist{display:grid;gap:8px}.mgrow{display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:12px;border:1px solid var(--od-line);border-radius:12px;padding:12px}.mgicon{width:38px;height:38px;background:var(--od-bg);border:1px solid var(--od-line);border-radius:10px;display:grid;place-items:center;font-weight:700}.mgtext strong{display:block}.mgtext small{display:block;color:var(--od-sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:340px}.mgactions{display:flex;align-items:center;gap:4px}.tiny{padding:5px 7px}.form{max-width:620px;display:grid;gap:12px}.form label{display:grid;gap:4px;font-weight:600}.form input,.form textarea,.form select{border:1px solid #91a0b4;background:var(--od-paper);color:var(--od-ink);border-radius:8px;padding:9px 10px}.form textarea{min-height:180px;resize:vertical}.form .formactions{display:flex;gap:8px}.toast{color:#ae3d4b;min-height:18px;font-size:12px}.notice{font-size:12px;color:var(--od-sub)}
+@media(max-width:680px){.shell{padding:8px}.stage{height:540px;grid-template-columns:148px minmax(0,1fr)}.chathead{padding:0 15px}.stage.is-narrow .conversation{width:calc(100% - 62px);margin-left:54px;margin-right:8px}.mgrow{grid-template-columns:32px minmax(0,1fr)}.mgactions{grid-column:2;justify-content:flex-start}}
+
+/* The demonstration uses a mock context menu. The installed extension uses the already-audited Chrome contextMenus bridge. */
+.selection-menu{position:absolute;z-index:35;width:274px;max-width:calc(100% - 20px);border:1px solid var(--stage-border);border-radius:12px;background:var(--stage-bg);color:var(--stage-ink);box-shadow:0 14px 34px #0c193329;padding:7px}
+.selection-menu .menu-hint{padding:7px 8px 4px;color:var(--stage-secondary);font-size:11px}
+.selection-menu .selection-clip{margin:2px 8px 7px;border-radius:7px;background:var(--stage-bubble);padding:6px 8px;max-height:62px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere;font-size:12px}
+.selection-menu button{display:flex;width:100%;text-align:left;align-items:center;gap:9px;border:0;border-radius:8px;background:transparent;color:var(--stage-ink);padding:10px 9px;font-size:13px}
+.selection-menu button:hover,.selection-menu button:focus-visible{background:color-mix(in srgb,var(--od-brand) 13%,var(--stage-bg))}
+.menu-icon{display:grid;place-items:center;width:24px;height:24px;flex:none;border-radius:7px;background:color-mix(in srgb,var(--od-brand) 13%,var(--stage-bg));color:var(--od-brand);font-weight:700}
+.mgsettings{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 16px;border:1px solid var(--od-line);border-radius:12px;margin-bottom:18px}
+.mgsettings strong{display:block;font-size:13px;margin-bottom:3px}.mgsettings p{color:var(--od-sub);margin:0;font-size:12px;line-height:1.6}
+.switch{position:relative;display:inline-flex;flex:none;align-items:center;cursor:pointer;min-width:50px;min-height:32px}
+.switch input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
+.switch-track{display:block;width:46px;height:26px;border:1px solid #96a2b3;border-radius:99px;background:#cbd3df;transition:background .15s,border .15s;position:relative;pointer-events:none}
+.switch-track:before{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;background:#fff;box-shadow:0 1px 3px #0002;border-radius:50%;transition:transform .15s}
+.switch input:checked+.switch-track{background:var(--od-brand);border-color:var(--od-brand)}
+.switch input:checked+.switch-track:before{transform:translateX(20px)}
+.switch input:focus-visible+.switch-track{outline:3px solid var(--od-brand);outline-offset:3px}
+.switch input:disabled+.switch-track{opacity:.5}
+.demo-note{padding:8px 11px;border-left:3px solid var(--od-brand);background:var(--stage-bubble);border-radius:0 8px 8px 0;font-size:12px;line-height:1.65;color:var(--stage-ink);margin:10px 0 0}
+.demo-note strong{font-weight:650}
+@media(max-width:520px){.mgsettings{align-items:flex-start;padding:12px}.selection-menu{width:250px}}
+</style>
+</head><body>
+<div class="shell">
+  <div class="header"><div><h1>Prompt Shortcuts · R1.2 主内容左边缘 + 右键快捷添加</h1><div class="meta">交互原型 / 模拟 ChatGPT 与 OpenDesk 管理，不读取真实聊天、不连接扩展</div></div><span class="fakebadge">SIMULATED PREVIEW</span></div>
+  <div class="toolbar"><div class="group"><button class="btn selected" id="vChat">网页按钮预览</button><button class="btn" id="vManage">工具管理</button></div><div class="group"><button class="btn" id="nav">收起原生导航</button><button class="btn" id="narrow">模拟窄屏</button><button class="btn" id="dark">深色模式</button></div></div>
+  <div class="stage" id="stage"><aside class="chatnav"><div class="brand">◉ ChatGPT</div><div class="navitem active">＋ 新对话</div><div class="navitem">搜索聊天</div><div class="navitem">项目</div><div class="navitem">历史会话 A</div><div class="navitem">历史会话 B</div></aside><main class="chatmain"><div class="chathead"><strong>ChatGPT ▾</strong><span class="fakebadge">共享空间 · 模拟</span></div><div class="conversation-area" id="conversationArea"><div class="conversation" id="conversation"><p class="user">帮我优化这段文字。</p><p>当然。你可以用“润色”或“总结”快捷按钮把完整提示词插入下方的草稿。插入后可以继续编辑，不会自动发送。</p><p>快捷按钮位于<strong>聊天内容区域左侧，整体垂直居中</strong>，位置与底部输入框无关。鼠标悬停或键盘聚焦可查看完整提示词。</p><div class="demo-note" id="selectionInstructions">演示新功能：用鼠标选中上面的文字后右键，选择「添加为提示词快捷按钮」；也可以点击下方的「选区菜单演示」。此菜单为 <strong>HTML 模拟</strong>，不是 Chrome 原生右键菜单。</div><button type="button" class="btn" id="demoSelection" style="margin-top:10px">选区菜单演示</button></div><div class="shortcuts" id="shortcuts" role="toolbar" aria-orientation="vertical" aria-label="提示词快捷按钮栏"></div><div class="shortcut-tooltip" id="shortcutTooltip" role="tooltip" hidden><div class="tooltip-head"><span class="tooltip-short" id="tipShort"></span><strong id="tipName"></strong></div><div class="tooltip-label">完整提示词正文</div><p class="tooltip-body" id="tipBody"></p><div class="tooltip-footer">点击按钮插入当前草稿，不会自动发送 · 正文过长可在此滚动</div></div><div class="selection-menu" id="selectionMenuMock" role="menu" aria-label="模拟 Chrome 选中文本菜单" hidden><div class="menu-hint">模拟 Chrome 右键菜单 · 选中文本</div><div class="selection-clip" id="selectedExcerpt"></div><button id="addFromSelection" type="button" role="menuitem"><span class="menu-icon">＋</span> 添加为提示词快捷按钮</button></div></div><div class="composewrap" id="composewrap"><div class="compose"><textarea id="draft" spellcheck="false" placeholder="询问任何问题（演示编辑器）"></textarea><div class="composefoot"><span>＋　工具　 模拟输入</span><button class="send" type="button" title="模拟环境不发送">↑</button></div></div></div></main></div>
+  <section class="management" id="management" hidden><div class="mghead"><h2 id="mtitle">我的提示词</h2><button class="btn" id="madd">＋ 新建快捷按钮</button></div><div class="mgsettings"><div><strong>选中文字快速添加</strong><p>在 ChatGPT 网页选中文字，右键快捷创建提示词；关闭只会隐藏右键菜单入口，不删除已有按钮。<span id="menuSettingStatus">当前已开启</span></p></div><label class="switch" title="打开或关闭选中文字快捷添加"><input type="checkbox" id="enableSelectionMenu" role="switch" aria-label="选中文字右键快速添加" checked><span class="switch-track" aria-hidden="true"></span></label></div><div id="mglist" class="mglist"></div><form id="mform" class="form" hidden><label>按钮短标签（1–2 个汉字）<input maxlength="2" name="label" required placeholder="润色"></label><label>完整名称<input name="name" maxlength="60" required placeholder="专业文字润色"></label><label>完整提示词正文<textarea name="body" required placeholder="支持中文及多行完整提示词"></textarea></label><label>形状<select name="shape"><option value="square">圆角正方形</option><option value="round">圆形</option></select></label><label><span>启用状态 <input name="enabled" type="checkbox" checked style="width:auto"></span></label><div class="formactions"><button class="btn selected" type="submit">保存</button><button class="btn" type="button" id="mcancel">返回列表</button></div><div id="merror" class="toast" role="alert"></div></form><p class="notice">管理与网页模拟使用同一份本页内存数据。此页不模拟真实权限和跨标签持久化。</p></section>
+  <div class="meta" id="status" role="status">当前位置：紧贴 ChatGPT 主内容区域左边界、纵向居中 · 可选右键快速添加 · 点击只插入草稿</div>
+</div>
+<script>
+(()=>{'use strict';
+ let items=[{id:'a',label:'润色',name:'专业文字润色',body:'请在不改变原意的前提下润色以下文字：\n1. 保持语气专业、自然；\n2. 改进逻辑和清晰度；\n3. 输出优化后的完整正文。',enabled:true,shape:'square'}, {id:'b',label:'总结',name:'重点总结',body:'请将上述信息总结为：\n一、核心结论；\n二、重要依据；\n三、建议下一步。',enabled:true,shape:'square'},{id:'c',label:'翻译',name:'中英双向翻译',body:'请根据原文语言进行中英双向翻译，保留段落结构、专有名词和原有语气。',enabled:true,shape:'round'},{id:'d',label:'检查',name:'逻辑检查',body:'请检查内容中的逻辑漏洞、遗漏与相互矛盾处，逐条说明并提供修复建议。',enabled:true,shape:'square'}];
+ let mode='chat',edit=null,folded=false,responsive=false,tipOwner=null,hideTimer=0,menuEnabled=true,selectedDraft='',selectionMenuVisible=false;
+ const $=s=>document.querySelector(s),status=$('#status'),bar=$('#shortcuts'),draft=$('#draft'),stage=$('#stage');
+ const region=$('#conversationArea'),conversation=$('#conversation'),tooltip=$('#shortcutTooltip'),selectionMenu=$('#selectionMenuMock');
+ const say=s=>{status.textContent=s};
+ function insert(t){const start=draft.selectionStart??draft.value.length,end=draft.selectionEnd??draft.value.length;draft.setRangeText(t,start,end,'end');draft.focus();draft.dispatchEvent(new Event('input',{bubbles:true}));say('已插入完整提示词 '+t.length+' 字符；未发送，草稿仍可编辑。')}
+ function hideTooltip(force=false){clearTimeout(hideTimer);if(!force&&(tooltip.matches(':hover')||tipOwner===document.activeElement))return;tipOwner?.removeAttribute('aria-describedby');tipOwner=null;tooltip.hidden=true;}
+ function scheduleTooltipHide(){clearTimeout(hideTimer);hideTimer=setTimeout(()=>hideTooltip(),130)}
+ function positionTooltip(){if(tooltip.hidden||!tipOwner?.isConnected)return;
+   const a=region.getBoundingClientRect(),b=tipOwner.getBoundingClientRect();
+   const x=b.right-a.left+10,room=a.right-b.right-18;
+   tooltip.style.width=Math.max(64,Math.min(360,room))+'px';
+   // Align toward the hovered button, constrained to the conversation viewport.
+   const width=tooltip.offsetWidth,height=tooltip.offsetHeight;
+   tooltip.style.left=Math.round(Math.max(6,Math.min(x,a.width-width-6)))+'px';
+   const verticalCenter=(b.top+b.bottom)/2-a.top;
+   tooltip.style.top=Math.round(Math.max(6,Math.min(verticalCenter-height/2,a.height-height-6)))+'px';
+ }
+ function showTooltip(item,button){clearTimeout(hideTimer);if(tipOwner&&tipOwner!==button)tipOwner.removeAttribute('aria-describedby');tipOwner=button;
+   $('#tipShort').textContent=item.label;$('#tipName').textContent=item.name;$('#tipBody').textContent=item.body;
+   tooltip.hidden=false;button.setAttribute('aria-describedby','shortcutTooltip');positionTooltip();
+ }
+ tooltip.addEventListener('pointerenter',()=>clearTimeout(hideTimer));
+ tooltip.addEventListener('pointerleave',()=>hideTooltip(true));
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!tooltip.hidden){hideTooltip(true)}});
+ function positionBar(){if(!region.isConnected)return;
+   const a=region.getBoundingClientRect(),width=bar.getBoundingClientRect().width||48;
+   // Anchor to the ACTUAL ChatGPT main-content surface left edge, not the centered text/composer column.
+   // The narrow layout reserves this rail explicitly. Always stay on the LEFT (never silently switch sides).
+   bar.style.left=Math.round(Math.max(6,Math.min(12,a.width-width-6)))+'px';
+   positionTooltip();
+ }
+ function renderBar(){hideTooltip(true);bar.replaceChildren();let enabled=items.filter(x=>x.enabled);
+   for(const item of enabled){const b=document.createElement('button');b.type='button';b.className=item.shape==='round'?'round':'';
+     b.setAttribute('aria-label','插入提示词：'+item.name);
+     for(const char of item.label){const sp=document.createElement('span');sp.textContent=char;b.append(sp)}
+     b.addEventListener('pointerenter',()=>showTooltip(item,b));b.addEventListener('pointerleave',scheduleTooltipHide);
+     b.addEventListener('focus',()=>showTooltip(item,b));b.addEventListener('blur',scheduleTooltipHide);
+     b.addEventListener('click',()=>insert(item.body));bar.append(b);
+   }
+   if(!enabled.length){const b=document.createElement('button');b.disabled=true;b.textContent='无';b.setAttribute('aria-label','当前没有已启用的提示词');bar.append(b)}
+   if(responsive){const fold=document.createElement('button');fold.className='foldButton';fold.type='button';fold.textContent=folded?'展':'收';fold.setAttribute('aria-label',folded?'展开左侧快捷按钮栏':'收起左侧快捷按钮栏');fold.setAttribute('aria-expanded',String(!folded));fold.addEventListener('click',()=>{folded=!folded;renderBar()});bar.prepend(fold)}
+   bar.classList.toggle('folded',responsive&&folded);requestAnimationFrame(positionBar);
+ }
+ function syncLayout(){const next=stage.classList.contains('compact')||stage.getBoundingClientRect().width<680;
+   if(next!==responsive){responsive=next;folded=next;stage.classList.toggle('is-narrow',next);renderBar()}
+   requestAnimationFrame(positionBar);
+ }
+ if(typeof ResizeObserver==='function'){const resize=new ResizeObserver(syncLayout);resize.observe(stage);resize.observe(region);resize.observe(conversation)}
+ window.addEventListener('resize',syncLayout);
+ bar.addEventListener('scroll',positionTooltip,{passive:true});
+ function view(next){hideSelectionMenu();mode=next;$('#stage').hidden=next!=='chat';$('#management').hidden=next!=='manage';$('#vChat').classList.toggle('selected',next==='chat');$('#vManage').classList.toggle('selected',next==='manage');if(next==='manage'){syncSelectionMenuSetting();listView()}else renderBar()}
+ function listView(){edit=null;$('#mform').hidden=true;$('#mglist').hidden=false;$('#madd').hidden=false;$('#mtitle').textContent='我的提示词';const list=$('#mglist');list.replaceChildren();items.forEach((it,i)=>{const row=document.createElement('div');row.className='mgrow';const icon=document.createElement('div');icon.className='mgicon';icon.textContent=it.label;icon.style.borderRadius=it.shape==='round'?'50%':'10px';const txt=document.createElement('div');txt.className='mgtext';const strong=document.createElement('strong');strong.textContent=it.name+(it.enabled?'':' · 已停用');const small=document.createElement('small');small.textContent=it.body.replace(/\n/g,' / ');txt.append(strong,small);const acts=document.createElement('div');acts.className='mgactions';const button=(name,fn)=>{const b=document.createElement('button');b.className='btn tiny';b.type='button';b.textContent=name;b.addEventListener('click',fn);acts.append(b)};button('编辑',()=>editView(it.id));button(it.enabled?'停用':'启用',()=>{it.enabled=!it.enabled;listView();renderBar()});button('↑',()=>move(i,-1));button('↓',()=>move(i,1));button('删除',()=>{if(confirm('删除“'+it.name+'”？此操作只作用于模拟数据。')){items=items.filter(x=>x.id!==it.id);listView();renderBar()}});button('复制',()=>navigator.clipboard?.writeText(it.body).then(()=>say('已复制完整提示词')).catch(()=>say('浏览器不允许当前预览复制，请使用编辑视图')));row.append(icon,txt,acts);list.append(row)})}
+ function move(i,n){const j=i+n;if(j<0||j>=items.length)return;[items[i],items[j]]=[items[j],items[i]];listView();renderBar()}
+ function editView(id,prefill=null){edit=id;const it=items.find(x=>x.id===id);$('#mglist').hidden=true;$('#mform').hidden=false;$('#madd').hidden=true;$('#mtitle').textContent=it?'编辑提示词':'新建提示词';const f=$('#mform');f.elements.label.value=it?.label||prefill?.label||'';f.elements.name.value=it?.name||prefill?.name||'';f.elements.body.value=it?.body||prefill?.body||'';f.elements.shape.value=it?.shape||'square';f.elements.enabled.checked=it?.enabled??true;$('#merror').textContent='';f.elements.label.focus()}
+ $('#vChat').onclick=()=>view('chat');$('#vManage').onclick=()=>view('manage');$('#nav').onclick=()=>{stage.classList.toggle('nonav');$('#nav').textContent=stage.classList.contains('nonav')?'展开原生导航':'收起原生导航';syncLayout();say('原生导航改变后，工具栏仍紧贴 ChatGPT 主内容区左边缘，纵向居中')};$('#narrow').onclick=()=>{stage.classList.toggle('compact');$('#narrow').textContent=stage.classList.contains('compact')?'恢复宽屏':'模拟窄屏';syncLayout();say('窄屏：工具栏紧贴主内容左边缘并安全折叠；不会移到文本列中间、输入框或右侧')};$('#dark').onclick=()=>{stage.classList.toggle('dark');$('#dark').textContent=stage.classList.contains('dark')?'浅色模式':'深色模式'};$('#madd').onclick=()=>editView(null);$('#mcancel').onclick=listView;
+ $('#mform').addEventListener('submit',e=>{e.preventDefault();const f=e.currentTarget,l=f.elements.label.value.trim(),n=f.elements.name.value.trim(),body=f.elements.body.value,shape=f.elements.shape.value,en=f.elements.enabled.checked;const err=$('#merror');if(!/^[\u3400-\u9fff]{1,2}$/u.test(l)||!n||!body.trim()){err.textContent='请填写 1–2 个汉字短标签、完整名称和非空正文';return}if(new TextEncoder().encode(JSON.stringify(items)).length+new TextEncoder().encode(body).length>8192){err.textContent='模拟的单项存储 8 KiB 限额已超出；草稿未清空';return}if(edit){const it=items.find(x=>x.id===edit);Object.assign(it,{label:l,name:n,body,shape,enabled:en})}else items.push({id:'new'+Date.now(),label:l,name:n,body,shape,enabled:en});listView();renderBar();say('模拟保存成功。现在切换到网页视图即可看到新按钮')});
+ function syncSelectionMenuSetting(){const input=$('#enableSelectionMenu');input.checked=menuEnabled;input.setAttribute('aria-checked',String(menuEnabled));$('#menuSettingStatus').textContent=menuEnabled?'当前已开启':'当前已关闭'}
+ $('#enableSelectionMenu').addEventListener('change',e=>{menuEnabled=e.target.checked;syncSelectionMenuSetting();hideSelectionMenu();say(menuEnabled?'模拟右键快捷添加已开启。正式扩展仍需 Chrome 一次性许可。':'模拟右键快捷添加已关闭；已有提示词保留。')});
+ function hideSelectionMenu(){selectionMenuVisible=false;selectionMenu.hidden=true;selectedDraft='';}
+ function menuForSelection(x,y,simulated=false){
+   hideTooltip(true);
+   if(!menuEnabled){say('选中文字快速添加已关闭，可在「工具管理」的滑动开关重新打开。');return false;}
+   const active=String(window.getSelection()?.toString()||'');
+   if(!active.trim()){say('请先选中聊天中的一段文字，然后右键选择添加。');return false;}
+   if(new TextEncoder().encode(JSON.stringify(active)).byteLength>8192){say('选中文字超过单项 8 KiB 限制，不会截断；请缩小选区。');return false;}
+   selectedDraft=active;selectionMenuVisible=true;$('#selectedExcerpt').textContent=active;
+   selectionMenu.hidden=false;
+   const rect=stage.getBoundingClientRect();
+   selectionMenu.style.left=Math.round(Math.max(10,Math.min(x-rect.left,rect.width-selectionMenu.offsetWidth-10)))+'px';
+   selectionMenu.style.top=Math.round(Math.max(10,Math.min(y-rect.top,rect.height-selectionMenu.offsetHeight-10)))+'px';
+   if(simulated)say('已演示选区菜单：点击「添加为提示词快捷按钮」打开预填表单。');
+   $('#addFromSelection').focus({preventScroll:true});
+   return true;
+ }
+ conversation.addEventListener('contextmenu',event=>{
+   const s=window.getSelection();
+   if(!s?.rangeCount||!conversation.contains(s.anchorNode)||!conversation.contains(s.focusNode))return;
+   if(!menuEnabled){hideSelectionMenu();return;}
+   if(menuForSelection(event.clientX,event.clientY))event.preventDefault();
+ });
+ $('#demoSelection').addEventListener('click',()=>{
+   const p=[...conversation.querySelectorAll('p')].find(node=>node.textContent.includes('润色'));
+   const range=document.createRange();range.selectNodeContents(p||conversation.querySelector('p'));
+   const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);
+   const r=(p||conversation).getBoundingClientRect();menuForSelection(r.left+50,r.top+60,true);
+ });
+ $('#addFromSelection').addEventListener('click',()=>{
+   const body=selectedDraft;if(!menuEnabled||!body.trim()){hideSelectionMenu();return;}
+   hideSelectionMenu();view('manage');editView(null,{label:'选文',name:'选中文字创建的提示词',body});
+   say('已把选中文字预填为提示词正文。请审阅名称、短标签和正文，然后手动保存。');
+ });
+ stage.addEventListener('pointerdown',e=>{if(selectionMenuVisible&&!selectionMenu.contains(e.target))hideSelectionMenu()});
+ document.addEventListener('keydown',e=>{
+   if(e.key==='Escape'&&selectionMenuVisible){hideSelectionMenu();e.stopPropagation();}
+   if(e.key==='F10'&&e.shiftKey&&mode==='chat'&&menuEnabled){
+     const selection=window.getSelection();if(selection?.rangeCount&&conversation.contains(selection.anchorNode)){
+       e.preventDefault();const r=selection.getRangeAt(0).getBoundingClientRect();menuForSelection(r.left,r.bottom,true);
+     }
+   }
+ });
+ syncSelectionMenuSetting();
+ view('chat');syncLayout();renderBar();
+})();
+</script>
+</body></html>
