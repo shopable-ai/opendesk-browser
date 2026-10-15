@@ -15,6 +15,8 @@ on:
       - 'scripts/tests/sidebar-preview-runtime-chrome.mjs'
       - 'examples/sidebar-tools/quick-notes/**'
       - 'examples/sidebar-tools/bookmark-manager/**'
+      - 'examples/sidebar-tools/adblock/**'
+      - 'tests/environment/adblock-preview-contract.test.mjs'
       - 'tests/environment/sidebar-preview-contract.test.mjs'
       - 'tests/environment/browser-tool-creation-workflow-r21.test.mjs'
       - 'docs/framework/browser-tool-creation-workflow.zh-CN.md'
@@ -43,9 +45,13 @@ jobs:
           node --check scripts/preview/check-preview-contract.mjs
           node --check scripts/preview/quick-notes-mock.js
           node --check scripts/preview/bookmark-manager-mock.js
+          node --check scripts/preview/adblock-host-source.mjs
+          node --check scripts/preview/adblock-mock.js
+          node --check scripts/preview/adblock-host-preview.js
+          node --check tests/environment/adblock-preview-contract.test.mjs
           node scripts/preview/check-preview-contract.mjs
       - name: Verify package identity, mock safety and negative guards
-        run: node --test tests/environment/sidebar-preview-shell.test.mjs tests/environment/sidebar-preview-contract.test.mjs tests/environment/sidebar-quick-notes.test.mjs tests/environment/sidebar-preview-kit.test.mjs tests/environment/browser-tool-creation-workflow-r21.test.mjs
+        run: node --test tests/environment/sidebar-preview-shell.test.mjs tests/environment/sidebar-preview-contract.test.mjs tests/environment/sidebar-quick-notes.test.mjs tests/environment/sidebar-preview-kit.test.mjs tests/environment/browser-tool-creation-workflow-r21.test.mjs tests/environment/adblock-preview-contract.test.mjs
       - name: Build official tool and offline preview matrix
         run: |
           node scripts/build-sidebar-tool.mjs examples/sidebar-tools/quick-notes --out artifacts/quick-notes-preview-proof.opendesk-tool.json
@@ -59,7 +65,13 @@ jobs:
           done
           for scenario in success empty error loading permission-denied untrusted; do
             node scripts/preview/build-preview.mjs --tool bookmark-manager --surface side-panel --scenario "$scenario" --theme light --width 360
+            node scripts/preview/build-preview.mjs --tool adblock --surface side-panel --scenario "$scenario" --theme light --width 360
           done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: adblock-source-bound-preview
+          path: artifacts/previews/adblock/*.html
+          if-no-files-found: error
       - uses: browser-actions/setup-chrome@v2
         id: chrome
       - name: Run generated offline preview in real headless Chrome
