@@ -81,9 +81,9 @@ export function prepareDirectExecution({request,workflow,target,observation}) {
   if(reads.length&&!readIntent.test(instruction))
     throw error('E_AI_UNREQUESTED_ACTION','本次未要求读取页面，模型额外生成网页读取动作');
 
-  return {params,hasReadback:fills.length>0,
-    hasUnprovenClick:clean.steps.some((step,index)=>step.op==='click'&&
-      !clean.steps.slice(index+1).some(next=>next.op==='assert'))};
+  // A following assert is not automatically a business-effect oracle for
+  // a click. Keep it unverified until an independent effect proof is defined.
+  return {params,hasReadback:fills.length>0,hasUnprovenClick:clicks.length>0};
 }
 
 // A RunHost completion is not automatically a successful web-page effect.
