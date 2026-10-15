@@ -34,6 +34,8 @@ test('only known sample code can be previewed',()=>{
  assert.equal(M.preflight('UNKNOWN-123456','member').status,'unavailable');
  assert.equal(M.preflight('invalid!','member').status,'invalid');
  assert.equal(M.preflight('DEMO-ACCESS-2026','blocked').status,'unavailable');
+ assert.equal(M.preflight('DEMO-ACCESS-2026','guest').status,'login_required');
+ assert.equal(M.preflight('DEMO-ACCESS-2026','recovery').status,'unavailable');
 });
 test('voucher failures remain distinct',()=>{
  for(const [code,status] of [
