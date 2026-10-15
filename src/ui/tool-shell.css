@@ -156,6 +156,9 @@
 .local-project-tools{display:grid;gap:var(--space-3);margin:0}
 .local-project-intro{margin:0}
 .local-project-connect{width:100%;text-align:center}
+.local-project-recovery{display:grid;gap:var(--space-2)}
+.local-project-recovery[hidden]{display:none}
+#local-project-status[data-state=source-error],#local-project-status[data-state=update-required]{color:var(--od-negative)}
 /* The first-use guide uses od-disclosure--info; only list indentation is local. */
 #local-project-guide>ol{padding-inline-start:calc(var(--space-4) + var(--space-1))}
 #local-project-guide li+li{margin-top:var(--space-2)}

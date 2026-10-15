@@ -24,7 +24,7 @@ function fixture(t,{nativeConnected=true,connected=false,saved}={}){
   const client={requestLocalProject:async method=>{calls.push(method);return method==='status'?state:{providerEpoch:state.providerEpoch,projects};},
     subscribeLocalProjects:callback=>{listener=callback;return ()=>{listener=null;};}};
   const api={storage:{local:{get:async()=>saved?{'opendesk.local-project.selection.v1':saved}:{},set:async value=>{writes.push(value);}}}};
-  const view=createLocalProjectView({client,api,document:{getElementById:find}});
+  const view=createLocalProjectView({client,api,document:{getElementById:find},preparationDelayMs:0});
   t.after(()=>view.dispose());
   return {view,find,calls,writes,client,setState:value=>{state=value;},setProjects:value=>{projects=value;},notify:value=>listener(value)};
 }
@@ -161,4 +161,56 @@ test('a late offline status response cannot refresh after switching modes or dis
     assert.equal(reads,1);assert.equal(f.view.connected(),false);
     f.view.dispose();t.mock.timers.reset();
   }
+});
+
+test('local readiness hides connection help and Page parameters, without hiding offline recovery',async t=>{
+  const f=fixture(t,{connected:true});await tick();
+  assert.equal(f.find('local-project-recovery').hidden,true);
+  assert.equal(f.find('local-project-connect').hidden,true);
+  assert.equal(f.find('local-project-params-tools').hidden,true);
+  assert.equal(f.view.readyForRun(),true);
+  f.notify({connected:false,nativeConnected:false,providerEpoch:null});await tick();
+  assert.equal(f.find('local-project-recovery').hidden,false);
+  assert.equal(f.find('local-project-connect').hidden,false);
+  assert.equal(f.view.readyForRun(),false);
+});
+test('catalogs without preparation metadata only read selected authorized source and verify hash',async t=>{
+  const f=fixture(t,{connected:true});f.setProjects([{...project,preparation:undefined}]);
+  const sourceUtf8='async function main() { return 1; }';
+  const {createHash}=await import('node:crypto');
+  const sourceHash=createHash('sha256').update(sourceUtf8).digest('hex');
+  const prior=f.client.requestLocalProject,reads=[];
+  f.client.requestLocalProject=async(method,params)=>{
+    if(method==='project.resolve'){
+      reads.push(params.bindingId);
+      return {bindingId:params.bindingId,providerEpoch:'epoch-a',runtimeKind:'page-userscript',
+        sourceUtf8,sourceBytes:Buffer.byteLength(sourceUtf8),sourceHash,inputHash:'a'.repeat(64)};
+    }
+    return prior(method,params);
+  };
+  await tick();f.find('local-project-refresh').fire('click');
+  for(let n=0;n<20&&!f.view.readyForRun();n++)await new Promise(resolve=>setTimeout(resolve,5));
+  assert.deepEqual(reads,['local-a']);
+  assert.equal(f.view.readyForRun(),true);
+  assert.equal(f.find('local-project-status').dataset.state,'ready');
+  assert.match(f.find('local-project-diagnostics').textContent,/源码 SHA-256/);
+  assert.equal((await f.view.resolve(f.view.capture())).sourceHash,sourceHash);
+});
+test('bad background SHA is non-executable and prior project stays visible offline',async t=>{
+  const f=fixture(t,{connected:true,saved:{bindingId:'local-a',name:'TOC',localMode:true}});
+  f.setProjects([{...project,preparation:undefined}]);
+  const prior=f.client.requestLocalProject;
+  f.client.requestLocalProject=async(method,params)=>method==='project.resolve'?
+    {bindingId:params.bindingId,providerEpoch:'epoch-a',runtimeKind:'controller',
+      sourceUtf8:'return 1',sourceBytes:8,sourceHash:'f'.repeat(64),inputHash:'a'.repeat(64)}:
+    prior(method,params);
+  await tick();f.find('local-project-refresh').fire('click');
+  for(let n=0;n<20&&f.find('local-project-status').dataset.state!=='source-error';n++)
+    await new Promise(resolve=>setTimeout(resolve,5));
+  assert.equal(f.view.readyForRun(),false);
+  assert.equal(f.find('local-project-status').dataset.state,'source-error');
+  assert.throws(()=>f.view.capture(),{code:'E_DEV_SOURCE'});
+  f.setProjects([]);f.find('local-project-refresh').fire('click');await tick();
+  assert.match(f.find('local-project-select').children.at(-1).textContent,/离线/);
+  assert.equal(f.view.readyForRun(),false);
 });

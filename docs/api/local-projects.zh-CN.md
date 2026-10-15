@@ -21,7 +21,7 @@ opendesk browser project revoke --binding-id local-xxxxxxxxxxxxxxxxxxxx
 
 Page 单文件则使用 `--runtime-kind page-userscript --entry-format classic-userscript` 或 `async-main`；Controller 只支持 `async-main`。最多 8 个文件授权、每份源码 48 KiB、HTTP(S) 精确 origin。目录、父路径符号链接、文件身份替换、过大/非 UTF-8、非法来源一律拒绝；编辑同一文件不会自动 Run。源内容的真实 `sourceHash` 和大小由 Sidebar 再校验，实际网站权限需在 Chrome 独立授予。
 
-授权完成后，Go Host 的 `project.changed` 会通知已经连接的扩展更新来源；如果扩展未连接，下一次 Native 连接会读取授权。在 Sidebar「开发 → 本地项目」可以刷新当前来源，再选择文件并明确点击运行。R17 Go Host 将新的多个目录 Provider、旧 MCP 与 Go 单文件聚合；R2.2 的 Node MCP 独占优先级仅代表旧协议历史状态。目录命令使用 [R17 直连指南](../framework/local-directory-cli-r17.zh-CN.md)，不自动把只读 Workspace 伪装成可运行程序。此模型目前只支持单文件，没有自动停止原业务任务的“热替换”。
+授权完成后，Go Host 的 `project.changed` 会通知已经连接的扩展更新来源；如果扩展未连接，下一次 Native 连接会读取授权。在 Sidebar「开发 → 本地项目」自动读取已授权列表并准备源码，单项目自动选中，多项目保留此前选择，明确点击才运行。R17 Go Host 将新的多个目录 Provider、旧 MCP 与 Go 单文件聚合；R2.2 的 Node MCP 独占优先级仅代表旧协议历史状态。目录命令使用 [R17 直连指南](../framework/local-directory-cli-r17.zh-CN.md)，不自动把只读 Workspace 伪装成可运行程序。此模型目前只支持单文件，没有自动停止原业务任务的“热替换”。
 
 正式项目安装、官方 Extension ID、用户可见的原生文件授权对话框及 Node→Go 安装迁移仍需独立完成和真实 Chrome 验收。参见 [Native 兼容台账](../architecture/browser-framework/native-convergence-compatibility-r3.zh-CN.md)。
 
@@ -146,3 +146,13 @@ Page 项目可选设置 `"framework":"react"` 或 `"framework":"vue"`，而无�
 - **Developer Edition 浏览器直接编辑：**Side Panel → 开发 → 直接编辑 → React JSX/Vue SFC → 输入源码 → 点击运行；受信 Worker 只做转换，原 USER_SCRIPT 运行网页业务，显式 Stop；无需 Native/本机编译工具，但需目标站点授权与 Chrome 用户脚本能力。 [真实 Chrome 历史候选证据](https://github.com/shopable-ai/opendesk-browser/actions/runs/38225425847)。
 
 如果页面显示「已连接」但不能 Run，检查源码准备是否处于 `ready`、`updating`、`merging` 或 `source-error`；连接不等于编译成功。处理错误后再次明确 Run，不会自动回退旧成功版本。本地项目可静态导入受信、已锁定依赖；浏览器内单组件不接受任意 npm、URL 或动态导入。
+
+## Local Projects R1：零摩擦开发页（2026-10-16）
+
+已授权项目打开开发页后自动发现；此前明确选择的本地项目模式和 `bindingId` 仅持久化为 UI 偏好，不是目录访问权限。仅有一个授权项目时自动选中；原项目离线时保留名称但不可运行，不自动切换至不相关项目。Native 或 Provider 恢复后自动刷新；正常在线且源码已就绪时隐藏连接帮助和冗余刷新按钮。Controller 的项目参数 JSON 可按需展开；Page 不显示参数。底部保存固定版本只在已实际运行验证后出现，不能与文件编辑保存混淆。
+
+**三个分离的状态：** A 为 Chrome Native Messaging 已连接；B 为源码 Provider 已注册且具有已授权项目；C 为 `http://127.0.0.1:43111/demo-form.html` 本地浏览器测试目标。它们不能互相推定，也不代表新的目录授权。首次授权继续使用现有 `opendesk browser dev .` / `opendesk-dev .` 或单文件 `opendesk browser project add`。刷新/断线/Provider 代次变化必须重新校验 `bindingId` 和 `providerEpoch`。
+
+Node Resolver 可在源码保存后自动准备。在 `projects.list` 包含 `preparation.state` 时呈现 Provider 的真实状态；若当前 Go 聚合清单暂不透传准备元数据，则浏览器只对**当前选中的已授权项目**经现有只读 `project.resolve` 核验最新源码字节、`sourceHash`、`inputHash`、运行类型和 Provider epoch，且只保留哈希摘要（不保留后台读取的源码正文）；目录改变与 Provider 通知会重新核验，2 秒状态轮询不会重复编译。未准备、错误或版本变化会禁用运行按钮。每次明确运行仍会重新读取最新源码、按 SHA-256 校验、校验当前网页权限/目标与 Controller/Page 运行合同；保存不会执行网页业务。诊断字段放在折叠区域。
+
+**跨仓库待验收限制：** OpenDesk Go `internal/browserbridge/host_dev_multi_unix.go` 当前对目录项目进行聚合时未完整转发 Node 的 `preparation` 元数据。这次 Browser 只读兼容层不另建多客户端 Native 系统；Go 后续须复用 GOAL 2 协议演进。Go 仓库默认写入分支为 `master`，不属于本任务已授权的唯一 `main` 写入范围，因此未修改 Go。Mac 已安装 Native、Go CLI、Chrome Profile 与 `127.0.0.1:43111` 的真实验收必须另行记录，不能用 Node Mock 代替。

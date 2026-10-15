@@ -774,7 +774,7 @@
   </section>
     </div>
     <section id="local-project-tools" class="local-project-tools" aria-label="本地项目连接" hidden>
-      <p class="local-project-intro od-note">在编辑器或 Codex 中保存，系统自动准备；点击「运行本地项目」执行最新代码。保存文件不会自动运行。</p>
+      <p class="local-project-intro od-note">保存已授权项目源码后自动准备；只有点击运行才会操作网页。</p>
       <div class="local-project-controls od-toolbar">
         <label for="local-project-select" class="visually-hidden">已授权本地项目</label><select id="local-project-select" class="od-field"><option value="">选择已授权项目</option></select>
         <button id="local-project-refresh" type="button" class="od-icon-button" title="刷新已授权本地项目" aria-label="刷新已授权本地项目"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.4 5.7M20 4v7h-7"></path></svg></button>
@@ -789,19 +789,21 @@
         <div class="row"><button id="local-install-confirm" type="button" disabled class="od-button">确认安装固定版本</button><button id="local-install-cancel" type="button" class="od-button od-button--secondary">取消</button></div>
         <p id="local-install-status" role="status" aria-live="polite"></p>
       </section>
-      <details class="od-disclosure od-disclosure--flat"><summary>高级诊断</summary><p id="local-project-diagnostics">运行后显示版本与准备耗时。</p></details>
+      <details class="od-disclosure od-disclosure--flat"><summary>高级诊断</summary><p id="local-project-diagnostics">正在核对 Native 和源码 Provider。</p></details>
+      <div id="local-project-recovery" class="local-project-recovery" hidden>
       <button id="local-project-connect" class="local-project-connect od-button od-button--secondary" type="button">连接本机 OpenDesk ↗</button>
       <details id="local-project-guide" class="local-project-guide od-disclosure od-disclosure--info">
         <summary>首次使用：连接方法</summary>
         <ol>
-          <li>先安装 OpenDesk 原生程序；点击上方「连接本机 OpenDesk」，在扩展选项中确认首次 Native 权限。</li>
-          <li>当前开发版的本地项目源码仍由 Codex <code>opendesk-dev</code> MCP 提供；首次配置及目录授权请参阅高级开发指南。</li>
-          <li>回到此处刷新已授权项目列表，选中项目，再明确点击「运行本地项目」。</li>
+          <li>首次使用时安装并配对 OpenDesk 原生程序；仅在 Native 未连接时点击「连接本机 OpenDesk」完成可信授权。</li>
+          <li>在要授权的目录执行 <code>opendesk browser dev .</code> 或 <code>opendesk-dev .</code>；单文件使用原有的 <code>opendesk browser project add</code> 命令。</li>
+          <li>已授权项目会自动出现、自动准备；多个项目可切换，再点击「运行本地项目」。</li>
         </ol>
-        <p>本机 Native 已连接与本地项目 Provider 已就绪是两种状态。普通脚本无需它们。当前开发版的首次配对仍可能需要高级配置；<code>npm run dev</code> 只负责扩展源码热更新。</p>
+        <p>Native 连接、源码 Provider 和 <code>127.0.0.1:43111</code> 测试网页互不等价；已有授权不必重新配对，网站权限仍在运行时独立确认。</p>
         <button id="local-project-guide-open" type="button" class="od-button od-button--secondary">查看首次配置命令和示例 ↗</button>
-        <p>也可在仓库内查阅 <code>docs/api/quickstart.zh-CN.md</code> 的「首次配置」章节。</p>
+        <p>查看 <code>docs/api/local-projects.zh-CN.md</code> 中的正式授权示例。</p>
       </details>
+      </div>
       <details id="local-project-params-tools" hidden class="od-disclosure"><summary>项目参数 JSON（Controller 可选）</summary><label for="local-project-params" class="visually-hidden">本地项目参数</label><textarea id="local-project-params" rows="3" spellcheck="false" class="od-field">{}</textarea></details>
     </section>
     <div id="manual-source-editor">
