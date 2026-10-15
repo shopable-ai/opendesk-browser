@@ -10,12 +10,17 @@
 
 ```bash
 npm ci --ignore-scripts --no-audit --no-fund  # 初次准备依赖；已有依赖可省略
-npm run build:sidebar-tool -- examples/sidebar-tools/cookie-editor
-# 同步更新：examples/sidebar-tools/cookie-editor/cookie-editor.opendesk-tool.json
-# 同时保留：artifacts/sidebar-tools/cookie-editor/2.0.6/cookie-editor.opendesk-tool.json
+# 先构建忽略目录下的稳定临时候选，不覆盖根目录的可安装包
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor \
+  --out artifacts/sidebar-tools/cookie-editor/candidate.opendesk-tool.json
+# 执行本工具的专项 Node、存储、权限和包测试；只有受影响测试 PASS 后才能晋升
+node --test tests/environment/cookie-editor-ui.test.mjs
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor \
+  --promote-from artifacts/sidebar-tools/cookie-editor/candidate.opendesk-tool.json
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor --check-project
 ```
 
-**项目目录已附带可直接导入的 `cookie-editor.opendesk-tool.json`。** 克隆或下载该目录的开发者不需要 Node.js 就能安装测试。它是从 `tool.config.json` 和 `src/` 通过原打包器生成的可移植快照；修改源码后必须用上面命令同步刷新并提交，测试会比较构建结果与提交文件是否完全一致。不要手工编辑生成的 JSON。
+**项目目录已附带可直接导入的 `cookie-editor.opendesk-tool.json`。** 克隆或下载该目录的开发者不需要 Node.js 就能安装测试。它是从 `tool.config.json` 和 `src/` 通过原打包器生成的可移植快照；修改源码后先编译临时候选，完成受影响测试，再按上述 `--promote-from` 显式晋升并将唯一正式包和源码同步提交；失败不覆盖旧正式包，`--check-project` 会检查当前生成字节与提交包一致。不要手工编辑生成的 JSON。
 
 然后在当前 Chrome 的 OpenDesk Side Panel →「扩展」→ **更多操作 → 导入本地工具包**，选择目录内的 `cookie-editor.opendesk-tool.json`（或原 `artifacts/` 输出文件） → 核对 ID `cookie-editor`、版本、文件来源和 Cookies 敏感能力 → **确认安装/更新** → 在已安装列表中点击 **打开**。如果原有同 ID 工具已经安装，应走“更新”而不是先卸载（卸载会清除工具本地数据及授权）。每次改完本工具的 `src/...` 后重新执行上述打包并**明确导入确认**；正式发布更新时同步评审并提高 `tool.config.json` 版本。导入动作本身不运行代码，也不自动授予某个网站的 Cookie 访问权限。
 
@@ -69,7 +74,7 @@ npm run build:sidebar-tool -- examples/sidebar-tools/cookie-editor
 
 ```bash
 node --test tests/environment/browser-sdk-r9-installed-cookies.test.mjs tests/environment/browser-sdk-r7-trusted-cookies.test.mjs tests/environment/browser-sdk-r8-cookies.test.mjs tests/environment/cookie-editor-ui.test.mjs
-node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor --out artifacts/sidebar-tools/cookie-editor/candidate.opendesk-tool.json
 node scripts/build-official-tools.mjs --out artifacts/official-tools-release
 npm run check && npm test && npm run build && npm run build:dev && npm run verify
 ```
