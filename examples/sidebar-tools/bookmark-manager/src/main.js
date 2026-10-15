@@ -89,7 +89,8 @@ function gate(text){
   q('bm-inspector').hidden=true;q('bm-total').textContent='';q('bm-form-error').textContent='';
   for(const id of ['bm-name','bm-url','bm-parent','bm-search','bm-folder-query'])q(id).value='';
   for(const id of ['bm-inspector-title','bm-inspector-parent','bm-inspector-url','bm-inspector-id','bm-conflict-summary'])q(id).textContent='';
-  q('bm-draft-guard').hidden=true;q('bm-conflict-review').hidden=true;q('bm-adopt').hidden=true;
+  q('bm-draft-guard').hidden=true;q('bm-draft-context').textContent='';
+  q('bm-conflict-review').hidden=true;q('bm-adopt').hidden=true;
   q('bm-inline-slot').hidden=true;
   for(const id of ['bm-detail-url','bm-delete-desc','bm-counter'])q(id).textContent='';
   q('bm-delete-children').checked=false;
@@ -294,7 +295,9 @@ function render(){
   q('bm-inspector').hidden=!(node(s.selection)||s.mode.startsWith('new-')||
     (editingMode()&&s.reviewed));
   q('bm-inspector-read').hidden=!isRead;
-  q('bm-form-view').hidden=!showForm;
+  // When the user is deciding about a pending switch, do not leave an
+  // unrelated editable form visible beneath the decision.
+  q('bm-form-view').hidden=!showForm||Boolean(s.pending);
   q('bm-delete-view').hidden=!isDelete;
   q('bm-draft-guard').hidden=!s.pending;
   q('bm-search').value=s.search;
@@ -557,6 +560,30 @@ async function saveCurrent(){
     },{title:(first.title||new URL(url).hostname).trim(),url,parentId});
   }catch(error){notice(errorText(error),true)}
 }
+function promptDraftSwitch(action,id){
+  const current=node(s.selection)?.title||s.reviewed?.title||'当前草稿';
+  const target=node(id)?.title||'所选项目';
+  const descriptions={
+    detail:'查看「'+target+'」',folder:'查看文件夹「'+target+'」',
+    edit:'编辑「'+target+'」',move:'移动「'+target+'」',
+    delete:'删除「'+target+'」', 'new-bookmark':'新建书签',
+    'new-folder':'新建文件夹','save-current':'收藏当前网页'
+  };
+  const destination=descriptions[action]||'切换操作';
+  s.pending={action,id};
+  q('bm-draft-context').textContent='「'+current+'」还有未保存的修改。'+
+    '若要'+destination+'，须先明确放弃草稿；不会自动保存。';
+  q('bm-discard-switch').textContent='放弃草稿并'+destination;
+  q('bm-form-view').hidden=true;
+  q('bm-draft-guard').hidden=false;
+  q('bm-keep-draft').focus({preventScroll:true});
+  if(inNarrow())q('bm-draft-guard').scrollIntoView?.({block:'nearest'});
+}
+function dismissDraftSwitch(){
+  s.pending=null;q('bm-draft-guard').hidden=true;
+  q('bm-form-view').hidden=!editingMode();
+  (s.mode==='move'?q('bm-folder-query'):q('bm-name')).focus({preventScroll:true});
+}
 function onAction(action,id){
   if(s.busy||!s.tree)return;
   if(action==='toggle'){s.expanded.has(id)?s.expanded.delete(id):s.expanded.add(id);renderList();return}
@@ -567,8 +594,7 @@ function onAction(action,id){
   if(switching&&editingMode()&&
     !(s.selection===id&&(action==='edit'&&s.mode==='edit'||action==='move'&&s.mode==='move'))){
     if(isDirty()){
-      s.pending={action,id};q('bm-draft-guard').hidden=false;
-      q('bm-keep-draft').focus({preventScroll:true});return;
+      promptDraftSwitch(action,id);return;
     }
     s.mode='tree';s.draft=null;s.initialDraft=null;s.reviewed=null;
     s.saveNeedsReview=false;s.conflict=false;s.conflictReviewed=false;
@@ -614,9 +640,7 @@ function onAction(action,id){
 }
 root.addEventListener('keydown',event=>{
   if(event.key==='Escape'&&s.pending){
-    event.preventDefault();s.pending=null;q('bm-draft-guard').hidden=true;
-    (s.mode==='move'?q('bm-folder-query'):q('bm-name')).focus({preventScroll:true});
-    return;
+    event.preventDefault();dismissDraftSwitch();return;
   }
   if(event.key==='Escape'&&s.mode!=='tree'){event.preventDefault();cancel();return}
   if(event.key==='F2'&&s.mode==='tree'&&s.selection&&!node(s.selection)?.locked){
@@ -634,16 +658,14 @@ q('bm-new-bookmark').addEventListener('click',()=>onAction('new-bookmark'));
 q('bm-new-folder').addEventListener('click',()=>onAction('new-folder'));
 q('bm-cancel').addEventListener('click',cancel);
 q('bm-delete-cancel').addEventListener('click',cancel);
-q('bm-keep-draft').addEventListener('click',()=>{
-  s.pending=null;q('bm-draft-guard').hidden=true;
-  (q('bm-name').disabled?q('bm-folder-query'):q('bm-name')).focus({preventScroll:true});
-});
+q('bm-keep-draft').addEventListener('click',dismissDraftSwitch);
 q('bm-discard-switch').addEventListener('click',()=>{
   const pending=s.pending;
   if(!pending)return;
   s.pending=null;s.mode='tree';s.draft=null;s.initialDraft=null;
   s.reviewed=null;s.reviewedDescendants=null;s.conflict=false;s.conflictReviewed=false;
   s.saveNeedsReview=false;q('bm-form-error').textContent='';
+  q('bm-draft-guard').hidden=true;q('bm-form-view').hidden=true;
   onAction(pending.action,pending.id);
 });
 q('bm-folder-query').addEventListener('input',()=>{
