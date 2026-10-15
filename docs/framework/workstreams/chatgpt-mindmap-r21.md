@@ -142,3 +142,10 @@ Date: 2026-10-15. Branch: `main` (only). Scope: `examples/programs/chatgpt-mindm
 - **始终不提升准入：** 已实测 `style#snowbrush_style` 全局残留：`BLOCKED_GLOBAL_STYLE_RESIDUE`；第三方 Snowbrush 合并包 / GSAP 3.5.1 传递权利仍未闭环；可信固定 JS Runtime 无 4MB 安全准入；登录真实 ChatGPT 的自动运行、卸载/撤权与同候选安装仍 NOT_TESTED。保持 `installable:false`，不可扩容通用 USER_SCRIPT 512 KiB/注入 MAIN/开任意 CDN。
 
 **证据范围结论：** `PREVIEW_ASSETS_READY=PASS(CI)`；`REAL_LOCAL_HTML_XMIND=PASS(CI)`；`REPOSITORY_DISTRIBUTABLE=BLOCKED`；`PRODUCT_RUNTIME_ADMITTED=BLOCKED`；`INSTALLED_CHATGPT=NOT_TESTED`。聊天中展示的浏览器截图只能标 `VISUAL_EVIDENCE_ONLY`，真实交互需运行仓库的 localhost 页面。每个截图/JSON 均绑定其各自 CI SHA 和有限保留时效。
+
+
+### R2.3 新增缩放测试失败与修正状态
+
+- [CI #38743226832](https://github.com/shopable-ai/opendesk-browser/actions/runs/38743226832)（`b5f78970`）：**offline-source-contract PASS**；真实浏览器 job **FAIL**，在 CDP `Emulation.setPageScaleFactor(2)` 模拟双指缩放后，Playwright 鼠标点 B 的「适配」发生跨回复命中，30s 超时。**不属于 4 个 XMind JS 字节验收失败；亦不能说 200% 输入已通过。**
+- [CI #38743388207](https://github.com/shopable-ai/opendesk-browser/actions/runs/38743388207)（`9acd97da`）：**真实 CLI 子步骤 PASS**，输出 `REAL_XMIND_PREVIEW_SPAWNED_CLI_PASS http://127.0.0.1:.../index.html?autostart=1` 且 GET HTML 成功；整个浏览器 Job 因相同的 CDP 鼠标命中测试失败。不能把 Job 标记为成功。
+- 修正提交 `1855ebc2896d6cfb408a80a3171c538015da8ec0` 改为先聚焦真实 Shadow DOM「适配」按钮，再在 CDP 2× pinch view 下真实键盘 Enter 触发；仅验收 **CDP 可视视口 + 键盘输入**，鼠标命中和 Chrome 菜单原生 200% 缩放仍未放行。对应 [CI #38744348312](https://github.com/shopable-ai/opendesk-browser/actions/runs/38744348312) 此条记录时仍在队列；最终结论必须以该运行的完整工作结果为准。
