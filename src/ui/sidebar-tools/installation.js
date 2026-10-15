@@ -6,7 +6,7 @@ import {READING_TOC_SITE_STORE, READING_TOC_VISIBILITY_STORE, READING_TOC_PAGE_R
 import {CLIP_SITE_STORE} from '../../page-clip/policy.js';
 import {CAPTURE_SITE_STORE, KNOWLEDGE_TOOL_ID, KNOWLEDGE_WORKSPACE_PREFIX} from '../../knowledge/policy.js';
 import {writeVerifiedLocalValue,classifyStorageWriteError,unknownStorageOutcome,sameStorageValue} from './storage-state.js';
-import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,TOOL_REVOCATION_EPOCHS_STORE} from './lifecycle.js';
+import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,requireToolRevocationEpochs,TOOL_REVOCATION_EPOCHS_STORE} from './lifecycle.js';
 import {TIME_REVIEW_KEY} from '../../time-review/model.js';
 import {stopStayFocusForTool,cleanupUninstalledStayFocus} from '../../stay-focus/lifecycle.js';
 import {stopAdblockForTool,cleanupUninstalledAdblock} from '../../../examples/sidebar-tools/adblock/trusted/lifecycle.js';
@@ -77,10 +77,7 @@ export async function setInstalledSidebarToolEnabled({api,lockManager,tool,enabl
       const previous=requireToolEnableRecords(raw);
       if((previous[tool.id]!==false)===enabled)return {enabled};
       const rawEpochs=(await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE];
-      const epochs=rawEpochs===undefined?{}:rawEpochs;
-      if(!epochs||typeof epochs!=='object'||Array.isArray(epochs)||
-        Object.entries(epochs).some(([id,value])=>!toolIdPattern.test(id)||typeof value!=='string'))
-        throw error('工具撤销记录损坏；已停止修改','E_STORAGE_CORRUPT');
+      const epochs=requireToolRevocationEpochs(rawEpochs);
       const rawGrants=(await api.storage.local.get(BROWSER_MENU_GRANTS_STORE))[BROWSER_MENU_GRANTS_STORE];
       if(rawGrants!==undefined&&(!rawGrants||typeof rawGrants!=='object'||Array.isArray(rawGrants)))
         throw error('工具网站授权记录损坏；已停止修改','E_STORAGE_CORRUPT');
@@ -149,9 +146,10 @@ export async function getPendingToolCleanups(api){
 export async function recordToolUninstall(api,tool){
   // Independent of package bytes: an old iframe must stay revoked even when
   // precisely the same tool/version is later installed again. Do not prune.
-  const revisions=(await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE]||{};
+  const rawEpochs=(await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE];
+  const revisions=requireToolRevocationEpochs(rawEpochs);
   await writeVerifiedLocalValue(api,TOOL_REVOCATION_EPOCHS_STORE,
-    {...revisions,[tool.id]:globalThis.crypto.randomUUID()},revisions,'工具旧实例撤销');
+    {...revisions,[tool.id]:globalThis.crypto.randomUUID()},rawEpochs,'工具旧实例撤销');
   const prior=await getPendingToolCleanups(api);
   const next={...prior,[tool.id]:{version:tool.version,createdAt:Date.now()}};
   await writeVerifiedLocalValue(api,TOOL_CLEANUP_STORE,next,prior,'卸载恢复记录');
