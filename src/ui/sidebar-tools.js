@@ -121,7 +121,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   let officialFilter='available',officialQuery='';
   let officialReleases=[],officialError='',officialLoaded=false;
   let officialMatches=new Set(),checkedInstalled=null,checkedReleases=null,matchEpoch=0,lastOfficialView='';
-  let siteGrants={},menuGrants={},promptGrants={},siteEpoch=0,tocVisibility={},tocVisibilityEpoch=0,lastTocRead=0,expandedSiteTool='';
+  let siteGrants={},menuGrants={},promptGrants={},siteEpoch=0,tocVisibility={},tocVisibilityEpoch=0,expandedSiteTool='';
   let tocPageRules={},tocPageRulesEpoch=0,tocSettingsOpen=false,tocScope='site',lastTocSettingsRows='';
   const siteTogglePending=new Set();
   let captureGrants={},enableRecords,enableReadEpoch=0,enableReadError=true;
@@ -492,7 +492,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     nativePending=false;
     if(nativeUI){const old=nativeUI;nativeUI=null;try{old.dispose();}catch{}}
     if(frame){frame.onload=null;frame.remove();frame=null;}
-    instance=null;requestCount=0;requestWindow=Date.now();lastTocRead=0;
+    instance=null;requestCount=0;requestWindow=Date.now();
     frameRoot.replaceChildren();
     if(frameRoot.dataset)delete frameRoot.dataset.timeReviewNative;
   }
@@ -1445,7 +1445,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         assertSession(source,token);
         const response=await api.tabs.sendMessage(target.tabId,{
           protocol:READING_TOC_PROTOCOL,operation,toolId:tool.id,expectedUrl:target.url,installEpoch:revocationEpoch,
-          ...(id?{id,sourceId}:{})
+          ...(id?{id,sourceId}:{}),
+          ...(operation==='toc.snapshot'&&payload?.refresh===true?{forceRefresh:true}:{})
         },{frameId:0,documentId:target.documentId});
         assertSession(source,token);
         await currentPageTarget.revalidate(target);
@@ -1579,11 +1580,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       rateExceeded=++knowledgeRequestCount>100;
     }else{
       if(Date.now()-requestWindow>=60000){requestCount=0;requestWindow=Date.now();}
-      rateExceeded=message.operation!=='toc.snapshot'&&++requestCount>120;
-    }
-    if(message.operation==='toc.snapshot'){
-      if(Date.now()-lastTocRead<1200)return;
-      lastTocRead=Date.now();
+      // Every accepted read must reply, never silently time out.
+      rateExceeded=++requestCount>120;
     }
     const token=instance,source=event.source,tool=active,revocationEpoch=frameRevocationEpoch;
     let bytes;

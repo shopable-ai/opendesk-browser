@@ -90,3 +90,15 @@ R4.5 资源迁移的候选、测试与真实浏览器证据见 [专项工作流]
 - 卸载通过既有可靠性清理流程一并删除该工具的显示偏好；安装、审核、版本更新和官方 Catalog 不变，也不需重新发布工具包 JS。
 
 **检查要点**：已授权单 H1 + 20 H2 长文章在页面宽度 900px、420px 和 700–820px 高度下能展示明显多于旧 125/160px 的悬浮目录；隐藏当前页面不影响其他路径，隐藏当前网站覆盖同 Origin 页面；此时 Side Panel `toc.snapshot` 和 `toc.navigate` 仍可用；恢复显示、刷新、SPA 切换、多标签、撤权、归位、卸载后均不泄露偏好。受控 CFT 原生测试见 `tests/framework/reading-toc-native-r41.test.mjs`，单元测试见 `tests/environment/reading-toc-visibility-r46.test.mjs`。
+
+## R4.8 · 空目录自动恢复与刷新（2026-10-15）
+
+- Side Panel 的 `CONTENTS` 标题右侧新增“刷新阅读目录”；它与“概览 / 当前章节 / 完整目录”分组分离，只重新提取当前已授权网页的章节，不重新加载网页或修改权限。
+- 打开时立即读取、空标题时短时补扫、之后约每 4 秒自动更新。读取失败有上限地退避重试，焦点恢复可主动更新；请求单飞，手动点击刷新不会被正在执行的旧请求吞掉。
+- 短暂读取失败不直接清空上次成功目录：明确标识为旧数据并禁用章节跳转，直到新数据返回。真正返回空索引时明确显示没有可识别章节。
+- 宿主删除静默丢弃 1.2 秒内重复 `toc.snapshot` 的逻辑，改用原有带错误回复的每分钟 120 次总限流。内容脚本存储策略临时失败时先停止索引，再按有界退避恢复授权核验。
+- `toc.snapshot` 允许 `refresh:true`，宿主在严格校验站点、文档和工具身份后转发 `forceRefresh:true`，内容脚本强制重新扫描 DOM。能力仍只有 `page.toc`。
+- 官方工具包版本为 **1.0.5**；1.0.4 已安装用户须通过原有工具升级入口确认更新，不会静默替换安装包。
+
+定向验证：`node --test tests/environment/reading-toc-recovery-r48.test.mjs tests/environment/reading-toc-lifecycle-r41.test.mjs`。
+真实 Chrome Side Panel、用户 Profile、SPA、授权撤销和最终安装需另外按原生验收等级核对；离线隔离测试不构成生产 95+ 实测结论。

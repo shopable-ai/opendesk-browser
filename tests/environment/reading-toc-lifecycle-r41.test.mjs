@@ -383,3 +383,32 @@ test('R4.1 rejects a background navigation and bounds a suspended animation fram
     globalThis.MutationObserver=prior;
   }
 });
+
+test('R4.8 policy read failures retry fail-closed; forced snapshots respect disable',async()=>{
+  const f=pageFixture(),old=globalThis.MutationObserver;
+  const get=f.api.storage.local.get.bind(f.api.storage.local);
+  let first=true;const pending=[];
+  f.api.storage.local.get=async keys=>{
+    if(first){first=false;throw Error('storage temporarily unavailable');}
+    return get(keys);
+  };
+  const originalTimeout=f.win.setTimeout,originalClear=f.win.clearTimeout;
+  f.win.setTimeout=(fn,delay)=>delay>=500?(pending.push(fn),987654):originalTimeout(fn,delay);
+  f.win.clearTimeout=id=>{if(id!==987654)originalClear(id);};
+  globalThis.MutationObserver=f.Observer;
+  const controller=initReadingToc({api:f.api,doc:f.doc,win:f.win});
+  try{
+    await tick();await tick();
+    assert.equal(f.Observer.active,0,'failed storage cannot start indexing');
+    assert.equal(pending.length,1,'retry is scheduled');
+    pending.shift()();await tick();await tick();
+    assert.equal(f.Observer.active,1,'authorized retry restores indexing');
+    const before=await f.send({}),after=await f.send({forceRefresh:true});
+    assert.equal(after.ok,true);assert(after.data.revision>before.data.revision);
+    const denied={[tool.id]:false};
+    f.state.set(SIDEBAR_TOOL_ENABLE_STORE,denied);
+    f.changes.send({[SIDEBAR_TOOL_ENABLE_STORE]:{newValue:denied}},'local');
+    await tick();await tick();
+    assert.equal((await f.send({forceRefresh:true})).ok,false);
+  }finally{controller.dispose();globalThis.MutationObserver=old;}
+});

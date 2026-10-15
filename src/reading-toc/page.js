@@ -16,6 +16,7 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
   if(!api?.storage?.local||!doc||!win||win.top!==win)return null;
   const index=createReadingTocIndex(doc);
   let enabled=false,disposed=false,suspended=false,view=null,observer=null,rebuildTimer=0,spyFrame=0,refreshEpoch=0;
+  let policyRetryTimer=0,policyFailures=0;
   let activeId='',href=win.location.href,navEpoch=0,settled=null,knownIds=[],viewEpoch=null;
   const removers=[];
   const listen=(target,type,fn,option)=>{target.addEventListener(type,fn,option);removers.push(()=>target.removeEventListener(type,fn,option));};
@@ -134,6 +135,7 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
   }
   async function refreshPolicy() {
     if(suspended||disposed)return;
+    win.clearTimeout(policyRetryTimer);policyRetryTimer=0;
     const token=++refreshEpoch;
     try{
       const currentUrl=win.location.href,key=readingTocPlacementKey(currentUrl);
@@ -141,6 +143,7 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
         READING_TOC_PAGE_RULES_STORE,...(key?[key]:[])];
       const stored=await api.storage.local.get(keys);
       if(disposed||suspended||token!==refreshEpoch)return;
+      policyFailures=0;
       if(win.location.href!==currentUrl){void refreshPolicy();return;}
       const installed=stored[SIDEBAR_TOOL_STORE],sites=stored[READING_TOC_SITE_STORE];
       const ids=Array.isArray(installed)?installed.filter(row=>row?.capabilities?.includes('page.toc')).map(row=>row.id):[];
@@ -153,7 +156,12 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
         readingTocDisplayState(stored[READING_TOC_VISIBILITY_STORE],READING_TOC_TOOL_ID,currentUrl).show;
       if(!any){if(enabled)stop();return;}
       start(official,key,key?stored[key]:null,stored[TOOL_REVOCATION_EPOCHS_STORE]?.[READING_TOC_TOOL_ID]??null);
-    }catch{if(token===refreshEpoch&&enabled)stop();}
+    }catch{
+      if(token!==refreshEpoch||disposed||suspended)return;
+      if(enabled)stop(); // Policy storage failed: never serve a stale authorized index.
+      const delay=Math.min(8000,600*Math.pow(2,Math.min(policyFailures++,4)));
+      policyRetryTimer=win.setTimeout(()=>{policyRetryTimer=0;void refreshPolicy();},delay);
+    }
   }
   async function navigate(id,sourceId,toolId=READING_TOC_TOOL_ID,requestEpoch) {
     const permissionEpoch=navEpoch,expectedUrl=win.location.href;
@@ -262,7 +270,11 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     if(!enabled)await refreshPolicy();
     if(!enabled)return {ok:false,error:'目录未启用'};
     if(message.operation==='toc.snapshot'){
-      if(!index.items.length)index.rebuild();
+      if(message.forceRefresh===true||!index.items.length){
+        index.rebuild();
+        if(!index.items.some(row=>row.id===activeId))activeId=index.items[0]?.id||'';
+        redraw();scheduleSpy();
+      }
       return {ok:true,data:{...index.snapshot(activeId),url:win.location.href}};
     }
     if(message.operation==='toc.navigate'){
@@ -296,12 +308,13 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
   api.storage.onChanged.addListener(storageListener);
   const close=()=>{
     if(disposed)return;disposed=true;refreshEpoch++;
+    win.clearTimeout(policyRetryTimer);policyRetryTimer=0;
     api.runtime.onMessage.removeListener(messageListener);
     api.storage.onChanged.removeListener(storageListener);
     stop();win.removeEventListener('pagehide',onPageHide);win.removeEventListener('pageshow',onPageShow);
   };
   const onPageHide=event=>{
-    if(event.persisted){suspended=true;refreshEpoch++;stop();}else close();
+    if(event.persisted){suspended=true;refreshEpoch++;win.clearTimeout(policyRetryTimer);policyRetryTimer=0;stop();}else close();
   };
   const onPageShow=event=>{
     if(event.persisted&&!disposed){suspended=false;void refreshPolicy();}
