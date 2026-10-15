@@ -38,20 +38,20 @@ function mockElement(tag='div'){
   };
   return node;
 }
-function fixture({pkg,library,grants,insertText=null}){
+function fixture({pkg,library,grants,insertText=null,noEditor=false,rejectCopy=false}){
   const values=new Map([
     [SIDEBAR_TOOL_STORE,[pkg]],[PROMPT_DATA_STORE,{library}],
     [SIDEBAR_TOOL_ENABLE_STORE,{}],[TOOL_REVOCATION_EPOCHS_STORE,{[PROMPT_ID]:'first'}],
     [PROMPT_SITE_STORE,grants]
   ]);
-  const events=new Map(),siteEvents=new Set(),calls=[],docEvents=new Map();
+  const events=new Map(),siteEvents=new Set(),calls=[],copied=[],docEvents=new Map();
   const win={
     location:{href:CHATGPT_ORIGIN+'/c/mock'},innerWidth:1366,innerHeight:768,
     addEventListener(name,fn){events.set(name,fn);},
     removeEventListener(name){events.delete(name);},
     setTimeout:fn=>setTimeout(fn,0),clearTimeout,clearInterval(){},
     setInterval(){return 1;},
-    navigator:{clipboard:{writeText:async()=>{}}},
+    navigator:{clipboard:{writeText:async text=>{if(rejectCopy)throw Error('剪贴板未授权');copied.push(text);}}},
     MutationObserver:class{observe(){}disconnect(){}}
   };
   win.top=win;
@@ -65,7 +65,7 @@ function fixture({pkg,library,grants,insertText=null}){
     body,documentElement:root,
     createElement:tag=>mockElement(tag),
     querySelector:selector=>selector==='main#main'||selector==='main'?main:
-      selector.startsWith('main #prompt-textarea')?editor:null,
+      selector.startsWith('main #prompt-textarea')?(noEditor?null:editor):null,
     createRange:()=>range,getSelection:()=>selection,
     execCommand(command,_show,text){
       calls.push({command,text});
@@ -88,7 +88,7 @@ function fixture({pkg,library,grants,insertText=null}){
   const rail=()=>root.children.find(item=>item.attributes['data-opendesk-prompts']!==undefined)
     ?.shadow?.children.find(item=>item.tagName==='nav');
   const buttons=()=>rail()?.children.filter(item=>item.className.includes('item'))||[];
-  return {api,doc,win,values,change,calls,buttons,rail,root,main,editor,events,siteEvents,docEvents};
+  return {api,doc,win,values,change,calls,copied,buttons,rail,root,main,editor,events,siteEvents,docEvents};
 }
 test('R1.4 dynamic ChatGPT rail: origin grant, click-to-draft and independent revocation',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
@@ -110,8 +110,8 @@ test('R1.4 dynamic ChatGPT rail: origin grant, click-to-draft and independent re
     f.buttons()[0].emit('click',{isTrusted:true}); // concurrent click must never double-insert
     await settle();
     const host=f.root.children.find(item=>item.attributes['data-opendesk-prompts']!==undefined);
-    const fallback=host?.shadow?.children.find(item=>item.className==='fallback');
-    const diagnostic={controller:controller.diagnostics(),fallback:fallback?.children.map(node=>node.textContent)};
+    const feedback=host?.shadow?.children.find(item=>item.className==='feedback');
+    const diagnostic={controller:controller.diagnostics(),feedback:feedback?.textContent};
     assert.equal(f.calls.length,1,JSON.stringify(diagnostic));
     assert.equal(f.calls[0].command,'insertText');
     assert.equal(f.calls[0].text,'\n检查项目\n列出风险');
@@ -159,9 +159,10 @@ test('R1.5 IME composition prevents edit; corrupted line breaks never count as i
     assert.equal(f.calls.length,1,'native edit is attempted once');
     assert.equal(f.editor.textContent,'已有草稿第一行第三行🧑‍💻');
     const host=f.root.children.find(item=>item.attributes['data-opendesk-prompts']!==undefined);
-    const fallback=host?.shadow?.children.find(item=>item.className==='fallback');
-    assert.equal(fallback?.hidden,false,'missing line breaks are an uncertain edit, not success');
-    assert.match(fallback.children[1].textContent,/草稿正文或换行未得到完整确认/);
+    const feedback=host?.shadow?.children.find(item=>item.className==='feedback');
+    assert.equal(feedback?.hidden,false,'unconfirmed insertion displays a small status');
+    assert.match(feedback.textContent,/已复制完整提示词/);
+    assert.deepEqual(f.copied,[row.body],'original multiline prompt is copied');
     assert.equal(f.calls.length,1,'never retry an ambiguous native insert automatically');
   }finally{controller?.dispose();}
 });
@@ -189,8 +190,51 @@ test('R1.5 reconstructs sibling editor paragraphs and empty lines without relyin
     assert.equal(f.calls.length,1);
     assert.equal(f.editor.textContent,'已有草稿第一行第三行');
     const host=f.root.children.find(item=>item.attributes['data-opendesk-prompts']!==undefined);
-    const fallback=host?.shadow?.children.find(item=>item.className==='fallback');
-    assert.equal(fallback?.hidden,true,'complete structural newlines validate successfully');
+    const feedback=host?.shadow?.children.find(item=>item.className==='feedback');
+    assert.equal(feedback?.hidden,false,'verified insertion displays a success status');
+    assert.match(feedback.textContent,/已插入输入框/);
+    assert.equal(f.copied.length,0,'verified insert never also copies');
+  }finally{controller?.dispose();}
+});
+
+
+test('R1.11: when editor is missing, clipboard denial gives no false success',async()=>{
+  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const model=globalThis.OpenDeskPromptShortcutsModel;
+  const row=model.draft({body:'完整提示词\n第二行'},null,()=> 'prompt-r111');
+  const grant=await changePromptSiteGrant({},pkg,'first',true);
+  const f=fixture({pkg,grants:grant,noEditor:true,rejectCopy:true,
+    library:{schema:1,items:[row],settings:{webButtons:true}}});
+  const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
+  try{
+    await settle();assert.equal(f.buttons().length,1);
+    f.buttons()[0].emit('click',{isTrusted:true});await settle();
+    assert.equal(f.calls.length,0);
+    assert.equal(f.copied.length,0);
+    const host=f.root.children.find(x=>x.attributes['data-opendesk-prompts']!==undefined);
+    const feedback=host.shadow.children.find(x=>x.className==='feedback');
+    assert.equal(feedback?.hidden,false);
+    assert.match(feedback.textContent,/插入失败，复制也失败/);
+    assert.equal(host.shadow.children.some(x=>x.className==='fallback'),false);
+  }finally{controller?.dispose();}
+});
+
+test('R1.11: when editor is missing, entire multiline prompt is copied',async()=>{
+  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const model=globalThis.OpenDeskPromptShortcutsModel;
+  const row=model.draft({body:'第一行\n\n第三行🧑‍💻'},null,()=> 'prompt-r111-copy');
+  const grant=await changePromptSiteGrant({},pkg,'first',true);
+  const f=fixture({pkg,grants:grant,noEditor:true,
+    library:{schema:1,items:[row],settings:{webButtons:true}}});
+  const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
+  try{
+    await settle();
+    f.buttons()[0].emit('click',{isTrusted:true});await settle();
+    assert.deepEqual(f.copied,[row.body]);
+    const host=f.root.children.find(x=>x.attributes['data-opendesk-prompts']!==undefined);
+    const feedback=host.shadow.children.find(x=>x.className==='feedback');
+    assert.match(feedback.textContent,/已复制完整提示词/);
+    assert.equal(feedback.dataset.kind,'success');
   }finally{controller?.dispose();}
 });
 
