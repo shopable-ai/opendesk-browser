@@ -106,6 +106,33 @@ export async function generatePreview({
   const safeJS=value=>JSON.stringify(value).replaceAll('<','\\u003c')
     .replaceAll('\u2028','\\u2028').replaceAll('\u2029','\\u2029');
   const adblockScript=adblock?await readFile(new URL('./adblock-host-preview.js',import.meta.url),'utf8'):'';
+  // Test-only controls are rendered OUTSIDE the simulated Side Panel. The
+  // validated tool package and its sandbox iframe contain no lab DOM.
+  const bookmarkScript=tool==='bookmark-manager'?
+    await readFile(new URL('./bookmark-manager-lab.js',import.meta.url),'utf8'):'';
+  const bookmarkCommands=Object.freeze([
+    ['write-fail','下一次写入失败'],
+    ['write-unknown','下一次写入结果未知'],
+    ['external-conflict','模拟外部冲突'],
+    ['read-timeout','下一次读取超时'],
+    ['extra-folders','新增 130 个模拟文件夹'],
+    ['external-delete','模拟外部删除当前书签'],
+    ['revoke','模拟撤销权限'],
+    ['restore','恢复模拟权限']
+  ]);
+  const bookmarkLab=tool==='bookmark-manager'?[
+    '<aside id="od-preview-bookmark-lab" class="preview-diagnostic-area" aria-label="书签预览辅助测试，位于扩展界面之外">',
+    '<details class="od-disclosure od-surface od-surface--padded">',
+    '<summary>预览测试辅助工具（不属于书签管理器）</summary>',
+    '<p class="od-note">这里属于离线预览外壳，不在安装工具、Side Panel 或 iframe 内。仅用于模拟故障、冲突和权限变化。</p>',
+    '<div class="od-toolbar" role="group" aria-label="离线书签模拟诊断">',
+    ...bookmarkCommands.map(([command,label])=>
+      '<button class="od-button od-button--secondary" type="button" data-bookmark-diagnostic="'+
+      htmlEscape(command)+'">'+htmlEscape(label)+'</button>'),
+    '</div>',
+    '<p id="od-preview-bookmark-feedback" class="od-note" role="status" aria-live="polite">这里只会修改预览内存。操作结果请在书签预览中查看。</p>',
+    '</details></aside>'
+  ].join(''):'';
   const hostKey=scenario==='success'?'on-site-off':scenario==='empty'||
     scenario==='permission-denied'?'no-permission':
     scenario==='untrusted'?'on-site-on':scenario;
@@ -129,6 +156,7 @@ export async function generatePreview({
     ADBLOCK_RESTORE_DIALOG:adblockDialog,
     ADBLOCK_SNAPSHOTS_JSON:safeJS(adblock?{scenario,snapshots:adblock.snapshots}:{}),
     ADBLOCK_PREVIEW_SCRIPT:adblockScript,
+    BOOKMARK_PREVIEW_LAB:bookmarkLab,BOOKMARK_PREVIEW_SCRIPT:bookmarkScript,
     LIGHT_CSS:lightShellOverride,WIDTH:String(width),
     HEIGHT:String(tool==='adblock'?220:height),
     NAV:shell.nav,HEADER:shell.head,
@@ -157,7 +185,8 @@ export function previewReviewContext(preview){
     view:'extension-tool-detail',activeTab:'扩展',
     // Tool interactions remain owned by the real packaged HTML/JS, not a summary registry.
     hostInteractions:['五个顶部页签（非扩展仅占位）','返回精简列表与重新进入','模拟卸载、取消和确认',
-      ...(manifest.tool==='adblock'?['可信宿主全局与当前网站开关（离线模拟）','网站例外恢复确认（离线模拟）']:[])],
+      ...(manifest.tool==='adblock'?['可信宿主全局与当前网站开关（离线模拟）','网站例外恢复确认（离线模拟）']:[]),
+      ...(manifest.tool==='bookmark-manager'?['外层预览测试控制（不属于正式工具）']:[])],
     scenario:manifest.scenario,viewportCssPx:manifest.viewport,
     source:{commit:manifest.sourceCommit,designSha256:manifest.designSha256,
       shellSha256:manifest.shellSha256,uiSha256:manifest.uiSha256},
