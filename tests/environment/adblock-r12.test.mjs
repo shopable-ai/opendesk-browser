@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {resolve} from 'node:path';
+import {access} from 'node:fs/promises';
+import {readOfficialSources} from '../../scripts/build-official-tools.mjs';
 import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {createSidebarToolPackage,encodeSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
@@ -92,6 +94,17 @@ async function fixture(){
     setDelay:value=>{nativeDelay=value;},
     setUnknownWrite:value=>{unknownWrite=value;}};
 }
+test('official AdBlock optional catalog entry and no generated source package copies',async()=>{
+  const sources=await readOfficialSources();
+  const row=sources.tools.find(row=>row.id==='adblock');
+  assert.deepEqual(row,{id:'adblock',project:'examples/sidebar-tools/adblock',
+    kind:'sidebar-tool',installationPolicy:'optional'});
+  for(const path of ['examples/sidebar-tools/adblock/adblock.opendesk-tool.json',
+    'src/sidebar-tools/adblock.opendesk-tool.json']){
+    await assert.rejects(access(path),{code:'ENOENT'},
+      'AdBlock generated installation packages belong exclusively to build outputs');
+  }
+});
 test('build-ready official project, current version, one declared restricted capability',async()=>{
   const pkg=await createSidebarToolPackage(PROJECT);
   assert.equal(pkg.version,'1.0.0');

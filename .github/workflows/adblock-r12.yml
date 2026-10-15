@@ -39,7 +39,7 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Independent AdBlock boundary and adversarial tests
         run: |
-          node --test tests/environment/adblock-r12.test.mjs tests/environment/stay-focus-boundary-r1.test.mjs tests/environment/official-tools-catalog-r45.test.mjs
+          node --test tests/environment/adblock-r12.test.mjs tests/environment/stay-focus-boundary-r1.test.mjs
           node --check tests/framework/adblock-r12-native.test.mjs
       - name: Build independently installable official AdBlock tool
         run: |
