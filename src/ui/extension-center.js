@@ -370,14 +370,14 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     try{const result=await loadOfficialCatalog({api});if(!disposed&&id===officialSequence){
       official=result.apps;catalogError='';
       if(statusOrigin==='catalog'&&!dataError)message('','info','read');
-      draw();
+      draw();if(selectedKey)renderDetail();
     }}
     catch(error){if(!disposed&&id===officialSequence){
       // Fail closed; a prior catalog is not proof of the current refresh.
       official=[];catalogError=String(error?.message||error);
       if(statusOrigin!=='action')message(
         '内置官方目录暂不可用，不会显示或安装未经核验的候选：'+catalogError,'error','catalog');
-      draw();
+      draw();if(selectedKey)renderDetail();
     }}
   }
   const languageInput=get('extension-center-language');
