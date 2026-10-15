@@ -335,6 +335,23 @@ async function exercise(mode){
   check(!q('bm-form-view').hidden&&q('bm-name').value==='外部删除后仍需保留的草稿',
     'external delete keeps read-only draft available for copying');
   q('bm-cancel').click();
+  field('bm-search','设计资料');
+  await wait(()=>[...q('bm-list').querySelectorAll('.bm-entry')].some(x=>
+    x.textContent.trim()==='设计资料'),'find populated folder for deletion safety');
+  const deleteFolder=[...q('bm-list').querySelectorAll('.bm-entry')].find(x=>
+    x.textContent.trim()==='设计资料');
+  deleteFolder.click();
+  q('bm-inspector-delete').click();
+  check(!q('bm-delete-view').hidden&&!q('bm-delete-children-row').hidden,
+    'non-empty folder deletion must display explicit descendant confirmation');
+  q('bm-delete-confirm').click();
+  check(!q('bm-delete-view').hidden,
+    'unchecked folder deletion must never bypass the extra confirmation');
+  q('bm-delete-children').checked=true;
+  q('bm-delete-confirm').click();
+  await wait(()=>q('bm-delete-view').hidden,'confirmed folder deletion must finish verified readback');
+  check(![...q('bm-list').querySelectorAll('.bm-entry')].some(x=>x.textContent.trim()==='设计资料'),
+    'deleted subtree must disappear from the matching search');
   diagnostic('模拟撤销权限');q('bm-refresh').click();
   await wait(()=>!q('bm-gate').hidden&&q('bm-workspace').hidden,
     'revocation clears private workspace');
@@ -344,7 +361,7 @@ async function exercise(mode){
     dirtyGuard:true,searchableMove:true,saveFailure:true,conflict:true,
     outcomeUnknown:true,transientRefresh:true,folderLimit:true,createBookmark:true,
     createFolder:true,compactEdit:true,combinedEditMove:true,keyboardFocus:true,
-    externalDeleteDraft:true,revocation:true,overflow:false,
+    externalDeleteDraft:true,folderDeleteConfirmation:true,revocation:true,overflow:false,
     source:'design-prototype-not-source-bound-mock'};
 }
 try{
@@ -513,6 +530,23 @@ try{
       popupReport?.read&&popupReport?.visible,
       'row menu must fit the iframe viewport without triggering editing');
     await capture('menu-open');
+    const deleteVisual=await evaluate(`(()=>{
+      const q=id=>document.getElementById(id);
+      const input=q('bm-search');input.value='设计资料';
+      input.dispatchEvent(new Event('input',{bubbles:true}));
+      const folder=[...q('bm-list').querySelectorAll('.bm-entry')].find(x=>
+        x.textContent.trim()==='设计资料');
+      if(!folder)throw Error('populated folder unavailable');
+      folder.click();q('bm-inspector-delete').click();
+      return {deleteVisible:!q('bm-delete-view').hidden,
+        childGuardVisible:!q('bm-delete-children-row').hidden,
+        childrenChecked:q('bm-delete-children').checked};
+    })()`,visualCtx);
+    assert.ok(deleteVisual?.deleteVisible&&deleteVisual?.childGuardVisible&&
+      !deleteVisual?.childrenChecked,
+      'non-empty folder must show a danger confirmation with unchecked subtree consent');
+    await capture('delete-confirm');
+    await evaluate("document.getElementById('bm-delete-cancel').click()",visualCtx);
     const escape=await evaluate(`(()=>{
       const button=document.querySelector('#bm-floating-menu button');
       button.focus();button.dispatchEvent(new KeyboardEvent('keydown',
