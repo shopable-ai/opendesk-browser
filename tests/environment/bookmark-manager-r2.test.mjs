@@ -15,6 +15,26 @@ const sandbox=async()=>{
   return ctx;
 };
 
+test('R2.4 official optional registration replaces all legacy host/UI/CI paths',async()=>{
+  const catalog=JSON.parse(await readFile('official-tools/catalog.json','utf8'));
+  const release=catalog.tools.filter(row=>row.id==='bookmark-manager');
+  assert.equal(release.length,1);
+  assert.equal(release[0].installationPolicy,'optional');
+  assert.equal(release[0].project,'examples/sidebar-tools/bookmark-manager');
+  for(const old of ['src/bookmark-manager/model.js','src/bookmark-manager/service.js',
+    'src/bookmark-manager/trusted-ui.js','src/ui/bookmark-manager.css',
+    '.github/workflows/bookmark-manager-r13.yml',
+    'tests/environment/bookmark-manager-r1.test.mjs'])
+    await assert.rejects(readFile(old,'utf8'),{code:'ENOENT'},old+' must be removed');
+  const html=await readFile('src/ui/tool.html','utf8');
+  const host=await readFile('src/ui/sidebar-tools.js','utf8');
+  const packer=await readFile('scripts/prepare-public.mjs','utf8');
+  const verifier=await readFile('scripts/verify-package.mjs','utf8');
+  for(const source of [html,host,packer,verifier])
+    assert.doesNotMatch(source,/bookmark-manager\.css|bookmark-manager-(?:open|panel)|src\/bookmark-manager\//);
+  assert.doesNotMatch(host,/createBookmarkManager|openBookmarks/);
+});
+
 test('R11.2 builds with v2 packer and independently declares Full Bookmark permission',async()=>{
   const pkg=await createSidebarToolPackage(root);
   assert.equal(pkg.id,'bookmark-manager');
