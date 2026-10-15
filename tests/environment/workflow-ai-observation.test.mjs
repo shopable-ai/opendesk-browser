@@ -179,3 +179,13 @@ test('post-click observation includes a result status containing the bounded que
   assert.equal(requests.length,3);
   assert.ok(requests.every(options=>options.maxNodes<=24&&options.maxChars<=4000));
 });
+
+test('demo search fixture exposes the empty result container to pre-click DOM observation',async()=>{
+  const {readFile}=await import('node:fs/promises');
+  const page=await readFile(new URL('../../examples/tasks/demo-form.html',import.meta.url),'utf8');
+  // The product's real semantic observer requires a positive bounding box.
+  // This is a fixture/source contract, not a claim of native Chrome success.
+  assert.match(page,/#results\s*\{[^}]*min-height:\s*(?:1[0-9]|[2-9][0-9])px/);
+  assert.match(page,/<div id="results" aria-live="polite"><\/div>/);
+  assert.match(page,/results\.textContent = '结果：' \+ term/);
+});
