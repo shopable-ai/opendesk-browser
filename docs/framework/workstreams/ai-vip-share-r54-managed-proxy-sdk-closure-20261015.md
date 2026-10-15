@@ -77,3 +77,9 @@ npm run check
 
 - 专项 [Sidebar tools R1 run 38771791623](https://github.com/shopable-ai/opendesk-browser/actions/runs/38771791623) 中旧 R2.1 test fixture 从 Node `globalThis.navigator.locks` 直接获取原生 Web Locks，GitHub Linux Node 环境不可用，故 21 条历史代理生命周期测试报 `E_TOOL_LOCK`，并非 Chrome Driver 测试失败。只在 `tests/environment/ai-vip-share-r21-lifecycle.test.mjs` 引入具备实际 FIFO、跨上下文共享命名锁与 `query().pending` 的测试专用锁模拟，**保留无锁拒绝原断言、不更改生产 Host 安全约束**。结果以该提交后 Actions 实测为准。
 - 同一运行另有 4 条 `sidebar-tool-multiscript-r72` 的语言 DOM mock 错误，属于并行 Sandbox 工具测试，不能归类 Managed Proxy 失败；本任务不修改无关模块。
+
+### R1.1 CI 验收覆盖增补（不新增架构或关闭门禁）
+
+- R5 Host 专项将已有本地模拟 Provider `local-fixture-server.test.mjs` 与原始线路 `proxy-line-probe.test.mjs` 放在同一候选执行，A/fixture 与真实 Chrome PAC B、正式 SDK C 仍严格分级。
+- Sidebar 工具专项加入已经确认 HTML 预览 `preview/test-r41.mjs` 与 `preview/test-ui.mjs` 的现有 Node 交互回归，继续保持安装包 1.3.0 精确版本和 production JSON 二进制级一致比较。
+- 尚未完成的隔离 Chrome 7897/7898 原生流量、代理失效网络 fail-closed，以及预览与真实 Side Panel 人工验收不能被这些 Node fixture PASS 代替。
