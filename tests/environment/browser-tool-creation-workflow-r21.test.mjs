@@ -29,7 +29,7 @@ function validateRows(rows,{html,js,tests,workstream}){
     assert.equal(row.aid,'A-QN-'+n,'acceptance mapping must follow the accepted baseline');
     assert.ok(!ids.has(row.fid),'duplicate feature trace');
     ids.add(row.fid);
-    assert.match(workstream,new RegExp('^\| '+row.fid.replaceAll('-','\\-')+' ', 'm'),
+    assert.ok(workstream.split('\n').some(s=>s.startsWith('| '+row.fid+' |')),
       'feature trace missing from workstream');
     // Every traced leaf must refer to the original reasoning/acceptance table, not
     // just to this newer CODE/TEST cross reference.
