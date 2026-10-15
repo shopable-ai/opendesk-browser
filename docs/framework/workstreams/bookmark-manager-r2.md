@@ -103,3 +103,10 @@
 - **事件可靠性**：`observe.read` 必须返回两个非负安全整数 `gapCount/droppedCount`；缺少、类型错误、负值时拒绝异常回执，不能把无法证明连续的事件流当成零丢失。
 - **回归**：专属 Node 测试新增坏事件计数与未完成 `load()`/写入遭遇失权 gate 的运行时模拟。预备版从 `0.2.1` 升至 `0.2.2`，CI artifact 路径同步调整，仍为 `capabilities: []`、**未进入 Catalog、未正式安装**。
 - **证据级别**：写入前仅确认 R2.2 同源 CI #38598911425 在 `c115a821` 为历史 PASS。R2.3 Node/Check/Build/Verify/CI 须按本轮候选的真实 GitHub Actions 另行核查。Mac Chrome Native / SDK Full CRUD / 500+ / 撤权 / Worker / 安装 / 卸载仍 `NOT_TESTED / BLOCKED by R11`。未完成前不允许删除旧可信模块或自评九维 95+。
+
+## R2.3 · R11.2 并行 SDK 接线后的消费者身份收敛（2026-10-15）
+
+- SDK Owner 已向 `main` 提交 `b63c9e3c`：正式 Full Bookmarks Registry/Schema/Trusted Host、`browser.bookmarks.full`、用户授权 UI 和 Native Driver 源码已接线（`SOURCE_WIRED`，并非 Mac Chrome PASS）。
+- 本任务未修改公共 SDK/Host/Permission，复核发现 `tool.config.json` 在首次把 `capabilities: []` 改为 `["browser.bookmarks.full"]` 后仍使用原预备版本 `0.2.2`，存在同版本不同包字节/权限声明问题。本轮将工具版本提升至 **0.2.3**，同时更新测试、专属 CI 构建产物路径与独立工具 README。旧 `0.2.2` 历史包不变，绝不自动提权。
+- `browser.page.getContext()` 公开响应 Schema 仍仅含 `status/title/url/message`，无法给独立工具 Host 可核验的 `tabRef/documentRef`；当前页收藏维持 `BLOCKED / FAIL_CLOSED`，公共 SDK owner 需显式完成该合同及真实 Native 验证。
+- 其他全量读写、分页、事件、并发删除与授权路径已有源码接线，待同候选 Node/Check/Build/Chrome Native 实际证据，不能因声明 Full 就登记官方 Catalog。正式安装、权限撤销、跨窗口、Worker、550 项、升级/卸载仍 `NOT_TESTED`；保留 `src/bookmark-manager/`。

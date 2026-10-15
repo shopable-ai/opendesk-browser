@@ -1,66 +1,43 @@
-# Bookmark Manager R2.3 · SDK-only 独立安装预备包
+# Bookmark Manager R2.3 · SDK R11.2 源码接线候选
 
-> **状态：SOURCE_PREPARED / FULL_SDK_BLOCKED。不是已通过原生验收的书签管理工具。**
+> **状态：SOURCE_WIRED / NATIVE_NOT_TESTED / OFFICIAL_NOT_RELEASED。** 不等于已通过真实 Chrome 验收。
 
-本目录是可独立维护、可由现有 v2 Sidebar Tool 打包器处理的工具源码：
-`tool.config.json`、`src/index.html`、`src/style.css`、`src/model.js`、`src/service.js`、`src/main.js`。模型由 [R1.3 书签树](../../../src/bookmark-manager/model.js) 迁移，界面沿用单树、统一搜索、三操作、紧凑表单、200 条分批/全量搜索的既定产品行为。纯 Classic 文件依赖通过已有 v2 `files.dependencies` 打包，不创建新的 Runtime、Background 或 Chrome 扩展。
+本项目 `examples/sidebar-tools/bookmark-manager/` 是唯一独立书签工具业务源码：`tool.config.json`、`src/index.html`、`src/style.css`、`src/model.js`、`src/service.js`、`src/main.js`。继续使用官方 Sidebar Tool v2 打包器、Opaque Origin iframe 和 `OpenDeskSDK.browser.bookmarks.*`；没有私有 Host、第二套 SDK 或直接 `chrome.*` 调用。
 
-## 为什么目前仅是预备包
+## 当前 R11.2 合同与安装状态
 
-截至 2026-10-14 的 `main`，`OpenDeskSDK.browser.bookmarks` 只有 `create/removeOwned`，其能力 `browser.bookmarks` **仅操作自建书签**，不能读取现有 Chrome 书签树，也不能用来模拟 Full 权限。因此本候选清单故意将 `capabilities` 留空，版本 `0.2.2`、显示「SDK R2 预备」，**不会**伪装成已授权或已成功读取数据。任何使用缺失接口、能力状态不真实或没有独立 Full Capability 的情形均明确拦截，绝不返回假数据。不要将此版本加入官方 Catalog 或宣传为可正式使用的书签工具。
+2026-10-15 的 R11.2 提交 `b63c9e3c` 为正式 Registry、Schema、Host、独立 `browser.bookmarks.full` 和安装工具的可信书签授权按钮完成了**源码接线**。独立 Full 与 Owned 的 `browser.bookmarks.createOwned/removeOwned` 是不同权限；Chrome manifest 已声明 optional `bookmarks`，安装工具的声明并不等于用户已批准 Full 或 Chrome 权限。
 
-精确跨团队缺口登记于 [SDK R11 Issue #75](https://github.com/shopable-ai/opendesk-browser/issues/75)，包括：Full Bookmarks Capability、`getTree/get/search/create/update/move/remove/removeTree`、授权事件流、500+ 树的有界传输和 Host 端并发/删除保护。完整书签读取有额外隐私边界，**不能仅将已有 `browser.bookmarks` 改一个文案**。当前 `src/bookmark-manager/` 可信第一方功能保留，不能提前删除。
+- 工具预备版本 **0.2.3**：`capabilities: ["browser.bookmarks.full"]`。原 **0.2.2** 仍是 `capabilities: []` 的 SDK-gated 预备包，禁止以相同版本发行不同权限和字节。
+- **尚未进入 `official-tools/catalog.json`，未通过正式扩展中心安装或 Chrome Native 验收。** R11.2 的 Mock/Node 成功不能替代真实浏览器、用户手势、批准/拒绝和包/epoch 栅栏；严禁把构建产物标记为 Installed。
+- 不满足 Full Capability 状态、Host 权限、包身份或可信回执时，客户端失败关闭并隐藏已失权树；不会回退至 Owned 能力伪造全量结果。
+- 已有 `src/bookmark-manager/` 第一方可信功能保持不变；独立扩展真正通过 Chrome 原生完整验收前不允许删除。
 
-### 源码及执行世界
+## 消费端功能
 
-- `src/model.js`：沙箱内的本地树投影、受管标记、搜索及快照签名；不保存用户书签副本。
-- `src/service.js`：唯一公开 `OpenDeskSDK.browser.bookmarks.*` 客户端；使用 `capabilities.list/getStatus` 明确检查 Full Capability，失败关闭；不调用 `chrome.*`、`OpenDeskTool.request` 私有 Host、页面 DOM 或网络。
-- `src/main.js`：沙箱内书签 UI，空状态不能冒充读到的空书签，保留搜索、展开/折叠、可写目录选择、表单草稿、中文输入法、返回和删除确认。
-- `src/index.html/style.css`：工具自身的响应式样式，独立于 `src/ui/bookmark-manager.css` 和宿主固定 DOM。
-- 服务按未来 Chrome 同名方法作**待审批消费契约**；尚未证明 R11 最终方法的参数或授权语义与此完全一致。R11 发布后先同步 SDK 方法合同，再启用全量工具身份和 capability。
+| 需求 | 正式 SDK 方法 / 消费端边界 |
+| --- | --- |
+| 全量树、搜索与读取 | `getTree({limit:80,cursor?})` 按单一 `snapshotRef` 分页；`get({id})`、`search({query})` 属于独立 Full 能力 |
+| 新建/更新/移动/删除 | `create`、`update`、`move`、`remove`；读取预期节点快照并由 Host 复验 |
+| 非空目录递归删除 | `prepareRemoveTree({id,snapshotRef,expected,descendantCount})` → 一次性短期 `ticket` → `removeTree({id,ticket})`；并发子树变化由 Host 拒绝 |
+| 跨窗口变动 | `observe.start/read/stop` 有界事件；缺 `gapCount/droppedCount`、丢失事件或 Worker 会话失效时重新读取完整树 |
+| 500+ 条书签 | 分页最多 20,000 节点；客户端完整投影和搜索，不把首屏 200 条显示上限当成搜索范围 |
+| 当前网页收藏 | 必须提供 Host 可验证的 `tabRef/documentRef`；当前公开 `browser.page.getContext()` 的 Schema 仍未返回这两个引用，因此该入口**不能宣称 Native 可用**，保持失败关闭 |
 
-## 构建、试装与安全边界
+业务状态保存在浏览器原生书签中；工具卸载不删除 Chrome 原始书签。界面保留单树、搜索、文件夹、紧凑编辑与确认，不创建第二套 UI。
+
+## 构建与验收
 
 ```sh
 node --test tests/environment/bookmark-manager-r2.test.mjs
 npm run build:sidebar-tool -- examples/sidebar-tools/bookmark-manager
-# artifacts/sidebar-tools/bookmark-manager/0.2.2/bookmark-manager.opendesk-tool.json
+# artifacts/sidebar-tools/bookmark-manager/0.2.3/bookmark-manager.opendesk-tool.json
+npm run check
+npm run build
+npm run build:dev
+npm run verify
 ```
 
-该 JSON 可以按既有流程**作为开发验证包**在「扩展」中审阅导入，但因没有 Full SDK，打开后应看到明确的缺口提示，不能看到或更改书签。这只用于验证独立包结构及失败关闭，不代表 R2 成功交付。用户并不需要浏览器源码来导入生成的包。普通用户不应把 0.2.2 当作正式书签管理发布版。
+这些仅提供静态/Node/Build 证据；GitHub CI 也不是用户真实 Chrome 安装。只有 SDK、包身份、Chrome optional 权限和真实浏览器测试全部通过，才可另行决定官方 optional Catalog、发行及旧宿主清理。
 
-待 R11 完成后，首先由 SDK owner 将单独批准的 Full Capability 加入 v2 包校验和可信安装审阅，再升级本目录配置与工具版本；实现事件会话、可信首次授权、Host 端条件删除和精确文档快照，然后进行真实浏览器完整 CRUD/500+/撤权/并发/重启/卸载验收。**R2.1 已准备 `prepareRemoveTree → removeTree` 公共 SDK 消费路径**：非空目录必须绑定可信 Host 的同一快照与短期一次性票据；最终由 Host 重新检查真实子树与权限。在 R11 接通前，仍会安全拒绝删除，不能仅凭前端核对。
-
-测试与分级账本：[Bookmark Manager R2 workstream](../../../docs/framework/workstreams/bookmark-manager-r2.md)。
-
-## R2.1 SDK-only 消费合同（待 R11 owner 审批）
-
-本目录只调用 `OpenDeskSDK.browser.bookmarks.*`，全部按 SDK 已有的**单对象参数**惯例调用；下表是消费端待对接合同，不代表对应 Host/Driver 已存在。
-
-| SDK 方法 | 待批准的输入、回执和安全边界 |
-| --- | --- |
-| `getTree({limit:80,cursor?})` | 小树可完整返回 Chrome-shaped roots；500+ 大树采用 `{nodes,snapshotRef,nextCursor}`，每页有界、游标绑定一个可信 Host 快照 |
-| `get({id})`, `search({query})` | 独立 Full 权限下按 Chrome 语义读取；UI 可在完整树上本地搜索 |
-| `create({title,parentId,url?,sourcePage?})` | 文件夹或书签原生创建；`sourcePage` 带 opaque `tabRef/documentRef/url`，由 Host 在写入前核验 |
-| `update({id,changes,expected})` | Host 复验节点条件快照，再执行原生更新 |
-| `move({id,destination:{parentId},expected})` | Host 校验父目录、受管根、循环关系及节点条件 |
-| `remove({id,expected})` | Host 复核并仅删除书签或空文件夹 |
-| `prepareRemoveTree({id,snapshotRef,expected,descendantCount})` | Host 发一次性、短期 `{ticket,targetId,descendantCount,expiresAt}`，绑定安装身份和完整子树 |
-| `removeTree({id,ticket})` | Host 在同一受信事务保护下校验全部子树、权限和票据；并发变化则拒绝 |
-| `observe.start/read/stop(...)` | 有界事件会话，游标读取、缺口检测、Worker 重启全树同步 |
-
-**当前版本尚未启用 Full 权限。** `tool.config.json` 维持 `capabilities: []`，因 v2 包校验器及可信权限 UI 尚无 `browser.bookmarks.full`。R11 完成 Registry、Package、Host、Chrome optional `bookmarks` 授权、installEpoch/包摘要鉴权后，工具才能更新清单、提升版本、加入官方 Catalog。安装不是授权，旧包不能自动提权。
-
-**当前页收藏安全门禁。** 现有 `browser.page.getContext()` 只有 `status/title/url`，不提供可靠的 Tab/Document 身份。R2.1 不再将两次相等的 URL 视为同一网页，必须等待 R11 提供 Host 可核验的 opaque `tabRef/documentRef` 并于写入前复验。
-
-UI 已预备使用 SDK 的有界事件会话：外部事件触发树同步、缺口全量重读、会话在关闭时释放。由于 Full SDK 仍缺失，这些是仅由独立工具源码及 Node Mock 证明的 SOURCE_PREPARED，非真实 Chrome / 95+ 验收。若 R11 审核最终采用不同签名，本目录和测试必须一并调整，不可维护私有 Host。
-
-### 本轮验收入口
-
-`node --test tests/environment/bookmark-manager-r2.test.mjs`、`npm run check`、`npm run build:sidebar-tool -- examples/sidebar-tools/bookmark-manager`、`npm run build`、`npm run build:dev`、`npm run verify`。
-
-专属 CI：`.github/workflows/bookmark-manager-r2.yml`。真实 Chrome 必须使用 Mac 独立 Profile，并对候选 SHA、工具包摘要及权限/Worker 生命周期建立证据链。
-
-## R2.2 · 书签树完整性保护
-
-校验 Chrome-shaped 完整树的唯一根、文件夹 children 数组、父目录关系和 URL 节点类型；分页模型拒绝多个根节点。异常 SDK 回执不能静默省略子项或将孤立书签当作根节点。专属 Node 测试覆盖失败关闭；此版本仍未获得 Mac Chrome Native 验收，不能开放 Full 权限或删除旧可信模块。
+SDK 公共前置项仍跟踪 [Issue #75](https://github.com/shopable-ai/opendesk-browser/issues/75)，本工具的审计与各候选历史在 [Bookmark Manager R2 workstream](../../../docs/framework/workstreams/bookmark-manager-r2.md)。九维 95+ 仅能根据同一最终候选的 Chrome 原生实测分别评分。

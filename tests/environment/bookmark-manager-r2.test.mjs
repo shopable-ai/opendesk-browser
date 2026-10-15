@@ -18,7 +18,7 @@ const sandbox=async()=>{
 test('R11.2 builds with v2 packer and independently declares Full Bookmark permission',async()=>{
   const pkg=await createSidebarToolPackage(root);
   assert.equal(pkg.id,'bookmark-manager');
-  assert.equal(pkg.version,'0.2.2');
+  assert.equal(pkg.version,'0.2.3');
   assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
   assert.deepEqual(pkg.capabilities,['browser.bookmarks.full']);
   assert.equal(pkg.scripts.length,2);
