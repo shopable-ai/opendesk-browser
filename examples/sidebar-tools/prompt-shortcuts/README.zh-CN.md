@@ -26,7 +26,7 @@
 运行不修改正式 build 输出的定向测试：
 
 ```sh
-node --test tests/environment/prompt-shortcuts-r14.test.mjs
+node --test tests/environment/prompt-shortcuts-r14*.test.mjs
 ```
 
-对应 CI：`.github/workflows/prompt-shortcuts-r14.yml`。该 CI 覆盖工具包、存储、授权、构建来源边界，不能代替生产构建、真实 Chrome 安装、实时 ChatGPT 富文本输入、Undo 与中文输入法验收。实际候选及交接记录见 `docs/framework/workstreams/prompt-shortcuts-r12-ui-handoff.zh-CN.md`。
+对应 CI：`.github/workflows/prompt-shortcuts-r14.yml`。该 CI 覆盖工具包、存储、授权、构建来源边界以及模拟网页生命周期/草稿插入（[8/8 PASS](https://github.com/shopable-ai/opendesk-browser/actions/runs/38737382042)），仍不能代替生产构建、真实 Chrome 安装、实时 ChatGPT 富文本输入、Undo 与中文输入法验收。实际候选及交接记录见 `docs/framework/workstreams/prompt-shortcuts-r12-ui-handoff.zh-CN.md`。
