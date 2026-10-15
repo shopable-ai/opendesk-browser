@@ -318,3 +318,7 @@ npm run pack
 ## R25.1：与本地开发选项卡的交付关系
 
 Side Panel 工具继续以 `opendesk.sidebar-tool.v1` 包交付，使用现有打包校验、共享安装器和工具数据空间。**不要把运行成功的 Page USER_SCRIPT 或 Controller 代码直接包装成 Side Panel 工具 JSON**；它们已有独立冻结/授权/安装合同。开发选项卡「本地项目」的保存按钮仅对支持的 `page-userscript`、`controller` 项目开放，在按各自 Authority 完成正式安装后，分别于「扩展」统一列表中以「网页增强」标签管理，以及在「我的 → 已安装任务」管理；仅保存源码不等于安装完成。独立的 Side Panel 本地包应按照本文项目构建、审阅并安装，不存在自动转换器。在线市场上传、作者身份、草稿和版本托管接口尚未交付，不要在 UI 或文档宣称发布成功。
+
+## 工具多语言：默认单语言，按需增量
+
+应用 UI 本地化按唯一正式合同 [Sidebar Tool 本地化](sidebar-tool-localization.zh-CN.md) 实施。**默认只写源语言**，不需要自动翻译、`chrome.i18n` 或新的 Browser SDK 接口。用户提出增加语言时，在原项目增加受校验的 `locales.json` 和构建期 `tool.config.json.locales`，使用同一 `html/css/js` 受限工具包、相同工具 ID 升级，不改变能力与业务数据。Side Panel 沙箱仅通过 `OpenDeskTool.locale` / `OpenDeskTool.onLocaleChange` 获取展示语言；缺词条回退原文。对网页悬浮等可信 UI，复用受控资源但仍必须留在宿主可信代码内。具体原文指纹、占位符、离线、安全及证据等级见正式合同。
