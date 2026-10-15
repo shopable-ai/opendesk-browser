@@ -1,6 +1,7 @@
 // Fixed first-party policy. Remote services may supply only a validated endpoint,
 // never PAC JavaScript, website rules, arbitrary URLs or Cookie instructions.
 // Transitional identity until a public managed proxy SDK replaces the R1 host.
+import {isAiLocalTestEndpoint} from './provider-config.js';
 export const AI_ID='ai-vip-share';
 export const LEGACY_AI_ID='ai-smart-access';
 export const AI_CAPABILITY='ai.access';
@@ -20,6 +21,8 @@ const plain=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 const exact=(value,names)=>plain(value)&&
   Object.keys(value).sort().join(',')===names.slice().sort().join(',');
 export function validEndpoint(endpoint){
+  if(exact(endpoint,['scheme','host','port'])&&isAiLocalTestEndpoint(endpoint))
+    return {scheme:endpoint.scheme,host:endpoint.host,port:endpoint.port};
   if(!exact(endpoint,['scheme','host','port'])||
      !['https','socks5'].includes(endpoint.scheme)||
      typeof endpoint.host!=='string'||endpoint.host.length>253||
@@ -56,7 +59,7 @@ export function validAiProxyOwner(owner,toolId=owner?.toolId){
 }
 export function compileAiPac(endpoint,owner){
   const approved=validEndpoint(endpoint);
-  const directive=(approved.scheme==='socks5'?'SOCKS5 ':'HTTPS ')+approved.host+':'+approved.port;
+  const directive=(approved.scheme==='socks5'?'SOCKS5 ':approved.scheme==='http'?'PROXY ':'HTTPS ')+approved.host+':'+approved.port;
   const lines=[...(owner?['// OpenDesk AI owner '+JSON.stringify(validAiProxyOwner(owner))]:[]),
     'function FindProxyForURL(url, host) {',
     '  host = String(host).toLowerCase().replace(/\\.$/, "");'];

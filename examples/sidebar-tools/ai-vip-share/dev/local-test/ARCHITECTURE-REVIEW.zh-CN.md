@@ -1,5 +1,13 @@
 # AI VIP Share 代理架构与本地联调专家审阅 · 2026-10-15
 
+## R5.3 fixture 增量（独立 member lane）
+
+下文保留原架构审阅与历史验证边界。R5.3 父任务已增加编译期固定 development adapter，不能据此改变 production 配置/验证器结论。当前 fixture 的 `LOCAL-DEV-ONLY` 激活码专门返回 `http://127.0.0.1:7897`，verify 返回同一租约；原 `DEMO-VIP-01` 仍返回 `socks5://proxy.fixture.test` 格式示例，不接受请求指定任意端点。两条路径都只是租约模拟，fixture 不转发流量。
+
+同一服务新增 `/api/fixture/verify-delay`：测试头保护的 POST 仅为下一次开发租约 verify 设置 0–5000ms 延迟；GET 可观察待用延迟和进行中的延迟响应。所有 Origin 仍拒绝。该控制让父任务可执行真实 STOP/晚回执竞态，但控制本身不代表竞态通过。精确命令见本目录 README。
+
+member 测试通过 factory 注入时钟与账号快照，使用单个随机端口 HTTP 实例覆盖 guest/bound/expired、预检、幂等、模拟 504 恢复、pending/rejected、账户隔离及 server time。未修改正式 `src/main.js`、Host 或代理生命周期；浏览器 member 仍需经既有 SDK/Authority 的独立开发绑定。Node 结果仅为模拟组件证据，真实 Chrome/Provider/STOP/routing 验收由父任务独立登记。
+
 ## 核心判断
 
 **现行代理是浏览器范围的 Chrome `proxy.settings` PAC，而非独立工具内 HTTP tunnel、操作系统 VPN 或每个 Tab 的私有代理。** `src/ai-smart-access/policy.js` 使用固定五组 AI 网站域名与 `pac_script.mandatory=true`，匹配目标返回 `HTTPS host:port` 或 `SOCKS5 host:port`，其余 `DIRECT`。现有公共 Managed Proxy SDK 尚未批准，因此这是过渡 Host/Worker，不宜成为第二套长期 SDK。

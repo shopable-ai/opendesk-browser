@@ -45,16 +45,14 @@ test('R4.8 authored catalog includes default Cookie Editor and optional AI VIP S
   for(const row of source.tools){
     assert(['optional','preinstalled'].includes(row.installationPolicy));
     assert.equal(Object.hasOwn(row,'version'),false);assert.equal(Object.hasOwn(row,'capabilities'),false);
-    const paths=['src/sidebar-tools/'+row.id+'.opendesk-tool.json'];
-    // Cookie Editor deliberately ships a portable package beside its sources.
-    // The official producer still builds from source, never from this copy.
-    if(row.id!=='cookie-editor')paths.push(row.project+'/'+row.id+'.opendesk-tool.json');
-    else {
-      const portable=JSON.parse(await readFile(row.project+'/'+row.id+'.opendesk-tool.json','utf8'));
-      assert.deepEqual(portable,await createSidebarToolPackage(row.project));
-    }
-    for(const path of paths)
-      await assert.rejects(access(path),error=>error.code==='ENOENT','official source trees contain no generated package copies');
+    await assert.rejects(access('src/sidebar-tools/'+row.id+'.opendesk-tool.json'),
+      error=>error.code==='ENOENT','runtime sources contain no generated package copies');
+    // A tested project may retain its single promoted import package. The
+    // official producer still builds from source, never from this copy.
+    const portable=await readFile(row.project+'/'+row.id+'.opendesk-tool.json','utf8')
+      .catch(error=>{if(error.code==='ENOENT'&&row.id!=='cookie-editor')return null;throw error;});
+    if(portable!==null)
+      assert.deepEqual(JSON.parse(portable),await createSidebarToolPackage(row.project));
   }
   assert(!source.tools.some(row=>/starter/.test(row.id)));
 });
@@ -69,6 +67,14 @@ test('R4.8 only trusted source and exact release policy can authorize preinstall
   assert.throws(()=>validateOfficialSourceCatalog({...source,sourceRepository:'https://other.example'}));
   assert.throws(()=>validateOfficialReleaseCatalog({...releases,apps:releases.apps.map((row,index)=>
     index===0?{...row,installationPolicy:'automatic'}:row)}));
+});
+test('managed proxy release metadata uses v2 while unknown capabilities remain denied',async()=>{
+  const catalog=structuredClone((await officialFixtures()).catalog);
+  const release=catalog.apps.find(row=>row.toolId==='ai-vip-share');
+  assert.deepEqual(release.capabilities,['storage.local','network','browser.tabs','browser.proxy.managed']);
+  assert.deepEqual(validateOfficialReleaseCatalog(catalog),catalog);
+  release.capabilities.push('browser.proxy.unapproved');
+  assert.throws(()=>validateOfficialReleaseCatalog(catalog),error=>error.code==='E_TOOL_SCHEMA');
 });
 test('R4.8 first-install intent uses fixed classic WXT resource without bundling the installer into SW',async()=>{
   const sw=await readFile('src/sw.js','utf8');

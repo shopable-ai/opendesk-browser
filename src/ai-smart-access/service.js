@@ -6,7 +6,7 @@ import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash,validateSidebarToolPackage}
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolEnabled}
   from '../ui/sidebar-tools/lifecycle.js';
 import {isSidebarToolHostSender} from '../sidebar-tools/sender.js';
-import {AI_PROVIDER} from './provider-config.js';
+import {AI_RUNTIME_PROVIDER,AI_LOCAL_TEST_ENABLED,AI_LOCAL_PACKAGE_HASH} from './provider-config.js';
 import {AI_ID,LEGACY_AI_ID,AI_CAPABILITY,AI_PROTOCOL,AI_VERSION,AI_STORE,AI_ALARM,LEGACY_AI_ALARM,
   AI_OPERATIONS,aiError,validLease,leaseUsable,desiredAiProxy,matchesAiProxy,controlLevel} from './policy.js';
 import {parseAiState,storeAiState,stopAiAccessForTool,
@@ -19,6 +19,9 @@ const exact=(object,keys)=>object&&typeof object==='object'&&!Array.isArray(obje
 const safeCode=value=>typeof value==='string'&&/^[a-zA-Z0-9_-]{6,120}$/.test(value);
 function validatedProvider(config){
   if(!config?.activateUrl||!config?.verifyUrl)return null;
+  if(AI_LOCAL_TEST_ENABLED&&config.activateUrl===AI_RUNTIME_PROVIDER.activateUrl&&
+     config.verifyUrl===AI_RUNTIME_PROVIDER.verifyUrl)
+    return {activate:config.activateUrl,verify:config.verifyUrl};
   const valid=url=>{
     if(typeof url!=='string')throw aiError('E_AI_PROVIDER','服务端地址类型无效');
     const parsed=new URL(url);
@@ -33,7 +36,9 @@ function validatedProvider(config){
 }
 async function boundedPost(fetcher,url,body){
   let response;
-  try{response=await fetcher(url,{method:'POST',headers:{'Content-Type':'application/json'},
+  try{response=await fetcher(url,{method:'POST',headers:{'Content-Type':'application/json',
+    ...(AI_LOCAL_TEST_ENABLED&&[AI_RUNTIME_PROVIDER.activateUrl,AI_RUNTIME_PROVIDER.verifyUrl].includes(url)?
+      {'X-OpenDesk-Local-Test':'1'}:{})},
     body:JSON.stringify(body),redirect:'error',credentials:'omit',cache:'no-store',
     signal:AbortSignal.timeout(8000)});}
   catch{throw aiError('E_AI_NETWORK','授权服务不可连接；未启用代理');}
@@ -58,9 +63,9 @@ async function boundedPost(fetcher,url,body){
   try{return JSON.parse(text)}catch{throw aiError('E_AI_AUTH','授权响应格式无效');}
 }
 export function createAiAccessService({api=globalThis.chrome,
-  lockManager=globalThis.navigator?.locks,provider=AI_PROVIDER,
+  lockManager=globalThis.navigator?.locks,provider=AI_RUNTIME_PROVIDER,
   fetcher=globalThis.fetch,now=Date.now}={}){
-  let lastError=null,serial=Promise.resolve();
+  let lastError=null,serial=Promise.resolve(),stopGeneration=0;
   const lock=task=>{
     if(!lockManager?.request)throw aiError('E_TOOL_LOCK','后台缺少工具互斥锁');
     return lockManager.request('opendesk.sidebar-tools:tool:'+AI_ID,task);
@@ -98,6 +103,8 @@ export function createAiAccessService({api=globalThis.chrome,
       try{tool=validateSidebarToolPackage(same[0]);}catch{}
     }
     if(!tool?.capabilities.includes(AI_CAPABILITY))tool=null;
+    if(AI_LOCAL_TEST_ENABLED&&tool&&await sidebarToolPackageHash(tool)!==AI_LOCAL_PACKAGE_HASH)
+      tool=null;
     return {tool,enabled:sidebarToolEnabled(saved[SIDEBAR_TOOL_ENABLE_STORE],AI_ID),
       epoch:saved[TOOL_REVOCATION_EPOCHS_STORE]?.[AI_ID]??null,
       raw:saved[AI_STORE],state:parseAiState(saved[AI_STORE],AI_ID)};
@@ -109,6 +116,8 @@ export function createAiAccessService({api=globalThis.chrome,
        await sidebarToolPackageHash(record.tool)!==request.packageHash)
       throw aiError('E_TOOL_CHANGED','工具安装版本或授权已变化');
     await hostDocument(request.sender,request.documentId);
+    if(request.stopGeneration!==undefined&&request.stopGeneration!==stopGeneration)
+      throw aiError('E_AI_STOPPED','较新的停用请求已取消本次启用或激活');
     return record;
   }
   async function installationOwner(record){
@@ -300,6 +309,7 @@ export function createAiAccessService({api=globalThis.chrome,
       providerConfigured:Boolean(validatedProvider(provider))};
   }
   async function dispatch(message,sender){
+    const generationAtStart=stopGeneration;
     if(!exact(message,['protocol','toolId','operation','payload','packageHash','installEpoch'])||
        message.protocol!==AI_PROTOCOL||message.toolId!==AI_ID||
        !AI_OPERATIONS.includes(message.operation)||typeof message.packageHash!=='string'||
@@ -313,12 +323,22 @@ export function createAiAccessService({api=globalThis.chrome,
     await hostDocument(sender,documentId);
     const request={sender,documentId,packageHash:message.packageHash,
       installEpoch:message.installEpoch??null};
+    // Accept STOP after sender/install validation but before waiting for the
+    // mutation lock. A slow activate/verify/set must not commit past this fence.
+    if(message.operation==='aiAccess.disable')stopGeneration++;
+    else if(['aiAccess.enable','aiAccess.activate'].includes(message.operation))
+      request.stopGeneration=generationAtStart;
     const result=await perform(message.operation,message.payload,request);
     await hostDocument(sender,documentId);
     return result;
   }
   async function reconcile(){
     return lock(async()=>{
+      const recoveryGeneration=stopGeneration;
+      const recoveryGuard=async()=>{
+        if(recoveryGeneration!==stopGeneration)
+          throw aiError('E_AI_STOPPED','较新的停用请求已取消后台恢复');
+      };
       const records=await readAiStates(api),old=records[LEGACY_AI_ID].state;
       // Only a persisted explicit STOP may release on wake. An uncertain
       // apply is not STOP, and an active legacy installation is never migrated.
@@ -353,6 +373,7 @@ export function createAiAccessService({api=globalThis.chrome,
         return;
       }
       const chromeState=await snapshot(),control=controlLevel(chromeState.levelOfControl);
+      await recoveryGuard();
       if(await legacyHold(chromeState)){
         lastError='旧版代理仍在使用，禁止新工具接管；请先明确停止旧工具';return;
       }
@@ -367,7 +388,7 @@ export function createAiAccessService({api=globalThis.chrome,
         await api.alarms.create(AI_ALARM,{periodInMinutes:5});
         lastError=null;return;
       }
-      await applyLocked(record.state,record.raw,lease);
+      await applyLocked(record.state,record.raw,lease,recoveryGuard);
     });
   }
   return {probe,dispatch,status,reconcile:()=>queue(reconcile),

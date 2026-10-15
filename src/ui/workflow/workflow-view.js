@@ -508,6 +508,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     onRunOwner('pending');
     busy=true;phase='running';lastRun='running';hasError=false;
     get('workflow-output').textContent='尚无本次持久结果';
+    get('workflow-technical').textContent='';
     status(prepared?'正在执行本次对话任务（现有 RunHost）…':'已冻结源码、参数、页面和用户授权请求；准备通过现有 RunHost 执行');
     updateButtons();
     return (async()=>{

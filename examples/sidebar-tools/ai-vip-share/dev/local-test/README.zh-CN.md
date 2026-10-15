@@ -19,6 +19,8 @@ curl -sS http://127.0.0.1:7898/proxy.pac
 
 `127.0.0.1:7897` 是用户自行提供的上游 HTTP CONNECT/SOCKS5 代理；`127.0.0.1:7898` 仅模拟 API 并生成 PAC。**现有 OpenDesk 可信代理启停按钮不会自动连接此 HTTP 测试服务。**
 
+R5.3 开发联调例外：父任务的编译期开发 adapter 固定访问 `http://127.0.0.1:7898/api/{activate,verify}`，并发送 `X-OpenDesk-Local-Test: 1`。仅激活码 `LOCAL-DEV-ONLY` 返回 `{scheme:'http',host:'127.0.0.1',port:7897}`；该端点不受 `LOCAL_PROXY_PORT` / `LOCAL_PROXY_KIND` 或请求 body 内 endpoint 改写。`DEMO-VIP-01` 继续返回保留域名的合同示例。adapter 的真实 Chrome、STOP 和生命周期证据由父任务提供，Node fixture 通过不能替代。
+
 ---
 
 # AI VIP Share 本地联调辅助包（非正式 Provider / 非代理程序）
@@ -95,13 +97,32 @@ curl -sS -X POST http://127.0.0.1:7898/api/preview -H 'X-OpenDesk-Local-Test: 1'
 
 技术租约 mock：`POST /api/activate` 输入 `{"deviceId":"local-device","code":"DEMO-VIP-01"}` 返回 `{leaseId,expiresAt,endpoint}`；`POST /api/verify` 输入 `{"deviceId":"local-device","leaseId":"..."}` 返回 `{active:true,lease}`。`endpoint` 使用保留测试域名 `proxy.fixture.test` 及 `socks5`，**仅验证生产消息形状，无法连接你的 127.0.0.1:7897**，不要当成真正代理节点。代理实际联通请使用前述 PAC。
 
+### R5.3 开发租约的 STOP race 控制
+
+复用同一个 7898 服务；无需另起 server/proxy。现有服务若在修改前启动，由其负责人重启后再使用新行为。所有控制仍要求测试请求头，拒绝任何 `Origin`（包括 localhost 和 `null`），没有 CORS 放行。SW 请求使用 `credentials: omit`，不发送 Origin。
+
+```sh
+curl -sS -X POST http://127.0.0.1:7898/api/fixture/verify-delay \
+  -H 'X-OpenDesk-Local-Test: 1' -H 'Content-Type: application/json' \
+  --data '{"delayMs":3000}'
+curl -sS -H 'X-OpenDesk-Local-Test: 1' http://127.0.0.1:7898/api/fixture/verify-delay
+```
+
+POST 只接受整数 `delayMs`（0–5000ms）；0 清除待用延迟，其他字段拒绝。它在下一次有效 `LOCAL-DEV-ONLY` 租约 verify 开始时消费，DEMO 租约不受影响。GET 返回 `{nextVerifyDelayMs,verificationsInFlight}`，后者统计当前被延迟的响应。父任务可先确认进行中，再通过真实可信按钮 STOP，核对晚回执没有重开代理。也可在单个开发 verify 请求加 `X-Fixture-Verify-Delay-Ms: 3000`，同样有界；它覆盖并消费待用延迟。进程内 API 为 `setNextVerifyDelay(ms)` / `getVerificationState()`。这些控制仅延迟模拟验证响应，不模拟可信 STOP，也不证明 native race 已通过。
+
+### member 回归注入与浏览器接入边界
+
+`createLocalFixture({now, getMemberState})` 可注入服务端时钟及 `{account,entitlements}` 快照；默认仍为原 bound 演示账号和真实服务端时间。未绑定账号使用正式 member schema 的 `{state:'guest'}`。测试切换账号时，preview/redeem/status 及账本历史按当前账号隔离；时钟控制不修改设备或 production。测试只创建一个 loopback 随机端口实例，不占用父任务 7898。
+
+正式工具的四个 `BUSINESS_ENDPOINTS` 仍为空且要求已审核 HTTPS；上面的激活 adapter 不会连接 member UI。后续浏览器 member 联调应由 Host owner 在隔离 development 候选中，通过既有 `businessSdk.request` 与工具安装存储绑定固定四条 fixture 路径，同时提供仅测试产物的配置；不要改正式 `src/main.js`、增加 fetch 通道或另建转发服务。本轮仅验证 HTTP fixture，未实施该浏览器绑定。
+
 ## 五、测试脚本及限制
 
 ```sh
 node --test examples/sidebar-tools/ai-vip-share/dev/local-test/local-fixture-server.test.mjs
 ```
 
-目前覆盖：严格域名 PAC、非法相似域名、会员查询、预检、幂等兑换、查询回执、模拟未知效果、演示激活/验证合同、Origin/请求头访问限制。
+目前覆盖：严格域名 PAC、非法相似域名、未绑定/已绑定/过期权益、无副作用预检、服务端时钟与预检过期边界、同 key 幂等与 consumed preview 拒绝、模拟 504 后只查询回执、pending/final rejected 不授予、账户切换隔离、两类激活码与固定开发端点、有界一次性 verify 延迟、Origin/请求头访问限制。`X-Fixture-Drop-Ack` 是提交后返回模拟 504，不是真实断网。
 
 **尚未打通的正式扩展限制：** `src/ai-smart-access/provider-config.js` 的 `activateUrl/verifyUrl` 均为空并要求固定 **HTTPS** origin；`src/ai-smart-access/policy.js` 明确拒绝 `localhost` / IP 代理端点且只接受 `https` 或 `socks5`；商业工具 `main.js` 四个 BUSINESS_ENDPOINTS 也为空且必须为经审核的 HTTPS；`host-controls.js` 目前没有用户激活码入口。不能直接填写 `http://127.0.0.1:7898`，或把 HTTP 7897 伪报为 HTTPS。要做 **OpenDesk 真实按钮端到端联调**，需要一个经安全审查、development-only、仅 loopback 且隔离 Chrome Profile 的测试 adapter；正式主包、公共代理协议与正常安全校验不能因此放宽。
 

@@ -72,7 +72,10 @@ export async function releaseAiProxy(api,toolId,guard=async()=>{}){
   await guard();
   await api.proxy.settings.clear({scope:'regular'});
   const after=await api.proxy.settings.get({incognito:false});
-  if(controlLevel(after?.levelOfControl)!=='controllable_by_this_extension')
+  // Clear removes our preference; a previously masked extension may now be
+  // visible. Its control is a valid release outcome and must never be cleared.
+  if(!['controllable_by_this_extension','controlled_by_other_extensions'].includes(
+      controlLevel(after?.levelOfControl)))
     throw aiError('E_AI_RELEASE','Chrome 未确认释放代理控制权，保留回执');
 }
 // Called only with the proxy resource lock held; cleanup keeps that same

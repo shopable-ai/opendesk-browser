@@ -69,6 +69,8 @@ async function fixture(){
         effects.clear.push(row);
         if(faults.clearBefore)throw Error('clear failed');
         value=null;level='controllable_by_this_extension';
+        if(faults.revealOther){value={mode:'fixed_servers',rules:{singleProxy:endpoint}};
+          level='controlled_by_other_extensions';}
         if(faults.clearAck)throw Error('clear acknowledgement lost');
       }
     }},
@@ -122,6 +124,51 @@ test('R2.1 wake preserves active legacy PAC with new ID absent or merely activat
     await assert.rejects(h.rpc('aiAccess.enable'));
     assert.equal(h.effects.set.length,0);
   }
+});
+
+test('R5.3 accepted STOP cancels an in-flight verify before any proxy apply',async()=>{
+  const h=await fixture();
+  h.local[AI_STORE]=active({owner:h.owner,desired:false});
+  let entered,release;
+  const waiting=new Promise(resolve=>{entered=resolve;});
+  h.faults.verifyEnter=entered;
+  h.faults.verifyGate=new Promise(resolve=>{release=resolve;});
+  const enabling=h.rpc('aiAccess.enable');
+  const rejected=assert.rejects(enabling,{code:'E_AI_STOPPED'});
+  await waiting;
+  const stopping=h.rpc('aiAccess.disable');
+  // Allow sender/package verification to accept STOP while verify is blocked.
+  await setImmediate();await setImmediate();
+  release();await rejected;await stopping;
+  assert.equal(h.effects.set.length,0);
+  assert.equal(h.local[AI_STORE].desired,false);
+  assert.equal(h.local[AI_STORE].releasePending,false);
+});
+
+test('R5.3 accepted STOP cancels late activation without storing a lease',async()=>{
+  const h=await fixture();let entered,release;
+  const waiting=new Promise(resolve=>{entered=resolve;});
+  h.faults.activateEnter=entered;
+  h.faults.activateGate=new Promise(resolve=>{release=resolve;});
+  const activating=h.rpc('aiAccess.activate',{code:'TEST-CODE'});
+  const rejected=assert.rejects(activating,{code:'E_AI_STOPPED'});
+  await waiting;
+  const stopping=h.rpc('aiAccess.disable');
+  await setImmediate();await setImmediate();release();
+  await rejected;await stopping;
+  assert.equal(h.local[AI_STORE],undefined,'Cancelled activation creates no receipt');
+  assert.equal(h.effects.set.length,0);
+});
+
+test('R5.3 STOP settles when clear reveals another extension without touching it',async()=>{
+  const h=await fixture(),state=active({owner:h.owner});
+  h.local[AI_STORE]=state;h.use(state);h.faults.revealOther=true;
+  await h.rpc('aiAccess.disable');
+  assert.equal(h.effects.clear.length,1);
+  assert.equal(h.snapshot().level,'controlled_by_other_extensions');
+  assert.equal(h.local[AI_STORE].releasePending,false);
+  assert.equal(h.local[AI_STORE].desired,false);
+  assert.deepEqual(h.local[AI_STORE].lease,state.lease);
 });
 
 test('R2.1 explicit legacy STOP and uninstall release proven old PAC before deleting evidence',async()=>{

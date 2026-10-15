@@ -48,7 +48,7 @@ export function validateOfficialReleaseCatalog(value){
     // placeholders only validate the descriptor; executable bytes load later.
     const hasMenus=Array.isArray(row.capabilities)&&row.capabilities.includes('browser.contextMenu');
     const hasSdk=hasMenus||Array.isArray(row.capabilities)&&row.capabilities.some(cap=>
-      cap.startsWith('browser.cookies.')||cap==='browser.bookmarks.full');
+      cap.startsWith('browser.cookies.')||cap==='browser.bookmarks.full'||cap==='browser.proxy.managed');
     validateSidebarToolPackage({format:hasSdk?SIDEBAR_TOOL_FORMAT_V2:SIDEBAR_TOOL_FORMAT,
       id:row.toolId,version:row.version,
       title:row.packageTitle,description:row.description,capabilities:row.capabilities,

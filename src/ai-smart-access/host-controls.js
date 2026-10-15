@@ -1,6 +1,7 @@
 // A first-party host-only proxy card. Installed sandbox content cannot forge this click.
 // The legacy worker remains intact until a reviewed Managed Proxy SDK replaces it.
 import {AI_ID,AI_CAPABILITY} from './policy.js';
+import {AI_LOCAL_TEST_ENABLED} from './provider-config.js';
 export function createAiAccessPermissionControls({api,doc,container,notice,runOperation}){
   const section=doc.createElement('section');
   section.id='ai-access-trusted-controls';
@@ -33,6 +34,16 @@ export function createAiAccessPermissionControls({api,doc,container,notice,runOp
   help.className='od-note';
   help.textContent='仅控制本工具的 AI 网站代理，不修改系统 VPN 或其他扩展；会员有效期与代理启停互不影响。';
   section.append(header,status,action,errorText,help);
+  let activate=null;
+  if(AI_LOCAL_TEST_ENABLED){
+    const label=doc.createElement('p');
+    label.className='od-note';
+    label.textContent='本地开发测试 · 模拟租约 127.0.0.1:7898 / HTTP 代理 127.0.0.1:7897；不代表生产会员授权。';
+    activate=doc.createElement('button');
+    activate.type='button';activate.id='ai-access-local-activate';
+    activate.className='od-button';activate.textContent='激活本地测试服务';
+    section.append(label,activate);
+  }
   container.append(section);
   let activeTool=null,toolEnabled=false,busy=false,statusEpoch=0;
   let pendingOperation=null,operationEpoch=0;
@@ -48,13 +59,14 @@ export function createAiAccessPermissionControls({api,doc,container,notice,runOp
     status.textContent=reason||'仅反映 Chrome 实际控制状态，不代表 AI 网站网络连通。';
     const retry=stop&&last.state==='unavailable'&&/停止|清理|结果尚未确认|结果未确认/.test(reason);
     // STOP remains reachable while an earlier ENABLE is still in flight.
-    const interrupt=busy&&pendingOperation==='aiAccess.enable';
+    const interrupt=busy&&['aiAccess.enable','aiAccess.activate'].includes(pendingOperation);
     action.textContent=interrupt?'停用代理':busy?'正在处理':
       stop?(retry?'重试停用':'停用代理'):'启用代理';
     action.disabled=(busy&&!interrupt)||!toolEnabled||
       !(interrupt||stop||last.state==='disabled');
     action.setAttribute('aria-busy',String(busy));
     action.setAttribute('aria-pressed',String(last.state==='enabled'&&stop));
+    if(activate)activate.disabled=busy||!toolEnabled||stop||last.state!=='activation_required';
   }
   async function refresh(){
     const seq=++statusEpoch,tool=activeTool;
@@ -67,11 +79,9 @@ export function createAiAccessPermissionControls({api,doc,container,notice,runOp
         show({state:'unavailable',reason:String(error?.message||error).slice(0,180)});
     }
   }
-  action.addEventListener('click',event=>{
+  function execute(operation,payload,event){
     if(event?.isTrusted!==true||!toolEnabled||
-      (busy&&pendingOperation!=='aiAccess.enable'))return;
-    const operation=busy?'aiAccess.disable':canStop(last)?'aiAccess.disable':
-      last.state==='disabled'?'aiAccess.enable':null;
+      (busy&&!['aiAccess.enable','aiAccess.activate'].includes(pendingOperation)))return;
     if(!operation)return;
     ++statusEpoch;
     const actionEpoch=++operationEpoch;
@@ -81,7 +91,7 @@ export function createAiAccessPermissionControls({api,doc,container,notice,runOp
     show(last);
     // Host-only trusted click; the Worker serializes state and persists STOP.
     // A late ENABLE completion cannot replace the newer STOP UI response.
-    Promise.resolve().then(()=>runOperation(operation,{},event)).then(
+    Promise.resolve().then(()=>runOperation(operation,payload,event)).then(
       ()=>{if(actionEpoch===operationEpoch)return refresh();},
       error=>{
         if(actionEpoch!==operationEpoch)return;
@@ -96,6 +106,12 @@ export function createAiAccessPermissionControls({api,doc,container,notice,runOp
         busy=false;pendingOperation=null;show(last);
       }
     });
+  }
+  action.addEventListener('click',event=>execute(busy?'aiAccess.disable':canStop(last)?'aiAccess.disable':
+    last.state==='disabled'?'aiAccess.enable':null,{},event));
+  activate?.addEventListener('click',event=>{
+    if(!busy&&last.state==='activation_required')
+      execute('aiAccess.activate',{code:'LOCAL-DEV-ONLY'},event);
   });
   function render(tool,readOnly=false,enabled=false){
     const visible=!readOnly&&tool?.id===AI_ID&&
