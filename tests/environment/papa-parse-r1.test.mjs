@@ -94,3 +94,32 @@ test('release verifier accepts exact native Papa UMD but never a modified/unpinn
   assert.throws(()=>assertClassicIIFE(code+'\n',row.output),/Non-classic IIFE/);
   assert.throws(()=>assertClassicIIFE(code,'unreviewed.js'),/Non-classic IIFE/);
 });
+
+test('CSV import handles CRLF, Chinese, quoted newlines, empty fields and diagnostics',()=>{
+  const realm=vm.createContext({});
+  vm.runInContext(code,realm,{timeout:3000});
+  const csv='name,note,sku\r\n"苹果, Pro","第一行\n第二行",0000123\r\n"A ""quote""",,0000456\r\n\r\n';
+  const object=realm.Papa.parse(csv,{header:true,skipEmptyLines:true,dynamicTyping:false});
+  assert.equal(object.errors.length,0);
+  assert.equal(object.data.length,2);
+  assert.equal(object.data[0].name,'苹果, Pro');
+  assert.equal(object.data[0].note,'第一行\n第二行');
+  assert.equal(object.data[0].sku,'0000123');
+  assert.equal(object.data[1].name,'A "quote"');
+  assert.equal(object.data[1].note,'');
+  const arrays=realm.Papa.parse(csv,{skipEmptyLines:true});
+  assert.equal(arrays.errors.length,0);
+  assert.deepEqual(JSON.parse(JSON.stringify(arrays.data[0])),['name','note','sku']);
+  const broken=realm.Papa.parse('name,note\r\n"unterminated',{header:true});
+  assert(broken.errors.length>0,'Malformed CSV must yield parser diagnostics');
+});
+
+test('Papa default formula escaping handles leading = + - @, tab and CR without altering long numeric text',()=>{
+  const realm=vm.createContext({});
+  vm.runInContext(code,realm,{timeout:3000});
+  const values=['=SUM(1,2)','+123','-22','@cmd','\t=7','\r=8','0000123456789012345'];
+  const csv=realm.Papa.unparse(values.map(value=>({value})),{columns:['value'],escapeFormulae:true,newline:'\r\n'});
+  const parsed=realm.Papa.parse(csv,{header:true,dynamicTyping:false}).data.map(row=>row.value);
+  for(let i=0;i<6;i++)assert.equal(parsed[i],"'"+values[i]);
+  assert.equal(parsed.at(-1),'0000123456789012345');
+});

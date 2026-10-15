@@ -37,3 +37,9 @@ async function main() {
 ## 验收边界
 
 源文件、固定哈希及 Node 回归、正式构建、真实 Chrome、生命周期、下载落盘应分别出具证据，不以文档样例视作 Chrome PASS。上游来源：https://github.com/mholt/PapaParse/tree/5.7.0，许可证 MIT。
+
+## 已安装 Sidebar Tool：固定上游库 + 可信下载
+
+示例位于 `examples/sidebar-tools/papaparse-csv-export/`，拥有产品列表及「导出 CSV」按钮。使用现有 `scripts/build-sidebar-tool.mjs` 在**构建期**从唯一 `BUILTIN_CATALOG` 验证并嵌入官方 Papa Parse 5.7.0；原有安装工具沙箱核验固定源 SHA，运行时不访问 npm/CDN，不继承 Page 的 Papa 全局。
+
+CSV 通过 `OpenDeskSDK.browser.downloads.text({filename:'products.csv',text:'\\uFEFF'+csv})` 发起。必须具备 `user.export` 工具能力与 Chrome `downloads` 权限，且可信 Side Panel 每次都要求另行确认一次。限定 150000 UTF-8 字节，`.csv` 对应 `text/csv;charset=utf-8`。返回 `{started:true}` **不证明已落盘，也不证明 Save As 未取消**；工具不可传递 Blob 或使用只接收 HTTP(S) 的 URL 下载 API 伪装 Blob 功能。旧 `@vanillaes/csv` 锁与 Time Review 内部 CSV 导出无需迁移。

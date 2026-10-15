@@ -9,6 +9,8 @@ on:
       - 'tests/framework/page-content-native-builtin-page.js'
       - 'src/runtime/builtin-libraries/**'
       - 'src/libs/**'
+      - 'src/framework/sdk/browser-schemas.js'
+      - 'examples/sidebar-tools/papaparse-csv-export/**'
       - 'src/scripting/user-scripts/preview.js'
       - 'src/scripting/user-scripts/execution-source.js'
   workflow_dispatch:
