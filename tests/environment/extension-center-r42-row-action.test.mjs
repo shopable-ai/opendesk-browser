@@ -51,7 +51,9 @@ test('R4.7 full row delegates to exactly the same optional primary action',async
     "item.append(main,actions)",
     "restoreRowFocus(focusKey,focusAction)",
     "if(resolveExtensionRowIntent(row)==='detail'){openDetail(key,'main');return;}",
-    "if(resolveExtensionPrimaryAction(row)?.id==='open')sidebarTools.openTool(row.id)"
+    "if(resolveExtensionPrimaryAction(row)?.id==='open'){",
+    "if(!sidebarTools.openTool(row.id))",
+    "message('应用尚未打开；请处理未保存草稿或查看宿主提示后重试。','error')"
   ])assert.ok(center.includes(marker),'missing row/route contract '+marker);
   assert.doesNotMatch(center,/const actionName=!row\.installed/);
   assert.doesNotMatch(center,/!row\.enabled\?sidebarTools\.openSettings/);
