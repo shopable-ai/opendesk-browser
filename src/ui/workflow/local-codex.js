@@ -1,5 +1,5 @@
 import {normalizeAiProposal} from '../../framework/workflow/contract.js';
-import {workflowForModel,restoreModelRedactions} from './data-sharing.js';
+import {workflowForModel,restoreModelRedactions,verifiedWorkflowHistory} from './data-sharing.js';
 import {assertResponseLocators} from './responses.js';
 
 const bytes=value=>new TextEncoder().encode(value).byteLength;
@@ -40,7 +40,7 @@ export function describeLocalCodex(capability) {
 
 // The prompt carries only the user's reviewed workflow definition. Page contents
 // enter separately through the one approved browser.observe tool result.
-export function workflowCodexInput(request,workflow) {
+export function workflowCodexInput(request,workflow,history=[]) {
   if(typeof request!=='string'||!request.trim()||request.length>4000)
     throw fail('E_AI_REQUEST','请填写 1–4000 字的任务需求');
   let origin;
@@ -54,13 +54,15 @@ export function workflowCodexInput(request,workflow) {
     'paramsSchema:{type:"object",additionalProperties:false,properties:{},required:[]}. Max16 names ^[a-zA-Z][a-zA-Z0-9_]{0,39}$. Rules: type:string|number|integer|boolean,title(1–60); optional description,default,enum,minLength,maxLength,minimum,maximum. required names exist.',
     'steps:1–32; unique stepId ^[a-zA-Z][a-zA-Z0-9_-]{0,47}$; op:observe|fill|click|wait|extract|assert. Keys only:stepId,op,locatorKind,selector,roleName,param,text,timeout.',
     'Except observe, require locatorKind:css|role|label|text|testId,selector(1–512). role selector=role,roleName=accessible name(<=200). fill:one defined param or text(<=512). assert:text(1–512). wait:timeout(100–30000ms). observe:no locator.',
-    'Only requested actions; no old steps/extra click,submit,navigate. Literals use fill.text. Host inputValue() verifies fills: never assert on input. assert checks observed result textContent. Never claim unobserved verification.',
+    'Only requested actions; no old steps/extra click,submit,navigate. A click must be final; its effect is observed independently after execution. Never re-run old side effects.',
+    'Previously verified business facts are context only, not permission to repeat actions. Read current page before new locators. Host inputValue() verifies fills; no input textContent assert.',
     'Unquoted fills omit sentence punctuation; quoted punctuation stays. 填入 ai自动化第一选择。 means text="ai自动化第一选择". Preserve all else.',
     'Request/workflow data:',
   ].join('\n');
-  const shared=workflowForModel(workflow);
+  const shared=workflowForModel(workflow),verifiedTurnHistory=verifiedWorkflowHistory(history);
   const input=instructions+'\n'+JSON.stringify({request,siteOrigin:shared.siteOrigin,
-    title:shared.title,description:shared.description,steps:shared.steps,paramsSchema:shared.paramsSchema});
+    title:shared.title,description:shared.description,steps:shared.steps,
+    paramsSchema:shared.paramsSchema,verifiedTurnHistory});
   if(bytes(input)>32768)throw fail('E_AI_INPUT_LIMIT','需求和步骤超过本机会话的发送上限，请缩短后重新发送');
   return input;
 }
@@ -251,8 +253,8 @@ export function createLocalCodexPlanner({client,pollIntervalMs=350,timeoutMs=180
     catch(error){const cleanup=discardUncertainSession(error);if(cleanup)await cleanup.catch(()=>{});throw error;}
     finally{finish(row);}
   }
-  async function plan({request,workflow,consent,model,target,signal,onEvent=()=>{},onApproval}={}) {
-    const original=structuredClone(workflow),input=workflowCodexInput(request,original),scope=consentScope(consent);
+  async function plan({request,workflow,consent,model,target,signal,verifiedHistory=[],onEvent=()=>{},onApproval}={}) {
+    const original=structuredClone(workflow),input=workflowCodexInput(request,original,verifiedHistory),scope=consentScope(consent);
     if(model!==undefined&&(typeof model!=='string'||model.length>120))throw fail('E_AI_CONFIG','本机模型名称无效');
     if(scope.observation&&(!object(target)||target.frameId!==0||target.origin!==original.siteOrigin||
       !targetKeys.every(key=>Object.hasOwn(target,key))))throw fail('E_DOCUMENT_STALE','请重新选择可观察的当前网页');
