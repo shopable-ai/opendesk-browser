@@ -11,6 +11,13 @@ on:
       - 'src/ui/tool-shell.css'
       - 'examples/sidebar-tools/reading-toc/**'
       - 'scripts/build-sidebar-tool.mjs'
+      - 'scripts/generate-reading-toc-locales.mjs'
+      - 'src/ui/app-localization.js'
+      - 'scripts/preview/reading-toc-*.mjs'
+      - 'scripts/preview/reading-toc-mock.js'
+      - 'scripts/preview/build-preview.mjs'
+      - 'tests/environment/sidebar-tool-localization-r12.test.mjs'
+      - 'tests/environment/reading-toc-localization-preview-r12.test.mjs'
       - 'scripts/prepare-public.mjs'
       - 'scripts/verify-package.mjs'
       - 'tests/environment/reading-toc-r41.test.mjs'
@@ -45,8 +52,10 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Reproducible TOC tool and trusted bridge regression
         run: |
-          node --test tests/environment/reading-toc-r41.test.mjs tests/environment/reading-toc-lifecycle-r41.test.mjs tests/environment/reading-toc-placement-r42.test.mjs tests/environment/reading-toc-overview-r43.test.mjs tests/environment/reading-toc-visibility-r46.test.mjs
+          node --test tests/environment/reading-toc-r41.test.mjs tests/environment/reading-toc-lifecycle-r41.test.mjs tests/environment/reading-toc-placement-r42.test.mjs tests/environment/reading-toc-overview-r43.test.mjs tests/environment/reading-toc-visibility-r46.test.mjs tests/environment/reading-toc-recovery-r48.test.mjs tests/environment/sidebar-tool-localization-r12.test.mjs tests/environment/reading-toc-localization-preview-r12.test.mjs
           npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc --out artifacts/sidebar-tools/reading-toc/reading-toc.opendesk-tool.json
+          node scripts/preview/build-preview.mjs --tool reading-toc --surface side-panel --scenario success --theme light --width 360 --out artifacts/previews/reading-toc/reading-toc-r12.html
+          node scripts/preview/build-preview.mjs --tool reading-toc --surface page-overlay --scenario success --theme light --width 360 --out artifacts/previews/reading-toc/reading-toc-r12-overlay.html
           npm run check
       - name: Production and development bundles with unchanged strict packaging
         run: |
@@ -82,6 +91,7 @@ jobs:
           if-no-files-found: warn
           path: |
             artifacts/sidebar-tools/reading-toc/reading-toc.opendesk-tool.json
+            artifacts/previews/reading-toc/
             dist/production/official-tools/
             docs/framework/evidence/wxt/builds/build-production.json
             artifacts/reading-toc-r41/
