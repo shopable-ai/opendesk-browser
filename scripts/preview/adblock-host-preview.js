@@ -6,7 +6,7 @@
   const mount=byId('od-preview-adblock-host');
   if(!mount)return;
   const frame=byId('opendesk-preview-frame');
-  const data=JSON.parse(byId('od-preview-adblock-snapshots').textContent);
+  const data=JSON.parse(byId('opendesk-preview-adblock-snapshots').textContent);
   const scenario=data.scenario;
   const snapshots=data.snapshots;
   const live=['success','empty','untrusted'].includes(scenario);
