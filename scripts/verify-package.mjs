@@ -250,6 +250,22 @@ function assertPinnedFrameworkIIFE(text,file){
 }
 export function assertClassicIIFE(text, file) {
   const ast = parseScript(text,file,'script'), declaration=ast.body[0];
+  // The official unchanged Papa Parse 5.7.0 release is a two-argument UMD
+  // wrapper, NOT WXT's own var-assigned IIFE. Permit this exact single
+  // published byte stream and audited bootstrap syntax only; all generic
+  // packaged programs still require the original classic WXT IIFE contract.
+  const papaRow=BUILTIN_CATALOG.libraries.papaParse;
+  const papaCall=declaration?.expression;
+  if(file===papaRow.output&&papaRow.version==='5.7.0'&&
+    digest(Buffer.from(text,'utf8'))===papaRow.sha256&&
+    ast.body.length===1&&declaration.type==='ExpressionStatement'&&
+    papaCall?.type==='CallExpression'&&
+    papaCall.callee?.type==='ArrowFunctionExpression'&&
+    papaCall.callee.params.length===2&&!papaCall.callee.async&&
+    papaCall.arguments.length===2&&papaCall.arguments[0]?.type==='ThisExpression'&&
+    papaCall.arguments[1]?.type==='FunctionExpression'&&
+    papaCall.arguments[1].params.length===0&&!papaCall.arguments[1].async)
+    return;
   // WXT/Terser can emit a side-effect-only tool-shell as !function(){...}().
   // Accept ONLY that one fixed resource and ONLY this exact no-argument
   // synchronous IIFE. It is not a bypass for extra statements or dynamic JS.

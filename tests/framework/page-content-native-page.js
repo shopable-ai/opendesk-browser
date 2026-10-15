@@ -398,6 +398,37 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
           'FingerprintJS does not enforce explicit local-only initialization: '+JSON.stringify(result));
         return {...result,visitorIdCaptured:false};
       });
+      // Papa Parse is a real optional vendor library, not the historical
+      // synthetic Controller CSV fixture. Verify real USER_SCRIPT output and
+      // that website MAIN remains completely unaware of Papa's global.
+      await check('page-user-script-papaparse-csv-roundtrip-and-main-isolation',async()=>{
+        await refreshOptionalDocument();
+        const script=[
+          '// @opendesk-lib papa-parse',
+          'async function main(){',
+          '  const csv=Papa.unparse([{name:"苹果, Pro",price:18},{name:"=SUM(1,2)",price:0}],',
+          '    {columns:["name","price"],escapeFormulae:true});',
+          '  const parsed=Papa.parse(csv,{header:true,skipEmptyLines:true});',
+          '  return {csv,records:parsed.data,errors:parsed.errors.length};',
+          '}'
+        ].join('\n');
+        const result=await previewOptional(script);
+        assert(result.value?.errors===0&&result.value?.records?.length===2&&
+          result.value.records[0].name==='苹果, Pro'&&
+          result.value.records[1].name==="'=SUM(1,2)"&&
+          result.value.csv.includes("'=SUM(1,2)"),
+          'Native Papa parse/unparse or formula protection failed '+JSON.stringify(result));
+        assert(result.packagedOptionals?.length===1&&
+          result.packagedOptionals[0].id==='papaParse'&&
+          /^[a-f0-9]{64}$/.test(result.packagedOptionals[0].sha256),
+          'Native Papa resource identity was not pinned '+JSON.stringify(result));
+        const [main]=await chrome.scripting.executeScript({
+          target:{tabId:tab.id,documentIds:[optionalTarget.documentId]},world:'MAIN',
+          func:()=>typeof window.Papa});
+        assert(main?.result==='undefined',
+          'Page optional Papa contaminated website MAIN');
+        return {...result,websiteMainUntouched:true};
+      });
       await check('page-user-script-file-saver-blob-only-and-main-isolation',async()=>{
         // Prior async FingerprintJS initialization and repeated isolated-world
         // executions may leave the original Chrome document stale. A genuine
@@ -416,6 +447,6 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
       });
     }
   }finally{await chrome.tabs.remove(tab.id);host.dispose();client.dispose();}
-  globalThis.__pageContentNativeReport={state:'finished',cases,passed:cases.length===(pageProof?25:14)&&cases.every(row=>row.ok)};
+  globalThis.__pageContentNativeReport={state:'finished',cases,passed:cases.length===(pageProof?30:14)&&cases.every(row=>row.ok)};
 })().catch(e=>{host.dispose();client.dispose();globalThis.__pageContentNativeReport={state:'finished',cases,passed:false,
   fatal:{code:e.code,message:e.message,stack:e.stack?.slice(0,1000)}};});

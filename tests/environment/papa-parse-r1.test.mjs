@@ -8,7 +8,7 @@ import {BUILTIN_ABI,BUILTIN_CATALOG,BUILTIN_RUNTIME_CATALOG,PAGE_OPTIONAL_LIBRAR
 import {controllerSelectedPackagedLibrary} from '../../src/libs/loader.js';
 import {pageSelectedPackagedLibrary,compileLockedPageSource} from '../../src/scripting/user-scripts/execution-source.js';
 import {fakeBuiltinSource} from './builtin-support.mjs';
-import {inspectScript} from '../../scripts/verify-package.mjs';
+import {assertClassicIIFE,inspectScript} from '../../scripts/verify-package.mjs';
 
 globalThis.crypto ||= webcrypto;
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -87,4 +87,10 @@ test('release scanner admits only audited pinned constructor syntax, not dynamic
     /Dynamic execution/);
   assert.throws(()=>inspectScript(code,'other-optional-lib.js'),
     /Unapproved dynamic constructor reference/);
+});
+
+test('release verifier accepts exact native Papa UMD but never a modified/unpinned UMD',()=>{
+  assert.doesNotThrow(()=>assertClassicIIFE(code,row.output));
+  assert.throws(()=>assertClassicIIFE(code+'\n',row.output),/Non-classic IIFE/);
+  assert.throws(()=>assertClassicIIFE(code,'unreviewed.js'),/Non-classic IIFE/);
 });
