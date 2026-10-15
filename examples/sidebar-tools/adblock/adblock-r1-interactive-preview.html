@@ -2,137 +2,566 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="light dark">
-<title>广告拦截 · UI 原型（不执行真实过滤）</title>
-<style>
-:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px;line-height:1.5;font-synthesis:none;color:#24334e;background:#edf2f9}
-*{box-sizing:border-box}[hidden]{display:none!important}body{margin:0}button,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.48}button:focus-visible,select:focus-visible{outline:3px solid #6a8fff;outline-offset:3px}
-.stage{--paper:#fff;--wash:#f6f8fc;--line:#e2e9f3;--ink:#253450;--muted:#596a81;min-height:100vh;padding:38px 24px 60px;background:radial-gradient(ellipse at 15% 10%,#dae7ff 0,transparent 42%),linear-gradient(135deg,#f5f8ff,#e8eef7)}
-.layout{display:grid;grid-template-columns:minmax(320px,394px) minmax(310px,465px);justify-content:center;align-items:start;gap:38px;max-width:1000px;margin:0 auto}
-.frame{background:#f7f9fd;border:1px solid #dce4f0;border-radius:18px;box-shadow:0 23px 60px #293b5b20;min-width:0;overflow:hidden}
-.frame-top{background:#fff;border-bottom:1px solid #e9edf4;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:11px;color:#5e708a}
-.frame-top strong{color:#4a5b78;font-size:12px;font-weight:700}.crumb{display:flex;gap:8px;align-items:center;min-width:0}.crumb span:last-child{color:#365cc4;font-weight:700}.fake-dots{display:flex;gap:5px}.fake-dots i{height:6px;width:6px;border-radius:99px;background:#c9d3e3}
-.panel{padding:22px 18px 18px;color:var(--ink,#24334e)}
-.panel [hidden]{display:none!important}
-.toolhead{display:flex;align-items:center;gap:12px;margin-bottom:23px}.logo{width:44px;height:44px;flex:none;border-radius:14px;display:grid;place-items:center;color:#fff;background:linear-gradient(145deg,#527be5,#3155bc);box-shadow:0 5px 15px #3155bc27}
-.logo svg{width:26px;height:26px}.tooltitle{flex:1;min-width:0}.tooltitle h1{font-size:19px;letter-spacing:-.6px;line-height:1.23;margin:0 0 5px;font-weight:760}.tooltitle p{font-size:11px;margin:0;color:var(--muted,#73839a)}
-.iconbtn{width:35px;height:35px;padding:0;flex:none;border-radius:10px;border:1px solid var(--line,#e2e9f3);display:grid;place-items:center;color:var(--muted,#697a95);background:var(--paper,#fff)}.iconbtn:hover{border-color:#99b1eb;color:#375fc8}.iconbtn svg{height:18px;width:18px}
-.card{background:var(--paper,#fff);border:1px solid var(--line,#e2e9f3);border-radius:14px}
-.global-card{padding:17px 15px;margin-bottom:14px}.card-row{display:flex;align-items:center;justify-content:space-between;gap:14px}.text-main{font-size:14px;font-weight:720;margin:0;color:var(--ink,#253450)}.text-sub{font-size:11px;color:var(--muted,#7b8ba3);margin:4px 0 0;line-height:1.5}
-.toggle{display:inline-flex;justify-content:flex-start;align-items:center;min-width:46px;width:46px;height:27px;border:0;border-radius:999px;background:#cad4e3;padding:3px;transition:background .15s ease;flex:none}.toggle .knob{height:21px;width:21px;border-radius:50%;background:#fff;box-shadow:0 2px 6px #162f4b25;transition:transform .15s ease}.toggle[aria-checked=true]{background:#3872de}.toggle[aria-checked=true] .knob{transform:translateX(19px)}.toggle[aria-checked=false]{background:#aebccc}
-.status-line{display:flex;align-items:center;gap:7px;font-size:11px;color:#13815e;font-weight:660;margin:12px 0 0}.status-dot{width:7px;height:7px;border-radius:50%;background:#26b586}.status-line.off{color:#8a6270}.status-line.off .status-dot{background:#c17f8c}.status-line.unavailable{color:#8a6372}
-.site-card{padding:17px 15px 14px;margin-bottom:14px}.eyebrow{font-size:10px;font-weight:730;letter-spacing:.08em;color:var(--muted,#8995a8);text-transform:uppercase}.site-ident{display:flex;gap:10px;align-items:center;margin:10px 0 18px}.site-avatar{width:37px;height:37px;border-radius:11px;display:grid;place-items:center;background:#edf1fc;color:#4669c5;font-weight:800}.site-host{font-size:15px;letter-spacing:-.25px;font-weight:760;overflow-wrap:anywhere;color:var(--ink,#253450)}.site-sub{font-size:11px;color:var(--muted,#8290a6)}
-.site-divider{height:1px;background:var(--line,#e9edf5);margin:14px 0}.site-summary{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;padding:1px 0 0}.count{font-size:30px;letter-spacing:-1.6px;font-weight:780;line-height:1.18;font-variant-numeric:tabular-nums;color:var(--ink,#263752)}.count-description{display:block;font-size:11px;color:var(--muted,#7b8ba3);margin-top:5px}.sample{border:1px solid var(--line,#dce5f2);background:var(--wash,#f6f8fc);border-radius:100px;padding:4px 7px;font-size:10px;color:var(--muted,#8190a5);align-self:center}.help{color:var(--muted,#7b8ba3);font-size:11px;line-height:1.6;margin:14px 0 0}
-.preset{padding:14px 15px;margin-bottom:14px}.preset-top{display:flex;align-items:center;justify-content:space-between;gap:10px}.preset-top b{font-size:12px;color:var(--ink,#273750)}.preset-top span{font-size:10px;color:#315bb3;background:#ecf2ff;border-radius:20px;padding:3px 8px;font-weight:680}.preset p{margin:5px 0 0;font-size:11px;color:var(--muted,#8190a5)}
-.linkrow{display:flex;align-items:center;justify-content:space-between;padding:14px 2px;color:var(--ink,#283856);border:0;background:transparent;width:100%;text-align:left;font-size:12px;font-weight:690}.linkrow svg{width:17px;height:17px;color:#8b9bb6}.linkrow .left{display:inline-flex;align-items:center;gap:9px}.linkrow .left svg{color:#637da9}.linkrow:hover{color:#315bc4}
-.page-heading{display:flex;align-items:center;gap:10px;margin:0 0 19px}.page-heading h2{font-size:17px;margin:0;font-weight:770;letter-spacing:-.4px}.page-heading .iconbtn{width:32px;height:32px}.page-heading small{margin-left:auto;color:var(--muted,#7b8ba3);font-size:11px}
-.list-card{padding:13px 15px}.list-intro{font-size:12px;line-height:1.6;color:var(--muted,#77879e);margin:0 0 15px}.allow-row{display:flex;gap:8px;justify-content:space-between;align-items:center;padding:12px 0;border-top:1px solid var(--line,#e9eef5)}.allow-row:first-child{border-top:0}.allow-row strong{font-size:13px;overflow-wrap:anywhere}.allow-row p{font-size:10px;color:var(--muted,#7a8aa1);margin:2px 0 0}.secondary{background:var(--paper,#fff);border:1px solid var(--line,#dbe4ef);border-radius:8px;padding:7px 10px;color:#4569b4;font-size:11px;font-weight:720}.secondary:hover{border-color:#8caaeb}.empty-state{text-align:center;padding:30px 10px 26px;color:var(--muted,#73839b)}.empty-state svg{width:30px;height:30px;color:#a0b4d6}.empty-state strong{display:block;color:var(--ink,#31415c);font-size:13px;margin:10px 0 4px}.empty-state p{margin:0;font-size:11px}
-.setting-row{padding:15px 0;border-top:1px solid var(--line,#e8eef4)}.setting-row:first-child{border-top:0}.setting-row h3{margin:0;font-size:13px}.setting-row p{font-size:11px;color:var(--muted,#77879e);margin:4px 0 0}.setting-row .mini{font-size:11px;color:#3662bc;font-weight:680}.setting-muted{background:var(--wash,#f6f8fc);padding:13px;border-radius:10px;font-size:11px;color:var(--muted,#7d8da2);line-height:1.6}
-.footline{font-size:10px;line-height:1.5;color:var(--muted,#93a0b0);border-top:1px solid var(--line,#e2eaf4);padding-top:14px;margin:14px 0 0;text-align:center}
-.notes{padding-top:18px}.notes .kicker{color:#315bb3;font-size:11px;letter-spacing:2px;font-weight:780}.notes h2{font-size:32px;line-height:1.23;letter-spacing:-1.1px;color:#263856;margin:12px 0 13px}.notes>p{font-size:14px;color:#566984;line-height:1.85;margin:0 0 24px}.controls,.explain{padding:19px;background:#fff;border:1px solid #dce6f4;border-radius:15px;box-shadow:0 7px 21px #344d7120;margin-bottom:13px}.controls h3,.explain h3{font-size:14px;margin:0 0 12px;color:#263b5b}.controls label{font-size:12px;color:#5f718a;font-weight:700;display:block;margin:0 0 6px}.controls select{width:100%;border-radius:9px;border:1px solid #d1dceb;background:#fff;padding:10px 11px;color:#293a59;min-height:42px;cursor:pointer}.buttons{display:flex;gap:8px;margin-top:12px}.buttons button{border:1px solid #d9e3f1;background:#f6f9ff;color:#3b5b95;padding:9px 12px;border-radius:9px;font-size:12px;font-weight:690}.buttons button:hover{border-color:#9ab4eb}.demo-flag{display:inline-flex;align-items:center;gap:7px;background:#e8eefa;color:#4162a0;font-size:11px;padding:6px 10px;border-radius:30px;margin-bottom:15px}.demo-flag i{height:7px;width:7px;background:#608bdd;border-radius:50%}.explain ul{padding-left:18px;margin:0;font-size:12px;color:#667791;line-height:2.15}.fine-print{color:#566a84!important;font-size:11px!important;line-height:1.65!important;margin-top:12px!important}
-.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(12px);padding:10px 15px;min-width:180px;max-width:min(90vw,430px);text-align:center;border-radius:10px;background:#273956;color:#fff;font-size:12px;box-shadow:0 12px 36px #111e3d33;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:9}.toast.visible{opacity:1;transform:translateX(-50%) translateY(0)}
-.stage.night{--paper:#19283d;--wash:#142438;--line:#334761;--ink:#ecf2ff;--muted:#a5b5cf;background:radial-gradient(ellipse at 15% 12%,#233851 0,transparent 42%),linear-gradient(135deg,#0f1a2a,#1c2c42)}.night .frame{background:#152236;border-color:#3b4c66}.night .frame-top{background:#1b2b40;border-color:#364b65}.night .frame-top{color:#adc0dc}.night .frame-top strong{color:#dce6f8}.night .crumb span:last-child{color:#99b9ff}.night .site-avatar{background:#273e61;color:#abccff}.night .preset-top span{background:#263b5f;color:#a8c8ff}.night .notes h2{color:#f1f6ff}.night .notes>p{color:#b6c5d8}.night .controls,.night .explain{background:#1b2b40;border-color:#344962}.night .controls h3,.night .explain h3{color:#e9f1ff}.night .controls label,.night .explain ul{color:#b8c8e0}.night .controls select{background:#243650;color:#f2f6ff;border-color:#4b6180}.night .buttons button{background:#253c5a;color:#cde0ff;border-color:#40597d}.night .demo-flag{background:#2b456b;color:#cee1ff}.night .fine-print{color:#99aac3!important}.night .secondary{color:#a8c6fb}.night .status-line.off{color:#e5a8b0}
-@media(max-width:760px){.stage{padding:20px 14px 42px}.layout{grid-template-columns:minmax(0,394px);gap:14px}.notes{padding:6px 0 0}.notes h2{font-size:24px;margin:8px 0}.notes>p{margin-bottom:12px}.controls,.explain{box-shadow:none}.frame{border-radius:14px}}@media(max-width:350px){.stage{padding:10px 5px 24px}.panel{padding:17px 12px 15px}.site-card,.global-card,.preset{padding-left:12px;padding-right:12px}.notes{padding:8px}.card-row{gap:7px}}@media(prefers-reduced-motion:reduce){.toggle .knob,.toggle,.toast{transition:none}}
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OpenDesk Browser · 广告拦截 · 仅供离线模拟</title>
+<!-- Generated from real Side Panel markup/styles; no separately maintained design palette. -->
+<style id="od-preview-production-css">
+/* R23: single, page-agnostic OpenDesk semantic tokens.
+ * No resets, selectors for host pages, remote resources or page scroll policy.
+ * Trusted extension UI only; never inject into tools, iframes or web pages. */
+:root{
+  --od-ink:#1b2c49;
+  --od-sub:#53647e;
+  --od-line:#e1e8f1;
+  --od-brand:#365eda;
+  --od-paper:#fff;
+  --od-bg:#f5f7fb;
+  --od-input-border:#7f8da1;
+  --od-accent-ink:var(--od-brand);
+  --od-focus:var(--od-brand);
+  --od-warning:#80510d;
+  --od-muted:#f5f7fb;
+  --od-positive:#117a5d;
+  --od-negative:#ae3d4b;
+  --space-1:4px;
+  --space-2:8px;
+  --space-3:12px;
+  --space-4:16px;
+  --radius-control:8px;
+  --radius-surface:12px;
+  --radius-pill:999px;
+  --od-icon-size:34px;
+  --od-body-size:13px;
+  --od-note-size:12px;
+  --od-meta-size:11px;
+  --od-on-brand:#fff;
+  --od-nav-active:var(--od-brand);
+  --od-action-bg:var(--od-muted);
+  --od-action-border:var(--od-input-border);
+  --od-action-ink:var(--od-ink);
+  --od-warning-bg:#fff9ec;
+  --od-warning-border:#dcc58a;
+  --od-warning-ink:#76501b;
+  --od-negative-bg:#fff0f1;
+  /* Host horizontal inset, used once; sandbox tool content owns its own inner inset. */
+  --od-page-gutter:11px;
+  /* Dark-mode palette is registered here; shared primitives only reference tokens. */
+  --od-dark-ink:#e9eef7;
+  --od-dark-sub:#b3c1d3;
+  --od-dark-line:#374457;
+  --od-dark-brand:#3566ba;
+  --od-dark-paper:#151c28;
+  --od-dark-bg:#101722;
+  --od-dark-input-border:#6d809b;
+  --od-dark-accent-ink:#9dc1ff;
+  --od-dark-warning:#ffd08a;
+  --od-dark-muted:#222d3e;
+  --od-dark-positive:#a1f3cc;
+  --od-dark-negative:#ff9ea6;
+  /* Existing Sidebar aliases; do not redeclare palette values per page. */
+  --ink:var(--od-ink);
+  --sub:var(--od-sub);
+  --line:var(--od-line);
+  --blue:var(--od-brand);
+  --paper:var(--od-paper);
+}
+
+/* Dark palette stays with the canonical tokens; design-system.css owns layout only. */
+@media(prefers-color-scheme:dark){
+  :root{
+    --od-ink:var(--od-dark-ink);
+    --od-sub:var(--od-dark-sub);
+    --od-line:var(--od-dark-line);
+    --od-brand:var(--od-dark-brand);
+    --od-paper:var(--od-dark-paper);
+    --od-bg:var(--od-dark-bg);
+    --od-input-border:var(--od-dark-input-border);
+    --od-accent-ink:var(--od-dark-accent-ink);
+    --od-focus:var(--od-dark-accent-ink);
+    --od-warning:var(--od-dark-warning);
+    --od-muted:var(--od-dark-muted);
+    --od-positive:var(--od-dark-positive);
+    --od-negative:var(--od-dark-negative);
+    --od-warning-bg:#392d21;
+    --od-warning-border:#8b6841;
+    --od-warning-ink:#f6dca8;
+    --od-negative-bg:#442632;
+    --od-nav-active:#9dc1ff;
+  }
+}
+
+/* R20/R23 Sidebar primitives and page base; semantic values are in design-tokens.css.
+ * Scoped to the trusted Sidebar and tool tab, NOT reusable in Workspace/Options. */
+:root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,sans-serif;font-size:13px;line-height:1.45;color:var(--od-ink);background:var(--od-bg);color-scheme:light}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;overflow:hidden;min-width:0}
+body{display:flex;flex-direction:column;margin:0;background:var(--od-bg)}
+h1,h2,h3{margin:0;letter-spacing:-.015em}
+p{margin:var(--space-2) 0;overflow-wrap:anywhere}
+/* Emphasis inside a paragraph changes weight, never its size or semantic ink. */
+p :is(strong,b){font-size:inherit;color:inherit;font-weight:650}
+main{min-width:0}
+section{min-width:0}
+.hint,aside{font-size:var(--od-note-size);color:var(--od-sub)}
+.identity{font:var(--od-meta-size)/1.5 ui-monospace,monospace;overflow-wrap:anywhere}
+.row{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap;margin:var(--space-2) 0;min-width:0}
+label{display:block;margin:var(--space-2) 0 var(--space-1)}
+input,select,textarea{width:100%;min-width:0;border:1px solid var(--od-input-border);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink);font:inherit;padding:var(--space-2) var(--space-3)}
+input,select{min-height:36px}
+input[type=checkbox]{width:auto;min-height:0;margin-right:6px}
+textarea{display:block;margin:var(--space-2) 0 var(--space-3);font:var(--od-note-size)/1.55 ui-monospace,SFMono-Regular,Consolas,monospace;resize:vertical;tab-size:2}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;min-width:0;max-height:300px;overflow:auto;background:var(--od-muted);padding:var(--space-2);border-radius:var(--radius-control);font:var(--od-meta-size)/1.55 ui-monospace,monospace}
+button{max-width:100%;border:0;border-radius:var(--radius-control);background:var(--od-brand);color:var(--od-on-brand);padding:var(--space-2) var(--space-3);min-height:34px;font:inherit;cursor:pointer;overflow-wrap:anywhere}
+button:disabled{opacity:.48;cursor:not-allowed}
+button:hover:not(:disabled){filter:brightness(.97)}
+details{margin:var(--space-2) 0}
+summary{cursor:pointer;color:var(--od-ink);overflow-wrap:anywhere}
+details>section{margin-top:var(--space-3)}
+:focus-visible,#workspace-content :focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
+.visually-hidden{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;clip-path:inset(50%)}
+
+/* Shared primitives: semantics here; state-specific geometry stays in tool-shell.css. */
+.od-page{min-width:0}
+.od-toolbar{display:flex;align-items:center;gap:var(--space-2);min-width:0}
+.od-page-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-height:var(--od-icon-size);min-width:0}
+.od-page-title{min-width:0;margin:0;color:var(--od-ink);font-size:var(--od-note-size);font-weight:600;line-height:1.5;overflow-wrap:anywhere}
+.od-page-actions{display:flex;align-items:center;justify-content:flex-end;gap:var(--space-2);min-width:0;flex:none;margin-inline-start:auto}
+/* Tools Index/Detail is the trusted Tab header baseline; narrow actions wrap as a group. */
+@media(max-width:240px){.od-page-head{flex-wrap:wrap}.od-page-actions{flex-wrap:wrap;max-width:100%}}
+.od-stack{display:grid;gap:var(--space-2);min-width:0}
+/* Public component contract: semantic appearance lives only here; pages own layout. */
+.od-surface{min-width:0;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface)}
+.od-surface--padded{padding:var(--space-3)}
+.od-button{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-1);max-width:100%;min-height:36px;padding:var(--space-2) var(--space-3);font:inherit;font-weight:650;border:1px solid var(--od-brand);border-radius:var(--radius-control);background:var(--od-brand);color:var(--od-on-brand);text-align:center}
+.od-button--secondary{background:var(--od-action-bg);border-color:var(--od-action-border);color:var(--od-action-ink)}
+.od-button--danger{background:var(--od-negative-bg);border-color:var(--od-negative);color:var(--od-negative)}
+.od-button--quiet{background:transparent;border-color:transparent;color:var(--od-ink)}
+.od-icon-button{position:relative;display:inline-grid;place-items:center;flex:none;width:var(--od-icon-size);height:var(--od-icon-size);min-width:var(--od-icon-size);min-height:var(--od-icon-size);padding:0;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-sub)}
+.od-icon-button--primary{border-color:var(--od-brand);background:var(--od-brand);color:var(--od-on-brand)}
+.od-icon-button--danger{border-color:var(--od-negative);background:var(--od-negative-bg);color:var(--od-negative)}
+.od-icon-button svg{width:18px;height:18px;display:block;pointer-events:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.od-icon-button:hover:not(:disabled):not(.od-icon-button--primary):not(.od-icon-button--danger){background:var(--od-muted)}
+.od-icon-button[aria-expanded=true]{background:var(--od-muted);border-color:var(--od-focus);color:var(--od-accent-ink)}
+:is(input,select,textarea).od-field{min-width:0;border:1px solid var(--od-input-border);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink);font-size:var(--od-body-size)}
+:is(input,select,textarea).od-field:disabled,
+:is(input,textarea).od-field[readonly]{background:var(--od-muted);color:var(--od-sub)}
+:is(input,select,textarea).od-field[aria-invalid="true"]{border-color:var(--od-negative)}
+.od-form-field{display:grid;gap:var(--space-1);min-width:0}
+.od-field-label{margin:0;font-size:var(--od-note-size);font-weight:650;line-height:1.5;color:var(--od-ink)}
+.od-field-help{margin:0;font-size:var(--od-note-size);line-height:1.55;color:var(--od-sub)}
+.od-field-error{margin:0;font-size:var(--od-note-size);line-height:1.55;color:var(--od-negative)}
+.od-body{color:var(--od-ink);font-size:var(--od-body-size);line-height:1.55;font-weight:400}
+.od-note{color:var(--od-sub);font-size:var(--od-note-size);line-height:1.55;font-weight:400}
+.od-title{color:var(--od-ink);font-size:var(--od-body-size);line-height:1.5;font-weight:650}
+.od-technical{font-size:var(--od-meta-size);line-height:1.55;color:var(--od-sub);font-weight:400;overflow-wrap:anywhere}
+.od-result{min-width:0;margin:0;border:1px solid var(--od-line);background:var(--od-muted);border-radius:var(--radius-control);padding:var(--space-2);color:var(--od-ink)}
+.od-alert{margin:0;padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-control);color:var(--od-ink);background:var(--od-muted)}
+.od-alert--warning{background:var(--od-warning-bg);border-color:var(--od-warning-border);color:var(--od-warning-ink)}
+.od-alert--error{background:var(--od-negative-bg);border-color:var(--od-negative);color:var(--od-negative)}
+.od-disclosure{min-width:0;margin:0;border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper);color:var(--od-ink)}
+/* All trusted disclosures use the same centered header, marker and type scale.
+ * Keep the lighter --flat and emphasis-only --info variants on this one component. */
+.od-disclosure>summary{display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-2);min-height:44px;padding:var(--space-2) var(--space-3);list-style:none;cursor:pointer;font-size:var(--od-body-size);line-height:1.5;font-weight:650;color:var(--od-ink);overflow-wrap:anywhere}
+.od-disclosure>summary::-webkit-details-marker{display:none}
+.od-disclosure>summary::before{content:"";flex:none;width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(-45deg)}
+.od-disclosure[open]>summary::before{transform:rotate(45deg)}
+.od-disclosure>summary>*{min-width:0}
+.od-disclosure>summary>span:only-child{flex:1 1 0}
+.od-disclosure>summary :is(strong,b){font-size:inherit;font-weight:inherit;color:inherit}
+.od-disclosure[open]>summary{border-bottom:1px solid var(--od-line)}
+/* One hover contract for every trusted first-level disclosure. */
+.od-disclosure>summary:hover{background:var(--od-muted)}
+.od-disclosure:not([open])>summary:hover{border-radius:var(--radius-surface)}
+.od-disclosure[open]>summary:hover{border-radius:var(--radius-surface) var(--radius-surface) 0 0}
+/** Allow 100%-width form fields inside a disclosure without their 12px margins
+ * pushing their right edge outside a narrow Side Panel. */
+.od-disclosure>:not(summary){min-width:0;max-width:calc(100% - var(--space-3) - var(--space-3));margin:var(--space-2) var(--space-3) 0}
+.od-disclosure>:last-child:not(summary){margin-bottom:var(--space-3)}
+.od-disclosure--info>summary{color:var(--od-brand)}
+.od-disclosure--info[open]>summary{background:var(--od-muted)}
+.od-disclosure--flat{border:0;border-radius:0;background:transparent}
+.od-disclosure--flat>summary{min-height:36px;padding:var(--space-2) 0;font-size:var(--od-note-size);color:var(--od-sub)}
+.od-disclosure--flat[open]>summary{border-bottom:1px solid var(--od-line);background:transparent}
+.od-disclosure--flat>:not(summary){max-width:100%;margin:var(--space-2) 0 0}
+.od-disclosure--flat>:last-child:not(summary){margin-bottom:0}
+/* Technical disclosures stay frameless, including hover treatment. */
+.od-disclosure--flat:is(:not([open]),[open])>summary:hover{background:var(--od-muted);border-radius:var(--radius-control)}
+.od-segmented{display:flex;width:max-content;max-width:100%;gap:2px;padding:3px;background:var(--od-muted);border:1px solid var(--od-input-border);border-radius:var(--radius-surface)}
+.od-segmented>button{min-height:32px;border-radius:var(--radius-control)}
+
+/* Collapsible rows are interactive controls, including nested technical details. */
+@media(pointer:coarse){.od-disclosure>summary{min-height:44px}}
+
+/* Keep the trusted tool host aligned with tools that follow the OS theme. */
+@media(prefers-color-scheme:dark){
+  :root{color-scheme:dark}
+  :root .workbench-nav{background:var(--od-paper)}
+  :root .workbench-nav button{color:var(--od-sub)}
+  :root .workbench-nav button[aria-selected=true]{color:var(--od-nav-active);border-bottom-color:var(--od-nav-active)}
+  :root .sidebar-tool-icon-action{color:var(--od-sub)}
+  :root .sidebar-tool-icon-action:hover:not(:disabled){background:var(--od-muted)}
+  :root #sidebar-tool-remove:hover:not(:disabled){background:var(--od-negative-bg);color:var(--od-negative)}
+}
+
+.workbench-nav{flex:none;display:flex;gap:0;min-width:0;max-width:100%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scroll-padding-inline:var(--od-page-gutter);scrollbar-width:thin;padding:0 var(--od-page-gutter);border-bottom:1px solid var(--line);background:#fff}
+.workbench-nav button{flex:0 0 auto;min-width:50px;min-height:40px;padding:10px 7px 9px;white-space:nowrap;scroll-snap-align:start;background:transparent;color:#63758e;border:0;border-bottom:2px solid transparent;border-radius:0;font-size:12px;font-weight:650}
+.workbench-nav button[aria-selected=true]{color:#2852bb;border-bottom-color:var(--blue);background:transparent}
+.workbench-nav button:focus-visible{outline-offset:-3px}
+.sidebar-tool-view-head{display:flex;align-items:center;gap:4px;min-height:34px;margin-bottom:8px;font-size:11px;min-width:0}
+.sidebar-tool-view-head strong{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+.sidebar-tool-view-head .sidebar-tool-icon-action{flex:0 0 var(--od-icon-size);min-width:var(--od-icon-size);width:var(--od-icon-size);padding:0}
+.sidebar-tool-view-head .sidebar-tool-icon-action:disabled{opacity:.45;cursor:not-allowed}
+.sidebar-tool-view-head button:focus-visible,.sidebar-tool-item:focus-visible,#sidebar-tool-enable:focus-visible,#sidebar-tool-launch:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.sidebar-tool-frame{min-width:0;width:calc(100% + var(--od-page-gutter) + var(--od-page-gutter));margin-inline:calc(0px - var(--od-page-gutter))}
+.sidebar-tool-iframe{display:block;width:100%;min-width:0;min-height:0;height:220px;max-height:1600px;border:0;border-radius:0;background:#fff}
+.sidebar-tool-icon-action{color:var(--od-sub)}
+.sidebar-tool-icon-action:hover:not(:disabled){background:var(--od-muted)}
+.sidebar-tool-icon-action:focus-visible::after,.sidebar-tool-list-remove:focus-visible::after,.sidebar-tool-site:focus-visible::after,.sidebar-tool-settings:focus-visible::after,.sidebar-tool-list-tab:focus-visible::after{content:attr(aria-label);position:absolute;bottom:calc(100% + 5px);right:0;z-index:12;max-width:min(160px,calc(100vw - 24px));padding:4px 7px;background:#253951;color:#fff;font-size:11px;font-weight:500;line-height:1.45;white-space:normal;overflow-wrap:anywhere;text-align:left;border-radius:5px;box-shadow:0 2px 8px #15284a24;pointer-events:none}
+.sidebar-toc-settings-hint{margin:4px 0 9px;line-height:1.5;color:#697a91}
+.sidebar-toc-settings-row{display:flex;justify-content:space-between;align-items:center;gap:7px;margin:7px 0;min-height:31px}
+.sidebar-tool-adblock-native{margin:var(--space-2) 0;padding:var(--space-3)}
+.sidebar-tool-adblock-native .sidebar-toc-settings-row{gap:var(--space-3);padding:var(--space-2) 0}
+.sidebar-tool-adblock-native .sidebar-toc-settings-row+.sidebar-toc-settings-row{border-top:1px solid var(--od-line)}
+.sidebar-tool-adblock-native .sidebar-toc-settings-row>div{flex:1;min-width:0}
+.sidebar-tool-adblock-native .sidebar-toc-settings-row strong{display:block;color:var(--od-ink);font-size:var(--od-body-size);font-weight:650}
+.sidebar-tool-adblock-native .sidebar-toc-settings-hint{margin:var(--space-1) 0 0;font-size:var(--od-note-size);color:var(--od-sub);line-height:1.5}
+.sidebar-tool-adblock-native button[role=switch]{display:inline-flex;align-items:center;justify-content:flex-start;flex:none;width:46px;min-width:46px;height:27px;min-height:27px;padding:2px;border:1px solid var(--od-input-border);border-radius:999px;background:var(--od-muted);color:transparent;font-size:0;line-height:0;white-space:nowrap;overflow:hidden}
+.sidebar-tool-adblock-native button[role=switch]::after{content:"";display:block;width:21px;height:21px;flex:none;border-radius:50%;background:var(--od-paper);box-shadow:0 1px 4px color-mix(in srgb,var(--od-ink) 24%,transparent);transition:transform .15s ease}
+.sidebar-tool-adblock-native button[role=switch][aria-checked=true]{background:var(--od-brand);border-color:var(--od-brand)}
+.sidebar-tool-adblock-native button[role=switch][aria-checked=true]::after{transform:translateX(19px)}
+.sidebar-tool-adblock-native button[role=switch]:disabled{opacity:.45;cursor:not-allowed}
+:root{color-scheme:light;
+  --od-ink:#1b2c49;
+  --od-sub:#53647e;
+  --od-line:#e1e8f1;
+  --od-brand:#365eda;
+  --od-paper:#fff;
+  --od-bg:#f5f7fb;
+  --od-input-border:#7f8da1;
+  --od-accent-ink:var(--od-brand);
+  --od-focus:var(--od-brand);
+  --od-warning:#80510d;
+  --od-muted:#f5f7fb;
+  --od-positive:#117a5d;
+  --od-negative:#ae3d4b;
+  --space-1:4px;
+  --space-2:8px;
+  --space-3:12px;
+  --space-4:16px;
+  --radius-control:8px;
+  --radius-surface:12px;
+  --radius-pill:999px;
+  --od-icon-size:34px;
+  --od-body-size:13px;
+  --od-note-size:12px;
+  --od-meta-size:11px;
+  --od-on-brand:#fff;
+  --od-nav-active:var(--od-brand);
+  --od-action-bg:var(--od-muted);
+  --od-action-border:var(--od-input-border);
+  --od-action-ink:var(--od-ink);
+  --od-warning-bg:#fff9ec;
+  --od-warning-border:#dcc58a;
+  --od-warning-ink:#76501b;
+  --od-negative-bg:#fff0f1;
+  /* Host horizontal inset, used once; sandbox tool content owns its own inner inset. */
+  --od-page-gutter:11px;
+  /* Dark-mode palette is registered here; shared primitives only reference tokens. */
+  --od-dark-ink:#e9eef7;
+  --od-dark-sub:#b3c1d3;
+  --od-dark-line:#374457;
+  --od-dark-brand:#3566ba;
+  --od-dark-paper:#151c28;
+  --od-dark-bg:#101722;
+  --od-dark-input-border:#6d809b;
+  --od-dark-accent-ink:#9dc1ff;
+  --od-dark-warning:#ffd08a;
+  --od-dark-muted:#222d3e;
+  --od-dark-positive:#a1f3cc;
+  --od-dark-negative:#ff9ea6;
+  /* Existing Sidebar aliases; do not redeclare palette values per page. */
+  --ink:var(--od-ink);
+  --sub:var(--od-sub);
+  --line:var(--od-line);
+  --blue:var(--od-brand);
+  --paper:var(--od-paper);
+}
+</style>
+<style id="od-preview-shell-layout">
+html,body{height:auto;min-height:100%;overflow:auto}
+:root{color-scheme:light}
+body{display:block;margin:0;background:var(--od-bg);color:var(--od-ink)}
+.preview-meta{max-width:880px;margin:0 auto;padding:var(--space-3);display:grid;gap:var(--space-1)}
+.preview-meta p{margin:0;font-size:var(--od-note-size)}
+.preview-notice{font-weight:650;color:var(--od-negative)}
+.preview-provenance{color:var(--od-sub);font-size:var(--od-meta-size);overflow-wrap:anywhere}
+.preview-stage{padding:var(--space-2) var(--space-1);display:flex;justify-content:center;align-items:flex-start;min-width:0}
+.preview-device{box-sizing:content-box;width:360px;max-width:100%;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface);overflow:hidden}
+.preview-device .workbench-nav{width:100%;max-width:100%;background:var(--od-paper)}
+/* Light-only preview shell wins even when the operating system is in dark mode. */
+:root .preview-device .workbench-nav{background:var(--od-paper)}
+:root .preview-device .workbench-nav button{color:var(--od-sub)}
+:root .preview-device .workbench-nav button[aria-selected=true]{color:var(--od-brand);border-bottom-color:var(--od-brand)}
+.preview-body{padding:var(--space-2) var(--od-page-gutter) var(--space-3);min-width:0}
+.preview-body>section{min-width:0}
+.preview-device .sidebar-tool-view-head{min-height:var(--od-icon-size)}
+.preview-device #sidebar-tool-open-tab,.preview-device #sidebar-tool-settings-open,.preview-device #sidebar-tool-visibility,.preview-device #sidebar-tool-context-menu{display:none!important}
+.preview-device #opendesk-preview-frame{height:140px;min-height:0;max-height:none;background:var(--od-paper)}
+.preview-placeholder{display:grid;gap:var(--space-3);padding:var(--space-3);margin-top:var(--space-2)}
+.preview-placeholder>p{margin:0}
+.preview-placeholder .od-button{justify-self:start}
+.preview-confirm{max-width:min(420px,calc(100vw - var(--space-4)));padding:var(--space-4)}
+.preview-confirm::backdrop{background:color-mix(in srgb,var(--od-ink) 25%,transparent)}
+.preview-confirm h2{font-size:var(--od-body-size);margin:0}
+.preview-confirm p{margin:var(--space-3) 0;color:var(--od-sub)}
+.preview-confirm-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:var(--space-2)}
+#od-preview-adblock-feedback:empty{display:none}
+#od-preview-adblock-host:empty{display:none}
 </style>
 </head>
 <body>
-<div id="stage" class="stage">
- <div class="layout">
-  <div class="frame" aria-label="AdBlock Side Panel 交互演示">
-   <main class="panel">
-    <section id="overview">
-     <header class="toolhead">
-      <div class="tooltitle"><h1>广告拦截</h1></div>
-      <button class="iconbtn" type="button" id="open-settings" aria-label="打开设置" title="设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15.2a1.7 1.7 0 0 0 .3 1.9l-1.6 1.6a1.7 1.7 0 0 0-1.9-.3l-.8.4a1.7 1.7 0 0 0-1 1.5V21h-2.3v-.7a1.7 1.7 0 0 0-1-1.5l-.8-.4a1.7 1.7 0 0 0-1.9.3l-1.6-1.6a1.7 1.7 0 0 0 .3-1.9l-.4-.8a1.7 1.7 0 0 0-1.5-1H4v-2.3h.7a1.7 1.7 0 0 0 1.5-1l.4-.8a1.7 1.7 0 0 0-.3-1.9L7.9 5a1.7 1.7 0 0 0 1.9.3l.8-.4a1.7 1.7 0 0 0 1-1.5V3h2.3v.7a1.7 1.7 0 0 0 1 1.5l.8.4a1.7 1.7 0 0 0 1.9-.3l1.6 1.6a1.7 1.7 0 0 0-.3 1.9l.4.8a1.7 1.7 0 0 0 1.5 1h.7v2.3h-.7a1.7 1.7 0 0 0-1.5 1l-.4.8Z" transform="translate(-.3 -.3) scale(.98)"/></svg></button>
-     </header>
-     <section class="card global-card" aria-label="全局保护">
-      <div class="card-row"><div><h2 class="text-main">广告拦截</h2></div><button id="global-switch" class="toggle" type="button" role="switch" aria-label="全局广告拦截" aria-checked="true"><span class="knob"></span></button></div>
-      <p class="status-line" id="global-status"><span class="status-dot" aria-hidden="true"></span><span id="global-status-text">已开启保护</span></p>
-     </section>
-     <section class="card site-card" aria-label="当前网站">
-      <div class="eyebrow">当前网站</div>
-      <div class="site-ident"><div><div class="site-host" id="site-host">news.example.com</div><div class="site-sub" id="site-meta">普通网页 · 可以使用拦截</div></div></div>
-      <div class="card-row"><div><h2 class="text-main">在此网站拦截</h2></div><button id="site-switch" class="toggle" type="button" role="switch" aria-label="当前网站广告拦截" aria-checked="true"><span class="knob"></span></button></div>
-      
-     </section>
-     <button class="linkrow" type="button" id="open-allowlist"><span class="left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3.5" y="4.5" width="17" height="15" rx="3"/><path d="M8 9.5h8M8 14h5"/></svg><span>管理已停用的网站</span><span id="allow-count" style="color:var(--muted,#8392a8);font-size:11px">0</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m9 5 7 7-7 7"/></svg></button>
-    </section>
-    <section id="allowlist" hidden>
-     <div class="page-heading"><button class="iconbtn back" type="button" aria-label="返回概览" title="返回"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m15 5-7 7 7 7"/></svg></button><h2>已停用的网站</h2><small id="allow-summary">0 个网站</small></div>
-     
-     <div class="card list-card" id="allow-rows" aria-live="polite"></div>
-    </section>
-    <section id="settings" hidden>
-     <div class="page-heading"><button class="iconbtn back" type="button" aria-label="返回概览" title="返回"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m15 5-7 7 7 7"/></svg></button><h2>设置</h2></div>
-     <div class="card list-card"><div class="setting-row"><h3>网站例外</h3><p>关闭单个网站的拦截时，自动添加到例外列表。</p><button class="secondary" type="button" id="settings-allowlist">查看例外列表</button></div></div>
-     
-    </section>
-    
-   </main>
-  </div>
-  <aside class="notes" aria-label="原型操作说明">
-   <div class="controls"><h3>体验不同场景</h3><label for="domain-select">模拟当前网页</label><select id="domain-select"><option value="news.example.com">news.example.com · 新闻网站</option><option value="video.example.com">video.example.com · 视频网站</option><option value="shop.example.com">shop.example.com · 购物网站</option><option value="chrome://settings">chrome://settings · 浏览器受限页面</option></select><div class="buttons"><button type="button" id="theme-button">切换深色模式</button><button type="button" id="reset-button">重置原型</button></div></div>
-   <p class="fine-print">数据和开关只保存在此页面的本地演示状态。正式版本必须通过已审计的后台、Chrome DNR 和权限确认完成规则写入回读，才能提示“已生效”。</p>
-  </aside>
- </div>
+<aside class="preview-meta" aria-label="预览来源和安全范围">
+  <p class="preview-notice">模拟预览 · 非真实安装、权限或网络执行</p>
+  <p class="preview-provenance">工具：广告拦截 · 场景：success · 工具主题：light · 预览外壳：浅色</p>
+  <p class="preview-provenance">Source: 1e223bdd080143bb60c06b83dd29768f33d452f3 · Design SHA-256: f285f6b5e10fe26fce1d4c2e05fe234fc1e38ac3309c948b052f5a12ce422717 · Shell SHA-256: 225ac01fe157930437a333133321e0daf8e40b82437a2e0a21f8774b59b7bae4 · UI SHA-256: fb763846d9314dbc99a735573431660196478c49ea0df699bbc7827684eed411</p>
+</aside>
+<div class="preview-stage">
+  <section class="preview-device" aria-label="OpenDesk Browser Side Panel 真实布局来源的离线预览">
+    <nav class="workbench-nav" role="tablist" aria-label="工作台" aria-description="较窄时可以横向滚动；左右方向键以及 Home、End 切换页签">
+  <button type="button" id="tab-my-tasks" role="tab" tabindex="0" data-workbench-tab="tasks" aria-selected="true" aria-controls="workbench-tasks">我的</button>
+  <button type="button" id="tab-tools" role="tab" tabindex="-1" data-workbench-tab="tools" aria-selected="false" aria-controls="workbench-tools">扩展</button>
+  <button type="button" id="tab-workflow" role="tab" tabindex="-1" data-workbench-tab="workflow" aria-selected="false" aria-controls="workbench-workflow">工作流</button>
+  <button type="button" id="tab-develop" role="tab" tabindex="-1" data-workbench-tab="develop" aria-selected="false" aria-controls="workbench-develop">开发</button>
+  <button type="button" id="tab-cloud" role="tab" tabindex="-1" data-workbench-tab="cloud" aria-selected="false" aria-controls="workbench-cloud">云控</button>
+  <button type="button" id="tab-debug" role="tab" tabindex="-1" data-workbench-tab="debug" aria-selected="false" aria-controls="workbench-debug" hidden>调试</button>
+</nav>
+    <main class="preview-body">
+      <section id="od-preview-extension-detail" role="tabpanel" tabindex="-1" aria-label="当前扩展工具">
+        <div class="sidebar-tool-view-head od-toolbar od-page-head">
+          <button type="button" id="sidebar-tool-back" class="sidebar-tool-icon-action od-icon-button" title="返回工具列表" aria-label="返回自定义工具列表"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5-7 7 7 7M7 12h14"></path></svg></button>
+          <strong id="sidebar-tool-title" class="od-page-title"></strong>
+          <button type="button" id="sidebar-tool-open-tab" class="sidebar-tool-icon-action od-icon-button" title="在新标签页打开" aria-label="在新标签页打开当前工具" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 5h6v6m0-6-9 9M19 13v6H5V5h6"></path></svg></button>
+          <button type="button" id="sidebar-tool-settings-open" class="sidebar-tool-icon-action od-icon-button" title="工具设置" aria-label="工具设置" aria-controls="sidebar-tool-settings-view" aria-expanded="false" hidden><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M10 2h4l.5 2.5 2 1 2.4-1 2.3 3-1.7 2v3l1.7 2-2.3 3-2.4-1-2 1L14 21h-4l-.5-2.5-2-1-2.4 1-2.3-3 1.7-2v-3l-1.7-2 2.3-3 2.4 1 2-1Z"></path></svg></button>
+          <button type="button" id="sidebar-tool-visibility" class="sidebar-tool-icon-action od-icon-button" title="显示或隐藏此网站的悬浮目录" aria-label="显示或隐藏此网站的悬浮目录" aria-pressed="true" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+          <button type="button" id="sidebar-tool-context-menu" class="sidebar-tool-icon-action od-icon-button" title="为当前网站启用右键菜单" aria-label="为当前网站启用右键菜单" aria-pressed="false" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 12h16M4 19h16M9 3v4M15 10v4M11 17v4"></path></svg></button>
+          <button type="button" id="sidebar-tool-remove" class="sidebar-tool-icon-action od-icon-button" title="卸载工具及本地数据" aria-label="卸载当前工具及本地数据" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 4h4m-8 3 1 13h10l1-13M10 11v5m4-5v5"></path></svg></button>
+        </div>
+        <div id="od-preview-adblock-host"><section id="sidebar-tool-adblock-native" aria-label="广告拦截可信控制"><section aria-label="广告拦截 Chrome 可信控制" class="sidebar-tool-adblock-native od-surface"><div class="sidebar-toc-settings-row"><div><strong>广告拦截</strong><p class="sidebar-toc-settings-hint">广告与跟踪过滤已开启</p></div><button role="switch" aria-label="全局广告拦截" aria-checked="true" class="od-button od-button--secondary" type="button">开启</button></div><div class="sidebar-toc-settings-row"><div><strong>当前网站</strong><p class="sidebar-toc-settings-hint">news.example.com</p></div><button role="switch" aria-label="网站 news.example.com 的广告过滤" aria-checked="false" class="od-button od-button--secondary" type="button">关闭</button></div><p role="status" aria-live="polite" class="sidebar-toc-settings-hint"></p></section></section></div>
+        <p id="od-preview-adblock-feedback" class="od-note" role="status" aria-live="polite"></p>
+        <div id="sidebar-tool-frame" class="sidebar-tool-frame">
+          <iframe id="opendesk-preview-frame" class="sidebar-tool-iframe" title="OpenDesk Browser · 广告拦截 · 仅供离线模拟" sandbox="allow-scripts" referrerpolicy="no-referrer"></iframe>
+        </div>
+      </section>
+      <section id="od-preview-return" role="tabpanel" tabindex="-1" class="od-surface od-surface--padded preview-placeholder" aria-label="返回模拟" hidden>
+        <strong class="od-page-title">扩展 · 工具列表（简化预览）</strong>
+        <p class="od-note">为减少预览内容，仅保留返回后的导航状态。正式产品中的完整列表、筛选与安装入口仍由真实扩展管理。</p>
+        <button id="od-preview-reopen" type="button" class="od-button">重新查看当前工具</button>
+      </section>
+      <section id="od-preview-other" role="tabpanel" tabindex="-1" class="od-surface od-surface--padded preview-placeholder" aria-label="其他选项卡" hidden>
+        <strong id="od-preview-other-title" class="od-page-title"></strong>
+        <p class="od-note">这里只展示选项卡导航上下文；不复制其他工作台页面的业务代码。</p>
+        <button id="od-preview-to-extensions" class="od-button" type="button">返回「扩展」预览</button>
+      </section>
+      <section id="od-preview-uninstalled" role="tabpanel" tabindex="-1" class="od-surface od-surface--padded preview-placeholder" aria-label="模拟卸载结果" hidden>
+        <strong class="od-page-title">模拟卸载完成</strong>
+        <p class="od-note" role="status" aria-live="polite">当前模拟工具实例已关闭。</p>
+        <p class="od-note">仅关闭当前预览 iframe，未卸载真实工具、删除数据或更改权限。</p>
+        <button id="od-preview-reset" type="button" class="od-button od-button--secondary">重新加载模拟工具</button>
+      </section>
+    </main>
+  </section>
 </div>
-<div class="toast" role="status" aria-live="polite" id="toast"></div>
+<dialog class="preview-confirm od-surface" id="od-preview-confirm-uninstall" aria-labelledby="od-preview-confirm-title" aria-describedby="od-preview-confirm-description">
+  <h2 id="od-preview-confirm-title">模拟卸载此工具？</h2>
+  <p id="od-preview-confirm-description">这是预览中的交互演示，不会执行真实卸载或清除持久数据。</p>
+  <div class="preview-confirm-actions">
+    <button id="od-preview-cancel-uninstall" class="od-button od-button--secondary" type="button">取消</button>
+    <button id="od-preview-accept-uninstall" class="od-button od-button--danger" type="button">模拟卸载</button>
+  </div>
+</dialog>
+<dialog class="preview-confirm od-surface" id="od-preview-adblock-restore-dialog" aria-labelledby="od-preview-adblock-restore-title" aria-describedby="od-preview-adblock-restore-description"><h2 id="od-preview-adblock-restore-title">模拟恢复网站过滤？</h2><p id="od-preview-adblock-restore-description"></p><div class="preview-confirm-actions"><button id="od-preview-adblock-restore-cancel" class="od-button od-button--secondary" type="button">取消</button><button id="od-preview-adblock-restore-accept" class="od-button" type="button">确认恢复</button></div></dialog>
+<script type="application/json" id="opendesk-preview-adblock-snapshots">{"scenario":"success","snapshots":{"on-site-on":"\u003csection id=\"sidebar-tool-adblock-native\" aria-label=\"广告拦截可信控制\">\u003csection aria-label=\"广告拦截 Chrome 可信控制\" class=\"sidebar-tool-adblock-native od-surface\">\u003cdiv class=\"sidebar-toc-settings-row\">\u003cdiv>\u003cstrong>广告拦截\u003c/strong>\u003cp class=\"sidebar-toc-settings-hint\">广告与跟踪过滤已开启\u003c/p>\u003c/div>\u003cbutton role=\"switch\" aria-label=\"全局广告拦截\" aria-checked=\"true\" class=\"od-button od-button--secondary\" type=\"button\">开启\u003c/button>\u003c/div>\u003cdiv class=\"sidebar-toc-settings-row\">\u003cdiv>\u003cstrong>当前网站\u003c/strong>\u003cp class=\"sidebar-toc-settings-hint\">news.example.com\u003c/p>\u003c/div>\u003cbutton role=\"switch\" aria-label=\"网站 news.example.com 的广告过滤\" aria-checked=\"true\" class=\"od-button od-button--secondary\" type=\"button\">开启\u003c/button>\u003c/div>\u003cp role=\"status\" aria-live=\"polite\" class=\"sidebar-toc-settings-hint\">\u003c/p>\u003c/section>\u003c/section>","on-site-off":"\u003csection id=\"sidebar-tool-adblock-native\" aria-label=\"广告拦截可信控制\">\u003csection aria-label=\"广告拦截 Chrome 可信控制\" class=\"sidebar-tool-adblock-native od-surface\">\u003cdiv class=\"sidebar-toc-settings-row\">\u003cdiv>\u003cstrong>广告拦截\u003c/strong>\u003cp class=\"sidebar-toc-settings-hint\">广告与跟踪过滤已开启\u003c/p>\u003c/div>\u003cbutton role=\"switch\" aria-label=\"全局广告拦截\" aria-checked=\"true\" class=\"od-button od-button--secondary\" type=\"button\">开启\u003c/button>\u003c/div>\u003cdiv class=\"sidebar-toc-settings-row\">\u003cdiv>\u003cstrong>当前网站\u003c/strong>\u003cp class=\"sidebar-toc-settings-hint\">news.example.com\u003c/p>\u003c/div>\u003cbutton role=\"switch\" aria-label=\"网站 news.example.com 的广告过滤\" aria-checked=\"false\" class=\"od-button od-button--secondary\" type=\"button\">关闭\u003c/button>\u003c/div>\u003cp role=\"status\" aria-live=\"polite\" class=\"sidebar-toc-settings-hint\">\u003c/p>\u003c/section>\u003c/section>","off":"\u003csection id=\"sidebar-tool-adblock-native\" aria-label=\"广告拦截可信控制\">\u003csection aria-label=\"广告拦截 Chrome 可信控制\" class=\"sidebar-tool-adblock-native od-surface\">\u003cdiv class=\"sidebar-toc-settings-row\">\u003cdiv>\u003cstrong>广告拦截\u003c/strong>\u003cp class=\"sidebar-toc-settings-hint\">所有 AdBlock 规则已停止\u003c/p>\u003c/div>\u003cbutton role=\"switch\" aria-label=\"全局广告拦截\" aria-checked=\"false\" class=\"od-button od-button--secondary\" type=\"button\">关闭\u003c/button>\u003c/div>\u003cdiv class=\"sidebar-toc-settings-row\">\u003cdiv>\u003cstrong>当前网站\u003c/strong>\u003cp class=\"sidebar-toc-settings-hint\">news.example.com\u003c/p>\u003c/div>\u003cbutton role=\"switch\" aria-label=\"网站 news.example.com 的广告过滤\" aria-checked=\"false\" class=\"od-button od-button--secondary\" type=\"button\" disabled=\"\">关闭\u003c/button>\u003c/div>\u003cp role=\"status\" aria-live=\"polite\" class=\"sidebar-toc-settings-hint\">\u003c/p>\u003c/section>\u003c/section>","no-permission":"\u003csection id=\"sidebar-tool-adblock-native\" aria-label=\"广告拦截可信控制\">\u003csection aria-label=\"广告拦截 Chrome 可信控制\" class=\"sidebar-tool-adblock-native od-surface\">\u003cdiv class=\"sidebar-toc-settings-row\">\u003cdiv>\u003cstrong>广告拦截\u003c/strong>\u003cp class=\"sidebar-toc-settings-hint\">需先批准 Chrome DNR 权限\u003c/p>\u003c/div>\u003cbutton role=\"switch\" aria-label=\"全局广告拦截\" aria-checked=\"false\" class=\"od-button od-button--secondary\" type=\"button\">关闭\u003c/button>\u003c/div>\u003cdiv class=\"sidebar-toc-settings-row\">\u003cdiv>\u003cstrong>当前网站\u003c/strong>\u003cp class=\"sidebar-toc-settings-hint\">news.example.com\u003c/p>\u003c/div>\u003cbutton role=\"switch\" aria-label=\"网站 news.example.com 的广告过滤\" aria-checked=\"false\" class=\"od-button od-button--secondary\" type=\"button\" disabled=\"\">关闭\u003c/button>\u003c/div>\u003cp role=\"status\" aria-live=\"polite\" class=\"sidebar-toc-settings-hint\">\u003c/p>\u003c/section>\u003c/section>","restart":"\u003csection id=\"sidebar-tool-adblock-native\" aria-label=\"广告拦截可信控制\">\u003csection aria-label=\"广告拦截 Chrome 可信控制\" class=\"sidebar-tool-adblock-native od-surface\">\u003cdiv class=\"sidebar-toc-settings-row\">\u003cdiv>\u003cstrong>广告拦截\u003c/strong>\u003cp class=\"sidebar-toc-settings-hint\">Chrome 首次授权需完整退出并重新打开浏览器；过滤尚未开启，重启后请手动开启\u003c/p>\u003c/div>\u003cbutton role=\"switch\" aria-label=\"全局广告拦截\" aria-checked=\"false\" class=\"od-button od-button--secondary\" type=\"button\" disabled=\"\">需重启 Chrome\u003c/button>\u003c/div>\u003cdiv class=\"sidebar-toc-settings-row\">\u003cdiv>\u003cstrong>当前网站\u003c/strong>\u003cp class=\"sidebar-toc-settings-hint\">news.example.com\u003c/p>\u003c/div>\u003cbutton role=\"switch\" aria-label=\"网站 news.example.com 的广告过滤\" aria-checked=\"false\" class=\"od-button od-button--secondary\" type=\"button\" disabled=\"\">关闭\u003c/button>\u003c/div>\u003cp role=\"status\" aria-live=\"polite\" class=\"sidebar-toc-settings-hint\">Chrome 权限已批准，广告过滤尚未开启。\u003c/p>\u003c/section>\u003c/section>","error":"\u003csection id=\"sidebar-tool-adblock-native\" aria-label=\"广告拦截可信控制\">\u003csection aria-label=\"广告拦截 Chrome 可信控制\" class=\"sidebar-tool-adblock-native od-surface\">\u003cdiv class=\"sidebar-toc-settings-row\">\u003cdiv>\u003cstrong>广告拦截\u003c/strong>\u003cp class=\"sidebar-toc-settings-hint\">正在核对 Chrome 规则\u003c/p>\u003c/div>\u003cbutton role=\"switch\" aria-label=\"全局广告拦截\" aria-checked=\"false\" class=\"od-button od-button--secondary\" type=\"button\" disabled=\"\">状态未确认\u003c/button>\u003c/div>\u003cdiv class=\"sidebar-toc-settings-row\">\u003cdiv>\u003cstrong>当前网站\u003c/strong>\u003cp class=\"sidebar-toc-settings-hint\">仅支持当前普通 HTTP(S) 网站\u003c/p>\u003c/div>\u003cbutton role=\"switch\" aria-label=\"当前网站不可用\" aria-checked=\"false\" class=\"od-button od-button--secondary\" type=\"button\" disabled=\"\">不可用\u003c/button>\u003c/div>\u003cp role=\"status\" aria-live=\"polite\" class=\"sidebar-toc-settings-hint\">状态读取失败：[离线模拟] 状态读取失败\u003c/p>\u003c/section>\u003c/section>","loading":"\u003csection id=\"sidebar-tool-adblock-native\" aria-label=\"广告拦截可信控制\">\u003csection aria-label=\"广告拦截 Chrome 可信控制\" class=\"sidebar-tool-adblock-native od-surface\">\u003cdiv class=\"sidebar-toc-settings-row\">\u003cdiv>\u003cstrong>广告拦截\u003c/strong>\u003cp class=\"sidebar-toc-settings-hint\">正在核对 Chrome 规则\u003c/p>\u003c/div>\u003cbutton role=\"switch\" aria-label=\"全局广告拦截\" aria-checked=\"false\" class=\"od-button od-button--secondary\" type=\"button\" disabled=\"\">状态未确认\u003c/button>\u003c/div>\u003cdiv class=\"sidebar-toc-settings-row\">\u003cdiv>\u003cstrong>当前网站\u003c/strong>\u003cp class=\"sidebar-toc-settings-hint\">仅支持当前普通 HTTP(S) 网站\u003c/p>\u003c/div>\u003cbutton role=\"switch\" aria-label=\"当前网站不可用\" aria-checked=\"false\" class=\"od-button od-button--secondary\" type=\"button\" disabled=\"\">不可用\u003c/button>\u003c/div>\u003cp role=\"status\" aria-live=\"polite\" class=\"sidebar-toc-settings-hint\">\u003c/p>\u003c/section>\u003c/section>"}}</script>
+<script type="application/json" id="opendesk-preview-manifest">{"format":"opendesk.ui-preview.v1","tool":"adblock","toolVersion":"1.0.0","surface":"side-panel","scenario":"success","theme":"light","viewport":{"width":360,"height":760},"sourceCommit":"1e223bdd080143bb60c06b83dd29768f33d452f3","designSha256":"f285f6b5e10fe26fce1d4c2e05fe234fc1e38ac3309c948b052f5a12ce422717","uiSha256":"fb763846d9314dbc99a735573431660196478c49ea0df699bbc7827684eed411","shellSha256":"225ac01fe157930437a333133321e0daf8e40b82437a2e0a21f8774b59b7bae4","shellTheme":"light","previewBuild":"R1.1","mock":true,"installed":false,"permissionsGranted":false,"operations":["adblock.status","adblock.site.restore"]}</script>
 <script>
-(() => {
- 'use strict';
- const KEY='opendesk.adblock.preview.r1';
- const domains=['news.example.com','video.example.com','shop.example.com','chrome://settings'];
- const $=id=>document.getElementById(id);
- const defaultState=()=>({global:true,allowed:[],domain:domains[0],night:false});
- let state=defaultState();
- try { const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s && typeof s==='object')state={global:s.global!==false,allowed:Array.isArray(s.allowed)?s.allowed.filter(v=>domains.includes(v)&&!v.startsWith('chrome://')).slice(0,3):[],domain:domains.includes(s.domain)?s.domain:domains[0],night:s.night===true}; } catch {}
- // Only preserve known demo domains. No URL entered by a user is processed or stored.
- const persist=()=>{try{localStorage.setItem(KEY,JSON.stringify(state))}catch{}};
- const supported=()=>!state.domain.startsWith('chrome://');
- let toastTimer;
- const toast=t=>{const el=$('toast');el.textContent=t;el.classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('visible'),2300)};
- function show(view){['overview','allowlist','settings'].forEach(id=>$(id).hidden=id!==view);if(view==='allowlist')renderAllowlist();}
- function render(){
-  const eligible=supported(),siteOn=eligible&&state.global&&!state.allowed.includes(state.domain);
-  $('global-switch').setAttribute('aria-checked',String(state.global));
-  $('global-status').className='status-line'+(state.global?'':' off');
-  $('global-status-text').textContent=state.global?'拦截中':'已关闭';
-  $('site-host').textContent=state.domain;
-  $('site-meta').textContent=eligible?'此网页支持过滤':'浏览器受限页面';
-  $('site-switch').disabled=!state.global||!eligible;
-  $('site-switch').setAttribute('aria-checked',String(siteOn));
-  $('allow-count').textContent=String(state.allowed.length);
-  $('domain-select').value=state.domain;
-  $('stage').classList.toggle('night',state.night);
-  $('theme-button').textContent=state.night?'切换浅色模式':'切换深色模式';
-  renderAllowlist();
- }
- function renderAllowlist(){
-  $('allow-summary').textContent=state.allowed.length+' 个网站';
-  const host=$('allow-rows');host.replaceChildren();
-  if(!state.allowed.length){
-   const empty=document.createElement('div');empty.className='empty-state';empty.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 13.5 10 17l8-9"/><circle cx="12" cy="12" r="10"/></svg><strong>暂无例外网站</strong><p>未设置停用的网站</p>';host.append(empty);return;
+(()=>{
+  'use strict';
+  const byId=id=>document.getElementById(id);
+  const safeFrameBytes=Uint8Array.from(atob('PCFkb2N0eXBlIGh0bWw+PGh0bWwgbGFuZz0iemgtQ04iPjxoZWFkPjxtZXRhIGNoYXJzZXQ9InV0Zi04Ij48bWV0YSBuYW1lPSJ2aWV3cG9ydCIgY29udGVudD0id2lkdGg9ZGV2aWNlLXdpZHRoLGluaXRpYWwtc2NhbGU9MSI+PG1ldGEgaHR0cC1lcXVpdj0iQ29udGVudC1TZWN1cml0eS1Qb2xpY3kiIGNvbnRlbnQ9ImRlZmF1bHQtc3JjICdub25lJzsgc2NyaXB0LXNyYyBkYXRhOiAndW5zYWZlLWlubGluZSc7IHN0eWxlLXNyYyBkYXRhOiAndW5zYWZlLWlubGluZSc7IGltZy1zcmMgZGF0YTo7IGNvbm5lY3Qtc3JjICdub25lJzsgb2JqZWN0LXNyYyAnbm9uZSc7IGJhc2UtdXJpICdub25lJzsgZm9ybS1hY3Rpb24gJ25vbmUnIj48bGluayByZWw9InN0eWxlc2hlZXQiIGhyZWY9ImRhdGE6dGV4dC9jc3M7YmFzZTY0LEx5b2diM0JsYm1SbGMyc3VjMmhoY21Wa0xXUmxjMmxuYmk1Mk1TQnphR0V5TlRZOVpqSTROV1kyWWpWbE1UQm1aVEkyWm1ObE1XUTBZekpsTURWbVpUSXpOR1pqTVdVek9HRmpNek13T1dNNU5EaGlNRFV5WmpWaE1USmpaVFF5TWpjeE56c2dSMFZPUlZKQlZFVkVJR1p5YjIwZ1kyRnViMjVwWTJGc0lFTlRVeUFxTHdvdktpQlNNak02SUhOcGJtZHNaU3dnY0dGblpTMWhaMjV2YzNScFl5QlBjR1Z1UkdWemF5QnpaVzFoYm5ScFl5QjBiMnRsYm5NdUNpQXFJRTV2SUhKbGMyVjBjeXdnYzJWc1pXTjBiM0p6SUdadmNpQm9iM04wSUhCaFoyVnpMQ0J5WlcxdmRHVWdjbVZ6YjNWeVkyVnpJRzl5SUhCaFoyVWdjMk55YjJ4c0lIQnZiR2xqZVM0S0lDb2dWSEoxYzNSbFpDQmxlSFJsYm5OcGIyNGdWVWtnYjI1c2VUc2dibVYyWlhJZ2FXNXFaV04wSUdsdWRHOGdkRzl2YkhNc0lHbG1jbUZ0WlhNZ2IzSWdkMlZpSUhCaFoyVnpMaUFxTHdvNmNtOXZkSHNLSUNBdExXOWtMV2x1YXpvak1XSXlZelE1T3dvZ0lDMHRiMlF0YzNWaU9pTTFNelkwTjJVN0NpQWdMUzF2WkMxc2FXNWxPaU5sTVdVNFpqRTdDaUFnTFMxdlpDMWljbUZ1WkRvak16WTFaV1JoT3dvZ0lDMHRiMlF0Y0dGd1pYSTZJMlptWmpzS0lDQXRMVzlrTFdKbk9pTm1OV1kzWm1JN0NpQWdMUzF2WkMxcGJuQjFkQzFpYjNKa1pYSTZJemRtT0dSaE1Uc0tJQ0F0TFc5a0xXRmpZMlZ1ZEMxcGJtczZkbUZ5S0MwdGIyUXRZbkpoYm1RcE93b2dJQzB0YjJRdFptOWpkWE02ZG1GeUtDMHRiMlF0WW5KaGJtUXBPd29nSUMwdGIyUXRkMkZ5Ym1sdVp6b2pPREExTVRCa093b2dJQzB0YjJRdGJYVjBaV1E2STJZMVpqZG1ZanNLSUNBdExXOWtMWEJ2YzJsMGFYWmxPaU14TVRkaE5XUTdDaUFnTFMxdlpDMXVaV2RoZEdsMlpUb2pZV1V6WkRSaU93b2dJQzB0YzNCaFkyVXRNVG8wY0hnN0NpQWdMUzF6Y0dGalpTMHlPamh3ZURzS0lDQXRMWE53WVdObExUTTZNVEp3ZURzS0lDQXRMWE53WVdObExUUTZNVFp3ZURzS0lDQXRMWEpoWkdsMWN5MWpiMjUwY205c09qaHdlRHNLSUNBdExYSmhaR2wxY3kxemRYSm1ZV05sT2pFeWNIZzdDaUFnTFMxeVlXUnBkWE10Y0dsc2JEbzVPVGx3ZURzS0lDQXRMVzlrTFdsamIyNHRjMmw2WlRvek5IQjRPd29nSUMwdGIyUXRZbTlrZVMxemFYcGxPakV6Y0hnN0NpQWdMUzF2WkMxdWIzUmxMWE5wZW1VNk1USndlRHNLSUNBdExXOWtMVzFsZEdFdGMybDZaVG94TVhCNE93b2dJQzB0YjJRdGIyNHRZbkpoYm1RNkkyWm1aanNLSUNBdExXOWtMVzVoZGkxaFkzUnBkbVU2ZG1GeUtDMHRiMlF0WW5KaGJtUXBPd29nSUMwdGIyUXRZV04wYVc5dUxXSm5PblpoY2lndExXOWtMVzExZEdWa0tUc0tJQ0F0TFc5a0xXRmpkR2x2YmkxaWIzSmtaWEk2ZG1GeUtDMHRiMlF0YVc1d2RYUXRZbTl5WkdWeUtUc0tJQ0F0TFc5a0xXRmpkR2x2YmkxcGJtczZkbUZ5S0MwdGIyUXRhVzVyS1RzS0lDQXRMVzlrTFhkaGNtNXBibWN0WW1jNkkyWm1aamxsWXpzS0lDQXRMVzlrTFhkaGNtNXBibWN0WW05eVpHVnlPaU5rWTJNMU9HRTdDaUFnTFMxdlpDMTNZWEp1YVc1bkxXbHVhem9qTnpZMU1ERmlPd29nSUMwdGIyUXRibVZuWVhScGRtVXRZbWM2STJabVpqQm1NVHNLSUNBdktpQkliM04wSUdodmNtbDZiMjUwWVd3Z2FXNXpaWFFzSUhWelpXUWdiMjVqWlRzZ2MyRnVaR0p2ZUNCMGIyOXNJR052Ym5SbGJuUWdiM2R1Y3lCcGRITWdiM2R1SUdsdWJtVnlJR2x1YzJWMExpQXFMd29nSUMwdGIyUXRjR0ZuWlMxbmRYUjBaWEk2TVRGd2VEc0tJQ0F2S2lCRVlYSnJMVzF2WkdVZ2NHRnNaWFIwWlNCcGN5QnlaV2RwYzNSbGNtVmtJR2hsY21VN0lITm9ZWEpsWkNCd2NtbHRhWFJwZG1WeklHOXViSGtnY21WbVpYSmxibU5sSUhSdmEyVnVjeTRnS2k4S0lDQXRMVzlrTFdSaGNtc3RhVzVyT2lObE9XVmxaamM3Q2lBZ0xTMXZaQzFrWVhKckxYTjFZam9qWWpOak1XUXpPd29nSUMwdGIyUXRaR0Z5YXkxc2FXNWxPaU16TnpRME5UYzdDaUFnTFMxdlpDMWtZWEpyTFdKeVlXNWtPaU16TlRZMlltRTdDaUFnTFMxdlpDMWtZWEpyTFhCaGNHVnlPaU14TlRGak1qZzdDaUFnTFMxdlpDMWtZWEpyTFdKbk9pTXhNREUzTWpJN0NpQWdMUzF2WkMxa1lYSnJMV2x1Y0hWMExXSnZjbVJsY2pvak5tUTRNRGxpT3dvZ0lDMHRiMlF0WkdGeWF5MWhZMk5sYm5RdGFXNXJPaU01WkdNeFptWTdDaUFnTFMxdlpDMWtZWEpyTFhkaGNtNXBibWM2STJabVpEQTRZVHNLSUNBdExXOWtMV1JoY21zdGJYVjBaV1E2SXpJeU1tUXpaVHNLSUNBdExXOWtMV1JoY21zdGNHOXphWFJwZG1VNkkyRXhaak5qWXpzS0lDQXRMVzlrTFdSaGNtc3RibVZuWVhScGRtVTZJMlptT1dWaE5qc0tJQ0F2S2lCRmVHbHpkR2x1WnlCVGFXUmxZbUZ5SUdGc2FXRnpaWE03SUdSdklHNXZkQ0J5WldSbFkyeGhjbVVnY0dGc1pYUjBaU0IyWVd4MVpYTWdjR1Z5SUhCaFoyVXVJQ292Q2lBZ0xTMXBibXM2ZG1GeUtDMHRiMlF0YVc1cktUc0tJQ0F0TFhOMVlqcDJZWElvTFMxdlpDMXpkV0lwT3dvZ0lDMHRiR2x1WlRwMllYSW9MUzF2WkMxc2FXNWxLVHNLSUNBdExXSnNkV1U2ZG1GeUtDMHRiMlF0WW5KaGJtUXBPd29nSUMwdGNHRndaWEk2ZG1GeUtDMHRiMlF0Y0dGd1pYSXBPd3A5Q2dvdktpQkVZWEpySUhCaGJHVjBkR1VnYzNSaGVYTWdkMmwwYUNCMGFHVWdZMkZ1YjI1cFkyRnNJSFJ2YTJWdWN6c2daR1Z6YVdkdUxYTjVjM1JsYlM1amMzTWdiM2R1Y3lCc1lYbHZkWFFnYjI1c2VTNGdLaThLUUcxbFpHbGhLSEJ5WldabGNuTXRZMjlzYjNJdGMyTm9aVzFsT21SaGNtc3Bld29nSURweWIyOTBld29nSUNBZ0xTMXZaQzFwYm1zNmRtRnlLQzB0YjJRdFpHRnlheTFwYm1zcE93b2dJQ0FnTFMxdlpDMXpkV0k2ZG1GeUtDMHRiMlF0WkdGeWF5MXpkV0lwT3dvZ0lDQWdMUzF2WkMxc2FXNWxPblpoY2lndExXOWtMV1JoY21zdGJHbHVaU2s3Q2lBZ0lDQXRMVzlrTFdKeVlXNWtPblpoY2lndExXOWtMV1JoY21zdFluSmhibVFwT3dvZ0lDQWdMUzF2WkMxd1lYQmxjanAyWVhJb0xTMXZaQzFrWVhKckxYQmhjR1Z5S1RzS0lDQWdJQzB0YjJRdFltYzZkbUZ5S0MwdGIyUXRaR0Z5YXkxaVp5azdDaUFnSUNBdExXOWtMV2x1Y0hWMExXSnZjbVJsY2pwMllYSW9MUzF2WkMxa1lYSnJMV2x1Y0hWMExXSnZjbVJsY2lrN0NpQWdJQ0F0TFc5a0xXRmpZMlZ1ZEMxcGJtczZkbUZ5S0MwdGIyUXRaR0Z5YXkxaFkyTmxiblF0YVc1cktUc0tJQ0FnSUMwdGIyUXRabTlqZFhNNmRtRnlLQzB0YjJRdFpHRnlheTFoWTJObGJuUXRhVzVyS1RzS0lDQWdJQzB0YjJRdGQyRnlibWx1WnpwMllYSW9MUzF2WkMxa1lYSnJMWGRoY201cGJtY3BPd29nSUNBZ0xTMXZaQzF0ZFhSbFpEcDJZWElvTFMxdlpDMWtZWEpyTFcxMWRHVmtLVHNLSUNBZ0lDMHRiMlF0Y0c5emFYUnBkbVU2ZG1GeUtDMHRiMlF0WkdGeWF5MXdiM05wZEdsMlpTazdDaUFnSUNBdExXOWtMVzVsWjJGMGFYWmxPblpoY2lndExXOWtMV1JoY21zdGJtVm5ZWFJwZG1VcE93b2dJQ0FnTFMxdlpDMTNZWEp1YVc1bkxXSm5PaU16T1RKa01qRTdDaUFnSUNBdExXOWtMWGRoY201cGJtY3RZbTl5WkdWeU9pTTRZalk0TkRFN0NpQWdJQ0F0TFc5a0xYZGhjbTVwYm1jdGFXNXJPaU5tTm1SallUZzdDaUFnSUNBdExXOWtMVzVsWjJGMGFYWmxMV0puT2lNME5ESTJNekk3Q2lBZ0lDQXRMVzlrTFc1aGRpMWhZM1JwZG1VNkl6bGtZekZtWmpzS0lDQjlDbjBLQ2pweWIyOTBlMlp2Ym5RdFptRnRhV3g1T2kxaGNIQnNaUzF6ZVhOMFpXMHNRbXhwYm10TllXTlRlWE4wWlcxR2IyNTBMQ0pUUmlCUWNtOGdWR1Y0ZENJc0lsQnBibWRHWVc1bklGTkRJaXh6ZVhOMFpXMHRkV2tzYzJGdWN5MXpaWEpwWmp0bWIyNTBMWE5wZW1VNk1UTndlRHRzYVc1bExXaGxhV2RvZERveExqUTFPMk52Ykc5eU9uWmhjaWd0TFc5a0xXbHVheWs3WW1GamEyZHliM1Z1WkRwMllYSW9MUzF2WkMxaVp5azdZMjlzYjNJdGMyTm9aVzFsT214cFoyaDBmUW9xZTJKdmVDMXphWHBwYm1jNlltOXlaR1Z5TFdKdmVIMEtXMmhwWkdSbGJsMTdaR2x6Y0d4aGVUcHViMjVsSVdsdGNHOXlkR0Z1ZEgwS1ltOWtlWHRrYVhOd2JHRjVPbVpzWlhnN1pteGxlQzFrYVhKbFkzUnBiMjQ2WTI5c2RXMXVPMjFoY21kcGJqb3dPMkpoWTJ0bmNtOTFibVE2ZG1GeUtDMHRiMlF0WW1jcGZRcHBibkIxZEN4elpXeGxZM1FzZEdWNGRHRnlaV0Y3ZDJsa2RHZzZNVEF3SlR0dGFXNHRkMmxrZEdnNk1EdGliM0prWlhJNk1YQjRJSE52Ykdsa0lIWmhjaWd0TFc5a0xXbHVjSFYwTFdKdmNtUmxjaWs3WW05eVpHVnlMWEpoWkdsMWN6cDJZWElvTFMxeVlXUnBkWE10WTI5dWRISnZiQ2s3WW1GamEyZHliM1Z1WkRwMllYSW9MUzF2WkMxd1lYQmxjaWs3WTI5c2IzSTZkbUZ5S0MwdGIyUXRhVzVyS1R0bWIyNTBPbWx1YUdWeWFYUTdjR0ZrWkdsdVp6cDJZWElvTFMxemNHRmpaUzB5S1NCMllYSW9MUzF6Y0dGalpTMHpLWDBLYVc1d2RYUXNjMlZzWldOMGUyMXBiaTFvWldsbmFIUTZNelp3ZUgwS2FXNXdkWFJiZEhsd1pUMWphR1ZqYTJKdmVGMTdkMmxrZEdnNllYVjBienR0YVc0dGFHVnBaMmgwT2pBN2JXRnlaMmx1TFhKcFoyaDBPalp3ZUgwS2RHVjRkR0Z5WldGN1pHbHpjR3hoZVRwaWJHOWphenR0WVhKbmFXNDZkbUZ5S0MwdGMzQmhZMlV0TWlrZ01DQjJZWElvTFMxemNHRmpaUzB6S1R0bWIyNTBPblpoY2lndExXOWtMVzV2ZEdVdGMybDZaU2t2TVM0MU5TQjFhUzF0YjI1dmMzQmhZMlVzVTBaTmIyNXZMVkpsWjNWc1lYSXNRMjl1YzI5c1lYTXNiVzl1YjNOd1lXTmxPM0psYzJsNlpUcDJaWEowYVdOaGJEdDBZV0l0YzJsNlpUb3lmUXBpZFhSMGIyNTdiV0Y0TFhkcFpIUm9PakV3TUNVN1ltOXlaR1Z5T2pBN1ltOXlaR1Z5TFhKaFpHbDFjenAyWVhJb0xTMXlZV1JwZFhNdFkyOXVkSEp2YkNrN1ltRmphMmR5YjNWdVpEcDJZWElvTFMxdlpDMWljbUZ1WkNrN1kyOXNiM0k2ZG1GeUtDMHRiMlF0YjI0dFluSmhibVFwTzNCaFpHUnBibWM2ZG1GeUtDMHRjM0JoWTJVdE1pa2dkbUZ5S0MwdGMzQmhZMlV0TXlrN2JXbHVMV2hsYVdkb2REb3pOSEI0TzJadmJuUTZhVzVvWlhKcGREdGpkWEp6YjNJNmNHOXBiblJsY2p0dmRtVnlabXh2ZHkxM2NtRndPbUZ1ZVhkb1pYSmxmUXBpZFhSMGIyNDZaR2x6WVdKc1pXUjdiM0JoWTJsMGVUb3VORGc3WTNWeWMyOXlPbTV2ZEMxaGJHeHZkMlZrZlFwaWRYUjBiMjQ2YUc5MlpYSTZibTkwS0Rwa2FYTmhZbXhsWkNsN1ptbHNkR1Z5T21KeWFXZG9kRzVsYzNNb0xqazNLWDBLT21adlkzVnpMWFpwYzJsaWJHVjdiM1YwYkdsdVpUb3ljSGdnYzI5c2FXUWdkbUZ5S0MwdGIyUXRabTlqZFhNcE8yOTFkR3hwYm1VdGIyWm1jMlYwT2pKd2VIMEtRRzFsWkdsaEtIQnlaV1psY25NdFkyOXNiM0l0YzJOb1pXMWxPbVJoY21zcGV3b2dJRHB5YjI5MGUyTnZiRzl5TFhOamFHVnRaVHBrWVhKcmZYMEtMeW9nVTJoaGNtVmtJSEJ5YVcxcGRHbDJaWE02SUhObGJXRnVkR2xqY3lCb1pYSmxPeUJ6ZEdGMFpTMXpjR1ZqYVdacFl5Qm5aVzl0WlhSeWVTQnpkR0Y1Y3lCcGJpQjBiMjlzTFhOb1pXeHNMbU56Y3k0Z0tpOEtMbTlrTFhCaFoyVjdiV2x1TFhkcFpIUm9PakI5Q2k1dlpDMTBiMjlzWW1GeWUyUnBjM0JzWVhrNlpteGxlRHRoYkdsbmJpMXBkR1Z0Y3pwalpXNTBaWEk3WjJGd09uWmhjaWd0TFhOd1lXTmxMVElwTzIxcGJpMTNhV1IwYURvd2ZRb3ViMlF0Y0dGblpTMW9aV0ZrZTJScGMzQnNZWGs2Wm14bGVEdGhiR2xuYmkxcGRHVnRjenBqWlc1MFpYSTdhblZ6ZEdsbWVTMWpiMjUwWlc1ME9uTndZV05sTFdKbGRIZGxaVzQ3WjJGd09uWmhjaWd0TFhOd1lXTmxMVElwTzIxcGJpMW9aV2xuYUhRNmRtRnlLQzB0YjJRdGFXTnZiaTF6YVhwbEtUdHRhVzR0ZDJsa2RHZzZNSDBLTG05a0xYQmhaMlV0ZEdsMGJHVjdiV2x1TFhkcFpIUm9PakE3YldGeVoybHVPakE3WTI5c2IzSTZkbUZ5S0MwdGIyUXRhVzVyS1R0bWIyNTBMWE5wZW1VNmRtRnlLQzB0YjJRdGJtOTBaUzF6YVhwbEtUdG1iMjUwTFhkbGFXZG9kRG8yTURBN2JHbHVaUzFvWldsbmFIUTZNUzQxTzI5MlpYSm1iRzkzTFhkeVlYQTZZVzU1ZDJobGNtVjlDaTV2WkMxd1lXZGxMV0ZqZEdsdmJuTjdaR2x6Y0d4aGVUcG1iR1Y0TzJGc2FXZHVMV2wwWlcxek9tTmxiblJsY2p0cWRYTjBhV1o1TFdOdmJuUmxiblE2Wm14bGVDMWxibVE3WjJGd09uWmhjaWd0TFhOd1lXTmxMVElwTzIxcGJpMTNhV1IwYURvd08yWnNaWGc2Ym05dVpUdHRZWEpuYVc0dGFXNXNhVzVsTFhOMFlYSjBPbUYxZEc5OUNpOHFJRlJ2YjJ4eklFbHVaR1Y0TDBSbGRHRnBiQ0JwY3lCMGFHVWdkSEoxYzNSbFpDQlVZV0lnYUdWaFpHVnlJR0poYzJWc2FXNWxPeUJ1WVhKeWIzY2dZV04wYVc5dWN5QjNjbUZ3SUdGeklHRWdaM0p2ZFhBdUlDb3ZDa0J0WldScFlTaHRZWGd0ZDJsa2RHZzZNalF3Y0hncGV5NXZaQzF3WVdkbExXaGxZV1I3Wm14bGVDMTNjbUZ3T25keVlYQjlMbTlrTFhCaFoyVXRZV04wYVc5dWMzdG1iR1Y0TFhkeVlYQTZkM0poY0R0dFlYZ3RkMmxrZEdnNk1UQXdKWDE5Q2k1dlpDMXpkR0ZqYTN0a2FYTndiR0Y1T21keWFXUTdaMkZ3T25aaGNpZ3RMWE53WVdObExUSXBPMjFwYmkxM2FXUjBhRG93ZlFvdktpQlFkV0pzYVdNZ1kyOXRjRzl1Wlc1MElHTnZiblJ5WVdOME9pQnpaVzFoYm5ScFl5QmhjSEJsWVhKaGJtTmxJR3hwZG1WeklHOXViSGtnYUdWeVpUc2djR0ZuWlhNZ2IzZHVJR3hoZVc5MWRDNGdLaThLTG05a0xYTjFjbVpoWTJWN2JXbHVMWGRwWkhSb09qQTdZbUZqYTJkeWIzVnVaRHAyWVhJb0xTMXZaQzF3WVhCbGNpazdZbTl5WkdWeU9qRndlQ0J6YjJ4cFpDQjJZWElvTFMxdlpDMXNhVzVsS1R0aWIzSmtaWEl0Y21Ga2FYVnpPblpoY2lndExYSmhaR2wxY3kxemRYSm1ZV05sS1gwS0xtOWtMWE4xY21aaFkyVXRMWEJoWkdSbFpIdHdZV1JrYVc1bk9uWmhjaWd0TFhOd1lXTmxMVE1wZlFvdWIyUXRZblYwZEc5dWUyUnBjM0JzWVhrNmFXNXNhVzVsTFdac1pYZzdZV3hwWjI0dGFYUmxiWE02WTJWdWRHVnlPMnAxYzNScFpua3RZMjl1ZEdWdWREcGpaVzUwWlhJN1oyRndPblpoY2lndExYTndZV05sTFRFcE8yMWhlQzEzYVdSMGFEb3hNREFsTzIxcGJpMW9aV2xuYUhRNk16WndlRHR3WVdSa2FXNW5PblpoY2lndExYTndZV05sTFRJcElIWmhjaWd0TFhOd1lXTmxMVE1wTzJadmJuUTZhVzVvWlhKcGREdG1iMjUwTFhkbGFXZG9kRG8yTlRBN1ltOXlaR1Z5T2pGd2VDQnpiMnhwWkNCMllYSW9MUzF2WkMxaWNtRnVaQ2s3WW05eVpHVnlMWEpoWkdsMWN6cDJZWElvTFMxeVlXUnBkWE10WTI5dWRISnZiQ2s3WW1GamEyZHliM1Z1WkRwMllYSW9MUzF2WkMxaWNtRnVaQ2s3WTI5c2IzSTZkbUZ5S0MwdGIyUXRiMjR0WW5KaGJtUXBPM1JsZUhRdFlXeHBaMjQ2WTJWdWRHVnlmUW91YjJRdFluVjBkRzl1TFMxelpXTnZibVJoY25sN1ltRmphMmR5YjNWdVpEcDJZWElvTFMxdlpDMWhZM1JwYjI0dFltY3BPMkp2Y21SbGNpMWpiMnh2Y2pwMllYSW9MUzF2WkMxaFkzUnBiMjR0WW05eVpHVnlLVHRqYjJ4dmNqcDJZWElvTFMxdlpDMWhZM1JwYjI0dGFXNXJLWDBLTG05a0xXSjFkSFJ2YmkwdFpHRnVaMlZ5ZTJKaFkydG5jbTkxYm1RNmRtRnlLQzB0YjJRdGJtVm5ZWFJwZG1VdFltY3BPMkp2Y21SbGNpMWpiMnh2Y2pwMllYSW9MUzF2WkMxdVpXZGhkR2wyWlNrN1kyOXNiM0k2ZG1GeUtDMHRiMlF0Ym1WbllYUnBkbVVwZlFvdWIyUXRZblYwZEc5dUxTMXhkV2xsZEh0aVlXTnJaM0p2ZFc1a09uUnlZVzV6Y0dGeVpXNTBPMkp2Y21SbGNpMWpiMnh2Y2pwMGNtRnVjM0JoY21WdWREdGpiMnh2Y2pwMllYSW9MUzF2WkMxcGJtc3BmUW91YjJRdGFXTnZiaTFpZFhSMGIyNTdjRzl6YVhScGIyNDZjbVZzWVhScGRtVTdaR2x6Y0d4aGVUcHBibXhwYm1VdFozSnBaRHR3YkdGalpTMXBkR1Z0Y3pwalpXNTBaWEk3Wm14bGVEcHViMjVsTzNkcFpIUm9PblpoY2lndExXOWtMV2xqYjI0dGMybDZaU2s3YUdWcFoyaDBPblpoY2lndExXOWtMV2xqYjI0dGMybDZaU2s3YldsdUxYZHBaSFJvT25aaGNpZ3RMVzlrTFdsamIyNHRjMmw2WlNrN2JXbHVMV2hsYVdkb2REcDJZWElvTFMxdlpDMXBZMjl1TFhOcGVtVXBPM0JoWkdScGJtYzZNRHRpYjNKa1pYSTZNWEI0SUhOdmJHbGtJSFpoY2lndExXOWtMV3hwYm1VcE8ySnZjbVJsY2kxeVlXUnBkWE02ZG1GeUtDMHRjbUZrYVhWekxXTnZiblJ5YjJ3cE8ySmhZMnRuY205MWJtUTZkbUZ5S0MwdGIyUXRjR0Z3WlhJcE8yTnZiRzl5T25aaGNpZ3RMVzlrTFhOMVlpbDlDaTV2WkMxcFkyOXVMV0oxZEhSdmJpMHRjSEpwYldGeWVYdGliM0prWlhJdFkyOXNiM0k2ZG1GeUtDMHRiMlF0WW5KaGJtUXBPMkpoWTJ0bmNtOTFibVE2ZG1GeUtDMHRiMlF0WW5KaGJtUXBPMk52Ykc5eU9uWmhjaWd0TFc5a0xXOXVMV0p5WVc1a0tYMEtMbTlrTFdsamIyNHRZblYwZEc5dUxTMWtZVzVuWlhKN1ltOXlaR1Z5TFdOdmJHOXlPblpoY2lndExXOWtMVzVsWjJGMGFYWmxLVHRpWVdOclozSnZkVzVrT25aaGNpZ3RMVzlrTFc1bFoyRjBhWFpsTFdKbktUdGpiMnh2Y2pwMllYSW9MUzF2WkMxdVpXZGhkR2wyWlNsOUNpNXZaQzFwWTI5dUxXSjFkSFJ2YmlCemRtZDdkMmxrZEdnNk1UaHdlRHRvWldsbmFIUTZNVGh3ZUR0a2FYTndiR0Y1T21Kc2IyTnJPM0J2YVc1MFpYSXRaWFpsYm5Sek9tNXZibVU3Wm1sc2JEcHViMjVsTzNOMGNtOXJaVHBqZFhKeVpXNTBRMjlzYjNJN2MzUnliMnRsTFhkcFpIUm9PakV1T0R0emRISnZhMlV0YkdsdVpXTmhjRHB5YjNWdVpEdHpkSEp2YTJVdGJHbHVaV3B2YVc0NmNtOTFibVI5Q2k1dlpDMXBZMjl1TFdKMWRIUnZianBvYjNabGNqcHViM1FvT21ScGMyRmliR1ZrS1RwdWIzUW9MbTlrTFdsamIyNHRZblYwZEc5dUxTMXdjbWx0WVhKNUtUcHViM1FvTG05a0xXbGpiMjR0WW5WMGRHOXVMUzFrWVc1blpYSXBlMkpoWTJ0bmNtOTFibVE2ZG1GeUtDMHRiMlF0YlhWMFpXUXBmUW91YjJRdGFXTnZiaTFpZFhSMGIyNWJZWEpwWVMxbGVIQmhibVJsWkQxMGNuVmxYWHRpWVdOclozSnZkVzVrT25aaGNpZ3RMVzlrTFcxMWRHVmtLVHRpYjNKa1pYSXRZMjlzYjNJNmRtRnlLQzB0YjJRdFptOWpkWE1wTzJOdmJHOXlPblpoY2lndExXOWtMV0ZqWTJWdWRDMXBibXNwZlFvNmFYTW9hVzV3ZFhRc2MyVnNaV04wTEhSbGVIUmhjbVZoS1M1dlpDMW1hV1ZzWkh0dGFXNHRkMmxrZEdnNk1EdGliM0prWlhJNk1YQjRJSE52Ykdsa0lIWmhjaWd0TFc5a0xXbHVjSFYwTFdKdmNtUmxjaWs3WW05eVpHVnlMWEpoWkdsMWN6cDJZWElvTFMxeVlXUnBkWE10WTI5dWRISnZiQ2s3WW1GamEyZHliM1Z1WkRwMllYSW9MUzF2WkMxd1lYQmxjaWs3WTI5c2IzSTZkbUZ5S0MwdGIyUXRhVzVyS1R0bWIyNTBMWE5wZW1VNmRtRnlLQzB0YjJRdFltOWtlUzF6YVhwbEtYMEtPbWx6S0dsdWNIVjBMSE5sYkdWamRDeDBaWGgwWVhKbFlTa3ViMlF0Wm1sbGJHUTZaR2x6WVdKc1pXUXNDanBwY3locGJuQjFkQ3gwWlhoMFlYSmxZU2t1YjJRdFptbGxiR1JiY21WaFpHOXViSGxkZTJKaFkydG5jbTkxYm1RNmRtRnlLQzB0YjJRdGJYVjBaV1FwTzJOdmJHOXlPblpoY2lndExXOWtMWE4xWWlsOUNqcHBjeWhwYm5CMWRDeHpaV3hsWTNRc2RHVjRkR0Z5WldFcExtOWtMV1pwWld4a1cyRnlhV0V0YVc1MllXeHBaRDBpZEhKMVpTSmRlMkp2Y21SbGNpMWpiMnh2Y2pwMllYSW9MUzF2WkMxdVpXZGhkR2wyWlNsOUNpNXZaQzFtYjNKdExXWnBaV3hrZTJScGMzQnNZWGs2WjNKcFpEdG5ZWEE2ZG1GeUtDMHRjM0JoWTJVdE1TazdiV2x1TFhkcFpIUm9PakI5Q2k1dlpDMW1hV1ZzWkMxc1lXSmxiSHR0WVhKbmFXNDZNRHRtYjI1MExYTnBlbVU2ZG1GeUtDMHRiMlF0Ym05MFpTMXphWHBsS1R0bWIyNTBMWGRsYVdkb2REbzJOVEE3YkdsdVpTMW9aV2xuYUhRNk1TNDFPMk52Ykc5eU9uWmhjaWd0TFc5a0xXbHVheWw5Q2k1dlpDMW1hV1ZzWkMxb1pXeHdlMjFoY21kcGJqb3dPMlp2Ym5RdGMybDZaVHAyWVhJb0xTMXZaQzF1YjNSbExYTnBlbVVwTzJ4cGJtVXRhR1ZwWjJoME9qRXVOVFU3WTI5c2IzSTZkbUZ5S0MwdGIyUXRjM1ZpS1gwS0xtOWtMV1pwWld4a0xXVnljbTl5ZTIxaGNtZHBiam93TzJadmJuUXRjMmw2WlRwMllYSW9MUzF2WkMxdWIzUmxMWE5wZW1VcE8yeHBibVV0YUdWcFoyaDBPakV1TlRVN1kyOXNiM0k2ZG1GeUtDMHRiMlF0Ym1WbllYUnBkbVVwZlFvdWIyUXRZbTlrZVh0amIyeHZjanAyWVhJb0xTMXZaQzFwYm1zcE8yWnZiblF0YzJsNlpUcDJZWElvTFMxdlpDMWliMlI1TFhOcGVtVXBPMnhwYm1VdGFHVnBaMmgwT2pFdU5UVTdabTl1ZEMxM1pXbG5hSFE2TkRBd2ZRb3ViMlF0Ym05MFpYdGpiMnh2Y2pwMllYSW9MUzF2WkMxemRXSXBPMlp2Ym5RdGMybDZaVHAyWVhJb0xTMXZaQzF1YjNSbExYTnBlbVVwTzJ4cGJtVXRhR1ZwWjJoME9qRXVOVFU3Wm05dWRDMTNaV2xuYUhRNk5EQXdmUW91YjJRdGRHbDBiR1Y3WTI5c2IzSTZkbUZ5S0MwdGIyUXRhVzVyS1R0bWIyNTBMWE5wZW1VNmRtRnlLQzB0YjJRdFltOWtlUzF6YVhwbEtUdHNhVzVsTFdobGFXZG9kRG94TGpVN1ptOXVkQzEzWldsbmFIUTZOalV3ZlFvdWIyUXRkR1ZqYUc1cFkyRnNlMlp2Ym5RdGMybDZaVHAyWVhJb0xTMXZaQzF0WlhSaExYTnBlbVVwTzJ4cGJtVXRhR1ZwWjJoME9qRXVOVFU3WTI5c2IzSTZkbUZ5S0MwdGIyUXRjM1ZpS1R0bWIyNTBMWGRsYVdkb2REbzBNREE3YjNabGNtWnNiM2N0ZDNKaGNEcGhibmwzYUdWeVpYMEtMbTlrTFhKbGMzVnNkSHR0YVc0dGQybGtkR2c2TUR0dFlYSm5hVzQ2TUR0aWIzSmtaWEk2TVhCNElITnZiR2xrSUhaaGNpZ3RMVzlrTFd4cGJtVXBPMkpoWTJ0bmNtOTFibVE2ZG1GeUtDMHRiMlF0YlhWMFpXUXBPMkp2Y21SbGNpMXlZV1JwZFhNNmRtRnlLQzB0Y21Ga2FYVnpMV052Ym5SeWIyd3BPM0JoWkdScGJtYzZkbUZ5S0MwdGMzQmhZMlV0TWlrN1kyOXNiM0k2ZG1GeUtDMHRiMlF0YVc1cktYMEtMbTlrTFdGc1pYSjBlMjFoY21kcGJqb3dPM0JoWkdScGJtYzZkbUZ5S0MwdGMzQmhZMlV0TXlrN1ltOXlaR1Z5T2pGd2VDQnpiMnhwWkNCMllYSW9MUzF2WkMxc2FXNWxLVHRpYjNKa1pYSXRjbUZrYVhWek9uWmhjaWd0TFhKaFpHbDFjeTFqYjI1MGNtOXNLVHRqYjJ4dmNqcDJZWElvTFMxdlpDMXBibXNwTzJKaFkydG5jbTkxYm1RNmRtRnlLQzB0YjJRdGJYVjBaV1FwZlFvdWIyUXRZV3hsY25RdExYZGhjbTVwYm1kN1ltRmphMmR5YjNWdVpEcDJZWElvTFMxdlpDMTNZWEp1YVc1bkxXSm5LVHRpYjNKa1pYSXRZMjlzYjNJNmRtRnlLQzB0YjJRdGQyRnlibWx1WnkxaWIzSmtaWElwTzJOdmJHOXlPblpoY2lndExXOWtMWGRoY201cGJtY3RhVzVyS1gwS0xtOWtMV0ZzWlhKMExTMWxjbkp2Y250aVlXTnJaM0p2ZFc1a09uWmhjaWd0TFc5a0xXNWxaMkYwYVhabExXSm5LVHRpYjNKa1pYSXRZMjlzYjNJNmRtRnlLQzB0YjJRdGJtVm5ZWFJwZG1VcE8yTnZiRzl5T25aaGNpZ3RMVzlrTFc1bFoyRjBhWFpsS1gwS0xtOWtMV1JwYzJOc2IzTjFjbVY3YldsdUxYZHBaSFJvT2pBN2JXRnlaMmx1T2pBN1ltOXlaR1Z5T2pGd2VDQnpiMnhwWkNCMllYSW9MUzF2WkMxc2FXNWxLVHRpYjNKa1pYSXRjbUZrYVhWek9uWmhjaWd0TFhKaFpHbDFjeTF6ZFhKbVlXTmxLVHRpWVdOclozSnZkVzVrT25aaGNpZ3RMVzlrTFhCaGNHVnlLVHRqYjJ4dmNqcDJZWElvTFMxdlpDMXBibXNwZlFvdktpQkJiR3dnZEhKMWMzUmxaQ0JrYVhOamJHOXpkWEpsY3lCMWMyVWdkR2hsSUhOaGJXVWdZMlZ1ZEdWeVpXUWdhR1ZoWkdWeUxDQnRZWEpyWlhJZ1lXNWtJSFI1Y0dVZ2MyTmhiR1V1Q2lBcUlFdGxaWEFnZEdobElHeHBaMmgwWlhJZ0xTMW1iR0YwSUdGdVpDQmxiWEJvWVhOcGN5MXZibXg1SUMwdGFXNW1ieUIyWVhKcFlXNTBjeUJ2YmlCMGFHbHpJRzl1WlNCamIyMXdiMjVsYm5RdUlDb3ZDaTV2WkMxa2FYTmpiRzl6ZFhKbFBuTjFiVzFoY25sN1pHbHpjR3hoZVRwbWJHVjRPMkZzYVdkdUxXbDBaVzF6T21ObGJuUmxjanRtYkdWNExYZHlZWEE2ZDNKaGNEdG5ZWEE2ZG1GeUtDMHRjM0JoWTJVdE1pazdiV2x1TFdobGFXZG9kRG8wTkhCNE8zQmhaR1JwYm1jNmRtRnlLQzB0YzNCaFkyVXRNaWtnZG1GeUtDMHRjM0JoWTJVdE15azdiR2x6ZEMxemRIbHNaVHB1YjI1bE8yTjFjbk52Y2pwd2IybHVkR1Z5TzJadmJuUXRjMmw2WlRwMllYSW9MUzF2WkMxaWIyUjVMWE5wZW1VcE8yeHBibVV0YUdWcFoyaDBPakV1TlR0bWIyNTBMWGRsYVdkb2REbzJOVEE3WTI5c2IzSTZkbUZ5S0MwdGIyUXRhVzVyS1R0dmRtVnlabXh2ZHkxM2NtRndPbUZ1ZVhkb1pYSmxmUW91YjJRdFpHbHpZMnh2YzNWeVpUNXpkVzF0WVhKNU9qb3RkMlZpYTJsMExXUmxkR0ZwYkhNdGJXRnlhMlZ5ZTJScGMzQnNZWGs2Ym05dVpYMEtMbTlrTFdScGMyTnNiM04xY21VK2MzVnRiV0Z5ZVRvNlltVm1iM0psZTJOdmJuUmxiblE2SWlJN1pteGxlRHB1YjI1bE8zZHBaSFJvT2pkd2VEdG9aV2xuYUhRNk4zQjRPMkp2Y21SbGNpMXlhV2RvZERveExqVndlQ0J6YjJ4cFpDQmpkWEp5Wlc1MFEyOXNiM0k3WW05eVpHVnlMV0p2ZEhSdmJUb3hMalZ3ZUNCemIyeHBaQ0JqZFhKeVpXNTBRMjlzYjNJN2RISmhibk5tYjNKdE9uSnZkR0YwWlNndE5EVmtaV2NwZlFvdWIyUXRaR2x6WTJ4dmMzVnlaVnR2Y0dWdVhUNXpkVzF0WVhKNU9qcGlaV1p2Y21WN2RISmhibk5tYjNKdE9uSnZkR0YwWlNnME5XUmxaeWw5Q2k1dlpDMWthWE5qYkc5emRYSmxQbk4xYlcxaGNuaytLbnR0YVc0dGQybGtkR2c2TUgwS0xtOWtMV1JwYzJOc2IzTjFjbVUrYzNWdGJXRnllVDV6Y0dGdU9tOXViSGt0WTJocGJHUjdabXhsZURveElERWdNSDBLTG05a0xXUnBjMk5zYjNOMWNtVStjM1Z0YldGeWVTQTZhWE1vYzNSeWIyNW5MR0lwZTJadmJuUXRjMmw2WlRwcGJtaGxjbWwwTzJadmJuUXRkMlZwWjJoME9tbHVhR1Z5YVhRN1kyOXNiM0k2YVc1b1pYSnBkSDBLTG05a0xXUnBjMk5zYjNOMWNtVmJiM0JsYmwwK2MzVnRiV0Z5ZVh0aWIzSmtaWEl0WW05MGRHOXRPakZ3ZUNCemIyeHBaQ0IyWVhJb0xTMXZaQzFzYVc1bEtYMEtMeW9nVDI1bElHaHZkbVZ5SUdOdmJuUnlZV04wSUdadmNpQmxkbVZ5ZVNCMGNuVnpkR1ZrSUdacGNuTjBMV3hsZG1Wc0lHUnBjMk5zYjNOMWNtVXVJQ292Q2k1dlpDMWthWE5qYkc5emRYSmxQbk4xYlcxaGNuazZhRzkyWlhKN1ltRmphMmR5YjNWdVpEcDJZWElvTFMxdlpDMXRkWFJsWkNsOUNpNXZaQzFrYVhOamJHOXpkWEpsT201dmRDaGJiM0JsYmwwcFBuTjFiVzFoY25rNmFHOTJaWEo3WW05eVpHVnlMWEpoWkdsMWN6cDJZWElvTFMxeVlXUnBkWE10YzNWeVptRmpaU2w5Q2k1dlpDMWthWE5qYkc5emRYSmxXMjl3Wlc1ZFBuTjFiVzFoY25rNmFHOTJaWEo3WW05eVpHVnlMWEpoWkdsMWN6cDJZWElvTFMxeVlXUnBkWE10YzNWeVptRmpaU2tnZG1GeUtDMHRjbUZrYVhWekxYTjFjbVpoWTJVcElEQWdNSDBLTHlvcUlFRnNiRzkzSURFd01DVXRkMmxrZEdnZ1ptOXliU0JtYVdWc1pITWdhVzV6YVdSbElHRWdaR2x6WTJ4dmMzVnlaU0IzYVhSb2IzVjBJSFJvWldseUlERXljSGdnYldGeVoybHVjd29nS2lCd2RYTm9hVzVuSUhSb1pXbHlJSEpwWjJoMElHVmtaMlVnYjNWMGMybGtaU0JoSUc1aGNuSnZkeUJUYVdSbElGQmhibVZzTGlBcUx3b3ViMlF0WkdselkyeHZjM1Z5WlQ0NmJtOTBLSE4xYlcxaGNua3BlMjFwYmkxM2FXUjBhRG93TzIxaGVDMTNhV1IwYURwallXeGpLREV3TUNVZ0xTQjJZWElvTFMxemNHRmpaUzB6S1NBdElIWmhjaWd0TFhOd1lXTmxMVE1wS1R0dFlYSm5hVzQ2ZG1GeUtDMHRjM0JoWTJVdE1pa2dkbUZ5S0MwdGMzQmhZMlV0TXlrZ01IMEtMbTlrTFdScGMyTnNiM04xY21VK09teGhjM1F0WTJocGJHUTZibTkwS0hOMWJXMWhjbmtwZTIxaGNtZHBiaTFpYjNSMGIyMDZkbUZ5S0MwdGMzQmhZMlV0TXlsOUNpNXZaQzFrYVhOamJHOXpkWEpsTFMxcGJtWnZQbk4xYlcxaGNubDdZMjlzYjNJNmRtRnlLQzB0YjJRdFluSmhibVFwZlFvdWIyUXRaR2x6WTJ4dmMzVnlaUzB0YVc1bWIxdHZjR1Z1WFQ1emRXMXRZWEo1ZTJKaFkydG5jbTkxYm1RNmRtRnlLQzB0YjJRdGJYVjBaV1FwZlFvdWIyUXRaR2x6WTJ4dmMzVnlaUzB0Wm14aGRIdGliM0prWlhJNk1EdGliM0prWlhJdGNtRmthWFZ6T2pBN1ltRmphMmR5YjNWdVpEcDBjbUZ1YzNCaGNtVnVkSDBLTG05a0xXUnBjMk5zYjNOMWNtVXRMV1pzWVhRK2MzVnRiV0Z5ZVh0dGFXNHRhR1ZwWjJoME9qTTJjSGc3Y0dGa1pHbHVaenAyWVhJb0xTMXpjR0ZqWlMweUtTQXdPMlp2Ym5RdGMybDZaVHAyWVhJb0xTMXZaQzF1YjNSbExYTnBlbVVwTzJOdmJHOXlPblpoY2lndExXOWtMWE4xWWlsOUNpNXZaQzFrYVhOamJHOXpkWEpsTFMxbWJHRjBXMjl3Wlc1ZFBuTjFiVzFoY25sN1ltOXlaR1Z5TFdKdmRIUnZiVG94Y0hnZ2MyOXNhV1FnZG1GeUtDMHRiMlF0YkdsdVpTazdZbUZqYTJkeWIzVnVaRHAwY21GdWMzQmhjbVZ1ZEgwS0xtOWtMV1JwYzJOc2IzTjFjbVV0TFdac1lYUStPbTV2ZENoemRXMXRZWEo1S1h0dFlYZ3RkMmxrZEdnNk1UQXdKVHR0WVhKbmFXNDZkbUZ5S0MwdGMzQmhZMlV0TWlrZ01DQXdmUW91YjJRdFpHbHpZMnh2YzNWeVpTMHRabXhoZEQ0NmJHRnpkQzFqYUdsc1pEcHViM1FvYzNWdGJXRnllU2w3YldGeVoybHVMV0p2ZEhSdmJUb3dmUW92S2lCVVpXTm9ibWxqWVd3Z1pHbHpZMnh2YzNWeVpYTWdjM1JoZVNCbWNtRnRaV3hsYzNNc0lHbHVZMngxWkdsdVp5Qm9iM1psY2lCMGNtVmhkRzFsYm5RdUlDb3ZDaTV2WkMxa2FYTmpiRzl6ZFhKbExTMW1iR0YwT21sektEcHViM1FvVzI5d1pXNWRLU3hiYjNCbGJsMHBQbk4xYlcxaGNuazZhRzkyWlhKN1ltRmphMmR5YjNWdVpEcDJZWElvTFMxdlpDMXRkWFJsWkNrN1ltOXlaR1Z5TFhKaFpHbDFjenAyWVhJb0xTMXlZV1JwZFhNdFkyOXVkSEp2YkNsOUNpNXZaQzF6WldkdFpXNTBaV1I3WkdsemNHeGhlVHBtYkdWNE8zZHBaSFJvT20xaGVDMWpiMjUwWlc1ME8yMWhlQzEzYVdSMGFEb3hNREFsTzJkaGNEb3ljSGc3Y0dGa1pHbHVaem96Y0hnN1ltRmphMmR5YjNWdVpEcDJZWElvTFMxdlpDMXRkWFJsWkNrN1ltOXlaR1Z5T2pGd2VDQnpiMnhwWkNCMllYSW9MUzF2WkMxcGJuQjFkQzFpYjNKa1pYSXBPMkp2Y21SbGNpMXlZV1JwZFhNNmRtRnlLQzB0Y21Ga2FYVnpMWE4xY21aaFkyVXBmUW91YjJRdGMyVm5iV1Z1ZEdWa1BtSjFkSFJ2Ym50dGFXNHRhR1ZwWjJoME9qTXljSGc3WW05eVpHVnlMWEpoWkdsMWN6cDJZWElvTFMxeVlXUnBkWE10WTI5dWRISnZiQ2w5Q2dvdktpQkRiMnhzWVhCemFXSnNaU0J5YjNkeklHRnlaU0JwYm5SbGNtRmpkR2wyWlNCamIyNTBjbTlzY3l3Z2FXNWpiSFZrYVc1bklHNWxjM1JsWkNCMFpXTm9ibWxqWVd3Z1pHVjBZV2xzY3k0Z0tpOEtRRzFsWkdsaEtIQnZhVzUwWlhJNlkyOWhjbk5sS1hzdWIyUXRaR2x6WTJ4dmMzVnlaVDV6ZFcxdFlYSjVlMjFwYmkxb1pXbG5hSFE2TkRSd2VIMTlDZ292S2lCQmJHd2dZMjl0Y0c5dVpXNTBJR052Ykc5eWN5d2dZblYwZEc5dWN5d2djM1Z5Wm1GalpYTWdZVzVrSUdadlkzVnpJSE4wWVhSbGN5QmhjbVVnWTI5dGNHbHNaV1FnWm5KdmJTQmpZVzV2Ym1sallXd2dUM0JsYmtSbGMyc2dWVWt1SUNvdkNpNWhaR0pzYjJOckxYUnZiMng3YldGNExYZHBaSFJvT2pFd01DVTdjR0ZrWkdsdVp6b3dJSFpoY2lndExYTndZV05sTFRJcElIWmhjaWd0TFhOd1lXTmxMVE1wTzI5MlpYSm1iRzkzTFhkeVlYQTZZVzU1ZDJobGNtVjlDaTVoWkdKc2IyTnJMWE5sWTNScGIyNTdiV0Z5WjJsdU9uWmhjaWd0TFhOd1lXTmxMVElwSURBZ01IMEtMbUZrWW14dlkyc3RkR2wwYkdWN1oyRndPblpoY2lndExYTndZV05sTFRJcGZRb3VZV1JpYkc5amF5MWpiM1Z1ZEh0bWJHVjRPbTV2Ym1VN2JXbHVMWGRwWkhSb09qRXVOV1Z0TzNSbGVIUXRZV3hwWjI0NmNtbG5hSFI5Q2k1aFpHSnNiMk5yTFd4cGMzUjdiV0Z5WjJsdUxYUnZjRHAyWVhJb0xTMXpjR0ZqWlMweEtYMEtMbUZrWW14dlkyc3RjbTkzZTJScGMzQnNZWGs2Wm14bGVEdHFkWE4wYVdaNUxXTnZiblJsYm5RNmMzQmhZMlV0WW1WMGQyVmxianRoYkdsbmJpMXBkR1Z0Y3pwalpXNTBaWEk3WjJGd09uWmhjaWd0TFhOd1lXTmxMVElwTzNCaFpHUnBibWM2ZG1GeUtDMHRjM0JoWTJVdE1pa2dNRHRpYjNKa1pYSXRkRzl3T2pGd2VDQnpiMnhwWkNCMllYSW9MUzF2WkMxc2FXNWxLVHR0YVc0dGQybGtkR2c2TUgwS0xtRmtZbXh2WTJzdGNtOTNPbVpwY25OMExXTm9hV3hrZTJKdmNtUmxjaTEwYjNBNk1IMEtMbUZrWW14dlkyc3RaRzl0WVdsdWUyMXBiaTEzYVdSMGFEb3dPMlpzWlhnNk1UdHZkbVZ5Wm14dmR5MTNjbUZ3T21GdWVYZG9aWEpsTzNkdmNtUXRZbkpsWVdzNlluSmxZV3N0ZDI5eVpEdG1iMjUwTFhkbGFXZG9kRG8yTURCOUNpNWhaR0pzYjJOckxYSmxjM1J2Y21WN1pteGxlRHB1YjI1bE8zZG9hWFJsTFhOd1lXTmxPbTV2ZDNKaGNIMEtMbUZrWW14dlkyc3RaVzF3ZEhsN2JXRnlaMmx1T25aaGNpZ3RMWE53WVdObExUSXBJREFnTUgwS0xtRmtZbXh2WTJzdGJXVnpjMkZuWlh0dFlYSm5hVzQ2ZG1GeUtDMHRjM0JoWTJVdE1pa2dkbUZ5S0MwdGMzQmhZMlV0TVNrZ01IMEtMbUZrWW14dlkyc3RiV1Z6YzJGblpWdGtZWFJoTFdWeWNtOXlQU0owY25WbElsMTdZMjlzYjNJNmRtRnlLQzB0YjJRdGJtVm5ZWFJwZG1VcGZRcEFiV1ZrYVdFb2JXRjRMWGRwWkhSb09qTXdNSEI0S1hzdVlXUmliRzlqYXkxMGIyOXNlM0JoWkdScGJtY3RhVzVzYVc1bE9uWmhjaWd0TFhOd1lXTmxMVEVwZlM1aFpHSnNiMk5yTFhKdmQzdG1iR1Y0TFhkeVlYQTZkM0poY0gwdVlXUmliRzlqYXkxeVpYTjBiM0psZTIxaGNtZHBiaTFwYm14cGJtVXRjM1JoY25RNllYVjBiMzE5Q2c9PSI+PHN0eWxlPjpyb290e2NvbG9yLXNjaGVtZTpsaWdodDsKICAtLW9kLWluazojMWIyYzQ5OwogIC0tb2Qtc3ViOiM1MzY0N2U7CiAgLS1vZC1saW5lOiNlMWU4ZjE7CiAgLS1vZC1icmFuZDojMzY1ZWRhOwogIC0tb2QtcGFwZXI6I2ZmZjsKICAtLW9kLWJnOiNmNWY3ZmI7CiAgLS1vZC1pbnB1dC1ib3JkZXI6IzdmOGRhMTsKICAtLW9kLWFjY2VudC1pbms6dmFyKC0tb2QtYnJhbmQpOwogIC0tb2QtZm9jdXM6dmFyKC0tb2QtYnJhbmQpOwogIC0tb2Qtd2FybmluZzojODA1MTBkOwogIC0tb2QtbXV0ZWQ6I2Y1ZjdmYjsKICAtLW9kLXBvc2l0aXZlOiMxMTdhNWQ7CiAgLS1vZC1uZWdhdGl2ZTojYWUzZDRiOwogIC0tc3BhY2UtMTo0cHg7CiAgLS1zcGFjZS0yOjhweDsKICAtLXNwYWNlLTM6MTJweDsKICAtLXNwYWNlLTQ6MTZweDsKICAtLXJhZGl1cy1jb250cm9sOjhweDsKICAtLXJhZGl1cy1zdXJmYWNlOjEycHg7CiAgLS1yYWRpdXMtcGlsbDo5OTlweDsKICAtLW9kLWljb24tc2l6ZTozNHB4OwogIC0tb2QtYm9keS1zaXplOjEzcHg7CiAgLS1vZC1ub3RlLXNpemU6MTJweDsKICAtLW9kLW1ldGEtc2l6ZToxMXB4OwogIC0tb2Qtb24tYnJhbmQ6I2ZmZjsKICAtLW9kLW5hdi1hY3RpdmU6dmFyKC0tb2QtYnJhbmQpOwogIC0tb2QtYWN0aW9uLWJnOnZhcigtLW9kLW11dGVkKTsKICAtLW9kLWFjdGlvbi1ib3JkZXI6dmFyKC0tb2QtaW5wdXQtYm9yZGVyKTsKICAtLW9kLWFjdGlvbi1pbms6dmFyKC0tb2QtaW5rKTsKICAtLW9kLXdhcm5pbmctYmc6I2ZmZjllYzsKICAtLW9kLXdhcm5pbmctYm9yZGVyOiNkY2M1OGE7CiAgLS1vZC13YXJuaW5nLWluazojNzY1MDFiOwogIC0tb2QtbmVnYXRpdmUtYmc6I2ZmZjBmMTsKICAvKiBIb3N0IGhvcml6b250YWwgaW5zZXQsIHVzZWQgb25jZTsgc2FuZGJveCB0b29sIGNvbnRlbnQgb3ducyBpdHMgb3duIGlubmVyIGluc2V0LiAqLwogIC0tb2QtcGFnZS1ndXR0ZXI6MTFweDsKICAvKiBEYXJrLW1vZGUgcGFsZXR0ZSBpcyByZWdpc3RlcmVkIGhlcmU7IHNoYXJlZCBwcmltaXRpdmVzIG9ubHkgcmVmZXJlbmNlIHRva2Vucy4gKi8KICAtLW9kLWRhcmstaW5rOiNlOWVlZjc7CiAgLS1vZC1kYXJrLXN1YjojYjNjMWQzOwogIC0tb2QtZGFyay1saW5lOiMzNzQ0NTc7CiAgLS1vZC1kYXJrLWJyYW5kOiMzNTY2YmE7CiAgLS1vZC1kYXJrLXBhcGVyOiMxNTFjMjg7CiAgLS1vZC1kYXJrLWJnOiMxMDE3MjI7CiAgLS1vZC1kYXJrLWlucHV0LWJvcmRlcjojNmQ4MDliOwogIC0tb2QtZGFyay1hY2NlbnQtaW5rOiM5ZGMxZmY7CiAgLS1vZC1kYXJrLXdhcm5pbmc6I2ZmZDA4YTsKICAtLW9kLWRhcmstbXV0ZWQ6IzIyMmQzZTsKICAtLW9kLWRhcmstcG9zaXRpdmU6I2ExZjNjYzsKICAtLW9kLWRhcmstbmVnYXRpdmU6I2ZmOWVhNjsKICAvKiBFeGlzdGluZyBTaWRlYmFyIGFsaWFzZXM7IGRvIG5vdCByZWRlY2xhcmUgcGFsZXR0ZSB2YWx1ZXMgcGVyIHBhZ2UuICovCiAgLS1pbms6dmFyKC0tb2QtaW5rKTsKICAtLXN1Yjp2YXIoLS1vZC1zdWIpOwogIC0tbGluZTp2YXIoLS1vZC1saW5lKTsKICAtLWJsdWU6dmFyKC0tb2QtYnJhbmQpOwogIC0tcGFwZXI6dmFyKC0tb2QtcGFwZXIpOwp9PC9zdHlsZT48L2hlYWQ+PGJvZHk+PGRpdiBpZD0idG9vbC1yb290Ij48bWFpbiBjbGFzcz0iYWRibG9jay10b29sIiBhcmlhLWxhYmVsPSLlub/lkYrmi6bmiKrkvovlpJbnrqHnkIYiPgogIDxzZWN0aW9uIGNsYXNzPSJhZGJsb2NrLXNlY3Rpb24gb2Qtc3VyZmFjZSBvZC1zdXJmYWNlLS1wYWRkZWQiIGFyaWEtbGFiZWxsZWRieT0iZXhjZXB0aW9ucy10aXRsZSI+CiAgICA8aGVhZGVyIGNsYXNzPSJhZGJsb2NrLXRpdGxlIG9kLXBhZ2UtaGVhZCI+CiAgICAgIDxoMiBpZD0iZXhjZXB0aW9ucy10aXRsZSIgY2xhc3M9Im9kLXRpdGxlIj7lt7LlgZznlKjnmoTnvZHnq5k8L2gyPgogICAgICA8c3BhbiBpZD0iZXhjZXB0aW9uLWNvdW50IiBjbGFzcz0iYWRibG9jay1jb3VudCBvZC10ZWNobmljYWwiIGFyaWEtbGFiZWw9IuW3suWBnOeUqOeahOe9keermeaVsOmHjyI+MDwvc3Bhbj4KICAgIDwvaGVhZGVyPgogICAgPGRpdiBpZD0iZXhjZXB0aW9ucyIgY2xhc3M9ImFkYmxvY2stbGlzdCIgYXJpYS1saXZlPSJwb2xpdGUiIGFyaWEtcmVsZXZhbnQ9ImFkZGl0aW9ucyByZW1vdmFscyI+PC9kaXY+CiAgPC9zZWN0aW9uPgogIDxwIGlkPSJhZGJsb2NrLW1lc3NhZ2UiIGNsYXNzPSJhZGJsb2NrLW1lc3NhZ2Ugb2Qtbm90ZSIgcm9sZT0ic3RhdHVzIiBhcmlhLWxpdmU9InBvbGl0ZSI+5q2j5Zyo6K+75Y+WIENocm9tZSDnirbmgIHigKY8L3A+CjwvbWFpbj4KPC9kaXY+PHNjcmlwdD5PYmplY3QuZGVmaW5lUHJvcGVydHkoZ2xvYmFsVGhpcywiX19vcGVuZGVza1ByZXZpZXdTY2VuYXJpbyIse3ZhbHVlOiJzdWNjZXNzIn0pOzwvc2NyaXB0PjxzY3JpcHQgc3JjPSJkYXRhOnRleHQvamF2YXNjcmlwdDtiYXNlNjQsTHlvZ1QxQkJVVlZGSUU5R1JreEpUa1VnVUZKRlZrbEZWem9nYjI1c2VTQjBhR1VnY21WaGJDQmhaR0pzYjJOckxuTjBZWFIxY3k5emFYUmxMbkpsYzNSdmNtVWdWVWtnY0hKdmRHOWpiMnd1Q2lBcUlFNWxkbVZ5SUhSaGJHdHpJSFJ2SUVOb2NtOXRaU3dnY0dWeWJXbHpjMmx2Ym5Nc0lITjBiM0poWjJVc0lHNWxkSGR2Y21zc0lFUk9VaUJ2Y2lCMGFHVWdjbVZoYkNCMGIyOXNJR2h2YzNRdUlDb3ZDaWdvS1NBOVBpQjdDaUFnSjNWelpTQnpkSEpwWTNRbk93b2dJR052Ym5OMElISnZiM1E5Wkc5amRXMWxiblF1WjJWMFJXeGxiV1Z1ZEVKNVNXUW9KM1J2YjJ3dGNtOXZkQ2NwT3dvZ0lHTnZibk4wSUhOalpXNWhjbWx2UFdkc2IySmhiRlJvYVhNdVgxOXZjR1Z1WkdWemExQnlaWFpwWlhkVFkyVnVZWEpwYnpzS0lDQmpiMjV6ZENCelkyVnVZWEpwYjNNOWJtVjNJRk5sZENoYkozTjFZMk5sYzNNbkxDZGxiWEIwZVNjc0oyVnljbTl5Snl3bmJHOWhaR2x1Wnljc0ozQmxjbTFwYzNOcGIyNHRaR1Z1YVdWa0p5d25kVzUwY25WemRHVmtKMTBwT3dvZ0lHbG1LQ0Z5YjI5MGZId2hjMk5sYm1GeWFXOXpMbWhoY3loelkyVnVZWEpwYnlrcGRHaHliM2NnUlhKeWIzSW9KMFZmUVVSQ1RFOURTMTlRVWtWV1NVVlhPaUJpWVdRZ2MyTmxibUZ5YVc4bktUc0tJQ0JqYjI1emRDQnZjbVJwYm1GeWVUMWJKMjVsZDNNdVpYaGhiWEJzWlM1amIyMG5MQ2QyYVdSbGJ5NWxlR0Z0Y0d4bExtTnZiU2NzSjNOb2IzQXVaWGhoYlhCc1pTNWpiMjBuWFRzS0lDQmpiMjV6ZENCb2IzTjBhV3hsUFNjOGFXMW5JSE55WXoxNElHOXVaWEp5YjNJOVlXeGxjblFvTVNrK0p6c0tJQ0JqYjI1emRDQnpkR0YwWlQxN0NpQWdJQ0IwYjI5c1JXNWhZbXhsWkRwMGNuVmxMQW9nSUNBZ1pXNWhZbXhsWkRwelkyVnVZWEpwYnowOVBTZHpkV05qWlhOekozeDhjMk5sYm1GeWFXODlQVDBuZFc1MGNuVnpkR1ZrSnl3S0lDQWdJR1Y0WTJWd2RHbHZibk02YzJObGJtRnlhVzg5UFQwbmMzVmpZMlZ6Y3ljL1d5ZHVaWGR6TG1WNFlXMXdiR1V1WTI5dEoxMDZDaUFnSUNBZ0lITmpaVzVoY21sdlBUMDlKM1Z1ZEhKMWMzUmxaQ2MvVzJodmMzUnBiR1ZkT2x0ZExBb2dJQ0FnWTNWeWNtVnVkRWh2YzNRNkoyNWxkM011WlhoaGJYQnNaUzVqYjIwbkxBb2dJQ0FnY0dWeWJXbHpjMmx2Ym5NNmUyUnVjanB6WTJWdVlYSnBieUU5UFNkbGJYQjBlU2NtSm5OalpXNWhjbWx2SVQwOUozQmxjbTFwYzNOcGIyNHRaR1Z1YVdWa0ozMHNDaUFnSUNCeWRXeGxjenA3ZG1WeWFXWnBaV1E2YzJObGJtRnlhVzhoUFQwblpXMXdkSGtuSmlaelkyVnVZWEpwYnlFOVBTZHdaWEp0YVhOemFXOXVMV1JsYm1sbFpDZDlDaUFnZlRzS0lDQmpiMjV6ZENCamJHOXVaVDEyWVd4MVpUMCtTbE5QVGk1d1lYSnpaU2hLVTA5T0xuTjBjbWx1WjJsbWVTaDJZV3gxWlNrcE93b2dJR052Ym5OMElIQmxibVJwYm1jOWJtVjNJRTFoY0NncE93b2dJR3hsZENCelpYRTlNRHNLSUNCamIyNXpkQ0JtWVhWc2REMXRaWE56WVdkbFBUNTdkR2h5YjNjZ1JYSnliM0lvSjF2bnBydm51ci9tcUtIbWk1OWRJQ2NyYldWemMyRm5aU2s3ZlRzS0lDQmpiMjV6ZENCaGJtNXZkVzVqWlQwb0tUMCtkMmx1Wkc5M0xuQmhjbVZ1ZEM1d2IzTjBUV1Z6YzJGblpTaDdDaUFnSUNCMGVYQmxPaWR2Y0dWdVpHVnpheTV3Y21WMmFXVjNMbUZrWW14dlkyc3VaWGhqWlhCMGFXOXVjeWNzWlhoalpYQjBhVzl1Y3pwYkxpNHVjM1JoZEdVdVpYaGpaWEIwYVc5dWMxMTlMQ2NxSnlrN0NpQWdZWE41Ym1NZ1puVnVZM1JwYjI0Z2NtVnhkV1Z6ZENodmNHVnlZWFJwYjI0c2NHRjViRzloWkQxN2ZTbDdDaUFnSUNCcFppaHZjR1Z5WVhScGIyNGhQVDBuWVdSaWJHOWpheTV6ZEdGMGRYTW5KaVp2Y0dWeVlYUnBiMjRoUFQwbllXUmliRzlqYXk1emFYUmxMbkpsYzNSdmNtVW5LUW9nSUNBZ0lDQnlaWFIxY200Z1ptRjFiSFFvSithY3F1YUp1ZVdIaHVlYWhDQkJVRWtnNXBPTjVMMmNKeWs3Q2lBZ0lDQnBaaWh6WTJWdVlYSnBiejA5UFNkc2IyRmthVzVuSnlseVpYUjFjbTRnYm1WM0lGQnliMjFwYzJVb0tDazlQbnQ5S1RzS0lDQWdJR2xtS0hOalpXNWhjbWx2UFQwOUoyVnljbTl5SnlseVpYUjFjbTRnWm1GMWJIUW9KK2FYb09hemxlaXZ1K1dQbHVhb29lYUxueUJFVGxJZzU0cTI1b0NCSnlrN0NpQWdJQ0JwWmloelkyVnVZWEpwYnowOVBTZHdaWEp0YVhOemFXOXVMV1JsYm1sbFpDY3BjbVYwZFhKdUlHWmhkV3gwS0NmbHNKcm1uS3Jtam9qbW5ZTWdRMmh5YjIxbElFUk9VdSs4aU9hb29lYUxuKys4aVNjcE93b2dJQ0FnYVdZb2IzQmxjbUYwYVc5dVBUMDlKMkZrWW14dlkyc3VjM1JoZEhWekp5bHlaWFIxY200Z1kyeHZibVVvYzNSaGRHVXBPd29nSUNBZ1kyOXVjM1FnYUc5emREMXdZWGxzYjJGa1B5NW9iM04wT3dvZ0lDQWdhV1lvSVhCaGVXeHZZV1I4ZkU5aWFtVmpkQzVyWlhsektIQmhlV3h2WVdRcExtcHZhVzRvSnl3bktTRTlQU2RvYjNOMEozeDhDaUFnSUNBZ0lDQjBlWEJsYjJZZ2FHOXpkQ0U5UFNkemRISnBibWNuZkh3aGMzUmhkR1V1WlhoalpYQjBhVzl1Y3k1cGJtTnNkV1JsY3lob2IzTjBLU2tLSUNBZ0lDQWdjbVYwZFhKdUlHWmhkV3gwS0Nma3ZvdmxwSmJsdDdMbGo1amxqSmJ2dkl6b3I3ZnBoNDNtbHJEb3I3dmxqNVluS1RzS0lDQWdJR2xtS0NGdmNtUnBibUZ5ZVM1cGJtTnNkV1JsY3lob2IzTjBLU2x5WlhSMWNtNGdabUYxYkhRb0orYVhvT2F6bGVhQm91V2tqZVM0amVXUHIrUy9vZWE4bE9la3V1V2ZuK1dRalNjcE93b2dJQ0FnWTI5dWMzUWdjbVZ4ZFdWemRFbGtQU3NyYzJWeE93b2dJQ0FnY21WMGRYSnVJRzVsZHlCUWNtOXRhWE5sS0NoeVpYTnZiSFpsTEhKbGFtVmpkQ2s5UG5zS0lDQWdJQ0FnY0dWdVpHbHVaeTV6WlhRb2NtVnhkV1Z6ZEVsa0xIdG9iM04wTEhKbGMyOXNkbVVzY21WcVpXTjBmU2s3Q2lBZ0lDQWdJSGRwYm1SdmR5NXdZWEpsYm5RdWNHOXpkRTFsYzNOaFoyVW9lM1I1Y0dVNkoyOXdaVzVrWlhOckxuQnlaWFpwWlhjdVlXUmliRzlqYXk1eVpYTjBiM0psTFhKbGNYVmxjM1FuTEFvZ0lDQWdJQ0FnSUhKbGNYVmxjM1JKWkN4b2IzTjBmU3duS2ljcE93b2dJQ0FnZlNrN0NpQWdmUW9nSUhkcGJtUnZkeTVoWkdSRmRtVnVkRXhwYzNSbGJtVnlLQ2R0WlhOellXZGxKeXhsZG1WdWREMCtld29nSUNBZ2FXWW9aWFpsYm5RdWMyOTFjbU5sSVQwOWQybHVaRzkzTG5CaGNtVnVkSHg4SVdWMlpXNTBMbVJoZEdGOGZIUjVjR1Z2WmlCbGRtVnVkQzVrWVhSaElUMDlKMjlpYW1WamRDY3BjbVYwZFhKdU93b2dJQ0FnWTI5dWMzUWdaR0YwWVQxbGRtVnVkQzVrWVhSaE93b2dJQ0FnYVdZb1pHRjBZUzUwZVhCbFBUMDlKMjl3Wlc1a1pYTnJMbkJ5WlhacFpYY3VZV1JpYkc5amF5NXlaWE4wYjNKbExXUmxZMmx6YVc5dUp5bDdDaUFnSUNBZ0lHTnZibk4wSUhCbGJtUnBibWRTWlhGMVpYTjBQWEJsYm1ScGJtY3VaMlYwS0dSaGRHRXVjbVZ4ZFdWemRFbGtLVHNLSUNBZ0lDQWdhV1lvSVhCbGJtUnBibWRTWlhGMVpYTjBLWEpsZEhWeWJqc0tJQ0FnSUNBZ2NHVnVaR2x1Wnk1a1pXeGxkR1VvWkdGMFlTNXlaWEYxWlhOMFNXUXBPd29nSUNBZ0lDQnBaaWhrWVhSaExtRmpZMlZ3ZEdWa0lUMDlkSEoxWlNsN0NpQWdJQ0FnSUNBZ2NHVnVaR2x1WjFKbGNYVmxjM1F1Y21WcVpXTjBLRVZ5Y205eUtDZGI1NmE3NTdxLzVxaWg1b3VmWFNEbHQ3TGxqNWJtdG9qbWdhTGxwSTBuS1NrN0NpQWdJQ0FnSUNBZ2NtVjBkWEp1T3dvZ0lDQWdJQ0I5Q2lBZ0lDQWdJSE4wWVhSbExtVjRZMlZ3ZEdsdmJuTTljM1JoZEdVdVpYaGpaWEIwYVc5dWN5NW1hV3gwWlhJb2FHOXpkRDArYUc5emRDRTlQWEJsYm1ScGJtZFNaWEYxWlhOMExtaHZjM1FwT3dvZ0lDQWdJQ0J3Wlc1a2FXNW5VbVZ4ZFdWemRDNXlaWE52YkhabEtHTnNiMjVsS0hzdUxpNXpkR0YwWlN4eWRXeGxjenA3ZG1WeWFXWnBaV1E2ZEhKMVpYMHNjbVZtY21WemFGSmxjWFZwY21Wa09uUnlkV1Y5S1NrN0NpQWdJQ0FnSUdGdWJtOTFibU5sS0NrN0NpQWdJQ0I5Wld4elpTQnBaaWhrWVhSaExuUjVjR1U5UFQwbmIzQmxibVJsYzJzdWNISmxkbWxsZHk1aFpHSnNiMk5yTG5OMFlYUmxKeWw3Q2lBZ0lDQWdJR2xtS0hOalpXNWhjbWx2SVQwOUozTjFZMk5sYzNNbkppWnpZMlZ1WVhKcGJ5RTlQU2RsYlhCMGVTY21Kbk5qWlc1aGNtbHZJVDA5SjNWdWRISjFjM1JsWkNjcGNtVjBkWEp1T3dvZ0lDQWdJQ0JwWmloMGVYQmxiMllnWkdGMFlTNWxibUZpYkdWa0lUMDlKMkp2YjJ4bFlXNG5mSHdoUVhKeVlYa3VhWE5CY25KaGVTaGtZWFJoTG1WNFkyVndkR2x2Ym5NcGZId0tJQ0FnSUNBZ0lDQWdaR0YwWVM1bGVHTmxjSFJwYjI1ekxteGxibWQwYUQ0emZId0tJQ0FnSUNBZ0lDQWdaR0YwWVM1bGVHTmxjSFJwYjI1ekxuTnZiV1VvYUc5emREMCtJVzl5WkdsdVlYSjVMbWx1WTJ4MVpHVnpLR2h2YzNRcEtTbHlaWFIxY200N0NpQWdJQ0FnSUhOMFlYUmxMbVZ1WVdKc1pXUTlaR0YwWVM1bGJtRmliR1ZrT3dvZ0lDQWdJQ0J6ZEdGMFpTNXdaWEp0YVhOemFXOXVjeTVrYm5JOWRISjFaVHNLSUNBZ0lDQWdjM1JoZEdVdWNuVnNaWE11ZG1WeWFXWnBaV1E5ZEhKMVpUc0tJQ0FnSUNBZ2MzUmhkR1V1WlhoalpYQjBhVzl1Y3oxYkxpNHVibVYzSUZObGRDaGtZWFJoTG1WNFkyVndkR2x2Ym5NcFhUc0tJQ0FnSUNBZ2QybHVaRzkzTG1ScGMzQmhkR05vUlhabGJuUW9ibVYzSUVWMlpXNTBLQ2RtYjJOMWN5Y3BLVHNLSUNBZ0lIMEtJQ0I5S1RzS0lDQXZMeUJRY205a2RXTjBhVzl1SUdSNWJtRnRhV05oYkd4NUlITnBlbVZ6SUhSb1pTQnpZVzVrWW05NExpQlNaWEJ2Y25RZ2IyNXNlU0JwZEhNZ2IzZHVJR1J2WTNWdFpXNTBJR2hsYVdkb2RDNEtJQ0JwWmloMGVYQmxiMllnVW1WemFYcGxUMkp6WlhKMlpYSTlQVDBuWm5WdVkzUnBiMjRuS1hzS0lDQWdJR052Ym5OMElISmxjRzl5ZEQwb0tUMCtkMmx1Wkc5M0xuQmhjbVZ1ZEM1d2IzTjBUV1Z6YzJGblpTaDdkSGx3WlRvbmIzQmxibVJsYzJzdWNISmxkbWxsZHk1aFpHSnNiMk5yTG1obGFXZG9kQ2NzQ2lBZ0lDQWdJR2hsYVdkb2REcE5ZWFJvTG1ObGFXd29aRzlqZFcxbGJuUXVaRzlqZFcxbGJuUkZiR1Z0Wlc1MExuTmpjbTlzYkVobGFXZG9kQ2w5TENjcUp5azdDaUFnSUNCdVpYY2dVbVZ6YVhwbFQySnpaWEoyWlhJb2NtVndiM0owS1M1dlluTmxjblpsS0dSdlkzVnRaVzUwTG1KdlpIa3BPd29nSUNBZ2QybHVaRzkzTG1Ga1pFVjJaVzUwVEdsemRHVnVaWElvSjJ4dllXUW5MSEpsY0c5eWRDeDdiMjVqWlRwMGNuVmxmU2s3Q2lBZ2ZRb2dJRTlpYW1WamRDNWtaV1pwYm1WUWNtOXdaWEowZVNobmJHOWlZV3hVYUdsekxDZFBjR1Z1UkdWemExUnZiMnduTEh0amIyNW1hV2QxY21GaWJHVTZabUZzYzJVc0NpQWdJQ0IzY21sMFlXSnNaVHBtWVd4elpTeGxiblZ0WlhKaFlteGxPbVpoYkhObExIWmhiSFZsT2s5aWFtVmpkQzVtY21WbGVtVW9lM0p2YjNRc2NtVnhkV1Z6ZEgwcGZTazdDbjBwS0NrN0NnPT0iPjwvc2NyaXB0PjxzY3JpcHQgc3JjPSJkYXRhOnRleHQvamF2YXNjcmlwdDtiYXNlNjQsS0NncElEMCtJSHNLSUNBbmRYTmxJSE4wY21samRDYzdDaUFnWTI5dWMzUWdlM0p2YjNRc2NtVnhkV1Z6ZEgwOVoyeHZZbUZzVkdocGN5NVBjR1Z1UkdWemExUnZiMnc3Q2lBZ1kyOXVjM1FnSkQxcFpEMCtjbTl2ZEM1eGRXVnllVk5sYkdWamRHOXlLQ2NqSnl0cFpDazdDaUFnYkdWMElITjBZWFJsUFc1MWJHd3NZblZ6ZVQxbVlXeHpaU3h5WldGa2FXNW5QV1poYkhObE93b2dJR052Ym5OMElHMWxjM05oWjJVOUtIUmxlSFFzWlhKeWIzSTlabUZzYzJVcFBUNTdDaUFnSUNBa0tDZGhaR0pzYjJOckxXMWxjM05oWjJVbktTNTBaWGgwUTI5dWRHVnVkRDEwWlhoME93b2dJQ0FnSkNnbllXUmliRzlqYXkxdFpYTnpZV2RsSnlrdVpHRjBZWE5sZEM1bGNuSnZjajFUZEhKcGJtY29aWEp5YjNJcE93b2dJQ0FnSkNnbllXUmliRzlqYXkxdFpYTnpZV2RsSnlrdWFHbGtaR1Z1UFNGMFpYaDBPd29nSUgwN0NpQWdZMjl1YzNRZ1pXdzlLSFJoWnl4cmJHRnpjeXgwWlhoMEtUMCtld29nSUNBZ1kyOXVjM1FnYm05a1pUMWtiMk4xYldWdWRDNWpjbVZoZEdWRmJHVnRaVzUwS0hSaFp5azdDaUFnSUNCcFppaHJiR0Z6Y3lsdWIyUmxMbU5zWVhOelRtRnRaVDFyYkdGemN6c0tJQ0FnSUdsbUtIUmxlSFFoUFQxMWJtUmxabWx1WldRcGJtOWtaUzUwWlhoMFEyOXVkR1Z1ZEQxMFpYaDBPd29nSUNBZ2NtVjBkWEp1SUc1dlpHVTdDaUFnZlRzS0lDQm1kVzVqZEdsdmJpQnlaVzVrWlhJb0tYc0tJQ0FnSUdOdmJuTjBJR1Z1ZEhKcFpYTTlRWEp5WVhrdWFYTkJjbkpoZVNoemRHRjBaVDh1WlhoalpYQjBhVzl1Y3lrL2MzUmhkR1V1WlhoalpYQjBhVzl1Y3pwYlhUc0tJQ0FnSUNRb0oyVjRZMlZ3ZEdsdmJpMWpiM1Z1ZENjcExuUmxlSFJEYjI1MFpXNTBQVk4wY21sdVp5aGxiblJ5YVdWekxteGxibWQwYUNrN0NpQWdJQ0JqYjI1emRDQnNhWE4wUFNRb0oyVjRZMlZ3ZEdsdmJuTW5LVHRzYVhOMExuSmxjR3hoWTJWRGFHbHNaSEpsYmlncE93b2dJQ0FnYVdZb0lXVnVkSEpwWlhNdWJHVnVaM1JvS1h0c2FYTjBMbUZ3Y0dWdVpDaGxiQ2duY0Njc0oyOWtMVzV2ZEdVZ1lXUmliRzlqYXkxbGJYQjBlU2NzSithYWd1YVhvT1dCbk9lVXFPZWFoT2U5a2Vlcm1TY3BLVHR5WlhSMWNtNDdmUW9nSUNBZ1ptOXlLR052Ym5OMElHaHZjM1FnYjJZZ1pXNTBjbWxsY3lsN0NpQWdJQ0FnSUdOdmJuTjBJSEp2ZHoxbGJDZ25aR2wySnl3bllXUmliRzlqYXkxeWIzY25LU3h1WVcxbFBXVnNLQ2R6Y0dGdUp5d25ZV1JpYkc5amF5MWtiMjFoYVc0bkxHaHZjM1FwT3dvZ0lDQWdJQ0JqYjI1emRDQmlkWFIwYjI0OVpXd29KMkoxZEhSdmJpY3NKMjlrTFdKMWRIUnZiaUJ2WkMxaWRYUjBiMjR0TFhObFkyOXVaR0Z5ZVNCaFpHSnNiMk5yTFhKbGMzUnZjbVVuTENmbWdhTGxwSTNtaTZibWlLb25LVHRpZFhSMGIyNHVkSGx3WlQwblluVjBkRzl1SnpzS0lDQWdJQ0FnWW5WMGRHOXVMbVJwYzJGaWJHVmtQV0oxYzNsOGZDRnpkR0YwWlQ4dWRHOXZiRVZ1WVdKc1pXUTdDaUFnSUNBZ0lHSjFkSFJ2Ymk1elpYUkJkSFJ5YVdKMWRHVW9KMkZ5YVdFdGJHRmlaV3duTENmbWdhTGxwSTBnSnl0b2IzTjBLeWNnNTVxRTVibS81WkdLNkwrSDVydWtKeWs3Q2lBZ0lDQWdJR0oxZEhSdmJpNWhaR1JGZG1WdWRFeHBjM1JsYm1WeUtDZGpiR2xqYXljc0tDazlQbkpsYzNSdmNtVW9hRzl6ZENrcE93b2dJQ0FnSUNCeWIzY3VZWEJ3Wlc1a0tHNWhiV1VzWW5WMGRHOXVLVHRzYVhOMExtRndjR1Z1WkNoeWIzY3BPd29nSUNBZ2ZRb2dJSDBLSUNCaGMzbHVZeUJtZFc1amRHbHZiaUJ5WldaeVpYTm9LQ2w3Q2lBZ0lDQnBaaWhpZFhONWZIeHlaV0ZrYVc1bktYSmxkSFZ5YmpzS0lDQWdJSEpsWVdScGJtYzlkSEoxWlRzS0lDQWdJSFJ5ZVh0emRHRjBaVDFoZDJGcGRDQnlaWEYxWlhOMEtDZGhaR0pzYjJOckxuTjBZWFIxY3ljc2UzMHBPM0psYm1SbGNpZ3BPMjFsYzNOaFoyVW9KeWNwTzMwS0lDQWdJR05oZEdOb0tHVXBlM04wWVhSbFBXNTFiR3c3Y21WdVpHVnlLQ2s3YldWemMyRm5aU2duNXBlZzVyT1Y1cUM0NWErNUlFTm9jbTl0WlNCRVRsTHZ2Sm9uSzFOMGNtbHVaeWhsTG0xbGMzTmhaMlY4ZkdVcExIUnlkV1VwTzMwS0lDQWdJR1pwYm1Gc2JIbDdjbVZoWkdsdVp6MW1ZV3h6WlR0OUNpQWdmUW9nSUdGemVXNWpJR1oxYm1OMGFXOXVJSEpsYzNSdmNtVW9hRzl6ZENsN0NpQWdJQ0JwWmloaWRYTjVmSHdoYzNSaGRHVS9MbVY0WTJWd2RHbHZibk0vTG1sdVkyeDFaR1Z6S0dodmMzUXBLWEpsZEhWeWJqc0tJQ0FnSUdKMWMzazlkSEoxWlR0eVpXNWtaWElvS1R0dFpYTnpZV2RsS0Nmb3I3ZmxuS2pscEpibHNZTGxqNi9rdjZIbHJyL2t1THZub2E3b3JxVG1nYUxscEkzb3I2WG52WkhucTVuaWdLWW5LVHNLSUNBZ0lIUnllWHNLSUNBZ0lDQWdZMjl1YzNRZ2JtVjRkRDFoZDJGcGRDQnlaWEYxWlhOMEtDZGhaR0pzYjJOckxuTnBkR1V1Y21WemRHOXlaU2NzZTJodmMzUjlLVHNLSUNBZ0lDQWdhV1lvYm1WNGREOHVjblZzWlhNL0xuWmxjbWxtYVdWa0lUMDlkSEoxWlNsMGFISnZkeUJGY25KdmNpZ25RMmh5YjIxbElPaW5oT1dJbWVXd211YWNxdWFndU9XdnVTY3BPd29nSUNBZ0lDQnpkR0YwWlQxdVpYaDBPM0psYm1SbGNpZ3BPMjFsYzNOaFoyVW9KK1czc3VhQm91V2tqU0FuSzJodmMzUXJKeURubW9Ub3Y0Zm11NlR2dkl6b3I3ZmxpTGZtbHJEbnZaSHBvYlhqZ0lJbktUc0tJQ0FnSUgxallYUmphQ2hsS1h0dFpYTnpZV2RsS0ZOMGNtbHVaeWhsTG0xbGMzTmhaMlY4ZkdVcExIUnlkV1VwTzMwS0lDQWdJR1pwYm1Gc2JIbDdZblZ6ZVQxbVlXeHpaVHR5Wlc1a1pYSW9LVHQ5Q2lBZ2ZRb2dJSFp2YVdRZ2NtVm1jbVZ6YUNncE93b2dJR1J2WTNWdFpXNTBMbUZrWkVWMlpXNTBUR2x6ZEdWdVpYSW9KM1pwYzJsaWFXeHBkSGxqYUdGdVoyVW5MQ2dwUFQ1N2FXWW9JV1J2WTNWdFpXNTBMbWhwWkdSbGJpbDJiMmxrSUhKbFpuSmxjMmdvS1R0OUtUc0tJQ0IzYVc1a2IzY3VZV1JrUlhabGJuUk1hWE4wWlc1bGNpZ25abTlqZFhNbkxDZ3BQVDUyYjJsa0lISmxabkpsYzJnb0tTazdDaUFnYzJWMFNXNTBaWEoyWVd3b0tDazlQbnRwWmlnaFpHOWpkVzFsYm5RdWFHbGtaR1Z1S1hadmFXUWdjbVZtY21WemFDZ3BPMzBzTVRJd01EQXBPd3A5S1NncE93PT0iPjwvc2NyaXB0PjwvYm9keT48L2h0bWw+'),char=>char.charCodeAt(0));
+  const trustedFrameHtml=new TextDecoder().decode(safeFrameBytes);
+  const iframe=byId('opendesk-preview-frame');
+  const nav=[...document.querySelectorAll('.workbench-nav [role="tab"]')].filter(tab=>!tab.hidden);
+  const panels={detail:byId('od-preview-extension-detail'),list:byId('od-preview-return'),
+    other:byId('od-preview-other'),uninstalled:byId('od-preview-uninstalled')};
+  const back=byId('sidebar-tool-back'),remove=byId('sidebar-tool-remove');
+  const modal=byId('od-preview-confirm-uninstall');
+  let extensionPage='detail';
+  byId('sidebar-tool-title').textContent="广告拦截";
+  byId('sidebar-tool-open-tab').hidden=true;
+  remove.disabled=false;
+  // This preview must never claim the real tool and its stored data will be removed.
+  remove.setAttribute('aria-label','模拟卸载当前工具（不会删除真实数据）');
+  remove.title='模拟卸载（不会删除真实数据）';
+  iframe.srcdoc=trustedFrameHtml;
+  function showPanel(name,tab){
+    for(const [id,node] of Object.entries(panels))node.hidden=id!==name;
+    panels[name].setAttribute('aria-labelledby',tab.id);
   }
-  state.allowed.forEach(domain=>{
-   const row=document.createElement('div');row.className='allow-row';
-   const item=document.createElement('div');const strong=document.createElement('strong');strong.textContent=domain;
-   const small=document.createElement('p');small.textContent='已停用广告拦截';item.append(strong,small);
-   const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent='恢复拦截';b.dataset.restore=domain;b.setAttribute('aria-label','恢复 '+domain+' 的广告拦截');row.append(item,b);host.append(row);
+  function activateTab(tab){
+    if(!tab||!nav.includes(tab))return;
+    for(const current of nav){
+      const active=current===tab;
+      current.setAttribute('aria-selected',String(active));
+      // Remap production aria-controls to the panels which actually exist in this mock.
+      current.setAttribute('aria-controls',current.id==='tab-tools'?
+        panels[extensionPage].id:panels.other.id);
+      current.tabIndex=active?0:-1;
+    }
+    if(tab.id==='tab-tools')showPanel(extensionPage,tab);
+    else{
+      byId('od-preview-other-title').textContent=tab.textContent.trim()+' · 预览占位';
+      showPanel('other',tab);
+    }
+  }
+  nav.forEach(tab=>{
+    tab.addEventListener('click',()=>activateTab(tab));
+    tab.addEventListener('keydown',event=>{
+      if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
+      event.preventDefault();
+      const index=nav.indexOf(tab);
+      const target=event.key==='Home'?nav[0]:event.key==='End'?nav.at(-1):
+        nav[(index+(event.key==='ArrowLeft'?-1:1)+nav.length)%nav.length];
+      activateTab(target);target.focus();
+    });
   });
- }
- $('global-switch').addEventListener('click',()=>{state.global=!state.global;persist();render();toast(state.global?'已在原型中开启全局保护':'已在原型中暂停全局保护')});
- $('site-switch').addEventListener('click',()=>{if(!state.global||!supported())return;const i=state.allowed.indexOf(state.domain);if(i>=0)state.allowed.splice(i,1);else state.allowed.push(state.domain);persist();render();toast(i>=0?'已在原型中恢复本站拦截':'已在原型中停用本站拦截')});
- $('open-allowlist').addEventListener('click',()=>show('allowlist'));
- $('open-settings').addEventListener('click',()=>show('settings'));
- $('settings-allowlist').addEventListener('click',()=>show('allowlist'));
- document.querySelectorAll('.back').forEach(b=>b.addEventListener('click',()=>show('overview')));
- $('allow-rows').addEventListener('click',e=>{const b=e.target.closest('button[data-restore]');if(!b)return;state.allowed=state.allowed.filter(x=>x!==b.dataset.restore);persist();render();toast('已在原型中恢复 '+b.dataset.restore)});
- $('domain-select').addEventListener('change',e=>{state.domain=domains.includes(e.target.value)?e.target.value:domains[0];persist();show('overview');render()});
- $('theme-button').addEventListener('click',()=>{state.night=!state.night;persist();render()});
- $('reset-button').addEventListener('click',()=>{state=defaultState();persist();show('overview');render();toast('已重置原型演示状态')});
- render();
+  activateTab(byId('tab-tools'));
+  back.addEventListener('click',()=>{
+    extensionPage='list';activateTab(byId('tab-tools'));
+    byId('od-preview-reopen').focus();
+  });
+  byId('od-preview-reopen').addEventListener('click',()=>{
+    extensionPage='detail';activateTab(byId('tab-tools'));back.focus();
+  });
+  byId('od-preview-to-extensions').addEventListener('click',()=>{
+    activateTab(byId('tab-tools'));byId('tab-tools').focus();
+  });
+  remove.addEventListener('click',()=>modal.showModal());
+  // The close event fires for both the cancel button and the native Escape key.
+  modal.addEventListener('close',()=>{
+    if(extensionPage==='detail'&&!panels.detail.hidden)remove.focus();
+  });
+  byId('od-preview-cancel-uninstall').addEventListener('click',()=>modal.close());
+  byId('od-preview-accept-uninstall').addEventListener('click',()=>{
+    extensionPage='uninstalled';
+    modal.close();
+    iframe.srcdoc='';activateTab(byId('tab-tools'));
+    byId('od-preview-reset').focus();
+  });
+  byId('od-preview-reset').addEventListener('click',()=>{
+    iframe.srcdoc=trustedFrameHtml;extensionPage='detail';activateTab(byId('tab-tools'));back.focus();
+  });
 })();
 </script>
-</body>
-</html>
+<script>/* Browser-side UI simulator for a source-derived, inert trusted-host snapshot.
+ * Operates exclusively on offline fixture domains and mock iframe messages. */
+(() => {
+  'use strict';
+  const byId=id=>document.getElementById(id);
+  const mount=byId('od-preview-adblock-host');
+  if(!mount)return;
+  const frame=byId('opendesk-preview-frame');
+  const data=JSON.parse(byId('od-preview-adblock-snapshots').textContent);
+  const scenario=data.scenario;
+  const snapshots=data.snapshots;
+  const live=['success','empty','untrusted'].includes(scenario);
+  const initial=()=>({enabled:scenario==='success'||scenario==='untrusted',
+    granted:scenario!=='empty'&&scenario!=='permission-denied',
+    exceptions:scenario==='success'?['news.example.com']:[]});
+  let state=initial();
+  const site='news.example.com';
+  const dialog=byId('od-preview-adblock-restore-dialog');
+  const description=byId('od-preview-adblock-restore-description');
+  const feedback=byId('od-preview-adblock-feedback');
+  let pending=null;
+  const note=text=>{feedback.textContent=text;};
+  function key(){
+    if(scenario==='error'||scenario==='loading'||scenario==='permission-denied')
+      return scenario==='permission-denied'?'no-permission':scenario;
+    if(!state.granted)return 'no-permission';
+    if(!state.enabled)return 'off';
+    return state.exceptions.includes(site)?'on-site-off':'on-site-on';
+  }
+  function render(){
+    const name=key();
+    if(!Object.hasOwn(snapshots,name))throw Error('E_ADBLOCK_PREVIEW_SNAPSHOT: '+name);
+    mount.innerHTML=snapshots[name];
+  }
+  function notifySandbox(){
+    if(scenario==='untrusted')return; // preserve malicious-string fixture without changing production state
+    frame.contentWindow?.postMessage({type:'opendesk.preview.adblock.state',
+      enabled:state.enabled,exceptions:[...state.exceptions]},'*');
+  }
+  function reset(){
+    state=initial();pending=null;if(dialog.open)dialog.close();note('');
+    render();notifySandbox();
+  }
+  mount.addEventListener('click',event=>{
+    const button=event.target.closest('button[role=switch]');
+    if(!button||!mount.contains(button)||!event.isTrusted||button.disabled||!live)return;
+    const buttons=[...mount.querySelectorAll('button[role=switch]')];
+    const index=buttons.indexOf(button);
+    if(index===0){
+      if(!state.granted){
+        state.granted=true;
+        note('已模拟允许 DNR；正式 Chrome 仍需用户授权并可能需要完整重启。');
+      }else note(state.enabled?'已在离线预览中停用':'已在离线预览中开启');
+      state.enabled=!state.enabled;
+    }else if(index===1&&state.enabled){
+      if(state.exceptions.includes(site)){
+        state.exceptions=state.exceptions.filter(host=>host!==site);
+        note('已模拟恢复当前网站。正式操作需要核对 Chrome 规则。');
+      }else{
+        state.exceptions.push(site);
+        note('已模拟停用当前网站的过滤。');
+      }
+    }else return;
+    render();notifySandbox();
+    mount.querySelectorAll('button[role=switch]')[index]?.focus();
+  });
+  frame.addEventListener('load',()=>notifySandbox());
+  window.addEventListener('message',event=>{
+    if(event.source!==frame.contentWindow||!event.data||typeof event.data!=='object')return;
+    const message=event.data;
+    if(message.type==='opendesk.preview.adblock.height'){
+      if(Number.isFinite(message.height)&&message.height>=0&&message.height<100000)
+        frame.style.height=Math.max(140,Math.min(1600,Math.ceil(message.height)))+'px';
+    }else if(message.type==='opendesk.preview.adblock.restore-request'){
+      if(!live||!Number.isSafeInteger(message.requestId)||message.requestId<1||
+         message.host!=='news.example.com'||pending)return;
+      pending={requestId:message.requestId,host:message.host};
+      description.textContent='仅在预览中恢复 '+message.host+' 的过滤；不会修改 Chrome 规则。';
+      dialog.showModal();
+      byId('od-preview-adblock-restore-cancel').focus();
+    }else if(message.type==='opendesk.preview.adblock.exceptions'){
+      if(!live||!Array.isArray(message.exceptions)||
+         message.exceptions.some(host=>host!==site))return;
+      state.exceptions=[...new Set(message.exceptions)];
+      render();note('已在离线预览中恢复过滤，真实网页仍需刷新。');
+    }
+  });
+  function decide(accepted){
+    if(!pending)return;
+    const requestId=pending.requestId;
+    pending=null;dialog.close();
+    frame.contentWindow?.postMessage({type:'opendesk.preview.adblock.restore-decision',
+      requestId,accepted},'*');
+    if(!accepted)note('已取消本次模拟操作');
+  }
+  byId('od-preview-adblock-restore-cancel').addEventListener('click',()=>decide(false));
+  byId('od-preview-adblock-restore-accept').addEventListener('click',()=>decide(true));
+  dialog.addEventListener('cancel',event=>{if(pending){event.preventDefault();decide(false);}});
+  byId('od-preview-reset').addEventListener('click',reset);
+  render();
+})();
+</script>
+</body></html>
