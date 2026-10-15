@@ -5,7 +5,7 @@ const targetFields=['windowId','tabId','frameId','documentId','url','origin'];
 const highImpact=/(?:付款|支付|购买|下单|结账|转账|提现|确认订单|提交订单|删除|永久移除|清空|注销|发布|群发|发送(?:邮件|消息)|发消息|退款|修改(?:密码|账号)|重设密码|pay(?:ment)?|purchase|checkout|transfer\s+money|delete|remove\s+account|reset\s+password|send\s+(?:email|message)|post\s+(?:comment|message)|confirm\s+order)/i;
 const riskyClickTarget=/(?:付款|支付|购买|下单|结账|转账|删除|清空|注销|发布|发送|退款|密码|订单确认|支付确认|pay|purchase|checkout|transfer|delete|remove|reset.?password|send|submit|提交|confirm.?order|logout|publish|billing)/i;
 const fillIntent=/(?:填入|填写|输入|填上|填到|写入|写在|设为|放入|设置输入框|\b(?:fill|type|enter)\b)/i;
-const clickIntent=/(?:点击|点开|按下|打开|跳转|搜索(?!关键词|框|栏|输入框)|提交|下一步|选择(?:按钮|菜单|选项|标签|条目|项目)|\bsearch\b(?!\s+(?:keyword|input|field|box)\b)|\b(?:click|open|navigate|submit|select|press)\b)/i;
+const clickIntent=/(?:点击|点开|按下|打开|跳转|搜索(?!关键词|框|栏|输入框|结果|页面|记录|历史|列表)|提交|下一步|选择(?:按钮|菜单|选项|标签|条目|项目)|\bsearch\b(?!\s+(?:keyword|input|field|box)\b)|\b(?:click|open|navigate|submit|select|press)\b)/i;
 const readIntent=/(?:查看(?:页面|网页|内容|结果)?|读取|提取|显示(?:页面|内容|结果)|观察|检查网页|页面内容|\b(?:read|extract|observe|inspect|show)\b)/i;
 
 // Admission for the existing RunHost only. Model output is never executable code,
