@@ -19,7 +19,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   let appStatusKnown=false,pageStatusKnown=false,pendingCleanups=new Set();
   let sources={};
   let catalogError='',dataError='',statusOrigin='loading',hasLoaded=false,query='',kind='all',scope='smart',selectedKey=null,selectedInstalled=null;
-  let listScroll=0,focusKey=null,focusAction=null,detailFocusAction=null;
+  let listScroll=0,focusKey=null,focusAction=null,detailFocusAction=null,selectedIdentity=null;
   const node=(tag,cls='',value)=>{const element=doc.createElement(tag);if(cls)element.className=cls;
     if(value!==undefined)element.textContent=String(value);return element;};
   const button=(value,fn,cls='')=>{const b=node('button',cls,value);b.type='button';b.addEventListener('click',fn);return b;};
@@ -269,6 +269,13 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     const row=find(key);if(!row||(scope!=='available'&&!row.installed))return;
     closeRowMenu();
     selectedInstalled=row.installed;
+    // A detail belongs to one reviewed package/revision, not merely a reusable ID.
+    // Enable/disable and Page authorization may change without replacing that identity.
+    selectedIdentity=row.kind==='app'?
+      (row.installed?{kind:'app-installed',package:structuredClone(row.record)}:
+        {kind:'app-release',version:row.version,sha256:row.release?.sha256}):
+      {kind:'page-installed',manifestHash:row.record?.manifestHash,
+        revision:row.record?.installed?.revision,sourceHash:row.record?.installed?.sourceHash};
     focusKey=key;focusAction=returnAction;
     listScroll=workspace?.scrollTop||0;selectedKey=key;detailFocusAction=null;
     closeMenu();listing.hidden=true;detail.hidden=false;
@@ -276,15 +283,27 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     get('extension-center-back')?.focus({preventScroll:true});
   }
   function back(){
-    selectedKey=null;selectedInstalled=null;detailFocusAction=null;detail.hidden=true;listing.hidden=false;
+    selectedKey=null;selectedInstalled=null;selectedIdentity=null;detailFocusAction=null;detail.hidden=true;listing.hidden=false;
     workspace?.scrollTo?.({top:listScroll});
     if(!restoreRowFocus(focusKey,focusAction))search.focus({preventScroll:true});
   }
   function renderDetail(){
     const row=find(selectedKey);
-    if(!row||row.installed!==selectedInstalled){
+    const identityChanged=Boolean(row&&row.installed===selectedInstalled&&(
+      row.kind==='app'?
+        (row.installed?
+          (selectedIdentity?.kind!=='app-installed'||
+            !sameSidebarToolPackage(row.record,selectedIdentity.package)):
+          (selectedIdentity?.kind!=='app-release'||row.version!==selectedIdentity.version||
+            row.release?.sha256!==selectedIdentity.sha256)):
+        (selectedIdentity?.kind!=='page-installed'||
+          row.record?.manifestHash!==selectedIdentity.manifestHash||
+          row.record?.installed?.revision!==selectedIdentity.revision||
+          row.record?.installed?.sourceHash!==selectedIdentity.sourceHash)
+    ));
+    if(!row||row.installed!==selectedInstalled||identityChanged){
       back();
-      if(row)message('应用安装状态已变化，已返回列表；请重新核对当前安装记录。','info');
+      if(row)message('扩展安装状态或固定身份已变化，已返回列表；请重新核对后操作。','info');
       return;
     }
     const area=get('extension-center-detail-body'),focused=doc.activeElement?.dataset?.ecDetailAction||detailFocusAction;
