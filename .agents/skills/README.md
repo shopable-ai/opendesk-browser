@@ -62,3 +62,9 @@ node scripts/agent-skills-r22-eval.mjs --repo "$PWD" --mode all
 评测仅使用 `codex exec --json --sandbox read-only`，输出存入本机 `~/.codex-evals/opendesk-r22/`（权限 0700，原始文件 0600），不提交含私密会话信息的 JSONL。Codex 调用可能计费并将提示词发送至当前配置的推理服务；CI **只运行离线自测**，不调用模型。
 
 **证据等级**：`PASS` 要求观测到对应 Skill 的调用事件且有成功读取该 `SKILL.md` 的记录；仅能看到调用时使用 `IMPLICIT_TRIGGER_OBSERVED`，仅能确认读取时使用 `SKILL_READ_OBSERVED`，无法观察时使用 `TRIGGER_NOT_OBSERVABLE`。负向对照缺少可观测事件不能直接判 PASS，任何跨 SHA/工作树漂移必须重新核验。静态 14/14 不等于真实 AI 14/14，不能据此宣布真实自动路由 ≥95%。
+
+## Extension Creation R2.1 推理正确性评测（不新增 Skill）
+
+沿用上面的**同一个** `scripts/agent-skills-r22-eval.mjs` 和现行本机 Codex 只读入口，增量运行 `--mode reasoning` 会针对六条不完整/模糊/冲突/高风险输入分别做 baseline 与明确采用 [唯一开发工作流 R2.1](../../docs/framework/browser-tool-creation-workflow.zh-CN.md) 的引导推理，共 **6 对、12 次独立只读会话**。命令示例：`node scripts/agent-skills-r22-eval.mjs --repo "$PWD" --mode reasoning`。仅在已安装、已登录 Codex、用户清楚模型调用可能收费且本地只读可用时运行；生成的私有原始事件和 `reasoningPairs` 留在 `~/.codex-evals/opendesk-r22/`。
+
+此模式的关键词检查统一标 `REVIEW_REQUIRED`，必须由独立评审者逐例检查语义、来源、P0/P1、错误扩张、历史冲突与权限，未实测不给 95 分。它**不是**浏览器“自然语言自动创建扩展”的产品入口；模型运行不生成、修改或安装工具项目，也不能代替现有 Preview/Dev/Package Skill 的实际交付和原生确认。
