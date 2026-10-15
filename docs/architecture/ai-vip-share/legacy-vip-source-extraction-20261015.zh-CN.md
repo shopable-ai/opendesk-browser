@@ -146,7 +146,7 @@ appVip.initApp();
 - [`background.ts#L160-L244`](https://github.com/shopable-ai/opendesk-browser/blob/main/docs/contracts/source-snapshots/todo-src-bex/src-bex/background.ts#L160-L244) 的旧 BEX 代码尝试传 `csdnApp.vipLogin(code, deviceCode)`，但前者签名仅收 `code`；**不能把此旧链证明为可靠设备绑定**。
 - `background.ts` 在成功时也读取 `scripts`，保存 `csdn_vipcode` / `cardcode_<code>`，执行脚本、产生页面通知。实际内容与 `WebAppVip` 不是同一个稳定服务合同。
 - [`src-bex/assets/js/controller/csdn.js#L269-L334`](https://github.com/shopable-ai/opendesk-browser/blob/main/docs/contracts/source-snapshots/todo-src-bex/src-bex/assets/js/controller/csdn.js#L269-L334) 已有 `vipcode` URL 路径，调用 BEX 事件桥；该文件 L416–453 的某些 `axiosx` 后备代码在提前 `return` 后不可达，**不可算真实执行入口**。
-- 另有 [旧 BEX 真实调用链分析](../../browser-framework/legacy-src-bex-framework.md)，具体说明 `axiosx` 的后台 GET/POST/PUT/DELETE、事件关联和错误吞没。可用来了解历史交互，不可取代现有 `OpenDeskSDK.browser` 与批准的 Network Driver。
+- 另有 [旧 BEX 真实调用链分析](../browser-framework/legacy-src-bex-framework.md)，具体说明 `axiosx` 的后台 GET/POST/PUT/DELETE、事件关联和错误吞没。可用来了解历史交互，不可取代现有 `OpenDeskSDK.browser` 与批准的 Network Driver。
 
 ## 7. 安全/正确性禁迁清单（静态源码证据）
 
