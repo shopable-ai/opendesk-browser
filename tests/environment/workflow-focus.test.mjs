@@ -103,7 +103,7 @@ if(!vm.SourceTextModule) {
   }
 
   async function make(t,{steps=[],approval=false,observeGate=null,storedGrant=null,
-    sessionId='component-session',initialPermission=true}={}) {
+    sessionId='component-session',initialPermission=true,savedRecord=null,configureHost=null}={}) {
     const doc=documentFixture(),get=id=>doc.getElementById(id),draft=contract.emptyWorkflow('https://a.example',crypto.randomUUID());
     draft.steps=structuredClone(steps);
     const planGate=deferred(),approvalReady=deferred(),answers=[],observations=[];
@@ -174,16 +174,21 @@ if(!vm.SourceTextModule) {
       sessionWrites.push(structuredClone(values));
       for(const [key,value] of Object.entries(values))sessionStore.set(key,value);
     };
-    const api={storage:{session:{get:sessionGet,set:sessionSet},local:{get:async()=>({}),set:async()=>{}}},
+    const savedKey=savedRecord?'opendesk.sidebar.workflow.v1:'+
+      savedRecord.workflow.workflowId+':'+savedRecord.revision:null;
+    const api={storage:{session:{get:sessionGet,set:sessionSet},
+      local:{get:async()=>savedRecord?{[savedKey]:savedRecord}:{},set:async()=>{}}},
       permissions:{request:async request=>{
         permissionRequests.push(structuredClone(request));
         for(const origin of request.origins||[])permissions.add(origin);
         return true;
       },contains:async request=>(request.origins||[]).every(origin=>permissions.has(origin)),
       onRemoved:{addListener:fn=>permissionListeners.add(fn),removeListener:fn=>permissionListeners.delete(fn)}}};
+    const host={subscribe:()=>()=>{},currentRun:null,executionPending:false};
+    configureHost?.(host);
     const ui=module.namespace.createWorkflowView({document:doc,api,
       client:{ready:Promise.resolve(),subscribeWorkflowAI:()=>()=>{}},
-      host:{subscribe:()=>()=>{},currentRun:null,executionPending:false},
+      host,
       currentPageTarget:{windowId:7,get snapshot(){return target;},ready:Promise.resolve(),capture:()=>({...target}),revalidate:async captured=>{
         if(['windowId','tabId','frameId','documentId','url','origin'].some(key=>captured[key]!==target[key]))
           throw Object.assign(new Error('stale target'),{code:'E_DOCUMENT_STALE'});
@@ -217,7 +222,7 @@ if(!vm.SourceTextModule) {
       return {running};
     };
     return {doc,get,ui,click,openCreation,clickNew,focusNew,control,stepsNow,startPlan,planGate,approvalReady,answers,observations,compiled,
-      permissions,permissionRequests,sessionWrites,sessionStore,setPage,removePermission,
+      permissions,permissionRequests,sessionWrites,sessionStore,setPage,removePermission,host,savedKey,
       setSessionId:value=>{currentSessionId=value;},
       get plannerOptions(){return plannerOptions;}};
   }
@@ -469,5 +474,56 @@ if(!vm.SourceTextModule) {
     f.plannerOptions.signal.dispatchEvent(new Event('abort'));await tick();
     assert.equal(f.get('workflow-ai-approval').hidden,true);assertFocus(f,f.get('workflow-ai-request'));
     f.planGate.resolve();await running;assert.equal(f.answers[0].decision,'deny');
+  });
+
+  test('component: saved fill Revision replays twice without AI and refuses mutated journal bytes',async t=>{
+    const hash='a'.repeat(64);
+    const input={stepId:'keyword',op:'fill',locatorKind:'css',
+      selector:'#keyword',text:'ai自动化第一选择'};
+    const frozen=contract.emptyWorkflow('https://a.example','12345678-1234-1234-1234-123456789abc');
+    frozen.steps=[input];
+    const savedRecord={format:'opendesk.workflow-revision.v1',workflow:frozen,
+      revision:3,sourceHash:hash,savedAt:Date.now(),verificationMode:'fill-readback'};
+    const starts=[];let changed=false,snapshot;
+    const revision={scriptId:frozen.workflowId,revision:3,sourceHash:hash};
+    const boundTarget={windowId:7,tabId:9,frameId:0,documentId:'doc-9',
+      url:'https://a.example/',allowedOrigin:'https://a.example'};
+    const f=await make(t,{savedRecord,configureHost:host=>{
+      host.controller={
+        getControllerScript:async()=>({revision:3,contentHash:hash,
+          sourceUtf8:changed?'unexpected bytes':'component fixture'}),
+        snapshotControllerRun:async()=>snapshot
+      };
+      host.start=async options=>{
+        const n=starts.push(options),runId='saved-run-'+n,resultId='saved-result-'+n;
+        const result={runId,resultId,state:'completed',revision,outcome:{ok:true,
+          valueWire:{keyword:{kind:'input-readback',matched:true,value:input.text}}}};
+        snapshot={run:{runId,resultId,state:'completed',workerRetired:true,
+          retirementState:'released',target:boundTarget,revision},results:[result]};
+        host.completion=Promise.resolve({runId,state:'completed',
+          retirement:{state:'released'},result});
+        return {runId,resultId,target:boundTarget,revision};
+      };
+    }});
+    f.get('workflow-saved-list').value=f.savedKey;
+    await f.click(f.get('workflow-load'));await tick();await tick();
+    assert.match(f.get('workflow-status').textContent,/冻结版本 r3/);
+    for(let n=1;n<=2;n++) {
+      f.get('workflow-confirm-run').checked=true;
+      const response=await f.get('workflow-run').fire('click');
+      assert.equal(response[0].ok,true);
+      assert.equal(response[0].evidenceLevel,'BUSINESS_EFFECT_VERIFIED');
+      assert.equal(response[0].runId,'saved-run-'+n);
+      assert.equal(response[0].resultId,'saved-result-'+n);
+      assert.deepEqual(starts.at(-1).source,{
+        kind:'saved',scriptId:frozen.workflowId,revision:3,contentHash:hash});
+      assert.match(f.get('workflow-status').textContent,/脱离 AI 运行/);
+    }
+    assert.equal(starts.length,2);
+    changed=true;f.get('workflow-confirm-run').checked=true;
+    const refused=await f.get('workflow-run').fire('click');
+    assert.equal(refused[0].ok,false);
+    assert.equal(refused[0].error.code,'E_WORKFLOW_HASH');
+    assert.equal(starts.length,2,'corrupt journal bytes must not reach RunHost');
   });
 }
