@@ -260,7 +260,10 @@ textarea.od-field{line-height:1.65;min-height:210px;resize:vertical;font-size:13
  }
  function notice(message,kind='info'){const n=el('panelStatus');n.textContent=message;n.dataset.kind=kind;noticeKind=kind;}
  function bytes(value){return encoder.encode(JSON.stringify(value)).byteLength;}
- function stack(label){const n=create('span','stack');for(const char of label)n.append(create('span','',char));return n;}
+ const segmenter=typeof Intl.Segmenter==='function'?new Intl.Segmenter('zh',{granularity:'grapheme'}):null;
+ function glyphs(text){return segmenter?Array.from(segmenter.segment(text),part=>part.segment):Array.from(text);}
+ function defaultShort(body){return glyphs(body.trimStart()).filter(char=>!/\s/u.test(char)).slice(0,2).join('');}
+ function stack(label){const n=create('span','stack');for(const char of glyphs(label))n.append(create('span','',char));return n;}
  function countText(){const enabled=state.items.filter(item=>item.enabled).length;return `${state.items.length} 个 · ${enabled} 个启用`;}
  function setView(next){currentView=next;for(const v of ['index','form','permission'])el(v+'View').hidden=v!==next;el('panelBody').scrollTop=0;}
  function mockAuthorized(){return state.granted===true;}
@@ -298,22 +301,23 @@ textarea.od-field{line-height:1.65;min-height:210px;resize:vertical;font-size:13
  function moveItem(i,delta){const target=i+delta;if(target<0||target>=state.items.length)return;[state.items[i],state.items[target]]=[state.items[target],state.items[i]];state.revision++;renderIndex();renderRail();notice('顺序已更新（模拟）');}
  async function copyPrompt(item){try{if(!navigator.clipboard?.writeText)throw new Error('unavailable');await navigator.clipboard.writeText(item.body);notice('已复制「'+item.name+'」完整提示词');}
   catch{copyId=item.id;el('copyText').value=item.body;el('copyFallback').hidden=false;el('copyText').focus();el('copyText').select();notice('剪贴板不可用，已显示完整文本供手动复制。');}}
- function formValues(){const shape=document.querySelector('input[name="shape"]:checked');return {label:el('shortLabel').value.trim(),name:el('fullName').value.trim(),body:el('promptBody').value,enabled:el('itemEnabled').checked,shape:shape?.value||'square'};}
+ function rawFormValues(){const shape=document.querySelector('input[name="shape"]:checked');return {label:el('shortLabel').value.trim(),name:el('fullName').value.trim(),body:el('promptBody').value,enabled:el('itemEnabled').checked,shape:shape?.value||'square'};}
+ function formValues(){const raw=rawFormValues(),fallback=defaultShort(raw.body);return {...raw,label:raw.label||fallback,name:raw.name||fallback,labelAuto:!raw.label,nameAuto:!raw.name};}
  function projection(){const value=formValues(),next=state.items.map(x=>({...x}));const idx=next.findIndex(x=>x.id===editId);if(idx>=0)next[idx]={...next[idx],...value};else next.push({id:'preview-new',...value});return {version:1,revision:state.revision+1,settings:state.settings,items:next};}
- function updateMeter(){const current=bytes(projection());el('quotaValue').textContent=current+' / 8192 B';el('quotaMeter').classList.toggle('error',current>8192);dirty=JSON.stringify(formValues())!==baselineForm;el('leaveConfirm').hidden=true;}
+ function updateMeter(){const value=formValues(),current=bytes(projection());el('quotaValue').textContent=current+' / 8192 B';el('quotaMeter').classList.toggle('error',current>8192);el('effectiveShort').textContent=value.label||'待生成';el('effectiveName').textContent=value.name||'待生成';dirty=JSON.stringify(rawFormValues())!==baselineForm;el('leaveConfirm').hidden=true;}
  function showFormError(message){el('formError').textContent=message;el('formError').hidden=false;notice(message,'error');}
  function openForm(id=null,preset=null){if(currentView==='form'&&dirty){showFormError('当前表单有未保存内容，请先处理草稿，再打开另一个提示词。');return;}
   editId=id;const value=state.items.find(item=>item.id===id);if(id&&!value){notice('待编辑项已删除，请刷新确认','error');return;}
-  el('formHeading').textContent=id?'编辑提示词':'新建提示词';el('shortLabel').value=value?.label||preset?.label||'';el('fullName').value=value?.name||preset?.name||'';el('promptBody').value=value?.body??preset?.body??'';
+  el('formHeading').textContent=id?'编辑提示词':'新建提示词';el('promptBody').value=value?.body??preset?.body??'';el('shortLabel').value=value?.labelAuto?'':(value?.label??preset?.label??'');el('fullName').value=value?.nameAuto?'':(value?.name??preset?.name??'');
   for(const input of document.querySelectorAll('input[name="shape"]'))input.checked=input.value===(value?.shape||'square');el('itemEnabled').checked=value?.enabled??true;
-  el('formError').hidden=true;el('leaveConfirm').hidden=true;revisionAtEdit=state.revision;baselineForm=JSON.stringify(formValues());dirty=false;nextSaveFailure=null;el('failureStatus').textContent='当前：正常保存';updateMeter();setView('form');el('shortLabel').focus({preventScroll:true});
+  el('formError').hidden=true;el('leaveConfirm').hidden=true;revisionAtEdit=state.revision;baselineForm=JSON.stringify(rawFormValues());dirty=false;nextSaveFailure=null;el('failureStatus').textContent='当前：正常保存';updateMeter();setView('form');el('promptBody').focus({preventScroll:true});
  }
  function requestBack(){if(currentView!=='form')return;if(!dirty){returnIndex();return;}el('leaveConfirm').hidden=false;el('leaveConfirm').scrollIntoView({block:'nearest'});}
  function returnIndex(){editId=null;dirty=false;setView('index');renderIndex();renderRail();el('addButton').focus({preventScroll:true});}
  function saveForm(event){event.preventDefault();el('formError').hidden=true;const value=formValues();
-  if(!/^[\u3400-\u9fff]{1,2}$/u.test(value.label)){showFormError('短标签须为 1–2 个汉字。');return;}
-  if(!value.name||value.name.length>60){showFormError('请填写不超过 60 字符的完整名称。');return;}
-  if(!value.body.trim()){showFormError('完整提示词正文不能为空。');return;}
+  if(!value.body.trim()){showFormError('提示词内容是唯一必填项，请输入后保存。');el('promptBody').focus();return;}
+  if(!value.label||glyphs(value.label).length>2||/\s/u.test(value.label)){showFormError('短标签只能包含 1–2 个可见字符；留空时将自动从正文生成。');return;}
+  if(!value.name||value.name.length>60){showFormError('显示名称不得超过 60 字符；留空时将自动从正文生成。');return;}
   if(value.body.includes('\u0000')){showFormError('提示词正文不能包含 NUL 字符。');return;}
   if(bytes(projection())>8192){showFormError('本工具模拟单项 JSON 已超过 8 KiB；当前草稿完整保留，请精简内容后保存。');return;}
   if(revisionAtEdit!==state.revision){showFormError('E_STORAGE_CONFLICT：其他窗口已更改数据。草稿保留，请先核对最新版本。');return;}
@@ -331,7 +335,7 @@ textarea.od-field{line-height:1.65;min-height:210px;resize:vertical;font-size:13
   el('mockContextMenu').hidden=false;notice('模拟右键菜单已显示。选择添加后进入预填表单，不会自动保存。');}
  function confirmSelection(){el('mockContextMenu').hidden=true;const text=el('selectionSample').textContent||'';
   if(!text.trim()){notice('当前没有有效模拟选区。','error');return;}
-  openForm(null,{label:'选文',name:'选中文字创建的提示词',body:text});notice('已预填模拟选中文字，请确认短标签、名称和完整提示词后保存。');}
+  openForm(null,{body:text});notice('已预填选中文字；只需确认正文即可保存，短标签和名称可留空自动生成。');}
  el('mockSelection').addEventListener('click',prepareSelection);el('mockMenuAdd').addEventListener('click',confirmSelection);
  el('addButton').addEventListener('click',()=>openForm());el('formBack').addEventListener('click',requestBack);el('cancelForm').addEventListener('click',requestBack);
  el('stayEditing').addEventListener('click',()=>{el('leaveConfirm').hidden=true;el('promptBody').focus();});el('discardEditing').addEventListener('click',()=>{notice('已主动放弃未保存更改。');returnIndex();});
@@ -347,7 +351,7 @@ textarea.od-field{line-height:1.65;min-height:210px;resize:vertical;font-size:13
   document.documentElement.style.setProperty('--panel-width',width+'px');notice('侧边栏模拟宽度：'+width+' CSS px');});
  el('themeButton').addEventListener('click',()=>{const dark=document.documentElement.dataset.theme!=='dark';document.documentElement.dataset.theme=dark?'dark':'light';el('themeButton').textContent=dark?'浅色模式':'深色模式';});
  el('resetButton').addEventListener('click',()=>{if(currentView==='form'&&dirty){showFormError('当前编辑尚未保存，请先取消或保存，再重置模拟数据。');return;}
-  state={version:1,revision:1,settings:{showBar:true,contextMenu:true},items:COPY(),granted:true};nextSaveFailure=null;expandedId=null;deleteId=null;copyId=null;el('mockDraft').value='';el('mockContextMenu').hidden=true;el('copyFallback').hidden=true;returnIndex();notice('已重置为 R1.2 初始模拟数据。');});
+  state={version:1,revision:1,settings:{showBar:true,contextMenu:true},items:COPY(),granted:true};nextSaveFailure=null;expandedId=null;deleteId=null;copyId=null;el('mockDraft').value='';el('mockContextMenu').hidden=true;el('copyFallback').hidden=true;returnIndex();notice('已重置为初始模拟数据。');});
  for(const [id,mode,label] of [['simulateWriteFail','write','写入失败'],['simulateConflict','conflict','并发冲突'],['simulateUnknown','unknown','结果未知']])el(id).addEventListener('click',()=>{nextSaveFailure=mode;el('failureStatus').textContent='下次保存将模拟：'+label;notice('已设置下次保存模拟：'+label+'，当前草稿会保留。');});
  document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!el('mockContextMenu').hidden){el('mockContextMenu').hidden=true;el('mockSelection').focus();}else if(event.key==='Escape'&&!el('webTooltip').hidden){el('webTooltip').hidden=true;tipButton=null;}});
  setView('index');renderIndex();renderRail();
