@@ -739,6 +739,19 @@ test('R5.0 incomplete cleanup record blocks a new tool even when no orphan paylo
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
 });
 
+test('R5.1 malformed pending cleanup cannot revoke a still-installed tool before failed uninstall',async t=>{
+  const epochs={[sample.id]:'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee'};
+  const malformed={[sample.id]:{version:'unrecoverable'}};
+  const store=new Map([[SIDEBAR_TOOL_STORE,[sample]],
+    [TOOL_REVOCATION_EPOCHS_STORE,epochs],[TOOL_CLEANUP_STORE,malformed]]);
+  const f=await hostFixture(t,{store,startTool:false});
+  await assert.rejects(recordToolUninstall(f.api,sample),{code:'E_STORAGE_CORRUPT'});
+  assert.deepEqual(store.get(TOOL_REVOCATION_EPOCHS_STORE),epochs,
+    'preflight rejection must not revoke the still-installed instance');
+  assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[sample]);
+  assert.deepEqual(store.get(TOOL_CLEANUP_STORE),malformed);
+});
+
 test('R5.1 uninstall refuses corrupt revocation authority before writing cleanup intent',async t=>{
   const epochs={'other-tool':123},key=sidebarToolStorageKey(sample.id);
   const privateData={memo:'must be preserved'};
