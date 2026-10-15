@@ -183,6 +183,22 @@ test('session initialization failure is unknown, with no local intent or DNR wri
     });
   }
 });
+test('unknown Chrome DNR permission read never starts local intent or native rule changes',async t=>{
+  for(const failure of ['throws','unknown']){
+    await t.test(failure,async()=>{
+      const f=await fixture(),before=structuredClone([...f.stored]);
+      f.api.permissions.contains=async()=>{
+        if(failure==='throws')throw Error('native permission API unavailable');
+        return undefined;
+      };
+      await assert.rejects(f.service.tick(),{code:'E_OUTCOME_UNKNOWN'});
+      await assert.rejects(f.service.dispatch(f.message('adblock.enable'),sender),{
+        code:'E_OUTCOME_UNKNOWN'});
+      assert.deepEqual([...f.stored],before);
+      assert.equal(f.actions.length,0);
+    });
+  }
+});
 test('malformed DNR session fence remains unknown and is not overwritten on SW recreation',async()=>{
   const f=await fixture();await f.service.tick();
   const key=f.sessionChanges[0];f.sessionStored.set(key,{ready:true});
