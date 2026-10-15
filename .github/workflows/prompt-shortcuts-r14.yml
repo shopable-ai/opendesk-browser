@@ -68,3 +68,80 @@ jobs:
           path: artifacts/sidebar-tools/prompt-shortcuts/1.0.0/prompt-shortcuts.opendesk-tool.json
           if-no-files-found: error
           retention-days: 7
+
+  sync-project-package:
+    name: Commit verified portable JSON into tool project
+    needs: prompt-shortcuts-scope
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: prompt-shortcuts-v2-${{ github.sha }}
+          path: .verified-prompt-tool
+      - name: Publish generated JSON at its stable project path
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const repo=process.env.GITHUB_REPOSITORY;
+          const sourceCommit=process.env.GITHUB_SHA;
+          const path='examples/sidebar-tools/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json';
+          const content=readFileSync('.verified-prompt-tool/prompt-shortcuts.opendesk-tool.json');
+          const pkg=JSON.parse(content.toString('utf8'));
+          if(pkg.id!=='prompt-shortcuts'||pkg.version!=='1.0.0'||pkg.format!=='opendesk.sidebar-tool.v2')
+            throw Error('Refusing to publish a package with mismatched tool identity');
+          const expectedBlob=createHash('sha1').update('blob '+content.length+'\0').update(content).digest('hex');
+          const endpoint='https://api.github.com/repos/'+repo;
+          const headers={Accept:'application/vnd.github+json',
+            Authorization:'Bearer '+process.env.GITHUB_TOKEN,'X-GitHub-Api-Version':'2022-11-28'};
+          async function request(path,options={}){
+            const response=await fetch(endpoint+path,{...options,headers:{...headers,...options.headers}});
+            const data=await response.json();
+            if(!response.ok&&response.status!==404)
+              throw Error('GitHub API '+response.status+': '+String(data.message||'unknown error'));
+            return {status:response.status,data};
+          }
+          // The publishing job might be delayed by other agents writing main.
+          // A package from an old source candidate must never overwrite newer
+          // Prompt Shortcuts or any input to the official v2 package builder.
+          const head=(await request('/git/ref/heads/main')).data.object.sha;
+          if(head!==sourceCommit){
+            const cmp=await request('/compare/'+sourceCommit+'...main');
+            const changed=cmp.data.files||[];
+            const depends=new Set(['scripts/build-sidebar-tool.mjs',
+              'scripts/preview/shared-tool-design.mjs','src/ui/design-tokens.css',
+              'src/ui/design-system.css','src/ui/sidebar-tools/package.js',
+              'official-tools/catalog.json']);
+            if(cmp.data.status!=='ahead'||changed.length>=300||
+              changed.some(file=>file.filename.startsWith('examples/sidebar-tools/prompt-shortcuts/')||
+                depends.has(file.filename))){
+              console.log('SKIP_STALE_PROMPT_PACKAGE: a newer source candidate exists on main');
+              process.exit(0);
+            }
+          }
+          const existing=await request('/contents/'+path+'?ref=main');
+          let sha;
+          if(existing.status===200){
+            sha=existing.data.sha;
+            const old=Buffer.from(existing.data.content.replace(/\s/g,''),'base64');
+            if(old.equals(content)){
+              console.log('PROMPT_PROJECT_PACKAGE_ALREADY_CURRENT',content.length,expectedBlob);
+              process.exit(0);
+            }
+          }
+          const published=await request('/contents/'+path,{
+            method:'PUT',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({message:'chore(prompt-shortcuts): sync verified v2 package [skip ci]',
+              content:content.toString('base64'),branch:'main',...(sha?{sha}:{})})
+          });
+          if(published.data.content?.sha!==expectedBlob)
+            throw Error('Published Git blob does not equal the verified CI package');
+          console.log('PROMPT_PROJECT_PACKAGE_COMMITTED',published.data.commit.sha,
+            content.length,createHash('sha256').update(content).digest('hex'));
+          NODE
