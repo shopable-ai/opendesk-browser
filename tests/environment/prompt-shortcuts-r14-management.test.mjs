@@ -137,11 +137,11 @@ test('R1.7 actual Sandbox UI: content-first create, inline confirm, draft guard 
   buttonByText(n['ps-list'],'编辑').emit('click');
   assert.equal(n['ps-label'].value,'','automatic label stays unset during editing');
   n['ps-body'].value='覆盖前的未保存正文';n['ps-form'].emit('input');
-  n['ps-back'].emit('click');
+  n['ps-cancel'].emit('click');
   assert.equal(n['ps-leave'].hidden,false,'back is deferred to explicit review');
   n['ps-stay'].emit('click');
   assert.equal(n['ps-body'].value,'覆盖前的未保存正文');
-  n['ps-back'].emit('click');n['ps-discard'].emit('click');
+  n['ps-cancel'].emit('click');n['ps-discard'].emit('click');
   assert.equal(n['ps-index'].hidden,false);
   assert.equal(f.stored().items[0].body,' 中文项目\n第二行','discard cannot modify saved content');
 
