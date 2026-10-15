@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OpenDesk Browser · 提示词快捷按钮｜Side Panel 交互预览 R1.9</title>
+<title>OpenDesk Browser · 提示词快捷按钮｜Side Panel 交互预览 R1.10</title>
 <meta name="description" content="OpenDesk Prompt Shortcuts 独立侧边栏交互原型。仅模拟、不安装、无真实权限请求。">
 <style>
 /* Offline design contract: semantic values mirror src/ui/design-tokens.css (blob 134dd7871da4bf0ee26b6d0135e69e7273fdabdb).
@@ -193,6 +193,24 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 #verifySaved{margin:0 0 8px;white-space:normal;text-align:left}
 .form-save-status{font-size:11px;line-height:1.5;color:var(--od-sub);margin:0 0 8px}
 .form-actions{margin:0}.inline-error:focus{outline:2px solid var(--od-focus);outline-offset:2px}
+/* R1.10: optional settings are a compact, aligned form, not stacked cards. */
+.form-fields{gap:8px}
+.primary-content{padding:10px}
+.primary-content .meter{margin-top:5px}
+.primary-content .form-hint{margin-top:5px}
+.effective-preview{min-height:28px;padding:1px 2px;background:transparent;gap:6px;flex-wrap:nowrap;white-space:nowrap}
+.effective-preview strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.effective-preview .preview-short{padding:2px 6px;flex:none}
+.optional-section>summary{min-height:36px;padding:8px 10px}
+.optional-section>summary .optional-summary-hint{margin-left:auto;color:var(--od-sub);font-size:11px;font-weight:400}
+.optional-section .optional-fields{gap:0;padding:0 10px 5px}
+.optional-row{display:grid;grid-template-columns:72px minmax(0,1fr);align-items:center;gap:8px;min-height:43px;border-top:1px solid var(--od-line)}
+.optional-row:first-child{border-top:0}
+.optional-row .compact-label{font-size:11px;line-height:1.4;font-weight:650;color:var(--od-ink);margin:0;white-space:nowrap}
+.optional-row input.od-field{height:33px;min-height:33px;padding:5px 8px;font-size:12px}
+.optional-row .switch{justify-self:end}
+.optional-row--switch{min-height:40px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .tool-list-placeholder{padding:15px}.tool-list-placeholder p{font-size:12px;line-height:1.6;color:var(--od-sub)}
 .tool-list-placeholder button{width:100%;text-align:left;white-space:normal}
 .demo-scenarios{position:relative;min-width:140px;font-size:11px}
@@ -208,7 +226,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 <header class="demo-header">
  <div class="demo-title"><span class="logo" aria-hidden="true">OD</span><div>
   <h1>Prompt Shortcuts · Side Panel UI</h1>
-  <p>管理界面交互预览 R1.9 · 正文优先、状态可见 · 与左侧按钮共用本页模拟状态</p></div></div>
+  <p>管理界面交互预览 R1.10 · 正文优先、状态可见 · 与左侧按钮共用本页模拟状态</p></div></div>
  <div class="demo-controls" aria-label="预览控制">
   <span class="design-badge">模拟预览 · 非真实安装</span>
   <button id="size320" class="od-button od-button--small" type="button">320px</button>
@@ -278,13 +296,12 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
        <p class="form-hint" id="contentHint">完整保留换行、空行及 Emoji。仅填写正文即可保存。</p>
       </div>
       <div class="effective-preview" aria-label="按钮显示即时预览"><span>保存后展示</span><strong class="preview-short" id="effectiveShort">待生成</strong><span>名称</span><strong id="effectiveName">待生成</strong></div>
-      <details id="advancedOptions" class="optional-section od-surface"><summary id="optionalHeading">按钮外观与更多设置 <span style="font-weight:400;color:var(--od-sub)">均为选填</span></summary>
+      <details id="advancedOptions" class="optional-section od-surface"><summary id="optionalHeading">按钮设置 <span class="optional-summary-hint">选填</span></summary>
        <div class="optional-fields">
-        <div><label class="form-label" for="shortLabel">按钮短标签（选填）</label><input id="shortLabel" class="od-field" name="shortLabel" maxlength="24" placeholder="留空自动提取前两个可见字素" autocomplete="off"><p class="form-hint">支持 1–2 个 Unicode 字素，包括组合 Emoji。</p></div>
-        <div><label class="form-label" for="fullName">显示名称（选填）</label><input id="fullName" class="od-field" name="fullName" maxlength="60" placeholder="留空自动生成" autocomplete="off"></div>
-        <div class="form-appearance"><div><span class="form-label" id="shapeLabel">按钮形状</span><div class="shape-options" role="group" aria-labelledby="shapeLabel"><label><input type="radio" name="shape" value="square" checked> 圆角方形</label><label><input type="radio" name="shape" value="round"> 圆形</label></div></div>
-         <div><span class="form-label">单项启停</span><div class="form-switch od-surface"><span style="font-size:11px">网页显示此按钮</span><label class="switch"><input id="itemEnabled" type="checkbox" role="switch" aria-label="显示此按钮" checked><span class="switch-track" aria-hidden="true"></span></label></div></div>
-        </div>
+        <div class="optional-row"><label class="compact-label" for="shortLabel">按钮短标签</label><input id="shortLabel" class="od-field" name="shortLabel" maxlength="24" placeholder="留空自动取前 2 字" autocomplete="off" aria-describedby="shortLabelHelp"></div>
+        <div class="optional-row"><label class="compact-label" for="fullName">显示名称</label><input id="fullName" class="od-field" name="fullName" maxlength="60" placeholder="留空自动生成" autocomplete="off"></div>
+        <div class="optional-row optional-row--switch"><label class="compact-label" for="itemEnabled">网页显示</label><label class="switch" title="是否在网页显示此按钮"><input id="itemEnabled" type="checkbox" role="switch" aria-label="在网页显示此按钮" checked><span class="switch-track" aria-hidden="true"></span></label></div>
+        <span class="sr-only" id="shortLabelHelp">留空自动生成；手动填写时支持 1 至 2 个 Unicode 字素，包括 Emoji。新建按钮默认使用圆角方形。</span>
        </div>
       </details>
      </div>
@@ -371,7 +388,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  function moveItem(i,delta){const target=i+delta;if(target<0||target>=state.items.length)return;[state.items[i],state.items[target]]=[state.items[target],state.items[i]];state.revision++;renderIndex();renderRail();notice('顺序已更新（模拟）');}
  async function copyPrompt(item){try{if(!navigator.clipboard?.writeText)throw new Error('unavailable');await navigator.clipboard.writeText(item.body);notice('已复制「'+item.name+'」完整提示词');}
   catch{copyId=item.id;el('copyText').value=item.body;el('copyFallback').hidden=false;el('copyText').focus();el('copyText').select();notice('剪贴板不可用，已显示完整文本供手动复制。');}}
- function rawFormValues(){const shape=document.querySelector('input[name="shape"]:checked');return {label:el('shortLabel').value.trim(),name:el('fullName').value.trim(),body:el('promptBody').value,enabled:el('itemEnabled').checked,shape:shape?.value||'square'};}
+ function rawFormValues(){const original=state.items.find(item=>item.id===editId);return {label:el('shortLabel').value.trim(),name:el('fullName').value.trim(),body:el('promptBody').value,enabled:el('itemEnabled').checked,shape:original?.shape||'square'};}
  function formValues(){const raw=rawFormValues(),fallback=defaultShort(raw.body);return {...raw,label:raw.label||fallback,name:raw.name||fallback,labelAuto:!raw.label,nameAuto:!raw.name};}
  function projection(){const value=formValues(),next=state.items.map(x=>({...x}));const idx=next.findIndex(x=>x.id===editId);if(idx>=0)next[idx]={...next[idx],...value};else next.push({id:'mock-00000000-0000-4000-8000-000000000000',...value});return {schema:1,settings:{webButtons:state.settings.showBar},items:next.map((row,order)=>({id:row.id,body:row.body,label:row.label,name:row.name,labelAuto:row.labelAuto===true,nameAuto:row.nameAuto===true,shape:row.shape,enabled:row.enabled,order}))};}
 
@@ -407,9 +424,8 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   el('promptBody').value=value?.body??preset?.body??'';
   el('shortLabel').value=value?.labelAuto?'':(value?.label??preset?.label??'');
   el('fullName').value=value?.nameAuto?'':(value?.name??preset?.name??'');
-  for(const input of document.querySelectorAll('input[name="shape"]'))input.checked=input.value===(value?.shape||'square');
   el('itemEnabled').checked=value?.enabled??true;
-  el('advancedOptions').open=!!(value&&(!value.labelAuto||!value.nameAuto||value.shape==='round'||!value.enabled));
+  el('advancedOptions').open=!!(value&&(!value.labelAuto||!value.nameAuto||!value.enabled));
   el('bodyError').hidden=true;el('formError').hidden=true;el('formSaveStatus').hidden=true;el('leaveConfirm').hidden=true;
   el('verifySaved').hidden=true;el('verificationPanel').hidden=true;
   el('saveButton').disabled=false;el('saveButton').textContent='保存提示词';
