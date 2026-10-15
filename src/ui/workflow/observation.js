@@ -2,6 +2,7 @@ import {permissionPattern} from '../../environment.js';
 import {agentSameTarget,agentTargetFromSnapshot} from '../../native-agent/protocol.js';
 import {decodeValue} from '../../platform/page-port/codec.js';
 import {digestUtf8} from '../../platform/protocol.js';
+import {verifyDirectExecutionReceipt} from './direct-execution.js';
 
 // The only Browser tool available to the Agent. Its code and budget are bundled,
 // never supplied by the model. All execution belongs to the original RunHost.
@@ -70,10 +71,11 @@ export function createWorkflowObservation({api=globalThis.chrome,host,currentPag
       const completed=await host.completion;assertLive();
       if(completed?.state==='paused_unknown'||completed?.pendingSettlement||completed?.retirement?.state!=='released')throw error('E_AI_OUTCOME_UNKNOWN','观察结果或收尾状态未知；不会重放');
       const view=await host.controller.snapshotControllerRun({runId:claim.runId});assertLive();
-      const result=view?.results?.find(item=>item.runId===claim.runId);
-      if(!result?.resultId||!result.outcome?.ok)throw error(result?.outcome?.error?.code||'E_AI_RECEIPT','没有成功的原 Controller 持久观察结果');
-      if(claim.revision?.sourceHash!==sourceHash||result.revision?.sourceHash!==sourceHash)
-        throw error('E_AI_RECEIPT','原 Controller 的观察源码哈希不匹配');
+      // Observe is a real Controller execution: match its claim, complete
+      // terminal, durable result, exact page target, source hash and retired
+      // Worker just as strictly as a direct browser action.
+      const proof=verifyDirectExecutionReceipt({claim,completed,view,sourceHash,target:captured});
+      const result=view.results.find(item=>item.runId===proof.runId);
       const value=decodeValue(result.outcome.valueWire);
       if(value?.kind!=='semantic-dom-summary'||value.document?.documentId!==captured.documentId||value.document?.url!==captured.url||
         !Array.isArray(value.nodes)||value.nodes.length>24)throw error('E_AI_RECEIPT','观察摘要或文档回执不匹配');
@@ -82,7 +84,8 @@ export function createWorkflowObservation({api=globalThis.chrome,host,currentPag
       assertLive();
       // Send only the separately approved semantic nodes. Omit document URL
       // and unrelated request/history fields; page text can still be sensitive.
-      const receipt={format:'opendesk.workflow-observation.v1',runId:claim.runId,resultId:result.resultId,sourceHash,
+      const receipt={format:'opendesk.workflow-observation.v1',runId:proof.runId,resultId:proof.resultId,
+        sourceHash:proof.sourceHash,
         summary:{kind:value.kind,origin:captured.origin,documentId:captured.documentId,
           nodes:value.nodes,truncated:value.truncated===true}};
       if(new TextEncoder().encode(JSON.stringify(receipt)).length>12*1024)throw error('E_AI_LIMIT','观察摘要超过发送上限');

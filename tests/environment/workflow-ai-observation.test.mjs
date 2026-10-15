@@ -8,14 +8,20 @@ import {digestUtf8} from '../../src/platform/protocol.js';
 async function fixture() {
   const target={windowId:2,tabId:3,frameId:0,documentId:'document-one',origin:'https://example.com',url:'https://example.com/path?private=never-upload#fragment'};
   const sourceHash=await digestUtf8(WORKFLOW_OBSERVE_SOURCE),calls=[],owners=[];let granted=true,stale=false;
-  const result={runId:'run-one',resultId:'result-one',revision:{sourceHash},outcome:{ok:true,valueWire:encodeValue({kind:'semantic-dom-summary',
-    document:{documentId:target.documentId,url:target.url},nodes:[{role:'button',name:'Search',text:'Search'}],truncated:false})}};
+  const result={runId:'run-one',resultId:'result-one',state:'completed',revision:{sourceHash},
+    outcome:{ok:true,valueWire:encodeValue({kind:'semantic-dom-summary',
+      document:{documentId:target.documentId,url:target.url},nodes:[{role:'button',name:'Search',text:'Search'}],truncated:false})}};
+  const boundTarget={...target,allowedOrigin:target.origin};
+  const claim={runId:'run-one',resultId:'result-one',revision:{sourceHash},target:boundTarget};
+  const run={runId:'run-one',resultId:'result-one',state:'completed',revision:{sourceHash},
+    workerRetired:true,retirementState:'released',target:boundTarget};
+  const completed={runId:'run-one',state:'completed',retirement:{state:'released'},result};
   const page={capture:()=>({...target,status:'available'}),revalidate:async()=>{if(stale)throw Object.assign(Error('stale'),{code:'E_DOCUMENT_STALE'});}};
-  const host={currentRun:null,executionPending:false,completion:Promise.resolve({state:'completed',retirement:{state:'released'}}),
-    start:async request=>{calls.push(request);return {runId:'run-one',revision:{sourceHash}};},
-    controller:{snapshotControllerRun:async()=>({run:{runId:'run-one',revision:{sourceHash}},results:[result]})},stop:async()=>{}};
+  const host={currentRun:null,executionPending:false,completion:Promise.resolve(completed),
+    start:async request=>{calls.push(request);return claim;},
+    controller:{snapshotControllerRun:async()=>({run,results:[result]})},stop:async()=>{}};
   const service=createWorkflowObservation({api:{permissions:{contains:async()=>granted}},host,currentPageTarget:page,onRunOwner:id=>owners.push(id)});
-  return {target,result,calls,owners,page,host,service,revoke(){granted=false;},stale(){stale=true;}};
+  return {target,result,claim,run,completed,calls,owners,page,host,service,revoke(){granted=false;},stale(){stale=true;}};
 }
 test('only fixed observe code reaches original RunHost; bounded receipt omits full URL',async t=>{
   const f=await fixture();t.after(()=>f.service.dispose());const receipt=await f.service.observe(f.target,{requestId:'observe-one',request:'搜索关键词'});
@@ -70,7 +76,8 @@ for(const boundary of ['permission','document','busy','cancelled'])test('observe
 });
 test('website revocation after observation withholds data from model',async t=>{
   const f=await fixture();t.after(()=>f.service.dispose());
-  f.host.controller.snapshotControllerRun=async()=>{f.revoke();return {results:[f.result]};};
+  const snapshot=f.host.controller.snapshotControllerRun;
+  f.host.controller.snapshotControllerRun=async()=>{f.revoke();return snapshot();};
   await assert.rejects(f.service.observe(f.target,{requestId:'observe-revoked'}),{code:'E_PERMISSION'});assert.equal(f.calls.length,1);
 });
 for(const defect of ['no-result','wrong-source','wrong-document','unknown'])test('observe requires a matching durable receipt: '+defect,async t=>{
@@ -81,6 +88,20 @@ for(const defect of ['no-result','wrong-source','wrong-document','unknown'])test
   if(defect==='unknown')f.host.completion=Promise.resolve({state:'paused_unknown'});
   await assert.rejects(f.service.observe(f.target,{requestId:'observe-bad'}));assert.equal(f.calls.length,1);
 });
+
+for(const defect of ['claim-result','run-document','run-hash','run-retirement','completed-result']) {
+  test('observer never shares mismatched RunHost proof: '+defect,async t=>{
+    const f=await fixture();t.after(()=>f.service.dispose());
+    if(defect==='claim-result')f.claim.resultId='different-result';
+    if(defect==='run-document')f.run.target={...f.run.target,documentId:'replaced-document'};
+    if(defect==='run-hash')f.run.revision={sourceHash:'0'.repeat(64)};
+    if(defect==='run-retirement')f.run.workerRetired=false;
+    if(defect==='completed-result')f.completed.result={...f.result,resultId:'different-result'};
+    await assert.rejects(f.service.observe(f.target,{requestId:'proof-'+defect}),
+      {code:'E_AI_OUTCOME_UNKNOWN'});
+    assert.equal(f.calls.length,1);
+  });
+}
 
 test('navigation during an observation withholds the old document durable result',async t=>{
   const f=await fixture();t.after(()=>f.service.dispose());let complete;
@@ -98,7 +119,7 @@ test('navigation during an observation withholds the old document durable result
   current={...f.target,documentId:'document-two',url:'https://example.com/next'};
   // The original result remains perfectly valid for the old document. It must
   // still be withheld from the model after the current document changes.
-  complete({state:'completed',retirement:{state:'released'}});await rejected;
+  complete(f.completed);await rejected;
   assert.equal(f.calls.length,1);assert.equal(f.owners.at(-1),null);
 });
 
