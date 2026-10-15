@@ -79,6 +79,8 @@ jobs:
         run: node --test --test-reporter=spec tests/environment/browser-sdk-r107-public-routing.test.mjs tests/environment/browser-sdk-r11-declarative.test.mjs tests/environment/browser-sdk-r11-bindings.test.mjs tests/environment/browser-sdk-r11-native-direct.test.mjs tests/environment/browser-sdk-r11-generated-catalog.test.mjs tests/environment/browser-sdk-r116-mapping.test.mjs tests/environment/browser-sdk-r113-direct-host.test.mjs
       - name: Managed Proxy browser-wide ownership, PAC and STOP recovery (Node fixtures)
         run: node --test --test-reporter=spec tests/environment/browser-managed-proxy.test.mjs tests/environment/browser-managed-proxy-host.test.mjs
+      - name: AI VIP Share local 7897 HTTP CONNECT and SOCKS5 line-probe fixtures
+        run: node --test --test-reporter=spec examples/sidebar-tools/ai-vip-share/dev/local-test/proxy-line-probe.test.mjs
       - name: R11.6 generated Browser SDK Registry, bindings and developer artifact drift
         run: |
           node scripts/generate-browser-bindings.mjs --check
