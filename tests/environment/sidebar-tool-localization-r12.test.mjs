@@ -112,6 +112,7 @@ test('R1.2 source wiring covers both trusted webpage overlay and sandbox without
 test('R1.3 trusted TOC settings change language without importing tool permission copy',async()=>{
   const {readingTocHostText,READING_TOC_HOST_KEYS}=await import('../../src/ui/reading-toc-settings-localization.js');
   assert(READING_TOC_HOST_KEYS.includes('eyePageExcluded'));
+  assert.equal(readingTocHostText('en','languageLabel'),'Interface language');
   assert.equal(readingTocHostText('zh-CN','siteDisable'),'停用当前网站');
   assert.equal(readingTocHostText('en-US','siteDisable'),'Disable on this website');
   assert.equal(readingTocHostText('en','noPages'),'No excluded pages');
@@ -125,4 +126,6 @@ test('R1.3 trusted TOC settings change language without importing tool permissio
   assert.match(host,/if\(active\?\.id===READING_TOC_TOOL_ID\)render\(\)/);
   assert.match(markup,/data-toc-host-text="overlayHint"/);
   assert.match(markup,/data-toc-host-text="exceptionsHeading"/);
+  assert.match(markup,/id="sidebar-tool-toc-language-select"/);
+  assert.match(host,/listen\(tocLanguageSelect,'change'/);
 });

@@ -1,7 +1,7 @@
 import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_GRANTS_STORE,normalizeBrowserOperation,browserOperation} from '../framework/sdk/browser-contract.js';
 import {browserTextDownloadUrl} from '../framework/sdk/browser-schemas.js';
 import readingTocCatalog from '../reading-toc/locales.generated.js';
-import {uiMessage} from './app-localization.js';
+import {uiMessage,resolveUiLocale} from './app-localization.js';
 import {readingTocHostText} from './reading-toc-settings-localization.js';
 import {createSidePanelOpenCoordinator} from '../platform/chrome/browser-side-panel.js';
 import {createToolPermissionConsent} from '../platform/chrome/permission-gate.js';
@@ -101,6 +101,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const actionContinue=get('sidebar-tool-action-continue'),actionCancel=get('sidebar-tool-action-cancel');
   let pendingAction=null;
   const settingsButton=get('sidebar-tool-settings-open'),settingsView=get('sidebar-tool-settings-view');
+  const tocLanguageRow=get('sidebar-tool-toc-language'),tocLanguageSelect=get('sidebar-tool-toc-language-select');
   const menuButton=get('sidebar-tool-context-menu');
   const settingsScopeButton=get('sidebar-tool-settings-scope');
   const enableButton=get('sidebar-tool-enable'),enableHint=get('sidebar-tool-enable-hint');
@@ -694,6 +695,12 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     // Settings live in the trusted Host. Repaint text, never iframe content or permissions.
     const tocLocale=isToc?localeController?.getLocale?.()||'zh-CN':'zh-CN';
     const tocText=key=>readingTocHostText(tocLocale,key);
+    if(tocLanguageRow)tocLanguageRow.hidden=!isToc;
+    if(tocLanguageSelect){
+      tocLanguageSelect.value=resolveUiLocale(tocLocale,['zh-CN','en'],'zh-CN');
+      tocLanguageSelect.disabled=busy||!isToc;
+      tocLanguageSelect.setAttribute('aria-label',tocText('languageLabel'));
+    }
     for(const element of settingsView.querySelectorAll?.('[data-toc-host-text]')||[])
       element.textContent=tocText(element.getAttribute('data-toc-host-text'));
     settingsView.setAttribute('aria-label',tocText('settingsTitle'));
@@ -2432,6 +2439,17 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       },'*');
     });
     listeners.push(unsubscribe);
+  }
+  if(tocLanguageSelect){
+    listen(tocLanguageSelect,'change',()=>{
+      if(disposed||active?.id!==READING_TOC_TOOL_ID||!localeController?.setLocale)return;
+      const requested=tocLanguageSelect.value;
+      void Promise.resolve().then(()=>localeController.setLocale(requested)).catch(error=>{
+        tocLanguageSelect.value=resolveUiLocale(localeController.getLocale(),['zh-CN','en'],'zh-CN');
+        notice(readingTocHostText(localeController.getLocale(),'languageSaveError')+
+          String(error?.message||error),true);
+      });
+    });
   }
   if(localeController?.subscribe){
     listeners.push(localeController.subscribe(locale=>{

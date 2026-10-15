@@ -7,6 +7,16 @@ const rows=[
     "Tool settings"
   ],
   [
+    "languageLabel",
+    "界面语言",
+    "Interface language"
+  ],
+  [
+    "languageSaveError",
+    "语言保存失败：",
+    "Could not save language: "
+  ],
+  [
     "toggleHeading",
     "工具启停",
     "Tool availability"
