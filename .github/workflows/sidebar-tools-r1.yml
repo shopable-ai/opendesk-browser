@@ -144,14 +144,3 @@ jobs:
           cmp artifacts/sidebar-tools/ai-vip-share/1.1.0/ai-vip-share.opendesk-tool.json dist/production/official-tools/ai-vip-share/ai-vip-share.opendesk-tool.json
           npm run build:dev
           npm run verify
-      # Archive only the packer-validated standalone tool, even when an
-      # unrelated fixed-bundle provenance guard rejects the whole Browser build.
-      # Never publish partial dist/ as an accepted Chrome candidate.
-      - name: Preserve R5 standalone tool JSON (not Browser or native acceptance)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ai-vip-share-r5-standalone-tool
-          retention-days: 7
-          if-no-files-found: warn
-          path: artifacts/sidebar-tools/ai-vip-share/1.1.0/ai-vip-share.opendesk-tool.json
