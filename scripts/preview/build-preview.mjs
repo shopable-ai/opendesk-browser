@@ -63,7 +63,8 @@ export async function generatePreview({
   try {commit=execFileSync('git',['-C',repoRoot,'rev-parse','HEAD'],{encoding:'utf8'}).trim();}
   catch {fail('a checked-out Git source revision is required');}
   if(!/^[0-9a-f]{40}$/.test(commit))fail('invalid Git source revision');
-  const uiDigest=sha256(JSON.stringify([pkg.id,pkg.version,pkg.html,pkg.css,pkg.js]));
+  const uiDigest=sha256(JSON.stringify([pkg.id,pkg.version,pkg.html,pkg.css,pkg.js,
+    ...(pkg.scripts||[]).map(script=>[script.name,script.sha256,script.code])]));
   const frameHtml=[
     '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">',
     '<meta name="viewport" content="width=device-width,initial-scale=1">',
@@ -73,6 +74,9 @@ export async function generatePreview({
     '</head><body><div id="tool-root">'+pkg.html+'</div>',
     '<script>Object.defineProperty(globalThis,"__opendeskPreviewScenario",{value:'+JSON.stringify(scenario)+'});</script>',
     '<script src="'+dataUrl('text/javascript',mock)+'"></script>',
+    // The v2 package runs its pinned Classic dependencies before its entrypoint.
+    // Omitting these produced a plausible HTML shell but a nonfunctional bookmark UI.
+    ...(pkg.scripts||[]).map(script=>'<script src="'+dataUrl('text/javascript',script.code)+'"></script>'),
     '<script src="'+dataUrl('text/javascript',pkg.js)+'"></script>',
     '</body></html>'
   ].join('');
