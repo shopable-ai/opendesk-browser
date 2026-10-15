@@ -287,7 +287,7 @@ function selfTest(){
   if(reviewReasoning(REASONING[0].input,done).status!=='MODEL_OUTPUT_NOT_OBSERVABLE')throw new Error('missing model output was marked as complete');
   if(reasoningPairs([]).some(x=>x.humanSemanticReview!=='REQUIRED'||x.installedChrome!=='NOT_TESTED'))throw new Error('heuristic falsely promoted acceptance');
   if(SKILLS.includes('opendesk-marketplace-publish'))throw new Error('unimplemented remote publisher must not be routed as an active Skill');
-  console.log('SELF_TEST_PASS: 43 routing fixtures, 12 paired reasoning probes; conservative human-review grading');
+  console.log('SELF_TEST_PASS: 43 routing fixtures and 6 requirement pairs (12 read-only runs); human review required');
 }
 
 if(process.argv.includes('--self-test')){
