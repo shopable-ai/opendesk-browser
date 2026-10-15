@@ -110,7 +110,7 @@ function fixture(t,{disabled=false,readError=false}={}){
   doc.body.append(nodes['extension-center-list-view'],nodes['extension-center-detail'],
     nodes['extension-center-status'],nodes['extension-center-menu-wrap'],nodes['workspace-content']);
   const store=new Map([[SIDEBAR_TOOL_STORE,[app]],[SIDEBAR_TOOL_ENABLE_STORE,{[app.id]:!disabled}]]);
-  let corrupt=readError,programs=[page()],failPages=false,allowed=true;
+  let corrupt=readError,programs=[page()],failPages=false,allowed=true,pageAckOnly=false;
   const writes=[],invocations=[],changes=new Set();
   const api={
     runtime:{getURL:path=>'chrome-extension://fixture/'+path},
@@ -134,8 +134,10 @@ function fixture(t,{disabled=false,readError=false}={}){
     const program=programs.find(row=>row.programId===args.programId);
     assert.equal(args.manifestHash,program.manifestHash);
     assert.equal(args.expectedGeneration,program.installed.authorization.generation);
-    program.installed.enabled=args.enabled;
-    program.installed.authorization.generation++;
+    if(!pageAckOnly){
+      program.installed.enabled=args.enabled;
+      program.installed.authorization.generation++;
+    }
     return {enabled:args.enabled};
   }};
   const sidebarTools={
@@ -159,6 +161,7 @@ function fixture(t,{disabled=false,readError=false}={}){
   const menuItem=text=>rowMenu()?.children.find(node=>node.textContent.includes(text));
   return {doc,nodes,ui,store,sidebarTools,invocations,writes,list,button,buttons,rowMenu,menuItem,programs,
     setCorrupt:value=>{corrupt=value;},setFailPages:value=>{failPages=value;},
+    setPageAckOnly:value=>{pageAckOnly=value;},
     setAllowed:value=>{allowed=value;},emitStorage:()=>{
       for(const cb of changes)cb({[SIDEBAR_TOOL_ENABLE_STORE]:{oldValue:null,newValue:{}}},'local');
     }};
@@ -439,4 +442,72 @@ test('R4.8 source-bound prototype has the identical production toolbar and shell
   assert.match(preview,/more\.disabled=blocked/);
   assert.doesNotMatch(preview,/scenario='normal';kind='all';scope='smart'/,
     'refresh must preserve user filters and current scenario');
+});
+
+test('R5.0 Host false leaves a disabled App unchanged and reports unfinished draft confirmation',async t=>{
+  const f=fixture(t,{disabled:true});await f.ui.refresh();
+  f.sidebarTools.toggleEnabled=()=>false;
+  f.button('app:quick-notes','more').dispatch('click');
+  f.menuItem('启用应用').dispatch('click');
+  await settle(()=>f.button('app:quick-notes','more')?.disabled===false);
+  assert.equal(f.nodes['extension-center-status'].dataset.state,'error');
+  assert.match(f.nodes['extension-center-status'].textContent,/启停尚未完成/);
+  assert.deepEqual(f.store.get(SIDEBAR_TOOL_ENABLE_STORE),{[app.id]:false});
+  assert.equal(f.button('app:quick-notes','primary'),undefined);
+  await f.ui.refresh();
+  assert.match(f.nodes['extension-center-status'].textContent,/启停尚未完成/,
+    'a background read must not swallow the unfinished operation');
+});
+
+test('R5.0 a true Host return without matching persisted enable state is not a success',async t=>{
+  const f=fixture(t,{disabled:true});await f.ui.refresh();
+  f.sidebarTools.toggleEnabled=()=>true;
+  f.button('app:quick-notes','more').dispatch('click');
+  f.menuItem('启用应用').dispatch('click');
+  await settle(()=>f.button('app:quick-notes','more')?.disabled===false);
+  assert.equal(f.nodes['extension-center-status'].dataset.state,'error');
+  assert.match(f.nodes['extension-center-status'].textContent,/未从可信安装记录确认/);
+  assert.equal(f.button('app:quick-notes','primary'),undefined);
+});
+
+test('R5.0 an unconfirmed launch is visible and does not claim that the tool opened',async t=>{
+  const f=fixture(t);await f.ui.refresh();
+  f.sidebarTools.openTool=()=>undefined;
+  f.button('app:quick-notes','main').dispatch('click');
+  assert.equal(f.nodes['extension-center-status'].dataset.state,'error');
+  assert.match(f.nodes['extension-center-status'].textContent,/应用尚未打开/);
+  f.button('app:quick-notes','primary').dispatch('click');
+  assert.match(f.nodes['extension-center-status'].textContent,/应用尚未打开/);
+});
+
+test('R5.0 Page RPC acknowledgement without Authority state change cannot be reported successful',async t=>{
+  const f=fixture(t);await f.ui.refresh();f.setPageAckOnly(true);
+  f.button('page:reader','more').dispatch('click');
+  f.menuItem('停用自动运行').dispatch('click');
+  await settle(()=>f.button('page:reader','more')?.disabled===false);
+  assert.equal(f.writes.length,1);
+  assert.equal(f.programs[0].installed.enabled,true,'the real record was not modified');
+  assert.equal(f.nodes['extension-center-status'].dataset.state,'error');
+  assert.match(f.nodes['extension-center-status'].textContent,/未由 Page Authority 读回确认/);
+});
+
+test('R5.0 Page enabled setting must not masquerade as a verified native registration',async t=>{
+  const f=fixture(t);await f.ui.refresh();
+  f.programs[0].installed.enabled=false;
+  f.programs[0].installed.nativeState='pending';
+  await f.ui.refresh();
+  f.button('page:reader','more').dispatch('click');
+  f.menuItem('启用自动运行').dispatch('click');
+  await settle(()=>f.button('page:reader','more')?.disabled===false);
+  assert.equal(f.programs[0].installed.enabled,true);
+  assert.equal(f.nodes['extension-center-status'].dataset.state,'info');
+  assert.match(f.nodes['extension-center-status'].textContent,/原生注册状态仍待核对/);
+});
+
+test('R5.0 official catalog stale responses and failures must be rejected by source guards',async()=>{
+  const center=await readFile('src/ui/extension-center.js','utf8');
+  assert.match(center,/const id=\+\+officialSequence/);
+  assert.match(center,/id===officialSequence/);
+  assert.match(center,/official=\[\];catalogError=/);
+  assert.match(center,/officialSequence\+\+;closeRowMenu/);
 });
