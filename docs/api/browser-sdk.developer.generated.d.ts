@@ -82,6 +82,13 @@ export interface OpenDeskBrowserSdk {
     readonly getContext: (input?: {  }) => Promise<{ readonly documentRef?: string; readonly message?: string; readonly status: "available" | "unavailable"; readonly tabRef?: string; readonly title?: string; readonly url?: string; }>;
     readonly getSelection: (input?: {  }) => Promise<{ readonly selection: string; readonly ticketId: string; }>;
   };
+  readonly proxy: {
+    readonly managed: {
+      readonly getStatus: (input?: {  }) => Promise<{ readonly canStop: boolean; readonly control: "not_controllable" | "controlled_by_other_extensions" | "controllable_by_this_extension" | "controlled_by_this_extension" | "unknown"; readonly permission: boolean; readonly reason: string | null; readonly state: "enabled" | "disabled" | "unavailable" | "conflict"; }>;
+      readonly requestDisable: (input?: {  }) => Promise<{ readonly canStop: boolean; readonly control: "not_controllable" | "controlled_by_other_extensions" | "controllable_by_this_extension" | "controlled_by_this_extension" | "unknown"; readonly permission: boolean; readonly reason: string | null; readonly state: "enabled" | "disabled" | "unavailable" | "conflict"; }>;
+      readonly requestEnable: (input: { readonly config: { readonly domains: Array<string>; readonly endpoint: { readonly host: string; readonly port: number; readonly scheme: "https" | "socks5"; }; }; }) => Promise<{ readonly canStop: boolean; readonly control: "not_controllable" | "controlled_by_other_extensions" | "controllable_by_this_extension" | "controlled_by_this_extension" | "unknown"; readonly permission: boolean; readonly reason: string | null; readonly state: "enabled" | "disabled" | "unavailable" | "conflict"; }>;
+    };
+  };
   readonly runtime: {
     readonly getPlatformInfo: (input?: {  }) => Promise<{ readonly arch: string; readonly "nacl_arch"?: string; readonly os: string; }>;
   };
