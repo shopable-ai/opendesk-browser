@@ -3,6 +3,7 @@ import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {rm} from 'node:fs/promises';
 import {acquireDevelopmentLock} from './development-lock.mjs';
+import {verifyReadingTocTrustedLocales} from './generate-reading-toc-locales.mjs';
 import {resolveDevelopmentBrowserEdition} from './browser-editions-r245.mjs';
 
 // Select before loading the static-resource catalog: it fixes both the UI
@@ -41,6 +42,7 @@ bootstrapping=(async()=>{
   console.log('[OpenDesk dev] Output: '+resolve('dist/development'));
   console.log('[OpenDesk dev] Preparing complete extension; browser auto-start disabled.');
   process.env.OPENDESK_BUILD_MODE='development';
+  await verifyReadingTocTrustedLocales();
   await preparePublic();
   if(closing)return;
   // Keep Chrome's existing unpacked path/ID even when compiler assets ship.
