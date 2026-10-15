@@ -83,3 +83,8 @@ npm run check
 - R5 Host 专项将已有本地模拟 Provider `local-fixture-server.test.mjs` 与原始线路 `proxy-line-probe.test.mjs` 放在同一候选执行，A/fixture 与真实 Chrome PAC B、正式 SDK C 仍严格分级。
 - Sidebar 工具专项加入已经确认 HTML 预览 `preview/test-r41.mjs` 与 `preview/test-ui.mjs` 的现有 Node 交互回归，继续保持安装包 1.3.0 精确版本和 production JSON 二进制级一致比较。
 - 尚未完成的隔离 Chrome 7897/7898 原生流量、代理失效网络 fail-closed，以及预览与真实 Side Panel 人工验收不能被这些 Node fixture PASS 代替。
+
+### R1.1 旧代理生命周期 CI 结果与测试同步修复
+
+- [Sidebar tools R1 run 38773039387](https://github.com/shopable-ai/opendesk-browser/actions/runs/38773039387)：引入 test-only FIFO Web Lock 后，270 条中 **265 PASS / 5 FAIL**；相较原 25 FAIL，历史 `E_TOOL_LOCK` 失败大幅消失。最后 1 条旧 STOP race 因原测试轮询 `setImmediate` 30 次太快，未能在异步工具 SHA 检查后观察到等待中的锁请求。修复提交 [8d6b3af](https://github.com/shopable-ai/opendesk-browser/commit/8d6b3afc9de18425f9133048fe91380e0ae16b4a) 将等待改为每 10ms 读取真实 `locks.query().pending`、最多 1.5 秒，超时继续 FAIL，未取消竞态证明或更改生产锁逻辑。另 4 条属于多脚本 Sandbox DOM mock，与 Proxy 任务区分。新候选以 CI 实际运行结果为准。
+- [Browser SDK R5 run 38772602668](https://github.com/shopable-ai/opendesk-browser/actions/runs/38772602668) 对 `a670290` 候选的 `sdk-host-contracts`、`sdk-product-bundles` 均报告 **PASS**；[run 38773300409](https://github.com/shopable-ai/opendesk-browser/actions/runs/38773300409) 对增加本地 Provider fixture 的 `0e577277` 候选亦报告双 Job **PASS**。两者均为 GitHub Actions Node/Build 证据，非真实 Chrome。
