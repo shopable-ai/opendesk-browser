@@ -2,7 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {BROWSER_OPERATIONS} from '../../src/framework/sdk/browser-contract.js';
-import {deriveBrowserBindingCatalog,syncBrowserBindings} from '../../scripts/generate-browser-bindings.mjs';
+import {deriveBrowserBindingCatalog,deriveBrowserDirectBindings,deriveBrowserDeveloperSurface,
+  syncBrowserBindings} from '../../scripts/generate-browser-bindings.mjs';
+import {deriveBrowserDirectOperations} from '../../src/framework/sdk/browser-contract.js';
+import {createApprovedBrowserBindings} from '../../src/framework/sdk/browser-bindings.js';
+import {validateDirectBrowserValue} from '../../src/framework/sdk/browser-schemas.js';
+import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
 
 const matrix=JSON.parse(await readFile(new URL('../../docs/api/browser-sdk-interface-matrix.json',import.meta.url),'utf8'));
 const generated=JSON.parse(await readFile(new URL('../../docs/api/browser-sdk-binding-catalog.generated.json',import.meta.url),'utf8'));
@@ -57,4 +62,72 @@ test('R11 generator rejects privilege drift, invented public Binding and unsafe 
   const unknown=structuredClone(matrix);
   unknown.approvedOperations.push({...unknown.approvedOperations.find(x=>x.id==='browser.tabs.create'),id:'browser.tabs.queryAll'});
   assert.throws(()=>deriveBrowserBindingCatalog(unknown),err(/visibility drift/));
+});
+
+
+test('R11.5 developer types/docs use one approved compiler for DIRECT and EXISTING_SERVICE',()=>{
+  const result=deriveBrowserDeveloperSurface(matrix);
+  assert.equal(result.publicCount,Object.keys(BROWSER_OPERATIONS).length);
+  assert.match(result.types,/readonly detectLanguage: \(input: \{ readonly text: string; \}\) => Promise/);
+  assert.match(result.types,/readonly keys: \(input\?: \{  \}\) => Promise/);
+  assert.match(result.documentation,/OpenDeskSDK\.browser\.i18n\.detectLanguage/);
+  assert.match(result.documentation,/OpenDeskSDK\.browser\.storage\.local\.keys/);
+  assert.match(result.documentation,/Mode: EXISTING_SERVICE/);
+  assert.doesNotMatch(result.types,/searchTrusted|requestForTool/);
+  assert.doesNotMatch(result.documentation,/OpenDeskSDK\.browser\.history\.searchTrusted/);
+});
+
+test('R11.5 existing trusted service accepts generated Facade calls but denies lost authority',async()=>{
+  const calls=[],owner={toolId:'installed-tool'};
+  const bindings=createApprovedBrowserBindings({
+    'storage.local':(input,context,operation)=>{
+      calls.push({input,context,operation});return {keys:['settings']};
+    }
+  });
+  let allowed=false;
+  const sdk=createBrowserSdk({request:(operation,input)=>
+    bindings.dispatch(operation,input,owner,{authorize:async()=>{
+      if(!allowed)throw Object.assign(Error('denied'),{code:'E_TOOL_CAPABILITY_REQUIRED'});
+    }})});
+  await assert.rejects(sdk.storage.local.keys(),err(/denied/));
+  assert.equal(calls.length,0);
+  allowed=true;
+  assert.deepEqual(await sdk.storage.local.keys(),{keys:['settings']});
+  assert.deepEqual(calls,[{input:{},context:owner,operation:'browser.storage.local.keys'}]);
+  assert.equal(bindings.has('browser.storage.local.nativeClearAll'),false);
+  assert.equal(sdk.storage.local.nativeClearAll,undefined);
+});
+
+test('R11.5 test-only positional alias compiler does not grant a new Native API',async()=>{
+  const approvedRow=matrix.approvedOperations.find(x=>x.id==='browser.i18n.detectLanguage');
+  const fixtureRow=structuredClone(approvedRow);
+  fixtureRow.inputSchema={type:'object',properties:{message:{type:'string',maxLength:4096}},
+    required:['message'],additionalProperties:false};
+  fixtureRow.argumentAliases={text:'message'};
+  const fixture={...matrix,approvedOperations:[fixtureRow]};
+  const [descriptor]=deriveBrowserDirectBindings(fixture);
+  assert.deepEqual(descriptor.argumentAliases,{text:'message'});
+  const registry={...BROWSER_OPERATIONS,...deriveBrowserDirectOperations([descriptor])};
+  const called=[];
+  const bindings=createApprovedBrowserBindings({},{
+    registry,
+    normalize:(_operation,input)=>validateDirectBrowserValue(input,fixtureRow.inputSchema),
+    nativeDirect:{api:{i18n:{detectLanguage:async text=>{
+      called.push(text);return {isReliable:true,languages:[]};
+    }}},descriptors:[descriptor]}
+  });
+  const authorize=async(_op,_input,ctx)=>{
+    if(!ctx?.allowed)throw Object.assign(Error('denied'),{code:'E_TOOL_CAPABILITY_REQUIRED'});
+  };
+  await assert.rejects(bindings.dispatch(approvedRow.id,{message:'hello'},{allowed:false},{authorize}),err(/denied/));
+  assert.deepEqual(called,[]);
+  assert.deepEqual(await bindings.dispatch(approvedRow.id,{message:'hello'},{allowed:true},{authorize}),
+    {isReliable:true,languages:[]});
+  assert.deepEqual(called,['hello']);
+  await assert.rejects(bindings.dispatch(approvedRow.id,{text:'bypass'},{allowed:true},{authorize}),err(/field|schema/i));
+  const unsafe=structuredClone(fixture);
+  unsafe.approvedOperations[0].argumentAliases={text:'__proto__'};
+  assert.throws(()=>deriveBrowserDirectBindings(unsafe),err(/DIRECT parameter/));
+  assert(!matrix.approvedOperations.some(row=>row.argumentAliases),
+    'No formal new mapping has been approved');
 });

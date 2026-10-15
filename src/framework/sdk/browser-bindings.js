@@ -17,6 +17,8 @@ function nativeDirectRoute(descriptor,api,registry){
     'maxResponseBytes','minChrome','mode','nativeApi','operation','outputSchema',
     'parameters','requiredCapabilities','requiredChromePermissions',
     'requiresUserGesture','riskLevel','siteScope','supportedContexts'];
+  const aliases=descriptor?.argumentAliases;
+  if(aliases!==undefined)keys.push('argumentAliases');
   if(!isRecord(descriptor)||Object.keys(descriptor).sort().join(',')!==keys.sort().join(',')||
      descriptor.mode!=='DIRECT'||typeof descriptor.operation!=='string'||
      typeof descriptor.nativeApi!=='string'||!Array.isArray(descriptor.parameters))
@@ -35,6 +37,14 @@ function nativeDirectRoute(descriptor,api,registry){
   if(path.length!==3||path[0]!=='chrome'||path.slice(1).some(part=>
     !/^[A-Za-z][A-Za-z0-9]*$/.test(part)||['constructor','prototype','__proto__'].includes(part)))
     throw fail('E_CONTRACT','Invalid Native DIRECT path');
+  if(aliases!==undefined&&(!isRecord(aliases)||
+     Object.entries(aliases).some(([nativeName,sdkName])=>
+       !descriptor.parameters.some(p=>p.name===nativeName&&p.type!=='object')||
+       !/^[A-Za-z][A-Za-z0-9]*$/.test(sdkName)||
+       ['constructor','prototype','__proto__'].includes(sdkName)||
+       !Object.hasOwn(descriptor.inputSchema?.properties??{},sdkName)||
+       !descriptor.inputSchema.required?.includes(sdkName))))
+    throw fail('E_CONTRACT','Unsafe compiled Native argument aliases');
   if(descriptor.parameters.length>4||descriptor.parameters.some(p=>
      !isRecord(p)||Object.keys(p).sort().join(',')!=='name,optional,type'||
      typeof p.name!=='string'||!/^[A-Za-z][A-Za-z0-9]*$/.test(p.name)||
@@ -54,7 +64,10 @@ function nativeDirectRoute(descriptor,api,registry){
     // argument itself; scalar and multi-param APIs pick named input fields.
     const params=descriptor.parameters;
     const args=params.length===1&&params[0].type==='object'
-      ?[input]:params.map(p=>Object.hasOwn(input,p.name)?input[p.name]:undefined);
+      ?[input]:params.map(p=>{
+        const field=aliases?.[p.name]??p.name;
+        return Object.hasOwn(input,field)?input[field]:undefined;
+      });
     while(args.length&&args.at(-1)===undefined)args.pop();
     let promise;
     try{promise=method.value.apply(owner,args)}
