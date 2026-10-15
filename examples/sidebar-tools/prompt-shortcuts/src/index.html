@@ -13,7 +13,7 @@
     <section id="ps-copy" class="od-surface ps-copy" hidden aria-label="手动复制"><strong>复制完整提示词</strong><p class="ps-hint">浏览器未确认剪贴板写入，请选中以下正文手动复制。</p><textarea id="ps-copy-text" class="od-field" readonly aria-label="待复制的完整正文"></textarea><button id="ps-copy-close" type="button" class="od-button od-button--secondary">关闭</button></section>
   </section>
   <section id="ps-edit" hidden aria-labelledby="ps-form-title">
-    <header class="ps-form-head"><button id="ps-back" type="button" class="od-button od-button--quiet">← 返回</button><h2 id="ps-form-title" class="od-title">新建提示词</h2></header>
+    <header class="ps-form-head"><h2 id="ps-form-title" class="od-title">新建提示词</h2></header>
     <form id="ps-form" novalidate>
       <div class="ps-primary"><label for="ps-body" class="od-field-label">提示词内容 <span class="ps-required">· 唯一必填</span></label><textarea id="ps-body" class="od-field" rows="3" spellcheck="true" aria-required="true" aria-describedby="ps-body-hint" placeholder="在这里输入完整提示词，支持多行。仅填写此项即可保存；点击网页按钮不会自动发送。"></textarea><div id="ps-quota" class="ps-quota"><span>单项存储上限 8 KiB</span><span id="ps-quota-value">— / 8192 B</span></div><p class="ps-hint" id="ps-body-hint">完整保留多行、空行和 Emoji；按整项 JSON 的 UTF-8 字节数校验。</p></div>
       <section class="ps-optional od-surface" aria-labelledby="ps-option-title">
