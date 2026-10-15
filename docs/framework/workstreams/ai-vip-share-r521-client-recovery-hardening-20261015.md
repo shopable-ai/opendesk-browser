@@ -41,6 +41,17 @@
 
 R5.2.1 正式业务和定向测试文件的写入范围在上述提交后已释放；工作流文档仅作 CI 证据增补。本对话未占用 Mac Git 工作区、watcher、dist、浏览器 Profile、Native 服务、真实 Provider。后续应由对应 Owner 处理 AdBlock 构建门禁、商业 Provider 契约与 Managed Proxy，而不是在此分支重新开发旧的会员/代理框架。
 
+## 3.3 日期无关测试加固与最终同候选复验（2026-10-15）
+
+在正式业务提交 `13a4e2b...` 后，经独立复核发现原定向测试的 `time()` 默认值仍写死到 `2026-10-18`；当服务器时间 fixture 改为实时 `serverNow` 后，这会令“剩余 3 天”测试在次日无关业务地失败。故将默认权益到期时间改为相对 fixture 执行时的 `Date.now()+3*86400000`，**只改测试一行，不改变正式业务代码**。
+
+- 后续单文件测试修复提交：[`14f258ec6a40f117f30de65c56eef82c34a07a8d`](https://github.com/shopable-ai/opendesk-browser/commit/14f258ec6a40f117f30de65c56eef82c34a07a8d)，正式业务 `main.js` blob 仍为 `7c176bd0ce93d37f49df5284676f06b8afe259d7`；更新后的 Node 测试 blob `aa3828d56ed66d003ce4f94f90781b632673f45e`。
+- **最新测试源码候选的真实 GitHub Actions**：[`38737465334`](https://github.com/shopable-ai/opendesk-browser/actions/runs/38737465334)，运行 HEAD `14f258ec6a40f117f30de65c56eef82c34a07a8d`；专属 job `116430310283`。
+- 最新同候选日志明确输出 **`# tests 23 / # pass 23 / # fail 0`**；`Package exact v1.2.0` PASS，`R5 source validation`/`npm run check` PASS。
+- 最新同候选 Browser production/development 构建**仍失败**，相同 Trusted AdBlock `host-controls.js` 指纹审查阻塞；这归 AdBlock Owner，禁止本任务绕过。
+- 最新同候选综合 job `116430309717`：**266 tests / 247 PASS / 19 FAIL**；同样是既有 R2.1 代理安全锁与 Cookie Editor 官方目录检查，没有本轮新增 5 项兑换测试失败。
+- 主代码和定向测试的写入范围已经释放；本次文档仅更新可追溯测试与最终阻塞回执。没有真 Provider、Native Chrome/CFT、安装升级及代理运行验收，均保持 `NOT_TESTED` / `NOT_SCORED`，**不宣称产品 95+ PASS**。
+
 ## 4. 后续真实交付门禁
 
 1. 在本轮提交对应 GitHub Actions 或等价的稳定源码快照中执行定向 Node 用例，检查新增时钟与身份用例及正式工具包合同；失败不能记 PASS。
