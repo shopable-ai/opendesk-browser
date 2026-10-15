@@ -68,7 +68,8 @@ test('user-initiated AI sends directly without custom consent UI or ledger',asyn
   assert.match(view,/listen\(get\('workflow-ai-plan'\),'click',plan\)/);
   assert.match(view,/async function plan\(event\)\s*\{\s*if\(!event\.isTrusted\|\|busy\)return/);
   assert.match(view,/const origins=\[permissionPattern\(captured\.url\)\]/);
-  assert.match(view,/if\(selected==='custom_https'\)origins\.push\(permissionPattern\(frozen\.endpoint\)\)/);
+  assert.match(view,/if\(selected!=='local_codex'\)origins\.push\(permissionPattern\(frozen\.endpoint\)\)/);
+  assert.match(view,/selected==='cloud_responses'/);
   assert.match(view,/permission=selected==='local_codex'\?Promise\.resolve\(true\):api\.permissions\.request\(\{origins:\[\.\.\.new Set\(origins\)\]\}\)/);
   assert.match(view,/permission=row\.siteGranted\?Promise\.resolve\(true\):api\.permissions\.request\(\{origins:\[permissionPattern\(row\.captured\.url\)\]\}\)/);
   assert.match(view,/currentPageTarget\.revalidate\(row\.captured\)/);
