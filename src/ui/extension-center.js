@@ -162,6 +162,27 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     const rows=filterExtensionEntries(all().map(row=>({...row,title:titleOf(row),description:descriptionOf(row)})),{query,kind,scope});
     list.setAttribute('aria-busy',String(Boolean(busy||pendingKey)));
     list.replaceChildren();
+    // A cleanup journal is not an installed app or a trusted Catalog release.
+    // Show a recovery-only control in discovery even if the catalog is offline.
+    const recovery=get('extension-center-cleanups');
+    const orphaned=scope==='available'&&appStatusKnown?
+      [...pendingCleanups].filter(id=>!official.some(release=>release.toolId===id)):[];
+    if(recovery){
+      recovery.hidden=orphaned.length===0;
+      recovery.replaceChildren();
+      if(orphaned.length){
+        recovery.append(node('p','','以下扩展已从安装记录移除，但清理仍待完成：'));
+        for(const id of orphaned){
+          const line=node('p','',id+' · 卸载清理待恢复');
+          const retry=button('恢复清理',event=>{
+            void retryCleanup({id,key:'app:'+id,cleanupPending:true},event);
+          },'od-button od-button--secondary');
+          retry.disabled=busy||Boolean(pendingKey);
+          retry.setAttribute('aria-label','恢复「'+id+'」的卸载清理');
+          line.append(retry);recovery.append(line);
+        }
+      }
+    }
     for(const row of rows){
       const item=node('li','ec-row');item.dataset.extensionId=row.key;
       const primaryAction=resolveExtensionPrimaryAction(row);
@@ -207,7 +228,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       if(!actions.childElementCount)item.classList.add('ec-row--no-actions');
       item.append(main,actions);list.append(item);
     }
-    get('extension-center-empty').hidden=rows.length>0||!hasLoaded;
+    get('extension-center-empty').hidden=rows.length>0||orphaned.length>0||!hasLoaded;
     get('extension-center-empty-text').textContent=dataError?
       '安装状态读取失败或待核对；请刷新重试。不会将旧缓存当作已安装记录。':
       query?'没有找到匹配的扩展':scope==='available'?'没有可安装或可更新的官方候选':
