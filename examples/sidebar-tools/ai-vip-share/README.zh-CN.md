@@ -66,3 +66,14 @@ R2.1 核查（2026-10-15）：R11 的批准 Registry 没有 Managed Proxy，发�
 发生请求超时、丢失回执、页面关闭、浏览器重启、安装权限变更、账号切换时，未知兑换不重试。重新打开只显示待核对状态，用户点击「核对上次兑换」后，需经同一个经过批准的 HTTPS Provider 的专用终态查询返回相同账号/幂等键的完整已兑换回执，或明确 `rejected + final=true` 的终局拒绝，才安全解除锁定。历史账本缺少对应行并不意味着消费失败。宿主已负责卸载清理本工具命名空间、撤权和旧安装版本隔离；本工具对非本版本恢复记录保持锁定而非继承。
 
 `BUSINESS_ENDPOINTS` 保持四个空值（`member`、`voucherPreview`、`voucherRedeem`、`voucherStatus`）；**此接口形状仅是消费端待审核边界，不代表已批准或部署商业认证服务**。现有 Browser SDK 网络请求默认不附带会员登录 Cookie，因此不得只填写 URL 就启用支付或兑换。只有正式 Provider 身份、无副作用终态查询及授权合同经 Owner 审核后才接入，并办理工具升级所需浏览器权限。商品外链、短效 ticket 安装回跳和真实代理联网仍为各自独立阻塞，不提供假数据。
+
+## 本地联调服务器（仅开发测试，不进入扩展安装包）
+
+本仓库已内置 [本地测试说明与服务器](dev/local-test/README.zh-CN.md)，无需单独下载 ZIP。Node.js ≥ 22，在**仓库根目录**执行：
+
+```bash
+node --test examples/sidebar-tools/ai-vip-share/dev/local-test/local-fixture-server.test.mjs
+node examples/sidebar-tools/ai-vip-share/dev/local-test/local-fixture-server.mjs
+```
+
+默认 `127.0.0.1:7898` 提供演示会员 API 与 PAC；`127.0.0.1:7897` 由用户自行提供真实 HTTP CONNECT/SOCKS5 代理。当前联调仅为独立开发验证，**尚未接入正式可信启停按钮**，不可当作商业 Provider 或 Chrome Native 验收。
