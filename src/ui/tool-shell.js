@@ -14,6 +14,7 @@ import {createWorkflowView} from './workflow/workflow-view.js';
 import {createSidebarTools} from './sidebar-tools-loader.js';
 import {createInstalledPageTools} from './installed-page-tools.js';
 import {createExtensionCenter} from './extension-center.js';
+import {createUiLocaleController} from './app-localization.js';
 import {requestedToolId,requestedPreviewId,canonicalToolHostUrl} from './sidebar-tools/navigation.js';
 import {previewStorageKey} from '../native-agent/tool-snapshot.js';
 import {validatePreviewSession} from './sidebar-tools/preview-session.js';
@@ -62,6 +63,7 @@ export function initToolShell(installDevelopment=null,{debugEnabled=false}={}) {
     return;
   }
   const foundationClient = createHostClient(chrome, {hostInstanceId});
+ const localeController=createUiLocaleController(chrome);
 const currentPageTarget = createCurrentPageTarget({api:chrome});
 const historyUI=globalThis.__opendeskTrustedHistoryUI;
 if(!historyUI?.createScheduledTaskHost)throw new Error('E_TRUSTED_SCHEDULE_HOST_MISSING');
@@ -90,13 +92,13 @@ const workflowView=createWorkflowView({api:chrome,client:foundationClient,host:s
   onRunOwner:id=>taskWorkbench.setWorkflowRunOwner(id),
   openDeveloper:sourceUtf8=>taskWorkbench.receiveDraft(sourceUtf8),
   openCatalog:()=>taskWorkbench.navigate('catalog')});
-const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbench,foundationClient});
+const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbench,foundationClient,localeController});
 const installedPageTools=createInstalledPageTools({client:foundationClient,api:chrome,doc:document});
 // R4 reuses the same installer form and trusted Tool host, without cloning either.
 const importHost=document.getElementById('extension-center-import-host');
 const originalImport=document.getElementById('sidebar-tool-import');
 if(importHost&&originalImport)importHost.append(originalImport);
-const extensionCenter=createExtensionCenter({api:chrome,client:foundationClient,doc:document,sidebarTools,taskWorkbench});
+const extensionCenter=createExtensionCenter({api:chrome,client:foundationClient,doc:document,sidebarTools,taskWorkbench,localeController});
 const scheduleStatus=message=>{
   for(const id of ['schedule-host-status','schedule-runner-host-status']){
     const label=document.getElementById(id);
@@ -492,7 +494,7 @@ listen(window, 'pagehide', () => {
   for (const {element, event, listener, options} of listeners) element.removeEventListener(event, listener, options);
   listeners.length = 0;
   scheduleHost?.dispose();scheduleUI?.dispose();
-  tabMemory.dispose(); debugWorkbench?.dispose(); workflowView.dispose(); extensionCenter.dispose(); installedPageTools.dispose(); sidebarTools.dispose(); nativeAgentHost.dispose(); siteAccess.dispose(); taskWorkbench.dispose(); scriptEditor.dispose(); currentPageTarget.dispose(); foundationClient.dispose();
+  tabMemory.dispose(); localeController.dispose(); debugWorkbench?.dispose(); workflowView.dispose(); extensionCenter.dispose(); installedPageTools.dispose(); sidebarTools.dispose(); nativeAgentHost.dispose(); siteAccess.dispose(); taskWorkbench.dispose(); scriptEditor.dispose(); currentPageTarget.dispose(); foundationClient.dispose();
 }, {once: true});
 
 }
