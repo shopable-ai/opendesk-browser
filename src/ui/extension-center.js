@@ -4,9 +4,11 @@ import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords} from './sidebar-tool
 import {loadOfficialCatalog} from '../sidebar-tools/official-catalog.js';
 import {setInstalledPageProgramEnabled} from './installed-page-tools.js';
 import {composeExtensionEntries,filterExtensionEntries,describeInstalledAppSource,resolveExtensionRowIntent,resolveExtensionPrimaryAction} from './extension-center-model.js';
+import readingTocCatalog from '../../examples/sidebar-tools/reading-toc/locales.json' with {type:'json'};
+import {uiMessage,resolveUiLocale} from './app-localization.js';
 
 // One trusted presentation. All writes and launches delegate to the existing hosts.
-export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench}){
+export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench,localeController=null}){
   const get=id=>doc.getElementById(id);
   const list=get('extension-center-list'),search=get('extension-center-search');
   const listing=get('extension-center-list-view'),detail=get('extension-center-detail');
@@ -21,7 +23,13 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   const node=(tag,cls='',value)=>{const element=doc.createElement(tag);if(cls)element.className=cls;
     if(value!==undefined)element.textContent=String(value);return element;};
   const button=(value,fn,cls='')=>{const b=node('button',cls,value);b.type='button';b.addEventListener('click',fn);return b;};
-  const titleOf=row=>row.title||row.id;
+  const language=()=>localeController?.getLocale?.()||'zh-CN';
+  const readingTocOfficial=row=>row.kind==='app'&&row.id==='reading-toc'&&
+    row.title===readingTocCatalog.messages['zh-CN'].title;
+  const titleOf=row=>readingTocOfficial(row)?uiMessage(readingTocCatalog,language(),'title'):row.title||row.id;
+  const descriptionOf=row=>readingTocOfficial(row)&&
+    row.description===readingTocCatalog.messages['zh-CN'].description?
+      uiMessage(readingTocCatalog,language(),'description'):row.description||'';
   const typeOf=row=>row.kind==='page'?'网页增强':'应用';
   const all=()=>composeExtensionEntries({installed,pages,official,enabled,appStatusKnown,pageStatusKnown});
   const find=key=>all().find(row=>row.key===key);
@@ -116,7 +124,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       row.kind==='page'&&row.record?.installed?.authorization?.status==='suspended'?'网站访问受限':
       row.kind==='page'&&row.record?.installed?.nativeState&&
         row.record.installed.nativeState!=='registered'?'注册待核对':'';
-    return reason?reason+' · '+(row.description||''):(row.description||'');
+    return reason?reason+' · '+descriptionOf(row):descriptionOf(row);
   }
   function draw(){
     if(disposed)return;
@@ -124,7 +132,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     const key=list.contains(active)?active?.dataset?.extensionKey:null;
     const action=active?.dataset?.extensionAction;
     closeRowMenu();
-    const rows=filterExtensionEntries(all(),{query,kind,scope});
+    const rows=filterExtensionEntries(all().map(row=>({...row,title:titleOf(row),description:descriptionOf(row)})),{query,kind,scope});
     list.replaceChildren();
     for(const row of rows){
       const item=node('li','ec-row');item.dataset.extensionId=row.key;
@@ -220,7 +228,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     glyph.textContent=row.kind==='page'?'◇':'▦';glyph.setAttribute('aria-hidden','true');
     const copy=node('div','ec-detail-copy');
     copy.append(node('strong','',titleOf(row)),node('span','ec-type',typeOf(row)));
-    head.append(glyph,copy);area.append(head,node('p','',row.description));
+    head.append(glyph,copy);area.append(head,node('p','',descriptionOf(row)));
     const actions=node('div','ec-detail-actions');
     function detailButton(label,fn,action){
       const b=button(label,fn);b.dataset.ecDetailAction=action;b.disabled=busy;return b;
@@ -318,6 +326,18 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     catch(error){if(!disposed){catalogError=String(error?.message||error);
       message('内置官方目录暂不可用，不会显示或安装未经核验的候选：'+catalogError,'error');draw();}}
   }
+  const languageInput=get('extension-center-language');
+  const syncLanguage=()=>{if(disposed)return;
+    if(languageInput)languageInput.value=resolveUiLocale(language(),['zh-CN','en'],'zh-CN');
+    draw();if(selectedKey)renderDetail();
+  };
+  const stopLanguage=localeController?.subscribe?.(syncLanguage);
+  void localeController?.ready?.then(syncLanguage);
+  languageInput?.addEventListener('change',()=>{
+    void localeController?.setLocale(languageInput.value).catch(error=>{
+      message('语言保存失败：'+String(error?.message||error),'error');syncLanguage();
+    });
+  });
   search.addEventListener('input',()=>{query=search.value.trim();draw();});
   more.addEventListener('click',()=>{closeRowMenu();menu.hidden?showMenu():closeMenu();});
   for(const b of menu.querySelectorAll('[data-ec-kind]'))b.addEventListener('click',()=>{kind=b.dataset.ecKind;draw();});
@@ -367,5 +387,5 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   return {refresh,dispose(){disposed=true;sequence++;closeRowMenu();rowMenu.remove();
     doc.removeEventListener('click',clickOutside);
     doc.removeEventListener('keydown',keyDown);doc.removeEventListener('scroll',onScroll,true);
-    api.storage.onChanged?.removeListener(storageChanged);connChanged?.();}};
+    api.storage.onChanged?.removeListener(storageChanged);connChanged?.();stopLanguage?.();}};
 }
