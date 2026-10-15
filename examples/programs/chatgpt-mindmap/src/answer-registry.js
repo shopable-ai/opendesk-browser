@@ -68,8 +68,10 @@ function answerController({document,window,owner,css,parts,coordinator}){
     buttonRef.button.disabled=busy;
     buttonRef.button.setAttribute('aria-pressed',String(!!view));
     buttonRef.button.setAttribute('aria-label',view?'恢复本条回复原文':'查看本条 AI 回复的思维导图');
-    // Fullscreen has an exit button; inline button is kept for normal toggles.
-    buttonRef.button.lastChild.textContent=view?'原文':'思维导图';
+    // Only one visible return-to-original entry: the viewer owns it while open.
+    buttonRef.host.hidden=!!view;
+    buttonRef.host.setAttribute('aria-hidden',String(!!view));
+    buttonRef.button.lastChild.textContent='思维导图';
     if(busy&&busyTimer===null){
       busyTimer=owner.setTimeout(()=>{busyTimer=null;syncButton();},STABLE_MS+40);
     }
@@ -120,6 +122,7 @@ function answerController({document,window,owner,css,parts,coordinator}){
     // Recover from late generation; do not take a snapshot during stream.
     if(isStreaming(root)||Date.now()-lastChange<STABLE_MS)return;
     buttonRef.error.hidden=true;
+    const focusViewer=buttonRef.button.matches(':focus-visible');
     const result=extractAnswerTree(content);
     if(!result.nodeCount)return;
     const nextView=createAnswerView({document,window,owner,css,...result,
@@ -133,6 +136,7 @@ function answerController({document,window,owner,css,parts,coordinator}){
       content.insertAdjacentElement('afterend',nextView.host);
       view=nextView;viewRevision=revision;conceal();syncTheme();syncButton();
       await nextView.start();
+      if(focusViewer&&view===nextView)nextView.focusPrimary();
     }catch(error){
       if(view===nextView)await failed(error);
       else await coordinator.retire(nextView);

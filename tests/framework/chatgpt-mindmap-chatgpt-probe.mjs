@@ -56,6 +56,8 @@ try{
   await page.screenshot({path:join(out,'chatgpt-before.png'),fullPage:true});
   await button(1).click();
   await viewer(1).and(page.locator('[data-ready="true"]')).waitFor({timeout:20000});
+  assert.equal(await button(1).isVisible(),false,
+    'The answer toolbar trigger must hide when the viewer provides Return to original');
   report.topicsA=await viewer(1).locator('.topic:visible').count();
   assert.ok(report.topicsA>1,'XMind must render actual SDK topics');
   assert.equal(await t(1).locator('.markdown').isVisible(),false);
@@ -71,7 +73,7 @@ try{
   const zoomWidth=async n=>(await viewer(n).locator('.topic:visible').first().boundingBox()).width;
   const aBeforeZoom=await zoomWidth(1);
   const bBeforeZoom=await zoomWidth(2);
-  await viewer(1).getByRole('button',{name:'放大'}).click();
+  await viewer(1).getByRole('button',{name:'放大导图'}).click();
   await page.waitForFunction(({before})=>{
     const host=document.querySelector('[data-testid="conversation-turn-1"] [data-opendesk-chatgpt-mindmap="viewer"]');
     const topic=host?.shadowRoot?.querySelector('.topic');
@@ -82,22 +84,22 @@ try{
   assert.ok(Math.abs(bAfterZoom-bBeforeZoom)<1.5,'A zoom must not mutate B zoom');
   report.zoom={aBeforeZoom,aAfterZoom,bBeforeZoom,bAfterZoom};
   report.checks.push('PER_ANSWER_XMIND_ZOOM_ISOLATION');
-  const foldButton=viewer(1).getByRole('button',{name:'展开或折叠分支'});
+  const foldButton=viewer(1).locator('button[data-action="fold"]').first();
   await foldButton.click();
   await page.waitForFunction(()=>{
     const host=document.querySelector('[data-testid="conversation-turn-1"] [data-opendesk-chatgpt-mindmap="viewer"]');
-    const button=host?.shadowRoot?.querySelector('button[aria-label="展开或折叠分支"]');
-    return button?.textContent==='展开'&&!button.disabled;
+    const button=host?.shadowRoot?.querySelector('button[data-action="fold"]');
+    return button?.getAttribute('aria-label')==='展开所有分支'&&!button.disabled;
   },null,{timeout:20000});
   assert.ok(await viewer(2).locator('.topic:visible').count()>1);
   await foldButton.click();
   await page.waitForFunction(()=>{
     const host=document.querySelector('[data-testid="conversation-turn-1"] [data-opendesk-chatgpt-mindmap="viewer"]');
-    const button=host?.shadowRoot?.querySelector('button[aria-label="展开或折叠分支"]');
-    return button?.textContent==='折叠'&&!button.disabled;
+    const button=host?.shadowRoot?.querySelector('button[data-action="fold"]');
+    return button?.getAttribute('aria-label')==='折叠所有分支'&&!button.disabled;
   },null,{timeout:20000});
   report.checks.push('PER_ANSWER_FOLD_AND_UNFOLD');
-  await viewer(2).getByRole('button',{name:'切换全屏'}).click();
+  await viewer(2).getByRole('button',{name:'进入全屏'}).click();
   await page.locator('[data-opendesk-chatgpt-mindmap="viewer"].odmm-fullscreen')
     .waitFor({timeout:12000});
   // The DOM class changes before the real SDK finishes its fit. Wait for
@@ -127,6 +129,7 @@ try{
   await viewer(1).getByRole('button',{name:'恢复本条回复原文'}).click();
   await viewer(1).waitFor({state:'detached',timeout:15000});
   assert.equal(await t(1).locator('.markdown').isVisible(),true);
+  assert.equal(await button(1).isVisible(),true);
   assert.equal(await t(1).locator('.markdown').evaluate(node=>node.innerHTML),originalA,
     'The original answer HTML must retain identity and markup after view removal');
   assert.ok(await viewer(2).locator('.topic:visible').count()>1);
@@ -161,7 +164,7 @@ try{
   for(let i=0;i<20;i++){
     await button(1).click();
     await viewer(1).and(page.locator('[data-ready="true"]')).waitFor({timeout:25000});
-    await button(1).click();
+    await viewer(1).getByRole('button',{name:'恢复本条回复原文'}).click();
     await viewer(1).waitFor({state:'detached',timeout:20000});
     assert.equal(await page.locator('[data-opendesk-chatgpt-mindmap="button"]').count(),3);
     assert.equal(await t(1).locator('.markdown').evaluate(node=>node.innerHTML),originalA);
