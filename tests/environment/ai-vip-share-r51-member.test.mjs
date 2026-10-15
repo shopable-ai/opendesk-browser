@@ -22,35 +22,45 @@ function element(id=''){
     focus(){this.focused=true;}
   };
 }
-async function runtime({configured=false,provider,store={value:null},clockShiftMs=0}={}){
+async function runtime({configured=false,provider,store={value:null},clockShiftMs=0,
+  storageGet,afterStorageSet,monotonicClock=performance,catalogUrl,tabsCreate}={}){
   const [html,script]=await Promise.all([readFile(htmlPath,'utf8'),readFile(sourcePath,'utf8')]);
   const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(row=>row[1]);
   const nodes=new Map(ids.map(id=>[id,element(id)]));
-  const calls=[],storageCalls=[],reply=provider||(()=>{throw Error('No provider');});
+  const calls=[],storageCalls=[],tabCalls=[],reply=provider||(()=>{throw Error('No provider');});
   const request=async args=>{calls.push(args);return reply(args)};
   const etag=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
   const storage=async (operation,payload)=>{
     storageCalls.push(operation);
-    if(operation==='storage.get')return {value:store.value,etag:etag(store.value)};
+    if(operation==='storage.get')return {value:storageGet?await storageGet(store.value):store.value,etag:etag(store.value)};
     if(operation!=='storage.set')throw Error('Unexpected storage operation');
     if(store.failSet)throw Error('Storage quota or permission denied');
     if(payload.ifMatch!==etag(store.value))throw Error('E_STORAGE_CONFLICT');
     store.value=structuredClone(payload.value);
+    await afterStorageSet?.(store.value);
     if(store.dropAck)throw Error('ack lost after durable save');
     return {saved:true};
   };
-  const sdk={browser:{network:{request},tabs:{create:async()=>({tabRef:'foo'})}}};
+  const sdk={browser:{network:{request},tabs:{create:async args=>{
+    tabCalls.push(args);
+    return tabsCreate?tabsCreate(args):{tabRef:'foo'};
+  }}}};
   const window={OpenDeskTool:{root:{querySelector:selector=>nodes.get(selector.slice(1))},
     request:storage},OpenDeskSDK:sdk};
   const document={createElement:tag=>element(tag)};
-  const scriptText=configured?script.replace(originalConfig,testConfig):script;
+  let scriptText=configured?script.replace(originalConfig,testConfig):script;
   if(configured)assert.notEqual(scriptText,script,'fixture must override ONLY the release-disabled endpoints');
+  if(catalogUrl!==undefined){
+    const catalogConfig="const PRODUCT_CATALOG_URL='';";
+    assert(scriptText.includes(catalogConfig),'catalog injection must remain VM-only');
+    scriptText=scriptText.replace(catalogConfig,`const PRODUCT_CATALOG_URL=${JSON.stringify(catalogUrl)};`);
+  }
   vm.runInNewContext(scriptText,{window,document,URL,
     Date:class extends Date {static now(){return Date.now()+clockShiftMs;}},
-    performance,Intl,Math,Set,Number,Array,
+    performance:monotonicClock,Intl,Math,Set,Number,Array,
     Promise,crypto:{randomUUID:()=> '11111111-1111-4111-8111-111111111111'}}, {timeout:2000});
   await flush();await flush();
-  return {nodes,calls,storageCalls,store,flush};
+  return {nodes,calls,storageCalls,tabCalls,store,flush};
 }
 const member=({entitlements=[],redemptions=[],account}={})=>({
   schemaVersion:1,serverNow:Date.now(),
@@ -64,7 +74,7 @@ function node(env,name){return env.nodes.get('ai-vip-'+name)}
 
 test('R5.2 official package grants scoped recovery storage but no network permission',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/ai-vip-share');
-  assert.equal(pkg.version,'1.3.0');
+  assert.equal(pkg.version,'1.3.1');
   assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
   assert.deepEqual(pkg.capabilities,['storage.local','network','browser.tabs','browser.proxy.managed']);
   assert.match(pkg.css,/opendesk\.shared-design\.v1/);
@@ -417,4 +427,143 @@ test('R5.2 rejects overlong previews even with a valid server member timestamp',
   assert.equal(node(e,'redeem-preview').hidden,true);
   assert.match(node(e,'redeem-status').textContent,/无法核验兑换码/);
   assert(!e.calls.some(args=>args.url.endsWith('/redeem')));
+});
+
+test('R5.2 reordered six-field storage readback sends once and clears the journal',async()=>{
+  const store={value:null},readbacks=[];
+  const e=await runtime({configured:true,store,storageGet:value=>{
+    if(value===null)return null;
+    const reordered=Object.fromEntries(Object.entries(value).reverse());
+    assert.equal(Object.keys(reordered).length,6);
+    assert.notDeepEqual(Object.keys(reordered),Object.keys(value));
+    readbacks.push(reordered);
+    return reordered;
+  },provider:async args=>{
+    if(args.url.endsWith('/member'))return {status:200,data:member()};
+    if(args.url.endsWith('/preview'))return {status:200,data:{
+      previewId:'pre-reordered',accountId:'customer-123',skuTitle:'权益',
+      grantSummary:'服务端核验',voucherPreviewMasked:'****',expiresAt:Date.now()+120000}};
+    if(args.url.endsWith('/redeem')){
+      assert.equal(store.value?.idempotencyKey,args.data.idempotencyKey);
+      return {status:200,data:{status:'redeemed',accountId:'customer-123',
+        idempotencyKey:args.data.idempotencyKey,redemptionId:'receipt-reordered',
+        redeemedAt:Date.now(),grantedEntitlements:[quota]}};
+    }
+    throw Error('Unexpected Provider request');
+  }});
+  node(e,'redeem-code').value='REORDER-123';
+  node(e,'redeem-code').listeners.input();
+  node(e,'redeem').listeners.click({isTrusted:true});
+  await flush();await flush();
+  node(e,'redeem').listeners.click({isTrusted:true});
+  for(let i=0;i<5;i++)await flush();
+  assert(readbacks.length>0,'readback must exercise reordered journal keys');
+  assert.equal(e.calls.filter(args=>args.url.endsWith('/redeem')).length,1);
+  assert.equal(store.value,null);
+  assert.equal(e.storageCalls.filter(operation=>operation==='storage.set').length,2);
+  assert.equal(node(e,'recovery').hidden,true);
+  assert.match(node(e,'redeem-status').textContent,/已确认兑换成功/);
+});
+
+test('R5.2 preview expiry during journal persistence forbids consumption and retains recovery',async()=>{
+  const store={value:null};let elapsed=0;
+  const e=await runtime({configured:true,store,monotonicClock:{now:()=>elapsed},
+    afterStorageSet:value=>{if(value!==null)elapsed+=180000;},provider:async args=>{
+      if(args.url.endsWith('/member'))return {status:200,data:member()};
+      if(args.url.endsWith('/preview'))return {status:200,data:{
+        previewId:'pre-write-expiry',accountId:'customer-123',skuTitle:'权益',
+        grantSummary:'服务端核验',voucherPreviewMasked:'****',expiresAt:Date.now()+120000}};
+      throw Error('No consumption request is allowed');
+    }});
+  node(e,'redeem-code').value='EXPIRE-123';
+  node(e,'redeem-code').listeners.input();
+  node(e,'redeem').listeners.click({isTrusted:true});
+  await flush();await flush();
+  assert.equal(node(e,'redeem').textContent,'确认兑换');
+  node(e,'redeem').listeners.click({isTrusted:true});
+  for(let i=0;i<5;i++)await flush();
+  assert.equal(elapsed,180000,'clock advances only after durable journal write');
+  assert.equal(e.calls.filter(args=>args.method==='POST'&&args.url.endsWith('/redeem')).length,0);
+  assert.equal(store.value?.accountId,'customer-123');
+  assert.equal(store.value?.packageVersion,'1.3.1');
+  assert.equal(e.storageCalls.filter(operation=>operation==='storage.set').length,1);
+  assert.equal(node(e,'recovery').hidden,false);
+  assert.equal(node(e,'redeem').disabled,true);
+  node(e,'redeem').listeners.click({isTrusted:true});
+  await flush();await flush();
+  assert.equal(e.calls.filter(args=>args.url.endsWith('/redeem')).length,0);
+  assert(store.value,'journal remains pending explicit reconciliation');
+});
+
+test('R5.2 recovery-check retries a transient storage read independently of Provider',async()=>{
+  const record={schemaVersion:1,toolId:'ai-vip-share',packageVersion:'1.3.1',
+    accountId:'customer-123',idempotencyKey:'33333333-3333-4333-8333-333333333333',createdAt:Date.now()};
+  const store={value:record};let reads=0;
+  const e=await runtime({store,storageGet:value=>{
+    if(++reads===1)throw Error('Temporary storage outage');
+    return structuredClone(value);
+  }});
+  assert.equal(reads,1);
+  assert.equal(node(e,'recovery-check').textContent,'重试读取恢复记录');
+  assert.equal(node(e,'recovery-check').disabled,false);
+  node(e,'recovery-check').listeners.click({isTrusted:false});
+  await flush();
+  assert.equal(reads,1);
+  node(e,'recovery-check').listeners.click({isTrusted:true});
+  for(let i=0;i<4;i++)await flush();
+  assert.equal(reads,2);
+  assert.notEqual(node(e,'recovery-check').textContent,'重试读取恢复记录');
+  assert.equal(node(e,'recovery').hidden,false);
+  assert.equal(node(e,'redeem').disabled,true);
+  assert.deepEqual(store.value,record);
+  assert.deepEqual(e.calls,[],'storage recovery must not require a Provider or issue a POST');
+  assert.equal(e.storageCalls.filter(operation=>operation==='storage.set').length,0);
+});
+
+test('R5.2 storage retry clears an obsolete fault when no transaction is pending',async()=>{
+  let reads=0;
+  const e=await runtime({storageGet:value=>{
+    if(++reads===1)throw Error('Temporary storage outage');
+    return value;
+  }});
+  assert.equal(node(e,'recovery-check').disabled,false);
+  node(e,'recovery-check').listeners.click({isTrusted:true});
+  for(let i=0;i<4;i++)await flush();
+  assert.equal(node(e,'recovery').hidden,true);
+  assert.equal(node(e,'redeem-error').hidden,true);
+  assert.match(node(e,'redeem-status').textContent,/恢复记录已核对.*仍未配置/);
+  assert.equal(node(e,'redeem').disabled,true);
+  assert.deepEqual(e.calls,[]);
+});
+
+test('R5.2 fixed HTTPS catalog requires trust, coalesces in-flight clicks and recovers after SDK rejection',async()=>{
+  const catalogUrl='https://catalog.example.org/products';
+  let rejectOpen;
+  const e=await runtime({catalogUrl,tabsCreate:()=>new Promise((resolve,reject)=>{rejectOpen=reject;})});
+  assert.equal(node(e,'shop-open').disabled,false);
+  node(e,'shop-open').listeners.click({isTrusted:false});
+  node(e,'shop-open').listeners.click({});
+  await flush();
+  assert.equal(e.tabCalls.length,0);
+  node(e,'shop-open').listeners.click({isTrusted:true});
+  node(e,'shop-open').listeners.click({isTrusted:true});
+  await flush();
+  assert.equal(e.tabCalls.length,1);
+  assert.deepEqual(Object.keys(e.tabCalls[0]),['url']);
+  assert.equal(e.tabCalls[0].url,catalogUrl);
+  assert.equal(node(e,'shop-open').disabled,true);
+  node(e,'shop-open').listeners.click({isTrusted:true});
+  await flush();
+  assert.equal(e.tabCalls.length,1,'pending SDK request must stay single-flight');
+  rejectOpen(Error('Browser SDK permission denied'));
+  await flush();await flush();
+  assert.equal(node(e,'shop-open').disabled,false);
+  assert.match(node(e,'shop-status').textContent,/未能打开商品目录/);
+  assert.deepEqual(e.calls,[]);
+  node(e,'shop-open').listeners.click({isTrusted:true});
+  await flush();
+  assert.equal(e.tabCalls.length,2,'button is usable again after rejection');
+  rejectOpen(Error('Denied again'));
+  await flush();await flush();
+  assert.equal(node(e,'shop-open').disabled,false);
 });

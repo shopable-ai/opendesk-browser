@@ -75,12 +75,13 @@
   const businessSdk=window.OpenDeskSDK?.browser?.network;
   // Existing installed-tool storage is bound by Host to package and install epoch.
   // Never store a voucher, password, auth cookie, proxy lease or access token.
-  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.3.0';
+  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.3.1';
   // Do not strand an unresolved 1.2.0 voucher journal after a tool upgrade.
-  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0']);
+  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1']);
   const storeRequest=window.OpenDeskTool.request;
   let snapshot=null,pending=null,recovery=null,recoveryFault=null;
   let recoveryReady=false,busy=false,seq=0;
+  let refreshProxyPresentation=()=>{};
   // Provider clock, not device Date.now(), determines preview validity.
   // A stale member snapshot cannot authorize a new voucher side effect.
   const PREVIEW_MAX_LIFETIME_MS=5*60*1000;
@@ -144,15 +145,18 @@
       await storeRequest('storage.set',{key:RECOVERY_KEY,value:next,ifMatch:before.etag});
     }catch{/* Outcome may have been committed before reply was lost. */}
     const after=await readRecovery();
-    if(JSON.stringify(after.record)!==JSON.stringify(next))
+    if(next===null?after.record!==null:!after.record||
+      Object.keys(next).some(key=>after.record[key]!==next[key]))
       fail('E_RECOVERY_WRITE','兑换事务未被确认持久保存，禁止提交或重试');
     return after;
   }
   async function loadRecovery(){
+    const retrying=!!recoveryFault;
     try{
       recovery=(await readRecovery()).record;
       recoveryFault=null;
       if(recovery)redeemNotice('发现上次未确认的兑换。请先核对服务端状态，不能重新提交。',true);
+      else if(retrying)redeemNotice(endpoints?'恢复记录已核对，可重新预检兑换码。':'恢复记录已核对；兑换服务仍未配置，暂无法提交。');
     }catch{
       recoveryFault='无法核对本工具的持久兑换记录；已禁止兑换，请检查安装和存储授权。';
       redeemNotice(recoveryFault,true);
@@ -187,9 +191,10 @@
     else if(snapshot?.account.id!==recovery.accountId)
       recoveryStatus.textContent='当前账号与上次兑换的账号不一致。已阻止继承旧账号交易。';
     else recoveryStatus.textContent='有未完成的兑换回执。只能查询服务端终态，不会重新提交兑换。';
-    recoveryCheck.hidden=!recovery;
-    recoveryCheck.disabled=!recovery||!endpoints||busy||!recoveryReady||
-      Boolean(recoveryFault)||snapshot?.account.id!==recovery?.accountId;
+    recoveryCheck.hidden=!recovery&&!recoveryFault;
+    recoveryCheck.textContent=recoveryFault?'重试读取恢复记录':'核对上次兑换';
+    recoveryCheck.disabled=busy||!recoveryReady||(!recoveryFault&&
+      (!recovery||!endpoints||snapshot?.account.id!==recovery?.accountId));
   }
   function verifiedEntitlement(raw){
     if(!plain(raw))fail('E_ENTITLEMENT','会员权益格式无效');
@@ -306,6 +311,7 @@
     previewPanel.hidden=!pending;
     cancel.hidden=!pending||busy;
     showRecovery();
+    refreshProxyPresentation();
   }
   function redeemNotice(message,error=false){
     redeemStatus.textContent=message;
@@ -440,8 +446,10 @@
     redeemNotice('正在持久保存兑换事务，再提交服务端；请勿重复操作。');
     try{
       await beginRecovery(accountId,key); // Write-ahead and verified readback.
-      if(snapshot?.account.id!==accountId)
-        fail('E_IDENTITY_CHANGED','事务持久化后账号变化；禁止提交');
+      const submitNow=estimatedServerNow();
+      if(snapshot?.account.id!==accountId||pending?.id!==previewId||
+        submitNow===null||pending.expiresAt<=submitNow)
+        fail('E_PRE_SUBMIT','事务持久化后账号或预检时限变化；禁止提交');
       const result=await businessRequest('POST',endpoints.voucherRedeem,{
         previewId,accountId,idempotencyKey:key});
       validateReceipt(result,key);
@@ -459,7 +467,14 @@
     }finally{busy=false;renderRedeem();}
   }
   async function checkRecoveryClick(event){
-    if(event?.isTrusted!==true||busy||!endpoints||!recoveryReady||
+    if(event?.isTrusted!==true||busy||!recoveryReady)return;
+    if(recoveryFault){
+      busy=true;renderRedeem();
+      try{await loadRecovery();}
+      finally{busy=false;renderRedeem();}
+      return;
+    }
+    if(!endpoints||
       recoveryFault||!recovery||snapshot?.account.id!==recovery.accountId)return;
     busy=true;renderRedeem();
     redeemNotice('正在查询上次兑换的服务端最终状态（不会再次消费兑换码）…');
@@ -531,72 +546,102 @@
     const disable=byId('ai-vip-proxy-disable');
     if(!status||!detail||!refresh||!enable||!disable)return;
     const sdk=window.OpenDeskSDK?.browser?.proxy?.managed;
-    let current=null,working=false;
+    let current=null,starting=false,stopping=false,reading=false;
+    let stopRequired=false,stopConfirmed=false,operation=0,readSequence=0,notice='';
     const safeEndpoint=APPROVED_PROXY_ENDPOINT&&
       ['https','socks5'].includes(APPROVED_PROXY_ENDPOINT.scheme)&&
       typeof APPROVED_PROXY_ENDPOINT.host==='string'&&
       Number.isSafeInteger(APPROVED_PROXY_ENDPOINT.port)?APPROVED_PROXY_ENDPOINT:null;
-    // A technical proxy route alone is NEVER an entitlement. A fresh
-    // real Provider snapshot must independently prove membership.
     const hasEntitlement=()=>Boolean(endpoints&&snapshot&&estimatedServerNow()!==null&&
       snapshot.account?.state==='bound'&&snapshot.entitlements?.some(row=>
         row.status==='active'&&(row.type!=='time'||row.expiresAt>estimatedServerNow())));
+    const validState=state=>state&&['enabled','disabled','conflict','unavailable'].includes(state.state)&&
+      typeof state.canStop==='boolean'&&typeof state.permission==='boolean'&&
+      ['not_controllable','controlled_by_other_extensions','controllable_by_this_extension',
+        'controlled_by_this_extension','unknown'].includes(state.control);
+    const released=state=>validState(state)&&state.state==='disabled'&&
+      state.canStop===false&&state.permission===true&&state.control==='controllable_by_this_extension';
+    const canStop=()=>stopRequired||starting||current?.canStop===true;
     const paint=()=>{
-      status.textContent=!sdk?'SDK 不可用':!current?'尚未读取':
-        ({enabled:'已启用',disabled:'已停止',conflict:'代理被占用',
-          unavailable:'需要恢复'})[current.state]||'未知';
-      enable.disabled=working||!sdk||!safeEndpoint||
-        current?.state!=='disabled'||!hasEntitlement();
-      disable.disabled=working||!sdk||current?.canStop!==true;
-      refresh.disabled=working||!sdk;
-      if(!sdk)detail.textContent='当前浏览器未提供已批准的 Managed Proxy SDK。';
-      else if(current?.canStop)detail.textContent=
-        '已存在当前安装的代理资源，可独立于会员或 Provider 停止；不会清除其他工具的代理。';
-      else if(current?.state==='conflict')detail.textContent=
-        '浏览器级代理控制权冲突。不会覆盖其他扩展、策略或旧版安装。';
-      else if(!safeEndpoint)detail.textContent=
-        '正式代理 Provider 尚未配置，无法启用；刷新与已有代理 STOP 仍可用。';
-      else if(!hasEntitlement())detail.textContent=
-        '会员权益尚未由正式服务验证，禁止仅凭代理设置启用访问。';
+      const stop=canStop();
+      status.textContent=!sdk?'SDK 不可用':stopping?'正在停用':
+        starting?'启用请求待确认':stopRequired?'停用待确认':!current?'尚未确认':
+        current.state==='disabled'?(released(current)?'已停止':'尚未确认'):
+        ({enabled:'已启用',conflict:'代理被占用',unavailable:'需要恢复'})[current.state];
+      // Keep both established IDs, but expose exactly one primary action.
+      enable.hidden=stop;disable.hidden=!stop;
+      enable.disabled=starting||stopping||reading||!sdk||!safeEndpoint||!released(current)||!hasEntitlement();
+      disable.disabled=stopping||!sdk||typeof sdk.requestDisable!=='function'||!stop;
+      disable.textContent=stopping?'正在停用…':'停用代理';
+      refresh.disabled=reading||starting||stopping||!sdk;
+      if(notice)detail.textContent=notice;
+      else if(!sdk)detail.textContent='当前浏览器未提供已批准的 Managed Proxy SDK。';
+      else if(stop)detail.textContent='可请求停用当前安装的代理意图；不依赖会员或 Provider。释放须经 Chrome 回读确认，不会清除其他所有者配置。';
+      else if(current?.state==='conflict')detail.textContent='浏览器级代理控制权冲突。不会覆盖其他扩展、策略或旧版安装。';
+      else if(!safeEndpoint)detail.textContent='正式代理 Provider 尚未配置，无法启用；刷新与已有代理 STOP 仍可用。';
+      else if(!hasEntitlement())detail.textContent='会员权益尚未由正式服务验证，禁止仅凭代理设置启用访问。';
       else detail.textContent='启用需经可信 Side Panel 单次确认，目标站点采用严格代理分流。';
     };
+    refreshProxyPresentation=paint;
     async function update(){
-      if(!sdk||working)return;
-      working=true;paint();
+      if(!sdk||starting||stopping)return;
+      const token=operation,read=++readSequence;
+      reading=true;paint();
       try{
         const state=await sdk.getStatus();
-        if(!state||typeof state.state!=='string')throw Error('代理状态回执无效');
+        if(token!==operation||read!==readSequence)return;
+        if(!validState(state))throw Error('代理状态回执无效');
         current=state;
+        if(stopConfirmed&&released(state))stopRequired=false;
+        notice=stopRequired?'停用仍待确认；请明确请求 STOP，不能凭刷新推断已释放。':'';
       }catch(error){
-        current=null;
-        detail.textContent='代理状态无法确认（'+String(error?.code||'E_PROXY_STATUS').slice(0,50)+'）。';
-      }finally{working=false;paint();}
+        if(token!==operation||read!==readSequence)return;
+        // Forget the stale displayed state, retain the owned STOP affordance.
+        stopRequired=canStop();current=null;
+        notice='代理状态无法确认（'+String(error?.code||'E_PROXY_STATUS').slice(0,50)+'）；未确认释放。';
+      }finally{if(read===readSequence){reading=false;paint();}}
     }
     refresh.addEventListener('click',event=>{
       if(event?.isTrusted===true)void update();
     });
     enable.addEventListener('click',async event=>{
-      if(event?.isTrusted!==true||working||!safeEndpoint||!hasEntitlement()||
-        current?.state!=='disabled'||typeof sdk?.requestEnable!=='function')return;
-      working=true;paint();
+      if(event?.isTrusted!==true||starting||stopping||reading||canStop()||!safeEndpoint||!hasEntitlement()||
+        !released(current)||typeof sdk?.requestEnable!=='function')return;
+      const token=++operation;++readSequence;reading=false;
+      starting=true;stopRequired=true;stopConfirmed=false;notice='启用请求在途，仍可主动请求 STOP。';paint();
       try{
-        await sdk.requestEnable({config:{endpoint:{...safeEndpoint},
-          domains:[...AI_PROXY_DOMAINS]}});
-        detail.textContent='已提交可信启用请求，正在核对 Chrome 原生状态。';
+        const state=await sdk.requestEnable({config:{endpoint:{...safeEndpoint},domains:[...AI_PROXY_DOMAINS]}});
+        if(token!==operation)return;
+        if(!validState(state))throw Error('启用回执无效');
+        current=state;
+        // An acknowledged owned enable is stoppable; it is not a release.
+        stopRequired=state.canStop!==true;
+        notice=state.state==='enabled'&&state.canStop?'':
+          '启用未确认；请明确 STOP，勿盲目重试。';
       }catch(error){
-        detail.textContent='启用未确认（'+String(error?.code||'E_PROXY').slice(0,50)+'）；请刷新或明确 STOP，勿盲目重试。';
-      }finally{working=false;paint();void update();}
+        if(token===operation)notice='启用未确认（'+String(error?.code||'E_PROXY').slice(0,50)+'）；请明确 STOP，勿盲目重试。';
+      }finally{
+        starting=false;
+        if(token!==operation){
+          // STOP owns the newer intent. Never paint or trust a late START ack.
+          if(!stopping)void update();
+        }else paint();
+      }
     });
     disable.addEventListener('click',async event=>{
-      if(event?.isTrusted!==true||working||current?.canStop!==true||
-        typeof sdk?.requestDisable!=='function')return;
-      working=true;paint();
+      if(event?.isTrusted!==true||stopping||!canStop()||typeof sdk?.requestDisable!=='function')return;
+      const token=++operation;++readSequence;reading=false;
+      stopping=true;stopRequired=true;stopConfirmed=false;notice='正在请求 STOP；尚未确认释放。';paint();
       try{
-        await sdk.requestDisable();
-        detail.textContent='STOP 已请求并核对 Chrome；请刷新确认已释放。';
+        const state=await sdk.requestDisable();
+        if(token!==operation)return;
+        if(!validState(state))throw Error('停用回执无效');
+        current=state;stopConfirmed=released(state);
+        stopRequired=!stopConfirmed||starting;
+        notice=stopRequired?'STOP 释放仍未确认；保留停用入口，等待在途请求结束后核对。':'Chrome 已确认当前安装的代理已释放。';
       }catch(error){
-        detail.textContent='STOP 仍待确认（'+String(error?.code||'E_PROXY_STOP').slice(0,50)+'），不会覆盖其他代理配置。';
-      }finally{working=false;paint();void update();}
+        if(token===operation)notice='STOP 仍待确认（'+String(error?.code||'E_PROXY_STOP').slice(0,50)+'）；不会覆盖其他代理配置。';
+      }finally{if(token===operation){stopping=false;paint();}}
     });
     void update();
   }

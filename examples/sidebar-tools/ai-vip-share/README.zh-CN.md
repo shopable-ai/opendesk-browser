@@ -3,6 +3,16 @@
 正式工具 ID：`ai-vip-share`；源码目录：`examples/sidebar-tools/ai-vip-share/`。
 用户从 OpenDesk Browser「扩展」安装，不需要持有浏览器项目源码；本工具不提供任意节点、PAC 编辑器、Cookie 会话移植或常驻日志。
 
+## 当前正式源码：R5.9 / 1.3.1
+
+唯一可导入包为本目录的 [`ai-vip-share.opendesk-tool.json`](ai-vip-share.opendesk-tool.json)，由唯一打包器验证候选后晋升。正式顺序为会员 → 兑换 → 商品 → 代理；沿用原控件 ID、opaque-origin 沙箱、现有安装存储和公共 Browser SDK。当前 v2 能力为 `storage.local`、`network`、`browser.tabs`、`browser.proxy.managed`；R2–R5.2 下文关于旧 `aiAccess.*` 与 `SDK_BLOCKED` 的描述仅是历史，不能当作当前接线。
+
+代理仅显示一个启停主按钮。START 等待期间可主动 STOP；晚到 START 与旧状态读取不能覆盖 STOP，未证明释放时保留停用入口与待确认提示。停用不依赖会员、商业 Provider 或合法启用端点。会员核验成功后会同步刷新启用条件，失败信息不会被普通重绘吞掉。兑换继续先预检、再本人确认；持久事务读回按已验证字段比较，写入等待后再次检查预检时限。存储暂时读取失败可主动重试；未知事务不自动重发、清除或认定成功。
+
+正式 `BUSINESS_ENDPOINTS` 四项、商品目录及 `APPROVED_PROXY_ENDPOINT` 仍为空。会员/兑换/商品与代理联网仍 `PROVIDER_BLOCKED`；专属激活 ticket 的安装意图续接仍未实施，需要正式服务和可信安装核验合同，不能把兑换恢复记录当作已实现的安装续接。测试中的会员、回执、目录和端点替身只存在于 Node VM，不进入可安装包。
+
+本轮真实 CFT 156 的开发侧栏已完成产品导入、确认安装、主动打开、公共代理 `getStatus` 原生点击刷新和重开；确认安装包同源、服务未配置时禁用业务控件、沙箱 `window.origin === 'null'` 且无 `chrome.runtime`。这不证明真实商业兑换、代理 START/STOP、安装 ticket 或 Native PASS，也不代表 production 静态包验收。原始证据、包 SHA 和分层状态见 [R5.9 工作记录](../../../docs/framework/workstreams/ai-vip-share-r59-formal-core-20261016.md)。
+
 ## 产品设计与原型（R4）
 
 会员账号、权益、专属激活链接、安装引导及更多商品的历史产品规范：[`DESIGN.zh-CN.md`](DESIGN.zh-CN.md)。
@@ -11,8 +21,11 @@
 ## 本地构建与验证
 
 ```sh
-npm run build:sidebar-tool -- examples/sidebar-tools/ai-vip-share
-node --test tests/environment/ai-vip-share-r2.test.mjs
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ai-vip-share --out artifacts/sidebar-tools/ai-vip-share/candidate.opendesk-tool.json
+node --test tests/environment/ai-vip-share-r5-ui.test.mjs tests/environment/ai-vip-share-r51-member.test.mjs tests/environment/ai-vip-share-r59-proxy-ui.test.mjs tests/environment/sidebar-tools.test.mjs
+# 仅在门禁通过且候选仍与源码逐字节匹配后：
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ai-vip-share --promote-from artifacts/sidebar-tools/ai-vip-share/candidate.opendesk-tool.json
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ai-vip-share --check-project
 ```
 
 ## 安装身份迁移
@@ -20,7 +33,7 @@ node --test tests/environment/ai-vip-share-r2.test.mjs
 `ai-vip-share` 是新的独立安装身份，不能自动继承 `ai-smart-access` 的安装授权、epoch、激活租约或启用状态。
 旧版工具应在代理释放后明确卸载，再审核安装新版。旧版卸载只能清理旧身份数据，不能覆盖新版可能持有的代理设置。
 
-## 当前过渡架构与阻塞
+## 历史过渡架构与阻塞（R2，已被公共 SDK 迁移取代）
 
 新目录目前承载 UI 和声明式包配置；Chrome 全局代理控制仍由旧的宿主
 `src/ai-smart-access/` 的 R1 可信模块提供。`aiAccess.*` 只是内部过渡协议，
