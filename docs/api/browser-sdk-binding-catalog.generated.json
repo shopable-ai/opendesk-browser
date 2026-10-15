@@ -4,8 +4,8 @@
   "generationPolicy": "DERIVED_METADATA_ONLY_NOT_A_PERMISSION_GRANT",
   "chromiumSourceCommit": "b5485910372708cd11d9a814a3e382fe8da57df3",
   "counts": {
-    "approved": 67,
-    "public": 65,
+    "approved": 70,
+    "public": 68,
     "hostOnly": 2
   },
   "bindings": [
@@ -1565,6 +1565,74 @@
       "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable"
     },
     {
+      "operation": "browser.i18n.detectLanguage",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "DIRECT",
+      "nativeApis": [
+        "chrome.i18n.detectLanguage"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.i18n.detectLanguage",
+          "kind": "METHOD",
+          "signature": "detectLanguage(text: string): Promise<object>",
+          "parameters": [
+            {
+              "name": "text",
+              "type": "string",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<object>"
+        }
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.i18n.detectLanguage",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.i18n"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "none",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request"
+    },
+    {
+      "operation": "browser.i18n.getAcceptLanguages",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "DIRECT",
+      "nativeApis": [
+        "chrome.i18n.getAcceptLanguages"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.i18n.getAcceptLanguages",
+          "kind": "METHOD",
+          "signature": "getAcceptLanguages(): Promise<array>",
+          "parameters": [],
+          "returnType": "Promise<array>"
+        }
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.i18n.getAcceptLanguages",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.i18n"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "none",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 1024,
+      "maxResponseBytes": 8192,
+      "lifecycle": "request"
+    },
+    {
       "operation": "browser.launch.consume",
       "visibility": "APPROVED_TOOL_REGISTERED",
       "mode": "CUSTOM",
@@ -1976,6 +2044,37 @@
       "maxRequestBytes": 12000,
       "maxResponseBytes": 12000,
       "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable"
+    },
+    {
+      "operation": "browser.runtime.getPlatformInfo",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "DIRECT",
+      "nativeApis": [
+        "chrome.runtime.getPlatformInfo"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.runtime.getPlatformInfo",
+          "kind": "METHOD",
+          "signature": "getPlatformInfo(): Promise<$ref:PlatformInfo>",
+          "parameters": [],
+          "returnType": "Promise<$ref:PlatformInfo>"
+        }
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.runtime.getPlatformInfo",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.runtime"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "none",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 1024,
+      "maxResponseBytes": 1024,
+      "lifecycle": "request"
     },
     {
       "operation": "browser.scheduler.cancelOwn",

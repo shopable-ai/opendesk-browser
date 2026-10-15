@@ -3,6 +3,7 @@
 // only precompiled audited adapters, never an untrusted native method string.
 import {BROWSER_OPERATIONS,normalizeBrowserOperation} from './browser-contract.js';
 import {fail,jsonValue} from './registry.js';
+import {validateDirectBrowserValue} from './browser-schemas.js';
 
 const isRecord=value=>value!==null&&typeof value==='object'&&!Array.isArray(value)&&
   [Object.prototype,null].includes(Object.getPrototypeOf(value));
@@ -69,7 +70,7 @@ export function createApprovedBrowserBindings(routes,{
   registry=BROWSER_OPERATIONS,nativeDirect=null,normalize=normalizeBrowserOperation
 }={}){
   if(!isRecord(routes))throw fail('E_CONTRACT','Trusted Browser binding table required');
-  const table=Object.create(null);
+  const table=Object.create(null),directOperations=new Set();
   const register=(operation,run)=>{
     const entry=Object.hasOwn(registry,operation)?registry[operation]:null;
     if(!entry||entry.implementation!=='IMPLEMENTED'||
@@ -117,8 +118,10 @@ export function createApprovedBrowserBindings(routes,{
       throw fail('E_CONTRACT','Compiled Native DIRECT binding list required');
     // No handler strings are read from tool input. Duplicate/unknown bindings
     // fail at construction, before any request can reach a native method.
-    for(const descriptor of nativeDirect.descriptors)
+    for(const descriptor of nativeDirect.descriptors){
       register(descriptor.operation,nativeDirectRoute(descriptor,nativeDirect.api,registry));
+      directOperations.add(descriptor.operation);
+    }
   }
   Object.freeze(table);
   return Object.freeze({
@@ -149,6 +152,7 @@ export function createApprovedBrowserBindings(routes,{
         if(typeof encoded!=='string')throw fail('E_VALUE_SERIALIZATION','Browser result is not JSON');
         if(new TextEncoder().encode(encoded).byteLength>entry.maxResponseBytes)
           throw fail('E_LIMIT','Browser result exceeds declared IPC budget');
+        if(directOperations.has(operation))validateDirectBrowserValue(result,entry.outputSchema);
       }catch(error){
         if(entry.effectClass!=='read')
           throw fail('E_OUTCOME_UNKNOWN','Browser effect completed but its receipt is invalid');

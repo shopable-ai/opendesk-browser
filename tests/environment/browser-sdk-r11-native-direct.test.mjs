@@ -16,13 +16,17 @@ const op='browser.runtime.getPlatformInfo';
 // the repository Registry and never delivered to an installed sandbox.
 function fixture(){
   const matrix=structuredClone(pinned);
+  const compiled=new Set(APPROVED_BROWSER_DIRECT_BINDINGS.map(row=>row.operation));
+  matrix.approvedOperations=matrix.approvedOperations.filter(row=>!compiled.has(row.id));
+  for(const row of matrix.nativeInterfaces)row.approvedOperationIds=row.approvedOperationIds.filter(id=>!compiled.has(id));
+  const baseRegistry=Object.fromEntries(Object.entries(BROWSER_OPERATIONS).filter(([id])=>!compiled.has(id)));
   const native=matrix.nativeInterfaces.find(x=>x.nativeApi==='chrome.runtime.getPlatformInfo');
   assert(native&&native.kind==='METHOD'&&native.returnType.startsWith('Promise<'));
   native.approvedOperationIds.push(op);
   const row={
     id:op,visibility:'APPROVED_TOOL_REGISTERED',mappingKind:'DIRECT',
     nativeApis:[native.nativeApi],allowedWorlds:['sidebar-tool'],
-    siteScope:'none',userGesture:false,chromePermissions:[],toolCapabilities:[],
+    effectClass:'read',siteScope:'none',userGesture:false,chromePermissions:[],toolCapabilities:[],
     maxRequestBytes:12000,maxResponseBytes:12000,lifecycle:'request',
     support:{desktopChromeMinimum:138},
     inputSchema:{type:'object',properties:{},required:[],additionalProperties:false},
@@ -32,27 +36,28 @@ function fixture(){
   matrix.approvedOperations.push(row);
   // No hand-written Registry row: compile the same approved descriptor and
   // expose it to the existing Host/SDK operation table automatically.
-  const descriptors=deriveBrowserDirectBindings(matrix);
+  const descriptors=deriveBrowserDirectBindings(matrix,baseRegistry);
   assert.equal(descriptors.length,1);
-  const registry={...BROWSER_OPERATIONS,...deriveBrowserDirectOperations(descriptors)};
+  const registry={...baseRegistry,...deriveBrowserDirectOperations(descriptors)};
   assert.equal(registry[op].requiredCapabilities.length,0);
   assert.deepEqual(registry[op].inputSchema,row.inputSchema);
   assert.deepEqual(registry[op].outputSchema,row.outputSchema);
   const pair=deriveBrowserDirectSchemas(descriptors).get(op);
   assert.deepEqual(pair,[row.inputSchema,row.outputSchema]);
   const projected=deriveBrowserBindingCatalog(matrix,registry);
-  assert.equal(projected.counts.public,Object.keys(BROWSER_OPERATIONS).length+1,
+  assert.equal(projected.counts.public,Object.keys(baseRegistry).length+1,
     'The synthetic approval adds exactly one public API only to this test');
-  assert.equal(projected.counts.approved,pinned.approvedOperations.length+1,
+  assert.equal(projected.counts.approved,pinned.approvedOperations.length-compiled.size+1,
     'The approved discovery matrix is unchanged outside this test');
+  assert.deepEqual(deriveBrowserBindingCatalog(matrix,baseRegistry),projected,
+    'First generation bootstraps an approved API absent from the runtime Registry');
   return {matrix,registry,descriptors};
 }
 
-test('R11 native: current 67 approved operations cannot silently become arbitrary Chrome RPC',()=>{
-  assert.deepEqual(deriveBrowserDirectBindings(pinned),[]);
-  assert.deepEqual(APPROVED_BROWSER_DIRECT_BINDINGS,[]);
-  assert.match(renderBrowserDirectModule(APPROVED_BROWSER_DIRECT_BINDINGS),
-    /APPROVED_BROWSER_DIRECT_BINDINGS=Object.freeze\(\[\]\)/);
+test('R11 native: production approval is finite and cannot become arbitrary Chrome RPC',()=>{
+  assert.deepEqual(deriveBrowserDirectBindings(pinned),APPROVED_BROWSER_DIRECT_BINDINGS);
+  assert.equal(APPROVED_BROWSER_DIRECT_BINDINGS.length,3);
+  assert.match(renderBrowserDirectModule(APPROVED_BROWSER_DIRECT_BINDINGS),/browser.i18n.detectLanguage/);
   assert.throws(()=>createApprovedBrowserBindings({},{nativeDirect:{
     api:{runtime:{getPlatformInfo:()=>({os:'mac'})}},
     descriptors:[{operation:op,mode:'DIRECT',
@@ -86,7 +91,7 @@ test('R11 native: changing matrix name or scoped/mutating operation cannot grant
   const {matrix,registry,descriptors}=fixture();
   for(const [field,value] of [
     ['nativeApis',['chrome.runtime.getManifest']],
-    ['userGesture',true],['siteScope','all-sites'],['allowedWorlds',['page-sdk']]
+    ['effectClass','write'],['userGesture',true],['siteScope','all-sites'],['allowedWorlds',['page-sdk']]
   ]){
     const forged=structuredClone(matrix);
     forged.approvedOperations.find(x=>x.id===op)[field]=value;

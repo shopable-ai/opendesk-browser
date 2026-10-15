@@ -148,6 +148,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     'focus.control':'按单独批准的网站执行每日额度、时段与专注限制，Chrome DNR 拦截（仅本机）',
     'adblock.control':'经可信 Chrome 授权启停第三方广告过滤，仅管理本工具规则',
     'ai.access':'仅由可信按钮管理 AI 网站自动代理，需要 Chrome 代理权限；其余网站直连',
+    'browser.runtime':'读取操作系统和处理器架构，用于工具兼容性判断',
+    'browser.i18n':'读取浏览器语言偏好并识别工具提供的文本语言',
     'browser.contextMenu':'在明确授权的网站显示 Chrome 右键菜单（最多三项）',
     'browser.scheduler':'经确认定时执行已安装的固定任务版本，只管理本工具的计划',
     'browser.tabs':'经用户单次批准打开或聚焦自己获准的标签页',

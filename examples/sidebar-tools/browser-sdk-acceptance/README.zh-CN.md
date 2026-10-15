@@ -1,3 +1,5 @@
+> R11.3：预备验收包升级到 11.3.0，显式增加 `browser.runtime` / `browser.i18n`，三个正式 DIRECT 方法可从原有合同选择器调用。保留独立 Full Bookmarks 授权，不隐式增加 Full 能力。原生验证仍待实际 Chrome。
+
 # Browser SDK Acceptance R10.6
 
 这是 R10.6 真实 Chrome 驱动准备用的普通 `opendesk.sidebar-tool.v2` 工具源码。它不是新的 Chrome 扩展、不是第二套 Browser Host，也不直接调用 `chrome.*`。所有业务动作都从用户按钮触发，并只通过 `OpenDeskSDK.browser` 调用正式 Browser SDK。

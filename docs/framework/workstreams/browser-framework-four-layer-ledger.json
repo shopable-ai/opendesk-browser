@@ -30,15 +30,15 @@
     }
   ],
   "counts": {
-    "formal": 65,
-    "implemented": 65,
+    "formal": 68,
+    "implemented": 68,
     "planned": 0,
     "notExposed": 0,
     "candidateGroups": 27,
     "originalCandidates": 114,
     "promoted": 23,
     "pending": 91,
-    "uniqueNamedMethods": 156,
+    "uniqueNamedMethods": 159,
     "cookieSdkFormal": 11,
     "cookieCandidates": 10,
     "formalNativePass": 0,
@@ -2208,6 +2208,102 @@
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
       },
       "candidateOrigin": null
+    },
+    {
+      "id": "browser.i18n.detectLanguage",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.i18n.detectLanguage",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/context-menus.js",
+          "src/framework/sdk/browser-bindings.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.i18n"
+        ],
+        "chromePermissions": [],
+        "siteScope": "none"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.i18n.getAcceptLanguages",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.i18n.getAcceptLanguages",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/context-menus.js",
+          "src/framework/sdk/browser-bindings.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.i18n"
+        ],
+        "chromePermissions": [],
+        "siteScope": "none"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
+    },
+    {
+      "id": "browser.runtime.getPlatformInfo",
+      "inventory": "FORMAL",
+      "layer1": {
+        "api": "chrome.runtime.getPlatformInfo",
+        "status": "CHROME_REFERENCE_NOT_NATIVE_PASS"
+      },
+      "layer2": {
+        "status": "SOURCE_WIRED",
+        "files": [
+          "src/platform/chrome/context-menus.js",
+          "src/framework/sdk/browser-bindings.js"
+        ]
+      },
+      "layer3": {
+        "status": "IMPLEMENTED",
+        "exposure": "APPROVED_TOOL",
+        "capabilities": [
+          "browser.runtime"
+        ],
+        "chromePermissions": [],
+        "siteScope": "none"
+      },
+      "layer4": {
+        "positive": "NOT_TESTED",
+        "denial": "NOT_TESTED",
+        "macChrome": "NOT_TESTED",
+        "callableNow": "NOT_TESTED",
+        "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "candidateOrigin": null
     }
   ],
   "candidateCatalog": [
@@ -2237,6 +2333,10 @@
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "execution": {
+        "status": "APPROVED",
+        "executionMode": "SCOPED"
       }
     },
     {
@@ -2265,6 +2365,10 @@
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "execution": {
+        "status": "APPROVED",
+        "executionMode": "SCOPED"
       }
     },
     {
@@ -2293,6 +2397,10 @@
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "execution": {
+        "status": "APPROVED",
+        "executionMode": "SCOPED"
       }
     },
     {
@@ -2321,6 +2429,10 @@
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "execution": {
+        "status": "APPROVED",
+        "executionMode": "SCOPED"
       }
     },
     {
@@ -2349,6 +2461,10 @@
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "execution": {
+        "status": "APPROVED",
+        "executionMode": "SCOPED"
       }
     },
     {
@@ -2374,6 +2490,16 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.cookies.getStores",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "SDK",
+        "reason": "使用 getCurrentStore 的受限当前站点语义，不枚举所有 Cookie Store",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "消费端采用已批准正式方法及其受限语义；不增加旧名称 Wrapper",
+        "canonicalTarget": "browser.cookies.getCurrentStore"
       }
     },
     {
@@ -2402,6 +2528,10 @@
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "execution": {
+        "status": "APPROVED",
+        "executionMode": "SCOPED"
       }
     },
     {
@@ -2430,6 +2560,10 @@
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "execution": {
+        "status": "APPROVED",
+        "executionMode": "SCOPED"
       }
     },
     {
@@ -2458,6 +2592,10 @@
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "execution": {
+        "status": "APPROVED",
+        "executionMode": "SCOPED"
       }
     },
     {
@@ -2486,6 +2624,10 @@
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "execution": {
+        "status": "APPROVED",
+        "executionMode": "SCOPED"
       }
     },
     {
@@ -2511,6 +2653,16 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.tabs.getActive",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "SDK",
+        "reason": "复用 browser-tabs；新增动作须保持 Owned TabRef/Document/安装身份和用户意图边界",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "消费端采用已批准正式方法及其受限语义；不增加旧名称 Wrapper",
+        "canonicalTarget": "browser.page.getContext"
       }
     },
     {
@@ -2538,6 +2690,10 @@
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "execution": {
+        "status": "APPROVED",
+        "executionMode": "SCOPED"
       }
     },
     {
@@ -2565,6 +2721,10 @@
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "execution": {
+        "status": "APPROVED",
+        "executionMode": "SCOPED"
       }
     },
     {
@@ -2592,6 +2752,10 @@
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "execution": {
+        "status": "APPROVED",
+        "executionMode": "SCOPED"
       }
     },
     {
@@ -2619,6 +2783,10 @@
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "execution": {
+        "status": "APPROVED",
+        "executionMode": "SCOPED"
       }
     },
     {
@@ -2646,6 +2814,10 @@
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "execution": {
+        "status": "APPROVED",
+        "executionMode": "SCOPED"
       }
     },
     {
@@ -2671,6 +2843,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.tabs.duplicateOwned",
+        "status": "CANDIDATE",
+        "executionMode": "SCOPED",
+        "owner": "SDK",
+        "reason": "复用 browser-tabs；新增动作须保持 Owned TabRef/Document/安装身份和用户意图边界",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -2698,6 +2879,10 @@
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "execution": {
+        "status": "APPROVED",
+        "executionMode": "SCOPED"
       }
     },
     {
@@ -2723,6 +2908,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.windows.getCurrent",
+        "status": "CANDIDATE",
+        "executionMode": "SCOPED",
+        "owner": "SDK",
+        "reason": "需要工具拥有的 WindowRef；不能暴露用户其他窗口或把当前窗口当作 Owned",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -2748,6 +2942,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.windows.openOwned",
+        "status": "CANDIDATE",
+        "executionMode": "SCOPED",
+        "owner": "SDK",
+        "reason": "需要工具拥有的 WindowRef；不能暴露用户其他窗口或把当前窗口当作 Owned",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -2773,6 +2976,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.windows.focusOwned",
+        "status": "CANDIDATE",
+        "executionMode": "SCOPED",
+        "owner": "SDK",
+        "reason": "需要工具拥有的 WindowRef；不能暴露用户其他窗口或把当前窗口当作 Owned",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -2798,6 +3010,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.windows.closeOwned",
+        "status": "CANDIDATE",
+        "executionMode": "SCOPED",
+        "owner": "SDK",
+        "reason": "需要工具拥有的 WindowRef；不能暴露用户其他窗口或把当前窗口当作 Owned",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -2823,6 +3044,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.windows.listOwned",
+        "status": "CANDIDATE",
+        "executionMode": "SCOPED",
+        "owner": "SDK",
+        "reason": "需要工具拥有的 WindowRef；不能暴露用户其他窗口或把当前窗口当作 Owned",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -2848,6 +3078,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.tabGroups.listOwned",
+        "status": "CANDIDATE",
+        "executionMode": "SCOPED",
+        "owner": "SDK",
+        "reason": "必须验证每个成员 TabRef 与 group 所有权，复用既有标签 Driver",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -2873,6 +3112,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.tabGroups.groupOwned",
+        "status": "CANDIDATE",
+        "executionMode": "SCOPED",
+        "owner": "SDK",
+        "reason": "必须验证每个成员 TabRef 与 group 所有权，复用既有标签 Driver",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -2898,6 +3146,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.tabGroups.updateOwned",
+        "status": "CANDIDATE",
+        "executionMode": "SCOPED",
+        "owner": "SDK",
+        "reason": "必须验证每个成员 TabRef 与 group 所有权，复用既有标签 Driver",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -2923,6 +3180,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.tabGroups.moveOwned",
+        "status": "CANDIDATE",
+        "executionMode": "SCOPED",
+        "owner": "SDK",
+        "reason": "必须验证每个成员 TabRef 与 group 所有权，复用既有标签 Driver",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -2948,6 +3214,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.tabGroups.ungroupOwned",
+        "status": "CANDIDATE",
+        "executionMode": "SCOPED",
+        "owner": "SDK",
+        "reason": "必须验证每个成员 TabRef 与 group 所有权，复用既有标签 Driver",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -2971,6 +3246,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.sessions.listRecentlyClosed",
+        "status": "CANDIDATE",
+        "executionMode": "HOST_ONLY",
+        "owner": "可信宿主",
+        "reason": "最近关闭会话包含浏览历史；仅可信前台选择，不向普通工具枚举",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -2994,6 +3278,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.sessions.restoreExplicit",
+        "status": "CANDIDATE",
+        "executionMode": "HOST_ONLY",
+        "owner": "可信宿主",
+        "reason": "最近关闭会话包含浏览历史；仅可信前台选择，不向普通工具枚举",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -3022,6 +3315,10 @@
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "execution": {
+        "status": "APPROVED",
+        "executionMode": "SCOPED"
       }
     },
     {
@@ -3050,6 +3347,10 @@
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "execution": {
+        "status": "APPROVED",
+        "executionMode": "SCOPED"
       }
     },
     {
@@ -3078,6 +3379,10 @@
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "execution": {
+        "status": "APPROVED",
+        "executionMode": "SCOPED"
       }
     },
     {
@@ -3106,6 +3411,10 @@
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "execution": {
+        "status": "APPROVED",
+        "executionMode": "SCOPED"
       }
     },
     {
@@ -3134,6 +3443,10 @@
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "execution": {
+        "status": "APPROVED",
+        "executionMode": "SCOPED"
       }
     },
     {
@@ -3162,6 +3475,10 @@
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "execution": {
+        "status": "APPROVED",
+        "executionMode": "SCOPED"
       }
     },
     {
@@ -3190,6 +3507,10 @@
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "execution": {
+        "status": "APPROVED",
+        "executionMode": "SCOPED"
       }
     },
     {
@@ -3213,6 +3534,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.history.search",
+        "status": "CANDIDATE",
+        "executionMode": "HOST_ONLY",
+        "owner": "可信宿主",
+        "reason": "全局历史和删除只走已有 trusted History；不能作为普通 DIRECT",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -3236,6 +3566,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.history.getVisits",
+        "status": "CANDIDATE",
+        "executionMode": "HOST_ONLY",
+        "owner": "可信宿主",
+        "reason": "全局历史和删除只走已有 trusted History；不能作为普通 DIRECT",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -3259,6 +3598,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.history.deleteUrl",
+        "status": "CANDIDATE",
+        "executionMode": "HOST_ONLY",
+        "owner": "可信宿主",
+        "reason": "全局历史和删除只走已有 trusted History；不能作为普通 DIRECT",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -3282,6 +3630,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.history.deleteRange",
+        "status": "CANDIDATE",
+        "executionMode": "HOST_ONLY",
+        "owner": "可信宿主",
+        "reason": "全局历史和删除只走已有 trusted History；不能作为普通 DIRECT",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -3307,6 +3664,16 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.storage.get",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "SDK",
+        "reason": "复用工具 storage.local 命名空间和配额；不新增全局 Storage 入口",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "消费端采用已批准正式方法及其受限语义；不增加旧名称 Wrapper",
+        "canonicalTarget": "browser.storage.local.get"
       }
     },
     {
@@ -3332,6 +3699,16 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.storage.set",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "SDK",
+        "reason": "复用工具 storage.local 命名空间和配额；不新增全局 Storage 入口",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "消费端采用已批准正式方法及其受限语义；不增加旧名称 Wrapper",
+        "canonicalTarget": "browser.storage.local.set"
       }
     },
     {
@@ -3357,6 +3734,16 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.storage.remove",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "SDK",
+        "reason": "复用工具 storage.local 命名空间和配额；不新增全局 Storage 入口",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "消费端采用已批准正式方法及其受限语义；不增加旧名称 Wrapper",
+        "canonicalTarget": "browser.storage.local.remove"
       }
     },
     {
@@ -3382,6 +3769,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.storage.keys",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "SDK",
+        "reason": "复用工具 storage.local 命名空间和配额；不新增全局 Storage 入口",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -3407,6 +3803,16 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.storage.clear",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "SDK",
+        "reason": "复用工具 storage.local 命名空间和配额；不新增全局 Storage 入口",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "消费端采用已批准正式方法及其受限语义；不增加旧名称 Wrapper",
+        "canonicalTarget": "browser.storage.local.clear"
       }
     },
     {
@@ -3432,6 +3838,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.storage.getQuota",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "SDK",
+        "reason": "复用工具 storage.local 命名空间和配额；不新增全局 Storage 入口",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -3457,6 +3872,16 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.downloads.getOwn",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "SDK",
+        "reason": "复用 browser-downloads 的 DownloadRef；打开/显示/删除记录需作用域与用户确认合同",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "消费端采用已批准正式方法及其受限语义；不增加旧名称 Wrapper",
+        "canonicalTarget": "browser.downloads.getOwned"
       }
     },
     {
@@ -3482,6 +3907,16 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.downloads.listOwn",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "SDK",
+        "reason": "复用 browser-downloads 的 DownloadRef；打开/显示/删除记录需作用域与用户确认合同",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "消费端采用已批准正式方法及其受限语义；不增加旧名称 Wrapper",
+        "canonicalTarget": "browser.downloads.listOwned"
       }
     },
     {
@@ -3507,6 +3942,16 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.downloads.cancelOwn",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "SDK",
+        "reason": "复用 browser-downloads 的 DownloadRef；打开/显示/删除记录需作用域与用户确认合同",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "消费端采用已批准正式方法及其受限语义；不增加旧名称 Wrapper",
+        "canonicalTarget": "browser.downloads.cancelOwned"
       }
     },
     {
@@ -3532,6 +3977,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.downloads.openOwn",
+        "status": "CANDIDATE",
+        "executionMode": "SCOPED",
+        "owner": "SDK",
+        "reason": "复用 browser-downloads 的 DownloadRef；打开/显示/删除记录需作用域与用户确认合同",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -3557,6 +4011,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.downloads.revealOwn",
+        "status": "CANDIDATE",
+        "executionMode": "SCOPED",
+        "owner": "SDK",
+        "reason": "复用 browser-downloads 的 DownloadRef；打开/显示/删除记录需作用域与用户确认合同",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -3582,6 +4045,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.downloads.eraseOwnHistory",
+        "status": "CANDIDATE",
+        "executionMode": "SCOPED",
+        "owner": "SDK",
+        "reason": "复用 browser-downloads 的 DownloadRef；打开/显示/删除记录需作用域与用户确认合同",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -3605,6 +4077,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.browsingData.previewSite",
+        "status": "CANDIDATE",
+        "executionMode": "HOST_ONLY",
+        "owner": "可信宿主",
+        "reason": "破坏性网站数据清理需要可信站点/类型选择、预览和确认",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -3628,6 +4109,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.browsingData.removeSiteData",
+        "status": "CANDIDATE",
+        "executionMode": "HOST_ONLY",
+        "owner": "可信宿主",
+        "reason": "破坏性网站数据清理需要可信站点/类型选择、预览和确认",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -3654,6 +4144,16 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.permissions.getStatus",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "可信宿主",
+        "reason": "复用现有 Authority/permission-gate；授权修改只由可信 UI 真实点击执行",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "消费端采用已批准正式方法及其受限语义；不增加旧名称 Wrapper",
+        "canonicalTarget": "browser.capabilities.getStatus"
       }
     },
     {
@@ -3680,6 +4180,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.permissions.listApprovedSites",
+        "status": "CANDIDATE",
+        "executionMode": "HOST_ONLY",
+        "owner": "可信宿主",
+        "reason": "复用现有 Authority/permission-gate；授权修改只由可信 UI 真实点击执行",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -3706,6 +4215,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.permissions.requestSite",
+        "status": "CANDIDATE",
+        "executionMode": "HOST_ONLY",
+        "owner": "可信宿主",
+        "reason": "复用现有 Authority/permission-gate；授权修改只由可信 UI 真实点击执行",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -3732,6 +4250,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.permissions.revokeSite",
+        "status": "CANDIDATE",
+        "executionMode": "HOST_ONLY",
+        "owner": "可信宿主",
+        "reason": "复用现有 Authority/permission-gate；授权修改只由可信 UI 真实点击执行",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -3758,6 +4285,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.permissions.requestCapability",
+        "status": "CANDIDATE",
+        "executionMode": "HOST_ONLY",
+        "owner": "可信宿主",
+        "reason": "复用现有 Authority/permission-gate；授权修改只由可信 UI 真实点击执行",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -3784,6 +4320,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.permissions.revokeCapability",
+        "status": "CANDIDATE",
+        "executionMode": "HOST_ONLY",
+        "owner": "可信宿主",
+        "reason": "复用现有 Authority/permission-gate；授权修改只由可信 UI 真实点击执行",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -3809,6 +4354,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.webNavigation.getCurrentFrame",
+        "status": "CANDIDATE",
+        "executionMode": "SCOPED",
+        "owner": "SDK",
+        "reason": "复用当前页/Owned 文档身份与有界事件；不得枚举跨站 Frame",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -3834,6 +4388,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.webNavigation.getApprovedFrames",
+        "status": "CANDIDATE",
+        "executionMode": "SCOPED",
+        "owner": "SDK",
+        "reason": "复用当前页/Owned 文档身份与有界事件；不得枚举跨站 Frame",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -3859,6 +4422,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.webNavigation.observe.start",
+        "status": "CANDIDATE",
+        "executionMode": "SCOPED",
+        "owner": "SDK",
+        "reason": "复用当前页/Owned 文档身份与有界事件；不得枚举跨站 Frame",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -3884,6 +4456,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.webNavigation.observe.stop",
+        "status": "CANDIDATE",
+        "executionMode": "SCOPED",
+        "owner": "SDK",
+        "reason": "复用当前页/Owned 文档身份与有界事件；不得枚举跨站 Frame",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -3909,6 +4490,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.scripting.runApproved",
+        "status": "CANDIDATE",
+        "executionMode": "DENIED",
+        "owner": "Controller 主线",
+        "reason": "普通工具不开放任意注入；复用 Controller/Page 已授权执行器",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -3934,6 +4524,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.scripting.insertApprovedCss",
+        "status": "CANDIDATE",
+        "executionMode": "DENIED",
+        "owner": "Controller 主线",
+        "reason": "普通工具不开放任意注入；复用 Controller/Page 已授权执行器",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -3959,6 +4558,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.scripting.removeApprovedCss",
+        "status": "CANDIDATE",
+        "executionMode": "DENIED",
+        "owner": "Controller 主线",
+        "reason": "普通工具不开放任意注入；复用 Controller/Page 已授权执行器",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -3984,6 +4592,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.scripting.listManaged",
+        "status": "CANDIDATE",
+        "executionMode": "DENIED",
+        "owner": "Controller 主线",
+        "reason": "普通工具不开放任意注入；复用 Controller/Page 已授权执行器",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4009,6 +4626,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.network.rules.listOwn",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "SDK/AdBlock 主线",
+        "reason": "复用受信 DNR 所有权、规则校验和配额；批准公共合同后绑定服务",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4034,6 +4660,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.network.rules.enableOwn",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "SDK/AdBlock 主线",
+        "reason": "复用受信 DNR 所有权、规则校验和配额；批准公共合同后绑定服务",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4059,6 +4694,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.network.rules.disableOwn",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "SDK/AdBlock 主线",
+        "reason": "复用受信 DNR 所有权、规则校验和配额；批准公共合同后绑定服务",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4084,6 +4728,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.network.rules.getStatus",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "SDK/AdBlock 主线",
+        "reason": "复用受信 DNR 所有权、规则校验和配额；批准公共合同后绑定服务",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4109,6 +4762,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.network.rules.updateOwn",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "SDK/AdBlock 主线",
+        "reason": "复用受信 DNR 所有权、规则校验和配额；批准公共合同后绑定服务",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4132,6 +4794,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.clipboard.readText",
+        "status": "CANDIDATE",
+        "executionMode": "HOST_ONLY",
+        "owner": "可信宿主",
+        "reason": "读取剪贴板与丰富内容写入需可信前台手势；不能在 SW 普通透传",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4155,6 +4826,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.clipboard.writeHtml",
+        "status": "CANDIDATE",
+        "executionMode": "HOST_ONLY",
+        "owner": "可信宿主",
+        "reason": "读取剪贴板与丰富内容写入需可信前台手势；不能在 SW 普通透传",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4178,6 +4858,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.clipboard.readImage",
+        "status": "CANDIDATE",
+        "executionMode": "HOST_ONLY",
+        "owner": "可信宿主",
+        "reason": "读取剪贴板与丰富内容写入需可信前台手势；不能在 SW 普通透传",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4203,6 +4892,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.screenshot.captureRegion",
+        "status": "CANDIDATE",
+        "executionMode": "COMPOSED",
+        "owner": "SDK",
+        "reason": "复用截图 Driver/资源；区域及全页需要选区、滚动/合成与文档一致性",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4228,6 +4926,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.screenshot.captureFullPage",
+        "status": "CANDIDATE",
+        "executionMode": "COMPOSED",
+        "owner": "SDK",
+        "reason": "复用截图 Driver/资源；区域及全页需要选区、滚动/合成与文档一致性",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4253,6 +4960,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.resources.getInfo",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "SDK",
+        "reason": "复用已有资源句柄/配额/撤销与导出；需要公开合同后自动绑定",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4278,6 +4994,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.resources.readChunk",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "SDK",
+        "reason": "复用已有资源句柄/配额/撤销与导出；需要公开合同后自动绑定",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4303,6 +5028,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.resources.release",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "SDK",
+        "reason": "复用已有资源句柄/配额/撤销与导出；需要公开合同后自动绑定",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4328,6 +5062,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.resources.saveAs",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "SDK",
+        "reason": "复用已有资源句柄/配额/撤销与导出；需要公开合同后自动绑定",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4353,6 +5096,16 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.scheduler.list",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "SDK",
+        "reason": "复用既有 Schedule Service/Repository；严格限本工具的固定任务版本",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "消费端采用已批准正式方法及其受限语义；不增加旧名称 Wrapper",
+        "canonicalTarget": "browser.scheduler.listOwn"
       }
     },
     {
@@ -4378,6 +5131,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.scheduler.get",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "SDK",
+        "reason": "复用既有 Schedule Service/Repository；严格限本工具的固定任务版本",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4406,6 +5168,10 @@
         "macChrome": "NOT_TESTED",
         "callableNow": "NOT_TESTED",
         "evidenceLedger": "docs/framework/workstreams/browser-sdk-acceptance.json"
+      },
+      "execution": {
+        "status": "APPROVED",
+        "executionMode": "EXISTING_SERVICE"
       }
     },
     {
@@ -4431,6 +5197,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.scheduler.update",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "SDK",
+        "reason": "复用既有 Schedule Service/Repository；严格限本工具的固定任务版本",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4456,6 +5231,16 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.scheduler.remove",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "SDK",
+        "reason": "复用既有 Schedule Service/Repository；严格限本工具的固定任务版本",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "消费端采用已批准正式方法及其受限语义；不增加旧名称 Wrapper",
+        "canonicalTarget": "browser.scheduler.cancelOwn"
       }
     },
     {
@@ -4481,6 +5266,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.scheduler.runNow",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "SDK",
+        "reason": "复用既有 Schedule Service/Repository；严格限本工具的固定任务版本",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4504,6 +5298,16 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.idle.getState",
+        "status": "CANDIDATE",
+        "executionMode": "DIRECT_CANDIDATE",
+        "owner": "SDK",
+        "reason": "状态/观察涉及用户活动，需显式 Capability、idle 权限和有界可撤销观察",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "先批准独立 idle Capability/权限与标量枚举响应合同；生成器支持后使用原生 queryState 名称，不在本批开放",
+        "proposedNative": "chrome.idle.queryState"
       }
     },
     {
@@ -4527,6 +5331,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.idle.observe.start",
+        "status": "CANDIDATE",
+        "executionMode": "SCOPED",
+        "owner": "SDK",
+        "reason": "状态/观察涉及用户活动，需显式 Capability、idle 权限和有界可撤销观察",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4550,6 +5363,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.idle.observe.stop",
+        "status": "CANDIDATE",
+        "executionMode": "SCOPED",
+        "owner": "SDK",
+        "reason": "状态/观察涉及用户活动，需显式 Capability、idle 权限和有界可撤销观察",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4575,6 +5397,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.notifications.getStatus",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "SDK",
+        "reason": "复用现有通知服务并核对通知 Owner；不枚举或删除其他工具通知",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4600,6 +5431,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.notifications.listOwn",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "SDK",
+        "reason": "复用现有通知服务并核对通知 Owner；不枚举或删除其他工具通知",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4625,6 +5465,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.notifications.closeOwn",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "SDK",
+        "reason": "复用现有通知服务并核对通知 Owner；不枚举或删除其他工具通知",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4648,6 +5497,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.commands.listConfigured",
+        "status": "CANDIDATE",
+        "executionMode": "HOST_ONLY",
+        "owner": "可信宿主",
+        "reason": "Chrome commands 属于宿主扩展；工具未拥有独立快捷键，需先决定分配合同",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4671,6 +5529,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.commands.getShortcut",
+        "status": "CANDIDATE",
+        "executionMode": "HOST_ONLY",
+        "owner": "可信宿主",
+        "reason": "Chrome commands 属于宿主扩展；工具未拥有独立快捷键，需先决定分配合同",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4694,6 +5561,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.omnibox.getStatus",
+        "status": "CANDIDATE",
+        "executionMode": "HOST_ONLY",
+        "owner": "可信宿主",
+        "reason": "Chrome omnibox 属于宿主扩展；无通用读取用户输入/建议的工具权限",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4717,6 +5593,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.omnibox.getSuggestions",
+        "status": "CANDIDATE",
+        "executionMode": "HOST_ONLY",
+        "owner": "可信宿主",
+        "reason": "Chrome omnibox 属于宿主扩展；无通用读取用户输入/建议的工具权限",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4740,6 +5625,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.readingList.list",
+        "status": "CANDIDATE",
+        "executionMode": "SCOPED",
+        "owner": "SDK",
+        "reason": "浏览器全局阅读列表需要独立显式授权、查询预算和写入确认，不能降为 DIRECT",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4763,6 +5657,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.readingList.add",
+        "status": "CANDIDATE",
+        "executionMode": "SCOPED",
+        "owner": "SDK",
+        "reason": "浏览器全局阅读列表需要独立显式授权、查询预算和写入确认，不能降为 DIRECT",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4786,6 +5689,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.readingList.update",
+        "status": "CANDIDATE",
+        "executionMode": "SCOPED",
+        "owner": "SDK",
+        "reason": "浏览器全局阅读列表需要独立显式授权、查询预算和写入确认，不能降为 DIRECT",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4809,6 +5721,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.readingList.remove",
+        "status": "CANDIDATE",
+        "executionMode": "SCOPED",
+        "owner": "SDK",
+        "reason": "浏览器全局阅读列表需要独立显式授权、查询预算和写入确认，不能降为 DIRECT",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4834,6 +5755,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.performance.getNavigation",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "Page/Controller 主线",
+        "reason": "复用已授权 Page 执行世界，性能数据仍绑定 Document；不是 Chrome API 透传",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4859,6 +5789,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.performance.getEntries",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "Page/Controller 主线",
+        "reason": "复用已授权 Page 执行世界，性能数据仍绑定 Document；不是 Chrome API 透传",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4884,6 +5823,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.performance.observe",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "Page/Controller 主线",
+        "reason": "复用已授权 Page 执行世界，性能数据仍绑定 Document；不是 Chrome API 透传",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4909,6 +5857,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.page.getMetadata",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "Page/Controller 主线",
+        "reason": "复用 Page/Controller 的已授权 DOM 能力与结果预算；保持 Origin/Document",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4934,6 +5891,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.page.getLinks",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "Page/Controller 主线",
+        "reason": "复用 Page/Controller 的已授权 DOM 能力与结果预算；保持 Origin/Document",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4959,6 +5925,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.page.getApprovedFrames",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "Page/Controller 主线",
+        "reason": "复用 Page/Controller 的已授权 DOM 能力与结果预算；保持 Origin/Document",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -4984,6 +5959,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.page.getDomSnapshot",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "Page/Controller 主线",
+        "reason": "复用 Page/Controller 的已授权 DOM 能力与结果预算；保持 Origin/Document",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -5009,6 +5993,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.contextMenu.listOwned",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "SDK",
+        "reason": "复用当前 contextMenu 服务和安装时贡献；不能动态注册未审阅动作",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -5034,6 +6027,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.contextMenu.updateOwned",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "SDK",
+        "reason": "复用当前 contextMenu 服务和安装时贡献；不能动态注册未审阅动作",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     },
     {
@@ -5059,6 +6061,16 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.diagnostics.getSdkStatus",
+        "status": "CANDIDATE",
+        "executionMode": "EXISTING_SERVICE",
+        "owner": "SDK",
+        "reason": "复用 capabilities 与诊断服务，导出前脱敏并限制结果大小",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "消费端采用已批准正式方法及其受限语义；不增加旧名称 Wrapper",
+        "canonicalTarget": "browser.capabilities.list"
       }
     },
     {
@@ -5084,6 +6096,15 @@
         "positive": "NOT_TESTED",
         "denial": "NOT_TESTED",
         "macChrome": "NOT_TESTED"
+      },
+      "execution": {
+        "id": "browser.diagnostics.exportRedactedReport",
+        "status": "CANDIDATE",
+        "executionMode": "COMPOSED",
+        "owner": "SDK",
+        "reason": "复用 capabilities 与诊断服务，导出前脱敏并限制结果大小",
+        "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+        "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
       }
     }
   ],

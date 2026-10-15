@@ -3,6 +3,7 @@ export const SESSION = '01234567-89ab-4def-8123-456789abcdef';
 export const ORIGIN = 'https://example.org';
 export const TARGET_URL = ORIGIN + '/sdk-probe';
 export const SAMPLE_ARGS = Object.freeze({
+  'browser.i18n.detectLanguage': {text:'Hello world'},
   'browser.capabilities.getStatus': {operation: 'browser.tabs.create'},
   'browser.contextMenu.register': {actionIds: ['sdk-probe']},
   'browser.clipboard.writeText': {text: 'sdk probe'},

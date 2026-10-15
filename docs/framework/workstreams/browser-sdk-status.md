@@ -1,3 +1,13 @@
+## R11.3 · 正式 DIRECT 批次（2026-10-15）
+
+70 项批准 = 68 项公开 + 2 项 Host-only。3 项 DIRECT 为正式矩阵生成，非测试批准夹具；验证状态见本轮工作流和现有验收账本。
+
+| API | Registry | Exposure | Node 正向 | Node 拒绝 | Chrome 原生 |
+| --- | --- | --- | --- | --- | --- |
+| `browser.runtime.getPlatformInfo` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.i18n.getAcceptLanguages` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.i18n.detectLanguage` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+
 ## R11.2 · Full Bookmarks 候选实施状态（2026-10-15）
 公开 SDK Registry 65 项，可信 Host-only 仍为 2 项。Full 12 项与 Owned createOwned 消费迁移已列入 Registry/Metrics，按真实源码候选接受 Node / Chrome 复验。未取得原生 Chrome 正向及反向回执前，每项 Native 为 NOT_TESTED；不得声称 95+ 产品 PASS。
 

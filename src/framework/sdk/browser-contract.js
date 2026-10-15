@@ -280,7 +280,7 @@ export function normalizeBrowserOperation(operation,args={}){
     case 'browser.capabilities.getStatus':
       fields(args,['operation','url'],['operation']);
       if(args.url!==undefined)approvedHttpUrl(args.url);
-      if(typeof args.operation!=='string'||!/^browser\.[A-Za-z.]+$/.test(args.operation))throw fail('E_SCHEMA','Invalid capability name');
+      if(typeof args.operation!=='string'||!/^browser\.[A-Za-z][A-Za-z0-9]*(?:\.[A-Za-z][A-Za-z0-9]*)*$/.test(args.operation))throw fail('E_SCHEMA','Invalid capability name');
       break;
     case 'browser.tabs.create':
       fields(args,['url'],['url']);return {url:approvedHttpUrl(args.url)};
