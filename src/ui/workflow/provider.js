@@ -32,7 +32,7 @@ export function createWorkflowProviderFacade({localPlanner}) {
       if(!Object.hasOwn(sources,source))throw Object.assign(new Error('未知工作流 Provider'),{code:'E_AI_CONFIG'});
       if(source==='local_codex') {
         let completedTurnId=null;
-        const proposal=await localPlanner.plan({request,workflow,target,consent,signal,onApproval,
+        const proposal=await localPlanner.plan({request,workflow,target,consent,signal,onApproval,verifiedHistory:history,
           onEvent:event=>{
             if(event?.type==='turn.completed'&&event.status==='completed'&&
                typeof event.turnId==='string')completedTurnId=event.turnId;
