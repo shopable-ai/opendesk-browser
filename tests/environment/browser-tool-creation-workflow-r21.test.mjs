@@ -7,7 +7,7 @@ import {readFile} from 'node:fs/promises';
 
 const read=path=>readFile(new URL('../../'+path,import.meta.url),'utf8');
 const workstreamPath='docs/framework/workstreams/browser-tool-creation-workflow-r2-20261015.md';
-const contractPath='docs/framework/browser-tool-creation-workflow.zh-CN.md';
+const contractPath='.agents/workflows/extension-creation.md';
 
 function traceRows(content){
   return content.split('\n')

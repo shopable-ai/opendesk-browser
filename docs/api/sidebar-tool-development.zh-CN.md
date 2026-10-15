@@ -4,7 +4,7 @@
 >
 > 接口查询：[Side Panel 工具 API](sidebar-tools.zh-CN.md)；示例导航：[工具项目索引](../../examples/sidebar-tools/README.zh-CN.md)；AI 规则：[opendesk-sidebar-tool-dev Skill](../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md)；仓库安全规则：[AGENTS.md](../../AGENTS.md)。
 >
-> **零技术用户的上游入口**：先按[自然语言扩展开发工作流：需求推理与功能树先行](../framework/browser-tool-creation-workflow.zh-CN.md)恢复历史决定、补齐用户场景、生成带验收映射的功能树并通过需求关卡；随后在本页继续原有的 UI 预览、实施、打包和验收。不新增另一套运行时或并列技术规范。
+> **零技术用户的上游入口**：先按[自然语言扩展开发工作流：需求推理与功能树先行](../../.agents/workflows/extension-creation.md)恢复历史决定、补齐用户场景、生成带验收映射的功能树并通过需求关卡；随后在本页继续原有的 UI 预览、实施、打包和验收。不新增另一套运行时或并列技术规范。
 >
 > **合同优先级**：`src/ui/sidebar-tools/package.js`、`src/ui/sidebar-tools.js`、`scripts/build-sidebar-tool.mjs` 和实际测试 > 本文。本文标记的“当前支持”是源码事实；“必须/建议”是工程规范，不能被当作已经实现的自动校验。
 

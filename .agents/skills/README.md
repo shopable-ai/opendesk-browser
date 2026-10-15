@@ -2,7 +2,7 @@
 
 本目录是项目**唯一现行 Agent Skills 入口**，不新建根目录 `skills/`；Skill 是 AI/Codex 指导而不是浏览器安装的扩展。保留技术 slug 与运行协议，用户产品术语统一引用 [R4 正式产品规格](../../docs/product/sidebar-ui-spec.zh-CN.md)。
 
-**普通用户一句话创建工具的上游入口（R2）**：先按[自然语言扩展开发工作流](../../docs/framework/browser-tool-creation-workflow.zh-CN.md)执行现场恢复、需求推理、功能树及需求关卡（Phase 0–3 / Gate A），为 P0 建立 F-ID↔S-ID↔A-ID 后**才**从下表选一个主 Skill 进入 UI/源码阶段。用户不需要填写 Skill 名称或技术表单；这只是对现有 Skill 的执行指引，不表示浏览器已有一键创建/自动安装产品入口。
+**普通用户一句话创建工具的上游入口（R2）**：先按[自然语言扩展开发工作流](../workflows/extension-creation.md)执行现场恢复、需求推理、功能树及需求关卡（Phase 0–3 / Gate A），为 P0 建立 F-ID↔S-ID↔A-ID 后**才**从下表选一个主 Skill 进入 UI/源码阶段。用户不需要填写 Skill 名称或技术表单；这只是对现有 Skill 的执行指引，不表示浏览器已有一键创建/自动安装产品入口。
 
 | 主职责（唯一主 Skill） | Skill | 禁止混淆 |
 | --- | --- | --- |
@@ -65,6 +65,6 @@ node scripts/agent-skills-r22-eval.mjs --repo "$PWD" --mode all
 
 ## Extension Creation R2.1 推理正确性评测（不新增 Skill）
 
-沿用上面的**同一个** `scripts/agent-skills-r22-eval.mjs` 和现行本机 Codex 只读入口，增量运行 `--mode reasoning` 会针对六条不完整/模糊/冲突/高风险输入分别做 baseline 与明确采用 [唯一开发工作流 R2.1](../../docs/framework/browser-tool-creation-workflow.zh-CN.md) 的引导推理，共 **6 对、12 次独立只读会话**。命令示例：`node scripts/agent-skills-r22-eval.mjs --repo "$PWD" --mode reasoning`。仅在已安装、已登录 Codex、用户清楚模型调用可能收费且本地只读可用时运行；生成的私有原始事件和 `reasoningPairs` 留在 `~/.codex-evals/opendesk-r22/`。
+沿用上面的**同一个** `scripts/agent-skills-r22-eval.mjs` 和现行本机 Codex 只读入口，增量运行 `--mode reasoning` 会针对六条不完整/模糊/冲突/高风险输入分别做 baseline 与明确采用 [唯一开发工作流 R2.1](../workflows/extension-creation.md) 的引导推理，共 **6 对、12 次独立只读会话**。命令示例：`node scripts/agent-skills-r22-eval.mjs --repo "$PWD" --mode reasoning`。仅在已安装、已登录 Codex、用户清楚模型调用可能收费且本地只读可用时运行；生成的私有原始事件和 `reasoningPairs` 留在 `~/.codex-evals/opendesk-r22/`。
 
 此模式的关键词检查统一标 `REVIEW_REQUIRED`，必须由独立评审者逐例检查语义、来源、P0/P1、错误扩张、历史冲突与权限，未实测不给 95 分。它**不是**浏览器“自然语言自动创建扩展”的产品入口；模型运行不生成、修改或安装工具项目，也不能代替现有 Preview/Dev/Package Skill 的实际交付和原生确认。

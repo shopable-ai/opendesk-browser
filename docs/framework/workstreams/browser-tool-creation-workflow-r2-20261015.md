@@ -253,3 +253,13 @@ F-BM-000 书签管理
 **当前重要阻塞不是再加需求文档，而是最后的两类真实证据**：一是独立 Codex 自然语言推理的实际正确性/返工测量，二是候选工具在用户授权的真实 Chrome 里的实际安装/更新、数据持久化和恢复。R2.1 不把 `Node+Mock` 升格为这两类 PASS。
 
 **下一次最小执行**：先在用户 Mac 的当前 `main` 只读核对并运行 `node scripts/agent-skills-r22-eval.mjs --repo "$PWD" --mode reasoning --max-tests 2`（一对真实模型输出，需已登录/知晓费用，不动源码）；由独立评审识别 P0 遗漏及未经授权新增。随后选 `quick-notes`，在明确的隔离 Chrome 验收 Profile 通过唯一安装器升级并真实验证 A-QN-002/004/005/006。无需重跑已同源且输入未变的模拟视觉测试。
+
+## R2.2 · 2026-10-15 AI Workflow 所有权迁移（不重写历史证据）
+
+- **唯一规范所有者**迁为 `.agents/workflows/extension-creation.md`，包含原 R2/R2.1 的需求推理、F/S/A、Gate A–D、十阶段检查点、增量恢复、数据迁移约束。原 `docs/framework/browser-tool-creation-workflow.zh-CN.md` 仅为兼容导航，不再维护规则副本。
+- **现有 Skill 主责不变**；`.agents/skills/README.md` 和 `opendesk-sidebar-tool-dev/SKILL.md` 只改上游链接；公共工具开发指南和 R2.1 测试改为读取新规范。
+- **GitHub Agentic Workflows 专用适配**为 `.github/workflows/extension-creation-intake.md`：手动、一句话、AI 只读分析到 Gate A，编译期导入同一 `.agents/workflows/extension-creation.md`；不等于自动改码、Git 提交、安装或真实 Mac 访问。其对应 `.lock.yml` 必须由真实 gh-aw 编译产物写入，不能手工仿制。
+- **原有 CI 沿用**：`sidebar-preview-contract.yml` 保持 Node/Mock/Chrome 预览测试，增监听新规范；不新增 SDK、Host、Runner、注册表、发行路径或目录专属 Skill。
+- 本轮调整属于源码所有权和工作流编排入口迁移；旧 65/65 Node、13 个离线 Chrome 结果仅是当时同候选历史证据。**迁移后结果以新 CI 为准；模型现场推理/gh-aw 运行以及真实 Chrome 安装仍为 NOT_TESTED。**
+- 基线（写入前）`main@700764a1022edb003b3082f06a087fe94cf6320e`；与其他 Agent 并行时，只更新上述明确文件，不强制覆盖最新 main。
+
