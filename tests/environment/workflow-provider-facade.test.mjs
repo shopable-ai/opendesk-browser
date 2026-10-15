@@ -46,3 +46,60 @@ test('Cloud Responses never sends without this turn trusted observation',async()
   }),error=>error.code==='E_AI_OBSERVATION_REQUIRED'||error.code==='E_DOCUMENT_STALE');
   assert.equal(called,false);
 });
+
+const exactTarget={windowId:1,tabId:2,frameId:0,documentId:'doc-1',
+  url:'https://example.test/form',origin:'https://example.test'};
+const receipt={format:'opendesk.workflow-observation.v1',runId:'trusted-run',
+  resultId:'trusted-result',sourceHash:'a'.repeat(64),
+  summary:{kind:'semantic-dom-summary',origin:exactTarget.origin,documentId:exactTarget.documentId,
+    nodes:[{state:{visible:true},locator:{kind:'css',value:'#query'}}]}};
+
+test('Native Facade forwards exact page identity and retains real turn ID',async()=>{
+  let received=null;
+  const native={...fakeNative,async plan(options){
+    received=options;
+    options.onEvent({type:'turn.completed',status:'completed',turnId:'turn-observed'});
+    return workflow();
+  }};
+  const facade=createWorkflowProviderFacade({localPlanner:native});
+  const result=await facade.generateWorkflow({source:'local_codex',request:'查看网页',
+    workflow:workflow(),target:exactTarget,consent:{model:true,workflow:true,observation:true}});
+  assert.deepEqual(received.target,exactTarget);
+  assert.equal(received.consent.observation,true);
+  assert.equal(result.metadata.turnId,'turn-observed');
+});
+
+test('legacy HTTPS Facade cannot dispatch an unobserved proposal',async()=>{
+  const facade=createWorkflowProviderFacade({localPlanner:fakeNative});
+  let dispatched=0;
+  await assert.rejects(facade.generateWorkflow({source:'custom_https',request:'填写 query',
+    workflow:workflow(),target:exactTarget,
+    settings:{endpoint:'https://example.test/v1/chat/completions',apiKey:'secret',model:'test'},
+    fetchImpl:async()=>{dispatched++;throw new Error('should not dispatch');}}),
+    {code:'E_AI_OBSERVATION_REQUIRED'});
+  assert.equal(dispatched,0);
+  assert.equal(workflowProviderCapabilities('custom_https').observation,true);
+});
+
+test('legacy HTTPS locators must belong to approved current observation',async()=>{
+  const facade=createWorkflowProviderFacade({localPlanner:fakeNative});
+  const proposed={title:'填写',description:'',paramsSchema:workflow().paramsSchema,
+    steps:[{stepId:'fillQuery',op:'fill',locatorKind:'css',selector:'#query',text:'abc'}]};
+  let submitted=null;
+  const fetchImpl=async (_url,options)=>{
+    submitted=JSON.parse(options.body);
+    return new Response(JSON.stringify({choices:[{message:{content:JSON.stringify(proposed)}}]}),
+      {status:200,headers:{'content-type':'application/json'}});
+  };
+  const opts={source:'custom_https',request:'在搜索框填写 abc',workflow:workflow(),
+    target:exactTarget,observationReceipt:receipt,
+    settings:{endpoint:'https://example.test/v1/chat/completions',apiKey:'secret',model:'test'},
+    fetchImpl};
+  const response=await facade.generateWorkflow(opts);
+  assert.equal(response.proposal.steps[0].selector,'#query');
+  const sent=JSON.parse(submitted.messages[1].content);
+  assert.equal(sent.authorizedObservation.documentId,exactTarget.documentId);
+  assert.equal(JSON.stringify(sent).includes(exactTarget.url),false);
+  proposed.steps[0].selector='#invented';
+  await assert.rejects(facade.generateWorkflow(opts),{code:'E_AI_LOCATOR_UNOBSERVED'});
+});
