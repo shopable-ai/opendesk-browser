@@ -246,7 +246,12 @@ export async function reconcileManagedProxy(api=globalThis.chrome,{
   return mutex(lockManager,async()=>{
     const state=await storageState(api);
     // A lost ENABLE acknowledgement is NOT a STOP command.
-    if(state?.phase==='stopping')await releaseLocked(api,state);
+    if(state?.phase==='stopping'){
+      await releaseLocked(api,state);
+      // An authenticated native STOP may have completed while the old
+      // journal snapshot still says "stopping". Never report stale phase.
+      return (await storageState(api))?.phase??'absent';
+    }
     return state?.phase??'absent';
   });
 }
