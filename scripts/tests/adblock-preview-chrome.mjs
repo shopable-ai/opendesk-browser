@@ -149,6 +149,11 @@ async function click(selector,ctx=null){
     }.toString()+')()');
     rect.x+=offset.x;rect.y+=offset.y;
   }
+  const hit=await evaluate('('+function(x,y){
+    const element=document.elementFromPoint(x,y);
+    return {tag:element?.tagName,id:element?.id,html:element?.outerHTML?.slice(0,220)};
+  }.toString()+')('+JSON.stringify(rect.x)+','+JSON.stringify(rect.y)+')');
+  console.log('ADBLOCK_CLICK_TARGET '+selector+' '+JSON.stringify({x:rect.x,y:rect.y,hit}));
   await cdp('Input.dispatchMouseEvent',{type:'mouseMoved',x:rect.x,y:rect.y});
   await cdp('Input.dispatchMouseEvent',{type:'mousePressed',x:rect.x,y:rect.y,
     button:'left',clickCount:1});
@@ -182,8 +187,13 @@ try{
     await evaluate("window.parent.postMessage({type:'opendesk.preview.adblock.exceptions',requestId:888,exceptions:[]},'*')",ctx);
     await delay(90);
     assert.equal((await parent()).switches[1].checked,false);
+    await evaluate("window.__adblockMessages=[];window.addEventListener('message',e=>{if(e.data?.type?.startsWith('opendesk.preview.adblock.'))window.__adblockMessages.push({type:e.data.type,origin:e.origin,validSource:e.source===document.getElementById('opendesk-preview-frame').contentWindow})})");
     await click('#exceptions .adblock-restore',ctx);
-    await poll(async()=>(await parent()).dialog,'restore confirmation');
+    await poll(async()=>(await parent()).dialog,'restore confirmation').catch(async e=>{
+      throw Error(e.message+'; diagnostics='+JSON.stringify({
+        parent:await parent(),child:await child(ctx),
+        messages:await evaluate('window.__adblockMessages')}));
+    });
     await screenshot('confirmation');
     await click('#od-preview-adblock-restore-cancel');
     await poll(async()=>!(await parent()).dialog,'restore cancel');
