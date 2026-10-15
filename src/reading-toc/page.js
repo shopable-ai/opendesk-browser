@@ -6,6 +6,7 @@ import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,
   readingTocDisplayState,READING_TOC_PAGE_RULES_STORE,readingTocPageAllowed} from './policy.js';
 import {createReadingTocIndex} from './model.js';
 import {createReadingTocView} from './view.js';
+import {UI_LOCALE_STORE,canonicalUiLocale,UI_LOCALE_DEFAULT} from '../ui/app-localization.js';
 
 // Verify the actual extension host document, not the raw URL string:
 // tool.html deliberately adds a hostInstanceId query on its first navigation.
@@ -18,6 +19,7 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
   let enabled=false,disposed=false,suspended=false,view=null,observer=null,rebuildTimer=0,spyFrame=0,refreshEpoch=0;
   let policyRetryTimer=0,policyFailures=0;
   let activeId='',href=win.location.href,navEpoch=0,settled=null,knownIds=[],viewEpoch=null;
+  let uiLocale=UI_LOCALE_DEFAULT;
   const removers=[];
   const listen=(target,type,fn,option)=>{target.addEventListener(type,fn,option);removers.push(()=>target.removeEventListener(type,fn,option));};
   const scrollRoot=element=>{
@@ -118,7 +120,7 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     if(showWidget&&!view){
       viewEpoch=installEpoch;
       const key=placementKey||readingTocPlacementKey(win.location.href);
-      view=createReadingTocView({doc,win,initialPlacement,
+      view=createReadingTocView({doc,win,initialPlacement,initialLocale:uiLocale,
         onNavigate:(id,sourceId)=>void navigate(id,sourceId,READING_TOC_TOOL_ID,installEpoch),
         onPlacementChange:next=>{
           if(disposed||!enabled||!key||readingTocPlacementKey(win.location.href)!==key)return;
@@ -140,10 +142,12 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     try{
       const currentUrl=win.location.href,key=readingTocPlacementKey(currentUrl);
       const keys=[SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_STORE,READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,
-        READING_TOC_PAGE_RULES_STORE,...(key?[key]:[])];
+        READING_TOC_PAGE_RULES_STORE,UI_LOCALE_STORE,...(key?[key]:[])];
       const stored=await api.storage.local.get(keys);
       if(disposed||suspended||token!==refreshEpoch)return;
       policyFailures=0;
+      uiLocale=canonicalUiLocale(stored[UI_LOCALE_STORE])||UI_LOCALE_DEFAULT;
+      view?.setLocale(uiLocale);
       if(win.location.href!==currentUrl){void refreshPolicy();return;}
       const installed=stored[SIDEBAR_TOOL_STORE],sites=stored[READING_TOC_SITE_STORE];
       const ids=Array.isArray(installed)?installed.filter(row=>row?.capabilities?.includes('page.toc')).map(row=>row.id):[];
@@ -293,6 +297,10 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
   api.runtime.onMessage.addListener(messageListener);
   const storageListener=(changes,area)=>{
     if(area!=='local')return;
+    if(Object.hasOwn(changes,UI_LOCALE_STORE)){
+      uiLocale=canonicalUiLocale(changes[UI_LOCALE_STORE].newValue)||UI_LOCALE_DEFAULT;
+      view?.setLocale(uiLocale); // Presentation-only: no policy or index invalidation.
+    }
     if((knownIds.length?knownIds.some(id=>sidebarToolLifecycleChanged(changes,id)):
        [SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE].some(key=>Object.hasOwn(changes,key)))||
        Object.hasOwn(changes,READING_TOC_SITE_STORE)||
