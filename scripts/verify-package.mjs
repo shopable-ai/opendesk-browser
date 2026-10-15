@@ -326,6 +326,13 @@ export function inspectScript(text, file, options = {}) {
   const captures = declarations.filter(d => asyncConstructor(d.init));
   if (captures.length !== (file === CONTROL_WORKER ? 1 : 0)) throw new Error(`Unapproved dynamic execution boundary in ${file}`);
   const approved = captures[0], binding = approved && bindings.get(approved);
+  // PapaParse 5.7.0's *unchanged* upstream MIT asset contains one
+  // value.constructor === Date type check and four prototype constructor
+  // assignments. The exact fixed raw-file identity is required; arbitrary
+  // page scripts or changed upstream bytes never inherit this exception.
+  const papaRow=BUILTIN_CATALOG.libraries.papaParse;
+  const pinnedPapaParse=file===papaRow.output&&papaRow.version==='5.7.0'&&
+    digest(Buffer.from(text,'utf8'))===papaRow.sha256;
   let uses = 0;
   function resolveBinding(node) { for (let s = scopes.get(node); s; s = s.parent) if (s.names.has(node.name)) return s.names.get(node.name); }
   walk(ast, (node, ancestors) => {
@@ -353,7 +360,29 @@ export function inspectScript(text, file, options = {}) {
         parent.arguments[2]===node&&parent.callee?.type==='MemberExpression'&&
         parent.callee.computed===false&&parent.callee.object?.type==='Identifier'&&
         parent.callee.object.name==='Reflect'&&parent.callee.property?.name==='construct';
-      if(!reviewedCryptoJsNewTarget)
+      // In this exact pinned upstream artifact, these operations only test
+      // Date identity or restore the constructor of freshly created prototypes.
+      // They never call, return, or read a dynamic Function constructor.
+      const reviewedPapaDateType=pinnedPapaParse&&node.computed===false&&
+        node.object?.type==='Identifier'&&parent?.type==='BinaryExpression'&&
+        parent.operator==='==='&&parent.left===node&&
+        parent.right?.type==='Identifier'&&parent.right.name==='Date';
+      const prototype=node.object;
+      const reviewedPapaPrototype=pinnedPapaParse&&node.computed===false&&
+        parent?.type==='AssignmentExpression'&&parent.operator==='='&&
+        parent.left===node&&parent.right?.type==='Identifier'&&
+        prototype?.type==='AssignmentExpression'&&prototype.operator==='='&&
+        prototype.left?.type==='MemberExpression'&&
+        prototype.left.object?.type==='Identifier'&&
+        prototype.left.object.name===parent.right.name&&
+        !prototype.left.computed&&property(prototype.left)==='prototype'&&
+        prototype.right?.type==='CallExpression'&&
+        isMember(prototype.right.callee,'Object','create')&&
+        prototype.right.arguments.length===1&&
+        prototype.right.arguments[0]?.type==='MemberExpression'&&
+        !prototype.right.arguments[0].computed&&
+        property(prototype.right.arguments[0])==='prototype';
+      if(!reviewedCryptoJsNewTarget&&!reviewedPapaDateType&&!reviewedPapaPrototype)
         throw new Error(`Unapproved dynamic constructor reference in ${file} offset=${node.start} nearby=${JSON.stringify(text.slice(Math.max(0,node.start-100),node.end+100))}`);
     }
     if (['CallExpression', 'NewExpression'].includes(node.type) && node.callee.type === 'Identifier' && ['eval', 'Function', 'AsyncFunction', 'importScripts'].includes(node.callee.name) && !approvedNativeImport(node.callee,node,file)) throw new Error(`Dynamic execution in ${file}: ${node.callee.name}`);

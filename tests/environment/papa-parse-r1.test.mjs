@@ -8,6 +8,7 @@ import {BUILTIN_ABI,BUILTIN_CATALOG,BUILTIN_RUNTIME_CATALOG,PAGE_OPTIONAL_LIBRAR
 import {controllerSelectedPackagedLibrary} from '../../src/libs/loader.js';
 import {pageSelectedPackagedLibrary,compileLockedPageSource} from '../../src/scripting/user-scripts/execution-source.js';
 import {fakeBuiltinSource} from './builtin-support.mjs';
+import {inspectScript} from '../../scripts/verify-package.mjs';
 
 globalThis.crypto ||= webcrypto;
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -76,4 +77,14 @@ test('Page rejects missing Papa resource',async()=>{
   await assert.rejects(compileLockedPageSource({sourceUtf8,entryFormat:'async-main',
     builtinSource:fakeBuiltinSource}),error=>error.code==='E_BUILTIN_VERSION_UNAVAILABLE');
   assert.equal(BUILTIN_CATALOG.libraries.papaParse.methods.join(','),'parse,unparse');
+});
+
+test('release scanner admits only audited pinned constructor syntax, not dynamic execution',()=>{
+  assert.doesNotThrow(()=>inspectScript(code,row.output));
+  assert.throws(()=>inspectScript('var data = value.constructor;',row.output),
+    /Unapproved dynamic constructor reference/);
+  assert.throws(()=>inspectScript('new Function("return 1")',row.output),
+    /Dynamic execution/);
+  assert.throws(()=>inspectScript(code,'other-optional-lib.js'),
+    /Unapproved dynamic constructor reference/);
 });
