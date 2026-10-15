@@ -43,15 +43,16 @@ async function workbook(tree,options={defaultFolded:false}){
   const zip=await new api.JSZip().loadAsync(new Uint8Array(await blob.arrayBuffer()));
   return JSON.parse(await zip.file('content.json').async('string'))[0];
 }
-test('REAL SDK: Workbook/Topic/Dumper/JSZip preserve duplicate titles, notes and root content',
+test('REAL SDK: Workbook/Topic/Dumper/JSZip keep duplicate titles and exact visible notes',
   {skip:!directory&&'XMIND_REFERENCE_DIR missing; real SDK NOT_TESTED'},async()=>{
     const out=await workbook(node('Root',[node('Same',[],'A'),node('Same',[],'B')],'Opening paragraph'));
     assert.equal(out.rootTopic.notes.plain.content,'Opening paragraph');
     const [a,b]=out.rootTopic.children.attached;
     assert.notEqual(a.id,b.id);
     assert.equal(a.title,'Same');assert.equal(b.title,'Same');
-    assert.match(a.notes.plain.content,/A\n\n\[nodeKey:0\]/);
-    assert.match(b.notes.plain.content,/B\n\n\[nodeKey:1\]/);
+    assert.equal(a.notes.plain.content,'A');
+    assert.equal(b.notes.plain.content,'B');
+    assert.doesNotMatch(JSON.stringify(out),/\\[nodeKey:/);
   });
 test('REAL SDK: branch state follows paths instead of duplicate visible titles',
   {skip:!directory&&'XMIND_REFERENCE_DIR missing; real SDK NOT_TESTED'},async()=>{

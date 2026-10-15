@@ -4,33 +4,9 @@
 // MindNode: {id,title,content?,depth,children}, utils/mind-tree.ts blob 4a0584460fa593b1d1859f226d5ba918a7335b5f.
 // HTML already supplies visible text: do not run Markdown/task-title rewriting.
 // SDK is supplied by the caller; this module never loads or evaluates code.
-// Only path-based branch identity is retained; no title-keyed state/persistence.
+// Only path-based branch identity is retained for folding; XMind notes contain only user content.
 function buildNodeKey(path) {
   return path.join("/");
-}
-function injectStableTopicMetadata(item, record) {
-  const marker = `[nodeKey:${record.nodeKey}]`;
-  const notes = item.notes;
-  const plainContent = notes?.plain?.content;
-  const nextContent = typeof plainContent === "string" ? plainContent : typeof record.note === "string" ? record.note : "";
-  item.notes = {
-    plain: {
-      content: nextContent.includes(marker) ? nextContent : nextContent ? `${nextContent}
-
-${marker}` : marker
-    }
-  };
-  const attached = item.children?.attached;
-  if (!attached?.length) {
-    return;
-  }
-  attached.forEach((child, index) => {
-    const childRecord = record.children[index];
-    if (!childRecord) {
-      return;
-    }
-    injectStableTopicMetadata(child, childRecord);
-  });
 }
 function applyBranchStates(item, options, path = []) {
   const attached = item.children?.attached;
@@ -64,17 +40,11 @@ async function mindTreeToXmindBlob(sdk, tree, skinMode, options = { defaultFolde
   const workbook = new Workbook();
   const sheet = workbook.createSheet("sheet-mind", centerTitle);
   const topic = new Topic({ sheet });
-  const buildTopicRecords = (node, path = []) => {
-    return node.children.map((child, index) => {
-      const nextPath = [...path, index];
-      return {
-        nodeKey: buildNodeKey(nextPath),
-        title: child.title || "",
-        note: child.content || "",
-        children: buildTopicRecords(child, nextPath)
-      };
-    });
-  };
+  const buildTopicRecords = (node) => node.children.map(child => ({
+    title: child.title || "",
+    note: child.content || "",
+    children: buildTopicRecords(child)
+  }));
   const appendTopicRecord = (parentId, record) => {
     topic.on(parentId).add({ title: record.title });
     const childId = topic.cid();
@@ -105,16 +75,7 @@ async function mindTreeToXmindBlob(sdk, tree, skinMode, options = { defaultFolde
     let { value } = file;
     if (filename === "content.json") {
       const content = JSON.parse(value);
-      const attached = content["0"].rootTopic.children?.attached;
-      if (attached?.length) {
-        attached.forEach((child, index) => {
-          const record = childRecords[index];
-          if (!record) {
-            return;
-          }
-          injectStableTopicMetadata(child, record);
-        });
-      }
+      // Notes are user-visible. Never inject internal node keys into them.
       applyBranchStates(content["0"].rootTopic, options);
       Object.assign(content["0"], getXmindStyleData(skinMode));
       value = JSON.stringify(content);
