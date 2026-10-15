@@ -22,22 +22,27 @@ function create(sdk){
     }
     if(!Array.isArray(rows))
       return {ready:false,code:'E_SDK_STATUS',reason:'SDK 未提供可信的能力清单'};
-    const missing=[],unapproved=[],unscoped=[];
+    const missing=[],unapproved=[],unscoped=[],readingDenied=[];
     for(const name of METHODS){
       const op=named(name),row=rows.find(item=>item?.operation===op);
       if(!row||typeof method(name)!=='function'){missing.push(op);continue}
       if(!row.requiredCapabilities?.includes(FULL)){unscoped.push(op);continue}
-      if(row.status?.callableNow!==true)
-        unapproved.push({operation:op,reason:row.status?.reasonCode||'E_PERMISSION_REQUIRED'});
+      if(row.status?.callableNow!==true){
+        const rowStatus={operation:op,reason:row.status?.reasonCode||'E_PERMISSION_REQUIRED'};
+        // Authorization of a write/observer is not the prerequisite for reading
+        // an already-granted tree; each action still rechecks its own status.
+        if(name==='getTree')readingDenied.push(rowStatus);
+        else unapproved.push(rowStatus);
+      }
     }
-    if(missing.length||unscoped.length||unapproved.length)
+    if(missing.length||unscoped.length||readingDenied.length)
       return {ready:false,code:missing.length||unscoped.length?
         'E_R11_BOOKMARKS_INCOMPLETE':'E_BOOKMARK_PERMISSION',reason:[
         missing.length?'缺少公开接口 '+missing.length+' 项':'',
         unscoped.length?'未绑定独立 Full Bookmarks 权限 '+unscoped.length+' 项':'',
-        unapproved.length?'未授权或不可调用 '+unapproved.length+' 项':''
-      ].filter(Boolean).join('；'),missing,unscoped,unapproved};
-    return {ready:true};
+        readingDenied.length?'当前读取权限未获批准':''
+      ].filter(Boolean).join('；'),missing,unscoped,unapproved,readingDenied};
+    return {ready:true,unapproved};
   }
   async function requireReady(operation){
     const gate=await probe();
