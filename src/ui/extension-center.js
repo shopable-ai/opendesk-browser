@@ -59,7 +59,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       const glyph=node('span','ec-glyph');glyph.setAttribute('aria-hidden','true');
       glyph.textContent=row.kind==='page'?'◇':'▦';
       const copy=node('div','ec-copy'),line=node('div','ec-name-line');
-      const name=node('span','ec-name',titleOf(row));
+      const name=node('span','ec-name');
+      name.append(node('span','ec-name-text',titleOf(row)));
       name.title=titleOf(row);
       const type=node('span','ec-type',typeOf(row));
       const description=node('span','ec-description',row.installed?
