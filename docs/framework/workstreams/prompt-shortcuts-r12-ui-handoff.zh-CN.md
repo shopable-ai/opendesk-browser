@@ -279,3 +279,13 @@
 3. 经预览确认后把必要结构和反馈迁至 `src/index.html` / `src/style.css` / `src/main.js`，不复制模拟数据或假宿主头；维持可信页面代码不变，除非实际缺陷证据要求修改。
 4. 运行 `node --test tests/environment/prompt-shortcuts-r14*.test.mjs` 等定向测试和共享设计安全来源检查；使用官方候选包 → 测试 → `--promote-from` → `--check-project`，按官方版本升级语义审查递增 `1.0.2`，同步唯一正式 JSON，绝不同版本异字节覆盖。
 5. 同候选在真实 Chrome 测试 “你好” 保存、重新打开仍存在、多行/Emoji/100 行、空/超限/失败/冲突/未知、草稿保护、按钮/Tooltip、Cmd+Z/IME、原生选区右键和停用/撤权/重装，并提供可复核操作证据。任何不具备的场景继续 `NOT_TESTED`。
+
+## 11. R1.10 — 紧凑表单原位优化与 Chromium 验证（2026-10-16）
+
+**用户反馈及修改范围：** 新建/编辑时低频选项占用过多空间，要求「左侧 label、右侧 input」的紧凑表单。仅修改唯一管理预览 `examples/sidebar-tools/prompt-shortcuts/preview/index.html`；不变更 `preview/mock.html`，不迁移或修改正式 `src/`、`trusted/` 与唯一正式安装 JSON。具体产品决策参见 `REQUIREMENTS.zh-CN.md` 第 9 节。
+
+- **源码提交：** [`8b871c0`](https://github.com/shopable-ai/opendesk-browser/commit/8b871c07a0c0fa81feff9a64c7a158f71deaa92d)；修改前 Git blob `9a9ffb6a34acd42d0caeea0eb6a5eb0c8cb4862c`，修改后 `9b630ab11ffb86a9f26f57244f5ac0ba8e2b92bc`，已通过重新读取最新 `main` 复核。
+- **具体优化：** 可选设置缩为三行：短标签／显示名称／网页显示；左标签、右单行输入或开关，默认折叠保留。删除形状选择 UI，新建默认圆角方形；编辑已有历史圆形条目时保持原 shape 值，不暗中改写。自动名称/短标签预览压缩为无额外卡底的行内展示。
+- **真实 Chromium 页面加载与操作**：使用 Linux `/usr/bin/chromium` headless + Playwright `page.set_content` 加载对应完整原始 HTML（本环境未将 `file://` 导航当作通过证据）。原有 **14/14** 模拟回归通过（固定三行与内部滚动、中文/Emoji、空正文与 UTF-8 上限、写入失败/冲突/未知、取消和宿主返回草稿保护、列表增删改排序/启停、两个独立全局开关、320/360/420/520px）；新增 **6/6** 紧凑表单针对性检查通过（默认折叠、左右栅格、无形状控件、自动/手填和单项开关、编辑回读、旧圆形值保留、暗色模式和各宽度）。本次页面 JavaScript 异常 **0**。
+- **实际布局测量（380px 侧栏）：** 同浏览器原旧版展开设置区 `388px` → 新版 `169px`，减少约 **56%**；展开表单整体 `725px` → `479px`；正文 textarea 的实际高度仍约 `80.4px`。320/360/420/520px 未发现 Side Panel 水平溢出。原始 Chromium 截图及修改后的完整 HTML 作为本次 ChatGPT 对话附件供用户视觉评审，不把图像生成结果当作浏览器证据。
+- **证据界限：** 这是独立浏览器中的**HTML 模拟预览验证**，不是 Mac 原生 Chrome 已安装的 OpenDesk 工具、真实 `storage.set`、IME、真实 ChatGPT DOM 或主观九维专家评分。用户对新布局的明确视觉确认 **PENDING**；九维产品目标当前仍 **NOT_SCORED**，正式保存“你好”失败 P0 仍未关闭。不得在确认前迁移正式 UI 或覆盖工具安装包。
