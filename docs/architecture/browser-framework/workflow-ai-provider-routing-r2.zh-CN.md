@@ -610,3 +610,14 @@ OpenDesk Browser Workflow — 自然语言完成网页任务并保存独立复�
 - **原组件测试**：扩展 tests/environment/workflow-focus.test.mjs，驱动真实 workflow-view 组件配合测试专用 Host/Controller 完成固定 Revision 两次不同 runId/resultId 的 saved 执行；第三次在 journal 字节变化时验证 RunHost.start 不再被调用。修补跨 VM fixture 的参数对象 Realm 差异，保留严格 schema 校验。上述是组件测试，不等于用户真实 Chrome。
 - **本切片源码提交**：4202985f8c3042bb6faa7f2c4fe4a28694f8bca5；测试及夹具提交 403e6014ad041dc63ed2c4162c772d9a0507e53b / 58851434318709bc6703c95300a2be577256f93d / 7ed633d4fabc5de3dbcfc38878904d5d4278ac6e / 1e126028f49d69f82cad09536ca7a3f75e45810b。
 - **CI 闸门**：58851434 对应 Workflow AI #38738021493 的定向 Node FAILED（跨 VM 参数夹具，整条 FAIL）；新 1e126028 候选 [Workflow AI #38739012994](https://github.com/shopable-ai/opendesk-browser/actions/runs/38739012994) 实际 CI 为定向 Node **130/130 PASS**、`npm run check` **750 文件 PASS**；`npm run build:dev` 因 AdBlock Trusted 源 `examples/sidebar-tools/adblock/trusted/host-controls.js` 的 SHA pin 漂移 **FAIL**，故**整条 Workflow CI FAIL**（不把 Node 子测试当作整条 CI PASS）。Go 本切片无源码修改，Browser HTTP SAFE_DISABLED；真实 Mac Chrome、真 Provider、关闭 AI 原生 Run×2 与生产安装均 NATIVE_NOT_TESTED。
+
+
+#### 13.6.2 R2.3 NEXT：同文档搜索业务效果读回（2026-10-15）
+
+**直接续接现有 P0-C/D，不新增执行引擎。** `search-results-v1` 原 Oracle 只能对已验证的搜索结果链接或“无结果”标记作有限判断，而标准 `examples/tasks/demo-form.html` 使用 `#search-status` 和 `#results` 渲染页内结果，可能真正生效但没有链接。对有明确用户关键词、受信前后观察、已核验的原 RunHost 点击回执，`direct-execution.js` 新增 `search-inline` 受限判据：前后 `runId/resultId/sourceHash` 存在且观察文档身份、同窗口/Tab/URL/Origin 一致；点击前必须已有可见且独立定位的同一结果容器；点击后该容器出现与关键词**精确一致的新“结果：关键词”文本**，且页面另有可见“搜索完成”语义状态。否则不得升级到 `BUSINESS_EFFECT_VERIFIED`。此等级只证明当前页面搜索状态，不证明远端数据提交、结果质量或任何不可撤销业务副作用。
+
+`workflow-view.js` 只展示受信的实际效果；连续任务的 `data-sharing.js` 只容许 `search-inline` 类型、绝不将页面文本与虚构链接计数带入 Provider 历史，缺少 Oracle 保持 `EXECUTION_RECEIPT_VERIFIED`，未知点击不重放。保存后无 AI 的固定 Revision 执行仍沿用 13.6.1 的逐次源码字节核验及同一回执身份栅栏；本补丁没有修改它，也未启用 `local-http.js`。
+
+**实现与测试候选**：Browser `main` [`265961af424c741e83285954fedf5099f74fee80`](https://github.com/shopable-ai/opendesk-browser/commit/265961af424c741e83285954fedf5099f74fee80) 更新 `direct-execution.js`、`data-sharing.js`、`workflow-view.js` 及其原两份 Node 测试，覆盖旧结果、错误关键词、缺少前观察容器、缺少状态/回执、文档变化、不可见等保守拒绝。相同 SHA 的 [Workflow AI #38742444832](https://github.com/shopable-ai/opendesk-browser/actions/runs/38742444832)：**Node 131/131 PASS、`npm run check` 751 files PASS**；`build:dev` 仍因 AdBlock Trusted `host-controls.js` source SHA pin 不符 FAIL，故**整条 CI FAIL**。这只构成 `COMPONENT_VERIFIED`，真实 Mac Chrome T2/T3、AI-Off 固定 Revision Run×2、Stop/撤权/unknown、production F3/ZIP 均 `NATIVE_NOT_TESTED`；不可据此提高产品百分比或宣称 95+。
+
+**下一动作**：先使用用户的真实已加载 `dist/development`/现有 watcher 及配对身份在 `http://127.0.0.1:43111/demo-form.html` 做一次 Send→填写读回→搜索结果读回；保存且关闭 AI 后同版两次真实 RunHost 执行，分别登记 runId/resultId/sourceHash/Revision/documentId 与页面结果。Go `master` 本切片未改，HTTP 继续 `SAFE_DISABLED/PAIRING_OPEN`。
