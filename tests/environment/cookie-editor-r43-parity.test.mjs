@@ -40,7 +40,7 @@ test('R4.3 installed HTML presents visible import/export/new actions without ent
   assert.match(js,/originalExpiryInput/);
   assert.match(css,/#live-cookie-list \.cookie-row\{/);
   assert.match(html,/<option value="metadata" selected>/);
-  assert.equal(pkg.version,'2.0.8');
+  assert.equal(pkg.version,'2.0.9');
   assert.equal(pkg.html,html);
   assert.equal(pkg.js,js);
   assert.equal(pkg.css,css);
@@ -67,4 +67,5 @@ test('R4.4 mirrors the approved R4.3 list and inline editing without weakening r
   assert.match(js,/sameCookieMetadata\(row,editing\)/);
   assert.match(css,/#live-cookie-list \.cookie-row-trigger/);
   assert.match(css,/\.live-filter-chip\.sel/);
+  assert.match(css,/\.live-filter-advanced\{display:grid;grid-template-columns:minmax\(0,1fr\)/);
 });

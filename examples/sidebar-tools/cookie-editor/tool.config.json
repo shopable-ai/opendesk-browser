@@ -1,7 +1,7 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "cookie-editor",
-  "version": "2.0.8",
+  "version": "2.0.9",
   "title": "Cookie Editor · Cookie 管理",
   "description": "Cookie Editor R4.4：按确认的 R4.3 预览还原真实 Chrome Cookie 列表、原位编辑、筛选及导入导出；延用可信授权、精确身份、敏感值保护和回读核验。",
   "capabilities": [

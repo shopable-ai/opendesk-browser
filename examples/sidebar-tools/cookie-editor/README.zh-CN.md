@@ -89,7 +89,7 @@ R3.3 新候选：授权变化后经已有 Bridge 自动检查当前网站；拒�
 
 - **已确认的原版 HTML：** `preview/cookie-editor-r4.3-preview.html`，保持已评审的独立 HTML/CSS/JS 原文（模拟数据、无真实 Chrome 授权）。不得把模拟 Cookie 或演示脚本打进 Sandbox 安装包。
 - **正式产品：** `src/index.html`、`src/style.css`、`src/main.js`。R4.3 紧凑 Cookie 列表、原位单条编辑、常显导入/导出/新建、展开筛选和导入/导出表单；Browser SDK、Host 原生读写、权限及撤权按已有合同执行。
-- **可安装包：** `cookie-editor.opendesk-tool.json` 经既有 packer 的 canonical schema/serializer 与当前 `src/` 一致，版本 2.0.7。`preview/` 不属于发布包。
+- **可安装包：** `cookie-editor.opendesk-tool.json` 经既有 packer 的 canonical schema/serializer 与当前 `src/` 一致，版本 2.0.7（历史 R4.3 版本）。`preview/` 不属于发布包。
 - **授权边界：** 模拟 HTML 的“允许查看与编辑”不等于真实 Chrome 授权；正式首次授权须经可信工具设置/Host 的真实用户手势。Sandbox 不自行申请或伪造 Cookie 权限。
 - **分级验收：** Node、CI、安装包一致性与 Mac Chrome 原生各自记录。2.0.7 无同候选原生证据前标记 `NATIVE_NOT_TESTED`。
 
@@ -100,3 +100,9 @@ R3.3 新候选：授权变化后经已有 Bridge 自动检查当前网站；拒�
 - 权限安全：仅真实 Browser SDK/可信 Host 的 Chrome Cookie 读取、写入与删除；元数据授权和敏感 Value 授权分离。撤权、网站改变、列表失效时立即清除显示出的敏感值；未知写入结果不自动重试；重命名仍先核验写入新名再精确删除旧名。
 - 构建规则：先构建忽略的候选，跑完定向测试，再执行当前脚本的 `--promote-from`，最后 `--check-project` 校验源包字节完全一致。不可手工覆盖可安装包。
 - 验收状态：R4.4 新候选的 `NODE_NOT_TESTED`、`NATIVE_NOT_TESTED`、`CI_NOT_VERIFIED` 在对应真实执行或 CI 证据建立前始终有效；早期工具包截图或模拟事件不作为通过证据。
+
+### R4.4.1 384px 栅格兼容补丁（2.0.9）
+
+- 修正 R4.4 筛选按钮组沿用了旧四列 Grid 布局的问题：主筛选按钮独占一行，附加排序使用下一行右对齐；确保 384px Side Panel 不挤压控件。
+- 这次仅调整正式 CSS、更新三段式版本、重新生成官方安装包及定向断言；黄金预览仍保留原始 Blob，Cookie Host/SDK 业务逻辑不变。
+- 2.0.9 仍需真实 Node/CI 和 Chrome 原生截屏验收后才能声明最终通过。

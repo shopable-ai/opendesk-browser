@@ -165,11 +165,11 @@ input[type=file]{min-width:0;width:100%;max-width:100%;font-size:12px}.export-ac
 .live-toolbar .icon-button{width:34px;height:34px}
 .live-section-title .count{font-size:13px}
 .live-search-box input{border-color:var(--od-line);font-size:12px}
-.live-filter-advanced{display:grid;gap:8px;padding:7px 9px;background:var(--od-bg);border-radius:8px}
+.live-filter-advanced{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;padding:7px 9px;background:var(--od-bg);border-radius:8px}
 .live-filter-chips{display:flex;gap:6px;flex-wrap:wrap}
 .live-filter-chip{padding:4px 8px;min-height:27px;border:1px solid var(--od-line);border-radius:7px;background:var(--od-paper);color:var(--od-sub);font-size:11px}
 .live-filter-chip.sel{background:#f0f5ff;color:var(--od-brand);border-color:#b7c7f2}
-.live-filter-sort{display:flex;gap:8px;align-items:center}
+.live-filter-sort{display:flex;justify-self:end;width:min(100%,200px);gap:8px;align-items:center}
 .live-filter-sort label{font-size:11px;color:var(--od-sub);flex:none}
 .live-filter-sort select{min-height:30px;width:auto;flex:1;font-size:11px}
 #live-cookie-list{margin-inline:-14px}
