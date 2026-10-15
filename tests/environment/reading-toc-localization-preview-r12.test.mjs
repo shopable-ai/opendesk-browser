@@ -139,7 +139,7 @@ test('R1.4 checked-in interactive previews are byte-reproducible from the curren
   const saved=await readFile(root+file,'utf8');
   const generated=await generatePreview({tool:'reading-toc',surface,
    scenario:'success',theme:'light',width:360,height:760});
-  const marker=saved.match(/<script type="application\\/json" id="opendesk-preview-manifest">([\\s\\S]*?)<\\/script>/);
+  const marker=saved.match(/<script type="application\/json" id="opendesk-preview-manifest">([\s\S]*?)<\/script>/);
   assert(marker,'offline interactive HTML must embed a provenance manifest');
   const metadata=JSON.parse(marker[1]);
   assert.equal(metadata.surface,surface);
