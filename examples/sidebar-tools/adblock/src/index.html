@@ -1,8 +1,10 @@
 <main class="adblock-tool" aria-label="广告拦截例外管理">
-  <section class="adblock-section" aria-labelledby="exceptions-title">
-    <div class="adblock-title"><h2 id="exceptions-title">已停用的网站</h2>
-      <span id="exception-count" class="adblock-count">0</span></div>
-    <div id="exceptions" class="adblock-list"></div>
+  <section class="adblock-section od-surface od-surface--padded" aria-labelledby="exceptions-title">
+    <header class="adblock-title od-page-head">
+      <h2 id="exceptions-title" class="od-title">已停用的网站</h2>
+      <span id="exception-count" class="adblock-count od-technical" aria-label="已停用的网站数量">0</span>
+    </header>
+    <div id="exceptions" class="adblock-list" aria-live="polite" aria-relevant="additions removals"></div>
   </section>
-  <p id="adblock-message" class="adblock-message" role="status" aria-live="polite">正在读取 Chrome 状态…</p>
+  <p id="adblock-message" class="adblock-message od-note" role="status" aria-live="polite">正在读取 Chrome 状态…</p>
 </main>
