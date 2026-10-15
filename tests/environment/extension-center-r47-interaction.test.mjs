@@ -309,7 +309,7 @@ test('R5.0 catalog-offline cleanup remains recoverable only from discovery',asyn
   assert.equal(recovery.hidden,false,'recovery remains reachable without a Catalog release');
   assert.match(recovery.textContent,/cookie-editor/);
   recovery.querySelector('button').dispatch('click');
-  await settle(()=>recovery.hidden===true);
+  await settle(()=>recovery.hidden===true&&f.nodes['extension-center-status'].dataset.state==='success');
   assert.deepEqual(f.invocations.filter(x=>x[0]==='cleanup'),[['cleanup','cookie-editor']]);
   assert.equal(f.nodes['extension-center-status'].dataset.state,'success');
   assert.deepEqual(f.store.get(TOOL_CLEANUP_STORE),{});
