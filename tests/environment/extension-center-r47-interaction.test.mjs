@@ -298,6 +298,31 @@ test('R5.0 uninstall from a second window retires installed details, search and 
     'a new controller session must honor persistent removal');
 });
 
+test('R5.1 detail retires on same-ID package replacement or Page revision change',async t=>{
+  const f=fixture(t);await f.ui.refresh();
+  f.button('app:quick-notes','more').dispatch('click');
+  f.menuItem('查看详情').dispatch('click');
+  assert.equal(f.nodes['extension-center-detail'].hidden,false);
+  // Same tool ID and version are NOT the same approved bytes.
+  f.store.set(SIDEBAR_TOOL_STORE,[{...app,html:'<main>Replaced outside this window</main>'}]);
+  await f.ui.refresh();
+  assert.equal(f.nodes['extension-center-detail'].hidden,true,
+    'old settings/detail actions must not silently follow a replaced fixed package');
+  assert.match(f.nodes['extension-center-status'].textContent,/固定身份已变化/);
+  assert.deepEqual(f.invocations.filter(row=>row[0]==='settings'),[]);
+
+  f.button('page:reader','more').dispatch('click');
+  f.menuItem('查看详情').dispatch('click');
+  assert.equal(f.nodes['extension-center-detail'].hidden,false);
+  f.programs[0]={...f.programs[0],manifestHash:'c'.repeat(64),
+    installed:{...f.programs[0].installed,manifestHash:'c'.repeat(64),
+      revision:2,sourceHash:'d'.repeat(64)}};
+  await f.ui.refresh();
+  assert.equal(f.nodes['extension-center-detail'].hidden,true,
+    'an old Page detail cannot silently adopt a newly installed revision');
+  assert.match(f.nodes['extension-center-status'].textContent,/固定身份已变化/);
+});
+
 test('R5.0 catalog-offline cleanup remains recoverable only from discovery',async t=>{
   const f=fixture(t,{installedRows:[],cleanupRows:{'cookie-editor':{version:'2.0.11',createdAt:1}}});
   await f.ui.refresh();
