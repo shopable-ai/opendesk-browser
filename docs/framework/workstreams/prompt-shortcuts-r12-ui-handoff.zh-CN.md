@@ -179,3 +179,15 @@
 - `1bc0fabcf2e3355decedc6a8df5eea51ed292a3e`：沿用现有 `.github/workflows/prompt-shortcuts-r14.yml`，增加真实便携 JSON 包文件生成、内容合同校验及临时可下载 CI 工件。Run [38743743798](https://github.com/shopable-ai/opendesk-browser/actions/runs/38743743798)：**11/11 Node PASS、syntax PASS、portable v2 package PASS**。
 - 同一期间 production build 在 [Run 38742882742](https://github.com/shopable-ai/opendesk-browser/actions/runs/38742882742) 失败，首个明确阻断是 AdBlock 的固定审计源码 `trusted/host-controls.js` 摘要不一致。截至再次核查的 `main`，该文件实际 blob `c2d9fb892c76669b169c34de2cb4c168f91402cf`，当前白名单 `d43b940eb8e2ad78f10d4dfba606800e7b14fb58`；属于并行 AdBlock 所有权，**本轮没有修改或放宽 AdBlock 源码审批**。
 - 即使独立工具包可通过已有工具安装器导入，真正 `INSTALLED_CHROME_PASS`、`REAL_CHATGPT_PASS`、`MAC_IME_PASS` 仍需安装对应候选并实际观察操作结果；当前均为 **NOT_TESTED**。现阶段**不可**宣布产品全链路 95+。
+
+### 7.5 仓库内正式工具包固化与本地 Codex 验收入口（2026-10-15）
+
+**已真实写入 `main`，不再要求用户从 CI 下载 ZIP 后复制。**
+
+- **正式路径**：`examples/sidebar-tools/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json`；直接由已有官方 `scripts/build-sidebar-tool.mjs` 产生和验证，为 Sidebar Tool v2，可交给 OpenDesk 的现有工具导入/安装器审阅，不是单独 Chrome Extension。
+- **生产源码与本地导入包同目录**：`tool.config.json`、`src/`、`trusted/` 和这个 JSON；保持一个 ID `prompt-shortcuts`，不得建立第二个工具项目或安装引擎。
+- **可核查的实物入库**：GitHub commit [`ddd386ba220213192bc7b0bf3a4ea8d8bbcc77a1`](https://github.com/shopable-ai/opendesk-browser/commit/ddd386ba220213192bc7b0bf3a4ea8d8bbcc77a1)；JSON 文件 **35,083 字节**，SHA-256 `1f09804545c2a654cccab76c1a863c29453b1239b7e387e0d6e4225df3bed412`，版本 `1.0.0`，包含 `storage.local`、`user.export`、`page.prompts`、`browser.contextMenu`。这是此前 Run [38743743798](https://github.com/shopable-ai/opendesk-browser/actions/runs/38743743798) 验证的**完全相同字节**。
+- **CI 固化成功**：基于原 `.github/workflows/prompt-shortcuts-r14.yml` 增加只在 Scoped 11/11/包校验通过后执行的 `sync-project-package` job，直接使用 GitHub 原生 Contents API 向 `main` 非强制写入本工具 JSON，先比较最新源码是否变更、当前文件是否已相同。Run [38747308859](https://github.com/shopable-ai/opendesk-browser/actions/runs/38747308859) 两个 jobs 均 PASS，原始发布日志确认 `PROMPT_PROJECT_PACKAGE_COMMITTED`，不覆盖共享 `dist/development` 或任何并行工具。
+- **本地更新规则**：直接运行 `node scripts/build-sidebar-tool.mjs examples/sidebar-tools/prompt-shortcuts`，无 `--out`；因为已存在与工具 ID 同名的正常项目文件，既有构建器会自动更新目录内 JSON，同时更新忽略入库的 `artifacts/` 副本。通过 `git diff` 保留源码与安装包同一候选；如需正式安装或升级，必须由既有安装器完成版本及权限审核。
+- **本地 Codex 的最高优先级未验收任务**：在现有 `npm run dev` watcher 和 Chrome 正式 OpenDesk Extension ID 下，用本仓库 JSON 安装工具，亲自完成“仅正文新建 → 授权 chatgpt.com → 左侧按钮 → 已有草稿多行/空行/Unicode 插入 → Cmd+Z → 中文 IME → 原生右键选区预填 → 关闭 Side Panel 后仍工作 → 双开关独立 → SPA/BFCache → 撤权/停用/卸载/重装清理”，记录版本、真实加载目录、扩展 ID、工具包 SHA-256、页面、时间、步骤和可复现失败。不得以 Node 或模拟 Chromium 的结果冒充真实通过，严禁自动发送聊天内容。
+- **仍然未取得**：整包 production 在真实 Chrome 的新候选验收、真实 ChatGPT 文本编辑器与 macOS 中文 IME、原生 Chrome 上下文菜单及全链卸载恢复 `INSTALLED_CHROME_PASS` / `REAL_CHATGPT_PASS` / `MAC_IME_PASS`，均保持 `NOT_TESTED`；既有 AdBlock 固定源码摘要阻断只记其原始候选事实，不为了本项目绕过安全门槛。
