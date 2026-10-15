@@ -67,6 +67,13 @@
       window.dispatchEvent(new Event('focus'));
     }
   });
+  // Production dynamically sizes the sandbox. Report only its own document height.
+  if(typeof ResizeObserver==='function'){
+    const report=()=>window.parent.postMessage({type:'opendesk.preview.adblock.height',
+      height:Math.ceil(document.documentElement.scrollHeight)},'*');
+    new ResizeObserver(report).observe(document.body);
+    window.addEventListener('load',report,{once:true});
+  }
   Object.defineProperty(globalThis,'OpenDeskTool',{configurable:false,
     writable:false,enumerable:false,value:Object.freeze({root,request})});
 })();
