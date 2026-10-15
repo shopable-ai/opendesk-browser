@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {runInNewContext,Script} from 'node:vm';
 import {normalizeBrowserOperation} from '../../src/framework/sdk/browser-contract.js';
+import {browserTextDownloadUrl} from '../../src/framework/sdk/browser-schemas.js';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 import {serializeSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 
@@ -128,24 +129,29 @@ test('Unchanged edit avoids Chrome write and pristine new form can navigate away
   assert.equal(s.getField('confirm-panel').hidden,true);
   await s.settle();
 });
-test('Redacted value input reverted to empty preserves old value during metadata edit',async()=>{
-  const saved=[];
+test('Explicitly clearing redacted value is dirty and may write empty without reading old secret',async()=>{
+  const saved=[];let reads=0;
   const row={name:'demo',domain:'example.com',path:'/',hostOnly:true,
     secure:false,httpOnly:false,sameSite:'lax',session:true,value:'original-secret'};
   const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{
-    getAll:async()=>[row],get:async()=>({cookie:{...row,valueRedacted:false}}),
+    getAll:async()=>[row],get:async()=>{reads++;throw Error('must not read old secret');},
     set:async options=>{saved.push(options);return {saved:true,verified:true};}
   }});
   s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
   s.openEditor(s.liveSnapshot().rows[0]);
+  assert.equal(s.isDirty(),false);
   s.getField('cookie-value').value='temporary';
   s.fire('cookie-value','input',{isTrusted:true});
+  s.fire('editor-form','input');
   s.getField('cookie-value').value='';
   s.fire('cookie-value','input',{isTrusted:true});
+  s.fire('editor-form','input');
+  assert.equal(s.isDirty(),true,'explicit clearing must remain an unsaved change');
   s.getField('cookie-secure').checked=true;
   await s.saveBrowserCookie();
   assert.equal(saved.length,1);
-  assert.equal(saved[0].value,'original-secret');
+  assert.equal(saved[0].value,'');
+  assert.equal(reads,0,'explicit empty replacement must not read the old value');
 });
 async function harness(browser=null,{currentPage=null,initialReadStarted=null,trackSaves=false}={}){
   const [source,html,css,config]=await Promise.all([
@@ -253,7 +259,7 @@ test('Cookie Editor is an optional two-mode tool without private cookies API',as
   assert(s.html.includes('id="live-search"')&&s.html.includes('id="live-filter"')&&
     s.html.includes('id="live-sort"'));
   assert(s.source.includes("E('live-filters').hidden=!hasRead"));
-  assert.equal(s.config.version,'2.0.10');
+  assert.equal(s.config.version,'2.0.11');
   assert(s.html.includes('id="offline-tools"')&&s.html.includes('id="browser-panel"'),
     'Live Chrome management is the default; offline tools are secondary');
   assert(!/\b(?:window|globalThis|chrome)\.cookies\./.test(s.source));
@@ -371,7 +377,10 @@ test('Only reviewed user.export files support non-executable .md/.txt/.json type
   for(const filename of ['cookies.js','cookies.html','../cookies.txt'])
     assert.throws(()=>normalizeBrowserOperation('browser.downloads.text',{text:'x',filename}),
       error=>error.code==='E_SCHEMA');
-  assert(host.includes('application/json'));
+  assert(host.includes('browserTextDownloadUrl(payload)'),
+    'Trusted Host must delegate MIME selection to the reviewed SDK helper');
+  assert.match(browserTextDownloadUrl({text:'reviewed content',filename:'cookies.json'}),
+    /^data:application\/json;charset=utf-8,/);
   assert(bridge.includes("node.hasAttribute?.('data-sensitive')"),
     'host draft recovery must never retain cookie secrets');
 });

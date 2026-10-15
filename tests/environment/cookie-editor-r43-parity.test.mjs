@@ -29,6 +29,7 @@ test('Preview new form stays clean until edited and becomes clean again on undo'
   S.draft.name='';assert.equal(changed(S),false);
   S.draft.secure=false;assert.equal(changed(S),true);
   S.draft.secure=true;assert.equal(changed(S),false);
+  S.expanded=1;S.valueEdited=true;assert.equal(changed(S),true,'explicit empty value is a real edit');
   S.expanded=null;assert.equal(changed(S),false);
 });
 
@@ -53,7 +54,7 @@ test('R4.3 installed HTML presents visible import/export/new actions without ent
   assert.match(js,/originalExpiryInput/);
   assert.match(css,/#live-cookie-list \.cookie-row\{/);
   assert.match(html,/<option value="metadata" selected>/);
-  assert.equal(pkg.version,'2.0.10');
+  assert.equal(pkg.version,'2.0.11');
   assert.equal(pkg.html,html);
   assert.equal(pkg.js,js);
   assert.equal(pkg.css,css);

@@ -97,7 +97,7 @@
 <form id="editor-form">
 <p class="editor-top-tip">可在原位置编辑；实际写入由可信宿主核验并确认。</p>
 <div class="field"><label for="cookie-name">名称</label><input id="cookie-name" type="text" maxlength="256" autocomplete="off" required></div>
-<div class="field cookie-value-field"><div class="value-label"><label for="cookie-value">值</label><button id="editor-reveal-value" class="reveal-value-button" type="button" title="单独读取选中 Cookie 的敏感值" aria-label="显示选中 Cookie 值" hidden>显示值</button></div><textarea id="cookie-value" data-sensitive="true" rows="3" maxlength="4096" autocomplete="off" spellcheck="false" placeholder="输入新值；留空保留原值（需单独授权）"></textarea><code id="editor-revealed-value" class="revealed-cookie-value" data-sensitive="true" hidden></code><span class="field-note">默认不读取旧值；只有保留原值或主动显示时才检查敏感值授权。</span></div>
+<div class="field cookie-value-field"><div class="value-label"><label for="cookie-value">值</label><button id="editor-reveal-value" class="reveal-value-button" type="button" title="单独读取选中 Cookie 的敏感值" aria-label="显示选中 Cookie 值" hidden>显示值</button></div><textarea id="cookie-value" data-sensitive="true" rows="3" maxlength="4096" autocomplete="off" spellcheck="false" placeholder="输入新值；未触碰时保留旧值"></textarea><code id="editor-revealed-value" class="revealed-cookie-value" data-sensitive="true" hidden></code><span class="field-note">默认不读取旧值；未编辑值字段时保留旧值需单独授权，主动编辑后清空将明确写入空值。</span></div>
 <details id="cookie-advanced" class="cookie-advanced"><summary>Cookie 属性与高级设置</summary><div class="cookie-advanced-fields">
 <div class="field-grid">
 <div class="field"><label for="cookie-domain">域名</label><input id="cookie-domain" type="text" maxlength="253" autocomplete="off" required></div>

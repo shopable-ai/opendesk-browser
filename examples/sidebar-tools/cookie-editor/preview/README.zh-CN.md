@@ -6,3 +6,5 @@
 - 定向检查：`node --test tests/environment/cookie-editor-r43-parity.test.mjs tests/environment/cookie-editor-ui.test.mjs`；安装包再通过 `node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor` 复核。
 
 - R4.5：打开新建或编辑即 clean；仅实际变更为 dirty，撤销恢复 clean；空白新建可直接取消、切换或离开。正式 src 使用字段快照进行相同判断。
+
+- R4.5.1 补充：编辑被遮蔽 Cookie 的值字段后再次清空，是明确写入空值的意图，仍属于未保存状态；未触碰的空值输入框才表示保留旧值，模拟逻辑与正式 Chrome SDK 契约一致。
