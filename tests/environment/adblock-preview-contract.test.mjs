@@ -42,6 +42,12 @@ test('native host snapshots render original trusted control factory, not HTML re
   assert.match(host.snapshots['on-site-off'],/aria-checked="false"/);
   assert.match(host.snapshots['off'],/所有 AdBlock 规则已停止/);
   assert.match(host.snapshots['restart'],/需重启 Chrome/);
+  const noPermission=host.snapshots['no-permission'];
+  const permissionButton=noPermission.match(/<button[^>]*aria-label="全局广告拦截"[^>]*>/)?.[0];
+  const siteButton=noPermission.match(/<button[^>]*aria-label="网站 [^"]+"[^>]*>/)?.[0];
+  assert.ok(permissionButton&&!permissionButton.includes('disabled'),
+    'missing optional DNR permission still allows a fresh trusted request');
+  assert.ok(siteButton?.includes('disabled'),'site filtering cannot run without DNR');
   assert.match(host.snapshots['error'],/状态未确认/);
   assert.match(host.snapshots['loading'],/状态未确认/);
   assert.match(host.css,/.sidebar-tool-adblock-native button\[role=switch\]/);
