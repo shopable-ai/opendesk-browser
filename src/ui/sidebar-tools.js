@@ -1,4 +1,5 @@
 import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_GRANTS_STORE,normalizeBrowserOperation,browserOperation} from '../framework/sdk/browser-contract.js';
+import {browserTextDownloadUrl} from '../framework/sdk/browser-schemas.js';
 import {createSidePanelOpenCoordinator} from '../platform/chrome/browser-side-panel.js';
 import {createToolPermissionConsent} from '../platform/chrome/permission-gate.js';
 import {scheduleSpecFromExpression} from '../platform/tasks/schedule-time.js';
@@ -1095,7 +1096,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         // A sandbox-initiated request is NOT a trusted click, even when the
         // request originated from an iframe button. The visible Side Panel
         // confirms one exact call; the Host then consumes that approval once.
-        const label=operation==='browser.clipboard.writeText'?'复制文本到剪贴板':'导出文本文件';
+        const label=operation==='browser.clipboard.writeText'?'复制文本到剪贴板':/\.csv$/i.test(payload?.filename)?'导出 CSV 文件':'导出文本文件';
         envelope.approvalRef=await requestBrowserClick({toolId:tool.id,
           message:'「'+tool.title+'」请求'+label+'。仅允许本次操作。',
           button:'允许本次导出',run:async event=>{
@@ -1257,8 +1258,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         if(!api.downloads?.download)
           throw Object.assign(new Error('下载服务不可用'),{code:'E_CHROME_UNSUPPORTED'});
         const filename=payload.filename;
-        const mime=/\.json$/i.test(filename)?'application/json':/\.txt$/i.test(filename)?'text/plain':'text/markdown';
-        const url='data:'+mime+';charset=utf-8,'+encodeURIComponent(payload.text);
+        const url=browserTextDownloadUrl(payload);
         let downloadId;
         try{downloadId=await api.downloads.download({url,filename,saveAs:true,conflictAction:'uniquify'});}
         catch{throw Object.assign(new Error('下载结果未知，请检查 Chrome 下载记录，勿自动重试'),{code:'E_OUTCOME_UNKNOWN'});}
