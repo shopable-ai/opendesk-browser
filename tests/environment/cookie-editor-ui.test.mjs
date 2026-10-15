@@ -4,9 +4,16 @@ import {readFile} from 'node:fs/promises';
 import {runInNewContext,Script} from 'node:vm';
 import {normalizeBrowserOperation} from '../../src/framework/sdk/browser-contract.js';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
+import {serializeSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 
 const project='examples/sidebar-tools/cookie-editor';
 const get=path=>readFile(path,'utf8');
+test('committed Cookie Editor bundle exactly matches canonical source packaging',async()=>{
+  const generated=serializeSidebarToolPackage(await createSidebarToolPackage(project));
+  const ready=await get(project+'/cookie-editor.opendesk-tool.json');
+  assert.equal(ready,generated,'预构建 JSON 与当前配置/HTML/CSS/JS 不一致：请重新打包并提交');
+  assert.equal(JSON.parse(ready).id,'cookie-editor');
+});
 async function harness(browser=null,{currentPage=null,initialReadStarted=null,trackSaves=false}={}){
   const [source,html,css,config]=await Promise.all([
     get(project+'/src/main.js'),get(project+'/src/index.html'),
