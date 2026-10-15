@@ -94,3 +94,10 @@ Date: 2026-10-15. Branch: `main` (only). Scope: `examples/programs/chatgpt-mindm
 - R2 Chromium 真实引擎 fixture 旧记录 15 PASS 可作为历史证据继续保留，但本次新增独立 HTML Chromium 案例 **NOT_TESTED**，无浏览器 screenshot；授权后的 USER_SCRIPT / 登录 ChatGPT / 用户 Mac / 原 Mindbank 视觉相似度仍是 **NOT_TESTED**。
 
 **下一道明确执行关卡**：带四份原始固定资源执行 `node tests/framework/chatgpt-mindmap-xmind-probe.mjs --assets ... --browser ... --playwright ... --out ...`，打开 `preview/serve.mjs` 提供的真实浏览器地址完成视觉/动作回归，然后推进许可批准、唯一受信 Runtime 安装链与原生验证。尚未获得许可证及安全隔离/同候选安装凭据时不得把 `installable:false` 改为真。
+
+
+## 预览 Style 隔离证据修正及最后一次定向 CI
+
+- 提交 `4f788bef73e699550092743db1ce16909c7ceeed` 修复预览 Stop 误判：Snowbrush **脚本加载时**注入的 `head style#snowbrush_style` 已可能存在于最初计数中，不能因 Stop 后 style 数量变化为 0 就宣称样式隔离完成。当前 Stop 同时检查 `snowbrush_style` / `.workbook-item` / `.sb-container` 全局样式节点，并显式标记 `BLOCKED_GLOBAL_STYLE_RESIDUE`。
+- 提交 `4f788bef73e699550092743db1ce16909c7ceeed` 绑定的定向 GitHub Actions [38725804241](https://github.com/shopable-ai/opendesk-browser/actions/runs/38725804241)：**SUCCESS**（job `116391229754`），16 tests / 13 PASS / 0 FAIL / 3 SKIP（真实 SDK 缺失）；程序校验和构建 PASS，但仍 `BUILT_UNVERIFIED / installable:false`。
+- R2.1 的独立 Chrome HTML **正向**渲染、清理后实际样式节点统计、用户 Mac 正式安装、登录 ChatGPT 仍 **NOT_TESTED**。旧版 R2 Linux Chromium fixture 的历史成功不提升为 R2.1 新 HTML 实测。
