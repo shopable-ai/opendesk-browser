@@ -89,6 +89,18 @@ async function findFrame(){
   }
   throw Error('Bookmark preview iframe execution context not found');
 }
+async function findOuterPreview(){
+  for(let i=0;i<120;i++){
+    for(const ctx of [...contexts.values()]){
+      try{
+        if(await evaluate("Boolean(document.getElementById('od-preview-bookmark-lab')&&document.getElementById('opendesk-preview-frame'))",ctx))
+          return ctx;
+      }catch{/* outer context may be navigating */}
+    }
+    await delay(70);
+  }
+  throw Error('External bookmark laboratory was not mounted in the preview shell');
+}
 async function exercise(mode){
   const q=id=>document.getElementById(id);
   const sleep=ms=>new Promise(ok=>setTimeout(ok,ms));
@@ -104,8 +116,20 @@ async function exercise(mode){
   };
   const submit=()=>q('bm-save').click();
   const diagnostic=label=>{
-    const match=[...document.querySelectorAll('details button')].find(x=>x.textContent===label);
-    check(Boolean(match),'Mock diagnostic '+label);match.click();
+    const commands={
+      '下一次写入失败':'write-fail','下一次写入结果未知':'write-unknown',
+      '模拟外部冲突':'external-conflict','下一次读取超时':'read-timeout',
+      '新增 130 个模拟文件夹':'extra-folders',
+      '模拟外部删除当前书签':'external-delete',
+      '模拟撤销权限':'revoke','恢复模拟权限':'restore'
+    };
+    const command=commands[label],handler=globalThis.__opendeskBookmarkMockDiagnostic;
+    check(Boolean(command)&&typeof handler==='function','Mock-only diagnostic API '+label);
+    check(typeof handler(command)==='string','Mock-only diagnostic returned receipt');
+    check(!document.querySelector('#od-preview-bookmark-lab'),
+      'laboratory DOM must never be inside the bookmark tool frame');
+    check(![...document.querySelectorAll('summary')].some(x=>x.textContent.includes('预览测试辅助工具')),
+      'tool iframe cannot include preview laboratory controls');
   };
   await wait(()=>!q('bm-workspace').hidden,'initial tree is loaded');
   check(q('bm-total').textContent.includes('2,159'),'whole authorized 2159-node tree');
@@ -315,7 +339,18 @@ try{
       width:Math.max(1100,width+70),height:980,deviceScaleFactor:1,mobile:false
     });
     await cdp('Page.navigate',{url:pathToFileURL(built.output).href});
-    const ctx=await findFrame();
+    const ctx=await findFrame(),outerCtx=await findOuterPreview();
+    const scope=await evaluate(`(()=>{
+      const lab=document.getElementById('od-preview-bookmark-lab');
+      const stage=document.querySelector('.preview-device');
+      const frame=document.getElementById('opendesk-preview-frame');
+      return {outside:!stage.contains(lab)&&!frame.contains(lab),
+        commands:lab.querySelectorAll('button[data-bookmark-diagnostic]').length,
+        collapsed:!lab.querySelector('details').open,
+        isolated:frame.getAttribute('sandbox')==='allow-scripts'};
+    })()`,outerCtx);
+    assert.deepEqual(scope,{outside:true,commands:8,collapsed:true,isolated:true},
+      'diagnostics must be outside production-shaped Side Panel');
     const report=await evaluate('('+exercise.toString()+')('+JSON.stringify(mode)+')',ctx);
     assert.ok(report?.inlineEdit&&report?.selectedAfterSave);
     assert.deepEqual(network,[],'preview must not make real network requests');
@@ -369,16 +404,39 @@ try{
     await capture('editing');
     const visualConflict=await evaluate(`(async()=>{
       const q=id=>document.getElementById(id);
-      const diagnostic=[...document.querySelectorAll('details button')].find(x=>
-        x.textContent==='模拟外部冲突');
-      if(!diagnostic)throw Error('visual conflict diagnostic missing');
-      diagnostic.click();q('bm-save').click();
+      if(typeof globalThis.__opendeskBookmarkMockDiagnostic!=='function')
+        throw Error('preview-only diagnostic adapter missing');
+      globalThis.__opendeskBookmarkMockDiagnostic('external-conflict');
+      q('bm-save').click();
       for(let i=0;i<160&&q('bm-conflict-review').hidden;i++)
         await new Promise(done=>setTimeout(done,65));
       return !q('bm-conflict-review').hidden&&!q('bm-form-view').hidden;
     })()`,visualCtx);
     assert.ok(visualConflict,'visual conflict must be visible with draft preserved');
     await capture('conflict');
+    // Real pointer click on the OUTER preview-only diagnostic control. It must
+    // post only an allowlisted Mock request to the opaque iframe, then display
+    // the validated result in the outer feedback region.
+    const outer=await findOuterPreview();
+    const coords=await evaluate(`(()=>{
+      const lab=document.getElementById('od-preview-bookmark-lab');
+      lab.querySelector('details').open=true;
+      const btn=lab.querySelector('[data-bookmark-diagnostic="restore"]');
+      btn.scrollIntoView({block:'center'});
+      const rect=btn.getBoundingClientRect();
+      return {x:rect.left+rect.width/2,y:rect.top+rect.height/2};
+    })()`,outer);
+    await cdp('Input.dispatchMouseEvent',{type:'mousePressed',...coords,button:'left',clickCount:1});
+    await cdp('Input.dispatchMouseEvent',{type:'mouseReleased',...coords,button:'left',clickCount:1});
+    let acknowledgment='';
+    for(let i=0;i<80;i++){
+      acknowledgment=await evaluate("document.getElementById('od-preview-bookmark-feedback')?.textContent||''",outer);
+      if(acknowledgment.includes('模拟权限已恢复'))break;
+      await delay(60);
+    }
+    assert.match(acknowledgment,/模拟权限已恢复/,
+      'the external preview lab must receive the sandbox Mock acknowledgment');
+    await capture('external-lab');
     assert.deepEqual(network,[],'visual review must remain fully offline');
     assert.deepEqual(exceptions,[],'visual review must not throw');
     reports.push({...report,sourceCommit:built.sourceCommit,
