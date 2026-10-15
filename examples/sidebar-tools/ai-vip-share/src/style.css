@@ -1,1 +1,21 @@
- .ai-access{padding:2px 4px 12px;display:grid;gap:8px;color:var(--od-text-secondary,#64748b);font-size:13px;line-height:1.55}.ai-access p{margin:0}.ai-access-note{color:var(--od-text-primary,#334155);font-weight:500}
+/* @opendesk-shared-design */
+/* Layout only; canonical design tokens and visual primitives are imported at build time. */
+.ai-vip{display:grid;gap:var(--space-3);min-width:0;padding:var(--space-2) var(--od-page-gutter) 0}
+.ai-vip-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--space-2);min-width:0}
+.ai-vip-card{display:grid;gap:var(--space-2);min-width:0}
+.ai-vip-card>p{margin:0}
+.ai-vip-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--space-2);min-width:0}
+.ai-vip-row>h2,.ai-vip-card>h2{margin:0}
+.ai-vip-account{display:flex;align-items:center;gap:var(--space-3);min-width:0}
+.ai-vip-avatar{display:grid;place-items:center;flex:none;width:40px;height:40px;border-radius:var(--radius-surface);background:var(--od-muted);color:var(--od-accent-ink);font-weight:700}
+.ai-vip-account-text{min-width:0;overflow-wrap:anywhere}
+.ai-vip-account-text>p{margin:var(--space-1) 0 0}
+.ai-vip-metric{display:flex;align-items:baseline;flex-wrap:wrap;gap:var(--space-2)}
+.ai-vip-metric>strong{font-size:28px;line-height:1.15;color:var(--od-ink);font-weight:700}
+.ai-vip-divider{border-top:1px solid var(--od-line)}
+.ai-vip-redeem-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--space-2);min-width:0}
+.ai-vip-redeem-row>*{min-width:0}
+.ai-vip-shop{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);flex-wrap:wrap;min-width:0}
+.ai-vip-shop>div{min-width:0;flex:1 1 150px}
+.ai-vip-shop p{margin:var(--space-1) 0 0}
+@media(max-width:360px){.ai-vip-redeem-row{grid-template-columns:minmax(0,1fr)}.ai-vip-shop{align-items:stretch}.ai-vip-shop>div{flex-basis:100%}}

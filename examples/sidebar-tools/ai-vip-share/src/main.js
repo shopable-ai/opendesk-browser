@@ -1,18 +1,39 @@
-// This opaque sandbox only displays status. There is no privileged toggle here:
-// a sandbox click is not a Chrome permission gesture.
+// Opaque-sandbox member surface. No account, SKU, receipt or expiry is inferred locally.
 (function(){
-  var root=window.OpenDeskTool&&window.OpenDeskTool.root;
-  var hint=root&&root.querySelector('#ai-access-help');
-  if(!hint)return;
-  async function refresh(){
+  'use strict';
+  const root=window.OpenDeskTool&&window.OpenDeskTool.root;
+  if(!root)return;
+  const shop=root.querySelector('#ai-vip-shop-open'),status=root.querySelector('#ai-vip-shop-status');
+  // Business-owned audited configuration. Empty until a legitimate merchant is deployed.
+  const PRODUCT_CATALOG_URL='';
+  function validCatalogUrl(value){
+    if(typeof value!=='string'||!value)return null;
     try{
-      var state=await window.OpenDeskTool.request('aiAccess.status',{});
-      var labels={enabled:'已启用',disabled:'未启用',activation_required:'需要激活',
-        unavailable:'不可用',conflict:'代理由其他扩展管理'};
-      hint.textContent=(labels[state.state]||'状态待确认')+
-        (typeof state.reason==='string'&&state.reason?'：'+state.reason:'');
-    }catch(error){hint.textContent='无法确认代理状态，请重新打开工具';}
+      const url=new URL(value);
+      const localDevelopment=url.protocol==='http:'&&['localhost','127.0.0.1'].includes(url.hostname);
+      if(!(url.protocol==='https:'||localDevelopment)||!url.hostname||
+         url.username||url.password||url.hash||url.href.length>2048)return null;
+      return url.href;
+    }catch{return null;}
   }
-  root.addEventListener('opendesk-tool-state-changed',refresh);
-  refresh();
+  const catalog=validCatalogUrl(PRODUCT_CATALOG_URL);
+  if(!shop||!status)return;
+  shop.disabled=!catalog;
+  status.textContent=catalog?'在新标签页打开正式商品目录，不使用商品弹窗。':
+    '正式商品目录尚未配置，不展示虚假价格或订单。';
+  shop.addEventListener('click',event=>{
+    if(event?.isTrusted!==true||!catalog||shop.disabled)return;
+    shop.disabled=true;
+    status.textContent='正在请求打开商品目录…';
+    // A future reviewed v2 tool must declare browser.tabs; the existing Browser SDK
+    // enforces the trusted one-use navigation intent, without sandbox window.open.
+    const sdk=window.OpenDeskSDK?.browser?.tabs;
+    Promise.resolve().then(()=>{
+      if(typeof sdk?.create!=='function')throw Error('当前版本缺少网页打开能力');
+      return sdk.create({url:catalog});
+    }).then(
+      ()=>{status.textContent='已请求在浏览器新标签页打开商品目录。';},
+      error=>{status.textContent='未能打开商品目录：'+String(error?.message||error).slice(0,160);}
+    ).finally(()=>{shop.disabled=false;});
+  });
 })();

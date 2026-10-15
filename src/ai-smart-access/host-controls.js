@@ -1,92 +1,101 @@
-// An extension-owned UI: user consent and Chrome permission dialogs can only
-// originate from genuine clicks here, never from opaque sandbox content.
+// A first-party host-only proxy card. Installed sandbox content cannot forge this click.
+// The legacy worker remains intact until a reviewed Managed Proxy SDK replaces it.
 import {AI_ID,AI_CAPABILITY} from './policy.js';
 export function createAiAccessPermissionControls({api,doc,container,notice,runOperation}){
   const section=doc.createElement('section');
   section.id='ai-access-trusted-controls';
-  section.className='time-review-trusted-actions';
+  section.className='od-surface od-surface--padded';
+  section.setAttribute('aria-label','AI 网站访问');
   section.hidden=true;
-  const heading=doc.createElement('strong');heading.textContent='AI VIP Share';
-  const status=doc.createElement('p');status.id='ai-access-status';
-  status.setAttribute('role','status');status.setAttribute('aria-live','polite');
+  const header=doc.createElement('div');
+  header.className='ai-access-proxy-head';
+  const title=doc.createElement('h2');
+  title.className='od-title';
+  title.textContent='AI 网站访问';
+  const badge=doc.createElement('span');
+  badge.className='od-note';
+  badge.setAttribute('role','status');
+  badge.setAttribute('aria-live','polite');
+  header.append(title,badge);
+  const status=doc.createElement('p');
+  status.id='ai-access-status';
+  status.className='od-note';
   const action=doc.createElement('button');
-  action.type='button';action.id='ai-access-toggle';action.className='od-button';
-  const explanation=doc.createElement('p');
-  explanation.className='hint';explanation.textContent='仅 AI 网站自动代理，其他网站直连';
-  const activation=doc.createElement('div');activation.id='ai-access-activation';
-  activation.hidden=true;
-  const codeLabel=doc.createElement('label');
-  codeLabel.htmlFor='ai-access-activation-code';codeLabel.textContent='激活码';
-  const code=doc.createElement('input');
-  code.id='ai-access-activation-code';code.type='password';
-  code.autocomplete='off';code.spellcheck=false;code.maxLength=120;
-  code.className='od-field';code.placeholder='输入激活码';
-  const activate=doc.createElement('button');
-  activate.type='button';activate.className='od-button od-button--secondary';
-  activate.textContent='激活';
-  activation.append(codeLabel,code,activate);
-  section.append(heading,status,action,activation,explanation);
+  action.type='button';
+  action.id='ai-access-toggle';
+  action.className='od-button';
+  const errorText=doc.createElement('p');
+  errorText.id='ai-access-error';
+  errorText.className='od-field-error';
+  errorText.setAttribute('role','alert');
+  errorText.hidden=true;
+  const help=doc.createElement('p');
+  help.className='od-note';
+  help.textContent='仅控制本工具的 AI 网站代理，不修改系统 VPN 或其他扩展；会员有效期与代理启停互不影响。';
+  section.append(header,status,action,errorText,help);
   container.append(section);
-  let activeTool=null,toolEnabled=false,busy=false,renderEpoch=0,statusEpoch=0;
-  let last={state:'unavailable',reason:'等待读取 Chrome 状态'};
+  let activeTool=null,toolEnabled=false,busy=false,statusEpoch=0;
+  let last={state:'unavailable',canStop:false,reason:'正在核对 Chrome 状态'};
+  const canStop=data=>data?.canStop===true||data?.state==='enabled';
   function show(data){
-    last=data;
-    const labels={enabled:'已启用',disabled:'未启用',activation_required:'需要激活',
-      conflict:'由其他扩展管理',unavailable:'不可用'};
-    status.textContent=(labels[data.state]||'不可用')+
-      (data.reason?' · '+data.reason:'');
-    action.textContent=data.canStop||data.state==='enabled'?'停止代理':'启用代理';
-    action.disabled=busy||!toolEnabled||
-      !(data.canStop||data.state==='disabled');
-    activation.hidden=data.state!=='activation_required'||!toolEnabled;
-    code.disabled=busy||!toolEnabled;activate.disabled=busy||!toolEnabled;
+    last=data&&typeof data==='object'?data:{state:'unavailable',reason:'状态回执无效'};
+    const labels={enabled:'代理已启用',disabled:'代理已停用',
+      activation_required:'代理服务待激活',unavailable:'代理不可用',conflict:'代理控制冲突'};
+    const stop=canStop(last);
+    const reason=typeof last.reason==='string'?last.reason.slice(0,180):'';
+    badge.textContent=labels[last.state]||'状态待核对';
+    status.textContent=reason||'仅反映 Chrome 实际控制状态，不代表 AI 网站网络连通。';
+    const retry=stop&&last.state==='unavailable'&&/停止|清理|结果尚未确认|结果未确认/.test(reason);
+    action.textContent=busy?'正在处理':stop?(retry?'重试停用':'停用代理'):'启用代理';
+    action.disabled=busy||!toolEnabled||!(stop||last.state==='disabled');
+    action.setAttribute('aria-pressed',String(last.state==='enabled'&&stop));
   }
-  const setBusy=value=>{busy=value;show(last);};
   async function refresh(){
     const seq=++statusEpoch,tool=activeTool;
     if(!tool||!toolEnabled)return;
     try{
-      const state=await runOperation('aiAccess.status',{},null);
-      if(seq===statusEpoch&&activeTool===tool&&toolEnabled)show(state);
+      const reply=await runOperation('aiAccess.status',{},null);
+      if(seq===statusEpoch&&activeTool===tool&&toolEnabled)show(reply);
     }catch(error){
-      if(seq===statusEpoch&&activeTool===tool)show({
-        state:'unavailable',reason:String(error?.message||error).slice(0,140)
-      });
+      if(seq===statusEpoch&&activeTool===tool&&toolEnabled)
+        show({state:'unavailable',reason:String(error?.message||error).slice(0,180)});
     }
   }
   action.addEventListener('click',event=>{
-    if(event.isTrusted!==true||busy||!toolEnabled)return;
-    const operation=last.canStop||last.state==='enabled'?'aiAccess.disable':
+    if(event?.isTrusted!==true||busy||!toolEnabled)return;
+    const operation=canStop(last)?'aiAccess.disable':
       last.state==='disabled'?'aiAccess.enable':null;
     if(!operation)return;
-    setBusy(true);
-    // Chrome explicitly excludes proxy from optional permissions. Users grant it
-    // when installing/updating the extension; this trusted click independently
-    // authorizes a global proxy change and the worker checks permission status.
-    Promise.resolve().then(()=>runOperation(operation,{},event))
-      .then(()=>refresh(),error=>notice((error?.code||'E_AI')+'：'+
-        String(error?.message||error).slice(0,180),true)).finally(()=>setBusy(false));
-  });
-  activate.addEventListener('click',event=>{
-    if(event.isTrusted!==true||busy||!toolEnabled)return;
-    const value=code.value.trim();
-    if(!/^[a-zA-Z0-9_-]{6,120}$/.test(value)){
-      notice('请输入有效格式的激活码（6–120 位字母、数字、- 或 _）',true);return;
-    }
-    setBusy(true);
-    Promise.resolve().then(()=>runOperation('aiAccess.activate',{code:value},event))
-      .then(()=>{code.value='';return refresh();},
-        error=>notice((error?.code||'E_AI_ACTIVATION')+'：'+
-          String(error?.message||error).slice(0,160),true))
-      .finally(()=>setBusy(false));
+    ++statusEpoch;
+    busy=true;
+    errorText.hidden=true;
+    show(last);
+    // Genuine extension DOM click; no second confirmation or sandbox-induced mutation.
+    Promise.resolve().then(()=>runOperation(operation,{},event)).then(
+      ()=>refresh(),
+      error=>{
+        const message=(error?.code||'E_AI')+'：'+String(error?.message||error).slice(0,180);
+        errorText.textContent=message;
+        errorText.hidden=false;
+        notice(message,true);
+        return refresh(); // Read-only recovery; never retry an unknown write.
+      }
+    ).finally(()=>{busy=false;show(last);});
   });
   function render(tool,readOnly=false,enabled=false){
-    const visible=!readOnly&&tool?.id===AI_ID&&tool.capabilities.includes(AI_CAPABILITY);
-    if(!visible){activeTool=null;section.hidden=true;statusEpoch++;return;}
+    const visible=!readOnly&&tool?.id===AI_ID&&
+      Array.isArray(tool.capabilities)&&tool.capabilities.includes(AI_CAPABILITY);
+    if(!visible){
+      activeTool=null;toolEnabled=false;section.hidden=true;statusEpoch++;
+      errorText.hidden=true;return;
+    }
     const changed=activeTool!==tool||toolEnabled!==Boolean(enabled);
-    activeTool=tool;toolEnabled=Boolean(enabled);
-    section.hidden=false;
-    if(changed){show({state:'unavailable',reason:'正在核对 Chrome 状态'});void refresh();}
+    activeTool=tool;toolEnabled=Boolean(enabled);section.hidden=false;
+    if(changed){
+      errorText.hidden=true;
+      show({state:'unavailable',reason:'正在核对 Chrome 代理状态'});
+      if(toolEnabled)void refresh();
+    }
     if(!toolEnabled)show({state:'unavailable',reason:'请先启用已安装的工具'});
   }
   return {render,refresh};

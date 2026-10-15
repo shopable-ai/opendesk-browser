@@ -1183,3 +1183,11 @@
 #sidebar-tool-display[data-trusted-tool-inline="true"]>#sidebar-tool-frame{order:2}
 #sidebar-tool-display[data-trusted-tool-inline="true"]>#sidebar-tool-launch,
 #sidebar-tool-display[data-trusted-tool-inline="true"]>#sidebar-tool-retired-draft{order:3}
+
+/* AI VIP Share R5: extension-owned proxy card below isolated member UI. */
+.sidebar-tool-ai-proxy-native{min-width:0;margin-top:var(--space-3)}
+#ai-access-trusted-controls{display:grid;gap:var(--space-2)}
+#ai-access-trusted-controls .ai-access-proxy-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--space-2)}
+#ai-access-trusted-controls .ai-access-proxy-head>h2{margin:0}
+#ai-access-trusted-controls p{margin:0}
+#ai-access-trusted-controls .od-button{justify-self:start}

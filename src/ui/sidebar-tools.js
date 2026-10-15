@@ -70,6 +70,13 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const list=get('sidebar-tool-list'), listView=get('sidebar-tool-list-view');
   const empty=get('sidebar-tool-empty'), backButton=get('sidebar-tool-back');
   const display=get('sidebar-tool-display'), frameRoot=get('sidebar-tool-frame');
+  // The existing extension Host owns the trusted proxy card, never installed HTML/JS.
+  const aiProxyContainer=doc.createElement('section');
+  aiProxyContainer.id='sidebar-tool-ai-proxy-native';
+  aiProxyContainer.className='sidebar-tool-ai-proxy-native';
+  aiProxyContainer.setAttribute('aria-label','AI 网站访问可信控制');
+  aiProxyContainer.hidden=true;
+  frameRoot.after?.(aiProxyContainer);
   const status=get('sidebar-tool-status'), fileInput=get('sidebar-tool-file');
   const importTrigger=get('sidebar-tool-import-trigger'), importPanel=get('sidebar-tool-import');
   const importClose=get('sidebar-tool-import-close'), preview=get('sidebar-tool-preview');
@@ -338,8 +345,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
               throw Object.assign(new Error('当前工具已变更或关闭'),{code:'E_TOOL_CHANGED'});
           }});
       }}):null;
-  const aiPermissions=settingsView&&aiAccess?.createPermissionControls
-    ?aiAccess.createPermissionControls({api,doc,container:settingsView,notice,
+  const aiPermissions=aiAccess?.createPermissionControls
+    ?aiAccess.createPermissionControls({api,doc,container:aiProxyContainer,notice,
       runOperation:(operation,payload,event)=>{
         const tool=active;
         return aiAccess.runTrustedOperation({api,tool,operation,payload,event,
@@ -674,11 +681,12 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     focusPermissions?.render(active,readOnlyPreview,enabled);
     adblockControls?.render(active,readOnlyPreview,enabled);
     aiPermissions?.render(active,readOnlyPreview,enabled);
+    aiProxyContainer.hidden=!(managed&&id===AI_ID&&enabled&&(frame||nativeUI));
     const sitePending=siteTogglePending.has(id);
     const isToc=managed&&id===READING_TOC_TOOL_ID&&active.capabilities.includes(TOC_CAPABILITY);
     if(!managed)tocSettingsOpen=false;
-    const show=managed&&(tocSettingsOpen||id===AI_ID);
-    settingsButton.hidden=!managed||id===AI_ID;settingsButton.disabled=busy||sitePending;
+    const show=managed&&tocSettingsOpen;
+    settingsButton.hidden=!managed;settingsButton.disabled=busy||sitePending;
     settingsButton.setAttribute('aria-expanded',String(show));
     // Time Review uses the same trusted static settings DOM as an inline
     // enrollment card. Do not replace/hide its live stats iframe.
@@ -687,7 +695,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(trustedInline&&settingsView.nextElementSibling!==frameRoot)frameRoot.before?.(settingsView);
     else if(!trustedInline&&settingsView.previousElementSibling!==retiredDraft)retiredDraft.after?.(settingsView);
     display.setAttribute('data-trusted-tool-inline',String(trustedInline));
-    settingsView.hidden=!show;frameRoot.hidden=id===AI_ID||(show&&!trustedInline)||!(frame||nativeUI);
+    settingsView.hidden=!show;frameRoot.hidden=(show&&!trustedInline)||!(frame||nativeUI);
     renderCookieSettings(show);
     fullBookmarkSettings.hidden=!(show&&managed&&isFullBookmarkTool(active));
     const fullGrant=menuGrants?.[id],currentEpoch=revocationEpochs[id]??null;
@@ -843,7 +851,6 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     // An installed Focus tool opens with a visible trusted first-use grant.
     tocSettingsOpen=!readOnly&&(
       tool.id===FOCUS_ID&&tool.capabilities.includes(FOCUS_CAPABILITY)||
-      tool.id===AI_ID&&tool.capabilities.includes(AI_CAPABILITY)||
       isCookieTool(tool)&&cookieSiteRecord(tool,websiteOrigin(currentPageTarget?.snapshot?.url))?.read!==true);
     tocScope='site';destroyFrame();active=tool;readOnlyPreview=readOnly;previewDirty=false;knowledgeDirty=false;
     frameRevocationEpoch=readOnly?null:(revocationEpochs[tool.id]??null);

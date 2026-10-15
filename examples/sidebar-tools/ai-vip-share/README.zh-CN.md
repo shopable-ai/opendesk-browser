@@ -5,7 +5,7 @@
 
 ## 产品设计与原型（R4）
 
-会员账号、兑换码/时长、专属激活链接、安装引导及更多商品的**待实现**规范：[`DESIGN.zh-CN.md`](DESIGN.zh-CN.md)。
+会员账号、权益、专属激活链接、安装引导及更多商品的历史产品规范：[`DESIGN.zh-CN.md`](DESIGN.zh-CN.md)。
 可离线交互的 HTML 评审页：[`preview/ai-vip-share-r4-preview.html`](preview/ai-vip-share-r4-preview.html)，仅供审查，不接入真实账号、支付或代理。
 
 ## 本地构建与验证
@@ -34,3 +34,13 @@ R2.1 核查（2026-10-15）：R11 的批准 Registry 没有 Managed Proxy，发�
 恢复旧安装时必须保留尚在运行的旧身份代理保护，不将旧租约迁给新身份；显式停止/卸载只能清理已证明属于该身份的资源。无法区分所有者、存储失败或缺失回执时保留待处理状态，不自动退回直连。逐文件缺口、测试及候选身份见 [R2.1 工作流](../../../docs/framework/workstreams/ai-vip-share-r21-01a13df4.md)。
 
 历史基线：`docs/framework/workstreams/ai-smart-access-r1.md`。
+
+## R5 正式 UI（1.1.0）
+
+正式已安装工具从 `src/index.html`、`src/style.css` 与 `src/main.js` 展示会员主卡、兑换激活与更多商品入口。CSS 构建时抽取官方 Design System；不复制原型 CSS。代理唯一启停按钮位于现有宿主的可信卡片，紧随隔离 UI 之后；旧 `aiAccess.*` 仍为过渡协议，公共 Managed Proxy 仍是 `SDK_BLOCKED`。
+
+正式会员/兑换/商品 Provider 没有部署，因此展示未核验与未配置，不收取兑换码、不显示伪造时长、订单或兑换成功。专属 ticket 安装续接仍 `PROVIDER_BLOCKED`；离线 R4.2 不是生产接线。
+
+「查看更多商品」设计为**外部商品目录标签页**，不是弹窗。工具内 `PRODUCT_CATALOG_URL` 保持空；取得已审核 HTTPS 商城 URL 后，应升级 v2 包、单独审阅 `browser.tabs` 能力，通过已有 Browser SDK `browser.tabs.create` 打开，不能在 opaque sandbox 中绕过宿主。
+
+状态、测试与阻塞以 [R5 工作流](../../../docs/framework/workstreams/ai-vip-share-r5-production-ui-20261015.md) 和同候选 CI 为准；R4.2 33/30 是历史离线数据。
