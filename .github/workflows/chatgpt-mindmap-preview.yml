@@ -39,3 +39,81 @@ jobs:
         run: |
           echo 'COMPONENT_TESTED_ONLY: vendor asset / Chrome / USER_SCRIPT installed / ChatGPT NOT_TESTED'
           echo 'No vendor redistribution or fixed production runtime admission in this workflow'
+
+  real-local-xmind-html:
+    # Only test exact historical source snapshots in a disposable CI browser.
+    # Never publish vendor JS or admit it to the installed Page runtime.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Prepare exact audited inputs (fail closed on mismatch)
+        shell: bash
+        run: |
+          set -euo pipefail
+          dir="${RUNNER_TEMP}/xmind-r22-audited"
+          mkdir -p "$dir"
+          # Original blobs are tracked as legacy source snapshots, NOT runtime assets.
+          old="docs/contracts/source-snapshots/scrapyJsChrome/www/lib/xmind"
+          cp "$old/polyfill-45b9836beb.min.js" "$dir/"
+          cp "$old/xmind-sdk.bundle.js" "$dir/"
+          cp "$old/snowbrush-2c2b5d62b5.js" "$dir/"
+          # JSZip's npm dist is a pinned acquisition candidate, not a
+          # substitute for matching all hashes of the original four files.
+          npm pack jszip@3.10.1 --pack-destination "${RUNNER_TEMP}" --silent
+          tar -xOf "${RUNNER_TEMP}/jszip-3.10.1.tgz" package/dist/jszip.min.js > "$dir/jszip.min.js"
+          node --input-type=module - "$dir" <<'NODE'
+          import {verifyFixedXmindAssets} from './examples/programs/chatgpt-mindmap/preview/serve.mjs';
+          const resources=await verifyFixedXmindAssets(process.argv[2]);
+          if(resources.size!==4)throw Error('E_XMIND_FOUR_ASSETS_REQUIRED');
+          console.log('REAL_XMIND_SHA256_AND_GIT_BLOB_PASS: 4/4 original fixed files');
+          NODE
+          echo "XMIND_REFERENCE_DIR=$dir" >> "$GITHUB_ENV"
+      - name: REAL SDK Workbook and product preview source tests
+        run: |
+          node --test --test-reporter=spec tests/environment/chatgpt-mindmap-r1.test.mjs tests/environment/chatgpt-mindmap-preview.test.mjs
+      - name: Prepare isolated browser driver
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright-core@1.56.1
+          browser=""
+          for candidate in /usr/bin/google-chrome /usr/bin/chromium /usr/bin/chromium-browser; do
+            if [ -x "$candidate" ]; then browser="$candidate"; break; fi
+          done
+          if [ -z "$browser" ]; then echo 'E_XMIND_CI_BROWSER_MISSING'; exit 1; fi
+          "$browser" --version
+          echo "XMIND_CHROME=$browser" >> "$GITHUB_ENV"
+      - name: Chromium actual XMind HTML rendering and interaction proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "${RUNNER_TEMP}/r22-xmind-proof"
+          node tests/framework/chatgpt-mindmap-xmind-probe.mjs \
+            --assets "$XMIND_REFERENCE_DIR" \
+            --browser "$XMIND_CHROME" \
+            --playwright "$GITHUB_WORKSPACE/node_modules/playwright-core/index.mjs" \
+            --out "${RUNNER_TEMP}/r22-xmind-proof"
+      - name: Preserve only screenshots and result (never SDK vendor bytes)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r22-local-html-xmind-proof
+          path: |
+            ${{ runner.temp }}/r22-xmind-proof/*.png
+            ${{ runner.temp }}/r22-xmind-proof/result.json
+          retention-days: 7
+          if-no-files-found: ignore
+      - name: Declare proof scope
+        if: always()
+        run: |
+          echo 'LOCAL_HTML_CHROMIUM_ONLY. No native USER_SCRIPT install, style isolation approval or logged-in ChatGPT verified.'
+          echo 'No vendor JS or installation bundles are uploaded.'
