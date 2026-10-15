@@ -297,6 +297,27 @@ test('R2.1 event observation is bounded and uses only the public Full SDK',async
 });
 
 
+test('R2.3 unavailable capability/status transports fail closed regardless of error code',async()=>{
+  const ctx=await sandbox(),data=fullSdk(ctx,{roots:sample()});
+  const service=ctx.BookmarkR2Service.create(data.sdk);
+  const originalList=data.sdk.capabilities.list;
+  data.sdk.capabilities.list=async()=>{
+    throw Object.assign(new Error('transport'),{code:'E_HOST_TIMEOUT'});
+  };
+  const probe=await service.probe();
+  assert.equal(probe.ready,false);
+  assert.equal(probe.code,'E_SDK_STATUS');
+  await assert.rejects(service.load(),{code:'E_SDK_STATUS'});
+  data.sdk.capabilities.list=originalList;
+  data.sdk.capabilities.getStatus=async()=>{
+    throw Object.assign(new Error('transport'),{code:'E_HOST_TIMEOUT'});
+  };
+  await assert.rejects(service.watchRead({
+    sessionRef:'abcdefghijklmnop',cursor:'0'
+  }),{code:'E_SDK_STATUS'});
+  assert.equal(data.calls.filter(([op])=>['getTree','observe.read'].includes(op)).length,0);
+});
+
 test('R2.3 rejects missing, negative or malformed event gap counters',async()=>{
   const ctx=await sandbox(),data=fullSdk(ctx,{roots:sample()}),
     service=ctx.BookmarkR2Service.create(data.sdk);
