@@ -94,7 +94,7 @@ async function exercise(mode){
   const sleep=ms=>new Promise(ok=>setTimeout(ok,ms));
   const wait=async(fn,label)=>{
     for(let i=0;i<140;i++){if(fn())return;await sleep(65)}
-    throw Error('UI wait failed: '+label+'; notice='+q('bm-notice')?.textContent);
+    throw Error('UI wait failed: '+label+'; notice='+q('bm-notice')?.textContent+'; gate='+q('bm-gate-reason')?.textContent+'; total='+q('bm-total')?.textContent+'; workspaceHidden='+q('bm-workspace')?.hidden);
   };
   const check=(condition,label)=>{if(!condition)throw Error('UI assertion: '+label)};
   const field=(id,value)=>{
