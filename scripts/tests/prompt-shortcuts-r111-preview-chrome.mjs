@@ -1,0 +1,133 @@
+#!/usr/bin/env node
+// Real Chromium against committed offline HTML. NOT an installed extension or ChatGPT acceptance.
+import assert from 'node:assert/strict';
+import {spawn} from 'node:child_process';
+import {readFile,writeFile,mkdir,mkdtemp,rm} from 'node:fs/promises';
+import {join,resolve} from 'node:path';
+import {tmpdir} from 'node:os';
+import {pathToFileURL} from 'node:url';
+
+const out=resolve(process.argv[2]||'artifacts/prompt-shortcuts-r111-preview');
+await mkdir(out,{recursive:true});
+const profile=await mkdtemp(join(tmpdir(),'prompt-shortcuts-chrome-'));
+const chrome=spawn(process.env.CHROME_BIN||'chromium',['--headless=new','--no-sandbox',
+  '--disable-gpu','--disable-dev-shm-usage','--no-first-run',
+  '--user-data-dir='+profile,'--remote-debugging-port=0','about:blank'],{stdio:'ignore'});
+let socket,seq=0;
+const pending=new Map(),report={kind:'REAL_CHROME_OFFLINE_PREVIEW_ONLY',installedExtension:false,scenes:[]};
+const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+async function connect(){
+  let port=0;
+  for(let i=0;i<110;i++){
+    if(chrome.exitCode!==null)throw Error('Chrome exited '+chrome.exitCode);
+    try{port=Number((await readFile(join(profile,'DevToolsActivePort'),'utf8')).split('\n')[0]);}catch{}
+    if(port)break;await sleep(100);
+  }
+  assert(port,'Chrome debugging port');
+  const tabs=await(await fetch('http://127.0.0.1:'+port+'/json/list')).json();
+  const page=tabs.find(x=>x.type==='page');assert(page?.webSocketDebuggerUrl);
+  socket=new WebSocket(page.webSocketDebuggerUrl);
+  await new Promise((ok,fail)=>{socket.addEventListener('open',ok,{once:true});socket.addEventListener('error',fail,{once:true});});
+  socket.addEventListener('message',event=>{
+    const response=JSON.parse(event.data);
+    if(!response.id||!pending.has(response.id))return;
+    const cb=pending.get(response.id);pending.delete(response.id);
+    if(response.error)cb.fail(Error(response.error.message));else cb.ok(response.result);
+  });
+  await call('Page.enable');await call('Runtime.enable');await call('Page.bringToFront');
+}
+function call(method,params={}){
+  const id=++seq;
+  return new Promise((ok,fail)=>{
+    const timeout=setTimeout(()=>{pending.delete(id);fail(Error('timeout '+method))},18000);
+    pending.set(id,{ok(x){clearTimeout(timeout);ok(x);},fail(e){clearTimeout(timeout);fail(e);}});
+    socket.send(JSON.stringify({id,method,params}));
+  });
+}
+async function evalChrome(expression){
+  const res=await call('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true});
+  if(res.exceptionDetails)throw Error(res.exceptionDetails.exception?.description||res.exceptionDetails.text);
+  return res.result?.value;
+}
+async function poll(expression,label){
+  for(let n=0;n<90;n++){if(await evalChrome(expression))return;await sleep(65);}
+  throw Error('Not ready: '+label);
+}
+async function click(selector){
+  const rect=await evalChrome('('+function(s){
+    const b=document.querySelector(s);
+    if(!b||b.disabled)throw Error('Missing enabled button '+s);
+    b.scrollIntoView({block:'nearest'});
+    const r=b.getBoundingClientRect();
+    return {x:r.x+r.width/2,y:r.y+r.height/2,width:r.width,height:r.height};
+  }.toString()+')('+JSON.stringify(selector)+')');
+  assert(rect.width>0&&rect.height>0,'visible '+selector);
+  for(const [type,extra] of [['mouseMoved',{}],['mousePressed',{button:'left',clickCount:1}],
+    ['mouseReleased',{button:'left',clickCount:1}]])
+    await call('Input.dispatchMouseEvent',{type,x:rect.x,y:rect.y,...extra});
+}
+async function shot(name){
+  const r=await call('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+  await writeFile(join(out,name+'.png'),Buffer.from(r.data,'base64'));
+}
+async function state(){
+  return evalChrome('('+function(){
+    const q=x=>document.querySelector(x);
+    const card=q('.prompt-card'),panel=q('#sidepanel'),text=q('.prompt-content');
+    return {cards:document.querySelectorAll('.prompt-card').length,
+      firstContent:text?.textContent,clamp:getComputedStyle(text).webkitLineClamp,
+      firstButton:q('.prompt-use')?.getAttribute('aria-label'),
+      width:Math.round(panel.getBoundingClientRect().width),
+      overflow:panel.scrollWidth>panel.clientWidth+1,
+      draft:q('#mockDraft').value,notice:q('#panelStatus').textContent,
+      kind:q('#panelStatus').dataset.kind,
+      editing:!q('#formView').hidden,leaving:!q('#leaveConfirm').hidden,
+      shapeInputs:document.querySelectorAll('input[name="shape"]').length,
+      copyDialog:Boolean(q('#copyFallback')),
+      iconRadius:getComputedStyle(card.querySelector('.prompt-icon')).borderRadius};
+  }.toString()+')()');
+}
+async function run(){
+  await connect();
+  await call('Emulation.setDeviceMetricsOverride',{width:1200,height:1000,deviceScaleFactor:1,mobile:false});
+  await call('Page.navigate',{url:pathToFileURL(resolve('examples/sidebar-tools/prompt-shortcuts/preview/index.html')).href});
+  await poll('document.readyState==="complete"&&document.querySelectorAll(".prompt-card").length===4','four cards');
+  let x=await state();
+  assert.equal(x.cards,4);assert.equal(x.clamp,'2');assert(x.firstContent.includes('\n1. '));
+  assert(x.firstButton.startsWith('使用完整提示词'));
+  assert.equal(x.copyDialog,false);assert.equal(x.shapeInputs,0);
+  for(const width of [320,360,400,440]){
+    await click('#size'+width);x=await state();
+    assert.equal(x.width,width);assert.equal(x.overflow,false,'panel overflow '+width);
+    await shot('list-'+width+'px');report.scenes.push({width,overflow:x.overflow,screenshot:'list-'+width+'px.png'});
+  }
+  await click('#resetButton');
+  await click('.prompt-use');x=await state();
+  assert(x.draft.includes('请在不改变原意的前提下润色以下文字：\n1. '));
+  assert.equal(x.kind,'success');report.emptyInsert=true;
+  await sleep(760);
+  await evalChrome('(()=>{const f=document.querySelector("#mockDraft");f.value="已有内容";f.setSelectionRange(4,4);})()');
+  await click('.prompt-use');x=await state();assert(x.draft.startsWith('已有内容'));report.preservedExisting=true;
+  await click('.prompt-actions button[aria-label^="编辑"]');
+  x=await state();assert.equal(x.editing,true);assert.equal(x.shapeInputs,0);
+  await shot('edit-440px');report.editView=true;
+  await click('#cancelForm');assert.equal((await state()).leaving,false);
+  await click('#addButton');await click('#cancelForm');
+  x=await state();assert.equal(x.editing,false);assert.equal(x.leaving,false);report.pristineForm=true;
+  await click('.prompt-actions button[aria-label^="更多操作"]');
+  assert(await evalChrome('!!document.querySelector(".prompt-more")'));report.managementSeparate=true;
+  await evalChrome('(()=>{const f=document.getElementById("actionScenario");f.value="clipboard-failure";f.dispatchEvent(new Event("change",{bubbles:true}));})()');
+  await click('.prompt-use');
+  await poll('document.querySelector("#panelStatus").dataset.kind==="error"','double-failure notice');
+  x=await state();assert.match(x.notice,/复制失败/);assert.equal(x.copyDialog,false);
+  report.simulatedFailure=true;report.result='PASS';
+  console.log('PROMPT_SHORTCUTS_R111_REAL_CHROME_MOCK_PASS',JSON.stringify(report));
+}
+try{await run();}
+catch(e){report.result='FAIL';report.error=String(e?.stack||e);console.error(report.error);process.exitCode=1;}
+finally{
+  await writeFile(join(out,'report.json'),JSON.stringify(report,null,2));
+  try{socket?.close();}catch{}
+  chrome.kill('SIGTERM');
+  await rm(profile,{recursive:true,force:true}).catch(()=>{});
+}
