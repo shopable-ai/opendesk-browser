@@ -705,7 +705,7 @@
         <details id="workflow-provider-settings" class="workflow-provider od-disclosure od-disclosure--flat">
           <summary>AI 设置</summary>
           <label for="workflow-ai-provider" class="od-field-label">AI 来源</label>
-          <select id="workflow-ai-provider" class="od-field"><option value="local_codex">本机 Codex</option><option value="custom_https">自定义 HTTPS 模型接口</option><option value="opendesk_cloud" disabled>OpenDesk 官方 AI（尚未开放）</option></select>
+          <select id="workflow-ai-provider" class="od-field"><option value="local_codex">本机 Codex（Native）</option><option value="cloud_responses">OpenAI Responses（云端）</option><option value="custom_https">旧版 HTTPS Chat Completions</option><option value="opendesk_cloud" disabled>OpenDesk 官方 AI（尚未开放）</option></select>
           <details id="workflow-provider-privacy" class="workflow-provider-info od-disclosure od-disclosure--flat">
             <summary>数据与隐私</summary>
             <p id="workflow-provider-scope" class="workflow-minor-note">模型推理可能联网，已同意的内容可能保存在 Codex 本机对话中。复用官方 CLI 登录，请勿填写 Codex 登录凭据。</p>
@@ -723,7 +723,7 @@
             </details>
           </div>
           <div id="workflow-custom-settings" hidden>
-            <label for="workflow-ai-endpoint" class="od-field-label">OpenAI 兼容 HTTPS Chat Completions API</label><input id="workflow-ai-endpoint" type="url" spellcheck="false" value="https://api.openai.com/v1/chat/completions" class="od-field">
+            <label for="workflow-ai-endpoint" id="workflow-ai-endpoint-label" class="od-field-label">模型 HTTPS 接口</label><input id="workflow-ai-endpoint" type="url" spellcheck="false" value="https://api.openai.com/v1/chat/completions" class="od-field">
             <label for="workflow-ai-model" class="od-field-label">模型</label><input id="workflow-ai-model" spellcheck="false" value="gpt-4o-mini" class="od-field">
             <label for="workflow-ai-key" class="od-field-label">API Key（不保存）</label><input id="workflow-ai-key" type="password" autocomplete="off" spellcheck="false" placeholder="仅本次会话使用" class="od-field">
             <p class="workflow-minor-note">此来源生成一次步骤提议，不使用本机工具；密钥只在本窗口内使用。</p>
