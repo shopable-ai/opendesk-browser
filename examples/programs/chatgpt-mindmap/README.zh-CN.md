@@ -132,3 +132,11 @@ USER_SCRIPT 全部回调，也未解决 Snowbrush 全局样式残留。UI 会明
 `npm run check` 失败。不能据此认定本轮产品安装完成或主仓 CI 全绿。
 
 **R3 最新 CI：** [#38757685815](https://github.com/shopable-ai/opendesk-browser/actions/runs/38757685815) 在并行 SDK 修复后两项 Job SUCCESS（原生管理 41/41、XMind 源码 17/17、Build 和 `npm run check` PASS）。这是独立 HTML 引擎与通用安装链的验证，不等于 ChatGPT 自动运行版正式通过。
+
+## R3.2 · ChatGPT 模拟预览与产品设计要求
+
+新增 [preview/chatgpt.html](preview/chatgpt.html) 和 [preview/design.md](preview/design.md)；分别承载模拟 ChatGPT 用户界面与正式设计合同候选。chatgpt.css / chatgpt.js 只实现模拟网站壳，真正的「思维导图」按钮依旧由正式 createAnswerRegistry 自动注入，点击调用原始 XMind 引擎。
+
+本地运行 node examples/programs/chatgpt-mindmap/preview/serve.mjs --no-open，打开输出的 REAL_XMIND_CHATGPT_PREVIEW URL。原有 preview/index.html 与四份固定 JS 完整保留，不创建第二份引擎。设计状态为 **PENDING_USER_CONFIRMATION**，必须先由用户核对按钮位置和导图交互，再允许锁定为产品正式 UI 基准。
+
+本阶段的模拟页面通过不代表真实登录 ChatGPT、正式隔离运行时、许可批准或 Native 安装已经可用。

@@ -389,7 +389,7 @@
           <button type="button" id="sidebar-tool-retired-draft-dismiss" class="od-button">清除草稿副本</button>
         </section>
         <section id="sidebar-tool-settings-view" class="sidebar-tool-settings-view od-surface" aria-label="工具设置" hidden>
-          <div class="sidebar-toc-settings-row"><strong>工具启停</strong><button type="button" id="sidebar-tool-enable" class="od-button od-button--secondary" aria-pressed="true">停用工具</button></div>
+          <div class="sidebar-toc-settings-row"><strong data-toc-host-text="toggleHeading">工具启停</strong><button type="button" id="sidebar-tool-enable" class="od-button od-button--secondary" aria-pressed="true">停用工具</button></div>
           <p id="sidebar-tool-enable-hint" class="sidebar-toc-settings-hint" role="status"></p>
           <div id="sidebar-tool-generic-site-scope" class="sidebar-toc-settings-scope">
             <div><span class="sidebar-toc-settings-caption" id="sidebar-tool-settings-scope-label">当前网站授权</span><strong id="sidebar-tool-settings-target">请选择适用网页</strong></div>
@@ -401,17 +401,17 @@
           </div>
           <p id="sidebar-tool-settings-hint" class="sidebar-toc-settings-hint" role="status"></p>
           <div id="sidebar-tool-visibility-settings" hidden>
-            <strong class="sidebar-toc-settings-title">网页悬浮目录外观</strong>
-            <div class="sidebar-toc-settings-row"><span>此网站</span><button type="button" id="sidebar-tool-settings-site-visibility" class="sidebar-toc-visibility-toggle">隐藏</button></div>
-            <div class="sidebar-toc-settings-row"><span>仅此页面</span><button type="button" id="sidebar-tool-settings-page-visibility" class="sidebar-toc-visibility-toggle">隐藏</button></div>
-            <p class="sidebar-toc-settings-hint">网站可用且工具启用时显示；隐藏只影响网页悬浮目录，Side Panel 目录仍可使用。两级隐藏规则都恢复后才显示。</p>
+            <strong class="sidebar-toc-settings-title" data-toc-host-text="overlayHeading">网页悬浮目录外观</strong>
+            <div class="sidebar-toc-settings-row"><span data-toc-host-text="websiteHeading">此网站</span><button type="button" id="sidebar-tool-settings-site-visibility" class="sidebar-toc-visibility-toggle">隐藏</button></div>
+            <div class="sidebar-toc-settings-row"><span data-toc-host-text="pageHeading">仅此页面</span><button type="button" id="sidebar-tool-settings-page-visibility" class="sidebar-toc-visibility-toggle">隐藏</button></div>
+            <p class="sidebar-toc-settings-hint" data-toc-host-text="overlayHint">网站可用且工具启用时显示；隐藏只影响网页悬浮目录，Side Panel 目录仍可使用。两级隐藏规则都恢复后才显示。</p>
           </div>
           <details id="sidebar-tool-generic-site-advanced" class="sidebar-toc-advanced od-disclosure od-disclosure--flat" open>
-            <summary>已有授权与页面例外</summary>
+            <summary data-toc-host-text="advancedHeading">已有授权与页面例外</summary>
             <strong class="sidebar-toc-settings-title" id="sidebar-tool-settings-sites-title">已授权的网站</strong>
             <div id="sidebar-tool-settings-sites" class="sidebar-toc-settings-entries"></div>
             <div id="sidebar-tool-page-exceptions" hidden>
-              <strong class="sidebar-toc-settings-title">阅读目录已排除的页面</strong>
+              <strong class="sidebar-toc-settings-title" data-toc-host-text="exceptionsHeading">阅读目录已排除的页面</strong>
               <div id="sidebar-tool-settings-pages" class="sidebar-toc-settings-entries"></div>
             </div>
           </details>

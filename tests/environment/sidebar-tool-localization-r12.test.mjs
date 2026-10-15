@@ -108,3 +108,21 @@ test('R1.2 source wiring covers both trusted webpage overlay and sandbox without
   assert.match(pkgBuilder,/compileToolLocaleCatalog/);
   assert.match(official,/config\.locales\?\[config\.locales\]/);
 });
+
+test('R1.3 trusted TOC settings change language without importing tool permission copy',async()=>{
+  const {readingTocHostText,READING_TOC_HOST_KEYS}=await import('../../src/ui/reading-toc-settings-localization.js');
+  assert(READING_TOC_HOST_KEYS.includes('eyePageExcluded'));
+  assert.equal(readingTocHostText('zh-CN','siteDisable'),'停用当前网站');
+  assert.equal(readingTocHostText('en-US','siteDisable'),'Disable on this website');
+  assert.equal(readingTocHostText('en','noPages'),'No excluded pages');
+  assert.equal(readingTocHostText('fr','siteDisable'),'停用当前网站');
+  assert.equal(readingTocHostText('en','unknown'),'');
+  const [host,markup]=await Promise.all([
+    readFile('src/ui/sidebar-tools.js','utf8'),readFile('src/ui/tool.html','utf8')
+  ]);
+  assert.match(host,/readingTocHostText/);
+  assert.match(host,/isToc\?tocLocale:null/);
+  assert.match(host,/if\(active\?\.id===READING_TOC_TOOL_ID\)render\(\)/);
+  assert.match(markup,/data-toc-host-text="overlayHint"/);
+  assert.match(markup,/data-toc-host-text="exceptionsHeading"/);
+});

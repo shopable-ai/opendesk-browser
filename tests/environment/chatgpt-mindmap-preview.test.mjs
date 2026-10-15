@@ -77,3 +77,49 @@ test('localhost serves the exact four checked-in bytes without generating copies
     }
   }finally{await session.close();}
 });
+
+test('ChatGPT simulated product UI and design MD are source-bound, not a second renderer',async()=>{
+  const [html,css,shell,design]=await Promise.all([
+    readFile(new URL('preview/chatgpt.html',root),'utf8'),
+    readFile(new URL('preview/chatgpt.css',root),'utf8'),
+    readFile(new URL('preview/chatgpt.js',root),'utf8'),
+    readFile(new URL('preview/design.md',root),'utf8')
+  ]);
+  assert.match(html,/<title>ChatGPT · 思维导图交互预览/);
+  assert.match(html,/id="preview-conversation"/);
+  assert.match(html,/id="developer-lab"/);
+  assert.match(html,/src="\/preview\/app\.js"/);
+  assert.match(html,/src="\/preview\/chatgpt\.js"/);
+  assert.equal((html.match(/data-message-author-role="assistant"/g)||[]).length,3);
+  assert.equal((html.match(/data-testid="copy-turn-action-button"/g)||[]).length,3);
+  assert.doesNotMatch(html,/>思维导图<\/button>/,'The program, not the mock HTML, must inject buttons');
+  assert.match(css,/\.actions-row\{display:flex/);
+  assert.match(css,/\.preview-conversation\.is-narrow\{max-width:320px/);
+  assert.match(shell,/data-theme/);
+  assert.doesNotMatch(shell,/createWorkbookEditor|createXmindRenderer|createAnswerRegistry/);
+  assert.match(design,/PENDING_USER_CONFIRMATION/);
+  assert.match(design,/src\/answer-registry\.js/);
+  assert.match(design,/GLOBAL_STYLE_ISOLATION/);
+  assert.match(design,/NOT_TESTED/);
+  let last=-1;
+  for(const row of manifest.assets){
+    const offset=html.indexOf('src="./'+row.name+'"');
+    assert.ok(offset>last,'ChatGPT mock must load original 4 JS in fixed order: '+row.name);
+    last=offset;
+  }
+});
+
+test('verified loopback serves the ChatGPT simulation with same CSP and denies arbitrary files',async()=>{
+  const session=await startXmindPreview();
+  try{
+    for(const route of ['/chatgpt.html','/preview/chatgpt.css','/preview/chatgpt.js']){
+      const response=await fetch(new URL(route,session.url));
+      assert.equal(response.status,200,route);
+      assert.match(response.headers.get('content-security-policy'),/script-src 'self'/);
+      assert.doesNotMatch(response.headers.get('content-security-policy'),/unsafe-eval/);
+      assert.ok((await response.text()).length>0);
+    }
+    assert.equal((await fetch(new URL('/preview/design.md',session.url))).status,404);
+    assert.equal((await fetch(new URL('/preview/.runtime/engine.js',session.url))).status,404);
+  }finally{await session.close();}
+});

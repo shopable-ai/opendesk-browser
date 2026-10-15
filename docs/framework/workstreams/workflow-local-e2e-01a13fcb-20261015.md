@@ -77,3 +77,7 @@
 证据提交核对：仅暂存本任务 37 个记录/证据文件，逐个核对暂存 blob 与文件字节、JSON 可读性及证据索引 SHA。`git diff --cached --check` 的空白告警仅来自保留的失败 TAP 与 watcher 输出尾部空格；不改写这些原始/提取输出，排除这两个日志后的差异检查通过。
 
 `permission-retest-before/denied` 的 AX 与 PNG 是实际界面原始采集，`continuation-dev-service.ax.txt/png` 是实际旧应用指纹及安全栅栏。磁盘源码/产物、局部工具页实测、旧 SW 应用基线三者分别记录，不声称完整新构建 Chrome PASS。后续只能通过既有 Authority/RunHost 正常对账与资源释放后应用同候选；不重建基础设施，不把未关闭的安全状态强改为 idle。
+
+### 证据提交与远端追赶
+
+证据已提交 `95dd984ca`。首次普通 push 未完成；随后确认远端 main 已从 `3b621c6f6` 前进到 `91a6b6cbf6cfda416d9787f7479a20d5e4e88691`（4 个并行提交：Reading TOC 本地化、Mindmap preview、Prompt Shortcuts 需求）。fetch 后无冲突普通合并，保留双方提交；本任务候选记录所列 9 个源码/测试输入 SHA 未变，旧结果依原边界复用。远端另改了工具页及 Sidebar Tools，不能把此前磁盘指纹说成合并后的完整候选验收；其后的 watcher 产物也未做完整 Chrome 验收。最终只做普通推送并核对远端包含证据提交，不强推、不覆盖并行改动。

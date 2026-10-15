@@ -19,6 +19,9 @@ export const PREVIEW_CSP="default-src 'none'; script-src 'self'; style-src 'self
 const allowedFiles=new Map([
   ['/',join(PROJECT_DIR,'preview/index.html')],
   ['/index.html',join(PROJECT_DIR,'preview/index.html')],
+  ['/chatgpt.html',join(PROJECT_DIR,'preview/chatgpt.html')],
+  ['/preview/chatgpt.css',join(PROJECT_DIR,'preview/chatgpt.css')],
+  ['/preview/chatgpt.js',join(PROJECT_DIR,'preview/chatgpt.js')],
   ['/preview/preview.css',join(PROJECT_DIR,'preview/preview.css')],
   ['/preview/app.js',join(PROJECT_DIR,'preview/app.js')],
   ['/assets/ui.css',join(PROJECT_DIR,'assets/ui.css')],
@@ -106,6 +109,7 @@ async function cli(){
   interactive.searchParams.set('autostart','1');
   console.log('PREVIEW_ASSETS_READY 4 original XMind JS directly in preview/ (SHA-256/Git Blob/size verified)');
   console.log('REAL_XMIND_LOCAL_PREVIEW '+interactive.href);
+  console.log('REAL_XMIND_CHATGPT_PREVIEW '+new URL('/chatgpt.html',session.url).href);
   console.log('Only loopback, exact four SHA-256 + Git blob verified resources; NOT an installed extension.');
   if(autoOpen)openLocalPreview(interactive.href);
   const shutdown=()=>{session.close().then(()=>process.exit(0)).catch(()=>process.exit(1));};
