@@ -63,7 +63,7 @@ const ops=Object.freeze({
    selection:str(16384),linkUrl:{anyOf:[http,{type:'null'}]},source:obj(),expiresAt:num()},
    ['ticketId','toolId','actionId','selection','source','expiresAt'])],
  'browser.page.getContext':[empty,obj({status:{enum:['available','unavailable']},
-   title:str(512),url:str(4096),message:str(250)},['status'])],
+   title:str(512),url:str(4096),message:str(250),tabRef:ref,documentRef:ref},['status'])],
  'browser.page.getSelection':[empty,obj({ticketId:str(36),selection:str(16384)},['ticketId','selection'])],
  'browser.clipboard.writeText':[obj({text},['text']),obj({copied:bool},['copied'])],
  'browser.downloads.text':[obj({text,filename:str(90)},['text','filename']),
