@@ -185,3 +185,26 @@ Go `master@2c003149` [38713903230](https://github.com/shopable-ai/opendesk/actio
 **下一最小开发动作**：新对话执行 GOAL 文件，读取本文和第 13 节/当前源/AGENTS，先核对并行 Agent 已修复部分，再优先处理 `src/ui/workflow/direct-execution.js` 与 `workflow-view.js` 的有限安全操作业务 Oracle、Save/Revision 及 AI-free Run×2 的可运行路径；只改真实未完成切片。用匹配源 SHA 的最短 Node/Go 定向测试；真实 Mac 不可达就继续其他源码并将 T2–T6 标 `NOT_TESTED`。每个切片记录新的 source commit SHA、CI/证据级别及待解决的下一个文件，不以 GOAL 或描述代替实现。
 
 **本次文档修改验证范围**：只核对 Markdown 结构、关键内容/链接及 GitHub 保存的文件身份；无代码修改，不运行完整 Node、Go、build、Chrome、Codex 或正式验收。提交 SHA 在本轮交付回答中以 GitHub 实际提交结果列明。
+
+
+## R2.4：实际搜索效果、连续已验证事实、固定 Revision 与真实证据分级（2026-10-15）
+
+**执行边界**：经用户本轮直接授权，只用已连接的 GitHub 在 Browser `main` 进行增量源码/测试/文档更改；Go `master@27765894058885ce497f60d52d32582a4e53f82a` 只读复查，**本轮没有 Go 源码提交**。没有访问用户的 Mac、Chrome、原生服务、Watcher、生产凭据或安装目录；未建 branch/worktree/PR、未强推、未新建 Executor/Engine/Compiler/Store/Provider Manager；不修改 AdBlock Trusted source。唯一设计合同第 13.6 节已更新：`b59e5cdea1bdce2d9053382e8055fc8795073acb`。
+
+**本轮 Browser 源码提交（均正常进入 main）**：
+
+- 业务 Oracle 与原执行路径：`d1be7315d4d5c6f5f158ceb0329006b93a3a0205`（`direct-execution.js`：终结性受控点击、搜索独立效果判据、读回值验证）→ `9447aeffc1798c26f7772843645415dcedcc7c70`（`workflow-view.js`：RunHost 回执后新鲜只读观察，搜索跳转不再错误核对旧 Document，业务状态真实分级）；测试 `28f9080f4e544ca305d220117060e81cbad6a979`。
+- AI-Off 版本与中断 Save：`a124af5371bc1610293a1bc5edd3f201f23dd4ab`（四处保存 Revision 身份核验）→ `c1d595b10750cf27df29730c318c1f775e1afc54`（先核对 Controller latest head，完全同源码复用断点 Revision，差异按乐观 CAS 拒绝冲突；手动 saved Run 验证 run/result/claim/completion 身份）；测试 `67a63961ecde19b97ce2a1dd5c8aa2fdb2d23c0d`。
+- 连续任务 Provider 事实：`62c2fecb757aea1335eea54ce73cf371337b6af4`（`data-sharing.js` 4 项 allowlist 栅栏）、`93f579d56aa4ba1fccdafcb9e8cf44c18f0d8e1e`（`ai-plan.js` 同语义）、`0eab40c0818addfbe87c014101e153197f916a04`（`local-codex.js` 有界历史）、`49752f4f0957fb08ad190dd12baf946f4146645e`（`provider.js` 适配）、`2b6b6f6be17795cedcaf73ca1f4e5d4db5567d6f`（`workflow-view.js` 只累积已确认搜索/填值事实并绑定 Tab/Origin）、`a253af8521091d3b7266a74f6abac8ba59f265e8`（HTTPS 规划明确终结点击与不重放），测试 `683f7c18f7e431051c31bc768e36fee87901d27a`。
+- 文档：`b59e5cdea1bdce2d9053382e8055fc8795073acb` 在原正式设计 `docs/architecture/browser-framework/workflow-ai-provider-routing-r2.zh-CN.md` 第 13.6 节追加语义化功能树、节点 Owner/源码/依赖/缺口/通过条件/SHA/证据，**没有第二份 R2.4 设计文件**。
+
+**真实 CI / 同候选绑定**：Browser 代码测试候选 `683f7c18f7e431051c31bc768e36fee87901d27a` 的 [Workflow AI #38737575960](https://github.com/shopable-ai/opendesk-browser/actions/runs/38737575960) **Node 129/129 PASS**，JS parse/Real source verification PASS；相同候选 `build:dev` 因并行 `examples/sidebar-tools/adblock/trusted/host-controls.js` Trusted pin 漂移 **FAIL**，**整条 CI 仍 FAIL**。原 `9447aeff` [#38736377385](https://github.com/shopable-ai/opendesk-browser/actions/runs/38736377385) 127/127 Node PASS、同样 build FAIL。**文档及本账本后续新 SHA 不是 683f 候选；不把该 Node PASS 记成随后 HEAD 的全量构建或正式安装 PASS。** Go `27765894` [Native bridge #38721532953](https://github.com/shopable-ai/opendesk/actions/runs/38721532953) SUCCESS；[Windows Core #38721532772](https://github.com/shopable-ai/opendesk/actions/runs/38721532772) 整体 FAIL（历史 `test-architecture` 账本，不归因于 HTTP Gateway）。本轮未主动复跑用户本地 Node/Go/Chrome；证据来自 GitHub Workflow 日志。
+
+**范围及实际未完成**：
+
+- `SOURCE_WIRED/COMPONENT_VERIFIED`：独立搜索 Oracle 是**受信观察 + 保守判据的源码能力**。它只证实“查询关联的可见搜索结果状态或空结果标记”，不证明结果相关性、服务器提交、任意点击的业务效果。普通点击没有特定 Oracle 始终保留 `EXECUTION_RECEIPT_VERIFIED`；不重放未确认副作用。
+- `NOT_TESTED`：真正的 T2 Chrome Send→填写值读回，T3 Chrome 搜索/同会话继续，T4 关闭 AI 并在真实 Chrome/有效网站授权下用同一冻结 Revision 独立 Run×2，T5 原生 Stop/撤权/unknown/断连/晚到场景及 T6 production build、F3/ZIP、安装 ID 和产品逐维 95+。
+- `SAFE_DISABLED/PAIRING_OPEN`：HTTP Provider 未被导入 UI，`local-http.js` 保守禁用；没有实施配对/Token 颁发及撤权/Origin/CORS 白名单。Go `master` 无新提交，Native 仍是默认本地路径。
+- **任务风险加权估算**：原正式合同 `51.5/100≈52%`；本轮增加实际 P0 生产功能但仍缺真机验证，暂管理估计 **约 54%（低置信）**。这不是业务成功率或独立专家评分，真实 Chrome、AI-Off Run×2 和正式安装不得以未测冒充 95+。
+
+**下一最小 P0**：先在用户真实 Chrome 的固定 `dist/development` 身份、保持旧 Watcher 原样的情况下执行 T2→T3，并记录 runId/resultId/sourceHash/Document/真正 DOM 值与搜索状态；然后关闭 AI 用同一个冻结 Controller Revision 直接 Run×2 并按两次真实回执核验。仅当原生环境可达时执行这些场景，当前不能接触 Mac 就记 `NOT_TESTED`；若需在纯 GitHub 环境继续实现，优先增加保存中断/冲突和只读 Oracle 的定向故障注入覆盖，不新增第二套运行机制。P1 HTTP 不阻断 P0，P2 AdBlock 由相应 Owner 修 pin。
