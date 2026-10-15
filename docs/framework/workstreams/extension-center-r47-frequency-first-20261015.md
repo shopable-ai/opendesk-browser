@@ -146,3 +146,37 @@
 - [CI 38757140564](https://github.com/shopable-ai/opendesk-browser/actions/runs/38757140564)（`cd1f18d4`）**51 PASS / 1 FAIL**；原对比度断言恢复通过，唯一失败是 `src/framework/sdk/browser-schemas.js:56` 的 `SyntaxError: Invalid or unexpected token`，导致 `extension-center-r47-interaction.test.mjs` 模块初始化失败、R4.8 新增 DOM 测试全部未执行。其最近所属 SDK 提交 [`5d630f7a`](https://github.com/shopable-ai/opendesk-browser/commit/5d630f7a0f6dacd9ff0b96b54d5349e368e41d23)；应由 SDK Owner 修复，Extension Center 不越权改 SDK、schema 或放宽检查。其他后续构建步骤仍 SKIPPED。
 - [`66cce077`](https://github.com/shopable-ai/opendesk-browser/commit/66cce077772d14e93e9c5084748bc2fb5d1821ff) 给原有 `.github/workflows/extension-center-r4.yml` 添加 **R4.7 唯一预览 HTML** 的 push path，确保仅改预览也会重新执行正式/预览同源测试。没有创建第二个工作流。
 - **当前真实交付级别：SOURCE_CHANGED / DIRECT_SOURCE_PARSE_PASS / TOOLBAR_STRUCTURE_EQUAL / CI_BLOCKED_BY_SDK / BUILD_NOT_EXECUTED / MAC_CHROME_NOT_TESTED / PRODUCT_NOT_ACCEPTED**。R4.8 所有原生 P0 尚无同候选真实 Mac Chrome 证据，不对十一维打 95+，也不提交虚假的百分比。
+
+
+## R4.9 · 正式反馈与预览忙状态一致性（2026-10-15 UTC）
+
+实施提交：[024975b47](https://github.com/shopable-ai/opendesk-browser/commit/024975b47d7a9a5d337327e1b3e843f3bc526e8b)，父提交 ac6d8b6a522f5f3071459486861c15c241db4722。通过已连接 GitHub API、原文件 Blob SHA 守卫及非强推原子提交直接更新唯一 main，未创建分支、Worktree、PR。Mac 用户工作目录、Chrome 已安装扩展、dist/development watcher 与 Native Profile 不可访问，本轮没有占用/清理这些资源。
+
+### 已落实的最小增量
+
+- 正式 src/ui/extension-center.js：将 UI 消息来源区分为 action/read/catalog/loading，正常目录读回不再清空启停取消、失败或 Page 授权拒绝信息；手动刷新报告读取中，保留原可信生命周期、安全权限、Package Hash、Page Authority 和安装审阅。
+- 唯一原版 prototypes/sidebar/extension-center-r47-frequency-first-preview.html：处理中场景保留所有行与既有高频按钮并统一禁用；模拟刷新保留搜索、筛选、详情和模拟启停状态；继续共享正式 CSS/五 Tab，并保留 SIMULATED_PREVIEW / NOT_NATIVE_CHROME 标识。
+- tests/environment/extension-center-r47-interaction.test.mjs：新增应用取消启用、Page 权限被拒后提示经背景刷新仍持续可见的两个 DOM/RPC 用例；静态合同防止预览再次隐藏 busy 其他行、主按钮或重置筛选。合成 isTrusted 不是真实 Chrome 事件。
+
+### 当前证据级别
+
+| 范围 | 结果 / 身份 |
+| --- | --- |
+| 更早的独立 CI 基线 | [CI #38764000125](https://github.com/shopable-ai/opendesk-browser/actions/runs/38764000125)，44376af3b40e615a378877bc32beb8cbfc29f70a，定向 Node/check/build/build:dev/verify 步骤成功。不是当前提交的结果 |
+| R4.9 直接源码 | JS 解析检查 PASS_ONLY，正式状态反馈已修改；不得冒充 Node 或浏览器执行 |
+| R4.9 CI | [CI #38767521693](https://github.com/shopable-ai/opendesk-browser/actions/runs/38767521693) 绑定 024975b47，首次查询时 QUEUED；完成前 NODE_PASS/BUILD_PASS/verify 均 NOT_TESTED |
+| 用户 Mac Chrome | 无实际版本/Profile、扩展 ID、包 Hash、安装动作/状态读回、截图或日志；原生 P0 一律 NOT_TESTED |
+| 相关额外构建输入 | 早期成功基线后的共享 scripts/bundle-provenance.mjs 已有并行修改；不得继承旧包 PASS，也不得放宽安全校验 |
+
+### 正式 UI 与预览差异判据
+
+| 对象 | R4.8 遗留偏差 | R4.9 修改 | Chrome 证据 |
+| --- | --- | --- | --- |
+| 应用启停失败反馈 | 自动 readback 错误地清掉失败信息 | 保留 action 错误直到新的相关反馈，增回归用例 | NOT_TESTED |
+| Page 网站授权拒绝 | 无关读取可能覆盖拒绝信息 | 拒绝信息持续可辨，无新增授权路径 | NOT_TESTED |
+| 处理中 | 预览隐藏其他行及高频按钮，与正式页面不一致 | 预览保留按钮，统一禁用所有行 | NOT_TESTED |
+| 刷新 | 预览清空用户查询与筛选，正式 UI 不清空 | 预览保留状态，只模拟读取 | NOT_TESTED |
+| 五 Tab/可信市场/安装审阅/生命周期 | 保留正式 R4.8 模型 | 未重建 Host/SDK/安装器和第二套预览 | NOT_TESTED |
+
+功能树分层：R4.9 修改部分 SOURCE_WIRED；定向测试和构建等待新 CI；真实用户 E2E 的 NATIVE_PASS 全部 NOT_TESTED；Mac 环境 BLOCKED。十一维：高频效率、主操作语义、组件去重、信息架构、视觉交互、可访问性、生命周期、安全权限、异常恢复、预览正式一致性均 NOT_SCORED；真实 Chrome 产品体验 NOT_TESTED。没有同候选原生事实时不宣称 95/100 或产品完成百分比。下一最小行动：核查上述同提交 CI；然后在 Mac 已加载的日常扩展和隔离生产候选验收 App 启停、Page 权限代际、候选安装审核、键盘焦点、草稿取消、异常恢复、市场/搜索/筛选/语言与截图/computed style，逐项绑定 Commit、包 Hash、原生操作和 Host 回读。
+
