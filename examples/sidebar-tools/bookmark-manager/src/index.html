@@ -37,16 +37,19 @@
         </div>
       </div>
       <section id="bm-form-view" aria-label="原位编辑表单" hidden>
-        <div class="bm-subhead"><h2 id="bm-form-title" class="od-title"></h2><span class="bm-edit-label od-note">直接在这里修改，无需返回列表</span></div>
+        <div class="bm-subhead"><h2 id="bm-form-title" class="od-title"></h2></div>
         <form id="bm-form">
           <label id="bm-name-row" class="od-form-field"><span class="od-field-label">名称</span><input id="bm-name" class="od-field" maxlength="256" autocomplete="off" required aria-describedby="bm-form-error"></label>
           <label id="bm-url-row" class="od-form-field"><span class="od-field-label">网页网址</span><input id="bm-url" class="od-field" type="url" autocomplete="off" aria-describedby="bm-form-error"></label>
-          <div id="bm-parent-row" class="od-form-field">
-            <label for="bm-folder-query" class="od-field-label">所在文件夹</label>
-            <input id="bm-folder-query" class="od-field" type="search" autocomplete="off" placeholder="搜索目标文件夹…" aria-label="筛选目标文件夹">
-            <select id="bm-parent" class="od-field bm-folder-list" size="5" required aria-label="选择目标文件夹" aria-describedby="bm-form-error"></select>
-            <p id="bm-folder-hint" class="od-field-help">可按名称筛选，使用方向键选择文件夹。</p>
-          </div>
+          <details id="bm-parent-row" class="od-disclosure od-disclosure--flat bm-folder-disclosure">
+            <summary id="bm-parent-summary">所在文件夹</summary>
+            <div class="bm-folder-controls od-form-field">
+              <label for="bm-folder-query" class="od-field-label">筛选目标文件夹</label>
+              <input id="bm-folder-query" class="od-field" type="search" autocomplete="off" placeholder="搜索目标文件夹…" aria-label="筛选目标文件夹">
+              <select id="bm-parent" class="od-field bm-folder-list" size="5" required aria-label="选择目标文件夹" aria-describedby="bm-form-error"></select>
+              <p id="bm-folder-hint" class="od-field-help">可按名称筛选，使用方向键选择文件夹。</p>
+            </div>
+          </details>
           <div id="bm-detail-url" class="bm-detail-url od-technical" hidden></div>
           <p id="bm-form-error" class="od-field-error" role="alert"></p>
           <div id="bm-conflict-review" class="bm-conflict-review od-alert od-alert--warning" hidden>
