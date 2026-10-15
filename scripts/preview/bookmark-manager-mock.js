@@ -9,6 +9,54 @@ const clone=x=>JSON.parse(JSON.stringify(x));
 const sessionRef='preview-bookmark-session-0123456789';
 const snapshotRef='preview-bookmark-snapshot-0123456789';
 let serial=3000,records=new Map(),tickets=new Map();
+let revoked=false,nextWriteFailure=null;
+const previewLab=document.createElement('details');
+previewLab.className='od-disclosure';
+const summary=document.createElement('summary');
+summary.textContent='预览实验台 · 仅模拟，不属于正式工具';
+previewLab.append(summary);
+const toolsRow=document.createElement('div');
+toolsRow.className='od-toolbar';
+toolsRow.style.flexWrap='wrap';
+const labMessage=document.createElement('p');
+labMessage.className='od-note';labMessage.setAttribute('role','status');
+const diagnostic=(label,handler)=>{
+  const button=document.createElement('button');
+  button.type='button';button.className='od-button od-button--secondary';
+  button.textContent=label;button.addEventListener('click',handler);
+  toolsRow.append(button);
+};
+diagnostic('下一次写入失败',()=>{
+  nextWriteFailure='E_PREVIEW_SAVE_FAIL';
+  labMessage.textContent='下次保存会在写入前失败，草稿应保留。';
+});
+diagnostic('下一次写入结果未知',()=>{
+  nextWriteFailure='E_OUTCOME_UNKNOWN';
+  labMessage.textContent='下次写入模拟未知结果；不得自动重试。';
+});
+diagnostic('模拟外部冲突',()=>{
+  const id=root.querySelector('#bm-inspector-id')?.textContent?.trim()||'100';
+  const row=records.get(id);
+  if(!row){labMessage.textContent='请先选中已有书签再模拟冲突。';return}
+  row.title+='（由另一窗口修改）';
+  labMessage.textContent='已在 Mock 原始记录中修改 '+id+'；保存旧草稿应遭拒绝。';
+});
+diagnostic('模拟撤销权限',()=>{
+  revoked=true;labMessage.textContent='Mock 权限已撤销，请点击正式界面的刷新按钮验证清除。';
+});
+diagnostic('恢复模拟权限',()=>{
+  revoked=false;nextWriteFailure=null;
+  labMessage.textContent='Mock 已恢复；请在正式界面重新检查权限。';
+});
+previewLab.append(toolsRow,labMessage);
+root.before(previewLab);
+function beforeWrite(){
+  if(revoked)fail('E_GRANT_REVOKED','模拟书签权限已经撤销');
+  if(nextWriteFailure){
+    const code=nextWriteFailure;nextWriteFailure=null;
+    fail(code,code==='E_OUTCOME_UNKNOWN'?'模拟写入结果未知':'模拟保存失败，尚未写入');
+  }
+}
 const push=(id,title,parentId,url)=>records.set(id,{id,title,...(parentId?{parentId}:{}),
   ...(url!==undefined?{url}:{}),index:0});
 push('0','root',null);push('1','书签栏','0');push('2','其他书签','0');
@@ -19,7 +67,8 @@ if(scenario!=='empty'){
   for(let i=0;i<2152;i++)push(String(i+500),'模拟书签 '+String(i+1).padStart(4,'0'),
     i%2?'11':'10','https://example.org/items/'+i);
 }
-function check(){if(scenario==='loading')return new Promise(()=>{});
+function check(){if(revoked)fail('E_GRANT_REVOKED','模拟书签权限已经撤销');
+  if(scenario==='loading')return new Promise(()=>{});
   if(scenario==='permission-denied')fail('E_BOOKMARK_PERMISSION','未授予 Full Bookmarks 模拟权限');
   if(scenario==='error')fail('E_PREVIEW_SIMULATED','模拟读取失败');
   return null}
@@ -44,18 +93,18 @@ const bookmarks={
  },
  async get({id}){await check();return records.has(id)?[clone(records.get(id))]:[]},
  async search({query}){await check();return [...records.values()].filter(row=>row.title.includes(query)).map(clone)},
- async create(data){await check();if(!records.has(data.parentId))fail('E_SCHEMA','目录不存在');
+ async create(data){await check();beforeWrite();if(!records.has(data.parentId))fail('E_SCHEMA','目录不存在');
    const id=String(++serial);push(id,data.title,data.parentId,data.url);return clone(records.get(id))},
- async update({id,changes,expected}){await check();const old=writeRow(id);
+ async update({id,changes,expected}){await check();beforeWrite();const old=writeRow(id);
   if(!compare(old,expected))fail('E_BOOKMARK_STALE','已发生外部修改');
   if(changes.title!==undefined)old.title=changes.title;
   if(changes.url!==undefined)old.url=changes.url;
   return clone(old)},
- async move({id,destination,expected}){await check();const old=writeRow(id);
+ async move({id,destination,expected}){await check();beforeWrite();const old=writeRow(id);
   if(!compare(old,expected))fail('E_BOOKMARK_STALE','已发生外部修改');
   if(!records.has(destination.parentId))fail('E_SCHEMA','目标目录不存在');
   old.parentId=destination.parentId;return clone(old)},
- async remove({id,expected}){await check();const old=writeRow(id);
+ async remove({id,expected}){await check();beforeWrite();const old=writeRow(id);
   if(!compare(old,expected)||descendants(id).length)fail('E_BOOKMARK_STALE','目录存在未审阅的修改');
   records.delete(id);return {removed:true}},
  async prepareRemoveTree({id,expected,descendantCount,snapshotRef:ref}){
@@ -65,7 +114,7 @@ const bookmarks={
    tickets.set(ticket,{id,descendantCount,expiresAt:Date.now()+10000});
    return {ticket,targetId:id,descendantCount,expiresAt:Date.now()+10000}
  },
- async removeTree({id,ticket}){await check();const permit=tickets.get(ticket);
+ async removeTree({id,ticket}){await check();beforeWrite();const permit=tickets.get(ticket);
    tickets.delete(ticket);if(!permit||permit.id!==id||permit.expiresAt<Date.now()||
      descendants(id).length!==permit.descendantCount)
      fail('E_BOOKMARK_STALE','目录删除凭据失效');
