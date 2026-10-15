@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {emptyWorkflow} from '../../src/framework/workflow/contract.js';
 import {compileWorkflow} from '../../src/framework/workflow/compiler.js';
-import {prepareDirectExecution,verifyDirectExecutionReceipt} from '../../src/ui/workflow/direct-execution.js';
+import {prepareDirectExecution,verifyDirectExecutionReceipt,directExecutionEvidenceLevel} from '../../src/ui/workflow/direct-execution.js';
 const origin='https://example.test';
 const target={windowId:1,tabId:2,frameId:0,documentId:'doc-1',url:origin+'/form',origin};
 const hash='a'.repeat(64);
@@ -143,4 +143,13 @@ test('core actions must be complete and search field labels do not authorize cli
     workflow:workflow([openDesk]),target}),{code:'E_AI_MISSING_ACTION'});
   assert.equal(prepareDirectExecution({request:'在搜索关键词输入框填入 OpenDesk，然后点击搜索按钮。',
     workflow:workflow([openDesk,{...click,locatorKind:'role',selector:'button',roleName:'搜索'}]),target}).hasReadback,true);
+});
+
+test('proposal, durable receipt, and observed input effect remain different evidence levels',()=>{
+  assert.equal(directExecutionEvidenceLevel(), 'PROPOSAL_VALID');
+  assert.equal(directExecutionEvidenceLevel({receiptVerified:true}), 'EXECUTION_RECEIPT_VERIFIED');
+  assert.equal(directExecutionEvidenceLevel({receiptVerified:true,hasReadback:true}),
+    'BUSINESS_EFFECT_VERIFIED');
+  assert.equal(directExecutionEvidenceLevel({receiptVerified:true,hasReadback:true,
+    hasUnprovenClick:true}), 'EXECUTION_RECEIPT_VERIFIED');
 });
