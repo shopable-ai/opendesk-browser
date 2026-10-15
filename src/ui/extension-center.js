@@ -18,7 +18,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   let disposed=false,sequence=0,busy=false,pendingKey=null,installed=[],pages=[],enabled={},official=[];
   let appStatusKnown=false,pageStatusKnown=false;
   let sources={};
-  let catalogError='',dataError='',query='',kind='all',scope='smart',selectedKey=null;
+  let catalogError='',dataError='',hasLoaded=false,query='',kind='all',scope='smart',selectedKey=null;
   let listScroll=0,focusKey=null,focusAction=null,detailFocusAction=null;
   const node=(tag,cls='',value)=>{const element=doc.createElement(tag);if(cls)element.className=cls;
     if(value!==undefined)element.textContent=String(value);return element;};
@@ -50,9 +50,11 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   const restoreRowFocus=(key,action)=>{
     const buttons=[...list.querySelectorAll('button[data-extension-key]')]
       .filter(b=>b.dataset.extensionKey===key);
-    (buttons.find(b=>b.dataset.extensionAction===action)||
+    const target=buttons.find(b=>b.dataset.extensionAction===action)||
       buttons.find(b=>b.dataset.extensionAction==='more')||
-      buttons.find(b=>b.dataset.extensionAction==='main'))?.focus({preventScroll:true});
+      buttons.find(b=>b.dataset.extensionAction==='main');
+    if(!target)return false;
+    target.focus({preventScroll:true});return true;
   };
   const rowMenu=node('div','ec-context-menu');
   rowMenu.id='extension-center-row-menu';rowMenu.setAttribute('role','menu');rowMenu.hidden=true;
@@ -135,6 +137,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     const active=doc.activeElement;
     const key=list.contains(active)?active?.dataset?.extensionKey:null;
     const action=active?.dataset?.extensionAction;
+    const menuFocusKey=!rowMenu.hidden&&rowMenu.contains(active)?rowMenuKey:null;
     closeRowMenu();
     const rows=filterExtensionEntries(all().map(row=>({...row,title:titleOf(row),description:descriptionOf(row)})),{query,kind,scope});
     list.setAttribute('aria-busy',String(Boolean(busy||pendingKey)));
@@ -184,14 +187,18 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       if(!actions.childElementCount)item.classList.add('ec-row--no-actions');
       item.append(main,actions);list.append(item);
     }
-    get('extension-center-empty').hidden=rows.length>0;
+    get('extension-center-empty').hidden=rows.length>0||!hasLoaded;
     get('extension-center-empty-text').textContent=dataError?
       '读取部分安装记录失败；请重试，原安装数据不会被修改。':
       query?'没有找到匹配的扩展':scope==='available'?'没有可安装的官方候选':
       kind==='page'?'暂无符合条件的网页增强':'还没有已安装扩展，可搜索官方目录或打开应用市场。';
-    get('extension-center-count').textContent=rows.length+' 个扩展';
+    get('extension-center-count').textContent=hasLoaded?rows.length+' 个扩展':'正在读取扩展…';
     syncFilters();
-    if(key&&!busy&&!pendingKey)restoreRowFocus(key,action);
+    if(!busy&&!pendingKey){
+      if(key)restoreRowFocus(key,action);
+      else if(menuFocusKey&&!restoreRowFocus(menuFocusKey,'more'))
+        search.focus({preventScroll:true});
+    }
   }
   function openMarket(release=null){
     const route=release?'#/apps/'+release.id+'/versions/'+release.version:'';
@@ -222,7 +229,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   function back(){
     selectedKey=null;detailFocusAction=null;detail.hidden=true;listing.hidden=false;
     workspace?.scrollTo?.({top:listScroll});
-    restoreRowFocus(focusKey,focusAction);
+    if(!restoreRowFocus(focusKey,focusAction))search.focus({preventScroll:true});
   }
   function renderDetail(){
     const row=find(selectedKey);
@@ -236,7 +243,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     head.append(glyph,copy);area.append(head,node('p','',rowDescription(row)));
     const actions=node('div','ec-detail-actions');
     function detailButton(label,fn,action){
-      const b=button(label,fn);b.dataset.ecDetailAction=action;b.disabled=busy;return b;
+      const b=button(label,fn,'od-button od-button--secondary');
+      b.dataset.ecDetailAction=action;b.disabled=busy||Boolean(pendingKey);return b;
     }
     if(row.kind==='app'){
       if(!row.installed)actions.append(detailButton('审阅并安装',()=>openReview(row.key),'install'));
@@ -320,9 +328,11 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       if(!Array.isArray(response?.catalog))throw new Error('Page 目录响应格式无效');
       pages=response.catalog;pageStatusKnown=true;
     }catch(error){pageStatusKnown=false;errors.push('网页增强：'+String(error?.message||error));}
-    dataError=errors.join('；');
+    dataError=errors.join('；');hasLoaded=true;
     if(dataError)message('读取失败，保留最近一次显示。'+dataError,'error');
-    else if(notice.dataset.state==='error')message('');
+    else if(notice.dataset.state==='error'||notice.dataset.state==='loading')
+      message(catalogError?'官方目录暂不可用：'+catalogError:'',
+        catalogError?'error':'info');
     draw();if(selectedKey)renderDetail();
   }
   async function readOfficial(){
@@ -387,6 +397,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   };
   api.storage.onChanged?.addListener(storageChanged);
   const connChanged=client.subscribeConnection?.(state=>{if(state.connected)void refresh();});
+  message('正在读取已安装扩展与授权状态…','loading');draw();
   void readOfficial();void refresh();
   return {refresh,dispose(){disposed=true;sequence++;closeRowMenu();rowMenu.remove();
     doc.removeEventListener('click',clickOutside);
