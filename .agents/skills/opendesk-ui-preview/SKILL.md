@@ -27,6 +27,15 @@ node scripts/sidebar-preview-kit.mjs check /absolute/path/returned-preview.html
 
 完整目标、验收表、网页附件回收、生产迁移边界见 [预览套件合同](../../../docs/api/sidebar-preview-kit.zh-CN.md)。真实实现按 [应用开发 skill](../opendesk-sidebar-tool-dev/SKILL.md) 接续；不可把完整宿主 CSS/脚本从此设计文档注入动态工具 iframe，也不可把静态设计稿当作可安装包。独立方案评分逐维 ≥95 后才报告方案达标；产品通过须另有同候选原生证据。
 
+## R32.3：平台原型、候选评估与结论回写
+
+平台 UI、书签 Tree、反复失效的 Select/Combobox 或 React 选型任务，先读 [现行架构](../../../docs/architecture/browser-ui-r23.zh-CN.md) 的 R32.3 补充与 [续接 GOAL](../../../docs/framework/prompts/goal-ui-platform-r32.3-document-driven.zh-CN.md)。目标是复用成熟视觉和行为，不是每个工具重写树、菜单和焦点系统。
+
+保留原生基线，优先制作书签 Tree/Select/Menu 的最小真实 React 候选。React Aria 与 Radix 加明确 Tree 方案均待验证，不以旧聊天评分封版，不强制制作七套完整产品或先重写五个 Tab。相同数据和场景下比较实际交互；HTML 模拟、实际库运行、静态 Chrome 与已安装工具证据分开。
+
+旧容量是可调整的内部预算，不能在候选筛选前按旧值排除 React；实际容量变更由 [打包 Skill](../opendesk-sidebar-tool-package/SKILL.md) 接续全链一致性，不改变权限、CSP 或安装语义。按需构建并复用同源公共视觉，不能跨 iframe 借用宿主特权。
+
+每阶段审计、原型、选型、预算实验完成后，立即写回架构与 [R32 工作流](../../../docs/framework/workstreams/ui-platform-r32-20261015.md)：状态、决定、理由、证据、版本、限制和下一步；合同变化再同步相关 Skill。用户已要求保存时正常提交授权 main 文档，不以下载文件代替。当前环境不能直接渲染 HTML 时，明确说明并生成完整可打开文件；不得假报模型已读附件或交互通过。
 
 ## 生产工具同源预览（Preview Contract R1）
 
