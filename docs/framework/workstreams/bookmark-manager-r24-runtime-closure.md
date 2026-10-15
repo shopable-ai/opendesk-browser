@@ -168,3 +168,26 @@ npm run verify
 8. 市场Native选择器失败先由其UI/验收负责人核对真实布局；不绕过可信输入。取得全部同候选证据后，再决定发布、Issue关闭与逐维独立评分。
 
 文件与构建资源：RELEASED。没有 Mac watcher、浏览器 Profile 或 Native 配对被改动。
+
+## R2.4 NEXT · GitHub 网页增量续接与现行 Native 门禁（2026-10-15）
+
+**阶段状态：PARTIAL / HANDOFF_READY / ISSUE #75 OPEN；未发布，未作 95+ 评分。** 本段只记录本轮增量，不改写上面的 R2.4 历史候选、已归档 `summary.json` 及其原始 SHA；来源为已连接 GitHub 的源码/Actions，不是用户 Mac/CFT。机器可读记录：[github-main-resume-20261015.json](evidence/bookmark-manager-r24-runtime-closure/github-main-resume-20261015.json)。
+
+- **增量基线与身份**：本轮首次核查远端 `main=6b111e5537e63b0809bbd4e2daec8d7de9c8b4fa`；旧提示词的 `f8d2b22d` 已不是 HEAD。历史 R2.4 组件 PASS 保留在 `a2be6815ad1f58907b10da1dc31df738b1bcacce`，SDK R11.3 的 437/437 保留在 `0c4d4a885efb09b467148009e0ebe4981a1ae2da`，没有替换为新 SHA。当前独立书签工具配置已到 **0.3.4**，原始 0.3.1 包不能用作新候选。代码变更发生在其他并行工作期间，旧原生缺口需要重新分级。
+- **本轮唯一执行源码改动**：`tests/framework/app-market-r3-native.test.mjs` 从隐藏的 `#sidebar-tool-discover-toggle` / 旧工具列表改为真实可见的 R4 `#extension-center` 列表、搜索、筛选、市场入口、详情升级和导入菜单；浮动行操作仅通过 Chrome `Input.dispatchMouseEvent mouseMoved/mousePressed/mouseReleased` 完成可信导航，仍复用原 `sidebarTools.openOfficialReview` 的安装/权限 Host。正式提交 `c8d52ef41fde83cec61d8cdd86a5ceea099591ef`，目标文件 blob `a378b976d1bc806bf1f1e64fe4731e38e0524456`。不触碰产品 UI、SDK、书签源码、权限数据库、旧宿主业务，不伪造安装回执。静态 V8 语法解析（移除静态 import 后）PASS，**不等于** Node 原生驱动执行或 Native PASS。
+- **共享 UI 归属**：R4.1 工作记录 `docs/framework/workstreams/extension-center-r41-native-01a13a66.md` 显示真实负责人，本轮只改无近期重叠写入的市场原生驱动文件；旧选择器失败是测试与现行 CSS 可见性不一致，不盲目增加等待时间。未使用任何 Mac Chrome/Profile/watcher，也未覆盖其他 Agent 的工作区内容。
+
+| 阶段 | 本轮确认状态 | 证据 / 下一实际动作 |
+| --- | --- | --- |
+| 基线/SDK 组件 | **REUSE_RECORDED_PASS + AFFECTED_INPUTS** | 历史 `a2be6815` 的 81/81、`0c4d4a88` 的 437/437 原样保留；书签 0.3.4、统一扩展中心 UI 和发行依赖已变 |
+| 1. 正式安装入口 | **EVIDENCE_INCOMPLETE** | 已修复旧隐藏控件的测试导航；`c8d52ef4` 对应市场 CI 在原生阶段前 FAIL，没有新包 Chrome 操作回执 |
+| 2. 最小书签 Native | **PARTIAL HISTORICAL / NOT_TESTED 0.3.4** | 独立工具 README 记载 0.3.3 已真实升级、授权后显示 2159 节点，但原生建文件夹遭隐藏 URL 校验拒绝；0.3.4 的针对性表单修复仅有 Node 证据，当前会话未取得同候选 Chrome CRUD 收据 |
+| 3. 完整安全/生命周期 | **NOT_TESTED CURRENT CANDIDATE** | 完整 12 方法、1001+、跨窗口/Worker、撤权、危险删除全矩阵仍须同候选 Native 原件；不能用 2159 节点读取替代 |
+| 4. 工程与 CI | **BLOCKED / AFFECTED_INPUTS** | 书签源 CI `38707598882` 71/71 Node PASS，但 AdBlock 可信源码指纹不匹配使生产构建 FAIL；市场 `38708321527` 三个 Job 在组件测试失败，均没运行到 Chrome |
+| 5. 发布/独立审查 | **NOT_SCORED / BLOCKED** | 没有同候选全套 Native 和独立逐维评分；#75 保持 OPEN，不关闭、不宣称 95+ |
+
+**原始 CI 依据：** [书签 CI #38707598882](https://github.com/shopable-ai/opendesk-browser/actions/runs/38707598882) — 71 PASS、0 FAIL 的 Node 专项之后在 `Trusted AdBlock source changed; review and re-pin` 处拒绝生产构建；[市场 CI #38708321527](https://github.com/shopable-ai/opendesk-browser/actions/runs/38708321527) — Linux 生产组件 161 PASS/1 FAIL（Cookie Editor portable 文件与源码生成包不一致），Linux/macOS HTTP 组件各 100 PASS/1 FAIL（reading-kit 当前 quick-notes 1.1.8 与发行工具 1.1.9 不一致）。CI 整体 FAIL，不可忽略这些阻塞或把导航修复标记为原生通过。共享/其他业务文件按其现有 owner 协调，不修改固定发行身份或取消诚信断言。
+
+**Git 与产物**：本轮生产文件新增/删除/净变更均为 **0**；测试代码改动 **1 文件**；本轮新增一份可机读失败回执到既有 R2.4 evidence 目录、在本工作流追加上述状态。GitHub 真实源码提交 `c8d52ef4`，证据提交与其分开保存；本会话没有用户 Mac 的 Chrome 版本、Profile、扩展 ID、加载目录、0.3.4 包 SHA、installEpoch 或同候选打包指纹，全部保留 `NOT_TESTED`/空值，不使用历史包身份填充。
+
+**下一个可执行断点**：先由 Cookie Editor、阅读套装/Quick Notes、AdBlock 对应负责范围解决真实构建/组件断言；在稳定的最新 `main` 上仅补受影响 CI。然后使用未被其他 watcher 占用的隔离输出和真实 Mac CFT，按 `AGENTS.md`、`testing-guide.md` 冻结候选并通过正式扩展中心审阅 0.3.4；先验证拒绝/允许/2159 树和实际文件夹/书签 CRUD，再进入其余 12 方法、安全与生命周期。**实际打包命令**是 `npm run build:sidebar-tool -- examples/sidebar-tools/bookmark-manager`，从 `tool.config.json` 读取版本定位产物，不再使用上文历史固定的 0.3.1 路径；`build:dev` 必须先核对 watcher 所拥有的输出，不擅自覆盖。全阶段通过后方可决定关闭 Issue #75。
