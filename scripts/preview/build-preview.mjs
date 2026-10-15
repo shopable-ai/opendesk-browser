@@ -101,13 +101,13 @@ export async function generatePreview({
     MANIFEST_JSON:safeJS(manifest),FRAME_BASE64:base64(frameHtml)
   });
   const used=new Set();
-  const outputHtml=shellTemplate.replace(/\{\{([A-Z_]+)\}\}/g,(_,key)=>{
+  const outputHtml=shellTemplate.replace(/\{\{([A-Z0-9_]+)\}\}/g,(_,key)=>{
     if(!Object.hasOwn(values,key))fail('unsupported preview template slot '+key);
     used.add(key);return values[key];
   });
   for(const key of Object.keys(values))
     if(!used.has(key))fail('preview template is missing required slot '+key);
-  if(/\{\{[A-Z_]+\}\}/.test(outputHtml))
+  if(/\{\{[A-Z0-9_]+\}\}/.test(outputHtml))
     fail('unresolved preview template slot');
   const output=resolve(out||join(repoRoot,'artifacts/previews',pkg.id,
     [surface,scenario,theme,String(width)].join('-')+'.html'));
