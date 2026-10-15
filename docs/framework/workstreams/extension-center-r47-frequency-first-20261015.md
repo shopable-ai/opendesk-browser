@@ -180,3 +180,22 @@
 
 功能树分层：R4.9 修改部分 SOURCE_WIRED；定向测试和构建等待新 CI；真实用户 E2E 的 NATIVE_PASS 全部 NOT_TESTED；Mac 环境 BLOCKED。十一维：高频效率、主操作语义、组件去重、信息架构、视觉交互、可访问性、生命周期、安全权限、异常恢复、预览正式一致性均 NOT_SCORED；真实 Chrome 产品体验 NOT_TESTED。没有同候选原生事实时不宣称 95/100 或产品完成百分比。下一最小行动：核查上述同提交 CI；然后在 Mac 已加载的日常扩展和隔离生产候选验收 App 启停、Page 权限代际、候选安装审核、键盘焦点、草稿取消、异常恢复、市场/搜索/筛选/语言与截图/computed style，逐项绑定 Commit、包 Hash、原生操作和 Host 回读。
 
+
+
+### R4.9 同候选 CI 结束回执（2026-10-15 UTC 16:20）
+
+**GitHub Actions [38767521693](https://github.com/shopable-ai/opendesk-browser/actions/runs/38767521693)：COMPLETED / SUCCESS，精确提交 024975b47d7a9a5d337327e1b3e843f3bc526e8b。** 已读取该次原始 job steps 和日志（job 116534494543），以下结果全部来自此同一 checkout：
+
+| 证据层 | 实际结论 |
+| --- | --- |
+| Extension Center + 原有 Page Authority 定向 Node 分组 | 66 tests / 66 PASS / 0 FAIL / 0 SKIP，包含 R4.9 取消应用启停与 Page 权限拒绝的新增 DOM/RPC 用例 |
+| 原 Host / Cloud / Task 定向 Node 分组 | 153 tests / 153 PASS / 0 FAIL / 0 SKIP |
+| npm run check | SUCCESS，语法和来源门禁检查 770 个源码/测试/构建文件 |
+| npm run build | SUCCESS，production 标准包 Hash：3fbd045cf7c8d5b0b00a05fd3a1981bd4504e036126f96549889df8b24ce18c4，102 assets |
+| Production CSS/package verification | SUCCESS，dist/production/ui/extension-center.css 非空，verify-package 通过 |
+| npm run build:dev | SUCCESS，development 标准包 Hash：35f10860bafa61aadfb7df0bb954731fd41191eb38c170c242bc01e4884bf5df，140 assets |
+| npm run verify | SUCCESS，双包验证与 development CSS 非空检查均完成 |
+
+原段落里的 QUEUED 是首次查看的历史瞬时状态，应以此同一 SHA 的 COMPLETED / SUCCESS 终态为准。本结果证明 NODE_PASS、SOURCE_CHECK_PASS、BUILD_PASS、PACKAGE_VERIFY_PASS；**不代表**用户 Mac 当前实际加载的 dist/development watcher 包就是上述静态 development 候选，更不代表 Chrome/Native、用户手势、Page 真实注册、像素截图或专家 95+ 通过。
+
+Chrome 验收身份待补：用户 Mac 实际 Chrome/Profile/扩展 ID、加载目录、构建 Hash、App/Page/候选的真实操作与 Host/Authority 状态读回、同候选截图及 computed style。上述场景一律继续 NATIVE_NOT_TESTED；因此产品 R4.9 仍为 PARTIAL，而非 FINAL_ACCEPTED。正常 main 仍可能存在其它 Agent 后续提交，复用本 CI 必须做相关输入差异分析，不将 024975b47 的包 Hash 冒充后续 HEAD。
