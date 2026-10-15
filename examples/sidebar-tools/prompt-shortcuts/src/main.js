@@ -73,6 +73,7 @@ function render(){
   for(const [i,item] of data.items.entries()){
     const card=dom('article','ps-card'+(!item.enabled?' is-disabled':''));
     const use=button(card,item.body,()=>void copy(item),'quiet');
+    use.replaceChildren(dom('span','ps-card-preview',item.body));
     use.className='ps-card-use';use.dataset.locked=item.enabled?'0':'1';
     use.setAttribute('aria-label',(item.enabled?'复制完整提示词：':'已停用的提示词：')+(item.nameAuto?model.auto(item.body):item.name));
     use.title=item.enabled?'一键复制完整提示词；ChatGPT 网页左侧按钮可直接插入草稿':'该按钮已停用';
