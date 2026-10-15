@@ -132,3 +132,37 @@ node --test examples/sidebar-tools/ai-vip-share/dev/local-test/local-fixture-ser
 2. **P1** 用 7898 模拟会员接口、激活回执、幂等消费、掉线后核对；它验证的是模拟服务合同，不是正式认证系统。
 3. **P2** 由 OpenDesk Proxy/SDK Owner 审核隔离 test adapter（localhost 白名单仅 127.0.0.1、测试包显式 opt-in、无 production fallback、可观测开/关回执、会话与 Host 权限不降级）。补全用户可操作的激活入口或测试预签发租约路径，不能绕过身份/授权；避免建立第二套生产代理引擎。
 4. **P3** 在 Mac Chrome/CFT 隔离 Profile，用真实安装身份和可信按钮完成 ENABLE、网络出口检查、STOP、冲突、Worker 重启、撤销、安装升级与卸载验收；同包输入一致方可认定 NATIVE PASS。
+
+
+## Managed Proxy SDK R1：7897 三层验证（2026-10-15）
+
+在**用户自己创建的隔离 Chrome Profile** 测试，不能复用常用浏览器 Profile。此目录只提供本地联调材料，不参与正式工具构建、运营会员或真实授权。
+
+**A. 原始 7897 线路（与 Browser SDK 无关）：**
+
+```bash
+# 先自行启动真实的 127.0.0.1:7897 SOCKS5 或 HTTP CONNECT 服务
+node examples/sidebar-tools/ai-vip-share/dev/local-test/proxy-line-probe.mjs --socks5 --target=example.com
+# 如果本机 7897 是 HTTP CONNECT：
+node examples/sidebar-tools/ai-vip-share/dev/local-test/proxy-line-probe.mjs --http --target=example.com
+```
+
+此脚本要求先完成真实代理握手，再执行 HTTPS TLS 证书校验。失败即返回非零退出码。不记录代理凭据；默认只向公共测试站点 `example.com:443` 连接。A 通过**不等于** Chrome/PAC/已安装工具通过。
+
+**B. 隔离 Chrome + 7898 PAC：**
+
+```bash
+LOCAL_PROXY_KIND=socks5 LOCAL_PROXY_PORT=7897 node examples/sidebar-tools/ai-vip-share/dev/local-test/local-fixture-server.mjs
+PROFILE="$(mktemp -d "${TMPDIR:-/tmp}/opendesk-proxy-chrome.XXXXXX")"
+"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+  --user-data-dir="$PROFILE" --no-first-run --disable-extensions \
+  --proxy-pac-url=http://127.0.0.1:7898/proxy.pac \
+  --log-net-log="$PROFILE/netlog.json" \
+  https://chatgpt.com
+```
+
+请核对 7897 真实代理日志、Chrome NetLog 以及非目标站点直连结果。7898 本地 PAC 测试只证明 **B**，并没有经过公共 SDK，也没有使用正式 AI VIP Share 工具。HTTP CONNECT PAC 指令为 `PROXY 127.0.0.1:7897`，SOCKS5 为 `SOCKS5 127.0.0.1:7897`，都不是生产允许的 HTTPS 端点。
+
+**C. 正式 SDK + 安装工具：** 用另一个隔离 Profile 安装实际 `main` 构建的 OpenDesk Browser、安装 `ai-vip-share` v1.3.0、从工具内按下启用，经可信 Side Panel 单次确认；核验安装 ID / 包 Hash / Epoch、Proxy 状态、7897 日志及 STOP / 重启 / 卸载恢复。**当前正式 Provider 未配置，工具必须保持「无法启用」，不能用 A/B 成功冒充 C 成功。** 要真正完成 C，需通过安全审查的仅 development loopback 适配器及真实会员测试验证，生产规则绝不能放开 127.0.0.1、HTTP、原始 PAC 或伪造的权益。
+
+所有测试结果分别记录 `A / B / C` 和 `NODE / CHROME_NATIVE`；未取得 Chrome 实际日志时记 `NOT_TESTED`。
