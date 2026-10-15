@@ -24,7 +24,6 @@ export const STATIC_RESOURCES=Object.freeze({
   'src/ui/design-system.css':'ui/design-system.css',
   'src/ui/tool-shell.css':'ui/tool-shell.css',
   'src/ui/extension-center.css':'ui/extension-center.css',
-  'src/ui/bookmark-manager.css':'ui/bookmark-manager.css',
   'examples/sidebar-tools/time-review/src/style.css':'ui/time-review.css',
   'src/ui/cloud-hosting.css':'ui/cloud-hosting.css',
   'src/ui/target-bootstrap.html':'ui/target-bootstrap.html',
