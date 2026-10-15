@@ -1,5 +1,7 @@
 # OpenDesk Browser：浏览器自动化与网页用户脚本框架
 
+> **Workflow R2.1（2026-10-15）唯一当前 AI Provider/本机 Codex/HTTP 架构合同：**[正式 R2 技术设计与实施状态](workflow-ai-provider-routing-r2.zh-CN.md)。本设计解释 Send → 当前网页观察 → 统一 Provider → 原 Compiler/RunHost → 业务回执 → 可选 Save/无模型复跑；区分 SOURCE_WIRED、NOT_VERIFIED 和产品验收。保留 [R16 历史基线](workflow-ai-provider-routing-r16.zh-CN.md)，但其旧“采用建议再执行”不代表当前 UX。Go HTTP Gateway 源码已在 Native Host 内复用原 Codex Manager，Browser HTTP 配对/Origin/入口仍未完成。
+
 > **从用户需求快速了解框架：**[9 个功能领域与 8 条端到端用户场景](capability-domains.zh-CN.md)（特别包含旧版网页 UI → 固定 Controller Task 的安全迁移缺口）。先看用途/入口/执行世界，再通过旧新图解、唯一 API 合同和真实验收回执追踪状态。
 
 > **2026-10-13 当前框架总览入口**：[四层框架功能树与进度树](framework-feature-progress-tree-20261013.zh-CN.md) · [可机器读取的子系统与任务进度 JSON](../../framework/workstreams/framework-feature-progress-20261013.json)。按 Controller / Page / Browser SDK / Cookies / Scheduled / Cloud / Native / 市场区分“源码、组件、包、原生和最终放行”；本页后面的早期阶段快照不应当作当前全局完成率。
