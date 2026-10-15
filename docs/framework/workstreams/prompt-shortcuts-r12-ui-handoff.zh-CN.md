@@ -158,9 +158,9 @@
 | --- | --- | --- |
 | R1.4 既有独立 CI | **9/9 NODE_PASS**，Run [38738460330](https://github.com/shopable-ai/opendesk-browser/actions/runs/38738460330)，SHA `374d920fe961c8329dd1a5dfa3a5d3bbf1b25b01` | 历史候选；不自动升级为 R1.5 测试 |
 | Linux headless Chromium `144.0.7559.96` 独立 HTML 插入实验 | **6/6 仅模拟编辑器插入且 6/6 撤销成功**：段落、DIV、TEXTAREA；已有草稿、空草稿、换行、空行、中文、Emoji | **模拟 Chromium DOM**；未使用本仓库完整扩展或真实 ChatGPT |
-| R1.5 GitHub Scoped Node/CI | **10/10 NODE_PASS**，Run [38742882938](https://github.com/shopable-ai/opendesk-browser/actions/runs/38742882938)，候选 `d564f951def2d2ae5f13b6505d4cfb36acf5f29b`；后续新增段落回归与文件构建候选 `1bc0fabcf2e3355decedc6a8df5eea51ed292a3e` 仍待 CI | 仅 Node 动态模拟与静态合同；非原生 Chrome |
+| R1.5 GitHub Scoped Node/CI | **11/11 NODE_PASS、JS 语法 PASS**，Run [38743743798](https://github.com/shopable-ai/opendesk-browser/actions/runs/38743743798)，候选 `1bc0fabcf2e3355decedc6a8df5eea51ed292a3e`；先前 `d564f951` 的 [10/10 PASS](https://github.com/shopable-ai/opendesk-browser/actions/runs/38742882938) 保留历史证据 | 新增了 IME、双击、空行丢失、段落重建；非原生 Chrome |
 | 官方 production 整包构建、固定来源全局 gate | **BLOCKED**，Run [38742882742](https://github.com/shopable-ai/opendesk-browser/actions/runs/38742882742)，首次失败：`[opendesk-fixed-sidebar-tool-host] Trusted AdBlock source changed`，文件 `examples/sidebar-tools/adblock/trusted/host-controls.js` | AdBlock 并行源码固定摘要漂移，非本工具的来源校验失败；不得放宽门槛 |
-| 独立 portable v2 package JSON | **NOT_TESTED**；官方 CLI、包校验及 artifact 上传已加入现有 `.github/workflows/prompt-shortcuts-r14.yml`，候选 `1bc0fab` CI 尚在排队 | 即使通过也只是安装候选，不代表完整 WXT production Chrome 扩展 |
+| 独立 portable v2 package JSON | **PACKAGE_PASS**，官方 CLI 在上述同一 CI 生成 35,083 bytes，SHA-256 `1f09804545c2a654cccab76c1a863c29453b1239b7e387e0d6e4225df3bed412`，`validateSidebarToolPackage`/ID/version/capability/menu/script 均通过；[CI 附件 #11976707456](https://github.com/shopable-ai/opendesk-browser/actions/runs/38743743798/artifacts/11976707456)，保留期 7 天 | 可移植工具 JSON 包，不是整个 OpenDesk Chrome Extension，更不是安装通过 |
 | 已安装 OpenDesk Browser + 实时 ChatGPT 草稿 | **NOT_TESTED** | 需相同安装候选下亲自验证完整正文、焦点、Undo、输入法与刷新 |
 | 原生 Chrome 选区菜单和一次性领取 | **NOT_TESTED** | Node 接线/模拟不能替代菜单点击 |
 | 关闭侧栏、SPA/BFCache、撤权、卸载/重装完整链 | **NOT_TESTED** | 需要真实已安装环境 |
@@ -171,3 +171,11 @@
 - 在当前网页会话没有用户 Mac Chrome Profile、已登录 ChatGPT DOM 或本机 `npm run dev` watcher 的访问能力。不可把模拟编辑器、官方 packer 的 Node 检查或历史候选视为真实安装证明。
 - 下一步先读取 R1.5 同提交作用范围内的 GitHub Actions 结果；有真实 FAIL 则仅修受影响的可信适配器和测试，保持来源 SHA 白名单同步。再由具备隔离测试 Profile 的运行环境做官网 optional 安装、真实 ChatGPT 草稿、中文 IME、原生菜单、关闭侧栏以及撤权/卸载验收。
 - 官方整包构建必须使用隔离 CI/CFT 或已协调的唯一 build writer，不覆盖本地共享 `dist/development`。如全局构建失败，记录首个实际错误及所属文件；不可将其他项目的阻断伪装成 Prompt Shortcuts 的缺陷。
+
+### 7.4 R1.5 提交与构建边界（已执行）
+
+- `d564f951def2d2ae5f13b6505d4cfb36acf5f29b`：ChatGPT 可信编辑器完整读回/原生插入确认、异步单次点击及组合输入保护，同一原子提交更新精确 Git blob 白名单、静态与动态回归测试、工具 README 和本交接文档。对应独立 Run [38742882938](https://github.com/shopable-ai/opendesk-browser/actions/runs/38742882938) **10/10 PASS**。
+- `b07b4e4a14f9570d5651e91e0c550d4ed8caa76f`：追加直接段落节点与空行保持的定向 Node 模拟回归。
+- `1bc0fabcf2e3355decedc6a8df5eea51ed292a3e`：沿用现有 `.github/workflows/prompt-shortcuts-r14.yml`，增加真实便携 JSON 包文件生成、内容合同校验及临时可下载 CI 工件。Run [38743743798](https://github.com/shopable-ai/opendesk-browser/actions/runs/38743743798)：**11/11 Node PASS、syntax PASS、portable v2 package PASS**。
+- 同一期间 production build 在 [Run 38742882742](https://github.com/shopable-ai/opendesk-browser/actions/runs/38742882742) 失败，首个明确阻断是 AdBlock 的固定审计源码 `trusted/host-controls.js` 摘要不一致。截至再次核查的 `main`，该文件实际 blob `c2d9fb892c76669b169c34de2cb4c168f91402cf`，当前白名单 `d43b940eb8e2ad78f10d4dfba606800e7b14fb58`；属于并行 AdBlock 所有权，**本轮没有修改或放宽 AdBlock 源码审批**。
+- 即使独立工具包可通过已有工具安装器导入，真正 `INSTALLED_CHROME_PASS`、`REAL_CHATGPT_PASS`、`MAC_IME_PASS` 仍需安装对应候选并实际观察操作结果；当前均为 **NOT_TESTED**。现阶段**不可**宣布产品全链路 95+。
