@@ -12,6 +12,7 @@ button{font:inherit;cursor:pointer;color:#293549;background:#fff;border:1px soli
 button:focus-visible{outline:2px solid #365eda}
 button:hover{background:#eef2ff;border-color:#365eda}
 .item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:38px;height:38px;min-height:38px;padding:3px;font-weight:650;font-size:12px;line-height:1.05}
+.round{border-radius:50%}
 .fold{display:none}
 .rail.narrow .fold{display:flex;align-items:center;justify-content:center;width:38px;height:38px;min-height:38px;background:#365eda;border-color:#365eda;color:#fff}
 .rail.narrow.folded{max-height:48px;overflow:hidden}
@@ -208,7 +209,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     rail.append(toggle);
     for(const row of items){
       const button=doc.createElement('button');button.type='button';
-      button.className='item';
+      button.className='item'+(row.shape==='round'?' round':'');
       button.setAttribute('aria-label','插入提示词：'+row.name);
       button.title=row.name; // Full multiline details appear on focus/hover.
       for(const part of model.parts(row.label)){
