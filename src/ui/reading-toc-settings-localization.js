@@ -172,6 +172,11 @@ const rows=[
     "Hide"
   ],
   [
+    "restoreVisibility",
+    "恢复显示",
+    "Restore visibility"
+  ],
+  [
     "disabledSites",
     "已停用的网站",
     "Disabled websites"

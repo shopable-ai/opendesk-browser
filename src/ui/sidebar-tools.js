@@ -780,7 +780,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(visibilitySection)visibilitySection.hidden=!isToc;
     if(pageExceptionSection)pageExceptionSection.hidden=!isToc;
     for(const [button,hidden] of [[settingsSiteVisibility,appearance.hiddenOnSite],[settingsPageVisibility,appearance.hiddenOnPage]]){
-      button.hidden=!isToc;button.textContent=isToc?tocText(hidden?'restore':'hide'):hidden?'恢复显示':'隐藏';button.setAttribute('aria-pressed',String(!hidden));
+      button.hidden=!isToc;button.textContent=isToc?tocText(hidden?'restoreVisibility':'hide'):hidden?'恢复显示':'隐藏';button.setAttribute('aria-pressed',String(!hidden));
       button.disabled=busy||sitePending||!enabled||!grant||!origin;
     }
     const origins=isToc?blockedTocOrigins(grants):capability===PROMPT_CAPABILITY?
