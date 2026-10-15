@@ -100,6 +100,7 @@
     <button class="od-button od-button--secondary" type="button" data-scenario="unknown">异常与权限</button>
     <button class="od-button od-button--secondary" type="button" data-scenario="busy">处理中</button>
     <button class="od-button od-button--secondary" type="button" data-scenario="candidate">未安装候选</button>
+    <button class="od-button od-button--secondary" type="button" data-scenario="cleanup">清理待恢复</button>
     <button class="od-button od-button--secondary" type="button" data-scenario="empty">空状态</button>
     <h2>操作提示</h2>
     <p>可点击整行、可见「打开」与行级「⋮」；默认列表仅显示安装记录，卸载后不会因搜索重新出现；须主动切换至「可安装 / 更新」才能模拟重新安装。全局菜单演示筛选、语言、导入与刷新。行级菜单支持 ↑/↓、Home/End、Escape、焦点恢复和点击外部关闭；所有更改只作用于内存示例。</p>
@@ -135,7 +136,8 @@ const initial=[
  {id:'reader',title:'网页阅读增强',kind:'page',installed:true,enabled:true,known:true,description:'适用于指定网站'},
  {id:'restricted',title:'页面内容助手',kind:'page',installed:true,enabled:true,known:true,authorization:'suspended',description:'网站访问需要恢复授权'},
  {id:'unknown',title:'同步服务',kind:'app',installed:true,enabled:null,known:false,description:'安装记录状态待核对'},
- {id:'candidate',title:'官方候选工具',kind:'app',installed:false,enabled:false,known:true,installationPolicy:'preinstalled',version:'1.0.0',description:'需审阅固定包和权限后安装'}
+ {id:'candidate',title:'官方候选工具',kind:'app',installed:false,enabled:false,known:true,installationPolicy:'preinstalled',version:'1.0.0',description:'需审阅固定包和权限后安装'},
+ {id:'cleanup',title:'清理待恢复工具',kind:'app',installed:false,enabled:false,known:true,cleanupPending:true,version:'1.0.0',description:'已从安装列表移除，原数据清理尚待恢复'}
 ];
 let items=initial.map(x=>({...x})),scenario='normal',selected=null,menuTrigger=null,menuId=null,kind='all',scope='smart';
 let settingsMode=false,confirmUninstall=false,installReview=false;
@@ -149,12 +151,13 @@ const visible=()=>items.filter(row=>{
  if(scenario==='page'&&row.kind!=='page')return false;
  if(scenario==='unknown'&&!['unknown','restricted'].includes(row.id))return false;
  if(scenario==='candidate'&&row.id!=='candidate')return false;
+ if(scenario==='cleanup'&&row.id!=='cleanup')return false;
  if(kind!=='all'&&row.kind!==kind)return false;
  if(scope==='available'?row.installed&&!row.update:!row.installed)return false;
  return [row.title,row.description,row.id].some(text=>text.toLowerCase().includes($('preview-search').value.trim().toLowerCase()));
 });
 function status(row){
- const reason=scenario==='busy'&&row.id==='notes'?'处理中':!row.installed?'可安装':!row.known?'状态待核对':!row.enabled?'已停用':row.update?'可更新':
+ const reason=scenario==='busy'&&row.id==='notes'?'处理中':row.cleanupPending?'卸载清理待恢复':!row.installed?'可安装':!row.known?'状态待核对':!row.enabled?'已停用':row.update?'可更新':
   row.authorization==='suspended'?'网站访问受限':'';
  return reason?reason+' · '+row.description:row.description;
 }
@@ -222,7 +225,11 @@ function render(){
    copy.append(el('strong','',detail.title),el('span','ec-type',label(detail)));header.append(glyph,copy);
    root.append(header,el('p','',status(detail)));
    const actions=el('div','ec-detail-actions');
-   if(!detail.installed){
+   if(!detail.installed&&detail.cleanupPending){
+    actions.append(btn('恢复卸载清理（模拟）',()=>{detail.cleanupPending=false;render();
+      say('模拟卸载清理完成，仍然不会自动重新安装此工具。');},'od-button od-button--secondary'));
+   }
+   if(!detail.installed&&!detail.cleanupPending){
     if(!installReview)actions.append(btn('审阅并安装（模拟）',()=>{installReview=true;render();},'od-button od-button--secondary'));
     else{
       actions.append(el('p','','模拟审阅：真实安装需要核对 SHA-256、权限和固定 JSON。'));
@@ -306,7 +313,7 @@ document.querySelectorAll('[data-scenario]').forEach(b=>b.addEventListener('clic
  scenario=b.dataset.scenario==='cookie'?'normal':b.dataset.scenario;
  selected=b.dataset.scenario==='cookie'?'cookie-editor':null;
  settingsMode=b.dataset.scenario==='cookie';confirmUninstall=false;installReview=false;
- kind='all';scope=b.dataset.scenario==='candidate'?'available':'smart';
+ kind='all';scope=['candidate','cleanup'].includes(b.dataset.scenario)?'available':'smart';
  $('preview-search').value='';render();
 }));
 document.addEventListener('click',e=>{if(!menu.hidden&&!menu.contains(e.target)&&!menuTrigger?.contains(e.target))closeMenu(false);
