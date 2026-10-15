@@ -9,7 +9,7 @@
     "examples/sidebar-tools/quick-notes/src/main.js": "4bb061a4b40d8204823939efc967081260426c95",
     "examples/sidebar-tools/quick-notes/src/style.css": "f37e4c11f2717c716525d5631602fbaf278b5f79",
     "examples/sidebar-tools/quick-notes/assets/mark.png": "a8920cb7fdbb3fc95d4e4323dc83ba6fa4a19b1e",
-    "scripts/build-sidebar-tool.mjs": "03cd7a99c25de6cba5e97e3e2446b5d685490e96",
+    "scripts/build-sidebar-tool.mjs": "9c7997a770e22e380e7e9e7402419c7c581fac5a",
     "scripts/preview/shared-tool-design.mjs": "d5f8fba474ff934298c6b897db45c2c3fff82981",
     "scripts/preview/sidebar-shell-source.mjs": "f20eb823f253495c185d0d12454f94f97ad054e6",
     "scripts/templates/sidebar-tool-preview-shell.html": "66c7447537a759fe867f5f8d14725b7234f8f9b7",
