@@ -57,7 +57,7 @@ test('R4.7 installed Page still uses user gesture, grants, manifest and generati
     readFile('src/ui/extension-center.js','utf8'),
     readFile('src/ui/installed-page-tools.js','utf8')
   ]);
-  assert.match(center,/if\(!event\.isTrusted\|\|busy\|\|row\.kind!=='page'\)return/);
+  assert.match(center,/if\(!event\.isTrusted\|\|busy\|\|pendingKey\|\|row\.kind!=='page'\)return/);
   assert.match(center,/if\(find\(row\.key\)\?\.record!==row\.record\)/);
   assert.match(center,/setInstalledPageProgramEnabled\(\{api,client,row:row\.record\}\)/);
   assert.match(page,/await requireChromePermissions\(\{api,request:\{origins:installed\.pageRules\.matches\}\}\)/);

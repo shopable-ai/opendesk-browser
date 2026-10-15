@@ -13,7 +13,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   const more=get('extension-center-more'),menu=get('extension-center-menu');
   const notice=get('extension-center-status'),workspace=get('workspace-content');
   if(!list)return {refresh:async()=>{},dispose(){}};
-  let disposed=false,sequence=0,busy=false,installed=[],pages=[],enabled={},official=[];
+  let disposed=false,sequence=0,busy=false,pendingKey=null,installed=[],pages=[],enabled={},official=[];
   let appStatusKnown=false,pageStatusKnown=false;
   let sources={};
   let catalogError='',dataError='',query='',kind='all',scope='smart',selectedKey=null;
@@ -56,7 +56,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     }
   }
   function showRowMenu(key,trigger){
-    if(busy||disposed)return;
+    if(busy||pendingKey||disposed)return;
     if(!rowMenu.hidden&&rowMenuKey===key){closeRowMenu(true);return;}
     const row=find(key);if(!row?.installed)return;
     closeRowMenu();closeMenu();
@@ -74,10 +74,22 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     if(row.kind==='app'){
       if(row.stateKnown!==false&&typeof sidebarTools.toggleEnabled==='function')
         add(row.enabled?'停用应用':'启用应用',event=>{
-          void Promise.resolve(sidebarTools.toggleEnabled(row.id,event))
-            .then(changed=>{if(changed===true){message('已确认应用启停状态。','success');
-              void refresh().then(()=>restoreRowFocus(row.key,'more'));}})
-            .catch(error=>message((error?.code||'E_TOOL')+'：'+String(error?.message||error),'error'));
+          if(pendingKey)return;
+          // Dispatch under the originating trusted click, before any Promise
+          // or await; the original Sidebar Host keeps package/epoch/draft authority.
+          let result;
+          try{result=sidebarTools.toggleEnabled(row.id,event);}
+          catch(error){message((error?.code||'E_TOOL')+'：'+String(error?.message||error),'error');return;}
+          pendingKey=row.key;draw();
+          void Promise.resolve(result)
+            .then(changed=>{if(changed===true)message('已确认应用启停状态。','success');})
+            .catch(error=>message((error?.code||'E_TOOL')+'：'+String(error?.message||error),'error'))
+            .finally(async()=>{
+              pendingKey=null;
+              if(disposed)return;
+              await refresh();
+              if(!selectedKey)restoreRowFocus(row.key,'more');
+            });
         },'toggle');
       add('设置、权限与卸载…',()=>{backIfNeeded();sidebarTools.openSettings(row.id);},'settings');
       if(row.update&&row.release)add('审阅新版…',()=>openReview(row.key),'update');
@@ -99,7 +111,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     rowMenu.querySelector('button')?.focus({preventScroll:true});
   }
   function rowDescription(row){
-    const reason=!row.installed?'尚未安装':row.stateKnown===false?'状态待核对':
+    const reason=pendingKey===row.key?'处理中':!row.installed?'尚未安装':row.stateKnown===false?'状态待核对':
       row.enabled===false?'已停用':
       row.kind==='page'&&row.record?.installed?.authorization?.status==='suspended'?'网站访问受限':
       row.kind==='page'&&row.record?.installed?.nativeState&&
@@ -118,11 +130,12 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       const item=node('li','ec-row');item.dataset.extensionId=row.key;
       const primaryAction=resolveExtensionPrimaryAction(row);
       if(primaryAction)item.classList.add('ec-row--has-primary');
-      if(busy)item.setAttribute('aria-busy','true');
+      const rowBusy=busy||pendingKey===row.key;
+      if(rowBusy)item.setAttribute('aria-busy','true');
       // The full row and explicit primary button share one handler.
       const main=button('',()=>openRow(row.key),'ec-row-main');
       main.dataset.extensionKey=row.key;main.dataset.extensionAction='main';
-      main.disabled=busy;
+      main.disabled=rowBusy;
       main.setAttribute('aria-label',(primaryAction?.label||'查看详情')+'「'+titleOf(row)+'」');
       main.title=main.getAttribute('aria-label');
       const glyph=node('span','ec-glyph');glyph.setAttribute('aria-hidden','true');
@@ -142,7 +155,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
           'ec-action od-button od-button--secondary');
         primary.dataset.extensionKey=row.key;primary.dataset.extensionAction='primary';
         primary.setAttribute('aria-label',primaryAction.label+'「'+titleOf(row)+'」');
-        primary.title=primary.getAttribute('aria-label');primary.disabled=busy;
+        primary.title=primary.getAttribute('aria-label');primary.disabled=rowBusy;
         actions.append(primary);
       }
       if(row.installed){
@@ -152,7 +165,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         manage.setAttribute('aria-label','管理「'+titleOf(row)+'」');
         manage.setAttribute('aria-haspopup','menu');manage.setAttribute('aria-expanded','false');
         manage.setAttribute('aria-controls',rowMenu.id);
-        manage.title=manage.getAttribute('aria-label');manage.disabled=busy;
+        manage.title=manage.getAttribute('aria-label');manage.disabled=rowBusy;
         actions.append(manage);
       }
       if(!actions.childElementCount)item.classList.add('ec-row--no-actions');
@@ -180,7 +193,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   }
   // An installed, enabled, verified app may open; all other rows lead to details.
   function openRow(key){
-    const row=find(key);if(!row||busy)return;
+    const row=find(key);if(!row||busy||pendingKey)return;
     if(resolveExtensionRowIntent(row)==='detail'){openDetail(key);return;}
     if(resolveExtensionPrimaryAction(row)?.id==='open')sidebarTools.openTool(row.id);
   }
@@ -255,20 +268,20 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     if(focused&&!busy)area.querySelector('[data-ec-detail-action="'+focused+'"]')?.focus({preventScroll:true});
   }
   async function togglePage(row,event){
-    if(!event.isTrusted||busy||row.kind!=='page')return;
+    if(!event.isTrusted||busy||pendingKey||row.kind!=='page')return;
     if(row.stateKnown===false)return;
     if(find(row.key)?.record!==row.record){
       message('网页增强状态已变化，请刷新后重试。','error');void refresh();return;
     }
     const inDetail=selectedKey===row.key;
     detailFocusAction=inDetail?'toggle':null;
-    busy=true;draw();if(inDetail)renderDetail();
+    busy=true;pendingKey=row.key;draw();if(inDetail)renderDetail();
     try{
       await setInstalledPageProgramEnabled({api,client,row:row.record});
       message('已按原 Page 授权服务确认自动运行状态。','success');
       await refresh();
     }catch(error){message((error.code||'E_PAGE_INSTALLATION')+'：'+String(error.message||error),'error');}
-    finally{busy=false;if(!disposed){draw();if(selectedKey)renderDetail();
+    finally{busy=false;pendingKey=null;if(!disposed){draw();if(selectedKey)renderDetail();
       else restoreRowFocus(row.key,'more');}}
   }
   async function refresh(){
