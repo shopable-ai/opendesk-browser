@@ -12,7 +12,7 @@ const LIMITS = Object.freeze({title:80,description:300,html:64000,css:120000,js:
 const CAPABILITIES = Object.freeze(['storage.local','currentPage.read','tasks.open','page.toc','page.clip','user.export','page.capture','knowledge.store','time.review','focus.control','ai.access','adblock.control']);
 const V2_CAPABILITIES = Object.freeze([...new Set([...CAPABILITIES,'page.prompts','browser.contextMenu','browser.tabs','browser.sidePanel','network',
   'browser.network.observe','browser.events','browser.operations','browser.screenshot','browser.bookmarks','browser.bookmarks.full','browser.scheduler',
-  'browser.cookies.read','browser.cookies.values','browser.cookies.write','browser.cookies.observe','browser.cookies.clear','browser.storage',
+  'browser.cookies.read','browser.cookies.values','browser.cookies.write','browser.cookies.observe','browser.cookies.clear','browser.storage','browser.proxy.managed',
   ...APPROVED_BROWSER_DIRECT_BINDINGS.flatMap(row=>row.requiredCapabilities)])]);
 const PACKAGE_FIELDS=Object.freeze(['format','id','version','title','description','capabilities','html','css','js']);
 const V2_FIELDS=Object.freeze([...PACKAGE_FIELDS,'requires','contributes','scripts']);
