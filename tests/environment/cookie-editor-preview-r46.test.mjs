@@ -9,7 +9,9 @@ async function harness(){
   const script=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
   assert.ok(script,'self-contained script required');
   assert.doesNotThrow(()=>new Script(script));
-  const handlers=new Map(),downloads=[];
+  const handlers=new Map(),downloads=[],exportBlobs=[],copiedTexts=[];
+  let clipboardError=null;
+  const navigator={clipboard:{writeText(text){if(clipboardError)return Promise.reject(new Error(clipboardError));copiedTexts.push(text);return Promise.resolve();}}};
   const root={addEventListener(k,v){handlers.set(k,v)},contains(){return true},querySelectorAll(){return []}};
   const panel={classList:{toggle(){}},querySelector(k){return k==='.toast'?null:{innerHTML:''}},insertAdjacentHTML(){}};
   const scroll={scrollTop:0},content={innerHTML:'',querySelector(){return {focus(){},setSelectionRange(){}}}};
@@ -20,13 +22,16 @@ async function harness(){
   const probe="globalThis.__qa={state:()=>S,dirty:hasChanges,previewImport};setScene('ready');";
   const injected=script.replace("setScene('ready');",probe);
   assert.notEqual(injected,script,'instrumentation marker missing');
-  const context={document,Blob,URL:{createObjectURL(){return 'blob:fictional'},revokeObjectURL(){}}};
+  const context={document,Blob,URL:{createObjectURL(blob){exportBlobs.push(blob);return 'blob:fictional'},revokeObjectURL(){}},navigator};
   new Script(injected).runInNewContext(context);
   const emit=(kind,dataset,value,type)=>handlers.get(kind)?.({target:kind==='click'?{
     closest(selector){return ['action','scene','lab'].some(k=>Object.hasOwn(dataset,k)&&selector.includes('[data-'+k+']'))?{dataset}:null}}:{dataset,value,type,checked:!!value}});
   return {
     state:context.__qa.state,dirty:context.__qa.dirty,
-    previewImport:context.__qa.previewImport,downloads,html,
+    previewImport:context.__qa.previewImport,downloads,exportBlobs,copiedTexts,html,
+    rejectClipboard(message){clipboardError=message},
+    disableClipboard(){navigator.clipboard=null},
+    async flushClipboard(){await new Promise(resolve=>setImmediate(resolve))},
     action(a,opts={}){emit('click',{action:a,...opts})},
     scene(scene){emit('click',{scene})},
     lab(lab){emit('click',{lab})},
@@ -127,4 +132,70 @@ test('partitioned Cookie identity is not silently overwritten by an unpartitione
   h.action('import');
   h.state().ioText=JSON.stringify([{name:'p',domain:'example.com',path:'/',value:'x',partitioned:true}]);
   h.previewImport();assert.match(h.state().ioError,/分区 Cookie/);
+});
+
+test('R4.7 export actions use production labels and share identical redacted JSON output',async()=>{
+  const h=await harness();
+  assert.match(h.html,/data-action="copyExport"[^>]*>复制到剪贴板<\/button>/);
+  assert.match(h.html,/data-action="runExport"[^>]*>导出文件<\/button>/);
+  assert.doesNotMatch(h.html,/导出模拟文件/);
+  h.action('export');h.action('copyExport');await h.flushClipboard();
+  assert.equal(h.copiedTexts.length,1);assert.equal(h.downloads.length,0);
+  const values=JSON.parse(h.copiedTexts[0]);
+  assert.ok(values.every(c=>!('value' in c)&&c.valueRedacted===true));
+  h.action('runExport');
+  assert.equal(h.downloads.length,1);
+  assert.equal(await h.exportBlobs[0].text(),h.copiedTexts[0]);
+});
+test('R4.7 copying sensitive values requires scoped grant then explicit final confirmation',async()=>{
+  const h=await harness();
+  h.action('export');h.change('exportValues',true);h.action('copyExport');
+  assert.equal(h.state().ioConfirm,'values');assert.equal(h.copiedTexts.length,0);
+  h.action('allowExportValues');
+  assert.equal(h.state().exportMethod,'copy');
+  assert.equal(h.state().ioConfirm,'export');
+  assert.equal(h.copiedTexts.length,0);
+  h.action('confirmExport');await h.flushClipboard();
+  assert.equal(h.copiedTexts.length,1);
+  assert.match(h.copiedTexts[0],/fictional-session-4cd7/);
+  assert.equal(h.downloads.length,0);
+  h.action('runExport');
+  assert.equal(h.state().ioConfirm,'export','a new sensitive export needs a new confirmation');
+  h.action('cancelIOConfirm');assert.equal(h.downloads.length,0);
+});
+test('R4.7 clipboard failure preserves export panel and allows retry or file download',async()=>{
+  const h=await harness();
+  h.action('export');h.rejectClipboard('permission denied');h.action('copyExport');
+  await h.flushClipboard();
+  assert.match(h.state().ioError,/复制失败/);
+  assert.equal(h.state().io,'export');
+  assert.equal(h.state().exportBusy,false);
+  assert.equal(h.copiedTexts.length,0);assert.equal(h.downloads.length,0);
+  h.rejectClipboard(null);h.action('copyExport');await h.flushClipboard();
+  assert.equal(h.copiedTexts.length,1);assert.equal(h.state().ioError,'');
+  h.action('runExport');assert.equal(h.downloads.length,1);
+});
+test('R4.7 unavailable clipboard reports failure instead of pretending it copied',async()=>{
+  const h=await harness();
+  h.action('export');h.disableClipboard();h.action('copyExport');
+  await h.flushClipboard();
+  assert.match(h.state().ioError,/无法访问剪贴板/);
+  assert.equal(h.copiedTexts.length,0);assert.equal(h.downloads.length,0);
+  h.action('runExport');assert.equal(h.downloads.length,1);
+});
+test('R4.7 non-JSON formats keep value and partition restrictions for both export paths',async()=>{
+  const h=await harness();
+  h.action('export');h.change('exportFormat','header');h.action('copyExport');
+  assert.match(h.state().ioError,/必须包含 Cookie 值/);
+  assert.equal(h.copiedTexts.length,0);
+  h.change('exportValues',true);h.action('copyExport');
+  assert.equal(h.state().ioConfirm,'values');
+  h.action('allowExportValues');assert.equal(h.state().ioConfirm,'export');
+  h.action('confirmExport');await h.flushClipboard();
+  assert.equal(h.copiedTexts.length,1);
+  assert.match(h.copiedTexts[0],/session_id=fictional-session-4cd7/);
+  h.change('exportFormat','netscape');h.action('copyExport');
+  assert.match(h.state().ioError,/Netscape 不支持分区 Cookie/);
+  assert.equal(h.state().ioConfirm,null);
+  assert.equal(h.copiedTexts.length,1);
 });
