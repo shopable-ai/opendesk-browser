@@ -534,4 +534,37 @@ if(!vm.SourceTextModule) {
     assert.equal(refused[0].error.code,'E_WORKFLOW_HASH');
     assert.equal(starts.length,2,'corrupt journal bytes must not reach RunHost');
   });
+
+  test('component: saved Run refuses revoked permission or replaced Document during journal read',async t=>{
+    for(const mutation of ['permission','document'])await t.test(mutation,async t=>{
+      const hash='a'.repeat(64);
+      const frozen=contract.emptyWorkflow('https://a.example','12345678-1234-1234-1234-123456789abc');
+      frozen.steps=[{stepId:'keyword',op:'fill',locatorKind:'css',
+        selector:'#keyword',text:'OpenDesk'}];
+      const savedRecord={format:'opendesk.workflow-revision.v1',workflow:frozen,
+        revision:3,sourceHash:hash,savedAt:Date.now(),verificationMode:'fill-readback'};
+      let fixture,reads=0,starts=0;
+      const f=await make(t,{savedRecord,configureHost:host=>{
+        host.controller={getControllerScript:async()=>{
+          reads++;
+          if(reads===2) {
+            if(mutation==='permission')fixture.permissions.delete('https://a.example/*');
+            else await fixture.setPage({documentId:'doc-replaced'});
+          }
+          return {revision:3,contentHash:hash,sourceUtf8:'component fixture'};
+        }};
+        host.start=async()=>{starts++;throw new Error('stale run must not be admitted');};
+      }});
+      fixture=f;f.get('workflow-saved-list').value=f.savedKey;
+      await f.click(f.get('workflow-load'));await tick();await tick();
+      assert.match(f.get('workflow-status').textContent,/冻结版本 r3/);
+      f.get('workflow-confirm-run').checked=true;
+      const response=await f.get('workflow-run').fire('click');
+      assert.equal(reads,2);
+      assert.equal(response[0]?.ok,false);
+      assert.equal(response[0]?.error?.code,mutation==='permission'?'E_PERMISSION':'E_DOCUMENT_STALE');
+      assert.equal(starts,0,'no RunHost admission after an invalidated grant or Document');
+    });
+  });
+
 }

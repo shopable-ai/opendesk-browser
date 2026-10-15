@@ -531,6 +531,15 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       const source=saved?
         {kind:'saved',scriptId:freeze.workflow.workflowId,revision:revision.revision,contentHash:revision.sourceHash}:
         {kind:'draft',sourceUtf8:freeze.sourceUtf8};
+      // Reading the frozen Controller is asynchronous: website permission,
+      // Document and even this AI turn can change after the first gate.
+      // Do not submit a stale run to RunHost (which still owns admission).
+      if(disposed||prepared?.signal?.aborted)throw err('E_CANCELLED','本次运行已停止，未启动');
+      if(!await api.permissions.contains({origins:[permissionPattern(captured.url)]}))
+        throw err('E_PERMISSION','启动前网站权限已撤销；未执行');
+      await currentPageTarget.revalidate(captured);
+      prepared?.assertCurrent?.();
+      if(disposed||prepared?.signal?.aborted)throw err('E_CANCELLED','本次运行已停止，未启动');
       const claim=await host.start({source,params,
         target:{mode:'borrowed',tabId:captured.tabId,frameId:0,documentId:captured.documentId,
           expectedUrl:captured.url,expectedWindowId:captured.windowId},deadlineAt:Date.now()+30000});
