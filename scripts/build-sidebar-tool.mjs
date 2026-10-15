@@ -2,7 +2,8 @@
 // React/Vue/Tailwind may be compiled BEFORE packing; no npm or remote code runs in Chrome.
 import {readFile,writeFile,mkdir,realpath,stat,lstat} from 'node:fs/promises';
 import {resolve,dirname,join,extname,basename} from 'node:path';
-import {pathToFileURL} from 'node:url';
+import {pathToFileURL,fileURLToPath} from 'node:url';
+import {BUILTIN_CATALOG} from '../src/libs/catalog.js';
 import {createHash} from 'node:crypto';
 import {validateSidebarToolPackage,SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_FORMAT_V2,serializeSidebarToolPackage} from '../src/ui/sidebar-tools/package.js';
 const fail=(message)=>{throw new Error('E_TOOL_BUILD: '+message);};
@@ -46,6 +47,20 @@ export async function createSidebarToolPackage(projectPath) {
       new Set(libraries).size!==libraries.length||libraries.includes(meta.files.js))
     fail('fixed dependency paths must be unique, ordered, and limited to eight Classic files');
   const scripts=await Promise.all(libraries.map(async name=>{
+    // A single explicit fixed asset alias is resolved through the existing
+    // Catalog at build time. The installed sandbox still validates its SHA.
+    if(name==='@opendesk-lib/papa-parse'){
+      const row=BUILTIN_CATALOG.libraries.papaParse;
+      if(row?.origin!=='vendor'||!row.source||!row.sha256||!row.bytes||!row.output)
+        fail('Pinned Papa Parse catalog identity unavailable');
+      const path=resolve(dirname(fileURLToPath(import.meta.url)),'..',row.source);
+      const bytes=await readFile(path);
+      const sha256=createHash('sha256').update(bytes).digest('hex');
+      if(bytes.byteLength!==row.bytes||sha256!==row.sha256)
+        fail('Pinned Papa Parse bytes differ from the catalog');
+      const code=new TextDecoder('utf-8',{fatal:true}).decode(bytes);
+      return {name:row.output,sha256,code};
+    }
     const code=await source(root,name,96000);
     const sha256=createHash('sha256').update(Buffer.from(code,'utf8')).digest('hex');
     return {name,sha256,code};

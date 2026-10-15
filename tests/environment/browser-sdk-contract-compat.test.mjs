@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {BROWSER_OPERATIONS,browserCapabilityList,normalizeBrowserOperation} from '../../src/framework/sdk/browser-contract.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
-import {operationSchemas} from '../../src/framework/sdk/browser-schemas.js';
+import {operationSchemas,browserTextDownloadUrl} from '../../src/framework/sdk/browser-schemas.js';
 const isCode=expected=>e=>e?.code===expected;
 test('R9 Browser SDK exposes only real implemented operations and typed metadata',()=>{
   const rows=Object.values(BROWSER_OPERATIONS);
@@ -107,4 +107,26 @@ test('resource export schemas never advertise Chrome-global download IDs',()=>{
   assert.equal(result.required.includes('downloadId'),false,operation);
   assert.equal(result.additionalProperties,false,operation);
  }
+});
+
+test('CSV text export keeps the existing Browser SDK Host gesture, filename and MIME contract',async()=>{
+  const seen=[],sdk=createBrowserSdk({request:async(operation,args)=>{
+    seen.push([operation,args]);return {started:true};
+  }});
+  const csv='\uFEFFname,sku\r\n"苹果, Pro",0000123456789012345\r\n';
+  assert.deepEqual(await sdk.downloads.text({filename:'products.csv',text:csv}),{started:true});
+  assert.deepEqual(seen.map(row=>row[0]),['browser.downloads.text']);
+  assert.equal(BROWSER_OPERATIONS['browser.downloads.text'].requiresUserGesture,true);
+  assert.deepEqual(BROWSER_OPERATIONS['browser.downloads.text'].requiredCapabilities,['user.export']);
+  const url=browserTextDownloadUrl({text:csv,filename:'products.csv'});
+  assert(url.startsWith('data:text/csv;charset=utf-8,'));
+  assert.equal(decodeURIComponent(url.slice(url.indexOf(',')+1)),csv);
+  for(const invalid of ['../products.csv','a\\b.csv','bad.exe','evil.csv/next','bad\u0000.csv','data.csv.exe']){
+    assert.throws(()=>sdk.downloads.text({text:'x',filename:invalid}),isCode('E_SCHEMA'),invalid);
+    assert.throws(()=>browserTextDownloadUrl({text:'x',filename:invalid}),isCode('E_SCHEMA'),invalid);
+  }
+  assert.throws(()=>browserTextDownloadUrl({text:'中'.repeat(50001),filename:'products.csv'}),isCode('E_LIMIT'));
+  for(const [filename,mime] of [['note.md','text/markdown'],['note.txt','text/plain'],['data.json','application/json']])
+    assert(browserTextDownloadUrl({text:'x',filename}).startsWith('data:'+mime+';charset=utf-8,'));
+  assert.equal(Object.hasOwn(operationSchemas('browser.downloads.text').output.properties,'downloadId'),false);
 });

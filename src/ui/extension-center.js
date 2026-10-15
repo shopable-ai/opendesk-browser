@@ -49,7 +49,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     for(const row of rows){
       const item=node('li','ec-row');item.dataset.extensionId=row.key;
       const intent=resolveExtensionRowIntent(row);
-      // Native button covers icon, title, description and the full left-hand blank area.
+      // The main button covers the full row; floating sibling actions stay independent.
       const main=button('',()=>openRow(row.key),'ec-row-main');
       main.dataset.extensionKey=row.key;main.dataset.extensionAction='main';
       main.setAttribute('aria-label',
@@ -66,17 +66,21 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       const description=node('span','ec-description',row.installed?
         (row.enabled?row.description:'已停用 · '+row.description):row.description);
       line.append(name,type);copy.append(line,description);
+      description.title=description.textContent;
       main.append(glyph,copy);
       const actionName=!row.installed?'安装':row.kind==='page'?'管理':
         !row.enabled?'设置':'打开';
-      const primary=button(actionName,()=>primaryAction(row.key),'ec-action');
+      const primary=button(actionName,()=>primaryAction(row.key),'ec-action od-button od-button--secondary');
       primary.dataset.extensionKey=row.key;primary.dataset.extensionAction='primary';
       primary.setAttribute('aria-label',actionName+'「'+titleOf(row)+'」');
-      const manage=button('⋮',()=>openDetail(row.key),'ec-row-more');
+      primary.title=primary.getAttribute('aria-label');
+      const manage=button('⋮',()=>openDetail(row.key),'ec-row-more od-icon-button');
       manage.dataset.extensionKey=row.key;manage.dataset.extensionAction='more';
       manage.setAttribute('aria-label','查看「'+titleOf(row)+'」详情与管理');
       manage.title=manage.getAttribute('aria-label');
-      item.append(main,primary,manage);list.append(item);
+      const actions=node('span','ec-row-actions');
+      actions.append(primary,manage);
+      item.append(main,actions);list.append(item);
     }
     get('extension-center-empty').hidden=rows.length>0;
     get('extension-center-empty-text').textContent=dataError?

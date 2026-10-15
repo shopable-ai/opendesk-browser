@@ -267,8 +267,18 @@ export function validateExportArguments(operation,value){
     throw fail('E_LIMIT','Export text must be 1–150000 UTF-8 bytes');
   if(operation==='browser.downloads.text'){
     if(typeof value.filename!=='string'||value.filename.length>90||
-       !/^[^/\\\x00-\x1f:?*"<>|]+\.(?:md|txt|json)$/i.test(value.filename)||value.filename.startsWith('.'))
-      throw fail('E_SCHEMA','Expected a safe Markdown, TXT or JSON filename');
+       !/^[^/\\\x00-\x1f:?*"<>|]+\.(?:md|txt|json|csv)$/i.test(value.filename)||value.filename.startsWith('.'))
+      throw fail('E_SCHEMA','Expected a safe Markdown, TXT, JSON or CSV filename');
   }
   return value;
+}
+
+// Existing Browser SDK text export, not general Blob/URL download authority.
+// Revalidate the entire payload after the Host's one-shot user approval.
+export function browserTextDownloadUrl(input) {
+  validateExportArguments('browser.downloads.text', input);
+  const mime=/\.csv$/i.test(input.filename)?'text/csv':
+    /\.json$/i.test(input.filename)?'application/json':
+    /\.txt$/i.test(input.filename)?'text/plain':'text/markdown';
+  return 'data:'+mime+';charset=utf-8,'+encodeURIComponent(input.text);
 }

@@ -1,0 +1,24 @@
+{
+  "format": "opendesk.sidebar-tool.v2",
+  "id": "papaparse-csv-export",
+  "version": "1.0.0",
+  "title": "Papa Parse CSV 导出",
+  "description": "独立工具使用固定 Papa Parse 生成 CSV，再由可信 Browser SDK 下载。",
+  "capabilities": [
+    "user.export"
+  ],
+  "files": {
+    "html": "src/index.html",
+    "css": "src/style.css",
+    "js": "src/main.js",
+    "dependencies": [
+      "@opendesk-lib/papa-parse"
+    ]
+  },
+  "requires": {
+    "browserSdk": "1.0.0"
+  },
+  "contributes": {
+    "contextMenus": []
+  }
+}

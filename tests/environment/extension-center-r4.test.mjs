@@ -69,8 +69,8 @@ test('R4 source retains one trusted installer, one combined list and high-zoom r
   assert.match(center,/detailFocusAction='toggle'/,'Page switch can restore focus after async authority update');
   assert.match(css,/@media\(max-width:240px\)/,'200 percent zoom retains wrapped controls');
   assert.match(css,/\.ec-name-line\{flex-wrap:wrap/);
-  assert.match(css,/\.ec-row\{grid-template-columns:26px minmax\(0,1fr\) 34px/,
-    'narrow wrapped index preserves the shared 34px action column');
+  assert.match(css,/@media\(max-width:240px\)\{[\s\S]*?\.ec-row-actions\{top:auto;right:6px;bottom:6px;transform:none\}/,
+    'narrow index moves floating actions below the copy instead of reserving a column');
 });
 
 test('R4 webpage enable path delegates to original user-gesture permission and installed Page authority',async()=>{
