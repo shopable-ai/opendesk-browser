@@ -11,6 +11,7 @@ import {TIME_REVIEW_KEY} from '../../time-review/model.js';
 import {stopStayFocusForTool,cleanupUninstalledStayFocus} from '../../stay-focus/lifecycle.js';
 import {stopAdblockForTool,cleanupUninstalledAdblock} from '../../../examples/sidebar-tools/adblock/trusted/lifecycle.js';
 import {stopAiAccessForTool,cleanupUninstalledAiAccess} from '../../ai-smart-access/lifecycle.js';
+import {stopManagedProxyForTool} from '../../platform/chrome/browser-managed-proxy.js';
 
 export const MARKET_PROVENANCE_STORE='opendesk.market.provenance.v1';
 export const MARKET_OPERATIONS_STORE='opendesk.market.operations.v1';
@@ -95,6 +96,7 @@ export async function setInstalledSidebarToolEnabled({api,lockManager,tool,enabl
         await stopStayFocusForTool(api,tool.id);
         await stopAdblockForTool(api,tool.id);
         await stopAiAccessForTool(api,tool.id);
+        await stopManagedProxyForTool(api,tool.id);
       }
       await writeVerifiedLocalValue(api,TOOL_REVOCATION_EPOCHS_STORE,
         {...epochs,[tool.id]:nextEpoch},rawEpochs,'工具实例撤销');
@@ -173,6 +175,7 @@ export async function cleanupUninstalledToolLocked(api,id){
     await cleanupUninstalledStayFocus(api,id,removeVerifiedKey);
     await cleanupUninstalledAdblock(api,id,removeVerifiedKey);
     await cleanupUninstalledAiAccess(api,id,removeVerifiedKey);
+    await stopManagedProxyForTool(api,id,{removeVerifiedKey});
     for(const store of [SIDEBAR_TOOL_ENABLE_STORE,READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,READING_TOC_PAGE_RULES_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE,PROMPT_SHORTCUTS_SITE_CLEANUP_STORE,MARKET_PROVENANCE_STORE,BROWSER_MENU_GRANTS_STORE]){
       const raw=(await api.storage.local.get(store))[store];
       const original=store===SIDEBAR_TOOL_ENABLE_STORE?requireToolEnableRecords(raw):(raw||{});
