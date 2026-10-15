@@ -22,6 +22,7 @@ const USER_GESTURE_OPERATIONS=new Set([
   'browser.bookmarks.create','browser.bookmarks.update','browser.bookmarks.move','browser.bookmarks.remove','browser.bookmarks.removeTree','browser.storage.local.clear','browser.scheduler.create',
   'browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.reloadOwned','browser.tabs.navigateOwned','browser.tabs.removeOwned','browser.sidePanel.openSelf','browser.network.request','browser.network.observe.start',
   'browser.network.observe.export','browser.screenshot.captureVisible',
+  'browser.proxy.managed.requestEnable','browser.proxy.managed.requestDisable',
   'browser.cookies.set','browser.cookies.remove','browser.cookies.clearSite','browser.cookies.observe.start'
 ]);
 function entry(operation,capability,contexts,chromePermissions,effect,risk,siteScope='none',state='IMPLEMENTED',lifecycle='request'){
@@ -82,6 +83,9 @@ const MANUAL_BROWSER_OPERATIONS=Object.freeze({
   'browser.tabs.navigateOwned':entry('browser.tabs.navigateOwned','browser.tabs',tool,['tabs','webNavigation'],'write','high','same-origin-owned-tab','IMPLEMENTED'),
   'browser.tabs.removeOwned':entry('browser.tabs.removeOwned','browser.tabs',tool,['tabs','webNavigation'],'write','high','tab-ref','IMPLEMENTED'),
   'browser.sidePanel.openSelf':entry('browser.sidePanel.openSelf','browser.sidePanel',tool,['sidePanel'],'write','medium','user-gesture','IMPLEMENTED'),
+  'browser.proxy.managed.getStatus':entry('browser.proxy.managed.getStatus','browser.proxy.managed',tool,['proxy'],'read','high','browser-wide-exclusive','IMPLEMENTED','durable-proxy-owner'),
+  'browser.proxy.managed.requestEnable':entry('browser.proxy.managed.requestEnable','browser.proxy.managed',tool,['proxy'],'write','critical','browser-wide-exclusive','IMPLEMENTED','durable-proxy-owner'),
+  'browser.proxy.managed.requestDisable':entry('browser.proxy.managed.requestDisable','browser.proxy.managed',tool,['proxy'],'write','critical','browser-wide-exclusive','IMPLEMENTED','durable-proxy-owner'),
   'browser.network.request':entry('browser.network.request','network',tool,[],'write','high','target-origin','IMPLEMENTED'),
   'browser.network.observe.start':entry('browser.network.observe.start','browser.network.observe',tool,['tabs','webNavigation','webRequest'],'read','high','approved-tab','IMPLEMENTED','bounded-session'),
   'browser.network.observe.getStatus':entry('browser.network.observe.getStatus','browser.network.observe',tool,['webRequest'],'read','medium','approved-tab','IMPLEMENTED','bounded-session'),
@@ -335,6 +339,22 @@ export function normalizeBrowserOperation(operation,args={}){
       return {tabRef:args.tabRef,pinned:args.pinned};
     case 'browser.tabs.listOwned':fields(args,[]);break;
     case 'browser.sidePanel.openSelf':fields(args,[]);break;
+    case 'browser.proxy.managed.getStatus':
+    case 'browser.proxy.managed.requestDisable':
+      fields(args,[]);return {};
+    case 'browser.proxy.managed.requestEnable':{
+      const checked=normalizeDirectBrowserArguments(operation,args);
+      const safeHost=value=>typeof value==='string'&&value.length<=253&&
+        value===value.toLowerCase()&&!value.endsWith('.')&&value.includes('.')&&
+        !/^(?:localhost|.*\.localhost|.*\.local|.*\.internal)$/.test(value)&&
+        !/^[0-9.]+$/.test(value)&&!value.includes(':')&&
+        value.split('.').every(label=>label.length>0&&label.length<=63&&
+          /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(label));
+      if(!safeHost(checked.config.endpoint.host)||
+         checked.config.domains.some(domain=>!safeHost(domain)))
+        throw fail('E_PROXY_CONFIG','Only public ASCII proxy and target hostnames allowed');
+      return checked;
+    }
     case 'browser.network.request': {
       fields(args,['method','url','data','config'],['method','url']);
       if(!['GET','POST','PUT','DELETE'].includes(args.method))throw fail('E_SCHEMA','Unsupported HTTP method');
