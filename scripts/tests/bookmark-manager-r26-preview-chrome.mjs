@@ -151,6 +151,12 @@ async function exercise(mode){
   q('bm-list').querySelector('.bm-entry').click();
   await wait(()=>!q('bm-draft-guard').hidden,'protect dirty switch');
   check(q('bm-name').value==='未保存且必须保护的草稿','dirty input survives switch attempt');
+  q('bm-keep-draft').focus();
+  q('bm-keep-draft').dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+  check(q('bm-draft-guard').hidden&&document.activeElement===q('bm-name'),
+    'Escape dismisses switch request and returns keyboard focus to draft');
+  q('bm-list').querySelector('.bm-entry').click();
+  await wait(()=>!q('bm-draft-guard').hidden,'switch guard reopened after Escape');
   q('bm-keep-draft').click();
   check(q('bm-name').value==='未保存且必须保护的草稿','continue editing');
   q('bm-list').querySelector('.bm-entry').click();
