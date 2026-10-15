@@ -20,6 +20,7 @@ on:
       - 'tests/environment/local-project-install-r251.test.mjs'
       - 'tests/environment/local-project-install-ui-r251.test.mjs'
       - 'tests/environment/script-editor.test.mjs'
+      - 'tests/environment/local-project-status-ui.test.mjs'
       - 'tests/environment/page-candidate-source.test.mjs'
       - '.github/workflows/local-project-install-r251.yml'
   workflow_dispatch:
@@ -52,6 +53,7 @@ jobs:
             tests/environment/page-program-library.test.mjs \
             tests/environment/page-installed-programs.test.mjs \
             tests/environment/local-project-connection.test.mjs \
+            tests/environment/local-project-status-ui.test.mjs \
             tests/environment/task-package-flow.test.mjs \
             tests/environment/task-workbench.test.mjs
       - name: Source and syntax boundaries
