@@ -8,7 +8,7 @@
 
 2026-10-15 的 R11.2 提交 `b63c9e3c` 为正式 Registry、Schema、Host、独立 `browser.bookmarks.full` 和安装工具的可信书签授权按钮完成了**源码接线**。独立 Full 与 Owned 的 `browser.bookmarks.createOwned/removeOwned` 是不同权限；Chrome manifest 已声明 optional `bookmarks`，安装工具的声明并不等于用户已批准 Full 或 Chrome 权限。
 
-- 工具版本 **0.3.0**：`capabilities: ["browser.bookmarks.full", "currentPage.read"]`。新增当前页读取能力需随版本升级重新审阅；Full Bookmarks 授权和 Chrome optional 权限仍独立申请。
+- 工具版本 **0.3.1**：`capabilities: ["browser.bookmarks.full", "currentPage.read"]`。安装包更新需按现有流程重新审阅；Full Bookmarks 授权和 Chrome optional 权限仍独立申请。
 - **已在 `official-tools/catalog.json` 正式登记为 optional**。发行构建器必须生成签名固定的本地官方资源，用户通过「扩展」中心审阅、安装、授权、打开。源码登记不等于在用户 Chrome 中安装；Node/CI 成功也不是 Native PASS。
 - 不满足 Full Capability 状态、Host 权限、包身份或可信回执时，客户端失败关闭并隐藏已失权树；新增识别 `E_BOOKMARK_FULL_CONSENT_REQUIRED` / `E_TOOL_CHANGED` / `E_OWNER` 并在写入失败时清屏，不会回退至 Owned 能力伪造全量结果。
 - **已删除旧 `src/bookmark-manager/` 及内置书签面板与专属 R1 CI**。业务消费者仅存在于独立工具，公共 SDK / Host / Chrome Drivers 仍保留；Git 历史保存旧实现，不创建兼容副本。
@@ -26,12 +26,24 @@
 
 业务状态保存在浏览器原生书签中；工具卸载不删除 Chrome 原始书签。界面保留单树、搜索、文件夹、紧凑编辑与确认，不创建第二套 UI。
 
+0.3.1 修复刷新与写入生命周期：先订阅再读取分页快照，读取期间的变更触发后续全量同步；
+编辑或移动期间刷新保留原始已审阅节点，外部修改不会被新的快照静默批准覆盖。
+Host 快照池仍最多 8 份，达到上限时仅回收同一安装身份的最旧快照；旧游标明确返回
+`E_SNAPSHOT_EXPIRED`，重新刷新即可，不跨工具回收。写入前再次检查撤权代际、已观察到的
+书签变更及删除票据期限。Chrome 没有原子的 compare-and-swap；未被监听器观察到的最终
+读写间竞态仍存在，不能宣称绝对并发原子安全，真实时长尚未测量。
+
+现有公共合同限制：节点最多 20,000、深度 100、快照 8 MB、读取标题最多 256 字符、
+既有 URL 最多 4,096 字符。既有非 HTTP(S) 书签可保留读取，新增 URL 仍只允许 HTTP(S)。
+超出合同明确报错，不截断数据；任意长度历史书签兼容仍是后续合同扩展缺口。
+
 ## 构建与验收
 
 ```sh
 node --test tests/environment/bookmark-manager-r2.test.mjs
+node --test tests/environment/bookmark-manager-r24-lifecycle.test.mjs tests/environment/browser-sdk-r112-full-bookmarks.test.mjs
 npm run build:sidebar-tool -- examples/sidebar-tools/bookmark-manager
-# artifacts/sidebar-tools/bookmark-manager/0.3.0/bookmark-manager.opendesk-tool.json
+# artifacts/sidebar-tools/bookmark-manager/0.3.1/bookmark-manager.opendesk-tool.json
 npm run check
 npm run build
 npm run build:dev

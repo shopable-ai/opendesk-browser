@@ -69,13 +69,13 @@ function fixture(count=0){
     }
   };
   let refs=0;
-  const make=()=>createBrowserFullBookmarksHost({api:{bookmarks},
+  const make=(options={})=>createBrowserFullBookmarksHost({api:{bookmarks},
     makeRef:()=>String(++refs).padStart(36,'f'),
     authorize:async({operation,context})=>{
       if(!allowed)throw Object.assign(Error('Denied'),{code:'E_BOOKMARK_FULL_CONSENT_REQUIRED'});
       if(context.toolId!==owner.toolId||context.packageHash!==owner.packageHash||
          !operation.startsWith('browser.bookmarks.'))throw Object.assign(Error('foreign'),{code:'E_OWNER'});
-    }});
+    },...options});
   return {bookmarks,rows,effects,make,emit,expected:id=>expected(rows.get(id)),
     set allowed(v){allowed=v}};
 }
@@ -106,7 +106,7 @@ test('R11.2 Owned and Full use separately gated Registry operations and one gene
   assert.throws(()=>normalizeBrowserOperation('browser.bookmarks.create',{title:'x',url:'file:///etc/passwd'}),error('E_SCHEMA'));
   assert.throws(()=>normalizeBrowserOperation('browser.bookmarks.removeTree',{id:'2',ticket:'no'}),error('E_SCHEMA'));
 });
-for(const count of [500,550,1001])
+for(const count of [100,500,550,1001])
 test('R11.2 '+count+' bookmarks paginate completely within a fixed 12KB Host IPC',async()=>{
   const f=fixture(count),host=f.make(),rows=await pages(host);
   assert.equal(rows.length,count+3);assert.equal(rows[0].id,'0');assert.equal(rows[2].id,'2');
@@ -275,5 +275,111 @@ test('R2.4 create and move reject destinations below a managed ancestor',async()
   await assert.rejects(host.create({title:'Denied',parentId:'4'},owner),error('E_BOOKMARK_PROTECTED'));
   await assert.rejects(host.move({id:'10',expected:f.expected('10'),destination:{parentId:'4'}},owner),
     error('E_BOOKMARK_PROTECTED'));
+  assert.equal(f.effects.length,0);
+});
+
+test('R2.4 repeated refresh recycles only its own oldest snapshot within the existing bound',async()=>{
+  const f=fixture(100),host=f.make(),peer={...owner,installEpoch:'peer-install'};
+  const peerPage=await host.getTree({limit:20},peer);
+  const first=await host.getTree({limit:20},owner);
+  let latest;
+  for(let i=0;i<20;i++)latest=await host.getTree({limit:20},owner);
+  assert.equal((await pages(host,owner,20,latest)).length,103);
+  assert.equal((await pages(host,peer,20,peerPage)).length,103,'another installation is not evicted');
+  await assert.rejects(host.getTree({cursor:first.nextCursor},owner),error('E_SNAPSHOT_EXPIRED'));
+});
+
+test('R2.4 revoke/regrant during final preflight cannot reuse a prior mutation generation',async()=>{
+  for(const operation of ['create','update','move','remove','removeTree']){
+    const f=fixture(1);let host,armed=false,checks=0;
+    host=f.make({authorize:async()=>{if(armed&&++checks===2)host.revokeAll()}});
+    let args={
+      create:{title:'Denied',parentId:'2'},
+      update:{id:'10',expected:f.expected('10'),changes:{title:'Denied'}},
+      move:{id:'10',expected:f.expected('10'),destination:{parentId:'1'}},
+      remove:{id:'10',expected:f.expected('10')}
+    }[operation];
+    if(operation==='removeTree'){
+      const page=await host.getTree({},owner);
+      const receipt=await host.prepareRemoveTree({id:'2',snapshotRef:page.snapshotRef,
+        expected:f.expected('2'),descendantCount:1},owner);
+      args={id:'2',ticket:receipt.ticket};
+    }
+    armed=true;
+    await assert.rejects(host[operation](args,owner),error('E_GRANT_REVOKED'));
+    assert.equal(f.effects.length,0,operation+' must not cross a revoke generation');
+  }
+});
+
+test('R2.4 recursive-delete ticket that expires during preflight never reaches Chrome',async()=>{
+  const f=fixture(1);let now=1000,slow=false;
+  const host=f.make({clock:{now:()=>now},authorize:async()=>{if(slow)now+=8000}});
+  const page=await host.getTree({},owner);
+  const receipt=await host.prepareRemoveTree({id:'2',snapshotRef:page.snapshotRef,
+    expected:f.expected('2'),descendantCount:1},owner);
+  slow=true;
+  await assert.rejects(host.removeTree({id:'2',ticket:receipt.ticket},owner),error('E_BOOKMARK_CONFIRM_EXPIRED'));
+  assert.equal(f.effects.length,0);
+});
+
+test('R2.4 reviewed node objects compare values independently of JSON property order',async()=>{
+  const f=fixture(1),host=f.make();
+  const reordered=id=>Object.fromEntries(Object.entries(f.expected(id)).reverse());
+  const updated=await host.update({id:'10',expected:reordered('10'),changes:{title:'renamed'}},owner);
+  assert.equal(updated.title,'renamed');
+  const page=await host.getTree({},owner);
+  assert.ok((await host.prepareRemoveTree({id:'2',snapshotRef:page.snapshotRef,
+    expected:reordered('2'),descendantCount:1},owner)).ticket);
+});
+
+test('R2.4 a native change observed after final subtree read cancels recursive deletion',async()=>{
+  const f=fixture(1);let armed=false,checks=0;
+  const host=f.make({authorize:async()=>{
+    if(armed&&++checks===2){
+      f.rows.get('10').title='changed during final permission check';
+      f.emit('onChanged','10',{title:f.rows.get('10').title});
+    }
+  }});
+  const page=await host.getTree({},owner);
+  const prepared=await host.prepareRemoveTree({id:'2',snapshotRef:page.snapshotRef,
+    expected:f.expected('2'),descendantCount:1},owner);
+  armed=true;
+  await assert.rejects(host.removeTree({id:'2',ticket:prepared.ticket},owner),error('E_BOOKMARK_STALE'));
+  assert.equal(f.effects.length,0);
+});
+
+test('R2.4 bounded Unicode titles and existing non-HTTP bookmarks retain exact values across pages',async()=>{
+  const f=fixture(100),host=f.make();
+  for(const row of f.rows.values())if(row.url){
+    row.title='中文<&>😀'.repeat(30);row.url='file:///existing/bookmark/'+row.id;
+  }
+  const all=await pages(host);
+  assert.equal(all.length,103);
+  for(const row of all.filter(row=>row.url))assert.equal(row.title,f.rows.get(row.id).title);
+  assert.equal(all.at(-1).url,f.rows.get(all.at(-1).id).url);
+});
+
+test('R2.4 all seven native event kinds are delivered and expired sessions explicitly fail',async()=>{
+  const f=fixture(1);let now=1000;
+  const host=f.make({clock:{now:()=>now}}),watch=await host.observe.start({durationMs:1000},owner);
+  f.emit('onCreated','10',f.rows.get('10'));
+  f.emit('onRemoved','10',{parentId:'2',index:0});
+  f.emit('onChanged','10',{title:'changed'});
+  f.emit('onMoved','10',{parentId:'1',oldParentId:'2',index:0,oldIndex:0});
+  f.emit('onChildrenReordered','2',{childIds:['10']});
+  f.emit('onImportBegan');f.emit('onImportEnded');
+  const page=await host.observe.read({sessionRef:watch.sessionRef},owner);
+  assert.deepEqual(page.events.map(e=>e.kind),['created','removed','changed','moved',
+    'childrenReordered','importBegan','importEnded']);
+  now+=1001;
+  await assert.rejects(host.observe.read({sessionRef:watch.sessionRef},owner),error('E_SESSION_EXPIRED'));
+});
+
+test('R2.4 concurrent subtree hashing cannot overfill the bounded deletion ticket pool',async()=>{
+  const f=fixture(1),host=f.make(),page=await host.getTree({},owner);
+  const args={id:'2',snapshotRef:page.snapshotRef,expected:f.expected('2'),descendantCount:1};
+  const results=await Promise.allSettled(Array.from({length:20},()=>host.prepareRemoveTree(args,owner)));
+  assert.equal(results.filter(row=>row.status==='fulfilled').length,16);
+  assert.equal(results.filter(row=>row.status==='rejected'&&row.reason.code==='E_LIMIT').length,4);
   assert.equal(f.effects.length,0);
 });
