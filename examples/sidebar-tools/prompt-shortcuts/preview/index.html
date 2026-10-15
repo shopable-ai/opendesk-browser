@@ -384,7 +384,9 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   el('effectiveShort').textContent=value.label||'待生成';
   el('effectiveName').textContent=value.name||'待生成';
   dirty=JSON.stringify(rawFormValues())!==baselineForm;
-  el('leaveConfirm').hidden=true;el('bodyError').hidden=true;el('formError').hidden=true;
+  el('leaveConfirm').hidden=true;el('bodyError').hidden=true;
+  // Unknown write outcomes remain visible while the user edits; only explicit reconciliation or a new save clears them.
+  if(!el('formError').textContent.startsWith('E_OUTCOME_UNKNOWN'))el('formError').hidden=true;
   for(const id of ['promptBody','shortLabel','fullName'])el(id).removeAttribute('aria-invalid');
  }
  function showFormError(message,field='save'){
