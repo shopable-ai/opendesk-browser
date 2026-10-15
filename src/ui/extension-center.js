@@ -106,7 +106,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         event=>{void togglePage(row,event);},'toggle');
       add('前往开发',()=>{if(taskWorkbench.navigate('develop')!==false)backIfNeeded();},'develop');
     }
-    add('查看详情',()=>openDetail(key),'detail');
+    add('查看详情',()=>openDetail(key,'more'),'detail');
     rowMenu.hidden=false;
     // Fixed positioning escapes the clipped list and fits inside the Side Panel.
     const rect=trigger.getBoundingClientRect();
@@ -202,13 +202,13 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   // An installed, enabled, verified app may open; all other rows lead to details.
   function openRow(key){
     const row=find(key);if(!row||busy||pendingKey)return;
-    if(resolveExtensionRowIntent(row)==='detail'){openDetail(key);return;}
+    if(resolveExtensionRowIntent(row)==='detail'){openDetail(key,'main');return;}
     if(resolveExtensionPrimaryAction(row)?.id==='open')sidebarTools.openTool(row.id);
   }
-  function openDetail(key){
+  function openDetail(key,returnAction='main'){
     const row=find(key);if(!row)return;
     closeRowMenu();
-    focusKey=key;focusAction=doc.activeElement?.dataset?.extensionAction||'detail';
+    focusKey=key;focusAction=returnAction;
     listScroll=workspace?.scrollTop||0;selectedKey=key;detailFocusAction=null;
     closeMenu();listing.hidden=true;detail.hidden=false;
     renderDetail();workspace?.scrollTo?.({top:0});
