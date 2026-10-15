@@ -10,64 +10,66 @@ const sessionRef='preview-bookmark-session-0123456789';
 const snapshotRef='preview-bookmark-snapshot-0123456789';
 let serial=3000,records=new Map(),tickets=new Map();
 let revoked=false,nextWriteFailure=null,nextReadFailure=null;
-if(typeof document.createElement==='function'&&typeof root.before==='function'){
-const previewLab=document.createElement('details');
-previewLab.className='od-disclosure';
-const summary=document.createElement('summary');
-summary.textContent='预览实验台 · 仅模拟，不属于正式工具';
-previewLab.append(summary);
-const toolsRow=document.createElement('div');
-toolsRow.className='od-toolbar';
-toolsRow.style.flexWrap='wrap';
-const labMessage=document.createElement('p');
-labMessage.className='od-note';labMessage.setAttribute('role','status');
-const diagnostic=(label,handler)=>{
-  const button=document.createElement('button');
-  button.type='button';button.className='od-button od-button--secondary';
-  button.textContent=label;button.addEventListener('click',handler);
-  toolsRow.append(button);
-};
-diagnostic('下一次写入失败',()=>{
-  nextWriteFailure='E_PREVIEW_SAVE_FAIL';
-  labMessage.textContent='下次保存会在写入前失败，草稿应保留。';
-});
-diagnostic('下一次写入结果未知',()=>{
-  nextWriteFailure='E_OUTCOME_UNKNOWN';
-  labMessage.textContent='下次写入模拟未知结果；不得自动重试。';
-});
-diagnostic('模拟外部冲突',()=>{
-  const id=root.querySelector('#bm-inspector-id')?.textContent?.trim()||'100';
-  const row=records.get(id);
-  if(!row){labMessage.textContent='请先选中已有书签再模拟冲突。';return}
-  row.title+='（由另一窗口修改）';
-  labMessage.textContent='已在 Mock 原始记录中修改 '+id+'；保存旧草稿应遭拒绝。';
-});
-diagnostic('下一次读取超时',()=>{
-  nextReadFailure='E_HOST_TIMEOUT';
-  labMessage.textContent='下一次 Mock getTree 会超时，不会撤销现有授权。';
-});
-diagnostic('新增 130 个模拟文件夹',()=>{
-  for(let i=1;i<=130;i++)
-    push(String(++serial),'性能文件夹 '+String(i).padStart(4,'0'),'2');
-  labMessage.textContent='新增 130 个离线目标目录，请刷新列表。';
-});
-diagnostic('模拟外部删除当前书签',()=>{
-  const id=root.querySelector('#bm-inspector-id')?.textContent?.trim();
-  const row=records.get(id);
-  if(!row||!row.url){labMessage.textContent='请先选中普通书签后再模拟删除。';return}
-  records.delete(id);
-  labMessage.textContent='已从 Mock 原始记录删除 '+id+'；刷新必须保留草稿且禁止提交。';
-});
-diagnostic('模拟撤销权限',()=>{
-  revoked=true;labMessage.textContent='Mock 权限已撤销，请点击正式界面的刷新按钮验证清除。';
-});
-diagnostic('恢复模拟权限',()=>{
-  revoked=false;nextWriteFailure=null;nextReadFailure=null;
-  labMessage.textContent='Mock 已恢复；请在正式界面重新检查权限。';
-});
-previewLab.append(toolsRow,labMessage);
-root.before(previewLab);
+// Deliberately NO diagnostic DOM is mounted in the tool frame.
+// All buttons live in the separate generated preview shell. This in-memory
+// adapter exists only here, never in the validated installable tool package.
+function diagnostic(command){
+  if(command==='write-fail'){
+    nextWriteFailure='E_PREVIEW_SAVE_FAIL';
+    return '下次模拟写入将在修改前失败；草稿应保留。';
+  }
+  if(command==='write-unknown'){
+    nextWriteFailure='E_OUTCOME_UNKNOWN';
+    return '下次模拟写入结果未知；不得自动重复提交。';
+  }
+  if(command==='external-conflict'){
+    const id=root.querySelector?.('#bm-inspector-id')?.textContent?.trim()||'100';
+    const row=records.get(id);
+    if(!row)return '请先在预览中选中已有书签。';
+    row.title+='（由另一窗口修改）';
+    return '已在模拟内存中修改书签 '+id+'；保存原草稿应触发冲突。';
+  }
+  if(command==='read-timeout'){
+    nextReadFailure='E_HOST_TIMEOUT';
+    return '下次模拟 getTree 读取将超时，不会撤销原授权。';
+  }
+  if(command==='extra-folders'){
+    for(let i=1;i<=130;i++)
+      push(String(++serial),'性能文件夹 '+String(i).padStart(4,'0'),'2');
+    return '已添加 130 个模拟文件夹，刷新书签列表可查看。';
+  }
+  if(command==='external-delete'){
+    const id=root.querySelector?.('#bm-inspector-id')?.textContent?.trim();
+    const row=records.get(id);
+    if(!row?.url)return '请先在预览中选择普通书签后再模拟删除。';
+    records.delete(id);
+    return '已从模拟内存删除 '+id+'；刷新后须保留草稿并禁止覆盖。';
+  }
+  if(command==='revoke'){
+    revoked=true;
+    return '模拟权限已撤销；点击书签预览中的刷新可验证权限失效。';
+  }
+  if(command==='restore'){
+    revoked=false;nextWriteFailure=null;nextReadFailure=null;
+    return '模拟权限已恢复；在书签预览中重新检查授权状态。';
+  }
+  return null;
 }
+Object.defineProperty(globalThis,'__opendeskBookmarkMockDiagnostic',{
+  value:diagnostic,configurable:false,writable:false
+});
+globalThis.addEventListener?.('message',event=>{
+  if(event.source!==globalThis.parent)return;
+  const data=event.data;
+  if(!data||data.type!=='opendesk.preview.bookmark.command.v1'||
+    typeof data.requestId!=='string'||!/^[0-9]{1,10}$/.test(data.requestId))return;
+  const message=diagnostic(data.command);
+  if(message===null)return;
+  globalThis.parent?.postMessage?.({
+    type:'opendesk.preview.bookmark.ack.v1',
+    command:data.command,requestId:data.requestId,message
+  },'*');
+});
 function beforeWrite(){
   if(revoked)fail('E_GRANT_REVOKED','模拟书签权限已经撤销');
   if(nextWriteFailure){
