@@ -207,4 +207,6 @@ Go `master@2c003149` [38713903230](https://github.com/shopable-ai/opendesk/actio
 - `SAFE_DISABLED/PAIRING_OPEN`：HTTP Provider 未被导入 UI，`local-http.js` 保守禁用；没有实施配对/Token 颁发及撤权/Origin/CORS 白名单。Go `master` 无新提交，Native 仍是默认本地路径。
 - **任务风险加权估算**：原正式合同 `51.5/100≈52%`；本轮增加实际 P0 生产功能但仍缺真机验证，暂管理估计 **约 54%（低置信）**。这不是业务成功率或独立专家评分，真实 Chrome、AI-Off Run×2 和正式安装不得以未测冒充 95+。
 
+**R2.4 只读连续请求误判修复**：Browser `899a06edfd10028458345133b0a841948218a436` 更新 `direct-execution.js` 的点击意图识别，将“查看搜索结果/搜索记录”等只读名词与“搜索 OpenDesk”点击动作分离；`b14bf76576b90b70e9ea47758047422ee6e2d1a2` 增加“查看搜索结果只能观察、不得重复点击搜索”的测试。正式合同追记 `3400215eb0fd922a5427fc6aadb381922d865ae6`。这些新 SHA 的 CI 需要单独核查，**不能用旧 129/129 代替本次边界补丁通过**。
+
 **下一最小 P0**：先在用户真实 Chrome 的固定 `dist/development` 身份、保持旧 Watcher 原样的情况下执行 T2→T3，并记录 runId/resultId/sourceHash/Document/真正 DOM 值与搜索状态；然后关闭 AI 用同一个冻结 Controller Revision 直接 Run×2 并按两次真实回执核验。仅当原生环境可达时执行这些场景，当前不能接触 Mac 就记 `NOT_TESTED`；若需在纯 GitHub 环境继续实现，优先增加保存中断/冲突和只读 Oracle 的定向故障注入覆盖，不新增第二套运行机制。P1 HTTP 不阻断 P0，P2 AdBlock 由相应 Owner 修 pin。
