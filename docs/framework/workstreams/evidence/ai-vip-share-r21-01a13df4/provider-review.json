@@ -1,0 +1,306 @@
+{
+  "schema_version": 1,
+  "record_id": "ai-vip-share-r21-provider-review",
+  "recorded_on": "2026-10-15",
+  "timezone": "Asia/Shanghai",
+  "owner": "independent-provider-research-sidecar-01a13df4",
+  "scope": {
+    "main_repository": "/Users/shopme/Documents/workspace/opendesk-browser",
+    "reference_repository": "https://github.com/shopable-ai/ai-proxy",
+    "reference_local_copy": "/Users/shopme/Documents/workspace/ai-proxy",
+    "evidence_file_only_write": true,
+    "code_review_phase": "BASELINE_PREPARATION_ONLY_AWAITING_USER_STABLE_NOTIFICATION",
+    "authorized_implementation_scope": "生命周期安全修复与受控 PAC 网络层；不扩展正式 Provider 或 SDK proxy 接口"
+  },
+  "reference_identity": {
+    "visibility": "private",
+    "remote_main_sha": "d8e68fec75bf0bbfb39fddccd756a2103cff3787",
+    "local_head_sha": "d8e68fec75bf0bbfb39fddccd756a2103cff3787",
+    "remote_commit_date_utc": "2026-10-14T11:46:30Z",
+    "remote_lookup": "Authenticated GitHub connector; public unauthenticated lookup unavailable",
+    "local_consistency": "Ten cited implementation/configuration files compared against pinned local HEAD without differences in the preceding research phase; contract and delivery-document blob hashes matched remote."
+  },
+  "provider_verdict": {
+    "status": "PROVIDER_BLOCKED",
+    "established_production_provider": false,
+    "meaning": "当前参考版本没有已证实可用的正式授权、线路激活或服务端验证服务。",
+    "scope_limit": "不声称任何外部私有部署绝对不存在；不阻塞手动代理、受控 PAC 或本地网关。",
+    "reasons": [
+      "契约明确为客户端草案，不宣称生产部署。",
+      "项目文档明确真实服务端与可授权官方节点尚未交付。",
+      "未发现正式 activation/verify 服务合同；本地启用是 APPLY。",
+      "线路 DTO 不能用于直接连接或作为网络成功证据。"
+    ],
+    "source_ids": [
+      "provider-contract",
+      "provider-delivery-status",
+      "local-enable",
+      "line-metadata"
+    ],
+    "blocker_code_provenance": "Research conclusion, not a claim that the reference source exports this exact error code."
+  },
+  "source_checked_protocol": {
+    "authorization": "OAuth Authorization Code + PKCE S256 client",
+    "identity_and_entitlement": "Separate server identity and entitlement reads; login/payment redirect is not entitlement proof.",
+    "lines": "Display metadata only; no production line activation, executable lease or verify receipt contract established.",
+    "activation_verify": "No formal server contract established in the reviewed reference snapshot.",
+    "credential_values": "OMITTED; no keys, tokens, provider configuration values or user subscription URLs are included."
+  },
+  "chrome_constraints": [
+    {
+      "id": "PAC_FAIL_CLOSED",
+      "requirement": "受保护目标使用 mandatory:true，不能返回 DIRECT 或包含 DIRECT fallback；异常不得静默 clear 或改 direct/system。",
+      "source_ids": [
+        "chrome-proxy",
+        "chromium-proxy-details"
+      ]
+    },
+    {
+      "id": "LIMITED_NETWORK_GUARANTEE",
+      "requirement": "保证限定到明确目标与 Chrome 可代理请求；PAC 的 localhost 等隐式绕过不可当作全流量 kill switch。",
+      "source_ids": [
+        "chromium-proxy-details"
+      ]
+    },
+    {
+      "id": "RESOURCE_OWNERSHIP",
+      "requirement": "Chrome controlled_by_this_extension 只能证明扩展级控制；新旧 ID、安装 epoch、包身份与具体 PAC/receipt 归属须另证，不能仅凭 endpoint 相同执行 cleanup。",
+      "source_ids": [
+        "chrome-settings"
+      ],
+      "classification": "ENGINEERING_INFERENCE_FROM_API_SCOPE"
+    },
+    {
+      "id": "CONTROL_READBACK",
+      "requirement": "写前确认可控；写后确认控制权及规范化有效配置；观察 onChange，拒绝过期异步操作；配置成功与网络验证分开。",
+      "source_ids": [
+        "chrome-settings",
+        "chrome-proxy"
+      ]
+    },
+    {
+      "id": "CLEAR_IS_RELEASE",
+      "requirement": "明确 STOP 才释放已证归属的设置，按实际 scope clear 并 readback；不回写历史全局快照；clear 不保证直连。无法识别同扩展资源或被遮蔽时保留待处理证据。",
+      "source_ids": [
+        "chrome-settings"
+      ],
+      "classification": "API_SEMANTICS_PLUS_TASK_SPECIFIC_CONSERVATIVE_POLICY"
+    },
+    {
+      "id": "RESTART_RECONCILIATION",
+      "requirement": "分清 SW、扩展 reload 与浏览器重启；恢复时重读授权、持久意图、receipt 和实际代理，未知不得显示成功或静默直连。",
+      "source_ids": [
+        "chrome-settings",
+        "chrome-worker-lifecycle",
+        "chrome-session-storage",
+        "chrome-runtime-restart"
+      ]
+    },
+    {
+      "id": "UNKNOWN_EFFECT",
+      "requirement": "storage 写失败、丢回执、clear/set 结果未知或 ownership readback 失败，不等于未执行或已成功；保留恢复证据，先核验再决定是否重试，避免旧 cleanup 清除新资源。",
+      "source_ids": [
+        "chrome-settings"
+      ],
+      "classification": "TASK_SPECIFIC_CONSERVATIVE_POLICY_NOT_BROWSER_ATOMICITY_GUARANTEE"
+    }
+  ],
+  "sources": [
+    {
+      "id": "provider-contract",
+      "kind": "REFERENCE_PROJECT_SOURCE",
+      "repository": "shopable-ai/ai-proxy",
+      "commit_sha": "d8e68fec75bf0bbfb39fddccd756a2103cff3787",
+      "path": "packages/contracts/provider-api-v1.openapi.yaml",
+      "lines": [
+        1,
+        11
+      ],
+      "citation": "shopable-ai/ai-proxy@d8e68fec75bf0bbfb39fddccd756a2103cff3787:packages/contracts/provider-api-v1.openapi.yaml:L1-L11",
+      "url": "https://github.com/shopable-ai/ai-proxy/blob/d8e68fec75bf0bbfb39fddccd756a2103cff3787/packages/contracts/provider-api-v1.openapi.yaml#L1-L11",
+      "local_path": "/Users/shopme/Documents/workspace/ai-proxy/packages/contracts/provider-api-v1.openapi.yaml",
+      "excerpt": "CLIENT CONTRACT ONLY",
+      "establishes": "契约版本为草案，明确不宣称生产 Provider API 或后台部署；未披露任何服务配置值。",
+      "verification": "SOURCE_INSPECTED_NOT_RUNTIME_TESTED",
+      "remote_and_local_blob_sha": "6e712bfd178db126b6217f6839c7f0c7735a3ce4"
+    },
+    {
+      "id": "provider-delivery-status",
+      "kind": "REFERENCE_PROJECT_SOURCE",
+      "repository": "shopable-ai/ai-proxy",
+      "commit_sha": "d8e68fec75bf0bbfb39fddccd756a2103cff3787",
+      "path": "docs/browser-extension/official-provider-and-subscription.zh-CN.md",
+      "lines": [
+        207,
+        239
+      ],
+      "citation": "shopable-ai/ai-proxy@d8e68fec75bf0bbfb39fddccd756a2103cff3787:docs/browser-extension/official-provider-and-subscription.zh-CN.md:L207-L239",
+      "url": "https://github.com/shopable-ai/ai-proxy/blob/d8e68fec75bf0bbfb39fddccd756a2103cff3787/docs/browser-extension/official-provider-and-subscription.zh-CN.md#L207-L239",
+      "local_path": "/Users/shopme/Documents/workspace/ai-proxy/docs/browser-extension/official-provider-and-subscription.zh-CN.md",
+      "excerpt": "服务端并未实现",
+      "establishes": "客户端与契约不构成线上可用证据；官方线路连接故意阻断，真实 OAuth 服务端与可授权节点尚未交付。",
+      "verification": "SOURCE_INSPECTED_NOT_RUNTIME_TESTED",
+      "remote_and_local_blob_sha": "10b107f4470465765cfa96ba737b0fc7cb832ec3"
+    },
+    {
+      "id": "oauth-client",
+      "kind": "REFERENCE_PROJECT_SOURCE",
+      "repository": "shopable-ai/ai-proxy",
+      "commit_sha": "d8e68fec75bf0bbfb39fddccd756a2103cff3787",
+      "path": "apps/browser-extension/src/official/oauth.ts",
+      "lines": [
+        11,
+        70
+      ],
+      "citation": "shopable-ai/ai-proxy@d8e68fec75bf0bbfb39fddccd756a2103cff3787:apps/browser-extension/src/official/oauth.ts:L11-L70",
+      "url": "https://github.com/shopable-ai/ai-proxy/blob/d8e68fec75bf0bbfb39fddccd756a2103cff3787/apps/browser-extension/src/official/oauth.ts#L11-L70",
+      "local_path": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/official/oauth.ts",
+      "excerpt": "code_challenge_method",
+      "establishes": "客户端采用授权码与 PKCE S256，严格核对回调、state；未提供可用正式服务证明。",
+      "verification": "SOURCE_INSPECTED_NOT_RUNTIME_TESTED"
+    },
+    {
+      "id": "provider-read-client",
+      "kind": "REFERENCE_PROJECT_SOURCE",
+      "repository": "shopable-ai/ai-proxy",
+      "commit_sha": "d8e68fec75bf0bbfb39fddccd756a2103cff3787",
+      "path": "apps/browser-extension/src/official/client.ts",
+      "lines": [
+        61,
+        89
+      ],
+      "citation": "shopable-ai/ai-proxy@d8e68fec75bf0bbfb39fddccd756a2103cff3787:apps/browser-extension/src/official/client.ts:L61-L89",
+      "url": "https://github.com/shopable-ai/ai-proxy/blob/d8e68fec75bf0bbfb39fddccd756a2103cff3787/apps/browser-extension/src/official/client.ts#L61-L89",
+      "local_path": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/official/client.ts",
+      "excerpt": "Network calls originate only from the MV3 background",
+      "establishes": "客户端读取身份、权益、线路；请求拒绝重定向并设超时，不能据此认定服务上线。",
+      "verification": "SOURCE_INSPECTED_NOT_RUNTIME_TESTED"
+    },
+    {
+      "id": "line-metadata",
+      "kind": "REFERENCE_PROJECT_SOURCE",
+      "repository": "shopable-ai/ai-proxy",
+      "commit_sha": "d8e68fec75bf0bbfb39fddccd756a2103cff3787",
+      "path": "apps/browser-extension/src/official/contracts.ts",
+      "lines": [
+        16,
+        22
+      ],
+      "citation": "shopable-ai/ai-proxy@d8e68fec75bf0bbfb39fddccd756a2103cff3787:apps/browser-extension/src/official/contracts.ts:L16-L22",
+      "url": "https://github.com/shopable-ai/ai-proxy/blob/d8e68fec75bf0bbfb39fddccd756a2103cff3787/apps/browser-extension/src/official/contracts.ts#L16-L22",
+      "local_path": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/official/contracts.ts",
+      "excerpt": "Metadata is NOT a Chrome proxy configuration or a connection proof.",
+      "establishes": "线路 DTO 仅为展示元数据，没有可执行激活或验证回执合同。",
+      "verification": "SOURCE_INSPECTED_NOT_RUNTIME_TESTED"
+    },
+    {
+      "id": "local-enable",
+      "kind": "REFERENCE_PROJECT_SOURCE",
+      "repository": "shopable-ai/ai-proxy",
+      "commit_sha": "d8e68fec75bf0bbfb39fddccd756a2103cff3787",
+      "path": "docs/browser-extension/r10.1-first-run-activation-ux.zh-CN.md",
+      "lines": [
+        13,
+        23
+      ],
+      "citation": "shopable-ai/ai-proxy@d8e68fec75bf0bbfb39fddccd756a2103cff3787:docs/browser-extension/r10.1-first-run-activation-ux.zh-CN.md:L13-L23",
+      "url": "https://github.com/shopable-ai/ai-proxy/blob/d8e68fec75bf0bbfb39fddccd756a2103cff3787/docs/browser-extension/r10.1-first-run-activation-ux.zh-CN.md#L13-L23",
+      "local_path": "/Users/shopme/Documents/workspace/ai-proxy/docs/browser-extension/r10.1-first-run-activation-ux.zh-CN.md",
+      "excerpt": "向背景发送 APPLY",
+      "establishes": "首次启用是本地 APPLY，不是服务端 activation。",
+      "verification": "SOURCE_INSPECTED_NOT_RUNTIME_TESTED"
+    },
+    {
+      "id": "chrome-proxy",
+      "kind": "OFFICIAL_API_DOCUMENTATION",
+      "url": "https://developer.chrome.com/docs/extensions/reference/api/proxy",
+      "excerpt": "Defaults to false.",
+      "establishes": "PAC mandatory 默认关闭；启用后阻止无效 PAC 回退直连，但不覆盖 PAC 主动 DIRECT。set/get 的配置形态可能因默认值而不同。",
+      "verification": "DOCUMENTATION_INSPECTED_NOT_BROWSER_TESTED"
+    },
+    {
+      "id": "chrome-settings",
+      "kind": "OFFICIAL_API_DOCUMENTATION",
+      "url": "https://developer.chrome.com/docs/extensions/reference/api/types",
+      "excerpt": "These settings are stored to disk and remain in place",
+      "establishes": "regular 设置持久化；策略及其他扩展影响有效设置。clear 释放调用扩展的设置，不保证最终 direct/system。levelOfControl 仅为扩展级归属。",
+      "verification": "DOCUMENTATION_INSPECTED_NOT_BROWSER_TESTED"
+    },
+    {
+      "id": "chromium-proxy-details",
+      "kind": "OFFICIAL_UPSTREAM_DOCUMENTATION",
+      "repository": "chromium/chromium",
+      "commit_sha": "c1b217f8d9bf75e69d50ee5bc8e2f1fc82fbbee4",
+      "path": "net/docs/proxy.md",
+      "line_ranges": [
+        [
+          439,
+          492
+        ],
+        [
+          493,
+          543
+        ],
+        [
+          773,
+          785
+        ],
+        [
+          160,
+          180
+        ]
+      ],
+      "citation": "chromium/chromium@c1b217f8d9bf75e69d50ee5bc8e2f1fc82fbbee4:net/docs/proxy.md:L439-L492",
+      "url": "https://github.com/chromium/chromium/blob/c1b217f8d9bf75e69d50ee5bc8e2f1fc82fbbee4/net/docs/proxy.md",
+      "excerpt": "fallback to DIRECT is not permitted",
+      "excerpt_normalization": "Markdown link formatting removed; no substantive words added.",
+      "establishes": "mandatory PAC 获取失败阻止 DIRECT；代理列表可能含显式 DIRECT；PAC 无法取消 localhost 等隐式绕过；Chrome SOCKS5 不支持认证且不代理 UDP。",
+      "verification": "UPSTREAM_DOCUMENTATION_INSPECTED_NOT_BROWSER_TESTED"
+    },
+    {
+      "id": "chrome-worker-lifecycle",
+      "kind": "OFFICIAL_API_DOCUMENTATION",
+      "url": "https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle",
+      "excerpt": "Any global variables you set will be lost if the service worker shuts down.",
+      "establishes": "SW 终止会丢全局内存，不能据此推断 Chrome 代理设置已释放。",
+      "verification": "DOCUMENTATION_INSPECTED_NOT_BROWSER_TESTED"
+    },
+    {
+      "id": "chrome-session-storage",
+      "kind": "OFFICIAL_API_DOCUMENTATION",
+      "url": "https://developer.chrome.com/docs/extensions/reference/api/storage#storage_areas",
+      "excerpt": "The storage is cleared if the extension is disabled, reloaded, updated, and when the browser restarts.",
+      "establishes": "storage.session 不等于持久授权；浏览器重启和扩展 reload/update 后需重新核验会话，不能沿用旧成功。",
+      "verification": "DOCUMENTATION_INSPECTED_NOT_BROWSER_TESTED"
+    },
+    {
+      "id": "chrome-runtime-restart",
+      "kind": "OFFICIAL_API_DOCUMENTATION",
+      "url": "https://developer.chrome.com/docs/extensions/reference/api/runtime#method-restart",
+      "excerpt": "Restart the ChromeOS device when the app runs in kiosk mode. Otherwise, it’s no-op.",
+      "excerpt_normalization": "Apostrophe typography normalized.",
+      "establishes": "runtime.restart 不是 Mac Chrome 重启接口；必须区分 SW 重启、扩展 reload 和浏览器重启。",
+      "verification": "DOCUMENTATION_INSPECTED_NOT_BROWSER_TESTED"
+    }
+  ],
+  "verification": {
+    "source_inspection": "COMPLETE_FOR_RESEARCH_QUESTION",
+    "production_provider_activation": "NOT_TESTED",
+    "production_provider_verify": "NOT_TESTED",
+    "provider_dns_tls_reachability": "NOT_TESTED_NO_CONFIRMED_PRODUCTION_ORIGIN",
+    "real_chrome_pac_network": "NOT_TESTED",
+    "restart_and_native_receipts": "NOT_TESTED",
+    "build": "NOT_RUN",
+    "browser": "NOT_RUN",
+    "git_operations_this_evidence_task": "NOT_RUN",
+    "implementation_diff_review": "DEFERRED_UNTIL_USER_STABLE_NOTIFICATION",
+    "source_evidence_is_not_runtime_pass": true
+  },
+  "caller_evidence": {
+    "r11_matrix_has_no_proxy": {
+      "status": "USER_CONFIRMED",
+      "independently_rechecked_here": false
+    }
+  },
+  "retrieval_sufficiency": "足以维持当前正式 Provider 阻塞并提供 Chrome 生命周期约束；不足以宣称任何生产服务或真实浏览器验收通过。"
+}

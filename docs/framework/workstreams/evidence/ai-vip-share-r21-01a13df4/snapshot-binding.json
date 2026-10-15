@@ -1,0 +1,55 @@
+{
+  "baseHead": "8b9c1fcb03aa9a1c34fbba71b90df246bdd39964",
+  "snapshot": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/ai-vip-share-r21-01a13df4/candidate",
+  "mode": "static production / static development; no dev serve client",
+  "overlay": [
+    {
+      "path": "src/ai-smart-access/policy.js",
+      "bytes": 4545,
+      "sha256": "aa5a3113252534a4811de82b7959817aa327527659e5073db88fab0a5859803f"
+    },
+    {
+      "path": "src/ai-smart-access/service.js",
+      "bytes": 20617,
+      "sha256": "439c5cd2f8aab171dddbe8b97f32941c440e5084a60b31ab0602add1454f60a7"
+    },
+    {
+      "path": "src/ai-smart-access/lifecycle.js",
+      "bytes": 5893,
+      "sha256": "ae8abc76f88ab3d31ebfa21248a44adc3f12e258ca7d2c07b69c432e775cbd23"
+    },
+    {
+      "path": "tests/environment/ai-vip-share-r2.test.mjs",
+      "bytes": 13336,
+      "sha256": "45e72233fec86d8d962fca0d124d31f4da77d0096ee2d6562994cac9df16c678"
+    },
+    {
+      "path": "tests/environment/ai-vip-share-r21-lifecycle.test.mjs",
+      "bytes": 17669,
+      "sha256": "b0cb4a4350e4a7f0cab50ece7f5074fc3729f22adcd88332141363f5a0dd48f9"
+    },
+    {
+      "path": ".github/workflows/sidebar-tools-r1.yml",
+      "bytes": 6305,
+      "sha256": "ab0fa63adf4e7ece431e1752291c12ce0e5524c676be3afb19933b2c0673eb99"
+    },
+    {
+      "path": "examples/sidebar-tools/ai-vip-share/src/main.js",
+      "bytes": 878,
+      "sha256": "43afa03a6f5a714d8b5e255dd0a1ed0844b1a331b561370c1def37c27f386fcc"
+    },
+    {
+      "path": "examples/sidebar-tools/ai-vip-share/tool.config.json",
+      "bytes": 357,
+      "sha256": "f796c90038c5943d7eff72a6441c3ff991a45050de97d5bcd42b4a6d3fd4e80f"
+    },
+    {
+      "path": "examples/sidebar-tools/ai-vip-share/README.zh-CN.md",
+      "bytes": 2257,
+      "sha256": "35f663d3623782f0e4d4503a996b68419e51bff1fdb9474c361607e875df90d9"
+    }
+  ],
+  "sharedNodeModules": "Replaced initial symlink after provenance rejection with local APFS clone (cp -cR) of existing pinned dependencies; no install or version change",
+  "guardPort": 43237,
+  "excluded": "Unrelated uncommitted edits remain only in primary workspace"
+}

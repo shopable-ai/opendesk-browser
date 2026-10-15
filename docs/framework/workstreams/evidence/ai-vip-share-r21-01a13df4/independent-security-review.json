@@ -1,0 +1,271 @@
+{
+  "schema_version": 1,
+  "reviewed_at_utc": "2026-10-15T05:27:22.032786+00:00",
+  "review_type": "independent single-sidecar static security review; reviewer did not author implementation",
+  "verdict": "REQUEST_CHANGES",
+  "approval_granted": false,
+  "finding_counts": {
+    "high": 1,
+    "medium": 1
+  },
+  "scope": {
+    "root": "/Users/shopme/Documents/workspace/opendesk-browser",
+    "primary_paths": [
+      "src/ai-smart-access/policy.js",
+      "src/ai-smart-access/service.js",
+      "src/ai-smart-access/lifecycle.js",
+      "tests/environment/ai-vip-share-r21-lifecycle.test.mjs"
+    ],
+    "write_scope": [
+      "docs/framework/workstreams/evidence/ai-vip-share-r21-01a13df4/independent-security-review.json"
+    ],
+    "no_source_changes": true,
+    "no_git_commands": true,
+    "no_tests_builds_or_browser_runs_by_reviewer": true
+  },
+  "source_identity": {
+    "algorithm": "SHA-256",
+    "files": [
+      {
+        "path": "src/ai-smart-access/policy.js",
+        "sha256": "aa5a3113252534a4811de82b7959817aa327527659e5073db88fab0a5859803f",
+        "scope": "primary"
+      },
+      {
+        "path": "src/ai-smart-access/service.js",
+        "sha256": "439c5cd2f8aab171dddbe8b97f32941c440e5084a60b31ab0602add1454f60a7",
+        "scope": "primary"
+      },
+      {
+        "path": "src/ai-smart-access/lifecycle.js",
+        "sha256": "ae8abc76f88ab3d31ebfa21248a44adc3f12e258ca7d2c07b69c432e775cbd23",
+        "scope": "primary"
+      },
+      {
+        "path": "tests/environment/ai-vip-share-r21-lifecycle.test.mjs",
+        "sha256": "b0cb4a4350e4a7f0cab50ece7f5074fc3729f22adcd88332141363f5a0dd48f9",
+        "scope": "primary"
+      },
+      {
+        "path": "src/ui/sidebar-tools/installation.js",
+        "sha256": "a1fd9dbad0318e997cc6745b995308400656b4a781f8126621d3699ddec073fd",
+        "scope": "supporting_call_path"
+      },
+      {
+        "path": "src/ui/sidebar-tools/storage-state.js",
+        "sha256": "94ab39124c7aa436aee432256a933c6c61fb4e7901459b84421dfcc79347565d",
+        "scope": "supporting_call_path"
+      }
+    ],
+    "aggregate_sha256": "e751a4b8ab2e0d240a814867766f4442df436b5f48e906dd1a24c43dd36ad972",
+    "aggregate_encoding": "UTF-8; lexicographically sorted paths, each path + NUL + lowercase hex file SHA-256 + LF"
+  },
+  "snapshot_binding": {
+    "path": "docs/framework/workstreams/evidence/ai-vip-share-r21-01a13df4/snapshot-binding.json",
+    "sha256": "bd467da3910cb09df012300a9b5cc1c0595ac62e78905a8af562dcc64686f202",
+    "snapshot_path": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/ai-vip-share-r21-01a13df4/candidate",
+    "base_head_from_manifest_not_git_verified": "8b9c1fcb03aa9a1c34fbba71b90df246bdd39964",
+    "overlay_checked_count": 9,
+    "overlay_checks": [
+      {
+        "path": "src/ai-smart-access/policy.js",
+        "sha256": "aa5a3113252534a4811de82b7959817aa327527659e5073db88fab0a5859803f",
+        "workspace_matches_binding_and_snapshot": true
+      },
+      {
+        "path": "src/ai-smart-access/service.js",
+        "sha256": "439c5cd2f8aab171dddbe8b97f32941c440e5084a60b31ab0602add1454f60a7",
+        "workspace_matches_binding_and_snapshot": true
+      },
+      {
+        "path": "src/ai-smart-access/lifecycle.js",
+        "sha256": "ae8abc76f88ab3d31ebfa21248a44adc3f12e258ca7d2c07b69c432e775cbd23",
+        "workspace_matches_binding_and_snapshot": true
+      },
+      {
+        "path": "tests/environment/ai-vip-share-r2.test.mjs",
+        "sha256": "45e72233fec86d8d962fca0d124d31f4da77d0096ee2d6562994cac9df16c678",
+        "workspace_matches_binding_and_snapshot": true
+      },
+      {
+        "path": "tests/environment/ai-vip-share-r21-lifecycle.test.mjs",
+        "sha256": "b0cb4a4350e4a7f0cab50ece7f5074fc3729f22adcd88332141363f5a0dd48f9",
+        "workspace_matches_binding_and_snapshot": true
+      },
+      {
+        "path": ".github/workflows/sidebar-tools-r1.yml",
+        "sha256": "ab0fa63adf4e7ece431e1752291c12ce0e5524c676be3afb19933b2c0673eb99",
+        "workspace_matches_binding_and_snapshot": true
+      },
+      {
+        "path": "examples/sidebar-tools/ai-vip-share/src/main.js",
+        "sha256": "43afa03a6f5a714d8b5e255dd0a1ed0844b1a331b561370c1def37c27f386fcc",
+        "workspace_matches_binding_and_snapshot": true
+      },
+      {
+        "path": "examples/sidebar-tools/ai-vip-share/tool.config.json",
+        "sha256": "f796c90038c5943d7eff72a6441c3ff991a45050de97d5bcd42b4a6d3fd4e80f",
+        "workspace_matches_binding_and_snapshot": true
+      },
+      {
+        "path": "examples/sidebar-tools/ai-vip-share/README.zh-CN.md",
+        "sha256": "35f663d3623782f0e4d4503a996b68419e51bff1fdb9474c361607e875df90d9",
+        "workspace_matches_binding_and_snapshot": true
+      }
+    ],
+    "limitation": "Overlay equality is verified; no full snapshot, dependency tree or build-output attestation was performed."
+  },
+  "findings": [
+    {
+      "id": "R21-SEC-01",
+      "severity": "HIGH",
+      "confidence": "high",
+      "status": "OPEN",
+      "title": "RPC installation identity is checked before acquiring the tool lock and is lost inside the mutation transaction",
+      "locations": [
+        {
+          "path": "src/ai-smart-access/service.js",
+          "start_line": 280,
+          "end_line": 294
+        },
+        {
+          "path": "src/ai-smart-access/service.js",
+          "start_line": 217,
+          "end_line": 227
+        }
+      ],
+      "evidence": "dispatch checks message packageHash/installEpoch at lines 287-290, then awaits hostDocument and invokes perform with only operation/payload. perform acquires the tool lock, rereads the current installation, but only checks tool/enabled before disable calls stopLocked.",
+      "feasible_interleaving": [
+        "An old installation request passes dispatch identity validation and pauses before acquiring the tool lock.",
+        "An installation change and a newly authorized activation/enable complete while the old request is delayed.",
+        "The old disable resumes, acquires the lock, rereads the new current state and can clear the new installation PAC. The post-operation host check cannot undo the effect."
+      ],
+      "impact": "A request authorized for an older package or revocation epoch can mutate the replacement installation, including releasing its PAC.",
+      "recommendation": "Carry the expected request installation identity into the locked transaction and reject a mismatch before effects; retain host/document validity checks at the mutation boundary.",
+      "missing_regression": "Gate an old disable after outer validation, replace epoch/package and establish the new active owner, then release the old call. Assert identity error and zero storage/proxy/alarm mutations from that request.",
+      "validation": "Current frozen source control-flow inspection; race not executed by reviewer."
+    },
+    {
+      "id": "R21-SEC-02",
+      "severity": "MEDIUM",
+      "confidence": "high",
+      "status": "OPEN",
+      "title": "Queued legacy recovery can recreate state after uninstall deletion",
+      "locations": [
+        {
+          "path": "src/ai-smart-access/service.js",
+          "start_line": 296,
+          "end_line": 302
+        },
+        {
+          "path": "src/ai-smart-access/lifecycle.js",
+          "start_line": 77,
+          "end_line": 101
+        },
+        {
+          "path": "src/ui/sidebar-tools/installation.js",
+          "start_line": 154,
+          "end_line": 169
+        },
+        {
+          "path": "src/ui/sidebar-tools/storage-state.js",
+          "start_line": 21,
+          "end_line": 25
+        }
+      ],
+      "evidence": "reconcile holds the new tool lock while sampling legacy releasePending and later calls legacy STOP. STOP acquires only the shared proxy lock and unconditionally persists stopping state even if the legacy key has disappeared. cleanup releases that proxy lock before removeVerifiedKey; legacy tool/catalog locks held by uninstall do not exclude the new-tool recovery transaction. The storage helper writes then verifies; it does not compare-and-swap.",
+      "feasible_interleaving": [
+        "Uninstall is stopping the legacy namespace while worker recovery observes its releasePending state and queues on the proxy lock.",
+        "Uninstall finishes STOP, releases the proxy lock, and removes/verifies absence of the legacy state key.",
+        "Previously queued recovery resumes and can write a new stopping/settled record after deletion, or restore a record sampled before deletion."
+      ],
+      "impact": "Successful uninstall cleanup is not guaranteed to remain complete: legacy state can reappear; depending on the interleaving old device/lease evidence can also be restored. This finding does not assert that legacy cleanup clears a new owner PAC.",
+      "recommendation": "Coordinate legacy recovery with the legacy installation transaction, or make STOP plus verified deletion atomic relative to recovery using a non-reentrant internal operation. Recheck that the pending intent still exists/current under the relevant lock; stale recovery must become a no-op.",
+      "missing_regression": "Queue legacy recovery from a prior pending STOP, complete uninstall and verified deletion, then resume recovery. Assert the legacy state remains absent and no obsolete retry alarm or native mutation is introduced.",
+      "validation": "Current frozen source interleaving analysis; race not executed by reviewer."
+    }
+  ],
+  "verified_safety_changes": [
+    {
+      "claim": "Proxy mutations use one shared named Web Lock rather than API-object identity.",
+      "locations": [
+        "src/ai-smart-access/lifecycle.js:14-16",
+        "tests/environment/ai-vip-share-r21-lifecycle.test.mjs:318-355"
+      ]
+    },
+    {
+      "claim": "Explicit STOP persists its receipt, arms the namespace one-minute retry alarm before native release, and clears the alarm after successful release.",
+      "locations": [
+        "src/ai-smart-access/lifecycle.js:82-95",
+        "tests/environment/ai-vip-share-r21-lifecycle.test.mjs:181-193"
+      ],
+      "limits": "Source ordering and existing regression evidence; Chrome alarm delivery/restart behavior was not independently exercised."
+    },
+    {
+      "claim": "Recovery preserves uncertain pending apply and active PAC on expiry, revoked/provider failure, or current installation ownership mismatch.",
+      "locations": [
+        "src/ai-smart-access/service.js:304-329"
+      ],
+      "limits": "Preserving an existing PAC does not prove browser traffic blocking if browser permissions or external policy remove/change that preference."
+    },
+    {
+      "claim": "Native release requires namespace receipt/PAC ownership proof and avoids clearing a peer-owned PAC.",
+      "locations": [
+        "src/ai-smart-access/lifecycle.js:53-75"
+      ],
+      "limits": "Does not resolve the two transaction races above."
+    }
+  ],
+  "evidence": [
+    {
+      "path": "docs/framework/workstreams/evidence/ai-vip-share-r21-01a13df4/lifecycle-final.log",
+      "sha256": "3598ddf85f3b3c7530eddacb759b13e1f8e61cf4953a58c9c180e5ea19c48f9c",
+      "observed_summary": {
+        "tests": 27,
+        "pass": 27,
+        "fail": 0
+      },
+      "level": "existing component test log inspected, not independently rerun",
+      "binding_limit": "Current relevant source files match snapshot-binding; the text log itself contains no independently verified source fingerprint."
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/ai-vip-share-r21-01a13df4/retry-alarm-before.log",
+      "sha256": "ec1cc33466169bfff7c679385bf73e4fb01ae56a495ebf2d41955b7c608032fb",
+      "observed_summary": "The new missing-alarm regression failed before the fix; final log contains its passing result.",
+      "level": "existing red/green evidence inspected, not rerun"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/ai-vip-share-r21-01a13df4/provider-review.json",
+      "sha256": "032d32facc4bd39b9ca7089ec0523db464f94716c0170b6fcead9f2a696e5e7c",
+      "level": "previous provider research evidence; no provider requests made in this review"
+    }
+  ],
+  "provider": {
+    "status": "PROVIDER_BLOCKED",
+    "scope": "Formal production HTTPS activation/verify provider remains unestablished by the previously inspected reference source; manual/local PAC and gateway behavior are separate.",
+    "evidence_path": "docs/framework/workstreams/evidence/ai-vip-share-r21-01a13df4/provider-review.json",
+    "not_tested": "No live activation/verify, credentials, provider service availability or production network behavior tested."
+  },
+  "limits": [
+    "One independent sidecar reviewer; no separate architect review lane is available here. This document is findings evidence, not a full two-lane approval.",
+    "No tests, builds, browser or Git commands were run by this reviewer; no dynamic exploit reproduction.",
+    "The 27 passing tests do not exercise the two stale-request/uninstall interleavings identified here.",
+    "Leader-reported isolated snapshot build and network fixture 40/40 were not independently revalidated; neither establishes product or real Chrome acceptance.",
+    "No real Chrome restart, alarm persistence/delivery, permission-loss routing, browser policy interaction or live network fail-closed guarantee is established by this static review.",
+    "No secrets, provider configuration values, activation codes or lease values are included."
+  ],
+  "official_contract_references": [
+    {
+      "url": "https://developer.chrome.com/docs/extensions/reference/api/proxy",
+      "use": "PAC mandatory and extension-level proxy control; settings.clear removes this extension preference."
+    },
+    {
+      "url": "https://developer.chrome.com/docs/extensions/reference/api/types",
+      "use": "ChromeSetting control/readback contract."
+    },
+    {
+      "url": "https://www.w3.org/TR/web-locks/#lock-managers",
+      "use": "Named Web Locks coordinate agents sharing a storage bucket; used as prior research context, not newly fetched in this review."
+    }
+  ]
+}

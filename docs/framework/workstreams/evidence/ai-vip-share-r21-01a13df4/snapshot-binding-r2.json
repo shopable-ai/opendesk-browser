@@ -1,0 +1,56 @@
+{
+  "baseHead": "d44181bd1ca6bb1aaf7d11d0fb5fd88b1fb00b32",
+  "snapshot": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/ai-vip-share-r21-01a13df4/candidate-r2",
+  "mode": "static production / static development; no dev serve client",
+  "overlay": [
+    {
+      "path": "src/ai-smart-access/policy.js",
+      "bytes": 4545,
+      "sha256": "aa5a3113252534a4811de82b7959817aa327527659e5073db88fab0a5859803f"
+    },
+    {
+      "path": "src/ai-smart-access/service.js",
+      "bytes": 21842,
+      "sha256": "9c311c8fbb63aed00d27a86792d6869b8f1957a544696027b5bf7d3f4ab877d0"
+    },
+    {
+      "path": "src/ai-smart-access/lifecycle.js",
+      "bytes": 6811,
+      "sha256": "46928470c866b7098af07de15f0bb445e5baa8d41befd8b3e270d263082ead03"
+    },
+    {
+      "path": "tests/environment/ai-vip-share-r2.test.mjs",
+      "bytes": 13336,
+      "sha256": "45e72233fec86d8d962fca0d124d31f4da77d0096ee2d6562994cac9df16c678"
+    },
+    {
+      "path": "tests/environment/ai-vip-share-r21-lifecycle.test.mjs",
+      "bytes": 23142,
+      "sha256": "7276dd6dc99a6aacf09e58a7320ee61219e9b647bd25f9fce1b789a46305aaa3"
+    },
+    {
+      "path": ".github/workflows/sidebar-tools-r1.yml",
+      "bytes": 6305,
+      "sha256": "ab0fa63adf4e7ece431e1752291c12ce0e5524c676be3afb19933b2c0673eb99"
+    },
+    {
+      "path": "examples/sidebar-tools/ai-vip-share/src/main.js",
+      "bytes": 878,
+      "sha256": "43afa03a6f5a714d8b5e255dd0a1ed0844b1a331b561370c1def37c27f386fcc"
+    },
+    {
+      "path": "examples/sidebar-tools/ai-vip-share/tool.config.json",
+      "bytes": 357,
+      "sha256": "f796c90038c5943d7eff72a6441c3ff991a45050de97d5bcd42b4a6d3fd4e80f"
+    },
+    {
+      "path": "examples/sidebar-tools/ai-vip-share/README.zh-CN.md",
+      "bytes": 2257,
+      "sha256": "35f663d3623782f0e4d4503a996b68419e51bff1fdb9474c361607e875df90d9"
+    }
+  ],
+  "dependencies": "Local APFS clone of existing pinned node_modules, no dependency install/change",
+  "guardPort": 43237,
+  "excluded": "All unrelated uncommitted edits stay in primary workspace",
+  "priorCandidate": "candidate (retained unchanged); initial-candidate-rejected.json"
+}

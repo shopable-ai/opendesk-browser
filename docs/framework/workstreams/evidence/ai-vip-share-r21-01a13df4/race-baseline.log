@@ -1,0 +1,50 @@
+✖ R2.1 race: a validated old disable queued on the tool lock cannot stop a replacement installation (17.581959ms)
+✖ R2.1 race: queued legacy recovery cannot resurrect state after verified uninstall deletion (1.56075ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 65.563333
+
+✖ failing tests:
+
+test at tests/environment/ai-vip-share-r21-lifecycle.test.mjs:366:1
+✖ R2.1 race: a validated old disable queued on the tool lock cannot stop a replacement installation (17.581959ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/ai-vip-share-r21-lifecycle.test.mjs:388:7)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/environment/ai-vip-share-r21-lifecycle.test.mjs:396:1
+✖ R2.1 race: queued legacy recovery cannot resurrect state after verified uninstall deletion (1.56075ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + {
+  +   desired: false,
+  +   deviceId: null,
+  +   lease: null,
+  +   releasePending: false,
+  +   schema: 1
+  + }
+  - undefined
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/ai-vip-share-r21-lifecycle.test.mjs:424:12)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { schema: 1, desired: false, releasePending: false, deviceId: null, lease: null },
+    expected: undefined,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

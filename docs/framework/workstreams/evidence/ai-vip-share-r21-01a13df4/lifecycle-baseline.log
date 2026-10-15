@@ -1,0 +1,185 @@
+✖ R2.1 wake preserves active legacy PAC with new ID absent or merely activated (6.028833ms)
+✖ R2.1 explicit legacy STOP and uninstall release proven old PAC before deleting evidence (0.969417ms)
+✔ R2.1 old STOP/uninstall cannot clear new owned PAC even on the same endpoint (0.658ms)
+✖ R2.1 shared non-AI extension PAC and missing owner evidence prevent cleanup (0.523542ms)
+✖ R2.1 duplicate unmarked ownership and corrupt peer state fail closed (0.436666ms)
+✖ R2.1 pending legacy release is retried on wake without touching new identity (0.596291ms)
+✖ R2.1 unavailable permissions, ownership read or hidden control keep retry evidence (0.381916ms)
+✖ R2.1 storage failure precedes effects; lost storage acknowledgement uses verified readback (0.972792ms)
+✖ R2.1 lost native clear acknowledgement/readback preserves lease until retry (0.4655ms)
+✖ R2.1 new installation cannot resume prior install activation or overwrite foreign PAC (12.454125ms)
+✔ R2.1 interrupted new apply releases only its receipt and keeps legacy data (2.092042ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 2
+ℹ fail 9
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 78.400167
+
+✖ failing tests:
+
+test at tests/environment/ai-vip-share-r21-lifecycle.test.mjs:96:1
+✖ R2.1 wake preserves active legacy PAC with new ID absent or merely activated (6.028833ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   level: 'controllable_by_this_extension',
+  +   value: null
+  -   level: 'controlled_by_this_extension',
+  -   value: {
+  -     mode: 'pac_script',
+  -     pacScript: {
+  -       data: 'function FindProxyForURL(url, host) {\n' +
+  -         '  host = String(host).toLowerCase().replace(/\\.$/, "");\n' +
+  -         '  if (host === "chatgpt.com" || dnsDomainIs(host, ".chatgpt.com")) return "SOCKS5 proxy.example.com:1080";\n' +
+  -         '  if (host === "openai.com" || dnsDomainIs(host, ".openai.com")) return "SOCKS5 proxy.example.com:1080";\n' +
+  -         '  if (host === "claude.ai" || dnsDomainIs(host, ".claude.ai")) return "SOCKS5 proxy.example.com:1080";\n' +
+  -         '  if (host === "gemini.google.com" || dnsDomainIs(host, ".gemini.google.com")) return "SOCKS5 proxy.example.com:1080";\n' +
+  -         '  if (host === "perplexity.ai" || dnsDomainIs(host, ".perplexity.ai")) return "SOCKS5 proxy.example.com:1080";\n' +
+  -         '  return "DIRECT";\n' +
+  -         '}',
+  -       mandatory: true
+  -     }
+  -   }
+    }
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/ai-vip-share-r21-lifecycle.test.mjs:103:12)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { value: null, level: 'controllable_by_this_extension' },
+    expected: { value: { mode: 'pac_script', pacScript: [Object] }, level: 'controlled_by_this_extension' },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/ai-vip-share-r21-lifecycle.test.mjs:113:1
+✖ R2.1 explicit legacy STOP and uninstall release proven old PAC before deleting evidence (0.969417ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/ai-vip-share-r21-lifecycle.test.mjs:118:12)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/ai-vip-share-r21-lifecycle.test.mjs:140:1
+✖ R2.1 shared non-AI extension PAC and missing owner evidence prevent cleanup (0.523542ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/ai-vip-share-r21-lifecycle.test.mjs:144:5)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/environment/ai-vip-share-r21-lifecycle.test.mjs:151:1
+✖ R2.1 duplicate unmarked ownership and corrupt peer state fail closed (0.436666ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/ai-vip-share-r21-lifecycle.test.mjs:155:5)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/environment/ai-vip-share-r21-lifecycle.test.mjs:162:1
+✖ R2.1 pending legacy release is retried on wake without touching new identity (0.596291ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/ai-vip-share-r21-lifecycle.test.mjs:167:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/ai-vip-share-r21-lifecycle.test.mjs:171:1
+✖ R2.1 unavailable permissions, ownership read or hidden control keep retry evidence (0.381916ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/ai-vip-share-r21-lifecycle.test.mjs:178:5)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/environment/ai-vip-share-r21-lifecycle.test.mjs:190:1
+✖ R2.1 storage failure precedes effects; lost storage acknowledgement uses verified readback (0.972792ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/ai-vip-share-r21-lifecycle.test.mjs:196:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/environment/ai-vip-share-r21-lifecycle.test.mjs:202:1
+✖ R2.1 lost native clear acknowledgement/readback preserves lease until retry (0.4655ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/ai-vip-share-r21-lifecycle.test.mjs:206:5)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/environment/ai-vip-share-r21-lifecycle.test.mjs:217:1
+✖ R2.1 new installation cannot resume prior install activation or overwrite foreign PAC (12.454125ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + undefined
+  - {
+  -   installEpoch: 'epoch-1',
+  -   packageHash: '5992418b476565d362218911f370b1da81f1e2379a9d83ed09bc58961e39bcdd',
+  -   toolId: 'ai-vip-share'
+  - }
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/ai-vip-share-r21-lifecycle.test.mjs:221:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: { toolId: 'ai-vip-share', packageHash: '5992418b476565d362218911f370b1da81f1e2379a9d83ed09bc58961e39bcdd', installEpoch: 'epoch-1' },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

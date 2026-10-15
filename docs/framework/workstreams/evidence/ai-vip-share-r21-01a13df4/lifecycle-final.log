@@ -1,0 +1,35 @@
+✔ R1 only AI exact domains and valid descendants use PAC proxy; lookalikes are DIRECT (9.030667ms)
+✔ R1 rejects untrusted PAC, proxy endpoint and lease fields (0.737166ms)
+✔ R1 proxy is a required Chrome permission; sandbox cannot authorize enable (5.567334ms)
+✔ R1 real contract: activate, verify, apply/readback PAC, release own preference (14.842416ms)
+✔ R1 conflicting extension, spoofed sender and stale installation fail closed (1.845792ms)
+✔ R1 without an approved backend no activation or false enabled state (0.745291ms)
+✔ R2.1 expired lease preserves PAC and evidence on wake until explicit STOP (2.844375ms)
+✔ R1 tool disable/uninstall stops proxy and removes only its own data (0.475167ms)
+✔ R2 renamed tool uses new identity, protocol, state and alarm namespaces (0.073209ms)
+✔ R2.1 old activation never enables renamed ID and active PAC survives wake (0.647958ms)
+✔ R2 uninstalling legacy package removes only its state and alarm (0.341084ms)
+✔ R2.1 wake preserves active legacy PAC with new ID absent or merely activated (7.309ms)
+✔ R2.1 explicit legacy STOP and uninstall release proven old PAC before deleting evidence (1.115792ms)
+✔ R2.1 old STOP/uninstall cannot clear new owned PAC even on the same endpoint (0.968958ms)
+✔ R2.1 shared non-AI extension PAC and missing owner evidence prevent cleanup (1.580958ms)
+✔ R2.1 duplicate unmarked ownership and corrupt peer state fail closed (0.589709ms)
+✔ R2.1 pending legacy release is retried on wake without touching new identity (0.3685ms)
+✔ R2.1 failed explicit legacy STOP schedules recovery even without an earlier alarm (0.501542ms)
+✔ R2.1 unavailable permissions, ownership read or hidden control keep retry evidence (1.91075ms)
+✔ R2.1 storage failure precedes effects; lost storage acknowledgement uses verified readback (0.615375ms)
+✔ R2.1 lost native clear acknowledgement/readback preserves lease until retry (0.688833ms)
+✔ R2.1 new installation cannot resume prior install activation or overwrite foreign PAC (13.236417ms)
+✔ R2.1 interrupted apply preserves PAC until explicit STOP, without altering legacy data (1.980459ms)
+✔ R2.1 expiry, revoked authorization, missing provider and permission never auto-clear active PAC (6.560334ms)
+✔ R2.1 lost receipt and installation replacement cannot adopt or clear existing PAC (4.415667ms)
+✔ R2.1 without a global Web Lock even explicit STOP must fail before effects (0.373375ms)
+✔ R2.1 separate UI/SW API objects serialize proof and clear on the same Web Lock (1.488625ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 92.974667

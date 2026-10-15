@@ -7,9 +7,11 @@ import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolEnable
   from '../ui/sidebar-tools/lifecycle.js';
 import {isSidebarToolHostSender} from '../sidebar-tools/sender.js';
 import {AI_PROVIDER} from './provider-config.js';
-import {AI_ID,AI_CAPABILITY,AI_PROTOCOL,AI_VERSION,AI_STORE,AI_ALARM,
+import {AI_ID,LEGACY_AI_ID,AI_CAPABILITY,AI_PROTOCOL,AI_VERSION,AI_STORE,AI_ALARM,LEGACY_AI_ALARM,
   AI_OPERATIONS,aiError,validLease,leaseUsable,desiredAiProxy,matchesAiProxy,controlLevel} from './policy.js';
-import {parseAiState,storeAiState,releaseAiProxy,stopAiAccessForTool} from './lifecycle.js';
+import {parseAiState,storeAiState,stopAiAccessForTool,
+  readAiStates,matchesAiStateProxy,withAiProxyMutation} from './lifecycle.js';
+import {sameStorageValue} from '../ui/sidebar-tools/storage-state.js';
 
 const probeOperation='aiAccess.probe';
 const exact=(object,keys)=>object&&typeof object==='object'&&!Array.isArray(object)&&
@@ -98,7 +100,28 @@ export function createAiAccessService({api=globalThis.chrome,
     if(!tool?.capabilities.includes(AI_CAPABILITY))tool=null;
     return {tool,enabled:sidebarToolEnabled(saved[SIDEBAR_TOOL_ENABLE_STORE],AI_ID),
       epoch:saved[TOOL_REVOCATION_EPOCHS_STORE]?.[AI_ID]??null,
-      raw:saved[AI_STORE],state:parseAiState(saved[AI_STORE])};
+      raw:saved[AI_STORE],state:parseAiState(saved[AI_STORE],AI_ID)};
+  }
+  async function authorizeRequest(request){
+    await hostDocument(request.sender,request.documentId);
+    const record=await installed();
+    if(!record.tool||!record.enabled||record.epoch!==request.installEpoch||
+       await sidebarToolPackageHash(record.tool)!==request.packageHash)
+      throw aiError('E_TOOL_CHANGED','工具安装版本或授权已变化');
+    await hostDocument(request.sender,request.documentId);
+    return record;
+  }
+  async function installationOwner(record){
+    return record.tool?{toolId:AI_ID,packageHash:await sidebarToolPackageHash(record.tool),
+      installEpoch:record.epoch}:null;
+  }
+  async function ownsInstallation(record){
+    return Boolean(record.state.proxyOwner&&
+      sameStorageValue(record.state.proxyOwner,await installationOwner(record)));
+  }
+  async function legacyHold(chromeState){
+    const records=await readAiStates(api),old=records[LEGACY_AI_ID].state;
+    return old.desired||old.releasePending||matchesAiStateProxy(chromeState?.value,old);
   }
   async function snapshot(){
     if(!api.proxy?.settings?.get)throw aiError('E_AI_RUNTIME','Chrome 代理 API 未接入');
@@ -121,111 +144,142 @@ export function createAiAccessService({api=globalThis.chrome,
     return lease;
   }
   async function status(){
-    const {tool,enabled,state}=await installed();
+    const record=await installed(),{tool,enabled,state}=record;
     const configured=Boolean(validatedProvider(provider));
     let permission=false,chromeState=null,control='unknown';
     try{
       permission=await availablePermission();
       if(permission){chromeState=await snapshot();control=controlLevel(chromeState.levelOfControl);}
     }catch{lastError='无法检查 Chrome 代理控制权';}
+    let migrationHold=false;
+    try{migrationHold=await legacyHold(chromeState);}
+    catch{migrationHold=true;lastError='旧代理状态无法核对，已阻止新工具接管';}
     let value='disabled',reason=null;
     if(!tool||!enabled)value='unavailable',reason='工具未安装或已停用';
-    else if(!configured)value='unavailable',reason='可信代理服务尚未接入';
-    else if(state.releasePending)value='unavailable',reason='停止代理尚未完成，后台将重试';
+    else if(migrationHold)value='conflict',reason='旧版 AI 智能访问仍持有代理或停止回执；请在旧工具明确停止后迁移';
+    else if(!configured)value='unavailable',reason='可信代理服务尚未接入；保留现有代理规则';
+    else if(state.releasePending)value='unavailable',reason=state.pendingApply?
+      '代理设置结果尚未确认，保留规则与回执；请明确停止后重试':'停止代理尚未完成，后台将重试';
+    else if(!state.lease)value='activation_required';
+    else if(!await ownsInstallation(record))value='unavailable',reason='当前安装没有匹配的激活回执，请重新激活';
     else if(!leaseUsable(state.lease,now()))value='activation_required';
     else if(control==='controlled_by_other_extensions'||control==='not_controllable'){
       value='conflict';reason='代理由其他扩展或浏览器策略管理';
     }else if(!state.desired&&control==='controlled_by_this_extension'){
-      value='unavailable';reason='未释放的代理设置，后台将恢复清理';
+      value='unavailable';reason='当前扩展代理归属需要核对，未自动清理';
     }else if(state.desired){
       value=permission&&control==='controlled_by_this_extension'&&
-        matchesAiProxy(chromeState?.value,state.lease.endpoint)?'enabled':'unavailable';
+        matchesAiStateProxy(chromeState?.value,state)?'enabled':'unavailable';
       if(value==='unavailable')reason='Chrome 未确认当前代理规则';
     }
     if(value==='enabled'&&lastError){value='unavailable';reason=lastError;}
     return {state:value,control,permission,
-      canStop:state.desired||state.releasePending||control==='controlled_by_this_extension',
+      canStop:state.desired||state.releasePending,
       reason:reason||lastError||null};
   }
-  async function stopLocked(state,raw,{dropLease=false}={}){
-    const stopping={...state,desired:false,releasePending:true,
-      ...(dropLease?{lease:null}:{})};
-    if(!raw||JSON.stringify(raw)!==JSON.stringify(stopping))
-      await storeAiState(api,raw,stopping);
-    await releaseAiProxy(api);
-    await api.alarms.clear(AI_ALARM);
-    await storeAiState(api,stopping,{...stopping,releasePending:false});
+  async function stopLocked(state,raw,{dropLease=false,guard}={}){
+    await stopAiAccessForTool(api,AI_ID,{dropLease,lockManager,expectedRaw:raw,...(guard?{guard}:{})});
     lastError=null;
     return status();
   }
-  async function applyLocked(state,raw,lease){
+  async function applyLocked(state,raw,lease,guard=async()=>{}){
+    return withAiProxyMutation(lockManager,async()=>{
+    await guard();
+    const record=await installed();
+    if(!record.tool||!record.enabled||!sameStorageValue(raw,record.raw)||
+       !await ownsInstallation(record))
+      throw aiError('E_TOOL_CHANGED','激活回执或工具安装身份已变化');
     if(!await availablePermission())
       throw aiError('E_AI_PERMISSION','请先授予 Chrome 原生代理权限并更新扩展');
     const before=await snapshot(),level=controlLevel(before?.levelOfControl);
     if(!['controlled_by_this_extension','controllable_by_this_extension'].includes(level))
       throw aiError('E_AI_CONFLICT','代理由其他扩展或系统策略管理，未夺取控制权');
-    const desired=desiredAiProxy(lease.endpoint);
+    if(await legacyHold(before))
+      throw aiError('E_AI_CONFLICT','旧版 AI 智能访问尚未明确停止，禁止接管代理');
+    if(level==='controlled_by_this_extension'&&
+       (!state.desired||!matchesAiStateProxy(before.value,state)))
+      throw aiError('E_AI_OWNERSHIP','当前扩展代理不属于本安装，未覆盖或清理');
+    const desired=desiredAiProxy(lease.endpoint,state.proxyOwner);
     // Journal a release fence BEFORE native changes. An interrupted SW
     // cannot leave our PAC active while durable state says "disabled".
-    const pending={...state,lease,desired:false,releasePending:true};
+    const pending={...state,lease,desired:false,releasePending:true,pendingApply:true,
+      ...(state.desired?{previousEndpoint:state.lease.endpoint}:{})};
+    await guard();
     await storeAiState(api,raw,pending);
     try{
+      await guard();
       await api.proxy.settings.set({value:desired,scope:'regular'});
       const after=await snapshot();
       if(controlLevel(after?.levelOfControl)!=='controlled_by_this_extension'||
-         !matchesAiProxy(after.value,lease.endpoint))
+         !matchesAiProxy(after.value,lease.endpoint,state.proxyOwner))
         throw aiError('E_AI_APPLY','Chrome 未确认代理规则与控制权');
-      await storeAiState(api,pending,{...pending,desired:true,releasePending:false});
+      const {previousEndpoint,pendingApply,...settled}=pending;
+      await guard();
+      await storeAiState(api,pending,{...settled,desired:true,releasePending:false});
+      await guard();
       await api.alarms.create(AI_ALARM,{periodInMinutes:5});
       lastError=null;
       return status();
     }catch(error){
-      // Pending fence stays durable if release or storage commit fails.
-      try{
-        await releaseAiProxy(api);
-        await storeAiState(api,pending,{...pending,desired:false,releasePending:false});
-      }catch{ /* Retry at the next worker wake. */ }
+      // The native or storage acknowledgement may be lost after installation.
+      // Preserve the receipt and PAC instead of silently rolling back to DIRECT.
+      lastError='代理设置结果尚未确认，保留规则与回执；请明确停止后重试';
       throw error;
     }
+    });
   }
-  async function perform(operation,payload){
+  async function perform(operation,payload,request){
     if(operation==='aiAccess.status'){
       if(!exact(payload,[]))throw aiError('E_AI_REQUEST','状态请求不接受参数');
       return status();
     }
     return lock(async()=>{
-      const record=await installed(),{raw,state,tool,enabled}=record;
+      const record=await authorizeRequest(request),{raw,state,tool,enabled}=record;
+      const guard=()=>authorizeRequest(request);
       if(!tool||!enabled)throw aiError('E_TOOL_CHANGED','AI 智能访问已停用或卸载');
-      const settings=validatedProvider(provider);
       if(operation==='aiAccess.disable'){
         if(!exact(payload,[]))throw aiError('E_AI_REQUEST','停用请求不接受参数');
-        return stopLocked(state,raw);
+        return stopLocked(state,raw,{guard});
       }
+      const settings=validatedProvider(provider);
       if(operation==='aiAccess.activate'){
         if(!exact(payload,['code'])||!safeCode(payload.code))
           throw aiError('E_AI_REQUEST','激活码格式无效');
         if(!settings)throw aiError('E_AI_PROVIDER','可信激活服务尚未配置');
         if(state.desired||state.releasePending)throw aiError('E_AI_ACTIVE','请先确认停止代理，再更换激活');
-        const deviceId=state.deviceId||crypto.randomUUID();
+        const sameInstall=await ownsInstallation(record);
+        const deviceId=sameInstall&&state.deviceId||crypto.randomUUID();
         const data=await boundedPost(fetcher,settings.activate,{deviceId,code:payload.code});
         const lease=validLease(data,now());
-        await storeAiState(api,raw,{...state,deviceId,lease});
+        const proxyOwner=await installationOwner(record);
+        const current=await guard();
+        if(!sameStorageValue(current.raw,raw))
+          throw aiError('E_TOOL_CHANGED','激活期间代理状态已变化');
+        await storeAiState(api,raw,{...state,deviceId,lease,proxyOwner});
         return status();
       }
       if(operation==='aiAccess.enable'){
         if(!exact(payload,[]))throw aiError('E_AI_REQUEST','启用请求不接受参数');
         if(state.desired||state.releasePending)throw aiError('E_AI_ACTIVE','代理正在启用或等待清理，请先检查状态');
+        if(await legacyHold(await snapshot()))
+          throw aiError('E_AI_CONFLICT','旧版 AI 智能访问尚未明确停止，禁止接管代理');
         if(!settings)throw aiError('E_AI_PROVIDER','可信代理服务尚未接入');
+        if(!await ownsInstallation(record))
+          throw aiError('E_AI_ACTIVATION','当前安装缺少匹配的激活回执');
         let lease;
         try{lease=await authorizedLease(state,settings);}
         catch(error){
-          if(['E_AI_ACTIVATION','E_AI_REVOKED'].includes(error.code))
+          if(['E_AI_ACTIVATION','E_AI_REVOKED'].includes(error.code)){
+            const current=await guard();
+            if(!sameStorageValue(current.raw,raw))
+              throw aiError('E_TOOL_CHANGED','验证期间代理状态已变化');
             await storeAiState(api,raw,{...state,desired:false,lease:null});
+          }
           throw error;
         }
-        try{return await applyLocked(state,raw,lease);}
+        try{return await applyLocked(state,raw,lease,guard);}
         catch(error){
-          // If set partially succeeded, removal is journalled and retried.
+          // A partially applied preference remains fenced until explicit STOP.
           lastError=error.message;
           throw error;
         }
@@ -257,60 +311,57 @@ export function createAiAccessService({api=globalThis.chrome,
        await sidebarToolPackageHash(record.tool)!==message.packageHash)
       throw aiError('E_TOOL_CHANGED','工具安装版本或授权已变化');
     await hostDocument(sender,documentId);
-    const result=await perform(message.operation,message.payload);
+    const request={sender,documentId,packageHash:message.packageHash,
+      installEpoch:message.installEpoch??null};
+    const result=await perform(message.operation,message.payload,request);
     await hostDocument(sender,documentId);
     return result;
   }
   async function reconcile(){
     return lock(async()=>{
+      const records=await readAiStates(api),old=records[LEGACY_AI_ID].state;
+      // Only a persisted explicit STOP may release on wake. An uncertain
+      // apply is not STOP, and an active legacy installation is never migrated.
+      if(old.releasePending&&!old.pendingApply)
+        await stopAiAccessForTool(api,LEGACY_AI_ID,{lockManager,expectedRaw:records[LEGACY_AI_ID].raw});
       const record=await installed();
-      if(!record.tool||!record.enabled||record.state.releasePending){
-        // Avoid resurrecting private data after uninstall when nothing was
-        // ever configured, but recover an existing preference if one remains.
-        if(record.raw!==undefined){
-          await stopLocked(record.state,record.raw);return;
-        }
-        if(await availablePermission()){
-          const current=await snapshot();
-          if(controlLevel(current.levelOfControl)==='controlled_by_this_extension')
-            await stopLocked(record.state,record.raw);
-        }
+      if(record.state.pendingApply){
+        lastError='代理设置结果尚未确认，保留规则与回执；请明确停止后重试';
+        return;
+      }
+      if(record.state.releasePending){
+        await stopLocked(record.state,record.raw);return;
+      }
+      if(record.raw===undefined||!record.state.desired)return;
+      if(!record.tool||!record.enabled||!await ownsInstallation(record)){
+        lastError='原代理安装身份无法确认，保留规则；请明确停止后重新激活';
         return;
       }
       const settings=validatedProvider(provider);
-      if(!record.state.desired){
-        // Recovery for interrupted writes or stale PAC from prior sessions.
-        if(await availablePermission()){
-          const current=await snapshot();
-          if(controlLevel(current.levelOfControl)==='controlled_by_this_extension')
-            await stopLocked(record.state,record.raw);
-        }
-        return;
-      }
       if(!settings||!leaseUsable(record.state.lease,now())){
-        await stopLocked(record.state,record.raw,{dropLease:true});return;
+        lastError='代理授权已过期或服务未配置，保留规则以避免静默直连；请明确停止';return;
       }
       if(!await availablePermission()){
-        lastError='Chrome 代理权限已撤销，已停止管理';
-        await stopLocked(record.state,record.raw);return;
+        lastError='Chrome 代理权限已撤销，保留回执等待核对；未自动清理';return;
       }
       let lease;
       try{lease=await authorizedLease(record.state,settings);}
       catch(error){
-        if(['E_AI_REVOKED','E_AI_ACTIVATION'].includes(error.code)){
-          await stopLocked(record.state,record.raw,{dropLease:true});
-        }else if(!leaseUsable(record.state.lease,now())){
-          await stopLocked(record.state,record.raw,{dropLease:true});
-        }else lastError='授权服务暂不可用，保留原代理规则以避免静默直连';
+        lastError=['E_AI_REVOKED','E_AI_ACTIVATION'].includes(error.code)?
+          '代理授权已撤销，保留原代理规则以避免静默直连；请明确停止':
+          '授权服务暂不可用，保留原代理规则以避免静默直连';
         return;
       }
       const chromeState=await snapshot(),control=controlLevel(chromeState.levelOfControl);
+      if(await legacyHold(chromeState)){
+        lastError='旧版代理仍在使用，禁止新工具接管；请先明确停止旧工具';return;
+      }
       if(control==='controlled_by_other_extensions'||control==='not_controllable'){
         lastError='代理控制权被其他扩展或策略占用；未强行覆盖';
         return;
       }
       if(control==='controlled_by_this_extension'&&
-         matchesAiProxy(chromeState.value,lease.endpoint)){
+         matchesAiProxy(chromeState.value,lease.endpoint,record.state.proxyOwner)){
         if(JSON.stringify(lease)!==JSON.stringify(record.state.lease))
           await storeAiState(api,record.raw,{...record.state,lease});
         await api.alarms.create(AI_ALARM,{periodInMinutes:5});
@@ -340,7 +391,7 @@ export function installAiAccessService({api=globalThis.chrome,...options}={}){
   });
   listen(api.runtime.onStartup,recover);
   listen(api.runtime.onInstalled,recover);
-  listen(api.alarms.onAlarm,alarm=>{if(alarm?.name===AI_ALARM)recover();});
+  listen(api.alarms.onAlarm,alarm=>{if([AI_ALARM,LEGACY_AI_ALARM].includes(alarm?.name))recover();});
   listen(api.permissions.onRemoved,removed=>{
     if(removed?.permissions?.includes('proxy'))recover();
   });

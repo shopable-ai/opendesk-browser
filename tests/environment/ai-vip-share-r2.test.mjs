@@ -90,13 +90,14 @@ async function fixture({control='controllable_by_this_extension',config=provider
     assert.equal(body.leaseId,lease.leaseId);
     return new Response(JSON.stringify({active:true,lease}));
   };
-  svc=createAiAccessService({api,lockManager:{request:(_key,fn)=>fn()},
+  const locks={request:(_key,fn)=>fn()};
+  svc=createAiAccessService({api,lockManager:locks,
     provider:config,fetcher});
   const packageHash=await sidebarToolPackageHash(tool);
   const message=(operation,payload={})=>({
     protocol:AI_PROTOCOL,toolId:AI_ID,operation,payload,packageHash,installEpoch:'epoch-1'
   });
-  return {api,svc,effects,local,message,
+  return {api,svc,effects,local,message,locks,
     rpc:(operation,payload={})=>svc.dispatch(message(operation,payload),sender),
     snapshot:()=>({current,level}),control:value=>{level=value;}};
 }
@@ -192,15 +193,20 @@ test('R1 without an approved backend no activation or false enabled state',async
   assert.equal(h.effects.fetch.length,0);assert.equal(h.effects.set.length,0);
 });
 
-test('R1 expired lease stops proxy and clears stale authorization on wake',async()=>{
+// R2.1 explicitly supersedes the old expiry -> clear expectation: automatic
+// clear can silently route AI traffic DIRECT. Keep the old lease as evidence
+// and require an explicit STOP to release, even when authorization expires.
+test('R2.1 expired lease preserves PAC and evidence on wake until explicit STOP',async()=>{
   const h=await fixture();
   await h.rpc('aiAccess.activate',{code:'GOOD-CODE'});await h.rpc('aiAccess.enable');
   h.local[AI_STORE].lease.expiresAt=Date.now()-1000;
   await h.svc.reconcile();
-  assert.equal(h.effects.clear.length,1);
-  assert.equal(h.local[AI_STORE].lease,null);
-  assert.equal(h.local[AI_STORE].desired,false);
+  assert.equal(h.effects.clear.length,0);
+  assert.notEqual(h.local[AI_STORE].lease,null);
+  assert.equal(h.local[AI_STORE].desired,true);
   assert.equal((await h.rpc('aiAccess.status')).state,'activation_required');
+  await h.rpc('aiAccess.disable');
+  assert.equal(h.effects.clear.length,1);
 });
 
 test('R1 tool disable/uninstall stops proxy and removes only its own data',async()=>{
@@ -209,13 +215,13 @@ test('R1 tool disable/uninstall stops proxy and removes only its own data',async
     lease:{leaseId:'lease-verified-123',expiresAt:expires(),endpoint}};
   await h.api.proxy.settings.set({value:desiredAiProxy(endpoint),scope:'regular'});
   const prior=h.effects.set.length;
-  await stopAiAccessForTool(h.api,AI_ID);
+  await stopAiAccessForTool(h.api,AI_ID,{lockManager:h.locks});
   assert.equal(h.effects.set.length,prior);
   assert.equal(h.effects.clear.length,1);
   const removed=[];
   await cleanupUninstalledAiAccess(h.api,AI_ID,async (_api,key)=>{
     removed.push(key);delete h.local[key];
-  });
+  },{lockManager:h.locks});
   assert.deepEqual(removed,[AI_STORE]);
 });
 
@@ -228,16 +234,20 @@ test('R2 renamed tool uses new identity, protocol, state and alarm namespaces',(
   assert.equal(AI_PROTOCOL,'opendesk.ai-vip-share.v1');
 });
 
-test('R2 old activation never enables renamed ID and stale PAC is released on wake',async()=>{
+// R2's unconditional stale-PAC clear was unsafe: renamed-ID reconciliation
+// cannot revoke a still-active old installation. The migration contract now
+// preserves its PAC and denies the new tool enable/STOP ownership.
+test('R2.1 old activation never enables renamed ID and active PAC survives wake',async()=>{
   const h=await fixture();
   h.local[LEGACY_AI_STORE]={...EMPTY_AI_STATE,desired:true,deviceId:randomUUID(),
     lease:{leaseId:'lease-verified-123',expiresAt:expires(),endpoint}};
   await h.api.proxy.settings.set({value:desiredAiProxy(endpoint),scope:'regular'});
-  assert.equal((await h.rpc('aiAccess.status')).state,'activation_required');
+  const status=await h.rpc('aiAccess.status');
+  assert.equal(status.state,'conflict');assert.equal(status.canStop,false);
   await h.svc.reconcile();
-  assert.equal(h.effects.clear.length,1);
-  assert.equal(h.snapshot().level,'controllable_by_this_extension');
-  assert.equal(h.local[AI_STORE].desired,false);
+  assert.equal(h.effects.clear.length,0);
+  assert.equal(h.snapshot().level,'controlled_by_this_extension');
+  assert.equal(h.local[AI_STORE],undefined);
   assert.equal(h.local[LEGACY_AI_STORE].desired,true,
     'old lease is kept until old ID is explicitly uninstalled');
 });
@@ -249,7 +259,7 @@ test('R2 uninstalling legacy package removes only its state and alarm',async()=>
   const removed=[];
   await cleanupUninstalledAiAccess(h.api,LEGACY_AI_ID,async (_api,key)=>{
     removed.push(key);delete h.local[key];
-  });
+  },{lockManager:h.locks});
   assert.deepEqual(removed,[LEGACY_AI_STORE]);
   assert.deepEqual(h.local[AI_STORE],EMPTY_AI_STATE);
   assert.equal(h.effects.clear.length,0);

@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "layer": "NODE_UI_AND_PACKAGE_ONLY",
+  "installed": false,
+  "file": "artifacts/sidebar-tools/ai-vip-share/1.0.1/ai-vip-share.opendesk-tool.json",
+  "bytes": 1689,
+  "id": "ai-vip-share",
+  "version": "1.0.1",
+  "capabilities": [
+    "ai.access"
+  ],
+  "fileSha256": "7f896bb839d88bd55e24ab66526b011a76aee425ffe9e187fb57a68d8a140630",
+  "packageHash": "7f896bb839d88bd55e24ab66526b011a76aee425ffe9e187fb57a68d8a140630",
+  "uiSourceSha256": "43afa03a6f5a714d8b5e255dd0a1ed0844b1a331b561370c1def37c27f386fcc",
+  "checks": {
+    "packageValidation": "PASS",
+    "statusReasonAsLiteralText": "PASS"
+  },
+  "limits": [
+    "Not a browser or SDK-first acceptance"
+  ]
+}

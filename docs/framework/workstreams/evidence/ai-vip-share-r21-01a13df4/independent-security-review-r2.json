@@ -1,0 +1,267 @@
+{
+  "schema_version": 1,
+  "revision": 2,
+  "reviewed_at_utc": "2026-10-15T05:35:32.410980+00:00",
+  "review_type": "Independent single-sidecar static security re-review of current source; reviewer did not author implementation",
+  "verdict": "NO_OPEN_FINDINGS_IN_SCOPED_STATIC_REVIEW_VALIDATION_PENDING",
+  "approval_granted": false,
+  "prior_review": {
+    "path": "docs/framework/workstreams/evidence/ai-vip-share-r21-01a13df4/independent-security-review.json",
+    "sha256": "e9c0783878763a9bdf6ae2859c81a47cb9dffdf688fa7f2a29ae57a71f864f4f",
+    "preserved_without_changes": true
+  },
+  "source_identity": {
+    "algorithm": "SHA-256",
+    "frozen_files": [
+      {
+        "path": "src/ai-smart-access/lifecycle.js",
+        "sha256": "46928470c866b7098af07de15f0bb445e5baa8d41befd8b3e270d263082ead03"
+      },
+      {
+        "path": "src/ai-smart-access/policy.js",
+        "sha256": "aa5a3113252534a4811de82b7959817aa327527659e5073db88fab0a5859803f"
+      },
+      {
+        "path": "src/ai-smart-access/service.js",
+        "sha256": "9c311c8fbb63aed00d27a86792d6869b8f1957a544696027b5bf7d3f4ab877d0"
+      },
+      {
+        "path": "tests/environment/ai-vip-share-r2.test.mjs",
+        "sha256": "45e72233fec86d8d962fca0d124d31f4da77d0096ee2d6562994cac9df16c678"
+      },
+      {
+        "path": "tests/environment/ai-vip-share-r21-lifecycle.test.mjs",
+        "sha256": "7276dd6dc99a6aacf09e58a7320ee61219e9b647bd25f9fce1b789a46305aaa3"
+      }
+    ],
+    "frozen_file_count": 5,
+    "aggregate_sha256": "6b64b10d2db6d4e20f79da265a77680552a71f4b79a493f6b018fce0cb5b85f6",
+    "aggregate_encoding": "UTF-8; lexicographically sorted paths, each path + NUL + lowercase hex file SHA-256 + LF",
+    "aggregate_independently_recomputed": true,
+    "scope_note": "Three implementation files and R21 regression source read; existing R2 fixture file included in frozen/test identity, without a new exhaustive fixture audit.",
+    "supporting_call_path_files": [
+      {
+        "path": "src/ui/sidebar-tools/installation.js",
+        "sha256": "a1fd9dbad0318e997cc6745b995308400656b4a781f8126621d3699ddec073fd",
+        "scope": "supporting_call_path"
+      },
+      {
+        "path": "src/ui/sidebar-tools/storage-state.js",
+        "sha256": "94ab39124c7aa436aee432256a933c6c61fb4e7901459b84421dfcc79347565d",
+        "scope": "supporting_call_path"
+      }
+    ]
+  },
+  "scope": {
+    "write_scope": [
+      "docs/framework/workstreams/evidence/ai-vip-share-r21-01a13df4/independent-security-review-r2.json"
+    ],
+    "no_source_changes": true,
+    "no_git_commands": true,
+    "no_reviewer_test_build_or_browser_execution": true,
+    "comparison_method": "Direct read of latest source and new regression cases; previous review used to track findings, no Git diff"
+  },
+  "finding_disposition": [
+    {
+      "id": "R21-SEC-01",
+      "previous_severity": "HIGH",
+      "status": "RESOLVED_IN_REVIEWED_SOURCE",
+      "evidence": [
+        {
+          "path": "src/ai-smart-access/service.js",
+          "lines": [
+            105,
+            112
+          ],
+          "observation": "authorizeRequest checks the captured document and current packageHash/installEpoch; checks host again after installation lookup."
+        },
+        {
+          "path": "src/ai-smart-access/service.js",
+          "lines": [
+            231,
+            258
+          ],
+          "observation": "perform receives request identity and authorizes inside tool lock; activation rechecks after network wait and compares raw state before storing. Proxy owner hashing precedes the last guard."
+        },
+        {
+          "path": "src/ai-smart-access/service.js",
+          "lines": [
+            185,
+            220
+          ],
+          "observation": "apply authorizes after acquiring proxy lock and before journal/native set/settle/alarm effects."
+        },
+        {
+          "path": "src/ai-smart-access/lifecycle.js",
+          "lines": [
+            80,
+            105
+          ],
+          "observation": "STOP authorizes after proxy-lock acquisition and before state/alarm/native effects; release checks guard immediately before clear."
+        },
+        {
+          "path": "tests/environment/ai-vip-share-r21-lifecycle.test.mjs",
+          "lines": [
+            369,
+            397
+          ],
+          "observation": "Regression delays an already validated disable on tool lock, replaces package/epoch, and expects identity error with no mutation effects."
+        },
+        {
+          "path": "tests/environment/ai-vip-share-r21-lifecycle.test.mjs",
+          "lines": [
+            433,
+            464
+          ],
+          "observation": "Additional regression covers document/epoch invalidation after proxy-lock and activation-network waits."
+        }
+      ],
+      "validation_level": "Static resolution verified; regression source inspected, not executed by reviewer."
+    },
+    {
+      "id": "R21-SEC-02",
+      "previous_severity": "MEDIUM",
+      "status": "RESOLVED_IN_REVIEWED_SOURCE",
+      "evidence": [
+        {
+          "path": "src/ai-smart-access/lifecycle.js",
+          "lines": [
+            78,
+            123
+          ],
+          "observation": "Private stopLocked does not reacquire the proxy lock. cleanup holds one proxy lock across STOP and awaited removeVerifiedKey, including the caller-provided verified deletion."
+        },
+        {
+          "path": "src/ai-smart-access/lifecycle.js",
+          "lines": [
+            83,
+            93
+          ],
+          "observation": "Under the proxy lock, expectedRaw is compared using sameStorageValue; missing or changed raw state returns before writes/alarms/native effects."
+        },
+        {
+          "path": "src/ai-smart-access/service.js",
+          "lines": [
+            320,
+            333
+          ],
+          "observation": "Legacy background recovery passes the sampled raw state as expectedRaw; new namespace STOP also passes raw through service stopLocked."
+        },
+        {
+          "path": "tests/environment/ai-vip-share-r21-lifecycle.test.mjs",
+          "lines": [
+            399,
+            431
+          ],
+          "observation": "Regression queues legacy recovery behind uninstall, verifies deletion, resumes queued recovery and asserts absence plus unchanged native/alarm effects."
+        }
+      ],
+      "validation_level": "Static resolution verified; comparison is lock-protected optimistic stale detection, not a storage API atomic CAS. Regression source inspected, not executed by reviewer."
+    }
+  ],
+  "open_implementation_findings": [],
+  "preserved_safety_properties": [
+    "Same named proxy Web Lock coordinates UI cleanup and worker mutation; missing lock support fails before effects.",
+    "STOP retains namespace ownership evidence durably, arms namespace retry alarm before release, and clears alarm after confirmed release.",
+    "Expired/revoked/provider-unavailable active state and uncertain pendingApply retain PAC/evidence rather than initiating automatic release.",
+    "New and legacy namespaces remain separate; release checks exact PAC receipt plus peer ambiguity instead of relying on extension-level control alone."
+  ],
+  "validation_evidence": {
+    "persisted_lifecycle_log": {
+      "path": "docs/framework/workstreams/evidence/ai-vip-share-r21-01a13df4/lifecycle-final.log",
+      "sha256": "3598ddf85f3b3c7530eddacb759b13e1f8e61cf4953a58c9c180e5ea19c48f9c",
+      "observed_summary": {
+        "tests": 27,
+        "pass": 27,
+        "fail": 0
+      },
+      "applies_to_reviewed_r2_source": false,
+      "reason": "Historical 27-test run; superseded for this review by hash-bound race.log 30/30."
+    },
+    "snapshot_binding": {
+      "path": "docs/framework/workstreams/evidence/ai-vip-share-r21-01a13df4/snapshot-binding.json",
+      "sha256": "bd467da3910cb09df012300a9b5cc1c0595ac62e78905a8af562dcc64686f202",
+      "snapshot": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/ai-vip-share-r21-01a13df4/candidate",
+      "comparisons": [
+        {
+          "path": "src/ai-smart-access/policy.js",
+          "reviewed_sha256": "aa5a3113252534a4811de82b7959817aa327527659e5073db88fab0a5859803f",
+          "manifest_sha256": "aa5a3113252534a4811de82b7959817aa327527659e5073db88fab0a5859803f",
+          "candidate_sha256": "aa5a3113252534a4811de82b7959817aa327527659e5073db88fab0a5859803f",
+          "reviewed_matches_manifest_and_candidate": true
+        },
+        {
+          "path": "src/ai-smart-access/service.js",
+          "reviewed_sha256": "9c311c8fbb63aed00d27a86792d6869b8f1957a544696027b5bf7d3f4ab877d0",
+          "manifest_sha256": "439c5cd2f8aab171dddbe8b97f32941c440e5084a60b31ab0602add1454f60a7",
+          "candidate_sha256": "439c5cd2f8aab171dddbe8b97f32941c440e5084a60b31ab0602add1454f60a7",
+          "reviewed_matches_manifest_and_candidate": false
+        },
+        {
+          "path": "src/ai-smart-access/lifecycle.js",
+          "reviewed_sha256": "46928470c866b7098af07de15f0bb445e5baa8d41befd8b3e270d263082ead03",
+          "manifest_sha256": "ae8abc76f88ab3d31ebfa21248a44adc3f12e258ca7d2c07b69c432e775cbd23",
+          "candidate_sha256": "ae8abc76f88ab3d31ebfa21248a44adc3f12e258ca7d2c07b69c432e775cbd23",
+          "reviewed_matches_manifest_and_candidate": false
+        },
+        {
+          "path": "tests/environment/ai-vip-share-r2.test.mjs",
+          "reviewed_sha256": "45e72233fec86d8d962fca0d124d31f4da77d0096ee2d6562994cac9df16c678",
+          "manifest_sha256": "45e72233fec86d8d962fca0d124d31f4da77d0096ee2d6562994cac9df16c678",
+          "candidate_sha256": "45e72233fec86d8d962fca0d124d31f4da77d0096ee2d6562994cac9df16c678",
+          "reviewed_matches_manifest_and_candidate": true
+        },
+        {
+          "path": "tests/environment/ai-vip-share-r21-lifecycle.test.mjs",
+          "reviewed_sha256": "7276dd6dc99a6aacf09e58a7320ee61219e9b647bd25f9fce1b789a46305aaa3",
+          "manifest_sha256": "b0cb4a4350e4a7f0cab50ece7f5074fc3729f22adcd88332141363f5a0dd48f9",
+          "candidate_sha256": "b0cb4a4350e4a7f0cab50ece7f5074fc3729f22adcd88332141363f5a0dd48f9",
+          "reviewed_matches_manifest_and_candidate": false
+        }
+      ],
+      "applies_to_reviewed_r2_source": false,
+      "reason": "Snapshot identity observed at report time only; leader owns final candidate synchronization and full validation."
+    },
+    "executor_frozen_result": {
+      "path": "docs/framework/workstreams/evidence/ai-vip-share-r21-01a13df4/race.log",
+      "sha256": "e820f71b913a331f69fb6fe2f1e360efc5a1d4328a35ff57c951ffde79314a12",
+      "observed_summary": {
+        "tests": 30,
+        "pass": 30,
+        "fail": 0
+      },
+      "final_frozen_identity_matches_workspace": true,
+      "aggregate_sha256": "6b64b10d2db6d4e20f79da265a77680552a71f4b79a493f6b018fce0cb5b85f6",
+      "regression_success_lines": [
+        125,
+        126,
+        127
+      ],
+      "evidence_level": "Existing executor component log and frozen source identity independently read and compared; reviewer did not execute tests."
+    }
+  },
+  "limitations_and_pending_evidence": [
+    "No open implementation defect found in this bounded static re-review; this is not full product, merge-ready, real-browser, live-provider or network approval.",
+    "Both original findings are resolved in the exact frozen source hashes above; all three new request/uninstall/document race regressions appear passing in executor race.log 30/30.",
+    "Executor results and frozen identity were inspected, not independently rerun; no test/build/browser/Git command or dynamic reproduction was performed by reviewer.",
+    "Leader owns synchronized candidate check/build/development/verify/tests and resulting artifacts; old candidate evidence must not be attributed to this aggregate hash.",
+    "Single independent reviewer; separate architect lane unavailable. No two-lane approval asserted.",
+    "Chrome restart/alarm delivery, permission-loss routing and real traffic fail-closed behavior were not exercised here; retained PAC source state alone does not prove routing under external policy or permission changes.",
+    "Network fixture 40/40 does not establish product acceptance and was not revalidated here.",
+    "No secrets or provider configuration/credential values are included."
+  ],
+  "provider": {
+    "status": "PROVIDER_BLOCKED",
+    "evidence_path": "docs/framework/workstreams/evidence/ai-vip-share-r21-01a13df4/provider-review.json",
+    "evidence_sha256": "032d32facc4bd39b9ca7089ec0523db464f94716c0170b6fcead9f2a696e5e7c",
+    "scope": "Formal production HTTPS activation/verify provider remains unestablished by prior reference-source research; no live provider tests in r2."
+  },
+  "final_freeze_acknowledgement": {
+    "tests": 30,
+    "pass": 30,
+    "fail": 0,
+    "five_file_aggregate_sha256": "6b64b10d2db6d4e20f79da265a77680552a71f4b79a493f6b018fce0cb5b85f6",
+    "original_review_preserved": true,
+    "git_state_not_inspected": "User reports main change is Cookie README only; review validity is bound to exact file hashes, not repository HEAD."
+  }
+}

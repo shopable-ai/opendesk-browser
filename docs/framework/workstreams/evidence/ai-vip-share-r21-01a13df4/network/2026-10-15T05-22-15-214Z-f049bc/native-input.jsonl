@@ -1,0 +1,16 @@
+{"at":"2026-10-15T05:22:18.344Z","pid":71031,"command":"activate","output":"OWNED_FRONTMOST\n"}
+{"at":"2026-10-15T05:22:18.590Z","pid":71031,"command":"key","value":"return","output":"OWNED_NATIVE_KEY return\n"}
+{"at":"2026-10-15T05:22:19.931Z","pid":71031,"command":"activate","output":"OWNED_FRONTMOST\n"}
+{"at":"2026-10-15T05:22:20.179Z","pid":71031,"command":"key","value":"tab","output":"OWNED_NATIVE_KEY tab\n"}
+{"at":"2026-10-15T05:22:20.429Z","pid":71031,"command":"key","value":"tab","output":"OWNED_NATIVE_KEY tab\n"}
+{"at":"2026-10-15T05:22:20.682Z","pid":71031,"command":"key","value":"return","output":"OWNED_NATIVE_KEY return\n"}
+{"at":"2026-10-15T05:22:21.073Z","pid":71031,"command":"activate","output":"OWNED_FRONTMOST\n"}
+{"at":"2026-10-15T05:22:21.340Z","pid":71031,"command":"key","value":"tab","output":"OWNED_NATIVE_KEY tab\n"}
+{"at":"2026-10-15T05:22:21.590Z","pid":71031,"command":"key","value":"tab","output":"OWNED_NATIVE_KEY tab\n"}
+{"at":"2026-10-15T05:22:21.840Z","pid":71031,"command":"key","value":"tab","output":"OWNED_NATIVE_KEY tab\n"}
+{"at":"2026-10-15T05:22:22.090Z","pid":71031,"command":"key","value":"tab","output":"OWNED_NATIVE_KEY tab\n"}
+{"at":"2026-10-15T05:22:22.334Z","pid":71031,"command":"key","value":"tab","output":"OWNED_NATIVE_KEY tab\n"}
+{"at":"2026-10-15T05:22:22.587Z","pid":71031,"command":"key","value":"return","output":"OWNED_NATIVE_KEY return\n"}
+{"at":"2026-10-15T05:22:23.741Z","pid":71031,"command":"activate","output":"OWNED_FRONTMOST\n"}
+{"at":"2026-10-15T05:22:24.010Z","pid":71031,"command":"key","value":"tab","output":"OWNED_NATIVE_KEY tab\n"}
+{"at":"2026-10-15T05:22:24.269Z","pid":71031,"command":"key","value":"return","output":"OWNED_NATIVE_KEY return\n"}

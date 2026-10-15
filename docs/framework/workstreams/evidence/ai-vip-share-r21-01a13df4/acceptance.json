@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-15T05:41:29.720114+00:00",
+  "overall": "BLOCKED",
+  "goalComplete": false,
+  "sourceBaseHead": "d44181bd1ca6bb1aaf7d11d0fb5fd88b1fb00b32",
+  "testedSourceBinding": "snapshot-binding-r2.json",
+  "sourceCommit": "PENDING_COMMIT",
+  "ci": "PENDING_PUSH",
+  "filesChanged": [
+    "src/ai-smart-access/policy.js",
+    "src/ai-smart-access/service.js",
+    "src/ai-smart-access/lifecycle.js",
+    "tests/environment/ai-vip-share-r2.test.mjs",
+    "tests/environment/ai-vip-share-r21-lifecycle.test.mjs",
+    ".github/workflows/sidebar-tools-r1.yml",
+    "examples/sidebar-tools/ai-vip-share/src/main.js",
+    "examples/sidebar-tools/ai-vip-share/tool.config.json",
+    "examples/sidebar-tools/ai-vip-share/README.zh-CN.md",
+    "tests/framework/ai-vip-share-r21-network.mjs"
+  ],
+  "filesDeleted": [],
+  "blockers": {
+    "SDK_BLOCKED": {
+      "matrix": "docs/api/browser-sdk-interface-matrix.json",
+      "namespace": "chrome.proxy",
+      "approvedOperationIds": [],
+      "requirements": "See workstream: one approved installed identity/Authority/permission/endpoint/domain/PAC/ownership/readback/recovery/conflict lifecycle contract; shared owner R11. No proposed operation names constitute approval."
+    },
+    "PROVIDER_BLOCKED": {
+      "referenceRepository": "shopable-ai/ai-proxy",
+      "sourceCommit": "d8e68fec75bf0bbfb39fddccd756a2103cff3787",
+      "evidence": "provider-review.json",
+      "reason": "No delivered activation/verification service or authorized operational endpoint; no guessed URL/key."
+    }
+  },
+  "validation": {
+    "targeted": {
+      "pass": 30,
+      "fail": 0,
+      "evidence": "race.log"
+    },
+    "rawChromeNetwork": {
+      "pass": 40,
+      "fail": 0,
+      "browser": "Chrome for Testing 155.0.8059.39",
+      "fixtureExtensionId": "ahkdnnchihidgcbjcgbijphkdhincdnc",
+      "evidence": "network/2026-10-15T05-22-15-214Z-f049bc/report.json",
+      "level": "RAW_PAC_NETWORK_ONLY; NOT_PRODUCT_SDK_INSTALL_ACCEPTANCE"
+    },
+    "fullTest": {
+      "tests": 2558,
+      "pass": 2554,
+      "fail": 1,
+      "skipped": 3,
+      "evidence": "final-test.log",
+      "failure": "native-agent-chrome-real.test.mjs: Native permission bubble not safely actionable; no unique exact dialog for PID 81253. Unique test instance/profile cleanup ran; PID gone. No consent bypass/retry without changed condition."
+    },
+    "commands": "final-validation.json",
+    "independentReview": "independent-security-review-r2.json",
+    "reviewLimit": "Bounded static re-review, not full product approval",
+    "sourceBindingMatchesAfterValidation": true,
+    "sizeReview": "sw.js 615349 bytes exceeds soft review 524288; hard gate 1048576 passed."
+  },
+  "artifacts": {
+    "productionPackageHash": "ce2cf417c4d80dd7152bf585804d65ea1ba7a08632e87218953a29f65c36654b",
+    "developmentPackageHash": "90cab0f36c9a416e18ce435db9fcfb8e8f5664ee1a2d5f517fcd8d6358320b1e",
+    "tool": {
+      "id": "ai-vip-share",
+      "version": "1.0.1",
+      "capabilities": [
+        "ai.access"
+      ],
+      "sha256": "7f896bb839d88bd55e24ab66526b011a76aee425ffe9e187fb57a68d8a140630",
+      "installed": false
+    },
+    "zip": {
+      "path": "artifacts/ai-vip-share-r21-01a13df4/opendesk-browser-production.zip",
+      "sha256": "c3b5d50d552d4fde961a52b3696ad176126f559333c238a3964f7f0dde7e0977",
+      "bytes": 1249750,
+      "status": "STAGED_NOT_INSTALL_TESTED"
+    },
+    "productExtensionId": null,
+    "productChromeAcceptance": "NOT_TESTED"
+  },
+  "dimensions": [
+    {
+      "dimension": "独立架构与业务解耦",
+      "status": "BLOCKED",
+      "score": null,
+      "scoreStatus": "NOT_SCORED",
+      "evidenceAndGap": "六个专用模块仍在宿主；逐文件迁移分类已记录，缺少获批公共 Managed Proxy Runtime。"
+    },
+    {
+      "dimension": "SDK 复用与框架一致性",
+      "status": "SDK_BLOCKED",
+      "score": null,
+      "scoreStatus": "NOT_SCORED",
+      "evidenceAndGap": "R11 chrome.proxy 无 approvedOperationIds；ai.access 仍是过渡私有能力。未创建第二套 SDK/Host/Registry/安装器。"
+    },
+    {
+      "dimension": "安全和 Chrome 权限隔离",
+      "status": "NOT_TESTED",
+      "score": null,
+      "scoreStatus": "NOT_SCORED",
+      "evidenceAndGap": "Node 身份/所有权/竞态测试及独立静态复核通过；正式工具的真实 Chrome 权限、撤权和竞争未验收。"
+    },
+    {
+      "dimension": "代理核心功能",
+      "status": "NOT_TESTED",
+      "score": null,
+      "scoreStatus": "NOT_SCORED",
+      "evidenceAndGap": "原始 PAC/Chrome fixture 40/40 PASS；没有正式 SDK/工具 sender 到网络的端到端证据。"
+    },
+    {
+      "dimension": "Chrome 生命周期",
+      "status": "NOT_TESTED",
+      "score": null,
+      "scoreStatus": "NOT_SCORED",
+      "evidenceAndGap": "组件覆盖恢复、未知结果和 STOP；正式工具 SW/Chrome 重启、关闭 Side Panel、权限丢失未验收。"
+    },
+    {
+      "dimension": "用户体验与可访问性",
+      "status": "NOT_TESTED",
+      "score": null,
+      "scoreStatus": "NOT_SCORED",
+      "evidenceAndGap": "错误 reason 使用 textContent 展示；300/320/360/420/520px、浅深色、键盘、ARIA 和实际失败态未完成。"
+    },
+    {
+      "dimension": "安装、升级与卸载",
+      "status": "NOT_TESTED",
+      "score": null,
+      "scoreStatus": "NOT_SCORED",
+      "evidenceAndGap": "1.0.1 工具包哈希与两种 dist 一致；真实正式工具安装/迁移/卸载与 ZIP 安装未验收。"
+    },
+    {
+      "dimension": "测试和证据可信度",
+      "status": "BLOCKED",
+      "score": null,
+      "scoreStatus": "NOT_SCORED",
+      "evidenceAndGap": "定向 30/30、受控网络 40/40、构建验证通过；全测仍有 Native 权限对话框安全识别失败，F3/ZIP 与独立八维验收缺失。"
+    }
+  ],
+  "resources": {
+    "dailyDevelopment": "Watcher PID 66940 owns dist/development; loaded Extension ID and serve-client connection NOT_TESTED. Untouched.",
+    "candidate": "Independent static production/development file snapshot; no dev serve client.",
+    "testResources": "Owned network CFT/profile/ports and Native test instance/profile cleaned; daily Native pairing untouched.",
+    "evidence": "Original failed runs, rejected first candidate and independent review findings retained."
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "startedAt": "2026-10-15T05:34:51.927Z",
+  "root": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/ai-vip-share-r21-01a13df4/candidate-r2",
+  "variables": {
+    "OPENDESK_OUTPUT_GUARD_PORT": "43237",
+    "OPENDESK_BUILD_EVIDENCE_DIR": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/ai-vip-share-r21-01a13df4/build-final",
+    "CHROME_FOR_TESTING_BIN": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "OPENDESK_NATIVE_AGENT_HEADLESS": "1"
+  },
+  "commands": [
+    {
+      "label": "check",
+      "args": [
+        "run",
+        "check"
+      ],
+      "startedAt": "2026-10-15T05:34:51.928Z",
+      "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/ai-vip-share-r21-01a13df4/final-check.log",
+      "exitCode": 0,
+      "finishedAt": "2026-10-15T05:35:12.508Z"
+    },
+    {
+      "label": "production",
+      "args": [
+        "run",
+        "build"
+      ],
+      "startedAt": "2026-10-15T05:35:12.509Z",
+      "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/ai-vip-share-r21-01a13df4/final-production.log",
+      "exitCode": 0,
+      "finishedAt": "2026-10-15T05:35:38.696Z"
+    },
+    {
+      "label": "development",
+      "args": [
+        "run",
+        "build:dev"
+      ],
+      "startedAt": "2026-10-15T05:35:38.697Z",
+      "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/ai-vip-share-r21-01a13df4/final-development.log",
+      "exitCode": 0,
+      "finishedAt": "2026-10-15T05:36:03.354Z"
+    },
+    {
+      "label": "verify",
+      "args": [
+        "run",
+        "verify"
+      ],
+      "startedAt": "2026-10-15T05:36:03.355Z",
+      "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/ai-vip-share-r21-01a13df4/final-verify.log",
+      "exitCode": 0,
+      "finishedAt": "2026-10-15T05:36:05.422Z"
+    },
+    {
+      "label": "test",
+      "args": [
+        "test"
+      ],
+      "startedAt": "2026-10-15T05:36:05.423Z",
+      "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/ai-vip-share-r21-01a13df4/final-test.log",
+      "exitCode": 1,
+      "finishedAt": "2026-10-15T05:36:56.464Z"
+    },
+    {
+      "label": "pack",
+      "args": [
+        "run",
+        "pack"
+      ],
+      "startedAt": "2026-10-15T05:36:56.465Z",
+      "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/ai-vip-share-r21-01a13df4/final-pack.log",
+      "exitCode": 0,
+      "finishedAt": "2026-10-15T05:36:57.655Z"
+    }
+  ],
+  "finishedAt": "2026-10-15T05:36:57.655Z"
+}

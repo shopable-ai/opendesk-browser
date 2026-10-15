@@ -1,6 +1,6 @@
 {
   "id": "ai-vip-share",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "title": "AI VIP Share",
   "description": "一键开启指定 AI 网站自动代理，其他网站直连；激活与代理由可信框架管理。",
   "capabilities": [

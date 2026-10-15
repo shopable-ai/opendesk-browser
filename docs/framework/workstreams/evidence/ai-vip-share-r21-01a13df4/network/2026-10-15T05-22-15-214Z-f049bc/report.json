@@ -1,0 +1,1156 @@
+{
+  "status": "PASS",
+  "startedAt": "2026-10-15T05:22:15.215Z",
+  "layer": "RAW_CHROME_PAC_FIXTURE",
+  "cases": [
+    {
+      "name": "socks5 trusted enable and exact PAC readback",
+      "startedAt": "2026-10-15T05:22:17.002Z",
+      "event": {
+        "id": "socks5",
+        "eventType": "click",
+        "trusted": true,
+        "userActivation": true,
+        "at": "2026-10-15T05:22:18.482Z",
+        "sender": "ahkdnnchihidgcbjcgbijphkdhincdnc",
+        "api": "chrome.proxy.settings.set",
+        "request": {
+          "value": {
+            "mode": "pac_script",
+            "pacScript": {
+              "data": "function FindProxyForURL(url, host) {\n  host = String(host).toLowerCase().replace(/\\.$/, \"\");\n  if (host === \"chatgpt.com\" || dnsDomainIs(host, \".chatgpt.com\")) return \"SOCKS5 relay.ai-network.example:61506\";\n  if (host === \"openai.com\" || dnsDomainIs(host, \".openai.com\")) return \"SOCKS5 relay.ai-network.example:61506\";\n  if (host === \"claude.ai\" || dnsDomainIs(host, \".claude.ai\")) return \"SOCKS5 relay.ai-network.example:61506\";\n  if (host === \"gemini.google.com\" || dnsDomainIs(host, \".gemini.google.com\")) return \"SOCKS5 relay.ai-network.example:61506\";\n  if (host === \"perplexity.ai\" || dnsDomainIs(host, \".perplexity.ai\")) return \"SOCKS5 relay.ai-network.example:61506\";\n  return \"DIRECT\";\n}",
+              "mandatory": true
+            }
+          },
+          "scope": "regular"
+        },
+        "readback": {
+          "levelOfControl": "controlled_by_this_extension",
+          "value": {
+            "mode": "pac_script",
+            "pacScript": {
+              "data": "function FindProxyForURL(url, host) {\n  host = String(host).toLowerCase().replace(/\\.$/, \"\");\n  if (host === \"chatgpt.com\" || dnsDomainIs(host, \".chatgpt.com\")) return \"SOCKS5 relay.ai-network.example:61506\";\n  if (host === \"openai.com\" || dnsDomainIs(host, \".openai.com\")) return \"SOCKS5 relay.ai-network.example:61506\";\n  if (host === \"claude.ai\" || dnsDomainIs(host, \".claude.ai\")) return \"SOCKS5 relay.ai-network.example:61506\";\n  if (host === \"gemini.google.com\" || dnsDomainIs(host, \".gemini.google.com\")) return \"SOCKS5 relay.ai-network.example:61506\";\n  if (host === \"perplexity.ai\" || dnsDomainIs(host, \".perplexity.ai\")) return \"SOCKS5 relay.ai-network.example:61506\";\n  return \"DIRECT\";\n}",
+              "mandatory": true
+            }
+          }
+        },
+        "status": "OK"
+      },
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:18.592Z"
+    },
+    {
+      "name": "socks5 route chatgpt.com",
+      "startedAt": "2026-10-15T05:22:18.593Z",
+      "url": "https://chatgpt.com:61504/path/ordinary?next=ordinary.test&case=f064b530-384e-434a-9da9-b667eee43ab8",
+      "nonce": "f064b530-384e-434a-9da9-b667eee43ab8",
+      "route": "PROXY",
+      "origin": {
+        "nonce": "f064b530-384e-434a-9da9-b667eee43ab8",
+        "host": "chatgpt.com:61504",
+        "url": "/path/ordinary?next=ordinary.test&case=f064b530-384e-434a-9da9-b667eee43ab8",
+        "remotePort": 61543,
+        "localPort": 61504,
+        "tlsProtocol": "TLSv1.3"
+      },
+      "relay": {
+        "scheme": "socks5",
+        "method": "CONNECT",
+        "host": "chatgpt.com",
+        "port": 61504,
+        "addressType": 3,
+        "connected": true,
+        "upstreamLocalPort": 61543,
+        "connectedAt": "2026-10-15T05:22:18.596Z"
+      },
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:18.655Z"
+    },
+    {
+      "name": "socks5 route openai.com",
+      "startedAt": "2026-10-15T05:22:18.655Z",
+      "url": "https://openai.com:61504/path/ordinary?next=ordinary.test&case=68532c43-0ad3-4760-942e-7361dcd69e62",
+      "nonce": "68532c43-0ad3-4760-942e-7361dcd69e62",
+      "route": "PROXY",
+      "origin": {
+        "nonce": "68532c43-0ad3-4760-942e-7361dcd69e62",
+        "host": "openai.com:61504",
+        "url": "/path/ordinary?next=ordinary.test&case=68532c43-0ad3-4760-942e-7361dcd69e62",
+        "remotePort": 61548,
+        "localPort": 61504,
+        "tlsProtocol": "TLSv1.3"
+      },
+      "relay": {
+        "scheme": "socks5",
+        "method": "CONNECT",
+        "host": "openai.com",
+        "port": 61504,
+        "addressType": 3,
+        "connected": true,
+        "upstreamLocalPort": 61548,
+        "connectedAt": "2026-10-15T05:22:18.662Z"
+      },
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:18.684Z"
+    },
+    {
+      "name": "socks5 route claude.ai",
+      "startedAt": "2026-10-15T05:22:18.684Z",
+      "url": "https://claude.ai:61504/path/ordinary?next=ordinary.test&case=c866bd2d-dfc7-409d-b24b-f9c12ad13517",
+      "nonce": "c866bd2d-dfc7-409d-b24b-f9c12ad13517",
+      "route": "PROXY",
+      "origin": {
+        "nonce": "c866bd2d-dfc7-409d-b24b-f9c12ad13517",
+        "host": "claude.ai:61504",
+        "url": "/path/ordinary?next=ordinary.test&case=c866bd2d-dfc7-409d-b24b-f9c12ad13517",
+        "remotePort": 61551,
+        "localPort": 61504,
+        "tlsProtocol": "TLSv1.3"
+      },
+      "relay": {
+        "scheme": "socks5",
+        "method": "CONNECT",
+        "host": "claude.ai",
+        "port": 61504,
+        "addressType": 3,
+        "connected": true,
+        "upstreamLocalPort": 61551,
+        "connectedAt": "2026-10-15T05:22:18.686Z"
+      },
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:18.727Z"
+    },
+    {
+      "name": "socks5 route gemini.google.com",
+      "startedAt": "2026-10-15T05:22:18.727Z",
+      "url": "https://gemini.google.com:61504/path/ordinary?next=ordinary.test&case=9d35acb9-dc14-4d38-87b6-72b0e6890566",
+      "nonce": "9d35acb9-dc14-4d38-87b6-72b0e6890566",
+      "route": "PROXY",
+      "origin": {
+        "nonce": "9d35acb9-dc14-4d38-87b6-72b0e6890566",
+        "host": "gemini.google.com:61504",
+        "url": "/path/ordinary?next=ordinary.test&case=9d35acb9-dc14-4d38-87b6-72b0e6890566",
+        "remotePort": 61555,
+        "localPort": 61504,
+        "tlsProtocol": "TLSv1.3"
+      },
+      "relay": {
+        "scheme": "socks5",
+        "method": "CONNECT",
+        "host": "gemini.google.com",
+        "port": 61504,
+        "addressType": 3,
+        "connected": true,
+        "upstreamLocalPort": 61555,
+        "connectedAt": "2026-10-15T05:22:18.729Z"
+      },
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:18.748Z"
+    },
+    {
+      "name": "socks5 route perplexity.ai",
+      "startedAt": "2026-10-15T05:22:18.749Z",
+      "url": "https://perplexity.ai:61504/path/ordinary?next=ordinary.test&case=959736f9-9801-4fb3-82b0-dff46e29e40a",
+      "nonce": "959736f9-9801-4fb3-82b0-dff46e29e40a",
+      "route": "PROXY",
+      "origin": {
+        "nonce": "959736f9-9801-4fb3-82b0-dff46e29e40a",
+        "host": "perplexity.ai:61504",
+        "url": "/path/ordinary?next=ordinary.test&case=959736f9-9801-4fb3-82b0-dff46e29e40a",
+        "remotePort": 61559,
+        "localPort": 61504,
+        "tlsProtocol": "TLSv1.3"
+      },
+      "relay": {
+        "scheme": "socks5",
+        "method": "CONNECT",
+        "host": "perplexity.ai",
+        "port": 61504,
+        "addressType": 3,
+        "connected": true,
+        "upstreamLocalPort": 61559,
+        "connectedAt": "2026-10-15T05:22:18.750Z"
+      },
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:18.782Z"
+    },
+    {
+      "name": "socks5 route sub.chatgpt.com",
+      "startedAt": "2026-10-15T05:22:18.782Z",
+      "url": "https://sub.chatgpt.com:61504/path/ordinary?next=ordinary.test&case=3947fea3-851b-4c3e-8047-4c6889aa9847",
+      "nonce": "3947fea3-851b-4c3e-8047-4c6889aa9847",
+      "route": "PROXY",
+      "origin": {
+        "nonce": "3947fea3-851b-4c3e-8047-4c6889aa9847",
+        "host": "sub.chatgpt.com:61504",
+        "url": "/path/ordinary?next=ordinary.test&case=3947fea3-851b-4c3e-8047-4c6889aa9847",
+        "remotePort": 61563,
+        "localPort": 61504,
+        "tlsProtocol": "TLSv1.3"
+      },
+      "relay": {
+        "scheme": "socks5",
+        "method": "CONNECT",
+        "host": "sub.chatgpt.com",
+        "port": 61504,
+        "addressType": 3,
+        "connected": true,
+        "upstreamLocalPort": 61563,
+        "connectedAt": "2026-10-15T05:22:18.785Z"
+      },
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:18.796Z"
+    },
+    {
+      "name": "socks5 route sub.openai.com",
+      "startedAt": "2026-10-15T05:22:18.796Z",
+      "url": "https://sub.openai.com:61504/path/ordinary?next=ordinary.test&case=4cfb8385-b3fe-4d5f-9e6e-49c6036d04ff",
+      "nonce": "4cfb8385-b3fe-4d5f-9e6e-49c6036d04ff",
+      "route": "PROXY",
+      "origin": {
+        "nonce": "4cfb8385-b3fe-4d5f-9e6e-49c6036d04ff",
+        "host": "sub.openai.com:61504",
+        "url": "/path/ordinary?next=ordinary.test&case=4cfb8385-b3fe-4d5f-9e6e-49c6036d04ff",
+        "remotePort": 61567,
+        "localPort": 61504,
+        "tlsProtocol": "TLSv1.3"
+      },
+      "relay": {
+        "scheme": "socks5",
+        "method": "CONNECT",
+        "host": "sub.openai.com",
+        "port": 61504,
+        "addressType": 3,
+        "connected": true,
+        "upstreamLocalPort": 61567,
+        "connectedAt": "2026-10-15T05:22:18.798Z"
+      },
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:18.805Z"
+    },
+    {
+      "name": "socks5 route sub.claude.ai",
+      "startedAt": "2026-10-15T05:22:18.806Z",
+      "url": "https://sub.claude.ai:61504/path/ordinary?next=ordinary.test&case=1f24a75b-6c49-4a1a-b026-e9a6fa546c09",
+      "nonce": "1f24a75b-6c49-4a1a-b026-e9a6fa546c09",
+      "route": "PROXY",
+      "origin": {
+        "nonce": "1f24a75b-6c49-4a1a-b026-e9a6fa546c09",
+        "host": "sub.claude.ai:61504",
+        "url": "/path/ordinary?next=ordinary.test&case=1f24a75b-6c49-4a1a-b026-e9a6fa546c09",
+        "remotePort": 61571,
+        "localPort": 61504,
+        "tlsProtocol": "TLSv1.3"
+      },
+      "relay": {
+        "scheme": "socks5",
+        "method": "CONNECT",
+        "host": "sub.claude.ai",
+        "port": 61504,
+        "addressType": 3,
+        "connected": true,
+        "upstreamLocalPort": 61571,
+        "connectedAt": "2026-10-15T05:22:18.807Z"
+      },
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:18.815Z"
+    },
+    {
+      "name": "socks5 route sub.gemini.google.com",
+      "startedAt": "2026-10-15T05:22:18.815Z",
+      "url": "https://sub.gemini.google.com:61504/path/ordinary?next=ordinary.test&case=6cf2d777-30d5-460f-a7a1-36ea66ebb9c7",
+      "nonce": "6cf2d777-30d5-460f-a7a1-36ea66ebb9c7",
+      "route": "PROXY",
+      "origin": {
+        "nonce": "6cf2d777-30d5-460f-a7a1-36ea66ebb9c7",
+        "host": "sub.gemini.google.com:61504",
+        "url": "/path/ordinary?next=ordinary.test&case=6cf2d777-30d5-460f-a7a1-36ea66ebb9c7",
+        "remotePort": 61575,
+        "localPort": 61504,
+        "tlsProtocol": "TLSv1.3"
+      },
+      "relay": {
+        "scheme": "socks5",
+        "method": "CONNECT",
+        "host": "sub.gemini.google.com",
+        "port": 61504,
+        "addressType": 3,
+        "connected": true,
+        "upstreamLocalPort": 61575,
+        "connectedAt": "2026-10-15T05:22:18.816Z"
+      },
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:18.822Z"
+    },
+    {
+      "name": "socks5 route sub.perplexity.ai",
+      "startedAt": "2026-10-15T05:22:18.823Z",
+      "url": "https://sub.perplexity.ai:61504/path/ordinary?next=ordinary.test&case=f16faa7b-dc5d-47ad-a7ce-d9064046513e",
+      "nonce": "f16faa7b-dc5d-47ad-a7ce-d9064046513e",
+      "route": "PROXY",
+      "origin": {
+        "nonce": "f16faa7b-dc5d-47ad-a7ce-d9064046513e",
+        "host": "sub.perplexity.ai:61504",
+        "url": "/path/ordinary?next=ordinary.test&case=f16faa7b-dc5d-47ad-a7ce-d9064046513e",
+        "remotePort": 61579,
+        "localPort": 61504,
+        "tlsProtocol": "TLSv1.3"
+      },
+      "relay": {
+        "scheme": "socks5",
+        "method": "CONNECT",
+        "host": "sub.perplexity.ai",
+        "port": 61504,
+        "addressType": 3,
+        "connected": true,
+        "upstreamLocalPort": 61579,
+        "connectedAt": "2026-10-15T05:22:18.824Z"
+      },
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:18.831Z"
+    },
+    {
+      "name": "socks5 route ordinary.network.test",
+      "startedAt": "2026-10-15T05:22:18.831Z",
+      "url": "https://ordinary.network.test:61504/chatgpt.com/claude.ai?next=https%3A%2F%2Fopenai.com&case=455622de-c3ba-423c-9fd0-7cf8147e9993",
+      "nonce": "455622de-c3ba-423c-9fd0-7cf8147e9993",
+      "route": "DIRECT",
+      "origin": {
+        "nonce": "455622de-c3ba-423c-9fd0-7cf8147e9993",
+        "host": "ordinary.network.test:61504",
+        "url": "/chatgpt.com/claude.ai?next=https%3A%2F%2Fopenai.com&case=455622de-c3ba-423c-9fd0-7cf8147e9993",
+        "remotePort": 61582,
+        "localPort": 61504,
+        "tlsProtocol": "TLSv1.3"
+      },
+      "relay": null,
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:18.885Z"
+    },
+    {
+      "name": "socks5 route chatgpt.com.evil.test",
+      "startedAt": "2026-10-15T05:22:18.885Z",
+      "url": "https://chatgpt.com.evil.test:61504/path/ordinary?next=ordinary.test&case=f12d25bf-b92c-4981-bbea-23cd3bb1b42c",
+      "nonce": "f12d25bf-b92c-4981-bbea-23cd3bb1b42c",
+      "route": "DIRECT",
+      "origin": {
+        "nonce": "f12d25bf-b92c-4981-bbea-23cd3bb1b42c",
+        "host": "chatgpt.com.evil.test:61504",
+        "url": "/path/ordinary?next=ordinary.test&case=f12d25bf-b92c-4981-bbea-23cd3bb1b42c",
+        "remotePort": 61586,
+        "localPort": 61504,
+        "tlsProtocol": "TLSv1.3"
+      },
+      "relay": null,
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:18.905Z"
+    },
+    {
+      "name": "socks5 route evilchatgpt.com",
+      "startedAt": "2026-10-15T05:22:18.905Z",
+      "url": "https://evilchatgpt.com:61504/path/ordinary?next=ordinary.test&case=c350d8cd-4b77-454e-a6bf-90337269b030",
+      "nonce": "c350d8cd-4b77-454e-a6bf-90337269b030",
+      "route": "DIRECT",
+      "origin": {
+        "nonce": "c350d8cd-4b77-454e-a6bf-90337269b030",
+        "host": "evilchatgpt.com:61504",
+        "url": "/path/ordinary?next=ordinary.test&case=c350d8cd-4b77-454e-a6bf-90337269b030",
+        "remotePort": 61588,
+        "localPort": 61504,
+        "tlsProtocol": "TLSv1.3"
+      },
+      "relay": null,
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:18.954Z"
+    },
+    {
+      "name": "socks5 route notopenai.com",
+      "startedAt": "2026-10-15T05:22:18.954Z",
+      "url": "https://notopenai.com:61504/path/ordinary?next=ordinary.test&case=a83229e3-07e6-47ab-a9e4-889bd37c1d88",
+      "nonce": "a83229e3-07e6-47ab-a9e4-889bd37c1d88",
+      "route": "DIRECT",
+      "origin": {
+        "nonce": "a83229e3-07e6-47ab-a9e4-889bd37c1d88",
+        "host": "notopenai.com:61504",
+        "url": "/path/ordinary?next=ordinary.test&case=a83229e3-07e6-47ab-a9e4-889bd37c1d88",
+        "remotePort": 61590,
+        "localPort": 61504,
+        "tlsProtocol": "TLSv1.3"
+      },
+      "relay": null,
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:18.978Z"
+    },
+    {
+      "name": "socks5 route claude.ai.evil.test",
+      "startedAt": "2026-10-15T05:22:18.979Z",
+      "url": "https://claude.ai.evil.test:61504/path/ordinary?next=ordinary.test&case=a80df168-d12b-4176-8f84-4cfdaa4d3b34",
+      "nonce": "a80df168-d12b-4176-8f84-4cfdaa4d3b34",
+      "route": "DIRECT",
+      "origin": {
+        "nonce": "a80df168-d12b-4176-8f84-4cfdaa4d3b34",
+        "host": "claude.ai.evil.test:61504",
+        "url": "/path/ordinary?next=ordinary.test&case=a80df168-d12b-4176-8f84-4cfdaa4d3b34",
+        "remotePort": 61592,
+        "localPort": 61504,
+        "tlsProtocol": "TLSv1.3"
+      },
+      "relay": null,
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:18.994Z"
+    },
+    {
+      "name": "socks5 route gemini.google.com.evil.test",
+      "startedAt": "2026-10-15T05:22:18.995Z",
+      "url": "https://gemini.google.com.evil.test:61504/path/ordinary?next=ordinary.test&case=0e24c462-8d7b-4476-95eb-a70e5eca3162",
+      "nonce": "0e24c462-8d7b-4476-95eb-a70e5eca3162",
+      "route": "DIRECT",
+      "origin": {
+        "nonce": "0e24c462-8d7b-4476-95eb-a70e5eca3162",
+        "host": "gemini.google.com.evil.test:61504",
+        "url": "/path/ordinary?next=ordinary.test&case=0e24c462-8d7b-4476-95eb-a70e5eca3162",
+        "remotePort": 61594,
+        "localPort": 61504,
+        "tlsProtocol": "TLSv1.3"
+      },
+      "relay": null,
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:19.003Z"
+    },
+    {
+      "name": "socks5 route perplexity.ai.evil.test",
+      "startedAt": "2026-10-15T05:22:19.003Z",
+      "url": "https://perplexity.ai.evil.test:61504/path/ordinary?next=ordinary.test&case=6cbb3ba0-3056-4aed-aceb-a4667b68fc01",
+      "nonce": "6cbb3ba0-3056-4aed-aceb-a4667b68fc01",
+      "route": "DIRECT",
+      "origin": {
+        "nonce": "6cbb3ba0-3056-4aed-aceb-a4667b68fc01",
+        "host": "perplexity.ai.evil.test:61504",
+        "url": "/path/ordinary?next=ordinary.test&case=6cbb3ba0-3056-4aed-aceb-a4667b68fc01",
+        "remotePort": 61596,
+        "localPort": 61504,
+        "tlsProtocol": "TLSv1.3"
+      },
+      "relay": null,
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:19.013Z"
+    },
+    {
+      "name": "socks5 relay offline has no direct fallback",
+      "startedAt": "2026-10-15T05:22:19.014Z",
+      "url": "https://chatgpt.com:61504/offline-probe?case=b97f0f5d-aa3f-4334-b627-c0cc6a9b7b92",
+      "nonce": "b97f0f5d-aa3f-4334-b627-c0cc6a9b7b92",
+      "navigation": {
+        "frameId": "48909FB1383F080A899E93B82F4E9D67",
+        "loaderId": "5AEED0647F09DFB8FDEFA26FC4516A23",
+        "errorText": "net::ERR_PROXY_CONNECTION_FAILED",
+        "isDownload": false
+      },
+      "failure": "net::ERR_PROXY_CONNECTION_FAILED",
+      "originHits": 0,
+      "observedForMs": 500,
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:19.520Z"
+    },
+    {
+      "name": "socks5 STOP clear restores prior setting",
+      "startedAt": "2026-10-15T05:22:19.521Z",
+      "event": {
+        "id": "stop",
+        "eventType": "click",
+        "trusted": true,
+        "userActivation": true,
+        "at": "2026-10-15T05:22:20.572Z",
+        "sender": "ahkdnnchihidgcbjcgbijphkdhincdnc",
+        "api": "chrome.proxy.settings.clear",
+        "request": {
+          "scope": "regular"
+        },
+        "readback": {
+          "levelOfControl": "controllable_by_this_extension",
+          "value": {
+            "mode": "system"
+          }
+        },
+        "status": "OK"
+      },
+      "baseline": {
+        "levelOfControl": "controllable_by_this_extension",
+        "value": {
+          "mode": "system"
+        }
+      },
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:20.684Z"
+    },
+    {
+      "name": "https trusted enable and exact PAC readback",
+      "startedAt": "2026-10-15T05:22:20.684Z",
+      "event": {
+        "id": "https",
+        "eventType": "click",
+        "trusted": true,
+        "userActivation": true,
+        "at": "2026-10-15T05:22:22.473Z",
+        "sender": "ahkdnnchihidgcbjcgbijphkdhincdnc",
+        "api": "chrome.proxy.settings.set",
+        "request": {
+          "value": {
+            "mode": "pac_script",
+            "pacScript": {
+              "data": "function FindProxyForURL(url, host) {\n  host = String(host).toLowerCase().replace(/\\.$/, \"\");\n  if (host === \"chatgpt.com\" || dnsDomainIs(host, \".chatgpt.com\")) return \"HTTPS relay.ai-network.example:61505\";\n  if (host === \"openai.com\" || dnsDomainIs(host, \".openai.com\")) return \"HTTPS relay.ai-network.example:61505\";\n  if (host === \"claude.ai\" || dnsDomainIs(host, \".claude.ai\")) return \"HTTPS relay.ai-network.example:61505\";\n  if (host === \"gemini.google.com\" || dnsDomainIs(host, \".gemini.google.com\")) return \"HTTPS relay.ai-network.example:61505\";\n  if (host === \"perplexity.ai\" || dnsDomainIs(host, \".perplexity.ai\")) return \"HTTPS relay.ai-network.example:61505\";\n  return \"DIRECT\";\n}",
+              "mandatory": true
+            }
+          },
+          "scope": "regular"
+        },
+        "readback": {
+          "levelOfControl": "controlled_by_this_extension",
+          "value": {
+            "mode": "pac_script",
+            "pacScript": {
+              "data": "function FindProxyForURL(url, host) {\n  host = String(host).toLowerCase().replace(/\\.$/, \"\");\n  if (host === \"chatgpt.com\" || dnsDomainIs(host, \".chatgpt.com\")) return \"HTTPS relay.ai-network.example:61505\";\n  if (host === \"openai.com\" || dnsDomainIs(host, \".openai.com\")) return \"HTTPS relay.ai-network.example:61505\";\n  if (host === \"claude.ai\" || dnsDomainIs(host, \".claude.ai\")) return \"HTTPS relay.ai-network.example:61505\";\n  if (host === \"gemini.google.com\" || dnsDomainIs(host, \".gemini.google.com\")) return \"HTTPS relay.ai-network.example:61505\";\n  if (host === \"perplexity.ai\" || dnsDomainIs(host, \".perplexity.ai\")) return \"HTTPS relay.ai-network.example:61505\";\n  return \"DIRECT\";\n}",
+              "mandatory": true
+            }
+          }
+        },
+        "status": "OK"
+      },
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:22.588Z"
+    },
+    {
+      "name": "https route chatgpt.com",
+      "startedAt": "2026-10-15T05:22:22.588Z",
+      "url": "https://chatgpt.com:61504/path/ordinary?next=ordinary.test&case=2524a5a6-0ccb-4109-9885-5ad53e8cfae9",
+      "nonce": "2524a5a6-0ccb-4109-9885-5ad53e8cfae9",
+      "route": "PROXY",
+      "origin": {
+        "nonce": "2524a5a6-0ccb-4109-9885-5ad53e8cfae9",
+        "host": "chatgpt.com:61504",
+        "url": "/path/ordinary?next=ordinary.test&case=2524a5a6-0ccb-4109-9885-5ad53e8cfae9",
+        "remotePort": 61615,
+        "localPort": 61504,
+        "tlsProtocol": "TLSv1.3"
+      },
+      "relay": {
+        "scheme": "https",
+        "method": "CONNECT",
+        "authority": "chatgpt.com:61504",
+        "host": "chatgpt.com",
+        "port": 61504,
+        "tlsProtocol": "TLSv1.3",
+        "connected": true,
+        "upstreamLocalPort": 61615,
+        "connectedAt": "2026-10-15T05:22:22.594Z"
+      },
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:22.651Z"
+    },
+    {
+      "name": "https route openai.com",
+      "startedAt": "2026-10-15T05:22:22.651Z",
+      "url": "https://openai.com:61504/path/ordinary?next=ordinary.test&case=834b116b-d31f-4392-9dcc-7369ed869ccc",
+      "nonce": "834b116b-d31f-4392-9dcc-7369ed869ccc",
+      "route": "PROXY",
+      "origin": {
+        "nonce": "834b116b-d31f-4392-9dcc-7369ed869ccc",
+        "host": "openai.com:61504",
+        "url": "/path/ordinary?next=ordinary.test&case=834b116b-d31f-4392-9dcc-7369ed869ccc",
+        "remotePort": 61621,
+        "localPort": 61504,
+        "tlsProtocol": "TLSv1.3"
+      },
+      "relay": {
+        "scheme": "https",
+        "method": "CONNECT",
+        "authority": "openai.com:61504",
+        "host": "openai.com",
+        "port": 61504,
+        "tlsProtocol": "TLSv1.3",
+        "connected": true,
+        "upstreamLocalPort": 61621,
+        "connectedAt": "2026-10-15T05:22:22.654Z"
+      },
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:22.662Z"
+    },
+    {
+      "name": "https route claude.ai",
+      "startedAt": "2026-10-15T05:22:22.662Z",
+      "url": "https://claude.ai:61504/path/ordinary?next=ordinary.test&case=0a6af50d-3a01-46dc-a105-197ccc6f26f5",
+      "nonce": "0a6af50d-3a01-46dc-a105-197ccc6f26f5",
+      "route": "PROXY",
+      "origin": {
+        "nonce": "0a6af50d-3a01-46dc-a105-197ccc6f26f5",
+        "host": "claude.ai:61504",
+        "url": "/path/ordinary?next=ordinary.test&case=0a6af50d-3a01-46dc-a105-197ccc6f26f5",
+        "remotePort": 61626,
+        "localPort": 61504,
+        "tlsProtocol": "TLSv1.3"
+      },
+      "relay": {
+        "scheme": "https",
+        "method": "CONNECT",
+        "authority": "claude.ai:61504",
+        "host": "claude.ai",
+        "port": 61504,
+        "tlsProtocol": "TLSv1.3",
+        "connected": true,
+        "upstreamLocalPort": 61626,
+        "connectedAt": "2026-10-15T05:22:22.666Z"
+      },
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:22.673Z"
+    },
+    {
+      "name": "https route gemini.google.com",
+      "startedAt": "2026-10-15T05:22:22.673Z",
+      "url": "https://gemini.google.com:61504/path/ordinary?next=ordinary.test&case=5c5e0b2d-6d76-4d59-b890-33af629cd281",
+      "nonce": "5c5e0b2d-6d76-4d59-b890-33af629cd281",
+      "route": "PROXY",
+      "origin": {
+        "nonce": "5c5e0b2d-6d76-4d59-b890-33af629cd281",
+        "host": "gemini.google.com:61504",
+        "url": "/path/ordinary?next=ordinary.test&case=5c5e0b2d-6d76-4d59-b890-33af629cd281",
+        "remotePort": 61630,
+        "localPort": 61504,
+        "tlsProtocol": "TLSv1.3"
+      },
+      "relay": {
+        "scheme": "https",
+        "method": "CONNECT",
+        "authority": "gemini.google.com:61504",
+        "host": "gemini.google.com",
+        "port": 61504,
+        "tlsProtocol": "TLSv1.3",
+        "connected": true,
+        "upstreamLocalPort": 61630,
+        "connectedAt": "2026-10-15T05:22:22.676Z"
+      },
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:22.684Z"
+    },
+    {
+      "name": "https route perplexity.ai",
+      "startedAt": "2026-10-15T05:22:22.684Z",
+      "url": "https://perplexity.ai:61504/path/ordinary?next=ordinary.test&case=eac9a6af-a4ca-475c-9796-05dac7a90377",
+      "nonce": "eac9a6af-a4ca-475c-9796-05dac7a90377",
+      "route": "PROXY",
+      "origin": {
+        "nonce": "eac9a6af-a4ca-475c-9796-05dac7a90377",
+        "host": "perplexity.ai:61504",
+        "url": "/path/ordinary?next=ordinary.test&case=eac9a6af-a4ca-475c-9796-05dac7a90377",
+        "remotePort": 61633,
+        "localPort": 61504,
+        "tlsProtocol": "TLSv1.3"
+      },
+      "relay": {
+        "scheme": "https",
+        "method": "CONNECT",
+        "authority": "perplexity.ai:61504",
+        "host": "perplexity.ai",
+        "port": 61504,
+        "tlsProtocol": "TLSv1.3",
+        "connected": true,
+        "upstreamLocalPort": 61633,
+        "connectedAt": "2026-10-15T05:22:22.687Z"
+      },
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:22.695Z"
+    },
+    {
+      "name": "https route sub.chatgpt.com",
+      "startedAt": "2026-10-15T05:22:22.695Z",
+      "url": "https://sub.chatgpt.com:61504/path/ordinary?next=ordinary.test&case=2e00ed69-af44-40bf-a81d-f44bbee3ccf6",
+      "nonce": "2e00ed69-af44-40bf-a81d-f44bbee3ccf6",
+      "route": "PROXY",
+      "origin": {
+        "nonce": "2e00ed69-af44-40bf-a81d-f44bbee3ccf6",
+        "host": "sub.chatgpt.com:61504",
+        "url": "/path/ordinary?next=ordinary.test&case=2e00ed69-af44-40bf-a81d-f44bbee3ccf6",
+        "remotePort": 61637,
+        "localPort": 61504,
+        "tlsProtocol": "TLSv1.3"
+      },
+      "relay": {
+        "scheme": "https",
+        "method": "CONNECT",
+        "authority": "sub.chatgpt.com:61504",
+        "host": "sub.chatgpt.com",
+        "port": 61504,
+        "tlsProtocol": "TLSv1.3",
+        "connected": true,
+        "upstreamLocalPort": 61637,
+        "connectedAt": "2026-10-15T05:22:22.697Z"
+      },
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:22.705Z"
+    },
+    {
+      "name": "https route sub.openai.com",
+      "startedAt": "2026-10-15T05:22:22.705Z",
+      "url": "https://sub.openai.com:61504/path/ordinary?next=ordinary.test&case=5bd221b5-fc9f-479d-b353-8d031702bd8f",
+      "nonce": "5bd221b5-fc9f-479d-b353-8d031702bd8f",
+      "route": "PROXY",
+      "origin": {
+        "nonce": "5bd221b5-fc9f-479d-b353-8d031702bd8f",
+        "host": "sub.openai.com:61504",
+        "url": "/path/ordinary?next=ordinary.test&case=5bd221b5-fc9f-479d-b353-8d031702bd8f",
+        "remotePort": 61641,
+        "localPort": 61504,
+        "tlsProtocol": "TLSv1.3"
+      },
+      "relay": {
+        "scheme": "https",
+        "method": "CONNECT",
+        "authority": "sub.openai.com:61504",
+        "host": "sub.openai.com",
+        "port": 61504,
+        "tlsProtocol": "TLSv1.3",
+        "connected": true,
+        "upstreamLocalPort": 61641,
+        "connectedAt": "2026-10-15T05:22:22.707Z"
+      },
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:22.715Z"
+    },
+    {
+      "name": "https route sub.claude.ai",
+      "startedAt": "2026-10-15T05:22:22.715Z",
+      "url": "https://sub.claude.ai:61504/path/ordinary?next=ordinary.test&case=7041f4d2-704c-4b2d-a427-bd4b7ee70a84",
+      "nonce": "7041f4d2-704c-4b2d-a427-bd4b7ee70a84",
+      "route": "PROXY",
+      "origin": {
+        "nonce": "7041f4d2-704c-4b2d-a427-bd4b7ee70a84",
+        "host": "sub.claude.ai:61504",
+        "url": "/path/ordinary?next=ordinary.test&case=7041f4d2-704c-4b2d-a427-bd4b7ee70a84",
+        "remotePort": 61645,
+        "localPort": 61504,
+        "tlsProtocol": "TLSv1.3"
+      },
+      "relay": {
+        "scheme": "https",
+        "method": "CONNECT",
+        "authority": "sub.claude.ai:61504",
+        "host": "sub.claude.ai",
+        "port": 61504,
+        "tlsProtocol": "TLSv1.3",
+        "connected": true,
+        "upstreamLocalPort": 61645,
+        "connectedAt": "2026-10-15T05:22:22.716Z"
+      },
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:22.723Z"
+    },
+    {
+      "name": "https route sub.gemini.google.com",
+      "startedAt": "2026-10-15T05:22:22.723Z",
+      "url": "https://sub.gemini.google.com:61504/path/ordinary?next=ordinary.test&case=3ce0f893-e90b-4536-b344-e89270fad30c",
+      "nonce": "3ce0f893-e90b-4536-b344-e89270fad30c",
+      "route": "PROXY",
+      "origin": {
+        "nonce": "3ce0f893-e90b-4536-b344-e89270fad30c",
+        "host": "sub.gemini.google.com:61504",
+        "url": "/path/ordinary?next=ordinary.test&case=3ce0f893-e90b-4536-b344-e89270fad30c",
+        "remotePort": 61649,
+        "localPort": 61504,
+        "tlsProtocol": "TLSv1.3"
+      },
+      "relay": {
+        "scheme": "https",
+        "method": "CONNECT",
+        "authority": "sub.gemini.google.com:61504",
+        "host": "sub.gemini.google.com",
+        "port": 61504,
+        "tlsProtocol": "TLSv1.3",
+        "connected": true,
+        "upstreamLocalPort": 61649,
+        "connectedAt": "2026-10-15T05:22:22.725Z"
+      },
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:22.732Z"
+    },
+    {
+      "name": "https route sub.perplexity.ai",
+      "startedAt": "2026-10-15T05:22:22.732Z",
+      "url": "https://sub.perplexity.ai:61504/path/ordinary?next=ordinary.test&case=001a1de0-ce3f-441d-b968-01667371aa74",
+      "nonce": "001a1de0-ce3f-441d-b968-01667371aa74",
+      "route": "PROXY",
+      "origin": {
+        "nonce": "001a1de0-ce3f-441d-b968-01667371aa74",
+        "host": "sub.perplexity.ai:61504",
+        "url": "/path/ordinary?next=ordinary.test&case=001a1de0-ce3f-441d-b968-01667371aa74",
+        "remotePort": 61654,
+        "localPort": 61504,
+        "tlsProtocol": "TLSv1.3"
+      },
+      "relay": {
+        "scheme": "https",
+        "method": "CONNECT",
+        "authority": "sub.perplexity.ai:61504",
+        "host": "sub.perplexity.ai",
+        "port": 61504,
+        "tlsProtocol": "TLSv1.3",
+        "connected": true,
+        "upstreamLocalPort": 61654,
+        "connectedAt": "2026-10-15T05:22:22.734Z"
+      },
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:22.742Z"
+    },
+    {
+      "name": "https route ordinary.network.test",
+      "startedAt": "2026-10-15T05:22:22.742Z",
+      "url": "https://ordinary.network.test:61504/chatgpt.com/claude.ai?next=https%3A%2F%2Fopenai.com&case=79c28905-d6e3-43cc-a171-806b60fe698f",
+      "nonce": "79c28905-d6e3-43cc-a171-806b60fe698f",
+      "route": "DIRECT",
+      "origin": {
+        "nonce": "79c28905-d6e3-43cc-a171-806b60fe698f",
+        "host": "ordinary.network.test:61504",
+        "url": "/chatgpt.com/claude.ai?next=https%3A%2F%2Fopenai.com&case=79c28905-d6e3-43cc-a171-806b60fe698f",
+        "remotePort": 61657,
+        "localPort": 61504,
+        "tlsProtocol": "TLSv1.3"
+      },
+      "relay": null,
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:22.784Z"
+    },
+    {
+      "name": "https route chatgpt.com.evil.test",
+      "startedAt": "2026-10-15T05:22:22.784Z",
+      "url": "https://chatgpt.com.evil.test:61504/path/ordinary?next=ordinary.test&case=89d6d153-ca46-48cd-b4b5-e7ea247c0826",
+      "nonce": "89d6d153-ca46-48cd-b4b5-e7ea247c0826",
+      "route": "DIRECT",
+      "origin": {
+        "nonce": "89d6d153-ca46-48cd-b4b5-e7ea247c0826",
+        "host": "chatgpt.com.evil.test:61504",
+        "url": "/path/ordinary?next=ordinary.test&case=89d6d153-ca46-48cd-b4b5-e7ea247c0826",
+        "remotePort": 61659,
+        "localPort": 61504,
+        "tlsProtocol": "TLSv1.3"
+      },
+      "relay": null,
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:22.792Z"
+    },
+    {
+      "name": "https route evilchatgpt.com",
+      "startedAt": "2026-10-15T05:22:22.792Z",
+      "url": "https://evilchatgpt.com:61504/path/ordinary?next=ordinary.test&case=8a1ded6a-a8ee-4ba5-b478-f3293c08b11a",
+      "nonce": "8a1ded6a-a8ee-4ba5-b478-f3293c08b11a",
+      "route": "DIRECT",
+      "origin": {
+        "nonce": "8a1ded6a-a8ee-4ba5-b478-f3293c08b11a",
+        "host": "evilchatgpt.com:61504",
+        "url": "/path/ordinary?next=ordinary.test&case=8a1ded6a-a8ee-4ba5-b478-f3293c08b11a",
+        "remotePort": 61661,
+        "localPort": 61504,
+        "tlsProtocol": "TLSv1.3"
+      },
+      "relay": null,
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:22.800Z"
+    },
+    {
+      "name": "https route notopenai.com",
+      "startedAt": "2026-10-15T05:22:22.800Z",
+      "url": "https://notopenai.com:61504/path/ordinary?next=ordinary.test&case=6d3f1520-3839-4245-820c-44a34018c6ae",
+      "nonce": "6d3f1520-3839-4245-820c-44a34018c6ae",
+      "route": "DIRECT",
+      "origin": {
+        "nonce": "6d3f1520-3839-4245-820c-44a34018c6ae",
+        "host": "notopenai.com:61504",
+        "url": "/path/ordinary?next=ordinary.test&case=6d3f1520-3839-4245-820c-44a34018c6ae",
+        "remotePort": 61663,
+        "localPort": 61504,
+        "tlsProtocol": "TLSv1.3"
+      },
+      "relay": null,
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:22.807Z"
+    },
+    {
+      "name": "https route claude.ai.evil.test",
+      "startedAt": "2026-10-15T05:22:22.807Z",
+      "url": "https://claude.ai.evil.test:61504/path/ordinary?next=ordinary.test&case=135d2be5-9496-4676-b56b-8bf6a2c0fdcc",
+      "nonce": "135d2be5-9496-4676-b56b-8bf6a2c0fdcc",
+      "route": "DIRECT",
+      "origin": {
+        "nonce": "135d2be5-9496-4676-b56b-8bf6a2c0fdcc",
+        "host": "claude.ai.evil.test:61504",
+        "url": "/path/ordinary?next=ordinary.test&case=135d2be5-9496-4676-b56b-8bf6a2c0fdcc",
+        "remotePort": 61665,
+        "localPort": 61504,
+        "tlsProtocol": "TLSv1.3"
+      },
+      "relay": null,
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:22.814Z"
+    },
+    {
+      "name": "https route gemini.google.com.evil.test",
+      "startedAt": "2026-10-15T05:22:22.815Z",
+      "url": "https://gemini.google.com.evil.test:61504/path/ordinary?next=ordinary.test&case=355c557f-e76f-4fbe-9d5c-dd3c065ac066",
+      "nonce": "355c557f-e76f-4fbe-9d5c-dd3c065ac066",
+      "route": "DIRECT",
+      "origin": {
+        "nonce": "355c557f-e76f-4fbe-9d5c-dd3c065ac066",
+        "host": "gemini.google.com.evil.test:61504",
+        "url": "/path/ordinary?next=ordinary.test&case=355c557f-e76f-4fbe-9d5c-dd3c065ac066",
+        "remotePort": 61668,
+        "localPort": 61504,
+        "tlsProtocol": "TLSv1.3"
+      },
+      "relay": null,
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:22.823Z"
+    },
+    {
+      "name": "https route perplexity.ai.evil.test",
+      "startedAt": "2026-10-15T05:22:22.823Z",
+      "url": "https://perplexity.ai.evil.test:61504/path/ordinary?next=ordinary.test&case=f92f514a-d5fa-4137-86ea-42bbba089e92",
+      "nonce": "f92f514a-d5fa-4137-86ea-42bbba089e92",
+      "route": "DIRECT",
+      "origin": {
+        "nonce": "f92f514a-d5fa-4137-86ea-42bbba089e92",
+        "host": "perplexity.ai.evil.test:61504",
+        "url": "/path/ordinary?next=ordinary.test&case=f92f514a-d5fa-4137-86ea-42bbba089e92",
+        "remotePort": 61671,
+        "localPort": 61504,
+        "tlsProtocol": "TLSv1.3"
+      },
+      "relay": null,
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:22.830Z"
+    },
+    {
+      "name": "https relay offline has no direct fallback",
+      "startedAt": "2026-10-15T05:22:22.831Z",
+      "url": "https://chatgpt.com:61504/offline-probe?case=c70dbfcb-4253-4376-b65b-f7d55e655627",
+      "nonce": "c70dbfcb-4253-4376-b65b-f7d55e655627",
+      "navigation": {
+        "frameId": "48909FB1383F080A899E93B82F4E9D67",
+        "loaderId": "26FA281EF136E9483AF28396A073028B",
+        "errorText": "net::ERR_PROXY_CONNECTION_FAILED",
+        "isDownload": false
+      },
+      "failure": "net::ERR_PROXY_CONNECTION_FAILED",
+      "originHits": 0,
+      "observedForMs": 500,
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:23.337Z"
+    },
+    {
+      "name": "https STOP clear restores prior setting",
+      "startedAt": "2026-10-15T05:22:23.338Z",
+      "event": {
+        "id": "stop",
+        "eventType": "click",
+        "trusted": true,
+        "userActivation": true,
+        "at": "2026-10-15T05:22:24.155Z",
+        "sender": "ahkdnnchihidgcbjcgbijphkdhincdnc",
+        "api": "chrome.proxy.settings.clear",
+        "request": {
+          "scope": "regular"
+        },
+        "readback": {
+          "levelOfControl": "controllable_by_this_extension",
+          "value": {
+            "mode": "system"
+          }
+        },
+        "status": "OK"
+      },
+      "baseline": {
+        "levelOfControl": "controllable_by_this_extension",
+        "value": {
+          "mode": "system"
+        }
+      },
+      "status": "PASS",
+      "finishedAt": "2026-10-15T05:22:24.271Z"
+    }
+  ],
+  "layers": {
+    "rawChromePac": "PASS",
+    "toolInstallation": "NOT_TESTED",
+    "publicManagedProxySdk": "NOT_TESTED",
+    "providerActivation": "NOT_TESTED",
+    "productSenderGrant": "NOT_TESTED",
+    "nativeAck": "NOT_TESTED",
+    "dailyDevelopment": "NOT_TESTED",
+    "productionCandidate": "NOT_TESTED",
+    "F3": "NOT_TESTED",
+    "ZIP": "NOT_TESTED"
+  },
+  "limitations": [
+    "R11 has no approved public Managed Proxy API.",
+    "Minimal fixture extension is the real sender; no product sender or receipt is simulated.",
+    "Explicit test hostname mappings and generated certificate SPKI exception apply to this fresh profile only.",
+    "All relay destinations are local; external provider, public DNS, production TLS and authenticated proxy are NOT_TESTED."
+  ],
+  "ownership": {
+    "files": [
+      "tests/framework/ai-vip-share-r21-network.mjs",
+      "docs/framework/workstreams/evidence/ai-vip-share-r21-01a13df4/network"
+    ],
+    "excludedPids": [
+      34706,
+      43356,
+      66752
+    ],
+    "excludedPorts": [
+      43111,
+      43119,
+      43120
+    ],
+    "sharedHelpers": "READ_ONLY",
+    "dist": "UNTOUCHED"
+  },
+  "sourceHead": "8b9c1fcb03aa9a1c34fbba71b90df246bdd39964",
+  "driverSha256": "ddefed25ecfc69d539a2f4fdfb49a50bc3ce6843cc9ad4ce1a876191ec5cbdca",
+  "policy": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/src/ai-smart-access/policy.js",
+    "sha256": "aa5a3113252534a4811de82b7959817aa327527659e5073db88fab0a5859803f",
+    "sha256After": "aa5a3113252534a4811de82b7959817aa327527659e5073db88fab0a5859803f",
+    "unchanged": true
+  },
+  "certificate": {
+    "sha256": "82e7004948827cb15ae89599d40bfe6ca8bf9483ba29491be0dc7134a6596f30",
+    "spki": "MKVSmu5g8o3EbQ9OymxfMwT/hxR9XjWyUzYH9SiWGsA=",
+    "restriction": "Only this generated key is exempted in the fresh fixture profile; certificate trust/hostname validity NOT_TESTED."
+  },
+  "originPort": 61504,
+  "endpoints": {
+    "socks5": {
+      "scheme": "socks5",
+      "host": "relay.ai-network.example",
+      "port": 61506
+    },
+    "https": {
+      "scheme": "https",
+      "host": "relay.ai-network.example",
+      "port": 61505
+    }
+  },
+  "pacs": {
+    "socks5": {
+      "sha256": "74efcc5de5b4eddb31080b59c83a0732ae31a5a3d773b342a523063b35b20bf3",
+      "desired": {
+        "mode": "pac_script",
+        "pacScript": {
+          "data": "function FindProxyForURL(url, host) {\n  host = String(host).toLowerCase().replace(/\\.$/, \"\");\n  if (host === \"chatgpt.com\" || dnsDomainIs(host, \".chatgpt.com\")) return \"SOCKS5 relay.ai-network.example:61506\";\n  if (host === \"openai.com\" || dnsDomainIs(host, \".openai.com\")) return \"SOCKS5 relay.ai-network.example:61506\";\n  if (host === \"claude.ai\" || dnsDomainIs(host, \".claude.ai\")) return \"SOCKS5 relay.ai-network.example:61506\";\n  if (host === \"gemini.google.com\" || dnsDomainIs(host, \".gemini.google.com\")) return \"SOCKS5 relay.ai-network.example:61506\";\n  if (host === \"perplexity.ai\" || dnsDomainIs(host, \".perplexity.ai\")) return \"SOCKS5 relay.ai-network.example:61506\";\n  return \"DIRECT\";\n}",
+          "mandatory": true
+        }
+      }
+    },
+    "https": {
+      "sha256": "994f28b7cfc3c2ea2c572469e8c32526f79d1e2cb2b090a4e22f0f21fcf8a9e7",
+      "desired": {
+        "mode": "pac_script",
+        "pacScript": {
+          "data": "function FindProxyForURL(url, host) {\n  host = String(host).toLowerCase().replace(/\\.$/, \"\");\n  if (host === \"chatgpt.com\" || dnsDomainIs(host, \".chatgpt.com\")) return \"HTTPS relay.ai-network.example:61505\";\n  if (host === \"openai.com\" || dnsDomainIs(host, \".openai.com\")) return \"HTTPS relay.ai-network.example:61505\";\n  if (host === \"claude.ai\" || dnsDomainIs(host, \".claude.ai\")) return \"HTTPS relay.ai-network.example:61505\";\n  if (host === \"gemini.google.com\" || dnsDomainIs(host, \".gemini.google.com\")) return \"HTTPS relay.ai-network.example:61505\";\n  if (host === \"perplexity.ai\" || dnsDomainIs(host, \".perplexity.ai\")) return \"HTTPS relay.ai-network.example:61505\";\n  return \"DIRECT\";\n}",
+          "mandatory": true
+        }
+      }
+    }
+  },
+  "extensionId": "ahkdnnchihidgcbjcgbijphkdhincdnc",
+  "fixture": {
+    "directory": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/ai-vip-share-r21-01a13df4/network/2026-10-15T05-22-15-214Z-f049bc/fixture",
+    "files": {
+      "manifest.json": {
+        "bytes": 507,
+        "sha256": "f69a83659b70bc78912992fdb962f216a06fd3c58fbd34fc493d5bec6895caf9"
+      },
+      "policy.js": {
+        "bytes": 4545,
+        "sha256": "aa5a3113252534a4811de82b7959817aa327527659e5073db88fab0a5859803f"
+      },
+      "fixture.html": {
+        "bytes": 359,
+        "sha256": "377907daeb1950769470e3a6d91f724e7b108b5137b24320044679fffc1a4323"
+      },
+      "fixture.js": {
+        "bytes": 1451,
+        "sha256": "f08fa1e75a185f06668731e6df74ba9ff8c0e5c64cdd2c884944ce731df45885"
+      }
+    },
+    "permission": [
+      "proxy"
+    ],
+    "mutations": "Trusted click listener only; STOP uses clear({scope:regular}); no global DIRECT set."
+  },
+  "nativeHelper": {
+    "source": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/time-review-native-input.swift",
+    "sha256": "a7180392f2cba814a45541681a8bffef1f02490dd7c7dc36e5c808eb5c3a05b2"
+  },
+  "launcher": {
+    "path": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+    "sha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36",
+    "args": [
+      "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+      "--executable",
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--report",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/ai-vip-share-r21-01a13df4/network/2026-10-15T05-22-15-214Z-f049bc/launcher.json",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/ai-vip-share-r21-01a13df4/network/2026-10-15T05-22-15-214Z-f049bc/fixture",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/ai-vip-share-r21-01a13df4/network/2026-10-15T05-22-15-214Z-f049bc/fixture",
+      "--host-resolver-rules=MAP chatgpt.com 127.0.0.1,MAP openai.com 127.0.0.1,MAP claude.ai 127.0.0.1,MAP gemini.google.com 127.0.0.1,MAP perplexity.ai 127.0.0.1,MAP sub.chatgpt.com 127.0.0.1,MAP sub.openai.com 127.0.0.1,MAP sub.claude.ai 127.0.0.1,MAP sub.gemini.google.com 127.0.0.1,MAP sub.perplexity.ai 127.0.0.1,MAP ordinary.network.test 127.0.0.1,MAP chatgpt.com.evil.test 127.0.0.1,MAP evilchatgpt.com 127.0.0.1,MAP notopenai.com 127.0.0.1,MAP claude.ai.evil.test 127.0.0.1,MAP gemini.google.com.evil.test 127.0.0.1,MAP perplexity.ai.evil.test 127.0.0.1,MAP relay.ai-network.example 127.0.0.1",
+      "--ignore-certificate-errors-spki-list=MKVSmu5g8o3EbQ9OymxfMwT/hxR9XjWyUzYH9SiWGsA=",
+      "--disable-features=HttpsUpgrades",
+      "--disable-quic",
+      "--disable-component-update",
+      "--disable-sync",
+      "--log-net-log=/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/ai-vip-share-r21-01a13df4/network/2026-10-15T05-22-15-214Z-f049bc/chrome-netlog.json",
+      "--window-size=1100,800",
+      "about:blank"
+    ]
+  },
+  "actualProcess": "71031 71030 /Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-rxilkg16 --remote-debugging-port=0 --load-extension=/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/ai-vip-share-r21-01a13df4/network/2026-10-15T05-22-15-214Z-f049bc/fixture --disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/ai-vip-share-r21-01a13df4/network/2026-10-15T05-22-15-214Z-f049bc/fixture --host-resolver-rules=MAP chatgpt.com 127.0.0.1,MAP openai.com 127.0.0.1,MAP claude.ai 127.0.0.1,MAP gemini.google.com 127.0.0.1,MAP perplexity.ai 127.0.0.1,MAP sub.chatgpt.com 127.0.0.1,MAP sub.openai.com 127.0.0.1,MAP sub.claude.ai 127.0.0.1,MAP sub.gemini.google.com 127.0.0.1,MAP sub.perplexity.ai 127.0.0.1,MAP ordinary.network.test 127.0.0.1,MAP chatgpt.com.evil.test 127.0.0.1,MAP evilchatgpt.com 127.0.0.1,MAP notopenai.com 127.0.0.1,MAP claude.ai.evil.test 127.0.0.1,MAP gemini.google.com.evil.test 127.0.0.1,MAP perplexity.ai.evil.test 127.0.0.1,MAP relay.ai-network.example 127.0.0.1 --ignore-certificate-errors-spki-list=MKVSmu5g8o3EbQ9OymxfMwT/hxR9XjWyUzYH9SiWGsA= --disable-features=HttpsUpgrades --disable-quic --disable-component-update --disable-sync --log-net-log=/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/ai-vip-share-r21-01a13df4/network/2026-10-15T05-22-15-214Z-f049bc/chrome-netlog.json --window-size=1100,800 about:blank",
+  "instanceCheck": "{\n  \"status\": \"managed-instance-ready\",\n  \"pid\": 71031,\n  \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-rxilkg16\",\n  \"ready\": true\n}\n",
+  "cdpBase": "http://127.0.0.1:61511",
+  "chromeVersion": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/155.0.8059.39",
+    "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+    "jsVersion": "15.5.35.20"
+  },
+  "actualFixtureSender": "ahkdnnchihidgcbjcgbijphkdhincdnc",
+  "baseline": {
+    "levelOfControl": "controllable_by_this_extension",
+    "value": {
+      "mode": "system"
+    }
+  },
+  "socks5AfterClearNetwork": {
+    "status": "NOT_TESTED",
+    "reason": "Inherited system routing is outside the controlled relay. Exact prior value restored; no global DIRECT is installed."
+  },
+  "httpsAfterClearNetwork": {
+    "status": "NOT_TESTED",
+    "reason": "Inherited system routing is outside the controlled relay. Exact prior value restored; no global DIRECT is installed."
+  },
+  "cleanup": {
+    "startedAt": "2026-10-15T05:22:24.272Z",
+    "finalProxy": {
+      "levelOfControl": "controllable_by_this_extension",
+      "value": {
+        "mode": "system"
+      }
+    },
+    "launcherExitCode": 0,
+    "launcherSignal": null,
+    "profileRemoved": true,
+    "browserGone": true,
+    "privateKeyRemoved": true,
+    "remainingOwnedSockets": 0,
+    "finishedAt": "2026-10-15T05:22:24.487Z"
+  },
+  "finishedAt": "2026-10-15T05:22:24.487Z"
+}

@@ -1,0 +1,98 @@
+{
+  "cdp-network.jsonl": {
+    "bytes": 412302,
+    "sha256": "2dea1616cce14fe7ae06b2d21fc9756f731d92c43235f198fb3215a3b653f93f"
+  },
+  "certificate.pem": {
+    "bytes": 1001,
+    "sha256": "bb7f9f9d9084e35eca6e3f28175151e825ae3c468b7b315e5046ca4489f14cc1"
+  },
+  "chrome-netlog.json": {
+    "bytes": 2749221,
+    "sha256": "a9ff19917c0e1bad15eca2472502701d3b31a3a0ae78b78bc5967618adb70421"
+  },
+  "chrome.log": {
+    "bytes": 98,
+    "sha256": "e24ef27d4e395e347b1fb6d1ff78346b4beddd2e4b742ad531e3de189666ebd2"
+  },
+  "driver-source.mjs": {
+    "bytes": 25368,
+    "sha256": "aa06a316844029198eedcad7af4e342466b1f3c4949aeb3b4fb498619f6c7135"
+  },
+  "fixture/fixture.html": {
+    "bytes": 359,
+    "sha256": "377907daeb1950769470e3a6d91f724e7b108b5137b24320044679fffc1a4323"
+  },
+  "fixture/fixture.js": {
+    "bytes": 1451,
+    "sha256": "f48472390ffb35c08b78a218ab1ad5397e3ee5041d287e97395b671e0ebefe9a"
+  },
+  "fixture/manifest.json": {
+    "bytes": 507,
+    "sha256": "2f66d0d12ffc5b73bce118c1ee60252651121b1d2c64e15b8d3552fefe827b74"
+  },
+  "fixture/policy.js": {
+    "bytes": 4545,
+    "sha256": "aa5a3113252534a4811de82b7959817aa327527659e5073db88fab0a5859803f"
+  },
+  "fixture-events.jsonl": {
+    "bytes": 4449,
+    "sha256": "ba28840d6479f2502d80887166678ffe052ba39954a12281724d3c4d0abe2c6c"
+  },
+  "https-DIRECT.png": {
+    "bytes": 54166,
+    "sha256": "6acac835e9c49bd01a0fc5d6f4bc295baecc517e01bca643a5393568f1d75fa7"
+  },
+  "https-PROXY.png": {
+    "bytes": 52127,
+    "sha256": "7c75390ffa53324908ab3b040495dba6b8b8dd477e241ee2de777808634b5e13"
+  },
+  "https.pac": {
+    "bytes": 694,
+    "sha256": "586248591cbba5579a79105115ce5ee0d410e6fac9aa21be04b4e5d256ff36d1"
+  },
+  "launcher-stdout.log": {
+    "bytes": 2249,
+    "sha256": "a372d8abfa71d170ba2550847455da29276195995f9b04cf61331941410d8e2b"
+  },
+  "launcher.json": {
+    "bytes": 2345,
+    "sha256": "9d9f6b9afb4f5e43e0f98a0e135974b8520d5a33fe7017dc78169d9233255eaf"
+  },
+  "native-input": {
+    "bytes": 154640,
+    "sha256": "c4eb38a1d52f87a73f7e57dd253881c9b8c374c35dbf826aed49ed8ee2251461"
+  },
+  "native-input.jsonl": {
+    "bytes": 1728,
+    "sha256": "d71826d1d6270c761c8076781685812f9904d257920b8ebed27d303ea8773ce4"
+  },
+  "origin.jsonl": {
+    "bytes": 14312,
+    "sha256": "ab9e51335f35c72a9df69fd7cd8814641b1623793c1e559291254fb8aa915ec8"
+  },
+  "policy-source.js": {
+    "bytes": 4545,
+    "sha256": "aa5a3113252534a4811de82b7959817aa327527659e5073db88fab0a5859803f"
+  },
+  "relay.jsonl": {
+    "bytes": 9335,
+    "sha256": "43b69db4934faf63434c503328429e669903dc8ba319dbd4a507f5438bb1f49a"
+  },
+  "report.json": {
+    "bytes": 49889,
+    "sha256": "ecaa9d3568f15217ce6c2b0b2fd5f7e30ebc0cd249c63248b4e27a021b46d06b"
+  },
+  "socks5-DIRECT.png": {
+    "bytes": 55683,
+    "sha256": "8c2fe57c81eb200eb2d9dd7776ef1d8d6f23822cd9fd1e111c19eb102c488ac1"
+  },
+  "socks5-PROXY.png": {
+    "bytes": 51028,
+    "sha256": "ab650ea0a3d91c7b957144b01bd5ccfe3e9ffabc58908eeccc2d2872b6ce7860"
+  },
+  "socks5.pac": {
+    "bytes": 699,
+    "sha256": "c051a85637a2ae9cbd669506cea0082687cab38aede482f85964920c773efae8"
+  }
+}

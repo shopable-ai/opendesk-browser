@@ -1,0 +1,15 @@
+{
+  "status": "REJECTED_BY_INDEPENDENT_SECURITY_REVIEW",
+  "binding": "snapshot-binding.json",
+  "productionPackageHash": "cc476ff5b1715510adb93ecfaedf73f6c94e903d8330c8b42d7035f87204c50f",
+  "developmentPackageHash": "e8584c355fee07012b809128e6c582d55b2cea1af6f500be24ad1d1834fc33bc",
+  "checks": {"source": "PASS", "buildProduction": "PASS", "buildDevelopment": "PASS", "verify": "PASS"},
+  "review": "independent-security-review.json",
+  "reason": "Queued RPC installation identity and queued legacy recovery deletion races require new source, regressions and a rebuilt candidate.",
+  "fullTestRun": {"file": "npm-test-after-build.log", "tests": 2555, "pass": 2548, "fail": 3, "skipped": 4},
+  "testEnvironmentGaps": [
+    "Two provenance tests used the historical default receipt directory instead of the actual OPENDESK_BUILD_EVIDENCE_DIR supplied to these builds.",
+    "The Mac native smoke could not find CFT inside the independent snapshot and rejected personal Chrome before launching or installing Native. A later run must supply the exact CFT binary and use its unique Native instance."
+  ],
+  "finalProductAcceptance": false
+}

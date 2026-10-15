@@ -1,0 +1,177 @@
+✖ R2.1 race: a validated old disable queued on the tool lock cannot stop a replacement installation (17.581959ms)
+✖ R2.1 race: queued legacy recovery cannot resurrect state after verified uninstall deletion (1.56075ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 65.563333
+
+✖ failing tests:
+
+test at tests/environment/ai-vip-share-r21-lifecycle.test.mjs:366:1
+✖ R2.1 race: a validated old disable queued on the tool lock cannot stop a replacement installation (17.581959ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/ai-vip-share-r21-lifecycle.test.mjs:388:7)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/environment/ai-vip-share-r21-lifecycle.test.mjs:396:1
+✖ R2.1 race: queued legacy recovery cannot resurrect state after verified uninstall deletion (1.56075ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + {
+  +   desired: false,
+  +   deviceId: null,
+  +   lease: null,
+  +   releasePending: false,
+  +   schema: 1
+  + }
+  - undefined
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/ai-vip-share-r21-lifecycle.test.mjs:424:12)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { schema: 1, desired: false, releasePending: false, deviceId: null, lease: null },
+    expected: undefined,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+✔ R2.1 race: a validated old disable queued on the tool lock cannot stop a replacement installation (24.171667ms)
+✔ R2.1 race: queued legacy recovery cannot resurrect state after verified uninstall deletion (1.189083ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 77.104125
+✔ R1 only AI exact domains and valid descendants use PAC proxy; lookalikes are DIRECT (8.3535ms)
+✔ R1 rejects untrusted PAC, proxy endpoint and lease fields (0.847708ms)
+✔ R1 proxy is a required Chrome permission; sandbox cannot authorize enable (5.7325ms)
+✔ R1 real contract: activate, verify, apply/readback PAC, release own preference (16.217375ms)
+✔ R1 conflicting extension, spoofed sender and stale installation fail closed (2.591583ms)
+✔ R1 without an approved backend no activation or false enabled state (0.764209ms)
+✔ R2.1 expired lease preserves PAC and evidence on wake until explicit STOP (3.288083ms)
+✔ R1 tool disable/uninstall stops proxy and removes only its own data (0.520125ms)
+✔ R2 renamed tool uses new identity, protocol, state and alarm namespaces (0.080875ms)
+✔ R2.1 old activation never enables renamed ID and active PAC survives wake (0.548125ms)
+✔ R2 uninstalling legacy package removes only its state and alarm (0.292666ms)
+✔ R2.1 wake preserves active legacy PAC with new ID absent or merely activated (7.7345ms)
+✔ R2.1 explicit legacy STOP and uninstall release proven old PAC before deleting evidence (1.13025ms)
+✔ R2.1 old STOP/uninstall cannot clear new owned PAC even on the same endpoint (1.3925ms)
+✔ R2.1 shared non-AI extension PAC and missing owner evidence prevent cleanup (0.924958ms)
+✔ R2.1 duplicate unmarked ownership and corrupt peer state fail closed (0.503292ms)
+✔ R2.1 pending legacy release is retried on wake without touching new identity (0.366541ms)
+✔ R2.1 failed explicit legacy STOP schedules recovery even without an earlier alarm (0.510208ms)
+✔ R2.1 unavailable permissions, ownership read or hidden control keep retry evidence (1.73875ms)
+✔ R2.1 storage failure precedes effects; lost storage acknowledgement uses verified readback (0.620584ms)
+✔ R2.1 lost native clear acknowledgement/readback preserves lease until retry (0.649416ms)
+✔ R2.1 new installation cannot resume prior install activation or overwrite foreign PAC (12.697291ms)
+✔ R2.1 interrupted apply preserves PAC until explicit STOP, without altering legacy data (2.424708ms)
+✔ R2.1 expiry, revoked authorization, missing provider and permission never auto-clear active PAC (8.463333ms)
+✔ R2.1 lost receipt and installation replacement cannot adopt or clear existing PAC (6.14125ms)
+✔ R2.1 without a global Web Lock even explicit STOP must fail before effects (0.368084ms)
+✔ R2.1 separate UI/SW API objects serialize proof and clear on the same Web Lock (2.118667ms)
+✔ R2.1 race: a validated old disable queued on the tool lock cannot stop a replacement installation (4.568375ms)
+✔ R2.1 race: queued legacy recovery cannot resurrect state after verified uninstall deletion (0.608708ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 101.460959
+✔ R1 only AI exact domains and valid descendants use PAC proxy; lookalikes are DIRECT (9.135042ms)
+✔ R1 rejects untrusted PAC, proxy endpoint and lease fields (0.819333ms)
+✔ R1 proxy is a required Chrome permission; sandbox cannot authorize enable (6.115167ms)
+✔ R1 real contract: activate, verify, apply/readback PAC, release own preference (18.049625ms)
+✔ R1 conflicting extension, spoofed sender and stale installation fail closed (2.660333ms)
+✔ R1 without an approved backend no activation or false enabled state (0.822125ms)
+✔ R2.1 expired lease preserves PAC and evidence on wake until explicit STOP (3.919ms)
+✔ R1 tool disable/uninstall stops proxy and removes only its own data (0.570375ms)
+✔ R2 renamed tool uses new identity, protocol, state and alarm namespaces (0.075291ms)
+✔ R2.1 old activation never enables renamed ID and active PAC survives wake (0.760458ms)
+✔ R2 uninstalling legacy package removes only its state and alarm (0.380667ms)
+✔ R2.1 wake preserves active legacy PAC with new ID absent or merely activated (8.587791ms)
+✔ R2.1 explicit legacy STOP and uninstall release proven old PAC before deleting evidence (1.348291ms)
+✔ R2.1 old STOP/uninstall cannot clear new owned PAC even on the same endpoint (1.429625ms)
+✔ R2.1 shared non-AI extension PAC and missing owner evidence prevent cleanup (0.887042ms)
+✔ R2.1 duplicate unmarked ownership and corrupt peer state fail closed (0.558084ms)
+✔ R2.1 pending legacy release is retried on wake without touching new identity (0.569458ms)
+✔ R2.1 failed explicit legacy STOP schedules recovery even without an earlier alarm (0.68975ms)
+✔ R2.1 unavailable permissions, ownership read or hidden control keep retry evidence (2.273417ms)
+✔ R2.1 storage failure precedes effects; lost storage acknowledgement uses verified readback (0.812208ms)
+✔ R2.1 lost native clear acknowledgement/readback preserves lease until retry (1.269291ms)
+✔ R2.1 new installation cannot resume prior install activation or overwrite foreign PAC (14.247958ms)
+✔ R2.1 interrupted apply preserves PAC until explicit STOP, without altering legacy data (2.714ms)
+✔ R2.1 expiry, revoked authorization, missing provider and permission never auto-clear active PAC (9.603625ms)
+✔ R2.1 lost receipt and installation replacement cannot adopt or clear existing PAC (7.610208ms)
+✔ R2.1 without a global Web Lock even explicit STOP must fail before effects (0.398333ms)
+✔ R2.1 separate UI/SW API objects serialize proof and clear on the same Web Lock (2.051959ms)
+✔ R2.1 race: a validated old disable queued on the tool lock cannot stop a replacement installation (4.294292ms)
+✔ R2.1 race: queued legacy recovery cannot resurrect state after verified uninstall deletion (0.552167ms)
+✔ R2.1 request guards reject identity or document changes after proxy/network waits (4.152ms)
+ℹ tests 30
+ℹ suites 0
+ℹ pass 30
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 119.780625
+
+FINAL FROZEN SOURCE IDENTITY
+{
+  "frozen": true,
+  "tests": {
+    "tests": 30,
+    "pass": 30,
+    "fail": 0
+  },
+  "files": [
+    {
+      "path": "src/ai-smart-access/lifecycle.js",
+      "sha256": "46928470c866b7098af07de15f0bb445e5baa8d41befd8b3e270d263082ead03"
+    },
+    {
+      "path": "src/ai-smart-access/policy.js",
+      "sha256": "aa5a3113252534a4811de82b7959817aa327527659e5073db88fab0a5859803f"
+    },
+    {
+      "path": "src/ai-smart-access/service.js",
+      "sha256": "9c311c8fbb63aed00d27a86792d6869b8f1957a544696027b5bf7d3f4ab877d0"
+    },
+    {
+      "path": "tests/environment/ai-vip-share-r2.test.mjs",
+      "sha256": "45e72233fec86d8d962fca0d124d31f4da77d0096ee2d6562994cac9df16c678"
+    },
+    {
+      "path": "tests/environment/ai-vip-share-r21-lifecycle.test.mjs",
+      "sha256": "7276dd6dc99a6aacf09e58a7320ee61219e9b647bd25f9fce1b789a46305aaa3"
+    }
+  ],
+  "aggregate_sha256": "6b64b10d2db6d4e20f79da265a77680552a71f4b79a493f6b018fce0cb5b85f6",
+  "aggregate_encoding": "UTF-8; lexicographically sorted paths, each path + NUL + lowercase hex file SHA-256 + LF",
+  "preserved_review": {
+    "path": "docs/framework/workstreams/evidence/ai-vip-share-r21-01a13df4/independent-security-review.json",
+    "sha256": "e9c0783878763a9bdf6ae2859c81a47cb9dffdf688fa7f2a29ae57a71f864f4f"
+  },
+  "race_baseline": {
+    "path": ".runtime/ai-vip-share-r21-race-baseline.log",
+    "sha256": "0cf3404b44272b4a8bc61d9ec2c5a8899fb69f35bfa8dec175570e6bea5ff538"
+  }
+}

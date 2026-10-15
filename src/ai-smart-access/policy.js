@@ -45,10 +45,20 @@ export function validLease(lease,now=Date.now()){
 export function leaseUsable(lease,now=Date.now()){
   try{return validLease(lease,now)}catch{return null}
 }
-export function compileAiPac(endpoint){
+export function validAiProxyOwner(owner,toolId=owner?.toolId){
+  if(!exact(owner,['toolId','packageHash','installEpoch'])||
+     ![AI_ID,LEGACY_AI_ID].includes(toolId)||owner.toolId!==toolId||
+     typeof owner.packageHash!=='string'||!/^[a-f0-9]{64}$/.test(owner.packageHash)||
+     !(owner.installEpoch===null||typeof owner.installEpoch==='string'&&
+       /^[A-Za-z0-9._-]{1,180}$/.test(owner.installEpoch)))
+    throw aiError('E_AI_OWNERSHIP','代理安装身份无法确认，已保留原状态');
+  return {toolId,packageHash:owner.packageHash,installEpoch:owner.installEpoch};
+}
+export function compileAiPac(endpoint,owner){
   const approved=validEndpoint(endpoint);
   const directive=(approved.scheme==='socks5'?'SOCKS5 ':'HTTPS ')+approved.host+':'+approved.port;
-  const lines=['function FindProxyForURL(url, host) {',
+  const lines=[...(owner?['// OpenDesk AI owner '+JSON.stringify(validAiProxyOwner(owner))]:[]),
+    'function FindProxyForURL(url, host) {',
     '  host = String(host).toLowerCase().replace(/\\.$/, "");'];
   for(const domain of AI_DOMAINS){
     const name=JSON.stringify(domain);
@@ -57,11 +67,11 @@ export function compileAiPac(endpoint){
   lines.push('  return "DIRECT";','}');
   return lines.join('\n');
 }
-export function desiredAiProxy(endpoint){
-  return {mode:'pac_script',pacScript:{data:compileAiPac(endpoint),mandatory:true}};
+export function desiredAiProxy(endpoint,owner){
+  return {mode:'pac_script',pacScript:{data:compileAiPac(endpoint,owner),mandatory:true}};
 }
-export function matchesAiProxy(actual,endpoint){
-  const expected=desiredAiProxy(endpoint);
+export function matchesAiProxy(actual,endpoint,owner){
+  const expected=desiredAiProxy(endpoint,owner);
   return actual?.mode==='pac_script'&&
     actual.pacScript?.data===expected.pacScript.data&&actual.pacScript?.mandatory===true;
 }
