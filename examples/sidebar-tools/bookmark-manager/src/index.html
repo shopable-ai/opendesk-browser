@@ -36,6 +36,11 @@
           <button id="bm-inspector-delete" type="button" class="od-button od-button--quiet bm-button">删除…</button>
         </div>
       </div>
+      <div id="bm-draft-guard" class="bm-draft-guard od-alert od-alert--warning" role="alert" aria-labelledby="bm-draft-title" hidden>
+        <strong id="bm-draft-title">切换书签前确认草稿</strong>
+        <p id="bm-draft-context" class="od-note">当前修改尚未保存。</p>
+        <div class="bm-actions"><button id="bm-keep-draft" type="button" class="od-button bm-button">继续编辑草稿</button><button id="bm-discard-switch" type="button" class="od-button od-button--secondary bm-button">放弃草稿并查看</button></div>
+      </div>
       <section id="bm-form-view" aria-label="原位编辑表单" hidden>
         <div class="bm-subhead"><h2 id="bm-form-title" class="od-title"></h2></div>
         <form id="bm-form">
@@ -67,10 +72,6 @@
         <label id="bm-delete-children-row" class="bm-check od-note" hidden><input id="bm-delete-children" type="checkbox"> 我确认删除目录及全部子项</label>
         <div class="bm-actions"><button id="bm-delete-confirm" type="button" class="od-button od-button--danger bm-button">确认删除</button><button id="bm-delete-cancel" type="button" class="od-button od-button--secondary bm-button">取消</button></div>
       </section>
-      <div id="bm-draft-guard" class="bm-draft-guard od-alert od-alert--warning" role="alert" hidden>
-        <strong>当前有未保存的修改</strong><p class="od-note">请先处理草稿，避免切换书签时丢失内容。</p>
-        <div class="bm-actions"><button id="bm-keep-draft" type="button" class="od-button bm-button">继续编辑</button><button id="bm-discard-switch" type="button" class="od-button od-button--secondary bm-button">放弃修改并切换</button></div>
-      </div>
     </section>
   </section>
 </main>
