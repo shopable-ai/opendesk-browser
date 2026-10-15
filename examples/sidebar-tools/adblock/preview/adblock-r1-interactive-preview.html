@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>OpenDesk · AdBlock R1 交互原型（非真实广告拦截）</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px;line-height:1.5;font-synthesis:none;color:#24334e;background:#edf2f9}
+*{box-sizing:border-box}[hidden]{display:none!important}body{margin:0}button,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.48}button:focus-visible,select:focus-visible{outline:3px solid #6a8fff;outline-offset:3px}
+.stage{--paper:#fff;--wash:#f6f8fc;--line:#e2e9f3;--ink:#253450;--muted:#596a81;min-height:100vh;padding:38px 24px 60px;background:radial-gradient(ellipse at 15% 10%,#dae7ff 0,transparent 42%),linear-gradient(135deg,#f5f8ff,#e8eef7)}
+.layout{display:grid;grid-template-columns:minmax(320px,394px) minmax(310px,465px);justify-content:center;align-items:start;gap:38px;max-width:1000px;margin:0 auto}
+.frame{background:#f7f9fd;border:1px solid #dce4f0;border-radius:18px;box-shadow:0 23px 60px #293b5b20;min-width:0;overflow:hidden}
+.frame-top{background:#fff;border-bottom:1px solid #e9edf4;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:11px;color:#5e708a}
+.frame-top strong{color:#4a5b78;font-size:12px;font-weight:700}.crumb{display:flex;gap:8px;align-items:center;min-width:0}.crumb span:last-child{color:#365cc4;font-weight:700}.fake-dots{display:flex;gap:5px}.fake-dots i{height:6px;width:6px;border-radius:99px;background:#c9d3e3}
+.panel{padding:22px 18px 18px;color:var(--ink,#24334e)}
+.panel [hidden]{display:none!important}
+.toolhead{display:flex;align-items:center;gap:12px;margin-bottom:23px}.logo{width:44px;height:44px;flex:none;border-radius:14px;display:grid;place-items:center;color:#fff;background:linear-gradient(145deg,#527be5,#3155bc);box-shadow:0 5px 15px #3155bc27}
+.logo svg{width:26px;height:26px}.tooltitle{flex:1;min-width:0}.tooltitle h1{font-size:19px;letter-spacing:-.6px;line-height:1.23;margin:0 0 5px;font-weight:760}.tooltitle p{font-size:11px;margin:0;color:var(--muted,#73839a)}
+.iconbtn{width:35px;height:35px;padding:0;flex:none;border-radius:10px;border:1px solid var(--line,#e2e9f3);display:grid;place-items:center;color:var(--muted,#697a95);background:var(--paper,#fff)}.iconbtn:hover{border-color:#99b1eb;color:#375fc8}.iconbtn svg{height:18px;width:18px}
+.card{background:var(--paper,#fff);border:1px solid var(--line,#e2e9f3);border-radius:14px}
+.global-card{padding:17px 15px;margin-bottom:14px}.card-row{display:flex;align-items:center;justify-content:space-between;gap:14px}.text-main{font-size:14px;font-weight:720;margin:0;color:var(--ink,#253450)}.text-sub{font-size:11px;color:var(--muted,#7b8ba3);margin:4px 0 0;line-height:1.5}
+.toggle{display:inline-flex;justify-content:flex-start;align-items:center;min-width:46px;width:46px;height:27px;border:0;border-radius:999px;background:#cad4e3;padding:3px;transition:background .15s ease;flex:none}.toggle .knob{height:21px;width:21px;border-radius:50%;background:#fff;box-shadow:0 2px 6px #162f4b25;transition:transform .15s ease}.toggle[aria-checked=true]{background:#3872de}.toggle[aria-checked=true] .knob{transform:translateX(19px)}.toggle[aria-checked=false]{background:#aebccc}
+.status-line{display:flex;align-items:center;gap:7px;font-size:11px;color:#13815e;font-weight:660;margin:12px 0 0}.status-dot{width:7px;height:7px;border-radius:50%;background:#26b586}.status-line.off{color:#8a6270}.status-line.off .status-dot{background:#c17f8c}.status-line.unavailable{color:#8a6372}
+.site-card{padding:17px 15px 14px;margin-bottom:14px}.eyebrow{font-size:10px;font-weight:730;letter-spacing:.08em;color:var(--muted,#8995a8);text-transform:uppercase}.site-ident{display:flex;gap:10px;align-items:center;margin:10px 0 18px}.site-avatar{width:37px;height:37px;border-radius:11px;display:grid;place-items:center;background:#edf1fc;color:#4669c5;font-weight:800}.site-host{font-size:15px;letter-spacing:-.25px;font-weight:760;overflow-wrap:anywhere;color:var(--ink,#253450)}.site-sub{font-size:11px;color:var(--muted,#8290a6)}
+.site-divider{height:1px;background:var(--line,#e9edf5);margin:14px 0}.site-summary{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;padding:1px 0 0}.count{font-size:30px;letter-spacing:-1.6px;font-weight:780;line-height:1.18;font-variant-numeric:tabular-nums;color:var(--ink,#263752)}.count-description{display:block;font-size:11px;color:var(--muted,#7b8ba3);margin-top:5px}.sample{border:1px solid var(--line,#dce5f2);background:var(--wash,#f6f8fc);border-radius:100px;padding:4px 7px;font-size:10px;color:var(--muted,#8190a5);align-self:center}.help{color:var(--muted,#7b8ba3);font-size:11px;line-height:1.6;margin:14px 0 0}
+.preset{padding:14px 15px;margin-bottom:14px}.preset-top{display:flex;align-items:center;justify-content:space-between;gap:10px}.preset-top b{font-size:12px;color:var(--ink,#273750)}.preset-top span{font-size:10px;color:#315bb3;background:#ecf2ff;border-radius:20px;padding:3px 8px;font-weight:680}.preset p{margin:5px 0 0;font-size:11px;color:var(--muted,#8190a5)}
+.linkrow{display:flex;align-items:center;justify-content:space-between;padding:14px 2px;color:var(--ink,#283856);border:0;background:transparent;width:100%;text-align:left;font-size:12px;font-weight:690}.linkrow svg{width:17px;height:17px;color:#8b9bb6}.linkrow .left{display:inline-flex;align-items:center;gap:9px}.linkrow .left svg{color:#637da9}.linkrow:hover{color:#315bc4}
+.page-heading{display:flex;align-items:center;gap:10px;margin:0 0 19px}.page-heading h2{font-size:17px;margin:0;font-weight:770;letter-spacing:-.4px}.page-heading .iconbtn{width:32px;height:32px}.page-heading small{margin-left:auto;color:var(--muted,#7b8ba3);font-size:11px}
+.list-card{padding:13px 15px}.list-intro{font-size:12px;line-height:1.6;color:var(--muted,#77879e);margin:0 0 15px}.allow-row{display:flex;gap:8px;justify-content:space-between;align-items:center;padding:12px 0;border-top:1px solid var(--line,#e9eef5)}.allow-row:first-child{border-top:0}.allow-row strong{font-size:13px;overflow-wrap:anywhere}.allow-row p{font-size:10px;color:var(--muted,#7a8aa1);margin:2px 0 0}.secondary{background:var(--paper,#fff);border:1px solid var(--line,#dbe4ef);border-radius:8px;padding:7px 10px;color:#4569b4;font-size:11px;font-weight:720}.secondary:hover{border-color:#8caaeb}.empty-state{text-align:center;padding:30px 10px 26px;color:var(--muted,#73839b)}.empty-state svg{width:30px;height:30px;color:#a0b4d6}.empty-state strong{display:block;color:var(--ink,#31415c);font-size:13px;margin:10px 0 4px}.empty-state p{margin:0;font-size:11px}
+.setting-row{padding:15px 0;border-top:1px solid var(--line,#e8eef4)}.setting-row:first-child{border-top:0}.setting-row h3{margin:0;font-size:13px}.setting-row p{font-size:11px;color:var(--muted,#77879e);margin:4px 0 0}.setting-row .mini{font-size:11px;color:#3662bc;font-weight:680}.setting-muted{background:var(--wash,#f6f8fc);padding:13px;border-radius:10px;font-size:11px;color:var(--muted,#7d8da2);line-height:1.6}
+.footline{font-size:10px;line-height:1.5;color:var(--muted,#93a0b0);border-top:1px solid var(--line,#e2eaf4);padding-top:14px;margin:14px 0 0;text-align:center}
+.notes{padding-top:18px}.notes .kicker{color:#315bb3;font-size:11px;letter-spacing:2px;font-weight:780}.notes h2{font-size:32px;line-height:1.23;letter-spacing:-1.1px;color:#263856;margin:12px 0 13px}.notes>p{font-size:14px;color:#566984;line-height:1.85;margin:0 0 24px}.controls,.explain{padding:19px;background:#fff;border:1px solid #dce6f4;border-radius:15px;box-shadow:0 7px 21px #344d7120;margin-bottom:13px}.controls h3,.explain h3{font-size:14px;margin:0 0 12px;color:#263b5b}.controls label{font-size:12px;color:#5f718a;font-weight:700;display:block;margin:0 0 6px}.controls select{width:100%;border-radius:9px;border:1px solid #d1dceb;background:#fff;padding:10px 11px;color:#293a59;min-height:42px;cursor:pointer}.buttons{display:flex;gap:8px;margin-top:12px}.buttons button{border:1px solid #d9e3f1;background:#f6f9ff;color:#3b5b95;padding:9px 12px;border-radius:9px;font-size:12px;font-weight:690}.buttons button:hover{border-color:#9ab4eb}.demo-flag{display:inline-flex;align-items:center;gap:7px;background:#e8eefa;color:#4162a0;font-size:11px;padding:6px 10px;border-radius:30px;margin-bottom:15px}.demo-flag i{height:7px;width:7px;background:#608bdd;border-radius:50%}.explain ul{padding-left:18px;margin:0;font-size:12px;color:#667791;line-height:2.15}.fine-print{color:#566a84!important;font-size:11px!important;line-height:1.65!important;margin-top:12px!important}
+.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(12px);padding:10px 15px;min-width:180px;max-width:min(90vw,430px);text-align:center;border-radius:10px;background:#273956;color:#fff;font-size:12px;box-shadow:0 12px 36px #111e3d33;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:9}.toast.visible{opacity:1;transform:translateX(-50%) translateY(0)}
+.stage.night{--paper:#19283d;--wash:#142438;--line:#334761;--ink:#ecf2ff;--muted:#a5b5cf;background:radial-gradient(ellipse at 15% 12%,#233851 0,transparent 42%),linear-gradient(135deg,#0f1a2a,#1c2c42)}.night .frame{background:#152236;border-color:#3b4c66}.night .frame-top{background:#1b2b40;border-color:#364b65}.night .frame-top{color:#adc0dc}.night .frame-top strong{color:#dce6f8}.night .crumb span:last-child{color:#99b9ff}.night .site-avatar{background:#273e61;color:#abccff}.night .preset-top span{background:#263b5f;color:#a8c8ff}.night .notes h2{color:#f1f6ff}.night .notes>p{color:#b6c5d8}.night .controls,.night .explain{background:#1b2b40;border-color:#344962}.night .controls h3,.night .explain h3{color:#e9f1ff}.night .controls label,.night .explain ul{color:#b8c8e0}.night .controls select{background:#243650;color:#f2f6ff;border-color:#4b6180}.night .buttons button{background:#253c5a;color:#cde0ff;border-color:#40597d}.night .demo-flag{background:#2b456b;color:#cee1ff}.night .fine-print{color:#99aac3!important}.night .secondary{color:#a8c6fb}.night .status-line.off{color:#e5a8b0}
+@media(max-width:760px){.stage{padding:20px 14px 42px}.layout{grid-template-columns:minmax(0,394px);gap:14px}.notes{padding:6px 0 0}.notes h2{font-size:24px;margin:8px 0}.notes>p{margin-bottom:12px}.controls,.explain{box-shadow:none}.frame{border-radius:14px}}@media(max-width:350px){.stage{padding:10px 5px 24px}.panel{padding:17px 12px 15px}.site-card,.global-card,.preset{padding-left:12px;padding-right:12px}.notes{padding:8px}.card-row{gap:7px}}@media(prefers-reduced-motion:reduce){.toggle .knob,.toggle,.toast{transition:none}}
+</style>
+</head>
+<body>
+<div id="stage" class="stage">
+ <div class="layout">
+  <div class="frame" aria-label="AdBlock Side Panel 交互演示">
+   <div class="frame-top"><div class="crumb"><strong>OpenDesk</strong><span>›</span><span>扩展 / AdBlock</span></div><span class="fake-dots" aria-hidden="true"><i></i><i></i><i></i></span></div>
+   <main class="panel">
+    <section id="overview">
+     <header class="toolhead">
+      <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 8 3v6c0 5-3.4 8.6-8 11-4.6-2.4-8-6-8-11V5l8-3Z"/><path d="m8.7 12.1 2.2 2.2 4.6-4.9"/></svg></div>
+      <div class="tooltitle"><h1>AdBlock</h1><p>广告拦截 · 安静浏览</p></div>
+      <button class="iconbtn" type="button" id="open-settings" aria-label="打开设置" title="设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15.2a1.7 1.7 0 0 0 .3 1.9l-1.6 1.6a1.7 1.7 0 0 0-1.9-.3l-.8.4a1.7 1.7 0 0 0-1 1.5V21h-2.3v-.7a1.7 1.7 0 0 0-1-1.5l-.8-.4a1.7 1.7 0 0 0-1.9.3l-1.6-1.6a1.7 1.7 0 0 0 .3-1.9l-.4-.8a1.7 1.7 0 0 0-1.5-1H4v-2.3h.7a1.7 1.7 0 0 0 1.5-1l.4-.8a1.7 1.7 0 0 0-.3-1.9L7.9 5a1.7 1.7 0 0 0 1.9.3l.8-.4a1.7 1.7 0 0 0 1-1.5V3h2.3v.7a1.7 1.7 0 0 0 1 1.5l.8.4a1.7 1.7 0 0 0 1.9-.3l1.6 1.6a1.7 1.7 0 0 0-.3 1.9l.4.8a1.7 1.7 0 0 0 1.5 1h.7v2.3h-.7a1.7 1.7 0 0 0-1.5 1l-.4.8Z" transform="translate(-.3 -.3) scale(.98)"/></svg></button>
+     </header>
+     <section class="card global-card" aria-label="全局保护">
+      <div class="card-row"><div><h2 class="text-main">全局保护</h2><p class="text-sub">为所有支持的网站启用</p></div><button id="global-switch" class="toggle" type="button" role="switch" aria-label="全局广告拦截" aria-checked="true"><span class="knob"></span></button></div>
+      <p class="status-line" id="global-status"><span class="status-dot" aria-hidden="true"></span><span id="global-status-text">已开启保护</span></p>
+     </section>
+     <section class="card site-card" aria-label="当前网站">
+      <div class="eyebrow">当前网站</div>
+      <div class="site-ident"><div class="site-avatar" id="site-avatar" aria-hidden="true">N</div><div><div class="site-host" id="site-host">news.example.com</div><div class="site-sub" id="site-meta">普通网页 · 可以使用拦截</div></div></div>
+      <div class="card-row"><div><h2 class="text-main">在此网站拦截</h2><p class="text-sub" id="site-description">仅影响当前域名</p></div><button id="site-switch" class="toggle" type="button" role="switch" aria-label="当前网站广告拦截" aria-checked="true"><span class="knob"></span></button></div>
+      <div class="site-divider"></div>
+      <div class="site-summary"><div><span class="count" id="blocked-count">18</span><span class="count-description" id="count-label">本网站已拦截的请求</span></div><span class="sample">演示数据</span></div>
+      <p class="help" id="site-help">网页显示异常时，关闭本网站拦截即可排除。</p>
+     </section>
+     <section class="card preset" aria-label="过滤规则"><div class="preset-top"><b>过滤规则</b><span>默认推荐</span></div><p>拦截常见广告及跟踪请求，无需手动配置</p></section>
+     <button class="linkrow" type="button" id="open-allowlist"><span class="left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3.5" y="4.5" width="17" height="15" rx="3"/><path d="M8 9.5h8M8 14h5"/></svg><span>管理已停用的网站</span><span id="allow-count" style="color:var(--muted,#8392a8);font-size:11px">0</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m9 5 7 7-7 7"/></svg></button>
+    </section>
+    <section id="allowlist" hidden>
+     <div class="page-heading"><button class="iconbtn back" type="button" aria-label="返回概览" title="返回"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m15 5-7 7 7 7"/></svg></button><h2>已停用的网站</h2><small id="allow-summary">0 个网站</small></div>
+     <p class="list-intro">这些网站将不使用广告过滤。你可以在这里恢复，也可以返回网站直接打开开关。</p>
+     <div class="card list-card" id="allow-rows" aria-live="polite"></div>
+    </section>
+    <section id="settings" hidden>
+     <div class="page-heading"><button class="iconbtn back" type="button" aria-label="返回概览" title="返回"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m15 5-7 7 7 7"/></svg></button><h2>设置</h2></div>
+     <div class="card list-card"><div class="setting-row"><h3>默认过滤</h3><p>安装后默认使用内置推荐规则，适用于大多数网站。</p><span class="mini">推荐模式（V1 固定）</span></div><div class="setting-row"><h3>网站例外</h3><p>关闭单个网站的拦截时，自动添加到例外列表。</p><button class="secondary" type="button" id="settings-allowlist">查看例外列表</button></div><div class="setting-row"><h3>网页异常处理</h3><p>遇到功能异常时，请优先临时关闭当前网站的拦截，再重新载入网页。</p></div></div>
+     <p class="setting-muted" style="margin-top:14px">高级过滤、手动元素屏蔽与订阅源管理留到后续版本。原型不会修改真实 Chrome 权限或网络规则。</p>
+    </section>
+    <p class="footline">交互原型 · 不执行真实广告过滤或读取网页</p>
+   </main>
+  </div>
+  <aside class="notes" aria-label="原型操作说明">
+   <div class="demo-flag"><i aria-hidden="true"></i>可交互产品原型 · R1</div>
+   <div class="kicker">OPENDESK · EXTENSION DESIGN</div>
+   <h2>广告拦截，<br>保持简单。</h2>
+   <p>一眼看清是否生效；一键对整个浏览器或当前网站启停。复杂过滤规则不占用日常界面。</p>
+   <div class="controls"><h3>体验不同场景</h3><label for="domain-select">模拟当前网页</label><select id="domain-select"><option value="news.example.com">news.example.com · 新闻网站</option><option value="video.example.com">video.example.com · 视频网站</option><option value="shop.example.com">shop.example.com · 购物网站</option><option value="chrome://settings">chrome://settings · 浏览器受限页面</option></select><div class="buttons"><button type="button" id="theme-button">切换深色模式</button><button type="button" id="reset-button">重置原型</button></div></div>
+   <div class="explain"><h3>本次设计覆盖</h3><ul><li>全局启停：一键影响所有网站</li><li>本站启停：关闭后加入例外列表</li><li>例外管理：查看并恢复网站</li><li>限制页面：提示不可用，不伪装成功</li><li>推荐规则：默认开启，暂不堆高级配置</li></ul></div>
+   <p class="fine-print">数据和开关只保存在此页面的本地演示状态。正式版本必须通过已审计的后台、Chrome DNR 和权限确认完成规则写入回读，才能提示“已生效”。</p>
+  </aside>
+ </div>
+</div>
+<div class="toast" role="status" aria-live="polite" id="toast"></div>
+<script>
+(() => {
+ 'use strict';
+ const KEY='opendesk.adblock.preview.r1';
+ const domains=['news.example.com','video.example.com','shop.example.com','chrome://settings'];
+ const mockCounts={'news.example.com':18,'video.example.com':42,'shop.example.com':26};
+ const $=id=>document.getElementById(id);
+ const defaultState=()=>({global:true,allowed:[],domain:domains[0],night:false});
+ let state=defaultState();
+ try { const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s && typeof s==='object')state={global:s.global!==false,allowed:Array.isArray(s.allowed)?s.allowed.filter(v=>domains.includes(v)&&!v.startsWith('chrome://')).slice(0,3):[],domain:domains.includes(s.domain)?s.domain:domains[0],night:s.night===true}; } catch {}
+ // Only preserve known demo domains. No URL entered by a user is processed or stored.
+ const persist=()=>{try{localStorage.setItem(KEY,JSON.stringify(state))}catch{}};
+ const supported=()=>!state.domain.startsWith('chrome://');
+ let toastTimer;
+ const toast=t=>{const el=$('toast');el.textContent=t;el.classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('visible'),2300)};
+ function show(view){['overview','allowlist','settings'].forEach(id=>$(id).hidden=id!==view);if(view==='allowlist')renderAllowlist();}
+ function render(){
+  const eligible=supported(),siteOn=eligible&&state.global&&!state.allowed.includes(state.domain);
+  $('global-switch').setAttribute('aria-checked',String(state.global));
+  $('global-status').className='status-line'+(state.global?'':' off');
+  $('global-status-text').textContent=state.global?'全局保护已开启':'全局保护已暂停';
+  $('site-host').textContent=state.domain;
+  $('site-avatar').textContent=eligible?state.domain[0].toUpperCase():'—';
+  $('site-meta').textContent=eligible?'此网页支持过滤':'浏览器受限页面';
+  $('site-switch').disabled=!state.global||!eligible;
+  $('site-switch').setAttribute('aria-checked',String(siteOn));
+  $('site-description').textContent=!eligible?'此页面无法使用':!state.global?'请先开启全局保护':siteOn?'仅影响当前域名':'当前网站在例外列表中';
+  $('blocked-count').textContent=siteOn?String(mockCounts[state.domain]||0):'—';
+  $('count-label').textContent=siteOn?'本网站已拦截的请求':'当前不进行过滤';
+  $('site-help').textContent=!eligible?'Chrome 内部页面不允许扩展进行广告过滤。':!state.global?'开启全局保护后，可单独管理每个网站。':siteOn?'网页显示异常时，关闭本网站拦截即可排除。':'本站过滤已关闭，可随时重新开启。';
+  $('allow-count').textContent=String(state.allowed.length);
+  $('domain-select').value=state.domain;
+  $('stage').classList.toggle('night',state.night);
+  $('theme-button').textContent=state.night?'切换浅色模式':'切换深色模式';
+  renderAllowlist();
+ }
+ function renderAllowlist(){
+  $('allow-summary').textContent=state.allowed.length+' 个网站';
+  const host=$('allow-rows');host.replaceChildren();
+  if(!state.allowed.length){
+   const empty=document.createElement('div');empty.className='empty-state';empty.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 13.5 10 17l8-9"/><circle cx="12" cy="12" r="10"/></svg><strong>暂无例外网站</strong><p>所有支持的网站默认启用拦截</p>';host.append(empty);return;
+  }
+  state.allowed.forEach(domain=>{
+   const row=document.createElement('div');row.className='allow-row';
+   const item=document.createElement('div');const strong=document.createElement('strong');strong.textContent=domain;
+   const small=document.createElement('p');small.textContent='已停用广告拦截';item.append(strong,small);
+   const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent='恢复拦截';b.dataset.restore=domain;b.setAttribute('aria-label','恢复 '+domain+' 的广告拦截');row.append(item,b);host.append(row);
+  });
+ }
+ $('global-switch').addEventListener('click',()=>{state.global=!state.global;persist();render();toast(state.global?'已在原型中开启全局保护':'已在原型中暂停全局保护')});
+ $('site-switch').addEventListener('click',()=>{if(!state.global||!supported())return;const i=state.allowed.indexOf(state.domain);if(i>=0)state.allowed.splice(i,1);else state.allowed.push(state.domain);persist();render();toast(i>=0?'已在原型中恢复本站拦截':'已在原型中停用本站拦截')});
+ $('open-allowlist').addEventListener('click',()=>show('allowlist'));
+ $('open-settings').addEventListener('click',()=>show('settings'));
+ $('settings-allowlist').addEventListener('click',()=>show('allowlist'));
+ document.querySelectorAll('.back').forEach(b=>b.addEventListener('click',()=>show('overview')));
+ $('allow-rows').addEventListener('click',e=>{const b=e.target.closest('button[data-restore]');if(!b)return;state.allowed=state.allowed.filter(x=>x!==b.dataset.restore);persist();render();toast('已在原型中恢复 '+b.dataset.restore)});
+ $('domain-select').addEventListener('change',e=>{state.domain=domains.includes(e.target.value)?e.target.value:domains[0];persist();show('overview');render()});
+ $('theme-button').addEventListener('click',()=>{state.night=!state.night;persist();render()});
+ $('reset-button').addEventListener('click',()=>{state=defaultState();persist();show('overview');render();toast('已重置原型演示状态')});
+ render();
+})();
+</script>
+</body>
+</html>
