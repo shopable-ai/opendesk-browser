@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {workflowForModel,restoreModelRedactions} from '../../src/ui/workflow/data-sharing.js';
+import {workflowForModel,restoreModelRedactions,verifiedWorkflowHistory} from '../../src/ui/workflow/data-sharing.js';
 import {workflowCodexInput} from '../../src/ui/workflow/local-codex.js';
 import {requestWorkflowPlan} from '../../src/ui/workflow/ai-plan.js';
 
@@ -73,4 +73,28 @@ test('user-initiated AI sends directly without custom consent UI or ledger',asyn
   assert.match(view,/permission=selected==='local_codex'\?Promise\.resolve\(true\):api\.permissions\.request\(\{origins:\[\.\.\.new Set\(origins\)\]\}\)/);
   assert.match(view,/permission=row\.siteGranted\?Promise\.resolve\(true\):api\.permissions\.request\(\{origins:\[permissionPattern\(row\.captured\.url\)\]\}\)/);
   assert.match(view,/currentPageTarget\.revalidate\(row\.captured\)/);
+});
+
+
+test('Native and Cloud may inherit only bounded verified business facts',()=>{
+  const fill={request:'填入 OpenDesk',outcome:'verified',readbackVerified:true,
+    stepCount:1,effectKind:'input-readback'};
+  const search={request:'搜索 OpenDesk',outcome:'verified',readbackVerified:true,
+    stepCount:2,effectKind:'search-results',visibleResultLinks:2};
+  const facts=verifiedWorkflowHistory([fill,search]);
+  assert.deepEqual(facts,[fill,search]);facts[0].request='changed';
+  assert.equal(fill.request,'填入 OpenDesk');
+  assert.match(workflowCodexInput('查看结果',{
+    siteOrigin:'https://demo.example',title:'',description:'',
+    paramsSchema:{type:'object',additionalProperties:false,properties:{},required:[]},steps:[]
+  },[fill,search]),/"effectKind":"search-results"/);
+  for(const invalid of [
+    [{...search,outcome:'attempted'}],
+    [{...search,threadId:'native-thread'}],
+    [{...search,visibleResultLinks:30}],
+    [{...search,effectKind:'click-confirmed'}],
+    [{...search,effectKind:'search-empty',visibleResultLinks:1}],
+    [{...fill,observedNodes:[{text:'SECRET'}]}],
+    [fill,fill,fill,fill,fill]
+  ])assert.throws(()=>verifiedWorkflowHistory(invalid),{code:'E_AI_CONFIG'});
 });
