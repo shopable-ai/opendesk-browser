@@ -31,10 +31,17 @@ export function createWorkflowProviderFacade({localPlanner}) {
       settings={},consent=null,signal,onEvent,onApproval,history=[],fetchImpl,jsonSchema=null}) {
       if(!Object.hasOwn(sources,source))throw Object.assign(new Error('未知工作流 Provider'),{code:'E_AI_CONFIG'});
       if(source==='local_codex') {
-        const proposal=await localPlanner.plan({request,workflow,target,consent,signal,onEvent,onApproval});
+        let completedTurnId=null;
+        const proposal=await localPlanner.plan({request,workflow,target,consent,signal,onApproval,
+          onEvent:event=>{
+            if(event?.type==='turn.completed'&&event.status==='completed'&&
+               typeof event.turnId==='string')completedTurnId=event.turnId;
+            onEvent?.(event);
+          }});
         const snapshot=localPlanner.snapshot();
         return {proposal,metadata:{provider:'local_codex',sessionId:snapshot.sessionId||null,
-          threadId:snapshot.threadId||null,usage:null,termination:'completed'}};
+          threadId:snapshot.threadId||null,turnId:completedTurnId,
+          usage:null,termination:'completed'}};
       }
       let metadata={provider:source,usage:null};
       const proposal=await requestWorkflowPlan({
