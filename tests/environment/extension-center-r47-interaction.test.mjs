@@ -4,6 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {createExtensionCenter} from '../../src/ui/extension-center.js';
 import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
+import {TOOL_CLEANUP_STORE} from '../../src/ui/sidebar-tools/installation.js';
 
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 async function settle(predicate){
@@ -86,7 +87,7 @@ const page=()=>({programId:'reader',manifestHash:'a'.repeat(64),installed:{
   pageRules:{matches:['https://example.com/*']}
 }});
 
-function fixture(t,{disabled=false,readError=false,installedRows=[app]}={}){
+function fixture(t,{disabled=false,readError=false,installedRows=[app],cleanupRows=null}={}){
   const doc={listeners:new Map(),defaultView:{innerWidth:360,innerHeight:640},
     documentElement:{clientWidth:360,clientHeight:640}};
   doc.createElement=tag=>new ElementDouble(tag,doc);
@@ -100,7 +101,7 @@ function fixture(t,{disabled=false,readError=false,installedRows=[app]}={}){
   const ids=['extension-center-list','extension-center-search','extension-center-list-view',
     'extension-center-detail','extension-center-more','extension-center-menu',
     'extension-center-status','workspace-content','extension-center-empty',
-    'extension-center-empty-text','extension-center-count','extension-center-back',
+    'extension-center-empty-text','extension-center-count','extension-center-cleanups','extension-center-back',
     'extension-center-detail-body','extension-center-reset','extension-center-import',
     'extension-center-reload','extension-center-market','extension-center-menu-wrap',
     'sidebar-tool-file'];
@@ -111,10 +112,16 @@ function fixture(t,{disabled=false,readError=false,installedRows=[app]}={}){
   nodes['extension-center-menu-wrap'].append(nodes['extension-center-more'],nodes['extension-center-menu']);
   nodes['extension-center-detail'].hidden=true;
   nodes['extension-center-menu'].hidden=true;
+  const installedScope=doc.createElement('button');installedScope.dataset.ecScope='smart';
+  const availableScope=doc.createElement('button');availableScope.dataset.ecScope='available';
+  nodes['extension-center-menu'].append(installedScope,availableScope);
+  nodes['extension-center-list-view'].append(nodes['extension-center-cleanups']);
   nodes['extension-center-detail'].append(nodes['extension-center-back'],nodes['extension-center-detail-body']);
   doc.body.append(nodes['extension-center-list-view'],nodes['extension-center-detail'],
     nodes['extension-center-status'],nodes['extension-center-menu-wrap'],nodes['workspace-content']);
-  const store=new Map([[SIDEBAR_TOOL_STORE,structuredClone(installedRows)],[SIDEBAR_TOOL_ENABLE_STORE,{[app.id]:!disabled}]]);
+  const store=new Map([[SIDEBAR_TOOL_STORE,structuredClone(installedRows)],
+    [SIDEBAR_TOOL_ENABLE_STORE,{[app.id]:!disabled}]]);
+  if(cleanupRows)store.set(TOOL_CLEANUP_STORE,structuredClone(cleanupRows));
   let corrupt=readError,programs=[page()],failPages=false,allowed=true,pageAckOnly=false;
   const writes=[],invocations=[],changes=new Set();
   const api={
@@ -154,6 +161,10 @@ function fixture(t,{disabled=false,readError=false,installedRows=[app]}={}){
       return true;
     },
     openOfficialReview(id){invocations.push(['review',id]);return false;},
+    async retryUninstallCleanup(id,event){
+      assert.equal(event.isTrusted,true);invocations.push(['cleanup',id]);
+      store.set(TOOL_CLEANUP_STORE,{});return {state:'cleaned',toolId:id};
+    },
     openImport(){invocations.push(['import']);return true;}
   };
   const taskWorkbench={navigate(tab){invocations.push(['navigate',tab]);return true;}};
@@ -285,6 +296,24 @@ test('R5.0 uninstall from a second window retires installed details, search and 
   await restart.ui.refresh();
   assert.equal(restart.button('app:quick-notes','main'),undefined,
     'a new controller session must honor persistent removal');
+});
+
+test('R5.0 catalog-offline cleanup remains recoverable only from discovery',async t=>{
+  const f=fixture(t,{installedRows:[],cleanupRows:{'cookie-editor':{version:'2.0.11',createdAt:1}}});
+  await f.ui.refresh();
+  assert.equal(f.nodes['extension-center-cleanups'].hidden,true,
+    'cleanup journal never counts as an installed app');
+  assert.equal(f.button('app:cookie-editor','main'),undefined);
+  f.nodes['extension-center-menu'].querySelector('button[data-ec-scope="available"]').dispatch('click');
+  const recovery=f.nodes['extension-center-cleanups'];
+  assert.equal(recovery.hidden,false,'recovery remains reachable without a Catalog release');
+  assert.match(recovery.textContent,/cookie-editor/);
+  recovery.querySelector('button').dispatch('click');
+  await settle(()=>recovery.hidden===true);
+  assert.deepEqual(f.invocations.filter(x=>x[0]==='cleanup'),[['cleanup','cookie-editor']]);
+  assert.equal(f.nodes['extension-center-status'].dataset.state,'success');
+  assert.deepEqual(f.store.get(TOOL_CLEANUP_STORE),{});
+  assert.equal(f.button('app:cookie-editor','main'),undefined,'cleanup cannot reinstall code');
 });
 
 test('R4.7 context menu closes on outside click/scroll and never stays outside viewport',async t=>{
