@@ -5,8 +5,13 @@
   "goalComplete": false,
   "sourceBaseHead": "d44181bd1ca6bb1aaf7d11d0fb5fd88b1fb00b32",
   "testedSourceBinding": "snapshot-binding-r2.json",
-  "sourceCommit": "PENDING_COMMIT",
-  "ci": "PENDING_PUSH",
+  "sourceCommit": "fcba2ca0380804fa27e0b1fb56d916a5cf4a1f1b",
+  "ci": {
+    "status": "NOT_DISPATCHED",
+    "runUrl": null,
+    "reason": "Task source commit has not been pushed; remote main CI cannot validate local source.",
+    "workflowUrl": "https://github.com/shopable-ai/opendesk-browser/actions/workflows/sidebar-tools-r1.yml"
+  },
   "filesChanged": [
     "src/ai-smart-access/policy.js",
     "src/ai-smart-access/service.js",
@@ -146,5 +151,10 @@
     "candidate": "Independent static production/development file snapshot; no dev serve client.",
     "testResources": "Owned network CFT/profile/ports and Native test instance/profile cleaned; daily Native pairing untouched.",
     "evidence": "Original failed runs, rejected first candidate and independent review findings retained."
-  }
+  },
+  "publication": "publication.json",
+  "integrationBlockers": [
+    "src/ui/tool.html",
+    "tests/framework/cookie-editor-r33-native.mjs"
+  ]
 }

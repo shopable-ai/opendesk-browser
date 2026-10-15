@@ -86,3 +86,12 @@ R2.1 **未完成**。完成的是旧/新身份代理生命周期安全修复、�
 | 测试与证据可信度 | BLOCKED | 全测一项 Native 失败，F3/ZIP 缺失 |
 
 完整原始日志、候选绑定、构建收据、独立复核、失败保留与逐维结论见 [acceptance.json](evidence/ai-vip-share-r21-01a13df4/acceptance.json)。提交与 CI 身份另写 publication.json，避免自引用提交。测试资源已释放；保留两个候选用于审计，不改写旧收据。
+
+
+### 提交与远端集成状态
+
+- 本任务源码/证据提交：`fcba2ca0380804fa27e0b1fb56d916a5cf4a1f1b`（Lore trailers）。只暂存本任务 101 个路径，未夹带他人未提交改动。
+- 正常 push 被拒绝：远端 main 已推进至 `8d91b0394e4a40ff31b945ad992064a343ea01f1`（AdBlock/Cookie Editor）。只读提交历史合并检查无冲突；正常 merge 为保护本地其他负责人的 `src/ui/tool.html` 和 `tests/framework/cookie-editor-r33-native.mjs` 而拒绝。
+- 未 stash、提交、覆盖或改写这两份他人文件；未强推、创建分支/worktree/PR。仅暂停共享 Git 集成部分。正常 merge/push 拒绝原文已保存。
+- 本源码未成功推送，因此 CI `NOT_DISPATCHED`，没有可归属于本提交的 CI run URL。不能引用远端其他提交的 CI 冒充本轮 PASS。详见 [publication.json](evidence/ai-vip-share-r21-01a13df4/publication.json)。
+- 继续条件：R11 负责人交付获批 Managed Proxy 合同；真实 Provider 交付协议/线路；并行文件负责人完成交接后正常集成并验证实际受影响契约。当前其余安全可执行分支已完成。

@@ -1,0 +1,14 @@
+{
+  "recordedAt": "2026-10-15T05:45:25.151578+00:00",
+  "sourceCommit": "fcba2ca0380804fa27e0b1fb56d916a5cf4a1f1b",
+  "remoteMain": "8d91b0394e4a40ff31b945ad992064a343ea01f1",
+  "mergeTreeExit": 0,
+  "mergeTreeOutput": "95bc7f32669e5c0ea92541c78680894ed62bb5b7\n",
+  "mergeTreeError": "",
+  "workingTreeAndIndexChanged": false,
+  "normalMergeBlockers": [
+    "src/ui/tool.html",
+    "tests/framework/cookie-editor-r33-native.mjs"
+  ],
+  "constraint": "Other task uncommitted files must not be stashed, committed, overwritten or rewritten by this owner. Normal merge/push only."
+}

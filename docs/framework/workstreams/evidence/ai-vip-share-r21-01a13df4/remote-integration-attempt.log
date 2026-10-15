@@ -1,0 +1,8 @@
+Observation: capture exact normal merge refusal after independent merge-tree review. No autostash, overwrite, forced update, or branch.
+exit=2
+error: Your local changes to the following files would be overwritten by merge:
+	src/ui/tool.html
+	tests/framework/cookie-editor-r33-native.mjs
+Please commit your changes or stash them before you merge.
+Aborting
+Merge with strategy ort failed.

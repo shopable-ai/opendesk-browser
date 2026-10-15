@@ -1,0 +1,30 @@
+{
+  "recordedAt": "2026-10-15T05:46:47.220117+00:00",
+  "branch": "main",
+  "sourceCommit": "fcba2ca0380804fa27e0b1fb56d916a5cf4a1f1b",
+  "remoteMainObserved": "8d91b0394e4a40ff31b945ad992064a343ea01f1",
+  "push": {
+    "status": "BLOCKED_NON_FAST_FORWARD",
+    "evidence": "remote-push-attempt.log",
+    "forceUsed": false
+  },
+  "integration": {
+    "status": "BLOCKED_OTHER_OWNER_UNCOMMITTED_FILES",
+    "files": [
+      "src/ui/tool.html",
+      "tests/framework/cookie-editor-r33-native.mjs"
+    ],
+    "evidence": "remote-integration-attempt.log",
+    "committedHistoryMergeTree": "integration-review.json",
+    "otherChangesPreserved": true,
+    "stashOrResetOrNewBranchUsed": false
+  },
+  "ci": {
+    "status": "NOT_DISPATCHED",
+    "runUrl": null,
+    "reason": "Task source commit has not been pushed; remote main CI cannot validate local source.",
+    "workflowUrl": "https://github.com/shopable-ai/opendesk-browser/actions/workflows/sidebar-tools-r1.yml"
+  },
+  "acceptance": "BLOCKED / NOT_SCORED; no SDK-first product or 95+ claim",
+  "reportCommit": "This record is committed separately after the tested source commit; receipts retain original identities."
+}
