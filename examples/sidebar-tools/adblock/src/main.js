@@ -18,10 +18,10 @@
     const entries=Array.isArray(state?.exceptions)?state.exceptions:[];
     $('exception-count').textContent=String(entries.length);
     const list=$('exceptions');list.replaceChildren();
-    if(!entries.length){list.append(el('p','adblock-empty','暂无停用的网站'));return;}
+    if(!entries.length){list.append(el('p','od-note adblock-empty','暂无停用的网站'));return;}
     for(const host of entries){
       const row=el('div','adblock-row'),name=el('span','adblock-domain',host);
-      const button=el('button','adblock-restore','恢复');button.type='button';
+      const button=el('button','od-button od-button--secondary adblock-restore','恢复拦截');button.type='button';
       button.disabled=busy||!state?.toolEnabled;
       button.setAttribute('aria-label','恢复 '+host+' 的广告过滤');
       button.addEventListener('click',()=>restore(host));
