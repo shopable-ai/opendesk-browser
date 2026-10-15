@@ -15,7 +15,8 @@ import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
 import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolStorageKey} from '../../src/ui/sidebar-tools/package.js';
 import {officialToolFixture,officialFixtureFetch,officialFixtures} from '../helpers/official-tools.mjs';
 import {MARKET_PROVENANCE_STORE,MARKET_OPERATIONS_STORE,reconcileMarketOperation,recoverMarketOperation,
-  TOOL_CLEANUP_STORE,retryUninstalledToolCleanup,TOOL_REVOCATION_EPOCHS_STORE,recordToolUninstall} from '../../src/ui/sidebar-tools/installation.js';
+  TOOL_CLEANUP_STORE,retryUninstalledToolCleanup,getPendingToolCleanups,installReviewedSidebarTool,
+  TOOL_REVOCATION_EPOCHS_STORE,recordToolUninstall} from '../../src/ui/sidebar-tools/installation.js';
 import {CLIP_SITE_STORE} from '../../src/page-clip/policy.js';
 import {CAPTURE_SITE_STORE} from '../../src/knowledge/policy.js';
 import {READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,READING_TOC_PAGE_RULES_STORE,changeReadingTocVisibility,changeTocSiteAllowed,tocSiteAllowed} from '../../src/reading-toc/policy.js';
@@ -736,6 +737,37 @@ test('R5.0 incomplete cleanup record blocks a new tool even when no orphan paylo
   assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[]);
   assert.deepEqual(store.get(TOOL_CLEANUP_STORE),pending,'recovery marker must remain');
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
+});
+
+test('R5.1 corrupted uninstall cleanup cannot be treated as absent or bypassed by reinstall',async t=>{
+  const key=sidebarToolStorageKey(sample.id),privateData={memo:'other owner data must survive'};
+  const malformed={[sample.id]:{version:'broken',createdAt:1}};
+  const store=new Map([[SIDEBAR_TOOL_STORE,[]],[TOOL_CLEANUP_STORE,malformed],[key,privateData]]);
+  const f=await hostFixture(t,{store,startTool:false}),locks=sharedLocks();
+  await assert.rejects(getPendingToolCleanups(f.api),{code:'E_STORAGE_CORRUPT'});
+  await assert.rejects(installReviewedSidebarTool({api:f.api,lockManager:locks,
+    candidate:sample,baseline:null,reviewApproved:true}),{code:'E_STORAGE_CORRUPT'},
+  'a damaged recovery marker must never let this ID replace the previous owner');
+  await assert.rejects(retryUninstalledToolCleanup({api:f.api,lockManager:locks,id:sample.id}),
+    {code:'E_STORAGE_CORRUPT'},'recovery must not silently drop malformed journal rows');
+  assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[]);
+  assert.deepEqual(store.get(key),privateData);
+  assert.deepEqual(store.get(TOOL_CLEANUP_STORE),malformed);
+});
+
+test('R5.1 uninstall cleanup preserves malformed unrelated grant data for safe recovery',async t=>{
+  const pending={[sample.id]:{version:sample.version,createdAt:1}};
+  const unrelated=['invalid grant registry; do not silently replace'];
+  const store=new Map([[SIDEBAR_TOOL_STORE,[]],[TOOL_CLEANUP_STORE,pending],
+    [READING_TOC_SITE_STORE,unrelated]]);
+  const f=await hostFixture(t,{store,startTool:false});
+  await assert.rejects(retryUninstalledToolCleanup({api:f.api,lockManager:sharedLocks(),id:sample.id}),
+    {code:'E_TOOL_UNINSTALL_CLEANUP'});
+  assert.deepEqual(store.get(READING_TOC_SITE_STORE),unrelated,
+    'malformed records must remain intact for operator recovery, not be spread into objects');
+  assert.deepEqual(store.get(TOOL_CLEANUP_STORE),pending,
+    'cleanup cannot be marked completed after skipping a broken unrelated store');
+  assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[]);
 });
 
 test('R14.1 list renders and Back/uninstall preserve useful keyboard focus',async t=>{
