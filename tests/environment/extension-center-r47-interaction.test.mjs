@@ -354,6 +354,22 @@ test('R5.0 catalog-offline cleanup remains recoverable only from discovery',asyn
   assert.equal(f.button('app:cookie-editor','main'),undefined,'cleanup cannot reinstall code');
 });
 
+test('R5.1 corrupt cleanup journal withdraws installed authority instead of hiding its unsafe entry',async t=>{
+  const malformed={'cookie-editor':{version:'garbled-version',createdAt:1}};
+  const f=fixture(t,{installedRows:[],cleanupRows:malformed});
+  await f.ui.refresh();
+  assert.equal(f.nodes['extension-center-count'].textContent,'部分安装状态待核对');
+  assert.equal(f.nodes['extension-center-status'].dataset.state,'error');
+  assert.match(f.nodes['extension-center-status'].textContent,/卸载恢复记录损坏/);
+  assert.equal(f.button('app:cookie-editor','main'),undefined);
+  f.nodes['extension-center-menu'].querySelector('button[data-ec-scope="available"]').dispatch('click');
+  assert.equal(f.nodes['extension-center-cleanups'].hidden,true,
+    'malformed journal cannot show a fake successful recovery control');
+  assert.equal(f.list.children.length,0,
+    'unknown installation authority cannot advertise a runnable or installable candidate');
+  assert.deepEqual(f.store.get(TOOL_CLEANUP_STORE),malformed);
+});
+
 test('R4.7 context menu closes on outside click/scroll and never stays outside viewport',async t=>{
   const f=fixture(t);await f.ui.refresh();
   const more=f.button('app:quick-notes','more');
