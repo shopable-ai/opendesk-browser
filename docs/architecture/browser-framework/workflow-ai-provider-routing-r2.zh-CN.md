@@ -416,3 +416,21 @@ ADR 风险升级触发条件：Codex CLI 版本改变、Chrome Origin/Host 处�
 
 **下一最小开发动作**：如果 P0 的 Click 真业务读回有可独立证明的 Oracle，使用原 RunHost／Durable Result 增加有限且可审计的读回及效果分级；否则继续呈现 `EXECUTION_RECEIPT_VERIFIED`，并为 Save→无 AI 的 Run×2 做独立 Chrome 准备。HTTP 等本机可信配对合同成熟后再接入 UI；不能让 F4 阻塞已接线的 Native/Cloud 用户旅程。
 
+### 12.6 R2.3 后续：执行证据等级落地、定向 CI 与跨 Agent Go 符号冲突收敛（2026-10-15）
+
+此为在 12.1–12.5 基础上的**增量事实**，不将早先候选的 CI 结果重写为新候选结果，也不覆盖另一位 Agent 的观察回执切片。各记录以其具体 commit SHA 与运行 ID 为准。
+
+**本轮 Browser 新提交**（只修改已有 UI/执行边界，没有第二 Executor）：
+
+- `cff1036f833bb33af1780168324e4f16038a020d`：`src/ui/workflow/direct-execution.js` 新增纯状态分类 `directExecutionEvidenceLevel`，明确区分 `PROPOSAL_VALID`、`EXECUTION_RECEIPT_VERIFIED` 和 `BUSINESS_EFFECT_VERIFIED`。无可信持久回执不能声称执行；执行回执但无受控页面输入读回，只是执行确认；已核对 `inputValue()` 且无未验证 click，才可以把“页面输入值实际匹配”作为有限业务效果。网页字段读回**不代表后台数据库、业务提交或支付成功**。
+- `4541b99ea589596cc0202f9f6e99a8a4c7810d0e`：`src/ui/workflow/workflow-view.js` 在原 `verifyDirectExecutionReceipt` 与持久结果核对后实际计算证据等级并返回；正式 UI 区分“RunHost 执行回执已核对”与“页面填写值读回匹配 / 业务效果待核对”，并只把已完成页面输入读回且无不确定 click 的事实加入后续 Provider 的受限业务历史。无回执或未知结果保持失败/未知，绝不自动重放。
+- `3f160f8e95e9d76f16a9345203bb5a684d7caea1`：`tests/environment/workflow-direct-execution.test.mjs` 为三个证据等级及 click 未证明场景添加局部测试。这些新增证明级别不增加任何浏览器权限或模型执行能力。
+- 已有其他 Agent 的 `f3f776fbcb96f1d39149b84a5836b0d154322722` 是独立的可信观察回执身份收敛切片，已由 12.5 节登记，**不是上述本次提交**。
+
+**最新匹配候选的定向 CI**：Browser `main@3f160f8e` 的 [Workflow AI #38721045226](https://github.com/shopable-ai/opendesk-browser/actions/runs/38721045226)：`Verify changed JavaScript parses`、`Direct-send provider, payload minimization and workflow regressions`、`Real source verification` 三个步骤为 **SUCCESS**，同次 Node **122/122 PASS、0 FAIL**。`Real development build` 因独立 AdBlock Owner 的 `examples/sidebar-tools/adblock/trusted/host-controls.js` Trusted SHA pin 不匹配 **FAIL**，所以该 Workflow 的总体结果仍为 **FAIL**；本任务没有修改外部 AdBlock 源或重新 pin。上述证据只覆盖该候选测试和源代码，不代表真实 Chrome/用户 Mac。
+
+**Go Windows 跨 Agent 协作与新阻塞**：本轮 Windows `master@7225ac72` [Windows Core #38720342941](https://github.com/shopable-ai/opendesk/actions/runs/38720342941) 整体 **FAIL**；`Host.Close` 缺失已消失，随后暴露 `cmd/opendesk/app_browser.go` 所需的 `browserbridge.SetupAutomaticContext` 缺失，另有 **test-architecture ledger 356 vs reviewed 297** 的独立分类审计 FAIL。另一位 Agent 在 `5dca85d8ea056f449cbd290438c70c97b8216ef5` 通过新增 `internal/browserbridge/setup_context_unsupported.go` 提供了该 Context API 的 Windows `E_PLATFORM` stub；本轮并行时，我也曾在原 `unsupported.go` 以 `3fc9486a` 补入同名 stub，发现重复后立即通过 **`27765894058885ce497f60d52d32582a4e53f82a`** 仅修改自己已有的 `unsupported.go`，移除重复的 `SetupAutomaticContext`，保留自己的 `SetupContext`，完整保留对方独立文件。该最新 Go `master@27765894` [Windows Core #38721532772](https://github.com/shopable-ai/opendesk/actions/runs/38721532772) 新候选当时仍待完成，状态 **CI_PENDING**。不得把原 FAIL 或 Go Ubuntu transport PASS 外推成 Windows 通过。
+
+**Go Native Gateway**：Go 新旧这些跨平台 stub 改动均不触碰 `internal/browserai/http_gateway.go`、同进程 `h.ai` 或安全配对边界。Go `master@7225ac72` 的 [Native Messaging Go bridge #38720342867](https://github.com/shopable-ai/opendesk/actions/runs/38720342867) Ubuntu transport job **SUCCESS**，其余 jobs 等新候选判断；Browser `local-http.js` 不接入，`pairingReady:false`，HTTP F4 仍 `SAFE_DISABLED / PAIRING_OPEN`。
+
+**下一最小实现**：先核实新增 Go Windows 最新候选在编译步骤是否已过，若仍是跨平台接口不一致，仅修复最小接口；`test-architecture` 的几十项未分类历史账本由其 Owner 单独处理。P0 下一切片应针对已授权且可独立读取的特定网页业务效果定义真实 Oracle；未证明的 click 继续停在 `EXECUTION_RECEIPT_VERIFIED`。后续 T2 真实 Chrome 与 T4 Save→关 AI 固定 Revision Run×2 明确 `NOT_TESTED`，不得以 122/122 Node PASS 宣称生产闭环验收。
