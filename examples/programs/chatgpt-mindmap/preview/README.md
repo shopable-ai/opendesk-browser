@@ -41,7 +41,7 @@ git ls-files examples/programs/chatgpt-mindmap/preview
 
 ## 用户视角 ChatGPT 模拟预览（优先审核）
 
-同一条启动命令会打印 REAL_XMIND_CHATGPT_PREVIEW http://127.0.0.1:<port>/chatgpt.html，打开这条地址即可查看 ChatGPT 风格的聊天工作区；三条 AI 回复的思维导图按钮由正式 createAnswerRegistry 自动插入，点击后使用真正的原始 XMind，不是静态图片或第二个 Renderer。
+默认启动将直接打开 ChatGPT 模拟页面，同时打印 REAL_XMIND_CHATGPT_PREVIEW http://127.0.0.1:<port>/chatgpt.html 供手动进入；三条 AI 回复的思维导图按钮由正式 createAnswerRegistry 自动插入，点击后使用真正的原始 XMind，不是静态图片或第二个 Renderer。
 
 - chatgpt.html：模拟聊天、原生操作栏、用户气泡、深浅主题和 320px 响应式；绝不手写思维导图触发按钮。
 - chatgpt.css / chatgpt.js：仅模拟网站壳、主题切换和原生复制/评价，不承担导图业务。

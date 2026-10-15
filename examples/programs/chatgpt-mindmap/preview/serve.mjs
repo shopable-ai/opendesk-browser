@@ -109,9 +109,10 @@ async function cli(){
   interactive.searchParams.set('autostart','1');
   console.log('PREVIEW_ASSETS_READY 4 original XMind JS directly in preview/ (SHA-256/Git Blob/size verified)');
   console.log('REAL_XMIND_LOCAL_PREVIEW '+interactive.href);
-  console.log('REAL_XMIND_CHATGPT_PREVIEW '+new URL('/chatgpt.html',session.url).href);
+  const chatgptUrl=new URL('/chatgpt.html',session.url).href;
+  console.log('REAL_XMIND_CHATGPT_PREVIEW '+chatgptUrl);
   console.log('Only loopback, exact four SHA-256 + Git blob verified resources; NOT an installed extension.');
-  if(autoOpen)openLocalPreview(interactive.href);
+  if(autoOpen)openLocalPreview(chatgptUrl);
   const shutdown=()=>{session.close().then(()=>process.exit(0)).catch(()=>process.exit(1));};
   process.once('SIGINT',shutdown);process.once('SIGTERM',shutdown);
 }
