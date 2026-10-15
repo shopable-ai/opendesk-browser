@@ -169,8 +169,16 @@ export async function promoteSidebarToolPackage(projectPath,{from}={}){
 export async function buildSidebarTool(projectPath,{out}={}){
   const pkg=await createSidebarToolPackage(projectPath),bytes=encodeSidebarToolPackage(pkg);
   const target=resolve(out||join('artifacts','sidebar-tools',pkg.id,pkg.version,pkg.id+'.opendesk-tool.json'));
-  if(out!==undefined&&dirname(target)===await realpath(projectPath)&&target.endsWith('.opendesk-tool.json'))
-    fail('do not write an untested installable JSON into the project directory; use --promote-from');
+  if(out!==undefined&&target.endsWith('.opendesk-tool.json')){
+    // Resolve parent aliases too: a symlinked checkout path must not bypass
+    // the explicit promotion gate by spelling the same project differently.
+    const targetParent=await realpath(dirname(target)).catch(error=>{
+      if(error?.code==='ENOENT')return null;
+      throw error;
+    });
+    if(targetParent===await realpath(projectPath))
+      fail('do not write an untested installable JSON into the project directory; use --promote-from');
+  }
   await mkdir(dirname(target),{recursive:true});
   await writeFile(target,bytes,{flag:'w'});
   return {output:target,bytes:bytes.length,id:pkg.id,version:pkg.version,

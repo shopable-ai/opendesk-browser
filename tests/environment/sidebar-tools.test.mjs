@@ -67,6 +67,10 @@ test('portable Sidebar Tool builds to candidate first and only explicit verified
     ]);
     const staged=await buildSidebarTool(dir,{out:candidate});
     await assert.rejects(buildSidebarTool(dir,{out:projectBundle}),/do not write an untested installable JSON/);
+    const aliasedProject=join(dir,'tool-alias');
+    await symlink(dir,aliasedProject);
+    await assert.rejects(buildSidebarTool(dir,{out:join(aliasedProject,id+'.opendesk-tool.json')}),
+      /do not write an untested installable JSON/);
     assert.equal(staged.installed,false);
     assert.equal(await readFile(projectBundle,'utf8'),'LAST_KNOWN_GOOD',
       'normal build never overwrites the installable project package');
