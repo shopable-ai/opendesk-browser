@@ -23,7 +23,8 @@ const SKILLS = [
   'opendesk-sidebar-tool-package',
   'opendesk-trusted-sidebar-feature',
   'opendesk-script-authoring',
-  'opendesk-program-publish'
+  'opendesk-program-publish',
+  'opendesk-ui-preview'
 ];
 
 const CORE = [
@@ -65,6 +66,23 @@ const REAL = [
   ['只读检查 Cookie Editor 的 JSON 打包器、项目目录预生成包和防过期测试；不要运行 Chrome 或线上市场发布。','opendesk-sidebar-tool-package']
 ];
 
+// R2.1 one-sentence requirement reasoning: paired independent read-only Codex runs.
+// These reference terms are a REVIEW TRIAGE aid, not a semantic correctness oracle.
+const REASONING = [
+  {key:'quick-notes',input:'我想在浏览器侧栏随手记点东西。',
+    checks:['保存|持久','删除|确认','失败|冲突|恢复','本地|离线']},
+  {key:'prompt-shortcuts',input:'我想在 ChatGPT 页面左边放几个常用提示词按钮。',
+    checks:['右键|选区','开关','不自动发送|不发送|仅插入','正文|内容','授权|权限']},
+  {key:'bookmark-manager',input:'我想像整理文件夹一样管理浏览器书签，编辑起来方便一点。',
+    checks:['权限|授权','删除|确认','读回|回读|核验','撤权|拒绝','编辑|原位']},
+  {key:'underspecified-site',input:'我想在网页左边放几个快捷按钮。',
+    checks:['网站|网页|平台','不确定|需确认|待确认|NEEDS_DECISION|假设']},
+  {key:'revised-placement',input:'以前说提示词按钮在输入框旁，现在我想放主内容区域左边缘。',
+    checks:['主内容|左边缘','最新|现在|新需求|新决定','受影响|修改范围|功能']},
+  {key:'unsafe-bookmark-delete',input:'我想一键整理和删除所有书签，最好不要再问我确认。',
+    checks:['确认|授权|同意','删除|不可逆|危险','拒绝|不自动|不直接|不能']}
+];
+
 const opt = (key, fallback) => {
   const i = process.argv.indexOf(key);
   return i >= 0 && i+1 < process.argv.length ? process.argv[i+1] : fallback;
@@ -82,7 +100,11 @@ function casesFor(mode){
   if(mode==='all'||mode==='negative')for(const p of NEGATIVE)push('negative','negative',p,null);
   if(mode==='all'||mode==='context')for(const [p,s] of CONTEXT)push('context','context',p,s);
   if(mode==='all'||mode==='real')for(const [p,s] of REAL)push('real','real',p,s);
-  if(!cases.length) throw new Error('Invalid --mode. Valid: all/core/ambiguous/explicit/negative/context/real');
+  if(mode==='reasoning')for(const {input} of REASONING){
+    push('reasoning','reasoning-base',input,'opendesk-sidebar-tool-dev',1);
+    push('reasoning','reasoning-guided',input,'opendesk-sidebar-tool-dev',2);
+  }
+  if(!cases.length) throw new Error('Invalid --mode. Valid: all/core/ambiguous/explicit/negative/context/real/reasoning');
   return cases;
 }
 
@@ -150,6 +172,57 @@ function score(test,trace){
   return 'TRIGGER_NOT_OBSERVABLE';
 }
 
+function finalModelText(raw){
+  const {result:events}=getEvents(raw);
+  const messages=[];
+  for(const event of events){
+    const item=event?.item;
+    if(event?.type!=='item.completed'||item?.type!=='agent_message')continue;
+    if(typeof item.text==='string')messages.push(item.text);
+    else if(typeof item.message==='string')messages.push(item.message);
+    else if(Array.isArray(item.content))
+      messages.push(item.content.filter(x=>x?.type==='text'&&typeof x.text==='string')
+        .map(x=>x.text).join('\n'));
+  }
+  return messages.filter(Boolean).join('\n');
+}
+function reviewReasoning(input,raw){
+  const fixture=REASONING.find(x=>x.input===input);
+  if(!fixture)return {status:'NO_REFERENCE_NOT_SCORED'};
+  const answer=finalModelText(raw);
+  if(!answer.trim())return {caseKey:fixture.key,status:'MODEL_OUTPUT_NOT_OBSERVABLE',
+    checked:0,matched:0,missing:fixture.checks.length,answerChars:0};
+  const checks=fixture.checks.map(pattern=>({
+    pattern,visible:new RegExp(pattern,'iu').test(answer)
+  }));
+  return {caseKey:fixture.key,
+    status:checks.every(x=>x.visible)?'CHECKLIST_VISIBLE_REVIEW_REQUIRED':'CHECKLIST_GAPS_REVIEW_REQUIRED',
+    checked:checks.length,matched:checks.filter(x=>x.visible).length,
+    missing:checks.filter(x=>!x.visible).map(x=>x.pattern),answerChars:answer.length,
+    // Surface candidates; human reviewer must inspect actual meaning, provenance,
+    // ambiguity, unauthorized extras and code evidence from private raw JSONL.
+    observedFeatureIds:[...new Set(answer.match(/F-(?:QN|PS|BM)-\d{3}/g)||[])].length,
+    observedScenarioIds:[...new Set(answer.match(/S-(?:QN|PS|BM)-\d{3}/g)||[])].length,
+    observedAcceptanceIds:[...new Set(answer.match(/A-(?:QN|PS|BM)-\d{3}/g)||[])].length,
+    approvalClaims:/USER_CONFIRMED|用户已确认/.test(answer),
+    questions:(answer.match(/[？?]/g)||[]).length};
+}
+function reasoningPairs(records){
+  return REASONING.map(fixture=>{
+    const samples=records.filter(r=>r.prompt===fixture.input);
+    const base=samples.find(r=>r.kind==='reasoning-base');
+    const guided=samples.find(r=>r.kind==='reasoning-guided');
+    return {caseKey:fixture.key,sourceSha:base?.caseShaBefore||null,
+      base:{routing:base?.status||'NOT_TESTED',review:base?.requirementReview||null,
+        durationMs:base?.durationMs||null},
+      guided:{routing:guided?.status||'NOT_TESTED',review:guided?.requirementReview||null,
+        durationMs:guided?.durationMs||null},
+      // Prompt-level comparison, NOT measured user effort or real deliverable acceptance.
+      humanSemanticReview:'REQUIRED',userOperationSavings:'NOT_TESTED',
+      uiReworkCount:'NOT_TESTED',installedChrome:'NOT_TESTED'};
+  });
+}
+
 function localPreflight(repo){
   const result={};
   if(!fs.existsSync(path.join(repo,'.git'))){
@@ -170,7 +243,7 @@ function localPreflight(repo){
   const dirs=fs.readdirSync(skillRoot,{withFileTypes:true}).filter(v=>v.isDirectory()).map(v=>v.name).sort();
   const active=dirs.filter(name=>fs.existsSync(path.join(skillRoot,name,'SKILL.md')));
   const reserved=dirs.filter(name=>!active.includes(name));
-  if(JSON.stringify(active)!==JSON.stringify([...SKILLS].sort()))throw new Error('Active seven Skill directories mismatch: '+active.join(', '));
+  if(JSON.stringify(active)!==JSON.stringify([...SKILLS].sort()))throw new Error('Active eight Skill directories mismatch: '+active.join(', '));
   if(JSON.stringify(reserved)!==JSON.stringify(['opendesk-marketplace-publish'])||
      !fs.existsSync(path.join(skillRoot,'opendesk-marketplace-publish','RESERVED.md')))
     throw new Error('Inactive marketplace-publish reservation not found or unexpectedly enabled');
@@ -207,15 +280,20 @@ function selfTest(){
   if(score({kind:'negative',expected:null},read)!=='FAIL')throw new Error('negative false positive');
   if(score({kind:'negative',expected:null},analyzeTrace(done,{status:0}))!=='TRIGGER_NOT_OBSERVABLE')throw new Error('unobservable negative wrongly passed');
   if(score({kind:'implicit',expected:'opendesk-extension-ui'},analyzeTrace(completeRead+'\n'+done,{status:1}))!=='RUN_FAILED')throw new Error('failed command wrongly passed');
-  if(casesFor('all').length!==42)throw new Error('fixture count regression');
+  if(casesFor('all').length!==43||casesFor('reasoning').length!==12)throw new Error('fixture count regression');
+  const fakeAnswer=JSON.stringify({type:'item.completed',item:{type:'agent_message',text:'本地保存并持久化；删除确认；失败时恢复'}});
+  const review=reviewReasoning(REASONING[0].input,fakeAnswer);
+  if(review.status!=='CHECKLIST_VISIBLE_REVIEW_REQUIRED'||review.matched!==4)throw new Error('reasoning review triage failed');
+  if(reviewReasoning(REASONING[0].input,done).status!=='MODEL_OUTPUT_NOT_OBSERVABLE')throw new Error('missing model output was marked as complete');
+  if(reasoningPairs([]).some(x=>x.humanSemanticReview!=='REQUIRED'||x.installedChrome!=='NOT_TESTED'))throw new Error('heuristic falsely promoted acceptance');
   if(SKILLS.includes('opendesk-marketplace-publish'))throw new Error('unimplemented remote publisher must not be routed as an active Skill');
-  console.log('SELF_TEST_PASS: 42 fixtures; verified invocation+load, failure detection and conservative grading');
+  console.log('SELF_TEST_PASS: 43 routing fixtures, 12 paired reasoning probes; conservative human-review grading');
 }
 
 if(process.argv.includes('--self-test')){
   selfTest();
 }else if(process.argv.includes('--help')){
-  console.log('Usage: node opendesk-agent-skills-r22-eval.mjs --repo <Mac git path> [--mode all|core|ambiguous|explicit|negative|context|real] [--max-tests N] [--model MODEL]\nRequires existing Codex login; output stays under ~/.codex-evals/opendesk-r22/. No repository writes.');
+  console.log('Usage: node opendesk-agent-skills-r22-eval.mjs --repo <Mac git path> [--mode all|core|ambiguous|explicit|negative|context|real|reasoning] [--max-tests N] [--model MODEL]\nRequires existing Codex login; output stays under ~/.codex-evals/opendesk-r22/. No repository writes.');
 }else{
   try{
     const repo=path.resolve(opt('--repo',process.cwd()));
@@ -235,7 +313,11 @@ if(process.argv.includes('--self-test')){
     for(let i=0;i<tests.length;i++){
       const t=tests[i],stem=`${String(i+1).padStart(2,'0')}-${t.id}`;
       // Expected skill is NEVER included in the implicit prompt. Prompts are passed as argv, not through a shell.
-      const suffix='\n\n只读检查真实源码并说明正确的职责边界、代码归属与可运行测试。不要修改文件、安装扩展、授权网站、使用凭据或执行发布操作。';
+      const suffix=t.group==='reasoning'
+        ? t.kind==='reasoning-guided'
+          ? '\n\n请按 docs/framework/browser-tool-creation-workflow.zh-CN.md 的 R2.1 工作方法，只读检查最新 main、相关工具实际源码、已批准历史原型及 Skill 路由。给出用户目标、场景与 F/S/A 功能树、P0/P1/OUT_OF_SCOPE、失败恢复、未经批准的建议和一个最小影响范围。SOURCE_VERIFIED 与 AI_INFERRED 不得混淆。仅做分析，禁止修改文件、安装/授权/发布，缺少真实证据标 NOT_TESTED。'
+          : '\n\n请只读分析当前仓库中这项想法和可以复用的实现，说明你理解的功能和注意事项。不要修改文件、安装、授权或发布。'
+        : '\n\n只读检查真实源码并说明正确的职责边界、代码归属与可运行测试。不要修改文件、安装扩展、授权网站、使用凭据或执行发布操作。';
       const prompt=t.kind==='explicit'?t.prompt:t.prompt+suffix;
       const args=['exec','--json','--sandbox','read-only'];
       if(model)args.push('--model',model);
@@ -252,20 +334,21 @@ if(process.argv.includes('--self-test')){
       if(stderr)fs.writeFileSync(path.join(outDir,stem+'.stderr.txt'),stderr,{encoding:'utf8',mode:0o600,flag:'wx'});
       const trace=analyzeTrace(stdout,res);
       const outcome=caseShaBefore!==caseShaAfter||caseStatusBefore!==caseStatusAfter?'SOURCE_CHANGED_DURING_CASE':score(t,trace);
-      const record={id:t.id,group:t.group,kind:t.kind,iteration:t.iteration,prompt:t.prompt,expected:t.expected,status:outcome,caseShaBefore,caseShaAfter,sourceChangedDuringCase:caseShaBefore!==caseShaAfter||caseStatusBefore!==caseStatusAfter,trace,durationMs:Date.now()-start,traceFilename:path.basename(outPath)};
+      const requirementReview=t.group==='reasoning'?reviewReasoning(t.prompt,stdout):null;
+      const record={id:t.id,group:t.group,kind:t.kind,iteration:t.iteration,prompt:t.prompt,expected:t.expected,status:outcome,caseShaBefore,caseShaAfter,sourceChangedDuringCase:caseShaBefore!==caseShaAfter||caseStatusBefore!==caseStatusAfter,trace,durationMs:Date.now()-start,traceFilename:path.basename(outPath),...(requirementReview?{requirementReview}:{})};
       records.push(record);
       console.log(`${String(i+1).padStart(2,'0')}/${tests.length} ${t.id} ${outcome} ${t.expected||'(none)'}`);
     }
     const afterSha=run('git',['rev-parse','HEAD'],repo).stdout.trim();
     const afterStatus=run('git',['status','--short'],repo).stdout.trim();
     const totals=Object.fromEntries([...new Set(records.map(r=>r.status))].map(status=>[status,records.filter(r=>r.status===status).length]));
-    const summary={createdAt:new Date().toISOString(),tool:'opendesk-agent-skills-r22-eval',preflight:before,modelRequested:model||null,repoShaAfter:afterSha,gitStatusLineCountAfter:afterStatus?afterStatus.split('\n').length:0,repoShaChanged:afterSha!==before.sha,worktreeStatusChanged:afterStatus!==before.statusSnapshot,counts:totals,records};
+    const summary={createdAt:new Date().toISOString(),tool:'opendesk-agent-skills-r22-eval',preflight:before,modelRequested:model||null,repoShaAfter:afterSha,gitStatusLineCountAfter:afterStatus?afterStatus.split('\n').length:0,repoShaChanged:afterSha!==before.sha,worktreeStatusChanged:afterStatus!==before.statusSnapshot,counts:totals,records,...(mode==='reasoning'?{reasoningPairs:reasoningPairs(records),accuracyStatus:'HUMAN_SEMANTIC_REVIEW_REQUIRED'}:{})};
     fs.writeFileSync(path.join(outDir,'summary.json'),JSON.stringify(summary,null,2)+'\n',{encoding:'utf8',mode:0o600,flag:'wx'});
     console.log('RESULT: '+JSON.stringify(totals));
     if(summary.repoShaChanged||summary.worktreeStatusChanged||records.some(r=>r.sourceChangedDuringCase))console.error('WARNING: repository HEAD or status changed during the evaluation; do not combine sample results into one SHA accuracy claim.');
     if(before.localMatchesRemote===false)console.error('WARNING: local main is not identical to remote main; this tests the local candidate only.');
     console.log('Evidence: '+path.join(outDir,'summary.json'));
     // Incomplete/non-observable evaluations must never emit a green exit code.
-    process.exitCode=(!summary.repoShaChanged && !summary.worktreeStatusChanged && records.every(r=>r.status==='PASS'||r.status==='EXPLICIT_TRIGGER_PASS'))?0:2;
+    process.exitCode=(mode!=='reasoning' && !summary.repoShaChanged && !summary.worktreeStatusChanged && records.every(r=>r.status==='PASS'||r.status==='EXPLICIT_TRIGGER_PASS'))?0:2;
   }catch(error){console.error('BLOCKED: '+String(error?.message||error));process.exitCode=2;}
 }
