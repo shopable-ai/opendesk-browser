@@ -111,3 +111,20 @@ test('editing a redacted Value and then clearing is an intentional empty-value w
   assert.equal(h.dirty(),false);
   h.action('cancelEdit');assert.equal(h.state().expanded,null);
 });
+
+test('partitioned Cookie identity is not silently overwritten by an unpartitioned import',async()=>{
+  const h=await harness();
+  h.action('import');
+  h.state().ioText=JSON.stringify([{name:'ab_variant',domain:'example.com',path:'/',value:'unpartitioned-new'}]);
+  h.previewImport();
+  assert.equal(h.state().ioError,'');
+  assert.equal(h.state().ioPreview.created,1);assert.equal(h.state().ioPreview.replaced,0);
+  h.action('applyImport');
+  const matches=h.state().rows.filter(x=>x.name==='ab_variant');
+  assert.equal(matches.length,2);
+  assert.equal(matches.filter(x=>x.partitioned).length,1);
+  assert.equal(matches.find(x=>x.partitioned).value,'B');
+  h.action('import');
+  h.state().ioText=JSON.stringify([{name:'p',domain:'example.com',path:'/',value:'x',partitioned:true}]);
+  h.previewImport();assert.match(h.state().ioError,/分区 Cookie/);
+});

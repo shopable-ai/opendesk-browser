@@ -18,3 +18,4 @@
 - **阶段门槛：** 预览先由用户审核确认，**确认前不得因本预览自动迁移正式源码或更新安装包**。
 - **定向自动回归：** `node --test tests/environment/cookie-editor-preview-r46.test.mjs`。这些测试是模拟状态与 DOM 事件回归，不能替代 Playwright/Chromium 真浏览器截图及真实 Chrome Cookie Host 验收。
 - **R4.6.1 Value 语义：** 编辑已有 Cookie 时，空白 Value 输入框初始代表“未触碰、保留旧值”；用户输入后再次清空是明确写入空字符串的待保存意图。可点击“撤销值修改 · 保留旧值”回到 clean 状态。新建时输入后删空则恢复初始 clean。此处仅预览模拟，不修改正式 Chrome Cookie。
+- **R4.6.2 Partition 安全：** 预览导入不将已分区 Cookie 与同名、同域、同路径的未分区 Cookie 当作同一身份；没有精确 PartitionKey 的分区 JSON 直接报错，不会隐式转为普通 Cookie。正式产品须继续使用可信 Host 的 Store/Partition 精确身份。
