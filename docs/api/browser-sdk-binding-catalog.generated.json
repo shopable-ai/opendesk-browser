@@ -691,7 +691,7 @@
       "userGesture": false,
       "minChrome": 138,
       "maxRequestBytes": 12000,
-      "maxResponseBytes": 20000,
+      "maxResponseBytes": 32000,
       "lifecycle": "request"
     },
     {

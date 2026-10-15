@@ -89,7 +89,7 @@ test('R10.7 bad input is rejected BEFORE requesting the Host', () => {
 });
 
 
-test('R10.7 each of 53 registered schemas rejects unknown top-level inputs before Host dispatch',()=>{
+test('R10.7 each of 65 registered schemas rejects unknown top-level inputs before Host dispatch',()=>{
   for(const operation of Object.keys(BROWSER_OPERATIONS)){
     const args=SAMPLE_ARGS[operation]??{};
     assert.throws(()=>normalizeBrowserOperation(operation,{...args,r107UnexpectedInput:true}),
