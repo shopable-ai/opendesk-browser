@@ -292,7 +292,7 @@ test('R2.1 event observation is bounded and uses only the public Full SDK',async
   assert.deepEqual(data.calls.filter(x=>x[0].startsWith('observe.')).map(x=>x[0]),
     ['observe.start','observe.read','observe.stop']);
   data.sdk.bookmarks.observe.read=async()=>({
-    events:[],nextCursor:'2',expiresAt:Date.now()+10000,droppedCount:1});
+    events:[],nextCursor:'2',expiresAt:Date.now()+10000,gapCount:0,droppedCount:1});
   await assert.rejects(service.watchRead(watch),{code:'E_BOOKMARK_EVENT_GAP'});
 });
 
@@ -316,7 +316,7 @@ test('R2.3 rejects missing, negative or malformed event gap counters',async()=>{
 
 test('R2.3 revoked UI gate rejects a late tree load and unlocks pending writes',async()=>{
   const ui=await src('src/main.js');
-  const marker='void refresh();'+String.fromCharCode(10)+'})();';
+  const marker='void refresh();'+String.fromCharCode(10)+'})();'+String.fromCharCode(10);
   assert.ok(ui.endsWith(marker));
   const dom=new Map();
   const element=()=>({dataset:{},style:{},value:'',hidden:false,disabled:false,
