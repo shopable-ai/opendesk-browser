@@ -707,7 +707,7 @@ test('R4.5 orphaned private data blocks reinstall until the acknowledged uninsta
     f.elements['sidebar-tool-install'].emit('click');
   }
   await reviewAndConfirm();
-  await settle(()=>/上次卸载的本地数据/.test(f.elements['sidebar-tool-status'].textContent||''));
+  await settle(()=>/上次卸载仍有未完成/.test(f.elements['sidebar-tool-status'].textContent||''));
   assert.deepEqual(store.get(key),privateData,'failed admission preserves the previous owner data');
   assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[]);
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'refused install must not start code');
@@ -720,6 +720,22 @@ test('R4.5 orphaned private data blocks reinstall until the acknowledged uninsta
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'install must not start code');
   assert.equal(f.elements['sidebar-tool-list'].children[0].children[0].focused,true,
     'focus returns to installed tool after successful import');
+});
+
+test('R5.0 incomplete cleanup record blocks a new tool even when no orphan payload remains',async t=>{
+  const pending={[sample.id]:{version:sample.version,createdAt:1}};
+  const store=new Map([[SIDEBAR_TOOL_STORE,[]],[TOOL_CLEANUP_STORE,pending]]);
+  const f=await hostFixture(t,{store,startTool:false});
+  f.elements['sidebar-tool-import-trigger'].emit('click');
+  const text=JSON.stringify(sample);
+  f.elements['sidebar-tool-file'].files=[{name:'quick-notes.json',size:text.length,text:async()=>text}];
+  f.elements['sidebar-tool-file'].emit('change');
+  await settle(()=>!f.elements['sidebar-tool-install'].disabled);
+  f.elements['sidebar-tool-install'].emit('click');
+  await settle(()=>/上次卸载仍有未完成/.test(f.elements['sidebar-tool-status'].textContent||''));
+  assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[]);
+  assert.deepEqual(store.get(TOOL_CLEANUP_STORE),pending,'recovery marker must remain');
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
 });
 
 test('R14.1 list renders and Back/uninstall preserve useful keyboard focus',async t=>{
