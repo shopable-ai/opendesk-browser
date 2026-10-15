@@ -139,7 +139,8 @@ async function click(selector,ctx=null){
     if(!el)throw Error('missing element '+sel);
     el.scrollIntoView({block:'nearest',inline:'nearest'});
     const r=el.getBoundingClientRect();
-    return {x:r.left+r.width/2,y:r.top+r.height/2,w:r.width,h:r.height};
+    const x=r.left+r.width/2,y=r.top+r.height/2;
+    return {x,y,w:r.width,h:r.height,localHit:document.elementFromPoint(x,y)?.outerHTML?.slice(0,220),scrollTop:document.documentElement.scrollTop};
   }.toString()+')('+JSON.stringify(selector)+')',ctx);
   assert.ok(rect.w>0&&rect.h>0,'clickable target: '+selector);
   if(ctx){
@@ -147,6 +148,7 @@ async function click(selector,ctx=null){
       const b=document.getElementById('opendesk-preview-frame').getBoundingClientRect();
       return {x:b.left,y:b.top};
     }.toString()+')()');
+    console.log('ADBLOCK_FRAME_OFFSET '+JSON.stringify({frame:offset,element:rect}));
     rect.x+=offset.x;rect.y+=offset.y;
   }
   const hit=await evaluate('('+function(x,y){
@@ -188,11 +190,14 @@ try{
     await delay(90);
     assert.equal((await parent()).switches[1].checked,false);
     await evaluate("window.__adblockMessages=[];window.addEventListener('message',e=>{if(e.data?.type?.startsWith('opendesk.preview.adblock.'))window.__adblockMessages.push({type:e.data.type,origin:e.origin,validSource:e.source===document.getElementById('opendesk-preview-frame').contentWindow})})");
+    await evaluate("window.__adblockClicks=[];document.addEventListener('click',e=>window.__adblockClicks.push({html:e.target.outerHTML.slice(0,180),trusted:e.isTrusted}),true)",ctx);
     await click('#exceptions .adblock-restore',ctx);
     await poll(async()=>(await parent()).dialog,'restore confirmation').catch(async e=>{
       throw Error(e.message+'; diagnostics='+JSON.stringify({
         parent:await parent(),child:await child(ctx),
-        messages:await evaluate('window.__adblockMessages')}));
+        messages:await evaluate('window.__adblockMessages'),
+        childClicks:await evaluate('window.__adblockClicks',ctx),
+        activeChild:await evaluate('document.activeElement?.outerHTML?.slice(0,200)',ctx)}));
     });
     await screenshot('confirmation');
     await click('#od-preview-adblock-restore-cancel');
