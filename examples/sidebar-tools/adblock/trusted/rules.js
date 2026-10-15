@@ -30,7 +30,7 @@ export function wantedAdblockRules(state){
   });
   return [blocked,...sites];
 }
-export async function reconcileAdblockRules(api,wanted=[]){
+export async function reconcileAdblockRules(api,wanted=[],{beforeWrite=async()=>{},onPriorityConflict=async()=>{}}={}){
   const dnr=api?.declarativeNetRequest;
   if(!dnr?.getDynamicRules||!dnr?.updateDynamicRules)
     throw adblockError('E_ADBLOCK_DNR','Chrome DNR 接口不可用');
@@ -38,24 +38,40 @@ export async function reconcileAdblockRules(api,wanted=[]){
   try{all=await dnr.getDynamicRules();}
   catch{throw adblockError('E_OUTCOME_UNKNOWN','Chrome DNR 现有规则读取失败，不能确认或修改规则');}
   const owned=all.filter(x=>isAdblockRuleId(x.id)).sort((a,b)=>a.id-b.id);
-  const desired=[...wanted].sort((a,b)=>a.id-b.id);
+  let desired=[...wanted].sort((a,b)=>a.id-b.id);
   if(desired.some(x=>!isAdblockRuleId(x.id)||!Number.isInteger(x.id))||
      new Set(desired.map(x=>x.id)).size!==desired.length)
     throw adblockError('E_ADBLOCK_RULE_ID','AdBlock 规则超出专属 ID 空间');
   // The extension shares one DNR identity: a site allowAllRequests must NEVER
   // out-prioritize another product's block/redirect. Fail closed, including on boot.
-  if(desired.some(x=>x.action.type==='allowAllRequests')&&
-     all.some(x=>!isAdblockRuleId(x.id)&&
-       ['block','redirect','upgradeScheme','modifyHeaders'].includes(x.action?.type)&&
-       (x.priority??1)<=2)){
-    if(owned.length){
-      await dnr.updateDynamicRules({removeRuleIds:owned.map(x=>x.id),addRules:[]});
-      const remaining=(await dnr.getDynamicRules()).filter(x=>isAdblockRuleId(x.id));
-      if(remaining.length)throw adblockError('E_OUTCOME_UNKNOWN','跨工具冲突后无法确认 AdBlock 安全清理');
+  let conflict=null,pauseFailure=null;
+  if(desired.some(x=>x.action.type==='allowAllRequests')){
+    const unsafe=rule=>['block','redirect','upgradeScheme','modifyHeaders'].includes(rule.action?.type)&&
+      (rule.priority??1)<=2;
+    if(all.some(x=>!isAdblockRuleId(x.id)&&unsafe(x)))
+      conflict='其他工具的低优先级 dynamic 规则';
+    try{
+      // IDs are scoped to each ruleset type. A session ID in our dynamic
+      // range is still foreign; this owner never writes session/static rules.
+      const session=await dnr.getSessionRules();
+      const staticIds=await dnr.getEnabledRulesets();
+      if(session.some(unsafe))conflict='其他工具的低优先级 session 规则';
+      if(staticIds.length)conflict='已启用 static 规则集，无法证明本站例外不会覆盖其规则';
+    }catch{conflict='无法核对 session/static 规则的优先级安全性';}
+    if(conflict){
+      // Retire durable intent before native cleanup, so later reconciliation
+      // cannot resurrect an exception after the conflict disappears.
+      try{await onPriorityConflict();}catch(error){pauseFailure=error;}
+      desired=[];
     }
-    throw adblockError('E_ADBLOCK_PRIORITY_CONFLICT','检测到其他工具低优先级规则，已安全关闭 AdBlock；不会用本站例外覆盖其他工具');
   }
-  if(same(owned,desired))return {verified:true,changed:false,ruleIds:owned.map(x=>x.id)};
+  const finish=receipt=>{
+    if(pauseFailure)throw adblockError('E_OUTCOME_UNKNOWN','优先级冲突已清理自有规则，但无法确认停用意图持久化；请核对后再操作');
+    if(conflict)throw adblockError('E_ADBLOCK_PRIORITY_CONFLICT','已安全关闭 AdBlock：'+conflict+'；请解决冲突后手动重新开启');
+    return receipt;
+  };
+  if(same(owned,desired))return finish({verified:true,changed:false,ruleIds:owned.map(x=>x.id)});
+  await beforeWrite();
   let failure=null;
   try{await dnr.updateDynamicRules({removeRuleIds:owned.map(x=>x.id),addRules:desired});}
   catch(error){failure=error;}
@@ -64,6 +80,6 @@ export async function reconcileAdblockRules(api,wanted=[]){
   catch{throw adblockError('E_OUTCOME_UNKNOWN','Chrome DNR 状态无法回读；不能确认请求过滤结果');}
   if(!same(after,desired))throw adblockError('E_OUTCOME_UNKNOWN',
     'Chrome DNR 写入与回读不一致，需再次核对（不会报告成功）'+(failure?'：'+String(failure.message||failure).slice(0,100):''));
-  return {verified:true,changed:true,acknowledgementLost:Boolean(failure),ruleIds:after.map(x=>x.id)};
+  return finish({verified:true,changed:true,acknowledgementLost:Boolean(failure),ruleIds:after.map(x=>x.id)});
 }
-export async function clearAdblockRules(api){return reconcileAdblockRules(api,[]);}
+export async function clearAdblockRules(api,options){return reconcileAdblockRules(api,[],options);}

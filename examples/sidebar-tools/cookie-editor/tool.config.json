@@ -3,7 +3,7 @@
   "id": "cookie-editor",
   "version": "2.0.6",
   "title": "Cookie Editor · Cookie 管理",
-  "description": "已安装 Cookie Editor：管理真实 Chrome Cookie，支持列表原位编辑、新建、精确删除、预览导入与敏感导出；网站与敏感值独立授权。离线工具位于次级区域。",
+  "description": "已安装 Cookie Editor：默认管理已授权网站的真实 Chrome Cookie，支持安全重命名、创建、编辑、精确删除、导入导出与观察；敏感值仍独立授权。离线文件工具在次级区域。",
   "capabilities": [
     "currentPage.read",
     "user.export",

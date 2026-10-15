@@ -13,6 +13,40 @@ import {installationRoot} from '../../native-agent/installation-root.mjs';
 // This always reports exactly what was exercised. It never synthesizes DOM
 // events, sets extension storage, or bypasses chrome.permissions.request().
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const DEFAULT_NATIVE_PERMISSION_TIMEOUT_MS=60000;
+const MAX_NATIVE_PERMISSION_TIMEOUT_MS=180000;
+const EXTENDED_NATIVE_PERMISSION_TIMEOUT_MS=300000;
+function nativePermissionTimeoutMs() {
+  const raw=process.env.OPENDESK_NATIVE_PERMISSION_TIMEOUT_MS;
+  if(!raw)return DEFAULT_NATIVE_PERMISSION_TIMEOUT_MS;
+  const value=Number(raw);
+  if(!Number.isInteger(value))throw Error('OPENDESK_NATIVE_PERMISSION_TIMEOUT_MS must be an integer millisecond value');
+  if(value<DEFAULT_NATIVE_PERMISSION_TIMEOUT_MS||
+    (value>MAX_NATIVE_PERMISSION_TIMEOUT_MS&&value!==EXTENDED_NATIVE_PERMISSION_TIMEOUT_MS)){
+    throw Error('OPENDESK_NATIVE_PERMISSION_TIMEOUT_MS must be between 60000 and 180000, or exactly 300000');
+  }
+  return value;
+}
+const nativePermissionTimeout=nativePermissionTimeoutMs();
+const nativeChromeTestTimeout=150000+Math.max(0,nativePermissionTimeout-DEFAULT_NATIVE_PERMISSION_TIMEOUT_MS);
+function appendNativeProgress(progressFile,event,identity,extra={}) {
+  if(!progressFile)return;
+  fs.mkdirSync(path.dirname(progressFile),{recursive:true});
+  fs.appendFileSync(progressFile,JSON.stringify({
+    time:new Date().toISOString(),
+    event,
+    source:'tests/environment/native-agent-chrome-real.test.mjs',
+    processPid:process.pid,
+    pid:identity.pid??null,
+    profile:identity.profile,
+    port:identity.port??null,
+    instance:identity.instance,
+    extensionId:identity.extensionId??null,
+    extensionCandidateDir:identity.extensionCandidateDir,
+    permissionWaitDeadline:identity.permissionWaitDeadline??null,
+    ...extra
+  })+'\n');
+}
 async function stopOwnedChrome(child) {
   if(!child||child.exitCode!==null||child.signalCode!==null)return;
   const closed=new Promise(resolve=>child.once('close',()=>resolve(true)));
@@ -166,7 +200,7 @@ test('real macOS Chrome: bare renderer/CDP control without extensions', {
 
 test('real macOS Chrome: packaged extension, trusted Options click and Native CLI handshake', {
   skip:process.platform!=='darwin',
-  timeout:150000
+  timeout:nativeChromeTestTimeout
 },async t=>{
   const binary=chromeBinary();
   assert.ok(binary,'Chrome for Testing is required for automated unpacked MV3 smoke');
@@ -183,15 +217,37 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
   assert.equal(fs.existsSync(privateRoot),false,'Unique Native test instance must not already exist');
   const tempRoot=fs.mkdtempSync('/private/tmp/odbr-');
   const profile=path.join(tempRoot,'browser-profile'),env={...process.env,OPENDESK_NATIVE_INSTANCE:nativeInstance};
+  const progressFile=process.env.OPENDESK_NATIVE_PROGRESS_FILE||'';
+  let port=null,extensionId=null,permissionWaitDeadline=null;
+  const progressIdentity=()=>({
+    pid:child?.pid??null,
+    profile,
+    port,
+    instance:nativeInstance,
+    extensionId,
+    extensionCandidateDir:ext,
+    permissionWaitDeadline
+  });
   let installedByThisTest=false;
   let child=null,debug='',cdp=null;
   t.after(async()=>{
-    try{await cdp?.call('Browser.close');}catch{}
-    cdp?.close();
-    await stopOwnedChrome(child);
-    for(let i=0;i<40&&fs.existsSync(path.join(privateRoot,'agent.sock'));i++)await pause(100);
-    if(installedByThisTest){const result=cli(['cleanup'],env);assert.equal(result.status,0,result.stderr);}
-    fs.rmSync(tempRoot,{recursive:true,force:true,maxRetries:10,retryDelay:100});
+    let cleanupError=null;
+    try{
+      try{await cdp?.call('Browser.close');}catch{}
+      cdp?.close();
+      await stopOwnedChrome(child);
+      for(let i=0;i<40&&fs.existsSync(path.join(privateRoot,'agent.sock'));i++)await pause(100);
+      if(installedByThisTest){const result=cli(['cleanup'],env);assert.equal(result.status,0,result.stderr);}
+      fs.rmSync(tempRoot,{recursive:true,force:true,maxRetries:10,retryDelay:100});
+    }catch(error){
+      cleanupError=error;
+      throw error;
+    }finally{
+      appendNativeProgress(progressFile,'cleanup-complete',progressIdentity(),{
+        cleanupStatus:cleanupError?'failed':'complete',
+        cleanupError:cleanupError?.message
+      });
+    }
   });
   const version=spawnSync(executable,['--version'],{encoding:'utf8',timeout:10000});
   console.log('REAL_CHROME_BINARY='+browser+' VERSION='+(version.stdout||version.stderr).trim());
@@ -214,12 +270,23 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
   child.on('exit',(code,signal)=>{
     console.log('REAL_CHROME_PROCESS_EXIT='+JSON.stringify({code,signal,stderr:debug.slice(-1200)}));
   });
-  const port=await eventually(()=>{
+  console.log('REAL_CHROME_OWNED_START='+JSON.stringify({
+    pid:child.pid,profile,instance:nativeInstance,extensionCandidateDir:ext,
+    permissionTimeoutMs:nativePermissionTimeout,testTimeoutMs:nativeChromeTestTimeout,
+    progressFile:progressFile||null
+  }));
+  appendNativeProgress(progressFile,'chrome-started',progressIdentity(),{
+    permissionTimeoutMs:nativePermissionTimeout,
+    testTimeoutMs:nativeChromeTestTimeout
+  });
+  port=await eventually(()=>{
     const file=path.join(profile,'DevToolsActivePort');
     if(!fs.existsSync(file))return null;
     const n=Number(fs.readFileSync(file,'utf8').split('\n')[0]);
     return Number.isSafeInteger(n)&&n>0?n:null;
   },{timeout:30000,label:'real Chrome DevTools port (stderr '+debug+')'});
+  console.log('REAL_CHROME_PORT_READY='+JSON.stringify({pid:child.pid,profile,port,instance:nativeInstance}));
+  appendNativeProgress(progressFile,'devtools-port-ready',progressIdentity());
   const base='http://127.0.0.1:'+port;
   async function newTab(url){
     const response=await fetch(base+'/json/new?'+encodeURIComponent(url),{method:'PUT'});
@@ -232,7 +299,6 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
     return result.result?.value;
   };
   assert.ok(fs.existsSync(path.join(ext,'native-agent','settings.html')),'Built Native Options HTML missing');
-  let extensionId;
   try {extensionId=await eventually(async()=>{
     // Never select the first random chrome-extension:// target: Chrome has
     // built-in extension targets not owned by OpenDesk.

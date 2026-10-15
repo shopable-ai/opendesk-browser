@@ -3,7 +3,7 @@
 import {SIDEBAR_TOOL_STORE,validateSidebarToolPackage,sidebarToolPackageHash} from '../../../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,requireToolEnableRecords} from '../../../../src/ui/sidebar-tools/lifecycle.js';
 import {requireCompleteInstalledSidebarTools} from '../../../../src/ui/sidebar-tools/installation.js';
-import {writeVerifiedLocalValue} from '../../../../src/ui/sidebar-tools/storage-state.js';
+import {writeVerifiedLocalValue,sameStorageValue} from '../../../../src/ui/sidebar-tools/storage-state.js';
 import {isSidebarToolHostSender} from '../../../../src/sidebar-tools/sender.js';
 import {ADBLOCK_ID,ADBLOCK_CAPABILITY,ADBLOCK_PROTOCOL,ADBLOCK_SERVICE_VERSION,
   ADBLOCK_STORE,ADBLOCK_PERMISSION,ADBLOCK_MAX_EXCEPTIONS,ADBLOCK_OPERATIONS,
@@ -44,7 +44,8 @@ export function createAdblockService({
     compiled=await sidebarToolPackageHash(pkg);
     return compiled;
   }
-  async function authority(){
+  async function authority({beforeWrite}={}){
+    try{
     const saved=await api.storage.local.get([SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,
       TOOL_REVOCATION_EPOCHS_STORE,ADBLOCK_STORE]);
     const rows=requireCompleteInstalledSidebarTools(saved[SIDEBAR_TOOL_STORE]);
@@ -58,6 +59,13 @@ export function createAdblockService({
     return {tool:tool?.capabilities.includes(ADBLOCK_CAPABILITY)?tool:null,
       enabled:records[ADBLOCK_ID]!==false,
       epoch:epochs?.[ADBLOCK_ID]??null,raw:saved[ADBLOCK_STORE]};
+    }catch(error){
+      // Preserve malformed records for recovery, but never keep filtering on
+      // an authority we cannot parse. Cleanup itself must have native readback.
+      try{await clearAdblockRules(api,{beforeWrite});}
+      catch{fail('E_OUTCOME_UNKNOWN','AdBlock 安装授权记录无法读取，且无法确认自有规则已清理；原始存储保留');}
+      throw error;
+    }
   }
   async function hostDocument(sender,expected=sender?.documentId){
     if(!isSidebarToolHostSender(api,sender,ADBLOCK_ID)||sender.tab?.incognito||
@@ -102,22 +110,26 @@ export function createAdblockService({
       adblockHost(tab.url,{asUrl:true}):null;
   }
   // Called only under the same per-tool Web Lock as the existing installer.
-  async function reconcileLocked({operation='adblock.status',payload={},validateHost=null}={}){
+  async function reconcileLocked({operation='adblock.status',payload={},validateHost=null,beforeWrite=async()=>{}}={}){
     const epoch=generation;
-    const auth=await authority();
+    const auth=await authority({beforeWrite});
+    const persist=async(next,previous,scope)=>{
+      await beforeWrite();
+      return writeVerifiedLocalValue(api,ADBLOCK_STORE,next,previous,scope);
+    };
     let hasPermission=false;
     try{hasPermission=await permission();}catch{}
     let validPackage=false;
     try{validPackage=Boolean(auth.tool&&await sidebarToolPackageHash(auth.tool)===await compiledPackage());}
     catch(error){
       // Missing/corrupt compiled official bytes MUST NOT leave stale DNR active.
-      if(hasPermission)await clearAdblockRules(api);
+      if(hasPermission)await clearAdblockRules(api,{beforeWrite});
       throw error;
     }
     if(!validPackage||!auth.enabled){
       // Extension update, uninstallation, disable and same-ID impostor all
       // retire ONLY AdBlock-owned rules. No silent startup filtering.
-      if(hasPermission)await clearAdblockRules(api);
+      if(hasPermission)await clearAdblockRules(api,{beforeWrite});
       return {installed:validPackage,toolEnabled:validPackage&&auth.enabled,
         enabled:false,permissions:{dnr:hasPermission},exceptions:[],
         currentHost:await activeSite(),rules:{verified:hasPermission,ruleIds:[]},
@@ -125,13 +137,13 @@ export function createAdblockService({
     }
     let state;
     try{state=readAdblockState(auth.raw);}
-    catch(error){if(hasPermission)await clearAdblockRules(api);throw error;}
+    catch(error){if(hasPermission)await clearAdblockRules(api,{beforeWrite});throw error;}
     const hash=await sidebarToolPackageHash(auth.tool);
     const approvalValid=state.approvedHash===hash&&state.approvedEpoch===auth.epoch;
     if(!hasPermission||!approvalValid||revoked){
       const next={...state,enabled:false,approvedHash:null,approvedEpoch:null};
-      if(JSON.stringify(state)!==JSON.stringify(next)){
-        await writeVerifiedLocalValue(api,ADBLOCK_STORE,next,auth.raw,'广告拦截撤权状态');
+      if(!sameStorageValue(state,next)){
+        await persist(next,auth.raw,'广告拦截撤权状态');
         state=next;
       }
     }
@@ -139,7 +151,6 @@ export function createAdblockService({
       if(!hasPermission)fail('E_ADBLOCK_PERMISSION','请在可信控制区批准 Chrome 广告过滤权限');
       // Only a fresh trusted click can renew a natively revoked approval.
       // A permission-onAdded event alone never clears the revoked fence.
-      revoked=false;
       state={...state,enabled:true,approvedHash:hash,approvedEpoch:auth.epoch};
     }else if(operation==='adblock.disable'){
       state={...state,enabled:false,approvedHash:null,approvedEpoch:null};
@@ -162,24 +173,29 @@ export function createAdblockService({
       state={...state,exceptions:state.exceptions.filter(x=>x!==payload.host)};
     }else if(operation!=='adblock.status')fail('E_ADBLOCK_OPERATION','未批准的广告操作');
     if(validateHost)await validateHost();
-    const final=await authority();
+    const final=await authority({beforeWrite});
     if(!final.tool||!final.enabled||final.epoch!==auth.epoch||
        await sidebarToolPackageHash(final.tool)!==hash||
        await compiledPackage()!==hash)
       fail('E_TOOL_CHANGED','AdBlock 安装/启停身份已变化');
     const fresh=await permission().catch(()=>false);
-    if(!fresh||generation!==epoch&&operation!=='adblock.enable'){
+    if(!fresh||generation!==epoch){
       if(operation==='adblock.enable'||operation==='adblock.site.set')
         fail('E_ADBLOCK_PERMISSION','操作期间 Chrome 原生授权已变更');
       state={...state,enabled:false,approvedHash:null,approvedEpoch:null};
     }
     // Persist disabled intent BEFORE removing DNR. After a crash the boot
     // reconciliation completes cleanup; it never resurrects a disabled rule.
-    if(JSON.stringify(state)!==JSON.stringify(auth.raw))
-      await writeVerifiedLocalValue(api,ADBLOCK_STORE,state,auth.raw,'广告过滤策略');
+    if(!sameStorageValue(state,auth.raw))
+      await persist(state,auth.raw,'广告过滤策略');
     // For native permission removal Chrome owns removal; never pretend a
     // successful readback when DNR is inaccessible.
-    const rules=fresh?await reconcileAdblockRules(api,state.enabled?wantedAdblockRules(state):[]):
+    const rules=fresh?await reconcileAdblockRules(api,state.enabled?wantedAdblockRules(state):[],{
+      beforeWrite,onPriorityConflict:async()=>{
+        const next={...state,enabled:false,approvedHash:null,approvedEpoch:null};
+        await persist(next,state,'广告过滤优先级冲突停用状态');
+        state=next;
+      }}):
       {verified:false,ruleIds:[],reason:'native-permission-missing'};
     if(validateHost)await validateHost();
     if(generation===epoch)revoked=false;
@@ -199,14 +215,17 @@ export function createAdblockService({
     const doc=await probeDocument(sender);
     if(await compiledPackage()!==message.packageHash)
       fail('E_ADBLOCK_PACKAGE','工具包与本扩展固定发行版本不一致');
+    const hasPermission=await permission();
+    // Chrome hides an optional API namespace before its permission is granted.
+    // Installation must precede the trusted control's native permission prompt.
     if(!api.storage?.local?.get||!api.storage?.local?.set||!api.permissions?.contains||
-       !api.declarativeNetRequest?.getDynamicRules||!api.declarativeNetRequest?.updateDynamicRules||
+       hasPermission&&(!api.declarativeNetRequest?.getDynamicRules||!api.declarativeNetRequest?.updateDynamicRules)||
        !lockManager?.request||!api.tabs?.query)
       fail('E_ADBLOCK_RUNTIME','本扩展缺少 DNR 或受控存储运行能力');
     if(await probeDocument(sender)!==doc)
       fail('E_ADBLOCK_SENDER','可信探测文档已改变');
     return {protocol:ADBLOCK_PROTOCOL,serviceVersion:ADBLOCK_SERVICE_VERSION,
-      serviceReady:true,permissions:{dnr:await permission()}};
+      serviceReady:true,permissions:{dnr:hasPermission}};
   }
   async function dispatch(message,sender){
     if(!own(message,['protocol','toolId','operation','payload','packageHash','installEpoch'])||
@@ -218,7 +237,17 @@ export function createAdblockService({
       fail('E_ADBLOCK_REQUEST','广告拦截操作或宿主身份无效');
     const doc=await hostDocument(sender);
     return lock(async()=>{
-      const auth=await authority();
+      let effectStarted=false;
+      const validateHost=async()=>{
+        try{return await hostDocument(sender,doc);}
+        catch(error){
+          if(effectStarted)fail('E_OUTCOME_UNKNOWN','工具文档在持久化或 Chrome 规则写入后已改变；请读取实际状态，不要盲目重试');
+          throw error;
+        }
+      };
+      const beforeWrite=async()=>{await validateHost();effectStarted=true;};
+      try{
+      const auth=await authority({beforeWrite});
       if(!auth.tool||!auth.enabled||message.installEpoch!==auth.epoch||
          await sidebarToolPackageHash(auth.tool)!==message.packageHash||
          await compiledPackage()!==message.packageHash)
@@ -226,11 +255,15 @@ export function createAdblockService({
       if(!own(message.payload,message.operation==='adblock.site.set'?['host','filtering']:
          message.operation==='adblock.site.restore'?['host']:[]))
         fail('E_ADBLOCK_REQUEST','不允许的广告操作参数');
-      await hostDocument(sender,doc);
+      await validateHost();
       const data=await reconcileLocked({operation:message.operation,payload:message.payload,
-        validateHost:()=>hostDocument(sender,doc)});
-      await hostDocument(sender,doc);
+        validateHost,beforeWrite});
+      await validateHost();
       return data;
+      }catch(error){
+        if(effectStarted)await validateHost();
+        throw error;
+      }
     });
   }
   return {tick,dispatch,probe,invalidate};
@@ -250,7 +283,7 @@ export function installAdblockService({api=globalThis.chrome,...options}={}){
   listen(api.runtime.onStartup,recover);
   listen(api.runtime.onInstalled,recover);
   listen(api.permissions.onRemoved,removed=>{
-    if(removed?.permissions?.includes(ADBLOCK_PERMISSION)){
+    if(removed?.permissions?.includes(ADBLOCK_PERMISSION)||removed?.origins?.length){
       service.invalidate(true);recover();
     }
   });

@@ -640,6 +640,71 @@ test('R5.1 schedule Back restores My opener focus and task surface without rebui
   ui.dispose();
 });
 
+test('R32 empty list has one explanation and restores the summary when plans arrive',async()=>{
+  const {document,ui,get,state}=await scheduledDomFixture();
+  const plan=state.plans[0];
+  state.plans=[];
+  await ui.refresh();
+  const list=get('schedule-plan-list');
+  assert.equal(get('schedule-list-summary').hidden,true);
+  assert.equal(list.querySelectorAll('.schedule-empty').length,1);
+  assert.equal(list.querySelector('[role=status] h3').textContent,'尚无定时计划');
+  assert.equal(list.textContent.match(/尚无定时计划/g)?.length,1);
+  assert.match(list.querySelector('.schedule-empty-hint').textContent,/右上角「＋ 新建」/);
+  assert.equal(list.querySelectorAll('button').length,0,'the header remains the single create entry');
+  state.plans=[plan];
+  await ui.refresh();
+  assert.equal(get('schedule-list-summary').hidden,false);
+  assert.equal(list.querySelector('.schedule-empty'),null);
+  assert.equal(list.querySelectorAll('.schedule-card').length,1);
+  assert.match(get('schedule-list-summary').textContent,/共 1 个计划/);
+  assert.equal(get('schedule-list-summary').textContent.includes(plan.title),false,
+    'a long plan title belongs in its card rather than being repeated in the summary');
+  get('schedule-create').click();
+  assert.equal(get('schedule-form').hidden,false);
+  assert.equal(get('schedule-list-view').hidden,true);
+  assert.equal(get('schedule-cancel').textContent,'返回定时计划');
+  assert.equal(document.querySelectorAll('#schedule-create').length,1);
+  ui.dispose();
+});
+
+test('R32 list editing keeps contextual return text and secondary plan actions',async()=>{
+  const {ui,get,document}=await scheduledDomFixture();
+  const buttons=get('schedule-plan-list').querySelectorAll('.schedule-plan-actions button');
+  assert.equal(buttons.length,2);
+  assert.equal([...buttons].every(button=>button.classList.contains('od-button--secondary')),true);
+  get('schedule-plan-list').querySelector('.schedule-plan-open').click();
+  get('schedule-detail-edit').click();
+  assert.equal(get('schedule-cancel').textContent,'返回计划详情');
+  get('schedule-cancel').click();
+  assert.equal(get('schedule-detail-view').hidden,false);
+  document.documentElement.dataset.opendeskSurface='scheduled-runner';
+  await ui.open();
+  get('schedule-create').click();
+  assert.equal(get('schedule-cancel').textContent,'返回运行概览');
+  assert.equal(get('schedule-back').getAttribute('aria-label'),'返回运行概览');
+  get('schedule-cancel').click();
+  assert.equal(get('schedule-runner-view').hidden,false);
+  ui.dispose();
+});
+
+test('R32 runner action keeps the original live status binding in a secondary context toolbar',async()=>{
+  const {document,ui,get}=await scheduledDomFixture({count:0});
+  const status=get('schedule-host-status'),runner=get('schedule-open-runner');
+  assert.equal(status.parentElement,runner.parentElement);
+  assert.equal(runner.parentElement.classList.contains('schedule-list-utilities'),true);
+  assert.equal(runner.textContent,'运行页 ↗');
+  assert.equal(runner.getAttribute('aria-label'),'打开独立运行页');
+  assert.equal(runner.classList.contains('od-button--quiet'),true);
+  status.textContent='宿主已断开；等待重新连接';
+  await ui.refresh();
+  assert.equal(get('schedule-host-status'),status,'the host retains the same status node');
+  assert.equal(status.textContent,'宿主已断开；等待重新连接');
+  assert.equal(get('schedule-create').getAttribute('aria-label'),'新建定时计划');
+  assert.equal(document.querySelectorAll('#schedule-open-runner').length,1);
+  ui.dispose();
+});
+
 test('R1.2 polling preserves expanded per-Fire technical detail and keyboard focus',async()=>{
   const {get,state,ui,document}=await scheduledDomFixture();
   get('schedule-plan-list').querySelector('.schedule-plan-open').click();

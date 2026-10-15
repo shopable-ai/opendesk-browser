@@ -26,6 +26,12 @@ export function createWorkflowAIService({api,hostPorts,connection,enable,refresh
     return owner;
   }
   function wire(owner,method,params,sessionId,requestId=crypto.randomUUID()) {
+    if(method==='ai.approval.answer'&&params.decision==='approve'&&params.result?.summary) {
+      // DocumentId belongs to the local proof and the separately fenced turn
+      // target. Native v1's strict receipt summary has no documentId field.
+      const {documentId,...summary}=params.result.summary;
+      params={...params,result:{...params.result,summary}};
+    }
     return {v:1,kind:'ai.request',protocol:WORKFLOW_AI_PROTOCOL,requestId,ownerId:owner.ownerId,
       registrationId:owner.registrationId,generation:owner.generation,method,params,...(sessionId?{sessionId}:{})};
   }
@@ -204,6 +210,9 @@ export function createWorkflowAIService({api,hostPorts,connection,enable,refresh
           const row=owner.turnTargets.get(message.sessionId);
           if(!row?.ready)throw workflowAIError('E_AI_APPROVAL','观察审批缺少已确认的当前回合网页目标');
           const {target,fence}=row;
+          if(message.params.result?.summary?.documentId!==undefined&&
+            message.params.result.summary.documentId!==target.documentId)
+            throw workflowAIError('E_DOCUMENT_STALE','观察回执的文档与当前回合不一致');
           fence.assert();
           await observeControllerTarget({api,tabId:target.tabId,frameId:target.frameId,documentId:target.documentId,
             expectedUrl:target.url,expectedWindowId:target.windowId});

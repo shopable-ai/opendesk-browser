@@ -65,6 +65,14 @@ Global First 权威阅读顺序：[R6 工程进度、TOP20 执行分类及真实
 
 Controller 的 `page` 不是网站 `window.page` 或 Worker `globalThis.page`。Page USER_SCRIPT 使用 `document` 和自己的默认/显式按需库，不拥有 Controller `page/params/axiosx`；SW、Side Panel 宿主、独立扩展页面由各自构建入口静态引入，第三方工具 iframe 使用 `OpenDeskTool`。禁止将各执行世界混成一个全局表、把全部库打进 SW、运行时 CDN 或增加不必要 Chrome 权限。**权威使用说明、示例和验证级别**：[预置变量与世界矩阵](docs/api/runtime-globals-and-preinstalled-libraries.zh-CN.md)。新需求先检查实际 Worker/ESM 编译器及 Page 世界合同，再写提示词。
 
+## 核心功能验收范围：不默认考虑缩放与物理宽度（用户于2026-10-14明确修正）
+
+**本仓库日常开发及当前定时计划 R1.2 验收，不需要考虑浏览器缩放或 Side Panel 物理宽度专项测试。** 不执行多档缩放、分隔线拖拽、目标宽度测量或宽度×缩放矩阵，不将它们作为修复、评分或交付的前置条件。只有用户针对具体任务再次明确要求，才将这些专项测试纳入范围。
+
+当前 R1.2 的核心需求是：真实 Mac Chrome 扩展中，定时计划的创建、编辑、保存、取消、删除确认、未保存草稿保护、任务管理往返、滚动与焦点恢复、Task/计划/执行身份安全，以及多计划和历史记录的正确性。使用正常窗口和默认缩放完成实际用户操作；若当前界面的可见问题确实阻止这些操作，只修复实际复现的问题，不扩展为尺寸研究或 UI 重构。
+
+本条取代此前 R1.2 GOAL 中关于 300/320/360/420/520 物理宽度、100%/125%/150%/200% 缩放及二者组合验收的要求。保留旧测试和原始证据，相关专项项在本轮记为 `OUT_OF_SCOPE`，不得伪报 `PASS`，也不得继续以它们阻塞核心功能收尾。不得因新对话、无关 main 更新或旧专项验收缺口而重复已经有有效证据的核心流程。
+
 ## UI 布局与 Tailwind 样式规范（2026-10-12）
 
 所有新增或调整的 Side Panel、Native Workspace/Settings、应用市场、侧栏工具及网页注入 UI，先按 [`docs/architecture/ui-layout-conventions-r27.zh-CN.md`](docs/architecture/ui-layout-conventions-r27.zh-CN.md) 的**跨界面**规则选择布局密度、间距、容器 gutter、断点、焦点和验证级别；Side Panel 特殊细节继续以 [R20/R26 文档](docs/architecture/sidebar-design-system-r20.zh-CN.md) 为准。权威变量只有 `src/ui/design-tokens.css`，不要为每个 Tab 重建颜色、间距和按钮系统。R31 的 HTML 复用及 CSS 所有权补充见 [R20 的 R31 章节](docs/architecture/sidebar-design-system-r20.zh-CN.md) 和 UI Skill：一级折叠 `od-disclosure`、内部诊断 `--flat`、公共视觉归 `design-system.css`、页面只负责布局。

@@ -15,7 +15,7 @@ import {ADBLOCK_ID,ADBLOCK_STORE,ADBLOCK_PROTOCOL,ADBLOCK_CAPABILITY,
   ADBLOCK_RULE_FIRST,adblockHost} from '../../examples/sidebar-tools/adblock/trusted/policy.js';
 import {wantedAdblockRules,clearAdblockRules,reconcileAdblockRules}
   from '../../examples/sidebar-tools/adblock/trusted/rules.js';
-import {createAdblockService} from '../../examples/sidebar-tools/adblock/trusted/service.js';
+import {createAdblockService,installAdblockService} from '../../examples/sidebar-tools/adblock/trusted/service.js';
 import {createAdblockPermissionControls} from '../../examples/sidebar-tools/adblock/trusted/host-controls.js';
 import {requestAdblockOperation,runTrustedAdblockOperation}
   from '../../examples/sidebar-tools/adblock/trusted/tool-host.js';
@@ -37,16 +37,25 @@ async function fixture(){
     [TOOL_REVOCATION_EPOCHS_STORE,{[ADBLOCK_ID]:'epoch-1'}]]);
   let current='https://news.example.com/story',permission=true,dropUpdates=false,
     unknownWrite=false,corruptNative=false;
-  let rules=[structuredClone(focusRule)];
+  let rules=[structuredClone(focusRule)],sessionRules=[],enabledRulesets=[];
+  const event=()=>{
+    const listeners=new Set();
+    return {addListener:fn=>listeners.add(fn),removeListener:fn=>listeners.delete(fn),
+      emit(...args){for(const fn of listeners)fn(...args);}};
+  };
+  const storageChanged=event(),permissionRemoved=event(),permissionAdded=event();
   const locks=[],changes=[],actions=[];
   const storage={async get(keys){
     const list=Array.isArray(keys)?keys:keys===null?[...stored.keys()]:[keys];
     return Object.fromEntries(list.filter(key=>stored.has(key))
       .map(key=>[key,structuredClone(stored.get(key))]));
   },async set(values){
+    const delta={};
     for(const [key,value] of Object.entries(values)){
+      delta[key]={oldValue:structuredClone(stored.get(key)),newValue:structuredClone(value)};
       stored.set(key,structuredClone(value));changes.push(key);
     }
+    storageChanged.emit(delta,'local');
     if(unknownWrite){unknownWrite=false;throw Error('lost acknowledgement');}
   },async remove(key){stored.delete(key);}};
   let nativeDelay=0;
@@ -54,10 +63,12 @@ async function fixture(){
     runtime:{id:senderId,getURL:path=>'chrome-extension://'+senderId+'/'+path,
       getContexts:async()=>[{contextType:'SIDE_PANEL',documentUrl:hostUrl,
         documentId:'live-doc',frameId:0,incognito:false}]},
-    storage:{local:storage},
-    permissions:{async contains(){return permission;}},
+    storage:{local:storage,onChanged:storageChanged},
+    permissions:{async contains(){return permission;},onRemoved:permissionRemoved,onAdded:permissionAdded},
     tabs:{async query(){return [{id:1,url:current,active:true,incognito:false}];}},
     declarativeNetRequest:{
+      async getSessionRules(){return structuredClone(sessionRules);},
+      async getEnabledRulesets(){return [...enabledRulesets];},
       async getDynamicRules(){
         if(corruptNative)throw Error('DNR read failed');
         return structuredClone(rules);
@@ -84,8 +95,9 @@ async function fixture(){
   const service=createAdblockService({api,lockManager,fetcher});
   const message=(operation,payload={})=>({protocol:ADBLOCK_PROTOCOL,toolId:ADBLOCK_ID,
     operation,payload,packageHash:hash,installEpoch:'epoch-1'});
-  return {tool,hash,api,stored,service,lockManager,changes,locks,actions,message,
+  return {tool,hash,api,stored,service,lockManager,fetcher,changes,locks,actions,message,
     get rules(){return rules;},
+    sessionRules,enabledRulesets,permissionRemoved,permissionAdded,
     get permission(){return permission;},
     setPermission:value=>{permission=value;service.invalidate(!value);},
     setCurrent:value=>{current=value;},
@@ -94,6 +106,19 @@ async function fixture(){
     setDelay:value=>{nativeDelay=value;},
     setUnknownWrite:value=>{unknownWrite=value;}};
 }
+test('installation probe accepts Chrome hiding ungranted optional DNR but rejects a broken granted runtime',async()=>{
+  const f=await fixture();
+  f.setPermission(false);
+  delete f.api.declarativeNetRequest;
+  const before=structuredClone([...f.stored]);
+  const probe=f.message('adblock.probe');delete probe.installEpoch;
+  const ready=await f.service.probe(probe,sender);
+  assert.equal(ready.serviceReady,true);
+  assert.equal(ready.permissions.dnr,false);
+  assert.deepEqual([...f.stored],before,'probing never installs, grants, or changes intent');
+  f.setPermission(true);
+  await assert.rejects(f.service.probe(probe,sender),{code:'E_ADBLOCK_RUNTIME'});
+});
 test('official AdBlock optional catalog entry and no generated source package copies',async()=>{
   const sources=await readOfficialSources();
   const row=sources.tools.find(row=>row.id==='adblock');
@@ -201,6 +226,138 @@ test('other low-priority dynamic redirect forces fail-closed AdBlock exceptions'
   await assert.rejects(f.service.dispatch(await f.message('adblock.site.set',{
     host:'news.example.com',filtering:false}),sender),{code:'E_ADBLOCK_PRIORITY_CONFLICT'});
   assert.deepEqual(f.rules.map(x=>x.id),[FOCUS_RULE_FIRST,733333]);
+  const paused=f.stored.get(ADBLOCK_STORE);
+  assert.equal(paused.enabled,false);
+  assert.equal(paused.approvedHash,null);assert.equal(paused.approvedEpoch,null);
+  await f.service.tick();
+  f.rules.splice(f.rules.findIndex(x=>x.id===733333),1);
+  assert.equal((await f.service.tick()).enabled,false,'removing the conflict cannot renew intent');
+  assert.deepEqual(f.rules.map(x=>x.id),[FOCUS_RULE_FIRST]);
+  assert.equal((await f.service.dispatch(f.message('adblock.enable'),sender)).enabled,true);
+});
+test('malformed install, enable and epoch authority preserve storage while retiring owned DNR',async t=>{
+  for(const [key,value] of [[SIDEBAR_TOOL_STORE,[{id:'adblock'}]],
+    [SIDEBAR_TOOL_ENABLE_STORE,{adblock:'yes'}],
+    [TOOL_REVOCATION_EPOCHS_STORE,{adblock:17}]]){
+    await t.test(key,async()=>{
+      for(const operation of ['tick','dispatch']){
+        const f=await fixture();await f.service.dispatch(f.message('adblock.enable'),sender);
+        f.stored.set(key,value);const before=structuredClone([...f.stored]);
+        await assert.rejects(operation==='tick'?f.service.tick():
+          f.service.dispatch(f.message('adblock.status'),sender));
+        assert.deepEqual([...f.stored],before,'authority corruption must not be rewritten');
+        assert.deepEqual(f.rules.map(x=>x.id),[FOCUS_RULE_FIRST]);
+      }
+    });
+  }
+});
+test('authority cleanup failure is unknown and never rewrites corrupt storage or replays DNR',async()=>{
+  const f=await fixture();await f.service.dispatch(f.message('adblock.enable'),sender);
+  f.stored.set(SIDEBAR_TOOL_STORE,[{id:'adblock'}]);
+  const before=structuredClone([...f.stored]),actions=f.actions.length;
+  f.dropUpdates(true);
+  await assert.rejects(f.service.tick(),{code:'E_OUTCOME_UNKNOWN'});
+  assert.equal(f.actions.length,actions+1);
+  assert.deepEqual([...f.stored],before);
+  assert.ok(f.rules.some(x=>x.id===ADBLOCK_RULE_FIRST));
+});
+test('site exceptions reject session collisions, enabled static and unavailable safety readback',async t=>{
+  for(const kind of ['session','session-owned-id','static','missing-session','session-read-failure','static-read-failure']){
+    await t.test(kind,async()=>{
+      const f=await fixture();await f.service.dispatch(f.message('adblock.enable'),sender);
+      if(kind.startsWith('session')&&!kind.includes('failure'))
+        f.sessionRules.push({...focusRule,id:kind==='session-owned-id'?ADBLOCK_RULE_FIRST:22,priority:2});
+      if(kind==='static')f.enabledRulesets.push('uninspected-static');
+      if(kind==='missing-session')delete f.api.declarativeNetRequest.getSessionRules;
+      if(kind==='session-read-failure')f.api.declarativeNetRequest.getSessionRules=async()=>{throw Error('read failed');};
+      if(kind==='static-read-failure')f.api.declarativeNetRequest.getEnabledRulesets=async()=>{throw Error('read failed');};
+      const session=structuredClone(f.sessionRules),staticIds=[...f.enabledRulesets];
+      await assert.rejects(f.service.dispatch(f.message('adblock.site.set',{
+        host:'news.example.com',filtering:false}),sender),{code:'E_ADBLOCK_PRIORITY_CONFLICT'});
+      assert.equal(f.stored.get(ADBLOCK_STORE).enabled,false);
+      assert.equal(f.stored.get(ADBLOCK_STORE).approvedHash,null);
+      assert.equal(f.stored.get(ADBLOCK_STORE).approvedEpoch,null);
+      assert.deepEqual(f.rules.map(x=>x.id),[FOCUS_RULE_FIRST]);
+      assert.deepEqual(f.sessionRules,session);assert.deepEqual(f.enabledRulesets,staticIds);
+      assert.equal((await f.service.tick()).enabled,false);
+    });
+  }
+});
+test('high-priority session rules and disabled static rulesets allow safe site exceptions',async()=>{
+  const f=await fixture();f.sessionRules.push({...focusRule,id:ADBLOCK_RULE_FIRST,priority:20});
+  f.api.runtime.getManifest=()=>({declarative_net_request:{rule_resources:[{id:'off',enabled:false}]}});
+  await f.service.dispatch(f.message('adblock.enable'),sender);
+  await f.service.dispatch(f.message('adblock.site.set',{host:'news.example.com',filtering:false}),sender);
+  assert.ok(f.rules.some(x=>x.action.type==='allowAllRequests'));
+  assert.equal(f.sessionRules[0].priority,20);
+});
+test('Document loss is ordinary before writes and unknown after persistent or native effects',async t=>{
+  for(const point of ['before-write','state-write','native-write','final-host-read','revocation-write']){
+    await t.test(point,async()=>{
+      const f=await fixture();let live=true;
+      f.api.runtime.getContexts=async()=>live?[{contextType:'SIDE_PANEL',documentUrl:hostUrl,
+        documentId:'live-doc',frameId:0,incognito:false}]:[];
+      if(point==='revocation-write'){
+        await f.service.dispatch(f.message('adblock.enable'),sender);f.setPermission(false);
+      }
+      const previousWrites=f.changes.length,previousActions=f.actions.length;
+      const set=f.api.storage.local.set,update=f.api.declarativeNetRequest.updateDynamicRules;
+      if(point==='before-write'){
+        const contains=f.api.permissions.contains;
+        f.api.permissions.contains=async()=>{live=false;return contains();};
+      }else if(point==='state-write'||point==='revocation-write'){
+        f.api.storage.local.set=async value=>{await set(value);live=false;};
+      }else if(point==='native-write'){
+        f.api.declarativeNetRequest.updateDynamicRules=async value=>{await update(value);live=false;};
+      }else{
+        const query=f.api.tabs.query;
+        f.api.tabs.query=async()=>{live=false;return query();};
+      }
+      await assert.rejects(f.service.dispatch(f.message(point==='revocation-write'?
+        'adblock.status':'adblock.enable'),sender),{
+        code:point==='before-write'?'E_ADBLOCK_SENDER':'E_OUTCOME_UNKNOWN'});
+      assert.equal(f.changes.length,previousWrites+(point==='before-write'?0:1));
+      assert.equal(f.actions.length,previousActions+
+        (point==='native-write'||point==='final-host-read'?1:0),'no rollback or replay');
+    });
+  }
+});
+test('live storage events complete under the tool lock and origin revocation never auto-resumes',{timeout:3000},async()=>{
+  const f=await fixture(),installed=installAdblockService({api:f.api,lockManager:f.lockManager,fetcher:f.fetcher});
+  const drain=()=>f.lockManager.request('opendesk.sidebar-tools:tool:adblock',()=>{});
+  try{
+    await drain();
+    f.stored.delete(TOOL_REVOCATION_EPOCHS_STORE);
+    const enable=f.message('adblock.enable');enable.installEpoch=null;
+    assert.equal((await installed.service.dispatch(enable,sender)).enabled,true);
+    await drain();
+    assert.ok(f.rules.some(x=>x.id===ADBLOCK_RULE_FIRST));
+    const writes=f.changes.length;
+    await installed.service.tick();await drain();
+    assert.equal(f.changes.length,writes,'self storage events must converge without write loops');
+    f.permissionRemoved.emit({origins:['https://news.example.com/*']});
+    await drain();
+    assert.equal(f.permission,true,'origin removal is not DNR capability removal');
+    assert.equal(f.stored.get(ADBLOCK_STORE).enabled,false);
+    assert.equal(f.stored.get(ADBLOCK_STORE).approvedHash,null);
+    assert.equal(f.stored.get(ADBLOCK_STORE).approvedEpoch,null);
+    assert.deepEqual(f.rules.map(x=>x.id),[FOCUS_RULE_FIRST]);
+    f.permissionAdded.emit({origins:['https://news.example.com/*']});await drain();
+    assert.equal((await installed.service.tick()).enabled,false);
+    assert.equal((await installed.service.dispatch(enable,sender)).enabled,true);
+    await drain();
+    assert.equal((await installed.service.tick()).enabled,true,'self storage events must not undo a fresh re-enable');
+  }finally{installed.dispose();}
+});
+test('priority conflict keeps durable intent disabled when native cleanup cannot be confirmed',async()=>{
+  const f=await fixture();await f.service.dispatch(f.message('adblock.enable'),sender);
+  f.sessionRules.push({...focusRule,id:1,priority:1});f.dropUpdates(true);
+  await assert.rejects(f.service.dispatch(f.message('adblock.site.set',{
+    host:'news.example.com',filtering:false}),sender),{code:'E_OUTCOME_UNKNOWN'});
+  assert.equal(f.stored.get(ADBLOCK_STORE).enabled,false);
+  assert.equal(f.stored.get(ADBLOCK_STORE).approvedHash,null);
+  f.dropUpdates(false);await f.service.tick();
+  assert.deepEqual(f.rules.map(x=>x.id),[FOCUS_RULE_FIRST]);
 });
 test('DNR readback uncertainty cannot be reported as successful filtering',async()=>{
   const f=await fixture();f.dropUpdates(true);

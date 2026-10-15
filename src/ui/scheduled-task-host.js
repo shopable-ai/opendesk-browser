@@ -6,6 +6,37 @@ export function createScheduledTaskHost({client,host,api=globalThis.chrome,clock
   onStatus=()=>{},onChange=()=>{},onRun=()=>{},pollMs=15000}){
   let disposed=false,busy=false,timer=null,lastStatus='等待计划',pollPending=false;
   const status=message=>{lastStatus=message;onStatus(message);};
+  const uncertainFires=new Map();
+  async function reconcileOriginal(fire){
+    const scheduleId=fire.scheduleId??fire.definition?.scheduleId;
+    if(!scheduleId)return false;
+    try{
+      for(let offset=0;offset<=100000;offset+=50){
+        const page=await client.request('listScheduleHistory',{scheduleId,offset,limit:50});
+        if(disposed||page?.scheduleId!==scheduleId)return false;
+        const row=page.history?.find(row=>row.scheduleId===scheduleId&&row.fireId===fire.fireId);
+        if(row){
+          const previous=uncertainFires.get(fire.fireId);
+          if(typeof row.runId!=='string'||!row.runId||typeof row.resultId!=='string'||!row.resultId||
+            (previous?.runId&&previous.runId!==row.runId)||
+            (previous?.resultId&&previous.resultId!==row.resultId))return false;
+          uncertainFires.set(fire.fireId,{fire,runId:row.runId,resultId:row.resultId});
+          if(['SUCCESS','FAILED','STOPPED'].includes(row.status)&&row.retirementState==='released'){
+            status('本次任务已结束：'+row.status);
+            uncertainFires.delete(fire.fireId);
+            return true;
+          }
+          if(['RUNNING','SETTLING'].includes(row.status)){
+            status((row.status==='RUNNING'?'定时任务运行中：':'定时任务结算中：')+row.runId);
+            return true;
+          }
+          return false;
+        }
+        if(!page.hasMore)return false;
+      }
+    }catch{ /* Missing authoritative evidence remains ambiguous. */ }
+    return false;
+  }
   async function observeTarget(url){
     const tabs=await api.tabs.query({});
     for(const tab of tabs){
@@ -63,6 +94,8 @@ export function createScheduledTaskHost({client,host,api=globalThis.chrome,clock
         throw new Error('Original Controller RunId was not acknowledged');
     }catch(error){
       if(error?.code==='E_OWNER')throw error; // local/shared slot was denied
+      uncertainFires.set(fire.fireId,{fire});
+      if(await reconcileOriginal(fire))return;
       // A disconnected Host can conceal durable admission or web page effects.
       // Treat any other error after calling start as ambiguous; the repository
       // alone decides whether the original Fire was already ADMITTED.
@@ -71,6 +104,7 @@ export function createScheduledTaskHost({client,host,api=globalThis.chrome,clock
       uncertain.cause=error;
       throw uncertain;
     }
+    const original={fire,runId:started.runId,resultId:started.resultId};
     onRun(started.runId);
     status('定时任务运行中：'+started.runId);
     onChange();
@@ -82,11 +116,17 @@ export function createScheduledTaskHost({client,host,api=globalThis.chrome,clock
       status(result?.pendingSettlement||result?.state==='paused_unknown'?
         '结果未知，禁止自动重试':
         '本次任务已结束：'+(result?.state??'待核对'));
+      if(result?.pendingSettlement||result?.state==='paused_unknown'){
+        uncertainFires.set(fire.fireId,original);
+        await reconcileOriginal(fire);
+      }
     }catch(error){
       // Keep the original FireId -> RunId/ResultId binding untouched.
       // Reconciliation queries the authoritative Run/Result; no new Run
       // or synthetic UNKNOWN receipt may be created from this UI.
       status('运行回执丢失；请检查原运行结果，已禁止自动重试');
+      uncertainFires.set(fire.fireId,original);
+      await reconcileOriginal(fire);
     }finally{
       onRun(null);
       onChange();
@@ -96,9 +136,13 @@ export function createScheduledTaskHost({client,host,api=globalThis.chrome,clock
     if(busy||disposed)return;
     busy=true;
     try{
+      for(const {fire} of uncertainFires.values()){
+        if(!await reconcileOriginal(fire))status('执行回执不确定；已禁止自动重试');
+      }
       const response=await client.request('listDueSchedules',{});
       for(const fire of response.fires||[]){
         if(disposed)break;
+        if(uncertainFires.has(fire.fireId))continue;
         if(host.executionPending){status('正在运行其他任务；等待执行槽');break;}
         try{await attempt(fire);}
         catch(error){
@@ -107,7 +151,8 @@ export function createScheduledTaskHost({client,host,api=globalThis.chrome,clock
           // Never retry it just because this host lost its answer.
           if(error?.code==='E_OWNER'){status('等待执行槽释放');break;}
           if(error?.code==='E_EFFECT_UNKNOWN'){
-            await client.request('setScheduleFireState',{fireId:fire.fireId,status:'UNKNOWN'}).catch(()=>{});
+            const recorded=await client.request('setScheduleFireState',{fireId:fire.fireId,status:'UNKNOWN'}).catch(()=>null);
+            if(recorded?.fireId===fire.fireId&&recorded.status==='ADMITTED'&&await reconcileOriginal(fire))break;
             status('执行回执不确定；已禁止自动重试');break;
           }
           if(['E_PERMISSION','E_REVISION','E_VERIFICATION','E_BUILTIN_VERSION_UNAVAILABLE'].includes(error?.code)){

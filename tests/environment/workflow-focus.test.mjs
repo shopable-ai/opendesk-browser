@@ -102,13 +102,15 @@ if(!vm.SourceTextModule) {
     return doc;
   }
 
-  async function make(t,{steps=[],approval=false,observeGate=null}={}) {
+  async function make(t,{steps=[],approval=false,observeGate=null,storedGrant=null,
+    sessionId='component-session',initialPermission=true}={}) {
     const doc=documentFixture(),get=id=>doc.getElementById(id),draft=contract.emptyWorkflow('https://a.example',crypto.randomUUID());
     draft.steps=structuredClone(steps);
     const planGate=deferred(),approvalReady=deferred(),answers=[],observations=[];
-    let plannerOptions;const compiled=[];
+    let plannerOptions,currentSessionId=sessionId;const compiled=[],sessionWrites=[];
     const proposal=workflow=>({...structuredClone(workflow),title:'Component proposal',steps:[{stepId:'proposed',op:'observe'}]});
-    const planner={snapshot:()=>({}),probe:async()=>({state:'READY_FOR_TURN',readyForTurn:true}),
+    const planner={snapshot:()=>({sessionId:currentSessionId,state:'READY_FOR_TURN',readyForTurn:true}),
+      probe:async()=>({state:'READY_FOR_TURN',readyForTurn:true}),
       async plan(options){
         plannerOptions=options;
         if(approval){
@@ -118,7 +120,7 @@ if(!vm.SourceTextModule) {
         }
         await planGate.promise;
         return proposal(options.workflow);
-      },cancel:async()=>{},close:async()=>{},dispose(){},resume:async()=>{}};
+      },cancel:async()=>{},close:async()=>{currentSessionId=null;},dispose(){},resume:async()=>{}};
     const observation={cancel:async()=>{},dispose:async()=>{},async observe(...args){
       observations.push(args);if(observeGate)await observeGate.promise;return {componentFixture:true};
     }};
@@ -153,14 +155,45 @@ if(!vm.SourceTextModule) {
       return modules.get(specifier);
     });
     await module.evaluate();
-    const target={windowId:7,tabId:9,frameId:0,documentId:'doc-9',url:'https://a.example/',origin:'https://a.example',status:'available'};
-    const api={storage:{session:{get:async key=>({[key]:draft}),set:async()=>{}},local:{get:async()=>({}),set:async()=>{}}},
-      permissions:{request:async()=>true,contains:async()=>true}};
+    let target={windowId:7,tabId:9,frameId:0,documentId:'doc-9',url:'https://a.example/',origin:'https://a.example',status:'available'};
+    const pageListeners=new Set(),permissionListeners=new Set(),permissions=new Set(initialPermission?['https://a.example/*']:[]);
+    const permissionRequests=[];
+    const sessionStore=new Map();
+    sessionStore.set('opendesk.sidebar.workflow-draft.v1:7',draft);
+    if(storedGrant)sessionStore.set('opendesk.sidebar.workflow-draft.v1:7:observation',storedGrant);
+    const sessionGet=async key=>{
+      const keys=Array.isArray(key)?key:[key];
+      return Object.fromEntries(keys.map(item=>[item,sessionStore.get(item)]));
+    };
+    const sessionSet=async values=>{
+      sessionWrites.push(structuredClone(values));
+      for(const [key,value] of Object.entries(values))sessionStore.set(key,value);
+    };
+    const api={storage:{session:{get:sessionGet,set:sessionSet},local:{get:async()=>({}),set:async()=>{}}},
+      permissions:{request:async request=>{
+        permissionRequests.push(structuredClone(request));
+        for(const origin of request.origins||[])permissions.add(origin);
+        return true;
+      },contains:async request=>(request.origins||[]).every(origin=>permissions.has(origin)),
+      onRemoved:{addListener:fn=>permissionListeners.add(fn),removeListener:fn=>permissionListeners.delete(fn)}}};
     const ui=module.namespace.createWorkflowView({document:doc,api,
       client:{ready:Promise.resolve(),subscribeWorkflowAI:()=>()=>{}},
       host:{subscribe:()=>()=>{},currentRun:null,executionPending:false},
-      currentPageTarget:{windowId:7,snapshot:target,ready:Promise.resolve(),capture:()=>({...target}),revalidate:async()=>{},subscribe:()=>()=>{}}});
+      currentPageTarget:{windowId:7,get snapshot(){return target;},ready:Promise.resolve(),capture:()=>({...target}),revalidate:async captured=>{
+        if(['windowId','tabId','frameId','documentId','url','origin'].some(key=>captured[key]!==target[key]))
+          throw Object.assign(new Error('stale target'),{code:'E_DOCUMENT_STALE'});
+      },subscribe:fn=>{pageListeners.add(fn);return ()=>pageListeners.delete(fn);}}});
     t.after(()=>ui.dispose());await tick();await tick();
+    const setPage=async patch=>{
+      target={...target,...patch};
+      for(const fn of pageListeners)fn({...target});
+      await tick();await tick();
+    };
+    const removePermission=async grant=>{
+      for(const origin of grant.origins||[])permissions.delete(origin);
+      for(const fn of permissionListeners)await fn(grant);
+      await tick();await tick();
+    };
     const stepsNow=()=>get('workflow-steps').querySelectorAll('details.workflow-step');
     const control=(id,field)=>{
       const step=stepsNow().find(item=>item.dataset.stepId===id);
@@ -179,6 +212,8 @@ if(!vm.SourceTextModule) {
       return {running};
     };
     return {doc,get,ui,click,openCreation,clickNew,focusNew,control,stepsNow,startPlan,planGate,approvalReady,answers,observations,compiled,
+      permissions,permissionRequests,sessionWrites,sessionStore,setPage,removePermission,
+      setSessionId:value=>{currentSessionId=value;},
       get plannerOptions(){return plannerOptions;}};
   }
   const fill=id=>({stepId:id,op:'fill',locatorKind:'css',selector:'#keyword',text:''});
@@ -187,6 +222,11 @@ if(!vm.SourceTextModule) {
     assert.equal(fixture.doc.activeElement,element);
     assert.ok(element.visible(),'focus destination must be visible');
     assert.equal(element.disabled,false,'focus destination must be enabled');
+  };
+  const grant=(overrides={})=>{
+    const approvedAt=Date.now()-1000;
+    return {sessionId:'component-session',origin:'https://a.example',scope:'semantic-dom-summary-v1',
+      approvedAt,expiresAt:approvedAt+30*60*1000,...overrides};
   };
 
   test('component: current AI-only markup initializes Run and Save without a manual-start control',async t=>{
@@ -319,6 +359,95 @@ if(!vm.SourceTextModule) {
     await f.focusNew();gate.resolve();await tick();await tick();
     assert.equal(f.get('workflow-ai-approval').hidden,true);assertFocus(f,f.get('workflow-new'));
     f.planGate.resolve();await running;assert.equal(f.answers[0].decision,'approve');assert.equal(f.observations.length,1);
+  });
+
+  test('component: valid exact session origin and scope reuses 30 minute observation grant without approval UI',async t=>{
+    const f=await make(t,{approval:true,storedGrant:grant()});
+    const {running}=await f.startPlan('Read this page with the existing grant');await f.approvalReady.promise;
+    await tick();await tick();
+    assert.equal(f.get('workflow-ai-approval').hidden,true);
+    assert.equal(f.permissionRequests.length,0);
+    assert.equal(f.observations.length,1);
+    assert.equal(f.answers[0].decision,'approve');
+    assert.equal(f.sessionWrites.some(row=>Object.keys(row).some(key=>key.endsWith(':observation'))),false);
+    f.planGate.resolve();await running;
+  });
+
+  test('component: missing site permission requests Chrome only once from explicit approval and then remembers grant',async t=>{
+    const f=await make(t,{approval:true,initialPermission:false});
+    const {running}=await f.startPlan('Observe once and remember this task scope');await f.approvalReady.promise;
+    assert.equal(f.get('workflow-ai-approval').hidden,false);
+    assert.equal(f.permissionRequests.length,0,'showing the task approval is not a Chrome permission request');
+    await f.click(f.get('workflow-ai-approve'));await tick();await tick();
+    assert.deepEqual(f.permissionRequests,[{origins:['https://a.example/*']}]);
+    assert.equal(f.answers[0].decision,'approve');
+    assert.equal(f.observations.length,1);
+    const persisted=f.sessionWrites.find(row=>row['opendesk.sidebar.workflow-draft.v1:7:observation']);
+    assert.equal(persisted['opendesk.sidebar.workflow-draft.v1:7:observation'].origin,'https://a.example');
+    assert.equal(persisted['opendesk.sidebar.workflow-draft.v1:7:observation'].scope,'semantic-dom-summary-v1');
+    f.planGate.resolve();await running;
+  });
+
+  for(const [name,stored,options={}] of [
+    ['expired grant',grant({approvedAt:Date.now()-30*60*1000-1000,expiresAt:Date.now()-1000}),{}],
+    ['new session',grant({sessionId:'older-session'}),{}],
+    ['new site',grant({origin:'https://b.example'}),{}],
+    ['changed scope',grant({scope:'full-dom-v0'}),{}]
+  ]) test('component: '+name+' requires a fresh observation approval',async t=>{
+    const f=await make(t,{approval:true,storedGrant:stored});
+    if(options.provider)f.get('workflow-ai-provider').value=options.provider;
+    const {running}=await f.startPlan('Observe after grant mismatch');await f.approvalReady.promise;
+    assert.equal(f.get('workflow-ai-approval').hidden,false);
+    assert.equal(f.observations.length,0);
+    await f.click(f.get('workflow-ai-deny'));
+    f.planGate.resolve();await running;assert.equal(f.answers[0].decision,'deny');
+  });
+
+  test('component: Stop discards late observation receipt after approval has started',async t=>{
+    const gate=deferred(),f=await make(t,{approval:true,observeGate:gate});
+    const {running}=await f.startPlan('Observe then stop before receipt settles');await f.approvalReady.promise;
+    await f.click(f.get('workflow-ai-approve'));
+    assert.equal(f.observations.length,1);
+    await f.click(f.get('workflow-ai-cancel'));
+    gate.resolve();await tick();await tick();
+    assert.equal(f.get('workflow-ai-approval').hidden,true);
+    f.planGate.resolve();await running;
+    assert.equal(f.answers[0].decision,'deny');
+    assert.equal(f.get('workflow-ai-proposal').hidden,true);
+  });
+
+  test('component: permission removal for the approved site revokes grant and stops pending receipt, unrelated origin keeps it',async t=>{
+    const gate=deferred(),f=await make(t,{approval:true,storedGrant:grant(),observeGate:gate});
+    assert.match(f.get('workflow-observation-scope').textContent,/30 分钟有效/);
+    await f.removePermission({origins:['https://elsewhere.example/*']});
+    assert.match(f.get('workflow-observation-scope').textContent,/30 分钟有效/);
+    const running=(await f.startPlan('Observe with existing grant before revoke')).running;
+    await f.approvalReady.promise;await tick();
+    await f.removePermission({origins:['https://a.example/*']});
+    gate.resolve();
+    f.planGate.resolve();await running;
+    assert.equal(f.answers[0].decision,'deny');
+    assert.match(f.get('workflow-observation-scope').textContent,/当前对话未授权/);
+  });
+
+  test('component: resolving navigation cancels pending observation but same-origin fresh document keeps stored grant',async t=>{
+    let gate=deferred();
+    const f=await make(t,{approval:true,storedGrant:grant(),observeGate:gate});
+    assert.match(f.get('workflow-observation-scope').textContent,/30 分钟有效/);
+    let {running}=await f.startPlan('Observe before document navigation');await f.approvalReady.promise;
+    await f.setPage({status:'resolving',origin:undefined,documentId:undefined,url:'https://a.example/refreshing'});
+    gate.resolve();
+    f.planGate.resolve();await running;
+    assert.equal(f.answers[0].decision,'deny');
+    assert.equal(f.sessionStore.get('opendesk.sidebar.workflow-draft.v1:7:observation').origin,'https://a.example');
+    await f.setPage({status:'available',origin:'https://a.example',documentId:'doc-10',url:'https://a.example/next'});
+    assert.match(f.get('workflow-observation-scope').textContent,/30 分钟有效/);
+    running=(await f.startPlan('Observe the fresh same-origin document')).running;await f.approvalReady.promise;
+    await tick();await tick();
+    assert.equal(f.get('workflow-ai-approval').hidden,true);
+    assert.equal(f.observations.length,2);
+    await running;
+    assert.equal(f.answers[1].decision,'approve');
   });
 
   for(const external of [false,true])test('component: Stop settles pending approval '+(external?'without stealing focus':'to stable request'),async t=>{

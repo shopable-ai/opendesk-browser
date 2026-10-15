@@ -5,12 +5,12 @@ const targetFields=['windowId','tabId','frameId','documentId','url','origin'];
 const highImpact=/(?:付款|支付|购买|下单|结账|转账|提现|确认订单|提交订单|删除|永久移除|清空|注销|发布|群发|发送(?:邮件|消息)|发消息|退款|修改(?:密码|账号)|重设密码|pay(?:ment)?|purchase|checkout|transfer\s+money|delete|remove\s+account|reset\s+password|send\s+(?:email|message)|post\s+(?:comment|message)|confirm\s+order)/i;
 const riskyClickTarget=/(?:付款|支付|购买|下单|结账|转账|删除|清空|注销|发布|发送|退款|密码|订单确认|支付确认|pay|purchase|checkout|transfer|delete|remove|reset.?password|send|submit|提交|confirm.?order|logout|publish|billing)/i;
 const fillIntent=/(?:填入|填写|输入|填上|填到|写入|写在|设为|放入|设置输入框|\b(?:fill|type|enter)\b)/i;
-const clickIntent=/(?:点击|点开|按下|打开|跳转|搜索(?!框|栏|输入框)|提交|下一步|选择(?:按钮|菜单|选项|标签|条目|项目)|\b(?:click|open|navigate|search|submit|select|press)\b)/i;
+const clickIntent=/(?:点击|点开|按下|打开|跳转|搜索(?!关键词|框|栏|输入框)|提交|下一步|选择(?:按钮|菜单|选项|标签|条目|项目)|\bsearch\b(?!\s+(?:keyword|input|field|box)\b)|\b(?:click|open|navigate|submit|select|press)\b)/i;
 const readIntent=/(?:查看(?:页面|网页|内容|结果)?|读取|提取|显示(?:页面|内容|结果)|观察|检查网页|页面内容|\b(?:read|extract|observe|inspect|show)\b)/i;
 
 // Admission for the existing RunHost only. Model output is never executable code,
 // a Chrome origin grant, or authority to exceed the user's requested actions.
-export function prepareDirectExecution({request,workflow,target}) {
+export function prepareDirectExecution({request,workflow,target,observation}) {
   const clean=validateWorkflow(workflow);
   if(typeof request!=='string'||!request.trim()||request.length>4000)
     throw error('E_AI_REQUEST','任务描述无效');
@@ -30,6 +30,10 @@ export function prepareDirectExecution({request,workflow,target}) {
   if(clean.steps.some(step=>step.op==='navigate'||step.op==='confirm'))
     throw error('E_AI_REVIEW_REQUIRED','本轮暂不自动执行跳转或交互确认');
   const fills=clean.steps.filter(step=>step.op==='fill');
+  if(clean.steps.some(step=>step.op==='assert'&&fills.some(fill=>
+    step.locatorKind===fill.locatorKind&&step.selector===fill.selector&&
+    (step.locatorKind!=='role'||(step.roleName||'')===(fill.roleName||'')))))
+    throw error('E_AI_ASSERT_TARGET','输入值应读回，不能断言输入框文本');
   const clicks=clean.steps.filter(step=>step.op==='click');
   const reads=clean.steps.filter(step=>step.op==='observe'||step.op==='extract');
   // Search terms and other fill literals are data. Sensitive *instructions*
@@ -47,6 +51,10 @@ export function prepareDirectExecution({request,workflow,target}) {
     const value=step.param?params[step.param]:step.text;
     if(typeof value!=='string'||!value.length||!request.includes(value))
       throw error('E_AI_VALUE_NOT_GROUNDED','填写内容不在本次用户请求中，拒绝自行猜测');
+    const quoted=[['"','"'],["'","'"],['“','”'],['‘','’'],['「','」'],['『','』']]
+      .some(([open,close])=>request.includes(open+value+close));
+    if(!quoted&&/[。.!！?？]$/.test(value)&&request.trim().endsWith(value))
+      throw error('E_AI_VALUE_NOT_GROUNDED','模型把指令的句末标点包含在填写内容中，未执行');
     values.push(value);
   }
   // A fill literal is *data*, not authority. For example, the "选择" in
@@ -58,7 +66,17 @@ export function prepareDirectExecution({request,workflow,target}) {
     throw error('E_AI_UNREQUESTED_ACTION','本次未要求填写，模型额外生成填写动作');
   if(clicks.length&&!clickIntent.test(instruction))
     throw error('E_AI_UNREQUESTED_ACTION','本次未要求点击，模型额外生成点击动作');
-  if(clicks.some(step=>riskyClickTarget.test([step.selector,step.roleName].filter(Boolean).join(' '))))
+  if(clickIntent.test(instruction)&&!clicks.length)
+    throw error('E_AI_MISSING_ACTION','用户要求点击，模型没有返回点击步骤');
+  const summary=observation?.summary;
+  const observedSearch=step=>step.locatorKind==='css'&&
+    summary?.origin===target.origin&&summary.documentId===target.documentId&&
+    !riskyClickTarget.test(step.selector.replace(/submit/ig,''))&&
+    summary.nodes?.some(node=>node.role==='button'&&/^(?:搜索|search)$/i.test(node.name)&&
+      node.state?.visible&&node.locator?.kind==='css'&&node.locator.value===step.selector&&
+      !node.locator.parent&&node.locator.index===undefined);
+  if(clicks.some(step=>riskyClickTarget.test([step.selector,step.roleName].filter(Boolean).join(' '))&&
+    (!observedSearch(step)||riskyClickTarget.test(step.roleName||''))))
     throw error('E_AI_REVIEW_REQUIRED','模型选择了潜在不可撤销的点击，未执行');
   if(reads.length&&!readIntent.test(instruction))
     throw error('E_AI_UNREQUESTED_ACTION','本次未要求读取页面，模型额外生成网页读取动作');

@@ -16,21 +16,45 @@ const root=fileURLToPath(new URL('../../',import.meta.url));
 const fixture='http://127.0.0.1:43111/demo-form.html';
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const quote=JSON.stringify;
+const requestedStage=process.env.COOKIE_NATIVE_STAGE;
+const supportedStages=['all','visual','upgrade','partial','negative','path','advanced','lifecycle','import-export'];
+assert(!requestedStage||supportedStages.includes(requestedStage),'Unknown COOKIE_NATIVE_STAGE');
+const gapCases=['import-json-file','import-json-auto','import-json-manual','import-header-auto',
+  'import-header-manual','import-netscape-auto','import-netscape-manual','import-overwrite-cancel',
+  'import-partial-cancel','import-invalid','import-preview-input-change','export-metadata-json',
+  'export-sensitive-denied','export-json','export-header','export-netscape'];
+const gapStage=requestedStage==='import-export';
+const requestedCases=process.env.COOKIE_NATIVE_CASES?.split(',').map(id=>id.trim());
+assert(!requestedCases||gapStage,'COOKIE_NATIVE_CASES requires import-export stage');
+assert(!requestedCases||requestedCases.every(id=>gapCases.includes(id)),'Unknown COOKIE_NATIVE_CASES');
+assert(!requestedCases||new Set(requestedCases).size===requestedCases.length,'Duplicate COOKIE_NATIVE_CASES');
+const selectedGapCases=gapStage?gapCases.filter(id=>!requestedCases||requestedCases.includes(id)):[];
+const needsSeed=selectedGapCases.some(id=>id.startsWith('export-')||id==='import-overwrite-cancel');
+const needsValues=selectedGapCases.some(id=>['export-json','export-header','export-netscape'].includes(id));
+const suite=gapStage?'extended':process.env.COOKIE_NATIVE_SUITE;
+const gapPlan={stage:requestedStage,selected:selectedGapCases,
+  prerequisites:gapStage?['launch','product-side-panel','official-install','active-fixture',
+    'first-use-combined-grant','write-grant-reuse',...(needsSeed?['gap-seed-import']:[])]:[],
+  valuesGrant:needsValues,cleanup:gapStage?['gap-cleanup']:[],
+  excluded:['continuous-CRUD','observe','clear','lifecycle','width-zoom-matrix']};
+if(process.argv.includes('--list-cases')){console.log(JSON.stringify(gapPlan));process.exit(0);}
 const required=name=>{assert(process.env[name],name+' is required');return path.resolve(process.env[name]);};
 const extension=required('COOKIE_NATIVE_EXTENSION');
 const binary=required('COOKIE_NATIVE_CHROME_BIN');
 const evidenceBase=required('COOKIE_NATIVE_EVIDENCE');
-const stage=process.env.COOKIE_NATIVE_STAGE==='all'?undefined:process.env.COOKIE_NATIVE_STAGE;
+const stage=requestedStage==='all'?undefined:requestedStage;
 const directory=path.join(evidenceBase,'native-core-'+new Date().toISOString().replace(/[:.]/g,'-')+'-'+randomUUID().slice(0,8));
 const driverFile=fileURLToPath(import.meta.url),driverBytes=await readFile(driverFile);
 await mkdir(directory,{recursive:true});
 const report={mode:'headed-owned-macos-CFT',startedAt:new Date().toISOString(),extension,fixture,
-  directory,driver:{path:path.relative(root,driverFile),sha256:hash(driverBytes),bytes:driverBytes.length},scope:'Installed Side Panel core CRUD; all Cookie mutations originate in tool UI; Chrome API reads only',
-  cases:Object.fromEntries(['launch','product-side-panel','official-install','active-fixture','read-grant']
+  directory,selection:gapPlan,driver:{path:path.relative(root,driverFile),sha256:hash(driverBytes),bytes:driverBytes.length},scope:'Installed Side Panel selected cases; all Cookie mutations originate in tool UI; Chrome API reads only',
+  cases:Object.fromEntries((gapStage?[...gapPlan.prerequisites,...selectedGapCases,...gapPlan.cleanup]:
+    ['launch','product-side-panel','official-install','active-fixture','first-use-combined-grant','write-grant-reuse'])
     .map(id=>[id,{status:'NOT_TESTED'}])),screenshots:[],steps:[],complete:false};
 let launched,client,control,side,sideTargetId,website,currentCase,toolSession;
 const targetSessions=new Map();
 const trace=[];
+const downloadEvents=[];
 // Native assertions may compare synthetic Cookie values in memory. Persisted
 // reports, failure envelopes, and Input traces must never contain those values.
 const evidenceJson=input=>JSON.stringify(input,(key,value)=>
@@ -105,7 +129,7 @@ async function click(session,selector){
         const globalY=p.y+frame.y;
         await client.send('Input.dispatchMouseEvent',{type:'mouseWheel',x:Math.max(8,Math.min(frame.width-8,p.x+frame.x)),
           y:Math.max(8,Math.min(frame.height-8,Math.max(frame.y+16,frame.height/2))),deltaX:0,
-          deltaY:globalY<85?-180:180},side);
+            deltaY:globalY<=p.h/2+85?-180:180},side);
         await sleep(250);
         return false;
       }
@@ -267,6 +291,11 @@ try{
   const pkg=JSON.parse(pkgBytes);const declared=JSON.parse(await readFile(path.join(root,'examples/sidebar-tools/cookie-editor/tool.config.json'),'utf8'));
   assert.equal(pkg.version,process.env.COOKIE_NATIVE_VERSION||declared.version);assert.equal(pkg.version,release.version);
   assert.equal(hash(pkgBytes),release.sha256);assert.equal(manifest.manifest_version,3);
+  if(gapStage){
+    assert(pkg.html.includes('id="live-import-preview"')&&pkg.html.includes('id="live-export-content"'),
+      'E_COOKIE_GAP_CANDIDATE_UNSUPPORTED: candidate lacks import preview / metadata export');
+    if(process.env.COOKIE_NATIVE_TOOL_SHA)assert.equal(hash(pkgBytes),process.env.COOKIE_NATIVE_TOOL_SHA);
+  }
   report.candidate={extensionFingerprint:await fingerprint(),toolVersion:pkg.version,toolFileSha256:hash(pkgBytes)};
   report.candidate.extensionPackage=await packageFingerprint(extension);
   const sourceCommit=process.env.COOKIE_NATIVE_CANDIDATE_SHA,receiptPath=process.env.COOKIE_NATIVE_BUILD_RECEIPT;
@@ -290,7 +319,16 @@ try{
     launched=await launchChrome({root,binary,extension,headed:true,directory,label:'cookie-r33-core'});
     report.launch=launched.metadata;guard();
     client=await connect(launched.endpoint,{onCommand:entry=>trace.push({at:new Date().toISOString(),...entry}),
-      onEvent:entry=>{if(['Target.targetCreated','Target.targetDestroyed','Runtime.exceptionThrown'].includes(entry.method))trace.push(entry);}});
+      onEvent:entry=>{
+        if(['Target.targetCreated','Target.targetDestroyed','Runtime.exceptionThrown'].includes(entry.method))trace.push(entry);
+        if(['Browser.downloadWillBegin','Browser.downloadProgress'].includes(entry.method)){
+          // Download URLs may contain the generated Cookie payload. Keep only
+          // identity, completion and byte metadata, never the URL.
+          const {guid,suggestedFilename,state,filePath,totalBytes,receivedBytes}=entry.params??{};
+          const event={at:new Date().toISOString(),case:currentCase,method:entry.method,guid,
+            suggestedFilename,state,filePath,totalBytes,receivedBytes};downloadEvents.push(event);trace.push(event);
+        }
+      }});
     await client.send('Target.setDiscoverTargets',{discover:true});
     const version=await client.send('Browser.getVersion');assert(version.product.includes('Chrome/155.'),'Expected pinned CFT 155');
     const worker=await until(async()=> (await client.send('Target.getTargets')).targetInfos.find(t=>
@@ -311,6 +349,7 @@ try{
   });
   await step('official-install',async()=>{
     const imported=stage==='upgrade';
+    const unifiedCenter=await read(side,'Boolean(document.querySelector("#extension-center-more")?.getClientRects().length)');
     if(release.installationPolicy==='preinstalled')
       await until(()=>read(side,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>v["opendesk.sidebar-tools.installed.v1"]?.some(t=>t.id==="cookie-editor"&&t.version==='+quote(pkg.version)+'))'),
         'Trusted fresh-profile Cookie preinstall');
@@ -321,6 +360,16 @@ try{
       report.externalFilePicker={pid:launched.metadata.pid,path:file,sha256:hash(await readFile(file)),version:old.version};
       await persist();console.log('COOKIE_NATIVE_FILE_PICKER '+JSON.stringify(report.externalFilePicker));
       await until(()=>read(side,'!document.querySelector("#sidebar-tool-preview").hidden'),'Actual Mac file chooser upload',600000);
+    }else if(release.installationPolicy!=='preinstalled'&&unifiedCenter){
+      // Import the exact bundled candidate through the unified center's
+      // existing local-file UI; the Mac chooser remains a native input.
+      const file=path.join(extension,'official-tools/cookie-editor/cookie-editor.opendesk-tool.json');
+      await click(side,'#extension-center-more');await click(side,'#extension-center-import');
+      await click(side,'#sidebar-tool-file');
+      report.externalFilePicker={case:'official-install',pid:launched.metadata.pid,path:file,
+        sha256:hash(pkgBytes),version:pkg.version,purpose:'Exact bundled candidate; native chooser only'};
+      await persist();console.log('COOKIE_NATIVE_FILE_PICKER '+JSON.stringify(report.externalFilePicker));
+      await until(()=>read(side,'!document.querySelector("#sidebar-tool-preview").hidden'),'Actual bundled package chooser selection',600000);
     }else if(release.installationPolicy!=='preinstalled'){
       await click(side,'#sidebar-tool-discover-toggle');await click(side,'#sidebar-tool-official-cookie-editor-install');
     }
@@ -331,17 +380,18 @@ try{
       assert(preview.title.includes('Cookie'));assert(preview.version.includes(imported?'2.0.3':pkg.version));assert.equal(preview.frames,0);
       await click(side,'#sidebar-tool-install');
     }
-    const open='[data-sidebar-tool-action="open"][data-sidebar-tool-id="cookie-editor"]';
+    const open=unifiedCenter?'[data-extension-key="app:cookie-editor"][data-extension-action="primary"]':
+      '[data-sidebar-tool-action="open"][data-sidebar-tool-id="cookie-editor"]';
     await until(()=>read(side,'Boolean(document.querySelector('+quote(open)+'))'),'Installed Cookie list item');
     const installed=await read(side,'chrome.storage.local.get(["opendesk.sidebar-tools.installed.v1","opendesk.sidebar-tools.revocation-epochs.v1"]).then(v=>{const t=v["opendesk.sidebar-tools.installed.v1"]?.find(t=>t.id==="cookie-editor");return t?{id:t.id,version:t.version,capabilities:t.capabilities,installEpoch:v["opendesk.sidebar-tools.revocation-epochs.v1"]?.[t.id]??null}:null;})');
-    assert.equal(installed?.version,imported?'2.0.3':pkg.version);await click(side,open);
-    return {preview,installed,preinstalled:release.installationPolicy==='preinstalled'&&!imported};
+    assert.equal(installed?.version,imported?'2.0.3':pkg.version);await click(side,open);return {preview,installed,preinstalled:release.installationPolicy==='preinstalled'&&!imported};
   });
   await step('active-fixture',async()=>{
     const target=await client.send('Target.createTarget',{url:fixture});website=await attach(target);
     await client.send('Target.activateTarget',{targetId:target.targetId});
     await until(()=>read(website,'location.href==='+quote(fixture)+'&&document.readyState==="complete"'),'Canonical fixture loaded');
-    await click(side,'#sidebar-tool-settings-open');
+    if(await read(side,'document.querySelector("#sidebar-tool-settings-view").hidden'))
+      await click(side,'#sidebar-tool-settings-open');
     const state=await until(()=>read(side,`(()=>{const p=document.querySelector('.sidebar-tool-cookie-permissions');
       return p&&!p.hidden&&p.innerText.includes('127.0.0.1')?{text:p.innerText,
         buttons:[...p.querySelectorAll('[data-cookie-capability]')].map(n=>({capability:n.dataset.cookieCapability,enabled:n.dataset.enabled,disabled:n.disabled}))}:null;})()`),'Cookie settings bound to active canonical fixture');
@@ -369,7 +419,7 @@ try{
     assert.equal(grant,'true','First-use combined grant already included write; no repeated prompt');
     return {capability:'write',alreadyGranted:true,cookies:await cookies()};
   });
-  if(process.env.COOKIE_NATIVE_SUITE!=='extended'||process.env.COOKIE_NATIVE_STAGE==='all'){
+  if(suite!=='extended'||process.env.COOKIE_NATIVE_STAGE==='all'){
   await step('new-cookie',async()=>{
     await click(toolSession,'#live-new');await type('#cookie-name','od_core');await type('#cookie-value','fictional-one');
     const result=await save();assert(result.cookies.some(c=>c.name==='od_core'&&c.value==='fictional-one'&&c.path==='/'));
@@ -404,7 +454,218 @@ try{
     return {cookies:await cookies(),status:await read(toolSession,'document.querySelector("#status").textContent')};
   });
   }
-  if(process.env.COOKIE_NATIVE_SUITE==='extended'){
+  if(suite==='extended'){
+    if(gapStage){
+      // Reuse this Driver's trusted Input and Host approvals. No Cookie seeding
+      // through Chrome APIs; export and overwrite cases share one UI import.
+      const row=(name,value)=>({name,value,domain:'127.0.0.1',path:'/',hostOnly:true,session:true});
+      const seed=[row('od_gap_seed_a','invented-gap-a'),row('od_gap_seed_b','invented-gap-b')];
+      const ownedCookies=new Map();
+      const identity=c=>JSON.stringify([c.name,c.domain,c.path,c.storeId,
+        c.partitionKey?[c.partitionKey.topLevelSite,Boolean(c.partitionKey.hasCrossSiteAncestor)]:null]);
+      async function keyInput(key,code=key){
+        const keyCode={Home:36,ArrowDown:40,Enter:13,Escape:27,Tab:9}[key];
+        guard();for(const type of ['keyDown','keyUp'])await client.send('Input.dispatchKeyEvent',{
+          type,key,code,...(keyCode?{windowsVirtualKeyCode:keyCode}:{}),
+        },side);
+      }
+      async function selectOption(selector,values,value){
+        assert(values.includes(value));
+        if(await read(toolSession,'document.querySelector('+quote(selector)+').value')===value)return;
+        await click(toolSession,selector);
+        // macOS native select menus do not consume CDP key events reliably.
+        // Let the existing native UI input surface choose, then verify the DOM
+        // result read-only before proceeding to preview or any Cookie effect.
+        report.externalNativeSelect={case:currentCase,pid:launched.metadata.pid,selector,value,values};
+        await persist();console.log('COOKIE_NATIVE_SELECT '+JSON.stringify(report.externalNativeSelect));
+        await until(()=>read(toolSession,'document.querySelector('+quote(selector)+').value=== '+quote(value)),
+          'Actual native select choice '+selector,600000);
+        assert.equal(await read(toolSession,'document.querySelector('+quote(selector)+').value'),value,'Trusted select input');
+      }
+      async function dismissImport(){
+        if(!await read(toolSession,'document.querySelector("#import-panel").hidden')){
+          await click(toolSession,'#import-cancel');
+          if(!await read(toolSession,'document.querySelector("#confirm-panel").hidden'))await click(toolSession,'#confirm-accept');
+          await until(()=>read(toolSession,'document.querySelector("#import-panel").hidden'),'Import panel dismissed');
+        }
+      }
+      async function previewImport(text,format='auto'){
+        await dismissImport();await click(toolSession,'#live-import');
+        await selectOption('#import-format',['auto','json','header','netscape'],format);
+        await type('#import-text',text);await click(toolSession,'#import-apply');
+        const preview=await until(()=>read(toolSession,'(()=>{const n=document.querySelector("#live-import-preview");return !n.hidden?n.textContent:null;})()'),'Native read-only import preview');
+        assert(await read(side,'document.querySelector("#sidebar-tool-action-review").hidden'),'Preview cannot request a write approval');
+        return preview;
+      }
+      async function confirmImport(rows,{cancelAfter=null}={}){
+        await click(toolSession,'#live-import-confirm');await click(toolSession,'#confirm-accept');
+        const messages=[];
+        for(let index=0;index<rows.length;index++){
+          if(index===cancelAfter){
+            await until(()=>read(side,'!document.querySelector("#sidebar-tool-action-review").hidden'),'Pending individual import approval');
+            await click(side,'#sidebar-tool-action-cancel');break;
+          }
+          messages.push(await approveHost());
+        }
+        const expected=cancelAfter??rows.length;
+        const status=await until(()=>read(toolSession,'document.querySelector("#status").textContent').then(text=>
+          text.includes(cancelAfter===null?'确认导入 '+expected+' 条':'已确认 '+expected+'/'+rows.length+' 条')?text:null),'Verified import completion');
+        const native=await cookies();
+        for(const [index,input] of rows.entries()){
+          const found=native.find(c=>c.name===input.name&&c.domain==='127.0.0.1'&&c.path==='/'&&c.storeId==='0'&&!c.partitionKey);
+          if(index<expected){assert(found,'Exact imported Cookie identity');assert.equal(found.value,input.value);assert.equal(found.session,true);
+            const {name,domain,path,storeId,partitionKey}=found;ownedCookies.set(identity(found),{name,domain,path,storeId,partitionKey});}
+          else assert(!found,'Cancelled item must remain absent');
+        }
+        return {messages,status,cookies:native};
+      }
+      if(needsSeed)await step('gap-seed-import',async()=>{
+        assert.equal((await cookies()).length,0,'Fresh isolated profile is required');
+        const preview=await previewImport(JSON.stringify(seed),'json');assert(preview.includes('新增 2'));
+        assert.equal((await cookies()).length,0,'Seed preview is read-only');
+        return {preview,...await confirmImport(seed)};
+      });
+      let valuesGranted=false;
+      for(const id of selectedGapCases){
+        if(id==='import-json-file')await step(id,async()=>{
+          await dismissImport();await click(toolSession,'#live-import');
+          await selectOption('#import-format',['auto','json','header','netscape'],'auto');
+          const rows=[row('od_gap_file','invented-file')],text=JSON.stringify(rows,null,2)+'\n';
+          const file=path.join(directory,'fictional-import.json');await writeFile(file,text);
+          await click(toolSession,'#import-file');
+          report.externalFilePicker={case:id,pid:launched.metadata.pid,path:file,sha256:hash(text),purpose:'Cookie JSON import; native chooser only'};
+          await persist();console.log('COOKIE_NATIVE_FILE_PICKER '+JSON.stringify(report.externalFilePicker));
+          await until(()=>read(toolSession,'document.querySelector("#import-file").files?.[0]?.name==="fictional-import.json"'),
+            'Actual Mac file chooser selection',600000);
+          assert.equal(await read(toolSession,'document.querySelector("#import-text").value'),text);
+          assert.equal(await read(toolSession,'document.querySelector("#import-format").value'),'auto','File chooser preserves explicit format');
+          await click(toolSession,'#import-apply');
+          const preview=await until(()=>read(toolSession,'!document.querySelector("#live-import-preview").hidden&&document.querySelector("#live-import-preview").textContent'),'Selected file preview');
+          assert(!(await cookies()).some(c=>c.name===rows[0].name));
+          return {file:{name:path.basename(file),sha256:hash(text),bytes:Buffer.byteLength(text)},preview,...await confirmImport(rows)};
+        });
+        else if(/^import-(json|header|netscape)-(auto|manual)$/.test(id))await step(id,async()=>{
+          const [,format,mode]=id.match(/^import-(json|header|netscape)-(auto|manual)$/);
+          const rows=[row('od_gap_'+format+'_'+mode,'invented-'+format+'-'+mode)];
+          const text=format==='json'?JSON.stringify(rows):format==='header'?rows[0].name+'='+rows[0].value:
+            '# Netscape HTTP Cookie File\n127.0.0.1\tFALSE\t/\tFALSE\t0\t'+rows[0].name+'\t'+rows[0].value+'\n';
+          const preview=await previewImport(text,mode==='auto'?'auto':format);assert(preview.includes('新增 1'));
+          assert(!(await cookies()).some(c=>c.name===rows[0].name));return {format,mode,preview,...await confirmImport(rows)};
+        });
+        else if(id==='import-overwrite-cancel')await step(id,async()=>{
+          const replacement=[row(seed[0].name,'invented-replacement')];
+          const preview=await previewImport(JSON.stringify(replacement),'json');assert(preview.includes('可能覆盖 1'));
+          await click(toolSession,'#live-import-confirm');await click(toolSession,'#confirm-cancel');
+          assert.equal((await cookies()).find(c=>c.name===seed[0].name).value,seed[0].value,'Tool confirmation cancellation preserves Cookie');
+          assert(await read(side,'document.querySelector("#sidebar-tool-action-review").hidden'));
+          const completed=await confirmImport(replacement);return {preview,cancelPreserved:true,...completed};
+        });
+        else if(id==='import-partial-cancel')await step(id,async()=>{
+          const rows=[row('od_gap_partial_a','invented-partial-a'),row('od_gap_partial_b','invented-partial-b')];
+          const preview=await previewImport(JSON.stringify(rows),'json');
+          const result=await confirmImport(rows,{cancelAfter:1});await sleep(350);
+          assert(!(await cookies()).some(c=>c.name===rows[1].name),'No retry after cancelled native approval');return {preview,...result};
+        });
+        else if(id==='import-invalid')await step(id,async()=>{
+          const examples=[{label:'malformed',text:'{invalid'},
+            {label:'duplicate-identity',text:JSON.stringify([row('od_gap_dup','a'),row('od_gap_dup','b')])},
+            {label:'batch-limit',text:JSON.stringify(Array.from({length:11},(_,i)=>row('od_gap_limit_'+i,'fictional')))}];
+          const before=await cookies(),observations=[];
+          for(const example of examples){
+            await dismissImport();await click(toolSession,'#live-import');
+            await selectOption('#import-format',['auto','json','header','netscape'],'json');await type('#import-text',example.text);
+            await click(toolSession,'#import-apply');
+            const status=await until(()=>read(toolSession,'document.querySelector("#status").textContent').then(text=>text.includes('预检失败')?text:null),'Rejected '+example.label);
+            assert(await read(toolSession,'document.querySelector("#live-import-confirm").hidden'));
+            assert(await read(side,'document.querySelector("#sidebar-tool-action-review").hidden'));
+            assert.deepEqual(await cookies(),before);observations.push({label:example.label,status});
+          }return {observations,cookies:before};
+        });
+        else if(id==='import-preview-input-change')await step(id,async()=>{
+          const rows=[row('od_gap_change','invented-before')];await previewImport(JSON.stringify(rows),'json');
+          await type('#import-text',JSON.stringify([row('od_gap_change','invented-after')]));
+          assert(await read(toolSession,'document.querySelector("#live-import-confirm").hidden'),'Editing invalidates native preview');
+          assert(!(await cookies()).some(c=>c.name===rows[0].name));return {previewInvalidated:true};
+        });
+        else if(id.startsWith('export-')){
+          await dismissImport();
+          if(needsValues&&['export-json','export-header','export-netscape'].includes(id)&&!valuesGranted){
+            await step('gap-values-grant',async()=>{await grant('values');valuesGranted=true;return {capability:'values'};});
+          }
+          await step(id,async()=>{
+            const metadata=id==='export-metadata-json',denied=id==='export-sensitive-denied';
+            const format=metadata||denied?'json':id.slice('export-'.length),downloads=path.join(directory,'downloads',id);
+            await mkdir(downloads,{recursive:true});await client.send('Browser.setDownloadBehavior',{behavior:'allow',downloadPath:downloads,eventsEnabled:true});
+            assert.equal((await readdir(downloads)).length,0);const firstEvent=downloadEvents.length;
+            await click(toolSession,'#live-export');
+            await selectOption('#live-export-content',['backup','metadata'],metadata?'metadata':'backup');
+            if(metadata){
+              assert.equal(await read(toolSession,'document.querySelector("#live-export-format").value'),'json');
+              assert(await read(toolSession,'document.querySelector("#live-export-format").disabled'),'Metadata only allows JSON');
+              assert(await read(toolSession,'document.querySelector("#live-export-sensitive").hidden'));
+            }else await selectOption('#live-export-format',['json','header','netscape'],format);
+            const warning=await read(toolSession,'document.querySelector("#live-export-warning").textContent');
+            assert(warning.includes(metadata?'不含 Value':format==='header'?'丢失':format==='netscape'?'丢失':'不是'));
+            const native=await cookies();await click(toolSession,'#live-export-confirm');await click(toolSession,'#confirm-accept');
+            if(denied){
+              assert(!valuesGranted,'Sensitive rejection must precede grant');
+              const status=await until(()=>read(toolSession,'document.querySelector("#status").textContent').then(text=>text.includes('真实导出被拒绝')?text:null),'Missing sensitive grant rejected');
+              assert.equal((await readdir(downloads)).length,0);assert.equal(downloadEvents.length,firstEvent);
+              return {warning,status,downloaded:false};
+            }
+            const approval=await approveHost();
+            const begin=await until(()=>downloadEvents.slice(firstEvent).find(event=>event.method==='Browser.downloadWillBegin'),'Real download GUID');
+            const completion=await until(()=>downloadEvents.slice(firstEvent).find(event=>event.guid===begin.guid&&event.state==='completed'),'Same download GUID completed');
+            assert.equal(downloadEvents.slice(firstEvent).filter(event=>event.method==='Browser.downloadWillBegin').length,1);
+            const files=await until(async()=>{const files=(await readdir(downloads)).filter(name=>!name.endsWith('.crdownload'));return files.length?files:null;},'Actual '+id+' downloaded file');
+            assert.equal(files.length,1);const bytes=await readFile(path.join(downloads,files[0])),text=bytes.toString('utf8');
+            assert.equal(files[0],begin.suggestedFilename);if(completion.filePath)assert.equal(path.resolve(completion.filePath),path.join(downloads,files[0]));
+            assert.equal(completion.receivedBytes,bytes.length);
+            let exported;
+            if(metadata){
+              const data=JSON.parse(text);assert.equal(data.kind,'opendesk.cookie-metadata.v1');assert.equal(data.restoreSupported,false);
+              exported=data.cookies;assert(!/"value"\s*:/.test(text),'Metadata must contain no Value field');
+              for(const cookie of native)assert(!text.includes(cookie.value),'Metadata must contain no actual Cookie Value');
+            }else if(format==='json')exported=JSON.parse(text);
+            else if(format==='header')exported=text.trim().split('; ').map(pair=>{const index=pair.indexOf('=');assert(index>0);return {name:pair.slice(0,index),value:pair.slice(index+1)};});
+            else exported=text.split(/\r?\n/).filter(line=>line&&(!line.startsWith('#')||line.startsWith('#HttpOnly_'))).map(line=>{
+              const fields=line.split('\t');assert.equal(fields.length,7);return {domain:fields[0].replace(/^#HttpOnly_/,''),path:fields[2],
+                hostOnly:fields[1]==='FALSE',secure:fields[3]==='TRUE',httpOnly:fields[0].startsWith('#HttpOnly_'),session:fields[4]==='0',name:fields[5],value:fields[6]};});
+            assert.equal(exported.length,native.length,'Downloaded scope count');
+            const remaining=[...exported];
+            for(const cookie of native){
+              const index=remaining.findIndex(c=>format==='json'?identity(c)===identity(cookie):format==='header'?
+                c.name===cookie.name&&c.value===cookie.value:c.name===cookie.name&&c.domain===cookie.domain&&c.path===cookie.path&&c.value===cookie.value);
+              assert(index>=0,'Each downloaded identity must match exactly once');const [found]=remaining.splice(index,1);
+              if(!metadata)assert.equal(found.value,cookie.value);if(format==='json'||format==='netscape'){
+                assert.equal(found.domain,cookie.domain);assert.equal(found.path,cookie.path);
+              }
+              if(format==='json'){assert.equal(found.storeId,cookie.storeId);assert.equal(found.session,cookie.session);assert(!found.partitionKey);}
+              if(format==='netscape')for(const field of ['hostOnly','secure','httpOnly','session'])assert.equal(found[field],cookie[field]);
+            }
+            assert.equal(remaining.length,0,'No duplicate or unbound exported records');
+            await click(toolSession,'#live-export-cancel');
+            assert.equal(await read(toolSession,'document.activeElement?.id'),'live-export','Export closes to opener focus');
+            return {warning,approval,file:{name:files[0],guid:begin.guid,state:completion.state,sha256:hash(bytes),bytes:bytes.length,format,metadata,count:exported.length},cookies:native};
+          });
+        }
+      }
+      await step('gap-cleanup',async()=>{
+        await dismissImport();
+        if(!await read(toolSession,'document.querySelector("#live-export-panel").hidden'))await click(toolSession,'#live-export-cancel');
+        const native=await cookies();assert.equal(native.length,ownedCookies.size,'Unexpected Cookie prevents cleanup');
+        assert(native.every(cookie=>ownedCookies.has(identity(cookie))),'Only exact identities recorded by this batch may be cleaned');
+        for(const cookie of native){
+          assert.equal(cookie.storeId,'0');assert(!cookie.partitionKey);assert.equal(cookie.domain,'127.0.0.1');
+          await deleteCookie(cookie.name,cookie.path);
+        }
+        assert.equal((await cookies()).length,0);await click(side,'#sidebar-tool-settings-open');
+        const granted=await read(side,'[...document.querySelectorAll("[data-cookie-capability]")].filter(n=>n.dataset.enabled==="true").map(n=>n.dataset.cookieCapability)');
+        for(const capability of granted){await click(side,'[data-cookie-capability='+quote(capability)+']');
+          await until(()=>read(side,'document.querySelector('+quote('[data-cookie-capability='+quote(capability)+']')+').dataset.enabled==="false"'),'Revoke temporary '+capability);}
+        return {cookies:await cookies(),revoked:granted};
+      });
+    }
     if(stage==='visual'){
       await step('native-width-zoom-captures',async()=>{
         await createCookie('od_visual_long_fictional_name_for_wrapping','invented-hidden');
@@ -620,6 +881,8 @@ try{
     });
     }
   }
+  if(gapStage)assert([...gapPlan.prerequisites,...selectedGapCases,...gapPlan.cleanup]
+    .every(id=>report.cases[id]?.status==='PASS'),'Every selected native case and cleanup must pass');
   report.complete=true;
 }catch(error){report.error=error.stack;process.exitCode=1;console.error('COOKIE_NATIVE_FAIL '+error.message);}
 finally{

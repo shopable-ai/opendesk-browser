@@ -1,0 +1,63 @@
+请继续完善 OpenDesk Browser 的 Cookie Editor，默认中文。按“底层接口 → 工具调用链 → 真实界面操作 → 布局 → 项目回归”的顺序推进，直接修复实际缺口，不循环写规划代替实施。
+
+仓库：/Users/shopme/Documents/workspace/opendesk-browser
+这是开发阶段，不包含 ZIP 打包、ZIP 安装、发布、F3 发布验收。不要运行 npm run pack。
+
+先完整阅读：
+1. AGENTS.md。
+2. docs/framework/prompts/goal-cookie-editor-development-r34-20261014.zh-CN.txt；本提示词调整执行顺序，其他不冲突的权限、网站与证据约束继续有效。
+3. docs/framework/workstreams/cookie-editor-r2.md、cookie-editor-r2.json 中 R34 的追加记录，不以旧顶层 PASS 判断现状。
+4. docs/framework/workstreams/cookie-editor-r34-20261014.md 的最新续接和中止交接。
+5. artifacts/cookie-editor-r34-20261014/development-handoff.md、development-results.json。
+6. artifacts/cookie-editor-r34-20261014/continuation-01a139ad/development-handoff.zh-CN.md、handoff-state.json、historical-evidence-review.json。
+7. docs/framework/workstreams/cookie-r34-native-permission-01a139ad.md；测试观察器尚未完成，禁止直接当作已修复。
+8. docs/framework/testing-guide.md、.agents/skills/opendesk-sidebar-tool-dev/SKILL.md。修改布局前再读 UI 布局和 token 权威文档。
+
+始终遵守：
+- 只在 main 工作，保留用户和其他 Agent 改动；不创建分支、worktree、PR，不自行提交或推送。先读目标文件及其 diff，记录本任务写入范围。tests/framework/browser-sdk-r106-native.mjs 是其他 Agent 的改动，不要覆盖。
+- 日常 Chrome 固定使用仓库 dist/development，真实扩展 ID ccfcjegpkdlgbclopjmadlcjedelidmf。核对真实启用路径、ID、Native doctor、manifest allowed_origins；不替换日常扩展，不另起 watcher 覆盖其 dist。
+- 所有真实 Cookie 新建、改值、改名、删除必须由已安装工具的真实界面发起，并经过真实宿主授权。不得用 DevTools、CDP、document.cookie、脚本或直接 API 写入来代替。底层单元测试可使用虚拟 Cookie/Chrome adapter，不得修改真实浏览器 Cookie。原生 Cookie 表、DevTools 只允许授权范围内的只读核对。
+- 不放宽真实 sender、网站范围、values 独立授权、Store/Partition 身份、用户手势、撤权或失败保守拦截；不制造 ACK 或 PASS。不新增第二套 Cookie Host/权限系统。
+- 真实网站只用 http://127.0.0.1:43111/demo-form.html 和已获授权的 https://zhuanlan.zhihu.com/p/428602049。复用已有本地服务；其他网站需要另行明确授权。
+
+当前事实，先核对相关输入身份再复用：
+- 工具 2.0.4，包 SHA256 00034592e094d5a6f513a58bc04233a9793573f1d165a0e990489aead508fa9c。本轮未改 Cookie 产品源码，已核对核心 UI、平台 Cookie Host 和 SDK 输入与历史真实证据一致。
+- 本机 od_ce_r34_show：不存在 → fictional-r34-value-20261014 → 删除；未授权显示值被拒绝，values 授权后显示成功。历史证据复用，不重复写入。
+- 知乎指定页面的 Hm_lpvt_98beee57fd2ef70ccdd5ca52b9740c49：实际显示值 1791956260，与原生表只读核对一致。
+- 知乎 DATE：1791779847935 → 1791779847936 → 已恢复 1791779847935。
+- 知乎 opendesk_acceptance_visited_at：普通与分区记录初始均为 1791956260；仅分区改为 1791956261；分区精确删除后普通记录保留；普通记录改名为 opendesk_acceptance_visited_at_checked。新建记录已清理，临时授权已撤销。路径 /p/428602049、Store 0、分区键 {topLevelSite:"https://zhihu.com",hasCrossSiteAncestor:false}。
+- 本轮在独立源码快照中完成生产/开发构建、包验证、源码检查及旧 dist 对应定向检查。没有重建或替换日常 Chrome 的 dist/development。快照位于 continuation-01a139ad/source，不能自动代表后来 main 或日常 Chrome 的全部宿主 bundle。
+- 独立 Native 真实权限点击、Chrome 权限读回和 CLI 握手成功过；同轮完整回归仍失败：一项是把构建用 OPENDESK_BROWSER_EDITION=standard 误传给测试，另一项是真实 Native 权限点击超时。旧 13 项失败日志和新失败日志全部保留；不称为全部通过，不把不同候选相减当作进度。
+- tests/environment/native-agent-chrome-real.test.mjs 有本轮未完成改动：新增可配置等待、总预算和 JSONL helper，仅启动/端口/清理事件落盘；真实权限等待还未接入新 timeout，权限等待/读回/握手/撤权事件未补，修改后未检查或运行。快照中仍是修改前文件。
+- 439px 是本轮原生 Side Panel 实际测得宽度；320px 完整表单及保存按钮截图来自独立已安装工具页的 Chrome 响应式模式，不能提升为原生 Side Panel 320px PASS。125% 新布局只留了截图，未完成判定；150%、200% 本轮未完成。已恢复 100%，关闭本轮独立工具标签并撤销本机临时 read/write 授权，布局草稿未保存。
+- 其他真实 Store 的正向 CRUD 尚未验证，incognito 当前 not_allowed；不要为凑测试擅自更改合同。
+
+分层执行，各层说明已有证据、真实缺口和通过条件，证据有效就直接引用：
+
+第一步：确定输入身份和真实调用路径。
+画出简短文字链：已安装工具 UI → bridge/SDK → 真实 sender/Authority → Cookie Host → Chrome cookies adapter → 回读结果。以当前代码中的真实文件和函数为准，不凭名称假定 Native CLI 是 Cookie CRUD 前置条件。核对相关源码/工具包/加载宿主 bundle；说明哪些历史证据仍适用，哪些只适用旧候选。主分支其他无关改动不要求全仓库停工。
+
+第二步：先证明底层接口契约。
+先复用或运行相关定向测试，入口包括 tests/environment/browser-sdk-r8-cookies.test.mjs、browser-sdk-r7-trusted-cookies.test.mjs、browser-sdk-r9-installed-cookies.test.mjs、browser-sdk-r106-cookie-contract-gaps.test.mjs；阅读后选择真正受影响项，不盲目全量。
+逐项核对读取元数据/真实值分离、授权拒绝与撤权、set 参数和返回值、精确 name/domain/path/storeId/partitionKey 身份、普通/分区互不误伤、改名保留旧记录的安全顺序、失败返回与回读。依据现有合同处理；不把删除旧记录或接口 resolve 当作实际修改成功。
+存在缺口就只修对应底层文件并做必要回归。每条结果写“接口、输入、预期、实际、证据、验证等级”；模拟 adapter 通过只能证明接口逻辑，不是 Chrome 真实 Cookie 成功。
+
+第三步：证明已安装工具正确调用底层。
+核对 UI 字段到 SDK/Host 参数、错误与结果回程、保存后列表/值刷新、改名后的目标身份、分区删除传参，复用 cookie-editor-ui.test.mjs 和现有 installed-tool 测试。不要先改视觉，也不要先增加统一大测试入口。
+真实浏览器验证优先复用同身份已有证据。必须补证时，每次只选一条最小本机操作，由安装工具真实界面发起，使用虚构且可清理的测试 Cookie；用只读结果确认真实 Cookie 的前后变化。失败时判断权限、Host/adapter、bridge、UI 状态或观察驱动中的具体层，再修该层，禁止通过直接 API 写入证明 UI 成功。
+
+第四步：证明用户界面操作和布局。
+先确认新建/编辑/显示值/保存/改名/精确删除各入口、错误提示、键盘可达及未保存草稿退出，再做布局。核心写入已有同身份证据就复用，不重复改知乎 DATE。
+最后测原生 Side Panel 的实际 CSS 宽度；独立工具页响应式 320px 单列证据。补 320px 从顶部字段到底部取消/保存的完整视觉、滚动与键盘，以及当前受影响布局的 125%/150%/200% 缩放，收尾恢复 100%。没有真实宽度或截图观察失败就记录 NOT_TESTED/失败，不自评分。
+
+第五步：单独收敛环境/Native 驱动，再运行一次最终项目回归。
+不要把 Native CLI 的通用权限超时当作 Cookie CRUD 底层错误。先判断它与本任务调用链的关系。观察器改动可以独立收尾：真实 permission wait 使用有界 timeout；JSONL 立即记录所属 PID/profile/port/instance/extensionId/候选目录、等待 deadline、真实权限读回/握手/撤权/清理。保留实际允许点击、isTrusted、Chrome 权限读回、握手断言，禁止自动伪造许可。
+先语法检查和定向 Native 验证，使用自己独占的 CFT/Profile/端口与日志；不操作其他 Agent 浏览器。UI-assisted 模式从进度文件发现真实等待后用 CUA 点击，并核对返回。相同失败只有代码、环境或观察方式明确变化后才重试。
+所有必要修复稳定、候选输入一致后再运行一次完整项目测试。构建可以显式设置 edition；不要把 standard 构建环境覆盖传入测试，测试 edition 按既有合同运行。先读跨对话复用记录，使用独立产物目录，不修改检查断言掩盖旧 dist。
+保存原始失败、环境、输入哈希、前后漂移及清理结果；有任何失败就明确报告，不宣称全部通过。
+
+报告与停止条件：
+- 约 60 秒给简短中文进展；按层说明实际成果及下一步，不用测试数量或完成百分比代替产品结果。
+- 每项真实 Cookie 结果必须写：网站、Cookie 的精确身份、修改前后、实际成功/失败、证据路径、还有什么没测。历史复用明确标记。
+- 只追加本任务工作流及 cookie-editor-r2.md/json 的当前开发记录，不覆盖历史原始证据或他人状态。不得把模拟、组件、旧候选或独立页面截图提升为当前原生产品 PASS。
+- 开发完成要求底层契约、安装工具调用、真实核心操作和必要布局证据可追溯，项目测试状态诚实。明确环境限制和 NOT_TESTED；不要重新启动 ZIP/发布流程。

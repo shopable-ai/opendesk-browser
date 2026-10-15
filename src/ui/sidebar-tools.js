@@ -2311,6 +2311,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   return Object.freeze({ready,openTool,openSettings,openOfficialReview,openImport,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,openInTab,closeTool,setVisible,dispose(){
     if(disposed)return;
     cancelActionReview();destroyFrame();fileSelection++;disposed=true;visible=false;
+    adblockControls?.dispose?.();
     for(const release of listeners.splice(0))release();
     queued.clear();
   }});

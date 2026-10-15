@@ -63,12 +63,13 @@ test('user-initiated AI sends directly without custom consent UI or ledger',asyn
   assert.doesNotMatch(html,/workflow-ai-data-details|同意并生成|模型的数据发送许可/);
   assert.doesNotMatch(css,/\.workflow-ai-data-review|\.workflow-ai-data-details|\.workflow-ai-revoke/);
   assert.doesNotMatch(view,/modelConsent|modelScope|pendingModelReview|showModelReview|renderDataDisclosure/);
-  assert.doesNotMatch(sharing,/createModelConsent|modelDataScope|CONSENT_STORAGE_KEY/);
+  assert.doesNotMatch(sharing,/createModelConsent|modelDataScope|CONSENT_STORAGE_KEY|ConsentManager|AuthorizationManager/);
+  assert.doesNotMatch(view,/create(?:Consent|Authorization|Permission)Manager|new (?:Consent|Authorization|Permission)Manager/);
   assert.match(view,/listen\(get\('workflow-ai-plan'\),'click',plan\)/);
   assert.match(view,/async function plan\(event\)\s*\{\s*if\(!event\.isTrusted\|\|busy\)return/);
   assert.match(view,/const origins=\[permissionPattern\(captured\.url\)\]/);
   assert.match(view,/if\(selected==='custom_https'\)origins\.push\(permissionPattern\(frozen\.endpoint\)\)/);
-  assert.match(view,/permission=api\.permissions\.request\(\{origins:\[\.\.\.new Set\(origins\)\]\}\)/);
-  assert.match(view,/permission=api\.permissions\.request\(\{origins:\[permissionPattern\(row\.captured\.url\)\]\}\)/);
+  assert.match(view,/permission=selected==='local_codex'\?Promise\.resolve\(true\):api\.permissions\.request\(\{origins:\[\.\.\.new Set\(origins\)\]\}\)/);
+  assert.match(view,/permission=row\.siteGranted\?Promise\.resolve\(true\):api\.permissions\.request\(\{origins:\[permissionPattern\(row\.captured\.url\)\]\}\)/);
   assert.match(view,/currentPageTarget\.revalidate\(row\.captured\)/);
 });

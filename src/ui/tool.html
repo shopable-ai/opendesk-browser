@@ -633,9 +633,9 @@
           <p id="workflow-planning-indicator" class="workflow-planning-indicator" role="status" hidden>✦ 正在整理可检查的语义步骤…</p>
           <ol id="workflow-ai-progress" class="workflow-ai-progress" aria-label="Codex 实时规划进度" hidden></ol>
           <section id="workflow-ai-approval" class="workflow-ai-approval od-alert od-alert--warning" aria-labelledby="workflow-ai-approval-title" hidden>
-            <h3 id="workflow-ai-approval-title">允许读取当前网页摘要？</h3>
+            <h3 id="workflow-ai-approval-title">允许本次网页任务？</h3>
             <p id="workflow-ai-approval-scope"></p>
-            <div class="workflow-actions"><button type="button" id="workflow-ai-approve" class="od-button">允许读取并发送</button><button type="button" id="workflow-ai-deny" class="od-button od-button--secondary">拒绝</button></div>
+            <div class="workflow-actions"><button type="button" id="workflow-ai-approve" class="od-button">允许本次任务</button><button type="button" id="workflow-ai-deny" class="od-button od-button--secondary">拒绝</button></div>
           </section>
           <div id="workflow-ai-proposal" class="workflow-proposal" hidden>
             <div class="workflow-section-header od-toolbar"><h3>建议的执行步骤</h3><span>尚未验证网页元素</span></div>
@@ -709,6 +709,8 @@
           <details id="workflow-provider-privacy" class="workflow-provider-info od-disclosure od-disclosure--flat">
             <summary>数据与隐私</summary>
             <p id="workflow-provider-scope" class="workflow-minor-note">模型推理可能联网，已同意的内容可能保存在 Codex 本机对话中。复用官方 CLI 登录，请勿填写 Codex 登录凭据。</p>
+            <p id="workflow-observation-scope" class="workflow-minor-note" role="status"></p>
+            <button type="button" id="workflow-observation-revoke" class="od-button od-button--secondary" disabled>撤销网页摘要授权</button>
           </details>
           <div id="workflow-local-settings">
             <div class="workflow-connection-line">

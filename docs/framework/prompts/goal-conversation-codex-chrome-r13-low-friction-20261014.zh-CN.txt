@@ -1,0 +1,50 @@
+# OpenDesk Browser Conversation → Codex → Chrome R1.3：核心真实验收与减少重复授权
+
+默认中文。仓库 /Users/shopme/Documents/workspace/opendesk-browser，只允许 main；不要创建分支、worktree、PR。保留其他 Agent 改动。已有明确授权的可逆开发、测试、修复步骤直接执行，不反复询问“是否继续”。安全核对后仅提交、推送本任务独立修改到 main。
+
+用户最新意见：现在批准、授权太多，使用麻烦。下一轮必须减少重复批准，同时完成自然语言网页操作的真实闭环。不要只写计划、跑 Node 或新增运行时。
+
+【必须保留的结论】
+1. R1.2 的 A 尚未 PASS；B/C NOT_TESTED。真实 Codex 已取得 browser.observe 观察，现有 Compiler/RunHost 已实际填写并 inputValue() 读回，但模型误把句末“。”写入，实际 value="ai自动化第一选择。"，要求 value="ai自动化第一选择"。无额外点击，点击计数和搜索次数均为 0。
+2. 真实失败回执：动作 runId=86959236-8509-4da3-ad9d-c2bd6e973998，resultId=bace3470-7097-4e41-910c-02970eb999e2；Codex thread=01a139fd-e3d3-7393-8c7a-550b07f0dd9a。原始证据和完整前序失败见 docs/framework/workstreams/conversation-direct-r12-20261014-01a139e0.md、.runtime/conversation-r12-01a139e0/，不能覆盖旧日志冒充新 PASS。
+3. 六个文件有本轮未提交修改，先读当前 diff，保留并续修：
+   src/native-agent/workflow-ai-service.js：Native v1 严格观察摘要 schema 不接受 documentId；只在 wire 去掉该字段，保留本地证明与单独绑定的真实 DocumentId fence，错文档拒绝发送。
+   src/ui/workflow/local-codex.js：填写值不得复制指令句末标点，明确引用内的标点要保留。
+   src/ui/workflow/direct-execution.js：拒绝未引用句末标点；搜索关键词输入框不能授权额外点击；用户要求点击而模型遗漏时拒绝不完整计划。
+   src/ui/workflow/workflow-view.js：现有技术详情补充 sourceHash、resultSourceHash、DocumentId、Worker retirement。
+   tests/environment/workflow-ai-transport.test.mjs、workflow-direct-execution.test.mjs：对应定向回归。
+   最新 transport/direct/observation/local-Codex 四文件合计 85 PASS、0 FAIL、0 skipped。尚未真实重验最新修改；npm run check/CI 未执行，不得提升证据等级。
+4. Native 环境尚有真实阻断：默认 CLI 0.162.1 不在当前 Native 审计版本名单，现有全局 localhost relay 被官方 Provider policy 拒绝。本轮临时使用已有官方 0.159.2、独立 CODEX_HOME、同一 ChatGPT 登录及本机 Clash 127.0.0.1:7897，真实模型 gpt-5.5 成功。临时 ~/.local/bin/codex 已恢复原 0.162.1，Native wrapper 已恢复原字节。证据 home 仍在 .runtime/conversation-r12-01a139e0/native-codex-home；不要打印 auth。不能声称默认环境已修好，不要靠反复改全局 CLI、绕过审计或改只读 /Users/shopme/Documents/workspace/opendesk 解决。
+5. 当前 main 与 origin/main 最近核对为 a851ee5ec0adcde72eb0d922f6b314cb339b0d78；这是其他任务更新，必须重新读取当前身份。本轮没有提交或推送。
+
+【已成功的环节及避免重复执行】
+以下是已有证据的成功环节，不能因为 A 的精确值失败而重新判为“整条链没跑通”；也不能由此把 A 升为正式 PASS。
+1. 本机真实 Codex 已主动调用 opendesk_browser_observe，并在审批后真实取得网页摘要，不是仅有模拟 JSON。观察回执 runId=31b0906f-31c7-4332-9a14-5f708a345b94、resultId=a9610e6e-4f6a-441e-9591-f8ab41ea11ab、sourceHash=e4a0603506b43816009207de5b1b437c8d13459144d69e25ac225120bda8839d。真实 thread=01a139fd-e3d3-7393-8c7a-550b07f0dd9a、turn=01a139fd-e3f2-7080-998c-dc4967b6f744，原始 rollout 已保留。
+2. 摘要确实包含“搜索关键词”输入框，locator 是 exact role searchbox / name 搜索关键词，scope=search-form。模型实际返回相同的 role locator；已知失败是 fill.text 多了句号，不是找不到目标或选择了错误输入框。优先重验已修复的文本提取与准入，不重建观察器、Locator 或执行运行时。
+3. 单次发送已经触发现有自动执行链：实际输入改变、产品报告 inputValue() 读回、同一对话显示执行反馈，点击/搜索计数保持 0。该次未额外要求“采用计划”或“运行”。保留此路径，下一步优化真实多余授权触发点。完整最终候选的 DocumentId/sourceHash/Worker 原始收尾证据仍须补齐，不能只凭成功文案关闭验收。
+4. documentId wire schema 修复后，后续真实 Codex 收到了观察回执，原 E_SCHEMA 断点已跨过。保留本地 document proof 和 Native 单独绑定的 target；不再重复尝试修改 Native schema、删除文档 fence 或绕过严格校验。
+5. Chrome 加载目录、真实扩展 ID、Go doctor 的 extensionId 和 Native allowed_origins 已核对相符。已有 npm run dev 成功增量更新实际开发输出，同 ID reload 已采用过更新。这里只是开发构建/加载证据，不是正式 Build/预算/CI 或最新源码 A PASS。仅轻量核查当前身份/相关输入是否漂移，不重复创建扩展、安装目录或 Native 配对。
+6. 避免重复走已失败的环境绕路：修改 native-host wrapper 会触发 E_MIGRATION_REQUIRED；已恢复原文件，不重试。LAN 192.168.30.9:7897 当时不可达；本机现有 127.0.0.1:7897 配合官方路由已完成真实模型请求。不得根据这些历史状态永久假定网络健康，必要时仅定向检查。真实请求超时后产品 Stop 已确认中断旧 turn；不要恢复或重放该旧 turn。
+7. 85 项成功回归的日志是 .runtime/conversation-r12-01a139e0/affected-tests-handoff.log。先核对相关源码、依赖、配置和测试环境身份；未变直接引用，不因新对话或无关 main 提交重复跑。变动只重验受影响项。授权 UX 修改后需定向验证相关授权路径，并在最终候选重验 A/B/C；不能拿旧输入值或旧文档回执代替新候选验收。
+
+【实际环境与资源】
+正式 Google Chrome 扩展 ID：ccfcjegpkdlgbclopjmadlcjedelidmf；加载路径固定为仓库 dist/development，Native allowed_origins 与之匹配。不要另建扩展身份、改配对或装隔离包。
+复用 43111 已有 examples/tasks document root；测试页 http://127.0.0.1:43111/demo-form.html。原 fixture tabId 560065585，只是线索，重新核实当前 Tab/Origin/DocumentId。
+现有 npm run dev watcher 保留运行（WXT 43119、输出锁 43120；旧对话 exec session 45642）。核对实际进程、锁与产物，复用 watcher，不另起构建覆盖输出。
+Cookie Editor 对话也在使用同一真实 Chrome 侧栏。旧对话已明确释放 Chrome 资源，当前没有交接给新对话的占用凭据。读取 docs/framework/workstreams/cookie-editor-core-20261014-01a13a01.md；我明确授权本新对话仅为此 Chrome 资源向 Cookie 对话 01a13a01-05ce-7400-bb48-2c1e20f36fbb 发送协调消息，无需再问。明确交接后操作，等待期间继续独立修复，不停整个仓库。
+
+【减少授权的产品要求】
+- 用户选定本机 Codex，描述明确的普通网页任务，发送一次。已有有效的网站权限与网页摘要披露授权应按原作用域复用；不得每一步、每次 browser.observe 或同一有效回合重复批准。不得再要求采用计划、运行、批准依赖锁。
+- 缺少网站权限/摘要披露授权时，尽量用一处清楚的任务级授权入口呈现：当前网站、将向已选 Codex 发送哪些最小网页信息、允许哪些本次操作。保留 Chrome 必需的真实权限手势；不要承诺能去掉系统必需提示。
+- 用现有 Authority、授权存储、观察审批、Compiler、RunHost 实现授权复用与撤销，不新建 consent/runtime/权限系统。不伪造已批准、不默认无限期或跨网站授权。
+- 同一权限或数据披露范围未变化，避免重复操作；新网站、模型接收方或披露范围扩大才要求必要批准。DocumentId 改变必须终止旧任务，新任务重新观察和绑定，不能复用旧文档执行凭据。撤权、Stop、高影响操作、未知副作用仍保守处理，禁止自动重放。
+- 根据真实 UI 列出重复授权触发点，修掉多余批准并验证。不要把全部 security gate 删除作为“易用性改进”。普通搜索也不应只因 CSS ID 含 submit 而误判为不可逆操作；结合真实观察及现有合同核对，不能全面放开提交。
+
+【按顺序执行】
+先读 AGENTS.md、testing-guide.md、parallel-development.md 和上述工作流；核查 main/diff/真实 Chrome/Native/Codex/watcher。只沿失败调用链读源码，不全仓库审计。
+A：发送一次“在当前网页的搜索关键词输入框里填入 ai自动化第一选择。”。真实 #keyword 必须精确为 "ai自动化第一选择"，现有 Locator.inputValue() 完整读回；不点击、不提交。核对真实 runId/resultId/sourceHash/DocumentId 与 Worker released，同一对话显示真实结果。只有全部成立才 A PASS。
+B：恢复 fixture 初始状态，发送一次“点击网页中的‘点击一次’按钮。”。实际 #click-button 只点击一次，#click-count 从 0 到 1；无额外提交/导航，遗漏 click 必须拒绝。
+C：恢复初始状态，发送一次“在搜索关键词输入框填入 OpenDesk，然后点击搜索按钮。”。先 fill 和 inputValue()，再重新定位、等待动态重建的 #search-submit 后点击；#search-count 从 0 到 1，#results 精确为 "结果：OpenDesk"。部分成功须准确反馈，不自动重复搜索。
+禁止测试脚本改目标 DOM、synthetic events、假回执或以成功文案代替实际效果。失败就修现有代码、最小回归、真实重验；A 未 PASS 不推进 B/C 全面验收。
+三个核心通过后做相关安全回归（唯一定位、填入不额外点击、文档变化、撤权/Stop、未知结果不重放、网页提示注入），复用已有覆盖，再 npm run check、必要构建与预算检查。记录 NODE/BUILD/REAL_CHROME/CI 的真实证据等级；其他任务失败单独列出。
+最终先给 A/B/C 状态表与实际页面值/次数/回执，再说明授权交互减少了哪些、还需什么必要批准、源码修复、验证缺口、提交 SHA 与推送状态。不要以重新写 GOAL 代替实现。

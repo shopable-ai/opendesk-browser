@@ -1,0 +1,111 @@
+# OpenDesk 定时计划 R1.2：继续核心功能验收与真实缺陷修复
+
+请直接执行，不要重新规划产品、创建新的 GOAL、HTML 原型或 UI 重构。默认中文。
+
+仓库：/Users/shopme/Documents/workspace/opendesk-browser
+唯一允许编辑、提交和正常推送的分支：main。
+
+## 目标与边界
+
+核心目标是在真实 Mac Chrome 扩展的 Side Panel 中，完成：
+我的 → 定时计划 → 创建／编辑 → 任务管理 → 返回 → 保存／取消 → 列表／详情。
+
+验证草稿、持久化、滚动、焦点、键盘操作、计划与 Task 固定身份、删除确认、多计划隔离和历史记录是否正确；只修复实际复现的问题。
+
+用户已于 2026-10-14 修正范围，仓库 AGENTS.md 已写明：
+- 不需要考虑浏览器缩放。
+- 不需要考虑 Side Panel 物理宽度专项测试。
+- 不执行宽度矩阵、缩放矩阵、分隔线拖拽或两者组合。
+- 旧尺寸／缩放项记为 OUT_OF_SCOPE，保留旧测试和证据，不伪报 PASS，不作为本轮交付前置条件。
+使用正常窗口、默认缩放完成真实操作。仅修复当前界面中确实阻止核心操作的可见问题，不扩展为布局研究。
+
+## 已有证据：先复用，避免重跑
+
+已通过原生产品验收的候选：
+Git SHA：7a89024a68ce438fa7da7eeccd3c97830be26a1b
+生产包哈希：995ebbd4da7a63751bfb2d9f365628204f6b48f371dfca2510a4aadeae93a9c1
+Chrome for Testing：155.0.8059.39
+
+证据根目录：
+artifacts/extension-ui-r12-mac-final-01a13a66/7a89024a68ce438fa7da7eeccd3c97830be26a1b/
+
+优先读取：
+- native-product/native-report.json：真实产品矩阵 PASS。
+- candidate.json、build/build-production-latest.json、verify-package.json：候选与生产包身份及构建验证。
+- expert-review-preliminary.md：初步独立评审，不能当正式 95+ 认证。
+- docs/framework/workstreams/extension-ui-r12-mac-final-01a13a66.md：本会话过程、失败和资源交接记录。
+- docs/framework/testing-guide.md：跨对话测试复用规则。
+
+上述候选已实测：草稿在任务管理往返中保留、焦点恢复、保存／取消／编辑／删除确认、四类时间规则、20 条真实持久计划及详情返回、历史技术详情刷新保留，以及实际受授权 Alarm → Run → Result 生命周期。
+
+这些证据只证明上述候选和列明场景。不得称最新 main 已全部通过。先对照相关源码、配置、依赖与包身份判断复用范围；无关提交或新对话不构成全量重跑理由。
+
+## 已确认结论与防重复执行规则
+
+- 上述候选的生产构建、包验证和 41/41 项 UI／草稿 Node 测试已通过。Node 证据为 artifacts/extension-ui-r12-mac-final-01a13a66/node-7a89024a.tap。相关产品输入不变时直接复用，不默认重新 npm ci、build 或跑完整 FORM／PRODUCT。
+- native-product 已包含 daily／weekly／interval／once 四种规则的真实成功。后续身份专项的直接错误是 `owned Mac CFT real select #schedule-kind interval NOT OBSERVED`，发生在身份业务场景之前。因此它证明原生测试输入失败，不能据此认定时间规则或 Task 身份业务失败。待验证补丁只改测试输入，不代表发现了生产功能缺陷。
+- 先为每个核心项列出“已有证据／相关输入是否变化／剩余具体缺口／必要下一步”，写在现有工作流即可；不新建计划体系。只有缺口或相关漂移能触发新测试，不能以新对话、日期或评分目标触发重复执行。
+- 仅修改测试驱动、生产字节不变时，复用已验证包并核对前后包哈希；如实记录实际执行的驱动补丁及哈希。不要为输入适配重建产品包或混入并行模块的未提交代码。
+- 原初步评审曾包含现在已排除的尺寸／缩放缺口，不能把旧总评当当前核心验收结论。按新范围让独立评审只读核对核心证据；由具体证据缺口决定补测，不凭空抬分，也不为追分增加无关测试。
+
+## 当前最小修复与真正缺口
+
+1. 根仓库 tests/framework/scheduled-tasks-r1-native-mac.test.mjs 有上一会话尚未提交的最小修改：
+   select() 中将 #schedule-kind 与 Task／时区选择一样交给现有原生 AX 菜单项 press。
+   原因：真实 Mac 输入偶发未将规则切换为 interval，导致身份专项测试在进入业务场景前失败。
+   该修改尚未完成复测，不能声称已经修复。
+   先读取当前文件和 diff，保留所有实际值等待、PID／前台／AX 身份保护及业务断言。
+   原协作会话已交接此文件的 select() 输入适配；这不包含共享 Swift 输入工具或生产源码的写入权。
+
+2. 任务停用、卸载、重新安装／代际变化、撤权后原计划和历史身份的真实专项验收仍有缺口。
+   先用修复后的原生输入验证失败路径，再执行有必要的身份专项；不要重跑已经有效的完整 FORM／PRODUCT 矩阵。核对当前脚本的互斥条件：FORM 不可与 TASK_IDENTITY／PERMISSIONS／RESTART 合并；身份与权限专项各用独立 Profile 和相应开关，清理继承的专项环境变量，避免误启完整矩阵。
+
+3. 100+ 历史分页、FireId 合并、异常状态与多计划隔离已有组件压力覆盖。
+   当前原生样本只有少量真实 Fire／Run／Result，100+ 真实原生历史尚未完成。
+   必须分别报告组件 PASS 和原生 NOT_TESTED；不得伪造存储、改写 Fire 状态或调用受保护 Host API 冒充真实历史。
+   可安全补充的缺口直接补；不能获得充分真实记录时如实报告，不为凑数量长期空跑。
+
+## 执行方式
+
+先检查 pwd、分支、HEAD、工作区与暂存差异、当前远端 main，以及实际进程和资源占用。
+已有并行 Cookie、SDK、扩展中心、工作流改动；保留他人文件、Git 索引、watcher 和 Profile。仅有具体文件／资源冲突才暂停受影响部分。
+
+只在开始时和提交前核对远端；不要追逐每一个无关 main 更新。冻结一个可追溯候选，按相关输入变化执行必要验证。当前代码已有生产构建成功证据，历史 extension-center.css 缺失不能自动当成当前阻塞。
+
+复用现有 R3：
+- tests/framework/scheduled-tasks-r1-native-mac.test.mjs
+- tests/framework/sidebar-native-session.mjs
+- 现有受控 CFT 和隔离 Profile。
+不要创建第二套 E2E 框架。不要启用 PHYSICAL_WIDTH 或 ZOOM 专项模式。
+
+CFT 可核对路径：
+tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing
+
+使用真实 SIDE_PANEL 文档、指针／键盘／表单操作，记录 Chrome PID、扩展 ID、Document ID 和实际持久结果。
+不得 DOM 赋值、synthetic events、伪造原生回执、直接写存储或绕过安装与授权流程。
+不要覆盖日常 dist/development，不关闭其他任务的 Chrome、watcher 或测试服务。原会话曾获得原生资源交接，但仍须核对当前实际占用。
+
+注意验证器身份：驱动会按工作目录计算 sourceBinding。若生产包来自已冻结候选而测试驱动包含待验证补丁，必须同时记录产品 SHA／包哈希、实际执行的驱动哈希和补丁；sourceBinding 应与真正执行的字节一致，不能误读旧导出目录中的驱动来冒充同候选验证。
+
+若确需修复生产代码，先核对文件归属和当前 diff，做最小修复及针对性测试；再构建、包验证和受影响的原生复测。
+禁止降低断言、删除失败测试、手工往 dist 塞文件或放宽权限。
+禁止新分支、worktree、PR、reset --hard、clean、无差别 stash、git add -A 和强推。
+仅在本任务真实修复通过且共享 Git 操作安全时，指定文件提交并正常推送 main；遵守 Lore 提交协议。没有真实缺陷，不制造源码提交。
+
+## 交付与停止条件
+
+每约 60 秒简短说明：已获得什么有效证据、当前具体失败、下一步如何验证。不要汇报无关模块或反复输出方案。
+
+最终给出中文报告：
+- 当前 main、实际测试候选、包／验证器身份和构建状态。
+- 核心场景逐项 PASS／FAIL／NOT_TESTED，以及可定位证据。
+- 真实缺陷、根因、修改文件、修复前后结果。
+- 核心产品维度的独立评分和剩余缺口；证据不足记 NOT_SCORED，不强行凑 95。
+- 缩放、物理宽度明确 OUT_OF_SCOPE，不列为待解决阻塞。
+- 提交／推送情况、保留的并行改动及本任务 Profile／进程清理情况。
+
+可解决的核心缺陷继续修复并复测。有真实权限、资源或证据限制则明确报告。
+只有核心强制验收有可靠证据且评分达到要求，才宣布 ACCEPTED；否则写 PARTIAL／BLOCKED／NOT_ACCEPTED，并列出核心未完成项。
+
+现在先读取已有原生产品报告和待验证的 select() diff，从实际原生输入失败与身份专项缺口继续，不从尺寸或缩放开始。
+

@@ -9,7 +9,7 @@ const service=globalThis.BookmarkR2Service.create(sdk);
 const q=id=>root.querySelector('#'+id);
 const s={tree:null,expanded:new Set(),search:'',limit:200,folder:null,selection:null,
   mode:'tree',menu:null,draft:null,reviewed:null,busy:false,session:0,composing:false,
-  watcher:null,watchEpoch:0,watchTimer:null};
+  watcher:null,watchEpoch:0,watchTimer:null,watchRetries:0};
 const make=(tag,cls,value)=>{
   const el=document.createElement(tag);if(cls)el.className=cls;
   if(value!==undefined)el.textContent=value;return el;
@@ -43,6 +43,11 @@ function gate(text){
   s.session++;
   endWatch();
   s.tree=null;s.reviewed=null;s.draft=null;
+  s.expanded.clear();s.search='';
+  q('bm-list').replaceChildren();q('bm-parent').replaceChildren();
+  for(const id of ['bm-name','bm-url','bm-parent','bm-search'])q(id).value='';
+  for(const id of ['bm-detail-url','bm-delete-desc','bm-counter'])q(id).textContent='';
+  q('bm-delete-children').checked=false;
   busy(false);
   q('bm-refresh').disabled=false;s.selection=null;s.mode='tree';s.folder=null;s.menu=null;
   q('bm-workspace').hidden=true;q('bm-gate').hidden=false;
@@ -154,7 +159,27 @@ function endWatch(){
 }
 function scheduleWatch(epoch,delay=2500){
   if(epoch!==s.watchEpoch)return;
-  s.watchTimer=setTimeout(()=>{s.watchTimer=null;void pollWatch(epoch)},delay);
+  s.watchTimer=setTimeout(()=>{
+    if(epoch!==s.watchEpoch)return;
+    s.watchTimer=null;void pollWatch(epoch);
+  },delay);
+}
+function recoverWatch(error){
+  // Retry only read/observation transport or expired-session failures. A
+  // gesture or permission denial must return to the existing trusted UI.
+  const retry=['E_HOST_TIMEOUT','E_TIMEOUT','E_HOST_CLOSED','E_TOOL_RUNTIME_UNAVAILABLE',
+    'E_TRANSPORT','E_SESSION_EXPIRED','E_BOOKMARK_EVENT_GAP'].includes(error?.code)&&s.watchRetries<3;
+  notice('书签同步暂不可用：'+errorText(error)+(retry?'；稍后自动重试。':'；请手动刷新。'),true);
+  if(!retry)return;
+  s.watchRetries++;
+  const epoch=s.watchEpoch;
+  const resume=()=>{
+    if(epoch!==s.watchEpoch)return;
+    s.watchTimer=null;
+    if(s.busy||s.composing){s.watchTimer=setTimeout(resume,7000);return}
+    void refresh();
+  };
+  s.watchTimer=setTimeout(resume,7000);
 }
 async function pollWatch(epoch){
   if(epoch!==s.watchEpoch||!s.watcher||!s.tree)return;
@@ -163,6 +188,7 @@ async function pollWatch(epoch){
     const result=await service.watchRead(s.watcher);
     if(epoch!==s.watchEpoch)return;
     s.watcher={...s.watcher,cursor:result.nextCursor,expiresAt:result.expiresAt};
+    s.watchRetries=0;
     if(result.events.length||result.expiresAt<=Date.now()+4000){
       void refresh();return;
     }
@@ -173,16 +199,11 @@ async function pollWatch(epoch){
     if(authorityLost(error)){
       gate('完整书签 SDK 或授权已失效；请在可信扩展界面重新检查。');
       notice(errorText(error),true);
-    }else if(error?.code==='E_BOOKMARK_EVENT_GAP'){
-      void refresh();
-    }else{
-      notice('书签同步暂不可用：'+errorText(error),true);
-      s.watchTimer=setTimeout(()=>{s.watchTimer=null;void refresh()},7000);
-    }
+    }else recoverWatch(error);
   }
 }
 async function beginWatch(session){
-  const epoch=++s.watchEpoch;
+  const epoch=s.watchEpoch;
   try{
     const watcher=await service.watchStart();
     if(epoch!==s.watchEpoch||session!==s.session){
@@ -192,18 +213,19 @@ async function beginWatch(session){
   }catch(error){
     if(epoch!==s.watchEpoch)return;
     if(authorityLost(error))throw error;
-    return '书签事件同步不可用，请手动刷新：'+errorText(error);
+    return error;
   }
 }
-async function refresh(){
+async function refresh(manual=false){
   if(s.busy)return;
+  if(manual)s.watchRetries=0;
   rememberDraft();endWatch();
-  const session=++s.session;
+  const session=++s.session,epoch=s.watchEpoch;
   notice('正在检查 SDK 与授权…');
   q('bm-refresh').disabled=true;
   try{
     const result=await service.probe();
-    if(session!==s.session)return;
+    if(session!==s.session||epoch!==s.watchEpoch)return;
     if(!result.ready){
       gate(result.reason+(result.code==='E_R11_BOOKMARKS_INCOMPLETE'?
         '。必须先完成 SDK R11 Full Bookmarks 能力。':
@@ -213,17 +235,18 @@ async function refresh(){
     }
     // Observe before reading: changes during a paginated snapshot remain in
     // this session and trigger another full sync instead of falling in a gap.
-    const watchWarning=await beginWatch(session);
-    if(session!==s.session)return;
+    const watchError=await beginWatch(session);
+    if(session!==s.session||epoch!==s.watchEpoch)return;
     const tree=await service.load();
-    if(session!==s.session)return;
-    enable(tree);notice(watchWarning||'',Boolean(watchWarning));
-    if(s.watcher)scheduleWatch(s.watchEpoch,0);
+    if(session!==s.session||epoch!==s.watchEpoch)return;
+    enable(tree);
+    if(s.watcher){notice('');scheduleWatch(epoch,0)}
+    else recoverWatch(watchError);
   }catch(error){
-    if(session!==s.session)return;
+    if(session!==s.session||epoch!==s.watchEpoch)return;
     gate('读取失败：'+errorText(error)+'。检查权限后可重新尝试。');
     notice('无法读取 Chrome 书签',true);
-  }finally{if(session===s.session)q('bm-refresh').disabled=false}
+  }finally{if(session===s.session&&epoch===s.watchEpoch)q('bm-refresh').disabled=false}
 }
 async function mutation(run){
   if(s.busy)return;
@@ -313,8 +336,8 @@ root.addEventListener('keydown',event=>{
     const menu=[...root.querySelectorAll('.bm-menu')].find(el=>el.getAttribute('aria-label')==='管理 '+(node(id)?.title||'未命名'));
     menu?.focus(); }
 });
-q('bm-refresh').addEventListener('click',()=>refresh());
-q('bm-check').addEventListener('click',()=>refresh());
+q('bm-refresh').addEventListener('click',()=>refresh(true));
+q('bm-check').addEventListener('click',()=>refresh(true));
 q('bm-more').addEventListener('click',()=>onAction('more'));
 q('bm-current').addEventListener('click',()=>onAction('save-current'));
 q('bm-new-bookmark').addEventListener('click',()=>onAction('new-bookmark'));

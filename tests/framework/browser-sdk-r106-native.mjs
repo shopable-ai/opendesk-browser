@@ -26,6 +26,20 @@ const evidenceRoot=path.resolve(process.env.OPENDESK_R106_EVIDENCE||defaultEvide
 const chrome155=path.join(root,'tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing');
 const demoUrl='http://127.0.0.1:43111/demo-form.html';
 const args=new Set(process.argv.slice(2));
+const bookmarksCandidate='4475d0422e107c6a4955db59f3e748468bd2e8d5';
+const bookmarksPlan=Object.freeze({
+  sourceCommit:bookmarksCandidate,
+  productionPackageHash:'8f46ffac9c0392b2d3be740a9257c76f24b439178e7672537e8d04a2f44aa59e',
+  cases:['bookmarks-external-title-change-after-worker-restart',
+    'bookmarks-external-delete-retires-ref','bookmarks-origin-revoke-old-ref'],
+  notTested:{'bookmarks-pending-sender-document-change':{
+    status:'NOT_TESTED',operation:'browser.bookmarks.create',
+    reason:'447 requestBrowserClick holds the approval closure in the Side Panel document. Rebuilding that document destroys the old control and requester; existing tool UI cannot approve the old request from the new document or observe its rejection.',
+    required:'A separately reviewed acceptance probe Consumer that retains an observable pending request across real Sender Document replacement; no product/Host changes or forged Sender.'}},
+  limits:['External modification covers title only, including Worker restart; URL/folder changes remain NOT_TESTED.',
+    'Origin revoke uses Chrome site access UI and must observe permissions.contains true -> false for http://127.0.0.1/*. Chrome match patterns do not distinguish ports.',
+    'No Scheduler, History, Cookies, F3 or ZIP acceptance is covered; prepare/check do not establish NATIVE_PASS.']
+});
 const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
 const json=value=>JSON.stringify(value,null,2)+'\n';
 const safeName=value=>value.replace(/[:.]/g,'-');
@@ -92,11 +106,15 @@ async function prepareReceipt(){
     sourceFiles:files,toolPackage:{id:toolPackage.id,version:toolPackage.version,
       sha256:sha256(toolBytes),bytes:toolBytes.length},
     demo:{url:demoUrl,checked:false},
+    nativeScope:process.env.OPENDESK_R106_NATIVE_SCOPE||'all',
+    ...((process.env.OPENDESK_R106_NATIVE_SCOPE||'all')==='bookmarks'?{bookmarksPlan}:{}),
     nativeGate:{requiredEnv:'OPENDESK_R106_NATIVE=1',chrome155,extensionEnv:'OPENDESK_R106_EXTENSION',
       evidenceRoot},
     restrictions:[
       'No browser launch, build of shared dist, git branch, storage grant, DOM value assignment, Runtime.evaluate business call, synthetic event, or sender forgery happened in prepare mode.',
-      'Native PASS requires main-dialog execution with owned CFT foreground PID, formal UI file import/install, Host approval, screenshots, raw receipts, worker restart, and scheduler alarm evidence.'
+      process.env.OPENDESK_R106_NATIVE_SCOPE==='bookmarks'
+        ?'Bookmarks scope requires the physical 447 production package, owned CFT foreground PID, formal UI import/install, trusted Chrome WebUI input, raw SDK results, before/after snapshots, Worker restart and cleanup. Sender Document contract remains NOT_TESTED.'
+        :'Native PASS requires main-dialog execution with owned CFT foreground PID, formal UI file import/install, Host approval, screenshots, raw receipts, worker restart, and scheduler alarm evidence.'
     ]};
   const receiptFile=path.join(evidenceRoot,'prepare-receipt.json');
   await writeFile(receiptFile,json(receipt));
@@ -197,7 +215,7 @@ async function runNative(){
   assert.equal(process.platform,'darwin','R10.6 native driver is headed macOS CFT only');
   const extension=path.resolve(assertEnv('OPENDESK_R106_EXTENSION'));
   const nativeScope=process.env.OPENDESK_R106_NATIVE_SCOPE||'all';
-  assert(['all','owner','trusted'].includes(nativeScope),'Supported native scope: all, owner or trusted');
+  assert(['all','owner','trusted','bookmarks'].includes(nativeScope),'Supported native scope: all, owner, trusted or bookmarks');
   const binary=path.resolve(process.env.OPENDESK_R106_CHROME_BIN||chrome155);
   assert.equal(await realpath(binary),await realpath(chrome155),'Use the pinned CFT155 executable');
   assert(!extension.endsWith('/dist/development'),'Do not use shared daily dist/development as immutable native candidate');
@@ -343,6 +361,226 @@ async function runNative(){
     const label=options.find(label=>rows.filter(r=>r.role==='AXButton'&&r.enabled===true&&(r.title===label||r.description===label)).length===1);
     assert(label,'Unique native permission control is required');await native('press',label);
   }
+  // Inspect Chrome WebUI composed trees; business effects use trusted input.
+  function chromeUiObservation(find){
+    return `(()=>{
+      const nodes=[];let budget=10000;
+      const visit=(root,depth=0)=>{if(!root||depth>40||budget--<=0)return;
+        if(root.nodeType===1)nodes.push(root);
+        for(const child of root.children||[])visit(child,depth+1);
+        if(root.shadowRoot)visit(root.shadowRoot,depth+1);};visit(document);
+      const within=(node,parent)=>{for(let n=node;n;n=n.parentNode||n.getRootNode()?.host)
+        if(n===parent)return true;return false;};
+      const visible=n=>{const r=n.getBoundingClientRect();return r.width>4&&r.height>4;};
+      const node=(()=>{${find}})();if(!node)return {url:location.href,found:false,
+        readyState:document.readyState,bookmarkItems:nodes.filter(n=>n.localName==='bookmarks-item').map(n=>({
+          itemId:n.itemId,legacyId:n.item_?.legacyId??null,title:n.item_?.title??null,url:n.item_?.url??null})),
+        controls:nodes.filter(n=>['button','cr-button','cr-icon-button','input','select'].includes(n.localName))
+          .slice(0,100).map(n=>({tag:n.localName,id:n.id,command:n.dataset?.command??null,
+            text:(n.textContent||'').trim().slice(0,120),visible:visible(n)}))};
+      const r=node.getBoundingClientRect(),x=r.x+r.width/2,y=r.y+r.height/2;
+      let hit=document.elementFromPoint(x,y);
+      for(let i=0;i<20&&hit?.shadowRoot;i++){
+        const next=hit.shadowRoot.elementFromPoint(x,y);if(!next||next===hit)break;hit=next;}
+      const bookmark=nodes.find(n=>n.localName==='bookmarks-item'&&within(node,n));
+      return {url:location.href,found:true,x,y,visible:visible(node),
+        bookmark:bookmark?{itemId:bookmark.itemId,legacyId:bookmark.item_?.legacyId??null,
+          title:bookmark.item_?.title??null,url:bookmark.item_?.url??null}:null,
+        hit:x>0&&y>0&&x<innerWidth&&y<innerHeight&&within(hit,node),
+        disabled:node.disabled===true,tag:node.localName,id:node.id,command:node.dataset?.command??null,
+        text:(node.textContent||'').trim(),value:node.value??null,
+        selectedIndex:node.selectedIndex??null,
+        options:node.options?[...node.options].map(o=>({value:o.value,text:o.text,disabled:o.disabled})):null};
+    })()`;
+  }
+  async function clickChromeUi(session,find,label,route){
+    requireNativeResource();
+    const point=await deadline(async()=>{
+      const value=await read(client,session,chromeUiObservation(find));
+      report.lastChromeUi={label,...value};
+      assert(value.url.startsWith(route),'Only expected Chrome WebUI may receive input');
+      return value.found&&value.visible&&value.hit&&!value.disabled?value:null;
+    },'unique visible Chrome WebUI control: '+label);
+    for(const type of ['mousePressed','mouseReleased'])
+      await client.send('Input.dispatchMouseEvent',{type,x:point.x,y:point.y,button:'left',clickCount:1},session);
+    report.trace.push({at:now(),kind:'trusted-chrome-webui-input',label,observed:point});
+    return point;
+  }
+  async function bookmarkSnapshot(){
+    return read(client,control,`chrome.bookmarks.getTree().then(tree=>{
+      const rows=[];const visit=n=>{if(n.url)rows.push({id:n.id,url:n.url,title:n.title,parentId:n.parentId});
+        for(const child of n.children||[])visit(child);};for(const n of tree)visit(n);
+      return rows.sort((a,b)=>a.id.localeCompare(b.id));})`);
+  }
+  async function bookmarkMapping(){
+    const key=BOOKMARK_OWNED_STORE_PREFIX+'browser-sdk-acceptance';
+    return read(client,control,`chrome.storage.local.get(${quote(key)}).then(r=>r[${quote(key)}]??null)`);
+  }
+  async function createBookmarkFixture(){
+    const canRead=await read(client,control,'chrome.permissions.contains({permissions:["bookmarks"]})');
+    const before=canRead?await bookmarkSnapshot():null;
+    const request={permissions:['bookmarks'],origins:['http://127.0.0.1/*']};
+    const permitted=await read(client,control,`chrome.permissions.contains(${quote(request)})`);
+    await toolClick('#bookmark-create');const summary=await approve();
+    if(!permitted)await permissionChoice(true);
+    const result=await output('bookmarks-output');
+    assert.equal(typeof result.bookmarkRef,'string');assert(!result.id&&!result.bookmarkId&&!result.error);
+    assert.deepEqual(Object.keys(result),['bookmarkRef']);
+    const after=await bookmarkSnapshot(),mapping=await bookmarkMapping();
+    const node=after.find(n=>n.id===mapping.refs[result.bookmarkRef].nativeId);
+    assert(node);assert.equal(node.url,demoUrl);assert.equal(node.title,'OpenDesk R10.6 demo');
+    if(before){
+      assert.equal(after.filter(n=>!before.some(old=>old.id===n.id)).length,1);
+      assert.deepEqual(after.filter(n=>n.id!==node.id),before,'Preserve pre-existing bookmarks');
+    }
+    return {summary,result,node,mapping,priorSnapshotAvailable:canRead};
+  }
+  async function nativeBookmarkAction(node,action,title){
+    const target=await client.send('Target.createTarget',{url:'chrome://bookmarks/?id='+encodeURIComponent(node.parentId)});
+    const manager=await attach(client,target.targetId);
+    await client.send('Target.activateTarget',{targetId:target.targetId});await native('activate');
+    const item=`const items=nodes.filter(n=>n.localName==='bookmarks-item'&&
+      (n.itemId===${quote(node.id)}||String(n.item_?.legacyId??'')===${quote(node.id)})&&
+      n.item_?.title===${quote(node.title)}&&n.item_?.url===${quote(node.url)});
+      if(items.length!==1)return null;const row=items[0];`;
+    await clickChromeUi(manager,item+`const matches=nodes.filter(n=>within(n,row)&&
+      ['menuButton','menu-button'].includes(n.id));return matches.length===1?matches[0]:null;`,
+      'exact bookmark '+node.id+' menu','chrome://bookmarks/');
+    await clickChromeUi(manager,`const matches=nodes.filter(n=>n.localName==='button'&&visible(n)&&
+      n.dataset.command===${quote(action==='edit'?'0':'3')}&&
+      nodes.some(p=>p.localName==='cr-action-menu'&&within(n,p)));
+      return matches.length===1?matches[0]:null;`,
+      action+' exact bookmark '+node.id,'chrome://bookmarks/');
+    if(action==='edit'){
+      const dialog=`const dialogs=nodes.filter(n=>n.localName==='bookmarks-edit-dialog'&&
+        nodes.some(child=>child.localName==='cr-dialog'&&child.open===true&&within(child,n)));
+        if(dialogs.length!==1)return null;const dialog=dialogs[0];`;
+      const field=dialog+`const matches=nodes.filter(n=>n.localName==='input'&&within(n,dialog)&&
+        ['name','nameInput','nameEdit'].some(id=>n.id===id||nodes.some(p=>p.id===id&&within(n,p)&&within(p,dialog))));
+        return matches.length===1?matches[0]:null;`;
+      await clickChromeUi(manager,field,'bookmark title field','chrome://bookmarks/');
+      await client.send('Input.dispatchKeyEvent',{type:'keyDown',key:'a',code:'KeyA',modifiers:4,commands:['selectAll']},manager);
+      await client.send('Input.dispatchKeyEvent',{type:'keyUp',key:'a',code:'KeyA',modifiers:4},manager);
+      await client.send('Input.insertText',{text:title},manager);
+      assert.equal((await read(client,manager,chromeUiObservation(field))).value,title);
+      report.trace.push({at:now(),kind:'trusted-chrome-webui-text',label:'bookmark title',text:title});
+      await clickChromeUi(manager,dialog+`const matches=nodes.filter(n=>within(n,dialog)&&visible(n)&&
+        ['button','cr-button'].includes(n.localName)&&n.classList.contains('action-button'));
+        return matches.length===1?matches[0]:null;`,'save exact bookmark title','chrome://bookmarks/');
+    }
+    report.screenshots.push(await screenshot(client,manager,runDir,'bookmark-native-'+action));
+    return {targetId:target.targetId,action,nativeId:node.id,title:title??null};
+  }
+  async function restartBookmarkWorker(){
+    await client.send('ServiceWorker.enable',{},control);
+    const scriptURL='chrome-extension://'+report.extensionId+'/sw.js';
+    const original=await deadline(()=>[...workerVersions.values()].find(v=>v.scriptURL===scriptURL&&v.runningStatus==='running'),'Bookmark Worker running');
+    const from=workerLifecycle.length;
+    await client.send('ServiceWorker.stopWorker',{versionId:original.versionId},control);
+    const stopped=await deadline(()=>workerLifecycle.slice(from).find(r=>r.version.versionId===original.versionId&&r.version.runningStatus==='stopped'),'Bookmark Worker stopped');
+    await deadline(async()=>!(await client.send('Target.getTargets')).targetInfos.some(t=>t.targetId===original.targetId),'old Bookmark Worker target gone');
+    await client.send('ServiceWorker.startWorker',{scopeURL:'chrome-extension://'+report.extensionId+'/'},control);
+    const restarted=await deadline(()=>workerLifecycle.slice(from).find(r=>r.version.scriptURL===scriptURL&&r.version.runningStatus==='running'&&r.version.targetId!==original.targetId),'new Bookmark Worker target');
+    return {original,stopped,restarted};
+  }
+  async function activateDemoForBookmarks(){
+    const target=(await client.send('Target.getTargets')).targetInfos.find(t=>t.type==='page'&&t.url===demoUrl);
+    assert(target,'Existing canonical demo target required');
+    await client.send('Target.activateTarget',{targetId:target.targetId});await native('activate');
+  }
+  async function removeFixtureThroughUi(fixture){
+    await activateDemoForBookmarks();
+    assert.equal(await read(client,tool,'document.querySelector("#bookmark-ref").textContent'),fixture.result.bookmarkRef);
+    await toolClick('#bookmark-remove');const summary=await approve();
+    return {summary,result:await output('bookmarks-output')};
+  }
+  async function revokeBookmarkOriginThroughUi(){
+    const request={origins:['http://127.0.0.1/*']};
+    assert.equal(await read(client,control,`chrome.permissions.contains(${quote(request)})`),true);
+    const before=await read(client,control,'chrome.permissions.getAll()');
+    const target=await client.send('Target.createTarget',{url:'chrome://extensions/?id='+report.extensionId});
+    const settings=await attach(client,target.targetId);
+    await client.send('Target.activateTarget',{targetId:target.targetId});await native('activate');
+    const selector=`const views=nodes.filter(n=>n.localName==='extensions-detail-view'&&n.data?.id===${quote(report.extensionId)});
+      if(views.length!==1)return null;const view=views[0];
+      const matches=nodes.filter(n=>n.localName==='select'&&within(n,view)&&n.options&&
+        [...n.options].some(o=>o.value==='ON_CLICK'));return matches.length===1?matches[0]:null;`;
+    const selected=await clickChromeUi(settings,selector,'owned extension site access','chrome://extensions/');
+    const wanted=selected.options.findIndex(o=>o.value==='ON_CLICK');
+    assert(wanted>=0&&!selected.options[wanted].disabled);
+    assert(selected.selectedIndex>wanted,'Start from granted site access, never silently regrant');
+    for(let index=selected.selectedIndex;index>wanted;index--)await native('key','up');
+    await native('key','return');
+    await deadline(async()=>{const value=await read(client,settings,chromeUiObservation(selector));
+      return value.value==='ON_CLICK'?value:null;},'Chrome site access set to On click');
+    await deadline(async()=>await read(client,control,`chrome.permissions.contains(${quote(request)})`)===false,'Origin permission actually revoked');
+    const after=await read(client,control,'chrome.permissions.getAll()');
+    assert.equal(await read(client,control,'chrome.permissions.contains({permissions:["bookmarks"]})'),true);
+    report.screenshots.push(await screenshot(client,settings,runDir,'bookmarks-origin-revoked'));
+    return {targetId:target.targetId,request,before,after,containsBefore:true,containsAfter:false,
+      scope:'Chrome On click withholds site access globally; tested Origin is http://127.0.0.1:43111, Chrome match pattern has no port.'};
+  }
+  async function runBookmarksScope(){
+    assert.equal(report.candidate.sourceCommit,bookmarksCandidate,'Bookmarks scope bound to physical 447 candidate');
+    for(const file of report.candidate.toolSourceFiles){
+      const committed=execFileSync('git',['show',bookmarksCandidate+':'+file.path],{cwd:root,maxBuffer:1024*1024});
+      assert.equal(sha256(committed),file.sha256,'Unchanged 447 acceptance tool: '+file.path);
+    }
+    report.bookmarksPlan=bookmarksPlan;
+    const selected=(process.env.OPENDESK_R106_BOOKMARK_CASES||bookmarksPlan.cases.join(','))
+      .split(',').map(value=>value.trim()).filter(Boolean);
+    assert(selected.length&&new Set(selected).size===selected.length&&
+      selected.every(id=>bookmarksPlan.cases.includes(id)),'Exact supported Bookmarks cases required');
+    report.selectedBookmarkCases=selected;
+    Object.assign(report.cases,bookmarksPlan.notTested);await save();
+    if(selected.includes('bookmarks-external-title-change-after-worker-restart'))
+    await recordCase('bookmarks-external-title-change-after-worker-restart',async()=>{
+      const fixture=await createBookmarkFixture(),before=await bookmarkSnapshot();
+      const title='OpenDesk R10.6 externally edited '+randomUUID().slice(0,8);
+      const nativeEdit=await nativeBookmarkAction(fixture.node,'edit',title);
+      const edited=await deadline(async()=>{const rows=await bookmarkSnapshot();
+        return rows.find(n=>n.id===fixture.node.id)?.title===title?rows:null;},'exact native bookmark externally edited');
+      assert.deepEqual(edited,before.map(n=>n.id===fixture.node.id?{...n,title}:n));
+      assert.deepEqual(await bookmarkMapping(),fixture.mapping,'External edit must not replace owned snapshot');
+      const restart=await restartBookmarkWorker();
+      assert.deepEqual(await bookmarkMapping(),fixture.mapping,'Original ref snapshot survives Worker restart');
+      const rejection=await removeFixtureThroughUi(fixture);
+      assert.equal(rejection.result.code,'E_BOOKMARK_REF_INVALID');
+      assert.deepEqual(await bookmarkSnapshot(),edited,'Preserve exact edited and unrelated bookmarks');
+      assert.deepEqual(await bookmarkMapping(),fixture.mapping);
+      return {fixture,nativeEdit,edited,restart,rejection,contractScope:'External title change only; original URL and folder unchanged.'};
+    });
+    if(selected.includes('bookmarks-external-delete-retires-ref'))
+    await recordCase('bookmarks-external-delete-retires-ref',async()=>{
+      const fixture=await createBookmarkFixture(),before=await bookmarkSnapshot();
+      const nativeDelete=await nativeBookmarkAction(fixture.node,'delete');
+      const deleted=await deadline(async()=>{const rows=await bookmarkSnapshot();
+        return rows.some(n=>n.id===fixture.node.id)?null:rows;},'exact bookmark deleted by Chrome UI');
+      assert.deepEqual(deleted,before.filter(n=>n.id!==fixture.node.id));
+      assert.deepEqual(await bookmarkMapping(),fixture.mapping,'Chrome deletion leaves old ref until SDK reconciliation');
+      const outcome=await removeFixtureThroughUi(fixture);
+      assert.deepEqual(outcome.result,{removed:false,bookmarkRef:fixture.result.bookmarkRef});
+      const retired=await bookmarkMapping(),refs={...fixture.mapping.refs};delete refs[fixture.result.bookmarkRef];
+      assert.deepEqual(retired,{...fixture.mapping,refs});
+      assert.deepEqual(await bookmarkSnapshot(),deleted,'Reconciliation must not delete another native bookmark');
+      const repeated=await removeFixtureThroughUi(fixture);assert.equal(repeated.result.code,'E_BOOKMARK_REF_INVALID');
+      assert.deepEqual(await bookmarkMapping(),retired);assert.deepEqual(await bookmarkSnapshot(),deleted);
+      return {fixture,nativeDelete,deleted,outcome,retired,repeated,
+        limitation:'Known native missing-node result only; unknown Chrome errors and unobserved transient effects are not claimed PASS.'};
+    });
+    if(selected.includes('bookmarks-origin-revoke-old-ref'))
+    await recordCase('bookmarks-origin-revoke-old-ref',async()=>{
+      const fixture=await createBookmarkFixture(),before=await bookmarkSnapshot();
+      const revoked=await revokeBookmarkOriginThroughUi();
+      await activateDemoForBookmarks();
+      assert.equal(await read(client,control,'chrome.permissions.contains({origins:["http://127.0.0.1/*"]})'),false);
+      const rejection=await removeFixtureThroughUi(fixture);assert.equal(rejection.result.code,'E_SITE_PERMISSION_REVOKED');
+      assert.equal(await read(client,control,'chrome.permissions.contains({origins:["http://127.0.0.1/*"]})'),false,'Approval must not regrant Origin');
+      assert.deepEqual(await bookmarkSnapshot(),before,'Origin denial must not change any native bookmark');
+      assert.deepEqual(await bookmarkMapping(),fixture.mapping,'Origin denial preserves the old ref');
+      return {fixture,revoked,rejection,nativeBookmarks:before};
+    });
+  }
   async function recordCase(id,fn){
     console.log('R106_NATIVE_START '+id);
     report.cases[id]={status:'RUNNING',startedAt:now()};await save();
@@ -380,6 +618,11 @@ async function runNative(){
       assert.equal(source.length,input.bytes);
     }
     report.candidate.sourceCommit=sourceCommit;
+    if(nativeScope==='bookmarks'){
+      assert.equal(sourceCommit,bookmarksCandidate,'Bookmarks scope requires physical 447 source');
+      assert.equal(report.candidate.extensionPackage.packageHash,bookmarksPlan.productionPackageHash,
+        'Bookmarks scope requires the accepted physical 447 production bytes');
+    }
     report.candidate.buildReceipt=await fileHash(receiptFile);
     report.candidate.buildInputCount=receipt.sourceInputs.length;
     await recordCase('launch-owned-cft',async()=>{
@@ -446,6 +689,12 @@ async function runNative(){
       await deadline(()=>read(client,website,'document.readyState==="complete"'),'demo loaded');
       return {page,document:await read(client,website,'({url:location.href,title:document.title})')};
     });
+    if(nativeScope==='bookmarks'){
+      await runBookmarksScope();
+      report.status='BOOKMARKS_SELECTED_CASES_PASS_DOCUMENT_CONTRACT_NOT_TESTED';
+      report.remaining=[...bookmarksPlan.limits,bookmarksPlan.notTested['bookmarks-pending-sender-document-change'].required];
+      return report;
+    }
     if(nativeScope!=='trusted'){
     await recordCase('bookmarks-permission-denied',async()=>{
       await toolClick('#bookmark-create');const summary=await approve();await permissionChoice(false);
@@ -754,6 +1003,9 @@ async function runNative(){
     await recordCase('trusted-history-user-selected-range',async()=>{
       await client.send('Target.activateTarget',{targetId:report.cases['side-panel-contexts'].result.shellTarget});await native('activate');
       await click(client,side,'#tab-tools',report.trace);
+      if(await read(client,side,'document.querySelector("#sidebar-tool-list-view").hidden'))
+        await click(client,side,'#sidebar-tool-back',report.trace);
+      await deadline(()=>read(client,side,'!document.querySelector("#sidebar-tool-list-view").hidden && document.querySelector("#trusted-history-panel")?.checkVisibility()'),'trusted history list visible');
       await click(client,side,'#trusted-history-panel summary',report.trace);
       const today=await read(client,side,'(()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-")})()');
       const dates={};

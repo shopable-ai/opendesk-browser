@@ -1,4 +1,4 @@
-# Bookmark Manager R2.4 · SDK R11.2 独立正式工具
+# Bookmark Manager R2.5 · SDK R11.2 独立正式工具
 
 > **状态：SOURCE_MIGRATED / OFFICIAL_OPTIONAL_REGISTERED / NATIVE_NOT_TESTED。** 已纳入官方源码目录，不代表用户设备已安装，也不代表 Chrome 原生验收通过。
 
@@ -8,7 +8,7 @@
 
 2026-10-15 的 R11.2 提交 `b63c9e3c` 为正式 Registry、Schema、Host、独立 `browser.bookmarks.full` 和安装工具的可信书签授权按钮完成了**源码接线**。独立 Full 与 Owned 的 `browser.bookmarks.createOwned/removeOwned` 是不同权限；Chrome manifest 已声明 optional `bookmarks`，安装工具的声明并不等于用户已批准 Full 或 Chrome 权限。
 
-- 工具版本 **0.3.1**：`capabilities: ["browser.bookmarks.full", "currentPage.read"]`。安装包更新需按现有流程重新审阅；Full Bookmarks 授权和 Chrome optional 权限仍独立申请。
+- 工具版本 **0.3.2**：`capabilities: ["browser.bookmarks.full", "currentPage.read"]`。安装包更新需按现有流程重新审阅；Full Bookmarks 授权和 Chrome optional 权限仍独立申请。
 - **已在 `official-tools/catalog.json` 正式登记为 optional**。发行构建器必须生成签名固定的本地官方资源，用户通过「扩展」中心审阅、安装、授权、打开。源码登记不等于在用户 Chrome 中安装；Node/CI 成功也不是 Native PASS。
 - 不满足 Full Capability 状态、Host 权限、包身份或可信回执时，客户端失败关闭并隐藏已失权树；新增识别 `E_BOOKMARK_FULL_CONSENT_REQUIRED` / `E_TOOL_CHANGED` / `E_OWNER` 并在写入失败时清屏，不会回退至 Owned 能力伪造全量结果。
 - **已删除旧 `src/bookmark-manager/` 及内置书签面板与专属 R1 CI**。业务消费者仅存在于独立工具，公共 SDK / Host / Chrome Drivers 仍保留；Git 历史保存旧实现，不创建兼容副本。
@@ -33,6 +33,12 @@ Host 快照池仍最多 8 份，达到上限时仅回收同一安装身份的最
 书签变更及删除票据期限。Chrome 没有原子的 compare-and-swap；未被监听器观察到的最终
 读写间竞态仍存在，不能宣称绝对并发原子安全，真实时长尚未测量。
 
+0.3.2 补齐观察恢复：启动或读取事件发生可重试的传输故障、会话过期或事件缺口后，
+每隔 7 秒最多自动重试 3 次，只重新观察和读取快照，不重放写入。成功读取事件或用户
+手动刷新后重置预算；权限或真实点击被拒绝时不自动重试。刷新及 pagehide 使旧 epoch 的
+回调失效，关闭后不再展示晚到快照；授权门禁清除列表、菜单及表单中的私有内容。
+这仍是源码与 Node VM 验证，0.3.2 的真实 Chrome 安装与恢复行为保持 NOT_TESTED。
+
 现有公共合同限制：节点最多 20,000、深度 100、快照 8 MB、读取标题最多 256 字符、
 既有 URL 最多 4,096 字符。既有非 HTTP(S) 书签可保留读取，新增 URL 仍只允许 HTTP(S)。
 超出合同明确报错，不截断数据；任意长度历史书签兼容仍是后续合同扩展缺口。
@@ -43,7 +49,7 @@ Host 快照池仍最多 8 份，达到上限时仅回收同一安装身份的最
 node --test tests/environment/bookmark-manager-r2.test.mjs
 node --test tests/environment/bookmark-manager-r24-lifecycle.test.mjs tests/environment/browser-sdk-r112-full-bookmarks.test.mjs
 npm run build:sidebar-tool -- examples/sidebar-tools/bookmark-manager
-# artifacts/sidebar-tools/bookmark-manager/0.3.1/bookmark-manager.opendesk-tool.json
+# artifacts/sidebar-tools/bookmark-manager/0.3.2/bookmark-manager.opendesk-tool.json
 npm run check
 npm run build
 npm run build:dev

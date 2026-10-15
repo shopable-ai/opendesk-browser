@@ -44,6 +44,8 @@ description: Author, iterate and preview sandboxed 扩展 center Sidebar App UI 
 
 ## R3.1 发行、安装与真实能力门槛
 
+**网页对话 HTML 设计预览**：需要与扩展按钮/表单一致时，先用 [opendesk-ui-preview](../opendesk-ui-preview/SKILL.md) 生成带 canonical CSS、源 SHA 与网页提示词的离线套件，实际附给模型；回收后检查保护区并做交互评审。本地 skill 路径不等于网页模型已获得规范；离线模板不是可安装包，完整宿主 CSS 不可注入动态工具 iframe。
+
 - 普通用户只需要发布的 OpenDesk Browser 扩展和既有官方 Catalog 离线工具包；不得要求下载 `examples/`、安装 Node 或复制 Background。普通工具项目仍在 `examples/sidebar-tools/<tool-id>/`。
 - 有 UI 修改的正式工具必须提升其三段式版本，经原有 packer/catalog 生成发行资源；不能把同版本不同字节当作升级。不要复制安装器、Host、SDK 或权限模块。
 - 普通能力使用现有 Browser SDK；确需 Chrome 原生权限时只能依赖固定、经审计的预编译扩展逻辑。工具审阅、安装确认、启动都应检查目标发行扩展能否实际提供所需可信能力；缺失提示升级，不能假装安装成功。

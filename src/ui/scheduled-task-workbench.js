@@ -156,6 +156,10 @@ export function filterScheduleTimeZoneGroups(groups,search='',selected=''){
 export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=globalThis.chrome,
   document:doc=globalThis.document,onClose=()=>{},onOpen=()=>{}}){
   const get=id=>doc.getElementById(id),listeners=[];
+  // Keep the secondary runner action beside its live context. Reuse the
+  // existing toolbar and status node, including the Host's status binding.
+  get('schedule-open-runner').parentElement.prepend(get('schedule-host-status'));
+  get('schedule-create').setAttribute('aria-label','新建定时计划');
   const bind=(id,event,fn)=>{
     const node=get(id);if(!node)throw new Error('Missing schedule UI: '+id);
     node.addEventListener(event,fn);listeners.push(()=>node.removeEventListener(event,fn));
@@ -240,16 +244,19 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     get('schedule-create').hidden=view!=='list';
     get('schedule-detail-edit').hidden=view!=='detail';
     // The separately visible runner is already a Host, not a second Side Panel.
-    text(get('schedule-open-runner'),isRunner()?'再开运行页 ↗':'打开运行页 ↗');
+    text(get('schedule-open-runner'),isRunner()?'再开运行页 ↗':'运行页 ↗');
+    get('schedule-open-runner').setAttribute('aria-label',isRunner()?'再打开一个运行页':'打开独立运行页');
     get('schedule-back').hidden=isRunner()&&view==='runner';
     const backLabel=view==='detail'?(detailReturnView==='runner'?'返回运行概览':'返回计划列表'):
       view==='form'?(formReturnView==='detail'?'返回计划详情':
-        formReturnView==='manager'?'返回任务管理':'返回定时计划'):
+        formReturnView==='manager'?'返回任务管理':
+          formReturnView==='runner'?'返回运行概览':'返回定时计划'):
       view==='manager'?(managerReturn==='form'?'返回编辑计划':
         managerReturn==='detail'?'返回计划详情':'返回定时计划'):
       isRunner()?'返回运行概览':'返回我的任务';
     get('schedule-back').setAttribute('aria-label',backLabel);
     get('schedule-back').title=backLabel;
+    if(view==='form')text(get('schedule-cancel'),backLabel);
     text(get('schedule-panel-title'),view==='detail'?
       (allPlans.find(plan=>plan.scheduleId===selectedPlanId)?.title||'计划详情'):
       view==='runner'?'运行概览':view==='manager'?'任务管理':view==='form'?
@@ -478,14 +485,18 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     parent.replaceChildren();
     const sorted=allPlans.slice().sort((a,b)=>(a.nextDueAt??Infinity)-(b.nextDueAt??Infinity));
     const enabled=allPlans.filter(p=>!p.paused&&!p.needsAttention&&Number.isFinite(p.nextDueAt)).length;
-    const upcoming=sorted.find(p=>!p.paused&&!p.needsAttention&&Number.isFinite(p.nextDueAt));
+    get('schedule-list-summary').hidden=!allPlans.length;
     text(get('schedule-list-summary'),allPlans.length?
-      `共 ${allPlans.length} 个计划 · ${enabled} 个已安排下次执行`+
-        (upcoming?` · 最近：${upcoming.title}，${describeTime(upcoming.nextDueAt,upcoming.timezone)}`:' · 暂无可预期的下次执行'):
-      '尚无定时计划');
+      `共 ${allPlans.length} 个计划 · ${enabled} 个已安排下次执行`:
+      '');
     if(!allPlans.length){
-      parent.append(element(doc,'p','schedule-empty-hint hint',
-        '尚无定时计划。点击「＋ 新建」安排第一个已验证任务。'));
+      const empty=element(doc,'div','schedule-empty od-stack');
+      empty.setAttribute('role','status');
+      const icon=element(doc,'span','schedule-empty-icon','◷');
+      icon.setAttribute('aria-hidden','true');
+      empty.append(icon,element(doc,'h3','od-page-title','尚无定时计划'),
+        element(doc,'p','schedule-empty-hint hint','点击右上角「＋ 新建」，安排第一个已验证任务。'));
+      parent.append(empty);
       renderDetail();return;
     }
     for(const plan of sorted){
@@ -515,7 +526,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       historyViews.set(plan.scheduleId,view);
       const toolbar=element(doc,'div','schedule-actions od-toolbar schedule-plan-actions');
       toolbar.append(action(doc,plan.paused?'恢复':'暂停',
-        ()=>void change(plan,plan.paused?'resume':'pause'),'od-button'));
+        ()=>void change(plan,plan.paused?'resume':'pause')));
       toolbar.append(action(doc,'编辑',()=>edit(plan)));
       card.append(head,next,info,toolbar);
       parent.append(card);

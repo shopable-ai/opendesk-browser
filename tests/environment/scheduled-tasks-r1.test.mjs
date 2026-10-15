@@ -537,6 +537,146 @@ test('R2.3 terminal needs-attention and legacy bound Fire never regain admission
     g.repo.admit(tx,pending.fireId,request,'https://example.com',g.getTime())),/consumed|expired/);
 });
 
+for(const scenario of ['completion lost','pendingSettlement','paused_unknown','completion lost without ResultId']){
+  test('R2.5 completion uncertainty refreshes only original Run/Result: '+scenario,async()=>{
+    const f=await fixture(),plan=await f.repo.save({...f.input,openIfMissing:true});
+    f.setTime(plan.nextDueAt+1000);await f.repo.reconcile();
+    const fire=(await f.repo.ready())[0],calls=[];
+    let starts=0,substitute=null;
+    const client={ready:new Promise(()=>{}),request:async(name,body)=>{
+      calls.push({name,body});
+      if(name==='listDueSchedules')return {fires:await f.repo.ready()};
+      if(name==='resolveInstalledTask')return {...plan,contentHash:plan.sourceHash,
+        generation:plan.taskGeneration,revision:1,scriptId:taskScriptId(plan.taskId,plan.version)};
+      if(name==='listScheduleHistory'){
+        const page=await f.repo.history(body);
+        if(substitute)page.history=page.history.map(row=>({...row,...substitute}));
+        return page;
+      }
+      throw Error('No state mutation after acknowledged admission: '+name);
+    }};
+    const runner=createScheduledTaskHost({client,host:{executionPending:false,start:async request=>{
+      starts++;assert.equal(request.scheduledFireId,fire.fireId);
+      await f.db.transaction(['frameworkKV','runs'],'readwrite',async tx=>{
+        const approved=await f.repo.admit(tx,fire.fireId,{...request,paramsDecoded:plan.params},
+          new URL(plan.targetUrl).origin,f.getTime());
+        await f.repo.bind(tx,approved,{runId:'original-run',resultId:'original-result'});
+      });
+      f.db.put('runs','original-run',{state:'paused_unknown',retirementState:'fenced',resultId:'original-result'});
+      return {runId:'original-run',...(scenario==='completion lost without ResultId'?{}:{resultId:'original-result'})};
+    },get completion(){
+      if(scenario.startsWith('completion lost'))return Promise.reject(Error('Completion acknowledgement lost'));
+      return Promise.resolve({runId:'original-run',resultId:'original-result',
+        ...(scenario==='pendingSettlement'?{state:'completed',pendingSettlement:true}:{state:'paused_unknown'})});
+    }},api:{tabs:{query:async()=>[]},permissions:{contains:async()=>true}},pollMs:600000});
+    try{
+      await runner.poll();assert.match(runner.status,/禁止自动重试/);
+      f.db.put('runs','original-run',{state:'completed',retirementState:'released',resultId:'original-result'});
+      for(const mismatch of [{runId:'different-run'},{resultId:'different-result'}]){
+        substitute=mismatch;
+        await runner.poll();assert.doesNotMatch(runner.status,/SUCCESS/,'changed identity must never clear uncertainty');
+      }
+      substitute=null;
+      await runner.poll();assert.match(runner.status,/SUCCESS/,'no new due Fire must still refresh completed original');
+      await runner.poll();assert.equal(starts,1,'never replay acknowledged start');
+      assert.equal(calls.some(row=>row.name==='setScheduleFireState'),false,'reconciliation is read only');
+      const row=(await f.repo.history({scheduleId:plan.scheduleId,offset:0,limit:20})).history[0];
+      assert.equal(row.runId,'original-run');assert.equal(row.resultId,'original-result');
+    }finally{runner.dispose();}
+  });
+}
+
+for(const scenario of ['SUCCESS','RUNNING','SETTLING','ADMITTED race']){
+  test('R2.4 duplicate Fire reconciles original Run/Result: '+scenario,async()=>{
+    const f=await fixture(),plan=await f.repo.save({...f.input,openIfMissing:true});
+    f.setTime(plan.nextDueAt+1000);await f.repo.reconcile();
+    const fire=(await f.repo.ready())[0],calls=[];
+    let starts=0,admitted=false;
+    const bind=async()=>{
+      if(admitted)return;
+      await f.db.transaction(['frameworkKV','runs'],'readwrite',async tx=>{
+        const approved=await f.repo.admit(tx,fire.fireId,{
+          source:{scriptId:taskScriptId(plan.taskId,plan.version),contentHash:plan.sourceHash},
+          paramsDecoded:plan.params,target:{mode:'owned',url:plan.targetUrl},requestId:fire.fireId,
+          expectedTaskGeneration:plan.taskGeneration,expectedTaskInstallationId:plan.installationId
+        },new URL(plan.targetUrl).origin,f.getTime());
+        await f.repo.bind(tx,approved,{runId:'original-run',resultId:'original-result'});
+      });
+      admitted=true;
+      f.db.put('runs','original-run',{state:scenario==='RUNNING'?'running':'completed',
+        retirementState:scenario==='RUNNING'||scenario==='SETTLING'?'fenced':'released',resultId:'original-result'});
+    };
+    const client={ready:new Promise(()=>{}),request:async(name,body)=>{
+      calls.push({name,body});
+      if(name==='listDueSchedules')return {fires:await f.repo.ready()};
+      if(name==='resolveInstalledTask')return {...plan,contentHash:plan.sourceHash,
+        generation:plan.taskGeneration,revision:1,scriptId:taskScriptId(plan.taskId,plan.version)};
+      if(name==='listScheduleHistory')return f.repo.history(body);
+      if(name==='setScheduleFireState'){
+        if(scenario==='ADMITTED race')await bind();
+        const row=await f.repo.recordWait(body.fireId,body.status);
+        return {fireId:row.fireId,status:row.status};
+      }
+      throw Error('Unexpected '+name);
+    }};
+    const runner=createScheduledTaskHost({client,
+      host:{executionPending:false,start:async request=>{
+        starts++;assert.equal(request.scheduledFireId,fire.fireId);
+        if(scenario!=='ADMITTED race')await bind();
+        throw Object.assign(Error('Other Host already admitted this Fire'),{code:'E_PERMISSION'});
+      }},api:{tabs:{query:async()=>[]},permissions:{contains:async()=>true}},pollMs:600000});
+    try{
+      await runner.poll();
+      assert.match(runner.status,scenario==='RUNNING'?/运行中.*original-run/:
+        scenario==='SETTLING'?/结算中.*original-run/:/SUCCESS/);
+      assert.doesNotMatch(runner.status,/不确定|禁止自动重试/);
+      assert.equal(calls.some(row=>row.name==='setScheduleFireState'),scenario==='ADMITTED race');
+      if(scenario==='RUNNING'||scenario==='SETTLING'){
+        f.db.put('runs','original-run',{state:'completed',retirementState:'released',resultId:'original-result'});
+        await runner.poll();assert.match(runner.status,/SUCCESS/,'no due Fire must still refresh original result');
+      }
+      await runner.poll();assert.equal(starts,1,'never start a replacement Run');
+      const history=await f.repo.history({scheduleId:plan.scheduleId,offset:0,limit:20});
+      assert.equal(history.history[0].runId,'original-run');
+      assert.equal(history.history[0].resultId,'original-result');
+    }finally{runner.dispose();}
+  });
+}
+
+for(const scenario of ['permission only','wrong Fire','missing Result','history unavailable','state write unavailable']){
+  test('R2.4 ambiguous admission stays UNKNOWN: '+scenario,async()=>{
+    const f=await fixture(),plan=await f.repo.save({...f.input,openIfMissing:true});
+    f.setTime(plan.nextDueAt+1000);await f.repo.reconcile();
+    const fire=(await f.repo.ready())[0];let starts=0;
+    const client={ready:new Promise(()=>{}),request:async(name,body)=>{
+      if(name==='listDueSchedules')return {fires:await f.repo.ready()};
+      if(name==='resolveInstalledTask')return {...plan,contentHash:plan.sourceHash,
+        generation:plan.taskGeneration,revision:1,scriptId:taskScriptId(plan.taskId,plan.version)};
+      if(name==='setScheduleFireState'){
+        if(scenario==='state write unavailable')throw Error('Disconnected state write');
+        return f.repo.recordWait(body.fireId,body.status);
+      }
+      if(name==='listScheduleHistory'){
+        if(scenario==='history unavailable')throw Error('Disconnected history');
+        return {scheduleId:plan.scheduleId,hasMore:false,history:['permission only','state write unavailable'].includes(scenario)?[]:[{
+          scheduleId:plan.scheduleId,fireId:scenario==='wrong Fire'?'another-fire':fire.fireId,
+          status:'SUCCESS',retirementState:'released',runId:'unrelated-run',
+          resultId:scenario==='missing Result'?null:'unrelated-result'}]};
+      }
+      throw Error('Unexpected '+name);
+    }};
+    const runner=createScheduledTaskHost({client,host:{executionPending:false,start:async()=>{
+      starts++;throw Object.assign(Error('Permission denied'),{code:'E_PERMISSION'});
+    }},api:{tabs:{query:async()=>[]},permissions:{contains:async()=>true}},pollMs:600000});
+    try{
+      await runner.poll();assert.match(runner.status,/禁止自动重试/);
+      await runner.poll();assert.equal(starts,1);
+      if(scenario!=='state write unavailable')
+        assert.equal((await f.repo.history({scheduleId:plan.scheduleId,offset:0,limit:20})).history[0].status,'UNKNOWN');
+    }finally{runner.dispose();}
+  });
+}
+
 test('R2.3 ambiguous start reply is UNKNOWN, never a repeatable waiting target',async()=>{
   const f=await fixture(),plan=await f.repo.save({...f.input,openIfMissing:true});
   f.setTime(plan.nextDueAt+1000);

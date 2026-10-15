@@ -79,6 +79,25 @@ test('sensitive click targets and unintended fills are rejected',()=>{
   assert.throws(()=>prepareDirectExecution({request:'点击搜索按钮 ai自动化第一选择',workflow:workflow([fill]),target}),
     {code:'E_AI_UNREQUESTED_ACTION'});
 });
+test('submit in a CSS id needs fresh observed search semantics, not blanket submission authority',()=>{
+  const click={stepId:'search',op:'click',locatorKind:'css',selector:'#search-submit'};
+  const w=workflow([click]),request='点击搜索按钮';
+  const node={role:'button',name:'搜索',state:{visible:true},locator:{kind:'css',value:click.selector}};
+  const observation={summary:{origin,documentId:target.documentId,nodes:[node]}};
+  assert.equal(prepareDirectExecution({request,workflow:w,target,observation}).hasUnprovenClick,true);
+  for(const invalid of [undefined,
+    {summary:{...observation.summary,documentId:'old-doc'}},
+    {summary:{...observation.summary,origin:'https://other.test'}},
+    ...[{name:'提交订单'},{role:'link'},{state:{visible:false}},
+      {locator:{...node.locator,index:0}},{locator:{...node.locator,parent:'#form'}}]
+      .map(change=>({summary:{...observation.summary,nodes:[{...node,...change}]}}))
+  ])assert.throws(()=>prepareDirectExecution({request,workflow:w,target,observation:invalid}),
+    {code:'E_AI_REVIEW_REQUIRED'});
+  const danger={...click,selector:'#delete-submit'};
+  assert.throws(()=>prepareDirectExecution({request,workflow:workflow([danger]),target,
+    observation:{summary:{...observation.summary,nodes:[{...node,locator:{kind:'css',value:danger.selector}}]}}}),
+    {code:'E_AI_REVIEW_REQUIRED'});
+});
 test('durable proof binds matching run/document/source/worker retirement',()=>{
   const r=proof();assert.deepEqual(verifyDirectExecutionReceipt(r),{runId:'run-1',resultId:'result-1',sourceHash:hash});
   for(const invalid of [
@@ -94,4 +113,34 @@ test('durable proof binds matching run/document/source/worker retirement',()=>{
     {...r,view:{...r.view,run:{...r.view.run,target:{...r.view.run.target,url:origin+'/other'}}}},
     {...r,view:{...r.view,results:[{...r.view.results[0],state:'failed'}]}}
   ])assert.throws(()=>verifyDirectExecutionReceipt(invalid),{code:'E_AI_OUTCOME_UNKNOWN'});
+});
+
+test('instruction sentence punctuation is not a terminal fill literal unless explicitly quoted',()=>{
+  const request='在当前网页的搜索关键词输入框里填入 ai自动化第一选择。';
+  assert.equal(prepareDirectExecution({request,workflow:workflow([fill]),target}).hasReadback,true);
+  assert.throws(()=>prepareDirectExecution({request,workflow:workflow([{...fill,text:fill.text+'。'}]),target}),
+    {code:'E_AI_VALUE_NOT_GROUNDED'});
+  assert.equal(prepareDirectExecution({request:'在搜索关键词输入框填入“'+fill.text+'。”。',
+    workflow:workflow([{...fill,text:fill.text+'。'}]),target}).hasReadback,true);
+});
+test('input textContent assertions are refused before the fill dispatch; host readback verifies values',()=>{
+  const assertion={...fill,stepId:'assert-input',op:'assert'};
+  assert.throws(()=>prepareDirectExecution({request:'填入 ai自动化第一选择',
+    workflow:workflow([fill,assertion]),target}),{code:'E_AI_ASSERT_TARGET'});
+  assert.throws(()=>prepareDirectExecution({request:'填入 ai自动化第一选择',
+    workflow:workflow([fill,{...assertion,roleName:'模型附加的无效名称'}]),target}),{code:'E_AI_ASSERT_TARGET'});
+});
+
+test('core actions must be complete and search field labels do not authorize clicks',()=>{
+  const click={stepId:'click-1',op:'click',locatorKind:'css',selector:'#click-button'};
+  assert.throws(()=>prepareDirectExecution({request:'在当前网页的搜索关键词输入框里填入 ai自动化第一选择。',
+    workflow:workflow([fill,click]),target}),{code:'E_AI_UNREQUESTED_ACTION'});
+  assert.throws(()=>prepareDirectExecution({request:'点击网页中的“点击一次”按钮。',
+    workflow:workflow([{stepId:'assert-1',op:'assert',locatorKind:'css',selector:'#click-count',text:'0'}]),target}),
+    {code:'E_AI_MISSING_ACTION'});
+  const openDesk={...fill,text:'OpenDesk'};
+  assert.throws(()=>prepareDirectExecution({request:'在搜索关键词输入框填入 OpenDesk，然后点击搜索按钮。',
+    workflow:workflow([openDesk]),target}),{code:'E_AI_MISSING_ACTION'});
+  assert.equal(prepareDirectExecution({request:'在搜索关键词输入框填入 OpenDesk，然后点击搜索按钮。',
+    workflow:workflow([openDesk,{...click,locatorKind:'role',selector:'button',roleName:'搜索'}]),target}).hasReadback,true);
 });

@@ -45,7 +45,9 @@ test('workflow default structure prioritizes AI conversation and hides advanced 
   assert.match(css,/#workbench-workflow:not\(\[hidden\]\)\{display:flex;flex-direction:column/);
   assert.match(css,/#workspace-dock:has\(> #workflow-dock:not\(\[hidden\]\)\[data-empty="true"\]\)/);
   assert.match(view,/deriveWorkflowViewState\(/);
-  assert.match(view,/preview\.replaceChildren\(\)/);
+  assert.match(view,/deriveWorkflowViewState\(\{phase,proposal:false,hasSteps/);
+  assert.doesNotMatch(view,/renderProposal\(/);
+  assert.match(view,/prepareDirectExecution\(/);
   assert.match(view,/get\('workflow-provider-settings'\)\.open=true/);
   assert.match(view,/get\('workflow-chat-intro'\)\.hidden=/);
   assert.match(view,/lastRun=completed\?\.state===/);
@@ -106,7 +108,7 @@ test('R15.3 compact workflow header and composer use meaningful icons without re
   assert.doesNotMatch(view,/workflow-head-site|workflow-provider-summary/);
   assert.match(view,/warning.hidden=!mismatch/);
   assert.match(view,/savedStatus.hidden=!revision/);
-  assert.match(view,/workflow-plan-panel'\)\.hidden=!hasSteps \|\| Boolean\(proposal\)/);
+  assert.match(view,/workflow-plan-panel'\)\.hidden=!hasSteps/);
   assert.match(view,/workflow-result-panel'\)\.hidden=!\['success','failed'\]\.includes\(lastRun\)/);
 });
 
@@ -149,7 +151,10 @@ test('workflow R1.7 creates from one header menu and keeps setup or diagnostics 
   assert.match(settings,/<details id="workflow-provider-privacy"[^>]*>\s*<summary>数据与隐私<\/summary>/);
   assert.match(settings,/<details id="workflow-local-diagnostics"[^>]*>\s*<summary>连接诊断<\/summary>/);
   assert.match(settings,/id="workflow-local-connect"/);
-  assert.doesNotMatch(settings,/撤销网页摘要授权|摘要授权 30 分钟有效/);
+  assert.doesNotMatch(header,/撤销网页摘要授权|摘要授权 30 分钟有效/);
+  const privacy=settings.slice(settings.indexOf('id="workflow-provider-privacy"'),settings.indexOf('id="workflow-local-settings"'));
+  for(const id of ['workflow-observation-scope','workflow-observation-revoke'])
+    assert.match(privacy,new RegExp('id="'+id+'"'));
   assert.match(css,/\.workflow-create-menu\[hidden\]\{display:none!important\}/);
   assert.match(css,/\.workflow-connection-line #workflow-local-connect\[hidden\]\{display:none!important\}/);
   assert.match(view,/state\.ready\?'Codex 已就绪':state\.message/);

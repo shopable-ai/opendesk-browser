@@ -63,13 +63,36 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     ? SESSION_PREFIX + currentPageTarget.windowId:null;
   let disposed=false,busy=false,runId=null,revision=null,compileToken=0,compiled=null;
   let lastTrustedRun=null; // UI hint only, original Task Verify must validate the real receipt.
-  let proposal=null,proposalBase=null,proposalSerial=null,touched=false,saveList=[],draftWrites=Promise.resolve();
+  let touched=false,saveList=[],draftWrites=Promise.resolve();
   let directVerifiedSerial=null; // Verified fill source is the same byte sequence saved later.
   let phase='idle',lastRun='none',hasError=false,newReviewSignature=null;
-  let planningGeneration=0,planningAbort=null,pendingApproval=null,localChecking=false;
+  let planningGeneration=0,planningAbort=null,planningTarget=null,pendingApproval=null,localChecking=false;
+  let observationApproval=null,planningObservation=null,approvalWrites=Promise.resolve();
   let localCapability={state:'UNKNOWN',readyForTurn:false},aiCleanup=Promise.resolve();
   let workflow=emptyWorkflow(currentPageTarget?.snapshot?.origin || '',crypto.randomUUID());
   const localPlanner=createLocalCodexPlanner({client});
+  const approvalKey=()=>session()?session()+':observation':null;
+  function validObservationApproval(row) {
+    const grant=observationApproval,now=Date.now();
+    return grant?.sessionId===row.sessionId&&Boolean(row.sessionId)&&
+      grant.origin===row.captured.origin&&grant.scope==='semantic-dom-summary-v1'&&
+      Number.isSafeInteger(grant.approvedAt)&&Number.isSafeInteger(grant.expiresAt)&&
+      grant.approvedAt<=now&&grant.expiresAt>now&&grant.expiresAt-grant.approvedAt===30*60*1000&&
+      row.sessionId===localPlanner.snapshot().sessionId&&row.selected==='local_codex';
+  }
+  function persistObservationApproval() {
+    const key=approvalKey(),value=observationApproval;if(!key)return;
+    approvalWrites=approvalWrites.then(()=>api.storage.session.set({[key]:value})).catch(()=>{});
+  }
+  function renderObservationApproval() {
+    const grant=observationApproval,active=validObservationApproval({
+      sessionId:localPlanner.snapshot().sessionId,captured:{origin:currentOrigin()},selected:provider()
+    });
+    get('workflow-observation-scope').textContent=active
+      ?grant.origin+' → Codex：摘要授权 30 分钟有效，任务逐次绑定文档。'
+      :'当前对话未授权；读取前说明网站、接收方与操作范围。';
+    get('workflow-observation-revoke').disabled=!grant;
+  }
   const listeners=[];
   const listen=(element,event,fn)=>{
     element.addEventListener(event,fn);listeners.push([element,event,fn]);
@@ -130,14 +153,14 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     const hasMessages=Array.from(transcript.children).some(child=>child.dataset.speaker);
     const ready=provider()==='local_codex'?describeLocalCodex(localCapability).ready:
       provider()==='custom_https'&&Boolean(get('workflow-ai-key').value.trim() && get('workflow-ai-model').value.trim());
-    const mode=deriveWorkflowViewState({phase,proposal:Boolean(proposal),hasSteps,
+    const mode=deriveWorkflowViewState({phase,proposal:false,hasSteps,
       saved:Boolean(matchesRevision()),lastRun,error:hasError,providerReady:ready});
     get('workflow-editor').dataset.viewState=mode;
-    get('workflow-plan-panel').hidden=!hasSteps || Boolean(proposal);
-    get('workflow-params-panel').hidden=!hasSteps || Boolean(proposal) || (!hasParams && !hasActions);
+    get('workflow-plan-panel').hidden=!hasSteps;
+    get('workflow-params-panel').hidden=!hasSteps || (!hasParams && !hasActions);
     get('workflow-run-consent').hidden=!hasActions;
     get('workflow-result-panel').hidden=!['success','failed'].includes(lastRun);
-    get('workflow-chat-intro').hidden=hasSteps || hasMessages || Boolean(proposal) || phase==='planning';
+    get('workflow-chat-intro').hidden=hasSteps || hasMessages || phase==='planning';
     transcript.hidden=!hasMessages;
     get('workflow-planning-indicator').hidden=phase!=='planning';
     get('workflow-dock').dataset.empty=String(!hasSteps&&!runId);
@@ -153,6 +176,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         ?'当前网站不匹配，请打开 '+site+' 后运行。'
         :'请打开 '+site+' 后运行。';
     }
+    renderObservationApproval();
   }
   function updateButtons() {
     if(disposed)return;
@@ -163,7 +187,6 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     get('workflow-candidate').disabled=busy || !matchesRevision();
     get('workflow-stop').disabled=!runId || host.currentRun!==runId;
     get('workflow-open-code').disabled=!compiled;
-    get('workflow-ai-apply').disabled=!proposal || busy;
     get('workflow-ai-plan').disabled=busy||provider()==='opendesk_cloud';
     get('workflow-ai-plan').hidden=phase==='planning';
     get('workflow-ai-cancel').hidden=phase!=='planning';
@@ -200,7 +223,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   function edited() {
     
     dismissNewReview();
-    touched=true;proposal=null;proposalBase=null;proposalSerial=null;get('workflow-ai-proposal').hidden=true;
+    touched=true;
     hasError=false;lastRun='none';
     get('workflow-status').hidden=true;get('workflow-status').textContent='';
     persistDraft();void updateCode();
@@ -388,8 +411,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     void stopPlanning({close:true}).catch(()=>{});
     workflow=clean;lastTrustedRun=null;
     directVerifiedSerial=record.verificationMode==='fill-readback'?stable():null;
-    revision=record;touched=true;proposal=null;proposalBase=null;proposalSerial=null;lastRun='none';hasError=false;
-    get('workflow-ai-proposal').hidden=true;
+    revision=record;touched=true;lastRun='none';hasError=false;
     render();persistDraft();
     status('已打开冻结版本 r'+record.revision+'；运行不会调用 AI');
   }
@@ -422,7 +444,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     const run=view?.run,result=view?.results?.find(row=>row.runId===runId);
     get('workflow-technical').textContent=JSON.stringify({
       runId,state:run?.state||'unknown',revision:run?.revision||null,
-      resultId:result?.resultId||null,retirement:run?.retirementState||null},null,2);
+      resultId:result?.resultId||null,sourceHash:run?.revision?.sourceHash||null,
+      resultSourceHash:result?.revision?.sourceHash||null,documentId:run?.target?.documentId||null,
+      workerRetired:run?.workerRetired===true,retirement:run?.retirementState||null},null,2);
     const raw=get('workflow-raw'),reveal=get('workflow-result-raw');
     raw.textContent='';reveal.hidden=true;reveal.open=false;
     if(!result){get('workflow-output').textContent='后台尚无可核对的 Durable Result；未知状态不得自动重放。';return false;}
@@ -472,6 +496,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       await currentPageTarget.revalidate(captured);
       if(prepared&&!await api.permissions.contains({origins:[permissionPattern(captured.url)]}))
         throw err('E_PERMISSION','运行前网站权限已撤销；未执行');
+      prepared?.assertCurrent?.();
       const saved=revision && revision.workflow.workflowId===freeze.workflow.workflowId &&
         revision.sourceHash===freeze.sourceHash &&
         JSON.stringify(revision.workflow)===JSON.stringify(freeze.workflow);
@@ -482,6 +507,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         target:{mode:'borrowed',tabId:captured.tabId,frameId:0,documentId:captured.documentId,
           expectedUrl:captured.url,expectedWindowId:captured.windowId},deadlineAt:Date.now()+30000});
       runId=claim.runId;onRunOwner(runId);updateButtons();
+      if(prepared?.signal?.aborted){
+        await host.stop({controller:true,runId:claim.runId,reason:'E_CANCELLED'});
+        throw err('E_CANCELLED','已停止，不重放');
+      }
       status('运行中 · '+runId+'；编辑草稿不会改变本次冻结版本');
       const completed=await host.completion;
       if(completed?.state==='paused_unknown'||completed?.pendingSettlement)
@@ -569,36 +598,6 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     status('候选已提交。任务目录会按固定身份定位版本；有同版真实成功记录时预填运行 ID，仍须手动核对、设为可用并确认安装。');
     openCatalog();
   }
-  function renderProposal(result) {
-    const preview=get('workflow-ai-preview');preview.replaceChildren();
-    for(const step of result.steps) {
-      const item=node(doc,'li');
-      item.append(node(doc,'strong',OP_LABELS[step.op]||step.op));
-      const parts=[];
-      if(step.op==='navigate') {
-        const url=new URL(step.url);
-        parts.push('同站路径 '+url.pathname+url.search+url.hash);
-      }
-      if(step.selector) {
-        const names={css:'CSS',role:'角色',label:'标签',text:'文字',testId:'测试标识'};
-        parts.push((names[step.locatorKind]||'定位')+' '+JSON.stringify(step.selector)+
-          (step.roleName?' / 名称 '+JSON.stringify(step.roleName):''));
-      }
-      if(step.param)parts.push('使用参数 '+step.param);
-      else if(step.op==='fill')parts.push('填写 '+JSON.stringify(step.text));
-      if(step.op==='assert')parts.push('应包含 '+JSON.stringify(step.text));
-      if(step.op==='wait')parts.push('等待上限 '+(step.timeout??10000)+' 毫秒');
-      if(step.op==='observe')parts.push('读取已授权页面的结构与文字摘要');
-      const hint=parts.join(' · ');
-      item.append(node(doc,'span',hint.length>220?hint.slice(0,220)+'…':hint));
-      if(hint.length>220) {
-        const details=node(doc,'details',undefined,'od-disclosure od-disclosure--flat');
-        details.append(node(doc,'summary','查看完整定位和值'),node(doc,'span',hint));
-        item.append(details);
-      }
-      preview.append(item);
-    }
-  }
   function openAISettings(focus='workflow-ai-provider') {
     get('workflow-provider-settings').open=true;
     get('workflow-provider-toggle').setAttribute('aria-expanded','true');
@@ -622,7 +621,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     get('workflow-local-settings').hidden=!local;
     get('workflow-custom-settings').hidden=!custom;
     get('workflow-provider-scope').textContent=local
-      ?'Codex 在本机管理对话，模型推理可能联网；已同意的内容可能保存在 Codex 本机对话中。使用官方 CLI 登录，请勿填写 Codex 登录凭据。网页摘要仍需针对本次文档明确批准。'
+      ?'Codex 在本机管理对话，模型推理可能联网；已同意的内容可能保存在 Codex 本机对话中。使用官方 CLI 登录，请勿填写 Codex 登录凭据。网页摘要按当前对话、网站与摘要范围授权，任务逐次绑定文档。'
       :custom?'需求和经最小化处理的工作流内容发送到你配置的 HTTPS 模型接口；API Key 只保存在当前窗口，不用于本机浏览器工具。'
       :'OpenDesk 官方 AI 服务目前尚未开放。';
     updateLocalStatus();updateButtons();
@@ -664,6 +663,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     if(close)localCapability={...localCapability,inferenceVerified:false};
     planningAbort?.abort(err('E_CANCELLED','AI 规划已停止'));
     planningAbort=null;
+    planningTarget=null;
     pendingApproval?.settle({decision:'deny'});
     void Promise.resolve(observation.cancel()).catch(error=>{
       if(!disposed&&planningGeneration===stoppedGeneration)status(format(error),true);
@@ -689,7 +689,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   function offerObservation(event,context,{epoch,serial,selected,captured,request}) {
     planningCurrent(epoch,serial,selected);
     return new Promise(resolve=>{
-      const row={event,context,epoch,serial,selected,captured,request,settled:false,processing:false,
+      const row={event,context,epoch,serial,selected,captured,request,
+        sessionId:localPlanner.snapshot().sessionId,settled:false,processing:false,
         settle(answer){
           if(row.settled)return;row.settled=true;
           context.signal.removeEventListener('abort',abort);
@@ -700,12 +701,22 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       context.signal.addEventListener('abort',abort,{once:true});
       if(context.signal.aborted){abort();return;}
       pendingApproval=row;
-      get('workflow-ai-approval-title').textContent='允许读取当前网页摘要？';
-      get('workflow-ai-approval-scope').textContent='Codex 请求读取 '+new URL(captured.url).host+
-        ' 的网页结构、元素名称与文字摘要，并发送给本次模型。摘要可能包含页面上的敏感文字。只允许本次选中的文档；不包含截图。';
-      get('workflow-ai-approve').disabled=false;get('workflow-ai-deny').disabled=false;
-      get('workflow-ai-approval').hidden=false;
-      get('workflow-ai-deny').focus?.({preventScroll:true});
+      (async()=>{
+        row.siteGranted=await api.permissions.contains({origins:[permissionPattern(captured.url)]});
+        planningCurrent(epoch,serial,selected);
+        if(row.settled||context.signal.aborted)return;
+        if(row.siteGranted&&validObservationApproval(row)){
+          await processObservation(row,Promise.resolve(true));return;
+        }
+        get('workflow-ai-approval-title').textContent='允许本次网页任务？';
+        get('workflow-ai-approval-scope').textContent='网站：'+captured.origin+
+          ' → 本机 Codex：最多 24 项结构、名称、相关文字，可能含敏感文字；无截图/完整 URL。任务：'+request+
+          ' 同网站、对话、摘要范围有效 30 分钟，AI 设置可撤销；逐次绑定文档。'+
+          (row.siteGranted?'':'还需 Chrome 网站权限确认。');
+        get('workflow-ai-approve').disabled=false;get('workflow-ai-deny').disabled=false;
+        get('workflow-ai-approval').hidden=false;
+        get('workflow-ai-deny').focus?.({preventScroll:true});
+      })().catch(error=>{row.settle({decision:'deny'});if(!disposed)status(format(error),true);});
     });
   }
   function answerObservation(event,approved) {
@@ -720,15 +731,19 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         throw err('E_DOCUMENT_STALE','网页已变化，请重新规划后确认读取');
       // A real click issues the website permission request synchronously. The
       // Agent's consent cannot stand in for this Chrome permission.
-      permission=api.permissions.request({origins:[permissionPattern(row.captured.url)]});
+      permission=row.siteGranted?Promise.resolve(true):api.permissions.request({origins:[permissionPattern(row.captured.url)]});
     }catch(error){row.settle({decision:'deny'});status(format(error),true);return;}
+    void processObservation(row,permission,true);
+  }
+  async function processObservation(row,permission,remember=false) {
     // Move focus before disabling the buttons; browsers can otherwise blur to body.
     focusOutside('workflow-ai-approval');
     row.processing=true;get('workflow-ai-approve').disabled=true;get('workflow-ai-deny').disabled=true;
-    get('workflow-ai-approval-title').textContent='正在读取已批准的网页…';
-    (async()=>{
+    get('workflow-ai-approval-title').textContent='正在读取网页…';
+    try{
       if(!await permission)throw err('E_AI_PERMISSION','网页授权被拒绝，未读取网页');
       planningCurrent(row.epoch,row.serial,row.selected);
+      if(!remember&&!validObservationApproval(row))throw err('E_AI_APPROVAL','摘要授权已失效');
       if(row.context.signal.aborted)throw err('E_CANCELLED','网页观察已停止');
       const receipt=await observation.observe(row.captured,{signal:row.context.signal,requestId:row.context.requestId,request:row.request});
       await currentPageTarget.revalidate(row.captured);
@@ -736,11 +751,20 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         throw err('E_PERMISSION','网站权限已撤销，未向 AI 发送观察结果');
       planningCurrent(row.epoch,row.serial,row.selected);
       if(row.context.signal.aborted)throw err('E_CANCELLED','网页观察已停止');
+      if(remember){
+        if(!row.sessionId||row.sessionId!==localPlanner.snapshot().sessionId)
+          throw err('E_AI_APPROVAL','接收方已变，未发摘要');
+        const approvedAt=Date.now();
+        observationApproval={sessionId:row.sessionId,origin:row.captured.origin,
+          scope:'semantic-dom-summary-v1',approvedAt,expiresAt:approvedAt+30*60*1000};
+        persistObservationApproval();renderObservationApproval();
+      }else if(!validObservationApproval(row))throw err('E_AI_APPROVAL','授权失效，未发摘要');
+      planningObservation=receipt;
       row.settle({decision:'approve',result:receipt});
-    })().catch(error=>{
+    }catch(error){
       row.settle({decision:'deny'});
       if(!disposed&&row.epoch===planningGeneration)status(format(error),true);
-    });
+    }
   }
   async function plan(event) {
     if(!event.isTrusted||busy)return;
@@ -765,7 +789,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       // Later model output cannot generate a new Chrome permission gesture.
       const origins=[permissionPattern(captured.url)];
       if(selected==='custom_https')origins.push(permissionPattern(frozen.endpoint));
-      permission=api.permissions.request({origins:[...new Set(origins)]});
+      // The existing task approval supplies the real gesture for a missing site
+      // grant. A local task with valid permission does not request it again.
+      permission=selected==='local_codex'?Promise.resolve(true):api.permissions.request({origins:[...new Set(origins)]});
     }catch(error){
       if(error?.code==='E_AI_CONFIG')openAISettings(
         provider()==='custom_https'?'workflow-ai-key':'workflow-ai-provider');
@@ -773,9 +799,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       status(format(error),true);return;
     }
     
-    const epoch=++planningGeneration,abort=new AbortController();planningAbort=abort;
-    busy=true;phase='planning';hasError=false;proposal=null;proposalBase=null;proposalSerial=null;
-    get('workflow-ai-proposal').hidden=true;get('workflow-ai-progress').hidden=true;
+    const epoch=++planningGeneration,abort=new AbortController();planningAbort=abort;planningTarget=captured;planningObservation=null;
+    busy=true;phase='planning';hasError=false;
+    get('workflow-ai-progress').hidden=true;
     get('workflow-ai-progress').replaceChildren();
     get('workflow-planning-indicator').textContent=frozen.selected==='local_codex'
       ?'正在连接本机 Codex…':'正在请求所选 HTTPS 模型…';
@@ -832,7 +858,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       }
       planningCurrent(epoch,frozen.serial,frozen.selected);
       if(get('workflow-provider-settings').open)closeAISettings();
-      const prepared=prepareDirectExecution({request:frozen.request,workflow:result,target:captured});
+      const prepared=prepareDirectExecution({request:frozen.request,workflow:result,target:captured,observation:planningObservation});
       const freeze=await compileWorkflow(result,{verifyFill:true});
       planningCurrent(epoch,frozen.serial,frozen.selected);
       if(!await permission)throw err('E_PERMISSION','网站权限未授权，未执行浏览器操作');
@@ -842,9 +868,11 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       planningCurrent(epoch,frozen.serial,frozen.selected);
       workflow=structuredClone(result);touched=true;revision=null;lastTrustedRun=null;
       directVerifiedSerial=stable();
-      proposal=null;proposalBase=null;proposalSerial=null;
-      get('workflow-ai-proposal').hidden=true;render();persistDraft();
-      const execution=await run(null,{freeze,captured,params:prepared.params,hasReadback:prepared.hasReadback,permission:Promise.resolve(true)});
+      render();persistDraft();
+      const executionSerial=stable();
+      const execution=await run(null,{freeze,captured,params:prepared.params,hasReadback:prepared.hasReadback,
+        permission:Promise.resolve(true),signal:abort.signal,
+        assertCurrent:()=>planningCurrent(epoch,executionSerial,frozen.selected)});
       if(execution?.ok) {
         appendChat('执行结果','已通过 RunHost 执行并核对回执：'+execution.runId+' / '+execution.resultId+
           (prepared.hasUnprovenClick?'。点击后的业务效果仍需单独验证。':
@@ -861,7 +889,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       }
     }
     finally{
-      if(epoch===planningGeneration){busy=false;phase='idle';planningAbort=null;pendingApproval?.settle({decision:'deny'});
+      if(epoch===planningGeneration){busy=false;phase='idle';planningAbort=null;planningTarget=null;pendingApproval?.settle({decision:'deny'});
         get('workflow-ai-progress').hidden=true;if(!disposed){updateLocalStatus();updateButtons();}}
     }
   }
@@ -909,8 +937,15 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   listen(get('workflow-ai-provider'),'change',()=>{
     
     void stopPlanning({close:true}).catch(()=>{});
-    proposal=null;proposalBase=null;proposalSerial=null;get('workflow-ai-proposal').hidden=true;
     renderProvider();if(get('workflow-provider-settings').open)void refreshLocal();
+  });
+  listen(get('workflow-observation-revoke'),'click',event=>{
+    if(!event.isTrusted)return;
+    observationApproval=null;persistObservationApproval();renderObservationApproval();
+    void stopPlanning().catch(error=>status(format(error),true));
+    if(runId&&host.currentRun===runId)
+      void host.stop({controller:true,runId,reason:'E_PERMISSION'}).catch(error=>status(format(error),true));
+    status('已撤权并停止任务；模型已收内容无法撤回。');
   });
   for(const id of ['workflow-ai-key','workflow-ai-model','workflow-ai-endpoint'])
     listen(get(id),'input',()=>{updateButtons();});
@@ -954,7 +989,6 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     if(!event.isTrusted||busy)return;
     showCreateMenu(false);
     get('workflow-ai-transcript').replaceChildren();
-    proposal=null;proposalBase=null;proposalSerial=null;get('workflow-ai-proposal').hidden=true;
     get('workflow-ai-request').focus?.({preventScroll:true});
     const stopped=stopPlanning({close:true,remember:true}),epoch=planningGeneration;
     void stopped.then(()=>{
@@ -982,9 +1016,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     dismissNewReview();
     void stopPlanning({close:true}).catch(()=>{});
     workflow=emptyWorkflow(currentOrigin()||'',crypto.randomUUID());directVerifiedSerial=null;
-    revision=null;touched=true;proposal=null;proposalBase=null;proposalSerial=null;lastRun='none';hasError=false;phase='idle';
+    revision=null;touched=true;lastRun='none';hasError=false;phase='idle';
     get('workflow-ai-transcript').replaceChildren();
-    get('workflow-ai-proposal').hidden=true;
     get('workflow-manage-panel').hidden=true;
     get('workflow-history-toggle').setAttribute('aria-expanded','false');
     get('workflow-ai-request').value='';
@@ -992,11 +1025,11 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     get('workflow-ai-request').focus?.({preventScroll:true});
     status('');
   }
-  const workflowReviewSignature=()=>JSON.stringify([workflow,proposal,phase]);
+  const workflowReviewSignature=()=>JSON.stringify([workflow,phase]);
   listen(get('workflow-new'),'click',event=>{
     if(!event.isTrusted||busy&&phase!=='planning')return;
     showCreateMenu(false);
-    const dirty=Boolean(workflow.steps.length || proposal ||
+    const dirty=Boolean(workflow.steps.length ||
       workflow.title!=='新工作流' || workflow.description) && !matchesRevision();
     if(dirty){
       newReviewSignature=workflowReviewSignature();
@@ -1064,16 +1097,14 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   listen(get('workflow-refresh'),'click',()=>{void refreshSaved().catch(error=>status(format(error),true));});
   listen(get('workflow-load'),'click',()=>{void loadSaved().catch(error=>status(format(error),true));});
   listen(get('workflow-ai-plan'),'click',plan);
-  listen(get('workflow-ai-apply'),'click',event=>{
-    if(!event.isTrusted||!proposal||proposalBase!==workflow.workflowId||busy)return;
-    if(proposalSerial!==stable()) {status('草稿已改变，请重新生成并检查建议后再采用。',true);return;}
-    workflow=structuredClone(proposal);proposal=null;proposalBase=null;proposalSerial=null;
-    appendChat('系统','建议步骤已被你采用；可以继续提出修改需求或直接编辑。');
-    hidePanel('workflow-ai-proposal');render();persistDraft();
-    status('已采用 AI 语义步骤；定位仍待真实浏览器检查，保存与运行需要单独操作');
-  });
   const unsubscribePage=currentPageTarget?.subscribe(next=>{
     if(disposed)return;
+    if(observationApproval&&next.status==='available'&&next.origin!==observationApproval.origin){
+      observationApproval=null;persistObservationApproval();
+    }
+    if(planningTarget&&(['windowId','tabId','frameId','documentId','url','origin']
+      .some(key=>next[key]!==planningTarget[key])||next.status!=='available'))
+      void stopPlanning().catch(error=>status(format(error),true));
     if(!touched&&!workflow.siteOrigin&&next.status==='available') {
       workflow.siteOrigin=next.origin;render();persistDraft();
     }else{get('workflow-site-note').textContent=next.status==='available'
@@ -1090,11 +1121,21 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     if(state.nativeConnected===false||!state.protocolAvailable)localCapability=state;
     updateLocalStatus();updateButtons();
   });
+  const removedPermissions=async grant=>{
+    if(!grant.origins?.length&&!grant.permissions?.includes('nativeMessaging'))return;
+    if(!grant.permissions?.includes('nativeMessaging')&&(!observationApproval||
+      await api.permissions.contains({origins:[observationApproval.origin+'/*']})))return;
+    observationApproval=null;persistObservationApproval();
+    void stopPlanning().catch(error=>status(format(error),true));
+    if(!disposed)renderObservationApproval();
+  };
+  api.permissions.onRemoved?.addListener(removedPermissions);
   (async()=>{
     await currentPageTarget?.ready;
     const key=session();
     if(key){
-      const saved=(await api.storage.session.get(key))[key];
+      const stored=await api.storage.session.get([key,approvalKey()]),saved=stored[key];
+      observationApproval=stored[approvalKey()]||null;
       if(!touched&&saved?.format==='opendesk.workflow.v1' &&
         saved.workflowId?.startsWith('wf-') && JSON.stringify(saved).length<50000) {
         // Restored drafts are untrusted until compiler validation at run/save.
@@ -1112,6 +1153,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     planningAbort?.abort(err('E_HOST_CLOSED','工作流窗口已关闭'));pendingApproval?.settle({decision:'deny'});
     localPlanner.dispose();void Promise.resolve(observation.dispose()).catch(()=>{});
     unsubscribePage?.();unsubscribeRun?.();unsubscribeNative?.();
+    api.permissions.onRemoved?.removeListener(removedPermissions);
     for(const [element,event,fn] of listeners)element.removeEventListener(event,fn);
     listeners.length=0;onRunOwner(null);
     // RunHost is owned and disposed by the existing ScriptEditor, not by this view.

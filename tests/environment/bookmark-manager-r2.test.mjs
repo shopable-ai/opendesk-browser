@@ -38,7 +38,7 @@ test('R2.4 official optional registration replaces all legacy host/UI/CI paths',
 test('R11.2 builds with v2 packer and independently declares Full Bookmark permission',async()=>{
   const pkg=await createSidebarToolPackage(root);
   assert.equal(pkg.id,'bookmark-manager');
-  assert.equal(pkg.version,'0.3.1');
+  assert.equal(pkg.version,'0.3.2');
   assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
   assert.deepEqual(pkg.capabilities,['browser.bookmarks.full','currentPage.read']);
   assert.equal(pkg.scripts.length,2);
@@ -436,4 +436,194 @@ test('R2.1 UI guards current-page identity and observes SDK events with teardown
   assert.match(ui,/E_BOOKMARK_EVENT_GAP/);
   assert.match(ui,/rememberDraft\(\);endWatch\(\)/);
   assert.match(ui,/addEventListener\?\.\('pagehide',endWatch/);
+});
+
+// Run the actual UI, model and service against the public SDK boundary. Timers
+// advance explicitly so recovery/teardown assertions cannot pass by timing luck.
+async function bookmarkUi(configure=()=>{}){
+  const dom=new Map(),timers=new Map(),lifecycle=new Map();let timerId=0;
+  const element=tag=>({tag,children:[],listeners:new Map(),dataset:{},style:{},
+    value:'',hidden:false,disabled:false,textContent:'',
+    addEventListener(type,handler){this.listeners.set(type,handler)},
+    setAttribute(){},focus(){},
+    append(...children){this.children.push(...children.flatMap(child=>
+      child.tag==='fragment'?child.children:[child]))},
+    replaceChildren(...children){this.children=[];this.append(...children)},
+    fire(type,event={}){return this.listeners.get(type)?.({preventDefault(){},target:this,...event})}
+  });
+  const rootNode={querySelector(selector){
+    if(!dom.has(selector))dom.set(selector,element('div'));
+    return dom.get(selector);
+  },querySelectorAll(){return [...dom.values()]},addEventListener(){}};
+  const ctx=createContext({URL,document:{createElement:element,
+    createDocumentFragment:()=>element('fragment')},OpenDeskTool:{root:rootNode},
+    setTimeout(fn,delay){const id=++timerId;timers.set(id,{fn,delay});return id},
+    clearTimeout(id){timers.delete(id)},
+    addEventListener(type,handler){lifecycle.set(type,handler)}});
+  for(const file of sources.slice(0,2))runInContext(await src(file),ctx);
+  const data=fullSdk(ctx,{roots:sample()});configure(data);
+  ctx.OpenDeskSDK={browser:data.sdk};
+  runInContext(await src('src/main.js'),ctx);
+  const settle=()=>new Promise(resolve=>setImmediate(resolve));
+  await settle();
+  const get=id=>rootNode.querySelector('#'+id);
+  const text=el=>el.textContent+el.children.map(text).join('');
+  return {data,get,timers,settle,text,
+    async click(id){get(id).fire('click');await settle()},
+    async tick(){
+      assert.equal(timers.size,1,'one polling/recovery timer must own the epoch');
+      const [id,{fn}]=timers.entries().next().value;timers.delete(id);fn();await settle();
+    },close(){lifecycle.get('pagehide')?.()}};
+}
+const failure=code=>Object.assign(new Error(code),{code});
+
+test('R2.5 watch-start transport failure schedules recovery before a fresh snapshot',async()=>{
+  let attempts=0;
+  const ui=await bookmarkUi(({sdk})=>{
+    const start=sdk.bookmarks.observe.start;
+    sdk.bookmarks.observe.start=async args=>{
+      if(!attempts++)throw failure('E_HOST_TIMEOUT');
+      return start(args);
+    };
+  });
+  assert.equal(ui.get('bm-workspace').hidden,false);
+  assert.equal(ui.timers.size,1,'transient start failure must arrange recovery');
+  assert.equal([...ui.timers.values()][0].delay,7000);
+  await ui.tick();
+  assert.equal(attempts,2);
+  assert.equal(ui.data.calls.filter(([op])=>op==='getTree').length,2);
+  assert.equal([...ui.timers.values()][0].delay,0,'reconcile the new snapshot immediately');
+  ui.close();
+});
+
+test('R2.5 repeated transport failure stops after three automatic retries; click can retry',async()=>{
+  let attempts=0;
+  const ui=await bookmarkUi(({sdk})=>{
+    sdk.bookmarks.observe.start=async()=>{attempts++;throw failure('E_HOST_TIMEOUT')};
+  });
+  for(let i=0;i<3;i++)await ui.tick();
+  assert.equal(attempts,4);
+  assert.equal(ui.timers.size,0);
+  assert.match(ui.get('bm-notice').textContent,/手动刷新/);
+  await ui.click('bm-refresh');
+  assert.equal(attempts,5);assert.equal(ui.timers.size,1);
+  ui.close();assert.equal(ui.timers.size,0);
+});
+
+test('R2.5 a real-click denial is never retried by timers',async()=>{
+  let attempts=0;
+  const ui=await bookmarkUi(({sdk})=>{
+    sdk.bookmarks.observe.start=async()=>{attempts++;throw failure('E_USER_GESTURE_REQUIRED')};
+  });
+  assert.equal(attempts,1);assert.equal(ui.timers.size,0);
+  assert.match(ui.get('bm-notice').textContent,/手动刷新/);
+  await ui.click('bm-refresh');assert.equal(attempts,2);
+  ui.close();
+});
+
+test('R2.5 recovery budget spans restarted sessions until a successful event read',async()=>{
+  const ui=await bookmarkUi(({sdk})=>{
+    sdk.bookmarks.observe.read=async()=>{throw failure('E_HOST_TIMEOUT')};
+  });
+  await ui.tick();
+  for(let i=0;i<3;i++){await ui.tick();await ui.tick()}
+  assert.equal(ui.data.calls.filter(([op])=>op==='observe.start').length,4);
+  assert.equal(ui.timers.size,0,'restarting observation must not replenish the retry budget');
+  await ui.click('bm-refresh');await ui.tick();
+  assert.equal(ui.timers.size,1,'manual refresh replenishes the retry budget');
+  ui.close();
+});
+
+test('R2.5 manual refresh and pagehide fence already-queued recovery callbacks',async()=>{
+  let attempts=0;
+  const ui=await bookmarkUi(({sdk})=>{
+    const start=sdk.bookmarks.observe.start;
+    sdk.bookmarks.observe.start=async args=>{
+      if(!attempts++)throw failure('E_HOST_TIMEOUT');return start(args);
+    };
+  });
+  assert.equal(ui.timers.size,1);
+  const stale=[...ui.timers.values()][0].fn;
+  await ui.click('bm-refresh');
+  assert.equal(attempts,2);assert.equal(ui.timers.size,1);
+  stale();await ui.settle();
+  assert.equal(attempts,2,'old recovery must not start a replacement session');
+  assert.equal(ui.timers.size,1);
+  ui.close();assert.equal(ui.timers.size,0,'stale callback must not erase the active timer handle');
+  stale();await ui.settle();
+  assert.equal(attempts,2);assert.equal(ui.timers.size,0);
+});
+
+test('R2.5 pagehide cancels pending probe, observation and snapshot continuations',async()=>{
+  for(const stage of ['probe','start','snapshot']){
+    let finish,entered=false;
+    const pending=new Promise(resolve=>{finish=resolve});
+    const ui=await bookmarkUi(({sdk})=>{
+      const target=stage==='probe'?sdk.capabilities:
+        stage==='start'?sdk.bookmarks.observe:sdk.bookmarks;
+      const method=stage==='probe'?'list':stage==='start'?'start':'getTree';
+      const original=target[method];
+      target[method]=async args=>{
+        if(!entered){entered=true;await pending}
+        return original(args);
+      };
+    });
+    assert.equal(entered,true,stage);
+    ui.close();finish();await ui.settle();
+    assert.equal(ui.timers.size,0,stage+' must not resume polling after pagehide');
+    assert.equal(ui.text(ui.get('bm-list')),'',stage+' must not render late private data');
+    assert.equal(ui.data.calls.filter(([op])=>op==='getTree').length,
+      stage==='snapshot'?1:0,stage);
+    if(stage==='start')assert.equal(ui.data.calls.filter(([op])=>op==='observe.stop').length,1);
+  }
+});
+
+test('R2.5 observer permission failures clear authority and never schedule recovery',async()=>{
+  for(const stage of ['start','read']){
+    const ui=await bookmarkUi(({sdk})=>{
+      sdk.bookmarks.observe[stage]=async()=>{throw failure('E_CHROME_PERMISSION_REQUIRED')};
+    });
+    if(stage==='read')await ui.tick();
+    assert.equal(ui.get('bm-workspace').hidden,true,stage);
+    assert.equal(ui.get('bm-gate').hidden,false,stage);
+    assert.equal(ui.timers.size,0,stage);
+    ui.close();
+  }
+});
+
+test('R2.5 revoke while polling clears rendered private data and cancels recovery',async()=>{
+  const ui=await bookmarkUi(({sdk})=>{
+    sdk.bookmarks.observe.read=async()=>{throw failure('E_GRANT_REVOKED')};
+  });
+  assert.match(ui.text(ui.get('bm-list')),/other/);
+  await ui.click('bm-new-bookmark');
+  ui.get('bm-name').value='Private draft';ui.get('bm-url').value='https://private.example/';
+  ui.get('bm-detail-url').textContent='https://private.example/';
+  ui.get('bm-delete-desc').textContent='Private folder';
+  await ui.tick();
+  assert.equal(ui.get('bm-workspace').hidden,true);
+  assert.equal(ui.get('bm-gate').hidden,false);
+  assert.equal(ui.text(ui.get('bm-list')),'');
+  for(const id of ['bm-name','bm-url','bm-parent','bm-search'])assert.equal(ui.get(id).value,'',id);
+  for(const id of ['bm-detail-url','bm-delete-desc','bm-counter'])assert.equal(ui.get(id).textContent,'',id);
+  assert.equal(ui.get('bm-parent').children.length,0);
+  assert.equal(ui.timers.size,0);
+});
+
+test('R2.5 unknown mutation outcome is not replayed by observation recovery',async()=>{
+  let writes=0,reads=0;
+  const ui=await bookmarkUi(({sdk})=>{
+    const read=sdk.bookmarks.observe.read;
+    sdk.bookmarks.observe.read=async args=>{
+      if(!reads++)throw failure('E_HOST_TIMEOUT');return read(args);
+    };
+    sdk.bookmarks.create=async()=>{writes++;throw failure('E_OUTCOME_UNKNOWN')};
+  });
+  await ui.click('bm-new-folder');ui.get('bm-name').value='Uncertain';
+  ui.get('bm-parent').value='1';ui.get('bm-form').fire('submit');await ui.settle();
+  assert.equal(writes,1);assert.match(ui.get('bm-notice').textContent,/写入结果未知/);
+  await ui.tick();await ui.tick();
+  assert.equal(writes,1,'recovery only reads and observes; it must not resubmit the form');
+  assert.equal(ui.get('bm-name').value,'Uncertain');
+  ui.close();
 });

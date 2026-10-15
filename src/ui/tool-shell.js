@@ -105,7 +105,7 @@ const scheduleStatus=message=>{
 };
 scheduleUI=createScheduledTaskWorkbench({client:foundationClient,host:scriptEditor.host,taskWorkbench,
   api:chrome,document,onOpen:()=>scheduleStatus(scheduleHost?
-    '宿主已连接；到期时将通过现有执行槽运行':'没有活动运行页')});
+    scheduleHost.status:'没有活动运行页')});
 function startScheduledHost(){
   if(scheduleHost)return;
   scheduleHost=createScheduledTaskHost({client:foundationClient,host:scriptEditor.host,api:chrome,

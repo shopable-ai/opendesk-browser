@@ -757,13 +757,20 @@
 
 /* Scheduled Tasks R1: only a nested "我的" view, not a new production tab. */
 #scheduled-panel[hidden],#scheduled-panel [hidden]{display:none!important}
-.schedule-panel{min-width:0;display:grid;gap:var(--space-3);font-size:12px}
+.schedule-panel{min-width:0;display:grid;gap:var(--space-2);font-size:12px}
 .schedule-header,.schedule-actions,.schedule-card-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-width:0;flex-wrap:wrap}
 .schedule-header .hint{margin:4px 0 0}
 .schedule-panel .hint{font-size:12px;line-height:1.5;color:var(--od-sub);overflow-wrap:anywhere}
 #schedule-message:empty{display:none}
 #schedule-message[data-state=error]{color:var(--od-negative)}
-.schedule-panel .od-button{min-height:34px;font-size:12px}
+.schedule-list-utilities{justify-content:space-between}
+.schedule-list-utilities .hint{flex:1 1 140px;margin:0}
+.schedule-list-utilities .od-button{flex:none}
+#schedule-list-view{gap:var(--space-2)}
+.schedule-storage-details{margin-top:var(--space-2)}
+.schedule-empty{justify-items:center;padding-block:calc(var(--space-3) * 2);text-align:center}
+.schedule-empty-icon{font-size:calc(var(--space-3) * 2);line-height:1;color:var(--od-sub)}
+.schedule-empty .hint{margin:0;max-width:24em}
 .schedule-card,.schedule-manager-card{display:grid;gap:var(--space-2);min-width:0;padding:var(--space-3)}
 .schedule-card p,.schedule-manager-card p{margin:0}
 .schedule-card-head strong{font-size:13px;overflow-wrap:anywhere;min-width:0}
@@ -918,7 +925,7 @@
 /* Scheduled R2.6: one gutter, explicit reading hierarchy and non-destructive
  * timezone search. Scoped to the existing scheduled surface only. */
 .schedule-header{justify-content:flex-start;align-items:center}
-.schedule-header-heading{min-width:0;flex:1 1 130px}
+.schedule-header-heading{min-width:0;flex:1 1 auto}
 .schedule-header-heading strong,.schedule-header-heading .hint{overflow-wrap:anywhere}
 .schedule-header .od-page-actions{flex-wrap:wrap}
 .schedule-header #schedule-stop{margin-inline-start:auto}

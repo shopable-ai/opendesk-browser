@@ -295,3 +295,31 @@ test('failed close cannot release an unconfirmed live session slot',async t=>{
   assert.equal(f.responses.find(r=>r.requestId===next).error.code,'E_AI_LIMIT');
   assert.equal(f.sent.filter(r=>r.method==='ai.session.open').length,4);
 });
+
+test('Native v1 observation receipt omits local document proof without weakening the target fence',async t=>{
+  for(const documentId of ['doc-one','doc-other']) {
+    const target={windowId:2,tabId:3,frameId:0,documentId:'doc-one',url:'https://example.com/demo',origin:'https://example.com'};
+    const listeners={addListener(){},removeListener(){}};
+    const f=fixture({targetApi:{permissions:{onRemoved:listeners},tabs:{onUpdated:listeners,
+      get:async()=>({id:3,windowId:2,active:true,incognito:false,status:'complete',url:target.url}),
+      query:async()=>[{id:3,windowId:2,active:true,incognito:false,status:'complete',url:target.url}]},
+      webNavigation:{getAllFrames:async()=>[{frameId:0,documentId:'doc-one',url:target.url,documentLifecycle:'active'}]}}});
+    t.after(()=>f.service.disconnected());
+    f.request('ai.session.open');await until(()=>f.sent.length===1);
+    f.reply(f.sent[0],{sessionId:'session-one'});await until(()=>f.responses.length===1);
+    f.request('ai.plan.start',{target},'session-one');await until(()=>f.sent.length===2);
+    f.reply(f.sent[1],{sessionId:'session-one',threadId:'thread-one',turnId:'turn-one'});await until(()=>f.responses.length===2);
+    const result={format:'opendesk.workflow-observation.v1',runId:'run-one',resultId:'result-one',sourceHash:'a'.repeat(64),
+      summary:{kind:'semantic-dom-summary',origin:target.origin,documentId,nodes:[],truncated:false}};
+    const original=structuredClone(result);
+    const id=f.request('ai.approval.answer',{approvalId:'approval-one',decision:'approve',result},'session-one');
+    await until(()=>f.sent.length===3||f.responses.some(r=>r.requestId===id));
+    assert.deepEqual(result,original);
+    if(documentId==='doc-other') {
+      assert.equal(f.sent.length,2);assert.equal(f.responses.find(r=>r.requestId===id).error.code,'E_DOCUMENT_STALE');
+    } else {
+      const {documentId:localOnly,...summary}=original.summary;
+      assert.deepEqual(f.sent[2].params.result,{...original,summary});
+    }
+  }
+});

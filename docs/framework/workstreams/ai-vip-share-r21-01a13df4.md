@@ -95,3 +95,11 @@ R2.1 **未完成**。完成的是旧/新身份代理生命周期安全修复、�
 - 未 stash、提交、覆盖或改写这两份他人文件；未强推、创建分支/worktree/PR。仅暂停共享 Git 集成部分。正常 merge/push 拒绝原文已保存。
 - 本源码未成功推送，因此 CI `NOT_DISPATCHED`，没有可归属于本提交的 CI run URL。不能引用远端其他提交的 CI 冒充本轮 PASS。详见 [publication.json](evidence/ai-vip-share-r21-01a13df4/publication.json)。
 - 继续条件：R11 负责人交付获批 Managed Proxy 合同；真实 Provider 交付协议/线路；并行文件负责人完成交接后正常集成并验证实际受影响契约。当前其余安全可执行分支已完成。
+
+## 续接：安装与 Provider 失败态的独立原生验证
+
+- 上轮分类：PROGRESS（安全源码、组件/网络证据、两个本地提交）。本轮 fresh main 仍有相同并行未提交文件；R11 `chrome.proxy` 仍无 approvedOperationIds；远端再次推进，不能覆盖本地 owner 文件集成。
+- 本轮新增独占写入：`tests/framework/ai-vip-share-r21-install-ui.mjs`；本工作流；本工作流 evidence 下 `install-ui/`。不修改公共 SDK、src、共享 native helper、他人文件或日常 dist。
+- 测试资源：已有 `candidate-r2/dist/production` 固定字节，只读复用 build receipts；新建自己的 mock-keychain CFT/profile、动态 CDP 端口。用已有 Swift helper 对唯一自身 PID 执行真实原生动作；不注入安装记录、grant、Provider 响应或代理状态。
+- 新增验证理由：正式安装入口与真实 Provider 不可用 UI 先前 NOT_TESTED；缺 Provider 不阻止对已冻结历史候选补这部分证据。结果只绑定该包，不能冒充当前合并 main、公共 SDK、代理网络、F3 或 ZIP 验收。
+- 通过条件：真实 SIDE_PANEL → Catalog 审阅精确工具 → 安装 → 独立身份与真实不可用状态，后续按实际界面补停用/卸载/重装。未实际走到的流程保持 NOT_TESTED。

@@ -8,6 +8,76 @@ import {serializeSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js
 
 const project='examples/sidebar-tools/cookie-editor';
 const get=path=>readFile(path,'utf8');
+
+test('Editing or renaming preserves the exact untouched persistent expiration',async()=>{
+  const prior={name:'old',value:'fictional',domain:'example.com',path:'/',hostOnly:true,
+    secure:true,httpOnly:true,sameSite:'lax',session:false,storeId:'0',
+    expirationDate:Math.floor(Date.now()/1000)+86437.125};
+  const writes=[];
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{
+    getAll:async({partitionKey})=>partitionKey?[]:[prior],
+    get:async()=>({cookie:{...prior,valueRedacted:false}}),
+    set:async options=>{writes.push(options);return {saved:true,verified:true};},
+    remove:async()=>({removed:true,verified:true})
+  }});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
+  s.openEditor(s.liveSnapshot().rows[0]);s.getField('cookie-name').value='renamed';
+  await s.saveBrowserCookie();
+  assert.equal(writes.length,1);
+  assert.equal(writes[0].expirationDate,prior.expirationDate);
+  assert.equal(writes[0].value,prior.value);
+  assert.equal(writes[0].httpOnly,true);
+});
+
+test('Cancelled Chrome save retains input and reports that nothing was written',async()=>{
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{
+    getAll:async()=>[],
+    set:async()=>{throw Object.assign(new Error('Browser action cancelled'),{code:'E_CANCELLED'});}
+  }});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();s.openEditor();
+  s.getField('cookie-name').value='fictional';s.getField('cookie-value').value='keep-my-input';
+  await s.saveBrowserCookie();
+  assert.equal(s.getField('cookie-value').value,'keep-my-input');
+  assert.equal(s.getField('editor-panel').hidden,false);
+  assert.match(s.getStatusMessage(),/已取消.*未写入/);
+  assert.doesNotMatch(s.getStatusMessage(),/结果未知|切勿盲目重试/);
+});
+
+test('New and renamed cookies bind no-overwrite intent and keep the original on a late collision',async()=>{
+  const prior={name:'old',value:'fictional',domain:'example.com',path:'/',
+    hostOnly:true,session:true,storeId:'0'};
+  let writes=0,removals=0;
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{
+    getAll:async({partitionKey})=>partitionKey?[]:[prior],
+    get:async()=>({cookie:{...prior,valueRedacted:false}}),
+    set:async options=>{
+      writes++;assert.equal(options.ifAbsent,true);
+      throw Object.assign(new Error('确认期间出现同名 Cookie，未覆盖'),{code:'E_COOKIE_CONFLICT'});
+    },
+    remove:async()=>{removals++;return {removed:true,verified:true};}
+  }});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
+  s.openEditor(s.liveSnapshot().rows[0]);s.getField('cookie-name').value='new';
+  await s.saveBrowserCookie();
+  assert.equal(writes,1);assert.equal(removals,0);
+  assert.equal(s.getField('cookie-name').value,'new');
+  assert.equal(s.getField('editor-panel').hidden,false);
+  assert.match(s.getStatusMessage(),/E_COOKIE_CONFLICT/);
+  assert.match(s.getStatusMessage(),/未写入 Cookie，输入已保留/);
+  assert.doesNotMatch(s.getStatusMessage(),/结果未知/);
+  s.openEditor();s.getField('cookie-name').value='brand-new';s.getField('cookie-value').value='fictional';
+  await s.saveBrowserCookie();assert.equal(writes,2);assert.equal(removals,0);
+});
+
+test('Cookie no-overwrite condition is a typed option on the single public set contract',()=>{
+  const base={url:'https://example.com/',name:'fictional',value:'x',path:'/'};
+  assert.equal(normalizeBrowserOperation('browser.cookies.set',{...base,ifAbsent:true}).ifAbsent,true);
+  for(const ifAbsent of ['true',1,null])assert.throws(
+    ()=>normalizeBrowserOperation('browser.cookies.set',{...base,ifAbsent}),error=>error.code==='E_SCHEMA');
+  assert.throws(()=>normalizeBrowserOperation('browser.cookies.set',{
+    url:base.url,name:base.name,value:base.value,ifAbsent:true}),error=>error.code==='E_SCHEMA');
+});
+
 test('committed Cookie Editor bundle exactly matches canonical source packaging',async()=>{
   const generated=serializeSidebarToolPackage(await createSidebarToolPackage(project));
   const ready=await get(project+'/cookie-editor.opendesk-tool.json');
@@ -43,13 +113,12 @@ async function harness(browser=null,{currentPage=null,initialReadStarted=null,tr
   const instrument=source.replace(marker,
     'const pendingWork=new Set();const track=fn=>(...args)=>{const work=fn(...args);'+
     'pendingWork.add(work);Promise.resolve(work).then(()=>pendingWork.delete(work),()=>pendingWork.delete(work));return work;};'+
-    'refresh=track(refresh);readBrowserMetadata=track(readBrowserMetadata);prepareLiveImport=track(prepareLiveImport);'+
+    'refresh=track(refresh);readBrowserMetadata=track(readBrowserMetadata);'+
     (trackSaves?'saveBrowserCookie=track(saveBrowserCookie);':'')+
     'const settle=async()=>{while(pendingWork.size)await Promise.all([...pendingWork]);};'+
     'globalThis.__cookieTest={normalizeCookie,parseImport,exportText,saveToList,mergeImport,'+
     'sortCookies,parseTarget,redactMetadata,readBrowserMetadata,openEditor,saveBrowserCookie,nativeInput,'+
     'setLiveTarget:url=>{liveTarget=parseTarget(url);targetPending=false;liveRows=[];liveState="idle"},'+
-    'exportBrowserCookies,revealBrowserValue,secretCount:()=>liveSecrets.size,'+
     'setTargetPending:value=>{targetPending=value},'+
     'liveSnapshot:()=>({rows:liveRows,state:liveState,message:liveMessage}),'+
     'settle,render,getSiteHeading:()=>E("site-host").textContent,'+
@@ -747,135 +816,4 @@ test('P2 pending set cannot delete, read or replay after '+event,async()=>{
   assert.equal(rows[0].value,'HIDDEN_NATIVE_SECRET');
   assert.equal(s.liveSnapshot().rows.length,0);
   assert.equal(s.getStatusMessage(),message,'late receipt must not publish stale success');
-});
-
-test('R4.3 live toolbar placement and single inline editor contract',async()=>{
-  const s=await harness();
-  const live=s.html.slice(s.html.indexOf('id="browser-panel"'),s.html.indexOf('id="offline-tools"'));
-  const positions=['class="toolbar live-toolbar"','id="live-import"','id="live-export"',
-    'id="live-new"','id="live-filters"','id="live-cookie-list"'].map(x=>live.indexOf(x));
-  assert(positions.every((v,i)=>v>=0&&(!i||v>positions[i-1])));
-  for(const id of ['live-import','live-export','live-new']){
-    const tag=live.match(new RegExp('<button[^>]+id="'+id+'"[^>]+>'))?.[0];
-    assert(tag?.includes('title=')&&tag?.includes('aria-label='));
-    assert(tag.includes('icon-button'));
-  }
-  assert.equal((s.html.match(/id="editor-panel"/g)||[]).length,1);
-  assert.equal((s.html.match(/id="live-export-format"/g)||[]).length,1);
-  assert.match(s.source,/item\.append\(editor\)/);
-  assert.match(s.source,/confirmLiveImport/);
-  assert.match(s.html,/Cookie Header · 仅名称和值/);
-  assert.match(s.css,/\.live-toolbar \.icon-button\{width:34px;height:34px/);
-  const host=await get('src/ui/sidebar-tools.js');
-  assert.match(host,/允许查看与编辑本站 Cookie/);
-  assert.match(host,/仅查看 Cookie/);
-});
-
-test('R4.3 read-only live import can preview without writing and invalidates a changed draft',async()=>{
-  let writes=0;
-  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{
-    getAll:async()=>[],
-    getCurrentStore:async()=>({storeId:'0'}),
-    getPartitionKey:async()=>({partitionKey:{topLevelSite:'https://example.com',hasCrossSiteAncestor:false}}),
-    set:async()=>{writes++;return {saved:true,verified:true};}
-  }});
-  s.setSite('example.com');s.setLiveTarget('https://example.com/');
-  await s.readBrowserMetadata();
-  s.fire('live-import','click',{isTrusted:true});
-  s.getField('import-format').value='auto';
-  s.getField('import-text').value='sid=VALUE';
-  s.fire('import-text','input',{isTrusted:true});
-  s.fire('import-apply','click',{isTrusted:true});
-  await s.settle();
-  assert.equal(writes,0,'preparing must never ask for write permission or mutate Chrome');
-  assert.equal(s.getField('live-import-preview').hidden,false);
-  assert.equal(s.getField('live-import-confirm').hidden,false);
-  assert.match(s.getField('live-import-preview').textContent,/新增 1/);
-  s.getField('import-text').value='sid=OTHER';
-  // Native input events bubble to the importing form; the minimal Node DOM
-  // harness has no propagation engine, so deliver the bubbled event explicitly.
-  s.fire('import-panel','input',{isTrusted:true});
-  assert.equal(s.getField('live-import-confirm').hidden,true,'editing invalidates preview');
-  assert.equal(writes,0);
-});
-
-test('R4.3 text export rejects unrepresentable sensitive attributes rather than silently corrupting',async()=>{
-  const s=await harness();s.setSite('example.com');
-  const row=s.normalizeCookie({name:'sid',value:'abc;def'});
-  assert.throws(()=>s.exportText('header',[row]),/Header/);
-  assert.equal(s.exportText('json',[row]).includes('abc;def'),true);
-  const tabbed=s.normalizeCookie({name:'sid',value:'value\tpart'});
-  assert.throws(()=>s.exportText('netscape',[tabbed]),/Netscape/);
-});
-
-test('R4.3 idle unsaved draft survives an external page change until user confirms discarding',async()=>{
-  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},
-    cookies:{getAll:async()=>[],getPartitionKey:async()=>({partitionKey:{topLevelSite:'https://example.com'}})}});
-  s.setSite('example.com');s.setLiveTarget('https://example.com/');
-  await s.readBrowserMetadata();s.openEditor();
-  s.getField('cookie-value').value='LOCAL_UNSAVED_DRAFT';
-  s.fire('editor-form','input',{isTrusted:true});
-  s.fireRoot('opendesk-page-changed');
-  assert.equal(s.getField('confirm-panel').hidden,false,'dirty draft requires user review');
-  assert.equal(s.getField('editor-panel').hidden,false,'do not discard before approval');
-  assert.equal(s.getField('cookie-value').value,'LOCAL_UNSAVED_DRAFT');
-  s.fire('confirm-cancel','click',{isTrusted:true});
-  assert.equal(s.getField('editor-panel').hidden,false,'cancel must preserve draft');
-  assert.equal(s.getField('cookie-value').value,'LOCAL_UNSAVED_DRAFT');
-});
-
-test('R4.3.1 metadata export drops values even if Host overreturns',async()=>{
-  const downloads=[],reads=[];
-  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{
-    getAll:async args=>{reads.push(args);return args.partitionKey?[]:[
-      {name:'sid',domain:'example.com',path:'/',hostOnly:true,session:true,
-        value:'TOP_SECRET_EXCLUDE',valueRedacted:false}]},
-    getPartitionKey:async()=>({partitionKey:{topLevelSite:'https://example.com'}})
-  },downloads:{text:async x=>{downloads.push(x);return {started:true};}}});
-  s.setSite('example.com');s.setLiveTarget('https://example.com/');
-  await s.readBrowserMetadata();s.getField('live-export-content').value='metadata';
-  s.getField('live-export-format').value='json';await s.exportBrowserCookies();
-  assert.equal(downloads.length,1);assert.match(downloads[0].filename,/cookie-metadata\.json$/);
-  assert(!downloads[0].text.includes('TOP_SECRET_EXCLUDE'));
-  const json=JSON.parse(downloads[0].text);assert.equal(json.restoreSupported,false);
-  assert.equal(json.cookies[0].value,undefined);
-  assert(reads.every(args=>args.includeValues!==true));
-});
-test('R4.3.1 full backup does not download redacted values',async()=>{
-  let downloads=0;
-  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{
-    getAll:async args=>args.partitionKey?[]:[{name:'sid',domain:'example.com',path:'/',session:true,valueRedacted:true}],
-    getPartitionKey:async()=>({partitionKey:{topLevelSite:'https://example.com'}})
-  },downloads:{text:async()=>{downloads++;}}});
-  s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
-  s.getField('live-export-content').value='backup';s.getField('live-export-format').value='json';
-  await s.exportBrowserCookies();assert.equal(downloads,0);assert.match(s.getStatusMessage(),/敏感值权限/);
-});
-test('R4.3.1 grant changes retain draft but scrub previously revealed secret',async()=>{
-  const cookie={name:'sid',domain:'example.com',path:'/',hostOnly:true,session:true};
-  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{
-    getAll:async args=>args.partitionKey?[]:[cookie],
-    get:async()=>({cookie:{...cookie,value:'SECRET',valueRedacted:false}}),
-    getPartitionKey:async()=>({partitionKey:{topLevelSite:'https://example.com'}})
-  }});
-  s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
-  const row=s.liveSnapshot().rows[0];s.openEditor(row);
-  await s.revealBrowserValue(row);assert.equal(s.secretCount(),1);
-  s.getField('cookie-value').value='UNSAVED_MANUAL_VALUE';s.fire('editor-form','input',{isTrusted:true});
-  s.fireRoot('opendesk-cookie-grants-changed');
-  assert.equal(s.secretCount(),0);assert.equal(s.getField('cookie-value').value,'UNSAVED_MANUAL_VALUE');
-  assert.equal(s.getField('editor-panel').hidden,false);await s.settle();
-  s.openEditor(row);assert.equal(s.secretCount(),0);
-});
-test('R4.3.1 write preflight gates intent through existing trusted settings',async()=>{
-  const host=await get('src/ui/sidebar-tools.js');
-  const a=host.indexOf('const requiredCookieGrant=operation=');
-  const b=host.indexOf('cookieSiteRecord(tool,origin)?.[requiredCookieGrant]',a);
-  const c=host.indexOf('const ref=await requestBrowserClick',b);
-  assert(a>=0&&b>a&&c>b);
-  assert.match(host.slice(b,c),/tocSettingsOpen=true;render\(\)/);
-  assert.match(host.slice(b,c),/E_SITE_GRANT_REQUIRED/);
-  const s=await harness();assert.match(s.html,/id="live-export-content"/);
-  assert.match(s.html,/id="browser-editor-slot"/);
-  assert.match(s.css,/live-section-title \.count/);
 });

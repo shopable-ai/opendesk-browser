@@ -32,12 +32,12 @@ function reviewedCompiledTimeReview(target,path,root){
 // inputs are exact file-blob pinned; the bundle still has a fixed entry point,
 // a single output and independently enforced release/package identity.
 const compiledAdblockInputs=Object.freeze({
-  'examples/sidebar-tools/adblock/trusted/service.js':'b35906b8e1570f627e7ad0f75f1808cd0af0603f',
+  'examples/sidebar-tools/adblock/trusted/service.js':'efa40cb83e4825ea023a12585b30cf8ad498d7c2',
   'examples/sidebar-tools/adblock/trusted/policy.js':'6736074a6c4fe956f2ce62c6099df11f4daca6d4',
-  'examples/sidebar-tools/adblock/trusted/rules.js':'999e409ad0a71cb605cab0e711bb1c055ca563b8',
+  'examples/sidebar-tools/adblock/trusted/rules.js':'8100276a38117c3e6f88f04f65a4a6ea1a7cddc6',
   'examples/sidebar-tools/adblock/trusted/lifecycle.js':'f6789d278c59c8f4148ed0c0c4e55b29c68758d0',
   'examples/sidebar-tools/adblock/trusted/tool-host.js':'e967e44ec44e3d4085e517a6c11bd45e546df1b6',
-  'examples/sidebar-tools/adblock/trusted/host-controls.js':'cc228fe5fb36122114d00af1087779405d0674cc',
+  'examples/sidebar-tools/adblock/trusted/host-controls.js':'d43b940eb8e2ad78f10d4dfba606800e7b14fb58',
   'examples/sidebar-tools/adblock/rules/domains.js':'e78bbaea99f39b52cd3bc57d4379af68b166c2f9'
 });
 const preapprovedFixedTargets=new Set(['sw.js',...Object.values(FIXED_OUTPUTS)]);

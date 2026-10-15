@@ -11,21 +11,23 @@ import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {randomUUID,createHash} from 'node:crypto';
 import {setTimeout as pause} from 'node:timers/promises';
+import {sidebarToolPackageHash} from '../../src/ui/sidebar-tools/package.js';
 
-const BIN=process.env.CHROME_BIN,ROOT=path.resolve('dist/production');
+const BIN=process.env.CHROME_BIN,ROOT=path.resolve(process.env.OPENDESK_ADBLOCK_NATIVE_ROOT||'dist/production');
 const OUT=path.resolve(process.env.OPENDESK_ADBLOCK_NATIVE_EVIDENCE||'artifacts/adblock-r12-native');
 const ENABLED=process.env.OPENDESK_ADBLOCK_NATIVE==='1';
 const STORE='opendesk.adblock.state.v1',F=741000,L=741199;
 function connect(url){
-  const ws=new WebSocket(url),waiting=new Map();let serial=0;
+  const ws=new WebSocket(url),waiting=new Map(),events=[];let serial=0;
   const ready=new Promise((resolve,reject)=>{ws.onopen=resolve;ws.onerror=reject;});
   ws.onmessage=event=>{
-    const obj=JSON.parse(event.data),row=waiting.get(obj.id);if(!row)return;
+    const obj=JSON.parse(event.data),row=waiting.get(obj.id);
+    if(!row){if(obj.method){events.push(obj);if(events.length>5000)events.shift();}return;}
     waiting.delete(obj.id);clearTimeout(row.timeout);
     obj.error?row.reject(Error(JSON.stringify(obj.error))):row.resolve(obj.result);
   };
   ws.onclose=()=>{for(const row of waiting.values()){clearTimeout(row.timeout);row.reject(Error('CDP closed'));}};
-  return {ready,send(method,params={},sessionId){return new Promise((resolve,reject)=>{
+  return {ready,events,send(method,params={},sessionId){return new Promise((resolve,reject)=>{
     const id=++serial,timeout=setTimeout(()=>{waiting.delete(id);reject(Error('CDP timeout '+method));},18000);
     waiting.set(id,{resolve,reject,timeout});
     ws.send(JSON.stringify({id,method,params,...(sessionId?{sessionId}:{})}));
@@ -47,6 +49,7 @@ async function evaluate(c,s,expression){
 async function attach(c,targetId){
   const s=(await c.send('Target.attachToTarget',{targetId,flatten:true})).sessionId;
   await c.send('Runtime.enable',{},s);await c.send('Page.enable',{},s);
+  await c.send('Network.enable',{},s);
   return s;
 }
 async function click(c,session,selector){
@@ -101,12 +104,21 @@ async function screenshot(c,s,name){
   return {file:name+'.png',bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')};
 }
 async function probe(c,s,url){
-  return evaluate(c,s,'(()=>new Promise(resolve=>{'+
+  const result=await evaluate(c,s,'(()=>new Promise(resolve=>{'+
     'const pic=new Image();let completed=false;'+
     'const end=(success,reason)=>{if(completed)return;completed=true;resolve({success,reason});};'+
     'pic.onload=()=>end(true,"loaded");pic.onerror=()=>end(false,"error");'+
     'setTimeout(()=>end(false,"timeout"),9000);'+
     'pic.src='+JSON.stringify(url)+';document.body.append(pic);}))()');
+  const request=await until(()=>c.events.find(x=>x.sessionId===s&&
+    x.method==='Network.requestWillBeSent'&&x.params.request.url===url),'native network request');
+  const terminal=await until(()=>c.events.find(x=>x.sessionId===s&&
+    x.params?.requestId===request.params.requestId&&
+    ['Network.loadingFailed','Network.responseReceived'].includes(x.method)),'native network outcome');
+  const p=terminal.params,r=p.response;
+  return {...result,url,network:{event:terminal.method,requestId:p.requestId,type:p.type,
+    ...(r?{status:r.status,fromDiskCache:r.fromDiskCache,fromServiceWorker:r.fromServiceWorker}:{}),
+    ...(p.errorText?{errorText:p.errorText,blockedReason:p.blockedReason,canceled:p.canceled}:{})}};
 }
 async function getOwned(c,session){
   return evaluate(c,session,'(async()=>{'+
@@ -116,6 +128,24 @@ async function getOwned(c,session){
     'owned:all.filter(x=>x.id>='+F+'&&x.id<='+L+'),'+
     'focus:all.filter(x=>x.id>=730000&&x.id<=730199)};})()');
 }
+async function clickSandbox(c,side,frame,selector){
+  const point=await until(async()=>{
+    const p=await evaluate(c,frame,'(()=>{const x=document.querySelector('+JSON.stringify(selector)+');'+
+      'if(!x||x.disabled)return null;const r=x.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};})()');
+    if(!p)return null;
+    const f=await evaluate(c,side,'(()=>{const r=document.querySelector("#sidebar-tool-frame iframe").getBoundingClientRect();'+
+      'return {x:r.left,y:r.top,w:innerWidth,h:innerHeight};})()');
+    const x=f.x+p.x,y=f.y+p.y;
+    if(x<0||x>=f.w||y<90||y>=f.h-10){
+      await c.send('Input.dispatchMouseEvent',{type:'mouseWheel',x:Math.min(f.w-8,Math.max(8,x)),
+        y:Math.min(f.h-8,Math.max(100,f.y+40)),deltaX:0,deltaY:y<90?-230:230},side);return null;
+    }
+    const hit=await evaluate(c,side,'document.elementFromPoint('+x+','+y+')===document.querySelector("#sidebar-tool-frame iframe")');
+    return hit?{x,y}:null;
+  },'visible sandbox control '+selector);
+  for(const type of ['mousePressed','mouseReleased'])
+    await c.send('Input.dispatchMouseEvent',{type,...point,button:'left',clickCount:1},side);
+}
 test('macOS Chrome actual AdBlock DNR and network lifecycle',
   {skip:!ENABLED,timeout:680000},async t=>{
   assert.equal(process.platform,'darwin');
@@ -124,7 +154,8 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   const bytes=await readFile(path.join(ROOT,'official-tools/adblock/adblock.opendesk-tool.json'));
   const pkg=JSON.parse(bytes);
   assert.equal(pkg.id,'adblock');assert.equal(pkg.version,'1.0.0');
-  const report={candidate:process.env.GITHUB_SHA||null,
+  const report={candidate:process.env.GITHUB_SHA||spawnSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).stdout.trim(),
+    root:ROOT,driverSHA256:createHash('sha256').update(await readFile(new URL(import.meta.url))).digest('hex'),
     chromeBin:BIN,packageSHA256:createHash('sha256').update(bytes).digest('hex'),
     env:'real-macos-chrome',status:'NOT_TESTED',nativePermission:'NOT_TESTED',
     network:'NOT_TESTED',globalToggle:'NOT_TESTED',siteException:'NOT_TESTED',
@@ -132,10 +163,11 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
     workerRestart:'NOT_TESTED',browserRestart:'NOT_TESTED',
     revocation:'NOT_TESTED',uninstall:'NOT_TESTED',checks:[],screenshots:[]};
   const note=(name,record)=>{report.checks.push({name,...record});console.log('ADBLOCK_NATIVE '+name+' '+JSON.stringify(record));};
-  const counts={ad:0,normal:0,frameAd:0,framePage:0};
+  const counts={ad:0,normal:0,frameAd:0,framePage:0},serverRequests=[];
   let port;
   const server=createServer((req,res)=>{
     const uri=new URL(req.url,'http://placeholder'),hostname=(req.headers.host||'').split(':')[0];
+    serverRequests.push({at:new Date().toISOString(),hostname,path:uri.pathname,query:uri.search});
     res.setHeader('cache-control','no-store');res.setHeader('access-control-allow-origin','*');
     if(uri.pathname==='/page'){
       res.setHeader('content-type','text/html;charset=utf-8');
@@ -170,9 +202,11 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
     '--remote-debugging-address=127.0.0.1','--remote-debugging-port=0',
     '--user-data-dir='+profile,'--disable-extensions-except='+ROOT,
     '--load-extension='+ROOT,'about:blank'];
+  if(process.env.OPENDESK_ADBLOCK_CHROME_DIAGNOSTICS==='1')argv.unshift(
+    '--enable-logging=stderr','--vmodule=*declarative_net_request*=2,*ruleset*=2,*data_decoder*=2');
   const launch=()=>spawn(BIN,argv,{stdio:['ignore','ignore','pipe']});
   let chrome=launch(),client=null,errors='',passed=false;
-  const capture=p=>p.stderr.on('data',chunk=>errors=(errors+chunk).slice(-2000));
+  const capture=p=>p.stderr.on('data',chunk=>errors=(errors+chunk).slice(-300000));
   capture(chrome);
   t.after(async()=>{
     try{
@@ -180,8 +214,25 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
         try{
           const targets=(await client.send('Target.getTargets')).targetInfos;
           report.failedTargets=targets.map(x=>({type:x.type,url:x.url})).slice(0,20);
+          for(const target of targets.filter(x=>x.url.includes('/ui/tool.html'))){
+            try{
+              const session=await attach(client,target.targetId);
+              report.screenshots.push(await screenshot(client,session,'failure-'+target.targetId));
+              const diagnostic=await evaluate(client,session,'(async()=>({url:location.href,text:document.body.innerText,'+
+                'elements:[...document.querySelectorAll("#extension-center-list button,#sidebar-tool-preview,#sidebar-tool-install,#sidebar-tool-file-error,#notice")].map(x=>({id:x.id,text:x.textContent,hidden:x.hidden,disabled:x.disabled,rect:x.getBoundingClientRect().toJSON()})),'+
+                'storage:await chrome.storage.local.get(null),permissions:await chrome.permissions.getAll(),'+
+                'dynamic:await chrome.declarativeNetRequest?.getDynamicRules?.().catch(e=>({error:String(e)}))}))()');
+              await writeFile(path.join(OUT,'failure-'+target.targetId+'.json'),JSON.stringify(diagnostic,null,2)+'\n');
+            }catch(error){report.diagnosticError=String(error);}
+          }
+          const target=targets.find(x=>x.type==='service_worker'&&x.url.endsWith('/sw.js'));
+          if(target){
+            const session=(await client.send('Target.attachToTarget',{targetId:target.targetId,flatten:true})).sessionId;
+            report.workerLocks=await evaluate(client,session,'navigator.locks.query()');
+          }
         }catch{}
       }
+      if(client)await writeFile(path.join(OUT,'cdp-events.json'),JSON.stringify(client.events,null,2)+'\n');
       if(client)try{await client.send('Browser.close');}catch{}
       client?.close();
       if(chrome.exitCode===null&&chrome.signalCode===null){
@@ -193,7 +244,10 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
         await rm(profile,{recursive:true,force:true,maxRetries:3,retryDelay:200});
     }finally{
       report.success=passed;report.status=passed?'PASS':'FAIL_OR_BLOCKED_NATIVE';
+      report.serverCounts=counts;
+      await writeFile(path.join(OUT,'server-requests.json'),JSON.stringify(serverRequests,null,2)+'\n');
       report.chromeErrorTail=errors.slice(-1000);
+      await writeFile(path.join(OUT,'chrome-stderr.log'),errors);
       await writeFile(path.join(OUT,'native-report.json'),JSON.stringify(report,null,2)+'\n');
     }
   });
@@ -213,6 +267,9 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
     return targets.find(x=>x.type==='service_worker'&&x.url?.endsWith('/sw.js'))?.url?.split('/')[2];
   },'actual loaded extension',20000);
   report.extensionId=id;
+  const worker=(await client.send('Target.getTargets')).targetInfos.find(x=>x.type==='service_worker'&&x.url==='chrome-extension://'+id+'/sw.js');
+  const workerSession=(await client.send('Target.attachToTarget',{targetId:worker.targetId,flatten:true})).sessionId;
+  await client.send('Runtime.enable',{},workerSession);
   const visit=await client.send('Target.createTarget',{url:page});
   const site=await attach(client,visit.targetId);
   await until(()=>evaluate(client,site,'document.querySelector("h1")?.textContent==="Network fixture ready"'),'first-party fixture');
@@ -256,6 +313,11 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
     JSON.stringify(installed)+');return !!b&&!b.disabled&&b.textContent.trim()==="打开"})()'),
     'reviewed official AdBlock installed and directly runnable in the unified list');
   await click(client,sid,installed);
+  const installedIdentity=await evaluate(client,uid,'chrome.storage.local.get(["opendesk.sidebar-tools.installed.v1",'+
+    '"opendesk.sidebar-tools.revocation-epochs.v1"]).then(x=>({tool:x["opendesk.sidebar-tools.installed.v1"].find(t=>t.id==="adblock"),'+
+    'epoch:x["opendesk.sidebar-tools.revocation-epochs.v1"]?.adblock??null}))');
+  assert.equal(await sidebarToolPackageHash(installedIdentity.tool),await sidebarToolPackageHash(pkg));
+  report.installedIdentity={packageHash:await sidebarToolPackageHash(installedIdentity.tool),epoch:installedIdentity.epoch,version:installedIdentity.tool.version};
   await until(()=>evaluate(client,sid,'(()=>{const x=document.querySelector("#sidebar-tool-adblock-native");return !!x&&!x.hidden&&!!x.querySelector("[role=switch]")})()'),
     'trusted AdBlock switches visible');
   report.screenshots.push(await screenshot(client,sid,'adblock-installed-before-native-grant'));
@@ -277,11 +339,12 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   const enabled=await until(async()=>{
     const r=await getOwned(client,uid);
     return r.state?.enabled===true&&r.owned.some(x=>x.id===F)?r:null;
-  },'native AdBlock rules added and read back');
+  },'native AdBlock rules added and read back',Number(process.env.OPENDESK_ADBLOCK_DNR_TIMEOUT||22000));
   assert.equal(enabled.owned[0].condition.domainType,'thirdParty');
   const beforeBlock=counts.ad;
   const blocked=await probe(client,site,adUrl());
   assert.equal(blocked.success,false,'Chrome must block actual third-party ad image');
+  assert.equal(blocked.network.errorText,'net::ERR_BLOCKED_BY_CLIENT');
   assert.equal(counts.ad,beforeBlock,'the local HTTP server MUST NOT receive the blocked ad');
   assert.equal((await probe(client,site,normalUrl())).success,true,'normal image remains accessible');
   report.network='PASS';note('actual-network-block',{blocked,adServerHits:counts.ad,
