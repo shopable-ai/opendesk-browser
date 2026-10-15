@@ -154,14 +154,17 @@ export async function recordToolUninstall(api,tool){
   const next={...prior,[tool.id]:{version:tool.version,createdAt:Date.now()}};
   await writeVerifiedLocalValue(api,TOOL_CLEANUP_STORE,next,prior,'卸载恢复记录');
 }
-async function removeVerifiedKey(api,key){
+async function removeVerifiedStorageKey(storage,key,scope='卸载后的数据清理'){
   let failure=null;
-  try{await api.storage.local.remove(key);}catch(error){failure=error;}
+  try{await storage.remove(key);}catch(error){failure=error;}
   let value;
-  try{value=(await api.storage.local.get(key))[key];}
-  catch(error){throw unknownStorageOutcome(error,'卸载后的数据清理');}
-  if(value!==undefined)throw failure?classifyStorageWriteError(failure,'卸载后的数据清理'):
-    unknownStorageOutcome(null,'卸载后的数据清理');
+  try{value=(await storage.get(key))[key];}
+  catch(error){throw unknownStorageOutcome(error,scope);}
+  if(value!==undefined)throw failure?classifyStorageWriteError(failure,scope):
+    unknownStorageOutcome(null,scope);
+}
+async function removeVerifiedKey(api,key){
+  return removeVerifiedStorageKey(api.storage.local,key);
 }
 // Must be called while BOTH opendesk.sidebar-tools:tool:<id> and :catalog
 // locks are held, in that order. Never delete by an old instance's ID alone.
@@ -194,12 +197,12 @@ export async function cleanupUninstalledToolLocked(api,id){
     if(id===KNOWLEDGE_TOOL_ID){
       const entries=await api.storage.session.get(null);
       const keys=Object.keys(entries||{}).filter(key=>key.startsWith(KNOWLEDGE_WORKSPACE_PREFIX));
-      if(keys.length)await api.storage.session.remove(keys);
+      for(const key of keys)await removeVerifiedStorageKey(api.storage.session,key,'卸载会话数据清理');
     }
     if(id===READING_TOC_TOOL_ID){
       const entries=await api.storage.local.get(null);
       const keys=Object.keys(entries||{}).filter(key=>key.startsWith(READING_TOC_PLACEMENT_PREFIX));
-      if(keys.length)await api.storage.local.remove(keys);
+      for(const key of keys)await removeVerifiedKey(api,key);
     }
     const fresh=await getPendingToolCleanups(api);
     if(Object.hasOwn(fresh,id)){
