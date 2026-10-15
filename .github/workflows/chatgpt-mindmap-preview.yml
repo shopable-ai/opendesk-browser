@@ -49,6 +49,24 @@ jobs:
         run: |
           node scripts/validate-program-project.mjs examples/programs/chatgpt-mindmap
           npm run build:program -- examples/programs/chatgpt-mindmap
+      - name: Audit current compiled Program candidate (NOT installed)
+        shell: bash
+        run: |
+          set -euo pipefail
+          node examples/programs/chatgpt-mindmap/scripts/audit-build.mjs --out "${{ runner.temp }}/r35-program-build-audit.json"
+          test -s "${{ runner.temp }}/r35-program-build-audit.json"
+      - name: Upload actual candidate bytes and verified hashes (NOT Chrome installation)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r35-program-build-candidate
+          path: |
+            artifacts/programs/opendesk.chatgpt-mindmap/**/program.js
+            artifacts/programs/opendesk.chatgpt-mindmap/**/program.opendesk-draft.json
+            artifacts/programs/opendesk.chatgpt-mindmap/**/artifact.json
+            ${{ runner.temp }}/r35-program-build-audit.json
+          retention-days: 7
+          if-no-files-found: warn
       - name: Source safety checks
         run: npm run check
       - name: Declare actual evidence limitations
