@@ -232,3 +232,8 @@ HTML 设计评审另有一份在线对话内的可交互纯内存原型；该设
 - [首次 Production Source-Bound Preview CI #38715068068](https://github.com/shopable-ai/opendesk-browser/actions/runs/38715068068) **PASS**（含新 Bookmark Manager 模拟预览合同）；当时提交尚未包含上述最终 UI 写后确认逻辑，不能将其绑定为最终同候选 Chrome 实测证明。
 - **真实 Chrome 0.3.5**：正式安装/授权、编辑及创建/移动/删除、查看刷新后原生结果、撤权、跨窗口/Worker、全部十二方法与 2000+ 大规模操作均 **NOT_TESTED**。设计视觉与键盘/无障碍的独立原生审阅亦 **NOT_SCORED**。
 - **专家门禁**：设计七维、真实产品九维继续逐项独立判定。当前仅能确认源码和静态/Node 合同；所有需要独立视觉复核或真实 Chrome 收据的评分保留 **NOT_SCORED**，不存在跨维平均分或“已经达到 95+”结论。Issue #75 仍保持 **OPEN**，不可发布。
+
+
+### R2.5 production-source-bound preview CI confirmation
+
+[Sidebar Preview Contract #38716711733](https://github.com/shopable-ai/opendesk-browser/actions/runs/38716711733) 在 `44fed81162c232f1001bbe794d9e58e18497660a` **PASS**：共享设计源锁、组件与模拟边界负例、工具打包/预览生成、既有 Quick Notes headless Chrome 回归全部通过。其独立产物 [bookmark-manager-source-bound-preview（Artifact 11961999146）](https://github.com/shopable-ai/opendesk-browser/actions/runs/38716711733/artifacts/11961999146) 包含真实 Bookmark Manager 同包 HTML/CSS/JS 的 success、empty、error、loading、permission-denied、untrusted 共六个离线 HTML。**这些新 Bookmark Manager HTML 在本 CI 只通过生成及 Node 合同，尚无同候选独立 Chrome 真实点击/视觉截图证据**；Quick Notes 的 Chrome 浏览器通过不得冒充 Bookmark Manager 的 Browser Native。Notebook、用户 Mac 安装与授权持续 NOT_TESTED。
