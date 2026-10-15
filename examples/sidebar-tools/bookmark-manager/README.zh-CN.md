@@ -75,3 +75,12 @@ npm run verify
 这些命令用于产生静态/Node/Build 证据；GitHub CI 不能替代用户设备上的真实 Chrome 安装、权限手势、事件、并发和生命周期验收。官方 Catalog 和旧宿主清理已在源码阶段执行；原生验收结果仍应独立标记 NOT_TESTED，未经运行不能宣称 95+。
 
 SDK 公共前置项仍跟踪 [Issue #75](https://github.com/shopable-ai/opendesk-browser/issues/75)，本工具的审计与各候选历史在 [Bookmark Manager R2 workstream](../../../docs/framework/workstreams/bookmark-manager-r2.md)。九维 95+ 仅能根据同一最终候选的 Chrome 原生实测分别评分。
+
+
+## R2.8：书签只读选择与外部预览诊断（0.3.8 源码候选）
+
+0.3.8 修复用户反馈的“点击其他书签仍显示编辑弹窗”问题：普通书签/文件夹行只是**选择并查看详情**，不会隐式进入编辑。仅详情的「编辑信息」或明确行菜单的「编辑」进入修改模式。当前表单没有改动时，点击条目可直接回到只读详情；当前有未保存修改时，新选择会触发可见的草稿决策，旧节点和输入暂时保留，点击「继续编辑草稿」或 Escape 恢复输入焦点；只有明确放弃草稿才能切换到新书签的**只读**详情。保存仍必须经 Full Bookmarks SDK 原生读回，错误/撤权/未知结果不得自动重放写入。
+
+离线 HTML 预览分为两个严格隔离部分：模拟 Side Panel（\`iframe#opendesk-preview-frame\` 内是正式包同源业务 UI）和模拟设备**之外**的「预览测试辅助工具」折叠区。后者属于 \`scripts/preview/\`，仅发送明确列举的 Mock 内存诊断，绝不进入 \`tool.config.json\` 的 \`files\`、独立安装 JSON、浏览器宿主源码或 Side Panel 生产 UI。其辅助操作只用于复现写入失败、未知结果、跨窗口冲突、读取超时、撤权等场景。
+
+回归优先使用既有 \`scripts/tests/bookmark-manager-r26-preview-chrome.mjs\`，覆盖真实 Chromium 两视口下正常选择、编辑、草稿切换、外部诊断界面与被隔离 iframe 的边界。测试状态只称 \`MOCK_BROWSER_INTERACTION_PASS_NOT_INSTALLED\`；没有 Mac 正式安装、Full Bookmarks 授权及 Native CRUD 证据时，\`NATIVE_NOT_TESTED\`、Issue #75 OPEN、专家逐维 95+ NOT_SCORED。
