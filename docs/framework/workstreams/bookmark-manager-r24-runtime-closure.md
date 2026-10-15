@@ -342,3 +342,23 @@ HTML 设计评审另有一份在线对话内的可交互纯内存原型；该设
 全 Browser \`npm run build\` **FAIL**：\`[opendesk-fixed-page-relay] Historical/user/vendor code cannot enter a privileged fixed bundle: examples/sidebar-tools/reading-toc/locales.json\`，属于并行 Reading TOC 本地化/共享 bundle 安全来源边界；未批准补全来源前不可绕过，后续 Verify/Dev Build **SKIPPED**。共享 Preview Contract 的 AdBlock Chrome 用例也存在独立失败；本轮书签专项复用原 Chrome 测试成功，不能借此宣称共享全仓无失败。
 
 与远端后续 main 比对：至读取时仅本工作记录及其他并行模块变化，没有 Bookmarks 产品/SDK/Preview 输入变化，因此本候选组件证据仍有效，最终 Browser Build/Native/Issue #75/专家逐维 95+ **NOT_CLOSED**。
+
+
+## R2.8 · 只读选择 / 草稿切换 / 预览实验台外置（2026-10-15）
+
+**用户反馈**：在原位编辑期间再选中其他书签，原实现 \`onAction()\` 的脏草稿切换仅在编辑表单末尾显示 \`bm-draft-guard\`，原表单仍可见且提示可能在窄侧栏视野之外；用户误以为点新书签打开/维持了编辑弹窗。离线 Mock 又在 \`bookmark-manager-mock.js\` 内对 \`tool-root.before(previewLab)\` 注入“预览实验台”，导致实验按钮和正式工具的视觉边界混淆。两项均有真实源码根因，并非二次设计需求。
+
+**源码修复**（唯一业务实现 \`examples/sidebar-tools/bookmark-manager/src/\`）：
+- 普通行点击只查看详情；干净表单点击行直接退出编辑进入只读。脏草稿点击其他行时仍保留旧选择，但明确展示目标名称与“继续编辑草稿 / 放弃草稿并查看”两种动作，暂时隐藏原编辑表单，且滚动到决策提示避免窄侧栏下方不可见；未获明确同意不自动保存、不修改原生节点。Escape 或保留恢复原草稿和焦点，明确放弃后才切换并显示**只读**详情。
+- 将 \`bm-draft-guard\` 从 Inspector 末尾移到只读详情与编辑表单之间，新增 \`bm-draft-context\` 文案；撤权时也清除该文本，避免旧私有书签标题残留在隐藏 DOM。
+- 为符合已批准安装器不允许同版本换包的原则，正式安装候选由 0.3.7 提升为 **bookmark-manager@0.3.8**；静态版本回归同步更新。
+- 此次未修改 Full Bookmarks SDK、Host、删除一次性票据、代理、权限或独立业务目录结构。
+
+**预览与安装包边界**：
+- 删除 \`scripts/preview/bookmark-manager-mock.js\` 对工具 iframe 的任何实验台 DOM 插入。离线实验 UI 只生成在 \`scripts/templates/sidebar-tool-preview-shell.html\` 模拟 \`.preview-device\` **之外**的 \`#od-preview-bookmark-lab\`，默认折叠，八项诊断按钮均被明确标注“预览测试辅助工具（不属于书签管理器）”。
+- \`scripts/preview/bookmark-manager-lab.js\` 仅作外层 Preview 控制器。它与隔离的 Mock iframe 只通过命名白名单 \`opendesk.preview.bookmark.command.v1/ack.v1\` 和请求 ID 交互，外侧核对 iframe WindowProxy / opaque origin / 请求一致性，内侧核对 \`event.source===parent\` 和精确命令。只影响 Mock 内存，不放宽 \`sandbox="allow-scripts"\`、CSP 或正式工具安装包的 JS 资源声明。
+- 扩展原有 \`scripts/tests/bookmark-manager-r26-preview-chrome.mjs\`，新增“干净编辑点击条目直接只读”“脏草稿确认时表单隐藏、原选择保留”“明确放弃后目标只读”“实验台在模拟设备之外”“外部辅助按钮真实 Chromium 点击且收到 Mock 回执”“iframe 与安装包均无实验 DOM”等断言；新增 Node 黑盒消息反例与包内容隔离断言。
+- 约束保存于 \`.agents/skills/opendesk-ui-preview/SKILL.md\`、\`docs/architecture/browser-framework/ui-preview-contract-r1.zh-CN.md\` 和工具 README；只有 Mock/外层 Lab 承载诊断，不得以后用一句“仅模拟”作为将控件放入正式 UI 的理由。
+- 共享 Quick Notes 输入锁再次检查了全部 14 个 Git blob：模板与 builder 变更均经过人工差异审阅；并行 packer 推广保护和 Reading TOC adapter 的合法输入变更也逐项复核后才更新。严禁禁用 stale lock；后续并行代码再变仍须绑定新的候选。
+
+**验收状态**：源代码及测试已经提交于 \`main\`；新 CI 提交入队（含 [Bookmark 专项 #38754049482](https://github.com/shopable-ai/opendesk-browser/actions/runs/38754049482) 与 [Preview #38754049040](https://github.com/shopable-ai/opendesk-browser/actions/runs/38754049040) 历史候选）。这些 run 在本段记录时尚无最终 PASS 证据；不得把 R2.7 0.3.7 的 75/75、Mock 双视口和 Browser Build 结果自动迁移至 R2.8 0.3.8。正式 Mac Chrome Native CRUD / Full 权限 / 视觉逐维 95+ 均 **NOT_TESTED / NOT_SCORED**，Issue #75 继续 OPEN；全 Browser Build 的独立 AdBlock / Reading TOC 等安全门禁不得绕过。
