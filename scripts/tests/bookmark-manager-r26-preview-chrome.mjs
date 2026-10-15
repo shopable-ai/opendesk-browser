@@ -168,6 +168,15 @@ async function exercise(mode){
   await wait(()=>q('bm-form-view').hidden,'cancel returns directly to read');
   check(q('bm-inspector-title').textContent==='模拟书签 2152 · 已编辑',
     'cancel never writes');
+  // A normal row click is READ-ONLY; editing is entered only through its
+  // explicit action and a second click must leave a pristine edit.
+  q('bm-inspector-edit').click();
+  const selectedRow=[...q('bm-list').querySelectorAll('.bm-entry')].find(x=>
+    x.getAttribute('aria-current')==='true');
+  check(Boolean(selectedRow),'current selected read row exists');
+  selectedRow.click();
+  check(q('bm-form-view').hidden&&!q('bm-inspector-read').hidden&&
+    q('bm-draft-guard').hidden,'clicking an already selected row closes a clean edit to read-only');
   if(mode==='wide')return {mode,initial:2159,inlineEdit:true,selectedAfterSave:true,cancel:true,
     overflow:false,source:'production-source-bound-mock'};
   q('bm-inspector-edit').click();
@@ -177,11 +186,17 @@ async function exercise(mode){
     x.textContent.includes('0001')),'second search');
   q('bm-list').querySelector('.bm-entry').click();
   await wait(()=>!q('bm-draft-guard').hidden,'protect dirty switch');
+  check(q('bm-form-view').hidden&&!q('bm-inspector-read').hidden===false,
+    'switching away from dirty editor hides form rather than editing the clicked item');
+  check(q('bm-draft-context').textContent.includes('模拟书签 0001')&&
+    q('bm-draft-context').textContent.includes('未保存'),
+    'switch decision names the requested next bookmark and the unsaved original');
   check(q('bm-name').value==='未保存且必须保护的草稿','dirty input survives switch attempt');
   q('bm-keep-draft').focus();
   q('bm-keep-draft').dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
-  check(q('bm-draft-guard').hidden&&document.activeElement===q('bm-name'),
-    'Escape dismisses switch request and returns keyboard focus to draft');
+  check(q('bm-draft-guard').hidden&&!q('bm-form-view').hidden&&
+    document.activeElement===q('bm-name'),
+    'Escape dismisses switch request and restores existing editor');
   q('bm-list').querySelector('.bm-entry').click();
   await wait(()=>!q('bm-draft-guard').hidden,'switch guard reopened after Escape');
   q('bm-keep-draft').click();
@@ -189,8 +204,9 @@ async function exercise(mode){
   q('bm-list').querySelector('.bm-entry').click();
   await wait(()=>!q('bm-draft-guard').hidden,'second switch guard');
   q('bm-discard-switch').click();
-  await wait(()=>q('bm-form-view').hidden&&q('bm-inspector-title').textContent.includes('0001'),
-    'explicitly abandon draft and select new bookmark');
+  await wait(()=>q('bm-form-view').hidden&&!q('bm-inspector-read').hidden&&
+    q('bm-inspector-title').textContent.includes('0001'),
+    'explicit discard opens the clicked bookmark as READ-ONLY detail');
   q('bm-inspector-move').click();
   await wait(()=>!q('bm-form-view').hidden,'move inside same inspector');
   check(q('bm-parent-row').open,'explicit move exposes folder search immediately');
