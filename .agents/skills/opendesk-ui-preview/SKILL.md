@@ -77,3 +77,14 @@ node --test tests/environment/sidebar-preview-contract.test.mjs tests/environmen
 - **只有客户端确实载入正式生成 HTML 字节，才能宣称 `SOURCE_HTML_INLINE`。** 如果只可以用聊天交互组件近似还原，必须显著标注 `CHAT_ADAPTER_NOT_SOURCE_HTML`，报告差异，另外交付正式离线 HTML 路径。图或 URL 不算对话内交互通过。
 - 正式 Side Panel 导航从真实宿主提取，预览时仅把 `aria-controls` 绑定到确实存在的模拟面板；模拟卸载明确不清理真实数据；取消/Escape 正常恢复触发按钮焦点。
 - 离线 Node、Headless Chrome、用户 Mac 已安装扩展是**三种独立证据**。无同候选 Mac Chrome 记录，`NATIVE_CHROME=NOT_TESTED`，不得用静态评分补齐。
+
+
+## R1.4：预览诊断区必须在工具之外（2026-10-15）
+
+有正式工具的 Source-Bound Preview 严格划分 **实际工具区域** 与 **离线预览辅助工具**：
+
+- \`src/index.html\` / 正式安装包 / \`iframe#opendesk-preview-frame\` 只包含生产业务 UI。**禁止**将“预览实验台”、模拟权限切换、故障注入、测试菜单、CI 操作按钮插入工具容器、详情、页面顶部或 sandbox iframe，即使它们标注“不是正式工具”也不行。
+- 诊断 UI 只允许由 \`scripts/preview/build-preview.mjs\` 在外部 \`sidebar-tool-preview-shell.html\` 的 **\`.preview-device\` 之外**按工具 ID 显式构建。默认折叠、明确“非正式工具”，真实截图/用户观察首先呈现不带诊断的正式 Side Panel。临时故障注入不得改变正式 SDK/Host、权限、发布包或浏览器持久数据。
+- 若外层诊断需要改变离线 iframe 的测试状态，只能调用工具专有的 Mock 允许列表，经有界的仅预览消息协议发送到 opaque iframe，核对来源 WindowProxy 和离线确认消息；不得借 \`allow-same-origin\`、直接 \`chrome.*\`、外部网络、跨世界 DOM 访问或通用特权 Bridge。
+- Chrome 回归须分别断言：真实包内无实验台；生成 frameHtml 内无实验台控件；外部 \`.preview-device\` 之外可找到实验台；控件点击只修改 Mock 内存。用户点击书签行只查看只读详情；仅“编辑”操作进入输入态。编辑草稿未保存而选其他行时，先显示清晰的放弃/保留决定，不得把新行呈现为仍在编辑的表单。
+- 实验台不属于生产 UI 视觉评分范围；CI Chrome Mock 只能证明模拟交互，Native 扩展安装/CRUD 必须另有相同候选身份的证据。共享模板源码锁变化需审查后按 Git blob 核实，绝不随意哈希重算制造通过。
