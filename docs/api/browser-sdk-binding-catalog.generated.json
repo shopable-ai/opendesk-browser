@@ -2412,7 +2412,7 @@
       "supportedContexts": [
         "sidebar-tool"
       ],
-      "siteScope": "owner toolId + packageHash + installEpoch, own namespace only",
+      "siteScope": "owned-storage",
       "userGesture": false,
       "minChrome": 138,
       "maxRequestBytes": 12000,

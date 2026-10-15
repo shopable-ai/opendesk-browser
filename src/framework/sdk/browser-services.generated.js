@@ -15,7 +15,7 @@ export const APPROVED_BROWSER_SCOPED_BINDINGS=Object.freeze([
       "sidebar-tool"
     ],
     "requiresUserGesture": false,
-    "siteScope": "owner toolId + packageHash + installEpoch, own namespace only",
+    "siteScope": "owned-storage",
     "effectClass": "read",
     "riskLevel": "low",
     "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable",

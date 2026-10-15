@@ -11449,7 +11449,7 @@
       "toolCapabilities": [
         "browser.storage"
       ],
-      "siteScope": "owner toolId + packageHash + installEpoch, own namespace only",
+      "siteScope": "owned-storage",
       "allowedWorlds": [
         "sidebar-tool"
       ],
@@ -11534,7 +11534,8 @@
       "currentSchemaAuthority": "docs/api/browser-sdk-interface-matrix.json#approvedOperations/browser.storage.local.keys",
       "compiledBinding": "TRUSTED_SERVICE",
       "effectClass": "read",
-      "riskLevel": "low"
+      "riskLevel": "low",
+      "scopeDefinition": "owner toolId + packageHash + installEpoch, own namespace only"
     },
     {
       "id": "browser.storage.local.getQuota",

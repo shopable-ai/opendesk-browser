@@ -480,7 +480,7 @@
 - Signature: `(input?: {  }) => Promise<{ readonly keys: Array<string>; }>`
 - Mode: EXISTING_SERVICE; native: `chrome.storage.local.get`
 - Capabilities: `browser.storage`; Chrome permissions: `storage`
-- Scope: owner toolId + packageHash + installEpoch, own namespace only; user gesture: not required
+- Scope: owned-storage; user gesture: not required
 - Route: installed-tool bridge → original authorized Host → approved Driver/Chrome
 
 ## OpenDeskSDK.browser.storage.local.remove
