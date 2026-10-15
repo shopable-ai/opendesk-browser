@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
 import {createExtensionCenter} from '../../src/ui/extension-center.js';
 import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
@@ -336,4 +337,46 @@ test('R4.8 app detail matches the R4.7 preview: no duplicate Open and visible st
     'detail introduction preserves the same stopped-state message as the list and preview');
   assert.deepEqual(disabled.nodes['extension-center-detail-body'].querySelectorAll('button')
     .map(button=>button.textContent),['设置与权限']);
+});
+
+test('R4.8 first paint reports loading instead of a misleading empty or install state',async t=>{
+  const f=fixture(t);
+  assert.match(f.nodes['extension-center-status'].textContent,/正在读取已安装扩展/);
+  assert.equal(f.nodes['extension-center-status'].dataset.state,'loading');
+  assert.equal(f.nodes['extension-center-empty'].hidden,true);
+  assert.equal(f.nodes['extension-center-count'].textContent,'正在读取扩展…');
+  await f.ui.refresh();
+  assert.equal(f.nodes['extension-center-count'].textContent.endsWith('个扩展'),true);
+});
+
+test('R4.8 background refresh restores row-menu keyboard focus',async t=>{
+  const f=fixture(t);await f.ui.refresh();
+  const more=f.button('app:quick-notes','more');more.dispatch('click');
+  assert.equal(f.rowMenu().hidden,false);
+  assert.equal(f.doc.activeElement.tagName,'button');
+  await f.ui.refresh();
+  assert.equal(f.rowMenu().hidden,true);
+  assert.equal(f.doc.activeElement.dataset.extensionKey,'app:quick-notes');
+  assert.equal(f.doc.activeElement.dataset.extensionAction,'more');
+});
+
+test('R4.8 removed Page during detail falls back to search, not hidden Back',async t=>{
+  const f=fixture(t);await f.ui.refresh();
+  f.button('page:reader','main').dispatch('click');
+  assert.equal(f.nodes['extension-center-detail'].hidden,false);
+  f.programs.splice(0);
+  await f.ui.refresh();
+  assert.equal(f.nodes['extension-center-detail'].hidden,true);
+  assert.equal(f.doc.activeElement,f.nodes['extension-center-search']);
+});
+
+test('R4.8 detail actions use the official secondary button without a duplicate Open',async t=>{
+  const f=fixture(t);await f.ui.refresh();
+  f.button('page:reader','main').dispatch('click');
+  const buttons=f.nodes['extension-center-detail-body'].querySelectorAll('button');
+  assert.ok(buttons.every(x=>x.className.includes('od-button--secondary')));
+  assert.ok(buttons.every(x=>!x.textContent.includes('打开应用')));
+  const css=await readFile('src/ui/extension-center.css','utf8');
+  assert.doesNotMatch(css,/\.ec-detail-actions button\{[^}]*background:/);
+  assert.match(css,/\.ec-detail-actions \.od-button\{font-size:12px\}/);
 });
