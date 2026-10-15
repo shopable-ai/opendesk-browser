@@ -4,6 +4,8 @@
 import {BROWSER_OPERATIONS,normalizeBrowserOperation} from './browser-contract.js';
 import {fail,jsonValue} from './registry.js';
 import {validateDirectBrowserValue} from './browser-schemas.js';
+import {APPROVED_BROWSER_SCOPED_BINDINGS} from './browser-services.generated.js';
+const COMPILED_SERVICE_METHODS=new Set(APPROVED_BROWSER_SCOPED_BINDINGS.map(row=>row.operation));
 
 const isRecord=value=>value!==null&&typeof value==='object'&&!Array.isArray(value)&&
   [Object.prototype,null].includes(Object.getPrototypeOf(value));
@@ -26,7 +28,7 @@ function nativeDirectRoute(descriptor,api,registry){
   const op=Object.hasOwn(registry,descriptor.operation)?registry[descriptor.operation]:null;
   if(!op||op.implementation!=='IMPLEMENTED'||!op.supportedContexts?.includes('sidebar-tool')||
      op.requiresUserGesture||op.effectClass!=='read'||op.siteScope!=='none'||
-     descriptor.nativeApi!=='chrome.'+descriptor.operation.slice('browser.'.length)||
+     descriptor.nativeApi!==op.compiledNativeApi||
      descriptor.requiresUserGesture||descriptor.effectClass!=='read'||descriptor.siteScope!=='none'||
      JSON.stringify(descriptor.requiredCapabilities)!==JSON.stringify(op.requiredCapabilities)||
      JSON.stringify(descriptor.requiredChromePermissions)!==JSON.stringify(op.requiredChromePermissions)||
@@ -165,7 +167,8 @@ export function createApprovedBrowserBindings(routes,{
         if(typeof encoded!=='string')throw fail('E_VALUE_SERIALIZATION','Browser result is not JSON');
         if(new TextEncoder().encode(encoded).byteLength>entry.maxResponseBytes)
           throw fail('E_LIMIT','Browser result exceeds declared IPC budget');
-        if(directOperations.has(operation))validateDirectBrowserValue(result,entry.outputSchema);
+        if(directOperations.has(operation)||COMPILED_SERVICE_METHODS.has(operation))
+          validateDirectBrowserValue(result,entry.outputSchema);
       }catch(error){
         if(entry.effectClass!=='read')
           throw fail('E_OUTCOME_UNKNOWN','Browser effect completed but its receipt is invalid');

@@ -5,13 +5,15 @@
 import {readFile,writeFile} from 'node:fs/promises';
 import {resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {BROWSER_OPERATIONS,deriveBrowserDirectOperations} from '../src/framework/sdk/browser-contract.js';
+import {BROWSER_OPERATIONS,deriveBrowserDirectOperations,
+  deriveBrowserScopedOperations} from '../src/framework/sdk/browser-contract.js';
 import {renderBrowserDeveloperArtifacts} from './browser-sdk-developer.mjs';
 
 const ROOT=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const SOURCE='docs/api/browser-sdk-interface-matrix.json';
 const OUTPUT='docs/api/browser-sdk-binding-catalog.generated.json';
 const DIRECT_OUTPUT='src/framework/sdk/browser-direct.generated.js';
+const SERVICE_OUTPUT='src/framework/sdk/browser-services.generated.js';
 const MODES=Object.freeze({
   SCOPED:'SCOPED',COMPOSED:'CUSTOM',EXISTING_SERVICE:'CUSTOM',
   HOST_ONLY:'DENIED',DIRECT:'DIRECT'
@@ -25,7 +27,10 @@ export function deriveBrowserBindingCatalog(matrix,registry=BROWSER_OPERATIONS){
   // public counts. Never require hand-editing the generated Registry first.
   const additions=deriveBrowserDirectBindings(matrix,registry)
     .filter(row=>!Object.hasOwn(registry,row.operation));
-  registry={...registry,...deriveBrowserDirectOperations(additions)};
+  const services=deriveBrowserScopedServiceBindings(matrix)
+    .filter(row=>!Object.hasOwn(registry,row.operation));
+  registry={...registry,...deriveBrowserScopedOperations(services),
+    ...deriveBrowserDirectOperations(additions)};
   const nativeByName=new Map((matrix.nativeInterfaces??[]).map(row=>[row.nativeApi,row]));
   const rows=matrix.approvedOperations.map(row=>{
     const mode=MODES[row.mappingKind];
@@ -44,6 +49,12 @@ export function deriveBrowserBindingCatalog(matrix,registry=BROWSER_OPERATIONS){
        row.maxRequestBytes!==runtime.maxRequestBytes||
        row.maxResponseBytes!==runtime.maxResponseBytes))
       throw Error('Approved binding security contract drift '+row.id);
+    if(runtime&&row.compiledBinding==='TRUSTED_SERVICE'&&(
+       row.effectClass!==runtime.effectClass||row.riskLevel!==runtime.riskLevel||
+       row.siteScope!==runtime.siteScope||row.lifecycle!==runtime.lifecycle||
+       !exact(row.inputSchema,runtime.inputSchema)||
+       !exact(row.outputSchema,runtime.outputSchema)))
+      throw Error('Approved trusted-service schema/effect drift '+row.id);
     if(!publicSdk&&mode!=='DENIED')throw Error('Trusted-only operation is not DENIED '+row.id);
     if(publicSdk&&mode==='DENIED')throw Error('Public operation cannot be denied in matrix '+row.id);
     return {
@@ -105,7 +116,9 @@ export function deriveBrowserDirectBindings(matrix,registry=BROWSER_OPERATIONS){
        )||
        row.effectClass!=='read'||row.userGesture||row.siteScope!=='none'||
        row.allowedWorlds?.length!==1||row.allowedWorlds[0]!=='sidebar-tool'||
-       row.nativeApis?.length!==1||row.nativeApis[0]!=='chrome.'+row.id.slice('browser.'.length)||
+       row.nativeApis?.length!==1||
+       row.nativeApis[0]!=='chrome.'+row.id.slice('browser.'.length)&&
+         !source.get(row.nativeApis[0])?.approvedOperationIds?.includes(row.id)||
        row.inputSchema?.type!=='object'||row.inputSchema.additionalProperties!==false||
        !['object','array'].includes(row.outputSchema?.type)||
        !Array.isArray(row.chromePermissions)||!Array.isArray(row.toolCapabilities)||
@@ -158,6 +171,63 @@ export function deriveBrowserDirectBindings(matrix,registry=BROWSER_OPERATIONS){
   }
   return approved.sort((a,b)=>a.operation.localeCompare(b.operation,'en'));
 }
+
+/**
+ * Compile explicit SCOPED / EXISTING_SERVICE approvals as Registry + Schema
+ * metadata. Never compile a raw Chrome call: the existing Host must already
+ * supply an audited namespace service with a matching own method.
+ */
+export function deriveBrowserScopedServiceBindings(matrix){
+  if(matrix?.schemaVersion!=='opendesk.browser-sdk.interface-matrix.v1'||
+     !Array.isArray(matrix.approvedOperations)||!Array.isArray(matrix.nativeInterfaces))
+    throw Error('Pinned approved scoped-service matrix missing');
+  const source=new Map(matrix.nativeInterfaces.map(row=>[row.nativeApi,row]));
+  const names=new Set(),out=[];
+  const safePart=part=>typeof part==='string'&&/^[A-Za-z][A-Za-z0-9]*$/.test(part)&&
+    !['constructor','prototype','__proto__'].includes(part);
+  for(const row of matrix.approvedOperations){
+    if(row.compiledBinding===undefined)continue;
+    if(row.compiledBinding!=='TRUSTED_SERVICE'||
+       !['SCOPED','EXISTING_SERVICE'].includes(row.mappingKind)||
+       row.visibility!=='APPROVED_TOOL_REGISTERED'||
+       typeof row.id!=='string'||!row.id.startsWith('browser.')||
+       !row.id.slice('browser.'.length).split('.').every(safePart)||
+       row.allowedWorlds?.length!==1||row.allowedWorlds[0]!=='sidebar-tool'||
+       !['read','write'].includes(row.effectClass)||
+       !['low','medium','high','critical'].includes(row.riskLevel)||
+       typeof row.siteScope!=='string'||row.siteScope==='none'||
+       !Array.isArray(row.chromePermissions)||!Array.isArray(row.toolCapabilities)||
+       !Array.isArray(row.nativeApis)||row.nativeApis.length===0||
+       !Number.isSafeInteger(row.maxRequestBytes)||row.maxRequestBytes<1||
+       !Number.isSafeInteger(row.maxResponseBytes)||row.maxResponseBytes<1||
+       typeof row.lifecycle!=='string'||row.lifecycle.length<1||row.lifecycle.length>160||
+       row.inputSchema?.type!=='object'||row.inputSchema.additionalProperties!==false||
+       !Array.isArray(row.inputSchema.required)||!row.inputSchema.properties||
+       !['object','array'].includes(row.outputSchema?.type)||
+       names.has(row.id))
+      throw Error('Unsafe compiled trusted service contract: '+row.id);
+    names.add(row.id);
+    if(row.nativeApis.some(api=>source.get(api)?.kind!=='METHOD'||
+       !source.get(api)?.approvedOperationIds?.includes(row.id)))
+      throw Error('Registered/approved visibility drift '+row.id);
+    out.push({
+      operation:row.id,mode:'TRUSTED_SERVICE',mappingKind:row.mappingKind,
+      requiredCapabilities:row.toolCapabilities,requiredChromePermissions:row.chromePermissions,
+      supportedContexts:row.allowedWorlds,requiresUserGesture:row.userGesture,
+      siteScope:row.siteScope,effectClass:row.effectClass,riskLevel:row.riskLevel,
+      lifecycle:row.lifecycle,maxRequestBytes:row.maxRequestBytes,
+      maxResponseBytes:row.maxResponseBytes,inputSchema:row.inputSchema,
+      outputSchema:row.outputSchema,minChrome:row.support?.desktopChromeMinimum??null
+    });
+  }
+  return out.sort((a,b)=>a.operation.localeCompare(b.operation,'en'));
+}
+export function renderBrowserScopedServiceModule(descriptors){
+  return '// Generated from the pinned approved Browser SDK matrix. Do not edit.\n'+
+    '// Trusted-service metadata only; original Host/Driver remains authoritative.\n'+
+    'export const APPROVED_BROWSER_SCOPED_BINDINGS=Object.freeze('+
+    JSON.stringify(descriptors,null,2)+');\n';
+}
 export function renderBrowserDirectModule(descriptors){
   const encoded=JSON.stringify(descriptors,null,2);
   return '// Generated from the pinned, approved Browser SDK matrix. Do not edit.\n'+
@@ -173,8 +243,11 @@ export function deriveBrowserDeveloperSurface(matrix,registry=BROWSER_OPERATIONS
   const catalog=deriveBrowserBindingCatalog(matrix,registry);
   const additions=deriveBrowserDirectBindings(matrix,registry)
     .filter(row=>!Object.hasOwn(registry,row.operation));
+  const services=deriveBrowserScopedServiceBindings(matrix)
+    .filter(row=>!Object.hasOwn(registry,row.operation));
   return renderBrowserDeveloperArtifacts(catalog,
-    {...registry,...deriveBrowserDirectOperations(additions)},matrix.approvedOperations);
+    {...registry,...deriveBrowserScopedOperations(services),
+      ...deriveBrowserDirectOperations(additions)},matrix.approvedOperations);
 }
 export async function syncBrowserDeveloperSurface({root=ROOT,check=false}={}){
   const matrix=JSON.parse(await readFile(resolve(root,SOURCE),'utf8'));
@@ -204,19 +277,25 @@ export async function syncBrowserBindings({root=ROOT,check=false}={}){
   const generated=JSON.stringify(deriveBrowserBindingCatalog(matrix),null,2)+'\n';
   const filepath=resolve(root,OUTPUT);
   const direct=deriveBrowserDirectBindings(matrix);
+  const services=deriveBrowserScopedServiceBindings(matrix);
   const directSource=renderBrowserDirectModule(direct),directPath=resolve(root,DIRECT_OUTPUT);
+  const serviceSource=renderBrowserScopedServiceModule(services),servicePath=resolve(root,SERVICE_OUTPUT);
   if(check){
-    const [existing,native]=await Promise.all([
+    const [existing,native,scoped]=await Promise.all([
       readFile(filepath,'utf8').catch(()=>null),
-      readFile(directPath,'utf8').catch(()=>null)
+      readFile(directPath,'utf8').catch(()=>null),
+      readFile(servicePath,'utf8').catch(()=>null)
     ]);
     if(existing!==generated)throw Error('Browser Binding Catalog drift; regenerate from approved matrix');
     if(native!==directSource)throw Error('Native DIRECT runtime allowlist drift; regenerate from approved matrix');
+    if(scoped!==serviceSource)throw Error('Trusted-service runtime metadata drift; regenerate from approved matrix');
   }else{
-    await Promise.all([writeFile(filepath,generated,'utf8'),writeFile(directPath,directSource,'utf8')]);
+    await Promise.all([writeFile(filepath,generated,'utf8'),
+      writeFile(directPath,directSource,'utf8'),writeFile(servicePath,serviceSource,'utf8')]);
   }
   return {ok:true,check,source:SOURCE,output:OUTPUT,directOutput:DIRECT_OUTPUT,
-    approved:matrix.approvedOperations.length,direct:direct.length,nativeChrome:'NOT_TESTED'};
+    scopedOutput:SERVICE_OUTPUT,approved:matrix.approvedOperations.length,
+    direct:direct.length,scoped:services.length,nativeChrome:'NOT_TESTED'};
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   (process.argv.includes('--developer')||process.argv.includes('--check-developer')

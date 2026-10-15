@@ -3102,14 +3102,36 @@
       "id": "browser.tabs.create",
       "visibility": "APPROVED_TOOL_REGISTERED",
       "migrationDecision": "RENAME",
-      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
+      "sourceRegistry": "src/framework/sdk/browser-services.generated.js",
       "callSignature": "OpenDeskSDK.browser.tabs.create({url: HTTP_URL})",
       "returnSignature": "Promise<{tabRef:OpaqueTabRef}>",
       "inputSchema": {
-        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.tabs.create:input"
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 2048,
+            "pattern": "^https?://"
+          }
+        },
+        "required": [
+          "url"
+        ]
       },
       "outputSchema": {
-        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.tabs.create:output"
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "tabRef": {
+            "type": "string",
+            "maxLength": 160,
+            "pattern": "^[A-Za-z0-9_-]{16,160}$"
+          }
+        },
+        "required": [
+          "tabRef"
+        ]
       },
       "nativeApis": [
         "chrome.tabs.create"
@@ -3200,8 +3222,8 @@
         "src/platform/chrome/context-menus.js#createContextMenuHost",
         "src/platform/chrome/browser-tabs.js"
       ],
-      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.tabs.create')",
-      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
+      "currentSchemaAuthority": "docs/api/browser-sdk-interface-matrix.json#approvedOperations/browser.tabs.create",
+      "schemaStrategy": "COMPILE_APPROVED_SCHEMA_FROM_THIS_MATRIX",
       "nodeAssertionEvidence": {
         "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
         "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
@@ -3213,7 +3235,10 @@
         "denial": "PASS",
         "fullMatrixContractStatus": "NOT_TESTED",
         "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
-      }
+      },
+      "compiledBinding": "TRUSTED_SERVICE",
+      "effectClass": "write",
+      "riskLevel": "medium"
     },
     {
       "id": "browser.tabs.activateOwned",
@@ -3341,14 +3366,54 @@
       "id": "browser.tabs.getOwned",
       "visibility": "APPROVED_TOOL_REGISTERED",
       "migrationDecision": "KEEP",
-      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
+      "sourceRegistry": "src/framework/sdk/browser-services.generated.js",
       "callSignature": "OpenDeskSDK.browser.tabs.getOwned({tabRef:OpaqueTabRef})",
       "returnSignature": "Promise<{tabRef,url,origin,expiresAt}>",
       "inputSchema": {
-        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.tabs.getOwned:input"
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "tabRef": {
+            "type": "string",
+            "maxLength": 160,
+            "pattern": "^[A-Za-z0-9_-]{16,160}$"
+          }
+        },
+        "required": [
+          "tabRef"
+        ]
       },
       "outputSchema": {
-        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.tabs.getOwned:output"
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "tabRef": {
+            "type": "string",
+            "maxLength": 160,
+            "pattern": "^[A-Za-z0-9_-]{16,160}$"
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 2048,
+            "pattern": "^https?://"
+          },
+          "origin": {
+            "type": "string",
+            "maxLength": 2048,
+            "pattern": "^https?://"
+          },
+          "expiresAt": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "tabRef",
+          "url",
+          "origin",
+          "expiresAt"
+        ]
       },
       "nativeApis": [
         "chrome.tabs.get",
@@ -3443,8 +3508,8 @@
         "src/platform/chrome/context-menus.js#createContextMenuHost",
         "src/platform/chrome/browser-tabs.js"
       ],
-      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.tabs.getOwned')",
-      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
+      "currentSchemaAuthority": "docs/api/browser-sdk-interface-matrix.json#approvedOperations/browser.tabs.getOwned",
+      "schemaStrategy": "COMPILE_APPROVED_SCHEMA_FROM_THIS_MATRIX",
       "nodeAssertionEvidence": {
         "path": "docs/framework/workstreams/evidence/browser-sdk-r106-continuation-20261014/draft-review/node-assertion-coverage.json",
         "sha256": "f1377fb3dbd6023830db665539639dd9a15f91be12ab15df20a7d5383161dfc9",
@@ -3456,7 +3521,10 @@
         "denial": "PASS",
         "fullMatrixContractStatus": "NOT_TESTED",
         "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
-      }
+      },
+      "compiledBinding": "TRUSTED_SERVICE",
+      "effectClass": "read",
+      "riskLevel": "medium"
     },
     {
       "id": "browser.tabs.listOwned",
@@ -11345,7 +11413,7 @@
       "id": "browser.storage.local.keys",
       "visibility": "APPROVED_TOOL_REGISTERED",
       "migrationDecision": "NEW",
-      "sourceRegistry": "src/framework/sdk/browser-contract.js",
+      "sourceRegistry": "src/framework/sdk/browser-services.generated.js",
       "callSignature": "OpenDeskSDK.browser.storage.local.keys()",
       "returnSignature": "Promise<{keys:string[]}>",
       "inputSchema": {
@@ -11462,8 +11530,11 @@
         "src/platform/chrome/context-menus.js",
         "src/ui/sidebar-tools/storage-state.js"
       ],
-      "schemaStrategy": "AUDITED_EXISTING_SERVICE_RUNTIME_SCHEMA",
-      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#browser.storage.local.keys"
+      "schemaStrategy": "COMPILE_APPROVED_SCHEMA_FROM_THIS_MATRIX",
+      "currentSchemaAuthority": "docs/api/browser-sdk-interface-matrix.json#approvedOperations/browser.storage.local.keys",
+      "compiledBinding": "TRUSTED_SERVICE",
+      "effectClass": "read",
+      "riskLevel": "low"
     },
     {
       "id": "browser.storage.local.getQuota",
@@ -58972,8 +59043,8 @@
     ],
     "completeness": "Known source consumers identified; exhaustive consumer path enumeration cannot be verified without full repository grep. Phase P1 must enumerate and migrate all current consumers before deleting active alias."
   },
-  "currentRegistrySourceSha": "b2f202ba47da655b99064ec7aebab19846c99f7b",
-  "currentSchemaSourceSha": "f9f64da8d86eb83a83b0b15ab9dbe1752c042caf",
+  "currentRegistrySourceSha": "d62b75e03ccd6d0ba839edb914e838f76131cfe2",
+  "currentSchemaSourceSha": "e5e59ac8e1f6f7b80e085302ab34bc83592db31e",
   "contractRevisions": [
     {
       "date": "2026-10-13",

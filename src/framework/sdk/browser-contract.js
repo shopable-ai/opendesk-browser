@@ -4,7 +4,9 @@ import {fields,fail,jsonValue,normalizeConfig} from './registry.js';
 import {operationSchemas,assertBrowserSchemaCoverage,validateExportArguments,
   normalizeDirectBrowserArguments} from './browser-schemas.js';
 import {APPROVED_BROWSER_DIRECT_BINDINGS} from './browser-direct.generated.js';
+import {APPROVED_BROWSER_SCOPED_BINDINGS} from './browser-services.generated.js';
 const DIRECT_APPROVED_METHODS=new Set(APPROVED_BROWSER_DIRECT_BINDINGS.map(row=>row.operation));
+const COMPILED_SERVICE_METHODS=new Set(APPROVED_BROWSER_SCOPED_BINDINGS.map(row=>row.operation));
 export const BROWSER_API_VERSION='1.0.0';
 export const BROWSER_HOST_PROTOCOL='opendesk.browser.v1';
 export const BROWSER_MENU_SOURCE_PROTOCOL='opendesk.browser.source-context.v1';
@@ -17,7 +19,7 @@ export const BROWSER_MENU_ROOT='opendesk.browser.root';
 const shared={apiVersion:BROWSER_API_VERSION,platform:'chrome>=138',timeout:8000,maxRequestBytes:12000,maxResponseBytes:12000};
 const USER_GESTURE_OPERATIONS=new Set([
   'browser.clipboard.writeText','browser.downloads.text','browser.downloads.download','browser.downloads.cancelOwned','browser.bookmarks.createOwned','browser.bookmarks.removeOwned',
-  'browser.bookmarks.create','browser.bookmarks.update','browser.bookmarks.move','browser.bookmarks.remove','browser.bookmarks.removeTree','browser.storage.local.clear','browser.scheduler.create','browser.tabs.create',
+  'browser.bookmarks.create','browser.bookmarks.update','browser.bookmarks.move','browser.bookmarks.remove','browser.bookmarks.removeTree','browser.storage.local.clear','browser.scheduler.create',
   'browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.reloadOwned','browser.tabs.navigateOwned','browser.tabs.removeOwned','browser.sidePanel.openSelf','browser.network.request','browser.network.observe.start',
   'browser.network.observe.export','browser.screenshot.captureVisible',
   'browser.cookies.set','browser.cookies.remove','browser.cookies.clearSite','browser.cookies.observe.start'
@@ -69,14 +71,11 @@ const MANUAL_BROWSER_OPERATIONS=Object.freeze({
   'browser.scheduler.listOwn':entry('browser.scheduler.listOwn','browser.scheduler',tool,['alarms'],'read','medium','owned-schedules','IMPLEMENTED','tool-install'),
   'browser.scheduler.cancelOwn':entry('browser.scheduler.cancelOwn','browser.scheduler',tool,['alarms'],'write','medium','owned-schedules','IMPLEMENTED','tool-install'),
   'browser.storage.local.get':entry('browser.storage.local.get','browser.storage',tool,['storage'],'read','low','owned-storage'),
-  'browser.storage.local.keys':entry('browser.storage.local.keys','browser.storage',tool,['storage'],'read','low','owned-storage'),
   'browser.storage.local.getQuota':entry('browser.storage.local.getQuota','browser.storage',tool,['storage'],'read','low','owned-storage'),
   'browser.storage.local.set':entry('browser.storage.local.set','browser.storage',tool,['storage'],'write','medium','owned-storage'),
   'browser.storage.local.remove':entry('browser.storage.local.remove','browser.storage',tool,['storage'],'write','medium','owned-storage'),
   'browser.storage.local.clear':entry('browser.storage.local.clear','browser.storage',tool,['storage'],'write','high','owned-storage'),
-  'browser.tabs.create':entry('browser.tabs.create','browser.tabs',tool,[],'write','medium','explicit-url','IMPLEMENTED'),
   'browser.tabs.activateOwned':entry('browser.tabs.activateOwned','browser.tabs',tool,['tabs','webNavigation'],'write','medium','tab-ref','IMPLEMENTED'),
-  'browser.tabs.getOwned':entry('browser.tabs.getOwned','browser.tabs',tool,['tabs','webNavigation'],'read','medium','tab-ref','IMPLEMENTED'),
   'browser.tabs.listOwned':entry('browser.tabs.listOwned','browser.tabs',tool,['tabs','webNavigation'],'read','medium','owned-tabs','IMPLEMENTED'),
   'browser.tabs.pinOwned':entry('browser.tabs.pinOwned','browser.tabs',tool,['tabs','webNavigation'],'write','high','tab-ref','IMPLEMENTED'),
   'browser.tabs.reloadOwned':entry('browser.tabs.reloadOwned','browser.tabs',tool,['tabs','webNavigation'],'write','high','tab-ref','IMPLEMENTED'),
@@ -105,6 +104,33 @@ const MANUAL_BROWSER_OPERATIONS=Object.freeze({
   'browser.cookies.observe.stop':entry('browser.cookies.observe.stop','browser.cookies.observe',tool,['cookies'],'write','high','approved-cookie-site','IMPLEMENTED','bounded-session'),
   'browser.operations.cancel':entry('browser.operations.cancel','browser.operations',tool,[],'write','medium','owned-operation','IMPLEMENTED')
 });
+// Compile the approved SCOPED and EXISTING_SERVICE metadata, never a native
+// Chrome route. The original namespace Host/Driver retains all scoped authority.
+export function deriveBrowserScopedOperations(rows=APPROVED_BROWSER_SCOPED_BINDINGS){
+  return Object.fromEntries(rows.map(row=>{
+    if(Object.hasOwn(MANUAL_BROWSER_OPERATIONS,row.operation)||
+       row.mode!=='TRUSTED_SERVICE'||
+       !['SCOPED','EXISTING_SERVICE'].includes(row.mappingKind)||
+       !['read','write'].includes(row.effectClass)||
+       row.siteScope==='none'||!row.siteScope||
+       !Array.isArray(row.requiredCapabilities)||!Array.isArray(row.requiredChromePermissions)||
+       !Array.isArray(row.supportedContexts)||row.supportedContexts.length!==1||
+       row.supportedContexts[0]!=='sidebar-tool'||typeof row.requiresUserGesture!=='boolean'||
+       row.inputSchema?.type!=='object'||row.inputSchema.additionalProperties!==false||
+       !row.outputSchema)
+      throw fail('E_CONTRACT','Invalid generated trusted-service Browser registration');
+    return [row.operation,Object.freeze({...shared,operation:row.operation,
+      namespace:row.operation.split('.').slice(0,-1).join('.'),
+      maxRequestBytes:row.maxRequestBytes,maxResponseBytes:row.maxResponseBytes,
+      implementation:'IMPLEMENTED',supportedContexts:Object.freeze([...row.supportedContexts]),
+      requiredCapabilities:Object.freeze([...row.requiredCapabilities]),
+      requiredChromePermissions:Object.freeze([...row.requiredChromePermissions]),
+      effectClass:row.effectClass,riskLevel:row.riskLevel,siteScope:row.siteScope,
+      requiresUserGesture:row.requiresUserGesture,lifecycle:row.lifecycle,
+      inputSchema:row.inputSchema,outputSchema:row.outputSchema
+    })];
+  }));
+}
 // Ordinary DIRECT methods are built from the approved Chromium/SDK matrix.
 // An additional safe DIRECT method now needs no manually maintained Registry
 // entry, Schema table case, SDK wrapper, Host branch or Chrome call adapter.
@@ -123,12 +149,13 @@ export function deriveBrowserDirectOperations(rows=APPROVED_BROWSER_DIRECT_BINDI
     requiredCapabilities:Object.freeze([...row.requiredCapabilities]),
     requiredChromePermissions:Object.freeze([...row.requiredChromePermissions]),
     effectClass:'read',riskLevel:row.riskLevel,siteScope:'none',requiresUserGesture:false,
-    lifecycle:row.lifecycle,inputSchema:row.inputSchema,outputSchema:row.outputSchema
+    lifecycle:row.lifecycle,compiledNativeApi:row.nativeApi,
+     inputSchema:row.inputSchema,outputSchema:row.outputSchema
   })];
   }));
 }
 export const BROWSER_OPERATIONS=Object.freeze({
-  ...MANUAL_BROWSER_OPERATIONS,...deriveBrowserDirectOperations()
+  ...MANUAL_BROWSER_OPERATIONS,...deriveBrowserScopedOperations(),...deriveBrowserDirectOperations()
 });
 assertBrowserSchemaCoverage(BROWSER_OPERATIONS);
 export function browserOperation(name){return Object.hasOwn(BROWSER_OPERATIONS,name)?BROWSER_OPERATIONS[name]:null;}
@@ -244,7 +271,6 @@ export function normalizeBrowserOperation(operation,args={}){
       if(typeof args.scheduleRef!=='string'||!/^[A-Za-z0-9_-]{16,160}$/.test(args.scheduleRef))
         throw fail('E_SCHEMA','Opaque owned scheduleRef required');
       return {scheduleRef:args.scheduleRef};
-    case 'browser.storage.local.keys':
     case 'browser.storage.local.getQuota':
       fields(args,[]);return {};
     case 'browser.storage.local.get':
@@ -482,7 +508,7 @@ export function normalizeBrowserOperation(operation,args={}){
          throw fail('E_SCHEMA','Invalid context menu action IDs');
       break;
     default:
-      if(DIRECT_APPROVED_METHODS.has(operation)){
+      if(DIRECT_APPROVED_METHODS.has(operation)||COMPILED_SERVICE_METHODS.has(operation)){
         const normalized=normalizeDirectBrowserArguments(operation,args);
         if(new TextEncoder().encode(JSON.stringify(normalized)).byteLength>
            browserOperation(operation).maxRequestBytes)

@@ -2,6 +2,7 @@
 // BROWSER_OPERATIONS registry. Metadata never grants permission or admits RPC calls.
 import {fields,fail,jsonValue} from './registry.js';
 import {APPROVED_BROWSER_DIRECT_BINDINGS} from './browser-direct.generated.js';
+import {APPROVED_BROWSER_SCOPED_BINDINGS} from './browser-services.generated.js';
 const obj=(properties={},required=[])=>({type:'object',additionalProperties:false,properties,required});
 const str=(maxLength=2048,pattern)=>({type:'string',maxLength,...(pattern?{pattern}:{})});
 const ref=str(160,'^[A-Za-z0-9_-]{16,160}$');
@@ -110,17 +111,13 @@ const ops=Object.freeze({
    ['scheduleRef','taskId','status']),100)},['schedules'])],
  'browser.scheduler.cancelOwn':[obj({scheduleRef:ref},['scheduleRef']),obj({cancelled:bool},['cancelled'])],
  'browser.storage.local.get':[obj({keys:storageKeys}),obj({items:{type:'object',additionalProperties:true}},['items'])],
-  'browser.storage.local.keys':[empty,obj({keys:arr(storageKey,32)},['keys'])],
   'browser.storage.local.getQuota':[empty,obj({usedBytes:num(),maxBytes:num(),keyCount:num(),
     maxKeys:num(),maxItemBytes:num()},['usedBytes','maxBytes','keyCount','maxKeys','maxItemBytes'])],
  'browser.storage.local.set':[obj({items:{type:'object',maxProperties:100,additionalProperties:true}},['items']),
    obj({written:num()},['written'])],
  'browser.storage.local.remove':[obj({keys:storageKeys},['keys']),obj({removed:num()},['removed'])],
  'browser.storage.local.clear':[obj({confirm:{const:true}},['confirm']),obj({removed:num()},['removed'])],
- 'browser.tabs.create':[obj({url:http},['url']),obj({tabRef:ref},['tabRef'])],
  'browser.tabs.activateOwned':[obj({tabRef:ref},['tabRef']),obj({focused:bool},['focused'])],
- 'browser.tabs.getOwned':[obj({tabRef:ref},['tabRef']),
-   obj({tabRef:ref,url:http,origin:http,expiresAt:num()},['tabRef','url','origin','expiresAt'])],
  'browser.tabs.listOwned':[empty,obj({tabs:arr(obj({tabRef:ref,origin:http},['tabRef','origin']),8)},['tabs'])],
  'browser.tabs.pinOwned':[obj({tabRef:ref,pinned:bool},['tabRef','pinned']),obj({pinned:bool},['pinned'])],
  'browser.tabs.reloadOwned':[obj({tabRef:ref},['tabRef']),
@@ -174,8 +171,8 @@ const ops=Object.freeze({
    obj({stopped:bool},['stopped'])],
  'browser.operations.cancel':[oid,obj({state:{enum:['running','completed','failed','cancelled','unknown']},cancelRequested:bool},['state'])]
 });
-// DIRECT methods use the exact approved input/output schemas generated from
-// the one pinned matrix. SCOPED and CUSTOM schemas remain explicitly audited.
+// Compiled DIRECT and selected TRUSTED_SERVICE methods use approved matrix
+// schemas; other scoped/custom schemas retain explicit audited implementations.
 export function deriveBrowserDirectSchemas(rows=APPROVED_BROWSER_DIRECT_BINDINGS){
   return new Map(rows.map(row=>{
     if(Object.hasOwn(ops,row.operation))throw fail('E_CONTRACT','Duplicate DIRECT Browser schema');
@@ -183,12 +180,22 @@ export function deriveBrowserDirectSchemas(rows=APPROVED_BROWSER_DIRECT_BINDINGS
   }));
 }
 const directOps=deriveBrowserDirectSchemas();
+export function deriveBrowserScopedSchemas(rows=APPROVED_BROWSER_SCOPED_BINDINGS){
+  return new Map(rows.map(row=>{
+    if(Object.hasOwn(ops,row.operation)||directOps.has(row.operation)||
+       row.mode!=='TRUSTED_SERVICE')
+      throw fail('E_CONTRACT','Duplicate or invalid compiled service Browser schema');
+    return [row.operation,[row.inputSchema,row.outputSchema]];
+  }));
+}
+const scopedOps=deriveBrowserScopedSchemas();
 export function operationSchemas(operation){
-  const pair=Object.hasOwn(ops,operation)?ops[operation]:directOps.get(operation);
+  const pair=Object.hasOwn(ops,operation)?ops[operation]:
+    directOps.get(operation)??scopedOps.get(operation);
   return pair?{input:pair[0],output:pair[1]}:null;
 }
 export function assertBrowserSchemaCoverage(operations){
-  const declared=[...Object.keys(ops),...directOps.keys()].sort();
+  const declared=[...Object.keys(ops),...directOps.keys(),...scopedOps.keys()].sort();
   if(JSON.stringify(Object.keys(operations).sort())!==JSON.stringify(declared))
     throw fail('E_CONTRACT','Browser operation schema drift');
 }
