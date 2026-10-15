@@ -555,6 +555,23 @@ test('R4.8 source-bound prototype has the identical production toolbar and shell
     'refresh must preserve user filters and current scenario');
 });
 
+test('R5.1 Cookie Editor prototype labels its real package version and isolated old-version update demo',async()=>{
+  const [preview,configText]=await Promise.all([
+    readFile('prototypes/sidebar/extension-center-r47-frequency-first-preview.html','utf8'),
+    readFile('examples/sidebar-tools/cookie-editor/tool.config.json','utf8')
+  ]);
+  const {version}=JSON.parse(configText);
+  const cookie=preview.match(/\{id:'cookie-editor',[\s\S]*?description:'独立 Cookie 管理工具'\}/)?.[0];
+  assert.ok(cookie,'preview must define a concrete Cookie Editor example');
+  assert.ok(cookie.includes("version:'"+version+"'"),
+    'normal preview must match the actual Cookie Editor project version');
+  assert.match(preview,/data-scenario="update"/);
+  assert.match(preview,/cookie\.version='2\.0\.6';cookie\.update=true;cookie\.releaseVersion='2\.0\.11'/);
+  assert.match(preview,/function simulateUpdate\(row\)/);
+  assert.match(preview,/确认模拟原位更新/);
+  assert.match(preview,/不会自动运行新版代码/);
+});
+
 test('R5.0 Host false leaves a disabled App unchanged and reports unfinished draft confirmation',async t=>{
   const f=fixture(t,{disabled:true});await f.ui.refresh();
   f.sidebarTools.toggleEnabled=()=>false;
