@@ -14,6 +14,10 @@ export function initSidebarToolSandbox() {
   const root=document.getElementById('tool-root');
   const status=document.getElementById('tool-status');
   let instance=null, toolId=null, sequence=0, scriptUrl=null,disposed=false;
+  let uiLocale='zh-CN';
+  const localeListeners=new Set();
+  const acceptedLocale=value=>typeof value==='string'&&value.length<=45&&/^[A-Za-z0-9-]+$/.test(value)?
+    (()=>{try{return Intl.getCanonicalLocales(value)[0]||'zh-CN';}catch{return 'zh-CN';}})():'zh-CN';
   const waiting=new Map();
   let resizePending=false,lastHeight=0;
   const sendSize=()=>{
@@ -113,6 +117,16 @@ export function initSidebarToolSandbox() {
         root.dispatchEvent(new Event('opendesk-page-changed'));
       return;
     }
+    if(message.kind==='locale-changed'){
+      if(message.instance===instance&&message.toolId===toolId){
+        const next=acceptedLocale(message.locale);
+        if(next!==uiLocale){uiLocale=next;document.documentElement.lang=next;
+          for(const callback of localeListeners)try{callback(next);}catch{/* Isolated tool UI callback. */}
+          scheduleSize();
+        }
+      }
+      return;
+    }
     // No privileged data or authorization crosses the sandbox boundary.
     if (message.kind==='state-changed') {
       if(message.instance===instance&&message.toolId===toolId)
@@ -125,6 +139,7 @@ export function initSidebarToolSandbox() {
     if (typeof tool.id!=='string' || typeof tool.html!=='string' || typeof tool.css!=='string' ||
         typeof tool.js!=='string' || tool.html.length>64000 || tool.css.length>120000 || tool.js.length>220000)return;
     instance=message.instance;toolId=tool.id;
+    uiLocale=acceptedLocale(message.locale);document.documentElement.lang=uiLocale;
     root.replaceChildren();
     const style=document.createElement('style');
     style.textContent=tool.css;
@@ -136,7 +151,14 @@ export function initSidebarToolSandbox() {
       if(dirty||busy)sendDraft();
       parent.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'edit-state',instance,toolId,dirty,busy},'*');
     };
-    Object.defineProperty(window,'OpenDeskTool',{value:Object.freeze({root,request,setState}),configurable:false});
+    Object.defineProperty(window,'OpenDeskTool',{value:Object.freeze({
+      root,request,setState,
+      get locale(){return uiLocale;},
+      onLocaleChange(callback){
+        if(typeof callback!=='function')throw Error('E_UI_LOCALE_CALLBACK');
+        localeListeners.add(callback);return ()=>localeListeners.delete(callback);
+      }
+    }),configurable:false});
     Object.defineProperty(window,'OpenDeskSDK',{value:Object.freeze({browser:createBrowserSdk({request,context:'sidebar-tool'})}),configurable:false});
     // Native/File-first: every dependency is the exact UTF-8 source bundled in
     // the installed v2 package. Verify SHA before creating a local Blob URL.
@@ -189,7 +211,7 @@ export function initSidebarToolSandbox() {
     })().catch(cause=>{if(!disposed)report('error',String(cause?.message||cause).slice(0,260));});
   });
   window.addEventListener('pagehide',()=>{
-    disposed=true;if(scriptUrl)URL.revokeObjectURL(scriptUrl);
+    disposed=true;localeListeners.clear();if(scriptUrl)URL.revokeObjectURL(scriptUrl);
     for(const {reject,timeout} of waiting.values()){clearTimeout(timeout);reject(new Error('工具已关闭'));}
     waiting.clear();
   },{once:true});
