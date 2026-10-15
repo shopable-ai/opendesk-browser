@@ -823,10 +823,29 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
   await phase('responsive-keyboard-and-real-browser-zoom');
   await responsiveCheck(side,'side-panel-tools');
   await click(side,'#tab-tools');evidence.keyboardFocus=[];
-  const keyboardControls=['#sidebar-tool-discover-toggle','#sidebar-tool-market','#sidebar-tool-import-trigger',
-    '#installed-page-tools-refresh','#sidebar-tool-search','#sidebar-tool-filter-available','#sidebar-tool-filter-all',
-    ...catalog.apps.flatMap(row=>['[data-official-tool-id="'+row.toolId+'"] .sidebar-tool-official-title',
-      '#sidebar-tool-official-'+row.toolId+'-install'])];
+  // The old Discover/official list is intentionally CSS-hidden. Verify the
+  // current visible extension center and its actual DOM/tab order instead.
+  if(!(await evaluate(side,'document.querySelector("#extension-center-menu").hidden')))
+    await click(side,'#extension-center-more');
+  await inputText(side,'#extension-center-search','');
+  await click(side,'#tab-tools');
+  const rows=await evaluate(side,`[...document.querySelectorAll('#extension-center-list li[data-extension-id]')]
+    .filter(li=>!!li.getClientRects().length)
+    .map(li=>({key:li.dataset.extensionId,actions:[...li.querySelectorAll('button[data-extension-action]')]
+      .filter(b=>!!b.getClientRects().length)
+      .map(b=>({action:b.dataset.extensionAction,label:b.getAttribute('aria-label')}))}))`);
+  assert.deepEqual(
+    rows.filter(row=>row.key.startsWith('app:')).map(row=>row.key).sort(),
+    catalog.apps.map(row=>'app:'+row.toolId).sort(),
+    'all released tools must appear in the visible extension center');
+  for(const row of rows){
+    assert.deepEqual(row.actions.map(item=>item.action),['main','primary','more'],
+      'each unified row retains a main, primary and management focus target');
+    assert(row.actions.every(item=>item.label),
+      'every unified row keyboard control has a descriptive aria-label');
+  }
+  const keyboardControls=['#extension-center-search','#extension-center-market','#extension-center-more',
+    ...rows.flatMap(row=>row.actions.map(item=>`button[data-extension-key="${row.key}"][data-extension-action="${item.action}"]`))];
   for(const expectedSelector of keyboardControls){
     for(const type of ['keyDown','keyUp'])await side.send('Input.dispatchKeyEvent',{type,key:'Tab',code:'Tab',windowsVirtualKeyCode:9});
     const focus=await evaluate(side,'(()=>{const e=document.activeElement;return {tag:e.tagName,id:e.id,label:e.getAttribute("aria-label")||e.textContent.slice(0,80),visible:!!e.getClientRects().length,focusVisible:e.matches(":focus-visible")}})()');
