@@ -117,8 +117,10 @@ test('R11.2 snapshot pages do not truncate or include mid-stream inserts; cursor
   await f.bookmarks.create({parentId:'2',title:'External',url:'https://example.net/'});
   const rows=await pages(host,owner,70,first);
   assert.equal(rows.length,553,'snapshot remained anchored at 550 initial leaves');
+  // A forged package identity is rejected by the trusted authority before the
+  // snapshot lookup. Missing/expired snapshots are a separate failure mode.
   await assert.rejects(host.getTree({cursor:first.nextCursor,limit:70},
-    {...owner,packageHash:'b'.repeat(64)}),error('E_SNAPSHOT_EXPIRED'));
+    {...owner,packageHash:'b'.repeat(64)}),error('E_OWNER'));
   await assert.rejects(f.make().getTree({cursor:first.nextCursor,limit:70},owner),error('E_SNAPSHOT_EXPIRED'));
   const after=await pages(host);assert.equal(after.length,554);
 });
