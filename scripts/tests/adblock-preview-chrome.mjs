@@ -143,6 +143,7 @@ async function click(selector,ctx=null){
     return {x,y,w:r.width,h:r.height,localHit:document.elementFromPoint(x,y)?.outerHTML?.slice(0,220),scrollTop:document.documentElement.scrollTop};
   }.toString()+')('+JSON.stringify(selector)+')',ctx);
   assert.ok(rect.w>0&&rect.h>0,'clickable target: '+selector);
+  const localCoords={x:rect.x,y:rect.y};
   if(ctx){
     const offset=await evaluate('('+function(){
       const b=document.getElementById('opendesk-preview-frame').getBoundingClientRect();
@@ -155,12 +156,18 @@ async function click(selector,ctx=null){
     const element=document.elementFromPoint(x,y);
     return {tag:element?.tagName,id:element?.id,html:element?.outerHTML?.slice(0,220)};
   }.toString()+')('+JSON.stringify(rect.x)+','+JSON.stringify(rect.y)+')');
-  console.log('ADBLOCK_CLICK_TARGET '+selector+' '+JSON.stringify({x:rect.x,y:rect.y,hit}));
-  await cdp('Input.dispatchMouseEvent',{type:'mouseMoved',x:rect.x,y:rect.y});
-  await cdp('Input.dispatchMouseEvent',{type:'mousePressed',x:rect.x,y:rect.y,
-    button:'left',clickCount:1});
-  await cdp('Input.dispatchMouseEvent',{type:'mouseReleased',x:rect.x,y:rect.y,
-    button:'left',clickCount:1});
+  // Opaque srcdoc may be hosted in a separate process; a top-level CDP
+  // Input message is not guaranteed to route into its target session.
+  const targetSession=ctx?.session||null;
+  const point=targetSession?localCoords:rect;
+  console.log('ADBLOCK_CLICK_TARGET '+selector+' '+JSON.stringify({
+    parentPoint:{x:rect.x,y:rect.y},localPoint:localCoords,
+    targetSession:targetSession||'top',hit}));
+  await cdp('Input.dispatchMouseEvent',{type:'mouseMoved',x:point.x,y:point.y},targetSession);
+  await cdp('Input.dispatchMouseEvent',{type:'mousePressed',x:point.x,y:point.y,
+    button:'left',clickCount:1},targetSession);
+  await cdp('Input.dispatchMouseEvent',{type:'mouseReleased',x:point.x,y:point.y,
+    button:'left',clickCount:1},targetSession);
 }
 async function screenshot(name){
   const shot=await cdp('Page.captureScreenshot',{format:'png'});
