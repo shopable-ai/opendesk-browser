@@ -1,6 +1,7 @@
 // Serve a REAL engine-only local HTML preview. Never copies or redistributes vendor code.
 // This is not the installed USER_SCRIPT path. No CDN, eval, second extension or proxy.
 import {createHash} from 'node:crypto';
+import {spawn} from 'node:child_process';
 import {readFile,realpath} from 'node:fs/promises';
 import {createServer} from 'node:http';
 import {dirname,join,resolve} from 'node:path';
@@ -82,14 +83,34 @@ export async function startXmindPreview({assetsDirectory}={}){
   return {url:'http://127.0.0.1:'+server.address().port+'/index.html',
     close:()=>new Promise((ok,reject)=>server.close(error=>error?reject(error):ok()))};
 }
+// Open only our own verified loopback URL; never shell out with untrusted input.
+// In headless/CI environments the printed URL remains the supported fallback.
+function openLocalPreview(url){
+  if(process.env.CI||process.env.OPENDESK_PREVIEW_NO_OPEN)return;
+  if(process.platform==='linux'&&!process.env.DISPLAY&&!process.env.WAYLAND_DISPLAY)return;
+  const platform=process.platform;
+  const command=platform==='darwin'?'open':platform==='win32'?'cmd':'xdg-open';
+  const args=platform==='win32'?['/c','start','',url]:[url];
+  const child=spawn(command,args,{stdio:'ignore',detached:true,windowsHide:true});
+  child.once('error',error=>console.warn('PREVIEW_BROWSER_OPEN_UNAVAILABLE: '+error.message+
+    '; open the REAL_XMIND_LOCAL_PREVIEW URL manually.'));
+  child.unref();
+}
 async function cli(){
   const args=process.argv.slice(2);
-  if(args.length!==0&&(args.length!==2||args[0]!=='--assets')){
-    throw new Error('Usage: node examples/programs/chatgpt-mindmap/preview/serve.mjs [--assets /absolute/audited/xmind]');
+  let assetsDirectory,autoOpen=true;
+  for(let i=0;i<args.length;i++){
+    if(args[i]==='--no-open')autoOpen=false;
+    else if(args[i]==='--assets'&&i+1<args.length)assetsDirectory=args[++i];
+    else throw new Error('Usage: node examples/programs/chatgpt-mindmap/preview/serve.mjs [--no-open] [--assets /absolute/audited/xmind]');
   }
-  const session=await startXmindPreview({assetsDirectory:args.length?args[1]:undefined});
-  console.log('REAL_XMIND_LOCAL_PREVIEW '+session.url);
+  const session=await startXmindPreview({assetsDirectory});
+  const interactive=new URL(session.url);
+  interactive.searchParams.set('autostart','1');
+  console.log('PREVIEW_ASSETS_READY 4 verified original XMind JS; local preview only');
+  console.log('REAL_XMIND_LOCAL_PREVIEW '+interactive.href);
   console.log('Only loopback, exact four SHA-256 + Git blob verified resources; NOT an installed extension.');
+  if(autoOpen)openLocalPreview(interactive.href);
   const shutdown=()=>{session.close().then(()=>process.exit(0)).catch(()=>process.exit(1));};
   process.once('SIGINT',shutdown);process.once('SIGTERM',shutdown);
 }

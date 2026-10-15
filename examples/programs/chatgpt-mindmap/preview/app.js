@@ -85,6 +85,16 @@ async function start(){
   if(registry.count!==3)throw new Error('E_PREVIEW_ANSWERS');
   state.sdk='FIXED_RESOURCES_LOADED';
   announce('四份本地引擎资源已由服务器完成 SHA-256/Git blob 校验；已识别 3 条回复。点击操作栏「思维导图」验证真实画布；正式安装仍为 NOT_TESTED。');
+  // The developer's one-command launcher opens ?autostart=1. Click the REAL
+  // product button once; never create a fixture-only renderer or fake canvas.
+  // The browser probe also tests this path separately from manual A/B/C.
+  if(new URLSearchParams(window.location.search).get('autostart')==='1'){
+    const first=answer(1)?.querySelector('[data-opendesk-chatgpt-mindmap="button"]')
+      ?.shadowRoot?.querySelector('button');
+    if(!first)throw new Error('E_PREVIEW_AUTOSTART_TRIGGER_MISSING');
+    state.autostart='REAL_PRODUCT_BUTTON_CLICKED';
+    first.click();
+  }
   bind(document.getElementById('preview-width'),'click',event=>{
     const narrow=conversation.classList.toggle('is-narrow');
     event.currentTarget.setAttribute('aria-pressed',String(narrow));

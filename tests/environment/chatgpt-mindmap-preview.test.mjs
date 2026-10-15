@@ -11,6 +11,8 @@ test('preview uses product answer registry and real SDK, never a replacement ren
   const html=await readFile(new URL('preview/index.html',root),'utf8');
   const app=await readFile(new URL('preview/app.js',root),'utf8');
   const registry=await readFile(new URL('src/answer-registry.js',root),'utf8');
+  const launcher=await readFile(new URL('preview/serve.mjs',root),'utf8');
+  const css=await readFile(new URL('assets/ui.css',root),'utf8');
   assert.match(app,/import \{createAnswerRegistry\} from '\/src\/answer-registry\.js'/);
   assert.match(app,/import \{requireXmindRuntime\} from '\/src\/xmind-adapter\.js'/);
   assert.match(registry,/from '\.\/view\.js'/);
@@ -18,6 +20,10 @@ test('preview uses product answer registry and real SDK, never a replacement ren
   assert.match(html,/data-message-author-role="assistant"/);
   assert.match(html,/id="preview-large"/);
   assert.match(app,/cContent.replaceChildren/);
+  assert.match(app,/first\.click\(\)/);
+  assert.match(launcher,/autostart/);
+  assert.match(launcher,/--no-open/);
+  assert.match(css,/Noto Sans CJK SC/);
   assert.doesNotMatch(html,/<canvas|data:image\/svg|https:\/\/cdn\./);
   assert.match(PREVIEW_CSP,/script-src 'self'/);
   assert.doesNotMatch(PREVIEW_CSP,/unsafe-eval/);

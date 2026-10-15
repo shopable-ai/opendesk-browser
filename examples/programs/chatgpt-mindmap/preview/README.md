@@ -10,7 +10,7 @@ node examples/programs/chatgpt-mindmap/preview/serve.mjs
 
 **无需用户再输入旧仓库的绝对路径。** 首次启动会在 `preview/.runtime/xmind/`（Git 忽略的本地目录）准备四份**真实** JS。三份来自本仓库已经存在的历史源码快照；JSZip 来自明确锁定的 npm `jszip@3.10.1` 发行包（首次准备需 npm 网络连接）。启动前使用唯一 `tests/xmind-provenance.json` 核验四个文件的大小、SHA-256、Git Blob 和顺序；失败会中止，绝不使用模拟引擎。二次启动复用已核验的四个字节文件。JSZip 无法取得、缓存损坏或许可未获批准正式分发时，不宣称独立可安装产品已交付。
 
-服务成功输出 `REAL_XMIND_LOCAL_PREVIEW http://127.0.0.1:<port>/index.html`。浏览器访问该地址后加载真实 XMind 引擎及正式产品源码，不是 `file://` 单击即运行的自包含 HTML。
+服务成功输出 `PREVIEW_ASSETS_READY` 和 `REAL_XMIND_LOCAL_PREVIEW http://127.0.0.1:<port>/index.html?autostart=1`。Mac / Windows / Linux 有桌面环境时会自动用默认浏览器打开**真实**页面，并通过原程序注入的「思维导图」按钮自动展开 A 的真实 XMind 导图（不是复制一套预览绘图器）；无桌面的终端会打印可手动打开的地址。需要仅启动服务而不自动打开时可加 `--no-open`。浏览器访问该地址后加载真实 XMind 引擎及正式产品源码，不是 `file://` 单击即运行的自包含 HTML。
 
 如已取得外部经审计四件套，保留可选显式路径：
 ```bash
@@ -24,8 +24,8 @@ node examples/programs/chatgpt-mindmap/preview/serve.mjs --assets /absolute/audi
 ## 实际操作与验收条件
 
 1. 确认服务在启动前打印成功；打开页面只代表资源字节校验及脚本引入，并**不**代表画布已经实际渲染。
-2. 分别点击 A、B、C 的「思维导图」，查看原 XMind Canvas 的主题内容；缩放/折叠 A，B 不应联动。
-3. 点击「切换 320px 容器」，用真实浏览器缩放 200% 再验证工具栏、定位、裁切和键盘焦点。
+2. 默认自动打开 A 的原 XMind Canvas；关闭 A 后，也可以分别点击 A、B、C 的「思维导图」，查看主题内容；缩放/折叠 A，B 不应联动。直接在地址中去掉 `?autostart=1` 即可手动测试初始三条未展开状态。
+3. 点击「切换 320px 容器」，用真实浏览器缩放 200% 再验证工具栏、定位、裁切和键盘焦点。Linux 无 CJK 字体时需安装系统字体（例如 Noto CJK）以避免 Chromium 将中文显示为方框；CI 已加入字体前置条件，但**不意味着用户设备上自动装入字体**。
 4. 「重建 B 操作栏」不能产生重复按钮；「更新 B 回复正文」只应使 B 的导图过期，刷新后使用 B 的最新内容。
 5. 选择「原文」、全屏/Escape、Stop，检查原 DOM 恢复和控制器关闭。Stop 后页面会显示新增全局 `style` 节点数：若残留，说明隔离未闭环，**不可记为清理 PASS**。
 6. 报告预览源 SHA、固定资源 SHA、Chromium 版本、截图/视频、运行结果和错误；有失败就修产品 `src/` 而非在预览复制另一份适配逻辑。

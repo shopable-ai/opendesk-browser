@@ -85,6 +85,16 @@ jobs:
       - name: REAL SDK Workbook and product preview source tests
         run: |
           node --test --test-reporter=spec tests/environment/chatgpt-mindmap-r1.test.mjs tests/environment/chatgpt-mindmap-preview.test.mjs
+      - name: Install and verify real CJK glyph fonts for visual evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends fonts-noto-cjk
+          fc-cache -f
+          family="$(fc-match -f '%{family}' 'sans:lang=zh-cn')"
+          echo "XMIND_CHINESE_FONT=$family"
+          echo "$family" | grep -q 'Noto Sans CJK'
       - name: Prepare isolated browser driver
         shell: bash
         run: |

@@ -1,6 +1,7 @@
 :host{--mm-bg:#fff;--mm-fg:#242a36;--mm-muted:#657084;--mm-line:#d9dfe9;
   --mm-soft:#f4f6fa;--mm-accent:#5669b9;color:var(--mm-fg);
-  font:13px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color-scheme:light}
+  font:13px/1.45 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",
+    "Noto Sans CJK SC","WenQuanYi Micro Hei","Segoe UI",sans-serif;color-scheme:light}
 :host([data-dark="true"]){--mm-bg:#202125;--mm-fg:#f0f2f6;--mm-muted:#b5bcc9;
   --mm-line:#454854;--mm-soft:#292c33;--mm-accent:#9fb4ff;color-scheme:dark}
 :host *,:host *::before,:host *::after{box-sizing:border-box}
@@ -24,7 +25,8 @@ button:disabled{opacity:.5;cursor:wait}
 .odmm-tool{min-height:34px;border:1px solid var(--mm-line);border-radius:8px;padding:4px 8px;
   background:var(--mm-bg);white-space:nowrap}
 .odmm-tool:hover{background:var(--mm-soft);border-color:var(--mm-accent)}
-.odmm-canvas{min-height:160px;min-width:0;flex:1;position:relative;overflow:hidden;background:var(--mm-bg)}
+.odmm-canvas{min-height:160px;min-width:0;flex:1;position:relative;overflow:hidden;background:var(--mm-bg);
+  font-family:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC","WenQuanYi Micro Hei",sans-serif}
 .odmm-status,.odmm-warning,.odmm-error{padding:4px 8px;font-size:12px;overflow-wrap:anywhere}
 .odmm-error{color:#b63838}.odmm-status{color:var(--mm-muted)}
 .odmm-warning{background:#fff2d2;color:#704b07}

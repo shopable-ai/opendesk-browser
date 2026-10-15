@@ -116,6 +116,19 @@ try{
    return route.continue();
   });
   previewPage.on('pageerror',error=>report.errors.push(error.stack));
+  // A real developer runs serve.mjs once: the emitted URL includes
+  // autostart=1 and must render actual SDK topics without a second click.
+  const autoPage=await browser.newPage({viewport:{width:1000,height:800}});
+  try{
+    await autoPage.goto(new URL('?autostart=1',preview.url).href);
+    await autoPage.locator('[data-testid="conversation-turn-1"] [data-opendesk-chatgpt-mindmap="viewer"][data-ready="true"]')
+      .waitFor({timeout:20000});
+    report.autoStartTopics=await autoPage.locator('[data-testid="conversation-turn-1"] [data-opendesk-chatgpt-mindmap="viewer"] .topic:visible').count();
+    assert.ok(report.autoStartTopics>1);
+    assert.equal(await autoPage.evaluate(()=>window.mindmapPreview.autostart),'REAL_PRODUCT_BUTTON_CLICKED');
+    passed('R2.3 printed one-command URL automatically renders real XMind A');
+    await autoPage.screenshot({path:join(out,'r23-one-command-xmind.png'),fullPage:true});
+  }finally{await autoPage.close();}
   await previewPage.goto(preview.url);
   await previewPage.waitForFunction(()=>window.mindmapPreview?.sdk==='FIXED_RESOURCES_LOADED');
   const t=n=>previewPage.locator('[data-testid="conversation-turn-'+n+'"]');
@@ -148,6 +161,21 @@ try{
   const largeTopicCount=await viewer(3).locator('.topic:visible').count();
   assert.ok(largeTopicCount>=90,`Expected at least 90 real visible XMind topics, got ${largeTopicCount}`);
   report.largeTopicCount=largeTopicCount;
+  report.largeViewport=await viewer(3).evaluate(host=>{
+    const shadow=host.shadowRoot,canvas=shadow.querySelector('.odmm-canvas');
+    const topics=[...shadow.querySelectorAll('.topic')].map(n=>n.getBoundingClientRect())
+      .filter(r=>r.width&&r.height);
+    const r=canvas.getBoundingClientRect(),scroller=shadow.querySelector('.workbook-item');
+    return {canvasWidth:r.width,canvasHeight:r.height,topicCount:topics.length,
+      topicSpanX:Math.round(Math.max(...topics.map(x=>x.right))-Math.min(...topics.map(x=>x.left))),
+      topicSpanY:Math.round(Math.max(...topics.map(x=>x.bottom))-Math.min(...topics.map(x=>x.top))),
+      scrollerScrollWidth:scroller?.scrollWidth??null,scrollerClientWidth:scroller?.clientWidth??null,
+      scrollerScrollLeft:scroller?.scrollLeft??null};
+  });
+  report.fontProbe=await viewer(3).evaluate(host=>({
+    canvasFont:getComputedStyle(host.shadowRoot.querySelector('.odmm-canvas')).fontFamily,
+    cjkFontAvailable:document.fonts.check('14px "Noto Sans CJK SC"','中文')
+  }));
   passed('R2.2 large multi-layer tree uses real SDK without duplicate renderer');
   await previewPage.screenshot({path:join(out,'r22-local-html-wide.png'),fullPage:true});
   await previewPage.getByRole('button',{name:'切换 320px 容器'}).click();
