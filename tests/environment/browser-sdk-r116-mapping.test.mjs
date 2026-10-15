@@ -29,6 +29,9 @@ test('R11.6 generated SCOPED/EXISTING_SERVICE metadata has one approved source',
   }
   assert.equal((await syncBrowserBindings({check:true})).scoped,3);
   assert.equal((await syncBrowserDeveloperSurface({check:true})).publicCount,70);
+  const types=await readFile(new URL('../../docs/api/browser-sdk.developer.generated.d.ts',import.meta.url),'utf8');
+  assert(types.includes('declare global {'));
+  assert.match(types,/const OpenDeskSDK: OpenDeskDeveloperSdk;/);
 });
 test('R11.6 positional alias and differently named SDK call require reciprocal Native mapping',async()=>{
   const row=structuredClone(matrix.approvedOperations.find(x=>x.id==='browser.i18n.detectLanguage'));

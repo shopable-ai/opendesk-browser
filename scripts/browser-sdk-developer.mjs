@@ -94,6 +94,8 @@ export function renderBrowserDeveloperArtifacts(catalog,registry,approvedOperati
   };
   emit(tree,1);
   lines.push('}','export interface OpenDeskDeveloperSdk {',
-    '  readonly browser: OpenDeskBrowserSdk;','}','');
+    '  readonly browser: OpenDeskBrowserSdk;','}',
+    '// Available only inside an installed Sidebar tool; not the Page SDK.',
+    'declare global {','  const OpenDeskSDK: OpenDeskDeveloperSdk;','}','');
   return {types:lines.join('\n'),documentation:md.join('\n')+'\n',publicCount:published.length};
 }

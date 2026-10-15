@@ -120,3 +120,7 @@ export interface OpenDeskBrowserSdk {
 export interface OpenDeskDeveloperSdk {
   readonly browser: OpenDeskBrowserSdk;
 }
+// Available only inside an installed Sidebar tool; not the Page SDK.
+declare global {
+  const OpenDeskSDK: OpenDeskDeveloperSdk;
+}
