@@ -26,6 +26,7 @@ test('R4.2 row main button wraps icon/title/description and preserves independen
   const center=await readFile('src/ui/extension-center.js','utf8');
   for(const marker of [
     "const main=button('',()=>openRow(row.key),'ec-row-main')",
+    "const copy=node('span','ec-copy'),line=node('span','ec-name-line')",
     "const name=node('span','ec-name')",
     "name.append(node('span','ec-name-text',titleOf(row)))",
     "main.append(glyph,copy)",
@@ -40,6 +41,8 @@ test('R4.2 row main button wraps icon/title/description and preserves independen
     "restoreRowFocus(focusKey,focusAction)"
   ])assert.ok(center.includes(marker),'missing route/semantics '+marker);
   assert.doesNotMatch(center,/const name=button\(titleOf\(row\)/);
+  assert.doesNotMatch(center,/const copy=node\('div','ec-copy'\)/);
+  assert.match(center,/manage\.title=manage\.getAttribute\('aria-label'\)/);
   assert.doesNotMatch(center,/点击主要区域直接使用|点击主要区域查看详情/);
 });
 

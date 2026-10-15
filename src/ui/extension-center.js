@@ -58,7 +58,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       main.title=main.getAttribute('aria-label');
       const glyph=node('span','ec-glyph');glyph.setAttribute('aria-hidden','true');
       glyph.textContent=row.kind==='page'?'◇':'▦';
-      const copy=node('div','ec-copy'),line=node('div','ec-name-line');
+      const copy=node('span','ec-copy'),line=node('span','ec-name-line');
       const name=node('span','ec-name');
       name.append(node('span','ec-name-text',titleOf(row)));
       name.title=titleOf(row);
@@ -75,6 +75,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       const manage=button('⋮',()=>openDetail(row.key),'ec-row-more');
       manage.dataset.extensionKey=row.key;manage.dataset.extensionAction='more';
       manage.setAttribute('aria-label','查看「'+titleOf(row)+'」详情与管理');
+      manage.title=manage.getAttribute('aria-label');
       item.append(main,primary,manage);list.append(item);
     }
     get('extension-center-empty').hidden=rows.length>0;
