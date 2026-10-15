@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>AI VIP Share · R4.1 会员中心 HTML 交互原型</title>
+<title>AI VIP Share · R4.2 会员中心 HTML 交互原型</title>
 <style>
 :root{font-family:Inter,-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Microsoft YaHei",sans-serif;color:#263042;background:#f3f5f9;--muted:#7b8799;--line:#e8eaf0;--purple:#6258ca;--surface:#fff;--soft:#f8f9fc}
 *{box-sizing:border-box}body{margin:0;min-height:100vh}button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed}button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #afa9fc;outline-offset:2px}
@@ -23,13 +23,12 @@ dialog{border:1px solid #e1e4ee;box-shadow:0 30px 90px #1e27464a;border-radius:1
 @media(max-width:720px){.studio{padding:14px 10px 30px}.workspace{gap:13px}.topbar{margin-bottom:13px}.shell{width:min(390px,100%)}}@media(max-width:345px){.main{padding:13px 12px}.expiry{font-size:10px}.account-row{gap:7px}.shop-top{padding:7px;font-size:10px}}
 
 /* R4.1: always-visible safety controls; membership stays primary. */
-.proxy-card{border:1px solid var(--line);border-radius:12px;margin-top:14px;padding:13px 14px;color:#354154}.proxy-head{display:flex;align-items:center;justify-content:space-between;gap:8px}.proxy-head h3{margin:0;font-size:13px}.proxy-source{font-size:11px;color:#677489;margin:9px 0 0;line-height:1.6}.proxy-actions{display:flex;gap:8px;align-items:center;margin-top:10px}.proxy-actions button{min-height:36px;border:1px solid #dce0eb;border-radius:8px;background:white;color:#4c5670;font-size:11px;font-weight:650;padding:7px 10px}.proxy-actions .primary{background:#6258ca;border-color:#6258ca;color:#fff;flex:1}.proxy-actions .stop{background:#fff;border-color:#bdc3d2;color:#354154;flex:1}.proxy-actions button:disabled{opacity:.55;cursor:not-allowed}.proxy-help{margin:8px 0 0;font-size:10.5px;line-height:1.6;color:#6d798b}.proxy-alert{margin-top:10px;padding:10px;border:1px solid #edd6af;border-radius:8px;background:#fff9ef;color:#895617;font-size:11px;line-height:1.7}.proxy-alert p{margin:0}.proxy-alert .proxy-actions{flex-wrap:wrap;margin-top:7px}.proxy-alert button{background:#fffdf9;color:#775326;border-color:#e7d5b9;font-size:10.5px}.mode-options{border:0;padding:0;margin:12px 0;display:grid;gap:10px}.mode-options legend{font-size:12px;color:#637086;margin-bottom:10px}.mode-option{border:1px solid #e1e4ee;padding:11px;border-radius:9px;display:flex;align-items:flex-start;gap:9px;cursor:pointer;font-size:12px;line-height:1.6}.mode-option input{margin-top:4px;accent-color:#6258ca}.mode-option small{display:block;color:#6c798b;font-size:11px}.mode-option:has(input:checked){background:#f6f4ff;border-color:#b8b0e7}.mode-note{color:#775326!important;background:#fff9ef;padding:10px;border-radius:8px}.mode-buttons{display:flex;gap:8px;justify-content:flex-end}.mode-buttons button{font-size:12px;border-radius:8px;padding:9px 12px;border:1px solid #dce0eb;background:white;color:#48546a}.mode-buttons .confirm{color:#fff;background:#6258ca;border-color:#6258ca}.mode-buttons button:disabled{opacity:.5;cursor:not-allowed}
-</style>
+.proxy-card{border:1px solid var(--line);border-radius:12px;margin-top:14px;padding:13px 14px;color:#354154}.proxy-head{display:flex;align-items:center;justify-content:space-between;gap:8px}.proxy-head h3{margin:0;font-size:13px}.proxy-source{font-size:11px;color:#677489;margin:9px 0 0;line-height:1.6}.proxy-actions{display:flex;gap:8px;align-items:center;margin-top:10px}.proxy-actions button{min-height:36px;border:1px solid #dce0eb;border-radius:8px;background:white;color:#4c5670;font-size:11px;font-weight:650;padding:7px 10px}.proxy-actions .primary{background:#6258ca;border-color:#6258ca;color:#fff;flex:1}.proxy-actions .stop{background:#fff;border-color:#bdc3d2;color:#354154;flex:1}.proxy-actions button:disabled{opacity:.55;cursor:not-allowed}.proxy-help{margin:8px 0 0;font-size:10.5px;line-height:1.6;color:#6d798b}.proxy-alert{margin-top:10px;padding:10px;border:1px solid #edd6af;border-radius:8px;background:#fff9ef;color:#895617;font-size:11px;line-height:1.7}.proxy-alert p{margin:0}.proxy-alert .proxy-actions{flex-wrap:wrap;margin-top:7px}.proxy-alert button{background:#fffdf9;color:#775326;border-color:#e7d5b9;font-size:10.5px}</style>
 </head>
 <body>
 <div class="studio">
   <div class="topbar">
-    <div><h1>AI VIP Share · R4.1 会员与代理控制</h1><p>真实结构参考 · 所有账号、时长和兑换行为均为离线演示</p></div>
+    <div><h1>AI VIP Share · R4.2 会员 · 兑换 · 代理启停</h1><p>真实结构参考 · 所有账号、时长和兑换行为均为离线演示</p></div>
     <label class="view-selector">场景预览 <select id="scenario"><option value="member">会员已开通 · 主界面</option><option value="link-ready">激活链接 · 工具已安装</option><option value="link-install">激活链接 · 需要添加工具</option><option value="link-host">激活链接 · 未安装浏览器插件</option><option value="guest">未登录 / 未购买</option><option value="expired">会员已到期</option><option value="blocked">仓库真实基线 · 服务未配置</option><option value="conflict">代理冲突 · 可独立停用</option><option value="existing">使用现有网络 / 系统代理</option><option value="other-tool">OpenDesk 内其他工具占用</option><option value="locked">Chrome 不允许修改代理</option><option value="unknown">控制状态未知</option><option value="stop-failed">停止失败 · 可重试</option><option value="provider-stop">服务离线 · 仍可停用</option><option value="expired-stop">会员到期 · 仍可停用</option></select></label>
   </div>
   <div class="workspace">
@@ -44,18 +43,18 @@ dialog{border:1px solid #e1e4ee;box-shadow:0 30px 90px #1e27464a;border-radius:1
             <p class="clock-label">剩余会员时间</p><div class="time-wrap"><div class="time-value" id="remaining">31<span>天</span></div><div class="expiry" id="expiry">至 2026-11-15 23:59</div></div><div class="bar" aria-label="会员时间进度（演示）"><span id="time-bar" style="width:76%"></span></div><div class="time-meta" id="time-meta">会员权益按服务端实际到期时间计算</div>
           </div><div class="history"><span id="last-order">最近兑换：会员 1 个月</span><button class="tiny-link" type="button" id="history">兑换记录 ›</button></div>
         </section>
-        <section class="redeem" aria-label="会员兑换码"><div class="redeem-head"><h3>会员时长兑换</h3><span class="pill neutral">1 天 / 1月 / 3月 / 1年</span></div><p class="sub">输入兑换码或使用专属激活链接，领取对应的会员时间。</p>
+        <section class="redeem" aria-label="兑换激活"><div class="redeem-head"><h3>兑换激活</h3></div><p class="sub">输入兑换码或使用专属激活链接，领取对应权益。</p>
           <div class="install-step" id="install-step" hidden><strong id="install-title">需要先添加工具</strong><p id="install-desc"></p><button type="button" class="step-action" id="install-button">确认添加并继续兑换</button></div>
-          <div class="link-hint" id="link-hint" hidden><div class="row"><b>已识别专属激活链接</b><span class="pill neutral">待确认兑换</span></div><p>兑换码（演示）：<span class="link-code" id="link-code">VIP-DEMO-1M</span></p></div>
-          <div class="input-row"><input id="redeem-code" aria-label="会员兑换码" inputmode="text" autocomplete="off" spellcheck="false" maxlength="120" placeholder="请输入会员兑换码"><button class="action" id="redeem-button" type="button">立即兑换</button></div>
-          <div class="validity" id="redeem-caption">兑换成功后以服务端回执确认新增时长，不会自动开启代理。</div>
+          <div class="link-hint" id="link-hint" hidden><div class="row"><b>已识别专属激活链接</b><span class="pill neutral">待确认兑换</span></div><p>兑换码（演示）：<span class="link-code" id="link-code">VIP-DEMO-ACCESS</span></p></div>
+          <div class="input-row"><input id="redeem-code" aria-label="兑换码或激活码" inputmode="text" autocomplete="off" spellcheck="false" maxlength="120" placeholder="输入兑换码或激活码"><button class="action" id="redeem-button" type="button">立即兑换</button></div>
+          <div class="validity" id="redeem-caption">具体权益以服务端核验结果为准；兑换不会自动开启代理。</div>
         </section>
-        <div class="bottomline"><button type="button" class="buy-more" id="shop">＋ 购买更多会员时长</button></div>
+        <div class="bottomline"><button type="button" class="buy-more" id="shop">查看更多商品</button></div>
         <section class="proxy-card" aria-labelledby="proxy-heading">
           <div class="proxy-head"><h3 id="proxy-heading">AI 网站访问</h3><span class="pill" id="proxy-status" role="status" aria-live="polite">状态待确认</span></div>
           <p class="proxy-source" id="proxy-source">当前网络：尚未检测</p>
-          <div class="proxy-actions"><button type="button" class="stop" id="proxy-toggle">停用本工具代理</button><button type="button" id="proxy-mode">切换访问方式</button></div>
-          <p class="proxy-help">仅影响本工具代理；会员有效期仍继续计算。</p>
+          <div class="proxy-actions"><button type="button" class="stop" id="proxy-toggle">停用代理</button></div>
+          <p class="proxy-help">仅启停 AI VIP Share 代理，不修改其他代理设置；会员有效期仍继续计算。</p>
           <div class="proxy-alert" id="proxy-alert" hidden><p id="proxy-alert-text"></p><div class="proxy-actions"><button type="button" id="proxy-manage">扩展管理指引</button><button type="button" id="proxy-refresh">重新检测</button></div></div>
         </section>
         <details class="service"><summary><i class="s-dot" id="service-dot" aria-hidden="true"></i><strong id="service-title">适用网站与网络说明</strong><span>详情 ▾</span></summary><div class="detail"><p>本工具只控制自己的 Chrome 代理设置，不会关闭系统代理、VPN 或其他扩展。使用现有网络不代表已验证网站可用。</p><div class="domains">适用站点示例：ChatGPT · Claude · Gemini · Perplexity 等。网站及会员交付范围以正式商品为准。网络连通不代表第三方会员已开通。</div><p>启用本工具时，非匹配网站按直连规则处理，不自动串接原系统代理。系统 VPN / TUN 仍可能影响实际路由。</p></div></details>
@@ -64,34 +63,43 @@ dialog{border:1px solid #e1e4ee;box-shadow:0 30px 90px #1e27464a;border-radius:1
       <div class="demo-footer">本页面为独立 HTML 原型，不连接商品、账号、支付或代理服务。所有兑换、安装和代理按钮只更新演示界面；不修改真实 Chrome 或系统设置。</div>
     </main>
     <aside class="aside" aria-label="产品设计说明">
-      <h2>会员优先，网络可控</h2><p>把「会员账号 + 剩余会员时间」放在首屏主卡片，「兑换码」紧随其后；购买入口清晰，但不挤占会员权益空间。</p><hr><div class="mini">三种核心使用方式</div><p>① 登录后查看已有会员；② 手动输入兑换码；③ 从专属激活链接带入兑换意图，按安装状态继续。</p><div class="mini">链接场景</div><p>浏览器插件未安装：先完成浏览器确认安装；宿主已安装但工具未安装：明确确认添加工具；工具已安装：直接查看并确认兑换。</p><div class="mini">代理冲突也能退出</div><p>启停入口始终可见；切换到现有网络只释放本工具的接管，不关闭系统代理或其他扩展。选项先预览，确认后才应用。</p><div class="mini">重要区分</div><p>账号、会员时长、工具安装、Chrome 代理启用是四种独立状态。会员有效不代表实际网络已成功接通。</p><hr><p><code>目标：examples/sidebar-tools/ai-vip-share/</code></p></aside>
+      <h2>会员优先，网络可控</h2><p>把「会员账号 + 当前权益」放在首屏主卡片，「兑换激活」紧随其后；兑换码的权益内容由商品核验决定，不预设固定时长。</p><hr><div class="mini">三种核心使用方式</div><p>① 登录后查看已有会员；② 手动输入兑换码；③ 从专属激活链接带入兑换意图，按安装状态继续。</p><div class="mini">链接场景</div><p>浏览器插件未安装：先完成浏览器确认安装；宿主已安装但工具未安装：明确确认添加工具；工具已安装：直接查看并确认兑换。</p><div class="mini">代理冲突也能退出</div><p>启停入口始终可见；单击「启用代理」或「停用代理」直接操作本工具，无二次选择弹窗。停用只释放本工具接管，不关闭其他扩展或系统网络。</p><div class="mini">重要区分</div><p>账号、会员时长、工具安装、Chrome 代理启用是四种独立状态。会员有效不代表实际网络已成功接通。</p><hr><p><code>目标：examples/sidebar-tools/ai-vip-share/</code></p></aside>
   </div>
   <div class="note">设计场景模拟 · 无外部网络请求 · 无真实支付或会员账户 · 不修改浏览器代理</div>
 </div>
-<dialog id="shop-dialog" aria-label="更多商品演示"><header><h2>更多会员商品</h2><button class="close" id="close-shop" type="button" aria-label="关闭">×</button></header><p>按需要选购会员使用时间。以下仅为商品时长示例；价格、库存和购买链接须由正式商城返回。</p><div class="products"><div class="product"><strong>1 天体验</strong><small>短期使用 · 按日计算</small><button type="button" data-plan="1 天体验">查看商品</button></div><div class="product"><strong>1 个月会员</strong><small>按服务端自然月规则</small><button type="button" data-plan="1 个月会员">查看商品</button></div><div class="product"><strong>3 个月会员</strong><small>适合中期使用</small><button type="button" data-plan="3 个月会员">查看商品</button></div><div class="product"><strong>1 年会员</strong><small>长期使用</small><button type="button" data-plan="1 年会员">查看商品</button></div></div><div class="modal-status" id="shop-message" role="status">演示商品目录，没有真实价格或结账功能。</div></dialog>
-<dialog id="proxy-dialog" aria-labelledby="proxy-dialog-title"><header><h2 id="proxy-dialog-title">切换访问方式</h2><button type="button" class="close" id="proxy-close" aria-label="关闭访问方式选择">×</button></header><fieldset class="mode-options"><legend>选择后仍需确认，不会立即更改网络</legend><label class="mode-option"><input type="radio" name="network-mode" value="managed"><span><b>使用本工具代理</b><small>AI VIP Share 接管 Chrome 代理设置</small></span></label><label class="mode-option"><input type="radio" name="network-mode" value="existing"><span><b>使用现有网络</b><small>停用本工具代理，保留系统 / 其他扩展设置</small></span></label></fieldset><p class="mode-note" id="proxy-mode-note"></p><div class="mode-buttons"><button type="button" id="proxy-cancel">取消</button><button type="button" class="confirm" id="proxy-confirm">确认切换</button></div></dialog>
+<dialog id="shop-dialog" aria-label="更多商品演示"><header><h2>更多会员商品</h2><button class="close" id="close-shop" type="button" aria-label="关闭">×</button></header><p>以下为商品展示示例，不是固定套餐列表。实际商品、交付权益、价格与购买入口以正式商城为准。</p><div class="products"><div class="product"><strong>1 天体验</strong><small>短期使用 · 按日计算</small><button type="button" data-plan="1 天体验">查看商品</button></div><div class="product"><strong>1 个月会员</strong><small>按服务端自然月规则</small><button type="button" data-plan="1 个月会员">查看商品</button></div><div class="product"><strong>3 个月会员</strong><small>适合中期使用</small><button type="button" data-plan="3 个月会员">查看商品</button></div><div class="product"><strong>1 年会员</strong><small>长期使用</small><button type="button" data-plan="1 年会员">查看商品</button></div></div><div class="modal-status" id="shop-message" role="status">演示商品目录，没有真实价格或结账功能。</div></dialog>
 <script>
 (()=>{
  'use strict';
  const $=id=>document.getElementById(id);
  const scene=$('scenario');const code=$('redeem-code');const redeem=$('redeem-button');const modal=$('shop-dialog');
  const cases={
-  member:{pill:'生效中',pillStyle:'active',account:'li***@example.com',sub:'AI VIP 会员 · 已绑定',remain:'31<span>天</span>',expiry:'至 2026-11-15 23:59',meter:'76%',meta:'会员权益按服务端实际到期时间计算',last:'最近兑换：会员 1 个月',action:'账号',service:'访问服务 · 演示未连接'},
-  'link-ready':{pill:'待兑换',pillStyle:'neutral',account:'li***@example.com',sub:'账号已绑定 · 兑换待确认',remain:'31<span>天</span>',expiry:'原会员至 2026-11-15',meter:'76%',meta:'确认兑换后，新增时长应叠加到有效会员期',last:'来源：专属激活链接',action:'账号',link:true,service:'访问服务 · 演示未连接'},
+  member:{pill:'生效中',pillStyle:'active',account:'li***@example.com',sub:'AI VIP 会员 · 已绑定',remain:'31<span>天</span>',expiry:'至 2026-11-15 23:59',meter:'76%',meta:'会员权益按服务端实际到期时间计算',last:'最近领取：会员权益（演示）',action:'账号',service:'访问服务 · 演示未连接'},
+  'link-ready':{pill:'待兑换',pillStyle:'neutral',account:'li***@example.com',sub:'账号已绑定 · 兑换待确认',remain:'31<span>天</span>',expiry:'原会员至 2026-11-15',meter:'76%',meta:'确认兑换后，按商品权益与服务端回执更新账户',last:'来源：专属激活链接',action:'账号',link:true,service:'访问服务 · 演示未连接'},
   'link-install':{pill:'待添加工具',pillStyle:'warn',account:'li***@example.com',sub:'账号已识别 · 工具尚未添加',remain:'—',expiry:'添加工具后再兑换',meter:'0%',meta:'不得先消费兑换码，再要求用户安装工具',last:'来源：专属激活链接',action:'账号',link:true,install:true,service:'访问服务 · 演示未连接'},
   'link-host':{pill:'等待安装',pillStyle:'warn',account:'未连接 OpenDesk',sub:'浏览器插件尚未安装',remain:'—',expiry:'安装后继续',meter:'0%',meta:'不能由网站静默安装 Chrome 扩展',last:'来源：专属激活链接',action:'安装指引',link:true,install:'host',service:'访问服务 · 演示未连接'},
-  guest:{pill:'未开通',pillStyle:'',account:'尚未绑定会员账号',sub:'登录 / 绑定后查看会员权益',remain:'0<span>天</span>',expiry:'暂无有效会员',meter:'0%',meta:'可通过兑换码领取对应会员权益',last:'暂无兑换记录',action:'登录 / 绑定',service:'访问服务 · 未配置'},
-  expired:{pill:'已到期',pillStyle:'warn',account:'li***@example.com',sub:'AI VIP 会员 · 已过期',remain:'0<span>天</span>',expiry:'已于 2026-10-14 到期',meter:'0%',meta:'兑换新时长后可重新获得权益',last:'最近兑换：会员 1 个月',action:'账号',service:'访问服务 · 权益已到期'},
+  guest:{pill:'未开通',pillStyle:'',account:'尚未绑定会员账号',sub:'登录 / 绑定后查看会员权益',remain:'0<span>天</span>',expiry:'暂无有效会员',meter:'0%',meta:'可通过兑换码或专属链接领取对应权益',last:'暂无兑换记录',action:'登录 / 绑定',service:'访问服务 · 未配置'},
+  expired:{pill:'已到期',pillStyle:'warn',account:'li***@example.com',sub:'AI VIP 会员 · 已过期',remain:'0<span>天</span>',expiry:'已于 2026-10-14 到期',meter:'0%',meta:'可以通过兑换或购买领取新权益',last:'最近领取：会员权益（演示）',action:'账号',service:'访问服务 · 权益已到期'},
   blocked:{pill:'不可用',pillStyle:'warn',account:'账号状态不可验证',sub:'正式会员服务尚未配置',remain:'—',expiry:'无法核对有效期',meter:'0%',meta:'当前 GitHub main 缺少正式 Provider，不能显示已开通',last:'兑换记录 · 暂无法查询',action:'账号',service:'访问服务 · 尚未配置'},
-  conflict:{pill:'生效中（演示）',pillStyle:'active',account:'li***@example.com',sub:'AI VIP 会员 · 已绑定',remain:'31<span>天</span>',expiry:'至 2026-11-15 23:59',meter:'76%',meta:'权益可用不代表网络代理已成功启用',last:'最近兑换：会员 1 个月',action:'账号',service:'访问服务 · 代理被其他扩展管理'}
+  conflict:{pill:'生效中（演示）',pillStyle:'active',account:'li***@example.com',sub:'AI VIP 会员 · 已绑定',remain:'31<span>天</span>',expiry:'至 2026-11-15 23:59',meter:'76%',meta:'权益可用不代表网络代理已成功启用',last:'最近领取：会员权益（演示）',action:'账号',service:'访问服务 · 代理被其他扩展管理'}
  };
  let isRedeemed=false;
  function message(v){const t=$('toast');t.hidden=false;t.textContent=v;}
- function render(){isRedeemed=false;const s=cases[scene.value]||cases[scene.value==='expired-stop'?'expired':'member'];$('toast').hidden=true;$('member-pill').textContent=s.pill;$('member-pill').className='pill '+s.pillStyle;$('account-name').textContent=s.account;$('account-sub').textContent=s.sub;$('remaining').innerHTML=s.remain;$('expiry').textContent=s.expiry;$('time-bar').style.width=s.meter;$('time-meta').textContent=s.meta;$('last-order').textContent=s.last;$('account-action').textContent=s.action;$('service-title').textContent='适用网站与网络说明';$('service-dot').style.background=scene.value==='conflict'?'#c79c58':'#aaafbb';$('link-hint').hidden=!s.link;$('install-step').hidden=!s.install;$('redeem-caption').textContent=scene.value==='blocked'?'服务端尚未配置：目前只能查看界面，不能真实兑换。':'兑换成功后以服务端回执确认新增时长，不会自动开启代理。';code.value=s.link?'VIP-DEMO-1M':'';code.disabled=!!s.install||scene.value==='blocked';redeem.disabled=!!s.install||scene.value==='blocked';redeem.textContent='立即兑换';if(s.install){$('install-title').textContent=s.install==='host'?'需要先安装 OpenDesk Browser':'已识别 OpenDesk Browser，需添加 AI VIP Share';$('install-desc').textContent=s.install==='host'?'浏览器扩展安装需要 Chrome 的明确用户确认；完成后可继续兑换。':'确认安装独立工具并审核所需权限，随后返回同一张兑换卡。';$('install-button').textContent=s.install==='host'?'查看安装指引':'确认添加并继续';}}
+ function render(){isRedeemed=false;const s=cases[scene.value]||cases[scene.value==='expired-stop'?'expired':'member'];$('toast').hidden=true;$('member-pill').textContent=s.pill;$('member-pill').className='pill '+s.pillStyle;$('account-name').textContent=s.account;$('account-sub').textContent=s.sub;$('remaining').innerHTML=s.remain;$('expiry').textContent=s.expiry;$('time-bar').style.width=s.meter;$('time-meta').textContent=s.meta;$('last-order').textContent=s.last;$('account-action').textContent=s.action;$('service-title').textContent='适用网站与网络说明';$('service-dot').style.background=scene.value==='conflict'?'#c79c58':'#aaafbb';$('link-hint').hidden=!s.link;$('install-step').hidden=!s.install;$('redeem-caption').textContent=scene.value==='blocked'?'服务端尚未配置：目前只能查看界面，不能真实兑换。':'具体权益以服务端核验结果为准；兑换不会自动开启代理。';code.value=s.link?'VIP-DEMO-ACCESS':'';code.disabled=!!s.install||scene.value==='blocked';redeem.disabled=!!s.install||scene.value==='blocked';redeem.textContent='立即兑换';if(s.install){$('install-title').textContent=s.install==='host'?'需要先安装 OpenDesk Browser':'已识别 OpenDesk Browser，需添加 AI VIP Share';$('install-desc').textContent=s.install==='host'?'浏览器扩展安装需要 Chrome 的明确用户确认；完成后可继续兑换。':'确认安装独立工具并审核所需权限，随后返回同一张兑换卡。';$('install-button').textContent=s.install==='host'?'查看安装指引':'确认添加并继续';}}
  scene.addEventListener('change',render);
  $('install-button').addEventListener('click',()=>{if(scene.value==='link-install'){scene.value='link-ready';scene.dispatchEvent(new Event('change'));message('仅演示：工具添加步骤已通过，兑换仍需用户明确确认。');}else message('演示环境无法安装 Chrome 浏览器扩展。正式版应引导到经过验证的官方安装入口，并保留未消费的兑换意图。')});
- redeem.addEventListener('click',()=>{if(isRedeemed){message('演示兑换已完成；重复提交不会增加第二次时长。');return;}const v=code.value.trim();if(!/^[a-zA-Z0-9_-]{6,120}$/.test(v)){message('请输入 6–120 位字母、数字、- 或 _ 的兑换码。');return;}isRedeemed=true;$('member-pill').textContent='生效中（模拟）';$('member-pill').className='pill active';$('remaining').innerHTML='61<span>天</span>';$('expiry').textContent='至 2026-12-15（模拟）';$('time-bar').style.width='92%';$('time-meta').textContent='已模拟叠加 1 个自然月；真实到期时间以服务端回执为准';$('last-order').textContent='最近兑换：1 个月（模拟）';redeem.textContent='已兑换（模拟）';redeem.disabled=true;code.value='';message('演示兑换成功，没有发送网络请求或消费任何真实兑换码。');});
- $('history').addEventListener('click',()=>message('兑换记录演示：2026-10-15 · 1 个月 · 成功（示例）。真实记录必须来自账号服务端。'));
+  redeem.addEventListener('click',()=>{
+   if(isRedeemed){message('本次演示操作已提交；不会重复发放任何权益。');return;}
+   const v=code.value.trim();
+   if(!/^[a-zA-Z0-9_-]{6,120}$/.test(v)){message('请输入有效的兑换码或激活码（6–120 位字母、数字、- 或 _）。');return;}
+   isRedeemed=true;
+   $('time-meta').textContent='演示没有连接权益服务；会员信息保持不变。';
+   $('last-order').textContent='兑换操作已提交（演示）';
+   $('redeem-caption').textContent='正式版应在服务端确认成功后，展示实际商品权益与生效信息。';
+   redeem.textContent='已提交（演示）';redeem.disabled=true;code.value='';
+   message('离线演示已提交兑换申请；无法从兑换码格式推断时长、商品或有效期。');
+  });
+ $('history').addEventListener('click',()=>message('兑换记录应显示服务端返回的商品、权益、时间及结果；演示不包含真实记录。'));
  $('account-action').addEventListener('click',()=>message('账号操作仅为布局演示：正式版需经过审核的登录/绑定入口，不在工具内收集第三方 AI 账号密码。'));
  function openShop(){if(typeof modal.showModal==='function')modal.showModal();else modal.setAttribute('open','');}
  $('shop').addEventListener('click',openShop);$('top-shop').addEventListener('click',openShop);$('close-shop').addEventListener('click',()=>modal.close());
@@ -137,7 +145,7 @@ dialog{border:1px solid #e1e4ee;box-shadow:0 30px 90px #1e27464a;border-radius:1
 <script>
 (function(){
  'use strict';
- const $=id=>document.getElementById(id),M=globalThis.AIVipProxyPreview,dialog=$('proxy-dialog');
+ const $=id=>document.getElementById(id),M=globalThis.AIVipProxyPreview;
  let state=M.initial($('scenario').value),generation=0;
  function note(text){$('toast').hidden=false;$('toast').textContent=text;}
  function render(){
@@ -158,11 +166,10 @@ dialog{border:1px solid #e1e4ee;box-shadow:0 30px 90px #1e27464a;border-radius:1
   if(s.operation==='stop_failed')alert='已记录停用意图，但尚未确认释放。不会自动重启；请重试。后台不可用时可手动停用 OpenDesk 扩展，此操作也会影响其其他功能。';
   $('proxy-status').textContent=label;$('proxy-status').className='pill '+style;
   $('proxy-source').textContent='当前：'+sources[s.owner];
-  $('proxy-toggle').textContent=s.operation==='stopping'?'正在停用…':s.operation==='stop_failed'?'重试停用':stop?'停用本工具代理':'启用本工具代理';
+  $('proxy-toggle').textContent=s.operation==='stopping'?'正在停用…':s.operation==='stop_failed'?'重试停用':stop?'停用代理':'启用代理';
   $('proxy-toggle').className=stop?'stop':'primary';
   $('proxy-toggle').disabled=s.operation==='stopping'||(!stop&&!M.canStart(s));
-  $('proxy-mode').disabled=s.operation==='stopping';
-  $('proxy-alert').hidden=!alert;$('proxy-alert-text').textContent=alert;
+   $('proxy-alert').hidden=!alert;$('proxy-alert-text').textContent=alert;
   $('proxy-manage').hidden=!['extension','tool'].includes(s.owner)&&s.operation!=='stop_failed';
   $('proxy-refresh').disabled=isBusy;
  }
@@ -170,26 +177,14 @@ dialog{border:1px solid #e1e4ee;box-shadow:0 30px 90px #1e27464a;border-radius:1
   state=M.reduce(state,{type});render();const revision=state.revision,g=generation;
   setTimeout(()=>{if(g!==generation)return;state=M.reduce(state,{type:type==='stop'?'stopped':'started',revision});render();},380);
  }
- function modeMessage(){
-  const mode=dialog.querySelector('input:checked').value;
-  let text='仅释放 AI VIP Share 的代理接管，不会关闭系统代理、VPN 或其他扩展。会员时间不会暂停。';
-  if(mode==='managed')text='接管 Chrome 代理设置；非匹配网站按直连规则处理，不自动串接原系统代理。应用不等于网络已验证。';
-  const alreadyActive=state.owner==='self'&&state.desired&&state.operation==='idle';
-  const allowed=mode==='existing'||M.canStart(state)||alreadyActive;
-  if(mode==='managed'&&alreadyActive)text='当前已使用本工具代理，无需重复启用。改选现有网络可停止本工具接管。';
-  if(!allowed)text+=' 当前不能启用：请先处理控制冲突、停止未确认或会员 / 服务配置问题。';
-  $('proxy-mode-note').textContent=text;$('proxy-confirm').disabled=!allowed;
-  $('proxy-confirm').textContent=mode==='existing'?'确认使用现有网络':alreadyActive?'保持当前方式':'确认启用本工具代理';
- }
- function openMode(mode){dialog.querySelector('input[value="'+mode+'"]').checked=true;modeMessage();dialog.showModal();}
- $('proxy-toggle').addEventListener('click',()=>{if(M.canStop(state))perform('stop');else openMode('managed');});
- $('proxy-mode').addEventListener('click',()=>openMode(state.mode));
- $('proxy-close').addEventListener('click',()=>dialog.close());$('proxy-cancel').addEventListener('click',()=>dialog.close());
- dialog.querySelectorAll('input').forEach(el=>el.addEventListener('change',modeMessage));
- $('proxy-confirm').addEventListener('click',()=>{const mode=dialog.querySelector('input:checked').value;dialog.close();if(mode==='existing')perform('stop');else if(M.canStart(state))perform('start');});
+  // Direct trusted click intent: no access-mode selection, no confirmation modal.
+  $('proxy-toggle').addEventListener('click',()=>{
+   if(M.canStop(state))perform('stop');
+   else if(M.canStart(state))perform('start');
+  });
  $('proxy-refresh').addEventListener('click',()=>{render();note('离线预览：重新读取当前演示状态，不会自动启用代理，也未检测真实网络。');});
  $('proxy-manage').addEventListener('click',()=>note(state.owner==='tool'?'正式版应定位到 OpenDesk 的代理占用工具，由用户确认切换；本原型不会停用任何其他工具。':'正式版可由可信宿主打开 chrome://extensions，由用户选择停用对应扩展。仅凭 Chrome 代理状态不能确认具体扩展名称；此处没有关闭任何扩展。'));
- $('scenario').addEventListener('change',()=>{generation++;state=M.initial($('scenario').value);if(dialog.open)dialog.close();render();});
+ $('scenario').addEventListener('change',()=>{generation++;state=M.initial($('scenario').value);render();});
  render();
 })();
 </script>

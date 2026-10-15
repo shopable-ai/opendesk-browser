@@ -25,6 +25,7 @@ const safeUrl=()=>{
 const publicOperations=new Set();
 const refPlaceholder='REPLACE_WITH_OWN_REF';
 const exampleArgs=operation=>({
+  'browser.i18n.detectLanguage':{text:'Hello, this is an OpenDesk language test.'},
   'browser.capabilities.getStatus':{operation:'browser.tabs.create'},
   'browser.contextMenu.register':{actionIds:['sdk-check']},
   'browser.clipboard.writeText':{text:'OpenDesk SDK test'},
@@ -87,7 +88,7 @@ function populateContracts(rows){
   select.replaceChildren();
   publicOperations.clear();
   for(const row of rows){
-    if(typeof row.operation!=='string'||!/^browser\.[A-Za-z.]+$/.test(row.operation))continue;
+    if(typeof row.operation!=='string'||!/^browser\.[A-Za-z][A-Za-z0-9]*(?:\.[A-Za-z][A-Za-z0-9]*)*$/.test(row.operation))continue;
     publicOperations.add(row.operation);
     const option=document.createElement('option');
     option.value=row.operation;

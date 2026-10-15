@@ -5,7 +5,7 @@
 import {readFile,writeFile} from 'node:fs/promises';
 import {resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {BROWSER_OPERATIONS} from '../src/framework/sdk/browser-contract.js';
+import {BROWSER_OPERATIONS,deriveBrowserDirectOperations} from '../src/framework/sdk/browser-contract.js';
 
 const ROOT=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const SOURCE='docs/api/browser-sdk-interface-matrix.json';
@@ -20,6 +20,11 @@ const exact=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 export function deriveBrowserBindingCatalog(matrix,registry=BROWSER_OPERATIONS){
   if(matrix?.schemaVersion!=='opendesk.browser-sdk.interface-matrix.v1'||
      !Array.isArray(matrix.approvedOperations))throw Error('Pinned approved matrix missing');
+  // Bootstrap newly approved DIRECT entries from the matrix before checking
+  // public counts. Never require hand-editing the generated Registry first.
+  const additions=deriveBrowserDirectBindings(matrix,registry)
+    .filter(row=>!Object.hasOwn(registry,row.operation));
+  registry={...registry,...deriveBrowserDirectOperations(additions)};
   const nativeByName=new Map((matrix.nativeInterfaces??[]).map(row=>[row.nativeApi,row]));
   const rows=matrix.approvedOperations.map(row=>{
     const mode=MODES[row.mappingKind];
@@ -97,7 +102,7 @@ export function deriveBrowserDirectBindings(matrix,registry=BROWSER_OPERATIONS){
          !exact(row.chromePermissions,runtime.requiredChromePermissions)||
          !exact(row.toolCapabilities,runtime.requiredCapabilities)
        )||
-       row.userGesture||row.siteScope!=='none'||
+       row.effectClass!=='read'||row.userGesture||row.siteScope!=='none'||
        row.allowedWorlds?.length!==1||row.allowedWorlds[0]!=='sidebar-tool'||
        row.nativeApis?.length!==1||row.nativeApis[0]!=='chrome.'+row.id.slice('browser.'.length)||
        row.inputSchema?.type!=='object'||row.inputSchema.additionalProperties!==false||

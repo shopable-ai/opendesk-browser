@@ -43,6 +43,16 @@ async function main(){
  if(!equal(ledger.layers.map(x=>x.id),['layer1','layer2','layer3','layer4']))fail('four layers');
  if(Number(ledger.source.minChrome)!==Number(manifest.minimum_chrome_version))fail('Chrome version');
  const formal=Object.keys(BROWSER_OPERATIONS),proposals=parseCandidates(inventory);
+ const decisions=new Map((matrix.candidateExecutionDecisions??[]).map(row=>[row.id,row]));
+ const pending=proposals.filter(row=>!formal.includes(row.id));
+ if(decisions.size!==pending.length||(matrix.candidateExecutionDecisions??[]).length!==pending.length||
+    pending.some(row=>!decisions.has(row.id)))fail('candidate execution decisions must cover each unregistered historical name');
+ for(const row of decisions.values()){
+   if(row.status!=='CANDIDATE'||!['DIRECT_CANDIDATE','SCOPED','COMPOSED','EXISTING_SERVICE','HOST_ONLY','DENIED'].includes(row.executionMode)||
+      !row.reason||!row.nextStep||!row.owner||
+      row.canonicalTarget&&!formal.includes(row.canonicalTarget))fail('invalid candidate execution decision '+row.id);
+ }
+ const executionFor=id=>formal.includes(id)?{status:'APPROVED',executionMode:matrix.approvedOperations.find(row=>row.id===id).mappingKind}:decisions.get(id);
  let human=humanInput;
  if(process.argv.includes('--write')){
   if(!equal(formal.slice().sort(),acceptance.operations.map(x=>x.api).sort()))fail('acceptance registry mismatch; repair the acceptance contract first');
@@ -61,6 +71,7 @@ async function main(){
   for(const candidate of ledger.candidateCatalog){
    const current=ledger.formal.find(x=>x.id===candidate.id);
    candidate.layer3.status=current?'PROMOTED_TO_FORMAL':'PROPOSED_NOT_REGISTERED';
+   candidate.execution=executionFor(candidate.id);
    if(current){candidate.layer2=current.layer2;candidate.layer4=current.layer4;}
   }
   for(const group of ledger.candidateGroups){
@@ -92,6 +103,7 @@ async function main(){
     new Set(proposals.map(x=>x.id)).size!==proposals.length)fail('candidate total/duplicates');
  for(const candidate of proposals){
   const row=ledger.candidateCatalog.find(x=>x.id===candidate.id),promoted=formal.includes(candidate.id);
+  if(!equal(row?.execution,executionFor(candidate.id)))fail('candidate execution classification drift '+candidate.id);
   if(!row||row.group!==candidate.group||row.priority!==candidate.priority||row.trust!==candidate.trust||
    row.layer3.status!==(promoted?'PROMOTED_TO_FORMAL':'PROPOSED_NOT_REGISTERED'))fail('candidate '+candidate.id);
   if(!promoted&&(row.layer4.macChrome!=='NOT_TESTED'||row.layer4.positive!=='NOT_TESTED'||row.layer4.denial!=='NOT_TESTED'))

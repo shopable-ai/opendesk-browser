@@ -62,8 +62,18 @@ test('ownership change cancels a pending start',()=>{
  const changed=M.reduce(s,{type:'ownerChanged',owner:'extension'});
  assert.equal(M.reduce(changed,{type:'started',revision:s.revision}),changed);
 });
-test('prototype has separate selection and explicit confirmation',()=>{
- assert.match(html,/选择后仍需确认，不会立即更改网络/);
- assert.match(html,/id="proxy-confirm"/);assert.match(html,/id="proxy-cancel"/);
- assert.match(html,/id="proxy-toggle"/);assert.match(html,/会员有效期仍继续计算/);
+test('R4.2 proxy has one direct toggle and no selection modal',()=>{
+ assert.match(html,/id="proxy-toggle"/);
+ assert.doesNotMatch(html,/id="proxy-mode"|id="proxy-dialog"|id="proxy-confirm"|id="proxy-cancel"/);
+ assert.match(html,/if\(M\.canStart\(state\)\)perform\('start'\)/);
+ assert.match(html,/会员有效期仍继续计算/);
+});
+test('R4.2 redemption copy is generic without fixed durations',()=>{
+ assert.match(html,/<h3>兑换激活<\/h3>/);
+ assert.match(html,/输入兑换码或激活码/);
+ assert.doesNotMatch(html,/会员时长兑换|1 天 \/ 1月 \/ 3月 \/ 1年/);
+});
+test('R4.2 redemption does not invent entitlements from unknown codes',()=>{
+ assert.match(html,/无法从兑换码格式推断时长、商品或有效期/);
+ assert.doesNotMatch(html,/61<span>天<\/span>|已模拟叠加 1 个自然月/);
 });

@@ -1,5 +1,5 @@
 <!-- browser-framework-current:start -->
-当前四层账本：65 项正式 / 65 项 SOURCE_WIRED；Cookies 11 项；原始 27 组 114 候选中 23 项同名晋级、91 项未登记。同候选原生 PASS 0 项；各项原始证据见正式验收账本，源码接线不提升 Node、Build 或 Native 状态。
+当前四层账本：68 项正式 / 68 项 SOURCE_WIRED；Cookies 11 项；原始 27 组 114 候选中 23 项同名晋级、91 项未登记。同候选原生 PASS 0 项；各项原始证据见正式验收账本，源码接线不提升 Node、Build 或 Native 状态。
 <!-- browser-framework-current:end -->
 
 **R10.1 当前四层账本（2026-10-13）**：正式 Browser SDK **44 项正式登记 / 44 项 SOURCE_WIRED**，包含 Cookies 11 项及本轮新增 Downloads 自有下载 4 项。真实 Chrome downloads 通过唯一 Browser Host + 受限 Driver，下载及取消均需受信 Side Panel 真点击、Host 一次性批准、安装身份/Chrome 权限验证；任何工具不可获知原生下载 ID 或枚举全局历史。原 114 候选旧命名不因新功能自动复活。**本候选 Node、Build、Mac Chrome 均未取得完整 PASS 证据**；历史 R6/R9 快照数字仅存档。
@@ -174,3 +174,20 @@ Cookie 详细实施与验收任务：[browser-cookies-r6.md](../framework/workst
 - 本四层机器总账：`docs/framework/workstreams/browser-framework-four-layer-ledger.json`（非运行时授权表）。
 - Cookie 优先任务：`docs/framework/workstreams/browser-cookies-r6.md`（只列真实实现与测试）。
 - 后续源码实现或候选晋级必须同步更新对应总账、运行校验，不允许修改 JSON 来伪造 IMPLEMENTED / PASS；原 603＋19、B05、F3、ZIP 不变。
+
+## R11.3 接口执行工作量（2026-10-15）
+
+唯一批准矩阵的 `candidateExecutionDecisions` 记录历史未登记名称的执行决定；四层 JSON 的 `candidateCatalog[].execution` 是校验后的只读视图，不会授予权限。
+
+| 历史未登记名称的处理方式 | 数量 | 下一步 |
+| --- | ---: | --- |
+| EXISTING_SERVICE | 39 | 其中 13 项可迁移到指定正式方法及其受限语义；其余先补公共合同，再绑定现有服务 |
+| SCOPED | 24 | 明确 Owned/Origin/Document 与安装身份，复用可信 Driver |
+| COMPOSED | 3 | 复用截图、诊断等服务，补组合事务与结果预算 |
+| DIRECT_CANDIDATE | 1 | idle.getState 改用原生 queryState；先批准 Capability/权限及标量枚举合同 |
+| HOST_ONLY | 20 | 保留可信宿主入口，不对普通工具自动开放 |
+| DENIED | 4 | 普通工具不开放注入；复用 Controller/Page 授权执行器 |
+
+91 个历史名称均已分类，仍然是 CANDIDATE；分类不是 APPROVED/SOURCE_WIRED。
+正式公开 68 项中 DIRECT=3、SCOPED=49、EXISTING_SERVICE=11、COMPOSED=5，另有 2 项批准 Host-only。
+历史 114 项有 23 项同名晋级；68+91=159 是当前/历史名称并集，包含别名、受限替代和不开放项，不是 159 个应当新写的 Chrome Wrapper。

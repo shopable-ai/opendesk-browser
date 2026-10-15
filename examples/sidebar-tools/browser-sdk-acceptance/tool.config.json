@@ -1,9 +1,9 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "browser-sdk-acceptance",
-  "version": "10.7.0",
+  "version": "11.3.0",
   "title": "Browser SDK Acceptance",
-  "description": "R10.7 installed-tool acceptance: exercise every approved public SDK method by real clicks, with separate Host and native Chrome evidence gates.",
+  "description": "Installed-tool acceptance for approved SDK methods, including R11.3 compiled DIRECT calls; Chrome native evidence remains separate.",
   "capabilities": [
     "browser.contextMenu",
     "currentPage.read",
@@ -22,7 +22,9 @@
     "browser.cookies.values",
     "browser.cookies.write",
     "browser.cookies.observe",
-    "browser.cookies.clear"
+    "browser.cookies.clear",
+    "browser.runtime",
+    "browser.i18n"
   ],
   "requires": {
     "browserSdk": "1.0.0"

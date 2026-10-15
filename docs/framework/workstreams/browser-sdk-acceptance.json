@@ -12,9 +12,9 @@
     "auditOnly": true
   },
   "summary": {
-    "operationCount": 65,
+    "operationCount": 68,
     "implementationCounts": {
-      "IMPLEMENTED": 65,
+      "IMPLEMENTED": 68,
       "PLANNED": 0,
       "HOST_ONLY": 0,
       "NOT_EXPOSED": 0
@@ -5038,6 +5038,129 @@
         "Native Chrome and same-candidate Node tests are pending"
       ],
       "nextTask": "Check real Native Chrome with explicit Full consent and 500+ tree",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.runtime.getPlatformInfo",
+      "module": "browser.runtime",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.runtime.getPlatformInfo:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.runtime.getPlatformInfo:output",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.runtime"
+      ],
+      "effectClass": "read",
+      "riskLevel": "low",
+      "siteScope": "none",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/framework/sdk/browser-bindings.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Same-candidate Chrome native acceptance unavailable"
+      ],
+      "nextTask": "Run R11.3 formal Host suite then installed Chrome acceptance",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.i18n.getAcceptLanguages",
+      "module": "browser.i18n",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.i18n.getAcceptLanguages:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.i18n.getAcceptLanguages:output",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.i18n"
+      ],
+      "effectClass": "read",
+      "riskLevel": "low",
+      "siteScope": "none",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/framework/sdk/browser-bindings.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Same-candidate Chrome native acceptance unavailable"
+      ],
+      "nextTask": "Run R11.3 formal Host suite then installed Chrome acceptance",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.i18n.detectLanguage",
+      "module": "browser.i18n",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.i18n.detectLanguage:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.i18n.detectLanguage:output",
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.i18n"
+      ],
+      "effectClass": "read",
+      "riskLevel": "low",
+      "siteScope": "none",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/framework/sdk/browser-bindings.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Same-candidate Chrome native acceptance unavailable"
+      ],
+      "nextTask": "Run R11.3 formal Host suite then installed Chrome acceptance",
       "commits": [],
       "evidence": []
     }

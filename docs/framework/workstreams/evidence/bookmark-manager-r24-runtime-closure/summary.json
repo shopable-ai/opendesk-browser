@@ -1,0 +1,1155 @@
+{
+  "codeCommit": "a2be6815ad1f58907b10da1dc31df738b1bcacce",
+  "codeTree": "48f8cfa4d9c65f91df1bb08dbfcea179751798a5",
+  "baseline": "8dc346e0432e11115862b39614b2d46a04f5cebb",
+  "environment": {
+    "platform": "Linux",
+    "node": "v24.19.0",
+    "macChrome": "NOT_TESTED"
+  },
+  "targeted": {
+    "tests": 81,
+    "pass": 81,
+    "fail": 0,
+    "note": "Local 5c6535be commit has the exact same tree as remote a2be6815; matching-SHA GitHub targeted CI also passed."
+  },
+  "packageSecurity": {
+    "tests": 121,
+    "pass": 121,
+    "fail": 0
+  },
+  "fullTests": {
+    "total": 2598,
+    "pass": 2575,
+    "fail": 14,
+    "skip": 9
+  },
+  "builds": {
+    "production": {
+      "status": "passed",
+      "attemptId": "8128c3be-c476-4079-aad2-6f34d3f551ac",
+      "packageHash": "f9b6fdaf9b670f7f1b0b9bab2663ec4792d5b4709f132e2bd181561ba444e2c6",
+      "sourceDriftDuringBuild": [],
+      "sourceInputsSha256": "f1ed0d640e8523d58d1a4dfeb3f2fb1c1d17652b2a70fee26777081b62d7dd74",
+      "receiptSha256": "b9aa6974af36c8172d0d34257180d461f8430bebd8d52e8ade5648450d6ec35f"
+    },
+    "development": {
+      "status": "passed",
+      "attemptId": "5b4e55ca-87b8-462e-8858-406c5a6fa7b0",
+      "packageHash": "4e82bf4b0a97413e56459f076a9ad500f3e95a17a0589e0d17395f2503e3dd63",
+      "sourceDriftDuringBuild": [],
+      "sourceInputsSha256": "f1ed0d640e8523d58d1a4dfeb3f2fb1c1d17652b2a70fee26777081b62d7dd74",
+      "receiptSha256": "1af300ff2b098805d08f31f8f23e4d1af6cc0147a30a85446c576fb1326d7625"
+    }
+  },
+  "tool": {
+    "version": "0.3.1",
+    "bytes": 43745,
+    "sha256": "4e1a6c371e0abfc4e219605515460c4c188cbb38c8909f225f70e94c6f100c4a",
+    "installed": false
+  },
+  "sourceFiles": {
+    ".github/workflows/bookmark-manager-r2.yml": "e27d94a6ba77cf1d707982f9cbf7912c473016d8f2fd483fb002e429af6a9f22",
+    "examples/sidebar-tools/bookmark-manager/README.zh-CN.md": "259dff67f04766d21325802eceacfb2e96d3c7d29bf72b28e41174cb8d07fb5a",
+    "examples/sidebar-tools/bookmark-manager/src/main.js": "cf6e243f986d47b33058ffd47c91d08e65f4b7ec36f32ab1e1e48362d6570241",
+    "examples/sidebar-tools/bookmark-manager/tool.config.json": "d88a6f110bc14eed0950644432b4ddc1c8252e0e4c9bb82d321f08372a81cb21",
+    "src/platform/chrome/bookmarks-full.js": "1ee7bc7a6879629b3591ce2a8d7a9816adad6a5ba9ca45f13c9aeeea54e2edc2",
+    "tests/environment/bookmark-manager-r2.test.mjs": "90bc320e9c5f1068396f53fe53c52b9875e2821cdf3d939bd4786b5bf6a6f6a9",
+    "tests/environment/bookmark-manager-r24-lifecycle.test.mjs": "996923666c5700b1b22e6b8485688e98684464fee812b0bca279ca894aee09bb",
+    "tests/environment/browser-sdk-r112-full-bookmarks.test.mjs": "256ef2921baf1b064e7f894b7988ced36094c7c2ccb90c0c7fbaa2a7b1cabf7c"
+  },
+  "productionDiff": {
+    "javascriptAdded": 59,
+    "javascriptDeleted": 27,
+    "configAdded": 1,
+    "configDeleted": 1,
+    "totalAdded": 60,
+    "totalDeleted": 28,
+    "netAdded": 32
+  },
+  "logs": {
+    "driver-before.log.gz": {
+      "uncompressedSha256": "fef426c171d24148d33df143a1a32db6f745dd670ea06ac97766a9aac76817ab",
+      "compressedSha256": "8d11285f8638f8b32090461de6bdaca66ee7099f9f9d66351501a23778b6b3d4"
+    },
+    "driver-boundary-before.log.gz": {
+      "uncompressedSha256": "059c32b9aa3a60a6648ab80916bd3698ced47b376a259334601f42a7785b749c",
+      "compressedSha256": "b84592a08a616bd68a8816312d3fd6b9f37ed955a1ea6c5fa544a397018a7a34"
+    },
+    "ui-before.log.gz": {
+      "uncompressedSha256": "516b642e5803828c0adcbd8c48f82787e8a5de912da4bb9ccb946117990fd767",
+      "compressedSha256": "132fbd9e3b760b70a7d0498866396cecc798d99d4e0209a69affe8fda2a2d5fb"
+    },
+    "targeted-5c6535be.log.gz": {
+      "uncompressedSha256": "8e721116884d8672a508e69c517614c418cdcac0eece7d608b314cca22022fe0",
+      "compressedSha256": "0d43a6fb8a0f458bc5eef7604c8c457c80eb75775baaaeeb2825720c24b0e94f"
+    },
+    "driver-final.log.gz": {
+      "uncompressedSha256": "01caff8bedaebc31618117af6720c8298cfc0ca5d20a8ea32ff6e7857acfe950",
+      "compressedSha256": "a7183f7669430dfadc83dc45f9c777ffd70dd8c08f8359321567292f88252e6b"
+    },
+    "package-security.log.gz": {
+      "uncompressedSha256": "3f35b981215df04b8d94dbcb09987ac173f104a995fd1ea85f9b1187c760acf5",
+      "compressedSha256": "69d9c61ebd53d1bb67edc97a2f9d8d13647064806bb6d85467f64f9c77632335"
+    },
+    "matrix.log.gz": {
+      "uncompressedSha256": "6b12c31d2e363e52cbb3abd811b92edfa66233e1161257d92f91db482bf690e4",
+      "compressedSha256": "b1a718c2f13d1e59cae8e4deb4ecbe38239450de9727de61245038e5d49fc9a7"
+    },
+    "check-a2be6815.log.gz": {
+      "uncompressedSha256": "693c12c7379e696abd5825f2cb748c64bfc2ca2b549c43aa5d36e87eb7356c00",
+      "compressedSha256": "20c9475ff0ac115570e2e1084261a34936b6508d0790297672b32385f8ecbdbe"
+    },
+    "tool-package.log.gz": {
+      "uncompressedSha256": "8ed7c2968f485b55f6046533e68ed8d28f59753351bd50356901d081d1f76ce8",
+      "compressedSha256": "eadb60ed8d50b9482345da3da7eeac17a9b2a6bb0eb9d6e9ae192449cada479a"
+    },
+    "build-production.log.gz": {
+      "uncompressedSha256": "84081fdfc5cb210c3b21f5a46110e5c87c110e704c3f92e14e8f1826baa76337",
+      "compressedSha256": "569b4d65f2d8a4e21f27c48c480df587084d97148162793d0b254ed107b65f7a"
+    },
+    "build-production-final.log.gz": {
+      "uncompressedSha256": "83162c5a94ac71e0055a4b983a77f7b553f60aea0703bf7907f1a02d866cb414",
+      "compressedSha256": "aea495c068b4c71177a1e0a00759aad04645117bbf0b71bc59e51064893967f8"
+    },
+    "build-production-frozen.log.gz": {
+      "uncompressedSha256": "1d3589dc6a46e852f6a25235ae18ede317716fd8dc780bdcc5a047bb29791fd4",
+      "compressedSha256": "e791282cb999d254c76da88f64ae6471bb22f41f761b4f13279a42c8e4afb9b0"
+    },
+    "build-development.log.gz": {
+      "uncompressedSha256": "79169e191e635edccd0d2e94f6fccfb6dee3ff6fbd36ef8ec90ec1b598d7c553",
+      "compressedSha256": "d3835c5be80f718c1d0bd8f98906f4017837ce37d13a355a84f279f6ce97a270"
+    },
+    "build-development-final.log.gz": {
+      "uncompressedSha256": "ffc0dcaf4b8c977b387844c2f988f5f51fa57a408d43aab456299a33d01e37b4",
+      "compressedSha256": "d9581ccffaf7c3eee542bff0b4c216ed8692528c6f49a6ee92a19e1dc30e1218"
+    },
+    "verify.log.gz": {
+      "uncompressedSha256": "4803510c7f2d4d43072f4ec323ecfcc4764d023bbc6eebe9db1b8e92b7552633",
+      "compressedSha256": "22bc8aa2fcfc7a654c653254d9053448b55dd0725dce2da797ad04084e0dfc52"
+    },
+    "all-tests.log.gz": {
+      "uncompressedSha256": "27d473ec7b014be8eca364cb0b157a145f1c22b60be53b07d2e99a70ce691727",
+      "compressedSha256": "39afb975bdd7b4dd6753d79f47ade3e8069c31e6b34b564ff4a2496755219ac1"
+    },
+    "all-tests-final.log.gz": {
+      "uncompressedSha256": "1c3a00ac2a5730f355577559c8e8f12a2af06a6a72259b36c7d67057c721acdf",
+      "compressedSha256": "1a02ebebe805e2fab6e286bc6b83104cd87dd64c3f3ea477d233b5a230ae2d93"
+    },
+    "ci-jobs.json.gz": {
+      "uncompressedSha256": "4583f73b0bd0e577b4c5a0072982b79914bf894da9dd0856912b523932a0d749",
+      "compressedSha256": "645e5040e9c0888567728c0449a7509fc65b16eb36103b59ac9b005d4fcacd1a"
+    },
+    "completed-build-lock.json.gz": {
+      "uncompressedSha256": "2f56a85e976cbdcd8781d23d646d26e556c4bdf7ccd575538c5e7c80c2256a46",
+      "compressedSha256": "99fafc82c176dc6b92b01466bba31291861ae9f811da98902d4f72d2b4f0a198"
+    },
+    "completed-production-lock.json.gz": {
+      "uncompressedSha256": "139b001841423d342071e49ce3c8b365c4b03ab8ed92eaba67d5888dc0f06b5d",
+      "compressedSha256": "51570b9106c5103d538a4c0f552e05b61e1c430c760523e3c7338ff7e5a3ef77"
+    }
+  },
+  "ci": {
+    "sourceCommit": "a2be6815ad1f58907b10da1dc31df738b1bcacce",
+    "runs": [
+      {
+        "runId": 38699430342,
+        "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38699430342",
+        "jobs": [
+          {
+            "id": 116303737235,
+            "name": "bookmark-r2-source",
+            "status": "completed",
+            "conclusion": "success",
+            "run_id": 38699430342,
+            "logs_url": null,
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2
+              },
+              {
+                "name": "Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3
+              },
+              {
+                "name": "Run npm ci --ignore-scripts --no-audit --no-fund",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 4
+              },
+              {
+                "name": "SDK Full / current document and installed consumer regression",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 5
+              },
+              {
+                "name": "Shared source and security checks",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 6
+              },
+              {
+                "name": "Independent v2 tool package",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 7
+              },
+              {
+                "name": "Production extension build",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 8
+              },
+              {
+                "name": "Verify production extension",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 9
+              },
+              {
+                "name": "Development extension build",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 10
+              },
+              {
+                "name": "Verify production and development packages",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 11
+              },
+              {
+                "name": "Capture independent package artifact (NOT a native Chrome pass)",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 12
+              },
+              {
+                "name": "Post Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 23
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 24
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 25
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "runId": 38699430386,
+        "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38699430386",
+        "jobs": [
+          {
+            "id": 116303737224,
+            "name": "sdk-host-contracts",
+            "status": "completed",
+            "conclusion": "success",
+            "run_id": 38699430386,
+            "logs_url": null,
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1
+              },
+              {
+                "name": "Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2
+              },
+              {
+                "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3
+              },
+              {
+                "name": "Run npm ci --ignore-scripts --no-audit --no-fund",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 4
+              },
+              {
+                "name": "Scoped Side Panel size limits and unchanged non-shell budgets",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 5
+              },
+              {
+                "name": "R10.7 public SDK wrapper routes and trusted-boundary regressions",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 6
+              },
+              {
+                "name": "R11.2 Full Bookmarks native-driver fixture, 500+ pagination and hostile-operator regression",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 7
+              },
+              {
+                "name": "R10.7 installed acceptance tool public-call UI and package regression",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 8
+              },
+              {
+                "name": "R10.7 native driver PREPARE (not a Native PASS)",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 9
+              },
+              {
+                "name": "Preserve preflight receipt, never native success evidence",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 10
+              },
+              {
+                "name": "Explicit Browser SDK contracts, Host, native API mocks and denial paths",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 11
+              },
+              {
+                "name": "R8 pinned Chromium schema offline drift check",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 12
+              },
+              {
+                "name": "R9 frozen full Chromium matrix structural and approved-operation check",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 13
+              },
+              {
+                "name": "Browser SDK exact registry and human acceptance ledger",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 14
+              },
+              {
+                "name": "Browser framework four-layer registry and Cookie priority ledger",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 15
+              },
+              {
+                "name": "Source checks",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 16
+              },
+              {
+                "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 31
+              },
+              {
+                "name": "Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 32
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 33
+              }
+            ]
+          },
+          {
+            "id": 116303737318,
+            "name": "sdk-product-bundles",
+            "status": "completed",
+            "conclusion": "success",
+            "run_id": 38699430386,
+            "logs_url": null,
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1
+              },
+              {
+                "name": "Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2
+              },
+              {
+                "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3
+              },
+              {
+                "name": "Run npm ci --ignore-scripts --no-audit --no-fund",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 4
+              },
+              {
+                "name": "Run npm run build",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 5
+              },
+              {
+                "name": "Run npm run build:dev",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 6
+              },
+              {
+                "name": "Run npm run build:size",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 7
+              },
+              {
+                "name": "Run npm run verify",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 8
+              },
+              {
+                "name": "Save exact production candidate for manual Chrome acceptance",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 9
+              },
+              {
+                "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 17
+              },
+              {
+                "name": "Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 18
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 19
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "runId": 38699430625,
+        "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38699430625",
+        "jobs": [
+          {
+            "id": 116303738328,
+            "name": "browser-bundles",
+            "status": "completed",
+            "conclusion": "success",
+            "run_id": 38699430625,
+            "logs_url": null,
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1
+              },
+              {
+                "name": "Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2
+              },
+              {
+                "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3
+              },
+              {
+                "name": "Run npm ci --ignore-scripts --no-audit --no-fund",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 4
+              },
+              {
+                "name": "Production WXT build (strict SW gate)",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 5
+              },
+              {
+                "name": "Development WXT build",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 6
+              },
+              {
+                "name": "Verify both builds (cannot pass without valid production)",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 7
+              },
+              {
+                "name": "Validate actual production and development fixed MAIN/ISOLATED bundles",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 8
+              },
+              {
+                "name": "Retain exact unpacked production candidate for isolated Chrome acceptance",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 9
+              },
+              {
+                "name": "Retain candidate build receipt only",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 10
+              },
+              {
+                "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 19
+              },
+              {
+                "name": "Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 20
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 21
+              }
+            ]
+          },
+          {
+            "id": 116303738773,
+            "name": "browser-contracts",
+            "status": "completed",
+            "conclusion": "success",
+            "run_id": 38699430625,
+            "logs_url": null,
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1
+              },
+              {
+                "name": "Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2
+              },
+              {
+                "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3
+              },
+              {
+                "name": "Candidate identity",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 4
+              },
+              {
+                "name": "Run npm ci --ignore-scripts --no-audit --no-fund",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 5
+              },
+              {
+                "name": "Browser SDK R1.3 and existing tool install regressions",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 6
+              },
+              {
+                "name": "Browser SDK schema and evidence guards",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 7
+              },
+              {
+                "name": "Source and fixed entry guard",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 8
+              },
+              {
+                "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 15
+              },
+              {
+                "name": "Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 16
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 17
+              }
+            ]
+          },
+          {
+            "id": 116304582693,
+            "name": "browser-native-restart",
+            "status": "completed",
+            "conclusion": "skipped",
+            "run_id": 38699430625,
+            "logs_url": null,
+            "steps": null
+          }
+        ]
+      },
+      {
+        "runId": 38699430348,
+        "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38699430348",
+        "jobs": [
+          {
+            "id": 116303736881,
+            "name": "sidebar-tool-contract-and-package",
+            "status": "completed",
+            "conclusion": "success",
+            "run_id": 38699430348,
+            "logs_url": null,
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2
+              },
+              {
+                "name": "Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3
+              },
+              {
+                "name": "Run npm ci --ignore-scripts --no-audit --no-fund",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 4
+              },
+              {
+                "name": "Validate R14 tool isolation and all five Sidebar regressions",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 5
+              },
+              {
+                "name": "Build installable offline notes tool JSON",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 6
+              },
+              {
+                "name": "Package runnable sandbox world demo (not installed)",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 7
+              },
+              {
+                "name": "Compile standalone React and Vue tool source with pinned toolchain",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 8
+              },
+              {
+                "name": "WXT production and development packages retain security boundaries",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 9
+              },
+              {
+                "name": "Preserve native installable candidates (not Chrome acceptance)",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 10
+              },
+              {
+                "name": "Post Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 19
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 20
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 21
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "runId": 38699431358,
+        "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38699431358",
+        "jobs": [
+          {
+            "id": 116303740604,
+            "name": "audit",
+            "status": "completed",
+            "conclusion": "success",
+            "run_id": 38699431358,
+            "logs_url": null,
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2
+              },
+              {
+                "name": "Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3
+              },
+              {
+                "name": "Run npm ci --ignore-scripts --no-audit --no-fund",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 4
+              },
+              {
+                "name": "Audit contracts, Rollup provenance and SW sizing tests",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 5
+              },
+              {
+                "name": "Preserve Controller, legacy source and download recovery behavior",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 6
+              },
+              {
+                "name": "Run npm run check",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 7
+              },
+              {
+                "name": "Build actual production WXT bundle with reviewed per-entry limits",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 8
+              },
+              {
+                "name": "Verify physical bytes, hashes and loading groups of every package resource",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 9
+              },
+              {
+                "name": "Build and verify development resources with separate SW allowance",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 10
+              },
+              {
+                "name": "Reject mode confusion and physical oversize in real package copies",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 11
+              },
+              {
+                "name": "Preserve build-bound results even on failure",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 12
+              },
+              {
+                "name": "Post Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 23
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 24
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 25
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "runId": 38699430316,
+        "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38699430316",
+        "jobs": [
+          {
+            "id": 116303737252,
+            "name": "market-production-native",
+            "status": "completed",
+            "conclusion": "failure",
+            "run_id": 38699430316,
+            "logs_url": null,
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2
+              },
+              {
+                "name": "Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3
+              },
+              {
+                "name": "Install pinned dependencies",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 4
+              },
+              {
+                "name": "Validate fixed releases, provenance isolation and migrations",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 5
+              },
+              {
+                "name": "Build and validate genuine production and development extensions",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 6
+              },
+              {
+                "name": "Generate deployable public static routes",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 7
+              },
+              {
+                "name": "Install Chinese fonts for readable UI screenshots",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 8
+              },
+              {
+                "name": "Set up Chrome for Testing",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 9
+              },
+              {
+                "name": "Real MV3 Chrome official lifecycle and persistent restarts",
+                "status": "completed",
+                "conclusion": "failure",
+                "number": 10
+              },
+              {
+                "name": "Full environment regressions against both actual builds",
+                "status": "completed",
+                "conclusion": "skipped",
+                "number": 11
+              },
+              {
+                "name": "Preserve reviewable receipts and genuine browser screenshots",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 12
+              },
+              {
+                "name": "Post Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "skipped",
+                "number": 23
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 24
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 25
+              }
+            ]
+          },
+          {
+            "id": 116303737636,
+            "name": "market-r5-http-native (ubuntu-latest)",
+            "status": "completed",
+            "conclusion": "failure",
+            "run_id": 38699430316,
+            "logs_url": null,
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2
+              },
+              {
+                "name": "Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3
+              },
+              {
+                "name": "Run npm ci --ignore-scripts --no-audit --no-fund",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 4
+              },
+              {
+                "name": "R5 handoff, installer, immutable archive and client state components",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 5
+              },
+              {
+                "name": "Build exact development extension and independent HTTP site",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 6
+              },
+              {
+                "name": "Linux Chinese fonts",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 7
+              },
+              {
+                "name": "Run browser-actions/setup-chrome@v2",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 8
+              },
+              {
+                "name": "Actual HTTP website to trusted extension review, installation and use",
+                "status": "completed",
+                "conclusion": "failure",
+                "number": 9
+              },
+              {
+                "name": "Preserve exact receipts, failures and screenshots",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 10
+              },
+              {
+                "name": "Post Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "skipped",
+                "number": 19
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 20
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 21
+              }
+            ]
+          },
+          {
+            "id": 116303737683,
+            "name": "market-r5-http-native (macos-15)",
+            "status": "completed",
+            "conclusion": "failure",
+            "run_id": 38699430316,
+            "logs_url": null,
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2
+              },
+              {
+                "name": "Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3
+              },
+              {
+                "name": "Run npm ci --ignore-scripts --no-audit --no-fund",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 4
+              },
+              {
+                "name": "R5 handoff, installer, immutable archive and client state components",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 5
+              },
+              {
+                "name": "Build exact development extension and independent HTTP site",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 6
+              },
+              {
+                "name": "Linux Chinese fonts",
+                "status": "completed",
+                "conclusion": "skipped",
+                "number": 7
+              },
+              {
+                "name": "Run browser-actions/setup-chrome@v2",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 8
+              },
+              {
+                "name": "Actual HTTP website to trusted extension review, installation and use",
+                "status": "completed",
+                "conclusion": "failure",
+                "number": 9
+              },
+              {
+                "name": "Preserve exact receipts, failures and screenshots",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 10
+              },
+              {
+                "name": "Post Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "skipped",
+                "number": 19
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 20
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 21
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "marketFailure": {
+      "error": "Chrome timeout: stable unobscured native control #sidebar-tool-discover-toggle",
+      "currentJobs": [
+        116303737252,
+        116303737636,
+        116303737683
+      ],
+      "priorSourceCommit": "f508dc60296934d83114daa2f3cddc5e0c84c76d",
+      "priorRun": 38697059850,
+      "priorJob": 116296015899,
+      "priorLogExcerpt": [
+        "2026-10-15T07:17:28.0289961Z not ok 1 - R4.8 production Chrome: preinstalled and optional tools, permissions, updates, restart and uninstall",
+        "2026-10-15T07:17:28.0293833Z   failureType: 'testCodeFailure'",
+        "2026-10-15T07:17:28.0294688Z   error: 'Chrome timeout: stable unobscured native control #sidebar-tool-discover-toggle'"
+      ]
+    }
+  },
+  "native": "NOT_TESTED",
+  "release": "BLOCKED",
+  "issue75": "OPEN"
+}

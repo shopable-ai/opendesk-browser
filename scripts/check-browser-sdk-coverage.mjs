@@ -16,6 +16,10 @@ export function inspectBrowserSdkLedger(data){
   errors.push('wrong ledger version or source of truth');
  if(!Array.isArray(data?.operations))return [...errors,'missing operations'];
  if(data.operations.length!==keys.length)errors.push('API count mismatch');
+ const implementationCounts=Object.fromEntries(['IMPLEMENTED','PLANNED','HOST_ONLY','NOT_EXPOSED']
+   .map(state=>[state,Object.values(BROWSER_OPERATIONS).filter(row=>row.implementation===state).length]));
+ if(data.summary?.operationCount!==keys.length||!same(data.summary?.implementationCounts,implementationCounts))
+   errors.push('Summary disagrees with current Registry');
  for(const row of data.operations){
   const id=row?.api,op=BROWSER_OPERATIONS[id];
   if(!op||seen.has(id)){errors.push('unknown/duplicate '+id);continue}

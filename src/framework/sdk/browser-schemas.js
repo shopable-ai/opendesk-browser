@@ -53,7 +53,7 @@ const cookieEvent=obj({seq:num(1),name:str(256),domain:str(253),path:str(512),
   removed:bool,cause:str(40),at:num()},['seq','name','domain','path','removed','cause','at']);
 const ops=Object.freeze({
  'browser.capabilities.list':[empty,arr(capabilityListRow,96)],
- 'browser.capabilities.getStatus':[obj({operation:str(120,'^browser\\.[A-Za-z.]+$'),url:http},['operation']),
+ 'browser.capabilities.getStatus':[obj({operation:str(120,'^browser\\.[A-Za-z][A-Za-z0-9]*(?:\\.[A-Za-z][A-Za-z0-9]*)*$'),url:http},['operation']),
    capabilityStatus],
  'browser.contextMenu.getStatus':[empty,obj({enabled:bool,approvedOrigins:arr(http,30),
    activeActions:arr(str(40),3),browserPermission:bool},['enabled','approvedOrigins','activeActions','browserPermission'])],
@@ -195,6 +195,10 @@ export function normalizeDirectBrowserArguments(operation,value){
   const schema=operationSchemas(operation)?.input;
   if(schema?.type!=='object'||schema.additionalProperties!==false)
     throw fail('E_CONTRACT','A bounded direct-call object schema is required');
+  return validateDirectBrowserValue(value,schema);
+}
+// Shared input/output validation for approved DIRECT contracts only.
+export function validateDirectBrowserValue(value,schema){
   jsonValue(value);
   const validate=(item,rule,depth=0)=>{
     if(depth>12||!rule||typeof rule!=='object')

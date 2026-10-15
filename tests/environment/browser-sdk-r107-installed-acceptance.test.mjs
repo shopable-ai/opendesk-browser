@@ -15,8 +15,9 @@ test('R10.7 installed fixture retains legacy grants without inheriting Full Book
   assert.equal(tool.requires.browserSdk,'1.0.0');
   const required=new Set(Object.values(BROWSER_OPERATIONS).flatMap(row=>row.requiredCapabilities));
   // Full is a separately reviewed R11.2 capability exercised by the dedicated
-  // Bookmark Manager package. Do not silently privilege-expand the R10.7
-  // acceptance fixture or change its installed package hash/version.
+  // Bookmark Manager package. R11.3 adds only explicit runtime/i18n capabilities
+  // under a new package version; existing installed packages cannot inherit them.
+  assert.equal(tool.version,'11.3.0');
   assert(required.has('browser.bookmarks.full'));
   assert(!tool.capabilities.includes('browser.bookmarks.full'));
   for(const capability of required)

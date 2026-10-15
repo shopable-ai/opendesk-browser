@@ -1908,21 +1908,22 @@
     "properties": 91,
     "totalRows": 1830,
     "buckets": {
-      "NOT_APPROVED_FOR_TOOL": 231,
-      "INTERNAL_NOT_EXPOSED": 771,
-      "SCOPED_OR_TRUSTED_CANDIDATE": 211,
-      "TRUSTED_HOST_OR_EXISTING_SERVICE": 316,
-      "LEGACY_NOT_EXPOSED": 128,
-      "PLATFORM_OR_POLICY_ONLY": 145,
+      "APPROVED_TOOL_DIRECT": 3,
       "DEVTOOLS_ONLY": 27,
+      "INTERNAL_NOT_EXPOSED": 771,
+      "LEGACY_NOT_EXPOSED": 128,
+      "NOT_APPROVED_FOR_TOOL": 229,
+      "PLATFORM_OR_POLICY_ONLY": 145,
+      "SCOPED_OR_TRUSTED_CANDIDATE": 211,
+      "TRUSTED_HOST_OR_EXISTING_SERVICE": 315,
       "VERSION_GATED": 1
     },
-    "approvedOperations": 67,
-    "approvedRegistered": 65,
+    "approvedOperations": 70,
+    "approvedRegistered": 68,
     "approvedCookieHostOnly": 0,
     "approvedPlannedNew": 0,
-    "nativeMappedApproved": 50,
-    "approvedWithInputAndOutputSchemas": 67,
+    "nativeMappedApproved": 53,
+    "approvedWithInputAndOutputSchemas": 70,
     "approvedTrustedHostImplemented": 2
   },
   "parseErrors": [],
@@ -11092,6 +11093,247 @@
         "src/platform/chrome/bookmarks-full.js"
       ],
       "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA"
+    },
+    {
+      "id": "browser.runtime.getPlatformInfo",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "migrationDecision": "ADD",
+      "mappingKind": "DIRECT",
+      "effectClass": "read",
+      "nativeApis": [
+        "chrome.runtime.getPlatformInfo"
+      ],
+      "allowedWorlds": [
+        "sidebar-tool"
+      ],
+      "siteScope": "none",
+      "userGesture": false,
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.runtime"
+      ],
+      "maxRequestBytes": 1024,
+      "maxResponseBytes": 1024,
+      "lifecycle": "request",
+      "support": {
+        "desktopChromeMinimum": 138,
+        "promiseSince": 99,
+        "reference": "https://developer.chrome.com/docs/extensions/reference/api/runtime"
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "os": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "arch": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "nacl_arch": {
+            "type": "string",
+            "maxLength": 32
+          }
+        },
+        "required": [
+          "os",
+          "arch"
+        ],
+        "additionalProperties": false
+      },
+      "phase": "P6",
+      "status": "SOURCE_WIRED",
+      "verification": {
+        "node": "NOT_TESTED",
+        "build": "NOT_TESTED",
+        "native": "NOT_TESTED"
+      },
+      "approvalReason": "Platform compatibility hints; bounded non-identifying OS/architecture only.",
+      "sourceRegistry": "src/framework/sdk/browser-direct.generated.js",
+      "sdkFile": "src/framework/sdk/browser.js",
+      "registryFile": "src/framework/sdk/browser-contract.js",
+      "schemaFile": "src/framework/sdk/browser-schemas.js",
+      "driverFile": "src/framework/sdk/browser-bindings.js",
+      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "callSignature": "OpenDeskSDK.browser.runtime.getPlatformInfo()",
+      "returnSignature": "Promise<$ref:PlatformInfo>",
+      "schemaStrategy": "COMPILE_APPROVED_SCHEMA_FROM_THIS_MATRIX",
+      "testContract": {
+        "target": "tests/environment/browser-sdk-r113-direct-host.test.mjs",
+        "positive": "generated facade to installed-tool Host to native Promise; bounded typed response",
+        "negative": "missing capability, forged sender, stale package/epoch, unsupported API, bad input/output, revoke during read",
+        "native": "same candidate installed-tool sender and real Chrome API; NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.i18n.getAcceptLanguages",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "migrationDecision": "ADD",
+      "mappingKind": "DIRECT",
+      "effectClass": "read",
+      "nativeApis": [
+        "chrome.i18n.getAcceptLanguages"
+      ],
+      "allowedWorlds": [
+        "sidebar-tool"
+      ],
+      "siteScope": "none",
+      "userGesture": false,
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.i18n"
+      ],
+      "maxRequestBytes": 1024,
+      "maxResponseBytes": 8192,
+      "lifecycle": "request",
+      "support": {
+        "desktopChromeMinimum": 138,
+        "promiseSince": 99,
+        "reference": "https://developer.chrome.com/docs/extensions/reference/api/i18n"
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "array",
+        "maxItems": 64,
+        "items": {
+          "type": "string",
+          "maxLength": 64
+        }
+      },
+      "phase": "P6",
+      "status": "SOURCE_WIRED",
+      "verification": {
+        "node": "NOT_TESTED",
+        "build": "NOT_TESTED",
+        "native": "NOT_TESTED"
+      },
+      "approvalReason": "Choose language for tool content from explicitly declared browser preferences.",
+      "sourceRegistry": "src/framework/sdk/browser-direct.generated.js",
+      "sdkFile": "src/framework/sdk/browser.js",
+      "registryFile": "src/framework/sdk/browser-contract.js",
+      "schemaFile": "src/framework/sdk/browser-schemas.js",
+      "driverFile": "src/framework/sdk/browser-bindings.js",
+      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "callSignature": "OpenDeskSDK.browser.i18n.getAcceptLanguages()",
+      "returnSignature": "Promise<array>",
+      "schemaStrategy": "COMPILE_APPROVED_SCHEMA_FROM_THIS_MATRIX",
+      "testContract": {
+        "target": "tests/environment/browser-sdk-r113-direct-host.test.mjs",
+        "positive": "generated facade to installed-tool Host to native Promise; bounded typed response",
+        "negative": "missing capability, forged sender, stale package/epoch, unsupported API, bad input/output, revoke during read",
+        "native": "same candidate installed-tool sender and real Chrome API; NOT_TESTED"
+      }
+    },
+    {
+      "id": "browser.i18n.detectLanguage",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "migrationDecision": "ADD",
+      "mappingKind": "DIRECT",
+      "effectClass": "read",
+      "nativeApis": [
+        "chrome.i18n.detectLanguage"
+      ],
+      "allowedWorlds": [
+        "sidebar-tool"
+      ],
+      "siteScope": "none",
+      "userGesture": false,
+      "chromePermissions": [],
+      "toolCapabilities": [
+        "browser.i18n"
+      ],
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request",
+      "support": {
+        "desktopChromeMinimum": 138,
+        "promiseSince": 99,
+        "reference": "https://developer.chrome.com/docs/extensions/reference/api/i18n"
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 4096
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "isReliable": {
+            "type": "boolean"
+          },
+          "languages": {
+            "type": "array",
+            "maxItems": 64,
+            "items": {
+              "type": "object",
+              "properties": {
+                "language": {
+                  "type": "string",
+                  "maxLength": 64
+                },
+                "percentage": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                }
+              },
+              "required": [
+                "language",
+                "percentage"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "isReliable",
+          "languages"
+        ],
+        "additionalProperties": false
+      },
+      "phase": "P6",
+      "status": "SOURCE_WIRED",
+      "verification": {
+        "node": "NOT_TESTED",
+        "build": "NOT_TESTED",
+        "native": "NOT_TESTED"
+      },
+      "approvalReason": "Detect language of tool-provided text only; no page or browsing data access.",
+      "sourceRegistry": "src/framework/sdk/browser-direct.generated.js",
+      "sdkFile": "src/framework/sdk/browser.js",
+      "registryFile": "src/framework/sdk/browser-contract.js",
+      "schemaFile": "src/framework/sdk/browser-schemas.js",
+      "driverFile": "src/framework/sdk/browser-bindings.js",
+      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "callSignature": "OpenDeskSDK.browser.i18n.detectLanguage({text})",
+      "returnSignature": "Promise<object>",
+      "schemaStrategy": "COMPILE_APPROVED_SCHEMA_FROM_THIS_MATRIX",
+      "testContract": {
+        "target": "tests/environment/browser-sdk-r113-direct-host.test.mjs",
+        "positive": "generated facade to installed-tool Host to native Promise; bounded typed response",
+        "negative": "missing capability, forged sender, stale package/epoch, unsupported API, bad input/output, revoke during read",
+        "native": "same candidate installed-tool sender and real Chrome API; NOT_TESTED"
+      }
     }
   ],
   "nativeInterfaces": [
@@ -31668,16 +31910,18 @@
         "gitBlobSha": "cf6d26f8a653ba40c8684f567fc629a0e9c09b7a",
         "chromiumCommit": "b5485910372708cd11d9a814a3e382fe8da57df3"
       },
-      "bucket": "NOT_APPROVED_FOR_TOOL",
-      "reason": "Discovered schema but no approved general-purpose untrusted-tool contract; explicitly defer or use specialized existing feature",
+      "bucket": "APPROVED_TOOL_DIRECT",
+      "reason": "Detect language of tool-provided text only; no page or browsing data access.",
       "batch": "P7",
       "releaseGate": "PINNED_SCHEMA_PRESENT_BUT_MIN_CHROME_AND_CONTEXT_NOT_PER_METHOD_VERIFIED",
-      "minChrome": null,
-      "sdkExposure": "NOT_APPROVED_BY_DISCOVERY",
-      "runtimeStatus": "NOT_TESTED",
-      "approvedOperationIds": [],
+      "minChrome": 138,
+      "sdkExposure": "APPROVED_TOOL_REGISTERED",
+      "runtimeStatus": "SOURCE_WIRED",
+      "approvedOperationIds": [
+        "browser.i18n.detectLanguage"
+      ],
       "testGate": "NO_RUNTIME_ACCEPTANCE_CLAIM",
-      "disposition": "DEFERRED_NOT_APPROVED"
+      "disposition": "APPROVED_DIRECT_READ_ONLY"
     },
     {
       "nativeApi": "chrome.i18n.getAcceptLanguages",
@@ -31692,16 +31936,18 @@
         "gitBlobSha": "cf6d26f8a653ba40c8684f567fc629a0e9c09b7a",
         "chromiumCommit": "b5485910372708cd11d9a814a3e382fe8da57df3"
       },
-      "bucket": "NOT_APPROVED_FOR_TOOL",
-      "reason": "Discovered schema but no approved general-purpose untrusted-tool contract; explicitly defer or use specialized existing feature",
+      "bucket": "APPROVED_TOOL_DIRECT",
+      "reason": "Choose language for tool content from explicitly declared browser preferences.",
       "batch": "P7",
       "releaseGate": "PINNED_SCHEMA_PRESENT_BUT_MIN_CHROME_AND_CONTEXT_NOT_PER_METHOD_VERIFIED",
-      "minChrome": null,
-      "sdkExposure": "NOT_APPROVED_BY_DISCOVERY",
-      "runtimeStatus": "NOT_TESTED",
-      "approvedOperationIds": [],
+      "minChrome": 138,
+      "sdkExposure": "APPROVED_TOOL_REGISTERED",
+      "runtimeStatus": "SOURCE_WIRED",
+      "approvedOperationIds": [
+        "browser.i18n.getAcceptLanguages"
+      ],
       "testGate": "NO_RUNTIME_ACCEPTANCE_CLAIM",
-      "disposition": "DEFERRED_NOT_APPROVED"
+      "disposition": "APPROVED_DIRECT_READ_ONLY"
     },
     {
       "nativeApi": "chrome.i18n.getMessage",
@@ -41774,16 +42020,18 @@
         "gitBlobSha": "388904e49e14a5d0441b2fe86d4581342887d893",
         "chromiumCommit": "b5485910372708cd11d9a814a3e382fe8da57df3"
       },
-      "bucket": "TRUSTED_HOST_OR_EXISTING_SERVICE",
-      "reason": "Privileged browser-wide API; do not proxy into untrusted tool; use one authenticated Host/Authority with least privilege",
+      "bucket": "APPROVED_TOOL_DIRECT",
+      "reason": "Platform compatibility hints; bounded non-identifying OS/architecture only.",
       "batch": "P1",
       "releaseGate": "PINNED_SCHEMA_PRESENT_BUT_MIN_CHROME_AND_CONTEXT_NOT_PER_METHOD_VERIFIED",
-      "minChrome": null,
-      "sdkExposure": "NOT_APPROVED_BY_DISCOVERY",
-      "runtimeStatus": "NOT_TESTED",
-      "approvedOperationIds": [],
+      "minChrome": 138,
+      "sdkExposure": "APPROVED_TOOL_REGISTERED",
+      "runtimeStatus": "SOURCE_WIRED",
+      "approvedOperationIds": [
+        "browser.runtime.getPlatformInfo"
+      ],
       "testGate": "NO_RUNTIME_ACCEPTANCE_CLAIM",
-      "disposition": "HOST_INTERNAL_NOT_GENERAL_SDK"
+      "disposition": "APPROVED_DIRECT_READ_ONLY"
     },
     {
       "nativeApi": "chrome.runtime.getURL",
@@ -58333,10 +58581,10 @@
   "coverageAudit": {
     "seedNativeCatalogEntries": 119,
     "seedNativeCatalogMissing": 0,
-    "registeredOperations": 65,
+    "registeredOperations": 68,
     "trustedCookieHostOperations": 0,
     "approvedNewDesignOperations": 0,
-    "approvedTotal": 67,
+    "approvedTotal": 70,
     "orphanNativeMappings": [],
     "parseErrors": [],
     "sourceFilesTypeOnly": [
@@ -58448,8 +58696,8 @@
     ],
     "completeness": "Known source consumers identified; exhaustive consumer path enumeration cannot be verified without full repository grep. Phase P1 must enumerate and migrate all current consumers before deleting active alias."
   },
-  "currentRegistrySourceSha": "5ceb8df083815736b1fb474bc88a4ad2aacd4d29",
-  "currentSchemaSourceSha": "3b2411c4cab716506e3e7b55636d03814cb16580",
+  "currentRegistrySourceSha": "c4b8bd2234c2b6091c7638f49b256ce339e0a745",
+  "currentSchemaSourceSha": "3132cd31c420272cbfeedafcd38254fdd4e7ba17",
   "contractRevisions": [
     {
       "date": "2026-10-13",
@@ -58557,5 +58805,840 @@
       "caseId": "R10.6-per-interface-scoped-node-assertions"
     },
     "fullMatrixContractPass": 0
-  }
+  },
+  "candidateExecutionDecisions": [
+    {
+      "id": "browser.cookies.getStores",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "SDK",
+      "reason": "使用 getCurrentStore 的受限当前站点语义，不枚举所有 Cookie Store",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "消费端采用已批准正式方法及其受限语义；不增加旧名称 Wrapper",
+      "canonicalTarget": "browser.cookies.getCurrentStore"
+    },
+    {
+      "id": "browser.tabs.getActive",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "SDK",
+      "reason": "复用 browser-tabs；新增动作须保持 Owned TabRef/Document/安装身份和用户意图边界",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "消费端采用已批准正式方法及其受限语义；不增加旧名称 Wrapper",
+      "canonicalTarget": "browser.page.getContext"
+    },
+    {
+      "id": "browser.tabs.duplicateOwned",
+      "status": "CANDIDATE",
+      "executionMode": "SCOPED",
+      "owner": "SDK",
+      "reason": "复用 browser-tabs；新增动作须保持 Owned TabRef/Document/安装身份和用户意图边界",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.windows.getCurrent",
+      "status": "CANDIDATE",
+      "executionMode": "SCOPED",
+      "owner": "SDK",
+      "reason": "需要工具拥有的 WindowRef；不能暴露用户其他窗口或把当前窗口当作 Owned",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.windows.openOwned",
+      "status": "CANDIDATE",
+      "executionMode": "SCOPED",
+      "owner": "SDK",
+      "reason": "需要工具拥有的 WindowRef；不能暴露用户其他窗口或把当前窗口当作 Owned",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.windows.focusOwned",
+      "status": "CANDIDATE",
+      "executionMode": "SCOPED",
+      "owner": "SDK",
+      "reason": "需要工具拥有的 WindowRef；不能暴露用户其他窗口或把当前窗口当作 Owned",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.windows.closeOwned",
+      "status": "CANDIDATE",
+      "executionMode": "SCOPED",
+      "owner": "SDK",
+      "reason": "需要工具拥有的 WindowRef；不能暴露用户其他窗口或把当前窗口当作 Owned",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.windows.listOwned",
+      "status": "CANDIDATE",
+      "executionMode": "SCOPED",
+      "owner": "SDK",
+      "reason": "需要工具拥有的 WindowRef；不能暴露用户其他窗口或把当前窗口当作 Owned",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.tabGroups.listOwned",
+      "status": "CANDIDATE",
+      "executionMode": "SCOPED",
+      "owner": "SDK",
+      "reason": "必须验证每个成员 TabRef 与 group 所有权，复用既有标签 Driver",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.tabGroups.groupOwned",
+      "status": "CANDIDATE",
+      "executionMode": "SCOPED",
+      "owner": "SDK",
+      "reason": "必须验证每个成员 TabRef 与 group 所有权，复用既有标签 Driver",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.tabGroups.updateOwned",
+      "status": "CANDIDATE",
+      "executionMode": "SCOPED",
+      "owner": "SDK",
+      "reason": "必须验证每个成员 TabRef 与 group 所有权，复用既有标签 Driver",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.tabGroups.moveOwned",
+      "status": "CANDIDATE",
+      "executionMode": "SCOPED",
+      "owner": "SDK",
+      "reason": "必须验证每个成员 TabRef 与 group 所有权，复用既有标签 Driver",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.tabGroups.ungroupOwned",
+      "status": "CANDIDATE",
+      "executionMode": "SCOPED",
+      "owner": "SDK",
+      "reason": "必须验证每个成员 TabRef 与 group 所有权，复用既有标签 Driver",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.sessions.listRecentlyClosed",
+      "status": "CANDIDATE",
+      "executionMode": "HOST_ONLY",
+      "owner": "可信宿主",
+      "reason": "最近关闭会话包含浏览历史；仅可信前台选择，不向普通工具枚举",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.sessions.restoreExplicit",
+      "status": "CANDIDATE",
+      "executionMode": "HOST_ONLY",
+      "owner": "可信宿主",
+      "reason": "最近关闭会话包含浏览历史；仅可信前台选择，不向普通工具枚举",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.history.search",
+      "status": "CANDIDATE",
+      "executionMode": "HOST_ONLY",
+      "owner": "可信宿主",
+      "reason": "全局历史和删除只走已有 trusted History；不能作为普通 DIRECT",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.history.getVisits",
+      "status": "CANDIDATE",
+      "executionMode": "HOST_ONLY",
+      "owner": "可信宿主",
+      "reason": "全局历史和删除只走已有 trusted History；不能作为普通 DIRECT",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.history.deleteUrl",
+      "status": "CANDIDATE",
+      "executionMode": "HOST_ONLY",
+      "owner": "可信宿主",
+      "reason": "全局历史和删除只走已有 trusted History；不能作为普通 DIRECT",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.history.deleteRange",
+      "status": "CANDIDATE",
+      "executionMode": "HOST_ONLY",
+      "owner": "可信宿主",
+      "reason": "全局历史和删除只走已有 trusted History；不能作为普通 DIRECT",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.storage.get",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "SDK",
+      "reason": "复用工具 storage.local 命名空间和配额；不新增全局 Storage 入口",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "消费端采用已批准正式方法及其受限语义；不增加旧名称 Wrapper",
+      "canonicalTarget": "browser.storage.local.get"
+    },
+    {
+      "id": "browser.storage.set",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "SDK",
+      "reason": "复用工具 storage.local 命名空间和配额；不新增全局 Storage 入口",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "消费端采用已批准正式方法及其受限语义；不增加旧名称 Wrapper",
+      "canonicalTarget": "browser.storage.local.set"
+    },
+    {
+      "id": "browser.storage.remove",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "SDK",
+      "reason": "复用工具 storage.local 命名空间和配额；不新增全局 Storage 入口",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "消费端采用已批准正式方法及其受限语义；不增加旧名称 Wrapper",
+      "canonicalTarget": "browser.storage.local.remove"
+    },
+    {
+      "id": "browser.storage.keys",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "SDK",
+      "reason": "复用工具 storage.local 命名空间和配额；不新增全局 Storage 入口",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.storage.clear",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "SDK",
+      "reason": "复用工具 storage.local 命名空间和配额；不新增全局 Storage 入口",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "消费端采用已批准正式方法及其受限语义；不增加旧名称 Wrapper",
+      "canonicalTarget": "browser.storage.local.clear"
+    },
+    {
+      "id": "browser.storage.getQuota",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "SDK",
+      "reason": "复用工具 storage.local 命名空间和配额；不新增全局 Storage 入口",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.downloads.getOwn",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "SDK",
+      "reason": "复用 browser-downloads 的 DownloadRef；打开/显示/删除记录需作用域与用户确认合同",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "消费端采用已批准正式方法及其受限语义；不增加旧名称 Wrapper",
+      "canonicalTarget": "browser.downloads.getOwned"
+    },
+    {
+      "id": "browser.downloads.listOwn",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "SDK",
+      "reason": "复用 browser-downloads 的 DownloadRef；打开/显示/删除记录需作用域与用户确认合同",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "消费端采用已批准正式方法及其受限语义；不增加旧名称 Wrapper",
+      "canonicalTarget": "browser.downloads.listOwned"
+    },
+    {
+      "id": "browser.downloads.cancelOwn",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "SDK",
+      "reason": "复用 browser-downloads 的 DownloadRef；打开/显示/删除记录需作用域与用户确认合同",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "消费端采用已批准正式方法及其受限语义；不增加旧名称 Wrapper",
+      "canonicalTarget": "browser.downloads.cancelOwned"
+    },
+    {
+      "id": "browser.downloads.openOwn",
+      "status": "CANDIDATE",
+      "executionMode": "SCOPED",
+      "owner": "SDK",
+      "reason": "复用 browser-downloads 的 DownloadRef；打开/显示/删除记录需作用域与用户确认合同",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.downloads.revealOwn",
+      "status": "CANDIDATE",
+      "executionMode": "SCOPED",
+      "owner": "SDK",
+      "reason": "复用 browser-downloads 的 DownloadRef；打开/显示/删除记录需作用域与用户确认合同",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.downloads.eraseOwnHistory",
+      "status": "CANDIDATE",
+      "executionMode": "SCOPED",
+      "owner": "SDK",
+      "reason": "复用 browser-downloads 的 DownloadRef；打开/显示/删除记录需作用域与用户确认合同",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.browsingData.previewSite",
+      "status": "CANDIDATE",
+      "executionMode": "HOST_ONLY",
+      "owner": "可信宿主",
+      "reason": "破坏性网站数据清理需要可信站点/类型选择、预览和确认",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.browsingData.removeSiteData",
+      "status": "CANDIDATE",
+      "executionMode": "HOST_ONLY",
+      "owner": "可信宿主",
+      "reason": "破坏性网站数据清理需要可信站点/类型选择、预览和确认",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.permissions.getStatus",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "可信宿主",
+      "reason": "复用现有 Authority/permission-gate；授权修改只由可信 UI 真实点击执行",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "消费端采用已批准正式方法及其受限语义；不增加旧名称 Wrapper",
+      "canonicalTarget": "browser.capabilities.getStatus"
+    },
+    {
+      "id": "browser.permissions.listApprovedSites",
+      "status": "CANDIDATE",
+      "executionMode": "HOST_ONLY",
+      "owner": "可信宿主",
+      "reason": "复用现有 Authority/permission-gate；授权修改只由可信 UI 真实点击执行",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.permissions.requestSite",
+      "status": "CANDIDATE",
+      "executionMode": "HOST_ONLY",
+      "owner": "可信宿主",
+      "reason": "复用现有 Authority/permission-gate；授权修改只由可信 UI 真实点击执行",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.permissions.revokeSite",
+      "status": "CANDIDATE",
+      "executionMode": "HOST_ONLY",
+      "owner": "可信宿主",
+      "reason": "复用现有 Authority/permission-gate；授权修改只由可信 UI 真实点击执行",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.permissions.requestCapability",
+      "status": "CANDIDATE",
+      "executionMode": "HOST_ONLY",
+      "owner": "可信宿主",
+      "reason": "复用现有 Authority/permission-gate；授权修改只由可信 UI 真实点击执行",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.permissions.revokeCapability",
+      "status": "CANDIDATE",
+      "executionMode": "HOST_ONLY",
+      "owner": "可信宿主",
+      "reason": "复用现有 Authority/permission-gate；授权修改只由可信 UI 真实点击执行",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.webNavigation.getCurrentFrame",
+      "status": "CANDIDATE",
+      "executionMode": "SCOPED",
+      "owner": "SDK",
+      "reason": "复用当前页/Owned 文档身份与有界事件；不得枚举跨站 Frame",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.webNavigation.getApprovedFrames",
+      "status": "CANDIDATE",
+      "executionMode": "SCOPED",
+      "owner": "SDK",
+      "reason": "复用当前页/Owned 文档身份与有界事件；不得枚举跨站 Frame",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.webNavigation.observe.start",
+      "status": "CANDIDATE",
+      "executionMode": "SCOPED",
+      "owner": "SDK",
+      "reason": "复用当前页/Owned 文档身份与有界事件；不得枚举跨站 Frame",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.webNavigation.observe.stop",
+      "status": "CANDIDATE",
+      "executionMode": "SCOPED",
+      "owner": "SDK",
+      "reason": "复用当前页/Owned 文档身份与有界事件；不得枚举跨站 Frame",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.scripting.runApproved",
+      "status": "CANDIDATE",
+      "executionMode": "DENIED",
+      "owner": "Controller 主线",
+      "reason": "普通工具不开放任意注入；复用 Controller/Page 已授权执行器",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.scripting.insertApprovedCss",
+      "status": "CANDIDATE",
+      "executionMode": "DENIED",
+      "owner": "Controller 主线",
+      "reason": "普通工具不开放任意注入；复用 Controller/Page 已授权执行器",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.scripting.removeApprovedCss",
+      "status": "CANDIDATE",
+      "executionMode": "DENIED",
+      "owner": "Controller 主线",
+      "reason": "普通工具不开放任意注入；复用 Controller/Page 已授权执行器",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.scripting.listManaged",
+      "status": "CANDIDATE",
+      "executionMode": "DENIED",
+      "owner": "Controller 主线",
+      "reason": "普通工具不开放任意注入；复用 Controller/Page 已授权执行器",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.network.rules.listOwn",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "SDK/AdBlock 主线",
+      "reason": "复用受信 DNR 所有权、规则校验和配额；批准公共合同后绑定服务",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.network.rules.enableOwn",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "SDK/AdBlock 主线",
+      "reason": "复用受信 DNR 所有权、规则校验和配额；批准公共合同后绑定服务",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.network.rules.disableOwn",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "SDK/AdBlock 主线",
+      "reason": "复用受信 DNR 所有权、规则校验和配额；批准公共合同后绑定服务",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.network.rules.getStatus",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "SDK/AdBlock 主线",
+      "reason": "复用受信 DNR 所有权、规则校验和配额；批准公共合同后绑定服务",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.network.rules.updateOwn",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "SDK/AdBlock 主线",
+      "reason": "复用受信 DNR 所有权、规则校验和配额；批准公共合同后绑定服务",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.clipboard.readText",
+      "status": "CANDIDATE",
+      "executionMode": "HOST_ONLY",
+      "owner": "可信宿主",
+      "reason": "读取剪贴板与丰富内容写入需可信前台手势；不能在 SW 普通透传",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.clipboard.writeHtml",
+      "status": "CANDIDATE",
+      "executionMode": "HOST_ONLY",
+      "owner": "可信宿主",
+      "reason": "读取剪贴板与丰富内容写入需可信前台手势；不能在 SW 普通透传",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.clipboard.readImage",
+      "status": "CANDIDATE",
+      "executionMode": "HOST_ONLY",
+      "owner": "可信宿主",
+      "reason": "读取剪贴板与丰富内容写入需可信前台手势；不能在 SW 普通透传",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.screenshot.captureRegion",
+      "status": "CANDIDATE",
+      "executionMode": "COMPOSED",
+      "owner": "SDK",
+      "reason": "复用截图 Driver/资源；区域及全页需要选区、滚动/合成与文档一致性",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.screenshot.captureFullPage",
+      "status": "CANDIDATE",
+      "executionMode": "COMPOSED",
+      "owner": "SDK",
+      "reason": "复用截图 Driver/资源；区域及全页需要选区、滚动/合成与文档一致性",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.resources.getInfo",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "SDK",
+      "reason": "复用已有资源句柄/配额/撤销与导出；需要公开合同后自动绑定",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.resources.readChunk",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "SDK",
+      "reason": "复用已有资源句柄/配额/撤销与导出；需要公开合同后自动绑定",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.resources.release",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "SDK",
+      "reason": "复用已有资源句柄/配额/撤销与导出；需要公开合同后自动绑定",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.resources.saveAs",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "SDK",
+      "reason": "复用已有资源句柄/配额/撤销与导出；需要公开合同后自动绑定",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.scheduler.list",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "SDK",
+      "reason": "复用既有 Schedule Service/Repository；严格限本工具的固定任务版本",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "消费端采用已批准正式方法及其受限语义；不增加旧名称 Wrapper",
+      "canonicalTarget": "browser.scheduler.listOwn"
+    },
+    {
+      "id": "browser.scheduler.get",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "SDK",
+      "reason": "复用既有 Schedule Service/Repository；严格限本工具的固定任务版本",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.scheduler.update",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "SDK",
+      "reason": "复用既有 Schedule Service/Repository；严格限本工具的固定任务版本",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.scheduler.remove",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "SDK",
+      "reason": "复用既有 Schedule Service/Repository；严格限本工具的固定任务版本",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "消费端采用已批准正式方法及其受限语义；不增加旧名称 Wrapper",
+      "canonicalTarget": "browser.scheduler.cancelOwn"
+    },
+    {
+      "id": "browser.scheduler.runNow",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "SDK",
+      "reason": "复用既有 Schedule Service/Repository；严格限本工具的固定任务版本",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.idle.getState",
+      "status": "CANDIDATE",
+      "executionMode": "DIRECT_CANDIDATE",
+      "owner": "SDK",
+      "reason": "状态/观察涉及用户活动，需显式 Capability、idle 权限和有界可撤销观察",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "先批准独立 idle Capability/权限与标量枚举响应合同；生成器支持后使用原生 queryState 名称，不在本批开放",
+      "proposedNative": "chrome.idle.queryState"
+    },
+    {
+      "id": "browser.idle.observe.start",
+      "status": "CANDIDATE",
+      "executionMode": "SCOPED",
+      "owner": "SDK",
+      "reason": "状态/观察涉及用户活动，需显式 Capability、idle 权限和有界可撤销观察",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.idle.observe.stop",
+      "status": "CANDIDATE",
+      "executionMode": "SCOPED",
+      "owner": "SDK",
+      "reason": "状态/观察涉及用户活动，需显式 Capability、idle 权限和有界可撤销观察",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.notifications.getStatus",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "SDK",
+      "reason": "复用现有通知服务并核对通知 Owner；不枚举或删除其他工具通知",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.notifications.listOwn",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "SDK",
+      "reason": "复用现有通知服务并核对通知 Owner；不枚举或删除其他工具通知",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.notifications.closeOwn",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "SDK",
+      "reason": "复用现有通知服务并核对通知 Owner；不枚举或删除其他工具通知",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.commands.listConfigured",
+      "status": "CANDIDATE",
+      "executionMode": "HOST_ONLY",
+      "owner": "可信宿主",
+      "reason": "Chrome commands 属于宿主扩展；工具未拥有独立快捷键，需先决定分配合同",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.commands.getShortcut",
+      "status": "CANDIDATE",
+      "executionMode": "HOST_ONLY",
+      "owner": "可信宿主",
+      "reason": "Chrome commands 属于宿主扩展；工具未拥有独立快捷键，需先决定分配合同",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.omnibox.getStatus",
+      "status": "CANDIDATE",
+      "executionMode": "HOST_ONLY",
+      "owner": "可信宿主",
+      "reason": "Chrome omnibox 属于宿主扩展；无通用读取用户输入/建议的工具权限",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.omnibox.getSuggestions",
+      "status": "CANDIDATE",
+      "executionMode": "HOST_ONLY",
+      "owner": "可信宿主",
+      "reason": "Chrome omnibox 属于宿主扩展；无通用读取用户输入/建议的工具权限",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.readingList.list",
+      "status": "CANDIDATE",
+      "executionMode": "SCOPED",
+      "owner": "SDK",
+      "reason": "浏览器全局阅读列表需要独立显式授权、查询预算和写入确认，不能降为 DIRECT",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.readingList.add",
+      "status": "CANDIDATE",
+      "executionMode": "SCOPED",
+      "owner": "SDK",
+      "reason": "浏览器全局阅读列表需要独立显式授权、查询预算和写入确认，不能降为 DIRECT",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.readingList.update",
+      "status": "CANDIDATE",
+      "executionMode": "SCOPED",
+      "owner": "SDK",
+      "reason": "浏览器全局阅读列表需要独立显式授权、查询预算和写入确认，不能降为 DIRECT",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.readingList.remove",
+      "status": "CANDIDATE",
+      "executionMode": "SCOPED",
+      "owner": "SDK",
+      "reason": "浏览器全局阅读列表需要独立显式授权、查询预算和写入确认，不能降为 DIRECT",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.performance.getNavigation",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "Page/Controller 主线",
+      "reason": "复用已授权 Page 执行世界，性能数据仍绑定 Document；不是 Chrome API 透传",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.performance.getEntries",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "Page/Controller 主线",
+      "reason": "复用已授权 Page 执行世界，性能数据仍绑定 Document；不是 Chrome API 透传",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.performance.observe",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "Page/Controller 主线",
+      "reason": "复用已授权 Page 执行世界，性能数据仍绑定 Document；不是 Chrome API 透传",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.page.getMetadata",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "Page/Controller 主线",
+      "reason": "复用 Page/Controller 的已授权 DOM 能力与结果预算；保持 Origin/Document",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.page.getLinks",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "Page/Controller 主线",
+      "reason": "复用 Page/Controller 的已授权 DOM 能力与结果预算；保持 Origin/Document",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.page.getApprovedFrames",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "Page/Controller 主线",
+      "reason": "复用 Page/Controller 的已授权 DOM 能力与结果预算；保持 Origin/Document",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.page.getDomSnapshot",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "Page/Controller 主线",
+      "reason": "复用 Page/Controller 的已授权 DOM 能力与结果预算；保持 Origin/Document",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.contextMenu.listOwned",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "SDK",
+      "reason": "复用当前 contextMenu 服务和安装时贡献；不能动态注册未审阅动作",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.contextMenu.updateOwned",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "SDK",
+      "reason": "复用当前 contextMenu 服务和安装时贡献；不能动态注册未审阅动作",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    },
+    {
+      "id": "browser.diagnostics.getSdkStatus",
+      "status": "CANDIDATE",
+      "executionMode": "EXISTING_SERVICE",
+      "owner": "SDK",
+      "reason": "复用 capabilities 与诊断服务，导出前脱敏并限制结果大小",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "消费端采用已批准正式方法及其受限语义；不增加旧名称 Wrapper",
+      "canonicalTarget": "browser.capabilities.list"
+    },
+    {
+      "id": "browser.diagnostics.exportRedactedReport",
+      "status": "CANDIDATE",
+      "executionMode": "COMPOSED",
+      "owner": "SDK",
+      "reason": "复用 capabilities 与诊断服务，导出前脱敏并限制结果大小",
+      "approval": "NOT_APPROVED_UNDER_HISTORICAL_NAME",
+      "nextStep": "补齐作用域及输入输出合同后，在现有矩阵批准并复用安全服务"
+    }
+  ]
 }
