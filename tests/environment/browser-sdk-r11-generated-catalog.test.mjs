@@ -3,7 +3,10 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {BROWSER_OPERATIONS} from '../../src/framework/sdk/browser-contract.js';
 import {deriveBrowserBindingCatalog,deriveBrowserDirectBindings,deriveBrowserDeveloperSurface,
-  syncBrowserBindings} from '../../scripts/generate-browser-bindings.mjs';
+  syncBrowserBindings,syncBrowserDeveloperSurface} from '../../scripts/generate-browser-bindings.mjs';
+import {mkdtemp,mkdir,rm,writeFile} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import {deriveBrowserDirectOperations} from '../../src/framework/sdk/browser-contract.js';
 import {createApprovedBrowserBindings} from '../../src/framework/sdk/browser-bindings.js';
 import {validateDirectBrowserValue} from '../../src/framework/sdk/browser-schemas.js';
@@ -124,10 +127,35 @@ test('R11.5 test-only positional alias compiler does not grant a new Native API'
   assert.deepEqual(await bindings.dispatch(approvedRow.id,{message:'hello'},{allowed:true},{authorize}),
     {isReliable:true,languages:[]});
   assert.deepEqual(called,['hello']);
-  await assert.rejects(bindings.dispatch(approvedRow.id,{text:'bypass'},{allowed:true},{authorize}),err(/field|schema/i));
+  await assert.rejects(bindings.dispatch(approvedRow.id,{text:'bypass'},{allowed:true},{authorize}),
+    error=>error?.code==='E_SCHEMA');
   const unsafe=structuredClone(fixture);
   unsafe.approvedOperations[0].argumentAliases={text:'__proto__'};
   assert.throws(()=>deriveBrowserDirectBindings(unsafe),err(/DIRECT parameter/));
   assert(!matrix.approvedOperations.some(row=>row.argumentAliases),
     'No formal new mapping has been approved');
+});
+
+
+test('R11.5 real generator writes and rechecks deterministic developer types/docs',async()=>{
+  const root=await mkdtemp(join(tmpdir(),'opendesk-sdk-proof-'));
+  try{
+    await mkdir(join(root,'docs/api'),{recursive:true});
+    await writeFile(join(root,'docs/api/browser-sdk-interface-matrix.json'),JSON.stringify(matrix));
+    const run=await syncBrowserDeveloperSurface({root});
+    assert.equal(run.publicCount,Object.keys(BROWSER_OPERATIONS).length);
+    const checked=await syncBrowserDeveloperSurface({root,check:true});
+    assert.equal(checked.ok,true);
+    assert.equal(checked.nativeChrome,'NOT_TESTED');
+    const [dts,markdown]=await Promise.all([
+      readFile(join(root,'docs/api/browser-sdk.developer.generated.d.ts'),'utf8'),
+      readFile(join(root,'docs/api/browser-sdk.developer.generated.md'),'utf8')
+    ]);
+    assert.match(dts,/interface OpenDeskBrowserSdk/);
+    assert.match(markdown,/OpenDeskSDK\.browser\.storage\.local\.keys/);
+    await writeFile(join(root,'docs/api/browser-sdk.developer.generated.d.ts'),dts+'\n// drift');
+    await assert.rejects(syncBrowserDeveloperSurface({root,check:true}),err(/drift/));
+  }finally{
+    await rm(root,{recursive:true,force:true});
+  }
 });

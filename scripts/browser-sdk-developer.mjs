@@ -2,6 +2,8 @@
 // from the existing generator/Registry. This file never enters the MV3 bundle.
 const safeName=value=>typeof value==='string'&&/^[A-Za-z][A-Za-z0-9]*$/.test(value)&&
   !['constructor','prototype','__proto__'].includes(value);
+const safeField=value=>typeof value==='string'&&value.length>0&&value.length<=128&&
+  !['constructor','prototype','__proto__'].includes(value);
 
 export function schemaToTypescript(schema,depth=0){
   if(depth>14)throw Error('Browser developer schema depth exceeded');
@@ -24,8 +26,9 @@ export function schemaToTypescript(schema,depth=0){
       const required=new Set(schema.required??[]);
       const parts=Object.entries(schema.properties??{}).sort(([a],[b])=>a.localeCompare(b,'en'))
         .map(([key,rule])=>{
-          if(!safeName(key))throw Error('Unsafe public Browser type field: '+key);
-          return 'readonly '+key+(required.has(key)?'':'?')+': '+
+          if(!safeField(key))throw Error('Unsafe public Browser type field: '+key);
+          const property=/^[A-Za-z][A-Za-z0-9]*$/.test(key)?key:JSON.stringify(key);
+          return 'readonly '+property+(required.has(key)?'':'?')+': '+
             schemaToTypescript(rule,depth+1)+';';
         });
       if(schema.additionalProperties!==false)parts.push('readonly [key: string]: unknown;');
