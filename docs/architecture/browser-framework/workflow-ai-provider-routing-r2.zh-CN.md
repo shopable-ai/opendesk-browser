@@ -354,6 +354,13 @@ ADR 风险升级触发条件：Codex CLI 版本改变、Chrome Origin/Host 处�
 
 - **Go 协议增量**：Go `internal/browserai/http_gateway.go` 后续增量 `db2387feb76e9f635ca9528ec9ba6d333c46167c` 增加了非流式 `json_object`、单个标准 `user/input_text` 消息 array，仍保持未知字段、多个 typed 项、`store:true`、`stream:true`、`background:true`、历史 response ID 的拒绝。Go `internal/browserai/http_gateway_test.go` 的后续提交 `2c003149d534ce2bd47629d1d046d88be39ef4f2` 增加 Host、Origin、认证、unsupported 相关定向测试；**源码+测试存在不自动等于该新候选 CI PASS**。
 - **Browser 隔离切片**：新增 `src/ui/workflow/local-http.js`（commit `01919da0676768f134286bc636270cc5ff79b7f4`），仅提供 loopback endpoint/token 的参数门禁、受限非流式 Responses 请求、受限 body 读取、型别化 `parseWorkflowResponse` 复用和 unknown outcome 不重发。其 `localHTTPAdapterCapabilities().pairingReady=false`；**未导入 `provider.js` / `workflow-view.js`，不自称可从 Chrome 直接联网**。
+- **定向测试源码**：新增 `tests/environment/workflow-local-http.test.mjs`（Browser `72cd92c030782f8466832555fc0a850fcf19a78c`），包含 loopback、Bearer、strict Schema、typed input 请求、json_object、伪造 usage/incomplete、断连不重试等局部断言；**本记录未执行该新测试，标为 `TEST_SOURCE_ADDED / NOT_RUN`**，不能拿其他候选 109/109 替代。
 - **协议正确性**：前文映射矩阵 C 的“字符串 + strict schema only”现已修订为精确的扩展子集。Browser `local-http.js` 的提交不生成 Native token、不突破 Origin/CORS、不处理用户浏览器执行、不提供任意网络目标或已登录 Codex 凭据。Go 环回路由仍必须由同一 Native Host 实例的 `h.ai` 管理。
 - **持续阻塞**：受信 Origin 行为与 HTTP token 颁发/撤权/存储方式尚无跨仓共同完成合同，不能把 `localhost` 任意端口设为允许；真实 HTTP 端点、Codex 模型、同构建 Chrome 目标和业务效果未验证；T2–T6 后置。
 - **既有并行账本**：`docs/framework/workstreams/conversation-direct-r1-20261013.md` 已由另一 Agent 追加 R2.2 实现与 CI 候选记录。该文件应由其当前 owner 管理；本设计文档不覆盖、撤销或声称为本轮执行其 CI。
+
+### 11.1 CI 证据与跨平台阻塞（现有远端运行，只读核对）
+
+- Go `master@2c003149d534ce2bd47629d1d046d88be39ef4f2` 的 [Native Messaging CI #38713903230](https://github.com/shopable-ai/opendesk/actions/runs/38713903230) **整体 FAIL**：该候选 `transport (macos-latest)` 与模拟 Chrome 可执行任务 SUCCESS；Ubuntu 的 `internal/browserai` 包（含 gateway 定向测试）PASS，但 `internal/browsercli/admission_unix_test.go:32` 使用 Linux 不存在的 `/private/tmp` 致任务失败。不得将该工作流汇总为 PASS。
+- 同一 Go 候选的 [Windows Core #38713903198](https://github.com/shopable-ai/opendesk/actions/runs/38713903198) **FAIL**：`internal/browsercli/command.go:187` 编译时调用 `Host.Close`，非 Unix 平台的 `*browserbridge.Host` 无该方法。这是 Go 跨平台编译阻塞，交给 Go Native/Windows 代码所有者协调；不可为修复它另造 Codex Manager。
+- Browser 其他 Agent 的 [Workflow 数据 CI](https://github.com/shopable-ai/opendesk-browser/actions/workflows/workflow-ai-data-r16.yml) 与正在跑的工作流仍随 main 快速演进。以前的 109/109 定向 PASS 仅按其当时 commit 范围承认；不声称覆盖本轮新 `local-http.js` / 测试文件的 Node 执行。最新构建若被并行 AdBlock provenance 修改挡住，也必须依 owner/具体 SHA 独立报告。
