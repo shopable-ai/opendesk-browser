@@ -125,7 +125,12 @@ if(!vm.SourceTextModule) {
       observations.push(args);if(observeGate)await observeGate.promise;return {componentFixture:true};
     }};
     const bindings={
-      '../../framework/workflow/contract.js':contract,
+      // Production modules share a realm. This VM-only component fixture
+      // transfers UI-created params to the host realm before the same
+      // strict validator checks the shape, values and defaults.
+      '../../framework/workflow/contract.js':{...contract,
+        validateWorkflowParams:(workflow,params)=>contract.validateWorkflowParams(
+          workflow,structuredClone(params))},
       '../../platform/tasks/contract.js':{checkParamsSchema:value=>value,createTaskPackage:()=>{throw new Error('No packaging in focus suite');}},
       '../../framework/workflow/compiler.js':{compileWorkflow:async workflow=>{compiled.push(structuredClone(workflow));return {workflow,sourceUtf8:'component fixture',sourceHash:'a'.repeat(64)};}},
       '../../environment.js':{permissionPattern:()=> 'https://a.example/*'},
