@@ -134,6 +134,23 @@ async function child(ctx){
   }.toString()+')()',ctx);
 }
 async function click(selector,ctx=null){
+  if(ctx){
+    // Focus is set by the harness; activation is a genuine Chrome key event,
+    // never HTMLElement.click() or a synthetic DOM click. This avoids OOPIF
+    // compositor coordinate ambiguity and checks keyboard accessibility.
+    const focused=await evaluate('('+function(sel){
+      const button=document.querySelector(sel);
+      if(!button||button.disabled)throw Error('Missing enabled key target '+sel);
+      button.focus();
+      return document.activeElement===button;
+    }.toString()+')('+JSON.stringify(selector)+')',ctx);
+    assert.equal(focused,true,'sandbox button receives keyboard focus');
+    await cdp('Input.dispatchKeyEvent',{type:'rawKeyDown',key:'Enter',code:'Enter',
+      windowsVirtualKeyCode:13,nativeVirtualKeyCode:13},ctx.session);
+    await cdp('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',
+      windowsVirtualKeyCode:13,nativeVirtualKeyCode:13},ctx.session);
+    return;
+  }
   const rect=await evaluate('('+function(sel){
     const el=document.querySelector(sel);
     if(!el)throw Error('missing element '+sel);
@@ -220,7 +237,7 @@ try{
     clean();
     report.push({scenario:'success',sourceCommit:built.sourceCommit,
       uiSha256:built.uiSha256,checks:['source-dom','source-css-switch',
-      'sandbox-opaque','real-click-confirm','cancel-preserves-state',
+      'sandbox-opaque','real-keyboard-confirm','cancel-preserves-state',
       'accepted-matching-receipt','forged-message-rejected','no-network']});
   }
   {
