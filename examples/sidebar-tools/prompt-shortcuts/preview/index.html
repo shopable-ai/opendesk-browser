@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OpenDesk Browser · 提示词快捷按钮｜Side Panel 交互预览 R1.11</title>
+<title>OpenDesk Browser · 提示词快捷按钮｜Side Panel 交互预览 R1.12</title>
 <meta name="description" content="OpenDesk Prompt Shortcuts 独立侧边栏交互原型。仅模拟、不安装、无真实权限请求。">
 <style>
 /* Offline design contract: semantic values mirror src/ui/design-tokens.css (blob 134dd7871da4bf0ee26b6d0135e69e7273fdabdb).
@@ -239,6 +239,8 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  color:var(--od-ink);font-size:13px;font-weight:570;line-height:1.54}
 .prompt-meta{display:flex;align-items:center;gap:6px;min-width:0;font-size:10.5px;line-height:1.4;color:var(--od-sub)}
 .prompt-name{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;min-width:0}
+.prompt-use.is-untitled{min-height:46px}
+.prompt-use.is-untitled .prompt-copy{gap:0}
 .prompt-actions{align-items:flex-start;gap:0;margin-top:1px}
 .prompt-actions .od-button{height:30px;min-height:30px;min-width:29px;width:29px;padding:0;
  border:0;background:transparent;border-radius:7px;font-size:16px;font-weight:600;color:var(--od-sub)}
@@ -260,7 +262,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 <header class="demo-header">
  <div class="demo-title"><span class="logo" aria-hidden="true">OD</span><div>
   <h1>Prompt Shortcuts · Side Panel UI</h1>
-  <p>管理界面交互预览 R1.11 · 点击正文即可使用 · 与左侧按钮共用本页模拟状态</p></div></div>
+  <p>管理界面交互预览 R1.12 · 点击正文即可使用 · 与左侧按钮共用本页模拟状态</p></div></div>
  <div class="demo-controls" aria-label="预览控制">
   <span class="design-badge">模拟预览 · 非真实安装</span>
   <button id="size320" class="od-button od-button--small" type="button">320px</button>
@@ -333,7 +335,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
        <p class="form-hint" id="contentHint">完整保留换行、空行及 Emoji。仅填写正文即可保存。</p>
       </div>
       <div class="effective-preview" aria-label="按钮显示即时预览"><span>保存后展示</span><strong class="preview-short" id="effectiveShort">待生成</strong><span>名称</span><strong id="effectiveName">待生成</strong></div>
-      <details id="advancedOptions" class="optional-section od-surface"><summary id="optionalHeading">按钮设置 <span class="optional-summary-hint">选填</span></summary>
+      <details id="advancedOptions" class="optional-section od-surface" open><summary id="optionalHeading">按钮设置 <span class="optional-summary-hint">选填</span></summary>
        <div class="optional-fields">
         <div class="optional-row"><label class="compact-label" for="shortLabel">按钮短标签</label><input id="shortLabel" class="od-field" name="shortLabel" maxlength="24" placeholder="留空自动取前 2 字" autocomplete="off" aria-describedby="shortLabelHelp"></div>
         <div class="optional-row"><label class="compact-label" for="fullName">显示名称</label><input id="fullName" class="od-field" name="fullName" maxlength="60" placeholder="留空自动生成" autocomplete="off"></div>
@@ -369,7 +371,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   {id:'a',label:'润色',name:'专业文字润色',body:'请在不改变原意的前提下润色以下文字：\n1. 保持语气专业、自然；\n2. 改进逻辑和清晰度；\n3. 输出优化后的完整正文。',enabled:true,shape:'square'},
   {id:'b',label:'总结',name:'重点总结',body:'请将上述信息总结为：\n一、核心结论；\n二、重要依据；\n三、建议下一步。',enabled:true,shape:'square'},
   {id:'c',label:'翻译',name:'中英双向翻译',body:'请根据原文语言进行中英双向翻译，保留段落结构、专有名词和原有语气。',enabled:true,shape:'round'},
-  {id:'d',label:'检查',name:'逻辑检查',body:'请检查内容中的逻辑漏洞、遗漏与相互矛盾处，逐条说明并提供修复建议。',enabled:true,shape:'square'}
+  {id:'d',label:'检查',name:'',body:'请检查内容中的逻辑漏洞、遗漏与相互矛盾处，逐条说明并提供修复建议。',enabled:true,shape:'square'}
  ];
  const $=selector=>document.querySelector(selector), el=id=>document.getElementById(id), encoder=new TextEncoder();
  const COPY=()=>INITIAL.map(item=>({...item}));
@@ -388,6 +390,14 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  function validLabel(label){const chars=glyphs(label);return chars.length>=1&&chars.length<=2&&chars.every(visible);}
  function defaultShort(body){return glyphs(body).filter(visible).slice(0,2).join('');}
  function stack(label){const n=create('span','stack');for(const char of glyphs(label))n.append(create('span','',char));return n;}
+ // An automatic name is data compatibility, not a user-entered title.
+ function customTitle(item){return item?.nameAuto===true?'':String(item?.name||'').trim();}
+ function itemIdentity(item){
+  const title=customTitle(item);
+  if(title)return title;
+  const body=String(item?.body||'').trim().replace(/\s+/g,' ');
+  return glyphs(body).slice(0,36).join('')||'空提示词';
+ }
  function countText(){const enabled=state.items.filter(item=>item.enabled).length;return `${state.items.length} 个 · ${enabled} 个启用`;}
  function setView(next){currentView=next;for(const v of ['index','form','permission','toolList'])el(v+'View').hidden=v!==next;el('hostToolHead').hidden=next==='toolList';el('panelBody').scrollTop=0;}
  function mockAuthorized(){return state.granted===true;}
@@ -397,12 +407,12 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   if(!state.settings.showBar||!mockAuthorized()){rail.hidden=true;return;}rail.hidden=false;
   const active=state.items.filter(item=>item.enabled);
   if(!active.length){rail.append(create('div','page-rail-empty','没有已启用的按钮'));return;}
-  for(const item of active){const b=create('button','page-shortcut');b.type='button';b.title=item.name;b.setAttribute('aria-label','插入提示词：'+item.name);b.append(stack(item.label));
+  for(const item of active){const b=create('button','page-shortcut');b.type='button';b.title=itemIdentity(item);b.setAttribute('aria-label','插入提示词：'+itemIdentity(item));b.append(stack(item.label||defaultShort(item.body)||'…'));
    b.addEventListener('click',()=>void usePrompt(item));
    b.addEventListener('mouseenter',()=>showTip(item,b));b.addEventListener('focus',()=>showTip(item,b));b.addEventListener('mouseleave',()=>hideTip(b));b.addEventListener('blur',()=>hideTip(b));rail.append(b);
   }
  }
- function showTip(item,button){el('tipTitle').textContent=item.name;el('tipBody').textContent=item.body;el('webTooltip').hidden=false;tipButton=button;}
+ function showTip(item,button){el('tipTitle').textContent=customTitle(item)||'提示词内容';el('tipBody').textContent=item.body;el('webTooltip').hidden=false;tipButton=button;}
  function hideTip(button){if(tipButton===button){el('webTooltip').hidden=true;tipButton=null;}}
  function renderIndex(){
   setSettings();el('listCount').textContent=countText();
@@ -412,32 +422,36 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
    empty.append(create('p','','点击「＋ 新建」添加第一个快捷按钮。'));list.append(empty);
   }
   for(const [i,item] of state.items.entries()){
-   const card=create('article','prompt-card'+(!item.enabled?' is-disabled':''));
+    const hasTitle=Boolean(customTitle(item)),identity=itemIdentity(item);
+    const card=create('article','prompt-card'+(!item.enabled?' is-disabled':''));
    card.dataset.id=item.id;
-   const row=create('div','prompt-row'),use=create('button','prompt-use');
+    const row=create('div','prompt-row'),use=create('button','prompt-use'+(!hasTitle&&item.enabled?' is-untitled':''));
    use.type='button';use.disabled=!item.enabled;
-   use.setAttribute('aria-label',(item.enabled?'使用完整提示词：':'已停用的提示词：')+item.name);
+    use.setAttribute('aria-label',(item.enabled?'使用完整提示词：':'已停用的提示词：')+identity);
    use.title=item.enabled?'优先填写输入框；不支持时直接复制完整提示词':'已停用，请在更多操作中启用';
    const icon=create('span','prompt-icon');
-   icon.setAttribute('aria-hidden','true');icon.append(stack(item.label));
-   const details=create('span','prompt-copy'),body=create('span','prompt-content',item.body);
-   const meta=create('span','prompt-meta'),name=create('span','prompt-name',item.name);
-   meta.append(name);
-   if(!item.enabled)meta.append(create('span','off','已停用'));
-   details.append(body,meta);use.append(icon,details);
+    icon.setAttribute('aria-hidden','true');icon.append(stack(item.label||defaultShort(item.body)||'…'));
+    const details=create('span','prompt-copy'),body=create('span','prompt-content',item.body);
+    body.title=item.body;
+    const meta=create('span','prompt-meta');
+    if(hasTitle)meta.append(create('span','prompt-name',customTitle(item)));
+    if(!item.enabled)meta.append(create('span','off','已停用'));
+    details.append(body);
+    if(meta.childElementCount)details.append(meta);
+    use.append(icon,details);
    use.addEventListener('click',()=>void usePrompt(item));
    const actions=create('div','prompt-actions');
-   const edit=action(actions,'✎',()=>openForm(item.id),{small:true,subtle:true,title:'编辑 '+item.name});
-   edit.setAttribute('aria-label','编辑 '+item.name);
-   const more=action(actions,'⋯',()=>{expandedId=expandedId===item.id?null:item.id;deleteId=null;renderIndex();},{small:true,subtle:true,title:'更多操作：'+item.name});
-   more.setAttribute('aria-label','更多操作：'+item.name);
+   const edit=action(actions,'✎',()=>openForm(item.id),{small:true,subtle:true,title:'编辑 '+identity});
+    edit.setAttribute('aria-label','编辑 '+identity);
+   const more=action(actions,'⋯',()=>{expandedId=expandedId===item.id?null:item.id;deleteId=null;renderIndex();},{small:true,subtle:true,title:'更多操作：'+identity});
+    more.setAttribute('aria-label','更多操作：'+identity);
    more.setAttribute('aria-expanded',String(expandedId===item.id));
    row.append(use,actions);card.append(row);
    if(expandedId===item.id){
     const commands=create('div','prompt-more');
     action(commands,item.enabled?'停用':'启用',()=>{
      item.enabled=!item.enabled;state.revision++;renderIndex();renderRail();
-     notice(item.enabled?'「'+item.name+'」已启用（模拟）':'「'+item.name+'」已停用（模拟）');
+     notice(item.enabled?'「'+identity+'」已启用（模拟）':'「'+identity+'」已停用（模拟）');
     },{small:true});
     action(commands,'↑ 上移',()=>moveItem(i,-1),{small:true,disabled:i===0});
     action(commands,'↓ 下移',()=>moveItem(i,1),{small:true,disabled:i===state.items.length-1});
@@ -447,13 +461,13 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
    }
    if(deleteId===item.id){
     const box=create('div','prompt-delete');
-    box.append(create('p','','确认删除「'+item.name+'」？仅删除模拟数据，操作不能撤销。'));
+    box.append(create('p','','确认删除「'+identity+'」？仅删除模拟数据，操作不能撤销。'));
     const buttons=create('div','actions');
     action(buttons,'取消',()=>{deleteId=null;renderIndex();},{small:true});
     action(buttons,'确认删除',()=>{
      state.items=state.items.filter(x=>x.id!==item.id);state.revision++;
      deleteId=null;expandedId=null;renderIndex();renderRail();
-     notice('已删除「'+item.name+'」（模拟）');
+     notice('已删除「'+identity+'」（模拟）');
     },{small:true,danger:true});
     box.append(buttons);card.append(box);
    }
@@ -533,7 +547,8 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   el('shortLabel').value=value?.labelAuto?'':(value?.label??preset?.label??'');
   el('fullName').value=value?.nameAuto?'':(value?.name??preset?.name??'');
   el('itemEnabled').checked=value?.enabled??true;
-  el('advancedOptions').open=!!(value&&(!value.labelAuto||!value.nameAuto||!value.enabled));
+  // Every new/edit entry begins expanded. Native <details> remains user-collapsible.
+  el('advancedOptions').open=true;
   el('bodyError').hidden=true;el('formError').hidden=true;el('formSaveStatus').hidden=true;el('leaveConfirm').hidden=true;
   el('verifySaved').hidden=true;el('verificationPanel').hidden=true;
   el('saveButton').disabled=false;el('saveButton').textContent='保存提示词';
@@ -575,7 +590,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
    if(snapshot!==JSON.stringify(rawFormValues())){
     baselineForm=snapshot;dirty=true;status.hidden=false;status.textContent='先前版本已保存；保存期间又输入的新内容尚未保存，请再次点击保存。';renderRail();return;
    }
-   returnIndex();notice('已保存「'+value.name+'」（仅本页模拟）。列表已更新。','success');
+   returnIndex();notice('已保存「'+itemIdentity(updated)+'」（仅本页模拟）。列表已更新。','success');
   }catch(error){showFormError('E_PREVIEW_SAVE：模拟保存出现异常：'+(error?.message||String(error))+'。草稿保留，请核对后操作。');}
   finally{saving=false;el('saveButton').disabled=false;el('saveButton').textContent='保存提示词';el('promptForm').removeAttribute('aria-busy');}
  }
@@ -593,7 +608,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  el('verifySaved').addEventListener('click',()=>{
   const target=el('verificationRows');target.replaceChildren();
   if(!state.items.length)target.append(create('p','','当前还没有已保存的提示词。'));
-  else for(const item of state.items)target.append(create('div','',item.name+' · '+item.label));
+  else for(const item of state.items)target.append(create('div','',itemIdentity(item)+' · '+(item.label||defaultShort(item.body)||'…')));
   el('verificationPanel').hidden=false;el('closeVerification').focus({preventScroll:true});
  });
  el('closeVerification').addEventListener('click',()=>{el('verificationPanel').hidden=true;el('promptBody').focus({preventScroll:true});});
