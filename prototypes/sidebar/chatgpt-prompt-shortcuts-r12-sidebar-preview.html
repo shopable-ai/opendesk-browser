@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OpenDesk Browser · 提示词快捷按钮｜Side Panel 交互预览 R1.2</title>
+<meta name="description" content="OpenDesk Prompt Shortcuts 独立侧边栏交互原型。仅模拟、不安装、无真实权限请求。">
+<style>
+/* Offline design contract: semantic values mirror src/ui/design-tokens.css (blob 134dd7871da4bf0ee26b6d0135e69e7273fdabdb).
+   This demo is NOT a replacement token authority; formal UI must consume canonical components at build time. */
+:root{
+ --od-ink:#1b2c49;--od-sub:#53647e;--od-line:#e1e8f1;--od-brand:#365eda;
+ --od-paper:#fff;--od-bg:#f5f7fb;--od-input-border:#7f8da1;--od-accent-ink:var(--od-brand);
+ --od-focus:var(--od-brand);--od-muted:#f5f7fb;--od-positive:#117a5d;--od-negative:#ae3d4b;
+ --od-on-brand:#fff;--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;
+ --radius-control:8px;--radius-surface:12px;--radius-pill:999px;
+ --od-icon-size:34px;--od-body-size:13px;--od-note-size:12px;--od-page-gutter:11px;
+ --od-warning-bg:#fff9ec;--od-warning-ink:#76501b;--od-negative-bg:#fff0f1;
+ --stage:#fff;--stage-ink:#242424;--stage-sub:#717171;--stage-bubble:#f6f6f6;--stage-line:#e8e8e8;
+ color-scheme:light;
+}
+:root[data-theme="dark"]{
+ --od-ink:#e9eef7;--od-sub:#b3c1d3;--od-line:#374457;--od-brand:#3566ba;
+ --od-paper:#151c28;--od-bg:#101722;--od-input-border:#6d809b;
+ --od-accent-ink:#9dc1ff;--od-focus:#9dc1ff;--od-muted:#222d3e;
+ --od-positive:#a1f3cc;--od-negative:#ff9ea6;--od-warning-bg:#392d21;
+ --od-warning-ink:#f6dca8;--od-negative-bg:#442632;
+ --stage:#212121;--stage-ink:#ececec;--stage-sub:#b3b3b3;--stage-bubble:#303030;--stage-line:#444;
+ color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{background:var(--od-bg)}body{margin:0;color:var(--od-ink);font:13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,textarea{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.48}
+:where(button,input,textarea,a):focus-visible{outline:3px solid var(--od-focus);outline-offset:2px}
+[hidden]{display:none!important}a{color:var(--od-accent-ink)}
+.demo-header{margin:0 auto;padding:20px 22px 12px;max-width:1540px;display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.demo-title{display:flex;gap:12px;align-items:center}.logo{flex:none;width:37px;height:37px;display:grid;place-items:center;background:var(--od-brand);color:#fff;border-radius:11px;font-weight:800;letter-spacing:-.05em}
+.demo-title h1{font-size:20px;line-height:1.3;margin:0;letter-spacing:-.025em}.demo-title p{font-size:12px;color:var(--od-sub);margin:4px 0 0}
+.demo-controls{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px}
+.design-badge{font-size:11px;border-radius:99px;border:1px solid var(--od-line);background:var(--od-paper);padding:6px 10px;color:var(--od-sub);white-space:nowrap}
+.od-button{min-height:34px;padding:6px 11px;border:1px solid var(--od-line);background:var(--od-paper);color:var(--od-ink);border-radius:var(--radius-control);font-weight:550;white-space:nowrap}
+.od-button:hover:not(:disabled){background:var(--od-muted);border-color:var(--od-input-border)}
+.od-button--primary{background:var(--od-brand);color:#fff;border-color:var(--od-brand)}
+.od-button--primary:hover:not(:disabled){background:#294fc4;color:#fff;border-color:#294fc4}
+.od-button--subtle{background:transparent;border-color:transparent}
+.od-button--danger{color:var(--od-negative)}
+.od-button--small{min-height:30px;padding:4px 9px;font-size:12px}
+.od-icon-button{width:34px;height:34px;display:grid;place-items:center;padding:0;border:1px solid var(--od-line);border-radius:8px;background:var(--od-paper);color:var(--od-ink);font-size:15px;flex:none}
+.od-icon-button:hover:not(:disabled){background:var(--od-muted)}
+.od-field{display:block;width:100%;min-width:0;min-height:36px;padding:8px 10px;border:1px solid var(--od-input-border);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink)}
+textarea.od-field{line-height:1.65;min-height:210px;resize:vertical;font-size:13px}
+.od-surface{border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper)}
+.canvas{display:flex;gap:16px;align-items:stretch;max-width:1540px;min-height:748px;margin:0 auto;padding:8px 22px 24px;min-width:0}
+/* The sidepanel is sized independently of the simulated ChatGPT content, as in the real Chrome Side Panel. */
+.web-mock{flex:1;min-width:0;overflow:hidden;display:flex;flex-direction:column;border-radius:15px;border:1px solid var(--od-line);box-shadow:0 12px 42px #08172c0c;background:var(--stage);color:var(--stage-ink)}
+.browser-chrome{height:44px;background:var(--stage-bubble);border-bottom:1px solid var(--stage-line);display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 14px;color:var(--stage-sub);font-size:11px}
+.window-dots{display:flex;gap:6px}.window-dots span{width:9px;height:9px;background:#c6c9d1;border-radius:50%}
+.browser-address{background:var(--stage);padding:5px 12px;border-radius:99px;color:var(--stage-sub);max-width:300px;width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
+.web-main{min-height:0;flex:1;display:flex;flex-direction:column;position:relative}
+.web-top{height:56px;display:flex;justify-content:space-between;align-items:center;padding:0 25px 0 18px;border-bottom:1px solid var(--stage-line);gap:8px}
+.web-top strong{font-size:15px}.web-sub{font-size:11px;color:var(--stage-sub)}
+.web-button{font-size:11px;background:transparent;color:var(--stage-sub);border:1px solid var(--stage-line);border-radius:8px;padding:6px 10px}
+.web-button:hover{color:var(--stage-ink)}
+.message-area{position:relative;flex:1;min-height:430px;overflow:hidden}
+.message-inner{height:100%;width:min(670px,calc(100% - 128px));margin:0 auto;padding:40px 12px;overflow-y:auto}
+.message-inner h2{font-size:24px;margin:0 0 18px;font-weight:650;letter-spacing:-.03em}
+.message-inner p{font-size:14px;line-height:1.85;margin:0 0 17px}.message-inner .user{margin-left:auto;margin-bottom:25px;width:max-content;max-width:80%;padding:11px 16px;border-radius:20px;background:var(--stage-bubble)}
+/* Mirrors approved R1.2 decision: 12 px from content area's LEFT EDGE, not the centered text column or composer. */
+.page-rail{position:absolute;left:12px;top:50%;transform:translateY(-50%);z-index:4;display:flex;flex-direction:column;align-items:center;gap:8px;max-height:248px;overflow:auto;padding:4px;width:46px;border-radius:12px;scrollbar-width:thin}
+.page-shortcut{flex:none;width:38px;height:38px;display:grid;place-items:center;border:1px solid var(--stage-line);background:var(--stage-bubble);color:var(--stage-ink);border-radius:10px;font-size:11px;line-height:1.07;font-weight:700;box-shadow:0 1px 7px #00000010}
+.page-shortcut.round{border-radius:50%}.page-shortcut:hover{border-color:var(--od-focus);background:var(--stage)}
+.page-shortcut .stack{display:flex;flex-direction:column;align-items:center;gap:2px}
+.page-rail-empty{font-size:11px;color:var(--stage-sub);background:var(--stage-bubble);border-radius:8px;padding:5px;writing-mode:vertical-rl}
+.web-tip{position:absolute;z-index:8;top:50%;left:66px;transform:translateY(-50%);width:min(335px,calc(100% - 82px));max-height:300px;overflow:auto;border-radius:12px;padding:14px 16px;border:1px solid var(--stage-line);background:var(--stage);box-shadow:0 14px 36px #00000023;color:var(--stage-ink)}
+.web-tip strong{display:block;font-size:14px}.web-tip small{display:block;color:var(--stage-sub);font-size:11px;margin:7px 0}.web-tip pre{white-space:pre-wrap;overflow-wrap:anywhere;margin:0;font:12px/1.65 inherit}
+.web-compose{width:min(640px,calc(100% - 126px));margin:0 auto 24px;background:var(--stage-bubble);border:1px solid var(--stage-line);border-radius:22px;padding:14px;flex:none}
+.web-compose textarea{display:block;width:100%;height:72px;resize:vertical;border:0;background:transparent;color:var(--stage-ink);font:13px/1.6 inherit;outline:none}
+.web-compose-foot{display:flex;justify-content:space-between;color:var(--stage-sub);font-size:11px;margin-top:7px}
+.mock-menu{position:absolute;z-index:9;top:42%;left:22%;background:var(--stage);color:var(--stage-ink);border:1px solid var(--stage-line);border-radius:10px;box-shadow:0 12px 34px #0002;max-width:300px;padding:8px}
+.mock-menu p{margin:0;padding:5px 6px;font-size:11px;color:var(--stage-sub);overflow-wrap:anywhere}
+.mock-menu button{width:100%;text-align:left;display:flex;align-items:center;gap:10px;border:0;background:transparent;border-radius:7px;color:var(--stage-ink);padding:9px;font-size:12px}
+.mock-menu button:hover{background:var(--stage-bubble)}
+.sidepanel{width:var(--panel-width,380px);min-width:0;flex:none;background:var(--od-paper);border:1px solid var(--od-line);border-radius:15px;box-shadow:0 14px 42px #08172c12;display:flex;flex-direction:column;overflow:hidden}
+.panel-brand{height:54px;display:flex;align-items:center;gap:10px;padding:0 13px;border-bottom:1px solid var(--od-line);flex:none}
+.panel-brand .mini-logo{width:25px;height:25px;border-radius:7px;background:var(--od-brand);color:#fff;display:grid;place-items:center;font-weight:750;font-size:11px}
+.panel-brand strong{font-size:13px}.panel-brand small{display:block;color:var(--od-sub);font-size:10px;line-height:1.2}
+.product-tabs{height:48px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:end;padding:0 10px;border-bottom:1px solid var(--od-line);flex:none}
+.product-tabs span{height:36px;display:grid;place-items:center;font-size:11px;color:var(--od-sub);white-space:nowrap}
+.product-tabs span.active{border-bottom:2px solid var(--od-brand);color:var(--od-accent-ink);font-weight:700}
+.panel-body{min-height:0;flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;padding:14px var(--od-page-gutter) 20px;overscroll-behavior:contain}
+.panel-footer{min-height:37px;border-top:1px solid var(--od-line);color:var(--od-sub);font-size:10px;display:flex;align-items:center;justify-content:space-between;gap:7px;padding:8px 12px;flex:none;background:var(--od-bg)}
+.crumb{font-size:11px;color:var(--od-sub);margin:0 0 11px}
+.panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:15px}
+.panel-head h2{font-size:17px;letter-spacing:-.025em;margin:0;line-height:1.35}.panel-head p{margin:5px 0 0;font-size:11px;color:var(--od-sub)}
+.heading-mini{font-size:12px;font-weight:700;margin:0;line-height:1.5}.section-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:18px 0 8px}
+.section-heading small{font-size:11px;color:var(--od-sub)}
+.setting-card{display:flex;align-items:center;justify-content:space-between;gap:9px;padding:12px 11px;min-height:68px}
+.setting-card+.setting-card{margin-top:8px}.setting-copy{min-width:0}.setting-copy strong{display:block;font-weight:700;font-size:12px}
+.setting-copy p{font-size:11px;color:var(--od-sub);margin:4px 0 0;line-height:1.48;overflow-wrap:anywhere}
+.switch{display:inline-grid;place-items:center;position:relative;flex:none;min-width:40px;min-height:36px;cursor:pointer}
+.switch input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.switch-track{width:36px;height:22px;background:var(--od-input-border);border-radius:99px;position:relative;transition:background .16s;pointer-events:none}
+.switch-track:after{content:"";position:absolute;left:3px;top:3px;width:16px;height:16px;background:white;border-radius:50%;transition:transform .16s;box-shadow:0 1px 3px #0003}
+.switch input:checked+.switch-track{background:var(--od-brand)}.switch input:checked+.switch-track:after{transform:translateX(14px)}
+.switch input:focus-visible+.switch-track{outline:3px solid var(--od-focus);outline-offset:3px}
+.permission-strip{display:flex;align-items:center;gap:9px;margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--od-bg);font-size:11px;flex-wrap:wrap}
+.permission-strip .dot{width:7px;height:7px;background:var(--od-positive);border-radius:50%;flex:none}.permission-strip .dot.denied{background:var(--od-negative)}
+.permission-strip .text{flex:1;min-width:100px;color:var(--od-sub)}
+.permission-strip button{border:0;background:none;color:var(--od-accent-ink);padding:2px;font-weight:600}
+.shortcuts-list{display:grid;gap:8px}
+.prompt-card{border:1px solid var(--od-line);border-radius:12px;padding:10px;background:var(--od-paper)}
+.prompt-main{display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:10px}
+.prompt-icon{width:36px;height:36px;display:grid;place-items:center;border:1px solid var(--od-line);border-radius:10px;background:var(--od-bg);font-size:11px;font-weight:750;line-height:1.05}
+.prompt-icon.round{border-radius:50%}.prompt-icon .stack{display:flex;flex-direction:column;align-items:center;gap:2px}
+.prompt-copy{min-width:0}.prompt-copy strong{font-size:12px;font-weight:700;display:block;line-height:1.45;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prompt-copy p{margin:4px 0 0;color:var(--od-sub);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prompt-copy .off{font-size:10px;color:var(--od-warning-ink);border:1px solid var(--od-line);border-radius:99px;padding:1px 5px;margin-left:4px;vertical-align:1px}
+.prompt-actions{display:flex;gap:4px;align-items:center}.prompt-actions .od-button{border-color:transparent;background:var(--od-bg)}
+.prompt-more{display:flex;justify-content:flex-end;gap:6px;flex-wrap:wrap;margin-top:10px;border-top:1px solid var(--od-line);padding-top:10px}
+.prompt-delete{margin-top:10px;background:var(--od-negative-bg);padding:10px;border-radius:10px;font-size:11px}
+.prompt-delete p{margin:0 0 9px}.prompt-delete .actions{display:flex;gap:6px;flex-wrap:wrap}
+.empty{padding:25px 10px;text-align:center;color:var(--od-sub);border:1px dashed var(--od-line);border-radius:12px}.empty strong{display:block;font-size:13px;color:var(--od-ink)}
+.view-top{display:flex;align-items:center;gap:7px;margin-bottom:16px}.view-top .back{padding-left:7px}.view-top h2{font-size:16px;margin:0}
+.form-fields{display:grid;gap:14px}.form-label{display:block;font-size:12px;font-weight:700;margin-bottom:6px}
+.form-hint{font-size:11px;color:var(--od-sub);margin-top:5px;line-height:1.45}.field-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.shape-options{display:flex;gap:8px}.shape-options label{flex:1;min-width:0;display:flex;align-items:center;gap:7px;border:1px solid var(--od-line);border-radius:8px;padding:9px 8px;font-size:11px;cursor:pointer}
+.shape-options label:has(input:checked){border-color:var(--od-brand);background:var(--od-bg)}.shape-options input{margin:0;accent-color:var(--od-brand)}
+.form-switch{display:flex;align-items:center;justify-content:space-between;gap:9px;padding:8px 10px}
+.form-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:16px;flex-wrap:wrap}
+.meter{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;font-size:11px;color:var(--od-sub)}
+.meter.error{color:var(--od-negative)}
+.notice{margin:11px 0 0;font-size:11px;line-height:1.5;color:var(--od-sub)}
+.inline-error{background:var(--od-negative-bg);color:var(--od-negative);border-radius:8px;padding:9px 11px;margin:10px 0 0;font-size:11px;line-height:1.55;overflow-wrap:anywhere}
+.warning-box{padding:12px;margin-top:12px;background:var(--od-warning-bg);color:var(--od-warning-ink);border-radius:10px;font-size:11px}
+.warning-box strong{font-size:12px}.warning-box p{margin:5px 0 10px}.warning-box .row{display:flex;gap:7px;justify-content:flex-end;flex-wrap:wrap}
+.copy-box{padding:12px;margin-top:12px}.copy-box strong{font-size:12px;display:block;margin-bottom:5px}.copy-box textarea{height:112px;min-height:112px;font-size:12px}
+.copy-box .row{display:flex;align-items:center;justify-content:flex-end;gap:7px;margin-top:8px}
+.status{font-size:11px;border-radius:9px;padding:10px 11px;margin-top:14px;background:var(--od-bg);color:var(--od-sub);overflow-wrap:anywhere}
+.status[data-kind="error"]{background:var(--od-negative-bg);color:var(--od-negative)}
+.permissions-body h3{font-size:13px;margin:14px 0 7px}.permissions-body p{font-size:12px;color:var(--od-sub);line-height:1.6}
+.permissions-body .permission-title{font-size:13px;font-weight:750}
+.permissions-body .permission-value{margin-top:8px;font-size:11px;padding:10px;border-radius:9px;background:var(--od-bg);overflow-wrap:anywhere}
+.demo-footer{max-width:1540px;margin:0 auto;padding:0 22px 22px;font-size:12px;color:var(--od-sub);line-height:1.7}
+.demo-footer a{font-weight:600}
+@media(max-width:1030px){.canvas{gap:10px;padding:6px 12px 16px}.demo-header{padding:14px 12px}.message-inner{width:calc(100% - 76px);margin-left:60px;margin-right:16px}.web-compose{width:calc(100% - 76px);margin-left:60px;margin-right:16px}}
+@media(max-width:720px){.canvas{display:block}.sidepanel{margin:14px auto 0;max-width:100%;min-height:620px}.web-mock{min-height:400px;height:430px}.message-area{min-height:220px}.web-compose{margin-bottom:10px}.demo-title h1{font-size:17px}}
+@media(max-width:380px){.demo-header,.demo-footer{padding-left:10px;padding-right:10px}.canvas{padding-left:7px;padding-right:7px}.panel-body{--od-page-gutter:9px}.prompt-main{grid-template-columns:34px minmax(0,1fr) auto;gap:6px}.prompt-actions{gap:2px}.prompt-actions .od-button{padding:4px 6px}.prompt-card{padding:8px}}
+</style>
+</head>
+<body>
+<header class="demo-header">
+ <div class="demo-title"><span class="logo" aria-hidden="true">OD</span><div>
+  <h1>Prompt Shortcuts · Side Panel UI</h1>
+  <p>侧边栏管理交互预览 R1.2 · 与左侧网页按钮共用本页模拟状态</p></div></div>
+ <div class="demo-controls" aria-label="预览控制">
+  <span class="design-badge">模拟预览 · 非真实安装</span>
+  <button id="size320" class="od-button od-button--small" type="button">320px</button>
+  <button id="size360" class="od-button od-button--small" type="button">360px</button>
+  <button id="size420" class="od-button od-button--small" type="button">420px</button>
+  <button id="size520" class="od-button od-button--small" type="button">520px</button>
+  <button id="themeButton" class="od-button od-button--small" type="button">深色模式</button>
+  <button id="resetButton" class="od-button od-button--small" type="button">重置模拟数据</button>
+ </div>
+</header>
+<main class="canvas">
+ <section class="web-mock" aria-label="ChatGPT 网页模拟视图">
+  <div class="browser-chrome"><span class="window-dots" aria-hidden="true"><span></span><span></span><span></span></span><span class="browser-address">chatgpt.com · 模拟网页</span><span>ChatGPT 模拟</span></div>
+  <div class="web-main">
+   <div class="web-top"><div><strong>ChatGPT</strong> <span class="web-sub">内容区域左侧按钮</span></div><button class="web-button" type="button" id="mockSelection">演示：选中文字 → 右键添加</button></div>
+   <div class="message-area" id="messageArea">
+    <nav class="page-rail" id="pageRail" aria-label="模拟 ChatGPT 左侧提示词快捷按钮"></nav>
+    <div id="webTooltip" class="web-tip" hidden><strong id="tipTitle"></strong><small>完整提示词 · 仅模拟</small><pre id="tipBody"></pre></div>
+    <div class="mock-menu" id="mockContextMenu" hidden><p>Chrome 原生右键菜单 · 模拟</p><button id="mockMenuAdd" type="button">＋ 添加为提示词快捷按钮</button></div>
+    <div class="message-inner"><h2>把常用提示词放在伸手可及的位置</h2>
+     <div class="user">如何让每次写作更清晰？</div>
+     <p>把高频提示词变成可重复使用的小按钮，可以减少每次重新输入的时间。</p>
+     <p id="selectionSample">请在不改变原意的前提下润色以下文字，保留原有语气，并提出必要的结构优化建议。</p>
+     <p>选中文字后，通过右键菜单快速添加为新快捷按钮。新建流程仍需要人工确认保存。</p>
+    </div>
+   </div>
+   <div class="web-compose"><textarea id="mockDraft" aria-label="模拟 ChatGPT 草稿输入框" placeholder="点击左侧按钮，将完整提示词插入此模拟草稿……"></textarea><div class="web-compose-foot"><span>仅插入文本，不自动发送</span><span>⌘ / Ctrl + Enter 不执行发送</span></div></div>
+  </div>
+ </section>
+ <aside class="sidepanel" id="sidepanel" aria-label="OpenDesk Browser 侧边栏模拟界面">
+  <div class="panel-brand"><span class="mini-logo" aria-hidden="true">OD</span><div><strong>OpenDesk Browser</strong><small>Side Panel · 扩展管理</small></div><span style="margin-left:auto;font-size:11px;color:var(--od-sub)">预览</span></div>
+  <nav class="product-tabs" aria-label="正式五个产品 Tab（展示）"><span>我的</span><span class="active" aria-current="page">扩展</span><span>工作流</span><span>开发</span><span>云控</span></nav>
+  <div class="panel-body" id="panelBody">
+   <section id="indexView" aria-labelledby="indexHeading">
+    <p class="crumb">扩展 / 我的应用 / 提示词快捷按钮</p>
+    <div class="panel-head"><div><h2 id="indexHeading">提示词快捷按钮</h2><p>在 ChatGPT 内容区左侧快速插入完整提示词</p></div><button id="addButton" class="od-button od-button--primary od-button--small" type="button">＋ 新建</button></div>
+    <div class="setting-card od-surface"><div class="setting-copy"><strong>网页左侧快捷按钮</strong><p>在 ChatGPT 主内容区左边缘垂直居中显示</p></div><label class="switch" title="显示或隐藏网页左侧快捷按钮"><input id="showBarSwitch" type="checkbox" role="switch" checked aria-label="网页左侧快捷按钮"><span class="switch-track" aria-hidden="true"></span></label></div>
+    <div class="setting-card od-surface"><div class="setting-copy"><strong>选中文字快速添加</strong><p>启用后可通过原生右键菜单预填新建提示词</p></div><label class="switch" title="启用或关闭右键快速添加"><input id="contextSwitch" type="checkbox" role="switch" checked aria-label="选中文字快速添加"><span class="switch-track" aria-hidden="true"></span></label></div>
+    <div class="permission-strip"><span class="dot" id="permissionDot" aria-hidden="true"></span><span class="text" id="permissionSummary">chatgpt.com · 模拟已授权</span><button id="openPermissions" type="button">设置权限 ›</button></div>
+    <div class="section-heading"><h3 class="heading-mini">我的提示词</h3><small id="listCount">4 个快捷按钮</small></div>
+    <div id="promptList" class="shortcuts-list"></div>
+    <div id="copyFallback" class="copy-box od-surface" hidden><strong>复制完整提示词</strong><p class="notice">当前浏览器未允许直接写入剪贴板。选中文本后手动复制。</p><textarea id="copyText" class="od-field" readonly aria-label="待复制的完整提示词"></textarea><div class="row"><button id="copySelect" class="od-button od-button--small" type="button">选中全部</button><button id="copyClose" class="od-button od-button--small" type="button">关闭</button></div></div>
+    <p class="notice">按钮短标签仅用于显示；Tooltip 和可访问说明展示完整名称及正文。侧边栏关闭后正式功能应持续生效。</p>
+   </section>
+   <section id="formView" hidden aria-labelledby="formHeading">
+    <div class="view-top"><button id="formBack" type="button" class="od-button od-button--small od-button--subtle back">← 返回</button><h2 id="formHeading">新建提示词</h2></div>
+    <form id="promptForm" novalidate>
+     <div class="form-fields">
+      <div><label class="form-label" for="shortLabel">按钮短标签 <span style="color:var(--od-sub);font-weight:400">（1–2 个汉字）</span></label><input id="shortLabel" class="od-field" name="shortLabel" maxlength="2" placeholder="例如：润色" autocomplete="off" required><p class="form-hint">两字时上下排列；短标签无需写完整提示词。</p></div>
+      <div><label class="form-label" for="fullName">完整名称</label><input id="fullName" class="od-field" name="fullName" maxlength="60" placeholder="例如：专业文字润色" autocomplete="off" required><p class="form-hint">用于提示词列表、悬停说明及屏幕阅读器。</p></div>
+      <div><label class="form-label" for="promptBody">完整提示词正文</label><textarea id="promptBody" class="od-field" name="promptBody" spellcheck="true" placeholder="输入完整的多行提示词。点击按钮后原样插入当前 ChatGPT 草稿。" required></textarea><div id="quotaMeter" class="meter"><span>单项模拟存储上限 8 KiB</span><span id="quotaValue">0 / 8192 B</span></div><p class="form-hint">保留换行和中文；保存前按完整 JSON 的 UTF-8 字节数校验。</p></div>
+      <div class="field-row"><div><span class="form-label">按钮形状</span><div class="shape-options"><label><input type="radio" name="shape" value="square" checked> 圆角方形</label><label><input type="radio" name="shape" value="round"> 圆形</label></div></div><div><span class="form-label">启用状态</span><div class="form-switch od-surface"><span style="font-size:11px">显示此按钮</span><label class="switch"><input id="itemEnabled" type="checkbox" role="switch" aria-label="显示此按钮" checked><span class="switch-track" aria-hidden="true"></span></label></div></div></div>
+     </div>
+     <div id="formError" class="inline-error" role="alert" hidden></div>
+     <div id="leaveConfirm" class="warning-box" hidden><strong>存在未保存的编辑</strong><p>返回将放弃当前草稿。可以留在页面继续保存，也可以明确放弃更改。</p><div class="row"><button id="stayEditing" type="button" class="od-button od-button--small">继续编辑</button><button id="discardEditing" type="button" class="od-button od-button--danger od-button--small">放弃更改</button></div></div>
+     <div class="form-actions"><button id="cancelForm" type="button" class="od-button">取消</button><button id="saveButton" type="submit" class="od-button od-button--primary">保存提示词</button></div>
+    </form>
+    <div class="warning-box" style="margin-top:18px"><strong>模拟错误场景</strong><p>选择下次保存结果，检查配额、并发冲突或未知写入结果时是否保留草稿。</p><div class="row"><button id="simulateWriteFail" type="button" class="od-button od-button--small">下次保存失败</button><button id="simulateConflict" type="button" class="od-button od-button--small">下次保存冲突</button><button id="simulateUnknown" type="button" class="od-button od-button--small">下次结果未知</button></div><small id="failureStatus">当前：正常保存</small></div>
+   </section>
+   <section id="permissionView" hidden aria-labelledby="permissionHeading" class="permissions-body">
+    <div class="view-top"><button id="permissionBack" type="button" class="od-button od-button--small od-button--subtle back">← 返回</button><h2 id="permissionHeading">网站权限与快捷入口</h2></div>
+    <p>正式扩展需要单独校验已安装工具、启停状态、网站权限和原生右键菜单授权。此页面只模拟授权结果，不会调用 Chrome API。</p>
+    <div class="od-surface" style="padding:12px"><div class="permission-title">chatgpt.com</div><div class="permission-value" id="permissionStateText">模拟已授权（不代表真实 Chrome 权限）</div><div style="display:flex;justify-content:flex-end;gap:7px;flex-wrap:wrap;margin-top:12px"><button type="button" class="od-button od-button--small" id="mockRevoke">模拟撤销</button><button type="button" class="od-button od-button--small od-button--primary" id="mockGrant">模拟授权</button></div></div>
+    <h3>权限边界</h3><p>工具只在已批准的 ChatGPT 站点展示按钮；选中文字必须由用户主动发起右键菜单，预填后仍需人工保存。关闭右键入口不会删除已保存提示词。</p>
+    <p style="font-size:11px">这里不收集对话正文、不上传提示词，也不运行远端脚本。</p>
+   </section>
+   <div id="panelStatus" class="status" role="status" aria-live="polite">模拟数据已加载。可创建、编辑、排序、复制和删除提示词。</div>
+  </div>
+  <footer class="panel-footer"><span>仅交互原型 · 不使用真实 Chrome 权限</span><span id="revisionIndicator">Mock r1</span></footer>
+ </aside>
+</main>
+<footer class="demo-footer">原型关联：<a href="./chatgpt-prompt-shortcuts-r12-preview.html" target="_blank" rel="noopener">查看已确认的 ChatGPT 左侧网页完整原型</a>。本页侧边栏与左侧模拟按钮使用同一份内存数据；两个独立 HTML 文件之间不宣称跨标签同步。正式版的存储、权限与生命周期仍待源码接线和原生验收。</footer>
+<script>
+(()=>{'use strict';
+ const INITIAL=[
+  {id:'a',label:'润色',name:'专业文字润色',body:'请在不改变原意的前提下润色以下文字：\n1. 保持语气专业、自然；\n2. 改进逻辑和清晰度；\n3. 输出优化后的完整正文。',enabled:true,shape:'square'},
+  {id:'b',label:'总结',name:'重点总结',body:'请将上述信息总结为：\n一、核心结论；\n二、重要依据；\n三、建议下一步。',enabled:true,shape:'square'},
+  {id:'c',label:'翻译',name:'中英双向翻译',body:'请根据原文语言进行中英双向翻译，保留段落结构、专有名词和原有语气。',enabled:true,shape:'round'},
+  {id:'d',label:'检查',name:'逻辑检查',body:'请检查内容中的逻辑漏洞、遗漏与相互矛盾处，逐条说明并提供修复建议。',enabled:true,shape:'square'}
+ ];
+ const $=selector=>document.querySelector(selector), el=id=>document.getElementById(id), encoder=new TextEncoder();
+ const COPY=()=>INITIAL.map(item=>({...item}));
+ let state={version:1,revision:1,settings:{showBar:true,contextMenu:true},items:COPY(),granted:true};
+ let currentView='index', editId=null,baselineForm='',revisionAtEdit=1,dirty=false,expandedId=null,deleteId=null,copyId=null,tipButton=null,noticeKind='info',nextSaveFailure=null;
+ const create=(tag,classes,text)=>{const n=document.createElement(tag);if(classes)n.className=classes;if(text!==undefined)n.textContent=text;return n;};
+ function action(parent,label,callback,{small=false,subtle=false,disabled=false,title='',danger=false}={}){
+  const b=create('button','od-button'+(small?' od-button--small':'')+(subtle?' od-button--subtle':'')+(danger?' od-button--danger':''),label);b.type='button';b.disabled=disabled;if(title)b.title=title;
+  b.addEventListener('click',callback);parent.append(b);return b;
+ }
+ function notice(message,kind='info'){const n=el('panelStatus');n.textContent=message;n.dataset.kind=kind;noticeKind=kind;}
+ function bytes(value){return encoder.encode(JSON.stringify(value)).byteLength;}
+ function stack(label){const n=create('span','stack');for(const char of label)n.append(create('span','',char));return n;}
+ function countText(){const enabled=state.items.filter(item=>item.enabled).length;return `${state.items.length} 个 · ${enabled} 个启用`;}
+ function setView(next){currentView=next;for(const v of ['index','form','permission'])el(v+'View').hidden=v!==next;el('panelBody').scrollTop=0;}
+ function mockAuthorized(){return state.granted===true;}
+ function setSettings(){el('showBarSwitch').checked=state.settings.showBar;el('contextSwitch').checked=state.settings.contextMenu;el('permissionDot').classList.toggle('denied',!mockAuthorized());el('permissionSummary').textContent=mockAuthorized()?'chatgpt.com · 模拟已授权':'chatgpt.com · 模拟未授权';
+  el('permissionStateText').textContent=mockAuthorized()?'模拟已授权（不代表真实 Chrome 权限）':'模拟已撤销（不代表真实 Chrome 权限）';}
+ function renderRail(){const rail=el('pageRail');rail.replaceChildren();el('webTooltip').hidden=true;tipButton=null;
+  if(!state.settings.showBar||!mockAuthorized()){rail.hidden=true;return;}rail.hidden=false;
+  const active=state.items.filter(item=>item.enabled);
+  if(!active.length){rail.append(create('div','page-rail-empty','没有已启用的按钮'));return;}
+  for(const item of active){const b=create('button','page-shortcut'+(item.shape==='round'?' round':''));b.type='button';b.title=item.name;b.setAttribute('aria-label','插入提示词：'+item.name);b.append(stack(item.label));
+   b.addEventListener('click',()=>{const field=el('mockDraft');const start=field.selectionStart??field.value.length,end=field.selectionEnd??field.value.length;field.setRangeText(item.body,start,end,'end');field.focus();field.dispatchEvent(new Event('input',{bubbles:true}));notice('模拟插入「'+item.name+'」，用户仍可编辑并手动发送。');});
+   b.addEventListener('mouseenter',()=>showTip(item,b));b.addEventListener('focus',()=>showTip(item,b));b.addEventListener('mouseleave',()=>hideTip(b));b.addEventListener('blur',()=>hideTip(b));rail.append(b);
+  }
+ }
+ function showTip(item,button){el('tipTitle').textContent=item.name;el('tipBody').textContent=item.body;el('webTooltip').hidden=false;tipButton=button;}
+ function hideTip(button){if(tipButton===button){el('webTooltip').hidden=true;tipButton=null;}}
+ function renderIndex(){setSettings();el('listCount').textContent=countText();const list=el('promptList');list.replaceChildren();
+  if(!state.items.length){const empty=create('div','empty');empty.append(create('strong','','尚未创建提示词'));empty.append(create('p','','点击「＋ 新建」添加第一个快捷按钮。'));list.append(empty);}
+  for(const [i,item] of state.items.entries()){
+   const card=create('article','prompt-card');card.dataset.id=item.id;const primary=create('div','prompt-main');const icon=create('div','prompt-icon'+(item.shape==='round'?' round':''));icon.append(stack(item.label));
+   const copy=create('div','prompt-copy'),header=create('strong','',item.name);if(!item.enabled)header.append(create('span','off','已停用'));const excerpt=create('p','',item.body.replace(/\s+/g,' ').slice(0,100));excerpt.title=item.body;copy.append(header,excerpt);
+   const actions=create('div','prompt-actions');action(actions,'编辑',()=>openForm(item.id),{small:true,title:'编辑 '+item.name});
+   const more=action(actions,'⋯',()=>{expandedId=expandedId===item.id?null:item.id;deleteId=null;renderIndex();},{small:true,title:'更多操作：'+item.name});more.setAttribute('aria-label','更多操作：'+item.name);more.setAttribute('aria-expanded',String(expandedId===item.id));primary.append(icon,copy,actions);card.append(primary);
+   if(expandedId===item.id){const row=create('div','prompt-more');action(row,item.enabled?'停用':'启用',()=>{item.enabled=!item.enabled;state.revision++;renderIndex();renderRail();notice(item.enabled?'「'+item.name+'」已启用':'「'+item.name+'」已停用（模拟）');},{small:true});
+    action(row,'↑ 上移',()=>moveItem(i,-1),{small:true,disabled:i===0});action(row,'↓ 下移',()=>moveItem(i,1),{small:true,disabled:i===state.items.length-1});
+    action(row,'复制',()=>copyPrompt(item),{small:true});action(row,'删除',()=>{deleteId=item.id;renderIndex();},{small:true,danger:true});card.append(row);
+   }
+   if(deleteId===item.id){const box=create('div','prompt-delete');box.append(create('p','','确认删除「'+item.name+'」？仅删除模拟数据，操作不能撤销。'));const row=create('div','actions');
+    action(row,'取消',()=>{deleteId=null;renderIndex();},{small:true});action(row,'确认删除',()=>{state.items=state.items.filter(r=>r.id!==item.id);state.revision++;deleteId=null;expandedId=null;renderIndex();renderRail();notice('已删除「'+item.name+'」（模拟）');},{small:true,danger:true});box.append(row);card.append(box);
+   }
+   list.append(card);
+  }
+  el('revisionIndicator').textContent='Mock r'+state.revision;
+ }
+ function moveItem(i,delta){const target=i+delta;if(target<0||target>=state.items.length)return;[state.items[i],state.items[target]]=[state.items[target],state.items[i]];state.revision++;renderIndex();renderRail();notice('顺序已更新（模拟）');}
+ async function copyPrompt(item){try{if(!navigator.clipboard?.writeText)throw new Error('unavailable');await navigator.clipboard.writeText(item.body);notice('已复制「'+item.name+'」完整提示词');}
+  catch{copyId=item.id;el('copyText').value=item.body;el('copyFallback').hidden=false;el('copyText').focus();el('copyText').select();notice('剪贴板不可用，已显示完整文本供手动复制。');}}
+ function formValues(){const shape=document.querySelector('input[name="shape"]:checked');return {label:el('shortLabel').value.trim(),name:el('fullName').value.trim(),body:el('promptBody').value,enabled:el('itemEnabled').checked,shape:shape?.value||'square'};}
+ function projection(){const value=formValues(),next=state.items.map(x=>({...x}));const idx=next.findIndex(x=>x.id===editId);if(idx>=0)next[idx]={...next[idx],...value};else next.push({id:'preview-new',...value});return {version:1,revision:state.revision+1,settings:state.settings,items:next};}
+ function updateMeter(){const current=bytes(projection());el('quotaValue').textContent=current+' / 8192 B';el('quotaMeter').classList.toggle('error',current>8192);dirty=JSON.stringify(formValues())!==baselineForm;el('leaveConfirm').hidden=true;}
+ function showFormError(message){el('formError').textContent=message;el('formError').hidden=false;notice(message,'error');}
+ function openForm(id=null,preset=null){if(currentView==='form'&&dirty){showFormError('当前表单有未保存内容，请先处理草稿，再打开另一个提示词。');return;}
+  editId=id;const value=state.items.find(item=>item.id===id);if(id&&!value){notice('待编辑项已删除，请刷新确认','error');return;}
+  el('formHeading').textContent=id?'编辑提示词':'新建提示词';el('shortLabel').value=value?.label||preset?.label||'';el('fullName').value=value?.name||preset?.name||'';el('promptBody').value=value?.body??preset?.body??'';
+  for(const input of document.querySelectorAll('input[name="shape"]'))input.checked=input.value===(value?.shape||'square');el('itemEnabled').checked=value?.enabled??true;
+  el('formError').hidden=true;el('leaveConfirm').hidden=true;revisionAtEdit=state.revision;baselineForm=JSON.stringify(formValues());dirty=false;nextSaveFailure=null;el('failureStatus').textContent='当前：正常保存';updateMeter();setView('form');el('shortLabel').focus({preventScroll:true});
+ }
+ function requestBack(){if(currentView!=='form')return;if(!dirty){returnIndex();return;}el('leaveConfirm').hidden=false;el('leaveConfirm').scrollIntoView({block:'nearest'});}
+ function returnIndex(){editId=null;dirty=false;setView('index');renderIndex();renderRail();el('addButton').focus({preventScroll:true});}
+ function saveForm(event){event.preventDefault();el('formError').hidden=true;const value=formValues();
+  if(!/^[\u3400-\u9fff]{1,2}$/u.test(value.label)){showFormError('短标签须为 1–2 个汉字。');return;}
+  if(!value.name||value.name.length>60){showFormError('请填写不超过 60 字符的完整名称。');return;}
+  if(!value.body.trim()){showFormError('完整提示词正文不能为空。');return;}
+  if(value.body.includes('\u0000')){showFormError('提示词正文不能包含 NUL 字符。');return;}
+  if(bytes(projection())>8192){showFormError('本工具模拟单项 JSON 已超过 8 KiB；当前草稿完整保留，请精简内容后保存。');return;}
+  if(revisionAtEdit!==state.revision){showFormError('E_STORAGE_CONFLICT：其他窗口已更改数据。草稿保留，请先核对最新版本。');return;}
+  const fail=nextSaveFailure;nextSaveFailure=null;el('failureStatus').textContent='当前：正常保存';
+  if(fail==='write'){showFormError('E_HOST_STORAGE_WRITE：模拟写入失败，未确认保存。草稿未丢失。');return;}
+  if(fail==='conflict'){showFormError('E_STORAGE_CONFLICT：模拟其他窗口已修改该项，草稿保留。');return;}
+  if(fail==='unknown'){showFormError('E_OUTCOME_UNKNOWN：模拟结果未知；请先核对本地状态，避免直接重复提交。');return;}
+  const idx=state.items.findIndex(x=>x.id===editId),updated={id:editId||'mock-'+cryptoRandom(),...value};if(idx>=0)state.items[idx]=updated;else state.items.push(updated);
+  state.revision++;notice('「'+value.name+'」已在本页模拟数据中保存，可在左侧网页区域查看按钮。');returnIndex();
+ }
+ function cryptoRandom(){return typeof crypto?.randomUUID==='function'?crypto.randomUUID().slice(0,12):String(Date.now());}
+ function prepareSelection(){el('mockContextMenu').hidden=true;if(!state.settings.contextMenu){notice('“选中文字快速添加”已关闭，请先开启开关。','error');return;}
+  if(!mockAuthorized()){notice('当前模拟网站权限已撤销，不能从右键创建。','error');return;}
+  if(currentView==='form'&&dirty){showFormError('草稿尚未保存，先处理当前编辑再添加选区。');return;}
+  el('mockContextMenu').hidden=false;notice('模拟右键菜单已显示。选择添加后进入预填表单，不会自动保存。');}
+ function confirmSelection(){el('mockContextMenu').hidden=true;const text=el('selectionSample').textContent||'';
+  if(!text.trim()){notice('当前没有有效模拟选区。','error');return;}
+  openForm(null,{label:'选文',name:'选中文字创建的提示词',body:text});notice('已预填模拟选中文字，请确认短标签、名称和完整提示词后保存。');}
+ el('mockSelection').addEventListener('click',prepareSelection);el('mockMenuAdd').addEventListener('click',confirmSelection);
+ el('addButton').addEventListener('click',()=>openForm());el('formBack').addEventListener('click',requestBack);el('cancelForm').addEventListener('click',requestBack);
+ el('stayEditing').addEventListener('click',()=>{el('leaveConfirm').hidden=true;el('promptBody').focus();});el('discardEditing').addEventListener('click',()=>{notice('已主动放弃未保存更改。');returnIndex();});
+ el('promptForm').addEventListener('submit',saveForm);el('promptForm').addEventListener('input',updateMeter);el('promptForm').addEventListener('change',updateMeter);
+ for(const [id,key] of [['showBarSwitch','showBar'],['contextSwitch','contextMenu']])el(id).addEventListener('change',event=>{
+  state.settings[key]=event.currentTarget.checked;state.revision++;renderIndex();renderRail();el('mockContextMenu').hidden=true;
+  notice(key==='showBar'?(state.settings.showBar?'左侧按钮栏已开启（模拟）':'左侧按钮栏已关闭，提示词仍保留（模拟）'):(state.settings.contextMenu?'右键快捷添加已开启（模拟）':'右键快捷添加已关闭，现有按钮保留（模拟）'));
+ });
+ el('openPermissions').addEventListener('click',()=>{setView('permission');setSettings();});el('permissionBack').addEventListener('click',()=>{setView('index');renderIndex();el('openPermissions').focus();});
+ for(const [id,grant] of [['mockRevoke',false],['mockGrant',true]])el(id).addEventListener('click',()=>{state.granted=grant;state.revision++;setSettings();renderRail();notice(grant?'模拟网站授权已恢复':'模拟网站授权已撤销，网页按钮不显示');});
+ el('copySelect').addEventListener('click',()=>{el('copyText').focus();el('copyText').select();});el('copyClose').addEventListener('click',()=>{copyId=null;el('copyFallback').hidden=true;});
+ for(const width of [320,360,420,520])el('size'+width).addEventListener('click',()=>{
+  document.documentElement.style.setProperty('--panel-width',width+'px');notice('侧边栏模拟宽度：'+width+' CSS px');});
+ el('themeButton').addEventListener('click',()=>{const dark=document.documentElement.dataset.theme!=='dark';document.documentElement.dataset.theme=dark?'dark':'light';el('themeButton').textContent=dark?'浅色模式':'深色模式';});
+ el('resetButton').addEventListener('click',()=>{if(currentView==='form'&&dirty){showFormError('当前编辑尚未保存，请先取消或保存，再重置模拟数据。');return;}
+  state={version:1,revision:1,settings:{showBar:true,contextMenu:true},items:COPY(),granted:true};nextSaveFailure=null;expandedId=null;deleteId=null;copyId=null;el('mockDraft').value='';el('mockContextMenu').hidden=true;el('copyFallback').hidden=true;returnIndex();notice('已重置为 R1.2 初始模拟数据。');});
+ for(const [id,mode,label] of [['simulateWriteFail','write','写入失败'],['simulateConflict','conflict','并发冲突'],['simulateUnknown','unknown','结果未知']])el(id).addEventListener('click',()=>{nextSaveFailure=mode;el('failureStatus').textContent='下次保存将模拟：'+label;notice('已设置下次保存模拟：'+label+'，当前草稿会保留。');});
+ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!el('mockContextMenu').hidden){el('mockContextMenu').hidden=true;el('mockSelection').focus();}else if(event.key==='Escape'&&!el('webTooltip').hidden){el('webTooltip').hidden=true;tipButton=null;}});
+ setView('index');renderIndex();renderRail();
+})();
+</script>
+</body>
+</html>
