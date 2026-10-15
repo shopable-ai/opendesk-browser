@@ -72,3 +72,15 @@
 - G4 原生权限撤销、Document/Stop、Native 断连：NOT_TESTED（原生）。
 - G5 定向 Node、`npm run check`、`npm run build:dev`、同候选 CI：待新提交 GitHub Actions 执行后逐项更新，禁止预写 PASS。
 - 日常 Chrome 扩展路径／ID、真实观察和执行的 Run ID／Result ID／Source Hash、实际页面值、Worker 退出、保存后独立复跑：均为 NOT_TESTED；无伪造日志。
+
+## 2026-10-15：Responses 官方协议适配源码候选写入 main；后续功能优先
+
+- **阶段：SOURCE_CANDIDATE_COMMITTED / UI_NOT_WIRED / LOCAL_HTTP_NOT_IMPLEMENTED / OVERALL_NOT_ACCEPTED。** 本段只记录候选及下一步，不覆盖之前任何失败、未测、原生回执或历史候选。
+- 本次通过 GitHub main 原子增量操作写入；提交前远端 main 为 `5214280476538d66eaac4635d62e08456afb1fa3`，原 `ai-plan.js` blob 为 `755775ebc16ae364bd1ac09c699cf5bcbaccd174`；原工作流文档 blob 为 `5a706ea6486ce3b0060f0b0f63746c5246ff072c`。未访问或修改用户 Mac、本机 Chrome、Native、Go、watcher、dist 或端口；未创建新 branch/PR/worktree。
+- 源码仅涉及 `src/ui/workflow/ai-plan.js`、新增 `src/ui/workflow/responses.js`、新增 `tests/environment/workflow-responses.test.mjs` 与本账本。**没有修改当前并行工作中的 `workflow-view.js`、`direct-execution.js`、观察授权、Compiler、RunHost 或 OpenDesk Go**。
+- `responses.js` 是可选择的非流式 HTTPS /v1/responses HTTP 适配器候选，解析官方类型化 output、拒绝 failed/incomplete/refusal/未知内容、限额/中止并返回真实响应元数据；不实现 SSE、tool calling、远端 cancel、同会话续接或网关。未实现能力明确不支持；不能称为官方完整 Responses 兼容。
+- `ai-plan.js` 仅在显式 Responses 端点调用候选；要求可信当前观察回执和精确 target，沿用既有 `normalizeAiProposal`、数据脱敏恢复与可见 Locator 校验。由于当前 UI 仍需接线，现有 Chat Completions 消费者保留，**不能宣称当前 UI 的云端 Responses 可正常执行**。
+- 上一轮在独立容器 Linux/Node v22.16.0 对候选的模拟 HTTP/观察单元测试记录为 **84/84**；那不是本仓库当前 CI、真实模型、Mac Chrome 或生产包测试。**本次 GitHub 写入未额外运行完整仓库测试或构建**。以前 98/98、102/102 等只对应历史候选，不累加。
+- 当前 `workflow-view.js` 已由并行工作增加观察授权与 `planningObservation` 传递；当前 `direct-execution.js` 已有受观察约束的安全搜索例外。后续必须增量复用这两者，不用早期 UI 补丁覆盖，更不能删除敏感点击边界。
+- **下一步按功能先行：** F0 当前真实 UI 与 Provider 配置打通云端 Responses 的受控观察及受限工作流生成，复用原 RunHost；F1 统一云端与本地 Codex 的最小业务规划合同；F2 核对 OpenDesk Go 实际服务和安装版 Codex App Server schema，再在同一 Go 本机服务按需实现 loopback、配对鉴权、能力声明的最小 HTTP /v1/responses 兼容子集（先 stream:false）。此阶段先针对新增单元运行最短 smoke，不开启大规模 CI/全套原生验收。
+- 完成功能后另起阶段：仓库定向回归→单条真实 Chrome A→A2/B/C→保存后无 AI Run×2→负路径→production 同候选正式验收。未取得上述证据之前，原生各 Gate、体积预算、Go 网关及总评分均保持 **NOT_TESTED / NOT_ACCEPTED**。
