@@ -1,0 +1,348 @@
+# OpenDesk Browser Workflow R2：文档驱动的 Provider 路由、可信网页执行与本机 HTTP Gateway 正式设计合同
+
+> **版本**：R2.1 / 2026-10-15。**状态**：DESIGN_CONTRACT / SOURCE_PARTIAL / INTEGRATION_PARTIAL / NATIVE_NOT_VERIFIED / PRODUCT_NOT_ACCEPTED。**唯一当前架构入口**：本文件；实施账本沿用 [对话式任务执行记录](../../framework/workstreams/conversation-direct-r1-20261013.md)，历史 [R16 方案](workflow-ai-provider-routing-r16.zh-CN.md) 保留。  
+> **源码核对锚点**：Browser \`main@a7246887f5d09015b6244a1b2c5da5e232a2d015\`；Go \`master@310a24a726a6d218ae585df2dbe449b86f13ea62\`。这只是编写本设计时的读取基线，不代表冻结或构建身份；后续提交需以最新 Git HEAD、目标文件 blob SHA 和实际源内容复核。  
+> **阅读顺序**：本文件 → 相关源码/接口 → 实施账本 → 对应候选的测试与真实回执。旧 R16 的“生成→采用建议→再运行”是**历史设计**，不覆盖本文件的“发送后经授权安全执行”。
+
+## 0. 文档驱动与验收语义（规范性）
+
+工作方式：**真实源码核对 → 技术方案评审 → 本合同 → 分阶段核心实现 → 同步源码/状态 → 独立分阶段测试**。公共协议/跨 Browser-Go 字段先改本合同，再改两个消费者；无争议的独立切片可继续编码。若源码与本文不一致，优先判定是源码演进还是实现缺陷，再作最小调整；不能为“对齐”覆盖其他 Agent 正在修改的文件。
+
+状态只有以下可信含义：
+
+| 状态 | 说明 | 不得冒充 |
+|---|---|---|
+| \`DESIGN_ONLY\` | 合同成立但没有对应实际代码 | SOURCE |
+| \`SOURCE_IMPLEMENTED\` | 真实仓库已存在实现，标明文件、SHA | INTEGRATED |
+| \`SOURCE_WIRED\` | 生产调用路径已经连通且可静态追踪 | RUNTIME_VERIFIED |
+| \`INTEGRATED_NOT_VERIFIED\` | 消费端接线存在，缺同候选真实请求/回执 | VERIFIED |
+| \`COMPONENT_VERIFIED\` | 同一源码输入的定向测试或隔离实验有证据 | NATIVE_VERIFIED |
+| \`NATIVE_VERIFIED\` | 同候选实际 Chrome/Native/Codex 或 HTTP 真端点验证 | PRODUCT_ACCEPTED |
+| \`NOT_VERIFIED\`/\`OPEN\` | 没有证据/决策未解决，不得填 PASS | 所有 PASS |
+
+**三层不同成功**：（1）模型生成合法 JSON 仅是 \`PROPOSAL_VALID\`；（2）原 Compiler/RunHost 终态与持久 Result 匹配是 \`EXECUTION_RECEIPT_VERIFIED\`；（3）目标网站实际业务效果由原页面读回或业务 Oracle 证明才是 \`BUSINESS_EFFECT_VERIFIED\`。一次点击完成而无业务 Oracle 应标为“已执行、业务结果待核对”；绝不把生成/点击/HTTP 200 直接称为业务成功。
+
+## 1. 产品目标与正式旅程
+
+**目标**：用户在当前网页用自然语言描述任务，AI 观察用户允许的页面并规划，经现有信任边界直接完成安全、明确、可核对的动作；必要时存为固定 Revision，后续关闭 AI 可独立执行。简洁的一次 Send 是任务请求和允许申请网站权限的真实手势，但**不是**无限权限、不代表同意向外部模型传整页资料、更不是模型自授的执行权。
+
+正式主流程：
+
+1. 用户在 Workflow Tab 选择本机 Codex 或已配置云端 Provider，针对精确当前页 Send；网站授权仅缺失时按真实 Chrome 手势申请。
+2. 固定的 Browser \`browser.observe\` Controller 通过原 RunHost 读取有限语义节点，绑定当前 \`windowId/tabId/frameId/documentId/origin/url\`，保留 \`runId/resultId/sourceHash\` 及独立披露授权；云端每次向配置服务发送网页摘要前明确批准，本机按原会话短期授权合同与本轮目标检查。
+3. Provider 仅产出 \`WorkflowProposal\`；Schema、意图、可见 Locator、目标、权限及副作用约束必须由本地 Validator/DirectExecution 判定。网页文本永远是 \`UNTRUSTED_DATA\`，不能更改系统/工具/权限策略。
+4. 无需新增“采用建议”按钮：已明确授权且安全的操作由**原 Workflow Compiler → RunHost** 立即执行；有歧义/敏感/跨站/无授权操作一律拒绝或返回要求明确授权的状态。
+5. 原 Controller 结果与 RunHost \`runId/resultId/sourceHash/document/retirement\` 栅栏成立后，读取实际目标效果并生成持久回执；状态区分“任务运行终态”和“网页业务验证”。
+6. 同窗口下继续下一轮：本机仅在真实可用时续接 Codex thread；云端只传有限的、**已验证的业务摘要**，不默默复用原生 thread 或原始网页文本。
+7. 用户可选 Save，冻结已核对的 Workflow/Compiler 源码、hash、参数、Revision 和原 Task 约束；关闭 Provider/Native 后在已有权限下独立 Run。Save 不代表安装、网站业务已验证或发布。
+
+**行为边界**：导航、敏感按钮、跨原点、写入未被用户明确给出的值等不能在 AI 猜测下自动放行；真实撤权/页面换代/Stop/重复 request/未知副作用均停止且不盲重试。已有业务操作要走 Task、Controller、CurrentPageTarget、Authority、RunHost，绝无第二条 AI DOM 副作用路径。
+
+## 2. AS-IS、TO-BE 与源码归属
+
+### 2.1 AS-IS（逐源码核对，部分接线、未原生验收）
+
+\`\`\`mermaid
+flowchart TB
+  UI["Sidebar Workflow Tab\nsrc/ui/workflow/workflow-view.js\nSOURCE_WIRED"]
+  P["Provider Facade\nsrc/ui/workflow/provider.js\nSOURCE_WIRED"]
+  C["Cloud Responses Adapter\nai-plan.js + responses.js\nSOURCE_WIRED / NOT_VERIFIED"]
+  L["Local Codex Planner\nlocal-codex.js\nSOURCE_WIRED / NATIVE_NOT_VERIFIED"]
+  N["Native Messaging / AI Client\nsrc/native-agent/workflow-ai-client.js"]
+  G["Go Chrome Native Host\ninternal/browserbridge/host_{unix,ai_unix}.go"]
+  M["Existing Go Codex Manager\ninternal/browserai/{manager,process,protocol}.go"]
+  AS["Codex App Server\nJSON-RPC over stdio"]
+  H["Optional Native-owned HTTP Gateway\ninternal/browserai/http_gateway.go\nSOURCE_WIRED / NOT_VERIFIED"]
+  O["Trusted Observe + Authority\nobservation.js / CurrentPageTarget"]
+  V["Validator / Compiler / DirectExecution\nsrc/framework/workflow/*"]
+  R["Original RunHost + Durable Result\nsrc/run-host.js / Controller / Task"]
+  UI --> P
+  P --> C
+  P --> L --> N --> G --> M --> AS
+  G --> H
+  H --> M
+  UI --> O --> R
+  P --> V --> R
+\`\`\`
+
+现状：\`workflow-view.js\` 已导入 \`createWorkflowProviderFacade\`，对 \`cloud_responses\`、\`local_codex\`、\`custom_https\` 接线，已通过本轮观察审批向 Facade 传 \`observationReceipt\`。\`responses.js\` 是严格非流式官方 HTTPS 子集（\`store:false/background:false\`、型别终态验证）；\`local-codex.js\` 通过 Native 事件游标使用本机 \`browserai.Manager\`，仅借原 RunHost 观察。客户端统一 Facade **已在代码中存在**，旧账本的 \`UI_NOT_WIRED\` 只能作为旧候选历史事实。
+
+Go \`internal/browserai/http_gateway.go\` 与 \`internal/browserbridge/host_ai_unix.go\` 已新增**显式可选的 Native Host 内 loopback HTTP 源码**，使用相同 \`h.ai\` Manager，提供 \`GET /opendesk/v1/capabilities\` 与 \`POST /v1/responses\` 严格有限子集；它不是原 \`-http\` 服务里的路由，也不是第二个 Codex 管理器。**本轮尚无 HTTP 与 Native 同实例实际运行、Browser HTTP UI 连接、配对或真实结果证据。**
+
+### 2.2 TO-BE（目标，不表示已交付）
+
+\`\`\`mermaid
+flowchart LR
+  A["Workflow UI\none Send / Stop / Save"] --> F["Provider Facade\ncapability gate + identity mapping"]
+  F --> C["Cloud HTTPS Responses\nindependent direct connection"]
+  F --> N["Native Codex Adapter\nexisting paired host"]
+  F -. "OPTIONAL / NOT_WIRED" .-> H["Loopback HTTP Adapter\npaired to SAME Native Host"]
+  N --> M["One Go Codex Manager"]
+  H --> M
+  M --> X["One restricted Codex\nApp Server session owner"]
+  A --> O["Trusted Observe\nexact tab/frame/document"]
+  O --> E["Only original\nCompiler + RunHost + Authority"]
+  F --> W["Proposal Validator\nintent/effect/document fence"]
+  W --> E
+  E --> D["Original Durable Result\nSave → Task Revision → AI-free Run"]
+\`\`\`
+
+**不变性（必须能用源码证明）**：
+
+- Browser 执行器只有原 \`src/run-host.js\`、Controller/Compiler；AI 不调用 shell/文件操作/另一 Browser Agent Executor 执行网页动作。
+- 权限 owner 仍是 Chrome 授权与 CurrentPageTarget/Authority；新增 HTTP 仅限生成文本提议，不增加网页能力。
+- 保存与 Revision 由既有 Task/Controller 数据结构负责；HTTP 不建工作流数据库。
+- Codex 进程仍由 Go \`internal/browserai.Manager\` + \`process.go\` 创建和取消；HTTP 只调用 \`Manager.Handle\`，不得另建 \`exec.Command("codex")\` 或守护进程。
+- \`cmd/opendesk -http\` 的现有 HTTP Execution Container 与 Workflow Browser RunHost 不是同一执行器，不得混为一谈。
+
+| 组件 | 代码所有者/路径 | 角色与范围 | 截止设计时状态 |
+|---|---|---|---|
+| Sidebar/UI | \`src/ui/workflow/workflow-view.js\`, \`view-state.js\`, \`src/ui/tool.html\` | 一次 Send、设置、授权、结果、Stop/Save；不拥有模型协议 | \`SOURCE_WIRED\`，状态颗粒度仍待收敛 |
+| Provider Facade | \`src/ui/workflow/provider.js\` | 统一生成、探测、取消、恢复入口，不能执行网页 | \`SOURCE_WIRED\` |
+| 官方 Responses | \`src/ui/workflow/{ai-plan,responses,data-sharing}.js\` | HTTPS 协议、文本 JSON、强制状态/限额/终态解析 | \`SOURCE_WIRED / NOT_VERIFIED\` |
+| Native Codex | \`src/ui/workflow/local-codex.js\`, \`src/native-agent/workflow-ai-{client,protocol,service}.js\` | 浏览器→可信 Go Native RPC，事件/审批/停止 | \`SOURCE_WIRED / NATIVE_NOT_VERIFIED\` |
+| 页面观察 | \`src/ui/workflow/observation.js\`, \`src/native-agent/protocol.js\` | 固定代码读取有限 DOM 摘要，持久观察证明 | \`SOURCE_WIRED\` |
+| Workflow | \`src/framework/workflow/{contract,compiler}.js\`, \`direct-execution.js\` | Proposal 归一化、静态校验、安全直接执行门禁 | \`SOURCE_WIRED\` |
+| 权限/执行/任务 | \`src/run-host.js\`、既有 CurrentPageTarget/Authority、\`src/platform/tasks/\` | 用户授权、原 RunHost、Durable Result、Task Revision | 已存在，R2 原生闭环 \`NOT_VERIFIED\` |
+| Go Native/Codex | \`internal/browserbridge/host_ai_unix.go\`, \`internal/browserai/{manager,process,protocol}.go\` | 可信 Owner、受限 App Server 子进程和 JSON-RPC 转换 | \`SOURCE_WIRED\`；审计版 Codex 0.159.2 历史有局部组件证据 |
+| Go HTTP Gateway | \`internal/browserai/http_gateway.go\`, \`internal/browserbridge/host_{ai_unix,unix}.go\` | 同 Native Host 自持 loopback 监听和同 Manager 调用 | \`SOURCE_WIRED / NOT_VERIFIED\` |
+| 旧 Go \`-http\` | \`cmd/opendesk/main.go\`, \`runtime_endpoint.go\`, \`pkg/http/handler.go\` | 通用脚本 HTTP/调度等，独立生命周期 | 已存在；**不自动承载 AI 子集** |
+| Desktop App Mode | \`cmd/opendesk/app_mode.go\` | \`-app\` 运行应用；当前与 \`-http\` 互斥 | 已存在；**不因 AI 网关被暗中启用** |
+
+## 3. 最小 Provider 业务 Facade 合同
+
+以已实现的 \`createWorkflowProviderFacade({localPlanner})\` 为入口；未来 HTTP 只增加独立 transport adapter，不重建 Facade。业务接口（逻辑签名，命名遵循当前 JS 实现）：
+
+\`\`\`ts
+type Source = 'local_codex' | 'cloud_responses' | 'custom_https' | 'local_http'; // local_http 是目标，未在 UI 中接线
+type WorkflowRequest = {
+  source: Source;
+  request: string;                    // 用户当前这轮明示意图
+  workflow: WorkflowDefinition;        // 冻结输入，仅可生成 proposal
+  target: {windowId:number;tabId:number;frameId:0;documentId:string;url:string;origin:string};
+  observationReceipt?: TrustedObservationReceipt | null;
+  settings?: {endpoint?:string;model?:string;apiKey?:string};
+  consent?: {model:boolean;workflow:boolean;observation:boolean};
+  history?: VerifiedBusinessTurn[];    // 仅必要事实；不得保存网页正文、Secrets、未经验证步骤
+  signal?: AbortSignal;
+  onEvent?: (event:SafeProgressEvent)=>void;
+  onApproval?: (event:SafeToolRequest, context:TrustedContext)=>Promise<Decision>;
+  jsonSchema?: StrictWorkflowSchema | null;
+};
+type ProviderResult = {
+  proposal: WorkflowProposal;
+  metadata: {
+    provider: Source; responseId?:string; sessionId?:string;threadId?:string;
+    turnId?:string;upstreamRequestId?:string;usage?:object|null;termination?:string;
+  };
+};
+probeCapabilities(source, localCapability?) : AdapterCapabilities;
+generateWorkflow(input:WorkflowRequest) : Promise<ProviderResult>;
+cancel(source) : Promise<StopOutcome>|null;
+resume(source, args) : Promise<Session>|never;
+\`\`\`
+
+**状态与拒绝**：能力声明至少 \`structuredOutput,streaming,observation,toolCalls,activeConversation,coldResume,cancel,localAbort,usage,store,background,readyForTurn\`，区分“该适配器支持”与“该账户/模型已真实可用”。\`local_codex\` 的冷恢复必须以真实能力探测为准；\`cloud_responses\` 的 \`cancel\` 当前仅本地 Abort，不能声称服务端停止；\`local_http\` 初期没有 Streaming、tools、server-side resume/cancel、usage，均显式不支持。未知参数、协议、schema、事件必须 \`E_AI_UNSUPPORTED/E_AI_PROTOCOL\`，不能沉默降级。
+
+**身份分层**：\`conversationId\` 是 Browser 产品会话身份，\`workflowId/revision/sourceHash\` 是受控业务资产；Responses \`response.id\` 是云端某次响应；Go \`sessionId\` 是已认证 Native/HTTP Owner 的作用域，\`threadId\` 是 Codex 内部上下文，\`turnId\` 是一次执行尝试，\`requestId\` 是传输幂等键；\`runId/resultId\` 是 Browser **真正网页执行**结果，互不替代。切 Provider 必须断开不能兼容的服务器 session/thread/response ID，只保留最小经验证业务摘要，并重新取得目标及发送授权；绝不把原 Provider raw ID 当下一个 Provider resume 参数。
+
+**Schema**：所有来源的 \`proposal\` 均由 \`normalizeAiProposal\`、\`validateWorkflow\`、可见 Locator/来源 Document 校验和 \`prepareDirectExecution\`、Compiler 共同把关。JSON 合法不代表 Locator 存在或权限成立。应使用受信 schema 的 exact version 与 hash；模型自报权限、网页中的“请执行系统命令”、未知 \`op\` 无效。
+
+**错误等级**：配置/不支持/拒绝/未授权属于 \`NOT_DISPATCHED\`；网络断开、客户端 timeout 或 cancel 导致上游真实终态未知时为 \`OUTCOME_UNKNOWN\`，不自动重发；Browser \`RUN_EFFECT_UNKNOWN\` 更不得基于模型自然语言重演任何网页副作用。实际执行 Stop 由 RunHost 控制，不能拿 Provider Abort 冒充浏览器 Stop。
+
+## 4. 三种协议的映射（不得混称完全兼容）
+
+| 语义 | A. 官方 OpenAI Responses HTTPS | B. Codex App Server stdio JSON-RPC | C. OpenDesk Go HTTP 子集（当前源码） |
+|---|---|---|---|
+| transport | \`POST https://.../v1/responses\` | stdio 上逐行 JSON-RPC 请求/事件 | Native Host 内 loopback \`POST /v1/responses\`，独立 bearer |
+| 创建请求 | \`model,instructions,input,text.format,stream,store,background\` 等官方字段 | \`initialize → thread/start → turn/start\`；\`threadId\`, \`input\`, \`outputSchema\` 属 Codex 协议 | **仅** \`model,instructions,input\`（JSON string）, \`text.format=json_schema\`,\`stream:false/store:false/background:false\`；未知 JSON key 拒绝 |
+| 响应结构 | \`response.id/object/status/output[]/usage\`；以类型化 output 为准 | \`thread.id\`,\`turn.id\`、事件通知，不能假装 Response object | 完成后合成 \`object:"response"\` 和单一 \`message/output_text\`；\`id\` 为本地新建，**不是** Codex turn/thread ID |
+| 终态 | \`completed/failed/incomplete\`，拒绝 incomplete/refusal | \`turn/completed\` 等官方事件及终态，核验精确 turn | 仅 Codex completed、verified 和 JSON object 时回 200；未知终态报错 |
+| structured output | 官方 \`text.format\` 的 json_object 或可用 strict json_schema；取决于模型能力 | Codex \`turn/start.outputSchema\`（版本审核） | **要求** trusted closed \`json_schema\`；\`json_object\` 不支持 |
+| input | 官方 \`input\` 可为多种项/role/content array | Codex 特定 \`input\` items | 仅非空 **字符串**；云端现有 JS adapter 的 array 请求不能直接照搬 |
+| 流式 | \`stream:true\` SSE 类型化事件（本 Browser cloud adapter 尚未实现） | Codex 事件按原生成/拉取 Event ledger 返回 Browser | 仅 \`stream:false\`，\`stream:true\` 显式拒绝 |
+| tool calling | 官方 function/tool/approval 等按正式结构；现 JS adapter 遇未知 output 显式拒绝 | 受限工具仅 \`browser.observe\` 回现有 Controller，shell/文件禁用 | HTTP 子集 \`toolCalls:false\`，遇工具/approval 请求即失败 |
+| 会话 | 官方 previous_response_id / conversation 语义按实际服务；本 Browser cloud 不使用 | thread/start、thread/resume、turn/start/interrupt；是否可冷恢复按版本/证据 | 每个 HTTP POST 一次短命 session+turn；不支持 previous_response_id、无 HTTP resume |
+| cancel | Browser 本地 Abort 不等于官方服务 cancel ACK；未来实现须区分 background cancel | \`turn/interrupt\` ACK 后仍等真实 turn terminal，否则 unknown | HTTP 断开只请求 Manager cancel/close，**不等于**已确认 Codex 终态 |
+| usage | 官方响应可能包含 \`usage\`；严格校验后展示 | 当期 Go event 未承诺标准 token usage | 当前不返回 usage；不得估算为 0 |
+| store / background | 官方支持范围与服务默认值按文档，Browser 强制 \`false\` | Codex 本机历史/缓存另有策略，不等价于 Responses store | 必须显式 \`store:false\`，\`background:false\`；true/未知拒绝 |
+| errors | 官方类型化 error/HTTP status/request ID | 版本/策略/额度/网络/事件游标/未知结果 | \`error:{type,code,message}\` 为 **OpenDesk 子集行为**，不保证完整官方 error schema |
+
+**字段命名规则**：A 的 \`previous_response_id\`、\`text.format\`、\`usage\` 是官方 Responses；B 的 \`threadId/turnId/dynamicTools/outputSchema\` 仅 Codex；C 的 \`/opendesk/v1/capabilities\`、\`E_GATEWAY_*\`、\`SourceKey/Scope\`、\`observationReceipt\` 等是 OpenDesk 私有合同。C 的 JSON 外形相似不等于 A 的会话、工具、用量、stream 或认证兼容。Codex 的 stdio JSON-RPC 版本细节必须对已审计可用 CLI 再核对；Go \`process.go\` 当前明确审核 \`codex-cli 0.159.2\`，未审核版本 fail closed。
+
+规范性参考：[Responses Create](https://developers.openai.com/api/reference/resources/responses/methods/create)、[Responses migration](https://developers.openai.com/api/docs/guides/migrate-to-responses)、[Codex App Server](https://developers.openai.com/codex/app-server)。官方页面会演进；新增字段不能靠字段名猜语义。
+
+## 5. HTTP Gateway：唯一 Owner、生命周期与安全边界
+
+### 5.1 已选择的最小架构与原因
+
+**HTTP 是可选适配，不是 Browser 成功的前提**。Chrome/Browser 既有最可信的路是配对 Native Messaging；Cloud 直接 HTTPS；HTTP 仅为经合法配对的本机其他客户端提供标准化受限“生成 Workflow JSON”的入口。与其另开 Node daemon/第二个 Go HTTP 服务并尝试共享 Codex 状态，当前 Go 选择在**既有 Browser Native Host 进程中**按配置打开一个 loopback listener，复用 \`h.ai\`。HTTP Gateway 不具备 Browser Authority，不能携带 \`browser.observe\` 工具执行或产生网页副作用。
+
+真实源码：
+
+- \`internal/browserbridge/host_ai_unix.go\` 的 \`startAIHTTP()\` 读取 \`OPENDESK_CODEX_HTTP_ADDR\` 与 \`OPENDESK_CODEX_HTTP_TOKEN\`；必须同时配置、为合法 loopback IP/端口，否则拒绝配置；\`Host.Run()\` 中显式启动；\`Host.Close()\` 负责关闭 HTTP 与 Codex Manager。当前不是 \`-http\` 模式路由，也不会因 Desktop App Mode 自动开启。
+- \`internal/browserai/http_gateway.go\` 的 \`NewHTTPGateway(h.ai,...)\`、\`ServeHTTP\` 校验 \`RemoteAddr/Host/Origin/Referer/Bearer\`；只允许 GET 能力与 POST Responses；每次通过 \`Manager.Handle\` 的独立 scope 调受限 Codex 操作。
+- \`cmd/opendesk/runtime_endpoint.go\` 的显式 \`-http\` 路线绑定 \`0.0.0.0\`，是原产品 HTTP 功能，**不得直接开放新的带登录态 AI route**；\`cmd/opendesk/app_mode.go\` 当前拒绝 \`-app\` 与 \`-http\` 同用。禁止通过改动通用端口监听范围或改写 AppMode 互斥项走捷径。
+
+### 5.2 请求/实例时序
+
+\`\`\`mermaid
+sequenceDiagram
+    actor User as 用户
+    participant UI as Browser/获信任客户端
+    participant Host as 现有 Go Native Host
+    participant Gateway as Native 内 loopback HTTP
+    participant Manager as 同一个 browserai.Manager
+    participant Codex as codex app-server/stdin
+    User->>UI: 连接/配对；明确允许本次数据发送
+    UI->>Host: 原 Native 身份与握手（HTTP 配对交付尚未完成）
+    Host->>Gateway: 显式配置、loopback 监听、同一 h.ai
+    UI->>Gateway: POST /v1/responses + Bearer + strict schema
+    Gateway->>Gateway: loopback、Host、Origin、Header、size、并发限额
+    Gateway->>Manager: ai.session.open (独立 HTTP Owner Scope)
+    Manager->>Codex: thread/start
+    Gateway->>Manager: ai.plan.start
+    Manager->>Codex: turn/start (read-only/sandbox)
+    loop 有界读取事件
+       Gateway->>Manager: ai.events.read(cursor)
+       Manager-->>Gateway: exact session/thread/turn 序号与终态
+    end
+    Gateway-->>UI: completed response/output_text 或明确错误
+    Gateway->>Manager: ai.session.close（停止/异常同样清理）
+    Note over UI,Gateway: 浏览器真实动作必须另经原 Validator/Compiler/RunHost
+\`\`\`
+
+### 5.3 威胁模型、凭证与错误
+
+**硬性要求**：
+
+1. **监听**：只许 OS loopback IP（\`127.0.0.1\` 或 \`::1\`）及明确端口；无配置不监听。防 DNS rebinding 必须双重核对 socket 实际本地地址、\`Host\` 字面 IP:port 与来源 IP；拒绝 \`localhost\`/伪别名/非 loopback / 重定向 / 代理穿透，不能仅凭 HTTP Origin 信任。
+2. **鉴权**：至少高熵独立 bearer token，常量时间比较，不能打印/存入网页、工作流、LocalStorage、URL query、日志、错误响应；Native 原配对 Owner 验证仍不能省去。当前源码通过 env 注入 token；**安全配对分发、轮换、注销、随用户撤权立即失效的方案是 OPEN，不得宣称已完整实现**。
+3. **浏览器 Origin 与 CORS**：当前实现对带 \`Origin\`/\`Referer\` 的跨源 HTTP 请求一律拒绝且不提供 CORS；因此普通 Browser fetch 的 HTTP 直接调用**尚无合法已验证路径**。不能为了“接通”一律放开 CORS；若未来允许受信 Chrome extension origin，必须先设计绑定准确 extensionId、令牌颁发/撤销、预检/CORS 矩阵和真实 Chrome 来源证据。未经批准保持 fail closed。
+4. **配对所有权**：HTTP 的 token 不等于 Chrome Native registrationId。未来 pairing 需由受认证 Native 连接拥有并能撤销，再绑定客户端 generation、一次 requestId、独立 scope/模型允许范围；当前 HTTP scope 为独立 \`http-loopback\`，不能把 Native sessionId 传给 HTTP 恢复。
+5. **预算**：当前 Go HTTP 两个并发 slot、请求 60KiB 以内、模型 120s 上限、事件序号/结果 45KiB 防护；大于限制报明示错误，不能无限排队或日志化原网页内容。请求超时、断线、用户停止只请求 cancel/close，未知终态**不重试**。
+6. **受限 Codex**：\`process.go\` 对审计版 CLI、固定 workspace、子进程环境/只读 sandbox、MCP/shell/file/web 限制，不能信任 HTTP 来的任意 \`instructions\` 获得系统级优先权。当前 Gateway 将调用方 \`instructions\` 合并入输入字符串，必须仍视为普通用户数据，不覆盖服务器的固定规划策略。
+7. **能力声明**：\`/opendesk/v1/capabilities\` 仅为 adapter 静态支持矩阵，\`modelAvailability:NOT_PROBED\` 不表示账户/模型 READY。不要用这个 GET 作为账户试扣费或登录成功的证据。
+8. **协议版本与拒绝**：\`stream:true\`、\`store:true\`、\`background:true\`、\`previous_response_id\`、\`json_object\`、array input、未知参数必须明确 4xx/unsupported；不得默默忽略。输入仅限 JSON object Workflow，业务 schema 最终必须经 Browser Validator。
+
+**失败处理**：\`E_UNSUPPORTED\` 是能力契约拒绝；\`E_GATEWAY_AUTH\` 不触发自动切换云端；\`E_OUTCOME_UNKNOWN\` 需要用户检查，禁止自动第二次提交；进程退出/切换 Extension ID/撤权关闭绑定会话，后到事件不能恢复旧 Owner。日志默认仅技术状态、时长、匿名 ID 和有界错误码，不保留 Prompt、DOM、API Key、Bearer、Codex 凭证或原系统 stderr。
+
+## 6. 真实网页观察、权限和受控执行时序
+
+\`\`\`mermaid
+sequenceDiagram
+    actor U as 用户
+    participant UI as Side Panel
+    participant Obs as Trusted Observe
+    participant RH as 原 RunHost/Authority
+    participant P as Provider
+    participant V as Validator + Compiler
+    participant D as Durable Result / Task
+    U->>UI: Send(当前明确需求)
+    UI->>RH: 真实 Chrome 站点权限手势（必要时）
+    UI->>Obs: 请求当前 tab/frame/document 的固定观察
+    Obs->>RH: 原 Controller 运行固定 observe 源码
+    RH-->>Obs: runId/resultId/sourceHash + target + 有界 DOM 摘要
+    UI->>U: 本轮网页数据接收方与范围披露
+    U-->>UI: 同意或拒绝（拒绝则不出站）
+    UI->>P: 可信回执的最小摘要+用户需求
+    P-->>UI: WorkflowProposal / 事件 / 终态
+    UI->>V: normalize + schema + intent + locator + exact target
+    V-->>UI: 明确可执行的受限源码与参数
+    UI->>RH: 原编译源码及真实用户授权范围
+    RH-->>D: 审核/执行/未知效果/retirement 的持久结果
+    D-->>UI: 精确 runId/resultId/sourceHash + 可用读回
+    UI-->>U: 已验证 / 业务效果待核对 / 失败 / 未知 / 已停止
+    opt Save
+      U->>UI: Save
+      UI->>D: Workflow + compiled source + Revision
+      D-->>U: 可离开模型独立运行的已冻结版本
+    end
+\`\`\`
+
+**目标身份**：观察和副作用必须绑定同一 \`windowId,tabId,frameId(当前仅 0),documentId,origin,url\`；发送后刷新、导航、窗口切换或撤权即使模型随后返回“成功”，也拒绝使用过期 proposal。来自网页正文、ARIA、站点提示的语句只是参考数据，永不提升为系统指令；模型不拥有 \`chrome.*\`、localhost token、MCP/Playwright 执行入口。
+
+**停止次序**：先提升 UI generation/标记已停止，撤销待审批，取消当前 observation，停止 RunHost 当前 run，取消 Provider turn/HTTP 等待并追踪清理。Provider Abort 不撤销已发生的网页副作用；Native \`turn/interrupt\` ACK 不代表终态完成；RunHost 可信回执或人工检查之前任何未知结果保持 unknown。后到事件按 request/session/generation 与 document fence 丢弃，避免误绑定新一轮 Send。
+
+## 7. UI 交互合同与状态投影
+
+**主要入口**只保留工作流 Tab 的输入区、来源选择（设置中）、发送、Stop、创建新会话/新工作流、历史/保存/再运行。模型配置失败才展开诊断；已配置且当前页获准时不再增加“采用 AI 建议”确认步骤。新会话清空旧 Provider 原生线程身份与待审批；新工作流重建空 Workflow，但不删除用户已保存 Task；Stop 是当前真正运行 owner 的 stop，不能借另一个 Tab 的运行 ID。Save 是固定 Revision，不是发布/安装。保存后的 Run 无论 Provider 是否可用均要走原 Controller。
+
+| 用户可见状态 | 意义/触发 | 失败保护 |
+|---|---|---|
+| 连接中 | Native/HTTP Provider 真实健康检查，HTTPS 配置检查 | 不把 configured 当 READY |
+| 观察中 | RunHost 固定观察且在本轮目标/披露授权内 | 过期 document 或拒绝分享即停止 |
+| 生成中 | Provider 回合/响应未取得合法终态 | 超时/断连不重试 |
+| 执行中 | 原 Compiler/RunHost 已接手；有唯一 run owner | Stop 只发送给此 run |
+| 结果待核对 | 有执行终态，网站业务效果缺独立证明（尤其 click） | 不展示“业务已成功” |
+| 已验证 | 原持久回执与必要业务 Oracle 已匹配 | 证据与源码/目标同一候选 |
+| 失败 | 明确验证失败或协议拒绝 | 显示可操作错误码 |
+| 已停止 | 用户 Stop/撤权/中断、完成清理或标记 unknown | 不把 pending cancel ACK 当 stop 完成 |
+
+现有 \`view-state.js\` 等前端 UI 状态尚未完整具备上述每一级的独立投影，标为 \`DESIGN_ONLY\` 的细化目标；UI 当前展示已接线的“规划/运行/结果”等不等于完整效果 Oracle 已证实。
+
+## 8. ADR：技术取舍和后续迁移成本
+
+| 决策 | 候选与优缺点 | 风险/失败模式与选择依据 | 被否决路线与未来迁移 |
+|---|---|---|---|
+| **ADR-01 Native / HTTP** | Native 继承 Chrome 真实安装与 Owner/授权（强），依赖浏览器连接（弱）；HTTP 适合配对本机客户端（强），新增本地网络面（弱） | 采用 **Native 默认 + HTTP 显式可选**。若 HTTP 未配对/Origin 复杂则 fail closed；未来允许 HTTP 客户端要补 token rotation 与特定 Origin，而非替换 Native |
+| **ADR-02 Go HTTP / Node 守护进程** | Go 既有 Process/Manager 生命周期可复用；Node 新 daemon 开发似快但双进程/凭据/退出清理代价高 | **选同一 Go Native Host Manager 上 HTTP 薄层**；不让 \`-http\` 通用服务直接暴露带登录态的 route。否决第二 Codex spawn manager；未来需独立产品服务时先做 Owner 的明示迁移合同 |
+| **ADR-03 Facade / UI 分叉** | 业务 Facade 小而可替换且复用 Validator；UI 直接分别调用短期省文件却生成分叉审批/身份逻辑 | **选已经存在的 \`provider.js\`**，协议适配器仅处理本源特殊性。失败模式是错误的能力夸大；新增 Provider 必须有正/负声明和同一规范化链 |
+| **ADR-04 server session / bounded history** | Codex 原 thread 对已审计版本连续体验好但不可跨 Provider 移植、冷恢复受限；VerifiedBusinessTurn 可跨 Provider 但丢细节 | **同 Provider 有证据才 server resume；跨 Provider 仅已验证受限事实**。否决重放整页/原始回应 ID；未来持久业务摘要可升级独立加密状态而不迁移 raw thread |
+| **ADR-05 原 RunHost / Agent Browser Executor** | 原 RunHost 具身份、权限、回执、源码 SHA（强），受限动作范围（弱）；新 Agent executor 扩展动作快但两套信任边界 | **拒绝第二 executor**。复杂任务以后增加受控 Workflow schema/编译支持，而不让 Codex shell/CDP/桌面鼠标直写网页，保持既有 Task/Revision 向前兼容 |
+| **ADR-06 一次生成 / Agent tool loop** | 一次式 Cloud Responses 易限额、低成本但无在线修正；Codex tool loop 能受控观察/继续，但事件/审批与版本复杂 | **同一业务 Facade 下允许不同能力**：云端先 non-stream single proposal，本机 Codex 可真实多轮及只读观察；禁止无审阅地假扮云端同样有 agent loop。未来新增 streaming/tools 需独立版本化能力，不破坏旧端点 |
+| **ADR-07 严格协议子集 / 假兼容** | 严格子集调用者需 adapter，但安全及升级清晰；忽略未知字段让早期演示容易却可能误执行带 \`store:true\` 等请求 | **strict decoder + unsupported fail closed**。迁移成本落在明确的新能力协商上，而不是以后排查静默协议漂移 |
+
+ADR 风险升级触发条件：Codex CLI 版本改变、Chrome Origin/Host 处理需要改变、Gateway token 分发、Go Native Host 退出策略变化、R2 workflow schema 扩展、想允许模型自动跨页操作。遇任一触发先更新对应 ADR 与适配器兼容矩阵。
+
+## 9. 核心开发任务树（F0–F5）与后置验收（T1–T6）
+
+本次继续**功能开发**；下表基于代码与历史账本，未以仓库源码存在推断运行已完成。
+
+| 阶段/依赖 | 最小可交付范围与代码 | 已知状态 | 当前阻塞与通过定义 |
+|---|---|---|---|
+| **F0** 源码差异核对 | Browser \`workflow-view/provider/ai-plan/responses\`；Go \`browserai/host_ai/http_gateway\`；R16/现有账本 | **SOURCE_RECONCILED**（本文件读取基线） | 完成事实表、无第二引擎；未来每次只增量复核变更 |
+| **F1** Cloud Responses UI 接线 / F0 | \`responses.js\`,\`ai-plan.js\`,\`provider.js\`,\`workflow-view.js\` | **SOURCE_WIRED / NATIVE_NOT_VERIFIED** | 已有 Send→Cloud observation→Facade→Compiler/RunHost 源码；通过需真实同候选云端响应、DOM 业务读回 |
+| **F2** 最小 Provider 合同 / F1 | \`provider.js\`,\`local-codex.js\`,\`src/native-agent/workflow-ai-*.js\` | **SOURCE_WIRED / CAPABILITY_PARTIAL** | 路由与能力表已存在；需错误一致性、provider ID/业务会话边界、HTTP 入口能力拒绝 |
+| **F3** Go Local HTTP Gateway / F2 契约 | \`internal/browserai/http_gateway.go\`,\`internal/browserbridge/host_ai_unix.go\`,\`host_unix.go\` | **SOURCE_WIRED / NOT_VERIFIED**（并行 Go 实施已存在） | 需明确合法配对、Origin/Host/CORS；同一 Manager 进程运行验证与必要 Go 定向测试；**不得重复创建** |
+| **F4** Native/Cloud/HTTP 配置整合 / F1–F3 | Browser 现有 provider/UI 配置与未来独立 \`local_http\` adapter，Native token 获信交付 | **Native/Cloud 源码已接线；HTTP Browser NOT_IMPLEMENTED** | 网关目前拒绝带 Origin 的浏览器 fetch、没有受信 token 配对渠道；修完安全契约前不启用 UI |
+| **F5** 最小清理/状态交接 / F4 | 本正式 R2 合同、现有账本、源码路径/当前 SHA、独立定向检查 | **IN_PROGRESS** | 无冲突修改提交、必要 smoke、每级 NOT_VERIFIED 保留；不得挤占全套验收资源 |
+
+**下一次核心开发的最小动作**：优先由 Go HTTP 所有者与 Browser Provider 所有者约定 \`POST /v1/responses\` 的可信客户端身份、token 获取/撤权/Origin 行为和严格 \`input/schema\` 形状；然后独立实现 Browser \`local_http\` adapter 与 Facade 能力路由。未解决时 HTTP 只允许由明确获信任的非浏览器 loopback 客户端使用，Browser UI 不可假装“可用”。
+
+**T1–T6 为 F5 后独立执行的测试阶段（本轮不运行）**：T1 定向 Node/Go/协议拒绝；T2 同进程真实 Native 连接/HTTP pairing；T3 真实 Chrome 单轮安全填写、点击与读回；T4 撤权/刷新/Stop/未知效果/晚到事件；T5 Save 后禁用 AI 的 Run×2；T6 production 同候选、正式身份与发布验收。历史 98/98 Node CI 和 R16 Linux Codex 实验仅属原候选证据，不能抵扣本轮 T1–T6。
+
+## 10. 风险、OPEN、设计评审与版本追踪
+
+### 10.1 OPEN / NOT_VERIFIED
+
+- \`HIGH/OPEN\`：HTTP bearer 如何经过**原 Native 配对**安全交付 Browser/本机客户端并支持撤权、进程重启和令牌轮换；环境变量传入本身不是完整配对能力。
+- \`HIGH/OPEN\`：当前网关禁一切 \`Origin\`，扩展 fetch 可能发送 Origin；切勿为接线放开通用 CORS。
+- \`HIGH/OPEN\`：当前 HTTP 只收 \`input:string\` + strict schema；Cloud 官方 adapter 发官方 array + 可选 \`json_object\`，二者不兼容；必须写独立映射并显式拒绝 unsupported。
+- \`HIGH/NOT_VERIFIED\`：真实 Codex CLI 审计版本、nativeMessaging handshake、Go 相同 Manager 是否真的只建一套 Codex 进程、Host 退出后的 HTTP 清理。
+- \`HIGH/NOT_VERIFIED\`：真实 Chrome 当前目标授权/网页摘要/Origin/cancel/readback/Durable Result、Save→无 AI Run×2。
+- \`MEDIUM/OPEN\`：业务“click 后成功”的可声明 Oracle 与现有 \`view-state.js\` 视觉投影缺口；不把点击成功当业务成功。
+- \`MEDIUM/OPEN\`：Codex CLI 版本升级（\`0.159.2\` 以外按当前 \`process.go\` 拒绝）、官方 Responses schema/stream/usage 变化；不做隐式兼容。
+- \`MEDIUM/NOT_VERIFIED\`：当前源码编译/CI、Mac \`dist/development\` 的真实加载目录和安装 ID。远端 HEAD 不是本机加载包。
+
+### 10.2 七维设计自评（专家审阅维度，不冒充独立评分）
+
+| 维度 | 已满足的可检验依据 | 未解决风险/改进动作 | 评分状态 |
+|---|---|---|---|
+| 产品旅程 | 一次 Send→RunHost→保存/复跑、授权分层 | click 业务 Oracle/Native 闭环 | \`TARGET_95+ / NOT_SCORED\` |
+| Provider 抽象 | 实际 \`provider.js\` 和统一 Proposal/Compiler | HTTP 接线与跨源上下文拒绝 | \`TARGET_95+ / NOT_SCORED\` |
+| 官方协议 | Responses typed output、Codex stdio、严格 HTTP 子集区分 | 真模型/API 版本互通 | \`TARGET_95+ / NOT_SCORED\` |
+| HTTP/凭据安全 | loopback Host、bearer、no CORS、受限 Manager | token pairing/Origin 兼容高风险 | \`TARGET_95+ / NOT_SCORED\` |
+| 既有模块复用 | 同一 Go h.ai、原 Compiler/RunHost/Task | 真单实例运行验证 | \`TARGET_95+ / NOT_SCORED\` |
+| 错误/Stop/未知 | request ledger、event sequence、cancel/unknown 语义 | HTTP 断线终态、真实 Stop | \`TARGET_95+ / NOT_SCORED\` |
+| 维护/迁移成本 | 唯一合同、薄 adapter、ADR 决策 | 版本漂移/Token 生命周期 | \`TARGET_95+ / NOT_SCORED\` |
+
+**设计评分不是验收**。没有独立专家和匹配候选证据时，逐维均 \`NOT_SCORED\`；高风险安全项未闭合不可称 95 分已实现。
+
+### 10.3 版本与继续开发约定
+
+- 设计来源：2026-10-15 的 Browser \`main@a7246887f5d09015b6244a1b2c5da5e232a2d015\`；Go \`master@310a24a726a6d218ae585df2dbe449b86f13ea62\`。新增 HTTP 属该次 Go 基线的并行提交，非本设计文档作者发明。
+- 既有历史：2026-10-10 [R16](workflow-ai-provider-routing-r16.zh-CN.md)、2026-10-13 [Direct R1](../../framework/workstreams/conversation-direct-r1-20261013.md)、2026-10-14 [Minimal UI R17](../../framework/workstreams/workflow-ui-r17-minimal-20261014.md)。绝不清空其历史失败与旧测试记录。
+- 每完成 F1–F5 任一源码切片，更新本文 **模块状态、协议/ADR、真实 SHA** 和既有账本 **负责人/本次写入范围/未测/阻塞/下一步**；保留旧版本事实，不改写老日志冒充新证据。
+- 并行协议遵守 \`AGENTS.md\` 和 [parallel-development](../../framework/parallel-development.md)：Browser 仅 \`main\`，各 Agent 同文件单写入，跨 Browser/Go 契约需要明确 owner，冲突只暂停受影响范围。
+- 下一次对话不从 Phase 0 重新设计。读取本文件、现有账本、最新 AGENTS 与 Git 源码 SHA，**从 F4 的安全配对/HTTP Browser 消费者的最小缺口继续**；任何未解决安全矛盾按 \`OPEN\` 处理，不能用宽松 CORS/隐式 token/第二 Manager 绕过。
