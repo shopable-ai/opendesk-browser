@@ -56,3 +56,9 @@ npm run check
 - **撤权栅栏**：现有 Host 在全局 Proxy Lock 内重验工具身份、启用状态、epoch、capability 与 Chrome 权限，持久 applying journal 后与 Chrome set 前再次重验身份/控制权；未确认时保留明确 STOP 路径。不增加第二个 SDK/Host/Driver，不将生产校验放宽到 loopback。
 - **用户实际点击**：Browser 级 ENABLE/STOP 必须来自可信 Side Panel 真正的 `isTrusted` 点击。旧 journal 的 STOP、卸载与 Worker 恢复不受生产 Profile 空名单影响。
 - **测试范围**：补充 Node 未审 Profile、未批准端点/包哈希、缺 Host 回调、等待全局锁期间撤权、持久化后撤权、旧状态 STOP。当前用户 Mac / Chrome / 7897 / 7898、商业权益、旧六模块安全删除仍 **NOT_TESTED / BLOCKED**；不得将历史 PASS 计入新候选。
+
+### R1.1 已观察到的严格 CI 证据（2026-10-16）
+
+- 候选 `b89c9093a0f55405ba95ee00f5875a3c8daea6d6`：Browser SDK R5 workflow [38771127654](https://github.com/shopable-ai/opendesk-browser/actions/runs/38771127654) 的 `sdk-host-contracts` **PASS**，包含 Managed Proxy Driver/Host Node 模拟测试、SDK bindings 生成/冻结检查、源代码验证；`sdk-product-bundles` **PASS**，包含 `npm run build` / `build:dev` / `build:size` / `verify`。该 CI 在 GitHub Linux runner 执行，**不是 Mac 原生 Chrome 网络证据**。
+- 候选 `b89c909`：Sidebar tools R1 job `ai-vip-share-r5-candidate` 因工作流仍期待 **1.2.0** 而失败（实际正式工具 `tool.config.json` 是 **1.3.0**），与 Proxy Driver 无关。已在 `84ce91cb3d04b9ca9457d4d9e50f79fea8aa9e17` 对工作流的精确版本、输出路径和 production package diff 一并更新，未降低严格比对门禁。修复后的候选 CI 状态以其后续运行结果为准。
+- R5 专项补充将 `tests/environment/browser-sdk-managed-proxy-r54.test.mjs` 与 Driver、Host 两套 Node fixture 放在同一步骤执行，确保公共 Facade → Binding → Driver 的正反向测试不被跳过。该新增 CI 测试必须以本次 workflow 修改后的 SHA 运行结果判定。
