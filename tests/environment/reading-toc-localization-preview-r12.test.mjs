@@ -20,8 +20,9 @@ test('R1.2 trusted locale resource is an exact, audited generated snapshot',asyn
   assert.equal(output,renderReadingTocTrustedLocales(input));
   assert.match(output,/do not edit/);
   assert(!output.includes('import '));
-  assert.notEqual(output,renderReadingTocTrustedLocales(input.replace(
-    '刷新阅读目录','重新刷新阅读目录')),'changing author resource must invalidate trusted snapshot');
+  assert.throws(()=>renderReadingTocTrustedLocales(input.replace(
+    '刷新阅读目录','重新刷新阅读目录')),/E_TOOL_LOCALE_STALE_OR_UNSAFE/,
+    'editing source invalidates reviewed translations before trusted generation');
 });
 
 test('R1.2 same validated Side Panel JS/CSS executes in source-derived offline shell',async()=>{
