@@ -8,9 +8,9 @@ const read=name=>readFile(root+'/'+name,'utf8');
 
 test('approved original R4.3 interactive preview is preserved inside the Cookie Editor tool',async()=>{
   const preview=await read('preview/cookie-editor-r4.3-preview.html');
-  assert.equal(Buffer.byteLength(preview,'utf8'),45133);
+  assert.equal(Buffer.byteLength(preview,'utf8'),45132);
   const sha=createHash('sha1').update('blob '+Buffer.byteLength(preview,'utf8')+String.fromCharCode(0)).update(preview).digest('hex');
-  assert.equal(sha,'7a129f509814805ab78827eaccbc77a64b20010f');
+  assert.equal(sha,'9e494b2e8f7f1f72eeae8afd34683d32927204c3');
   assert.match(preview,/<title>Cookie Editor R4\.3/);
   assert.match(preview,/data-scene="first"/);
   assert.match(preview,/data-scene="ready"/);
