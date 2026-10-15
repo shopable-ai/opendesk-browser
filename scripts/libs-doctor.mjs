@@ -129,9 +129,9 @@ export async function inspectLibraries({cwd=process.cwd()}={}) {
   if(history.issues.length)errors.push(...history.issues);
   const invalidWorlds=Object.values(BUILTIN_CATALOG.libraries).filter(row=>
     row.worlds.some(world=>!['CONTROLLER','USER_SCRIPT'].includes(world))||
-    (['jquery','jsCookie','cryptoJs','fileSaver','queryString','store','cheerio','fingerprintjs'].includes(row.id)&&(row.default||row.worlds.join(',')!=='USER_SCRIPT'))||
+    (['jquery','jsCookie','cryptoJs','fileSaver','queryString','store','cheerio','fingerprintjs','papaParse'].includes(row.id)&&(row.default||row.worlds.join(',')!=='USER_SCRIPT'))||
     (row.id==='axios'&&(row.default||row.worlds.join(',')!=='CONTROLLER,USER_SCRIPT'))||
-    (!['jquery','jsCookie','cryptoJs','fileSaver','queryString','axios','store','cheerio','fingerprintjs'].includes(row.id)&&!row.default));
+    (!['jquery','jsCookie','cryptoJs','fileSaver','queryString','axios','store','cheerio','fingerprintjs','papaParse'].includes(row.id)&&!row.default));
   report.sources.worlds=result(invalidWorlds.length?'SOURCE_FAIL':'SOURCE_PASS',
     invalidWorlds.length?{location:'src/libs/runtime-contract.js:1',ids:invalidWorlds.map(row=>row.id)}:undefined);
   if(invalidWorlds.length)errors.push('src/libs/runtime-contract.js:1 built-in library world/default drift');
@@ -145,7 +145,8 @@ export async function inspectLibraries({cwd=process.cwd()}={}) {
     BUILTIN_CATALOG.libraries.axios.methods.join(',')==='get,post,put,delete,request,create,getUri'&&
     BUILTIN_CATALOG.libraries.store.methods.join(',')==='get,set,remove,clearAll,each'&&
     BUILTIN_CATALOG.libraries.cheerio.methods.join(',')==='load'&&
-    BUILTIN_CATALOG.libraries.fingerprintjs.methods.join(',')==='load,hashComponents,componentsToDebugString';
+    BUILTIN_CATALOG.libraries.fingerprintjs.methods.join(',')==='load,hashComponents,componentsToDebugString'&&
+    BUILTIN_CATALOG.libraries.papaParse.methods.join(',')==='parse,unparse';
   report.sources.api=result(apiValid?'SOURCE_PASS':'SOURCE_FAIL',
     apiValid?undefined:{location:'src/libs/catalog.js:1',reason:'built-in API contract drift'});
   if(!apiValid)errors.push('src/libs/catalog.js:1 built-in API contract drift');
