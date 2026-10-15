@@ -1,0 +1,26 @@
+{
+  "schema": "opendesk.adblock.offline-rules.v1",
+  "version": "2026-10-15.1",
+  "file": "domains.js",
+  "sha256": "ac9f0766958a06c81e27e0d2cf292a200b6bcec8f50ddf34ce03b49d4da543ec",
+  "rules": {
+    "advertisingDomains": 47,
+    "trackingDomains": 20,
+    "totalUnique": 67,
+    "requestType": "thirdParty",
+    "resources": [
+      "script",
+      "image",
+      "xmlhttprequest",
+      "sub_frame",
+      "ping",
+      "media",
+      "other"
+    ]
+  },
+  "origin": "Original hand-curated first-party snapshot; no copied third-party subscription list",
+  "license": "Repository-maintained original domain compilation; no third-party rule-list or executable-license dependency",
+  "generatedAt": "2026-10-15",
+  "updates": "Only through reviewed source changes and a new extension build, not at runtime",
+  "notes": "Coarse whole-domain network filtering, not cosmetic filtering or full EasyList conversion"
+}

@@ -157,7 +157,8 @@ const TRUSTED_TOOL_ID=/^[a-z][a-z0-9-]{1,39}$/;
 const TRUSTED_PERMISSION_PREPARED_VERSION=1;
 const TRUSTED_CAPABILITY_TO_PERMISSION=Object.freeze({
   'browser.bookmarks':{toolCapability:'browser.bookmarks',permission:'bookmarks'},
-  'browser.bookmarks.create':{toolCapability:'browser.bookmarks',permission:'bookmarks'},
+  'browser.bookmarks.createOwned':{toolCapability:'browser.bookmarks',permission:'bookmarks'},
+  'browser.bookmarks.full':{toolCapability:'browser.bookmarks.full',permission:'bookmarks'},
   'browser.contextMenu':{toolCapability:'browser.contextMenu',permission:'contextMenus'},
   'browser.contextMenu.register':{toolCapability:'browser.contextMenu',permission:'contextMenus'},
   'browser.network.observe':{toolCapability:'browser.network.observe',permission:'webRequest'},

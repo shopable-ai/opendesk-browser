@@ -49,6 +49,40 @@ test('native tool directory packs JS/CSS/HTML and a local image into a portable 
     assert.deepEqual(parsed.capabilities,['storage.local','currentPage.read','tasks.open']);
   }finally{await rm(temp,{recursive:true,force:true});}
 });
+test('default packer refreshes a portable project bundle and refuses symlink outputs',async()=>{
+  const dir=await mkdtemp(join(tmpdir(),'opendesk-tool-distribution-'));
+  const id='bundle-sync-test',version='1.0.0';
+  const projectBundle=join(dir,id+'.opendesk-tool.json');
+  const artifactDir=join('artifacts','sidebar-tools',id);
+  try{
+    const config={id,version,title:'测试安装包',description:'发行文件一致性',capabilities:[],
+      files:{html:'index.html',css:'style.css',js:'main.js'},assets:[]};
+    await Promise.all([
+      writeFile(join(dir,'tool.config.json'),JSON.stringify(config)),
+      writeFile(join(dir,'index.html'),'<main>Test</main>'),
+      writeFile(join(dir,'style.css'),''),
+      writeFile(join(dir,'main.js'),'void 0;'),
+      writeFile(projectBundle,'stale')
+    ]);
+    const first=await buildSidebarTool(dir);
+    assert.equal(first.projectOutput,projectBundle);
+    assert.equal(await readFile(projectBundle,'utf8'),await readFile(first.output,'utf8'));
+    await writeFile(join(dir,'main.js'),'void 1;');
+    const second=await buildSidebarTool(dir);
+    assert.equal(await readFile(projectBundle,'utf8'),await readFile(second.output,'utf8'));
+    assert.notEqual(await readFile(projectBundle,'utf8'),'stale');
+    await rm(projectBundle);
+    const noOptIn=await buildSidebarTool(dir);
+    assert.equal(noOptIn.projectOutput,undefined);
+    await symlink(join(dir,'main.js'),projectBundle);
+    await assert.rejects(buildSidebarTool(dir),/regular file/);
+    assert.equal(await readFile(join(dir,'main.js'),'utf8'),'void 1;');
+  }finally{
+    await rm(dir,{recursive:true,force:true});
+    await rm(artifactDir,{recursive:true,force:true});
+  }
+});
+
 test('new sandbox uses isolated Chrome MV3 resource and a narrow host message protocol',async()=>{
   const [manifest,runner,host,toolHtml,buildContract,verify,taskHost]=await Promise.all([
     readFile('manifest.json','utf8').then(JSON.parse),readFile('src/sidebar-tools/bridge.js','utf8'),

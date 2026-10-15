@@ -25,6 +25,7 @@ import {CAPTURE_SITE_STORE,CAPTURE_CAPABILITY,KNOWLEDGE_TOOL_ID,KNOWLEDGE_CAPABI
 import {TIME_REVIEW_ID,TIME_REVIEW_CAPABILITY,TIME_REVIEW_PROTOCOL,TIME_REVIEW_OPERATIONS,timeReviewPackageHash} from '../time-review/policy.js';
 import {TIME_REVIEW_KEY} from '../time-review/model.js';
 import {FOCUS_ID,FOCUS_CAPABILITY} from '../stay-focus/policy.js';
+import {ADBLOCK_ID,ADBLOCK_CAPABILITY} from '../../examples/sidebar-tools/adblock/trusted/policy.js';
 import {AI_ID,AI_CAPABILITY} from '../ai-smart-access/policy.js';
 import {createTimeReviewPermissionControls} from '../time-review/host-controls.js';
 import {admitsTrustedTimeReview,TRUSTED_TIME_REVIEW_VERSION,trustedTimeReviewProvenanceChanged} from '../time-review/trusted-admission.js';
@@ -36,6 +37,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   // Native focus controls load from an audited extension-only classic WXT entry.
   // A missing sidecar fails closed; user-owned opaque sandbox cannot supply it.
   const focus=globalThis.__opendeskStayFocusTrustedUI||null;
+  const adblock=globalThis.__opendeskAdblockTrustedUI||null;
   const aiAccess=globalThis.__opendeskAiAccessTrustedUI||null;
   // A dynamic tool package cannot supply its own privileged Chrome runtime.
   function requireToolRuntime(tool){
@@ -45,6 +47,15 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
        typeof aiAccess.request!=='function'||typeof aiAccess.runTrustedOperation!=='function'||
        typeof aiAccess.createPermissionControls!=='function'||typeof aiAccess.probe!=='function'))
       throw Object.assign(new Error('当前扩展缺少 AI 智能访问可信运行能力，请升级扩展后再安装。'),
+        {code:'E_TOOL_RUNTIME_UNAVAILABLE'});
+    if(tool?.capabilities?.includes(ADBLOCK_CAPABILITY)&&
+       (tool.id!==ADBLOCK_ID||adblock?.id!==ADBLOCK_ID||
+        adblock.capability!==ADBLOCK_CAPABILITY||
+        !adblock.operations?.includes('adblock.status')||
+        typeof adblock.probe!=='function'||typeof adblock.request!=='function'||
+        typeof adblock.runTrustedOperation!=='function'||
+        typeof adblock.createPermissionControls!=='function'))
+      throw Object.assign(new Error('当前浏览器缺少可信 AdBlock DNR 服务，请更新扩展。'),
         {code:'E_TOOL_RUNTIME_UNAVAILABLE'});
     if(!tool?.capabilities?.includes(FOCUS_CAPABILITY))return;
     if(tool.id!==FOCUS_ID||focus?.id!==FOCUS_ID||focus.capability!==FOCUS_CAPABILITY||
@@ -139,6 +150,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     'knowledge.store':'管理此工具的本机知识收件箱（200 条 / 4 MiB）',
     'time.review':'明确开始后在后台记录聚焦、非空闲网站的域名与时长（仅本机）',
     'focus.control':'按单独批准的网站执行每日额度、时段与专注限制，Chrome DNR 拦截（仅本机）',
+    'adblock.control':'经可信 Chrome 授权启停第三方广告过滤，仅管理本工具规则',
     'ai.access':'仅由可信按钮管理 AI 网站自动代理，需要 Chrome 代理权限；其余网站直连',
     'browser.contextMenu':'在明确授权的网站显示 Chrome 右键菜单（最多三项）',
     'browser.scheduler':'经确认定时执行已安装的固定任务版本，只管理本工具的计划',
@@ -151,6 +163,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     'browser.screenshot':'用户主动截取本工具获准的可见网页并下载 PNG',
     'browser.storage':'独立保存本工具设置与数据（最多 32 项、32 KB）',
     'browser.bookmarks':'确认后收藏网站或删除本工具创建的 Chrome 书签（不读取书签树）',
+    'browser.bookmarks.full':'读取、搜索、修改和删除 Chrome 全部书签；必须单独授予权限，危险删除仍需逐次确认',
   });
 
   // Cookies reuse the existing trusted tool-settings surface; sandbox JavaScript
@@ -192,6 +205,20 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   cookieOtherSites.className='sidebar-toc-settings-entries';
   cookiePermissions.append(cookieOtherSites);
   settingsView?.append(cookiePermissions);
+  // Full Bookmarks belongs to the installed package, never inherited from Owned.
+  const fullBookmarkSettings=doc.createElement('section');
+  fullBookmarkSettings.className='sidebar-tool-cookie-permissions od-surface';
+  fullBookmarkSettings.setAttribute('aria-label','Chrome 完整书签独立授权');
+  fullBookmarkSettings.hidden=true;
+  const fullBookmarkHeading=doc.createElement('strong');
+  fullBookmarkHeading.textContent='完整 Chrome 书签访问';
+  const fullBookmarkInfo=doc.createElement('p');fullBookmarkInfo.className='sidebar-toc-settings-hint';
+  fullBookmarkInfo.textContent='可读取、编辑、移动及删除所有 Chrome 书签和文件夹（包括其他工具创建的）。仅此工具安装版本可用，递归删除仍需逐次确认。';
+  const fullBookmarkButton=doc.createElement('button');
+  fullBookmarkButton.type='button';fullBookmarkButton.className='od-button';
+  fullBookmarkSettings.append(fullBookmarkHeading,fullBookmarkInfo,fullBookmarkButton);
+  settingsView?.append(fullBookmarkSettings);
+  const isFullBookmarkTool=tool=>tool?.capabilities?.includes('browser.bookmarks.full')===true;
   // The permission surface is generic to any installed tool that declares
   // Cookie capabilities; an official Cookie Editor is NOT a privileged exception.
   const isCookieTool=tool=>Array.isArray(tool?.capabilities)&&
@@ -300,6 +327,18 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
           throw Object.assign(new Error('工具已关闭或不可用'),{code:'E_TOOL_CHANGED'});
       }});
     }}):null;
+  const adblockContainer=get('sidebar-tool-adblock-native');
+  const adblockControls=adblockContainer&&adblock?.createPermissionControls?
+    adblock.createPermissionControls({api,doc,container:adblockContainer,notice,
+      runOperation:(operation,payload,event)=>{
+        const tool=active;
+        return adblock.runTrustedOperation({api,tool,operation,payload,event,
+          revocationEpoch:frameRevocationEpoch,assertCurrent:phase=>{
+            if(disposed||!tool||!samePackage(active,tool)||
+               phase==='initial'&&busy||phase!=='after-send'&&readOnlyPreview)
+              throw Object.assign(new Error('当前工具已变更或关闭'),{code:'E_TOOL_CHANGED'});
+          }});
+      }}):null;
   const aiPermissions=settingsView&&aiAccess?.createPermissionControls
     ?aiAccess.createPermissionControls({api,doc,container:settingsView,notice,
       runOperation:(operation,payload,event)=>{
@@ -634,6 +673,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     const enabled=Boolean(managed&&!enableReadError&&sidebarToolEnabled(enableRecords,id));
     timePermissions?.render(active,readOnlyPreview);
     focusPermissions?.render(active,readOnlyPreview,enabled);
+    adblockControls?.render(active,readOnlyPreview,enabled);
     aiPermissions?.render(active,readOnlyPreview,enabled);
     const sitePending=siteTogglePending.has(id);
     const isToc=managed&&id===READING_TOC_TOOL_ID&&active.capabilities.includes(TOC_CAPABILITY);
@@ -643,13 +683,20 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     settingsButton.setAttribute('aria-expanded',String(show));
     // Time Review uses the same trusted static settings DOM as an inline
     // enrollment card. Do not replace/hide its live stats iframe.
-    const trustedInline=show&&(id===TIME_REVIEW_ID||id===FOCUS_ID||id===AI_ID||isCookieTool(active));
+    const trustedInline=show&&(id===TIME_REVIEW_ID||id===FOCUS_ID||id===AI_ID||isCookieTool(active)||isFullBookmarkTool(active));
     // Native approval/stop remains visible above a live sandbox, never inside it.
     if(trustedInline&&settingsView.nextElementSibling!==frameRoot)frameRoot.before?.(settingsView);
     else if(!trustedInline&&settingsView.previousElementSibling!==retiredDraft)retiredDraft.after?.(settingsView);
     display.setAttribute('data-trusted-tool-inline',String(trustedInline));
     settingsView.hidden=!show;frameRoot.hidden=id===AI_ID||(show&&!trustedInline)||!(frame||nativeUI);
     renderCookieSettings(show);
+    fullBookmarkSettings.hidden=!(show&&managed&&isFullBookmarkTool(active));
+    const fullGrant=menuGrants?.[id],currentEpoch=revocationEpochs[id]??null;
+    const hasFullBookmarkConsent=Boolean(fullGrant?.bookmarkFull===true&&
+      fullGrant.version===active?.version&&fullGrant.installEpoch===currentEpoch);
+    fullBookmarkButton.textContent=hasFullBookmarkConsent?'撤销此工具的完整书签访问':'授权此工具访问全部书签';
+    fullBookmarkButton.disabled=busy||!enabled||!isFullBookmarkTool(active);
+    fullBookmarkButton.setAttribute('aria-pressed',String(hasFullBookmarkConsent));
     removeButton.hidden=readOnlyPreview;if(openTabButton)openTabButton.hidden=readOnlyPreview;
     if(enableButton){enableButton.textContent=enabled?'停用工具':'启用工具';enableButton.disabled=busy||enableReadError;
       enableButton.setAttribute('aria-pressed',String(enabled));}
@@ -917,6 +964,14 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(active&&!canLeave(show))return false;
     show();return true;
   }
+  function openOfficialReview(id){
+    if(disposed||busy||!visible||active||!officialLoaded)return false;
+    const release=officialReleases.find(row=>row.toolId===id);
+    if(!release)return false;
+    setDiscoveryOpen(false);
+    void reviewOfficial(release);
+    return true;
+  }
   function openImport(){
     if(disposed||busy||!visible||active)return false;
     setDiscoveryOpen(false);setImportOpen(true);notice('');return true;
@@ -1072,7 +1127,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       }
       if(['browser.tabs.create','browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.reloadOwned','browser.tabs.navigateOwned','browser.tabs.removeOwned','browser.network.request',
         'browser.network.observe.start','browser.network.observe.export',
-        'browser.screenshot.captureVisible','browser.downloads.download','browser.downloads.cancelOwned','browser.bookmarks.create','browser.bookmarks.removeOwned','browser.storage.local.clear'].includes(operation)){
+        'browser.screenshot.captureVisible','browser.downloads.download','browser.downloads.cancelOwned','browser.bookmarks.createOwned','browser.bookmarks.removeOwned','browser.bookmarks.create','browser.bookmarks.update','browser.bookmarks.move','browser.bookmarks.remove','browser.bookmarks.removeTree','browser.storage.local.clear'].includes(operation)){
         const target=operation==='browser.tabs.navigateOwned'?'将本工具标签页导航到同源站点 '+new URL(payload.url).origin+'（原 TabRef 将失效）':
           operation==='browser.tabs.reloadOwned'?'重新加载本工具拥有的标签页（原 TabRef 将失效）':
           operation==='browser.tabs.pinOwned'?(payload.pinned?'固定此工具此前打开的标签页':'取消固定此工具此前打开的标签页'):
@@ -1084,16 +1139,21 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
           operation==='browser.screenshot.captureVisible'?'截取当前可见且已授权的网页，并打开 PNG 保存对话框':
           operation==='browser.downloads.download'?'下载网站 '+new URL(payload.url).origin+' 的指定文件（仅此一次）':
           operation==='browser.downloads.cancelOwned'?'取消本工具已发起、编号为 '+payload.downloadRef.slice(0,8)+'… 的下载':
-          operation==='browser.bookmarks.create'?'收藏网站 '+new URL(payload.url).origin+' 的指定网址':
+          operation==='browser.bookmarks.createOwned'?'收藏网站 '+new URL(payload.url).origin+' 的指定网址':
+          operation==='browser.bookmarks.create'?'向 Chrome 创建'+(payload.url?'书签':'文件夹')+'「'+payload.title+'」':
+          operation==='browser.bookmarks.update'?'更新 Chrome 书签或文件夹 '+payload.id:
+          operation==='browser.bookmarks.move'?'移动 Chrome 书签或文件夹 '+payload.id:
+          operation==='browser.bookmarks.remove'?'删除 Chrome 书签或空文件夹 '+payload.id:
+          operation==='browser.bookmarks.removeTree'?'递归删除 Chrome 非空文件夹 '+payload.id+' 及其全部子项（不可撤销）':
           operation==='browser.bookmarks.removeOwned'?'删除本工具创建的书签 '+payload.bookmarkRef.slice(0,8)+'…':
           operation==='browser.storage.local.clear'?'清空本工具保存的数据（不影响其他工具）':
             '向 '+new URL(payload.url).origin+' 发送 '+payload.method+' HTTP 请求';
         let bookmarkConsent,bookmarkPrepared,bookmarkSender;
-        if(operation.startsWith('browser.bookmarks.')){
+        if(['browser.bookmarks.createOwned','browser.bookmarks.removeOwned'].includes(operation)){
           bookmarkConsent=createToolPermissionConsent({api});
           bookmarkPrepared=await bookmarkConsent.prepare({toolId:tool.id,toolVersion:tool.version,
             packageHash,installEpoch:revocationEpoch,capability:'browser.bookmarks',
-            ...(operation==='browser.bookmarks.create'?{origin:new URL(payload.url).origin}:{})});
+            ...(operation==='browser.bookmarks.createOwned'?{origin:new URL(payload.url).origin}:{})});
           const contexts=await api.runtime.getContexts({contextTypes:['SIDE_PANEL'],documentUrls:[globalThis.location.href]});
           if(contexts.length!==1||!contexts[0].documentId)
             throw Object.assign(new Error('请在真实 Side Panel 中授权书签权限'),{code:'E_DOCUMENT_CHANGED'});
@@ -1112,7 +1172,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
               const request=api.permissions.request({permissions:['webRequest']});
               if(await request!==true)throw Object.assign(new Error('未获 webRequest 权限'),{code:'E_CHROME_PERMISSION_REQUIRED'});
             }
-            if(['browser.bookmarks.create','browser.bookmarks.removeOwned'].includes(operation)){
+            if(['browser.bookmarks.createOwned','browser.bookmarks.removeOwned'].includes(operation)){
               if(!event?.isTrusted)throw Object.assign(new Error('需要用户真实点击'),{code:'E_USER_GESTURE_REQUIRED'});
               // Prepared installed identity; request runs before the first await.
               const request=bookmarkConsent.requestForTool(event,bookmarkPrepared,{sender:bookmarkSender,hostInstanceId});
@@ -1229,6 +1289,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       knowledgeOperation(operation)?KNOWLEDGE_CAPABILITY:
       TIME_REVIEW_OPERATIONS.includes(operation)?TIME_REVIEW_CAPABILITY:
       focus?.operations?.includes(operation)?focus.capability:
+      adblock?.operations?.includes(operation)?adblock.capability:
       aiAccess?.operations?.includes(operation)?aiAccess.capability:
         '__unapproved__'))
       throw new Error('此工具没有被批准使用该能力');
@@ -1287,6 +1348,13 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       assertCurrent:()=>assertSession(source,token),requestBrowserClick,
       openSettings:()=>{tocSettingsOpen=true;render();}
     });
+    if(adblock?.operations?.includes(operation)){
+      const result=await adblock.request({api,tool,operation,payload,revocationEpoch,
+        assertCurrent:()=>assertSession(source,token),requestBrowserClick,
+        openSettings:()=>{tocSettingsOpen=true;render();}});
+      if(operation==='adblock.site.restore')void adblockControls?.refresh?.();
+      return result;
+    }
     if(aiAccess?.operations?.includes(operation))return aiAccess.request({
       api,tool,operation,payload,revocationEpoch,
       assertCurrent:()=>assertSession(source,token),
@@ -1942,6 +2010,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       // Missing optional idle/DNR grants do not block installation.
       if(candidate.capabilities.includes(FOCUS_CAPABILITY))await focus.probe({api});
       if(candidate.capabilities.includes(AI_CAPABILITY))await aiAccess.probe({api});
+      if(candidate.capabilities.includes(ADBLOCK_CAPABILITY))await adblock.probe({api,tool:candidate});
       const result=await installReviewedSidebarTool({api,lockManager,candidate,
         baseline,reviewApproved:true,
         market:release?{marketId:release.id,sha256:release.sha256,operationId}:null,
@@ -2110,6 +2179,34 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     void toggleContextMenu(event).catch(error=>notice(
       (error?.code||'E_BROWSER')+'：'+String(error?.message||error).slice(0,200),true));
   });
+  // Optional Chrome permission must be requested in this real extension-owned
+  // click, before any await. Package/epoch-bound Full consent is distinct.
+  listen(fullBookmarkButton,'click',event=>{
+    if(!event?.isTrusted||!active||readOnlyPreview||busy||enableReadError||
+      !isFullBookmarkTool(active)||!sidebarToolEnabled(enableRecords,active.id))return;
+    const tool=active,epoch=revocationEpochs[tool.id]??null;
+    const grant=menuGrants?.[tool.id];
+    const hadConsent=grant?.bookmarkFull===true&&grant.version===tool.version&&grant.installEpoch===epoch;
+    const permission=hadConsent?Promise.resolve(true):api.permissions.request({permissions:['bookmarks']});
+    fullBookmarkButton.disabled=true;
+    void (async()=>{
+      if(await permission!==true)throw Object.assign(new Error('未授予 Chrome 全部书签权限'),{code:'E_CHROME_PERMISSION_REQUIRED'});
+      if(disposed||!active||!samePackage(active,tool)||
+        (revocationEpochs[tool.id]??null)!==epoch)
+        throw Object.assign(new Error('工具已变化，请重新审阅完整书签授权'),{code:'E_TOOL_CHANGED'});
+      const packageHash=await sidebarToolPackageHash(tool);
+      const reply=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
+        operation:'browser.bookmarks.fullConsent',
+        hostInstanceId:new URL(globalThis.location.href).searchParams.get('hostInstanceId'),
+        toolId:tool.id,toolVersion:tool.version,installEpoch:epoch,packageHash,enabled:!hadConsent});
+      if(!reply?.ok)throw Object.assign(new Error(reply?.error?.message||'完整书签授权未确认'),
+        {code:reply?.error?.code||'E_BROWSER'});
+      const stored=await api.storage.local.get(BROWSER_MENU_GRANTS_STORE);
+      menuGrants=stored[BROWSER_MENU_GRANTS_STORE]||{};
+      notice(hadConsent?'已撤销本工具完整书签访问':'已授权本工具访问全部书签');
+    })().catch(error=>notice((error?.code||'E_PERMISSION')+'：'+String(error?.message||error),true))
+      .finally(()=>{render();});
+  });
   listen(settingsButton,'click',()=>{
     if(!active||readOnlyPreview||busy)return;
     tocSettingsOpen=!tocSettingsOpen;tocScope='site';render();backButton.focus?.({preventScroll:true});
@@ -2198,6 +2295,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       const nextPage=pageKey();
       if(nextPage===previousPage)return;
       previousPage=nextPage;
+      // Refresh trusted AdBlock current hostname after real tab navigation.
+      if(active?.id===ADBLOCK_ID)void adblockControls?.refresh?.();
       if(frame&&active&&instance)frame.contentWindow?.postMessage({
         protocol:SIDEBAR_TOOL_PROTOCOL,kind:'page-changed',instance,toolId:active.id
       },'*');
@@ -2205,7 +2304,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     listeners.push(unsubscribe);
   }
   render();
-  return Object.freeze({ready,openTool,openSettings,openImport,openBookmarks,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,openInTab,closeTool,setVisible,dispose(){
+  return Object.freeze({ready,openTool,openSettings,openOfficialReview,openImport,openBookmarks,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,openInTab,closeTool,setVisible,dispose(){
     if(disposed)return;
     cancelActionReview();bookmarkManager?.dispose();destroyFrame();fileSelection++;disposed=true;visible=false;
     for(const release of listeners.splice(0))release();

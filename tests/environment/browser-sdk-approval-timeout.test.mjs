@@ -9,7 +9,7 @@ test('R2–R3 browser operations awaiting visible user approval retain a 120s sa
   assert.equal(sidebarToolRequestTimeout(operation,'browser-probe'),120000,operation);
 });
 test('installed Bookmarks and Scheduler approval survives reading the trusted Chrome prompt',()=>{
- for(const operation of ['browser.bookmarks.create','browser.bookmarks.removeOwned','browser.scheduler.create'])
+ for(const operation of ['browser.bookmarks.createOwned','browser.bookmarks.removeOwned','browser.scheduler.create'])
   assert.equal(sidebarToolRequestTimeout(operation,'browser-probe'),120000,operation);
  for(const operation of ['browser.scheduler.listOwn','browser.scheduler.cancelOwn'])
   assert.equal(sidebarToolRequestTimeout(operation,'browser-probe'),8000,operation);

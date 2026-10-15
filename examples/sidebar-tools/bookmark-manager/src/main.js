@@ -18,7 +18,9 @@ const errorText=error=>String(error?.message||error||'操作失败').slice(0,280
 const authorityLost=error=>[
   'E_BOOKMARK_PERMISSION','E_GRANT_REVOKED','E_BOOKMARK_SCOPE',
   'E_CHROME_PERMISSION_REQUIRED','E_TOOL_CAPABILITY_REQUIRED',
-  'E_R11_BOOKMARKS_INCOMPLETE','E_TOOL_DISABLED','E_CONTEXT'
+  'E_R11_BOOKMARKS_INCOMPLETE','E_TOOL_DISABLED','E_CONTEXT',
+  'E_SDK_MISSING','E_SDK_STATUS',
+  'E_BOOKMARK_FULL_CONSENT_REQUIRED','E_TOOL_CHANGED','E_OWNER'
 ].includes(error?.code);
 const notice=(message='',error=false)=>{
   const el=q('bm-notice');el.textContent=message;el.dataset.error=String(error);
@@ -37,8 +39,12 @@ const busy=value=>{
   for(const button of root.querySelectorAll('button'))button.disabled=value;
 };
 function gate(text){
+  // A late successful read must never resurrect sensitive data after revocation.
+  s.session++;
   endWatch();
-  s.tree=null;s.selection=null;s.mode='tree';s.folder=null;s.menu=null;
+  s.tree=null;
+  busy(false);
+  q('bm-refresh').disabled=false;s.selection=null;s.mode='tree';s.folder=null;s.menu=null;
   q('bm-workspace').hidden=true;q('bm-gate').hidden=false;
   q('bm-gate-reason').textContent=text;
 }

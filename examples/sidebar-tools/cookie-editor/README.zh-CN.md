@@ -1,22 +1,25 @@
 # Cookie Editor · 正式 Cookies SDK 安装工具
 
-**入口：** Side Panel「扩展」→ 查找官方候选「Cookie Editor」→ 审阅安装 → 打开；也可将本目录源码打包为 JSON 后手动导入。默认中文，官方目录仍为 `installationPolicy: optional`；工具包 **2.0.6 / opendesk.sidebar-tool.v2**。**历史 2.0.4 隔离 CFT 候选**曾通过真实发现、安装、授权、读取、编辑、新建、保存回读和精确删除；该记录仅适用于当时的工具包。**当前 2.0.6 的 Mac Chrome 安装/导入/导出/缩放矩阵仍为 NOT_TESTED**；不能将历史截图、回执或分数延用为当前版本的 PASS/95+。所有 Cookie 修改均从已安装工具 UI 发起。
+**入口：** Side Panel「扩展」→ **Cookie Editor → 打开**。首次安装浏览器扩展时，可信离线目录自动预装工具包，不运行工具代码、不自动授权 Cookie 网站；旧 Profile 未安装时，直接在「扩展」列表点击「安装」进行可信审阅，然后打开。也可将本目录源码打包为 JSON 后手动导入。默认中文，官方目录为 `installationPolicy: preinstalled`；工具包 **2.0.6 / opendesk.sidebar-tool.v2**。**历史 2.0.4 隔离 CFT 候选**曾通过真实发现、安装、授权、读取、编辑、新建、保存回读和精确删除；该记录仅适用于当时的工具包。**当前 2.0.6 的 Mac Chrome 安装/导入/导出/缩放矩阵仍为 NOT_TESTED**；不能将历史截图、回执或分数延用为当前版本的 PASS/95+。所有 Cookie 修改均从已安装工具 UI 发起。
 
 ## 快速开始：使用已安装扩展，或编译本地 JSON
 
-**路径 A：安装官方候选，不需要单独编译本工具。** 使用包含当前 Cookie Editor 官方发行和 Cookies SDK 的 OpenDesk Browser 扩展，打开 Side Panel →「扩展」→ 通过添加/搜索官方应用找到「Cookie Editor」→「安装」→ 阅读能力申请 → **确认安装** → 在已安装列表中 **主动打开**。本工具在 `official-tools/catalog.json` 中的策略是 `optional`，不是自动预装；**如果旧扩展内没有该候选，更新扩展构建后再找，单独修改源码并不会自动更新运行中的扩展**。
+**路径 A：使用内置官方工具，不需要单独编译本工具。** 全新 OpenDesk Browser 安装自动预装 Cookie Editor：Side Panel →「扩展」→ Cookie Editor → **打开**；首次使用在工具可信「设置」中独立批准网站和所需 Cookie 权限。对于已有 Chrome Profile，更新版本、重启、访问「扩展」或主动卸载后不会强制补装；如果未安装，会作为默认可见的可信预装候选，选择 **安装 → 审阅能力 → 确认安装 → 打开**。工具安装不运行 Cookie 代码，也不自动批准任何网站。若正在运行的旧版扩展缺少官方候选，仍须让原 `dist/development` 开发构建正确更新；修改 GitHub 源码并不会自动更新已加载的扩展。
 
 **路径 B：安装本地正在开发的版本（推荐用于修改 UI、JS、CSS）。** Node.js 要求 **≥22.12.0**；在仓库根目录运行：
 
 ```bash
 npm ci --ignore-scripts --no-audit --no-fund  # 初次准备依赖；已有依赖可省略
 npm run build:sidebar-tool -- examples/sidebar-tools/cookie-editor
-# 生成：artifacts/sidebar-tools/cookie-editor/2.0.6/cookie-editor.opendesk-tool.json
+# 同步更新：examples/sidebar-tools/cookie-editor/cookie-editor.opendesk-tool.json
+# 同时保留：artifacts/sidebar-tools/cookie-editor/2.0.6/cookie-editor.opendesk-tool.json
 ```
 
-然后在当前 Chrome 的 OpenDesk Side Panel →「扩展」→ **更多操作 → 导入本地工具包**，选择上面的 `.opendesk-tool.json` → 核对 ID `cookie-editor`、版本、文件来源和 Cookies 敏感能力 → **确认安装/更新** → 在已安装列表中点击 **打开**。如果原有同 ID 工具已经安装，应走“更新”而不是先卸载（卸载会清除工具本地数据及授权）。每次改完本工具的 `src/...` 后重新执行上述打包并**明确导入确认**；正式发布更新时同步评审并提高 `tool.config.json` 版本。导入动作本身不运行代码，也不自动授予某个网站的 Cookie 访问权限。
+**项目目录已附带可直接导入的 `cookie-editor.opendesk-tool.json`。** 克隆或下载该目录的开发者不需要 Node.js 就能安装测试。它是从 `tool.config.json` 和 `src/` 通过原打包器生成的可移植快照；修改源码后必须用上面命令同步刷新并提交，测试会比较构建结果与提交文件是否完全一致。不要手工编辑生成的 JSON。
 
-**为什么源码目录没有可导入 JSON？** `tool.config.json` 是构建输入，不能直接导入；唯一可导入文件由现有 `scripts/build-sidebar-tool.mjs` 生成到 `artifacts/sidebar-tools/<id>/<version>/`。这些生成文件不作为第二份手工维护源码提交。该工具是 **OpenDesk Sidebar App**，不是能通过 `chrome://extensions`「加载已解压的扩展程序」直接安装的 Chrome Manifest 扩展。
+然后在当前 Chrome 的 OpenDesk Side Panel →「扩展」→ **更多操作 → 导入本地工具包**，选择目录内的 `cookie-editor.opendesk-tool.json`（或原 `artifacts/` 输出文件） → 核对 ID `cookie-editor`、版本、文件来源和 Cookies 敏感能力 → **确认安装/更新** → 在已安装列表中点击 **打开**。如果原有同 ID 工具已经安装，应走“更新”而不是先卸载（卸载会清除工具本地数据及授权）。每次改完本工具的 `src/...` 后重新执行上述打包并**明确导入确认**；正式发布更新时同步评审并提高 `tool.config.json` 版本。导入动作本身不运行代码，也不自动授予某个网站的 Cookie 访问权限。
+
+**两个 JSON 的区别：** `tool.config.json` 是构建配置，不能直接导入；`cookie-editor.opendesk-tool.json` 才是可直接安装的发布包。后者由原有 `scripts/build-sidebar-tool.mjs` 生成，`artifacts/sidebar-tools/<id>/<version>/` 是保留的本机输出。随项目提交的预生成 JSON **不是第二份业务源码**，所有修改应从 `src/` 重新打包，自动一致性测试能防止包与代码漂移。该工具是 **OpenDesk Sidebar App**，不是能通过 `chrome://extensions`「加载已解压的扩展程序」直接安装的 Chrome Manifest 扩展。
 
 **什么时候才需要编译整个 OpenDesk Browser？** 如果刚修改了 `src/` 中的可信 Cookies Host、Browser SDK、权限或 Catalog，或者当前安装的旧扩展缺少相应能力，须在独立开发 Chrome Profile 中从仓库根目录执行 `npm run build:dev`，用 `chrome://extensions`「加载已解压的扩展程序」加载 `dist/development/`，重新打开 Side Panel。**只有本目录 UI/JS/CSS 变化时，不需要重编整个扩展**。验证真实 Cookie 读写前先打开普通 HTTP(S) 网站，并在已安装工具的可信「设置」中按网站和能力分别授权；不要把“工具已安装”误当作“已经有 Cookie 权限”。
 

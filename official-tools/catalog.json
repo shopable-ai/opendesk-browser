@@ -45,6 +45,12 @@
       "installationPolicy": "optional"
     },
     {
+      "id": "adblock",
+      "project": "examples/sidebar-tools/adblock",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional"
+    },
+    {
       "id": "ai-vip-share",
       "project": "examples/sidebar-tools/ai-vip-share",
       "kind": "sidebar-tool",
@@ -54,7 +60,7 @@
       "id": "cookie-editor",
       "project": "examples/sidebar-tools/cookie-editor",
       "kind": "sidebar-tool",
-      "installationPolicy": "optional"
+      "installationPolicy": "preinstalled"
     }
   ]
 }

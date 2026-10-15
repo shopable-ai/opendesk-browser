@@ -34,10 +34,25 @@ const capabilityStatus=obj({operation:str(120),apiVersion:str(32),
   authorization:obj({tool:str(40),browser:str(40),site:str(40)},['tool','browser','site']),
   callableNow:bool,requiresUserGesture:bool,reasonCode:nullableString,nextAction:nullableString},
   ['operation','callableNow','reasonCode']);
+const bookmarkId=str(128,'^.{1,128}$');
+const maybeId={anyOf:[bookmarkId,{type:'null'}]};
+const maybeIndex={anyOf:[num(0,1000000),{type:'null'}]};
+const maybeUrl={anyOf:[str(4096),{type:'null'}]};
+const maybeName={anyOf:[str(80),{type:'null'}]};
+const bookmarkNode=obj({id:bookmarkId,parentId:maybeId,index:maybeIndex,
+  title:str(256),url:str(4096),unmodifiable:str(80),folderType:str(80),
+  dateAdded:{type:'number'},dateGroupModified:{type:'number'},syncing:bool},['id','title','parentId','index']);
+const expectedBookmark=obj({id:bookmarkId,parentId:maybeId,index:maybeIndex,
+  title:str(256),url:maybeUrl,unmodifiable:maybeName,folderType:maybeName},
+  ['id','parentId','index','title','url','unmodifiable','folderType']);
+const bookmarkPage=obj({snapshotRef:ref,nodes:arr(bookmarkNode,200),nextCursor:str(512)},
+  ['snapshotRef','nodes']);
+const bookmarkEvent=obj({seq:num(1),kind:{enum:['created','removed','changed','moved','childrenReordered','importBegan','importEnded']},
+  timestamp:num(),id:bookmarkId,details:{type:'object',additionalProperties:true}},['seq','kind','timestamp']);
 const cookieEvent=obj({seq:num(1),name:str(256),domain:str(253),path:str(512),
   removed:bool,cause:str(40),at:num()},['seq','name','domain','path','removed','cause','at']);
 const ops=Object.freeze({
- 'browser.capabilities.list':[empty,arr(capabilityListRow,64)],
+ 'browser.capabilities.list':[empty,arr(capabilityListRow,96)],
  'browser.capabilities.getStatus':[obj({operation:str(120,'^browser\\.[A-Za-z.]+$'),url:http},['operation']),
    capabilityStatus],
  'browser.contextMenu.getStatus':[empty,obj({enabled:bool,approvedOrigins:arr(http,30),
@@ -63,10 +78,31 @@ const ops=Object.freeze({
      ['downloadRef','state']),50),nextCursor:ref},['items'])],
  'browser.downloads.cancelOwned':[obj({downloadRef:ref},['downloadRef']),
    obj({cancelled:bool},['cancelled'])],
- 'browser.bookmarks.create':[obj({url:http,title:str(256),parentRef:ref},['url']),
+ 'browser.bookmarks.createOwned':[obj({url:http,title:str(256),parentRef:ref},['url']),
    obj({bookmarkRef:ref},['bookmarkRef'])],
  'browser.bookmarks.removeOwned':[obj({bookmarkRef:ref},['bookmarkRef']),
    obj({removed:bool},['removed'])],
+ 'browser.bookmarks.getTree':[obj({cursor:str(512),limit:num(1,100)}),bookmarkPage],
+ 'browser.bookmarks.get':[obj({id:bookmarkId},['id']),arr(bookmarkNode,16)],
+ 'browser.bookmarks.search':[obj({query:{anyOf:[str(512),obj({query:str(512),title:str(256),url:http})]},
+   cursor:str(512),limit:num(1,100)}),bookmarkPage],
+ 'browser.bookmarks.create':[obj({title:str(256),url:http,parentId:bookmarkId,index:num(0,1000000),
+   sourcePage:obj({url:http,tabRef:ref,documentRef:ref},['url','tabRef','documentRef'])},['title']),bookmarkNode],
+ 'browser.bookmarks.update':[obj({id:bookmarkId,changes:obj({title:str(256),url:http}),
+   expected:expectedBookmark},['id','changes','expected']),bookmarkNode],
+ 'browser.bookmarks.move':[obj({id:bookmarkId,destination:obj({parentId:bookmarkId,index:num(0,1000000)},['parentId']),
+   expected:expectedBookmark},['id','destination','expected']),bookmarkNode],
+ 'browser.bookmarks.remove':[obj({id:bookmarkId,expected:expectedBookmark},['id','expected']),obj({removed:bool},['removed'])],
+ 'browser.bookmarks.prepareRemoveTree':[obj({id:bookmarkId,snapshotRef:ref,expected:expectedBookmark,
+   descendantCount:num(1,20000)},['id','snapshotRef','expected','descendantCount']),
+   obj({ticket:ref,targetId:bookmarkId,descendantCount:num(1,20000),expiresAt:num()},['ticket','targetId','descendantCount','expiresAt'])],
+ 'browser.bookmarks.removeTree':[obj({id:bookmarkId,ticket:ref},['id','ticket']),obj({removed:bool},['removed'])],
+ 'browser.bookmarks.observe.start':[obj({maxEvents:num(1,100),durationMs:num(1000,30000)}),
+   obj({sessionRef:ref,cursor:str(12),expiresAt:num()},['sessionRef','cursor','expiresAt'])],
+ 'browser.bookmarks.observe.read':[obj({sessionRef:ref,cursor:str(12),limit:num(1,50)},['sessionRef']),
+   obj({events:arr(bookmarkEvent,50),nextCursor:str(12),expiresAt:num(),
+     gapCount:num(),droppedCount:num()},['events','nextCursor','expiresAt','gapCount','droppedCount'])],
+ 'browser.bookmarks.observe.stop':[obj({sessionRef:ref},['sessionRef']),obj({stopped:bool},['stopped'])],
  'browser.scheduler.create':[obj({taskId:str(128),revision:str(128,'^[1-9][0-9]{0,15}$'),
    schedule:obj({kind:str(128),expression:str(256)},['kind','expression'])},['taskId','revision','schedule']),
    obj({scheduleRef:ref,status:{enum:['active','pending']}},['scheduleRef','status'])],

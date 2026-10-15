@@ -97,7 +97,7 @@ test('trusted history search rejects forged sender, missing permission and unsaf
 
 test('permission request for tool starts synchronously from trusted click and verifies final state',async()=>{
   const f=permissionApi(),consent=createToolPermissionConsent({api:f.api});
-  const prepared=await consent.prepare({toolId:'bookmark-tool',capability:'browser.bookmarks.create',origin:'https://example.com'});
+  const prepared=await consent.prepare({toolId:'bookmark-tool',capability:'browser.bookmarks.createOwned',origin:'https://example.com'});
   assert.equal(prepared.toolVersion,'1.0.0');
   assert.match(prepared.packageHash,/^[a-f0-9]{64}$/);
   assert.equal(prepared.installEpoch,'epoch-1');

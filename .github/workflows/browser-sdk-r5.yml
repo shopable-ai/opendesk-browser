@@ -13,6 +13,7 @@ on:
       - 'src/platform/chrome/browser-tabs.js'
       - 'src/platform/chrome/browser-downloads.js'
       - 'src/platform/chrome/bookmarks.js'
+      - 'src/platform/chrome/bookmarks-full.js'
       - 'src/platform/chrome/history.js'
       - 'src/platform/chrome/permission-gate.js'
       - 'src/platform/tasks/schedule-*.js'
@@ -77,6 +78,8 @@ jobs:
         run: node --test --test-reporter=spec tests/environment/fixed-entries-audit.test.mjs tests/environment/sw-budget-policy.test.mjs
       - name: R10.7 public SDK wrapper routes and trusted-boundary regressions
         run: node --test --test-reporter=spec tests/environment/browser-sdk-r107-public-routing.test.mjs tests/environment/browser-sdk-r11-declarative.test.mjs tests/environment/browser-sdk-r11-bindings.test.mjs tests/environment/browser-sdk-r11-native-direct.test.mjs tests/environment/browser-sdk-r11-generated-catalog.test.mjs
+      - name: R11.2 Full Bookmarks native-driver fixture, 500+ pagination and hostile-operator regression
+        run: node --test --test-reporter=spec tests/environment/browser-sdk-r112-full-bookmarks.test.mjs
       - name: R10.7 installed acceptance tool public-call UI and package regression
         run: node --test --test-reporter=spec tests/environment/browser-sdk-r107-installed-acceptance.test.mjs
       - name: R10.7 native driver PREPARE (not a Native PASS)

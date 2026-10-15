@@ -76,3 +76,17 @@ Finish finite approved Host Binding dispatcher with no raw `chrome[namespace][me
 - 独立回归测试使用**仅测试夹具**的 `browser.runtime.getPlatformInfo` 模拟一次批准，验证自动派生接口目录、Registry、Schema 和 Chrome Mock Promise 运行，全程不真实批准或开放这个 API；伪造 Native 名称、强行升级写操作、权限漂移、异常返回和撤权均为拒绝路径。
 - 官方 55 项的 Registry/安全含义及 Manifest 未变化；`src/framework/sdk/browser-direct.generated.js` 暂为 `[]`，说明当前冻结批准合同并没有符合直接透传语义的项。不能把编译器可用性说成已经向工具开放 1,830 项。
 - 本轮相关 GitHub CI 在 [先行候选 R5](https://github.com/shopable-ai/opendesk-browser/actions/runs/38597519085) 和 [先行候选 R13](https://github.com/shopable-ai/opendesk-browser/actions/runs/38597527475) 有 PASS；最新编译闭环的 Node / Build / CI 需以本段实际最终源码候选的工作流结论另行核验，不自动继承。真实 Mac Chrome 仍 **NOT_TESTED**。
+
+## SDK R11.2 · Full Bookmarks P0 源码候选（2026-10-15）
+
+- 任务：[Issue #75](https://github.com/shopable-ai/opendesk-browser/issues/75)。起始核查提交 `fca4b56d0654d088e7802534139f5429358efa0d`，提交候选前已有其他 Agent 推进 `main`，写入以最新 `main` 为父并合并重叠文件。最终提交 SHA 由 GitHub commit history 和候选 CI 标识，不得借历史 SHA 冒充验收证据。
+- 公开 Registry / Binding 从 53 增至 **65** 项，Host-only **2** 项不变；批准总数 **67** 项。Owned 原 `bookmarks.create` 正式更名为 `bookmarks.createOwned`（保留 `removeOwned`），无旧兼容别名。Full 公开 **12** 个：`getTree`、`get`、`search`、`create`、`update`、`move`、`remove`、`prepareRemoveTree`、`removeTree`、`observe.start`、`observe.read`、`observe.stop`。
+- Full 只授予显式声明 `browser.bookmarks.full` 的安装工具；`browser.bookmarks` 只允许 Owned。独立可信 Side Panel 控件请求可选 Chrome `bookmarks` 权限后，将 Full 同意状态绑定安装 ID、package hash、version 与 install epoch；每次 SDK→唯一 Host→Registry Binding→可信 Chrome Driver 操作均重新检查权限。沙箱只获得脱敏普通 JSON，不获得原生 `chrome.bookmarks`。写入必须经过可信用户单次点击及原有 `browser.intent.confirm` 票据，不开第二条 Bridge。
+- 新 `bookmarks-full.js` 为 Full 专属的最小可信 Driver，Owned Driver 继续保留工具自有 BookmarkRef/隔离语义。对所有大型树输出有界节点页，快照仅 Worker 内存，最大 20000 节点/8MB、120 秒 TTL、每页 ≤10500 字节，Cursor 绑定工具/package/install。快照冻结意味着分页期间的 Chrome 外部修改不会伪装成同一次新快照；Worker 重启后显式过期，可重新同步。
+- 非空目录删除：`prepareRemoveTree` 以完整树快照、目标 metadata、后代节点数及完整子树哈希生成 15 秒、工具安装绑定的票据；`removeTree` 单次消耗票据，Host 在真实 Chrome 调用前再次核验授权、根目录/受管理保护、子树签名。Chrome Bookmarks 无 compare-and-swap 事务；**不能保证 Chrome UI 在最后一次比对与删除之间不存在并发操作**；UNKNOWN 写入不自动重试。
+- Chrome `onCreated/onRemoved/onChanged/onMoved/onChildrenReordered/onImportBegan/onImportEnded` 通过 Full Observe 有界缓存间接暴露；超量/缺口/撤权/重启明确失败或产生缺口，按 Chrome 官方语义不假设递归删除每个子项各有事件。
+- 消费端只改 `examples/sidebar-tools/bookmark-manager/` 的 Full Manifest、Status 适配，不重做 UI、不迁移 `src/bookmark-manager/`；官方 SDK 验收示例同步迁移 `createOwned`。
+- 有关源码与声明式矩阵：`src/framework/sdk/browser-contract.js`、`browser-schemas.js`、`src/platform/chrome/bookmarks.js`、`bookmarks-full.js`、`context-menus.js`、`permission-gate.js`、`src/ui/sidebar-tools.js`、`src/ui/sidebar-tools/package.js`，批准矩阵和生成 Catalog、验收台账、专项测试同步更新。
+- **测试证据要求**：本云端 GitHub 仓库写入会话无法访问用户 Mac Chrome、工作目录、已有本地 watcher，也无法运行 Node/npm 构建。提交前的 GitHub blob 创建、接口审计或源码静态核查不是 `npm run check`、`npm test`、`npm run build`、`build:dev`、`verify` 的通过证据；如 Actions 确认运行，应以该 commit SHA 对应的实际结论单独记录。真实 Chrome GUI 和 Service Worker 原生验收均 **NOT_TESTED**，不得把 Issue #75 关闭或产品完成度记 95+。
+- 必须由本地 Codex 基于最新 `main` 执行 `AGENTS.md` 开发/生产 Profile 隔离规范、全套 Node/Build/Verify、真 Chrome 安装与拒绝/允许、550+ 页读取、移动/修改/删除、递归删除重检、事件、撤权、Worker 重启、跨工具隔离；保留匹配 source SHA / 包 Hash / profile / extension ID / Chrome Version 的原始证据。可继续修复真实失败，但不得通过减弱权限或删有效测试绿灯。
+- 目前不能独立给出 95+ 的专家产品评分；每一维须以实际测试和复核结果单独评定，缺少证据标 **NOT_TESTED** 而不是预估通过。

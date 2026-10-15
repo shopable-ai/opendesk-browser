@@ -377,6 +377,7 @@
           <button type="button" id="sidebar-tool-remove" class="sidebar-tool-icon-action od-icon-button" title="卸载工具及本地数据" aria-label="卸载当前工具及本地数据" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 4h4m-8 3 1 13h10l1-13M10 11v5m4-5v5"></path></svg></button>
         </div>
         <p id="sidebar-tool-readonly-banner" class="sidebar-tool-status" data-state="readonly" role="note" hidden>开发只读预览 · 未安装。模拟读取仅返回空值；禁止写入、发送消息、控制网页或运行任务。需要正式使用时，请另行审阅并安装工具包。</p>
+        <section id="sidebar-tool-adblock-native" aria-label="广告拦截可信控制" hidden></section>
         <div id="sidebar-tool-frame" class="sidebar-tool-frame"></div>
         <button type="button" id="sidebar-tool-launch" class="od-button" hidden>打开工具</button>
         <section id="sidebar-tool-retired-draft" class="sidebar-tool-settings-view od-surface" aria-label="停用前的草稿" hidden>
@@ -746,7 +747,7 @@
       </div>
     </div>
   <section aria-label="当前网页" class="developer-target">
-    <details id="developer-target-detail" class="od-disclosure od-disclosure--flat">
+    <details id="developer-target-detail" class="od-disclosure">
       <summary class="developer-page-summary">
         <span class="developer-page-label">当前网页</span>
         <span id="script-current-page-host" title="当前活动网页">正在识别…</span>
@@ -774,7 +775,7 @@
         <div class="row"><button id="local-install-confirm" type="button" disabled class="od-button">确认安装固定版本</button><button id="local-install-cancel" type="button" class="od-button od-button--secondary">取消</button></div>
         <p id="local-install-status" role="status" aria-live="polite"></p>
       </section>
-      <details class="od-disclosure od-disclosure--flat"><summary>高级诊断</summary><p id="local-project-diagnostics">运行后显示版本与准备耗时。</p></details>
+      <details class="od-disclosure"><summary>高级诊断</summary><p id="local-project-diagnostics">运行后显示版本与准备耗时。</p></details>
       <button id="local-project-connect" class="local-project-connect od-button od-button--secondary" type="button">连接本机 OpenDesk ↗</button>
       <details id="local-project-guide" class="local-project-guide od-disclosure od-disclosure--info">
         <summary>首次使用：连接方法</summary>
@@ -787,7 +788,7 @@
         <button id="local-project-guide-open" type="button" class="od-button od-button--secondary">查看首次配置命令和示例 ↗</button>
         <p>也可在仓库内查阅 <code>docs/api/quickstart.zh-CN.md</code> 的「首次配置」章节。</p>
       </details>
-      <details id="local-project-params-tools" hidden class="od-disclosure od-disclosure--flat"><summary>项目参数 JSON（Controller 可选）</summary><label for="local-project-params" class="visually-hidden">本地项目参数</label><textarea id="local-project-params" rows="3" spellcheck="false" class="od-field">{}</textarea></details>
+      <details id="local-project-params-tools" hidden class="od-disclosure"><summary>项目参数 JSON（Controller 可选）</summary><label for="local-project-params" class="visually-hidden">本地项目参数</label><textarea id="local-project-params" rows="3" spellcheck="false" class="od-field">{}</textarea></details>
     </section>
     <div id="manual-source-editor">
     <p id="program-source-info" class="identity od-technical" role="status" hidden></p>
@@ -810,7 +811,7 @@
   return {title: await page.title(), url: await page.url(), value: params.value};
 }</textarea>
     <p id="page-component-hint" class="hint">保存草稿不会运行网页</p>
-    <details id="page-dependency-panel" class="od-stack od-disclosure od-disclosure--flat" aria-label="第三方 Classic JS 依赖固定详情" hidden>
+    <details id="page-dependency-panel" class="od-stack od-disclosure" aria-label="第三方 Classic JS 依赖固定详情" hidden>
       <summary>第三方 JS 依赖 · 自动固定与缓存（高级详情）</summary>
       <p id="page-dependency-status" role="status" aria-live="polite">点击运行会自动固定安全依赖；这里仅显示高级详情。</p>
       <div id="page-dependency-list" class="od-stack" role="group" aria-label="每项依赖来源与下载方式"></div>
@@ -833,7 +834,7 @@
       <div class="od-toolbar"><button id="page-component-remote-prepare" type="button" class="od-button od-button--secondary">检查依赖</button><button id="page-component-remote-cancel" type="button" hidden class="od-button od-button--secondary">取消准备</button></div>
       <details id="page-component-remote-details" hidden class="od-disclosure od-disclosure--flat"><summary>固定模块、许可证与 SHA-256</summary><pre id="page-component-remote-detail-body"></pre></details>
     </section>
-    <details id="program-generated" hidden class="od-disclosure od-disclosure--flat"><summary>高级诊断：查看编译产物</summary><pre id="program-generated-source"></pre></details>
+    <details id="program-generated" hidden class="od-disclosure"><summary>高级诊断：查看编译产物</summary><pre id="program-generated-source"></pre></details>
     </div>
     <details id="manual-project-params-tools" class="developer-params od-disclosure"><summary>参数 JSON（可选）</summary><label for="script-params" class="od-field-label">参数 JSON</label><textarea id="script-params" rows="3" spellcheck="false" class="od-field">{"value":0}</textarea></details>
 

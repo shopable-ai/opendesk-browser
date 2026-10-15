@@ -24,6 +24,22 @@ test('R4 trusted candidate shows only after search or available filter',()=>{
   assert.equal(filterExtensionEntries(rows,{scope:'available'}).length,2);
   assert.equal(filterExtensionEntries(rows,{scope:'local'}).length,1);
 });
+test('R4 shows missing trusted preinstalls on the default Extension list, without publishing optional apps',()=>{
+  const cookie={id:'opendesk/cookie-editor',toolId:'cookie-editor',
+    packageTitle:'Cookie Editor',description:'Cookie 管理',version:'2.0.6',
+    installationPolicy:'preinstalled'};
+  const optional={id:'opendesk/optional-app',toolId:'optional-app',
+    packageTitle:'其他应用',description:'可选工具',version:'1.0.0',installationPolicy:'optional'};
+  const entries=composeExtensionEntries({installed:[tool],official:[cookie,optional]});
+  assert.deepEqual(new Set(filterExtensionEntries(entries).map(row=>row.id)),
+    new Set(['shared','cookie-editor']));
+  assert.deepEqual(new Set(filterExtensionEntries(entries,{scope:'available'}).map(row=>row.id)),
+    new Set(['cookie-editor','optional-app']));
+  assert.equal(filterExtensionEntries(entries,{query:'Cookie Editor'})[0]?.id,'cookie-editor');
+  assert.equal(filterExtensionEntries(entries,{scope:'local'}).length,1);
+  assert.equal(entries.find(row=>row.id==='cookie-editor').installed,false,
+    'discoverability must not pretend the tool is installed or grant any capability');
+});
 test('R4 discards Page records that do not match their installed manifest hash',()=>{
   assert.deepEqual(composeExtensionEntries({pages:[{...page,manifestHash:'different'}]}),[]);
 });
@@ -44,6 +60,12 @@ test('R4 source retains one trusted installer, one combined list and high-zoom r
   assert.doesNotMatch(html,/id="tab-discover"|id="workbench-local-discover"/);
   assert.match(shell,/importHost\.append\(originalImport\)/,'trusted installer is physically reused');
   assert.match(center,/restoreRowFocus\(focusKey,focusAction\)/,'return retains list keyboard identity');
+  assert.match(center,/sidebarTools\.openOfficialReview\(row\.id\)/,
+    'one trusted official review replaces the extra marketplace hop');
+  assert.match(center,/sidebarTools\.openTool\(row\.id\)/,
+    'installed version is directly runnable even when an update is available');
+  assert.doesNotMatch(center,/if\(row\.update\)\{if\(row\.release\)openMarket/,
+    'an update cannot hijack the installed app primary action');
   assert.match(center,/detailFocusAction='toggle'/,'Page switch can restore focus after async authority update');
   assert.match(css,/@media\(max-width:240px\)/,'200 percent zoom retains wrapped controls');
   assert.match(css,/\.ec-name-line\{flex-wrap:wrap/);

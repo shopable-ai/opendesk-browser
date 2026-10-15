@@ -15,12 +15,12 @@ const sandbox=async()=>{
   return ctx;
 };
 
-test('R2 builds with existing v2 packer; does not claim a nonexistent Full capability',async()=>{
+test('R11.2 builds with v2 packer and independently declares Full Bookmark permission',async()=>{
   const pkg=await createSidebarToolPackage(root);
   assert.equal(pkg.id,'bookmark-manager');
-  assert.equal(pkg.version,'0.2.1');
+  assert.equal(pkg.version,'0.2.4');
   assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
-  assert.deepEqual(pkg.capabilities,[]);
+  assert.deepEqual(pkg.capabilities,['browser.bookmarks.full']);
   assert.equal(pkg.scripts.length,2);
   assert.ok(pkg.js.includes('OpenDeskSDK'));
 });
@@ -80,10 +80,10 @@ test('Owned-only installed SDK cannot cause any Full bookmark reads or writes',a
   const ctx=await sandbox();let ownedCalls=0;
   const sdk={
     capabilities:{list:async()=>[
-      {operation:'browser.bookmarks.create',requiredCapabilities:['browser.bookmarks'],status:{callableNow:true}},
+      {operation:'browser.bookmarks.createOwned',requiredCapabilities:['browser.bookmarks'],status:{callableNow:true}},
       {operation:'browser.bookmarks.removeOwned',requiredCapabilities:['browser.bookmarks'],status:{callableNow:true}}
     ],getStatus:async()=>({callableNow:true})},
-    bookmarks:{create:async()=>{ownedCalls++},removeOwned:async()=>{ownedCalls++}}
+    bookmarks:{createOwned:async()=>{ownedCalls++},removeOwned:async()=>{ownedCalls++}}
   };
   const service=ctx.BookmarkR2Service.create(sdk),result=await service.probe();
   assert.equal(result.ready,false);
@@ -292,10 +292,104 @@ test('R2.1 event observation is bounded and uses only the public Full SDK',async
   assert.deepEqual(data.calls.filter(x=>x[0].startsWith('observe.')).map(x=>x[0]),
     ['observe.start','observe.read','observe.stop']);
   data.sdk.bookmarks.observe.read=async()=>({
-    events:[],nextCursor:'2',expiresAt:Date.now()+10000,droppedCount:1});
+    events:[],nextCursor:'2',expiresAt:Date.now()+10000,gapCount:0,droppedCount:1});
   await assert.rejects(service.watchRead(watch),{code:'E_BOOKMARK_EVENT_GAP'});
 });
 
+
+test('R2.3 unavailable capability/status transports fail closed regardless of error code',async()=>{
+  const ctx=await sandbox(),data=fullSdk(ctx,{roots:sample()});
+  const service=ctx.BookmarkR2Service.create(data.sdk);
+  const originalList=data.sdk.capabilities.list;
+  data.sdk.capabilities.list=async()=>{
+    throw Object.assign(new Error('transport'),{code:'E_HOST_TIMEOUT'});
+  };
+  const probe=await service.probe();
+  assert.equal(probe.ready,false);
+  assert.equal(probe.code,'E_SDK_STATUS');
+  await assert.rejects(service.load(),{code:'E_SDK_STATUS'});
+  data.sdk.capabilities.list=originalList;
+  data.sdk.capabilities.getStatus=async()=>{
+    throw Object.assign(new Error('transport'),{code:'E_HOST_TIMEOUT'});
+  };
+  await assert.rejects(service.watchRead({
+    sessionRef:'abcdefghijklmnop',cursor:'0'
+  }),{code:'E_SDK_STATUS'});
+  assert.equal(data.calls.filter(([op])=>['getTree','observe.read'].includes(op)).length,0);
+});
+
+test('R2.3 rejects missing, negative or malformed event gap counters',async()=>{
+  const ctx=await sandbox(),data=fullSdk(ctx,{roots:sample()}),
+    service=ctx.BookmarkR2Service.create(data.sdk);
+  const session={sessionRef:'abcdefghijklmnop',cursor:'0'};
+  for(const bad of [
+    {droppedCount:0},
+    {gapCount:0},
+    {gapCount:-1,droppedCount:0},
+    {gapCount:0,droppedCount:'0'},
+    {gapCount:0,droppedCount:0.5}
+  ]){
+    data.sdk.bookmarks.observe.read=async()=>({events:[],nextCursor:'0',
+      expiresAt:Date.now()+10000,...bad});
+    await assert.rejects(service.watchRead(session),{code:'E_BOOKMARK_EVENT'});
+  }
+});
+
+test('R2.3 revoked UI gate rejects a late tree load and unlocks pending writes',async()=>{
+  const ui=await src('src/main.js');
+  const marker='void refresh();'+String.fromCharCode(10)+'})();'+String.fromCharCode(10);
+  assert.ok(ui.endsWith(marker));
+  const dom=new Map();
+  const element=()=>({dataset:{},style:{},value:'',hidden:false,disabled:false,
+    textContent:'',addEventListener(){},setAttribute(){},replaceChildren(){},
+    append(){},focus(){}});
+  const rootNode={querySelector(selector){
+    if(!dom.has(selector))dom.set(selector,element());
+    return dom.get(selector);
+  },querySelectorAll(){return []},addEventListener(){}};
+  let startLoad,finishLoad;
+  const started=new Promise(resolve=>{startLoad=resolve});
+  const delayed=new Promise(resolve=>{finishLoad=resolve});
+  const service={probe:async()=>({ready:true}),load:()=>{startLoad();return delayed},
+    watchStop:async()=>{},watchStart:async()=>{throw new Error('not needed')}};
+  const ctx=createContext({URL,OpenDeskTool:{root:rootNode},
+    OpenDeskSDK:{browser:{}},BookmarkR2Service:{create:()=>service},
+    BookmarkR2Model:{isFolder:()=>false,
+      projectBookmarkRows:()=>({rows:[],total:0})},
+    document:{createDocumentFragment:element,createElement:element},
+    setTimeout,clearTimeout});
+  const instrumented=ui.slice(0,-marker.length)+
+    'globalThis.__r2Test={gate,mutation,state:s};'+String.fromCharCode(10)+marker;
+  runInContext(instrumented,ctx);
+  await started;
+  ctx.__r2Test.gate('授权已失效');
+  const tree={byId:new Map(),children:new Map(),roots:new Set()};
+  finishLoad(tree);
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(ctx.__r2Test.state.tree,null);
+  assert.equal(rootNode.querySelector('#bm-gate').hidden,false);
+  assert.equal(rootNode.querySelector('#bm-workspace').hidden,true);
+  assert.equal(rootNode.querySelector('#bm-refresh').disabled,false);
+
+  ctx.__r2Test.state.tree=tree;
+  let complete;
+  const pending=new Promise(resolve=>{complete=resolve});
+  const writing=ctx.__r2Test.mutation(()=>pending);
+  assert.equal(ctx.__r2Test.state.busy,true);
+  ctx.__r2Test.gate('授权已失效');
+  complete();await writing;
+  assert.equal(ctx.__r2Test.state.busy,false);
+  for(const code of ['E_BOOKMARK_FULL_CONSENT_REQUIRED','E_TOOL_CHANGED','E_OWNER']){
+    ctx.__r2Test.state.tree=tree;
+    await ctx.__r2Test.mutation(async()=>{
+      throw Object.assign(new Error('Authority revoked'),{code});
+    });
+    assert.equal(ctx.__r2Test.state.tree,null,'lost Full authority must hide tree: '+code);
+    assert.equal(rootNode.querySelector('#bm-gate').hidden,false);
+    assert.equal(rootNode.querySelector('#bm-workspace').hidden,true);
+    assert.equal(ctx.__r2Test.state.busy,false);
+  }
+});
 
 test('R2.1 UI guards current-page identity and observes SDK events with teardown',async()=>{
   const ui=await src('src/main.js');

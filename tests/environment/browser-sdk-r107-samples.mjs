@@ -11,7 +11,26 @@ export const SAMPLE_ARGS = Object.freeze({
   'browser.downloads.getOwned': {downloadRef: REF},
   'browser.downloads.listOwned': {limit: 10},
   'browser.downloads.cancelOwned': {downloadRef: REF},
-  'browser.bookmarks.create': {url: TARGET_URL, title: 'SDK probe'},
+  'browser.bookmarks.createOwned': {url: TARGET_URL, title: 'SDK probe'},
+  'browser.bookmarks.get': {id:'2'},
+  'browser.bookmarks.search': {query:'SDK probe'},
+  'browser.bookmarks.create': {url:TARGET_URL,title:'SDK probe'},
+  'browser.bookmarks.update': {id:'2',changes:{title:'Renamed'},expected:{
+    id:'2',parentId:'1',index:0,title:'SDK probe',
+    url:TARGET_URL,unmodifiable:null,folderType:null}},
+  'browser.bookmarks.move': {id:'2',destination:{parentId:'1'},expected:{
+    id:'2',parentId:'1',index:0,title:'SDK probe',
+    url:TARGET_URL,unmodifiable:null,folderType:null}},
+  'browser.bookmarks.remove': {id:'2',expected:{
+    id:'2',parentId:'1',index:0,title:'SDK probe',
+    url:TARGET_URL,unmodifiable:null,folderType:null}},
+  'browser.bookmarks.prepareRemoveTree': {id:'2',snapshotRef:REF,descendantCount:1,expected:{
+    id:'2',parentId:'1',index:0,title:'SDK probe',
+    url:null,unmodifiable:null,folderType:null}},
+  'browser.bookmarks.removeTree': {id:'2',ticket:REF},
+  'browser.bookmarks.observe.start': {maxEvents:20,durationMs:30000},
+  'browser.bookmarks.observe.read': {sessionRef:REF,cursor:'0',limit:50},
+  'browser.bookmarks.observe.stop': {sessionRef:REF},
   'browser.bookmarks.removeOwned': {bookmarkRef: REF},
   'browser.scheduler.create': {
     taskId: 'sdk-probe', revision: '1',

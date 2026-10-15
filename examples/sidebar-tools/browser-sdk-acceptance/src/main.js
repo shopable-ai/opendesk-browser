@@ -30,7 +30,7 @@ const exampleArgs=operation=>({
   'browser.clipboard.writeText':{text:'OpenDesk SDK test'},
   'browser.downloads.text':{text:'OpenDesk SDK test',filename:'sdk-test.txt'},
   'browser.downloads.download':{url:safeUrl(),filename:'sdk-test.html'},
-  'browser.bookmarks.create':{url:safeUrl(),title:'OpenDesk SDK test'},
+  'browser.bookmarks.createOwned':{url:safeUrl(),title:'OpenDesk SDK test'},
   'browser.scheduler.create':{taskId:'REPLACE_WITH_INSTALLED_TASK_ID',revision:'1',schedule:{kind:'interval',expression:'1m'}},
   'browser.storage.local.get':{keys:['sdkTest']},
   'browser.storage.local.set':{items:{sdkTest:'ok'}},
@@ -145,7 +145,7 @@ async function refreshCapabilities(){
   if(!sdk){$('sdk-state').textContent='SDK unavailable';$('target-status').textContent='blocked';return;}
   const rows=await sdk.capabilities.list();
   populateContracts(rows);
-  const wanted=['browser.bookmarks.create','browser.bookmarks.removeOwned','browser.storage.local.set',
+  const wanted=['browser.bookmarks.createOwned','browser.bookmarks.removeOwned','browser.storage.local.set',
     'browser.storage.local.get','browser.downloads.download','browser.downloads.getOwned',
     'browser.scheduler.create','browser.scheduler.listOwn','browser.scheduler.cancelOwn'];
   const summary=Object.fromEntries(wanted.map(operation=>{
@@ -163,7 +163,7 @@ $('refresh-capabilities').addEventListener('click',()=>run('Capabilities','stora
   }))};
 }));
 $('bookmark-create').addEventListener('click',()=>run('Bookmark create','bookmarks-output',async sdk=>{
-  const result=await sdk.bookmarks.create({url:safeUrl(),title:'OpenDesk R10.6 demo'});
+  const result=await sdk.bookmarks.createOwned({url:safeUrl(),title:'OpenDesk R10.6 demo'});
   bookmarkRef=result.bookmarkRef;$('bookmark-ref').textContent=bookmarkRef;return result;
 }));
 $('bookmark-remove').addEventListener('click',()=>run('Bookmark remove','bookmarks-output',async sdk=>{

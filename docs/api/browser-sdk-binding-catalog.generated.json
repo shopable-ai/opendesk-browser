@@ -4,8 +4,8 @@
   "generationPolicy": "DERIVED_METADATA_ONLY_NOT_A_PERMISSION_GRANT",
   "chromiumSourceCommit": "b5485910372708cd11d9a814a3e382fe8da57df3",
   "counts": {
-    "approved": 55,
-    "public": 53,
+    "approved": 67,
+    "public": 65,
     "hostOnly": 2
   },
   "bindings": [
@@ -36,6 +36,45 @@
         "bookmarks"
       ],
       "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "all-bookmarks",
+      "userGesture": true,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request"
+    },
+    {
+      "operation": "browser.bookmarks.createOwned",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.bookmarks.create"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.bookmarks.create",
+          "kind": "METHOD",
+          "signature": "create(bookmark: $ref:CreateDetails): Promise<$ref:BookmarkTreeNode>",
+          "parameters": [
+            {
+              "name": "bookmark",
+              "type": "$ref:CreateDetails",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<$ref:BookmarkTreeNode>"
+        }
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.createOwned",
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
         "browser.bookmarks"
       ],
       "supportedContexts": [
@@ -47,6 +86,390 @@
       "maxRequestBytes": 12000,
       "maxResponseBytes": 12000,
       "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable"
+    },
+    {
+      "operation": "browser.bookmarks.get",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.bookmarks.get"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.bookmarks.get",
+          "kind": "METHOD",
+          "signature": "get(idOrIdList: choices): Promise<array>",
+          "parameters": [
+            {
+              "name": "idOrIdList",
+              "type": "choices",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<array>"
+        }
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.get",
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "all-bookmarks",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request"
+    },
+    {
+      "operation": "browser.bookmarks.getTree",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.bookmarks.getTree"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.bookmarks.getTree",
+          "kind": "METHOD",
+          "signature": "getTree(): Promise<array>",
+          "parameters": [],
+          "returnType": "Promise<array>"
+        }
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.getTree",
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "all-bookmarks",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "bounded-snapshot"
+    },
+    {
+      "operation": "browser.bookmarks.move",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.bookmarks.move"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.bookmarks.move",
+          "kind": "METHOD",
+          "signature": "move(id: string, destination: object): Promise<$ref:BookmarkTreeNode>",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "string",
+              "optional": false
+            },
+            {
+              "name": "destination",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<$ref:BookmarkTreeNode>"
+        }
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.move",
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "all-bookmarks",
+      "userGesture": true,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request"
+    },
+    {
+      "operation": "browser.bookmarks.observe.read",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [],
+      "nativeSignatures": [],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.observe.read",
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "all-bookmarks",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "bounded-session"
+    },
+    {
+      "operation": "browser.bookmarks.observe.start",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.bookmarks.onCreated",
+        "chrome.bookmarks.onRemoved",
+        "chrome.bookmarks.onChanged",
+        "chrome.bookmarks.onMoved",
+        "chrome.bookmarks.onChildrenReordered",
+        "chrome.bookmarks.onImportBegan",
+        "chrome.bookmarks.onImportEnded"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.bookmarks.onCreated",
+          "kind": "EVENT",
+          "signature": "onCreated(id: string, bookmark: $ref:BookmarkTreeNode): ChromeEvent",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "string",
+              "optional": false
+            },
+            {
+              "name": "bookmark",
+              "type": "$ref:BookmarkTreeNode",
+              "optional": false
+            }
+          ],
+          "returnType": "void/callback"
+        },
+        {
+          "nativeApi": "chrome.bookmarks.onRemoved",
+          "kind": "EVENT",
+          "signature": "onRemoved(id: string, removeInfo: object): ChromeEvent",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "string",
+              "optional": false
+            },
+            {
+              "name": "removeInfo",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "void/callback"
+        },
+        {
+          "nativeApi": "chrome.bookmarks.onChanged",
+          "kind": "EVENT",
+          "signature": "onChanged(id: string, changeInfo: object): ChromeEvent",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "string",
+              "optional": false
+            },
+            {
+              "name": "changeInfo",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "void/callback"
+        },
+        {
+          "nativeApi": "chrome.bookmarks.onMoved",
+          "kind": "EVENT",
+          "signature": "onMoved(id: string, moveInfo: object): ChromeEvent",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "string",
+              "optional": false
+            },
+            {
+              "name": "moveInfo",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "void/callback"
+        },
+        {
+          "nativeApi": "chrome.bookmarks.onChildrenReordered",
+          "kind": "EVENT",
+          "signature": "onChildrenReordered(id: string, reorderInfo: object): ChromeEvent",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "string",
+              "optional": false
+            },
+            {
+              "name": "reorderInfo",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "void/callback"
+        },
+        {
+          "nativeApi": "chrome.bookmarks.onImportBegan",
+          "kind": "EVENT",
+          "signature": "onImportBegan(): ChromeEvent",
+          "parameters": [],
+          "returnType": "void/callback"
+        },
+        {
+          "nativeApi": "chrome.bookmarks.onImportEnded",
+          "kind": "EVENT",
+          "signature": "onImportEnded(): ChromeEvent",
+          "parameters": [],
+          "returnType": "void/callback"
+        }
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.observe.start",
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "all-bookmarks",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "bounded-session"
+    },
+    {
+      "operation": "browser.bookmarks.observe.stop",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [],
+      "nativeSignatures": [],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.observe.stop",
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "all-bookmarks",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "bounded-session"
+    },
+    {
+      "operation": "browser.bookmarks.prepareRemoveTree",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.bookmarks.getSubTree",
+        "chrome.bookmarks.getTree"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.bookmarks.getSubTree",
+          "kind": "METHOD",
+          "signature": "getSubTree(id: string): Promise<array>",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "string",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<array>"
+        },
+        {
+          "nativeApi": "chrome.bookmarks.getTree",
+          "kind": "METHOD",
+          "signature": "getTree(): Promise<array>",
+          "parameters": [],
+          "returnType": "Promise<array>"
+        }
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.prepareRemoveTree",
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "all-bookmarks",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "single-use-15s"
+    },
+    {
+      "operation": "browser.bookmarks.remove",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.bookmarks.remove"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.bookmarks.remove",
+          "kind": "METHOD",
+          "signature": "remove(id: string): Promise<void>",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "string",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<void>"
+        }
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.remove",
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "all-bookmarks",
+      "userGesture": true,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request"
     },
     {
       "operation": "browser.bookmarks.removeOwned",
@@ -88,6 +511,150 @@
       "lifecycle": "request / owned opaque Ref; fail closed after revoke/restart when applicable"
     },
     {
+      "operation": "browser.bookmarks.removeTree",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.bookmarks.removeTree",
+        "chrome.bookmarks.getSubTree",
+        "chrome.bookmarks.getTree"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.bookmarks.removeTree",
+          "kind": "METHOD",
+          "signature": "removeTree(id: string): Promise<void>",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "string",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<void>"
+        },
+        {
+          "nativeApi": "chrome.bookmarks.getSubTree",
+          "kind": "METHOD",
+          "signature": "getSubTree(id: string): Promise<array>",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "string",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<array>"
+        },
+        {
+          "nativeApi": "chrome.bookmarks.getTree",
+          "kind": "METHOD",
+          "signature": "getTree(): Promise<array>",
+          "parameters": [],
+          "returnType": "Promise<array>"
+        }
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.removeTree",
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "all-bookmarks",
+      "userGesture": true,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "single-use-15s"
+    },
+    {
+      "operation": "browser.bookmarks.search",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.bookmarks.search"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.bookmarks.search",
+          "kind": "METHOD",
+          "signature": "search(query: choices): Promise<array>",
+          "parameters": [
+            {
+              "name": "query",
+              "type": "choices",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<array>"
+        }
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.search",
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "all-bookmarks",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "bounded-snapshot"
+    },
+    {
+      "operation": "browser.bookmarks.update",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.bookmarks.update"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.bookmarks.update",
+          "kind": "METHOD",
+          "signature": "update(id: string, changes: object): Promise<$ref:BookmarkTreeNode>",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "string",
+              "optional": false
+            },
+            {
+              "name": "changes",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<$ref:BookmarkTreeNode>"
+        }
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.update",
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "all-bookmarks",
+      "userGesture": true,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request"
+    },
+    {
       "operation": "browser.capabilities.getStatus",
       "visibility": "APPROVED_TOOL_REGISTERED",
       "mode": "CUSTOM",
@@ -124,7 +691,7 @@
       "userGesture": false,
       "minChrome": 138,
       "maxRequestBytes": 12000,
-      "maxResponseBytes": 20000,
+      "maxResponseBytes": 32000,
       "lifecycle": "request"
     },
     {

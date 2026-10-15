@@ -66,7 +66,7 @@ function fixture(){
 
 test('Bookmarks: real native create, durable opaque ownership and remove after Worker restart',async()=>{
   const f=fixture(),host=f.make();
-  const created=await host.create(request,id);
+  const created=await host.createOwned(request,id);
   assert.equal(created.bookmarkRef,'bookmark-ref-0001');
   assert.equal(f.nodes.size,1);
   assert.deepEqual(f.nodes.get('10'),{id:'10',parentId:'2',url:request.url,title:request.title});
@@ -77,7 +77,7 @@ test('Bookmarks: real native create, durable opaque ownership and remove after W
 });
 
 test('Bookmarks: owner, version, epoch, opaque ID and schema boundaries are enforced',async()=>{
-  const f=fixture(),host=f.make(),created=await host.create(request,id);
+  const f=fixture(),host=f.make(),created=await host.createOwned(request,id);
   await assert.rejects(host.removeOwned({bookmarkRef:created.bookmarkRef},
     {...id,toolId:'other-tool'}),error('E_BOOKMARK_REF_INVALID'));
   await assert.rejects(host.removeOwned({bookmarkRef:created.bookmarkRef},
@@ -87,14 +87,14 @@ test('Bookmarks: owner, version, epoch, opaque ID and schema boundaries are enfo
   await assert.rejects(host.removeOwned({bookmarkRef:created.bookmarkRef},
     {...id,installEpoch:'install-b'}),error('E_BOOKMARK_REF_INVALID'));
   await assert.rejects(host.removeOwned({bookmarkRef:'10'},id),error('E_SCHEMA'));
-  await assert.rejects(host.create({...request,parentRef:'r'.repeat(32)},id),
+  await assert.rejects(host.createOwned({...request,parentRef:'r'.repeat(32)},id),
     error('E_BOOKMARK_PARENT_UNAVAILABLE'));
-  await assert.rejects(host.create({url:'file:///etc/passwd'},id),error('E_SCHEMA'));
+  await assert.rejects(host.createOwned({url:'file:///etc/passwd'},id),error('E_SCHEMA'));
   assert.equal(f.calls.some(([kind])=>kind==='remove'),false);
 });
 
 test('Bookmarks: revoked permission and external edit refuse native deletion',async()=>{
-  const f=fixture(),host=f.make(),created=await host.create(request,id);
+  const f=fixture(),host=f.make(),created=await host.createOwned(request,id);
   f.permission=false;
   await assert.rejects(host.removeOwned({bookmarkRef:created.bookmarkRef},id),
     error('E_CHROME_PERMISSION_REQUIRED'));
@@ -106,7 +106,7 @@ test('Bookmarks: revoked permission and external edit refuse native deletion',as
 });
 
 test('Bookmarks: uninstall or missing mapping does not replay against native IDs',async()=>{
-  const f=fixture(),host=f.make(),created=await host.create(request,id);
+  const f=fixture(),host=f.make(),created=await host.createOwned(request,id);
   f.storage.clear();
   await assert.rejects(host.removeOwned({bookmarkRef:created.bookmarkRef},id),
     error('E_BOOKMARK_REF_INVALID'));
@@ -117,11 +117,11 @@ test('Bookmarks: uninstall or missing mapping does not replay against native IDs
 test('Bookmarks: unknown create, remove and get failures do not return success or auto-replay',async()=>{
   const createFailure=fixture(),createHost=createFailure.make();
   createFailure.unknownCreate=true;
-  await assert.rejects(createHost.create(request,id),error('E_OUTCOME_UNKNOWN'));
+  await assert.rejects(createHost.createOwned(request,id),error('E_OUTCOME_UNKNOWN'));
   assert.equal(createFailure.nodes.size,0);
 
   const removeFailure=fixture(),removeHost=removeFailure.make();
-  const removeTarget=await removeHost.create(request,id);
+  const removeTarget=await removeHost.createOwned(request,id);
   removeFailure.unknownRemove=true;
   await assert.rejects(removeHost.removeOwned({bookmarkRef:removeTarget.bookmarkRef},id),
     error('E_OUTCOME_UNKNOWN'));
@@ -129,7 +129,7 @@ test('Bookmarks: unknown create, remove and get failures do not return success o
   assert.equal(removeFailure.nodes.has('10'),true);
 
   const getFailure=fixture(),getHost=getFailure.make();
-  const getTarget=await getHost.create(request,id);
+  const getTarget=await getHost.createOwned(request,id);
   getFailure.unknownGet=true;
   await assert.rejects(getHost.removeOwned({bookmarkRef:getTarget.bookmarkRef},id),
     error('E_CHROME'));
@@ -142,12 +142,12 @@ test('Bookmarks: unknown create, remove and get failures do not return success o
 test('Bookmarks: revoked-after-effect never returns success',async()=>{
   const f=fixture(),host=f.make();
   f.revokeOnCreate=true;
-  await assert.rejects(host.create(request,id),error('E_OUTCOME_UNKNOWN'));
+  await assert.rejects(host.createOwned(request,id),error('E_OUTCOME_UNKNOWN'));
   assert.equal(f.nodes.size,1);
 });
 
 test('Bookmarks: externally deleted bookmark clears owned mapping without global lookup',async()=>{
-  const f=fixture(),host=f.make(),result=await host.create(request,id);
+  const f=fixture(),host=f.make(),result=await host.createOwned(request,id);
   f.nodes.clear();
   assert.deepEqual(await host.removeOwned({bookmarkRef:result.bookmarkRef},id),{removed:false});
   await assert.rejects(host.removeOwned({bookmarkRef:result.bookmarkRef},id),
@@ -157,7 +157,7 @@ test('Bookmarks: externally deleted bookmark clears owned mapping without global
 });
 
 test('Bookmarks: rejected external delete is treated as missing and released once',async()=>{
-  const f=fixture(),host=f.make(),result=await host.create(request,id);
+  const f=fixture(),host=f.make(),result=await host.createOwned(request,id);
   f.rejectMissingGet=true;
   f.nodes.clear();
   assert.deepEqual(await host.removeOwned({bookmarkRef:result.bookmarkRef},id),{removed:false});
@@ -168,7 +168,7 @@ test('Bookmarks: rejected external delete is treated as missing and released onc
 });
 
 test('Bookmarks: permission, service and malformed-ID get errors retain owned mapping',async()=>{
-  const f=fixture(),host=f.make(),result=await host.create(request,id);
+  const f=fixture(),host=f.make(),result=await host.createOwned(request,id);
   const originalGet=f.api.bookmarks.get;
   for(const message of [
     'No bookmarks permission',
@@ -191,7 +191,7 @@ test('Bookmarks: permission, service and malformed-ID get errors retain owned ma
 
 for(const [field,value] of [['title','User edited title'],['parentId','1']])
 test('Bookmarks: user changes to '+field+' invalidate removal without deleting the native bookmark',async()=>{
-  const f=fixture(),host=f.make(),result=await host.create(request,id);
+  const f=fixture(),host=f.make(),result=await host.createOwned(request,id);
   f.nodes.get('10')[field]=value;
   const restarted=f.make();
   await assert.rejects(restarted.removeOwned({bookmarkRef:result.bookmarkRef},id),error('E_BOOKMARK_REF_INVALID'));
@@ -200,14 +200,14 @@ test('Bookmarks: user changes to '+field+' invalidate removal without deleting t
 });
 
 test('Bookmarks: legacy development records cannot delete a possibly edited bookmark',async()=>{
-  const f=fixture(),host=f.make(),result=await host.create(request,id);
+  const f=fixture(),host=f.make(),result=await host.createOwned(request,id);
   for(const saved of f.storage.values()){
     delete saved.refs[result.bookmarkRef].title;
     delete saved.refs[result.bookmarkRef].parentId;
   }
   await assert.rejects(f.make().removeOwned({bookmarkRef:result.bookmarkRef},id),error('E_BOOKMARK_REF_INVALID'));
   assert.equal(f.calls.some(([kind])=>kind==='remove'),false);
-  const fresh=await f.make().create(request,id);
+  const fresh=await f.make().createOwned(request,id);
   assert.notEqual(fresh.bookmarkRef,result.bookmarkRef);
   assert.equal(f.nodes.size,2,'a fresh metadata snapshot leaves the legacy native bookmark intact');
   assert.deepEqual(await f.make().removeOwned({bookmarkRef:fresh.bookmarkRef},id),{removed:true});

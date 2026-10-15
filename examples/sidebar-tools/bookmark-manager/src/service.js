@@ -17,8 +17,8 @@ function create(sdk){
     if(!sdk?.capabilities?.list||!sdk?.capabilities?.getStatus||!sdk?.bookmarks)
       return {ready:false,code:'E_SDK_MISSING',reason:'已安装工具环境未提供正式 OpenDeskSDK.browser'};
     let rows;
-    try{rows=await sdk.capabilities.list()}catch(error){
-      return {ready:false,code:error?.code||'E_SDK_STATUS',reason:'SDK 能力状态暂不可验证，不会读取书签'};
+    try{rows=await sdk.capabilities.list()}catch{
+      return {ready:false,code:'E_SDK_STATUS',reason:'SDK 能力状态暂不可验证，不会读取书签'};
     }
     if(!Array.isArray(rows))
       return {ready:false,code:'E_SDK_STATUS',reason:'SDK 未提供可信的能力清单'};
@@ -43,9 +43,11 @@ function create(sdk){
     const gate=await probe();
     if(!gate.ready)fail(gate.code,gate.reason);
     if(operation){
-      const status=await sdk.capabilities.getStatus({operation:named(operation)});
-      if(!status?.requiredCapabilities?.includes(FULL))
-        fail('E_BOOKMARK_SCOPE','接口未绑定独立 Full Bookmarks 权限');
+      let status;
+      try{status=await sdk.capabilities.getStatus({operation:named(operation)})}
+      catch{fail('E_SDK_STATUS','完整书签权限状态不可核验，不会访问书签')}
+      // probe() already verified independent Full scope in the complete
+      // capability list; getStatus() deliberately sends only a small receipt.
       if(status.callableNow!==true)
         fail(status.reasonCode||'E_BOOKMARK_PERMISSION','完整书签访问权限未授予或已失效');
     }
@@ -178,7 +180,9 @@ function create(sdk){
       sessionRef:session.sessionRef,cursor:session.cursor,limit:50
     });
     if(!Array.isArray(data?.events)||data.events.length>50||
-      typeof data.nextCursor!=='string'||!Number.isFinite(data.expiresAt))
+      typeof data.nextCursor!=='string'||!Number.isFinite(data.expiresAt)||
+      !Number.isSafeInteger(data.gapCount)||data.gapCount<0||
+      !Number.isSafeInteger(data.droppedCount)||data.droppedCount<0)
       fail('E_BOOKMARK_EVENT','书签事件回执无效，必须重新同步书签树');
     if(data.gapCount>0||data.droppedCount>0)
       fail('E_BOOKMARK_EVENT_GAP','书签事件存在缺口，必须重新读取完整树');
