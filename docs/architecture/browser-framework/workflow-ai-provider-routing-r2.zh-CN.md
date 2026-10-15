@@ -159,7 +159,7 @@ resume(source, args) : Promise<Session>|never;
 | 响应结构 | \`response.id/object/status/output[]/usage\`；以类型化 output 为准 | \`thread.id\`,\`turn.id\`、事件通知，不能假装 Response object | 完成后合成 \`object:"response"\` 和单一 \`message/output_text\`；\`id\` 为本地新建，**不是** Codex turn/thread ID |
 | 终态 | \`completed/failed/incomplete\`，拒绝 incomplete/refusal | \`turn/completed\` 等官方事件及终态，核验精确 turn | 仅 Codex completed、verified 和 JSON object 时回 200；未知终态报错 |
 | structured output | 官方 \`text.format\` 的 json_object 或可用 strict json_schema；取决于模型能力 | Codex \`turn/start.outputSchema\`（版本审核） | **要求** trusted closed \`json_schema\`；\`json_object\` 不支持 |
-| input | 官方 \`input\` 可为多种项/role/content array | Codex 特定 \`input\` items | 仅非空 **字符串**；云端现有 JS adapter 的 array 请求不能直接照搬 |
+| input | 官方 \`input\` 可为多种项/role/content array | Codex 特定 \`input\` items | 非空 **字符串**或**单条 user/input_text typed array**；更多 roles、parts、媒体内容一律不支持 |
 | 流式 | \`stream:true\` SSE 类型化事件（本 Browser cloud adapter 尚未实现） | Codex 事件按原生成/拉取 Event ledger 返回 Browser | 仅 \`stream:false\`，\`stream:true\` 显式拒绝 |
 | tool calling | 官方 function/tool/approval 等按正式结构；现 JS adapter 遇未知 output 显式拒绝 | 受限工具仅 \`browser.observe\` 回现有 Controller，shell/文件禁用 | HTTP 子集 \`toolCalls:false\`，遇工具/approval 请求即失败 |
 | 会话 | 官方 previous_response_id / conversation 语义按实际服务；本 Browser cloud 不使用 | thread/start、thread/resume、turn/start/interrupt；是否可冷恢复按版本/证据 | 每个 HTTP POST 一次短命 session+turn；不支持 previous_response_id、无 HTTP resume |
@@ -305,7 +305,7 @@ ADR 风险升级触发条件：Codex CLI 版本改变、Chrome Origin/Host 处�
 | **F1** Cloud Responses UI 接线 / F0 | \`responses.js\`,\`ai-plan.js\`,\`provider.js\`,\`workflow-view.js\` | **SOURCE_WIRED / NATIVE_NOT_VERIFIED** | 已有 Send→Cloud observation→Facade→Compiler/RunHost 源码；通过需真实同候选云端响应、DOM 业务读回 |
 | **F2** 最小 Provider 合同 / F1 | \`provider.js\`,\`local-codex.js\`,\`src/native-agent/workflow-ai-*.js\` | **SOURCE_WIRED / CAPABILITY_PARTIAL** | 路由与能力表已存在；需错误一致性、provider ID/业务会话边界、HTTP 入口能力拒绝 |
 | **F3** Go Local HTTP Gateway / F2 契约 | \`internal/browserai/http_gateway.go\`,\`internal/browserbridge/host_ai_unix.go\`,\`host_unix.go\` | **SOURCE_WIRED / NOT_VERIFIED**（并行 Go 实施已存在） | 需明确合法配对、Origin/Host/CORS；同一 Manager 进程运行验证与必要 Go 定向测试；**不得重复创建** |
-| **F4** Native/Cloud/HTTP 配置整合 / F1–F3 | Browser 现有 provider/UI 配置与未来独立 \`local_http\` adapter，Native token 获信交付 | **Native/Cloud 源码已接线；HTTP Browser NOT_IMPLEMENTED** | 网关目前拒绝带 Origin 的浏览器 fetch、没有受信 token 配对渠道；修完安全契约前不启用 UI |
+| **F4** Native/Cloud/HTTP 配置整合 / F1–F3 | Browser 现有 provider/UI 配置与未来独立 \`local_http\` adapter，Native token 获信交付 | **Native/Cloud 源码已接线；HTTP transport SOURCE_IMPLEMENTED_NOT_WIRED；Browser HTTP UI NOT_IMPLEMENTED** | 网关目前拒绝带 Origin 的浏览器 fetch、没有受信 token 配对渠道；修完安全契约前不启用 UI |
 | **F5** 最小清理/状态交接 / F4 | 本正式 R2 合同、现有账本、源码路径/当前 SHA、独立定向检查 | **IN_PROGRESS** | 无冲突修改提交、必要 smoke、每级 NOT_VERIFIED 保留；不得挤占全套验收资源 |
 
 **下一次核心开发的最小动作**：优先由 Go HTTP 所有者与 Browser Provider 所有者约定 \`POST /v1/responses\` 的可信客户端身份、token 获取/撤权/Origin 行为和严格 \`input/schema\` 形状；然后独立实现 Browser \`local_http\` adapter 与 Facade 能力路由。未解决时 HTTP 只允许由明确获信任的非浏览器 loopback 客户端使用，Browser UI 不可假装“可用”。
@@ -345,4 +345,15 @@ ADR 风险升级触发条件：Codex CLI 版本改变、Chrome Origin/Host 处�
 - 既有历史：2026-10-10 [R16](workflow-ai-provider-routing-r16.zh-CN.md)、2026-10-13 [Direct R1](../../framework/workstreams/conversation-direct-r1-20261013.md)、2026-10-14 [Minimal UI R17](../../framework/workstreams/workflow-ui-r17-minimal-20261014.md)。绝不清空其历史失败与旧测试记录。
 - 每完成 F1–F5 任一源码切片，更新本文 **模块状态、协议/ADR、真实 SHA** 和既有账本 **负责人/本次写入范围/未测/阻塞/下一步**；保留旧版本事实，不改写老日志冒充新证据。
 - 并行协议遵守 \`AGENTS.md\` 和 [parallel-development](../../framework/parallel-development.md)：Browser 仅 \`main\`，各 Agent 同文件单写入，跨 Browser/Go 契约需要明确 owner，冲突只暂停受影响范围。
-- 下一次对话不从 Phase 0 重新设计。读取本文件、现有账本、最新 AGENTS 与 Git 源码 SHA，**从 F4 的安全配对/HTTP Browser 消费者的最小缺口继续**；任何未解决安全矛盾按 \`OPEN\` 处理，不能用宽松 CORS/隐式 token/第二 Manager 绕过。
+- 下一次对话不从 Phase 0 重新设计。读取本文件、现有账本、最新 AGENTS 与 Git 源码 SHA，**从 F4 的安全配对/HTTP Browser 消费者接线的最小缺口继续**；任何未解决安全矛盾按 \`OPEN\` 处理，不能用宽松 CORS/隐式 token/第二 Manager 绕过。
+
+
+## 11. R2.2 并行源码增量与防漂移（2026-10-15）
+
+> 此节是增量状态更新，**不是**创建另一份正式架构文档；仍需按最新 Git SHA 逐项核实。原第 0 节的 R2.1 读基线保留作为快照，本节记录后来发生的并行代码演进。
+
+- **Go 协议增量**：Go \`internal/browserai/http_gateway.go\` 后续增量 \`db2387feb76e9f635ca9528ec9ba6d333c46167c\` 增加了非流式 \`json_object\`、单个标准 \`user/input_text\` 消息 array，仍保持未知字段、多个 typed 项、\`store:true\`、\`stream:true\`、\`background:true\`、历史 response ID 的拒绝。Go \`internal/browserai/http_gateway_test.go\` 的后续提交 \`2c003149d534ce2bd47629d1d046d88be39ef4f2\` 增加 Host、Origin、认证、unsupported 相关定向测试；**源码+测试存在不自动等于该新候选 CI PASS**。
+- **Browser 隔离切片**：新增 \`src/ui/workflow/local-http.js\`（commit \`01919da0676768f134286bc636270cc5ff79b7f4\`），仅提供 loopback endpoint/token 的参数门禁、受限非流式 Responses 请求、受限 body 读取、型别化 \`parseWorkflowResponse\` 复用和 unknown outcome 不重发。其 \`localHTTPAdapterCapabilities().pairingReady=false\`；**未导入 \`provider.js\` / \`workflow-view.js\`，不自称可从 Chrome 直接联网**。
+- **协议正确性**：前文映射矩阵 C 的“字符串 + strict schema only”现已修订为精确的扩展子集。Browser \`local-http.js\` 的提交不生成 Native token、不突破 Origin/CORS、不处理用户浏览器执行、不提供任意网络目标或已登录 Codex 凭据。Go 环回路由仍必须由同一 Native Host 实例的 \`h.ai\` 管理。
+- **持续阻塞**：受信 Origin 行为与 HTTP token 颁发/撤权/存储方式尚无跨仓共同完成合同，不能把 \`localhost\` 任意端口设为允许；真实 HTTP 端点、Codex 模型、同构建 Chrome 目标和业务效果未验证；T2–T6 后置。
+- **既有并行账本**：\`docs/framework/workstreams/conversation-direct-r1-20261013.md\` 已由另一 Agent 追加 R2.2 实现与 CI 候选记录。该文件应由其当前 owner 管理；本设计文档不覆盖、撤销或声称为本轮执行其 CI。
