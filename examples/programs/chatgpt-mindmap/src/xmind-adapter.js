@@ -121,6 +121,8 @@ export function createXmindRenderer({window,canvas,tree,skinMode='light'}){
         scroll.scrollLeft+=(area.left+area.right-bounds.left-bounds.right)/2;
         scroll.scrollTop+=(area.top+area.bottom-bounds.top-bounds.bottom)/2;
       }
+    }).then(()=>{
+      if(!disposed){canvas.dataset.fitReady='true';canvas.dataset.fitWidth=String(canvas.clientWidth);}
     });
   }
   function reflow(){return settled().then(()=>manualViewport?undefined:fit({resetManual:false}));}

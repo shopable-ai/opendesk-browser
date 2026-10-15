@@ -2,7 +2,9 @@
 // Uses the original four Git-tracked XMind JS and the SAME product registry,
 // not a second engine or an installed/real-chatgpt.com claim.
 import assert from 'node:assert/strict';
-import {mkdir,writeFile} from 'node:fs/promises';
+import {mkdir,writeFile,readFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+import {execFileSync} from 'node:child_process';
 import {resolve,join} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {startXmindPreview} from '../../examples/programs/chatgpt-mindmap/preview/serve.mjs';
@@ -15,6 +17,9 @@ for(let i=0;i<argv.length;i+=2){
 for(const required of ['browser','playwright','out'])assert.ok(args[required],'Missing '+required);
 const out=resolve(args.out);
 await mkdir(out,{recursive:true});
+const gitSha=process.env.GITHUB_SHA||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
+const screenshots={gitSha,source:'LOCAL_CHATGPT_SIMULATION_ONLY',
+  visualReview:'SCREENSHOT_NOT_VERIFIED',nativeInstalled:'NOT_TESTED',captures:[]};
 const report={scope:'LOCAL_CHATGPT_SIMULATION_ONLY',nativeInstalled:'NOT_TESTED',
   loggedInChatGPT:'NOT_TESTED',productionStyleIsolation:'BLOCKED',
   engine:'ORIGINAL_FOUR_GIT_TRACKED_JS',externalRequests:[],errors:[],checks:[]};
@@ -26,6 +31,34 @@ try{
   session=await startXmindPreview();
   const page=await browser.newPage({viewport:{width:1220,height:860}});
   const origin=new URL(session.url).origin;
+  const capture=async(name,{target=page,fullPage=false,answer='ALL'}={})=>{
+    // Capture after real rendered geometry has settled (not after a blind timer).
+    await page.waitForFunction(()=>{
+      return [...document.querySelectorAll('[data-opendesk-chatgpt-mindmap="viewer"]')]
+        .every(host=>{
+          if(host.dataset.ready!=='true'||host.dataset.layoutReady==='pending')return false;
+          const canvas=host.shadowRoot?.querySelector('.odmm-canvas');
+          return !!canvas&&canvas.dataset.fitReady==='true'&&
+            Number(canvas.dataset.fitWidth)===canvas.clientWidth;
+        });
+    },null,{timeout:20000});
+    await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+    const file=join(out,name);
+    await target.screenshot({path:file,fullPage});
+    const bytes=await readFile(file);
+    const counts=await page.evaluate(()=>Object.fromEntries([1,2,3].map(n=>{
+      const host=document.querySelector('[data-testid="conversation-turn-'+n+'"] [data-opendesk-chatgpt-mindmap="viewer"]');
+      return [['A','B','C'][n-1],host?host.shadowRoot.querySelectorAll('.topic').length:0];
+    })));
+    screenshots.captures.push({
+      gitSha,pageUrl:page.url(),pageType:'LOCAL_CHATGPT_SIMULATION_ONLY',
+      chromiumVersion:browser.version(),viewport:page.viewportSize(),answer,
+      topics:counts,pageErrors:report.errors.length,externalRequests:report.externalRequests.length,
+      file,sha256:createHash('sha256').update(bytes).digest('hex'),
+      screenshotTime:new Date().toISOString(),ciRunId:process.env.GITHUB_RUN_ID||null,
+      ciArtifactId:null,visualReview:'SCREENSHOT_NOT_VERIFIED'
+    });
+  };
   await page.route('**/*',route=>{
     const url=route.request().url();
     if(url.startsWith(origin+'/'))return route.continue();
@@ -53,7 +86,7 @@ try{
   assert.equal(await t(3).locator('blockquote').count(),1);
   report.checks.push('THREE_AUTO_INJECTED_REAL_PRODUCT_BUTTONS','SAME_TITLE_SEPARATE_MESSAGE_IDS');
   report.createdBy='src/answer-registry.js';
-  await page.screenshot({path:join(out,'chatgpt-before.png'),fullPage:true});
+  await capture('chatgpt-before.png',{fullPage:true});
   await button(1).click();
   await viewer(1).and(page.locator('[data-ready="true"]')).waitFor({timeout:20000});
   assert.equal(await button(1).isVisible(),false,
@@ -67,9 +100,9 @@ try{
   assert.ok(report.topicsB>1);
   assert.ok(await viewer(1).locator('.topic:visible').count()>1,'A remains open while B opens');
   report.checks.push('REAL_XMIND_A_AND_B_INDEPENDENT');
-  await page.screenshot({path:join(out,'chatgpt-xmind.png'),fullPage:true});
-  await t(1).screenshot({path:join(out,'chatgpt-answer-A-light.png')});
-  await t(2).screenshot({path:join(out,'chatgpt-answer-B-light.png')});
+  await capture('chatgpt-xmind.png',{fullPage:true});
+  await capture('chatgpt-answer-A-light.png',{target:t(1),answer:'A'});
+  await capture('chatgpt-answer-B-light.png',{target:t(2),answer:'B'});
   const zoomWidth=async n=>(await viewer(n).locator('.topic:visible').first().boundingBox()).width;
   const aBeforeZoom=await zoomWidth(1);
   const bBeforeZoom=await zoomWidth(2);
@@ -119,7 +152,7 @@ try{
     report.fullBounds.topicRight<=report.fullBounds.canvasRight+16,
     'Fullscreen fit must not clip the real six-topic B workbook horizontally');
   report.checks.push('FULLSCREEN_REAL_SDK_FIT_COMPLETE_AND_VISIBLE');
-  await page.screenshot({path:join(out,'chatgpt-fullscreen.png')});
+  await capture('chatgpt-fullscreen.png',{fullPage:false});
   await page.keyboard.press('Escape');
   await page.locator('[data-opendesk-chatgpt-mindmap="viewer"].odmm-fullscreen')
     .waitFor({state:'detached',timeout:12000});
@@ -133,7 +166,7 @@ try{
   assert.equal(await t(1).locator('.markdown').evaluate(node=>node.innerHTML),originalA,
     'The original answer HTML must retain identity and markup after view removal');
   assert.ok(await viewer(2).locator('.topic:visible').count()>1);
-  await t(1).screenshot({path:join(out,'chatgpt-original-restored.png')});
+  await capture('chatgpt-original-restored.png',{target:t(1),answer:'A'});
   report.checks.push('RESTORE_A_DOES_NOT_CLOSE_B');
   await page.getByRole('button',{name:'切换模拟页面深浅色主题'}).click();
   assert.equal(await page.locator('html').getAttribute('data-theme'),'dark');
@@ -144,7 +177,7 @@ try{
       !!host.shadowRoot?.querySelector('.topic');
   },null,{timeout:20000});
   report.checks.push('DARK_MODE_PROPAGATES_TO_ORIGINAL_XMIND_WORKBOOK');
-  await t(2).screenshot({path:join(out,'chatgpt-answer-B-dark.png')});
+  await capture('chatgpt-answer-B-dark.png',{target:t(2),answer:'B'});
   // C intentionally has no heading: retain the rendered paragraph, table,
   // code and quotation semantics through the *same* product renderer.
   await button(3).click();
@@ -155,7 +188,7 @@ try{
   assert.match(cTopicText,/代码/);
   assert.match(cTopicText,/引用/);
   assert.ok(report.topicsC>=4,'C should contain real structured SDK topics');
-  await t(3).screenshot({path:join(out,'chatgpt-answer-C-structured.png')});
+  await capture('chatgpt-answer-C-structured.png',{target:t(3),answer:'C'});
   await viewer(3).getByRole('button',{name:'恢复本条回复原文'}).click();
   await viewer(3).waitFor({state:'detached',timeout:15000});
   assert.equal(await t(3).locator('.markdown').evaluate(node=>node.innerHTML),originalC);
@@ -209,7 +242,7 @@ try{
   await page.locator('#mock-action-status').waitFor({state:'hidden',timeout:5000});
   await page.locator('#developer-lab summary').click();
   await focusViewer();
-  await page.screenshot({path:join(out,'chatgpt-narrow-320.png'),fullPage:true});
+  await capture('chatgpt-narrow-320.png',{fullPage:true});
   await viewer(2).screenshot({path:join(out,'chatgpt-answer-B-narrow-320.png')});
   await page.setViewportSize({width:320,height:760});
   await focusViewer();
@@ -219,7 +252,20 @@ try{
   assert.ok(mobile.scrollWidth<=mobile.viewportWidth+1,
     '320px screen must never gain page-level horizontal scrolling');
   report.mobile=mobile;
-  await page.screenshot({path:join(out,'chatgpt-mobile-320.png'),fullPage:true});
+  await capture('chatgpt-mobile-320.png',{fullPage:true});
+  for(const width of [375,390,768,1440]){
+    await page.setViewportSize({width,height:860});
+    await page.waitForFunction(expected=>document.documentElement.clientWidth===expected,
+      width,{timeout:10000});
+    const overflow=await page.evaluate(()=>({
+      documentWidth:document.documentElement.scrollWidth,
+      viewport:document.documentElement.clientWidth
+    }));
+    assert.ok(overflow.documentWidth<=overflow.viewport+1,
+      'Viewport '+width+' must not overflow horizontally');
+    await capture('chatgpt-responsive-'+width+'.png',{fullPage:true,answer:'B'});
+    report.checks.push('RESPONSIVE_'+width+'_SCREEN_NO_PAGE_OVERFLOW');
+  }
   report.checks.push('TRUE_320PX_CONTENT_CONTAINER','NARROW_TOOLBAR_WRAP',
     'NARROW_READABLE_XMIND_ZOOM','MOBILE_320_NO_OVERFLOW');
   await page.locator('#developer-lab summary').click();
@@ -238,6 +284,7 @@ try{
 }finally{
   report.success=success;
   await writeFile(join(out,'chatgpt-result.json'),JSON.stringify(report,null,2)+'\n');
+  await writeFile(join(out,'screenshot-evidence.json'),JSON.stringify(screenshots,null,2)+'\n');
   await browser?.close().catch(()=>{});
   await session?.close().catch(()=>{});
 }
