@@ -1,0 +1,65 @@
+# OpenDesk Browser Prompt Shortcuts R1.2 — 双原型封存与 R1.3 开发接续
+
+日期：2026-10-15。状态：**UI 模拟原型已入 main；正式工具、网页注入和原生权限尚未落地**。
+
+本文件是 Prompt Shortcuts 的**唯一主接续记录**。它保存产品边界和证据，不把模拟测试提升为真实 Chrome 验收，不取代 `AGENTS.md` 与现行 SDK/Design System 合同。
+
+## 1. 原型和仓库证据
+
+- **ChatGPT 网页主原型**：[`prototypes/sidebar/chatgpt-prompt-shortcuts-r12-preview.html`](../../../prototypes/sidebar/chatgpt-prompt-shortcuts-r12-preview.html)。原型最初入库提交 `f8d6d4a7bc7a7e318f07a87736df870517d4b1ee`；后续在 `86b877c1f71c861c34d9a85d08146ab99c83465d` 添加独立侧栏预览入口，没有变更左侧定位业务决定。
+- **独立 Side Panel 管理原型**：[`prototypes/sidebar/chatgpt-prompt-shortcuts-r12-sidebar-preview.html`](../../../prototypes/sidebar/chatgpt-prompt-shortcuts-r12-sidebar-preview.html)。入库提交 `94c2eacc6a443bdf2d86b1dfb6192e09429aeebb`，文件内容已与对话生成的 HTML 快照完全核对。
+- 两份预览可相互导航；**两个独立 HTML 的模拟内存不跨文件共享**。独立侧栏原型内部的管理和左侧网页按钮使用一份模拟数据，正式版本须通过真正的工具存储和消息同步实现。
+- 2026-10-15 核查 `main` 时，`examples/sidebar-tools/chatgpt-prompt-shortcuts/` 尚不存在，`page.prompts` 尚未接入 `src/ui/sidebar-tools/package.js`。后续先核实最新 `main`，若其他 Agent 已实施不可重复创建。
+
+## 2. 固定产品与体验决定
+
+1. 用户打开 ChatGPT 网站，看到**主内容区域左边缘**、整体竖向居中的短标签按钮栏。水平方向贴近主区域左侧边缘（原型基准为 12 CSS px），**不**对齐居中的正文文本列，也不对齐输入框，不伸入 ChatGPT 历史导航栏。窄屏时安全折叠，绝不悄悄换到右边。
+2. 每个短标签为 1–2 个汉字，两个字上下排列；默认圆角方形，可按条目选择圆形。悬停和键盘聚焦显示完整名称和**完整多行提示词正文**；点击仅插入当前草稿，不自动发送。
+3. 正式工具管理属于 **「扩展」→ 已安装应用 → 提示词快捷按钮**，不新建 Chrome Extension，也不新建第六个 OpenDesk 一级 Tab。使用 **列表 → 新建/编辑 → 返回** 的独立子视图；列表每项高频操作为编辑、更多；更多可启停、排序、复制、确认删除。
+4. 全局提供两个相互独立的滑动开关：**网页左侧按钮**与**选中文字快速添加**。关闭右键快捷添加后，不删除已保存提示词，也不改变左侧按钮栏；关闭左侧按钮栏不影响已有提示词管理。
+5. 用户选中文字 → 现有 Chrome 原生右键菜单 → 一次性领取选区 → 侧栏新建表单预填 → 审阅后显式保存。必须使用已有 `browser.contextMenu`、`browser.launch.consume`、权限/文档身份与菜单启停链；**不可单独开发第二个菜单 Worker/第二个扩展**。
+6. 每项包含：短标签、完整名称、多行正文、形状、启用状态和稳定 ID。保存冲突、配额超限、未知结果、表单离开时要保留草稿并给出明确提示。
+7. 只适配 `https://chatgpt.com`；不读取或上传聊天历史；工具包正文视为纯文本；隔离 Sandbox 不允许直接取得目标网页 DOM。网页渲染/插入只能由已审计的固定可信模块完成。
+
+## 3. 原型验证事实（不能冒充真机）
+
+- Chromium `144.0.7559.96` 在 headless 浏览器中通过 Playwright `page.set_content` 完成 **38/38 项模拟交互与布局断言**；原生 `file://` 和本地 HTTP 导航在此次测试环境被管理员策略阻挡，故不宣称已实测独立 URL 加载。
+- 验证范围包括：列表 4 项/启用态、两个开关独立性、左侧 12 CSS px、纵向居中（偏差 0px）、完整 Tooltip、模拟编辑器插入、右键开关与选区预填、写入失败/并发冲突/未知结果及草稿保留、明确离开确认、排序/启停/删除确认、模拟权限撤销/恢复、新建与圆形按钮、8 KiB JSON 超额拒绝、暗色、320/360/420/520 CSS px 无侧栏横向滚动、无前台 JS 异常。
+- `node --check` 对 HTML 内联 JS 抽取稿通过；模拟脚本和图片只在生成会话的验证目录内，无发布包绑定。
+- **正式应用存储、Chrome 原生菜单权限、真实 ChatGPT 富文本编辑器、中文输入法、跨标签同步、Mac Chrome 安装、生产构建及真正发布：`NOT_TESTED`**。
+
+## 4. R1.3 顺序：先界面评审，再核心实施
+
+**阶段 A — UI 评审与最小修正（先完成）**
+- 打开两份已入库 HTML，检查 ChatGPT 左侧定位及 Side Panel 的 Index/Create/Edit/Permission/Confirm；不从零另做新原型。
+- 允许仅定向修改影响操作的布局、焦点、Tooltip、禁用态、文案与表单；以 `src/ui/design-tokens.css` 和 R27/R28/R31 为权威，预览不得另建立生产组件系统。
+- 分别评价信息架构、视觉一致性、内容可读性、操作可发现性、窄宽度、键盘与辅助技术、错误恢复、功能完整性；目标逐维 95+。原型达到评审标准才冻结相应 UI 设计；设计分与原生交付分分开。
+
+**阶段 B — Sidebar Tool 真实实现（核心功能优先）**
+- 在 `examples/sidebar-tools/chatgpt-prompt-shortcuts/` 开发唯一工具包；使用现有 `OpenDeskTool.root/request('storage.get'/'storage.set')`、`ifMatch` ETag、`OpenDeskTool.setState`、官方构建器与现行 `od-*` 设计语义；不创建新安装器。
+- 将 R1.2 Side Panel 子视图、开关、列表排序、创建/编辑/删除/复制和保存失败恢复转换为真正的运行代码；校验存储中一项完整 JSON 的 UTF-8 字节数（现行单项 8192 B，工具总计 32768 B、最多 32 键），不得按字符数估算。
+- 增量接入既有官方目录。新增许可前先核对 `MAX_INSTALLED_TOOLS`、安装来源和其他工具清单，不覆盖现行并行工作。
+
+**阶段 C — 可信网页模块与授权**
+- 调查 `src/entrypoints/page-relay.js`、`src/knowledge/page.js`、`src/reading-toc/page.js` 与当前固定源码接线机制，给工具独立模块、宿主仅最小通用权限分发。
+- 审计 `page.prompts` 新能力所需的 schema、可信来源、工具身份/安装代际、单站点授权、撤权和卸载清理；声明不等于运行时完成。
+- 位置以**主内容区域左侧**计算，适配 ChatGPT DOM 更新与 SPA，避免遮盖原生导航、聊天正文和输入框；按钮 Tooltip/聚焦/窄屏保留；与 R1.2 双原型对照。
+- 插入时安全识别 React 编辑器和有效选区，确保不覆盖原草稿、支持多行/中间插入/撤销/中文 IME、过期请求取消。真实站点行为若无实验环境，标 `NOT_TESTED`，不能假装完成。
+
+**阶段 D — 原生选区菜单复用**
+- 以现有 `src/platform/chrome/context-menus.js` 和 `examples/sidebar-tools/browser-sdk-r13/selection-notes.opendesk-tool.json` 为参考，复用同一安装/Origin/Document/单次选区票据链；菜单项仅作用于已允许的 ChatGPT 网站。
+- 全局开关关闭时原生菜单确实不出现；工具停用、权限撤销、文档更换及超时后不能消费旧票据。选中正文只预填表单、绝不静默保存或发送。
+
+**阶段 E — 分步验证与安全收尾**
+- 先执行模型/权限/存储/网页定位/菜单/输入的定向 Node 测试和必要 Chromium 模拟回归；核心代码稳定后再协调唯一 build writer，执行 production 构建、包校验和锁归属核查。
+- 实际 Mac Chrome 和已登录 ChatGPT 只有在可用环境真实执行后才计 `PASS`；分别记录 Node、模拟 Chromium、已安装扩展 Chrome、真实 ChatGPT、Mac 中文输入法的证据等级。
+- 只在 `main` 写入本任务文件、普通推送，避开书签、SDK、AI VIP Share、广告拦截等并行任务；不强推、不断开他人的 watcher、不开新分支或 worktree、非必要不重跑全仓测试。各维度 95+ 目标必须有真实证据支持。
+
+## 5. 下一轮最小接续动作
+
+1. `git fetch origin main`，检查 `AGENTS.md`、最新 `main`、本任务文件以及并行所有权。
+2. 打开双 HTML 原型完成**Side Panel UI 交互评审**，先处理用户指出的界面问题；已经确认的左侧位置与右键开关不再争论。
+3. 依据上面阶段 B/C/D 顺序直接实施核心功能；暂不开始大规模最终原生验收。
+4. 提交前说明本轮改动范围、实际测试与待验收项；有冲突时只暂停相交文件。
+
+**一屏目标：** 已安装工具可在侧栏安全创建、编辑、启停和管理短提示词；打开真实 ChatGPT 后主内容左边缘展示工具栏，点击将完整正文插入草稿、用户自行发送；右键选区快捷添加可独立开关。
