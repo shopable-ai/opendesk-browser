@@ -223,3 +223,11 @@
 **升级/固定源码边界**：正式工具更新候选版本 `1.0.1`，禁止已装同版本强行覆写。 `trusted/page.js` 原 SHA `0eeab5f748101d605fea6a28b82d36c4be31ca89` 审核后精确变为 Git blob `adbdc28dc0def1ae8306329b6691b8c7ac31c581`；仅更新既有 `scripts/bundle-provenance.mjs` 与 scoped 测试对应单项 pin，不更改 AdBlock 白名单，不放宽目标输出。 `tool.config.json`、正式 JSON 及现有 GitHub scoped CI 版本目录/断言同步至 `1.0.1`。
 
 **环境与证据边界**：本轮 GitHub 连接可以读写源码与 CI；用户 Mac 的 `/Users/shopme/Documents/workspace/opendesk-browser`、`git status --short`、原 `npm run dev` watcher、`dist/development`、Chrome ID/Native 配对、已登录的 ChatGPT DOM、Mac 中文 IME **均不可访问**。不能因模拟或历史 CI 宣称原生完成。当前真实 Side Panel 并排截图、ChatGPT Undo/IME/原生右键/安装/SPA/BFCache/卸载及逐维 95+ 全部 `NOT_TESTED` 或 `NOT_SCORED`；待此候选实际 CI 结果后补充具体 SHA/Run。
+
+### 9.1 R1.7 远端提交/同源实物核验
+
+- 已安全提交 `main`：[`5a69d3b94db2e4300623a5cebdba8c2a52a6b06b`](https://github.com/shopable-ai/opendesk-browser/commit/5a69d3b94db2e4300623a5cebdba8c2a52a6b06b)，父提交 `434e67e0ec2f0c0188f894f4f502ec2a37e76d69`，12 个任务范围文件；未改已确认 `preview/index.html` / `preview/mock.html` 或并行更新的 `REQUIREMENTS.zh-CN.md`。
+- 正式 `prompt-shortcuts.opendesk-tool.json` 的 **Git blob `6bc4c87e027cb0a10656a4a992d8982e173190fc`、43057 UTF-8 bytes、SHA-256 `6dacf6d87993b35afa8ddf7d3322016c957e32807b4464879f73c24c2ae1e904`**。摘要以独立纯 JavaScript SHA-256 实现计算，并先用已知旧版 SHA-256 / “abc”标准测试向量校验算法。
+- 远端逐字节核对：`pkg.html === src/index.html`、`pkg.js === src/main.js`、CSS 的本工具私有布局后缀与 `src/style.css` 对应部分一致、`pkg.scripts[0].code === trusted/model.js`、`tool.config.json` 与正式包版本均为 `1.0.1`；这是**远端静态同源核验，不冒充官方 CLI 的本机执行**。
+- 源码准入 SHA 对应 `trusted/model.js`、`trusted/policy.js`、`trusted/page.js` 三项均与目前精确 blob pin 相同，无目录或目标通配许可。先前历史 AdBlock `host-controls.js` 固定 SHA 失配经当前源码检查已不再存在（实际与批准值同为 `c2d9fb892c76669b169c34de2cb4c168f91402cf`），但本次**未执行 production 整包 build**。
+- Scoped CI 已自动触发：[Run 38764735559](https://github.com/shopable-ai/opendesk-browser/actions/runs/38764735559)，运行绑定上述提交；截至最后一次读取仍为 `queued`，**NODE_PASS / PACKAGE_PASS 未取得，不得声称 CI PASS**。需读取该 Run 中真实测试、官方包生成日志和可安装包摘要后再关闭技术门禁。真实 Chrome/IME 独立验收继续 `NOT_TESTED`。
