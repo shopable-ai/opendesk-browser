@@ -16,15 +16,17 @@ test('R4 preserves distinct app and Page identities without duplicating official
   assert.equal(filterExtensionEntries(rows,{kind:'page'}).length,1);
   assert.equal(filterExtensionEntries(rows,{scope:'available'}).length,1);
 });
-test('R4 trusted candidate shows only after search or available filter',()=>{
+test('R5.0 uninstalled catalog candidates require explicit discovery even when searching',()=>{
   const rows=composeExtensionEntries({installed:[tool],official:[official,
     {...official,id:'opendesk/clip',toolId:'clip',packageTitle:'网页剪藏'}]});
   assert.equal(filterExtensionEntries(rows).length,1);
-  assert.deepEqual(filterExtensionEntries(rows,{query:'剪藏'}).map(x=>x.id),['clip']);
+  assert.deepEqual(filterExtensionEntries(rows,{query:'剪藏'}).map(x=>x.id),[]);
+  assert.deepEqual(filterExtensionEntries(rows,{scope:'local',query:'剪藏'}),[]);
+  assert.deepEqual(filterExtensionEntries(rows,{scope:'available',query:'剪藏'}).map(x=>x.id),['clip']);
   assert.equal(filterExtensionEntries(rows,{scope:'available'}).length,2);
   assert.equal(filterExtensionEntries(rows,{scope:'local'}).length,1);
 });
-test('R4 shows missing trusted preinstalls on the default Extension list, without publishing optional apps',()=>{
+test('R5.0 missing preinstalls and other catalog entries never masquerade as installed',()=>{
   const cookie={id:'opendesk/cookie-editor',toolId:'cookie-editor',
     packageTitle:'Cookie Editor',description:'Cookie 管理',version:'2.0.6',
     installationPolicy:'preinstalled'};
@@ -32,14 +34,36 @@ test('R4 shows missing trusted preinstalls on the default Extension list, withou
     packageTitle:'其他应用',description:'可选工具',version:'1.0.0',installationPolicy:'optional'};
   const entries=composeExtensionEntries({installed:[tool],official:[cookie,optional]});
   assert.deepEqual(new Set(filterExtensionEntries(entries).map(row=>row.id)),
-    new Set(['shared','cookie-editor']));
+    new Set(['shared']));
   assert.deepEqual(new Set(filterExtensionEntries(entries,{scope:'available'}).map(row=>row.id)),
     new Set(['cookie-editor','optional-app']));
-  assert.equal(filterExtensionEntries(entries,{query:'Cookie Editor'})[0]?.id,'cookie-editor');
+  assert.equal(filterExtensionEntries(entries,{query:'Cookie Editor'}).length,0);
+  assert.equal(filterExtensionEntries(entries,{query:'cookie-editor',scope:'smart'}).length,0);
+  assert.deepEqual(filterExtensionEntries(entries,{query:'Cookie Editor',scope:'available'}).map(x=>x.id),
+    ['cookie-editor']);
   assert.equal(filterExtensionEntries(entries,{scope:'local'}).length,1);
   assert.equal(entries.find(row=>row.id==='cookie-editor').installed,false,
     'discoverability must not pretend the tool is installed or grant any capability');
+  const afterRemoval=composeExtensionEntries({installed:[],official:[cookie,optional]});
+  for(const scope of ['smart','local','',undefined]){
+    assert.deepEqual(filterExtensionEntries(afterRemoval,{scope,query:'Cookie Editor'}),[]);
+    assert.deepEqual(filterExtensionEntries(afterRemoval,{scope}),[]);
+  }
+  assert.deepEqual(filterExtensionEntries(afterRemoval,{scope:'available'}).map(row=>row.id).sort(),
+    ['cookie-editor','optional-app']);
+  const reinstalled=composeExtensionEntries({installed:[{...tool,id:'cookie-editor',title:'Cookie Editor'}],official:[cookie]});
+  assert.equal(filterExtensionEntries(reinstalled)[0].id,'cookie-editor');
+  assert.equal(filterExtensionEntries(reinstalled,{scope:'available'}).length,0);
 });
+test('R5.0 cleanup-pending uninstalled candidate is discoverable but never reported installed',()=>{
+  const release={toolId:'cookie-editor',id:'opendesk/cookie-editor',
+    packageTitle:'Cookie Editor',version:'2.0.7',installationPolicy:'preinstalled'};
+  const entries=composeExtensionEntries({official:[release],cleanupPendingIds:['cookie-editor']});
+  assert.deepEqual(filterExtensionEntries(entries),[]);
+  assert.equal(filterExtensionEntries(entries,{scope:'available'})[0].cleanupPending,true);
+  assert.equal(filterExtensionEntries(entries,{scope:'available'})[0].installed,false);
+});
+
 test('R4 discards Page records that do not match their installed manifest hash',()=>{
   assert.deepEqual(composeExtensionEntries({pages:[{...page,manifestHash:'different'}]}),[]);
 });
