@@ -127,3 +127,18 @@ Date: 2026-10-15. Branch: `main` (only). Scope: `examples/programs/chatgpt-mindm
 **下一阶段最小必要缺口：** 精确权利来源与 NOTICE/SBOM、受现有 Authority 管理且不向 ChatGPT MAIN/全局样式泄漏的通用离线绘图边界、正式固定 Runtime 接线、同候选安装验收、真实 ChatGPT UI/视觉与输入操作验收。不可为了本地 Gate 1 PASS 强行改 `installable:false`，不可把 legacy 快照路径或 npm 作为安装时动态 JS 获取地址。
 
 三个原 Snowbrush / XMind 固定 blob **此前就已存在于 Browser 仓库的旧项目源码快照**，这不等于它们是获批准、可分发的新产品依赖；这里没有新增 vendor 文件。以前“vendor 字节未在当前项目分发”的表述精确理解为“**不包含在思维导图正式 Program 构建/安装包中**”。
+
+
+## R2.3 真实 HTML 自动预览与 CJK / 大图导航证据（2026-10-15）
+
+**范围原则：** R2.2 真实 SDK/CSP/独立产品模块全部继承，不添加第二 Renderer、不打包未获批准 vendor JS、不推进未经许可和样式隔离批准的正式安装。本阶段只处理用户实际能直接打开、看到、验证的真实预览体验。
+
+- **四件套一条命令：** `node examples/programs/chatgpt-mindmap/preview/serve.mjs` 使用仓库快照的三件 + 精确 npm `jszip@3.10.1`，在 Git 忽略的 `preview/.runtime/xmind/` 中准备并核验四个原始 JS。整体 4,042,573 B；逐文件长度、SHA-256、Git Blob 和次序由 `tests/xmind-provenance.json` 唯一提供，缓存损坏失败关闭。正常 CLI 输出 `PREVIEW_ASSETS_READY` 和带 `?autostart=1` 的本地 URL，带桌面的开发机会尝试打开默认浏览器，`--no-open` 可关闭自动打开；没有前端 Mock。**该目录是本地/CI 生成，不代表四个文件被新纳入仓库分发或正式 Extension。**
+- **真实程序代码：** 预览只点击 `answer-registry.js` 创建的正式按钮，绘图仍经 `extract.js`、`view.js`、`xmind-convert.js`、`xmind-adapter.js` 和共享 CSS；A 自动图必须等待正式 `data-ready=true` 才反馈 `REAL_XMIND_RENDERED`，B/C 独立保留。该行为只在本地页面的 `?autostart=1` 开启，不能改变 ChatGPT 正式页面初始行为。
+- **中文真实截图修复：** Chrome Linux runner 安装、验证 Noto CJK，正式产品样式也添加跨平台中文 fallback。此前截图中文大量方框；新隔离 Runner 真实 XMind 截图显示中文可读。Linux 开发机缺 CJK 字体时仍需安装系统字体；不能声称所有用户平台字体无条件可用。
+- **通过的真实证据：** [CI #38741698352](https://github.com/shopable-ai/opendesk-browser/actions/runs/38741698352) 绑定 `6244f28d8da33991ba587f6979f88bed35b1b3b3`：两个 Job SUCCESS，Node 16/16、Chromium 22/22、A 自动预览 9 主题、C 大导图 97 主题、320px 容器实测 320px、中文清楚、真实截图归档。随后 [CI #38742723254](https://github.com/shopable-ai/opendesk-browser/actions/runs/38742723254) 绑定 `0c4003d3fdf48592f6bbc3620852ffa884f8f11f`：两个 Job SUCCESS，**24/24 Chromium PASS**，C 大图实测用户鼠标拖动真实主题位移约 **115px**，滚轮使 Snowbrush 内部 scroller `scrollTop:812→1152`。不是仅凭节点 DOM 数量宣称可浏览。
+- **画布现实限制：** 97 个主题的实测总纵向范围约 1310px，而 inline 画布高度约 387px；**不可能在有限高度中保持全部主题同时可读**。用户可真实拖动/滚动、缩放或全屏阅读，不得把视觉裁切全部当作已彻底消除。尚未完成独立 Mindbank 相似度验收。
+- **新的但尚待独立 CI 的输入：** `b5f789707155089da21f33abf316f74717025272` 增加 Chromium CDP 200% **visual viewport page-scale** 检查；这不等同 Chrome 菜单的原生站点缩放，后者与实际 Mac 触控板仍 **NOT_TESTED**。`9acd97da0400b429a9ebfcf5b2356b281aa79ba2` 增加直接 `spawn(node serve.mjs --no-open)` 后校验自动打开 URL 的 CLI 端到端 smoke。两项必须等待对应最新 CI 完成，不能以代码提交代替测试 PASS。
+- **始终不提升准入：** 已实测 `style#snowbrush_style` 全局残留：`BLOCKED_GLOBAL_STYLE_RESIDUE`；第三方 Snowbrush 合并包 / GSAP 3.5.1 传递权利仍未闭环；可信固定 JS Runtime 无 4MB 安全准入；登录真实 ChatGPT 的自动运行、卸载/撤权与同候选安装仍 NOT_TESTED。保持 `installable:false`，不可扩容通用 USER_SCRIPT 512 KiB/注入 MAIN/开任意 CDN。
+
+**证据范围结论：** `PREVIEW_ASSETS_READY=PASS(CI)`；`REAL_LOCAL_HTML_XMIND=PASS(CI)`；`REPOSITORY_DISTRIBUTABLE=BLOCKED`；`PRODUCT_RUNTIME_ADMITTED=BLOCKED`；`INSTALLED_CHATGPT=NOT_TESTED`。聊天中展示的浏览器截图只能标 `VISUAL_EVIDENCE_ONLY`，真实交互需运行仓库的 localhost 页面。每个截图/JSON 均绑定其各自 CI SHA 和有限保留时效。
