@@ -102,7 +102,7 @@ async function exercise(mode){
     el.dispatchEvent(new Event('input',{bubbles:true}));
     el.dispatchEvent(new Event('change',{bubbles:true}));
   };
-  const submit=()=>q('bm-form').requestSubmit();
+  const submit=()=>q('bm-save').click();
   const diagnostic=label=>{
     const match=[...document.querySelectorAll('details button')].find(x=>x.textContent===label);
     check(Boolean(match),'Mock diagnostic '+label);match.click();
