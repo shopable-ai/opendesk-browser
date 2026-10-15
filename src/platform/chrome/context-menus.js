@@ -1017,6 +1017,16 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
             throw failure('E_SITE_GRANT_REQUIRED','Requested observation origin differs from owned tab');
           await verifyBrowserOwner(identity,targetOperation,target.origin);
         }
+        // A newer trusted STOP wins over any older, unspent ENABLE approval.
+        // The UI may have approved ENABLE before the STOP click; never let a
+        // delayed sandbox RPC reuse that consent and re-enable after STOP.
+        // Running operations remain serialized by the existing Host/Driver lock.
+        if(targetOperation==='browser.proxy.managed.requestDisable'){
+          for(const [ref,pending] of browserIntents){
+            if(pending.toolId===toolId&&pending.operation==='browser.proxy.managed.requestEnable')
+              browserIntents.delete(ref);
+          }
+        }
         for(const [ref,intent] of browserIntents)if(Date.now()>=intent.expiresAt)browserIntents.delete(ref);
         if(browserIntents.size>=16)throw failure('E_LIMIT','Too many pending approvals');
         const approvalRef=crypto.randomUUID(),expiresAt=Date.now()+INTENT_TTL;
