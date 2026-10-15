@@ -1,7 +1,7 @@
 import './model.js';
 import {SIDEBAR_TOOL_STORE} from '../../../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../../../src/ui/sidebar-tools/lifecycle.js';
-import {PROMPT_ID,PROMPT_SITE_STORE,PROMPT_DATA_STORE,supportedOrigin,allowedPromptSite} from './policy.js';
+import {PROMPT_ID,PROMPT_DATA_STORE,supportedOrigin,allowedPromptSite} from './policy.js';
 const MODEL=globalThis.OpenDeskPromptShortcutsModel;
 const SLOT='__openDeskPromptShortcutsPageV1';
 const STYLE=String.raw`
@@ -12,7 +12,6 @@ button{font:inherit;cursor:pointer;color:#293549;background:#fff;border:1px soli
 button:focus-visible{outline:2px solid #365eda}
 button:hover{background:#eef2ff;border-color:#365eda}
 .item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:38px;height:38px;min-height:38px;padding:3px;font-weight:650;font-size:12px;line-height:1.05}
-.round{border-radius:50%}
 .fold{display:none}
 .rail.narrow .fold{display:flex;align-items:center;justify-content:center;width:38px;height:38px;min-height:38px;background:#365eda;border-color:#365eda;color:#fff}
 .rail.narrow.folded{max-height:48px;overflow:hidden}
@@ -29,7 +28,7 @@ button:hover{background:#eef2ff;border-color:#365eda}
 .feedback[data-kind="success"]{color:#157255;border-color:#9accbc}
 `;
 const KEYS=[SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,
-  PROMPT_SITE_STORE,PROMPT_DATA_STORE];
+  PROMPT_DATA_STORE];
 export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.document,win=globalThis.window}={}){
   if(!doc||!win||win.top!==win||!supportedOrigin(win.location.href)||
     !api?.storage?.local?.get||!api.storage?.onChanged)return null;
@@ -151,7 +150,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       // Recheck installation, exact origin, grant, enable and data before effect.
       const data=await api.storage.local.get(KEYS);
       if(token!==epoch||location!==win.location.href||!await allowedPromptSite({
-        installed:data[SIDEBAR_TOOL_STORE],grants:data[PROMPT_SITE_STORE],
+        installed:data[SIDEBAR_TOOL_STORE],
         enabled:data[SIDEBAR_TOOL_ENABLE_STORE],epochs:data[TOOL_REVOCATION_EPOCHS_STORE],url:location
       }))throw Error('网站授权或页面身份已变化');
       const library=model.load(data[PROMPT_DATA_STORE]?.library);
@@ -209,7 +208,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     rail.append(toggle);
     for(const row of items){
       const button=doc.createElement('button');button.type='button';
-      button.className='item'+(row.shape==='round'?' round':'');
+      button.className='item';
       button.setAttribute('aria-label','插入提示词：'+row.name);
       button.title=row.name; // Full multiline details appear on focus/hover.
       for(const part of model.parts(row.label)){
@@ -230,7 +229,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     try{
       const values=await api.storage.local.get(KEYS);
       const permitted=await allowedPromptSite({
-        installed:values[SIDEBAR_TOOL_STORE],grants:values[PROMPT_SITE_STORE],
+        installed:values[SIDEBAR_TOOL_STORE],
         enabled:values[SIDEBAR_TOOL_ENABLE_STORE],epochs:values[TOOL_REVOCATION_EPOCHS_STORE],url
       });
       if(disposed||paused||token!==epoch)return;
