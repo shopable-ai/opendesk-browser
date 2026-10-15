@@ -10,12 +10,18 @@ import {SAMPLE_ARGS} from './browser-sdk-r107-samples.mjs';
 const project=new URL('../../examples/sidebar-tools/browser-sdk-acceptance/',import.meta.url);
 const tool=await createSidebarToolPackage(project.pathname);
 
-test('R10.7 actual installed package admits every public capability but still has no trusted Host-only method',()=>{
+test('R10.7 installed fixture retains legacy grants without inheriting Full Bookmarks',()=>{
   assert.equal(tool.format,'opendesk.sidebar-tool.v2');
   assert.equal(tool.requires.browserSdk,'1.0.0');
   const required=new Set(Object.values(BROWSER_OPERATIONS).flatMap(row=>row.requiredCapabilities));
+  // Full is a separately reviewed R11.2 capability exercised by the dedicated
+  // Bookmark Manager package. Do not silently privilege-expand the R10.7
+  // acceptance fixture or change its installed package hash/version.
+  assert(required.has('browser.bookmarks.full'));
+  assert(!tool.capabilities.includes('browser.bookmarks.full'));
   for(const capability of required)
-    assert(tool.capabilities.includes(capability),'Acceptance tool missing '+capability);
+    if(capability!=='browser.bookmarks.full')
+      assert(tool.capabilities.includes(capability),'Legacy acceptance tool missing '+capability);
   assert(tool.contributes.contextMenus.some(menu=>menu.actionId==='sdk-check'));
   assert(!tool.js.includes('chrome.runtime.sendMessage('));
   assert(!tool.js.includes('Runtime.evaluate'));
@@ -111,7 +117,7 @@ test('R10.7 UI cannot dispatch unregistered, malformed or unsafe URL calls to re
   assert.equal(f.calls.length,before,'Neither request reached the SDK Host callback');
 });
 
-test('R10.7 every approved public method can be invoked from the actual installed-tool UI',async()=>{
+test('R10.7 public facade methods route from UI through injected mock transport, not actual Full Host',async()=>{
   const f=await ready();
   const initial=f.calls.length;
   for(const operation of Object.keys(BROWSER_OPERATIONS)){
