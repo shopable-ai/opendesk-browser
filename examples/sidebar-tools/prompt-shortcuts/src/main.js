@@ -186,7 +186,6 @@ async function launch(){
 el('ps-new').addEventListener('click',()=>start());
 el('ps-form').addEventListener('submit',e=>void save(e));
 el('ps-form').addEventListener('input',changed);el('ps-form').addEventListener('change',changed);
-el('ps-back').addEventListener('click',()=>back());
 el('ps-cancel').addEventListener('click',()=>back());
 el('ps-stay').addEventListener('click',()=>{el('ps-leave').hidden=true;pendingLeave=null;el('ps-body').focus();});
 el('ps-discard').addEventListener('click',()=>{const action=pendingLeave;pendingLeave=null;if(action)action();});
