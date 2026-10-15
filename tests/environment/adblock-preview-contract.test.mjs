@@ -164,3 +164,16 @@ test('AdBlock offline restore requires accepted matching receipt and product ini
   assert.match(mock,/announce\(data\.requestId\)/);
   assert.match(builder,/HEIGHT:String\(tool==='adblock'\?220:height\)/);
 });
+
+
+test('checked-in AdBlock HTML stays generator-identical independent of unrelated HEAD commits',async()=>{
+  const snapshot=await source('examples/sidebar-tools/adblock/adblock-r1-interactive-preview.html');
+  const generated=await generatePreview({
+    tool:'adblock',surface:'side-panel',scenario:'success',theme:'light',width:360,height:760
+  });
+  const normalize=html=>html
+    .replace(/Source: [0-9a-f]{40}/g,'Source: SOURCE_REVISION')
+    .replace(/"sourceCommit":"[0-9a-f]{40}"/g,'"sourceCommit":"SOURCE_REVISION"');
+  assert.equal(normalize(snapshot),normalize(generated.html),
+    'reviewed HTML must match canonical package/shell/host/mock byte-for-byte, excluding Git HEAD metadata');
+});
