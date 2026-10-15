@@ -1,6 +1,6 @@
 // Rendered HTML -> semantic blocks -> MindNode; no guessing source Markdown.
 // Node fields match Mindbank's {id,title,content,depth,children} idea, with
-// additional kind for read-only browsing. This is intentionally NOT XMind.
+// additional kind for the HTML adapter. Titles/notes feed the real XMind SDK.
 const MAX_NODES=160,MAX_DEPTH=8,MAX_TITLE=72,MAX_NOTE=1200,MAX_TOTAL_NOTE=22000;
 const SKIP='script,style,svg,button,input,textarea,select,nav,aside,[contenteditable="true"],'+
   '[data-opendesk-chatgpt-mindmap]';
@@ -13,11 +13,15 @@ export function extractAnswerTree(content){
   function note(node,text){
     if(!node)return;
     const value=String(text??'').trim();if(!value)return;
-    const available=Math.min(MAX_NOTE-(node.content?.length||0),MAX_TOTAL_NOTE-state.noteBytes);
+    const separator=node.content?'\n':'';
+    const available=Math.min(MAX_NOTE-(node.content?.length||0)-separator.length,
+      MAX_TOTAL_NOTE-state.noteBytes-separator.length);
     if(available<=0){state.truncated=true;return;}
-    const output=slice(value,available);
-    node.content=(node.content?node.content+'\n':'')+output;
-    state.noteBytes+=output.length;
+    // Bound UTF-16 storage without cutting a surrogate pair.
+    let output=value.slice(0,available);
+    if(/[\uD800-\uDBFF]$/.test(output))output=output.slice(0,-1);
+    node.content=(node.content||'')+separator+output;
+    state.noteBytes+=separator.length+output.length;
     if(output.length<value.length)state.truncated=true;
   }
   function add(parent,title,kind='paragraph'){
@@ -48,6 +52,7 @@ export function extractAnswerTree(content){
       for(const sub of li.children){
         if(sub.tagName==='UL'||sub.tagName==='OL')list(sub,child);
         if(sub.tagName==='PRE')note(child,sub.textContent);
+        if(sub.tagName==='TABLE')table(sub,child);
       }
     }
   }
@@ -65,7 +70,13 @@ export function extractAnswerTree(content){
     }
   }
   function visit(element){
-    for(const child of element.children){
+    for(const child of element.childNodes){
+      if(child.nodeType===3){
+        const text=trim(child.textContent);
+        if(text){if(state.headingStack.length)note(current(),text);else add(root,text,'paragraph');}
+        continue;
+      }
+      if(child.nodeType!==1)continue;
       if(child.matches(SKIP)||child.hidden||child.getAttribute('aria-hidden')==='true')continue;
       const tag=child.tagName;
       if(/^H[1-6]$/.test(tag)){heading(child);continue;}
@@ -99,9 +110,5 @@ export function extractAnswerTree(content){
     }
   }
   visit(content);
-  if(!root.children.length){
-    const value=trim(content.textContent);
-    if(value)add(root,value,'paragraph');
-  }
   return {tree:root,nodeCount:state.count-1,truncated:state.truncated};
 }

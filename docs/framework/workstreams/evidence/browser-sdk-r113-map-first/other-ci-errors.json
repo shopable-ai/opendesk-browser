@@ -1,0 +1,65 @@
+[
+  {
+    "run": "Knowledge inbox R1 - components and Chrome fixture",
+    "id": 116309778387,
+    "failures": [
+      "2026-10-15T07:51:27.9769610Z not ok 1 - Knowledge R1 Chrome: reviewed install, capture, persistent editor and inline confirmation",
+      "2026-10-15T07:51:27.9772152Z   error: 'Native Chrome timeout: actionable control #sidebar-tool-discover-tab'"
+    ]
+  },
+  {
+    "run": "Markdown tools R22 - packages and native Chrome",
+    "id": 116309776777,
+    "failures": [
+      "2026-10-15T07:51:56.6376308Z not ok 1 - R22 Chrome: official clipper consent, real content read and local workbench import",
+      "2026-10-15T07:51:56.6380838Z   error: 'Native Chrome timeout: tools section'",
+      "2026-10-15T07:53:33.4569081Z # SyntaxError: The requested module '../../src/libs/catalog.js' does not provide an export named 'PAGE_OPTIONAL_LIBRARY_IDS'",
+      "2026-10-15T07:53:33.4572678Z not ok 195 - tests/environment/papa-parse-r1.test.mjs",
+      "2026-10-15T07:53:33.4575186Z   error: 'test failed'"
+    ]
+  },
+  {
+    "run": "Stay Focus R1 - independent Chrome restrictions and native evidence",
+    "id": 116311128637,
+    "failures": [
+      "2026-10-15T07:53:57.7670590Z not ok 1 - Real Chrome default sharing, live page reminder, DNR and uninstall",
+      "2026-10-15T07:53:57.7805590Z   error: 'Visible real control #sidebar-tool-discover-toggle timed out'"
+    ]
+  },
+  {
+    "run": "Time Review R1.6 - trusted native macOS Chrome Side Panel",
+    "id": 116309778447,
+    "failures": [
+      "2026-10-15T07:55:36.3715680Z not ok 1 - Time Review R1.9 actual Mac Chrome native product acceptance",
+      "2026-10-15T07:55:36.3727260Z   error: 'actionable #sidebar-tool-discover-toggle timed out'"
+    ]
+  },
+  {
+    "run": "Cookie Editor R3.3 real SDK and package verification",
+    "id": 116309778508,
+    "failures": [
+      "2026-10-15T07:55:41.9676405Z # SyntaxError: The requested module '../../src/libs/catalog.js' does not provide an export named 'PAGE_OPTIONAL_LIBRARY_IDS'",
+      "2026-10-15T07:55:41.9679617Z not ok 195 - tests/environment/papa-parse-r1.test.mjs",
+      "2026-10-15T07:55:41.9681419Z   error: 'test failed'"
+    ]
+  },
+  {
+    "run": "Reading TOC R4.1-R4.6 - responsive height, visibility, native and build",
+    "id": 116309778208,
+    "failures": [
+      "2026-10-15T07:53:15.3308656Z not ok 1 - R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and revokes page UI",
+      "2026-10-15T07:53:15.3313904Z   error: 'Trusted control not visible/enabled: #sidebar-tool-settings-deny'",
+      "2026-10-15T07:55:09.5527368Z # SyntaxError: The requested module '../../src/libs/catalog.js' does not provide an export named 'PAGE_OPTIONAL_LIBRARY_IDS'",
+      "2026-10-15T07:55:09.5530777Z not ok 195 - tests/environment/papa-parse-r1.test.mjs",
+      "2026-10-15T07:55:09.5532685Z   error: 'test failed'"
+    ]
+  },
+  {
+    "run": "AdBlock R1.2 - trusted DNR, offline release and native macOS Chrome",
+    "id": 116311298122,
+    "failures": [
+      "2026-10-15T07:55:17.3952830Z not ok 1 - macOS Chrome actual AdBlock DNR and network lifecycle",
+      "2026-10-15T07:55:17.4011950Z   error: 'reviewed official AdBlock installed and directly runnable in the unified list timed out'"
+    ]
+  }
+]

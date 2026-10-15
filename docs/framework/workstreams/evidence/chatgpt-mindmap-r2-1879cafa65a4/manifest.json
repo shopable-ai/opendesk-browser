@@ -1,0 +1,164 @@
+{
+  "date": "2026-10-15",
+  "sourceBase": "ecd1d64316c7df55a8b5953f3b17be2972386b96",
+  "reference": "b76abf4b95e34c1234a33927051ea13165d92715",
+  "sourceInputs": [
+    {
+      "path": "examples/programs/chatgpt-mindmap/assets/ui.css",
+      "bytes": 2573,
+      "sha256": "b32513c0d4da56361dc49cfa956e01a468de83112e98786199f10ea0f886b5e2"
+    },
+    {
+      "path": "examples/programs/chatgpt-mindmap/package.json",
+      "bytes": 726,
+      "sha256": "27e64d93e50bca29672863977fc39c7c12700e51f1e36c845e479a450945a748"
+    },
+    {
+      "path": "examples/programs/chatgpt-mindmap/src/answer-registry.js",
+      "bytes": 11605,
+      "sha256": "afb3ff58c15d13aa9dfaa244ae64361b9c6793fcd207efa76ca3233687f31d61"
+    },
+    {
+      "path": "examples/programs/chatgpt-mindmap/src/chatgpt-adapter.js",
+      "bytes": 3540,
+      "sha256": "be85bcb15947a38ce6946c7b0ad3323bc2aad4272dd89a3f16272163d3bd63e8"
+    },
+    {
+      "path": "examples/programs/chatgpt-mindmap/src/extract.js",
+      "bytes": 5278,
+      "sha256": "afabadcc60063484f34b318612cd3589383887bbc884cdeeae44b3cbcb8e4d21"
+    },
+    {
+      "path": "examples/programs/chatgpt-mindmap/src/main.js",
+      "bytes": 1311,
+      "sha256": "2adcf1882c7ae041931384f12ee759a4732d95f3c206341a9832a56bafce3fdb"
+    },
+    {
+      "path": "examples/programs/chatgpt-mindmap/src/view.js",
+      "bytes": 4170,
+      "sha256": "f451fc77bb8c8bf1779b82bead6ab8597ee8ee71d8e40bedf936a4e449cd0dba"
+    },
+    {
+      "path": "examples/programs/chatgpt-mindmap/src/xmind-adapter.js",
+      "bytes": 6400,
+      "sha256": "bf6a3e0ad24a0db72cf166a2aa002de2304089197cfb01f289f07419a8989f72"
+    },
+    {
+      "path": "examples/programs/chatgpt-mindmap/src/xmind-convert.js",
+      "bytes": 8733,
+      "sha256": "f6e88051d258a776e0500032c61579ccf435e399c516d11b28e22a1c59fed5f5"
+    },
+    {
+      "path": "tests/fixtures/chatgpt-mindmap.html",
+      "bytes": 4843,
+      "sha256": "6b90bd056bd95149595d05487c42f71de510949f17884e99618d3c7b8d056008"
+    },
+    {
+      "path": "tests/fixtures/chatgpt-mindmap.js",
+      "bytes": 2413,
+      "sha256": "472ab2802fd78748647a5cc34ccd49dde332058061efe7eaf2996bc7dccbefcc"
+    },
+    {
+      "path": "tests/framework/chatgpt-mindmap-xmind-probe.mjs",
+      "bytes": 10363,
+      "sha256": "965b5d24b57bf375ead6eff38ebcc622cbef5ab039c361ba16fd747ad352f56f"
+    }
+  ],
+  "sourceBytes": 41037,
+  "cssBytes": 2573,
+  "buildSourceHash": "45ab0cd685da4158e4b7cebcd858969d90291b1606efd69135cbf5550819e808",
+  "buildBytes": 44322,
+  "evidence": {
+    "nodeWithActualSDK": {
+      "pass": 13,
+      "fail": 0,
+      "skip": 0
+    },
+    "nodeWithoutSDK": {
+      "pass": 10,
+      "fail": 0,
+      "skip": 3
+    },
+    "browserFixture": {
+      "status": "PASS",
+      "pass": 15,
+      "browser": "149.0.7827.0",
+      "lifecycle": {
+        "created": 28,
+        "closed": 28,
+        "remaining": 0,
+        "hidden": false
+      },
+      "actualFold": {
+        "expandedCount": 8,
+        "foldedCount": 2
+      }
+    },
+    "check": "PASS",
+    "installed": "BLOCKED",
+    "extensionId": null,
+    "chatgpt": "NOT_TESTED",
+    "visual": "NOT_PASSED",
+    "independentScores": "NOT_SCORED"
+  },
+  "limits": [
+    "No approved XMind resource admission in OpenDesk",
+    "Exact Snowbrush license provenance unverified",
+    "Global SDK styles remain after controllers close",
+    "Canvas fit/clipping and missing Chinese fonts in Linux screenshots",
+    "No actual Mindbank page comparison",
+    "No logged-in ChatGPT, 200 percent zoom, gestures, note UI, memory, BFCache, revocation, uninstall or install proof"
+  ],
+  "files": [
+    {
+      "path": "build.json",
+      "bytes": 5220,
+      "sha256": "602698ef403bae92c624f7ae92837d40045a2882f68b5ec0513cda7b28ca3fd6"
+    },
+    {
+      "path": "check.log",
+      "bytes": 307,
+      "sha256": "693c12c7379e696abd5825f2cb748c64bfc2ca2b549c43aa5d36e87eb7356c00"
+    },
+    {
+      "path": "chromium-real-sdk.json",
+      "bytes": 3334,
+      "sha256": "de84ffa3fcd1924f4c3244f791d2bfbcc3dffa69bcf79c9107e580405e0130de"
+    },
+    {
+      "path": "light-fixture.png",
+      "bytes": 67254,
+      "sha256": "6aef16cb5635d3dc6cadca7c4504d96eaf57a570cf839814c639e9fc5df39c33"
+    },
+    {
+      "path": "narrow-fixture.png",
+      "bytes": 38395,
+      "sha256": "70681253a9507c67620168bb9c63f52b0ccc1f1408fcdca832eed6e74e116d7a"
+    },
+    {
+      "path": "node-default.log",
+      "bytes": 1379,
+      "sha256": "1e56c52fb2725808ff932bbf136b42a32a5580ff6cde0d115f40bf884a32d9ed"
+    },
+    {
+      "path": "node-real-sdk.log",
+      "bytes": 1230,
+      "sha256": "40c8e0420c7969c4cbe6ea65edb9ac69534a460ff1b92845e717d5f846d9f722"
+    },
+    {
+      "path": "prior-fold-assertion-fail.json",
+      "bytes": 2001,
+      "sha256": "6dd62e05ec9a9389e5357de8efee8c26bdbf5c06d0273d8c9af945dfd6e5c0cf"
+    },
+    {
+      "path": "upstream-engine-probe.png",
+      "bytes": 17218,
+      "sha256": "c956c355bfae85858012fbb85bcd5d288176013d7bf128dded9a556d37bc4d3d"
+    },
+    {
+      "path": "validate.json",
+      "bytes": 1887,
+      "sha256": "3a5b2fdb93b7287ca4a8c3ae732043b05e0bdeb706e359e66cd11be942d05663"
+    }
+  ]
+}

@@ -1,12 +1,12 @@
 ## R11.3 · 正式 DIRECT 批次（2026-10-15）
 
-70 项批准 = 68 项公开 + 2 项 Host-only。3 项 DIRECT 为正式矩阵生成，非测试批准夹具；验证状态见本轮工作流和现有验收账本。
+70 项批准 = 68 项公开 + 2 项 Host-only。3 项 DIRECT 为正式矩阵生成，非测试批准夹具；验证候选 `0c4d4a885efb09b467148009e0ebe4981a1ae2da`：3 项 DIRECT 的正式 Host 正向/拒绝 Node PASS，双构建 PASS，Native NOT_TESTED。437 项相关回归与 SDK 两条 CI 通过；市场原生旧入口超时仍 FAIL。原始证据见 `evidence/browser-sdk-r113-map-first/summary.json`。
 
 | API | Registry | Exposure | Node 正向 | Node 拒绝 | Chrome 原生 |
 | --- | --- | --- | --- | --- | --- |
-| `browser.runtime.getPlatformInfo` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
-| `browser.i18n.getAcceptLanguages` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
-| `browser.i18n.detectLanguage` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.runtime.getPlatformInfo` | IMPLEMENTED | APPROVED_TOOL | PASS | PASS | NOT_TESTED |
+| `browser.i18n.getAcceptLanguages` | IMPLEMENTED | APPROVED_TOOL | PASS | PASS | NOT_TESTED |
+| `browser.i18n.detectLanguage` | IMPLEMENTED | APPROVED_TOOL | PASS | PASS | NOT_TESTED |
 
 ## R11.2 · Full Bookmarks 候选实施状态（2026-10-15）
 公开 SDK Registry 65 项，可信 Host-only 仍为 2 项。Full 12 项与 Owned createOwned 消费迁移已列入 Registry/Metrics，按真实源码候选接受 Node / Chrome 复验。未取得原生 Chrome 正向及反向回执前，每项 Native 为 NOT_TESTED；不得声称 95+ 产品 PASS。

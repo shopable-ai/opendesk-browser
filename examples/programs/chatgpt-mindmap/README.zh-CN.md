@@ -1,63 +1,97 @@
-# ChatGPT 思维导图 R1 · 独立 Page Program
+# ChatGPT 思维导图 R2 · 真实 XMind 迁移（安装阻塞）
 
-- 程序 ID：`opendesk.chatgpt-mindmap`
-- 显示名称：ChatGPT 思维导图
-- 运行世界：仅 `https://chatgpt.com/*` 的顶层 `USER_SCRIPT`
-- 项目入口：`src/main.js`（多文件 ESM，`@opendesk/ui` 是仓库内置别名）
-- 数据流：`单个 assistant DOM → 语义结构 → MindNode → 本地 SVG`。
-- **当前交付：可导入真实 OpenDesk Browser 项目结构及测试代码；没有在本次会话完成用户 Mac 的真实 ChatGPT 安装验收。**
+程序 ID：`opendesk.chatgpt-mindmap`；显示名称：**ChatGPT 思维导图**；版本 `0.2.0`。
+运行目标仅为 `https://chatgpt.com/*` 顶层 `USER_SCRIPT`。
 
-## 使用和安装
+**真实 XMind 已在独立 Linux Chromium 的本地 DOM fixture 运行。R2 尚不能作为普通用户正式安装版使用。**
+现有宿主没有经过审核的 XMind 固定资源准入；入口会在修改网页前报
+`E_XMIND_RUNTIME_UNAVAILABLE`。构建的 `BUILT_UNVERIFIED / installable:false` 不是安装成功。
+没有 SVG 替代、MAIN 世界加载、CDN、第二扩展或权限放宽。
 
-将本目录放在 OpenDesk Browser 仓库的 `examples/programs/chatgpt-mindmap/`，从**仓库根目录**运行：
+## 实际实现
+
+单条 Answer DOM → HTML 语义 → MindNode → 原 Workbook / Topic / Dumper / JSZip →
+原 `_SB_.createWorkbookEditor()` → 真实 XMind 只读画布。
+
+- `xmind-convert.js` 移植原 `xmind/convert.ts` 的 Workbook 构造、备注、路径身份和 branch 状态，并合并原 `skin.ts` 的真实主题。补充根备注；删除按重复标题回退的状态；HTML 可见文字不再经过 Markdown 或任务标题重写。
+- `xmind-adapter.js` 提取原 `xmind-renderer.ts` 的创建、staging mount、控制器替换、缩放/滚动恢复、原生折叠区域和 `close()`。不迁移 React、Next.js、编辑命令、账号、数据库和持久化。
+- 该 SDK 没有原参考适配器尝试调用的 `fitMap/fit/center`。本版测量 SDK 实际节点，用 SDK `zoom()` 及其滚动容器适配；视觉定位仍未达验收标准。
+- 该 SDK 的 `collapseBranch/extendBranch` 作用于选区。全分支工具栏还使用原转换器的 Workbook `branch` 状态重建，避免按钮切换而内容不折叠。真实 fixture 已观测 8 个可见主题折叠为 2 个并恢复。
+- 每条回复独立创建控制器；同文同标题不共享状态。关闭和 Stop 等待初始化/命令队列，并关闭迟到的控制器。
+- 正文始终保留原 DOM；只临时隐藏 `display` / `aria-hidden`，失败、关闭、导航和 Stop 恢复。
+- 提取器保留开头裸文本、标题、段落、嵌套列表、表格、引用、代码及链接/加粗的可见文字；修复列表内表格和备注额度/emoji 截断。
+
+## 文件审查与清理
+
+| 文件 | 处理 |
+| --- | --- |
+| `src/main.js` | 保留受管 Page UI，增加缺少真实 SDK 时的失败门槛 |
+| `src/chatgpt-adapter.js` | 保留；当前真实登录 ChatGPT 选择器未验证 |
+| `src/answer-registry.js` | 保留并修复异步清理、迟到实例、复用 DOM 的消息身份及流式属性观察 |
+| `src/extract.js` | 保留并修复 HTML 语义及额度 |
+| `src/view.js` | 重构为唯一 XMind 入口，去掉品牌标题、重复说明及旧 SVG 操作 |
+| `assets/ui.css` | 精简为按钮/工具栏/容器样式，删除旧节点/连线样式 |
+| `src/mindmap-renderer.js` | 删除 |
+| `src/mindbank-xmind-theme.js` | 删除；真实 Workbook 主题归入转换器 |
+| `tests/layout.test.mjs`、`tests/xmind-theme.test.mjs` | 删除 SVG 布局/仿主题测试 |
+| `tests/extract.test.mjs` | 保留并补充语义回归 |
+| `src/xmind-convert.js`、`src/xmind-adapter.js` | 新增真实引擎最小适配 |
+
+原算法来源为 `shopable-ai/shopable-station@b76abf4b95e34c1234a33927051ea13165d92715`；模块头部及
+[`tests/xmind-provenance.json`](tests/xmind-provenance.json) 记录实际文件、Git blob、资源字节和 SHA-256。
+这份 JSON 是审计/测试输入清单，不是第二份生产库注册表。
+
+## 固定资源与实际阻塞
+
+原资源目录：`apps/web/public/lib/xmind/`。四份原始字节均已读取并核对 Git blob 与 SHA-256：
+
+| 资源 | 字节 |
+| --- | ---: |
+| `jszip.min.js` | 97,630 |
+| `polyfill-45b9836beb.min.js` | 104,563 |
+| `xmind-sdk.bundle.js` | 401,113 |
+| `snowbrush-2c2b5d62b5.js` | 3,439,267 |
+| 合计 | 4,042,573 |
+
+**这些 vendor 字节未随本项目/扩展分发。** 以下缺口尚未关闭：
+
+1. **许可/来源闭包**：参考目录没有附带完整许可证和可复现版本锁。JSZip 头部声明 MIT/GPL；XMind 官方 SDK、viewer 包装项目的 MIT 不能直接证明这个 Snowbrush 合并产物和其中全部第三方资源的再分发许可。Snowbrush 内含多个第三方许可头，需要将其与固定字节对应。没有证据宣称它禁止分发，也没有证据宣称已审核通过。
+2. **现有资源合同装不下**：普通 Program builder 输出上限 100,000 B；linked Page 资源/compiled source 512 KiB；可选本地库单项 512 KiB，React/Vue 专用资源 256 KiB。Page assets 仅 CSS/JSON/图片，不能把 3.44 MB JS 冒充 JSON/CSS。未修改这些合同或以远端锁绕过。
+3. **隔离与生命周期**：真实探针确认 Snowbrush 向文档插入全局样式；控制器全关后仍保留共享样式。直接把它载入 USER_SCRIPT 仍共享网页 DOM，Shadow DOM 不能解决 SDK 全局资源所有权。必须验证复用现有运行边界的最小可信本地资源/绘图隔离方案，再实施公共合同；本轮没有新建 iframe/RPC 框架。
+4. **视觉及原生证据**：Linux 截图有字体缺失与画布定位/裁剪问题；不能声称与原 Mindbank 页面一致。暗色、真实 200%、触控板/拖动/备注、BFCache、内存、真实登录 ChatGPT、撤权/卸载即时清理和自动运行均未完成验收。
+
+源码里的 `new Function` / `eval` 字样并不等于此只读路径一定失败：真实 Node 转换在禁止字符串代码生成时通过；独立 Chromium 使用 `script-src 'self'`（没有 unsafe-eval）渲染和操作通过。
+**这不等于 Chrome USER_SCRIPT 或扩展 CSP 已验证。** 没有把原 SDK 注入 ChatGPT MAIN；探针仅在专属本地测试页面加载固定资源。
+
+## 复现与证据等级
 
 ```sh
 node scripts/validate-program-project.mjs examples/programs/chatgpt-mindmap
-npm run build:program -- examples/programs/chatgpt-mindmap
 node --test tests/environment/chatgpt-mindmap-r1.test.mjs
+npm run build:program -- examples/programs/chatgpt-mindmap
+npm run check
 ```
 
-正式产物默认写入：
-
-`artifacts/programs/opendesk.chatgpt-mindmap/0.1.0/r31-production/<实际哈希>/`
-
-其中有 `program.js`、`program.opendesk-draft.json` 与 `artifact.json`。**路径中的哈希必须使用真实构建输出，本文不虚构。** `artifact.json` 默认 `BUILT_UNVERIFIED`，不是已安装状态。
-
-在产品的「开发」中选择已授权的本地项目、授权 ChatGPT 站点并进行 Page 用户脚本试运行。确认源代码、页面效果与 Stop 后，按既有流程将构建草稿导入生成固定 Candidate，执行 Verification → Available → Installed；安装完成后通过「扩展 → 网页增强」管理。需要 Chromium 的「允许用户脚本」开关，以及 OpenDesk 对该站点和当前文档的正式授权。**不能直接将 `package.json` 当安装清单导入，也不能把 `build:program` 当成已安装。**
-
-## 按回复工作原理
-
-- `chatgpt-adapter.js` 通过 `[data-message-author-role="assistant"]` 找到候选回复，确认唯一正文和唯一的官方复制按钮，只在有把握时插入；用户消息和不唯一的答案跳过。
-- 按钮是官方操作组附近的**独立 Shadow DOM 兄弟节点**，不取代官方按钮，也不把 `mount` 的同一选择器传给多个 Page UI 实例。
-- 一条回答以 DOM 元素为身份（`WeakMap`）；`Set` 只用于清理。不同回答即使同标题、同正文，也拥有完全独立的树、折叠状态、缩放和视图。
-- 行内视图只隐藏该条回复正文的 `display` 与 `aria-hidden`，精确保留原始值；点击「原文」恢复。全屏移动**自有 viewer** 到 `document.body`，不会移动 ChatGPT 的原回复。Escape 回到原按钮。
-- 生成时若检测到流式状态或近期内容修改，按钮短暂不可用；已打开视图遇内容更新会出现“刷新”提示，刷新也只读取原所属回复。导航、节点重绘、Stop/pagehide 时清理自己的宿主、监听器与计时器。
-- SVG 的标签、标题、备注全部通过 `textContent` 创建，无可信 HTML、外部脚本、网络 API、CDN 或模型调用。
-
-## 可复现测试
+保留历史 `r1` 测试命令作为 CI 入口，但不再导入 SVG 测试。
+真实 SDK Node 测试需提供已经取得的固定资源目录（缺失时明确 SKIP，不能计为 SDK PASS）：
 
 ```sh
-node --test tests/environment/chatgpt-mindmap-r1.test.mjs
-python3 -m http.server 48762 --bind 127.0.0.1
+XMIND_REFERENCE_DIR=/absolute/audited/xmind node --test tests/environment/chatgpt-mindmap-r1.test.mjs
 ```
 
-第二条命令从仓库根目录运行后，在**单独的本地测试浏览器**打开：
+浏览器探针只用于开发者复现，不是普通安装者的额外安装步骤：
 
-`http://127.0.0.1:48762/tests/fixtures/chatgpt-mindmap.html`
+```sh
+node tests/framework/chatgpt-mindmap-xmind-probe.mjs \
+  --assets /absolute/audited/xmind \
+  --browser /absolute/chromium \
+  --playwright /absolute/playwright/index.mjs \
+  --out /absolute/isolated-evidence
+```
 
-该 fixture 会试验 6 条回答、完全相同回答的身份隔离、两个视图并行、全屏/Escape、导图更新、官方工具栏替换、20+ 次切换、SPA 路由、Stop 清理。顶部必须出现 `FIXTURE_PASS`；出现 `FIXTURE_FAIL` 则保留错误，不作为通过。`?preview=1` 会停留在两个打开的导图，用于肉眼查看排版。**fixture PASS 不是已登录 ChatGPT Chrome PASS。**
+它校验固定 SHA、用独立 loopback 端口和临时浏览器加载真实四份库，记录实际节点、缩放、折叠、6 回复、同文隔离、全屏、操作栏重建、内容刷新、20 次切换、迟到控制器、SPA/Stop、网络请求和截图。
+只读断言与 fixture 驱动不能代替真实 ChatGPT、原生权限或安装验证。
 
-## R1 限制与待原生验收
-
-1. ChatGPT 官方 DOM 是不可控第三方结构。真实已登录页面若 Copy 按钮位置或语义不同，当前保守策略会跳过按钮，避免错绑；需要在目标 Chrome 采集不含正文的 DOM 结构证据后完善适配器。
-2. 当前 OpenDesk `setInstalledPageEnabled(false)` 只撤销未来注入/注册，没有证据证明会即时向已打开页面的 `USER_SCRIPT` 发 Stop。**停用/卸载后旧文档即时恢复需宿主统一的已安装 UI retirement 能力，不能靠本工具猜测安装状态。** 页面离开、正式受管 Stop 的 DOM 清理已登记；正式已安装禁用路径需另行验收。
-3. 语义提取是确定性结构化呈现，不调用 AI 改写或总结；对大纲、表格和长代码做有界截断，原文始终保留。
-4. UI 没有 XMind 编辑/导出，安全与包体积优先；目前不承诺 CSP 严格页面、320px、真实 200%、触控板及所有 ChatGPT 版本均 PASS。
-5. 不修改 `shopable-station`、不复制其 XMind SDK/JSX/Next.js 代码，复用 `{id,title,content,depth,children}` 数据模型的概念与“只读、折叠、缩放、原文切换”的交互原则；避免许可证、4 MB 资源和页面执行世界耦合。
-
-## R1.1：Mindbank XMind 真实源码移植
-
-- `src/mindbank-xmind-theme.js` **直接从参考仓库移植并实际调用** `xmind-renderer-seams.ts` 的路径 ID、解析与分支色算法，以及 `xmind/skin.ts` 的完整静态主题 JSON；来源 blob SHA 在新模块顶部。
-- 显示复用：蓝色中心节点、分支渐变颜色、层级递进、圆角主题和曲线连接。主入口仍是逐条 ChatGPT AI 回复。
-- **不是完整版 XMind SDK**。参考实现依赖 `JSZip/Workbook/Topic/Dumper/_SB_` 和四个全局 JS 文件，约 4.04 MB。当前 Page Program 执行代码和资源预算不支持直接打入这套二进制；分发授权/CSP 也未核实。保留本地 SVG 只读渲染，不能宣称像素级完全一致。
-- ChatGPT DOM 是渲染 HTML，不是原 Markdown；`extract.js` 是必要的网页语义适配。真实登录 Chrome 的操作栏与视觉效果仍须现场验收。
+**正式状态：Source → Build 已完成；Candidate / Verification / Available / Installed 未完成。**
+源码或远端提交不代表用户 Mac 的日常 `dist/development`、Chrome 扩展身份或安装状态发生变化。
+下一步首先补齐固定资源的许可/隔离准入，再沿原 Page Authority 完成同候选验证与安装；不恢复 SVG。

@@ -1,9 +1,9 @@
 {
   "name": "@opendesk-examples/chatgpt-mindmap",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "ChatGPT per-answer mind map enhancement; local-only SVG and managed Page USER_SCRIPT lifecycle",
+  "description": "ChatGPT per-answer real XMind adapter; runtime admission BLOCKED (see README)",
   "author": "OpenDesk examples",
   "opendesk": {
     "format": "opendesk.project.v1",
@@ -12,14 +12,19 @@
     "sourceFormat": "esm",
     "entry": "src/main.js",
     "pageRules": {
-      "matches": ["https://chatgpt.com/*"],
+      "matches": [
+        "https://chatgpt.com/*"
+      ],
       "excludeMatches": [],
       "runAt": "document_idle",
       "allFrames": false,
       "world": "USER_SCRIPT"
     },
     "assets": [
-      {"path": "assets/ui.css", "kind": "css"}
+      {
+        "path": "assets/ui.css",
+        "kind": "css"
+      }
     ]
   }
 }

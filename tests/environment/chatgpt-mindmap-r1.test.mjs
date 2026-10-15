@@ -1,5 +1,4 @@
-// Included in the repository's npm test / tests/environment/*.test.mjs run.
-// Tests semantic extraction and bounded SVG layout without network access.
+// Historical command retained; the SVG engine and its assertions are removed.
+// DOM fixture and actual SDK tests are separate from native ChatGPT acceptance.
 import '../../examples/programs/chatgpt-mindmap/tests/extract.test.mjs';
-import '../../examples/programs/chatgpt-mindmap/tests/layout.test.mjs';
-import '../../examples/programs/chatgpt-mindmap/tests/xmind-theme.test.mjs';
+import '../../examples/programs/chatgpt-mindmap/tests/xmind-adapter.test.mjs';
