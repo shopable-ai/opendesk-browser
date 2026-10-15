@@ -524,7 +524,12 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
     'Multiple H1 across 3 fragments/2 answers must be preserved');
   assert.equal(conversation.data.items[0].sourceId,conversation.data.items[3].sourceId);
   assert.notEqual(conversation.data.items[3].sourceId,conversation.data.items[4].sourceId);
-  await browser.send('Target.activateTarget',{targetId:panel.targetId});
+  // Keep the actual webpage active: its origin controls must not target tool.html.
+  await browser.send('Target.activateTarget',{targetId:second.targetId});
+  await chatPage.send('Page.bringToFront');
+  await eventually(()=>evaluate(host,
+    'document.querySelector("#script-current-page-url")?.textContent==='+JSON.stringify(origin+'/chat.html')),
+    'Native site settings must target the active chat webpage');
   // Earlier page visibility operations may have left Settings expanded.
   // Opening an already-open gear would close the actual consent controls.
   if(await evaluate(host,'document.querySelector("#sidebar-tool-settings-view").hidden'))
