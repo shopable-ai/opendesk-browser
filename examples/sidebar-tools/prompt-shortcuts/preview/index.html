@@ -208,7 +208,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 <header class="demo-header">
  <div class="demo-title"><span class="logo" aria-hidden="true">OD</span><div>
   <h1>Prompt Shortcuts · Side Panel UI</h1>
-  <p>侧边栏管理交互预览 R1.3 · 正文优先、其他选填 · 与左侧按钮共用本页模拟状态</p></div></div>
+  <p>管理界面交互预览 R1.9 · 正文优先、状态可见 · 与左侧按钮共用本页模拟状态</p></div></div>
  <div class="demo-controls" aria-label="预览控制">
   <span class="design-badge">模拟预览 · 非真实安装</span>
   <button id="size320" class="od-button od-button--small" type="button">320px</button>
@@ -373,7 +373,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   catch{copyId=item.id;el('copyText').value=item.body;el('copyFallback').hidden=false;el('copyText').focus();el('copyText').select();notice('剪贴板不可用，已显示完整文本供手动复制。');}}
  function rawFormValues(){const shape=document.querySelector('input[name="shape"]:checked');return {label:el('shortLabel').value.trim(),name:el('fullName').value.trim(),body:el('promptBody').value,enabled:el('itemEnabled').checked,shape:shape?.value||'square'};}
  function formValues(){const raw=rawFormValues(),fallback=defaultShort(raw.body);return {...raw,label:raw.label||fallback,name:raw.name||fallback,labelAuto:!raw.label,nameAuto:!raw.name};}
- function projection(){const value=formValues(),next=state.items.map(x=>({...x}));const idx=next.findIndex(x=>x.id===editId);if(idx>=0)next[idx]={...next[idx],...value};else next.push({id:'preview-new',...value});return {schema:1,settings:{webButtons:state.settings.showBar},items:next.map((row,order)=>({id:row.id,body:row.body,label:row.label,name:row.name,labelAuto:row.labelAuto===true,nameAuto:row.nameAuto===true,shape:row.shape,enabled:row.enabled,order}))};}
+ function projection(){const value=formValues(),next=state.items.map(x=>({...x}));const idx=next.findIndex(x=>x.id===editId);if(idx>=0)next[idx]={...next[idx],...value};else next.push({id:'mock-00000000-0000-4000-8000-000000000000',...value});return {schema:1,settings:{webButtons:state.settings.showBar},items:next.map((row,order)=>({id:row.id,body:row.body,label:row.label,name:row.name,labelAuto:row.labelAuto===true,nameAuto:row.nameAuto===true,shape:row.shape,enabled:row.enabled,order}))};}
 
  function updateMeter(){
   const value=formValues(),current=bytes(projection());
@@ -455,7 +455,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   }catch(error){showFormError('E_PREVIEW_SAVE：模拟保存出现异常：'+(error?.message||String(error))+'。草稿保留，请核对后操作。');}
   finally{saving=false;el('saveButton').disabled=false;el('saveButton').textContent='保存提示词';el('promptForm').removeAttribute('aria-busy');}
  }
- function cryptoRandom(){return typeof globalThis.crypto?.randomUUID==='function'?globalThis.crypto.randomUUID().slice(0,12):String(Date.now())+'-'+Math.random().toString(36).slice(2,8);}
+ function cryptoRandom(){return typeof globalThis.crypto?.randomUUID==='function'?globalThis.crypto.randomUUID():String(Date.now())+'-'+Math.random().toString(36).slice(2,8).padEnd(32,'0');}
  function prepareSelection(){el('mockContextMenu').hidden=true;if(!state.settings.contextMenu){notice('“选中文字快速添加”已关闭，请先开启开关。','error');return;}
   if(!mockAuthorized()){notice('当前模拟网站权限已撤销，不能从右键创建。','error');return;}
   if(currentView==='form'&&dirty){showFormError('草稿尚未保存，先处理当前编辑再添加选区。');return;}
@@ -489,7 +489,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   state={version:1,revision:1,settings:{showBar:true,contextMenu:true},items:COPY(),granted:true};nextSaveFailure=null;expandedId=null;deleteId=null;copyId=null;el('mockDraft').value='';el('mockContextMenu').hidden=true;el('copyFallback').hidden=true;returnIndex();notice('已重置为初始模拟数据。');});
  for(const [id,mode,label] of [['simulateWriteFail','write','写入失败'],['simulateConflict','conflict','并发冲突'],['simulateUnknown','unknown','结果未知']])el(id).addEventListener('click',()=>{nextSaveFailure=mode;el('failureStatus').textContent='下次保存将模拟：'+label;notice('已设置下次保存模拟：'+label+'，当前草稿会保留。');});
  document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!el('mockContextMenu').hidden){el('mockContextMenu').hidden=true;el('mockSelection').focus();}else if(event.key==='Escape'&&!el('webTooltip').hidden){el('webTooltip').hidden=true;tipButton=null;}});
- window.addEventListener('beforeunload',event=>{if(currentView==='form'&&dirty){event.preventDefault();event.returnValue='';}});
+ window.addEventListener('beforeunload',event=>{if(currentView==='form'&&(dirty||saving)){event.preventDefault();event.returnValue='';}});
  setView('index');renderIndex();renderRail();
 })();
 </script>
