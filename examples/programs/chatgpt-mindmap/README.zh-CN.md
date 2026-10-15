@@ -8,6 +8,17 @@
 `E_XMIND_RUNTIME_UNAVAILABLE`。构建的 `BUILT_UNVERIFIED / installable:false` 不是安装成功。
 没有 SVG 替代、MAIN 世界加载、CDN、第二扩展或权限放宽。
 
+## 独立真实 XMind HTML 预览（R2.1）
+
+新增 [preview/index.html](preview/index.html) 与 [预览运行说明](preview/README.md)：它与正式程序**共享** `src/answer-registry.js`、`src/xmind-adapter.js`、`src/xmind-convert.js` 和 `assets/ui.css`，不会另造绘图器或复制一份可能漂移的业务源码。开发者在旧资源目录可访问时运行：
+
+```sh
+node examples/programs/chatgpt-mindmap/preview/serve.mjs --assets /absolute/audited/xmind
+node --test tests/environment/chatgpt-mindmap-preview.test.mjs
+```
+
+预览服务首先验证四个原始文件的 SHA-256、Git blob、大小和加载顺序，缺失立即失败；仅绑定本地回环地址，不使用 CDN。可以独立验证 A/B/C、320px、折叠/缩放、操作栏重建、流式后快照与 Stop 的全局样式残留。**预览页正向运行不代表生产 USER_SCRIPT 已安装、原 ChatGPT 已测试或分发许可已批准。** R2.1 的实现与下一环节在 [工作流记录](../../../docs/framework/workstreams/chatgpt-mindmap-r21.md)。
+
 ## 实际实现
 
 单条 Answer DOM → HTML 语义 → MindNode → 原 Workbook / Topic / Dumper / JSZip →
