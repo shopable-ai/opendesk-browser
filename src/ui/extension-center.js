@@ -233,9 +233,6 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   get('extension-center-import').addEventListener('click',()=>{
     closeMenu();backIfNeeded();sidebarTools.openImport();get('sidebar-tool-file')?.focus({preventScroll:true});
   });
-  get('extension-center-bookmarks').addEventListener('click',()=>{
-    closeMenu();backIfNeeded();sidebarTools.openBookmarks();
-  });
   get('extension-center-reload').addEventListener('click',()=>{
     closeMenu();void readOfficial();void refresh();
   });
