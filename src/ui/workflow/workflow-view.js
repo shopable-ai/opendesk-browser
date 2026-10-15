@@ -73,7 +73,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   const localPlanner=createLocalCodexPlanner({client});
   const workflowProviders=createWorkflowProviderFacade({localPlanner});
   // Memory-only, verified business context; never persist model credentials or page text.
-  let verifiedTurnHistory=[],lastProviderTurn=null;
+  let verifiedTurnHistory=[],lastProviderTurn=null,verifiedContextTarget=null;
   const approvalKey=()=>session()?session()+':observation':null;
   function validObservationApproval(row) {
     const grant=observationApproval,now=Date.now();
@@ -978,9 +978,15 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         assertCurrent:()=>planningCurrent(epoch,executionSerial,frozen.selected)});
       planningCurrent(epoch,executionSerial,frozen.selected);
       if(execution?.ok) {
-        if(execution.evidenceLevel==='BUSINESS_EFFECT_VERIFIED')verifiedTurnHistory=[...verifiedTurnHistory,{
-          request:frozen.request.slice(0,4000),outcome:'verified',
-          readbackVerified:execution.readbackVerified===true,stepCount:result.steps.length}].slice(-4);
+        if(execution.evidenceLevel==='BUSINESS_EFFECT_VERIFIED') {
+          verifiedTurnHistory=[...verifiedTurnHistory,{
+            request:frozen.request.slice(0,4000),outcome:'verified',
+            readbackVerified:execution.readbackVerified===true,stepCount:result.steps.length,
+            effectKind:execution.effect?.kind||'input-readback',
+            ...(execution.effect?{visibleResultLinks:execution.effect.visibleResultLinks}:{})
+          }].slice(-4);
+          verifiedContextTarget={windowId:captured.windowId,tabId:captured.tabId,origin:captured.origin};
+        }
         appendChat('模型来源',lastProviderTurn.source+
           (lastProviderTurn.metadata.responseId?' · response '+lastProviderTurn.metadata.responseId:'')+
           ' · 工作流 '+lastProviderTurn.businessWorkflowId+
@@ -1221,7 +1227,13 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   listen(get('workflow-ai-plan'),'click',plan);
   const unsubscribePage=currentPageTarget?.subscribe(next=>{
     if(disposed)return;
-    if(next.status==='available'&&next.origin!==workflow.siteOrigin)verifiedTurnHistory=[];
+    if(next.status==='available'&&
+      (next.origin!==workflow.siteOrigin||verifiedContextTarget&&
+        (next.origin!==verifiedContextTarget.origin||
+         next.windowId!==verifiedContextTarget.windowId||
+         next.tabId!==verifiedContextTarget.tabId))) {
+      verifiedTurnHistory=[];verifiedContextTarget=null;
+    }
     if(observationApproval&&next.status==='available'&&next.origin!==observationApproval.origin){
       observationApproval=null;persistObservationApproval();
     }
