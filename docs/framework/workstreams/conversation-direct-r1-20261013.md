@@ -210,3 +210,10 @@ Go `master@2c003149` [38713903230](https://github.com/shopable-ai/opendesk/actio
 **R2.4 只读连续请求误判修复**：Browser `899a06edfd10028458345133b0a841948218a436` 更新 `direct-execution.js` 的点击意图识别，将“查看搜索结果/搜索记录”等只读名词与“搜索 OpenDesk”点击动作分离；`b14bf76576b90b70e9ea47758047422ee6e2d1a2` 增加“查看搜索结果只能观察、不得重复点击搜索”的测试。正式合同追记 `3400215eb0fd922a5427fc6aadb381922d865ae6`。这些新 SHA 的 CI 需要单独核查，**不能用旧 129/129 代替本次边界补丁通过**。
 
 **下一最小 P0**：先在用户真实 Chrome 的固定 `dist/development` 身份、保持旧 Watcher 原样的情况下执行 T2→T3，并记录 runId/resultId/sourceHash/Document/真正 DOM 值与搜索状态；然后关闭 AI 用同一个冻结 Controller Revision 直接 Run×2 并按两次真实回执核验。仅当原生环境可达时执行这些场景，当前不能接触 Mac 就记 `NOT_TESTED`；若需在纯 GitHub 环境继续实现，优先增加保存中断/冲突和只读 Oracle 的定向故障注入覆盖，不新增第二套运行机制。P1 HTTP 不阻断 P0，P2 AdBlock 由相应 Owner 修 pin。
+
+## R2.3 NEXT：保存版本逐次源码校验与 AI-Free 填写复跑（2026-10-15）
+
+- **继承并行源码，不重复开发**：Browser 已由其他 Agent 在 P0-C 接入同源搜索结果独立 Oracle，在 P0-D 接入 Controller CAS 中断保存恢复及 saved Revision 四处身份核对；第 13.6 节是唯一正式功能树。本增量严格复用原 Compiler/RunHost/Controller。
+- **本轮 Browser 提交**：4202985f8c3042bb6faa7f2c4fe4a28694f8bca5 修改 src/ui/workflow/workflow-view.js：每次 saved RunHost.start 前从原 Controller 重新核对持久源码字节、sourceHash；AI 不可用时，符合条件的独立 fill-readback 才可获得 BUSINESS_EFFECT_VERIFIED（仅网页输入值）。403e6014ad041dc63ed2c4162c772d9a0507e53b 扩展 tests/environment/workflow-focus.test.mjs 组件冻结版本 Run×2/篡改拒绝。58851434318709bc6703c95300a2be577256f93d、7ed633d4fabc5de3dbcfc38878904d5d4278ac6e、1e126028f49d69f82cad09536ca7a3f75e45810b 是组件夹具的小步修正，不是新的运行时架构。
+- **证据分级及绑定 CI**：[Workflow AI #38738021493](https://github.com/shopable-ai/opendesk-browser/actions/runs/38738021493) 在 58851434 候选定向 Node FAILED（跨 VM 参数模拟未归一）；不能引用旧 127/127 PASS。最新 1e126028 候选 [Workflow AI #38739012994](https://github.com/shopable-ai/opendesk-browser/actions/runs/38739012994) 写入时 CI_PENDING，应后续以实际日志更新；只有现存真实运行日志可升级 COMPONENT_VERIFIED。
+- **Go / 安全 / 下一完成条件**：Go master@27765894058885ce497f60d52d32582a4e53f82a 本轮只读未改。Browser local-http.js 保持 SAFE_DISABLED / PAIRING_OPEN。真实 Mac Chrome T2 填入、T3 搜索独立结果、T4 关闭 AI 同 Revision Run×2（两次不同 runId/resultId、相同源码/hash），T5 Stop/撤权/未知和 T6 production 同候选安装均 NATIVE_NOT_TESTED；未授权其它业务副作用不会自动重复执行。
