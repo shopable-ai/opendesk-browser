@@ -15,6 +15,9 @@ import {stopAiAccessForTool,cleanupUninstalledAiAccess} from '../../ai-smart-acc
 export const MARKET_PROVENANCE_STORE='opendesk.market.provenance.v1';
 export const MARKET_OPERATIONS_STORE='opendesk.market.operations.v1';
 export const TOOL_CLEANUP_STORE='opendesk.sidebar-tools.uninstall-cleanup.v1';
+// Fixed official site-grant store name. Test equality against the independent
+// Prompt Shortcuts policy; do not import packaged tool code into generic installer.
+export const PROMPT_SHORTCUTS_SITE_CLEANUP_STORE='opendesk.sidebar-tools.prompt-sites.v1';
 export {TOOL_REVOCATION_EPOCHS_STORE} from './lifecycle.js';
 const marketIdPattern=/^opendesk\/[a-z][a-z0-9-]{1,39}$/;
 const shaPattern=/^[a-f0-9]{64}$/;
@@ -170,7 +173,7 @@ export async function cleanupUninstalledToolLocked(api,id){
     await cleanupUninstalledStayFocus(api,id,removeVerifiedKey);
     await cleanupUninstalledAdblock(api,id,removeVerifiedKey);
     await cleanupUninstalledAiAccess(api,id,removeVerifiedKey);
-    for(const store of [SIDEBAR_TOOL_ENABLE_STORE,READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,READING_TOC_PAGE_RULES_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE,MARKET_PROVENANCE_STORE,BROWSER_MENU_GRANTS_STORE]){
+    for(const store of [SIDEBAR_TOOL_ENABLE_STORE,READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,READING_TOC_PAGE_RULES_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE,PROMPT_SHORTCUTS_SITE_CLEANUP_STORE,MARKET_PROVENANCE_STORE,BROWSER_MENU_GRANTS_STORE]){
       const raw=(await api.storage.local.get(store))[store];
       const original=store===SIDEBAR_TOOL_ENABLE_STORE?requireToolEnableRecords(raw):(raw||{});
       if(!Object.hasOwn(original,id))continue;
@@ -352,6 +355,7 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
       }
       const siteStores=[[READING_TOC_SITE_STORE,'page.toc'],[READING_TOC_PAGE_RULES_STORE,'page.toc'],
         [CLIP_SITE_STORE,'page.clip'],[CAPTURE_SITE_STORE,'page.capture'],
+        [PROMPT_SHORTCUTS_SITE_CLEANUP_STORE,'page.prompts'],
         [BROWSER_MENU_GRANTS_STORE,'browser.contextMenu']];
       const clearGrant=async store=>{
         const value=(await api.storage.local.get(store))[store]||{};

@@ -9,7 +9,9 @@ import {webcrypto} from 'node:crypto';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 import {validateSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 import {CHATGPT_ORIGIN,PROMPT_ID,PROMPT_CAPABILITY,installedPromptTool,
-  supportedOrigin,changePromptSiteGrant,allowedPromptSite} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/policy.js';
+  supportedOrigin,PROMPT_SITE_STORE,changePromptSiteGrant,allowedPromptSite} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/policy.js';
+import {cleanupUninstalledToolLocked,PROMPT_SHORTCUTS_SITE_CLEANUP_STORE,TOOL_CLEANUP_STORE} from '../../src/ui/sidebar-tools/installation.js';
+import {SIDEBAR_TOOL_STORE,sidebarToolStorageKey} from '../../src/ui/sidebar-tools/package.js';
 
 const ROOT='examples/sidebar-tools/prompt-shortcuts';
 async function model(){
@@ -119,4 +121,36 @@ test('R1.4 provenance pins only audited trusted tool modules to exact fixed entr
   }
   assert.throws(()=>examined('src/main.js','agents/page-relay.js'),
     /Historical\/user\/vendor code cannot enter/);
+});
+
+test('R1.4 shared uninstall cleanup removes only this tool grant and data, not another tool',async()=>{
+  assert.equal(PROMPT_SHORTCUTS_SITE_CLEANUP_STORE,PROMPT_SITE_STORE);
+  const other='another-tool',tool=await createSidebarToolPackage(ROOT);
+  const stored=new Map([
+    [SIDEBAR_TOOL_STORE,[]],
+    [TOOL_CLEANUP_STORE,{[PROMPT_ID]:{version:tool.version,createdAt:Date.now()}}],
+    [PROMPT_SITE_STORE,{[PROMPT_ID]:{origins:[CHATGPT_ORIGIN]},[other]:{origins:['https://example.org']}}],
+    [sidebarToolStorageKey(PROMPT_ID),{library:{schema:1,items:[],settings:{webButtons:true}}}]
+  ]);
+  const local={
+    async get(keys){
+      const values=keys==null?[...stored.keys()]:Array.isArray(keys)?keys:[keys];
+      return Object.fromEntries(values.filter(key=>stored.has(key)).map(key=>[key,stored.get(key)]));
+    },
+    async set(value){for(const [key,data] of Object.entries(value))stored.set(key,structuredClone(data));},
+    async remove(keys){for(const key of Array.isArray(keys)?keys:[keys])stored.delete(key);}
+  };
+  const api={storage:{local,session:{async get(){return {}},async remove(){}}}};
+  const result=await cleanupUninstalledToolLocked(api,PROMPT_ID);
+  assert.equal(result.state,'cleaned');
+  assert.equal(stored.has(sidebarToolStorageKey(PROMPT_ID)),false);
+  assert.equal(Object.hasOwn(stored.get(TOOL_CLEANUP_STORE),PROMPT_ID),false);
+  assert.equal(Object.hasOwn(stored.get(PROMPT_SITE_STORE),PROMPT_ID),false);
+  assert.equal(stored.get(PROMPT_SITE_STORE)[other].origins[0],'https://example.org');
+  // A stale uninstall recovery intent may not delete new installation data.
+  stored.set(SIDEBAR_TOOL_STORE,[tool]);
+  stored.set(TOOL_CLEANUP_STORE,{[PROMPT_ID]:{version:tool.version,createdAt:Date.now()}});
+  stored.set(PROMPT_SITE_STORE,{[PROMPT_ID]:{origins:[CHATGPT_ORIGIN]}});
+  assert.equal((await cleanupUninstalledToolLocked(api,PROMPT_ID)).state,'still-installed');
+  assert.deepEqual(stored.get(PROMPT_SITE_STORE)[PROMPT_ID].origins,[CHATGPT_ORIGIN]);
 });

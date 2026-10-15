@@ -121,3 +121,12 @@
 修复原则：仅将模型作为审计过的 trusted/model.js 同源资源（仍位于独立工具目录）；Side Panel 沙箱通过 tool.config.json 的 v2 fixed Classic dependency 加载同一源码，可信网页适配器从固定 trusted/model.js 静态导入。固定 bundle provenance 只对白名单内三个完整 Git blob（model/policy/page）以及已存在的 agents/page-relay.js、ui/sidebar-tool-host.js 两个产物放行。每次修改这些代码必须重新核对其 Git blob SHA 并重新审计；不是目录级通配或提升沙箱权限。
 
 首次 CI 中另有大量并行 AI VIP Share 锁模拟与 Cookie Editor 便携包快照不一致；这些失败不归属 Prompt Shortcuts，本任务不修改其源码以粉饰全仓通过率。**修复版是否能通过真实 build，以后续同一修复候选的 CI 结果为准。**
+
+
+### 6.5 R1.4 独立 CI 成功证据与卸载安全补齐（2026-10-15）
+
+- 真实 GitHub Actions：`Prompt Shortcuts R1.4 scoped tests`，Run [38735041527](https://github.com/shopable-ai/opendesk-browser/actions/runs/38735041527)，绑定提交 `2872b03544714d61766b40eb2dd1b21dbfbb6983`，**六组 Node 测试 6/6 PASS、固定语法检查 PASS**。测试范围：Unicode/自动默认值、数据验证和旧来源标记、v2 工具包的实际 packer、精确 ChatGPT Origin/安装代际/撤权、网页固定插入路径代码规则、严格 Git blob 来源白名单。不要将此记录提升为真实浏览器测试。
+- 在此之后通过源码复核确认一个新增缺口：通用安装器的卸载恢复和移除能力后的站点授权清理尚未覆盖 `page.prompts` 专用 `opendesk.sidebar-tools.prompt-sites.v1`。可信页面因为还会验证安装身份而保守拒绝，但旧权限元数据可能残留。继续复用原 `cleanupUninstalledToolLocked`，把该键加入已批准的清理集合；存储清理不得影响同一 Store 内其他工具的记录，旧卸载票据不能删除后来重新安装的同 ID 工具。
+- 补充 `tests/environment/prompt-shortcuts-r14.test.mjs` 的真实模拟 `storage.local` 清理测试与同 ID 再安装保护。新补的第七组测试以**本次修复 SHA 的实际 CI 日志**为准，在取得成功日志前不预记 PASS。
+- 工具使用与安全说明见 `examples/sidebar-tools/prompt-shortcuts/README.zh-CN.md`。正式生成包及真实 ChatGPT、多行草稿/中文 IME/Undo/SPA 的状态仍为 **NOT_TESTED**，本仓库其他 Agent 的 AdBlock provenance 阻断不应凭该局部 CI 冒充修复。
+
