@@ -18,14 +18,12 @@ export function installedPromptTool(rows){
     return tool.capabilities.includes(PROMPT_CAPABILITY)?tool:null;
   }catch{return null;}
 }
-export async function allowedPromptSite({installed,grants,enabled,epochs,url}){
-  if(!supportedOrigin(url)||!sidebarToolEnabled(enabled,PROMPT_ID))return false;
-  const tool=installedPromptTool(installed),row=grants?.[PROMPT_ID];
-  if(!tool||!row||row.version!==tool.version||
-    row.installEpoch!==(epochs?.[PROMPT_ID]??null)||
-    !Array.isArray(row.origins)||row.origins.length!==1||
-    row.origins[0]!==CHATGPT_ORIGIN)return false;
-  return row.packageHash===await sidebarToolPackageHash(tool);
+// Built-in, fixed-source ChatGPT adapter: installing a reviewed tool with
+// page.prompts is the one-time consent. No redundant per-origin prompt grant.
+// Keep the origin and installed/enable checks at every render and click.
+export async function allowedPromptSite({installed,enabled,url}){
+  return Boolean(supportedOrigin(url)&&sidebarToolEnabled(enabled,PROMPT_ID)&&
+    installedPromptTool(installed));
 }
 export async function changePromptSiteGrant(grants,tool,installEpoch,enabled){
   if(tool?.id!==PROMPT_ID||!tool.capabilities?.includes(PROMPT_CAPABILITY)||
