@@ -284,12 +284,12 @@ body[data-theme=dark] .r23-toolbar,body[data-theme=dark] .r23-toolbar select,bod
     assistant(`模拟草稿 r${version.id} 已保存到本页内存。保存不等于验证、安装或真实浏览器执行。`,'saved');announce('已模拟保存工作流草稿');render();}
   function newChat(){cancelTimer();data.pending=null;data.messages=[];data.historyOpen=false;data.settingsOpen=false;data.newMenuOpen=false;data.dialog=null;data.scenarioOnly=false;data.stage=data.connected?'connected':'disconnected';
     prompt.value='';render();prompt.focus();announce('已开始新对话，保留工作流与版本');}
-  function newWorkflow(){cancelTimer();data.pending=null;data.workflowId=data.nextWorkflowId++;data.title='新工作流';data.dirty=false;data.versions=[];data.revision=0;data.selectedRevision=null;
+  function newWorkflow(){cancelTimer();data.pending=null;data.workflowId=data.nextWorkflowId++;data.title='新工作流';data.dirty=false;data.selectedRevision=null;
     data.firstCompleted=false;data.messages=[];data.lastResult=null;data.consent=null;data.historyOpen=false;data.settingsOpen=false;data.newMenuOpen=false;data.dialog=null;data.scenarioOnly=false;
     data.stage=data.connected?'empty':'disconnected';prompt.value='';render();prompt.focus();announce('已创建新工作流草稿');}
   function attemptNewWorkflow(){data.newMenuOpen=false;if(data.dirty){data.dialog={type:'new-workflow'};render();setTimeout(()=>modal.querySelector('button')?.focus(),0);}else newWorkflow();}
   function attemptRestore(id){const rev=data.versions.find(v=>v.id===id);if(!rev)return;if(data.dirty){data.dialog={type:'restore',id};render();setTimeout(()=>modal.querySelector('button')?.focus(),0);}else restoreVersion(id);}
-  function restoreVersion(id){const rev=data.versions.find(v=>v.id===id);if(!rev)return;data.selectedRevision=id;data.title=rev.title;data.dirty=false;data.historyOpen=false;data.stage='saved';data.dialog=null;data.scenarioOnly=false;
+  function restoreVersion(id){const rev=data.versions.find(v=>v.id===id);if(!rev)return;data.workflowId=rev.workflowId;data.selectedRevision=id;data.title=rev.title;data.dirty=false;data.historyOpen=false;data.stage='saved';data.dialog=null;data.scenarioOnly=false;
     assistant(`已在预览中载入草稿 r${id} 的设计信息。未自动运行，也没有修改目标网页。`,'saved');render();}
   function closeDialog(){data.dialog=null;render();$('new').focus();}
   function renderDialog(){modal.hidden=!data.dialog;if(!data.dialog){modal.innerHTML='';return;}
@@ -309,7 +309,7 @@ body[data-theme=dark] .r23-toolbar,body[data-theme=dark] .r23-toolbar select,bod
     announce(`场景预览：${stage}。场景切换不是网页执行证据。`);render();}
   function messageHtml(m){if(m.role==='user')return `<article class="chatline user" data-role="user"><span class="message-meta">你</span>${safe(m.text)}</article>`;
     let extra='';
-    if(m.kind==='success')extra=`<div class="inline-actions"><button type="button" data-action="save" ${data.dirty?'':'disabled'}>保存为工作流（模拟）</button></div><details class="detail-inline"><summary>查看步骤与技术边界</summary><p>姓名输入框 → 填写指定文字 → 读取模拟 DOM → 精确核对。当前模拟文档核验轮次：${Number(m.check)||0}。${safe(m.note||'')}无真实 Run ID、Result ID、Revision、Chrome 权限或 RunHost 回执。</p></details>`;
+    if(m.kind==='success')extra=`${data.dirty && data.messages[data.messages.length-1]===m?'<div class="inline-actions"><button type="button" data-action="save">保存为工作流（模拟）</button></div>':''}<details class="detail-inline"><summary>查看步骤与技术边界</summary><p>姓名输入框 → 填写指定文字 → 读取模拟 DOM → 精确核对。当前模拟文档核验轮次：${Number(m.check)||0}。${safe(m.note||'')}无真实 Run ID、Result ID、Revision、Chrome 权限或 RunHost 回执。</p></details>`;
     return `<article class="chatline assistant" data-role="assistant"><span class="message-meta">OpenDesk · ${m.kind==='success'?'模拟结果':m.kind==='warning'?'模拟中断':m.kind==='error'?'未执行':'状态'}</span><span>${safe(m.text)}</span>${extra}</article>`;}
   function stageHtml(){
     if(data.stage==='planning')return `<section class="phase-card" data-stage="planning"><b><span class="phase-indicator busy"></span>AI 正在规划（模拟）</b><p>分析用户本轮要求，准备定位姓名输入框、填写并重新读取。</p><span class="subtle">不会点击提交，也不会跳转。可在底部随时停止。</span></section>`;
@@ -324,16 +324,16 @@ body[data-theme=dark] .r23-toolbar,body[data-theme=dark] .r23-toolbar select,bod
     if(data.stage==='stopped')return ''; 
     return '';
   }
-  function historyHtml(){const cards=data.versions.length?data.versions.map(v=>`<section class="history"><b>${safe(v.title)} · r${v.id}</b><small>${safe(v.created)} · 仅保存于本页内存 · ${safe(v.status)}</small><button type="button" class="btn link" data-action="restore" data-id="${v.id}">恢复这个草稿 →</button></section>`).join(''):'<section class="panel"><p class="muted">还没有已保存版本。完成模拟任务后，可显式保存草稿。</p></section>';
+  function historyHtml(){const cards=data.versions.length?data.versions.map(v=>`<section class="history"><b>${safe(v.title)} · 工作流 #${v.workflowId} · r${v.id}</b><small>${safe(v.created)} · 仅保存于本页内存 · ${safe(v.status)}</small><button type="button" class="btn link" data-action="restore" data-id="${v.id}">恢复这个草稿 →</button></section>`).join(''):'<section class="panel"><p class="muted">还没有已保存版本。完成模拟任务后，可显式保存草稿。</p></section>';
     return `<div class="r23-history-heading"><h3>工作流历史版本（模拟）</h3><button type="button" class="btn alt" data-action="back">返回对话</button></div>${cards}<p class="hint">版本只在主动打开时展示，不自动运行；模拟保存不写入磁盘。</p>`;}
   function render(){const c=$('content'),nearBottom=c.scrollHeight-c.scrollTop-c.clientHeight<96;const oldScroll=c.scrollTop;
     const displayedMessages=data.scenarioOnly?[]:data.messages;
     if(data.historyOpen)c.innerHTML=historyHtml();
-    else if(!displayedMessages.length&&!['planning','approval','running','disconnected','result','failed','unknown','saved'].includes(data.stage))c.innerHTML=`<section class="message intro"><div class="hello-mark">✦</div><div class="hello-title">想让浏览器帮你做什么？</div><p class="muted">用一句话描述任务，按需授权，完成后核对结果。<br>本页仅模拟两轮姓名输入框任务。</p><p class="hint">${data.connected?'● AI 已就绪（仅模拟）':'○ AI 未连接'}</p></section>`;
+    else if(!displayedMessages.length&&!['planning','approval','running','disconnected','result','failed','unknown','saved'].includes(data.stage))c.innerHTML=`<section class="message intro"><div class="hello-mark">✦</div><div class="hello-title">想让浏览器帮你做什么？</div><p class="muted">用一句话描述任务，按需授权，完成后核对结果。<br>本页仅模拟两轮姓名输入框任务。</p><p class="hint">${data.connected?'● AI 已就绪（仅模拟）':'○ AI 未连接'}</p>${data.dirty?'<div class="inline-actions" style="justify-content:center"><button type="button" data-action="save">保存未保存的工作流草稿</button></div>':''}</section>`;
     else c.innerHTML=displayedMessages.map(messageHtml).join('')+stageHtml();
     if(data.historyOpen||nearBottom)c.scrollTop=c.scrollHeight;else c.scrollTop=oldScroll;
     $('title').textContent=data.title;
-    const tag=$('tag');tag.hidden=!(data.dirty||data.versions.length);tag.textContent=data.dirty?'未保存':'已保存';
+    const tag=$('tag'),hasSavedVersion=data.versions.some(v=>v.workflowId===data.workflowId);tag.hidden=!(data.dirty||hasSavedVersion);tag.textContent=data.dirty?'未保存':'已保存';
     send.innerHTML=busy()?stopIcon:sendIcon;send.classList.toggle('stop-mode',busy());send.type=busy()?'button':'submit';send.disabled=data.stage==='approval';
     send.setAttribute('aria-label',busy()?(data.stage==='planning'?'停止 AI 规划（模拟）':'停止浏览器模拟执行'):'发送并模拟任务');
     send.title=data.stage==='approval'?'请先处理授权请求':busy()?'停止当前模拟任务':'发送任务（仅模拟）';
@@ -391,7 +391,6 @@ body[data-theme=dark] .r23-toolbar,body[data-theme=dark] .r23-toolbar select,bod
   document.addEventListener('pointerdown',ev=>{if(data.newMenuOpen&&!menu.contains(ev.target)&&!$('new').contains(ev.target)){data.newMenuOpen=false;render();}if(data.settingsOpen&&!settings.contains(ev.target)&&!$('settings').contains(ev.target)){data.settingsOpen=false;render();}});
   render();
 })();
-
 </script>
 <section class="r23-demo" aria-label="扩展外部模拟网页"><b>模拟目标网页</b> · 127.0.0.1:43111/demo-form.html（非真实访问）<label for="r23-name">姓名输入框<input id="r23-name" value="旧的预填内容"></label><button type="button" disabled>提交（预览禁用）</button><p id="r23-readback">模拟 DOM 读回：旧的预填内容；提交 0 次，跳转 0 次</p></section></body>
 </html>
