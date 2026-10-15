@@ -190,7 +190,7 @@ test('Cookie Editor is an optional two-mode tool without private cookies API',as
   assert(s.html.includes('id="live-search"')&&s.html.includes('id="live-filter"')&&
     s.html.includes('id="live-sort"'));
   assert(s.source.includes("E('live-filters').hidden=!hasRead"));
-  assert.equal(s.config.version,'2.0.6');
+  assert.equal(s.config.version,'2.0.7');
   assert(s.html.includes('id="offline-tools"')&&s.html.includes('id="browser-panel"'),
     'Live Chrome management is the default; offline tools are secondary');
   assert(!/\b(?:window|globalThis|chrome)\.cookies\./.test(s.source));
@@ -816,4 +816,30 @@ test('P2 pending set cannot delete, read or replay after '+event,async()=>{
   assert.equal(rows[0].value,'HIDDEN_NATIVE_SECRET');
   assert.equal(s.liveSnapshot().rows.length,0);
   assert.equal(s.getStatusMessage(),message,'late receipt must not publish stale success');
+});
+
+test('R4.3 browser toolbar opens inline import/export, filter and target picker',async()=>{
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},
+    cookies:{getAll:async()=>[]}});
+  assert.match(s.html,/id="live-import" class="icon-button"/);
+  assert.match(s.html,/id="live-export" class="icon-button"/);
+  assert.match(s.html,/id="live-new" class="icon-button"/);
+  assert(s.html.indexOf('id="live-import"')<s.html.indexOf('id="browser-permissions"'));
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');
+  await s.readBrowserMetadata();
+  s.fire('live-import','click');
+  assert.equal(s.getField('import-panel').hidden,false);
+  assert.equal(s.getField('browser-import-slot').hidden,false);
+  s.fire('import-close','click');
+  s.getField('live-export-content').value='metadata';
+  s.fire('live-export','click');
+  assert.equal(s.getField('live-export-panel').hidden,false);
+  assert.equal(s.getField('live-export-sensitive').hidden,true);
+  s.fire('live-export-cancel','click');
+  s.fire('live-filter-toggle','click');
+  assert.equal(s.getField('live-filter-advanced').hidden,false);
+  s.fire('site-pick','click');
+  assert.equal(s.getField('target-selector').open,true);
+  assert.match(s.source,/expandedCookieKey/);
+  assert.match(s.source,/cookie-inline/);
 });

@@ -1,6 +1,6 @@
 # Cookie Editor · 正式 Cookies SDK 安装工具
 
-**入口：** Side Panel「扩展」→ **Cookie Editor → 打开**。首次安装浏览器扩展时，可信离线目录自动预装工具包，不运行工具代码、不自动授权 Cookie 网站；旧 Profile 未安装时，直接在「扩展」列表点击「安装」进行可信审阅，然后打开。也可将本目录源码打包为 JSON 后手动导入。默认中文，官方目录为 `installationPolicy: preinstalled`；工具包 **2.0.6 / opendesk.sidebar-tool.v2**。**历史 2.0.4 隔离 CFT 候选**曾通过真实发现、安装、授权、读取、编辑、新建、保存回读和精确删除；该记录仅适用于当时的工具包。**当前 2.0.6 的 Mac Chrome 安装/导入/导出/缩放矩阵仍为 NOT_TESTED**；不能将历史截图、回执或分数延用为当前版本的 PASS/95+。所有 Cookie 修改均从已安装工具 UI 发起。
+**入口：** Side Panel「扩展」→ **Cookie Editor → 打开**。首次安装浏览器扩展时，可信离线目录自动预装工具包，不运行工具代码、不自动授权 Cookie 网站；旧 Profile 未安装时，直接在「扩展」列表点击「安装」进行可信审阅，然后打开。也可将本目录源码打包为 JSON 后手动导入。默认中文，官方目录为 `installationPolicy: preinstalled`；工具包 **2.0.7 / opendesk.sidebar-tool.v2**。**历史 2.0.4 隔离 CFT 候选**曾通过真实发现、安装、授权、读取、编辑、新建、保存回读和精确删除；该记录仅适用于当时的工具包。**当前 2.0.7 的 Mac Chrome 安装/导入/导出/缩放矩阵仍为 NOT_TESTED**；不能将历史截图、回执或分数延用为当前版本的 PASS/95+。所有 Cookie 修改均从已安装工具 UI 发起。
 
 ## 快速开始：使用已安装扩展，或编译本地 JSON
 
@@ -84,3 +84,11 @@ npm run check && npm test && npm run build && npm run build:dev && npm run verif
 R3.3 新候选：授权变化后经已有 Bridge 自动检查当前网站；拒绝与读取失败显示独立状态；未完成 Host 操作期间锁定网站与模式控件；普通确认不再采用危险操作红色样式。正式产品默认不进入离线工作区。历史 1.0.0 官方发行仍是离线包，已安装用户必须在「发现工具」明确升级；不能静默同版本替换。
 
 2026-10-14：上述核心旅程、导入导出、清理、观察、升级和生命周期已取得隔离 CFT 的限定原生证据；宽度、Side Panel 自身 Zoom、真实跨 Store/Partition、F3/ZIP 等缺口与全仓 FAIL 继续保留。当前核心、Path 隔离及部分重命名绑定身份保护修复后的候选；未受影响项保留前一候选身份限定复用。本轮原始证据和 Git/CI 状态见原工作流 `r33Local` 与 [续接提示词](../../../docs/framework/prompts/cookie-editor-r33l-core-first-handoff-20261014.zh-CN.txt)。
+
+## R4.3 视觉基准与 2.0.7 源码归属（2026-10-15）
+
+- **已确认的原版 HTML：** `preview/cookie-editor-r4.3-preview.html`，保持已评审的独立 HTML/CSS/JS 原文（模拟数据、无真实 Chrome 授权）。不得把模拟 Cookie 或演示脚本打进 Sandbox 安装包。
+- **正式产品：** `src/index.html`、`src/style.css`、`src/main.js`。R4.3 紧凑 Cookie 列表、原位单条编辑、常显导入/导出/新建、展开筛选和导入/导出表单；Browser SDK、Host 原生读写、权限及撤权按已有合同执行。
+- **可安装包：** `cookie-editor.opendesk-tool.json` 经既有 packer 的 canonical schema/serializer 与当前 `src/` 一致，版本 2.0.7。`preview/` 不属于发布包。
+- **授权边界：** 模拟 HTML 的“允许查看与编辑”不等于真实 Chrome 授权；正式首次授权须经可信工具设置/Host 的真实用户手势。Sandbox 不自行申请或伪造 Cookie 权限。
+- **分级验收：** Node、CI、安装包一致性与 Mac Chrome 原生各自记录。2.0.7 无同候选原生证据前标记 `NATIVE_NOT_TESTED`。
