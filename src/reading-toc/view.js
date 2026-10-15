@@ -1,4 +1,6 @@
 import {readTocPlacement,tocViewport,tocClampPoint,tocPlacementFromPoint,tocPlacementPoint} from './placement.js';
+import readingTocCatalog from '../../examples/sidebar-tools/reading-toc/locales.json' with {type:'json'};
+import {uiMessage,resolveUiLocale} from '../ui/app-localization.js';
 
 // Same compact R3 layout as the official sandbox tool, but implemented only in
 // trusted extension code. No untrusted website text is parsed as markup.
@@ -52,7 +54,9 @@ const ICONS=[
 '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2"/></svg>',
 '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 5h13M13 12h8M13 19h8M3 10a2 2 0 0 0 2 2h3M3 5v12a2 2 0 0 0 2 2h3"/></svg>'
 ];
-export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=null,onPlacementChange=()=>{},onNavigate}) {
+export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=null,initialLocale='zh-CN',onPlacementChange=()=>{},onNavigate}) {
+  let locale=resolveUiLocale(initialLocale,Object.keys(readingTocCatalog.messages),'zh-CN');
+  const t=(key,params)=>uiMessage(readingTocCatalog,locale,key,params);
   const host=doc.createElement('div');
   host.setAttribute('data-opendesk-toc-root','');
   const root=host.attachShadow({mode:'closed'});
@@ -64,29 +68,46 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
   const head=make('div','head'),caption=make('strong','heading');
   caption.textContent='CONTENTS';
   const modes=make('div','modes');modes.setAttribute('role','group');modes.setAttribute('aria-label','目录视图');
-  const names=['章节概览（自动补充子章节）','当前章节','完整目录'],types=['top','focus','full'],buttons=[];
-  let mode='focus',selected='',snapshot={items:[],sources:[],activeId:''},lastKey='';
+  const types=['top','focus','full'],buttons=[];
+  let mode='focus',selected='',snapshot={items:[],sources:[],activeId:''},lastKey='',moreRemaining=0;
   types.forEach((name,index)=>{
-    const button=make('button','mode');button.type='button';button.title=names[index];
-    button.setAttribute('aria-label',names[index]);button.dataset.mode=name;
+    const button=make('button','mode');button.type='button';button.title=t(['topLabel','focusLabel','fullLabel'][index]);
+    button.setAttribute('aria-label',button.title);button.dataset.mode=name;
     button.setAttribute('aria-pressed',String(index===0));button.innerHTML=ICONS[index];
     button.addEventListener('click',()=>{mode=name;render();});buttons.push(button);modes.append(button);
   });
   const grab=make('button','grab');grab.type='button';
-  grab.title='拖动目录；方向键调整位置，Shift 加速，Home 归位';
-  grab.setAttribute('aria-label','拖动阅读目录；方向键移动，Home 归位');
+  grab.title=t('dragTitle');
+  grab.setAttribute('aria-label',t('dragAria'));
   grab.setAttribute('aria-keyshortcuts','ArrowUp ArrowDown ArrowLeft ArrowRight Home');
   grab.innerHTML='<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><circle cx="5" cy="3" r="1"/><circle cx="11" cy="3" r="1"/><circle cx="5" cy="8" r="1"/><circle cx="11" cy="8" r="1"/><circle cx="5" cy="13" r="1"/><circle cx="11" cy="13" r="1"/></svg>';
   grab.append(caption);
   const reset=make('button','reset');reset.type='button';
-  reset.title='归位：恢复网页目录默认位置';
-  reset.setAttribute('aria-label','将阅读目录归位');
+  reset.title=t('resetTitle');
+  reset.setAttribute('aria-label',t('resetAria'));
   reset.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11a9 9 0 1 1 3 7"/><path d="M3 4v7h7"/><path d="M12 7v5l3 2"/></svg>';
   head.append(grab,modes,reset);
   const scroll=make('nav','scroll'),list=make('ul','list'),empty=make('p','empty');
   const more=make('button','more');more.type='button';more.hidden=true;
   more.addEventListener('click',()=>{mode='full';render();});
-  empty.textContent='暂无章节';scroll.append(list,more,empty);panel.append(head,scroll);root.append(panel);
+  empty.textContent=t('pageEmpty');scroll.append(list,more,empty);panel.append(head,scroll);root.append(panel);
+  function updateMore(){
+    more.textContent=t('moreWithCount',{count:moreRemaining});
+    more.setAttribute('aria-label',t('moreAria',{count:moreRemaining}));
+  }
+  function updateLanguage(){
+    panel.setAttribute('aria-label',t('pageLabel'));
+    caption.textContent=t('contents');
+    modes.setAttribute('aria-label',t('modesLabel'));
+    buttons.forEach((button,index)=>{
+      button.title=t(['topLabel','focusLabel','fullLabel'][index]);
+      button.setAttribute('aria-label',button.title);
+    });
+    grab.title=t('dragTitle');grab.setAttribute('aria-label',t('dragAria'));
+    reset.title=t('resetTitle');reset.setAttribute('aria-label',t('resetAria'));
+    empty.textContent=t('pageEmpty');updateMore();
+  }
+  updateLanguage();
   (doc.body||doc.documentElement).append(host);
   let composerObserved=null;
   function place(){
@@ -230,8 +251,7 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
     empty.hidden=show.length>0;
     const remaining=mode==='top'?Math.max(0,overview?.hiddenCount||0):0;
     more.hidden=remaining===0;
-    more.textContent='还有 '+remaining+' 个章节 · 查看完整目录';
-    more.setAttribute('aria-label','尚有 '+remaining+' 个章节未显示，查看完整目录');
+    moreRemaining=remaining;updateMore();
     reposition();place();
     const current=list.querySelector('[aria-current="location"]');
     if(current){
@@ -241,7 +261,13 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
     }
   }
   render();
-  return Object.freeze({render,setPlacement,dispose(){
+  return Object.freeze({render,setPlacement,
+    setLocale(next){
+      const resolved=resolveUiLocale(next,Object.keys(readingTocCatalog.messages),'zh-CN');
+      if(locale===resolved)return;
+      locale=resolved;updateLanguage(); // No heading reindex, navigation, placement or scroll reset.
+    },
+    dispose(){
     if(disposed)return;disposed=true;drag=null;observer?.disconnect();
     win.removeEventListener('resize',onResize);
     win.visualViewport?.removeEventListener('resize',onResize);
