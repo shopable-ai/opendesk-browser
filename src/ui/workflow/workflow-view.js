@@ -10,7 +10,7 @@ import {createWorkflowProviderFacade} from './provider.js';
 import {deriveWorkflowViewState} from './view-state.js';
 import {createLocalCodexPlanner,describeLocalCodex} from './local-codex.js';
 import {createWorkflowObservation} from './observation.js';
-import {prepareDirectExecution,verifyDirectExecutionReceipt} from './direct-execution.js';
+import {prepareDirectExecution,verifyDirectExecutionReceipt,directExecutionEvidenceLevel} from './direct-execution.js';
 import {createTaskReviewHandoff,taskReviewHandoffKey} from './task-review-handoff.js';
 
 const STORAGE_PREFIX = 'opendesk.sidebar.workflow.v1:';
@@ -533,11 +533,16 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           try{proof=verifyDirectExecutionReceipt({claim,completed,view,sourceHash:freeze.sourceHash,target:captured});}
           catch(error){status(format(error),true);}
           lastRun=proof&&decoded?'success':'failed';
+          const evidenceLevel=directExecutionEvidenceLevel({
+            receiptVerified:lastRun==='success',
+            hasReadback:prepared.hasReadback,
+            hasUnprovenClick:prepared.hasUnprovenClick
+          });
           if(lastRun==='success')
             lastTrustedRun={runId:claim.runId,sourceHash:freeze.sourceHash,siteOrigin:captured.origin};
           if(lastRun==='failed' && !hasError)
             status('运行未成功或结果无法确认，请检查真实结果及页面效果；不会自动重试。',true);
-          return {ok:lastRun==='success',runId:claim.runId,resultId:proof?.resultId||null};
+          return {ok:lastRun==='success',runId:claim.runId,resultId:proof?.resultId||null,evidenceLevel};
         }
         lastRun=completed?.state==='completed'&&completed?.retirement?.state==='released'&&
           !completed?.pendingSettlement&&result?.state==='completed'&&result?.outcome?.ok===true&&decoded&&
@@ -910,20 +915,23 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       render();persistDraft();
       const executionSerial=stable();
       const execution=await run(null,{freeze,captured,params:prepared.params,hasReadback:prepared.hasReadback,
-        permission:Promise.resolve(true),signal:abort.signal,
+        permission:Promise.resolve(true),signal:abort.signal,hasUnprovenClick:prepared.hasUnprovenClick,
         assertCurrent:()=>planningCurrent(epoch,executionSerial,frozen.selected)});
       if(execution?.ok) {
-        if(!prepared.hasUnprovenClick)verifiedTurnHistory=[...verifiedTurnHistory,{
+        if(execution.evidenceLevel==='BUSINESS_EFFECT_VERIFIED')verifiedTurnHistory=[...verifiedTurnHistory,{
           request:frozen.request.slice(0,4000),outcome:'verified',
           readbackVerified:prepared.hasReadback===true,stepCount:result.steps.length}].slice(-4);
         appendChat('模型来源',lastProviderTurn.source+
           (lastProviderTurn.metadata.responseId?' · response '+lastProviderTurn.metadata.responseId:'')+
           ' · 工作流 '+lastProviderTurn.businessWorkflowId+
           ' · 本次结果 '+execution.resultId);
-        appendChat('执行结果','已通过 RunHost 执行并核对回执：'+execution.runId+' / '+execution.resultId+
-          (prepared.hasUnprovenClick?'。点击后的业务效果仍需单独验证。':
-            prepared.hasReadback?'。填写内容已在同次运行中读回匹配。':'。'));
-        status('任务已执行并核对原生结果；现在可以选择保存为工作流。');
+        appendChat('执行结果','已通过 RunHost 核对持久执行回执：'+execution.runId+' / '+execution.resultId+
+          (execution.evidenceLevel==='BUSINESS_EFFECT_VERIFIED'
+            ?'。页面输入值已在同次运行中独立读回匹配（不代表服务器已提交）。'
+            :'。页面业务效果尚未独立验证，不能将执行完成当作业务成功。'));
+        status(execution.evidenceLevel==='BUSINESS_EFFECT_VERIFIED'
+          ?'已验证页面输入读回；可以保存工作流。'
+          :'执行回执已验证，业务效果仍待核对；可以保存工作流。');
       } else {
         appendChat('执行结果','本次未能确认成功；不会自动重试。请检查真实网页与运行详情。');
       }
