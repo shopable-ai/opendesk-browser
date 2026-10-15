@@ -105,11 +105,22 @@ test('bookmark manager R2.5 shares its real package UI with an isolated full-boo
   assert.equal(preview.manifest.permissionsGranted,false);
   assert.equal(preview.manifest.operations.length,12);
   assert.ok(preview.frameHtml.includes('data:text/javascript;base64,'+Buffer.from(pkg.js).toString('base64')));
+  assert.doesNotMatch(pkg.html,/预览测试辅助工具|od-preview-bookmark-lab/);
+  assert.doesNotMatch(pkg.js,/__opendeskBookmarkMockDiagnostic|opendesk\.preview\.bookmark\.command/);
+  assert.doesNotMatch(preview.frameHtml,/预览测试辅助工具|id="od-preview-bookmark-lab"|data-bookmark-diagnostic=/);
+  assert.match(preview.html,/id="od-preview-bookmark-lab"/);
+  assert.match(preview.html,/data-bookmark-diagnostic="external-conflict"/);
+  assert.match(preview.html,/预览测试辅助工具（不属于书签管理器）/);
+  assert.match(preview.html,/sandbox="allow-scripts"/);
+  assert.doesNotMatch(preview.html,/sandbox="allow-scripts allow-same-origin"/);
   const mock=await read('scripts/preview/bookmark-manager-mock.js');
   const context={document:{getElementById:id=>id==='tool-root'?{}:null},
     __opendeskPreviewScenario:'success',Date};
   context.globalThis=context;
   vm.runInNewContext(mock,context,{timeout:1000});
+  assert.equal(typeof context.__opendeskBookmarkMockDiagnostic,'function');
+  assert.equal(context.__opendeskBookmarkMockDiagnostic('delete-all'),null,
+    'mock-only diagnostics reject unknown commands, not privileged requests');
   const sdk=context.OpenDeskSDK.browser;
   const first=await sdk.bookmarks.getTree({limit:100});
   assert.equal(first.nodes.length,100);
@@ -122,6 +133,25 @@ test('bookmark manager R2.5 shares its real package UI with an isolated full-boo
   assert.equal((await sdk.bookmarks.getTree({limit:100})).nodes.length,100);
   await assert.rejects(generatePreview({tool:'bookmark-manager',surface:'injected-page'}),
     /no verified production preview adapter/);
+});
+
+test('bookmark laboratory is an OUTER preview-only surface across supported tools',async()=>{
+  const [bookmark,notes,adblock]=await Promise.all([
+    generatePreview({tool:'bookmark-manager',scenario:'success',width:360}),
+    generatePreview({tool:'quick-notes',scenario:'success',width:360}),
+    generatePreview({tool:'adblock',scenario:'success',width:360})
+  ]);
+  const shell=bookmark.html;
+  assert.ok(shell.indexOf('id="od-preview-bookmark-lab"')>
+    shell.indexOf('id="opendesk-preview-frame"'),'test lab follows the simulated device');
+  for(const other of [notes,adblock])
+    assert.doesNotMatch(other.html,/id="od-preview-bookmark-lab"/);
+  assert.ok(!bookmark.frameHtml.includes('data-bookmark-diagnostic='));
+  const script=await read('scripts/preview/bookmark-manager-lab.js');
+  assert.match(shell,/opendesk\.preview\.bookmark\.command\.v1/);
+  assert.match(script,/event\.source!==frame\?\.contentWindow/);
+  assert.match(script,/event\.origin!=='null'/);
+  assert.doesNotMatch(script,/chrome\.|permissions\.request|\bfetch\s*\(/);
 });
 
 test('build emits short source-bound review context next to the offline HTML',async()=>{
