@@ -402,3 +402,17 @@ ADR 风险升级触发条件：Codex CLI 版本改变、Chrome Origin/Host 处�
 2. P0 后续：在原 `direct-execution.js` / `workflow-view.js` 和原 Durable Result 合同中定义**可审计的独立业务效果 Oracle**，只对确实能读取到结果的场景报告 `BUSINESS_EFFECT_VERIFIED`；未有 Oracle 的 click 保持效果未验证。
 3. P1 后续：由 Go Native Owner 先完成已绑定客户端身份、可撤销的 HTTP token 颁发/生命周期；Browser 端完成安全 Origin 适配合同之前禁止接入 HTTP Facade/UI。若产品暂不需要 Browser HTTP，继续保持 Native 默认与 HTTP 仅用于受信本机客户端。
 4. 后置 T1–T6 按用户批准的独立阶段执行；本轮没有 Windows/macOS 真机、Codex 已登录状态、生产安装候选或真实 Chrome 页面副作用证据，不能宣称正式验收与逐维 95+。
+
+### 12.5 R2.3-P0：真实观察回执从局部校验收敛为统一 Durable Result 身份（2026-10-15）
+
+**本切片独立提交：** Browser `f3f776fbcb96f1d39149b84a5836b0d154322722`（本轮 GitHub 直接写入 `main`）；改动 `src/ui/workflow/observation.js` 和 `tests/environment/workflow-ai-observation.test.mjs`。与上文其他 Agent 已提交的 Provider、Click 和 Save 修复并存，不覆盖其源码或据此认领其提交。
+
+- **问题和修复**：旧观察结果仅在局部核对 `claim` / `result` 的源码 SHA、正文 Document 和 Worker 收尾，尚未在发给模型前与完整运行身份闭环。现在固定观察直接调用原 `verifyDirectExecutionReceipt({claim,completed,view,sourceHash,target})`，要求同一 RunHost 的 `runId/resultId`、完整 `window/tab/frame/document/url/origin`、`sourceHash`、完整终态、持久 Result、Worker `released` 共同成立；不一致即拒绝网页摘要外送、不自动重试。返回 receipt 的可信身份也由该 proof 派生。模型仍无新网页 Executor 或额外权限。
+- **回归范围**：更新原观察 fixture 至完整真实 RunHost 回执形状，新增 claim result 不一致、run document 不一致、sourceHash 不一致、Worker 退出不完整、completed result 不一致等五个 fail-closed 用例。没有放宽 `browser.observe` 的网站、数据分享、Document 或 Stop 安全门禁。
+- **同提交定向 CI 证据**：Browser `main@f3f776fb` 的 [Workflow AI data CI #38720844213](https://github.com/shopable-ai/opendesk-browser/actions/runs/38720844213) 明确执行 Node **121/121 PASS**、`npm run check` **PASS（738 files）**；但其 development build 因并行 `examples/sidebar-tools/adblock/trusted/host-controls.js` 的 Trusted source pin 不一致 **FAIL**。该 Workflow 总结论仍是 **FAIL**，绝不把组件通过写成全构建通过。真实 Chrome 与用户 Mac Codex/业务效果仍 `NOT_TESTED`。
+- **状态边界**：观察回执修复为 `SOURCE_IMPLEMENTED / COMPONENT_VERIFIED (Node+source check)`；本轮没有声称 `BUSINESS_EFFECT_VERIFIED`、Native/Chrome PASS 或 T2–T6。Cloud/Native 规划和执行仍需原始目标、网站权限和 Provider 特有授权；Click 业务效果没有独立 Oracle 时仅能展示可信执行回执而非业务成功。
+- **后续 P2 并行情况**：Go 其他 Agent 已在 `d892a5b6`、`7225ac72` 修复非 Unix `Host.Close` 和 Linux `/private/tmp`。该 Go 候选 [Windows Core CI #38720342941](https://github.com/shopable-ai/opendesk/actions/runs/38720342941) 仍因 `cmd/opendesk/app_browser.go` 调用缺失的 `SetupAutomaticContext` stub 而失败；本轮**另行**在 Go `master` 提交 `5dca85d8ea056f449cbd290438c70c97b8216ef5`，新增单独 `internal/browserbridge/setup_context_unsupported.go`，非 Darwin/Linux 明确返回 `E_PLATFORM` 而不模拟安装/配对。该新提交的 Windows CI 尚需单独读取，`CI_PENDING`，不能沿用之前失败候选的证据宣布通过。
+- **F4 不变**：Browser→Native→Go Codex 保持默认；Go HTTP Gateway 仍绑定同一 Native Host/`h.ai`、仅显式本机凭据及 loopback 服务；Browser HTTP 适配器保持 `pairingReady:false` 且不可从 UI 选择。令牌颁发/轮换/撤权、可信客户端/Origin 合同未闭合，`SAFE_DISABLED / PAIRING_OPEN`。不得为了“HTTP 接通”开放 CORS、使用页面 token、建立第二套 Manager。
+
+**下一最小开发动作**：如果 P0 的 Click 真业务读回有可独立证明的 Oracle，使用原 RunHost／Durable Result 增加有限且可审计的读回及效果分级；否则继续呈现 `EXECUTION_RECEIPT_VERIFIED`，并为 Save→无 AI 的 Run×2 做独立 Chrome 准备。HTTP 等本机可信配对合同成熟后再接入 UI；不能让 F4 阻塞已接线的 Native/Cloud 用户旅程。
+
