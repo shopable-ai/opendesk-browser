@@ -25,15 +25,19 @@
   const previewDescription=byId('ai-vip-preview-description');
   const previewAccount=byId('ai-vip-preview-account');
   const cancel=byId('ai-vip-redeem-cancel');
+  const recoveryPanel=byId('ai-vip-recovery');
+  const recoveryStatus=byId('ai-vip-recovery-status');
+  const recoveryCheck=byId('ai-vip-recovery-check');
   const shop=byId('ai-vip-shop-open'),shopStatus=byId('ai-vip-shop-status');
   if([memberState,accountName,productName,remaining,unit,expiry,verified,
     benefits,history,historyCount,refresh,code,redeem,redeemStatus,redeemError,
-    previewPanel,previewTitle,previewDescription,previewAccount,cancel,shop,shopStatus]
+    previewPanel,previewTitle,previewDescription,previewAccount,cancel,
+    recoveryPanel,recoveryStatus,recoveryCheck,shop,shopStatus]
       .some(element=>!element))return;
 
   // Release-owned values: only populate after commercial/provider review.
   // Do not use the technical proxy activate/verify URLs for these endpoints.
-  const BUSINESS_ENDPOINTS=Object.freeze({member:'',voucherPreview:'',voucherRedeem:''});
+  const BUSINESS_ENDPOINTS=Object.freeze({member:'',voucherPreview:'',voucherRedeem:'',voucherStatus:''});
   const PRODUCT_CATALOG_URL='';
   const plain=value=>Boolean(value)&&typeof value==='object'&&!Array.isArray(value);
   const safeString=(value,max=100)=>typeof value==='string'&&value.trim()&&
@@ -61,14 +65,20 @@
     const member=validProviderUrl(BUSINESS_ENDPOINTS.member);
     const voucherPreview=validProviderUrl(BUSINESS_ENDPOINTS.voucherPreview);
     const voucherRedeem=validProviderUrl(BUSINESS_ENDPOINTS.voucherRedeem);
-    if(!member||!voucherPreview||!voucherRedeem)return null;
-    const origins=[member,voucherPreview,voucherRedeem].map(url=>new URL(url).origin);
-    return new Set(origins).size===1?{member,voucherPreview,voucherRedeem}:null;
+    const voucherStatus=validProviderUrl(BUSINESS_ENDPOINTS.voucherStatus);
+    if(!member||!voucherPreview||!voucherRedeem||!voucherStatus)return null;
+    const origins=[member,voucherPreview,voucherRedeem,voucherStatus].map(url=>new URL(url).origin);
+    return new Set(origins).size===1?{member,voucherPreview,voucherRedeem,voucherStatus}:null;
   }
   const endpoints=validatedBusinessEndpoints();
   const catalog=validCatalogUrl(PRODUCT_CATALOG_URL);
   const businessSdk=window.OpenDeskSDK?.browser?.network;
-  let snapshot=null,pending=null,uncertainKey=null,busy=false,seq=0;
+  // Existing installed-tool storage is bound by Host to package and install epoch.
+  // Never store a voucher, password, auth cookie, proxy lease or access token.
+  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.2.0';
+  const storeRequest=window.OpenDeskTool.request;
+  let snapshot=null,pending=null,recovery=null,recoveryFault=null;
+  let recoveryReady=false,busy=false,seq=0;
   let lastVerifiedAt=null;
   const clear=(node)=>node.replaceChildren();
   function addRow(list,title,detail){
@@ -93,6 +103,79 @@
     const error=new Error(message);
     error.code=codeValue;
     throw error;
+  }
+  function validRecovery(raw){
+    if(raw===null)return null;
+    const fields=['accountId','createdAt','idempotencyKey','packageVersion','schemaVersion','toolId'];
+    if(!plain(raw)||Object.keys(raw).sort().join(',')!==fields.sort().join(',')||
+      raw.schemaVersion!==1||raw.toolId!=='ai-vip-share'||
+      raw.packageVersion!==PACKAGE_VERSION||!safeString(raw.accountId,120)||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(raw.idempotencyKey)||
+      dateMs(raw.createdAt)===null||raw.createdAt>Date.now()+60000)
+      fail('E_RECOVERY_RECORD','上次兑换记录版本或身份无法安全核验');
+    return raw;
+  }
+  async function readRecovery(){
+    if(typeof storeRequest!=='function')fail('E_RECOVERY_STORAGE','工具存储能力不可用');
+    const result=await storeRequest('storage.get',{key:RECOVERY_KEY,withEtag:true});
+    if(!plain(result)||result.preview===true||
+      typeof result.etag!=='string'||!/^[a-f0-9]{64}$/.test(result.etag))
+      fail('E_RECOVERY_STORAGE','当前不是可恢复的正式安装存储');
+    return {record:validRecovery(result.value),etag:result.etag};
+  }
+  async function writeRecovery(before,next){
+    // ETag CAS runs under the existing Host Web Lock. A lost acknowledgement
+    // needs a read-back; a mismatched record forbids any voucher POST.
+    try{
+      await storeRequest('storage.set',{key:RECOVERY_KEY,value:next,ifMatch:before.etag});
+    }catch{/* Outcome may have been committed before reply was lost. */}
+    const after=await readRecovery();
+    if(JSON.stringify(after.record)!==JSON.stringify(next))
+      fail('E_RECOVERY_WRITE','兑换事务未被确认持久保存，禁止提交或重试');
+    return after;
+  }
+  async function loadRecovery(){
+    try{
+      recovery=(await readRecovery()).record;
+      recoveryFault=null;
+      if(recovery)redeemNotice('发现上次未确认的兑换。请先核对服务端状态，不能重新提交。',true);
+    }catch{
+      recoveryFault='无法核对本工具的持久兑换记录；已禁止兑换，请检查安装和存储授权。';
+      redeemNotice(recoveryFault,true);
+    }finally{recoveryReady=true;renderRedeem();}
+  }
+  async function beginRecovery(accountId,key){
+    const before=await readRecovery();
+    if(before.record){
+      recovery=before.record;
+      fail('E_RECOVERY_PENDING','已有未核对交易，不允许提交第二笔兑换');
+    }
+    const record={schemaVersion:1,toolId:'ai-vip-share',packageVersion:PACKAGE_VERSION,
+      accountId,idempotencyKey:key,createdAt:Date.now()};
+    await writeRecovery(before,record);
+    recovery=record;
+    renderRedeem();
+  }
+  async function clearRecovered(key){
+    const before=await readRecovery();
+    if(!before.record||before.record.idempotencyKey!==key||
+      before.record.accountId!==recovery?.accountId)
+      fail('E_RECOVERY_CONFLICT','持久兑换记录发生变化，未自动清除');
+    await writeRecovery(before,null);
+    recovery=null;
+    recoveryFault=null;
+  }
+  function showRecovery(){
+    recoveryPanel.hidden=!recovery&&!recoveryFault;
+    if(!recovery&&!recoveryFault)return;
+    if(recoveryFault)recoveryStatus.textContent=recoveryFault;
+    else if(!endpoints)recoveryStatus.textContent='存在待核对交易，但正式兑换服务未配置；请保留记录。';
+    else if(snapshot?.account.id!==recovery.accountId)
+      recoveryStatus.textContent='当前账号与上次兑换的账号不一致。已阻止继承旧账号交易。';
+    else recoveryStatus.textContent='有未完成的兑换回执。只能查询服务端终态，不会重新提交兑换。';
+    recoveryCheck.hidden=!recovery;
+    recoveryCheck.disabled=!recovery||!endpoints||busy||!recoveryReady||
+      Boolean(recoveryFault)||snapshot?.account.id!==recovery?.accountId;
   }
   function verifiedEntitlement(raw){
     if(!plain(raw))fail('E_ENTITLEMENT','会员权益格式无效');
@@ -195,22 +278,21 @@
         (item.masked?' · '+item.masked:'')));
     }
     refresh.disabled=false;
-    if(uncertainKey){
-      const found=redemptions.some(row=>row.key===uncertainKey&&row.status==='redeemed');
-      if(found){
-        uncertainKey=null;
-        redeemStatus.textContent='已通过最新服务端兑换记录确认兑换成功，未自动启用代理。';
-      }else redeemStatus.textContent='兑换结果仍未确认，请联系服务商核对记录，勿再次提交。';
-    }
+    // A bounded ledger page can omit a transaction; absence is never final
+    // non-consumption evidence, so do not silently resolve an unknown POST.
+    if(recovery&&account.id!==recovery.accountId)
+      redeemNotice('当前账号与未确认兑换归属不同。请切回原账号核对，不会继承权益。',true);
     renderRedeem();
   }
   function renderRedeem(){
-    const allowed=Boolean(endpoints)&&snapshot?.account.state==='bound'&&!busy&&!uncertainKey;
+    const allowed=Boolean(endpoints)&&snapshot?.account.state==='bound'&&!busy&&
+      recoveryReady&&!recovery&&!recoveryFault;
     code.disabled=!allowed||Boolean(pending);
     redeem.disabled=!allowed||(!pending&&!/^[A-Za-z0-9._-]{6,120}$/.test(code.value.trim()));
     redeem.textContent=busy?'正在处理':pending?'确认兑换':'立即兑换';
     previewPanel.hidden=!pending;
     cancel.hidden=!pending||busy;
+    showRecovery();
   }
   function redeemNotice(message,error=false){
     redeemStatus.textContent=message;
@@ -251,7 +333,10 @@
       emptyRow(benefits,'权益核验失败');
       emptyRow(history,'兑换历史不可核验');
       historyCount.textContent='暂不可查';
-      redeemNotice('会员无法核验，兑换已锁定。',true);
+      if(recovery)redeemNotice('会员身份暂无法核验，上次兑换仍待核对；不可再次提交。',true);
+      else if(redeemStatus.textContent.includes('服务端已确认兑换成功'))
+        redeemNotice('服务端已确认兑换成功，但权益刷新失败；请稍后刷新查看最新数据。');
+      else redeemNotice('会员无法核验，兑换已锁定。',true);
     }finally{
       if(current===seq){busy=false;refresh.disabled=false;renderRedeem();}
     }
@@ -279,14 +364,16 @@
     return data;
   }
   async function redeemClick(event){
-    if(event?.isTrusted!==true||busy||!endpoints||uncertainKey||
-      snapshot?.account.state!=='bound')return;
+    if(event?.isTrusted!==true||busy||!endpoints||!recoveryReady||
+      recovery||recoveryFault||snapshot?.account.state!=='bound')return;
     if(!pending){
       const value=code.value.trim();
       if(!/^[A-Za-z0-9._-]{6,120}$/.test(value))return;
+      const accountId=snapshot.account.id;
       busy=true;renderRedeem();redeemNotice('正在请求服务端核验兑换内容…');
       try{
         const result=validatePreview(await businessRequest('POST',endpoints.voucherPreview,{code:value}));
+        if(snapshot?.account.id!==accountId)fail('E_IDENTITY_CHANGED','预检过程中账号已变化');
         pending=result;code.value='';
         previewTitle.textContent=result.title;
         previewDescription.textContent=result.summary+' · '+result.masked+'；确认后才会兑换。';
@@ -297,28 +384,62 @@
       }finally{busy=false;renderRedeem();}
       return;
     }
-    if(pending.expiresAt<=Date.now()){
-      pending=null;redeemNotice('兑换预检已过期，请重新输入兑换码。',true);
+    if(pending.accountId!==snapshot.account.id||pending.expiresAt<=Date.now()){
+      pending=null;redeemNotice('预检已过期或账号变化，请重新核对兑换码。',true);
       renderRedeem();return;
     }
     let key;
     try{key=crypto.randomUUID();}catch{
       redeemNotice('无法安全生成兑换事务标识；本次兑换未提交。',true);return;
     }
+    const accountId=pending.accountId,previewId=pending.id;
     busy=true;renderRedeem();
-    redeemNotice('正在提交兑换，请勿重复操作。');
+    redeemNotice('正在持久保存兑换事务，再提交服务端；请勿重复操作。');
     try{
+      await beginRecovery(accountId,key); // Write-ahead and verified readback.
+      if(snapshot?.account.id!==accountId)
+        fail('E_IDENTITY_CHANGED','事务持久化后账号变化；禁止提交');
       const result=await businessRequest('POST',endpoints.voucherRedeem,{
-        previewId:pending.id,accountId:pending.accountId,idempotencyKey:key});
+        previewId,accountId,idempotencyKey:key});
       validateReceipt(result,key);
       pending=null;code.value='';
+      // Valid receipt is authoritative; failed journal clearing keeps a lock.
+      await clearRecovered(key);
       redeemNotice('服务端已确认兑换成功。正在刷新权益与兑换记录；代理状态保持不变。');
       busy=false;renderRedeem();
       await refreshMember();
     }catch{
-      // A network error after POST has UNKNOWN EFFECT. No automatic retry.
-      uncertainKey=key;pending=null;code.value='';
-      redeemNotice('兑换结果未确认。请刷新记录或联系服务商核对，切勿重复兑换。',true);
+      pending=null;code.value='';
+      if(!recovery)recoveryFault='无法证明兑换事务的持久状态，已禁止再次提交。';
+      redeemNotice(recovery?'兑换结果未确认。请使用「核对上次兑换」查询服务端状态，切勿重复兑换。':
+        '无法确认本地兑换状态，已禁止提交。请检查存储授权。',true);
+    }finally{busy=false;renderRedeem();}
+  }
+  async function checkRecoveryClick(event){
+    if(event?.isTrusted!==true||busy||!endpoints||!recoveryReady||
+      recoveryFault||!recovery||snapshot?.account.id!==recovery.accountId)return;
+    busy=true;renderRedeem();
+    redeemNotice('正在查询上次兑换的服务端最终状态（不会再次消费兑换码）…');
+    try{
+      const saved=(await readRecovery()).record;
+      if(!saved||saved.idempotencyKey!==recovery.idempotencyKey||
+        saved.accountId!==recovery.accountId)
+        fail('E_RECOVERY_CHANGED','本地事务已变化');
+      const data=await businessRequest('POST',endpoints.voucherStatus,{
+        accountId:saved.accountId,idempotencyKey:saved.idempotencyKey});
+      if(!plain(data)||data.accountId!==saved.accountId||
+        data.idempotencyKey!==saved.idempotencyKey)
+        fail('E_STATUS_IDENTITY','服务端没有返回匹配的账号和事务');
+      if(data.status==='redeemed'){
+        validateReceipt(data,saved.idempotencyKey);
+        await clearRecovered(saved.idempotencyKey);
+        redeemNotice('服务端已确认上次兑换成功，已解除重复提交保护；请刷新权益。');
+      }else if(data.status==='rejected'&&data.final===true){
+        await clearRecovered(saved.idempotencyKey);
+        redeemNotice('服务端确认上次兑换未生效。已解除锁定，可重新预检兑换码。');
+      }else redeemNotice('服务端仍未给出最终结论；保留恢复记录，禁止重复兑换。',true);
+    }catch{
+      redeemNotice('查询失败或服务端状态无法验证；恢复记录保留，禁止重复兑换。',true);
     }finally{busy=false;renderRedeem();}
   }
   refresh.addEventListener('click',event=>{
@@ -326,6 +447,7 @@
   });
   code.addEventListener('input',()=>{redeemNotice('兑换内容需先经过服务端预检，确认后才会提交。');renderRedeem();});
   redeem.addEventListener('click',event=>{void redeemClick(event);});
+  recoveryCheck.addEventListener('click',event=>{void checkRecoveryClick(event);});
   cancel.addEventListener('click',event=>{
     if(event?.isTrusted!==true||busy)return;
     pending=null;code.value='';
@@ -349,6 +471,8 @@
       ()=>{shopStatus.textContent='未能打开商品目录，请检查权限或稍后重试。';}
     ).finally(()=>{shop.disabled=false;});
   });
+  // Recover independently of Provider configuration; never silently drop a journal.
+  void loadRecovery();
   if(!endpoints){
     memberState.textContent='服务未配置';
     verified.textContent='正式会员 Provider 尚未配置，账号、权益与兑换记录均不可验证。';

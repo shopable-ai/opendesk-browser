@@ -1,10 +1,11 @@
 {
   "id": "ai-vip-share",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "title": "AI VIP Share",
   "description": "AI VIP Share 会员权益与兑换中心，可信宿主提供受控 AI 网站代理单按钮；未配置服务不伪造会员。",
   "capabilities": [
-    "ai.access"
+    "ai.access",
+    "storage.local"
   ],
   "files": {
     "html": "src/index.html",

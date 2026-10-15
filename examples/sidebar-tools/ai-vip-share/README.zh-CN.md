@@ -58,3 +58,11 @@ R2.1 核查（2026-10-15）：R11 的批准 Registry 没有 Managed Proxy，发�
 可信代理卡在启用请求尚未返回时允许用户发起停用；只由原可信 Host/Worker 串行处理，晚到启用应答不可覆盖新 STOP 状态。仍保留旧 `src/ai-smart-access/` 模块及所有 Owner/撤权保护；公共 Managed Proxy SDK 未正式批准，`SDK_BLOCKED`。真实启用还依赖旧代理技术 Provider 的已批准租约服务；无该服务时不能声称代理可连通。
 
 定向验证与 GitHub 同候选证据详见 [R5.1 工作流](../../../docs/framework/workstreams/ai-vip-share-r51-source-first-20261015.md)。真实 Mac Chrome 安装与原生停止/重启：`NOT_TESTED`。
+
+## R5.2 · 兑换持久事务恢复（生产 Provider 仍阻塞）
+
+正式独立工具版本由 `1.1.1` 升为 `1.2.0`，新增需由用户安装/升级审阅的 `storage.local` 能力；保留 `ai.access`，未新增 `network` 或 `browser.tabs`。通过既有工具专属 `OpenDeskTool.request('storage.get/set')`、CAS ETag 及可信宿主锁，**在兑换 POST 之前写入并读回**最小恢复记录（账号 ID、幂等键、提交时刻、版本/工具 ID）。不保存完整兑换码、Cookie、密码、长期 Token 或代理租约。
+
+发生请求超时、丢失回执、页面关闭、浏览器重启、安装权限变更、账号切换时，未知兑换不重试。重新打开只显示待核对状态，用户点击「核对上次兑换」后，需经同一个经过批准的 HTTPS Provider 的专用终态查询返回相同账号/幂等键的完整已兑换回执，或明确 `rejected + final=true` 的终局拒绝，才安全解除锁定。历史账本缺少对应行并不意味着消费失败。宿主已负责卸载清理本工具命名空间、撤权和旧安装版本隔离；本工具对非本版本恢复记录保持锁定而非继承。
+
+`BUSINESS_ENDPOINTS` 保持四个空值（`member`、`voucherPreview`、`voucherRedeem`、`voucherStatus`）；**此接口形状仅是消费端待审核边界，不代表已批准或部署商业认证服务**。现有 Browser SDK 网络请求默认不附带会员登录 Cookie，因此不得只填写 URL 就启用支付或兑换。只有正式 Provider 身份、无副作用终态查询及授权合同经 Owner 审核后才接入，并办理工具升级所需浏览器权限。商品外链、短效 ticket 安装回跳和真实代理联网仍为各自独立阻塞，不提供假数据。
