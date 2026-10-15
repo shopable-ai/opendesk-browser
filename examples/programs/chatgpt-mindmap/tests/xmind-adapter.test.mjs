@@ -52,7 +52,7 @@ test('REAL SDK: Workbook/Topic/Dumper/JSZip keep duplicate titles and exact visi
     assert.equal(a.title,'Same');assert.equal(b.title,'Same');
     assert.equal(a.notes.plain.content,'A');
     assert.equal(b.notes.plain.content,'B');
-    assert.doesNotMatch(JSON.stringify(out),/\\[nodeKey:/);
+    assert.doesNotMatch(JSON.stringify(out),/\[nodeKey:/);
   });
 test('REAL SDK: branch state follows paths instead of duplicate visible titles',
   {skip:!directory&&'XMIND_REFERENCE_DIR missing; real SDK NOT_TESTED'},async()=>{
