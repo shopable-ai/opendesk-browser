@@ -5,7 +5,8 @@ import {browserOperation} from '../framework/sdk/browser-contract.js';
 // The sandbox waits for a separate real Side Panel click; ordinary tool RPCs
 // remain 8 seconds. This duration is UX only, never an authorization or grant.
 export function sidebarToolRequestTimeout(operation,toolId){
- return (toolId==='stay-focus'&&operation.startsWith('focus.')&&operation!=='focus.status')||
+ return (toolId==='adblock'&&operation==='adblock.site.restore')||
+   (toolId==='stay-focus'&&operation.startsWith('focus.')&&operation!=='focus.status')||
    (toolId==='time-review'&&['time.start','time.clear'].includes(operation))||
    browserOperation(operation)?.requiresUserGesture===true?120000:8000;
 }

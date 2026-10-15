@@ -3,6 +3,9 @@
 // without creating another installer, sandbox, registry, authority or Browser SDK.
 import {defineUnlistedScript} from 'wxt/utils/define-unlisted-script';
 import {createSidebarTools} from '../ui/sidebar-tools.js';
+import {ADBLOCK_ID,ADBLOCK_CAPABILITY,ADBLOCK_PROTOCOL,ADBLOCK_OPERATIONS} from '../../examples/sidebar-tools/adblock/trusted/policy.js';
+import {createAdblockPermissionControls} from '../../examples/sidebar-tools/adblock/trusted/host-controls.js';
+import {probeAdblockService,runTrustedAdblockOperation,requestAdblockOperation} from '../../examples/sidebar-tools/adblock/trusted/tool-host.js';
 import {trustedTimeReviewUI} from '../time-review/trusted-native-ui.js';
 import {AI_ID,AI_CAPABILITY,AI_PROTOCOL,AI_OPERATIONS} from '../ai-smart-access/policy.js';
 import {createAiAccessPermissionControls} from '../ai-smart-access/host-controls.js';
@@ -18,6 +21,14 @@ export default defineUnlistedScript(()=>{
       operations:AI_OPERATIONS,createPermissionControls:createAiAccessPermissionControls,
       runTrustedOperation:runTrustedAiAccessOperation,request:requestAiAccessOperation,
       probe:probeAiAccessService}),writable:false,configurable:false,enumerable:false
+  });
+  Object.defineProperty(globalThis,'__opendeskAdblockTrustedUI',{
+    configurable:false,writable:false,enumerable:false,
+    value:Object.freeze({id:ADBLOCK_ID,capability:ADBLOCK_CAPABILITY,
+      protocol:ADBLOCK_PROTOCOL,operations:ADBLOCK_OPERATIONS,
+      createPermissionControls:createAdblockPermissionControls,
+      runTrustedOperation:runTrustedAdblockOperation,
+      request:requestAdblockOperation,probe:probeAdblockService})
   });
   Object.defineProperty(globalThis,'__opendeskCreateSidebarTools',{
     value:createSidebarTools,writable:false,configurable:false,enumerable:false

@@ -9,6 +9,7 @@ import {writeVerifiedLocalValue,classifyStorageWriteError,unknownStorageOutcome,
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,TOOL_REVOCATION_EPOCHS_STORE} from './lifecycle.js';
 import {TIME_REVIEW_KEY} from '../../time-review/model.js';
 import {stopStayFocusForTool,cleanupUninstalledStayFocus} from '../../stay-focus/lifecycle.js';
+import {stopAdblockForTool,cleanupUninstalledAdblock} from '../../../examples/sidebar-tools/adblock/trusted/lifecycle.js';
 import {stopAiAccessForTool,cleanupUninstalledAiAccess} from '../../ai-smart-access/lifecycle.js';
 
 export const MARKET_PROVENANCE_STORE='opendesk.market.provenance.v1';
@@ -89,6 +90,7 @@ export async function setInstalledSidebarToolEnabled({api,lockManager,tool,enabl
         await writeVerifiedLocalValue(api,SIDEBAR_TOOL_ENABLE_STORE,
           {...previous,[tool.id]:false},raw,'工具启停');
         await stopStayFocusForTool(api,tool.id);
+        await stopAdblockForTool(api,tool.id);
         await stopAiAccessForTool(api,tool.id);
       }
       await writeVerifiedLocalValue(api,TOOL_REVOCATION_EPOCHS_STORE,
@@ -166,6 +168,7 @@ export async function cleanupUninstalledToolLocked(api,id){
     await removeVerifiedKey(api,BOOKMARK_OWNED_STORE_PREFIX+id);
     if(id==='time-review')await removeVerifiedKey(api,TIME_REVIEW_KEY);
     await cleanupUninstalledStayFocus(api,id,removeVerifiedKey);
+    await cleanupUninstalledAdblock(api,id,removeVerifiedKey);
     await cleanupUninstalledAiAccess(api,id,removeVerifiedKey);
     for(const store of [SIDEBAR_TOOL_ENABLE_STORE,READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,READING_TOC_PAGE_RULES_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE,MARKET_PROVENANCE_STORE,BROWSER_MENU_GRANTS_STORE]){
       const raw=(await api.storage.local.get(store))[store];
