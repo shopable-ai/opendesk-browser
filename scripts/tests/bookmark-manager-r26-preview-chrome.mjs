@@ -94,7 +94,7 @@ async function exercise(mode){
   const sleep=ms=>new Promise(ok=>setTimeout(ok,ms));
   const wait=async(fn,label)=>{
     for(let i=0;i<140;i++){if(fn())return;await sleep(65)}
-    throw Error('UI wait failed: '+label+'; notice='+q('bm-notice')?.textContent+'; gate='+q('bm-gate-reason')?.textContent+'; total='+q('bm-total')?.textContent+'; workspaceHidden='+q('bm-workspace')?.hidden);
+    throw Error('UI wait failed: '+label+'; notice='+q('bm-notice')?.textContent+'; gate='+q('bm-gate-reason')?.textContent+'; total='+q('bm-total')?.textContent+'; workspaceHidden='+q('bm-workspace')?.hidden+'; scripts='+document.scripts.length+'; sdk='+typeof globalThis.OpenDeskSDK+'; tool='+typeof globalThis.OpenDeskTool+'; service='+typeof globalThis.BookmarkR2Service+'; state='+document.readyState);
   };
   const check=(condition,label)=>{if(!condition)throw Error('UI assertion: '+label)};
   const field=(id,value)=>{
@@ -235,7 +235,7 @@ try{
     JSON.stringify({status:'MOCK_BROWSER_INTERACTION_PASS_NOT_INSTALLED',cases:reports},null,2)+'\n');
   console.log('MOCK_BROWSER_INTERACTION_PASS_NOT_INSTALLED '+reports.length+' viewports');
 }catch(error){
-  console.error('MOCK_BROWSER_INTERACTION_FAIL '+error.stack);
+  console.error('MOCK_BROWSER_INTERACTION_FAIL '+error.stack+'; chromeExceptions='+JSON.stringify(exceptions)+'; network='+JSON.stringify(network));
   process.exitCode=1;
 }finally{
   if(socket)socket.close();
