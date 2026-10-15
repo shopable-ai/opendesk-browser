@@ -27,6 +27,7 @@ on:
       - 'tests/environment/reading-toc-overview-r43.test.mjs'
       - 'tests/environment/sidebar-tools-host.test.mjs'
       - 'tests/framework/reading-toc-native-r41.test.mjs'
+      - 'tests/framework/reading-toc-preview-r14-native.test.mjs'
       - '.github/workflows/reading-toc-r41.yml'
       - 'official-tools/**'
       - 'src/sidebar-tools/**'
