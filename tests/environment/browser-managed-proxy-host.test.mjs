@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
+import {MANAGED_PROXY_STORE,reconcileManagedProxy} from '../../src/platform/chrome/browser-managed-proxy.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
 import {createContextMenuHost} from '../../src/platform/chrome/context-menus.js';
 import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash,validateSidebarToolPackage}
@@ -33,14 +34,14 @@ async function fixture(){
     async set(obj){for(const [k,v] of Object.entries(obj))data.set(k,clone(v));},
     async remove(key){data.delete(key)}
   };
-  let level='controllable_by_this_extension',value=null;
+  let level='controllable_by_this_extension',value=null,proxyPermission=true;
   const effects={set:0,clear:0};
   const api={runtime:{id:extensionId,
       getURL:p=>'chrome-extension://'+extensionId+'/'+p,
       getContexts:async()=>[{contextType:'SIDE_PANEL',documentId:sender.documentId,
         documentUrl:sender.url,frameId:0,incognito:false}]},
     storage:{local:storage,session:storage,onChanged:{addListener(){}}},
-    permissions:{contains:async({permissions})=>!permissions||permissions.every(x=>x==='proxy')},
+    permissions:{contains:async({permissions})=>!permissions||permissions.every(x=>x==='proxy'&&proxyPermission)},
     alarms:{create:async()=>{},clear:async()=>true},
     proxy:{settings:{
       get:async()=>({levelOfControl:level,value:clone(value)}),
@@ -49,7 +50,8 @@ async function fixture(){
       clear:async row=>{assert.equal(row.scope,'regular');effects.clear++;
         level='controllable_by_this_extension';value=null;}
     }},tabs:{},webNavigation:{}};
-  const host=createContextMenuHost({api,lockManager:{request:(_name,work)=>work()},
+  const locks={request:(_name,work)=>work()};
+  const host=createContextMenuHost({api,lockManager:locks,
     logger:{warn(){}},reviewedProxyProfiles:[{
       reviewId:'FIXTURE-PROXY-REVIEW-0002',reviewedAt:'2026-10-15',
       reviewedBy:'node-fixture',toolId:first.id,
@@ -72,7 +74,8 @@ async function fixture(){
       },clearApproval(){approvalRef=undefined;}
     };
   }
-  return {first,second,data,host,user,effects};
+  return {first,second,data,host,user,effects,api,locks,
+    setProxyPermission:next=>{proxyPermission=next;}};
 }
 test('installed Browser SDK proxy ENABLE and STOP traverse the single signed Host and one-use intent',async()=>{
   const f=await fixture(),actor=await f.user('proxy-owner');
@@ -119,4 +122,23 @@ test('malicious PAC source, localhost and direct native ProxyConfig never pass p
     await assert.rejects(Promise.resolve().then(()=>actor.sdk.proxy.managed.requestEnable(bad)));
   }
   assert.equal(f.effects.set,0);
+});
+
+test('SDK STATUS and STOP persist recovery intent if Chrome proxy permission is revoked',async()=>{
+  const f=await fixture(),actor=await f.user('proxy-owner');
+  await actor.approve('browser.proxy.managed.requestEnable',config);
+  assert.equal((await actor.sdk.proxy.managed.requestEnable(config)).state,'enabled');
+  f.setProxyPermission(false);
+  const status=await actor.sdk.proxy.managed.getStatus();
+  assert.equal(status.permission,false);
+  assert.equal(status.canStop,true);
+  assert.equal(status.state,'unavailable');
+  await actor.approve('browser.proxy.managed.requestDisable',{});
+  await assert.rejects(actor.sdk.proxy.managed.requestDisable(),
+    code('E_CHROME_PERMISSION_REQUIRED'));
+  assert.equal(f.data.get(MANAGED_PROXY_STORE).phase,'stopping');
+  assert.equal(f.effects.clear,0,'No native release while Chrome permission is missing');
+  f.setProxyPermission(true);
+  assert.equal(await reconcileManagedProxy(f.api,{lockManager:f.locks}),'released');
+  assert.equal(f.effects.clear,1);
 });

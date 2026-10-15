@@ -62,3 +62,9 @@ npm run check
 - 候选 `b89c9093a0f55405ba95ee00f5875a3c8daea6d6`：Browser SDK R5 workflow [38771127654](https://github.com/shopable-ai/opendesk-browser/actions/runs/38771127654) 的 `sdk-host-contracts` **PASS**，包含 Managed Proxy Driver/Host Node 模拟测试、SDK bindings 生成/冻结检查、源代码验证；`sdk-product-bundles` **PASS**，包含 `npm run build` / `build:dev` / `build:size` / `verify`。该 CI 在 GitHub Linux runner 执行，**不是 Mac 原生 Chrome 网络证据**。
 - 候选 `b89c909`：Sidebar tools R1 job `ai-vip-share-r5-candidate` 因工作流仍期待 **1.2.0** 而失败（实际正式工具 `tool.config.json` 是 **1.3.0**），与 Proxy Driver 无关。已在 `84ce91cb3d04b9ca9457d4d9e50f79fea8aa9e17` 对工作流的精确版本、输出路径和 production package diff 一并更新，未降低严格比对门禁。修复后的候选 CI 状态以其后续运行结果为准。
 - R5 专项补充将 `tests/environment/browser-sdk-managed-proxy-r54.test.mjs` 与 Driver、Host 两套 Node fixture 放在同一步骤执行，确保公共 Facade → Binding → Driver 的正反向测试不被跳过。该新增 CI 测试必须以本次 workflow 修改后的 SHA 运行结果判定。
+
+### R1.1 权限撤销下的正式 SDK STOP 修复
+
+- 在原有 Host `verifyBrowserOwner` 保留工具 capability、已安装 packageHash、installEpoch、启用状态及可信用户点击校验的前提下，**仅** `browser.proxy.managed.getStatus` 和 `browser.proxy.managed.requestDisable` 可在 `proxy` 权限缺失时进入 Driver。实际 Chrome settings 的读取、清理和精确 PAC 所有权核验仍由 Driver 严格要求 `proxy` 权限。
+- 权限丢失时 `getStatus` 返回 `permission:false`、拥有者 `canStop:true`；用户真正点击 STOP 后先持久化 `stopping`，等待权限恢复由 Worker 恢复处理，不允许直接清理或覆盖其他代理。ENABLE 无此例外。
+- 增加 Host→Facade→Driver Node 回归：代理启用、撤销权限、查询状态、可信 STOP 写意图、禁止 Chrome clear、权限恢复后 reconcile 释放。结果以此提交后 CI 为准。

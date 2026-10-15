@@ -181,9 +181,15 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
          record.installEpoch!==(owned.epochs[tool.id]??null))
         throw failure('E_BOOKMARK_FULL_CONSENT_REQUIRED','Independent Full Bookmarks consent required');
     }
-    for(const permission of op.requiredChromePermissions)
+    for(const permission of op.requiredChromePermissions){
+      // Chrome permission loss must not hide an owned STOP or prevent its
+      // durable intent. These two methods cannot mutate native proxy config
+      // without the Driver independently checking permission and exact PAC.
+      if(permission==='proxy'&&['browser.proxy.managed.getStatus',
+        'browser.proxy.managed.requestDisable'].includes(operation))continue;
       if(!api.permissions?.contains||!await api.permissions.contains({permissions:[permission]}))
         throw failure('E_CHROME_PERMISSION_REQUIRED');
+    }
     if(origin!==null){
       const site=parsedHttp(origin);
       if(!site||site.origin!==origin||!api.permissions?.contains||
