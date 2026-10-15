@@ -6,6 +6,7 @@ import {mkdir, readFile, writeFile, rm, mkdtemp} from 'node:fs/promises';
 import {createHash,randomUUID} from 'node:crypto';
 import {resolve} from 'node:path';
 import {collectBundleEvidence,recordBuildFailure} from './bundle-provenance.mjs';
+import {verifyReadingTocTrustedLocales} from './generate-reading-toc-locales.mjs';
 import {PACKAGE_ENTRIES} from './build-contract.mjs';
 import {resolveBrowserEdition,editionOutputName} from './browser-editions-r245.mjs';
 import {summarizePackageResources} from './audit-fixed-entries.mjs';
@@ -25,6 +26,7 @@ let moduleEvidence,inputsBefore;
 try {
 await mkdir(evidence,{recursive:true});
 await writeFile(`${evidence}/build-${outputLabel}-latest.json`,JSON.stringify({status:'in_progress',mode,attemptId,startedAt:new Date().toISOString()})+'\n');
+await verifyReadingTocTrustedLocales();
 inputsBefore = await sourceInputs();
 process.env.OPENDESK_BUILD_MODE=mode;
 await preparePublic();
