@@ -20,6 +20,7 @@ const SKILLS = [
   'opendesk-extension-ui',
   'opendesk-extension-runtime',
   'opendesk-sidebar-tool-dev',
+  'opendesk-sidebar-tool-package',
   'opendesk-trusted-sidebar-feature',
   'opendesk-script-authoring',
   'opendesk-program-publish'
@@ -27,6 +28,7 @@ const SKILLS = [
 
 const CORE = [
   ['在扩展里开发一个小应用','opendesk-sidebar-tool-dev'],
+  ['编译 Cookie Editor 并生成可导入 JSON','opendesk-sidebar-tool-package'],
   ['为网页安装一个增强脚本','opendesk-program-publish'],
   ['修改扩展列表和安装管理界面','opendesk-extension-ui'],
   ['开发一个需要后台能力的扩展功能','opendesk-extension-runtime'],
@@ -40,7 +42,7 @@ const AMBIGUOUS = [
   ['修改 Page Program 的安装和撤权','opendesk-extension-runtime'],
   ['修改「我的」定时计划页面','opendesk-extension-ui'],
   ['修复 MV3 Service Worker 生命周期','opendesk-extension-runtime'],
-  ['导入已有 Sidebar Tool JSON','opendesk-sidebar-tool-dev'],
+  ['导入已有 Sidebar Tool JSON','opendesk-sidebar-tool-package'],
   ['更新已经发布的 Page Program','opendesk-program-publish']
 ];
 const NEGATIVE = [
@@ -59,7 +61,8 @@ const CONTEXT = [
 const REAL = [
   ['只读检查扩展中心现有统一列表的真实 UI 文件；说明修改筛选交互时应触及哪些文件，并给出定向测试。','opendesk-extension-ui'],
   ['只读检查 examples/sidebar-tools 下某个已存在应用；说明其 iframe UI、OpenDeskTool.request 和 Host 的职责，不要改文件。','opendesk-sidebar-tool-dev'],
-  ['只读检查 Page Program 的版本冻结、安装与发布流程；定位现有代码路径，避免改写底层 Authority。','opendesk-program-publish']
+  ['只读检查 Page Program 的版本冻结、安装与发布流程；定位现有代码路径，避免改写底层 Authority。','opendesk-program-publish'],
+  ['只读检查 Cookie Editor 的 JSON 打包器、项目目录预生成包和防过期测试；不要运行 Chrome 或线上市场发布。','opendesk-sidebar-tool-package']
 ];
 
 const opt = (key, fallback) => {
@@ -165,7 +168,12 @@ function localPreflight(repo){
   if(result.branch!=='main')throw new Error('Refusing non-main checkout: '+result.branch);
   const skillRoot=path.join(repo,'.agents','skills');
   const dirs=fs.readdirSync(skillRoot,{withFileTypes:true}).filter(v=>v.isDirectory()).map(v=>v.name).sort();
-  if(JSON.stringify(dirs)!==JSON.stringify([...SKILLS].sort()))throw new Error('Canonical six Skill directories mismatch: '+dirs.join(', '));
+  const active=dirs.filter(name=>fs.existsSync(path.join(skillRoot,name,'SKILL.md')));
+  const reserved=dirs.filter(name=>!active.includes(name));
+  if(JSON.stringify(active)!==JSON.stringify([...SKILLS].sort()))throw new Error('Active seven Skill directories mismatch: '+active.join(', '));
+  if(JSON.stringify(reserved)!==JSON.stringify(['opendesk-marketplace-publish'])||
+     !fs.existsSync(path.join(skillRoot,'opendesk-marketplace-publish','RESERVED.md')))
+    throw new Error('Inactive marketplace-publish reservation not found or unexpectedly enabled');
   const meta=[];
   for(const name of SKILLS){
     const p=path.join(skillRoot,name,'SKILL.md');const text=fs.readFileSync(p,'utf8');
