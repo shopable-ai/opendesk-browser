@@ -83,12 +83,12 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{
  let S;
  function setScene(scene='ready'){
   if(!S){
-    S={scenario:scene,dark:false,site:'example.com',grantsBySite:{'example.com':{read:scene==='ready'||scene==='readonly'||scene==='empty',write:scene==='ready'||scene==='empty',values:false,clear:false,observe:false}},chrome:scene!=='blocked',rows:scene==='empty'?[]:fake(),emptyRestoreRows:null,expanded:null,query:'',filter:'all',sort:'name',sortReverse:false,filterOpen:false,menuOpen:false,siteOpen:false,draft:null,initialDraft:null,valueEdited:false,advancedOpen:false,shown:false,saveError:'',simulateSaveFailure:false,confirm:null,pending:null,toast:'',toastId:0,io:null,ioFormat:'json',ioImportFormat:'auto',ioText:'',ioRows:null,ioPreview:null,ioError:'',ioConfirm:null,includeValues:false};
+    S={scenario:scene,dark:false,site:'example.com',grantsBySite:{'example.com':{read:scene==='ready'||scene==='readonly'||scene==='empty',write:scene==='ready'||scene==='empty',values:false,clear:false,observe:false}},chrome:scene!=='blocked',rows:scene==='empty'?[]:fake(),emptyRestoreRows:null,expanded:null,query:'',filter:'all',sort:'name',sortReverse:false,filterOpen:false,menuOpen:false,siteOpen:false,draft:null,initialDraft:null,valueEdited:false,advancedOpen:false,shown:false,saveError:'',simulateSaveFailure:false,confirm:null,pending:null,toast:'',toastId:0,io:null,ioFormat:'json',ioImportFormat:'auto',ioText:'',ioRows:null,ioPreview:null,ioError:'',ioConfirm:null,includeValues:false,exportMethod:'file',exportBusy:false,exportSerial:0};
   }else{
     if(scene===S.scenario){renderKeepScroll();return;}
     if(scene==='empty'){S.emptyRestoreRows=S.rows.map(c=>({...c}));S.rows=[];}
     else if(S.scenario==='empty'){S.rows=S.emptyRestoreRows||fake();S.emptyRestoreRows=null;}
-    S.scenario=scene;S.chrome=scene!=='blocked';
+    S.exportSerial++;S.exportBusy=false;S.scenario=scene;S.chrome=scene!=='blocked';
     if(scene!=='blocked'){
       const g=grants();g.read=scene==='ready'||scene==='readonly'||scene==='empty';
       g.write=scene==='ready'||scene==='empty';if(!g.read)g.values=false;
@@ -117,7 +117,7 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{
 
  function ioPanel(){if(!S.io)return '';const uploading=S.io==='import';let common=`<section class="io-panel" aria-label="${uploading?'导入':'导出'} Cookie 操作区"><div class="io-head"><strong>${uploading?'导入到 '+esc(S.site):'从 '+esc(S.site)+' 导出'}</strong>${iconBtn('x','closeIO','关闭'+(uploading?'导入':'导出'))}</div>`;
  if(uploading){common+=`<div class="io-help">选择本地文件或粘贴内容，先预览影响范围，再明确确认写入。仅演示虚构数据；正式工具每批最多 10 条。</div><div class="field"><label for="ce43-file">选择文件（可选）</label><input id="ce43-file" type="file" data-field="importFile" accept=".json,.txt,application/json,text/plain"></div><div class="field"><label for="ce43-format">文件格式</label><select id="ce43-format" data-field="importFormat">${[['auto','自动识别'],['json','JSON'],['header','Cookie Header'],['netscape','Netscape']].map(([v,t])=>`<option value="${v}" ${S.ioImportFormat===v?'selected':''}>${t}</option>`).join('')}</select></div><div class="field"><label for="ce43-text">Cookie 文件内容</label><textarea id="ce43-text" data-field="importText" spellcheck="false" placeholder="粘贴 JSON、Cookie Header 或 Netscape 文本">${esc(S.ioText)}</textarea></div>${S.ioPreview?`<div class="io-result" role="status">共 ${S.ioPreview.total} 条 · 新增 ${S.ioPreview.created} 条 · 覆盖 ${S.ioPreview.replaced} 条（模拟预览）${S.ioPreview.conflictText?`<span class="io-conflicts">${esc(S.ioPreview.conflictText)}</span>`:""}</div>`:''}${S.ioError?`<div class="io-error" role="alert">${esc(S.ioError)}</div>`:''}${S.ioConfirm==='write'?`<div class="io-confirm"><strong>首次导入需要本站写入授权</strong><div class="io-help">只授予本工具此网站写入能力；已输入的内容不会丢失。</div><div class="foot"><button class="btn" data-action="cancelIOConfirm">取消</button><button class="btn primary" data-action="allowImportWrite">允许并继续</button></div></div>`:''}<div class="foot"><button class="btn" data-action="previewImport">预览导入</button><button class="btn primary" data-action="applyImport" ${S.ioPreview?'':'disabled'}>确认导入演示数据</button></div>`;
- }else{common+=`<div class="field"><label for="ce43-export-format">导出格式</label><select id="ce43-export-format" data-field="exportFormat">${[['json','JSON'],['header','Cookie Header'],['netscape','Netscape']].map(([v,t])=>`<option value="${v}" ${S.ioFormat===v?'selected':''}>${t}</option>`).join('')}</select></div><label class="option"><input type="checkbox" data-field="exportValues" ${S.includeValues?'checked':''}> 包含 Cookie 值，用于可恢复备份（敏感）</label><div class="io-help">默认 JSON 仅为元数据清单，不能用于恢复 Cookie。完整备份须勾选包含值；Cookie Header / Netscape 格式必须包含值，且会丢失部分属性或分区信息。</div>${S.ioConfirm==='export'?`<div class="io-confirm" role="group" aria-label="敏感 Cookie 备份最终确认"><strong>确认下载包含敏感值的备份？</strong><div class="io-help">演示文件可能包含虚构会话值。正式产品必须在用户授权后再执行真实导出。</div><div class="foot"><button type="button" class="btn" data-action="cancelIOConfirm">返回检查</button><button type="button" class="btn primary" data-action="confirmExport">确认下载敏感备份</button></div></div>`:""}${S.includeValues?`<div class="io-result" role="note">包含 Cookie 值的文件可能泄露登录会话，请妥善保存，不会自动上传。</div>`:''}${S.ioError?`<div class="io-error" role="alert">${esc(S.ioError)}</div>`:''}${S.ioConfirm==='values'?`<div class="io-confirm"><strong>允许读取本站 Cookie 值？</strong><div class="io-help">当前仅已获元数据权限；需单独授予敏感值权限，才能生成含值文件。</div><div class="foot"><button class="btn" data-action="cancelIOConfirm">取消</button><button class="btn primary" data-action="allowExportValues">允许本工具读取</button></div></div>`:''}<div class="foot"><button class="btn primary" data-action="runExport">导出模拟文件</button></div>`;}
+ }else{common+=`<div class="field"><label for="ce43-export-format">导出格式</label><select id="ce43-export-format" data-field="exportFormat" ${S.exportBusy?'disabled':''}>${[['json','JSON'],['header','Cookie Header'],['netscape','Netscape']].map(([v,t])=>`<option value="${v}" ${S.ioFormat===v?'selected':''}>${t}</option>`).join('')}</select></div><label class="option"><input type="checkbox" data-field="exportValues" ${S.includeValues?'checked':''} ${S.exportBusy?'disabled':''}> 包含 Cookie 值，用于可恢复备份（敏感）</label><div class="io-help">复制到剪贴板与导出文件使用同一数据范围、格式和敏感值保护。默认 JSON 仅为元数据清单，不能用于恢复 Cookie。完整备份须勾选包含值；Cookie Header / Netscape 格式必须包含值，且会丢失部分属性或分区信息。</div>${S.ioConfirm==='export'?`<div class="io-confirm" role="group" aria-label="敏感 Cookie 备份最终确认"><strong>${S.exportMethod==='copy'?'确认复制包含敏感值的 Cookie 文本？':'确认导出包含敏感值的 Cookie 文件？'}</strong><div class="io-help">${S.exportMethod==='copy'?'内容会进入系统剪贴板，可能被其他应用读取，请勿粘贴到不可信网站。':'文件可能包含登录会话凭据，请妥善保管。'}当前仅为虚构演示数据。</div><div class="foot"><button type="button" class="btn" data-action="cancelIOConfirm">返回检查</button><button type="button" class="btn primary" data-action="confirmExport">${S.exportMethod==='copy'?'确认复制文本':'确认导出文件'}</button></div></div>`:""}${S.includeValues?`<div class="io-result" role="note">包含 Cookie 值的文本或文件可能泄露登录会话，请妥善保管，勿粘贴至不可信位置。</div>`:''}${S.ioError?`<div class="io-error" role="alert">${esc(S.ioError)}</div>`:''}${S.ioConfirm==='values'?`<div class="io-confirm"><strong>允许读取本站 Cookie 值？</strong><div class="io-help">当前仅已获元数据权限；需单独授予敏感值权限，才能生成含值文件。</div><div class="foot"><button class="btn" data-action="cancelIOConfirm">取消</button><button class="btn primary" data-action="allowExportValues">允许本工具读取</button></div></div>`:''}<div class="foot"><button type="button" class="btn" data-action="copyExport" ${S.exportBusy?'disabled':''}>复制到剪贴板</button><button type="button" class="btn primary" data-action="runExport" ${S.exportBusy?'disabled':''}>导出文件</button></div>`;}
  return common+'</section>';}
  function previewImport(){S.ioError='';S.ioPreview=null;S.ioRows=null;try{const raw=S.ioText.trim();if(!raw)throw Error('请选择文件或粘贴内容');if(new Blob([raw]).size>150000)throw Error('导入文件不能超过 150 KB');let format=S.ioImportFormat;if(format==='auto'){format=/^[\[{]/.test(raw)?'json':raw.split(/\r?\n/).some(x=>x.split('\t').length===7)?'netscape':'header';}let rows=[];
  if(format==='json'){const value=JSON.parse(raw);rows=Array.isArray(value)?value:value?.cookies;if(!Array.isArray(rows))throw Error('JSON 必须为 Cookie 数组或包含 cookies 数组的对象');}
@@ -126,8 +126,65 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{
  if(!rows.length||rows.length>10)throw Error('真实浏览器每批限 1–10 条');const seen=new Set();rows=rows.map(row=>{if(typeof row.name!=='string'||!row.name.trim()||typeof row.value!=='string'||typeof row.domain!=='string'||typeof row.path!=='string'||!row.path.startsWith('/'))throw Error('存在格式不正确的 Cookie');if(row.domain.replace(/^\./,'')!==S.site)throw Error('导入范围不能跨越当前网站');if(row.partitioned||row.partitionKey)throw Error('分区 Cookie 导入需精确 PartitionKey；本预览拒绝隐式降级，请使用可信 Chrome 工具');const key=row.name+'|'+row.domain+'|'+row.path;if(seen.has(key))throw Error('导入文件存在重复 Cookie');seen.add(key);return {name:row.name,domain:row.domain,path:row.path,value:row.value,secure:Boolean(row.secure),httpOnly:Boolean(row.httpOnly),session:Boolean(row.session),sameSite:row.sameSite||'Lax',partitioned:false};});
  const replaced=rows.filter(r=>S.rows.some(c=>!c.partitioned&&c.name===r.name&&c.domain===r.domain&&c.path===r.path)).length;S.ioRows=rows;S.ioPreview={total:rows.length,created:rows.length-replaced,replaced,conflictText:replaced?'将覆盖 '+rows.filter(r=>S.rows.some(c=>!c.partitioned&&c.name===r.name&&c.domain===r.domain&&c.path===r.path)).map(r=>r.name+' ('+r.path+')').join('、'):''};}catch(e){S.ioError=e?.message||'预览失败';}renderKeepScroll();}
  function applyImport(){if(!S.ioRows||!S.ioPreview){S.ioError='请先预览导入';renderKeepScroll();return;}if(!grants().write){S.ioConfirm='write';renderKeepScroll();return;}let done=0;for(const r of S.ioRows){const old=S.rows.find(c=>!c.partitioned&&c.name===r.name&&c.domain===r.domain&&c.path===r.path);const candidate={...r,id:old?.id||Math.max(0,...S.rows.map(c=>c.id))+1};if(old)S.rows=S.rows.map(c=>c.id===old.id?candidate:c);else S.rows.unshift(candidate);done++;}S.io=null;S.ioRows=null;S.ioPreview=null;S.ioText='';notify('已更新 '+done+' 条模拟 Cookie；未写入真实 Chrome');}
- function runExport(){S.ioError='';if(S.ioFormat!=='json'&&!S.includeValues){S.ioError='Cookie Header 与 Netscape 必须包含 Cookie 值，或改用 JSON 元数据格式';renderKeepScroll();return;}if(S.includeValues&&!grants().values){S.ioConfirm='values';renderKeepScroll();return;}if(S.includeValues){S.ioConfirm='export';renderKeepScroll();return;}downloadExport();}
- function downloadExport(){const cookies=scoped();let value='';let file='json';if(S.ioFormat==='json'){value=JSON.stringify(cookies.map(c=>S.includeValues?c:({...c,value:undefined,valueRedacted:true})),null,2)+'\n';}else if(S.ioFormat==='header'){value=cookies.map(c=>c.name+'='+c.value).join('; ')+'\n';file='txt';}else{if(cookies.some(c=>c.partitioned)){S.ioError='Netscape 不支持分区 Cookie；请使用 JSON 保留分区字段';renderKeepScroll();return;}value='# Netscape HTTP Cookie File\n'+cookies.map(c=>[c.domain,c.domain.startsWith('.')?'TRUE':'FALSE',c.path,c.secure?'TRUE':'FALSE',c.session?'0':'1799000000',c.name,c.value].join('\t')).join('\n')+'\n';file='txt';}const blob=new Blob([value],{type:file==='json'?'application/json':'text/plain'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=S.site+'-fictional-'+(S.includeValues?'cookies':'metadata')+'.'+file;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);S.ioError='';S.ioConfirm=null;notify('已下载虚构演示数据文件；未读取真实 Chrome Cookie');}
+ function runExport(method='file'){
+   if(S.io!=='export'||S.exportBusy)return;
+   S.exportMethod=method;S.ioError='';S.ioConfirm=null;
+   if(!['copy','file'].includes(method)){S.ioError='不支持的导出操作';renderKeepScroll();return;}
+   if(S.ioFormat!=='json'&&!S.includeValues){S.ioError='Cookie Header 与 Netscape 必须包含 Cookie 值，或改用 JSON 元数据格式';renderKeepScroll();return;}
+   if(S.ioFormat==='netscape'&&scoped().some(c=>c.partitioned)){S.ioError='Netscape 不支持分区 Cookie；请使用 JSON 保留分区字段';renderKeepScroll();return;}
+   if(S.includeValues&&!grants().values){S.ioConfirm='values';renderKeepScroll();return;}
+   if(S.includeValues){S.ioConfirm='export';renderKeepScroll();return;}
+   void performExport();
+ }
+ function buildExportPayload(){
+   const cookies=scoped();let text='',extension='json';
+   if(S.ioFormat==='json')text=JSON.stringify(cookies.map(c=>S.includeValues?c:({...c,value:undefined,valueRedacted:true})),null,2)+'\n';
+   else if(S.ioFormat==='header'){
+     if(cookies.some(c=>/[;\r\n\0]/.test(c.name)||/[;\r\n\0]/.test(c.value)))throw Error('Cookie Header 不能无损表示该名称或值，请选择 JSON');
+     text=cookies.map(c=>c.name+'='+c.value).join('; ')+'\n';extension='txt';
+   }else if(S.ioFormat==='netscape'){
+     if(cookies.some(c=>c.partitioned))throw Error('Netscape 不支持分区 Cookie；请使用 JSON');
+     if(cookies.some(c=>[c.name,c.value,c.domain,c.path].some(v=>/[\t\r\n\0]/.test(v))))throw Error('Netscape 不能无损表示制表符或换行，请选择 JSON');
+     text='# Netscape HTTP Cookie File\n'+cookies.map(c=>[(c.httpOnly?'#HttpOnly_':'')+c.domain,c.domain.startsWith('.')?'TRUE':'FALSE',c.path,c.secure?'TRUE':'FALSE',c.session?'0':'1799000000',c.name,c.value].join('\t')).join('\n')+'\n';extension='txt';
+   }else throw Error('不支持的导出格式');
+   if(new Blob([text]).size>150000)throw Error('导出内容超过 150 KB');
+   return {text,extension};
+ }
+ async function performExport(){
+   if(S.io!=='export'||S.exportBusy)return;
+   const method=S.exportMethod,site=S.site,serial=S.exportSerial;
+   let payload;
+   try{
+     if(S.includeValues&&!grants().values)throw Error('尚未授权读取敏感值');
+     if(S.includeValues&&S.ioConfirm==='export')throw Error('请先确认本次敏感值操作');
+     payload=buildExportPayload();
+   }catch(error){S.ioError=error?.message||'导出内容生成失败';renderKeepScroll();return;}
+   S.ioConfirm=null;
+   if(method==='copy'){
+     if(typeof globalThis.navigator?.clipboard?.writeText!=='function'){S.ioError='当前环境无法访问剪贴板，请使用「导出文件」';renderKeepScroll();return;}
+     S.exportBusy=true;
+     try{
+       // Initiate the clipboard write synchronously inside the trusted button click.
+       const writing=globalThis.navigator.clipboard.writeText(payload.text);
+       renderKeepScroll();
+       await writing;
+       if(serial===S.exportSerial&&S.io==='export'&&S.site===site){S.ioError='';notify('Cookie 文本已复制到剪贴板（仅虚构演示数据）');}
+     }catch(error){
+       if(serial===S.exportSerial&&S.io==='export'&&S.site===site){S.ioError='复制失败：'+String(error?.message||'剪贴板权限不可用')+'。请重试或使用「导出文件」。';renderKeepScroll();}
+     }finally{if(serial===S.exportSerial){S.exportBusy=false;if(S.io==='export')renderKeepScroll();}}
+     return;
+   }
+   if(method!=='file'){S.ioError='不支持的导出操作';renderKeepScroll();return;}
+   let url;
+   try{
+     const blob=new Blob([payload.text],{type:payload.extension==='json'?'application/json':'text/plain'});
+     url=URL.createObjectURL(blob);
+     const a=document.createElement('a');a.href=url;a.download=site+'-fictional-'+(S.includeValues?'cookies':'metadata')+'.'+payload.extension;
+     document.body.appendChild(a);a.click();a.remove();
+     S.ioError='';notify('Cookie 文件已导出（仅虚构演示数据）');
+   }catch(error){S.ioError='导出文件失败：'+String(error?.message||'未知错误');renderKeepScroll();}
+   finally{if(url)URL.revokeObjectURL(url);}
+ }
  function list(){const rows=scoped().filter(c=>(!S.query||[c.name,c.domain,c.path].some(t=>t.toLowerCase().includes(S.query.toLowerCase())))&&(S.filter==='all'||c[S.filter])).sort((a,b)=>{const x=S.sort==='domain'?a.domain+a.path:S.sort==='secure'?(a.secure?'0':'1'):a.name;const y=S.sort==='domain'?b.domain+b.path:S.sort==='secure'?(b.secure?'0':'1'):b.name;return (S.sortReverse?-1:1)*String(x).localeCompare(String(y),'zh-CN')});return `${siteHeader()}${S.menuOpen?`<div class="menu"><button data-action="permissions">网站授权状态</button><button data-action="clear">安全清理本站</button><button data-action="observe">观察 Cookie 变化</button></div>`:''}<div class="heading"><strong>Cookie 列表 <span>(${rows.length})</span></strong><div class="actions">${iconBtn('fileUp','import','导入 Cookie 到当前网站')}${iconBtn('fileDown','export','导出当前网站 Cookie')}<span class="action-divider" aria-hidden="true"></span>${iconBtn('plus','new','新建 Cookie')}</div></div>${ioPanel()}<div class="search-area"><div class="search-wrap">${svg('search')}<input data-field="search" type="search" aria-label="搜索 Cookie" autocomplete="off" value="${esc(S.query)}" placeholder="搜索 Cookie 名称或域名"/></div>${iconBtn('filter','showFilter','筛选 Cookie')}</div>${S.filterOpen?filters():''}<div class="list">${S.expanded==='new'?`<article class="item expanded"><div class="item-summary"><span class="item-name">新建 Cookie</span></div>${editor()}</article>`:''}${S.expanded!==null&&S.expanded!=='new'&&!rows.some(r=>r.id===S.expanded)&&current()?`<p class="hint" style="padding:8px 12px 0">正在编辑的条目保持显示，不受当前筛选影响</p>${row(current())}`:''}${rows.length?rows.map(row).join(''):`<div class="empty">没有匹配的 Cookie</div>`}</div><p class="hint">点击条目可直接展开修改；一次只编辑一条。敏感值默认隐藏。</p>`;}
  function infoPage(type){const g=grants();if(type==='permissions')return `${siteHeader()}<div class="heading"><strong>本站授权</strong></div>${[['read','查看 Cookie'],['write','新增、编辑、删除'],['values','读取敏感值'],['observe','变化观察'],['clear','安全清理']].map(([cap,label])=>`<div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);min-height:47px;gap:8px"><div>${label}<div class="muted">仅此网站及当前工具</div></div><button class="btn" data-action="toggleGrant" data-cap="${cap}">${g[cap]?'撤销':'授权'}</button></div>`).join('')}<p class="hint">撤销 Cookie Editor 工具级授权不应影响其他工具的 Chrome 权限。</p><button class="btn" data-action="backFromInfo">返回列表</button>`;
  return `${siteHeader()}<div class="heading"><strong>${esc(type)}</strong></div><p class="hint">次级工具在正式实现中使用现有 SDK，保持实际导入、导出、清理和观察流程，不在主列表叠加复杂按钮。</p><button class="btn" data-action="backFromInfo">返回列表</button>`;}
@@ -148,14 +205,14 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{
  case'showFilter':S.filterOpen=!S.filterOpen;renderKeepScroll();break;case'filter':S.filter=el.dataset.filter;renderKeepScroll();break;case'sortDirection':S.sortReverse=!S.sortReverse;renderKeepScroll();break;
  case'menu':S.menuOpen=!S.menuOpen;renderKeepScroll();break;
  case'permissions':case'clear':case'observe':requestSwitch(()=>{setExpanded(null);S.info=action==='permissions'?'permissions':{import:'导入 Cookie',export:'导出 Cookie',clear:'安全清理本站',observe:'观察 Cookie 变化'}[action];S.menuOpen=false;renderKeepScroll()});break;
- case'import':case'export':requestSwitch(()=>{setExpanded(null);S.io=action;S.ioError='';S.ioConfirm=null;S.ioPreview=null;S.ioRows=null;S.ioText='';S.ioImportFormat='auto';S.ioFormat='json';S.includeValues=false;S.menuOpen=false;renderKeepScroll();});break;
- case'closeIO':S.io=null;S.ioRows=null;S.ioPreview=null;S.ioError='';S.ioConfirm=null;renderKeepScroll();break;
+ case'import':case'export':requestSwitch(()=>{setExpanded(null);S.exportSerial++;S.exportBusy=false;S.exportMethod='file';S.io=action;S.ioError='';S.ioConfirm=null;S.ioPreview=null;S.ioRows=null;S.ioText='';S.ioImportFormat='auto';S.ioFormat='json';S.includeValues=false;S.menuOpen=false;renderKeepScroll();});break;
+ case'closeIO':S.exportSerial++;S.exportBusy=false;S.io=null;S.ioRows=null;S.ioPreview=null;S.ioError='';S.ioConfirm=null;renderKeepScroll();break;
  case'previewImport':previewImport();break;
  case'applyImport':applyImport();break;
  case'cancelIOConfirm':S.ioConfirm=null;renderKeepScroll();break;
  case'allowImportWrite':grants().write=true;S.ioConfirm=null;applyImport();break;
- case'runExport':runExport();break;case'confirmExport':if(S.ioConfirm==='export'&&grants().values){S.ioConfirm=null;downloadExport();}break;
- case'allowExportValues':grants().values=true;S.ioConfirm=null;runExport();break;
+ case'copyExport':runExport('copy');break;case'runExport':runExport('file');break;case'confirmExport':if(S.ioConfirm==='export'&&grants().values){S.ioConfirm=null;void performExport();}break;
+ case'allowExportValues':grants().values=true;S.ioConfirm=null;runExport(S.exportMethod);break;
  case'backFromInfo':S.info=null;renderKeepScroll();break;
  case'toggleGrant':{const cap=el.dataset.cap,g=grants();g[cap]=!g[cap];if(cap==='read'&&!g.read){g.values=false;g.write=false;}setExpanded(null);notify('已更新本站 '+cap+' 工具权限');break;}
  case'back':requestSwitch(()=>{S.info=null;setExpanded(null);notify('演示：返回「工具」列表')});break;

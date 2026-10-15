@@ -1175,6 +1175,18 @@
 
 
 
+/* Prompt Shortcuts: one lightweight settings page, no website grant grid. */
+#sidebar-tool-prompt-native-row[hidden]{display:none!important}
+#sidebar-tool-settings-view[data-tool="prompt-shortcuts"]{padding:12px 11px;display:grid;gap:8px}
+#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] .sidebar-toc-settings-row{padding:7px 2px;margin:0;gap:10px}
+#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] #sidebar-tool-enable-hint{margin:0;color:var(--od-sub);font-size:11px;line-height:1.5}
+#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] #sidebar-tool-settings-hint{margin:0;padding:9px 10px;border-radius:8px;background:var(--od-muted);color:var(--od-sub);font-size:11px;line-height:1.55}
+#sidebar-tool-prompt-native-row{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+.sidebar-tool-prompt-native-info{display:grid;gap:3px;flex:1;min-width:0}
+.sidebar-tool-prompt-native-info strong{font-size:12px}
+.sidebar-tool-prompt-native-info small{font-size:11px;color:var(--od-sub);line-height:1.4;overflow-wrap:anywhere}
+#sidebar-tool-prompt-native-action{font-size:11px;min-height:32px;flex:none;white-space:normal}
+@media(max-width:330px){#sidebar-tool-prompt-native-row{align-items:flex-start;flex-wrap:wrap}#sidebar-tool-prompt-native-action{margin-left:auto}}
 /* Tools with their own trusted site grants must not show generic TOC/Clip grant controls. */
 #sidebar-tool-generic-site-scope[hidden],#sidebar-tool-generic-site-binary[hidden],#sidebar-tool-generic-site-advanced[hidden]{display:none!important}
 

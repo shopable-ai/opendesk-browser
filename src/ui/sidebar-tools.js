@@ -105,6 +105,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const menuButton=get('sidebar-tool-context-menu');
   const settingsScopeButton=get('sidebar-tool-settings-scope');
   const enableButton=get('sidebar-tool-enable'),enableHint=get('sidebar-tool-enable-hint');
+  const promptNativeRow=get('sidebar-tool-prompt-native-row'),promptNativeAction=get('sidebar-tool-prompt-native-action');
   const launchButton=get('sidebar-tool-launch'),eyeButton=get('sidebar-tool-visibility');
   const visibilitySection=get('sidebar-tool-visibility-settings');
   const pageExceptionSection=get('sidebar-tool-page-exceptions');
@@ -690,7 +691,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       tool?.capabilities.includes(TOC_CAPABILITY)?TOC_CAPABILITY:null;
   }
   function renderTocSettings(){
-    const managed=Boolean(active&&!readOnlyPreview),id=active?.id;
+    const managed=Boolean(active&&!readOnlyPreview),id=active?.id,promptSettings=managed&&id===PROMPT_ID;
+    settingsView.dataset.tool=promptSettings?PROMPT_ID:'';
     const enabled=Boolean(managed&&!enableReadError&&sidebarToolEnabled(enableRecords,id));
     timePermissions?.render(active,readOnlyPreview);
     focusPermissions?.render(active,readOnlyPreview,enabled);
@@ -736,6 +738,16 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     else if(!trustedInline&&settingsView.previousElementSibling!==retiredDraft)retiredDraft.after?.(settingsView);
     display.setAttribute('data-trusted-tool-inline',String(trustedInline));
     settingsView.hidden=!show;
+    promptNativeRow.hidden=!(show&&promptSettings);
+    if(promptSettings){
+      const targetOrigin=supportedOrigin(currentPageTarget?.snapshot?.url);
+      const record=menuGrants?.[PROMPT_ID],contextActive=Boolean(record?.version===active.version&&
+        record?.origins?.includes(CHATGPT_ORIGIN)&&record?.activeActions?.length);
+      promptNativeAction.textContent=contextActive?'关闭右键快捷添加':'启用右键快捷添加';
+      promptNativeAction.setAttribute('aria-pressed',String(contextActive));
+      promptNativeAction.disabled=busy||sitePending||!enabled||!targetOrigin;
+      promptNativeAction.title=!targetOrigin?'请先打开 chatgpt.com 网页':'仅影响 Chrome 原生右键快捷添加';
+    }
     // Visibility-only: retain the existing opaque iframe and its installation identity.
     frameRoot.hidden=(show&&!trustedInline)||!(frame||nativeUI)||
       (managed&&id===ADBLOCK_ID&&adblockControls?.view?.()!=='exceptions');
@@ -778,12 +790,12 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(!show)return;
     // Only tools with the generic TOC/Clip/Capture site capability use
     // these controls. Time Review and Stay Focus have independent trust scopes.
-    const capabilityOnly=Boolean(siteCapability(active));
+    const capabilityOnly=Boolean(siteCapability(active)&&!promptSettings);
     for(const id of ['sidebar-tool-generic-site-scope','sidebar-tool-generic-site-binary',
       'sidebar-tool-generic-site-advanced']){
       const node=get(id);if(node)node.hidden=!capabilityOnly;
     }
-    settingsHint.hidden=!capabilityOnly;
+    settingsHint.hidden=!(capabilityOnly||promptSettings);
     settingsScopeLabel.textContent=isToc?tocText('siteAvailability'):'当前网站授权';
     settingsTarget.textContent=capability?(origin||(isToc?tocText('selectPage'):'请选择适用网页')):'此工具不需要网站授权';
     settingsScopeButton.hidden=true;
@@ -792,7 +804,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         button===settingsAllow?'授权当前网站':'撤销当前网站授权';
       button.hidden=!capability;button.disabled=busy||sitePending||!origin;button.setAttribute('aria-pressed',String(Boolean(origin)&&chosen));
     }
-    settingsHint.textContent=isToc?tocText('tocIntro')+
+    settingsHint.textContent=promptSettings?'默认在 chatgpt.com 使用网页快捷按钮，无需二次网站授权；点击只填写草稿，不会自动发送。':isToc?tocText('tocIntro')+
       tocText(!origin?'unsupportedPage':grant?'siteAvailable':'siteDisabled'):
       !capability?'工具能力以安装时的审阅为准。':!origin?'请切换到适用网页，设置仍可管理。':
       grant?'当前网站已授权；授权与工具启停、外观显隐互相独立。':
@@ -862,7 +874,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       const origin=websiteOrigin(currentPageTarget?.snapshot?.url);
       const enabled=Boolean(active&&origin&&menuGrants[active.id]?.version===active.version&&
         menuGrants[active.id]?.origins?.includes(origin)&&menuGrants[active.id]?.activeActions?.length);
-      menuButton.hidden=!hasActions;
+      menuButton.hidden=!hasActions||active?.id===PROMPT_ID;
       menuButton.disabled=busy||!origin||!hasActions||enableReadError||
         !sidebarToolEnabled(enableRecords,active?.id);
       menuButton.dataset.enabled=String(enabled);
@@ -2314,6 +2326,10 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     menuGrants=updated[BROWSER_MENU_GRANTS_STORE]||{};
     render();notice(enabled?'已为当前网站启用右键菜单':'已停用当前网站右键菜单');
   };
+  if(promptNativeAction)listen(promptNativeAction,'click',event=>{
+    void toggleContextMenu(event).catch(error=>notice(
+      (error?.code||'E_BROWSER')+'：'+String(error?.message||error).slice(0,200),true));
+  });
   if(menuButton)listen(menuButton,'click',event=>{
     // Preserve the original input event as a user gesture.
     void toggleContextMenu(event).catch(error=>notice(

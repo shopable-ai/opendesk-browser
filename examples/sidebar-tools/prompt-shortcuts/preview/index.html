@@ -325,7 +325,6 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
     <div id="promptList" class="shortcuts-list"></div>
     <div class="section-heading"><h3 class="heading-mini">快捷入口</h3></div>
     <div class="setting-card od-surface"><div class="setting-copy"><strong>网页左侧快捷按钮</strong><p>在 ChatGPT 左侧显示，无需再次授权</p></div><label class="switch" title="显示或隐藏网页左侧快捷按钮"><input id="showBarSwitch" type="checkbox" role="switch" checked aria-label="网页左侧快捷按钮"><span class="switch-track" aria-hidden="true"></span></label></div>
-    <div class="setting-card od-surface"><div class="setting-copy"><strong>选中文字快速添加</strong><p>可选功能 · 可能需要 Chrome 右键菜单许可</p></div><label class="switch" title="启用或关闭右键快速添加"><input id="contextSwitch" type="checkbox" role="switch" checked aria-label="选中文字快速添加"><span class="switch-track" aria-hidden="true"></span></label></div>
    </section>
    <section id="formView" hidden aria-labelledby="formHeading">
     <div class="view-top view-top--compact"><h2 id="formHeading">新建提示词</h2></div>
@@ -361,6 +360,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
     <div class="view-top view-top--compact"><h2 id="settingsHeading">工具设置</h2><small>基础功能默认可用</small></div>
     <div class="host-setting-row od-surface"><span><strong>启用工具</strong><small>停用后提示词仍保留</small></span><label class="switch"><input id="toolEnabledSwitch" type="checkbox" role="switch" checked aria-label="启用工具"><span class="switch-track" aria-hidden="true"></span></label></div>
     <div class="host-setting-row"><span><strong>适用网站</strong><small>仅 chatgpt.com</small></span><span class="host-setting-value">默认可用</span></div>
+    <div class="host-setting-row od-surface"><span><strong>选中文字快速添加</strong><small>可选 · Chrome 原生右键菜单</small></span><label class="switch" title="启用或关闭右键快捷添加"><input id="contextSwitch" type="checkbox" role="switch" checked aria-label="选中文字快速添加"><span class="switch-track" aria-hidden="true"></span></label></div>
     <p class="host-setting-note">已安装且启用即可使用，点击快捷按钮仅填写草稿。右键快捷添加是可选功能，可能需要 Chrome 菜单许可。</p>
     <button id="settingsBack" class="od-button od-button--small" type="button">返回提示词</button>
    </section>
@@ -404,7 +404,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  }
  function countText(){const enabled=state.items.filter(item=>item.enabled).length;return `${state.items.length} 个 · ${enabled} 个启用`;}
  function setView(next){currentView=next;for(const v of ['index','form','settings','toolList'])el(v+'View').hidden=v!==next;el('hostToolHead').hidden=next==='toolList';el('panelBody').scrollTop=0;}
- function setSettings(){el('showBarSwitch').checked=state.settings.showBar;el('contextSwitch').checked=state.settings.contextMenu;el('toolEnabledSwitch').checked=state.toolEnabled;el('hostSettings').setAttribute('aria-expanded',String(currentView==='settings'));}
+ function setSettings(){el('showBarSwitch').checked=state.settings.showBar;el('contextSwitch').checked=state.settings.contextMenu;el('toolEnabledSwitch').checked=state.toolEnabled;el('contextSwitch').disabled=!state.toolEnabled;el('hostSettings').setAttribute('aria-expanded',String(currentView==='settings'));}
  function renderRail(){const rail=el('pageRail');rail.replaceChildren();el('webTooltip').hidden=true;tipButton=null;
   if(!state.settings.showBar||!state.toolEnabled){rail.hidden=true;return;}rail.hidden=false;
   const active=state.items.filter(item=>item.enabled);

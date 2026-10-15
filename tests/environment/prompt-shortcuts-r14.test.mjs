@@ -68,7 +68,7 @@ test('R1.4 single v2 package builds from shared design and pins only one native 
   assert.match(pack.css,/opendesk\.shared-design\.v1/);
   assert.deepEqual(validateSidebarToolPackage(pack),pack);
 });
-test('R1.4 exact ChatGPT grant: disabled/uninstalled/revoked/other origins cannot display buttons',async()=>{
+test('R1.13 ChatGPT entry: installed and enabled is sufficient without repeat site authorization',async()=>{
   assert.equal(supportedOrigin('https://chatgpt.com/c/abc'),CHATGPT_ORIGIN);
   for(const url of ['https://chat.openai.com/','https://chatgpt.com.evil.example/',
     'http://chatgpt.com/','https://claude.ai/','https://gemini.google.com/']){
@@ -83,11 +83,12 @@ test('R1.4 exact ChatGPT grant: disabled/uninstalled/revoked/other origins canno
   assert.equal(await allowedPromptSite({...args,url:'https://claude.ai/'}),false);
   assert.equal(await allowedPromptSite({...args,enabled:{[PROMPT_ID]:false}}),false);
   assert.equal(await allowedPromptSite({...args,installed:[]}),false);
-  assert.equal(await allowedPromptSite({...args,epochs:{[PROMPT_ID]:'other'}}),false);
+  assert.equal(await allowedPromptSite({...args,epochs:{[PROMPT_ID]:'other'}}),true);
   assert.equal(await allowedPromptSite({...args,grants:{
-    [PROMPT_ID]:{...grants[PROMPT_ID],packageHash:'0'.repeat(64)}}}),false);
+    [PROMPT_ID]:{...grants[PROMPT_ID],packageHash:'0'.repeat(64)}}}),true);
   const revoked=await changePromptSiteGrant(grants,tool,'epoch-test',false);
-  assert.equal(await allowedPromptSite({...args,grants:revoked}),false);
+  assert.equal(await allowedPromptSite({...args,grants:revoked}),true,'legacy grant revocation is no longer a redundant gate');
+  assert.equal(await allowedPromptSite({...args,grants:{}}),true,'first use requires no extra site permission');
 });
 test('R1.4 fixed controller only uses scoped selectors, native insertion and no auto-send',async()=>{
   const page=await readFile(ROOT+'/trusted/page.js','utf8');
@@ -100,7 +101,7 @@ test('R1.4 fixed controller only uses scoped selectors, native insertion and no 
   assert.match(page,/win\.location\.href/);
   assert.match(host,/initPromptShortcuts\(\)/);
   assert.match(shell,/browser\.launch\.consume/);
-  assert.match(shell,/browser\.contextMenu\.unregister/);
+  assert.doesNotMatch(shell,/ps-menu|网页授权请在工具详情/);
   assert.doesNotMatch(page,/chrome\.tabs\.executeScript|eval\(|new Function\(/);
   assert.doesNotMatch(page,/\.click\(\).*send|send-button|conversation-history/);
 });
@@ -108,8 +109,8 @@ test('R1.4 fixed controller only uses scoped selectors, native insertion and no 
 test('R1.4 provenance pins only audited trusted tool modules to exact fixed entry points',()=>{
   const fixtures=[
     ['trusted/model.js','f015386060e97ad336c3bbaf35d6e9033b7ba2ee'],
-    ['trusted/policy.js','d393ee2c2511f4786265e8abc23c5c755aae51a6'],
-    ['trusted/page.js','adbdc28dc0def1ae8306329b6691b8c7ac31c581']
+    ['trusted/policy.js','69d18d8a7f98a1f8e77196ba07cdfdb76137f957'],
+    ['trusted/page.js','fe1c12392eb23315a4c4f7a181a74fb0a272a3a1']
   ];
   const examined=(path,target)=>describeBundle({chunk:{fileName:target,
       modules:{[resolve(ROOT+'/'+path)]:{renderedLength:1,originalLength:1}}},
