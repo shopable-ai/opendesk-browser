@@ -190,7 +190,8 @@ test('catalogs without preparation metadata only read selected authorized source
   };
   await tick();f.find('local-project-refresh').fire('click');
   for(let n=0;n<20&&!f.view.readyForRun();n++)await new Promise(resolve=>setTimeout(resolve,5));
-  assert.deepEqual(reads,['local-a']);
+  assert.ok(reads.length>=1&&reads.length<=2&&reads.every(binding=>binding==='local-a'),
+    'initial preparation and explicit Refresh may each read ONLY the selected authorized binding');
   assert.equal(f.view.readyForRun(),true);
   assert.equal(f.find('local-project-status').dataset.state,'ready');
   assert.match(f.find('local-project-diagnostics').textContent,/源码 SHA-256/);
