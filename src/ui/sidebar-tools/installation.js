@@ -129,7 +129,7 @@ function trimmedOperations(ops) {
 const toolIdPattern=/^[a-z][a-z0-9-]{1,39}$/;
 // An unreadable or malformed cleanup journal must never become "no pending cleanup".
 // Filtering invalid entries would let a subsequent install bypass the previous owner's
- // unfinished removal and would hide the recovery problem from Extension Center.
+// unfinished removal and would hide the recovery problem from Extension Center.
 export function requirePendingToolCleanups(value){
   if(value===undefined)return {};
   if(!value||typeof value!=='object'||Array.isArray(value)||
@@ -146,11 +146,13 @@ export async function getPendingToolCleanups(api){
 export async function recordToolUninstall(api,tool){
   // Independent of package bytes: an old iframe must stay revoked even when
   // precisely the same tool/version is later installed again. Do not prune.
+  // A broken cleanup journal must be rejected BEFORE revoking a still-installed
+  // working tool. All reads and writes remain under the existing install locks.
+  const prior=await getPendingToolCleanups(api);
   const rawEpochs=(await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE];
   const revisions=requireToolRevocationEpochs(rawEpochs);
   await writeVerifiedLocalValue(api,TOOL_REVOCATION_EPOCHS_STORE,
     {...revisions,[tool.id]:globalThis.crypto.randomUUID()},rawEpochs,'工具旧实例撤销');
-  const prior=await getPendingToolCleanups(api);
   const next={...prior,[tool.id]:{version:tool.version,createdAt:Date.now()}};
   await writeVerifiedLocalValue(api,TOOL_CLEANUP_STORE,next,prior,'卸载恢复记录');
 }
