@@ -23,7 +23,7 @@ async function harness(){
   const context={document,Blob,URL:{createObjectURL(){return 'blob:fictional'},revokeObjectURL(){}}};
   new Script(injected).runInNewContext(context);
   const emit=(kind,dataset,value,type)=>handlers.get(kind)?.({target:kind==='click'?{
-    closest(){return {dataset}}}:{dataset,value,type,checked:!!value}});
+    closest(selector){return ['action','scene','lab'].some(k=>Object.hasOwn(dataset,k)&&selector.includes('[data-'+k+']'))?{dataset}:null}}:{dataset,value,type,checked:!!value}});
   return {
     state:context.__qa.state,dirty:context.__qa.dirty,
     previewImport:context.__qa.previewImport,downloads,html,
@@ -66,7 +66,7 @@ test('filter and sort preserve edited Cookie identity; leaving prompts only for 
 });
 test('save failure retains draft; retry succeeds',async()=>{
   const h=await harness();
-  h.action('new');h.edit('name','new-retry');h.lab('saveFailure');h.action('save');h.action('commit');
+  h.action('new');h.edit('name','new-retry');h.lab('saveFailure');assert.equal(h.state().simulateSaveFailure,true,'save failure lab click must be handled by real event selector');h.action('save');h.action('commit');
   assert.match(h.state().saveError,/模拟写入失败/);
   assert.equal(h.state().draft.name,'new-retry');assert.equal(h.dirty(),true);
   assert.equal(h.state().rows.some(x=>x.name==='new-retry'),false);
