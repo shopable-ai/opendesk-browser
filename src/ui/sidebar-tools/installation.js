@@ -311,6 +311,9 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
       },provenance,'市场来源');
       return {state:'already-installed',tool};
     }
+    if(!existing&&(await getPendingToolCleanups(api))[tool.id])
+      throw error('上次卸载仍有未完成的数据或权限清理；请先恢复清理后重新审阅安装',
+        'E_TOOL_UNINSTALL_CLEANUP');
     if(!existing&&installed.length>=MAX_INSTALLED_TOOLS)
       throw error('最多安装 '+MAX_INSTALLED_TOOLS+' 个工具','E_TOOL_CAPACITY');
     if(existing){
