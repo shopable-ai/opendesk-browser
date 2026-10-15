@@ -2,6 +2,8 @@
 
 本目录是项目**唯一现行 Agent Skills 入口**，不新建根目录 `skills/`；Skill 是 AI/Codex 指导而不是浏览器安装的扩展。保留技术 slug 与运行协议，用户产品术语统一引用 [R4 正式产品规格](../../docs/product/sidebar-ui-spec.zh-CN.md)。
 
+**普通用户一句话创建工具的上游入口（R2）**：先按[自然语言扩展开发工作流](../../docs/framework/browser-tool-creation-workflow.zh-CN.md)执行现场恢复、需求推理、功能树及需求关卡（Phase 0–3 / Gate A），为 P0 建立 F-ID↔S-ID↔A-ID 后**才**从下表选一个主 Skill 进入 UI/源码阶段。用户不需要填写 Skill 名称或技术表单；这只是对现有 Skill 的执行指引，不表示浏览器已有一键创建/自动安装产品入口。
+
 | 主职责（唯一主 Skill） | Skill | 禁止混淆 |
 | --- | --- | --- |
 | 五 Tab、扩展中心搜索/类型标签/详情/安装管理 UI、R27/R28/R30、定时计划交互 | [`opendesk-extension-ui`](opendesk-extension-ui/SKILL.md) | 只负责界面，不擅改运行授权 |
