@@ -624,7 +624,7 @@ q('bm-search').addEventListener('input',event=>{
   if(event.isComposing||s.composing)return;
   s.search=event.target.value;s.limit=200;renderList();
 });
-q('bm-form').addEventListener('submit',event=>{
+const submitChanges=event=>{
   event.preventDefault();
   if(s.busy||!s.tree||!editingMode())return;
   if(s.saveNeedsReview){notice('请先检查原生书签并重新进入编辑，禁止重复提交未知结果',true);return}
@@ -685,6 +685,21 @@ q('bm-form').addEventListener('submit',event=>{
   }
   if(mode==='move'&&expected)void mutation(()=>service.move({expected,parentId:payload.parentId}),
     {id:expected.id,parentId:payload.parentId});
+};
+q('bm-form').addEventListener('submit',submitChanges);
+// Opaque tool frames deliberately omit iframe sandbox allow-forms. A native
+// HTML form submit is therefore NOT the gesture transport; run the validated
+// SDK action directly from the trusted user button/keyboard interaction.
+function saveFromGesture(){
+  const form=q('bm-form');
+  if(typeof form.reportValidity==='function'&&!form.reportValidity())return;
+  submitChanges({preventDefault(){}});
+}
+q('bm-save').addEventListener('click',saveFromGesture);
+q('bm-form').addEventListener('keydown',event=>{
+  if(event.key!=='Enter'||event.isComposing||event.target?.id==='bm-folder-query'||
+     event.target?.tagName==='BUTTON')return;
+  event.preventDefault();saveFromGesture();
 });
 q('bm-delete-confirm').addEventListener('click',()=>{
   const expected=s.reviewed;if(!expected||s.selection!==expected.id)return;
