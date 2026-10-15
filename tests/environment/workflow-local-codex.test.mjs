@@ -542,3 +542,24 @@ test('local provider failure without App Server terminal remains unknown after S
   assert.equal(f.calls.filter(call=>call.method==='ai.plan.start').length,1);
   approval.resolve({decision:'deny'});
 });
+
+test('Native wait/extract/assert also require the exact current approved locator',async t=>{
+  for(const op of ['wait','extract','assert']) {
+    for(const observed of [true,false]) {
+      const step={stepId:'readOrWait',op,locatorKind:'role',selector:'searchbox',
+        roleName:observed?'搜索关键词':'模型臆造的输入框',
+        ...(op==='assert'?{text:'OpenDesk'}:{})};
+      const response={...proposal(),steps:[step]};
+      const f=fixture({turnEvents:()=>[
+        {type:'tool.request',approvalId:'observe-read',tool:'browser.observe',canApprove:true,target},
+        {type:'message.completed',text:JSON.stringify(response)},
+        {type:'turn.completed',status:'completed'}]});
+      t.after(()=>f.planner.dispose());
+      const planned=f.planner.plan(request({request:'查看页面中 OpenDesk',
+        consent:consent(true),target,
+        onApproval:async()=>({decision:'approve',result:observedReceipt()})}));
+      if(observed)assert.equal((await planned).steps[0].op,op);
+      else await assert.rejects(planned,{code:'E_AI_LOCATOR_UNOBSERVED'});
+    }
+  }
+});
