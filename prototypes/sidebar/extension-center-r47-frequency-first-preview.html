@@ -94,6 +94,7 @@
     <p>本页面复用正式 <code>tool-shell.css</code>、设计 Tokens、组件 CSS 和 Extension Center CSS；顶栏工具条 DOM 来自正式 <code>tool.html</code>，交互数据完全模拟。</p>
     <h2>测试典型状态</h2>
     <button class="od-button od-button--secondary" type="button" data-scenario="normal">默认列表</button>
+    <button class="od-button od-button--secondary" type="button" data-scenario="cookie">Cookie Editor 卸载/重装</button>
     <button class="od-button od-button--secondary" type="button" data-scenario="disabled">停用应用</button>
     <button class="od-button od-button--secondary" type="button" data-scenario="page">网页增强</button>
     <button class="od-button od-button--secondary" type="button" data-scenario="unknown">异常与权限</button>
@@ -101,7 +102,7 @@
     <button class="od-button od-button--secondary" type="button" data-scenario="candidate">未安装候选</button>
     <button class="od-button od-button--secondary" type="button" data-scenario="empty">空状态</button>
     <h2>操作提示</h2>
-    <p>可点击整行、可见「打开」与行级「⋮」；全局菜单演示筛选、语言、导入与刷新。行级菜单支持 ↑/↓、Home/End、Escape、焦点恢复和点击外部关闭；所有更改只作用于内存示例。</p>
+    <p>可点击整行、可见「打开」与行级「⋮」；默认列表仅显示安装记录，卸载后不会因搜索重新出现；须主动切换至「可安装 / 更新」才能模拟重新安装。全局菜单演示筛选、语言、导入与刷新。行级菜单支持 ↑/↓、Home/End、Escape、焦点恢复和点击外部关闭；所有更改只作用于内存示例。</p>
     <p class="demo-note"><strong>SIMULATED_PREVIEW / NOT_NATIVE_CHROME</strong>：不安装/卸载真实扩展，不调用 Chrome 权限或 Page Authority，不执行应用代码；真实 Page 用户 UI 和未安装候选安全预览尚无受证据支持的通用入口，因此不展示虚假按钮。源代码运行与正式交互仍需独立测试。</p>
   </aside>
 </div>
@@ -128,6 +129,8 @@ const $=id=>document.getElementById(id),menu=$('demo-context-menu'),globalMenu=$
 })();
 const initial=[
  {id:'notes',title:'快速笔记',kind:'app',installed:true,enabled:true,known:true,description:'记录与整理当前想法'},
+ {id:'cookie-editor',title:'Cookie Editor',kind:'app',installed:true,enabled:true,known:true,
+   version:'2.0.6',installationPolicy:'preinstalled',description:'独立 Cookie 管理工具'},
  {id:'prompt',title:'提示词快捷工具',kind:'app',installed:true,enabled:false,known:true,description:'快速插入常用提示词'},
  {id:'reader',title:'网页阅读增强',kind:'page',installed:true,enabled:true,known:true,description:'适用于指定网站'},
  {id:'restricted',title:'页面内容助手',kind:'page',installed:true,enabled:true,known:true,authorization:'suspended',description:'网站访问需要恢复授权'},
@@ -135,6 +138,7 @@ const initial=[
  {id:'candidate',title:'官方候选工具',kind:'app',installed:false,enabled:false,known:true,installationPolicy:'preinstalled',version:'1.0.0',description:'需审阅固定包和权限后安装'}
 ];
 let items=initial.map(x=>({...x})),scenario='normal',selected=null,menuTrigger=null,menuId=null,kind='all',scope='smart';
+let settingsMode=false,confirmUninstall=false,installReview=false;
 const el=(tag,cls='',text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=String(text);return n;};
 const btn=(text,callback,cls='')=>{const b=el('button',cls,text);b.type='button';b.addEventListener('click',callback);return b;};
 const primary=row=>row.installed&&row.kind==='app'&&row.enabled===true&&row.known?'打开':null;
@@ -150,7 +154,7 @@ const visible=()=>items.filter(row=>{
  return [row.title,row.description,row.id].some(text=>text.toLowerCase().includes($('preview-search').value.trim().toLowerCase()));
 });
 function status(row){
- const reason=scenario==='busy'&&row.id==='notes'?'处理中':!row.installed?'尚未安装':!row.known?'状态待核对':!row.enabled?'已停用':
+ const reason=scenario==='busy'&&row.id==='notes'?'处理中':!row.installed?'可安装':!row.known?'状态待核对':!row.enabled?'已停用':row.update?'可更新':
   row.authorization==='suspended'?'网站访问受限':'';
  return reason?reason+' · '+row.description:row.description;
 }
@@ -165,7 +169,7 @@ function open(row){
  if(scenario==='busy')return;
  closeGlobalMenu();
  if(primary(row)){say('模拟打开「'+row.title+'」；正式产品由可信工具宿主启动。');return;}
- selected=row.id;render();
+ selected=row.id;settingsMode=false;confirmUninstall=false;installReview=false;render();
 }
 function closeMenu(focus){
  const old=menuTrigger;menu.hidden=true;menu.replaceChildren();menuTrigger=null;menuId=null;
@@ -185,14 +189,27 @@ function openMenu(row,trigger){
    (row.enabled?'停用应用':'启用应用'),()=>{
      row.enabled=!row.enabled;say('仅模拟修改「'+row.title+'」的启停状态。');render();
    });
- if(row.kind==='app')option('设置、权限与卸载…',()=>say('此项在正式产品中打开原可信设置与卸载确认。'));
+ if(row.kind==='app'&&row.installed&&row.known)
+  option('设置、权限与卸载…',()=>{selected=row.id;settingsMode=true;render();});
  else option('前往开发',()=>say('正式产品进入开发页；本演示不会修改用户草稿。'));
- option('查看详情',()=>{selected=row.id;render();});
+ option('查看详情',()=>{selected=row.id;settingsMode=false;render();});
  menu.hidden=false;
  const rect=trigger.getBoundingClientRect(),w=menu.offsetWidth,h=menu.offsetHeight;
  menu.style.left=Math.max(8,Math.min(rect.right-w,innerWidth-w-8))+'px';
  menu.style.top=(rect.bottom+h+8<innerHeight?rect.bottom+3:Math.max(8,rect.top-h-3))+'px';
  menu.querySelector('button')?.focus();
+}
+function simulateUninstall(row){
+ row.installed=false;row.enabled=false;row.update=false;
+ selected=null;settingsMode=false;confirmUninstall=false;installReview=false;scope='smart';
+ render();$('preview-search').focus({preventScroll:true});
+ say('模拟卸载「'+row.title+'」：已从已安装列表消失；切换发现范围后可重新找到它。');
+}
+function simulateInstall(row){
+ row.installed=true;row.enabled=true;row.known=true;row.update=false;
+ selected=null;settingsMode=false;confirmUninstall=false;installReview=false;scope='smart';
+ render();$('preview-search').focus({preventScroll:true});
+ say('模拟重新安装「'+row.title+'」：已恢复显示；未授予任何真实 Chrome 权限。');
 }
 function render(){
  closeMenu(false);syncFilters();
@@ -205,8 +222,25 @@ function render(){
    copy.append(el('strong','',detail.title),el('span','ec-type',label(detail)));header.append(glyph,copy);
    root.append(header,el('p','',status(detail)));
    const actions=el('div','ec-detail-actions');
-   if(!detail.installed)actions.append(btn('审阅并安装（模拟）',()=>say('本 HTML 不安装工具；真实应用市场必须审阅固定版本和权限。'),'od-button od-button--secondary'));
-   if(detail.kind==='app'&&detail.installed)actions.append(btn('设置与权限（模拟）',()=>say('请在真实浏览器中打开可信设置。'),'od-button od-button--secondary'));
+   if(!detail.installed){
+    if(!installReview)actions.append(btn('审阅并安装（模拟）',()=>{installReview=true;render();},'od-button od-button--secondary'));
+    else{
+      actions.append(el('p','','模拟审阅：真实安装需要核对 SHA-256、权限和固定 JSON。'));
+      actions.append(btn('确认模拟安装',()=>simulateInstall(detail),'od-button od-button--secondary'));
+      actions.append(btn('取消',()=>{installReview=false;render();},'od-button od-button--secondary'));
+    }
+   }
+   if(detail.kind==='app'&&detail.installed&&detail.known){
+    actions.append(btn('设置与权限（模拟）',()=>{settingsMode=true;render();},'od-button od-button--secondary'));
+    if(settingsMode){
+      if(!confirmUninstall)actions.append(btn('卸载（模拟）',()=>{confirmUninstall=true;render();},'od-button od-button--secondary'));
+      else{
+        actions.append(el('p','','卸载确认：正式卸载会移除安装记录并清理专属数据；此处只修改内存。'));
+        actions.append(btn('确认模拟卸载',()=>simulateUninstall(detail),'od-button od-button--danger'));
+        actions.append(btn('取消卸载',()=>{confirmUninstall=false;render();},'od-button od-button--secondary'));
+      }
+    }
+   }
    if(detail.kind==='page'&&detail.installed){
      actions.append(btn(detail.enabled?'停用自动运行（模拟）':'启用自动运行（模拟）',()=>{
        detail.enabled=!detail.enabled;render();say('仅修改演示数据，没有调用 Page Authority。');
@@ -264,11 +298,16 @@ for(const b of globalMenu.querySelectorAll('[data-ec-scope]'))b.addEventListener
 $('preview-reset').addEventListener('click',()=>{kind='all';scope='smart';render();});
 $('preview-language').addEventListener('change',()=>say('仅模拟选择界面语言：'+$('preview-language').value+'；不保存浏览器设置。'));
 $('preview-import').addEventListener('click',()=>{closeGlobalMenu();say('正式产品将打开可信导入审阅；此演示不读写文件。');});
-$('preview-back').addEventListener('click',()=>{selected=null;render();$('preview-search').focus();});
+$('preview-back').addEventListener('click',()=>{selected=null;settingsMode=false;confirmUninstall=false;installReview=false;render();$('preview-search').focus();});
 $('preview-market').addEventListener('click',()=>say('正式应用市场只负责固定包审阅与安装；本页面不会安装。'));
 $('preview-reload').addEventListener('click',()=>{closeGlobalMenu();render();say('仅模拟重新读取目录；当前搜索、筛选、详情和模拟启停状态保持不变。');});
 document.querySelectorAll('[data-scenario]').forEach(b=>b.addEventListener('click',()=>{
- scenario=b.dataset.scenario;selected=null;kind='all';scope=b.dataset.scenario==='candidate'?'available':'smart';$('preview-search').value='';render();
+ items=initial.map(x=>({...x}));
+ scenario=b.dataset.scenario==='cookie'?'normal':b.dataset.scenario;
+ selected=b.dataset.scenario==='cookie'?'cookie-editor':null;
+ settingsMode=b.dataset.scenario==='cookie';confirmUninstall=false;installReview=false;
+ kind='all';scope=b.dataset.scenario==='candidate'?'available':'smart';
+ $('preview-search').value='';render();
 }));
 document.addEventListener('click',e=>{if(!menu.hidden&&!menu.contains(e.target)&&!menuTrigger?.contains(e.target))closeMenu(false);
  if(!globalMenu.hidden&&!$('preview-menu-wrap').contains(e.target))closeGlobalMenu();});
