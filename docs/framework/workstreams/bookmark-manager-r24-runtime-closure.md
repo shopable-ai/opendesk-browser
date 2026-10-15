@@ -311,3 +311,23 @@ HTML 设计评审另有一份在线对话内的可交互纯内存原型；该设
 ### 剩余产品验收
 
 先确认专项 Node 75/75 与 \`npm run check\`、独立官方包、全 Browser Build 的 **当前** 结果；若 AdBlock 可信指纹或其他并行安全门禁失败，不跳过、不盲目重新计算指纹。随后在隔离正式 Chrome Profile、同一候选安装版本及授权身份下，人工点击并录入原生读回回执：Full Bookmarks 首次授权/撤权、书签及文件夹创建重命名、原位 URL 编辑、混合更新与目录移动、非空子树安全删除/票据、外部窗口编辑/删除、未知写入结果禁止盲目重试、滚动/键盘/焦点和 2159+ 数据真实性。所有 Chrome Native 工作待有可访问的正式 Mac/Chrome 环境才可执行；Issue #75 继续 OPEN，逐维产品专家 95 分数不可凭 Mock 自动宣称。
+
+
+## R2.7.1 · 紧凑原位编辑、独立 Chrome 可视证据、0.3.7 安装候选
+
+继续增量落实，而非重做 UI/SDK/宿主。正式工具版本由 0.3.6 升至 **0.3.7**（\`331d539\` + \`4a38221\`）：\`src/ui/sidebar-tools/installation.js\` 的市场安装规则拒绝同版本替换新字节 (\`E_VERSION_CONFLICT\`)，因此 R2.7 不可让新源码继续伪装旧发布版本。此版本为 **INSTALLABLE_CANDIDATE**，没有原生安装收据，不能宣称升级 PASS。
+
+源码与交互：
+- \`src/index.html\` 和 \`src/main.js\` 将已有文件夹选择器收敛到共享 \`od-disclosure--flat\`。普通名称/URL 编辑只展示当前文件夹路径与可展开的摘要；用户点击摘要后继续使用原有路径搜索及 Host 安全移动。新建与明确移动始终展开，不额外增加步骤；无合法目标文件夹时自动展开便于恢复。用户重新进入编辑会恢复紧凑状态，刷新不丢失已展开目录或草稿。
+- 表单 Enter 仅在名称/URL 输入框触发原有保存，\`summary\`、选择器及按钮保留原生键盘行为（\`96874a0\`）。新增 Chrome Mock 回归针对 folder disclosure 可点击、组合改名+移动必须读回两步结果、新建展开与取消、未知副作用保护。
+- 窄视口发生已证实的外部冲突时滚动到已有审阅区，使「重新读取并对比」操作可见而不自动重试（\`8497ffa\`）；主编辑辅助文案移除对用户无意义的 SDK 术语（\`2095893\`）。
+- \`scripts/tests/bookmark-manager-r26-preview-chrome.mjs\` 仍是唯一生产同源 Chrome 交互脚本；没有第二套 UI 或 Runner。为避免共享 AdBlock Preview CI 中途失败掩盖本工具验收，**在原** \`.github/workflows/bookmark-manager-r2.yml\` 中追加此脚本、原有 builder 的 HTML/截图 JSON artifact，以及 CI Linux 的 Noto Sans CJK 字体依赖；之后继续执行未减弱的 Browser Build/verify 安全门禁。此为同源隔离 Mock，不是原生扩展安装。
+- Chrome CJK 可读性审查发现旧 CI 图像的汉字大面积缺字（不可用于可靠中文视觉评分）；新专项 CI 通过安装 \`fonts-noto-cjk\` 恢复真实中文字形，能审查窄/宽两视口详情、编辑、冲突三状态。
+
+### 已取得的新实证（明确绑定历史候选）
+
+- [Bookmark 专项 #38746591054](https://github.com/shopable-ai/opendesk-browser/actions/runs/38746591054) 在 \`700764a\`（当时 0.3.6）**Node 75/75、check、独立包、同源 Chrome Mock 2/2 PASS**，中文 \`fc-match\` 为 \`Noto Sans CJK SC\`；视觉 HTML/6 张截图/交互 JSON：[Artifact 11980281101](https://github.com/shopable-ai/opendesk-browser/actions/runs/38746591054/artifacts/11980281101)。生产 Browser Build **FAIL**，未取消构建门禁。
+- [Bookmark 专项 #38747285986](https://github.com/shopable-ai/opendesk-browser/actions/runs/38747285986) 在 \`4a38221\`（正式候选 **0.3.7**）**Node 75/75、check、独立包、同源 Chrome Mock 2/2 PASS**；可读中文预览与报告：[Artifact 11980411213](https://github.com/shopable-ai/opendesk-browser/actions/runs/38747285986/artifacts/11980411213)。本次全 Browser Build 在另一并行的 Reading TOC 本地化资源 \`examples/sidebar-tools/reading-toc/locales.json\` 进入高权限 \`page-relay\` 固定 bundle 的**安全来源限制**处 FAIL；没有绕过检查或私自白名单。历史 AdBlock Trusted pin 漂移也是单独的既有安全问题，不能因为此构建未触发它就标记已解决。
+- \`8497ffa\` / \`2095893\` 的后续冲突可见性/文案候选：[Bookmark 专项 #38747767609](https://github.com/shopable-ai/opendesk-browser/actions/runs/38747767609)，记录本段时处于 **IN_PROGRESS/NOT_YET_VERIFIED**；后续报告必须更新到实际完成状态。
+
+**Native**：仍为 \`NATIVE_NOT_TESTED\`。没有真实 Mac Chrome/Full Bookmarks 授权/安装身份、用户书签原生写后读回或跨窗口删除证据。设计、操作、工程分别不得宣称 95+；Issue #75 继续 OPEN。真正发布需在安全门禁恢复并取得同版本同 hash 的 Chrome Native CRUD 后验收。
