@@ -86,6 +86,30 @@ test('R11.6 scoped service preserves opaque TabRef, permissions and negative ret
   assert.equal(effects,2);
   assert.equal(binding.has('browser.tabs.queryAll'),false);
   assert.equal(Object.hasOwn(details,'tabId'),false);
+  // Native numeric tab IDs and arbitrary receipt properties never cross to tools.
+  const badWrite=createApprovedBrowserBindings({tabs:{
+    create:async()=>({tabRef,tabId:123})
+  }});
+  await assert.rejects(badWrite.dispatch('browser.tabs.create',
+    {url:'https://example.org/'},{},{authorize:async()=>{}}),codeIs('E_OUTCOME_UNKNOWN'));
+  const badRead=createApprovedBrowserBindings({tabs:{
+    getOwned:async()=>({...details,tabId:123})
+  }});
+  await assert.rejects(badRead.dispatch('browser.tabs.getOwned',{tabRef},{},
+    {authorize:async()=>{}}),codeIs('E_SCHEMA'));
+  let steps=0,called=0;
+  const denied=createApprovedBrowserBindings({tabs:{
+    getOwned:async()=>{called++;return details;}
+  }});
+  await assert.rejects(denied.dispatch('browser.tabs.getOwned',{tabRef},{},
+    {authorize:async()=>{if(++steps===1)throw Object.assign(Error('denied'),
+      {code:'E_CHROME_PERMISSION_REQUIRED'});}}),codeIs('E_CHROME_PERMISSION_REQUIRED'));
+  assert.equal(called,0);
+  steps=0;
+  await assert.rejects(denied.dispatch('browser.tabs.getOwned',{tabRef},{},
+    {authorize:async()=>{if(++steps===2)throw Object.assign(Error('revoked'),
+      {code:'E_TOOL_DISABLED'});}}),codeIs('E_TOOL_DISABLED'));
+  assert.equal(called,1,'Revoked read receipt cannot be returned');
   const mutated=structuredClone(matrix);
   mutated.approvedOperations.find(x=>x.id==='browser.tabs.getOwned').chromePermissions=[];
   assert.throws(()=>deriveBrowserBindingCatalog(mutated),/security contract drift/);

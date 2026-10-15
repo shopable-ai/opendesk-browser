@@ -12,8 +12,9 @@ const isRecord=value=>value!==null&&typeof value==='object'&&!Array.isArray(valu
 
 // Native DIRECT mappings are supplied only by the fixed build-generated
 // approval artifact. They never come from an installed package or RPC payload.
-// Only same-named, Promise-based, read-only, no-site-scope calls may use this
-// generic v1 route; any scoped/mutating API continues through its audited Driver.
+// Only a pinned, reciprocally approved Chrome Promise method may use this
+// read-only, no-site-scope route. SDK/native names may differ only at compile time;
+// any scoped/mutating API continues through its audited Driver.
 function nativeDirectRoute(descriptor,api,registry){
   const keys=['effectClass','inputSchema','lifecycle','maxRequestBytes',
     'maxResponseBytes','minChrome','mode','nativeApi','operation','outputSchema',
