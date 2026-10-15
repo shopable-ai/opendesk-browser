@@ -1,0 +1,164 @@
+{
+  "sourceLocale": "zh-CN",
+  "messages": {
+    "zh-CN": {
+      "title": "阅读目录",
+      "description": "在侧边栏或授权网页中查看章节并精准跳转。",
+      "contents": "阅读目录",
+      "panelLabel": "阅读目录",
+      "pageLabel": "网页目录",
+      "modesLabel": "目录视图",
+      "topLabel": "章节概览（自动补充子章节）",
+      "topTitle": "章节概览",
+      "focusLabel": "当前章节",
+      "fullLabel": "完整目录",
+      "refreshLabel": "刷新阅读目录",
+      "refreshTitle": "重新读取当前网页章节",
+      "sourceLabel": "目录来源",
+      "navigationLabel": "章节导航",
+      "moreTitle": "查看完整目录",
+      "emptyLabel": "当前网页暂无可识别的章节，将自动检查更新。",
+      "pageEmpty": "暂无章节",
+      "following": "自动跟随 · {source}",
+      "sourceCurrent": "当前内容",
+      "moreWithCount": "还有 {count} 个章节 · 查看完整目录",
+      "moreAria": "尚有 {count} 个章节未显示，查看完整目录",
+      "loading": "正在读取当前网页目录…",
+      "invalidData": "目录数据无效",
+      "navigateChanged": "章节已变化，请重新选择",
+      "readFail": "目录读取失败",
+      "retry": "目录读取失败，正在自动重试：{detail}",
+      "stale": "暂时无法更新，显示上次目录（已暂停跳转）：{detail}",
+      "dragTitle": "拖动目录；方向键调整位置，Shift 加速，Home 归位",
+      "dragAria": "拖动阅读目录；方向键移动，Home 归位",
+      "resetTitle": "归位：恢复网页目录默认位置",
+      "resetAria": "将阅读目录归位"
+    },
+    "en": {
+      "title": {
+        "source": "阅读目录",
+        "text": "Reading TOC"
+      },
+      "description": {
+        "source": "在侧边栏或授权网页中查看章节并精准跳转。",
+        "text": "Browse and jump to headings in the sidebar or on permitted webpages."
+      },
+      "contents": {
+        "source": "阅读目录",
+        "text": "CONTENTS"
+      },
+      "panelLabel": {
+        "source": "阅读目录",
+        "text": "Reading table of contents"
+      },
+      "pageLabel": {
+        "source": "网页目录",
+        "text": "On-page table of contents"
+      },
+      "modesLabel": {
+        "source": "目录视图",
+        "text": "Contents view"
+      },
+      "topLabel": {
+        "source": "章节概览（自动补充子章节）",
+        "text": "Chapter overview (automatically includes subheadings)"
+      },
+      "topTitle": {
+        "source": "章节概览",
+        "text": "Overview"
+      },
+      "focusLabel": {
+        "source": "当前章节",
+        "text": "Current section"
+      },
+      "fullLabel": {
+        "source": "完整目录",
+        "text": "Full contents"
+      },
+      "refreshLabel": {
+        "source": "刷新阅读目录",
+        "text": "Refresh table of contents"
+      },
+      "refreshTitle": {
+        "source": "重新读取当前网页章节",
+        "text": "Read headings from this page again"
+      },
+      "sourceLabel": {
+        "source": "目录来源",
+        "text": "Contents source"
+      },
+      "navigationLabel": {
+        "source": "章节导航",
+        "text": "Jump to section"
+      },
+      "moreTitle": {
+        "source": "查看完整目录",
+        "text": "View full contents"
+      },
+      "emptyLabel": {
+        "source": "当前网页暂无可识别的章节，将自动检查更新。",
+        "text": "No recognizable headings yet. Checking for updates automatically."
+      },
+      "pageEmpty": {
+        "source": "暂无章节",
+        "text": "No headings"
+      },
+      "following": {
+        "source": "自动跟随 · {source}",
+        "text": "Follow automatically · {source}"
+      },
+      "sourceCurrent": {
+        "source": "当前内容",
+        "text": "Current content"
+      },
+      "moreWithCount": {
+        "source": "还有 {count} 个章节 · 查看完整目录",
+        "text": "{count} more sections · View full contents"
+      },
+      "moreAria": {
+        "source": "尚有 {count} 个章节未显示，查看完整目录",
+        "text": "{count} sections are hidden. View full contents"
+      },
+      "loading": {
+        "source": "正在读取当前网页目录…",
+        "text": "Reading headings from the current page…"
+      },
+      "invalidData": {
+        "source": "目录数据无效",
+        "text": "Invalid table of contents data"
+      },
+      "navigateChanged": {
+        "source": "章节已变化，请重新选择",
+        "text": "The section changed. Please select it again"
+      },
+      "readFail": {
+        "source": "目录读取失败",
+        "text": "Failed to read table of contents"
+      },
+      "retry": {
+        "source": "目录读取失败，正在自动重试：{detail}",
+        "text": "Unable to read headings. Retrying automatically: {detail}"
+      },
+      "stale": {
+        "source": "暂时无法更新，显示上次目录（已暂停跳转）：{detail}",
+        "text": "Update unavailable. Showing the last contents (navigation paused): {detail}"
+      },
+      "dragTitle": {
+        "source": "拖动目录；方向键调整位置，Shift 加速，Home 归位",
+        "text": "Drag contents; use arrow keys to move, Shift for faster movement, Home to reset"
+      },
+      "dragAria": {
+        "source": "拖动阅读目录；方向键移动，Home 归位",
+        "text": "Move table of contents with arrow keys; Home resets its position"
+      },
+      "resetTitle": {
+        "source": "归位：恢复网页目录默认位置",
+        "text": "Reset to the default table of contents position"
+      },
+      "resetAria": {
+        "source": "将阅读目录归位",
+        "text": "Reset the table of contents position"
+      }
+    }
+  }
+}
