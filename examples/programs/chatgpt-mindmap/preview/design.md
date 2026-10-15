@@ -169,12 +169,12 @@
 
 **状态：PENDING_USER_CONFIRMATION；VISUAL_PASS 与 NATIVE_PASS 均不得仅凭源码/CI 宣告。**
 
-- 唯一正式控件仍来自 \`src/view.js\`、\`src/answer-registry.js\`、\`assets/ui.css\`；模拟 \`preview/chatgpt.html\` 不持有任何导图控件代码。
+- 唯一正式控件仍来自 `src/view.js`、`src/answer-registry.js`、`assets/ui.css`；模拟 `preview/chatgpt.html` 不持有任何导图控件代码。
 - 桌面常驻：原文（file-text）、缩小 / 放大（zoom-out / zoom-in）、适配（maximize）、折叠或展开（同一动态按钮）、全屏或退出（同一动态按钮）；刷新只在数据过期时可见。全部为本地线框 SVG、36px 按钮、18px 图标。
 - ≤390px **工具栏容器宽度**使用容器查询：原文、缩小、放大、适配、全屏、更多；折叠/展开和按需刷新移入菜单。小屏与粗指针区域至少 44px，禁止页面级水平溢出。所有按钮带中文 aria-label/title，具有键盘焦点、loading/disabled 状态；菜单维护 aria-expanded / Esc 焦点恢复。
 - 打开导图后**隐藏本条操作栏的原触发按钮**，仅在导图内部保留“恢复本条回复原文”。原 DOM 未删除，关闭后恢复触发按钮及键盘焦点；其它条回复互不影响。
-- XMind 画布使用实际 \`.topic\` 几何边界与 SDK zoom 计算适配；桌面优先完整可读，小屏限制不可读的过度缩小，优先锚定根主题，允许原生滚动查看分支；真实渲染之外不绘制替代 Canvas/SVG。用户手动缩放或拖动后，ResizeObserver、主题/折叠/全屏切换不应擅自重置视口。
-- Chromium 截图必须等待 \`data-ready=true\` 和全屏 \`data-layout-ready\`，新增 \`screenshot-evidence.json\` 记录 Git SHA、Chromium、真实主题数量、视口、截图路径、PNG SHA-256、异常与 CI 关联；保存截图只是证据生成，不代表逐张人工视觉审查。截图并非本机 Chrome Native 安装证据。
-- Program 类型为 \`page-userscript\`。其构建候选应由 \`npm run build:program -- examples/programs/chatgpt-mindmap\` 生成，\`artifacts/programs/opendesk.chatgpt-mindmap/\` 中的 \`program.js\`、\`program.opendesk-draft.json\` 和 \`artifact.json\` 才是构建证据。Builder 声明 \`BUILT_UNVERIFIED / installable:false\`，只有核验当前产物才能填写实际 Hash；它不是宿主 \`dist/development\` 或 Chrome Installed。
-- 当前仍有 \`E_XMIND_RUNTIME_UNAVAILABLE\`、固定 4,042,573 B 原始资源的分发许可证/可信准入、Snowbrush 全局 style 残留、USER_SCRIPT 安全隔离及真实 Native 撤权生命周期待完成。**严禁假装 installed**。
-- 项目代码通过 GitHub Connector 更新；本轮运行环境无法访问 \`/Users/shopme/...\` Mac 工作树或本机 Chrome，因此本地构建与本机已安装状态需标 \`NOT_TESTED\`，不是“未安装”的断言。截图未经逐张图像审阅前必须标 \`SCREENSHOT_NOT_VERIFIED\`，视觉评分 \`NOT_TESTED\`。
+- XMind 画布使用实际 `.topic` 几何边界与 SDK zoom 计算适配；桌面优先完整可读，小屏限制不可读的过度缩小，优先锚定根主题，允许原生滚动查看分支；真实渲染之外不绘制替代 Canvas/SVG。用户手动缩放或拖动后，ResizeObserver、主题/折叠/全屏切换不应擅自重置视口。
+- Chromium 截图必须等待 `data-ready=true` 和全屏 `data-layout-ready`，新增 `screenshot-evidence.json` 记录 Git SHA、Chromium、真实主题数量、视口、截图路径、PNG SHA-256、异常与 CI 关联；保存截图只是证据生成，不代表逐张人工视觉审查。截图并非本机 Chrome Native 安装证据。
+- Program 类型为 `page-userscript`。其构建候选应由 `npm run build:program -- examples/programs/chatgpt-mindmap` 生成，`artifacts/programs/opendesk.chatgpt-mindmap/` 中的 `program.js`、`program.opendesk-draft.json` 和 `artifact.json` 才是构建证据。Builder 声明 `BUILT_UNVERIFIED / installable:false`，只有核验当前产物才能填写实际 Hash；它不是宿主 `dist/development` 或 Chrome Installed。
+- 当前仍有 `E_XMIND_RUNTIME_UNAVAILABLE`、固定 4,042,573 B 原始资源的分发许可证/可信准入、Snowbrush 全局 style 残留、USER_SCRIPT 安全隔离及真实 Native 撤权生命周期待完成。**严禁假装 installed**。
+- 项目代码通过 GitHub Connector 更新；本轮运行环境无法访问 `/Users/shopme/...` Mac 工作树或本机 Chrome，因此本地构建与本机已安装状态需标 `NOT_TESTED`，不是“未安装”的断言。截图未经逐张图像审阅前必须标 `SCREENSHOT_NOT_VERIFIED`，视觉评分 `NOT_TESTED`。
