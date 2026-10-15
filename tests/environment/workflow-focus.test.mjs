@@ -511,6 +511,7 @@ if(!vm.SourceTextModule) {
     for(let n=1;n<=2;n++) {
       f.get('workflow-confirm-run').checked=true;
       const response=await f.get('workflow-run').fire('click');
+      assert.ok(response[0],'run click must return a result: '+f.get('workflow-status').textContent);
       assert.equal(response[0].ok,true);
       assert.equal(response[0].evidenceLevel,'BUSINESS_EFFECT_VERIFIED');
       assert.equal(response[0].runId,'saved-run-'+n);
