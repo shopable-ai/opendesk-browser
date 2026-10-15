@@ -20,7 +20,7 @@ body{display:block;margin:0;background:var(--od-bg);color:var(--od-ink)}
 .preview-notice{font-weight:650;color:var(--od-negative)}
 .preview-provenance{color:var(--od-sub);font-size:var(--od-meta-size);overflow-wrap:anywhere}
 .preview-stage{padding:var(--space-2) var(--space-1);display:flex;justify-content:center;align-items:flex-start;min-width:0}
-.preview-device{width:{{WIDTH}}px;max-width:100%;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface);overflow:hidden}
+.preview-device{box-sizing:content-box;width:{{WIDTH}}px;max-width:100%;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface);overflow:hidden}
 .preview-device .workbench-nav{width:100%;max-width:100%;background:var(--od-paper)}
 /* Light-only preview shell wins even when the operating system is in dark mode. */
 :root .preview-device .workbench-nav{background:var(--od-paper)}
