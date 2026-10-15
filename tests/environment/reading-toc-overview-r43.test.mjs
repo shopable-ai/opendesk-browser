@@ -5,6 +5,7 @@ import {selectReadingTocOverview,TOC_OVERVIEW_TARGET,TOC_OVERVIEW_LIMIT}
   from '../../src/reading-toc/overview.js';
 import {createReadingTocIndex} from '../../src/reading-toc/model.js';
 import {officialToolFixture,officialFixtures} from '../helpers/official-tools.mjs';
+import {compileToolLocaleCatalog} from '../../src/ui/app-localization.js';
 
 const root=id=>({id,sourceId:'s-1',depth:0,parentId:null,topId:id,label:id});
 const child=(parent,n)=>({id:parent.id+'-'+n,sourceId:'s-1',depth:parent.depth+1,
@@ -114,7 +115,10 @@ test('R4.3 installed tool has the same adaptive UI source and a discoverable pat
   assert(js.includes('data.overview?.[selected]'));
   assert.equal(bundled.html,html);
   assert.equal(bundled.css,css);
-  assert.equal(bundled.js,js);
+  const locales=compileToolLocaleCatalog(JSON.parse(await readFile(
+    'examples/sidebar-tools/reading-toc/locales.json','utf8')));
+  assert.equal(bundled.js,js.replace('__OPENDESK_TOOL_MESSAGES__',JSON.stringify(locales)));
+  assert(!bundled.js.includes('__OPENDESK_TOOL_MESSAGES__'),'runtime gets fixed, verified offline translations');
 });
 
 test('R4.4 moving through long H2 headings keeps the current section visible without losing the main structure',()=>{
