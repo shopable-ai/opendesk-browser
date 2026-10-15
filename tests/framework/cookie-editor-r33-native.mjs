@@ -311,6 +311,9 @@ try{
   });
   await step('official-install',async()=>{
     const imported=stage==='upgrade';
+    if(release.installationPolicy==='preinstalled')
+      await until(()=>read(side,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>v["opendesk.sidebar-tools.installed.v1"]?.some(t=>t.id==="cookie-editor"&&t.version==='+quote(pkg.version)+'))'),
+        'Trusted fresh-profile Cookie preinstall');
     if(imported){
       const file=required('COOKIE_NATIVE_OLD_TOOL');
       const old=JSON.parse(await readFile(file,'utf8'));assert.equal(old.version,'2.0.3');
@@ -318,17 +321,21 @@ try{
       report.externalFilePicker={pid:launched.metadata.pid,path:file,sha256:hash(await readFile(file)),version:old.version};
       await persist();console.log('COOKIE_NATIVE_FILE_PICKER '+JSON.stringify(report.externalFilePicker));
       await until(()=>read(side,'!document.querySelector("#sidebar-tool-preview").hidden'),'Actual Mac file chooser upload',600000);
-    }else{
+    }else if(release.installationPolicy!=='preinstalled'){
       await click(side,'#sidebar-tool-discover-toggle');await click(side,'#sidebar-tool-official-cookie-editor-install');
     }
-    await until(()=>read(side,'!!document.querySelector("#sidebar-tool-preview")&&!document.querySelector("#sidebar-tool-preview").hidden'),'Visible official review');
-    const preview=await read(side,'({title:document.querySelector("#sidebar-tool-preview-title")?.textContent,version:document.querySelector("#sidebar-tool-preview-version")?.textContent,frames:document.querySelectorAll("#sidebar-tool-frame iframe").length})');
-    assert(preview.title.includes('Cookie'));assert(preview.version.includes(imported?'2.0.3':pkg.version));assert.equal(preview.frames,0);
-    await click(side,'#sidebar-tool-install');
+    let preview=null;
+    if(imported||release.installationPolicy!=='preinstalled'){
+      await until(()=>read(side,'!!document.querySelector("#sidebar-tool-preview")&&!document.querySelector("#sidebar-tool-preview").hidden'),'Visible official review');
+      preview=await read(side,'({title:document.querySelector("#sidebar-tool-preview-title")?.textContent,version:document.querySelector("#sidebar-tool-preview-version")?.textContent,frames:document.querySelectorAll("#sidebar-tool-frame iframe").length})');
+      assert(preview.title.includes('Cookie'));assert(preview.version.includes(imported?'2.0.3':pkg.version));assert.equal(preview.frames,0);
+      await click(side,'#sidebar-tool-install');
+    }
     const open='[data-sidebar-tool-action="open"][data-sidebar-tool-id="cookie-editor"]';
     await until(()=>read(side,'Boolean(document.querySelector('+quote(open)+'))'),'Installed Cookie list item');
     const installed=await read(side,'chrome.storage.local.get(["opendesk.sidebar-tools.installed.v1","opendesk.sidebar-tools.revocation-epochs.v1"]).then(v=>{const t=v["opendesk.sidebar-tools.installed.v1"]?.find(t=>t.id==="cookie-editor");return t?{id:t.id,version:t.version,capabilities:t.capabilities,installEpoch:v["opendesk.sidebar-tools.revocation-epochs.v1"]?.[t.id]??null}:null;})');
-    assert.equal(installed?.version,imported?'2.0.3':pkg.version);await click(side,open);return {preview,installed};
+    assert.equal(installed?.version,imported?'2.0.3':pkg.version);await click(side,open);
+    return {preview,installed,preinstalled:release.installationPolicy==='preinstalled'&&!imported};
   });
   await step('active-fixture',async()=>{
     const target=await client.send('Target.createTarget',{url:fixture});website=await attach(target);

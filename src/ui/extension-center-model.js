@@ -49,6 +49,6 @@ export function filterExtensionEntries(entries,{query='',kind='all',scope='smart
   return entries.filter(row=>(kind==='all'||row.kind===kind)&&
     (scope!=='local'||row.installed)&&
     (scope!=='available'||!row.installed||row.update)&&
-    (scope!=='smart'||!!needle||row.installed)&&
+    (scope!=='smart'||!!needle||row.installed||row.release?.installationPolicy==='preinstalled')&&
     (!needle||[row.title,row.description,row.id,String(row.version)].some(s=>lower(s).includes(needle))));
 }

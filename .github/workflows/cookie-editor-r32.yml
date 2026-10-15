@@ -83,8 +83,8 @@ jobs:
               throw Error('Wrong Cookie Editor release version');
             const catalog=JSON.parse(readFileSync('artifacts/cookie-editor-r33/official/official-tools/catalog.json'));
             const item=catalog.apps.find(x=>x.toolId==='cookie-editor');
-            if(!item||item.installationPolicy!=='optional'||item.version!==tool.version)
-              throw Error('Official release identity or optional installation policy mismatch');
+            if(!item||item.installationPolicy!=='preinstalled'||item.version!==tool.version)
+              throw Error('Official release identity or default installation policy mismatch');
             console.log('COOKIE_EDITOR_NODE_PACKAGE_PASS',tool.version,
               'sha256='+createHash('sha256').update(bytes).digest('hex'));
           "

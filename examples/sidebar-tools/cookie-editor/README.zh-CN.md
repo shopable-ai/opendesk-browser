@@ -1,10 +1,10 @@
 # Cookie Editor · 正式 Cookies SDK 安装工具
 
-**入口：** Side Panel「扩展」→ 查找官方候选「Cookie Editor」→ 审阅安装 → 打开；也可将本目录源码打包为 JSON 后手动导入。默认中文，官方目录仍为 `installationPolicy: optional`；工具包 **2.0.6 / opendesk.sidebar-tool.v2**。**历史 2.0.4 隔离 CFT 候选**曾通过真实发现、安装、授权、读取、编辑、新建、保存回读和精确删除；该记录仅适用于当时的工具包。**当前 2.0.6 的 Mac Chrome 安装/导入/导出/缩放矩阵仍为 NOT_TESTED**；不能将历史截图、回执或分数延用为当前版本的 PASS/95+。所有 Cookie 修改均从已安装工具 UI 发起。
+**入口：** Side Panel「扩展」→ **Cookie Editor → 打开**。首次安装浏览器扩展时，可信离线目录自动预装工具包，不运行工具代码、不自动授权 Cookie 网站；旧 Profile 未安装时，直接在「扩展」列表点击「安装」进行可信审阅，然后打开。也可将本目录源码打包为 JSON 后手动导入。默认中文，官方目录为 `installationPolicy: preinstalled`；工具包 **2.0.6 / opendesk.sidebar-tool.v2**。**历史 2.0.4 隔离 CFT 候选**曾通过真实发现、安装、授权、读取、编辑、新建、保存回读和精确删除；该记录仅适用于当时的工具包。**当前 2.0.6 的 Mac Chrome 安装/导入/导出/缩放矩阵仍为 NOT_TESTED**；不能将历史截图、回执或分数延用为当前版本的 PASS/95+。所有 Cookie 修改均从已安装工具 UI 发起。
 
 ## 快速开始：使用已安装扩展，或编译本地 JSON
 
-**路径 A：安装官方候选，不需要单独编译本工具。** 使用包含当前 Cookie Editor 官方发行和 Cookies SDK 的 OpenDesk Browser 扩展，打开 Side Panel →「扩展」→ 通过添加/搜索官方应用找到「Cookie Editor」→「安装」→ 阅读能力申请 → **确认安装** → 在已安装列表中 **主动打开**。本工具在 `official-tools/catalog.json` 中的策略是 `optional`，不是自动预装；**如果旧扩展内没有该候选，更新扩展构建后再找，单独修改源码并不会自动更新运行中的扩展**。
+**路径 A：使用内置官方工具，不需要单独编译本工具。** 全新 OpenDesk Browser 安装自动预装 Cookie Editor：Side Panel →「扩展」→ Cookie Editor → **打开**；首次使用在工具可信「设置」中独立批准网站和所需 Cookie 权限。对于已有 Chrome Profile，更新版本、重启、访问「扩展」或主动卸载后不会强制补装；如果未安装，会作为默认可见的可信预装候选，选择 **安装 → 审阅能力 → 确认安装 → 打开**。工具安装不运行 Cookie 代码，也不自动批准任何网站。若正在运行的旧版扩展缺少官方候选，仍须让原 `dist/development` 开发构建正确更新；修改 GitHub 源码并不会自动更新已加载的扩展。
 
 **路径 B：安装本地正在开发的版本（推荐用于修改 UI、JS、CSS）。** Node.js 要求 **≥22.12.0**；在仓库根目录运行：
 

@@ -22,7 +22,7 @@
 
 ## 扩展统一列表与运行环境
 
-- **统一列表**：`#extension-center` 组合 Sidebar Tool 已安装条目、官方候选和 Installed Page Program。「应用 / 网页增强」是**单行类型标签**而非 Tab；支持搜索、更多菜单类型/范围筛选、列表/详情/返回、官方市场与本地包导入。默认以已安装项为主，主动搜索或调整范围可看官方候选。
+- **统一列表**：`#extension-center` 组合 Sidebar Tool 已安装条目、官方候选和 Installed Page Program。「应用 / 网页增强」是**单行类型标签**而非 Tab；支持搜索、更多菜单类型/范围筛选、列表/详情/返回、官方市场与本地包导入。默认展示已安装项及尚未安装的可信预装候选；其他官方可选应用通过搜索或范围筛选发现。旧 Profile 不因进入「扩展」或升级而自动补装，安装仍通过原可信审阅并明确点击；已安装版本即使有更新也保留「打开」主操作。
 - **应用（Sidebar Tool）**：原 `examples/sidebar-tools/<id>/` 与 `opendesk.sidebar-tool.v1/v2` 技术合同不变；动态 HTML/CSS/JS 在 opaque-origin iframe 中通过 `OpenDeskTool.request` 请求经过宿主审核的能力。预编译第一方后台/Content 服务可为特定应用提供能力，但动态导入包绝不直接获得 SW、Native 或 `chrome.*` 特权。
 - **网页增强（Page Program）**：Page `USER_SCRIPT`/受管网页 UI 只在完成专用 Installed/Authority、网站授权后作为「网页增强」展示；保留其启停/撤权体系，不打包成 Sidebar Tool JSON。
 - **Controller Task**：在「开发」创作，按 Task Authority 安装，在「我的」运行和定时调度；不因此变成应用或网页增强。

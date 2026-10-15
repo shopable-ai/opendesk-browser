@@ -59,7 +59,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         (row.enabled?row.description:'已停用 · '+row.description):row.description);
       line.append(name,type);copy.append(line,description);
       const actionName=!row.installed?'安装':row.kind==='page'?'管理':
-        !row.enabled?'设置':row.update?'更新':'打开';
+        !row.enabled?'设置':'打开';
       const primary=button(actionName,()=>primaryAction(row.key),'ec-action');
       primary.dataset.extensionKey=row.key;primary.dataset.extensionAction='primary';
       primary.setAttribute('aria-label',actionName+'「'+titleOf(row)+'」');
@@ -82,12 +82,18 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     void api.tabs.create({url:api.runtime.getURL('ui/marketplace.html')+route})
       .catch(error=>message('无法打开可信应用市场：'+String(error.message||error),'error'));
   }
+  // The original trusted review owns installation; selecting never executes tool JS.
+  function openReview(key){
+    const row=find(key);if(!row||row.kind!=='app'||!row.release)return;
+    backIfNeeded();
+    if(!sidebarTools.openOfficialReview(row.id))openMarket(row.release);
+  }
   function primaryAction(key){
     const row=find(key);if(!row||busy)return;
-    if(!row.installed){if(row.release)openMarket(row.release);return;}
+    if(!row.installed){openReview(key);return;}
     if(row.kind==='page'){openDetail(key);return;}
     if(!row.enabled){sidebarTools.openSettings(row.id);return;}
-    if(row.update){if(row.release)openMarket(row.release);return;}
+    // A newer release cannot hide or replace the runnable installed version.
     sidebarTools.openTool(row.id);
   }
   function openDetail(key){
@@ -118,11 +124,11 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       const b=button(label,fn);b.dataset.ecDetailAction=action;b.disabled=busy;return b;
     }
     if(row.kind==='app'){
-      if(!row.installed)actions.append(detailButton('在应用市场审阅并安装',()=>openMarket(row.release),'install'));
+      if(!row.installed)actions.append(detailButton('审阅并安装',()=>openReview(row.key),'install'));
       else{
         if(row.enabled)actions.append(detailButton('打开应用',()=>{backIfNeeded();sidebarTools.openTool(row.id);},'open'));
         actions.append(detailButton('设置与权限',()=>{backIfNeeded();sidebarTools.openSettings(row.id);},'settings'));
-        if(row.update&&row.release)actions.append(detailButton('审阅新版',()=>openMarket(row.release),'update'));
+        if(row.update&&row.release)actions.append(detailButton('审阅新版',()=>openReview(row.key),'update'));
       }
     }else if(row.installed){
       actions.append(detailButton(row.enabled?'停用自动运行':'启用自动运行',

@@ -54,7 +54,7 @@
       "id": "cookie-editor",
       "project": "examples/sidebar-tools/cookie-editor",
       "kind": "sidebar-tool",
-      "installationPolicy": "optional"
+      "installationPolicy": "preinstalled"
     }
   ]
 }

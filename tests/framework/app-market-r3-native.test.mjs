@@ -108,7 +108,7 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
   for(const row of catalog.apps){
     const bytes=await readFile(join(extension,row.packagePath));assert.equal(bytes.length,row.bytes);assert.equal(hash(bytes),row.sha256);
     packages.set(row.toolId,JSON.parse(bytes));
-    assert.equal(row.installationPolicy,['reading-toc','quick-notes'].includes(row.toolId)?'preinstalled':'optional');
+    assert.equal(row.installationPolicy,['reading-toc','quick-notes','cookie-editor'].includes(row.toolId)?'preinstalled':'optional');
   }
   // Keep the whole trusted release set aligned with the actual source Catalog.
   // The UI control fixtures below deliberately exercise only their own products;
@@ -445,7 +445,7 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
   await launch();side=await openPanel();await phase('fresh-preinstalled-state');
   const defaultIds=catalog.apps.filter(row=>row.installationPolicy==='preinstalled').map(row=>row.toolId);
   await until(async()=>JSON.stringify((await installed()).map(row=>row.id))===JSON.stringify(defaultIds),'trusted first-install defaults');
-  assert.deepEqual(defaultIds,['reading-toc','quick-notes']);await assertNoGrants();await assertNoFrames();
+  assert.deepEqual(defaultIds,['reading-toc','quick-notes','cookie-editor']);await assertNoGrants();await assertNoFrames();
   assert.equal(await evaluate(side,'document.querySelectorAll("#sidebar-tool-list .sidebar-tool-row").length'),defaultIds.length);
   assert.equal(await evaluate(side,'document.querySelector("#sidebar-tool-my-panel").hidden'),false,'my tools is the default');
   await click(side,'#sidebar-tool-discover-toggle');

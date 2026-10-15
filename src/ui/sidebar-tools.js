@@ -917,6 +917,14 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(active&&!canLeave(show))return false;
     show();return true;
   }
+  function openOfficialReview(id){
+    if(disposed||busy||!visible||active||!officialLoaded)return false;
+    const release=officialReleases.find(row=>row.toolId===id);
+    if(!release)return false;
+    setDiscoveryOpen(false);
+    void reviewOfficial(release);
+    return true;
+  }
   function openImport(){
     if(disposed||busy||!visible||active)return false;
     setDiscoveryOpen(false);setImportOpen(true);notice('');return true;
@@ -2205,7 +2213,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     listeners.push(unsubscribe);
   }
   render();
-  return Object.freeze({ready,openTool,openSettings,openImport,openBookmarks,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,openInTab,closeTool,setVisible,dispose(){
+  return Object.freeze({ready,openTool,openSettings,openOfficialReview,openImport,openBookmarks,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,openInTab,closeTool,setVisible,dispose(){
     if(disposed)return;
     cancelActionReview();bookmarkManager?.dispose();destroyFrame();fileSelection++;disposed=true;visible=false;
     for(const release of listeners.splice(0))release();
