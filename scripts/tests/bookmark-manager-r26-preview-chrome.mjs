@@ -81,7 +81,7 @@ async function findFrame(){
   for(let i=0;i<130;i++){
     for(const ctx of [...contexts.values()]){
       try{
-        if(await evaluate("Boolean(document.getElementById('bm-list')&&document.getElementById('bm-inspector'))",ctx))
+        if(await evaluate("Boolean(document.readyState==='complete'&&globalThis.OpenDeskTool&&globalThis.OpenDeskSDK&&globalThis.BookmarkR2Service&&document.getElementById('bm-list')&&document.getElementById('bm-inspector'))",ctx))
           return ctx;
       }catch{/* Context retired during navigation */}
     }
