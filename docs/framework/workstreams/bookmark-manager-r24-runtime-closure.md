@@ -401,3 +401,12 @@ HTML 设计评审另有一份在线对话内的可交互纯内存原型；该设
 这轮特别验证 **脏草稿点击其他书签 → 原编辑表单隐藏、展示带目标名称的放弃/保留确认 → 明确放弃后只读查看新书签**，提供 \`bookmark-r27-{narrow,wide}-{draft-switch,after-switch}.png\` 四张关键截图，并保持旧的外部冲突、安全 Host precondition、非空文件夹删除票据及未知结果禁止重放规则。**预览实验台在 .preview-device 之外**，并经浏览器实际点击与有限 Mock 回执验证；由于书签专属插入只在 Builder 对本工具执行，其他工具的原模板结构未被追加空脚本/空占位。跨工具预览契约仍由共享 Preview CI 独立报告，不擅称其他业务的 Native PASS。
 
 提交后只读比较到远端 \`main\`：\`f76dab1b\` 以后的并行更新在当次比对中没有触及书签正式 UI、已测 SDK、工具包配置或 Preview 构建输入；新并行代码变化后须重新检查来源身份。Issue #75 继续 **OPEN**。视觉/操作的 CI 证据已充实，但还没有用户 Mac Chrome 本地安装和可复核原生 CRUD/键盘辅助技术证据，逐维 95+ **NOT_SCORED**，不能提前关闭正式产品交付。
+
+
+## Bookmark Manager R2.9 Preview-first（2026-10-16）
+
+- 只更新离线 preview/index.html、REQUIREMENTS.zh-CN.md 与本记录；**不改 src、SDK、Host、权限、安装包、tool.config.json**。
+- R2.8 来源 blob a2c02b57886a5e3e0a0eefbddaf6f8e5ae80231c，原 HTML SHA-256 16792a707abfba8b1d6564fa0ad7b671e59aea4e3679594fd5c4bc259e8765b2。直接解析了同源预览内嵌的 iframe、共享 CSS data URI、Mock/model/service/main 四段 JS，以及源码中的 renderList/onAction。
+- 预览候选：Inspector 不再插入行；列表未变化不重建；书签正文选中与文件夹箭头操作分离；去除选中触发滚动，行菜单浮层，编辑 / 只读视觉状态；实验台折叠内可切换 360/400/960。
+- **DESIGN_PROTOTYPE_NOT_SOURCE_BOUND / DESIGN_NOT_APPROVED**；manifest 的旧 UI/Shell SHA 迁移到 r28Baseline，禁止当成新候选已经与正式源码一致的 hash。
+- 测试/评分：本环境的 Node NOT_TESTED，本候选 Headless Chrome Mock NOT_TESTED，用户 Mac Native Chrome NOT_TESTED。十维度 NOT_SCORED，不宣称 95+、PRODUCT_PARITY、NATIVE_PASS。

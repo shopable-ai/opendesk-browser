@@ -1,6 +1,6 @@
 # Bookmark Manager｜产品需求与交互验收约束
 
-> **文档状态：需求已保存 / R2.8 预览已归档 / UI 设计尚未获用户最终认可。**
+> **文档状态：R2.9 DESIGN_PROTOTYPE_NOT_SOURCE_BOUND 候选；R2.8 已归档；设计仍待实际浏览器验收。**
 >
 > 记录日期：2026-10-15。正式工具 ID：`bookmark-manager`；独立项目：`examples/sidebar-tools/bookmark-manager/`；当前源码包版本：`0.3.8`。
 >
@@ -11,7 +11,7 @@
 | 层次 | 位置 | 作用 / 约束 |
 | --- | --- | --- |
 | 正式独立工具源码 | `src/index.html`、`src/style.css`、`src/main.js`、`src/model.js`、`src/service.js` | **唯一**正式业务 UI / 数据服务实现；经 `tool.config.json` 打包，不从预览文件反向引入 Mock |
-| 历史离线预览 | [`preview/index.html`](preview/index.html) | 保存 **R2.8 0.3.8 已验证但未获设计认可** 的生产源码同源 HTML 快照，方便打开、对比和下一轮改进 |
+| 预览设计候选 | [`preview/index.html`](preview/index.html) | **R2.9 DESIGN_PROTOTYPE_NOT_SOURCE_BOUND**；从 R2.8 的离线正式源码同源快照迭代的设计版本，R2.8 原版留在 Git 历史 |
 | 预览模拟及测试 | 仓库根目录 `scripts/preview/`、`scripts/tests/` | 仅替换 SDK 适配边界以模拟大量书签、故障、撤权及交互；测试专用代码和控制按钮**不属于**可安装扩展 |
 
 统一视觉组件与 Token 来源：`src/ui/design-tokens.css`、`src/ui/design-system.css`；禁止在本工具重新定义另一套基础按钮、主题、权限系统、Host 或 Chrome API 私有接入。
@@ -106,3 +106,27 @@
 4. 实验台只在正式模拟设备外，安装 JSON 完全不包含 Mock 逻辑。
 5. Node、共享 Preview、真实 Headless Chrome Mock、正式安装 Chrome Native 的证据**分别**报告，并记录失败用例，不假报产品 95+。
 6. 得到用户确认之后才可调整归档预览或变更设计状态；此版持续留在 Git 历史中可追溯。
+
+
+## 八、Bookmark Manager R2.9 — PREVIEW-FIRST 设计候选（2026-10-16）
+
+> **DESIGN_PROTOTYPE_NOT_SOURCE_BOUND / DESIGN_NOT_APPROVED / CHROME_NOT_TESTED**。此版直接基于 R2.8 的完整真实 iframe 快照修改离线预览专属 DOM、CSS 和 JS。正式 src/、SDK、Host、Chrome 权限、发行包及 0.3.8 版本未改；R2.8 提交 f76dab1b、归档提交 434e67e、原始 HTML SHA-256 16792a707abfba8b1d6564fa0ad7b671e59aea4e3679594fd5c4bc259e8765b2 均保留。
+
+### 实际审计根因
+
+原 main.js renderList() 对每次选中均 replaceChildren()，窄屏时将 Inspector 放入选中书签行后面，且多次移动 Inspector 的 DOM 父节点。action=folder 又会自动展开；folder/detail 后强制 scrollIntoView。这共同造成滚动跳动、焦点丢失、编辑似乎一直展开、操作菜单令列表移位。预览设备原来也固定 360px，不能检验宽度适配。
+
+### 已固化的预览设计决定
+
+- 侧栏（<740px）使用 **固定的唯一 Inspector**，放在列表行之外的 #bm-inline-slot；≥740px 放在右栏。不复制第二份编辑器，不在书签行中插入表单。
+- 单击书签 / 文件夹正文只选中并展示 **只读详情**；仅展开箭头负责展开 / 收起；编辑只能显式点击“编辑信息”、行菜单“编辑”或 F2。
+- 投影行未变时只同步 aria-current / 选中态，不重建整树 DOM；数据、展开、菜单、搜索结果确实变化时才重建，保留滚动与可恢复焦点。
+- 行操作菜单改为当前行浮层，避免撑高后续列表；靠近容器底部时尝试向上放置。还需真实 Chrome 测试顶部/底部裁切和键盘操作。
+- 详情标明“已选择 · 只读详情”，编辑标明“编辑中 · 保存后生效”，删除区显式标明危险操作；URL 以两行摘要显示，完整值仍保存在 DOM 及 title。
+- 沿用原 R2.8 的脏草稿守卫、放弃/继续、写后读回、外部冲突、权限撤销和一次性删除票据，不重新实现 SDK 或 Chrome 数据业务。
+- 预览实验台仍位于 .preview-device **之外**、默认折叠；新增 360/400/960 三个宽度按钮及 ?width=360|400|960 参数。正式 iframe sandbox 保持 allow-scripts，未加入 allow-same-origin 或外部网络。
+- 保留共享 OpenDesk CSS Token 与 od-* 语义组件，仅追加工具布局/状态的预览样式，不创建第二套正式组件库。此文件应视为 R2.9 设计候选，不能用常规 build-preview 自动覆盖。
+
+### 验收门禁（尚未完成）
+
+必须在实际 Chromium 对本候选跑 360/400/960、必要时 125%/150% 缩放；覆盖选择/重复选中/文件夹箭头、编辑保存取消、干净切换、脏草稿守卫与输入焦点恢复、新建/移动/删除、全树搜索、2000+ 数据、100+ 目录、长文本、错误和权限撤销，保留可复核截图。Node、**本次新候选** Headless Chrome Mock、已安装 Native Chrome 需要单独给出证据；未执行记 NOT_TESTED，所有十维度暂 NOT_SCORED，不能继承 R2.8 CI 分数或宣称 95+。
