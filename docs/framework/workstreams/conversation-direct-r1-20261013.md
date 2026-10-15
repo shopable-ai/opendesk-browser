@@ -97,3 +97,28 @@
 **核心阶段：**F0 `SOURCE_RECONCILED`；F1 `SOURCE_WIRED/NATIVE_NOT_VERIFIED`；F2 `SOURCE_WIRED/PARTIAL`；F3 Go HTTP `SOURCE_WIRED/NOT_VERIFIED`；F4 Native/Cloud 已接线，但 Browser HTTP `NOT_IMPLEMENTED`；F5 `IN_PROGRESS`。下一最小动作是由 Go 网关/Browser Provider 两个 owner 约定安全 pairing、token 获取与撤权、`Origin` 禁止策略和只接收 `input:string` + strict schema 的协议映射，随后把 Browser HTTP adapter 接入统一 Facade；不得绕过当前拒绝条件开启宽松 CORS。
 
 **验证状态/资源：**本轮不运行 full Node、build、Mac Chrome、Go 原生或生产验收；此前 CI 98/98 和历史 Linux Codex 验证不转换为 R2 新候选 PASS；真实 HTTP Gateway/Extension Origin/真实网页登录和业务读回、Save 关闭模型后的 Run×2 均 `NOT_TESTED`。本次文档提交和随后源码提交使用 GitHub Blob SHA 乐观写入，未占用本地 git index 或开发 watcher；每次写入前重新获取目标文件 SHA，并保留无关新增提交。
+
+## R2.2：CORE_IMPLEMENTED_CANDIDATE，GitHub 直接写入及定向 CI（2026-10-15）
+
+**定位：** 本节记录远端源码候选，不改变前述历史候选/成功或失败。执行于普通 ChatGPT 网页会话，通过授权 GitHub API 使用现有 Browser `main`、Go `master`；没有 Mac 终端、Profile、真实 Native 进程或端口控制。并行 Agent 的 AdBlock、SDK、其他 UI/文档工作保持原样，本工作流不领取其源码。其他 Agent 新增的 R2.1 架构合同保留。
+
+**本次核心源码提交：**
+
+- Browser `e4691420`（`src/ui/tool.html`）：正式模型下拉框暴露 `cloud_responses`，保持 Native 与旧版 HTTPS。
+- Browser `c6ce54d2`（新增 `src/ui/workflow/provider.js`）：统一模型规划入口；业务 Workflow schema/Compiler/RunHost 仅保留原实现；能力声明明确 cloud stateless 与 Native continuation，不导出外部登录凭据。
+- Browser `d2b86294`（`ai-plan.js`）：本轮明确批准的观察与 `store:false` Responses 适配器；只带最多 4 个已执行且可信的业务回合概要，绝不假定 `previous_response_id`。
+- Browser `b2c052d5`、`35bd0643`（`workflow-view.js`）：复用原有 Chrome 网站权限、单次网页数据批准、RunHost observer 与精确 document；正式 Cloud / Native 均经 Facade→原直接执行安全门禁→Compiler→RunHost→持久 Result。新会话/Provider/历史版本切换清理 Cloud 有界上下文；未被实际确认的点击不标为已验证历史。
+- Browser `a7246887`、`5f6948c2`、`4080a343`（定向测试）：新增 Facade 能力/拒绝绕过观察测试，并随新模块更新已有组件桩和权限断言；不更改生产工作流引擎。
+- Go `4d3a48c3`、`db2387fe`（`internal/browserai/http_gateway.go`）：默认关闭、两路径的受限 Responses HTTP 兼容，支持 `store:false`、`stream:false`、非流式 `json_object` 或已审查的严格 JSON schema，允许单条 string 或官方 typed user/input_text 消息；不支持工具调用往返、背景任务、跨请求会话、伪造 usage、remote cancel；非法字段 fail closed。
+- Go `686ae0f6`、`310a24a7`（`browserbridge/host_unix.go`、`host_ai_unix.go`）：只在已配置 `OPENDESK_CODEX_HTTP_ADDR`（回环 IP:port）及 `OPENDESK_CODEX_HTTP_TOKEN` 的 **同一 Native Host 进程** 内启动 HTTP；共享已有 `h.ai` Manager，Host 生命周期关闭端口；Chrome welcome 后才放行；绝不在普通 `-http` / App Mode 默认开放。
+- Go `b478c81d`、`2c003149`：gateway 认证、Origin/Host/loopback、安全拒绝、typed text、unsupported 输入的定向测试。HTTP bearer 单独配置，无法获取/复用 ChatGPT/Codex auth.json；没有第二个网页执行器或 Codex 管理器。
+
+**兼容声明：** Cloud Responses 是正式 HTTPS `/v1/responses`；Go 本地 `POST /v1/responses` 仅兼容上述受限输入及输出字段，`GET /opendesk/v1/capabilities` 为 OpenDesk 专用，不能称为官方 API 全量实现。Browser 仍以 Native 为本地默认可信传输，**Browser 使用 HTTP Token 直接调用环回网关的第三 Provider 选项未实现**（HTTP 拒绝页面 Origin/CORS，不能借放开 CORS 绕过）；HTTP 仅供显式配对的可信本机调用方，需真实安装验证。业务会话与 Provider 原生 ID 不互换，存档工作流可脱离 AI 执行。
+
+**源码/定向 CI 证据及阻塞：**
+
+- Browser `a7246887` CI [38712911385](https://github.com/shopable-ai/opendesk-browser/actions/runs/38712911385) 初次失败因测试组件未登记新增 Facade + 旧断言只识别 custom HTTPS；后续 `4080a343` CI [38713533186](https://github.com/shopable-ai/opendesk-browser/actions/runs/38713533186) **109/109 既有 Workflow Node 定向测试 PASS，`npm run check` PASS（731 个源/测试/构建文件）**。同次 `build:dev` FAIL 是并行 AdBlock 源 `examples/sidebar-tools/adblock/trusted/host-controls.js` 改动与固定 bundle provenance 哈希不符；本任务不能擅自重固定别人的可信源，属于 **独立 build 阻塞，NOT_ACCEPTED**。新 Facade 独立测试文件的 CI 运行级别另查，不据此报 PASS。
+- Go `b478c81d` CI [38712956259](https://github.com/shopable-ai/opendesk/actions/runs/38712956259) 的 Linux job：`internal/browserbridge` PASS、`internal/browserai` 新 HTTP gateway 的三个测试 PASS；整体失败为原 `internal/browsercli/admission_unix_test.go:32` 在 Linux 读取不存在的 `/private/tmp`；按 scope 记为 **非网关范围阻塞**，不将整体 Go CI 标为 PASS。后续 Go 候选 `2c003149` 的 CI 仍需以它自己的日志判断；真实 Codex CLI 推理未执行。
+- Browser 新增对上下文与 UI 的变更后，必须在下一轮按最新候选确认构建预算；无当前有效 `packageHash` 可用于 Chrome 正式验收。
+
+**后续分阶段独立验收入口：** T1：`node --test tests/environment/workflow-provider-facade.test.mjs tests/environment/workflow-responses.test.mjs`，`go test ./internal/browserai ./internal/browserbridge`（须以执行候选为准）和受影响的 build；T2：真实 Chrome A 填入与原生读回；T3：同对话 A2/B 安全点击/C 搜索；T4：保存后停止 AI 冻结工作流复跑两次；T5：Stop/撤权/Document 变更/断连/未知效果；T6：同一 production 候选及构建预算、F3/ZIP、95+ 独立评审。**T2–T6 全部 NOT_TESTED；本轮状态 CORE_IMPLEMENTED_CANDIDATE，绝非 PRODUCTION_ACCEPTED。**
