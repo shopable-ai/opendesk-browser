@@ -101,7 +101,7 @@ test('R4.3 list and detail foregrounds remain readable against normal and hover 
   for(const theme of ['light','dark']){
     const palette={...roots[0],...(theme==='dark'?roots[1]:{})};
     const resolve=value=>value.replace(/var\((--[\w-]+)\)/g,(_,name)=>resolve(palette[name]));
-    for(const [selector,minimum] of [['.ec-action',4.5],['.ec-detail-back',4.5],['.ec-detail-actions button',4.5],['.ec-glyph',3]]){
+    for(const [selector,minimum] of [['.ec-action',4.5],['.ec-detail-back',4.5],['.ec-detail-actions .od-button',4.5],['.ec-glyph',3]]){
       const rule=css.slice(css.indexOf(selector+'{')+selector.length+1).split('}')[0];
       const foreground=resolve(rule.match(/(?:^|;)color:([^;]+)/)[1]);
       for(const background of ['--od-paper','--od-muted']){
