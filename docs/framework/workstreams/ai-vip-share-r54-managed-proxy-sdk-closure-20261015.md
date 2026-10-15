@@ -49,3 +49,10 @@ npm run check
 ```
 
 验收等级须与实际提交 SHA、原生设置读回、7897 出口日志、7898 模拟合同分离。资源占用：无；Git 提交仅在 GitHub `main` 执行一次正常快进更新。
+
+## Managed Proxy SDK R1.1 — 2026-10-16 · 安全增量（以本候选 CI/Chrome 为准）
+
+- **Profile fail-closed**：可信 Host 的 `src/platform/chrome/browser-managed-proxy-profiles.js` 审批列表为空；尚无商业 Provider 审核批准。新 ENABLE 即使已获 Chrome 权限、工具 capability 与可信点击，仍被 `E_PROXY_PROFILE_NOT_APPROVED` 拒绝。每个未来 Profile 必须在源码审阅中登记 `reviewId/reviewedAt/reviewedBy/toolId/packageHash` 和精确端点、域名全集，不接受 sandbox 自报 `validated:true`。
+- **撤权栅栏**：现有 Host 在全局 Proxy Lock 内重验工具身份、启用状态、epoch、capability 与 Chrome 权限，持久 applying journal 后与 Chrome set 前再次重验身份/控制权；未确认时保留明确 STOP 路径。不增加第二个 SDK/Host/Driver，不将生产校验放宽到 loopback。
+- **用户实际点击**：Browser 级 ENABLE/STOP 必须来自可信 Side Panel 真正的 `isTrusted` 点击。旧 journal 的 STOP、卸载与 Worker 恢复不受生产 Profile 空名单影响。
+- **测试范围**：补充 Node 未审 Profile、未批准端点/包哈希、缺 Host 回调、等待全局锁期间撤权、持久化后撤权、旧状态 STOP。当前用户 Mac / Chrome / 7897 / 7898、商业权益、旧六模块安全删除仍 **NOT_TESTED / BLOCKED**；不得将历史 PASS 计入新候选。

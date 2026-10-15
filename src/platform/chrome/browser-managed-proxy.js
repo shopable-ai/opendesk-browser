@@ -46,6 +46,21 @@ function ownerOf(context){
   return owner;
 }
 const sameOwner=(a,b)=>Boolean(a&&b&&sameStorageValue(a,b));
+// Syntax and user consent alone do not approve browser-wide traffic routes.
+// Only trusted Host construction supplies a source-reviewed routing profile.
+function requireReviewedProfile(profiles,config,owner){
+  const approved=Array.isArray(profiles)&&profiles.some(row=>{
+    if(!exact(row,['reviewId','reviewedAt','reviewedBy','toolId','packageHash','config'])||
+      typeof row.reviewId!=='string'||!/^[A-Z0-9][A-Z0-9._-]{5,79}$/.test(row.reviewId)||
+      typeof row.reviewedAt!=='string'||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(row.reviewedAt)||
+      typeof row.reviewedBy!=='string'||!/^[A-Za-z0-9._-]{2,80}$/.test(row.reviewedBy)||
+      row.toolId!==owner.toolId||row.packageHash!==owner.packageHash)return false;
+    try{return sameStorageValue(validateManagedProxyConfig(row.config),config);}
+    catch{return false;}
+  });
+  if(!approved)throw fail('E_PROXY_PROFILE_NOT_APPROVED',
+    'A source-reviewed, package-bound proxy endpoint and domain profile is required');
+}
 function parseState(raw){
   if(raw===undefined)return null;
   if(!exact(raw,['schema','phase','owner','config'])||raw.schema!==1||
@@ -177,7 +192,7 @@ async function getState(api,owner){
   return {state,control,permission,canStop,reason};
 }
 export function createBrowserManagedProxy({api=globalThis.chrome,
-  lockManager=globalThis.navigator?.locks}={}){
+  lockManager=globalThis.navigator?.locks,reviewedProfiles=[],authorizeEnable=null}={}){
   return Object.freeze({
     async getStatus(_input={},context){
       return getState(api,ownerOf(context));
@@ -189,12 +204,23 @@ export function createBrowserManagedProxy({api=globalThis.chrome,
         const current=await storageState(api);
         if(current&&current.phase!=='released')
           throw fail('E_PROXY_OWNERSHIP','Another proxy operation or owner already exists');
+        // Approval could have been issued before the global lock was acquired.
+        if(typeof authorizeEnable!=='function')
+          throw fail('E_PROXY_AUTHORIZATION_REQUIRED','Trusted Host revalidation is required');
+        await authorizeEnable(context);
+        requireReviewedProfile(reviewedProfiles,config,owner);
         await legacyHold(api);
         const before=await chromeState(api);
         if(levelOf(before)!=='controllable_by_this_extension')
           throw fail('E_PROXY_CONFLICT','Chrome proxy control must be exclusively available before ENABLE');
         const applying={schema:1,phase:'applying',owner,config};
         await persist(api,current,applying); // Durable uncertainty fence precedes native effect.
+        // A revoked install, permission or outside proxy must not be overwritten.
+        // Keep the applying journal for explicit STOP if this recheck fails.
+        await authorizeEnable(context);
+        const recheck=await chromeState(api);
+        if(levelOf(recheck)!=='controllable_by_this_extension')
+          throw fail('E_PROXY_CONFLICT','Chrome proxy control changed before ENABLE');
         try{await api.proxy.settings.set({value:desiredSettings(applying),scope:'regular'});}
         catch{throw fail('E_OUTCOME_UNKNOWN','Chrome proxy set outcome is unknown; explicit STOP required');}
         const after=await chromeState(api);

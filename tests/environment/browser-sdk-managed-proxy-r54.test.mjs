@@ -64,7 +64,14 @@ function fixture({lockManager=fixtureLocks()}={}){
     alarms:{async create(name,options){events.alarms.push({name,options});},
       async clear(){return true;}}
   };
-  const driver=createBrowserManagedProxy({api,lockManager});
+  const driver=createBrowserManagedProxy({api,lockManager,
+    reviewedProfiles:[{reviewId:'FIXTURE-PROXY-REVIEW-0003',
+      reviewedAt:'2026-10-15',reviewedBy:'node-fixture',
+      toolId:IDENTITY.toolId,packageHash:IDENTITY.packageHash,config:CONFIG}],
+    authorizeEnable:async()=>{
+      if(!authorized)throw Object.assign(Error('Denied by trusted Host fixture'),
+        {code:'E_TOOL_CAPABILITY_REQUIRED'});
+    }});
   const bindings=createApprovedBrowserBindings({'proxy.managed':driver});
   const makeSdk=owner=>createBrowserSdk({
     request:(operation,input)=>bindings.dispatch(operation,input,owner,{

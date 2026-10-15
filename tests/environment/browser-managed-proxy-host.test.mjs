@@ -50,7 +50,11 @@ async function fixture(){
         level='controllable_by_this_extension';value=null;}
     }},tabs:{},webNavigation:{}};
   const host=createContextMenuHost({api,lockManager:{request:(_name,work)=>work()},
-    logger:{warn(){}}});
+    logger:{warn(){}},reviewedProxyProfiles:[{
+      reviewId:'FIXTURE-PROXY-REVIEW-0002',reviewedAt:'2026-10-15',
+      reviewedBy:'node-fixture',toolId:first.id,
+      packageHash:await sidebarToolPackageHash(first),config:config.config
+    }]});
   async function user(id,patch={}){
     const tool=id==='proxy-owner'?first:second;
     const identity={toolId:id,toolVersion:tool.version,packageHash:await sidebarToolPackageHash(tool),

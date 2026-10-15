@@ -1239,6 +1239,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         const approvalRef=await requestBrowserClick({toolId:tool.id,
           message:'「'+tool.title+'」请求'+target+'；确认仅批准这一次操作。',
           button:'允许本次操作',run:async event=>{
+            if(operation.startsWith('browser.proxy.managed.')&&!event?.isTrusted)
+              throw Object.assign(new Error('代理操作需要可信 Side Panel 的真实点击'),
+                {code:'E_USER_GESTURE_REQUIRED'});
             assertSession(source,token);
             // Optional Chrome permission prompts must run in this real trusted click,
             // before any await or Host RPC. Missing site grants remain Host-denied.

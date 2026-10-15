@@ -10,6 +10,7 @@ import {createBrowserBookmarksHost} from './bookmarks.js';
 import {createBrowserFullBookmarksHost} from './bookmarks-full.js';
 import {createApprovedBrowserBindings} from '../../framework/sdk/browser-bindings.js';
 import {createBrowserManagedProxy} from './browser-managed-proxy.js';
+import {REVIEWED_MANAGED_PROXY_PROFILES} from './browser-managed-proxy-profiles.js';
 import {APPROVED_BROWSER_DIRECT_BINDINGS} from '../../framework/sdk/browser-direct.generated.js';
 import {validateTrustedScheduleIntent} from '../tasks/schedule-contract.js';
 import {createBrowserHistoryHost} from './history.js';
@@ -141,7 +142,8 @@ function scopedMenuPatterns(origins,action){
     return url.protocol+'//'+url.hostname+'/*';
   }))];
 }
-export function createContextMenuHost({api=globalThis.chrome,logger=console,lockManager=globalThis.navigator?.locks,fetchImpl=globalThis.fetch,scheduleService=null}={}){
+export function createContextMenuHost({api=globalThis.chrome,logger=console,lockManager=globalThis.navigator?.locks,fetchImpl=globalThis.fetch,scheduleService=null,
+  reviewedProxyProfiles=REVIEWED_MANAGED_PROXY_PROFILES}={}){
   let chain=Promise.resolve();
   const documentEpochs=new Map();
   const recentSourceContexts=new Map();
@@ -269,7 +271,9 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     'bookmarks.observe':fullBookmarkHost.observe,
     tabs:tabHost,
     downloads:downloadHost,
-    'proxy.managed':createBrowserManagedProxy({api,lockManager}),
+    'proxy.managed':createBrowserManagedProxy({api,lockManager,
+      reviewedProfiles:reviewedProxyProfiles,
+      authorizeEnable:owner=>verifyBrowserOwner(owner,'browser.proxy.managed.requestEnable')}),
     'storage.local':(input,owner,operation)=>executeBrowserToolStorage({
       api,operation,toolId:owner.toolId,input,
       authorize:()=>verifyBrowserOwner(owner,operation)
