@@ -485,6 +485,7 @@ test('R2.1 UI guards current-page identity and observes SDK events with teardown
 async function bookmarkUi(configure=()=>{},Clock=Date){
   const dom=new Map(),timers=new Map(),lifecycle=new Map();let timerId=0;
   const element=tag=>({tag,children:[],listeners:new Map(),dataset:{},style:{},
+    classList:{add(){},contains(){return false}},
     value:'',hidden:false,disabled:false,textContent:'',attributes:{},
     // HTML URL constraints run before submit; an ancestor's hidden attribute
     // does not bar validation. Model that gate separately from event dispatch.
@@ -515,6 +516,10 @@ async function bookmarkUi(configure=()=>{},Clock=Date){
   },querySelectorAll(tag){return [...dom.values()].flatMap(el=>[el,...descendants(el)])
     .filter(el=>el.tag===tag)},addEventListener(){}};
   const ctx=createContext({URL,Date:Clock,document:{createElement:element,
+    createElementNS:(namespace,tag)=>{
+      assert.equal(namespace,'http://www.w3.org/2000/svg');
+      return element(tag);
+    },
     createDocumentFragment:()=>element('fragment')},OpenDeskTool:{root:rootNode},
     setTimeout(fn,delay){const id=++timerId;timers.set(id,{fn,delay});return id},
     clearTimeout(id){timers.delete(id)},
