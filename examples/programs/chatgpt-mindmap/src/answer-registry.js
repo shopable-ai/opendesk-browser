@@ -105,9 +105,10 @@ function answerController({document,window,owner,css,parts,coordinator}){
     content.setAttribute('aria-hidden','true');
   }
   function close({focus=false}={}){
-    if(coordinator.full===api)coordinator.setFull(null);
+    const exiting=coordinator.full===api?coordinator.setFull(null):Promise.resolve();
     const previous=view;view=null;restore();syncButton();
-    const retired=coordinator.retire(previous);
+    // Finish moving a fullscreen viewer back before SDK teardown.
+    const retired=exiting.then(()=>coordinator.retire(previous));
     if(focus&&buttonRef.host.isConnected)buttonRef.button.focus();
     return retired;
   }
@@ -186,8 +187,9 @@ function answerController({document,window,owner,css,parts,coordinator}){
     destroy(){
       if(disposed)return;disposed=true;
       // setFull(null) must not return an orphan viewer to a removed answer.
-      if(coordinator.full===api)coordinator.setFull(null);
-      coordinator.retire(view);view=null;restore();
+      const exiting=coordinator.full===api?coordinator.setFull(null):Promise.resolve();
+      const previous=view;view=null;restore();
+      exiting.then(()=>coordinator.retire(previous));
       buttonRef.destroy();
     }
   };
@@ -208,10 +210,14 @@ export function createAnswerRegistry({document,window,owner,css}){
     return pending;
   }
   const coordinator={retire,get full(){return full;},setFull(next){
-    if(full===next)return;
+    if(full===next)return Promise.resolve();
     const old=full;full=null;
-    if(old)old.setFull(false).catch(error=>cleanupErrors.push(error));
-    if(next&&next.view&&next.root.isConnected){full=next;next.setFull(true).catch(error=>cleanupErrors.push(error));}
+    const exiting=old?old.setFull(false).catch(error=>cleanupErrors.push(error)):
+      Promise.resolve();
+    if(next&&next.view&&next.root.isConnected){
+      full=next;next.setFull(true).catch(error=>cleanupErrors.push(error));
+    }
+    return exiting;
   }};
   function scan(){
     if(disposed||!owner.active())return;
@@ -264,8 +270,9 @@ export function createAnswerRegistry({document,window,owner,css}){
   }
   const keydown=event=>{
     if(event.key==='Escape'&&full){
-      const previous=full;coordinator.setFull(null);
-      previous.button.focus();event.preventDefault();
+      const previous=full;
+      coordinator.setFull(null).then(()=>previous.view?.focusFullscreen());
+      event.preventDefault();
     }
   };
   async function destroy(){

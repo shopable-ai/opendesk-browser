@@ -161,12 +161,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p "${RUNNER_TEMP}/r22-xmind-proof"
+          mkdir -p "${RUNNER_TEMP}/r35-xmind-proof"
           node tests/framework/chatgpt-mindmap-xmind-probe.mjs \
             --assets "$XMIND_REFERENCE_DIR" \
             --browser "$XMIND_CHROME" \
             --playwright "$GITHUB_WORKSPACE/node_modules/playwright-core/index.mjs" \
-            --out "${RUNNER_TEMP}/r22-xmind-proof"
+            --out "${RUNNER_TEMP}/r35-xmind-proof"
       - name: ChatGPT simulated UI with real XMind answer registry / interaction
         shell: bash
         run: |
@@ -174,15 +174,15 @@ jobs:
           node tests/framework/chatgpt-mindmap-chatgpt-probe.mjs \
             --browser "$XMIND_CHROME" \
             --playwright "$GITHUB_WORKSPACE/node_modules/playwright-core/index.mjs" \
-            --out "${RUNNER_TEMP}/r22-xmind-proof"
+            --out "${RUNNER_TEMP}/r35-xmind-proof"
       - name: Preserve only screenshots and result (never SDK vendor bytes)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: r22-local-html-xmind-proof
+          name: r35-chatgpt-icon-toolbar-proof
           path: |
-            ${{ runner.temp }}/r22-xmind-proof/*.png
-            ${{ runner.temp }}/r22-xmind-proof/*.json
+            ${{ runner.temp }}/r35-xmind-proof/*.png
+            ${{ runner.temp }}/r35-xmind-proof/*.json
           retention-days: 7
           if-no-files-found: ignore
       - name: Declare proof scope

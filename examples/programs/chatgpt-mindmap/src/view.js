@@ -118,7 +118,7 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
   action({id:'fold',glyph:'fold',label:'折叠所有分支',
     run:toggleFold,group:branchGroup,render:true});
   action({id:'fullscreen',glyph:'expand',label:'进入全屏',
-    run:onFullscreen,group:fullGroup});
+    run:onFullscreen,group:fullGroup,render:true});
   action({id:'refresh',glyph:'refresh',label:'重新读取本条回复',
     run:onRefresh,group:refreshGroup});
   const more=el('button','odmm-tool odmm-more');
@@ -132,6 +132,8 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
     run:onRefresh,group:menu,menuItem:true});
   menuGroup.append(menu);
   update('refresh',{hidden:true});
+  update('fold',{pressed:false});
+  update('fullscreen',{pressed:false});
   removers.push(owner.on(more,'click',()=>{
     menuOpen=!menuOpen;menu.hidden=!menuOpen;
     more.setAttribute('aria-expanded',String(menuOpen));
@@ -210,5 +212,7 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
     return closing;
   }
   return Object.freeze({host,start,destroy,setFull,setTheme,markStale,
-    focusPrimary:()=>original.focus(),get fullscreen(){return fullscreen;},nodeCount});
+    focusPrimary:()=>original.focus(),
+    focusFullscreen:()=>buttons.get('fullscreen')?.[0]?.focus(),
+    get fullscreen(){return fullscreen;},nodeCount});
 }
