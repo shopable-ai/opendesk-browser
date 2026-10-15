@@ -378,7 +378,7 @@ test('R4.8 detail actions use the official secondary button without a duplicate 
   assert.ok(buttons.every(x=>!x.textContent.includes('打开应用')));
   const css=await readFile('src/ui/extension-center.css','utf8');
   assert.doesNotMatch(css,/\.ec-detail-actions button\{[^}]*background:/);
-  assert.match(css,/\.ec-detail-actions \.od-button\{font-size:12px\}/);
+  assert.match(css,/\.ec-detail-actions \.od-button\{font-size:12px;color:var\(--od-accent-ink\)\}/);
 });
 
 test('R4.8 source-bound prototype has the identical production toolbar and shell styles',async()=>{
