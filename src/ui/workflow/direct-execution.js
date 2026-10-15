@@ -128,6 +128,10 @@ export function verifySearchBusinessEffect({expectation,before,after,actionTarge
   if(query.length<2||query.length>120||!before?.summary||!after?.summary||
     before.format!=='opendesk.workflow-observation.v1'||!before.runId||!before.resultId||!before.sourceHash||
     after.format!=='opendesk.workflow-observation.v1'||!after.runId||!after.resultId||!after.sourceHash||
+    // These must be two independent runs of the exact same fixed observer.
+    // A copied or mixed-version receipt cannot establish a before/after change.
+    before.runId===after.runId||before.resultId===after.resultId||
+    !/^[a-f0-9]{64}$/.test(before.sourceHash)||before.sourceHash!==after.sourceHash||
     !Array.isArray(before.summary.nodes)||!Array.isArray(after.summary.nodes)||
     after.summary.nodes.length>24||!actionTarget||!resultTarget)return null;
   if(before.summary.origin!==actionTarget.origin||before.summary.documentId!==actionTarget.documentId||
