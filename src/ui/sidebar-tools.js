@@ -2240,6 +2240,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       const nextPage=pageKey();
       if(nextPage===previousPage)return;
       previousPage=nextPage;
+      // Re-read native AdBlock current hostname after a genuine page switch;
+      // do not keep a stale website switch when the active tab changes.
+      if(active?.id===ADBLOCK_ID)void adblockControls?.refresh?.();
       if(frame&&active&&instance)frame.contentWindow?.postMessage({
         protocol:SIDEBAR_TOOL_PROTOCOL,kind:'page-changed',instance,toolId:active.id
       },'*');
