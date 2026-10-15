@@ -15,6 +15,7 @@ on:
       - 'scripts/prepare-public.mjs'
       - 'scripts/verify-package.mjs'
       - 'tests/environment/extension-center-r4.test.mjs'
+      - 'tests/environment/extension-center-r42-row-action.test.mjs'
       - 'tests/environment/task-workbench.test.mjs'
       - 'tests/environment/sidebar-product-contract.test.mjs'
       - 'tests/environment/sidebar-tab-memory.test.mjs'
@@ -39,7 +40,7 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Validate extension projection and existing authority contracts
         run: |
-          node --test tests/environment/extension-center-r4.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/sidebar-tab-memory.test.mjs tests/environment/installed-page-tools-r251.test.mjs
+          node --test tests/environment/extension-center-r4.test.mjs tests/environment/extension-center-r42-row-action.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/sidebar-tab-memory.test.mjs tests/environment/installed-page-tools-r251.test.mjs
           node --test tests/environment/cloud-control-sidebar-r28.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/task-workbench.test.mjs
       - name: Validate source and production package
         run: |
