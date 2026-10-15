@@ -199,3 +199,33 @@
 原段落里的 QUEUED 是首次查看的历史瞬时状态，应以此同一 SHA 的 COMPLETED / SUCCESS 终态为准。本结果证明 NODE_PASS、SOURCE_CHECK_PASS、BUILD_PASS、PACKAGE_VERIFY_PASS；**不代表**用户 Mac 当前实际加载的 dist/development watcher 包就是上述静态 development 候选，更不代表 Chrome/Native、用户手势、Page 真实注册、像素截图或专家 95+ 通过。
 
 Chrome 验收身份待补：用户 Mac 实际 Chrome/Profile/扩展 ID、加载目录、构建 Hash、App/Page/候选的真实操作与 Host/Authority 状态读回、同候选截图及 computed style。上述场景一律继续 NATIVE_NOT_TESTED；因此产品 R4.9 仍为 PARTIAL，而非 FINAL_ACCEPTED。正常 main 仍可能存在其它 Agent 后续提交，复用本 CI 必须做相关输入差异分析，不将 024975b47 的包 Hash 冒充后续 HEAD。
+
+
+## R5.0 · 真实生命周期读回、操作异常与并行合同检查（2026-10-16）
+
+### 实际执行与文件边界
+
+- 本轮通过已连接 GitHub 直接提交 `main`，未新建分支/Worktree/PR，没有强推或操作任何 Mac 的 watcher、Chrome Profile、Native 注册或 `dist/`。
+- 本轮受控修复的独立源码与测试：`src/ui/extension-center.js`、`tests/environment/extension-center-r42-row-action.test.mjs`、`tests/environment/extension-center-r47-interaction.test.mjs`。主要提交依次为 `1f23b8e`、`183b885`、`9bd4a5f`、`a164591`、`1b18030`、`e71dfdb`、`a2b9b0a`、`1f0aef5`；采用逐文件最新 Blob SHA 检查，并正常提交到唯一 `main`。
+- 修复 Host `toggleEnabled` 返回 `false` 的静默路径：用户草稿尚未确认时不报成功；返回 `true` 仍须通过本机持久化重读，确认原包身份和目标 enabled 状态。打开工具返回空或抛错也明确反馈，不报成功。
+- Page 操作重用 `setInstalledPageProgramEnabled` / `Page Authority`：权限拒绝立即反馈并保留、状态读回核对；授权成功但原生注册仍待核对时区分成功与 pending。无第二套注册表、无模拟权限提升。
+- 官方目录引入独立异步序号，旧响应不能覆盖新的候选；目录读取失败不保留未经当前加载确认的发行候选，正在查看的已过期候选详情安全返回。背景应用存储读取失败也不覆盖已有用户操作错误。
+- 新增/调整 Node DOM/RPC 回归用例覆盖 Host false/真返回但未写入、打开失败、Page RPC ack 不等于状态变化、Page registered pending、目录陈旧响应守卫、操作错误在读取失败后仍保留；扩展真实点击、布局截图、原生配对未被这些双对象测试模拟为真实通过。
+
+### 已认证 CI 与包身份（严格绑定候选）
+
+- 原 R4.9 `024975b47` 对应 [Actions 38767521693](https://github.com/shopable-ai/opendesk-browser/actions/runs/38767521693)：历史 219 PASS、check/build/build:dev/verify PASS，作为**精确历史输入的旧 PASS**永久保留，不当成更新后的安装包。
+- R5.0 直接源码候选 `e71dfdb16054afad5aa7f02569c945a409a71dba` 对应 [Actions 38774358044](https://github.com/shopable-ai/opendesk-browser/actions/runs/38774358044)：COMPLETED / SUCCESS。定向分组 **72/72 PASS**、Host/Cloud/Task 分组 **153/153 PASS**；`npm run check`、`npm run build`、生产 CSS/package verify、`npm run build:dev`、`npm run verify` 均通过。Production Standard Hash `75d5e7668a857caa96000a261377db397691904c5fe11599ffcf862cf6a6b2a0`（102 assets），Development Standard Hash `7639ad9fa83d462293365b6794b72e82889a5bca7c54688ba15068498d04c159`（140 assets）。**两 Hash 仅属于 e71dfdb 候选**。
+- 后续 `a2b9b0a` / `1f0aef5` 增加“后台读取失败不得覆盖用户操作错误”与定向测试，其 CI 分别为 [38774918367](https://github.com/shopable-ai/opendesk-browser/actions/runs/38774918367)、[38774956234](https://github.com/shopable-ai/opendesk-browser/actions/runs/38774956234)：本条写入时尚无 COMPLETE / SUCCESS 回执，不能将 e71dfdb 的 PASS/Hash 自动升级。
+- 本次记录前的远程 `main` 为 `617cc8216cc7b765c1d9e7847a85c3ec6f9cecdb`，已有其他 Agent 增量改变 `src/ui/extension-center.js`、`extension-center-model.js`、`tool.html`、`sidebar-tools.js` 及安装清理合同：默认“已安装”范围、明确“可安装 / 更新”范围、卸载清理恢复、安全阻断陈旧安装、旧详情退休。它们不是本轮 `e71dfdb` 的已认证输入，其专属 CI 新检查尚未有完整 PASS。
+- 并行最新正式 HTML 的搜索 placeholder 与菜单范围文字已改变，**唯一正式预览** `prototypes/sidebar/extension-center-r47-frequency-first-preview.html` 尚未在本轮同步改变。该差异应由当前变更 Owner 核实是否为合法产品合同升级，按用户确认的预览/Host 规则收敛；不为使静态测试通过而盲改设计基准。本轮未覆盖该共享改动。
+
+### P0 真正验收、UI 差异及评分门禁
+
+- **九类真实 Chrome 产品场景**：已启用 App 打开、停用恢复、Page 注册撤销恢复、撤权/代际、未安装安装审阅、键盘、未保存草稿、并发/失败、搜索筛选语言市场与导航：本轮相关源码/定向 Node 有若干 SOURCE_WIRED / NODE_PASS，但**同一 Mac Profile + Extension ID + 包 Hash 的 Native 证据均 NOT_TESTED / BLOCKED**。
+- **十一维**：高频效率、主操作语义、去重、信息架构、视觉交互、可访问性、真实生命周期、安全权限、异常恢复、预览正式一致性、真实 Chrome 体验均 **NOT_SCORED**，不打伪造的 ≥95 分；同源静态 DOM/CSS 检查不等于实安装 UI 截图 / computed styles / 用户输入。
+- 预览/正式对照：此前五 Tab、工具栏、搜索、市场、全局菜单、行/详情结构有 R4.8–R4.9 静态合同证据；本轮代码未重做设计。但并行 `tool.html` 与筛选行为变化已造成**潜在设计基准偏移**，必须比对相同视口、真实数据、菜单与状态并修复有证据的偏差。真实截图/像素差异 **NOT_TESTED**。
+- 当前 Linux/GitHub 会话无法访问 `/Users/shopme/Documents/workspace/opendesk-browser`，不知本地 `git status --short`、`npm run dev` watcher、Chrome Profile/版本、扩展 ID、Load Path、Native allowed_origins，因此不触碰日常 `dist/development`，不宣称安装产品已经更新或实现真实 Chrome P0。
+- **下一最小行动**：①复核最新 main 的 Extension Center 专属 CI 与文件归属，关闭并行 `tool.html`/preview 的合同差异；②本地 Codex 对已加载 `dist/development` 的真实 ID/路径及 `opendesk browser doctor` 的 Native 配对进行只读检查；③在资源 Owner 允许的受控 CFT/Profile 冻结单一包与 Package Hash，完成上述九类真正点击/键盘/权限/草稿/Authority 读回/截图和 Computed Style；④逐维据同包真实证据评分，不达 95 不宣告 FINAL_ACCEPTED。
+
+**证据门禁结论**：R5.0 有确实完成的源码修复与一个精确候选完整 CI PASS；并行 main 仍在前进，最终 Native Chrome 产品级验收 **BLOCKED / NOT_TESTED**；产品状态不是 FINAL_ACCEPTED。
