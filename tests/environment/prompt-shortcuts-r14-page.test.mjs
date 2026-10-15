@@ -13,7 +13,7 @@ const settle=async()=>{for(let i=0;i<5;i++)await tick();};
 
 function mockElement(tag='div'){
   const handlers=new Map(),node={
-    tagName:tag,children:[],attributes:{},style:{},hidden:false,isConnected:true,textContent:'',
+    tagName:tag,children:[],attributes:{},dataset:{},style:{},hidden:false,isConnected:true,textContent:'',
     className:'',value:'',title:'',readOnly:false,disabled:false,
     classList:{items:new Set(),toggle(name,enabled){
       if(enabled)this.items.add(name);else this.items.delete(name);
