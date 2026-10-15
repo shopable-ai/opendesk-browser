@@ -153,3 +153,29 @@ test('permission preparation requires installed tool capability and exact identi
   await assert.rejects(createToolPermissionConsent({api:disabled.api})
     .prepare({toolId:'bookmark-tool',capability:'browser.bookmarks'}),{code:'E_TOOL_DISABLED'});
 });
+
+test('R11.2 Full Bookmarks uses independent installed-tool capability with the existing trusted click',async()=>{
+  const full={...bookmarkTool(),version:'1.1.0',capabilities:['browser.bookmarks.full']};
+  // Merely declaring the historical Owned capability must never grant Full.
+  await assert.rejects(createToolPermissionConsent({api:permissionApi().api})
+    .prepare({toolId:'bookmark-tool',capability:'browser.bookmarks.full'}),
+    {code:'E_TOOL_CAPABILITY_REQUIRED'});
+  // Conversely, a Full-only tool cannot inherit Owned's opaque create/remove.
+  const f=permissionApi({tool:full}),consent=createToolPermissionConsent({api:f.api});
+  await assert.rejects(consent.prepare({toolId:'bookmark-tool',capability:'browser.bookmarks'}),
+    {code:'E_TOOL_CAPABILITY_REQUIRED'});
+  const approved=await consent.prepare({toolId:'bookmark-tool',
+    toolVersion:full.version,capability:'browser.bookmarks.full'});
+  assert.equal(approved.toolCapability,'browser.bookmarks.full');
+  assert.deepEqual(approved.request,{permissions:['bookmarks']});
+  assert.equal(approved.installEpoch,'epoch-1');
+  assert.match(approved.packageHash,/^[a-f0-9]{64}$/);
+  f.calls.length=0;
+  const pending=consent.requestForTool({isTrusted:true},approved,{
+    sender:sender(),hostInstanceId:HOST});
+  assert.deepEqual(f.calls[0],['request',{permissions:['bookmarks']}],
+    'Full Bookmarks must request the Chrome permission synchronously from trusted user click');
+  assert.deepEqual(await pending,{granted:true,scope:'permission:bookmarks'});
+  // Granting Chrome's shared native permission alone does NOT create the
+  // independent package/epoch-bound Full consent, which the Host checks later.
+});
