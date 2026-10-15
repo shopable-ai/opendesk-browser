@@ -33,7 +33,6 @@ on:
       - 'src/platform/host/controller-methods.js'
       - 'src/run-host.js'
       - 'src/ui/tool-shell.js'
-      - 'src/ui/bookmark-manager.css'
       - 'scripts/prepare-public.mjs'
       - 'scripts/build-contract.mjs'
       - 'scripts/audit-fixed-entries.mjs'

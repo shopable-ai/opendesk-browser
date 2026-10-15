@@ -4,6 +4,7 @@ import {mkdtemp,mkdir,writeFile,readFile,rm,symlink,access} from 'node:fs/promis
 import {tmpdir} from 'node:os';
 import {join,dirname} from 'node:path';
 import {createHash} from 'node:crypto';
+import {runInNewContext} from 'node:vm';
 import {createOfficialToolResources,buildOfficialTools,officialToolInputs,readOfficialSources}
   from '../../scripts/build-official-tools.mjs';
 import {createSidebarToolPackage,buildSidebarTool} from '../../scripts/build-sidebar-tool.mjs';
@@ -44,7 +45,15 @@ test('R4.8 authored catalog includes default Cookie Editor and optional AI VIP S
   for(const row of source.tools){
     assert(['optional','preinstalled'].includes(row.installationPolicy));
     assert.equal(Object.hasOwn(row,'version'),false);assert.equal(Object.hasOwn(row,'capabilities'),false);
-    for(const path of ['src/sidebar-tools/'+row.id+'.opendesk-tool.json',row.project+'/'+row.id+'.opendesk-tool.json'])
+    const paths=['src/sidebar-tools/'+row.id+'.opendesk-tool.json'];
+    // Cookie Editor deliberately ships a portable package beside its sources.
+    // The official producer still builds from source, never from this copy.
+    if(row.id!=='cookie-editor')paths.push(row.project+'/'+row.id+'.opendesk-tool.json');
+    else {
+      const portable=JSON.parse(await readFile(row.project+'/'+row.id+'.opendesk-tool.json','utf8'));
+      assert.deepEqual(portable,await createSidebarToolPackage(row.project));
+    }
+    for(const path of paths)
       await assert.rejects(access(path),error=>error.code==='ENOENT','official source trees contain no generated package copies');
   }
   assert(!source.tools.some(row=>/starter/.test(row.id)));
@@ -246,4 +255,30 @@ test('R4.5 knowledge lifecycle correction is an upgrade from the shipped 1.1.0',
   const {catalog}=await officialFixtures(),release=catalog.apps.find(row=>row.toolId==='knowledge-inbox');
   const current=await officialToolFixture('knowledge-inbox');
   assert.equal(officialToolStatus(release,[{...current,version:'1.1.0'}]),'update');
+});
+
+test('R2.4 official build fingerprints ordered v2 Classic dependencies',async t=>{
+  const f=await fixture(t),row=f.catalog.tools[0];
+  const config={...f.config(row.id),format:'opendesk.sidebar-tool.v2',requires:{browserSdk:'1.0.0'},
+    contributes:{contextMenus:[]}};
+  config.files.dependencies=['src/model.js','src/service.js'];
+  await f.write(row.project+'/tool.config.json',JSON.stringify(config));
+  await f.write(row.project+'/src/model.js','globalThis.OrderedModel = 1;');
+  await f.write(row.project+'/src/service.js','globalThis.OrderedService = OrderedModel;');
+  const inputs=await officialToolInputs(f.root);
+  for(const path of config.files.dependencies)assert(inputs.includes(row.project+'/'+path));
+  const first=await createOfficialToolResources({root:f.root});
+  const bytes=first.resources.get(officialPackagePath(row.id));
+  const tool=JSON.parse(bytes.toString());
+  assert.deepEqual(tool.scripts.map(row=>row.name),config.files.dependencies);
+  const context={};
+  for(const script of tool.scripts)runInNewContext(script.code,context);
+  runInNewContext(tool.js,context);
+  assert.equal(context.OrderedService,1);
+  await f.write(row.project+'/src/model.js','globalThis.OrderedModel = 2;');
+  const second=await createOfficialToolResources({root:f.root});
+  assert.notEqual(hash(bytes),hash(second.resources.get(officialPackagePath(row.id))));
+  config.files.dependencies=['../outside.js'];
+  await f.write(row.project+'/tool.config.json',JSON.stringify(config));
+  await assert.rejects(officialToolInputs(f.root),/invalid project-relative/);
 });

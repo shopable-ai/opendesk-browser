@@ -86,7 +86,7 @@ test('full inventory includes raw and static assets and sums the actual runtime 
     assert.equal(picked.assembledBytes,picked.bytes+3*defaults.resources.length);
     assert.equal(opt.runtimeRemainingBytes,opt.runtimeBudgetBytes-opt.bytes);
     assert.equal(opt.runtimeBudgetBytes,opt.kind==='framework'?PAGE_FRAMEWORK_RESOURCE_LIMIT:
-      opt.id==='jquery'?128*1024:BUILD_POLICY.productionBytes);
+      ['jquery','papaParse'].includes(opt.id)?128*1024:BUILD_POLICY.productionBytes);
   }
   assert.equal(plan.onDemandPageAssetBytes,plan.onDemandPageAssets.reduce((n,row)=>n+row.bytes,0));
   const compilerPaths=PAGE_BROWSER_PRIVATE_FILES.map(row=>row.output);

@@ -83,10 +83,16 @@ async function declaredSnapshot(root){
   catch{fail('tool.config.json is invalid JSON');}
   const paths=config?.files;
   if(!paths||typeof paths!=='object'||Array.isArray(paths)||
-    Object.keys(paths).sort().join(',')!=='css,html,js'||
+    Object.keys(paths).some(key=>!['html','css','js','dependencies'].includes(key))||
+    !['html','css','js'].every(key=>Object.hasOwn(paths,key))||
     !Array.isArray(config.assets||[]))
     fail('tool configuration must name one HTML, CSS and JS file');
-  const files=['tool.config.json',paths.html,paths.css,paths.js,...(config.assets||[])];
+  const dependencies=paths.dependencies??[];
+  if(!Array.isArray(dependencies)||dependencies.length>8||
+    new Set(dependencies).size!==dependencies.length||dependencies.includes(paths.js)||
+    Object.hasOwn(paths,'dependencies')&&config.format!=='opendesk.sidebar-tool.v2')
+    fail('invalid fixed Classic dependencies');
+  const files=['tool.config.json',paths.html,paths.css,paths.js,...dependencies,...(config.assets||[])];
   const hashes=[];
   for(const name of files){
     const bytes=await ownedFile(root,name);

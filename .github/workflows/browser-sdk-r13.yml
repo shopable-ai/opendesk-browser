@@ -12,7 +12,6 @@ on:
       - 'src/ui/sidebar-tools.js'
       - 'src/ui/sidebar-tools/**'
       - 'src/ui/tool-shell.js'
-      - 'src/ui/bookmark-manager.css'
       - 'scripts/prepare-public.mjs'
       - 'scripts/build-contract.mjs'
       - 'scripts/audit-fixed-entries.mjs'

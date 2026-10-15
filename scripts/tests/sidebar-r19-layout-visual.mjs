@@ -865,10 +865,8 @@ try{
   }
   if(!staticOnly&&(!tabFilter||tabFilter.includes('tasks')))
     await collectModule(join(root,'src/ui/scheduled-task-workbench.js'));
-  const bookmarkStyle=await readFile(join(root,'src/ui/bookmark-manager.css'),'utf8');
   const extensionCenterStyle=await readFile(join(root,'src/ui/extension-center.css'),'utf8');
-  sourceBinding.push({path:'src/ui/bookmark-manager.css',sha256:sha(bookmarkStyle)},
-    {path:'src/ui/extension-center.css',sha256:sha(extensionCenterStyle)},
+  sourceBinding.push({path:'src/ui/extension-center.css',sha256:sha(extensionCenterStyle)},
     {path:'scripts/tests/sidebar-r19-layout-visual.mjs',sha256:sha(await readFile(join(root,'scripts/tests/sidebar-r19-layout-visual.mjs')))});
   evidenceBinding=sourceBinding;
   const html=source.replace(/<script src="tool-shell\.js"><\/script>/,'');
@@ -881,7 +879,6 @@ try{
     else if(name==='/ui/tool-shell.css')res.writeHead(200,{'Content-Type':'text/css; charset=utf-8'}).end(style);
     else if(name==='/ui/cloud-hosting.css')res.writeHead(200,{'Content-Type':'text/css; charset=utf-8'}).end(hostingStyle);
     else if(name==='/ui/time-review.css')res.writeHead(200,{'Content-Type':'text/css; charset=utf-8'}).end(timeReviewStyle);
-    else if(name==='/ui/bookmark-manager.css')res.writeHead(200,{'Content-Type':'text/css; charset=utf-8'}).end(bookmarkStyle);
     else if(name==='/ui/extension-center.css')res.writeHead(200,{'Content-Type':'text/css; charset=utf-8'}).end(extensionCenterStyle);
     else if(sourceModules.has(root+name))res.writeHead(200,{'Content-Type':'text/javascript; charset=utf-8'}).end(sourceModules.get(root+name));
     else res.writeHead(404).end();

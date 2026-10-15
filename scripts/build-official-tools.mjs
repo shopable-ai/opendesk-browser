@@ -42,7 +42,8 @@ export async function officialToolInputs(root=REPOSITORY_ROOT){
     const project=await projectPath(root,row);
     await inspectSidebarToolProject(project);
     const config=JSON.parse(await readFile(resolve(project,'tool.config.json'),'utf8'));
-    const files=['tool.config.json',...Object.values(config.files),...(config.assets||[])];
+    const files=['tool.config.json',config.files.html,config.files.css,config.files.js,
+      ...(config.files.dependencies||[]),...(config.assets||[])];
     if(config.files.js.startsWith('dist/')||config.files.css.startsWith('dist/'))files.push('dist/build-ready.json');
     for(const name of files){
       const declared=resolve(project,name),path=await realpath(declared);
