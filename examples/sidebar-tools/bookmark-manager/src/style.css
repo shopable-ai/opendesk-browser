@@ -58,6 +58,11 @@
 #bm-form .od-field{width:100%;min-height:36px}
 #bm-form .od-field-error:empty{display:none}
 .bm-folder-list{min-height:128px;max-height:186px;overflow:auto}
+/* The canonical od-disclosure visual owns the affordance; tool CSS only
+ * spaces the folder chooser when the user expands this optional editor field. */
+.bm-folder-disclosure{margin:0}
+.bm-folder-controls{padding-top:var(--space-2)}
+.bm-folder-disclosure>summary{overflow-wrap:anywhere}
 .bm-help{margin:0}
 .bm-actions{display:flex;align-items:center;justify-content:flex-end;gap:var(--space-2);flex-wrap:wrap;margin-top:var(--space-2)}
 .bm-detail-url{overflow-wrap:anywhere}
