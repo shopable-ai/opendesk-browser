@@ -266,7 +266,7 @@ export function createAdblockService({
     if(generation===epoch)revoked=false;
     return {installed:true,toolEnabled:true,enabled:state.enabled&&fresh&&rules.verified,
       permissions:{dnr:fresh},exceptions:state.exceptions,
-      currentHost:await activeSite(),rules,version:ADBLOCK_RULE_VERSION,
+      currentHost:await activeSite(),rules,restartRequired:false,version:ADBLOCK_RULE_VERSION,
       domainCount:ADBLOCK_REQUEST_DOMAINS.length,refreshRequired:operation==='adblock.site.set'||
       operation==='adblock.site.restore'};
   }
