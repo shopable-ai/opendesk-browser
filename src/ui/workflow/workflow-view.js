@@ -520,6 +520,14 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       const saved=revision && revision.workflow.workflowId===freeze.workflow.workflowId &&
         revision.sourceHash===freeze.sourceHash &&
         JSON.stringify(revision.workflow)===JSON.stringify(freeze.workflow);
+      if(saved) {
+        // A loaded UI record is not proof that the Controller journal still
+        // contains the same immutable bytes at the moment of each replay.
+        const current=await host.controller.getControllerScript({
+          scriptId:freeze.workflow.workflowId,revision:revision.revision});
+        if(current?.contentHash!==freeze.sourceHash||current.sourceUtf8!==freeze.sourceUtf8)
+          throw err('E_WORKFLOW_HASH','保存版本源码已变化或不可读取，已在启动前拒绝复跑');
+      }
       const source=saved?
         {kind:'saved',scriptId:freeze.workflow.workflowId,revision:revision.revision,contentHash:revision.sourceHash}:
         {kind:'draft',sourceUtf8:freeze.sourceUtf8};
@@ -607,12 +615,35 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           view.run.revision?.sourceHash===freeze.sourceHash &&
           result.revision?.sourceHash===freeze.sourceHash && result.runId===claim.runId)
           lastTrustedRun={runId:claim.runId,sourceHash:freeze.sourceHash,siteOrigin:captured.origin};
+        let evidenceLevel=directExecutionEvidenceLevel({receiptVerified:lastRun==='success'});
+        if(lastRun==='success') {
+          let readbackVerified=false;
+          const standaloneFill=directVerifiedSerial===JSON.stringify(freeze.workflow)&&
+            freeze.workflow.steps.some(step=>step.op==='fill')&&
+            !freeze.workflow.steps.some(step=>step.op==='click');
+          if(standaloneFill) {
+            try {
+              readbackVerified=verifyDirectFillReadbacks({
+                workflow:freeze.workflow,params,values:decodeValue(result.outcome.valueWire)});
+              if(readbackVerified) {
+                await currentPageTarget.revalidate(captured);
+                readbackVerified=await api.permissions.contains({
+                  origins:[permissionPattern(captured.url)]});
+              }
+            }catch { readbackVerified=false; }
+          }
+          evidenceLevel=directExecutionEvidenceLevel({
+            receiptVerified:true,hasReadback:readbackVerified});
+          lastTrustedRun={runId:claim.runId,sourceHash:freeze.sourceHash,siteOrigin:captured.origin};
+          if(source.kind==='saved')status('固定 r'+source.revision+
+            ' 已脱离 AI 运行（SHA-256：'+source.contentHash.slice(0,12)+'…）。'+
+            (readbackVerified?'页面输入值已读回匹配，不代表服务器提交。':
+              '运行回执已验证，页面业务效果待独立确认。'));
+        }
         if(lastRun==='failed'&&!hasError)
           status('运行未成功或结果无法确认，请检查真实结果及页面效果；不会自动重试。',true);
-        if(lastRun==='success'&&source.kind==='saved')
-          status('已独立运行固定 r'+source.revision+'（SHA-256：'+source.contentHash.slice(0,12)+
-            '…）；运行回执已验证，页面业务效果仍须按步骤核对。');
-        return {ok:lastRun==='success',runId:claim.runId,resultId:result?.resultId||null};
+        return {ok:lastRun==='success',runId:claim.runId,
+          resultId:receiptProof?.resultId||null,evidenceLevel};
       }
     })().catch(error=>{
       lastRun='failed';
