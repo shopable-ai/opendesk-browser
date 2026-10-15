@@ -11,7 +11,7 @@ const err=pattern=>error=>pattern.test(String(error?.message||error));
 test('R11 all approved Chrome Binding descriptors are deterministic and derived, never permission grants',async()=>{
   const derived=deriveBrowserBindingCatalog(matrix);
   assert.deepEqual(generated,derived);
-  assert.deepEqual(generated.counts,{approved:55,public:53,hostOnly:2});
+  assert.deepEqual(generated.counts,{approved:67,public:65,hostOnly:2});
   const nativeRows=new Map(matrix.nativeInterfaces.map(x=>[x.nativeApi,x]));
   let mapped=0;
   for(const binding of generated.bindings){
@@ -26,7 +26,7 @@ test('R11 all approved Chrome Binding descriptors are deterministic and derived,
       mapped++;
     }
   }
-  assert.equal(mapped,66,'Only currently approved native relationships are counted');
+  assert.equal(mapped,85,'Only currently approved native relationships are counted');
   const publicOps=generated.bindings.filter(x=>x.visibility==='APPROVED_TOOL_REGISTERED');
   assert.deepEqual(publicOps.map(x=>x.operation).sort(),Object.keys(BROWSER_OPERATIONS).sort());
   for(const desc of publicOps){
@@ -48,7 +48,7 @@ test('R11 all approved Chrome Binding descriptors are deterministic and derived,
 
 test('R11 generator rejects privilege drift, invented public Binding and unsafe Host-only exposure',()=>{
   const forged=structuredClone(matrix);
-  forged.approvedOperations.find(x=>x.id==='browser.bookmarks.create')
+  forged.approvedOperations.find(x=>x.id==='browser.bookmarks.createOwned')
     .toolCapabilities=['browser.bookmarks.full'];
   assert.throws(()=>deriveBrowserBindingCatalog(forged),err(/security contract drift/));
   const opened=structuredClone(matrix);

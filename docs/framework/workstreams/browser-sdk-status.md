@@ -1,3 +1,6 @@
+## R11.2 · Full Bookmarks 候选实施状态（2026-10-15）
+公开 SDK Registry 65 项，可信 Host-only 仍为 2 项。Full 12 项与 Owned createOwned 消费迁移已列入 Registry/Metrics，按真实源码候选接受 Node / Chrome 复验。未取得原生 Chrome 正向及反向回执前，每项 Native 为 NOT_TESTED；不得声称 95+ 产品 PASS。
+
 ## R10.7.1 · GitHub 可复核的证据状态（2026-10-14）
 
 本段是当前 GitHub 仓库可独立复核的状态，不覆盖 R10.6 历史快照。公开 SDK Registry **53** 项，可信 Host-only **2** 项不进入公开 Registry。
@@ -54,7 +57,19 @@ R10.6 逐项 Node `draft-review/node-assertion-coverage.json`、本地构建日�
 | `browser.storage.local.set` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
 | `browser.storage.local.remove` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
 | `browser.storage.local.clear` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
-| `browser.bookmarks.create` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.bookmarks.createOwned` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
+| `browser.bookmarks.getTree` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.bookmarks.get` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.bookmarks.search` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.bookmarks.create` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.bookmarks.update` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.bookmarks.move` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.bookmarks.remove` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.bookmarks.prepareRemoveTree` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.bookmarks.removeTree` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.bookmarks.observe.start` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.bookmarks.observe.read` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.bookmarks.observe.stop` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
 | `browser.bookmarks.removeOwned` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
 | `browser.scheduler.create` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |
 | `browser.scheduler.listOwn` | IMPLEMENTED | APPROVED_TOOL | BLOCKED | BLOCKED | NOT_TESTED |

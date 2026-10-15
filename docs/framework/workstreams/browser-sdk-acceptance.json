@@ -12,9 +12,9 @@
     "auditOnly": true
   },
   "summary": {
-    "operationCount": 53,
+    "operationCount": 65,
     "implementationCounts": {
-      "IMPLEMENTED": 53,
+      "IMPLEMENTED": 65,
       "PLANNED": 0,
       "HOST_ONLY": 0,
       "NOT_EXPOSED": 0
@@ -4131,7 +4131,7 @@
       "evidence": []
     },
     {
-      "api": "browser.bookmarks.create",
+      "api": "browser.bookmarks.createOwned",
       "module": "browser.bookmarks",
       "apiVersion": "1.0.0",
       "implementation": "IMPLEMENTED",
@@ -4139,8 +4139,8 @@
         "sidebar-tool"
       ],
       "exposure": "APPROVED_TOOL",
-      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.create:input",
-      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.create:output",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.createOwned:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.createOwned:output",
       "chromePermissions": [
         "bookmarks"
       ],
@@ -4523,6 +4523,522 @@
         "33b3f574f11b557f6c01830b5758f610d59266f8",
         "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd"
       ],
+      "evidence": []
+    },
+    {
+      "api": "browser.bookmarks.getTree",
+      "module": "browser.bookmarks",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.getTree:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.getTree:output",
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "effectClass": "read",
+      "riskLevel": "high",
+      "siteScope": "all-bookmarks",
+      "lifecycle": "bounded-snapshot",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/platform/chrome/bookmarks-full.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Native Chrome and same-candidate Node tests are pending"
+      ],
+      "nextTask": "Check real Native Chrome with explicit Full consent and 500+ tree",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.bookmarks.get",
+      "module": "browser.bookmarks",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.get:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.get:output",
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "effectClass": "read",
+      "riskLevel": "high",
+      "siteScope": "all-bookmarks",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/platform/chrome/bookmarks-full.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Native Chrome and same-candidate Node tests are pending"
+      ],
+      "nextTask": "Check real Native Chrome with explicit Full consent and 500+ tree",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.bookmarks.search",
+      "module": "browser.bookmarks",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.search:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.search:output",
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "effectClass": "read",
+      "riskLevel": "high",
+      "siteScope": "all-bookmarks",
+      "lifecycle": "bounded-snapshot",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/platform/chrome/bookmarks-full.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Native Chrome and same-candidate Node tests are pending"
+      ],
+      "nextTask": "Check real Native Chrome with explicit Full consent and 500+ tree",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.bookmarks.create",
+      "module": "browser.bookmarks",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.create:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.create:output",
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "effectClass": "write",
+      "riskLevel": "high",
+      "siteScope": "all-bookmarks",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/platform/chrome/bookmarks-full.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Native Chrome and same-candidate Node tests are pending"
+      ],
+      "nextTask": "Check real Native Chrome with explicit Full consent and 500+ tree",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.bookmarks.update",
+      "module": "browser.bookmarks",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.update:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.update:output",
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "effectClass": "write",
+      "riskLevel": "high",
+      "siteScope": "all-bookmarks",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/platform/chrome/bookmarks-full.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Native Chrome and same-candidate Node tests are pending"
+      ],
+      "nextTask": "Check real Native Chrome with explicit Full consent and 500+ tree",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.bookmarks.move",
+      "module": "browser.bookmarks",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.move:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.move:output",
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "effectClass": "write",
+      "riskLevel": "high",
+      "siteScope": "all-bookmarks",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/platform/chrome/bookmarks-full.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Native Chrome and same-candidate Node tests are pending"
+      ],
+      "nextTask": "Check real Native Chrome with explicit Full consent and 500+ tree",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.bookmarks.remove",
+      "module": "browser.bookmarks",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.remove:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.remove:output",
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "effectClass": "write",
+      "riskLevel": "high",
+      "siteScope": "all-bookmarks",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/platform/chrome/bookmarks-full.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Native Chrome and same-candidate Node tests are pending"
+      ],
+      "nextTask": "Check real Native Chrome with explicit Full consent and 500+ tree",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.bookmarks.prepareRemoveTree",
+      "module": "browser.bookmarks",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.prepareRemoveTree:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.prepareRemoveTree:output",
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "effectClass": "read",
+      "riskLevel": "high",
+      "siteScope": "all-bookmarks",
+      "lifecycle": "single-use-15s",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/platform/chrome/bookmarks-full.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Native Chrome and same-candidate Node tests are pending"
+      ],
+      "nextTask": "Check real Native Chrome with explicit Full consent and 500+ tree",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.bookmarks.removeTree",
+      "module": "browser.bookmarks",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.removeTree:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.removeTree:output",
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "effectClass": "write",
+      "riskLevel": "critical",
+      "siteScope": "all-bookmarks",
+      "lifecycle": "single-use-15s",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/platform/chrome/bookmarks-full.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Native Chrome and same-candidate Node tests are pending"
+      ],
+      "nextTask": "Check real Native Chrome with explicit Full consent and 500+ tree",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.bookmarks.observe.start",
+      "module": "browser.bookmarks.observe",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.observe.start:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.observe.start:output",
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "effectClass": "read",
+      "riskLevel": "high",
+      "siteScope": "all-bookmarks",
+      "lifecycle": "bounded-session",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/platform/chrome/bookmarks-full.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Native Chrome and same-candidate Node tests are pending"
+      ],
+      "nextTask": "Check real Native Chrome with explicit Full consent and 500+ tree",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.bookmarks.observe.read",
+      "module": "browser.bookmarks.observe",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.observe.read:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.observe.read:output",
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "effectClass": "read",
+      "riskLevel": "high",
+      "siteScope": "all-bookmarks",
+      "lifecycle": "bounded-session",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/platform/chrome/bookmarks-full.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Native Chrome and same-candidate Node tests are pending"
+      ],
+      "nextTask": "Check real Native Chrome with explicit Full consent and 500+ tree",
+      "commits": [],
+      "evidence": []
+    },
+    {
+      "api": "browser.bookmarks.observe.stop",
+      "module": "browser.bookmarks.observe",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.observe.stop:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.bookmarks.observe.stop:output",
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "effectClass": "write",
+      "riskLevel": "high",
+      "siteScope": "all-bookmarks",
+      "lifecycle": "bounded-session",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → src/platform/chrome/bookmarks-full.js",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Native Chrome and same-candidate Node tests are pending"
+      ],
+      "nextTask": "Check real Native Chrome with explicit Full consent and 500+ tree",
+      "commits": [],
       "evidence": []
     }
   ],

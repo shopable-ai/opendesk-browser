@@ -27,7 +27,7 @@ test('R11 finite bindings: approved operation invokes audited handler only after
 
 test('R11 finite bindings: unknown or unapproved operations do not execute',async()=>{
   assert.throws(()=>createApprovedBrowserBindings({
-    'browser.bookmarks.getTree':async()=>[]
+    'browser.bookmarks.revokeAll':async()=>[]
   }),match('E_CONTRACT'));
   assert.throws(()=>createApprovedBrowserBindings({'browser.tabs.getOwned':{}}),match('E_CONTRACT'));
   const bindings=createApprovedBrowserBindings({'browser.tabs.getOwned':async()=>{throw Error('must not execute')}});
@@ -76,22 +76,22 @@ test('R11 finite bindings: oversized and non-JSON native receipts cannot cross t
 test('R11 automatic service names bind every approved same-named method once',async()=>{
   const calls=[],ref='b'.repeat(32);
   const service=Object.freeze({
-    async create(args,owner){calls.push(['create',args,owner]);return {bookmarkRef:ref};},
+    async createOwned(args,owner){calls.push(['createOwned',args,owner]);return {bookmarkRef:ref};},
     async removeOwned(args,owner){calls.push(['removeOwned',args,owner]);return {removed:true};},
-    getTree(){throw Error('Unapproved full-bookmark access must not execute')},
+    getEntireNativeTree(){throw Error('Unapproved native tree must not execute')},
     revokeAll(){throw Error('Internal Host lifecycle method must not execute')}
   });
   const bindings=createApprovedBrowserBindings({bookmarks:service});
-  assert.equal(bindings.has('browser.bookmarks.create'),true);
+  assert.equal(bindings.has('browser.bookmarks.createOwned'),true);
   assert.equal(bindings.has('browser.bookmarks.removeOwned'),true);
   assert.equal(bindings.has('browser.bookmarks.getTree'),false);
   assert.equal(bindings.has('browser.bookmarks.revokeAll'),false);
   const owner={toolId:'example-tool'},authorize=async()=>{};
-  assert.deepEqual(await bindings.dispatch('browser.bookmarks.create',
+  assert.deepEqual(await bindings.dispatch('browser.bookmarks.createOwned',
     {url:'https://example.com/'},owner,{authorize}),{bookmarkRef:ref});
   assert.deepEqual(await bindings.dispatch('browser.bookmarks.removeOwned',
     {bookmarkRef:ref},owner,{authorize}),{removed:true});
-  assert.deepEqual(calls.map(x=>x[0]),['create','removeOwned']);
+  assert.deepEqual(calls.map(x=>x[0]),['createOwned','removeOwned']);
   assert.strictEqual(calls[0][2],owner);
 });
 

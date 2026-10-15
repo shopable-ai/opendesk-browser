@@ -1,6 +1,6 @@
 {
   "schemaVersion": "opendesk.browser-sdk.interface-matrix.v1",
-  "date": "2026-10-13",
+  "date": "2026-10-15",
   "freezeStatus": "DESIGN_FROZEN_FOR_PINNED_CHROMIUM_SCHEMA_SCOPE",
   "target": {
     "minChrome": 138,
@@ -1917,12 +1917,12 @@
       "DEVTOOLS_ONLY": 27,
       "VERSION_GATED": 1
     },
-    "approvedOperations": 55,
-    "approvedRegistered": 53,
+    "approvedOperations": 67,
+    "approvedRegistered": 65,
     "approvedCookieHostOnly": 0,
     "approvedPlannedNew": 0,
-    "nativeMappedApproved": 36,
-    "approvedWithInputAndOutputSchemas": 55,
+    "nativeMappedApproved": 50,
+    "approvedWithInputAndOutputSchemas": 67,
     "approvedTrustedHostImplemented": 2
   },
   "parseErrors": [],
@@ -7970,11 +7970,11 @@
       }
     },
     {
-      "id": "browser.bookmarks.create",
+      "id": "browser.bookmarks.createOwned",
       "visibility": "APPROVED_TOOL_REGISTERED",
       "migrationDecision": "NEW",
       "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
-      "callSignature": "OpenDeskSDK.browser.bookmarks.create({url:HTTP_URL,title?:string,parentRef?:opaque})",
+      "callSignature": "OpenDeskSDK.browser.bookmarks.createOwned({url:HTTP_URL,title?:string,parentRef?:opaque})",
       "returnSignature": "Promise<{bookmarkRef:opaque}>",
       "inputSchema": {
         "type": "object",
@@ -8107,7 +8107,7 @@
         "candidateSha": "4475d0422e107c6a4955db59f3e748468bd2e8d5",
         "command": "See retained original-suite command and separate physical447 node-gap-evidence run; per-interface cases/lines are in the map.",
         "environment": "Original candidate Node v24.16.0 macOS arm64; separate new verification drivers against unchanged physical447 product inputs.",
-        "caseId": "browser.bookmarks.create",
+        "caseId": "browser.bookmarks.createOwned",
         "positive": "PASS",
         "denial": "PASS",
         "fullMatrixContractStatus": "NOT_TESTED",
@@ -9839,6 +9839,1259 @@
         "fullMatrixContractStatus": "NOT_TESTED",
         "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
       }
+    },
+    {
+      "id": "browser.bookmarks.getTree",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "migrationDecision": "FULL_CAPABILITY_SEPARATE_FROM_OWNED",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
+      "callSignature": "OpenDeskSDK.browser.bookmarks.getTree(approved bounded SDK arguments)",
+      "returnSignature": "Promise<{snapshotRef,nodes,nextCursor?}>",
+      "inputSchema": {
+        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.bookmarks.getTree:input"
+      },
+      "outputSchema": {
+        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.bookmarks.getTree:output"
+      },
+      "nativeApis": [
+        "chrome.bookmarks.getTree"
+      ],
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "siteScope": "all-bookmarks",
+      "allowedWorlds": [
+        "sidebar-tool"
+      ],
+      "trust": "INSTALLED_TOOL_FULL_BOOKMARKS_EXPLICIT_TRUSTED_UI_CONSENT_AND_CHROME_OPTIONAL_PERMISSION",
+      "userGesture": false,
+      "errors": [
+        "E_SCHEMA",
+        "E_OWNER",
+        "E_TOOL_CAPABILITY_REQUIRED",
+        "E_BOOKMARK_FULL_CONSENT_REQUIRED",
+        "E_CHROME_PERMISSION_REQUIRED",
+        "E_USER_GESTURE_REQUIRED",
+        "E_BOOKMARK_STALE",
+        "E_OUTCOME_UNKNOWN",
+        "E_LIMIT",
+        "E_SNAPSHOT_EXPIRED",
+        "E_SESSION_EXPIRED"
+      ],
+      "sdkFile": "src/framework/sdk/browser.js",
+      "registryFile": "src/framework/sdk/browser-contract.js",
+      "schemaFile": "src/framework/sdk/browser-schemas.js",
+      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "authority": "src/ui/sidebar-tools.js + src/platform/chrome/context-menus.js (REUSE)",
+      "driverFile": "src/platform/chrome/bookmarks-full.js",
+      "lifecycle": "bounded-snapshot",
+      "phase": "R11.2",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
+      "verification": {
+        "node": "NOT_TESTED",
+        "build": "NOT_TESTED",
+        "native": "NOT_TESTED"
+      },
+      "testContract": {
+        "target": "tests/environment/browser-sdk-r112-full-bookmarks.test.mjs",
+        "positive": "bounded Chrome native CRUD, snapshot, cursor, event and consumer interoperability",
+        "negative": "Owned isolation, stale permission, package epoch, managed/root delete, replay and overflow",
+        "native": "separate same-SHA Chrome profile required; source and Node do not satisfy acceptance"
+      },
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "support": {
+        "desktopChromeMinimum": 138,
+        "chromeFeatureGate": "feature presence + actual source permission check; never fake Chrome>=138 availability for unknown introduced versions",
+        "executionWorlds": [
+          "sidebar-tool"
+        ],
+        "incognito": "DENIED_BY_DEFAULT"
+      },
+      "nativeTestConditions": {
+        "kind": "NATIVE_PASS_REQUIRES_REAL_CHROME",
+        "sameCandidate": [
+          "commitSha",
+          "extensionPackageSha256",
+          "chromeVersion",
+          "extensionId",
+          "realSenderDocumentId",
+          "toolPackageHashAndInstallEpoch",
+          "permissionAndOriginSnapshot",
+          "nativeAckOrEffectId",
+          "workerLifecycleEvidence",
+          "redactedLogs"
+        ],
+        "denials": [
+          "permissionRevoked",
+          "foreignTool",
+          "staleDocument",
+          "badOrigin",
+          "staleEpoch"
+        ],
+        "nodeAndBuildDoNotPromote": true
+      },
+      "mappingKind": "SCOPED",
+      "statusVerificationPolicy": "Current source path and all current evidence statuses are separate; NEVER treat source-wired as native Chrome PASS",
+      "targetFiles": [
+        "src/framework/sdk/browser-contract.js",
+        "src/framework/sdk/browser-schemas.js",
+        "src/platform/chrome/context-menus.js",
+        "src/platform/chrome/bookmarks-full.js"
+      ],
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA"
+    },
+    {
+      "id": "browser.bookmarks.get",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "migrationDecision": "FULL_CAPABILITY_SEPARATE_FROM_OWNED",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
+      "callSignature": "OpenDeskSDK.browser.bookmarks.get(approved bounded SDK arguments)",
+      "returnSignature": "Promise<BookmarkTreeNode[]>",
+      "inputSchema": {
+        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.bookmarks.get:input"
+      },
+      "outputSchema": {
+        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.bookmarks.get:output"
+      },
+      "nativeApis": [
+        "chrome.bookmarks.get"
+      ],
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "siteScope": "all-bookmarks",
+      "allowedWorlds": [
+        "sidebar-tool"
+      ],
+      "trust": "INSTALLED_TOOL_FULL_BOOKMARKS_EXPLICIT_TRUSTED_UI_CONSENT_AND_CHROME_OPTIONAL_PERMISSION",
+      "userGesture": false,
+      "errors": [
+        "E_SCHEMA",
+        "E_OWNER",
+        "E_TOOL_CAPABILITY_REQUIRED",
+        "E_BOOKMARK_FULL_CONSENT_REQUIRED",
+        "E_CHROME_PERMISSION_REQUIRED",
+        "E_USER_GESTURE_REQUIRED",
+        "E_BOOKMARK_STALE",
+        "E_OUTCOME_UNKNOWN",
+        "E_LIMIT",
+        "E_SNAPSHOT_EXPIRED",
+        "E_SESSION_EXPIRED"
+      ],
+      "sdkFile": "src/framework/sdk/browser.js",
+      "registryFile": "src/framework/sdk/browser-contract.js",
+      "schemaFile": "src/framework/sdk/browser-schemas.js",
+      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "authority": "src/ui/sidebar-tools.js + src/platform/chrome/context-menus.js (REUSE)",
+      "driverFile": "src/platform/chrome/bookmarks-full.js",
+      "lifecycle": "request",
+      "phase": "R11.2",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
+      "verification": {
+        "node": "NOT_TESTED",
+        "build": "NOT_TESTED",
+        "native": "NOT_TESTED"
+      },
+      "testContract": {
+        "target": "tests/environment/browser-sdk-r112-full-bookmarks.test.mjs",
+        "positive": "bounded Chrome native CRUD, snapshot, cursor, event and consumer interoperability",
+        "negative": "Owned isolation, stale permission, package epoch, managed/root delete, replay and overflow",
+        "native": "separate same-SHA Chrome profile required; source and Node do not satisfy acceptance"
+      },
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "support": {
+        "desktopChromeMinimum": 138,
+        "chromeFeatureGate": "feature presence + actual source permission check; never fake Chrome>=138 availability for unknown introduced versions",
+        "executionWorlds": [
+          "sidebar-tool"
+        ],
+        "incognito": "DENIED_BY_DEFAULT"
+      },
+      "nativeTestConditions": {
+        "kind": "NATIVE_PASS_REQUIRES_REAL_CHROME",
+        "sameCandidate": [
+          "commitSha",
+          "extensionPackageSha256",
+          "chromeVersion",
+          "extensionId",
+          "realSenderDocumentId",
+          "toolPackageHashAndInstallEpoch",
+          "permissionAndOriginSnapshot",
+          "nativeAckOrEffectId",
+          "workerLifecycleEvidence",
+          "redactedLogs"
+        ],
+        "denials": [
+          "permissionRevoked",
+          "foreignTool",
+          "staleDocument",
+          "badOrigin",
+          "staleEpoch"
+        ],
+        "nodeAndBuildDoNotPromote": true
+      },
+      "mappingKind": "SCOPED",
+      "statusVerificationPolicy": "Current source path and all current evidence statuses are separate; NEVER treat source-wired as native Chrome PASS",
+      "targetFiles": [
+        "src/framework/sdk/browser-contract.js",
+        "src/framework/sdk/browser-schemas.js",
+        "src/platform/chrome/context-menus.js",
+        "src/platform/chrome/bookmarks-full.js"
+      ],
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA"
+    },
+    {
+      "id": "browser.bookmarks.search",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "migrationDecision": "FULL_CAPABILITY_SEPARATE_FROM_OWNED",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
+      "callSignature": "OpenDeskSDK.browser.bookmarks.search(approved bounded SDK arguments)",
+      "returnSignature": "Promise<{snapshotRef,nodes,nextCursor?}>",
+      "inputSchema": {
+        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.bookmarks.search:input"
+      },
+      "outputSchema": {
+        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.bookmarks.search:output"
+      },
+      "nativeApis": [
+        "chrome.bookmarks.search"
+      ],
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "siteScope": "all-bookmarks",
+      "allowedWorlds": [
+        "sidebar-tool"
+      ],
+      "trust": "INSTALLED_TOOL_FULL_BOOKMARKS_EXPLICIT_TRUSTED_UI_CONSENT_AND_CHROME_OPTIONAL_PERMISSION",
+      "userGesture": false,
+      "errors": [
+        "E_SCHEMA",
+        "E_OWNER",
+        "E_TOOL_CAPABILITY_REQUIRED",
+        "E_BOOKMARK_FULL_CONSENT_REQUIRED",
+        "E_CHROME_PERMISSION_REQUIRED",
+        "E_USER_GESTURE_REQUIRED",
+        "E_BOOKMARK_STALE",
+        "E_OUTCOME_UNKNOWN",
+        "E_LIMIT",
+        "E_SNAPSHOT_EXPIRED",
+        "E_SESSION_EXPIRED"
+      ],
+      "sdkFile": "src/framework/sdk/browser.js",
+      "registryFile": "src/framework/sdk/browser-contract.js",
+      "schemaFile": "src/framework/sdk/browser-schemas.js",
+      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "authority": "src/ui/sidebar-tools.js + src/platform/chrome/context-menus.js (REUSE)",
+      "driverFile": "src/platform/chrome/bookmarks-full.js",
+      "lifecycle": "bounded-snapshot",
+      "phase": "R11.2",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
+      "verification": {
+        "node": "NOT_TESTED",
+        "build": "NOT_TESTED",
+        "native": "NOT_TESTED"
+      },
+      "testContract": {
+        "target": "tests/environment/browser-sdk-r112-full-bookmarks.test.mjs",
+        "positive": "bounded Chrome native CRUD, snapshot, cursor, event and consumer interoperability",
+        "negative": "Owned isolation, stale permission, package epoch, managed/root delete, replay and overflow",
+        "native": "separate same-SHA Chrome profile required; source and Node do not satisfy acceptance"
+      },
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "support": {
+        "desktopChromeMinimum": 138,
+        "chromeFeatureGate": "feature presence + actual source permission check; never fake Chrome>=138 availability for unknown introduced versions",
+        "executionWorlds": [
+          "sidebar-tool"
+        ],
+        "incognito": "DENIED_BY_DEFAULT"
+      },
+      "nativeTestConditions": {
+        "kind": "NATIVE_PASS_REQUIRES_REAL_CHROME",
+        "sameCandidate": [
+          "commitSha",
+          "extensionPackageSha256",
+          "chromeVersion",
+          "extensionId",
+          "realSenderDocumentId",
+          "toolPackageHashAndInstallEpoch",
+          "permissionAndOriginSnapshot",
+          "nativeAckOrEffectId",
+          "workerLifecycleEvidence",
+          "redactedLogs"
+        ],
+        "denials": [
+          "permissionRevoked",
+          "foreignTool",
+          "staleDocument",
+          "badOrigin",
+          "staleEpoch"
+        ],
+        "nodeAndBuildDoNotPromote": true
+      },
+      "mappingKind": "SCOPED",
+      "statusVerificationPolicy": "Current source path and all current evidence statuses are separate; NEVER treat source-wired as native Chrome PASS",
+      "targetFiles": [
+        "src/framework/sdk/browser-contract.js",
+        "src/framework/sdk/browser-schemas.js",
+        "src/platform/chrome/context-menus.js",
+        "src/platform/chrome/bookmarks-full.js"
+      ],
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA"
+    },
+    {
+      "id": "browser.bookmarks.create",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "migrationDecision": "FULL_CAPABILITY_SEPARATE_FROM_OWNED",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
+      "callSignature": "OpenDeskSDK.browser.bookmarks.create(approved bounded SDK arguments)",
+      "returnSignature": "Promise<BookmarkOperationReceipt>",
+      "inputSchema": {
+        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.bookmarks.create:input"
+      },
+      "outputSchema": {
+        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.bookmarks.create:output"
+      },
+      "nativeApis": [
+        "chrome.bookmarks.create"
+      ],
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "siteScope": "all-bookmarks",
+      "allowedWorlds": [
+        "sidebar-tool"
+      ],
+      "trust": "INSTALLED_TOOL_FULL_BOOKMARKS_EXPLICIT_TRUSTED_UI_CONSENT_AND_CHROME_OPTIONAL_PERMISSION",
+      "userGesture": true,
+      "errors": [
+        "E_SCHEMA",
+        "E_OWNER",
+        "E_TOOL_CAPABILITY_REQUIRED",
+        "E_BOOKMARK_FULL_CONSENT_REQUIRED",
+        "E_CHROME_PERMISSION_REQUIRED",
+        "E_USER_GESTURE_REQUIRED",
+        "E_BOOKMARK_STALE",
+        "E_OUTCOME_UNKNOWN",
+        "E_LIMIT",
+        "E_SNAPSHOT_EXPIRED",
+        "E_SESSION_EXPIRED"
+      ],
+      "sdkFile": "src/framework/sdk/browser.js",
+      "registryFile": "src/framework/sdk/browser-contract.js",
+      "schemaFile": "src/framework/sdk/browser-schemas.js",
+      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "authority": "src/ui/sidebar-tools.js + src/platform/chrome/context-menus.js (REUSE)",
+      "driverFile": "src/platform/chrome/bookmarks-full.js",
+      "lifecycle": "request",
+      "phase": "R11.2",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
+      "verification": {
+        "node": "NOT_TESTED",
+        "build": "NOT_TESTED",
+        "native": "NOT_TESTED"
+      },
+      "testContract": {
+        "target": "tests/environment/browser-sdk-r112-full-bookmarks.test.mjs",
+        "positive": "bounded Chrome native CRUD, snapshot, cursor, event and consumer interoperability",
+        "negative": "Owned isolation, stale permission, package epoch, managed/root delete, replay and overflow",
+        "native": "separate same-SHA Chrome profile required; source and Node do not satisfy acceptance"
+      },
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "support": {
+        "desktopChromeMinimum": 138,
+        "chromeFeatureGate": "feature presence + actual source permission check; never fake Chrome>=138 availability for unknown introduced versions",
+        "executionWorlds": [
+          "sidebar-tool"
+        ],
+        "incognito": "DENIED_BY_DEFAULT"
+      },
+      "nativeTestConditions": {
+        "kind": "NATIVE_PASS_REQUIRES_REAL_CHROME",
+        "sameCandidate": [
+          "commitSha",
+          "extensionPackageSha256",
+          "chromeVersion",
+          "extensionId",
+          "realSenderDocumentId",
+          "toolPackageHashAndInstallEpoch",
+          "permissionAndOriginSnapshot",
+          "nativeAckOrEffectId",
+          "workerLifecycleEvidence",
+          "redactedLogs"
+        ],
+        "denials": [
+          "permissionRevoked",
+          "foreignTool",
+          "staleDocument",
+          "badOrigin",
+          "staleEpoch"
+        ],
+        "nodeAndBuildDoNotPromote": true
+      },
+      "mappingKind": "SCOPED",
+      "statusVerificationPolicy": "Current source path and all current evidence statuses are separate; NEVER treat source-wired as native Chrome PASS",
+      "targetFiles": [
+        "src/framework/sdk/browser-contract.js",
+        "src/framework/sdk/browser-schemas.js",
+        "src/platform/chrome/context-menus.js",
+        "src/platform/chrome/bookmarks-full.js"
+      ],
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA"
+    },
+    {
+      "id": "browser.bookmarks.update",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "migrationDecision": "FULL_CAPABILITY_SEPARATE_FROM_OWNED",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
+      "callSignature": "OpenDeskSDK.browser.bookmarks.update(approved bounded SDK arguments)",
+      "returnSignature": "Promise<BookmarkOperationReceipt>",
+      "inputSchema": {
+        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.bookmarks.update:input"
+      },
+      "outputSchema": {
+        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.bookmarks.update:output"
+      },
+      "nativeApis": [
+        "chrome.bookmarks.update"
+      ],
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "siteScope": "all-bookmarks",
+      "allowedWorlds": [
+        "sidebar-tool"
+      ],
+      "trust": "INSTALLED_TOOL_FULL_BOOKMARKS_EXPLICIT_TRUSTED_UI_CONSENT_AND_CHROME_OPTIONAL_PERMISSION",
+      "userGesture": true,
+      "errors": [
+        "E_SCHEMA",
+        "E_OWNER",
+        "E_TOOL_CAPABILITY_REQUIRED",
+        "E_BOOKMARK_FULL_CONSENT_REQUIRED",
+        "E_CHROME_PERMISSION_REQUIRED",
+        "E_USER_GESTURE_REQUIRED",
+        "E_BOOKMARK_STALE",
+        "E_OUTCOME_UNKNOWN",
+        "E_LIMIT",
+        "E_SNAPSHOT_EXPIRED",
+        "E_SESSION_EXPIRED"
+      ],
+      "sdkFile": "src/framework/sdk/browser.js",
+      "registryFile": "src/framework/sdk/browser-contract.js",
+      "schemaFile": "src/framework/sdk/browser-schemas.js",
+      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "authority": "src/ui/sidebar-tools.js + src/platform/chrome/context-menus.js (REUSE)",
+      "driverFile": "src/platform/chrome/bookmarks-full.js",
+      "lifecycle": "request",
+      "phase": "R11.2",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
+      "verification": {
+        "node": "NOT_TESTED",
+        "build": "NOT_TESTED",
+        "native": "NOT_TESTED"
+      },
+      "testContract": {
+        "target": "tests/environment/browser-sdk-r112-full-bookmarks.test.mjs",
+        "positive": "bounded Chrome native CRUD, snapshot, cursor, event and consumer interoperability",
+        "negative": "Owned isolation, stale permission, package epoch, managed/root delete, replay and overflow",
+        "native": "separate same-SHA Chrome profile required; source and Node do not satisfy acceptance"
+      },
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "support": {
+        "desktopChromeMinimum": 138,
+        "chromeFeatureGate": "feature presence + actual source permission check; never fake Chrome>=138 availability for unknown introduced versions",
+        "executionWorlds": [
+          "sidebar-tool"
+        ],
+        "incognito": "DENIED_BY_DEFAULT"
+      },
+      "nativeTestConditions": {
+        "kind": "NATIVE_PASS_REQUIRES_REAL_CHROME",
+        "sameCandidate": [
+          "commitSha",
+          "extensionPackageSha256",
+          "chromeVersion",
+          "extensionId",
+          "realSenderDocumentId",
+          "toolPackageHashAndInstallEpoch",
+          "permissionAndOriginSnapshot",
+          "nativeAckOrEffectId",
+          "workerLifecycleEvidence",
+          "redactedLogs"
+        ],
+        "denials": [
+          "permissionRevoked",
+          "foreignTool",
+          "staleDocument",
+          "badOrigin",
+          "staleEpoch"
+        ],
+        "nodeAndBuildDoNotPromote": true
+      },
+      "mappingKind": "SCOPED",
+      "statusVerificationPolicy": "Current source path and all current evidence statuses are separate; NEVER treat source-wired as native Chrome PASS",
+      "targetFiles": [
+        "src/framework/sdk/browser-contract.js",
+        "src/framework/sdk/browser-schemas.js",
+        "src/platform/chrome/context-menus.js",
+        "src/platform/chrome/bookmarks-full.js"
+      ],
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA"
+    },
+    {
+      "id": "browser.bookmarks.move",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "migrationDecision": "FULL_CAPABILITY_SEPARATE_FROM_OWNED",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
+      "callSignature": "OpenDeskSDK.browser.bookmarks.move(approved bounded SDK arguments)",
+      "returnSignature": "Promise<BookmarkOperationReceipt>",
+      "inputSchema": {
+        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.bookmarks.move:input"
+      },
+      "outputSchema": {
+        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.bookmarks.move:output"
+      },
+      "nativeApis": [
+        "chrome.bookmarks.move"
+      ],
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "siteScope": "all-bookmarks",
+      "allowedWorlds": [
+        "sidebar-tool"
+      ],
+      "trust": "INSTALLED_TOOL_FULL_BOOKMARKS_EXPLICIT_TRUSTED_UI_CONSENT_AND_CHROME_OPTIONAL_PERMISSION",
+      "userGesture": true,
+      "errors": [
+        "E_SCHEMA",
+        "E_OWNER",
+        "E_TOOL_CAPABILITY_REQUIRED",
+        "E_BOOKMARK_FULL_CONSENT_REQUIRED",
+        "E_CHROME_PERMISSION_REQUIRED",
+        "E_USER_GESTURE_REQUIRED",
+        "E_BOOKMARK_STALE",
+        "E_OUTCOME_UNKNOWN",
+        "E_LIMIT",
+        "E_SNAPSHOT_EXPIRED",
+        "E_SESSION_EXPIRED"
+      ],
+      "sdkFile": "src/framework/sdk/browser.js",
+      "registryFile": "src/framework/sdk/browser-contract.js",
+      "schemaFile": "src/framework/sdk/browser-schemas.js",
+      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "authority": "src/ui/sidebar-tools.js + src/platform/chrome/context-menus.js (REUSE)",
+      "driverFile": "src/platform/chrome/bookmarks-full.js",
+      "lifecycle": "request",
+      "phase": "R11.2",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
+      "verification": {
+        "node": "NOT_TESTED",
+        "build": "NOT_TESTED",
+        "native": "NOT_TESTED"
+      },
+      "testContract": {
+        "target": "tests/environment/browser-sdk-r112-full-bookmarks.test.mjs",
+        "positive": "bounded Chrome native CRUD, snapshot, cursor, event and consumer interoperability",
+        "negative": "Owned isolation, stale permission, package epoch, managed/root delete, replay and overflow",
+        "native": "separate same-SHA Chrome profile required; source and Node do not satisfy acceptance"
+      },
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "support": {
+        "desktopChromeMinimum": 138,
+        "chromeFeatureGate": "feature presence + actual source permission check; never fake Chrome>=138 availability for unknown introduced versions",
+        "executionWorlds": [
+          "sidebar-tool"
+        ],
+        "incognito": "DENIED_BY_DEFAULT"
+      },
+      "nativeTestConditions": {
+        "kind": "NATIVE_PASS_REQUIRES_REAL_CHROME",
+        "sameCandidate": [
+          "commitSha",
+          "extensionPackageSha256",
+          "chromeVersion",
+          "extensionId",
+          "realSenderDocumentId",
+          "toolPackageHashAndInstallEpoch",
+          "permissionAndOriginSnapshot",
+          "nativeAckOrEffectId",
+          "workerLifecycleEvidence",
+          "redactedLogs"
+        ],
+        "denials": [
+          "permissionRevoked",
+          "foreignTool",
+          "staleDocument",
+          "badOrigin",
+          "staleEpoch"
+        ],
+        "nodeAndBuildDoNotPromote": true
+      },
+      "mappingKind": "SCOPED",
+      "statusVerificationPolicy": "Current source path and all current evidence statuses are separate; NEVER treat source-wired as native Chrome PASS",
+      "targetFiles": [
+        "src/framework/sdk/browser-contract.js",
+        "src/framework/sdk/browser-schemas.js",
+        "src/platform/chrome/context-menus.js",
+        "src/platform/chrome/bookmarks-full.js"
+      ],
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA"
+    },
+    {
+      "id": "browser.bookmarks.remove",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "migrationDecision": "FULL_CAPABILITY_SEPARATE_FROM_OWNED",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
+      "callSignature": "OpenDeskSDK.browser.bookmarks.remove(approved bounded SDK arguments)",
+      "returnSignature": "Promise<BookmarkOperationReceipt>",
+      "inputSchema": {
+        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.bookmarks.remove:input"
+      },
+      "outputSchema": {
+        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.bookmarks.remove:output"
+      },
+      "nativeApis": [
+        "chrome.bookmarks.remove"
+      ],
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "siteScope": "all-bookmarks",
+      "allowedWorlds": [
+        "sidebar-tool"
+      ],
+      "trust": "INSTALLED_TOOL_FULL_BOOKMARKS_EXPLICIT_TRUSTED_UI_CONSENT_AND_CHROME_OPTIONAL_PERMISSION",
+      "userGesture": true,
+      "errors": [
+        "E_SCHEMA",
+        "E_OWNER",
+        "E_TOOL_CAPABILITY_REQUIRED",
+        "E_BOOKMARK_FULL_CONSENT_REQUIRED",
+        "E_CHROME_PERMISSION_REQUIRED",
+        "E_USER_GESTURE_REQUIRED",
+        "E_BOOKMARK_STALE",
+        "E_OUTCOME_UNKNOWN",
+        "E_LIMIT",
+        "E_SNAPSHOT_EXPIRED",
+        "E_SESSION_EXPIRED"
+      ],
+      "sdkFile": "src/framework/sdk/browser.js",
+      "registryFile": "src/framework/sdk/browser-contract.js",
+      "schemaFile": "src/framework/sdk/browser-schemas.js",
+      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "authority": "src/ui/sidebar-tools.js + src/platform/chrome/context-menus.js (REUSE)",
+      "driverFile": "src/platform/chrome/bookmarks-full.js",
+      "lifecycle": "request",
+      "phase": "R11.2",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
+      "verification": {
+        "node": "NOT_TESTED",
+        "build": "NOT_TESTED",
+        "native": "NOT_TESTED"
+      },
+      "testContract": {
+        "target": "tests/environment/browser-sdk-r112-full-bookmarks.test.mjs",
+        "positive": "bounded Chrome native CRUD, snapshot, cursor, event and consumer interoperability",
+        "negative": "Owned isolation, stale permission, package epoch, managed/root delete, replay and overflow",
+        "native": "separate same-SHA Chrome profile required; source and Node do not satisfy acceptance"
+      },
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "support": {
+        "desktopChromeMinimum": 138,
+        "chromeFeatureGate": "feature presence + actual source permission check; never fake Chrome>=138 availability for unknown introduced versions",
+        "executionWorlds": [
+          "sidebar-tool"
+        ],
+        "incognito": "DENIED_BY_DEFAULT"
+      },
+      "nativeTestConditions": {
+        "kind": "NATIVE_PASS_REQUIRES_REAL_CHROME",
+        "sameCandidate": [
+          "commitSha",
+          "extensionPackageSha256",
+          "chromeVersion",
+          "extensionId",
+          "realSenderDocumentId",
+          "toolPackageHashAndInstallEpoch",
+          "permissionAndOriginSnapshot",
+          "nativeAckOrEffectId",
+          "workerLifecycleEvidence",
+          "redactedLogs"
+        ],
+        "denials": [
+          "permissionRevoked",
+          "foreignTool",
+          "staleDocument",
+          "badOrigin",
+          "staleEpoch"
+        ],
+        "nodeAndBuildDoNotPromote": true
+      },
+      "mappingKind": "SCOPED",
+      "statusVerificationPolicy": "Current source path and all current evidence statuses are separate; NEVER treat source-wired as native Chrome PASS",
+      "targetFiles": [
+        "src/framework/sdk/browser-contract.js",
+        "src/framework/sdk/browser-schemas.js",
+        "src/platform/chrome/context-menus.js",
+        "src/platform/chrome/bookmarks-full.js"
+      ],
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA"
+    },
+    {
+      "id": "browser.bookmarks.prepareRemoveTree",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "migrationDecision": "FULL_CAPABILITY_SEPARATE_FROM_OWNED",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
+      "callSignature": "OpenDeskSDK.browser.bookmarks.prepareRemoveTree(approved bounded SDK arguments)",
+      "returnSignature": "Promise<BookmarkOperationReceipt>",
+      "inputSchema": {
+        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.bookmarks.prepareRemoveTree:input"
+      },
+      "outputSchema": {
+        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.bookmarks.prepareRemoveTree:output"
+      },
+      "nativeApis": [
+        "chrome.bookmarks.getSubTree",
+        "chrome.bookmarks.getTree"
+      ],
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "siteScope": "all-bookmarks",
+      "allowedWorlds": [
+        "sidebar-tool"
+      ],
+      "trust": "INSTALLED_TOOL_FULL_BOOKMARKS_EXPLICIT_TRUSTED_UI_CONSENT_AND_CHROME_OPTIONAL_PERMISSION",
+      "userGesture": false,
+      "errors": [
+        "E_SCHEMA",
+        "E_OWNER",
+        "E_TOOL_CAPABILITY_REQUIRED",
+        "E_BOOKMARK_FULL_CONSENT_REQUIRED",
+        "E_CHROME_PERMISSION_REQUIRED",
+        "E_USER_GESTURE_REQUIRED",
+        "E_BOOKMARK_STALE",
+        "E_OUTCOME_UNKNOWN",
+        "E_LIMIT",
+        "E_SNAPSHOT_EXPIRED",
+        "E_SESSION_EXPIRED"
+      ],
+      "sdkFile": "src/framework/sdk/browser.js",
+      "registryFile": "src/framework/sdk/browser-contract.js",
+      "schemaFile": "src/framework/sdk/browser-schemas.js",
+      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "authority": "src/ui/sidebar-tools.js + src/platform/chrome/context-menus.js (REUSE)",
+      "driverFile": "src/platform/chrome/bookmarks-full.js",
+      "lifecycle": "single-use-15s",
+      "phase": "R11.2",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
+      "verification": {
+        "node": "NOT_TESTED",
+        "build": "NOT_TESTED",
+        "native": "NOT_TESTED"
+      },
+      "testContract": {
+        "target": "tests/environment/browser-sdk-r112-full-bookmarks.test.mjs",
+        "positive": "bounded Chrome native CRUD, snapshot, cursor, event and consumer interoperability",
+        "negative": "Owned isolation, stale permission, package epoch, managed/root delete, replay and overflow",
+        "native": "separate same-SHA Chrome profile required; source and Node do not satisfy acceptance"
+      },
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "support": {
+        "desktopChromeMinimum": 138,
+        "chromeFeatureGate": "feature presence + actual source permission check; never fake Chrome>=138 availability for unknown introduced versions",
+        "executionWorlds": [
+          "sidebar-tool"
+        ],
+        "incognito": "DENIED_BY_DEFAULT"
+      },
+      "nativeTestConditions": {
+        "kind": "NATIVE_PASS_REQUIRES_REAL_CHROME",
+        "sameCandidate": [
+          "commitSha",
+          "extensionPackageSha256",
+          "chromeVersion",
+          "extensionId",
+          "realSenderDocumentId",
+          "toolPackageHashAndInstallEpoch",
+          "permissionAndOriginSnapshot",
+          "nativeAckOrEffectId",
+          "workerLifecycleEvidence",
+          "redactedLogs"
+        ],
+        "denials": [
+          "permissionRevoked",
+          "foreignTool",
+          "staleDocument",
+          "badOrigin",
+          "staleEpoch"
+        ],
+        "nodeAndBuildDoNotPromote": true
+      },
+      "mappingKind": "SCOPED",
+      "statusVerificationPolicy": "Current source path and all current evidence statuses are separate; NEVER treat source-wired as native Chrome PASS",
+      "targetFiles": [
+        "src/framework/sdk/browser-contract.js",
+        "src/framework/sdk/browser-schemas.js",
+        "src/platform/chrome/context-menus.js",
+        "src/platform/chrome/bookmarks-full.js"
+      ],
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA"
+    },
+    {
+      "id": "browser.bookmarks.removeTree",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "migrationDecision": "FULL_CAPABILITY_SEPARATE_FROM_OWNED",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
+      "callSignature": "OpenDeskSDK.browser.bookmarks.removeTree(approved bounded SDK arguments)",
+      "returnSignature": "Promise<BookmarkOperationReceipt>",
+      "inputSchema": {
+        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.bookmarks.removeTree:input"
+      },
+      "outputSchema": {
+        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.bookmarks.removeTree:output"
+      },
+      "nativeApis": [
+        "chrome.bookmarks.removeTree",
+        "chrome.bookmarks.getSubTree",
+        "chrome.bookmarks.getTree"
+      ],
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "siteScope": "all-bookmarks",
+      "allowedWorlds": [
+        "sidebar-tool"
+      ],
+      "trust": "INSTALLED_TOOL_FULL_BOOKMARKS_EXPLICIT_TRUSTED_UI_CONSENT_AND_CHROME_OPTIONAL_PERMISSION",
+      "userGesture": true,
+      "errors": [
+        "E_SCHEMA",
+        "E_OWNER",
+        "E_TOOL_CAPABILITY_REQUIRED",
+        "E_BOOKMARK_FULL_CONSENT_REQUIRED",
+        "E_CHROME_PERMISSION_REQUIRED",
+        "E_USER_GESTURE_REQUIRED",
+        "E_BOOKMARK_STALE",
+        "E_OUTCOME_UNKNOWN",
+        "E_LIMIT",
+        "E_SNAPSHOT_EXPIRED",
+        "E_SESSION_EXPIRED"
+      ],
+      "sdkFile": "src/framework/sdk/browser.js",
+      "registryFile": "src/framework/sdk/browser-contract.js",
+      "schemaFile": "src/framework/sdk/browser-schemas.js",
+      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "authority": "src/ui/sidebar-tools.js + src/platform/chrome/context-menus.js (REUSE)",
+      "driverFile": "src/platform/chrome/bookmarks-full.js",
+      "lifecycle": "single-use-15s",
+      "phase": "R11.2",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
+      "verification": {
+        "node": "NOT_TESTED",
+        "build": "NOT_TESTED",
+        "native": "NOT_TESTED"
+      },
+      "testContract": {
+        "target": "tests/environment/browser-sdk-r112-full-bookmarks.test.mjs",
+        "positive": "bounded Chrome native CRUD, snapshot, cursor, event and consumer interoperability",
+        "negative": "Owned isolation, stale permission, package epoch, managed/root delete, replay and overflow",
+        "native": "separate same-SHA Chrome profile required; source and Node do not satisfy acceptance"
+      },
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "support": {
+        "desktopChromeMinimum": 138,
+        "chromeFeatureGate": "feature presence + actual source permission check; never fake Chrome>=138 availability for unknown introduced versions",
+        "executionWorlds": [
+          "sidebar-tool"
+        ],
+        "incognito": "DENIED_BY_DEFAULT"
+      },
+      "nativeTestConditions": {
+        "kind": "NATIVE_PASS_REQUIRES_REAL_CHROME",
+        "sameCandidate": [
+          "commitSha",
+          "extensionPackageSha256",
+          "chromeVersion",
+          "extensionId",
+          "realSenderDocumentId",
+          "toolPackageHashAndInstallEpoch",
+          "permissionAndOriginSnapshot",
+          "nativeAckOrEffectId",
+          "workerLifecycleEvidence",
+          "redactedLogs"
+        ],
+        "denials": [
+          "permissionRevoked",
+          "foreignTool",
+          "staleDocument",
+          "badOrigin",
+          "staleEpoch"
+        ],
+        "nodeAndBuildDoNotPromote": true
+      },
+      "mappingKind": "SCOPED",
+      "statusVerificationPolicy": "Current source path and all current evidence statuses are separate; NEVER treat source-wired as native Chrome PASS",
+      "targetFiles": [
+        "src/framework/sdk/browser-contract.js",
+        "src/framework/sdk/browser-schemas.js",
+        "src/platform/chrome/context-menus.js",
+        "src/platform/chrome/bookmarks-full.js"
+      ],
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA"
+    },
+    {
+      "id": "browser.bookmarks.observe.start",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "migrationDecision": "FULL_CAPABILITY_SEPARATE_FROM_OWNED",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
+      "callSignature": "OpenDeskSDK.browser.bookmarks.observe.start(approved bounded SDK arguments)",
+      "returnSignature": "Promise<BoundedEventSessionReceipt>",
+      "inputSchema": {
+        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.bookmarks.observe.start:input"
+      },
+      "outputSchema": {
+        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.bookmarks.observe.start:output"
+      },
+      "nativeApis": [
+        "chrome.bookmarks.onCreated",
+        "chrome.bookmarks.onRemoved",
+        "chrome.bookmarks.onChanged",
+        "chrome.bookmarks.onMoved",
+        "chrome.bookmarks.onChildrenReordered",
+        "chrome.bookmarks.onImportBegan",
+        "chrome.bookmarks.onImportEnded"
+      ],
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "siteScope": "all-bookmarks",
+      "allowedWorlds": [
+        "sidebar-tool"
+      ],
+      "trust": "INSTALLED_TOOL_FULL_BOOKMARKS_EXPLICIT_TRUSTED_UI_CONSENT_AND_CHROME_OPTIONAL_PERMISSION",
+      "userGesture": false,
+      "errors": [
+        "E_SCHEMA",
+        "E_OWNER",
+        "E_TOOL_CAPABILITY_REQUIRED",
+        "E_BOOKMARK_FULL_CONSENT_REQUIRED",
+        "E_CHROME_PERMISSION_REQUIRED",
+        "E_USER_GESTURE_REQUIRED",
+        "E_BOOKMARK_STALE",
+        "E_OUTCOME_UNKNOWN",
+        "E_LIMIT",
+        "E_SNAPSHOT_EXPIRED",
+        "E_SESSION_EXPIRED"
+      ],
+      "sdkFile": "src/framework/sdk/browser.js",
+      "registryFile": "src/framework/sdk/browser-contract.js",
+      "schemaFile": "src/framework/sdk/browser-schemas.js",
+      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "authority": "src/ui/sidebar-tools.js + src/platform/chrome/context-menus.js (REUSE)",
+      "driverFile": "src/platform/chrome/bookmarks-full.js",
+      "lifecycle": "bounded-session",
+      "phase": "R11.2",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
+      "verification": {
+        "node": "NOT_TESTED",
+        "build": "NOT_TESTED",
+        "native": "NOT_TESTED"
+      },
+      "testContract": {
+        "target": "tests/environment/browser-sdk-r112-full-bookmarks.test.mjs",
+        "positive": "bounded Chrome native CRUD, snapshot, cursor, event and consumer interoperability",
+        "negative": "Owned isolation, stale permission, package epoch, managed/root delete, replay and overflow",
+        "native": "separate same-SHA Chrome profile required; source and Node do not satisfy acceptance"
+      },
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "support": {
+        "desktopChromeMinimum": 138,
+        "chromeFeatureGate": "feature presence + actual source permission check; never fake Chrome>=138 availability for unknown introduced versions",
+        "executionWorlds": [
+          "sidebar-tool"
+        ],
+        "incognito": "DENIED_BY_DEFAULT"
+      },
+      "nativeTestConditions": {
+        "kind": "NATIVE_PASS_REQUIRES_REAL_CHROME",
+        "sameCandidate": [
+          "commitSha",
+          "extensionPackageSha256",
+          "chromeVersion",
+          "extensionId",
+          "realSenderDocumentId",
+          "toolPackageHashAndInstallEpoch",
+          "permissionAndOriginSnapshot",
+          "nativeAckOrEffectId",
+          "workerLifecycleEvidence",
+          "redactedLogs"
+        ],
+        "denials": [
+          "permissionRevoked",
+          "foreignTool",
+          "staleDocument",
+          "badOrigin",
+          "staleEpoch"
+        ],
+        "nodeAndBuildDoNotPromote": true
+      },
+      "mappingKind": "SCOPED",
+      "statusVerificationPolicy": "Current source path and all current evidence statuses are separate; NEVER treat source-wired as native Chrome PASS",
+      "targetFiles": [
+        "src/framework/sdk/browser-contract.js",
+        "src/framework/sdk/browser-schemas.js",
+        "src/platform/chrome/context-menus.js",
+        "src/platform/chrome/bookmarks-full.js"
+      ],
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA"
+    },
+    {
+      "id": "browser.bookmarks.observe.read",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "migrationDecision": "FULL_CAPABILITY_SEPARATE_FROM_OWNED",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
+      "callSignature": "OpenDeskSDK.browser.bookmarks.observe.read(approved bounded SDK arguments)",
+      "returnSignature": "Promise<BoundedEventSessionReceipt>",
+      "inputSchema": {
+        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.bookmarks.observe.read:input"
+      },
+      "outputSchema": {
+        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.bookmarks.observe.read:output"
+      },
+      "nativeApis": [],
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "siteScope": "all-bookmarks",
+      "allowedWorlds": [
+        "sidebar-tool"
+      ],
+      "trust": "INSTALLED_TOOL_FULL_BOOKMARKS_EXPLICIT_TRUSTED_UI_CONSENT_AND_CHROME_OPTIONAL_PERMISSION",
+      "userGesture": false,
+      "errors": [
+        "E_SCHEMA",
+        "E_OWNER",
+        "E_TOOL_CAPABILITY_REQUIRED",
+        "E_BOOKMARK_FULL_CONSENT_REQUIRED",
+        "E_CHROME_PERMISSION_REQUIRED",
+        "E_USER_GESTURE_REQUIRED",
+        "E_BOOKMARK_STALE",
+        "E_OUTCOME_UNKNOWN",
+        "E_LIMIT",
+        "E_SNAPSHOT_EXPIRED",
+        "E_SESSION_EXPIRED"
+      ],
+      "sdkFile": "src/framework/sdk/browser.js",
+      "registryFile": "src/framework/sdk/browser-contract.js",
+      "schemaFile": "src/framework/sdk/browser-schemas.js",
+      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "authority": "src/ui/sidebar-tools.js + src/platform/chrome/context-menus.js (REUSE)",
+      "driverFile": "src/platform/chrome/bookmarks-full.js",
+      "lifecycle": "bounded-session",
+      "phase": "R11.2",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
+      "verification": {
+        "node": "NOT_TESTED",
+        "build": "NOT_TESTED",
+        "native": "NOT_TESTED"
+      },
+      "testContract": {
+        "target": "tests/environment/browser-sdk-r112-full-bookmarks.test.mjs",
+        "positive": "bounded Chrome native CRUD, snapshot, cursor, event and consumer interoperability",
+        "negative": "Owned isolation, stale permission, package epoch, managed/root delete, replay and overflow",
+        "native": "separate same-SHA Chrome profile required; source and Node do not satisfy acceptance"
+      },
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "support": {
+        "desktopChromeMinimum": 138,
+        "chromeFeatureGate": "feature presence + actual source permission check; never fake Chrome>=138 availability for unknown introduced versions",
+        "executionWorlds": [
+          "sidebar-tool"
+        ],
+        "incognito": "DENIED_BY_DEFAULT"
+      },
+      "nativeTestConditions": {
+        "kind": "NATIVE_PASS_REQUIRES_REAL_CHROME",
+        "sameCandidate": [
+          "commitSha",
+          "extensionPackageSha256",
+          "chromeVersion",
+          "extensionId",
+          "realSenderDocumentId",
+          "toolPackageHashAndInstallEpoch",
+          "permissionAndOriginSnapshot",
+          "nativeAckOrEffectId",
+          "workerLifecycleEvidence",
+          "redactedLogs"
+        ],
+        "denials": [
+          "permissionRevoked",
+          "foreignTool",
+          "staleDocument",
+          "badOrigin",
+          "staleEpoch"
+        ],
+        "nodeAndBuildDoNotPromote": true
+      },
+      "mappingKind": "SCOPED",
+      "statusVerificationPolicy": "Current source path and all current evidence statuses are separate; NEVER treat source-wired as native Chrome PASS",
+      "targetFiles": [
+        "src/framework/sdk/browser-contract.js",
+        "src/framework/sdk/browser-schemas.js",
+        "src/platform/chrome/context-menus.js",
+        "src/platform/chrome/bookmarks-full.js"
+      ],
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA"
+    },
+    {
+      "id": "browser.bookmarks.observe.stop",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "migrationDecision": "FULL_CAPABILITY_SEPARATE_FROM_OWNED",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
+      "callSignature": "OpenDeskSDK.browser.bookmarks.observe.stop(approved bounded SDK arguments)",
+      "returnSignature": "Promise<BoundedEventSessionReceipt>",
+      "inputSchema": {
+        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.bookmarks.observe.stop:input"
+      },
+      "outputSchema": {
+        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.bookmarks.observe.stop:output"
+      },
+      "nativeApis": [],
+      "chromePermissions": [
+        "bookmarks"
+      ],
+      "toolCapabilities": [
+        "browser.bookmarks.full"
+      ],
+      "siteScope": "all-bookmarks",
+      "allowedWorlds": [
+        "sidebar-tool"
+      ],
+      "trust": "INSTALLED_TOOL_FULL_BOOKMARKS_EXPLICIT_TRUSTED_UI_CONSENT_AND_CHROME_OPTIONAL_PERMISSION",
+      "userGesture": false,
+      "errors": [
+        "E_SCHEMA",
+        "E_OWNER",
+        "E_TOOL_CAPABILITY_REQUIRED",
+        "E_BOOKMARK_FULL_CONSENT_REQUIRED",
+        "E_CHROME_PERMISSION_REQUIRED",
+        "E_USER_GESTURE_REQUIRED",
+        "E_BOOKMARK_STALE",
+        "E_OUTCOME_UNKNOWN",
+        "E_LIMIT",
+        "E_SNAPSHOT_EXPIRED",
+        "E_SESSION_EXPIRED"
+      ],
+      "sdkFile": "src/framework/sdk/browser.js",
+      "registryFile": "src/framework/sdk/browser-contract.js",
+      "schemaFile": "src/framework/sdk/browser-schemas.js",
+      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "authority": "src/ui/sidebar-tools.js + src/platform/chrome/context-menus.js (REUSE)",
+      "driverFile": "src/platform/chrome/bookmarks-full.js",
+      "lifecycle": "bounded-session",
+      "phase": "R11.2",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
+      "verification": {
+        "node": "NOT_TESTED",
+        "build": "NOT_TESTED",
+        "native": "NOT_TESTED"
+      },
+      "testContract": {
+        "target": "tests/environment/browser-sdk-r112-full-bookmarks.test.mjs",
+        "positive": "bounded Chrome native CRUD, snapshot, cursor, event and consumer interoperability",
+        "negative": "Owned isolation, stale permission, package epoch, managed/root delete, replay and overflow",
+        "native": "separate same-SHA Chrome profile required; source and Node do not satisfy acceptance"
+      },
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "support": {
+        "desktopChromeMinimum": 138,
+        "chromeFeatureGate": "feature presence + actual source permission check; never fake Chrome>=138 availability for unknown introduced versions",
+        "executionWorlds": [
+          "sidebar-tool"
+        ],
+        "incognito": "DENIED_BY_DEFAULT"
+      },
+      "nativeTestConditions": {
+        "kind": "NATIVE_PASS_REQUIRES_REAL_CHROME",
+        "sameCandidate": [
+          "commitSha",
+          "extensionPackageSha256",
+          "chromeVersion",
+          "extensionId",
+          "realSenderDocumentId",
+          "toolPackageHashAndInstallEpoch",
+          "permissionAndOriginSnapshot",
+          "nativeAckOrEffectId",
+          "workerLifecycleEvidence",
+          "redactedLogs"
+        ],
+        "denials": [
+          "permissionRevoked",
+          "foreignTool",
+          "staleDocument",
+          "badOrigin",
+          "staleEpoch"
+        ],
+        "nodeAndBuildDoNotPromote": true
+      },
+      "mappingKind": "SCOPED",
+      "statusVerificationPolicy": "Current source path and all current evidence statuses are separate; NEVER treat source-wired as native Chrome PASS",
+      "targetFiles": [
+        "src/framework/sdk/browser-contract.js",
+        "src/framework/sdk/browser-schemas.js",
+        "src/platform/chrome/context-menus.js",
+        "src/platform/chrome/bookmarks-full.js"
+      ],
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA"
     }
   ],
   "nativeInterfaces": [
@@ -18748,6 +20001,7 @@
       "sdkExposure": "APPROVED_SCOPED_OPERATION_MAPPING",
       "runtimeStatus": "NOT_TESTED",
       "approvedOperationIds": [
+        "browser.bookmarks.createOwned",
         "browser.bookmarks.create"
       ],
       "testGate": "REGISTERED_OR_PLANNED_OPERATION_NEEDS_NODE_BUILD_NATIVE",
@@ -18777,9 +20031,11 @@
       "batch": "P3",
       "releaseGate": "PINNED_SCHEMA_PRESENT_BUT_MIN_CHROME_AND_CONTEXT_NOT_PER_METHOD_VERIFIED",
       "minChrome": null,
-      "sdkExposure": "NOT_APPROVED_BY_DISCOVERY",
+      "sdkExposure": "APPROVED_SCOPED_OPERATION_MAPPING",
       "runtimeStatus": "NOT_TESTED",
-      "approvedOperationIds": [],
+      "approvedOperationIds": [
+        "browser.bookmarks.get"
+      ],
       "testGate": "NO_RUNTIME_ACCEPTANCE_CLAIM",
       "disposition": "DEFERRED_NOT_APPROVED"
     },
@@ -18867,9 +20123,12 @@
       "batch": "P3",
       "releaseGate": "PINNED_SCHEMA_PRESENT_BUT_MIN_CHROME_AND_CONTEXT_NOT_PER_METHOD_VERIFIED",
       "minChrome": null,
-      "sdkExposure": "NOT_APPROVED_BY_DISCOVERY",
+      "sdkExposure": "APPROVED_SCOPED_OPERATION_MAPPING",
       "runtimeStatus": "NOT_TESTED",
-      "approvedOperationIds": [],
+      "approvedOperationIds": [
+        "browser.bookmarks.prepareRemoveTree",
+        "browser.bookmarks.removeTree"
+      ],
       "testGate": "NO_RUNTIME_ACCEPTANCE_CLAIM",
       "disposition": "DEFERRED_NOT_APPROVED"
     },
@@ -18891,9 +20150,13 @@
       "batch": "P3",
       "releaseGate": "PINNED_SCHEMA_PRESENT_BUT_MIN_CHROME_AND_CONTEXT_NOT_PER_METHOD_VERIFIED",
       "minChrome": null,
-      "sdkExposure": "NOT_APPROVED_BY_DISCOVERY",
+      "sdkExposure": "APPROVED_SCOPED_OPERATION_MAPPING",
       "runtimeStatus": "NOT_TESTED",
-      "approvedOperationIds": [],
+      "approvedOperationIds": [
+        "browser.bookmarks.getTree",
+        "browser.bookmarks.prepareRemoveTree",
+        "browser.bookmarks.removeTree"
+      ],
       "testGate": "NO_RUNTIME_ACCEPTANCE_CLAIM",
       "disposition": "DEFERRED_NOT_APPROVED"
     },
@@ -18970,9 +20233,11 @@
       "batch": "P3",
       "releaseGate": "PINNED_SCHEMA_PRESENT_BUT_MIN_CHROME_AND_CONTEXT_NOT_PER_METHOD_VERIFIED",
       "minChrome": null,
-      "sdkExposure": "NOT_APPROVED_BY_DISCOVERY",
+      "sdkExposure": "APPROVED_SCOPED_OPERATION_MAPPING",
       "runtimeStatus": "NOT_TESTED",
-      "approvedOperationIds": [],
+      "approvedOperationIds": [
+        "browser.bookmarks.move"
+      ],
       "testGate": "NO_RUNTIME_ACCEPTANCE_CLAIM",
       "disposition": "DEFERRED_NOT_APPROVED"
     },
@@ -19005,9 +20270,11 @@
       "batch": "P3",
       "releaseGate": "PINNED_SCHEMA_PRESENT_BUT_MIN_CHROME_AND_CONTEXT_NOT_PER_METHOD_VERIFIED",
       "minChrome": null,
-      "sdkExposure": "NOT_APPROVED_BY_DISCOVERY",
+      "sdkExposure": "APPROVED_SCOPED_OPERATION_MAPPING",
       "runtimeStatus": "NOT_TESTED",
-      "approvedOperationIds": [],
+      "approvedOperationIds": [
+        "browser.bookmarks.observe.start"
+      ],
       "testGate": "NO_RUNTIME_ACCEPTANCE_CLAIM",
       "disposition": "DEFERRED_NOT_APPROVED"
     },
@@ -19040,9 +20307,11 @@
       "batch": "P3",
       "releaseGate": "PINNED_SCHEMA_PRESENT_BUT_MIN_CHROME_AND_CONTEXT_NOT_PER_METHOD_VERIFIED",
       "minChrome": null,
-      "sdkExposure": "NOT_APPROVED_BY_DISCOVERY",
+      "sdkExposure": "APPROVED_SCOPED_OPERATION_MAPPING",
       "runtimeStatus": "NOT_TESTED",
-      "approvedOperationIds": [],
+      "approvedOperationIds": [
+        "browser.bookmarks.observe.start"
+      ],
       "testGate": "NO_RUNTIME_ACCEPTANCE_CLAIM",
       "disposition": "DEFERRED_NOT_APPROVED"
     },
@@ -19075,9 +20344,11 @@
       "batch": "P3",
       "releaseGate": "PINNED_SCHEMA_PRESENT_BUT_MIN_CHROME_AND_CONTEXT_NOT_PER_METHOD_VERIFIED",
       "minChrome": null,
-      "sdkExposure": "NOT_APPROVED_BY_DISCOVERY",
+      "sdkExposure": "APPROVED_SCOPED_OPERATION_MAPPING",
       "runtimeStatus": "NOT_TESTED",
-      "approvedOperationIds": [],
+      "approvedOperationIds": [
+        "browser.bookmarks.observe.start"
+      ],
       "testGate": "NO_RUNTIME_ACCEPTANCE_CLAIM",
       "disposition": "DEFERRED_NOT_APPROVED"
     },
@@ -19099,9 +20370,11 @@
       "batch": "P3",
       "releaseGate": "PINNED_SCHEMA_PRESENT_BUT_MIN_CHROME_AND_CONTEXT_NOT_PER_METHOD_VERIFIED",
       "minChrome": null,
-      "sdkExposure": "NOT_APPROVED_BY_DISCOVERY",
+      "sdkExposure": "APPROVED_SCOPED_OPERATION_MAPPING",
       "runtimeStatus": "NOT_TESTED",
-      "approvedOperationIds": [],
+      "approvedOperationIds": [
+        "browser.bookmarks.observe.start"
+      ],
       "testGate": "NO_RUNTIME_ACCEPTANCE_CLAIM",
       "disposition": "DEFERRED_NOT_APPROVED"
     },
@@ -19123,9 +20396,11 @@
       "batch": "P3",
       "releaseGate": "PINNED_SCHEMA_PRESENT_BUT_MIN_CHROME_AND_CONTEXT_NOT_PER_METHOD_VERIFIED",
       "minChrome": null,
-      "sdkExposure": "NOT_APPROVED_BY_DISCOVERY",
+      "sdkExposure": "APPROVED_SCOPED_OPERATION_MAPPING",
       "runtimeStatus": "NOT_TESTED",
-      "approvedOperationIds": [],
+      "approvedOperationIds": [
+        "browser.bookmarks.observe.start"
+      ],
       "testGate": "NO_RUNTIME_ACCEPTANCE_CLAIM",
       "disposition": "DEFERRED_NOT_APPROVED"
     },
@@ -19158,9 +20433,11 @@
       "batch": "P3",
       "releaseGate": "PINNED_SCHEMA_PRESENT_BUT_MIN_CHROME_AND_CONTEXT_NOT_PER_METHOD_VERIFIED",
       "minChrome": null,
-      "sdkExposure": "NOT_APPROVED_BY_DISCOVERY",
+      "sdkExposure": "APPROVED_SCOPED_OPERATION_MAPPING",
       "runtimeStatus": "NOT_TESTED",
-      "approvedOperationIds": [],
+      "approvedOperationIds": [
+        "browser.bookmarks.observe.start"
+      ],
       "testGate": "NO_RUNTIME_ACCEPTANCE_CLAIM",
       "disposition": "DEFERRED_NOT_APPROVED"
     },
@@ -19193,9 +20470,11 @@
       "batch": "P3",
       "releaseGate": "PINNED_SCHEMA_PRESENT_BUT_MIN_CHROME_AND_CONTEXT_NOT_PER_METHOD_VERIFIED",
       "minChrome": null,
-      "sdkExposure": "NOT_APPROVED_BY_DISCOVERY",
+      "sdkExposure": "APPROVED_SCOPED_OPERATION_MAPPING",
       "runtimeStatus": "NOT_TESTED",
-      "approvedOperationIds": [],
+      "approvedOperationIds": [
+        "browser.bookmarks.observe.start"
+      ],
       "testGate": "NO_RUNTIME_ACCEPTANCE_CLAIM",
       "disposition": "DEFERRED_NOT_APPROVED"
     },
@@ -19226,7 +20505,8 @@
       "sdkExposure": "APPROVED_SCOPED_OPERATION_MAPPING",
       "runtimeStatus": "NOT_TESTED",
       "approvedOperationIds": [
-        "browser.bookmarks.removeOwned"
+        "browser.bookmarks.removeOwned",
+        "browser.bookmarks.remove"
       ],
       "testGate": "REGISTERED_OR_PLANNED_OPERATION_NEEDS_NODE_BUILD_NATIVE",
       "disposition": "APPROVED_MAPPED_OPERATION"
@@ -19255,9 +20535,11 @@
       "batch": "P3",
       "releaseGate": "PINNED_SCHEMA_PRESENT_BUT_MIN_CHROME_AND_CONTEXT_NOT_PER_METHOD_VERIFIED",
       "minChrome": null,
-      "sdkExposure": "NOT_APPROVED_BY_DISCOVERY",
+      "sdkExposure": "APPROVED_SCOPED_OPERATION_MAPPING",
       "runtimeStatus": "NOT_TESTED",
-      "approvedOperationIds": [],
+      "approvedOperationIds": [
+        "browser.bookmarks.removeTree"
+      ],
       "testGate": "NO_RUNTIME_ACCEPTANCE_CLAIM",
       "disposition": "DEFERRED_NOT_APPROVED"
     },
@@ -19307,9 +20589,11 @@
       "batch": "P3",
       "releaseGate": "PINNED_SCHEMA_PRESENT_BUT_MIN_CHROME_AND_CONTEXT_NOT_PER_METHOD_VERIFIED",
       "minChrome": null,
-      "sdkExposure": "NOT_APPROVED_BY_DISCOVERY",
+      "sdkExposure": "APPROVED_SCOPED_OPERATION_MAPPING",
       "runtimeStatus": "NOT_TESTED",
-      "approvedOperationIds": [],
+      "approvedOperationIds": [
+        "browser.bookmarks.search"
+      ],
       "testGate": "NO_RUNTIME_ACCEPTANCE_CLAIM",
       "disposition": "DEFERRED_NOT_APPROVED"
     },
@@ -19342,9 +20626,11 @@
       "batch": "P3",
       "releaseGate": "PINNED_SCHEMA_PRESENT_BUT_MIN_CHROME_AND_CONTEXT_NOT_PER_METHOD_VERIFIED",
       "minChrome": null,
-      "sdkExposure": "NOT_APPROVED_BY_DISCOVERY",
+      "sdkExposure": "APPROVED_SCOPED_OPERATION_MAPPING",
       "runtimeStatus": "NOT_TESTED",
-      "approvedOperationIds": [],
+      "approvedOperationIds": [
+        "browser.bookmarks.update"
+      ],
       "testGate": "NO_RUNTIME_ACCEPTANCE_CLAIM",
       "disposition": "DEFERRED_NOT_APPROVED"
     },
@@ -57047,10 +58333,10 @@
   "coverageAudit": {
     "seedNativeCatalogEntries": 119,
     "seedNativeCatalogMissing": 0,
-    "registeredOperations": 53,
+    "registeredOperations": 65,
     "trustedCookieHostOperations": 0,
     "approvedNewDesignOperations": 0,
-    "approvedTotal": 55,
+    "approvedTotal": 67,
     "orphanNativeMappings": [],
     "parseErrors": [],
     "sourceFilesTypeOnly": [
@@ -57162,8 +58448,8 @@
     ],
     "completeness": "Known source consumers identified; exhaustive consumer path enumeration cannot be verified without full repository grep. Phase P1 must enumerate and migrate all current consumers before deleting active alias."
   },
-  "currentRegistrySourceSha": "3ef15543f7266ad8c7f7bffc4839509ab602bbeb",
-  "currentSchemaSourceSha": "9c3bd52c19bbf5ec5baaaa3fd96005c1b770cf4c",
+  "currentRegistrySourceSha": "5ceb8df083815736b1fb474bc88a4ad2aacd4d29",
+  "currentSchemaSourceSha": "6d3b57c3a88c813a88870b8f022422cffa659a8a",
   "contractRevisions": [
     {
       "date": "2026-10-13",

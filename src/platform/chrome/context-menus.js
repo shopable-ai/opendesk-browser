@@ -6,6 +6,7 @@ import {createBrowserScreenshotHost} from './browser-screenshot.js';
 import {createBrowserScreenshotResources} from './browser-screenshot-resources.js';
 import {createBrowserDownloadsHost} from './browser-downloads.js';
 import {createBrowserBookmarksHost} from './bookmarks.js';
+import {createBrowserFullBookmarksHost} from './bookmarks-full.js';
 import {createApprovedBrowserBindings} from '../../framework/sdk/browser-bindings.js';
 import {APPROVED_BROWSER_DIRECT_BINDINGS} from '../../framework/sdk/browser-direct.generated.js';
 import {validateTrustedScheduleIntent} from '../tasks/schedule-contract.js';
@@ -169,6 +170,13 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
        await digestTool(tool)!==identity.packageHash)throw failure('E_TOOL_CHANGED','Tool package or install epoch changed');
     const op=browserOperation(operation);
     if(!op||!op.requiredCapabilities.every(cap=>tool.capabilities.includes(cap)))throw failure('E_TOOL_CAPABILITY_REQUIRED');
+    if(op.requiredCapabilities.includes('browser.bookmarks.full')){
+      const record=owned.grants[tool.id];
+      if(record?.bookmarkFull!==true||record.version!==tool.version||
+         record.packageHash!==identity.packageHash||
+         record.installEpoch!==(owned.epochs[tool.id]??null))
+        throw failure('E_BOOKMARK_FULL_CONSENT_REQUIRED','Independent Full Bookmarks consent required');
+    }
     for(const permission of op.requiredChromePermissions)
       if(!api.permissions?.contains||!await api.permissions.contains({permissions:[permission]}))
         throw failure('E_CHROME_PERMISSION_REQUIRED');
@@ -235,7 +243,19 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       throw failure('E_SITE_GRANT_REQUIRED','Bookmark Origin changed after approval');
     await verifyBrowserOwner(context,operation,origin);
   }});
-  // Finite bindings to EXISTING scoped drivers: Sender, installed identity,
+  const fullBookmarkHost=createBrowserFullBookmarksHost({api,
+     authorize:async({operation,context})=>verifyBrowserOwner(context,operation),
+     verifySourcePage:async(source,context)=>{
+       const tab=await tabHost.resolve(source.tabRef,context);
+       if(tab.url!==source.url||tab.documentId!==source.documentRef)
+         throw failure('E_DOCUMENT_CHANGED','Bookmark source differs from exact Chrome document');
+       await verifyBrowserOwner(context,'browser.bookmarks.create');
+     }
+   });
+   const bookmarkService=Object.freeze(Object.assign(Object.create(null),bookmarkHost,
+     Object.fromEntries(Object.entries(fullBookmarkHost).filter(([name])=>
+       name!=='revokeAll'&&name!=='observe'))));
+   // Finite bindings to EXISTING scoped drivers: Sender, installed identity,
   // one-shot user intent and Origin were checked before this dispatcher runs.
   // No dynamic access to chrome[namespace][method] is permitted.
   // Bind each audited service ONCE. Approved method names are resolved at
@@ -243,7 +263,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   // Browser Sender, one-use gesture, tool identity, scope and revoke fencing
   // remain in this existing trusted Host + each scoped Driver.
   const scopedBindings=createApprovedBrowserBindings({
-    bookmarks:bookmarkHost,
+    bookmarks:bookmarkService,
+    'bookmarks.observe':fullBookmarkHost.observe,
     tabs:tabHost,
     downloads:downloadHost,
     'storage.local':(input,owner,operation)=>executeBrowserToolStorage({
@@ -276,6 +297,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     screenshotResources.revokeAll();
     downloadHost.revokeAll();
     bookmarkHost.revokeAll();
+    fullBookmarkHost.revokeAll();
     browserIntents.clear();
     for(const controller of activeNetworkRequests)
       controller.abort(failure('E_GRANT_REVOKED','Installed tool authority changed during HTTP request'));
@@ -450,8 +472,12 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       operation==='browser.sidePanel.openSelf'?Boolean(api.sidePanel?.open):
       operation.startsWith('browser.scheduler.')?typeof scheduleService==='function':
       operation.startsWith('browser.storage.local.')?Boolean(api.storage?.local?.get&&api.storage?.local?.set):
-      operation==='browser.bookmarks.create'?Boolean(api.bookmarks?.create&&api.storage?.local?.set):
+      operation==='browser.bookmarks.createOwned'?Boolean(api.bookmarks?.create&&api.storage?.local?.set):
       operation==='browser.bookmarks.removeOwned'?Boolean(api.bookmarks?.get&&api.bookmarks?.remove&&api.storage?.local?.set):
+      operation.startsWith('browser.bookmarks.')?Boolean(
+        api.bookmarks?.getTree&&api.bookmarks?.getSubTree&&api.bookmarks?.get&&
+        api.bookmarks?.create&&api.bookmarks?.update&&api.bookmarks?.move&&
+        api.bookmarks?.remove&&api.bookmarks?.removeTree&&api.bookmarks?.search):
       operation==='browser.downloads.download'?Boolean(api.downloads?.download):
       operation==='browser.downloads.getOwned'||operation==='browser.downloads.listOwned'?Boolean(api.downloads?.search):
       operation==='browser.downloads.cancelOwned'?Boolean(api.downloads?.search&&api.downloads?.cancel):
@@ -462,6 +488,11 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       operation==='browser.screenshot.captureVisible'?
         Boolean(api.tabs?.query&&api.tabs?.get&&api.webNavigation?.getFrame&&api.tabs?.captureVisibleTab&&api.downloads?.download):true);
     const hasToolCap=op.requiredCapabilities.every(cap=>tool.capabilities.includes(cap));
+    const fullBookmark=op.requiredCapabilities.includes('browser.bookmarks.full');
+    const fullGrant=sources.grants?.[tool.id];
+    const fullBookmarkApproved=!fullBookmark||fullGrant?.bookmarkFull===true&&
+      fullGrant.version===tool.version&&fullGrant.packageHash===await digestTool(tool)&&
+      fullGrant.installEpoch===(sources.epochs[tool.id]??null);
     const chromium=menuApiAvailable&&await permissionGranted(api);
     const requiredBrowser=operation==='browser.contextMenu.getStatus'||(await Promise.all(op.requiredChromePermissions.map(async id=>
       id==='contextMenus'?chromium:await api.permissions?.contains?.({permissions:[id]}).catch(()=>false)===true))).every(Boolean);
@@ -501,12 +532,13 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       cookieSites[origin]?.[cookieCapabilities[operation]]===true&&await chromeSitePermitted(api,origin)
     ))).some(Boolean);
     const runnable=op.implementation==='IMPLEMENTED'&&exposure==='allowed'&&platformSupported&&
-      requiredBrowser&&(!needsSite||menu)&&(!isCookie||cookieAuthorized)&&downloadSiteAllowed&&hasLaunch&&!frontendOnly;
+      requiredBrowser&&fullBookmarkApproved&&(!needsSite||menu)&&(!isCookie||cookieAuthorized)&&downloadSiteAllowed&&hasLaunch&&!frontendOnly;
     const reasonCode=runnable?null:
       op.implementation!=='IMPLEMENTED'?'E_NOT_IMPLEMENTED':
       !hasToolCap?'E_TOOL_CAPABILITY_REQUIRED':
       !platformSupported?'E_CHROME_UNSUPPORTED':
       !requiredBrowser?'E_CHROME_PERMISSION_REQUIRED':
+      !fullBookmarkApproved?'E_BOOKMARK_FULL_CONSENT_REQUIRED':
       needsSite&&!menu?'E_SITE_GRANT_REQUIRED':
       isCookie&&!cookieAuthorized?'E_SITE_GRANT_REQUIRED':
       !downloadSiteAllowed?'E_SITE_GRANT_REQUIRED':
@@ -519,7 +551,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
           downloading?(downloadSiteAllowed?'granted':'missing'):'not-required'},
       callableNow:runnable,requiresUserGesture:op.requiresUserGesture,reasonCode,
       nextAction:runnable?null:!hasToolCap?'update-tool-package':!platformSupported?null:
-        !requiredBrowser?'enable-in-tool-details':isCookie&&!cookieAuthorized?'enable-in-tool-details':
+        !requiredBrowser?'enable-in-tool-details':!fullBookmarkApproved?'enable-in-tool-details':
+        isCookie&&!cookieAuthorized?'enable-in-tool-details':
           isMenu&&!menu?'enable-in-tool-details':null};
   }
   function ensureToolActions(tool,args){
@@ -590,7 +623,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
           throw failure('E_USER_GESTURE_REQUIRED','New explicit approval required for this exact action');
         const approvedOrigin=operation==='browser.scheduler.create'?new URL(intent.schedulerIntent.task.targetUrl).origin:
           operation==='browser.network.observe.start'?checked.origins[0]:
-          ['browser.tabs.create','browser.tabs.navigateOwned','browser.network.request','browser.downloads.download','browser.bookmarks.create'].includes(operation)
+          ['browser.tabs.create','browser.tabs.navigateOwned','browser.network.request','browser.downloads.download','browser.bookmarks.createOwned'].includes(operation)
             ?new URL(checked.url).origin:null;
         const context={...owner,approvedOrigin};
         await verifyBrowserOwner(context,operation,approvedOrigin);
@@ -792,7 +825,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       throw failure('E_SERVICE_UNSUPPORTED','Browser operation is not available to installed tools');
     }));
   }
-  async function handleHost({operation,toolId,enabled,origin,document,launchId,toolInstance,hostInstanceId,toolVersion,installEpoch,cookieCapability:siteCapability,targetOperation,targetArgs,approvalRef,schedulerIntent,args},sender){
+  async function handleHost({operation,toolId,enabled,origin,document,launchId,toolInstance,hostInstanceId,toolVersion,installEpoch,packageHash,cookieCapability:siteCapability,targetOperation,targetArgs,approvalRef,schedulerIntent,args},sender){
     const actualHost=await checkedSender(api,sender);
     if(actualHost!==hostInstanceId)
       throw failure('E_OWNER','Wrong OpenDesk tool host');
@@ -810,6 +843,28 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     if(!validId(toolId))throw failure('E_OWNER','Wrong OpenDesk tool host');
     return serial(()=>runLocked(toolId,async()=>{
 
+      if(operation==='browser.bookmarks.fullConsent'){
+        if(typeof enabled!=='boolean')throw failure('E_SCHEMA','Explicit Full Bookmarks consent decision required');
+        const source=await readSources(api),tool=admittedTool(source.tools,toolId);
+        if(!sidebarToolEnabled(source.enabled,toolId))throw failure('E_TOOL_DISABLED');
+        if(tool.version!==toolVersion||(source.epochs[toolId]??null)!==(installEpoch??null)||
+           !tool.capabilities.includes('browser.bookmarks.full'))
+          throw failure('E_TOOL_CHANGED','Full bookmark capability or tool version invalid');
+        if(enabled&&(!api.permissions?.contains||
+           !await api.permissions.contains({permissions:['bookmarks']})))
+          throw failure('E_CHROME_PERMISSION_REQUIRED','Chrome bookmarks permission must be approved by trusted click');
+        const hash=await digestTool(tool),old=source.grants[toolId];
+        if(packageHash!==undefined&&packageHash!==hash)throw failure('E_TOOL_CHANGED');
+        const same=old?.version===tool.version&&old.packageHash===hash&&
+          old.installEpoch===(source.epochs[toolId]??null);
+        const record=same?old:{version:tool.version,packageHash:hash,
+          installEpoch:source.epochs[toolId]??null,origins:[],activeActions:[]};
+        await confirmedWrite(api.storage.local,BROWSER_MENU_GRANTS_STORE,{
+          ...source.grants,[toolId]:{...record,bookmarkFull:enabled}
+        });
+        fullBookmarkHost.revokeAll();
+        return {enabled};
+      }
       if(operation==='browser.cookies.userGrant'){
         if(!['read','values','write','observe','clear','all'].includes(siteCapability)||
            typeof enabled!=='boolean'||(siteCapability==='all'&&enabled))
@@ -894,7 +949,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         const packageHash=await digestTool(tool);
         const origin=cookieCapabilities[targetOperation]?new URL(args.url).origin:
           targetOperation==='browser.network.observe.start'?args.origins[0]:
-          ['browser.tabs.create','browser.tabs.navigateOwned','browser.network.request','browser.downloads.download','browser.bookmarks.create'].includes(targetOperation)
+          ['browser.tabs.create','browser.tabs.navigateOwned','browser.network.request','browser.downloads.download','browser.bookmarks.createOwned'].includes(targetOperation)
             ?new URL(args.url).origin:null;
         const identity={toolId,toolVersion,packageHash,epoch:installEpoch??null,
           installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null};

@@ -2,9 +2,11 @@
   "format": "opendesk.sidebar-tool.v2",
   "id": "bookmark-manager",
   "version": "0.2.2",
-  "title": "书签管理 · SDK R2 预备",
-  "description": "独立书签管理 SDK 消费端：Full Bookmarks R11 权限和可信 Host 接通前安全拒绝访问。",
-  "capabilities": [],
+  "title": "书签管理",
+  "description": "独立 SDK 书签管理：请求单独的 Chrome 全部书签授权；修改和危险删除经可信界面确认。",
+  "capabilities": [
+    "browser.bookmarks.full"
+  ],
   "requires": {
     "browserSdk": "1.0.0"
   },

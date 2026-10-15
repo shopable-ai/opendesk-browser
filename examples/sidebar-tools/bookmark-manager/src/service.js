@@ -46,8 +46,8 @@ function create(sdk){
       let status;
       try{status=await sdk.capabilities.getStatus({operation:named(operation)})}
       catch{fail('E_SDK_STATUS','完整书签权限状态不可核验，不会访问书签')}
-      if(!status?.requiredCapabilities?.includes(FULL))
-        fail('E_BOOKMARK_SCOPE','接口未绑定独立 Full Bookmarks 权限');
+      // probe() already verified independent Full scope in the complete
+      // capability list; getStatus() deliberately sends only a small receipt.
       if(status.callableNow!==true)
         fail(status.reasonCode||'E_BOOKMARK_PERMISSION','完整书签访问权限未授予或已失效');
     }

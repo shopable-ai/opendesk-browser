@@ -78,7 +78,7 @@ export function createBrowserBookmarksHost({api=globalThis.chrome,authorize,
   async function guard(operation,context,origin){
     await authorize({operation,context,origin});
   }
-  async function create(input,context){
+  async function createOwned(input,context){
     const identity=owner(context),origin=originFor(input?.url);
     if(input.parentRef!==undefined)
       throw fail('E_BOOKMARK_PARENT_UNAVAILABLE','No tool-owned bookmark folder exists');
@@ -89,7 +89,7 @@ export function createBrowserBookmarksHost({api=globalThis.chrome,authorize,
     const previous=await read(context,{allowReset:true});
     if(Object.keys(previous.refs).length>=MAX_OWNED)
       throw fail('E_LIMIT','At most 64 owned bookmarks per installed tool');
-    await guard('browser.bookmarks.create',context,origin);
+    await guard('browser.bookmarks.createOwned',context,origin);
     const ref=createRef(),epoch=generation;
     if(typeof ref!=='string'||!TOKEN.test(ref)||Object.hasOwn(previous.refs,ref))
       throw fail('E_CONTEXT','Unique opaque bookmark reference unavailable');
@@ -101,7 +101,7 @@ export function createBrowserBookmarksHost({api=globalThis.chrome,authorize,
       typeof node.title!=='string'||node.title.length>256||
       typeof node.parentId!=='string'||!node.parentId||node.parentId.length>128)
       throw fail('E_OUTCOME_UNKNOWN','Chrome did not confirm exact bookmark identity');
-    try{await guard('browser.bookmarks.create',context,origin)}
+    try{await guard('browser.bookmarks.createOwned',context,origin)}
     catch{throw fail('E_OUTCOME_UNKNOWN','Bookmark may have been created before revocation')}
     if(generation!==epoch)throw fail('E_OUTCOME_UNKNOWN','Bookmark may have been created before revocation');
     // Re-read under the existing per-tool Host lock. Every ref is private to
@@ -114,7 +114,7 @@ export function createBrowserBookmarksHost({api=globalThis.chrome,authorize,
         parentId:node.parentId,createdAt:clock.now()}
     }})}
     catch{throw fail('E_OUTCOME_UNKNOWN','Bookmark created but durable ownership record is uncertain')}
-    try{await guard('browser.bookmarks.create',context,origin)}
+    try{await guard('browser.bookmarks.createOwned',context,origin)}
     catch{throw fail('E_OUTCOME_UNKNOWN','Bookmark was created but tool authority changed')}
     if(generation!==epoch)throw fail('E_OUTCOME_UNKNOWN');
     return {bookmarkRef:ref};
@@ -156,6 +156,6 @@ export function createBrowserBookmarksHost({api=globalThis.chrome,authorize,
     return {removed:nodes.length===1};
   }
   const revokeAll=()=>{generation++};
-  return Object.freeze({create,removeOwned,revokeAll,
+  return Object.freeze({createOwned,removeOwned,revokeAll,
     diagnostics:()=>({generation})});
 }

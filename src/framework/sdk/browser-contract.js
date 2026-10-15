@@ -16,7 +16,8 @@ export const BROWSER_MENU_LAUNCH_STORE='opendesk.browser.menu-launch.v1';
 export const BROWSER_MENU_ROOT='opendesk.browser.root';
 const shared={apiVersion:BROWSER_API_VERSION,platform:'chrome>=138',timeout:8000,maxRequestBytes:12000,maxResponseBytes:12000};
 const USER_GESTURE_OPERATIONS=new Set([
-  'browser.clipboard.writeText','browser.downloads.text','browser.downloads.download','browser.downloads.cancelOwned','browser.bookmarks.create','browser.bookmarks.removeOwned','browser.storage.local.clear','browser.scheduler.create','browser.tabs.create',
+  'browser.clipboard.writeText','browser.downloads.text','browser.downloads.download','browser.downloads.cancelOwned','browser.bookmarks.createOwned','browser.bookmarks.removeOwned',
+  'browser.bookmarks.create','browser.bookmarks.update','browser.bookmarks.move','browser.bookmarks.remove','browser.bookmarks.removeTree','browser.storage.local.clear','browser.scheduler.create','browser.tabs.create',
   'browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.reloadOwned','browser.tabs.navigateOwned','browser.tabs.removeOwned','browser.sidePanel.openSelf','browser.network.request','browser.network.observe.start',
   'browser.network.observe.export','browser.screenshot.captureVisible',
   'browser.cookies.set','browser.cookies.remove','browser.cookies.clearSite','browser.cookies.observe.start'
@@ -25,7 +26,7 @@ function entry(operation,capability,contexts,chromePermissions,effect,risk,siteS
   return Object.freeze({...shared,operation,namespace:operation.split('.').slice(0,-1).join('.'),
     maxRequestBytes:['browser.clipboard.writeText','browser.downloads.text'].includes(operation)?170000:shared.maxRequestBytes,
     maxResponseBytes:['browser.launch.consume','browser.page.getSelection'].includes(operation)?65536:
-     operation==='browser.capabilities.list'?20000:shared.maxResponseBytes,
+     operation==='browser.capabilities.list'?32000:shared.maxResponseBytes,
     implementation:state,supportedContexts:Object.freeze(contexts),requiredCapabilities:capability?[capability]:[],
     requiredChromePermissions:chromePermissions,effectClass:effect,riskLevel:risk,siteScope,
     requiresUserGesture:USER_GESTURE_OPERATIONS.has(operation),lifecycle,
@@ -47,8 +48,23 @@ const MANUAL_BROWSER_OPERATIONS=Object.freeze({
   'browser.downloads.getOwned':entry('browser.downloads.getOwned','user.export',tool,['downloads'],'read','medium','download-ref'),
   'browser.downloads.listOwned':entry('browser.downloads.listOwned','user.export',tool,['downloads'],'read','medium','owned-downloads'),
   'browser.downloads.cancelOwned':entry('browser.downloads.cancelOwned','user.export',tool,['downloads'],'write','high','download-ref'),
-  'browser.bookmarks.create':entry('browser.bookmarks.create','browser.bookmarks',tool,['bookmarks'],'write','high','exact-url'),
+  'browser.bookmarks.createOwned':entry('browser.bookmarks.createOwned','browser.bookmarks',tool,['bookmarks'],'write','high','exact-url'),
   'browser.bookmarks.removeOwned':entry('browser.bookmarks.removeOwned','browser.bookmarks',tool,['bookmarks'],'write','high','owned-bookmark'),
+  // Full never inherits the existing Owned capability. Chrome's optional
+  // bookmarks permission alone is insufficient; the trusted Host checks an
+  // independently reviewed, package/epoch-bound Full grant on every request.
+  'browser.bookmarks.getTree':entry('browser.bookmarks.getTree','browser.bookmarks.full',tool,['bookmarks'],'read','high','all-bookmarks','IMPLEMENTED','bounded-snapshot'),
+  'browser.bookmarks.get':entry('browser.bookmarks.get','browser.bookmarks.full',tool,['bookmarks'],'read','high','all-bookmarks'),
+  'browser.bookmarks.search':entry('browser.bookmarks.search','browser.bookmarks.full',tool,['bookmarks'],'read','high','all-bookmarks','IMPLEMENTED','bounded-snapshot'),
+  'browser.bookmarks.create':entry('browser.bookmarks.create','browser.bookmarks.full',tool,['bookmarks'],'write','high','all-bookmarks'),
+  'browser.bookmarks.update':entry('browser.bookmarks.update','browser.bookmarks.full',tool,['bookmarks'],'write','high','all-bookmarks'),
+  'browser.bookmarks.move':entry('browser.bookmarks.move','browser.bookmarks.full',tool,['bookmarks'],'write','high','all-bookmarks'),
+  'browser.bookmarks.remove':entry('browser.bookmarks.remove','browser.bookmarks.full',tool,['bookmarks'],'write','high','all-bookmarks'),
+  'browser.bookmarks.prepareRemoveTree':entry('browser.bookmarks.prepareRemoveTree','browser.bookmarks.full',tool,['bookmarks'],'read','high','all-bookmarks','IMPLEMENTED','single-use-15s'),
+  'browser.bookmarks.removeTree':entry('browser.bookmarks.removeTree','browser.bookmarks.full',tool,['bookmarks'],'write','critical','all-bookmarks','IMPLEMENTED','single-use-15s'),
+  'browser.bookmarks.observe.start':entry('browser.bookmarks.observe.start','browser.bookmarks.full',tool,['bookmarks'],'read','high','all-bookmarks','IMPLEMENTED','bounded-session'),
+  'browser.bookmarks.observe.read':entry('browser.bookmarks.observe.read','browser.bookmarks.full',tool,['bookmarks'],'read','high','all-bookmarks','IMPLEMENTED','bounded-session'),
+  'browser.bookmarks.observe.stop':entry('browser.bookmarks.observe.stop','browser.bookmarks.full',tool,['bookmarks'],'write','low','all-bookmarks','IMPLEMENTED','bounded-session'),
   'browser.scheduler.create':entry('browser.scheduler.create','browser.scheduler',tool,['alarms'],'write','high','installed-task-revision','IMPLEMENTED','tool-install'),
   'browser.scheduler.listOwn':entry('browser.scheduler.listOwn','browser.scheduler',tool,['alarms'],'read','medium','owned-schedules','IMPLEMENTED','tool-install'),
   'browser.scheduler.cancelOwn':entry('browser.scheduler.cancelOwn','browser.scheduler',tool,['alarms'],'write','medium','owned-schedules','IMPLEMENTED','tool-install'),
@@ -168,7 +184,7 @@ export function normalizeBrowserOperation(operation,args={}){
          args.limit!==undefined&&(!Number.isSafeInteger(args.limit)||args.limit<1||args.limit>50))
         throw fail('E_SCHEMA','Invalid owned download cursor or limit');
       return {cursor:args.cursor,limit:args.limit??20};
-    case 'browser.bookmarks.create':{
+    case 'browser.bookmarks.createOwned':{
       fields(args,['url','title','parentRef'],['url']);
       const url=approvedHttpUrl(args.url);
       if(args.title!==undefined&&(typeof args.title!=='string'||!args.title.trim()||
@@ -179,6 +195,30 @@ export function normalizeBrowserOperation(operation,args={}){
         throw fail('E_SCHEMA','Invalid opaque parent BookmarkRef');
       return {url,...(args.title!==undefined?{title:args.title}:{}),
         ...(args.parentRef!==undefined?{parentRef:args.parentRef}:{})};
+    }
+    case 'browser.bookmarks.getTree':
+    case 'browser.bookmarks.get':
+    case 'browser.bookmarks.search':
+    case 'browser.bookmarks.create':
+    case 'browser.bookmarks.update':
+    case 'browser.bookmarks.move':
+    case 'browser.bookmarks.remove':
+    case 'browser.bookmarks.prepareRemoveTree':
+    case 'browser.bookmarks.removeTree':
+    case 'browser.bookmarks.observe.start':
+    case 'browser.bookmarks.observe.read':
+    case 'browser.bookmarks.observe.stop':{
+      // Full is an explicitly approved, bounded SCOPED service (not DIRECT).
+      // Reuse the strict JSON-Schema argument validator without exposing native
+      // method names or adding an independently maintained wrapper.
+      const normalized=normalizeDirectBrowserArguments(operation,args);
+      for(const url of [normalized.url,normalized?.changes?.url,normalized?.sourcePage?.url]){
+        if(url!==undefined&&approvedHttpUrl(url)!==url)
+          throw fail('E_SCHEMA','Bookmark URL must be canonical, credential-free HTTP(S)');
+      }
+      if(new TextEncoder().encode(JSON.stringify(normalized)).byteLength>shared.maxRequestBytes)
+        throw fail('E_LIMIT','Full Bookmark request exceeds IPC budget');
+      return normalized;
     }
     case 'browser.bookmarks.removeOwned':
       fields(args,['bookmarkRef'],['bookmarkRef']);

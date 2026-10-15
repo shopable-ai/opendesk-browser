@@ -46,7 +46,7 @@ function fixture(){
   return {matrix,registry,descriptors};
 }
 
-test('R11 native: current 55 approved operations cannot silently become arbitrary Chrome RPC',()=>{
+test('R11 native: current 67 approved operations cannot silently become arbitrary Chrome RPC',()=>{
   assert.deepEqual(deriveBrowserDirectBindings(pinned),[]);
   assert.deepEqual(APPROVED_BROWSER_DIRECT_BINDINGS,[]);
   assert.match(renderBrowserDirectModule(APPROVED_BROWSER_DIRECT_BINDINGS),
@@ -157,8 +157,8 @@ test('R11 native: denial precedes call, revoke fences results, and malformed ret
 });
 
 test('R11 native: old special operations and custom schema validation stay unchanged',()=>{
-  assert.throws(()=>normalizeBrowserOperation('browser.bookmarks.getTree',{}),code('E_SERVICE_UNSUPPORTED'));
-  assert.throws(()=>normalizeBrowserOperation('browser.bookmarks.create',{title:'Folder'}),code('E_SCHEMA'));
+  assert.throws(()=>normalizeBrowserOperation('browser.bookmarks.getTree',{limit:0}),code('E_SCHEMA'));
+  assert.throws(()=>normalizeBrowserOperation('browser.bookmarks.create',{title:'Folder',url:'file:///etc/passwd'}),code('E_SCHEMA'));
   assert.throws(()=>normalizeBrowserOperation('browser.tabs.create',{url:'file:///secret'}),code('E_SCHEMA'));
 });
 

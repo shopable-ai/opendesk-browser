@@ -15,12 +15,12 @@ const sandbox=async()=>{
   return ctx;
 };
 
-test('R2 builds with existing v2 packer; does not claim a nonexistent Full capability',async()=>{
+test('R11.2 builds with v2 packer and independently declares Full Bookmark permission',async()=>{
   const pkg=await createSidebarToolPackage(root);
   assert.equal(pkg.id,'bookmark-manager');
   assert.equal(pkg.version,'0.2.2');
   assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
-  assert.deepEqual(pkg.capabilities,[]);
+  assert.deepEqual(pkg.capabilities,['browser.bookmarks.full']);
   assert.equal(pkg.scripts.length,2);
   assert.ok(pkg.js.includes('OpenDeskSDK'));
 });
@@ -80,10 +80,10 @@ test('Owned-only installed SDK cannot cause any Full bookmark reads or writes',a
   const ctx=await sandbox();let ownedCalls=0;
   const sdk={
     capabilities:{list:async()=>[
-      {operation:'browser.bookmarks.create',requiredCapabilities:['browser.bookmarks'],status:{callableNow:true}},
+      {operation:'browser.bookmarks.createOwned',requiredCapabilities:['browser.bookmarks'],status:{callableNow:true}},
       {operation:'browser.bookmarks.removeOwned',requiredCapabilities:['browser.bookmarks'],status:{callableNow:true}}
     ],getStatus:async()=>({callableNow:true})},
-    bookmarks:{create:async()=>{ownedCalls++},removeOwned:async()=>{ownedCalls++}}
+    bookmarks:{createOwned:async()=>{ownedCalls++},removeOwned:async()=>{ownedCalls++}}
   };
   const service=ctx.BookmarkR2Service.create(sdk),result=await service.probe();
   assert.equal(result.ready,false);
