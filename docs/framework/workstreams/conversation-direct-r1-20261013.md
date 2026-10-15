@@ -122,3 +122,6 @@
 - Browser 新增对上下文与 UI 的变更后，必须在下一轮按最新候选确认构建预算；无当前有效 `packageHash` 可用于 Chrome 正式验收。
 
 **后续分阶段独立验收入口：** T1：`node --test tests/environment/workflow-provider-facade.test.mjs tests/environment/workflow-responses.test.mjs`，`go test ./internal/browserai ./internal/browserbridge`（须以执行候选为准）和受影响的 build；T2：真实 Chrome A 填入与原生读回；T3：同对话 A2/B 安全点击/C 搜索；T4：保存后停止 AI 冻结工作流复跑两次；T5：Stop/撤权/Document 变更/断连/未知效果；T6：同一 production 候选及构建预算、F3/ZIP、95+ 独立评审。**T2–T6 全部 NOT_TESTED；本轮状态 CORE_IMPLEMENTED_CANDIDATE，绝非 PRODUCTION_ACCEPTED。**
+
+**R2.2 同候选证据补记（2026-10-15）：** Browser `fa4c50d0` 已将 `provider.js` / `responses.js` 语法和新的 Facade 小测试纳入既有 Workflow CI；其 [38714217645](https://github.com/shopable-ai/opendesk-browser/actions/runs/38714217645) 原始日志明确 **112/112 Node PASS、`npm run check` PASS（732 files）**；`build:dev` 因并行 AdBlock Trusted source SHA pin 不一致而 FAIL，**不能称完整 CI PASS**。随后 Browser `72ccc959` / `5cc3d8af` 增加已完成 Native `turnId` 的元数据映射与对应测试；这两个较新 SHA 仍须各自 CI 独立核对，不借前述 112 PASS。
+Go `master@2c003149` [38713903230](https://github.com/shopable-ai/opendesk/actions/runs/38713903230)：**macOS transport PASS、真实 Go 可执行文件配模拟 Chrome 的 build/smoke PASS**；Linux transport FAIL 是 `internal/browsercli/admission_unix_test.go` 对不存在的 `/private/tmp` 的依赖；`internal/browserai` 新 gateway 认证、typed user text、unsupported 字段与现有 Manager 定向测试均 PASS。macOS runner 不是用户真实 Mac，也没有用户登录态 Codex 推理。
