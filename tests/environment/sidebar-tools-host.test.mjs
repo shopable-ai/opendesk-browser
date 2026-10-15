@@ -19,7 +19,7 @@ import {MARKET_PROVENANCE_STORE,MARKET_OPERATIONS_STORE,reconcileMarketOperation
   TOOL_REVOCATION_EPOCHS_STORE,recordToolUninstall} from '../../src/ui/sidebar-tools/installation.js';
 import {CLIP_SITE_STORE} from '../../src/page-clip/policy.js';
 import {CAPTURE_SITE_STORE} from '../../src/knowledge/policy.js';
-import {READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,READING_TOC_PAGE_RULES_STORE,changeReadingTocVisibility,changeTocSiteAllowed,tocSiteAllowed} from '../../src/reading-toc/policy.js';
+import {READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,READING_TOC_PAGE_RULES_STORE,READING_TOC_PLACEMENT_PREFIX,changeReadingTocVisibility,changeTocSiteAllowed,tocSiteAllowed} from '../../src/reading-toc/policy.js';
 import {TIME_CONTROL_IDS} from './time-review-host-controls-fixture.mjs';
 
 // The real Side Panel declares these once in ui/tool.html. Host fixtures must
@@ -751,6 +751,30 @@ test('R5.1 uninstall refuses corrupt revocation authority before writing cleanup
   assert.equal(store.has(TOOL_CLEANUP_STORE),false,'a failed intent must not claim registry removal');
   assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[sample]);
   assert.deepEqual(store.get(key),privateData);
+});
+
+test('R5.1 silent TOC placement removal must keep cleanup recovery pending',async t=>{
+  const placementKey=READING_TOC_PLACEMENT_PREFIX+'test-page';
+  const pending={'reading-toc':{version:'2.0.0',createdAt:1}},saved={position:'left'};
+  const store=new Map([[SIDEBAR_TOOL_STORE,[]],[TOOL_CLEANUP_STORE,pending],
+    [placementKey,saved],['unrelated-stored-data',{preserve:true}]]);
+  const f=await hostFixture(t,{store,startTool:false});
+  const get=f.api.storage.local.get.bind(f.api.storage.local);
+  const remove=f.api.storage.local.remove.bind(f.api.storage.local);
+  f.api.storage.local.get=async key=>key===null?Object.fromEntries(store.entries()):get(key);
+  // Chrome may resolve a storage.remove Promise without actually deleting the key.
+  f.api.storage.local.remove=async key=>{if(key!==placementKey)await remove(key);};
+  await assert.rejects(retryUninstalledToolCleanup({api:f.api,lockManager:sharedLocks(),id:'reading-toc'}),
+    {code:'E_TOOL_UNINSTALL_CLEANUP'});
+  assert.deepEqual(store.get(TOOL_CLEANUP_STORE),pending,'unverified deletion cannot finalize uninstall');
+  assert.deepEqual(store.get(placementKey),saved,'unconfirmed removal remains visible for recovery');
+  assert.deepEqual(store.get('unrelated-stored-data'),{preserve:true});
+  f.api.storage.local.remove=remove;
+  const recovered=await retryUninstalledToolCleanup({api:f.api,lockManager:sharedLocks(),id:'reading-toc'});
+  assert.equal(recovered.state,'cleaned');
+  assert.equal(store.has(placementKey),false);
+  assert.deepEqual(store.get(TOOL_CLEANUP_STORE),{});
+  assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[],'recovery cannot reinstall tools');
 });
 
 test('R5.1 corrupted uninstall cleanup cannot be treated as absent or bypassed by reinstall',async t=>{
