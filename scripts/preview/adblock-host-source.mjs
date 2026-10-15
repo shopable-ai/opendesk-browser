@@ -12,10 +12,11 @@ class InertNode{
   constructor(tag){
     this.tag=tag;this.children=[];this.attrs=Object.create(null);
     this.className='';this.type='';this.textContent='';this.hidden=false;this.disabled=false;
+    this.listeners=Object.create(null);
   }
   append(...nodes){this.children.push(...nodes);}
   setAttribute(name,value){this.attrs[name]=String(value);}
-  addEventListener(){}
+  addEventListener(event,listener){this.listeners[event]=listener;}
   html(){
     const attributes=[...Object.entries(this.attrs)];
     if(this.className)attributes.push(['class',this.className]);
@@ -28,12 +29,14 @@ class InertNode{
   }
 }
 const event=()=>({addListener(){},removeListener(){}});
-const tool={id:ADBLOCK_ID,version:'1.0.0',capabilities:[ADBLOCK_CAPABILITY]};
+const tool={id:ADBLOCK_ID,version:'1.1.0',capabilities:[ADBLOCK_CAPABILITY]};
+const find=(node,attr,value)=>node.attrs?.[attr]===value?node:
+  node.children.map(child=>find(child,attr,value)).find(Boolean)||null;
 const initial=(enabled,exceptions=[],extra={})=>({
   toolEnabled:true,enabled,exceptions,currentHost:'news.example.com',
   permissions:{dnr:true},rules:{verified:true},...extra
 });
-async function snapshot(status,mode='ready'){
+async function snapshot(status,mode='ready',view='overview'){
   const doc={createElement:tag=>new InertNode(tag)};
   const parent=new InertNode('section');
   parent.setAttribute('id','sidebar-tool-adblock-native');
@@ -48,9 +51,14 @@ async function snapshot(status,mode='ready'){
     }});
   controls.render(tool,false,true);
   await new Promise(resolve=>setImmediate(resolve));
+  if(view!=='overview'){
+    const target=find(parent,'data-adblock-nav',view);
+    if(!target?.listeners?.click)fail('cannot navigate to source product view '+view);
+    target.listeners.click();
+  }
   const html=parent.html();
   controls.dispose();
-  if(!html.includes('sidebar-toc-settings-row')||!html.includes('role="switch"')||
+  if(!html.includes('adblock-native-card')||!html.includes('role="switch"')||
      !html.includes('aria-checked='))fail('real trusted AdBlock controls disappeared');
   return html;
 }
@@ -62,24 +70,32 @@ export async function canonicalAdblockPreviewHost(){
   if(!/<section id="sidebar-tool-adblock-native"[^>]+hidden><\/section>/.test(toolHtml))
     fail('canonical Side Panel no longer has the trusted AdBlock mount');
   const rows=toolCss.split('\n');
-  const selectors=['.sidebar-toc-settings-hint{','.sidebar-toc-settings-row{',
-    '.sidebar-tool-adblock-native{','.sidebar-tool-adblock-native .sidebar-toc-settings-row{',
-    '.sidebar-tool-adblock-native button[role=switch]{',
-    '.sidebar-tool-adblock-native button[role=switch][aria-checked=true]{'];
+  const selectors=['.sidebar-tool-adblock-native{',
+    '.sidebar-tool-adblock-native .adblock-native-card{',
+    '.sidebar-tool-adblock-native .adblock-native-toggle{',
+    '.sidebar-tool-adblock-native .adblock-native-toggle[aria-checked=true]{'];
   for(const selector of selectors)
     if(rows.filter(row=>row.startsWith(selector)).length!==1)
       fail('missing/ambiguous native UI CSS '+selector);
   const css=rows.filter(row=>row.startsWith('.sidebar-tool-adblock-native')||
-    row.startsWith('.sidebar-toc-settings-hint{')||
-    row.startsWith('.sidebar-toc-settings-row{')).join('\n');
-  const snapshots={
-    'on-site-on':await snapshot(initial(true)),
-    'on-site-off':await snapshot(initial(true,['news.example.com'])),
-    'off':await snapshot(initial(false)),
-    'no-permission':await snapshot(initial(false,[],{permissions:{dnr:false},rules:{verified:false}})),
-    'restart':await snapshot(initial(false,[],{restartRequired:true})),
-    'error':await snapshot(null,'error'),
-    'loading':await snapshot(null,'loading')
+    row.startsWith('#sidebar-tool-adblock-native[hidden]')||
+    row.startsWith('@media(max-width:350px){.sidebar-tool-adblock-native')||
+    row.startsWith('@media(prefers-reduced-motion:reduce){.sidebar-tool-adblock-native')).join('\n');
+  const scenarios={
+    'on-site-on':[initial(true),'ready'],
+    'on-site-off':[initial(true,['news.example.com']),'ready'],
+    'off':[initial(false),'ready'],
+    'no-permission':[initial(false,[],{permissions:{dnr:false},rules:{verified:false}}),'ready'],
+    'restart':[initial(false,[],{restartRequired:true}),'ready'],
+    'error':[null,'error'],
+    'loading':[null,'loading']
   };
+  const snapshots={};
+  for(const [name,[status,mode]] of Object.entries(scenarios)){
+    for(const view of ['overview','exceptions','settings']){
+      const key=name+(view==='overview'?'':'/'+view);
+      snapshots[key]=await snapshot(status,mode,view);
+    }
+  }
   return {css,snapshots};
 }

@@ -6,7 +6,7 @@ import {READING_TOC_SITE_STORE, READING_TOC_VISIBILITY_STORE, READING_TOC_PAGE_R
 import {CLIP_SITE_STORE} from '../../page-clip/policy.js';
 import {CAPTURE_SITE_STORE, KNOWLEDGE_TOOL_ID, KNOWLEDGE_WORKSPACE_PREFIX} from '../../knowledge/policy.js';
 import {writeVerifiedLocalValue,classifyStorageWriteError,unknownStorageOutcome,sameStorageValue} from './storage-state.js';
-import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,TOOL_REVOCATION_EPOCHS_STORE} from './lifecycle.js';
+import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,requireToolRevocationEpochs,TOOL_REVOCATION_EPOCHS_STORE} from './lifecycle.js';
 import {TIME_REVIEW_KEY} from '../../time-review/model.js';
 import {stopStayFocusForTool,cleanupUninstalledStayFocus} from '../../stay-focus/lifecycle.js';
 import {stopAdblockForTool,cleanupUninstalledAdblock} from '../../../examples/sidebar-tools/adblock/trusted/lifecycle.js';
@@ -77,10 +77,7 @@ export async function setInstalledSidebarToolEnabled({api,lockManager,tool,enabl
       const previous=requireToolEnableRecords(raw);
       if((previous[tool.id]!==false)===enabled)return {enabled};
       const rawEpochs=(await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE];
-      const epochs=rawEpochs===undefined?{}:rawEpochs;
-      if(!epochs||typeof epochs!=='object'||Array.isArray(epochs)||
-        Object.entries(epochs).some(([id,value])=>!toolIdPattern.test(id)||typeof value!=='string'))
-        throw error('工具撤销记录损坏；已停止修改','E_STORAGE_CORRUPT');
+      const epochs=requireToolRevocationEpochs(rawEpochs);
       const rawGrants=(await api.storage.local.get(BROWSER_MENU_GRANTS_STORE))[BROWSER_MENU_GRANTS_STORE];
       if(rawGrants!==undefined&&(!rawGrants||typeof rawGrants!=='object'||Array.isArray(rawGrants)))
         throw error('工具网站授权记录损坏；已停止修改','E_STORAGE_CORRUPT');
@@ -130,33 +127,46 @@ function trimmedOperations(ops) {
 // This journal records an acknowledged uninstall intent, not an authority grant.
 // A retry MUST hold the same tool/catalog locks and MUST first re-read the registry.
 const toolIdPattern=/^[a-z][a-z0-9-]{1,39}$/;
-function pendingCleanups(value){
-  if(!value||typeof value!=='object'||Array.isArray(value))return {};
-  return Object.fromEntries(Object.entries(value).filter(([id,row])=>
-    toolIdPattern.test(id)&&row&&typeof row==='object'&&
-    typeof row.version==='string'&&/^\d+\.\d+\.\d+$/.test(row.version)));
+// An unreadable or malformed cleanup journal must never become "no pending cleanup".
+// Filtering invalid entries would let a subsequent install bypass the previous owner's
+// unfinished removal and would hide the recovery problem from Extension Center.
+export function requirePendingToolCleanups(value){
+  if(value===undefined)return {};
+  if(!value||typeof value!=='object'||Array.isArray(value)||
+    Object.entries(value).some(([id,row])=>
+      !toolIdPattern.test(id)||!row||typeof row!=='object'||Array.isArray(row)||
+      typeof row.version!=='string'||!/^\d+\.\d+\.\d+$/.test(row.version)||
+      (Object.hasOwn(row,'createdAt')&&(!Number.isSafeInteger(row.createdAt)||row.createdAt<0))))
+    throw error('工具卸载恢复记录损坏；已停止安装与卸载清理以保护原始数据','E_STORAGE_CORRUPT');
+  return value;
 }
 export async function getPendingToolCleanups(api){
-  return pendingCleanups((await api.storage.local.get(TOOL_CLEANUP_STORE))[TOOL_CLEANUP_STORE]);
+  return requirePendingToolCleanups((await api.storage.local.get(TOOL_CLEANUP_STORE))[TOOL_CLEANUP_STORE]);
 }
 export async function recordToolUninstall(api,tool){
   // Independent of package bytes: an old iframe must stay revoked even when
   // precisely the same tool/version is later installed again. Do not prune.
-  const revisions=(await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE]||{};
-  await writeVerifiedLocalValue(api,TOOL_REVOCATION_EPOCHS_STORE,
-    {...revisions,[tool.id]:globalThis.crypto.randomUUID()},revisions,'工具旧实例撤销');
+  // A broken cleanup journal must be rejected BEFORE revoking a still-installed
+  // working tool. All reads and writes remain under the existing install locks.
   const prior=await getPendingToolCleanups(api);
+  const rawEpochs=(await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE];
+  const revisions=requireToolRevocationEpochs(rawEpochs);
+  await writeVerifiedLocalValue(api,TOOL_REVOCATION_EPOCHS_STORE,
+    {...revisions,[tool.id]:globalThis.crypto.randomUUID()},rawEpochs,'工具旧实例撤销');
   const next={...prior,[tool.id]:{version:tool.version,createdAt:Date.now()}};
   await writeVerifiedLocalValue(api,TOOL_CLEANUP_STORE,next,prior,'卸载恢复记录');
 }
-async function removeVerifiedKey(api,key){
+async function removeVerifiedStorageKey(storage,key,scope='卸载后的数据清理'){
   let failure=null;
-  try{await api.storage.local.remove(key);}catch(error){failure=error;}
+  try{await storage.remove(key);}catch(error){failure=error;}
   let value;
-  try{value=(await api.storage.local.get(key))[key];}
-  catch(error){throw unknownStorageOutcome(error,'卸载后的数据清理');}
-  if(value!==undefined)throw failure?classifyStorageWriteError(failure,'卸载后的数据清理'):
-    unknownStorageOutcome(null,'卸载后的数据清理');
+  try{value=(await storage.get(key))[key];}
+  catch(error){throw unknownStorageOutcome(error,scope);}
+  if(value!==undefined)throw failure?classifyStorageWriteError(failure,scope):
+    unknownStorageOutcome(null,scope);
+}
+async function removeVerifiedKey(api,key){
+  return removeVerifiedStorageKey(api.storage.local,key);
 }
 // Must be called while BOTH opendesk.sidebar-tools:tool:<id> and :catalog
 // locks are held, in that order. Never delete by an old instance's ID alone.
@@ -178,7 +188,10 @@ export async function cleanupUninstalledToolLocked(api,id){
     await stopManagedProxyForTool(api,id,{removeVerifiedKey});
     for(const store of [SIDEBAR_TOOL_ENABLE_STORE,READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,READING_TOC_PAGE_RULES_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE,PROMPT_SHORTCUTS_SITE_CLEANUP_STORE,MARKET_PROVENANCE_STORE,BROWSER_MENU_GRANTS_STORE]){
       const raw=(await api.storage.local.get(store))[store];
-      const original=store===SIDEBAR_TOOL_ENABLE_STORE?requireToolEnableRecords(raw):(raw||{});
+      const original=store===SIDEBAR_TOOL_ENABLE_STORE?requireToolEnableRecords(raw):
+        raw===undefined?{}:raw;
+      if(!original||typeof original!=='object'||Array.isArray(original))
+        throw error('卸载权限或来源记录损坏，已停止清理以保护其他工具数据','E_STORAGE_CORRUPT');
       if(!Object.hasOwn(original,id))continue;
       const updated={...original};delete updated[id];
       await writeVerifiedLocalValue(api,store,updated,original,'卸载权限与来源清理');
@@ -186,12 +199,12 @@ export async function cleanupUninstalledToolLocked(api,id){
     if(id===KNOWLEDGE_TOOL_ID){
       const entries=await api.storage.session.get(null);
       const keys=Object.keys(entries||{}).filter(key=>key.startsWith(KNOWLEDGE_WORKSPACE_PREFIX));
-      if(keys.length)await api.storage.session.remove(keys);
+      for(const key of keys)await removeVerifiedStorageKey(api.storage.session,key,'卸载会话数据清理');
     }
     if(id===READING_TOC_TOOL_ID){
       const entries=await api.storage.local.get(null);
       const keys=Object.keys(entries||{}).filter(key=>key.startsWith(READING_TOC_PLACEMENT_PREFIX));
-      if(keys.length)await api.storage.local.remove(keys);
+      for(const key of keys)await removeVerifiedKey(api,key);
     }
     const fresh=await getPendingToolCleanups(api);
     if(Object.hasOwn(fresh,id)){
@@ -311,6 +324,9 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
       },provenance,'市场来源');
       return {state:'already-installed',tool};
     }
+    if(!existing&&(await getPendingToolCleanups(api))[tool.id])
+      throw error('上次卸载仍有未完成的数据或权限清理；请先恢复清理后重新审阅安装',
+        'E_TOOL_UNINSTALL_CLEANUP');
     if(!existing&&installed.length>=MAX_INSTALLED_TOOLS)
       throw error('最多安装 '+MAX_INSTALLED_TOOLS+' 个工具','E_TOOL_CAPACITY');
     if(existing){

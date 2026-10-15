@@ -1839,3 +1839,17 @@ test('missing Controller ESM source permission never compiles or starts a run',a
   assert.equal(f.staticRequests.some(row=>row.type==='loadPageESMForCompilation'),false);
   assert.match(f.find('script-status').textContent,/E_REMOTE_PERMISSION|E_DEPENDENCY_PERMISSION|来源权限/);
 });
+
+test('local Run is disabled on authoritative source error, without disabling recovery',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  let preparationState='source-error';
+  f.client.requestLocalProject=async method=>method==='status'?{connected:true,providerEpoch:'epoch-a'}:
+    method==='projects.list'?{providerEpoch:'epoch-a',projects:[{name:'A',bindingId:'local-a',runtimeKind:'page-userscript',preparation:{state:preparationState}}]}:
+    assert.fail('invalid source must not be resolved');
+  f.editor.connectLocalProjects({handle:()=>assert.fail('no execution while source is invalid')});await tick();
+  f.find('local-project-mode').checked=true;f.find('local-project-mode').fire('change');await tick();
+  assert.equal(f.find('script-run').disabled,true);
+  assert.equal(f.find('local-project-status').dataset.state,'source-error');
+  preparationState='ready';f.find('local-project-refresh').fire('click');await tick();
+  assert.equal(f.find('script-run').disabled,false,'Run becomes available after a trusted ready status');
+});

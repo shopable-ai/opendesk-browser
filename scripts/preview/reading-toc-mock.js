@@ -18,15 +18,19 @@
     {id:'h-7',sourceId:'s-1',label:'多语言界面',depth:1,topId:'h-4'},
     {id:'h-8',sourceId:'s-1',label:'数据安全',depth:0,topId:'h-8'},
     {id:'h-9',sourceId:'s-1',label:'扩展权限说明',depth:1,topId:'h-8'},
-    {id:'h-10',sourceId:'s-2',label:'模拟 AI 回复 · 操作建议',depth:0,topId:'h-10'},
-    {id:'h-11',sourceId:'s-2',label:'步骤一：查看页面',depth:1,topId:'h-10'}
+    // R1.4 native regression: two H1 with same-labelled H2 in ONE answer.
+    // Distinct IDs deliberately prove that display code cannot dedupe labels.
+    {id:'h-10',sourceId:'s-2',label:'回答一 H1',depth:0,topId:'h-10'},
+    {id:'h-11',sourceId:'s-2',label:'重复标题',depth:1,topId:'h-10',parentId:'h-10'},
+    {id:'h-12',sourceId:'s-2',label:'同一回答第二个 H1',depth:0,topId:'h-12'},
+    {id:'h-13',sourceId:'s-2',label:'重复标题',depth:1,topId:'h-12',parentId:'h-12'}
   ];
   const sample=()=>{
     const data={items:rows.map(item=>({...item})),activeId:'h-2',
       sources:[{id:'s-1',label:'当前文章'},{id:'s-2',label:'AI 回复'}],
       overview:{
        's-1':{ids:['h-1','h-4','h-8'],hiddenCount:6,representedId:'h-1'},
-       's-2':{ids:['h-10','h-11'],hiddenCount:0,representedId:'h-10'}
+       's-2':{ids:['h-10','h-11','h-12','h-13'],hiddenCount:0,representedId:'h-10'}
       }};
     return scenario==='empty'?{items:[],sources:[],activeId:'',overview:{}}:data;
   };

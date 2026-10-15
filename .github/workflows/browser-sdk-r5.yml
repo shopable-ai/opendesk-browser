@@ -21,6 +21,8 @@ on:
       - 'src/platform/chrome/cookies.js'
       - 'src/platform/chrome/browser-screenshot*.js'
       - 'src/platform/chrome/browser-network-observe.js'
+      - 'src/platform/chrome/browser-managed-proxy.js'
+      - 'src/platform/chrome/browser-managed-proxy-profiles.js'
       - 'src/platform/chrome/context-menus.js'
       - 'src/platform/chrome/browser-cookie-host.js'
       - 'src/ui/trusted-cookie-workbench.js'
@@ -54,6 +56,7 @@ on:
       - 'tests/environment/browser-framework-ledger.test.mjs'
       - 'examples/sidebar-tools/browser-sdk-acceptance/**'
       - 'tests/framework/browser-sdk-r106-native.mjs'
+      - 'tests/framework/browser-managed-proxy-chromium-pac.mjs'
       - 'scripts/check-browser-sdk-coverage.mjs'
       - 'tests/environment/browser-sdk-coverage.test.mjs'
       - '.github/workflows/browser-sdk-r5.yml'
@@ -168,3 +171,34 @@ jobs:
           retention-days: 7
           if-no-files-found: error
           path: dist/production/
+
+  # Native Linux Chromium (A/B), never count as installed SDK Side Panel E2E (C).
+  # Only disposable loopback services and a new temporary browser profile are used.
+  sdk-real-chromium-pac:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          clean: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Real SOCKS5 TLS fixture and isolated Chromium PAC network acceptance (A/B)
+        env:
+          CHROME_FOR_TESTING_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: node tests/framework/browser-managed-proxy-chromium-pac.mjs
+      - name: Archive SHA-specific browser and network evidence (never SDK C)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: managed-proxy-native-ab-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: artifacts/browser-managed-proxy-chromium-pac.json

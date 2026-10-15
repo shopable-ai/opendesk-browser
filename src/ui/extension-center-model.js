@@ -15,14 +15,15 @@ const newer=(a,b)=>{
   for(let i=0;i<3;i++){if(aa[i]!==bb[i])return aa[i]>bb[i];}
   return false;
 };
-export function composeExtensionEntries({installed=[],pages=[],official=[],enabled={},appStatusKnown=true,pageStatusKnown=true}={}){
+export function composeExtensionEntries({installed=[],pages=[],official=[],enabled={},appStatusKnown=true,pageStatusKnown=true,cleanupPendingIds=[]}={}){
   const entries=[],releases=new Map(official.map(row=>[row.toolId,row])),ids=new Set();
+  const pendingCleanups=new Set(cleanupPendingIds);
   for(const tool of installed){
     if(!tool?.id||ids.has(tool.id))continue;
     ids.add(tool.id);
     const release=releases.get(tool.id)||null;
     entries.push({key:'app:'+tool.id,id:tool.id,kind:'app',title:tool.title,
-      description:tool.description,version:tool.version,installed:true,
+      description:tool.description,version:tool.version,installed:true,cleanupPending:false,
       enabled:appStatusKnown?enabled[tool.id]!==false:null,stateKnown:appStatusKnown,
       release,update:!!release&&newer(release.version,tool.version),record:tool});
   }
@@ -42,7 +43,8 @@ export function composeExtensionEntries({installed=[],pages=[],official=[],enabl
     ids.add(release.toolId);
     entries.push({key:'app:'+release.toolId,id:release.toolId,kind:'app',
       title:release.packageTitle,description:release.description,version:release.version,
-      installed:false,enabled:false,stateKnown:true,release,update:false,record:null});
+      installed:false,cleanupPending:pendingCleanups.has(release.toolId),
+      enabled:false,stateKnown:true,release,update:false,record:null});
   }
   return entries.sort((a,b)=>a.title.localeCompare(b.title,'zh-CN')||a.key.localeCompare(b.key));
 }
@@ -58,9 +60,9 @@ export function resolveExtensionRowIntent(row){
 }
 export function filterExtensionEntries(entries,{query='',kind='all',scope='smart'}={}){
   const needle=lower(query);
+  // Default/legacy scopes project only verified installed entries. Search never
+  // escalates into Catalog discovery; uninstalled releases require an explicit scope.
   return entries.filter(row=>(kind==='all'||row.kind===kind)&&
-    (scope!=='local'||row.installed)&&
-    (scope!=='available'||!row.installed||row.update)&&
-    (scope!=='smart'||!!needle||row.installed||row.release?.installationPolicy==='preinstalled')&&
+    (scope==='available'?(!row.installed||row.update===true):row.installed===true)&&
     (!needle||[row.title,row.description,row.id,String(row.version)].some(s=>lower(s).includes(needle))));
 }

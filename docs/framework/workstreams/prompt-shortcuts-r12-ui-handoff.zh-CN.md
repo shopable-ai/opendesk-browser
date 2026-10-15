@@ -237,7 +237,7 @@
 ### 10.1 阶段界限与原始证据
 
 - 本轮在 GitHub 已读取 `AGENTS.md`、本需求文档、原预览、`preview/mock.html`、正式 `src`、`trusted/model.js`、宿主 `tool.html` / `sidebar-tools.js`、Design Tokens / System 与相关历史提交。起始 `main` HEAD 为 `30cc8f63e80efd22957e929e1796e114d5a5c9ac`；宿主已有 `sidebar-tool-back` / `sidebar-tool-title`，正式 `src/main.js` 的 `save()` 存在 `!ready || busy || mode !== 'form'` 无提示提前返回的待确认风险。
-- 唯一变更的交互预览是 `examples/sidebar-tools/prompt-shortcuts/preview/index.html`，保留原始 Git 历史，不增加平行原型。预览增量提交：[`49ffae7`](https://github.com/shopable-ai/opendesk-browser/commit/49ffae733a8174cdacec075d4f5b6e0fa07470f3)（布局/状态）、[`a53a1c3`](https://github.com/shopable-ai/opendesk-browser/commit/a53a1c3267489e491505b4b05f15060fb3034092)（未知结果核对/精确库额度）、[`d038a4e`](https://github.com/shopable-ai/opendesk-browser/commit/d038a4e618c99fa96b3f300bf5bccddaf5cf9e2a)（未知结果持久反馈）。
+- 唯一变更的交互预览是 `examples/sidebar-tools/prompt-shortcuts/preview/index.html`，保留原始 Git 历史，不增加平行原型。预览增量提交：[`49ffae7`](https://github.com/shopable-ai/opendesk-browser/commit/49ffae733a8174cdacec075d4f5b6e0fa07470f3)（布局/状态）、[`a53a1c3`](https://github.com/shopable-ai/opendesk-browser/commit/a53a1c3267489e491505b4b05f15060fb3034092)（未知结果核对/精确库额度）、[`d038a4e`](https://github.com/shopable-ai/opendesk-browser/commit/d038a4e618c99fa96b3f300bf5bccddaf5cf9e2a)（未知结果持久反馈）、[`20be3c3`](https://github.com/shopable-ai/opendesk-browser/commit/20be3c376bb844b9de82cddcdd372bea20a3520e)（R1.9 明示版本、模拟 UUID 额度和保存中的离开保护）。
 - 新 UX 合同已追加至 `examples/sidebar-tools/prompt-shortcuts/REQUIREMENTS.zh-CN.md`，提交 [`d3e165a`](https://github.com/shopable-ai/opendesk-browser/commit/d3e165a4fa6526ed928365f84c3bc72e577ef3be)。之前的 Claude/Gemini/Perplexity/DeepSeek/Grok/Cursor Web/ComfyUI 跨平台长期需求完整保留。
 - `preview/mock.html` **未修改**（Git blob `025ec9b2c1ed6e9b011c9e3c2a6ce5a87d263eae`）；正式 `src/index.html` / `src/style.css` / `src/main.js` **未修改**（分别为 `9ba23d10bb63be377db0d6c08ff2ec5da091282e`、`7598de9164d3f2017cb8d376d9539d0df1c60a59`、`83404d404bd73ad59546dd25fdaedf33951841ad`）。正式单一 JSON **未刷新/晋升**，版本仍为 `1.0.1`，Git blob `6bc4c87e027cb0a10656a4a992d8982e173190fc`。
 
@@ -267,7 +267,7 @@
 
 ### 10.4 静态检查、逐维评分与剩余风险
 
-- 已对 GitHub 最新预览做源代码静态验收：**81 个 HTML id 无重复，所有 `el('id')` 静态引用可解析，`<aside>` 标签嵌套平衡，唯一宿主标题/表单视图标题，`rows=3`/内部滚动/禁止拖拽、无残留 `min-height:238px`、无旧 `formBack` / 面包屑，模拟失败控件在产品 `<main>` 外，保存中/冲突/未知/核对分支与 A11y 状态属性均在源码中。**结果 `STATIC_PASS`。这不是 Node、浏览器 DOM 或视觉截图执行。
+- 已对 GitHub 最新预览做源代码静态验收：**81 个 HTML id 无重复，所有 `el('id')` 静态引用可解析，`<aside>` 标签嵌套平衡，唯一宿主标题/表单视图标题，`rows=3`/内部滚动/禁止拖拽、无残留 `min-height:238px`、无旧 `formBack` / 面包屑，模拟失败控件在产品 `<main>` 外，保存中/冲突/未知/核对分支与 A11y 状态属性均在源码中。**结果 `STATIC_PASS`。从 GitHub 读取最终 HTML，提取内联脚本以 JavaScript `new Function(source)` 进行**仅编译不执行**的语法校验，`SYNTAX_PASS`。这不是 Node、浏览器 DOM、真实用户交互或视觉截图执行。
 - 九个专家目标维度：信息架构、导航去重、正文输入体验、创建编辑效率、表单密度、成功/失败反馈、键盘焦点与无障碍、Design Token 一致性、错误状态恢复，当前分别均标记 **`NOT_SCORED`**。依据：尚无同一预览的真实浏览器交互实测、计算样式/聚焦/滚动测量、Mac IME、辅助技术、异常注入录屏或独立产品评审。不得将 `STATIC_PASS` 虚报为逐维 95+。待实际浏览器 A–I 通过后才能逐维评分；任何维度低于 95 要定向修复和复验。
 - GitHub 连接能读取、增量写入 `main`，但无法直接读用户 Mac 的 `/Users/shopme/Documents/workspace/opendesk-browser`，也未核对其 `git status`、开发 watcher、正式安装、原生 Chrome 身份和本机输入法。**现有已安装版本保存失败 P0 尚未关闭。**用户在本地手动输入“你好”无错误反馈的复现仍是独立事实。
 - 尚未运行浏览器交互测试、Node 定向测试、官方临时构建/`--promote-from`/`--check-project`、原生安装/重启持久化/ChatGPT/IME/原生右键。对应 `NODE_PASS`、`PACKAGE_PASS`、`INSTALLED_CHROME_PASS`、`REAL_CHATGPT_PASS`、`MAC_IME_PASS` 均 **`NOT_TESTED`**；本阶段不触碰原正式 JSON。
@@ -279,3 +279,23 @@
 3. 经预览确认后把必要结构和反馈迁至 `src/index.html` / `src/style.css` / `src/main.js`，不复制模拟数据或假宿主头；维持可信页面代码不变，除非实际缺陷证据要求修改。
 4. 运行 `node --test tests/environment/prompt-shortcuts-r14*.test.mjs` 等定向测试和共享设计安全来源检查；使用官方候选包 → 测试 → `--promote-from` → `--check-project`，按官方版本升级语义审查递增 `1.0.2`，同步唯一正式 JSON，绝不同版本异字节覆盖。
 5. 同候选在真实 Chrome 测试 “你好” 保存、重新打开仍存在、多行/Emoji/100 行、空/超限/失败/冲突/未知、草稿保护、按钮/Tooltip、Cmd+Z/IME、原生选区右键和停用/撤权/重装，并提供可复核操作证据。任何不具备的场景继续 `NOT_TESTED`。
+
+## 11. R1.10 — 紧凑表单原位优化与 Chromium 验证（2026-10-16）
+
+**用户反馈及修改范围：** 新建/编辑时低频选项占用过多空间，要求「左侧 label、右侧 input」的紧凑表单。仅修改唯一管理预览 `examples/sidebar-tools/prompt-shortcuts/preview/index.html`；不变更 `preview/mock.html`，不迁移或修改正式 `src/`、`trusted/` 与唯一正式安装 JSON。具体产品决策参见 `REQUIREMENTS.zh-CN.md` 第 9 节。
+
+- **源码提交：** [`8b871c0`](https://github.com/shopable-ai/opendesk-browser/commit/8b871c07a0c0fa81feff9a64c7a158f71deaa92d)；修改前 Git blob `9a9ffb6a34acd42d0caeea0eb6a5eb0c8cb4862c`，修改后 `9b630ab11ffb86a9f26f57244f5ac0ba8e2b92bc`，已通过重新读取最新 `main` 复核。
+- **具体优化：** 可选设置缩为三行：短标签／显示名称／网页显示；左标签、右单行输入或开关，默认折叠保留。删除形状选择 UI，新建默认圆角方形；编辑已有历史圆形条目时保持原 shape 值，不暗中改写。自动名称/短标签预览压缩为无额外卡底的行内展示。
+- **真实 Chromium 页面加载与操作**：使用 Linux `/usr/bin/chromium` headless + Playwright `page.set_content` 加载对应完整原始 HTML（本环境未将 `file://` 导航当作通过证据）。原有 **14/14** 模拟回归通过（固定三行与内部滚动、中文/Emoji、空正文与 UTF-8 上限、写入失败/冲突/未知、取消和宿主返回草稿保护、列表增删改排序/启停、两个独立全局开关、320/360/420/520px）；新增 **6/6** 紧凑表单针对性检查通过（默认折叠、左右栅格、无形状控件、自动/手填和单项开关、编辑回读、旧圆形值保留、暗色模式和各宽度）。本次页面 JavaScript 异常 **0**。
+- **实际布局测量（380px 侧栏）：** 同浏览器原旧版展开设置区 `388px` → 新版 `169px`，减少约 **56%**；展开表单整体 `725px` → `479px`；正文 textarea 的实际高度仍约 `80.4px`。320/360/420/520px 未发现 Side Panel 水平溢出。原始 Chromium 截图及修改后的完整 HTML 作为本次 ChatGPT 对话附件供用户视觉评审，不把图像生成结果当作浏览器证据。
+- **证据界限：** 这是独立浏览器中的**HTML 模拟预览验证**，不是 Mac 原生 Chrome 已安装的 OpenDesk 工具、真实 `storage.set`、IME、真实 ChatGPT DOM 或主观九维专家评分。用户对新布局的明确视觉确认 **PENDING**；九维产品目标当前仍 **NOT_SCORED**，正式保存“你好”失败 P0 仍未关闭。不得在确认前迁移正式 UI 或覆盖工具安装包。
+
+## 12. R1.12 — 默认展开和无标题兼容（2026-10-16）
+
+**用户反馈：** 「按钮设置」默认展开；提示词列表需要兼容根本没有手动标题的项，视觉目标为专家 95+/100。仅修改唯一管理预览 `examples/sidebar-tools/prompt-shortcuts/preview/index.html`，正式扩展和 `preview/mock.html` 未改。
+
+- **最新源码基准**：开始时 GitHub `main` 上已有另一轮 R1.11 正文优先列表和直接使用功能，原始 Git blob 为 `5241518c82b06458d4e9fb0f477e42a7b3ec0234`；本轮在其上安全增量提交 [`74bfecf`](https://github.com/shopable-ai/opendesk-browser/commit/74bfecf5bf44d820451539d889b56b0e4afbae43)；新 Git blob `9d6301262b42e19cc11a3a7bf135fe2659ae169d`，与完整 Chromium 测试源文件哈希一致。
+- **新建/编辑展开行为**：HTML 原生 `<details open>` 且每次进入表单执行 `advancedOptions.open=true`；手动收起之后填写正文不重开，下次进入重新展开。保留 R1.10 三行紧凑布局、正文三行高度、短标签/名称自动生成功能及旧圆形值保留。
+- **无标题列表**：新增 `customTitle` / `itemIdentity` 处理手动标题、自动名称及空名。卡片正文始终第一行，`nameAuto=true` 或空 `name` 时不渲染次级空白名称或重复标签；手工名称次级展示。默认模拟库包含一个空 `name` 的旧数据样例；正文片段作为无标题项的编辑、更多、停用和删除确认及网页按钮 ARIA 语义。原有 R1.11 点击正文优先填写模拟 ChatGPT 输入框，其他情况回退剪贴板的交互仍保持。
+- **真实 Chromium 验证**：Python Playwright + 本环境 `/usr/bin/chromium` headless，使用 `page.set_content` 加载逐字节匹配的 HTML 候选，**15/15 项 PASS，页面 JavaScript 异常 0**：默认展开与对齐、键盘 Enter 收起/展开及重新进入、空名称旧数据、只写“你好”自动名称、手动名称次级、无名称编辑回读、无名称启停、三行正文与百行内滚、Unicode Emoji、空内容与 8192B 校验、保存失败保留、结果未知核对、取消和宿主返回保护、320/360/400/440px 与深色不溢出且操作区域不重叠、点击正文直接插入。测试脚本和原始截图保存在本轮会话附件，不当作本机安装证据。
+- **未验收**：本环境不具备用户 Mac 原生安装 Chrome、真实 ChatGPT DOM/IME 和 Host `storage.set` 验收；正式“你好”保存失败 P0 没有在本轮修复。九维专家评分仍 **`NOT_SCORED`**，目标 >=95，而非据 15 项模拟通过就虚报专家分数。用户尚未明确批准 R1.12 预览进入正式迁移，保持 **PREVIEW_APPROVAL_PENDING**。

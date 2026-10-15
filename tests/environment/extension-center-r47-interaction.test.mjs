@@ -4,6 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {createExtensionCenter} from '../../src/ui/extension-center.js';
 import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
+import {TOOL_CLEANUP_STORE} from '../../src/ui/sidebar-tools/installation.js';
 
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 async function settle(predicate){
@@ -86,7 +87,7 @@ const page=()=>({programId:'reader',manifestHash:'a'.repeat(64),installed:{
   pageRules:{matches:['https://example.com/*']}
 }});
 
-function fixture(t,{disabled=false,readError=false}={}){
+function fixture(t,{disabled=false,readError=false,installedRows=[app],cleanupRows=null}={}){
   const doc={listeners:new Map(),defaultView:{innerWidth:360,innerHeight:640},
     documentElement:{clientWidth:360,clientHeight:640}};
   doc.createElement=tag=>new ElementDouble(tag,doc);
@@ -100,7 +101,7 @@ function fixture(t,{disabled=false,readError=false}={}){
   const ids=['extension-center-list','extension-center-search','extension-center-list-view',
     'extension-center-detail','extension-center-more','extension-center-menu',
     'extension-center-status','workspace-content','extension-center-empty',
-    'extension-center-empty-text','extension-center-count','extension-center-back',
+    'extension-center-empty-text','extension-center-count','extension-center-cleanups','extension-center-back',
     'extension-center-detail-body','extension-center-reset','extension-center-import',
     'extension-center-reload','extension-center-market','extension-center-menu-wrap',
     'sidebar-tool-file'];
@@ -111,10 +112,18 @@ function fixture(t,{disabled=false,readError=false}={}){
   nodes['extension-center-menu-wrap'].append(nodes['extension-center-more'],nodes['extension-center-menu']);
   nodes['extension-center-detail'].hidden=true;
   nodes['extension-center-menu'].hidden=true;
+  const installedScope=doc.createElement('button');installedScope.dataset.ecScope='smart';
+  const availableScope=doc.createElement('button');availableScope.dataset.ecScope='available';
+  const appKind=doc.createElement('button');appKind.dataset.ecKind='app';
+  const pageKind=doc.createElement('button');pageKind.dataset.ecKind='page';
+  nodes['extension-center-menu'].append(installedScope,availableScope,appKind,pageKind);
+  nodes['extension-center-list-view'].append(nodes['extension-center-cleanups']);
   nodes['extension-center-detail'].append(nodes['extension-center-back'],nodes['extension-center-detail-body']);
   doc.body.append(nodes['extension-center-list-view'],nodes['extension-center-detail'],
     nodes['extension-center-status'],nodes['extension-center-menu-wrap'],nodes['workspace-content']);
-  const store=new Map([[SIDEBAR_TOOL_STORE,[app]],[SIDEBAR_TOOL_ENABLE_STORE,{[app.id]:!disabled}]]);
+  const store=new Map([[SIDEBAR_TOOL_STORE,structuredClone(installedRows)],
+    [SIDEBAR_TOOL_ENABLE_STORE,{[app.id]:!disabled}]]);
+  if(cleanupRows)store.set(TOOL_CLEANUP_STORE,structuredClone(cleanupRows));
   let corrupt=readError,programs=[page()],failPages=false,allowed=true,pageAckOnly=false;
   const writes=[],invocations=[],changes=new Set();
   const api={
@@ -154,6 +163,10 @@ function fixture(t,{disabled=false,readError=false}={}){
       return true;
     },
     openOfficialReview(id){invocations.push(['review',id]);return false;},
+    async retryUninstallCleanup(id,event){
+      assert.equal(event.isTrusted,true);invocations.push(['cleanup',id]);
+      store.set(TOOL_CLEANUP_STORE,{});return {state:'cleaned',toolId:id};
+    },
     openImport(){invocations.push(['import']);return true;}
   };
   const taskWorkbench={navigate(tab){invocations.push(['navigate',tab]);return true;}};
@@ -256,13 +269,105 @@ test('R4.7 missing Page grant forbids enable; unreadable app status never fabric
   await settle(()=>f.button('page:reader','more')?.disabled===false);
   f.setCorrupt(true);await f.ui.refresh();
   assert.equal(f.button('app:quick-notes','primary'),undefined);
-  const row=f.list.children.find(node=>node.dataset.extensionId==='app:quick-notes');
-  assert.match(row.children[0].textContent,/状态待核对/);
-  f.button('app:quick-notes','more').dispatch('click');
-  assert.equal(f.menuItem('停用应用'),undefined);
-  assert.equal(f.menuItem('启用应用'),undefined);
-  assert.ok(f.menuItem('设置、权限与卸载'));
+  assert.equal(f.button('app:quick-notes','more'),undefined);
+  assert.equal(f.button('app:quick-notes','main'),undefined,
+    'an unverified cached registry is not an installed-app fact');
+  assert.equal(f.nodes['extension-center-status'].dataset.state,'error',
+    'an existing permission failure remains visible while registry authority is unavailable');
+  assert.match(f.nodes['extension-center-empty-text'].textContent,/安装状态读取失败/);
   assert.equal(f.invocations.some(x=>x[0]==='toggle'),false);
+});
+
+test('R5.0 uninstall from a second window retires installed details, search and old row actions',async t=>{
+  const f=fixture(t);await f.ui.refresh();
+  f.button('app:quick-notes','more').dispatch('click');
+  f.menuItem('查看详情').dispatch('click');
+  assert.equal(f.nodes['extension-center-detail'].hidden,false);
+  // Independent storage authority removes the installed package.
+  f.store.set(SIDEBAR_TOOL_STORE,[]);
+  await f.ui.refresh();
+  assert.equal(f.nodes['extension-center-detail'].hidden,true);
+  assert.equal(f.button('app:quick-notes','main'),undefined);
+  assert.equal(f.doc.activeElement,f.nodes['extension-center-search']);
+  f.nodes['extension-center-search'].value='quick-notes';
+  f.nodes['extension-center-search'].dispatch('input');
+  assert.equal(f.list.children.length,0,'search must not resurrect a catalog candidate');
+  await f.ui.refresh();
+  assert.equal(f.list.children.length,0,'refresh cannot resurrect an uninstalled app');
+  const restart=fixture(t,{installedRows:[]});
+  await restart.ui.refresh();
+  assert.equal(restart.button('app:quick-notes','main'),undefined,
+    'a new controller session must honor persistent removal');
+});
+
+test('R5.1 detail retires on same-ID package replacement or Page revision change',async t=>{
+  const f=fixture(t);await f.ui.refresh();
+  f.button('app:quick-notes','more').dispatch('click');
+  f.menuItem('查看详情').dispatch('click');
+  assert.equal(f.nodes['extension-center-detail'].hidden,false);
+  // Same tool ID and version are NOT the same approved bytes.
+  f.store.set(SIDEBAR_TOOL_STORE,[{...app,html:'<main>Replaced outside this window</main>'}]);
+  await f.ui.refresh();
+  assert.equal(f.nodes['extension-center-detail'].hidden,true,
+    'old settings/detail actions must not silently follow a replaced fixed package');
+  assert.match(f.nodes['extension-center-status'].textContent,/固定身份已变化/);
+  assert.deepEqual(f.invocations.filter(row=>row[0]==='settings'),[]);
+
+  f.button('page:reader','more').dispatch('click');
+  f.menuItem('查看详情').dispatch('click');
+  assert.equal(f.nodes['extension-center-detail'].hidden,false);
+  f.programs[0]={...f.programs[0],manifestHash:'c'.repeat(64),
+    installed:{...f.programs[0].installed,manifestHash:'c'.repeat(64),
+      revision:2,sourceHash:'d'.repeat(64)}};
+  await f.ui.refresh();
+  assert.equal(f.nodes['extension-center-detail'].hidden,true,
+    'an old Page detail cannot silently adopt a newly installed revision');
+  assert.match(f.nodes['extension-center-status'].textContent,/固定身份已变化/);
+});
+
+test('R5.0 catalog-offline cleanup remains recoverable only from discovery',async t=>{
+  const f=fixture(t,{installedRows:[],cleanupRows:{'cookie-editor':{version:'2.0.11',createdAt:1}}});
+  await f.ui.refresh();
+  assert.equal(f.nodes['extension-center-cleanups'].hidden,true,
+    'cleanup journal never counts as an installed app');
+  assert.equal(f.button('app:cookie-editor','main'),undefined);
+  f.nodes['extension-center-menu'].querySelector('button[data-ec-scope="available"]').dispatch('click');
+  const recovery=f.nodes['extension-center-cleanups'];
+  assert.equal(recovery.hidden,false,'recovery remains reachable without a Catalog release');
+  assert.match(recovery.textContent,/cookie-editor/);
+  // The recovery-only row has to obey the same discovery search and kind filter.
+  f.nodes['extension-center-search'].value='unrelated';
+  f.nodes['extension-center-search'].dispatch('input');
+  assert.equal(recovery.hidden,true,'unrelated search cannot expose an orphan cleanup');
+  f.nodes['extension-center-search'].value='Cookie Editor';
+  f.nodes['extension-center-search'].dispatch('input');
+  assert.equal(recovery.hidden,false,'same-ID cleanup stays searchable by readable tool name');
+  f.nodes['extension-center-menu'].querySelector('button[data-ec-kind="page"]').dispatch('click');
+  assert.equal(recovery.hidden,true,'Page-only filter cannot display App cleanup');
+  f.nodes['extension-center-menu'].querySelector('button[data-ec-kind="app"]').dispatch('click');
+  assert.equal(recovery.hidden,false,'App filter restores matching cleanup action');
+  recovery.querySelector('button').dispatch('click');
+  await settle(()=>recovery.hidden===true&&f.nodes['extension-center-status'].dataset.state==='success');
+  assert.deepEqual(f.invocations.filter(x=>x[0]==='cleanup'),[['cleanup','cookie-editor']]);
+  assert.equal(f.nodes['extension-center-status'].dataset.state,'success');
+  assert.deepEqual(f.store.get(TOOL_CLEANUP_STORE),{});
+  assert.equal(f.button('app:cookie-editor','main'),undefined,'cleanup cannot reinstall code');
+});
+
+test('R5.1 corrupt cleanup journal withdraws installed authority instead of hiding its unsafe entry',async t=>{
+  const malformed={'cookie-editor':{version:'garbled-version',createdAt:1}};
+  const f=fixture(t,{installedRows:[],cleanupRows:malformed});
+  await f.ui.refresh();
+  assert.equal(f.nodes['extension-center-count'].textContent,'部分安装状态待核对');
+  assert.equal(f.nodes['extension-center-status'].dataset.state,'error');
+  assert.match(f.nodes['extension-center-status'].textContent,/卸载恢复记录损坏/);
+  assert.equal(f.button('app:cookie-editor','main'),undefined);
+  f.nodes['extension-center-menu'].querySelector('button[data-ec-scope="available"]').dispatch('click');
+  assert.equal(f.nodes['extension-center-cleanups'].hidden,true,
+    'malformed journal cannot show a fake successful recovery control');
+  assert.equal(f.list.children.length,0,
+    'unknown installation authority cannot advertise a runnable or installable candidate');
+  assert.deepEqual(f.store.get(TOOL_CLEANUP_STORE),malformed);
 });
 
 test('R4.7 context menu closes on outside click/scroll and never stays outside viewport',async t=>{
@@ -450,6 +555,23 @@ test('R4.8 source-bound prototype has the identical production toolbar and shell
     'refresh must preserve user filters and current scenario');
 });
 
+test('R5.1 Cookie Editor prototype labels its real package version and isolated old-version update demo',async()=>{
+  const [preview,configText]=await Promise.all([
+    readFile('prototypes/sidebar/extension-center-r47-frequency-first-preview.html','utf8'),
+    readFile('examples/sidebar-tools/cookie-editor/tool.config.json','utf8')
+  ]);
+  const {version}=JSON.parse(configText);
+  const cookie=preview.match(/\{id:'cookie-editor',[\s\S]*?description:'独立 Cookie 管理工具'\}/)?.[0];
+  assert.ok(cookie,'preview must define a concrete Cookie Editor example');
+  assert.ok(cookie.includes("version:'"+version+"'"),
+    'normal preview must match the actual Cookie Editor project version');
+  assert.match(preview,/data-scenario="update"/);
+  assert.match(preview,/cookie\.version='2\.0\.6';cookie\.update=true;cookie\.releaseVersion='2\.0\.11'/);
+  assert.match(preview,/function simulateUpdate\(row\)/);
+  assert.match(preview,/确认模拟原位更新/);
+  assert.match(preview,/不会自动运行新版代码/);
+});
+
 test('R5.0 Host false leaves a disabled App unchanged and reports unfinished draft confirmation',async t=>{
   const f=fixture(t,{disabled:true});await f.ui.refresh();
   f.sidebarTools.toggleEnabled=()=>false;
@@ -463,6 +585,21 @@ test('R5.0 Host false leaves a disabled App unchanged and reports unfinished dra
   await f.ui.refresh();
   assert.match(f.nodes['extension-center-status'].textContent,/启停尚未完成/,
     'a background read must not swallow the unfinished operation');
+});
+
+test('R5.0 failed background storage read does not replace the original Host action error',async t=>{
+  const f=fixture(t,{disabled:true});await f.ui.refresh();
+  f.sidebarTools.toggleEnabled=()=>false;
+  f.button('app:quick-notes','more').dispatch('click');
+  f.menuItem('启用应用').dispatch('click');
+  await settle(()=>f.button('app:quick-notes','more')?.disabled===false);
+  const actionError=f.nodes['extension-center-status'].textContent;
+  assert.match(actionError,/启停尚未完成/);
+  f.setCorrupt(true);await f.ui.refresh();
+  assert.equal(f.nodes['extension-center-status'].textContent,actionError);
+  assert.equal(f.nodes['extension-center-status'].dataset.state,'error');
+  assert.equal(f.button('app:quick-notes','primary'),undefined,
+    'an unreadable registry cannot regain a fabricated launch button');
 });
 
 test('R5.0 a true Host return without matching persisted enable state is not a success',async t=>{

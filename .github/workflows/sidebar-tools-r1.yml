@@ -30,6 +30,7 @@ on:
       - 'examples/libs/trusted-imports/**'
       - 'tests/environment/runtime-libs-trusted-worlds.test.mjs'
       - 'tests/environment/sidebar-tools.test.mjs'
+      - 'tests/environment/sidebar-tool-multiscript-r72.test.mjs'
       - 'tests/environment/papa-parse-installed-csv-r12.test.mjs'
       - 'tests/environment/papa-parse-r1.test.mjs'
       - 'tests/environment/browser-sdk-contract-compat.test.mjs'

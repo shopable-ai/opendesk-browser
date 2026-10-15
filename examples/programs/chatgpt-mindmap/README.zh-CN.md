@@ -140,3 +140,32 @@ USER_SCRIPT 全部回调，也未解决 Snowbrush 全局样式残留。UI 会明
 本地运行 node examples/programs/chatgpt-mindmap/preview/serve.mjs --no-open，打开输出的 REAL_XMIND_CHATGPT_PREVIEW URL。原有 preview/index.html 与四份固定 JS 完整保留，不创建第二份引擎。设计状态为 **PENDING_USER_CONFIRMATION**，必须先由用户核对按钮位置和导图交互，再允许锁定为产品正式 UI 基准。
 
 本阶段的模拟页面通过不代表真实登录 ChatGPT、正式隔离运行时、许可批准或 Native 安装已经可用。
+
+
+## R3.5 · Icon 工具栏 / 编译产物真实性（2026-10-16）
+
+共享正式源码的 `src/view.js` / `assets/ui.css` 使用本地线框 SVG 分组 Icon 工具栏；窄容器采用 44px 更多菜单，折叠、全屏和刷新具有真实状态。打开导图后该条 ChatGPT 操作栏不再出现重复“原文”，关闭后原触发器恢复；XMind 只读渲染器仍使用相同四份原始 JS，没有替代画布或 CDN。
+
+`src/xmind-adapter.js` 使用实际 `.topic` 几何测量及可滚动节点进行定位；只在真实容器尺寸变化且用户未手动操作视口时自动适配。320px 下保护根节点可读性；完整桌面裁剪验收须以新 Chromium 实测截图/几何报告为准。
+
+**构建候选审计命令（在仓库根目录执行）：**
+
+```sh
+node examples/programs/chatgpt-mindmap/preview/verify-assets.mjs
+node --test tests/environment/chatgpt-mindmap-preview.test.mjs
+node --test tests/environment/chatgpt-mindmap-r1.test.mjs
+node scripts/validate-program-project.mjs examples/programs/chatgpt-mindmap
+npm run build:program -- examples/programs/chatgpt-mindmap
+node examples/programs/chatgpt-mindmap/scripts/audit-build.mjs
+npm run check
+```
+
+审计器只有在构建 SHA-256、Draft 和 **当前源码**一致时才接受候选。候选目录格式：
+
+`artifacts/programs/opendesk.chatgpt-mindmap/0.2.0/r31-production/<sourceHash16>-<authoringHash12>/`
+
+其中存在 `program.js` / `program.opendesk-draft.json` / `artifact.json`，**状态只能是 `BUILT_UNVERIFIED` 与 `installable:false`**。它与 Browser 宿主 MV3 `dist/development`、`dist/production`、Chrome 已安装 Page Program 是不同层级，互不等同。
+
+专项 CI 生成两个独立的短期 Artifact：`r35-program-build-candidate`（三文件与来源审计）及 `r35-chatgpt-icon-toolbar-proof`（真实 Chromium PNG、`chatgpt-result.json`、`screenshot-evidence.json`）。两者都不是本机已安装证明。截图证据由真实页面生成；没有逐张打开审阅前必须标为 `SCREENSHOT_NOT_VERIFIED`，不评 95+。
+
+本轮 GitHub 操作无法读取用户 Mac `/Users/shopme/...` 下的构建目录、已安装 Chrome profile 或并行 Agent 的未提交工作树；这些项目目前 `NOT_TESTED`。正式资源准入、许可、Snowbrush 全局 CSS 隔离、用户脚本生命周期及原生授权/撤权仍未通过。预览设计仍 `PENDING_USER_CONFIRMATION`。

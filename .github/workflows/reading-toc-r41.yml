@@ -27,6 +27,7 @@ on:
       - 'tests/environment/reading-toc-overview-r43.test.mjs'
       - 'tests/environment/sidebar-tools-host.test.mjs'
       - 'tests/framework/reading-toc-native-r41.test.mjs'
+      - 'tests/framework/reading-toc-preview-r14-native.test.mjs'
       - '.github/workflows/reading-toc-r41.yml'
       - 'official-tools/**'
       - 'src/sidebar-tools/**'
@@ -76,6 +77,11 @@ jobs:
           CHROME_BIN: ${{ steps.cft.outputs.chrome-path }}
           OPENDESK_NATIVE_HEADED: '1'
         run: xvfb-run -a node --test tests/framework/reading-toc-native-r41.test.mjs
+      - name: R1.4 real Chromium offline preview interaction and screenshot evidence
+        if: ${{ !cancelled() }}
+        env:
+          CHROME_BIN: ${{ steps.cft.outputs.chrome-path }}
+        run: xvfb-run -a node --test tests/framework/reading-toc-preview-r14-native.test.mjs
       - name: Existing Sidebar tool regression
         if: ${{ !cancelled() }}
         run: node --test tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs

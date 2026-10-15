@@ -15,7 +15,7 @@ import {toolPageHref} from './sidebar-tools/navigation.js';
 import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool,officialToolStatus,matchesOfficialRelease} from '../sidebar-tools/official-catalog.js';
 import {resumeDefaultPreinstall,DEFAULT_PREINSTALL_STORE} from '../sidebar-tools/default-preinstall.js';
 import {installReviewedSidebarTool,admittedSidebarToolPackages,sameSidebarToolPackage,compareToolVersions,
-  recordToolUninstall,cleanupUninstalledToolLocked,TOOL_REVOCATION_EPOCHS_STORE,
+  recordToolUninstall,cleanupUninstalledToolLocked,retryUninstalledToolCleanup,TOOL_REVOCATION_EPOCHS_STORE,
   requireCompleteInstalledSidebarTools,setInstalledSidebarToolEnabled,MARKET_PROVENANCE_STORE} from './sidebar-tools/installation.js';
 import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,TOC_CAPABILITY,
   websiteOrigin,grantedOrigins,tocSiteAllowed,blockedTocOrigins,changeTocSiteAllowed,READING_TOC_PLACEMENT_PREFIX,
@@ -343,6 +343,12 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const adblockContainer=get('sidebar-tool-adblock-native');
   const adblockControls=adblockContainer&&adblock?.createPermissionControls?
     adblock.createPermissionControls({api,doc,container:adblockContainer,notice,
+      onViewChange:()=>renderTocSettings(),
+      openToolManagement:()=>{
+        if(active?.id!==ADBLOCK_ID||readOnlyPreview)return;
+        tocSettingsOpen=true;renderTocSettings();
+        settingsButton.focus?.({preventScroll:true});
+      },
       runOperation:(operation,payload,event)=>{
         const tool=active;
         return adblock.runTrustedOperation({api,tool,operation,payload,event,
@@ -648,7 +654,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     }
   }
   function renderInstalledTools() {
-    const view=JSON.stringify([busy,enableReadError,enableRecords,installed,officialReleases]);
+    const view=JSON.stringify([busy,installedReadError,enableReadError,enableRecords,installed,officialReleases]);
     if(view===lastInstalledView)return;
     lastInstalledView=view;
     const focusedId=doc.activeElement?.dataset?.sidebarToolId;
@@ -671,7 +677,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         button.setAttribute('aria-label','打开工具「'+row.title+'」的详情，安装 ID：'+row.id);
       }
       const version=doc.createElement('span');version.className='sidebar-tool-item-version';
-      version.textContent='v'+row.version+(enableReadError?' · 状态异常':sidebarToolEnabled(enableRecords,row.id)?'':' · 已停用');
+      version.textContent='v'+row.version+(installedReadError?' · 安装待核对':enableReadError?' · 状态异常':sidebarToolEnabled(enableRecords,row.id)?'':' · 已停用');
+      button.disabled=installedReadError;
       button.append(icon,copy,version);button.addEventListener('click',()=>openTool(row.id));item.append(button);list.append(item);
       if(row.id===focusedId&&!active)button.focus?.({preventScroll:true});
     }
@@ -687,7 +694,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     const enabled=Boolean(managed&&!enableReadError&&sidebarToolEnabled(enableRecords,id));
     timePermissions?.render(active,readOnlyPreview);
     focusPermissions?.render(active,readOnlyPreview,enabled);
-    adblockControls?.render(active,readOnlyPreview,enabled);
+    adblockControls?.render(active,readOnlyPreview,enabled,tocSettingsOpen);
     aiPermissions?.render(active,readOnlyPreview,enabled);
     aiProxyContainer.hidden=!(managed&&id===AI_ID&&enabled&&(frame||nativeUI));
     const sitePending=siteTogglePending.has(id);
@@ -703,8 +710,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     }
     for(const element of settingsView.querySelectorAll?.('[data-toc-host-text]')||[])
       element.textContent=tocText(element.getAttribute('data-toc-host-text'));
-    settingsView.setAttribute('aria-label',tocText('settingsTitle'));
-    settingsButton.title=tocText('settingsTitle');
+    settingsView.setAttribute('aria-label',id===ADBLOCK_ID?'工具管理':tocText('settingsTitle'));
+    settingsButton.title=id===ADBLOCK_ID?'返回 AdBlock 产品':tocText('settingsTitle');
     settingsButton.setAttribute('aria-label',settingsButton.title);
     backButton.title=tocText('backAction');
     backButton.setAttribute('aria-label',backButton.title);
@@ -716,7 +723,10 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       isToc?tocText('siteGroup'):'当前网站授权');
     if(!managed)tocSettingsOpen=false;
     const show=managed&&tocSettingsOpen;
-    settingsButton.hidden=!managed;settingsButton.disabled=busy||sitePending;
+    // AdBlock owns its product title and settings entry; generic management is separate.
+    if(title)title.hidden=managed&&id===ADBLOCK_ID&&!show;
+    settingsButton.hidden=!managed||(id===ADBLOCK_ID&&!show);
+    settingsButton.disabled=busy||sitePending;
     settingsButton.setAttribute('aria-expanded',String(show));
     // Time Review uses the same trusted static settings DOM as an inline
     // enrollment card. Do not replace/hide its live stats iframe.
@@ -725,7 +735,10 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(trustedInline&&settingsView.nextElementSibling!==frameRoot)frameRoot.before?.(settingsView);
     else if(!trustedInline&&settingsView.previousElementSibling!==retiredDraft)retiredDraft.after?.(settingsView);
     display.setAttribute('data-trusted-tool-inline',String(trustedInline));
-    settingsView.hidden=!show;frameRoot.hidden=(show&&!trustedInline)||!(frame||nativeUI);
+    settingsView.hidden=!show;
+    // Visibility-only: retain the existing opaque iframe and its installation identity.
+    frameRoot.hidden=(show&&!trustedInline)||!(frame||nativeUI)||
+      (managed&&id===ADBLOCK_ID&&adblockControls?.view?.()!=='exceptions');
     renderCookieSettings(show);
     fullBookmarkSettings.hidden=!(show&&managed&&isFullBookmarkTool(active));
     const fullGrant=menuGrants?.[id],currentEpoch=revocationEpochs[id]??null;
@@ -992,6 +1005,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     
     cancelRemovalReview();
     if(disposed||busy||!visible)return;
+    if(installedReadError){notice('安装记录读取失败，请刷新核对后再打开应用。',true);return;}
     if(launchGate&&active&&(toolSaving||toolDirty||isDirty())){
       notice('当前工具有未保存内容，请先保存或关闭，再重新从右键菜单启动。',true);return;
     }
@@ -1012,7 +1026,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   // Management never mounts untrusted code. The existing trusted settings UI
   // owns site grants, enable/disable, version details and uninstall reviews.
   function openSettings(id){
-    if(disposed||busy||!visible)return false;
+    if(disposed||busy||!visible||installedReadError)return false;
     const tool=toolById(id);
     if(!tool){notice('找不到已安装的工具',true);return false;}
     const show=()=>{
@@ -2166,6 +2180,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     notice('已安装「'+accepted.title+'」。点击“打开”启动工具。');
   }
   async function remove(id=active?.id,{confirmed=false}={}) {
+    if(installedReadError)throw new Error('安装记录待核对，无法卸载旧缓存中的工具');
     const item=toolById(id);
     if(!item||busy)return;
     if(active?.id===id&&toolSaving){notice('当前工具正在保存，请完成保存后再卸载。',true);return;}
@@ -2210,6 +2225,16 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       busy=false;render();
       if(removed&&visible)focusToolInList(installed[Math.min(itemIndex,installed.length-1)]?.id);
     }
+  }
+  async function retryUninstallCleanup(id,event){
+    if(!event?.isTrusted||disposed||busy||!visible||installedReadError)return {state:'blocked',toolId:id};
+    busy=true;render();
+    try{
+      const result=await retryUninstalledToolCleanup({api,lockManager,id});
+      if(result.state==='cleaned')notice('卸载清理已确认完成；重新安装仍需审阅。');
+      else notice('卸载恢复状态：'+result.state,true);
+      return result;
+    }finally{busy=false;render();}
   }
   const action=(fn)=>()=>Promise.resolve().then(fn).catch(error=>notice(
     (error?.code||'E_TOOL')+'：'+String(error?.message||error).slice(0,240),true));
@@ -2464,7 +2489,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     }));
   }
   render();
-  return Object.freeze({ready,openTool,openSettings,toggleEnabled,openOfficialReview,openImport,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,openInTab,closeTool,setVisible,dispose(){
+  return Object.freeze({ready,openTool,openSettings,toggleEnabled,retryUninstallCleanup,openOfficialReview,openImport,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,openInTab,closeTool,setVisible,dispose(){
     if(disposed)return;
     cancelActionReview();destroyFrame();fileSelection++;disposed=true;visible=false;
     adblockControls?.dispose?.();

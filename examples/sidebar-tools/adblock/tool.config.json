@@ -1,6 +1,6 @@
 {
   "id": "adblock",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "title": "广告拦截",
   "description": "离线阻断常见第三方广告与跟踪资源，支持全局启停和当前网站例外。",
   "capabilities": [

@@ -156,3 +156,9 @@ Page 项目可选设置 `"framework":"react"` 或 `"framework":"vue"`，而无�
 Node Resolver 可在源码保存后自动准备。在 `projects.list` 包含 `preparation.state` 时呈现 Provider 的真实状态；若当前 Go 聚合清单暂不透传准备元数据，则浏览器只对**当前选中的已授权项目**经现有只读 `project.resolve` 核验最新源码字节、`sourceHash`、`inputHash`、运行类型和 Provider epoch，且只保留哈希摘要（不保留后台读取的源码正文）；目录改变与 Provider 通知会重新核验，2 秒状态轮询不会重复编译。源码错误会拒绝运行；准备进度仅作为只读提示，用户在状态更新前明确点击 Run 时仍通过原 project.resolve 重新核验并只执行最新源码（不直接运行旧缓存）。每次明确运行仍会重新读取最新源码、按 SHA-256 校验、校验当前网页权限/目标与 Controller/Page 运行合同；保存不会执行网页业务。诊断字段放在折叠区域。
 
 **跨仓库待验收限制：** OpenDesk Go `internal/browserbridge/host_dev_multi_unix.go` 当前对目录项目进行聚合时未完整转发 Node 的 `preparation` 元数据。这次 Browser 只读兼容层不另建多客户端 Native 系统；Go 后续须复用 GOAL 2 协议演进。Go 仓库默认写入分支为 `master`，不属于本任务已授权的唯一 `main` 写入范围，因此未修改 Go。Mac 已安装 Native、Go CLI、Chrome Profile 与 `127.0.0.1:43111` 的真实验收必须另行记录，不能用 Node Mock 代替。
+
+## Local Projects R1.2：运行前真实身份守卫与跨仓库缺口（2026-10-16）
+
+Browser 的正式开发页使用 `canAttemptRun` 对源码错误、失联、版本不兼容与状态读取失败做按钮级拦截；Run 的正式 `project.resolve` 仍重新检查 UTF-8 字节数、SHA-256、当前 `bindingId`、`providerEpoch` 与 Controller/Page 运行类型。**当已注册 Provider 在 `projects.list` 提供权威 `preparation.sourceHash/sourceRevision` 时，Run 前后版本不一致直接报 `E_DEV_CONFLICT`，不转用旧缓存或静默自动重试。** 只读源码核验的诊断文案标注「不代表已执行」，真实运行结果以原 RunHost 与 Page/Controller 回执为准。
+
+当前 Go `master` 的 `internal/browserbridge/host_dev_multi_unix.go` 仍在 `readCatalog` 将 Node 发出的 `preparation` 字段丢弃，并在聚合 `projects.list` 时只重建来源身份与运行类型。因此 Browser 缺少元数据的兼容性读取**仅能证明读取时的字节**，不能保证 Codex 随后保存的文件会在无事件时自动被发现，更不能把后台只读 Resolve 判定为已执行。恢复这一闭环必须与 GOAL 2 在 Go 聚合原协议中透传经过 schema 校验的准备摘要，避免复制 Provider、额外持续编译或越权文件监听；该 Go 修改不在 Browser `main` 写入授权内。Mac 已安装程序、真实多客户端连接、真实 Chrome 权限/执行与测试网页验收在有对应机器证据前仍标记 `NOT_TESTED`。

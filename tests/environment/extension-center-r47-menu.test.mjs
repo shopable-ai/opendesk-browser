@@ -46,7 +46,10 @@ test('R4.7 one trusted app toggle from both settings and row overflow',async()=>
   assert.match(host,/if\(active\?\.id===id&&!canLeave\(apply\)\)return false/);
   assert.match(host,/await setInstalledSidebarToolEnabled\(\{api,lockManager,tool,enabled\}\)/);
   assert.match(host,/listen\(enableButton,'click',event=>\{/);
-  assert.match(host,/openSettings,toggleEnabled,openOfficialReview/);
+  assert.match(host,/openSettings,toggleEnabled,retryUninstallCleanup,openOfficialReview/,
+    'the same trusted Host exposes both lifecycle controls and uninstall recovery');
+  assert.match(host,/async function retryUninstallCleanup\(id,event\)/,
+    'uninstall recovery stays on the original gesture-guarded Host');
   assert.match(installer,/sameSidebarToolPackage\(current,tool\)/);
   assert.match(installer,/TOOL_REVOCATION_EPOCHS_STORE/);
   assert.match(installer,/stopAdblockForTool\(api,tool\.id\)/);

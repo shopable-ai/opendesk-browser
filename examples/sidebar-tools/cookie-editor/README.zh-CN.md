@@ -1,6 +1,6 @@
 # Cookie Editor · 正式 Cookies SDK 安装工具
 
-**入口：** Side Panel「扩展」→ **Cookie Editor → 打开**。首次安装浏览器扩展时，可信离线目录自动预装工具包，不运行工具代码、不自动授权 Cookie 网站；旧 Profile 未安装时，直接在「扩展」列表点击「安装」进行可信审阅，然后打开。也可将本目录源码打包为 JSON 后手动导入。默认中文，官方目录为 `installationPolicy: preinstalled`；工具包 **2.0.10 / opendesk.sidebar-tool.v2**。**历史 2.0.4 隔离 CFT 候选**曾通过真实发现、安装、授权、读取、编辑、新建、保存回读和精确删除；该记录仅适用于当时的工具包。**当前 2.0.10 的 Mac Chrome 安装/导入/导出/缩放矩阵仍为 NOT_TESTED**；不能将历史截图、回执或分数延用为当前版本的 PASS/95+。所有 Cookie 修改均从已安装工具 UI 发起。
+**入口：** Side Panel「扩展」→ **Cookie Editor → 打开**。首次安装浏览器扩展时，可信离线目录自动预装工具包，不运行工具代码、不自动授权 Cookie 网站；旧 Profile 未安装时，直接在「扩展」列表点击「安装」进行可信审阅，然后打开。也可将本目录源码打包为 JSON 后手动导入。默认中文，官方目录为 `installationPolicy: preinstalled`；工具包 **2.0.11 / opendesk.sidebar-tool.v2**。**历史 2.0.4 隔离 CFT 候选**曾通过真实发现、安装、授权、读取、编辑、新建、保存回读和精确删除；该记录仅适用于当时的工具包。**当前 2.0.11 的 Mac Chrome 安装/导入/导出/缩放矩阵仍为 NOT_TESTED**；不能将历史截图、回执或分数延用为当前版本的 PASS/95+。所有 Cookie 修改均从已安装工具 UI 发起。
 
 ## 快速开始：使用已安装扩展，或编译本地 JSON
 
@@ -110,7 +110,13 @@ R3.3 新候选：授权变化后经已有 Bridge 自动检查当前网站；拒�
 ### R4.5 空白草稿误报修复（2.0.10，2026-10-16）
 
 - 新建/编辑时记录字段快照；仅实际变更时发出 dirty。撤销修改后自动 clean；无需因为打开窗口、聚焦、选择导入格式等动作提示未保存。
-- 已有 Cookie 未修改就点击保存会关闭编辑面板，不向 Chrome 发起写入或敏感值授权；已输入又清空的敏感值不能错误覆盖旧值。
+- 已有 Cookie 未修改就点击保存会关闭编辑面板，不向 Chrome 发起写入或敏感值授权；对敏感值字段，未触碰空白代表保留旧值；明确编辑后清空代表写入空值，且必须触发未保存提醒。
 - 预览 R4.3 保持视觉布局，仅修改草稿检测。原始文件保留在 Git 历史。
 - 提交的安装包版本 2.0.10，使用同一工具 ID。验收命令：`node --test tests/environment/cookie-editor-r43-parity.test.mjs tests/environment/cookie-editor-ui.test.mjs` 和 `node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor --check-project`。
 - 当前仅为源码与候选包修改，Mac Chrome 已安装文件不会自动覆盖；须明确更新安装包，真实 Chrome 验收仍为 NOT_TESTED。
+
+### R4.5.1 兼容性闭环（2.0.11，2026-10-16）
+
+- 保留 Chrome Cookies SDK 既有显式写入空字符串契约；被遮蔽的值输入框仅在未编辑时才代表保留原值。编辑后清空是明确写入空值，必须显示未保存状态。
+- 导出 MIME 类型继续由 `browserTextDownloadUrl` 公共 SDK 实现，CI 测试验证正式宿主调用及 JSON 文件的真实 MIME 映射，不再断言旧宿主文件中必须存在 MIME 常量。
+- 与 R4.5 相同，未做 Mac 已安装工具与真实网站 Cookie 原生验收。版本 2.0.11 需通过手动更新同 ID 安装包验证。

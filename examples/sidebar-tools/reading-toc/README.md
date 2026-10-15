@@ -28,7 +28,7 @@
 npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc
 ```
 
-可导入文件：`examples/sidebar-tools/reading-toc/reading-toc.opendesk-tool.json`（仓库内随源码校验的 1.0.6 正式便携包），也可重新构建得到 `artifacts/sidebar-tools/reading-toc/1.0.6/reading-toc.opendesk-tool.json`。在「工具」→「＋ 导入」选择文件，审阅后确认安装。官方快捷安装和本地文件导入复用同一工具包校验、权限复核和持久安装记录。官方资源自动生成到 `dist/production/official-tools/reading-toc/reading-toc.opendesk-tool.json`；版本、能力和 SHA-256 由统一 [Catalog](../../../docs/api/official-tools-catalog.zh-CN.md) 派生。源码目录中保留此工具明确选择的便携包副本；不带 `--out` 的打包命令会按照同一套验证代码自动刷新该副本，其他工具仍维持自己的发行政策。默认预装由宿主持久计划管理；卸载后重启不会重新安装。其他 ID 的导入目录工具仍需逐站点授权。
+可导入文件：`examples/sidebar-tools/reading-toc/reading-toc.opendesk-tool.json`（仓库内随源码校验的 1.0.7 正式便携包），也可重新构建得到 `artifacts/sidebar-tools/reading-toc/1.0.6/reading-toc.opendesk-tool.json`。在「工具」→「＋ 导入」选择文件，审阅后确认安装。官方快捷安装和本地文件导入复用同一工具包校验、权限复核和持久安装记录。官方资源自动生成到 `dist/production/official-tools/reading-toc/reading-toc.opendesk-tool.json`；版本、能力和 SHA-256 由统一 [Catalog](../../../docs/api/official-tools-catalog.zh-CN.md) 派生。源码目录中保留此工具明确选择的便携包副本；不带 `--out` 的打包命令会按照同一套验证代码自动刷新该副本，其他工具仍维持自己的发行政策。默认预装由宿主持久计划管理；卸载后重启不会重新安装。其他 ID 的导入目录工具仍需逐站点授权。
 
 ## 当前证据与边界
 
@@ -107,7 +107,7 @@ R4.5 资源迁移的候选、测试与真实浏览器证据见 [专项工作流]
 
 阅读目录的 Side Panel 沙箱和可信网页悬浮 UI 共享 `locales.json` 的 `zh-CN` / `en` 文案；来源标题与网页标题仍保持原文。用户在「扩展」→「更多操作」选择界面语言，加载后或切换中，当前目录模式、来源、章节、悬浮位置以及未完成的读取请求应继续保留。应用默认中文；工具单条英文缺失时回退中文，所有文字资源离线随正式工具版本发布。权威合同：[Sidebar Tool 本地化](../../../docs/api/sidebar-tool-localization.zh-CN.md)。
 
-**发行版本：** 当前 `tool.config.json` 为 `1.0.6`；使用 `npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc` 生成同 ID 可导入包。说明旧文档所列 `1.0.4` 是旧候选，不能直接充当 R1.2 双语验收证据。正式 Chrome 的双语言切换、网页浮层、失效重试、SPA、重启、更新仍以当前新候选原生证据为准。
+**发行版本：** 当前 `tool.config.json` 为 `1.0.7`；使用 `npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc` 生成同 ID 可导入包。说明旧文档所列 `1.0.4` 是旧候选，不能直接充当 R1.2 双语验收证据。正式 Chrome 的双语言切换、网页浮层、失效重试、SPA、重启、更新仍以当前新候选原生证据为准。
 
 ### 语言资源与可信悬浮 UI 的边界
 

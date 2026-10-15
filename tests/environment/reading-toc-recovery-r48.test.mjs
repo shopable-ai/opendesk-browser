@@ -76,3 +76,27 @@ test('R4.8 host responds on read throttling and preserves trusted force re-index
  assert.match(host,/forceRefresh:true/);
  assert.match(page,/message\.forceRefresh===true/);
 });
+
+test('R1.4 focus shows both duplicate H2 chapters under two H1 in a short answer',async()=>{
+ const f=harness(await packagedScript());
+ const rows=[
+  {id:'h-1',sourceId:'s-1',label:'回答一 H1',depth:0,topId:'h-1'},
+  {id:'h-2',sourceId:'s-1',label:'重复标题',depth:1,topId:'h-1',parentId:'h-1'},
+  {id:'h-3',sourceId:'s-1',label:'同一回答第二个 H1',depth:0,topId:'h-3'},
+  {id:'h-4',sourceId:'s-1',label:'重复标题',depth:1,topId:'h-3',parentId:'h-3'}
+ ];
+ f.requests[0].resolve({items:rows,activeId:'h-1',
+  sources:[{id:'s-1',label:'回答 1'}],
+  overview:{'s-1':{ids:rows.map(x=>x.id),representedId:'h-1',hiddenCount:0}}});
+ await tick();
+ const links=()=>f.nodes['toc-list'].querySelectorAll('button');
+ const ids=()=>links().map(node=>node.dataset.id);
+ assert.deepEqual(ids(),rows.map(row=>row.id),'focus must not hide another short-outline H2');
+ assert.equal(links().filter(node=>node.children[0].textContent==='重复标题').length,2);
+ assert.equal(f.modes.find(b=>b.dataset.tocMode==='focus').attrs.get('aria-pressed'),'true');
+ for(const mode of ['top','full','focus']){
+  f.modes.find(b=>b.dataset.tocMode===mode).fire('click');
+  assert.deepEqual(ids(),rows.map(row=>row.id),mode+' must retain original DOM identities');
+ }
+ assert.equal(f.requests.length,1,'mode switches must never trigger a new TOC snapshot');
+});

@@ -1,15 +1,18 @@
 /* @opendesk-shared-design */
-/* All component colors, buttons, surfaces and focus states are compiled from canonical OpenDesk UI. */
-.adblock-tool{max-width:100%;padding:0 var(--space-2) var(--space-3);overflow-wrap:anywhere}
-.adblock-section{margin:var(--space-2) 0 0}
-.adblock-title{gap:var(--space-2)}
-.adblock-count{flex:none;min-width:1.5em;text-align:right}
-.adblock-list{margin-top:var(--space-1)}
-.adblock-row{display:flex;justify-content:space-between;align-items:center;gap:var(--space-2);padding:var(--space-2) 0;border-top:1px solid var(--od-line);min-width:0}
+/* Layout only: colors and component styling come from canonical OpenDesk CSS. */
+.adblock-tool{max-width:100%;min-width:0;padding:0 var(--space-2) var(--space-3);overflow-wrap:anywhere}
+.adblock-section{margin:0}
+.adblock-list{min-width:0}
+.adblock-row{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-width:0;padding:var(--space-3) 0;border-top:1px solid var(--od-line)}
 .adblock-row:first-child{border-top:0}
-.adblock-domain{min-width:0;flex:1;overflow-wrap:anywhere;word-break:break-word;font-weight:600}
+.adblock-entry{min-width:0;flex:1}
+.adblock-domain{display:block;min-width:0;overflow-wrap:anywhere;word-break:break-word;font-size:13px;font-weight:700}
+.adblock-entry-hint{margin:2px 0 0;font-size:11px;color:var(--od-sub);line-height:1.5}
 .adblock-restore{flex:none;white-space:nowrap}
-.adblock-empty{margin:var(--space-2) 0 0}
-.adblock-message{margin:var(--space-2) var(--space-1) 0}
+.adblock-empty{text-align:center;padding:var(--space-5) var(--space-2);min-width:0}
+.adblock-empty-mark{display:grid;place-items:center;width:38px;height:38px;margin:0 auto var(--space-2);border-radius:50%;background:var(--od-muted);color:var(--od-brand);font-size:20px}
+.adblock-empty strong{display:block;font-size:13px}
+.adblock-empty p{margin:5px 0 0;font-size:11px}
+.adblock-message{margin:var(--space-2) var(--space-1) 0;font-size:11px}
 .adblock-message[data-error="true"]{color:var(--od-negative)}
-@media(max-width:300px){.adblock-tool{padding-inline:var(--space-1)}.adblock-row{flex-wrap:wrap}.adblock-restore{margin-inline-start:auto}}
+@media(max-width:320px){.adblock-tool{padding-inline:var(--space-1)}.adblock-row{flex-wrap:wrap}.adblock-restore{margin-left:auto}}

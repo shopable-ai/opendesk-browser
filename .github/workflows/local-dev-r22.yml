@@ -12,6 +12,10 @@ on:
       - 'scripts/remote-esm-*.mjs'
       - 'native-agent/local-dev/**'
       - 'src/native-agent/local-project-service.js'
+      - 'src/ui/local-project.js'
+      - 'src/ui/script-editor.js'
+      - 'tests/environment/local-project-status-ui.test.mjs'
+      - 'tests/environment/script-editor.test.mjs'
       - 'src/ui/page-dependencies.js'
       - 'src/ui/esm-source-detector.js'
       - 'src/framework/control/native-driver.js'
@@ -77,7 +81,7 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Source and bounded local development components
-        run: node --test tests/environment/local-dev*.test.mjs tests/environment/local-project-connection.test.mjs tests/environment/native-agent-native-host.test.mjs tests/environment/native-agent-host.test.mjs tests/environment/native-agent-wire.test.mjs
+        run: node --test tests/environment/local-dev*.test.mjs tests/environment/local-project-connection.test.mjs tests/environment/local-project-status-ui.test.mjs tests/environment/script-editor.test.mjs tests/environment/native-agent-native-host.test.mjs tests/environment/native-agent-host.test.mjs tests/environment/native-agent-wire.test.mjs
       - run: npm run build
       - uses: browser-actions/setup-chrome@v2
         id: chrome

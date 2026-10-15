@@ -7,6 +7,7 @@ on:
       - '.github/workflows/prompt-shortcuts-r14.yml'
       - 'examples/sidebar-tools/prompt-shortcuts/**'
       - 'tests/environment/prompt-shortcuts-r14*.test.mjs'
+      - 'scripts/tests/prompt-shortcuts-r111-preview-chrome.mjs'
       - 'src/ui/sidebar-tools/package.js'
       - 'src/ui/sidebar-tools/installation.js'
       - 'src/ui/sidebar-tools.js'
@@ -26,7 +27,7 @@ permissions:
 jobs:
   prompt-shortcuts-scope:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 16
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -64,6 +65,23 @@ jobs:
           assert.equal(pkg.scripts.length,1);
           console.log('PROMPT_SHORTCUTS_PORTABLE_V2_PACKAGE_PASS',bytes.length,createHash('sha256').update(bytes).digest('hex'));
           NODE
+      - name: Provide readable CJK fonts for actual HTML screenshots
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y fonts-noto-cjk
+      - uses: browser-actions/setup-chrome@v2
+        id: preview-chrome
+      - name: Real Chromium HTML preview interaction and 320/360/400/440 screenshots (not installed extension)
+        env:
+          CHROME_BIN: ${{ steps.preview-chrome.outputs.chrome-path }}
+        run: node scripts/tests/prompt-shortcuts-r111-preview-chrome.mjs artifacts/prompt-shortcuts-r111-preview
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: prompt-shortcuts-r111-preview-chrome-${{ github.sha }}
+          path: artifacts/prompt-shortcuts-r111-preview/
+          if-no-files-found: warn
+          retention-days: 14
       - uses: actions/upload-artifact@v4
         with:
           name: prompt-shortcuts-v2-${{ github.sha }}

@@ -45,6 +45,8 @@ function sandboxFixture(tool,{failAt=0,digestDelayMs=0}={}){
  const win=eventNode(),root={innerHTML:'',scrollHeight:10,replaceChildren(){},
   getBoundingClientRect:()=>({top:0,bottom:10}),addEventListener(){},querySelectorAll:()=>[]},
  status={hidden:false,textContent:'',dataset:{}},doc={
+  // A real sandbox HTML document always has <html>; locale sync now sets its lang.
+  documentElement:{lang:'zh-CN'},
   getElementById:id=>id==='tool-root'?root:status,
   createElement:()=>({...eventNode(),src:'',textContent:''}),
   head:{append(){}},
@@ -79,7 +81,10 @@ function sandboxFixture(tool,{failAt=0,digestDelayMs=0}={}){
    const timer=setTimeout(()=>reject(new Error('Sandbox did not report a terminal result')),2000);
    terminal.then(()=>{clearTimeout(timer);resolve();});
  });
- return {emitted,loads,wait,win};
+ return {emitted,loads,wait,win,documentElement:doc.documentElement,
+  hostLocale:locale=>win.emit('message',{source:parent,data:{
+    protocol:'opendesk.sidebar-tool.bridge.v1',kind:'locale-changed',
+    instance:'one',toolId:tool.id,locale}})};
 }
 test('opaque sandbox verifies every SHA, observes onload order and only then loads main JS',async t=>{
  const f=await packageFixture();t.after(()=>rm(f.root,{recursive:true,force:true}));
@@ -104,5 +109,17 @@ test('ordered loading awaits real SHA completion under asynchronous worker delay
  const f=await packageFixture();t.after(()=>rm(f.root,{recursive:true,force:true}));
  const b=sandboxFixture(f.tool,{digestDelayMs:30});await b.wait();
  assert.deepEqual(b.loads,sources);
+ assert.equal(b.emitted.filter(row=>row.kind==='status').at(-1).state,'ready');
+});
+
+test('sandbox host locale updates the real document contract without bypassing signed asset order',async t=>{
+ const f=await packageFixture();t.after(()=>rm(f.root,{recursive:true,force:true}));
+ const b=sandboxFixture(f.tool);await b.wait();
+ assert.equal(b.documentElement.lang,'zh-CN');
+ b.hostLocale('en-US');
+ assert.equal(b.documentElement.lang,'en-US');
+ b.hostLocale('<script>');
+ assert.equal(b.documentElement.lang,'zh-CN','untrusted locale must not become document markup');
+ assert.deepEqual(b.loads,sources,'locale changes must never rerun approved assets');
  assert.equal(b.emitted.filter(row=>row.kind==='status').at(-1).state,'ready');
 });

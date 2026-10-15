@@ -94,6 +94,22 @@ test('installed Browser SDK proxy ENABLE and STOP traverse the single signed Hos
   assert.equal((await actor.sdk.proxy.managed.requestDisable()).state,'disabled');
   assert.equal(f.effects.clear,1);
 });
+test('accepted trusted STOP revokes a previously approved but delayed ENABLE, not a fresh click',async()=>{
+  const f=await fixture(),actor=await f.user('proxy-owner');
+  // The old click has a perfectly valid one-use enable ref but its RPC is late.
+  const staleEnableRef=await actor.approve('browser.proxy.managed.requestEnable',config);
+  await actor.approve('browser.proxy.managed.requestDisable',{});
+  assert.equal((await actor.sdk.proxy.managed.requestDisable()).state,'disabled');
+  await assert.rejects(f.host.handleTool({...actor.identity,
+    operation:'browser.proxy.managed.requestEnable',args:config,
+    approvalRef:staleEnableRef},sender),code('E_USER_GESTURE_REQUIRED'));
+  assert.equal(f.effects.set,0,'No native proxy activation after an accepted STOP');
+  assert.equal(f.effects.clear,0,'No arbitrary Chrome clear if no proxy was owned');
+  // Deliberately starting a NEW operation still requires, and accepts, a new click.
+  await actor.approve('browser.proxy.managed.requestEnable',config);
+  assert.equal((await actor.sdk.proxy.managed.requestEnable(config)).state,'enabled');
+  assert.equal(f.effects.set,1);
+});
 test('peer cannot clear active signed owner PAC even after their own real Host approval',async()=>{
   const f=await fixture(),first=await f.user('proxy-owner'),peer=await f.user('proxy-peer');
   await first.approve('browser.proxy.managed.requestEnable',config);

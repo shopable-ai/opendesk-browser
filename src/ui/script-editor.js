@@ -360,7 +360,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       find('script-save').disabled=editingBusy||running||stopping||previewBusy||!localInstaller.canSave();
       find('script-save').textContent=localInstaller.saveLabel();
       find('script-run').textContent='运行本地项目';
-      find('script-run').disabled=stopping||editingBusy||previewBusy||running||!projection?.slotAvailable||!!host.currentRun||!localProject.connected()||currentPageState?.status!=='available';
+      find('script-run').disabled=stopping||editingBusy||previewBusy||running||!projection?.slotAvailable||!!host.currentRun||!localProject.canAttemptRun()||currentPageState?.status!=='available';
       find('script-version').textContent='本地项目模式 · 手工草稿已保留；正式任务请使用打包安装流程';
     }else {
       find('script-save').hidden=false;
@@ -848,7 +848,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       await permission;
       if(disposed)throw {code:'E_HOST_CLOSED',message:'Sidebar 已关闭，本次未运行'};
       const source=await localProject.resolve(binding);
-      await currentPageTarget.revalidate(captured);await localProject.assertReady(binding);localProject.assertCaptured(binding);
+      await currentPageTarget.revalidate(captured);await localProject.assertReady(binding,source.sourceHash);localProject.assertCaptured(binding);
       page=source.runtimeKind==='page-userscript';
       const params=page?{}:JSON.parse(paramsText);
       if((!page||source.siteOrigins?.length)&&!source.siteOrigins?.includes(captured.origin))throw {code:'E_DEV_ORIGIN',message:'当前网站不在本地项目的允许范围内'};

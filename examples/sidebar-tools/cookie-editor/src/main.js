@@ -85,7 +85,10 @@ function editorSnapshot(){
     domain:E('cookie-domain').value,path:E('cookie-path').value,
     sameSite:E('cookie-same-site').value,hostOnly:E('cookie-host-only').checked,
     secure:E('cookie-secure').checked,httpOnly:E('cookie-http-only').checked,
-    session,expiry:session?'':E('cookie-expiry').value};
+    session,expiry:session?'':E('cookie-expiry').value,
+    // For a redacted value, explicit input followed by clearing means 'write empty',
+    // while untouched blank means 'preserve hidden old value'.
+    valueIntent:mode==='browser'&&editing?.valueRedacted===true&&liveValueEdited===true};
 }
 function hasUnsavedChanges(){
   if(!editor.hidden){
@@ -335,7 +338,7 @@ function openEditor(row=null){
   if(!row)E('editor-scope-note').textContent='新建 Cookie 默认属于当前网站；Store、Partition 由可信 Host 依据授权作用域确定。';
   E('editor-heading').textContent=(mode==='browser'?'真实 Chrome · ':'')+(row?'编辑 Cookie':'新建 Cookie');
   E('editor-help').textContent=mode==='browser'?
-    '名称可以直接修改。重命名会先创建新 Cookie，再删除旧名称；保留旧值需敏感值授权，或填写新值。其他身份字段保持不变。':
+    '名称可以直接修改。重命名会先创建新 Cookie，再删除旧名称；未编辑值时保留旧值（需敏感值授权），明确编辑后清空会写入空值。其他身份字段保持不变。':
     '仅修改离线数据；名称可以直接修改，Domain、Path 和分区身份保持不变。';
   E('cookie-name').value=row?.name||'';E('cookie-value').value=row?.value||'';
   E('cookie-domain').value=row?.domain||data.hostname;E('cookie-path').value=row?.path||'/';
@@ -1126,7 +1129,7 @@ for(const id of ['input','change']){
 }
 E('cookie-value').addEventListener('input',event=>{
   if(event?.isTrusted!==false&&mode==='browser'&&editing?.valueRedacted===true)
-    liveValueEdited=E('cookie-value').value!=='';
+    liveValueEdited=true;
 });
 // Installed opaque sandboxes forbid native form submission, including submit
 // events. Save through the actual button without relaxing allow-forms or CSP.

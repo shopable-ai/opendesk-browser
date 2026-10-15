@@ -70,3 +70,29 @@
 本轮仅从 GitHub 读取源码并提交候选 HTML/文档。无法从此 GitHub 连接操作用户 Mac 本地目录、现有 Chrome/CFT、Native 进程或 43111 服务；本轮 Node、Build、Native/Chrome 均 NOT_TESTED。历史 docs/framework/workstreams/workflow-local-e2e-01a13fcb-20261015.md 有特定旧构建的真正验收记录，但不是当前 R23 的姓名输入框双轮 readback，也不证明当前 main 的正式产品 UI 已一致。
 
 具体静态差异与权限弹窗前后（设计层面的）对比见 DIFF-R23.zh-CN.md。
+
+## 八、R23.1 交互预览增量（2026-10-16）
+
+> PREVIEW_CANDIDATE / DESIGN_REVIEW_REQUIRED。只更新 `workflow/index.html`，**用户仍未确认设计封版**；不修改正式 `src/ui` 或 SDK、RunHost。
+> 所有“已执行”“读回”“已保存”均限离线模拟网页和本页内存，不是 Chrome/Native/AI 的执行证据。
+
+- 在原 R15.3 → R23 候选 DOM、图标、Tab 与视觉语言上保留结构，仅增量替换不正确的 demo 状态脚本与必要 CSS；默认对话为主，设置保持底部浮层，步骤及技术数据仅在结果中主动展开。
+- 唯一 ＋ 菜单明确区分“新对话”（清空聊天，保留现有草稿／已保存版本／模拟目标 DOM）和“新工作流”（新 ID，新草稿，未保存时先出现可取消确认）。
+- 首轮固定中文姓名指令：原文 → 规划 → 本机 Codex 摘要范围披露模拟授权 → 浏览器执行模拟 → **在模拟网页 input 元素写入后从 DOM 读回** `给我一个亿的项目`。第二轮保留原消息与结果、模拟复用 Native 同范围披露决定并重新计入文档核验，然后在相同模拟 DOM 读回 `项目已启动`；提交/跳转计数保持 0。
+- 模拟 Stop 在规划与执行阶段都位于底部发送位置；取消尚未触发的定时推进，执行前 Stop 不改变模拟 DOM。拒绝摘要、任意不支持指令、结果未知都不伪造完成，更不会自动重试。
+- 授权界面逐项展示接收方、Origin、Document、24 项语义节点上限，明确摘要披露 != 网页写入/提交授权；Cloud 与本机授权隔离，换接收方清除复用资格。
+- 模拟草稿版本仅保存于此页面内存（刷新丢失）；**新工作流不删除旧工作流的已存版本**，历史按需跨工作流检索并恢复；恢复版本不自动 Run、也不将 Save 误表述为验证或安装。
+- 键盘设计：Enter 发送、Shift+Enter 换行、IME 组合输入不误提交、Esc 关闭菜单/设置/未保存确认、确认框 Tab 焦点约束、主要操作焦点恢复。
+- 调试实验台可主动访问空白、已连接、未连接、规划、授权、执行中、成功、失败、结果未知、已保存、历史共 11 个状态；场景切换不会冒充真实执行证据；响应目标 360/420/520px、浅/深两主题。
+- 正式产品权限合同保持本文件第三节的矩阵；本页模拟许可复用不证明正式 Browser Authority 的批准次数、Document revalidate 或 Chrome 原生手势。
+- 隔离容器 Chromium（Playwright `page.set_content`，非用户 Mac）对新 JS/CSS 与保留的原版布局骨架运行 55 个功能断言均通过；另对 360/420/520px × 浅/深 6 组合检查页面和设备横向溢出均通过。该本地 harness 与最终仓库完整文件并非同一个字节级 HTML，因此属于 `ISOLATED_PREVIEW_SIMULATION_PASS`，不是远端 index 的实装浏览器封版证据。
+- `node --check` 对模拟 JS 通过；浏览器控制台 `pageerror=0`。实际 Chrome **菜单 200% 缩放**、完整远端文件浏览器回归、CI、Mac Native、真实运行均 `NOT_TESTED`。分数仍需以这些真实证据逐维核验，不能自报全部 ≥95。
+
+## 九、R23.1 授权体验矩阵补充
+
+| 条件 | 预览反馈 | 正式产品不可放松的要求 |
+| --- | --- | --- |
+| Native Codex，同会话 / 同 Provider / 同 Origin / 同摘要范围、有效期 | 同意一次，续轮减少重复披露；仍展示重新检查文档的进度 | 每次实际观察必须重验证当前 tab/frame/document/url，撤权立即失效 |
+| 换 Provider 至 Cloud / HTTPS | 清除本机模拟披露授权，重新询问 | Cloud 不继承 Native 披露许可；披露接收方与数据范围必须重新同意 |
+| 摘要读回批准后网页填写 | 单独在进度中解释用户的填写指令；提交始终禁用 | 摘要批准 != write/click/submit/navigation；保留原 RunHost Authority |
+| Stop / 拒绝 / 效果未知 | 解释未完成与检查当前网页，永不自动重放 | `E_OUTCOME_UNKNOWN` 不得自动重跑副作用，资源退休按既有 Controller |

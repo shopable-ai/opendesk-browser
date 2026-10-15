@@ -144,3 +144,28 @@ test('R3.3 production code alone owns theme, workbook skin and answer identity',
   assert.doesNotMatch(registry,/createWorkbookEditor|document\.createElement\('canvas'\)/,
     'No parallel renderer may be created by the answer registry');
 });
+
+
+test('R3.5 icon toolbar is product-owned, mobile-capable and nonduplicating',async()=>{
+  const [registry,view,css,adapter,probe]=await Promise.all([
+    readFile(new URL('src/answer-registry.js',root),'utf8'),
+    readFile(new URL('src/view.js',root),'utf8'),
+    readFile(new URL('assets/ui.css',root),'utf8'),
+    readFile(new URL('src/xmind-adapter.js',root),'utf8'),
+    readFile(new URL('../../../tests/framework/chatgpt-mindmap-chatgpt-probe.mjs',root),'utf8')
+  ]);
+  assert.match(view,/const ICONS=\{/);
+  assert.match(view,/createElementNS\('http:\/\/www\.w3\.org\/2000\/svg'/);
+  assert.match(view,/aria-haspopup','menu'/);
+  assert.match(view,/aria-expanded/);
+  assert.match(view,/renderer\.reflow\(\)/);
+  assert.match(registry,/buttonRef\.host\.hidden=!!view/);
+  assert.match(registry,/view\?\.focusFullscreen\(\)/);
+  assert.match(css,/@container \(max-width:390px\)/);
+  assert.match(css,/:host\(\[hidden\]\)/);
+  assert.match(adapter,/manualViewport/);
+  assert.match(adapter,/canvas\.dataset\.fitWidth/);
+  assert.match(probe,/screenshot-evidence\.json/);
+  assert.match(probe,/SCREENSHOT_NOT_VERIFIED/);
+  assert.doesNotMatch(view,/https:\/\/|unpkg|cdn\.|<canvas/);
+});

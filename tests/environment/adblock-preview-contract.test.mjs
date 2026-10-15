@@ -31,17 +31,17 @@ test('AdBlock official installable sandbox reuses the source-bound public design
 
 test('native host snapshots render original trusted control factory, not HTML re-drawn by hand',async()=>{
   const host=await canonicalAdblockPreviewHost();
-  assert.equal(Object.keys(host.snapshots).length,7);
+  assert.equal(Object.keys(host.snapshots).length,21);
   for(const [name,html] of Object.entries(host.snapshots)){
     assert.match(html,/id="sidebar-tool-adblock-native"/,name);
-    assert.match(html,/sidebar-tool-adblock-native od-surface/,name);
+    assert.match(html,/sidebar-tool-adblock-native/,name);
     assert.equal((html.match(/role="switch"/g)||[]).length,2,name);
     assert.match(html,/aria-label="全局广告拦截"/,name);
-    assert.match(html,/sidebar-toc-settings-row/,name);
+    assert.match(html,/adblock-native-card/,name);
   }
   assert.match(host.snapshots['on-site-on'],/aria-checked="true"/);
   assert.match(host.snapshots['on-site-off'],/aria-checked="false"/);
-  assert.match(host.snapshots['off'],/所有 AdBlock 规则已停止/);
+  assert.match(host.snapshots['off'],/保护已关闭/);
   assert.match(host.snapshots['restart'],/需重启 Chrome/);
   const noPermission=host.snapshots['no-permission'];
   const permissionButton=noPermission.match(/<button[^>]*aria-label="全局广告拦截"[^>]*>/)?.[0];
@@ -51,7 +51,12 @@ test('native host snapshots render original trusted control factory, not HTML re
   assert.ok(siteButton?.includes('disabled'),'site filtering cannot run without DNR');
   assert.match(host.snapshots['error'],/状态未确认/);
   assert.match(host.snapshots['loading'],/状态未确认/);
-  assert.match(host.css,/.sidebar-tool-adblock-native button\[role=switch\]/);
+  assert.match(host.snapshots['on-site-on/settings'],/Chrome 权限与重启/);
+  assert.match(host.snapshots['on-site-on/exceptions'],/已停用的网站/);
+  assert.ok(host.snapshots['on-site-on'].includes('暂无可核实统计'));
+  assert.doesNotMatch(host.snapshots['on-site-on'],/>18<|>42<|>26</);
+
+  assert.match(host.css,/.sidebar-tool-adblock-native \.adblock-native-toggle/);
   const native=await source('examples/sidebar-tools/adblock/trusted/host-controls.js');
   assert.match(native,/createAdblockPermissionControls/);
   assert.doesNotMatch(host.css,/chrome\.permissions|declarativeNetRequest/);

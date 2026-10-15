@@ -68,8 +68,10 @@ function answerController({document,window,owner,css,parts,coordinator}){
     buttonRef.button.disabled=busy;
     buttonRef.button.setAttribute('aria-pressed',String(!!view));
     buttonRef.button.setAttribute('aria-label',view?'恢复本条回复原文':'查看本条 AI 回复的思维导图');
-    // Fullscreen has an exit button; inline button is kept for normal toggles.
-    buttonRef.button.lastChild.textContent=view?'原文':'思维导图';
+    // Only one visible return-to-original entry: the viewer owns it while open.
+    buttonRef.host.hidden=!!view;
+    buttonRef.host.setAttribute('aria-hidden',String(!!view));
+    buttonRef.button.lastChild.textContent='思维导图';
     if(busy&&busyTimer===null){
       busyTimer=owner.setTimeout(()=>{busyTimer=null;syncButton();},STABLE_MS+40);
     }
@@ -103,9 +105,10 @@ function answerController({document,window,owner,css,parts,coordinator}){
     content.setAttribute('aria-hidden','true');
   }
   function close({focus=false}={}){
-    if(coordinator.full===api)coordinator.setFull(null);
+    const exiting=coordinator.full===api?coordinator.setFull(null):Promise.resolve();
     const previous=view;view=null;restore();syncButton();
-    const retired=coordinator.retire(previous);
+    // Finish moving a fullscreen viewer back before SDK teardown.
+    const retired=coordinator.retire(previous,exiting);
     if(focus&&buttonRef.host.isConnected)buttonRef.button.focus();
     return retired;
   }
@@ -120,6 +123,7 @@ function answerController({document,window,owner,css,parts,coordinator}){
     // Recover from late generation; do not take a snapshot during stream.
     if(isStreaming(root)||Date.now()-lastChange<STABLE_MS)return;
     buttonRef.error.hidden=true;
+    const focusViewer=buttonRef.button.matches(':focus-visible');
     const result=extractAnswerTree(content);
     if(!result.nodeCount)return;
     const nextView=createAnswerView({document,window,owner,css,...result,
@@ -133,6 +137,7 @@ function answerController({document,window,owner,css,parts,coordinator}){
       content.insertAdjacentElement('afterend',nextView.host);
       view=nextView;viewRevision=revision;conceal();syncTheme();syncButton();
       await nextView.start();
+      if(focusViewer&&view===nextView)nextView.focusPrimary();
     }catch(error){
       if(view===nextView)await failed(error);
       else await coordinator.retire(nextView);
@@ -182,8 +187,9 @@ function answerController({document,window,owner,css,parts,coordinator}){
     destroy(){
       if(disposed)return;disposed=true;
       // setFull(null) must not return an orphan viewer to a removed answer.
-      if(coordinator.full===api)coordinator.setFull(null);
-      coordinator.retire(view);view=null;restore();
+      const exiting=coordinator.full===api?coordinator.setFull(null):Promise.resolve();
+      const previous=view;view=null;restore();
+      coordinator.retire(previous,exiting);
       buttonRef.destroy();
     }
   };
@@ -196,18 +202,22 @@ export function createAnswerRegistry({document,window,owner,css}){
   let disposed=false,pending=false,route=window.location.pathname+window.location.search;
   let full=null,lastScanned=0;
   const retiring=new Set(),cleanupErrors=[];
-  function retire(view){
+  function retire(view,after=Promise.resolve()){
     if(!view)return Promise.resolve();
-    const pending=Promise.resolve().then(()=>view.destroy());
+    const pending=Promise.resolve(after).then(()=>view.destroy());
     retiring.add(pending);
     pending.then(()=>retiring.delete(pending),error=>{retiring.delete(pending);cleanupErrors.push(error);});
     return pending;
   }
   const coordinator={retire,get full(){return full;},setFull(next){
-    if(full===next)return;
+    if(full===next)return Promise.resolve();
     const old=full;full=null;
-    if(old)old.setFull(false).catch(error=>cleanupErrors.push(error));
-    if(next&&next.view&&next.root.isConnected){full=next;next.setFull(true).catch(error=>cleanupErrors.push(error));}
+    const exiting=old?old.setFull(false).catch(error=>cleanupErrors.push(error)):
+      Promise.resolve();
+    if(next&&next.view&&next.root.isConnected){
+      full=next;next.setFull(true).catch(error=>cleanupErrors.push(error));
+    }
+    return exiting;
   }};
   function scan(){
     if(disposed||!owner.active())return;
@@ -254,19 +264,18 @@ export function createAnswerRegistry({document,window,owner,css}){
     const next=window.location.pathname+window.location.search;
     if(next===route)return;
     route=next;
-    coordinator.setFull(null);
     for(const controller of controllers)controller.destroy();
     controllers.clear();schedule();
   }
   const keydown=event=>{
     if(event.key==='Escape'&&full){
-      const previous=full;coordinator.setFull(null);
-      previous.button.focus();event.preventDefault();
+      const previous=full;
+      coordinator.setFull(null).then(()=>previous.view?.focusFullscreen());
+      event.preventDefault();
     }
   };
   async function destroy(){
     if(disposed){await Promise.all([...retiring]);return;}disposed=true;
-    coordinator.setFull(null);
     for(const controller of controllers)controller.destroy();
     controllers.clear();
     await Promise.all([...retiring]);

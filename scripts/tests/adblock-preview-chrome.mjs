@@ -186,6 +186,11 @@ try{
     assert.deepEqual(list.domains,['news.example.com']);
     assert.equal(list.buttons,1);
     await screenshot('success');
+    // The sandbox list is a separate product page; the overview never shows it.
+    assert.equal(host.frameHeight,0,'overview must not show the exception iframe');
+    await click('#od-preview-adblock-host [data-adblock-nav="exceptions"]');
+    await poll(async()=>(await parent()).frameHeight>0,'exceptions page sandbox visibility');
+    await screenshot('exceptions');
     // A forged child receipt cannot bypass the genuine restore dialog.
     await evaluate("window.parent.postMessage({type:'opendesk.preview.adblock.exceptions',requestId:888,exceptions:[]},'*')",ctx);
     await delay(90);
@@ -210,6 +215,12 @@ try{
     await poll(async()=>(await child(ctx)).count==='0','sandbox restore readback');
     await poll(async()=>(await parent()).switches[1].checked,'host exception readback');
     await screenshot('restored');
+    await click('#od-preview-adblock-host [data-adblock-nav="overview"]');
+    await poll(async()=>(await parent()).frameHeight===0,'return to overview');
+    await click('#od-preview-adblock-host [data-adblock-nav="settings"]');
+    await poll(async()=>(await parent()).hostText.includes('Chrome 权限与重启'),'product settings');
+    await screenshot('settings');
+    await click('#od-preview-adblock-host [data-adblock-nav="overview"]');
     clean();
     report.push({scenario:'success',sourceCommit:built.sourceCommit,
       uiSha256:built.uiSha256,checks:['source-dom','source-css-switch',

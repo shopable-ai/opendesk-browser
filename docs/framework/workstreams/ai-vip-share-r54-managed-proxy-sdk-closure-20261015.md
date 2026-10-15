@@ -88,3 +88,39 @@ npm run check
 
 - [Sidebar tools R1 run 38773039387](https://github.com/shopable-ai/opendesk-browser/actions/runs/38773039387)：引入 test-only FIFO Web Lock 后，270 条中 **265 PASS / 5 FAIL**；相较原 25 FAIL，历史 `E_TOOL_LOCK` 失败大幅消失。最后 1 条旧 STOP race 因原测试轮询 `setImmediate` 30 次太快，未能在异步工具 SHA 检查后观察到等待中的锁请求。修复提交 [8d6b3af](https://github.com/shopable-ai/opendesk-browser/commit/8d6b3afc9de18425f9133048fe91380e0ae16b4a) 将等待改为每 10ms 读取真实 `locks.query().pending`、最多 1.5 秒，超时继续 FAIL，未取消竞态证明或更改生产锁逻辑。另 4 条属于多脚本 Sandbox DOM mock，与 Proxy 任务区分。新候选以 CI 实际运行结果为准。
 - [Browser SDK R5 run 38772602668](https://github.com/shopable-ai/opendesk-browser/actions/runs/38772602668) 对 `a670290` 候选的 `sdk-host-contracts`、`sdk-product-bundles` 均报告 **PASS**；[run 38773300409](https://github.com/shopable-ai/opendesk-browser/actions/runs/38773300409) 对增加本地 Provider fixture 的 `0e577277` 候选亦报告双 Job **PASS**。两者均为 GitHub Actions Node/Build 证据，非真实 Chrome。
+
+## Managed Proxy SDK R1.3 · WEB-FIRST 源码及候选证据（2026-10-16）
+
+本节只记录已经通过 GitHub 连接器写入 `main` 的改动与当时可见的 Actions 结果。起点 HEAD 为 `be2ad5faa26b5652afb35d7cab35867b1f618c12`；此后有多个并行项目持续快进 `main`。下列提交是本工作流的增量，不宣称组成一个静止的全仓库冻结候选。
+
+| 本轮提交 | 原因及实际改动 |
+| --- | --- |
+| [`c68e3b15`](https://github.com/shopable-ai/opendesk-browser/commit/c68e3b15b50b5d306866374318ee0ea05a7e2fa9) | 多脚本 Sandbox Node DOM fixture 补齐真实 `document.documentElement.lang`，并新增语言切换不重新执行脚本的回归 |
+| [`ad537c2a`](https://github.com/shopable-ai/opendesk-browser/commit/ad537c2ad850fa82965cf386cdcacd70794dabbe) | Sidebar Actions 追踪 DOM fixture 测试文件变动 |
+| [`c892ee5f`](https://github.com/shopable-ai/opendesk-browser/commit/c892ee5fd1e7ad148dfbab211bc0d2419f24be46) | 新建独立 `tests/framework/browser-managed-proxy-chromium-pac.mjs`，A: SOCKS5 + 证书 TLS；B: 隔离临时 MV3 Chrome Proxy PAC 读回、真实 HTTP/HTTPS/WSS 出口、目标/相似域名以及代理中断 fail-closed |
+| [`0787cbfa`](https://github.com/shopable-ai/opendesk-browser/commit/0787cbfa7291f97e8a32b9c09236766a154c796a) | 在既有 Browser SDK R5 Actions 中新增独立 Linux Chrome for Testing A/B Job，保留原始 Node/Build/冻结门禁及 SHA 绑定的 JSON receipt |
+| [`0977ad55`](https://github.com/shopable-ai/opendesk-browser/commit/0977ad5516f65f493b483a61e3b2fe5070cc0eb7) | 可信 STOP 接受时撤销同一工具仍未使用的旧 ENABLE 手势授权，防止 STOP 后迟到的旧授权重新激活 |
+| [`df72bad2`](https://github.com/shopable-ai/opendesk-browser/commit/df72bad2111b2e919e60d832c2e0397cf1ff1eb5) | 真实 Facade→可信 Host→公共 Driver 的 Node fixture 中新增旧 ENABLE 授权被 STOP 撤销与新点击仍可使用的断言 |
+| [`c7fde33d`](https://github.com/shopable-ai/opendesk-browser/commit/c7fde33d2d46e712f5d7e358169db6ff33cdcc9a) | WebSocket 成功验收额外要求真实 SOCKS5 CONNECT 记录，杜绝仅凭 WSS 握手误认为经代理 |
+
+### CI 归属与证据等级
+
+- 历史候选 `1858f15b` 的 [Sidebar Actions 38775155128](https://github.com/shopable-ai/opendesk-browser/actions/runs/38775155128) 为 **266 PASS / 4 FAIL / 270**：四个失败都来自 `sidebar-tool-multiscript-r72.test.mjs`，错误为 `Cannot set properties of undefined (setting 'lang')`；定性 **SHARED_HOST_FAILURE / DOM fixture**，并非 Managed Proxy Driver 功能失败。此结果是修改前历史记录。
+- 包含 Sandbox 修复的 [Sidebar 38778035955](https://github.com/shopable-ai/opendesk-browser/actions/runs/38778035955) 在记录时是 **QUEUED**，尚未证明 PASS。
+- 首个包含新增 A/B Chrome Job 的 [Browser SDK R5 38779787342](https://github.com/shopable-ai/opendesk-browser/actions/runs/38779787342) 在记录时为 **QUEUED**，三个 Job 为 `sdk-host-contracts` / `sdk-product-bundles` / `sdk-real-chromium-pac`；此候选 **早于** STOP 竞态安全补丁及 WSS 代理日志补强，不能替代后续最新候选。
+- 测试脚本只在临时隔离 Chrome Profile 写入代理，退出时读回 `chrome.proxy.settings.clear()`，不会修改用户 Mac、物理 7897、生产 Profile Registry 或现有真实代理。临时本会话隔离 SOCKS5→TLS fixture 已观察到握手成功，但不是 GitHub 工作流收据，更不是 Chrome 或商业线路证明。
+- **生产受审 Profile 仍为空**，生产商业 ENABLE 必须 `E_PROXY_PROFILE_NOT_APPROVED`；临时浏览器测试的匿名 `pac-proxy.test` 端点完全不进入正式 `REVIEWED_MANAGED_PROXY_PROFILES`、SDK Schema 或生产构建。
+- **A/B/C 严格独立**：截至本记录更新，提交后的 Actions A、B 均 `NOT_TESTED / QUEUED`；C（正式安装的 OpenDesk SDK + Side Panel 真实点击 E2E）`NOT_TESTED`；Mac Native `LOCAL_NATIVE_REQUIRED`；商业 Provider `NOT_CONFIGURED`。只有 GitHub Job 实际成功、原始证据与网络日志相互吻合，才可提升 A/B 状态。
+
+### 旧 Host 六文件当前保留原因（逐文件）
+
+| 文件 | 真实保留职责及退出条件 |
+| --- | --- |
+| `src/ai-smart-access/service.js` | `src/sw.js` 仍调用 `installAiAccessService()`；历史 RPC、订阅/租约及 Worker 恢复路径尚未安全完成迁移，**保留** |
+| `src/ai-smart-access/policy.js` | 旧 PAC 身份、状态键、域名、代理匹配与迁移合同仍为历史安全恢复所需，正式新代理归公共 Driver，**保留** |
+| `src/ai-smart-access/lifecycle.js` | 安装停用与卸载在 `installation.js` 仍使用历史 `stopAiAccessForTool()/cleanupUninstalledAiAccess()`，并经共享代理锁防止误清理，**保留** |
+| `src/ai-smart-access/tool-host.js` | 历史 `aiAccess` operation 可信身份/授权适配，仍由存量入口间接使用，**保留** |
+| `src/ai-smart-access/host-controls.js` | 历史可信控制面 UI/停止操作仍存在，正式 AI VIP Share 应继续迁移到唯一公共 SDK，**保留** |
+| `src/ai-smart-access/provider-config.js` | 历史 Provider / 测试开关和审批前兼容合同；生产不能因此开放 localhost 代理，**保留** |
+
+下一源码任务：取得 `sdk-real-chromium-pac` Job 的实际结果并检查 raw JSON 网络日志，修复真正复现的问题；在 C 级没有真实安装与可信点击回执前不可宣称 95+ 云端或正式产品上线。
