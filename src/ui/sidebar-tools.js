@@ -738,8 +738,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     else if(!trustedInline&&settingsView.previousElementSibling!==retiredDraft)retiredDraft.after?.(settingsView);
     display.setAttribute('data-trusted-tool-inline',String(trustedInline));
     settingsView.hidden=!show;
-    promptNativeRow.hidden=!(show&&promptSettings);
-    if(promptSettings){
+    if(promptNativeRow)promptNativeRow.hidden=!(show&&promptSettings);
+    if(promptSettings&&promptNativeAction){
       const targetOrigin=supportedOrigin(currentPageTarget?.snapshot?.url);
       const record=menuGrants?.[PROMPT_ID],contextActive=Boolean(record?.version===active.version&&
         record?.origins?.includes(CHATGPT_ORIGIN)&&record?.activeActions?.length);
