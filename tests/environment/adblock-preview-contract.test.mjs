@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
+import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
@@ -182,4 +183,22 @@ test('checked-in AdBlock HTML stays generator-identical independent of unrelated
     .replace(/"sourceCommit":"[0-9a-f]{40}"/g,'"sourceCommit":"SOURCE_REVISION"');
   assert.equal(normalize(snapshot),normalize(generated.html),
     'reviewed HTML must match canonical package/shell/host/mock byte-for-byte, excluding Git HEAD metadata');
+});
+
+
+test('user-approved R1 interactive design stays byte-exact under adblock/preview and distinct from generated CI preview',async()=>{
+  const reference=await readFile(new URL(
+    '../../examples/sidebar-tools/adblock/preview/adblock-r1-interactive-preview.html',import.meta.url));
+  assert.equal(reference.byteLength,23624,'original user-approved file must not be regenerated');
+  assert.equal(createHash('sha256').update(reference).digest('hex'),
+    'c0a030441720ee74e599e47d9e61d7725b5f947aa62da9324e5ac5b56356c8b7',
+    'design baseline changed without a new explicit user review');
+  const original=reference.toString('utf8');
+  for(const key of ['id="global-switch"','id="site-switch"','id="open-allowlist"',
+    'id="open-settings"','id="domain-select"','id="theme-button"',
+    'OpenDesk · AdBlock R1 交互原型（非真实广告拦截）'])
+    assert.ok(original.includes(key),'user-approved original control is missing: '+key);
+  const generated=await source('examples/sidebar-tools/adblock/adblock-r1-interactive-preview.html');
+  assert.notEqual(original,generated,
+    'source-bound generated acceptance HTML must not replace the approved original design');
 });
