@@ -5,12 +5,12 @@ const model=globalThis.OpenDeskPromptShortcutsModel,el=id=>root.querySelector('#
 const dom=(tag,cls='',text='')=>{const n=root.ownerDocument.createElement(tag);n.className=cls;n.textContent=text;return n;};
 const KEY='library',MENU_ACTION='add-selection';
 let data=model.defaults(),etag=null,ready=false,busy=false,dirty=false,mode='index',editId=null;
-let baseline='',expanded=null,pendingDelete=null,pendingLeave=null,menuStatus=null;
+let baseline='',expanded=null,pendingDelete=null,pendingLeave=null;
 function report(){setState({dirty,busy});}
 function status(message='',isError=false){const n=el('ps-status');n.textContent=message;n.hidden=!message;n.dataset.error=String(isError);}
 function error(message=''){el('ps-error').textContent=message;el('ps-error').hidden=!message;}
 function form(){return {body:el('ps-body').value,label:el('ps-label').value,name:el('ps-name').value,
-  shape:root.querySelector('input[name="ps-shape"]:checked')?.value||'square',enabled:el('ps-enabled').checked};}
+  shape:'square',enabled:el('ps-enabled').checked};}
 function projected(){
   const draft=form(),old=editId?data.items.find(row=>row.id===editId):null;
   if(!draft.body.trim())return null;
@@ -24,7 +24,6 @@ function preview(){
   const draft=form(),fallback=model.auto(draft.body),label=draft.label.trim()||fallback;
   const glyph=el('ps-preview-glyph');
   glyph.replaceChildren(...model.parts(label||'—').map(char=>dom('span','',char)));
-  glyph.classList.toggle('round',draft.shape==='round');
   el('ps-preview-name').textContent=draft.name.trim()||fallback||'待生成';
   const estimate=projected(),bytes=estimate?model.bytes(estimate):null;
   el('ps-quota-value').textContent=(bytes===null?'—':bytes)+' / 8192 B';
@@ -35,7 +34,7 @@ function changed(){
   dirty=JSON.stringify(form())!==baseline;preview();report();
 }
 function lock(){
-  for(const id of ['ps-new','ps-save','ps-web','ps-menu'])
+  for(const id of ['ps-new','ps-save','ps-web'])
     el(id).disabled=!ready||busy;
   for(const b of el('ps-list').querySelectorAll('button'))b.disabled=!ready||busy||b.dataset.locked==='1';
   report();
@@ -58,7 +57,6 @@ function start(id=null,preset=''){
   el('ps-body').value=row?.body??preset;
   el('ps-label').value=row&&!row.labelAuto?row.label:'';
   el('ps-name').value=row&&!row.nameAuto?row.name:'';
-  root.querySelector('input[name="ps-shape"][value="'+(row?.shape||'square')+'"]').checked=true;
   el('ps-enabled').checked=row?.enabled!==false;error('');el('ps-leave').hidden=true;
   baseline=JSON.stringify(form());dirty=false;preview();report();el('ps-body').focus();
 }
@@ -72,32 +70,28 @@ function render(){
   el('ps-count').textContent=data.items.length+' 个 · '+enabled+' 个启用';
   el('ps-empty').hidden=data.items.length>0;
   el('ps-web').checked=data.settings.webButtons;
-  el('ps-menu').checked=Boolean(menuStatus?.enabled);
-  el('ps-menu-state').textContent=menuStatus===null?'原生右键状态未确认':
-    menuStatus.enabled?'Chrome 原生右键快捷添加已启用':'Chrome 原生右键快捷添加未启用';
-  el('ps-grant').textContent='chatgpt.com · 网页授权请在工具详情「设置」确认';
   for(const [i,item] of data.items.entries()){
-    const card=dom('article','ps-card'),head=dom('div','ps-card-main');
-    const glyph=dom('div','ps-glyph'+(item.shape==='round'?' round':''));
+    const card=dom('article','ps-card'+(!item.enabled?' is-disabled':''));
+    const use=button(card,item.body,()=>void copy(item),'quiet');
+    use.className='ps-card-use';use.dataset.locked=item.enabled?'0':'1';
+    use.setAttribute('aria-label',(item.enabled?'复制完整提示词：':'已停用的提示词：')+(item.nameAuto?model.auto(item.body):item.name));
+    use.title=item.enabled?'一键复制完整提示词；ChatGPT 网页左侧按钮可直接插入草稿':'该按钮已停用';
+    const meta=dom('div','ps-card-meta'),glyph=dom('div','ps-glyph');
     glyph.setAttribute('aria-hidden','true');
     for(const char of model.parts(item.label))glyph.append(dom('span','',char));
-    const desc=dom('div','ps-info'),title=dom('strong','',item.name);
-    if(!item.enabled)title.append(dom('span','ps-off','已停用'));
-    const excerpt=dom('p','',item.body.replace(/\s+/gu,' ').slice(0,100));
-    excerpt.title=item.body;desc.append(title,excerpt);
+    const name=dom('span','ps-info-name',item.nameAuto?'':item.name);
     const actions=dom('div','ps-card-actions');
     const edit=button(actions,'编辑',()=>start(item.id),'quiet');
     edit.setAttribute('aria-label','编辑 '+item.name);
     const more=button(actions,'⋯',()=>{expanded=expanded===item.id?null:item.id;pendingDelete=null;render();},'quiet');
     more.setAttribute('aria-label','更多操作：'+item.name);
     more.setAttribute('aria-expanded',String(expanded===item.id));
-    head.append(glyph,desc,actions);card.append(head);
+    meta.append(glyph,name,actions);card.append(meta);
     if(expanded===item.id){
       const commands=dom('div','ps-more');
       button(commands,item.enabled?'停用':'启用',()=>void update(item.id,row=>({...row,enabled:!row.enabled})));
       const up=button(commands,'↑ 上移',()=>void move(item.id,-1));up.dataset.locked=i===0?'1':'0';
       const down=button(commands,'↓ 下移',()=>void move(item.id,1));down.dataset.locked=i===data.items.length-1?'1':'0';
-      button(commands,'复制',()=>void copy(item));
       button(commands,'删除',()=>{pendingDelete=item.id;render();
         root.querySelector('.ps-delete-cancel')?.focus();},'danger');
       card.append(commands);
@@ -179,26 +173,8 @@ async function changeWeb(){
   if(!ready||busy)return;
   const desired=el('ps-web').checked;
   const next=model.load({...data,settings:{webButtons:desired}});
-  try{await commit(next);render();status(desired?'网页按钮已开启，仍需独立网站授权。':'网页按钮已关闭，右键菜单不受影响。');}
+  try{await commit(next);render();status(desired?'ChatGPT 快捷按钮已开启。':'ChatGPT 快捷按钮已关闭，提示词仍保留。');}
   catch(e){render();status('网页按钮设置未确认：'+(e.code||e.message),true);}
-}
-async function menuRefresh(){
-  try{menuStatus=await OpenDeskSDK.browser.contextMenu.getStatus();}
-  catch{menuStatus=null;}
-  if(mode==='index')render();
-}
-async function changeMenu(){
-  if(!ready||busy)return;
-  const desired=el('ps-menu').checked;el('ps-menu').disabled=true;
-  try{
-    if(desired){
-      const current=await OpenDeskSDK.browser.contextMenu.getStatus();
-      if(!current?.browserPermission||!current.approvedOrigins?.includes('https://chatgpt.com'))
-        throw Error('请先在 OpenDesk 工具详情为当前 ChatGPT 网站启用原生菜单权限');
-      await OpenDeskSDK.browser.contextMenu.register({actionIds:[MENU_ACTION]});
-    }else await OpenDeskSDK.browser.contextMenu.unregister();
-    await menuRefresh();status(desired?'原生右键快捷添加已开启。':'原生右键快捷添加已关闭。');
-  }catch(e){await menuRefresh();status('右键设置未确认：'+(e.code||e.message),true);}
 }
 async function launch(){
   try{
@@ -216,16 +192,13 @@ el('ps-stay').addEventListener('click',()=>{el('ps-leave').hidden=true;pendingLe
 el('ps-discard').addEventListener('click',()=>{const action=pendingLeave;pendingLeave=null;if(action)action();});
 el('ps-copy-close').addEventListener('click',()=>{el('ps-copy').hidden=true;});
 el('ps-web').addEventListener('change',()=>void changeWeb());
-el('ps-menu').addEventListener('change',()=>void changeMenu());
-root.addEventListener('opendesk-page-changed',()=>void menuRefresh());
-root.addEventListener('opendesk-tool-state-changed',()=>void menuRefresh());
 (async()=>{
   lock();
   try{
     const saved=await request('storage.get',{key:KEY,withEtag:true});
     if(!/^[0-9a-f]{64}$/.test(saved?.etag||''))throw Error('宿主未提供 ETag 并发保护');
     data=model.load(saved.value);etag=saved.etag;ready=true;index();status('');
-    await menuRefresh();await launch();
+    await launch();
   }catch(e){ready=false;lock();status('数据读取失败，已阻止写入以保护本机数据：'+e.message,true);}
 })();
 })();
