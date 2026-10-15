@@ -6,6 +6,8 @@ import {JQUERY_371} from '../src/scripting/user-scripts/page-program-package.js'
 import {SDK_FILES} from '../src/framework/sdk/registry.js';
 import {SDK_RESOURCE_PATHS, SDK_RESOURCE_ALIASES, SDK_RESOURCE_MANIFEST} from '../src/framework/sdk/resource-contract.js';
 import {createHash} from 'node:crypto';
+import {verifyReadingTocTrustedLocales} from './generate-reading-toc-locales.mjs';
+await verifyReadingTocTrustedLocales();
 const files = [];
 for (const root of ['src', 'scripts', 'tests/environment']) {
   for (const file of await filesAt(root)) if (/\.(?:js|cjs|mjs)$/.test(file)) files.push(`${root}/${file}`);
