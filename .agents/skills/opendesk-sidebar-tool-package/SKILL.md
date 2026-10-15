@@ -29,36 +29,42 @@ description: Build, validate, synchronize and install portable OpenDesk Sidebar 
 
 调整数值不改变 capability、真实 sender、安装代际、来源/哈希、CSP、沙箱、路径或撤权语义；保留临界值、超限和异常拒绝回归及旧包可读性。每次结论形成后同步架构、工具开发/API 文档、对应 Skill 和工作流证据；未修改代码和实测时不宣称新容量已生效。
 
-## 三条明确构建路径
+## 单一正式包：临时构建 → 验证 → 显式晋升
 
-| 输入场景 | 正确操作 | 交付位置 |
+**2026-10-15 用户决策，适用于已有可安装 Sidebar Tool 与新建工具。** 真正需要用户下载/安装/手动验收的项目，在自己的 `examples/sidebar-tools/<id>/` 最终保留**一个**稳定文件 `<id>.opendesk-tool.json`。**不是每个编译过程都改这个文件**。不要把临时包或下载 ZIP 冒充已提交的正式 JSON，也不因代码目录增加 `xxx-v2.opendesk-tool.json`、`xxx-r1.5-final.opendesk-tool.json` 等并行发行文件。工具包内的 `version` 和 Git 历史承担版本标识；未涉本轮交付的其他示例不要批量生成。
+
+| 时机 | 唯一正确产物 | 是否提交 |
 | --- | --- | --- |
-| HTML/CSS/经典 JS 独立 Sidebar App | 在仓库根运行统一打包器，不需要 Vite/第二个插件工程 | `artifacts/sidebar-tools/<id>/<version>/<id>.opendesk-tool.json` |
-| 工具根已有正规 `<id>.opendesk-tool.json` | 默认打包时同步**刷新这个已有文件**，同时保留原 `artifacts/` 输出；没有选择这种交付的工具不创建此文件 | `examples/sidebar-tools/<id>/<id>.opendesk-tool.json` + `artifacts/` |
-| React/Vue 应用 | 按该独立项目的既有构建流程先生成**单个经典 JS 与静态 CSS**，检查 `dist/build-ready.json`，再用**同一** Sidebar Tool 打包器 | 相同便携式 JSON 合同 |
+| 开发/自动编译/失败重试 | `artifacts/sidebar-tools/<id>/candidate.opendesk-tool.json`（稳定临时路径；已有版本化 artifacts 亦属本地临时） | **否**，仓库忽略 |
+| HTML/Native 只读预览 | 工具自身 `.opendesk-preview/` 的源码锁快照，`STAGED_NOT_INSTALLED` | **否**；快照不当安装包 |
+| 源码、能力和 JSON 包自动门禁通过 | **显式晋升**到 `examples/sidebar-tools/<id>/<id>.opendesk-tool.json`；仅一个正式 JSON | **是**，与匹配源码一起提交 |
+| 官方浏览器的内置发行资源 | 既有 `dist/{development,production}/official-tools/<id>/` 从同一源码/Catalog 构建 | dist 不提交；不要创建第二套 Catalog |
 
-```bash
-# 仓库根目录；初次准备依赖时 npm ci --ignore-scripts --no-audit --no-fund
-npm run build:sidebar-tool -- examples/sidebar-tools/cookie-editor
+**流程命令（在仓库根；将 `<id>` 换成真实工具 ID）：**
 
-# 常规默认产物：
-# artifacts/sidebar-tools/cookie-editor/<version>/cookie-editor.opendesk-tool.json
-# 已有根目录安装包时，还会刷新：
-# examples/sidebar-tools/cookie-editor/cookie-editor.opendesk-tool.json
+```sh
+# ① 生成或覆盖单一临时候选，不修改项目中的正式 JSON。
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/<id> \
+  --out artifacts/sidebar-tools/<id>/candidate.opendesk-tool.json
 
-# 其它项目首次选择“随源码提供可安装包”：
-npm run build:sidebar-tool -- examples/sidebar-tools/<id> --out examples/sidebar-tools/<id>/<id>.opendesk-tool.json
-# 随后再用不带 --out 的命令，得到默认 artifacts/ 与同步包
+# ② 先完成受影响的 Node、UI、安全/包测试以及必要的预编译。
+node --test tests/environment/sidebar-tools.test.mjs
+# 还应运行该工具现有的专项测试，失败不得执行步骤③。
+
+# ③ 测试确认成功后，核对当前源码和候选字节相同，原子晋升。
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/<id> \
+  --promote-from artifacts/sidebar-tools/<id>/candidate.opendesk-tool.json
+
+# ④ 再次检查正式目录内文件与当前可重现构建逐字节完全一致。
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/<id> --check-project
+git diff -- examples/sidebar-tools/<id>/
 ```
 
-**`--out` 必须是明确指定的输出，不隐式刷新第二份文件。** 不能把目录中预生成的包误当成最新源码：源码、配置、版本、能力变化时重新打包并提交，增加定向测试比较 `serializeSidebarToolPackage(await createSidebarToolPackage(project))` 与已提交 JSON 的**逐字节一致性**。在未更新 JSON 前拒绝宣布就绪。不要对第三方或全部示例目录强制生成/提交打包产物。
+**唯一打包器实现这些门禁**：`--out` 构建单一目标文件；**禁止**直接 `--out examples/sidebar-tools/<id>/<id>.opendesk-tool.json` 绕过晋升；不带参数的默认构建只产生忽略目录下的临时 artifacts，不再自动覆盖任何项目根正式文件。`--promote-from` 要求正常候选文件、唯一正确文件名与匹配当前源码的规范原始字节；旧候选、损坏、符号链接、目录多份正式包时拒绝，原文件不被提前覆盖；成功时原子更新/如完全一致则不改。`--check-project` 做正式包同源审计，缺失/过期/多份拒绝。失败时保留最后一次可用的包，不能先删除再生成，也不得伪称晋升即安装。
 
-需要不安装的只读预览才使用：
+**测试先于正式包并不等于真实 Chrome 验收已过**：Node/安全来源/规范包成功代表可提交并手动安装的候选（`PACKAGE_PASS`）；独立 Mac Chrome 实测未获得时标为 `INSTALLED_CHROME_NOT_TESTED` 等，不得凭提交包宣布 95+。需要用户真实安装/授权/更新的动作仍使用唯一 Side Panel 安装链；对已经公开给用户的工具，源码/发行字节改变应遵守正式版本升级和同 ID 数据迁移策略，不将同版本不同内容静默升级。
 
-```bash
-node scripts/stage-sidebar-tool.mjs examples/sidebar-tools/<id>
-# STAGED_NOT_INSTALLED；不是正式安装/授权
-```
+对于 HTML/CSS/JS 工具直接执行流程①；React/Vue 项目先按本项目固定依赖生成 IIFE + CSS，并确认 `dist/build-ready.json` 与本次源码一致再执行①。现有 `scripts/stage-sidebar-tool.mjs` 提供只读预览快照，**不作为正式安装包的持久副本**。无本地真实 Chrome/用户安装条件时，可在静态/Node gate 通过后晋升供手动安装，但必须清楚写明未实测的项。
 
 ## 官方离线发行与日常开发扩展
 

@@ -10,6 +10,9 @@ work/
 __pycache__/
 *.pyc
 
+# Native/HTML tool preview snapshots are immutable local stage evidence, not releases.
+.opendesk-preview/
+
 # Reproducible tool caches and local coverage output
 .vite/
 .eslintcache

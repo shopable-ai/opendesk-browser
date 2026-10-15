@@ -4,7 +4,7 @@ import {mkdtemp,readFile,rm,writeFile,symlink} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {validateSidebarToolPackage,sidebarToolStorageKey,SIDEBAR_TOOL_FORMAT} from '../../src/ui/sidebar-tools/package.js';
-import {buildSidebarTool} from '../../scripts/build-sidebar-tool.mjs';
+import {buildSidebarTool,promoteSidebarToolPackage,checkSidebarToolProjectPackage} from '../../scripts/build-sidebar-tool.mjs';
 const example={format:SIDEBAR_TOOL_FORMAT,id:'notes-test',version:'1.0.0',title:'我的笔记',
   description:'demo',capabilities:['storage.local'],html:'<main><p>hello</p></main>',css:'.x{color:blue}',js:'void 0;'};
 test('tool contract is independent of Task v1 and is closed by default',()=>{
@@ -49,10 +49,11 @@ test('native tool directory packs JS/CSS/HTML and a local image into a portable 
     assert.deepEqual(parsed.capabilities,['storage.local','currentPage.read','tasks.open']);
   }finally{await rm(temp,{recursive:true,force:true});}
 });
-test('default packer refreshes a portable project bundle and refuses symlink outputs',async()=>{
+test('portable Sidebar Tool builds to candidate first and only explicit verified promotion updates one project JSON',async()=>{
   const dir=await mkdtemp(join(tmpdir(),'opendesk-tool-distribution-'));
   const id='bundle-sync-test',version='1.0.0';
   const projectBundle=join(dir,id+'.opendesk-tool.json');
+  const candidate=join(dir,'temporary','candidate.json');
   const artifactDir=join('artifacts','sidebar-tools',id);
   try{
     const config={id,version,title:'测试安装包',description:'发行文件一致性',capabilities:[],
@@ -62,27 +63,46 @@ test('default packer refreshes a portable project bundle and refuses symlink out
       writeFile(join(dir,'index.html'),'<main>Test</main>'),
       writeFile(join(dir,'style.css'),''),
       writeFile(join(dir,'main.js'),'void 0;'),
-      writeFile(projectBundle,'stale')
+      writeFile(projectBundle,'LAST_KNOWN_GOOD')
     ]);
-    const first=await buildSidebarTool(dir);
-    assert.equal(first.projectOutput,projectBundle);
-    assert.equal(await readFile(projectBundle,'utf8'),await readFile(first.output,'utf8'));
+    const staged=await buildSidebarTool(dir,{out:candidate});
+    await assert.rejects(buildSidebarTool(dir,{out:projectBundle}),/do not write an untested installable JSON/);
+    assert.equal(staged.installed,false);
+    assert.equal(await readFile(projectBundle,'utf8'),'LAST_KNOWN_GOOD',
+      'normal build never overwrites the installable project package');
+    assert.equal((await buildSidebarTool(dir)).projectOutput,undefined);
+    assert.equal(await readFile(projectBundle,'utf8'),'LAST_KNOWN_GOOD');
+    await assert.rejects(checkSidebarToolProjectPackage(dir),/differs from current source/);
+    await assert.rejects(promoteSidebarToolPackage(dir,{from:join(dir,'missing.json')}),/ENOENT/);
+    await writeFile(candidate,'corrupt candidate');
+    await assert.rejects(promoteSidebarToolPackage(dir,{from:candidate}),/candidate is stale/);
+    assert.equal(await readFile(projectBundle,'utf8'),'LAST_KNOWN_GOOD');
+    await buildSidebarTool(dir,{out:candidate});
     await writeFile(join(dir,'main.js'),'void 1;');
-    const second=await buildSidebarTool(dir);
-    assert.equal(await readFile(projectBundle,'utf8'),await readFile(second.output,'utf8'));
-    assert.notEqual(await readFile(projectBundle,'utf8'),'stale');
+    await assert.rejects(promoteSidebarToolPackage(dir,{from:candidate}),/candidate is stale/);
+    assert.equal(await readFile(projectBundle,'utf8'),'LAST_KNOWN_GOOD',
+      'an old candidate cannot overwrite the previous project package');
+    await buildSidebarTool(dir,{out:candidate});
+    const promoted=await promoteSidebarToolPackage(dir,{from:candidate});
+    assert.equal(promoted.status,'PROJECT_PACKAGE_PROMOTED');
+    assert.equal(promoted.output,projectBundle);
+    assert.equal(await readFile(projectBundle,'utf8'),await readFile(candidate,'utf8'));
+    assert.equal((await checkSidebarToolProjectPackage(dir)).sha256,promoted.sha256);
+    assert.equal((await promoteSidebarToolPackage(dir,{from:candidate})).unchanged,true);
+    const conflicting=join(dir,id+'-old.opendesk-tool.json');
+    await writeFile(conflicting,'obsolete');
+    await assert.rejects(promoteSidebarToolPackage(dir,{from:candidate}),/multiple installable packages/);
+    await rm(conflicting);
     await rm(projectBundle);
-    const noOptIn=await buildSidebarTool(dir);
-    assert.equal(noOptIn.projectOutput,undefined);
     await symlink(join(dir,'main.js'),projectBundle);
-    await assert.rejects(buildSidebarTool(dir),/regular file/);
-    assert.equal(await readFile(join(dir,'main.js'),'utf8'),'void 1;');
+    await assert.rejects(promoteSidebarToolPackage(dir,{from:candidate}),/regular file/);
+    assert.equal(await readFile(join(dir,'main.js'),'utf8'),'void 1;',
+      'refusing a symlink cannot write through it');
   }finally{
     await rm(dir,{recursive:true,force:true});
     await rm(artifactDir,{recursive:true,force:true});
   }
 });
-
 test('new sandbox uses isolated Chrome MV3 resource and a narrow host message protocol',async()=>{
   const [manifest,runner,host,toolHtml,buildContract,verify,taskHost]=await Promise.all([
     readFile('manifest.json','utf8').then(JSON.parse),readFile('src/sidebar-tools/bridge.js','utf8'),

@@ -1,10 +1,10 @@
 // Deterministic local packer for standalone Sidebar UI tools.
 // React/Vue/Tailwind may be compiled BEFORE packing; no npm or remote code runs in Chrome.
-import {readFile,writeFile,mkdir,realpath,stat,lstat} from 'node:fs/promises';
+import {readFile,writeFile,mkdir,realpath,stat,lstat,readdir,rename,unlink} from 'node:fs/promises';
 import {resolve,dirname,join,extname,basename} from 'node:path';
 import {pathToFileURL,fileURLToPath} from 'node:url';
 import {BUILTIN_CATALOG} from '../src/libs/catalog.js';
-import {createHash} from 'node:crypto';
+import {createHash,randomUUID} from 'node:crypto';
 import {validateSidebarToolPackage,SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_FORMAT_V2,serializeSidebarToolPackage} from '../src/ui/sidebar-tools/package.js';
 import {compileSharedToolCss} from './preview/shared-tool-design.mjs';
 import {compileToolLocaleCatalog} from '../src/ui/app-localization.js';
@@ -109,34 +109,85 @@ export function encodeSidebarToolPackage(pkg) {
   if(bytes.length>320000)fail('encoded tool package exceeds 320 KB');
   return bytes;
 }
-export async function buildSidebarTool(projectPath,{out}={}) {
+// A single, stable root package is a deliberate release artifact. An ordinary
+// build only writes an ignored candidate; never silently overwrite that package.
+async function projectPackageDestination(projectPath,id){
+  const root=await realpath(projectPath),filename=id+'.opendesk-tool.json';
+  const extras=(await readdir(root)).filter(name=>name.endsWith('.opendesk-tool.json')&&name!==filename);
+  if(extras.length)fail('multiple installable packages in tool directory: '+extras.join(', '));
+  const output=join(root,filename);
+  let existing;
+  try{existing=await lstat(output);}
+  catch(error){if(error?.code!=='ENOENT')throw error;}
+  if(existing&&!existing.isFile())fail('project distributable must be a regular file: '+output);
+  return {root,output,exists:Boolean(existing)};
+}
+function packageDigest(bytes){return createHash('sha256').update(bytes).digest('hex');}
+export async function checkSidebarToolProjectPackage(projectPath){
+  const pkg=await createSidebarToolPackage(projectPath),expected=encodeSidebarToolPackage(pkg);
+  const {output,exists}=await projectPackageDestination(projectPath,pkg.id);
+  if(!exists)fail('project installable package is missing; promote the tested candidate');
+  const actual=await readFile(output);
+  if(!actual.equals(expected))
+    fail('project installable package differs from current source; test and promote a fresh candidate');
+  return Object.freeze({status:'PROJECT_PACKAGE_MATCH',output,id:pkg.id,version:pkg.version,
+    bytes:actual.length,sha256:packageDigest(actual),validated:true,installed:false});
+}
+export async function promoteSidebarToolPackage(projectPath,{from}={}){
+  if(typeof from!=='string'||!from)fail('promotion requires --promote-from <tested-candidate>');
+  const candidatePath=resolve(from),info=await lstat(candidatePath);
+  if(!info.isFile())fail('candidate package must be a regular file');
+  const bytes=await readFile(candidatePath);
+  const pkg=await createSidebarToolPackage(projectPath),expected=encodeSidebarToolPackage(pkg);
+  if(!bytes.equals(expected))
+    fail('candidate is stale or not the same canonical package as current source; rebuild and rerun tests');
+  const {root,output,exists}=await projectPackageDestination(projectPath,pkg.id);
+  if(exists&&(await readFile(output)).equals(bytes))
+    return Object.freeze({status:'PROJECT_PACKAGE_MATCH',output,id:pkg.id,version:pkg.version,
+      bytes:bytes.length,sha256:packageDigest(bytes),unchanged:true,validated:true,installed:false});
+  // Check the source again immediately before the atomic replacement. Never
+  // clear an existing approved package when source or candidate validation fails.
+  const latest=encodeSidebarToolPackage(await createSidebarToolPackage(projectPath));
+  if(!latest.equals(bytes))fail('tool sources changed during promotion; discard stale candidate');
+  const temp=join(root,'.'+pkg.id+'.opendesk-tool-promote-'+randomUUID()+'.tmp');
+  try{
+    await writeFile(temp,bytes,{flag:'wx',mode:0o644});
+    // A replaced regular file stays intact until rename succeeds. Symlinks and
+    // directories at the destination are never opened or followed for writing.
+    const current=await lstat(output).catch(error=>{
+      if(error?.code==='ENOENT')return null;
+      throw error;
+    });
+    if(current&&!current.isFile())fail('project distributable must be a regular file: '+output);
+    await rename(temp,output);
+  }finally{
+    await unlink(temp).catch(error=>{if(error?.code!=='ENOENT')throw error;});
+  }
+  return Object.freeze({status:'PROJECT_PACKAGE_PROMOTED',output,id:pkg.id,version:pkg.version,
+    bytes:bytes.length,sha256:packageDigest(bytes),validated:true,installed:false});
+}
+export async function buildSidebarTool(projectPath,{out}={}){
   const pkg=await createSidebarToolPackage(projectPath),bytes=encodeSidebarToolPackage(pkg);
   const target=resolve(out||join('artifacts','sidebar-tools',pkg.id,pkg.version,pkg.id+'.opendesk-tool.json'));
+  if(out!==undefined&&dirname(target)===await realpath(projectPath)&&target.endsWith('.opendesk-tool.json'))
+    fail('do not write an untested installable JSON into the project directory; use --promote-from');
   await mkdir(dirname(target),{recursive:true});
   await writeFile(target,bytes,{flag:'w'});
-  // An existing, regular <id>.opendesk-tool.json is an opt-in portable
-  // distribution artifact. Keep the original artifacts/ output for every tool,
-  // without automatically creating new generated files in other source dirs.
-  // Explicit --out writes only the requested file.
-  let projectOutput;
-  if(out===undefined){
-    const candidate=join(await realpath(projectPath),pkg.id+'.opendesk-tool.json');
-    let existing;
-    try{existing=await lstat(candidate);}catch(error){if(error?.code!=='ENOENT')throw error;}
-    if(existing){
-      if(!existing.isFile())fail('project distributable must be a regular file: '+candidate);
-      await writeFile(candidate,bytes,{flag:'w'});
-      projectOutput=candidate;
-    }
-  }
-  return {output:target,...(projectOutput?{projectOutput}:{}),bytes:bytes.length,id:pkg.id,version:pkg.version,
+  return {output:target,bytes:bytes.length,id:pkg.id,version:pkg.version,
     capabilities:pkg.capabilities,validated:true,installed:false};
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
-  const path=process.argv[2]||'examples/sidebar-tools/quick-notes';
-  const flag=process.argv.indexOf('--out');
-  buildSidebarTool(path,{out:flag>=0?process.argv[flag+1]:undefined}).then(value=>
-    process.stdout.write(JSON.stringify(value,null,2)+'\n')).catch(error=>{
-      process.stderr.write(String(error.message||error)+'\n');process.exitCode=1;
-    });
+  const args=process.argv.slice(2);
+  const path=args[0]&&!args[0].startsWith('--')?args.shift():'examples/sidebar-tools/quick-notes';
+  let operation;
+  if(args.length===0)operation=()=>buildSidebarTool(path);
+  else if(args.length===2&&args[0]==='--out'&&args[1])
+    operation=()=>buildSidebarTool(path,{out:args[1]});
+  else if(args.length===2&&args[0]==='--promote-from'&&args[1])
+    operation=()=>promoteSidebarToolPackage(path,{from:args[1]});
+  else if(args.length===1&&args[0]==='--check-project')
+    operation=()=>checkSidebarToolProjectPackage(path);
+  else throw Error('Usage: build-sidebar-tool.mjs <project> [--out <candidate> | --promote-from <tested-candidate> | --check-project]');
+  operation().then(value=>process.stdout.write(JSON.stringify(value,null,2)+'\n'))
+    .catch(error=>{process.stderr.write(String(error.message||error)+'\n');process.exitCode=1;});
 }

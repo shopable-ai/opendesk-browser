@@ -80,7 +80,9 @@ Stay Focus 安装提交前，静态 Side Panel 适配器的 `focus.probe` 对当
 - **普通工具 / UI**：编辑 `examples/sidebar-tools/<id>/tool.config.json` 及 `src/index.html/style.css/main.js`。依赖少则经典 JS，不为简单表单新建 React 应用。
 - **复杂组件**：复用 `react-starter` 或 `vue-starter`，编译成一个本地 IIFE + 静态 CSS；Tailwind 仅作为构建期可选工具。先成功本地构建再调用统一打包器。
 - **网站按钮、DOM 内容捕获、Native/受信任数据**：先明确操作处于 Background、ISOLATED、MAIN 还是可信宿主；只有确切必要才审计 `src/<feature>/` 与既有固定接线、权限及测试；不能借工具 JSON 的 `page.toc/page.clip/page.capture/knowledge.store` 越权或自行重造框架。
-- **普通工具导入**：给用户生成 JSON 即可；**官方可选工具**须维护可信源码与 `official-tools/catalog.json` 的项目登记，再构建整个扩展自动生成发行资源；不要手工维护生成 JSON 副本。
+- **普通工具导入**：测试通过后在当前工具目录提交唯一、规范构建的 `<id>.opendesk-tool.json` 供导入，不能只给 CI ZIP；**官方可选工具**继续维护可信源码与 `official-tools/catalog.json`，由同一构建器生成浏览器离线资源。正式包是受验证的生成产物，绝不手工编辑，不为每次构建增加新文件。
+
+**源码修改不是安装包发布。** 对当前任务要交付给用户安装的工具，开发过程中只生成 `artifacts/` 或 `.opendesk-preview/` 临时候选；完成受影响测试后转交打包 Skill 进行 `--promote-from`，工具根最终只保留一个同 ID `.opendesk-tool.json` 并随源码提交。未通过时保留上一个正式包，不能只交付 CI ZIP；不要给同一工具连续制造 R/日期/版本后缀的正式包。普通工具源码归本项目，Host/原生权限仍由现有审计入口处理。
 
 ## 最短开发交接：源码 → 只读预览 → 打包 Skill
 

@@ -44,15 +44,22 @@ node --test tests/environment/prompt-shortcuts-r14*.test.mjs
 首次入库提交：[`ddd386ba2`](https://github.com/shopable-ai/opendesk-browser/commit/ddd386ba220213192bc7b0bf3a4ea8d8bbcc77a1)；当时大小 35,083 bytes，SHA-256
 `1f09804545c2a654cccab76c1a863c29453b1239b7e387e0d6e4225df3bed412`。
 
-本地更新源码后，在仓库根目录运行既有官方构建命令：
+本地更新源码后，在仓库根目录按统一门禁执行（**未通过测试时不覆盖本目录的旧正式包**）：
 
 ```sh
-node scripts/build-sidebar-tool.mjs examples/sidebar-tools/prompt-shortcuts
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/prompt-shortcuts \
+  --out artifacts/sidebar-tools/prompt-shortcuts/candidate.opendesk-tool.json
+
+node --test tests/environment/prompt-shortcuts-r14*.test.mjs
+
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/prompt-shortcuts \
+  --promote-from artifacts/sidebar-tools/prompt-shortcuts/candidate.opendesk-tool.json
+
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/prompt-shortcuts --check-project
+git diff -- examples/sidebar-tools/prompt-shortcuts/
 ```
 
-**无需 `--out`**：既有构建器检测到本目录已经存在同名正常文件，会一并更新此文件与忽略入库的 `artifacts/` 产物。
-提交修改时需同时检查 `git diff -- examples/sidebar-tools/prompt-shortcuts/`，保存源码与包的同一候选身份。
-`main` 定向 CI 在包测试成功后也会将验证过的工具 JSON 按内容更新回本目录；如候选源码在排队期间被后续提交替换，会保守跳过旧包。**不运行第二个安装器，不覆盖共享 `dist/development`。**
+现有打包器负责全部 `tool.config.json`/HTML/CSS/JS 的确定性编译，`--promote-from` 只接受与当前源码逐字节一致的已测试候选；不同版本的临时包保存在忽略的 artifacts 目录即可，工具根只保留 `prompt-shortcuts.opendesk-tool.json`。自动测试通过代表 `PACKAGE_PASS`，真实 ChatGPT/IME、安装、停用与卸载仍需原生验收。常规打包不再自动刷新根目录文件；不要使用 `--out` 直接写正式路径。
 
 本地真实安装：先确认日常 OpenDesk 浏览器仍加载标准 `dist/development` 与现有唯一 `npm run dev` watcher；在 OpenDesk「扩展」的已有工具导入入口选择上述 **JSON 文件**，完成原有权限/来源审阅后安装并打开。若同 ID/版本的正式官方工具已经安装，先核对当前包身份与原有数据，禁止绕过版本、授权或更新审核硬替换。也可使用已有「官方可选工具」入口安装，二者不能造成第二个工具身份。
 

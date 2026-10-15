@@ -28,6 +28,8 @@ npm run build:sidebar-tool -- examples/sidebar-tools/quick-notes
 # 可导入文件输出至 artifacts/sidebar-tools/quick-notes/<version>/quick-notes.opendesk-tool.json
 ```
 
+**正式交付规则（2026-10-15）：** 默认 `artifacts/` 只放本地候选；确定要让用户从当前工具目录直接安装时，先用 `--out artifacts/sidebar-tools/<id>/candidate.opendesk-tool.json` 测试，再用同一 `scripts/build-sidebar-tool.mjs` 的 `--promote-from artifacts/sidebar-tools/<id>/candidate.opendesk-tool.json` 显式晋升，最后执行 `--check-project`，将唯一正式包 `examples/sidebar-tools/<id>/<id>.opendesk-tool.json` 与源码一起提交。普通编译不会自动覆盖它；同一目录不留大量版本/日期后缀包。详见 [打包 Skill](../../.agents/skills/opendesk-sidebar-tool-package/SKILL.md)。
+
 需要反复查看但不安装的场景，用 `node scripts/stage-sidebar-tool.mjs examples/sidebar-tools/<id>` 生成明确标记 `STAGED_NOT_INSTALLED` 的只读预览快照；有 Native Workspace 环境时需要用户亲自点击只读预览。React/Vue 的 watch 还要遵守 `dist/build-ready.json` 完整构建回执，详见统一开发方法。
 
 **不要直接开发生成后的 JSON；不要把工具 JSON 当成 Chrome 的解压扩展目录**。要加载或更新整个浏览器扩展时，才使用 `npm run build` 生成的 `dist/production/`。

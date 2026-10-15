@@ -31,8 +31,8 @@
 | 4. HTML 交互原型 | 从功能树生成可点击/可输入的完整场景；网页注入 + Side Panel 按需分别预览，同一规则 | 完整 HTML、模拟数据、必要截图/来源 | 必须能实际操作，不只画静态图 |
 | 5. UI 评审定稿 | 用功能树逐项测试主路径、空态、保存/取消、异常、撤权、键盘和小尺寸；用户反馈后定向修正 | UI 评审记录、功能覆盖、定稿 SHA | **关卡 B：用户看得懂、操作得了** |
 | 6. 正式开发 | 根据真实运行世界在工具自身项目开发；复用原 SDK/沙箱/Host/安装器/权限/设计系统 | 源码、功能编号→文件映射 | 不建第二套执行或状态机制 |
-| 7. 分级测试 | 定向 Node/DOM → 模拟 Chromium → 同源构建/包校验 → 可用时真实 Chrome/网站/IME | 同候选 PASS/FAIL/BLOCKED/NOT_TESTED | **关卡 C：真实功能，不拼旧成绩** |
-| 8. 保存交付 | 更新唯一文档和交接、普通提交 main/推送、安装说明、剩余问题与下一步 | SHA、证据、可接续断点 | **关卡 D：可继续维护** |
+| 7. 分级测试 | 源码→忽略目录的单一临时候选→定向 Node/DOM/权限/包字节验证→可用时真实 Chrome/网站/IME | 与源码绑定的 candidate SHA、PASS/FAIL/BLOCKED/NOT_TESTED；失败不写正式包 | **关卡 C：真实功能，不拼旧成绩** |
+| 8. 保存交付 | **仅门禁通过后**显式晋升到工具根唯一 `<id>.opendesk-tool.json`，核对同源，再更新唯一文档、提交 main/推送及安装说明 | 同源正式包/提交 SHA、Native 未测边界、下一步 | **关卡 D：可继续维护** |
 
 当任务只是修已有工具时，先定位受影响的 F/S/A 编号，**只复查受影响环节**。用户明确只做设计/原型时止步相应阶段，不能自动发布。
 
@@ -313,3 +313,18 @@ TEST | 定向测试、候选 SHA/环境/结果（未执行=NOT_TESTED）
 效率实验固定同一个源码 HEAD、模型/设置、相同初始句子、可用 Skill 目录和判卷规则；base 未显式提醒使用 R2，guided 显式使用 R2。原始模型事件/最终文字保存在私有评测目录，分别记录用户额外问答次数、需求→可交互 HTML 修订轮次、HTML↔源码差异、变更涉及文件/测试数量、复用原 SDK/Skill/Host 数、耗时及费用（可获取时）、真实安装结果；**统计只属于实际观察**，未运行不得声称效率提升。评价者应查看完整语义和来源而非仅看关键词匹配。六组输入包含简单、复杂、模糊、相互矛盾和有危险权限的需求，见该脚本。
 
 **当前明确缺口**：OpenDesk 并没有已证实可从浏览器产品入口自动发起 `Skill→项目文件写入→原打包器→用户安装` 的运行时编排。现有 Skill 是 AI/Codex 的指导；本 R2.1 只增强可执行**评估和现有样板链证据**。不得把 `--mode reasoning` 的只读核查当作真实自动开发/安装功能。
+
+## 十二、R2.2：工具目录只保留一个正式安装包（增量执行规则）
+
+**核心目标：每个已开发并要实际交付/手动安装的 Sidebar Tool 都能直接在自己的项目目录找到经过验证的唯一 `<id>.opendesk-tool.json`；不把开发中的临时包提前冒充正式版本，也不把生成物只留在 CI ZIP。**
+
+严格复用 [opendesk-sidebar-tool-package](../skills/opendesk-sidebar-tool-package/SKILL.md) 和唯一 `scripts/build-sidebar-tool.mjs`，**不新增任何打包器/Installer、Skill 或 Task 世界**。任务只涉及 Page USER_SCRIPT、Controller Task、Chrome extension manifest 时不强制用 Sidebar Tool 格式。
+
+1. **写源码/做 UI**：沿用原 Phase 0–6 与 F/S/A、现有 HTML 预览和工具本身 `src/`；预览可以产生源锁快照但 `STAGED_NOT_INSTALLED` 不是正式安装。
+2. **生成候选**：`node scripts/build-sidebar-tool.mjs examples/sidebar-tools/<id> --out artifacts/sidebar-tools/<id>/candidate.opendesk-tool.json`；重复迭代覆盖同一个被 Git 忽略的候选。无需每次制造新的 `v1/v2/r1.5-final` 文件；已有 `artifacts/<id>/<version>` 和 `.opendesk-preview/` 仍仅用于临时构建/只读快照。
+3. **门禁 C-A（源码与自动验证）**：当前候选下完成相关 Node/包/来源/权限/React-Vue build-ready 检查，确认 ID、版本、Schema、原始字节、必要回归；存在失败/未知结果时停止正式包更新，旧包不受影响。真实 Chrome 未能运行时保持 `NOT_TESTED`，不伪称全部 Gate C 通过。
+4. **唯一正式包晋升**：自动检查成功后，运行 `node scripts/build-sidebar-tool.mjs examples/sidebar-tools/<id> --promote-from artifacts/sidebar-tools/<id>/candidate.opendesk-tool.json`；只有同一源码规范字节与候选一致才在项目目录原子更新 `<id>.opendesk-tool.json`。紧接 `--check-project`，确认工具目录仅有一个正式 JSON。不允许 `--out` 直写正式路径绕过门禁。
+5. **门禁 C-B（真实安装/业务）与交付**：具备 Chrome/网站/Native 时在现有扩展中经用户权限审阅安装/升级并核对业务与撤权；没有实际设备不阻止保存“已通过自动门禁、待原生验收的可安装候选”，但必须分别报告 `PACKAGE_PASS` 与 `INSTALLED_CHROME_NOT_TESTED`。正式包与源码/测试同步提交 `main`，保留 Gate D 唯一接续文档。
+6. **并行安全和版本收敛**：多个 Agent 共用主分支时，只有 owner 能晋升其工具包，更新前确认 `main` 最新来源；CI 先测再提交，过期构建不得覆盖别人更新的工具。项目根**最多一份**以当前 ID 命名的 JSON；不批量创建全仓未涉工具的包，也不删除可能承载运行会话的旧本地快照；历史版本由 Git、官方发行账本与实际用户批准的升级流程承担。
+
+原先“默认打包时发现根目录存在 JSON 就自动刷新”的历史描述被本节取代。**应用已安装 ≠ 包已写入仓库 ≠ 真实业务验收成功**，不能因提高可发现性牺牲安装身份/权限与真实数据保护。

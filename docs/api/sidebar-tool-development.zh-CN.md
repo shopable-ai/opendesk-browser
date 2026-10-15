@@ -43,6 +43,7 @@
 ```text
 examples/sidebar-tools/<tool-id>/            # 独立工具项目；官方工具的真实可发行 UI 源
   tool.config.json                            # 唯一打包清单
+  <tool-id>.opendesk-tool.json                # 仅已通过候选验收并交付的工具保留一份正式安装包
   src/
     index.html                                # 工具主体 HTML 片段
     style.css                                 # 工具作用域样式
@@ -87,7 +88,7 @@ dist/production/、dist/development/           # 整个 Chrome 扩展构建产�
 - `src/index.html` 是**HTML 片段**，不要写 `script`、`style`、`iframe`、`link`、内联 `on*=` 或自带另一个文档外壳；`src/style.css` 仅影响隔离工具界面，不向宿主注入 CSS。
 - `src/main.js` 中通过 `globalThis.OpenDeskTool` 获取 `root`、`request`。事件只绑定到自己的 `root`，使用 `textContent` 渲染未经信任的用户内容；不要假定能访问浏览器扩展全局 `chrome`。
 - 共用的 `docs/api/` 不放某一个工具的业务指南；示例实现留在它自己的项目目录。工具包 JSON 是**构建结果**，不应成为手工维护的巨型源码文件。
-- 官方候选在 `official-tools/catalog.json` 登记可信项目，构建复用现有打包器确定性生成发行清单、包大小和 SHA-256；不在源码目录维护生成 JSON。普通作者使用相同打包器分发经审阅的独立包，不需要进入官方目录。见 [官方 Catalog](official-tools-catalog.zh-CN.md)。
+- 官方候选在 `official-tools/catalog.json` 登记可信项目，由唯一打包器生成发行清单、包大小和 SHA-256；**需要安装验收或交付的项目**在测试通过后可且应保留工具根唯一 `<id>.opendesk-tool.json`，它是可再现构建产物而非第二份源码。官方浏览器的内置发行仍由 Catalog 从可信源码生成，不读取用户自编的未审阅包；不涉及本轮的历史示例无需批量创建 JSON。见 [官方 Catalog](official-tools-catalog.zh-CN.md)。
 - 已有 React/Vue 项目示例见 [react-starter](../../examples/sidebar-tools/react-starter/README.md)、[vue-starter](../../examples/sidebar-tools/vue-starter/README.md)，它们的 `tool.config.json.files` 指向本地编译完成的 `dist/tool.js` 与 `dist/tool.css`。
 
 ## 3. 标准配置、版本和静态资源
@@ -164,23 +165,29 @@ dist/production/、dist/development/           # 整个 Chrome 扩展构建产�
 
 ### A. 简单 HTML/CSS/JS 工具：最快的默认路线
 
-在仓库根目录操作，并核对 `git status --short --branch` 及已有构建/Chrome 资源占用：
+在仓库根目录操作，先核对 `git status --short --branch` 和现有 watcher/Chrome；**默认构建只写忽略目录，不再自动刷新工具根的正式包**。
 
 ```sh
-npm ci --ignore-scripts --no-audit --no-fund
+# ① 临时候选：每次覆盖同一稳定路径，不累积无意义的多个版本。
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/<tool-id> \
+  --out artifacts/sidebar-tools/<tool-id>/candidate.opendesk-tool.json
 
-# 打包当前工具；打印实际 output / bytes / version / installed:false
-npm run build:sidebar-tool -- examples/sidebar-tools/<tool-id>
+# ② 先执行受影响的真实代码、Node/包/权限测试。
+node --test tests/environment/sidebar-tools.test.mjs
+# 再执行该工具对应的专项测试；任何失败都保留原有正式 JSON。
 
-# 或明确选择临时导入包路径，便于审阅
-node scripts/build-sidebar-tool.mjs \
-  examples/sidebar-tools/<tool-id> \
-  --out artifacts/sidebar-tools/review/<tool-id>.opendesk-tool.json
+# ③ 在上述门禁通过后，显式将已验证的候选原子更新到项目根目录。
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/<tool-id> \
+  --promote-from artifacts/sidebar-tools/<tool-id>/candidate.opendesk-tool.json
+
+# ④ 校验项目根唯一正式 JSON 与当前源码规范打包结果逐字节相同。
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/<tool-id> --check-project
+git diff -- examples/sidebar-tools/<tool-id>/
 ```
 
-输出的 `artifacts/sidebar-tools/<id>/<version>/<id>.opendesk-tool.json` 是**用户可导入的工具包**。已有可用 OpenDesk 扩展时，Side Panel「扩展 → 更多操作 → 导入本地工具包」选择此 JSON → 阅读权限 → **确认安装/更新** → **主动打开**。常规独立工具修改无需重编整个扩展，但**每次安装/更新仍需用户确认**。注意这与修改扩展自身 `src/` 的工作流不同。
+**交付时的正式文件**是 `examples/sidebar-tools/<id>/<id>.opendesk-tool.json`，其文件名稳定、每工具只有一个；不存在自动生成 `r1.2`、`v1.3`、`final-2` 的同用途包。完整版本和变更记录保留在 JSON 的 `version` 和 Git 历史中。**只有需要用户安装、手工调试或正式交付的工具必须在测试门禁后把包和源码一起提交**；不触及的全仓旧示例无需集中补包。
 
-**可选：把已经构建好的安装包放在工具目录中。** 对希望其他开发者无需安装 Node.js 就能导入的工具，可提交 `examples/sidebar-tools/<id>/<id>.opendesk-tool.json`。只要它已经是常规文件，不带 `--out` 的默认打包命令就会从**同一份源码**同步刷新它，并继续输出到 `artifacts/`；未选择此方式的工具没有额外生成文件。首次生成可用 `npm run build:sidebar-tool -- examples/sidebar-tools/<id> --out examples/sidebar-tools/<id>/<id>.opendesk-tool.json`。显式 `--out` 只生成指定路径。维护这种预生成包时，添加测试逐字节比较 `serializeSidebarToolPackage(await createSidebarToolPackage(project))` 和发布文件，防止过期。**它是构建快照，不是第二份可编辑源码，也不等于已安装/授权。**
+普通 `npm run build:sidebar-tool -- examples/sidebar-tools/<id>` 仍能生成 `artifacts/sidebar-tools/<id>/<version>/` 下的临时可导入文件，但不会自动写入正式目录。`--out` 只能指定临时路径，**直接指定工具根 `<id>.opendesk-tool.json` 会被拒绝**，以免覆盖当前最后一个可用包。`--promote-from` 会拒绝缺失、损坏、陈旧/与当前源码不同的候选、符号链接目标及工具根多份正式包；失败不修改旧文件。`--check-project` 会校验一致性，但无论构建还是提交**都不代表已安装或真实 Chrome 测试通过**。在 OpenDesk Side Panel「扩展 → 更多操作 → 导入本地工具包」选择这个正式 JSON → 审阅权限/版本 → **用户确认安装/更新** → 主动打开。所有真实权限和旧数据都由原安装链处理。
 
 ### B. 本地只读预览：改得勤但暂不安装
 

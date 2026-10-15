@@ -12,6 +12,14 @@ YOU ARE AN AUTONOMOUS CODING AGENT. EXECUTE AUTHORIZED TASKS TO COMPLETION WITHO
 
 已有非 `main` 分支允许只读核查。仅在用户明确要求合并/清理时，将应保留的变更安全合入 `main`，确认不丢失独有提交后再删除多余分支。绝不为“只保留主分支”而直接删除未合并工作；禁止强推、破坏性 reset/clean、覆盖并行工作。提交与推送仍遵守当前任务的授权边界。
 
+## Sidebar Tool 单一正式安装包与测试后晋升（2026-10-15）
+
+**凡在 `examples/sidebar-tools/<id>/` 开发、测试并准备交付可导入的 Sidebar Tool，工具目录最终只保留一个 `<id>.opendesk-tool.json` 正式可安装包。** 用户期望安装/手动验收时不能只给 CI ZIP、忽略的 `artifacts/` 或仓库外附件；测试通过后必须把安装包与源码一起安全提交到 `main`。不对未触及的所有示例批量补包，不制造带 R/日期/版本后缀的重复正式 JSON；历史保留在 Git 提交和既有发行账本。此规则不适用于 Page USER_SCRIPT/Controller Task、Chrome CRX 或 `manifest.json`。
+
+**标准门禁**：源码/React-Vue 预编译 → 用原 `scripts/build-sidebar-tool.mjs --out artifacts/sidebar-tools/<id>/candidate.opendesk-tool.json` 构建临时候选 → 运行受影响 Node/包/安全来源测试并核实包身份与版本 → 仅成功后使用**同一打包器**的 `--promote-from` 对候选与当前源码进行逐字节核对并原子更新工具目录唯一 JSON → `--check-project` 核对同源 → 与源码同时提交。失败、来源漂移和结果未知不得覆盖原正式包。普通打包不再隐式刷新工具目录；CI 可在通过已有门禁后同步，但须保护较新 `main` 的源码。只读 `.opendesk-preview/` 与 `artifacts/` 属本机/CI 临时产物，不提交成堆快照。
+
+**分清自动验证与原生验收**：Node/JSON 包 PASS 允许保存“通过这些门禁的可手动安装候选”，但不证明真实 Chrome/网站/IME/Native PASS；实际安装/升级仍经现有版本、权限及用户确认链。详见 [唯一打包 Skill](.agents/skills/opendesk-sidebar-tool-package/SKILL.md) 和 [扩展开发工作流](.agents/workflows/extension-creation.md)。不新增第二套安装器、打包器或扩展身份。
+
 ## 日常扩展加载目录（用户于2026-10-12明确要求）
 
 日常修改扩展源码时，Chrome 固定加载本仓库的 `dist/development`，由 `npm run dev` 持续更新；不得自行复制到 `~/.opendesk-browser/extensions/local-dev-<会话标识>` 等新目录并替换日常扩展。隔离构建、验收包只用于对应工作流的独立 CFT/Profile。修复本地项目开发或 Native 接入问题时，优先保留正常加载目录和扩展 ID，不把某次隔离候选安装进日常 Chrome 作为快捷修复。
