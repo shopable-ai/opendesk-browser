@@ -125,7 +125,7 @@ try{
       .waitFor({timeout:20000});
     report.autoStartTopics=await autoPage.locator('[data-testid="conversation-turn-1"] [data-opendesk-chatgpt-mindmap="viewer"] .topic:visible').count();
     assert.ok(report.autoStartTopics>1);
-    assert.equal(await autoPage.evaluate(()=>window.mindmapPreview.autostart),'REAL_PRODUCT_BUTTON_CLICKED');
+    assert.equal(await autoPage.evaluate(()=>window.mindmapPreview.autostart),'REAL_XMIND_RENDERED');
     passed('R2.3 printed one-command URL automatically renders real XMind A');
     await autoPage.screenshot({path:join(out,'r23-one-command-xmind.png'),fullPage:true});
   }finally{await autoPage.close();}
@@ -178,6 +178,40 @@ try{
   }));
   passed('R2.2 large multi-layer tree uses real SDK without duplicate renderer');
   await previewPage.screenshot({path:join(out,'r22-local-html-wide.png'),fullPage:true});
+  // A large map cannot display 97 readable labels in a 387px-high canvas at
+  // once. Probe user navigation instead of falsely claiming no clipping.
+  const canvasBox=await viewer(3).locator('.odmm-canvas').boundingBox();
+  const landmark=()=>viewer(3).locator('.topic:visible').first().evaluate(element=>{
+    const box=element.getBoundingClientRect();
+    return {x:box.x,y:box.y};
+  });
+  const beforeDrag=await landmark();
+  const x=canvasBox.x+canvasBox.width*.72,y=canvasBox.y+canvasBox.height*.72;
+  await previewPage.mouse.move(x,y);
+  await previewPage.mouse.down();
+  await previewPage.mouse.move(x-105,y-70,{steps:12});
+  await previewPage.mouse.up();
+  await previewPage.waitForTimeout(250);
+  const afterDrag=await landmark();
+  const dragShift=Math.hypot(afterDrag.x-beforeDrag.x,afterDrag.y-beforeDrag.y);
+  report.largeDrag={beforeDrag,afterDrag,shiftPx:Math.round(dragShift)};
+  if(dragShift>=10)passed('R2.3 real SDK large canvas pans through user mouse drag');
+  else report.cases.push({name:'Large canvas mouse drag moves visible topics',
+    status:'NOT_VERIFIED',note:'Pointer gesture caused less than 10px movement; needs human trackpad and SDK DOM investigation'});
+  const scrollBefore=await viewer(3).locator('.workbook-item').evaluate(el=>({
+    top:el.scrollTop,left:el.scrollLeft
+  }));
+  await previewPage.mouse.move(x,y);
+  await previewPage.mouse.wheel(0,340);
+  await previewPage.waitForTimeout(300);
+  const scrollAfter=await viewer(3).locator('.workbook-item').evaluate(el=>({
+    top:el.scrollTop,left:el.scrollLeft
+  }));
+  report.largeWheel={before:scrollBefore,after:scrollAfter};
+  if(Math.abs(scrollBefore.top-scrollAfter.top)+Math.abs(scrollBefore.left-scrollAfter.left)>=10)
+    passed('R2.3 real SDK large canvas scrolls via user mouse wheel');
+  else report.cases.push({name:'Large canvas mouse wheel changes scroll position',
+    status:'NOT_VERIFIED',note:'No scroller delta; wheel may zoom rather than pan'});
   await previewPage.getByRole('button',{name:'切换 320px 容器'}).click();
   // The light-only preview animates max-width for 150ms. Assert the final
   // computed width after layout settles, not the pre-transition 880px frame.

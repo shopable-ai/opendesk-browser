@@ -93,7 +93,24 @@ async function start(){
       ?.shadowRoot?.querySelector('button');
     if(!first)throw new Error('E_PREVIEW_AUTOSTART_TRIGGER_MISSING');
     state.autostart='REAL_PRODUCT_BUTTON_CLICKED';
+    // Observe the real product viewer readiness rather than declaring
+    // success just because a click event was dispatched.
+    const firstTurn=answer(1);
+    const check=()=>{
+      if(!active||state.autostart==='REAL_XMIND_RENDERED')return;
+      const viewer=firstTurn.querySelector('[data-opendesk-chatgpt-mindmap="viewer"]');
+      if(viewer?.dataset.ready!=='true')return;
+      state.autostart='REAL_XMIND_RENDERED';
+      announce('PREVIEW_ASSETS_READY：四份真实引擎校验通过，已自动展示 A 回复的原 XMind 画布。B/C 可独立打开，正式安装仍为 NOT_TESTED。');
+      watcher.disconnect();
+    };
+    const watcher=owner.observe(firstTurn,check,{subtree:true,childList:true,attributes:true,
+      attributeFilter:['data-ready']});
     first.click();
+    owner.setTimeout(()=>{
+      if(active&&state.autostart==='REAL_PRODUCT_BUTTON_CLICKED')
+        announce('XMind A 自动打开超时；请查看回复操作栏错误并手动重试。','error');
+    },20000);
   }
   bind(document.getElementById('preview-width'),'click',event=>{
     const narrow=conversation.classList.toggle('is-narrow');
