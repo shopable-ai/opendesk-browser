@@ -75,3 +75,40 @@
 4. 提交前说明本轮改动范围、实际测试与待验收项；有冲突时只暂停相交文件。
 
 **一屏目标：** 已安装平台中立的 Prompt Shortcuts 工具可只凭提示词正文在侧栏安全创建、编辑、启停和管理快捷按钮；打开真实 ChatGPT 后主内容左边缘展示工具栏，点击将完整正文插入草稿、用户自行发送；右键选区快捷添加可独立开关。
+
+
+## 6. R1.4 内容优先正式源码实施（2026-10-15）
+
+本节追加于 R1.3 交接；历史模拟与原型记录保持原等级，不冒充原生 Chrome 证据。
+
+### 6.1 源码与产品
+
+- 独立工具唯一身份 **prompt-shortcuts**，源码在 examples/sidebar-tools/prompt-shortcuts/，采用既有 Sidebar Tool v2 格式、Sandbox、存储、工具启停、正式安装器；不新增 Chrome Extension、Worker 或第五个以上产品 Tab。
+- 管理 UI 使用正式设计系统共享 CSS，列表位于顶部、全局设置位于后部，表单正文唯一必填、优先置顶。可选名称与短标签采用完整 Unicode 字素，自动值来源单独保存；支持排序、启停、复制、确认删除、错误留草稿。
+- 隔离存储键 library，单项上限 8192 UTF-8 字节，沿用带 ETag/ifMatch 的可信存储写入；拒绝静默截断与覆盖并发修改。
+- 只新增 **page.prompts** v2 能力，页面内容由固定可信适配器 trusted/page.js 和精确来源授权 trusted/policy.js 控制。ChatGPT 站点只有 https://chatgpt.com；内容模型和 Sidebar UI 不依赖 ChatGPT DOM，未来平台需单独适配器及权限审查。
+- 按钮授权绑定工具包摘要、版本、安装代际及用户授予的单一站点；撤权/停用/卸载后安全清理。工具 Sandbox 无权自行访问 ChatGPT 网页 DOM。固定内容脚本只使用已知编辑器选择器、浏览器原生 insertText 指令，避免直接改写 React 管理的 DOM 值；插入仅草稿、绝不点击发送，失败提供可手动复制的完整正文。
+- 原生选区菜单使用既有 browser.contextMenu / browser.launch.consume 和 Chrome 可信宿主，选区票据仅预填新建，不后台存储。网页按钮开关独立于原生菜单开关，两者网站授权和启停分离。
+- official-tools/catalog.json 增加 **optional** 源条目；正式可安装发行包仍需由唯一 scripts/build-official-tools.mjs 生成，**仅将源文件纳入官方来源清单不意味着正式包已生成或用户已安装**。
+
+### 6.2 可信证据
+
+| 检查项 | 结果 | 可信范围 |
+| --- | --- | --- |
+| R1.3 双 HTML 模拟 | 继承上文历史结果 | 非原生 |
+| R1.4 Unicode/默认字段/验证逻辑 | **13/13 PASS** | 本轮实际运行的 V8 定向函数断言 |
+| R1.4 Node 包/权限/站点模型 5 组测试 | 已编写 | 尚未取得 node --test 运行记录，不能记 PASS |
+| 官方 build 与发行工具包 | NOT_TESTED | 需唯一构建者验证 |
+| 已安装 Mac Chrome、原生菜单与真实 ChatGPT | NOT_TESTED | 需要实际登录页面与授权交互 |
+| 多行、Undo、中文输入法、SPA、BFCache、撤权和卸载 | NOT_TESTED | 需真实网页与生命周期测试 |
+| 逐维 95+ 评分 | NOT_SCORED | 缺失对应专家/真实浏览器证据 |
+
+### 6.3 最短后续链路
+
+1. 在真实仓库环境运行 node --test tests/environment/prompt-shortcuts-r14.test.mjs tests/environment/official-tools-catalog-r45.test.mjs，修复实际失败，不重跑无关测试。
+2. 协调唯一 build writer 运行官方工具包生成、production build、bundle/权限预算差分检查；不停止其他 Agent 的 watcher 或服务。
+3. 在用户 Mac Chrome 正式安装并打开工具：仅凭正文新建保存、授权 ChatGPT 网页按钮、主内容区左边缘竖直居中展示、插入已有草稿、明确人工发送。
+4. 原生菜单开启→选中文字→领取选区预填→审阅保存；测试两个开关独立性、编辑/排序、关闭 Side Panel 后存续、撤权与卸载实时清理。
+5. 真实测试 IME、Undo、SPA、BFCache、不同 Chrome viewport、并发写入/未知结果。分别在此处追加候选 SHA 和 PASS/FAIL/NOT_TESTED。未通过真实路径前不宣称 95+ 或最终验收。
+
+**正式目标始终是用户完整操作闭环，而不是文件数、原型数量或宣称的通过率。**

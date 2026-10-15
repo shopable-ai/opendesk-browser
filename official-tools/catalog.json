@@ -67,6 +67,12 @@
       "project": "examples/sidebar-tools/bookmark-manager",
       "kind": "sidebar-tool",
       "installationPolicy": "optional"
+    },
+    {
+      "id": "prompt-shortcuts",
+      "project": "examples/sidebar-tools/prompt-shortcuts",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional"
     }
   ]
 }

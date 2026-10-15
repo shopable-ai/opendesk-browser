@@ -10,7 +10,7 @@ export const SIDEBAR_TOOL_DATA_LIMITS=Object.freeze({itemBytes:8192,totalBytes:3
 const MAX_PACKAGE_BYTES = 320000;
 const LIMITS = Object.freeze({title:80,description:300,html:64000,css:120000,js:220000});
 const CAPABILITIES = Object.freeze(['storage.local','currentPage.read','tasks.open','page.toc','page.clip','user.export','page.capture','knowledge.store','time.review','focus.control','ai.access','adblock.control']);
-const V2_CAPABILITIES = Object.freeze([...new Set([...CAPABILITIES,'browser.contextMenu','browser.tabs','browser.sidePanel','network',
+const V2_CAPABILITIES = Object.freeze([...new Set([...CAPABILITIES,'page.prompts','browser.contextMenu','browser.tabs','browser.sidePanel','network',
   'browser.network.observe','browser.events','browser.operations','browser.screenshot','browser.bookmarks','browser.bookmarks.full','browser.scheduler',
   'browser.cookies.read','browser.cookies.values','browser.cookies.write','browser.cookies.observe','browser.cookies.clear','browser.storage',
   ...APPROVED_BROWSER_DIRECT_BINDINGS.flatMap(row=>row.requiredCapabilities)])]);

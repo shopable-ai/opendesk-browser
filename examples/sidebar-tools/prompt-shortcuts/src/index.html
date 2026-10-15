@@ -1,0 +1,34 @@
+<main class="ps od-page">
+  <section id="ps-index" aria-labelledby="ps-title">
+    <header class="ps-head od-page-head"><div><h2 id="ps-title" class="od-title">提示词快捷按钮</h2><p class="od-note">一段内容即可创建，点击网页左侧按钮仅插入聊天草稿。</p></div><button id="ps-new" class="od-button od-button--primary" type="button">＋ 新建</button></header>
+    <div class="ps-row"><h3>我的提示词</h3><small id="ps-count" class="od-technical">0 个</small></div>
+    <div id="ps-list" class="ps-list"></div><p id="ps-empty" class="od-note" hidden>还没有提示词。点击新建后只需输入正文。</p>
+    <section class="ps-settings" aria-label="网页快捷入口"><h3>网页快捷入口</h3>
+      <label class="ps-switch od-surface"><span><strong>网页左侧快捷按钮</strong><small>在已授权的 ChatGPT 主内容区域左侧显示</small></span><input id="ps-web" type="checkbox" checked></label>
+      <label class="ps-switch od-surface"><span><strong>选中文字快速添加</strong><small>Chrome 原生右键菜单 → 预填新建；不自动保存</small></span><input id="ps-menu" type="checkbox"></label>
+      <p class="od-note" id="ps-grant">首次使用，请在 OpenDesk 工具详情的「设置」单独授权 chatgpt.com 网站。</p>
+    </section>
+  </section>
+  <section id="ps-edit" hidden aria-labelledby="ps-form-title">
+    <header class="ps-form-head"><button id="ps-back" type="button" class="od-button od-button--secondary">← 返回</button><h2 id="ps-form-title" class="od-title">新建提示词</h2></header>
+    <form id="ps-form" novalidate>
+      <div class="ps-primary"><label for="ps-body" class="od-field-label">提示词内容 <span>· 唯一必填</span></label>
+        <textarea id="ps-body" class="od-field" rows="8" spellcheck="false" aria-required="true" placeholder="输入完整提示词，支持多行…"></textarea>
+        <p class="od-note">原文完整保存，不自动发送、不静默截断。</p></div>
+      <section class="ps-optional od-surface" aria-labelledby="ps-option-title">
+        <div class="ps-row"><h3 id="ps-option-title">按钮展示与偏好</h3><small>均选填</small></div>
+        <label class="od-field-label" for="ps-label">按钮短标签（选填）</label><input id="ps-label" class="od-field" placeholder="默认取正文前两个字" autocomplete="off">
+        <label class="od-field-label" for="ps-name">显示名称（选填）</label><input id="ps-name" class="od-field" maxlength="60" placeholder="默认取正文前两个字" autocomplete="off">
+        <p class="ps-preview" id="ps-preview" aria-live="polite">按钮：—　名称：—</p>
+        <fieldset class="ps-shapes"><legend class="od-field-label">按钮形状（选填）</legend><label><input type="radio" name="ps-shape" value="square" checked> 圆角方形</label><label><input type="radio" name="ps-shape" value="round"> 圆形</label></fieldset>
+        <label class="ps-enabled"><input id="ps-enabled" type="checkbox" checked> 启用此快捷按钮</label>
+      </section>
+      <p id="ps-error" class="ps-error" role="alert" hidden></p>
+      <div class="ps-actions"><button id="ps-cancel" class="od-button od-button--secondary" type="button">取消</button><button id="ps-save" class="od-button od-button--primary" type="submit">保存提示词</button></div>
+    </form>
+    <section id="ps-leave" class="od-alert ps-alert" hidden aria-label="未保存草稿确认"><strong>存在未保存的修改</strong><p>确定放弃当前草稿吗？</p><div class="ps-actions"><button id="ps-stay" type="button" class="od-button od-button--secondary">继续编辑</button><button id="ps-discard" type="button" class="od-button od-button--danger">放弃修改</button></div></section>
+  </section>
+  <section id="ps-delete" class="od-alert ps-alert" hidden aria-label="删除确认"><strong>删除这条提示词？</strong><p id="ps-delete-name"></p><div class="ps-actions"><button id="ps-delete-cancel" type="button" class="od-button od-button--secondary">取消</button><button id="ps-delete-yes" type="button" class="od-button od-button--danger">确定删除</button></div></section>
+  <section id="ps-copy" class="od-surface ps-copy" hidden><strong>请手动复制完整提示词</strong><textarea id="ps-copy-text" class="od-field" readonly aria-label="待复制的完整正文"></textarea><button id="ps-copy-close" type="button" class="od-button od-button--secondary">关闭</button></section>
+  <p id="ps-status" class="od-note" role="status" aria-live="polite"></p>
+</main>

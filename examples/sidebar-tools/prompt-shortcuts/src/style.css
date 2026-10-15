@@ -1,0 +1,35 @@
+/* @opendesk-shared-design */
+/* Official design tokens/components supply colors, focus, controls; local CSS owns layout. */
+.ps{width:100%;min-width:0;display:grid;gap:var(--space-3);padding:var(--space-3)}
+.ps-head{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-2)}
+.ps-head>div{min-width:0}.ps-head h2,.ps-form-head h2{margin:0}
+.ps-head p{margin:var(--space-1) 0 0;overflow-wrap:anywhere}.ps-head button{flex:none}
+.ps-row{display:flex;justify-content:space-between;align-items:baseline;gap:var(--space-2);margin:0 0 var(--space-2)}
+.ps-row h3,.ps-settings h3{font-size:var(--od-body-size,13px);margin:0}.ps-row small{color:var(--od-sub)}
+.ps-list{display:grid;gap:var(--space-2)}
+.ps-card{border:1px solid var(--od-line);border-radius:10px;padding:var(--space-2);background:var(--od-paper)}
+.ps-card-main{display:flex;align-items:center;gap:var(--space-2);min-width:0}
+.ps-glyph{width:36px;height:36px;border:1px solid var(--od-line);background:var(--od-bg);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-direction:column;line-height:1.05;font-weight:750;font-size:12px;flex:none;overflow:hidden}
+.ps-glyph.round{border-radius:50%}
+.ps-info{flex:1;min-width:0}.ps-info strong,.ps-info p{display:block;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;margin:0}.ps-info p{color:var(--od-sub);font-size:var(--od-note-size)}
+.ps-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:var(--space-2);margin-top:var(--space-3)}
+.ps-more{border-top:1px solid var(--od-line);padding-top:var(--space-2);margin-top:var(--space-2)}
+.ps-more button{min-width:0}.ps-settings{margin-top:var(--space-3);display:grid;gap:var(--space-2)}
+.ps-switch{display:flex;justify-content:space-between;align-items:center;gap:var(--space-3);padding:var(--space-3);cursor:pointer}
+.ps-switch span{min-width:0}.ps-switch strong,.ps-switch small{display:block}
+.ps-switch small{font-size:var(--od-note-size);color:var(--od-sub);margin-top:3px;overflow-wrap:anywhere}
+.ps-switch input,.ps-shapes input,.ps-enabled input{accent-color:var(--od-brand)}.ps-switch input{width:18px;height:18px;flex:none}
+.ps-form-head{display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-3)}
+.ps-primary textarea{width:100%;min-height:180px;resize:vertical;overflow-wrap:anywhere}
+.ps-primary p{margin:var(--space-1) 0 var(--space-3)}.ps-primary span{font-weight:400;color:var(--od-sub)}
+.ps-optional{padding:var(--space-3);display:grid;gap:var(--space-2)}
+.ps-optional input.od-field{width:100%;min-width:0}
+.ps-preview{padding:var(--space-2);background:var(--od-bg);border-radius:8px;margin:0;overflow-wrap:anywhere}
+.ps-shapes{border:0;margin:var(--space-2) 0;padding:0;display:flex;flex-wrap:wrap;gap:var(--space-3)}
+.ps-shapes legend{margin-bottom:var(--space-2)}
+.ps-enabled{display:flex;align-items:center;gap:var(--space-2)}
+.ps-error{color:var(--od-negative);overflow-wrap:anywhere}
+.ps-alert,.ps-copy{padding:var(--space-3);margin-top:var(--space-3)}
+.ps-copy{display:grid;gap:var(--space-2)}.ps-copy textarea{width:100%;min-height:100px;resize:vertical;white-space:pre-wrap}
+#ps-status{overflow-wrap:anywhere;margin:0}
+@media(max-width:340px){.ps-head{flex-wrap:wrap}.ps-card-main{flex-wrap:wrap}}
