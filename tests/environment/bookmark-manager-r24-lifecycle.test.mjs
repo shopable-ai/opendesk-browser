@@ -9,6 +9,7 @@ class Element {
   constructor(tag='div'){
     this.tagName=tag;this.children=[];this.dataset={};this.style={};
     this.attributes={};this.listeners={};this.value='';this.hidden=false;
+    this.classList={add(){},contains(){return false}};
   }
   set textContent(value){this.text=String(value);this.children=[]}
   get textContent(){return this.text||this.children.map(child=>child.textContent).join('')}
@@ -32,6 +33,10 @@ async function ui(){
   root.querySelector=selector=>q(selector.slice(1));
   root.querySelectorAll=()=>[...ids.values()].flatMap(el=>el.all()).filter(el=>el.tagName==='button');
   const context=createContext({URL,Date:Clock,document:{createElement:tag=>new Element(tag),
+    createElementNS:(namespace,tag)=>{
+      assert.equal(namespace,'http://www.w3.org/2000/svg');
+      return new Element(tag);
+    },
     createDocumentFragment:()=>new Element()},OpenDeskTool:{root},
     setTimeout:fn=>{const id=++timerId;timers.set(id,fn);return id},
     clearTimeout:id=>timers.delete(id),addEventListener:(name,fn)=>lifecycle.set(name,fn)});
