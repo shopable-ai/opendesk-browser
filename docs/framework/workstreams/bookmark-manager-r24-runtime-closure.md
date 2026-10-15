@@ -331,3 +331,14 @@ HTML 设计评审另有一份在线对话内的可交互纯内存原型；该设
 - \`8497ffa\` / \`2095893\` 的后续冲突可见性/文案候选：[Bookmark 专项 #38747767609](https://github.com/shopable-ai/opendesk-browser/actions/runs/38747767609)，记录本段时处于 **IN_PROGRESS/NOT_YET_VERIFIED**；后续报告必须更新到实际完成状态。
 
 **Native**：仍为 \`NATIVE_NOT_TESTED\`。没有真实 Mac Chrome/Full Bookmarks 授权/安装身份、用户书签原生写后读回或跨窗口删除证据。设计、操作、工程分别不得宣称 95+；Issue #75 继续 OPEN。真正发布需在安全门禁恢复并取得同版本同 hash 的 Chrome Native CRUD 后验收。
+
+
+### R2.7.1 最新冻结的书签组件证据（0.3.7）
+
+[Bookmark 专项 CI #38747767609](https://github.com/shopable-ai/opendesk-browser/actions/runs/38747767609) 在 \`20958934a641d4c059b3107ad5e99c015e2a14ca\`：**Node 75 PASS / 0 FAIL、npm run check PASS、独立 v2 包 PASS、Noto Sans CJK SC 字体检查 PASS、真实无头 Chrome 生产同源 Mock 2 视口 PASS**；Chrome 输入输出边界明确 \`MOCK_BROWSER_INTERACTION_PASS_NOT_INSTALLED\`。六张已恢复中文的真实渲染截图证明详情/紧凑编辑/外部冲突状态；此候选还验证了缩小文件夹选择器、展开目录组合编辑/移动、冲突审阅按钮滚动可见和简洁保存文案。官方 HTML、六张截图与 JSON 证据：[artifact 11979122960](https://github.com/shopable-ai/opendesk-browser/actions/runs/38747767609/artifacts/11979122960)。
+
+同候选官方独立包 \`artifacts/sidebar-tools/bookmark-manager/0.3.7/bookmark-manager.opendesk-tool.json\` 字节数 **85,377**，SHA-256 **\`367f966c84d9ace1d634e81d7c5929e3356e1dd7fa9ad9ca5ab1360ceb641a17\`**（[artifact 11978359530](https://github.com/shopable-ai/opendesk-browser/actions/runs/38747767609/artifacts/11978359530)）；Full Bookmarks 独立 capability 不变，发布身份仍需 Native 验证。Package 和 Preview 同 SHA、同工具版本，预览专用 Mock SDK 不在正式包内。
+
+全 Browser \`npm run build\` **FAIL**：\`[opendesk-fixed-page-relay] Historical/user/vendor code cannot enter a privileged fixed bundle: examples/sidebar-tools/reading-toc/locales.json\`，属于并行 Reading TOC 本地化/共享 bundle 安全来源边界；未批准补全来源前不可绕过，后续 Verify/Dev Build **SKIPPED**。共享 Preview Contract 的 AdBlock Chrome 用例也存在独立失败；本轮书签专项复用原 Chrome 测试成功，不能借此宣称共享全仓无失败。
+
+与远端后续 main 比对：至读取时仅本工作记录及其他并行模块变化，没有 Bookmarks 产品/SDK/Preview 输入变化，因此本候选组件证据仍有效，最终 Browser Build/Native/Issue #75/专家逐维 95+ **NOT_CLOSED**。
