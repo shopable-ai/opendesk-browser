@@ -415,6 +415,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       record.sourceHash!==compile.sourceHash)
       throw err('E_WORKFLOW_HASH','语义定义与持久 JavaScript 版本不一致，拒绝运行');
     void stopPlanning({close:true}).catch(()=>{});
+    verifiedTurnHistory=[];lastProviderTurn=null;
     workflow=clean;lastTrustedRun=null;
     directVerifiedSerial=record.verificationMode==='fill-readback'?stable():null;
     revision=record;touched=true;lastRun='none';hasError=false;
@@ -909,7 +910,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         permission:Promise.resolve(true),signal:abort.signal,
         assertCurrent:()=>planningCurrent(epoch,executionSerial,frozen.selected)});
       if(execution?.ok) {
-        verifiedTurnHistory=[...verifiedTurnHistory,{
+        if(!prepared.hasUnprovenClick)verifiedTurnHistory=[...verifiedTurnHistory,{
           request:frozen.request.slice(0,4000),outcome:'verified',
           readbackVerified:prepared.hasReadback===true,stepCount:result.steps.length}].slice(-4);
         appendChat('模型来源',lastProviderTurn.source+
@@ -1032,6 +1033,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     if(!event.isTrusted||busy)return;
     showCreateMenu(false);
     get('workflow-ai-transcript').replaceChildren();
+    verifiedTurnHistory=[];lastProviderTurn=null;
     get('workflow-ai-request').focus?.({preventScroll:true});
     const stopped=stopPlanning({close:true,remember:true}),epoch=planningGeneration;
     void stopped.then(()=>{
