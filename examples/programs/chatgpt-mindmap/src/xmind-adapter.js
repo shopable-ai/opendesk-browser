@@ -27,8 +27,15 @@ export function createXmindRenderer({window,canvas,tree,skinMode='light'}){
   canvas.addEventListener('wheel',markManual,{passive:true});
 
   function scrollerOf(root=mount){
-    const candidate=root?.querySelector('.workbook-item');
-    return candidate||canvas;
+    if(!root)return canvas;
+    // Snowbrush versions can put the scrollable viewport below the workbook
+    // wrapper. Prefer a node with real scroll extents, not a guessed class.
+    const candidates=[...root.querySelectorAll(
+      '.workbook-item,.workbook-item [class*="scroll"],[class*="viewport"],[class*="scroller"]'
+    )];
+    return candidates.find(node=>node.clientWidth>0&&node.clientHeight>0&&
+      (node.scrollWidth>node.clientWidth+2||node.scrollHeight>node.clientHeight+2))||
+      root.querySelector('.workbook-item')||canvas;
   }
   async function render(defaultFolded,{preserve=false,mode=appliedSkin}={}){
     if(!canvas.isConnected||canvas.clientWidth<=0||canvas.clientHeight<=0)
@@ -110,16 +117,29 @@ export function createXmindRenderer({window,canvas,tree,skinMode='light'}){
       if(!rects.length)return;
       const bounds=canvas.getBoundingClientRect();
       const scroll=scrollerOf();
-      if(narrow){
-        const root=mount.querySelector('.topic')?.getBoundingClientRect();
-        if(root){
+      for(let attempt=0;attempt<2;attempt++){
+        const now=rectangles();
+        if(!now.length)break;
+        const beforeLeft=scroll.scrollLeft,beforeTop=scroll.scrollTop;
+        if(narrow){
+          const root=mount.querySelector('.topic')?.getBoundingClientRect();
+          if(!root)break;
           scroll.scrollLeft+=root.left-(bounds.left+18);
           scroll.scrollTop+=(root.top+root.bottom)/2-(bounds.top+bounds.height/2);
+        }else{
+          const area=span(now);
+          scroll.scrollLeft+=(area.left+area.right-bounds.left-bounds.right)/2;
+          scroll.scrollTop+=(area.top+area.bottom-bounds.top-bounds.bottom)/2;
         }
-      }else{
-        const area=span(rects);
-        scroll.scrollLeft+=(area.left+area.right-bounds.left-bounds.right)/2;
-        scroll.scrollTop+=(area.top+area.bottom-bounds.top-bounds.bottom)/2;
+        if(Math.abs(scroll.scrollLeft-beforeLeft)<.5&&
+           Math.abs(scroll.scrollTop-beforeTop)<.5)break;
+        await settled();
+      }
+      const final=rectangles();
+      if(final.length){
+        const area=span(final);
+        canvas.dataset.fitOverhangLeft=String(Math.max(0,Math.round(bounds.left-area.left)));
+        canvas.dataset.fitOverhangRight=String(Math.max(0,Math.round(area.right-bounds.right)));
       }
     }).then(()=>{
       if(!disposed){canvas.dataset.fitReady='true';canvas.dataset.fitWidth=String(canvas.clientWidth);}
