@@ -72,3 +72,8 @@ npm run check
 ### R1.1 R5 CI 首次扩大覆盖后的真实失败及修复
 
 - `f401738eac0be409c8293b1c400a36896b7a3875` 的 [Browser SDK R5 run 38772097189](https://github.com/shopable-ai/opendesk-browser/actions/runs/38772097189)：新增 `browser-sdk-managed-proxy-r54.test.mjs` 后，25 条 Managed Proxy Node 测试中 **24 PASS / 1 FAIL**；失败源于 fixture 将 SDK 对非法 `scheme` 的同步 `E_SCHEMA` 抛异常当作异步 Promise rejection 捕捉，非真实 Proxy Driver 行为失败。修复仅调整拒绝断言捕获同步/异步异常，不改变验证规则或 Host 权限。以修复后的新候选 CI 为准。
+
+### R1.1 旧代理生命周期 Node FIFO Web Locks fixture 修复
+
+- 专项 [Sidebar tools R1 run 38771791623](https://github.com/shopable-ai/opendesk-browser/actions/runs/38771791623) 中旧 R2.1 test fixture 从 Node `globalThis.navigator.locks` 直接获取原生 Web Locks，GitHub Linux Node 环境不可用，故 21 条历史代理生命周期测试报 `E_TOOL_LOCK`，并非 Chrome Driver 测试失败。只在 `tests/environment/ai-vip-share-r21-lifecycle.test.mjs` 引入具备实际 FIFO、跨上下文共享命名锁与 `query().pending` 的测试专用锁模拟，**保留无锁拒绝原断言、不更改生产 Host 安全约束**。结果以该提交后 Actions 实测为准。
+- 同一运行另有 4 条 `sidebar-tool-multiscript-r72` 的语言 DOM mock 错误，属于并行 Sandbox 工具测试，不能归类 Managed Proxy 失败；本任务不修改无关模块。

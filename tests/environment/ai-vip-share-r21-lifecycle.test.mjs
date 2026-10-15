@@ -22,6 +22,38 @@ const origin='chrome-extension://'+'a'.repeat(32);
 const sender={id:'a'.repeat(32),url:origin+'/ui/tool.html?hostInstanceId='+randomUUID(),
   documentId:'doc-1',frameId:0,documentLifecycle:'active'};
 const keyFor=id=>id===AI_ID?AI_STORE:LEGACY_AI_STORE;
+// Deterministic test-only implementation of the named, FIFO Web Locks contract.
+// This fixture intentionally serializes cross-context requests and exposes
+// pending owners for race assertions. It is NOT a production lock fallback.
+function fixtureLocks(){
+  const tails=new Map(),held=new Map(),pending=new Map();
+  let serial=0;
+  return Object.freeze({
+    request(name,work){
+      const id=++serial;
+      const previous=tails.get(name)??Promise.resolve();
+      let unlock;
+      const gate=new Promise(resolve=>{unlock=resolve;});
+      const tail=previous.catch(()=>{}).then(()=>gate);
+      // A pending request must be observable before it acquires the lock.
+      if(tails.has(name))pending.set(id,{name});
+      tails.set(name,tail);
+      return previous.catch(()=>{}).then(async()=>{
+        pending.delete(id);
+        held.set(id,{name});
+        try{return await work({name,mode:'exclusive'});}
+        finally{
+          held.delete(id);
+          unlock();
+          if(tails.get(name)===tail)tails.delete(name);
+        }
+      });
+    },
+    async query(){
+      return {held:[...held.values()],pending:[...pending.values()]};
+    }
+  });
+}
 function active({endpoint:target=endpoint,owner,desired=true,releasePending=false}={}){
   return {...EMPTY_AI_STATE,desired,releasePending,deviceId:randomUUID(),
     lease:{leaseId:'lease-verified-123',expiresAt:Date.now()+3600000,endpoint:target},
@@ -35,7 +67,7 @@ async function fixture(){
     [TOOL_REVOCATION_EPOCHS_STORE]:{[AI_ID]:'epoch-1'}};
   const effects={clear:[],set:[],alarms:[],removed:[],fetch:[],storage:[]};
   const faults={permission:true};
-  const locks=globalThis.navigator.locks;
+  const locks=fixtureLocks();
   let value=null,level='controllable_by_this_extension';
   const api={
     runtime:{id:sender.id,getURL:path=>origin+'/'+path,
