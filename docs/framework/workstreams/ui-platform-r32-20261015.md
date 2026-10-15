@@ -60,3 +60,7 @@
 执行 [R32.3 GOAL](../prompts/goal-ui-platform-r32.3-document-driven.zh-CN.md)：先在现有书签与 React Starter 上做最小可操作候选，再形成库选择和工作预算，立即写回 [现行架构](../../architecture/browser-ui-r23.zh-CN.md)。容量代码实施必须覆盖打包、导入、Host、消息/预览、存储、Sandbox 和升级，不能只改一个常量。
 
 没有在本轮选新容量，不代表后续不能直接合理调整；它只是文档任务缺少定值实测依据。下一轮无需重新寻找全部历史或重建总体 GOAL。资源状态：RELEASED_DOC_SCOPE；没有本地服务被启动或占用。
+
+## R32.3 NEXT · 自包含 GOAL 可读性修订（2026-10-15）
+
+用户指出前一份聊天启动词仅要求读取仓库文件，无法直接看出核心目标、关键任务步骤和完成标准。已将现有 `docs/framework/prompts/goal-ui-platform-r32.3-document-driven.zh-CN.md` **原位重写**为可独立复制的执行 GOAL：最高目标是平台级可复用组件能力；第一可见成果是书签 Tree/文件夹选择/更多菜单的可交互预览；其次比较原生、React Aria 与 Radix+Tree，再形成 UI Kit 最小实现、可调整容量的实测方案、独立工具试点及逐阶段回写。保留安全、并行开发和证据等级，不要求重复创建新的总 GOAL。Markdown 排版校订提交 `8bde6ed4bc43e50a262203c98b100ffcc9e4e5b1`；本次修改仅文档，真实 React/Chrome/容量改码保持 NOT_TESTED。
