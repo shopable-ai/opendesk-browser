@@ -242,6 +242,12 @@ function renderDelete(){
   q('bm-delete-children').checked=false;
 }
 function render(){
+  // Moving the same inspector between the narrow list and desktop column
+  // must not discard a foreground input's cursor or keyboard focus.
+  const active=document.activeElement;
+  const restore=Boolean(active&&q('bm-inspector').contains?.(active));
+  const from=restore&&typeof active.selectionStart==='number'?active.selectionStart:null;
+  const to=restore&&typeof active.selectionEnd==='number'?active.selectionEnd:null;
   const showForm=editingMode(),isDelete=s.mode==='delete',isRead=s.mode==='tree';
   q('bm-explorer').hidden=false;
   q('bm-inspector').hidden=!(node(s.selection)||s.mode.startsWith('new-'));
@@ -254,6 +260,10 @@ function render(){
   else if(isDelete)renderDelete();
   else renderForm();
   renderList();
+  if(restore&&active?.isConnected){
+    active.focus({preventScroll:true});
+    if(from!==null&&to!==null)active.setSelectionRange?.(from,to);
+  }
 }
 // The SDK owns bounded event sessions; no native bookmark listeners in the sandbox.
 function rememberDraft(){
@@ -491,7 +501,7 @@ function onAction(action,id){
   if(action==='menu'){s.menu=s.menu===id?null:id;renderList();return}
   if(action==='more'){s.limit+=200;renderList();return}
   if(action==='cancel'){cancel();return}
-  const switching=['folder','detail','edit','move','delete','new-bookmark','new-folder'].includes(action);
+  const switching=['folder','detail','edit','move','delete','new-bookmark','new-folder','save-current'].includes(action);
   if(switching&&editingMode()&&
     !(s.selection===id&&(action==='edit'&&s.mode==='edit'||action==='move'&&s.mode==='move'))){
     if(isDirty()){
