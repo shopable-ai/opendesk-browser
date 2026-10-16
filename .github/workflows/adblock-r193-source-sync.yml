@@ -1,4 +1,4 @@
-# One-shot, source-bound AdBlock R1.9.3 recovery for audited adblock@1.1.1; never auto-replace historical 1.1.0 bytes.
+# One-shot, source-bound AdBlock R1.9.3 recovery for audited adblock@1.1.1; includes real native Exceptions navigation and post-Space focus assertion.
 # Uses the existing build and native test machinery; removes itself after a verified promotion.
 name: AdBlock R1.9.3 one-shot source synchronization and native acceptance
 on:
