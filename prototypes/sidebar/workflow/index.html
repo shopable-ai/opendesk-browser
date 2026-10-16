@@ -191,13 +191,23 @@ body[data-theme=dark] .device .title-actions .icon-btn:hover{background:#31496c;
 @media(max-width:350px){.device .title-bar{padding-left:7px;padding-right:7px}}
 @media(max-width:240px){.device .title-actions .icon-btn{width:40px;min-width:40px;min-height:40px}}
 .device .composer .compose-bottom .send-btn{width:40px;height:40px;min-height:40px}
+/* R23.2.1: high-contrast helper text and history cards in both themes. */
+:root{--muted:#53677f}
+.scenario-bar p{color:#53677f}
+.device .tabs span:not(.current),.device .muted,.device .hint{color:#53677f}
+.device .history{background:var(--surface);color:var(--ink);border-color:var(--outline)}
+.device .history small{color:var(--secondary)}
+.device .history .btn.link{color:var(--blue)}
+body[data-theme=dark] .scenario-bar p,body[data-theme=dark] .device .tabs span:not(.current),body[data-theme=dark] .device .muted,body[data-theme=dark] .device .hint{color:#c2cee0}
+body[data-theme=dark] .device .history .btn.link{color:#729aff}
+body[data-theme=dark] .r23-history-heading .btn.alt{background:#263b5c;border-color:#42516c;color:#eaf1fb}
 </style>
 </head>
 <body>
 <div class="scenario-bar">
 <h1>R23.2 · 工作流对话预览（待用户确认）</h1>
 <p>保留 R15.3 紧凑布局，补齐两轮姓名输入框交互、授权、Stop 与版本管理。本页仅模拟，不连接真实 AI、Chrome、Native 或 RunHost。</p>
-<div id="scenarios" class="scenarios" role="group" aria-label="选择工作流产品状态"></div><div class="r23-examples" role="group" aria-label="模拟指令和异常条件"><button type="button" data-action="example-first">填入第一轮指令</button><button type="button" data-action="example-second">填入第二轮指令</button><button type="button" data-action="revoke-consent">撤销摘要授权</button><button type="button" data-action="change-document">模拟切换文档</button></div><div class="r23-toolbar"><label>宽度 <select id="r23-width"><option>360</option><option selected>420</option><option>520</option></select> px</label><button type="button" id="r23-theme" aria-pressed="false">深色模式</button><span>200% 浏览器缩放待真实 Chrome 复验。</span></div>
+<div id="scenarios" class="scenarios" role="group" aria-label="选择工作流产品状态"></div><div class="r23-examples" role="group" aria-label="模拟指令和异常条件"><button type="button" data-action="example-first">填入第一轮指令</button><button type="button" data-action="example-second">填入第二轮指令</button><button type="button" data-action="revoke-consent">撤销摘要授权</button><button type="button" data-action="change-document">模拟切换文档</button></div><div class="r23-toolbar"><label>宽度 <select id="r23-width"><option>360</option><option selected>420</option><option>520</option></select> px</label><button type="button" id="r23-theme" aria-pressed="false">深色模式</button><span>200% Chrome CI 已通过（Mac 系统交互未测）。</span></div>
 </div>
 <div class="device" aria-label="浏览器扩展侧边栏布局预览">
   <nav class="tabs" aria-label="Sidebar 一级导航"><span>我的</span><span>扩展</span><span class="current">工作流</span><span>开发</span><span>云控</span></nav>
