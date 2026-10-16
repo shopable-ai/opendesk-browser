@@ -1,13 +1,13 @@
 /* R4 Extension Center: a scoped skin over existing Sidebar tokens. */
 #sidebar-tool-list-view>.sidebar-tools-head,#sidebar-tool-list-view>#sidebar-tool-my-panel,#sidebar-tool-list-view>#sidebar-tool-discover-panel{display:none!important}
 #extension-center{min-width:0}#extension-center [hidden]{display:none!important}
-.ec-toolbar{display:flex;align-items:center;gap:7px;min-width:0;margin-bottom:10px}
+.ec-toolbar{display:flex;align-items:center;gap:var(--space-2);min-width:0;margin-bottom:var(--space-3)}
 .ec-search{display:flex;align-items:center;gap:7px;flex:1;min-width:0;height:38px;padding:0 10px;border:1px solid var(--od-input-border);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-sub)}
 .ec-search:focus-within{outline:2px solid var(--od-focus);outline-offset:1px}
 .ec-search svg{width:17px;height:17px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .ec-search input{min-width:0;width:100%;height:100%;padding:0;border:0;outline:0;background:transparent;color:var(--od-ink);font:inherit;font-size:13px}
 .ec-search input:focus-visible{outline:0}
-.ec-toolbar .ec-icon{display:grid;place-items:center;flex:none;width:34px;height:34px;min-height:34px;padding:0;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-sub)}
+.ec-toolbar .ec-icon{display:grid;place-items:center;flex:none;width:var(--od-icon-size);height:var(--od-icon-size);min-height:var(--od-icon-size);padding:0;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-sub)}
 .ec-toolbar .ec-icon:hover,.ec-more button:hover{background:var(--od-muted)}
 .ec-icon svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .ec-toolbar .ec-icon[aria-expanded=true],.ec-toolbar .ec-icon[data-active=true]{color:var(--od-accent-ink);border-color:var(--od-focus)}

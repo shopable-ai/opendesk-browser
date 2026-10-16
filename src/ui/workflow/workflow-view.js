@@ -57,8 +57,10 @@ function labelSelect(doc,parent,label,value,options,onInput) {
 }
 
 export function createWorkflowView({api=globalThis.chrome,document:doc=globalThis.document,
-  client,host,currentPageTarget,onRunOwner=()=>{},openDeveloper=()=>{},openCatalog=()=>{}}) {
+  client,host,currentPageTarget,onRunOwner=()=>{},openDeveloper=()=>{},openCatalog=()=>{},
+  reactUI=null}) {
   const get=id=>doc.getElementById(id);
+  const workflowReact=reactUI?.workflowMounted?reactUI:null;
   const session=()=>Number.isSafeInteger(currentPageTarget?.windowId)
     ? SESSION_PREFIX + currentPageTarget.windowId:null;
   let disposed=false,busy=false,runId=null,revision=null,compileToken=0,compiled=null;
@@ -120,14 +122,34 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   };
   function dismissNewReview(){
     newReviewSignature=null;
-    hidePanel('workflow-new-review','workflow-create-toggle');
+    hidePanel('workflow-new-review','workflow-new');
   }
   const currentOrigin=()=>currentPageTarget?.snapshot?.status==='available'
     ? currentPageTarget.snapshot.origin:null;
   const provider=()=>get('workflow-ai-provider').value;
+  const chatRows=[];
+  let chatSequence=0;
+  function clearChat() {
+    chatRows.length=0;
+    if(workflowReact)workflowReact.renderWorkflowMessages([]);
+    else get('workflow-ai-transcript').replaceChildren();
+  }
   function appendChat(speaker,message) {
     if(disposed)return;
     const transcript=get('workflow-ai-transcript');
+    if(workflowReact){
+      const row={id:'chat-'+(++chatSequence),speaker,message:String(message)};
+      chatRows.push(row);
+      while(chatRows.length>21)chatRows.shift();
+      const paint=()=>workflowReact.renderWorkflowMessages(chatRows.map(value=>({...value})));
+      paint();
+      // The existing stream callback only writes .textContent. Keep its
+      // live message reference without allowing another DOM child writer.
+      return {
+        get textContent(){return row.message;},
+        set textContent(text){row.message=String(text);paint();}
+      };
+    }
     const entry=node(doc,'div',undefined,'workflow-chat-entry');
     entry.dataset.speaker=speaker==='你'?'user':'assistant';
     entry.append(node(doc,'strong',speaker));
@@ -154,7 +176,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     const hasActions=workflow.steps.some(step=>['click','fill'].includes(step.op));
     const hasParams=Object.keys(workflow.paramsSchema.properties).length>0;
     const transcript=get('workflow-ai-transcript');
-    const hasMessages=Array.from(transcript.children).some(child=>child.dataset.speaker);
+    const hasMessages=workflowReact?chatRows.length>0:
+      Array.from(transcript.children).some(child=>child.dataset.speaker);
     const ready=provider()==='local_codex'?describeLocalCodex(localCapability).ready:
       ['cloud_responses','custom_https'].includes(provider())&&
         Boolean(get('workflow-ai-key').value.trim() && get('workflow-ai-model').value.trim() &&
@@ -197,17 +220,29 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     get('workflow-ai-plan').hidden=phase==='planning';
     get('workflow-ai-cancel').hidden=phase!=='planning';
     const sessionState=localPlanner.snapshot();
-    get('workflow-new-session-note').textContent=sessionState.sessionId&&localCapability.resumeSupported===false
-      ?'结束后旧对话不可恢复':'保留当前工作流';
-    get('workflow-ai-new-session').disabled=busy;
+    const sessionHint=sessionState.sessionId&&localCapability.resumeSupported===false
+      ?'新对话（结束后旧对话不可恢复）':'新对话（保留当前工作流）';
     get('workflow-ai-resume').hidden=provider()!=='local_codex'||!sessionState.resumable;
     get('workflow-ai-resume').disabled=busy;
-    const savedStatus=get('workflow-saved-state');
-    savedStatus.hidden=!revision;
-    if(revision){
-      savedStatus.textContent=matchesRevision()?'已保存':'未保存更改';
-      savedStatus.title='工作流版本 r'+revision.revision+
-        (matchesRevision()?' · 源码哈希一致':' · 已修改但尚未保存');
+    if(workflowReact){
+      workflowReact.renderWorkflowHeader({
+        saved:Boolean(revision),
+        savedText:revision?(matchesRevision()?'已保存':'未保存更改'):'',
+        savedTitle:revision?'工作流版本 r'+revision.revision+
+          (matchesRevision()?' · 源码哈希一致':' · 已修改但尚未保存'):'',
+        historyExpanded:!get('workflow-manage-panel').hidden,
+        busy,planning:phase==='planning',sessionHint
+      });
+    }else{
+      get('workflow-ai-new-session').disabled=busy;
+      get('workflow-ai-new-session').title=sessionHint;
+      const savedStatus=get('workflow-saved-state');
+      savedStatus.hidden=!revision;
+      if(revision){
+        savedStatus.textContent=matchesRevision()?'已保存':'未保存更改';
+        savedStatus.title='工作流版本 r'+revision.revision+
+          (matchesRevision()?' · 源码哈希一致':' · 已修改但尚未保存');
+      }
     }
     updatePresentation();
   }
@@ -705,23 +740,22 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     status('候选已提交。任务目录会按固定身份定位版本；有同版真实成功记录时预填运行 ID，仍须手动核对、设为可用并确认安装。');
     openCatalog();
   }
+  // React owns the modal wrapper, never the actual provider/permission fields.
+  const closeWorkflowSheet=()=>closeAISettings(true);
+  function syncAISettings(){
+    const opened=get('workflow-provider-settings').open;
+    get('workflow-provider-toggle').setAttribute('aria-expanded',String(opened));
+    workflowReact?.renderWorkflowSettings({open:opened,onClose:closeWorkflowSheet});
+  }
   function openAISettings(focus='workflow-ai-provider') {
     get('workflow-provider-settings').open=true;
-    get('workflow-provider-toggle').setAttribute('aria-expanded','true');
+    syncAISettings();
     get(focus).focus?.({preventScroll:true});
   }
   function closeAISettings(focus=false) {
     get('workflow-provider-settings').open=false;
-    get('workflow-provider-toggle').setAttribute('aria-expanded','false');
+    syncAISettings();
     if(focus)get('workflow-ai-request').focus?.({preventScroll:true});
-  }
-  function showCreateMenu(open,focusFirst=false) {
-    const menu=get('workflow-create-menu');
-    if(!open&&menu.contains(doc.activeElement))
-      get('workflow-create-toggle').focus?.({preventScroll:true});
-    menu.hidden=!open;
-    get('workflow-create-toggle').setAttribute('aria-expanded',String(open));
-    if(open&&focusFirst)get('workflow-ai-new-session').focus?.({preventScroll:true});
   }
   function renderProvider() {
     const selected=provider(),local=selected==='local_codex',cloud=selected==='cloud_responses';
@@ -1064,43 +1098,33 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   }
   const observation=createWorkflowObservation({api,host,currentPageTarget,onRunOwner,
     onRunId:id=>{runId=id;if(!disposed)updateButtons();}});
-  listen(get('workflow-history-toggle'),'click',()=>{
+  const onHistoryClick=event=>{
+    if(!event.isTrusted)return;
     const panel=get('workflow-manage-panel');
     panel.hidden=!panel.hidden;
     get('workflow-history-toggle').setAttribute('aria-expanded',String(!panel.hidden));
-    if(!panel.hidden) {
+    if(!panel.hidden){
       panel.scrollIntoView?.({block:'nearest'});
       get('workflow-saved-list').focus?.({preventScroll:true});
     }
-  });
+    updateButtons();
+  };
+  if(!workflowReact)listen(get('workflow-history-toggle'),'click',onHistoryClick);
   listen(get('workflow-manage-close'),'click',()=>{
     get('workflow-manage-panel').hidden=true;
     get('workflow-history-toggle').setAttribute('aria-expanded','false');
     get('workflow-history-toggle').focus?.({preventScroll:true});
+    updateButtons();
   });
-  listen(get('workflow-create-toggle'),'click',event=>{
+  listen(get('workflow-provider-toggle'),'click',event=>{
     if(!event.isTrusted)return;
-    showCreateMenu(get('workflow-create-menu').hidden,true);
-  });
-  listen(get('workflow-editor'),'keydown',event=>{
-    if(event.key==='Escape'&&!get('workflow-create-menu').hidden){
-      showCreateMenu(false);event.preventDefault?.();
-    }
-  });
-  listen(get('workflow-editor'),'click',event=>{
-    if(!get('workflow-create-menu').hidden &&
-       !get('workflow-create-toggle').parentElement.contains(event.target))
-      showCreateMenu(false);
-  });
-  listen(get('workflow-provider-toggle'),'click',()=>{
     const settings=get('workflow-provider-settings');
     settings.open=!settings.open;
-    get('workflow-provider-toggle').setAttribute('aria-expanded',String(settings.open));
+    syncAISettings();
     if(settings.open)get('workflow-ai-provider').focus?.({preventScroll:true});
   });
   listen(get('workflow-provider-settings'),'toggle',()=>{
-    get('workflow-provider-toggle').setAttribute('aria-expanded',
-      String(get('workflow-provider-settings').open));
+    syncAISettings();
     if(get('workflow-provider-settings').open)void refreshLocal();
   });
   listen(get('workflow-ai-provider'),'change',()=>{
@@ -1118,7 +1142,15 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     status('已撤权并停止任务；模型已收内容无法撤回。');
   });
   for(const id of ['workflow-ai-key','workflow-ai-model','workflow-ai-endpoint'])
-    listen(get(id),'input',()=>{updateButtons();});
+    listen(get(id),'input',()=>{
+      // The recipient and request are frozen for a planning turn. Editing
+      // the endpoint, model or credential retires any pending observation
+      // approval instead of silently sending to a stale recipient.
+      if(phase==='planning')void stopPlanning({close:true})
+        .catch(error=>{if(!disposed)status(format(error),true);});
+      verifiedTurnHistory=[];lastProviderTurn=null;
+      updateButtons();
+    });
   listen(get('workflow-local-refresh'),'click',event=>{if(event.isTrusted)void refreshLocal();});
   listen(get('workflow-local-help'),'click',event=>{
     if(!event.isTrusted)return;
@@ -1155,20 +1187,19 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   });
   listen(get('workflow-ai-approve'),'click',event=>answerObservation(event,true));
   listen(get('workflow-ai-deny'),'click',event=>answerObservation(event,false));
-  listen(get('workflow-ai-new-session'),'click',event=>{
+  const onNewSessionClick=event=>{
     if(!event.isTrusted||busy)return;
-    showCreateMenu(false);
-    get('workflow-ai-transcript').replaceChildren();
+    clearChat();
     verifiedTurnHistory=[];lastProviderTurn=null;
     get('workflow-ai-request').focus?.({preventScroll:true});
     const stopped=stopPlanning({close:true,remember:true}),epoch=planningGeneration;
     void stopped.then(()=>{
       if(disposed||epoch!==planningGeneration)return;updateButtons();status('');
     },error=>{if(!disposed&&epoch===planningGeneration)status(localFailure(error),true);});
-  });
+  };
+  if(!workflowReact)listen(get('workflow-ai-new-session'),'click',onNewSessionClick);
   listen(get('workflow-ai-resume'),'click',event=>{
     if(!event.isTrusted||busy||provider()!=='local_codex')return;
-    showCreateMenu(false);
     // This explicit action only resumes the selected local provider, not web observation.
     const consent={model:true,workflow:true,observation:false};
     
@@ -1189,7 +1220,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     verifiedTurnHistory=[];lastProviderTurn=null;
     workflow=emptyWorkflow(currentOrigin()||'',crypto.randomUUID());directVerifiedSerial=null;
     revision=null;touched=true;lastRun='none';hasError=false;phase='idle';
-    get('workflow-ai-transcript').replaceChildren();
+    clearChat();
     get('workflow-manage-panel').hidden=true;
     get('workflow-history-toggle').setAttribute('aria-expanded','false');
     get('workflow-ai-request').value='';
@@ -1198,9 +1229,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     status('');
   }
   const workflowReviewSignature=()=>JSON.stringify([workflow,phase]);
-  listen(get('workflow-new'),'click',event=>{
+  const onNewWorkflowClick=event=>{
     if(!event.isTrusted||busy&&phase!=='planning')return;
-    showCreateMenu(false);
     const dirty=Boolean(workflow.steps.length ||
       workflow.title!=='新工作流' || workflow.description) && !matchesRevision();
     if(dirty){
@@ -1211,6 +1241,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       return;
     }
     commitNewWorkflow();
+  };
+  if(!workflowReact)listen(get('workflow-new'),'click',onNewWorkflowClick);
+  workflowReact?.connectWorkflowEvents({
+    onHistory:onHistoryClick,onNewSession:onNewSessionClick,onNewWorkflow:onNewWorkflowClick
   });
   listen(get('workflow-new-cancel'),'click',event=>{
     if(!event.isTrusted)return;
@@ -1326,7 +1360,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     await refreshSaved();
     if(!disposed)updateButtons();
   })().catch(error=>status(format(error),true));
-  render();renderProvider();status('');
+  render();renderProvider();syncAISettings();status('');
   return {dispose() {
     if(disposed)return;disposed=true;compileToken++;planningGeneration++;
     planningAbort?.abort(err('E_HOST_CLOSED','工作流窗口已关闭'));pendingApproval?.settle({decision:'deny'});

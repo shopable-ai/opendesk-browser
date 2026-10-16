@@ -24,7 +24,8 @@ test('R33.3 pins one React 19 runtime and keeps existing fixed WXT entry',async(
 
 test('R33.3 real TSX transformation and privilege-free UI modules',async()=>{
   for(const path of ['src/ui/react/main.tsx','src/ui/react/tabs/tools.tsx',
-    'src/ui/react/tabs/develop.tsx','src/ui/react/components/ui/button.tsx']){
+    'src/ui/react/tabs/develop.tsx','src/ui/react/tabs/workflow.tsx',
+    'src/ui/react/components/ui/button.tsx']){
     const code=await read(path);
     const transformed=await transformWithEsbuild(code,path,{loader:'tsx',jsx:'transform',target:'es2022'});
     assert.ok(transformed.code.length>0,'TSX transpiles: '+path);

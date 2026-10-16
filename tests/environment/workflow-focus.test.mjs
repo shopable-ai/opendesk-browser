@@ -216,9 +216,7 @@ if(!vm.SourceTextModule) {
       return step.querySelectorAll('[data-workflow-focus]').find(item=>item.dataset.workflowFocus===field);
     };
     const click=async element=>{await element.fire('click');await tick();};
-    const openCreation=async()=>{
-      if(get('workflow-create-menu').hidden)await click(get('workflow-create-toggle'));
-    };
+    const openCreation=async()=>{get('workflow-ai-new-session').focus();};
     const clickNew=async()=>{await openCreation();await click(get('workflow-new'));};
     const focusNew=async()=>{await openCreation();get('workflow-new').focus();};
     const startPlan=async(request='Observe the page for component focus verification')=>{
@@ -254,17 +252,16 @@ if(!vm.SourceTextModule) {
     assert.match(await readFile('src/ui/tool.html','utf8'),/id="workflow-ai-plan"[^>]*aria-label="发送并执行浏览器任务"/);
   });
 
-  test('component: one header Create menu is closed by Escape and restores visible focus',async t=>{
+  test('component: three standalone workflow header actions preserve keyboard focus',async t=>{
     const f=await make(t);
-    assert.equal(f.get('workflow-create-menu').hidden,true);
+    assert.equal(f.get('workflow-create-menu'),undefined);
+    assert.equal(f.get('workflow-create-toggle'),undefined);
+    for(const id of ['workflow-history-toggle','workflow-ai-new-session','workflow-new'])
+      assert.ok(f.get(id),'missing standalone workflow action '+id);
     await f.openCreation();
-    assert.equal(f.get('workflow-create-menu').hidden,false);
-    assert.equal(f.get('workflow-create-toggle').getAttribute('aria-expanded'),'true');
     assertFocus(f,f.get('workflow-ai-new-session'));
     await f.get('workflow-editor').fire('keydown',{key:'Escape',preventDefault(){}});
-    assert.equal(f.get('workflow-create-menu').hidden,true);
-    assert.equal(f.get('workflow-create-toggle').getAttribute('aria-expanded'),'false');
-    assertFocus(f,f.get('workflow-create-toggle'));
+    assertFocus(f,f.get('workflow-ai-new-session'));
   });
 
   test('component: New conversation clears conversation but keeps current unsaved workflow and draft request',async t=>{
@@ -274,7 +271,6 @@ if(!vm.SourceTextModule) {
     f.get('workflow-ai-request').value='尚未发送的输入';
     await f.openCreation();
     await f.click(f.get('workflow-ai-new-session'));
-    assert.equal(f.get('workflow-create-menu').hidden,true);
     assert.equal(f.get('workflow-ai-transcript').children.length,0);
     assert.deepEqual(f.stepsNow().map(item=>item.dataset.stepId),priorIds);
     assert.equal(f.get('workflow-ai-request').value,'尚未发送的输入');
@@ -349,7 +345,7 @@ if(!vm.SourceTextModule) {
       const button=f.get('workflow-new-'+choice);button.focus();if(external)f.get('workflow-ai-request').focus();
       await f.click(button);assert.equal(f.get('workflow-new-review').hidden,true);
       assert.equal(f.stepsNow().length,choice==='discard'?0:1);
-      assertFocus(f,f.get(external||choice==='discard'?'workflow-ai-request':'workflow-create-toggle'));
+      assertFocus(f,f.get(external||choice==='discard'?'workflow-ai-request':'workflow-new'));
     });
     test('component: observation denial closes focused approval '+(external?'without stealing focus':'to stable request'),async t=>{
       const f=await make(t,{approval:true});const {running}=await f.startPlan();await f.approvalReady.promise;

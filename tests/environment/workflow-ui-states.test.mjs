@@ -134,34 +134,38 @@ test('compact workflow keeps header actions accessible under 200 percent zoom',a
 });
 
 
-test('workflow R1.7 creates from one header menu and keeps setup or diagnostics out of daily UI',async()=>{
-  const [html,view,css]=await Promise.all([
-    file('src/ui/tool.html'),file('src/ui/workflow/workflow-view.js'),file('src/ui/tool-shell.css')
+test('workflow R23.10 has three independent header actions and one React modal owner',async()=>{
+  const [html,view,css,reactMain,workflowReact]=await Promise.all([
+    file('src/ui/tool.html'),file('src/ui/workflow/workflow-view.js'),
+    file('src/ui/tool-shell.css'),file('src/ui/react/main.tsx'),
+    file('src/ui/react/tabs/workflow.tsx')
   ]);
   const workflow=html.slice(html.indexOf('id="workbench-workflow"'),html.indexOf('id="workbench-develop"'));
   const header=workflow.slice(0,workflow.indexOf('id="workflow-new-review"'));
   const settings=workflow.slice(workflow.indexOf('id="workflow-provider-settings"'),workflow.indexOf('id="workflow-status"'));
-  assert.match(header,/id="workflow-create-toggle"[^>]*aria-expanded="false"/);
-  assert.match(header,/id="workflow-create-menu"[^>]*hidden/);
-  for(const id of ['workflow-ai-new-session','workflow-new','workflow-ai-resume','workflow-new-session-note'])
-    assert.match(header,new RegExp('id="'+id+'"'));
+  for(const id of ['workflow-history-toggle','workflow-ai-new-session','workflow-new'])
+    assert.match(header,new RegExp('id="'+id+'"[^>]*aria-label="[^"]+"'));
+  assert.doesNotMatch(header,/workflow-create-toggle|workflow-create-menu/);
   assert.equal((workflow.match(/id="workflow-ai-new-session"/g)||[]).length,1);
-  assert.equal((workflow.match(/id="workflow-ai-resume"/g)||[]).length,1);
-  assert.doesNotMatch(settings,/id="workflow-ai-new-session"|id="workflow-ai-resume"/);
+  assert.equal((workflow.match(/id="workflow-new"/g)||[]).length,1);
+  assert.match(workflow,/id="workflow-ai-resume"[^>]*hidden/);
+  assert.match(workflow,/id="workflow-settings-react-host"/);
   assert.match(settings,/<details id="workflow-provider-privacy"[^>]*>\s*<summary>数据与隐私<\/summary>/);
   assert.match(settings,/<details id="workflow-local-diagnostics"[^>]*>\s*<summary>连接诊断<\/summary>/);
   assert.match(settings,/id="workflow-local-connect"/);
-  assert.doesNotMatch(header,/撤销网页摘要授权|摘要授权 30 分钟有效/);
-  const privacy=settings.slice(settings.indexOf('id="workflow-provider-privacy"'),settings.indexOf('id="workflow-local-settings"'));
-  for(const id of ['workflow-observation-scope','workflow-observation-revoke'])
-    assert.match(privacy,new RegExp('id="'+id+'"'));
-  assert.match(css,/\.workflow-create-menu\[hidden\]\{display:none!important\}/);
-  assert.match(css,/\.workflow-connection-line #workflow-local-connect\[hidden\]\{display:none!important\}/);
+  assert.doesNotMatch(settings,/id="workflow-ai-new-session"\b|id="workflow-ai-resume"\b/);
+  assert.match(css,/\.workflow-sheet-overlay\[hidden\]\{display:none!important\}/);
+  assert.match(css,/\.workflow-sheet-content\{min-height:0;min-width:0;overflow-y:auto/);
+  assert.match(reactMain,/createPortal\(\s*<WorkflowHeader/);
+  assert.match(reactMain,/createPortal\(\s*<WorkflowSettingsSheet/);
+  assert.match(workflowReact,/aria-modal="true"/);
+  assert.match(workflowReact,/doc\.addEventListener\('keydown',onKeydown,true\)/);
+  assert.match(workflowReact,/editor\.inert=true/);
+  assert.match(view,/workflowReact\?\.connectWorkflowEvents\(/);
   assert.match(view,/state\.ready\?'Codex 已就绪':state\.message/);
   assert.match(view,/sessionState\.sessionId&&localCapability\.resumeSupported===false/);
   assert.match(view,/if\(describeLocalCodex\(localCapability\)\.ready\)closeAISettings\(true\)/);
-  assert.match(view,/get\('workflow-ai-transcript'\)\.replaceChildren\(\)/);
-  assert.match(view,/showCreateMenu\(false\)/);
+  assert.doesNotMatch(view,/showCreateMenu\(/);
 });
 
 test('workflow model selector stays minimal without manual creation or custom approval',async()=>{

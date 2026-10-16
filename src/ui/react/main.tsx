@@ -4,6 +4,7 @@ import {createPortal} from 'react-dom';
 import {flushSync} from 'react-dom';
 import {ExtensionRows,ExtensionDetail,ExtensionToolbar,ExtensionEmpty,ExtensionRecoveries,ExtensionStatus,ExtensionRowMenu} from './tabs/tools.tsx';
 import {DeveloperActions,DeveloperFramework,DeveloperTargetText,DeveloperRunStatus,DeveloperResultText} from './tabs/develop.tsx';
+import {WorkflowHeader,WorkflowSettingsSheet,WorkflowTranscript} from './tabs/workflow.tsx';
 
 // One trusted React root and three portals in the existing fixed Side Panel.
 // Portals preserve the installed DOM IDs, CSS and Host wiring; they never run
@@ -24,6 +25,15 @@ export function mountExtensionList(doc){
     title:doc.getElementById('script-current-page-title'),
     url:doc.getElementById('script-current-page-url')
   };
+  // R23.10 uses the same root, not a second workflow React island.
+  const workflowHeader=doc.querySelector('#workflow-editor .workflow-head-actions');
+  const workflowSettings=doc.getElementById('workflow-provider-settings');
+  const workflowSheetHost=doc.getElementById('workflow-settings-react-host');
+  const workflowTranscript=doc.getElementById('workflow-ai-transcript');
+  const workflowMounted=Boolean(workflowHeader&&workflowSettings&&workflowSheetHost&&workflowTranscript);
+  if(workflowMounted&&[workflowHeader,workflowSettings,workflowSheetHost,workflowTranscript]
+    .some(node=>node.dataset.opendeskReactOwner))
+    throw new Error('E_REACT_WORKFLOW_ALREADY_OWNED');
   const developerResultOutput=doc.getElementById('script-result');
   const developerResultKind=doc.getElementById('script-result-kind');
   const developerResultMounted=Boolean(developerResultOutput&&developerResultKind);
@@ -79,6 +89,15 @@ export function mountExtensionList(doc){
   for(const [node,name] of [[cleanups,'extension-cleanups'],[empty,'extension-empty'],
     [count,'extension-count'],[status,'extension-status']])
     node.dataset.opendeskReactOwner=name;
+  if(workflowMounted){
+    // Transfer these children before the business view attaches listeners.
+    // Provider controls remain the original nodes, moved by the sheet component.
+    workflowHeader.replaceChildren();
+    workflowTranscript.replaceChildren();
+    workflowTranscript.dataset.opendeskReactOwner='workflow-transcript';
+    workflowHeader.dataset.opendeskReactOwner='workflow-header';
+    workflowSheetHost.dataset.opendeskReactOwner='workflow-sheet';
+  }
   if(developerStatusMounted){
     // React portals do not automatically clear pre-existing static text.
     // Capture the original accessible loading message, then hand off the
@@ -100,6 +119,11 @@ export function mountExtensionList(doc){
   let statusModel={text:'',state:'info'};
   let developerRunStatusModel={state:developerRunStatus?.dataset.state||'loading',
     text:developerRunStatusInitialText};
+  let workflowMessages=[];
+  let workflowActions=null;
+  let workflowHeaderModel={saved:false,savedText:'',savedTitle:'',historyExpanded:false,
+    busy:false,planning:false,sessionHint:'保留当前工作流'};
+  let workflowSettingsModel={open:false,onClose:null};
   let developerActionsActive=false,developerActionsModel=null;
   let developerFrameworkActive=false,developerFrameworkModel=null;
   let developerResultActive=false,developerResultModel={
@@ -120,6 +144,14 @@ export function mountExtensionList(doc){
       {createPortal(feedbackModel.countText,count)}
       {createPortal(<ExtensionStatus model={statusModel} container={status}/>,status)}
       {rowMenuHost&&createPortal(<ExtensionRowMenu items={rowMenuItems}/>,rowMenuHost)}
+      {workflowMounted&&createPortal(
+        <WorkflowHeader model={workflowHeaderModel} actions={workflowActions}/>,workflowHeader)}
+      {workflowMounted&&createPortal(
+        <WorkflowTranscript rows={workflowMessages}/>,workflowTranscript)}
+      {workflowMounted&&createPortal(
+        <WorkflowSettingsSheet open={workflowSettingsModel.open}
+          onClose={workflowSettingsModel.onClose} settings={workflowSettings} doc={doc}/>,
+        workflowSheetHost)}
       {developerResultActive&&createPortal(
         <DeveloperResultText value={developerResultModel.text}/>,developerResultOutput)}
       {developerResultActive&&createPortal(
@@ -150,6 +182,26 @@ export function mountExtensionList(doc){
   return Object.freeze({
     owner:'extension-list',
     developerTargetMounted,
+    workflowMounted,
+    renderWorkflowMessages(rows){
+      if(disposed||!workflowMounted)throw new Error('E_REACT_WORKFLOW_MESSAGES_OWNER');
+      workflowMessages=rows;paint();
+      workflowTranscript.scrollTop=workflowTranscript.scrollHeight;
+    },
+    connectWorkflowEvents(handlers){
+      if(disposed||!workflowMounted||workflowActions)throw new Error('E_REACT_WORKFLOW_ACTION_OWNER');
+      workflowActions=handlers;paint();
+    },
+    renderWorkflowHeader(next){
+      if(disposed||!workflowMounted)throw new Error('E_REACT_WORKFLOW_HEADER_OWNER');
+      workflowHeaderModel=next;paint();
+    },
+    renderWorkflowSettings(next){
+      if(disposed||!workflowMounted)throw new Error('E_REACT_WORKFLOW_SHEET_OWNER');
+      if(workflowSettingsModel.open===next.open&&
+        workflowSettingsModel.onClose===next.onClose)return;
+      workflowSettingsModel=next;paint();
+    },
     developerActionsMounted,
     developerFrameworkMounted,
     developerStatusMounted,
@@ -215,6 +267,11 @@ export function mountExtensionList(doc){
     renderDeveloperTarget(next){if(disposed||!developerTargetMounted)return;
       developerTargetModel=next;paint();},
     dispose(){if(disposed)return;disposed=true;root.unmount();
+      if(workflowMounted){
+        delete workflowHeader.dataset.opendeskReactOwner;
+        delete workflowTranscript.dataset.opendeskReactOwner;
+        delete workflowSheetHost.dataset.opendeskReactOwner;
+      }
       if(developerResultActive){
         delete developerResultOutput.dataset.opendeskReactOwner;
         delete developerResultKind.dataset.opendeskReactOwner;

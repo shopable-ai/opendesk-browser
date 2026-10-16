@@ -89,10 +89,6 @@ const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEd
   onTaskInstalled:taskId=>void scheduleUI?.onInstalled(taskId),
   debugEnabled,onNavigate:view=>{if(view==='debug')void debugWorkbench?.refresh();},
   onTabSelected:(view,options)=>tabMemory.record(view,options)});
-const workflowView=createWorkflowView({api:chrome,client:foundationClient,host:scriptEditor.host,currentPageTarget,
-  onRunOwner:id=>taskWorkbench.setWorkflowRunOwner(id),
-  openDeveloper:sourceUtf8=>taskWorkbench.receiveDraft(sourceUtf8),
-  openCatalog:()=>taskWorkbench.navigate('catalog')});
 const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbench,foundationClient,localeController});
 const installedPageTools=createInstalledPageTools({client:foundationClient,api:chrome,doc:document});
 // R4 reuses the same installer form and trusted Tool host, without cloning either.
@@ -102,6 +98,12 @@ if(importHost&&originalImport)importHost.append(originalImport);
 // The installed extension list is the first React-owned region. Installer,
 // detail, dynamic tool sandbox and the other tabs keep their original owners.
 const extensionList=mountExtensionList(document);
+// Render the trusted workflow portals BEFORE WorkflowView registers business
+// handlers; React owns the header/modal, the original view retains Authority.
+const workflowView=createWorkflowView({api:chrome,client:foundationClient,host:scriptEditor.host,currentPageTarget,
+  onRunOwner:id=>taskWorkbench.setWorkflowRunOwner(id),
+  openDeveloper:sourceUtf8=>taskWorkbench.receiveDraft(sourceUtf8),
+  openCatalog:()=>taskWorkbench.navigate('catalog'),reactUI:extensionList});
 // React owns the developer indicators and dock buttons; the original
 // Script Editor remains sole owner of draft, compiler, RunHost and Stop.
 if(extensionList.developerTargetMounted)

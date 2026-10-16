@@ -437,31 +437,20 @@
 .workflow-new-review-actions button{min-height:34px;padding:6px 10px;font-size:12px}
 #workflow-new-discard{background:var(--od-negative);color:var(--od-paper)}
 .workflow-editor{display:flex;flex-direction:column;height:100%;min-height:0;min-width:0;padding:0}
-.workflow-head{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:44px;padding:4px 1px;flex:none}
+.workflow-head{display:flex;justify-content:space-between;align-items:center;gap:var(--space-2);min-height:44px;padding:var(--space-1) 1px;flex:none}
 .workflow-head-copy{flex:1;min-width:0}
-.workflow-head h2{font-size:13px;line-height:1.35;font-weight:730;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.workflow-head .od-page-title{font-size:var(--od-note-size);line-height:1.5;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .workflow-head-actions{display:flex;align-items:center;justify-content:flex-end;gap:var(--space-2);flex-shrink:0}
 .workflow-head-actions button{white-space:nowrap}
-.workflow-create-control{position:relative;flex:none}
-.workflow-create-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:25;width:min(232px,calc(100vw - 24px));max-width:calc(100vw - 24px);display:grid;gap:2px;padding:5px;border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper);box-shadow:0 10px 28px rgba(22,40,73,.14)}
-.workflow-create-menu[hidden]{display:none!important}
-.workflow-create-option{display:flex;align-items:center;gap:10px;min-height:45px;min-width:0;width:100%;padding:7px 9px;border:0;border-radius:var(--radius-control);background:transparent;color:var(--od-ink);font:inherit;text-align:left;cursor:pointer;white-space:normal!important}
-.workflow-create-option:hover,.workflow-create-option:focus-visible{background:var(--od-muted)}
-.workflow-create-option:focus-visible{outline:2px solid var(--od-brand);outline-offset:-2px}
-.workflow-create-option:disabled{opacity:.5;cursor:not-allowed}
-.workflow-create-option svg{flex:none;width:17px;height:17px}
-.workflow-create-option span{min-width:0;display:flex;flex-direction:column;gap:2px}
-.workflow-create-option strong{font-size:12px;font-weight:650;line-height:1.35}
-.workflow-create-option small{font-size:10.5px;color:var(--od-sub);line-height:1.4;white-space:normal}
 .workflow-pill{border:1px solid #dfe7f1;background:#f9fbff;color:#607391;border-radius:var(--radius-pill);padding:4px 7px;max-width:97px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px}
 .workflow-icon-button{flex:none}
 .workflow-target-warning{margin-top:var(--space-2);font-size:var(--od-note-size);line-height:1.55}
-.workflow-scroll{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;display:flex;flex-direction:column;gap:10px;padding:8px 1px 13px}
+.workflow-scroll{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;display:flex;flex-direction:column;gap:var(--space-3);padding:8px 1px 13px}
 .workflow-card{min-width:0}
 .workflow-card h3,.workflow-management h3{font-size:var(--od-body-size);color:var(--od-ink)}
 .workflow-card textarea,.workflow-management textarea{line-height:1.5;font-family:inherit;margin:var(--space-1) 0 var(--space-2)}
 .workflow-card pre,.workflow-management pre{max-height:240px;margin:8px 0;font-size:11px}
-.workflow-section-header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}
+.workflow-section-header{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);margin-bottom:var(--space-2)}
 .workflow-section-header span{color:var(--od-sub);font-size:11px}
 .workflow-chat-intro{padding:4px 6px 8px;text-align:left}
 .workflow-chat-mark{height:28px;width:28px;border-radius:var(--radius-control);background:#eaf0ff;color:#3c64bf;display:grid;place-items:center;font-size:16px;margin-bottom:12px}
@@ -496,6 +485,20 @@
 .workflow-composer .workflow-send-button{flex:none}
 #workflow-provider-settings:not([open]){display:none}
 #workflow-provider-settings>summary{display:none}
+/* R23.10: one React Portal overlays the existing workflow without remounting
+ * provider inputs or adding a new scroll/theme system. Uses shared tokens. */
+.workflow-sheet-overlay{position:fixed;inset:0;z-index:400;display:flex;align-items:flex-end;justify-content:center;min-width:0;overflow:hidden}
+.workflow-sheet-overlay[hidden]{display:none!important}
+.workflow-sheet-backdrop{position:absolute;inset:0;background:color-mix(in srgb,var(--od-ink) 40%,transparent)}
+.workflow-sheet-panel{position:relative;display:flex;flex-direction:column;min-width:0;width:100%;max-height:min(72dvh,560px);background:var(--od-paper);color:var(--od-ink);border:1px solid var(--od-line);border-radius:var(--radius-surface) var(--radius-surface) 0 0;box-shadow:0 -10px 32px color-mix(in srgb,var(--od-ink) 16%,transparent);outline:none}
+.workflow-sheet-heading{display:flex;align-items:center;justify-content:space-between;min-height:52px;gap:var(--space-2);padding:var(--space-2) var(--space-3);border-bottom:1px solid var(--od-line);flex:none}
+.workflow-sheet-heading h3{margin:0;color:var(--od-ink);font-size:var(--od-body-size);font-weight:700}
+.workflow-sheet-content{min-height:0;min-width:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;padding:var(--space-3);flex:1}
+.workflow-sheet-content .workflow-provider{max-height:none;overflow:visible;padding-right:0;margin:0}
+.workflow-sheet-content .workflow-connection-line{padding:var(--space-2) var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-muted)}
+.workflow-sheet-content .workflow-provider-info,.workflow-sheet-content .workflow-provider-diagnostics{margin-top:var(--space-3)}
+@media(max-width:360px){.workflow-sheet-panel{max-height:min(78dvh,520px)}.workflow-sheet-content{padding:var(--space-3)}}
+@media(prefers-reduced-motion:reduce){.workflow-sheet-panel,.workflow-sheet-overlay{animation:none!important;transition:none!important}}
 
 .workflow-provider label{margin:var(--space-2) 0 var(--space-1)}
 .workflow-provider input:not([type=checkbox]){min-height:36px}
