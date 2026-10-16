@@ -235,12 +235,17 @@ jobs:
         id: chrome-c1
         with:
           chrome-version: '155.0.8059.39'
-      - name: Real installed AI VIP Share, Chrome user input and production reject gate (C1 partial)
+      - name: Verify headed Linux Chrome prerequisites
+        run: |
+          command -v Xvfb
+          command -v xvfb-run
+      - name: Real windowed Chrome, installed tool SDK and native Side Panel (C1 partial)
         env:
           CHROME_FOR_TESTING_BIN: ${{ steps.chrome-c1.outputs.chrome-path }}
           OPENDESK_PROXY_C1_RUNNER: ${{ runner.environment }}
           OPENDESK_PROXY_C1_ALLOW_NO_SANDBOX: 'yes'
-        run: node tests/framework/browser-managed-proxy-installed-c1.mjs
+          OPENDESK_PROXY_C1_HEADED: 'xvfb'
+        run: xvfb-run -a -s '-screen 0 1440x1000x24' node tests/framework/browser-managed-proxy-installed-c1.mjs
       - name: Preserve raw C1 installed Chromium evidence (not Side Panel PASS)
         if: always()
         uses: actions/upload-artifact@v4
