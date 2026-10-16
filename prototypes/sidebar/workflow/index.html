@@ -325,7 +325,7 @@ body[data-theme=dark] .device .title-actions .create-action:hover{background:#31
     data.pending=null;data.messages=[];data.lastResult=null;data.firstCompleted=false;data.consent=null;prompt.value='';
     assistant(`已载入工作流 #${rev.workflowId} 的内存草稿 r${id} 并开启新对话；未自动执行、未修改目标网页。`,'saved');render();prompt.focus();}
   function closeDialog(){const d=data.dialog;data.dialog=null;render();const sel=d?.type==='restore'?`[data-action="restore"][data-id="${d.id}"]`:null;
-    const target=(sel?document.querySelector(sel):null)||$(d?.type==='restore'?'history':d?.type==='reset'?'scenarios':'new-workflow');target?.focus();}
+    const target=(sel?document.querySelector(sel):null)||(d?.type==='reset'?document.querySelector('[data-action="reset"]'):$(d?.type==='restore'?'history':'new-workflow'));target?.focus();}
     function renderDialog(){modal.hidden=!data.dialog;if(!data.dialog){modal.innerHTML='';return;}
     const target=data.dialog.type==='new-workflow'?'创建新工作流':data.dialog.type==='reset'?'清空全部模拟数据':'恢复历史版本',saved=data.dirty;
     const desc=data.dialog.type==='reset'?'这会清空本页内所有模拟对话、已保存的内存版本、未保存草稿和模拟网页输入值。无法撤销。':saved?'当前工作流有未保存的设计修改。':'当前工作流没有未保存的设计修改。';
