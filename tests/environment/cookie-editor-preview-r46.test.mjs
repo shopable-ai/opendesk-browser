@@ -136,8 +136,8 @@ test('partitioned Cookie identity is not silently overwritten by an unpartitione
 
 test('R4.7 export actions use production labels and share identical redacted JSON output',async()=>{
   const h=await harness();
-  assert.match(h.html,/data-action="copyExport"[^>]*>复制到剪贴板<\/button>/);
-  assert.match(h.html,/data-action="runExport"[^>]*>导出文件<\/button>/);
+  assert.match(h.html,/data-action="copyExport"[^>]*>复制<\/button>/);
+  assert.match(h.html,/data-action="runExport"[^>]*>下载<\/button>/);
   assert.doesNotMatch(h.html,/导出模拟文件/);
   h.action('export');h.action('copyExport');await h.flushClipboard();
   assert.equal(h.copiedTexts.length,1);assert.equal(h.downloads.length,0);

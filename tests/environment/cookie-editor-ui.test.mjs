@@ -182,7 +182,7 @@ async function harness(browser=null,{currentPage=null,initialReadStarted=null,tr
   const instrument=source.replace(marker,
     'const pendingWork=new Set();const track=fn=>(...args)=>{const work=fn(...args);'+
     'pendingWork.add(work);Promise.resolve(work).then(()=>pendingWork.delete(work),()=>pendingWork.delete(work));return work;};'+
-    'refresh=track(refresh);readBrowserMetadata=track(readBrowserMetadata);'+
+    'refresh=track(refresh);readBrowserMetadata=track(readBrowserMetadata);exportBrowserCookies=track(exportBrowserCookies);'+
     (trackSaves?'saveBrowserCookie=track(saveBrowserCookie);':'')+
     'const settle=async()=>{while(pendingWork.size)await Promise.all([...pendingWork]);};'+
     'globalThis.__cookieTest={normalizeCookie,parseImport,exportText,saveToList,mergeImport,'+
@@ -907,11 +907,85 @@ test('R4.3 browser toolbar opens inline import/export, filter and target picker'
   s.fire('live-export','click');
   assert.equal(s.getField('live-export-panel').hidden,false);
   assert.equal(s.getField('live-export-sensitive').hidden,true);
-  s.fire('live-export-cancel','click');
+  s.fire('live-export-close','click');
   s.fire('live-filter-toggle','click');
   assert.equal(s.getField('live-filter-advanced').hidden,false);
   s.fire('site-pick','click');
   assert.equal(s.getField('target-selector').open,true);
   assert.match(s.source,/expandedCookieKey/);
   assert.match(s.source,/cookie-inline/);
+});
+
+
+test('R4.8 live copy and download use identical redacted metadata',async()=>{
+  const copied=[],downloaded=[];
+  const s=await harness({
+    capabilities:{getStatus:async()=>({callableNow:true})},
+    cookies:{getAll:async()=>[{name:'fictional',domain:'example.com',path:'/',
+      hostOnly:true,session:true,value:'secret-should-be-removed'}]},
+    clipboard:{writeText:async text=>copied.push(text)},
+    downloads:{text:async item=>downloaded.push(item)}
+  });
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
+  assert.match(s.html,/id="live-export-copy"[^>]*>复制<\/button>/);
+  assert.match(s.html,/id="live-export-confirm"[^>]*>下载<\/button>/);
+  assert.match(s.css,/\.live-export-actions\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  s.getField('live-export-content').value='metadata';
+  s.getField('live-export-format').value='json';
+  s.fire('live-export','click');s.fire('live-export-copy','click');await s.settle();
+  assert.equal(copied.length,1);assert.equal(downloaded.length,0);
+  const payload=JSON.parse(copied[0]);
+  assert.equal(payload.restoreSupported,false);
+  assert.equal(Object.hasOwn(payload.cookies[0],'value'),false);
+  s.fire('live-export-confirm','click');await s.settle();
+  assert.equal(downloaded.length,1);assert.equal(downloaded[0].text,copied[0]);
+  assert.equal(downloaded[0].filename,'example.com-cookie-metadata.json');
+});
+
+test('R4.8 sensitive copy and download require independent final confirmations',async()=>{
+  let reads=0,grant=false;const copied=[],downloaded=[];
+  const s=await harness({
+    capabilities:{getStatus:async()=>({callableNow:true})},
+    cookies:{getAll:async options=>{
+      if(options.includeValues)reads++;
+      return [{name:'fictional',domain:'example.com',path:'/',hostOnly:true,
+        session:true,value:options.includeValues?'TEST_VALUE':'not-for-export',
+        valueRedacted:!(options.includeValues&&grant)}];
+    }},
+    clipboard:{writeText:async text=>copied.push(text)},
+    downloads:{text:async item=>downloaded.push(item)}
+  });
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
+  s.getField('live-export-content').value='backup';
+  s.getField('live-export-format').value='json';
+  s.fire('live-export','click');s.fire('live-export-copy','click');
+  assert.equal(s.getField('confirm-panel').hidden,false);assert.equal(reads,0);
+  s.fire('confirm-cancel','click');await s.settle();
+  assert.equal(reads,0);assert.equal(copied.length,0);
+  s.fire('live-export-copy','click');s.fire('confirm-accept','click');await s.settle();
+  assert.equal(copied.length,0);
+  assert.match(s.getStatusMessage(),/Host 未确认全部 Cookie 敏感值权限/);
+  grant=true;
+  s.fire('live-export-copy','click');s.fire('confirm-accept','click');await s.settle();
+  assert.equal(copied.length,1);assert.equal(JSON.parse(copied[0])[0].value,'TEST_VALUE');
+  s.fire('live-export-confirm','click');assert.equal(downloaded.length,0);
+  s.fire('confirm-accept','click');await s.settle();
+  assert.equal(downloaded.length,1);assert.equal(downloaded[0].text,copied[0]);
+});
+
+test('R4.8 clipboard rejection is safely reported and can fall back to download',async()=>{
+  const downloaded=[];
+  const s=await harness({
+    capabilities:{getStatus:async()=>({callableNow:true})},
+    cookies:{getAll:async()=>[{name:'x',domain:'example.com',path:'/',hostOnly:true,session:true,value:'secret'}]},
+    clipboard:{writeText:async()=>{throw Error('private_sdk_cookie_value');}},
+    downloads:{text:async item=>downloaded.push(item)}
+  });
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
+  s.getField('live-export-content').value='metadata';s.getField('live-export-format').value='json';
+  s.fire('live-export','click');s.fire('live-export-copy','click');await s.settle();
+  assert.match(s.getStatusMessage(),/复制失败/);
+  assert.doesNotMatch(s.getStatusMessage(),/private_sdk_cookie_value/);
+  s.fire('live-export-confirm','click');await s.settle();
+  assert.equal(downloaded.length,1);
 });
