@@ -32,6 +32,9 @@ async function reset(){
   await page.locator('[data-action="reset"]').click();
   if(await page.locator('#r23-modal-root [role="dialog"]').count())await page.locator('[data-action="discard-proceed"]').click();
   assert.equal((await state()).stage,'empty');
+  assert.equal((await state()).provider,'local_codex','reset defaults to Native Codex');
+  assert.equal(await page.locator('#r236-native').isChecked(),true);
+  assert.equal(await page.locator('#r236-https').isChecked(),false);
 }
 const mode=async value=>{
   await page.locator('#r23-mode-button').click();
@@ -54,6 +57,7 @@ try{
   }
   assert.equal(await page.locator('#r236-native').isChecked(),true);
   assert.equal(await page.locator('#r236-https').isChecked(),false);
+  assert.equal((await state()).provider,'local_codex','first-load provider must be Native Codex');
   assert.equal((await state()).mode,'standard');
   await shot('r233-default');
   await page.locator('#r233-qa > summary').click();
@@ -168,14 +172,18 @@ try{
 
   const nativeLayout=await page.evaluate(()=>{
     const rect=q=>document.querySelector(q).getBoundingClientRect();
-    const heading=rect('#r236-source-title'),slider=rect('.r236-switch'),
-      card=rect('#r23-local-config'),body=rect('#r234-body'),
-      details=rect('.r238-native-state'),action=rect('#r23-local-config button');
+    const slider=rect('.r236-switch'),card=rect('#r23-local-config'),
+      body=rect('#r234-body'),details=rect('.r238-native-state'),
+      action=rect('#r23-local-config button'),
+      padLeft=parseFloat(getComputedStyle(document.querySelector('#r234-body')).paddingLeft),
+      padTop=parseFloat(getComputedStyle(document.querySelector('#r234-body')).paddingTop);
+    const legend=document.querySelector('.r236-switch legend');
     return {
-      sourceLeftAligned:Math.abs(heading.left-slider.left)<=2,
-      sourceVerticalGap:slider.top-heading.bottom,
+      noVisibleSourceHeading:!document.querySelector('#r236-source-title'),
+      accessibleLegend:legend?.textContent.trim()==='AI 来源'&&legend.classList.contains('visually-hidden'),
+      sourceLeftAligned:Math.abs(slider.left-(body.left+padLeft))<=2,
+      sourceStartsAtTop:Math.abs(slider.top-(body.top+padTop))<=2,
       switchWidth:slider.width,
-      contentWidth:body.width,
       cardInside:card.left>=body.left+9&&card.right<=body.right-9,
       cardWidth:card.width,
       statusAligned:Math.abs((details.top+details.bottom)/2-(action.top+action.bottom)/2),
@@ -185,8 +193,10 @@ try{
     };
   });
   assert.equal(nativeLayout.choices,2,'preserve two radio sources');
-  assert.ok(nativeLayout.sourceLeftAligned,'source heading and choices share an alignment origin');
-  assert.ok(nativeLayout.sourceVerticalGap>=6&&nativeLayout.sourceVerticalGap<=15,'source label must sit directly above the choices');
+  assert.ok(nativeLayout.noVisibleSourceHeading&&nativeLayout.accessibleLegend,
+    'remove visible AI 来源 text but keep accessible fieldset name');
+  assert.ok(nativeLayout.sourceLeftAligned&&nativeLayout.sourceStartsAtTop,
+    'two source choices must start the settings content without a blank heading');
   assert.ok(nativeLayout.switchWidth>=235&&nativeLayout.switchWidth<=252,'source selector must be compact');
   assert.ok(nativeLayout.cardInside&&nativeLayout.cardWidth>=300,'native controls must form one coherent row');
   assert.ok(nativeLayout.statusAligned<=6&&nativeLayout.statusVisible,'native status and check action vertically aligned');
@@ -204,7 +214,7 @@ try{
   assert.equal(await page.locator('#r23-api-key').getAttribute('type'),'password');
   assert.ok((await page.locator('#r236-protocol-note').innerText()).includes('Responses'));
   await shot('r236-https-default');
-  mark('native provider card and coherent left-aligned source controls; keyboard radio and default HTTPS');
+  mark('Native Codex default, visible AI 来源 removed, accessible radio legend and source switching preserved');
 
   await page.locator('[data-action="simulate-config"]').click();
   assert.equal(await page.locator('#r234-feedback').getAttribute('data-kind'),'error');
@@ -389,7 +399,6 @@ try{
         p=document.querySelector('#r23-settings-panel').getBoundingClientRect(),
         body=document.querySelector('#r234-body').getBoundingClientRect(),
         field=document.querySelector('#r23-api-key').getBoundingClientRect(),
-        heading=document.querySelector('#r236-source-title').getBoundingClientRect(),
         slider=document.querySelector('.r236-switch').getBoundingClientRect(),
         endpoint=document.querySelector('#r23-endpoint').closest('.r236-input-action').getBoundingClientRect(),
         note=document.querySelector('#r236-protocol-note').getBoundingClientRect();
@@ -402,21 +411,24 @@ try{
       });
       return{
         panelFits:Math.abs(p.width-d.width)<=2&&Math.abs(p.height-d.height)<=2,
-        sliderLeftAligned:Math.abs(heading.left-slider.left)<=2,
-        sourceGap:slider.top-heading.bottom,sliderWidth:slider.width,
+        sliderLeftAligned:Math.abs(slider.left-(body.left+parseFloat(getComputedStyle(document.querySelector('#r234-body')).paddingLeft)))<=2,
+        sourceAtTop:Math.abs(slider.top-(body.top+parseFloat(getComputedStyle(document.querySelector('#r234-body')).paddingTop)))<=2,
+        sourceLabelAbsent:!document.querySelector('#r236-source-title'),
+        accessibleName:document.querySelector('.r236-switch legend')?.textContent.trim()==='AI 来源',
+        sliderWidth:slider.width,
         protocolAligned:Math.abs(note.left-endpoint.left)<=2,
         fieldVisible:field.left>=p.left&&field.right<=p.right,
         pageNoOverflow:document.documentElement.scrollWidth<=innerWidth+1,rows};
     });
     assert.ok(g.panelFits&&g.fieldVisible&&g.pageNoOverflow,'settings route must fit at '+width);
-    assert.ok(g.sliderLeftAligned&&g.sourceGap>=6&&g.sourceGap<=15,'label and source selector must be stacked at '+width);
+    assert.ok(g.sliderLeftAligned&&g.sourceAtTop&&g.sourceLabelAbsent&&g.accessibleName,'unlabeled visual selector remains accessible and aligned at '+width);
     assert.ok(g.sliderWidth>=235&&g.sliderWidth<=252,'source toggle width at '+width);
     assert.equal(g.protocolAligned,true,'protocol hint belongs below the endpoint at '+width);
     assert.ok(g.rows.every(x=>x.labelAbove&&x.sameRail&&x.visible),'stacked full-width inputs at '+width);
     await shot('r238-https-'+width);
     await page.locator('#r234-back').click();
   }
-  mark('R23.8 Native status card and HTTPS vertical fields share one rail at 360/420/520');
+  mark('R23.8.1 default Codex and unlabeled source selector align across 360/420/520');
   // Source-identical HTML is injected as srcdoc: isolate sandbox scripting separately
   // from file:// Chromium PASS. This does NOT prove the ChatGPT UI itself runs scripts.
   const embedded=await browser.newPage({viewport:{width:1100,height:850}});
@@ -443,7 +455,7 @@ try{
   assert.deepEqual(errors,[]);
   const report={status:'PREVIEW_CHROMIUM_PASS',scope:'R23.4 simulated DOM and scripted sandbox iframe; NOT the ChatGPT host, real AI provider, Chrome permission, Mac IME or RunHost',head,gitBlobSha:blob,sha256:hash,
     chromiumVersion:browser.version(),checks,errors,screenshots,independentUxScore:'NOT_SCORED'};
-  console.log('R238_SOURCE_BOUND_CHROMIUM_PASS '+checks.length);
+  console.log('R2381_SOURCE_BOUND_CHROMIUM_PASS '+checks.length);
   await writeFile(resolve(out,'r232-evidence.json'),JSON.stringify(report,null,2));
 }catch(error){
   const report={status:'PREVIEW_CHROMIUM_FAIL',scope:'R23.4 offline HTML',head,gitBlobSha:blob,sha256:hash,error:String(error?.stack||error),checks,errors,screenshots,chromiumVersion:browser.version()};
