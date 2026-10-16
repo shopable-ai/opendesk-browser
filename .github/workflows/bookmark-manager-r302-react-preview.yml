@@ -52,7 +52,7 @@ jobs:
           assert.equal(manifest.sourceBound,false);
           assert.equal(manifest.nativeVerified,false);
           const frame=Buffer.from(index.match(/atob\('([A-Za-z0-9+/=]+)'\)/)[1],'base64').toString('utf8');
-          assert.match(frame,/data-react-root="bookmark-r302"/);
+          assert.match(frame,/data-react-root="bookmark-r303"/);
           assert.match(frame,/connect-src &#39;none&#39;/);
           assert.doesNotMatch(frame,/https?:\/\/(?:cdn|unpkg|jsdelivr)\./);
           assert.doesNotMatch(frame,/allow-same-origin/);
@@ -63,7 +63,7 @@ jobs:
           assert.ok(react.length>40000,'No fake React placeholder');
           assert.equal((index.match(/id="od-preview-bookmark-lab"/g)||[]).length,1);
           assert.doesNotMatch(frame,/od-preview-bookmark-lab/);
-          console.log('R302_OFFLINE_REACT_SOURCE_AND_SANDBOX_PASS');
+          console.log('R303_OFFLINE_REACT_SOURCE_AND_SANDBOX_PASS');
           NODE
       - name: Install CJK screenshot fonts
         run: |

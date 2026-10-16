@@ -41,11 +41,11 @@ const frame='<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">'+
  '<meta name="viewport" content="width=device-width,initial-scale=1">'+
  '<meta http-equiv="Content-Security-Policy" content="default-src &#39;none&#39;; script-src data: &#39;unsafe-inline&#39;; style-src data: &#39;unsafe-inline&#39;; img-src data:; connect-src &#39;none&#39;; object-src &#39;none&#39;; base-uri &#39;none&#39;; form-action &#39;none&#39;">'+
  '<link rel="stylesheet" href="data:text/css;base64,'+encoded(tokens+'\n'+style)+'">'+
- '</head><body><div id="tool-root" data-react-root="bookmark-r302" aria-label="书签管理"></div>'+
+ '</head><body><div id="tool-root" data-react-root="bookmark-r303" aria-label="书签管理"></div>'+
  '<script>globalThis.__opendeskPreviewScenario="success";</script>'+scripts+'</body></html>';
 assert.equal((frame.match(/data:text\/javascript;base64,/g)||[]).length,4);
 const reactFiles={bundle:sha(bundle),css:sha(style),model:sha(model),service:sha(service),mock:sha(mock),app:sha(app),main:sha(main)};
-const manifest={...oldManifest,previewBuild:'R3.0.2 REACT COMPONENT CANDIDATE',reactRuntime:true,
+const manifest={...oldManifest,previewBuild:'R3.0.3 REACT LIST-FIRST UX CANDIDATE',reactRuntime:true,
  reactFiles,reactFrameSha256:sha(frame),previewCandidate:'REACT_OFFLINE_MOCK',
  designStatus:'DESIGN_PROTOTYPE_NOT_SOURCE_BOUND',sourceBound:false,nativeVerified:false,
  previewViewportModes:[360,400,960]};
