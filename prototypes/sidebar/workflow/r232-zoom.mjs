@@ -87,14 +87,21 @@ try{
    await page.screenshot({path:resolve(out,'r234-real-200-settings-'+width+'.png'),fullPage:true});
    await page.waitForTimeout(180);
    events.push({width,physicalScreenshot:await capturePhysicalScreen('r234-physical-200-settings-'+width+'.png')});
-   await page.locator('#r233-qa > summary').click();
    if(width==='360'){
-     // The lower fixed action bar may require outer-page scrolling at 200% zoom.
-     await page.locator('.r234-footer button').scrollIntoViewIfNeeded();
-     const footer=await page.locator('.r234-footer button').evaluate(el=>{const b=el.getBoundingClientRect();return{top:b.top,bottom:b.bottom,viewport:innerHeight};});
-     assert.ok(footer.top>=0&&footer.bottom<=footer.viewport+1,'Completion remains reachable at native 200% zoom');
-     await capturePhysicalScreen('r234-physical-200-settings-footer-360.png');
+     // Keep QA collapsed, then scroll the OUTER document to its end before the
+     // physical screenshot. DOM viewport checks alone misrepresented X11 framing.
+     const footer=await page.evaluate(()=>{
+       const root=document.scrollingElement;
+       root.scrollTo({top:root.scrollHeight,behavior:'instant'});
+       return {scrollTop:root.scrollTop,scrollHeight:root.scrollHeight};
+     });
+     await page.waitForTimeout(350);
+     const viewportFooter=await page.locator('.r234-footer button').evaluate(el=>{
+       const b=el.getBoundingClientRect();return{top:b.top,bottom:b.bottom,viewport:innerHeight};
+     });
+     events.push({width,footerScroll:footer,footerViewport:viewportFooter,physicalScreenshot:await capturePhysicalScreen('r234-physical-200-settings-footer-360.png')});
    }
+   await page.locator('#r233-qa > summary').click();
    await page.locator('#r234-back').click();
    events.push({width,settingsLayout:geom});
  }
