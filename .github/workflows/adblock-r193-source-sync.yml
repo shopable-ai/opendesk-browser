@@ -1,4 +1,4 @@
-# One-shot, source-bound AdBlock R1.9.3 recovery (do not gate AdBlock on concurrent Agent Skills governance tests).
+# One-shot, source-bound AdBlock R1.9.3 recovery for audited adblock@1.1.1; never auto-replace historical 1.1.0 bytes.
 # Uses the existing build and native test machinery; removes itself after a verified promotion.
 name: AdBlock R1.9.3 one-shot source synchronization and native acceptance
 on:
@@ -145,7 +145,7 @@ jobs:
           set -euo pipefail
           git fetch --no-tags origin main
           git diff --name-only "${GITHUB_SHA}" origin/main > /tmp/adblock-r193-advance.txt
-          if grep -E '^(src/|scripts/(build-sidebar-tool|build-official-tools|bundle-provenance|preview/|templates/sidebar-tool-preview-shell|tests/(adblock-preview-chrome|sidebar-preview-runtime-chrome|bookmark-manager-r26-preview-chrome))|contracts/ui-preview/|tests/(environment/(adblock-|stay-focus-boundary|sidebar-preview)|framework/adblock-)|examples/sidebar-tools/|official-tools/|package(-lock)?\.json$|wxt\.config\.|\.github/workflows/(adblock-r12|sidebar-preview-contract)\.yml$)' /tmp/adblock-r193-advance.txt; then
+          if grep -E '^(src/|scripts/(build-sidebar-tool|build-official-tools|bundle-provenance|preview/|templates/sidebar-tool-preview-shell|tests/(adblock-preview-chrome|sidebar-preview-runtime-chrome|bookmark-manager-r26-preview-chrome))|contracts/ui-preview/|tests/(environment/(adblock-|stay-focus-boundary|sidebar-preview)|framework/adblock-)|examples/sidebar-tools/(adblock|quick-notes|bookmark-manager|reading-toc)/|official-tools/|package(-lock)?\.json$|wxt\.config\.|\.github/workflows/(adblock-r12|sidebar-preview-contract)\.yml$)' /tmp/adblock-r193-advance.txt; then
             echo "::error::The tested candidate overlaps new main sources. Do not promote stale native evidence."
             exit 1
           fi
