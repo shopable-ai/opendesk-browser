@@ -120,7 +120,7 @@ test('R5 no Provider, SKU or shop can invent business success',async()=>{
   assert.match(html,/兑换服务未配置/);
   assert.match(html,/专属激活链接续接尚未接入正式安装与服务验证流程/);
   assert.match(script,/PRODUCT_CATALOG_URL=''/);
-  assert.match(script,/sdk\.create\(\{url:catalog\}\)/);
+  assert.match(script,/shopSdk\.create\(\{url:catalog\}\)/);
   assert(!/fetch\(|showModal\(|window\.open\(/.test(script));
   assert(!/aiAccess\.activate|aiAccess\.enable|chrome\.proxy/.test(script));
 });
