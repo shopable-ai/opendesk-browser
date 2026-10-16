@@ -62,7 +62,7 @@ jobs:
           const bytes=readFileSync(path);
           const pkg=validateSidebarToolPackage(JSON.parse(bytes.toString('utf8')));
           assert.equal(pkg.id,'prompt-shortcuts');
-          assert.equal(pkg.version,'1.1.0');
+          assert.equal(pkg.version,'1.1.1');
           assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
           assert(pkg.capabilities.includes('page.prompts'));
           assert(pkg.capabilities.includes('browser.contextMenu'));
