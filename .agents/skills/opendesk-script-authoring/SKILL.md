@@ -19,8 +19,10 @@ description: Author and debug Controller automation, Page USER_SCRIPT 网页增�
 
 1. `AGENTS.md`、`docs/framework/testing-guide.md`、最新 `main`、当前文件/并行资源与原始证据；只处理本任务文件，不覆盖其他 Agent 的改动。
 2. `docs/api/runtime-globals-and-preinstalled-libraries.zh-CN.md`、`docs/api/controller.zh-CN.md`、`docs/api/page-userscript.zh-CN.md`、`docs/api/page-ui-frameworks.zh-CN.md`、`docs/api/sidebar-local-projects.zh-CN.md`。
-3. 仅在涉及依赖、版本或特殊入口时查 `docs/framework/universal-dependency-runtime-usage-contract.zh-CN.md`、`docs/api/dependencies-and-errors.zh-CN.md`、`docs/architecture/browser-framework/browser-compiler-editions-r245.zh-CN.md` 和真实 `src/ui/script-editor.js`、`src/ui/page-component-preparer.js`。
+3. 普通作者只按实际需求阅读 `docs/api/local-projects.zh-CN.md`、`docs/api/page-import-persistence.zh-CN.md`、`docs/api/dependencies-and-errors.zh-CN.md`、项目示例/README 与公开类型/Schema；依赖异常查 `docs/framework/universal-dependency-runtime-usage-contract.zh-CN.md`。只有平台任务或已复现通用缺口，平台维护者才需要调查 `src/ui/script-editor.js`、`src/ui/page-component-preparer.js` 等内部实现。
 4. 历史 CI 的 PASS 只针对其绑定的源码/扩展包。文档和源码相冲突时以实际代码和当前测试为准，说明差异，不编造可用能力。
+
+**独立 Page USER_SCRIPT 默认归 `examples/programs/<id>/`**，优先复用目标网页 DOM、公开 `@opendesk/ui`、现有站点授权与清理，不要求第三方阅读/修改 Browser Host。网页按钮、自动运行的用户需求仍须完整保留；正式安装由 `opendesk-program-publish` 接管而不是自动路由 runtime。缺少已证实公共能力记 `SDK_GAP_NOT_PROVEN`，第三方不能安全使用的特权动作记 `BLOCKED`，直接向 MAIN 注入临时 JS 不得冒充正式安装。
 
 ## 作者决策表：JS / React / Vue 不等于一个执行世界
 

@@ -12,6 +12,24 @@ YOU ARE AN AUTONOMOUS CODING AGENT. EXECUTE AUTHORIZED TASKS TO COMPLETION WITHO
 
 已有非 `main` 分支允许只读核查。仅在用户明确要求合并/清理时，将应保留的变更安全合入 `main`，确认不丢失独有提交后再删除多余分支。绝不为“只保留主分支”而直接删除未合并工作；禁止强推、破坏性 reset/clean、覆盖并行工作。提交与推送仍遵守当前任务的授权边界。
 
+## Independent Extension Development · SDK First · Framework Boundary（2026-10-16）
+
+**所有新建/修复工具、网页增强、任务与安装需求，编码前先通过 Extension Type & Ownership Gate。** 以真实功能、执行世界、信任和安装合同分类，而不是以产品统一显示在「扩展」中心为依据；普通用户不必填写技术表单。保留原 F-ID/S-ID/A-ID，不静默删减自动运行、站点范围和权限需求。
+
+| 类型 | 默认业务代码所有权 | 公开能力与主 Skill |
+| --- | --- | --- |
+| Sidebar Tool（沙箱应用） | `examples/sidebar-tools/<id>/` | `OpenDeskTool.root/request`；开发 `opendesk-sidebar-tool-dev`，正式打包 `opendesk-sidebar-tool-package` |
+| Page USER_SCRIPT / Page Program | `examples/programs/<id>/` | 网页 `document` / 公开 Page UI；开发 `opendesk-script-authoring`，正式安装 `opendesk-program-publish` |
+| Controller Task | 现有 Controller 项目 | 受控 `page` / Locator；开发 `opendesk-script-authoring`，正式冻结 `opendesk-program-publish` |
+| 经审计第一方可信功能 | 独立工具目录和必要的 `src/<feature>/` | `opendesk-trusted-sidebar-feature`，固定编译并独立审查权限 |
+| 通用 Browser Framework / SDK | 现有平台职责模块 | 真正平台任务或已证实通用缺口；`opendesk-extension-runtime`（纯扩展中心 UI 由 `opendesk-extension-ui`） |
+
+**独立扩展开发默认先读公开 SDK 文档、Schema、示例与当前项目 README，优先修改自身目录及定向测试。** Browser Framework `src/` 默认只读，普通第三方作者不需要也不应被要求阅读内部 Broker、Host、Registry 或 Installer。现有 SDK 能完成的功能直接调用，不在通用宿主内加入 ChatGPT、Mind Map、Cookie Editor 等业务判断；不能以原生验收、资源加载或测试便利为由扩大平台写入范围。
+
+**通用能力例外**：必须记录缺少哪项公开 SDK 能力及对应文档、可复现失败、为何工具内部无法解决、跨工具价值、最小公共 API/源码/测试范围，以及权限、生命周期、兼容性与安全影响。无证据先记 `SDK_GAP_NOT_PROVEN`，不得编造公开 API；普通第三方不安全或无合法授权的特权操作记 `BLOCKED`。证明通用缺口后由平台 Skill 独立处理，工具业务继续留原项目。
+
+**不采用“一切 `src/` 变更都违规”的路径禁令**：用户本来要求修通用 SDK、安装撤权或第一方可信模块时，允许其 owner 正常修改 `src/` 并定向回归。CI 静态门禁不因并行提交包含 `src/` 就一票否决；它也不能证明未来所有 AI 不漂移。真实模型路由、Chrome 安装及撤权未执行时标 `NOT_TESTED`。具体门禁以 [唯一 Extension Creation Workflow](.agents/workflows/extension-creation.md) 与 [现行八个 Skill 路由](.agents/skills/README.md) 为准。
+
 ## React UI 共享组件与自定义 UI 零退化（2026-10-16，R33.1）
 
 **本轮产品 P0 是五个可信 Side Panel Tab 最终统一 React 工作台**，优先「开发」「扩展」，再「工作流」「我的」「云控」；阶段性分模块迁移不等于最终长期保留两套 UI。UI 组件首选评估 shadcn/ui（React Aria base）+ Tailwind v4 + 既有 OpenDesk Tokens，须先以真实依赖、CSS scope、交互/焦点和构建体积确认，再实施正式可信 UI；不是仅创建 Starter/组件包或重写 Browser SDK/Host。

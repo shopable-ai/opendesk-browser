@@ -2,7 +2,7 @@
 
 > 本页只说明 **`opendesk.sidebar-tool.v1` 的当前接口合同**。**所有同类型工具的统一开发方法**（选型、目录规范、预览、打包、安装、测试）请先阅读 [Side Panel 工具统一开发规范](sidebar-tool-development.zh-CN.md)。示例见 [examples/sidebar-tools](../../examples/sidebar-tools/README.zh-CN.md)；AI/Codex 用 [开发 Skill](../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md)。
 
-这是 Side Panel「扩展」中的「应用」类型 HTML/CSS/JS Sidebar Tool 包（现行入口见 [R4 产品规格](../product/sidebar-ui-spec.zh-CN.md)），不是单独的 Chrome 扩展，不是 `opendesk.task.v1`，也不是 Controller/Page USER_SCRIPT 项目。**源代码与运行合同的最终依据**为 `src/ui/sidebar-tools/package.js`、`src/ui/sidebar-tools.js`、`src/sidebar-tools/bridge.js`、`src/sidebar-tools/official-catalog.js`、`scripts/build-sidebar-tool.mjs`、`scripts/build-official-tools.mjs`。
+这是 Side Panel「扩展」中的「应用」类型 HTML/CSS/JS Sidebar Tool 包（现行入口见 [R4 产品规格](../product/sidebar-ui-spec.zh-CN.md)），不是单独的 Chrome 扩展，不是 `opendesk.task.v1`，也不是 Controller/Page USER_SCRIPT 项目。**第三方的开发合同由本文、[统一开发规范](sidebar-tool-development.zh-CN.md)、工具配置、示例及公开 SDK 确定，不依赖 Browser 内部 `src/`**。若文档与行为冲突，由平台维护者凭实际复现再核对 Host、Broker 和打包实现，不能要求第三方直接调用内部函数。
 
 ## 1. 工具源配置与运行包的区别
 
@@ -53,7 +53,7 @@ HTML 不允许 `script/iframe/object/embed/base/link/meta/style` 标签、内联
 
 ## 1.1 官方可选发行与安装状态（R4.5）
 
-官方源码登记于仓库根 `official-tools/catalog.json`，版本和能力以对应 `examples/sidebar-tools/<id>/tool.config.json` 为准。正式构建自动生成 `dist/{production,development}/official-tools/catalog.json` 和 `official-tools/<id>/<id>.opendesk-tool.json`，不维护源码目录中的生成包副本。完整字段、构建和更新合同见 [官方工具 Catalog](official-tools-catalog.zh-CN.md)。
+官方源码登记于仓库根 `official-tools/catalog.json`，版本和能力以对应 `examples/sidebar-tools/<id>/tool.config.json` 为准。正式构建自动生成 `dist/{production,development}/official-tools/catalog.json` 和 `official-tools/<id>/<id>.opendesk-tool.json`。需要随源码交付或手动安装验收的独立项目，在候选通过实际门禁后按统一开发流程显式晋升项目根**唯一**同 ID JSON；此正式包是生成产物而非第二份业务源码。完整字段、构建和更新合同见 [官方工具 Catalog](official-tools-catalog.zh-CN.md)。
 
 **随扩展发行、已安装、工具启用、网站可用和正在运行是独立状态。** `SIDEBAR_TOOL_STORE` 是唯一安装事实。默认预装由宿主持久计划管理，不因读取 Catalog 执行 JavaScript。官方入口与本地导入复用原安装器和锁；审核、取消、更新确认、私有数据保留和卸载都遵守既有合同。
 
@@ -62,6 +62,8 @@ HTML 不允许 `script/iframe/object/embed/base/link/meta/style` 标签、内联
 内置 `reading-toc` 安装并启用后默认可用于所有 HTTP(S) 网页，不再逐站点点击授权。工具停用、网站停用、单页排除、显示偏好和 Chrome 自身的站点访问权限仍独立生效；浏览器受限页面不支持。其他 ID 的 `page.toc` 工具、剪藏、知识保存仍逐工具、逐 origin 授权。
 
 `opendesk.sidebar-tools.toc-sites.v1` 中，`reading-toc` 缺记录或原有正向站点数组表示默认全部可用；停用记录为 `{mode:'all-except',blockedOrigins:[具体 HTTP(S) origin]}`，最多 64 个。恢复最后一个停用网站后移除该工具记录，回到默认可用。其他工具保持原有正向数组；异常内置记录保守拒绝，不自动丢弃。旧白名单不保存历史撤权意图，因此按新的用户要求改为全部默认可用，已有明确单页排除和隐藏偏好保留。
+
+**公开能力分级**：下文 `storage.local`、`currentPage.read`、`tasks.open`、`user.export` 是普通第三方可审阅的基础 capability；`page.toc/page.clip/page.capture/knowledge.store/time.review` 为受限一方固定服务，不是任意网页 DOM 或通用 Chrome API。没有公开的页面操作、跨域抓取、Native 文件写入或任意宿主消息，不得通过声明一个 JSON capability 伪装成已支持。缺失能力记 `SDK_GAP_NOT_PROVEN` 并提交复现，由平台按通用价值审查；无安全授权时记 `BLOCKED`。
 
 ## 2. 工具的运行 API
 

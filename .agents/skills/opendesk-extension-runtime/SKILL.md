@@ -11,6 +11,8 @@ description: Engineer Chrome MV3/WXT Background/Content/MAIN, SDK/Host/Authority
 
 现行五 Tab「我的 / 扩展 / 工作流 / 开发 / 云控」见 [R4 产品规格](../../../docs/product/sidebar-ui-spec.zh-CN.md)。扩展中心是一处管理入口，不能因此让每个应用独立成为 Chrome Extension 或直接拥有 SW/Content 权限。纯 Side Panel/设置/Marketplace 排版用 [扩展 UI Skill](../opendesk-extension-ui/SKILL.md)；第一方 Stay Focus/Time Review 业务与可信 UI 准入用 [可信功能 Skill](../opendesk-trusted-sidebar-feature/SKILL.md)；用户在“开发”输入 JS/React/Vue 则用 [脚本 Skill](../opendesk-script-authoring/SKILL.md)；动态应用包归 `opendesk-sidebar-tool-dev`，Page Program 正式安装归 `opendesk-program-publish`。本 Skill 是既有工程体系的维护规范，不是新 SDK、Host、Runner 或权限注册表。
 
+**可进入框架修改的判据**：明确要求修通用 Page Program 安装/撤权、Browser SDK、MV3/Host/Authority 的任务，本来就属于平台所有权，允许按职责修改 `src/`，不能被“凡 src 变更就拒绝”的 CI 误拦截。若从某独立扩展衍生，需先证明公开 SDK 的具体限制、可复现失败、为何业务目录无法解决、跨工具通用价值、最小公共接口/文件/测试及权限/兼容/生命周期影响，否则标 `SDK_GAP_NOT_PROVEN` 并保持平台只读。通用 Broker/Installer 禁止硬编码 ChatGPT、Mind Map、Cookie Editor 等单工具业务。
+
 ## 必须先读的权威事实
 
 先检查当前 `main`、`AGENTS.md`、`docs/framework/testing-guide.md`、对应工作流、当前 diff/共享构建资源。按任务读取：

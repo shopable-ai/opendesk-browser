@@ -6,10 +6,11 @@ import {ADBLOCK_ID,ADBLOCK_CAPABILITY,ADBLOCK_PERMISSION,ADBLOCK_STORE}
 
 class Node{
   constructor(){this.children=[];this.listeners={};this.attributes={};this.hidden=false;
-    this.disabled=false;this.textContent='';}
+    this.disabled=false;this.textContent='';this.isConnected=true;this.ownerDocument=null;}
   append(...nodes){this.children.push(...nodes);}
   addEventListener(name,fn){this.listeners[name]=fn;}
   setAttribute(name,value){this.attributes[name]=value;}
+  focus(){if(this.ownerDocument)this.ownerDocument.activeElement=this;}
 }
 function event(){
   const listeners=new Set();
@@ -26,9 +27,13 @@ function fixture(){
   const storage=event(),added=event(),removed=event();
   const api={storage:{onChanged:storage},permissions:{onAdded:added,onRemoved:removed,
     request:()=>Promise.resolve(true)}};
+  const doc={body:new Node(),activeElement:null,createElement(){
+    const node=new Node();node.ownerDocument=doc;return node;
+  }};
+  doc.activeElement=doc.body;
   function mount(runOperation){
     const container=new Node(),notices=[];
-    const controls=createAdblockPermissionControls({api,doc:{createElement:()=>new Node()},container,
+    const controls=createAdblockPermissionControls({api,doc,container,
       notice:(...args)=>notices.push(args),runOperation});
     const section=container.children[0];
     const walk=node=>[node,...node.children.flatMap(walk)];
@@ -40,7 +45,7 @@ function fixture(){
       action:label=>find(node=>node.attributes['aria-label']===label),
       find};
   }
-  return {api,storage,added,removed,mount,
+  return {api,doc,storage,added,removed,mount,
     change:()=>storage.emit({[ADBLOCK_STORE]:{newValue:{}}},'local')};
 }
 function switches(panel,on){
@@ -234,4 +239,57 @@ test('R1.9 missing DNR readback never paints an active native toggle',async()=>{
   assert.equal(panel.site.attributes['aria-checked'],'false');
   assert.equal(panel.site.disabled,true);
   assert.match(panel.find(node=>node.className==='adblock-native-status-copy').textContent,/尚未通过/);
+});
+
+test('trusted Space restores the same actionable global switch after native blur and authoritative readback',async()=>{
+  const f=fixture();let current=status();const disabling=deferred(),finalRead=deferred();
+  let reads=0,focusCalls=0;
+  const panel=f.mount(op=>{
+    if(op==='adblock.status')return ++reads===1?Promise.resolve(structuredClone(current)):
+      finalRead.promise;
+    if(op==='adblock.disable')return disabling.promise;
+    if(op==='adblock.enable'){current=status();return Promise.resolve(structuredClone(current));}
+    throw Error('unexpected operation '+op);
+  });
+  const originalFocus=panel.global.focus.bind(panel.global);
+  panel.global.focus=()=>{focusCalls++;originalFocus();};
+  panel.controls.render(tool,false,true);await tick();
+  f.doc.activeElement=panel.global;
+  panel.global.listeners.click({isTrusted:true,currentTarget:panel.global});
+  f.change(); // Native storage event before the operation's final read.
+  f.doc.activeElement=f.doc.body; // Chrome blurs a button on disabled=true.
+  current=status(false);disabling.resolve(structuredClone(current));await tick();
+  assert.equal(reads,2);assert.equal(panel.global.disabled,true);
+  assert.equal(f.doc.activeElement,f.doc.body,'cannot refocus during an unverified read');
+  finalRead.resolve(structuredClone(current));await tick();
+  switches(panel,false);assert.equal(f.doc.activeElement,panel.global);
+  assert.equal(focusCalls,1,'refocus only after final authoritative readback');
+  panel.global.listeners.click({isTrusted:true,currentTarget:panel.global});
+  f.doc.activeElement=f.doc.body;
+  await tick();switches(panel,true);
+  assert.equal(f.doc.activeElement,panel.global,'Space ON retains actionable focus');
+  assert.equal(focusCalls,2);
+});
+
+test('native pending operation never steals focus from a different user control or new generation',async()=>{
+  const f=fixture(),pending=deferred();
+  const panel=f.mount(op=>op==='adblock.status'?Promise.resolve(status()):pending.promise);
+  panel.controls.render(tool,false,true);await tick();
+  f.doc.activeElement=panel.global;
+  panel.global.listeners.click({isTrusted:true,currentTarget:panel.global});
+  const another=f.doc.createElement('button');
+  f.doc.activeElement=another;
+  pending.resolve(status(false));await tick();
+  assert.equal(f.doc.activeElement,another);
+  assert.equal(panel.global.attributes['aria-checked'],'false');
+  const second=deferred(),q=f.mount(op=>op==='adblock.status'?
+    Promise.resolve(status()):second.promise);
+  q.controls.render(tool,false,true);await tick();
+  f.doc.activeElement=q.global;
+  q.global.listeners.click({isTrusted:true,currentTarget:q.global});
+  f.doc.activeElement=f.doc.body;
+  q.controls.render(null);q.controls.render(tool,false,true);
+  second.resolve(status(false));await tick();
+  assert.equal(f.doc.activeElement,f.doc.body,'old pending operation cannot restore focus');
+  switches(q,true);
 });

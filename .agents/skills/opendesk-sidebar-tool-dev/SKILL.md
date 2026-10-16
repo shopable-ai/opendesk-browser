@@ -21,7 +21,7 @@ description: Author, iterate and preview sandboxed 扩展 center Sidebar App UI 
 4. [示例导航](../../../examples/sidebar-tools/README.zh-CN.md)：选择与任务真正相符的原生、React、Vue 或官方可信示例。
 5. **只有开发特定工具时**，才补读该工具自己的 README、可选 DEVELOPMENT 与范围内 AGENTS。
 
-源码中的 `src/ui/sidebar-tools/package.js`、`src/ui/sidebar-tools.js`、`scripts/build-sidebar-tool.mjs` 是可执行事实；本文不覆盖它们。
+**第三方作者免读 Browser 内部源码**：本 Skill、公开 SDK/Schema、示例和工具自身 README 足够作为默认开发输入。`src/ui/sidebar-tools/package.js` 等内部实现仅供平台维护者在已证明通用缺口时调查；不能要求普通用户读取 Broker/Host，也不能靠某工具需求新增通用运行器。无证据时记 `SDK_GAP_NOT_PROVEN`。
 
 ## 工具项目归属与演进顺序（2026-10-14）
 
@@ -79,7 +79,8 @@ Stay Focus 安装提交前，静态 Side Panel 适配器的 `focus.probe` 对当
 
 - **普通工具 / UI**：编辑 `examples/sidebar-tools/<id>/tool.config.json` 及 `src/index.html/style.css/main.js`。依赖少则经典 JS，不为简单表单新建 React 应用。
 - **复杂组件**：复用 `react-starter` 或 `vue-starter`，编译成一个本地 IIFE + 静态 CSS；Tailwind 仅作为构建期可选工具。先成功本地构建再调用统一打包器。
-- **网站按钮、DOM 内容捕获、Native/受信任数据**：先明确操作处于 Background、ISOLATED、MAIN 还是可信宿主；只有确切必要才审计 `src/<feature>/` 与既有固定接线、权限及测试；不能借工具 JSON 的 `page.toc/page.clip/page.capture/knowledge.store` 越权或自行重造框架。
+- **网页按钮 / DOM 增强**：先确认是否为 Page USER_SCRIPT，属于该类型就走 `examples/programs/<id>/` 与 `opendesk-script-authoring`，不能因为用户说“扩展”就默认建可信 Content/Host。
+- **Native / 特权数据**：先查公开 `OpenDeskTool.request`，固定 `page.toc/page.clip/page.capture/knowledge.store` 不是第三方任意 DOM API。缺公开能力记 `SDK_GAP_NOT_PROVEN`，危险权限无法合规授予记 `BLOCKED`；仅在经审计的一方可信业务才移交 `opendesk-trusted-sidebar-feature` 调查必要的 `src/<feature>/`。
 - **普通工具导入**：测试通过后在当前工具目录提交唯一、规范构建的 `<id>.opendesk-tool.json` 供导入，不能只给 CI ZIP；**官方可选工具**继续维护可信源码与 `official-tools/catalog.json`，由同一构建器生成浏览器离线资源。正式包是受验证的生成产物，绝不手工编辑，不为每次构建增加新文件。
 
 **源码修改不是安装包发布。** 对当前任务要交付给用户安装的工具，开发过程中只生成 `artifacts/` 或 `.opendesk-preview/` 临时候选；完成受影响测试后转交打包 Skill 进行 `--promote-from`，工具根最终只保留一个同 ID `.opendesk-tool.json` 并随源码提交。未通过时保留上一个正式包，不能只交付 CI ZIP；不要给同一工具连续制造 R/日期/版本后缀的正式包。普通工具源码归本项目，Host/原生权限仍由现有审计入口处理。
@@ -104,7 +105,7 @@ React/Vue 可复用项目本身的已有预编译配置，源码创建和 UI 调
 - 授权按具体 capability、真实 sender/document、当前安装包、显式站点许可和真实用户行为落实。装了工具不等于网页已授权。
 - 数据原文、用户编辑、修订冲突、异步结果未知和卸载时清理/备份均需按当前代码及用户需求设计。不使用定时器假装持久后台。
 - 视觉遵守现有 Side Panel R19/R20/R21/R23 设计原则：紧凑、一致、浅深模式、键盘和无障碍。但 iframe 样式不会自动继承宿主 token；需在工具自己 CSS 实现，不能未经审查改变公共设计系统。
-- 单一 writer，尊重并行 main 修改、构建锁、Chrome Profile、既有证据；未经授权不推送远端或执行完整发布/强推/重置。
+- 尊重并行 main 的**实际文件所有权**、构建锁、Chrome Profile 与既有证据；不以“全局唯一 writer”阻塞不相交任务，不覆盖同一文件的并行改动；未经授权不推送远端或执行完整发布/强推/重置。
 
 ## 质量门槛与交付
 

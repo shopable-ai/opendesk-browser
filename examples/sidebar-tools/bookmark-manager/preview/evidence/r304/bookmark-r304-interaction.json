@@ -1,0 +1,128 @@
+{
+  "kind": "CHROMIUM_REACT_MOCK",
+  "browser": "Chrome/155.0.8059.84",
+  "manifest": {
+    "format": "opendesk.ui-preview.v1",
+    "tool": "bookmark-manager",
+    "toolVersion": "0.3.8",
+    "surface": "side-panel",
+    "scenario": "success",
+    "theme": "light",
+    "viewport": {
+      "width": 360,
+      "height": 760
+    },
+    "sourceCommit": "f76dab1b75e598805494947cd290a193708f625c",
+    "designSha256": "f285f6b5e10fe26fce1d4c2e05fe234fc1e38ac3309c948b052f5a12ce422717",
+    "shellTheme": "light",
+    "previewBuild": "R3.0.4 REACT LIST-FIRST UX CANDIDATE",
+    "mock": true,
+    "installed": false,
+    "permissionsGranted": false,
+    "operations": [
+      "getTree",
+      "get",
+      "search",
+      "create",
+      "update",
+      "move",
+      "remove",
+      "prepareRemoveTree",
+      "removeTree",
+      "observe.start",
+      "observe.read",
+      "observe.stop"
+    ],
+    "r28Baseline": {
+      "sourceCommit": "f76dab1b75e598805494947cd290a193708f625c",
+      "designSha256": "f285f6b5e10fe26fce1d4c2e05fe234fc1e38ac3309c948b052f5a12ce422717",
+      "uiSha256": "c22fa65d190aef2f9194f204078e9e1c49ecaec15f0a9d25f515f95d97f68f24",
+      "shellSha256": "225ac01fe157930437a333133321e0daf8e40b82437a2e0a21f8774b59b7bae4"
+    },
+    "designStatus": "DESIGN_PROTOTYPE_NOT_SOURCE_BOUND",
+    "sourceBound": false,
+    "nativeVerified": false,
+    "previewViewportModes": [
+      360,
+      400,
+      960
+    ],
+    "reactRuntime": true,
+    "reactFiles": {
+      "bundle": "cd16d8fc6ede12a52f6e82512f499038cbb04b748c5b96ed471ede794c1d2f5a",
+      "css": "8584c34bd56e13861e851eb5ff89797742fc7a4a3757717a2343955e0b18d07e",
+      "model": "875cf0d61fb95f6c70901337118dd7382f33a2ff0ef45ac308a2a5e807aeee9c",
+      "service": "59095a42310828e86160e49a262352086c19a35fc15bce655bfc81d3e743c451",
+      "mock": "2b683e6bbfe360015648f2c72d34c54b1e926f4ce2be6efde0fb6d01739a427b",
+      "app": "304e544e57c1de4069bb0b43edbf03492493a5f4896ccf6f5183d6cd0cd5c991",
+      "main": "52ae5ebcdd66004d1a222f8436c932499aefb73d4ee0bc3ee8f43d7803738da6"
+    },
+    "reactFrameSha256": "7db9736f0bd902d9a0a9fcabe171eac6cc3fbd5b10b9f701aa11301ba6498d69",
+    "previewCandidate": "REACT_OFFLINE_MOCK"
+  },
+  "sourceSha256": "7e4aa586793fa35af7f16278005de0c6e9c6f79d4317b5b654a2c4b43801dc96",
+  "report": [
+    {
+      "width": 360,
+      "treeHeight": 665,
+      "noPersistentInspector": true,
+      "passed": [
+        "one-click-preview",
+        "five-click-five-previews",
+        "folder-disclosure",
+        "nonmodal-preview",
+        "view-detail-on-demand",
+        "direct-cancel",
+        "edit-no-tree-jump",
+        "save-readback",
+        "search-2159",
+        "create-types",
+        "delete-confirm-copy-and-target",
+        "focus-restore",
+        "menu-Escape"
+      ]
+    },
+    {
+      "width": 400,
+      "treeHeight": 665,
+      "noPersistentInspector": true,
+      "passed": [
+        "one-click-preview",
+        "five-click-five-previews",
+        "folder-disclosure",
+        "nonmodal-preview",
+        "view-detail-on-demand",
+        "direct-cancel",
+        "edit-no-tree-jump",
+        "save-readback",
+        "search-2159",
+        "create-types",
+        "delete-confirm-copy-and-target",
+        "focus-restore",
+        "menu-Escape",
+        "folder-130",
+        "failure-preserve"
+      ]
+    },
+    {
+      "width": 960,
+      "treeHeight": 665,
+      "noPersistentInspector": true,
+      "passed": [
+        "one-click-preview",
+        "five-click-five-previews",
+        "folder-disclosure",
+        "nonmodal-preview",
+        "view-detail-on-demand",
+        "direct-cancel",
+        "edit-no-tree-jump",
+        "save-readback",
+        "search-2159",
+        "create-types",
+        "delete-confirm-copy-and-target",
+        "focus-restore",
+        "menu-Escape"
+      ]
+    }
+  ]
+}
