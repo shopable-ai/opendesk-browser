@@ -26,6 +26,10 @@ assert.match(app, /React\.createRoot/);
 assert.match(app, /React\.useState/);
 assert.match(htm, /OpenDeskPreviewHTM/);
 assert.ok(src.includes('src/ui/design-tokens.css'));
+assert.match(src,/name="od-preview-kind" content="DESIGN_REACT_MOCK_NOT_INSTALLED"/);
+const tokens=readFileSync(join(root,'src/ui/design-tokens.css'),'utf8');
+for (const variable of ['--od-icon-size:34px','--radius-control:8px','--radius-surface:12px','--od-page-gutter:11px'])
+  assert.ok(tokens.includes(variable),'canonical source token '+variable);
 assert.ok(src.includes('src/ui/design-system.css'));
 assert.ok(app.includes('od-surface') && app.includes('od-icon-button'));
 assert.ok(app.includes('React.useRef'));
@@ -88,15 +92,18 @@ try {
   ];
   if (platform() === 'linux') flags.push('--no-sandbox'); // GitHub's shared runners may restrict user namespaces.
   flags.push(pathToFileURL(join(preview,'index.html')).href);
-  browser = spawn(chromeExecutable(),flags,{stdio:['ignore','ignore','pipe']});
+  const executable=chromeExecutable();
+  console.log('CHROME_LAUNCH '+JSON.stringify({platform:platform(),executable,protocol:'file://'}));
+  browser = spawn(executable,flags,{stdio:['ignore','ignore','pipe']});
   browser.stderr.on('data',part=>{browserLog=(browserLog+String(part)).slice(-6000);});
   let target;
   try { target = await until(async () => {
     if (browser.exitCode != null) throw Error('Chromium exited '+browser.exitCode);
-    const res=await fetch('http://127.0.0.1:'+port+'/json/list');
+    // Bound the probe: a macOS Mach-service failure can leave the CDP HTTP endpoint hanging.
+    const res=await fetch('http://127.0.0.1:'+port+'/json/list',{signal:AbortSignal.timeout(1100)});
     const tabs=await res.json();
     return tabs.find(t=>t.type==='page' && t.url.startsWith('file:'));
-  },'CDP real file:// page'); }
+  },'CDP real file:// page',16000); }
   catch(e) {throw Error(e.message + '\nCHROME_DIAGNOSTICS: ' + browserLog);}
   socket = new WebSocket(target.webSocketDebuggerUrl);
   await new Promise((ok,bad)=>{socket.addEventListener('open',ok,{once:true});socket.addEventListener('error',bad,{once:true});});
@@ -114,10 +121,25 @@ try {
   });
   function send(method, params={}) {
     return new Promise((ok,bad)=>{
-      const id=counter++; waiting.set(id,{ok,bad});
-      socket.send(JSON.stringify({id,method,params}));
+      const id=counter++;
+      const timer=setTimeout(()=>{
+        waiting.delete(id);
+        bad(Error('CDP_COMMAND_TIMEOUT '+method+' · '+browserLog.slice(-1400)));
+      },6000);
+      waiting.set(id,{
+        ok:value=>{clearTimeout(timer);ok(value);},
+        bad:error=>{clearTimeout(timer);bad(error);}
+      });
+      try {socket.send(JSON.stringify({id,method,params}));}
+      catch(error){waiting.delete(id);clearTimeout(timer);bad(error);}
     });
   }
+  socket.addEventListener('close',()=>{
+    for (const [id,pending] of waiting) {
+      waiting.delete(id);
+      pending.bad(Error('CDP_SOCKET_CLOSED before response'));
+    }
+  });
   async function evaluate(expression) {
     const result=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});
     if(result.exceptionDetails) throw Error('PAGE_EVAL: '+result.exceptionDetails.text);
@@ -159,6 +181,20 @@ try {
   await click('global-switch');
   await query('document.getElementById("site-switch")?.getAttribute("aria-checked")','true');
   console.log('02 GLOBAL_SYNC_PASS');
+  // CDP keyboard, not DOM .click(): Space activation and Shift+Tab focus order.
+  await evaluate('document.getElementById("global-switch").focus()');
+  const key=async(type,key,code,virtual,modifiers=0)=>send('Input.dispatchKeyEvent',
+    {type,key,code,windowsVirtualKeyCode:virtual,modifiers});
+  await key('rawKeyDown',' ','Space',32);
+  await key('keyUp',' ','Space',32);
+  await query('document.getElementById("global-switch")?.getAttribute("aria-checked")','false');
+  await key('rawKeyDown',' ','Space',32);
+  await key('keyUp',' ','Space',32);
+  await query('document.getElementById("global-switch")?.getAttribute("aria-checked")','true');
+  await key('rawKeyDown','Tab','Tab',9,8);
+  await key('keyUp','Tab','Tab',9,8);
+  assert.equal(await evaluate('document.activeElement?.id'),'open-settings','Shift+Tab from global switch');
+  console.log('02B REAL_KEYBOARD_SPACE_SHIFT_TAB_PASS');
   await click('site-switch');
   await query('document.getElementById("allow-count")?.textContent','1');
   await query('document.getElementById("site-switch")?.getAttribute("aria-checked")','false');
@@ -285,6 +321,9 @@ try {
     'preview controls must sit outside the 360px tool canvas');
   await send('Emulation.clearDeviceMetricsOverride');
   console.log('06B ISOLATED_360PX_CANVAS_PASS');
+  const dimensions=await evaluate('(()=>{const b=document.getElementById("open-settings");const c=document.querySelector(".global-card");const p=document.querySelector(".panel");return {icon:getComputedStyle(b).width,card:getComputedStyle(c).borderTopLeftRadius,gutter:getComputedStyle(p).paddingLeft}})()');
+  assert.deepEqual(dimensions,{icon:'34px',card:'12px',gutter:'11px'});
+  console.log('06D OFFICIAL_TOKEN_COMPUTED_STYLE_PASS');
 
   // Optional CI screenshots are real Chromium pixels, never mock/statically generated.
   const evidenceDir=process.env.ADBLOCK_PREVIEW_EVIDENCE_DIR;
