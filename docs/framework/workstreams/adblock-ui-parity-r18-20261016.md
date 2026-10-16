@@ -1,5 +1,16 @@
 # AdBlock UI Parity R1.8（2026-10-16）
 
+## R1.9.9 本轮续接（2026-10-17，01a14606，IN_PROGRESS）
+
+- Owner：本聊天；目标为批准的单行工具栏与概览/网站例外/设置三页实装复核，最小修复后独立复评。默认中文，不重做设计，不以开发证据宣称生产接受。
+- 写入范围：本工作流；若实测出现缺口，仅 AdBlock `src/`、`trusted/host-controls.js` 及对应定向测试/精确来源 pin，写前重新读取 diff。共享 React 文件默认只读；其他 Agent 的 Prompt Shortcuts、XMind 与 Page lifecycle 工作保留。
+- 来源：fetch 后本地 `1fbba04d4`、远端 `e84d02149`；已按续接授权保留双方提交合并 main。新增 React picker/编辑器接线使旧包证据不足以覆盖最新共享输入，需补定向回归与独立快照构建。
+- 资源：持续开发唯一 writer PID 23773 / 127.0.0.1:43119 / `dist/development`，不覆盖或停止；独立快照及证据 `artifacts/adblock-r199-local/`，构建 guard 43221（使用前检查），独立临时 CFT Profile/随机 CDP 端口，不操作个人 Chrome。
+- 复用：此前 AdBlock 114 项组件结果和真实授权/拦截/重启证据按各自原身份保留；最新文案后的 UI 截图、四档物理布局、最新共享 React 构建未覆盖，须补证。撤权网络失败仍 BLOCKED；正式 JSON 未晋升；未测维度 NOT_SCORED。
+- 通过条件：同输入构建/verify，通过当前候选安装链，三页无可见阻断；截图绑定路径/模式/真实 ID/serve/源码与包指纹，独立按证据评价相关 UI 维度。完整 Native、生产接受和正式晋升分别保留原门禁。
+- 实测新增 P2：首次批准 DNR 后的预期重启被作为通用技术错误留在所有页面，独立初评 89–94。先以回归测试复现，再把同一真实全局状态放到三页共享的产品状态区，明确“全局保护”归属，保留重启围栏及撤权未确认提示，移除该预期分支的全局原始错误。仅更新精确 host-controls blob pin，不扩展可信源。
+- 新增验证驱动所有权：`scripts/tests/react-sidebar-r3331-browser.mjs`。夹具补入产品已有样式，原生点击前验证真实命中并在需要时滚轮滚动；保留全部 trusted Run/Save/Stop、framework 和 owner 清理断言。修复后 SOURCE_UI_SIMULATION_CHROMIUM PASS，不冒充实装测试。
+
 ## 当前工作范围与互斥资源
 - Branch: `main`，只在本轮专属文件与核对后的 AdBlock 固定 DOM、CSS、生成器/定向测试写入；不触及其他工具业务及原生 DNR service/rules。
 - 读取起点 main `cff9eff4a37c4e5cdd763c5b04edb3d35d704d2a`；原件 blob `f10b6f6671480b3ea4828a04541e7bffa4e4d58a`。
@@ -161,3 +172,14 @@
 - 最新临时候选 `ui-candidate.opendesk-tool.json`，版本 **1.1.1**，**19103 字节**，SHA-256 `a45ef76ff290b13e607aa259a98a92ece1af0bdc06e9c359e2c2ecc0e56f338d`，与最新 production/development 内嵌包逐字节相等；没有晋升正式 JSON。
 - 日常固定目录的隔离 CFT 已实际确认 serve 连接：extension ID `ccfcjegpkdlgbclopjmadlcjedelidmf`，revision `645bed88d6900a3627152e261acab2b829999bad7060abd5e84ff6dab3833af1`；新版不可用页面文案已实装，截图及连接回读在 `ui-development-review/`。本次只读业务状态、真实安装及原生输入，没有写入 storage 制造结果。隔离浏览器/profile 已关闭；正常 watcher 继续运行。
 - 用户要求在新对话继续：最新文案后的 production 三页重评、四档真实布局及完整 Native 仍为 **NOT_TESTED**，不能沿用修改前的 92 分或伪造 95+。既有撤权网络失败仍是正式发行 blocker；先前 Native 报告只绑定其原始 hash。用户已在本对话明确授权一次保留双方提交的 `main` 合并并推送，取代该次分叉的仅快进限制；其他 Agent 未提交改动继续保留。
+
+### R1.9.9 首次授权状态修复与当前 production 复评（2026-10-17）
+
+- 本聊天写入本工作流、`trusted/host-controls.js`、`scripts/bundle-provenance.mjs`、host-controls 定向测试和根目录来源绑定预览；原批准设计 `preview/adblock-r1-interactive-preview.html` 未修改。通用 SDK/过滤权限/生命周期业务未改。并行 React 驱动修复已由集成者保存为 `1b02165a4`。
+- 新复现：首次授权的预期 `E_ADBLOCK_RESTART_REQUIRED` 被当成全局错误，后续切换设置/例外仍残留技术红字。先保存失败回归，再将其显示为带“全局保护”归属的产品状态；状态放在三页共同容器，继续保持未开启及重启围栏。18/18 host 测试通过；前后日志保留在 `artifacts/adblock-r199-local/restart-guidance-{before,after}.log`。
+- 定向验证：9 文件 **105/105 PASS**；快照完整依赖下编辑器 **177/177 PASS**；当前 `check` **796 文件 PASS**。本机根依赖缺 webpack 的旧编辑器失败保留，未修改共享依赖。React Chromium 真实 Input 源码模拟 **PASS**；驱动补齐真实 tool-shell CSS、只读命中验证及原生滚动，保留 disabled/可信事件断言。不是完整扩展原生 PASS。
+- 独立快照/guard 43221 双构建和 Verify **PASS**：production `08f3a554c3ced2ccef1d3e4ee64c59d359ccab17ca4f60ca52ba4f0854471884`，development `7d2c97200b654bd2ff9d6af725bd9dca775eed42c33285c569d730a00669819f`。记录在 `artifacts/adblock-r199-local/builds-guidance/` 和 `verify-guidance.log`。候选绑定快照，不等于后续并行修改的整个 main 已验证。
+- 日常持续开发实际连接已读回：固定 `dist/development`、ID `ccfcjegpkdlgbclopjmadlcjedelidmf`、revision `76ca37ac791cf61e9660bb56d42e982d66b6f9cb7f404bd368a0c18475373c97`；隔离 CFT 截图在 `ui-development-guidance/`。未停止 PID23773 watcher 或覆盖其输出。
+- 同一新 production 静态候选在真实 Mac CFT **Chrome 156.0.8078.4** 安装、默认中文，真实 extension ID `caldphaccflihgiaaecgcloilngklpho`，加载路径为本轮 `source/dist/production`。360×815/DPR2 新概览、首次授权、设置、例外和焦点截图在 `ui-production-guidance/`，无横向溢出。独立 reviewer 的 `independent-review.json` 给 UI还原96、布局96、可读性94、三页导航/状态95、可见无障碍96；原P2已解决，剩余均P3。不取整、不将目标分数写为已通过；继续按真实可读性问题润色。
+- 原生物理分隔线操作未改变实际360px宽度；320/400/480及完整四档仍 **NOT_TESTED/NOT_SCORED**。只评可见焦点，不提升为完整辅助技术/WCAG接受。既有撤权后网络仍被拦截的原始失败保留；卸载/升级/共存等未测后续不晋升。**正式 JSON 未晋升**，工具目录尚无正式 JSON，1.1.1临时候选身份不变。
+- 本轮独立 CFT/Profile 已通过自己的 harness 正常关闭，并已向获得用户协调授权的 Cookie Editor 聊天交接前台原生资源。共享 Git 事务按 owner 串行，保留其 Cookie/SDK 和其他 Agent 工作。

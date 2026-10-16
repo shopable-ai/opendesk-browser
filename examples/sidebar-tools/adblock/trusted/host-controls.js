@@ -1,5 +1,6 @@
 // Fixed first-party Side Panel UI. Never import this module from an installed tool.
 import {ADBLOCK_ID,ADBLOCK_CAPABILITY,ADBLOCK_PERMISSION,ADBLOCK_STORE} from './policy.js';
+const GRANT_RESTART_COPY='全局保护：Chrome 权限已批准，过滤尚未开启，请完整重启后手动开启。';
 
 export function createAdblockPermissionControls({
   api,doc,container,notice,runOperation,onViewChange=()=>{},openToolManagement=()=>{},settingsControl=null
@@ -76,7 +77,6 @@ export function createAdblockPermissionControls({
   overview.append(exceptionsTrigger);
   const info=make('p','adblock-native-feedback');
   info.setAttribute('role','status');info.setAttribute('aria-live','polite');
-  overview.append(info);
 
   const exceptions=make('section','adblock-native-subpage');
   exceptions.setAttribute('aria-label','已停用的网站');exceptions.hidden=true;
@@ -113,7 +113,7 @@ export function createAdblockPermissionControls({
   manageTool.append(managementButton);settings.append(settingsCard);
   settings.append(make('p','adblock-native-setting-note',
     '当前版本不提供订阅源编辑、元素屏蔽或无法验证的请求统计。'));
-  section.append(overview,exceptions,settings);container.append(section);
+  section.append(overview,exceptions,settings,info);container.append(section);
 
   const report=(value,problem=false)=>{
     info.textContent=value;info.hidden=!value;
@@ -219,8 +219,8 @@ export function createAdblockPermissionControls({
       if(visible&&captured===sequence){
         state=data;
         report(data.restartRequired?(data.permissions?.dnr===true?
-          'Chrome 权限已批准，过滤尚未开启，请完整重启后手动开启。':
-          'Chrome 广告过滤权限已撤销，停止过滤尚未确认，请完整退出并重启 Chrome。'):'');
+          GRANT_RESTART_COPY:
+          '全局保护：Chrome 广告过滤权限已撤销，停止过滤尚未确认，请完整退出并重启 Chrome。'):'');
         paint();
       }
     }catch(e){
@@ -252,7 +252,16 @@ export function createAdblockPermissionControls({
       report(data.refreshRequired?'设置已生效于新请求，请刷新当前网站。':
         data.enabled?'Chrome 已确认过滤开启':'Chrome 已确认过滤关闭');
     }catch(e){
-      if(captured===sequence&&capturedGeneration===generation){state=null;report((e.code||'E_ADBLOCK')+'：'+String(e.message||e),true);}
+      if(captured===sequence&&capturedGeneration===generation){
+        state=null;
+        // The first permission grant intentionally requires a browser restart.
+        // Keep that expected guidance in the product status; a global error
+        // would otherwise survive navigation after the fresh status read.
+        const restartRequired=e.code==='E_ADBLOCK_RESTART_REQUIRED';
+        report(restartRequired?
+          GRANT_RESTART_COPY:
+          (e.code||'E_ADBLOCK')+'：'+String(e.message||e),!restartRequired);
+      }
     }finally{
       // An older request must not clear the busy flag or return focus to a
       // newly installed tool, including when its readback resolves late.

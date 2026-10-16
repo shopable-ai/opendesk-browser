@@ -240,6 +240,30 @@ test('first optional DNR grant explains Chrome restart without presenting active
   panel.global.listeners.click({isTrusted:false});assert.equal(requests,0);
 });
 
+test('first grant restart guidance does not leave a technical error across product pages',async()=>{
+  const f=fixture();let granted=false;
+  const panel=f.mount(async op=>{
+    if(op==='adblock.status')return granted?
+      {...status(false),restartRequired:true,rules:{verified:false}}:status(false);
+    granted=true;
+    throw Object.assign(Error('Chrome 首次批准 DNR 后需完整退出并重启浏览器，然后手动开启过滤'),
+      {code:'E_ADBLOCK_RESTART_REQUIRED'});
+  });
+  panel.controls.render(tool,false,true);await tick();
+  panel.global.listeners.click({isTrusted:true});await tick();await tick();
+  assert.equal(panel.global.disabled,true);
+  assert.equal(panel.global.attributes['aria-checked'],'false');
+  assert.match(panel.info.textContent,/权限已批准.*尚未开启.*重启/);
+  assert.doesNotMatch(panel.info.textContent,/E_ADBLOCK/);
+  assert.deepEqual(panel.notices,[],'expected restart guidance must stay in its authoritative product status');
+  panel.controls.toggleProductSettings();
+  assert.equal(panel.controls.view(),'settings');
+  assert.ok(panel.container.children[0].children.includes(panel.info),
+    'unresolved global protection status stays outside the page-specific content');
+  assert.match(panel.info.textContent,/全局保护.*尚未开启.*重启/);
+  assert.deepEqual(panel.notices,[],'navigating to settings must not retain a stale global error');
+});
+
 test('R1.9 trusted product cards and host-owned three-view navigation',async()=>{
   const f=fixture();let reads=0;
   const panel=f.mount(async()=>{reads++;return status();});
