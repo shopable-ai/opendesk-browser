@@ -2,6 +2,7 @@ import {createSchemaSpecializer} from './scripts/scoped-schema.mjs';
 import protocolSchema from './src/platform/schema.js';
 import {recordBundle} from './scripts/bundle-provenance.mjs';
 import {transformPinnedAxiosBrowserSource} from './scripts/axios-browser-csp.mjs';
+import {transformPinnedReactDomInputTracker} from './scripts/react-dom-input-csp.mjs';
 import {defineConfig} from 'wxt';
 import {readFileSync} from 'node:fs';
 import {resolve, dirname} from 'node:path';
@@ -124,6 +125,17 @@ export default defineConfig({
       if (target === 'libs/packages/store.js') config.build.lib.name = 'OpenDeskStoreBundle';
       if (target === 'libs/packages/cheerio.js') config.build.lib.name = 'OpenDeskCheerioBundle';
       if (target === 'libs/packages/fingerprintjs.js') config.build.lib.name = 'OpenDeskFingerprintJSBundle';
+      if(target==='ui/tool-shell.js') {
+        const reactDomVersion=JSON.parse(readFileSync(resolve('node_modules/react-dom/package.json'),'utf8')).version;
+        config.plugins.push({
+          name:'opendesk-pinned-react-dom-input-tracker-csp',
+          enforce:'pre',
+          transform(code,id){
+            const changed=transformPinnedReactDomInputTracker(code,id,{target,reactDomVersion});
+            return changed===null?undefined:{code:changed,map:null};
+          }
+        });
+      }
       if (target === 'libs/packages/axios.js')config.plugins.push({
         name:'opendesk-audited-axios-browser-csp',
         enforce:'pre',
