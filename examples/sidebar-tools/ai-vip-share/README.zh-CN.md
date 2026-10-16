@@ -3,7 +3,7 @@
 正式工具 ID：`ai-vip-share`；源码目录：`examples/sidebar-tools/ai-vip-share/`。
 用户从 OpenDesk Browser「扩展」安装，不需要持有浏览器项目源码；本工具不提供任意节点、PAC 编辑器、Cookie 会话移植或常驻日志。
 
-## 当前正式源码：R5.9.1 / 1.3.2
+## 当前正式源码：R5.9.2 / 1.3.3
 
 唯一可导入包为本目录的 [`ai-vip-share.opendesk-tool.json`](ai-vip-share.opendesk-tool.json)，由唯一打包器验证候选后晋升。正式顺序为会员 → 兑换 → 商品 → 代理；沿用原控件 ID、opaque-origin 沙箱、现有安装存储和公共 Browser SDK。当前 v2 能力为 `storage.local`、`network`、`browser.tabs`、`browser.proxy.managed`；R2–R5.2 下文关于旧 `aiAccess.*` 与 `SDK_BLOCKED` 的描述仅是历史，不能当作当前接线。
 
@@ -119,3 +119,7 @@ src/main.js 保留原有 Browser SDK、可信服务端会员数据、存储 CAS 
 ## R5.9.1 视觉修复与真实性边界
 
 正式 UI 使用公共主题，调整内容区域与原型接近的 16/17px 内边距，并在 345px 及以下改用 12px 左右边距，修正折叠兑换记录和网络说明的多余 margin。保留 SDK、单代理按钮及正式服务 fail-closed 行为。未确认 1.2.0/1.3.0/1.3.1 兑换事务仍受保护。历史紫色 HTML 原型与公共蓝色主题有色值差异；未取得 1.3.2 真实安装、原生 STOP 或商业 Provider 成功证据。
+
+## R5.9.2 · Chromium 截图驱动的紧凑化迭代（1.3.3）
+
+比对同源正式打包 UI 的真实 Chromium 图片后发现代理「重新检测」单独占用一整行，商品、兑换和代理区的无 Provider 提示存在重复。刷新调整到代理标题右侧的公共图标按钮，保留原 ID、原生用户点击和原公共 SDK 状态回读；短化重复提示而保留正确禁用、STOP、持久事务保护与折叠网络说明。原型紫色与正式公共蓝色设计系统的色值仍需产品 Owner 决议；真实已安装 1.3.3、商业服务、原生代理和 Mac 本地均不可用这些模拟图片声称通过。

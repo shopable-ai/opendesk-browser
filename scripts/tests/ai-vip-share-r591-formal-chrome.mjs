@@ -11,7 +11,7 @@ import {createSidebarToolPackage,encodeSidebarToolPackage} from '../build-sideba
 const out=resolve(process.argv[2]||'artifacts/ai-vip-share-r591/chromium');
 await mkdir(out,{recursive:true});
 const pkg=await createSidebarToolPackage('examples/sidebar-tools/ai-vip-share');
-assert.equal(pkg.id,'ai-vip-share');assert.equal(pkg.version,'1.3.2');
+assert.equal(pkg.id,'ai-vip-share');assert.equal(pkg.version,'1.3.3');
 const preview=await readFile('examples/sidebar-tools/ai-vip-share/preview/index.html','utf8');
 const escape=s=>s.replace(/<\/script/gi,'<\\/script').replace(/<\/style/gi,'<\\/style');
 function fixture(){
@@ -131,7 +131,7 @@ async function click(selector){
 async function run(){
  await connect();
  for(const width of [320,360,390,440])for(const theme of ['light','dark']){
-  await viewport(width,theme);await navigate('/preview');
+  await viewport(width+20,theme);await navigate('/preview');
   await until('!!document.getElementById("scenario")','preview loaded');
   await evaluate('('+function(w,t){
    const el=document.getElementById('scenario');el.value='blocked';

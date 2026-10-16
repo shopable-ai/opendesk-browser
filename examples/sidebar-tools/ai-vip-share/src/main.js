@@ -81,9 +81,9 @@
   const businessSdk=window.OpenDeskSDK?.browser?.network;
   // Existing installed-tool storage is bound by Host to package and install epoch.
   // Never store a voucher, password, auth cookie, proxy lease or access token.
-  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.3.2';
+  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.3.3';
   // Do not strand an unresolved 1.2.0 voucher journal after a tool upgrade.
-  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2']);
+  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2','1.3.3']);
   const storeRequest=window.OpenDeskTool.request;
   let snapshot=null,pending=null,recovery=null,recoveryFault=null;
   let recoveryReady=false,busy=false,seq=0;
@@ -578,7 +578,7 @@
   const shopSdk=window.OpenDeskSDK?.browser?.tabs;
   shop.disabled=!catalog;
   shopStatus.textContent=catalog?'在新标签页打开已审核的商品目录（需要安装审阅和浏览器授权）。':
-    '正式商品目录尚未配置，不展示虚假价格或订单。';
+    '商品目录暂不可用。';
   shop.addEventListener('click',event=>{
     if(event?.isTrusted!==true||!catalog||shop.disabled)return;
     shop.disabled=true;shopStatus.textContent='正在请求打开商品目录…';
@@ -646,7 +646,7 @@
       else if(!sdk)detail.textContent='当前浏览器未提供已批准的 Managed Proxy SDK。';
       else if(stop)detail.textContent='可请求停用当前安装的代理意图；不依赖会员或 Provider。释放须经 Chrome 回读确认，不会清除其他所有者配置。';
       else if(current?.state==='conflict')detail.textContent='浏览器级代理控制权冲突。不会覆盖其他扩展、策略或旧版安装。';
-      else if(!safeEndpoint)detail.textContent='正式代理 Provider 尚未配置，无法启用；刷新与已有代理 STOP 仍可用。';
+      else if(!safeEndpoint)detail.textContent='代理服务尚未配置；已有代理仍可安全停止。';
       else if(!hasEntitlement())detail.textContent='会员权益尚未由正式服务验证，禁止仅凭代理设置启用访问。';
       else detail.textContent='启用需经可信 Side Panel 单次确认，目标站点采用严格代理分流。';
     };
@@ -729,7 +729,7 @@
     productName.textContent='正式会员服务尚未配置';
     metricLabel.textContent='当前会员权益';
     verified.textContent='正式会员 Provider 尚未配置，账号、权益与兑换记录均不可验证。';
-    redeemNotice('兑换服务未配置，暂无法提交。权益仅按服务端回执生效；兑换不会自动开启代理。');
+    redeemNotice('兑换服务未配置，暂无法提交。');
     refresh.disabled=true;
   }else{
     refresh.disabled=false;
