@@ -111,3 +111,11 @@ Chromium 专项使用 `tests/framework/chatgpt-mindmap-xmind-probe.mjs` 与 `tes
 
 上述三个文件已从 Actions Artifact 下载，在独立容器重新计算 SHA-256 **全部匹配**；它不是用户 Mac 原生路径，更不是 Host MV3 注册证明。Program 业务 JS 源文件仍是独立项目七个模块，宿主根 `src/` 未修改。图片和源码阶段的通过均不能解除 `BLOCKED_GLOBAL_STYLE_RESIDUE`、`E_XMIND_RUNTIME_UNAVAILABLE` 和许可证/USER_SCRIPT 合规审查。
 
+---
+## R3.7 增量架构与证据复核（2026-10-16）
+
+- **归属保持不变**：导图业务仅在 `examples/programs/chatgpt-mindmap/src/`、`assets/`；本轮修复只修改 `tests/framework/chatgpt-mindmap-chatgpt-probe.mjs` 和相关文档，不修改浏览器宿主根 `src/`，不新增 Mind Map Host 特例或安装路径。
+- **同源编译**：[专项 CI #38867300512](https://github.com/shopable-ai/opendesk-browser/actions/runs/38867300512) 对 `aaccbf608b0b2c98d13074158f4404cae73bd598` 完成 `validate-program-project`、`build:program`、`audit-build` 和 `npm run check`。七个业务模块只来源于 Program 内 `src/`，仅 CSS 作为 Program 资产，四份 XMind 库未进入正式 Program。源码/编译 Hash 同为 `e17e473394c6b8269277ff1373c831346706d03f6bbfb912c759767194f25799`，`sourceBytes=53841`；候选仍 `BUILT_UNVERIFIED / installable:false`。
+- **真实 Chromium 边界**：成功的两类 Chromium 探针都是 Linux loopback HTML 原始 XMind 与模拟 ChatGPT DOM，绝非 Mac Chrome `chrome.userScripts` 实际导入、正式安装或登录 ChatGPT 运行。截图 Artifact 与编译 Artifact 分开保存。
+- **未解决的关键生产问题**：完整 license/SBOM、4,042,573 字节 vendor runtime 在 USER_SCRIPT 下的可信资源准入、60KiB/512KiB 通用资源限制、全局 `style#snowbrush_style` 生命周期、授权与撤权后已有页面停止、BFCache/SPA、`dist/development` 与 `dist/production` 中实际是否有当前候选。均不得靠改 Program ID、MAIN 注入、放大限额或伪造 `installable` 解决。
+- **后续真实质量门槛**：参考 `docs/framework/workstreams/chatgpt-mindmap-r37-acceptance.md`，对未检项目标 `NOT_TESTED`、`BLOCKED`，设计状态继续 `PENDING_USER_CONFIRMATION`。不得根据绿色 CI 直接评分 ≥95/100。

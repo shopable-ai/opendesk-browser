@@ -179,3 +179,15 @@ npm run check
 已通过的专项 CI 示例：[`#38865072908`](https://github.com/shopable-ai/opendesk-browser/actions/runs/38865072908)，离线源码/构建 Job 与真实 Linux Chromium 原始 XMind/ChatGPT 模拟页面 Job 均为 SUCCESS。该运行 A/B/C 真实主题 10/6/10、20 次开关、桌面及 320/375/390/768/1440 响应、横向浏览与菜单交互、截图 PNG SHA-256 校验通过。图片证据由独立 `r36-chatgpt-icon-toolbar-proof` Artifact 提供；构建候选由独立 `r36-program-build-candidate` Artifact 提供；旧 CI 的 `r35-*` 仅代表旧版运行。
 
 **四个不同状态严禁混淆**：独立源码已验证；Program 构建候选已审计但 `BUILT_UNVERIFIED/installable:false`；Browser MV3 `dist/development` / `dist/production` 包含状态 **NOT_TESTED**；本机 Mac Chrome 真实 `userScripts` 注册/授权/卸载 **NOT_TESTED**。生产必需的固定原始 XMind JS 分发许可、可信 USER_SCRIPT 准入、`E_XMIND_RUNTIME_UNAVAILABLE` 与 Snowbrush `snowbrush_style` 全局残留是 **BLOCKED**。别在宿主 `src/` 添加思维导图特例，也不得把 `installable` 改为 `true` 冒充安装通过。设计仍 `PENDING_USER_CONFIRMATION`。
+
+---
+## R3.7 · 真实 Chromium 移动端、构建与生产边界（2026-10-16）
+
+**当前状态：独立预览 `PREVIEW_PASS`；真实 Chromium fixture `PASS`；Program 源码同源构建 `BUILD_PASS`；截图已人工抽检但 JSON 的 `visualReview` 仍为 `SCREENSHOT_NOT_VERIFIED`；生产安装 `BLOCKED`。** 设计仍为 `PENDING_USER_CONFIRMATION`。不可把成功的本地模拟页称为登录 ChatGPT 的 Chrome 原生安装。
+
+- 已通过的同源 CI：[Actions #38867300512](https://github.com/shopable-ai/opendesk-browser/actions/runs/38867300512)，提交 `aaccbf608b0b2c98d13074158f4404cae73bd598`；离线环境 21/21、通用原生管理组件 41/41、真正 XMind 浏览器探针和 ChatGPT 模拟页浏览器探针成功，附 PNG/JSON 与 Program 构建候选 Artifact。新增的「320px 水平滚动后重新适配」断言在 `862eef6c24c6af3046cec8792c7c0fc0d69d1071`，必须查看该提交后续 CI，未有实际 Job 结果前不能标为通过。
+- 320px **内容容器**：真实根节点 180px 中可见 180px（旧失败时仅 31px），画布 318px、主题 6 个、实际滚动容器 `scrollWidth=2021`、`scrollLeft=660`。320px **浏览器整窗**：内容宽 296px、画布 294px、真实横向滚动由 176 增至 411；网页自身没有水平溢出。
+- 已按实际容器宽度检查 375/390/400/440/768/1220/1440px 的 ToolBar、根节点和页面滚动；真实 A/B 独立、C 表格/代码/引用、20 次开关、全屏、折叠、暗色、原文恢复、Stop 和移动端更多菜单键盘交互均在专项探针中。测试补充文件仅位于 `tests/framework/chatgpt-mindmap-chatgpt-probe.mjs`；本轮不改浏览器宿主根 `src/`。
+- 最新已通过的源码构建 Hash：`e17e473394c6b8269277ff1373c831346706d03f6bbfb912c759767194f25799`；`sourceBytes=53841`，`status=BUILT_UNVERIFIED`、`installable=false`。正式四份 XMind vendor JS 总计 4,042,573 B **仅用于预览**，受信 Runtime/第三方许可/资源准入/全局 `snowbrush_style` 隔离尚未通过。Mac `dist`、登录 ChatGPT、`chrome.userScripts` 真实注册、撤权、卸载、BFCache 均为 `NOT_TESTED` 或 `BLOCKED`。
+
+详见 [R3.7 验收审计](../../../docs/framework/workstreams/chatgpt-mindmap-r37-acceptance.md)；不要依据本文对生产安装或用户满意度自行填写 95 分。
