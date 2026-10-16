@@ -192,6 +192,7 @@ class Node {
   append(...items){for(const item of items){item.parent=this;this.children.push(item);}}
   remove(){if(this.parent)this.parent.children=this.parent.children.filter(item=>item!==this);this.parent=null;}
   setAttribute(name,value){this.attributes.set(name,value);}
+  removeAttribute(name){this.attributes.delete(name);}
   focus(){this.focused=true;if(this.ownerDocument)this.ownerDocument.activeElement=this;}
 }
 const pause=()=>new Promise(resolve=>setImmediate(resolve));
