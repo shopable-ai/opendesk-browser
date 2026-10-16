@@ -34,6 +34,7 @@
 
 - 历史通过基线：[CI #38941304093](https://github.com/shopable-ai/opendesk-browser/actions/runs/38941304093) 属于旧提交，不证明本轮。
 - R33.3.3 第一次 [CI #38949353635](https://github.com/shopable-ai/opendesk-browser/actions/runs/38949353635)：React TSX/DOM/安全测试通过，Chromium 对连续 radio 切换的第二次 Vue 点击报 FAIL；随后增加真实 click/change 兼容与去重。此失败不能标记 PASS。
+- 后续 [CI #38950864927](https://github.com/shopable-ai/opendesk-browser/actions/runs/38950864927) 已确认源码 React/DOM 安全 16/16 通过，Chromium 在状态 Portal 发现真实文本交接错误：旧静态文案与 React 状态串联为「正在连接可运行」。这是 Portal 保留原静态子节点的问题，不是文案断言问题。提交 `cec20af0fc5dfd89d94b58d61760610a7416f991` 在首次 Portal render 前备份/清理运行状态文本和当前网页状态占位节点，并将正式 HTML 初始提示写进 Chromium fixture；仍须取新候选真实 CI 回执。
 - 最新候选与触发 CI 持续以实际 `main` 及 GitHub Actions 为准，测试未返回就记 `NOT_TESTED/IN_PROGRESS`；不得借旧绿色 CI 替代。
 - 本聊天无权访问 `/Users/shopme/Documents/workspace/opendesk-browser` 的 Mac 工作树与已安装 Chrome，因此 `INSTALLED_EXTENSION_NATIVE_CHROME` 必须记 `NOT_TESTED`，不能推导真实 Extension ID、Native Host 收据或资源清理成功。
 
