@@ -12,6 +12,10 @@ const APP_PRESENTATION = Object.freeze([
   {id:'opendesk/knowledge-inbox',toolId:'knowledge-inbox',category:'AI',author:'OpenDesk',summary:'在获授权的 ChatGPT 页面按点击保存回答、图片及想法。',sites:'chatgpt.com；按网站单独授权',surfaces:['侧边栏','ChatGPT 页面'],features:['保存回答','整理收件箱','显式导出'],media:'inbox'}
 ]);
 export const OFFICIAL_COLLECTIONS = Object.freeze([
+  // Publish a new immutable revision whenever any packaged member advances.
+  // Revisions 1–5 remain pinned to their original versions.
+  {id:'reading-kit',revision:6,title:'阅读与摘录',description:'目录 1.0.7、网页剪藏 1.0.1 与网页笔记 1.1.9 的固定组合。',
+    members:[{id:'opendesk/reading-toc',version:'1.0.7'},{id:'opendesk/web-markdown-clipper',version:'1.0.1'},{id:'opendesk/quick-notes',version:'1.1.9'}]},
   {id:'reading-kit',revision:5,title:'阅读与摘录',description:'目录、剪藏与网页笔记；包含网页剪藏 1.0.1 的固定组合。',
     members:[{id:'opendesk/reading-toc',version:'1.0.4'},{id:'opendesk/web-markdown-clipper',version:'1.0.1'},{id:'opendesk/quick-notes',version:'1.1.8'}]},
   {id:'reading-kit',revision:4,title:'阅读与摘录',description:'目录、剪藏与网页笔记；固定阅读目录 1.0.4 默认网站可用性的组合。',

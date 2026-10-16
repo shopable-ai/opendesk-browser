@@ -30,6 +30,8 @@ on:
       - 'tests/framework/reading-toc-preview-r14-native.test.mjs'
       - '.github/workflows/reading-toc-r41.yml'
       - 'official-tools/**'
+      - 'src/marketplace/catalog.js'
+      - 'tests/environment/app-market-r5.test.mjs'
       - 'src/sidebar-tools/**'
       - 'src/ui/sidebar-tools/**'
       - 'scripts/build-official-tools.mjs'
@@ -54,6 +56,8 @@ jobs:
       - name: Reproducible TOC tool and trusted bridge regression
         run: |
           node --test tests/environment/reading-toc-r41.test.mjs tests/environment/reading-toc-lifecycle-r41.test.mjs tests/environment/reading-toc-placement-r42.test.mjs tests/environment/reading-toc-overview-r43.test.mjs tests/environment/reading-toc-visibility-r46.test.mjs tests/environment/reading-toc-recovery-r48.test.mjs tests/environment/sidebar-tool-localization-r12.test.mjs tests/environment/reading-toc-localization-preview-r12.test.mjs
+          # Latest collection must match actual packaged releases; old revisions remain immutable.
+          node --test --test-name-pattern='R5 newest fixed reading kit|R5 immutable archive conflicts' tests/environment/app-market-r5.test.mjs
           npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc --out artifacts/sidebar-tools/reading-toc/reading-toc.opendesk-tool.json
           node scripts/preview/build-preview.mjs --tool reading-toc --surface side-panel --scenario success --theme light --width 360 --out artifacts/previews/reading-toc/reading-toc-r12.html
           node scripts/preview/build-preview.mjs --tool reading-toc --surface page-overlay --scenario success --theme light --width 360 --out artifacts/previews/reading-toc/reading-toc-r12-overlay.html

@@ -239,11 +239,15 @@ test('R5 terminal settlement survives journal trimming and missing recovery resp
 test('R5 newest fixed reading kit matches packaged releases while historical revisions stay pinned',async()=>{
   const fixtures=await officialFixtures(),kits=OFFICIAL_COLLECTIONS.filter(row=>row.id==='reading-kit');
   const current=kits[0];
-  assert.equal(current.revision,5);
+  assert.equal(current.revision,6);
   for(const member of current.members){
     const release=fixtures.catalog.apps.find(row=>row.id===member.id);
     assert(release,member.id);assert.equal(member.version,release.version,member.id);
   }
+  assert.deepEqual(kits.find(row=>row.revision===5).members,[
+    {id:'opendesk/reading-toc',version:'1.0.4'},
+    {id:'opendesk/web-markdown-clipper',version:'1.0.1'},
+    {id:'opendesk/quick-notes',version:'1.1.8'}]);
   assert.deepEqual(kits.find(row=>row.revision===3).members,[
     {id:'opendesk/reading-toc',version:'1.0.3'},
     {id:'opendesk/web-markdown-clipper',version:'1.0.0'},
@@ -257,10 +261,15 @@ test('R5 immutable archive conflicts reject same-version bytes and same-revision
     assert.equal(merged.releases.find(row=>row.id===release.id&&row.version===release.version)?.sha256,release.sha256);
   assert(merged.releases.some(row=>row.id==='opendesk/reading-toc'&&row.version==='1.0.2'));
   assert.equal(merged.collections.length,OFFICIAL_COLLECTIONS.length);
+  // Modern official tools can all be newer than the archived versions.
+  // Inject an actual archived identity with a conflicting hash to exercise
+  // the immutable-release guard without assuming a live version stays pinned.
+  const archived=snapshots.flatMap(snapshot=>snapshot.catalog.apps)
+    .find(saved=>fixtures.catalog.apps.some(current=>current.id===saved.id));
+  assert(archived,'conflict fixture requires a historical archived release');
   const changed=structuredClone(fixtures.catalog);
-  const archived=changed.apps.find(row=>snapshots.some(snapshot=>snapshot.catalog.apps.some(saved=>saved.id===row.id&&saved.version===row.version)));
-  assert(archived,'conflict fixture must already have an immutable archived release');
-  archived.sha256='0'.repeat(64);
+  changed.apps=changed.apps.map(current=>current.id===archived.id
+    ? {...archived,sha256:'0'.repeat(64)}:current);
   assert.throws(()=>mergeMarketReleases(snapshots,changed,OFFICIAL_COLLECTIONS),/Immutable release conflict/);
   const sets=structuredClone(OFFICIAL_COLLECTIONS);sets.find(r=>r.revision===1).members[0].version='9.0.0';
   assert.throws(()=>mergeMarketReleases(snapshots,fixtures.catalog,sets),/Immutable collection conflict/);
