@@ -188,8 +188,10 @@ test('R4/R23 five-tab design system has one token source and a strict trusted as
   assert.match(html,/<link rel="stylesheet" href="design-tokens\.css"><link rel="stylesheet" href="design-system\.css"><link rel="stylesheet" href="tool-shell\.css">/);
   for(const view of ['tasks','tools','workflow','develop','cloud'])
     assert.ok(html.includes('class="od-page" data-workbench-page="'+view+'"'),'shared page layout '+view);
-  for(const toolbar of ['task-section-head','local-discovery-search-row','workflow-head'])
+  for(const toolbar of ['task-section-head','local-discovery-search-row'])
     assert.ok(html.includes('class="'+toolbar+' od-toolbar"'),'shared toolbar '+toolbar);
+  assert.ok(html.includes('class="workflow-head od-toolbar od-page-head"'),
+    'workflow header composes both shared toolbar and page-head tokens');
   assert.ok(html.includes('class="developer-source-switch od-toolbar od-page-head"'),'shared page head developer-source-switch');
   assert.ok(html.includes('class="sidebar-tools-head od-toolbar od-page-head"'),'shared page head sidebar-tools-head');
   for(const card of ['catalog-reader'])
