@@ -104,8 +104,12 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     return null;
   };
   const checkedEditor=()=>{
+    const container=one(activeRule?.containerSelector);
     const node=one(activeRule?.editorSelector);
-    return node&&editorKind(node)?node:null;
+    // A previously tested selector can retarget after SPA/React reconciliation.
+    // Never write into an editor outside the user's chosen button region.
+    return container&&available(container)&&node&&container.contains?.(node)&&
+      editorKind(node)?node:null;
   };
   const pickerSelector=node=>{
     if(!node||node===doc.documentElement||node===doc.body)return null;
@@ -266,6 +270,8 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       throw Error('容器必须唯一匹配，且尺寸合理、在当前页面可见');
     if(!target||!kind)
       throw Error('输入框必须唯一匹配且是安全、可编辑的文本字段');
+    if(!container.contains?.(target))
+      throw Error('按钮容器必须包含目标输入框；请重新选择同时覆盖编辑器的上层区域');
     return {valid:true,containerMatches:1,editorMatches:1,editorType:kind,origin:here.origin};
   };
 
@@ -460,6 +466,11 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
         range.selectNodeContents(target);range.collapse(false);
         selection.removeAllRanges();selection.addRange(range);
       }else if(typeof target.setSelectionRange==='function')target.setSelectionRange(before.length,before.length);
+      // Web apps may steal focus or replace an editable node synchronously.
+      // An execCommand against a different active element could corrupt a
+      // separate draft even if our later readback reports failure.
+      if(!target.isConnected||doc.activeElement!==target||editor()!==target)
+        throw Error('输入框已失焦或被网页替换，未执行写入');
       // Use the browser's real editing command; never assign DOM draft values,
       // dispatch synthetic input events, click Send, or replace a selection.
       if(!doc.execCommand('insertText',false,insertion))throw Error('编辑器未确认插入');

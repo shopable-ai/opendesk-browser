@@ -120,7 +120,7 @@ test('R1.4 provenance pins only audited trusted tool modules to exact fixed entr
   const fixtures=[
     ['trusted/model.js','dcc138aab6cb3a6d47325f259990c9ddcac0fb2a'],
     ['trusted/policy.js','6544a03db0f11373dccdf67cc9b5ce808920a495'],
-    ['trusted/page.js','818de57be49a45f17df44b5ee545cf58a8c68ebf']
+    ['trusted/page.js','1cf947812b5f946ab93496fe23dca6024d158c5e']
   ];
   const examined=(path,target)=>describeBundle({chunk:{fileName:target,
       modules:{[resolve(ROOT+'/'+path)]:{renderedLength:1,originalLength:1}}},

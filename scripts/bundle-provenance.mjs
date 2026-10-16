@@ -60,7 +60,7 @@ function reviewedCompiledAdblock(target,path,root){
 const compiledPromptShortcutInputs=Object.freeze({
   'examples/sidebar-tools/prompt-shortcuts/trusted/model.js':'dcc138aab6cb3a6d47325f259990c9ddcac0fb2a',
   'examples/sidebar-tools/prompt-shortcuts/trusted/policy.js':'6544a03db0f11373dccdf67cc9b5ce808920a495',
-  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'818de57be49a45f17df44b5ee545cf58a8c68ebf'
+  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'1cf947812b5f946ab93496fe23dca6024d158c5e'
 });
 const promptFixedTargets=new Set(['agents/page-relay.js','ui/sidebar-tool-host.js']);
 function reviewedCompiledPromptShortcuts(target,path,root){

@@ -479,3 +479,12 @@
 - 审计证实网站规则在 Host 保存期间仍可继续编辑，旧代码在旧版本回执后立即关闭表单；未知写入结果也没有和提示词库一致的锁定机制。
 - 候选 1.1.2 修复 `src/main.js` 并扩展 `prompt-shortcuts-r14-management.test.mjs` 的 pending write、ETag conflict、unknown readback、延迟原生右键选区用例。CI 改为从同一 commit 的配置读包版本；不修改可信 Model/Page/Policy 及通用 SDK/Host。
 - 此段记录时 CI、正式包同步、真实安装及跨站、中文 IME、Undo 均尚无本轮证据，分别标记 NOT_TESTED；不得以 Mock 通过声称产品达到九维 95+。
+
+
+## R2.3 跨站编辑器选择与写入约束（2026-10-16）
+
+- **本轮源码整改**：双选择器测试除 Origin、路径、唯一匹配、可见、类型安全外，进一步要求“所选按钮容器必须实际包含所选编辑器”；SPA / DOM 重建后的渲染与每次插入均重新检查该关系。避免一个区域的快捷按钮静默写入另一个区域的输入框。用户应选中包含输入框的上层区域，不能由系统擅自跨区域匹配。
+- **焦点安全**：在原生 `execCommand('insertText')` 执行之前，检查目标仍连接、仍匹配当前规则且持有文档焦点；网页 `focus` 回调抢焦点或替换目标则不写入，保留草稿并尝试复制回退。沿用 R2.2 二次回读、IME、Undo 意图和未知效果不自动重试。未更改共用 SDK/Host、权限和正式 Sandbox 工具包版本 `1.1.1`。
+- **新增的测试意图**：Node 复现失去容器归属、网页抢焦点两种风险；原有 Chromium DOM Fixture 增补非同容器规则的拒绝 / SPA 隐藏、真实 CDP 键盘撤销。Node / Chromium / CI 状态必须以本次提交触发的原始日志为准；不能凭本段文字宣称通过。
+- **验收边界**：本环境不能接入用户 Mac 本机 Chrome Profile、扩展安装身份或 Claude/Gemini/ChatGPT 已登录页面。三个网站的真实受控编辑器（包括 ProseMirror/Lexical/React 内部状态）、Mac 中文 IME、真实安装升级与撤权为 `NOT_TESTED`，九维 95+ 为 `NOT_SCORED`。同版本 JSON 不变，仅可信 Chrome 固定适配器的源码 blob 更新，用户 Mac 上须让原 `dist/development` 的最新构建实际加载后才生效。
+- **有意暂不支持的目标**：闭合 ShadowRoot、跨源 iframe 等无法由顶层文档安全唯一匹配的编辑器，保持 fail-closed；禁止擅自开启通用页面脚本权限或以未经实际验证的 Claude/Gemini CSS 冒充成功。

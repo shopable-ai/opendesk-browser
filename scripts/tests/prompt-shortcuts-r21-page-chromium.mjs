@@ -193,6 +193,20 @@ try{
   const checked=await evaluate('window.__send("prompt.page.check",{rule:window.__rule})');
   assert.equal(checked.ok,true);assert.equal(checked.data.editorType,'textarea');
   scenes.push({step:'editor picker and live selector check',selector:chosen.data.selector,kind:checked.data.editorType});
+  // Two individually unique selectors are unsafe if they refer to different
+  // composer regions. Test both explicit validation and runtime SPA retarget.
+  const outsideSelector='#other [contenteditable="true"]';
+  const outsideRule={...rule,editorSelector:outsideSelector};
+  const outsideCheck=await evaluate('window.__send("prompt.page.check",{rule:'+JSON.stringify(outsideRule)+'})');
+  assert.equal(outsideCheck.ok,false,'disjoint editor must fail website configuration');
+  assert.match(outsideCheck.error,/按钮容器必须包含目标输入框/);
+  await evaluate('window.__setRule('+JSON.stringify(outsideRule)+')');
+  await poll('document.querySelector("[data-opendesk-prompts]")?.hidden===true',
+    'retargeted editor outside region hides buttons');
+  await evaluate('window.__setRule(window.__rule)');
+  await poll('window.__railRoot?.querySelector(".item")?.isConnected && '+
+    '!document.querySelector("[data-opendesk-prompts]").hidden','restore safe editor');
+  scenes.push({step:'disjoint container/editor and SPA retarget',safeFailClosed:true});
   // The trusted picker deliberately guards the selected target for 750 ms
   // against late click/double-click events. Do not race its release in CI.
   await sleep(825);
@@ -203,6 +217,14 @@ try{
   assert.equal(await evaluate('window.__inputs>0'),true,'native input event fired');
   assert.equal(await evaluate('window.__effects'),0,'no form/site action dispatched');
   scenes.push({step:'textarea native insert',preservedDraft:true,unicodeAndBlankLines:true,noAutoSend:true});
+  // Actual Chromium native keyboard Undo, not a scripted value assignment.
+  await evaluate('document.querySelector("#draft").focus()');
+  await rpc('Input.dispatchKeyEvent',{type:'rawKeyDown',key:'z',code:'KeyZ',
+    windowsVirtualKeyCode:90,modifiers:2});
+  await rpc('Input.dispatchKeyEvent',{type:'keyUp',key:'z',code:'KeyZ',
+    windowsVirtualKeyCode:90,modifiers:2});
+  await poll('document.querySelector("#draft").value==="旧草稿"','native Ctrl+Z restores draft');
+  scenes.push({step:'Chromium native textarea undo',restoredOriginalDraft:true});
   await shot('desktop-trusted-rail');
   await evaluate('window.__setRule(null)');
   await poll('!document.querySelector("[data-opendesk-prompts]")','site rule disabled');

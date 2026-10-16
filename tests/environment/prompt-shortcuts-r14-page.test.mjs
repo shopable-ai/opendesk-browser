@@ -83,6 +83,9 @@ function fixture({pkg,library,grants,insertText=null,noEditor=false,rejectCopy=f
     addEventListener(name,fn){docEvents.set(name,fn);},
     removeEventListener(name){docEvents.delete(name);}
   };
+  // The fixture's focus must have the same activeElement contract as DOM focus.
+  const nativeEditorFocus=editor.focus.bind(editor);
+  editor.focus=()=>{nativeEditorFocus();doc.activeElement=editor;};
   const api={runtime:{id:'test-extension',getURL:()=> 'chrome-extension://test-extension/',
     onMessage:{addListener:fn=>runtimeMessages.add(fn),removeListener:fn=>runtimeMessages.delete(fn)}},storage:{
     local:{async get(keys){return Object.fromEntries((Array.isArray(keys)?keys:[keys])
@@ -549,6 +552,7 @@ test('R2 custom site exact two selectors, enabled lifecycle, ambiguous editor fa
   const url='https://example.org/compose';
   f.win.location.href=url;f.editor.tagName='textarea';f.editor.isContentEditable=false;
   f.editor.getBoundingClientRect=()=>({left:350,top:480,width:540,height:100});
+  f.main.append(f.editor);
   f.editor.value='旧草稿';f.doc.querySelectorAll=s=>s==='main'?[f.main]:s==='textarea'?[f.editor]:[];
   f.doc.execCommand=(command,_show,value)=>{f.calls.push({command,value});f.editor.value+=value;return true;};
   const rule={origin:'https://example.org',pathScope:'/compose',containerSelector:'main',
@@ -576,6 +580,7 @@ test('R2 picker uses extension-owned message, exact document, unique semantic se
   const f=fixture({pkg,library});f.win.location.href='https://example.org/compose';
   f.editor.tagName='textarea';f.editor.attributes.id='composer';
   f.editor.getBoundingClientRect=()=>({left:350,top:480,width:540,height:100});
+  f.main.append(f.editor);
   f.doc.querySelectorAll=s=>s==='textarea'||s==='#composer'?[f.editor]:s==='main'?[f.main]:[];
   const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
   const send=(operation,extra={})=>new Promise(resolve=>{
@@ -668,6 +673,7 @@ for(const scenario of [
     f.editor.tagName='input';f.editor.type='text';f.editor.isContentEditable=false;
     f.editor.value=scenario.draft;f.editor.maxLength=scenario.maxLength??-1;
     f.editor.getBoundingClientRect=()=>({left:350,top:480,width:540,height:40});
+    f.main.append(f.editor);
     f.doc.querySelectorAll=s=>s==='main'?[f.main]:s==='input'?[f.editor]:[];
     f.doc.execCommand=(command,_show,value)=>{
       f.calls.push({command,value});f.editor.value+=value;return true;
@@ -709,7 +715,7 @@ for(const value of ['true','plaintext-only']){
     f.editor.attributes.contenteditable=value;
     const wrapper=mockElement('section'),label=mockElement('div');
     wrapper.attributes.id='rich-container';wrapper.append(label,f.editor);
-    f.editor.parentElement=wrapper;
+    f.editor.parentElement=wrapper;f.main.append(wrapper);
     const other=mockElement('div');other.isContentEditable=true;
     other.attributes.contenteditable=value;
     const semantic='[contenteditable="'+value+'"]',scoped='#rich-container div'+semantic;
@@ -752,3 +758,60 @@ for(const value of ['true','plaintext-only']){
     }finally{controller.dispose();}
   });
 }
+
+test('R2.3 rejects disjoint website selector and hides stale custom rail',async()=>{
+  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const row=globalThis.OpenDeskPromptShortcutsModel.draft({body:'安全正文🙂'},
+    null,()=> 'scope-12345678');
+  const library={schema:1,items:[row],settings:{webButtons:true}};
+  const f=fixture({pkg,library});f.win.location.href='https://example.org/compose';
+  f.editor.tagName='textarea';f.editor.isContentEditable=false;f.editor.value='原草稿';
+  f.main.append(f.editor);
+  const outsider=mockElement('textarea');
+  let selected=f.editor;
+  f.doc.querySelectorAll=s=>s==='main'?[f.main]:s==='textarea'?[selected]:[];
+  const rule={origin:'https://example.org',pathScope:'/compose',
+    containerSelector:'main',editorSelector:'textarea',enabled:true};
+  f.values.set(PROMPT_DATA_STORE,{library,sites:{schema:1,rules:[rule]}});
+  const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
+  const send=(operation,extra={})=>new Promise(resolve=>
+    [...f.runtimeMessages][0]({protocol:'opendesk.prompt-shortcuts.picker.v1',
+      toolId:PROMPT_ID,expectedUrl:f.win.location.href,operation,...extra},
+    {id:'test-extension',url:'chrome-extension://test-extension/tool.html'},resolve));
+  try{
+    await settle();
+    assert.equal(f.buttons().length,1,'valid same-region rule renders buttons');
+    selected=outsider;
+    const rejected=await send('prompt.page.check',{rule});
+    assert.equal(rejected.ok,false,'disjoint editor must fail configuration test');
+    assert.match(rejected.error,/按钮容器必须包含目标输入框/);
+    f.events.get('resize')?.();await settle();
+    const host=f.root.children.find(x=>Object.hasOwn(x.attributes,'data-opendesk-prompts'));
+    assert.equal(host.hidden,true,'SPA retarget outside selected container hides rail');
+    assert.equal(outsider.value,'','foreign editor untouched');
+  }finally{controller.dispose();}
+});
+
+test('R2.3 refuses native edit when site steals focus during editor focus()',async()=>{
+  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const row=globalThis.OpenDeskPromptShortcutsModel.draft({body:'完整提示词🙂'},
+    null,()=> 'focus-12345678');
+  const library={schema:1,items:[row],settings:{webButtons:true}};
+  const f=fixture({pkg,library});f.win.location.href='https://example.org/compose';
+  f.editor.tagName='textarea';f.editor.isContentEditable=false;f.editor.value='原草稿';
+  f.main.append(f.editor);
+  f.doc.querySelectorAll=s=>s==='main'?[f.main]:s==='textarea'?[f.editor]:[];
+  const rule={origin:'https://example.org',pathScope:'/compose',
+    containerSelector:'main',editorSelector:'textarea',enabled:true};
+  f.values.set(PROMPT_DATA_STORE,{library,sites:{schema:1,rules:[rule]}});
+  const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
+  try{
+    await settle();assert.equal(f.buttons().length,1);
+    // The page's focus handler synchronously diverts attention to another node.
+    f.editor.focus=()=>{f.doc.activeElement=f.main;};
+    f.buttons()[0].emit('click',{isTrusted:true});await settle();
+    assert.equal(f.calls.length,0,'execCommand must not target a different field');
+    assert.equal(f.editor.value,'原草稿','old draft preserved');
+    assert.deepEqual(f.copied,[row.body],'copy fallback retains full body');
+  }finally{controller.dispose();}
+});
