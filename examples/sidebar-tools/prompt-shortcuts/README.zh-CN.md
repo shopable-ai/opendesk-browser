@@ -1,6 +1,6 @@
 # 提示词快捷按钮（Prompt Shortcuts）
 
-> 正式工具 ID：`prompt-shortcuts`，版本 `1.1.1`。ChatGPT 内置适配器已完成，其他网站可配置自定义规则。源码在本目录；不是额外的 Chrome Extension。
+> 正式工具 ID：`prompt-shortcuts`，版本 `1.1.2`。ChatGPT 内置适配器已完成，其他网站可配置自定义规则。源码在本目录；不是额外的 Chrome Extension。
 
 ## 使用流程
 
@@ -107,4 +107,12 @@ git diff -- examples/sidebar-tools/prompt-shortcuts/
 - 网站规则保存期间禁止取消、切换与二次提交；期间新输入留在当前表单，已保存版本收到 Host 有效回执后绑定原规则，要求重新测试选择器，避免重复创建。
 - 规则写入回执丢失或不完整时，只有完整预期规则 + 有效 ETag 的读回才算成功；读回未知时锁住网站规则写入，保留草稿并要求重开核对。
 - 延迟到达的右键选区不会覆盖已开始编辑的用户草稿。新增 Node deferred Host 回归测试，保持共享 SDK/Host、权限和可信页面适配器不变。
-- 正式包 1.1.2 需要专项 CI 验证并同步唯一 JSON。实际 Mac Chrome 安装升级、已登录 ChatGPT / 其他网站、IME/Undo/撤权在取得真实证据前仍为 NOT_TESTED。
+- 正式包 1.1.2 已经专项 CI 验证并同步唯一 JSON；详见下方 R2.3 验收记录。实际 Mac Chrome 安装升级、已登录 ChatGPT / 其他网站、IME/Undo/撤权在取得真实证据前仍为 NOT_TESTED。
+
+
+### R2.3 双选择器同区域安全与正式 1.1.2 发行（2026-10-16）
+
+- 配置第三方网站时，**按钮容器应选择包含目标编辑器的上层内容区域**。必须唯一匹配，且所选编辑器位于容器内部；若网页 SPA 使编辑器漂移到其他区域，按钮隐藏而不是猜测写入。写入前再次核验 DOM 连接、焦点和当前目标，失效时保留旧草稿并尝试复制提示词。
+- [Prompt Shortcuts R2.3 CI Run 38910587019](https://github.com/shopable-ai/opendesk-browser/actions/runs/38910587019) 整体 SUCCESS，**Node 84/84、共享工具 6/6、语法、来源门禁、候选打包、正式 UI 模拟 Host Chromium、网页真实 DOM Fixture Chromium 均通过**；CI Fixture 仍不是安装到用户 Chrome 的真实网站实测。
+- 官方单一 JSON 版本 **1.1.2**，GitHub 同源发行 [4bdbbd3](https://github.com/shopable-ai/opendesk-browser/commit/4bdbbd332c237be3cbc77ad5de6028a2378b0bc8)；**73,205 字节**，SHA-256 `36277a82becc4a200b5ac5ccfb5875e11054bcf6d6d2ac378be30c08bda9b02f`，`--check-project=PROJECT_PACKAGE_MATCH`。Chrome 固定可信适配器升级仍需浏览器加载新版构建，不能只导入 JSON 来更新。
+- Claude / Gemini / ChatGPT 已登录真实编辑器、Mac Chrome 实装身份、中文 IME、Cmd+Z、SPA/撤权仍为 **NOT_TESTED**；不得因为模拟回归通过就给出 95+ 实机产品评分。详见唯一 [交接文档](../../../../docs/framework/workstreams/prompt-shortcuts-r12-ui-handoff.zh-CN.md)。

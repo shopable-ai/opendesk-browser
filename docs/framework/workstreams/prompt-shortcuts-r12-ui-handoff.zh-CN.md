@@ -497,3 +497,11 @@
 - [修复提交 fdbd5a6](https://github.com/shopable-ai/opendesk-browser/commit/fdbd5a6b7e64c96b8793622260a86b83f7fff19d) 将陈旧测试改为校验候选版本与当前 `tool.config.json` 一致，不降级并行 Agent 的产品源码。[复验 Run 38909368562](https://github.com/shopable-ai/opendesk-browser/actions/runs/38909368562) 已触发；直至原始 CI 成功前，综合仍为 **IN_PROGRESS**，不得把队列状态记 PASS。
 - 版本必须区分：并行 R1.18 **源配置 1.1.2**，仓库中此前唯一已提交的 **JSON 包 1.1.1** 只有完成新版测试→候选晋升→同源 `--check-project` 后才能同步为 1.1.2。不能通过只更新 Sandbox JSON 替代加载新版 Chrome 可信页面代码。
 - 本环境另外运行了独立 Linux Chromium/CDP `execCommand('insertText')` 和真实 Ctrl+Z 烟测，原草稿成功恢复；这是 **LOCAL_CHROMIUM_UNDO_SMOKE_PASS**，不代表正式脚本全量通过，更不是用户 Mac 的 Chrome 原生安装、Claude/Gemini/ChatGPT 真实编辑器或中文 IME 验收。后三者均保持 **NOT_TESTED**，各项 95+ **NOT_SCORED**。
+
+
+### R2.3 最终 CI 成功、正式 JSON 同源发行与原生验收边界（2026-10-16）
+
+- 第三次测试修复 [bfe13c0](https://github.com/shopable-ai/opendesk-browser/commit/bfe13c0202e235aefe1ea8d171f97e40a5238dab)：原正式 UI Chromium 脚本亦写死候选版本 `1.1.1`，改为核对实际 `tool.config.json` 中的当前版本 `1.1.2`；没有回退任何并行 R1.18 源码和版本。
+- **最终专项 CI [Run 38910587019](https://github.com/shopable-ai/opendesk-browser/actions/runs/38910587019) = SUCCESS，两个 job 均通过**。Prompt Node **84/84 PASS**（包括同区域校验、SPA 漂移、焦点劫持回退），共享 Sidebar Tool Node **6/6 PASS**；语法/精确来源 Git blob 校验、正式 JSON 候选、测试后晋升、正式管理 UI Chromium 模拟 Host 和正式可信页面真实 Chromium DOM Fixture（包括匿名富文本、失败回退、页面规则生命周期、容器与编辑器关系、原生键盘 Ctrl+Z）均 **PASS**。这些属于自动化证据，不是 Mac 实装。
+- 官方发布同步提交 [4bdbbd332c](https://github.com/shopable-ai/opendesk-browser/commit/4bdbbd332c237be3cbc77ad5de6028a2378b0bc8) 将 **唯一** `examples/sidebar-tools/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json` 升至版本 **1.1.2**。大小 **73,205 字节**，SHA-256 **`36277a82becc4a200b5ac5ccfb5875e11054bcf6d6d2ac378be30c08bda9b02f`**；源版本和可安装 JSON 经最新 `--check-project=PROJECT_PACKAGE_MATCH` 验证。旧 R2.3 初始描述“JSON 1.1.1 未变”只针对当时可信页面单独提交，现已被 R1.18 的 1.1.2 正式发版替代。
+- 最新可信页面 `trusted/page.js` Git blob `1cf947812b5f946ab93496fe23dca6024d158c5e` 由 Chrome **固定构建**消费，与 Sandbox JSON 的独立发布版本和 SHA 必须分别核对。用户 Mac 的 `dist/development` 加载路径、Extension ID、存储数据保留、真实已登录 Claude / Gemini / ChatGPT 框架状态和输入、中文 IME、Cmd+Z、SPA/权限撤销、关闭 Side Panel 均 **NOT_TESTED**。九维 95+ 原生评分全部 **NOT_SCORED**；下一步只需要本地 Codex 按相同正式工具 ID 对最新 main 执行真实网页验收、按真实失败最小修复。
