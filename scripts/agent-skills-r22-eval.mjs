@@ -88,7 +88,7 @@ const REASONING = [
 const OWNERSHIP = [
   {key:'mindmap',input:'在 ChatGPT 回复操作栏加 XMind 思维导图按钮，正式安装后自动出现。请从公开 SDK 开发。',expected:'opendesk-script-authoring',checks:['USER_SCRIPT|Page Program','examples/programs/chatgpt-mindmap/','SDK_GAP_NOT_PROVEN|缺口|阻塞']},
   {key:'cookie-editor',input:'只优化已安装 Cookie Editor 的 React UI，不重写安装器。',expected:'opendesk-sidebar-tool-dev',checks:['Sidebar Tool|应用','examples/sidebar-tools/cookie-editor/','React|UI']},
-  {key:'prompt-shortcuts',input:'给多个 AI 网页加入自动出现的提示词快捷按钮，保留现有管理入口。',expected:'opendesk-script-authoring',checks:['USER_SCRIPT|网页增强|Page','权限|站点','Host|SDK|框架']},
+  {key:'prompt-shortcuts',input:'在现有 Prompt Shortcuts v2 工具中为多个 AI 网页配置按钮/输入框双选择器，保留管理和原生右键。',expected:'opendesk-sidebar-tool-dev',checks:['Sidebar Tool|应用','examples/sidebar-tools/prompt-shortcuts/','page.prompts|SDK|受信']},
   {key:'bookmark-manager',input:'只优化 Bookmark Manager 的 React 文件树、详情和编辑，不修改平台运行时。',expected:'opendesk-sidebar-tool-dev',checks:['Sidebar Tool|应用','examples/sidebar-tools/bookmark-manager/','React|UI']},
   {key:'platform-revocation',input:'我要求修复通用 Page Program 安装和撤权错误，必要时修改 Browser Authority。',expected:'opendesk-extension-runtime',checks:['opendesk-extension-runtime|Runtime','Authority|src/','撤权|平台']},
   {key:'external-author',input:'我是外部开发者，只能看公开 SDK/示例，想制作侧栏笔记应用，不能读 Browser 内部源码。',expected:'opendesk-sidebar-tool-dev',checks:['Sidebar Tool|应用','OpenDeskTool|SDK','文档|公开|示例']}
