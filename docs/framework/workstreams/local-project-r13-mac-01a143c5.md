@@ -86,6 +86,10 @@
 - 所有临时Controller/Page源码按备份字节恢复。Controller原SHA `385343aa301a671510e94e8c2ecfbd2f5d0039dd13174c7d58aceeb2c3c1e88c`；Page main `c115fd79ea815ec282db782c7742d5d80ea05a715cf13c54418902518af6929e`、version `ba14c44bb6bb7bcfcc633686d3a2585c6ba63bd43a44fb0c1027c2fe8680b12e`。只退出本轮Page CLI PID97966，原Controller PID85201与demo服务继续保留。
 - 资源交接：恢复后的dev writer PID1938继续运行并监听43119/43120，仍使用原dist；本轮Page临时来源和DevTools已收尾，日常Chrome/Profile、原Controller、demo服务未关闭。源文件写入范围只含本轮两个文件和本记录；其他Agent的文档改动保留。Git索引事务由本轮leader在提交前重新核对，仅暂存这三个路径；提交/推送及Actions原始结果保存到本轮artifacts，不改写旧receipt。
 
+### 推送后CI发现的既有布局断言
+
+源码提交 `3cc787ca` 经正常合并并行main后以 `b47eac760` 推送。其Site access工作流在 `tests/environment/site-access.test.mjs:126` 失败：仍要求site-access先于tool-diagnostics。此前已批准的 `b3ee5d790` / `sidebar-develop-advanced-diagnostics-r1-20261016.md` 已把诊断区移至参数后、结果前。本轮准备守卫没有修改HTML/CSS；本地单用例也先复现失败（site-access-red.log）。本轮写入范围增加 **仅该测试文件**：检查新诊断顺序，并明确验证site-access仍是script-advanced中的原权限区，保留全部跨Tab恢复/用户手势/唯一ID断言。不修改他人UI或放宽权限，随后运行完整site-access文件并独立复核。
+
 ## UX证据评分（保守验收分，整体不达95）
 
 每维度5个可观察项，每个PASS=20；FAIL或NOT_TESTED不记通过分。分数只表示本轮证据覆盖的质量下限，不是产品完成百分比，也不将未测认定为缺陷。

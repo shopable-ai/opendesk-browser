@@ -123,7 +123,10 @@ test('site recovery is reachable from every workbench tab and detailed controls 
   const advanced=html.indexOf('id="script-advanced"');
   const access=html.indexOf('id="site-access"');
   const diagnostics=html.indexOf('id="tool-diagnostics"');
-  assert.ok(develop>=0 && advanced>develop && access>advanced && access<diagnostics);
+  assert.ok(develop>=0 && diagnostics>develop && diagnostics<advanced && access>advanced,
+    'Diagnostics follow parameters before results; website controls retain the advanced script panel');
+  assert.match(html, /<details id="script-advanced"[^>]*>\s*<summary>[^<]*<\/summary>\s*<details id="site-access"[\s>]/,
+    'The existing website permission controls remain directly inside advanced script settings');
   const recovery=html.indexOf('id="site-access-recovery"');
   assert.ok(recovery>html.indexOf('id="workspace-content"') && recovery<html.indexOf('id="workbench-tasks"'),
     'A restricted Task or Controller user can reach the same recovery action without opening another tab');
