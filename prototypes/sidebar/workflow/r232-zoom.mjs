@@ -80,6 +80,10 @@ try{
        backInside:back.left>=panel.left-1&&back.right<=panel.right+1,
        sourceGap:switchBox.left-label.right,
        switchInside:switchBox.right<=panel.right+1,
+       switchWidth:switchBox.width,
+       contentRightGap:document.querySelector('.r236-source-row').getBoundingClientRect().right-switchBox.right,
+       fieldsRightAligned:[...document.querySelectorAll('.r234-field label')].every(el=>getComputedStyle(el).textAlign==='right'),
+       noFooter:!document.querySelector('.r234-footer'),
        documentOverflow:document.documentElement.scrollWidth>innerWidth+1};
    });
    assert.equal(geom.deviceWidth,Number(width));
@@ -87,31 +91,33 @@ try{
    assert.equal(geom.inputInside,true);
    assert.equal(geom.backInside,true);
    assert.ok(geom.sourceGap>=4&&geom.sourceGap<=16&&geom.switchInside,'native 200% source selector spacing');
+   assert.ok(geom.switchWidth>=170&&geom.switchWidth<=202&&Math.abs(geom.contentRightGap)<=1,
+     'native 200% compact right-aligned mode switch');
+   assert.ok(geom.fieldsRightAligned&&geom.noFooter,
+     'no redundant completion footer and right-aligned labels at 200%');
    assert.equal(geom.documentOverflow,false);
    await page.locator('#r233-qa > summary').click();
    await page.screenshot({path:resolve(out,'r234-real-200-settings-'+width+'.png'),fullPage:true});
    await page.waitForTimeout(180);
    events.push({width,physicalScreenshot:await capturePhysicalScreen('r234-physical-200-settings-'+width+'.png')});
    if(width==='360'){
-     // Keep QA collapsed, then scroll the OUTER document to its end before the
-     // physical screenshot. DOM viewport checks alone misrepresented X11 framing.
-     const footer=await page.evaluate(()=>{
-       const root=document.scrollingElement;
-       root.scrollTo({top:root.scrollHeight,behavior:'instant'});
-       return {scrollTop:root.scrollTop,scrollHeight:root.scrollHeight};
-     });
-     await page.waitForTimeout(350);
-     const viewportFooter=await page.locator('.r234-footer button').evaluate(el=>{
+     // Settings now apply immediately; the persistent header Back is the sole
+     // exit instead of a detached fixed-footer Done button.
+     await page.locator('#r234-back').scrollIntoViewIfNeeded();
+     const headerBack=await page.locator('#r234-back').evaluate(el=>{
        const b=el.getBoundingClientRect();return{top:b.top,bottom:b.bottom,viewport:innerHeight};
      });
-     events.push({width,footerScroll:footer,footerViewport:viewportFooter,physicalScreenshot:await capturePhysicalScreen('r234-physical-200-settings-footer-360.png')});
+     assert.ok(headerBack.top>=0&&headerBack.bottom<=headerBack.viewport+1,
+       'header return remains reachable under native Chrome 200%');
+     await page.waitForTimeout(220);
+     events.push({width,headerBack,physicalScreenshot:await capturePhysicalScreen('r237-physical-200-header-back-360.png')});
    }
    await page.locator('#r233-qa > summary').click();
    await page.locator('#r234-back').click();
    events.push({width,settingsLayout:geom});
  }
 
- console.log('R234_REAL_CHROME_UI_200_ZOOM_PASS');
+ console.log('R237_REAL_CHROME_UI_200_ZOOM_PASS');
  await writeFile(resolve(out,'r232-real-zoom.json'),JSON.stringify({status:'CHROME_NATIVE_ZOOM_200_PASS',head,gitBlob,sha256,input,version,zoom:zoomData,events},null,2));
 }catch(e){
  console.error(e);
