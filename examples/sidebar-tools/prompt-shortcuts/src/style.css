@@ -130,7 +130,7 @@
 
 /* R2.5: R2.4.2 approved fixed-square More actions, without stretching. */
 .ps-more{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:6px;min-width:0}
-.ps-more>.od-icon-button{box-sizing:border-box;flex:0 0 40px;width:40px;min-width:40px;max-width:40px;height:40px;min-height:40px;max-height:40px;aspect-ratio:1;padding:0}
+.ps-more>.od-icon-button{box-sizing:border-box;flex:0 0 40px;width:40px;min-width:40px;max-width:40px;height:40px;min-height:40px;max-height:40px;aspect-ratio:1}
 .ps-settings[hidden]{display:none!important}
 .ps-sites{margin-top:var(--space-2);padding-top:var(--space-2)}
 .ps-sites-heading .od-button{flex:none}
