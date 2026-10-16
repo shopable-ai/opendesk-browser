@@ -104,7 +104,7 @@
     <button class="od-button od-button--secondary" type="button" data-scenario="cleanup">清理待恢复</button>
     <button class="od-button od-button--secondary" type="button" data-scenario="empty">空状态</button>
     <h2>操作提示</h2>
-    <p>可点击整行、可见「打开」与行级「⋮」；默认列表仅显示安装记录，卸载后不会因搜索重新出现；须主动切换至「可安装 / 更新」才能模拟重新安装。「原位更新」场景明确模拟旧版 v2.0.6 升级至正式候选 v2.0.11；默认场景的 Cookie Editor 为 v2.0.11。全局菜单演示筛选、语言、导入与刷新。行级菜单支持 ↑/↓、Home/End、Escape、焦点恢复和点击外部关闭；所有更改只作用于内存示例。</p>
+    <p>可点击整行、可见「打开」与行级「⋮」；默认列表仅显示安装记录，卸载后不会因搜索重新出现；须主动切换至「可安装 / 更新」才能模拟重新安装。「原位更新」场景独立保留历史演示：旧版 v2.0.6 升级至历史候选 v2.0.11（不代表当前发布版本）；默认场景的 Cookie Editor 为 v2.0.13。全局菜单演示筛选、语言、导入与刷新。行级菜单支持 ↑/↓、Home/End、Escape、焦点恢复和点击外部关闭；所有更改只作用于内存示例。</p>
     <p class="demo-note"><strong>SIMULATED_PREVIEW / NOT_NATIVE_CHROME</strong>：不安装/卸载真实扩展，不调用 Chrome 权限或 Page Authority，不执行应用代码；真实 Page 用户 UI 和未安装候选安全预览尚无受证据支持的通用入口，因此不展示虚假按钮。源代码运行与正式交互仍需独立测试。</p>
   </aside>
 </div>
@@ -132,7 +132,7 @@ const $=id=>document.getElementById(id),menu=$('demo-context-menu'),globalMenu=$
 const initial=[
  {id:'notes',title:'快速笔记',kind:'app',installed:true,enabled:true,known:true,description:'记录与整理当前想法'},
  {id:'cookie-editor',title:'Cookie Editor',kind:'app',installed:true,enabled:true,known:true,
-   version:'2.0.11',installationPolicy:'preinstalled',description:'独立 Cookie 管理工具'},
+   version:'2.0.13',installationPolicy:'preinstalled',description:'独立 Cookie 管理工具'},
  {id:'prompt',title:'提示词快捷工具',kind:'app',installed:true,enabled:false,known:true,description:'快速插入常用提示词'},
  {id:'reader',title:'网页阅读增强',kind:'page',installed:true,enabled:true,known:true,description:'适用于指定网站'},
  {id:'restricted',title:'页面内容助手',kind:'page',installed:true,enabled:true,known:true,authorization:'suspended',description:'网站访问需要恢复授权'},

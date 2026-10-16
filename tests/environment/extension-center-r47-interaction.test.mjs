@@ -565,6 +565,10 @@ test('R5.1 Cookie Editor prototype labels its real package version and isolated 
   assert.ok(cookie,'preview must define a concrete Cookie Editor example');
   assert.ok(cookie.includes("version:'"+version+"'"),
     'normal preview must match the actual Cookie Editor project version');
+  assert.ok(preview.includes('默认场景的 Cookie Editor 为 v'+version+'。'),
+    'visible default scenario description must also match current release');
+  assert.ok(preview.includes('历史候选 v2.0.11'),
+    'historical upgrade demonstration must not be presented as the current release');
   assert.match(preview,/data-scenario="update"/);
   assert.match(preview,/cookie\.version='2\.0\.6';cookie\.update=true;cookie\.releaseVersion='2\.0\.11'/);
   assert.match(preview,/function simulateUpdate\(row\)/);
