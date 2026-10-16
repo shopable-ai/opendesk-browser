@@ -163,3 +163,45 @@ npm run check
 安全注释：GitHub-hosted Runner 的 no-sandbox 回退由脚本同时校验 Linux、GITHUB_ACTIONS、分支、事件、Runner 环境和显式测试开关，只用于隔离测试。浏览器端临时 SPKI 例外仍然是测试例外，不等同受信 CA；A 阶段独立 Node TLS 验证执行完整证书和域名认证。报告没有商业真实节点，7897 是独立 Runner 内受限 loopback，发生端口占用必须失败，不能修改其他进程。
 
 **下一可执行任务**：复用正式构建产物和现有真实 Chrome 自动化，增加 C 级真实已安装工具及 Side Panel 用户点击的原生正反向测试，保留 packageHash、installEpoch、授权与 STOP 恢复回执。生产受审 Profile 空名单不能改；只允许独立测试构建中明确审过的临时 Profile。若 CI headless Side Panel 实际无法触达，记录 Chrome 限制并给出 headed/真实 Mac 验收阻塞，禁止伪造 isTrusted 或 95+ 评分。
+
+
+## Managed Proxy SDK R1.5 · GitHub 正式安装与安全闭环增量（2026-10-16）
+
+**证据声明：本节仅陈述本轮已实际提交并从 GitHub Actions 得到的结果，不将 Node/Build/A-B、正式工具标签页或原生 Side Panel 相互冒充。并行 AI VIP Share 正式源码最新版本是 1.3.4，不回退至提示词中的历史 1.3.1。**
+
+### 实际写入 main 的 R1.5 commits
+
+| Commit | 已实施的代码与边界 |
+| --- | --- |
+| [995e4044](https://github.com/shopable-ai/opendesk-browser/commit/995e4044434a9a1c6454a11e0accbfe0562da416) | 新增真实生产 MV3/CFT 安装驱动、CDP 原生鼠标及文件输入、包 Hash/installEpoch/native PAC/journal/readback/screenshot；严格区别标签页与 Side Panel |
+| [fd2c3a27](https://github.com/shopable-ai/opendesk-browser/commit/fd2c3a27ed5720dc8cad01bab3aecda728efb3b1) | Browser SDK R5 增加独立 C1 原生 Job 和证据 Artifact，不覆盖 A/B |
+| [a37fce12](https://github.com/shopable-ai/opendesk-browser/commit/a37fce12e5c6f108c1c80cb10f6b9d841b539196) | 新增通过真正 Chrome Pointer 打开 Side Panel 的尝试与阻塞记录 |
+| [f12cad4b](https://github.com/shopable-ai/opendesk-browser/commit/f12cad4ba9d541a94593841eff839adcf183e96c) | 仅测试目录内的 Managed Proxy SDK STATUS/ENABLE/STOP 工具 JSON；不进入生产官方发行、不是 C2 PASS |
+| [ee07cf45](https://github.com/shopable-ai/opendesk-browser/commit/ee07cf4558cb8439fcd693c6053a849c883b711e) | C1 增加正式 Host 中由真实鼠标安装测试工具、调用公共 SDK 的生产 ENABLE 拒绝和 STOP 检查 |
+| [e6a32318](https://github.com/shopable-ai/opendesk-browser/commit/e6a323181e3f2fb4a3dbbc0a2ad4176119c42606) | CI 原生脚本 syntax + 测试包 schema preflight，防止构建门禁阻塞时掩盖测试语法问题 |
+| [50b17969](https://github.com/shopable-ai/opendesk-browser/commit/50b17969f08e3db2374a57658fa863ba5fda8fef) | 独立比较旧/new AdBlock trusted Host 原 Blob 的全部 20 行增删：仅真实焦点恢复，没有修改权限/Chrome DNR/可信事件调用。安全重钉精确新 Git Blob 3e926c4d，绝未跳过固定源码白名单校验 |
+| [eafcea4e](https://github.com/shopable-ai/opendesk-browser/commit/eafcea4e7e378fc2f603c52e65966de5a6a6977c) | 共享可信编译来源/固定哈希变更触发 SDK R5 生产构建验收 |
+| [532cc7e9](https://github.com/shopable-ai/opendesk-browser/commit/532cc7e96f6ae20a40a7bfb27340506a3b844bd7) | C1 从写死历史 1.3.3 版本改为同 SHA 正式源配置与发行包、Chrome 安装记录精确一致性审查 |
+
+### CI 真实性、故障分类、不得借用的 PASS
+
+- [Run 38886900469](https://github.com/shopable-ai/opendesk-browser/actions/runs/38886900469)：同 SHA sdk-host-contracts 与 sdk-real-chromium-pac 成功；Production Build 被未经重新钉住的并行 AdBlock 可信 Host 源码阻止，C1 Chrome 尚未运行。归为 PARALLEL_PROJECT_FAILURE / SHARED_BUILD_GATE，不降低安全审核。
+- [Run 38888445118](https://github.com/shopable-ai/opendesk-browser/actions/runs/38888445118)：同 SHA sdk-product-bundles、sdk-host-contracts、sdk-real-chromium-pac 三 Job SUCCESS；C1 语法及测试包 Schema SUCCESS；真实 Chrome 步骤已经启动，但 C1 因同时期正式 AI VIP Share 升至 1.3.4 而固定 1.3.3 断言失败，尚未发生本工具安装。归为 C1_TEST_ASSERTION_FAILURE；已在 532cc7e9 修复版本固定值，必须等该后续 SHA 实际结果才可改变结论。
+- R1.4 的 7e10e8f8 A/B 真实 SOCKS5/TLS/HTTP/WSS/PAC/网络出口证据继续有效，最新通过仅代表对应同 SHA 的 A/B，不代表正式 C1 或商业 ENABLE。
+- 生产唯一受审 Profile 仍为空，商业 Provider 没有正式端点。测试工具安装和隔离 loopback fixture 不能冒称商业成功。
+- **独立评分原则**：A/B 标记有据 PASS；C1、C2、真实 Worker/竞争、权限/跨扩展、正式 UI、旧 Host 迁移、Mac Native 均 NOT_SCORED 或 NOT_TESTED，未获得独立原生证据前绝不填虚构的 95/100。
+
+### 六个旧 Host 逐项安全保留（2026-10-16 源码再次确认）
+
+| 文件 | 当前源码 Blob 前缀 | 安全决定 |
+| --- | --- | --- |
+| service.js | a6af0404 | RETAIN：SW 的服务注册、历史消息处理与 Worker Recovery 依赖 |
+| policy.js | 949ae514 | RETAIN：旧 Owner/PAC/domain 校验及历史存储迁移判据 |
+| lifecycle.js | ae1a6b4b | RETAIN：旧 journal 的 STOP、卸载和共同 Proxy 锁 |
+| tool-host.js | a66c9492 | RETAIN：旧 aiAccess 可信调用适配 |
+| host-controls.js | 30a86232 | RETAIN：旧 ai.access 的 Host-only 控制；新 SDK 不应调用它 |
+| provider-config.js | d09c57ef | RETAIN：旧商业 Provider/测试编译合同（生产 fail closed） |
+
+这些旧模块未达到安全删除条件，本轮没有删除文件、修改真实 Chrome Profile 或引入第二套公共 Proxy Driver。
+
+**下一可执行源码目标**：取得 532cc7e9 后 C1 原生安装/点击/Host 实际回执，对真实错误修复并复验；再搭建完全隔离且源码审核的 C2 Test Candidate，核对真实 Chrome PAC readback、loopback SOCKS 出口和 STOP/Worker Recovery。任何 Chrome Side Panel 无法在 CI 打开的结果必须 NATIVE_UI_BLOCKED，不能升级为 FORMAL_C_PASS。
