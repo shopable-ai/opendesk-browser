@@ -113,7 +113,7 @@ function icon(name){
   return svg;
 }
 function iconButton(parent,name,label,callback,action,itemId,{danger=false,disabled=false}={}){
-  const b=dom('button','ps-icon-button'+(danger?' ps-icon-button--danger':''));
+  const b=dom('button','od-icon-button ps-action-control'+(danger?' od-icon-button--danger':''));
   b.type='button';b.title=label;b.setAttribute('aria-label',label);
   b.dataset.action=action;b.dataset.itemId=itemId;b.dataset.locked=disabled?'1':'0';
   b.disabled=disabled;b.append(icon(name));
@@ -350,12 +350,12 @@ function render(){
       render();focusListAction(item.id,opening?'edit':'more');
     },'more',item.id);
     more.setAttribute('aria-expanded',String(expanded===item.id));
-    if(expanded===item.id)more.setAttribute('aria-controls','ps-menu-'+i);
+    if(expanded===item.id)more.setAttribute('aria-controls','ps-commands-'+i);
     mainRow.prepend(glyph);mainRow.append(actions);card.append(mainRow);
     if(!item.nameAuto&&item.name?.trim())card.append(dom('div','ps-card-caption',item.name));
     if(expanded===item.id){
       const commands=dom('div','ps-more');
-      commands.id='ps-menu-'+i;commands.setAttribute('role','group');
+      commands.id='ps-commands-'+i;commands.setAttribute('role','group');
       commands.setAttribute('aria-label','提示词操作：'+identity);
       iconButton(commands,'pencil','编辑：'+identity,()=>start(item.id),'edit',item.id);
       iconButton(commands,item.enabled?'eye-off':'eye',(item.enabled?'停用：':'启用：')+identity,
