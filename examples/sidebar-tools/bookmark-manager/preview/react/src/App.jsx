@@ -100,7 +100,7 @@ function FolderPicker({tree,value,onChange,onClose,currentId}){
 }
 function Inspector({tree,node,draft,setDraft,onEdit,onSave,onCancel,onOpenPicker,pickerOpen,setPickerOpen,busy,uncertain,onDelete}){
  const foldersCount=tree&&[...tree.byId.values()].filter(isFolder).length;
- return <section className={'bm-inspector'+(draft?' is-editing':'')} aria-label={draft?'编辑书签':'书签详情'} data-testid="bookmark-inspector">
+ return <section className={'bm-inspector'+(draft?' is-editing':'')+(!node&&!draft?' is-empty':'')} aria-label={draft?'编辑书签':'书签详情'} data-testid="bookmark-inspector">
   <div className="bm-inspector-heading"><strong>{draft?(draft.mode==='create'?(draft.kind==='folder'?'新建文件夹':'新建书签'):'编辑'+(draft.kind==='folder'?'文件夹':'书签')):(node?'已选择 · 只读详情':'书签详情')}</strong>
    {!draft&&node&&!node.locked&&<button type="button" className="bm-quiet-action" onClick={()=>onEdit(node)}><Icon name="edit" size={15}/>编辑</button>}
   </div>
@@ -171,7 +171,7 @@ export default function App(){
  function bookmarkCurrentPage(){if(dirtyDraft(draft)){setPending({type:'currentPage'});return}void fillCurrentPage()}
  async function fillCurrentPage(){if(busy)return;try{const info=await globalThis.OpenDeskSDK.browser.page.getContext();if(info.status!=='available')throw Error('当前页不可用');const parent=(current&&isFolder(current)?current.id:current?.parentId)||'1';setDraft(initialDraft('create','bookmark',null,parent));setDraft(d=>({...d,title:info.title,url:info.url}));setNotice('已填写当前模拟网页，确认后再保存。')}catch(ex){setError(humanError(ex))}}
  return <div className="bm-app" data-react-bookmark="r3.0.2">
-  <header className="bm-topbar"><div className="bm-heading"><strong>书签</strong><span>{tree?tree.byId.size.toLocaleString('zh-CN'):'—'} 项</span></div><div className="bm-top-actions"><button title="收藏当前模拟网页" aria-label="收藏当前页" className="bm-icon-btn" type="button" onClick={bookmarkCurrentPage}><Icon name="star" size={17}/></button><button title="从 Mock 重新读取" aria-label="刷新书签" className="bm-icon-btn" type="button" onClick={()=>void load()} disabled={loading}><Icon name="refresh" size={17}/></button></div></header>
+  <header className="bm-topbar"><div className="bm-heading"><strong className="bm-sr-only">书签管理</strong><span>{tree?tree.byId.size.toLocaleString('zh-CN'):'—'} 项</span></div><div className="bm-top-actions"><button title="收藏当前模拟网页" aria-label="收藏当前页" className="bm-icon-btn" type="button" onClick={bookmarkCurrentPage}><Icon name="star" size={17}/></button><button title="从 Mock 重新读取" aria-label="刷新书签" className="bm-icon-btn" type="button" onClick={()=>void load()} disabled={loading}><Icon name="refresh" size={17}/></button></div></header>
   <div className="bm-tools"><div className="bm-search-wrap"><Icon name="search" size={16}/><label className="bm-sr-only" htmlFor="bm-search">搜索名称、URL 或文件夹</label><input id="bm-search" value={query} placeholder="搜索书签、网址或文件夹" onChange={e=>setQuery(e.target.value)}/>{query&&<button aria-label="清空搜索" type="button" onClick={()=>setQuery('')}><Icon name="x" size={14}/></button>}</div><div className="bm-create-actions"><Button icon="plus" kind="primary" onClick={()=>request({type:'create',kind:'bookmark'})}>新建书签</Button><Button icon="folder" onClick={()=>request({type:'create',kind:'folder'})}>新建文件夹</Button></div></div>
   {error&&<div className="bm-error" role="alert"><Icon name="alert" size={17}/><span>{error}</span><button type="button" onClick={()=>{setError('');void load()}}>刷新</button></div>}
   {notice&&<div className="bm-notice" role="status">{notice}</div>}
