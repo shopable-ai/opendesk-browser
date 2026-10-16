@@ -4,11 +4,21 @@ import vm from 'node:vm';
 import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {createHash} from 'node:crypto';
-import {requireXmindRuntime} from '../src/xmind-adapter.js';
+import {requireXmindRuntime,retireXmindMount} from '../src/xmind-adapter.js';
 import {mindTreeToXmindBlob,getXmindStyleData} from '../src/xmind-convert.js';
 
 test('missing runtime fails closed without falling back to another engine',()=>{
   assert.throws(()=>requireXmindRuntime({}),{code:'E_XMIND_RUNTIME_UNAVAILABLE'});
+});
+test('SDK close failure still releases its own workbook mount',async()=>{
+  const failure=new Error('Snowbrush close rejected');
+  let calls=0,removed=0;
+  await assert.rejects(retireXmindMount({async close(){calls++;throw failure;}},
+    {remove(){removed++;}}),error=>error===failure);
+  assert.equal(calls,1);
+  assert.equal(removed,1);
+  await retireXmindMount(undefined,{remove(){removed++;}});
+  assert.equal(removed,2);
 });
 test('original XMind skin is copied afresh for each workbook',()=>{
   const a=getXmindStyleData('dark'),b=getXmindStyleData('light');

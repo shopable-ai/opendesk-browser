@@ -1,5 +1,12 @@
 import {mindTreeToXmindBlob} from './xmind-convert.js';
 
+// Keep teardown owned by the product even when the original Snowbrush SDK
+// rejects close(). This controls DOM lifetime, NOT its document-global CSS.
+export async function retireXmindMount(editor,element){
+  try{await editor?.close();}
+  finally{element?.remove();}
+}
+
 // Read-only subset of Mindbank xmind-renderer.ts, blob
 // 6a061bd15c04690d1f5418094a9b942704a1e965 at station@b76abf4b95e34c1234a33927051ea13165d92715.
 // Retains the original Workbook/Topic/Dumper/SDK renderer: never draws a substitute.
@@ -49,14 +56,21 @@ export function createXmindRenderer({window,canvas,tree,skinMode='light'}){
     const nextMount=canvas.ownerDocument.createElement('div');
     nextMount.style.cssText='position:absolute;inset:0;overflow:hidden;opacity:0;pointer-events:none';
     canvas.append(nextMount);
-    let next;
+    let next,retired=false;
+    // Staging cleanup is idempotent: a failed close must not be attempted
+    // again by the render catch handler while a Stop is racing.
+    const retireNext=async()=>{
+      if(retired)return;
+      retired=true;
+      await retireXmindMount(next,nextMount);
+    };
     try{
       next=await sdk._SB_.createWorkbookEditor(blob,nextMount,
         {languageCode:'zh-CN',resourceUrlPrefix:'',password:''});
-      if(disposed){await settled();await next.close();nextMount.remove();return;}
+      if(disposed){await settled();await retireNext();return;}
       next.switchSheetTo(0);await settled();
       if(previousZoom!==null){next.zoom(previousZoom);await settled();}
-      if(disposed){await next.close();nextMount.remove();return;}
+      if(disposed){await retireNext();return;}
       const nextScroller=scrollerOf(nextMount);
       if(scroll){nextScroller.scrollLeft=scroll.left;nextScroller.scrollTop=scroll.top;}
       for(const area of nextMount.querySelectorAll('.collapseextend [data-name="action-area"]')){
@@ -64,11 +78,15 @@ export function createXmindRenderer({window,canvas,tree,skinMode='light'}){
       }
       controller=next;mount=nextMount;
       nextMount.style.opacity='1';nextMount.style.pointerEvents='auto';
-      if(previous){await settled();await previous.close();}
-      previousMount?.remove();
+      if(previous){await settled();await retireXmindMount(previous,previousMount);}
+      else previousMount?.remove();
     }catch(error){
-      if(next&&next!==controller)await next.close();
-      if(nextMount!==mount)nextMount.remove();
+      if(next!==controller){
+        try{await retireNext();}
+        catch(cleanupError){
+          throw new AggregateError([error,cleanupError],'E_XMIND_RENDER_CLEANUP');
+        }
+      }
       throw error;
     }
   }
@@ -183,9 +201,16 @@ export function createXmindRenderer({window,canvas,tree,skinMode='light'}){
     closing=(async()=>{
       try{await ready;}catch{/* start reports the original error */}
       await operations;
-      const current=controller;controller=null;
-      if(current){await settled();await current.close();}
-      mount?.remove();mount=null;canvas.replaceChildren();
+      const current=controller,currentMount=mount;
+      controller=null;mount=null;
+      try{
+        if(current){await settled();await retireXmindMount(current,currentMount);}
+        else currentMount?.remove();
+      }finally{
+        // A rejected SDK close must not leave a staged/retired workbook
+        // connected to a live ChatGPT answer.
+        canvas.replaceChildren();
+      }
     })();
     return closing;
   }

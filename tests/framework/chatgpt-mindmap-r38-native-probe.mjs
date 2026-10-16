@@ -252,6 +252,10 @@ try{
   const foldedB=await viewer(1).locator('.topic:visible').count();
   assert(foldedB<topicsB,'Real XMind branch folding should reduce visible topics');
   await viewer(1).getByRole('button',{name:'展开所有分支'}).click();
+  await viewer(1).getByRole('button',{name:'折叠所有分支'}).waitFor({timeout:20000});
+  const liveMountsB=await viewer(1).locator('.odmm-canvas > div').count();
+  assert.equal(liveMountsB,1,'Fold/unfold must not strand old or staged XMind mount nodes');
+  record('REAL_XMIND_RERENDER_OWNS_ONE_LIVE_MOUNT','PASS',{liveMountsB});
   await viewer(1).getByRole('button',{name:'进入全屏'}).click();
   // A fullscreen viewer is deliberately moved from its answer into body.
   // Scope the exit control to that relocated host, then verify restoration.
