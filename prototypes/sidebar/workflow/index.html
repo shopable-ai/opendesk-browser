@@ -570,6 +570,8 @@ body[data-theme=dark] .r234-feedback[data-kind=checked],body[data-theme=dark] .r
     modeMenu.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===data.mode)));
     $('settings').setAttribute('aria-expanded',String(data.settingsOpen));
     settings.hidden=!data.settingsOpen;
+    // The full-view route must remove the underlying chat from keyboard and AT navigation.
+    for(const layer of [shell.querySelector('.tabs'),shell.querySelector('.title-bar'),$('content'),$('form'),shell.querySelector('.foot-note')])layer.inert=data.settingsOpen;
     sourceLabel.textContent=isNative()?'本机 Codex':data.provider==='cloud_responses'?'OpenAI':'自定义 HTTPS';
     renderConfig();
     renderDialog();
