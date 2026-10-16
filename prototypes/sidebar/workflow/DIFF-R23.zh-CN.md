@@ -219,8 +219,8 @@ GitHub Actions 原始证据：
 - **全屏设置路径**：切换 AI 来源时把设置内容滚动到顶部，避免上一个 Provider 的滚动位置遮住「AI 来源」标题；对话输入及消息历史继续保留。
 - **200% 证据修正**：原 `page.screenshot` 在 Chrome 原生 200% 时生成了尺寸约 633×794 的截图，仅覆盖实际浏览器窗口的一部分，不能用它证明真实物理屏幕的视觉布局。新增 CI `scrot`，直接捕获 1366×1024 X11 整屏，展示浏览器实际 UI，并在三个宽度下保留原生放大截图。脚本仍通过 X11 `xdotool` Ctrl+Plus 到 DPR 1→2，不使用 CSS transform 或模拟 device scale。
 - **底部「完成」入口**：先关闭研发场景展开区，再将外层文档实际滚动到底部、拍摄物理屏幕，证明原生 200% 下设置操作可以抵达底部「完成」按钮；仅检查虚拟 DOM viewport 的位置不足以声称用户能看见它。
-- **最新真实 GitHub Actions**：[Workflow CI #38901803852](https://github.com/shopable-ai/opendesk-browser/actions/runs/38901803852)，HEAD `77ca47b9a7f4f62879ffaada457d5eadd9b8287c`，`exact-saved-html` 与 `native-browser-zoom` 均为 SUCCESS。原型 Git Blob `b1caf5a13b1493975868ce00e1f0bcacc3fbec44`，Chrome 155.0.8059.84，**21 类 Chromium 回归通过且 JS Console/Page Error 为 0**，原生 200% 独立工作 SUCCESS。
-- [来源绑定 Chromium 截图与 JSON Artifact](https://github.com/shopable-ai/opendesk-browser/actions/runs/38901803852/artifacts/12046790222) 与 [原生 200% 物理 X11 截图/JSON Artifact](https://github.com/shopable-ai/opendesk-browser/actions/runs/38901803852/artifacts/12046626584) 均保存同一 Git Blob 的 `index.html`，严格区分真实浏览器证据与本地 `set_content` 辅助截图。
+- **最新真实 GitHub Actions**：[Workflow CI #38902325228](https://github.com/shopable-ai/opendesk-browser/actions/runs/38902325228)，HEAD `3d9a4006cdd4a34d4d28588510d651c7c8b6fd7e`，`exact-saved-html` 与 `native-browser-zoom` 均为 SUCCESS。原型 Git Blob `b1caf5a13b1493975868ce00e1f0bcacc3fbec44`，Chrome 155.0.8059.84，**21 类 Chromium 回归通过且 JS Console/Page Error 为 0**，包含只读状态的源绑定截图，原生 200% 独立工作 SUCCESS。
+- [来源绑定 Chromium 截图与 JSON Artifact](https://github.com/shopable-ai/opendesk-browser/actions/runs/38901803852/artifacts/12046457043) 与 [原生 200% 物理 X11 截图/JSON Artifact](https://github.com/shopable-ai/opendesk-browser/actions/runs/38901803852/artifacts/12047171112) 均保存同一 Git Blob 的 `index.html`，严格区分真实浏览器证据与本地 `set_content` 辅助截图。
 
 ### 10.5 六维复核与反方审计：严禁伪造 95 分
 
