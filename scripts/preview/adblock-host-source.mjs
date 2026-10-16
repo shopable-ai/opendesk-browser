@@ -29,7 +29,7 @@ class InertNode{
   }
 }
 const event=()=>({addListener(){},removeListener(){}});
-const tool={id:ADBLOCK_ID,version:'1.1.0',capabilities:[ADBLOCK_CAPABILITY]};
+const tool={id:ADBLOCK_ID,version:'1.1.1',capabilities:[ADBLOCK_CAPABILITY]};
 const find=(node,attr,value)=>node.attrs?.[attr]===value?node:
   node.children.map(child=>find(child,attr,value)).find(Boolean)||null;
 const initial=(enabled,exceptions=[],extra={})=>({
