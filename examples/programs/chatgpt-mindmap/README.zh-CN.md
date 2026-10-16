@@ -199,3 +199,11 @@ npm run check
 新增 `tests/framework/chatgpt-mindmap-r38-native-probe.mjs` 与专项 Actions 的 `native-user-script-xmind-feasibility` Job：使用**真正 WXT 包和原始编译 Program**，仅在 **CI 一次性测试副本**内载入 Git 已跟踪的四份 SHA 校验 XMind 资源，尝试由真正的 Chrome `chrome.userScripts` 在独立 `USER_SCRIPT` 世界执行。它**没有使用** OpenDesk 的 Verified → Available → Installed Broker，故即使通过也仅能证明 Chrome/XMind 技术可行性，不能称为正式安装。失败保留 JSON 且退出非零；只上传 JSON 和截图，不上传 vendor JS。
 
 更新正式 Page Program 安装管理 UI：把网站授权与 Chrome 原生注册拆分显示，原生注册失败不再出现成功提示，并告知 Chrome 138+ 用户开启「允许用户脚本」。回归测试覆盖这两个状态。完整安全门禁、CI 结果解读和后续阻塞见 [R3.8 原生集成审计](../../../docs/framework/workstreams/chatgpt-mindmap-r38-native-integration.md)。R3.7 Icon 工具栏/移动端产品代码不更换。设计状态继续为 **PENDING_USER_CONFIRMATION**。
+
+## R3.9.2 · 固定文件可行性已验证，正式生产继续阻塞（2026-10-16）
+
+- **技术可行性 PASS（仅临时扩展）**：原生 CI [#38909275915](https://github.com/shopable-ai/opendesk-browser/actions/runs/38909275915) 三个 Job 均 SUCCESS。在复制正式 WXT 构建的**一次性临时扩展**中按 SHA 固定四份原始 XMind 文件，`chrome.userScripts.register({js:[{file},…]})` 在新文档 USER_SCRIPT 世界自动运行真实 XMind；`unregister` 后新页面不再运行。该流程**未走**正式 Broker、Verified→Available→Installed，也不构成生产资源许可。
+- **正式生产仍 BLOCKED**：四份 JS 共 4,042,573 B（其中 Snowbrush 3,439,267 B）仅位于 `preview/`。精确构建物及传递依赖的 LICENSE/NOTICE 与再分发许可尚未审清。现有安装器只注册受信 bootstrap，后续由 Broker 在当前文档经安装授权执行源码；不能将实验中的固定文件直接拼到 bootstrap 以绕过权限/版本检查。保持 `BUILT_UNVERIFIED`、`installable:false`、`E_XMIND_RUNTIME_UNAVAILABLE`。
+- **独立清理修复**：[提交 b02b611](https://github.com/shopable-ai/opendesk-browser/commit/b02b61133ddb92202dc08bb2604f058f963e81d2) 修复 SDK `close()` 抛错时仍移除画布挂载元素，并新增折叠/展开仅保留一个活动 mount 的原生回归断言。**没有**宣称修复 `style#snowbrush_style` 全局污染；仍须独立绘图文档隔离、所有权及撤权清理证明。
+- **本轮提交的独立 CI**：[Actions #38911648247](https://github.com/shopable-ai/opendesk-browser/actions/runs/38911648247)：`offline-source-contract` 和 `real-local-xmind-html` SUCCESS，`native-user-script-xmind-feasibility` FAILED，**未运行至原生探针**。原因为 `scripts/verify-package.mjs` 对并行 React Side Panel 产物 `ui/tool-shell.js` 中的 `y.constructor=b` 报 `Unapproved dynamic constructor reference`。此为与 Mind Map 无关的生产包验收阻塞；不能关闭安全扫描或冒充原生 E2E PASS。应由 React/安全验收工作流修复后重新执行本轮 native CI。
+- **后续顺序**：①精确字节许可证闭包；②原有授权后执行链的固定资源绑定与哈希/版本检查（最小通用能力，不能绕过 Broker）；③ Snowbrush 独立文档 CSS 隔离；④正式原生安装/自动执行/升级/停用/撤权/卸载；⑤已登录 ChatGPT A/B/C、缩放、折叠、全屏、原文恢复、重启和 SPA。本阶段正式安装 `BLOCKED`，真实登录网站 `REAL_CHATGPT_NOT_TESTED`，质量评分不得填满 95。
