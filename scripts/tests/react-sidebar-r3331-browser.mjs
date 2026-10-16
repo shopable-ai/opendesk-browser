@@ -169,7 +169,7 @@ try{
   assert.equal(await evaluate('document.getElementById("script-result").dataset.opendeskReactOwner'),'developer-result');
   await evaluate('window.__reactTest.ui.renderDeveloperResult({text:"安全文本 <script>alert(1)</script>",kind:"JSON"})');
   assert.equal(await evaluate('document.getElementById("script-result").textContent'),'安全文本 <script>alert(1)</script>');
-  assert.equal(await evaluate('document.querySelector("#script-result script")'),null);
+  assert.equal(await evaluate('document.querySelectorAll("#script-result script").length'),0);
   assert.equal(await evaluate('document.getElementById("script-result-kind").textContent'),'JSON');
   await evaluate('window.__reactTest.ui.renderDeveloperStatus({state:"error",text:"错误 <unsafe>"})');
   assert.equal(await evaluate('document.getElementById("script-status").textContent'),'错误 <unsafe>');
