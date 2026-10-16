@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/adblock-r194-preview-sync.yml'
+      - 'tests/environment/adblock-host-controls-r13.test.mjs'
   workflow_dispatch:
 permissions:
   contents: read

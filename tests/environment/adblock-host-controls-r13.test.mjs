@@ -215,7 +215,11 @@ test('R1.9 trusted product cards and host-owned three-view navigation',async()=>
   const panel=f.mount(async()=>{reads++;return status();});
   panel.controls.render(tool,false,true);await tick();
   assert.equal(panel.controls.view(),'overview');
-  assert.ok(panel.find(node=>node.className==='adblock-native-logo'));
+  assert.equal(panel.find(node=>node.className==='adblock-native-logo'),undefined,
+    'the tool shell already owns product identity; no duplicate logo inside controls');
+  assert.equal(panel.find(node=>node.className==='adblock-native-title'),undefined);
+  assert.ok(panel.action('打开 AdBlock 产品设置'),
+    'settings icon remains available in the upper right');
   assert.ok(panel.find(node=>node.className==='adblock-native-card adblock-native-global'));
   assert.ok(panel.find(node=>node.className==='adblock-native-card adblock-native-site'));
   assert.ok(panel.find(node=>node.textContent==='暂无可核实统计'));
