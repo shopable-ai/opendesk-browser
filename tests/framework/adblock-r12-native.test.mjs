@@ -430,6 +430,12 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
     {type,key:' ',code:'Space',windowsVirtualKeyCode:32},sid);
   await until(async()=>{const r=await getOwned(client,uid);return r.state?.enabled===false&&r.owned.length===0;},'Space disables filtering');
   assert.equal((await probe(client,site,adUrl())).success,true);
+  // Rule mutation may complete before the native Side Panel has performed its
+  // final authoritative read and restored keyboard focus. Wait for actual
+  // actionable UI, never add a sleep or inject element.focus() in the test.
+  await until(()=>evaluate(client,sid,'(()=>{const b=document.querySelector('+
+    JSON.stringify(global)+');return !!b&&!b.disabled&&b.getAttribute("aria-checked")==="false"&&'+
+    'document.activeElement===b;})()'), 'Space OFF restores actionable keyboard focus');
   for(const type of ['keyDown','keyUp'])await client.send('Input.dispatchKeyEvent',
     {type,key:' ',code:'Space',windowsVirtualKeyCode:32},sid);
   await until(async()=>{const r=await getOwned(client,uid);return r.state?.enabled===true&&r.owned.length===1;},'Space reenables filtering');
