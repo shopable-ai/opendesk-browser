@@ -30,7 +30,7 @@
 | 代码职责 | 约定路径 | 写入/保留要求 |
 | --- | --- | --- |
 | **跨消费者的纯 React UI 组件源码** | `packages/opendesk-ui-react/` | **唯一优先位置**；首次确有正式可信 UI 消费者时才创建，包含必要 `src/index.ts`、`src/components/*.tsx`、组件局部样式和清晰依赖合同；不得放浏览器业务、SDK、Host、权限、第二套 Tokens；不为空包/完整 UI Kit 建无用文件 |
-| **可信 Side Panel React App** | `src/ui/react/` | 组件挂载、应用导航、视图/Tab、业务适配；建议逐个创建 `app.tsx`、`main.tsx`、`tabs/{develop,extensions,workflow,tasks,cloud}/`；只建实际已接入模块，不创建空文件或第二套长期 DOM owner |
+| **可信 Side Panel React App** | `src/ui/react/` | 组件挂载、应用导航、视图/Tab、业务适配；建议逐个创建 `app.tsx`、`main.tsx`、`tabs/{tasks,tools,workflow,develop,cloud}.tsx`；**`tools` 对应用户看到的「扩展」Tab，不得更改既有 `data-workbench-tab` 或持久状态中的标识**；只建实际已接入模块，不创建空文件或第二套长期 DOM owner |
 | **既有浏览器 HTML / 启动入口** | `src/ui/tool.html`、`src/ui/tool-shell.js`、`src/entrypoints/tool-shell.js` | 在原文件上做受控最小接入；保留**同一个** WXT 固定产物 `ui/tool-shell.js`，默认**禁止**另建 React WXT entry、另一份 sidebar.html 或第二路由入口 |
 | **现有业务服务和旧视图** | `src/ui/script-editor.js`、`src/ui/sidebar-tools.js`、`src/ui/workflow/` 等 | 已迁移的视图用薄适配器复用原业务逻辑；旧视图完成真实回归前保留，不直接整文件覆盖；明确 React DOM 所有权，避免双事件写入 |
 | **视觉标准** | `src/ui/design-tokens.css`、`src/ui/design-system.css` | 单一权威；共享 UI 组件从现有 CSS variables/构建时映射获取视觉值；不用新色板，Tailwind Preflight 不全局注入用户工具 |
