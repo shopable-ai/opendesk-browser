@@ -222,3 +222,56 @@ test('R27/R28/R30 and Sidebar Tool API current navigation agree with R4',async()
   assert.match(development,/「扩展」统一列表中以「网页增强」标签管理/);
   assert.doesNotMatch(development,/「工具 → 已安装网页工具」/);
 });
+
+// R1.0: documentary ownership contract only. These assertions cannot prove AI
+// behavior, actual installed Chrome results or the absence of future drift.
+test('R1 SDK-first ownership routes six positive and counterexample scenarios without shadow Skills',async()=>{
+  const index=await read('.agents/skills/README.md');
+  const section=index.split('## R1.0 独立扩展所有权与六例防漂移路由')[1]?.split('## 典型需求')[0];
+  assert.ok(section,'R1 ownership routing is missing');
+  const rows=section.split('\n').filter(line=>/^\| [A-F] /.test(line));
+  assert.equal(rows.length,6,'all six scenarios must appear exactly once');
+  const expected=[
+    ['A ChatGPT Mind Map','Page USER_SCRIPT','examples/programs/chatgpt-mindmap/','opendesk-script-authoring','SDK_GAP_NOT_PROVEN'],
+    ['B Cookie Editor','Sidebar Tool','examples/sidebar-tools/cookie-editor/','opendesk-sidebar-tool-dev','打包'],
+    ['C Prompt Shortcuts','Page USER_SCRIPT','examples/programs/<id>/','opendesk-script-authoring','Host'],
+    ['D Bookmark Manager','Sidebar Tool','examples/sidebar-tools/bookmark-manager/','opendesk-sidebar-tool-dev','Installer'],
+    ['E 通用 Page Program','Browser Framework','src/','opendesk-extension-runtime','允许'],
+    ['F 只读公开文档','Sidebar Tool','examples/sidebar-tools/<id>/','opendesk-sidebar-tool-dev','OpenDeskTool.request']
+  ];
+  for(let i=0;i<expected.length;i++){
+    const cells=rows[i].split('|').slice(1,-1).map(s=>s.trim());
+    assert.equal(cells.length,5,'R1 route schema must remain five columns');
+    const [caseName,kind,owner,skill,restriction]=expected[i];
+    for(const [value,column] of [[caseName,0],[kind,1],[owner,2],[skill,3],[restriction,4]])
+      assert.ok(cells[column].includes(value),caseName+' incorrect ownership column '+column);
+    assert.ok(CANONICAL_SKILLS.includes(skill),'unknown principal Skill '+skill);
+  }
+  const [agents,workflow]=await Promise.all([read('AGENTS.md'),read('.agents/workflows/extension-creation.md')]);
+  assert.match(agents,/Independent Extension Development · SDK First · Framework Boundary/);
+  assert.match(agents,/不采用.*src\/.*路径禁令/);
+  assert.match(workflow,/Extension Type & Ownership Gate/);
+  for(const token of ['SDK_GAP_NOT_PROVEN','BLOCKED','NOT_TESTED','examples/programs/<id>/','src/<feature>/'])
+    assert.ok(agents.includes(token)&&workflow.includes(token),'missing exception/safety case '+token);
+});
+
+test('R1 independent authors have public contract paths and platform change exceptions',async()=>{
+  const [app,api,page,author,publisher,runtime,trusted,packer,ci,evalScript]=await Promise.all([
+    read('docs/api/sidebar-tool-development.zh-CN.md'),read('docs/api/sidebar-tools.zh-CN.md'),
+    read('docs/api/page-userscript.zh-CN.md'),read('.agents/skills/opendesk-script-authoring/SKILL.md'),
+    read('.agents/skills/opendesk-program-publish/SKILL.md'),read('.agents/skills/opendesk-extension-runtime/SKILL.md'),
+    read('.agents/skills/opendesk-trusted-sidebar-feature/SKILL.md'),read('.agents/skills/opendesk-sidebar-tool-package/SKILL.md'),
+    read('.github/workflows/agent-skills-governance.yml'),read('scripts/agent-skills-r22-eval.mjs')
+  ]);
+  assert.match(app,/普通第三方最短流程/);assert.match(api,/公开能力分级/);
+  assert.match(page,/第三方独立 Page Program/);assert.match(page,/Installed/);
+  assert.match(page,/E_XMIND_RUNTIME_UNAVAILABLE/);
+  for(const doc of [app,api,page,author,publisher])assert.match(doc,/无须|不需要|免读|不是第三方开发的前置依赖|只有平台任务/);
+  assert.match(runtime,/允许按职责修改/);assert.match(trusted,/第三方与第一方的边界/);
+  assert.match(packer,/不改平台/);
+  for(const path of ['AGENTS.md','docs/api/README.md','docs/api/page-userscript.zh-CN.md',
+    'docs/product/program-development-dual-format-and-sidebar.zh-CN.md'])
+    assert.ok(ci.includes("      - '"+path+"'"),'governance CI misses '+path);
+  assert.ok(evalScript.includes("mode==='ownership'"),'ownership fixtures must be present in existing evaluator');
+  assert.doesNotMatch(ci,/codex exec|--mode ownership/,'CI must not call paid model reasoning');
+});
