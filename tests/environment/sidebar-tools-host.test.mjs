@@ -177,13 +177,16 @@ class Node {
   constructor(tag='div'){this.tag=tag;this.children=[];this.listeners=new Map();this.hidden=false;
     this.dataset={};this.attributes=new Map();this.className='';
     // Mirror native classList.toggle for trusted host settings in this DOM double.
-    this.classList={toggle:(name,force)=>{
-      const names=new Set(this.className.split(/\s+/).filter(Boolean));
-      const add=force===undefined?!names.has(name):Boolean(force);
-      if(add)names.add(name);else names.delete(name);
-      this.className=[...names].join(' ');
-      return add;
-    }};
+    this.classList={
+      contains:name=>this.className.split(/\s+/).includes(name),
+      add:(...names)=>{this.className=[...new Set([...this.className.split(/\s+/).filter(Boolean),...names])].join(' ');},
+      remove:(...names)=>{this.className=this.className.split(/\s+/).filter(x=>x&&!names.includes(x)).join(' ');},
+      toggle:(name,force)=>{
+        const has=this.classList.contains(name),add=force===undefined?!has:Boolean(force);
+        if(add)this.classList.add(name);else this.classList.remove(name);
+        return add;
+      }
+    };
     this.contentWindow=tag==='iframe'?{sent:[],postMessage(message){this.sent.push(message);}}:undefined;}
   addEventListener(type,fn){const items=this.listeners.get(type)||[];items.push(fn);this.listeners.set(type,items);}
   removeEventListener(type,fn){this.listeners.set(type,(this.listeners.get(type)||[]).filter(item=>item!==fn));}
