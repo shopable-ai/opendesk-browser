@@ -274,6 +274,8 @@ body[data-theme=dark] .device .composer .compose-bottom button#settings:hover,bo
 .r234-footer small{color:var(--secondary);font-size:10px;line-height:1.45;max-width:190px}
 .r234-footer button{min-height:40px;min-width:84px;border:0;border-radius:9px;background:var(--blue);color:#fff;padding:8px 12px;font-weight:700}
 .r234-body input[aria-invalid=true]{border-color:#bf4b3b}
+.r234-body .r234-field-error{font-size:10.5px;color:#b3412c;line-height:1.5;margin:5px 0 0}
+body[data-theme=dark] .r234-body .r234-field-error{color:#ffc3b6}
 .r23-demo #r23-readback{background:#eaf7ef;border:1px solid #b9dec7;border-radius:9px;color:#246443;padding:10px;overflow-wrap:anywhere}
 body[data-theme=dark] .r234-protocol{background:#293e5d;color:#cbdcf3}
 body[data-theme=dark] .r234-feedback{background:#293e5d;color:#d2e1f8}
@@ -383,6 +385,7 @@ body[data-theme=dark] .r234-feedback[data-kind=checked],body[data-theme=dark] .r
     for(const id of ['r23-endpoint','r23-model','r23-api-key'])$(id).removeAttribute('aria-invalid');
   }
   function configEdited(){
+    $('r234-field-error')?.remove();for(const id of ['r23-endpoint','r23-model','r23-api-key'])$(id).removeAttribute('aria-describedby');
     captureConfig();data.sourceReady[data.provider]=false;data.connected=false;
     mockFeedback[data.provider]={kind:'idle',text:'配置已修改，等待离线格式检查；实际连接未知。'};
     $('r234-feedback').textContent=mockFeedback[data.provider].text;$('r234-feedback').dataset.kind='idle';$('r234-status').textContent='待检查';
@@ -405,8 +408,9 @@ body[data-theme=dark] .r234-feedback[data-kind=checked],body[data-theme=dark] .r
     mockFeedback[data.provider]={kind:okay?'checked':'error',text:okay?'离线字段格式检查通过。真实连接、模型与密钥均未验证。':error};
     $('r234-feedback').textContent=mockFeedback[data.provider].text;$('r234-feedback').dataset.kind=mockFeedback[data.provider].kind;
     $('r234-status').textContent=okay?'模拟已配置':'配置有误';
-    if(error){$(field).setAttribute('aria-invalid','true');$(field).focus();}
-    else announce('仅离线格式检查通过，没有执行真实网络连接。');
+    $('r234-field-error')?.remove();
+    if(error){const hint=document.createElement('p');hint.id='r234-field-error';hint.className='r234-field-error';hint.textContent=error;$(field).insertAdjacentElement('afterend',hint);$(field).setAttribute('aria-describedby','r234-field-error');$(field).setAttribute('aria-invalid','true');$(field).focus();}
+    else {$('r234-feedback').scrollIntoView({block:'nearest'});announce('仅离线格式检查通过，没有执行真实网络连接。');}
   }
 
   function parseCommand(s){
