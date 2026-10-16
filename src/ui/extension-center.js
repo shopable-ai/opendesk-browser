@@ -8,13 +8,15 @@ import readingTocCatalog from '../reading-toc/locales.generated.js';
 import {uiMessage,resolveUiLocale} from './app-localization.js';
 
 // One trusted presentation. All writes and launches delegate to the existing hosts.
-export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench,localeController=null}){
+export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench,localeController=null,extensionList=null}){
   const get=id=>doc.getElementById(id);
   const list=get('extension-center-list'),search=get('extension-center-search');
   const listing=get('extension-center-list-view'),detail=get('extension-center-detail');
   const more=get('extension-center-more'),menu=get('extension-center-menu');
   const notice=get('extension-center-status'),workspace=get('workspace-content');
   if(!list)return {refresh:async()=>{},dispose(){}};
+  if(extensionList&&(extensionList.owner!=='extension-list'||list.dataset.opendeskReactOwner!=='extension-list'))
+    throw new Error('E_REACT_LIST_OWNERSHIP');
   let disposed=false,sequence=0,officialSequence=0,busy=false,pendingKey=null,installed=[],pages=[],enabled={},official=[];
   let appStatusKnown=false,pageStatusKnown=false,pendingCleanups=new Set();
   let sources={};
@@ -66,7 +68,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   function closeRowMenu(returnFocus=false){
     const key=rowMenuKey,trigger=rowMenuTrigger;
     rowMenu.hidden=true;rowMenu.replaceChildren();rowMenuKey=null;rowMenuTrigger=null;
-    trigger?.setAttribute('aria-expanded','false');
+    if(extensionList)extensionList.setMenuKey(null);
+    else trigger?.setAttribute('aria-expanded','false');
     if(returnFocus){
       if(trigger?.isConnected)trigger.focus({preventScroll:true});
       else if(key)restoreRowFocus(key,'more');
@@ -78,7 +81,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     const row=find(key);if(!row?.installed)return;
     closeRowMenu();closeMenu();
     rowMenuKey=key;rowMenuTrigger=trigger;
-    trigger.setAttribute('aria-expanded','true');
+    if(extensionList)extensionList.setMenuKey(key);
+    else trigger.setAttribute('aria-expanded','true');
     rowMenu.setAttribute('aria-label','管理「'+titleOf(row)+'」');
     const add=(label,fn,actionId)=>{
       const b=button(label,event=>{
@@ -161,7 +165,9 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     closeRowMenu();
     const rows=filterExtensionEntries(all().map(row=>({...row,title:titleOf(row),description:descriptionOf(row)})),{query,kind,scope});
     list.setAttribute('aria-busy',String(Boolean(busy||pendingKey)));
-    list.replaceChildren();
+    // React alone owns list children in the production Side Panel.
+    // The DOM fallback is isolated to legacy test harnesses during migration.
+    if(!extensionList)list.replaceChildren();
     // A cleanup journal is not an installed app or a trusted Catalog release.
     // Show a recovery-only control in discovery even if the catalog is offline.
     const recovery=get('extension-center-cleanups');
@@ -186,6 +192,17 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         }
       }
     }
+    if(extensionList){
+      extensionList.renderRows({
+        rows:rows.map(row=>({
+          key:row.key,title:titleOf(row),kind:row.kind,type:typeOf(row),
+          description:rowDescription(row),installed:row.installed,
+          primaryAction:resolveExtensionPrimaryAction(row)?.label||null
+        })),
+        busy:Boolean(busy||pendingKey),pendingKey,
+        onOpenRow:openRow,onMore:showRowMenu
+      });
+    }else{
     for(const row of rows){
       const item=node('li','ec-row');item.dataset.extensionId=row.key;
       const primaryAction=resolveExtensionPrimaryAction(row);
@@ -230,6 +247,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       }
       if(!actions.childElementCount)item.classList.add('ec-row--no-actions');
       item.append(main,actions);list.append(item);
+    }
     }
     get('extension-center-empty').hidden=rows.length>0||orphaned.length>0||!hasLoaded;
     get('extension-center-empty-text').textContent=dataError?

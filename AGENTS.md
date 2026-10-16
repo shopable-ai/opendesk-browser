@@ -30,13 +30,15 @@ YOU ARE AN AUTONOMOUS CODING AGENT. EXECUTE AUTHORIZED TASKS TO COMPLETION WITHO
 
 **不采用“一切 `src/` 变更都违规”的路径禁令**：用户本来要求修通用 SDK、安装撤权或第一方可信模块时，允许其 owner 正常修改 `src/` 并定向回归。CI 静态门禁不因并行提交包含 `src/` 就一票否决；它也不能证明未来所有 AI 不漂移。真实模型路由、Chrome 安装及撤权未执行时标 `NOT_TESTED`。具体门禁以 [唯一 Extension Creation Workflow](.agents/workflows/extension-creation.md) 与 [现行八个 Skill 路由](.agents/skills/README.md) 为准。
 
-## React UI 共享组件与自定义 UI 零退化（2026-10-16，R33.1）
+## React UI 共享组件与自定义 UI 零退化（2026-10-16，R33.3）
 
 **本轮产品 P0 是五个可信 Side Panel Tab 最终统一 React 工作台**，优先「开发」「扩展」，再「工作流」「我的」「云控」；阶段性分模块迁移不等于最终长期保留两套 UI。UI 组件首选评估 shadcn/ui（React Aria base）+ Tailwind v4 + 既有 OpenDesk Tokens，须先以真实依赖、CSS scope、交互/焦点和构建体积确认，再实施正式可信 UI；不是仅创建 Starter/组件包或重写 Browser SDK/Host。
 
 **并列 P0 是用户自定义 UI 零退化，重点是「原有工具不改」而非「所有旧工具改为 React」。** HTML/CSS/JS、Vue、React 原工具与示例保持原状，继续可安装/运行/更新并调用原 SDK；`开发` 的编辑/编译/预览/运行/保存/Stop 与 Standard/Developer 路径保留。新 React 组件只对需要的消费者可选，旧 HTML/Vue 示例不迁移、不增加 React/样式依赖、不改身份/数据/正式包；**只做受影响范围的定向兼容测试，失败才最小修复**。不将用户动态 iframe JS 提权到可信 React 页面。独立完整页面的 UI 重设计为 P2；已有标签页打开工具继续可用。
 
 继续使用现有 WXT/Vite、唯一 Tokens、原 Sandbox/Host/SDK/安装器和安全构建边界；不创建第二套核心基础设施。R32.8「不建共享组件包」和 R33.0「一处 React UI Island 即完成核心目标」都不能取代 R33.1 的五 Tab 产品方向。独立专家评分目标 ≥95，但未获对应最新候选 Chromium 证据标记 NOT_TESTED。**唯一权威产品/架构与验收入口：** [统一 React Side Panel 与自定义工具兼容合同](docs/architecture/react-ui-shared-components-r33.zh-CN.md)。
+
+**R33.3 源码归属：当前唯一可信 React 根 `src/ui/react/`（包括 `components/ui/`）；`packages/opendesk-ui-react/` 是未来第二独立消费者经验证后才可评估的候选，本轮禁止创建或复制。五 Tab 渐进迁移、单 DOM owner，具体以权威 R33 架构文档为准。**
 
 ## Sidebar Tool 单一正式安装包与测试后晋升（2026-10-15）
 
