@@ -35,7 +35,7 @@ node --test tests/environment/prompt-shortcuts-r14*.test.mjs
 
 - 原生点击插入前再次检查安装、工具启停、适用网站、按钮和草稿；IME 组合期间拒绝触碰输入框；同一轮异步验证只处理一次点击。
 - 富文本段落不能仅用 `textContent` 或“忽略全部空白后包含正文”确认成功。当前可信 ChatGPT 模块会核对原有正文、顺序及完整多行内容。结果不明确则提示检查并手动复制，绝不自动重试或发送。
-- R1.5 已有独立 Chromium **模拟编辑器** 的多行与撤销实验，仍需在安装的 Chrome 和**真实 ChatGPT** 富文本编辑器中验收；可持续查看同一 [交接文档](../../../../docs/framework/workstreams/prompt-shortcuts-r12-ui-handoff.zh-CN.md) 的状态。
+- R1.5 已有独立 Chromium **模拟编辑器** 的多行与撤销实验，仍需在安装的 Chrome 和**真实 ChatGPT** 富文本编辑器中验收；可持续查看同一 [交接文档](../../../docs/framework/workstreams/prompt-shortcuts-r12-ui-handoff.zh-CN.md) 的状态。
 
 ## 仓库内正式可安装工具包与本地测试
 
@@ -63,7 +63,7 @@ git diff -- examples/sidebar-tools/prompt-shortcuts/
 
 本地真实安装：先确认日常 OpenDesk 浏览器仍加载标准 `dist/development` 与现有唯一 `npm run dev` watcher；在 OpenDesk「扩展」的已有工具导入入口选择上述 **JSON 文件**，完成原有权限/来源审阅后安装并打开。若同 ID/版本的正式官方工具已经安装，先核对当前包身份与原有数据，禁止绕过版本、授权或更新审核硬替换。也可使用已有「官方可选工具」入口安装，二者不能造成第二个工具身份。
 
-**R1.5 CI 证据：** [Run 38743743798](https://github.com/shopable-ai/opendesk-browser/actions/runs/38743743798) 为 **11/11 Node PASS、语法 PASS、可移植 v2 PACKAGE_PASS**；[Run 38747308859](https://github.com/shopable-ai/opendesk-browser/actions/runs/38747308859) 验证并提交了本目录的同字节工具包。它们仍不代表完整 production WXT 构建、真实 Chrome、ChatGPT 富文本、Mac 中文 IME、原生右键或卸载/重装已经通过；原始证据和缺口记录在唯一 [交接文档](../../../../docs/framework/workstreams/prompt-shortcuts-r12-ui-handoff.zh-CN.md)。
+**R1.5 CI 证据：** [Run 38743743798](https://github.com/shopable-ai/opendesk-browser/actions/runs/38743743798) 为 **11/11 Node PASS、语法 PASS、可移植 v2 PACKAGE_PASS**；[Run 38747308859](https://github.com/shopable-ai/opendesk-browser/actions/runs/38747308859) 验证并提交了本目录的同字节工具包。它们仍不代表完整 production WXT 构建、真实 Chrome、ChatGPT 富文本、Mac 中文 IME、原生右键或卸载/重装已经通过；原始证据和缺口记录在唯一 [交接文档](../../../docs/framework/workstreams/prompt-shortcuts-r12-ui-handoff.zh-CN.md)。
 
 ### R1.7 双预览映射与正式工具更新
 
@@ -115,4 +115,4 @@ git diff -- examples/sidebar-tools/prompt-shortcuts/
 - 配置第三方网站时，**按钮容器应选择包含目标编辑器的上层内容区域**。必须唯一匹配，且所选编辑器位于容器内部；若网页 SPA 使编辑器漂移到其他区域，按钮隐藏而不是猜测写入。写入前再次核验 DOM 连接、焦点和当前目标，失效时保留旧草稿并尝试复制提示词。
 - [Prompt Shortcuts R2.3 CI Run 38910587019](https://github.com/shopable-ai/opendesk-browser/actions/runs/38910587019) 整体 SUCCESS，**Node 84/84、共享工具 6/6、语法、来源门禁、候选打包、正式 UI 模拟 Host Chromium、网页真实 DOM Fixture Chromium 均通过**；CI Fixture 仍不是安装到用户 Chrome 的真实网站实测。
 - 官方单一 JSON 版本 **1.1.2**，GitHub 同源发行 [4bdbbd3](https://github.com/shopable-ai/opendesk-browser/commit/4bdbbd332c237be3cbc77ad5de6028a2378b0bc8)；**73,205 字节**，SHA-256 `36277a82becc4a200b5ac5ccfb5875e11054bcf6d6d2ac378be30c08bda9b02f`，`--check-project=PROJECT_PACKAGE_MATCH`。Chrome 固定可信适配器升级仍需浏览器加载新版构建，不能只导入 JSON 来更新。
-- Claude / Gemini / ChatGPT 已登录真实编辑器、Mac Chrome 实装身份、中文 IME、Cmd+Z、SPA/撤权仍为 **NOT_TESTED**；不得因为模拟回归通过就给出 95+ 实机产品评分。详见唯一 [交接文档](../../../../docs/framework/workstreams/prompt-shortcuts-r12-ui-handoff.zh-CN.md)。
+- Claude / Gemini / ChatGPT 已登录真实编辑器、Mac Chrome 实装身份、中文 IME、Cmd+Z、SPA/撤权仍为 **NOT_TESTED**；不得因为模拟回归通过就给出 95+ 实机产品评分。详见唯一 [交接文档](../../../docs/framework/workstreams/prompt-shortcuts-r12-ui-handoff.zh-CN.md)。
