@@ -231,6 +231,10 @@ try{
   assert.equal(await evaluate('document.querySelectorAll(".ec-detail-head").length'),1);
   const recorded=await evaluate('window.__reactTest.calls');
   assert.equal(recorded.filter(s=>s==='open:app:sample').length,1,'one click must not duplicate listeners');
+  // This component fixture follows a long Extension+Developer test page.
+  // Move ONLY the workflow fixture into the visible viewport before sending
+  // real CDP mouse events; never fake trusted clicks or bypass hit testing.
+  await evaluate('Object.assign(document.getElementById("workbench-workflow").style,{position:"fixed",top:"10px",left:"10px",width:"min(360px, calc(100vw - 20px))",height:"320px",background:"white",zIndex:"300"})');
   assert.equal(await evaluate('window.__reactTest.ui.workflowMounted'),true);
   assert.equal(await evaluate('document.querySelectorAll("#workflow-ai-transcript .workflow-chat-entry").length'),1);
   assert.equal(await evaluate('document.querySelector("#workflow-ai-transcript .workflow-chat-entry p").textContent'),'安全输出 <script>不可执行</script>');
