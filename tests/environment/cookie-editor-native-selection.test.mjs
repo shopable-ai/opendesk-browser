@@ -4,6 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import test from 'node:test';
 import {createHash} from 'node:crypto';
+import {runInNewContext} from 'node:vm';
 import {COOKIE_EDITOR_UPGRADE_FROM,verifyCookieEditorUpgradeBaseline} from '../framework/cookie-editor-upgrade-contract.mjs';
 
 const driver=fileURLToPath(new URL('../framework/cookie-editor-r33-native.mjs',import.meta.url));
@@ -14,6 +15,19 @@ function plan(cases,stage='import-export'){
   if(cases!==undefined)env.COOKIE_NATIVE_CASES=cases;
   return spawnSync(process.execPath,[driver,'--list-cases'],{env,encoding:'utf8'});
 }
+test('core and upgrade list-cases disclose their actual work before browser configuration',()=>{
+  const core=plan(undefined,'');assert.equal(core.status,0,core.stderr);
+  const c=JSON.parse(core.stdout);
+  assert(c.selected.includes('new-cookie'));
+  assert(c.selected.includes('exact-delete'));
+  assert(c.selected.includes('explicit-empty-value'));
+  assert(c.prerequisites.includes('official-install'));
+  const upgrade=plan(undefined,'upgrade');assert.equal(upgrade.status,0,upgrade.stderr);
+  const u=JSON.parse(upgrade.stdout);
+  assert.deepEqual(u.selected,['upgrade-preservation-baseline','explicit-upgrade','upgraded-tool-save-and-delete']);
+  assert(u.prerequisites.includes('first-use-combined-grant'));
+  assert(!u.excluded.includes('upgrade'));
+});
 test('a selected JSON import plans without browser paths, seed CRUD or a sensitive grant',()=>{
   const result=plan('import-json-auto');assert.equal(result.status,0,result.stderr);
   const data=JSON.parse(result.stdout);assert.deepEqual(data.selected,['import-json-auto']);
@@ -76,7 +90,7 @@ test('R4.10 native case driver uses real approved metadata toggle and inline dis
 
 test('R4.10.2 upgrade verifies historical 2.0.15 bytes, same ID and unchanged capabilities',async()=>{
   const candidateConfig=JSON.parse(await readFile(new URL('../../examples/sidebar-tools/cookie-editor/tool.config.json',import.meta.url),'utf8'));
-  assert.equal(candidateConfig.version,'2.0.16');
+  assert.equal(candidateConfig.version,'2.0.17');
   assert.equal(COOKIE_EDITOR_UPGRADE_FROM.version,'2.0.15');
   assert.equal(COOKIE_EDITOR_UPGRADE_FROM.sha256,
     'f6aa6d83533dba166497fce2d37b6ee2a358c102b3f85b63ce8c6a62d6fb64ce');
@@ -109,8 +123,20 @@ test('R4.10.2 explicit upgrade and all stages cannot silently run only generic C
   const source=readFile(driver,'utf8');
   return source.then(text=>{
     assert.match(text,/upgrade-preservation-baseline','explicit-upgrade','upgraded-tool-save-and-delete'/);
-    assert.match(text,/Real 2\.0\.15 to 2\.0\.16 upgrade steps must all pass/);
+    assert.match(text,/upgrade steps must all pass before acceptance/);
   });
+});
+
+test('native evidence omits assertion payloads and redacts Cookie values in final output',async()=>{
+  const source=await readFile(driver,'utf8');
+  const helpers=source.slice(source.indexOf('const evidenceJson='),source.indexOf('const persist='));
+  const api=runInNewContext(helpers+';({evidenceJson,evidenceError})');
+  const secret='FICTIONAL_COOKIE_PAYLOAD_FOR_EVIDENCE_TEST';
+  const error={code:'ERR_ASSERTION',stack:'AssertionError: '+secret+'\n    at nativeCase (driver.mjs:1:1)'};
+  const result=api.evidenceJson({cookies:[{name:'example',value:secret}],error:api.evidenceError(error)});
+  assert(!result.includes(secret));assert(result.includes('driver.mjs:1:1'));
+  assert.match(source,/console\.log\(evidenceJson\(/);
+  assert.match(source,/\['text','value','expression'\]\.includes\(key\)/);
 });
 
 test('R4.10.2 native upgrade validates chosen Mac file digest, not just its version label',async()=>{

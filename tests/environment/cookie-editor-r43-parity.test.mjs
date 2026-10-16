@@ -54,7 +54,7 @@ test('R4.3 installed HTML presents visible import/export/new actions without ent
   assert.match(js,/originalExpiryInput/);
   assert.match(css,/#live-cookie-list \.cookie-row\{/);
   assert.match(html,/<option value="backup" selected>/);
-  assert.equal(pkg.version,'2.0.16');
+  assert.equal(pkg.version,'2.0.17');
   assert.equal(pkg.html,html);
   assert.equal(pkg.js,js);
   assert.equal(pkg.css,css);

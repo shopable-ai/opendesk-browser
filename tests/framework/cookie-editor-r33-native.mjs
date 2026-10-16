@@ -37,11 +37,30 @@ const needsSeed=selectedGapCases.some(id=>id.startsWith('export-')||id==='import
 const needsValues=selectedGapCases.some(id=>['export-copy-sensitive-json','export-json','export-header','export-netscape'].includes(id));
 // An explicit native stage must not silently degrade to the generic CRUD suite.
 const suite=requestedStage?'extended':process.env.COOKIE_NATIVE_SUITE;
-const gapPlan={stage:requestedStage,suite,selected:selectedGapCases,
-  prerequisites:gapStage?['launch','product-side-panel','official-install','active-fixture',
-    'first-use-combined-grant','write-grant-reuse',...(needsSeed?['gap-seed-import']:[])]:[],
-  valuesGrant:needsValues,cleanup:gapStage?['gap-cleanup']:[],
-  excluded:['continuous-CRUD','observe','clear','lifecycle','width-zoom-matrix']};
+const commonCases=['launch','product-side-panel','official-install','active-fixture',
+  'first-use-combined-grant','write-grant-reuse'];
+const coreCases=['new-cookie','edit-value','rename-with-new-value','values-grant',
+  'rename-preserve-hidden-value','explicit-empty-value','exact-delete'];
+const stageCases={
+  visual:['native-width-zoom-captures'],
+  upgrade:['upgrade-preservation-baseline','explicit-upgrade','upgraded-tool-save-and-delete'],
+  partial:['rename-partial-cancelled-old-delete'],
+  negative:['conflict-preserves-original','hidden-value-needs-grant','same-name-path-isolation'],
+  path:['same-name-path-isolation'],
+  advanced:['import-ui','values-grant','export-ui','observe-ui','clear-ui'],
+  lifecycle:['close-and-reopen','revoked-pending-write','disable-with-pending-write',
+    'uninstall-and-clean-grants','reinstall-requires-fresh-grants'],
+};
+const broadCases=[...stageCases.upgrade,...stageCases.negative,...stageCases.advanced,...stageCases.lifecycle];
+const selectedNativeCases=requestedStage==='all'
+  ?[...coreCases,'revoke-values-before-negative-cases',...broadCases]
+  :stageCases[requestedStage]||(suite==='extended'?broadCases:coreCases);
+const gapPlan={stage:requestedStage||'core',suite:suite||'core',
+  selected:gapStage?selectedGapCases:[...new Set(selectedNativeCases)],
+  prerequisites:[...commonCases,...(needsSeed?['gap-seed-import']:[])],
+  valuesGrant:gapStage?needsValues:selectedNativeCases.includes('values-grant'),
+  cleanup:gapStage?['gap-cleanup']:[],
+  excluded:gapStage?['continuous-CRUD','observe','clear','lifecycle','width-zoom-matrix']:[]};
 if(process.argv.includes('--list-cases')){console.log(JSON.stringify(gapPlan));process.exit(0);}
 const required=name=>{assert(process.env[name],name+' is required');return path.resolve(process.env[name]);};
 const extension=required('COOKIE_NATIVE_EXTENSION');
@@ -53,8 +72,7 @@ const driverFile=fileURLToPath(import.meta.url),driverBytes=await readFile(drive
 await mkdir(directory,{recursive:true});
 const report={mode:'headed-owned-macos-CFT',startedAt:new Date().toISOString(),extension,fixture,
   directory,selection:gapPlan,driver:{path:path.relative(root,driverFile),sha256:hash(driverBytes),bytes:driverBytes.length},scope:'Installed Side Panel selected cases; all Cookie mutations originate in tool UI; Chrome API reads only',
-  cases:Object.fromEntries((gapStage?[...gapPlan.prerequisites,...selectedGapCases,...gapPlan.cleanup]:
-    ['launch','product-side-panel','official-install','active-fixture','first-use-combined-grant','write-grant-reuse'])
+  cases:Object.fromEntries([...gapPlan.prerequisites,...gapPlan.selected,...gapPlan.cleanup]
     .map(id=>[id,{status:'NOT_TESTED'}])),screenshots:[],steps:[],complete:false};
 let launched,client,control,side,sideTargetId,website,currentCase,toolSession;
 let upgradeBaseline=null,upgradeOldFile=null;
@@ -65,6 +83,9 @@ const downloadEvents=[];
 // reports, failure envelopes, and Input traces must never contain those values.
 const evidenceJson=input=>JSON.stringify(input,(key,value)=>
   key==='value'&&typeof value==='string'?'[REDACTED_COOKIE_VALUE]':value,2)+'\n';
+// Assertion messages can quote compared Cookie values or source literals.
+const evidenceError=error=>[error?.code==='ERR_ASSERTION'?'ERR_ASSERTION':'E_NATIVE_CASE_FAILURE',
+  ...String(error?.stack||'').split('\n').filter(line=>/^\s+at /.test(line))].join('\n');
 const persist=()=>writeFile(path.join(directory,'native-report.json'),evidenceJson(report));
 function requireNativeResource(){
   const active=execFileSync('ps',['-axo','pid=,ppid=,comm='],{encoding:'utf8'}).split('\n')
@@ -209,7 +230,8 @@ async function deleteCookie(name,path='/'){
   await click(toolSession,'#confirm-accept');
   const message=await approveHost();
   await until(async()=>!(await cookies()).some(c=>c.name===name&&c.path===path),'Exact deleted slot');
-  await until(()=>read(toolSession,'!document.querySelector("#live-new").disabled'),'Delete refresh');
+  await until(()=>read(toolSession,'!document.querySelector("#live-new").disabled&&document.querySelector("#editor-panel").hidden'),
+    'Delete refresh with completed editor closed');
   return {message,cookies:await cookies()};
 }
 async function advanced(){
@@ -247,7 +269,7 @@ async function observeCookieFrames(){
   for(const target of targets.filter(t=>t.type==='iframe'&&t.url.includes('/sidebar-tools/sandbox.html'))){
     try{
       const session=await attach(target);
-      const document=await read(session,'({url:location.href,readyState:document.readyState,timeOrigin:performance.timeOrigin,cookieApp:!!document.querySelector(".cookie-app"),status:document.querySelector("#status")?.textContent,text:document.body.innerText.slice(0,1200),scripts:[...document.scripts].map(n=>({src:n.src,type:n.type}))})');
+      const document=await read(session,'({url:location.href,readyState:document.readyState,timeOrigin:performance.timeOrigin,cookieApp:!!document.querySelector(".cookie-app"),status:document.querySelector("#status")?.textContent,scripts:[...document.scripts].map(n=>({src:n.src,type:n.type}))})');
       frames.push({target,session,document});
     }catch(error){frames.push({target,error:error.message});}
   }
@@ -270,6 +292,12 @@ async function save(approvals=1){
 // R4.3 editor/delete operations are scoped by exact name and Cookie Path.
 async function screenshot(name){
   if(!side)return;
+  if(toolSession&&await read(toolSession,`[...document.querySelectorAll("#cookie-value,#import-text,#live-export-content")]
+    .some(n=>Boolean(n.value)&&n.getClientRects().length>0)||
+    Boolean(document.querySelector("#editor-revealed-value")?.getClientRects().length&&
+      document.querySelector("#editor-revealed-value")?.textContent)`)){
+    report.screenshots.push({case:currentCase,skipped:'Visible Cookie payload; do not persist sensitive pixels'});return;
+  }
   guard();const image=await client.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false},side);
   const bytes=Buffer.from(image.data,'base64'),filename=name+'.png';await writeFile(path.join(directory,filename),bytes);
   report.screenshots.push({case:currentCase,file:filename,sha256:hash(bytes)});
@@ -278,8 +306,8 @@ async function step(id,fn){
   currentCase=id;console.log('COOKIE_NATIVE_START '+id);
   report.cases[id]={status:'RUNNING',startedAt:new Date().toISOString()};await persist();
   try{const observations=await fn();await screenshot(id);report.cases[id]={status:'PASS',observations};}
-  catch(error){report.cases[id]={status:'FAIL',error:error.stack};try{if(side)await observeCookieFrames();await screenshot(id+'-failure');
-    if(toolSession)report.cases[id].ui=await read(toolSession,'({text:document.body.innerText,active:document.activeElement?.id,scroll:scrollY,height:innerHeight,form:[...document.querySelectorAll("#editor-form input,#editor-form textarea,#editor-form button")].map(n=>({id:n.id,value:n.value,disabled:n.disabled,valid:n.validity?.valid,rect:{x:n.getBoundingClientRect().x,y:n.getBoundingClientRect().y}}))})');
+  catch(error){report.cases[id]={status:'FAIL',error:evidenceError(error)};try{if(side)await observeCookieFrames();await screenshot(id+'-failure');
+    if(toolSession)report.cases[id].ui=await read(toolSession,'({active:document.activeElement?.id,scroll:scrollY,height:innerHeight,form:[...document.querySelectorAll("#editor-form input,#editor-form textarea,#editor-form button")].map(n=>({id:n.id,disabled:n.disabled,valid:n.validity?.valid,rect:{x:n.getBoundingClientRect().x,y:n.getBoundingClientRect().y}}))})');
   }catch(e){report.cases[id].screenshotError=e.message;}throw error;}
   finally{report.cases[id].finishedAt=new Date().toISOString();await writeFile(path.join(directory,id+'-receipt.json'),
     evidenceJson({candidate:report.candidate,launch:report.launch,case:report.cases[id]}));await persist();}
@@ -440,7 +468,8 @@ try{
   await step('new-cookie',async()=>{
     await click(toolSession,'#live-new');await type('#cookie-name','od_core');await type('#cookie-value','fictional-one');
     const result=await save();assert(result.cookies.some(c=>c.name==='od_core'&&c.value==='fictional-one'&&c.path==='/'));
-    assert((await read(toolSession,'document.querySelector("#live-cookie-list").textContent')).includes('敏感值未读取'));
+    assert((await read(toolSession,'document.querySelector("#live-cookie-list").textContent')).includes('od_core'),
+      'Created Cookie must appear in the approved compact live list');
     assert(!(await read(toolSession,'document.querySelector("#live-cookie-list").textContent')).includes('fictional-one'));
     return result;
   });
@@ -460,6 +489,22 @@ try{
     assert(!result.cookies.some(c=>c.name==='od_renamed'));assert(result.cookies.some(c=>c.name==='od_kept'&&c.value==='fictional-three'));
     return result;
   });
+  await step('explicit-empty-value',async()=>{
+    const metadata=({value,...row})=>row;
+    const before=metadata((await cookies()).find(c=>c.name==='od_kept'));
+    await editCookie('od_kept');await type('#cookie-value','temporary-test-input');
+    await click(toolSession,'#cookie-value');
+    await client.send('Input.dispatchKeyEvent',{type:'keyDown',key:'a',code:'KeyA',modifiers:4,commands:['selectAll']},side);
+    await client.send('Input.dispatchKeyEvent',{type:'keyUp',key:'a',code:'KeyA',modifiers:4},side);
+    await client.send('Input.dispatchKeyEvent',{type:'keyDown',key:'Backspace',code:'Backspace',windowsVirtualKeyCode:8,nativeVirtualKeyCode:51},side);
+    await client.send('Input.dispatchKeyEvent',{type:'keyUp',key:'Backspace',code:'Backspace',windowsVirtualKeyCode:8,nativeVirtualKeyCode:51},side);
+    assert.equal(await read(toolSession,'document.querySelector("#cookie-value").value'),'');
+    assert.equal(await read(toolSession,'document.querySelector("#editor-dirty").hidden'),false);
+    const result=await save(),after=result.cookies.find(c=>c.name==='od_kept');
+    assert.equal(after?.value,'','Explicit clearing must write the empty value');
+    assert.deepEqual(metadata(after),before,'Value edit must preserve every native Cookie attribute');
+    return result;
+  });
   await step('exact-delete',async()=>{
     await editCookie('od_kept');
     await click(toolSession,await scopedAction('od_kept','/','删除 Cookie'));
@@ -467,7 +512,8 @@ try{
     await until(()=>read(side,'!document.querySelector("#sidebar-tool-action-review").hidden'),'Trusted delete confirmation');
     await click(side,'#sidebar-tool-action-continue');
     await until(async()=>!(await cookies()).some(c=>c.name==='od_kept'),'Native exact Cookie absence');
-    await until(()=>read(toolSession,'document.querySelector("#live-count").textContent==="0 / 0 条 Cookie"'),'Delete UI reread');
+    await until(()=>read(toolSession,'document.querySelector("#live-count").textContent==="(0)"&&document.querySelector("#editor-panel").hidden'),
+      'Delete UI reread and completed editor cleanup');
     return {cookies:await cookies(),status:await read(toolSession,'document.querySelector("#status").textContent')};
   });
   }
@@ -958,14 +1004,14 @@ try{
     });
     }
   }
-  if(gapStage)assert([...gapPlan.prerequisites,...selectedGapCases,...gapPlan.cleanup]
+  assert([...gapPlan.prerequisites,...gapPlan.selected,...gapPlan.cleanup]
     .every(id=>report.cases[id]?.status==='PASS'),'Every selected native case and cleanup must pass');
   if(stage==='upgrade')assert([
     'official-install','upgrade-preservation-baseline','explicit-upgrade','upgraded-tool-save-and-delete',
   ].every(id=>report.cases[id]?.status==='PASS'),
-    'Real 2.0.15 to 2.0.16 upgrade steps must all pass before acceptance');
+    'Real 2.0.15 to '+pkg.version+' upgrade steps must all pass before acceptance');
   report.complete=true;
-}catch(error){report.error=error.stack;process.exitCode=1;console.error('COOKIE_NATIVE_FAIL '+error.message);}
+}catch(error){report.error=evidenceError(error);process.exitCode=1;console.error('COOKIE_NATIVE_FAIL '+report.error);}
 finally{
   report.driverUnchanged=hash(await readFile(driverFile))===report.driver.sha256;
   if(!report.driverUnchanged){report.complete=false;process.exitCode=1;}
@@ -975,6 +1021,6 @@ finally{
   if(client){try{guard();await client.send('Browser.close');}catch(error){report.closeObservation=error.message;}client.close();}
   if(launched){report.cleanup=await launched.stop();if(report.cleanup.cleanupStatus!=='PASS'){report.complete=false;process.exitCode=1;}}
   report.finishedAt=new Date().toISOString();await writeFile(path.join(directory,'cdp-trace.json'),JSON.stringify(trace,(key,value)=>
-    (key==='text'||key==='value')&&typeof value==='string'?'[REDACTED_INPUT]':value,2)+'\n');await persist();
-  console.log(JSON.stringify({directory,complete:report.complete,cases:report.cases,error:report.error||null}));
+    ['text','value','expression'].includes(key)&&typeof value==='string'?'[REDACTED_INPUT]':value,2)+'\n');await persist();
+  console.log(evidenceJson({directory,complete:report.complete,cases:report.cases,error:report.error||null}));
 }

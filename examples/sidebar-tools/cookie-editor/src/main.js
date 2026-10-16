@@ -702,7 +702,7 @@ async function deleteBrowserCookie(row){
     if(!stillCurrent(id,target))return;
     if(result?.removed!==true||result.verified!==true)
       throw Object.assign(new Error('删除回执未核实'),{code:'E_OUTCOME_UNKNOWN'});
-    confirmed=true;liveSecrets.delete(key(row));status('Chrome 已确认删除「'+row.name+'」。','success');
+    confirmed=true;scrubEditors();status('Chrome 已确认删除「'+row.name+'」。','success');
   }catch(e){if(stillCurrent(id,target)){
     if(e.code==='E_CANCELLED')status('已取消删除，未删除 Cookie。');
     else status('删除未确认（'+safeCookieCode(e,'E_COOKIE_REMOVE')+

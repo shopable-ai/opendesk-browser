@@ -302,6 +302,9 @@ for(const operation of ['create','edit'])test('Mounted editor survives '+operati
   const beforeDelete=reads;
   s.fire('confirm-accept','click');await s.settle();
   assert.equal(removals,1);assert.equal(s.liveSnapshot().rows.length,0);
+  assert.equal(editor.hidden,true,'verified delete must close the deleted Cookie editor');
+  assert.equal(s.getField('editor-dirty').hidden,true,'verified delete must discard its completed draft');
+  assert.equal(s.getField('cookie-value').value,'','completed delete must scrub sensitive editor input');
   assert(reads>beforeDelete,'verified delete must refresh browser metadata');
   assert.equal(s.liveSnapshot().state,'ready');assert.equal(save.disabled,false);
   s.fire('editor-cancel','click');s.fire('refresh','click');await s.settle();
@@ -1173,6 +1176,7 @@ test('R4.10.1 delete and import preflight mask untrusted SDK/Host exception deta
   s.openEditor(s.liveSnapshot().rows[0]);s.fire('editor-delete','click');
   s.fire('confirm-accept','click');await s.settle();
   assert.match(s.getStatusMessage(),/删除未确认/);
+  assert.equal(s.getField('editor-panel').hidden,false,'unconfirmed delete must retain the editor');
   assert.doesNotMatch(s.getStatusMessage(),new RegExp(secret));
   s.fire('live-import','click');s.getField('import-text').value='sample=fake';
   s.fire('import-apply','click');await new Promise(resolve=>setImmediate(resolve));
