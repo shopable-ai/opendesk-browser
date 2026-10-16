@@ -67,3 +67,11 @@
 - 提交 [b79db51f](https://github.com/shopable-ai/opendesk-browser/commit/b79db51fb80cb507cf06f6bcb5dc0030d4b9eebb) 修复源快照生成器依赖被移除的内容区按钮；设置视图改用正式控制器的 toggleProductSettings()。提交 [8fa009f1](https://github.com/shopable-ai/opendesk-browser/commit/8fa009f15bbab7135f4cef55c2e6b0589d8546e8) 修复测试中 header 与 heading 前缀误匹配；不是删除 UI 安全检查。
 - 官方 [R1.9.5 来源回归 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38909663739) 负责真实 HTML 生成、定向 Node、四档 Chromium 与 GitHub 正式文件同步。只有其同源验证及晋升真实成功才算 SOURCE_PREVIEW_PASS；测试失败或排队时不宣称 HTML 已提交。本地交互预览不是正式安装证据。
 - 下一优先级为 macOS Chrome 完整网站例外恢复、DNR 权威读回和唯一正式安装包；历史 [38895876061](https://github.com/shopable-ai/opendesk-browser/actions/runs/38895876061) 已验证部分真实网络阻断但仍在网站恢复按钮可见性失败；新候选 NATIVE_CHROME_PASS=NOT_TESTED，不得评满 95。
+
+## R1.9.5 · 正式 HTML 已提交（2026-10-16）
+
+- 用户最终确认视觉：唯一可信工具栏中返回、`广告拦截`、设置、卸载同一行；返回到标题 8px，标题 14px。内容区不显示 Logo、副标题或第二枚设置图标。正式源码已经在 `main` 对齐，不得回退为内容区单独设置行。
+- [GitHub Actions 38909663739](https://github.com/shopable-ai/opendesk-browser/actions/runs/38909663739) 的 `verified-preview` job 实测 PASS：AdBlock/Stay Focus 89/89 Node PASS，通用 Preview 64/64 Node PASS，Chromium 9 个场景 PASS，四档宽度 320/360/400/480，以及完整 npm check。该 workflow 的初次回写 job 因并行 React 修改了 package-lock 而触发保守来源防线，不将 workflow 整体标为 PASS。
+- 从该成功 job 下载的**真实生成器输出原始文件**，经 GitHub create_blob 取得并与本地 git hash-object 校对完全相同的 blob `4712eafda061d13ea54893d2f59dedfc4c311006`，通过 [3f443590](https://github.com/shopable-ai/opendesk-browser/commit/3f44359090103c254029d75cc8a744d879cf627e) 提交到 `examples/sidebar-tools/adblock/adblock-r1-interactive-preview.html`。执行前已核对从受测 HEAD 到当时最新 `main` 的所有相关生成输入均无变更；未覆盖其他 Agent 的内容。[12e566d7](https://github.com/shopable-ai/opendesk-browser/commit/12e566d766903cc1c511524fa46ee977f8f1b680) 清理一次性 CI 工作流。
+- GitHub `main` 已复查正式 HTML Blob 仍为 `4712eafda061d13ea54893d2f59dedfc4c311006`；正式可信 host Blob `c1fe6ae5d504036bdb8b46fc778df504db2bbb73` 与来源安全锁一致。原始设计 Blob `f10b6f6671480b3ea4828a04541e7bffa4e4d58a` 未修改。当前工具配置版本 `1.1.1`。
+- 此验收范围仅为正式来源 HTML 和 Chromium 交互：`SOURCE_PREVIEW_PASS`，`NODE_PASS` / `PREVIEW_BROWSER_PASS` 为绑定成功 CI 的通过证据；`NATIVE_CHROME_PASS=NOT_TESTED`（最新 R1.9.5），`PRODUCT_ACCEPTED=NOT_SCORED`。本轮未生成或晋升目录下唯一 `adblock.opendesk-tool.json`。原生网站例外恢复、真实安装升级、DNR 权限撤销与完整重启必须下一轮继续，不能把旧 macOS 部分成功冒充最新候选验收。
