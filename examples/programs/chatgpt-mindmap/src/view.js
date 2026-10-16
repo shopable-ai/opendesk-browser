@@ -153,7 +153,7 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
     if(!menuOpen){
       menuOpen=true;menu.hidden=false;more.setAttribute('aria-expanded','true');
     }
-    focusMenu(event.key==='ArrowUp');event.preventDefault();
+    focusMenu(event.key==='ArrowUp');event.preventDefault();event.stopPropagation();
   }));
   removers.push(owner.on(shadow,'keydown',event=>{
     if(!menuOpen)return;

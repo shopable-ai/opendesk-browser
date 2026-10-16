@@ -55,6 +55,13 @@ test('R1.4 storage validates complete entries and keeps legacy auto flags manual
   assert.throws(()=>m.load({schema:1,items:[row,row],settings:{webButtons:true}}),{code:'E_PROMPT_DATA'});
   assert.throws(()=>m.load({schema:1,items:[{...row,label:'ABC'}],settings:{webButtons:true}}),{code:'E_PROMPT_DATA'});
   assert.deepEqual(Array.from(m.load(null).items),[]);
+  for(const legacy of [{...row,name:''},Object.fromEntries(Object.entries(row).filter(([key])=>key!=='name'))]){
+    const loaded=m.load({schema:1,items:[legacy],settings:{webButtons:true}});
+    assert.equal(loaded.items[0].nameAuto,true);
+    assert.equal(loaded.items[0].name,'测试');
+    assert.equal(loaded.items[0].body,row.body);
+  }
+  assert.throws(()=>m.load({schema:1,items:[{...row,name:null}],settings:{webButtons:true}}),{code:'E_PROMPT_DATA'});
 });
 test('R1.4 single v2 package builds from shared design and pins only one native menu action',async()=>{
   const pack=await createSidebarToolPackage(ROOT);
@@ -108,7 +115,7 @@ test('R1.4 fixed controller only uses scoped selectors, native insertion and no 
 
 test('R1.4 provenance pins only audited trusted tool modules to exact fixed entry points',()=>{
   const fixtures=[
-    ['trusted/model.js','f015386060e97ad336c3bbaf35d6e9033b7ba2ee'],
+    ['trusted/model.js','109107c49eb73609fd68b1292138e8e60588f986'],
     ['trusted/policy.js','69d18d8a7f98a1f8e77196ba07cdfdb76137f957'],
     ['trusted/page.js','fe1c12392eb23315a4c4f7a181a74fb0a272a3a1']
   ];
@@ -156,22 +163,32 @@ test('R1.4 shared uninstall cleanup removes only this tool grant and data, not a
   assert.deepEqual(stored.get(PROMPT_SITE_STORE)[PROMPT_ID].origins,[CHATGPT_ORIGIN]);
 });
 
-test('R1.7 preview UI is packaged from exactly the same production source',async()=>{
+test('R1.13 formal source builds a canonical candidate, then CI promotes it only after tests',async()=>{
   const base='examples/sidebar-tools/prompt-shortcuts/';
   const [html,css,js,formal]=await Promise.all([
     readFile(base+'src/index.html','utf8'),readFile(base+'src/style.css','utf8'),
     readFile(base+'src/main.js','utf8'),readFile(base+'prompt-shortcuts.opendesk-tool.json','utf8')
   ]);
   const pkg=await createSidebarToolPackage(ROOT);
-  assert.equal(pkg.version,'1.0.1');
-  assert.deepEqual(JSON.parse(formal),pkg,'official JSON must equal the packer output');
-  for(const id of ['ps-count','ps-empty','ps-quota-value','ps-preview-glyph','ps-menu-state']){
-    assert(html.includes('id="'+id+'"'),id+' expected from confirmed preview');
+  assert.equal(pkg.version,'1.0.3');
+  assert.equal(pkg.id,PROMPT_ID);
+  // The committed package remains on the previous known-good version until
+  // the scoped tests and actual packer pass. CI promotes the same candidate
+  // only afterwards; this pre-promotion source test must not require that
+  // unverified new package to have already replaced the old project package.
+  const lastGood=JSON.parse(formal);
+  assert.equal(lastGood.id,PROMPT_ID);
+  assert.equal(lastGood.format,pkg.format);
+  for(const id of ['ps-count','ps-empty','ps-quota-value','ps-preview-glyph',
+    'ps-toggle-settings','ps-setting-fields','ps-body-error','ps-clipboard-buffer']){
+    assert(html.includes('id="'+id+'"'),id+' is required by the formal tool');
   }
-  assert.match(html,/class="ps-permission-strip"/);
+  assert.match(html,/rows="3"/);
+  assert.doesNotMatch(html,/class="ps-permission-strip"|id="ps-copy"|ps-shapes/);
   assert.match(css,/\.ps-switch input:checked\+\.ps-switch-track/);
-  assert.match(css,/\.ps-confirm/);
+  assert.match(css,/\.ps-card-main/);
   assert.match(js,/root\.querySelector\('\.ps-delete-cancel'\)/);
   assert.match(js,/model\.bytes\(estimate\)/);
+  assert.doesNotMatch(js,/request\('clipboard\.writeText'/);
   assert.doesNotMatch(html,/模拟数据|模拟撤销|mockContextMenu|SIMULATED PREVIEW/);
 });

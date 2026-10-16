@@ -6,9 +6,18 @@ const parts=text=>Array.from(new Intl.Segmenter(undefined,{granularity:'grapheme
 const visible=part=>/[\p{L}\p{N}\p{M}\p{P}\p{S}]/u.test(part);
 const auto=body=>parts(body).filter(visible).slice(0,2).join('');
 const validLabel=label=>{const p=parts(label);return p.length>=1&&p.length<=2&&p.every(visible);};
+// The opaque installed-tool sandbox is not guaranteed to expose randomUUID.
+// getRandomValues is available in insecure contexts; never fall back to predictable IDs.
+function secureId(){
+  const crypto=globalThis.crypto;
+  if(typeof crypto?.randomUUID==='function')return crypto.randomUUID();
+  if(typeof crypto?.getRandomValues!=='function')fail('当前运行环境不能安全生成提示词 ID，请更新浏览器');
+  const random=crypto.getRandomValues(new Uint8Array(16));
+  return 'ps_'+Array.from(random,byte=>byte.toString(16).padStart(2,'0')).join('');
+}
 const defaults=()=>({schema:1,items:[],settings:{webButtons:true}});
 const bytes=value=>new TextEncoder().encode(JSON.stringify(value)).byteLength;
-function draft(input,previous=null,newId=()=>crypto.randomUUID()){
+function draft(input,previous=null,newId=secureId){
   if(typeof input?.body!=='string'||!input.body.trim())fail('提示词内容是唯一必填项');
   const label=typeof input.label==='string'?input.label.trim():'';
   const name=typeof input.name==='string'?input.name.trim():'';
@@ -17,7 +26,7 @@ function draft(input,previous=null,newId=()=>crypto.randomUUID()){
   const fallback=auto(input.body);
   if(!fallback)fail('请输入包含可见字符的正文');
   return {id:previous?.id||newId(),body:input.body,label:label||fallback,name:name||fallback,
-    labelAuto:!label,nameAuto:!name,shape:input.shape==='round'?'round':'square',
+    labelAuto:!label,nameAuto:!name,shape:input.shape==='round'||(input.shape===undefined&&previous?.shape==='round')?'round':'square',
     enabled:input.enabled!==false,order:previous?.order??0};
 }
 const validId=id=>typeof id==='string'&&/^[a-zA-Z0-9_-]{8,64}$/.test(id);
@@ -28,13 +37,13 @@ function load(value){
   const seen=new Set();
   const items=value.items.map(v=>{
     if(!v||!validId(v.id)||seen.has(v.id)||typeof v.body!=='string'||!v.body.trim()||
-      typeof v.label!=='string'||!validLabel(v.label)||typeof v.name!=='string'||!v.name.trim()||v.name.length>60||
+      typeof v.label!=='string'||!validLabel(v.label)||(v.name!==undefined&&(typeof v.name!=='string'||(v.name!==''&&!v.name.trim())||v.name.length>60))||
       !['square','round'].includes(v.shape)||typeof v.enabled!=='boolean'||!Number.isSafeInteger(v.order)||v.order<0)
       fail('某条提示词数据无效，已拒绝覆盖');
     seen.add(v.id);
     const fallback=auto(v.body);if(!fallback)fail('提示词正文无可见字符');
     // Old saved entries without auto flags stay manual.
-    const labelAuto=v.labelAuto===true,nameAuto=v.nameAuto===true;
+    const labelAuto=v.labelAuto===true,nameAuto=v.nameAuto===true||v.name===''||v.name===undefined;
     return {...v,labelAuto,nameAuto,label:labelAuto?fallback:v.label,name:nameAuto?fallback:v.name};
   });
   return {schema:1,items:items.sort((a,b)=>a.order-b.order||a.id.localeCompare(b.id)),

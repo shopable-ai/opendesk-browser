@@ -120,3 +120,10 @@ R3.3 新候选：授权变化后经已有 Bridge 自动检查当前网站；拒�
 - 保留 Chrome Cookies SDK 既有显式写入空字符串契约；被遮蔽的值输入框仅在未编辑时才代表保留原值。编辑后清空是明确写入空值，必须显示未保存状态。
 - 导出 MIME 类型继续由 `browserTextDownloadUrl` 公共 SDK 实现，CI 测试验证正式宿主调用及 JSON 文件的真实 MIME 映射，不再断言旧宿主文件中必须存在 MIME 常量。
 - 与 R4.5 相同，未做 Mac 已安装工具与真实网站 Cookie 原生验收。版本 2.0.11 需通过手动更新同 ID 安装包验证。
+
+### R4.8 复制与下载（2.0.12，2026-10-16）
+
+- 正式 Chrome Cookie 导出区仅显示「复制」「下载」两个主要按钮，顶部关闭仍可取消；预览同名操作同步，320px 起使用两列布局。
+- 两者共用授权范围与序列化；默认 JSON 元数据不含值且无法恢复，含值备份每次最终确认，读取走独立敏感值授权。
+- 复制复用 `OpenDeskSDK.browser.clipboard.writeText`，下载复用 `OpenDeskSDK.browser.downloads.text`；错误不回显不可信 SDK 文本，跨网站及授权变化时废弃旧异步结果。
+- GitHub 源码与静态校验不等于本机 Node 测试或真实 Chrome 验收，安装后必须在 Mac 进行原生验证。

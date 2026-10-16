@@ -199,6 +199,8 @@ input[type=file]{min-width:0;width:100%;max-width:100%;font-size:12px}.export-ac
 #live-export-panel,#browser-import-slot:not([hidden])>.editor-panel{gap:9px;margin:0 0 3px;padding:12px;border:1px solid var(--od-line);border-radius:10px;background:var(--od-bg)}
 #live-export-panel .field,#browser-import-slot .field{gap:5px}
 #live-export-panel .field label,#browser-import-slot .field label{font-size:11px}
+.live-export-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-2)}
+.live-export-actions .text-button{width:100%;min-width:0}
 .browser-state{text-align:center;padding:24px 12px;border:0;background:transparent}
 .browser-state strong{font-size:16px}
 .browser-state p{font-size:12px;line-height:1.8;max-width:280px;margin:10px auto}

@@ -66,7 +66,7 @@ const status=(msg,type='info')=>{E('status').textContent=msg;E('status').dataset
 const notify=()=>setState?.({dirty,busy});
 const setBusy=value=>{
   busy=value;notify();
-  for(const id of ['refresh','add','import-toggle','copy','download','clear','editor-save','import-apply','live-import-confirm','live-export-confirm'])
+  for(const id of ['refresh','add','import-toggle','copy','download','clear','editor-save','import-apply','live-import-confirm','live-export-copy','live-export-confirm'])
     E(id).disabled=value||(!data&&id!=='refresh')||(id==='clear'&&!data?.cookies?.length);
   // Lock target and mode controls while a Host operation remains unresolved.
   for(const id of ['target-url','apply-target','use-current','mode-browser','mode-offline'])
@@ -735,23 +735,32 @@ async function observeBrowser(action){
     }
   }finally{if(id===epoch){setBusy(false);render();}}
 }
-async function exportBrowserCookies(){
-  if(busy||pending||!liveTarget||liveState!=='ready'||targetPending)return;
+async function exportBrowserCookies(method){
+  if(!['copy','download'].includes(method)||busy||pending||!liveTarget||
+      liveState!=='ready'||targetPending)return;
   const metadata=E('live-export-content').value==='metadata',format=E('live-export-format').value;
-  if(metadata&&format!=='json'){status('元数据清单只支持 JSON 格式。','error');return;}
-  const id=epoch,target=liveTarget;setBusy(true);
+  if(metadata&&format!=='json'){status('元数据清单只支持 JSON。','error');return;}
+  const id=epoch,target=liveTarget,sdk=browserSdk();
+  if(method==='copy'&&typeof sdk?.clipboard?.writeText!=='function'){
+    status('剪贴板不可用，请使用「下载」。','error');return;
+  }
+  if(method==='download'&&typeof sdk?.downloads?.text!=='function'){
+    status('下载功能不可用，请检查 Browser SDK。','error');return;
+  }
+  let text='';
+  setBusy(true);
   try{
-    // Only a sensitive backup requests values. Metadata always redacts faulty responses.
-    const rows=await scopedLiveCookies(browserSdk(),target,{
+    // Both actions share the same authorized query and serializer.
+    // Include values only after the separate user confirmation.
+    const rows=await scopedLiveCookies(sdk,target,{
       includeValues:!metadata,isCurrent:()=>stillCurrent(id,target)});
     if(!stillCurrent(id,target)||rows===null)return;
     if(!Array.isArray(rows)||!rows.length)throw new Error('当前网站没有可导出 Cookie');
-    let text,filename;
+    let filename;
     if(metadata){
       const cookies=redactMetadata(rows).map(({valueRedacted,...safe})=>safe);
       text=JSON.stringify({kind:'opendesk.cookie-metadata.v1',origin:target.origin,
-        generatedAt:new Date().toISOString(),restoreSupported:false,
-        scope:'current-authorized-url-store-partition',cookies},null,2)+'\n';
+        restoreSupported:false,scope:'current-authorized-url-store-partition',cookies},null,2)+'\n';
       filename=target.hostname.slice(0,60)+'-cookie-metadata.json';
     }else{
       if(rows.some(row=>row.valueRedacted!==false||typeof row.value!=='string'))
@@ -760,13 +769,29 @@ async function exportBrowserCookies(){
       filename=target.hostname.slice(0,60)+'-chrome-cookies.'+(format==='json'?'json':'txt');
     }
     if(new Blob([text]).size>MAX_TEXT_BYTES)throw new Error('导出超过 150 KB 安全预算');
-    await browserSdk().downloads.text({text,filename});
-    if(stillCurrent(id,target))status(metadata?
-      '已下载不含 Value 的 Cookie 元数据清单；此文件不能用于恢复 Cookie。':
-      '已主动导出真实 Chrome Cookie（可能包含登录凭据），请妥善保管。','success');
-  }catch(error){if(stillCurrent(id,target))status('真实导出被拒绝：'+(error.code||'E_COOKIE_EXPORT')+
-    ' '+error.message,'error');}
-  finally{if(id===epoch){setBusy(false);render();}}
+    if(!stillCurrent(id,target))return;
+    if(method==='copy')await sdk.clipboard.writeText(text);
+    else await sdk.downloads.text({text,filename});
+    if(stillCurrent(id,target))status(method==='copy'?
+      (metadata?'已复制元数据清单；不含 Value，不能用于恢复。':
+       '已复制 Cookie 文本。剪贴板可能被其他应用读取，请勿粘贴到不可信位置。'):
+      (metadata?'已下载元数据清单；不含 Value，不能用于恢复。':
+       '已下载 Cookie 文件，可能包含登录凭据，请妥善保管。'),'success');
+  }catch(error){
+    if(stillCurrent(id,target)){
+      // SDK error strings are untrusted and may inadvertently contain secrets.
+      const safeMessages=new Set([
+        '当前网站没有可导出 Cookie','Host 未确认全部 Cookie 敏感值权限',
+        'Cookie Header 无法无损表达该名称或值，请选择 JSON',
+        'Netscape 不支持分区 Cookie，请使用 JSON 保留完整字段',
+        'Netscape 无法表示包含制表符或换行的字段，请使用 JSON',
+        '导出超过 150 KB 安全预算']);
+      const reason=safeMessages.has(error?.message)?error.message:
+        method==='copy'?'请检查剪贴板权限后重试，或使用「下载」。':'请检查网站授权或下载权限后重试。';
+      const code=String(error?.code||'E_COOKIE_EXPORT').replace(/[^A-Za-z0-9_]/g,'').slice(0,40);
+      status((method==='copy'?'复制':'下载')+'失败（'+code+'）：'+reason,'error');
+    }
+  }finally{if(id===epoch){setBusy(false);render();}text='';}
 }
 function updateExportSummary(){
   const metadata=E('live-export-content').value==='metadata',select=E('live-export-format');
@@ -774,9 +799,9 @@ function updateExportSummary(){
   select.disabled=busy||metadata;
   const format=select.value;
   E('live-export-target').textContent='目标：'+(liveTarget?.hostname||'未选择')+
-    ' · 当前范围 '+liveRows.length+' 条（下载时重新读取）';
+    ' · 当前范围 '+liveRows.length+' 条（操作时重新读取）';
   E('live-export-sensitive').hidden=metadata;
-  E('live-export-confirm').textContent=metadata?'下载元数据清单':'确认并下载';
+  E('live-export-confirm').textContent='下载';
   E('live-export-warning').textContent=metadata?
     '元数据清单不含 Value，无法恢复 Cookie 或登录，只需本站读取授权。':
     format==='json'?
@@ -1078,18 +1103,21 @@ E('live-export').addEventListener('click',()=>guarded(()=>{
   scrubEditors();E('live-export-panel').hidden=false;updateExportSummary();renderBrowser();
   E('live-export-format').focus();
 }));
-for(const id of ['live-export-close','live-export-cancel'])
-  E(id).addEventListener('click',()=>{E('live-export-panel').hidden=true;E('live-export').focus();});
+E('live-export-close').addEventListener('click',()=>{E('live-export-panel').hidden=true;E('live-export').focus();});
 E('live-export-format').addEventListener('change',updateExportSummary);
 E('live-export-content').addEventListener('change',updateExportSummary);
-E('live-export-confirm').addEventListener('click',()=>{
+function handleLiveExport(method){
+  if(busy||pending||!liveTarget||liveState!=='ready'||targetPending)return;
   const metadata=E('live-export-content').value==='metadata';
-  ask('导出 '+(liveTarget?.hostname||'当前网站')+' Cookie：'+
-    (metadata?'不含 Value 的 JSON 元数据清单，不可用于恢复':
-      E('live-export-format').value+' 格式，包含可能用于登录的 Cookie Value')+
-    '；仅本地下载，不自动上传。确认？',
-    metadata?'确认下载清单':'确认下载 Cookie',()=>exportBrowserCookies());
-});
+  if(metadata){void exportBrowserCookies(method);return;}
+  const site=liveTarget.hostname;
+  ask('将 '+site+' 的 Cookie 值'+(method==='copy'?'复制到剪贴板':'下载为本地文件')+
+    '，可能包含登录凭据。'+(method==='copy'?
+      '剪贴板可被其他应用读取，请勿粘贴到不可信位置。':'请妥善保管导出文件。')+'确认？',
+    method==='copy'?'确认复制':'确认下载',()=>exportBrowserCookies(method));
+}
+E('live-export-copy').addEventListener('click',()=>handleLiveExport('copy'));
+E('live-export-confirm').addEventListener('click',()=>handleLiveExport('download'));
 E('live-import-confirm').addEventListener('click',confirmLiveImport);
 E('live-observe-start').addEventListener('click',()=>{void observeBrowser('start');});
 E('live-observe-read').addEventListener('click',()=>{void observeBrowser('read');});
