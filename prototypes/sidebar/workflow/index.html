@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OpenDesk Browser · Workflow R23.1 交互候选（离线模拟）</title>
+<title>OpenDesk Browser · Workflow R23.2 交互候选（离线模拟）</title>
 <!-- UI_SIMULATION: eleven display scenarios; not an AI provider, extension permission,
      actual RunHost, native receipt, persistent save, or multi-origin workflow. -->
 <style>
@@ -172,21 +172,40 @@ body[data-theme=dark] .r23-toolbar,body[data-theme=dark] .r23-toolbar select,bod
 @media(max-height:500px){.device{height:430px}.r23-settings{max-height:250px}}
 @media(prefers-reduced-motion:reduce){.phase-indicator.busy{animation:none}}
 
+.title-bar .workflow-heading{min-width:0;flex:1}.title-bar .workflow-heading h2{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.title-bar .workflow-status{display:block;margin-top:3px;font-size:10px;color:var(--secondary)}
+.device .title-bar{gap:5px}.device .title-actions{gap:4px;flex:none}
+.device .title-actions button{min-width:40px;min-height:40px}
+.device .title-actions .icon-btn{width:40px;height:40px;min-width:40px;min-height:40px}
+.device .title-actions .create-action{display:inline-flex;gap:4px;align-items:center;justify-content:center;width:auto;min-width:70px;min-height:40px;border:1px solid var(--outline);background:var(--surface);color:var(--ink);padding:0 7px;font-size:10.5px;font-weight:650}
+.device .title-actions .create-action svg{flex:none;width:17px;height:17px}.device .title-actions .create-action span{white-space:nowrap}
+.r23-examples{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+.r23-examples button{padding:6px 9px;border:1px solid var(--border);border-radius:7px;background:#f6f9ff;color:#365d9e;font-size:11px;min-height:33px}
+.r23-warning{border:1px solid #e5c489;border-radius:9px;background:#fff6e5;color:#6e5020;margin:8px 0;padding:10px;font-size:11.5px;line-height:1.55}
+body[data-theme=dark] .r23-warning{background:#453924;color:#f5dfac;border-color:#7c6236}
+body[data-theme=dark] .r23-examples button{background:#283d5b;border-color:#526788;color:#d5e5ff}
+body[data-theme=dark] .device .title-actions .create-action{background:var(--surface);color:var(--ink);border-color:var(--outline)}
+@media(max-width:350px){.device .title-actions .create-action{width:40px;min-width:40px;padding:0}.device .title-actions .create-action span{display:none}.device .title-bar{padding-left:7px;padding-right:7px}}
+@media(max-width:240px){.device .title-actions .icon-btn,.device .title-actions .create-action{width:36px;min-width:36px;min-height:40px}}
 </style>
 </head>
 <body>
 <div class="scenario-bar">
-<h1>R23.1 · 工作流对话预览（待用户确认）</h1>
+<h1>R23.2 · 工作流对话预览（待用户确认）</h1>
 <p>保留 R15.3 紧凑布局，补齐两轮姓名输入框交互、授权、Stop 与版本管理。本页仅模拟，不连接真实 AI、Chrome、Native 或 RunHost。</p>
-<div id="scenarios" class="scenarios" role="group" aria-label="选择工作流产品状态"></div><div class="r23-toolbar"><label>宽度 <select id="r23-width"><option>360</option><option selected>420</option><option>520</option></select> px</label><button type="button" id="r23-theme" aria-pressed="false">深色模式</button><span>200% 浏览器缩放待真实 Chrome 复验。</span></div>
+<div id="scenarios" class="scenarios" role="group" aria-label="选择工作流产品状态"></div><div class="r23-examples" role="group" aria-label="模拟指令和异常条件"><button type="button" data-action="example-first">填入第一轮指令</button><button type="button" data-action="example-second">填入第二轮指令</button><button type="button" data-action="revoke-consent">撤销摘要授权</button><button type="button" data-action="change-document">模拟切换文档</button></div><div class="r23-toolbar"><label>宽度 <select id="r23-width"><option>360</option><option selected>420</option><option>520</option></select> px</label><button type="button" id="r23-theme" aria-pressed="false">深色模式</button><span>200% 浏览器缩放待真实 Chrome 复验。</span></div>
 </div>
 <div class="device" aria-label="浏览器扩展侧边栏布局预览">
   <nav class="tabs" aria-label="Sidebar 一级导航"><span>我的</span><span>扩展</span><span class="current">工作流</span><span>开发</span><span>云控</span></nav>
-  <header class="title-bar"><div><h2 id="title">新工作流</h2></div>
-  <div class="title-actions"><span id="tag" hidden></span><button type="button" class="icon-btn" id="history" title="查看历史版本" aria-label="查看历史版本"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></button><button type="button" class="icon-btn" id="new" title="新对话或新工作流" aria-label="新对话或新工作流"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"></path></svg></button></div></header>
+  <header class="title-bar"><div class="workflow-heading"><h2 id="title">新工作流</h2><span id="tag" class="workflow-status" hidden></span></div>
+   <div class="title-actions">
+    <button type="button" class="icon-btn" id="history" title="查看历史版本" aria-label="查看历史版本"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></button>
+    <button type="button" class="icon-btn create-action" id="new-chat" data-action="new-chat" title="新对话：保留当前工作流和版本" aria-label="新对话，保留当前工作流"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19 11v6a2 2 0 0 1-2 2H8l-4 3V6a2 2 0 0 1 2-2h7M15 5h7M18.5 1.5v7"></path></svg><span>新对话</span></button>
+    <button type="button" class="icon-btn create-action" id="new-workflow" data-action="new-workflow" title="新工作流：创建独立草稿，保护未保存修改" aria-label="新工作流，创建独立草稿"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-7M13 3l4 4M15 8h7M18.5 4.5v7"></path></svg><span>新工作流</span></button>
+   </div></header>
   <main id="content" class="content" aria-live="polite"></main>
   <form id="form" class="composer"><div class="compose-box"><label for="prompt" class="visually-hidden">描述任务</label><textarea id="prompt" placeholder="描述要自动完成的任务…" aria-label="输入工作流需求"></textarea><div class="compose-bottom"><button type="button" id="settings" class="icon-btn" aria-label="配置 AI 模型" title="AI 设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h9m6 0h1M4 17h1m6 0h9"></path><circle cx="16" cy="7" r="3"></circle><circle cx="8" cy="17" r="3"></circle></svg></button><button type="submit" class="send-btn" aria-label="发送并模拟任务" title="发送并执行（仅模拟）"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 19V5m-7 7 7-7 7 7"></path></svg></button></div></div></form>
-  <p class="foot-note">R23.1 设计候选 · 仅模拟，不生成真实运行回执或浏览器副作用</p>
+  <p class="foot-note">R23.2 设计候选 · 仅模拟，不生成真实运行回执或浏览器副作用</p>
 </div>
 <script>
 /* R23.1: UI-only simulation. Never call a Provider, Browser SDK, Chrome API or RunHost. */
@@ -209,10 +228,6 @@ body[data-theme=dark] .r23-toolbar,body[data-theme=dark] .r23-toolbar select,bod
     workflowId:data.workflowId,versions:data.versions.map(v=>({...v})),documentChecks:data.documentChecks,
     historyOpen:data.historyOpen,settingsOpen:data.settingsOpen,dialog:data.dialog,consent:!!data.consent});
   const shell = document.querySelector('.device');
-  const menu = document.createElement('div');menu.id='r23-new-menu';menu.className='r23-overmenu';menu.hidden=true;
-  menu.setAttribute('role','group');menu.setAttribute('aria-label','新建选项');
-  menu.innerHTML='<button type="button" data-action="new-chat">新对话<small>清理聊天，保留当前工作流与版本</small></button><button type="button" data-action="new-workflow">新工作流<small>创建新草稿，未保存修改会先询问</small></button>';
-  shell.append(menu);
   const settings = document.createElement('section');settings.id='r23-settings-panel';settings.className='r23-settings';settings.hidden=true;
   settings.setAttribute('aria-label','AI 配置模拟');
   settings.innerHTML='<h3>AI 设置 <small>（仅模拟）</small></h3><p>默认收起。模型、网站摘要和执行权限分别审核；本页不会连接或保存凭据。</p><label for="r23-provider">模拟接收方</label><select id="r23-provider"><option value="native">本机 Codex</option><option value="cloud">Cloud Responses（示例）</option></select><p id="r23-provider-notice">当前网页摘要仅在获批范围内分享。切换接收方后需重新披露授权。</p><div class="inline-actions"><button type="button" data-action="close-settings">完成</button></div>';
@@ -225,7 +240,7 @@ body[data-theme=dark] .r23-toolbar,body[data-theme=dark] .r23-toolbar select,bod
   const prompt=$('prompt'),send=$('form').querySelector('.send-btn');
   prompt.rows=2;prompt.setAttribute('aria-describedby','r23-compose-hint');
   $('content').setAttribute('aria-live','off');
-  $('new').setAttribute('aria-expanded','false');$('new').setAttribute('aria-controls','r23-new-menu');
+  
   $('settings').setAttribute('aria-expanded','false');$('settings').setAttribute('aria-controls','r23-settings-panel');
   const composeActions=$('form').querySelector('.compose-bottom');
   const hint=document.createElement('span');hint.id='r23-compose-hint';hint.className='compose-hint';hint.textContent='Enter 发送 · Shift+Enter 换行';
@@ -291,7 +306,7 @@ body[data-theme=dark] .r23-toolbar,body[data-theme=dark] .r23-toolbar select,bod
   function attemptRestore(id){const rev=data.versions.find(v=>v.id===id);if(!rev)return;if(data.dirty){data.dialog={type:'restore',id};render();setTimeout(()=>modal.querySelector('button')?.focus(),0);}else restoreVersion(id);}
   function restoreVersion(id){const rev=data.versions.find(v=>v.id===id);if(!rev)return;data.workflowId=rev.workflowId;data.selectedRevision=id;data.title=rev.title;data.dirty=false;data.historyOpen=false;data.stage='saved';data.dialog=null;data.scenarioOnly=false;
     assistant(`已在预览中载入草稿 r${id} 的设计信息。未自动运行，也没有修改目标网页。`,'saved');render();}
-  function closeDialog(){data.dialog=null;render();$('new').focus();}
+  function closeDialog(){data.dialog=null;render();$('new-workflow').focus();}
   function renderDialog(){modal.hidden=!data.dialog;if(!data.dialog){modal.innerHTML='';return;}
     const target=data.dialog.type==='new-workflow'?'创建新工作流':'恢复旧版本';
     modal.innerHTML=`<section class="r23-modal" role="dialog" aria-modal="true" aria-labelledby="r23-dialog-title"><h3 id="r23-dialog-title">未保存的工作流修改</h3><p>继续「${target}」会放弃当前未保存的模拟草稿修改。已保存的版本不会被覆盖。</p><div class="inline-actions"><button type="button" data-action="cancel-dialog">取消</button><button type="button" data-action="save-then-proceed">保存后继续</button><button type="button" class="primary" data-action="discard-proceed">放弃修改并继续</button></div></section>`;
@@ -337,8 +352,8 @@ body[data-theme=dark] .r23-toolbar,body[data-theme=dark] .r23-toolbar select,bod
     send.innerHTML=busy()?stopIcon:sendIcon;send.classList.toggle('stop-mode',busy());send.type=busy()?'button':'submit';send.disabled=data.stage==='approval';
     send.setAttribute('aria-label',busy()?(data.stage==='planning'?'停止 AI 规划（模拟）':'停止浏览器模拟执行'):'发送并模拟任务');
     send.title=data.stage==='approval'?'请先处理授权请求':busy()?'停止当前模拟任务':'发送任务（仅模拟）';
-    $('settings').setAttribute('aria-expanded',String(data.settingsOpen));$('new').setAttribute('aria-expanded',String(data.newMenuOpen));
-    menu.hidden=!data.newMenuOpen;settings.hidden=!data.settingsOpen;
+    $('settings').setAttribute('aria-expanded',String(data.settingsOpen));
+    settings.hidden=!data.settingsOpen;
     $('r23-provider').value=data.provider;
     $('r23-provider-notice').textContent=isNative()?'同一 Native 会话与 Origin 的已批准摘要范围可复用披露决定，但每轮重新核验当前文档。':'HTTPS / Cloud 不继承本机 Codex 摘要授权，必须重新明确同意披露。';
     renderDialog();
@@ -352,7 +367,6 @@ body[data-theme=dark] .r23-toolbar,body[data-theme=dark] .r23-toolbar select,bod
     if(target.dataset.scenario){simulateScene(target.dataset.scenario);return;}
     const action=target.dataset.action;
     if(target.id==='history'){data.historyOpen=true;data.newMenuOpen=false;data.settingsOpen=false;render();return;}
-    if(target.id==='new'){data.newMenuOpen=!data.newMenuOpen;data.settingsOpen=false;render();if(data.newMenuOpen)menu.querySelector('button')?.focus();return;}
     if(target.id==='settings'){data.settingsOpen=!data.settingsOpen;data.newMenuOpen=false;render();if(data.settingsOpen)$('r23-provider').focus();else prompt.focus();return;}
     if(target===send&&busy()){stop();return;}
     if(!action)return;
@@ -381,14 +395,14 @@ body[data-theme=dark] .r23-toolbar,body[data-theme=dark] .r23-toolbar select,bod
     if(ev.key==='Escape'){
     if(data.dialog){ev.preventDefault();closeDialog();}
     else if(data.settingsOpen){ev.preventDefault();data.settingsOpen=false;render();$('settings').focus();}
-    else if(data.newMenuOpen){ev.preventDefault();data.newMenuOpen=false;render();$('new').focus();}
+    
   }});
   $('form').addEventListener('submit',ev=>{ev.preventDefault();onSend();});
   $('r23-provider').addEventListener('change',ev=>{data.provider=ev.target.value;data.consent=null;render();$('r23-provider').focus();announce('已切换模拟模型接收方，摘要许可不能继承');});
   $('r23-width').addEventListener('change',ev=>shell.style.setProperty('--r23-width',ev.target.value+'px'));
   $('r23-theme').addEventListener('click',ev=>{const dark=document.body.dataset.theme!=='dark';document.body.dataset.theme=dark?'dark':'light';ev.currentTarget.setAttribute('aria-pressed',String(dark));ev.currentTarget.textContent=dark?'浅色模式':'深色模式';});
   $('r23-name').addEventListener('input',()=>{data.value=$('r23-name').value;syncReadback();});
-  document.addEventListener('pointerdown',ev=>{if(data.newMenuOpen&&!menu.contains(ev.target)&&!$('new').contains(ev.target)){data.newMenuOpen=false;render();}if(data.settingsOpen&&!settings.contains(ev.target)&&!$('settings').contains(ev.target)){data.settingsOpen=false;render();}});
+  document.addEventListener('pointerdown',ev=>{if(data.settingsOpen&&!settings.contains(ev.target)&&!$('settings').contains(ev.target)){data.settingsOpen=false;render();}});
   render();
 })();
 </script>
