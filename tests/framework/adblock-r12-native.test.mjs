@@ -308,6 +308,7 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   // the default Installed scope. Discovery requires a real user scope change.
   await click(client,sid,'#extension-center-more');
   await click(client,sid,'#extension-center-menu [data-ec-scope="available"]');
+  await click(client,sid,'#extension-center-more');
   await click(client,sid,'#extension-center-search');
   await client.send('Input.insertText',{text:'广告拦截'},sid);
   const official='#extension-center-list button[data-extension-key="app:adblock"][data-extension-action="main"]';
@@ -323,6 +324,9 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   await click(client,sid,'#sidebar-tool-install');
   await click(client,sid,'#extension-center-more');
   await click(client,sid,'#extension-center-menu [data-ec-scope="smart"]');
+  // The filter popover stays open until dismissed; it overlays the actual row
+  // and would make a synthesized element.click() wrongly appear successful.
+  await click(client,sid,'#extension-center-more');
   const installed='#extension-center-list button[data-extension-key="app:adblock"][data-extension-action="primary"]';
   await until(()=>evaluate(client,sid,'(()=>{const b=document.querySelector('+
     JSON.stringify(installed)+');return !!b&&!b.disabled&&b.textContent.trim()==="打开"})()'),
