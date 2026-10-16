@@ -1,4 +1,26 @@
-# ChatGPT 思维导图 R3 · 真实 XMind 预览已通过，正式安装仍阻塞
+# ChatGPT 思维导图 R3.9.4 · Mac 业务隔离已验证，正式安装仍阻塞
+
+## R3.9.4 · 当前边界（2026-10-17）
+
+父页面继续使用原回复提取、registry 和工具栏；新增 `xmind-frame.js` 的私有 MessagePort 代理，
+`xmind-frame-child.js` 只承载原真实 XMind renderer。每次打开绑定 session / 回复实例 / revision；
+过期回复、未知请求和销毁后的消息不能改变新实例。全屏使用保留状态的 DOM 移动，避免 iframe
+重新加载；旧实例的迟到失败也不能关闭替代实例。
+
+**这是不发行的模块注入接缝，不是公开 Broker 加载 API。** 默认 `main()` 仍在修改回复前抛出
+`E_XMIND_RUNTIME_UNAVAILABLE`，不从网页全局发现 loader，不把厂商资源放进 production。
+正式 Program 保持 `BUILT_UNVERIFIED / installable:false`。
+
+Mac CFT 156 已验证未修改的 Browser production 包，以及父页面 A/B/C → 独立 opaque iframe
+真实导图、全屏文档连续性、主题回执、20 次开关、原文恢复和直接业务 Stop 清理。
+这些 fixture 结果不等于正式 Program 安装、Broker 撤权或已登录 ChatGPT 验收。
+旧 R38/R393 对新候选只记录固定资源/隔离和正式入口拒绝；实际业务绘图由
+`tests/framework/chatgpt-mindmap-r394-business-frame-probe.mjs` 单独验证并接入原 CI。
+
+[许可参考审查](tests/xmind-license-review-r394.json) 保存八份上游版本化许可证原文与 SHA；
+Snowbrush 精确产物的授权、GSAP 3.5.1 适用条款及完整传递依赖/NOTICE 仍未闭合，许可继续 `BLOCKED`。
+正式固定资源加载、Broker 安装及安装后生命周期继续阻塞；真实 ChatGPT 为 `REAL_CHATGPT_NOT_TESTED`。
+完整结果、失败记录与独立评分见 [Mac 实施与验收报告](ACCEPTANCE-R3.9.4.zh-CN.md)。
 
 程序 ID：`opendesk.chatgpt-mindmap`；显示名称：**ChatGPT 思维导图**；版本 `0.2.0`。
 运行目标仅为 `https://chatgpt.com/*` 顶层 `USER_SCRIPT`。

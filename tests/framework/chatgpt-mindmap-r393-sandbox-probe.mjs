@@ -7,12 +7,14 @@ import {createHash} from 'node:crypto';
 import {copyFile,mkdir,mkdtemp,readFile,rm,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
-import {chromium} from 'playwright-core';
+import {pathToFileURL} from 'node:url';
 
 const argv=Object.fromEntries(
   Array.from({length:(process.argv.length-2)/2},(_,i)=>
     [process.argv[2+2*i]?.slice(2),process.argv[3+2*i]]));
 for(const item of ['browser','program','out'])assert(argv[item],'Missing --'+item);
+const {chromium}=await import(argv.playwright
+  ?pathToFileURL(resolve(argv.playwright)).href:'playwright-core');
 const out=resolve(argv.out),repo=resolve('.');
 const base=join(repo,'examples/programs/chatgpt-mindmap');
 const provenance=JSON.parse(await readFile(join(base,'tests/xmind-provenance.json'),'utf8'));
@@ -33,6 +35,8 @@ const report={
   childSnowbrushStyle:'NOT_TESTED',
   childOrigin:'NOT_TESTED',
   nativeWorld:'USER_SCRIPT',
+  sourceHash:artifact.sourceHash,sourceBytes:Buffer.byteLength(source),
+  platform:process.platform,architecture:process.arch,browserExecutable:resolve(argv.browser),
   assets:[],externalRequests:[],
   error:null
 };
@@ -164,10 +168,21 @@ try{
     chrome.userScripts.execute({target:{tabId,frameIds:[frameId]},
       world:'USER_SCRIPT',worldId,
       js:[...scripts,{code:source+
-        '\n;main().then(value=>({ok:true,value}),error=>({ok:false,message:String(error?.message||error)}))'}]}),
+        '\n;main().then(value=>({ok:true,value}),error=>({ok:false,code:error?.code,message:String(error?.message||error)}))'}]}),
   {tabId,frameId:target.frameId,worldId,scripts,source});
   assert.equal(execution.length,1);
   assert.equal(execution[0].error,undefined,JSON.stringify(execution[0].error));
+  if(execution[0].result?.code==='E_XMIND_RUNTIME_UNAVAILABLE'){
+    assert.equal(await child.locator('[data-opendesk-chatgpt-mindmap]').count(),0);
+    report.parentSnowbrushStyle=await host.locator('style#snowbrush_style').count();
+    report.childSnowbrushStyle=await child.locator('style#snowbrush_style').count();
+    assert.equal(report.parentSnowbrushStyle,0);assert(report.childSnowbrushStyle>0);
+    assert.equal(report.externalRequests.length,0);
+    report.productionEntryGate='PASS_FAIL_CLOSED';
+    report.result='BLOCKED_PRODUCTION_FRAME_LOADER_RENDER_NOT_TESTED';
+    report.renderProof='Run chatgpt-mindmap-r394-business-frame-probe.mjs for current parent business and child renderer';
+    throw Object.assign(new Error('Expected unapproved production frame loader gate'),{code:'E_R394_EXPECTED_ENTRY_GATE'});
+  }
   assert.equal(execution[0].result?.ok,true,JSON.stringify(execution[0].result));
   const button=child.locator('[data-opendesk-chatgpt-mindmap="button"] button');
   const turns=child.locator('article[data-testid^="conversation-turn-"]');
@@ -229,11 +244,13 @@ try{
   report.result='PASS_REAL_XMIND_IN_OPAQUE_TEST_FRAME';
   console.log('R393_REAL_XMIND_OPAQUE_FRAME_PASS');
 }catch(error){
+  if(error.code!=='E_R394_EXPECTED_ENTRY_GATE'){
   report.result='BLOCKED';
   report.error={code:error.code||'E_R393_SANDBOX_PROBE',
     message:String(error.message||error),stack:String(error.stack||'').slice(0,4000)};
   process.exitCode=1;
   console.error('R393_REAL_XMIND_SANDBOX_BLOCKED '+report.error.message);
+  }
 }finally{
   await browser?.close().catch(()=>{});
   await writeFile(join(out,'r393-sandbox-probe.json'),JSON.stringify(report,null,2)+'\n');

@@ -38,9 +38,9 @@ function makeButton(doc,css,owner,handleClick){
   }};
 }
 
-function answerController({document,window,owner,css,parts,coordinator}){
+function answerController({document,window,owner,css,parts,coordinator,createView,instanceId}){
   let {root,content,bar}=parts;
-  let hidden=null,view=null,disposed=false,revision=0,viewRevision=-1,lastChange=0;
+  let hidden=null,view=null,disposed=false,revision=0,viewRevision=-1,lastChange=0,viewSession=0;
   let messageId=root.getAttribute('data-message-id');
   let busyTimer=null,buttonRef=null;
   const handleClick=async()=>{
@@ -59,7 +59,8 @@ function answerController({document,window,owner,css,parts,coordinator}){
       view.host.setAttribute('data-dark',theme);
       // Keep the original XMind workbook skin in step with the host, not
       // just the shadow-toolbar colors. Rendering is serialized per answer.
-      view.setTheme(theme==='true').catch(failed);
+      const current=view,session=viewSession;
+      view.setTheme(theme==='true').catch(error=>failed(error,current,session));
     }
   }
   function syncButton(){
@@ -112,9 +113,12 @@ function answerController({document,window,owner,css,parts,coordinator}){
     if(focus&&buttonRef.host.isConnected)buttonRef.button.focus();
     return retired;
   }
-  async function failed(error){
+  async function failed(error,source,session){
+    // A retired viewer can still reject a toolbar or renderer operation.
+    // Its cleanup error is retained by retire(), never applied to a new view.
+    if(disposed||view!==source||viewSession!==session)return;
     await close();
-    if(disposed)return;
+    if(disposed||viewSession!==session)return;
     buttonRef.error.hidden=false;buttonRef.error.textContent="XMind 打开失败，原文已恢复。";
     buttonRef.button.title=String(error?.code||"E_XMIND_RENDER");
   }
@@ -126,8 +130,10 @@ function answerController({document,window,owner,css,parts,coordinator}){
     const focusViewer=buttonRef.button.matches(':focus-visible');
     const result=extractAnswerTree(content);
     if(!result.nodeCount)return;
-    const nextView=createAnswerView({document,window,owner,css,...result,
-      onError:failed,
+    const session=++viewSession;
+    const nextView=createView({document,window,owner,css,...result,
+      identity:Object.freeze({instanceId,revision}),
+      onError:error=>failed(error,nextView,session),
       onOriginal:()=>close({focus:true}),
       onRefresh:()=>refresh(),
       onFullscreen:()=>coordinator.setFull(coordinator.full===api?null:api)});
@@ -139,7 +145,7 @@ function answerController({document,window,owner,css,parts,coordinator}){
       await nextView.start();
       if(focusViewer&&view===nextView)nextView.focusPrimary();
     }catch(error){
-      if(view===nextView)await failed(error);
+      if(view===nextView)await failed(error,nextView,session);
       else await coordinator.retire(nextView);
     }
   }
@@ -197,8 +203,9 @@ function answerController({document,window,owner,css,parts,coordinator}){
   return Object.freeze(api);
 }
 
-export function createAnswerRegistry({document,window,owner,css}){
+export function createAnswerRegistry({document,window,owner,css,createView=createAnswerView}){
   const byRoot=new WeakMap(),controllers=new Set();
+  let nextInstance=0;
   let disposed=false,pending=false,route=window.location.pathname+window.location.search;
   let full=null,lastScanned=0;
   const retiring=new Set(),cleanupErrors=[];
@@ -239,7 +246,8 @@ export function createAnswerRegistry({document,window,owner,css}){
         continue;
       }
       if(existing&&controllers.has(existing)){existing.reconcile(parts);continue;}
-      const controller=answerController({document,window,owner,css,parts,coordinator});
+      const controller=answerController({document,window,owner,css,parts,coordinator,createView,
+        instanceId:`answer-${++nextInstance}`});
       byRoot.set(root,controller);controllers.add(controller);
     }
   }

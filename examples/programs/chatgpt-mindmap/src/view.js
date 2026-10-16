@@ -30,7 +30,7 @@ function icon(document,name){
 
 // Each answer owns one controller. Its DOM stays inside the existing reply.
 export function createAnswerView({document,window,owner,css,tree,nodeCount,truncated,
-  onOriginal,onRefresh,onFullscreen,onError}){
+  onOriginal,onRefresh,onFullscreen,onError,identity,rendererFactory=createXmindRenderer}){
   const el=(tag,className,label)=>{
     const node=document.createElement(tag);
     if(className)node.className=className;
@@ -181,7 +181,7 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
   async function start(){
     if(disposed)return;
     preferredSkin=host.getAttribute('data-dark')==='true'?'dark':'light';
-    renderer=createXmindRenderer({window,canvas,tree,skinMode:preferredSkin});
+    renderer=rendererFactory({window,canvas,tree,skinMode:preferredSkin,identity});
     await renderer.ready;
     if(disposed)return;
     await renderer.fit();
@@ -207,16 +207,28 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
   }
   async function setFull(value){
     if(disposed||fullscreen===value)return;
+    const previousParent=host.parentNode,previousNext=host.nextSibling;
+    const destination=value?document.body:inlineParent;
+    const reference=!value&&inlineNext?.parentNode===destination?inlineNext:null;
+    if(destination?.isConnected){
+      // A remove+insert reloads even an iframe nested in this shadow tree.
+      // Check the return path too, before entering fullscreen or changing UI.
+      if(shadow.querySelector('iframe')&&(!host.isConnected||
+        typeof destination.moveBefore!=='function'||
+        (value&&typeof previousParent?.moveBefore!=='function'))){
+        throw Object.assign(new Error('当前浏览器无法在全屏切换时保留 XMind 子框架。'),
+          {code:'E_XMIND_FULLSCREEN_UNSUPPORTED'});
+      }
+      if(typeof destination.moveBefore==='function')destination.moveBefore(host,reference);
+      else if(reference)destination.insertBefore(host,reference);
+      else destination.append(host);
+    }
     closeMenu();fullscreen=value;host.dataset.layoutReady='pending';
     if(value){
-      inlineParent=host.parentNode;inlineNext=host.nextSibling;
-      host.classList.add('odmm-fullscreen');document.body.append(host);
+      inlineParent=previousParent;inlineNext=previousNext;
+      host.classList.add('odmm-fullscreen');
     }else{
       host.classList.remove('odmm-fullscreen');
-      if(inlineParent?.isConnected){
-        if(inlineNext?.parentNode===inlineParent)inlineParent.insertBefore(host,inlineNext);
-        else inlineParent.append(host);
-      }
     }
     update('fullscreen',{glyph:value?'shrink':'expand',
       label:value?'退出全屏':'进入全屏',pressed:value});

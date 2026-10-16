@@ -1,0 +1,321 @@
+{
+  "format": "opendesk.chatgpt-mindmap.r394.mac-acceptance-summary.v1",
+  "date": "2026-10-17",
+  "scope": "CURATED_LOCAL_EVIDENCE_INDEX_NOT_RELEASE_APPROVAL_OR_RAW_RECEIPT",
+  "startHead": "3a4ab704f6adfc9821b9b7270b96b7430900b22d",
+  "buildAndCandidateHead": "4c28a087dc2c4e3175ed7e8785dd5cb524e1323a",
+  "integrationBase": "404ccc681f3c061218701258c8705d3d724fa3a7",
+  "branch": "main",
+  "rawEvidenceRoot": "artifacts/chatgpt-mindmap-r394-mac-20261017",
+  "program": {
+    "id": "opendesk.chatgpt-mindmap",
+    "version": "0.2.0",
+    "status": "BUILT_UNVERIFIED",
+    "installable": false,
+    "sourceHash": "7c481de07b813caa472121df15e6601cd97d135afd41bf6b2a70993d4b617f92",
+    "sourceBytes": 58262
+  },
+  "results": {
+    "npmCi": "PASS",
+    "node": {
+      "pass": 113,
+      "fail": 0,
+      "skipped": 0
+    },
+    "syntaxCheckedFiles": 793,
+    "productionBuild": "PASS",
+    "developmentStaticBuild": "PASS",
+    "packageVerifyBothStaticPackages": "PASS",
+    "macChrome": "CFT 156.0.8078.4 macOS arm64",
+    "realXmindBusinessFixture": "PASS",
+    "repeatOpenCloseCycles": 20,
+    "directBusinessStop": "PASS_NOT_BROKER_REVOKE",
+    "brokerInstall": "BLOCKED",
+    "installedLifecycle": "NOT_TESTED",
+    "realChatGPT": "REAL_CHATGPT_NOT_TESTED",
+    "license": "BLOCKED",
+    "overall": "NOT_SCORED"
+  },
+  "evidence": {
+    "business20": {
+      "path": "business-native-theme-observation/business-frame-probe.json",
+      "sha256": "45e6ddc77d323ac657f2f05c8381ea23a65dbe73d1da79a49d5b4e4228707ea3"
+    },
+    "businessCompleteInputClosure1": {
+      "path": "business-native-input-closure/business-frame-probe.json",
+      "sha256": "db35553fb25a6fb160d0bf2ea809d3cfba48d3728de6cbedc97f1b94054fbd12"
+    },
+    "unchangedProductionChrome": {
+      "path": "package-smoke-final/package-smoke.json",
+      "sha256": "4f1d3f44e403f71b5cf77f95ff1f9e0bc540cdeff944e660644a1b9d1d25c55d"
+    },
+    "legacyR38CurrentCandidate": {
+      "path": "r38-final/r38-native-feasibility.json",
+      "sha256": "6a724617442bd22bd1cd26026289d28882a1bc58c7473ab8defe0bcd0e466c38"
+    },
+    "legacyR393CurrentCandidate": {
+      "path": "r393-final/r393-sandbox-probe.json",
+      "sha256": "f0f4495c1d1868e7f183117af50e04a330ab35be4e9f0621c3df40d17a370c09"
+    },
+    "productionBuild": {
+      "path": "build-final/build-production.json",
+      "sha256": "c05c494e976e81bff5a26413ad6b3891c20c81e94f25fcbf70a37c4c5f9e6d11"
+    },
+    "developmentBuild": {
+      "path": "build-final/build-development.json",
+      "sha256": "eb6c6af00ae7987e2a95e9e1cc6a76a8a09c486f28084d7f7f01411df6d5b59c"
+    },
+    "candidateAudit": {
+      "path": "candidate-reviewed-audit.json",
+      "sha256": "15a43bdd6f095aa8294e79a53505018787d4aede181e09b83a6decb7812b55ec"
+    }
+  },
+  "logs": {
+    "npm-ci.log": {
+      "sha256": "30e49884ff228817ab2ccfe9a587eb58f87f382723b6dc52f9211998e23d2d70",
+      "bytes": 26
+    },
+    "node-tests-reviewed.log": {
+      "sha256": "49fd460ff7aba7624dc36374ea181ea076fa6251c3244ad15d34f0abbbb8df5a",
+      "bytes": 11466
+    },
+    "source-check-final.log": {
+      "sha256": "3d50e3202eb59c94faf456290ef050824dcd84119bb1b7dc0d9e76054fc6817d",
+      "bytes": 208
+    },
+    "verify-assets.log": {
+      "sha256": "e6439d9383f0fb12ff5506b53a1204c1f457db9acf8a217c00c404b7e3605ec9",
+      "bytes": 847
+    },
+    "license-audit.log": {
+      "sha256": "78d9dafc2c75d977cf93a9c26967568d83c7e07991bfe03f40bf7c2525b22a6f",
+      "bytes": 2578
+    },
+    "license-required.log": {
+      "sha256": "3bcd8a9eeac722ddd201be118cad1c8d4cc6734d20700b659b5a2ca19833b91a",
+      "bytes": 2623
+    },
+    "validate-program-reviewed.log": {
+      "sha256": "eb9e5e8e5148b5ce795e7950b3675a35db5f8de906022122dbf64fb1cbd56eb4",
+      "bytes": 2204
+    },
+    "build-program-reviewed.log": {
+      "sha256": "44695f9ad2e067d3b6f77f407524c6ccdc0498418cef586737e43c612acd5c98",
+      "bytes": 6374
+    },
+    "audit-program-reviewed.log": {
+      "sha256": "0754d8e79c4243bfcc9d388161fee34d381e4f9dee2faf39eaf96a42b24415ee",
+      "bytes": 1156
+    },
+    "build-production-final.log": {
+      "sha256": "76242ddf6ece6a3b1c6db9d0ce1717eb615bfda8dc83564dcf69c896918d4d37",
+      "bytes": 20280
+    },
+    "verify-production-final.log": {
+      "sha256": "f1dd9cf0d9d722df428d089c88150314a40d22a053fff9918af9bb646ff42e52",
+      "bytes": 20235
+    },
+    "build-development-final.log": {
+      "sha256": "2d60123a5d64094c9dc8a17382e497930866ed2c18a226437db6597b8afdd1bb",
+      "bytes": 24971
+    },
+    "verify-development-final.log": {
+      "sha256": "ec85ac1d80f8ed0fda48781020e23ccef6fac270932b6d41e0d1ded09b79c887",
+      "bytes": 25193
+    },
+    "independent-review.txt": {
+      "sha256": "3a629e85498f0c1f35d49adbc82e31a967525b85efafd8889923182b0deac595",
+      "bytes": 2258
+    },
+    "independent-review-addendum.txt": {
+      "sha256": "44e112b5649bacad61523268f0b85f8de83f7a0736938c9873dae53f0ea2a093",
+      "bytes": 310
+    }
+  },
+  "currentBusinessSourceInputs": [
+    {
+      "path": "src/answer-registry.js",
+      "sha256": "7f54975c6cfda221752eda32e9ffdd98b62284811efa92cce8512f7b529e08ae"
+    },
+    {
+      "path": "src/chatgpt-adapter.js",
+      "sha256": "be85bcb15947a38ce6946c7b0ad3323bc2aad4272dd89a3f16272163d3bd63e8"
+    },
+    {
+      "path": "src/extract.js",
+      "sha256": "afabadcc60063484f34b318612cd3589383887bbc884cdeeae44b3cbcb8e4d21"
+    },
+    {
+      "path": "src/view.js",
+      "sha256": "4039a31786c4de046786e191754372f52d10f49ed499ecc138a330966d6e9dd4"
+    },
+    {
+      "path": "src/xmind-adapter.js",
+      "sha256": "b564ef5baec29ecaec37c4db0c873cf0961f78e28ba132ff187d864d539c06e4"
+    },
+    {
+      "path": "src/xmind-convert.js",
+      "sha256": "f257596b94af2daf379695b4e59ae627f0bb225dc2ea4c4e8c8c7050a1aa7e40"
+    },
+    {
+      "path": "src/xmind-frame.js",
+      "sha256": "fbd8bb901c454331a441873031454da6ad47e2aa910409735ab27c61a9f58048"
+    },
+    {
+      "path": "src/xmind-frame-child.js",
+      "sha256": "5a64381f7a0ea1adee413d7e4440e9331d67b0a0dfd5e5779973872cbb3c1dad"
+    },
+    {
+      "path": "src/xmind-frame-protocol.js",
+      "sha256": "07474bfe9ef55924c82228c9b758dfaea6385e9f3c4aa6d74538603d43f75da4"
+    },
+    {
+      "path": "assets/ui.css",
+      "sha256": "d3dedb159b27a6d375112467e7e51d4c7cc06b0d53576fd58c80144c9829d7ff"
+    },
+    {
+      "path": "preview/chatgpt.html",
+      "sha256": "d40032c7aa161f0281d1d3881a6157d526e5189193621462ed42087a830c5d47"
+    },
+    {
+      "path": "tests/xmind-provenance.json",
+      "sha256": "8c7a31e6b6dcfde8525c72d941df13866b148d806c6c2f47eff5141e0eab9de6"
+    }
+  ],
+  "currentCompiledModuleInputs": [
+    {
+      "path": "src/scripting/user-scripts/page-ui.js",
+      "sha256": "b0fa6efb8c2a2a0b3b8d62a49026e81cd210b57e1e085e5ac32203ec5d7987e8"
+    },
+    {
+      "path": "examples/programs/chatgpt-mindmap/src/answer-registry.js",
+      "sha256": "7f54975c6cfda221752eda32e9ffdd98b62284811efa92cce8512f7b529e08ae"
+    },
+    {
+      "path": "examples/programs/chatgpt-mindmap/src/view.js",
+      "sha256": "4039a31786c4de046786e191754372f52d10f49ed499ecc138a330966d6e9dd4"
+    },
+    {
+      "path": "examples/programs/chatgpt-mindmap/src/xmind-frame.js",
+      "sha256": "fbd8bb901c454331a441873031454da6ad47e2aa910409735ab27c61a9f58048"
+    },
+    {
+      "path": "examples/programs/chatgpt-mindmap/src/xmind-frame-child.js",
+      "sha256": "5a64381f7a0ea1adee413d7e4440e9331d67b0a0dfd5e5779973872cbb3c1dad"
+    },
+    {
+      "path": "src/scripting/user-scripts/page-ui-mount.js",
+      "sha256": "f29fd77df1fa432cd185ff19125f1b658a23214b00205fb9a6fbcca680968f7e"
+    },
+    {
+      "path": "src/scripting/user-scripts/page-program-rules.js",
+      "sha256": "b92339ffa78ad52d450716c19bdcbc2feb1580481e2572c1b41f978f5331826a"
+    },
+    {
+      "path": "examples/programs/chatgpt-mindmap/src/xmind-adapter.js",
+      "sha256": "b564ef5baec29ecaec37c4db0c873cf0961f78e28ba132ff187d864d539c06e4"
+    },
+    {
+      "path": "examples/programs/chatgpt-mindmap/src/extract.js",
+      "sha256": "afabadcc60063484f34b318612cd3589383887bbc884cdeeae44b3cbcb8e4d21"
+    },
+    {
+      "path": "examples/programs/chatgpt-mindmap/src/xmind-frame-protocol.js",
+      "sha256": "07474bfe9ef55924c82228c9b758dfaea6385e9f3c4aa6d74538603d43f75da4"
+    },
+    {
+      "path": "examples/programs/chatgpt-mindmap/src/chatgpt-adapter.js",
+      "sha256": "be85bcb15947a38ce6946c7b0ad3323bc2aad4272dd89a3f16272163d3bd63e8"
+    },
+    {
+      "path": "examples/programs/chatgpt-mindmap/src/xmind-convert.js",
+      "sha256": "f257596b94af2daf379695b4e59ae627f0bb225dc2ea4c4e8c8c7050a1aa7e40"
+    }
+  ],
+  "inputClosureNotes": [
+    "20-cycle receipt remains unchanged. Later 1-cycle probe adds fixture and provenance file hashes plus end guards. Shared source inputs and all 12 compiled authored modules match across both receipts. Neither result is a formal Broker installation.",
+    "Legacy R38/R393 current-candidate renderProof is BLOCKED_PRODUCTION_FRAME_LOADER_RENDER_NOT_TESTED; their expected default-entry rejection is only a fail-closed assertion.",
+    "Static development package was verified before another chat started the shared npm run dev writer. Its historical static hash is not the current live development output identity."
+  ],
+  "independentReview": {
+    "agentId": "01a145cc-e7f9-7a31-aa3f-c5d8c90c923b",
+    "componentScores": [
+      {
+        "dimension": "XMind authenticity",
+        "score": 96,
+        "fullProduct": "NOT_SCORED"
+      },
+      {
+        "dimension": "Visual quality",
+        "score": null,
+        "fullProduct": "NOT_SCORED"
+      },
+      {
+        "dimension": "Content correctness",
+        "score": 92,
+        "fullProduct": "NOT_SCORED"
+      },
+      {
+        "dimension": "Per-answer isolation",
+        "score": 96,
+        "fullProduct": "NOT_SCORED"
+      },
+      {
+        "dimension": "Interaction (native fixture)",
+        "score": 95,
+        "fullProduct": "NOT_SCORED"
+      },
+      {
+        "dimension": "Code quality",
+        "score": 94,
+        "fullProduct": "NOT_SCORED"
+      },
+      {
+        "dimension": "Security/privacy (reviewed boundary)",
+        "score": 94,
+        "fullProduct": "NOT_SCORED"
+      },
+      {
+        "dimension": "Performance/lifecycle (BFCache/memory unverified)",
+        "score": 90,
+        "fullProduct": "NOT_SCORED"
+      },
+      {
+        "dimension": "Formal installation (BLOCKED)",
+        "score": null,
+        "fullProduct": "NOT_SCORED"
+      },
+      {
+        "dimension": "Native verification (temporary test integration)",
+        "score": 96,
+        "fullProduct": "NOT_SCORED"
+      }
+    ],
+    "overall": "NOT_SCORED",
+    "remainingActionableFindingsInNonReleaseScope": 0,
+    "addendum": "R3 CLOSED; no remaining actionable findings in the reviewed non-release scope. New 1-cycle closure PASS; prior 20-cycle receipt retained. Ten-dimension scores unchanged; overall NOT_SCORED, no overall 95. License/formal installation remain BLOCKED; installable:false. Review frozen for the scoped main commit."
+  },
+  "mm": {
+    "MM-01": "BLOCKED",
+    "MM-02": "PASS_FIXTURE_ISOLATION_ONLY",
+    "MM-03": "BLOCKED",
+    "MM-04": "NOT_TESTED_REAL_CHATGPT",
+    "MM-05": "NOT_TESTED_UNDEFINED_PRIOR_PARTIAL_CONTRACT"
+  },
+  "releaseBlockers": [
+    "Exact Snowbrush redistribution grant",
+    "GSAP 3.5.1 applicable historical terms",
+    "Exhaustive embedded/transitive dependency and NOTICE closure",
+    "Approved fixed-code child loader through existing Program Revision / document / execution-slot Authority",
+    "Formal Broker installation and installed lifecycle",
+    "Authenticated real ChatGPT acceptance"
+  ],
+  "failureEvidencePreserved": [
+    "build-development.log",
+    "build-development-retry.log",
+    "build-development-snapshot.log",
+    "business-native",
+    "business-native-retry",
+    "business-native-fixed"
+  ]
+}

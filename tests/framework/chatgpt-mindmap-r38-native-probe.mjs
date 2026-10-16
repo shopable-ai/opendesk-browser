@@ -9,7 +9,7 @@ import {createHash} from 'node:crypto';
 import {cp,copyFile,mkdir,mkdtemp,readFile,rm,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
-import {chromium} from 'playwright-core';
+import {pathToFileURL} from 'node:url';
 
 const args={};
 for(let i=2;i<process.argv.length;i+=2){
@@ -17,6 +17,8 @@ for(let i=2;i<process.argv.length;i+=2){
   args[process.argv[i].slice(2)]=process.argv[i+1];
 }
 for(const key of ['browser','extension','program','out'])assert(args[key],'Missing --'+key);
+const {chromium}=await import(args.playwright
+  ?pathToFileURL(resolve(args.playwright)).href:'playwright-core');
 const sha=buffer=>createHash('sha256').update(buffer).digest('hex');
 const out=resolve(args.out);
 const repo=resolve('.');
@@ -36,6 +38,7 @@ const report={
   runtimeLicense:'BLOCKED_UNVERIFIED_REDISTRIBUTION',
   nativeResult:'NOT_TESTED',xmindWorldResult:'NOT_TESTED',
   sourceHash:artifact.sourceHash,sourceBytes:Buffer.byteLength(source),
+  platform:process.platform,architecture:process.arch,browserExecutable:resolve(args.browser),
   chrome:null,extensionId:null,extensionManifestHash:null,tests:[],error:null
 };
 await mkdir(out,{recursive:true});
@@ -218,6 +221,19 @@ try{
   {tabId:tab,worldId,sourceUtf8:source});
   assert.equal(started.length,1);
   assert.equal(started[0]?.error,undefined,JSON.stringify(started[0]?.error));
+  if(started[0]?.result?.code==='E_XMIND_RUNTIME_UNAVAILABLE'){
+    assert.equal(await page.locator('[data-opendesk-chatgpt-mindmap]').count(),0,
+      'Blocked production entry must not modify answers');
+    await native(id=>chrome.userScripts.unregister({ids:[id]}),markerId);
+    await page.reload({waitUntil:'domcontentloaded'});
+    assert.equal(await page.locator('html[data-odmm-native-marker]').count(),0);
+    record('PRODUCTION_ENTRY_FAILS_CLOSED_WITHOUT_APPROVED_FRAME_FACTORY','PASS');
+    record('REAL_NATIVE_UNREGISTER_BLOCKS_FUTURE_PAGE_BOOTSTRAP','PASS');
+    report.productionEntryGate='PASS_FAIL_CLOSED';
+    report.xmindWorldResult='BLOCKED_PRODUCTION_FRAME_LOADER_RENDER_NOT_TESTED';
+    report.renderProof='Run chatgpt-mindmap-r394-business-frame-probe.mjs for current isolated business rendering';
+    throw Object.assign(new Error('Expected unapproved production frame loader gate'),{code:'E_R394_EXPECTED_ENTRY_GATE'});
+  }
   assert.equal(started[0]?.result?.ok,true,JSON.stringify(started[0]?.result));
   await page.locator('[data-opendesk-chatgpt-mindmap="button"] button').first().waitFor({timeout:15000});
   assert.equal(await page.locator('[data-opendesk-chatgpt-mindmap="button"]').count(),3);
@@ -426,9 +442,11 @@ try{
   record('AUTHENTICATED_CHATGPT_DOM','NOT_TESTED',{reason:'Route serves checked-in synthetic page without login'});
   record('PRODUCTION_XMIND_LICENSE_AND_STYLE_LIFECYCLE','BLOCKED',{reason:'Unapproved vendor redistribution and global Snowbrush style ownership'});
 }catch(error){
+  if(error.code!=='E_R394_EXPECTED_ENTRY_GATE'){
   report.error={name:error.name,code:error.code||'E_NATIVE_PROBE',message:String(error.message||error),stack:String(error.stack||'').slice(0,4000)};
   console.error('R38_NATIVE_PROBE_BLOCKED '+report.error.message);
   process.exitCode=1;
+  }
 }finally{
   await context?.close().catch(()=>{});
   await evidence();

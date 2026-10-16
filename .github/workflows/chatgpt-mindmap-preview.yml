@@ -347,12 +347,23 @@ jobs:
             --browser "$ODMM_R393_BROWSER" \
             --program "$program" \
             --out "${{ runner.temp }}/r393-sandbox-proof"
+      - name: Parent answer business and child-only real XMind renderer
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check tests/framework/chatgpt-mindmap-r394-business-frame-probe.mjs
+          xvfb-run -a node tests/framework/chatgpt-mindmap-r394-business-frame-probe.mjs \
+            --browser "$ODMM_R393_BROWSER" \
+            --out "${{ runner.temp }}/r394-business-frame-proof"
       - name: Retain actual native proof or failure, never vendor bytes
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: r393-sandbox-native-test-only
-          path: ${{ runner.temp }}/r393-sandbox-proof/*.json
+          path: |
+            ${{ runner.temp }}/r393-sandbox-proof/*.json
+            ${{ runner.temp }}/r394-business-frame-proof/*.json
+            ${{ runner.temp }}/r394-business-frame-proof/*.png
           retention-days: 7
           if-no-files-found: warn
       - name: Declare strict proof scope

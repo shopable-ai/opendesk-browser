@@ -1,0 +1,159 @@
+{
+  "format": "opendesk.mindmap.license-reference-review.v1",
+  "reviewedOn": "2026-10-17",
+  "status": "BLOCKED",
+  "installable": false,
+  "redistributionApproved": false,
+  "scope": "UPSTREAM_REFERENCE_TEXTS_ONLY_NOT_EXACT_BUNDLE_APPROVAL",
+  "provenanceSha256": "8c7a31e6b6dcfde8525c72d941df13866b148d806c6c2f47eff5141e0eab9de6",
+  "assets": [
+    {
+      "name": "jszip.min.js",
+      "bytes": 97630,
+      "sha256": "acc7e41455a80765b5fd9c7ee1b8078a6d160bbbca455aeae854de65c947d59e",
+      "approval": "BLOCKED"
+    },
+    {
+      "name": "polyfill-45b9836beb.min.js",
+      "bytes": 104563,
+      "sha256": "59173f786dd1f3802f7ab26fd339aac4099dc10c6cb54a6a92213e6af277592a",
+      "approval": "BLOCKED"
+    },
+    {
+      "name": "xmind-sdk.bundle.js",
+      "bytes": 401113,
+      "sha256": "e3fa6927652a2abb0d8c32af267a9f2a531f3997c7df69332d434a4cbcb7e70b",
+      "approval": "BLOCKED"
+    },
+    {
+      "name": "snowbrush-2c2b5d62b5.js",
+      "bytes": 3439267,
+      "sha256": "036ed215959338eef9af16ac9fa5164f41075cf529ed4b66df5f84f4cfedee8a",
+      "approval": "BLOCKED"
+    }
+  ],
+  "references": [
+    {
+      "component": "jszip-3.10.1",
+      "sourceUrl": "https://raw.githubusercontent.com/Stuk/jszip/v3.10.1/LICENSE.markdown",
+      "referenceLicense": "MIT OR GPL-3.0",
+      "exactEmbeddedArtifactMapping": "UNPROVEN",
+      "noticeClosure": "UNPROVEN",
+      "redistributionApproved": false,
+      "captureStatus": "CAPTURED",
+      "file": "license-evidence/r394/jszip-3.10.1.LICENSE.txt",
+      "bytes": 33753,
+      "sha256": "566c953c6090b1218ca6217dd7359d45dde46581968586dc607d59a78af6a9c4"
+    },
+    {
+      "component": "jszip-3.4.0",
+      "sourceUrl": "https://raw.githubusercontent.com/Stuk/jszip/v3.4.0/LICENSE.markdown",
+      "referenceLicense": "MIT OR GPL-3.0",
+      "exactEmbeddedArtifactMapping": "UNPROVEN",
+      "noticeClosure": "UNPROVEN",
+      "redistributionApproved": false,
+      "captureStatus": "CAPTURED",
+      "file": "license-evidence/r394/jszip-3.4.0.LICENSE.txt",
+      "bytes": 33738,
+      "sha256": "14450c78405ad2a2173e25740b56406556779149df9c4c83523a8c63d0686210"
+    },
+    {
+      "component": "jszip-3.5.0",
+      "sourceUrl": "https://raw.githubusercontent.com/Stuk/jszip/v3.5.0/LICENSE.markdown",
+      "referenceLicense": "MIT OR GPL-3.0",
+      "exactEmbeddedArtifactMapping": "UNPROVEN",
+      "noticeClosure": "UNPROVEN",
+      "redistributionApproved": false,
+      "captureStatus": "CAPTURED",
+      "file": "license-evidence/r394/jszip-3.5.0.LICENSE.txt",
+      "bytes": 33738,
+      "sha256": "14450c78405ad2a2173e25740b56406556779149df9c4c83523a8c63d0686210"
+    },
+    {
+      "component": "core-js-2.5.0",
+      "sourceUrl": "https://raw.githubusercontent.com/zloirock/core-js/v2.5.0/LICENSE",
+      "referenceLicense": "MIT",
+      "exactEmbeddedArtifactMapping": "UNPROVEN",
+      "noticeClosure": "UNPROVEN",
+      "redistributionApproved": false,
+      "captureStatus": "CAPTURED",
+      "file": "license-evidence/r394/core-js-2.5.0.LICENSE.txt",
+      "bytes": 1064,
+      "sha256": "5733f332a058d2ed4dd346a9e1c6a123feed6290e9448ce050dcc5e7faf34dcf"
+    },
+    {
+      "component": "core-js-2.6.11",
+      "sourceUrl": "https://raw.githubusercontent.com/zloirock/core-js/v2.6.11/LICENSE",
+      "referenceLicense": "MIT",
+      "exactEmbeddedArtifactMapping": "UNPROVEN",
+      "noticeClosure": "UNPROVEN",
+      "redistributionApproved": false,
+      "captureStatus": "CAPTURED",
+      "file": "license-evidence/r394/core-js-2.6.11.LICENSE.txt",
+      "bytes": 1064,
+      "sha256": "722e1193901ad1ed4460753dded483d68ca2ad0528c67f86f76abc46b9aa25f5"
+    },
+    {
+      "component": "punycode-2.1.0",
+      "sourceUrl": "https://raw.githubusercontent.com/mathiasbynens/punycode.js/v2.1.0/LICENSE-MIT.txt",
+      "referenceLicense": "MIT",
+      "exactEmbeddedArtifactMapping": "UNPROVEN",
+      "noticeClosure": "UNPROVEN",
+      "redistributionApproved": false,
+      "captureStatus": "CAPTURED",
+      "file": "license-evidence/r394/punycode-2.1.0.LICENSE.txt",
+      "bytes": 1077,
+      "sha256": "483acb265f182907d1caf6cff9c16c96f31325ed23792832cc5d8b12d5f88c8a"
+    },
+    {
+      "component": "mathjax-3.1.2",
+      "sourceUrl": "https://raw.githubusercontent.com/mathjax/MathJax/3.1.2/LICENSE",
+      "referenceLicense": "Apache-2.0",
+      "exactEmbeddedArtifactMapping": "UNPROVEN",
+      "noticeClosure": "UNPROVEN",
+      "redistributionApproved": false,
+      "captureStatus": "CAPTURED",
+      "file": "license-evidence/r394/mathjax-3.1.2.LICENSE.txt",
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "component": "xmind-sdk-reference",
+      "sourceUrl": "https://raw.githubusercontent.com/xmindltd/xmind-sdk-js/1f4819f1daa8e88da0a33b0236731a24e21f3733/LICENSE",
+      "referenceLicense": "MIT",
+      "exactEmbeddedArtifactMapping": "UNPROVEN",
+      "noticeClosure": "UNPROVEN",
+      "redistributionApproved": false,
+      "captureStatus": "CAPTURED",
+      "file": "license-evidence/r394/xmind-sdk-reference.LICENSE.txt",
+      "bytes": 1067,
+      "sha256": "afa20618a775e70cbd73d2ad019524b7744ea530de30e782372311c61013b796"
+    }
+  ],
+  "unresolved": [
+    "Exact upstream build/version mapping for all four fixed files and exhaustive transitive dependency inventory.",
+    "Snowbrush exact payload grant is unproven; MIT wrapper/name is insufficient.",
+    "GSAP 3.5.1 header references historical custom GreenSock standard/membership terms; their applicability to these exact embedded bytes is unresolved.",
+    "Pako version is unproven; upstream has MIT and Zlib file-specific terms, not uniformly MIT.",
+    "License and NOTICE obligations must map to actual redistribution locations; captured upstream reference texts do not satisfy bundle closure.",
+    "XMind SDK reference tag v1.2.71 has package version 1.2.70; exact relationship to fixed bundle is unproven."
+  ],
+  "additionalSources": [
+    {
+      "url": "https://raw.githubusercontent.com/greensock/GSAP/3.5.1/src/gsap-core.js",
+      "finding": "GSAP 3.5.1 source header points to custom standard and membership license agreements; no exact bundle clearance."
+    },
+    {
+      "url": "https://gsap.com/community/standard-license/",
+      "finding": "Historical license URL redirects to newer terms; no assumption of retroactive applicability."
+    },
+    {
+      "url": "https://github.com/nodeca/pako/blob/a718e4f6e5ce87b0964d8f84541d92a23263365b/README.md#L174-L178",
+      "finding": "Upstream distinguishes MIT outside lib/zlib and Zlib within lib/zlib. Embedded version unidentified."
+    },
+    {
+      "url": "https://github.com/xmindltd/xmind-viewer/blob/272b324bd82ea8567739c6617154d8d2556f6b50/README.md#L40-L44",
+      "finding": "Snowbrush named as internal renderer; wrapper MIT does not prove exact fixed payload rights."
+    }
+  ]
+}
