@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OpenDesk Browser · Workflow R23.4 AI 设置交互预览（离线模拟）</title>
+<title>OpenDesk Browser · Workflow R23.5 紧凑 AI 设置（离线模拟）</title>
 <!-- UI_SIMULATION: eleven display scenarios; not an AI provider, extension permission,
      actual RunHost, native receipt, persistent save, or multi-origin workflow. -->
 <style>
@@ -244,52 +244,153 @@ body[data-theme=dark] .r233-mode:hover,body[data-theme=dark] .device .composer .
 body[data-theme=dark] .device .composer .compose-bottom button#settings,body[data-theme=dark] .device .composer .compose-bottom button.r233-mode{color:#eaf1fb}
 body[data-theme=dark] .device .composer .compose-bottom button#settings:hover,body[data-theme=dark] .device .composer .compose-bottom button.r233-mode:hover{background:#30486c}
 
-/* R23.4 — complete in-sidebar settings view, not nested floating forms */
+
+/* R23.5 – compact, source-bound AI settings: one line per actual field. */
 .device{isolation:isolate}
-.device .r23-settings{position:absolute;inset:0;z-index:30;width:100%;height:100%;max-height:none;display:flex;flex-direction:column;overflow:hidden;background:var(--surface);border:0;box-shadow:none;border-radius:inherit;padding:0}
-.r234-head{display:flex;align-items:center;gap:10px;flex:none;min-height:64px;padding:11px 14px;background:var(--surface);border-bottom:1px solid var(--outline)}
-.r234-back{flex:none;width:40px;height:40px;display:grid;place-items:center;color:var(--ink);background:var(--surface);border:1px solid var(--outline);border-radius:10px}
-.r234-back svg{height:18px;width:18px}
-.r234-heading{flex:1;min-width:0}.r234-heading h3{font-size:15px;margin:0 0 3px}.r234-heading p{font-size:10.5px;margin:0;color:var(--secondary)}
-.r234-status{border-radius:30px;border:1px solid var(--outline);padding:5px 7px;font-size:10px;color:var(--secondary);white-space:nowrap}
-.r234-body{min-height:0;flex:1;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:18px 16px 25px;scrollbar-width:thin}
-.r234-section{border-bottom:1px solid var(--outline);padding-bottom:16px;margin-bottom:18px}.r234-section:last-of-type{border:0}
-.r234-section strong{display:block;font-size:12px;margin-bottom:10px}
-.r234-body label:not(.r233-check){display:block;margin:12px 0 6px;font-weight:650;font-size:11.5px;color:var(--ink)}
-.r234-body input:not([type=checkbox]),.r234-body select{display:block;width:100%;min-height:42px;padding:9px 11px;border:1px solid var(--outline);border-radius:9px;background:var(--surface);color:var(--ink);font:inherit;font-size:12px}
-.r234-body input:focus-visible,.r234-body select:focus-visible{outline:2px solid #5b86e7;outline-offset:1px}
-.r234-body input::placeholder{color:#7c8ea5}
-.r234-body p{color:var(--secondary);font-size:11px;line-height:1.55;margin:8px 0}
-.r234-body .r234-protocol{border-radius:9px;background:#f1f5fb;color:#486082;padding:9px 10px}
-.r234-secret{display:flex;gap:8px;align-items:center}.r234-secret input{min-width:0;flex:1}
-.r234-secret button,.r234-secondary{flex:none;min-height:40px;border:1px solid var(--outline);border-radius:9px;background:var(--surface);color:var(--ink);padding:8px 11px}
-.r234-feedback{background:#f5f8fd;border:1px solid var(--outline);border-radius:9px;padding:9px 10px;font-size:11px;color:var(--secondary)}
-.r234-feedback[data-kind=error]{background:#fff0ec;border-color:#e8af9e;color:#8b3d29}
-.r234-feedback[data-kind=checked]{background:#e9f7ee;border-color:#acd6bb;color:#286348}
-.r234-body .r233-info{padding:0;margin:0;border:0}.r234-body .r233-compact{flex-wrap:wrap}
-.r234-body .r233-check{display:flex;gap:8px;line-height:1.5;font-size:11.5px;color:var(--ink);cursor:pointer}
-.r234-body .r233-check input{margin-top:3px;accent-color:var(--blue)}
-.r234-body #r23-advanced{padding:0;margin:0;border:0}.r234-body #r23-advanced summary{font-size:11px;font-weight:700}
-.r234-footer{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 15px max(11px,env(safe-area-inset-bottom));border-top:1px solid var(--outline);background:var(--surface)}
-.r234-footer small{color:var(--secondary);font-size:10px;line-height:1.45;max-width:190px}
-.r234-footer button{min-height:40px;min-width:84px;border:0;border-radius:9px;background:var(--blue);color:#fff;padding:8px 12px;font-weight:700}
-.r234-body input[aria-invalid=true]{border-color:#bf4b3b}
-.r234-body .r234-field-error{font-size:10.5px;color:#b3412c;line-height:1.5;margin:5px 0 0}
-body[data-theme=dark] .r234-body .r234-field-error{color:#ffc3b6}
-.r23-demo #r23-readback{background:#eaf7ef;border:1px solid #b9dec7;border-radius:9px;color:#246443;padding:10px;overflow-wrap:anywhere}
-body[data-theme=dark] .r234-protocol{background:#293e5d;color:#cbdcf3}
-body[data-theme=dark] .r234-feedback{background:#293e5d;color:#d2e1f8}
-body[data-theme=dark] .r234-feedback[data-kind=error]{background:#4a2f30;color:#ffd3c9}
-body[data-theme=dark] .r234-feedback[data-kind=checked],body[data-theme=dark] .r23-demo #r23-readback{background:#224636;color:#c8f1dc}
-@media(min-width:980px){body{display:grid;grid-template-columns:minmax(0,550px) minmax(0,470px);column-gap:18px;justify-content:center}.scenario-bar{grid-column:1/-1}.device{grid-column:1;margin:18px 0 24px auto}.r23-demo{grid-column:2;align-self:start;width:min(100%,470px);max-width:470px;margin:18px auto 24px 0}}
-@media(max-width:460px){.r234-head{padding:10px 11px}.r234-body{padding:15px 13px 22px}.r234-footer{padding:10px 12px}}
+.device .r23-settings{
+  position:absolute;inset:0;z-index:30;width:100%;height:100%;max-height:none;
+  display:flex;flex-direction:column;overflow:hidden;padding:0;border:0;
+  border-radius:inherit;box-shadow:none;background:var(--surface);color:var(--ink)
+}
+.r234-head{
+  display:flex;align-items:center;gap:10px;flex:none;min-height:56px;
+  padding:8px 12px;border-bottom:1px solid var(--outline);background:var(--surface)
+}
+.r234-back{
+  flex:none;display:grid;place-items:center;width:40px;height:40px;
+  background:transparent;color:var(--ink);border:0;border-radius:9px
+}
+.r234-back:hover{background:#eaf1ff}
+.r234-back svg{width:19px;height:19px}
+.r234-heading{flex:1;min-width:0}
+.r234-heading h3{font-size:14px;line-height:1.35;margin:0;color:var(--ink)}
+.r234-status{
+  font-size:10px;color:var(--secondary);white-space:nowrap;
+  background:var(--canvas);border:1px solid var(--outline);border-radius:20px;padding:4px 8px
+}
+.r234-body{
+  --r234-label:82px;--r234-gap:11px;flex:1;min-height:0;overflow:auto;
+  overscroll-behavior:contain;scrollbar-width:thin;padding:16px 15px 24px
+}
+.r234-source-row,.r234-field{
+  display:grid;grid-template-columns:var(--r234-label) minmax(0,1fr);
+  column-gap:var(--r234-gap);align-items:center;min-width:0
+}
+.r234-body .r234-source-row label,.r234-body .r234-field label{
+  margin:0;font-size:11.5px;font-weight:650;line-height:1.4;color:var(--ink)
+}
+.r234-body input:not([type=checkbox]),.r234-body select{
+  width:100%;min-width:0;min-height:39px;padding:8px 10px;border-radius:9px;
+  border:1px solid var(--outline);background:var(--surface);color:var(--ink);
+  font:inherit;font-size:12px
+}
+.r234-body select{padding-right:22px}
+.r234-body input:focus-visible,.r234-body select:focus-visible{
+  outline:2px solid #5e84de;outline-offset:1px
+}
+.r234-body input::placeholder{color:#8a99ad}
+.r234-provider-note{
+  padding-left:calc(var(--r234-label) + var(--r234-gap));
+  margin:6px 0 0;color:var(--secondary);font-size:10.5px;line-height:1.35
+}
+.r234-remote-config{margin-top:13px;display:grid;gap:10px;min-width:0}
+.r234-secret{
+  display:flex;align-items:center;min-width:0;border:1px solid var(--outline);
+  border-radius:9px;background:var(--surface)
+}
+.r234-body .r234-secret input:not([type=checkbox]){
+  flex:1;min-width:0;border:0;box-shadow:none;outline:0;background:transparent;
+  padding:8px 5px 8px 10px;min-height:37px
+}
+.r234-secret:focus-within{outline:2px solid #5e84de;outline-offset:1px}
+.r234-secret button{
+  flex:none;display:grid;place-items:center;height:38px;width:39px;
+  padding:0;border:0;border-radius:8px;background:transparent;color:var(--secondary)
+}
+.r234-secret button:hover{background:#edf2fa;color:var(--ink)}
+.r234-secret button svg{height:17px;width:17px;pointer-events:none}
+.r234-secret .r234-eye-slash{display:none}
+.r234-secret button[aria-pressed=true] .r234-eye-slash{display:block}
+.r234-validation{
+  display:flex;align-items:center;gap:11px;min-width:0;
+  margin-left:calc(var(--r234-label) + var(--r234-gap));margin-top:2px
+}
+.r234-secondary{
+  min-height:36px;flex:none;padding:0 12px;border-radius:8px;
+  border:1px solid var(--blue);background:var(--blue);color:#fff;
+  font:inherit;font-size:11px;font-weight:700
+}
+.r234-secondary:hover{filter:brightness(1.08)}
+.r234-feedback{margin:0;min-width:0;line-height:1.4;font-size:10.5px;color:var(--secondary)}
+.r234-feedback[data-kind=error]{color:#ab3b2b}
+.r234-feedback[data-kind=checked]{color:#25764e}
+.r234-field .r234-field-error{
+  grid-column:2;font-size:10.5px;line-height:1.45;
+  color:#b3412c;margin:5px 0 0
+}
+.r234-body input[aria-invalid=true],.r234-body .r234-secret:has(input[aria-invalid=true]){border-color:#c35845}
+.r234-local-row{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:10px;margin:14px 0 0 calc(var(--r234-label) + var(--r234-gap))
+}
+.r234-local-row #r23-native-status{font-size:11px;color:var(--secondary)}
+.r234-local-row .r234-secondary{background:var(--surface);color:var(--ink);border-color:var(--outline)}
+.r234-share{margin:15px 0 0 calc(var(--r234-label) + var(--r234-gap))}
+.r234-share .r233-check{
+  display:flex;gap:8px;align-items:center;line-height:1.45;
+  font-size:11px;color:var(--ink);cursor:pointer
+}
+.r234-share .r233-check input{flex:none;width:16px;height:16px;margin:0;accent-color:var(--blue)}
+.r234-body #r23-advanced{
+  margin:13px 0 0 calc(var(--r234-label) + var(--r234-gap));padding:0;border:0
+}
+.r234-body #r23-advanced summary{
+  display:inline-block;cursor:pointer;font-size:10.5px;line-height:1.6;color:var(--secondary)
+}
+.r234-body #r23-advanced p{font-size:10.5px;line-height:1.6;color:var(--secondary);margin:7px 0 0}
+.r234-footer{
+  flex:none;display:flex;justify-content:flex-end;
+  padding:9px 14px max(9px,env(safe-area-inset-bottom));
+  border-top:1px solid var(--outline);background:var(--surface)
+}
+.r234-footer button{
+  min-height:39px;min-width:88px;padding:8px 15px;border:0;
+  border-radius:9px;background:var(--blue);color:#fff;font:inherit;font-weight:750
+}
+.r234-demo-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.r234-demo-head strong{font-size:12px}
+.r234-demo-head span{font-size:10px;color:var(--secondary)}
+.r23-demo{padding:13px 14px}
+.r23-demo label{font-size:11px;font-weight:650;color:var(--ink)}
+.r23-demo input{min-height:39px}
+.r23-demo #r23-readback{
+  margin:9px 0 0;padding:9px 11px;border-radius:9px;
+  border:1px solid #d8e5de;background:#f2f8f4;color:#276045;
+  font-size:11px;line-height:1.45;overflow-wrap:anywhere
+}
+body[data-theme=dark] .r234-back:hover,body[data-theme=dark] .r234-secret button:hover{background:#334863}
+body[data-theme=dark] .r234-feedback[data-kind=error],body[data-theme=dark] .r234-field .r234-field-error{color:#ffb8a8}
+body[data-theme=dark] .r234-feedback[data-kind=checked]{color:#a2e2c1}
+body[data-theme=dark] .r23-demo #r23-readback{background:#213e32;color:#c5f0da;border-color:#395c4b}
+@media(min-width:980px){
+  body{display:grid;grid-template-columns:minmax(0,550px) minmax(0,470px);column-gap:18px;justify-content:center}
+  .scenario-bar{grid-column:1/-1}
+  .device{grid-column:1;margin:18px 0 24px auto}
+  .r23-demo{grid-column:2;align-self:start;width:min(100%,470px);max-width:470px;margin:18px auto 24px 0}
+}
+@media(max-width:380px){
+  .r234-body{--r234-label:69px;--r234-gap:8px;padding:13px 11px 20px}
+  .r234-validation{gap:7px}
+  .r234-secondary{padding:0 10px}
+}
+@media(prefers-reduced-motion:reduce){.r234-secondary{transition:none}}
 
 </style>
 </head>
 <body>
 <div class="scenario-bar">
-<h1>R23.4 · 工作流交互预览（待用户确认）</h1>
-<p>可直接发送两轮自然语言并观察 DOM 读回；AI 设置为完整侧边栏视图。研发场景默认折叠，不访问真实 AI、Chrome、Native 或 RunHost。</p>
+<h1>R23.5 · 工作流交互预览（待用户确认）</h1>
+<p>可体验两轮填写与读回。AI 配置仅供离线演示，不连接真实服务。</p>
 <details id="r233-qa"><summary>研发验收工具 · 场景与视口</summary><div id="scenarios" class="scenarios" role="group" aria-label="选择工作流产品状态"></div><div class="r23-examples" role="group" aria-label="模拟指令和异常条件"><button type="button" data-action="example-first">填入第一轮指令</button><button type="button" data-action="example-second">填入第二轮指令</button><button type="button" data-action="revoke-site">撤销模拟网站权限</button><button type="button" data-action="change-document">模拟切换文档</button></div><div class="r23-toolbar"><label>宽度 <select id="r23-width"><option>360</option><option selected>420</option><option>520</option></select> px</label><button type="button" id="r23-theme" aria-pressed="false">深色模式</button><span>浏览器验收以本轮真实测试为准。</span></div></details>
 </div>
 <div class="device" aria-label="浏览器扩展侧边栏布局预览">
@@ -304,7 +405,7 @@ body[data-theme=dark] .r234-feedback[data-kind=checked],body[data-theme=dark] .r
   <form id="form" class="composer"><div class="compose-box"><label for="prompt" class="visually-hidden">描述任务</label><textarea id="prompt" placeholder="描述要自动完成的任务…" aria-label="输入工作流需求"></textarea><div class="compose-bottom"><button type="button" id="settings" class="icon-btn" aria-label="配置 AI 模型" title="AI 设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h9m6 0h1M4 17h1m6 0h9"></path><circle cx="16" cy="7" r="3"></circle><circle cx="8" cy="17" r="3"></circle></svg></button><button type="submit" class="send-btn" aria-label="发送并模拟任务" title="发送并执行（仅模拟）"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 19V5m-7 7 7-7 7 7"></path></svg></button></div></div></form>
   <p class="foot-note">仅交互模拟 · 当前页内存保存 · 不连接真实 AI 或 RunHost</p>
 </div>
-<section class="r23-demo" aria-label="扩展外部模拟网页"><b>模拟目标网页</b> · 127.0.0.1:43111/demo-form.html（非真实访问）<label for="r23-name">姓名输入框<input id="r23-name" value="旧的预填内容"></label><button type="button" disabled>提交（预览禁用）</button><p id="r23-readback">模拟 DOM 读回：旧的预填内容；提交 0 次，跳转 0 次</p></section>
+<section class="r23-demo" aria-label="模拟目标网页"><div class="r234-demo-head"><strong>测试表单</strong><span>模拟网页</span></div><label for="r23-name">姓名<input id="r23-name" value="旧的预填内容"></label><p id="r23-readback" role="status">读回：旧的预填内容</p></section>
 <script>
 /* R23.1: UI-only simulation. Never call a Provider, Browser SDK, Chrome API or RunHost. */
 (() => {
@@ -328,8 +429,8 @@ body[data-theme=dark] .r234-feedback[data-kind=checked],body[data-theme=dark] .r
     historyOpen:data.historyOpen,settingsOpen:data.settingsOpen,dialog:data.dialog,consent:!!data.consent,actionWarning:data.actionWarning});
   const shell = document.querySelector('.device');
   const settings = document.createElement('section');settings.id='r23-settings-panel';settings.className='r23-settings';settings.hidden=true;
-  settings.setAttribute('aria-label','AI 配置模拟');
-  settings.innerHTML="\n<header class=\"r234-head\">\n  <button type=\"button\" class=\"r234-back\" data-action=\"close-settings\" id=\"r234-back\" aria-label=\"返回对话\" title=\"返回对话\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M15 18l-6-6 6-6\"/></svg></button>\n  <div class=\"r234-heading\"><h3>AI 设置</h3><p>离线交互预览 · 非真实连接</p></div>\n  <span class=\"r234-status\" role=\"status\" id=\"r234-status\">模拟就绪</span>\n</header>\n<div class=\"r234-body\" id=\"r234-body\">\n  <section class=\"r234-section\">\n    <strong>AI 来源</strong>\n    <label class=\"visually-hidden\" for=\"r23-provider\">AI 来源</label>\n    <select id=\"r23-provider\" aria-label=\"AI 来源\"><option value=\"local_codex\">本机 Codex</option><option value=\"cloud_responses\">OpenAI Responses</option><option value=\"custom_https\">自定义 HTTPS</option><option disabled>OpenDesk AI · 尚未开放</option></select>\n    <p id=\"r23-provider-notice\"></p>\n  </section>\n  <section class=\"r234-section\" id=\"r23-local-config\">\n    <strong>本机连接</strong>\n    <div class=\"r233-compact\"><span id=\"r23-native-status\">模拟就绪 · 未检测 Native</span><button class=\"r234-secondary\" type=\"button\" data-action=\"reconnect\">模拟重新检查</button></div>\n    <p>本机 Codex 不需要 API Key；模型由本机服务决定，不伪造可选模型列表。</p>\n    <details><summary>连接诊断</summary><p>本预览没有连接 Native，正式状态与恢复操作需在已安装扩展核验。</p></details>\n  </section>\n  <section class=\"r234-section\" id=\"r23-remote-config\" hidden>\n    <strong>模型连接参数</strong>\n    <p class=\"r234-protocol\" id=\"r234-protocol\">Responses API · Bearer API Key</p>\n    <label for=\"r23-endpoint\">HTTPS Endpoint</label>\n    <input id=\"r23-endpoint\" type=\"url\" inputmode=\"url\" spellcheck=\"false\" autocomplete=\"off\" maxlength=\"2048\" placeholder=\"https://api.example.com/v1/chat/completions\">\n    <label for=\"r23-model\">Model ID</label>\n    <input id=\"r23-model\" type=\"text\" autocomplete=\"off\" spellcheck=\"false\" maxlength=\"120\" placeholder=\"填写模型 ID\">\n    <label for=\"r23-api-key\">API Key（仅虚拟字符串）</label>\n    <div class=\"r234-secret\"><input id=\"r23-api-key\" type=\"password\" autocomplete=\"new-password\" spellcheck=\"false\" placeholder=\"demo-example-key\"><button type=\"button\" data-action=\"toggle-api-key\" id=\"r234-key-toggle\" aria-pressed=\"false\" aria-label=\"显示 API Key\">显示</button></div>\n    <p>仅使用 demo- 开头的演示密钥，不要输入真实密钥。这里不会联网。</p>\n    <p id=\"r23-cloud-config\" hidden>官方 Responses 仅支持 /v1/responses；模型可用性尚未验证。</p>\n    <p id=\"r23-custom-config\" hidden>旧版 Chat Completions 兼容协议，Bearer 认证；不支持任意 Header、Body 模板或 HTTP 明文请求。</p>\n    <button type=\"button\" class=\"r234-secondary\" data-action=\"simulate-config\">离线检查字段</button>\n    <p id=\"r234-feedback\" class=\"r234-feedback\" role=\"status\" data-kind=\"idle\">尚未完成格式检查；实际连接状态未知。</p>\n  </section>\n  <section class=\"r234-section\" id=\"r23-share-config\" hidden>\n    <strong>本页数据使用范围</strong>\n    <label class=\"r233-check\" for=\"r23-share\"><input id=\"r23-share\" type=\"checkbox\">允许当前模拟来源使用本页非敏感语义摘要</label>\n    <p>只模拟数据授权。更改 AI 来源、网站权限或文档后需重新确认；正式版逐轮审批。</p>\n  </section>\n  <details id=\"r23-advanced\"><summary>连接诊断与权限说明</summary><p>格式检查不证明服务连接成功。Chrome 权限、真实 Provider 请求、RunHost 回执和高风险动作均由正式 Runtime 负责。</p></details>\n</div>\n<footer class=\"r234-footer\"><small>仅本页内存 · 不存储真实密钥<br>不联网 · 不运行工作流</small><button type=\"button\" data-action=\"close-settings\">完成</button></footer>";
+  settings.setAttribute('aria-label','AI 设置（离线演示）');
+  settings.innerHTML="\n<header class=\"r234-head\">\n  <button type=\"button\" class=\"r234-back\" data-action=\"close-settings\" id=\"r234-back\" aria-label=\"返回对话\" title=\"返回对话\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M15 18l-6-6 6-6\"/></svg></button>\n  <div class=\"r234-heading\"><h3>AI 设置</h3></div>\n  <span class=\"r234-status\" id=\"r234-status\">离线演示</span>\n</header>\n<div class=\"r234-body\" id=\"r234-body\">\n  <div class=\"r234-source-row\">\n    <label for=\"r23-provider\">AI 来源</label>\n    <select id=\"r23-provider\"><option value=\"local_codex\">本机 Codex</option><option value=\"cloud_responses\">OpenAI Responses</option><option value=\"custom_https\">自定义 HTTPS</option><option disabled>OpenDesk AI · 尚未开放</option></select>\n  </div>\n  <p class=\"r234-provider-note\" id=\"r23-provider-notice\" hidden><span id=\"r23-custom-config\" hidden>兼容 Chat Completions</span><span id=\"r23-cloud-config\" hidden></span></p>\n  <section id=\"r23-local-config\" class=\"r234-local-row\">\n    <span id=\"r23-native-status\">模拟就绪 · 未检测 Native</span>\n    <button type=\"button\" class=\"r234-secondary\" data-action=\"reconnect\" aria-label=\"重新检查本机 Codex 模拟连接\">检查</button>\n  </section>\n  <section id=\"r23-remote-config\" class=\"r234-remote-config\" hidden>\n    <div class=\"r234-field\">\n      <label for=\"r23-endpoint\">接口地址</label>\n      <input type=\"url\" id=\"r23-endpoint\" inputmode=\"url\" spellcheck=\"false\" autocomplete=\"off\" maxlength=\"2048\" placeholder=\"https://.../v1/chat/completions\">\n    </div>\n    <div class=\"r234-field\">\n      <label for=\"r23-model\">模型 ID</label>\n      <input type=\"text\" id=\"r23-model\" autocomplete=\"off\" spellcheck=\"false\" maxlength=\"120\" placeholder=\"model-id\">\n    </div>\n    <div class=\"r234-field\">\n      <label for=\"r23-api-key\">API Key</label>\n      <div class=\"r234-secret\">\n        <input type=\"password\" id=\"r23-api-key\" autocomplete=\"new-password\" spellcheck=\"false\" placeholder=\"demo-...（仅虚拟密钥）\" aria-describedby=\"r234-key-help\">\n        <button type=\"button\" data-action=\"toggle-api-key\" id=\"r234-key-toggle\" aria-pressed=\"false\" aria-label=\"显示 API Key\" title=\"显示 API Key\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z\"/><circle cx=\"12\" cy=\"12\" r=\"2.7\"/><path class=\"r234-eye-slash\" d=\"M3 3l18 18\"/></svg></button>\n      </div>\n    </div>\n    <p class=\"visually-hidden\" id=\"r234-key-help\">仅支持以 demo- 开头的演示密钥，切勿输入真实 API Key；预览不会联网。</p>\n    <div class=\"r234-validation\"><button type=\"button\" class=\"r234-secondary\" data-action=\"simulate-config\">检查配置</button><p class=\"r234-feedback\" id=\"r234-feedback\" role=\"status\" data-kind=\"idle\">未检查</p></div>\n  </section>\n  <section class=\"r234-share\" id=\"r23-share-config\" hidden>\n    <label class=\"r233-check\" for=\"r23-share\"><input id=\"r23-share\" type=\"checkbox\"><span>允许向此 AI 来源提供页面摘要</span></label>\n  </section>\n  <details id=\"r23-advanced\"><summary>说明</summary><p>仅进行离线格式检查；真实连接、网页授权和执行仍由正式扩展处理。自定义 HTTPS 使用 Bearer API Key。</p></details>\n</div>\n<footer class=\"r234-footer\"><button type=\"button\" data-action=\"close-settings\">完成</button></footer>";
   shell.append(settings);
   const modal = document.createElement('div');modal.id='r23-modal-root';modal.className='r23-modal-backdrop';modal.hidden=true;shell.append(modal);
   const announcer=document.createElement('div');announcer.id='r23-announcer';announcer.className='visually-hidden';announcer.setAttribute('role','status');announcer.setAttribute('aria-live','polite');document.body.append(announcer);
@@ -363,34 +464,42 @@ body[data-theme=dark] .r234-feedback[data-kind=checked],body[data-theme=dark] .r
 
   // Only ephemeral mock data: never send, persist, log or place credentials in history.
   const mockConfigs={cloud_responses:{endpoint:'https://api.openai.com/v1/responses',model:'',key:''},custom_https:{endpoint:'',model:'',key:''}};
-  const mockFeedback={cloud_responses:{kind:'idle',text:'尚未完成格式检查；实际连接状态未知。'},custom_https:{kind:'idle',text:'尚未完成格式检查；实际连接状态未知。'}};
+  const mockFeedback={cloud_responses:{kind:'idle',text:'未检查'},custom_https:{kind:'idle',text:'未检查'}};
   function captureConfig(){
     if(isNative())return;
     const c=mockConfigs[data.provider];c.endpoint=$('r23-endpoint').value;c.model=$('r23-model').value;c.key=$('r23-api-key').value;
   }
   function renderConfig(){
     const local=isNative();
-    $('r23-local-config').hidden=!local;$('r23-remote-config').hidden=local;$('r23-share-config').hidden=local;
-    $('r23-custom-config').hidden=data.provider!=='custom_https';$('r23-cloud-config').hidden=data.provider!=='cloud_responses';
-    $('r23-provider').value=data.provider;$('r23-share').checked=!!data.shareApproved[data.provider];
-    $('r23-native-status').textContent=data.connected?'模拟就绪 · 未检测真实 Native':'模拟断开 · 未检测真实 Native';
-    $('r234-status').textContent=local?(data.connected?'模拟就绪':'模拟断开'):(data.sourceReady[data.provider]?'格式已检查':'尚未配置');
-    $('r23-provider-notice').textContent=local?'本机 Codex · Native 会话（仅模拟连接）':data.provider==='cloud_responses'?'官方 OpenAI Responses · HTTPS API':'自定义 HTTPS · Chat Completions 兼容协议';
+    $('r23-local-config').hidden=!local;$('r23-remote-config').hidden=local;
+    $('r23-share-config').hidden=local;$('r23-provider').value=data.provider;
+    $('r23-share').checked=!!data.shareApproved[data.provider];
+    $('r23-provider-notice').hidden=data.provider!=='custom_https';
+    $('r23-custom-config').hidden=data.provider!=='custom_https';
+    $('r23-cloud-config').hidden=true;
+    $('r23-native-status').textContent=data.connected?'模拟就绪 · 未检测 Native':'模拟断开 · 未检测 Native';
     if(local)return;
     const c=mockConfigs[data.provider],f=mockFeedback[data.provider];
-    $('r23-endpoint').value=c.endpoint;$('r23-model').value=c.model;$('r23-api-key').value=c.key;$('r23-api-key').type='password';
-    $('r234-key-toggle').textContent='显示';$('r234-key-toggle').setAttribute('aria-pressed','false');$('r234-key-toggle').setAttribute('aria-label','显示 API Key');
-    $('r234-protocol').textContent=data.provider==='cloud_responses'?'协议：Responses API · Bearer API Key · /v1/responses':'协议：Chat Completions（旧版兼容）· Bearer API Key';
+    $('r23-endpoint').value=c.endpoint;$('r23-model').value=c.model;$('r23-api-key').value=c.key;
+    $('r23-endpoint').placeholder=data.provider==='cloud_responses'?'https://api.openai.com/v1/responses':'https://.../v1/chat/completions';
+    $('r23-api-key').type='password';
+    $('r234-key-toggle').setAttribute('aria-pressed','false');
+    $('r234-key-toggle').setAttribute('aria-label','显示 API Key');
+    $('r234-key-toggle').title='显示 API Key';
     $('r234-feedback').textContent=f.text;$('r234-feedback').dataset.kind=f.kind;
-    for(const id of ['r23-endpoint','r23-model','r23-api-key'])$(id).removeAttribute('aria-invalid');
+    $('r234-field-error')?.remove();
+    for(const id of ['r23-endpoint','r23-model','r23-api-key']){
+      $(id).removeAttribute('aria-invalid');$(id).removeAttribute('aria-describedby');
+    }
+    $('r23-api-key').setAttribute('aria-describedby','r234-key-help');
   }
   function configEdited(){
-    $('r234-field-error')?.remove();for(const id of ['r23-endpoint','r23-model','r23-api-key'])$(id).removeAttribute('aria-describedby');
+    $('r234-field-error')?.remove();for(const id of ['r23-endpoint','r23-model','r23-api-key'])$(id).removeAttribute('aria-describedby');$('r23-api-key').setAttribute('aria-describedby','r234-key-help');
     captureConfig();data.sourceReady[data.provider]=false;data.connected=false;
     // Config revision changes the disclosure recipient/scope: never inherit the old consent.
     data.shareApproved[data.provider]=false;data.consent=null;$('r23-share').checked=false;
-    mockFeedback[data.provider]={kind:'idle',text:'配置已修改，需重新检查字段并确认本来源数据范围；实际连接未知。'};
-    $('r234-feedback').textContent=mockFeedback[data.provider].text;$('r234-feedback').dataset.kind='idle';$('r234-status').textContent='待检查';
+    mockFeedback[data.provider]={kind:'idle',text:'待检查'};
+    $('r234-feedback').textContent=mockFeedback[data.provider].text;$('r234-feedback').dataset.kind='idle';
     for(const id of ['r23-endpoint','r23-model','r23-api-key'])$(id).removeAttribute('aria-invalid');
   }
   function checkConfig(){
@@ -398,20 +507,19 @@ body[data-theme=dark] .r234-feedback[data-kind=checked],body[data-theme=dark] .r
     captureConfig();
     const c=mockConfigs[data.provider],endpoint=c.endpoint.trim(),model=c.model.trim(),key=c.key;
     let url=null,field='',error='';
-    if(!endpoint){field='r23-endpoint';error='请填写 HTTPS Endpoint。';}
+    if(!endpoint){field='r23-endpoint';error='请输入接口地址。';}
     else{try{url=new URL(endpoint);}catch{}
-      if(!url||url.protocol!=='https:'||url.username||url.password||url.hash){field='r23-endpoint';error='只允许没有内嵌凭据和片段的 HTTPS 地址。';}
-      else if(data.provider==='cloud_responses'&&(url.pathname!=='/v1/responses'||url.search)){field='r23-endpoint';error='Responses 必须填写不带查询参数的 /v1/responses 地址。';}
-      else if(data.provider==='custom_https'&&url.pathname==='/v1/responses'){field='r23-endpoint';error='自定义 HTTPS 使用 Chat Completions 协议，不能填 Responses 路径。';}
+      if(!url||url.protocol!=='https:'||url.username||url.password||url.hash){field='r23-endpoint';error='仅支持 HTTPS 地址（不可包含账号或片段）。';}
+      else if(data.provider==='cloud_responses'&&(url.pathname!=='/v1/responses'||url.search)){field='r23-endpoint';error='Responses 地址须使用 /v1/responses。';}
+      else if(data.provider==='custom_https'&&url.pathname==='/v1/responses'){field='r23-endpoint';error='此来源需要 Chat Completions 接口地址。';}
     }
-    if(!error&&(!model||model.length>120)){field='r23-model';error='请填写有效的 Model ID（最多 120 字符）。';}
-    if(!error&&!/^demo-[a-zA-Z0-9_-]{3,64}$/.test(key)){field='r23-api-key';error='只接受 demo- 开头的虚拟密钥；不要输入真实 API Key。';}
+    if(!error&&(!model||model.length>120)){field='r23-model';error='请输入模型 ID（最多 120 字符）。';}
+    if(!error&&!/^demo-[a-zA-Z0-9_-]{3,64}$/.test(key)){field='r23-api-key';error='请使用 demo- 开头的演示密钥。';}
     const okay=!error;data.sourceReady[data.provider]=okay;data.connected=okay;
-    mockFeedback[data.provider]={kind:okay?'checked':'error',text:okay?'离线字段格式检查通过。真实连接、模型与密钥均未验证。':error};
+    mockFeedback[data.provider]={kind:okay?'checked':'error',text:okay?'格式通过 · 真实连接未验证':error};
     $('r234-feedback').textContent=mockFeedback[data.provider].text;$('r234-feedback').dataset.kind=mockFeedback[data.provider].kind;
-    $('r234-status').textContent=okay?'模拟已配置':'配置有误';
     $('r234-field-error')?.remove();
-    if(error){const hint=document.createElement('p');hint.id='r234-field-error';hint.className='r234-field-error';hint.textContent=error;$(field).insertAdjacentElement('afterend',hint);$(field).setAttribute('aria-describedby','r234-field-error');$(field).setAttribute('aria-invalid','true');$(field).focus();}
+    if(error){const hint=document.createElement('p');hint.id='r234-field-error';hint.className='r234-field-error';hint.textContent=error;(field==='r23-api-key'?$('r23-api-key').closest('.r234-secret'):$(field)).insertAdjacentElement('afterend',hint);$(field).setAttribute('aria-describedby','r234-field-error');$(field).setAttribute('aria-invalid','true');$(field).focus();}
     else {$('r234-feedback').scrollIntoView({block:'nearest'});announce('仅离线格式检查通过，没有执行真实网络连接。');}
   }
 
@@ -446,7 +554,7 @@ body[data-theme=dark] .r234-feedback[data-kind=checked],body[data-theme=dark] .r
   function stop(){if(!busy()){return;}const old=data.stage;cancelTimer();data.actionWarning='';data.pending=null;data.stage='stopped';data.scenarioOnly=false;
     assistant(old==='planning'?'已停止模拟规划。没有操作模拟目标网页。':'已停止模拟执行。未继续填写或提交；如结果无法确认，正式产品应先核对网页而非自动重试。','warning');
     announce('已停止'+(old==='planning'?'规划':'执行'));render();prompt.focus();}
-  function reset(){for(const source of Object.keys(mockConfigs)){mockConfigs[source]={endpoint:source==='cloud_responses'?'https://api.openai.com/v1/responses':'',model:'',key:''};mockFeedback[source]={kind:'idle',text:'尚未完成格式检查；实际连接状态未知。'};}cancelTimer();data.stage='empty';data.connected=true;data.provider='local_codex';data.mode='standard';data.modeOpen=false;data.messages=[];data.pending=null;data.value='旧的预填内容';data.lastResult=null;data.firstCompleted=false;data.consent=null;data.documentChecks=0;data.siteGranted=true;data.documentId='demo-form:1';data.actionWarning='';
+  function reset(){for(const source of Object.keys(mockConfigs)){mockConfigs[source]={endpoint:source==='cloud_responses'?'https://api.openai.com/v1/responses':'',model:'',key:''};mockFeedback[source]={kind:'idle',text:'未检查'};}cancelTimer();data.stage='empty';data.connected=true;data.provider='local_codex';data.mode='standard';data.modeOpen=false;data.messages=[];data.pending=null;data.value='旧的预填内容';data.lastResult=null;data.firstCompleted=false;data.consent=null;data.documentChecks=0;data.siteGranted=true;data.documentId='demo-form:1';data.actionWarning='';
     data.sourceReady={local_codex:true,cloud_responses:false,custom_https:false};data.shareApproved={cloud_responses:false,custom_https:false};
     data.workflowId=1;data.nextWorkflowId=2;data.chatId=1;data.nextChatId=2;data.title='新工作流';data.dirty=false;data.versions=[];data.revision=0;data.selectedRevision=null;
     data.historyOpen=false;data.settingsOpen=false;data.dialog=null;data.scenarioOnly=false;data.simulatedSubmits=0;data.simulatedNavigations=0;
@@ -457,7 +565,7 @@ body[data-theme=dark] .r234-feedback[data-kind=checked],body[data-theme=dark] .r
     }
     reset();
   }
-  function syncReadback(){const val=$('r23-name').value;$('r23-readback').textContent=`模拟 DOM 读回：${val}；提交 ${data.simulatedSubmits} 次，跳转 ${data.simulatedNavigations} 次。`;}
+  function syncReadback(){const val=$('r23-name').value;$('r23-readback').textContent=`读回：${val}`;}
   function onSend(){const text=prompt.value.trim();if(!text){prompt.focus();return;}if(busy()||data.stage==='approval'||data.dialog)return;
     cancelTimer();data.settingsOpen=false;data.modeOpen=false;data.historyOpen=false;data.scenarioOnly=false;data.dialog=null;data.actionWarning='';
     user(text);prompt.value='';
@@ -608,7 +716,7 @@ body[data-theme=dark] .r234-feedback[data-kind=checked],body[data-theme=dark] .r
       case 'save-then-proceed':proceedDialog(true);break;
       case 'discard-proceed':proceedDialog(false);break;
       case 'close-settings':data.settingsOpen=false;render();$('settings').focus();break;
-      case 'toggle-api-key':{const input=$('r23-api-key'),shown=input.type==='password';input.type=shown?'text':'password';target.textContent=shown?'隐藏':'显示';target.setAttribute('aria-label',shown?'隐藏 API Key':'显示 API Key');target.setAttribute('aria-pressed',String(shown));break;}
+      case 'toggle-api-key':{const input=$('r23-api-key'),shown=input.type==='password';input.type=shown?'text':'password';target.title=shown?'隐藏 API Key':'显示 API Key';target.setAttribute('aria-label',target.title);target.setAttribute('aria-pressed',String(shown));break;}
       case 'reconnect':if(!isNative()){data.settingsOpen=true;data.modeOpen=false;render();$('r234-back').focus();announce('HTTPS 来源必须先完成离线字段检查；真实连接状态仍未知');break;}data.connected=true;data.sourceReady.local_codex=true;data.stage=data.messages.length?'connected':'empty';data.scenarioOnly=false;announce('已模拟本机连接；没有访问真实 Native 服务');render();break;
       case 'simulate-config':checkConfig();break;
       case 'use-custom':captureConfig();data.provider='custom_https';data.connected=!!data.sourceReady.custom_https;data.shareApproved={cloud_responses:false,custom_https:false};render();announce('已选择自定义 HTTPS，需单独配置与数据选择');break;
