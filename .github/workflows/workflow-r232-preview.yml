@@ -5,6 +5,7 @@ on:
     paths:
       - 'prototypes/sidebar/workflow/index.html'
       - 'prototypes/sidebar/workflow/r232-chrome.mjs'
+      - 'prototypes/sidebar/workflow/r232-zoom.mjs'
       - '.github/workflows/workflow-r232-preview.yml'
   workflow_dispatch:
 permissions:
@@ -64,3 +65,39 @@ jobs:
             prototypes/sidebar/workflow/index.html
             artifacts/workflow-r232-preview/*.png
             artifacts/workflow-r232-preview/*.json
+
+  native-browser-zoom:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install X11 for real Chrome menu-level zoom proof
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends xvfb xauth xdotool fonts-noto-cjk
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+      - name: Install isolated Playwright driver
+        run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright-core@1.56.1
+      - name: Real Chrome window Ctrl+Plus to 200%, no viewport or CSS simulation
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: |
+          node --check prototypes/sidebar/workflow/r232-zoom.mjs
+          xvfb-run -a -s '-screen 0 1366x1024x24' node prototypes/sidebar/workflow/r232-zoom.mjs artifacts/workflow-r232-zoom
+      - name: Upload actual zoom measurement and browser screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: workflow-r232-real-zoom-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            prototypes/sidebar/workflow/index.html
+            artifacts/workflow-r232-zoom/*.png
+            artifacts/workflow-r232-zoom/*.json
