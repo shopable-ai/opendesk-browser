@@ -39,6 +39,8 @@
 
 **当前选型决定（2026-10-14）：保留同仓库的 `examples/sidebar-tools/<id>/` 独立工具项目，不迁出为 `opendesk-tools` 仓库。** 用户界面与发行源码归各自项目；确需特权的 Background、Content Script 或可信 Side Panel 代码继续在已有 `src/<feature>/` 静态模块中，由固定入口编译接入。目录外观与真正耦合度不能混为一谈，先治理依赖方向，再考虑移动文件。
 
+**已有正式工具身份优先**：Prompt Shortcuts 已是 `examples/sidebar-tools/prompt-shortcuts/` 中的 `opendesk.sidebar-tool.v2`，同时复用现有 `trusted/page.js`、公开 [Browser SDK v2](browser-sdk.zh-CN.md) 和安装许可。为该工具增加其他网站双选择器应优先修改原业务目录与受审现有适配器，**不能仅因网页上显示按钮便自动迁移为 Page Program**；全新网页增强仍应优先判断 Page USER_SCRIPT。Cookie Editor/Bookmark Manager 也使用已审阅的 v2 工具与各自受控能力，不应因为要 React 重排就修改通用 Host/安装器。
+
 **普通第三方最短流程（不读取内部 `src/`）**：确认真正需要的是 Sidebar Tool 而非 Page USER_SCRIPT → 创建 `examples/sidebar-tools/<id>/tool.config.json` 和自己的 `src/` → 按 [公开 API](sidebar-tools.zh-CN.md) 选择实际支持的 `OpenDeskTool.request` → 使用下文唯一打包器生成忽略目录临时候选 → 定向验证 → 显式晋升同源正式 JSON → 用户审阅安装/更新。Schema 中存在名称不等于通用权限；没有公开能力时保留复现，记 `SDK_GAP_NOT_PROVEN` 或对无法安全授权的操作记 `BLOCKED`，不能增加私有 Host API。
 
 ## 2. 共用目录与源码组织
