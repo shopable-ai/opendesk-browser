@@ -328,3 +328,12 @@ R23.5 的「AI 来源」下拉沿用了三种 Provider 并使用与其它表单�
 - HTTPS 上下字段牺牲少量垂直空间，以换取长 URL 输入可读性、清晰标签归属和本机/HTTPS 的统一阅读起点。默认 420px 优先，保留但不以其它尺寸主导设计。
 - 保留原生 Radio、键盘焦点、密码遮蔽与两轮模拟能力，不放松模拟摘要授权／高风险保护。未做真实 Provider 连接或正式 UI 迁移。
 - 目标为 95+ UI/UX；但模型视觉审查、22 类 Chromium PASS 和 200% 缩放 PASS 不构成六名外部独立专家的客观 95/100。Mac VoiceOver、ChatGPT 真实内嵌、正式扩展安装和用户视觉确认仍是 NOT_TESTED／NOT_SCORED，设计状态保持 DESIGN_REVIEW_REQUIRED。
+
+## 十五、R23.8.1：删除可见 AI 来源标题、确认默认本机 Codex（2026-10-16）
+
+- 用户明确要求删去 AI 设置顶部可见的「AI 来源」标题，避免重复说明和额外一行空白。唯一 HTML 删除了该 `<span>`，并将两段 Radio 选择直接放在设置正文起点。
+- 为避免损害无障碍体验，保留 fieldset 的 `visually-hidden` legend「AI 来源」；Playwright `getByRole('group', {name:'AI 来源'})` 可以正确定位，用户视觉上不再看到该标题。
+- 正式模拟源 `data.provider='local_codex'` 是首次打开和 reset 的默认值，Radio 默认选中本机 Codex；HTTPS 配置只有显式切换后才呈现。测试已将两个场景加入断言。
+- 删除标题后移除无效布局 CSS，源码中 Native 状态卡相对于切换器的间距从 23px 调整为 17px，HTTPS 字段间距从 24px 调整为 18px；其它业务内容、交互与模拟 Provider 边界保持不变。
+- 经源码绑定 [GitHub Actions #38920785816](https://github.com/shopable-ai/opendesk-browser/actions/runs/38920785816) 验证：`R2381_SOURCE_BOUND_CHROMIUM_PASS 22` 与 `R2381_REAL_CHROME_UI_200_ZOOM_PASS`，两项作业均为 SUCCESS；被测 HEAD `157aed3be5e6920d64c33cc9f251e1964c05934f`，唯一 HTML Blob `3dfcb3a77fc885b1a7ad9701039c94dd07c5d918`。
+- 本地补充离线 Chromium：Radio 分组语义、默认本机 Codex、切换、两轮 DOM 写入读回「项目已启动」、提交 0／导航 0／脚本错误 0。ChatGPT 宿主环境、正式 Provider 与外部专家 95+ 评分仍保持 NOT_TESTED／NOT_SCORED。
