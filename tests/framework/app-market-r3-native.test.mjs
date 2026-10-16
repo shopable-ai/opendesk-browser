@@ -533,7 +533,13 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
     const detail=await evaluate(market,'(()=>{const labels=[...document.querySelectorAll(".spec-list dt")];return {title:document.querySelector("#market-root h1").textContent,specs:Object.fromEntries(labels.map(e=>[e.textContent,e.nextElementSibling.textContent])),dom:document.querySelector(".detail-layout").outerHTML}})()');
     assert.equal(detail.title,release.packageTitle);assert.equal(detail.specs['版本'],'v'+release.version);
     assert.equal(detail.specs['发布者'],'OpenDesk');assert(detail.specs['适用网页']&&detail.specs['运行位置']);
-    assert.match(detail.specs['站点授权'],/独立授权/);
+    // Reading TOC's reviewed default-on HTTP(S) policy is intentional.
+    // Every other official tool continues to require the existing explicit
+    // authorization wording; a blanket relaxation would hide regressions.
+    if(release.toolId==='reading-toc'){
+      assert.match(detail.specs['站点授权'],/HTTP\(S\) 网页默认可用/);
+      assert.match(detail.specs['站点授权'],/停用网站或排除单页/);
+    }else assert.match(detail.specs['站点授权'],/独立授权/);
     await screenshot(market,'market-detail-'+release.toolId+'.png');
     let reviewText=null;
     if(!(await installed()).some(row=>row.id===release.toolId)){
