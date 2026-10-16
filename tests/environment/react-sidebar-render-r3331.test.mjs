@@ -74,7 +74,7 @@ test('R33.3.1 renders extension toolbar, rows and detail as real React elements'
   assert.match(rowMenu,/role="menuitem"/);
   assert.match(rowMenu,/&lt;script&gt;/);
   assert.doesNotMatch(rowMenu,/<script\b/i);
-  const {DeveloperTargetText,DeveloperActions,DeveloperFramework}=await vite.ssrLoadModule('/src/ui/react/tabs/develop.tsx');
+  const {DeveloperTargetText,DeveloperActions,DeveloperFramework,DeveloperRunStatus}=await vite.ssrLoadModule('/src/ui/react/tabs/develop.tsx');
   const devIndicator=renderToStaticMarkup(React.createElement(DeveloperTargetText,{
     value:'网页标题 <svg onload=alert(1)>',node:null,title:'bad',state:'available'
   }));
@@ -97,4 +97,9 @@ test('R33.3.1 renders extension toolbar, rows and detail as real React elements'
   assert.match(framework,/id="page-component-react"[^>]*checked=""/);
   assert.match(framework,/id="page-component-vue"/);
   assert.match(framework,/aria-label="React JSX"/);
+  const runStatus=renderToStaticMarkup(React.createElement(DeveloperRunStatus,{
+    node:null,model:{state:'error',text:'运行错误 <script>evil()</script>'}
+  }));
+  assert.match(runStatus,/&lt;script&gt;/);
+  assert.doesNotMatch(runStatus,/<script\b/i);
 });
