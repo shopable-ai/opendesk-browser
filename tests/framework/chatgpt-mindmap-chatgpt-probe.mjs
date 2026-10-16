@@ -39,7 +39,8 @@ try{
           if(host.dataset.ready!=='true'||host.dataset.layoutReady==='pending')return false;
           const canvas=host.shadowRoot?.querySelector('.odmm-canvas');
           return !!canvas&&canvas.dataset.fitReady==='true'&&
-            Number(canvas.dataset.fitWidth)===canvas.clientWidth;
+            (Number(canvas.dataset.fitWidth)===canvas.clientWidth||
+              canvas.dataset.manualViewport==='true');
         });
     },null,{timeout:20000});
     await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
@@ -120,6 +121,22 @@ try{
   assert.ok(report.topicsB>1);
   assert.ok(await viewer(1).locator('.topic:visible').count()>1,'A remains open while B opens');
   report.checks.push('REAL_XMIND_A_AND_B_INDEPENDENT');
+  // Query the *computed* CSS inside the real product ShadowRoot. A container
+  // cannot style itself via @container; the containing .odmm-shell must own it.
+  report.desktopToolbar=await viewer(1).evaluate(host=>{
+    const root=host.shadowRoot;
+    const toolbar=root.querySelector('.odmm-toolbar');
+    return {container:getComputedStyle(root.querySelector('.odmm-shell')).containerType,
+      mobile:getComputedStyle(root.querySelector('.odmm-mobile-only')).display,
+      desktop:getComputedStyle(root.querySelector('.odmm-desktop-only')).display,
+      button:root.querySelector('.odmm-tool').getBoundingClientRect().width,
+      client:toolbar.clientWidth,scroll:toolbar.scrollWidth};
+  });
+  assert.equal(report.desktopToolbar.container,'inline-size');
+  assert.equal(report.desktopToolbar.mobile,'none');
+  assert.notEqual(report.desktopToolbar.desktop,'none');
+  assert.ok(report.desktopToolbar.button>=36);
+  assert.ok(report.desktopToolbar.scroll<=report.desktopToolbar.client+1);
   await capture('chatgpt-xmind.png',{fullPage:true});
   await capture('chatgpt-answer-A-light.png',{target:t(1),answer:'A'});
   await capture('chatgpt-answer-B-light.png',{target:t(2),answer:'B'});
@@ -269,7 +286,37 @@ try{
   report.narrowToolbar=await viewer(2).locator('.odmm-toolbar').evaluate(node=>({
     client:node.clientWidth,scroll:node.scrollWidth}));
   assert.ok(report.narrowToolbar.scroll<=report.narrowToolbar.client+1,
-    'The real product toolbar must wrap rather than overflow at 320px');
+    'The real product toolbar must fit without overflow at 320px');
+  report.narrowStyles=await viewer(2).evaluate(host=>{
+    const root=host.shadowRoot,toolbar=root.querySelector('.odmm-toolbar');
+    const mobile=root.querySelector('.odmm-mobile-only');
+    return {container:getComputedStyle(root.querySelector('.odmm-shell')).containerType,
+      toolbarGap:getComputedStyle(toolbar).gap,
+      desktop:getComputedStyle(root.querySelector('.odmm-desktop-only')).display,
+      mobile:getComputedStyle(mobile).display,
+      button:root.querySelector('.odmm-tool').getBoundingClientRect().width};
+  });
+  assert.equal(report.narrowStyles.container,'inline-size');
+  assert.equal(report.narrowStyles.toolbarGap,'2px');
+  assert.equal(report.narrowStyles.desktop,'none');
+  assert.equal(report.narrowStyles.mobile,'flex');
+  assert.ok(report.narrowStyles.button>=44,'Every narrow icon needs a 44px target');
+  const more=viewer(2).locator('.odmm-more');
+  await more.focus();await page.keyboard.press('ArrowDown');
+  assert.equal(await more.getAttribute('aria-expanded'),'true');
+  assert.equal(await viewer(2).locator('.odmm-menu button:focus').count(),1);
+  await page.keyboard.press('ArrowDown');
+  assert.equal(await viewer(2).locator('.odmm-menu button[data-action="refresh"]:focus').count(),1);
+  await page.keyboard.press('Home');
+  assert.equal(await viewer(2).locator('.odmm-menu button[data-action="fold"]:focus').count(),1);
+  await capture('chatgpt-narrow-320-menu.png',{target:viewer(2),answer:'B'});
+  await page.keyboard.press('Escape');
+  assert.equal(await more.getAttribute('aria-expanded'),'false');
+  assert.equal(await more.evaluate(el=>el.shadowRoot?.activeElement===el||el.matches(':focus')) ,true);
+  await more.focus();await page.keyboard.press('Enter');
+  assert.equal(await more.getAttribute('aria-expanded'),'true');
+  await page.keyboard.press('Escape');
+  report.checks.push('NARROW_COMPUTED_CONTAINER_QUERY','MENU_KEYBOARD_ARROWS_HOME_ESCAPE_ENTER');
   const focusViewer=()=>viewer(2).evaluate(node=>{
     const transcript=node.closest('.transcript');
     if(transcript)transcript.scrollTop+=

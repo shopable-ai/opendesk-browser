@@ -89,7 +89,7 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
     if(render){button.disabled=true;renderButtons.push(button);}
     removers.push(owner.on(button,'click',async()=>{
       if(disposed||button.disabled)return;
-      if(menuItem)closeMenu();
+      if(menuItem)closeMenu({restoreFocus:true});
       const groupButtons=buttons.get(id)||[];
       groupButtons.forEach(item=>{
         item.disabled=true;item.setAttribute('aria-busy','true');
@@ -142,7 +142,18 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
   removers.push(owner.on(more,'click',()=>{
     menuOpen=!menuOpen;menu.hidden=!menuOpen;
     more.setAttribute('aria-expanded',String(menuOpen));
-    if(menuOpen)menu.querySelector('button:not([hidden])')?.focus();
+    if(menuOpen)focusMenu();
+  }));
+  const focusMenu=(last=false)=>{
+    const items=[...menu.querySelectorAll('button:not([hidden]):not(:disabled)')];
+    (last?items.at(-1):items[0])?.focus();
+  };
+  removers.push(owner.on(more,'keydown',event=>{
+    if(event.key!=='ArrowDown'&&event.key!=='ArrowUp')return;
+    if(!menuOpen){
+      menuOpen=true;menu.hidden=false;more.setAttribute('aria-expanded','true');
+    }
+    focusMenu(event.key==='ArrowUp');event.preventDefault();
   }));
   removers.push(owner.on(shadow,'keydown',event=>{
     if(!menuOpen)return;

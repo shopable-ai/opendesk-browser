@@ -22,7 +22,7 @@ export function createXmindRenderer({window,canvas,tree,skinMode='light'}){
     const timer=window.setTimeout(done,40),id=window.requestAnimationFrame(done);
   });
   const settled=async()=>{await frame();await frame();};
-  const markManual=()=>{manualViewport=true;};
+  const markManual=()=>{manualViewport=true;canvas.dataset.manualViewport='true';};
   canvas.addEventListener('pointerdown',markManual,{passive:true});
   canvas.addEventListener('wheel',markManual,{passive:true});
 
@@ -89,7 +89,7 @@ export function createXmindRenderer({window,canvas,tree,skinMode='light'}){
     top:Math.min(...rects.map(r=>r.top)),bottom:Math.max(...rects.map(r=>r.bottom))
   });
   function fit({resetManual=true}={}){
-    if(resetManual)manualViewport=false;
+    if(resetManual){manualViewport=false;canvas.dataset.manualViewport='false';}
     if(manualViewport)return Promise.resolve();
     return command(async c=>{
       if(disposed||!mount||canvas.clientWidth<100||canvas.clientHeight<100)return;
@@ -184,7 +184,7 @@ export function createXmindRenderer({window,canvas,tree,skinMode='light'}){
       }).then(()=>reflow());
     },
     zoomBy:factor=>command(c=>{
-      manualViewport=true;
+      markManual();
       c.zoom(Math.max(50,Math.min(400,c.getZoomPencentage()*factor)));
     }),
     async toggleAll(){
