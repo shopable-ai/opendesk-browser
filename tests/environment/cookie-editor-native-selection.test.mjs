@@ -146,3 +146,12 @@ test('R4.10.2 native upgrade validates chosen Mac file digest, not just its vers
   assert.doesNotMatch(source,/COOKIE_NATIVE_OLD_(?:VERSION|TOOL_SHA256)/,
     'Native upgrade must accept only the pinned and reviewed historical 2.0.15 package');
 });
+
+test('R4.10.3 focused smoke uses one site grant, an editor write and a real file import',()=>{
+  const result=plan(undefined,'smoke');assert.equal(result.status,0,result.stderr);
+  const data=JSON.parse(result.stdout);
+  assert.deepEqual(data.selected,['new-cookie','import-json-file']);
+  assert(data.prerequisites.includes('first-use-combined-grant'));
+  assert(!data.prerequisites.includes('gap-seed-import'));
+  assert.deepEqual(data.cleanup,['gap-cleanup']);
+});

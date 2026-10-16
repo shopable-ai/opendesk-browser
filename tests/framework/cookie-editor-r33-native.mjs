@@ -20,19 +20,20 @@ const fixture='http://127.0.0.1:43111/demo-form.html';
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const quote=JSON.stringify;
 const requestedStage=process.env.COOKIE_NATIVE_STAGE;
-const supportedStages=['all','visual','upgrade','partial','negative','path','advanced','lifecycle','import-export'];
+const supportedStages=['all','visual','upgrade','partial','negative','path','advanced','lifecycle','import-export','smoke'];
 assert(!requestedStage||supportedStages.includes(requestedStage),'Unknown COOKIE_NATIVE_STAGE');
 const gapCases=['import-json-file','import-json-auto','import-json-manual','import-header-auto',
   'import-header-manual','import-netscape-auto','import-netscape-manual','import-overwrite-cancel',
   'import-partial-cancel','import-invalid','import-preview-input-change',
   'export-copy-metadata-json','export-metadata-json','export-sensitive-denied',
   'export-copy-sensitive-json','export-json','export-header','export-netscape'];
-const gapStage=requestedStage==='import-export';
+const smokeStage=requestedStage==='smoke';
+const gapStage=requestedStage==='import-export'||smokeStage;
 const requestedCases=process.env.COOKIE_NATIVE_CASES?.split(',').map(id=>id.trim());
 assert(!requestedCases||gapStage,'COOKIE_NATIVE_CASES requires import-export stage');
 assert(!requestedCases||requestedCases.every(id=>gapCases.includes(id)),'Unknown COOKIE_NATIVE_CASES');
 assert(!requestedCases||new Set(requestedCases).size===requestedCases.length,'Duplicate COOKIE_NATIVE_CASES');
-const selectedGapCases=gapStage?gapCases.filter(id=>!requestedCases||requestedCases.includes(id)):[];
+const selectedGapCases=smokeStage?['import-json-file']:gapStage?gapCases.filter(id=>!requestedCases||requestedCases.includes(id)):[];
 const needsSeed=selectedGapCases.some(id=>id.startsWith('export-')||id==='import-overwrite-cancel');
 const needsValues=selectedGapCases.some(id=>['export-copy-sensitive-json','export-json','export-header','export-netscape'].includes(id));
 // An explicit native stage must not silently degrade to the generic CRUD suite.
@@ -55,8 +56,8 @@ const broadCases=[...stageCases.upgrade,...stageCases.negative,...stageCases.adv
 const selectedNativeCases=requestedStage==='all'
   ?[...coreCases,'revoke-values-before-negative-cases',...broadCases]
   :stageCases[requestedStage]||(suite==='extended'?broadCases:coreCases);
-const gapPlan={stage:requestedStage||'core',suite:suite||'core',
-  selected:gapStage?selectedGapCases:[...new Set(selectedNativeCases)],
+const gapPlan={stage:requestedStage||'core',suite:suite||'core',siteAuthorization:'all-declared-cookie-capabilities',
+  selected:smokeStage?['new-cookie',...selectedGapCases]:gapStage?selectedGapCases:[...new Set(selectedNativeCases)],
   prerequisites:[...commonCases,...(needsSeed?['gap-seed-import']:[])],
   valuesGrant:gapStage?needsValues:selectedNativeCases.includes('values-grant'),
   cleanup:gapStage?['gap-cleanup']:[],
@@ -247,13 +248,17 @@ async function closeEditor(){
     await click(toolSession,'#editor-discard-confirm');
   await until(()=>read(toolSession,'document.querySelector("#editor-panel").hidden'),'Editor dismissal');
 }
+async function siteGrants(){
+  return read(side,'chrome.storage.local.get("opendesk.browser.context-menu-grants.v1").then(v=>v["opendesk.browser.context-menu-grants.v1"]?.["cookie-editor"]?.cookieSites?.["http://127.0.0.1:43111"]||{})');
+}
 async function grant(capability){
+  if((await siteGrants())[capability]===true)return;
   if(await read(side,'document.querySelector("#sidebar-tool-settings-view").hidden'))
     await click(side,'#sidebar-tool-settings-open');
-  await until(()=>read(side,'!document.querySelector("#sidebar-tool-settings-view").hidden'),'Trusted settings visible');
-  await click(side,'[data-cookie-capability="'+capability+'"]');
-  await until(()=>read(side,'document.querySelector('+quote('[data-cookie-capability="'+capability+'"]')+').dataset.enabled==="true"'),'Trusted '+capability+' grant');
-  await click(side,'#sidebar-tool-settings-open');
+  await click(side,'#sidebar-tool-cookie-site-toggle');
+  await until(async()=>(await siteGrants())[capability]===true,'Combined trusted website grant');
+  if(await read(side,'!document.querySelector("#sidebar-tool-settings-view").hidden'))
+    await click(side,'#sidebar-tool-settings-open');
 }
 async function bindCookieFrame(){
   const frame=await until(async()=>{
@@ -460,7 +465,10 @@ try{
     const firstUse=await read(side,'!document.querySelector(".sidebar-tool-cookie-first-use").hidden');
     assert(firstUse,'Official first-use review is visible');
     await click(side,'.sidebar-tool-cookie-first-use button:first-child');
-    const grant=await until(()=>read(side,'(()=>{const read=document.querySelector("[data-cookie-capability=read]"),write=document.querySelector("[data-cookie-capability=write]");return read?.dataset.enabled==="true"&&write?.dataset.enabled==="true"?{read:true,write:true}:null;})()'),'Combined trusted read/write grant',10000);
+    const grant=await until(async()=>{
+      const row=await siteGrants();
+      return ['read','values','write','observe','clear'].every(cap=>row[cap]===true)?row:null;
+    },'One trusted website grant includes all declared Cookie capabilities',10000);
     await screenshot('first-use-combined-grant-settings');
     if(await read(side,'!document.querySelector("#sidebar-tool-settings-view").hidden'))
       await click(side,'#sidebar-tool-settings-open');
@@ -471,9 +479,16 @@ try{
     assert(ui.host.includes('127.0.0.1'));return {permissions,grant,ui,sandbox:target};
   });
   await step('write-grant-reuse',async()=>{
-    const grant=await read(side,'document.querySelector("[data-cookie-capability=write]").dataset.enabled');
-    assert.equal(grant,'true','First-use combined grant already included write; no repeated prompt');
+    const grant=(await siteGrants()).write;
+    assert.equal(grant,true,'First-use combined grant already included write; no repeated prompt');
     return {capability:'write',alreadyGranted:true,cookies:await cookies()};
+  });
+  if(smokeStage)await step('new-cookie',async()=>{
+    await click(toolSession,'#live-new');await type('#cookie-name','od_smoke');
+    await type('#cookie-value','fictional-smoke');const result=await save();
+    assert(result.cookies.some(c=>c.name==='od_smoke'&&c.value==='fictional-smoke'&&c.path==='/'));
+    assert.equal((await siteGrants()).write,true,'Saving reused the single website grant');
+    return result;
   });
   if(suite!=='extended'||process.env.COOKIE_NATIVE_STAGE==='all'){
   await step('new-cookie',async()=>{
@@ -538,6 +553,12 @@ try{
       const copiedPayloads=new Map(); // In-memory only; no copied Cookie values in reports.
       const identity=c=>JSON.stringify([c.name,c.domain,c.path,c.storeId,
         c.partitionKey?[c.partitionKey.topLevelSite,Boolean(c.partitionKey.hasCrossSiteAncestor)]:null]);
+      if(smokeStage){
+        const cookie=(await cookies()).find(row=>row.name==='od_smoke'&&row.value==='fictional-smoke');
+        assert(cookie,'Smoke write remains available before importing');
+        const {name,domain,path,storeId,partitionKey}=cookie;
+        ownedCookies.set(identity(cookie),{name,domain,path,storeId,partitionKey});
+      }
       async function keyInput(key,code=key){
         const keyCode={Home:36,ArrowDown:40,Enter:13,Escape:27,Tab:9}[key];
         guard();for(const type of ['keyDown','keyUp'])await client.send('Input.dispatchKeyEvent',{
@@ -789,9 +810,10 @@ try{
           await deleteCookie(cookie.name,cookie.path);
         }
         assert.equal((await cookies()).length,0);await click(side,'#sidebar-tool-settings-open');
-        const granted=await read(side,'[...document.querySelectorAll("[data-cookie-capability]")].filter(n=>n.dataset.enabled==="true").map(n=>n.dataset.cookieCapability).sort((a,b)=>Number(a==="read")-Number(b==="read"))');
-        for(const capability of granted){await click(side,'[data-cookie-capability='+quote(capability)+']');
-          await until(()=>read(side,'document.querySelector('+quote('[data-cookie-capability='+quote(capability)+']')+').dataset.enabled==="false"'),'Revoke temporary '+capability);}
+        if(Object.values(await siteGrants()).some(value=>value===true)){
+          await click(side,'#sidebar-tool-cookie-site-toggle');
+          await until(async()=>{const row=await siteGrants();return !['read','values','write','observe','clear'].some(cap=>row[cap]===true);},'Combined website revocation');
+        }
         return {cookies:await cookies(),revoked:granted};
       });
     }
@@ -856,7 +878,7 @@ try{
         await click(side,unifiedCenter?'[data-extension-key="app:cookie-editor"][data-extension-action="primary"]':
           '[data-sidebar-tool-action="open"][data-sidebar-tool-id="cookie-editor"]');await bindCookieFrame();
         await click(side,'#sidebar-tool-settings-open');
-        const grants=await read(side,'[...document.querySelectorAll("[data-cookie-capability]")].map(n=>({cap:n.dataset.cookieCapability,enabled:n.dataset.enabled}))');
+        const grants=Object.entries(await siteGrants()).filter(([cap])=>['read','values','write','observe','clear'].includes(cap)).map(([cap,enabled])=>({cap,enabled:String(enabled)}));
         assert(grants.every(row=>row.enabled==='false'),'Old package grants cannot authorize the new revision');
         await grant('read');await grant('write');
         const retained=(await cookies()).find(c=>c.name==='od_upgrade_retained');
@@ -1033,7 +1055,7 @@ try{
       await until(()=>read(side,'Boolean(document.querySelector('+quote(open)+'))'),'Explicit reinstall');
       await click(side,open);await bindCookieFrame();
       await click(side,'#sidebar-tool-settings-open');
-      const grants=await read(side,'[...document.querySelectorAll("[data-cookie-capability]")].map(n=>({cap:n.dataset.cookieCapability,enabled:n.dataset.enabled}))');
+      const grants=Object.entries(await siteGrants()).filter(([cap])=>['read','values','write','observe','clear'].includes(cap)).map(([cap,enabled])=>({cap,enabled:String(enabled)}));
       assert(grants.every(row=>row.enabled==='false'),'Uninstall removed old Cookie site grants');
       await click(side,'#sidebar-tool-settings-open');
       await until(()=>read(toolSession,'!document.querySelector("#browser-state").hidden'),'Reinstalled tool cannot automatically read without grant');
