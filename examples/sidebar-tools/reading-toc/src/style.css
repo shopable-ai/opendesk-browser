@@ -47,3 +47,7 @@
 .toc-member-tag,.toc-member-disclaimer,.toc-promo-brand,.toc-promo-kind,.toc-promo-description{color:#9aa8be}
 .toc-promo{background:#1b1c24;border-color:#383a48}
 }
+
+/* R1.8.1: keep 200% zoomed narrow toolbars inside their own scroll area. */
+.toc-actions{flex:1 1 auto;min-width:0;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none}
+.toc-actions::-webkit-scrollbar{display:none}
