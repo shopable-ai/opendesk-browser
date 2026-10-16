@@ -211,6 +211,11 @@ export function createAdblockPermissionControls({
   function finish(){busy=false;paint();if(refreshPending||!state)void refresh();}
   async function operate(op,payload,event){
     if(event?.isTrusted!==true||busy||!visible||!enabled)return;
+    // Preserve native keyboard focus when the pending Chrome operation disables
+    // the switch. Chrome may blur a focused <button> as soon as disabled=true.
+    const focusTarget=event?.currentTarget===global?global:
+      event?.currentTarget===site?site:null;
+    const restoreFocus=Boolean(focusTarget&&doc.activeElement===focusTarget);
     const captured=sequence;busy=true;paint();report('正在核对 Chrome 规则…');
     try{
       const data=await runOperation(op,payload,event);
@@ -224,7 +229,14 @@ export function createAdblockPermissionControls({
         data.enabled?'Chrome 已确认过滤开启':'Chrome 已确认过滤关闭');
     }catch(e){
       if(captured===sequence){state=null;report((e.code||'E_ADBLOCK')+'：'+String(e.message||e),true);}
-    }finally{finish();}
+    }finally{
+      finish();
+      // Never steal focus from a different control selected while the native
+      // operation was pending, or from a no-longer-actionable/stale switch.
+      if(restoreFocus&&focusTarget.isConnected&&!focusTarget.disabled&&
+        !container.hidden&&(doc.activeElement===doc.body||doc.activeElement===focusTarget))
+        focusTarget.focus({preventScroll:true});
+    }
   }
   global.addEventListener('click',event=>{
     if(event?.isTrusted!==true||busy||!visible||!enabled||!state)return;
