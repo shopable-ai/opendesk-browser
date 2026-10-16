@@ -254,7 +254,7 @@ async function run(){
   assert.equal(await evalChrome('document.querySelector(".prompt-card").dataset.id'),"a");
   await click('.prompt-more button[aria-label^="停用："]');
   assert.equal(await evalChrome('document.querySelector(".prompt-card").classList.contains("is-disabled")'),true);
-  assert.equal(await evalChrome('!!document.querySelector(".prompt-more button[aria-label^=\"启用：\"]")'),true);
+  assert.equal(await evalChrome('Array.from(document.querySelectorAll(".prompt-more button")).some(x=>x.getAttribute("aria-label")?.startsWith("启用："))'),true);
   await click('.prompt-more button[aria-label^="启用："]');
   assert.equal(await evalChrome('document.querySelector(".prompt-card").classList.contains("is-disabled")'),false);
   await click('.prompt-more button[aria-label^="删除："]');
