@@ -206,9 +206,9 @@ try{
       cardInside:card.left>=body.left+9&&card.right<=body.right-9,
       cardWidth:card.width,
       statusAligned:Math.abs((details.top+details.bottom)/2-(action.top+action.bottom)/2),
-      statusVisible:details.width>90&&action.width>=64,
+      statusVisible:details.width>=65&&action.width>=64,
       choices:document.querySelectorAll('.r236-switch input[type=radio]').length,
-      title:document.querySelector('.r238-native-title').textContent.trim()
+      status:document.querySelector('#r23-native-status').textContent.trim()
     };
   });
   assert.equal(nativeLayout.choices,2,'preserve two radio sources');
@@ -219,7 +219,9 @@ try{
   assert.ok(nativeLayout.switchWidth>=290,'source selector fills the bottom sheet content rail');
   assert.ok(nativeLayout.cardInside&&nativeLayout.cardWidth>=300,'native controls must form one coherent row');
   assert.ok(nativeLayout.statusAligned<=6&&nativeLayout.statusVisible,'native status and check action vertically aligned');
-  assert.equal(nativeLayout.title,'本机连接');
+  assert.equal(nativeLayout.status,'Codex 已就绪');
+  assert.equal(await page.locator('#r23-local-action').innerText(),'重新检查');
+  assert.equal(await page.locator('#r23-share').count(),0);
   await page.locator('#r236-native').focus();
   await page.locator('#r236-native').press('ArrowRight');
   assert.equal(await page.locator('#r236-https').isChecked(),true,'native segmented radio keyboard ArrowRight');
@@ -323,23 +325,29 @@ try{
   assert.equal(await page.locator('#form').evaluate(el=>el.inert),false);
   await page.locator('#prompt').fill('');
   await send(first);await expectState('sharing-required');
-  await page.locator('[data-action="open-settings"]').click();
-  await page.locator('#r23-share').check();
-  await page.locator('[data-action="close-settings"]').last().click();
-  await send(first);await expectState('result');
+  assert.equal(await page.locator('[data-action="share-once"]').isVisible(),true);
+  assert.equal(await page.locator('#r23-share').count(),0);
+  await page.locator('[data-action="share-deny"]').click();
+  assert.equal(await nameValue(),'旧的预填内容');
+  await send(first);await expectState('sharing-required');
+  await page.locator('[data-action="share-once"]').click();await expectState('result');
   assert.equal(await nameValue(),'给我一个亿的项目');
+  assert.equal((await state()).shareApproved.cloud_responses,false,'permission expires after the task');
+  await send(second);await expectState('sharing-required');
+  assert.equal(await nameValue(),'给我一个亿的项目','no unauthorized second write');
+  await page.locator('[data-action="share-once"]').click();await expectState('result');
+  assert.equal(await nameValue(),'项目已启动');
   await page.locator('#settings').click();
-  assert.equal((await state()).shareApproved.cloud_responses,true);
   await page.locator('#r23-endpoint').fill('https://replacement.example/v1/responses');
   assert.equal((await state()).shareApproved.cloud_responses,false);
-  assert.equal(await page.locator('#r23-share').isChecked(),false);
+  assert.ok((await page.locator('#r23-share-config').innerText()).includes('按本轮确认'));
   assert.equal(await page.locator('#r23-api-key').inputValue(),'');
   await page.locator('#r236-native').check();
   assert.equal((await state()).provider,'local_codex');
   await page.locator('#r236-https').check();
   assert.equal((await state()).shareApproved.cloud_responses,false);
   await page.locator('[data-action="close-settings"]').last().click();
-  mark('existing chat draft, two-way switch, recipient-change consent revocation and readback');
+  mark('R23.9.2 one-click inline HTTPS consent, per-turn expiry, no standing checkbox, endpoint secret revocation');
 
 
   // R23.9.1 regression: real Chromium pointer, focus, geometry and scroll.
