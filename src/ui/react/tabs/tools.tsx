@@ -42,8 +42,9 @@ export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore}){
 }
 
  
-// The trusted Detail view has a separate React root. The parent back button,
-// filtering, selection epoch and all permission checks stay with Extension Center.
+// Extension Detail uses a Portal within the same trusted React root; the
+// parent back button, selection epoch and permission checks remain with the
+// existing Extension Center controller.
 export function ExtensionDetail({model,container}){
   React.useLayoutEffect(()=>{
     if(!model||model.busy||!model.focusAction)return;

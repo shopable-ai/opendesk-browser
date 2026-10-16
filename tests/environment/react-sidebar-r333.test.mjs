@@ -57,7 +57,6 @@ test('R33.3 single DOM child owner and original privileged operations',async()=>
     read('src/ui/tool-shell.js'),read('src/ui/script-editor.js')
   ]);
   assert.match(shell,/scriptEditor\.connectReactDeveloperTarget\(/);
-  assert.match(scriptEditor,/if\(reactDeveloperTarget\)reactDeveloperTarget\(ui\)/);
   assert.match(scriptEditor,/connectReactDeveloperTarget\(render\)/);
   assert.match(scriptEditor,/if\(reactDeveloperTarget\)reactDeveloperTarget\(ui\)/);
   assert.doesNotMatch(main,/createRoot\(container\)|createRoot\(detailContainer\)/);
