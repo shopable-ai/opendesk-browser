@@ -107,7 +107,7 @@ R4.5 资源迁移的候选、测试与真实浏览器证据见 [专项工作流]
 
 阅读目录的 Side Panel 沙箱和可信网页悬浮 UI 共享 `locales.json` 的 `zh-CN` / `en` 文案；来源标题与网页标题仍保持原文。用户在「扩展」→「更多操作」选择界面语言，加载后或切换中，当前目录模式、来源、章节、悬浮位置以及未完成的读取请求应继续保留。应用默认中文；工具单条英文缺失时回退中文，所有文字资源离线随正式工具版本发布。权威合同：[Sidebar Tool 本地化](../../../docs/api/sidebar-tool-localization.zh-CN.md)。
 
-**发行版本：** 当前 `tool.config.json` 为 `1.0.7`；使用 `npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc` 生成同 ID 可导入包。说明旧文档所列 `1.0.4` 是旧候选，不能直接充当 R1.2 双语验收证据。正式 Chrome 的双语言切换、网页浮层、失效重试、SPA、重启、更新仍以当前新候选原生证据为准。
+**发行版本（R1.8.1 核实）：** `tool.config.json` 源码候选为 **`1.0.8`**；经正式构建器生成、尚未晋升的 1.0.8 JSON 位于 `artifacts/sidebar-tools/reading-toc/1.0.8/`。根目录唯一稳定可安装 JSON **仍为 `1.0.7`**，在真实 Mac Chrome 完成旧版本安装、用户主动升级、持久化、撤权和回滚验收之前不得通过 `--promote-from` 晋升。`npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc` 仅生成候选，不会覆盖稳定安装文件。
 
 ### 语言资源与可信悬浮 UI 的边界
 
@@ -122,3 +122,10 @@ R4.5 资源迁移的候选、测试与真实浏览器证据见 [专项工作流]
 - 这次改动先是**正式源码候选**，不是安装验证声明。项目根目录稳定安装包在候选经 Node/Chromium/原生安装测试并经 `--promote-from` 之前仍为已发行版本。不要手动改写此 JSON、历史 reading-kit revision 6 或用户数据。
 - 后续真实接入必须复用受信 Broker 与身份权限合同，并对来源、页面、文档、请求世代和取消/刷新/撤权进行严格校验；未接入时 UI 安全降级。
 - R1.8 新增 `tests/environment/reading-toc-ai-r18.test.mjs`，包括正式打包后的 UI、会员可用性、默认推广、locale、四种模式和免费回归断言。必须结合正式 Chromium/Chrome 安装验收及构建结果判断可发布性。
+
+## R1.8.1 · 构建和预览证据（2026-10-17）
+
+- 候选生成器 GitHub Actions [#38959360526](https://github.com/shopable-ai/opendesk-browser/actions/runs/38959360526) PASS：`node scripts/build-sidebar-tool.mjs`、双份 `scripts/preview/build-preview.mjs`、19 项定向 Node 测试、`npm run check`、`npm run build`、`npm run build:dev` 与 `npm run verify`；均是 **Linux hosted CI**，不是用户 Mac Chrome。
+- 1.0.8 候选 JSON 27,778 UTF-8 字节，SHA-256 `7cb40e48d3e9f5f801f9fd8e181fa7ab15d030cfc15e62585d706579d041be0d`。保存的两份生成 HTML 各 211,846 / 220,396 字节，并由严格同源回归测试核对来源与内容；不修改已批准 R1.7.4 原型。
+- 本轮 320 / 360 / 420 / 520px × 中文/英文 × 100/125/150/200% CSS zoom × 四个 Side Panel 模式，共 128 个 Linux Chromium 144 离线布局/交互组合全部通过；实测的是工具包 JS/CSS 的沙箱离线预览，不等于真实 Chrome 缩放、网站 DOM、安装升级验收。
+- AI 默认展示会员权益卡和合作招募，会员、支付与 AI Provider 未接入；**用户 Mac Chrome 的 1.0.7 → 1.0.8 安装升级、数据保留、回滚与卸载仍为 `NOT_TESTED`**，不可声称正式发行或产品 95+ 验收已通过。更细证据见 `docs/framework/workstreams/reading-toc-r18-source-migration-20261017.md`。

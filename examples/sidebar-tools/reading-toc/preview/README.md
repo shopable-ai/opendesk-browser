@@ -1,6 +1,6 @@
 # Reading TOC R1.2 · 与正式源码同源的交互预览
 
-本目录的 R1.2 历史预览只维护**生成命令和来源说明**，不单独开发第二份正式实现；R1.7.1 新增的 AI 页面属于尚未获批的**独立 UI 候选**，见下文，不能当作正式源码。预览 HTML 通过仓库的唯一 `scripts/preview/build-preview.mjs` 从当前阅读目录的**可安装工具包**与可信网页 `src/reading-toc/view.js` 现场生成。现有公共预览模板和浅色 Side Panel 外壳保持原有实现。
+本目录的 R1.2 同源预览由正式生成器构建，不单独开发第二份正式实现；`reading-toc-r17-ai-desktop-preview.html` 是 **R1.7.4 已批准的视觉基准**，其中演示数据及业务模拟仍不构成真实 AI / 会员能力。预览 HTML 通过仓库的唯一 `scripts/preview/build-preview.mjs` 从当前阅读目录的**可安装工具包**与可信网页 `src/reading-toc/view.js` 现场生成。现有公共预览模板和浅色 Side Panel 外壳保持原有实现。
 
 ```sh
 # 仓库根目录，Node 22+
@@ -14,7 +14,7 @@ node scripts/preview/build-preview.mjs --tool reading-toc --surface page-overlay
 
 **生成输出的身份：** HTML 中嵌入仓库当前 commit、设计系统与正式工具 JS/CSS 摘要；context.json 与 HTML 同时生成。CI 的 `.github/workflows/reading-toc-r41.yml` 也会生成并保留 `artifacts/previews/reading-toc/` 中同构的产物。当前暂不把每次变化的生成 HTML 当作第二份长期设计源码，避免生成物脱离正式实现。要查看最新交互，请按上面的命令生成。
 
-**边界：** `PREVIEW_PASS` 仅限已在浏览器打开并验证**此新候选**的生成 HTML；不等于 `NATIVE_PASS`。原生验收需要正式版本 1.0.7 工具包、真实 Chrome、两种 UI、离线、权限撤销、SPA、刷新恢复及跨版本数据持久化的独立证据。
+**边界：** `PREVIEW_PASS` 仅指从 1.0.8 候选生成并在 Chromium 离线沙箱内验证的 HTML；不等于 `NATIVE_PASS`。原生验收需要在真实 Mac Chrome 隔离 Profile 从已发行 `1.0.7` 安装并由用户主动升级到候选 `1.0.8`，验证网页索引/导航、授权撤销、SPA、恢复、卸载与数据持久化。
 
 ## R1.7.1 · AI 整理桌面 UI 候选（2026-10-16）
 
@@ -27,4 +27,12 @@ node scripts/preview/build-preview.mjs --tool reading-toc --surface page-overlay
 
 - R1.7.4 桌面 AI HTML 继续保留为**已批准视觉基准**，其状态控制、模拟生成和演示文章不是正式业务。
 - R1.8 修改 `../src/index.html` / `style.css` / `main.js`，正式源码含第四个 AI 模式、不可交易的权益卡与默认合作招募，仍使用已授权的 `toc.snapshot`/`toc.navigate` 免费能力。
-- 请按本文件前述 `scripts/preview/build-preview.mjs` 命令从 **v1.0.8 源码构建出的候选包**生成预览（不要把旧 Mock 文件充当同源验收）；此步骤及原生 Mac/Chrome 测试未完成前，不得写 `PREVIEW_PASS` 或 `NATIVE_PASS`。
+- R1.8.1 已使用唯一 `scripts/preview/build-preview.mjs` 官方生成器重新生成并提交两份 v1.0.8 同源 HTML；Node 字节一致性 + Linux Chromium 预览可以独立验收，但真实 Mac Chrome 安装升级仍未测试，不得写 `NATIVE_PASS`。
+
+## R1.8.1 · 正式源码 v1.0.8 的已保存同源预览
+
+- `reading-toc-r12-interactive-preview.html`：Side Panel + 网页悬浮同源模拟，211,846 字节，SHA-256 `753089d037a8ba407c614f137984017bd3e536294af2593e99cd1d5a5bd52e1c`。
+- `reading-toc-r12-overlay-preview.html`：可信悬浮目录同源模拟，220,396 字节，SHA-256 `54066ea520a09626fecba64f06a70d13d397022ec7c68125690130119a0a5e32`。
+- 两个 HTML 的正式源码构建身份均为 v1.0.8，保留 `uiSha256`、`trustedOverlaySourceSha256`、模拟标识与严格 sandbox 来源；并非手工修改 HTML 版本号。`tests/environment/reading-toc-localization-preview-r12.test.mjs` 验证存档字节与当下官方生成器一致。
+- CI 候选构建与工具包摘要见 [#38959360526](https://github.com/shopable-ai/opendesk-browser/actions/runs/38959360526)；离线 Chromium 144 128/128 个交互/布局组合 PASS（**CSS zoom，非真实浏览器菜单缩放**）。默认 AI 卡片为**会员服务未开放 + 合作招募**；没有 AI 章节、支付或身份 Mock 成功。
+- R1.7.4 已批准原型继续保存，不修改其原型身份和模拟状态。后续每次修改真实源码、共享外壳或可信 Overlay 都须重新生成并验证这两份存档 HTML，不能放宽来源断言。
