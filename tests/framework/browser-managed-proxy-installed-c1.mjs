@@ -243,7 +243,10 @@ async function main(){
   page=await attach(tab.targetId,true);
   const url='chrome-extension://'+extensionId+'/ui/tool.html?toolId=ai-vip-share';
   await client.send('Page.navigate',{url},page);
-  await until(()=>element('#sidebar-tool-import-trigger'),'production installer');
+  // The element exists in HTML before the async tool-shell routes to Tools.
+  // Wait for the actual visible, hittable installer before a real browser click.
+  await until(async()=>{const e=await element('#sidebar-tool-import-trigger');return e?.visible&&e;},
+    'visible trusted production installer');
   step('FORMAL_EXTENSION_HOST',{status:'PASS',url:await evalAt(page,'location.href')});
   await click('#sidebar-tool-import-trigger');
   const {root}=await client.send('DOM.getDocument',{depth:1},page);
