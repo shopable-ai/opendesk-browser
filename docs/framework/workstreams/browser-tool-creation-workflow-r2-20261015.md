@@ -286,7 +286,7 @@ F-BM-000 书签管理
 
 ## R1.0 · SDK First 扩展治理（2026-10-16）
 
-**状态：SOURCE_COMMITTED / SIX_STATIC_CASES_AUTHORED / CI_QUEUED / MODEL_EXECUTION_NOT_TESTED / NATIVE_NOT_TESTED。** 这里是对现有创建工作流的增量治理记录，不是新的 Agent Skill、Extension Factory 或宿主改造。
+**状态：SOURCE_COMMITTED / SIX_STATIC_CASES_NODE_PASS / CI_SUCCESS_AT_e6b67af / MODEL_EXECUTION_NOT_TESTED / NATIVE_NOT_TESTED。** 这里是对现有创建工作流的增量治理记录，不是新的 Agent Skill、Extension Factory 或宿主改造。
 
 - 仓库级入口 `AGENTS.md` 增加 `Independent Extension Development · SDK First · Framework Boundary`；唯一 `.agents/workflows/extension-creation.md` 在 Phase 0–3 加前置 `Extension Type & Ownership Gate`，保留 F/S/A、版本/安装与原始场景，不将 Sidebar JSON 包规则套到 Page/Controller。
 - 复用现行八个 Skills；维护 `.agents/skills/README.md` 的六个正/反例路由，并修正开发、发布、打包、Runtime 与可信第一方的所有权说明。**普通扩展只读公开 SDK/Schema/示例和自己项目；共享 `src/` 默认为第三方免读/免改，真正平台任务仍可修改**。通用缺口证据不足标 `SDK_GAP_NOT_PROVEN`，第三方不可安全取得的特权标 `BLOCKED`。
@@ -300,9 +300,9 @@ F-BM-000 书签管理
 | 项目 | 截至本次记录 | 不可提升的结论 |
 | --- | --- | --- |
 | GitHub `main` 写入 | `SOURCE_COMMITTED`；全部治理文件经原文件 blob SHA 校验更新 | 不证明 AI 以后绝不漂移 |
-| 六例 Node 静态关卡 | `TESTS_AUTHORED`，实际 CI 尚处 `QUEUED`；运行结果以同候选 Actions 回执为准 | 不能写 `NODE_PASS` |
+| 六例 Node 静态关卡 | [治理 Run 38896792651](https://github.com/shopable-ai/opendesk-browser/actions/runs/38896792651) 在 `e6b67af`：Skills 14/14、Sidebar 5/5、创建工作流 5/5 均 PASS；六例仅属合同静态测试 | 不能据此写真实模型行为 PASS |
 | 原只读 Codex 路由评测 | `MODEL_EXECUTION_NOT_TESTED`；`--self-test` 只测解析/判据的结构逻辑 | 不等于模型真实触发或第三方全功能完成 |
 | 已安装 Chrome / Mac Native | `NOT_TESTED`；本轮没有改变业务/宿主 Runtime | 不等于 Page 自动注入、权限、撤权/卸载 PASS |
-| 真实 CI 验收 | `QUEUED`，需查看最新 `Agent Skills governance` run 的 Node、source check、gh-aw 编译/锁结果 | 排队不可宣称 SUCCESS |
+| 真实 CI 验收 | `SUCCESS`：`e6b67af` 的 [Run 38896792651](https://github.com/shopable-ai/opendesk-browser/actions/runs/38896792651)，`npm ci`、`npm run check`（781 个源码/测试/构建文件语法）、官方 gh-aw v0.92.0 编译和锁一致性检查全部 PASS | 不能把同 SHA 静态 CI 扩写成 Mac Native 或未来模型行为验证 |
 
 如 CI 有真实失败，应按失败步骤定位最小治理文件修复并重新核对最终 `main` SHA，不重建业务或修改产品权限。未来第三方开发以 `AGENTS.md` → 唯一创建工作流 → 对应公开 SDK → 已有主 Skill → 具体工具目录为顺序；平台缺口按 Runtime 所有权单独开发。
