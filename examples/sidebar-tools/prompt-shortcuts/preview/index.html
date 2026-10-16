@@ -263,8 +263,8 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 /* R1.14: one discreet per-row action, settings-only toggles, top-right create and batch creation. */
 .tool-host-head .host-add{flex:none;min-width:66px;white-space:nowrap}
 .tool-host-head strong{letter-spacing:-.01em}
-.prompt-actions{flex:none;min-width:35px}
-.prompt-actions .od-button{width:35px;min-width:35px;height:35px;min-height:35px;opacity:.42;transition:opacity .14s ease}
+.prompt-actions{flex:none;min-width:40px}
+.prompt-actions .od-button{width:40px;min-width:40px;height:40px;min-height:40px;opacity:.42;transition:opacity .14s ease}
 .prompt-card:hover .prompt-actions .od-button,
 .prompt-card:focus-within .prompt-actions .od-button,
 .prompt-card.is-menu-open .prompt-actions .od-button{opacity:1}
@@ -383,7 +383,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
     <label class="host-setting-row od-surface"><span><strong>启用工具</strong><small>停用后提示词仍保留</small></span><span class="switch"><input id="toolEnabledSwitch" type="checkbox" role="switch" checked aria-label="启用工具"><span class="switch-track" aria-hidden="true"></span></span></label>
     <label class="host-setting-row od-surface"><span><strong>网页快捷按钮</strong><small>在已支持的网站显示悬浮按钮</small></span><span class="switch"><input id="showBarSwitch" type="checkbox" role="switch" checked aria-label="网页快捷按钮"><span class="switch-track" aria-hidden="true"></span></span></label>
     <label class="host-setting-row od-surface"><span><strong>选中文字快速添加</strong><small>可选 · Chrome 原生右键菜单</small></span><span class="switch"><input id="contextSwitch" type="checkbox" role="switch" aria-label="选中文字快速添加"><span class="switch-track" aria-hidden="true"></span></span></label>
-    <div class="host-setting-row host-site-row"><span><strong>适用网站</strong><small>ChatGPT 已适配 · 其他网站按需配置</small></span><button id="sitesButton" class="od-button od-button--small" type="button" aria-expanded="false" aria-controls="siteDetails">查看 ›</button></div>
+    <div class="host-setting-row host-site-row"><span><strong>适用网站</strong><small>ChatGPT 已适配 · 其他网站待适配</small></span><button id="sitesButton" class="od-button od-button--small" type="button" aria-expanded="false" aria-controls="siteDetails">查看 ›</button></div>
     <div id="siteDetails" class="host-site-details" hidden>
       <div class="host-site-entry"><strong>ChatGPT · chatgpt.com</strong><span>现有内置适配</span></div>
       <div class="host-site-entry"><strong>其他 AI 网站</strong><span>R2.0 规划：在网页中选择按钮容器和输入框，验证后逐站启用；当前未内置适配</span></div>
@@ -476,10 +476,15 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
     use.append(icon,details);
    use.addEventListener('click',()=>void usePrompt(item));
    const actions=create('div','prompt-actions');
-   const more=action(actions,'⋯',()=>{expandedId=expandedId===item.id?null:item.id;deleteId=null;renderIndex();},{small:true,subtle:true,title:'更多操作：'+identity});
+   const more=action(actions,'⋯',()=>{
+    const willOpen=expandedId!==item.id;expandedId=willOpen?item.id:null;deleteId=null;renderIndex();
+    const target=willOpen?el('prompt-menu-'+i)?.querySelector('button'):el('prompt-more-'+i);
+    target?.focus({preventScroll:true});
+   },{small:true,subtle:true,title:'更多操作：'+identity});
+   more.id='prompt-more-'+i;
    more.setAttribute('aria-label','更多操作：'+identity);
    more.setAttribute('aria-expanded',String(expandedId===item.id));
-   more.setAttribute('aria-controls','prompt-menu-'+i);
+   if(expandedId===item.id)more.setAttribute('aria-controls','prompt-menu-'+i);
    row.append(use,actions);card.append(row);
    if(expandedId===item.id){
     const commands=create('div','prompt-more');commands.id='prompt-menu-'+i;commands.setAttribute('role','group');commands.setAttribute('aria-label','提示词操作');
@@ -575,7 +580,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  function openForm(id=null,preset=null){
   if(saving){showFormError('当前保存尚未结束，请确认结果后再操作。');return;}
   if(currentView==='form'&&dirty){showFormError('当前表单有未保存草稿，请先保存或取消。');return;}
-  editId=id;const value=state.items.find(item=>item.id===id);
+  expandedId=null;deleteId=null;editId=id;const value=state.items.find(item=>item.id===id);
   if(id&&!value){notice('待编辑项不存在，请核对列表。','error');return;}
   el('formHeading').textContent=id?'编辑提示词':'新建提示词';
   el('promptBody').value=value?.body??preset?.body??'';
@@ -690,7 +695,15 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  el('resetButton').addEventListener('click',()=>{if(currentView==='form'&&dirty){showFormError('当前编辑尚未保存，请先取消或保存，再重置模拟数据。');return;}
   state={version:1,revision:1,settings:{showBar:true,contextMenu:false},items:COPY(),toolEnabled:true};nextSaveFailure=null;expandedId=null;deleteId=null;copyId=null;el('mockDraft').value='';el('mockDraft').disabled=false;el('actionScenario').value='normal';document.querySelector('.browser-address').textContent='chatgpt.com · 模拟网页';el('mockContextMenu').hidden=true;el('siteDetails').hidden=true;el('sitesButton').setAttribute('aria-expanded','false');el('sitesButton').textContent='查看 ›';returnIndex();notice('已重置为初始模拟数据。');});
  for(const [id,mode,label] of [['simulateWriteFail','write','写入失败'],['simulateConflict','conflict','并发冲突'],['simulateUnknown','unknown','结果未知']])el(id).addEventListener('click',()=>{nextSaveFailure=mode;el('failureStatus').textContent='下次保存将模拟：'+label;notice('已设置下次保存模拟：'+label+'，当前草稿会保留。');});
- document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!el('mockContextMenu').hidden){el('mockContextMenu').hidden=true;el('mockSelection').focus();}else if(event.key==='Escape'&&!el('webTooltip').hidden){el('webTooltip').hidden=true;tipButton=null;}});
+ document.addEventListener('keydown',event=>{
+  if(event.key!=='Escape')return;
+  if(!el('mockContextMenu').hidden){el('mockContextMenu').hidden=true;el('mockSelection').focus();event.preventDefault();}
+  else if(!el('webTooltip').hidden){el('webTooltip').hidden=true;tipButton=null;}
+  else if(expandedId!==null){
+   const index=state.items.findIndex(item=>item.id===expandedId);expandedId=null;deleteId=null;renderIndex();
+   if(index>=0)el('prompt-more-'+index)?.focus({preventScroll:true});event.preventDefault();
+  }
+ });
  window.addEventListener('beforeunload',event=>{if(currentView==='form'&&(dirty||saving)){event.preventDefault();event.returnValue='';}});
  setView('index');renderIndex();renderRail();
 })();
