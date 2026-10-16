@@ -54,11 +54,11 @@ try{
    const m=await page.evaluate(()=>{const d=document.querySelector('.device'),h=d.querySelector('.title-bar'),actions=[...h.querySelectorAll('button')];const boxes=actions.map(a=>a.getBoundingClientRect());return{actualWidth:Math.round(d.getBoundingClientRect().width),headerOverflow:h.scrollWidth>h.clientWidth+1,minTouch:boxes.every(b=>b.width>=39.5&&b.height>=39.5),overlap:boxes.some((b,i)=>i>0&&b.left<boxes[i-1].right-0.5),documentOverflow:document.documentElement.scrollWidth>innerWidth+1}});
    assert.equal(m.actualWidth,Number(width));assert.equal(m.headerOverflow,false);assert.equal(m.overlap,false);assert.equal(m.minTouch,true);
    assert.equal(m.documentOverflow,false);
-   await page.locator('#r233-qa > summary').click();
+   await page.locator('#r233-qa').evaluate(el=>{el.open=!el.open});
    await page.screenshot({path:resolve(out,'r232-real-200-'+width+'.png'),fullPage:true});
    await page.waitForTimeout(180);
    events.push({width,physicalScreenshot:await capturePhysicalScreen('r234-physical-200-chat-'+width+'.png')});
-   await page.locator('#r233-qa > summary').click();
+   await page.locator('#r233-qa').evaluate(el=>{el.open=!el.open});
    events.push({width,layout:m});
  }
 
@@ -107,7 +107,7 @@ try{
      'source switch fills the bottom sheet rail under native Chrome zoom');
    assert.ok(geom.noteAligned&&geom.noFooter,'protocol hint and return controls are coherent');
    assert.ok(geom.rows.every(x=>x.stacked&&x.sameLeft&&x.inside),'native 200% input labels stacked correctly');
-   await page.locator('#r233-qa > summary').click();
+   await page.locator('#r233-qa').evaluate(el=>{el.open=!el.open});
    await page.screenshot({path:resolve(out,'r234-real-200-settings-'+width+'.png'),fullPage:true});
    await page.waitForTimeout(180);
    events.push({width,physicalScreenshot:await capturePhysicalScreen('r234-physical-200-settings-'+width+'.png')});
@@ -123,7 +123,7 @@ try{
      await page.waitForTimeout(220);
      events.push({width,headerBack,physicalScreenshot:await capturePhysicalScreen('r238-physical-200-header-back-360.png')});
    }
-   await page.locator('#r233-qa > summary').click();
+   await page.locator('#r233-qa').evaluate(el=>{el.open=!el.open});
    await page.locator('#r234-back').click();
    events.push({width,settingsLayout:geom});
  }
