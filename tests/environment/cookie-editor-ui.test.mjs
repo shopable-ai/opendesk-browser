@@ -1120,3 +1120,25 @@ test('R4.10 production keeps approved value alignment and explicit sensitive exp
   s.fire('live-export-metadata','change');
   assert.equal(s.getField('live-export-content').value,'backup');
 });
+
+test('R4.10 unsaved browser toolbar switch uses local discard, never a global confirm',async()=>{
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},
+    cookies:{getAll:async()=>[{name:'old',value:'hidden',domain:'example.com',path:'/',
+      hostOnly:true,session:true,storeId:'0'}]}});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
+  s.openEditor(s.liveSnapshot().rows[0]);
+  s.getField('cookie-name').value='edited';
+  s.fire('editor-form','input');
+  assert.equal(s.isDirty(),true);
+  s.fire('live-export','click');
+  assert.equal(s.getField('editor-discard').hidden,false,'unsaved toolbar action uses inline confirmation');
+  assert.equal(s.getField('confirm-panel').hidden,true);
+  s.fire('editor-discard-keep','click');
+  assert.equal(s.getField('editor-panel').hidden,false);
+  assert.equal(s.getField('cookie-name').value,'edited');
+  s.fire('live-export','click');
+  s.fire('editor-discard-confirm','click');
+  assert.equal(s.getField('editor-panel').hidden,true);
+  assert.equal(s.getField('live-export-panel').hidden,false);
+  assert.equal(s.getField('confirm-panel').hidden,true);
+});

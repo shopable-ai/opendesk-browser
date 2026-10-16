@@ -1116,7 +1116,7 @@ function openImportPanel(){
   E('import-apply').textContent=browser?'预览导入':'确认导入';
   renderBrowser();E('import-text').focus();
 }
-E('live-new').addEventListener('click',()=>guarded(()=>openEditor()));
+E('live-new').addEventListener('click',()=>guardedInline(()=>openEditor()));
 E('editor-reveal-value').addEventListener('click',()=>{
   if(busy||pending||mode!=='browser'||editor.hidden)return;
   if(editing===null||liveValueEdited){
@@ -1145,8 +1145,8 @@ E('editor-delete').addEventListener('click',()=>{
     row.path+'？仅处理精确身份。','确认删除',()=>deleteBrowserCookie(row)));
 });
 E('live-clear').addEventListener('click',()=>{void clearBrowserSite();});
-E('live-import').addEventListener('click',()=>guarded(openImportPanel));
-E('live-export').addEventListener('click',()=>guarded(()=>{
+E('live-import').addEventListener('click',()=>guardedInline(openImportPanel));
+E('live-export').addEventListener('click',()=>guardedInline(()=>{
   scrubEditors();E('live-export-panel').hidden=false;updateExportSummary();renderBrowser();
   E('live-export-format').focus();
 }));
@@ -1192,7 +1192,7 @@ E('live-filter-advanced').addEventListener('click',event=>{
 E('live-search').addEventListener('input',render);
 E('live-filter').addEventListener('change',render);
 E('live-sort').addEventListener('change',render);
-E('refresh').addEventListener('click',()=>guarded(()=>{
+E('refresh').addEventListener('click',()=>guardedInline(()=>{
   scrubEditors();
   void refresh().catch(error=>status('刷新失败：'+String(error.message||error),'error'));
 }));
