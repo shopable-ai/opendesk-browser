@@ -1,0 +1,58 @@
+name: AI VIP Share R5.9.1 packaged Chromium UI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'examples/sidebar-tools/ai-vip-share/**'
+      - 'tests/environment/ai-vip-share-*.test.mjs'
+      - 'scripts/tests/ai-vip-share-r591-formal-chrome.mjs'
+      - '.github/workflows/ai-vip-share-r591-ui.yml'
+      - 'src/ui/design-tokens.css'
+      - 'src/ui/design-system.css'
+      - 'scripts/preview/shared-tool-design.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  packaged-chromium:
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Verify member, proxy, package and prototype contracts
+        run: |
+          node --test tests/environment/ai-vip-share-r5-ui.test.mjs tests/environment/ai-vip-share-r51-member.test.mjs tests/environment/ai-vip-share-r59-proxy-ui.test.mjs tests/environment/ai-vip-share-ui-parity.test.mjs
+          node --test examples/sidebar-tools/ai-vip-share/preview/test-r41.mjs examples/sidebar-tools/ai-vip-share/preview/test-ui.mjs
+      - name: Build candidate and compare canonical installable project JSON
+        run: |
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ai-vip-share --out artifacts/ai-vip-share-r591/candidate.opendesk-tool.json
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ai-vip-share --check-project
+          sha256sum artifacts/ai-vip-share-r591/candidate.opendesk-tool.json examples/sidebar-tools/ai-vip-share/ai-vip-share.opendesk-tool.json
+      - name: Install CJK font for screenshot fidelity
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y fonts-noto-cjk
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+      - name: Real Chromium screenshots of R5.7 prototype vs formal package, mock SDK only
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: node scripts/tests/ai-vip-share-r591-formal-chrome.mjs artifacts/ai-vip-share-r591/chromium
+      - name: Build development and production extensions
+        run: |
+          npm run build:dev
+          npm run build
+          npm run verify
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ai-vip-share-r591-evidence-${{ github.sha }}
+          path: artifacts/ai-vip-share-r591/
+          if-no-files-found: warn
+          retention-days: 21
