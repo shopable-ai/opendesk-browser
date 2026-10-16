@@ -223,6 +223,9 @@ try{
   await host.locator('iframe[data-r393-real-sdk]').evaluate(frame=>frame.remove());
   assert.equal(await host.locator('style#snowbrush_style').count(),0);
   report.frameDisposed=true;
+  assert.equal(report.externalRequests.length,0,
+    'Isolated XMind attempted an unapproved third-party resource request');
+  report.noThirdPartyNetworkAttempts=true;
   report.result='PASS_REAL_XMIND_IN_OPAQUE_TEST_FRAME';
   console.log('R393_REAL_XMIND_OPAQUE_FRAME_PASS');
 }catch(error){
