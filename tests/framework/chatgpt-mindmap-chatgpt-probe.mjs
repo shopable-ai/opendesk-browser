@@ -47,14 +47,41 @@ try{
     const file=join(out,name);
     await target.screenshot({path:file,fullPage});
     const bytes=await readFile(file);
-    const counts=await page.evaluate(()=>Object.fromEntries([1,2,3].map(n=>{
-      const host=document.querySelector('[data-testid="conversation-turn-'+n+'"] [data-opendesk-chatgpt-mindmap="viewer"]');
-      return [['A','B','C'][n-1],host?host.shadowRoot.querySelectorAll('.topic').length:0];
-    })));
+    const observed=await page.evaluate(()=>{
+      const topics={},views={};
+      for(const [index,key] of [[1,'A'],[2,'B'],[3,'C']]){
+        const host=document.querySelector('[data-testid="conversation-turn-'+index+'"] [data-opendesk-chatgpt-mindmap="viewer"]');
+        if(!host){topics[key]=0;continue;}
+        const root=host.shadowRoot;
+        const nodes=[...root.querySelectorAll('.topic')];
+        topics[key]=nodes.length;
+        const canvas=root.querySelector('.odmm-canvas');
+        const frame=canvas?.getBoundingClientRect();
+        const topic=nodes[0]?.getBoundingClientRect();
+        const toolbar=root.querySelector('.odmm-toolbar');
+        const scroll=canvas?.querySelector('.workbook-item');
+        views[key]={
+          canvasWidth:canvas?.clientWidth??null,fitWidth:canvas?.dataset.fitWidth??null,
+          fitReady:canvas?.dataset.fitReady??null,
+          rootWidth:topic?.width??null,
+          rootVisibleWidth:frame&&topic?Math.max(0,
+            Math.min(frame.right,topic.right)-Math.max(frame.left,topic.left)):null,
+          toolbarWidth:toolbar?.clientWidth??null,toolbarScrollWidth:toolbar?.scrollWidth??null,
+          scrollerClientWidth:scroll?.clientWidth??null,
+          scrollerScrollWidth:scroll?.scrollWidth??null,scrollerScrollLeft:scroll?.scrollLeft??null
+        };
+      }
+      return {topics,geometry:{
+        contentContainerWidth:document.getElementById('preview-conversation')?.getBoundingClientRect().width??null,
+        documentScrollWidth:document.documentElement.scrollWidth,
+        documentClientWidth:document.documentElement.clientWidth,views
+      }};
+    });
     screenshots.captures.push({
       gitSha,pageUrl:page.url(),pageType:'LOCAL_CHATGPT_SIMULATION_ONLY',
       chromiumVersion:browser.version(),viewport:page.viewportSize(),answer,
-      topics:counts,pageErrors:report.errors.length,externalRequests:report.externalRequests.length,
+      topics:observed.topics,geometry:observed.geometry,
+      pageErrors:report.errors.length,externalRequests:report.externalRequests.length,
       file,sha256:createHash('sha256').update(bytes).digest('hex'),
       screenshotTime:new Date().toISOString(),ciRunId:process.env.GITHUB_RUN_ID||null,
       ciArtifactId:null,visualReview:'SCREENSHOT_NOT_VERIFIED'
@@ -340,6 +367,13 @@ try{
   assert.equal(await viewer(2).locator('.odmm-menu button[data-action="refresh"]:focus').count(),1);
   await page.keyboard.press('Home');
   assert.equal(await viewer(2).locator('.odmm-menu button[data-action="fold"]:focus').count(),1);
+  await page.keyboard.press('End');
+  assert.equal(await viewer(2).locator('.odmm-menu button[data-action="refresh"]:focus').count(),1);
+  await page.keyboard.press('ArrowUp');
+  assert.equal(await viewer(2).locator('.odmm-menu button[data-action="fold"]:focus').count(),1);
+  await page.keyboard.press('ArrowDown');
+  assert.equal(await viewer(2).locator('.odmm-menu button[data-action="refresh"]:focus').count(),1);
+  await page.keyboard.press('Home');
   await capture('chatgpt-narrow-320-menu.png',{target:viewer(2),answer:'B'});
   await page.keyboard.press('Escape');
   assert.equal(await more.getAttribute('aria-expanded'),'false');
@@ -347,7 +381,15 @@ try{
   await more.focus();await page.keyboard.press('Enter');
   assert.equal(await more.getAttribute('aria-expanded'),'true');
   await page.keyboard.press('Escape');
-  report.checks.push('NARROW_COMPUTED_CONTAINER_QUERY','MENU_KEYBOARD_ARROWS_HOME_ESCAPE_ENTER');
+  await more.focus();await page.keyboard.press('Space');
+  assert.equal(await more.getAttribute('aria-expanded'),'true');
+  await page.keyboard.press('Escape');
+  await more.click();
+  assert.equal(await more.getAttribute('aria-expanded'),'true');
+  await page.locator('.model-title').click();
+  assert.equal(await more.getAttribute('aria-expanded'),'false');
+  report.checks.push('NARROW_COMPUTED_CONTAINER_QUERY','MENU_KEYBOARD_ARROWS_HOME_ESCAPE_ENTER',
+    'MENU_KEYBOARD_UP_END_SPACE_AND_OUTSIDE_DISMISS');
   const focusViewer=()=>viewer(2).evaluate(node=>{
     const transcript=node.closest('.transcript');
     if(transcript)transcript.scrollTop+=
@@ -406,6 +448,18 @@ try{
       return !!canvas&&canvas.dataset.fitReady==='true'&&
         Number(canvas.dataset.fitWidth)===canvas.clientWidth;
     },null,{timeout:25000});
+    // Resizing preserves the transcript's previous scroll offset. Align
+    // the real toolbar within the transcript before recording UX screenshots,
+    // or a cropped toolbar produces misleading 400/440px visual evidence.
+    await focusViewer();
+    const toolbarVisible=await viewer(2).locator('.odmm-toolbar').evaluate(node=>{
+      const frame=node.getBoundingClientRect();
+      const viewport=document.querySelector('.transcript').getBoundingClientRect();
+      return Math.max(0,Math.min(frame.bottom,viewport.bottom)-
+        Math.max(frame.top,viewport.top));
+    });
+    assert.ok(toolbarVisible>=36,
+      'Responsive toolbar must be visible in the captured viewport: '+width);
     const metrics=await viewer(2).evaluate(host=>{
       const root=host.shadowRoot;
       const canvas=root.querySelector('.odmm-canvas');
@@ -438,7 +492,7 @@ try{
     }));
     assert.ok(overflow.documentWidth<=overflow.viewport+1,
       'Viewport '+width+' must not overflow horizontally');
-    report.responsive.push({viewport:width,...metrics,...overflow});
+    report.responsive.push({viewport:width,toolbarVisible,...metrics,...overflow});
     await capture('chatgpt-responsive-'+width+'.png',{fullPage:true,answer:'B'});
     report.checks.push('RESPONSIVE_'+width+'_SCREEN_AND_CONTENT_LAYOUT');
   }
