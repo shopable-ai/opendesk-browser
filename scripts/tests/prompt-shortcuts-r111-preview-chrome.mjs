@@ -113,6 +113,13 @@ async function run(){
   assert(icons.names.every(x=>x.name&&x.href?.startsWith('#ps-icon-')));
   assert.equal(icons.cardButtons,1);
   report.iconOnlyPrimaryActions=true;
+  await click('#themeButton');
+  assert.equal(await evalChrome('document.documentElement.dataset.theme'),"dark");
+  assert.equal(await evalChrome('document.querySelector("#themeButton use").getAttribute("href")'),"#ps-icon-sun");
+  assert.equal(await evalChrome('document.querySelector("#themeButton").getAttribute("aria-pressed")'),"true");
+  await shot('dark-svg-icons.png');
+  await click('#themeButton');
+  assert.equal(await evalChrome('document.documentElement.dataset.theme'),"light");
   for(const width of [320,360,400,440]){
     await click('#size'+width);x=await state();
     assert.equal(x.width,width);assert.equal(x.overflow,false,'panel overflow '+width);
@@ -137,6 +144,7 @@ async function run(){
   assert.equal(iconMenu.count,6);
   assert.deepEqual(iconMenu.labels.map(x=>x.split('：')[0]),['编辑','停用','上移','下移','复制','删除']);
   assert(iconMenu.allSvg&&iconMenu.noVisibleText&&iconMenu.noOverflow);
+  assert(iconMenu.titles.every((name,i)=>name===iconMenu.labels[i]&&name));
   assert(iconMenu.sizes.every(([w,h])=>w>=38&&h>=38));
   assert(iconMenu.focused.startsWith('编辑：'));
   await shot('icon-toolbar-320px');
@@ -263,7 +271,13 @@ async function run(){
   await shot('delete-confirm-icon-440px');
   await click('.prompt-delete button:first-child');
   assert.equal(await evalChrome('document.querySelectorAll(".prompt-card").length'),4);
+  assert.equal(await evalChrome('document.activeElement?.getAttribute("aria-label")?.startsWith("更多操作")'),true);
+  await click('.prompt-more button[aria-label^="删除："]');
+  await click('.prompt-delete button:nth-child(2)');
+  assert.equal(await evalChrome('document.querySelectorAll(".prompt-card").length'),3);
+  assert.equal(await evalChrome('document.activeElement?.getAttribute("aria-label")?.startsWith("更多操作")'),true);
   await click('#resetButton');
+  assert.equal(await evalChrome('document.querySelectorAll(".prompt-card").length'),4);
   report.iconActionsReorderToggleDelete=true;report.managementSeparate=true;
   await evalChrome('(()=>{const f=document.getElementById("actionScenario");f.value="clipboard-failure";f.dispatchEvent(new Event("change",{bubbles:true}));})()');
   // The preview deliberately debounces repeated activation of one prompt for 650ms.
