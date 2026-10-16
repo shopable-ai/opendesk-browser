@@ -26,7 +26,7 @@ const send=async text=>{await page.locator('#prompt').fill(text);await page.loca
 const nameValue=()=>page.locator('#r23-name').inputValue();
 const first='请在当前网页的姓名输入框中填写：给我一个亿的项目。填写后读取输入框的实际值并告诉我，不要点击提交按钮，不要跳转网页。';
 const second='把刚才填写的内容改成：项目已启动，并重新读取验证。不要提交表单，也不要跳转。';
-// R23.3 test: offline rules only, never a real provider, browser SDK, RunHost or Chrome grant.
+// R23.4 test: offline rules only, never a real provider, browser SDK, RunHost or Chrome grant.
 async function reset(){
   if((await state()).stage==='approval')await page.locator('[data-action="deny"]').click();
   await page.locator('[data-action="reset"]').click();
@@ -146,26 +146,75 @@ try{
   assert.equal((await state()).connected,true);
   mark('AI disconnect, error feedback, and explicit simulated recovery');
 
-  await reset();await page.locator('#settings').click();
+
+  await reset();
+  await page.locator('#prompt').fill('尚未发送的设置前草稿');
+  await page.locator('#settings').click();
+  assert.equal(await page.locator('#r234-back').isVisible(),true);
+  assert.equal((await page.locator('.r23-settings').evaluate(el=>Math.round(el.getBoundingClientRect().height))),Math.round(await page.locator('.device').evaluate(el=>el.getBoundingClientRect().height)));
+  assert.equal(await page.locator('#r23-native-status').isVisible(),true);
+  await shot('r234-ai-settings-local');
   await page.locator('#r23-provider').selectOption('cloud_responses');
   s=await state();assert.equal(s.connected,false);assert.equal(s.shareApproved.cloud_responses,false);
-  assert.equal(await page.locator('#r23-model').isVisible(),true);
-  await shot('r233-ai-settings');
+  for(const id of ['r23-endpoint','r23-model','r23-api-key'])assert.equal(await page.locator('#'+id).isVisible(),true);
+  assert.equal(await page.locator('#r23-endpoint').inputValue(),'https://api.openai.com/v1/responses');
+  assert.equal(await page.locator('#r23-api-key').getAttribute('type'),'password');
+  await shot('r234-responses-empty');
   await page.locator('[data-action="simulate-config"]').click();
-  await page.locator('[data-action="close-settings"]').click();
+  assert.equal(await page.locator('#r234-feedback').getAttribute('data-kind'),'error');
+  await page.locator('#r23-endpoint').fill('http://api.openai.com/v1/responses');
+  await page.locator('#r23-model').fill('gpt-4o-mini');
+  await page.locator('#r23-api-key').fill('demo-openai-test');
+  await page.locator('[data-action="simulate-config"]').click();
+  assert.equal(await page.locator('#r23-endpoint').getAttribute('aria-invalid'),'true');
+  await page.locator('#r23-endpoint').fill('https://api.openai.com/v1/responses');
+  await page.locator('#r23-api-key').fill('');
+  await page.locator('[data-action="simulate-config"]').click();
+  assert.equal(await page.locator('#r23-api-key').getAttribute('aria-invalid'),'true');
+  await page.locator('#r23-api-key').fill('demo-openai-test');
+  await page.locator('#r234-key-toggle').click();
+  assert.equal(await page.locator('#r23-api-key').getAttribute('type'),'text');
+  await page.locator('#r234-key-toggle').click();
+  assert.equal(await page.locator('#r23-api-key').getAttribute('type'),'password');
+  await page.locator('[data-action="simulate-config"]').click();
+  assert.equal(await page.locator('#r234-feedback').getAttribute('data-kind'),'checked');
+  assert.ok((await page.locator('#r234-feedback').textContent()).includes('真实连接'));
+  await shot('r234-responses-config');
+  mark('Responses: endpoint/model/key, password reveal, required/HTTPS validation, offline status');
+
+  await page.locator('#r23-provider').selectOption('custom_https');
+  assert.equal(await page.locator('#r23-custom-config').isVisible(),true);
+  assert.equal(await page.locator('#r23-endpoint').inputValue(),'');
+  assert.equal((await state()).shareApproved.custom_https,false);
+  await shot('r234-custom-empty');
+  await page.locator('#r23-endpoint').fill('https://example.test/v1/chat/completions');
+  await page.locator('#r23-model').fill('my-chat-model');
+  await page.locator('#r23-api-key').fill('demo-custom-test');
+  await page.locator('[data-action="simulate-config"]').click();
+  assert.equal(await page.locator('#r234-feedback').getAttribute('data-kind'),'checked');
+  await shot('r234-custom-config');
+  mark('custom HTTPS uses independent endpoint, model, demo key, legacy Chat Completions');
+
+  await page.locator('#r23-provider').selectOption('cloud_responses');
+  assert.equal(await page.locator('#r23-model').inputValue(),'gpt-4o-mini');
+  assert.equal((await state()).shareApproved.cloud_responses,false);
+  await page.locator('[data-action="close-settings"]').last().click();
+  assert.equal(await page.locator('#prompt').inputValue(),'尚未发送的设置前草稿');
+  assert.equal(await page.locator('#r234-back').isVisible(),false);
+  await page.locator('#prompt').fill('');
   await send(first);await expectState('sharing-required');
   assert.equal(await nameValue(),'旧的预填内容');
   await page.locator('[data-action="open-settings"]').click();
   await page.locator('#r23-share').check();
-  await page.locator('[data-action="close-settings"]').click();
+  await page.locator('[data-action="close-settings"]').last().click();
   await send(first);await expectState('result');
   assert.equal(await nameValue(),'给我一个亿的项目');
   await page.locator('#settings').click();
   await page.locator('#r23-provider').selectOption('local_codex');
   await page.locator('#r23-provider').selectOption('cloud_responses');
   assert.equal((await state()).shareApproved.cloud_responses,false);
-  await page.locator('[data-action="close-settings"]').click();
-  mark('OpenAI Responses model config, new recipient disclosure, source-scoped approval');
+  await page.locator('[data-action="close-settings"]').last().click();
+  mark('settings route preserves draft, source switch revokes disclosure consent, no real network');
 
   await reset();await page.locator('[data-action="revoke-site"]').click();
   await send(first);await expectState('permission');
@@ -223,13 +272,56 @@ try{
     await shot('r233-'+width+(width==='360'?'-dark':'-light'));
   }
   mark('responsive 360/420/520 light/dark screenshots');
+
+  // Check full-height AI route in each sidebar width, including scroll-to-last-field.
+  for(const width of ['360','420','520']){
+    await page.locator('#r23-width').selectOption(width);
+    await page.locator('#settings').click();
+    await page.locator('#r23-provider').selectOption('custom_https');
+    await page.locator('#r23-api-key').scrollIntoViewIfNeeded();
+    const g=await page.evaluate(()=>{
+      const d=document.querySelector('.device'),panel=document.querySelector('#r23-settings-panel'),field=document.querySelector('#r23-api-key');
+      const b=d.getBoundingClientRect(),p=panel.getBoundingClientRect(),f=field.getBoundingClientRect();
+      return{panelHeight:Math.round(p.height),deviceHeight:Math.round(b.height),panelWidth:Math.round(p.width),
+        deviceWidth:Math.round(b.width),fieldInside:f.left>=p.left-1&&f.right<=p.right+1,
+        pageOverflow:document.documentElement.scrollWidth>innerWidth+1};
+    });
+    assert.equal(g.panelHeight,g.deviceHeight);assert.equal(g.panelWidth,g.deviceWidth);
+    assert.equal(g.fieldInside,true);assert.equal(g.pageOverflow,false);
+    await shot('r234-ai-settings-'+width);
+    await page.locator('#r234-back').click();
+  }
+  mark('full-screen settings route accessible with input scrolling at 360/420/520');
+  // Source-identical HTML is injected as srcdoc: isolate sandbox scripting separately
+  // from file:// Chromium PASS. This does NOT prove the ChatGPT UI itself runs scripts.
+  const embedded=await browser.newPage({viewport:{width:1100,height:850}});
+  const embeddedErrors=[];
+  embedded.on('pageerror',error=>embeddedErrors.push(error.message));
+  await embedded.setContent('<iframe id="embedded" sandbox="allow-scripts" style="width:420px;height:770px;border:0"></iframe>');
+  await embedded.locator('#embedded').evaluate((node,html)=>node.srcdoc=html,bytes.toString('utf8'));
+  const frame=embedded.frameLocator('#embedded');
+  await frame.locator('#content .intro').waitFor({timeout:10000});
+  await frame.locator('#prompt').fill('给我一个亿的项目');
+  await frame.locator('.send-btn').click();
+  await frame.locator('[data-action="clarify-fill"]').click({timeout:10000});
+  await frame.locator('#r23-name').waitFor();
+  await frame.locator('#prompt').fill('把刚才的内容改成：项目已启动');
+  await frame.locator('.send-btn').click();
+  await frame.locator('#r23-readback').getByText('项目已启动',{exact:false}).waitFor({timeout:10000});
+  assert.equal(await frame.locator('#r23-name').inputValue(),'项目已启动');
+  assert.deepEqual(embeddedErrors,[]);
+  await embedded.screenshot({path:resolve(out,'r234-sandbox-embedded.png'),fullPage:true});
+  screenshots.push('r234-sandbox-embedded.png');
+  await embedded.close();
+  mark('sandbox allow-scripts srcdoc embedded two-round button-click test; ChatGPT host NOT_TESTED');
+
   assert.deepEqual(errors,[]);
-  const report={status:'PREVIEW_CHROMIUM_PASS',scope:'R23.3 simulated DOM only; not a real AI provider, Chrome permission, Mac IME or RunHost',head,gitBlobSha:blob,sha256:hash,
+  const report={status:'PREVIEW_CHROMIUM_PASS',scope:'R23.4 simulated DOM and scripted sandbox iframe; NOT the ChatGPT host, real AI provider, Chrome permission, Mac IME or RunHost',head,gitBlobSha:blob,sha256:hash,
     chromiumVersion:browser.version(),checks,errors,screenshots,independentUxScore:'NOT_SCORED'};
-  console.log('R233_SOURCE_BOUND_CHROMIUM_PASS '+checks.length);
+  console.log('R234_SOURCE_BOUND_CHROMIUM_PASS '+checks.length);
   await writeFile(resolve(out,'r232-evidence.json'),JSON.stringify(report,null,2));
 }catch(error){
-  const report={status:'PREVIEW_CHROMIUM_FAIL',scope:'R23.3 offline HTML',head,gitBlobSha:blob,sha256:hash,error:String(error?.stack||error),checks,errors,screenshots,chromiumVersion:browser.version()};
+  const report={status:'PREVIEW_CHROMIUM_FAIL',scope:'R23.4 offline HTML',head,gitBlobSha:blob,sha256:hash,error:String(error?.stack||error),checks,errors,screenshots,chromiumVersion:browser.version()};
   await writeFile(resolve(out,'r232-evidence.json'),JSON.stringify(report,null,2));
   console.error(error);process.exitCode=1;
 }finally{await browser.close()}
