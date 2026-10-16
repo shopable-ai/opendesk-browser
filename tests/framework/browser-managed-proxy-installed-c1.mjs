@@ -196,7 +196,9 @@ async function readNative(worker){
 async function main(){
   assert(process.env.CHROME_FOR_TESTING_BIN,'Pinned Chrome for Testing required');
   const candidate=await createSidebarToolPackage('examples/sidebar-tools/ai-vip-share');
-  assert.equal(candidate.id,'ai-vip-share');assert.equal(candidate.version,'1.3.3');
+  const config=JSON.parse(await readFile('examples/sidebar-tools/ai-vip-share/tool.config.json','utf8'));
+  assert.equal(candidate.id,'ai-vip-share');assert.equal(candidate.version,config.version,
+    'Candidate version must match same-SHA official tool configuration');
   assert.deepEqual(REVIEWED_MANAGED_PROXY_PROFILES,[]);
   const official=JSON.parse(await readFile(join(PATH,'official-tools/ai-vip-share/ai-vip-share.opendesk-tool.json'),'utf8'));
   assert.equal(serializeSidebarToolPackage(official),serializeSidebarToolPackage(candidate));
