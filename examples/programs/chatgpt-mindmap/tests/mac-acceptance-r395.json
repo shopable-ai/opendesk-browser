@@ -1,0 +1,231 @@
+{
+  "format": "opendesk.chatgpt-mindmap.mac-acceptance-r395.v1",
+  "date": "2026-10-17",
+  "scope": "NON_RELEASE_LICENSE_EVIDENCE_AND_INSTALLED_PARENT_ADMISSION_ONLY",
+  "branch": "main",
+  "startHead": "504a13313ad8634a1f5d0562e3259575490479d9",
+  "integrationBase": "9c0e46d88c04b05f19788344b99d3d1f3bfa76ef",
+  "taskCommitBinding": "CONTAINING_COMMIT_SEE_FINAL_DELIVERY_HEAD",
+  "originMainAtFetch": "82f9e8ae0",
+  "fastForward": "NOT_POSSIBLE_DIVERGED_1_1_AT_START",
+  "pushed": false,
+  "rawEvidenceRoot": "artifacts/chatgpt-mindmap-r395-mac-20261017",
+  "program": {
+    "id": "opendesk.chatgpt-mindmap",
+    "version": "0.2.0",
+    "status": "BUILT_UNVERIFIED",
+    "installable": false,
+    "sourceHash": "7c481de07b813caa472121df15e6601cd97d135afd41bf6b2a70993d4b617f92",
+    "sourceBytes": 58262
+  },
+  "results": {
+    "node": {
+      "pass": 183,
+      "fail": 0,
+      "skip": 0,
+      "scope": "COMPONENT_ONLY"
+    },
+    "syntaxCheckedFiles": 795,
+    "build": {
+      "production": {
+        "status": "PASS_FROZEN_SNAPSHOT_ONLY",
+        "packageHash": "9daf4bd5ee97a91c302c227eb39d7bf750bc4646767091a5f9b5097c502c43c8",
+        "files": 102,
+        "internalSourceDrift": [],
+        "rootDriftAtComparison": [
+          "examples/sidebar-tools/adblock/src/main.js",
+          "scripts/bundle-provenance.mjs"
+        ],
+        "currentRootCompletePackage": "NOT_SAME_INPUTS_NOT_CLAIMED",
+        "native": "NOT_TESTED"
+      },
+      "development": {
+        "status": "PASS_FROZEN_SNAPSHOT_ONLY",
+        "packageHash": "9de0779275c62c6be0d78b6f6617d237a38bd9a82f6ed5a6c8ffbb83fabb7618",
+        "files": 140,
+        "internalSourceDrift": [],
+        "rootDriftAtComparison": [
+          "examples/sidebar-tools/adblock/src/main.js",
+          "scripts/bundle-provenance.mjs"
+        ],
+        "currentRootCompletePackage": "NOT_SAME_INPUTS_NOT_CLAIMED",
+        "native": "NOT_TESTED"
+      }
+    },
+    "license": "BLOCKED_16_VERIFIED_REFERENCES_1_EXACT_UPSTREAM_ARTIFACT",
+    "parentAdmission": "PASS_COMPONENT_63_TESTS",
+    "approvedChildLoader": "BLOCKED",
+    "brokerInstall": "BLOCKED_NOT_TESTED",
+    "installedLifecycle": "NOT_TESTED",
+    "macNewPackage": "NOT_TESTED",
+    "realXmind": "REUSED_R394_FIXTURE_ONLY",
+    "realChatgptAccess": "NATIVE_ANONYMOUS_TEST_PROMPT_RESPONSE_OBSERVED",
+    "realChatgptProduct": "REAL_CHATGPT_NOT_TESTED"
+  },
+  "reuse": {
+    "priorIndex": "tests/mac-acceptance-r394.json",
+    "priorIndexSha256": "43094936faabd248cd6e4eea3f9a3bae09d41e3adf31f8312fc96b9e225f9d04",
+    "result": "PASS_REUSE_INPUTS_AND_RAW_HASHES_ONLY",
+    "sourceInputsChecked": 24,
+    "rawEvidenceChecked": 8,
+    "logsChecked": 15,
+    "doesNotCoverNewFrameworkNative": true
+  },
+  "evidence": [
+    {
+      "file": "artifacts/chatgpt-mindmap-r395-mac-20261017/targeted-tests-final.log",
+      "bytes": 14425,
+      "sha256": "b382ab2d8da9f36b96a76713936557742f24f4a0e63b8568677dc46c7483e162"
+    },
+    {
+      "file": "artifacts/chatgpt-mindmap-r395-mac-20261017/check-source-final.log",
+      "bytes": 208,
+      "sha256": "69c7a32b2bbb11d1730bf800cff39a876152d594d9d93f0e6c2bb4f686342bf6"
+    },
+    {
+      "file": "artifacts/chatgpt-mindmap-r395-mac-20261017/license-audit.json",
+      "bytes": 8213,
+      "sha256": "d818ce4527f532b7794aa799d69c4cc0ad6c436347c421243acc7d6ab2dc861b"
+    },
+    {
+      "file": "artifacts/chatgpt-mindmap-r395-mac-20261017/license-audit.log",
+      "bytes": 6452,
+      "sha256": "04715fd0455284224a73b9346e277d92154e067ca6fce400d23f01632be7e0d4"
+    },
+    {
+      "file": "artifacts/chatgpt-mindmap-r395-mac-20261017/reuse-check.json",
+      "bytes": 13326,
+      "sha256": "f0f579149b9d9988fdb05ac27be17cee68bc3af396a1348a8320c1254bc8932e"
+    },
+    {
+      "file": "artifacts/chatgpt-mindmap-r395-mac-20261017/candidate-reuse-audit.json",
+      "bytes": 1216,
+      "sha256": "39b87f45960eafd22e2212ecb4ea9e22397d3589b71f1d09ee0e00c1eb4d89e7"
+    },
+    {
+      "file": "artifacts/chatgpt-mindmap-r395-mac-20261017/real-chatgpt-observation.json",
+      "bytes": 1481,
+      "sha256": "1df6dd6e6115dff6a40bae7829de0223ddeb5d41a20a7c9399779f84c1acbf8d"
+    },
+    {
+      "file": "artifacts/chatgpt-mindmap-r395-mac-20261017/chatgpt-chrome-launch.json",
+      "bytes": 861,
+      "sha256": "0e8163f5480d6c5e3619f1fdcbec29eff548896fb3dd50d775f853a8d6218c3b"
+    },
+    {
+      "file": "artifacts/chatgpt-mindmap-r395-mac-20261017/snapshot-identity.json",
+      "bytes": 133360,
+      "sha256": "881538c33baa866417f072399818c251882e74ce557e9f30f514c3d6a15a31ce"
+    },
+    {
+      "file": "artifacts/chatgpt-mindmap-r395-mac-20261017/build-results.json",
+      "bytes": 218,
+      "sha256": "bc253711f0b127ddc48b00989a2574756672aa38d56d2fc4ce785fbf011bf992"
+    },
+    {
+      "file": "artifacts/chatgpt-mindmap-r395-mac-20261017/build-production.log",
+      "bytes": 20032,
+      "sha256": "c3470f2dbabda91e845baba39745ad91fa266bc7588a3037d6e3aeedc1e2eb37"
+    },
+    {
+      "file": "artifacts/chatgpt-mindmap-r395-mac-20261017/build-development.log",
+      "bytes": 24953,
+      "sha256": "3c6ca87840c01aef6a9f3b8b126c5cfaaebf56718d42e06abb8aa436358ac491"
+    },
+    {
+      "file": "artifacts/chatgpt-mindmap-r395-mac-20261017/build-receipts/build-production.json",
+      "bytes": 514386,
+      "sha256": "8303c3bce10e9c8a593b01a155f8cbd826866a94df28bd95866784d8512c6827"
+    },
+    {
+      "file": "artifacts/chatgpt-mindmap-r395-mac-20261017/build-receipts/build-development.json",
+      "bytes": 536356,
+      "sha256": "7d1bfc36a806e3956c51de3c273a8663c14915eca92780d4341f6698bb2b9079"
+    },
+    {
+      "file": "artifacts/chatgpt-mindmap-r395-mac-20261017/package-verify-production.json",
+      "bytes": 20235,
+      "sha256": "a939f177a9db87f8718b17d91dbbd212a2a2354a2d86408e4eb29ce63b02ca49"
+    },
+    {
+      "file": "artifacts/chatgpt-mindmap-r395-mac-20261017/package-verify-development.json",
+      "bytes": 25193,
+      "sha256": "460892f12a18d0bf463b5ff0cc782facd856b2a6ce2e4e877cce8245c76d3546"
+    },
+    {
+      "file": "artifacts/chatgpt-mindmap-r395-mac-20261017/production-root-input-comparison.json",
+      "bytes": 238,
+      "sha256": "f1f290b8252fa2f8e4e8ff9faa8e84bd058448141234f43ed8d8d2f316255cfd"
+    },
+    {
+      "file": "artifacts/chatgpt-mindmap-r395-mac-20261017/development-root-input-comparison.json",
+      "bytes": 238,
+      "sha256": "f1f290b8252fa2f8e4e8ff9faa8e84bd058448141234f43ed8d8d2f316255cfd"
+    },
+    {
+      "file": "artifacts/chatgpt-mindmap-r395-mac-20261017/targeted-inputs.json",
+      "bytes": 5218,
+      "sha256": "f3e92405e0ef37373d120f8409409efba92f689b9726d6c01eef22b7022328dd"
+    },
+    {
+      "file": "artifacts/chatgpt-mindmap-r395-mac-20261017/independent-review.json",
+      "bytes": 695,
+      "sha256": "64f506a782e8db9d4d07dd713554949f99da43cef09fe5db3cfa85a42f472aad"
+    },
+    {
+      "file": "artifacts/chatgpt-mindmap-r395-mac-20261017/license-research/capture-20261016T182403Z/capture-manifest.json",
+      "bytes": 21567,
+      "sha256": "471236e1146ca38f6b4b05d95c8e75aa2d3601f832d805fce3666afcb097a065"
+    },
+    {
+      "file": "artifacts/chatgpt-mindmap-r395-mac-20261017/license-research/capture-20261016T182403Z/integrity.json",
+      "bytes": 2471,
+      "sha256": "83061d8b756cbe97736792fd4ed57e60b19176a1166c1640262c8b619e14ed92"
+    }
+  ],
+  "independentReview": {
+    "agentId": "01a145f9-cccf-7dc2-944e-a1d04cde25e8",
+    "scope": "R395_PATCH_STATIC_REVIEW_AND_EVIDENCE_INSPECTION",
+    "findingCountP0P1P2": 0,
+    "testsExecutedByReviewer": false,
+    "scores": {
+      "XMind": null,
+      "visual": null,
+      "content": null,
+      "isolation": null,
+      "interaction": null,
+      "code": 94,
+      "securityPrivacy": 94,
+      "performanceLifecycle": null,
+      "formalInstallation": null,
+      "nativeVerification": null
+    },
+    "overall": "NOT_SCORED",
+    "note": "Independent reviewer also inspected R395 report and found no evidenced P0-P2 overclaim; only code/security scored94, other eight NOT_SCORED.",
+    "reportStatementsReviewed": true,
+    "reportFindingsP0P1P2": 0
+  },
+  "mm": {
+    "MM-01": "BLOCKED",
+    "MM-02": "PASS_FIXTURE_ISOLATION_ONLY",
+    "MM-03": "BLOCKED",
+    "MM-04": "NOT_TESTED_REAL_CHATGPT",
+    "MM-05": "NOT_TESTED_UNDEFINED_PRIOR_PARTIAL_CONTRACT"
+  },
+  "releaseBlockers": [
+    "Exact polyfill/SDK/Snowbrush upstream mapping and Snowbrush redistribution grant",
+    "Historical GSAP agreement applicability",
+    "Embedded Pako file/version mapping and complete dependency/NOTICE closure",
+    "Approved child loader bound to installation/revision/execution/document and retirement",
+    "Formal install and installed lifecycle acceptance",
+    "Real ChatGPT Mind Map execution and full product acceptance"
+  ],
+  "overall": "NOT_SCORED",
+  "release": "BLOCKED",
+  "failureEvidencePreserved": [
+    "snapshot-incomplete-attempt.txt",
+    "build-production-missing-snapshot-input.log",
+    "build-results-missing-snapshot-input.json",
+    "build-receipts/build-production-failed-1792175396152-16bd74b0-a363-4ce7-9085-786fb3dcda27.json"
+  ]
+}

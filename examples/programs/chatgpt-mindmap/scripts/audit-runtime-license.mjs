@@ -1,13 +1,15 @@
-// Read-only R3.9.3 production admission audit. This is NOT legal approval.
+// Read-only production admission and captured-evidence audit, not legal approval.
 // All four fixed assets are verified against the existing single provenance
 // manifest (length, SHA-256 and Git blob) before license review is reported.
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {dirname,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {verifyFixedXmindAssets} from '../preview/serve.mjs';
+import {verifyLicenseReview} from './verify-license-review.mjs';
 
 const project=fileURLToPath(new URL('../',import.meta.url));
-const manifest=JSON.parse(await readFile(new URL('../tests/xmind-provenance.json',import.meta.url),'utf8'));
+const provenanceBytes=await readFile(new URL('../tests/xmind-provenance.json',import.meta.url));
+const manifest=JSON.parse(provenanceBytes.toString('utf8'));
 const pkg=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8'));
 if(pkg.opendesk?.id!=='opendesk.chatgpt-mindmap'||
    manifest.assets?.length!==4||
@@ -15,6 +17,12 @@ if(pkg.opendesk?.id!=='opendesk.chatgpt-mindmap'||
   throw new Error('E_XMIND_LICENSE_AUDIT_METADATA_DRIFT');
 
 const resources=await verifyFixedXmindAssets();
+// Captured texts and exact upstream comparisons are checked independently of
+// the unchanged production approval fields in the original provenance.
+const reviewPath='tests/xmind-license-review-r395.json';
+const review=JSON.parse(await readFile(resolve(project,reviewPath),'utf8'));
+const evidenceIntegrity=await verifyLicenseReview({review,provenanceBytes,resources,
+  testsRoot:resolve(project,'tests')});
 const required=['upstreamVersion','licenseId','licenseTextSha256','noticeTextSha256',
   'transitiveDependencyLicenses','redistributionRightsEvidence'];
 const files=manifest.assets.map(asset=>{
@@ -25,6 +33,8 @@ const files=manifest.assets.map(asset=>{
   return {name:asset.name,bytes:asset.bytes,sha256:asset.sha256,
     gitBlob:asset.gitBlob,exactBytesVerified:resources.has('/'+asset.name),
     upstreamRevision:manifest.commit,
+    upstreamArtifactMapping:evidenceIntegrity.byteMappings.some(row=>row.asset===asset.name)
+      ?'EXACT_CAPTURED_UPSTREAM_BYTES':'UNPROVEN',
     licenseStatus:missing.length?'BLOCKED_MISSING_EVIDENCE':'PENDING_MANUAL_REVIEW',
     missingEvidence:missing};
 });
@@ -33,6 +43,7 @@ const report={
   scope:'EXACT_GIT_TRACKED_PREVIEW_BYTES_ONLY_NOT_REDISRIBUTION_APPROVAL',
   sourceRepository:manifest.repository,sourceCommit:manifest.commit,sourceDirectory:manifest.path,
   totalBytes:files.reduce((n,row)=>n+row.bytes,0),files,
+  reviewPath,evidenceIntegrity,
   status:files.some(row=>row.missingEvidence.length)?'BLOCKED':'PENDING_MANUAL_REVIEW',
   installable:false,
   redistributionApproved:false,

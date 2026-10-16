@@ -1,4 +1,5 @@
 import {invariant,canonical} from '../protocol.js';
+import {assertPageInstallAuthorization} from '../../scripting/user-scripts/page-install-authorization.js';
 
 // One shared Authority slot, no Page RunHost or invented Controller runId.
 export function createPreviewAdmission({storage,assertHost,currentHost,session}) {
@@ -18,10 +19,20 @@ export function createPreviewAdmission({storage,assertHost,currentHost,session})
       await storage.transaction(['runs','frameworkKV'],'readwrite',async tx=>{
         const grant=await tx.get('frameworkKV','page-installed:'+canonical([installation.namespace,installation.programId]));
         invariant(grant?.tag==='page-installed-v1'&&grant.enabled===true&&
+          grant.namespace===installation.namespace&&grant.programId===installation.programId&&
+          grant.revision===installation.revision&&grant.sourceHash===installation.sourceHash&&
           grant.token===installation.token&&grant.manifestHash===installation.manifestHash&&
           grant.sourceHash===preview.sourceHash,'E_PERMISSION','页面脚本已停用或安装版本已经改变');
+        const authorization=assertPageInstallAuthorization(grant),capturedAuthorization=assertPageInstallAuthorization(installation);
+        invariant(authorization.status==='active'&&capturedAuthorization.status==='active'&&
+          authorization.installationId===capturedAuthorization.installationId&&
+          authorization.generation===capturedAuthorization.generation,
+          'E_PERMISSION','页面脚本安装授权已经改变');
         const execution=await tx.get('frameworkKV',installation.executionKey);
         invariant(execution?.tag==='page-execution-v1'&&execution.state==='prepared'&&
+          execution.executionKey===installation.executionKey&&execution.namespace===grant.namespace&&
+          execution.programId===grant.programId&&execution.revision===grant.revision&&
+          execution.installationId===authorization.installationId&&execution.grantGeneration===authorization.generation&&
           execution.browserSessionIncarnation===session&&execution.installationToken===grant.token&&
           execution.manifestHash===grant.manifestHash&&execution.sourceHash===preview.sourceHash&&
           execution.documentId===preview.documentId&&execution.tabId===preview.tabId,

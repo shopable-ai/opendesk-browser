@@ -1,4 +1,20 @@
-# ChatGPT 思维导图 R3.9.4 · Mac 业务隔离已验证，正式安装仍阻塞
+# ChatGPT 思维导图 R3.9.5 · 许可映射与准入加固，正式安装仍阻塞
+
+## R3.9.5 · 当前结果（2026-10-17）
+
+[许可证据清单](tests/xmind-license-review-r395.json) 现在包含 16 份可离线校验的参考材料，
+其中独立 JSZip 与上游 3.10.1 dist 逐字节一致。GSAP 仅有头部匹配，Pako 仅有文件级许可参考；
+Snowbrush、SDK 精确构建及完整依赖/NOTICE 仍未闭合。审计校验证据完整性，不能批准再分发；
+`--require-approved` 继续拒绝，原 provenance 的批准字段保持不变。
+
+现有正式 Page 父执行槽补强了安装 ID、授权代数、Program/Revision 与执行记录的事务内核对。
+这只是生产子帧加载的安全前置工作；公开 SDK 仍没有获批准的固定子帧资源加载及撤权合同。
+程序仍为 `BUILT_UNVERIFIED / installable:false`。
+
+本轮在独立 Mac CFT 的真实 ChatGPT 匿名会话发送测试提示词，收到含中文、英文、数字、链接及
+三级列表的回复。该观察没有执行 Mind Map，也没有正式安装；真实 ChatGPT 产品验收仍为
+`REAL_CHATGPT_NOT_TESTED`。已有 R3.9.4 真实 XMind fixture 证据按相同业务源码哈希复用。
+完整范围、独立状态与阻塞见 [R3.9.5 验收报告](ACCEPTANCE-R3.9.5.zh-CN.md)。
 
 ## R3.9.4 · 当前边界（2026-10-17）
 

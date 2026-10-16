@@ -94,6 +94,7 @@ function fixture(){
     const row=f.installation(),executionKey='pending-execution',receipt={tag:'page-execution-v1',namespace:host.namespace,
       executionKey,receiptId:'receipt',programId:row.programId,revision:row.revision,manifestHash:row.manifestHash,sourceHash:row.sourceHash,
       browserSessionIncarnation:f.session,installationToken:row.token,tabId:1,documentId:target.documentId,
+      installationId:row.authorization.installationId,grantGeneration:row.authorization.generation,
       state,createdAt:1,receiptNonce:'pending-nonce'};
     await storage.transaction(['frameworkKV','runs'],'readwrite',async tx=>{
       await tx.put('frameworkKV',receipt,executionKey);
