@@ -157,7 +157,9 @@ try{
   // Keep tree visible in edit mode, and avoid dirty alerts for empty creation.
   await setInput(ctx,'bm-search','');
   await until(ctx,"Boolean(document.querySelector('[data-node-id=\"10\"]'))",'folder tree '+width);
-  await invoke(ctx,"document.querySelector('[data-node-id=\"10\"]').click();document.querySelector('.bm-create-actions button').click();return true");
+  await invoke(ctx,"document.querySelector('[data-node-id=\"10\"]').click();return true");
+  await until(ctx,"document.querySelector('.bm-detail-title')?.textContent.includes('设计资料')",'selected target folder before new bookmark '+width);
+  await invoke(ctx,"document.querySelector('.bm-create-actions button').click();return true");
   await until(ctx,"Boolean(document.getElementById('bm-edit-url'))",'new bookmark from selected folder '+width);
   await invoke(ctx,"document.querySelector('.bm-editor-actions button:last-child').click();return true");
   await until(ctx,"!document.querySelector('[data-testid=\"bookmark-editor\"]')",'clean cancel '+width);
@@ -171,7 +173,9 @@ try{
   await until(ctx,"Boolean(document.querySelector('[data-testid=\"confirm-dialog\"]'))",'dirty guard '+width);
   await invoke(ctx,"document.querySelector('[data-testid=\"confirm-dialog\"] button').click();return true");
   assert.equal(await invoke(ctx,"return Boolean(document.querySelector('[data-testid=\"bookmark-editor\"]'))"),true);
-  await invoke(ctx,"document.querySelector('[data-node-id=\"11\"]').click();document.querySelector('[data-testid=\"confirm-dialog\"] button:last-child').click();return true");
+  await invoke(ctx,"document.querySelector('[data-node-id=\"11\"]').click();return true");
+  await until(ctx,"Boolean(document.querySelector('[data-testid=\"confirm-dialog\"]'))",'second dirty guard '+width);
+  await invoke(ctx,"document.querySelector('[data-testid=\"confirm-dialog\"] button:last-child').click();return true");
   await until(ctx,"!document.querySelector('[data-testid=\"bookmark-editor\"]')",'explicit discard '+width);
   // The list menu must be separate from selecting/editing, Escape restores a usable state.
   await setInput(ctx,'bm-search','');
@@ -185,21 +189,29 @@ try{
   if(width===400){
    await invoke(ctx,"globalThis.__opendeskBookmarkMockDiagnostic('extra-folders');document.querySelector('button[aria-label=\"刷新书签\"]').click();return true");
    await until(ctx,"document.querySelector('.bm-heading span')?.textContent.includes('2,289')",'130 more folders');
-   await invoke(ctx,"document.querySelector('[data-node-id=\"100\"]').click();document.querySelector('.bm-inspector-heading .bm-quiet-action').click();return true");
+   await invoke(ctx,"document.querySelector('[data-node-id=\"100\"]').click();return true");
+   await until(ctx,"document.querySelector('.bm-detail-title')?.textContent.includes('OpenDesk 产品资料')",'selected item 100');
+   await invoke(ctx,"document.querySelector('.bm-inspector-heading .bm-quiet-action').click();return true");
    await until(ctx,"Boolean(document.getElementById('bm-edit-name'))",'edit for folder picker');
    await invoke(ctx,"[...document.querySelectorAll('.bm-parent-line button')][0].click();return true");
    await until(ctx,"Boolean(document.getElementById('bm-folder-search'))",'folder picker visible');
    await setInput(ctx,'bm-folder-search','性能文件夹 0130');
    await until(ctx,"document.querySelectorAll('.bm-picker-item').length===1",'folder picker global search 130');
    await screenshot('bookmark-r302-400-picker.png');
-   await invoke(ctx,"document.querySelector('.bm-picker-item').click();document.querySelector('.bm-editor-actions button:last-child').click();return true");
+   await invoke(ctx,"document.querySelector('.bm-picker-item').click();return true");
+   await until(ctx,"document.querySelector('.bm-parent-path')?.textContent.includes('性能文件夹 0130')",'folder selection committed');
+   await invoke(ctx,"document.querySelector('.bm-editor-actions button:last-child').click();return true");
    await until(ctx,"Boolean(document.querySelector('[data-testid=\"confirm-dialog\"]'))",'dirty move cancel guard');
    await invoke(ctx,"document.querySelector('[data-testid=\"confirm-dialog\"] button:last-child').click();return true");
-   await invoke(ctx,"document.querySelector('[data-node-id=\"100\"] .bm-row-more').click();document.querySelector('[data-testid=\"action-menu\"] button:last-child').click();return true");
+   await invoke(ctx,"document.querySelector('[data-node-id=\"100\"] .bm-row-more').click();return true");
+   await until(ctx,"Boolean(document.querySelector('[data-testid=\"action-menu\"]'))",'menu mounted for delete');
+   await invoke(ctx,"document.querySelector('[data-testid=\"action-menu\"] button:last-child').click();return true");
    await until(ctx,"Boolean(document.querySelector('[data-testid=\"confirm-dialog\"]'))",'delete confirm');
    await invoke(ctx,"document.querySelector('[data-testid=\"confirm-dialog\"] button:first-child').click();return true");
    // Error injection must retain the edited draft and report a genuine failure.
-   await invoke(ctx,"document.querySelector('[data-node-id=\"100\"]').click();document.querySelector('.bm-inspector-heading .bm-quiet-action').click();return true");
+   await invoke(ctx,"document.querySelector('[data-node-id=\"100\"]').click();return true");
+   await until(ctx,"document.querySelector('.bm-detail-title')?.textContent.includes('OpenDesk 产品资料')",'selected 100 for failure');
+   await invoke(ctx,"document.querySelector('.bm-inspector-heading .bm-quiet-action').click();return true");
    await until(ctx,"Boolean(document.getElementById('bm-edit-name'))",'edit before failure');
    await setInput(ctx,'bm-edit-name','失败的模拟草稿');
    await invoke(ctx,"globalThis.__opendeskBookmarkMockDiagnostic('write-fail');document.querySelector('[data-testid=\"bookmark-save\"]').click();return true");
