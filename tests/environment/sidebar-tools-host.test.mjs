@@ -175,7 +175,16 @@ test('Final R2 request throttling returns an error and recovers after its time w
 
 class Node {
   constructor(tag='div'){this.tag=tag;this.children=[];this.listeners=new Map();this.hidden=false;
-    this.dataset={};this.attributes=new Map();this.contentWindow=tag==='iframe'?{sent:[],postMessage(message){this.sent.push(message);}}:undefined;}
+    this.dataset={};this.attributes=new Map();this.className='';
+    // Mirror native classList.toggle for trusted host settings in this DOM double.
+    this.classList={toggle:(name,force)=>{
+      const names=new Set(this.className.split(/\\s+/).filter(Boolean));
+      const add=force===undefined?!names.has(name):Boolean(force);
+      if(add)names.add(name);else names.delete(name);
+      this.className=[...names].join(' ');
+      return add;
+    }};
+    this.contentWindow=tag==='iframe'?{sent:[],postMessage(message){this.sent.push(message);}}:undefined;}
   addEventListener(type,fn){const items=this.listeners.get(type)||[];items.push(fn);this.listeners.set(type,items);}
   removeEventListener(type,fn){this.listeners.set(type,(this.listeners.get(type)||[]).filter(item=>item!==fn));}
   emit(type,event={}){for(const fn of this.listeners.get(type)||[])fn(event);}
