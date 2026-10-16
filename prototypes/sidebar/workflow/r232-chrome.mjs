@@ -166,22 +166,31 @@ try{
   assert.equal(await page.locator('#r23-native-status').isVisible(),true);
   await shot('r236-settings-local');
 
-  const sourceGap=await page.evaluate(()=>{
-    const label=document.getElementById('r236-source-title').getBoundingClientRect();
-    const switchBox=document.querySelector('.r236-switch').getBoundingClientRect();
-    const device=document.querySelector('.device').getBoundingClientRect();
-    return {gap:switchBox.left-label.right,right:switchBox.right,deviceRight:device.right,
+  const nativeLayout=await page.evaluate(()=>{
+    const rect=q=>document.querySelector(q).getBoundingClientRect();
+    const heading=rect('#r236-source-title'),slider=rect('.r236-switch'),
+      card=rect('#r23-local-config'),body=rect('#r234-body'),
+      details=rect('.r238-native-state'),action=rect('#r23-local-config button');
+    return {
+      sourceLeftAligned:Math.abs(heading.left-slider.left)<=2,
+      sourceVerticalGap:slider.top-heading.bottom,
+      switchWidth:slider.width,
+      contentWidth:body.width,
+      cardInside:card.left>=body.left+9&&card.right<=body.right-9,
+      cardWidth:card.width,
+      statusAligned:Math.abs((details.top+details.bottom)/2-(action.top+action.bottom)/2),
+      statusVisible:details.width>90&&action.width>=64,
       choices:document.querySelectorAll('.r236-switch input[type=radio]').length,
-      switchWidth:switchBox.width,deviceRightInset:device.right-switchBox.right,
-      rowRightInset:document.querySelector('.r236-source-row').getBoundingClientRect().right-switchBox.right};
+      title:document.querySelector('.r238-native-title').textContent.trim()
+    };
   });
-  assert.ok(sourceGap.gap>=4&&sourceGap.gap<=16,'excess blank space between source label and selector');
-  assert.ok(sourceGap.right<=sourceGap.deviceRight,'source selector overflows sidebar');
-  assert.equal(sourceGap.choices,2,'only Native and HTTPS mode choices');
-  assert.ok(sourceGap.switchWidth>=170&&sourceGap.switchWidth<=202,'switch must occupy a small area');
-  assert.ok(sourceGap.rowRightInset>=-1&&sourceGap.rowRightInset<=1,
-    'source control must align to right edge of settings content');
-  assert.ok(sourceGap.deviceRightInset>=8&&sourceGap.deviceRightInset<=25);
+  assert.equal(nativeLayout.choices,2,'preserve two radio sources');
+  assert.ok(nativeLayout.sourceLeftAligned,'source heading and choices share an alignment origin');
+  assert.ok(nativeLayout.sourceVerticalGap>=6&&nativeLayout.sourceVerticalGap<=15,'source label must sit directly above the choices');
+  assert.ok(nativeLayout.switchWidth>=235&&nativeLayout.switchWidth<=252,'source selector must be compact');
+  assert.ok(nativeLayout.cardInside&&nativeLayout.cardWidth>=300,'native controls must form one coherent row');
+  assert.ok(nativeLayout.statusAligned<=6&&nativeLayout.statusVisible,'native status and check action vertically aligned');
+  assert.equal(nativeLayout.title,'本机连接');
   await page.locator('#r236-native').focus();
   await page.locator('#r236-native').press('ArrowRight');
   assert.equal(await page.locator('#r236-https').isChecked(),true,'native segmented radio keyboard ArrowRight');
@@ -195,7 +204,7 @@ try{
   assert.equal(await page.locator('#r23-api-key').getAttribute('type'),'password');
   assert.ok((await page.locator('#r236-protocol-note').innerText()).includes('Responses'));
   await shot('r236-https-default');
-  mark('segmented source gap <=16px, native radio keyboard, default OpenAI endpoint');
+  mark('native provider card and coherent left-aligned source controls; keyboard radio and default HTTPS');
 
   await page.locator('[data-action="simulate-config"]').click();
   assert.equal(await page.locator('#r234-feedback').getAttribute('data-kind'),'error');
@@ -359,47 +368,54 @@ try{
   }
   mark('responsive 360/420/520 light/dark screenshots');
 
-  // R23.6: source label is next to the segmented switch at all three sidebar widths.
+  // R23.8: both the short Native view and the full HTTPS form use one visual rail.
   for(const width of ['360','420','520']){
     await page.locator('#r23-width').selectOption(width);
     await page.locator('#settings').click();
+    const nativeGeo=await page.evaluate(()=>{
+      const a=document.querySelector('#r23-native-status').getBoundingClientRect(),
+        b=document.querySelector('#r23-local-config button').getBoundingClientRect(),
+        card=document.querySelector('#r23-local-config').getBoundingClientRect();
+      return{inside:card.left<=a.left&&card.right>=b.right,
+        verticallyAligned:Math.abs((a.top+a.bottom)/2-(b.top+b.bottom)/2)<17};
+    });
+    assert.ok(nativeGeo.inside&&nativeGeo.verticallyAligned,'Native status card has a coherent layout at '+width);
+    await shot('r238-native-'+width);
     await page.locator('#r236-https').check();
     await page.locator('#r23-api-key').scrollIntoViewIfNeeded();
     const g=await page.evaluate(()=>{
-      const d=document.querySelector('.device').getBoundingClientRect();
-      const p=document.querySelector('#r23-settings-panel').getBoundingClientRect();
-      const field=document.querySelector('#r23-api-key').getBoundingClientRect();
-      const source=document.querySelector('#r236-source-title').getBoundingClientRect();
-      const slider=document.querySelector('.r236-switch').getBoundingClientRect();
-      const endpointRow=document.querySelector('#r23-endpoint').closest('.r236-input-action').getBoundingClientRect();
-      const protocolNote=document.querySelector('#r236-protocol-note').getBoundingClientRect();
-      const rightAlignedLabels=[...document.querySelectorAll('#r23-remote-config .r234-field label')].every(label=>
-        getComputedStyle(label).textAlign==='right');
+      const d=document.querySelector('.device').getBoundingClientRect(),
+        p=document.querySelector('#r23-settings-panel').getBoundingClientRect(),
+        body=document.querySelector('#r234-body').getBoundingClientRect(),
+        field=document.querySelector('#r23-api-key').getBoundingClientRect(),
+        heading=document.querySelector('#r236-source-title').getBoundingClientRect(),
+        slider=document.querySelector('.r236-switch').getBoundingClientRect(),
+        endpoint=document.querySelector('#r23-endpoint').closest('.r236-input-action').getBoundingClientRect(),
+        note=document.querySelector('#r236-protocol-note').getBoundingClientRect();
       const rows=[...document.querySelectorAll('#r23-remote-config .r234-field')].map(row=>{
         const a=row.querySelector('label').getBoundingClientRect(),
           b=(row.querySelector('.r234-secret')||row.querySelector('.r236-input-action')||row.querySelector('input')).getBoundingClientRect();
-        return{aligned:Math.abs((a.top+a.bottom)/2-(b.top+b.bottom)/2)<7,
-          within:b.left>=p.left-1&&b.right<=p.right+1};
+        return{labelAbove:a.bottom<b.top-4,
+          sameRail:Math.abs(a.left-b.left)<=2&&Math.abs(b.left-body.left-20)<=3,
+          visible:b.left>=p.left-1&&b.right<=p.right+1};
       });
-      return{panelWidth:p.width,deviceWidth:d.width,panelHeight:p.height,deviceHeight:d.height,
-        fieldInside:field.left>=p.left-1&&field.right<=p.right+1,sourceGap:slider.left-source.right,
-        protocolAligned:Math.abs(protocolNote.left-endpointRow.left)<=2,
-        rightAlignedLabels,sliderWidth:slider.width,
-        rightInset:document.querySelector('.r236-source-row').getBoundingClientRect().right-slider.right,
-        switchInside:slider.right<=p.right+1,rows,noDocOverflow:document.documentElement.scrollWidth<=innerWidth+1};
+      return{
+        panelFits:Math.abs(p.width-d.width)<=2&&Math.abs(p.height-d.height)<=2,
+        sliderLeftAligned:Math.abs(heading.left-slider.left)<=2,
+        sourceGap:slider.top-heading.bottom,sliderWidth:slider.width,
+        protocolAligned:Math.abs(note.left-endpoint.left)<=2,
+        fieldVisible:field.left>=p.left&&field.right<=p.right,
+        pageNoOverflow:document.documentElement.scrollWidth<=innerWidth+1,rows};
     });
-    assert.ok(Math.abs(g.panelWidth-g.deviceWidth)<=2&&Math.abs(g.panelHeight-g.deviceHeight)<=2);
-    assert.ok(g.fieldInside&&g.switchInside&&g.noDocOverflow);
-    assert.equal(g.protocolAligned,true,'protocol hint must line up with endpoint value');
-    assert.ok(g.sourceGap>=4&&g.sourceGap<=16,'wide gap between source and selector at '+width);
-    assert.ok(g.sliderWidth>=170&&g.sliderWidth<=202&&Math.abs(g.rightInset)<=1,
-      'source toggle must be compact and right aligned at '+width);
-    assert.equal(g.rightAlignedLabels,true,'fields need consistently right-aligned labels at '+width);
-    assert.ok(g.rows.every(x=>x.aligned&&x.within),'compact field alignment at '+width);
-    await shot('r236-settings-'+width);
+    assert.ok(g.panelFits&&g.fieldVisible&&g.pageNoOverflow,'settings route must fit at '+width);
+    assert.ok(g.sliderLeftAligned&&g.sourceGap>=6&&g.sourceGap<=15,'label and source selector must be stacked at '+width);
+    assert.ok(g.sliderWidth>=235&&g.sliderWidth<=252,'source toggle width at '+width);
+    assert.equal(g.protocolAligned,true,'protocol hint belongs below the endpoint at '+width);
+    assert.ok(g.rows.every(x=>x.labelAbove&&x.sameRail&&x.visible),'stacked full-width inputs at '+width);
+    await shot('r238-https-'+width);
     await page.locator('#r234-back').click();
   }
-  mark('R23.6 360/420/520 responsive source spacing and field alignment');
+  mark('R23.8 Native status card and HTTPS vertical fields share one rail at 360/420/520');
   // Source-identical HTML is injected as srcdoc: isolate sandbox scripting separately
   // from file:// Chromium PASS. This does NOT prove the ChatGPT UI itself runs scripts.
   const embedded=await browser.newPage({viewport:{width:1100,height:850}});
@@ -426,7 +442,7 @@ try{
   assert.deepEqual(errors,[]);
   const report={status:'PREVIEW_CHROMIUM_PASS',scope:'R23.4 simulated DOM and scripted sandbox iframe; NOT the ChatGPT host, real AI provider, Chrome permission, Mac IME or RunHost',head,gitBlobSha:blob,sha256:hash,
     chromiumVersion:browser.version(),checks,errors,screenshots,independentUxScore:'NOT_SCORED'};
-  console.log('R234_SOURCE_BOUND_CHROMIUM_PASS '+checks.length);
+  console.log('R238_SOURCE_BOUND_CHROMIUM_PASS '+checks.length);
   await writeFile(resolve(out,'r232-evidence.json'),JSON.stringify(report,null,2));
 }catch(error){
   const report={status:'PREVIEW_CHROMIUM_FAIL',scope:'R23.4 offline HTML',head,gitBlobSha:blob,sha256:hash,error:String(error?.stack||error),checks,errors,screenshots,chromiumVersion:browser.version()};
