@@ -145,7 +145,13 @@ try{
   await setInput(ctx,'bm-edit-name','模拟书签 2152 · React 更新');
   await setInput(ctx,'bm-edit-url','https://example.org/react-2152');
   await invoke(ctx,"document.querySelector('.bm-editor-actions button[type=\"submit\"]').click();return true");
-  await until(ctx,"document.querySelector('.bm-detail-title')?.textContent.includes('React 更新')",'confirmed write readback '+width);
+  try{
+   await until(ctx,"document.querySelector('.bm-detail-title')?.textContent.includes('React 更新')",'confirmed write readback '+width);
+  }catch(failure){
+   const diag=await invoke(ctx,"return {error:document.querySelector('.bm-error')?.textContent,notice:document.querySelector('.bm-notice')?.textContent,editor:document.querySelector('[data-testid=\"bookmark-editor\"]')?.outerHTML?.slice(0,900),detail:document.querySelector('.bm-detail-title')?.textContent,formName:document.getElementById('bm-edit-name')?.value,formUrl:document.getElementById('bm-edit-url')?.value,selected:document.getElementById('bm-inspector-id')?.textContent,search:document.getElementById('bm-search')?.value};");
+   await screenshot('bookmark-r302-'+width+'-save-failure.png');
+   throw Error(failure.message+'; DOM_DIAGNOSTIC='+JSON.stringify(diag));
+  }
   assert.equal(await invoke(ctx,"return document.querySelector('.bm-detail-url')?.textContent.includes('https://example.org/react-2152')"),true);
   await screenshot('bookmark-r302-'+width+'-detail.png');
   // Keep tree visible in edit mode, and avoid dirty alerts for empty creation.
