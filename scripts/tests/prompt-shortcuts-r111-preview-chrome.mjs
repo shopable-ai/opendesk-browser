@@ -162,7 +162,9 @@ async function run(){
   assert.equal(await evalChrome('document.querySelector("#hostToolTitle").textContent'),"新建提示词");
   assert.equal(await evalChrome('document.querySelector("#quotaMeter").hidden'),true);
   await shot('new-minimal-360px');
-  await evalChrome('(()=>{const f=document.querySelector("#promptBody");f.value="a".repeat(7000);f.dispatchEvent(new Event("input",{bubbles:true}));})()');
+  // Use the actual serialized library size rather than assuming N characters equals N stored bytes.
+  const nearLength=await evalChrome('(()=>{const f=document.querySelector("#promptBody"),m=document.querySelector("#quotaMeter");for(let size=3000;size<8200;size+=64){f.value="a".repeat(size);f.dispatchEvent(new Event("input",{bubbles:true}));if(!m.hidden&&!m.classList.contains("error"))return size;}throw Error("No valid near-limit state before 8 KiB");})()');
+  assert.equal(typeof nearLength,'number');
   assert.equal(await evalChrome('!document.querySelector("#quotaMeter").hidden'),true);
   assert.equal(await evalChrome('document.querySelector("#quotaLabel").textContent'),"空间接近上限");
   assert.equal(await evalChrome('document.querySelector("#quotaValue").textContent.startsWith("剩余 ")'),true);
