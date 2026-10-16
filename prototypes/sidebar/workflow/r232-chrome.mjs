@@ -304,7 +304,7 @@ try{
   await frame.locator('#prompt').fill('给我一个亿的项目');
   await frame.locator('.send-btn').click();
   await frame.locator('[data-action="clarify-fill"]').click({timeout:10000});
-  await frame.locator('#r23-name').waitFor();
+  await frame.locator('#r23-readback').filter({hasText:'给我一个亿的项目'}).waitFor({timeout:10000});
   await frame.locator('#prompt').fill('把刚才的内容改成：项目已启动');
   await frame.locator('.send-btn').click();
   await frame.locator('#r23-readback').filter({hasText:'项目已启动'}).waitFor({timeout:10000});
