@@ -18,7 +18,8 @@ test('pinned ReactDOM input tracker uses the instance prototype without dynamic 
   assert.match(output,/Object\.getOwnPropertyDescriptor\(Object\.getPrototypeOf\(node\), valueField\)/);
   assert.doesNotMatch(output,/\.constructor/);
   assert.deepEqual(inspectScript(output,'ui/tool-shell.js'),{approvedAsyncBodyConstructors:0});
-  assert.equal(replace(source,modulePath.replace('production','development')),output);
+  // The development tracker has a separate, reviewed source shape.
+  assert.throws(()=>replace(source,modulePath.replace('production','development')),/drift/);
 });
 
 test('only the pinned client module in the trusted shell can receive the transform',()=>{
