@@ -89,6 +89,15 @@
   }
   void refresh();
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)void refresh();});
-  window.addEventListener('focus',()=>void refresh());
+  // Chrome focuses the opaque iframe when the user first targets a restore
+  // button. A synchronous refresh replaces the button before its click is
+  // delivered, breaking pointer and keyboard access. Keep authority readback
+  // on background focus, but never invalidate an actively focused action.
+  window.addEventListener('focus',()=>{
+    queueMicrotask(()=>{
+      if(root.querySelector('.adblock-restore:focus'))return;
+      void refresh();
+    });
+  });
   setInterval(()=>{if(!document.hidden)void refresh();},12000);
 })();
