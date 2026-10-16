@@ -25,6 +25,12 @@ assert.doesNotMatch(app, /document\.createElement|innerHTML|replaceChildren|chro
 assert.match(app, /React\.createRoot/);
 assert.match(app, /React\.useState/);
 assert.match(htm, /OpenDeskPreviewHTM/);
+assert.ok(src.includes('src/ui/design-tokens.css'));
+assert.ok(src.includes('src/ui/design-system.css'));
+assert.ok(app.includes('od-surface') && app.includes('od-icon-button'));
+assert.ok(app.includes('React.useRef'));
+assert.ok(existsSync(join(root,'src/ui/design-tokens.css')));
+assert.ok(existsSync(join(root,'src/ui/design-system.css')));
 assert.ok(existsSync(join(preview, 'vendor/LICENSE-htm.txt')));
 assert.ok(existsSync(join(root, 'src/libs/page-frameworks/react-LICENSE.txt')));
 assert.equal(createHash('sha256').update(readFileSync(reactFile)).digest('hex'), reactHash);
@@ -179,8 +185,33 @@ try {
   await click('settings-allowlist');
   assert.equal(await evaluate('document.querySelector("#allow-rows strong")?.textContent'),'video.example.com');
   await evaluate('document.querySelector("#allowlist .back").click()');
+  assert.equal(await evaluate('!!document.querySelector("#settings .page-heading")'),true,
+    'Back must restore the Settings origin');
+  assert.equal(await evaluate('document.activeElement?.id'),'settings-allowlist',
+    'Back must restore focus to origin action');
+  await evaluate('document.querySelector("#settings .back").click()');
   await query('document.getElementById("site-host")?.textContent','chrome://settings');
+  assert.equal(await evaluate('document.activeElement?.id'),'open-settings');
   console.log('04 NAVIGATION_RESTRICTED_PASS');
+  async function selectScenario(value) {
+    await evaluate('(()=>{const e=document.getElementById("scenario-select");e.value='+JSON.stringify(value)+';e.dispatchEvent(new Event("change",{bubbles:true}));return true})()');
+  }
+  await selectScenario('error');
+  await query('document.getElementById("scenario-notice")?.getAttribute("role")','alert');
+  assert.equal(await evaluate('document.getElementById("global-switch").disabled'),true);
+  assert.equal(await evaluate('document.getElementById("blocked-count").textContent'),'—');
+  await click('scenario-retry');
+  await query('document.getElementById("scenario-notice")===null',true);
+  await selectScenario('permission-denied');
+  assert.equal(await evaluate('document.getElementById("site-switch").disabled'),true);
+  await selectScenario('untrusted');
+  assert.equal(await evaluate('document.querySelector("#scenario-notice img")===null'),true);
+  assert.equal(await evaluate('document.querySelector("#scenario-notice")?.textContent.includes("<img src=x")'),true);
+  await selectScenario('loading');
+  assert.equal(await evaluate('document.getElementById("scenario-retry")===null'),true);
+  await selectScenario('ready');
+  await query('document.getElementById("global-switch").disabled',false);
+  console.log('04B ERROR_PERMISSION_UNTRUSTED_LOADING_PASS');
   await click('theme-button');
   assert.equal(await evaluate('document.querySelector(".stage").classList.contains("night")'),true);
   await selectDomain('video.example.com');
@@ -218,6 +249,11 @@ try {
   const replicaRuntime=join(sandbox,'src/libs/page-frameworks/react-19.2.0.js');
   mkdirSync(dirname(replicaRuntime),{recursive:true});
   copyFileSync(reactFile,replicaRuntime);
+  for (const relative of ['src/ui/design-tokens.css','src/ui/design-system.css']) {
+    const destination=join(sandbox,relative);
+    mkdirSync(dirname(destination),{recursive:true});
+    copyFileSync(join(root,relative),destination);
+  }
   const isolated=pathToFileURL(join(replica,'index.html')).href;
   await send('Page.navigate',{url:isolated});
   await query('document.getElementById("global-switch")?.getAttribute("aria-checked")','true');
