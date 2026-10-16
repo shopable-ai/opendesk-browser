@@ -748,7 +748,6 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         record?.origins?.includes(CHATGPT_ORIGIN)&&record?.activeActions?.length);
       promptNativeAction.textContent=contextActive?'关闭右键快捷添加':'启用右键快捷添加';
       promptNativeAction.setAttribute('aria-pressed',String(contextActive));
-      promptNativeAction.classList.add('ps-host-switch');
       promptNativeAction.setAttribute('role','switch');
       promptNativeAction.setAttribute('aria-label','选中文字快速添加');
       promptNativeAction.setAttribute('aria-checked',String(contextActive));
@@ -768,7 +767,6 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     fullBookmarkButton.setAttribute('aria-pressed',String(hasFullBookmarkConsent));
     removeButton.hidden=readOnlyPreview;if(openTabButton)openTabButton.hidden=readOnlyPreview;
     if(enableButton){enableButton.textContent=promptSettings?'':isToc?tocText(enabled?'disable':'enable'):enabled?'停用工具':'启用工具';enableButton.disabled=busy||enableReadError;
-      enableButton.classList.toggle('ps-host-switch',promptSettings);
       enableButton.setAttribute('role',promptSettings?'switch':'button');
       enableButton.setAttribute('aria-label',promptSettings?'启用工具':enableButton.textContent);
       if(promptSettings)enableButton.setAttribute('aria-checked',String(enabled));else enableButton.removeAttribute('aria-checked');
@@ -2432,8 +2430,12 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       promptWebButtons=nextValue;promptWebChanged=true;notice(nextValue?'网页快捷按钮已开启':'网页快捷按钮已关闭，提示词仍保留');
     }catch(error){
       notice((error?.code||'E_STORAGE')+'：'+(error?.message||error),true);
-      try{if(!disposed&&active&&samePackage(active,tool))promptWebButtons=await readPromptWebButtons();}
-      catch{promptWebButtons=null;}
+      try{if(!disposed&&active&&samePackage(active,tool)){
+        const observed=await readPromptWebButtons();
+        if(observed!==expected)promptWebChanged=true;
+        promptWebButtons=observed;
+      }}
+      catch{promptWebButtons=null;promptWebChanged=true;}
     }finally{promptWebPending=false;render();}
   }
   if(promptWebAction)listen(promptWebAction,'click',event=>void changePromptWebButtons(event));

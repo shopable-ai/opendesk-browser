@@ -63,6 +63,7 @@ test('R2.5 formal UI keeps six square icons and delegated Host switch ownership'
   for(const id of ['sidebar-tool-enable','sidebar-tool-prompt-web-action','sidebar-tool-prompt-native-action'])
     assert.match(hostHtml,new RegExp('id="'+id+'"'));
   assert.match(hostCss,/\.ps-host-switch\[aria-checked="true"\]/);
+  assert.doesNotMatch(hostSource,/classList\.(?:add|toggle)\('ps-host-switch'/,'Host switches use fixed trusted markup; no dynamic class required');
   assert.match(hostSource,/locked\('tool:'\+PROMPT_ID,async\(\)=>/);
   assert.match(hostSource,/writeVerifiedLocalValue\(api,namespace,next,raw/);
   assert.match(hostSource,/promptWebChanged=true/);
