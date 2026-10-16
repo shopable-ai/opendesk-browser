@@ -232,6 +232,9 @@ try{
   await poll('window.__railRoot?.querySelector(".item")?.isConnected','richtext rule mounted');
   const richChecked=await evaluate('window.__send("prompt.page.check",{rule:{...window.__rule,editorSelector:'+JSON.stringify(richPick.data.selector)+'}})');
   assert.equal(richChecked.data.editorType,'richtext');
+  // The previous single-line clipboard fallback used this same prompt ID.
+  // The trusted 700ms double-click guard must finish before a new user journey.
+  await sleep(825);
   await clickJS('window.__railRoot.querySelector(".item")');
   await poll('window.__richInputs>0','native contenteditable input event');
   await sleep(420);
