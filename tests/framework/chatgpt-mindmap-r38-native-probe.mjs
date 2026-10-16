@@ -289,7 +289,7 @@ try{
   // These audited-but-unlicensed vendor files exist ONLY in this disposable
   // test copy. This is not a production resource approval or broker install.
   const fileBackedId='opendesk-r39-temporary-file-backed-xmind';
-  const autoSource=source+'\\n;main().catch(error => {document.documentElement.dataset.odmmAutoError=String(error?.code||error?.message||error);});';
+  const autoSource=source+'\n;main().catch(error => {document.documentElement.dataset.odmmAutoError=String(error?.code||error?.message||error);});';
   await native(async({fileBackedId,worldId,js,autoSource})=>{
     await chrome.userScripts.register([{
       id:fileBackedId,matches:['https://chatgpt.com/*'],excludeMatches:[],
