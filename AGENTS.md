@@ -12,11 +12,13 @@ YOU ARE AN AUTONOMOUS CODING AGENT. EXECUTE AUTHORIZED TASKS TO COMPLETION WITHO
 
 已有非 `main` 分支允许只读核查。仅在用户明确要求合并/清理时，将应保留的变更安全合入 `main`，确认不丢失独有提交后再删除多余分支。绝不为“只保留主分支”而直接删除未合并工作；禁止强推、破坏性 reset/clean、覆盖并行工作。提交与推送仍遵守当前任务的授权边界。
 
-## React UI 共享组件与自定义 UI 零退化（2026-10-16）
+## React UI 共享组件与自定义 UI 零退化（2026-10-16，R33.1）
 
-**仅适用于浏览器/Side Panel React UI 组件化、React Sidebar Tool 接入或相关框架修改。** 最新产品目标是让正式可信扩展 UI 和用户自定义 React 工具按需复用成熟、可访问、统一视觉的 React 组件；不是仅证明 React 能编译，也不是强制所有页面/工具迁移 React。**同等最高优先级 P0：零退化保护** HTML/CSS/JS、React JSX、Vue SFC、Side Panel「开发」的编辑/编译/预览/运行/保存/Stop、本地项目、旧 Sidebar Tool 的构建/导入/安装/更新/SDK/已安装数据；新增 React 只能作为可选依赖。任何旧功能 FAIL 都阻断本轮完成，不得以新 React 构建 PASS 抵消。
+**本轮产品 P0 是五个可信 Side Panel Tab 最终统一 React 工作台**，优先「开发」「扩展」，再「工作流」「我的」「云控」；阶段性分模块迁移不等于最终长期保留两套 UI。UI 组件首选评估 shadcn/ui（React Aria base）+ Tailwind v4 + 既有 OpenDesk Tokens，须先以真实依赖、CSS scope、交互/焦点和构建体积确认，再实施正式可信 UI；不是仅创建 Starter/组件包或重写 Browser SDK/Host。
 
-共享的是 UI **源码/视觉合同**，不是权限与运行世界。沿用现有 Design Tokens、WXT/Vite、Standard/Developer 双版编译边界和唯一 Sandbox/Host/SDK/打包器；禁止第二套基础设施、运行时 CDN、宿主 CSS/特权泄漏及为 UI 库盲目放宽包预算。R32.8「不建公共组件包」仅是旧阶段审计结论，**不得再把它当成对两个实际消费者共享 React UI 的否决**；具体路径和成熟控件方案依真实消费者及验证选择。独立质量评分目标每项 ≥95，未获同候选 Chromium 证据标记 NOT_TESTED。**唯一 R33 产品/架构决策与门禁入口**：[React UI 共享组件与零退化合同](docs/architecture/react-ui-shared-components-r33.zh-CN.md)。
+**并列 P0 是用户自定义 UI 零退化，重点是「原有工具不改」而非「所有旧工具改为 React」。** HTML/CSS/JS、Vue、React 原工具与示例保持原状，继续可安装/运行/更新并调用原 SDK；`开发` 的编辑/编译/预览/运行/保存/Stop 与 Standard/Developer 路径保留。新 React 组件只对需要的消费者可选，旧 HTML/Vue 示例不迁移、不增加 React/样式依赖、不改身份/数据/正式包；**只做受影响范围的定向兼容测试，失败才最小修复**。不将用户动态 iframe JS 提权到可信 React 页面。独立完整页面的 UI 重设计为 P2；已有标签页打开工具继续可用。
+
+继续使用现有 WXT/Vite、唯一 Tokens、原 Sandbox/Host/SDK/安装器和安全构建边界；不创建第二套核心基础设施。R32.8「不建共享组件包」和 R33.0「一处 React UI Island 即完成核心目标」都不能取代 R33.1 的五 Tab 产品方向。独立专家评分目标 ≥95，但未获对应最新候选 Chromium 证据标记 NOT_TESTED。**唯一权威产品/架构与验收入口：** [统一 React Side Panel 与自定义工具兼容合同](docs/architecture/react-ui-shared-components-r33.zh-CN.md)。
 
 ## Sidebar Tool 单一正式安装包与测试后晋升（2026-10-15）
 
