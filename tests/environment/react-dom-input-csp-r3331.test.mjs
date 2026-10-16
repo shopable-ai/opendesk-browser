@@ -23,6 +23,8 @@ test('pinned ReactDOM input tracker uses the instance prototype without dynamic 
 
 test('only the pinned client module in the trusted shell can receive the transform',()=>{
   assert.equal(replace(source,'/repo/node_modules/other/cjs/react-dom-client.production.js'),null);
+  assert.equal(replace(source,'\\0'+modulePath+'?commonjs-exports'),null);
+  assert.equal(replace(source,modulePath+'?commonjs-proxy'),null);
   assert.equal(replace(source,modulePath,{target:'sw.js',reactDomVersion:'19.2.0'}),null);
   assert.throws(()=>replace(source,modulePath,{target,reactDomVersion:'19.2.1'}),/changed version/);
   for(const tampered of [
