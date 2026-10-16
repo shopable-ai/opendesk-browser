@@ -15,6 +15,8 @@ R4 正式五 Tab 见 [产品规格](../../../docs/product/sidebar-ui-spec.zh-CN.
 
 本 Skill 是工程规则，不创建新的工具安装器、授权系统、后台服务、Worker、Browser SDK 或第二套 UI 运行时。
 
+**第三方与第一方的边界**：普通沙箱 Sidebar Tool、Page USER_SCRIPT 的独立业务仍在各自项目和公开 SDK 中维护，不触发本可信源码 Skill。只有经证实需第一方固定预编译特权、并完成来源/授权审计时，才最小修改其 `src/<feature>/`，通用宿主问题再交 Runtime Skill。缺乏通用能力证据记 `SDK_GAP_NOT_PROVEN`，第三方无法合规取得的 Chrome/Native 特权操作记 `BLOCKED`；不得因工具统一展示在「扩展」Tab 就将动态代码提升到可信页面。
+
 ## 先以当前源码确立可信界限
 
 先读 `AGENTS.md`、`docs/framework/testing-guide.md`、`docs/architecture/browser-framework/custom-tool-ui-and-local-development.zh-CN.md`、`docs/api/sidebar-tool-development.zh-CN.md`、`docs/architecture/ui-layout-conventions-r27.zh-CN.md`、`docs/architecture/sidebar-multi-section-tab-contract-r28.zh-CN.md`。再核查实际 `main` 与并行改动，不用旧 GOAL 的状态替代现实。
