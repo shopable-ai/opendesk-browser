@@ -248,6 +248,7 @@ try{
       buttons:switches.length,frameSandbox:frame.getAttribute('sandbox'),
       switchWidth:bounds.width,switchHeight:bounds.height,
       cssWidth:style.width,frameHeight:frame.getBoundingClientRect().height,
+      frameHidden:frame.hidden,frameDisplay:getComputedStyle(frame).display,
       x:bounds.left+bounds.width/2,y:bounds.top+bounds.height/2,
       feedback:q('#od-preview-adblock-feedback')?.textContent||''};
   }.toString()+')()';
@@ -313,7 +314,9 @@ try{
     await cdp('Emulation.setEmulatedMedia',
       {features:[{name:'prefers-color-scheme',value:'light'}]});
     await cdp('Page.navigate',{url:pathToFileURL(candidate.output).href});
-    let parent=await adblockOuter();
+    // Page.navigate does not wait for the offline host simulator's inline
+    // script. The inert source snapshot exists before render() hides the iframe.
+    let parent=await adblockOuter(row=>row.frameHeight===0);
     assert.equal(parent.buttons,2,'source-derived trusted toggles are missing');
     assert.equal(parent.frameSandbox,'allow-scripts','iframe must keep opaque origin');
     assert.ok(Math.abs(parent.switchWidth-46)<1,'canonical 46px switch width');
