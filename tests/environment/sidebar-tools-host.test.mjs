@@ -178,7 +178,7 @@ class Node {
     this.dataset={};this.attributes=new Map();this.className='';
     // Mirror native classList.toggle for trusted host settings in this DOM double.
     this.classList={toggle:(name,force)=>{
-      const names=new Set(this.className.split(/\\s+/).filter(Boolean));
+      const names=new Set(this.className.split(/\s+/).filter(Boolean));
       const add=force===undefined?!names.has(name):Boolean(force);
       if(add)names.add(name);else names.delete(name);
       this.className=[...names].join(' ');
