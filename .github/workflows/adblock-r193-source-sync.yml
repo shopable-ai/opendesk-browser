@@ -1,0 +1,167 @@
+# One-shot, source-bound AdBlock R1.9.3 recovery.
+# Uses the existing build and native test machinery; removes itself after a verified promotion.
+name: AdBlock R1.9.3 one-shot source synchronization and native acceptance
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/adblock-r193-source-sync.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: adblock-r193-source-sync-${{ github.sha }}
+  cancel-in-progress: false
+jobs:
+  source-preview-package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install reviewed dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Regenerate official AdBlock HTML from actual source (not from a fixture)
+        run: |
+          node scripts/preview/build-preview.mjs --tool adblock --surface side-panel --scenario success --theme light --width 360 --height 760 --out examples/sidebar-tools/adblock/adblock-r1-interactive-preview.html
+          node scripts/preview/check-preview-contract.mjs
+      - name: Node, host, authority and shared Preview security regression
+        run: |
+          node --test tests/environment/adblock-host-controls-r13.test.mjs tests/environment/adblock-preview-contract.test.mjs tests/environment/adblock-r12.test.mjs tests/environment/stay-focus-boundary-r1.test.mjs
+          node --test tests/environment/sidebar-preview-shell.test.mjs tests/environment/sidebar-preview-contract.test.mjs tests/environment/sidebar-quick-notes.test.mjs tests/environment/sidebar-preview-kit.test.mjs tests/environment/browser-tool-creation-workflow-r21.test.mjs
+          node --check tests/framework/adblock-r12-native.test.mjs
+      - name: Build all four official widths and supported error scenarios
+        run: |
+          for width in 320 360 400 480; do
+            node scripts/preview/build-preview.mjs --tool adblock --surface side-panel --scenario success --theme light --width "$width" --height 760
+          done
+          for scenario in empty error loading permission-denied untrusted; do
+            node scripts/preview/build-preview.mjs --tool adblock --surface side-panel --scenario "$scenario" --theme light --width 360 --height 760
+          done
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+      - name: Actual Chromium offline preview interaction and shared browser regressions
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: |
+          node scripts/tests/adblock-preview-chrome.mjs artifacts/adblock-r193-preview-chrome
+          node scripts/tests/sidebar-preview-runtime-chrome.mjs artifacts/adblock-r193-preview-chrome
+          node scripts/tests/bookmark-manager-r26-preview-chrome.mjs artifacts/adblock-r193-preview-chrome
+      - name: Candidate, production/development build and source identity
+        run: |
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/adblock --out artifacts/sidebar-tools/adblock/candidate.opendesk-tool.json
+          npm run check
+          npm run build
+          npm run build:dev
+          npm run verify
+          node scripts/verify-package.mjs dist/production
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/adblock --promote-from artifacts/sidebar-tools/adblock/candidate.opendesk-tool.json
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/adblock --check-project
+          cmp artifacts/sidebar-tools/adblock/candidate.opendesk-tool.json examples/sidebar-tools/adblock/adblock.opendesk-tool.json
+          cmp dist/production/official-tools/adblock/adblock.opendesk-tool.json examples/sidebar-tools/adblock/adblock.opendesk-tool.json
+          sha256sum examples/sidebar-tools/adblock/adblock.opendesk-tool.json
+      - name: Preserve tested exact package, generated preview, product runtime and screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: adblock-r193-source-verified-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: error
+          path: |
+            dist/production/
+            examples/sidebar-tools/adblock/adblock-r1-interactive-preview.html
+            examples/sidebar-tools/adblock/adblock.opendesk-tool.json
+            artifacts/sidebar-tools/adblock/candidate.opendesk-tool.json
+            artifacts/adblock-r193-preview-chrome/
+            artifacts/previews/adblock/
+      - name: Preserve failed diagnostics without promotion
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: adblock-r193-failed-source-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            artifacts/adblock-r193-preview-chrome/
+            artifacts/previews/adblock/
+            artifacts/sidebar-tools/adblock/
+            examples/sidebar-tools/adblock/adblock-r1-interactive-preview.html
+  native-macos-chrome:
+    needs: source-preview-package
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: adblock-r193-source-verified-${{ github.sha }}
+          path: .
+      - name: Confirm exact candidate is the tested official production package
+        run: |
+          cmp dist/production/official-tools/adblock/adblock.opendesk-tool.json examples/sidebar-tools/adblock/adblock.opendesk-tool.json
+          shasum -a 256 dist/production/official-tools/adblock/adblock.opendesk-tool.json
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Real macOS Chrome DNR and network lifecycle, including native Tab and Space
+        env:
+          OPENDESK_ADBLOCK_NATIVE: '1'
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          OPENDESK_ADBLOCK_NATIVE_EVIDENCE: artifacts/adblock-r193-native
+        run: node --test tests/framework/adblock-r12-native.test.mjs
+      - name: Preserve independent Native Chrome proof even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: adblock-r193-native-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: artifacts/adblock-r193-native/
+  promote-verified-sources:
+    needs: [source-preview-package, native-macos-chrome]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/download-artifact@v4
+        with:
+          name: adblock-r193-source-verified-${{ github.sha }}
+          path: artifacts/adblock-r193-reviewed
+      - name: Update ONLY main without overwriting concurrent source changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main
+          git diff --name-only "${GITHUB_SHA}" origin/main > /tmp/adblock-r193-advance.txt
+          if grep -E '^(src/|scripts/|contracts/|tests/|examples/sidebar-tools/|official-tools/|package(-lock)?\\.json$|wxt\\.config\\.|\\.github/workflows/(adblock-r12|sidebar-preview-contract)\\.yml$)' /tmp/adblock-r193-advance.txt; then
+            echo "::error::The tested candidate overlaps new main sources. Do not promote stale native evidence."
+            exit 1
+          fi
+          git checkout -B main origin/main
+          npm ci --ignore-scripts --no-audit --no-fund
+          cp artifacts/adblock-r193-reviewed/examples/sidebar-tools/adblock/adblock-r1-interactive-preview.html examples/sidebar-tools/adblock/adblock-r1-interactive-preview.html
+          node scripts/preview/build-preview.mjs --tool adblock --surface side-panel --scenario success --theme light --width 360 --height 760 --out artifacts/adblock-r193-compare.html
+          node --test tests/environment/adblock-host-controls-r13.test.mjs tests/environment/adblock-preview-contract.test.mjs tests/environment/adblock-r12.test.mjs tests/environment/stay-focus-boundary-r1.test.mjs
+          node scripts/preview/check-preview-contract.mjs
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/adblock --out artifacts/sidebar-tools/adblock/candidate.opendesk-tool.json
+          cmp artifacts/adblock-r193-reviewed/artifacts/sidebar-tools/adblock/candidate.opendesk-tool.json artifacts/sidebar-tools/adblock/candidate.opendesk-tool.json
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/adblock --promote-from artifacts/sidebar-tools/adblock/candidate.opendesk-tool.json
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/adblock --check-project
+          cmp artifacts/adblock-r193-reviewed/examples/sidebar-tools/adblock/adblock.opendesk-tool.json examples/sidebar-tools/adblock/adblock.opendesk-tool.json
+          git rm -- .github/workflows/adblock-r193-source-sync.yml
+          git add -- examples/sidebar-tools/adblock/adblock-r1-interactive-preview.html examples/sidebar-tools/adblock/adblock.opendesk-tool.json
+          git diff --cached --check
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'release(adblock): source-verified preview and single native-tested official JSON'
+          git push origin main
