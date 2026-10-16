@@ -1,0 +1,103 @@
+{
+  "schema": "opendesk.market.release-snapshot.v1",
+  "source": {
+    "kind": "recorded-release-evidence",
+    "identity": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38883411105#commit=791a1de167eab8a72919438f9c7d1b06be62071c;catalog-sha256=93955ed0aea0195220d60e8fa07c8baf6de44ced165126e560cc6b77eb44c173"
+  },
+  "catalog": {
+    "schema": "opendesk.official-tools.releases.v1",
+    "sourceRepository": "https://github.com/shopable-ai/opendesk-browser",
+    "apps": [
+      {
+        "id": "opendesk/reading-toc",
+        "toolId": "reading-toc",
+        "kind": "sidebar-tool",
+        "installationPolicy": "preinstalled",
+        "version": "1.0.7",
+        "packageTitle": "阅读目录",
+        "description": "在侧边栏或授权网页中查看章节并精准跳转。",
+        "capabilities": [
+          "page.toc"
+        ],
+        "packagePath": "official-tools/reading-toc/reading-toc.opendesk-tool.json",
+        "bytes": 17574,
+        "sha256": "3d5ac0b4ca7bace06c4d4c013e5366b6e21ccc71c6ce92558a191ccd1f7a4573"
+      },
+      {
+        "id": "opendesk/web-markdown-clipper",
+        "toolId": "web-markdown-clipper",
+        "kind": "sidebar-tool",
+        "installationPolicy": "optional",
+        "version": "1.0.1",
+        "packageTitle": "网页剪藏",
+        "description": "在授权的网站上主动剪藏文章、选区、引用和链接为 Markdown。",
+        "capabilities": [
+          "page.clip",
+          "user.export"
+        ],
+        "packagePath": "official-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json",
+        "bytes": 10230,
+        "sha256": "c2f0f41b895b8737dd74bd5d304fba2b873526a510bd72fa1ddf01fc9016fefa"
+      },
+      {
+        "id": "opendesk/quick-notes",
+        "toolId": "quick-notes",
+        "kind": "sidebar-tool",
+        "installationPolicy": "preinstalled",
+        "version": "1.1.9",
+        "packageTitle": "网页笔记",
+        "description": "在侧栏离线管理多条本地笔记，可选择关联当前网页，不自动操作网站。",
+        "capabilities": [
+          "storage.local",
+          "currentPage.read",
+          "tasks.open"
+        ],
+        "packagePath": "official-tools/quick-notes/quick-notes.opendesk-tool.json",
+        "bytes": 32152,
+        "sha256": "9b8125e8f25734b86833e87ac27c40ca74a0775ef29929c660d75d84b6a5497d"
+      }
+    ]
+  },
+  "collections": [
+    {
+      "id": "reading-kit",
+      "revision": 6,
+      "title": "阅读与摘录",
+      "description": "目录 1.0.7、网页剪藏 1.0.1 与网页笔记 1.1.9 的固定组合。",
+      "members": [
+        {
+          "id": "opendesk/reading-toc",
+          "version": "1.0.7"
+        },
+        {
+          "id": "opendesk/web-markdown-clipper",
+          "version": "1.0.1"
+        },
+        {
+          "id": "opendesk/quick-notes",
+          "version": "1.1.9"
+        }
+      ]
+    },
+    {
+      "id": "reading-kit",
+      "revision": 5,
+      "title": "阅读与摘录",
+      "description": "目录、剪藏与网页笔记；包含网页剪藏 1.0.1 的固定组合。",
+      "members": [
+        {
+          "id": "opendesk/reading-toc",
+          "version": "1.0.4"
+        },
+        {
+          "id": "opendesk/web-markdown-clipper",
+          "version": "1.0.1"
+        },
+        {
+          "id": "opendesk/quick-notes",
+          "version": "1.1.8"
+        }
+      ]
+    }
+  ]
+}

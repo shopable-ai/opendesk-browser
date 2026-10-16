@@ -37,3 +37,9 @@ R1.6 变更：`791a1de1`（集合 rev6 与 R5 回归）、`c58ebe03`（旧 R3 �
 ## 下一步最小验收
 
 在最新 `main` 先运行 Reading TOC 专项 CI 的 Node/Build/Chrome Native/双预览；保留既有 `installEpoch` 撤权验证。Mac 本地用受控测试 Profile、安全原位升级并截图逐项读回偏好，禁用/恢复后再测试卸载清理。其他 Agent 的独立问题单独处理。
+
+## 不可变发行证据补录
+
+- 追加归档 `official-tools/releases/r5-20261016-reading-kit-6.json`，记录 `reading-kit` revision 5/6 的确切固定成员，以及三份实际生产工具包的版本、字节数和 SHA-256。
+- 来源是 [Actions 38883411105](https://github.com/shopable-ai/opendesk-browser/actions/runs/38883411105) 中 `791a1de1` 生产构建的发行 Catalog（原始 SHA-256：`93955ed0aea0195220d60e8fa07c8baf6de44ced165126e560cc6b77eb44c173`）。归档不包含其他 Agent 工具，避免将并行开发版本提前锁定。
+- 历史快照仍不可改写。后续 `mergeMarketReleases` 会验证同版本工具包的不可变摘要及同 revision 集合内容，出现冲突必须以新版本或新 revision 正式发行，不可覆盖旧记录。
