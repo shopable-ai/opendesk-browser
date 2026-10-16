@@ -173,12 +173,16 @@ try{
     'remove redundant technical explanation rather than hiding nested notes');
   assert.equal(await page.locator('#form').evaluate(el=>el.inert),true);
   assert.equal(await page.locator('#history').evaluate(el=>el.closest('.title-bar').inert),true);
+  // Do not inspect transform animation mid-flight; test the settled real geometry.
+  await page.locator('#r23-settings-panel').evaluate(el=>
+    Promise.all(el.getAnimations().map(animation=>animation.finished.catch(()=>{}))));
   const r239ShortSheet=await page.evaluate(()=>{
     const d=document.querySelector('.device').getBoundingClientRect(),
       p=document.querySelector('.r23-settings').getBoundingClientRect();
     return {bottomPinned:Math.abs(p.bottom-d.bottom)<=2,
       naturallyShort:p.height>120&&p.height<d.height*.70};
   });
+  console.log('R2391_CODEX_GEOMETRY '+JSON.stringify(r239ShortSheet));
   assert.ok(r239ShortSheet.bottomPinned&&r239ShortSheet.naturallyShort,
     'Codex must use a bottom-pinned short sheet without replacing the chat');
   assert.equal(await page.locator('#r236-native').isChecked(),true);
