@@ -24,17 +24,35 @@
 
 | 环节 | AI 必须完成 | 产物 | 继续条件 |
 | --- | --- | --- | --- |
-| 0. 恢复现场 | 读取最新 main、AGENTS、相似工具、已批准原型、现有源码/测试和实际可读的历史交接 | 事实/版本/冲突与断点 | 不把旧聊天总结当成最新 Git 状态 |
+| 0. 恢复现场 | 读取最新 main、AGENTS、公开 SDK、相似工具、已批准原型、当前工具源码/测试和实际可读的历史交接；宿主实现仅平台缺口时调查 | 事实/版本/冲突与断点 | 不把旧聊天总结当成最新 Git 状态 |
 | 1. 需求理解与推理 | 理清用户目标、典型用户、触发场景、前后状态、输入输出、成功体验、异常恢复 | **一页需求摘要 + 用户场景** | 先说清“解决什么问题” |
 | 2. 功能树生成 | 拆成 F0→F1→F1.1；为每个核心叶子补齐场景、操作、成功/失败、优先级、数据/权限和验收 | **唯一功能树文档 + 场景追踪表** | P0 不得存在只有名字的功能 |
-| 3. 需求校核与技术路由 | 区分用户决定/源码事实/AI 推断/待确认；核对现有 Skill、SDK、Host、权限、可实现性 | 需求差距、实施边界、关键决策 | **关卡 A：需求闭环**；高风险未知不能擅定 |
+| 3. 需求校核与技术路由 | 通过 Extension Type & Ownership Gate；区分用户决定/源码事实/AI 推断/待确认，核对公开 SDK、主 Skill、权限和缺口证据 | 需求差距、实施边界、关键决策 | **关卡 A：需求闭环**；高风险未知不能擅定 |
 | 4. HTML 交互原型 | 从功能树生成可点击/可输入的完整场景；网页注入 + Side Panel 按需分别预览，同一规则 | 完整 HTML、模拟数据、必要截图/来源 | 必须能实际操作，不只画静态图 |
 | 5. UI 评审定稿 | 用功能树逐项测试主路径、空态、保存/取消、异常、撤权、键盘和小尺寸；用户反馈后定向修正 | UI 评审记录、功能覆盖、定稿 SHA | **关卡 B：用户看得懂、操作得了** |
 | 6. 正式开发 | 根据真实运行世界在工具自身项目开发；复用原 SDK/沙箱/Host/安装器/权限/设计系统 | 源码、功能编号→文件映射 | 不建第二套执行或状态机制 |
 | 7. 分级测试 | 源码→忽略目录的单一临时候选→定向 Node/DOM/权限/包字节验证→可用时真实 Chrome/网站/IME | 与源码绑定的 candidate SHA、PASS/FAIL/BLOCKED/NOT_TESTED；失败不写正式包 | **关卡 C：真实功能，不拼旧成绩** |
-| 8. 保存交付 | **仅门禁通过后**显式晋升到工具根唯一 `<id>.opendesk-tool.json`，核对同源，再更新唯一文档、提交 main/推送及安装说明 | 同源正式包/提交 SHA、Native 未测边界、下一步 | **关卡 D：可继续维护** |
+| 8. 保存交付 | **仅 Sidebar Tool** 在门禁通过后晋升唯一 `<id>.opendesk-tool.json`；Page/Controller 走各自 Candidate/Authority；均核对同源、更新唯一文档、提交 main/推送并保留安装证据边界 | 同源正式包/提交 SHA、Native 未测边界、下一步 | **关卡 D：可继续维护** |
 
 当任务只是修已有工具时，先定位受影响的 F/S/A 编号，**只复查受影响环节**。用户明确只做设计/原型时止步相应阶段，不能自动发布。
+
+## 二-A、Extension Type & Ownership Gate（编码前强制）
+
+Phase 0–3 / Gate A 中必须先确定类型和源码所有权，再编码。AI 输出一个**简短的架构确认摘要**，用户已有明确需求不重复征求分类确认，也不要求用户填技术表单。默认只读公开 [Sidebar Tool 规范](../../docs/api/sidebar-tool-development.zh-CN.md)、[Sidebar Tool API](../../docs/api/sidebar-tools.zh-CN.md)、[Page USER_SCRIPT](../../docs/api/page-userscript.zh-CN.md)、[Controller](../../docs/api/controller.zh-CN.md)、示例和当前项目；第三方开发不依赖宿主内部 `src/`。
+
+| 类型 | 业务目录 | 执行世界 / 开发主 Skill | 正式交付 |
+| --- | --- | --- | --- |
+| Sidebar Tool | `examples/sidebar-tools/<id>/` | opaque-origin iframe / `opendesk-sidebar-tool-dev` | `opendesk-sidebar-tool-package` 生成唯一正式 JSON |
+| Page USER_SCRIPT / Program | `examples/programs/<id>/` | USER_SCRIPT、`document` / `opendesk-script-authoring` | `opendesk-program-publish`，Page Candidate → Verified → Available → Installed |
+| Controller Task | 现有 Controller 项目 | Worker、`page`/Locator / `opendesk-script-authoring` | `opendesk-program-publish`，Task 不是 Sidebar JSON |
+| 第一方可信功能 | 工具目录 + 必要 `src/<feature>/` | 固定编译代码 / `opendesk-trusted-sidebar-feature` | 静态资源、安全权限与原生回归 |
+| 通用 Framework / SDK | 当前平台模块 | 共享 Host/SDK / `opendesk-extension-runtime` | 通用 Authority、安装/撤权和 SDK 回归 |
+
+**摘要包含八项**：扩展类型、执行世界、公开 SDK、默认业务目录、当前主 Skill、是否需要框架改动、框架改动证据是否充分、实际包格式与验收方式。阶段切换允许开发和打包采用不同主 Skill，不能因为 Page 要安装就直接改成 Runtime Skill。不能静默省略原始自动注入、权限、数据及运行场景。
+
+**防漂移流程**：业务问题先在项目内修；公开 SDK 已有能力直接使用；通用 SDK 确实缺失时核对公开文档、可复现失败、为何项目内部无法解决、跨工具价值、最小接口/文件/测试、权限/生命周期/兼容性与安全影响，证据不足为 `SDK_GAP_NOT_PROVEN`。仅某工具需要的 Host/Installer 特例默认拒绝；第三方不应拥有的特权动作记 `BLOCKED`。临时 Chrome 直接注入、Node 通过、资源容量问题均不自动等于平台漏洞或正式 Page Installed PASS。
+
+**所有权而非路径拦截**：一般工具内部业务修改不扩展到 Broker/安装器；经证实的第一方可信产品仅在其 `src/<feature>/` 最小改动；真正通用 Page 安装/撤权/SDK 任务可由 Runtime Skill 正常修改 `src/`，CI 不得机械拒绝含 `src/` 的并行提交。维持现有 F/S/A、授权/升级/撤权与用户数据合同，不另建 Skill、Host、安装器或创建工作流。
 
 ## 三、核心新增：需求推理引擎（不是问卷）
 
@@ -73,7 +91,7 @@
 
 ## 四、唯一需求与功能树文档
 
-每款工具维护一个可持续更新的功能树：普通 Sidebar App 优先写在已有 `examples/sidebar-tools/<id>/README.zh-CN.md` 的“场景与功能树”章节；受信任第一方功能按 `src/<feature>/README.zh-CN.md` 的产品文档所有权。已有权威需求设计文件时更新原文件，不创建互相竞争的 R1/R2/R3 产品总文档。证据与断点沿用原 `docs/framework/workstreams/<id>...` 主交接记录。
+每款工具维护一个可持续更新的功能树：普通 Sidebar App 优先写在已有 `examples/sidebar-tools/<id>/README.zh-CN.md` 的“场景与功能树”章节；Page Program 优先写在 `examples/programs/<id>/README.zh-CN.md`；Controller 按现有项目 README；受信任第一方功能按 `src/<feature>/README.zh-CN.md` 的产品文档所有权。已有权威需求设计文件时更新原文件，不创建互相竞争的 R1/R2/R3 产品总文档。证据与断点沿用原 `docs/framework/workstreams/<id>...` 主交接记录。
 
 **功能树的叶子节点不是一行功能名。** 每个叶子必须说明：它服务哪个 S-ID 场景、用户从哪里操作、前置条件、预期结果、失败反馈、数据与权限、副作用、优先级、如何验收（A-ID）。可选再关联 UI 视图 V-ID、源码模块 C-ID、测试 T-ID。
 
