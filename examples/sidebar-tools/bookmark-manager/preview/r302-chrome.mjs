@@ -144,11 +144,11 @@ try{
   await until(ctx,"Boolean(document.getElementById('bm-edit-url'))",'edit form URL '+width);
   await setInput(ctx,'bm-edit-name','模拟书签 2152 · React 更新');
   await setInput(ctx,'bm-edit-url','https://example.org/react-2152');
-  await invoke(ctx,"document.querySelector('.bm-editor-actions button[type=\"submit\"]').click();return true");
+  await invoke(ctx,"globalThis.__bmNativeSubmitCount=0;document.querySelector('form.bm-editor')?.addEventListener('submit',()=>globalThis.__bmNativeSubmitCount++,{capture:true});document.querySelector('.bm-editor-actions button[type=\"submit\"]').click();return true");
   try{
    await until(ctx,"document.querySelector('.bm-detail-title')?.textContent.includes('React 更新')",'confirmed write readback '+width);
   }catch(failure){
-   const diag=await invoke(ctx,"return {error:document.querySelector('.bm-error')?.textContent,notice:document.querySelector('.bm-notice')?.textContent,editor:document.querySelector('[data-testid=\"bookmark-editor\"]')?.outerHTML?.slice(0,900),detail:document.querySelector('.bm-detail-title')?.textContent,formName:document.getElementById('bm-edit-name')?.value,formUrl:document.getElementById('bm-edit-url')?.value,selected:document.getElementById('bm-inspector-id')?.textContent,search:document.getElementById('bm-search')?.value};");
+   const diag=await invoke(ctx,"return {error:document.querySelector('.bm-error')?.textContent,notice:document.querySelector('.bm-notice')?.textContent,editor:document.querySelector('[data-testid=\"bookmark-editor\"]')?.outerHTML?.slice(0,900),detail:document.querySelector('.bm-detail-title')?.textContent,formName:document.getElementById('bm-edit-name')?.value,formUrl:document.getElementById('bm-edit-url')?.value,valid:document.querySelector('form.bm-editor')?.checkValidity(),fieldValidity:[...document.querySelectorAll('form.bm-editor input')].map(x=>({id:x.id,valid:x.validity.valid,why:x.validationMessage})),buttonDisabled:document.querySelector('.bm-editor-actions button[type=\"submit\"]')?.disabled,saveStage:globalThis.__bmReactSaveStage,submitObserved:globalThis.__bmNativeSubmitCount,selected:document.getElementById('bm-inspector-id')?.textContent,search:document.getElementById('bm-search')?.value};");
    await screenshot('bookmark-r302-'+width+'-save-failure.png');
    throw Error(failure.message+'; DOM_DIAGNOSTIC='+JSON.stringify(diag));
   }

@@ -149,11 +149,11 @@ export default function App(){
  function prepareDelete(id){const node=tree?.byId.get(id);if(node&&!node.locked){setConfirmDelete({id,expected:{...node},descendantSignatures:isFolder(node)?model.descendantSignatures(tree,id):[],count:isFolder(node)?descendants(tree,id):0})}}
  function onMenu(id,button){setMenu(null);menuButtonRef.current=button;const r=button.getBoundingClientRect();const max=window.innerWidth-190;setMenu({id,top:Math.max(8,Math.min(r.bottom+4,window.innerHeight-142)),left:Math.max(8,Math.min(r.right-182,max))})}
  function actionMenu(action,id){closeMenu();if(action==='delete')request({type:'delete',id});else request({type:'edit',id,move:action==='move'})}
- async function save(e){e.preventDefault();if(!draft||busy||uncertain)return;
+ async function save(e){globalThis.__bmReactSaveStage='submit-handler';e.preventDefault();if(!draft||busy||uncertain)return;
   let title,url;try{title=model.displayName(draft.title);url=draft.kind==='bookmark'?model.asHttpUrl(draft.url):undefined;model.parentFolder(tree,draft.parentId);
    if(draft.kind==='folder'&&draft.mode==='edit'&&model.isDescendant(tree,draft.parentId,draft.id))throw Error('文件夹不能移动到自身或子目录');
   }catch(ex){setError(humanError(ex));return}
-  setBusy(true);setError('');
+  globalThis.__bmReactSaveStage='validated';setBusy(true);setError('');
   try{let result,expected=draft.expected;
    if(draft.mode==='create'){result=draft.kind==='folder'?await service.createFolder({title,parentId:draft.parentId}):await service.createBookmark({title,url,parentId:draft.parentId})}
    else{
@@ -162,10 +162,10 @@ export default function App(){
     if(title!==expected.title||(draft.kind==='bookmark'&&url!==expected.url)){result=await service.update({expected,title,url});expected=result}
     if(!result)result=expected;
    }
-   const verified=await service.load(),actual=verified.byId.get(result.id);
+   globalThis.__bmReactSaveStage='request-completed';const verified=await service.load(),actual=verified.byId.get(result.id);
    if(!actual||actual.title!==title||actual.parentId!==draft.parentId||(draft.kind==='bookmark'&&actual.url!==url))throw Object.assign(Error('数据写入后读回不一致；保留草稿并禁止盲目重试'),{code:'E_OUTCOME_UNKNOWN'});
-   if(!activeRef.current)return;setTree(verified);setSelectedId(actual.id);setActiveId(actual.id);setDraft(null);setPickerOpen(false);setUncertain(false);setNotice('已保存，书签数据读回核验通过。');
-  }catch(ex){if(activeRef.current){setError(humanError(ex));if(ex?.code==='E_OUTCOME_UNKNOWN')setUncertain(true)}}finally{if(activeRef.current)setBusy(false)}
+   globalThis.__bmReactSaveStage='readback-ok';if(!activeRef.current)return;setTree(verified);setSelectedId(actual.id);setActiveId(actual.id);setDraft(null);setPickerOpen(false);setUncertain(false);setNotice('已保存，书签数据读回核验通过。');
+  }catch(ex){globalThis.__bmReactSaveStage='error:'+(ex?.code||ex?.message||'unknown');if(activeRef.current){setError(humanError(ex));if(ex?.code==='E_OUTCOME_UNKNOWN')setUncertain(true)}}finally{if(activeRef.current)setBusy(false)}
  }
  async function removeConfirmed(){if(!confirmDelete||busy)return;setBusy(true);setError('');try{await service.remove({expected:confirmDelete.expected,confirmed:true,expectedDescendantSignatures:confirmDelete.descendantSignatures});const refreshed=await service.load();if(refreshed.byId.has(confirmDelete.id))throw Object.assign(Error('删除后仍发现目标，拒绝认定成功'),{code:'E_OUTCOME_UNKNOWN'});if(!activeRef.current)return;setTree(refreshed);if(selectedId===confirmDelete.id)setSelectedId(null);setConfirmDelete(null);setDraft(null);setNotice('已删除，重新读取后确认目标不存在。')}catch(ex){if(activeRef.current)setError(humanError(ex))}finally{if(activeRef.current)setBusy(false)}}
  function bookmarkCurrentPage(){if(dirtyDraft(draft)){setPending({type:'currentPage'});return}void fillCurrentPage()}
