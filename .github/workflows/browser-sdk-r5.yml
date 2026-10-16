@@ -38,6 +38,8 @@ on:
       - 'scripts/prepare-public.mjs'
       - 'scripts/build-contract.mjs'
       - 'scripts/audit-fixed-entries.mjs'
+      - 'scripts/bundle-provenance.mjs'
+      - 'examples/sidebar-tools/adblock/trusted/host-controls.js'
       - 'tests/environment/sw-budget-policy.test.mjs'
       - 'tests/environment/fixed-entries-audit.test.mjs'
       - 'scripts/verify-package.mjs'
