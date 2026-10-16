@@ -114,15 +114,20 @@ async function parent(){
     const host=document.getElementById('od-preview-adblock-host');
     const frame=document.getElementById('opendesk-preview-frame');
     const switches=[...host.querySelectorAll('button[role=switch]')];
-    const header=host.querySelector('.adblock-native-head');
-    const settings=header?.querySelector('button[data-adblock-nav="settings"]');
-    const headerBounds=header?.getBoundingClientRect();
-    const settingsBounds=settings?.getBoundingClientRect();
-    return {duplicateBrand:!!host.querySelector('.adblock-native-logo,.adblock-native-identity,.adblock-native-title,.adblock-native-subtitle')||
+    const header=document.querySelector('.sidebar-tool-view-head');
+    const settings=header?.querySelector('#sidebar-tool-settings-open');
+    const remove=header?.querySelector('#sidebar-tool-remove');
+    const title=header?.querySelector('#sidebar-tool-title');
+    const back=header?.querySelector('#sidebar-tool-back');
+    const sr=settings?.getBoundingClientRect(),rr=remove?.getBoundingClientRect();
+    const tr=title?.getBoundingClientRect(),br=back?.getBoundingClientRect();
+    return {duplicateBrand:!!host.querySelector('.adblock-native-head,.adblock-native-icon,.adblock-native-logo,.adblock-native-identity,.adblock-native-title,.adblock-native-subtitle')||
         host.textContent.includes('广告拦截 · 安静浏览'),
-      settingsRightAligned:!!(headerBounds&&settingsBounds&&
-        Math.abs(headerBounds.right-settingsBounds.right)<2&&
-        settingsBounds.top>=headerBounds.top-2&&settingsBounds.bottom<=headerBounds.bottom+2),
+      titleVisible:!!(title&&!title.hidden&&title.textContent.trim()==='广告拦截'),
+      titleLeftGap:tr&&br?tr.left-br.right:-1,
+      settingsRightAligned:!!(sr&&rr&&!settings.hidden&&
+        sr.right<=rr.left&&rr.left-sr.right<=12&&
+        Math.abs((sr.top+sr.bottom)-(rr.top+rr.bottom))<=3),
       switches:switches.map(s=>({checked:s.getAttribute('aria-checked')==='true',
       disabled:s.disabled,text:s.textContent,width:s.getBoundingClientRect().width})),
       hostText:host.textContent,
@@ -194,7 +199,10 @@ try{
     await poll(async()=>(await child(ctx)).count==='1 个例外网站','initial exception');
     const host=await parent(),list=await child(ctx);
     assert.equal(host.duplicateBrand,false,'content area must not repeat the tool identity');
-    assert.equal(host.settingsRightAligned,true,'settings icon belongs at content top-right');
+    assert.equal(host.settingsRightAligned,true,'settings icon and Uninstall belong on the same toolbar row');
+    assert.equal(host.titleVisible,true,'the trusted toolbar owns the one visible tool title');
+    assert.ok(host.titleLeftGap>=7&&host.titleLeftGap<=10,
+      'title must have an 8px gap after the Back icon, actual '+host.titleLeftGap);
     assert.deepEqual(host.switches.map(x=>x.checked),[true,false]);
     assert.deepEqual(host.switches.map(x=>Math.round(x.width)),[46,46]);
     assert.equal(host.sandbox,'allow-scripts');
@@ -234,10 +242,12 @@ try{
     await screenshot('restored');
     await click('#od-preview-adblock-host button[aria-label="从已停用的网站返回概览"]');
     await poll(async()=>(await parent()).frameHeight===0,'return to overview');
-    await click('#od-preview-adblock-host [data-adblock-nav="settings"]');
+    await click('#sidebar-tool-settings-open');
     await poll(async()=>(await parent()).hostText.includes('Chrome 权限与重启'),'product settings');
     await screenshot('settings');
     await click('#od-preview-adblock-host button[aria-label="从 AdBlock 设置返回概览"]');
+    assert.equal(await evaluate('document.activeElement?.id'),
+      'sidebar-tool-settings-open','return from product settings restores toolbar focus');
     clean();
     report.push({scenario:'success',sourceCommit:built.sourceCommit,
       uiSha256:built.uiSha256,checks:['source-dom','source-css-switch',
@@ -252,7 +262,10 @@ try{
       'responsive sandbox '+width);
     const host=await parent(),list=await child(ctx);
     assert.equal(host.duplicateBrand,false,'no duplicate product header at '+width);
-    assert.equal(host.settingsRightAligned,true,'settings icon remains top-right at '+width);
+    assert.equal(host.settingsRightAligned,true,'settings icon shares the Uninstall row at '+width);
+    assert.equal(host.titleVisible,true,'tool title stays visible at '+width);
+    assert.ok(host.titleLeftGap>=7&&host.titleLeftGap<=10,
+      '8px Back-to-title gap at '+width+', actual '+host.titleLeftGap);
     assert.equal(host.overflow,false,'host horizontal overflow at '+width);
     assert.equal(list.overflow,false,'opaque sandbox horizontal overflow at '+width);
     assert.equal(host.frameHeight,0,'overview may not show exceptions iframe at '+width);

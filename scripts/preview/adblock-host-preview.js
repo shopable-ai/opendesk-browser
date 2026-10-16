@@ -6,6 +6,13 @@
   const mount=byId('od-preview-adblock-host');
   if(!mount)return;
   const frame=byId('opendesk-preview-frame');
+  const toolbarSettings=byId('sidebar-tool-settings-open');
+  if(toolbarSettings){
+    toolbarSettings.hidden=false;
+    toolbarSettings.title='AdBlock 产品设置';
+    toolbarSettings.setAttribute('aria-label','打开 AdBlock 产品设置');
+    toolbarSettings.setAttribute('aria-controls','od-preview-adblock-host');
+  }
   const data=JSON.parse(byId('opendesk-preview-adblock-snapshots').textContent);
   const scenario=data.scenario;
   const snapshots=data.snapshots;
@@ -33,6 +40,7 @@
     const name=key()+(page==='overview'?'':'/'+page);
     if(!Object.hasOwn(snapshots,name))throw Error('E_ADBLOCK_PREVIEW_SNAPSHOT: '+name);
     mount.innerHTML=snapshots[name];
+    toolbarSettings?.setAttribute('aria-expanded',String(page==='settings'));
     frame.hidden=page!=='exceptions';
     frame.style.display=frame.hidden?'none':'';
   }
@@ -46,13 +54,21 @@
     state=initial();page='overview';pending=null;pendingAck=null;if(dialog.open)dialog.close();note('');
     render();notifySandbox();
   }
+  toolbarSettings?.addEventListener('click',()=>{
+    page=page==='settings'?'overview':'settings';render();
+    if(page==='settings')mount.querySelector?.('button[aria-label="从 AdBlock 设置返回概览"]')?.focus?.();
+    else toolbarSettings.focus?.();
+  });
   mount.addEventListener('click',event=>{
     const nav=event.target.closest?.('button[data-adblock-nav]');
     const destination=nav?.getAttribute?.('data-adblock-nav');
     if(destination&&['overview','exceptions','settings'].includes(destination)){
+      const from=page;
       page=destination;render();
       if(page==='exceptions')notifySandbox();
-      mount.querySelector?.('[data-adblock-nav="overview"]')?.focus?.();
+      if(page==='overview'&&from==='settings')toolbarSettings?.focus?.();
+      else if(page==='exceptions')mount.querySelector?.('.adblock-native-back')?.focus?.();
+      else if(page==='settings')mount.querySelector?.('.adblock-native-back')?.focus?.();
       return;
     }
     const button=event.target.closest('button[role=switch]');

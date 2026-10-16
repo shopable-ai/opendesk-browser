@@ -65,6 +65,10 @@ node scripts/tests/sidebar-preview-kit-browser.mjs <套件目录> <新的独立�
 
 当前状态、专家原文、原始日志和剩余项见 [R1 工作流](../framework/workstreams/sidebar-preview-kit-r1-20261015.md)。
 
+## R1.9.5：正式工具栏与产品设置来源规则
+
+对已有独立工具的正式 Side Panel 预览，返回、标题、产品设置和卸载属于**同一可信工具栏**，不能在工具内容区额外生成同名标题、Logo 或设置专属水平行。具备产品设置视图的正式工具应复用已存在的 `#sidebar-tool-settings-open`（如 AdBlock），与卸载按钮同排，原型模拟必须从固定宿主源得到按钮，预览中只更换模拟状态和 SDK 响应。标题和返回图标共享间距/字号来源，不能对某张离线 HTML 手工覆写公共外壳。修改此模板须同步来源锁与来源一致性测试，检查 320/360/400/480px 以及返回焦点；只有 native Chrome 安装记录才可评价 DNR 等真实业务。
+
 ## R1.3：既有生产预览的轻量复用
 
 对于已有正式工具，执行 `node scripts/preview/build-preview.mjs --tool quick-notes --surface side-panel --scenario success --theme light --width 360 --height 760`，输出 `artifacts/previews/quick-notes/side-panel-success-light-360.html` 及同名 `.context.json`。日常对话使用后者的短摘要，必要时提供完整正式 HTML。不要以仓库文件路径冒充 ChatGPT 已收到/执行了完整 HTML。

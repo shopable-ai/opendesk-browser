@@ -361,8 +361,8 @@
 .sidebar-tool-action-buttons{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .sidebar-tool-action-buttons button{min-height:34px;width:auto;padding:6px 10px;font-size:12px}
 .sidebar-tool-display{min-width:0;margin:0;padding:0;background:transparent}
-.sidebar-tool-view-head{display:flex;align-items:center;gap:4px;min-height:34px;margin-bottom:8px;font-size:11px;min-width:0}
-.sidebar-tool-view-head strong{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+.sidebar-tool-view-head{display:flex;align-items:center;gap:8px;min-height:34px;margin-bottom:8px;font-size:11px;min-width:0}
+.sidebar-tool-view-head strong{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
 #sidebar-tool-back{color:var(--od-ink);background:var(--od-muted)}
 #sidebar-tool-remove{border-color:var(--od-negative);color:var(--od-negative);background:var(--od-paper)}
 
@@ -1210,8 +1210,6 @@
 #sidebar-tool-adblock-native[hidden],.sidebar-tool-adblock-native[hidden],.sidebar-tool-adblock-native [hidden]{display:none!important}
 .sidebar-tool-adblock-native{max-width:560px;min-width:0;margin:var(--space-2) auto;padding:var(--space-2) 0 var(--space-3);color:var(--od-ink);overflow-wrap:anywhere}
 .sidebar-tool-adblock-native *{box-sizing:border-box}
-.sidebar-tool-adblock-native .adblock-native-head{display:flex;align-items:center;justify-content:flex-end;min-height:35px;min-width:0;margin:0 0 10px}
-.sidebar-tool-adblock-native .adblock-native-icon{display:grid;place-items:center;flex:none;width:35px;height:35px;min-height:35px;padding:0;border:1px solid var(--od-line);border-radius:10px;background:var(--od-paper);color:var(--od-sub);font-size:19px;line-height:1}
 .sidebar-tool-adblock-native .adblock-native-card{margin:0 0 14px;padding:16px 15px;border:1px solid var(--od-line);border-radius:14px;background:var(--od-paper)}
 .sidebar-tool-adblock-native .adblock-native-card-row{display:flex;align-items:center;justify-content:space-between;gap:14px;min-width:0}
 .sidebar-tool-adblock-native .adblock-native-copy{min-width:0;flex:1}
@@ -1260,6 +1258,6 @@
 .sidebar-tool-adblock-native .adblock-native-secondary{margin-top:9px;min-height:30px;padding:6px 10px;border:1px solid var(--od-line);border-radius:8px;background:var(--od-paper);color:var(--od-brand);font-size:11px;font-weight:720}
 .sidebar-tool-adblock-native .adblock-native-setting-note{margin:14px 0 0;padding:13px;border-radius:10px;background:var(--od-muted);color:var(--od-sub);font-size:11px;line-height:1.6}
 .sidebar-tool-adblock-native button:focus-visible{outline:2px solid var(--od-brand);outline-offset:3px}
-.sidebar-tool-adblock-native .adblock-native-link:hover,.sidebar-tool-adblock-native .adblock-native-secondary:hover,.sidebar-tool-adblock-native .adblock-native-icon:hover{color:var(--od-brand)}
+.sidebar-tool-adblock-native .adblock-native-link:hover,.sidebar-tool-adblock-native .adblock-native-secondary:hover{color:var(--od-brand)}
 @media(max-width:350px){.sidebar-tool-adblock-native .adblock-native-card{padding-inline:12px}.sidebar-tool-adblock-native .adblock-native-card-row{gap:7px}.sidebar-tool-adblock-native .adblock-native-stat-note{font-size:9px}}
 @media(prefers-reduced-motion:reduce){.sidebar-tool-adblock-native .adblock-native-toggle::after{transition:none}}

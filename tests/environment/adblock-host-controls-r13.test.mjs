@@ -33,12 +33,14 @@ function fixture(){
   doc.activeElement=doc.body;
   function mount(runOperation){
     const container=new Node(),notices=[];
-    const controls=createAdblockPermissionControls({api,doc,container,
+    const settingsControl=doc.createElement('button');
+    settingsControl.setAttribute('aria-label','打开 AdBlock 产品设置');
+    const controls=createAdblockPermissionControls({api,doc,container,settingsControl,
       notice:(...args)=>notices.push(args),runOperation});
     const section=container.children[0];
     const walk=node=>[node,...node.children.flatMap(walk)];
     const find=check=>walk(section).find(check);
-    return {controls,container,notices,
+    return {controls,container,notices,settingsControl,
       global:find(node=>node.attributes['aria-label']==='全局广告拦截'),
       site:find(node=>node.attributes.role==='switch'&&node.attributes['aria-label']!=='全局广告拦截'),
       info:find(node=>node.attributes.role==='status'),
@@ -218,8 +220,14 @@ test('R1.9 trusted product cards and host-owned three-view navigation',async()=>
   assert.equal(panel.find(node=>node.className==='adblock-native-logo'),undefined,
     'the tool shell already owns product identity; no duplicate logo inside controls');
   assert.equal(panel.find(node=>node.className==='adblock-native-title'),undefined);
-  assert.ok(panel.action('打开 AdBlock 产品设置'),
-    'settings icon remains available in the upper right');
+  assert.equal(panel.action('打开 AdBlock 产品设置'),undefined,
+    'the product must not duplicate the shared toolbar settings control');
+  panel.controls.toggleProductSettings();
+  assert.equal(panel.controls.view(),'settings');
+  panel.action('从 AdBlock 设置返回概览').listeners.click({});
+  assert.equal(panel.controls.view(),'overview');
+  assert.equal(f.doc.activeElement,panel.settingsControl,
+    'return focus belongs to the single shared settings button');
   assert.ok(panel.find(node=>node.className==='adblock-native-card adblock-native-global'));
   assert.ok(panel.find(node=>node.className==='adblock-native-card adblock-native-site'));
   assert.ok(panel.find(node=>node.textContent==='暂无可核实统计'));
@@ -228,7 +236,7 @@ test('R1.9 trusted product cards and host-owned three-view navigation',async()=>
   assert.equal(panel.controls.view(),'exceptions');
   panel.action('从已停用的网站返回概览').listeners.click({});
   assert.equal(panel.controls.view(),'overview');
-  panel.action('打开 AdBlock 产品设置').listeners.click({});
+  panel.controls.toggleProductSettings();
   assert.equal(panel.controls.view(),'settings');
   panel.action('从设置查看已停用的网站').listeners.click({});
   assert.equal(panel.controls.view(),'exceptions');

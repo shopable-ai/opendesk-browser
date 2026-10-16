@@ -344,6 +344,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const adblockContainer=get('sidebar-tool-adblock-native');
   const adblockControls=adblockContainer&&adblock?.createPermissionControls?
     adblock.createPermissionControls({api,doc,container:adblockContainer,notice,
+      settingsControl:settingsButton,
       onViewChange:()=>renderTocSettings(),
       openToolManagement:()=>{
         if(active?.id!==ADBLOCK_ID||readOnlyPreview)return;
@@ -715,8 +716,12 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     for(const element of settingsView.querySelectorAll?.('[data-toc-host-text]')||[])
       element.textContent=tocText(element.getAttribute('data-toc-host-text'));
     settingsView.setAttribute('aria-label',id===ADBLOCK_ID?'工具管理':tocText('settingsTitle'));
-    settingsButton.title=id===ADBLOCK_ID?'返回 AdBlock 产品':tocText('settingsTitle');
+    const adblockManagement=managed&&id===ADBLOCK_ID&&tocSettingsOpen;
+    settingsButton.title=id===ADBLOCK_ID?
+      adblockManagement?'返回 AdBlock 产品':'打开 AdBlock 产品设置':tocText('settingsTitle');
     settingsButton.setAttribute('aria-label',settingsButton.title);
+    settingsButton.setAttribute('aria-controls',id===ADBLOCK_ID&&!tocSettingsOpen?
+      'sidebar-tool-adblock-native':'sidebar-tool-settings-view');
     backButton.title=tocText('backAction');
     backButton.setAttribute('aria-label',backButton.title);
     if(openTabButton){
@@ -727,11 +732,13 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       isToc?tocText('siteGroup'):'当前网站授权');
     if(!managed)tocSettingsOpen=false;
     const show=managed&&tocSettingsOpen;
-    // AdBlock owns its product title and settings entry; generic management is separate.
-    if(title)title.hidden=managed&&id===ADBLOCK_ID&&!show;
-    settingsButton.hidden=!managed||(id===ADBLOCK_ID&&!show);
+    // Exactly one tool title and one settings icon in the shared toolbar.
+    // AdBlock product pages are owned by its trusted control factory.
+    if(title)title.hidden=false;
+    settingsButton.hidden=!managed;
     settingsButton.disabled=busy||sitePending;
-    settingsButton.setAttribute('aria-expanded',String(show));
+    settingsButton.setAttribute('aria-expanded',String(show||
+      (managed&&id===ADBLOCK_ID&&adblockControls?.view?.()==='settings')));
     // Time Review uses the same trusted static settings DOM as an inline
     // enrollment card. Do not replace/hide its live stats iframe.
     const trustedInline=show&&(id===TIME_REVIEW_ID||id===FOCUS_ID||id===AI_ID||isCookieTool(active)||isFullBookmarkTool(active));
@@ -2385,6 +2392,12 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   });
   listen(settingsButton,'click',()=>{
     if(!active||readOnlyPreview||busy)return;
+    if(active.id===ADBLOCK_ID&&!tocSettingsOpen){
+      // Reuse the real trusted toolbar action adjacent to Uninstall.
+      // Product settings cannot trigger a native permission request.
+      adblockControls?.toggleProductSettings?.();
+      return;
+    }
     tocSettingsOpen=!tocSettingsOpen;tocScope='site';render();backButton.focus?.({preventScroll:true});
   });
   listen(settingsScopeButton,'click',()=>{tocScope=tocScope==='site'?'page':'site';render();});

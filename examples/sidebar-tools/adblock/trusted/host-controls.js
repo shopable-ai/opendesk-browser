@@ -2,7 +2,7 @@
 import {ADBLOCK_ID,ADBLOCK_CAPABILITY,ADBLOCK_PERMISSION,ADBLOCK_STORE} from './policy.js';
 
 export function createAdblockPermissionControls({
-  api,doc,container,notice,runOperation,onViewChange=()=>{},openToolManagement=()=>{}
+  api,doc,container,notice,runOperation,onViewChange=()=>{},openToolManagement=()=>{},settingsControl=null
 }){
   let toolKey='',visible=false,enabled=false,suspended=false,busy=false,state=null,reading=false;
   let sequence=0,generation=0,refreshPending=false,listening=false,view='overview';
@@ -15,12 +15,8 @@ export function createAdblockPermissionControls({
   section.setAttribute('aria-label','AdBlock 产品控制');section.hidden=true;
   const overview=make('section','adblock-native-overview');
   overview.setAttribute('aria-label','AdBlock 概览');
-  // The tool shell already shows AdBlock identity; keep this content area
-  // focused on controls and place the only settings trigger at top-right.
-  const head=make('header','adblock-native-head');
-  const settingsTrigger=button('adblock-native-icon','打开 AdBlock 产品设置','⚙');
-  settingsTrigger.title='AdBlock 产品设置';settingsTrigger.setAttribute('data-adblock-nav','settings');
-  head.append(settingsTrigger);overview.append(head);
+  // Product identity and settings live in the shared, trusted Side Panel
+  // toolbar next to Uninstall. Never create another product-header row here.
 
   const globalCard=make('section','adblock-native-card adblock-native-global');
   globalCard.setAttribute('aria-label','全局保护');
@@ -137,11 +133,10 @@ export function createAdblockPermissionControls({
     if(source?.focus)source.focus({preventScroll:true});
     else if(next!=='overview')(next==='exceptions'?exceptionsBack:settingsBack).focus?.({preventScroll:true});
   }
-  settingsTrigger.addEventListener('click',()=>navigate('settings'));
   exceptionsTrigger.addEventListener('click',()=>navigate('exceptions'));
   settingsExceptions.addEventListener('click',()=>navigate('exceptions'));
   exceptionsBack.addEventListener('click',()=>navigate(exceptionsReturnView,exceptionsReturnControl));
-  settingsBack.addEventListener('click',()=>navigate('overview',settingsTrigger));
+  settingsBack.addEventListener('click',()=>navigate('overview',settingsControl));
   managementButton.addEventListener('click',()=>{if(visible)openToolManagement();});
 
   function paint(){
@@ -294,5 +289,11 @@ export function createAdblockPermissionControls({
     if(changed){state=null;paint();if(enabled)void refresh();}
     else paint();
   }
-  return {render,refresh,view:()=>view,dispose:()=>render(null)};
+  return {render,refresh,view:()=>view,
+    toggleProductSettings:()=>{
+      if(!visible||suspended)return;
+      navigate(view==='settings'?'overview':'settings',
+        view==='settings'?settingsControl:null);
+    },
+    dispose:()=>render(null)};
 }

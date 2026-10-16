@@ -30,7 +30,9 @@ body{display:block;margin:0;background:var(--od-bg);color:var(--od-ink)}
 .preview-body{padding:var(--space-2) var(--od-page-gutter) var(--space-3);min-width:0}
 .preview-body>section{min-width:0}
 .preview-device .sidebar-tool-view-head{min-height:var(--od-icon-size)}
-.preview-device #sidebar-tool-open-tab,.preview-device #sidebar-tool-settings-open,.preview-device #sidebar-tool-visibility,.preview-device #sidebar-tool-context-menu{display:none!important}
+.preview-device #sidebar-tool-open-tab,.preview-device #sidebar-tool-visibility,.preview-device #sidebar-tool-context-menu{display:none!important}
+/* Keep the shared settings icon visible for a tool that explicitly owns it. */
+.preview-device #sidebar-tool-settings-open[hidden]{display:none!important}
 .preview-device #opendesk-preview-frame{height:{{HEIGHT}}px;min-height:0;max-height:none;background:var(--od-paper)}
 .preview-placeholder{display:grid;gap:var(--space-3);padding:var(--space-3);margin-top:var(--space-2)}
 .preview-placeholder>p{margin:0}

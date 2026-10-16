@@ -38,9 +38,8 @@ test('native host snapshots render original trusted control factory, not HTML re
     assert.equal((html.match(/role="switch"/g)||[]).length,2,name);
     assert.match(html,/aria-label="全局广告拦截"/,name);
     assert.match(html,/adblock-native-card/,name);
-    assert.match(html,/<header class="adblock-native-head"><button aria-label="打开 AdBlock 产品设置"/,name);
-    assert.doesNotMatch(html,/adblock-native-logo|adblock-native-identity|adblock-native-title|adblock-native-subtitle|广告拦截 · 安静浏览/,name);
-    assert.equal((html.match(/aria-label="打开 AdBlock 产品设置"/g)||[]).length,1,name);
+    assert.doesNotMatch(html,/adblock-native-head|adblock-native-icon|adblock-native-logo|adblock-native-identity|adblock-native-title|adblock-native-subtitle|广告拦截 · 安静浏览/,name);
+    assert.equal((html.match(/aria-label="打开 AdBlock 产品设置"/g)||[]).length,0,name);
   }
   assert.match(host.snapshots['on-site-on'],/aria-checked="true"/);
   assert.match(host.snapshots['on-site-off'],/aria-checked="false"/);
@@ -60,7 +59,7 @@ test('native host snapshots render original trusted control factory, not HTML re
   assert.doesNotMatch(host.snapshots['on-site-on'],/>18<|>42<|>26</);
 
   assert.match(host.css,/.sidebar-tool-adblock-native \.adblock-native-toggle/);
-  assert.match(host.css,/\.sidebar-tool-adblock-native \.adblock-native-head\{[^}]*justify-content:flex-end/);
+  assert.doesNotMatch(host.css,/\.adblock-native-head\b|\.adblock-native-icon\b/);
   assert.doesNotMatch(host.css,/\.adblock-native-(logo|identity|title|subtitle)\b/);
   const native=await source('examples/sidebar-tools/adblock/trusted/host-controls.js');
   assert.match(native,/createAdblockPermissionControls/);
@@ -86,6 +85,9 @@ test('preview and installed AdBlock sandbox have byte-identical HTML/CSS/JS; hos
   assert.match(a.html,/id="od-preview-adblock-restore-dialog"/);
   assert.match(a.html,/id="opendesk-preview-adblock-snapshots"/);
   assert.match(a.html,/id="sidebar-tool-remove"/);
+  assert.match(a.html,/id="sidebar-tool-settings-open"/);
+  assert.match(a.html,/toolbarSettings\.hidden=false/);
+  assert.doesNotMatch(a.html,/class="adblock-native-head"|class="adblock-native-icon"/);
   assert.match(a.html,/id="tab-tools"/);
   assert.ok(!a.frameHtml.includes('createAdblockPermissionControls'),
     'fixed native host JS must never appear in a sandbox package');
