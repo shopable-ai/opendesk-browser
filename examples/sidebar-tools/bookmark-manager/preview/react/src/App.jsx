@@ -105,12 +105,12 @@ function Inspector({tree,node,draft,setDraft,onEdit,onSave,onCancel,onOpenPicker
    {!draft&&node&&!node.locked&&<button type="button" className="bm-quiet-action" onClick={()=>onEdit(node)}><Icon name="edit" size={15}/>编辑</button>}
   </div>
   <span id="bm-inspector-id" className="bm-sr-only">{node?.id||''}</span>
-  {draft?<form className="bm-editor" onSubmit={onSave} data-testid="bookmark-editor">
+  {draft?<form className="bm-editor" onSubmit={e=>e.preventDefault()} onKeyDown={e=>{if(e.key==="Enter"&&!e.nativeEvent.isComposing&&["bm-edit-name","bm-edit-url"].includes(e.target.id)){e.preventDefault();onSave(e)}}} data-testid="bookmark-editor">
    <div className="bm-field"><label htmlFor="bm-edit-name">名称</label><input id="bm-edit-name" autoFocus maxLength={256} required value={draft.title} onChange={e=>setDraft({...draft,title:e.target.value})}/></div>
    {draft.kind==='bookmark'&&<div className="bm-field"><label htmlFor="bm-edit-url">网址</label><input id="bm-edit-url" type="url" required maxLength={2048} value={draft.url} placeholder="https://example.com" onChange={e=>setDraft({...draft,url:e.target.value})}/></div>}
    <div className="bm-parent-line"><span className="bm-note">所在文件夹：</span><span className="bm-parent-path" title={folderLabel(tree,draft.parentId)}>{folderLabel(tree,draft.parentId)}</span><button type="button" className="bm-text-button" aria-expanded={pickerOpen} onClick={()=>onOpenPicker(!pickerOpen)}>更改</button></div>
    {pickerOpen&&<FolderPicker tree={tree} value={draft.parentId} currentId={draft.mode==='edit'&&draft.kind==='folder'?draft.id:null} onChange={id=>setDraft({...draft,parentId:id})} onClose={()=>setPickerOpen(false)}/>}
-   <div className="bm-editor-actions"><Button type="submit" kind="primary" icon="arrow" disabled={busy||uncertain}>保存并验证</Button><button type="button" className="bm-button" onClick={onCancel}>取消</button></div>
+   <div className="bm-editor-actions"><Button type="button" data-testid="bookmark-save" onClick={onSave} kind="primary" icon="arrow" disabled={busy||uncertain}>保存并验证</Button><button type="button" className="bm-button" onClick={onCancel}>取消</button></div>
    {uncertain&&<p className="bm-warning">写入结果未知；已禁止再次保存。可刷新核对，或明确放弃草稿。</p>}
   </form>:
   node?<div className="bm-readonly">

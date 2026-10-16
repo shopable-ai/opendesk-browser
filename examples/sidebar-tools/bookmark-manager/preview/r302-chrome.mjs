@@ -144,11 +144,11 @@ try{
   await until(ctx,"Boolean(document.getElementById('bm-edit-url'))",'edit form URL '+width);
   await setInput(ctx,'bm-edit-name','模拟书签 2152 · React 更新');
   await setInput(ctx,'bm-edit-url','https://example.org/react-2152');
-  await invoke(ctx,"globalThis.__bmNativeSubmitCount=0;document.querySelector('form.bm-editor')?.addEventListener('submit',()=>globalThis.__bmNativeSubmitCount++,{capture:true});document.querySelector('.bm-editor-actions button[type=\"submit\"]').click();return true");
+  await invoke(ctx,"globalThis.__bmNativeSubmitCount=0;document.querySelector('form.bm-editor')?.addEventListener('submit',()=>globalThis.__bmNativeSubmitCount++,{capture:true});document.querySelector('[data-testid=\"bookmark-save\"]').click();return true");
   try{
    await until(ctx,"document.querySelector('.bm-detail-title')?.textContent.includes('React 更新')",'confirmed write readback '+width);
   }catch(failure){
-   const diag=await invoke(ctx,"return {error:document.querySelector('.bm-error')?.textContent,notice:document.querySelector('.bm-notice')?.textContent,editor:document.querySelector('[data-testid=\"bookmark-editor\"]')?.outerHTML?.slice(0,900),detail:document.querySelector('.bm-detail-title')?.textContent,formName:document.getElementById('bm-edit-name')?.value,formUrl:document.getElementById('bm-edit-url')?.value,valid:document.querySelector('form.bm-editor')?.checkValidity(),fieldValidity:[...document.querySelectorAll('form.bm-editor input')].map(x=>({id:x.id,valid:x.validity.valid,why:x.validationMessage})),buttonDisabled:document.querySelector('.bm-editor-actions button[type=\"submit\"]')?.disabled,saveStage:globalThis.__bmReactSaveStage,submitObserved:globalThis.__bmNativeSubmitCount,selected:document.getElementById('bm-inspector-id')?.textContent,search:document.getElementById('bm-search')?.value};");
+   const diag=await invoke(ctx,"return {error:document.querySelector('.bm-error')?.textContent,notice:document.querySelector('.bm-notice')?.textContent,editor:document.querySelector('[data-testid=\"bookmark-editor\"]')?.outerHTML?.slice(0,900),detail:document.querySelector('.bm-detail-title')?.textContent,formName:document.getElementById('bm-edit-name')?.value,formUrl:document.getElementById('bm-edit-url')?.value,valid:document.querySelector('form.bm-editor')?.checkValidity(),fieldValidity:[...document.querySelectorAll('form.bm-editor input')].map(x=>({id:x.id,valid:x.validity.valid,why:x.validationMessage})),buttonDisabled:document.querySelector('[data-testid=\"bookmark-save\"]')?.disabled,saveStage:globalThis.__bmReactSaveStage,submitObserved:globalThis.__bmNativeSubmitCount,selected:document.getElementById('bm-inspector-id')?.textContent,search:document.getElementById('bm-search')?.value};");
    await screenshot('bookmark-r302-'+width+'-save-failure.png');
    throw Error(failure.message+'; DOM_DIAGNOSTIC='+JSON.stringify(diag));
   }
@@ -159,7 +159,7 @@ try{
   await until(ctx,"Boolean(document.querySelector('[data-node-id=\"10\"]'))",'folder tree '+width);
   await invoke(ctx,"document.querySelector('[data-node-id=\"10\"]').click();document.querySelector('.bm-create-actions button').click();return true");
   await until(ctx,"Boolean(document.getElementById('bm-edit-url'))",'new bookmark from selected folder '+width);
-  await invoke(ctx,"document.querySelector('.bm-editor-actions button[type=\"button\"]').click();return true");
+  await invoke(ctx,"document.querySelector('.bm-editor-actions button:last-child').click();return true");
   await until(ctx,"!document.querySelector('[data-testid=\"bookmark-editor\"]')",'clean cancel '+width);
   await invoke(ctx,"document.querySelectorAll('.bm-create-actions button')[1].click();return true");
   await until(ctx,"Boolean(document.querySelector('[data-testid=\"bookmark-editor\"]'))",'new folder form '+width);
@@ -188,7 +188,7 @@ try{
    await setInput(ctx,'bm-folder-search','性能文件夹 0130');
    await until(ctx,"document.querySelectorAll('.bm-picker-item').length===1",'folder picker global search 130');
    await screenshot('bookmark-r302-400-picker.png');
-   await invoke(ctx,"document.querySelector('.bm-picker-item').click();document.querySelector('.bm-editor-actions button[type=\"button\"]').click();return true");
+   await invoke(ctx,"document.querySelector('.bm-picker-item').click();document.querySelector('.bm-editor-actions button:last-child').click();return true");
    await until(ctx,"Boolean(document.querySelector('[data-testid=\"confirm-dialog\"]'))",'dirty move cancel guard');
    await invoke(ctx,"document.querySelector('[data-testid=\"confirm-dialog\"] button:last-child').click();return true");
    await invoke(ctx,"document.querySelector('[data-node-id=\"100\"] .bm-row-more').click();document.querySelector('[data-testid=\"action-menu\"] button:last-child').click();return true");
@@ -198,7 +198,7 @@ try{
    await invoke(ctx,"document.querySelector('[data-node-id=\"100\"]').click();document.querySelector('.bm-inspector-heading .bm-quiet-action').click();return true");
    await until(ctx,"Boolean(document.getElementById('bm-edit-name'))",'edit before failure');
    await setInput(ctx,'bm-edit-name','失败的模拟草稿');
-   await invoke(ctx,"globalThis.__opendeskBookmarkMockDiagnostic('write-fail');document.querySelector('.bm-editor-actions button[type=\"submit\"]').click();return true");
+   await invoke(ctx,"globalThis.__opendeskBookmarkMockDiagnostic('write-fail');document.querySelector('[data-testid=\"bookmark-save\"]').click();return true");
    await until(ctx,"Boolean(document.querySelector('.bm-error'))",'mock write failure preserved');
    assert.equal(await invoke(ctx,"return document.getElementById('bm-edit-name')?.value"),'失败的模拟草稿');
    await screenshot('bookmark-r302-400-failure.png');
