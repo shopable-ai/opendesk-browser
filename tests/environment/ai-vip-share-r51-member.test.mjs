@@ -15,10 +15,15 @@ const testConfig="const BUSINESS_ENDPOINTS=Object.freeze({member:'"+BOUND+
   "/redeem',voucherStatus:'"+BOUND+"/status'});";
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
 function element(id=''){
-  return {id,hidden:false,disabled:false,value:'',textContent:'',children:[],listeners:{},
+  const attributes={},classes=new Set();
+  return {id,hidden:false,disabled:false,value:'',textContent:'',type:'password',
+    children:[],listeners:{},style:{},attributes,
+    classList:{toggle(name,enabled){if(enabled)classes.add(name);else classes.delete(name);}},
     append(...xs){this.children.push(...xs);},
     replaceChildren(...xs){this.children=[...xs];},
     addEventListener(name,fn){this.listeners[name]=fn;},
+    setAttribute(name,value){attributes[name]=String(value);},
+    removeAttribute(name){delete attributes[name];},
     focus(){this.focused=true;}
   };
 }
@@ -61,10 +66,12 @@ const time=(expiresAt=Date.now()+3*86400000)=>({type:'time',status:'active',
   title:'3 天体验权益',expiresAt});
 const quota={type:'quota',status:'active',title:'请求配额',remaining:17,total:100,unit:'次'};
 function node(env,name){return env.nodes.get('ai-vip-'+name)}
+const preflight=env=>node(env,'redeem-form').listeners.submit({isTrusted:true,preventDefault(){}});
+const confirm=env=>node(env,'redeem-confirm').listeners.click({isTrusted:true});
 
 test('R5.2 official package grants scoped recovery storage but no network permission',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/ai-vip-share');
-  assert.equal(pkg.version,'1.3.0');
+  assert.equal(pkg.version,'1.3.1');
   assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
   assert.deepEqual(pkg.capabilities,['storage.local','network','browser.tabs','browser.proxy.managed']);
   assert.match(pkg.css,/opendesk\.shared-design\.v1/);
@@ -95,7 +102,7 @@ test('R5.1 verified time and quota show distinct values, server expiry and ledge
   assert.match(node(e,'expiry').textContent,/2026/);
   assert.equal(node(e,'benefits').children.length,2);
   assert.match(node(e,'benefits').children[1].children[1].textContent,/17 \/ 100 次/);
-  assert.equal(node(e,'history-count').textContent,'1 条（本次核验）');
+  assert.equal(node(e,'history-count').textContent,'1 条');
   assert.equal(node(e,'redeem-code').disabled,false);
   assert(e.calls.every(call=>call.url.startsWith(BOUND)));
 });
@@ -126,12 +133,12 @@ test('R5.1 two-step voucher flow confirms account and passes exactly one idempot
   node(e,'redeem-code').value='SAMPLE-99';
   node(e,'redeem-code').listeners.input();
   assert.equal(node(e,'redeem').disabled,false);
-  node(e,'redeem').listeners.click({isTrusted:true});
+  preflight(e);
   await flush();await flush();
-  assert.equal(node(e,'redeem').textContent,'确认兑换');
+  assert.equal(node(e,'redeem-confirm').disabled,false);
   assert.equal(node(e,'redeem-code').value,'');
   assert.equal(node(e,'redeem-preview').hidden,false);
-  node(e,'redeem').listeners.click({isTrusted:true});
+  confirm(e);
   await flush();await flush();await flush();await flush();
   assert.equal(calls.filter(c=>c.url.endsWith('/redeem')).length,1);
   assert.deepEqual(Object.keys(calls.find(c=>c.url.endsWith('/redeem')).data).sort(),
@@ -151,12 +158,12 @@ test('R5.1 ambiguous redemption never auto-retries an unknown side effect',async
   }});
   node(e,'redeem-code').value='REDEEM123';
   node(e,'redeem-code').listeners.input();
-  node(e,'redeem').listeners.click({isTrusted:true});await flush();await flush();
-  node(e,'redeem').listeners.click({isTrusted:true});await flush();await flush();
+  preflight(e);await flush();await flush();
+  confirm(e);await flush();await flush();
   assert.equal(posts,1);
   assert.equal(node(e,'redeem').disabled,true);
-  assert.match(node(e,'redeem-status').textContent,/结果未确认/);
-  node(e,'redeem').listeners.click({isTrusted:true});await flush();
+  assert.match(node(e,'redeem-error').textContent,/结果未确认/);
+  confirm(e);await flush();
   assert.equal(posts,1);
 });
 test('R5.1 invalid Provider identity data fails closed',async()=>{
@@ -189,9 +196,9 @@ test('R5.2 write-ahead survives restart, never repeats consumption and reconcile
   const first=await runtime({configured:true,provider,store});
   node(first,'redeem-code').value='VOUCHER-123';
   node(first,'redeem-code').listeners.input();
-  node(first,'redeem').listeners.click({isTrusted:true});
+  preflight(first);
   await flush();await flush();
-  node(first,'redeem').listeners.click({isTrusted:true});
+  confirm(first);
   await flush();await flush();await flush();
   assert(store.value?.idempotencyKey);
   assert.equal(node(first,'redeem').disabled,true);
@@ -200,7 +207,7 @@ test('R5.2 write-ahead survives restart, never repeats consumption and reconcile
   assert.equal(node(second,'redeem').disabled,true);
   assert.equal(node(second,'recovery').hidden,false);
   node(second,'redeem-code').value='VOUCHER-123';
-  node(second,'redeem').listeners.click({isTrusted:true});
+  confirm(second);
   await flush();
   assert.equal(requests.filter(row=>row.url.endsWith('/redeem')).length,1);
   node(second,'recovery-check').listeners.click({isTrusted:true});
@@ -260,13 +267,13 @@ test('R5.2 storage failure blocks voucher POST before side effect',async()=>{
   }});
   node(e,'redeem-code').value='VOUCHER-123';
   node(e,'redeem-code').listeners.input();
-  node(e,'redeem').listeners.click({isTrusted:true});
+  preflight(e);
   await flush();await flush();
-  node(e,'redeem').listeners.click({isTrusted:true});
+  confirm(e);
   await flush();await flush();
   assert.equal(posts,0);
   assert.equal(node(e,'redeem').disabled,true);
-  assert.match(node(e,'redeem-status').textContent,/无法确认本地兑换状态/);
+  assert.match(node(e,'redeem-error').textContent,/无法确认本地兑换状态/);
 });
 test('R5.2 lost storage acknowledgement confirmed by readback sends once',async()=>{
   const store={value:null,dropAck:true};
@@ -281,9 +288,9 @@ test('R5.2 lost storage acknowledgement confirmed by readback sends once',async(
   }});
   node(e,'redeem-code').value='VOUCHER-123';
   node(e,'redeem-code').listeners.input();
-  node(e,'redeem').listeners.click({isTrusted:true});
+  preflight(e);
   await flush();await flush();
-  node(e,'redeem').listeners.click({isTrusted:true});
+  confirm(e);
   await flush();await flush();
   assert.equal(posts,1);
   assert.equal(store.value?.accountId,'customer-123');
@@ -308,10 +315,10 @@ test('R5.2 device clock skew cannot extend preview or strand a persisted unknown
     const first=await runtime({configured:true,store,provider,clockShiftMs:clientShift});
     node(first,'redeem-code').value='CLOCK-SKEW';
     node(first,'redeem-code').listeners.input();
-    node(first,'redeem').listeners.click({isTrusted:true});
+    preflight(first);
     await flush();await flush();
-    assert.equal(node(first,'redeem').textContent,'确认兑换');
-    node(first,'redeem').listeners.click({isTrusted:true});
+    assert.equal(node(first,'redeem-confirm').disabled,false);
+    confirm(first);
     for(let i=0;i<6;i++)await flush();
     assert.equal(posts,1);
     assert(store.value,'a journal survives an unknown POST despite local clock drift');
@@ -339,17 +346,17 @@ test('R5.2 rechecks live account before creating any consumption journal',async(
   const e=await runtime({configured:true,store,provider});
   node(e,'redeem-code').value='ACCOUNT-CHANGE';
   node(e,'redeem-code').listeners.input();
-  node(e,'redeem').listeners.click({isTrusted:true});
+  preflight(e);
   await flush();await flush();
   assert.equal(node(e,'redeem-preview').hidden,false);
   currentAccount='other-customer';
-  node(e,'redeem').listeners.click({isTrusted:true});
+  confirm(e);
   for(let i=0;i<5;i++)await flush();
   assert.equal(posts,0);
   assert.equal(store.value,null,'changed account must not write an unknown transaction');
   assert.equal(node(e,'redeem-preview').hidden,true);
   assert.equal(node(e,'recovery').hidden,true);
-  assert.match(node(e,'redeem-status').textContent,/未提交兑换/);
+  assert.match(node(e,'redeem-error').textContent,/未提交兑换/);
 });
 
 test('R5.2 pre-submit member failure remains safely retryable without phantom journal',async()=>{
@@ -369,15 +376,15 @@ test('R5.2 pre-submit member failure remains safely retryable without phantom jo
   }});
   node(e,'redeem-code').value='CHECK-AGAIN';
   node(e,'redeem-code').listeners.input();
-  node(e,'redeem').listeners.click({isTrusted:true});
+  preflight(e);
   await flush();await flush();
-  node(e,'redeem').listeners.click({isTrusted:true});
+  confirm(e);
   for(let i=0;i<5;i++)await flush();
   assert.equal(posts,0);
   assert.equal(store.value,null);
   assert.equal(node(e,'recovery').hidden,true,'no phantom unknown-effect record');
   assert.equal(node(e,'redeem-code').disabled,false,'can re-preview when connection recovers');
-  assert.match(node(e,'redeem-status').textContent,/未提交兑换/);
+  assert.match(node(e,'redeem-error').textContent,/未提交兑换/);
 });
 
 test('R5.2 explicit status lookup rechecks account after the UI was opened',async()=>{
@@ -412,9 +419,9 @@ test('R5.2 rejects overlong previews even with a valid server member timestamp',
   }});
   node(e,'redeem-code').value='TOO-LONG-PREVIEW';
   node(e,'redeem-code').listeners.input();
-  node(e,'redeem').listeners.click({isTrusted:true});
+  preflight(e);
   for(let i=0;i<4;i++)await flush();
   assert.equal(node(e,'redeem-preview').hidden,true);
-  assert.match(node(e,'redeem-status').textContent,/无法核验兑换码/);
+  assert.match(node(e,'redeem-error').textContent,/无法核验兑换码/);
   assert(!e.calls.some(args=>args.url.endsWith('/redeem')));
 });
