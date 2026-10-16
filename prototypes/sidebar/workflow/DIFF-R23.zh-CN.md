@@ -86,7 +86,7 @@ docs/framework/workstreams/workflow-local-e2e-01a13fcb-20261015.md 记载旧特�
 
 | 维度 | R23.1 实际问题 | R23.2 源码变更 | 当前证据边界 |
 | --- | --- | --- | --- |
-| 顶部入口 | 一个「＋」下拉中藏两种新建操作 | 直接显示「历史」「新对话」「新工作流」，不同图标/提示/无障碍名字 | SOURCE_IMPLEMENTED；视觉截图须查专用 CI |
+| 顶部入口 | 一个「＋」下拉中藏两种新建操作 | 按用户最新反馈修正为 **三个 40×40px 独立纯 Icon 按钮**：历史（时钟）、新对话（气泡＋）、新建工作流（文件＋），文字仅在 tooltip/aria-label，不占标题空间 | SOURCE_IMPLEMENTED；纯 Icon 约束已写入实际 Chrome 断言，截图/CI 以当前 SHA 为准 |
 | 新对话 | 清空未发送文字；运行时可静默取消 | 新 chatId、保留当前 workflowId/版本/输入及模拟目标 DOM；运行或授权待决先阻止切换 | SOURCE_IMPLEMENTED；源文件 CI 待实际结论 |
 | 新工作流 | 只对工作流 dirty 提示，未发送文本可能丢失 | 保护未保存设计和未发送文字；取消后恢复焦点；空白不误报 dirty | SOURCE_IMPLEMENTED；源文件 CI 待实际结论 |
 | 历史恢复 | 仅改 workflowId/title，保留上一个聊天/模拟成功上下文 | 新 chatId、重置当前会话成功及授权状态；旧版本不删除、不自动执行、不修改输入 DOM | SOURCE_IMPLEMENTED；源文件 CI 待实际结论 |
