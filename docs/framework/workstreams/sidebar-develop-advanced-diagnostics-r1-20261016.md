@@ -4,7 +4,7 @@
 
 ## 范围与写入所有权
 
-本任务只修改 `src/ui/tool.html`、`src/ui/tool-shell.css`、`tests/environment/developer-layout.test.mjs` 和本记录；不修改 `src/ui/tool-shell.js`、`src/ui/script-editor.js`、Browser SDK Authority、Chrome permissions、Host/Native、底部 Run/Stop。与其他会话不共享 Chrome profile、`dist/development`、CI fixture/端口，不主动重启 watcher。
+本任务主要修改 `src/ui/tool.html`、`src/ui/tool-shell.css`、`tests/environment/developer-layout.test.mjs`；同时因相关 R21 检查被已存在的 Workflow 断言阻塞，定向更新 `tests/environment/sidebar-component-contract.test.mjs` 过期断言，并保留本记录；不修改 `src/ui/tool-shell.js`、`src/ui/script-editor.js`、Browser SDK Authority、Chrome permissions、Host/Native、底部 Run/Stop。与其他会话不共享 Chrome profile、`dist/development`、CI fixture/端口，不主动重启 watcher。
 
 ## 问题与修复
 
@@ -21,3 +21,9 @@
 - STATIC_CHROMIUM：等待本提交对应 `Sidebar R19 - real markup static layout audit` 结果，需检查其准确候选 SHA 与截图。
 - REAL_MAC_CHROME、SDK 授权/撤销原生端到端、生产包安装：NOT_TESTED；Node PASS 不可提升为真实安装 PASS。
 - 已有 RunHost、权限及 Native 历史证据只在原绑定候选范围有效，本次不会通过布局改动重写历史凭证。
+
+## CI 受影响验证补充
+
+- 初版候选 `b3ee5d7902cfeda6f287aef2803fb7ea287b2026`：R19 静态 Chromium 源码布局成功（Actions run 38873689674）；R21 首阶段 Node 63/64，唯一失败在旧 `sidebar-component-contract.test.mjs` 的 Workflow observation consent 文本断言（Actions run 38873689530）。
+- Workflow 源码 `src/ui/workflow/workflow-view.js` 与本任务父提交逐字节相同，旧断言要求 `observation:selected==='local_codex'`，真实源码已将用户明确发送表达为 `observation:true`，但另行要求 `permission=row.siteGranted?Promise.resolve(true):api.permissions.request` 及本机 Local Codex 有效摘要审批。
+- **修复仅更新测试契约并增强安全拦截断言**；不修改 Workflow JS、模型 Provider、网页审批或任何其他 Runtime。后续以本提交的 R21 Node / 构建结果为准，静态 Chromium 可复用不变的 HTML/CSS R19 证据。

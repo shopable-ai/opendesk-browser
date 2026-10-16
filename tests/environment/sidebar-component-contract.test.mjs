@@ -52,7 +52,10 @@ test('Workflow Send action remains icon-sized, accessible and explicitly authori
   assert.doesNotMatch(shell, /\.workflow-composer\s+\.workflow-send-button\[data-first-use/);
   assert.doesNotMatch(shell, /\.workflow-send-label\{/);
   assert.match(workflow, /async function plan\(event\)\s*\{\s*if\(!event\.isTrusted\|\|busy\)return/);
-  assert.match(workflow, /consent:\{model:true,workflow:true,observation:selected==='local_codex'\}/);
+  // Send expresses intent; website permission and local summary approval are separate gates.
+  assert.match(workflow, /consent:\{model:true,workflow:true,observation:true\}/);
+  assert.match(workflow, /permission=row\.siteGranted\?Promise\.resolve\(true\):api\.permissions\.request/);
+  assert.match(workflow, /row\.selected==='local_codex'&&!remember&&!validObservationApproval\(row\)/);
   assert.match(workflow, /permission=api\.permissions\.request/);
 });
 
