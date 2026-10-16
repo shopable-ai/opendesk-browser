@@ -17,6 +17,7 @@ const root=resolve('.');
 let boot='',initial={};
 const html='<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">'+
   '<meta name="viewport" content="width=device-width,initial-scale=1">'+
+  '<link rel="icon" href="data:,">'+
   '<style>body{margin:0;font:16px system-ui}main{margin:32px 0 0 100px;'+
   'width:min(78vw,840px);height:640px;padding:20px;background:#f5f6f9}'+
   'textarea{display:block;width:85%;height:110px;margin-top:100px}'+
@@ -31,6 +32,8 @@ const html='<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">'+
   '<script type="module" src="/fixture-boot.js"></script></body></html>';
 const server=createServer(async(req,res)=>{
   const pathname=new URL(req.url,'http://127.0.0.1').pathname;
+  // Chrome requests favicon on navigation and reload; it is not part of the fixture.
+  if(pathname==='/favicon.ico'){res.writeHead(204);res.end();return;}
   if(pathname==='/fixture'){res.writeHead(200,{'content-type':'text/html; charset=utf-8'});res.end(html);return;}
   if(pathname==='/fixture-boot.js'){
     res.writeHead(200,{'content-type':'text/javascript; charset=utf-8','cache-control':'no-store'});
