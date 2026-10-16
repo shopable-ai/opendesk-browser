@@ -1,0 +1,19 @@
+{
+  "format": "opendesk.sidebar-tool.v2",
+  "id": "managed-proxy-c2-fixture",
+  "version": "0.0.1",
+  "title": "Managed Proxy C2 受审测试工具",
+  "description": "仅限 CI 隔离 Chromium，真实公共 SDK/Host/Driver；不得进入官方生产目录。",
+  "capabilities": [
+    "browser.proxy.managed"
+  ],
+  "html": "<main id=\"proxy-c2-fixture\"><h1>Managed Proxy C2 · 仅隔离测试</h1><p>此工具不代表会员或商业服务。</p><div class=\"actions\"><button id=\"proxy-c2-status\" type=\"button\">读取状态</button><button id=\"proxy-c2-enable\" type=\"button\">启用测试代理</button><button id=\"proxy-c2-disable\" type=\"button\">停止测试代理</button></div><pre id=\"proxy-c2-result\" role=\"status\" aria-live=\"polite\">未执行</pre></main>",
+  "css": "#proxy-c2-fixture{font:14px system-ui;padding:20px;color:#232323}#proxy-c2-fixture h1{font-size:18px}#proxy-c2-fixture .actions{display:flex;gap:8px;flex-wrap:wrap}#proxy-c2-fixture button{border:1px solid #aaa;border-radius:8px;padding:10px;background:white}#proxy-c2-result{padding:12px;background:#eee;white-space:pre-wrap;overflow-wrap:anywhere}",
+  "js": "(()=>{'use strict';const root=window.OpenDeskTool?.root;if(!root)return;\nconst sdk=window.OpenDeskSDK?.browser?.proxy?.managed;\nconst result=root.querySelector('#proxy-c2-result');\nconst config={endpoint:{scheme:'socks5',host:'proxy.fixture.test',port:18897},domains:['target.fixture.test']};\nlet running=false;\nasync function call(method){\n if(running)return;running=true;result.textContent=JSON.stringify({method,state:'pending'});\n try{\n  if(!sdk)throw Object.assign(new Error('Public SDK unavailable'),{code:'E_NO_SDK'});\n  const data=method==='getStatus'?await sdk.getStatus():method==='requestEnable'?\n    await sdk.requestEnable({config}):await sdk.requestDisable();\n  result.textContent=JSON.stringify({method,ok:true,data});\n }catch(e){result.textContent=JSON.stringify({method,ok:false,code:e?.code||'E_UNKNOWN',message:String(e?.message||e).slice(0,180)});}\n finally{running=false;}\n}\nfor(const [id,method] of [['proxy-c2-status','getStatus'],['proxy-c2-enable','requestEnable'],['proxy-c2-disable','requestDisable']]){\n root.querySelector('#'+id)?.addEventListener('click',event=>{if(event?.isTrusted===true)void call(method);});\n}\nvoid call('getStatus');\n})();",
+  "requires": {
+    "browserSdk": "1.0.0"
+  },
+  "contributes": {
+    "contextMenus": []
+  }
+}
