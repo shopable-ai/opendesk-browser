@@ -143,6 +143,9 @@ async function run(){
   await click('.prompt-actions button[aria-label^="更多操作"]');
   assert(await evalChrome('!!document.querySelector(".prompt-more")'));report.managementSeparate=true;
   await evalChrome('(()=>{const f=document.getElementById("actionScenario");f.value="clipboard-failure";f.dispatchEvent(new Event("change",{bubbles:true}));})()');
+  // The preview deliberately debounces repeated activation of one prompt for 650ms.
+  // Reaching the clipboard-failure scenario requires a fresh real user click.
+  await sleep(700);
   await click('.prompt-use');
   await poll('document.querySelector("#panelStatus").dataset.kind==="error"','double-failure notice');
   x=await state();assert.match(x.notice,/复制失败/);assert.equal(x.copyDialog,false);
