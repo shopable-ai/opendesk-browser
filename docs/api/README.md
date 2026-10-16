@@ -30,6 +30,8 @@ Codex 调 MCP；Sidebar 本地项目读取同一 provider 后使用原执行入�
 
 新增可安装工具的浏览器能力请先看 [Browser SDK R1.3 API](browser-sdk.zh-CN.md) 和 [完整能力矩阵](browser-capability-universe.zh-CN.md)。`browser.*` 不是普通网页的 `chrome.*` 通道，菜单能力须从可信工具详情明确启用；网络被动观察等仍处于 R2 规划阶段。
 
+**扩展开发先分类**：侧边栏「应用」用 [Sidebar Tool 公开开发规范](sidebar-tool-development.zh-CN.md) 和 `OpenDeskTool.request`；网页按钮、DOM 与自动增强用 [Page USER_SCRIPT](page-userscript.zh-CN.md)；网页自动化/Locator 用 [Controller](controller.zh-CN.md)。第三方只需公开 SDK、Schema、项目示例和自己的源码，无须读宿主 `src/`；缺公开能力记 `SDK_GAP_NOT_PROVEN` 并提供可复现证据。
+
 ## 文档导航
 
 | 我想做什么 | 教程 / 参考 | 示例 |
