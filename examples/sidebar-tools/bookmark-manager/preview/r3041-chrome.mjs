@@ -102,7 +102,45 @@ async function invoke(ctx,code){return evaluate(expr(code),ctx)}
 async function until(ctx,code,label,limit=110){return waitFor(()=>invoke(ctx,'return Boolean('+code+')'),label,limit)}
 async function screenshot(name,clip){
  const reply=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false,...(clip?{clip}:{})});
- await writeFile(join(out,name),Buffer.from(reply.data,'base64'));
+ const bytes=Buffer.from(reply.data,'base64');
+ await writeFile(join(out,name),bytes);
+ return createHash('sha256').update(bytes).digest('hex');
+}
+// Preserve the entire document from y=0, even when Chrome Zoom makes the
+// desktop preview taller than the physical screenshot viewport.
+async function screenshotFull(name){
+ const layout=await cdp('Page.getLayoutMetrics');
+ const area=layout.cssContentSize;
+ assert.ok(area.width>0&&area.height>0,'Chrome full-page capture dimensions');
+ const reply=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:true,
+  clip:{x:0,y:0,width:Math.ceil(area.width),height:Math.ceil(area.height),scale:1}});
+ const bytes=Buffer.from(reply.data,'base64');
+ await writeFile(join(out,name),bytes);
+ return {sha256:createHash('sha256').update(bytes).digest('hex'),bytes:bytes.length,
+  cssSize:{width:area.width,height:area.height}};
+}
+// Page.navigate resolves before the new document and nested React iframe mount.
+// Never reuse a preceding width/zoom context as screenshot evidence.
+async function settledPreview(width){
+ const outer=await waitFor(async()=>{
+  for(const candidate of [...contexts.values()]){
+   try{
+    if(await evaluate('Boolean(document.getElementById("od-preview-bookmark-lab") && location.search==="?width='+width+'")',candidate))
+     return candidate;
+   }catch{}
+  }
+  return null;
+ },'new outer document width '+width,170);
+ const inner=await waitFor(async()=>{
+  for(const candidate of [...contexts.values()]){
+   try{
+    if(await evaluate('Boolean(globalThis.__BookmarkReactPreview?.version==="R3.0.4" && innerWidth==='+width+' && document.querySelector(".bm-tree-row"))',candidate))
+     return candidate;
+   }catch{}
+  }
+  return null;
+ },'fresh React iframe width '+width,170);
+ return {outer,ctx:inner};
 }
 async function setInput(ctx,id,value){
  return invoke(ctx,
@@ -197,20 +235,36 @@ try{
   assert.ok(Math.abs(viewport-base.width/(zoom.percent/100))<9,'real Chrome browser CSS viewport changes');
   for(const width of [360,400,960]){
    await cdp('Page.navigate',{url:url+'?width='+width});
-   const ctx=await findReactFrame();outer=await outerContext();
+   const ready=await settledPreview(width);outer=ready.outer;
+   const ctx=ready.ctx;
+   // Real Chrome UI zoom must survive every URL/iframe reload; checking the
+   // DPR only BEFORE navigation is insufficient to validate screenshots.
+   const actualDpr=await evaluate('devicePixelRatio',outer);
+   const actualViewport=await evaluate('innerWidth',outer);
+   const frameDpr=await evaluate('devicePixelRatio',ctx);
+   assert.ok(Math.abs(actualDpr/base.dpr-zoom.percent/100)<.025,
+    'REAL_ZOOM_AFTER_NAVIGATION_FAILED at '+width+' / '+zoom.percent+'%: DPR '+actualDpr);
+   assert.ok(Math.abs(frameDpr/actualDpr-1)<.025,
+    'iframe must inherit actual Chrome Zoom at '+width+' / '+zoom.percent+'%');
+   assert.ok(Math.abs(actualViewport-base.width/(zoom.percent/100))<9,
+    'Chrome viewport must retain zoom after page navigation at '+width+' / '+zoom.percent+'%');
    const frameRight=await invoke(outer,'return document.getElementById("opendesk-preview-frame").getBoundingClientRect().right');
    const pageWidth=await evaluate('innerWidth',outer);
    assert.ok(frameRight<=pageWidth+1,'React preview must not be cropped by outer Chrome viewport at '+zoom.percent+'% '+width);
    await until(ctx,'document.querySelector(".bm-heading span")?.textContent.includes("2,159")','React data at '+width+' '+zoom.percent);
    const dimensions=await invoke(ctx,'const t=document.querySelector(".bm-tree-scroll");return {h:t.clientHeight,root:innerWidth,scroll:document.documentElement.scrollWidth,scale:visualViewport.scale}');
    assert.ok(dimensions.h>180&&dimensions.scroll<=dimensions.root+1&&Math.abs(dimensions.scale-1)<.02,'zoom fits tree '+width);
-   await screenshot('bookmark-r3041-'+width+'-zoom'+zoom.percent+'-list.png');
+   await invoke(outer,'window.scrollTo(0,0);return true');
+   const listSha=await screenshot('bookmark-r3041-'+width+'-zoom'+zoom.percent+'-list.png');
+   const listFull=await screenshotFull('bookmark-r3041-'+width+'-zoom'+zoom.percent+'-list-full.png');
    await invoke(ctx,'document.querySelector("#bm-treeitem-100 .bm-node-title").click();return true');
    await until(ctx,'!!document.querySelector("[data-testid=bookmark-preview]")','nonmodal '+width);
    assert.equal(await invoke(ctx,'return !!document.querySelector("[data-testid=bookmark-sheet]")'),false);
    const bounds=await invoke(ctx,'const r=document.querySelector(".bm-preview-pane").getBoundingClientRect();return {left:r.left,right:r.right}');
    assert.ok(bounds.left>=-1&&bounds.right<=dimensions.root+1,'preview within viewport');
-   await screenshot('bookmark-r3041-'+width+'-zoom'+zoom.percent+'-preview.png');
+   await invoke(outer,'window.scrollTo(0,0);return true');
+   const previewSha=await screenshot('bookmark-r3041-'+width+'-zoom'+zoom.percent+'-preview.png');
+   const previewFull=await screenshotFull('bookmark-r3041-'+width+'-zoom'+zoom.percent+'-preview-full.png');
    if(width===400&&zoom.percent===100)report.push({width,zoom:100,keyboard:await keyboardCase(ctx,outer)});
    await invoke(ctx,'const t=document.querySelector(".bm-tree-scroll");t.scrollTop=t.scrollHeight;t.dispatchEvent(new Event("scroll",{bubbles:true}));return true');
    await until(ctx,'!!document.querySelector("#bm-treeitem-2651")','last virtual row mounted '+width);
@@ -222,7 +276,9 @@ try{
    await invoke(ctx,'document.querySelector(".bm-preview-close").click();return true');
    await until(ctx,'!document.querySelector("[data-testid=bookmark-preview]")','close preview '+width);
    assert.equal(await invoke(ctx,'return document.querySelector(".bm-tree-scroll").scrollTop'),top,'close preserves virtual scroll');
-   report.push({width,zoom:zoom.percent,realBrowserDprRatio:dpr/base.dpr,cssViewport:viewport,nonModal:true,uncoveredBottom:true,scrollPreserved:true});
+   report.push({width,zoom:zoom.percent,realBrowserDprRatio:actualDpr/base.dpr,cssViewport:actualViewport,
+    frameDpr,frameCssWidth:dimensions.root,viewportScreenshotSha256:{list:listSha,preview:previewSha},
+    fullPage:{list:listFull,preview:previewFull},nonModal:true,uncoveredBottom:true,scrollPreserved:true});
   }
  }
  assert.deepEqual(network,[],'offline model and assets only');
