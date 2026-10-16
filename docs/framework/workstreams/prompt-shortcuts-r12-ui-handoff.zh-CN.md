@@ -337,3 +337,12 @@
 | 九维 95+ 独立评估 | NOT_SCORED | 只能设目标，不能以平均值或模拟分充数 |
 
 后续实机最短路径：在用户 Mac 核对最新 main、实际安装版本/SHA、既有 `npm run dev` watcher，不覆盖其他 Agent 的环境；通过正式可信安装链同 ID 安全升级到 1.0.3；在真实 Host 只输入「你好」保存、关闭重开验证唯一一条、失败时记录来源与 ETag/Console；再在真实 ChatGPT 验证按钮插入而不发送、无法插入时剪贴板回退、选区右键、停用/撤权/SPA 与 IME，并上传产品截图。未进行这些步骤不标 Native PASS。
+
+
+### R1.13 1.0.4 最终视觉审计增量（2026-10-16）
+
+- 真实 Chromium 正式源码截图发现 P1 视觉回归：`src/main.js` 在设置 `use.className='ps-card-use'` 时丢弃共享组件 `od-button--quiet`，正文主点击区意外继承全局蓝色主按钮背景；**基于真实证据修复** `use.className='ps-card-use od-button od-button--quiet'`。新增真实 Chromium 计算样式断言，确保正文区域背景透明 `rgba(0, 0, 0, 0)`、文本 `rgb(27, 44, 73)`，与主按钮 `rgb(54, 94, 218)` 明显区分；保持共享 Token，不复制蓝色样式到工具代码。
+- 正式版本安全递增为 **1.0.4**，经官方 CI 流水线 [38865919989](https://github.com/shopable-ai/opendesk-browser/actions/runs/38865919989) 最终取得两项 Job PASS（工具专项 20/20、共享 Sidebar 6/6、语法、候选生成、旧预览 Chromium、正式打包源码 Chromium）；官方唯一包同步提交 [10cba371](https://github.com/shopable-ai/opendesk-browser/commit/10cba371dffca3d4a88065a0add15973df06fa6a)。
+- **最新 1.0.4 唯一正式安装包** 43,711 B；SHA-256 `c79bd798ca499cf50942fa2a99e85682f6d50701c88b544b25e0d342007a8af4`；同步后最新 main 官方 `--check-project` 为 `PROJECT_PACKAGE_MATCH`、`installed:false`。
+- 最终正式源码截图：[artifact 12031276252](https://github.com/shopable-ai/opendesk-browser/actions/runs/38865919989/artifacts/12031276252)。其自动化报告 `kind=FORMAL_PACKAGED_UI_REAL_CHROMIUM_SIMULATED_HOST`, `version=1.0.4`, `helloSaveAndReload=true`, `uniqueCount=1`, 8 组跨宽度列表/百行表单截图、深色模式、`consoleExceptions=[]` 与共享 Quiet Button 透明背景断言均通过。
+- 本项修复完结范围只为源码与真实 Chromium 模拟 Host 级；**已安装 Mac Chrome / 真实 ChatGPT / 中文 IME** 依然 `NOT_TESTED`，未达最终实机 95+ 验收，绝不以视觉截图冒充实机通过。

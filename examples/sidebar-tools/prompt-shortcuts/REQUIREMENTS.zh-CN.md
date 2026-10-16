@@ -247,3 +247,14 @@
 6. **证据分层**：模型/模拟 Host Node PASS、打包源码真实 Chromium+模拟 Host PASS、独立安装后 Chrome PASS、真实 ChatGPT PASS、Mac IME PASS 为独立状态。不能将模拟通关等同于真实安装；专家九维须有原始截图、日志和操作证据，不足时为 `NOT_SCORED`。
 
 **R1.13 当前实现核对点**：正式工具版本 `1.0.3`，Node Scoped 20/20 + Sidebar Tool 6/6 PASS；真实 Chromium 加载正式打包源码并用模拟 Host 验证「你好」保存/刷新唯一读回、320/360/400/440px、100 行滚动、深色及 JS Console 均 PASS。GitHub Actions Run [38865261384](https://github.com/shopable-ai/opendesk-browser/actions/runs/38865261384) 对应候选原始包 43,684 B、SHA-256 `416b658d39669b9d775b836636aa49f35d3a88165fa9a268a3a15ed20632d71d`，已使用官方 `--check-project` 获得 `PROJECT_PACKAGE_MATCH`。已安装用户 Mac Chrome、真实 ChatGPT 编辑器、Mac 中文 IME `NOT_TESTED`；不能仅据源码将用户报告的真实保存失败宣布完全关闭。
+
+
+## 12. R1.13 最终视觉回归及 1.0.4 发行修订（2026-10-16）
+
+> 本节替代上一节的 **1.0.3 当前版本**表述；1.0.3 是历史已通过候选，不再是最新发行包。
+
+- 正式列表实际 Chromium 截图揭示原 `ps-card-use` 覆盖了 `od-button od-button--quiet` class，导致共享 Design System 的全局 `button` 蓝色主按钮背景污染正文阅读层级。已恢复共享 Quiet Button 类，不复制第二套按钮配色，也不修改浏览器宿主 `src/`。
+- 为正式打包源码浏览器测试新增计算样式断言：快捷正文按钮 `background-color: rgba(0, 0, 0, 0)`，与蓝色新建主按钮不同；恢复正文文本对比度，编辑/更多操作保持独立。
+- 最新正式可安装版本：`1.0.4`，唯一 `prompt-shortcuts.opendesk-tool.json`，43,711 字节，SHA-256 `c79bd798ca499cf50942fa2a99e85682f6d50701c88b544b25e0d342007a8af4`；官方 `--check-project` 输出 `PROJECT_PACKAGE_MATCH`。
+- 证据：[GitHub Actions Run 38865919989](https://github.com/shopable-ai/opendesk-browser/actions/runs/38865919989)，含 20/20 工具 Node、6/6 Sidebar 工具 Node、正式打包源码 Chromium 全场景与 320/360/400/440px 视觉截图。[独立正式 UI 截图 Artifact 12031276252](https://github.com/shopable-ai/opendesk-browser/actions/runs/38865919989/artifacts/12031276252)。
+- 用户 Mac 已安装身份、真实 Chrome Host 数据写入、真实 ChatGPT 页面插入、IME、同 ID 更新现场均继续 `NOT_TESTED`；九维真实产品专家评分继续 `NOT_SCORED`，不能将模拟 Host 或 CSS 截图当作完整 95+。
