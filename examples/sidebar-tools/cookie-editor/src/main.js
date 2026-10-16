@@ -142,6 +142,9 @@ function guarded(action){
   ask('当前有未保存的 Cookie 编辑或导入内容，确定放弃？','放弃修改',()=>{clean();action();});
 }
 function renderBrowser(){
+  // Keep the shared form rooted before rebuilding rows, even when hidden.
+  // Its controls must remain queryable during rendering and the next SDK read.
+  if(mode==='browser'||editor.hidden)E('browser-editor-slot').append(editor);
   const sdk=browserSdk(),available=!!liveTarget&&typeof sdk?.cookies?.getAll==='function';
   const hasRead=liveState==='ready';
   E('browser-panel').hidden=mode!=='browser';

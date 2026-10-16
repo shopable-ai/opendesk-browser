@@ -648,7 +648,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     try{
       const {tool}=await loadOfficialTool(release,{api,fetcher});
       if(disposed||selection!==fileSelection)return;
-      reviewCandidate(tool,'来源：OpenDesk 官方发行 · SHA-256 '+release.sha256,release);
+      await reviewCandidate(tool,'来源：OpenDesk 官方发行 · 原始文件 SHA-256 '+release.sha256,release,selection);
     }catch(error){
       if(disposed||selection!==fileSelection)return;
       setFileError((error.code||'E_PACKAGE')+'：'+String(error.message||error));
@@ -2098,9 +2098,16 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     }));
     render();notice(allow?'已恢复 '+origin+' 的目录':'已停用 '+origin+' 的目录');
   }
-  function reviewCandidate(candidate,sourceLabel,release=null){
+  async function reviewCandidate(candidate,sourceLabel,release=null,selection=fileSelection){
     requireToolRuntime(candidate);
     const previous=toolById(candidate.id);
+    const [candidateHash,previousHash]=await Promise.all([
+      sidebarToolPackageHash(candidate),previous?sidebarToolPackageHash(previous):null,
+    ]);
+    if(disposed||selection!==fileSelection)return;
+    const current=toolById(candidate.id);
+    if(Boolean(previous)!==Boolean(current)||(previous&&!samePackage(previous,current)))
+      throw new Error('工具安装状态已变化，请重新选择安装包');
     pending=candidate;pendingBaseline=previous?structuredClone(previous):null;
     pendingRelease=release;pendingOperationId=release?crypto.randomUUID():null;
     previewTitle.textContent=candidate.title;
@@ -2108,7 +2115,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     previewDescription.textContent=candidate.description;
     previewCapabilities.textContent=candidate.capabilities.length
       ?candidate.capabilities.map(readableCapability).join('、'):'无需额外能力';
-    previewFile.textContent=sourceLabel;
+    previewFile.textContent=sourceLabel+' · 候选包 SHA-256（规范序列化）：'+candidateHash+
+      (previousHash?' · 当前包 SHA-256（规范序列化）：'+previousHash:'')+
+      '。包 Hash 已规范化，文件空白或键顺序不影响此值。';
     if(previous){
       const added=addedCapabilities(candidate,previous);
       const removed=previous.capabilities.filter(id=>!candidate.capabilities.includes(id));
@@ -2143,7 +2152,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       if(file.size>320000)throw new Error('工具包超过 320 KB');
       const candidate=validateSidebarToolPackage(JSON.parse(await file.text()));
       if(disposed||selection!==fileSelection)return;
-      reviewCandidate(candidate,'文件：'+(file.name||'本地 JSON'));
+      await reviewCandidate(candidate,'文件：'+(file.name||'本地 JSON'),null,selection);
     }catch(error){
       if(disposed||selection!==fileSelection)return;
       setFileError(error instanceof SyntaxError?'文件不是有效的工具包 JSON':String(error?.message||error));

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,readFile,rm,writeFile,symlink} from 'node:fs/promises';
+import {mkdtemp,readFile,rm,writeFile,symlink,realpath} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {validateSidebarToolPackage,sidebarToolStorageKey,SIDEBAR_TOOL_FORMAT} from '../../src/ui/sidebar-tools/package.js';
@@ -89,7 +89,7 @@ test('portable Sidebar Tool builds to candidate first and only explicit verified
     await buildSidebarTool(dir,{out:candidate});
     const promoted=await promoteSidebarToolPackage(dir,{from:candidate});
     assert.equal(promoted.status,'PROJECT_PACKAGE_PROMOTED');
-    assert.equal(promoted.output,projectBundle);
+    assert.equal(promoted.output,await realpath(projectBundle));
     assert.equal(await readFile(projectBundle,'utf8'),await readFile(candidate,'utf8'));
     assert.equal((await checkSidebarToolProjectPackage(dir)).sha256,promoted.sha256);
     assert.equal((await promoteSidebarToolPackage(dir,{from:candidate})).unchanged,true);

@@ -158,24 +158,49 @@ async function harness(browser=null,{currentPage=null,initialReadStarted=null,tr
     get(project+'/src/main.js'),get(project+'/src/index.html'),
     get(project+'/src/style.css'),get(project+'/tool.config.json').then(JSON.parse)]);
   const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);
-  const elements=new Map(ids.map(id=>{
+  // Model ownership, not just cached IDs: root queries cannot find detached forms.
+  function node(id=''){
     const listeners=new Map();
-    return [id,{
+    return {
       id,value:'',textContent:'',dataset:{},hidden:true,disabled:false,checked:false,readOnly:false,
+      parentNode:null,children:[],
+      contains(child){return child===this||this.children.some(node=>node.contains(child));},
+      get isConnected(){return root.contains(this);},
       addEventListener(type,fn){listeners.set(type,[...(listeners.get(type)||[]),fn]);},
       emitTest(type,event={}){for(const fn of listeners.get(type)||[])fn(event);},
-      focus(){},reportValidity(){return true;},append(){},replaceChildren(){},setAttribute(){},
+      focus(){},reportValidity(){return true;},
+      append(...children){for(const child of children){
+        if(child.parentNode){const siblings=child.parentNode.children;siblings.splice(siblings.indexOf(child),1);}
+        child.parentNode=this;this.children.push(child);
+      }},
+      replaceChildren(...children){
+        for(const child of this.children)child.parentNode=null;
+        this.children=[];this.append(...children);
+      },
+      setAttribute(){},
       classList:{add(){},remove(){}}
-    }];
-  }));
+    };
+  }
+  const elements=new Map();
   const rootListeners=new Map();
-  const root={querySelector(selector){return elements.get(selector.slice(1));},
+  const root=Object.assign(node(),{querySelector(selector){
+      const element=elements.get(selector.slice(1));
+      return element&&this.contains(element)?element:null;
+    },
     querySelectorAll(){return [];},
     addEventListener(type,fn){rootListeners.set(type,[...(rootListeners.get(type)||[]),fn]);},
     emitTest(type,event){for(const fn of rootListeners.get(type)||[])fn(event);},
-    ownerDocument:{activeElement:null,createElement:()=>({
-      dataset:{},classList:{add(){},remove(){}},append(){},setAttribute(){},addEventListener(){},focus(){}
-    })}};
+    ownerDocument:{activeElement:null,createElement:()=>node()}});
+  const parents=[root];
+  for(const tag of html.matchAll(/<!--[\s\S]*?-->|<\/?([a-z][a-z0-9-]*)\b[^>]*>/gi)){
+    if(!tag[1])continue;
+    if(tag[0].startsWith('</')){parents.pop();continue;}
+    const id=tag[0].match(/\bid="([^"]+)"/)?.[1]||'',element=node(id);
+    if(id)elements.set(id,element);
+    parents.at(-1).append(element);
+    if(!/^(?:area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)$/i.test(tag[1])&&
+      !tag[0].endsWith('/>'))parents.push(element);
+  }
   const marker='void refresh();\n})();';
   assert.equal(source.split(marker).length,2,'test injection bound to one stable entrypoint');
   // Test-only instrumentation: production bytes never publish internal helpers.
@@ -183,6 +208,7 @@ async function harness(browser=null,{currentPage=null,initialReadStarted=null,tr
     'const pendingWork=new Set();const track=fn=>(...args)=>{const work=fn(...args);'+
     'pendingWork.add(work);Promise.resolve(work).then(()=>pendingWork.delete(work),()=>pendingWork.delete(work));return work;};'+
     'refresh=track(refresh);readBrowserMetadata=track(readBrowserMetadata);exportBrowserCookies=track(exportBrowserCookies);'+
+    'deleteBrowserCookie=track(deleteBrowserCookie);'+
     (trackSaves?'saveBrowserCookie=track(saveBrowserCookie);':'')+
     'const settle=async()=>{while(pendingWork.size)await Promise.all([...pendingWork]);};'+
     'globalThis.__cookieTest={normalizeCookie,parseImport,exportText,saveToList,mergeImport,'+
@@ -208,10 +234,83 @@ async function harness(browser=null,{currentPage=null,initialReadStarted=null,tr
   new Script(instrument,{filename:'cookie-editor-main.js'}).runInNewContext(context);
   // Await tracked lifecycle work, or the explicitly controlled start of a pending read.
   if(initialReadStarted)await initialReadStarted;else await context.__cookieTest.settle();
-  return {...context.__cookieTest,source,html,css,config,ids,
+  return {...context.__cookieTest,source,html,css,config,ids,root,
     fire:(id,type,event={})=>elements.get(id).emitTest(type,event),
     fireRoot:(type,event)=>root.emitTest(type,event)};
 }
+test('DOM harness root queries reject detached editor descendants',async()=>{
+  const s=await harness(),editor=s.getField('editor-panel'),save=s.getField('editor-save');
+  const row=s.root.ownerDocument.createElement('div');
+  s.getField('live-cookie-list').append(row);row.append(editor);
+  assert.equal(s.root.querySelector('#editor-save'),save);
+  s.getField('live-cookie-list').replaceChildren();
+  assert.equal(editor.isConnected,false);
+  assert.equal(s.root.querySelector('#editor-panel'),null);
+  assert.equal(s.root.querySelector('#editor-save'),null);
+  s.getField('browser-editor-slot').append(editor);
+  assert.equal(editor.isConnected,true);
+  assert.equal(s.root.querySelector('#editor-save'),save);
+});
+
+for(const operation of ['create','edit'])test('Mounted editor survives '+operation+' save, refresh, cancel and delete refresh',async()=>{
+  const rows=operation==='edit'?[{name:'demo',value:'before',domain:'example.com',path:'/',
+    hostOnly:true,session:true,storeId:'0'}]:[];
+  let reads=0,writes=0,removals=0;
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{
+    getAll:async()=>{reads++;return rows;},
+    set:async options=>{
+      writes++;
+      const row={...options,domain:'example.com',hostOnly:true,session:true,storeId:'0'};
+      if(rows.length)rows[0]=row;else rows.push(row);
+      return {saved:true,verified:true};
+    },
+    remove:async options=>{
+      removals++;assert.equal(options.name,'demo');assert.equal(options.path,'/');
+      assert.equal(options.domain,'example.com');assert.equal(options.storeId,'0');
+      rows.splice(0,1);return {removed:true,verified:true};
+    }
+  }},{currentPage:'https://example.com/'});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
+  const editor=s.getField('editor-panel'),save=s.getField('editor-save');
+  s.openEditor(operation==='edit'?s.liveSnapshot().rows[0]:null);
+  s.getField('cookie-name').value='demo';s.getField('cookie-value').value='after';
+  s.fire('cookie-value','input',{isTrusted:true});
+  const before=reads;
+  await s.saveBrowserCookie();
+  assert.equal(s.root.querySelector('#editor-panel'),editor,'hidden editor must remain in root after save');
+  assert.equal(s.root.querySelector('#editor-save'),save);
+  await s.settle();
+  assert.equal(writes,1);assert(reads>before,'verified save must refresh browser metadata');
+  assert.equal(editor.hidden,true);assert.equal(save.disabled,false);
+  assert.equal(s.getField('cookie-value').value,'');
+  assert.equal(s.liveSnapshot().state,'ready');assert.equal(s.liveSnapshot().rows.length,1);
+  s.fire('refresh','click');await s.settle();
+  s.openEditor(s.liveSnapshot().rows[0]);assert.equal(editor.hidden,false);
+  // Re-rendering an open row also must retain controls while rebuilding it.
+  s.render();assert.equal(s.root.querySelector('#editor-save'),save);
+  s.getField('cookie-value').value='unsaved';s.fire('cookie-value','input',{isTrusted:true});
+  s.fire('editor-form','input');
+  s.fire('editor-cancel','click');assert.equal(s.getField('confirm-panel').hidden,false);
+  s.fire('confirm-cancel','click');assert.equal(editor.hidden,false);
+  assert.equal(s.getField('cookie-value').value,'unsaved');
+  s.fire('editor-cancel','click');
+  s.fire('confirm-accept','click');
+  assert.equal(editor.hidden,true);assert.equal(s.getField('confirm-panel').hidden,true);
+  assert.equal(s.root.querySelector('#editor-save'),save);
+  s.openEditor(s.liveSnapshot().rows[0]);s.fire('editor-delete','click');
+  assert.equal(s.getField('confirm-panel').hidden,false);
+  const beforeDelete=reads;
+  s.fire('confirm-accept','click');await s.settle();
+  assert.equal(removals,1);assert.equal(s.liveSnapshot().rows.length,0);
+  assert(reads>beforeDelete,'verified delete must refresh browser metadata');
+  assert.equal(s.liveSnapshot().state,'ready');assert.equal(save.disabled,false);
+  s.fire('editor-cancel','click');s.fire('refresh','click');await s.settle();
+  assert.equal(s.root.querySelector('#editor-panel'),editor);
+  s.fire('live-new','click');assert.equal(editor.hidden,false);
+  s.fire('editor-cancel','click');assert.equal(editor.hidden,true);
+  assert.equal(writes,1,'reopening and cancelling must not write');
+});
+
 for(const trigger of ['button','shortcut'])test('Installed sandbox saves via '+trigger+' without native form submission',async()=>{
   const writes=[];
   const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{
@@ -259,7 +358,7 @@ test('Cookie Editor is an optional two-mode tool without private cookies API',as
   assert(s.html.includes('id="live-search"')&&s.html.includes('id="live-filter"')&&
     s.html.includes('id="live-sort"'));
   assert(s.source.includes("E('live-filters').hidden=!hasRead"));
-  assert.equal(s.config.version,'2.0.13');
+  assert.match(s.config.version,/^\d+\.\d+\.\d+$/);
   assert(s.html.includes('id="offline-tools"')&&s.html.includes('id="browser-panel"'),
     'Live Chrome management is the default; offline tools are secondary');
   assert(!/\b(?:window|globalThis|chrome)\.cookies\./.test(s.source));
@@ -271,6 +370,7 @@ test('Cookie Editor is an optional two-mode tool without private cookies API',as
     assert(new RegExp('id="'+id+'"[^>]*data-sensitive="true"').test(s.html),'secret input: '+id);
   const pkg=await createSidebarToolPackage(project);
   assert.equal(pkg.id,'cookie-editor');
+  assert.equal(pkg.version,s.config.version);
   assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
   assert(pkg.js.length<220000);
 });

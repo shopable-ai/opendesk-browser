@@ -273,3 +273,71 @@ Chrome 验收身份待补：用户 Mac 实际 Chrome/Profile/扩展 ID、加载�
 - **精确新 CI**：[Extension Center 38788700860](https://github.com/shopable-ai/opendesk-browser/actions/runs/38788700860) 对应提交 `5fa01dd1fb8237b18917c3bbb4595750fb36412e`，首次读取为 QUEUED。尚未取得这个 SHA 的 Node/check/build/build:dev/verify 终态或 production package SHA256，不复用旧候选产物作为新候选。
 - **原生 P0 / UI parity / 95+ 状态**：十类真实 Mac Chrome 操作均 NATIVE_NOT_TESTED（当前环境 BLOCKED）；未做实际 Chrome 重启后 Cookie Editor 卸载不复活、重装/更新 Hash 读回、Page 原生权限注册、安装身份、真键盘/截图/Computed Style。唯一预览保持 `prototypes/sidebar/extension-center-r47-frequency-first-preview.html`，没有第二预览或 Mock 冒充。十一维正式专家评分全部 NOT_SCORED，**不得宣告 FINAL_ACCEPTED**。
 - **本机 Owner 下一个最小任务**：在已有 Mac 工作树先只读核对 `git status`、HEAD/remote、watcher/端口、实际 Chrome Version/Profile/Extension ID/Load Path 与 `opendesk browser doctor`；复用已有 watcher 并守护 `dist/development`；确认上述精准 CI 终态；然后在隔离 CFT/Profile 执行十类 Native P0、截图、Host/Authority/持久读回及唯一预览对照。遇可复现缺陷才修源码并冻结新同 SHA/hash 候选。
+
+## R5.3 · 本地 Mac 实测（2026-10-16，IN_PROGRESS）
+
+- Owner：Codex App 对话 `01a143ed-9f5c-7103-8b0e-6d4cc503026d`；仅 `main`。起始 HEAD `fd6167709ee58abae8c8a8204717048b7e9b4709`，核对无重叠后 fast-forward 至 `9522a6bdfc8aa3c2b5d0e4eb0760a4fc1837caec`；保留其他任务的 `src/ui/local-project.js`、对应测试和 API 文档未提交修改。
+- 本轮写入范围：本记录；复现后再声明扩展中心源/回归的精确路径。子 Agent 仅只读查询 CI 与已有验收入口，不占有源码。原始证据使用 `artifacts/extension-center-r51-native/` 下本轮独立候选目录；不创建第二账本。
+- 资源：复用已有 PID 1918 的 dev watcher、PID 1938 的 `127.0.0.1:43119`，不停止或覆盖 `dist/development`；日常 Chrome 只读身份检查。隔离 production 快照/Profile/端口待登记后启动；不使用其他任务的 schedule CFT Profile。Git fast-forward 事务已结束，当前不占用索引。
+- 首次 doctor：真实应答 `extensionId=ccfcjegpkdlgbclopjmadlcjedelidmf`、`nativeConnected=true`；Native manifest 的 `allowed_origins` 为同 ID。此结果尚不证明加载路径和开发连接。
+- 复用结论：历史 R5.2 只有组件/CI 交接，十类 Native 证据缺失；本轮补实际 Chrome，保留历史结果，不升级旧 Hash。当前 `gh` 不在 PATH，使用 GitHub 既有连接/官方 API 查询精确终态。
+- 通过条件：真实安装身份、同候选 Chrome 用户操作/持久读回/截图、CI 与包校验分别记录；缺项保留 BLOCKED/NOT_TESTED，十一维原生不足则 NOT_SCORED。
+- 真实新增缺陷与扩展写入范围：Cookie Editor 保存成功后 `render()` 清空列表时遗失隐藏编辑器，下一次 `setBusy` 对 null 设置 disabled，造成未处理 rejection 及保存中拦截返回。原始栈/截图保留在 `9522a6bdf-r53/native2`。本 Owner 协调 `examples/sidebar-tools/cookie-editor/src/main.js`、`tests/environment/cookie-editor-ui.test.mjs` 的定向修复/回归；主 Owner 负责必要版本元数据、唯一正式包及相关既有预览版本标记（实际修改前核对）。不改 Host/SDK/公共按钮规则。采用 sidebar-tool-dev 与 sidebar-tool-package Skill，先候选/测试再晋升。
+- 独立构建资源：普通源码快照 `.runtime/extension-center-r53-01a143ed/candidate`，独立依赖副本与守卫 `43253`。production Standard 已构建/verify，Hash `05c0a02ad92b5e071332e2bf2226b616c7be7a084ce866d0e8671d6486d03c91`；CFT155 专属一次性 profile、扩展 ID `jpehbapcnemnkpamggjplenhahhkhoop`。日常 `ccfcjeg…` 不替换。driver 初次 stdin/重启协议错误的失败记录保留，非产品 PASS；实际原生操作从 `native3` 记录。
+- 新增精确测试写入范围 `tests/environment/sidebar-tools.test.mjs`：Mac `/var` 临时目录经 `realpath` 为 `/private/var`，晋升器返回规范真实路径而旧测试比较别名字符串，需将期望同样规范化；不改变打包器/安全规则。曾误把末尾 tail 的退出码当成测试退出码，在此失败未解决时提前更新本地正式 JSON；尚未提交，该状态不认定 PACKAGE_PASS。保留原日志，修正后完整门禁重新执行并再次核对/晋升。其余精确元数据路径为 `tool.config.json`、`cookie-editor-r43-parity.test.mjs` 与既有唯一扩展预览中的版本标记。
+
+
+### R5.3 新对话续接检查点（2026-10-16）
+
+- 当前 HEAD `b47eac760725ab18692e048e7f015fa31a4d5487`；本任务尚未 commit/push。其他任务的 API 文档、local-project 工作记录和 site-access 测试差异保留，不纳入本任务提交。索引检查时为空，续接须再次核对。
+- Cookie 保存后共享 editor 被列表重绘移出根节点，导致 setBusy 查询空节点并卡死；最小修复在重绘前将共享表单保留在原有 slot。回归夹具补真实父子归属以复现此缺陷。正式唯一包升级到 2.0.14，原始文件 SHA-256 `e19b002683847c771ace27bdbceb9f826dbaa00fd5d7fc8d9ad96a46fff6bd8f`。
+- 已纠正前述晋升顺序问题：`fix/complete-package-gates.tap` 177/177、`fix/extension-regression.tap` 59/59，均零失败、零跳过；随后重新执行同候选 promote/check-project 成功。根证据目录 `artifacts/extension-center-r51-native/9522a6bdf-r53/`。
+- 原生证据 native3/01 至 15：真实卸载、Sidebar 重开及整个 CFT 同 Profile 重启不复活、官方发现与审阅取消、重新安装、停用与启用不自启；本地文件合法更新 2.0.13→2.0.14；可信宿主确认创建及再次保存测试 Cookie 均恢复可用；返回列表时取消丢弃，草稿仍保留。以上绑定基线 production Host 加更新后的工具包，不能提升为尚未冻结的新全扩展候选 PASS。
+- 本轮专属 CFT PID `15007`、Chrome `155.0.8059.39`，Profile `/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-rl4cifry`、扩展 ID `jpehbapcnemnkpamggjplenhahhkhoop`；身份以 native3/launcher-extension-r53.json 及存活进程复核。当前停在标准 demo-form 页的 Cookie 设置/未保存 r53_unsaved 草稿，未决确认框已取消。浏览器保留供续接，不触碰其他 CFT。
+- 尚未修复：本地包安装/更新审阅缺少 Hash。只读诊断已确认 chooseFile() 仅展示文件名，sidebarToolPackageHash() 为规范序列化 SHA；应明确区分其与官方发行原始字节 SHA。拟修改 src/ui/sidebar-tools.js、tests/environment/sidebar-tools-host.test.mjs，相关子 Agent 已停止且没有文件写入或测试结果。
+- 未完成：日常 Chrome 的 serve 连接证明；最终提交及对应 CI；同最终候选 production 原生复验；Page 原生注册/撤权、旧实例请求拒绝、异常恢复等剩余场景；唯一预览对照截图/Computed Style；十一维均暂不宣称 95+。当前日常目录/ID/Native 配对正确，但 43119 已建立连接来自另一个旧 CFT，不能冒充日常 Chrome 已连接。
+
+### R5.3 续接执行（2026-10-16）
+
+- Owner：Codex App `01a14415-d4f0-7202-bcc9-fae459ded4f7`，承接原 Owner；恢复时 main/HEAD/origin/main 均为 `b47eac760725ab18692e048e7f015fa31a4d5487`，索引为空。保留 API/local-project/site-access 三处他人差异。
+- 新增精确写入所有权：`src/ui/sidebar-tools.js`、`tests/environment/sidebar-tools-host.test.mjs` 与本记录；承接上节 Cookie 源码/版本/唯一包/测试/预览版本已有差异。子 Agent 仅只读 CI 并保存本轮 artifacts 原始回执，不写共享源码和记录。
+- 通过条件：本地审阅展示候选及适用的当前包规范序列化 SHA-256，明确规范化语义，不误称文件字节 SHA（文件本身已规范化时两值可以相等）；官方发行 SHA 保留原始文件语义；异步 fileSelection/取消无副作用回归通过；同 production 候选经原生输入审阅复验。其余真实场景按实际可执行入口推进，缺证据逐项 NOT_TESTED。
+- 资源复核：PID15007 的命令行/Profile/production 路径匹配本任务；PID1918/1938 watcher 保留。基线 production 不覆盖，冻结修复候选使用独立输出并明确记录模式切换。现有失败日志和提前晋升过程事实保留。
+
+#### R5.3 本轮实现与原生复验
+
+- Hash 最小修复沿用 `sidebarToolPackageHash()`：本地审阅同时展示候选与适用的当前包规范序列化 SHA-256；官方来源明确显示“原始文件 SHA-256”。计算期间保持 `fileSelection`、销毁和当前安装包身份检查，取消或被新选择取代的旧计算不恢复审阅。新增两项回归覆盖规范 Hash/取消无副作用及延迟计算被取消、被替代。
+- Cookie 2.0.14 唯一正式包保持 `e19b002683847c771ace27bdbceb9f826dbaa00fd5d7fc8d9ad96a46fff6bd8f`；本轮 179 项包门禁 PASS 后再次 `--promote-from`、`--check-project` 返回 PROJECT_PACKAGE_MATCH、unchanged。前轮最初提前晋升的失败过程仍保留，不能改写为当时成功。
+- 定向证据根目录仍为 `artifacts/extension-center-r51-native/9522a6bdf-r53/`：`fix/hash-review-host-final.tap` 91/91、`fix/hash-extension-regression.tap` 59/59、`fix/complete-current-gates.tap` 179/179，均零跳过。已有 Cookie/扩展中心证据继续保留。只读独立代码复核无可行动发现，四个变更 JS 文件语法检查通过。
+- 独立 production 输出 `.runtime/extension-center-r53-01a14415/final/dist/production`，未覆盖 watcher。候选 A `079675874f5fc61c7fd62c737f33e5a61ce9827f6df275cad5a654d2ba7a60da` 的 Hash 文案存在绝对“不等于”表述，已修正并重建为候选 B `68aa0eab1ae2f3a18c74910a1a0156559ca7ec062c1e0c18c66922af3ad2695e`；原始构建、失败/观察均保留。B 的基线是 `2d87cabadf3b5c6932ddd6760913042e1f955c3a` 加本任务改动，尚不能冒充后续 main 提交包。
+- 专属 CFT 155.0.8059.39，PID26651，Profile `/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-8qms5jpf`，真实扩展 ID `jakakjeeabdicpeiniooccmdhooianmj`，加载上述隔离目录。旧 PID15007 已通过所属 Chrome 菜单退出。`final/native/launcher-extension-r53*.json` 保存配对身份，观察脚本每次核对进程/Profile/实际加载路径并读回真实状态。
+- `final/native/06-final-hash-review.json`：真实本地 2.0.14 审阅展示当前/候选规范 Hash；相同包按钮禁用。`11-final-official-review.json` 显示官方原始 SHA 与候选规范 SHA，`12-final-reinstalled-no-autorun.json` 证明正式审阅安装后无工具 iframe 自启。原 2.0.13→2.0.14 同 ID 更新仍绑定 `native3/12–13` 的基线 Host，不提升为 B 的升级证明。
+- B 的真实 Cookie 保存及再次编辑保存见 `08-final-cookie-saved.json`、`09-final-cookie-saved-again.json`；可信宿主确认后 Chrome Cookie 读回存在，按钮可继续操作。卸载确认明确说明删除工具本地数据/授权；确认卸载不另加可被动态工具否决的草稿确认，符合既有安全合同。取消离开保留 `r53_final_guard` 草稿见 `23-final-draft-cancel-kept.json`，之后明确丢弃这份验收草稿。
+- 网站元数据权限通过可信设置授予再撤销，运行中列表清除并显示 E_SITE_GRANT_REQUIRED，见 `22-cookie-site-revoked.json`；恢复授权可重新显示 Cookie。授权切换期间观察到保守的“结果可能未知、勿自动重试”提示，未伪造成功回执。
+- Page 经真实开发编辑器编写无副作用测试、Chrome 原生用户脚本开关、试运行、验证固定修订和安装。`16-page-permission-missing.json` 为缺权限拒绝；`17-page-installed.json`、`18-page-disabled.json`、`19-page-enabled.json` 对应真实 Chrome USER_SCRIPT 注册→空→恢复同 ID。测试程序 `my-script` r1，sourceHash `cb553cfeb47f8dd97516b3e4bc762629bf70861ce7454becd2a6123899306724`，限定 `http://127.0.0.1/*`；不是伪 API。
+- 原生键盘 End、Home、Down、Escape、Tab 已实际操作，End 状态读回见 `13-menu-end.json`，Escape 后焦点回触发器；其余不扩大为完整可访问性 PASS。搜索 Cookie、Page 类型筛选、恢复默认及刷新已操作，见 `20-final-cookie-search.json`、`24-page-type-filter.json`；市场入口打开真实 marketplace.html，见 `26-market-open.json`。语言选择 English 可写回，扩展中心现有主体文案仍为中文，随后恢复中文；不宣称完整英文化，见 `25-language-english.json`。
+
+#### R5.3 唯一预览与正式界面对照
+
+- 同一正常 Chrome 窗口、相同 Cookie 搜索/已安装启用 2.0.14 状态；独立本机 43254 HTTP 服务加载既有唯一 HTML。`file:` 直接打开会被 CSSOM 同源限制拒绝，保留观察，不修改/放宽设计校验。
+- `final/native/21-preview-cookie-comparison.json` 及两张同名前缀 PNG 保存正式 Side Panel 与预览截图、Computed Style。正式内容区域 360 CSS px，预览外壳边框导致内容 358 px；这是正常窗口实际读数，未做缩放、拖拽或宽度矩阵。
+- 一致：工具条高 50、行高 72.3984、打开按钮 42×34、padding 4×8、gap 7、主要色值、列表边框及圆角。差异：预览外壳白底/正式页面浅灰、继承字体 13/19.5 与 9.75/14.1375、按钮行高 18 与 17.4、Cookie 示例标题/描述及真实状态提示、预览搜索出现双焦点轮廓。对照结论 PARTIAL，未重做设计，未声称像素一致。
+
+#### R5.3 十类验收与评分边界（提交前）
+
+| 类别 | 当前证据及仍缺项 |
+|---|---|
+| App 行/打开与实例 | 真实行入口可打开 Cookie，单 iframe 读回；重复入口全序列未完整留证，PARTIAL |
+| 停用/恢复与旧实例 | B 停用、启用且不自启有读回；旧实例携带旧身份的实际请求拒绝 NOT_TESTED |
+| Page 原生状态 | B 注册、停用、恢复匹配 Chrome USER_SCRIPT；撤销/卸载后恢复的全序列尚未正式关闭，PARTIAL |
+| 网站权限/旧身份 | 缺权限、网站授权撤销及恢复真实验证；旧 manifestHash/generation 请求 NOT_TESTED |
+| 安装/更新/取消 | 基线 Host 同 ID 2.0.13→2.0.14；B 官方安装、Hash 审阅及相同包拦截；最终提交包待绑定 |
+| 键盘/焦点 | 菜单导航、Escape、Tab 已实际操作，完整焦点链仍 PARTIAL |
+| 草稿保护 | 基线和 B 返回取消保留；明确卸载确认生效；打开/切换/启停全部组合 NOT_TESTED |
+| 异常恢复 | Node Host false、存储错误、重复/过期结果等回归覆盖；无法通过合规产品入口注入的真实故障 NOT_TESTED |
+| 搜索/筛选等 | B 搜索、Page 类型、默认恢复、刷新、市场、详情返回、语言选择；主体英文翻译非完整，PARTIAL |
+| 卸载/不复活/清理 | 基线真实卸载、Side Panel/Chrome 重启不复活、重新发现安装；B 卸载重装；真实清理失败/损坏 fail-closed NOT_TESTED |
+
+- 十一维（高频效率、主操作语义、组件去重、信息架构、视觉交互、可访问性、真实生命周期、安全权限、异常恢复、预览与正式一致性、真实 Chrome 体验）全部保持 **NOT_SCORED**；上述局部原生成功和 Node 数量都不能推出 ≥95，正式验收未通过。
+- 日常 Chrome 实际 ID/Native 配对继续有效，但当前服务连接来源仍无法绑定到日常实例。调试入口位于 Side Panel「调试→本地开发服务」；日常本地项目草稿/执行属于其他会话，未重载、未切目录、未停服务，连接项 NOT_TESTED。其独立 43119 客户端不是日常连接证明。
+- 主分支正常快进接入无重叠远端更新，保留三处他人差异。最终提交/CI/新 production 候选身份在下节追加，不复用旧包全体 PASS。

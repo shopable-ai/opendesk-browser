@@ -12,7 +12,7 @@ import {ADBLOCK_ID,ADBLOCK_CAPABILITY,ADBLOCK_OPERATIONS} from '../../examples/s
 import {createCurrentPageTarget} from '../../src/ui/current-page-target.js';
 import {initSidebarToolSandbox} from '../../src/sidebar-tools/bridge.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
-import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolStorageKey} from '../../src/ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolStorageKey,sidebarToolPackageHash} from '../../src/ui/sidebar-tools/package.js';
 import {officialToolFixture,officialFixtureFetch,officialFixtures} from '../helpers/official-tools.mjs';
 import {MARKET_PROVENANCE_STORE,MARKET_OPERATIONS_STORE,reconcileMarketOperation,recoverMarketOperation,
   TOOL_CLEANUP_STORE,retryUninstalledToolCleanup,getPendingToolCleanups,installReviewedSidebarTool,
@@ -555,7 +555,46 @@ test('R14 import refuses oversized packages, ignores stale asynchronous reads an
   gate.resolve('{invalid');await pause();await pause();
   assert.equal(f.elements['sidebar-tool-preview'].hidden,false,'old invalid parse cannot replace new approval');
   assert.equal(f.elements['sidebar-tool-file-error'].hidden,true);
-  assert.equal(f.elements['sidebar-tool-preview-file'].textContent,'文件：second.json');
+  assert.match(f.elements['sidebar-tool-preview-file'].textContent,/^文件：second\.json · 候选包 SHA-256（规范序列化）：[a-f0-9]{64}/);
+});
+
+test('R5.3 local review identifies normalized candidate/current hashes and cancel preserves installation',async t=>{
+  const f=await hostFixture(t,{startTool:false}),candidate={...sample,version:'1.0.1'};
+  const before=structuredClone(f.store.get(SIDEBAR_TOOL_STORE));
+  f.elements['sidebar-tool-import-trigger'].emit('click');
+  const text=JSON.stringify(candidate,null,4)+'\n';
+  f.elements['sidebar-tool-file'].files=[{name:'hash-review.json',size:text.length,text:async()=>text}];
+  f.elements['sidebar-tool-file'].emit('change');await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
+  const label=f.elements['sidebar-tool-preview-file'].textContent;
+  assert.ok(label.includes('候选包 SHA-256（规范序列化）：'+await sidebarToolPackageHash(candidate)));
+  assert.ok(label.includes('当前包 SHA-256（规范序列化）：'+await sidebarToolPackageHash(sample)));
+  assert.match(label,/包 Hash 已规范化，文件空白或键顺序不影响此值/);
+  f.elements['sidebar-tool-import-close'].emit('click');
+  assert.equal(f.elements['sidebar-tool-preview'].hidden,true);
+  assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),before);
+});
+
+test('R5.3 cancelled or superseded hash calculation cannot revive an old review',async t=>{
+  const f=await hostFixture(t,{store:new Map(),startTool:false});
+  const original=crypto.subtle.digest.bind(crypto.subtle),gate=deferred(),started=deferred();
+  t.mock.method(crypto.subtle,'digest',async(algorithm,bytes)=>{
+    if(new TextDecoder().decode(bytes).includes('hash-slow')){started.resolve();await gate.promise;}
+    return original(algorithm,bytes);
+  });
+  const select=candidate=>{
+    const text=JSON.stringify(candidate);
+    f.elements['sidebar-tool-file'].files=[{name:candidate.title+'.json',size:text.length,text:async()=>text}];
+    f.elements['sidebar-tool-file'].emit('change');
+  };
+  f.elements['sidebar-tool-import-trigger'].emit('click');
+  select({...sample,title:'hash-slow'});await started.promise;
+  f.elements['sidebar-tool-import-close'].emit('click');
+  f.elements['sidebar-tool-import-trigger'].emit('click');select({...sample,title:'hash-current'});
+  await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
+  gate.resolve();await pause();await pause();
+  assert.equal(f.elements['sidebar-tool-preview-title'].textContent,'hash-current');
+  assert.doesNotMatch(f.elements['sidebar-tool-preview-file'].textContent,/当前包 SHA-256/);
+  assert.equal(f.store.has(SIDEBAR_TOOL_STORE),false);
 });
 
 test('R14 preview compares permissions and downgrade, confirmation protects update and retains data',async t=>{
