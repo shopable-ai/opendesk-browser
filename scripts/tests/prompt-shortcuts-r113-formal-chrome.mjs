@@ -13,7 +13,7 @@ const out=resolve(process.argv[2]||'artifacts/prompt-shortcuts-r113-formal-chrom
 await mkdir(out,{recursive:true});
 const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
 assert.equal(pkg.id,'prompt-shortcuts');
-assert.equal(pkg.version,'1.1.0');
+assert.equal(pkg.version,'1.1.1');
 assert.equal(pkg.scripts?.length,1);
 assert.equal(pkg.scripts[0].name,'trusted/model.js');
 const escaped=source=>source.replace(/<\/script/gi,'<\\/script').replace(/<\/style/gi,'<\\/style');

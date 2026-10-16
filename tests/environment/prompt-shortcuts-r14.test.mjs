@@ -173,7 +173,7 @@ test('R1.13 formal source builds a canonical candidate, then CI promotes it only
     readFile(base+'src/main.js','utf8'),readFile(process.env.PROMPT_SHORTCUTS_PACKAGE_PATH||base+'prompt-shortcuts.opendesk-tool.json','utf8')
   ]);
   const pkg=await createSidebarToolPackage(ROOT);
-  assert.equal(pkg.version,'1.1.0');
+  assert.equal(pkg.version,'1.1.1');
   assert.equal(pkg.id,PROMPT_ID);
   // The committed package remains on the previous known-good version until
   // the scoped tests and actual packer pass. CI promotes the same candidate

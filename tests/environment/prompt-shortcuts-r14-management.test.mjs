@@ -46,6 +46,10 @@ function allDescendants(node){
   const result=[];const visit=n=>{for(const child of n.children){result.push(child);visit(child);}};visit(node);
   return result;
 }
+function buttonByAction(root,action){
+  const found=allDescendants(root).find(node=>node.tagName==='BUTTON'&&node.dataset.action===action);
+  assert(found,'missing icon action '+action);return found;
+}
 function buttonByText(root,text){
   const button=allDescendants(root).find(node=>node.tagName==='BUTTON'&&node.textContent===text);
   assert(button,'missing clickable '+text);return button;
@@ -64,7 +68,7 @@ async function fixture({deferWrites=false,deferReadback=false,initial=null,initi
   nodes['ps-enabled'].checked=true;nodes['ps-web'].checked=true;
   const copies=[];
   const root={
-    ownerDocument:{createElement:tag=>new FakeNode(tag),
+    ownerDocument:{createElement:tag=>new FakeNode(tag),createElementNS:(_ns,tag)=>new FakeNode(tag),
       execCommand:cmd=>{assert.equal(cmd,'copy');copies.push(nodes['ps-clipboard-buffer'].value);return true;},
       activeElement:null},
     querySelector(selector){
@@ -153,7 +157,7 @@ test('R1.7 actual Sandbox UI: content-first create, inline confirm, draft guard 
   assert.equal(f.states.at(-1).dirty,false);
 
   // Reopen and edit the content, protect unsaved changes on Back.
-  buttonByText(n['ps-list'],'编辑').emit('click');
+  buttonByAction(n['ps-list'],'more').click();buttonByAction(n['ps-list'],'edit').emit('click');
   assert.equal(n['ps-label'].value,'','automatic label stays unset during editing');
   n['ps-body'].value='覆盖前的未保存正文';n['ps-form'].emit('input');
   n['ps-cancel'].emit('click');
@@ -169,8 +173,8 @@ test('R1.7 actual Sandbox UI: content-first create, inline confirm, draft guard 
   assert.equal(f.stored().settings.webButtons,false);
   assert.equal(f.stored().items.length,1);
 
-  buttonByText(n['ps-list'],'⋯').emit('click');
-  buttonByText(n['ps-list'],'停用').emit('click');await settle();
+  buttonByAction(n['ps-list'],'more').emit('click');
+  buttonByAction(n['ps-list'],'toggle').emit('click');await settle();
   assert.equal(f.stored().items[0].enabled,false);
 
   // Oversized body cannot silently truncate or overwrite the earlier item.
@@ -186,9 +190,9 @@ test('R1.7 actual Sandbox UI: content-first create, inline confirm, draft guard 
   n['ps-cancel'].emit('click');n['ps-discard'].emit('click');
   assert.equal(f.stored().items.length,1);
 
-  if(!allDescendants(n['ps-list']).some(item=>item.tagName==='BUTTON'&&item.textContent==='删除'))
-    buttonByText(n['ps-list'],'⋯').emit('click');
-  buttonByText(n['ps-list'],'删除').emit('click');
+  if(!allDescendants(n['ps-list']).some(item=>item.dataset.action==='delete'))
+    buttonByAction(n['ps-list'],'more').emit('click');
+  buttonByAction(n['ps-list'],'delete').emit('click');
   const confirmation=allDescendants(n['ps-list']).find(node=>node.classList.contains('ps-confirm'));
   assert(confirmation,'delete confirmation must appear inside the prompt card');
   assert.match(confirmation.children[0].textContent,/确认删除/);
@@ -310,10 +314,10 @@ function manage(f,operation){
   if(operation==='settings'){
     n['ps-web'].checked=false;n['ps-web'].emit('change');return;
   }
-  buttonByText(n['ps-list'],'⋯').click();
+  buttonByAction(n['ps-list'],'more').click();
   if(operation==='delete'){
-    buttonByText(n['ps-list'],'删除').click();buttonByText(n['ps-list'],'确认删除').click();
-  }else buttonByText(n['ps-list'],operation==='toggle'?'停用':'↓ 下移').click();
+    buttonByAction(n['ps-list'],'delete').click();buttonByText(n['ps-list'],'确认删除').click();
+  }else buttonByAction(n['ps-list'],operation==='toggle'?'toggle':'down').click();
 }
 for(const operation of ['toggle','move','delete','settings'])for(const outcome of [
   {failure:Error('写入后连接中断')},{ack:{saved:true,etag:'invalid'}}
@@ -345,9 +349,9 @@ for(const operation of ['toggle','move','delete','settings'])for(const outcome o
 for(const readback of ['transport loss','invalid ETag','invalid data','different value'])
 test('R1.8 unreadable or inconclusive '+readback+' keeps every library write blocked',async()=>{
   const f=await fixture({deferWrites:true,deferReadback:true,initial:initialLibrary}),n=f.nodes;
-  buttonByText(n['ps-list'],'⋯').click();
-  const toggle=buttonByText(n['ps-list'],'停用'),move=buttonByText(n['ps-list'],'↓ 下移');
-  buttonByText(n['ps-list'],'删除').click();const remove=buttonByText(n['ps-list'],'确认删除');
+  buttonByAction(n['ps-list'],'more').click();
+  const toggle=buttonByAction(n['ps-list'],'toggle'),move=buttonByAction(n['ps-list'],'down');
+  buttonByAction(n['ps-list'],'delete').click();const remove=buttonByText(n['ps-list'],'确认删除');
   remove.click();f.pending.shift().resolve({failure:Error('删除回执丢失')});await settle();
   assert.equal(f.readbacks.length,1);
   if(readback==='transport loss')f.readbacks.shift().reject(Error('读回超时'));
@@ -489,7 +493,8 @@ test('R1.13 old round shape remains unchanged during content edit',async()=>{
   const library={schema:1,items:[{id:'legacy-round-123',body:'原内容',label:'原内',name:'手动标题',
     shape:'round',enabled:true,order:0}],settings:{webButtons:true}};
   const f=await fixture({initialStored:library});
-  buttonByText(f.nodes['ps-list'],'编辑').emit('click');
+  buttonByAction(f.nodes['ps-list'],'more').click();
+  buttonByAction(f.nodes['ps-list'],'edit').emit('click');
   f.nodes['ps-body'].value='修改正文';f.nodes['ps-form'].emit('input');
   f.nodes['ps-form'].emit('submit',{preventDefault(){}});
   await settle();
@@ -546,4 +551,43 @@ test('R2 Sandbox website manager saves an independent verified two-selector rule
   buttonByText(n['ps-sites-list'],'停用').click();await settle();
   assert.equal(f.siteStored().rules[0].enabled,false,'site toggle persists independently');
   assert.equal(f.writes(),0);
+});
+
+test('R1.17 per-item controls are SVG-only, keyboard-labelled and still use guarded Host storage',async()=>{
+  const f=await fixture({initialStored:initialLibrary}),n=f.nodes;
+  const actions=()=>allDescendants(n['ps-list']).filter(node=>node.tagName==='BUTTON'&&node.dataset.action);
+  assert.deepEqual(actions().map(node=>node.dataset.action),['more','more']);
+  assert.equal(actions()[0].textContent,'');
+  buttonByAction(n['ps-list'],'more').click();
+  const commandNames=actions().map(node=>node.dataset.action);
+  assert.deepEqual(commandNames,['more','edit','toggle','up','down','copy','delete','more']);
+  for(const node of actions()){
+    assert.equal(node.textContent,'','icon-only controls must not render text');
+    assert.match(node.attributes['aria-label'],/\S/);
+    assert.equal(node.children[0].tagName,'SVG');
+  }
+  assert.equal(buttonByAction(n['ps-list'],'up').disabled,true);
+  buttonByAction(n['ps-list'],'down').click();await settle();
+  assert.deepEqual(f.stored().items.map(row=>row.body),['第二条','第一条']);
+  assert.equal(buttonByAction(n['ps-list'],'down').focused,true,'focus follows the reordered item');
+  buttonByAction(n['ps-list'],'copy').click();await settle();
+  assert.equal(f.copies().at(-1),'第一条');
+});
+test('R1.17 Save and Continue must acknowledge each Host write before resetting the draft',async()=>{
+  const f=await fixture(),n=f.nodes;
+  n['ps-new'].click();assert.equal(n['ps-save-next'].hidden,false);
+  n['ps-body'].value='第一条';n['ps-form'].emit('input');
+  n['ps-save-next'].click();await settle();
+  assert.equal(f.writes(),1);assert.equal(n['ps-body'].value,'');
+  assert.equal(n['ps-edit'].hidden,false);assert.equal(n['ps-body'].focused,true);
+  n['ps-body'].value='第二条';n['ps-form'].emit('input');
+  n['ps-save-next'].click();await settle();
+  assert.equal(f.writes(),2);
+  assert.deepEqual(f.stored().items.map(row=>row.body),['第一条','第二条']);
+  assert.notEqual(f.stored().items[0].id,f.stored().items[1].id);
+  const fail=await fixture({storageFault:'reject'}),x=fail.nodes;
+  x['ps-new'].click();x['ps-body'].value='不可丢失的草稿';x['ps-form'].emit('input');
+  x['ps-save-next'].click();await settle();
+  assert.equal(x['ps-body'].value,'不可丢失的草稿');
+  assert.equal(x['ps-edit'].hidden,false);assert.equal(fail.writes(),0);
 });

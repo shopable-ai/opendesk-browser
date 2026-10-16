@@ -1,7 +1,7 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "prompt-shortcuts",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "title": "提示词快捷按钮",
   "description": "内容优先管理提示词；ChatGPT 内置快捷按钮并支持为其他普通网页可视化配置两个选择器，原生右键快捷添加为可选功能。",
   "capabilities": [

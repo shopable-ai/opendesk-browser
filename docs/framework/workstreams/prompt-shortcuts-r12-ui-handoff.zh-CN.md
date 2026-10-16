@@ -440,3 +440,11 @@
 - **必须标注的模拟边界**：上述 Fixture 通过 HTTP 测试网页、固定正式页面模块、真实 Chromium 浏览器和真实 DOM/点击执行，**但是扩展 Host、工具安装注册表和存储模拟**，不包含用户实际 Chrome Extension ID、`dist/development`、真实 Side Panel 安装更新、第三方站点账号、真实 Mac IME，因此只能标记 `CHROMIUM_FIXTURE_PASS`。其余分别保持 `INSTALLED_CHROME_PASS=NOT_TESTED`、`REAL_SITE_PASS=NOT_TESTED`、`MAC_IME_PASS=NOT_TESTED`，不得按 95+ 正式产品闭环发版。
 - **正式可安装工具包**：唯一 `prompt-shortcuts.opendesk-tool.json` 仍为 `1.1.0`，未修改 Sandbox JS/HTML/CSS 或工具权限；最新同源 CI 生成 65,794 UTF-8 bytes，SHA-256 `39c94ed1ac02ceffbc804dabbf3b8343ef7982653f3878e06b0dbb0362d5406e`，正式包 Git blob `1db538839635434c1cace7d778eef1117b83a74b`。新的可信 `page.js` 只有用户的 Chrome Extension 重新加载新构建才会真正生效；仅导入旧/新 JSON 不能代替更新可信扩展。
 - **仍需 Mac/真实网站验收**：在用户现有 `npm run dev` 和固定 `dist/development` 下核实原 Extension ID / Source SHA / 工具已装版本；从其他网站实际操作“双取点 → 测试 → 保存 → 刷新 → 真实原生插入 → Undo → IME → 撤权”，再按网站记录 ChatGPT / Claude / Gemini 的 PASS/FAIL/NOT_TESTED。ProseMirror、Lexical、React 受控编辑器的状态持久和 Undo 不能从 textarea Fixture 推断成功。各维专家评分无真实证据的部分一律 `NOT_SCORED`，禁止平均分掩盖。
+
+
+## R1.17 正式 UI 图标化交接（2026-10-16）
+
+- 来源：R1.16 `preview/index.html`，优先复用图标语义与键盘焦点规则，不再以新建原型替代独立工具源码。
+- 范围：`src/index.html` / `src/style.css` / `src/main.js` 的新建 SVG、列表单一 More 与六操作图标、展开/Esc/排序/删除焦点、创建表单去冗余与保存并继续；未动通用 Host/SDK/Trusted 规则。
+- 真实数据回执：继续通过 `storage.set` + `ifMatch` 与异常 `storage.get` 校对。失败与写入结果未知时必须保留输入，不将模拟点击记为成功。
+- 安装状态：GitHub Actions Node/Chromium 只验证正式打包源及模拟 Host；Mac 已安装工具同 ID 更新、真实 ChatGPT、第三方编辑器与 IME 均须单独取得实测证据，不得提前评分 95+。

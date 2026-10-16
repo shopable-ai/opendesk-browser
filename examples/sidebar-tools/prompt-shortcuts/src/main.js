@@ -17,7 +17,9 @@ function bodyError(message=''){el('ps-body-error').textContent=message;el('ps-bo
 function options(open){
   el('ps-setting-fields').hidden=!open;
   el('ps-toggle-settings').setAttribute('aria-expanded',String(open));
-  el('ps-toggle-caret').textContent=open?'收起':'展开';
+  const caret=el('ps-toggle-caret');caret.replaceChildren(icon('chevron-down'));
+  caret.classList.toggle('is-open',open);
+  el('ps-toggle-settings').setAttribute('aria-label',open?'收起按钮设置':'展开按钮设置');
 }
 function form(){
   const previous=editId?data.items.find(item=>item.id===editId):null;
@@ -41,17 +43,19 @@ function preview(){
   const estimate=projected(),bytes=estimate?model.bytes(estimate):null;
   el('ps-quota-value').textContent=(bytes===null?'—':bytes)+' / 8192 B';
   el('ps-quota').dataset.error=String(bytes!==null&&bytes>8192);
+  el('ps-quota').hidden=bytes===null||bytes<Math.ceil(8192*0.85);
 }
 function changed(){
   if(mode!=='form')return;
   dirty=JSON.stringify(form())!==baseline;if(el('ps-body').value.trim())bodyError('');preview();report();
 }
 function lock(){
-  for(const id of ['ps-new','ps-save','ps-web'])
+  for(const id of ['ps-new','ps-save','ps-save-next','ps-web'])
     el(id).disabled=!ready||busy||unconfirmedWrite;
   for(const id of ['ps-cancel','ps-discard'])el(id).disabled=busy;
   el('ps-form').setAttribute('aria-busy',String(busy));
-  el('ps-save').textContent=busy?'保存中…':'保存提示词';
+  el('ps-save').textContent=busy?'保存中…':'保存';
+  el('ps-save-next').textContent=busy?'保存中…':'保存并继续';
   for(const b of el('ps-list').querySelectorAll('button'))b.disabled=!ready||busy||unconfirmedWrite||b.dataset.locked==='1';
   report();
 }
@@ -69,7 +73,9 @@ function start(id=null,preset=''){
   if(!ready||busy||unconfirmedWrite)return;
   const row=id?data.items.find(item=>item.id===id):null;
   if(id&&!row){status('原条目已变化，请重新打开工具核对。',true);return;}
-  mode='form';editId=id;el('ps-index').hidden=true;el('ps-edit').hidden=false;
+  mode='form';editId=id;expanded=null;pendingDelete=null;
+  el('ps-index').hidden=true;el('ps-edit').hidden=false;
+  el('ps-save-next').hidden=Boolean(id);
   el('ps-form-title').textContent=id?'编辑提示词':'新建提示词';
   el('ps-body').value=row?.body??preset;
   el('ps-label').value=row&&!row.labelAuto?row.label:'';
@@ -81,6 +87,42 @@ function start(id=null,preset=''){
 function button(parent,text,callback,variant='secondary'){
   const b=dom('button','od-button od-button--'+variant,text);b.type='button';
   b.addEventListener('click',callback);parent.append(b);return b;
+}
+
+
+const ICON_PATHS=Object.freeze({
+  plus:['M12 5v14','M5 12h14'],
+  more:['M5 12h.01','M12 12h.01','M19 12h.01'],
+  pencil:['M12 20h9','M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z'],
+  eye:['M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z','M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z'],
+  'eye-off':['M10.6 5.1A11 11 0 0 1 12 5c7 0 10 7 10 7a14 14 0 0 1-4 4.8','M6.5 6.5A15 15 0 0 0 2 12s3 7 10 7a11 11 0 0 0 5.5-1.5','M3 3l18 18','M10 10a3 3 0 0 0 4 4'],
+  up:['M12 19V5','M5 12l7-7 7 7'],
+  down:['M12 5v14','M5 12l7 7 7-7'],
+  copy:['M8 8h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V8Z','M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2'],
+  trash:['M3 6h18','M8 6V4h8v2','M6 6l1 15h10l1-15','M10 10v7','M14 10v7'],
+  'chevron-down':['M6 9l6 6 6-6']
+});
+function icon(name){
+  const doc=root.ownerDocument,ns='http://www.w3.org/2000/svg';
+  const svg=doc.createElementNS(ns,'svg');
+  svg.setAttribute('class','ps-icon-svg');svg.setAttribute('viewBox','0 0 24 24');
+  svg.setAttribute('aria-hidden','true');svg.setAttribute('focusable','false');
+  for(const d of ICON_PATHS[name]||[]){
+    const path=doc.createElementNS(ns,'path');path.setAttribute('d',d);svg.append(path);
+  }
+  return svg;
+}
+function iconButton(parent,name,label,callback,action,itemId,{danger=false,disabled=false}={}){
+  const b=dom('button','ps-icon-button'+(danger?' ps-icon-button--danger':''));
+  b.type='button';b.title=label;b.setAttribute('aria-label',label);
+  b.dataset.action=action;b.dataset.itemId=itemId;b.dataset.locked=disabled?'1':'0';
+  b.disabled=disabled;b.append(icon(name));
+  b.addEventListener('click',callback);parent.append(b);return b;
+}
+function focusListAction(id,action){
+  const b=Array.from(el('ps-list').querySelectorAll('button'))
+    .find(node=>node.dataset.itemId===id&&node.dataset.action===action);
+  b?.focus({preventScroll:true});return b;
 }
 
 function siteMessage(text='',isError=false){
@@ -291,40 +333,51 @@ function render(){
   el('ps-empty').hidden=data.items.length>0;
   el('ps-web').checked=data.settings.webButtons;
   for(const [i,item] of data.items.entries()){
+    const identity=(item.nameAuto?'':item.name?.trim())||
+      item.body.trim().replace(/\s+/g,' ').slice(0,60)||'提示词';
     const card=dom('article','ps-card'+(!item.enabled?' is-disabled':''));
     const mainRow=dom('div','ps-card-main');
-    const glyph=dom('div','ps-glyph');
-    glyph.setAttribute('aria-hidden','true');
+    const glyph=dom('div','ps-glyph');glyph.setAttribute('aria-hidden','true');
     for(const char of model.parts(item.label))glyph.append(dom('span','',char));
     const use=button(mainRow,item.body,()=>void copy(item),'quiet');
     use.replaceChildren(dom('span','ps-card-preview',item.body));
     use.className='ps-card-use od-button od-button--quiet';use.dataset.locked=item.enabled?'0':'1';
-    const description=item.nameAuto?model.auto(item.body):item.name||model.auto(item.body);
-    use.setAttribute('aria-label',(item.enabled?'复制提示词：':'已停用的提示词：')+item.body.slice(0,90));
-    use.title=item.enabled?'复制完整提示词；ChatGPT 网页左侧按钮可直接插入草稿':'该按钮已停用';
+    use.setAttribute('aria-label',(item.enabled?'复制完整提示词：':'已停用的提示词：')+identity);
+    use.title=item.enabled?'复制完整正文；网页按钮可插入草稿':'已停用，请打开更多操作启用';
     const actions=dom('div','ps-card-actions');
-    const edit=button(actions,'编辑',()=>start(item.id));
-    edit.setAttribute('aria-label','编辑 '+description);
-    const more=button(actions,'⋯',()=>{expanded=expanded===item.id?null:item.id;pendingDelete=null;render();});
-    more.setAttribute('aria-label','更多操作：'+description);
+    const more=iconButton(actions,'more','更多操作：'+identity,()=>{
+      const opening=expanded!==item.id;expanded=opening?item.id:null;pendingDelete=null;
+      render();focusListAction(item.id,opening?'edit':'more');
+    },'more',item.id);
     more.setAttribute('aria-expanded',String(expanded===item.id));
+    if(expanded===item.id)more.setAttribute('aria-controls','ps-menu-'+i);
     mainRow.prepend(glyph);mainRow.append(actions);card.append(mainRow);
     if(!item.nameAuto&&item.name?.trim())card.append(dom('div','ps-card-caption',item.name));
     if(expanded===item.id){
       const commands=dom('div','ps-more');
-      button(commands,item.enabled?'停用':'启用',()=>void update(item.id,row=>({...row,enabled:!row.enabled})));
-      const up=button(commands,'↑ 上移',()=>void move(item.id,-1));up.dataset.locked=i===0?'1':'0';
-      const down=button(commands,'↓ 下移',()=>void move(item.id,1));down.dataset.locked=i===data.items.length-1?'1':'0';
-      button(commands,'删除',()=>{pendingDelete=item.id;render();
-        root.querySelector('.ps-delete-cancel')?.focus();},'danger');
+      commands.id='ps-menu-'+i;commands.setAttribute('role','group');
+      commands.setAttribute('aria-label','提示词操作：'+identity);
+      iconButton(commands,'pencil','编辑：'+identity,()=>start(item.id),'edit',item.id);
+      iconButton(commands,item.enabled?'eye-off':'eye',(item.enabled?'停用：':'启用：')+identity,
+        ()=>void update(item.id,row=>({...row,enabled:!row.enabled}),'toggle'),'toggle',item.id);
+      iconButton(commands,'up','上移：'+identity,()=>void move(item.id,-1),'up',item.id,{disabled:i===0});
+      iconButton(commands,'down','下移：'+identity,()=>void move(item.id,1),'down',item.id,
+        {disabled:i===data.items.length-1});
+      iconButton(commands,'copy','复制：'+identity,()=>void copy(item,true),'copy',item.id);
+      iconButton(commands,'trash','删除：'+identity,()=>{
+        pendingDelete=item.id;render();
+        root.querySelector('.ps-delete-cancel')?.focus({preventScroll:true});
+      },'delete',item.id,{danger:true});
       card.append(commands);
     }
     if(pendingDelete===item.id){
       const confirm=dom('div','ps-confirm');
-      confirm.append(dom('p','','确认删除「'+item.name+'」？此操作不能撤销。'));
+      confirm.setAttribute('role','group');confirm.setAttribute('aria-label','删除提示词确认');
+      confirm.append(dom('p','','确认删除「'+identity+'」？此操作不能撤销。'));
       const buttons=dom('div','ps-actions');
-      const cancel=button(buttons,'取消',()=>{pendingDelete=null;render();});
-      cancel.classList.add('ps-delete-cancel');
+      const cancel=button(buttons,'取消',()=>{
+        pendingDelete=null;render();focusListAction(item.id,'delete');
+      });cancel.classList.add('ps-delete-cancel');
       button(buttons,'确认删除',()=>void remove(),'danger');
       confirm.append(buttons);card.append(confirm);
     }
@@ -364,10 +417,10 @@ async function commit(next){
     data=next;etag=saved.etag;
   }finally{busy=false;lock();}
 }
-async function update(id,transform){
+async function update(id,transform,restoreAction='toggle'){
   const row=data.items.find(item=>item.id===id);if(!row||busy||unconfirmedWrite)return;
   const next=model.load({...data,items:data.items.map(item=>item.id===id?transform(item):item)});
-  try{await commit(next);render();status('设置已保存。');}
+  try{await commit(next);render();focusListAction(id,restoreAction);status('设置已保存。');}
   catch(e){status('更新未确认：'+(e.code||e.message)+'；请重新打开核对已保存数据。',true);}
 }
 async function move(id,step){
@@ -375,11 +428,11 @@ async function move(id,step){
   if(i<0||j<0||j>=items.length||busy||unconfirmedWrite)return;
   [items[i],items[j]]=[items[j],items[i]];
   const next=model.load({...data,items:items.map((row,order)=>({...row,order}))});
-  try{await commit(next);render();status('顺序已保存。');}
+  try{await commit(next);render();focusListAction(id,step<0?'up':'down');status('顺序已保存。');}
   catch(e){status('排序未确认：'+(e.code||e.message)+'；请重新打开核对已保存数据。',true);}
 }
-async function copy(item){
-  if(!item.enabled){status('此提示词已停用，可通过编辑重新启用。',true);return;}
+async function copy(item,allowDisabled=false){
+  if(!item.enabled&&!allowDisabled){status('此提示词已停用，可通过编辑重新启用。',true);return;}
   // Synchronous clipboard copy keeps the actual card click user gesture.
   // Never forge a Chrome Host approval or open a second confirmation panel.
   const buffer=el('ps-clipboard-buffer'),doc=root.ownerDocument,focused=doc.activeElement;
@@ -399,7 +452,7 @@ async function copy(item){
     status('无法自动复制：'+(e?.message||'剪贴板未授权')+'。请检查浏览器环境后重试。',true);
   }
 }
-async function save(event){
+async function save(event,continueCreating=false){
   event?.preventDefault();
   if(mode!=='form'){status('当前不在编辑页面，未执行保存。',true);return;}
   if(!ready){error('宿主存储尚未就绪，未执行保存；草稿保留。');return;}
@@ -424,7 +477,10 @@ async function save(event){
     // The user may keep typing during the request. Future saves must edit this
     // acknowledged item, including when the original request created it.
     editId=item.id;el('ps-form-title').textContent='编辑提示词';
-    if(snapshot===JSON.stringify(form())){index();status('完整提示词已保存。');}
+    if(snapshot===JSON.stringify(form())){
+      if(continueCreating&&!old){start();status('已保存，可继续新建。');}
+      else{index();status('完整提示词已保存。');}
+    }
     else{baseline=snapshot;changed();status('先前版本已保存，当前新输入尚未保存。');
       error('保存期间有新的输入，先前版本已保存；请再次点击保存。');}
   }catch(e){
@@ -434,10 +490,14 @@ async function save(event){
 }
 async function remove(){
   if(!pendingDelete||busy||unconfirmedWrite)return;
+  const deletedIndex=data.items.findIndex(item=>item.id===pendingDelete);
   const next=model.load({...data,items:data.items.filter(item=>item.id!==pendingDelete)
     .map((item,order)=>({...item,order}))});
   try{await commit(next);pendingDelete=null;expanded=null;
-    render();status('提示词已删除。');}
+    render();
+    const survivor=data.items[Math.min(deletedIndex,data.items.length-1)];
+    if(survivor)focusListAction(survivor.id,'more');else el('ps-new').focus({preventScroll:true});
+    status('提示词已删除。');}
   catch(e){status('删除未确认，显示上次确认的列表：'+(e.code||e.message)+'；请重新打开核对已保存数据。',true);}
 }
 async function changeWeb(){
@@ -454,10 +514,17 @@ async function launch(){
       typeof value.selection==='string'&&value.selection.trim())start(null,value.selection);
   }catch{/* An ordinary opening does not carry a one-use native menu ticket. */}
 }
+el('ps-new').append(icon('plus'));
 el('ps-new').addEventListener('click',()=>start());
+root.addEventListener('keydown',event=>{
+  if(event.key!=='Escape')return;
+  if(pendingDelete){const id=pendingDelete;pendingDelete=null;render();focusListAction(id,'delete');event.preventDefault();}
+  else if(expanded){const id=expanded;expanded=null;render();focusListAction(id,'more');event.preventDefault();}
+});
 // The sandbox intentionally disallows forms. Native button activation must
 // save directly, without relying on the browser dispatching a submit event.
 el('ps-save').addEventListener('click',e=>void save(e));
+el('ps-save-next').addEventListener('click',e=>void save(e,true));
 el('ps-form').addEventListener('submit',e=>void save(e));
 el('ps-form').addEventListener('keydown',e=>{
   if(e.key!=='Enter'||e.isComposing||e.keyCode===229||e.repeat||e.defaultPrevented)return;
