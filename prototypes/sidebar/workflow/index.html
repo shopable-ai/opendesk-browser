@@ -259,6 +259,9 @@ body[data-theme=dark] .device .composer .compose-bottom button#settings:hover,bo
 .r236-switch{min-width:0;max-width:320px;flex:1;display:flex;gap:2px;align-items:center;margin:0;padding:3px;border:1px solid var(--outline);border-radius:11px;background:var(--canvas)}
 .r236-option{position:relative;flex:1;min-width:0;display:block;margin:0;cursor:pointer}
 .r236-option input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
+/* Override legacy floating-sheet label margins; keep the selector compact. */
+.device .r23-settings .r236-option,.device .r23-settings .r234-field label{margin:0;display:block}
+.device .r23-settings .r236-option input{padding:0;min-height:0}
 .r236-option span{display:flex;align-items:center;justify-content:center;white-space:nowrap;min-height:34px;padding:6px 8px;border-radius:8px;color:var(--secondary);font-size:11.5px;font-weight:600;transition:background .13s ease,color .13s ease}
 .r236-option input:checked+span{background:var(--surface);color:var(--ink);box-shadow:0 1px 4px #10264120;font-weight:750}
 .r236-option input:focus-visible+span{outline:2px solid #5e84de;outline-offset:-2px}
