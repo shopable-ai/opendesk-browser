@@ -431,3 +431,12 @@
 - 单行 `input` 追加不再使用换行前缀；合法单行正文使用空格分隔。多行提示词或原生 `maxLength` 不足时在聚焦和原生写入之前失败，并复制完整正文，不修改旧草稿。
 - 来源白名单及 Node 测试中的 `trusted/page.js` Git blob 只更新精准 SHA，没有放宽目录或特权目标名单。新增 Node 回归专测取点、Esc、单行插入和失败保留原文。
 - `tool.config.json`、Sandbox UI、存储和唯一 `1.1.0` 正式 JSON 包均未改动，**用户真实 Chrome 必须加载新构建的固定可信代码**。此提交只能代表源码修复，Node / CI / Chromium / 已安装 Chrome / Claude / Gemini / Mac IME 必须分别依真实运行证据定级，不能自动宣称通过。
+
+## R2.1 实际 Chromium DOM 回归与证据边界（2026-10-16）
+
+- **变更来源**：正式可信页面适配器与定向 Node 回归已在 GitHub `main` 提交 [`68a32c4`](https://github.com/shopable-ai/opendesk-browser/commit/68a32c455ed30aea7bac90f4ad8c818ba9749c17)。`trusted/page.js` 的 Git blob 为 `2910b582d88bd3c3c46fbc1f2da110fc10475047`，bundle-provenance 仍为**精确单 blob**准入。
+- **Node**：正式专项工作流在 [Run 38887978223](https://github.com/shopable-ai/opendesk-browser/actions/runs/38887978223) 获得 74/74 Prompt Shortcuts 定向测试和 6/6 Sidebar Tool 打包基础测试 PASS，4 项 R2.1 防误触与单行编辑前置回归 PASS。此结果仅证实 Node 和包装契约。
+- **真 Chromium DOM Fixture**：新增 `scripts/tests/prompt-shortcuts-r21-page-chromium.mjs`，集成现有 `.github/workflows/prompt-shortcuts-r14.yml`，于 [Run 38889688026](https://github.com/shopable-ai/opendesk-browser/actions/runs/38889688026) 的 `prompt-shortcuts-scope` 和 `sync-project-package` 两个 job 均获得 SUCCESS。使用真实 Chromium CDP 鼠标对真实页面 DOM 完成 `#workspace` 容器选取、`#draft` textarea 选取、选择器检查、原草稿+中文 Emoji+空行完整插入、不误触网页事件、停用/重新启用、刷新后规则保留、单行输入安全复制回退；`consoleErrors=[]`；截图与 JSON 报告作为 CI artifact 保存。
+- **必须标注的模拟边界**：上述 Fixture 通过 HTTP 测试网页、固定正式页面模块、真实 Chromium 浏览器和真实 DOM/点击执行，**但是扩展 Host、工具安装注册表和存储模拟**，不包含用户实际 Chrome Extension ID、`dist/development`、真实 Side Panel 安装更新、第三方站点账号、真实 Mac IME，因此只能标记 `CHROMIUM_FIXTURE_PASS`。其余分别保持 `INSTALLED_CHROME_PASS=NOT_TESTED`、`REAL_SITE_PASS=NOT_TESTED`、`MAC_IME_PASS=NOT_TESTED`，不得按 95+ 正式产品闭环发版。
+- **正式可安装工具包**：唯一 `prompt-shortcuts.opendesk-tool.json` 仍为 `1.1.0`，未修改 Sandbox JS/HTML/CSS 或工具权限；最新同源 CI 生成 65,794 UTF-8 bytes，SHA-256 `39c94ed1ac02ceffbc804dabbf3b8343ef7982653f3878e06b0dbb0362d5406e`，正式包 Git blob `1db538839635434c1cace7d778eef1117b83a74b`。新的可信 `page.js` 只有用户的 Chrome Extension 重新加载新构建才会真正生效；仅导入旧/新 JSON 不能代替更新可信扩展。
+- **仍需 Mac/真实网站验收**：在用户现有 `npm run dev` 和固定 `dist/development` 下核实原 Extension ID / Source SHA / 工具已装版本；从其他网站实际操作“双取点 → 测试 → 保存 → 刷新 → 真实原生插入 → Undo → IME → 撤权”，再按网站记录 ChatGPT / Claude / Gemini 的 PASS/FAIL/NOT_TESTED。ProseMirror、Lexical、React 受控编辑器的状态持久和 Undo 不能从 textarea Fixture 推断成功。各维专家评分无真实证据的部分一律 `NOT_SCORED`，禁止平均分掩盖。
