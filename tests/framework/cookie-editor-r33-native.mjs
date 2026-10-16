@@ -308,10 +308,7 @@ try{
     // Verify exact historical JSON before launch; the real file picker and
     // installed Side Panel still perform every installation transition.
     upgradeOldFile=required('COOKIE_NATIVE_OLD_TOOL');
-    upgradeBaseline=verifyCookieEditorUpgradeBaseline(await readFile(upgradeOldFile),pkg,{
-      version:process.env.COOKIE_NATIVE_OLD_VERSION||COOKIE_EDITOR_UPGRADE_FROM.version,
-      sha256:process.env.COOKIE_NATIVE_OLD_TOOL_SHA256||COOKIE_EDITOR_UPGRADE_FROM.sha256,
-    });
+    upgradeBaseline=verifyCookieEditorUpgradeBaseline(await readFile(upgradeOldFile),pkg);
     report.upgradeBaseline=upgradeBaseline;
   }
   report.candidate.extensionPackage=await packageFingerprint(extension);
@@ -394,8 +391,10 @@ try{
     let preview=null;
     if(imported||release.installationPolicy!=='preinstalled'){
       await until(()=>read(side,'!!document.querySelector("#sidebar-tool-preview")&&!document.querySelector("#sidebar-tool-preview").hidden'),'Visible official review');
-      preview=await read(side,'({title:document.querySelector("#sidebar-tool-preview-title")?.textContent,version:document.querySelector("#sidebar-tool-preview-version")?.textContent,frames:document.querySelectorAll("#sidebar-tool-frame iframe").length})');
+      preview=await read(side,'({title:document.querySelector("#sidebar-tool-preview-title")?.textContent,version:document.querySelector("#sidebar-tool-preview-version")?.textContent,source:document.querySelector("#sidebar-tool-preview-file")?.textContent,frames:document.querySelectorAll("#sidebar-tool-frame iframe").length})');
       assert(preview.title.includes('Cookie'));assert(preview.version.includes(imported?upgradeBaseline.version:pkg.version));assert.equal(preview.frames,0);
+      if(imported)assert(preview.source?.includes('候选包 SHA-256（规范序列化）：'+upgradeBaseline.sha256),
+        'Actual Mac file chooser must select the exact reviewed historical 2.0.15 package');
       await click(side,'#sidebar-tool-install');
     }
     const open=unifiedCenter?'[data-extension-key="app:cookie-editor"][data-extension-action="primary"]':
