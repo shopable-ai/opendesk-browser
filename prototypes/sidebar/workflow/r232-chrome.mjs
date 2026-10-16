@@ -40,6 +40,17 @@ try{
   assert.equal(await page.locator('#new-chat').count(),1);
   assert.equal(await page.locator('#new-workflow').count(),1);
   assert.equal(await page.locator('#new').count(),0);
+  for(const [id,accessibleName] of [['history','查看历史版本'],['new-chat','新对话'],['new-workflow','新建工作流']]){
+    const icon=page.locator('#'+id);
+    assert.equal(await icon.count(),1);
+    assert.equal(await icon.getAttribute('aria-label'),accessibleName);
+    assert.ok((await icon.getAttribute('title'))?.trim(),'missing tooltip for '+id);
+    assert.equal((await icon.innerText()).trim(),'','top toolbar must remain icon-only: '+id);
+    assert.equal(await icon.locator('svg').count(),1,'missing icon: '+id);
+    const box=await icon.boundingBox();
+    assert.ok(box && box.width>=40 && box.height>=40,'undersized toolbar action: '+id);
+  }
+  mark('history, new chat and new workflow remain three accessible icon-only 40x40 actions');
   assert.equal(await nameValue(),'旧的预填内容');
   mark('single exact source file loaded, dual create, blank');
   await shot('r232-default');
