@@ -5,6 +5,8 @@ on:
     paths:
       - 'examples/sidebar-tools/adblock/preview/**'
       - 'src/libs/page-frameworks/react-19.2.0.js'
+      - 'src/ui/design-tokens.css'
+      - 'src/ui/design-system.css'
       - '.github/workflows/adblock-r20-react-zero-build.yml'
   workflow_dispatch:
 permissions:
@@ -39,4 +41,13 @@ jobs:
       - name: Actual React 19.2.0 Chrome file protocol E2E without build or web server
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          ADBLOCK_PREVIEW_EVIDENCE_DIR: ${{ runner.temp }}/adblock-react-r20-evidence
         run: node examples/sidebar-tools/adblock/preview/acceptance.mjs
+      - name: Upload real file Chrome screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: adblock-r20-${{ matrix.os }}-chrome-file
+          path: ${{ runner.temp }}/adblock-react-r20-evidence/*.png
+          if-no-files-found: warn
+          retention-days: 7

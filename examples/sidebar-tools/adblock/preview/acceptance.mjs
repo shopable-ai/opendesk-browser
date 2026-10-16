@@ -6,10 +6,10 @@ import {spawn} from 'node:child_process';
 import {existsSync, mkdtempSync, mkdirSync, copyFileSync, readFileSync, writeFileSync, rmSync} from 'node:fs';
 import {tmpdir, platform} from 'node:os';
 import {dirname, join, resolve} from 'node:path';
-import {pathToFileURL} from 'node:url';
+import {fileURLToPath, pathToFileURL} from 'node:url';
 import {createServer} from 'node:net';
 
-const preview = dirname(new URL(import.meta.url).pathname);
+const preview = dirname(fileURLToPath(import.meta.url));
 const root = resolve(preview, '../../../..');
 const reactFile = join(root, 'src/libs/page-frameworks/react-19.2.0.js');
 const reactHash = 'd1eec2e96ed42046ad543a10af7de992aee633ac06017f44f6b917e36451c758';
@@ -126,6 +126,12 @@ try {
   async function query(expression, expected) {
     return until(async()=> (await evaluate(expression)) === expected,'expected '+expression+' = '+JSON.stringify(expected));
   }
+  // A mounted-looking old document is not evidence that Chrome actually reloaded.
+  async function reloadMounted(label) {
+    await evaluate('globalThis.__adblockPreviewReloadMarker = true');
+    await send('Page.reload',{ignoreCache:true});
+    await until(async()=>await evaluate('globalThis.__adblockPreviewReloadMarker===undefined && !!document.getElementById("global-switch")'),label);
+  }
   async function click(id) {
     assert.equal(await evaluate('!!document.getElementById('+JSON.stringify(id)+')'),true,'element exists '+id);
     await evaluate('document.getElementById('+JSON.stringify(id)+').click()');
@@ -229,6 +235,40 @@ try {
   await query('document.getElementById("site-host")?.textContent','news.example.com');
   await query('document.querySelector(".stage").classList.contains("night")',false);
   console.log('05 STORAGE_RESET_PASS · '+(storageWorks?'persisted':'file-storage graceful fallback'));
+  // A reset must survive refresh when storage is available, and remain the default otherwise.
+  await reloadMounted('reset really reloaded');
+  await query('document.getElementById("site-host")?.textContent','news.example.com');
+  await query('document.getElementById("site-switch")?.getAttribute("aria-checked")','true');
+  await query('document.querySelector(".stage")?.classList.contains("night")',false);
+  console.log('05B RESET_REFRESH_PASS');
+
+  // Simulate file:// storage denial before React starts: edits must still work in memory.
+  const deniedStorage = await send('Page.addScriptToEvaluateOnNewDocument',{source:[
+    '(() => {',
+    '  const deny = () => { throw new Error("PREVIEW_TEST_STORAGE_DENIED"); };',
+    '  try { Object.defineProperty(window, "localStorage", {configurable:true,get:deny}); }',
+    '  catch { try { Storage.prototype.getItem = deny; Storage.prototype.setItem = deny; } catch {} }',
+    '})();'
+  ].join('\n')});
+  assert.ok(deniedStorage.identifier,'Chrome must confirm test-only pre-document injection');
+  try {
+    await reloadMounted('storage denial injected into reloaded page');
+    await query('document.getElementById("site-switch")?.getAttribute("aria-checked")','true');
+    assert.equal(await evaluate('(()=>{try{localStorage.getItem("opendesk.adblock.preview.r2");return false}catch{return true}})()'),true,
+      'storage must actually be inaccessible during this test');
+    await click('site-switch');
+    await query('document.getElementById("site-switch")?.getAttribute("aria-checked")','false');
+    await click('global-switch');
+    await query('document.getElementById("global-switch")?.getAttribute("aria-checked")','false');
+    await reloadMounted('memory-only state cleared after real reload');
+    await query('document.getElementById("global-switch")?.getAttribute("aria-checked")','true');
+    await query('document.getElementById("site-switch")?.getAttribute("aria-checked")','true');
+    console.log('05C STORAGE_DENIED_MEMORY_FALLBACK_PASS');
+  } finally {
+    await send('Page.removeScriptToEvaluateOnNewDocument',{identifier:deniedStorage.identifier});
+    await reloadMounted('storage access restored after injection removal');
+    await query('document.getElementById("site-switch")?.getAttribute("aria-checked")','true');
+  }
   for (const width of [320,360]) {
     await send('Emulation.setDeviceMetricsOverride',{width,height:850,deviceScaleFactor:1,mobile:false});
     await sleep(200);
@@ -238,6 +278,33 @@ try {
   }
   await send('Emulation.clearDeviceMetricsOverride');
   console.log('06 WIDTH_320_360_PASS');
+  await send('Emulation.setDeviceMetricsOverride',{width:1024,height:850,deviceScaleFactor:1,mobile:false});
+  const placement=await evaluate('({frame:document.querySelector(".frame").getBoundingClientRect().toJSON(),notes:document.querySelector(".notes").getBoundingClientRect().toJSON(),nested:!!document.querySelector(".frame .notes")})');
+  assert.equal(Math.round(placement.frame.width),360,'tool canvas should be 360px on desktop');
+  assert.ok(placement.notes.left>placement.frame.right && !placement.nested,
+    'preview controls must sit outside the 360px tool canvas');
+  await send('Emulation.clearDeviceMetricsOverride');
+  console.log('06B ISOLATED_360PX_CANVAS_PASS');
+
+  // Optional CI screenshots are real Chromium pixels, never mock/statically generated.
+  const evidenceDir=process.env.ADBLOCK_PREVIEW_EVIDENCE_DIR;
+  if (evidenceDir) {
+    mkdirSync(evidenceDir,{recursive:true});
+    async function capture(width,theme) {
+      await send('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:false});
+      await sleep(150);
+      const shot=await send('Page.captureScreenshot',{format:'png',fromSurface:true,captureBeyondViewport:false});
+      assert.ok(shot.data?.length>100,'Chrome did not return PNG screenshot');
+      writeFileSync(join(evidenceDir,'adblock-file-'+width+'-'+theme+'.png'),Buffer.from(shot.data,'base64'));
+    }
+    for (const width of [320,360,1024]) await capture(width,'light');
+    await click('theme-button');
+    await query('document.querySelector(".stage")?.classList.contains("night")',true);
+    await capture(360,'dark');
+    await click('theme-button');
+    await send('Emulation.clearDeviceMetricsOverride');
+    console.log('06C CHROME_SCREENSHOT_EVIDENCE_PASS · 320/360/1024 light + 360 dark');
+  }
 
   // Copy only the minimum repository tree. Editing this copy proves save-refresh is build-free.
   const sandbox=join(profile,'isolated-repo');
