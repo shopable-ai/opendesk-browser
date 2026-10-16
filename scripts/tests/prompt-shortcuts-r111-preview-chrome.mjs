@@ -175,7 +175,8 @@ async function run(){
   assert.equal(await evalChrome('!document.querySelector("#siteDetails").hidden'),true);
   assert.equal(await evalChrome('document.querySelector("#sitesButton").getAttribute("aria-expanded")'),"true");
   assert.equal(await evalChrome('document.querySelector("#sitesButton").getAttribute("aria-label")'),"收起适用网站");
-  assert.equal(await evalChrome('document.querySelector("#siteDetails").textContent.includes("其他 AI 网站仍须逐站验证")'),true);
+  // Approved R2.4.2 lists each site's verified-vs-planned state, not a generic warning.
+  assert.equal(await evalChrome('(()=>{const text=document.querySelector("#siteDetails").textContent;return ["ChatGPT","Claude","Gemini","真实 DOM 待验","规划中 · 未验证"].every(value=>text.includes(value));})()'),true);
   await click('#hostBack');
   assert.equal(await evalChrome('!document.querySelector("#indexView").hidden'),true);
   assert.equal(await evalChrome('document.querySelector("#hostToolTitle").textContent'),"提示词快捷按钮");
