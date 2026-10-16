@@ -26,13 +26,20 @@ function mockElement(tag='div'){
       node.append(...elements);},
     setAttribute(name,value){node.attributes[name]=value;},
     getAttribute(name){return node.attributes[name];},
+    removeAttribute(name){delete node.attributes[name];},
     remove(){node.isConnected=false;const parent=node.parentNode;if(parent)
       parent.children=parent.children.filter(child=>child!==node);},
-    focus(){node.focused=true;},
+    focus(){
+      node.focused=true;
+      for(let parent=node.parentNode;parent;parent=parent.parentNode){
+        if(parent.tagName==='shadow'){parent.activeElement=node;break;}
+      }
+    },
     select(){node.selected=true;},
     matches(){return false;},
     closest(){return null;},
-    contains(other){return node.children.includes(other);},
+    querySelectorAll(){return [];},
+    contains(other){return node===other||node.children.some(child=>child.contains?.(other));},
     attachShadow(){node.shadow=mockElement('shadow');return node.shadow;},
     getBoundingClientRect(){return {left:260,top:80,width:900,height:640};}
   };
@@ -96,10 +103,13 @@ test('R1.13 ChatGPT rail: no second consent, one click-to-draft, independent ena
   const row=model.draft({body:'检查项目\n列出风险'},null,()=> 'prompt-123456');
   const library={schema:1,items:[row],settings:{webButtons:true}};
   const f=fixture({pkg,library,grants:{}});
+  f.values.set(SIDEBAR_TOOL_STORE,[]);
   const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
   try{
     await settle();
-    assert.equal(f.buttons().length,1,'installed and enabled tool renders without a separate grant');
+    assert.equal(f.buttons().length,0,'uninstalled tool never renders');
+    f.change(SIDEBAR_TOOL_STORE,[pkg]);await settle();
+    assert.equal(f.buttons().length,1,'installed and enabled tool renders without a redundant site grant');
     const grant=await changePromptSiteGrant({},pkg,'first',true);
     f.change(PROMPT_SITE_STORE,grant);await settle();
     assert.equal(f.buttons().length,1,'legacy authorization record does not duplicate the button');
@@ -127,7 +137,11 @@ test('R1.13 ChatGPT rail: no second consent, one click-to-draft, independent ena
     f.change(SIDEBAR_TOOL_ENABLE_STORE,{});
     await settle();assert.equal(f.buttons().length,1);
     f.change(PROMPT_SITE_STORE,{});await settle();
-    assert.equal(f.buttons().length,1,'legacy site grant is no longer a separate visibility gate');
+    assert.equal(f.buttons().length,1,'legacy site grants do not gate the installed adapter');
+    f.change(SIDEBAR_TOOL_STORE,[]);await settle();
+    assert.equal(f.buttons().length,0,'uninstall tears down page controls');
+    f.change(SIDEBAR_TOOL_STORE,[pkg]);
+    await settle();
     f.change(PROMPT_SITE_STORE,grant);
     await settle();assert.equal(f.buttons().length,1);
     f.win.location.href='https://chatgpt.com.evil.example/c/mock';
@@ -262,3 +276,265 @@ test('R1.7 narrow ChatGPT rail starts folded, expands on click, and tooltip reta
     assert.equal(tooltip.children[1].textContent,row.body);
   }finally{controller.dispose();}
 });
+
+async function readyPage(){
+  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const row=globalThis.OpenDeskPromptShortcutsModel.draft({body:'完整正文\n第二行'},null,()=> 'prompt-r18');
+  const grants=await changePromptSiteGrant({},pkg,'first',true);
+  const f=fixture({pkg,grants,library:{schema:1,items:[row],settings:{webButtons:true}}});
+  const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
+  await settle();
+  const host=()=>f.root.children.find(item=>item.attributes['data-opendesk-prompts']!==undefined);
+  const panel=className=>host()?.shadow.children.find(item=>item.className===className);
+  return {...f,controller,host,panel,row};
+}
+
+test('R1.8 tooltip retains focus on itself or descendants, then hides after focus leaves',async()=>{
+  const f=await readyPage();
+  try{
+    const button=f.buttons()[0],tip=f.panel('tip');
+    button.focus();button.emit('focus');button.emit('blur');
+    tip.focus();tip.emit('focusin');
+    // Pointer leaving must not dismiss keyboard-focused, scrollable content.
+    tip.emit('mouseleave');await settle();
+    assert.equal(tip.hidden,false,'tooltip itself retains focus');
+    const child=mockElement('div'),nested=mockElement('button');child.append(nested);tip.append(child);
+    nested.focus();tip.emit('focusin');tip.emit('mouseleave');await settle();
+    assert.equal(tip.hidden,false,'focus anywhere inside tooltip retains it');
+    f.rail().children[0].focus();tip.emit('focusout');await settle();
+    assert.equal(tip.hidden,true,'leaving tooltip without a pointer event dismisses it');
+    assert.equal(button.getAttribute('aria-describedby'),undefined);
+    button.focus();button.emit('focus');button.emit('mouseleave');await settle();
+    assert.equal(tip.hidden,false,'owner focus still retains tooltip');
+    f.host().shadow.emit('keydown',{key:'Escape'});
+    assert.equal(tip.hidden,true,'Escape still dismisses focused tooltip');
+  }finally{f.controller.dispose();}
+});
+
+test('R1.8 open tooltip follows rail scroll and window layout without rewriting content',async()=>{
+  const f=await readyPage();
+  try{
+    const button=f.buttons()[0],host=f.host(),tip=f.panel('tip');
+    let buttonTop=180,hostLeft=272,hostTop=100;
+    host.getBoundingClientRect=()=>({left:hostLeft,top:hostTop,width:48,height:248});
+    button.getBoundingClientRect=()=>({left:hostLeft,top:buttonTop,width:38,height:38});
+    tip.getBoundingClientRect=()=>({height:100});
+    button.emit('mouseenter');
+    const content=tip.children[1];
+    assert.equal(tip.style.top,'68px');
+    buttonTop=140;
+    f.rail().emit('scroll');await settle();
+    assert.equal(tip.style.top,'28px','closed shadow rail scroll has its own listener');
+    hostLeft=1100;hostTop=120;buttonTop=220;
+    f.win.innerHeight=320;f.events.get('resize')();await settle();
+    assert.equal(tip.style.top,'88px');
+    assert.equal(tip.style.left,'auto');assert.equal(tip.style.right,'55px');
+    assert.equal(tip.children[1],content,'layout retains the original tooltip content');
+    assert.equal(content.textContent,f.row.body);
+    f.main.getBoundingClientRect=()=>({left:260,top:80,width:540,height:640});
+    f.events.get('resize')();await settle();
+    assert.equal(tip.hidden,true,'folded rail cannot retain a tooltip for a hidden owner');
+    assert.equal(button.getAttribute('aria-describedby'),undefined);
+  }finally{f.controller.dispose();}
+});
+
+for(const scenario of ['navigation','navigation-refresh','disposed','bfcache','revoked','ime-reject','ime-no-editor']){
+  test('R1.8 pending insertion cannot copy, show feedback or steal focus after '+scenario,async()=>{
+    const f=await readyPage();
+    try{
+      const read=f.api.storage.local.get,values=await read(KEYS_FOR_PENDING_READ);
+      let resolve,reject;
+      const pending=new Promise((yes,no)=>{resolve=yes;reject=no;});
+      let first=true;
+      f.api.storage.local.get=keys=>{if(first){first=false;return pending;}return read(keys);};
+      const button=f.buttons()[0],shadow=f.host().shadow;
+      button.focus();button.emit('click',{isTrusted:true});
+      const priorFeedback=f.panel('feedback');
+      if(scenario.startsWith('navigation')){
+        f.win.location.href=CHATGPT_ORIGIN+'/c/new-document';
+        if(scenario==='navigation-refresh')f.events.get('popstate')();
+      }else if(scenario==='disposed')f.controller.dispose();
+      else if(scenario==='bfcache'){
+        f.events.get('pagehide')({persisted:true});f.events.get('pageshow')();
+      }else if(scenario==='revoked')f.change(SIDEBAR_TOOL_STORE,[]);
+      else{
+        f.docEvents.get('compositionstart')();
+        if(scenario==='ime-no-editor')f.editor.isConnected=false;
+      }
+      await settle();
+      if(scenario==='ime-reject')reject(Error('storage read failed during composition'));
+      else resolve(values);
+      await settle();
+      assert.equal(f.calls.length,0,'no editor effect after context changes');
+      assert.equal(f.editor.focused,undefined,'no editor focus after context changes');
+      assert.deepEqual(f.copied,[],'stale catch must not copy');
+      assert.equal(shadow.activeElement,button,'stale catch must not steal trigger focus');
+      for(const feedback of new Set([priorFeedback,f.panel('feedback')].filter(Boolean))){
+        assert.equal(feedback.hidden,true,'stale catch must not show feedback');
+        assert.equal(feedback.textContent,'','stale catch must not report a copy');
+        assert.equal(feedback.focused,undefined,'stale catch must not focus feedback');
+      }
+    }finally{f.controller.dispose();}
+  });
+}
+
+const KEYS_FOR_PENDING_READ=[SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,
+  PROMPT_SITE_STORE,PROMPT_DATA_STORE];
+
+test('R1.8 current insertion failure copies the complete prompt without focusing feedback',async()=>{
+  const f=await readyPage();
+  try{
+    f.doc.execCommand=()=>false;
+    f.buttons()[0].emit('click',{isTrusted:true});await settle();
+    const feedback=f.panel('feedback');
+    assert.deepEqual(f.copied,[f.row.body]);
+    assert.equal(feedback.hidden,false);
+    assert.match(feedback.textContent,/已复制完整提示词/);
+    assert.equal(feedback.dataset.kind,'success');
+    assert.equal(feedback.getAttribute('role'),'status');
+    assert.equal(feedback.getAttribute('aria-live'),'polite');
+    assert.equal(feedback.focused,undefined);
+    assert.equal(f.host().shadow.activeElement,undefined,'copy feedback must not steal editor focus');
+  }finally{f.controller.dispose();}
+});
+
+function regionRect(left,top,width,height){return {left,top,width,height,right:left+width,bottom:top+height};}
+
+test('R1.8 full-width ChatGPT main trims expanded semantic navigation and restores collapsed region',async()=>{
+  const f=await readyPage();
+  try{
+    const aside=mockElement('aside'),nav=mockElement('nav');
+    let expanded=true;
+    f.main.getBoundingClientRect=()=>regionRect(0,0,1263,843);
+    aside.getBoundingClientRect=()=>regionRect(expanded?0:-260,0,260,843);
+    nav.getBoundingClientRect=()=>regionRect(expanded?0:-260,96,260,582);
+    f.main.querySelectorAll=selector=>{
+      assert.equal(selector,'aside, nav, [role="navigation"]');return [aside,nav];
+    };
+    f.win.innerWidth=1263;f.win.innerHeight=843;
+    f.events.get('resize')();await settle();
+    assert.equal(f.host().style.left,'272px','rail starts inside chat, beyond the real expanded sidebar');
+    assert.equal(f.host().style.top,'422px','only the horizontal region changes');
+    expanded=false;f.events.get('resize')();await settle();
+    assert.equal(f.host().style.left,'12px','fully offscreen collapsed navigation reserves no space');
+    expanded=true;aside.hidden=true;nav.hidden=true;
+    f.events.get('resize')();await settle();
+    assert.equal(f.host().style.left,'12px','hidden semantic navigation reserves no space');
+    aside.hidden=false;nav.hidden=false;
+    f.win.getComputedStyle=()=>({visibility:'hidden'});
+    f.events.get('resize')();await settle();
+    assert.equal(f.host().style.left,'12px','CSS-hidden navigation is ignored');
+  }finally{f.controller.dispose();}
+});
+
+test('R1.8 region ignores unrelated floating asides and preserves main already right of navigation',async()=>{
+  const f=await readyPage();
+  try{
+    const candidates=[regionRect(300,0,180,843),regionRect(0,100,260,200),
+      regionRect(0,0,800,843),regionRect(0,-600,260,843)].map(rect=>{
+      const aside=mockElement('aside');aside.getBoundingClientRect=()=>rect;return aside;
+    });
+    f.main.getBoundingClientRect=()=>regionRect(0,0,1263,843);
+    f.main.querySelectorAll=()=>candidates;
+    f.events.get('resize')();await settle();
+    assert.equal(f.host().style.left,'12px','floating, short, overly wide and vertically offscreen asides are ignored');
+    f.main.getBoundingClientRect=()=>regionRect(260,0,1003,843);
+    const nav=mockElement('nav');nav.getBoundingClientRect=()=>regionRect(0,96,260,582);
+    f.main.querySelectorAll=()=>[nav];
+    f.events.get('resize')();await settle();
+    assert.equal(f.host().style.left,'272px','main already excludes navigation; do not offset it twice');
+    const navigation=mockElement('div');navigation.setAttribute('role','navigation');
+    navigation.getBoundingClientRect=()=>regionRect(0,96,180,582);
+    f.main.getBoundingClientRect=()=>regionRect(0,0,1263,843);
+    f.main.querySelectorAll=()=>[navigation];
+    f.events.get('resize')();await settle();
+    assert.equal(f.host().style.left,'192px','role navigation uses its measured width');
+  }finally{f.controller.dispose();}
+});
+
+test('R1.8 follows the full-height conversation container after a sidebar transition, not its composer',async()=>{
+  const f=await readyPage();
+  let notify,disconnected=false;
+  try{
+    const observed=new Set();
+    f.win.ResizeObserver=class{
+      constructor(callback){notify=callback;}
+      observe(node){observed.add(node);}
+      disconnect(){disconnected=true;}
+    };
+    const content=mockElement('div'),composer=mockElement('form');
+    f.main.append(content);content.append(composer);composer.append(f.editor);
+    f.editor.parentElement=composer;composer.parentElement=content;content.parentElement=f.main;
+    let edge=260;
+    f.main.getBoundingClientRect=()=>regionRect(0,0,1263,899);
+    content.getBoundingClientRect=()=>regionRect(edge,0,1263-edge,899);
+    composer.getBoundingClientRect=()=>regionRect(377,461,768,52);
+    f.win.innerWidth=1263;f.win.innerHeight=899;
+    await f.controller.refresh();await settle();
+    assert.equal(f.host().style.left,'272px');
+    assert.equal(f.host().style.top,'450px');
+    assert(observed.has(content),'observe the actual conversation container');
+    assert.equal(f.host().attributes['data-opendesk-prompts-anchor'],'conversation-region-r18');
+    edge=0;notify();await settle();
+    assert.equal(f.host().style.left,'12px','content resizing updates layout without window resize');
+    edge=260;f.docEvents.get('transitionend')();await settle();
+    assert.equal(f.host().style.left,'272px','transition completion remeasures final position');
+  }finally{f.controller.dispose();}
+  assert(disconnected,'dispose disconnects the layout observer');
+  assert(!f.docEvents.has('transitionend'),'dispose removes the transition listener');
+});
+
+function mobileComposer(f,{accepted=true}={}){
+  const query=f.doc.querySelector,selections=[];
+  f.editor.isContentEditable=false;f.editor.id='mobile-composer-prompt';f.editor.value='已有草稿';
+  f.editor.setSelectionRange=(start,end)=>selections.push([start,end]);
+  f.doc.querySelector=selector=>selector.startsWith('main ')?
+    (selector.split(',').includes('main textarea#mobile-composer-prompt')?f.editor:null):query(selector);
+  f.doc.execCommand=(command,_show,text)=>{
+    f.calls.push({command,text});
+    if(!accepted)return false;
+    f.editor.value+=text;return true;
+  };
+  return selections;
+}
+
+test('R1.8 logged-out mobile-composer textarea appends complete draft via accepted native command',async()=>{
+  const f=await readyPage();
+  try{
+    const selections=mobileComposer(f),before=f.editor.value;
+    f.buttons()[0].emit('click',{isTrusted:true});await settle();
+    assert.deepEqual(selections,[[before.length,before.length]],'textarea caret moves to draft end');
+    assert.deepEqual(f.calls,[{command:'insertText',text:'\n'+f.row.body}]);
+    assert.equal(f.editor.value,before+'\n'+f.row.body);
+    assert.equal(f.editor.focused,true);
+    const feedback=f.panel('feedback');
+    assert.equal(feedback.hidden,false);assert.match(feedback.textContent,/已插入输入框/);
+    assert.deepEqual(f.copied,[],'verified insertion never also copies');
+  }finally{f.controller.dispose();}
+});
+
+for(const state of ['hidden','css-hidden','disabled','readonly','disconnected','rejected']){
+  test('R1.8 mobile-composer textarea safely falls back when '+state,async()=>{
+    const f=await readyPage();
+    try{
+      const selections=mobileComposer(f,{accepted:state!=='rejected'}),before=f.editor.value;
+      if(state==='hidden')f.editor.getBoundingClientRect=()=>({width:0,height:0});
+      if(state==='css-hidden')f.win.getComputedStyle=()=>({visibility:'hidden'});
+      if(state==='disabled')f.editor.disabled=true;
+      if(state==='readonly')f.editor.readOnly=true;
+      if(state==='disconnected')f.editor.isConnected=false;
+      f.buttons()[0].emit('click',{isTrusted:true});await settle();
+      assert.equal(f.editor.value,before,'failed or unavailable editor retains its draft');
+      assert.equal(f.calls.length,state==='rejected'?1:0);
+      if(state!=='rejected'){
+        assert.equal(f.editor.focused,undefined);assert.deepEqual(selections,[]);
+      }
+      const feedback=f.panel('feedback');
+      assert.equal(feedback.hidden,false);
+      assert.match(feedback.textContent,/已复制完整提示词/);
+      assert.equal(feedback.dataset.kind,'success');
+      assert.deepEqual(f.copied,[f.row.body]);
+      assert.equal(feedback.focused,undefined,'copy feedback must not steal focus');
+    }finally{f.controller.dispose();}
+  });
+}

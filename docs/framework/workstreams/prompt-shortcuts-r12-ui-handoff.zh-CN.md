@@ -301,6 +301,69 @@
 - **未验收**：本环境不具备用户 Mac 原生安装 Chrome、真实 ChatGPT DOM/IME 和 Host `storage.set` 验收；正式“你好”保存失败 P0 没有在本轮修复。九维专家评分仍 **`NOT_SCORED`**，目标 >=95，而非据 15 项模拟通过就虚报专家分数。用户尚未明确批准 R1.12 预览进入正式迁移，保持 **PREVIEW_APPROVAL_PENDING**。
 
 
+## 10. R1.8 Mac 真实 Chrome 验收（2026-10-16，IN_PROGRESS）
+
+负责人：本地 Codex 会话 01a14087；唯一 main。写入范围：本交接文档，Prompt Shortcuts src/index.html、src/style.css、src/main.js、tool.config.json、唯一正式 JSON，必要时 trusted/page.js/model.js/policy.js 及对应精确 provenance 与定向测试。两个原版 preview 与跨 AI 平台 REQUIREMENTS 只读。子 Agent 仅只读核对管理 UI / 网页适配器。
+
+资源：复用日常 Chrome ccfcjegpkdlgbclopjmadlcjedelidmf，加载 /Users/shopme/Documents/workspace/opendesk-browser/dist/development；npm run dev PID 55545 / node scripts/dev.mjs PID 55566，43119 已存在 ESTABLISHED Chrome 连接，属于持续开发。无第二 watcher/build writer，不占用其他 CFT/Profile/43111。本工具不需要 Native 来插入网页草稿。证据目录 artifacts/prompt-shortcuts-r18-01a14087/，不读聊天历史、不发送消息。
+
+起点 ba0e16933；fetch 后 origin/main 领先36提交。首次 ff-only 同步因其他任务 local-project.js 与对应测试未提交改动拒绝；随后观察到并行负责人已同步 HEAD 至68e6b8978且这两个文件处于 unmerged，保留并继续独立工具工作，不擅自处理其索引。
+
+正式包 --check-project PASS：v1.0.1，43057 bytes，SHA256 6dacf6d87993b35afa8ddf7d3322016c957e32807b4464879f73c24c2ae1e904，未重建。真实打开工具发现安装的仍为 v1.0.0：旧 checkbox UI / 旧空态与 R1.7 预览差异明显；既有导入器明确显示 v1.0.0→1.0.1、能力无变化、保留数据。先按正式升级链更新后再评估当前源码差异。
+
+### 10.1 转新对话续接快照（2026-10-16）
+
+- 用户最新明确：按钮应位于 **ChatGPT 对话内容区域左边缘，并在该区域垂直居中**，排除历史导航；当前出现在整个网页左边仍是实际失败，不能登记定位 PASS。用户另明确不以 ChatGPT 登录为继续工作的前置条件。
+- 当前 main HEAD `68e6b8978338d408fb08637c8b86cc936541aa91`；本任务修改尚未提交/推送。此前并行任务 unmerged 状态已消失；native-agent/local-project 与 ai-vip-share 仍有他人未提交修改，禁止覆盖或混入提交。每次写入、暂存前重新核对。
+- 正式包已按候选构建→测试→晋升→check-project 更新为 **1.0.2 / 44680 bytes / SHA256 `8d3f8024fa06dff0d6660a45d301ad71d046be2a11d7c57cf30b99fcc2d60622`**；真实 Chrome 已经由原安装器完成 1.0.1→1.0.2 权限审阅升级并保留数据。正式包仅此一份。trusted/page.js 属静态扩展代码，后续更改须另绑定实际加载的开发产物身份，不能仅凭 JSON SHA 声称已经加载。
+- 保存实际失败：沙箱不允许原生 form submit，原按钮仅依赖 submit 事件。现已使用明确的保存按钮 click 与受控 Enter，保留沙箱合同；增加 busy/未知结果保护及保存中继续编辑的身份保留。实际 Chrome 已验证新建、保存和重新编辑指定多行正文（含空行、中文和 Emoji）、三个 Unicode 样例、超过 8192 B 拒绝且保留草稿、返回时未保存确认。页面白底与停用标签样式已调整，完整视觉评分仍未完成。
+- 真实 Chrome 已验证四种“网页按钮/选区右键”独立开关组合，四条测试提示词均保留；真实 Chrome 原生右键菜单→添加为提示词快捷按钮→已有新建表单预填，未自动保存。当前网页按钮开、选区右键关；宿主站点/右键授权仍保留。
+- trusted/page.js 已增加 Tooltip 焦点/滚动生命周期保护及尝试扣除左侧导航的定位逻辑；**定位真实复验仍失败**。当前 mainRegion 只搜索 main 内的 aside/nav，下一步必须读取当前真实 DOM 的包含关系与可见矩形，核实导航是否在 main 外，不得将该假设当作根因结论。
+- 当前未登录 ChatGPT 的真实编辑器为 `main textarea#mobile-composer-prompt`。已增加该精确适配选择器及真实输入路径的回归测试，不扩大到任意 textarea/contenteditable，不直接写真实编辑器 DOM。最终 page Git blob 与两处精确 provenance pin 为 `51acd763f647e34b3aac162fcee1fc0d2a2c0931`。最近子任务定向测试 **40/40 PASS**，语法 4/4 PASS；真实插入、Cmd+Z、IME 尚未复验。之前包含 sidebar-tools 的最终门禁 47/47 是编辑器变更之前的结果，不能冒充最新完整门禁。
+- 子 Agent 实际按文件独立实施：Hegel 负责管理页保存及其测试；Boyle 负责 trusted/page.js、page 定向测试与两处精确 pin。均已要求停止编辑，续接时重新核对文件现状和资源归属。
+- 证据均在 `artifacts/prompt-shortcuts-r18-01a14087/`，包含原生安装、管理页/表单、配额、开关矩阵与原生菜单截图及测试日志。`real-102-anchor-fixed.png` 文件名不代表通过，画面仍显示错误位置，必须按失败证据处理。部分初期整屏截图含非本任务页面内容，公开/提交前只保留必要产品区域。
+- 受影响共享设计测试 7/7 PASS；默认 macOS TMPDIR 的 `/var`/`/private/var` 别名造成测试路径比较失败后，使用 `TMPDIR=/private/tmp` 通过，无修改测试断言。额外 bundle-package-provenance 检查的 production 通过、development 静态 receipt 与运行中 serve 文件不一致；不得覆盖现有 watcher/dist 来制造通过。
+- 下一步先修复并真实验证对话内容区域定位，再验证当前真实编辑器完整追加、焦点、撤销、双击保护、IME、Tooltip 与生命周期；补齐同候选证据后更新本节、独立评分、只暂存本任务文件、Lore 提交并正常推送 main，检查新 CI。未测项目继续 NOT_TESTED/NOT_SCORED，不因本次换对话重复已有效验证的流程。
+
+### 10.2 R1.8 续接：真实内容区域定位（2026-10-16，IN_PROGRESS）
+
+负责人：Codex 01a140ae；接管上述本任务未提交修改。写入范围沿用第10节，定位修复由本负责人独占 trusted/page.js、page 定向测试及两处精确来源 pin；只读子 Agent Boole 比较已批准管理 UI。Chrome/43119/dist 复用既有资源，不启动第二 watcher、不构建覆盖 dist。main 68e6b8978，fetch 后 origin/main 领先68提交；远端重叠为本交接文档、只读 preview/index.html、bundle-provenance 中另一工具 pin，后续串行集成并保留全部差异。
+
+通过条件：真实 ChatGPT 导航展开/收起、刷新及同站导航后，栏在完整高度的对话内容区域左缘内12px，栏中心对齐区域垂直中心；不覆盖历史导航，不使用底部输入框边缘替代内容容器。草稿验证保持中文/Emoji/空行且不自动发送。Node/真实 Chrome/未测分别记录。
+
+真实 DOM 首读：main=[0,0,1263,899]；aside侧边栏=[0,0,260,899]，位于 main 内；完整高度的编辑器祖先包含 [260,0,1003,899] 对话容器。栏实际 x=12，仍 FAIL。不得把“导航在main外”假设登记为根因。
+
+验收操作事故：tab bridge 超时后出现延迟调试连接，DevTools 失焦，一段无敏感数据的只读诊断 JavaScript 被误发送到本任务新建的空白未登录聊天；未触及原有聊天消息。已明确向用户说明，取消延迟调试连接并回到空白页。后续控制台输入与执行分开，执行前验证 Console prompt 焦点；不把此意外发送登记为功能通过。
+
+独立实施分工：管理UI 子任务接管 src/main.js、src/style.css 与 tests/environment/prompt-shortcuts-r14-management.test.mjs，仅修复已批准R1.8的验证焦点、按钮/删除确认视觉及所有写入未知结果的保守保护；不迁入R1.9预览，不编辑版本/包/来源pin/本交接文档。leader独占可信页面与真实Chrome、版本及正式包、Git集成。新发现：真实 Worker 的开发栅栏拒绝刷新；native ledger三条均ACKNOWLEDGED，继续只读核对RunHost记录，不强制reload绕过栅栏。
+
+### 10.3 R1.8 本地续接快照（2026-10-16，用户要求转新对话）
+
+用户已确认初步功能可用，要求提供新提示词继续完善；不新建 GOAL/进度文档。本节保留同候选证据及明确缺口，不宣布全面验收关闭。
+
+- **正式包**：唯一 JSON 为 **1.0.4 / 45850 bytes / SHA256 `8668e4950c3b47aad94985b976b8caaa5d78341ddeaf59ed24920d934b0486a4`**，候选 `artifacts/sidebar-tools/prompt-shortcuts/candidate.opendesk-tool.json`；已完成原打包器候选→测试→晋升→check-project。独立真实 CFT 经原安装器 1.0.2→1.0.3→1.0.4，数据保留。不以同版本异字节覆盖。
+- **已实测静态适配器**：trusted/page.js blob `c5b810d34af003920ea6d3d8c3a5f28567a711ae`。日常 Chrome `ccfcjegpkdlgbclopjmadlcjedelidmf` / `dist/development` 的 watcher 55545/55566/43119 未停止或覆盖；RunHost 历史 effect_unknown 触发现有开发安全栅栏，自动刷新延后。未改账本、未强制 reload，不能登记日常最新代码已生效。
+- **独立 CFT 身份**：STATIC_DEVELOPMENT_SERVE_SNAPSHOT_NOT_PRODUCTION；加载 `artifacts/prompt-shortcuts-r18-01a14087/cft/extension-snapshot`，revision `82413bf6e480227c5801a0330501217e59118ca9dbf5fc54423869f8319cccd2`，112 manifest 文件核对，扩展 ID `cmbhoehodjgiljaamaikmpdbdgcpiked`。不是 production/ZIP 验收。app `.runtime/prompt-shortcuts-r18-cft-unique/Google Chrome for Testing.app`（Prompt R18 Chrome），本会话独占 PID91368；launcher 报告 `artifacts/prompt-shortcuts-r18-01a14087/cft/unique-path-chrome-launch.json`。转交时保留实例，续接先核实进程/窗口，不操作其他 CFT。
+
+| PREVIEW_EXPECTED | REAL_ACTUAL / ROOT_CAUSE | FIX | TEST_EVIDENCE |
+| --- | --- | --- | --- |
+| 对话内容区左缘，整栏垂直居中 | main 覆盖视口，导航实际在 main 内；旧 x=12。完整高度的编辑器祖先是对话容器。 | 选择导航右侧最外层全高祖先，ResizeObserver/transitionend/状态属性跟踪，stop 断开观察。 | 实测展开 x=272、收起 x=64，中心 y=401；`r18-anchor-dom-expanded.txt`、`r18-anchor-dom-collapsed.txt`；最终包 `r18-104-nav-expanded.png`、`r18-104-nav-collapsed.png`。 |
+| 保存可靠、未知结果不重放 | form submit 被沙箱禁止；未知 ack 后其他写入仍有重复风险。 | 明确 click/受控 Enter、busy；未知写入锁定，完整预期库 ETag 回读确认后释放，保留草稿/新条目身份。 | 定向回归、真实创建回读及升级保留；未知写入目前仅 Node 证据，未做真实故障注入。 |
+| 原生菜单预填仍属未保存 | 1.0.3 返回会静默放弃，因为 baseline 使用预填正文。 | 1.0.4 新建 baseline 为空，已有条目基线不变。 | `r18-104-native-prefill.ax.txt`、`r18-104-prefill-draft-guard.ax.txt/png`、`r18-104-prefill-continued.ax.txt`、`r18-104-menu-no-replay.ax.txt`；返回确认、继续保留、明确放弃、重开无重放均实测。 |
+| 原稿/中文/Emoji/空行完整追加，不发送 | 未登录 textarea#mobile-composer-prompt 可用；Tooltip 可能遮住编辑器中心，须验证实际输入焦点。 | 精确选择器，保持原生编辑命令和完整回读，不赋值真实 DOM。 | 1.0.4 的 `r18-104-empty-prerequisite.ax.txt`、`r18-104-empty-doubleclick-verified.ax.txt`、`r18-104-existing-draft-append.ax.txt/png`、`r18-104-continue-edit.ax.txt`、`r18-104-empty-undo.ax.txt`、`r18-104-existing-undo.ax.txt`；空稿双击单次、指定原稿完整追加、继续编辑、Cmd+Z 均实测。 |
+| Tooltip 与生命周期可靠 | 点击后焦点回编辑器，Tooltip 会隐藏；须用原生 Tab 验证焦点显示。 | 焦点/滚动保护，保留原撤权生命周期。 | 1.0.4 `r18-104-tooltip-keyboard.ax.txt/png`、`r18-104-tooltip-escape.ax.txt`（完整正文/空行、焦点、Escape）；`r18-104-sidepanel-closed.ax.txt`、`r18-104-refresh.ax.txt`（关闭侧栏和刷新恢复）。1.0.3 停用/恢复、站点撤权和开关的已有原生证据不能提升为同步后新策略 PASS。 |
+
+**测试**：1.0.4 候选及晋升后分别 **72/72 PASS**：`r18-104-candidate-tests.log`、`r18-104-promoted-tests.log`；共享设计 **10/10 PASS**：`r18-shared-design-tests.log`；此前源检查 `r18-source-check.log` PASS。证据均在 `artifacts/prompt-shortcuts-r18-01a14087/`。这些结果发生在下述同步之前，不冒充当前集成后源码 PASS。旧 `real-102-anchor-fixed.png` 仍 FAIL；`r18-104-empty-doubleclick.ax.txt` 未建立空稿前提，保留为失败/方法不成立，新的 verified 文件才是有效证据。
+
+**刚发生的并行集成，须先重新核对**：另一会话把 main 合并为 `cc763a30ee146be71bd230e98fe642b3ce3b5069`（32200a8f5 + b41ff7028），恢复未提交修改后，本交接文档、trusted/page.js、他人 src/ui/local-project.js 出现 UU，且共享 index 已包含其他任务修改。本会话没有执行 stash/merge/暂存。曾实测 `node --check trusted/page.js` 因冲突标记 SyntaxError；转交期间另一负责人正在移除标记、更新来源 pin，不能假设文件已稳定或索引已解决，也不能抢占其 Git writer。续接需重新读 status、ls-files -u、staged diff 和最新文件；保留双方变更，不能 ours/theirs 整份覆盖，local-project 由其负责人处理。
+
+远端已合入 R1.11 固定内置适配器的安装/启用身份策略（取消重复 prompt 站点授权）、方形按钮、直接复制反馈；当前预览另有 R1.10/R1.12 待视觉确认设计。逐项核对批准状态；不要把待确认布局全部迁正式，也不要恢复旧策略覆盖远端已合入代码。集成后的 page 新 blob 必须同步精确来源 pin/测试，并只复验受影响项。旧冻结 CFT 的页面证据不能证明集成后新策略已实测。
+
+**八维评分全部 NOT_SCORED**：管理 UI 视觉、信息层级、操作效率、网页按钮定位外观、Tooltip 与可访问性、数据完整性、原生右键权限、生命周期可靠性。已有局部 PASS，但尚无同一最终集成候选的完整证据；管理首页授权提示仍笼统，不能全面95。
+
+**剩余**：中文 IME 真实组合态（已有 zhong 未证明中文候选）、SPA/会话切换与重渲染、BFCache、多标签编辑同步、真实失败完整复制与未知结果不重试、Tooltip 移入保持/边界、菜单票据过期/文档变化/撤权/停用卸载失效、隔离 Profile 卸载重装/清数据、production/ZIP 同候选身份验收，均继续 NOT_TESTED；日常安全刷新为 BLOCKED。本任务尚未由本会话提交/推送，未查本次 CI。同步负责人完成后串行核对共享 index，仅提交本任务明确路径，Lore 提交、正常 push main、再查对应 commit CI，不能混入 native-agent/local-project 或 ai-vip-share。
+
+
 ## R1.13 正式迁移修复：2026-10-16
 
 - 正式工具从 main 已存在的 1.0.2 继续递增为 1.0.3；不创建第二个工具或预览文件。

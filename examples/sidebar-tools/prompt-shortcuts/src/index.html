@@ -14,7 +14,7 @@
   </section>
   <section id="ps-edit" hidden aria-labelledby="ps-form-title">
     <header class="ps-form-head"><h2 id="ps-form-title" class="od-title">新建提示词</h2></header>
-    <form id="ps-form" novalidate>
+    <form id="ps-form" novalidate aria-busy="false">
       <div class="ps-primary"><label for="ps-body" class="od-field-label">提示词内容 <span class="ps-required">· 唯一必填</span></label><textarea id="ps-body" class="od-field" rows="3" spellcheck="true" aria-required="true" aria-describedby="ps-body-hint ps-body-error" placeholder="在这里输入完整提示词，支持多行。仅填写此项即可保存；点击网页按钮不会自动发送。"></textarea><p id="ps-body-error" class="ps-inline-error" role="alert" hidden></p><div id="ps-quota" class="ps-quota"><span>单项存储上限 8 KiB</span><span id="ps-quota-value">— / 8192 B</span></div><p class="ps-hint" id="ps-body-hint">完整保留多行、空行和 Emoji；按整项 JSON 的 UTF-8 字节数校验。</p></div>
       <div class="ps-effective-preview" aria-label="保存后的按钮实时预览"><span>快捷按钮</span><span id="ps-preview-glyph" class="ps-preview-glyph"></span><strong id="ps-preview-name">待生成</strong></div>
       <section class="ps-optional od-surface" aria-labelledby="ps-option-title">
@@ -27,7 +27,7 @@
       </section>
       <p id="ps-error" class="ps-error" role="alert" hidden></p>
       <div id="ps-leave" class="ps-warning" hidden aria-label="未保存草稿确认"><strong>存在未保存的修改</strong><p>返回将放弃当前草稿。可以继续编辑或明确放弃。</p><div class="ps-actions"><button id="ps-stay" type="button" class="od-button od-button--secondary">继续编辑</button><button id="ps-discard" type="button" class="od-button od-button--danger">放弃修改</button></div></div>
-      <div class="ps-actions"><button id="ps-cancel" class="od-button od-button--secondary" type="button">取消</button><button id="ps-save" class="od-button od-button--primary" type="submit">保存提示词</button></div>
+      <div class="ps-actions"><button id="ps-cancel" class="od-button od-button--secondary" type="button">取消</button><button id="ps-save" class="od-button od-button--primary" type="button">保存提示词</button></div>
     </form>
   </section>
   <p id="ps-status" class="ps-status" role="status" aria-live="polite" hidden></p>

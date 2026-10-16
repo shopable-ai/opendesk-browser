@@ -35,10 +35,12 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   if(win[SLOT])return win[SLOT];
   let model=MODEL,disposed=false,paused=false,epoch=0,href=win.location.href,visible=false;
   let host=null,shadow=null,rail=null,tip=null,tipOwner=null,hideTipTimer=0,toggleButton=null;
-  let feedback=null,items=[],observer=null,layoutTimer=0;
+  let feedback=null,items=[],observer=null,resizeObserver=null,layoutTimer=0;
+  const observedRegions=new Set();
   let locationTimer=0,folded=false,narrowMode=null,composing=false,inserting=false,lastAttempt=0,lastAttemptId=null;
   const stop=()=>{
     visible=false;items=[];observer?.disconnect();observer=null;
+    resizeObserver?.disconnect();resizeObserver=null;observedRegions.clear();
     win.clearTimeout(layoutTimer);layoutTimer=0;win.clearTimeout(hideTipTimer);hideTipTimer=0;
     host?.remove();host=null;rail=null;shadow=null;tip=null;tipOwner=null;toggleButton=null;
     feedback=null;narrowMode=null;folded=false;
@@ -47,7 +49,41 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     const node=doc.querySelector('main#main')||doc.querySelector('main');
     if(!node||!node.isConnected)return null;
     const rect=node.getBoundingClientRect();
-    return rect.width>=200&&rect.height>=160?rect:null;
+    if(rect.width<200||rect.height<160)return null;
+    const observe=element=>{
+      if(resizeObserver&&!observedRegions.has(element)){
+        observedRegions.add(element);resizeObserver.observe(element);
+      }
+    };
+    observe(node);
+    const right=rect.left+rect.width,bottom=rect.top+rect.height;
+    let left=rect.left;
+    for(const navigation of node.querySelectorAll('aside, nav, [role="navigation"]')){
+      observe(navigation);
+      if(!navigation.isConnected||navigation.hidden||navigation.closest('[hidden], [aria-hidden="true"], [inert]'))continue;
+      const style=win.getComputedStyle?.(navigation);
+      if(style&&(style.display==='none'||style.visibility==='hidden'||style.visibility==='collapse'||style.opacity==='0'))continue;
+      const box=navigation.getBoundingClientRect(),edge=box.left+box.width;
+      const visibleHeight=Math.min(bottom,win.innerHeight,box.top+box.height)-Math.max(rect.top,0,box.top);
+      // Only a visible, tall left-edge navigation region may narrow main.
+      // Offscreen collapsed rails and unrelated floating asides reserve nothing.
+      if(box.width>0&&box.left<=rect.left&&edge>Math.max(rect.left,0)&&
+        edge<=rect.left+rect.width/2&&visibleHeight>=rect.height/2)left=Math.max(left,edge);
+    }
+    // The mobile shell includes history inside main. Prefer the outermost
+    // full-height editor ancestor beyond that column, never the input box.
+    let content=null;
+    for(let area=editor()?.parentElement;area&&area!==node;area=area.parentElement){
+      if(!node.contains(area))break;
+      observe(area);
+      const box=area.getBoundingClientRect();
+      if(box.left>=left&&box.left+box.width<=right+1&&box.width>=200&&
+        box.height>=rect.height/2&&box.top>=rect.top-1&&box.top+box.height<=bottom+1){
+        content={left:box.left,top:box.top,width:box.width,height:box.height};
+      }
+    }
+    if(content)return content;
+    return right-left>=200?{left,top:rect.top,width:right-left,height:rect.height}:null;
   };
   const layout=()=>{
     layoutTimer=0;if(!host||paused||disposed)return;
@@ -67,6 +103,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       toggleButton.setAttribute('aria-label',folded?'展开提示词按钮栏':'收起提示词按钮栏');
       toggleButton.setAttribute('aria-expanded',String(!folded));
     }
+    positionTip();
   };
   const schedule=()=>{if(!layoutTimer)layoutTimer=win.setTimeout(layout,120);};
   const hideTip=()=>{
@@ -78,8 +115,21 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     win.clearTimeout(hideTipTimer);
     hideTipTimer=win.setTimeout(()=>{
       hideTipTimer=0;
-      if(!tip?.matches(':hover')&&shadow?.activeElement!==tipOwner)hideTip();
+      const active=shadow?.activeElement;
+      if(!tip?.matches(':hover')&&active!==tipOwner&&!tip?.contains(active))hideTip();
     },150);
+  };
+  const positionTip=()=>{
+    if(!tip||tip.hidden||!tipOwner||!host?.isConnected)return;
+    if(!tipOwner.isConnected||(narrowMode&&folded)){hideTip();return;}
+    const hostRect=host.getBoundingClientRect(),buttonRect=tipOwner.getBoundingClientRect();
+    const tipHeight=tip.getBoundingClientRect().height||240;
+    const maxTop=win.innerHeight-hostRect.top-tipHeight-12;
+    const minTop=12-hostRect.top;
+    tip.style.top=Math.round(Math.max(minTop,Math.min(buttonRect.top-hostRect.top-12,maxTop)))+'px';
+    const freeRight=win.innerWidth-hostRect.left-60;
+    tip.style.left=freeRight<260?'auto':'60px';
+    tip.style.right=freeRight<260?'55px':'auto';
   };
   const showTip=(row,button)=>{
     if(!tip||!host||!host.isConnected)return;
@@ -92,14 +142,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     tip.append(title,content,hint);tip.hidden=false;
     button.setAttribute('aria-describedby',tip.id);
     if(feedback)feedback.hidden=true;
-    const hostRect=host.getBoundingClientRect(),buttonRect=button.getBoundingClientRect();
-    const tipHeight=tip.getBoundingClientRect().height||240;
-    const maxTop=win.innerHeight-hostRect.top-tipHeight-12;
-    const minTop=12-hostRect.top;
-    tip.style.top=Math.round(Math.max(minTop,Math.min(buttonRect.top-hostRect.top-12,maxTop)))+'px';
-    const freeRight=win.innerWidth-hostRect.left-60;
-    tip.style.left=freeRight<260?'auto':'60px';
-    tip.style.right=freeRight<260?'55px':'auto';
+    positionTip();
   };
   const showFeedback=(message,kind='info')=>{
     if(!feedback||!host?.isConnected)return;
@@ -119,8 +162,10 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     }
   };
   const editor=()=>{
-    const node=doc.querySelector('main #prompt-textarea[contenteditable="true"],main [data-testid="composer-text-input"][contenteditable="true"],main textarea#prompt-textarea');
-    if(!node||!node.isConnected||node.closest('[data-opendesk-prompts]'))return null;
+    const node=doc.querySelector('main #prompt-textarea[contenteditable="true"],main [data-testid="composer-text-input"][contenteditable="true"],main textarea#prompt-textarea,main textarea#mobile-composer-prompt');
+    if(!node||!node.isConnected||node.disabled||node.readOnly||node.hidden||node.closest('[data-opendesk-prompts]'))return null;
+    const style=win.getComputedStyle?.(node);
+    if(style&&(style.display==='none'||style.visibility==='hidden'||style.visibility==='collapse'||style.opacity==='0'))return null;
     const box=node.getBoundingClientRect();
     return box.width>0&&box.height>0?node:null;
   };
@@ -182,20 +227,27 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
         normalizeDraft(after)!==normalizeDraft(before+insertion))
         throw Error('草稿正文或换行未得到完整确认，请核对并手动复制');
       hideTip();showFeedback('已插入输入框，未发送。','success');
-    }catch(error){await fallbackCopy(row.body,error.message);}
+    }catch(error){
+      if(!disposed&&!paused&&visible&&!composing&&token===epoch&&location===win.location.href&&host?.isConnected)
+        await fallbackCopy(row.body,error.message);
+    }
     finally{inserting=false;}
   }
   function render(){
     if(!visible)return;
     if(!host){
-      host=doc.createElement('div');host.setAttribute('data-opendesk-prompts','');
+    host=doc.createElement('div');host.setAttribute('data-opendesk-prompts','');
+    host.setAttribute('data-opendesk-prompts-anchor','conversation-region-r18');
       shadow=host.attachShadow({mode:'closed'});
       const style=doc.createElement('style');style.textContent=STYLE;
       rail=doc.createElement('nav');rail.className='rail';rail.setAttribute('aria-label','提示词快捷按钮');
+      rail.addEventListener('scroll',schedule);
       tip=doc.createElement('aside');tip.className='tip';tip.id='opendesk-prompt-tooltip';tip.hidden=true;
       tip.setAttribute('tabindex','0');
       tip.addEventListener('mouseenter',()=>win.clearTimeout(hideTipTimer));
       tip.addEventListener('mouseleave',delayHideTip);
+      tip.addEventListener('focusin',()=>win.clearTimeout(hideTipTimer));
+      tip.addEventListener('focusout',delayHideTip);
       shadow.addEventListener('keydown',event=>{if(event.key==='Escape'){hideTip();if(feedback)feedback.hidden=true;}});
       feedback=doc.createElement('div');feedback.className='feedback';feedback.hidden=true;
       feedback.setAttribute('role','status');feedback.setAttribute('aria-live','polite');
@@ -239,6 +291,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       if(!library.settings.webButtons){stop();return;}
       const rows=library.items.filter(item=>item.enabled);
       if(!rows.length){stop();return;}
+      if(!resizeObserver&&win.ResizeObserver)resizeObserver=new win.ResizeObserver(schedule);
       items=rows;visible=true;render();
       if(!observer){
         observer=new win.MutationObserver(records=>{
@@ -246,7 +299,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
           schedule();
         });
         observer.observe(doc.body||doc.documentElement,{subtree:true,childList:true,attributes:true,
-          attributeFilter:['class','style','hidden']});
+          attributeFilter:['class','style','hidden','aria-hidden','inert']});
       }
     }catch{if(token===epoch)stop();}
   }
@@ -266,6 +319,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     win.removeEventListener('pageshow',onPageShow);win.removeEventListener('pagehide',onPageHide);
     win.removeEventListener('popstate',onNav);win.removeEventListener('resize',schedule);
     win.removeEventListener('scroll',schedule,true);
+    doc.removeEventListener('transitionend',schedule,true);
     doc.removeEventListener('compositionstart',onCompositionStart,true);
     doc.removeEventListener('compositionend',onCompositionEnd,true);
     if(win[SLOT]===controller)delete win[SLOT];
@@ -274,6 +328,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   win.addEventListener('pageshow',onPageShow);win.addEventListener('pagehide',onPageHide);
   win.addEventListener('popstate',onNav);win.addEventListener('resize',schedule);
   win.addEventListener('scroll',schedule,true);
+  doc.addEventListener('transitionend',schedule,true);
   doc.addEventListener('compositionstart',onCompositionStart,true);
   doc.addEventListener('compositionend',onCompositionEnd,true);
   locationTimer=win.setInterval(()=>{if(href!==win.location.href)void refresh();},1100);

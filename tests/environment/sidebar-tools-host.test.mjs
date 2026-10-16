@@ -204,7 +204,7 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
     'sidebar-tool-open-tab','sidebar-tool-visibility-settings',
     'sidebar-tool-action-review','sidebar-tool-action-summary','sidebar-tool-action-continue','sidebar-tool-action-cancel',
     'sidebar-tool-settings-open','sidebar-tool-settings-view','sidebar-tool-settings-scope',
-    'sidebar-tool-context-menu',
+    'sidebar-tool-context-menu','sidebar-tool-prompt-native-row','sidebar-tool-prompt-native-action',
     'sidebar-tool-settings-scope-label','sidebar-tool-settings-target',
     'sidebar-tool-settings-allow','sidebar-tool-settings-deny','sidebar-tool-settings-hint',
     'sidebar-tool-settings-site-visibility','sidebar-tool-settings-page-visibility',
@@ -405,7 +405,7 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
     'sidebar-tool-open-tab','sidebar-tool-visibility-settings',
     'sidebar-tool-action-review','sidebar-tool-action-summary','sidebar-tool-action-continue','sidebar-tool-action-cancel',
     'sidebar-tool-settings-open','sidebar-tool-settings-view','sidebar-tool-settings-scope',
-    'sidebar-tool-context-menu',
+    'sidebar-tool-context-menu','sidebar-tool-prompt-native-row','sidebar-tool-prompt-native-action',
     'sidebar-tool-settings-scope-label','sidebar-tool-settings-target',
     'sidebar-tool-settings-allow','sidebar-tool-settings-deny','sidebar-tool-settings-hint',
     'sidebar-tool-settings-site-visibility','sidebar-tool-settings-page-visibility',
@@ -1226,10 +1226,14 @@ test('knowledge editor protects user navigation, clears after save, and never ve
   assert.equal(f.host.closeTool(),true);
   f.host.openTool(knowledge.id);
   const pending={'opendesk.knowledge.workspace.v1:123':{private:true},unrelated:{keep:true}};
-  f.api.storage.session={get:async()=>pending,remove:async keys=>{for(const key of keys)delete pending[key];}};
+  f.api.storage.session={get:async()=>pending,remove:async keys=>{
+    for(const key of typeof keys==='string'?[keys]:keys)delete pending[key];
+  }};
   globalThis.confirm=()=>true;
   f.elements['sidebar-tool-remove'].emit('click');
-  f.elements['sidebar-tool-inline-remove-confirm'].emit('click');await pause();await pause();
+  f.elements['sidebar-tool-inline-remove-confirm'].emit('click');
+  await settle(()=>!Object.hasOwn(pending,'opendesk.knowledge.workspace.v1:123')&&
+    !store.get(SIDEBAR_TOOL_STORE).some(row=>row.id===knowledge.id));
   assert.deepEqual(pending,{unrelated:{keep:true}});
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
   assert.equal(store.get(SIDEBAR_TOOL_STORE).some(row=>row.id===knowledge.id),false);

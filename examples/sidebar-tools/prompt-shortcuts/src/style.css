@@ -1,6 +1,6 @@
 /* @opendesk-shared-design */
 /* Only layout and product-specific surfaces; core control appearances come from shared OpenDesk CSS. */
-.ps{width:100%;min-width:0;display:grid;gap:var(--space-3);padding:var(--space-3);color:var(--od-ink)}
+.ps{width:100%;min-width:0;min-height:100vh;background:var(--od-paper);display:grid;align-content:start;gap:var(--space-3);padding:var(--space-3);color:var(--od-ink)}
 .ps-head{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-2);margin-bottom:var(--space-3)}
 .ps-head>div{min-width:0}.ps-head h2,.ps-form-head h2{margin:0;font-size:17px;line-height:1.35}
 .ps-head p{margin:var(--space-1) 0 0;font-size:var(--od-meta-size);overflow-wrap:anywhere}.ps-head .od-button{flex:none}
@@ -43,6 +43,7 @@
 .ps-preview-glyph{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;min-width:32px;height:32px;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink);font-weight:700}
 .ps-enabled{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);padding:var(--space-2);margin:0;font-size:var(--od-meta-size)}
 .ps-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:var(--space-2);margin-top:var(--space-3)}
+.ps-confirm .ps-actions{justify-content:flex-start}
 .ps-error,.ps-warning{padding:var(--space-3);margin:var(--space-3) 0;border-radius:var(--radius-control);overflow-wrap:anywhere;font-size:var(--od-meta-size)}
 .ps-error{color:var(--od-negative);background:var(--od-negative-bg)}.ps-warning{background:var(--od-warning-bg);color:var(--od-warning-ink)}.ps-warning p{margin:var(--space-1) 0}
 .ps-copy{padding:var(--space-3);margin-top:var(--space-3)}.ps-copy textarea{width:100%;min-height:110px;resize:vertical;white-space:pre-wrap}
@@ -50,7 +51,7 @@
 .ps-status[data-error="true"]{background:var(--od-negative-bg);color:var(--od-negative)}
 @media(max-width:340px){.ps-head{flex-wrap:wrap}.ps-card-main{grid-template-columns:34px minmax(0,1fr) auto;gap:var(--space-1)}.ps-card{padding:var(--space-2)}}
 
-/* R1.13: content-first cards and a compact, square control edit form. */
+/* R1.13: content-first cards and compact form layout. */
 .ps{gap:var(--space-2);padding:var(--space-2) var(--space-3)}
 .ps-head{align-items:center;margin:0 0 var(--space-1)}
 .ps-head h2,.ps-form-head h2{font-size:15px}

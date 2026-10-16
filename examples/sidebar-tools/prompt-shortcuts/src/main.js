@@ -5,7 +5,7 @@ const model=globalThis.OpenDeskPromptShortcutsModel,el=id=>root.querySelector('#
 const dom=(tag,cls='',text='')=>{const n=root.ownerDocument.createElement(tag);n.className=cls;n.textContent=text;return n;};
 const KEY='library',MENU_ACTION='add-selection';
 let data=model.defaults(),etag=null,ready=false,busy=false,dirty=false,mode='index',editId=null;
-let baseline='',expanded=null,pendingDelete=null,pendingLeave=null;
+let baseline='',expanded=null,pendingDelete=null,pendingLeave=null,unconfirmedWrite=false;
 function report(){setState({dirty,busy});}
 function status(message='',isError=false){const n=el('ps-status');n.textContent=message;n.hidden=!message;n.dataset.error=String(isError);}
 function error(message=''){el('ps-error').textContent=message;el('ps-error').hidden=!message;}
@@ -44,8 +44,11 @@ function changed(){
 }
 function lock(){
   for(const id of ['ps-new','ps-save','ps-web'])
-    el(id).disabled=!ready||busy;
-  for(const b of el('ps-list').querySelectorAll('button'))b.disabled=!ready||busy||b.dataset.locked==='1';
+    el(id).disabled=!ready||busy||unconfirmedWrite;
+  for(const id of ['ps-cancel','ps-discard'])el(id).disabled=busy;
+  el('ps-form').setAttribute('aria-busy',String(busy));
+  el('ps-save').textContent=busy?'保存中…':'保存提示词';
+  for(const b of el('ps-list').querySelectorAll('button'))b.disabled=!ready||busy||unconfirmedWrite||b.dataset.locked==='1';
   report();
 }
 function index(){
@@ -54,11 +57,12 @@ function index(){
   error('');bodyError('');render();report();
 }
 function back(callback=index){
+  if(busy)return;
   if(!dirty){callback();return;}
   pendingLeave=callback;el('ps-leave').hidden=false;el('ps-stay').focus();
 }
 function start(id=null,preset=''){
-  if(!ready||busy)return;
+  if(!ready||busy||unconfirmedWrite)return;
   const row=id?data.items.find(item=>item.id===id):null;
   if(id&&!row){status('原条目已变化，请重新打开工具核对。',true);return;}
   mode='form';editId=id;el('ps-index').hidden=true;el('ps-edit').hidden=false;
@@ -67,7 +71,8 @@ function start(id=null,preset=''){
   el('ps-label').value=row&&!row.labelAuto?row.label:'';
   el('ps-name').value=row&&!row.nameAuto?row.name:'';
   el('ps-enabled').checked=row?.enabled!==false;error('');bodyError('');options(true);el('ps-leave').hidden=true;
-  baseline=JSON.stringify(form());dirty=false;preview();report();el('ps-body').focus();
+  // A native-menu selection is an unsaved new draft, never an acknowledged baseline.
+  baseline=JSON.stringify({...form(),body:row?.body??''});changed();el('ps-body').focus();
 }
 function button(parent,text,callback,variant='secondary'){
   const b=dom('button','od-button od-button--'+variant,text);b.type='button';
@@ -92,9 +97,9 @@ function render(){
     use.setAttribute('aria-label',(item.enabled?'复制提示词：':'已停用的提示词：')+item.body.slice(0,90));
     use.title=item.enabled?'复制完整提示词；ChatGPT 网页左侧按钮可直接插入草稿':'该按钮已停用';
     const actions=dom('div','ps-card-actions');
-    const edit=button(actions,'编辑',()=>start(item.id),'quiet');
+    const edit=button(actions,'编辑',()=>start(item.id));
     edit.setAttribute('aria-label','编辑 '+description);
-    const more=button(actions,'⋯',()=>{expanded=expanded===item.id?null:item.id;pendingDelete=null;render();},'quiet');
+    const more=button(actions,'⋯',()=>{expanded=expanded===item.id?null:item.id;pendingDelete=null;render();});
     more.setAttribute('aria-label','更多操作：'+description);
     more.setAttribute('aria-expanded',String(expanded===item.id));
     mainRow.prepend(glyph);mainRow.append(actions);card.append(mainRow);
@@ -121,29 +126,51 @@ function render(){
   }
   lock();
 }
+async function readLibrary(){
+  const saved=await request('storage.get',{key:KEY,withEtag:true});
+  if(!/^[0-9a-f]{64}$/.test(saved?.etag||''))throw Error('宿主未提供 ETag 并发保护');
+  if(!Object.hasOwn(saved,'value'))throw Error('宿主未提供可核实的存储数据');
+  return {value:model.load(saved.value),etag:saved.etag};
+}
 async function commit(next){
+  if(unconfirmedWrite)throw Error('上次写入结果未确认，请先保留草稿并重新打开核对');
   if(!ready||busy)throw Error('工具暂不可写入');
   if(model.bytes(next)>8192)throw Object.assign(Error('提示词共用 8 KiB 数据项，超出存储上限'),{code:'E_TOOL_DATA_LIMIT'});
   busy=true;lock();
   try{
-    const saved=await request('storage.set',{key:KEY,value:next,ifMatch:etag});
-    if(saved?.saved!==true||!/^[0-9a-f]{64}$/.test(saved.etag||''))throw Error('没有收到可核实的持久保存结果');
+    let saved;
+    try{
+      saved=await request('storage.set',{key:KEY,value:next,ifMatch:etag});
+      if(saved?.saved!==true||!/^[0-9a-f]{64}$/.test(saved.etag||''))throw Error('没有收到可核实的持久保存结果');
+    }catch(e){
+      if(['E_STORAGE_CONFLICT','E_TOOL_DATA_LIMIT'].includes(e.code))throw e;
+      unconfirmedWrite=true;status('写入回执未确认，正在核对已保存数据…',true);
+      try{
+        const checked=await readLibrary();
+        // Chrome Storage can reorder object keys. Confirm the entire intended library.
+        const encode=value=>JSON.stringify(value,(_key,row)=>row&&typeof row==='object'&&!Array.isArray(row)
+          ?Object.fromEntries(Object.keys(row).sort().map(key=>[key,row[key]])):row);
+        if(encode(checked.value)!==encode(next))throw Error('读回数据与本次写入不一致');
+        saved={etag:checked.etag};
+      }catch{throw e;}
+      unconfirmedWrite=false;
+    }
     data=next;etag=saved.etag;
   }finally{busy=false;lock();}
 }
 async function update(id,transform){
-  const row=data.items.find(item=>item.id===id);if(!row||busy)return;
+  const row=data.items.find(item=>item.id===id);if(!row||busy||unconfirmedWrite)return;
   const next=model.load({...data,items:data.items.map(item=>item.id===id?transform(item):item)});
   try{await commit(next);render();status('设置已保存。');}
-  catch(e){status('没有更新原数据：'+(e.code||e.message)+'；请核对后重试。',true);}
+  catch(e){status('更新未确认：'+(e.code||e.message)+'；请重新打开核对已保存数据。',true);}
 }
 async function move(id,step){
   const items=data.items.slice(),i=items.findIndex(row=>row.id===id),j=i+step;
-  if(i<0||j<0||j>=items.length||busy)return;
+  if(i<0||j<0||j>=items.length||busy||unconfirmedWrite)return;
   [items[i],items[j]]=[items[j],items[i]];
   const next=model.load({...data,items:items.map((row,order)=>({...row,order}))});
   try{await commit(next);render();status('顺序已保存。');}
-  catch(e){status('排序未确认：'+(e.code||e.message),true);}
+  catch(e){status('排序未确认：'+(e.code||e.message)+'；请重新打开核对已保存数据。',true);}
 }
 async function copy(item){
   if(!item.enabled){status('此提示词已停用，可通过编辑重新启用。',true);return;}
@@ -167,10 +194,11 @@ async function copy(item){
   }
 }
 async function save(event){
-  event.preventDefault();
+  event?.preventDefault();
   if(mode!=='form'){status('当前不在编辑页面，未执行保存。',true);return;}
   if(!ready){error('宿主存储尚未就绪，未执行保存；草稿保留。');return;}
   if(busy){error('上一笔保存尚未确认，请勿重复提交；草稿保留。');return;}
+  if(unconfirmedWrite){error('上次写入结果未确认，请保留草稿并重新打开核对。');return;}
   const input=form(),snapshot=JSON.stringify(input),old=editId?data.items.find(row=>row.id===editId):null;
   if(editId&&!old){error('记录已变化，请保留草稿并重新打开');return;}
   let item,next;
@@ -185,26 +213,33 @@ async function save(event){
     return;
   }
   try{
+    error('');status('保存中，请稍候…');
     await commit(next);
+    // The user may keep typing during the request. Future saves must edit this
+    // acknowledged item, including when the original request created it.
+    editId=item.id;el('ps-form-title').textContent='编辑提示词';
     if(snapshot===JSON.stringify(form())){index();status('完整提示词已保存。');}
-    else{baseline=snapshot;changed();error('保存期间有新的输入，先前版本已保存；请再次点击保存。');}
-  }catch(e){dirty=true;report();error((e.code||'E_SAVE')+'：'+e.message+
-    '。草稿保留；如写入结果未知，请先重开核对，不直接覆盖。');}
+    else{baseline=snapshot;changed();status('先前版本已保存，当前新输入尚未保存。');
+      error('保存期间有新的输入，先前版本已保存；请再次点击保存。');}
+  }catch(e){
+    dirty=true;lock();status('');error((e.code||'E_SAVE')+'：'+e.message+
+      '。草稿保留；如写入结果未知，请先复制草稿并重开核对，不直接覆盖。');
+  }
 }
 async function remove(){
-  if(!pendingDelete||busy)return;
+  if(!pendingDelete||busy||unconfirmedWrite)return;
   const next=model.load({...data,items:data.items.filter(item=>item.id!==pendingDelete)
     .map((item,order)=>({...item,order}))});
   try{await commit(next);pendingDelete=null;expanded=null;
     render();status('提示词已删除。');}
-  catch(e){status('删除未确认，原列表保留：'+(e.code||e.message),true);}
+  catch(e){status('删除未确认，显示上次确认的列表：'+(e.code||e.message)+'；请重新打开核对已保存数据。',true);}
 }
 async function changeWeb(){
-  if(!ready||busy)return;
+  if(!ready||busy||unconfirmedWrite)return;
   const desired=el('ps-web').checked;
   const next=model.load({...data,settings:{webButtons:desired}});
   try{await commit(next);render();status(desired?'ChatGPT 快捷按钮已开启。':'ChatGPT 快捷按钮已关闭，提示词仍保留。');}
-  catch(e){render();status('网页按钮设置未确认：'+(e.code||e.message),true);}
+  catch(e){render();status('网页按钮设置未确认，当前显示上次确认状态：'+(e.code||e.message)+'；请重新打开核对。',true);}
 }
 async function launch(){
   try{
@@ -214,19 +249,26 @@ async function launch(){
   }catch{/* An ordinary opening does not carry a one-use native menu ticket. */}
 }
 el('ps-new').addEventListener('click',()=>start());
+// The sandbox intentionally disallows forms. Native button activation must
+// save directly, without relying on the browser dispatching a submit event.
+el('ps-save').addEventListener('click',e=>void save(e));
 el('ps-form').addEventListener('submit',e=>void save(e));
+el('ps-form').addEventListener('keydown',e=>{
+  if(e.key!=='Enter'||e.isComposing||e.keyCode===229||e.repeat||e.defaultPrevented)return;
+  if(e.target!==el('ps-label')&&e.target!==el('ps-name'))return;
+  e.preventDefault();void save();
+});
 el('ps-form').addEventListener('input',changed);el('ps-form').addEventListener('change',changed);
 el('ps-cancel').addEventListener('click',()=>back());
 el('ps-stay').addEventListener('click',()=>{el('ps-leave').hidden=true;pendingLeave=null;el('ps-body').focus();});
-el('ps-discard').addEventListener('click',()=>{const action=pendingLeave;pendingLeave=null;if(action)action();});
+el('ps-discard').addEventListener('click',()=>{if(busy)return;const action=pendingLeave;pendingLeave=null;if(action)action();});
 el('ps-toggle-settings').addEventListener('click',()=>options(el('ps-setting-fields').hidden));
 el('ps-web').addEventListener('change',()=>void changeWeb());
 (async()=>{
   lock();
   try{
-    const saved=await request('storage.get',{key:KEY,withEtag:true});
-    if(!/^[0-9a-f]{64}$/.test(saved?.etag||''))throw Error('宿主未提供 ETag 并发保护');
-    data=model.load(saved.value);etag=saved.etag;ready=true;index();status('');
+    const saved=await readLibrary();
+    data=saved.value;etag=saved.etag;ready=true;index();status('');
     await launch();
   }catch(e){ready=false;lock();status('数据读取失败，已阻止写入以保护本机数据：'+e.message,true);}
 })();
