@@ -29,3 +29,10 @@
 - **修复仅更新测试契约并增强安全拦截断言**；不修改 Workflow JS、模型 Provider、网页审批或任何其他 Runtime。后续以本提交的 R21 Node / 构建结果为准，静态 Chromium 可复用不变的 HTML/CSS R19 证据。
 
 - 第二轮候选 `795e41f7906f4507ab46347850168673855f7231`：R21 首个 Node 组中的旧 Workflow 授权断言已通过；后续 Node 组发现 `sidebar-ui-preview.test.mjs` 仍要求旧 `#tool-diagnostics{margin:0}` 专属 CSS。按 R31 公共所有权原则，更新断言改查 `design-system.css` 的 `.od-disclosure{margin:0}`，并明确拒绝重新新增单独 margin 规则。无样式/运行时更改，R19 静态 Chrome 源码输入不变。
+
+## 最终 CI 结论（同一 UI 源码输入）
+
+- **R19 Chrome 静态布局**：SUCCESS，Run [38873689674](https://github.com/shopable-ai/opendesk-browser/actions/runs/38873689674)，精确提交 `b3ee5d7902cfeda6f287aef2803fb7ea287b2026`；验证了同一正式 HTML/CSS 的桌面、窄屏、布局组件、键盘状态（证据级别 STATIC_MARKUP_CHROME）。
+- **R21 组件与双包构建**：SUCCESS，Run [38874812832](https://github.com/shopable-ai/opendesk-browser/actions/runs/38874812832)，精确提交 `9b77e1ad73e2e92ae363d72776dc401be2a53efc`；组件回归、`npm run check`、生产和开发构建、`npm run verify`、构建 CSS 安全回归全部成功（NODE / PACKAGE）。
+- 在两次通过记录之间，产品 HTML/CSS/JS 均无变更；后续两次提交仅修正与历史代码合同不一致的旧测试和本工作记录。按输入范围，可将 R19 静态 UI 证据复用于 R21 已验证源，但**不把静态证据升级为已安装 Chrome 原生验收**。
+- **仍未完成**：真实用户 Mac Chrome 的已安装 Side Panel 中操作高级诊断、SDK 授权/撤销及 125%/200% 缩放、深色模式、Native 生命周期；这些项目保持 NOT_TESTED。正式产品综合 ≥95/100 仍需相关级别验收，不以本轮局部 CI 成功替代。
