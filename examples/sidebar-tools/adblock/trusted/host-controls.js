@@ -6,7 +6,7 @@ export function createAdblockPermissionControls({
 }){
   let toolKey='',visible=false,enabled=false,suspended=false,busy=false,state=null,reading=false;
   let sequence=0,generation=0,refreshPending=false,listening=false,view='overview';
-  let exceptionsReturnView='overview',exceptionsReturnControl=null;
+  let exceptionsReturnView='overview',exceptionsReturnControl=null,pendingFocus=null;
   const make=(tag,klass='',value)=>{const node=doc.createElement(tag);node.className=klass;
     if(value!==undefined)node.textContent=value;return node;};
   const button=(klass,label,text)=>{const node=make('button',klass,text);node.type='button';
@@ -134,6 +134,7 @@ export function createAdblockPermissionControls({
       exceptionsBack.setAttribute('aria-label',view==='settings'?
         '从已停用的网站返回 AdBlock 设置':'从已停用的网站返回概览');
     }
+    if(next!==view)pendingFocus=null;
     view=next;overview.hidden=next!=='overview';
     exceptions.hidden=next!=='exceptions';settings.hidden=next!=='settings';
     onViewChange(next);
@@ -178,6 +179,24 @@ export function createAdblockPermissionControls({
     const unavailable=!enabled||!state||!permission||!on||!host;
     siteMeta.setAttribute('data-available',String(!unavailable));
   }
+  // A native button becomes blurred while busy because paint() disables it.
+  // Retain focus only for the same live tool generation, same visible view, and
+  // only when Chrome left focus on the body rather than another user control.
+  function restorePendingFocus(){
+    const pending=pendingFocus;
+    if(!pending)return;
+    const {target,generation:ownerGeneration,view:ownerView}=pending;
+    if(ownerGeneration!==generation||!visible||!enabled||suspended||
+      container.hidden||overview.hidden||view!==ownerView||target.isConnected!==true){
+      pendingFocus=null;return;
+    }
+    if(doc.activeElement!==doc.body&&doc.activeElement!==target){
+      pendingFocus=null;return;
+    }
+    if(busy||reading||refreshPending)return;
+    pendingFocus=null;
+    if(state&&!target.disabled)target.focus?.({preventScroll:true});
+  }
   const storageChanged=(changes,area)=>{
     if(area==='local'&&Object.hasOwn(changes,ADBLOCK_STORE))void refresh();
   };
@@ -206,21 +225,23 @@ export function createAdblockPermissionControls({
       if(visible&&captured===sequence){
         state=null;report('状态读取失败：'+String(e.message||e),true);paint();
       }
-    }finally{reading=false;if(refreshPending)void refresh();}
+    }finally{reading=false;if(refreshPending)void refresh();else restorePendingFocus();}
   }
-  function finish(){busy=false;paint();if(refreshPending||!state)void refresh();}
+  function finish(){busy=false;paint();if(refreshPending||!state)void refresh();else restorePendingFocus();}
   async function operate(op,payload,event,focusAtDispatch=null){
     if(event?.isTrusted!==true||busy||!visible||!enabled)return;
     // Preserve native keyboard focus when the pending Chrome operation disables
     // the switch. Chrome may blur a focused <button> as soon as disabled=true.
     const focusTarget=focusAtDispatch===global||focusAtDispatch===site?focusAtDispatch:
       event?.currentTarget===global?global:event?.currentTarget===site?site:null;
-    const restoreFocus=Boolean(focusAtDispatch===focusTarget||
-      (focusTarget&&doc.activeElement===focusTarget));
-    const captured=sequence;busy=true;paint();report('正在核对 Chrome 规则…');
+    const restoreFocus=Boolean(focusTarget&&(focusAtDispatch===focusTarget||
+      doc.activeElement===focusTarget));
+    const captured=sequence,capturedGeneration=generation;
+    if(restoreFocus)pendingFocus={target:focusTarget,generation:capturedGeneration,view};
+    busy=true;paint();report('正在核对 Chrome 规则…');
     try{
       const data=await runOperation(op,payload,event);
-      if(captured!==sequence)return;
+      if(captured!==sequence||capturedGeneration!==generation)return;
       if(data.rules?.verified!==true||
         (op==='adblock.enable'&&data.enabled!==true)||
         (op==='adblock.disable'&&data.enabled!==false))
@@ -229,14 +250,11 @@ export function createAdblockPermissionControls({
       report(data.refreshRequired?'设置已生效于新请求，请刷新当前网站。':
         data.enabled?'Chrome 已确认过滤开启':'Chrome 已确认过滤关闭');
     }catch(e){
-      if(captured===sequence){state=null;report((e.code||'E_ADBLOCK')+'：'+String(e.message||e),true);}
+      if(captured===sequence&&capturedGeneration===generation){state=null;report((e.code||'E_ADBLOCK')+'：'+String(e.message||e),true);}
     }finally{
-      finish();
-      // Never steal focus from a different control selected while the native
-      // operation was pending, or from a no-longer-actionable/stale switch.
-      if(restoreFocus&&focusTarget.isConnected&&!focusTarget.disabled&&
-        !container.hidden&&(doc.activeElement===doc.body||doc.activeElement===focusTarget))
-        focusTarget.focus({preventScroll:true});
+      // An older request must not clear the busy flag or return focus to a
+      // newly installed tool, including when its readback resolves late.
+      if(capturedGeneration===generation)finish();
     }
   }
   global.addEventListener('click',event=>{
@@ -248,11 +266,12 @@ export function createAdblockPermissionControls({
     try{request=api.permissions.request({permissions:[ADBLOCK_PERMISSION]});}
     catch(e){report('Chrome 授权请求失败：'+String(e.message||e),true);finish();return;}
     void Promise.resolve(request).then(granted=>{
-      if(captured!==generation){finish();return;}
+      if(captured!==generation)return;
       if(!granted)throw Error('未批准 Chrome DNR，不会开启过滤');
       busy=false;return operate('adblock.enable',{},event,focusAtDispatch);
     }).catch(e=>{
-      if(captured===generation){state=null;report(String(e.message||e),true);}
+      if(captured!==generation)return;
+      state=null;report(String(e.message||e),true);
       finish();
     });
   });
@@ -266,7 +285,7 @@ export function createAdblockPermissionControls({
     const nextKey=active?tool.id+'@'+tool.version:'';
     const changed=nextKey!==toolKey||enabled!==Boolean(active&&toolEnabled);
     if(changed){
-      listen(false);sequence++;generation++;refreshPending=false;state=null;report('');
+      listen(false);sequence++;generation++;refreshPending=false;busy=false;pendingFocus=null;state=null;report('');
       view='overview';exceptionsReturnView='overview';exceptionsReturnControl=null;
     }
     toolKey=nextKey;visible=Boolean(active);enabled=Boolean(active&&toolEnabled);

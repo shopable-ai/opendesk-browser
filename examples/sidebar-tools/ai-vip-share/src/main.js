@@ -784,7 +784,7 @@
     memberCard.setAttribute('data-view','unconfigured');
     memberState.textContent='服务未配置';
     memberState.setAttribute('data-tone','neutral');
-    accountName.textContent='正式会员服务尚未接入';
+    accountName.textContent='暂无法查询账号与会员权益';
     accountName.hidden=false;
     productName.textContent='';productName.hidden=true;
     memberFacts.hidden=true;verified.hidden=true;
