@@ -218,6 +218,13 @@ try{
   await send(first);await expectState('result');
   assert.equal(await nameValue(),'给我一个亿的项目');
   await page.locator('#settings').click();
+  assert.equal((await state()).shareApproved.cloud_responses,true);
+  await page.locator('#r23-endpoint').fill('https://replacement.example/v1/responses');
+  assert.equal((await state()).shareApproved.cloud_responses,false,'Changing HTTPS recipient must invalidate prior disclosure consent');
+  assert.equal(await page.locator('#r23-share').isChecked(),false);
+  await page.locator('[data-action="simulate-config"]').click();
+  assert.equal((await state()).shareApproved.cloud_responses,false,'Re-validating fields must not restore consent');
+  mark('revising endpoint within one provider invalidates its disclosure approval');
   await page.locator('#r23-provider').selectOption('local_codex');
   await page.locator('#r23-provider').selectOption('cloud_responses');
   assert.equal((await state()).shareApproved.cloud_responses,false);
