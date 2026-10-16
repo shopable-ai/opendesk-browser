@@ -279,14 +279,15 @@ try{
     return{height:remote.height,rows:rows.map(row=>{
       const label=row.querySelector('label').getBoundingClientRect();
       const control=(row.querySelector('.r234-secret')||row.querySelector('.r236-input-action')||row.querySelector('input')).getBoundingClientRect();
-      return{aligned:Math.abs((label.top+label.bottom)/2-(control.top+control.bottom)/2)<7,width:control.width};
+      return{stacked:label.bottom<=control.top-4,leftAligned:Math.abs(label.left-control.left)<=2,width:control.width};
     }),iconOnly:document.querySelector('#r234-key-toggle').textContent.trim()==='',
       demoSubmitCount:document.querySelectorAll('.r23-demo button').length};
   });
-  assert.ok(compact.rows.every(row=>row.aligned&&row.width>=150));
-  assert.ok(compact.height<=270,'HTTPS settings should remain compact');
+  assert.ok(compact.rows.every(row=>row.stacked&&row.leftAligned&&row.width>=300),
+    'full-width HTTPS fields have labels above inputs on the same rail');
+  assert.ok(compact.height<=380,'HTTPS settings fit the default Sidebar');
   assert.equal(compact.iconOnly,true);assert.equal(compact.demoSubmitCount,0);
-  mark('compact source, three aligned inputs, one protocol hint, no redundant demo actions');
+  mark('full-width HTTPS form with stacked labels, one protocol hint and no demo submit button');
 
   await page.locator('[data-action="close-settings"]').last().click();
   assert.equal(await page.locator('#prompt').inputValue(),'尚未发送的设置前草稿');
