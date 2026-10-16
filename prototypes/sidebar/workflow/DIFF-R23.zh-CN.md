@@ -81,3 +81,20 @@ docs/framework/workstreams/workflow-local-e2e-01a13fcb-20261015.md 记载旧特�
 **证据归属**：55 项为隔离 Chromium 上同 JS/CSS 与 R23 布局骨架的模拟测试，并非对 GitHub 远端 index.html 的字节级浏览器回归；Chromium 真实页面菜单 200% 缩放、Mac/CFT/Native、WorkflowCompiler/RunHost/DOM 读回、CI 等均 NOT_TESTED，正式 UI 未修改。用户没有明确批准 R23.1 候选，禁止进入 Product Parity。
 
 **逐维专家门禁**：视觉布局、对话交互、流程可理解、权限安全、错误恢复、可访问/维护这六维目标都是 ≥95；当前可以复核上述局部 PASS，但远端封版实测与真实缩放缺失，六维总评一律 `NOT_SCORED`，不声称 95+。
+
+## 七、R23.2 实施差异及来源级验证追踪（2026-10-16）
+
+| 维度 | R23.1 实际问题 | R23.2 源码变更 | 当前证据边界 |
+| --- | --- | --- | --- |
+| 顶部入口 | 一个「＋」下拉中藏两种新建操作 | 直接显示「历史」「新对话」「新工作流」，不同图标/提示/无障碍名字 | SOURCE_IMPLEMENTED；视觉截图须查专用 CI |
+| 新对话 | 清空未发送文字；运行时可静默取消 | 新 chatId、保留当前 workflowId/版本/输入及模拟目标 DOM；运行或授权待决先阻止切换 | SOURCE_IMPLEMENTED；源文件 CI 待实际结论 |
+| 新工作流 | 只对工作流 dirty 提示，未发送文本可能丢失 | 保护未保存设计和未发送文字；取消后恢复焦点；空白不误报 dirty | SOURCE_IMPLEMENTED；源文件 CI 待实际结论 |
+| 历史恢复 | 仅改 workflowId/title，保留上一个聊天/模拟成功上下文 | 新 chatId、重置当前会话成功及授权状态；旧版本不删除、不自动执行、不修改输入 DOM | SOURCE_IMPLEMENTED；源文件 CI 待实际结论 |
+| Native 模拟披露 | 只有 Origin 与语义范围复用条件 | 绑定模拟 Document identity；切换文档或撤权后不继承 | 仅离线模拟；正式 Chrome 授权 NOT_TESTED |
+| 对话两轮 | R23.1 独立 JS harness 已 55/55 | 同一仓库 HTML 的 DOM 两轮精确读回由 Chrome CI 覆盖 | 以 CI JSON/截图为准，不沿用旧结果 |
+| 浏览器截图 | 过去只有重建 JS/CSS 的隔离证据 | 独立 r232-chrome.mjs 与 workflow-r232-preview.yml，上传 SHA + Chrome version + 截图 | GitHub Actions 专用 workflow；未出结果不能宣称 PASS |
+| 正式 Sidebar | 源码与候选存在差异 | 本轮禁止改动 | PRODUCT_PARITY_NOT_ACCEPTED |
+
+**六维专家目标**：视觉布局、对话效率、任务理解、权限安全、失败恢复、可访问性维护性，分别 ≥95/100。没有逐项原始截图/测试/人工核对仍全部 NOT_SCORED；不得将来源级 Chromium 的离线模拟成功提升为原生产品通过。
+
+**特别注意**：GitHub Actions 的测试是对真实保存的 HTML，在独立 Linux Chrome 中运行，而非用户 Mac 的 Sidebar。实际系统输入法、Chrome 用户菜单 200% 缩放、Native Provider/RunHost、开发/生产扩展包加载身份仍 NOT_TESTED。用户没有确认 R23.2 之前正式 src/ui 不可迁移。
