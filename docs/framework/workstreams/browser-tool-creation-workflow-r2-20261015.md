@@ -284,3 +284,25 @@ F-BM-000 书签管理
 - **`sidebar-preview-contract.yml` 仅在实际工具 HTML/CSS/JS、共享 Token、预览构建及其专项测试变化时运行**；它仍可在真实源码变化时执行 R2.1 功能映射校验，但不会仅因流程 Markdown 更新重跑 headless Chrome。
 - 两种 CI 的 PASS/FAIL 按自己负责的来源范围报告；不会因 AdBlock 模拟页面失败就让 AI 开发流程规范看似没有通过，也不会把需求文档通过当作工具安装已验收。
 
+## R1.0 · SDK First 扩展治理（2026-10-16）
+
+**状态：SOURCE_COMMITTED / SIX_STATIC_CASES_AUTHORED / CI_QUEUED / MODEL_EXECUTION_NOT_TESTED / NATIVE_NOT_TESTED。** 这里是对现有创建工作流的增量治理记录，不是新的 Agent Skill、Extension Factory 或宿主改造。
+
+- 仓库级入口 `AGENTS.md` 增加 `Independent Extension Development · SDK First · Framework Boundary`；唯一 `.agents/workflows/extension-creation.md` 在 Phase 0–3 加前置 `Extension Type & Ownership Gate`，保留 F/S/A、版本/安装与原始场景，不将 Sidebar JSON 包规则套到 Page/Controller。
+- 复用现行八个 Skills；维护 `.agents/skills/README.md` 的六个正/反例路由，并修正开发、发布、打包、Runtime 与可信第一方的所有权说明。**普通扩展只读公开 SDK/Schema/示例和自己项目；共享 `src/` 默认为第三方免读/免改，真正平台任务仍可修改**。通用缺口证据不足标 `SDK_GAP_NOT_PROVEN`，第三方不可安全取得的特权标 `BLOCKED`。
+- 公开入口在 `docs/api/README.md`，Sidebar 规范和 API 在 `docs/api/sidebar-tool-development.zh-CN.md`、`docs/api/sidebar-tools.zh-CN.md`，Page 开发在 `docs/api/page-userscript.zh-CN.md`；公开 Browser SDK v2 另见 `docs/api/browser-sdk.zh-CN.md`。不要求用户阅读 Host/Installer/Broker 内部实现，不编造 Page 大型静态 JS 的支持。
+- 真实项目二次核查：Prompt Shortcuts **不是** Page Program，它位于 `examples/sidebar-tools/prompt-shortcuts/`，现有配置为 `opendesk.sidebar-tool.v2`，已有 `page.prompts`、`browser.contextMenu` 和受信 `trusted/page.js`；治理案例 C 不得按“网页按钮”强制迁型。Cookie Editor 和 Bookmark Manager 也有已审 v2 配置。Mind Map 仍在 `examples/programs/chatgpt-mindmap/`，其 XMind Runtime 许可/资源预算/隔离未证明可正式安装，不能以 Chromium fixture 代替正式用户脚本安装。
+- **六个静态样本**：A Mind Map＝Page USER_SCRIPT；B Cookie Editor UI＝Sidebar Tool；C Prompt Shortcuts＝原 Sidebar v2 + 受信网页适配器；D Bookmark Manager UI＝Sidebar Tool；E 通用 Page Program 安装/撤权＝Runtime 平台任务（允许 `src/`）；F 普通第三方＝公开 Sidebar SDK 即可开发已支持能力。针对这六种情况在原 `tests/environment/agent-skills-r1.test.mjs` 和 `tests/environment/browser-tool-creation-workflow-r21.test.mjs` 增加结构检查；`scripts/agent-skills-r22-eval.mjs --mode ownership` 为六个可选只读模型样本，**不会在 CI 自动执行或调用收费模型**。
+- `.github/workflows/agent-skills-governance.yml` 增加变更触发范围与现有 Node tests、`--self-test`、`npm ci`、`npm run check`；gh-aw 仍用原先官方固定编译器校验生成的 `extension-creation-intake.lock.yml`，不手改锁。
+
+### R1.0 证据边界和接手条件
+
+| 项目 | 截至本次记录 | 不可提升的结论 |
+| --- | --- | --- |
+| GitHub `main` 写入 | `SOURCE_COMMITTED`；全部治理文件经原文件 blob SHA 校验更新 | 不证明 AI 以后绝不漂移 |
+| 六例 Node 静态关卡 | `TESTS_AUTHORED`，实际 CI 尚处 `QUEUED`；运行结果以同候选 Actions 回执为准 | 不能写 `NODE_PASS` |
+| 原只读 Codex 路由评测 | `MODEL_EXECUTION_NOT_TESTED`；`--self-test` 只测解析/判据的结构逻辑 | 不等于模型真实触发或第三方全功能完成 |
+| 已安装 Chrome / Mac Native | `NOT_TESTED`；本轮没有改变业务/宿主 Runtime | 不等于 Page 自动注入、权限、撤权/卸载 PASS |
+| 真实 CI 验收 | `QUEUED`，需查看最新 `Agent Skills governance` run 的 Node、source check、gh-aw 编译/锁结果 | 排队不可宣称 SUCCESS |
+
+如 CI 有真实失败，应按失败步骤定位最小治理文件修复并重新核对最终 `main` SHA，不重建业务或修改产品权限。未来第三方开发以 `AGENTS.md` → 唯一创建工作流 → 对应公开 SDK → 已有主 Skill → 具体工具目录为顺序；平台缺口按 Runtime 所有权单独开发。
