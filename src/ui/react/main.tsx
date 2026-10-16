@@ -3,7 +3,7 @@ import {createRoot} from 'react-dom/client';
 import {createPortal} from 'react-dom';
 import {flushSync} from 'react-dom';
 import {ExtensionRows,ExtensionDetail,ExtensionToolbar,ExtensionEmpty,ExtensionRecoveries,ExtensionStatus} from './tabs/tools.tsx';
-import {DeveloperActions,DeveloperTargetText} from './tabs/develop.tsx';
+import {DeveloperActions,DeveloperFramework,DeveloperTargetText} from './tabs/develop.tsx';
 
 // One trusted React root and three portals in the existing fixed Side Panel.
 // Portals preserve the installed DOM IDs, CSS and Host wiring; they never run
@@ -24,6 +24,13 @@ export function mountExtensionList(doc){
     title:doc.getElementById('script-current-page-title'),
     url:doc.getElementById('script-current-page-url')
   };
+  const developerChoices=doc.querySelector('#page-component-framework .page-component-choices');
+  const developerFrameworkMounted=Boolean(developerChoices);
+  if(developerFrameworkMounted&&(
+    developerChoices.dataset.opendeskReactOwner||
+    ['page-component-javascript','page-component-react','page-component-vue'].some(id=>
+      doc.getElementById(id)?.closest('.page-component-choices')!==developerChoices)))
+    throw new Error('E_REACT_DEVELOPER_FRAMEWORK_MOUNT');
   const developerDock=doc.querySelector('#develop-dock .dock-buttons');
   const developerActionsMounted=Boolean(developerDock);
   if(developerActionsMounted&&(
@@ -71,6 +78,7 @@ export function mountExtensionList(doc){
   let recoveryModel={ids:[],busy:false,onRetry:()=>{}};
   let statusModel={text:'',state:'info'};
   let developerActionsActive=false,developerActionsModel=null;
+  let developerFrameworkActive=false,developerFrameworkModel=null;
   let developerTargetModel={host:'正在识别…',hostTitle:'',status:'检查中',
     state:'resolving',statusTitle:'',title:'正在识别…',url:''};
   function paint(){
@@ -85,6 +93,8 @@ export function mountExtensionList(doc){
       {createPortal(<ExtensionEmpty model={feedbackModel} container={empty}/>,empty)}
       {createPortal(feedbackModel.countText,count)}
       {createPortal(<ExtensionStatus model={statusModel} container={status}/>,status)}
+      {developerFrameworkActive&&createPortal(
+        <DeveloperFramework model={developerFrameworkModel}/>,developerChoices)}
       {developerActionsActive&&createPortal(
         <DeveloperActions model={developerActionsModel}/>,developerDock)}
       {developerTargetMounted&&createPortal(
@@ -107,6 +117,18 @@ export function mountExtensionList(doc){
     owner:'extension-list',
     developerTargetMounted,
     developerActionsMounted,
+    developerFrameworkMounted,
+    renderDeveloperFramework(next){
+      if(disposed||!developerFrameworkMounted)throw new Error('E_REACT_DEVELOPER_FRAMEWORK_OWNER');
+      if(!developerFrameworkActive){
+        if(developerChoices.dataset.opendeskReactOwner)
+          throw new Error('E_REACT_DEVELOPER_FRAMEWORK_ALREADY_OWNED');
+        developerChoices.replaceChildren();
+        developerChoices.dataset.opendeskReactOwner='developer-framework';
+        developerFrameworkActive=true;
+      }
+      developerFrameworkModel=next;paint();
+    },
     renderDeveloperActions(next){
       if(disposed||!developerActionsMounted)throw new Error('E_REACT_DEVELOPER_DOCK_OWNER');
       if(!developerActionsActive){
@@ -130,6 +152,7 @@ export function mountExtensionList(doc){
       developerTargetModel=next;paint();},
     dispose(){if(disposed)return;disposed=true;root.unmount();
       if(developerActionsActive)delete developerDock.dataset.opendeskReactOwner;
+      if(developerFrameworkActive)delete developerChoices.dataset.opendeskReactOwner;
       if(developerTargetMounted)for(const node of developerNodes)
         delete node.dataset.opendeskReactOwner;
       for(const node of additional)delete node.dataset.opendeskReactOwner;

@@ -95,7 +95,11 @@ export function createScriptEditor({client, currentPageTarget, development=false
     browserUnknownTarget={tabId:target.tabId,documentId:target.documentId};
   }
   const syncComponentInputs=()=>{
-    for(const [mode,node] of Object.entries(componentInputs))if(node)node.checked=mode===componentMode;
+    if(reactDeveloperFramework)reactDeveloperFramework({
+      mode:componentMode,compilerEnabled:browserCompilerEnabled,
+      onSelect:(next,event)=>{if(event?.isTrusted&&!disposed)chooseComponentMode(next);}
+    });
+    else for(const [mode,node] of Object.entries(componentInputs))if(node)node.checked=mode===componentMode;
   };
   const componentDrafts={javascript:'',react:componentPresets.react,vue:componentPresets.vue};
   const browserPreparer=componentPreparerFactory({api});
@@ -127,7 +131,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       .catch(error=>console.warn('Sidebar draft could not be retained',error));
   }
   let scriptListSequence = 0, ownedDraftRunId = null, ownedManagedPreview=null, lastPagePreview=null;
-  let reactDeveloperTarget=null,reactDeveloperActions=null;
+  let reactDeveloperTarget=null,reactDeveloperActions=null,reactDeveloperFramework=null;
   let currentRevision, currentRevisionAuthorSource, currentPageState = currentPageTarget?.snapshot ?? {status:'unavailable',reason:'E_TARGET',message:'当前网页服务不可用'},
     selectionVersion = 0, running = false, disposed = false;
   const listeners = [];
@@ -1279,8 +1283,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
   // Native radio input events work with genuine pointer, Tab and arrow-key
   // interaction on macOS; no scripted change or OS-native popup is needed.
   // The fieldset disables all choices during preparation or an active project.
-  for(const [next,input] of Object.entries(componentInputs))if(input)listen(input,'change',()=>{
-    if(!input.checked)return;
+  function chooseComponentMode(next){
+    if(next===componentMode)return;
     if(next!=='javascript'&&!browserCompilerEnabled){syncComponentInputs();return;}
     if(previewBusy||browserManagedPreview||browserEffectUnknown||localProject?.active()||programSource.snapshot()){
       syncComponentInputs();
@@ -1295,6 +1299,9 @@ export function createScriptEditor({client, currentPageTarget, development=false
     dependencyResolver.refresh();dependencyInstaller?.refresh();lastPagePreview=null;componentRemote.refresh();
     componentMessage('idle',next==='javascript'?'':'官方组件源码 · 按需编译 · 明确点击运行');
     update();
+  }
+  for(const [next,input] of Object.entries(componentInputs))if(input)listen(input,'change',()=>{
+    if(input.checked)chooseComponentMode(next);
   });
   on('script-target-mode','change',update); on('script-id','input',()=>{dependencyResolver.refresh();dependencyInstaller.refresh();lastPagePreview=null;if(hasUnbuiltESM(programSource.source()))componentRemote.refresh();scheduleControllerClassicWarm();update();}); on('script-revision','input',update); on('script-source','input',() => {browserPreparer.cancel();browserPrepareGeneration++;programSource.replaceSource(programSource.source());componentDrafts[componentMode]=programSource.source();dependencyResolver.refresh();dependencyInstaller.refresh();componentRemote.refresh();scheduleControllerClassicWarm();update();});
   on('script-params','input',update);
@@ -1452,7 +1459,19 @@ export function createScriptEditor({client, currentPageTarget, development=false
     display('draft','已导入未保存草稿；请返回目标网页后明确点击运行');
   }
   scheduleControllerClassicWarm();
-  return {host,connectReactDeveloperActions(render){
+  return {host,connectReactDeveloperFramework(render){
+    if(disposed||reactDeveloperFramework||typeof render!=='function')
+      throw new Error('E_REACT_DEVELOPER_FRAMEWORK_OWNERSHIP');
+    const attached=Object.values(componentInputs).map(element=>
+      listeners.filter(entry=>entry.element===element&&entry.event==='change'));
+    if(attached.some(entries=>entries.length!==1))
+      throw new Error('E_REACT_DEVELOPER_FRAMEWORK_LEGACY_LISTENERS');
+    for(const entry of attached.flat()){
+      entry.element.removeEventListener(entry.event,entry.listener);
+      listeners.splice(listeners.indexOf(entry),1);
+    }
+    reactDeveloperFramework=render;syncComponentInputs();
+  },connectReactDeveloperActions(render){
     if(disposed||reactDeveloperActions||typeof render!=='function')
       throw new Error('E_REACT_DEVELOPER_ACTIONS_OWNERSHIP');
     const attached=['script-run','script-save','script-stop'].map(id=>
@@ -1516,7 +1535,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   }, resourceSnapshot: () => ({...host.resourceSnapshot(), editor:{
     timers:[...downloads.values(),...preparations.values()].filter(entry=>entry.timer != null).length+Number(localPollTimer!=null),
     pending:Number(downloading)+preparations.size, subscriptions:listeners.length+2*Number(browserListenersAttached)+Number(Boolean(unsubscribeCurrentPage))+(localProject?.resourceSnapshot().subscriptions||0)}}), dispose() {
-    if (disposed) return; disposed = true; reactDeveloperTarget=null;reactDeveloperActions=null; controllerClassicConsent.dispose(); componentRemote.dispose(); browserPrepareGeneration++; browserPreparer.dispose();staticESMPreparer.dispose(); scriptsCheckSequence++; localInstaller.dispose();localProject?.dispose();pageLibrary.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyReview.dispose();dependencyResolver.dispose();dependencyInstaller.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
+    if (disposed) return; disposed = true; reactDeveloperTarget=null;reactDeveloperActions=null;reactDeveloperFramework=null; controllerClassicConsent.dispose(); componentRemote.dispose(); browserPrepareGeneration++; browserPreparer.dispose();staticESMPreparer.dispose(); scriptsCheckSequence++; localInstaller.dispose();localProject?.dispose();pageLibrary.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyReview.dispose();dependencyResolver.dispose();dependencyInstaller.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
     api.webNavigation.onCommitted.removeListener(onNavigation); api.tabs.onRemoved.removeListener(onRemoved); host.dispose();
     browserListenersAttached = false;
     for (const {element, event, listener} of listeners) element.removeEventListener(event, listener);

@@ -29,3 +29,22 @@ export function DeveloperActions({model}){
       onClick={event=>model.onStop?.(event.nativeEvent)}>{model.stopLabel}</button>
   </>;
 }
+
+// A controlled code-type picker. Framework/source preparation and edition
+// checks remain in Script Editor; this component has no compiler or Host API.
+export function DeveloperFramework({model}){
+  return <>
+    {[
+      ['javascript','JavaScript','JavaScript'],
+      ['react','React · JSX','React JSX'],
+      ['vue','Vue · SFC','Vue SFC']
+    ].map(([kind,title,label])=>
+      <label key={kind} htmlFor={'page-component-'+kind} title={title}>
+        <input id={'page-component-'+kind} type="radio" name="page-component-choice"
+          value={kind} aria-label={label} checked={model.mode===kind}
+          disabled={!model.compilerEnabled&&kind!=='javascript'}
+          onChange={event=>model.onSelect?.(kind,event.nativeEvent)}/>
+        <span>{kind==='javascript'?'JavaScript':kind==='react'?'React':'Vue'}</span>
+      </label>)}
+  </>;
+}
