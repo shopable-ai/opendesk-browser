@@ -11,8 +11,8 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {createServer} from 'vite';
 
-const fixtureJS="\nimport {mountExtensionList} from '/src/ui/react/main.tsx';\nconst ui=mountExtensionList(document),calls=[],state={query:'',kind:'all',scope:'smart',menuOpen:false};\nconst row={key:'app:sample',title:'React 安全演示',description:'不可运行用户代码',kind:'app',type:'应用',installed:true,primaryAction:'打开'};\nfunction draw(){\n  ui.renderToolbar({...state,language:'zh-CN',\n    onSearch(value){state.query=value;calls.push('search:'+value);draw();},\n    onToggleMenu(){state.menuOpen=!state.menuOpen;calls.push('menu:'+state.menuOpen);draw();},\n    onKind(value){state.kind=value;calls.push('kind:'+value);draw();},\n    onScope(value){state.scope=value;calls.push('scope:'+value);draw();},\n    onReset(){state.kind='all';state.scope='smart';calls.push('reset');draw();},\n    onMarket(){calls.push('market');},onImport(){calls.push('import');},\n    onReload(){calls.push('reload');},onLanguage(value){calls.push('language:'+value);}\n  });\n  ui.renderRows({rows:[row],busy:false,pendingKey:null,\n    onOpenRow(key){calls.push('open:'+key);\n      ui.renderDetail({key,title:row.title,description:row.description,\n        type:'应用',kind:'app',installed:true,busy:false,actions:[],\n        installationText:'本机已安装（测试模拟）',version:'1.0.0',source:null});},\n    onMore(key){calls.push('more:'+key);ui.setMenuKey(key);}\n  });\n}\ndraw();\nwindow.__reactTest={ui,calls,state,dispose(){ui.dispose()}};\ndocument.documentElement.dataset.fixtureReady='true';\n";
-const fixtureHtml="<!doctype html><html lang=\"zh-CN\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><link rel=\"stylesheet\" href=\"/src/ui/design-tokens.css\"><link rel=\"stylesheet\" href=\"/src/ui/design-system.css\"><link rel=\"stylesheet\" href=\"/src/ui/extension-center.css\"></head><body><main id=\"extension-center\"><div id=\"extension-center-list-view\"><div class=\"ec-toolbar\"><span>旧静态工具栏</span></div><ul id=\"extension-center-list\" class=\"ec-list\"></ul></div><section id=\"extension-center-detail-body\"></section></main><script type=\"module\" src=\"/__react_fixture.js\"></script></body></html>";
+const fixtureJS="\nimport {mountExtensionList} from '/src/ui/react/main.tsx';\nconst ui=mountExtensionList(document),calls=[],state={query:'',kind:'all',scope:'smart',menuOpen:false};\nconst row={key:'app:sample',title:'React 安全演示',description:'不可运行用户代码',kind:'app',type:'应用',installed:true,primaryAction:'打开'};\nfunction draw(){\n  ui.renderToolbar({...state,language:'zh-CN',\n    onSearch(value){state.query=value;calls.push('search:'+value);draw();},\n    onToggleMenu(){state.menuOpen=!state.menuOpen;calls.push('menu:'+state.menuOpen);draw();},\n    onKind(value){state.kind=value;calls.push('kind:'+value);draw();},\n    onScope(value){state.scope=value;calls.push('scope:'+value);draw();},\n    onReset(){state.kind='all';state.scope='smart';calls.push('reset');draw();},\n    onMarket(){calls.push('market');},onImport(){calls.push('import');},\n    onReload(){calls.push('reload');},onLanguage(value){calls.push('language:'+value);}\n  });\n  ui.renderRows({rows:[row],busy:false,pendingKey:null,\n    onOpenRow(key){calls.push('open:'+key);\n      ui.renderDetail({key,title:row.title,description:row.description,\n        type:'应用',kind:'app',installed:true,busy:false,actions:[],\n        installationText:'本机已安装（测试模拟）',version:'1.0.0',source:null});},\n    onMore(key){calls.push('more:'+key);ui.setMenuKey(key);}\n  });\n  ui.renderFeedback({showEmpty:false,emptyText:'无匹配扩展',countText:'1 个扩展'});\n  ui.renderRecoveries({ids:[],busy:false,onRetry(id,event){calls.push('cleanup:'+id+':'+event.isTrusted);}});\n  ui.renderStatus({text:'测试状态',state:'info'});\n}\ndraw();\nwindow.__reactTest={ui,calls,state,dispose(){ui.dispose()}};\ndocument.documentElement.dataset.fixtureReady='true';\n";
+const fixtureHtml="<!doctype html><html lang=\"zh-CN\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><link rel=\"stylesheet\" href=\"/src/ui/design-tokens.css\"><link rel=\"stylesheet\" href=\"/src/ui/design-system.css\"><link rel=\"stylesheet\" href=\"/src/ui/extension-center.css\"></head><body><main id=\"extension-center\"><div id=\"extension-center-list-view\"><div class=\"ec-toolbar\"><span>旧静态工具栏</span></div><ul id=\"extension-center-list\" class=\"ec-list\"></ul><div id=\"extension-center-cleanups\" hidden></div><div id=\"extension-center-empty\" hidden><p id=\"extension-center-empty-text\"></p></div><span id=\"extension-center-count\"></span></div><section id=\"extension-center-detail-body\"></section><p id=\"extension-center-status\"></p></main><script type=\"module\" src=\"/__react_fixture.js\"></script></body></html>";
 
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const browser=process.env.CHROME_BIN||
@@ -140,6 +140,19 @@ try{
   assert.equal(await evaluate('document.querySelectorAll("#extension-center-react-root").length'),1);
   assert.equal(await evaluate('document.querySelectorAll("#extension-center-search").length'),1);
   assert.equal(await evaluate('document.querySelectorAll("#extension-center-list .ec-row").length'),1);
+  assert.equal(await evaluate('document.getElementById("extension-center-count").textContent'),'1 个扩展');
+  assert.equal(await evaluate('document.getElementById("extension-center-status").textContent'),'测试状态');
+  assert.equal(await evaluate('document.getElementById("extension-center-empty").hidden'),true);
+  await evaluate('window.__reactTest.ui.renderFeedback({showEmpty:true,emptyText:"没有匹配",countText:"0 个扩展"})');
+  assert.equal(await evaluate('document.getElementById("extension-center-empty").hidden'),false);
+  assert.equal(await evaluate('document.getElementById("extension-center-empty-text").textContent'),'没有匹配');
+  await evaluate('window.__reactTest.ui.renderFeedback({showEmpty:false,emptyText:"",countText:"1 个扩展"})');
+  await evaluate('window.__reactTest.ui.renderRecoveries({ids:["cleanup-test"],busy:false,onRetry(id,event){window.__reactTest.calls.push("cleanup:"+id+":"+event.isTrusted)}})');
+  assert.equal(await evaluate('document.getElementById("extension-center-cleanups").hidden'),false);
+  await click('#extension-center-cleanups button');
+  await checkEventually('window.__reactTest.calls.includes("cleanup:cleanup-test:true")');
+  await evaluate('window.__reactTest.ui.renderRecoveries({ids:[],busy:false,onRetry(){}})');
+  assert.equal(await evaluate('document.getElementById("extension-center-cleanups").hidden'),true);
   await evaluate('document.getElementById("extension-center-search").focus()');
   await cdp('Input.insertText',{text:'React UI'});
   await checkEventually('window.__reactTest.calls.includes("search:React UI")');
@@ -165,7 +178,8 @@ try{
   assert.equal(await evaluate('document.querySelector("#extension-center-list").children.length'),0);
   console.log(JSON.stringify({kind:'SOURCE_UI_SIMULATION_CHROMIUM',status:'PASS',
     browser:(await cdp('Browser.getVersion')).product,checks:['single root','real typing',
-    'filter selection','menu click','row click','detail portal','unmount'],operations:recorded}));
+    'filter selection','menu click','row click','detail portal','empty state',
+    'trusted cleanup callback','live status','unmount'],operations:recorded}));
 }finally{
   try{socket?.close()}catch{}
   try{chrome?.kill('SIGTERM')}catch{}

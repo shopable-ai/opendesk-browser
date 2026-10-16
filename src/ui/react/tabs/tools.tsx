@@ -146,3 +146,33 @@ export function ExtensionToolbar({model}){
     </div>
   </>;
 }
+
+
+// The trusted React shell alone owns these remaining Extension Center DOM
+// children and their hidden/status attributes. Host/permission/cleanup
+// decisions still belong to the existing Extension Center controller.
+export function ExtensionEmpty({model,container}){
+  const show=Boolean(model?.showEmpty);
+  React.useLayoutEffect(()=>{container.hidden=!show;},[container,show]);
+  return <p id="extension-center-empty-text">{model?.emptyText||''}</p>;
+}
+
+export function ExtensionRecoveries({model,container}){
+  const ids=model?.ids||[];
+  React.useLayoutEffect(()=>{container.hidden=ids.length===0;},[container,ids.length]);
+  if(!ids.length)return null;
+  return <>
+    <p>以下扩展已从安装记录移除，但清理仍待完成：</p>
+    {ids.map(id=><p key={id}>
+      {id+' · 卸载清理待恢复'}
+      <Button disabled={Boolean(model.busy)} aria-label={'恢复「'+id+'」的卸载清理'}
+        onClick={event=>model.onRetry?.(id,event)}>恢复清理</Button>
+    </p>)}
+  </>;
+}
+
+export function ExtensionStatus({model,container}){
+  React.useLayoutEffect(()=>{container.dataset.state=model?.state||'info';},
+    [container,model?.state]);
+  return model?.text||'';
+}

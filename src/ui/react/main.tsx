@@ -2,7 +2,7 @@ import * as React from 'react';
 import {createRoot} from 'react-dom/client';
 import {createPortal} from 'react-dom';
 import {flushSync} from 'react-dom';
-import {ExtensionRows,ExtensionDetail,ExtensionToolbar} from './tabs/tools.tsx';
+import {ExtensionRows,ExtensionDetail,ExtensionToolbar,ExtensionEmpty,ExtensionRecoveries,ExtensionStatus} from './tabs/tools.tsx';
 
 // One trusted React root and three portals in the existing fixed Side Panel.
 // Portals preserve the installed DOM IDs, CSS and Host wiring; they never run
@@ -12,7 +12,13 @@ export function mountExtensionList(doc){
   const detailContainer=doc.getElementById('extension-center-detail-body');
   const toolbar=doc.querySelector('#extension-center-list-view > .ec-toolbar');
   const section=doc.getElementById('extension-center');
+  const cleanups=doc.getElementById('extension-center-cleanups');
+  const empty=doc.getElementById('extension-center-empty');
+  const count=doc.getElementById('extension-center-count');
+  const status=doc.getElementById('extension-center-status');
+  const additional=[cleanups,empty,count,status];
   if(!container||!detailContainer||!toolbar||!section||
+    additional.some(node=>!node||node.dataset.opendeskReactOwner)||
     container.dataset.opendeskReactOwner||detailContainer.dataset.opendeskReactOwner||
     toolbar.dataset.opendeskReactOwner)
     throw new Error('E_REACT_EXTENSION_MOUNT');
@@ -27,13 +33,22 @@ export function mountExtensionList(doc){
   host.hidden=true;
   section.append(host);
   toolbar.replaceChildren();
+  // One-time handoff removes the legacy empty placeholder from this React-
+  // owned region; the non-React fallback HTML remains intact for old hosts.
+  empty.replaceChildren();
   container.dataset.opendeskReactOwner='extension-list';
   detailContainer.dataset.opendeskReactOwner='extension-detail';
   toolbar.dataset.opendeskReactOwner='extension-toolbar';
+  for(const [node,name] of [[cleanups,'extension-cleanups'],[empty,'extension-empty'],
+    [count,'extension-count'],[status,'extension-status']])
+    node.dataset.opendeskReactOwner=name;
   const root=createRoot(host);
   let disposed=false,menuKey=null,detailModel=null;
   let model={rows:[],busy:false,pendingKey:null,onOpenRow:()=>{},onMore:()=>{}};
   let toolbarModel={query:'',kind:'all',scope:'smart',language:'zh-CN',menuOpen:false};
+  let feedbackModel={showEmpty:false,emptyText:'',countText:'正在读取扩展…'};
+  let recoveryModel={ids:[],busy:false,onRetry:()=>{}};
+  let statusModel={text:'',state:'info'};
   function paint(){
     if(disposed)return;
     // Extension Center restores focus immediately after draw(). Commit the
@@ -42,6 +57,10 @@ export function mountExtensionList(doc){
       {createPortal(<ExtensionToolbar model={toolbarModel}/>,toolbar)}
       {createPortal(<ExtensionRows {...model} menuKey={menuKey}/>,container)}
       {createPortal(<ExtensionDetail model={detailModel} container={detailContainer}/>,detailContainer)}
+      {createPortal(<ExtensionRecoveries model={recoveryModel} container={cleanups}/>,cleanups)}
+      {createPortal(<ExtensionEmpty model={feedbackModel} container={empty}/>,empty)}
+      {createPortal(feedbackModel.countText,count)}
+      {createPortal(<ExtensionStatus model={statusModel} container={status}/>,status)}
     </>));
   }
   paint();
@@ -51,7 +70,11 @@ export function mountExtensionList(doc){
     setMenuKey(key){if(disposed||menuKey===key)return;menuKey=key;paint();},
     renderDetail(next){if(disposed)return;detailModel=next;paint();},
     renderToolbar(next){if(disposed)return;toolbarModel=next;paint();},
+    renderFeedback(next){if(disposed)return;feedbackModel=next;paint();},
+    renderRecoveries(next){if(disposed)return;recoveryModel=next;paint();},
+    renderStatus(next){if(disposed)return;statusModel=next;paint();},
     dispose(){if(disposed)return;disposed=true;root.unmount();
+      for(const node of additional)delete node.dataset.opendeskReactOwner;
       delete toolbar.dataset.opendeskReactOwner;
       delete detailContainer.dataset.opendeskReactOwner;
       delete container.dataset.opendeskReactOwner;

@@ -42,7 +42,9 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     enabled,appStatusKnown,pageStatusKnown,cleanupPendingIds:[...pendingCleanups]});
   const find=key=>all().find(row=>row.key===key);
   const message=(value='',state='info',origin='action')=>{
-    statusOrigin=origin;notice.textContent=value;notice.dataset.state=state;
+    statusOrigin=origin;
+    if(extensionList)extensionList.renderStatus({text:value,state});
+    else {notice.textContent=value;notice.dataset.state=state;}
   };
   function closeMenu(returnFocus=false){
     if(extensionList){if(toolbarMenuOpen){toolbarMenuOpen=false;syncFilters();}}
@@ -204,7 +206,11 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         (!query||id.toLocaleLowerCase().replace(/[\s-]+/g,'').includes(
           query.toLocaleLowerCase().replace(/[\s-]+/g,''))||
           '卸载清理待恢复'.includes(query))):[];
-    if(recovery){
+    if(extensionList)extensionList.renderRecoveries({
+      ids:orphaned,busy:Boolean(busy||pendingKey),
+      onRetry(id,event){void retryCleanup({id,key:'app:'+id,cleanupPending:true},event);}
+    });
+    else if(recovery){
       recovery.hidden=orphaned.length===0;
       recovery.replaceChildren();
       if(orphaned.length){
@@ -277,13 +283,19 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       item.append(main,actions);list.append(item);
     }
     }
-    get('extension-center-empty').hidden=rows.length>0||orphaned.length>0||!hasLoaded;
-    get('extension-center-empty-text').textContent=dataError?
+    const showEmpty=rows.length===0&&orphaned.length===0&&hasLoaded;
+    const emptyText=dataError?
       '安装状态读取失败或待核对；请刷新重试。不会将旧缓存当作已安装记录。':
       query?'没有找到匹配的扩展':scope==='available'?'没有可安装或可更新的官方候选':
       kind==='page'?'暂无已安装的网页增强':'还没有已安装扩展；请切换至「可安装 / 更新」发现官方工具。';
-    get('extension-center-count').textContent=!hasLoaded?'正在读取扩展…':
+    const countText=!hasLoaded?'正在读取扩展…':
       dataError?'部分安装状态待核对':rows.length+' 个扩展';
+    if(extensionList)extensionList.renderFeedback({showEmpty,emptyText,countText});
+    else {
+      get('extension-center-empty').hidden=!showEmpty;
+      get('extension-center-empty-text').textContent=emptyText;
+      get('extension-center-count').textContent=countText;
+    }
     syncFilters();
     if(!busy&&!pendingKey){
       if(key)restoreRowFocus(key,action);
