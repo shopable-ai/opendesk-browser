@@ -58,10 +58,17 @@ test('market catalog uses pinned immutable member identity and every registered 
   const prior=getOfficialCollection('reading-kit',4);
   assert.deepEqual(prior.members,[{id:'opendesk/reading-toc',version:'1.0.4'},
     {id:'opendesk/web-markdown-clipper',version:'1.0.0'},{id:'opendesk/quick-notes',version:'1.1.8'}]);
-  const current=getOfficialCollection('reading-kit',5);
-  assert.equal(current,OFFICIAL_COLLECTIONS[0]);
-  assert.deepEqual(current.members,[{id:'opendesk/reading-toc',version:'1.0.4'},
+  const pinnedV5=getOfficialCollection('reading-kit',5);
+  assert(OFFICIAL_COLLECTIONS.includes(pinnedV5),'published revision 5 stays in the immutable collection list');
+  assert.deepEqual(pinnedV5.members,[{id:'opendesk/reading-toc',version:'1.0.4'},
     {id:'opendesk/web-markdown-clipper',version:'1.0.1'},{id:'opendesk/quick-notes',version:'1.1.8'}]);
+  const latest=OFFICIAL_COLLECTIONS[0];
+  assert.equal(latest.revision,Math.max(...OFFICIAL_COLLECTIONS.map(row=>row.revision)));
+  assert.equal(getOfficialCollection('reading-kit',latest.revision),latest);
+  for(const member of latest.members){
+    const packaged=OFFICIAL_APPS.find(row=>row.id===member.id);
+    assert(packaged,member.id);assert.equal(member.version,packaged.version,member.id);
+  }
 });
 test('every official release is the exact packaged tool ID, version and title',async()=>{
   for(const app of OFFICIAL_APPS){
