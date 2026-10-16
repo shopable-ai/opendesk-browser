@@ -101,7 +101,10 @@ async function run(){
     assert.equal(x.width,width);assert.equal(x.overflow,false,'panel overflow '+width);
     await shot('list-'+width+'px');report.scenes.push({width,overflow:x.overflow,screenshot:'list-'+width+'px.png'});
   }
-  // R1.13 trusted settings: no extra website authorization page.
+  assert.equal(await evalChrome('document.querySelector("#indexHeading")===null'),true);
+  assert.equal(await evalChrome('getComputedStyle(document.querySelector("#listCount")).position'),"absolute");
+  assert.equal(await evalChrome('!document.querySelector("#addButton").hidden'),true);
+  // R1.14 trusted settings: three switches and multi-site status (no fake site authorization).
   await click('#hostSettings');
   assert.equal(await evalChrome('!document.querySelector("#settingsView").hidden'),true);
   assert.equal(await evalChrome('document.querySelector("#permissionView")===null'),true);
@@ -110,13 +113,18 @@ async function run(){
     assert.equal(x.overflow,false,'compact settings overflow '+width);
     await shot('settings-'+width+'px');
   }
-  await click('#toolEnabledButton');
+  assert.equal(await evalChrome('document.querySelector("#addButton").hidden'),true);
+  await click('#toolEnabledSwitch');
   assert.equal(await evalChrome('document.querySelector("#pageRail").hidden'),true);
-  await click('#toolEnabledButton');
+  assert.equal(await evalChrome('document.querySelector("#toolEnabledSwitch").checked'),false);
+  await click('#toolEnabledSwitch');
   assert.equal(await evalChrome('document.querySelector("#pageRail").hidden'),false);
-  await click('#contextButton');
-  assert.equal(await evalChrome('document.querySelector("#contextButton").getAttribute("aria-pressed")'),"true");
-  await click('#settingsBack');
+  await click('#contextSwitch');
+  assert.equal(await evalChrome('document.querySelector("#contextSwitch").checked'),true);
+  await click('#sitesButton');
+  assert.equal(await evalChrome('!document.querySelector("#siteDetails").hidden'),true);
+  assert.equal(await evalChrome('document.querySelector("#siteDetails").textContent.includes("当前未内置适配")'),true);
+  await click('#hostBack');
   assert.equal(await evalChrome('!document.querySelector("#indexView").hidden'),true);
   report.compactHostSettings=true;
   await click('#resetButton');
@@ -126,7 +134,9 @@ async function run(){
   await sleep(760);
   await evalChrome('(()=>{const f=document.querySelector("#mockDraft");f.value="已有内容";f.setSelectionRange(4,4);})()');
   await click('.prompt-use');x=await state();assert(x.draft.startsWith('已有内容'));report.preservedExisting=true;
-  await click('.prompt-actions button[aria-label^="编辑"]');
+  await click('.prompt-actions button[aria-label^="更多操作"]');
+  assert.equal(await evalChrome('document.activeElement?.textContent==="编辑"'),true);
+  await click('.prompt-more button:first-child');
   x=await state();assert.equal(x.editing,true);assert.equal(x.shapeInputs,0);
   await shot('edit-440px');
   for(const width of [320,360]){
@@ -140,6 +150,27 @@ async function run(){
   await click('#cancelForm');assert.equal((await state()).leaving,false);
   await click('#addButton');await click('#cancelForm');
   x=await state();assert.equal(x.editing,false);assert.equal(x.leaving,false);report.pristineForm=true;
+  await click('#addButton');
+  assert.equal(await evalChrome('!document.querySelector("#saveContinue").hidden'),true);
+  await evalChrome('(()=>{const f=document.querySelector("#promptBody");f.value="连续创建第一条：回顾昨天的工作。";f.dispatchEvent(new Event("input",{bubbles:true}));})()');
+  await click('#saveContinue');
+  await poll('document.querySelectorAll(".prompt-card").length===5&&document.querySelector("#promptBody").value===""','save and continue first');
+  x=await state();assert.equal(x.editing,true);assert.equal(x.cards,5);
+  await shot('batch-create-320px');
+  await evalChrome('(()=>{const f=document.querySelector("#promptBody");f.value="连续创建第二条：列出下一步计划。";f.dispatchEvent(new Event("input",{bubbles:true}));})()');
+  await click('#saveContinue');
+  await poll('document.querySelectorAll(".prompt-card").length===6&&document.querySelector("#promptBody").value===""','save and continue second');
+  x=await state();assert.equal(x.cards,6);assert.equal(x.editing,true);
+  await click('#cancelForm');x=await state();assert.equal(x.editing,false);
+  report.batchCreateAndReset=true;
+  await click('#resetButton');
+  x=await state();assert.equal(x.cards,4);
+  await click('.prompt-actions button[aria-label^="更多操作"]');
+  assert(await evalChrome('!!document.querySelector(".prompt-more")'));
+  assert.equal(await evalChrome('document.activeElement?.textContent==="编辑"'),true);
+  await evalChrome('document.dispatchEvent(new KeyboardEvent("keydown",{key:"Escape",bubbles:true}))');
+  assert.equal(await evalChrome('document.querySelector(".prompt-more")===null'),true);
+  assert.equal(await evalChrome('document.activeElement?.getAttribute("aria-label")?.startsWith("更多操作")'),true);
   await click('.prompt-actions button[aria-label^="更多操作"]');
   assert(await evalChrome('!!document.querySelector(".prompt-more")'));report.managementSeparate=true;
   await evalChrome('(()=>{const f=document.getElementById("actionScenario");f.value="clipboard-failure";f.dispatchEvent(new Event("change",{bubbles:true}));})()');
