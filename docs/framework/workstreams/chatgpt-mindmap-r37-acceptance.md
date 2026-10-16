@@ -135,3 +135,6 @@ npm run check
 - [独立 Program 构建 Artifact](https://github.com/shopable-ai/opendesk-browser/actions/runs/38868806490/artifacts/12031499681)：ZIP SHA-256 `ddb4e8e16ab5529e0fa063198207c1a847ebc634b53737a7cb203c6d2430c6b6`；独立重新读取 3 个文件并计算 SHA-256，`program.js` 为 `e17e473394c6b8269277ff1373c831346706d03f6bbfb912c759767194f25799`、`program.opendesk-draft.json` 为 `e44eae02bf790ec8a4a0811e809ff2e76b8d013d8b8d69895dd40e2faa94546a`、`artifact.json` 为 `98790b297745590b4378dbc52fe625224912fe3fb2dfce4b673fc87f6d3803aa`，**3/3 一致**。CI 仍是 `BUILT_UNVERIFIED / installable:false`。
 - **最终范围边界不变**：真实预览、移动端完整可读根节点、真实滚动与适配、Icon 工具栏及各尺寸、CI/Program 构建可验证；Mac Native `NOT_TESTED`，生产许可/可信 XMind Runtime/全局样式隔离 `BLOCKED`，设计 `PENDING_USER_CONFIRMATION`。本轮无浏览器宿主根 `src/` 业务修改。
 
+## R3.8 后续审计位置（保留 R3.7 历史证据）
+
+R3.8 新增 [原生 Chrome / USER_SCRIPT 技术验证审计](chatgpt-mindmap-r38-native-integration.md)。新 Job 仅将真实 WXT Browser 包、Git 固定 XMind 资源和同源 Program 组合为 CI 的**临时测试扩展**；没有绕过原正式安装 Broker，更不代表已经合法获准分发 4.04 MB 引擎或修复 Snowbrush 全局样式。R3.7 既有 CI/SHA/截图历史结果及 `PENDING_USER_CONFIRMATION` 保持不变。本轮仍须以新的 Actions 原始 Job 结果独立确认，不能继承旧 PASS。
