@@ -24,11 +24,11 @@ const tool={id:'ai-vip-share',capabilities:['ai.access']};
 test('R5 official tool compiles member, redeem and store UI with canonical design',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/ai-vip-share');
   assert.equal(pkg.id,'ai-vip-share');
-  assert.equal(pkg.version,'1.3.4');
+  assert.equal(pkg.version,'1.3.5');
   assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
   assert.deepEqual(pkg.capabilities,['storage.local','network','browser.tabs','browser.proxy.managed']);
   assert.match(pkg.css,/opendesk\.shared-design\.v1/);
-  for(const text of ['AI 会员','兑换激活','预检兑换','查看更多商品','待核验'])
+  for(const text of ['AI 会员','兑换激活','预检兑换','查看更多商品','AI 网站访问'])
     assert(pkg.html.includes(text),text);
   assert.match(pkg.html,/id="ai-vip-redeem-code"[^>]*type="password"[^>]*data-sensitive/);
   assert.match(pkg.html,/id="ai-vip-redeem"[^>]*disabled/);
@@ -117,8 +117,9 @@ test('R5 conflict never enables proxy, but stops outstanding own intent',async()
 test('R5 no Provider, SKU or shop can invent business success',async()=>{
   const html=await readFile('examples/sidebar-tools/ai-vip-share/src/index.html','utf8');
   const script=await readFile('examples/sidebar-tools/ai-vip-share/src/main.js','utf8');
-  assert.match(html,/会员服务尚未配置/);
-  assert.match(html,/兑换服务未配置/);
+  assert.match(html,/正式会员服务尚未接入/);
+  assert.match(html,/会员服务接入后可使用兑换码/);
+  assert.doesNotMatch(html,/id="ai-vip-remaining">—|id="ai-vip-remaining-unit">待核验/);
   assert.match(html,/专属激活链接续接尚未接入正式安装与服务验证流程/);
   assert.match(script,/PRODUCT_CATALOG_URL=''/);
   assert.match(script,/shopSdk\.create\(\{url:catalog\}\)/);
