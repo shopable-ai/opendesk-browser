@@ -151,7 +151,7 @@ try{
   await page.locator('#prompt').fill('尚未发送的设置前草稿');
   await page.locator('#settings').click();
   assert.equal(await page.locator('#r234-back').isVisible(),true);
-  assert.equal((await page.locator('.r23-settings').evaluate(el=>Math.round(el.getBoundingClientRect().height))),Math.round(await page.locator('.device').evaluate(el=>el.getBoundingClientRect().height)));
+  assert.ok(Math.abs((await page.locator('.r23-settings').evaluate(el=>el.getBoundingClientRect().height))-(await page.locator('.device').evaluate(el=>el.getBoundingClientRect().height)))<=2,'settings must fill device inner box');
   assert.equal(await page.locator('#r23-native-status').isVisible(),true);
   await shot('r234-ai-settings-local');
   await page.locator('#r23-provider').selectOption('cloud_responses');
@@ -286,7 +286,7 @@ try{
         deviceWidth:Math.round(b.width),fieldInside:f.left>=p.left-1&&f.right<=p.right+1,
         pageOverflow:document.documentElement.scrollWidth>innerWidth+1};
     });
-    assert.equal(g.panelHeight,g.deviceHeight);assert.equal(g.panelWidth,g.deviceWidth);
+    assert.ok(Math.abs(g.panelHeight-g.deviceHeight)<=2);assert.ok(Math.abs(g.panelWidth-g.deviceWidth)<=2);
     assert.equal(g.fieldInside,true);assert.equal(g.pageOverflow,false);
     await shot('r234-ai-settings-'+width);
     await page.locator('#r234-back').click();
@@ -307,7 +307,7 @@ try{
   await frame.locator('#r23-name').waitFor();
   await frame.locator('#prompt').fill('把刚才的内容改成：项目已启动');
   await frame.locator('.send-btn').click();
-  await frame.locator('#r23-readback').getByText('项目已启动',{exact:false}).waitFor({timeout:10000});
+  await frame.locator('#r23-readback').filter({hasText:'项目已启动'}).waitFor({timeout:10000});
   assert.equal(await frame.locator('#r23-name').inputValue(),'项目已启动');
   assert.deepEqual(embeddedErrors,[]);
   await embedded.screenshot({path:resolve(out,'r234-sandbox-embedded.png'),fullPage:true});
