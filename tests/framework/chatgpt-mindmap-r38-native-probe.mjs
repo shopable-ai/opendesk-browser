@@ -105,19 +105,22 @@ try{
     });
   const activeWorker=()=>context.serviceWorkers()
     .find(worker=>worker.url().startsWith('chrome-extension://'+extensionId+'/'));
-  let sw=activeWorker()||await context.waitForEvent('serviceworker',{
-    predicate:worker=>worker.url().startsWith('chrome-extension://'+extensionId+'/'),
-    timeout:15000
-  });
-  assert(sw,'E_EXTENSION_WORKER_NOT_RUNNING');
-  record('ACTUAL_WXT_EXTENSION_SERVICE_WORKER','PASS',{url:sw.url()});
-  const available=async()=>{
-    sw=context.serviceWorkers().find(worker=>worker.url().startsWith('chrome-extension://'+extensionId+'/'))||sw;
-    return sw.evaluate(async()=>{
-      try{await chrome.userScripts.getScripts();return {ok:true};}
-      catch(error){return {ok:false,message:String(error)};}
-    }).catch(error=>({ok:false,message:String(error)}));
-  };
+  const sw=activeWorker();
+  report.serviceWorker=sw?{observed:true,url:sw.url()}:{observed:false};
+  record('ACTUAL_WXT_EXTENSION_SERVICE_WORKER',sw?'PASS':'NOT_OBSERVED',
+    sw?{url:sw.url()}:{reason:'Chrome did not surface an MV3 worker; not a product E2E pass'});
+  // API feasibility can be checked from a real, packaged extension document.
+  // This does NOT fake a Worker or claim the installed-program broker used it.
+  assert(extensionUI.url().startsWith('chrome-extension://'+extensionId+'/'),
+    'E_EXTENSION_UI_NOT_LOADED: packaged extension page not available');
+  const available=async()=>extensionUI.evaluate(async()=>{
+    try{
+      const native=chrome.userScripts;
+      if(!native||typeof native.getScripts!=='function')throw Error('Chrome userScripts is not available');
+      await native.getScripts();
+      return {ok:true};
+    }catch(error){return {ok:false,message:String(error)};}
+  }).catch(error=>({ok:false,message:String(error)}));
   let access=await available();
   report.initialUserScriptsAccess=access;
   if(!access.ok){
@@ -136,16 +139,10 @@ try{
       record('TRUSTED_CHROME_USER_SCRIPTS_TOGGLE','CLICKED');
       await details.waitForTimeout(1000);
     }finally{await details.close();}
+    // Chrome 138+ can retain the pre-opt-in API state in existing extension
+    // contexts. Reload the test's real packaged extension UI, not permissions.
+    await extensionUI.reload({waitUntil:'domcontentloaded'});
     access=await available();
-    if(!access.ok){
-      // Reloading the real extension context is needed when the API property
-      // was undefined before Chrome's trusted toggle was enabled.
-      await sw.evaluate(()=>chrome.runtime.reload()).catch(()=>{});
-      await new Promise(r=>setTimeout(r,1500));
-      sw=context.serviceWorkers().find(worker=>worker.url().startsWith('chrome-extension://'+extensionId+'/'))||
-        await context.waitForEvent('serviceworker',{timeout:15000});
-      access=await available();
-    }
   }
   report.finalUserScriptsAccess=access;
   assert(access.ok,'E_NATIVE_USER_SCRIPTS_TOGGLE: '+access.message);
@@ -164,10 +161,11 @@ try{
   const fixtureURL='https://chatgpt.com/__opendesk_r38_native_fixture';
   const markerId='opendesk-r38-native-registration';
   const worldId='opendesk-r38-native-feasibility';
-  const native=async(callback,input)=>available().then(state=>{
+  const native=async(callback,input)=>{
+    const state=await available();
     assert(state.ok,'userScripts became unavailable');
-    return sw.evaluate(callback,input);
-  });
+    return extensionUI.evaluate(callback,input);
+  };
   await native(async({worldId,markerId})=>{
     await chrome.userScripts.configureWorld({worldId,csp:"script-src 'self'; object-src 'none'",messaging:false});
     await chrome.userScripts.register([{id:markerId,matches:['https://chatgpt.com/*'],
