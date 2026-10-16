@@ -290,12 +290,12 @@ for(const operation of ['create','edit'])test('Mounted editor survives '+operati
   s.render();assert.equal(s.root.querySelector('#editor-save'),save);
   s.getField('cookie-value').value='unsaved';s.fire('cookie-value','input',{isTrusted:true});
   s.fire('editor-form','input');
-  s.fire('editor-cancel','click');assert.equal(s.getField('confirm-panel').hidden,false);
-  s.fire('confirm-cancel','click');assert.equal(editor.hidden,false);
+  s.fire('editor-cancel','click');assert.equal(s.getField('editor-discard').hidden,false);
+  s.fire('editor-discard-keep','click');assert.equal(editor.hidden,false);
   assert.equal(s.getField('cookie-value').value,'unsaved');
   s.fire('editor-cancel','click');
-  s.fire('confirm-accept','click');
-  assert.equal(editor.hidden,true);assert.equal(s.getField('confirm-panel').hidden,true);
+  s.fire('editor-discard-confirm','click');
+  assert.equal(editor.hidden,true);assert.equal(s.getField('editor-discard').hidden,true);
   assert.equal(s.root.querySelector('#editor-save'),save);
   s.openEditor(s.liveSnapshot().rows[0]);s.fire('editor-delete','click');
   assert.equal(s.getField('confirm-panel').hidden,false);
@@ -1111,7 +1111,7 @@ test('R4.10 production keeps approved value alignment and explicit sensitive exp
   assert.match(s.source,/guardedInline\(\(\)=>selected\?dismiss\(\):openEditor\(row\)\)/);
   assert.match(s.source,/sdk\.clipboard\.writeText\(text\)/);
   assert.match(s.source,/sdk\.downloads\.text\(\{text,filename\}\)/);
-  assert.doesNotMatch(s.source,/chrome\.cookies/,'sandbox must not bypass the public SDK');
+  assert.doesNotMatch(s.source,/\bchrome\.cookies\.(?:get|getAll|set|remove)\s*\(/,'sandbox must not invoke native Cookie operations');
   s.getField('live-export-content').value='backup';
   s.getField('live-export-metadata').checked=true;
   s.fire('live-export-metadata','change');

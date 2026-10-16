@@ -9,7 +9,7 @@
 :focus-visible{outline:2px solid var(--od-brand);outline-offset:2px}
 .permission-help{margin:0;padding:var(--space-3);border:1px solid #c6d6f6;border-radius:var(--radius-control);background:#f2f6ff;color:#304c7d;font-size:12px}
 .cookie-content{display:grid;min-width:0;gap:var(--space-2)}.search-field{flex:1;min-width:0}.export-actions{flex-wrap:wrap;gap:var(--space-2)}.fill{flex:1;min-width:0}.count{color:var(--od-sub);font-size:12px;white-space:nowrap}
-input[type=text],input[type=url],input[type=search],input[type=datetime-local],textarea,select{display:block;min-width:0;width:100%;min-height:36px;padding:var(--space-2);border:1px solid #c9d5e6;border-radius:var(--radius-control);background:#fff;color:var(--od-ink)}
+input[type=text],input[type=password],input[type=url],input[type=search],input[type=datetime-local],textarea,select{display:block;min-width:0;width:100%;min-height:36px;padding:var(--space-2);border:1px solid #c9d5e6;border-radius:var(--radius-control);background:#fff;color:var(--od-ink)}
 input[type=file]{min-width:0;width:100%;max-width:100%;font-size:12px}.export-actions select{width:auto;max-width:145px;min-width:92px}textarea{line-height:1.5;resize:vertical;overflow-wrap:anywhere}
 .text-button{min-height:36px;padding:var(--space-2) var(--space-3);border-radius:var(--radius-control);border:1px solid var(--od-line);background:#fff;color:var(--od-ink);white-space:nowrap}.text-button.primary{background:var(--od-brand);color:#fff;border-color:var(--od-brand)}.text-button.primary:hover:not(:disabled){background:#2b53bc}
 .danger-text{color:var(--od-negative)}.danger-button{color:#fff;background:var(--od-negative);border-color:var(--od-negative)}.danger-button:hover:not(:disabled){background:#852b35}
@@ -87,7 +87,7 @@ input[type=file]{min-width:0;width:100%;max-width:100%;font-size:12px}.export-ac
   :root{color-scheme:dark;background:#142033;color:#e5edfa;--od-ink:#e5edfa;--od-sub:#b3c1d6;--od-line:#3a4c65;--od-paper:#1e2b40;--od-bg:#16243a;--od-brand:#8badff;--od-negative:#ffacb3}
   .cookie-row,.text-button,.icon-button,.row-action,.mode-button.active,.confirmation{background:var(--od-paper);color:var(--od-ink);border-color:var(--od-line)}
   .cookie-row-trigger{color:var(--od-ink)}
-  input[type=text],input[type=url],input[type=search],input[type=datetime-local],textarea,select{background:var(--od-paper);color:var(--od-ink);border-color:var(--od-line)}
+  input[type=text],input[type=password],input[type=url],input[type=search],input[type=datetime-local],textarea,select{background:var(--od-paper);color:var(--od-ink);border-color:var(--od-line)}
   .field input:read-only{background:#263752;color:#d1dcef}
   .permission-help,.preview-banner{background:#223554;color:#dbe9ff;border-color:#475f84}
   .cookie-row-expanded{border-color:#708bc2}
