@@ -59,6 +59,9 @@ jobs:
       - name: Install locked dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Execute Cookie Editor and installed SDK positive/negative Node tests
+        # Global official-catalog parity is intentionally checked by npm test
+        # below: concurrent unrelated Sidebar Tool updates must not erase
+        # Cookie Editor-specific proof or its immutable candidate artifact.
         run: |
           node --test \
             tests/environment/browser-sdk-r9-installed-cookies.test.mjs \
@@ -72,7 +75,6 @@ jobs:
             tests/environment/cookie-editor-native-selection.test.mjs \
             tests/environment/extension-center-r47-interaction.test.mjs \
             tests/environment/sidebar-tool-enable-r26.test.mjs \
-            tests/environment/official-tools-catalog-r45.test.mjs \
             tests/environment/browser-sdk-interface-matrix.test.mjs \
             tests/environment/browser-sdk-coverage.test.mjs \
             tests/environment/browser-sdk-contract-compat.test.mjs
