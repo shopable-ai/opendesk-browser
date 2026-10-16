@@ -193,6 +193,31 @@ try{
   assert.equal(await page.locator('#r23-custom-config').isVisible(),true);
   assert.equal(await page.locator('#r23-endpoint').inputValue(),'');
   assert.equal((await state()).shareApproved.custom_https,false);
+  // R23.5: compact rows and one meaningful compatibility note, no repeated protocol prose.
+  assert.equal(await page.locator('#r23-custom-config').innerText(),'兼容 Chat Completions');
+  const visibleSettingsText=await page.locator('#r234-body').innerText();
+  for(const redundant of ['模型连接参数','协议：','旧版兼容','不支持任意 Header','仅本页内存']){
+    assert.equal(visibleSettingsText.includes(redundant),false,'redundant setting prose: '+redundant);
+  }
+  const compact=await page.evaluate(()=>{
+    const fields=[...document.querySelectorAll('#r23-remote-config .r234-field')];
+    const remote=document.getElementById('r23-remote-config'),secret=document.getElementById('r234-key-toggle');
+    return{height:remote.getBoundingClientRect().height,
+      rows:fields.map(row=>{const label=row.querySelector('label').getBoundingClientRect();
+        const control=(row.querySelector('.r234-secret')||row.querySelector('input')).getBoundingClientRect();
+        return{aligned:Math.abs((label.top+label.bottom)/2-(control.top+control.bottom)/2)<6,width:control.width};}),
+      hasIcon:secret.querySelectorAll('svg').length===1,
+      noVisibleLabel:!secret.textContent.trim(),
+      demoSubmitCount:document.querySelectorAll('.r23-demo button').length,
+      demoReadback:document.querySelector('#r23-readback').textContent};
+  });
+  assert.ok(compact.rows.every(row=>row.aligned&&row.width>=150),'compact inline labels and fields must align');
+  assert.ok(compact.height<=250,'field block too tall for a compact settings page');
+  assert.equal(compact.hasIcon,true);assert.equal(compact.noVisibleLabel,true);
+  assert.equal(compact.demoSubmitCount,0);
+  assert.equal(compact.demoReadback.includes('提交'),false);
+  mark('R23.5 compact field-row geometry, icon-only secret toggle, no duplicate prose or demo submit');
+
   await shot('r234-custom-empty');
   await page.locator('#r23-endpoint').fill('https://example.test/v1/chat/completions');
   await page.locator('#r23-model').fill('my-chat-model');
@@ -295,6 +320,13 @@ try{
     await page.locator('#settings').click();
     await page.locator('#r23-provider').selectOption('custom_https');
     await page.locator('#r23-api-key').scrollIntoViewIfNeeded();
+    const rowLayout=await page.evaluate(()=>[...document.querySelectorAll('#r23-remote-config .r234-field')].map(row=>{
+      const a=row.querySelector('label').getBoundingClientRect();
+      const b=(row.querySelector('.r234-secret')||row.querySelector('input')).getBoundingClientRect();
+      return{aligned:Math.abs((a.top+a.bottom)/2-(b.top+b.bottom)/2)<7,right:b.right,left:b.left};
+    }));
+    assert.ok(rowLayout.every(g=>g.aligned&&g.left>=0&&g.right<=innerWidth+1),
+      'all three compact AI fields aligned and horizontally visible');
     const g=await page.evaluate(()=>{
       const d=document.querySelector('.device'),panel=document.querySelector('#r23-settings-panel'),field=document.querySelector('#r23-api-key');
       const b=d.getBoundingClientRect(),p=panel.getBoundingClientRect(),f=field.getBoundingClientRect();
