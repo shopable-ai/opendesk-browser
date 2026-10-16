@@ -12,7 +12,7 @@ await mkdir(out,{recursive:true});
 const profile=await mkdtemp(join(tmpdir(),'bm-r3041-chrome-'));
 const chrome=spawn(process.env.CHROME_BIN||'chromium',[
   '--ozone-platform=x11','--no-sandbox','--disable-dev-shm-usage','--disable-gpu',
-  '--no-first-run','--window-size=1350,1100','--user-data-dir='+profile,'--remote-debugging-port=0','about:blank'
+  '--no-first-run','--window-size=1800,1100','--user-data-dir='+profile,'--remote-debugging-port=0','about:blank'
 ],{stdio:'ignore'});
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const pending=new Map(),contexts=new Map(),network=[],exceptions=[];
@@ -198,6 +198,9 @@ try{
   for(const width of [360,400,960]){
    await cdp('Page.navigate',{url:url+'?width='+width});
    const ctx=await findReactFrame();outer=await outerContext();
+   const frameRight=await invoke(outer,'return document.getElementById("opendesk-preview-frame").getBoundingClientRect().right');
+   const pageWidth=await evaluate('innerWidth',outer);
+   assert.ok(frameRight<=pageWidth+1,'React preview must not be cropped by outer Chrome viewport at '+zoom.percent+'% '+width);
    await until(ctx,'document.querySelector(".bm-heading span")?.textContent.includes("2,159")','React data at '+width+' '+zoom.percent);
    const dimensions=await invoke(ctx,'const t=document.querySelector(".bm-tree-scroll");return {h:t.clientHeight,root:innerWidth,scroll:document.documentElement.scrollWidth,scale:visualViewport.scale}');
    assert.ok(dimensions.h>180&&dimensions.scroll<=dimensions.root+1&&Math.abs(dimensions.scale-1)<.02,'zoom fits tree '+width);

@@ -81,7 +81,7 @@ jobs:
       - name: R3.0.4.1 real headed Chrome 100 125 150 percent Zoom keyboard and OS clipboard
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
-        run: xvfb-run -a -s '-screen 0 1440x1200x24' node examples/sidebar-tools/bookmark-manager/preview/r3041-chrome.mjs examples/sidebar-tools/bookmark-manager/preview/evidence/r3041
+        run: xvfb-run -a -s '-screen 0 1920x1200x24' node examples/sidebar-tools/bookmark-manager/preview/r3041-chrome.mjs examples/sidebar-tools/bookmark-manager/preview/evidence/r3041
       - name: Preserve exact candidate and browser evidence even on failure
         if: always()
         uses: actions/upload-artifact@v4
