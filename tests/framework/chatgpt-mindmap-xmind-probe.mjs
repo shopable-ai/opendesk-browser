@@ -65,7 +65,7 @@ try{
  await trigger(1).click();await ready(1);await trigger(2).click();await ready(2);
  assert.ok(await viewer(1).locator('.topic').count()>1);assert.ok(await viewer(2).locator('.topic').count()>1);passed('A/B both render actual XMind topics');
  const zoomBefore=await page.evaluate(()=>window.fixture.calls.controllers[0].getZoomPencentage());
- await control(1,'放大').click();await page.waitForTimeout(180);
+ await control(1,'放大导图').click();await page.waitForTimeout(180);
  const zoomAfter=await page.evaluate(()=>window.fixture.calls.controllers[0].getZoomPencentage());assert.ok(zoomAfter>zoomBefore);passed('Toolbar calls real SDK zoom');
  const expandedCount=await viewer(1).locator('.topic:visible').count();
  await control(1,'折叠所有分支').click();
