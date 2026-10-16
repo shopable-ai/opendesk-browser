@@ -17,7 +17,7 @@ permissions:
   contents: write
 concurrency:
   group: bookmark-r304-react-preview
-  cancel-in-progress: false
+  cancel-in-progress: true # only latest preview candidate should run; skip superseded tests
 jobs:
   react-preview-chromium:
     runs-on: ubuntu-latest
