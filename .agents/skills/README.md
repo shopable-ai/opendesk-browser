@@ -17,6 +17,21 @@
 
 **安装包归档默认规则（2026-10-15）：** 对需要交付并实际安装验收的 Sidebar Tool，只由上表的 Sidebar Tool 打包主 Skill 负责“忽略目录临时打包→测试→验证候选→显式晋升工具根目录唯一 `<id>.opendesk-tool.json`→同源码提交”。`opendesk-sidebar-tool-dev` 和自然语言创建工作流仅调用它，不自己造第二个打包器；不为每次迭代保存 R/日期后缀安装包。具体命令与真实安装证据分级见上表中唯一的 Sidebar Tool 打包 Skill。
 
+## R1.0 独立扩展所有权与六例防漂移路由
+
+**先选实际运行类型、业务代码所有权与当前阶段的一个主 Skill**。下表仅是**静态回归场景**，不是模型路由、真实 SDK 能力或安装通过的证据；第三方只需公开 SDK、示例与自身项目，不依赖 Browser 内部 `src/`。主 Skill 会随任务由业务开发转为正式打包，但不能因需要安装就自动归 Runtime。
+
+| 案例 | 类型 | 默认业务目录 | 主 Skill | 边界 / 缺口处理 |
+| --- | --- | --- | --- | --- |
+| A ChatGPT Mind Map 网页回复按钮 | Page USER_SCRIPT | `examples/programs/chatgpt-mindmap/` | `opendesk-script-authoring` | 复用 Page UI，正式安装由 `opendesk-program-publish`；XMind 固定 JS 的许可/预算/隔离单独审计，无通用证据时 `SDK_GAP_NOT_PROVEN` |
+| B Cookie Editor 仅优化已安装 UI | Sidebar Tool | `examples/sidebar-tools/cookie-editor/` | `opendesk-sidebar-tool-dev` | 业务 UI/React 与打包属于工具；若明确是受审可信后台业务才另路由 |
+| C Prompt Shortcuts 跨 AI 网站网页按钮 | Page USER_SCRIPT（按真实功能分类） | `examples/programs/<id>/` 或现有已确认业务目录 | `opendesk-script-authoring` | 优先公开 Page UI/网站授权；Sidebar 管理须另核现有身份，不能仅因为网页按钮重写 Browser Host |
+| D Bookmark Manager React UI | Sidebar Tool | `examples/sidebar-tools/bookmark-manager/` | `opendesk-sidebar-tool-dev` | 复用现有工具权限和打包，独立 UI 修改不新建 Installer |
+| E 通用 Page Program 安装/撤权缺陷 | Browser Framework | 原有 `src/` 平台模块 | `opendesk-extension-runtime` | 真正的平台需求允许定向修改 `src/` 并验证 Authority，不做 src 路径一刀切禁止 |
+| F 只读公开文档的第三方小工具 | Sidebar Tool | 独立 `examples/sidebar-tools/<id>/` | `opendesk-sidebar-tool-dev` | 公开 `OpenDeskTool.request`、Schema、示例就能开发已支持的功能；不需私有 Host 源码 |
+
+开发后正式发布：Sidebar Tool 使用 `opendesk-sidebar-tool-package`，Page Program 使用 `opendesk-program-publish`；需要经审计的第一方业务才由 `opendesk-trusted-sidebar-feature` 修改特定 `src/<feature>/`。平台缺口必须有可复现证据和最小公共接口/权限分析；未证实记 `SDK_GAP_NOT_PROVEN`，不可安全执行的特权动作记 `BLOCKED`。真实自动注入与已安装状态无同候选证据记 `NOT_TESTED`。完整关卡仍以[唯一创建工作流](../workflows/extension-creation.md)为准。
+
 ## 典型需求：每条仅一个主 Skill
 
 | 用户原话 | 唯一主 Skill | 需要协作时才采用 |
