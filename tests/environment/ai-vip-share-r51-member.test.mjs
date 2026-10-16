@@ -233,7 +233,7 @@ test('R5.2 pending status keeps lock; server-final rejection clears it',async()=
   node(e,'recovery-check').listeners.click({isTrusted:true});
   await flush();await flush();
   assert(store.value);
-  assert.match(node(e,'redeem-status').textContent,/仍未给出最终结论/);
+  assert.match(node(e,'redeem-error').textContent,/仍未给出最终结论/);
   status='rejected';
   node(e,'recovery-check').listeners.click({isTrusted:true});
   await flush();await flush();

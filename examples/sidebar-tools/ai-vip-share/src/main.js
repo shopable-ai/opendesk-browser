@@ -688,7 +688,7 @@
           stopRequested=false;
           // The STOP gesture happened while START was in flight.
           // Always ask the ownership-scoped SDK to disable; no unsafe
-          // chrome.proxy writes or interference with another owner.
+          // native proxy writes or interference with another owner.
           await stop({queued:true});
         }else await update({keepError:Boolean(lastError)});
       }

@@ -36,7 +36,7 @@ test('R5 official tool compiles member, redeem and store UI with canonical desig
   assert(!pkg.html.includes('id="proxy-toggle"'));
   assert(!pkg.html.includes('1 个月')&&!pkg.html.includes('3 个月'));
   assert(!pkg.js.includes('showModal')&&!pkg.js.includes('window.open('));
-  assert.match(pkg.js,/sdk\.create\(\{url:catalog\}\)/);
+  assert.match(pkg.js,/shopSdk\.create\(\{url:catalog\}\)/);
 });
 
 test('R5 existing host shows isolated product and a single trusted proxy card',async()=>{
