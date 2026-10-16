@@ -117,7 +117,7 @@ test('R5 conflict never enables proxy, but stops outstanding own intent',async()
 test('R5 no Provider, SKU or shop can invent business success',async()=>{
   const html=await readFile('examples/sidebar-tools/ai-vip-share/src/index.html','utf8');
   const script=await readFile('examples/sidebar-tools/ai-vip-share/src/main.js','utf8');
-  assert.match(html,/正式会员服务尚未接入/);
+  assert.match(html,/暂无法查询账号与会员权益/);
   assert.match(html,/会员服务接入后可使用兑换码/);
   assert.doesNotMatch(html,/id="ai-vip-remaining">—|id="ai-vip-remaining-unit">待核验/);
   assert.match(html,/专属激活链接续接尚未接入正式安装与服务验证流程/);
