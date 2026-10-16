@@ -162,7 +162,7 @@ try{
     const url=route.request().url();
     if(url.startsWith('https://chatgpt.com/')){
       return route.fulfill({status:200,contentType:'text/html; charset=utf-8',
-        headers:{'Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'"},
+        headers:{'Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; frame-src https://chatgpt.com"},
         body:html});
     }
     return route.abort();
@@ -287,6 +287,96 @@ try{
     topics:topicsA+topicsB,buttons:3});
   assert.equal(await page.evaluate(()=>typeof window.JSZip),'undefined');
   record('XMind_GLOBALS_ISOLATED_FROM_PAGE_MAIN','PASS');
+
+  // R3.9.3 experiment ONLY: a genuinely sandboxed child browsing context
+  // receives the original fixed files through the native USER_SCRIPT API.
+  // The parent never receives vendor bytes and must not acquire Snowbrush CSS.
+  // This does not bridge answer content or satisfy production Broker admission.
+  {
+    const frameReport={scope:'TEMPORARY_TEST_ONLY_NO_BROKER_NO_PRODUCTION_LICENSE',
+      childOrigin:'NOT_TESTED',parentStyleBefore:'NOT_TESTED',
+      parentStyleAfter:'NOT_TESTED',childStyle:'NOT_TESTED',
+      vendorExecution:'NOT_TESTED',productBridge:'NOT_TESTED'};
+    const sandboxPage=await context.newPage();
+    try{
+      const parentURL=fixtureURL+'?r393_parent=1';
+      const childURL=fixtureURL+'?r393_child=1';
+      await sandboxPage.goto(parentURL,{waitUntil:'domcontentloaded'});
+      frameReport.parentStyleBefore=await sandboxPage.locator('style#snowbrush_style').count();
+      assert.equal(frameReport.parentStyleBefore,0,
+        'The unmodified parent fixture must be free of Snowbrush CSS');
+      const navigation=sandboxPage.waitForEvent('framenavigated',{
+        predicate:frame=>frame.url()===childURL,timeout:15000});
+      await sandboxPage.evaluate(url=>{
+        const frame=document.createElement('iframe');
+        frame.dataset.r393='real-xmind-sandbox';
+        frame.setAttribute('sandbox','allow-scripts');
+        frame.src=url;
+        frame.style.cssText='display:block;width:960px;height:680px;border:0';
+        document.body.append(frame);
+      },childURL);
+      await navigation;
+      const child=sandboxPage.frames().find(frame=>frame.url()===childURL);
+      assert(child,'R393 sandbox frame missing');
+      frameReport.childOrigin=await child.evaluate(()=>self.origin);
+      assert.equal(frameReport.childOrigin,'null',
+        'The XMind child must have an opaque sandbox origin');
+      const isolatedTab=await native(async url=>{
+        const tabs=await chrome.tabs.query({url:'https://chatgpt.com/*'});
+        return tabs.find(row=>row.url===url)?.id??null;
+      },parentURL);
+      assert(Number.isSafeInteger(isolatedTab),'R393 iframe host tab ID missing');
+      // Discover the child frame ID using a harmless, bounded native probe.
+      // Never inject the four fixed files with allFrames=true: that would
+      // contaminate the parent and make this isolation test meaningless.
+      const frames=await native(async({tabId,worldId})=>
+        chrome.userScripts.execute({target:{tabId,allFrames:true},world:'USER_SCRIPT',
+          worldId,js:[{code:'({href:location.href,child:window!==window.top})'}]}),
+      {tabId:isolatedTab,worldId});
+      const target=frames.find(row=>row.result?.href===childURL&&row.result?.child);
+      assert(target&&Number.isSafeInteger(target.frameId),
+        'R393 native USER_SCRIPT could not target opaque child frame');
+      const boot=await native(async({tabId,frameId,worldId,js,sourceUtf8})=>
+        chrome.userScripts.execute({target:{tabId,frameIds:[frameId]},
+          world:'USER_SCRIPT',worldId,
+          js:[...js,{code:sourceUtf8+
+            '\n;main().then(value=>({ok:true,value}),error=>({ok:false,message:String(error?.message||error)}))'}]}),
+      {tabId:isolatedTab,frameId:target.frameId,worldId,js,sourceUtf8:source});
+      assert.equal(boot.length,1);
+      assert.equal(boot[0].error,undefined,JSON.stringify(boot[0].error));
+      assert.equal(boot[0].result?.ok,true,JSON.stringify(boot[0].result));
+      frameReport.vendorExecution='PASS_NATIVE_FILE_BACKED_USER_SCRIPT_CHILD_FRAME';
+      const button=child.locator('[data-opendesk-chatgpt-mindmap="button"] button');
+      await button.first().waitFor({timeout:20000});
+      assert.equal(await button.count(),3);
+      await button.first().click();
+      await child.locator('.topic').first().waitFor({timeout:30000});
+      frameReport.realTopics=await child.locator('.topic').count();
+      assert(frameReport.realTopics>=3,
+        'Original Snowbrush topics must actually render in child');
+      frameReport.childStyle=await child.locator('style#snowbrush_style').count();
+      frameReport.parentStyleAfter=await sandboxPage.locator('style#snowbrush_style').count();
+      assert(frameReport.childStyle>0,'Original Snowbrush CSS not observed in iframe');
+      assert.equal(frameReport.parentStyleAfter,0,
+        'Snowbrush style leaked from sandbox child into host document');
+      await child.locator('[data-opendesk-chatgpt-mindmap="viewer"]')
+        .first().getByRole('button',{name:'恢复本条回复原文'}).click();
+      await child.locator('[data-opendesk-chatgpt-mindmap="viewer"]')
+        .first().waitFor({state:'detached',timeout:30000});
+      await sandboxPage.locator('iframe[data-r393]').evaluate(node=>node.remove());
+      assert.equal(await sandboxPage.locator('style#snowbrush_style').count(),0);
+      frameReport.frameDisposed=true;
+      report.r393FrameIsolation='PASS_TEST_ONLY_FRAME_CONTEXT';
+      record('R393_SANDBOX_IFRAME_REAL_XMIND_STYLE_PROBE','PASS',frameReport);
+    }catch(error){
+      frameReport.failure=String(error?.stack||error).slice(0,2500);
+      report.r393FrameIsolation='BLOCKED_TEST_ONLY_FRAME_CONTEXT';
+      record('R393_SANDBOX_IFRAME_REAL_XMIND_STYLE_PROBE','BLOCKED',frameReport);
+    }finally{
+      await sandboxPage.close().catch(()=>{});
+    }
+  }
+
 
   // Packaging alternative to an oversized inline Program source: Chrome can
   // register real, fixed files directly from the SAME extension package.
