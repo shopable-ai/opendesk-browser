@@ -1,6 +1,6 @@
 # OpenDesk Browser：单文件即时运行与多文件项目开发
 
-更新：2026-10-11（ESM R2 补充 HTTPS 首次审阅与入口规则）。
+更新：2026-10-11（ESM R2 补充 HTTPS 首次审阅与入口规则）。**本页中 R12“尚未交付”的断言属于当时历史快照；当前正式 Page 状态以 [Page USER_SCRIPT 开发与安装分级合同](../api/page-userscript.zh-CN.md)、真实安装身份和定向测试为准。**
 
 **当前中文主入口：[docs/api](../api/README.md)**，从[快速入门](../api/quickstart.zh-CN.md)开始；精确参数见[七个 MCP 工具](../api/mcp-local-development.zh-CN.md)。沿用现有“我的 / 发现 / 开发 / 工具”和 RunHost，不重新设计 Sidebar，也不恢复已移除的依赖配置界面。
 
@@ -49,7 +49,7 @@ async function main() {
 
 不必为了保存普通 JS 手写 @match：没有 UserScript 头的源码，在独立 pageRules 中采用**当前 HTTP(S) 协议和主机**范围（同主机其他端口可能匹配），不会扩大到所有网站，也不改变源码字节；有 UserScript 头时保留原始声明。正式冻结验证与安装仍须逐项确认。旧版 @require 仍只接受已有固定批准锁。页面导航、草稿更改后，必须重新预览才能再次保存。可见的 Candidate ID 与 manifestHash 是待审核身份，不是安装/授权凭证。
 
-尚未交付的 P0：独立 Page Verified/Available 权威、真实 `chrome.userScripts.register/getScripts/unregister`、匹配规则原生验证、用户确认安装、启停/撤权后的下一文档阻断、SW 重启对账、更新回滚。**请勿把「保存网页脚本版本」解释成已经启用。** 当前还不要求依赖 Codex/MCP 常驻才能读取保存的 Candidate，但无法将其作为安装脚本使用。
+**R12 历史待办（非当前最新能力清单）**：当时尚缺独立 Page Verified/Available、`chrome.userScripts.register/getScripts/unregister`、匹配规则验证、安装确认、停用/撤权、SW 重启与更新回滚。其后可能已实现部分公共能力；请以现行公开 [Page 合同](../api/page-userscript.zh-CN.md) 与同候选真实测试核对，不以这条历史陈述否定或宣称当前实现。**保存 Candidate 始终不等于已启用。** 当前还不要求依赖 Codex/MCP 常驻才能读取保存的 Candidate，但无法将其作为安装脚本使用。
 
 ## 本地目录开发：直接修改源码并通过 MCP 执行
 
