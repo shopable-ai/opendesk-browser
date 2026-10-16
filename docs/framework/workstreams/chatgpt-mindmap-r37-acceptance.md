@@ -124,3 +124,14 @@ npm run check
 ```
 
 真实浏览器探针：`tests/framework/chatgpt-mindmap-xmind-probe.mjs` 和 `tests/framework/chatgpt-mindmap-chatgpt-probe.mjs`，工作流：`.github/workflows/chatgpt-mindmap-preview.yml`。运行前检查 GitHub 最新 `main` SHA，不能复制本报告中的旧哈希冒充后来修改过的源码。**报告只列出已取得的 CI 证明；更晚的 CI 以 GitHub Job/Artifact 真实结果为准。**
+
+
+## 9. R3.7 最终专项 CI 完整闭环（2026-10-16）
+
+最后一次 R3.7 文档同步提交为 [`fe47d8c0e7cb61b3efae6857db5a0622b9780bd3`](https://github.com/shopable-ai/opendesk-browser/commit/fe47d8c0e7cb61b3efae6857db5a0622b9780bd3)。[**Actions #38868806490**](https://github.com/shopable-ai/opendesk-browser/actions/runs/38868806490) 最终 `offline-source-contract: success`、`real-local-xmind-html: success`。这是对最终 R3.7 测试代码与文档版本的实际 Chromium / 源码 / 构建闭环；后续别的 Agent 提交到 `main` 时仍应重新检查相应 SHA。
+
+- [真实 Chromium 视觉与交互证据 Artifact](https://github.com/shopable-ai/opendesk-browser/actions/runs/38868806490/artifacts/12031728889)：ZIP SHA-256 `49364e225833ada2a3a7b548fba90dbc570a58fe6f7872e24c388d328e7672a0`；`chatgpt-result.json` 明确记录 `MOBILE_FIT_AFTER_MANUAL_PAN_RETURNS_READABLE_ROOT`，鼠标横向滚动后 `.workbook-item.scrollLeft` 先 `176 → 411`，点「适配」后回到 `176`；实际 180px 根节点重新充分可见；源码测试不会以跳过断言冒充通过。
+- 同 Artifact `screenshot-evidence.json` 记录 19 次截图，已在独立审阅容器逐项用 Python 重新计算 SHA-256，**19/19 一致**。机器生成时 `visualReview=SCREENSHOT_NOT_VERIFIED` 仍如实保留，不把 ChatGPT 登录页、Mac 真机或用户设计批准混同为预览截图。
+- [独立 Program 构建 Artifact](https://github.com/shopable-ai/opendesk-browser/actions/runs/38868806490/artifacts/12031499681)：ZIP SHA-256 `ddb4e8e16ab5529e0fa063198207c1a847ebc634b53737a7cb203c6d2430c6b6`；独立重新读取 3 个文件并计算 SHA-256，`program.js` 为 `e17e473394c6b8269277ff1373c831346706d03f6bbfb912c759767194f25799`、`program.opendesk-draft.json` 为 `e44eae02bf790ec8a4a0811e809ff2e76b8d013d8b8d69895dd40e2faa94546a`、`artifact.json` 为 `98790b297745590b4378dbc52fe625224912fe3fb2dfce4b673fc87f6d3803aa`，**3/3 一致**。CI 仍是 `BUILT_UNVERIFIED / installable:false`。
+- **最终范围边界不变**：真实预览、移动端完整可读根节点、真实滚动与适配、Icon 工具栏及各尺寸、CI/Program 构建可验证；Mac Native `NOT_TESTED`，生产许可/可信 XMind Runtime/全局样式隔离 `BLOCKED`，设计 `PENDING_USER_CONFIRMATION`。本轮无浏览器宿主根 `src/` 业务修改。
+
