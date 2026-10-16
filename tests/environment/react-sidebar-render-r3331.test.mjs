@@ -67,10 +67,20 @@ test('R33.3.1 renders extension toolbar, rows and detail as real React elements'
     container:null,model:{text:'异常 <img onerror=evil()>',state:'error'}
   }));
   assert.match(status,/&lt;img onerror=evil\(\)&gt;/);
-  const {DeveloperTargetText}=await vite.ssrLoadModule('/src/ui/react/tabs/develop.tsx');
+  const {DeveloperTargetText,DeveloperActions}=await vite.ssrLoadModule('/src/ui/react/tabs/develop.tsx');
   const devIndicator=renderToStaticMarkup(React.createElement(DeveloperTargetText,{
     value:'网页标题 <svg onload=alert(1)>',node:null,title:'bad',state:'available'
   }));
   assert.match(devIndicator,/&lt;svg onload=alert\(1\)&gt;/);
   assert.doesNotMatch(devIndicator,/<svg\b/i);
+  const actions=renderToStaticMarkup(React.createElement(DeveloperActions,{model:{
+    runLabel:'运行 <img onerror=evil()>',runDisabled:true,
+    saveLabel:'保存版本',saveDisabled:false,saveHidden:false,saveTitle:'保存草稿',
+    stopLabel:'停止',stopDisabled:true
+  }}));
+  assert.match(actions,/id="script-run"[^>]*disabled=""/);
+  assert.match(actions,/id="script-save"/);
+  assert.match(actions,/id="script-stop"[^>]*disabled=""/);
+  assert.match(actions,/&lt;img onerror=evil\(\)&gt;/);
+  assert.doesNotMatch(actions,/<img\b/i);
 });
