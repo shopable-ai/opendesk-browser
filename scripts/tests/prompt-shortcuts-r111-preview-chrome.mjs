@@ -96,6 +96,23 @@ async function run(){
   assert.equal(x.cards,4);assert.equal(x.clamp,'2');assert(x.firstContent.includes('\n1. '));
   assert(x.firstButton.startsWith('使用完整提示词'));
   assert.equal(x.copyDialog,false);assert.equal(x.shapeInputs,0);
+  // R1.16 all SVG icons come from inline source with accessible button names.
+  const icons=await evalChrome('('+function(){
+    const a=document.querySelector('#addButton');
+    const ids=['addButton','hostBack','hostSettings','themeButton','resetButton'];
+    const named=ids.map(id=>({id,button:document.getElementById(id),svg:document.getElementById(id)?.querySelector('svg use')}));
+    const r=a.getBoundingClientRect();
+    return {symbols:document.querySelectorAll('.od-icon-sprite symbol').length,
+      names:named.map(x=>({id:x.id,name:x.button?.getAttribute('aria-label'),href:x.svg?.getAttribute('href')})),
+      addVisibleText:a.textContent.trim(),addBounds:{width:r.width,height:r.height},
+      cardButtons:document.querySelector('.prompt-card').querySelectorAll('.prompt-actions button').length};
+  }.toString()+')()');
+  assert(icons.symbols>=15);
+  assert.equal(icons.addVisibleText,'');
+  assert(icons.addBounds.width>=40&&icons.addBounds.height>=40);
+  assert(icons.names.every(x=>x.name&&x.href?.startsWith('#ps-icon-')));
+  assert.equal(icons.cardButtons,1);
+  report.iconOnlyPrimaryActions=true;
   for(const width of [320,360,400,440]){
     await click('#size'+width);x=await state();
     assert.equal(x.width,width);assert.equal(x.overflow,false,'panel overflow '+width);
@@ -104,7 +121,29 @@ async function run(){
   assert.equal(await evalChrome('document.querySelector("#indexHeading")===null'),true);
   assert.equal(await evalChrome('getComputedStyle(document.querySelector("#listCount")).position'),"absolute");
   assert.equal(await evalChrome('!document.querySelector("#addButton").hidden'),true);
-  // R1.14 trusted settings: three switches and multi-site status (no fake site authorization).
+  // Narrow sidebar must keep the icon toolbar unobstructed and focusable.
+  await click('#size320');
+  await click('.prompt-actions button[aria-label^="更多操作"]');
+  const iconMenu=await evalChrome('('+function(){
+    const bar=document.querySelector('.prompt-more'),buttons=[...bar.querySelectorAll('button')];
+    const card=bar.closest('.prompt-card'),panel=document.querySelector('#sidepanel');
+    return {count:buttons.length,labels:buttons.map(x=>x.getAttribute('aria-label')),
+      titles:buttons.map(x=>x.title),allSvg:buttons.every(x=>x.querySelector('svg use')),
+      noVisibleText:buttons.every(x=>x.textContent.trim()===''),
+      sizes:buttons.map(x=>[Math.round(x.getBoundingClientRect().width),Math.round(x.getBoundingClientRect().height)]),
+      noOverflow:bar.scrollWidth<=bar.clientWidth+1&&card.scrollWidth<=card.clientWidth+1&&panel.scrollWidth<=panel.clientWidth+1,
+      focused:document.activeElement?.getAttribute('aria-label')};
+  }.toString()+')()');
+  assert.equal(iconMenu.count,6);
+  assert.deepEqual(iconMenu.labels.map(x=>x.split('：')[0]),['编辑','停用','上移','下移','复制','删除']);
+  assert(iconMenu.allSvg&&iconMenu.noVisibleText&&iconMenu.noOverflow);
+  assert(iconMenu.sizes.every(([w,h])=>w>=38&&h>=38));
+  assert(iconMenu.focused.startsWith('编辑：'));
+  await shot('icon-toolbar-320px');
+  await click('.prompt-actions button[aria-label^="更多操作"]');
+  await click('#size440');
+  report.responsiveIconToolbar=true;
+  // R1.16 trusted settings: three switches and multi-site status (no fake site authorization).
   await click('#hostSettings');
   assert.equal(await evalChrome('!document.querySelector("#settingsView").hidden'),true);
   assert.equal(await evalChrome('document.querySelector("#hostToolTitle").textContent'),"工具设置");
@@ -123,8 +162,11 @@ async function run(){
   assert.equal(await evalChrome('document.querySelector("#pageRail").hidden'),false);
   await click('#contextSwitch');
   assert.equal(await evalChrome('document.querySelector("#contextSwitch").checked'),true);
+  assert.equal(await evalChrome('document.querySelector("#sitesButton").textContent.trim()'),"");
   await click('#sitesButton');
   assert.equal(await evalChrome('!document.querySelector("#siteDetails").hidden'),true);
+  assert.equal(await evalChrome('document.querySelector("#sitesButton").getAttribute("aria-expanded")'),"true");
+  assert.equal(await evalChrome('document.querySelector("#sitesButton").getAttribute("aria-label")'),"收起适用网站");
   assert.equal(await evalChrome('document.querySelector("#siteDetails").textContent.includes("其他 AI 网站仍须逐站验证")'),true);
   await click('#hostBack');
   assert.equal(await evalChrome('!document.querySelector("#indexView").hidden'),true);
@@ -138,8 +180,8 @@ async function run(){
   await evalChrome('(()=>{const f=document.querySelector("#mockDraft");f.value="已有内容";f.setSelectionRange(4,4);})()');
   await click('.prompt-use');x=await state();assert(x.draft.startsWith('已有内容'));report.preservedExisting=true;
   await click('.prompt-actions button[aria-label^="更多操作"]');
-  assert.equal(await evalChrome('document.activeElement?.textContent==="编辑"'),true);
-  await click('.prompt-more button:first-child');
+  assert.equal(await evalChrome('document.activeElement?.getAttribute("aria-label")?.startsWith("编辑：")'),true);
+  await click('.prompt-more button[aria-label^="编辑："]');
   x=await state();assert.equal(x.editing,true);assert.equal(x.shapeInputs,0);
   assert.equal(await evalChrome('document.querySelector("#hostToolTitle").textContent'),"编辑提示词");
   assert.equal(await evalChrome('document.querySelector("#formView h2")===null'),true);
@@ -197,12 +239,32 @@ async function run(){
   x=await state();assert.equal(x.cards,4);
   await click('.prompt-actions button[aria-label^="更多操作"]');
   assert(await evalChrome('!!document.querySelector(".prompt-more")'));
-  assert.equal(await evalChrome('document.activeElement?.textContent==="编辑"'),true);
+  assert.equal(await evalChrome('document.activeElement?.getAttribute("aria-label")?.startsWith("编辑：")'),true);
   await evalChrome('document.dispatchEvent(new KeyboardEvent("keydown",{key:"Escape",bubbles:true}))');
   assert.equal(await evalChrome('document.querySelector(".prompt-more")===null'),true);
   assert.equal(await evalChrome('document.activeElement?.getAttribute("aria-label")?.startsWith("更多操作")'),true);
   await click('.prompt-actions button[aria-label^="更多操作"]');
-  assert(await evalChrome('!!document.querySelector(".prompt-more")'));report.managementSeparate=true;
+  assert(await evalChrome('!!document.querySelector(".prompt-more")'));
+  // A visually hidden action must still have a complete operation and preserve identity/focus.
+  await click('.prompt-more button[aria-label^="下移："]');
+  assert.equal(await evalChrome('document.querySelector(".prompt-card").dataset.id'),"b");
+  assert.equal(await evalChrome('document.querySelector(".prompt-card:nth-child(2)").dataset.id'),"a");
+  assert.equal(await evalChrome('document.activeElement?.getAttribute("aria-label")?.startsWith("下移：")'),true);
+  await click('.prompt-more button[aria-label^="上移："]');
+  assert.equal(await evalChrome('document.querySelector(".prompt-card").dataset.id'),"a");
+  await click('.prompt-more button[aria-label^="停用："]');
+  assert.equal(await evalChrome('document.querySelector(".prompt-card").classList.contains("is-disabled")'),true);
+  assert.equal(await evalChrome('!!document.querySelector(".prompt-more button[aria-label^=\"启用：\"]")'),true);
+  await click('.prompt-more button[aria-label^="启用："]');
+  assert.equal(await evalChrome('document.querySelector(".prompt-card").classList.contains("is-disabled")'),false);
+  await click('.prompt-more button[aria-label^="删除："]');
+  assert.equal(await evalChrome('!!document.querySelector(".prompt-delete")'),true);
+  assert.equal(await evalChrome('document.querySelector(".prompt-delete").textContent.includes("确认删除")'),true);
+  await shot('delete-confirm-icon-440px');
+  await click('.prompt-delete button:first-child');
+  assert.equal(await evalChrome('document.querySelectorAll(".prompt-card").length'),4);
+  await click('#resetButton');
+  report.iconActionsReorderToggleDelete=true;report.managementSeparate=true;
   await evalChrome('(()=>{const f=document.getElementById("actionScenario");f.value="clipboard-failure";f.dispatchEvent(new Event("change",{bubbles:true}));})()');
   // The preview deliberately debounces repeated activation of one prompt for 650ms.
   // Reaching the clipboard-failure scenario requires a fresh real user click.
