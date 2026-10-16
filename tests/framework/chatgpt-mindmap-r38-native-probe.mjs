@@ -76,10 +76,40 @@ try{
       '--disable-extensions-except='+extension,'--load-extension='+extension]
   });
   report.chrome=context.browser()?.version()||'unknown';
-  let sw=context.serviceWorkers()[0]||await context.waitForEvent('serviceworker',{timeout:25000});
-  const match=/^chrome-extension:\/\/([a-p]{32})\//.exec(sw.url());
-  assert(match,'Real OpenDesk extension service worker is not present');
-  const extensionId=match[1];report.extensionId=extensionId;
+  // First observe the loaded extension through Chrome's real management UI;
+  // absence is a browser-loading failure, NOT an XMind runtime result.
+  const manager=await context.newPage();
+  let extensionId;
+  try{
+    await manager.goto('chrome://extensions/',{waitUntil:'domcontentloaded'});
+    const items=manager.locator('extensions-item');
+    await items.first().waitFor({timeout:12000});
+    const observed=await items.evaluateAll(nodes=>nodes.map(node=>({
+      id:node.data?.id||node.id,
+      name:node.data?.name||node.shadowRoot?.querySelector('#name')?.textContent?.trim()||''
+    })));
+    report.extensionsObserved=observed;
+    const installed=observed.find(item=>item.name==='OpenDesk Browser');
+    assert(installed,'E_EXTENSION_NOT_LOADED: No OpenDesk Browser extension card');
+    assert.match(installed.id,/^[a-p]{32}$/);
+    extensionId=installed.id;
+    record('CHROME_REAL_EXTENSION_MANAGEMENT_CARD','PASS',{id:extensionId});
+  }finally{await manager.close();}
+  report.extensionId=extensionId;
+  // Chrome MV3 workers are lazy: opening a packaged extension UI through a
+  // real tab is a product action, not synthetic worker or execution RPC.
+  const extensionUI=await context.newPage();
+  await extensionUI.goto('chrome-extension://'+extensionId+'/ui/tool.html',
+    {waitUntil:'domcontentloaded'}).catch(error=>{
+      report.extensionUIError=String(error);
+    });
+  const activeWorker=()=>context.serviceWorkers()
+    .find(worker=>worker.url().startsWith('chrome-extension://'+extensionId+'/'));
+  let sw=activeWorker()||await context.waitForEvent('serviceworker',{
+    predicate:worker=>worker.url().startsWith('chrome-extension://'+extensionId+'/'),
+    timeout:15000
+  });
+  assert(sw,'E_EXTENSION_WORKER_NOT_RUNNING');
   record('ACTUAL_WXT_EXTENSION_SERVICE_WORKER','PASS',{url:sw.url()});
   const available=async()=>{
     sw=context.serviceWorkers().find(worker=>worker.url().startsWith('chrome-extension://'+extensionId+'/'))||sw;
