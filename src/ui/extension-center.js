@@ -327,6 +327,43 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       if(row)message('扩展安装状态或固定身份已变化，已返回列表；请重新核对后操作。','info');
       return;
     }
+    if(extensionList){
+      // React solely owns extension-center-detail-body; keep the authoritative
+      // verified identity check and all existing Host/permission routes above.
+      const focused=doc.activeElement?.dataset?.ecDetailAction||detailFocusAction;
+      const actions=[];
+      const add=(label,id,onClick)=>actions.push({label,id,onClick});
+      if(row.kind==='app'){
+        if(!row.installed){
+          if(row.cleanupPending)
+            add('恢复卸载清理','cleanup',event=>{void retryCleanup(row,event);});
+          else add('审阅并安装','install',()=>openReview(row.key));
+        }else{
+          if(row.stateKnown!==false)
+            add('设置与权限','settings',()=>{backIfNeeded();sidebarTools.openSettings(row.id);});
+          if(row.update&&row.release)add('审阅新版','update',()=>openReview(row.key));
+        }
+      }else if(row.installed){
+        if(row.stateKnown!==false)
+          add(row.enabled?'停用自动运行':'启用自动运行','toggle',
+            event=>{void togglePage(row,event);});
+        add('前往开发','develop',()=>{if(taskWorkbench.navigate('develop')!==false)backIfNeeded();});
+      }
+      extensionList.renderDetail({
+        key:row.key,title:titleOf(row),type:typeOf(row),kind:row.kind,
+        description:rowDescription(row),actions,busy:Boolean(busy||pendingKey),
+        focusAction:focused,
+        installed:row.installed,cleanupPending:row.cleanupPending,
+        version:row.version,source:sources[row.id]||null,
+        sites:row.kind==='page'?(row.record?.installed?.pageRules?.matches||[]):[],
+        suspended:row.kind==='page'&&row.record?.installed?.authorization?.status==='suspended',
+        installationText:row.installed?
+          ('本机已安装 · '+(row.stateKnown===false?'状态待核对':row.enabled?'已启用':'已停用')):
+          (row.cleanupPending?'已从安装记录移除 · 卸载清理待恢复':
+            '官方目录中的固定发行候选 · 尚未安装')
+      });
+      return;
+    }
     const area=get('extension-center-detail-body'),focused=doc.activeElement?.dataset?.ecDetailAction||detailFocusAction;
     area.replaceChildren();
     const head=node('div','ec-detail-head'),glyph=node('span','ec-glyph');

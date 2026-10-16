@@ -6,7 +6,7 @@
 
 正式入口继续是 `src/entrypoints/tool-shell.js` → `src/ui/tool-shell.js` → `ui/tool-shell.js`（不增加 WXT 入口或独立 HTML）。原 `examples/sidebar-tools/` HTML/JS、Vue、React 工具、安装包、SDK、Sandbox、版本、用户数据默认原样保留。每块 DOM **同时只能有一位运行时所有者**；没有完成真实迁移与回归的页面保持原样。
 
-**R33.3 首次实施的真实范围：** 正式「扩展」Tab 的列表 `#extension-center-list` 已采用 `src/ui/react/tabs/tools.tsx`，可信安装/启停/审阅仍走既有 `extension-center.js` 与 Sidebar Host；扩展筛选/详情、开发、工作流、我的、云控仍为旧视图，**不可据此声称五 Tab 已完成**。组件暂使用 React 19、原有 OpenDesk Button/Tokens 与浏览器原生 ARIA；React Aria/shadcn 成熟控件、Tailwind 组件构建须先实测预算/焦点/隔离再逐项接入，不得虚报已交付。真实 Node、WXT 与 Chromium 结果按当前源码候选独立记录，禁止引用历史 CI 冒充验收。
+**R33.3 首次实施的真实范围：** 正式「扩展」Tab 的列表 `#extension-center-list` 和详情容器 `#extension-center-detail-body` 已采用 `src/ui/react/tabs/tools.tsx`，可信安装/启停/审阅仍走既有 `extension-center.js` 与 Sidebar Host；扩展筛选/菜单/安装导入及开发、工作流、我的、云控仍为旧视图，**不可据此声称五 Tab 已完成**。组件暂使用 React 19、原有 OpenDesk Button/Tokens 与浏览器原生 ARIA；React Aria/shadcn 成熟控件、Tailwind 组件构建须先实测预算/焦点/隔离再逐项接入，不得虚报已交付。真实 Node、WXT 与 Chromium 结果按当前源码候选独立记录，禁止引用历史 CI 冒充验收。
 
 
 > **2026-10-16 用户最新决策。** 本文件是 React UI 相关任务的唯一产品/架构目标；此前 R32.8「只验证 React 开发能力」和 R33.0「只做局部 React 试点」属于历史阶段，不得覆盖本轮目标。**本文是待实施合同，不等于 React 重构已经完成或得到 Chrome 原生 PASS。**
