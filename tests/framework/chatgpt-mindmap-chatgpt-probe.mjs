@@ -323,6 +323,19 @@ try{
   await more.focus();await page.keyboard.press('ArrowDown');
   assert.equal(await more.getAttribute('aria-expanded'),'true');
   assert.equal(await viewer(2).locator('.odmm-menu button:focus').count(),1);
+  report.narrowMenuMetrics=await viewer(2).evaluate(host=>{
+    const panel=host.shadowRoot.querySelector('.odmm-menu');
+    return {width:panel.getBoundingClientRect().width,
+      buttons:[...panel.querySelectorAll('button:not([hidden])')].map(el=>({
+        label:el.getAttribute('aria-label'),width:el.getBoundingClientRect().width,
+        height:el.getBoundingClientRect().height}))};
+  });
+  assert.ok(report.narrowMenuMetrics.buttons.every(item=>
+    item.width>=report.narrowMenuMetrics.width-14&&item.height>=44),
+  'Menu item text and focus must be inside an entire clickable row');
+  const panHint=await viewer(2).evaluate(host=>getComputedStyle(
+    host.shadowRoot.querySelector('.odmm-canvas'),'::after').content);
+  assert.match(panHint,/左右拖动查看分支/);
   await page.keyboard.press('ArrowDown');
   assert.equal(await viewer(2).locator('.odmm-menu button[data-action="refresh"]:focus').count(),1);
   await page.keyboard.press('Home');
@@ -354,6 +367,25 @@ try{
     '320px screen must never gain page-level horizontal scrolling');
   report.mobile=mobile;
   await capture('chatgpt-mobile-320.png',{fullPage:true});
+  const getPan=()=>viewer(2).evaluate(host=>{
+    const scroller=host.shadowRoot.querySelector('.workbook-item');
+    return {left:scroller?.scrollLeft??null,extent:scroller?.scrollWidth??null,
+      client:scroller?.clientWidth??null};
+  });
+  const beforePan=await getPan();
+  await viewer(2).locator('.odmm-canvas').hover();
+  await page.mouse.wheel(235,0);
+  await page.waitForFunction(previous=>{
+    const host=document.querySelector('[data-testid="conversation-turn-2"] [data-opendesk-chatgpt-mindmap="viewer"]');
+    const scroller=host?.shadowRoot?.querySelector('.workbook-item');
+    return scroller&&Math.abs(scroller.scrollLeft-previous)>10;
+  },beforePan.left,{timeout:12000});
+  report.mobilePan={before:beforePan,after:await getPan()};
+  assert.ok(report.mobilePan.after.left>report.mobilePan.before.left+10,
+    'Actual XMind scroller must reveal off-screen branches via horizontal wheel');
+  await capture('chatgpt-mobile-320-panned.png',{fullPage:true});
+  report.checks.push('MOBILE_REAL_XMIND_HORIZONTAL_BROWSE');
+  await viewer(2).getByRole('button',{name:'适配导图画布'}).click();
   for(const width of [375,390,768,1440]){
     await page.setViewportSize({width,height:860});
     await page.waitForFunction(expected=>document.documentElement.clientWidth===expected,
