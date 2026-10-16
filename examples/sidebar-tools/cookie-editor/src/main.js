@@ -147,7 +147,6 @@ function ask(message,label,callback){
   confirm.hidden=false;E('confirm-cancel').focus();
 }
 function clearImportPreview(){
-  importFileSequence++;
   importPreview=null;E('live-import-preview').hidden=true;
   E('live-import-preview').textContent='';E('live-import-confirm').hidden=true;
 }
@@ -1077,6 +1076,7 @@ function prepareImport(){
   }catch(error){status('导入检查失败：'+String(error.message||error),'error');}
 }
 function scrubEditors(){
+  importFileSequence++;
   E('cookie-value').value='';E('import-text').value='';E('import-file').value='';
   editing=null;editorBaseline=null;expandedCookieKey=null;liveValueEdited=false;dirty=false;
   E('editor-reveal-value').hidden=true;E('editor-revealed-value').hidden=true;
@@ -1238,7 +1238,10 @@ E('editor-discard-confirm').addEventListener('click',()=>{
 E('cookie-session').addEventListener('change',()=>{E('expiry-field').hidden=E('cookie-session').checked;});
 for(const id of ['input','change']){
   E('editor-form').addEventListener(id,mark);
-  importer.addEventListener(id,()=>{mark();clearImportPreview();});
+  importer.addEventListener(id,event=>{
+    if(event.target===E('import-text'))importFileSequence++;
+    mark();clearImportPreview();
+  });
 }
 E('cookie-value').addEventListener('input',event=>{
   if(event?.isTrusted!==false&&mode==='browser'&&editing?.valueRedacted===true){

@@ -1339,3 +1339,26 @@ test('R4.10.3 a late old file read cannot replace the newer import selection',as
   assert.equal(s.isDirty(),true);
   assertSecretAbsent(s,'OBSOLETE_OLDER_FILE');
 });
+
+test('R4.10.3 a normal file selection still loads after input and change bubble through the import panel',async()=>{
+  const reading=deferred(),contents='sid=BUBBLING_SELECTED_FILE';
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{getAll:async()=>[]}});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
+  s.fire('live-import','click');
+  const fileInput=s.getField('import-file'),path=[];
+  for(let node=fileInput;node;node=node.parentNode)path.push(node);
+  assert.ok(path.includes(s.getField('import-panel')),'file events must reach the containing import panel');
+  fileInput.files=[{size:contents.length,text:()=>reading.promise}];
+  // A real selection emits input then change; each event reaches its ancestors
+  // before the asynchronous file read resumes. Preserve the file as target.
+  for(const type of ['input','change']){
+    const event={type,target:fileInput,bubbles:true,isTrusted:true};
+    for(const node of path){event.currentTarget=node;node.emitTest(type,event);}
+  }
+  reading.resolve(contents);
+  await new Promise(resolve=>setImmediate(resolve));await s.settle();
+  assert.equal(s.getField('import-text').value,contents,
+    'a normal file selection must not invalidate its own read when its events bubble');
+  assert.equal(s.getField('import-panel').hidden,false);
+  assert.equal(s.isDirty(),true);
+});
