@@ -36,9 +36,13 @@ export function createPageProgramLibrary({client,currentPageTarget,api,document:
     button('restore').disabled=busy||!candidateAccess;
     if(!row){detail.textContent='保存网页脚本版本后，在这里核对、安装与停用。';return;}
     const access=!candidateAccess?'正在检查':candidateAccess.granted?'已满足':'访问受限 · 恢复访问';
+    // Durable installation authorization is not a native Chrome registration.
+    // A failed register()/getScripts() must never appear as a working Program.
     const installedStatus=!install?'':!install.enabled?'已停用':!installedAccess?'正在检查':
       !installedAccess.granted||grant?.status==='suspended'?'访问受限 · 请选择已安装版本恢复':
-      grant?.status==='active'?'已授权':'需要确认安装授权';
+      grant?.status!=='active'?'需要确认安装授权':
+      install.nativeState==='registered'?'已授权 · Chrome 已注册':
+      '原生注册异常 · 自动运行未确认';
     const delta=install&&row.authorizationChange?.requiresConfirmation?row.authorizationChange:null;
     detail.textContent=`${row.programId} · r${row.revision} · ${row.stage}\n`+
       '匹配：'+row.pageRules.matches.join('、')+'\n当前版本的网站访问：'+access+
@@ -50,6 +54,8 @@ export function createPageProgramLibrary({client,currentPageTarget,api,document:
       '\n源码 SHA-256：'+row.sourceHash+
       (install?`\n安装：r${install.revision} · ${installedStatus} · ${install.nativeState}`:'\n尚未安装')+
       (install?.error?'\n'+install.error.code+'：'+install.error.message:'')+
+      (install?.error?.code==='E_USER_SCRIPTS_UNAVAILABLE'?
+        '\n请打开 Chrome 扩展详情，开启「允许用户脚本」（Chrome 138+），然后返回恢复访问。此操作不能由网页替用户完成。':'')+
       (install?.lastExecution?'\n最近执行：'+install.lastExecution.state+' · '+install.lastExecution.documentId+
         (install.lastExecution.error?'\n'+install.lastExecution.error.code+'：'+install.lastExecution.error.message:
           '\n结果：'+(install.lastExecution.result?.resultText??'尚未返回')):'');
