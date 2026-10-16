@@ -98,7 +98,7 @@ try{
   report.extensionId=extensionId;
   // Chrome MV3 workers are lazy: opening a packaged extension UI through a
   // real tab is a product action, not synthetic worker or execution RPC.
-  const extensionUI=await context.newPage();
+  let extensionUI=await context.newPage();
   await extensionUI.goto('chrome-extension://'+extensionId+'/ui/tool.html',
     {waitUntil:'domcontentloaded'}).catch(error=>{
       report.extensionUIError=String(error);
@@ -129,19 +129,29 @@ try{
     const details=await context.newPage();
     try{
       await details.goto('chrome://extensions/?id='+extensionId,{waitUntil:'domcontentloaded'});
-      const label=details.getByText('Allow User Scripts',{exact:true});
-      await label.waitFor({timeout:15000});
-      // The visible Chrome Extensions WebUI is the ONLY authority here.
-      const target=details.locator('extensions-detail-view')
-        .locator('div:has-text("Allow User Scripts") cr-toggle').last();
-      if(await target.count())await target.click();
-      else await label.click();
-      record('TRUSTED_CHROME_USER_SCRIPTS_TOGGLE','CLICKED');
-      await details.waitForTimeout(1000);
+      // Chromium's exact #allow-user-scripts row is distinct from the
+      // extension enable/disable toggle. NEVER pick a generic cr-toggle:
+      // that can accidentally disable OpenDesk and terminate its page.
+      const row=details.locator('extensions-detail-view #allow-user-scripts');
+      await row.waitFor({timeout:15000});
+      const before=await row.evaluate(element=>Boolean(element.checked));
+      if(!before){
+        const toggle=row.locator('cr-toggle');
+        await toggle.waitFor({timeout:10000});
+        await toggle.click();
+      }
+      const after=await row.evaluate(element=>Boolean(element.checked));
+      record('TRUSTED_CHROME_USER_SCRIPTS_TOGGLE',after?'PASS':'BLOCKED',{before,after});
+      assert(after,'E_CHROME_ALLOW_USER_SCRIPTS_NOT_ENABLED');
+      await details.waitForTimeout(500);
     }finally{await details.close();}
     // Chrome 138+ can retain the pre-opt-in API state in existing extension
     // contexts. Reload the test's real packaged extension UI, not permissions.
-    await extensionUI.reload({waitUntil:'domcontentloaded'});
+    // Chrome can replace an extension document when its permission state
+    // changes. Reopen the real packaged UI if the old tab was retired.
+    if(extensionUI.isClosed())extensionUI=await context.newPage();
+    await extensionUI.goto('chrome-extension://'+extensionId+'/ui/tool.html',
+      {waitUntil:'domcontentloaded'});
     access=await available();
   }
   report.finalUserScriptsAccess=access;
