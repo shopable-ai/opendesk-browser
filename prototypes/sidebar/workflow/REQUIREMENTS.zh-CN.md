@@ -112,3 +112,31 @@
 来源级 Chromium 测试：prototypes/sidebar/workflow/r232-chrome.mjs，经 .github/workflows/workflow-r232-preview.yml 执行。必须直接访问仓库 checkout 的真实 index.html，绑定 HEAD/Blob/SHA-256，使用真实 DOM 输入、按钮和截图，而非 page.set_content。状态须以对应 GitHub Actions 的实际结论为准；提交或启动 CI 不是 PASS，旧 55/55 不代表本轮。
 
 **尚未满足的验收门禁**：Mac 正式安装、真实 Provider/RunHost/Native、系统 IME 与实际 Chrome 菜单 200% 缩放均 NOT_TESTED，除非取得同候选专门证据。六维评分需可追溯截图、可访问性审计、反方复核，每维缺证据则 NOT_SCORED。即使离线 Chromium 通过，也不等于 PREVIEW_UX_ACCEPTED_CANDIDATE 或用户确认。
+
+
+## 十一、R23.4 设置视图与离线交互验收的现行规范（2026-10-16）
+
+> 本节取代 R23.1 中「AI 设置保持底部浮层」等已过时的原型布局约束。唯一正式原型仍是 \`prototypes/sidebar/workflow/index.html\`，不得以另一份演示 JavaScript、独立 UI 或网页工具取代其行为。**设计仍待用户确认；不自动迁移正式 Sidebar。**
+
+### 11.1 Provider 字段与视图结构
+
+- AI 来源设置采用**同一 Sidebar 内完整设置视图**：返回、内容纵向独立滚动、底部完成；打开时原对话区变为 inert，返回后输入草稿与历史不丢失。
+- 直接提供「本机 Codex / OpenAI Responses / 自定义 HTTPS」，不把自定义来源藏在高级嵌套项。尚未开放的 OpenDesk AI 不可选择。
+- 本机 Codex 只做连接状态与重新检查模拟，无 API Key/假模型列表；正式 Native 连接未受检时始终标明「模拟／未检测 Native」。
+- Responses 必须配置 HTTPS Endpoint（默认 \`https://api.openai.com/v1/responses\`）、Model ID、API Key；自定义 HTTPS 使用旧版 Chat Completions 协议与 Bearer 密钥，不把它误描述成任意 HTTP Header/Body/认证编辑器。
+- 预览只允许 \`demo-...\` 虚拟密钥；默认密码遮蔽，可显示隐藏。字段格式检查绝不等同于 API 实连、模型可用或 Chrome Host 授权。数据不持久化、不发网络请求。
+
+### 11.2 授权失效与沙箱发送
+
+- **同一 Provider 内任何 Endpoint、Model ID 或演示密钥的更改都必须撤销已同意的模拟数据使用范围，并使旧配置检查结果失效。** 不得只在「切换 Provider」时撤销许可；实际接收方变化必须重新审批。首次检查通过不得自动同意网页摘要分享。
+- 点击发送必须由用户操作进入 \`onSend()\`，不单独依赖原生 HTML \`form submit\`；对 \`sandbox="allow-scripts"\`、没有 \`allow-forms\` 的 \`srcdoc\` iframe 也必须能完成两轮点击、模拟 DOM 读回和会话历史保留。底层默认提交必须被阻止，不能触发导航或重复发送。
+- Enter／Shift+Enter／IME 合成输入、Stop 规划和执行、只读、每次确认、高风险拒绝和未知结果只读检查均维持既有约束。
+- ChatGPT 对话本身的 iframe/CSP 行为与独立 Chromium 的 \`srcdoc\` 沙箱不同。未实测 ChatGPT 宿主时只可标记 \`CHATGPT_EMBEDDED_NOT_TESTED\`，不得外推为 PASS。
+
+### 11.3 取证与评分
+
+- Chromium 测试的断言必须来自已提交的唯一 HTML，真实表单按钮点击，而非绕过 DOM 事件直接调用业务方法。
+- 原生 Chrome 200% 缩放用 X11 键盘真实操作验证；**Playwright 的 \`page.screenshot\` 在原生放大后可能只截取部分窗口**，因此同时保存 X11 物理整屏截图，并校验截图像素尺寸。其浏览器窗口、系统翻译提示等是运行环境证据，不能当产品组件。
+- 200% 下必须能滚动到全部必要字段及底部「完成」操作。360／420／520px 的字段不横向裁切。
+- 六维独立评分必须有明确的实际操作和截图证据；没有独立 UX、Mac 原生 IME、VoiceOver 或 ChatGPT 宿主体验证时，对应维度仍为 \`NOT_SCORED\`，不能借以前的 95/100 自评分过关。
+- 正式 \`src/ui/workflow/*\`、RunHost、Chrome 权限、SDK 与 Provider 请求行为保持不变，必须等用户确认 UI 后再考虑迁移。
