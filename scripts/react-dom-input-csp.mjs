@@ -7,7 +7,7 @@ const CLIENT_MODULE=/\/node_modules\/react-dom\/cjs\/react-dom-client\.(?:produc
 const TRACKER_DESCRIPTOR=/\bObject\.getOwnPropertyDescriptor\(\s*([A-Za-z_$][\w$]*)\.constructor\.prototype\s*,\s*([A-Za-z_$][\w$]*)\s*\)/g;
 
 export function transformPinnedReactDomInputTracker(code,id,{target,reactDomVersion}={}){
-  if(target!=='ui/tool-shell.js'||id.startsWith('\\0')||id.includes('?')||
+  if(target!=='ui/tool-shell.js'||id.startsWith('\0')||id.includes('?')||
     !CLIENT_MODULE.test(id.replaceAll('\\','/')))
     return null;
   if(reactDomVersion!==PINNED_REACT_DOM_VERSION)
