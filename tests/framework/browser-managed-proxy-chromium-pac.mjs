@@ -28,6 +28,7 @@ const report={kind:'isolated-chromium-proxy-fixture',candidateSha:process.env.GI
  runId:process.env.GITHUB_RUN_ID||null,status:'FAIL',A:'NOT_TESTED',B:'NOT_TESTED',C:'NOT_TESTED',
  commercialProvider:'NOT_CONFIGURED',productionProfileOverride:false};
 let httpServer,httpsServer,proxyServer,chrome,cdp,session,pacApplied=false;
+let chromeArgs=[],chromeStderr='',chromeSpawnError=null,chromeLaunchedAt=null;
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function listen(server,port=0){
  return new Promise((resolve,reject)=>{
@@ -95,7 +96,9 @@ async function stopServer(server){
 async function waitFor(fn,label,timeout=30000){
  const start=Date.now();let last='';
  while(Date.now()-start<timeout){
-  if(chrome&&chrome.exitCode!==null)throw Error('Chrome exited before '+label+' '+chrome.exitCode);
+  if(chromeSpawnError)throw Error('Chrome spawn failed before '+label+': '+chromeSpawnError);
+  if(chrome&&(chrome.exitCode!==null||chrome.signalCode!==null))
+   throw Error('Chrome exited before '+label+' exit='+chrome.exitCode+' signal='+chrome.signalCode);
   try{const value=await fn();if(value)return value;}catch(e){last=e.message;}
   await sleep(250);
  }
@@ -197,15 +200,18 @@ async function run(){
  await writeFile(join(extension,'sw.js'),
   'chrome.runtime.onInstalled.addListener(()=>{});chrome.runtime.onStartup.addListener(()=>{});');
  const rules=[proxyHostname,target,sub,lookalike].map(h=>'MAP '+h+' 127.0.0.1').join(', ');
- chrome=spawn(chromeBinary,[
+ chromeArgs=[
   '--headless=new','--no-first-run','--no-default-browser-check','--disable-sync',
   '--disable-background-networking','--remote-debugging-port=0',
   '--user-data-dir='+profile,'--disable-extensions-except='+extension,
   '--load-extension='+extension,'--host-resolver-rules='+rules,
   '--ignore-certificate-errors', // Isolated self-signed test certificate only.
   'about:blank'
- ],{stdio:['ignore','ignore','pipe']});
- let stderr='';chrome.stderr.on('data',part=>{stderr=(stderr+part.toString()).slice(-4000);});
+ ];
+ chromeLaunchedAt=Date.now();
+ chrome=spawn(chromeBinary,chromeArgs,{stdio:['ignore','ignore','pipe']});
+ chrome.on('error',error=>{chromeSpawnError=String(error);});
+ chrome.stderr.on('data',part=>{chromeStderr=(chromeStderr+part.toString()).slice(-12000);});
  const [port,route]=await waitFor(async()=>{
   const p=await readFile(join(profile,'DevToolsActivePort'),'utf8').catch(()=>null);
   const lines=p?.trim().split('\n');return lines?.length===2?lines:null;
@@ -216,7 +222,7 @@ async function run(){
   return all.find(x=>x.type==='service_worker'&&
     /^chrome-extension:\/\/[^/]+\/sw\.js$/.test(x.url));
  },'real test-only MV3 worker').catch(e=>{
-  throw Error(e.message+' / Chrome stderr: '+stderr.slice(-1300));
+  throw Error(e.message+' / Chrome stderr: '+chromeStderr.slice(-1300));
  });
  session=(await cdp.send('Target.attachToTarget',{targetId:worker.targetId,flatten:true})).sessionId;
  await cdp.send('Runtime.enable',{},session);
@@ -297,6 +303,14 @@ finally{
   }catch(e){report.release='FAIL';report.releaseError=String(e);failure??=e;}
  }else report.release='NOT_APPLIED';
  if(failure)report.status='FAIL';
+ report.chromeLaunch={
+  binary:chromeBinary,args:chromeArgs,
+  elapsedMs:chromeLaunchedAt===null?null:Date.now()-chromeLaunchedAt,
+  pid:chrome?.pid??null,exitCode:chrome?.exitCode??null,
+  signalCode:chrome?.signalCode??null,
+  spawnError:chromeSpawnError,stderr:chromeStderr,
+  devToolsActivePortPresent:Boolean(await readFile(join(profile,'DevToolsActivePort'),'utf8').catch(()=>null))
+ };
  await mkdir('artifacts',{recursive:true});
  await writeFile(output,JSON.stringify(report,null,2)+'\n').catch(()=>{});
  cdp?.socket.close();
@@ -310,6 +324,7 @@ finally{
  await rm(root,{recursive:true,force:true}).catch(()=>{});
 }
 if(failure){
+ console.error('MANAGED_PROXY_CHROME_DIAGNOSTICS '+JSON.stringify(report.chromeLaunch));
  console.error('MANAGED_PROXY_NATIVE_AB_FAIL '+report.error);
  throw failure;
 }
