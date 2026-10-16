@@ -360,6 +360,8 @@ try{
       const field=document.querySelector('#r23-api-key').getBoundingClientRect();
       const source=document.querySelector('#r236-source-title').getBoundingClientRect();
       const slider=document.querySelector('.r236-switch').getBoundingClientRect();
+      const endpointRow=document.querySelector('#r23-endpoint').closest('.r236-input-action').getBoundingClientRect();
+      const protocolNote=document.querySelector('#r236-protocol-note').getBoundingClientRect();
       const rows=[...document.querySelectorAll('#r23-remote-config .r234-field')].map(row=>{
         const a=row.querySelector('label').getBoundingClientRect(),
           b=(row.querySelector('.r234-secret')||row.querySelector('.r236-input-action')||row.querySelector('input')).getBoundingClientRect();
@@ -368,10 +370,12 @@ try{
       });
       return{panelWidth:p.width,deviceWidth:d.width,panelHeight:p.height,deviceHeight:d.height,
         fieldInside:field.left>=p.left-1&&field.right<=p.right+1,sourceGap:slider.left-source.right,
+        protocolAligned:Math.abs(protocolNote.left-endpointRow.left)<=2,
         switchInside:slider.right<=p.right+1,rows,noDocOverflow:document.documentElement.scrollWidth<=innerWidth+1};
     });
     assert.ok(Math.abs(g.panelWidth-g.deviceWidth)<=2&&Math.abs(g.panelHeight-g.deviceHeight)<=2);
     assert.ok(g.fieldInside&&g.switchInside&&g.noDocOverflow);
+    assert.equal(g.protocolAligned,true,'protocol hint must line up with endpoint value');
     assert.ok(g.sourceGap>=4&&g.sourceGap<=16,'wide gap between source and selector at '+width);
     assert.ok(g.rows.every(x=>x.aligned&&x.within),'compact field alignment at '+width);
     await shot('r236-settings-'+width);
