@@ -814,7 +814,7 @@ try{
           await click(side,'#sidebar-tool-cookie-site-toggle');
           await until(async()=>{const row=await siteGrants();return !['read','values','write','observe','clear'].some(cap=>row[cap]===true);},'Combined website revocation');
         }
-        return {cookies:await cookies(),revoked:granted};
+        return {cookies:await cookies(),grantsAfter:await siteGrants()};
       });
     }
     if(stage==='visual'){
