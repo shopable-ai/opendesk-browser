@@ -235,7 +235,7 @@ test('official optional AdBlock uses one canonical installable project package',
 });
 test('build-ready official project, current version, one declared restricted capability',async()=>{
   const pkg=await createSidebarToolPackage(PROJECT);
-  assert.equal(pkg.version,'1.1.0');
+  assert.equal(pkg.version,'1.1.1');
   assert.deepEqual(pkg.capabilities,[ADBLOCK_CAPABILITY]);
   assert.ok(pkg.js.includes("adblock.site.restore"));
 });
