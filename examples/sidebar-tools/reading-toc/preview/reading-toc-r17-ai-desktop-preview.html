@@ -251,7 +251,7 @@ const promotionContent={
  external:['externalBrand','externalKind','externalTitle','externalDescription',null]
 };
 const statusFields={guest:['guestTitle','guestDesc','neutral'],unavailable:['unavailableTitle','unavailableDesc','neutral'],ready:['readyTitle','readyDesc','info'],loading:['loadingTitle','loadingDesc','info'],success:['successTitle','successDesc','positive'],quota:['quotaTitle','quotaDesc','neutral'],error:['errorTitle','errorDesc','negative'],stale:['staleTitle','staleDesc','negative']};
-let locale='zh-CN',width=360,scale=1,mode='ai',state='guest',promotion='official',activeId='features',activeFreeMode='focus',generationToken=0,generationTimer=null;
+let locale='zh-CN',width=360,scale=1,mode='ai',state='guest',promotion='recruit',activeId='features',activeFreeMode='focus',generationToken=0,generationTimer=null;
 // Offline AI output is independent of the free directory and exists only after a simulated success.
 let aiResult=[];
 function mockAIResult(){return records.map(record=>[...record]);}
