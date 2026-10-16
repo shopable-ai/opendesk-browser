@@ -66,22 +66,27 @@ try{
  for(const width of ['360','420','520']){
    await page.locator('#r23-width').selectOption(width);
    await page.locator('#settings').click();
-   await page.locator('#r23-provider').selectOption('custom_https');
+   await page.locator('#r236-https').check();
    await page.locator('#r23-api-key').scrollIntoViewIfNeeded();
    const geom=await page.evaluate(()=>{
      const device=document.querySelector('.device').getBoundingClientRect(),
        panel=document.querySelector('.r23-settings').getBoundingClientRect(),
        input=document.querySelector('#r23-api-key').getBoundingClientRect(),
-       back=document.querySelector('#r234-back').getBoundingClientRect();
+       back=document.querySelector('#r234-back').getBoundingClientRect(),
+       label=document.querySelector('#r236-source-title').getBoundingClientRect(),
+       switchBox=document.querySelector('.r236-switch').getBoundingClientRect();
      return{deviceWidth:Math.round(device.width),panelWidth:Math.round(panel.width),
        inputInside:input.left>=panel.left-1&&input.right<=panel.right+1,
        backInside:back.left>=panel.left-1&&back.right<=panel.right+1,
+       sourceGap:switchBox.left-label.right,
+       switchInside:switchBox.right<=panel.right+1,
        documentOverflow:document.documentElement.scrollWidth>innerWidth+1};
    });
    assert.equal(geom.deviceWidth,Number(width));
    assert.ok(Math.abs(geom.panelWidth-Number(width))<=2,'settings fits inner device width');
    assert.equal(geom.inputInside,true);
    assert.equal(geom.backInside,true);
+   assert.ok(geom.sourceGap>=4&&geom.sourceGap<=16&&geom.switchInside,'native 200% source selector spacing');
    assert.equal(geom.documentOverflow,false);
    await page.locator('#r233-qa > summary').click();
    await page.screenshot({path:resolve(out,'r234-real-200-settings-'+width+'.png'),fullPage:true});
