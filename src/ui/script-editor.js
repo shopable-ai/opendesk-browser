@@ -127,6 +127,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       .catch(error=>console.warn('Sidebar draft could not be retained',error));
   }
   let scriptListSequence = 0, ownedDraftRunId = null, ownedManagedPreview=null, lastPagePreview=null;
+  let reactDeveloperTarget=null;
   let currentRevision, currentRevisionAuthorSource, currentPageState = currentPageTarget?.snapshot ?? {status:'unavailable',reason:'E_TARGET',message:'当前网页服务不可用'},
     selectionVersion = 0, running = false, disposed = false;
   const listeners = [];
@@ -392,29 +393,34 @@ export function createScriptEditor({client, currentPageTarget, development=false
         componentMessage('idle','受管组件仍在另一标签页。请返回原网页停止后再切换运行目标。');
     }
     currentPageState = next;
-    find('script-current-page-title').textContent = next?.status === 'available' ? next.title || next.url :
-      next?.status === 'resolving' ? '正在识别…' : next?.message || '尚未识别可运行网页';
-    find('script-current-page-url').textContent = next?.status === 'available' ? next.url : '';
-    if (next?.status === 'available') {
-      currentPageHost.textContent = new URL(next.url).host;
-      currentPageHost.title = next.url;
-      currentPageStatus.dataset.state = 'available';
-      currentPageStatus.textContent = '网页可运行';
-      currentPageStatus.title = '目标网页可运行；运行时核对所选源码、网站授权及文档身份';
-      currentPageDebug.textContent = JSON.stringify({windowId:next.windowId,tabId:next.tabId,frameId:next.frameId,
-        documentId:next.documentId,url:next.url,origin:next.origin}, null, 2);
-    } else if (next?.status === 'resolving') {
-      currentPageHost.textContent = '正在识别…'; currentPageHost.title = '';
-      currentPageStatus.dataset.state = 'resolving'; currentPageStatus.textContent = '检查中';
-      currentPageStatus.title = '';
-      currentPageDebug.textContent = next.windowId == null ? '' : JSON.stringify({windowId:next.windowId}, null, 2);
-    } else {
-      currentPageHost.textContent = '未识别'; currentPageHost.title = '';
-      currentPageStatus.dataset.state = 'unavailable';
-      currentPageStatus.textContent = '不可运行';
-      currentPageStatus.title = next?.message || '未找到活动 HTTP(S) 主文档';
-      currentPageDebug.textContent = JSON.stringify({windowId:next?.windowId ?? null,reason:next?.reason || 'E_TARGET'}, null, 2);
+    const available=next?.status==='available',resolving=next?.status==='resolving';
+    const ui={
+      title:available?next.title||next.url:
+        resolving?'正在识别…':next?.message||'尚未识别可运行网页',
+      url:available?next.url:'',
+      host:available?new URL(next.url).host:resolving?'正在识别…':'未识别',
+      hostTitle:available?next.url:'',
+      status:available?'网页可运行':resolving?'检查中':'不可运行',
+      state:available?'available':resolving?'resolving':'unavailable',
+      statusTitle:available?'目标网页可运行；运行时核对所选源码、网站授权及文档身份':
+        resolving?'':next?.message||'未找到活动 HTTP(S) 主文档'
+    };
+    if(reactDeveloperTarget)reactDeveloperTarget(ui);
+    else {
+      // Keep the exact original IDs/semantics for standalone editor consumers.
+      find('script-current-page-title').textContent=ui.title;
+      find('script-current-page-url').textContent=ui.url;
+      currentPageHost.textContent=ui.host;currentPageHost.title=ui.hostTitle;
+      currentPageStatus.dataset.state=ui.state;
+      currentPageStatus.textContent=ui.status;currentPageStatus.title=ui.statusTitle;
     }
+    if(available)currentPageDebug.textContent=JSON.stringify({
+      windowId:next.windowId,tabId:next.tabId,frameId:next.frameId,
+      documentId:next.documentId,url:next.url,origin:next.origin},null,2);
+    else if(resolving)
+      currentPageDebug.textContent=next.windowId==null?'':JSON.stringify({windowId:next.windowId},null,2);
+    else currentPageDebug.textContent=JSON.stringify({
+      windowId:next?.windowId??null,reason:next?.reason||'E_TARGET'},null,2);
     update();
   }
   function renderRunningTarget(target, runId) {
@@ -1432,7 +1438,11 @@ export function createScriptEditor({client, currentPageTarget, development=false
     display('draft','已导入未保存草稿；请返回目标网页后明确点击运行');
   }
   scheduleControllerClassicWarm();
-  return {host,async prepareDevelopmentReload(){
+  return {host,connectReactDeveloperTarget(render){
+    if(disposed||reactDeveloperTarget||typeof render!=='function')
+      throw new Error('E_REACT_DEVELOPER_TARGET_OWNERSHIP');
+    reactDeveloperTarget=render;renderCurrentPage(currentPageState);
+  },async prepareDevelopmentReload(){
     const idle=()=>!disposed&&!editingBusy&&!stopping&&!running&&!previewBusy&&!ownedManagedPreview&&!browserManagedPreview&&
       !host.executionPending&&!host.currentRun&&!downloading&&!preparations.size&&!client.resourceSnapshot?.().pending;
     if(!idle()||!draftKey)return false;
@@ -1479,7 +1489,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   }, resourceSnapshot: () => ({...host.resourceSnapshot(), editor:{
     timers:[...downloads.values(),...preparations.values()].filter(entry=>entry.timer != null).length+Number(localPollTimer!=null),
     pending:Number(downloading)+preparations.size, subscriptions:listeners.length+2*Number(browserListenersAttached)+Number(Boolean(unsubscribeCurrentPage))+(localProject?.resourceSnapshot().subscriptions||0)}}), dispose() {
-    if (disposed) return; disposed = true; controllerClassicConsent.dispose(); componentRemote.dispose(); browserPrepareGeneration++; browserPreparer.dispose();staticESMPreparer.dispose(); scriptsCheckSequence++; localInstaller.dispose();localProject?.dispose();pageLibrary.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyReview.dispose();dependencyResolver.dispose();dependencyInstaller.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
+    if (disposed) return; disposed = true; reactDeveloperTarget=null; controllerClassicConsent.dispose(); componentRemote.dispose(); browserPrepareGeneration++; browserPreparer.dispose();staticESMPreparer.dispose(); scriptsCheckSequence++; localInstaller.dispose();localProject?.dispose();pageLibrary.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyReview.dispose();dependencyResolver.dispose();dependencyInstaller.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
     api.webNavigation.onCommitted.removeListener(onNavigation); api.tabs.onRemoved.removeListener(onRemoved); host.dispose();
     browserListenersAttached = false;
     for (const {element, event, listener} of listeners) element.removeEventListener(event, listener);
