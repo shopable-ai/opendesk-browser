@@ -3,6 +3,7 @@ on:
   push:
     branches: [main]
     paths:
+      - 'AGENTS.md'
       - '.agents/skills/**'
       - '.agents/workflows/**'
       - 'tests/environment/browser-tool-creation-workflow-r21.test.mjs'
@@ -17,6 +18,9 @@ on:
       - 'docs/architecture/ui-layout-conventions-r27.zh-CN.md'
       - 'docs/architecture/sidebar-multi-section-tab-contract-r28.zh-CN.md'
       - 'docs/architecture/sidebar-design-system-r20.zh-CN.md'
+      - 'docs/api/README.md'
+      - 'docs/api/page-userscript.zh-CN.md'
+      - 'docs/product/program-development-dual-format-and-sidebar.zh-CN.md'
       - 'docs/api/sidebar-tools.zh-CN.md'
       - 'docs/api/sidebar-tool-development.zh-CN.md'
       - 'examples/sidebar-tools/README.zh-CN.md'
@@ -26,6 +30,7 @@ on:
       - 'src/ui/extension-center.css'
   pull_request:
     paths:
+      - 'AGENTS.md'
       - '.agents/skills/**'
       - '.agents/workflows/**'
       - 'tests/environment/browser-tool-creation-workflow-r21.test.mjs'
@@ -40,6 +45,9 @@ on:
       - 'docs/architecture/ui-layout-conventions-r27.zh-CN.md'
       - 'docs/architecture/sidebar-multi-section-tab-contract-r28.zh-CN.md'
       - 'docs/architecture/sidebar-design-system-r20.zh-CN.md'
+      - 'docs/api/README.md'
+      - 'docs/api/page-userscript.zh-CN.md'
+      - 'docs/product/program-development-dual-format-and-sidebar.zh-CN.md'
       - 'docs/api/sidebar-tools.zh-CN.md'
       - 'docs/api/sidebar-tool-development.zh-CN.md'
       - 'examples/sidebar-tools/README.zh-CN.md'
@@ -62,6 +70,9 @@ jobs:
       - run: node --test tests/environment/sidebar-r21-design-system.test.mjs
       - run: node scripts/agent-skills-r22-eval.mjs --self-test
       - run: node --test tests/environment/browser-tool-creation-workflow-r21.test.mjs
+      - name: Install locked dependencies for source check
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run check
       # Compiler-only: read-only GH token, no model call, no PR, no repository write.
       - name: Install pinned gh-aw compiler
         uses: github/gh-aw/actions/setup-cli@v0.92.0
