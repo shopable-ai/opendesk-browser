@@ -138,14 +138,20 @@ async function click(selector,ctx=null){
   if(ctx){
     // This exercises source-bound UI and iframe postMessage semantics in Chrome,
     // but .click() is SCRIPT-DRIVEN and must never be reported as user gesture.
-    const focused=await evaluate('('+function(sel){
+    const focus=await evaluate('('+function(sel){
       const button=document.querySelector(sel);
       if(!button||button.disabled)throw Error('Missing enabled target '+sel);
-      button.focus();const receivedFocus=document.activeElement===button;
+      button.focus();
+      const result={focused:document.activeElement===button,
+        active:document.activeElement?.outerHTML?.slice(0,200)||null,
+        documentHasFocus:document.hasFocus(),tabIndex:button.tabIndex,
+        rect:button.getBoundingClientRect().toJSON(),
+        visibility:getComputedStyle(button).visibility,
+        display:getComputedStyle(button).display};
       button.click();
-      return receivedFocus;
+      return result;
     }.toString()+')('+JSON.stringify(selector)+')',ctx);
-    assert.equal(focused,true,'sandbox button receives focus');
+    assert.equal(focus.focused,true,'sandbox button receives focus: '+JSON.stringify(focus));
     console.log('ADBLOCK_CHROME_DOM_SIMULATION_NOT_TRUSTED '+selector);
     return;
   }
