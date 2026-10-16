@@ -488,3 +488,12 @@
 - **新增的测试意图**：Node 复现失去容器归属、网页抢焦点两种风险；原有 Chromium DOM Fixture 增补非同容器规则的拒绝 / SPA 隐藏、真实 CDP 键盘撤销。Node / Chromium / CI 状态必须以本次提交触发的原始日志为准；不能凭本段文字宣称通过。
 - **验收边界**：本环境不能接入用户 Mac 本机 Chrome Profile、扩展安装身份或 Claude/Gemini/ChatGPT 已登录页面。三个网站的真实受控编辑器（包括 ProseMirror/Lexical/React 内部状态）、Mac 中文 IME、真实安装升级与撤权为 `NOT_TESTED`，九维 95+ 为 `NOT_SCORED`。同版本 JSON 不变，仅可信 Chrome 固定适配器的源码 blob 更新，用户 Mac 上须让原 `dist/development` 的最新构建实际加载后才生效。
 - **有意暂不支持的目标**：闭合 ShadowRoot、跨源 iframe 等无法由顶层文档安全唯一匹配的编辑器，保持 fail-closed；禁止擅自开启通用页面脚本权限或以未经实际验证的 Claude/Gemini CSS 冒充成功。
+
+
+### R2.3 首轮 CI、并行版本与本地交接（2026-10-16）
+
+- 已提交生产修复 [715da5cd](https://github.com/shopable-ai/opendesk-browser/commit/715da5cd09802a775225225718f0dd37902fe785)：可信页面 Git blob `1cf947812b5f946ab93496fe23dca6024d158c5e`，精确更新两处来源门禁；同容器目标、防 SPA 漂移、原生写入前的焦点/目标身份检查，独立 Node 与 Chromium Fixture 反例。未修改共享 Host、SDK、通用安装器。
+- [首次 CI Run 38908464580](https://github.com/shopable-ai/opendesk-browser/actions/runs/38908464580)：Node 84 项中 **83 PASS、1 FAIL**；两项新增 R2.3 安全测试均 PASS。唯一失败为旧 R1.13 断言写死 `pkg.version='1.1.1'`，而并行 R1.18 已把正式 `tool.config.json` 升至 `1.1.2`；因此后续 syntax/package/Chromium job 被跳过，不能视作已验证。
+- [修复提交 fdbd5a6](https://github.com/shopable-ai/opendesk-browser/commit/fdbd5a6b7e64c96b8793622260a86b83f7fff19d) 将陈旧测试改为校验候选版本与当前 `tool.config.json` 一致，不降级并行 Agent 的产品源码。[复验 Run 38909368562](https://github.com/shopable-ai/opendesk-browser/actions/runs/38909368562) 已触发；直至原始 CI 成功前，综合仍为 **IN_PROGRESS**，不得把队列状态记 PASS。
+- 版本必须区分：并行 R1.18 **源配置 1.1.2**，仓库中此前唯一已提交的 **JSON 包 1.1.1** 只有完成新版测试→候选晋升→同源 `--check-project` 后才能同步为 1.1.2。不能通过只更新 Sandbox JSON 替代加载新版 Chrome 可信页面代码。
+- 本环境另外运行了独立 Linux Chromium/CDP `execCommand('insertText')` 和真实 Ctrl+Z 烟测，原草稿成功恢复；这是 **LOCAL_CHROMIUM_UNDO_SMOKE_PASS**，不代表正式脚本全量通过，更不是用户 Mac 的 Chrome 原生安装、Claude/Gemini/ChatGPT 真实编辑器或中文 IME 验收。后三者均保持 **NOT_TESTED**，各项 95+ **NOT_SCORED**。
