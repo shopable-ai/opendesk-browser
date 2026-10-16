@@ -34,7 +34,7 @@ const root=await mkdtemp(join(tmpdir(),'opendesk-proxy-native-'));
 const profile=join(root,'chrome-profile'),extension=join(root,'test-only-mv3');
 const certPath=join(root,'cert.pem'),keyPath=join(root,'key.pem');
 const output='artifacts/browser-managed-proxy-chromium-pac.json';
-const forwarded=[],httpRequests=[],httpsRequests=[],sockets=new Set();
+const forwarded=[],httpRequests=[],httpsRequests=[],sockets=new Set(),upgradeSockets=new Set();
 const report={kind:'isolated-chromium-proxy-fixture',candidateSha:process.env.GITHUB_SHA||null,
  runId:process.env.GITHUB_RUN_ID||null,status:'FAIL',A:'NOT_TESTED',B:'NOT_TESTED',C:'NOT_TESTED',
  commercialProvider:'NOT_CONFIGURED',productionProfileOverride:false};
@@ -97,12 +97,24 @@ function socksFixture(httpPort,httpsPort){
 async function stopProxy(){
  for(const socket of sockets)socket.destroy();
  sockets.clear();
- if(proxyServer?.listening)await new Promise(resolve=>proxyServer.close(resolve));
+ if(proxyServer?.listening)await new Promise((resolve,reject)=>{
+  const timer=setTimeout(()=>reject(Error('SOCKS fixture shutdown timeout')),5000);
+  proxyServer.close(error=>{clearTimeout(timer);error?reject(error):resolve();});
+ });
 }
 async function stopServer(server){
  if(!server?.listening)return;
+ // Node HTTP closeAllConnections does NOT close upgraded WebSocket sockets.
+ // Destroy and account for those connections before awaiting close callback.
+ if(server===httpsServer){
+  for(const socket of upgradeSockets)socket.destroy();
+  upgradeSockets.clear();
+ }
  server.closeAllConnections?.();
- await new Promise(resolve=>server.close(resolve));
+ await new Promise((resolve,reject)=>{
+  const timer=setTimeout(()=>reject(Error('HTTP fixture shutdown timeout')),5000);
+  server.close(error=>{clearTimeout(timer);error?reject(error):resolve();});
+ });
 }
 async function waitFor(fn,label,timeout=30000){
  const start=Date.now();let last='';
@@ -180,7 +192,10 @@ async function run(){
   const accept=createHash('sha1').update(key+'258EAFA5-E914-47DA-95CA-C5AB0DC85B11').digest('base64');
   socket.write('HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: '+
     accept+'\r\n\r\n');
-  upgrades++;socket.on('error',()=>{});
+  upgrades++;
+  upgradeSockets.add(socket);
+  socket.on('close',()=>upgradeSockets.delete(socket));
+  socket.on('error',()=>{});
  });
  const httpPort=await listen(httpServer),httpsPort=await listen(httpsServer);
  proxyServer=socksFixture(httpPort,httpsPort);
@@ -324,17 +339,24 @@ finally{
   spawnError:chromeSpawnError,stderr:chromeStderr,
   devToolsActivePortPresent:Boolean(await readFile(join(profile,'DevToolsActivePort'),'utf8').catch(()=>null))
  };
- await mkdir('artifacts',{recursive:true});
- await writeFile(output,JSON.stringify(report,null,2)+'\n').catch(()=>{});
  cdp?.socket.close();
- if(chrome?.exitCode===null){
+ if(chrome?.exitCode===null&&chrome?.signalCode===null){
   chrome.kill('SIGTERM');await sleep(350);
-  if(chrome.exitCode===null)chrome.kill('SIGKILL');
+  if(chrome.exitCode===null&&chrome.signalCode===null)chrome.kill('SIGKILL');
  }
- await stopProxy().catch(()=>{});
- await stopServer(httpServer).catch(()=>{});
- await stopServer(httpsServer).catch(()=>{});
- await rm(root,{recursive:true,force:true}).catch(()=>{});
+ const cleanupErrors=[];
+ for(const [name,cleanup] of [
+  ['socks',()=>stopProxy()],['http',()=>stopServer(httpServer)],
+  ['https-websocket',()=>stopServer(httpsServer)],
+  ['profile',()=>rm(root,{recursive:true,force:true})]
+ ])try{await cleanup();}catch(e){cleanupErrors.push({name,error:String(e)});}
+ if(cleanupErrors.length){
+  report.cleanup={status:'FAIL',errors:cleanupErrors};
+  failure??=Error('Isolated browser fixture cleanup failed');
+  report.status='FAIL';
+ }else report.cleanup={status:'PASS',upgradedWebSocketsRemaining:upgradeSockets.size};
+ await mkdir('artifacts',{recursive:true});
+ await writeFile(output,JSON.stringify(report,null,2)+'\n');
 }
 if(failure){
  console.error('MANAGED_PROXY_CHROME_DIAGNOSTICS '+JSON.stringify(report.chromeLaunch));
