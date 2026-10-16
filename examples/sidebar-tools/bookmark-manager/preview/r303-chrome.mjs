@@ -142,6 +142,10 @@ try{
   await until(ctx,"document.querySelector('.bm-heading span')?.textContent.includes('2,159')",'initial data '+width);
   const originalHeight=await invoke(ctx,"return Math.round(document.querySelector('.bm-tree-scroll').getBoundingClientRect().height)");
   assert.equal(await invoke(ctx,"return document.querySelector('.bm-inspector')===null"),true);
+  // A coarse-pointer device must not show a noisy ellipsis on every idle row.
+  const idleMenus=await invoke(ctx,"return [...document.querySelectorAll('.bm-tree-row:not(.is-selected) .bm-row-more')].slice(3,9).map(el=>Number(getComputedStyle(el).opacity))");
+  assert.ok(idleMenus.length>0&&idleMenus.every(value=>value<0.1),'idle rows hide action controls until selection, hover or keyboard focus');
+
   await screenshot('bookmark-r303-'+width+'-list.png');
   await click(ctx,'[data-node-id="100"]');
   assert.equal(await invoke(ctx,"return !!document.querySelector('.bm-inspector')"),false,'select does not open footer');

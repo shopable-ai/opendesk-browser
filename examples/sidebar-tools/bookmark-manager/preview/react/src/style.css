@@ -40,7 +40,6 @@ button:focus-visible,input:focus-visible,.bm-tree-scroll:focus-visible,a:focus-v
 .bm-count{color:var(--od-sub);font-size:10.5px;min-width:15px;text-align:right;font-variant-numeric:tabular-nums}
 .bm-row-more{width:28px;min-width:28px;height:30px;display:grid;place-items:center;border:none;background:transparent;border-radius:7px;color:var(--od-sub);opacity:0}
 .bm-tree-row:hover .bm-row-more,.bm-tree-row.is-selected .bm-row-more,.bm-tree-row:focus-within .bm-row-more,.bm-row-more:focus-visible{opacity:1}
-@media(hover:none){.bm-row-more{opacity:1}}
 .bm-empty,.bm-loading{padding:25px 15px;color:var(--od-sub);font-size:12px;line-height:1.8}
 .bm-inspector{background:var(--od-paper);min-width:0;overflow-y:auto;max-height:none;flex:none}
 .bm-inspector.is-editing{min-height:0}
