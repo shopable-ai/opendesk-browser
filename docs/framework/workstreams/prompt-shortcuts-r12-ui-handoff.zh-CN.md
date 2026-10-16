@@ -464,3 +464,11 @@
 - **测试**：扩充既有 `prompt-shortcuts-r14-page.test.mjs`，分别在 `contenteditable=true` 与 `plaintext-only`、多编辑器重名的情况下验证自动生成稳定的 scoped selector；扩充唯一现有 Chromium DOM fixture，真实点击匿名富文本、执行原生多行插入、检查受控编辑器回滚时不得误报成功及完整复制退路。现有文本框/textarea/ChatGPT 权限和页面适配不应回退。
 - **发布边界**：固定可信网页源码更改须同步当前两处 Git blob 精确白名单并运行 `scripts/bundle-provenance.mjs` 正式构建门禁。Sidebar Tool `1.1.1` 自身独立包源码与数据结构未变，避免不必要的版本号提升；Chrome 扩展内的预编译可信适配器必须重载/升级才能真正生效。
 - **尚未验收**：真实 Claude / Gemini 登录站点的 DOM、框架 State/Undo、Mac IME、Chrome 网站访问权限与正式扩展原位安装，全部继续 `NOT_TESTED`。任何本地/CI 的 mock-host 回归不等于真实网站 PASS，也不能虚报 ≥95/100。
+
+### R2.2 CI 最终验收记录（2026-10-16）
+
+- 生产可信源码更新：[`e391538`](https://github.com/shopable-ai/opendesk-browser/commit/e3915389010337f518b20dff833321cf51c8b466)，`trusted/page.js` Git blob **`818de57be49a45f17df44b5ee545cf58a8c68ebf`**；仅精确更新来源白名单及对应测试，不扩大 SDK/Host 权限。
+- 最终可验证闭环：[GitHub Actions Run 38905929437](https://github.com/shopable-ai/opendesk-browser/actions/runs/38905929437)，`prompt-shortcuts-scope` 与 `Commit verified portable JSON into tool project` **均 SUCCESS**；专项 Node **78/78 PASS**、Sidebar Tool Node **6/6 PASS**、正式工具 UI Chromium PASS，`--check-project=PROJECT_PACKAGE_MATCH`。
+- 新增 Chromium DOM Fixture（真实 CDP 鼠标与正式可信页面模块、模拟扩展 Host）：匿名富文本选取自动得到 `#rich-container div[contenteditable="true"]`；原生多行追加、中文及 Emoji、空行和未发送状态得到稳定回读；模拟受控编辑器在 160ms 后回滚 DOM 时，不误报已插入、不自动重试、完整提示词复制回退，`consoleErrors=[]`，**CHROMIUM_FIXTURE_PASS**。同时保留 R2.1 的 textarea/input/双选择器/站点启停刷新覆盖。
+- 正式工具包依旧是独立 **`1.1.1`**，71,146 UTF-8 bytes，SHA-256 **`d8194d106eaa4c171203c5ad3f131bbdb4b65864e8036d5cb7460abff4a4ffc5`**；此次仅修改 Chrome Extension 固定可信模块及测试，正式 Sandbox 工具包不需要改版。**工具包更新不等同于浏览器内的固定可信代码更新**。
+- 边界：测试的 `plaintext-only` 编辑器为 Node 语义回归，尚未在真实网站验证；Claude/Gemini/ChatGPT 真实账号的输入、Undo、IME、React/ProseMirror/Lexical 内部状态持久性、Mac 已安装扩展升级及撤权仍 **NOT_TESTED**。不将模拟 Host 的真实 Chromium 成功记作 `INSTALLED_CHROME_PASS` 或 `REAL_SITE_PASS`，专家维度缺少原生证据则 **NOT_SCORED**。
