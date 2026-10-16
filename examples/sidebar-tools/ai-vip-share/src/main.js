@@ -16,6 +16,11 @@
   const history=byId('ai-vip-history-list');
   const historyCount=byId('ai-vip-history-count');
   const refresh=byId('ai-vip-refresh');
+  const metricLabel=byId('ai-vip-metric-label');
+  const meter=byId('ai-vip-meter'),meterBar=byId('ai-vip-meter-bar');
+  const redeemForm=byId('ai-vip-redeem-form');
+  const codeReveal=byId('ai-vip-code-reveal'),codeClear=byId('ai-vip-code-clear');
+  const confirm=byId('ai-vip-redeem-confirm');
   const code=byId('ai-vip-redeem-code');
   const redeem=byId('ai-vip-redeem');
   const redeemStatus=byId('ai-vip-redeem-status');
@@ -32,7 +37,8 @@
   if([memberState,accountName,productName,remaining,unit,expiry,verified,
     benefits,history,historyCount,refresh,code,redeem,redeemStatus,redeemError,
     previewPanel,previewTitle,previewDescription,previewAccount,cancel,
-    recoveryPanel,recoveryStatus,recoveryCheck,shop,shopStatus]
+    recoveryPanel,recoveryStatus,recoveryCheck,shop,shopStatus,
+    metricLabel,meter,meterBar,redeemForm,codeReveal,codeClear,confirm]
       .some(element=>!element))return;
 
   // Release-owned values: only populate after commercial/provider review.
@@ -75,9 +81,9 @@
   const businessSdk=window.OpenDeskSDK?.browser?.network;
   // Existing installed-tool storage is bound by Host to package and install epoch.
   // Never store a voucher, password, auth cookie, proxy lease or access token.
-  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.3.0';
+  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.3.1';
   // Do not strand an unresolved 1.2.0 voucher journal after a tool upgrade.
-  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0']);
+  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1']);
   const storeRequest=window.OpenDeskTool.request;
   let snapshot=null,pending=null,recovery=null,recoveryFault=null;
   let recoveryReady=false,busy=false,seq=0;
@@ -259,31 +265,46 @@
     const primary=active.find(e=>e.type==='time')||active[0]||entitlements[0]||null;
     memberState.textContent=account.state==='guest'?'未登录':
       active.length?'权益有效':entitlements.length?'暂无有效权益':'未开通';
-    productName.textContent=primary?primary.title:'尚无已核验商品';
+    memberState.setAttribute('data-tone',active.length?'active':
+      entitlements.length?'warn':'neutral');
+    productName.textContent=primary?primary.title:
+      account.state==='guest'?'请先绑定 AI VIP Share 产品账号':'尚无已核验商品';
+    metricLabel.textContent=primary?.type==='time'?'剩余会员时间':
+      primary?.type==='quota'||primary?.type==='credit'?'剩余使用额度':
+      primary?.type==='feature'?'已获得的功能':'当前会员权益';
+    meter.hidden=true;
+    meterBar.style.width='0%';
+    meter.removeAttribute('aria-valuenow');
     if(!primary){
       remaining.textContent='—';unit.textContent='暂无权益';
-      expiry.textContent='商品时长与额度以实际核验结果为准';
+      expiry.textContent='具体权益以服务端核验结果为准';
     }else if(primary.type==='time'){
       remaining.textContent=String(Math.max(0,Math.ceil((primary.expiresAt-serverNow)/86400000)));
       unit.textContent='天';
-      expiry.textContent='服务端到期时间：'+dateLabel(primary.expiresAt);
+      expiry.textContent='到期 '+dateLabel(primary.expiresAt);
+      // Do not invent original duration; a time entitlement has no verified start.
     }else if(primary.type==='quota'||primary.type==='credit'){
       remaining.textContent=String(primary.remaining);
       unit.textContent=primary.unit;
-      expiry.textContent='额度总量 '+primary.total+' '+primary.unit+'，'+statusLabel(primary.status);
+      expiry.textContent='总额度 '+primary.total+' '+primary.unit;
+      if(primary.total>0){
+        const percent=Math.max(0,Math.min(100,Math.round(primary.remaining/primary.total*100)));
+        meter.hidden=false;meterBar.style.width=percent+'%';
+        meter.setAttribute('aria-valuenow',String(percent));
+      }
     }else{
-      remaining.textContent=primary.status==='active'?'有效':'—';
+      remaining.textContent=primary.status==='active'?'已开通':'未生效';
       unit.textContent='功能权益';
       expiry.textContent=primary.detail;
     }
-    verified.textContent='权益数据截至服务端 '+dateLabel(serverNow)+'；网络状态与会员权益分别核验。';
+    verified.textContent='服务端核验时间：'+dateLabel(serverNow)+'；网络与会员分别核验。';
     emptyRow(benefits,'尚未开通任何权益。');
     if(entitlements.length){
       clear(benefits);
       entitlements.forEach(e=>addRow(benefits,e.title,benefitDescription(e,serverNow)));
     }
-    historyCount.textContent=String(redemptions.length)+' 条（本次核验）';
-    emptyRow(history,'没有已经核验的兑换记录。');
+    historyCount.textContent=String(redemptions.length)+' 条';
+    emptyRow(history,'暂无经过核验的兑换记录。');
     if(redemptions.length){
       clear(history);
       redemptions.slice(0,20).forEach(item=>addRow(history,item.title,
@@ -291,8 +312,7 @@
         (item.masked?' · '+item.masked:'')));
     }
     refresh.disabled=false;
-    // A bounded ledger page can omit a transaction; absence is never final
-    // non-consumption evidence, so do not silently resolve an unknown POST.
+    // Absence in the bounded ledger is never proof of non-consumption.
     if(recovery&&account.id!==recovery.accountId)
       redeemNotice('当前账号与未确认兑换归属不同。请切回原账号核对，不会继承权益。',true);
     renderRedeem();
@@ -301,14 +321,25 @@
     const allowed=Boolean(endpoints)&&snapshot?.account.state==='bound'&&!busy&&
       recoveryReady&&!recovery&&!recoveryFault;
     code.disabled=!allowed||Boolean(pending);
-    redeem.disabled=!allowed||(!pending&&!/^[A-Za-z0-9._-]{6,120}$/.test(code.value.trim()));
-    redeem.textContent=busy?'正在处理':pending?'确认兑换':'立即兑换';
+    redeem.disabled=!allowed||Boolean(pending)||
+      !/^[A-Za-z0-9._-]{6,120}$/.test(code.value.trim());
+    redeem.textContent=busy?'正在处理…':'预检兑换';
+    confirm.disabled=!allowed||!pending;
     previewPanel.hidden=!pending;
-    cancel.hidden=!pending||busy;
+    cancel.hidden=!pending;
+    cancel.disabled=busy;
+    codeReveal.disabled=code.disabled;
+    codeClear.disabled=code.disabled||!code.value;
+    // Sensitive code must return to masked mode after a preflight or lock.
+    if(code.disabled||!code.value){
+      code.type='password';codeReveal.textContent='显示';
+      codeReveal.setAttribute('aria-label','显示兑换码');
+      codeReveal.setAttribute('aria-pressed','false');
+    }
     showRecovery();
   }
   function redeemNotice(message,error=false){
-    redeemStatus.textContent=message;
+    redeemStatus.textContent=error?'请查看错误提示；未经确认的结果不视为兑换成功。':message;
     redeemError.hidden=!error;
     redeemError.textContent=error?message:'';
   }
@@ -347,6 +378,10 @@
       snapshot=null;serverSampleAt=null;
       pending=null;code.value='';
       memberState.textContent='无法核验';
+      memberState.setAttribute('data-tone','warn');
+      metricLabel.textContent='当前会员权益';
+      meter.hidden=true;meterBar.style.width='0%';
+      meter.removeAttribute('aria-valuenow');
       accountName.textContent='账号状态待核验';
       productName.textContent='无法确认会员身份';
       remaining.textContent='—';unit.textContent='待核验';
@@ -492,8 +527,32 @@
   refresh.addEventListener('click',event=>{
     if(event?.isTrusted===true)void refreshMember();
   });
-  code.addEventListener('input',()=>{redeemNotice('兑换内容需先经过服务端预检，确认后才会提交。');renderRedeem();});
-  redeem.addEventListener('click',event=>{void redeemClick(event);});
+  code.addEventListener('input',()=>{
+    redeemNotice('兑换内容需先由服务端预检，确认后才会提交。');
+    renderRedeem();
+  });
+  codeReveal.addEventListener('click',event=>{
+    if(event?.isTrusted!==true||code.disabled)return;
+    const visible=code.type==='password';
+    code.type=visible?'text':'password';
+    codeReveal.textContent=visible?'隐藏':'显示';
+    codeReveal.setAttribute('aria-label',visible?'隐藏兑换码':'显示兑换码');
+    codeReveal.setAttribute('aria-pressed',String(visible));
+  });
+  codeClear.addEventListener('click',event=>{
+    if(event?.isTrusted!==true||code.disabled)return;
+    code.value='';
+    code.type='password';
+    redeemNotice('兑换码已清空，尚未提交。');
+    renderRedeem();
+    code.focus?.();
+  });
+  // Both keyboard Enter and button click use one real form-submit handler.
+  redeemForm.addEventListener('submit',event=>{
+    event.preventDefault();
+    void redeemClick(event);
+  });
+  confirm.addEventListener('click',event=>{void redeemClick(event);});
   recoveryCheck.addEventListener('click',event=>{void checkRecoveryClick(event);});
   cancel.addEventListener('click',event=>{
     if(event?.isTrusted!==true||busy)return;
@@ -508,12 +567,16 @@
   shop.addEventListener('click',event=>{
     if(event?.isTrusted!==true||!catalog||shop.disabled)return;
     shop.disabled=true;shopStatus.textContent='正在请求打开商品目录…';
-    // Browser SDK runs the existing trusted per-operation approval.
-    Promise.resolve().then(()=>{
-      const sdk=shopSdk;
-      if(typeof sdk?.create!=='function')throw Error('当前版本缺少网页打开能力');
-      return sdk.create({url:catalog});
-    }).then(
+    // Invoke the reviewed SDK directly in the trusted user gesture.
+    let operation;
+    try{
+      if(typeof shopSdk?.create!=='function')throw Error('当前版本缺少网页打开能力');
+      operation=shopSdk.create({url:catalog});
+    }catch{
+      shopStatus.textContent='未能打开商品目录，请检查权限或稍后重试。';
+      shop.disabled=false;return;
+    }
+    Promise.resolve(operation).then(
       ()=>{shopStatus.textContent='已请求在浏览器新标签页打开商品目录。';},
       ()=>{shopStatus.textContent='未能打开商品目录，请检查权限或稍后重试。';}
     ).finally(()=>{shop.disabled=false;});
@@ -527,77 +590,122 @@
   const APPROVED_PROXY_ENDPOINT=null; // Release-owned; never use localhost for production.
   function setupManagedProxy(){
     const status=byId('ai-vip-proxy-state'),detail=byId('ai-vip-proxy-detail');
-    const refresh=byId('ai-vip-proxy-refresh'),enable=byId('ai-vip-proxy-enable');
-    const disable=byId('ai-vip-proxy-disable');
-    if(!status||!detail||!refresh||!enable||!disable)return;
+    const refreshProxy=byId('ai-vip-proxy-refresh'),toggle=byId('ai-vip-proxy-toggle');
+    const alert=byId('ai-vip-proxy-alert'),alertText=byId('ai-vip-proxy-alert-text');
+    if(!status||!detail||!refreshProxy||!toggle||!alert||!alertText)return;
     const sdk=window.OpenDeskSDK?.browser?.proxy?.managed;
-    let current=null,working=false;
+    let current=null,working=false,enabling=false,stopRequested=false,lastError='';
     const safeEndpoint=APPROVED_PROXY_ENDPOINT&&
       ['https','socks5'].includes(APPROVED_PROXY_ENDPOINT.scheme)&&
       typeof APPROVED_PROXY_ENDPOINT.host==='string'&&
       Number.isSafeInteger(APPROVED_PROXY_ENDPOINT.port)?APPROVED_PROXY_ENDPOINT:null;
-    // A technical proxy route alone is NEVER an entitlement. A fresh
-    // real Provider snapshot must independently prove membership.
+    // A proxy route does not prove membership; STOP never requires a Provider.
     const hasEntitlement=()=>Boolean(endpoints&&snapshot&&estimatedServerNow()!==null&&
       snapshot.account?.state==='bound'&&snapshot.entitlements?.some(row=>
         row.status==='active'&&(row.type!=='time'||row.expiresAt>estimatedServerNow())));
     const paint=()=>{
-      status.textContent=!sdk?'SDK 不可用':!current?'尚未读取':
+      const stopAction=enabling||current?.canStop===true;
+      const canStart=Boolean(sdk&&safeEndpoint&&hasEntitlement()&&
+        current?.state==='disabled'&&typeof sdk.requestEnable==='function');
+      const canStop=Boolean(sdk&&typeof sdk.requestDisable==='function'&&
+        (enabling||current?.canStop===true));
+      toggle.setAttribute('data-action',stopAction?'stop':'start');
+      toggle.classList.toggle('od-button--secondary',stopAction);
+      toggle.textContent=stopAction?(stopRequested?'已请求停用':'停用代理'):
+        working?'正在检测…':'启用代理';
+      // When START is outstanding, STOP records the user's intent. As soon as
+      // START settles, a new SDK disable request is made. No late START
+      // response may render an "enabled" state without a native status read.
+      toggle.disabled=!sdk||stopRequested||
+        (stopAction?!canStop||(!enabling&&working):working||!canStart);
+      refreshProxy.disabled=working||enabling||!sdk;
+      status.textContent=!sdk?'SDK 不可用':stopRequested?'待执行 STOP':
+        enabling?'启用请求中':!current?'尚未读取':
         ({enabled:'已启用',disabled:'已停止',conflict:'代理被占用',
-          unavailable:'需要恢复'})[current.state]||'未知';
-      enable.disabled=working||!sdk||!safeEndpoint||
-        current?.state!=='disabled'||!hasEntitlement();
-      disable.disabled=working||!sdk||current?.canStop!==true;
-      refresh.disabled=working||!sdk;
+          unavailable:'需要恢复'})[current.state]||'状态未知';
+      status.setAttribute('data-tone',current?.state==='enabled'?'active':
+        ['conflict','unavailable'].includes(current?.state)||lastError?'warn':'neutral');
       if(!sdk)detail.textContent='当前浏览器未提供已批准的 Managed Proxy SDK。';
+      else if(stopRequested)detail.textContent='已记录停用意图；启用请求完成后立即申请 STOP，不自动恢复代理。';
+      else if(enabling)detail.textContent='正在请求启用代理，可直接点击「停用代理」撤销本次启用意图。';
+      else if(lastError)detail.textContent=lastError;
       else if(current?.canStop)detail.textContent=
-        '已存在当前安装的代理资源，可独立于会员或 Provider 停止；不会清除其他工具的代理。';
+        '当前安装存在可停用的代理资源；停用不需要会员或商业服务在线。';
       else if(current?.state==='conflict')detail.textContent=
-        '浏览器级代理控制权冲突。不会覆盖其他扩展、策略或旧版安装。';
+        '浏览器代理由其他扩展、工具或策略管理；不会抢占其控制权。';
       else if(!safeEndpoint)detail.textContent=
-        '正式代理 Provider 尚未配置，无法启用；刷新与已有代理 STOP 仍可用。';
+        '正式代理 Provider 尚未配置，启用不可用；现有代理仍可独立 STOP。';
       else if(!hasEntitlement())detail.textContent=
-        '会员权益尚未由正式服务验证，禁止仅凭代理设置启用访问。';
-      else detail.textContent='启用需经可信 Side Panel 单次确认，目标站点采用严格代理分流。';
+        '会员权益尚未由正式服务核验，禁止仅凭网络可用而启用访问。';
+      else detail.textContent='启用需通过可信 Side Panel 单次确认；Chrome 状态必须回读。';
+      const conflict=['conflict','unavailable'].includes(current?.state);
+      alert.hidden=!(conflict||lastError);
+      alertText.textContent=lastError||(
+        conflict?'代理控制状态异常；请检查 Chrome 扩展设置或重新检测。':'');
     };
-    async function update(){
-      if(!sdk||working)return;
+    async function update({keepError=false}={}){
+      if(!sdk||working||enabling)return;
       working=true;paint();
       try{
         const state=await sdk.getStatus();
         if(!state||typeof state.state!=='string')throw Error('代理状态回执无效');
         current=state;
+        if(!keepError)lastError='';
       }catch(error){
         current=null;
-        detail.textContent='代理状态无法确认（'+String(error?.code||'E_PROXY_STATUS').slice(0,50)+'）。';
+        lastError='代理状态无法确认（'+String(error?.code||'E_PROXY_STATUS').slice(0,50)+'）。';
       }finally{working=false;paint();}
     }
-    refresh.addEventListener('click',event=>{
-      if(event?.isTrusted===true)void update();
-    });
-    enable.addEventListener('click',async event=>{
-      if(event?.isTrusted!==true||working||!safeEndpoint||!hasEntitlement()||
-        current?.state!=='disabled'||typeof sdk?.requestEnable!=='function')return;
-      working=true;paint();
+    async function stop({queued=false}={}){
+      if(working||!sdk||typeof sdk.requestDisable!=='function'||
+        (!queued&&current?.canStop!==true))return;
+      working=true;lastError='';paint();
+      let failed=false;
+      try{
+        await sdk.requestDisable();
+      }catch(error){
+        failed=true;
+        lastError='STOP 未获确认（'+String(error?.code||'E_PROXY_STOP').slice(0,50)+
+          '），不会修改其他工具或系统网络。请重新检测并按需重试。';
+      }finally{
+        working=false;
+        await update({keepError:failed});
+      }
+    }
+    async function start(){
+      if(working||!sdk||!safeEndpoint||!hasEntitlement()||
+        current?.state!=='disabled'||typeof sdk.requestEnable!=='function')return;
+      working=true;enabling=true;stopRequested=false;lastError='';paint();
       try{
         await sdk.requestEnable({config:{endpoint:{...safeEndpoint},
           domains:[...AI_PROXY_DOMAINS]}});
-        detail.textContent='已提交可信启用请求，正在核对 Chrome 原生状态。';
       }catch(error){
-        detail.textContent='启用未确认（'+String(error?.code||'E_PROXY').slice(0,50)+'）；请刷新或明确 STOP，勿盲目重试。';
-      }finally{working=false;paint();void update();}
+        lastError='启用未确认（'+String(error?.code||'E_PROXY').slice(0,50)+
+          '），不会推断代理已连接。';
+      }finally{
+        enabling=false;working=false;
+        if(stopRequested){
+          stopRequested=false;
+          // The STOP gesture happened while START was in flight.
+          // Always ask the ownership-scoped SDK to disable; no unsafe
+          // chrome.proxy writes or interference with another owner.
+          await stop({queued:true});
+        }else await update({keepError:Boolean(lastError)});
+      }
+    }
+    refreshProxy.addEventListener('click',event=>{
+      if(event?.isTrusted===true)void update();
     });
-    disable.addEventListener('click',async event=>{
-      if(event?.isTrusted!==true||working||current?.canStop!==true||
-        typeof sdk?.requestDisable!=='function')return;
-      working=true;paint();
-      try{
-        await sdk.requestDisable();
-        detail.textContent='STOP 已请求并核对 Chrome；请刷新确认已释放。';
-      }catch(error){
-        detail.textContent='STOP 仍待确认（'+String(error?.code||'E_PROXY_STOP').slice(0,50)+'），不会覆盖其他代理配置。';
-      }finally{working=false;paint();void update();}
+    toggle.addEventListener('click',event=>{
+      if(event?.isTrusted!==true)return;
+      if(enabling){
+        stopRequested=true;paint();return;
+      }
+      if(working)return;
+      if(current?.canStop===true)void stop();
+      else void start();
     });
+    paint();
     void update();
   }
   setupManagedProxy();
@@ -606,6 +714,10 @@
   void loadRecovery();
   if(!endpoints){
     memberState.textContent='服务未配置';
+    memberState.setAttribute('data-tone','warn');
+    accountName.textContent='会员账号暂不可核验';
+    productName.textContent='正式会员服务尚未配置';
+    metricLabel.textContent='当前会员权益';
     verified.textContent='正式会员 Provider 尚未配置，账号、权益与兑换记录均不可验证。';
     redeemNotice('兑换服务未配置，暂无法提交。权益仅按服务端回执生效；兑换不会自动开启代理。');
     refresh.disabled=true;

@@ -1,41 +1,85 @@
 /* @opendesk-shared-design */
-/* Layout only. Colors, focus states, buttons and disclosures use the canonical Design System. */
-.ai-vip{display:grid;gap:var(--space-3);min-width:0;padding:var(--space-2) var(--od-page-gutter) 0;overflow-wrap:anywhere}
-.ai-vip-head,.ai-vip-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--space-2);min-width:0}
-.ai-vip-card{display:grid;gap:var(--space-2);min-width:0}
-.ai-vip-card>p,.ai-vip-card>h2,.ai-vip-row>h2{margin:0}
-.ai-vip-account{display:flex;align-items:center;gap:var(--space-3);min-width:0;flex-wrap:wrap}
-.ai-vip-avatar{display:grid;place-items:center;flex:none;width:40px;height:40px;border-radius:var(--radius-surface);background:var(--od-muted);color:var(--od-accent-ink);font-weight:700}
-.ai-vip-account-text{min-width:0;flex:1 1 125px;overflow-wrap:anywhere}
-.ai-vip-account-text>p{margin:var(--space-1) 0 0}
-.ai-vip-account .od-button{flex:0 0 auto}
-.ai-vip-metric-caption{margin-top:var(--space-2)!important}
-.ai-vip-metric{display:flex;align-items:baseline;flex-wrap:wrap;gap:var(--space-2);min-width:0}
-.ai-vip-metric>strong{font-size:28px;line-height:1.15;color:var(--od-ink);font-weight:700;overflow-wrap:anywhere}
-.ai-vip-divider{border-top:1px solid var(--od-line)}
-.ai-vip-subtitle{margin:0;font-size:inherit;font-weight:600}
-.ai-vip-list{list-style:none;display:grid;gap:var(--space-2);min-width:0;margin:0;padding:0}
-.ai-vip-list>li{min-width:0}
-.ai-vip-list .ai-vip-list-item{display:grid;gap:var(--space-1);min-width:0}
-.ai-vip-list-item .od-note{margin:0}
-.ai-vip-history{min-width:0}
-.ai-vip-history .ai-vip-list{padding:var(--space-2) 0 0}
-.ai-vip-redeem-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:var(--space-2);min-width:0}
-.ai-vip-redeem-row>*{min-width:0}
-.ai-vip-preview{display:grid;gap:var(--space-2);min-width:0;padding:var(--space-2);border:1px solid var(--od-line);border-radius:var(--radius-surface)}
-.ai-vip-preview[hidden]{display:none}
-.ai-vip-preview>p{margin:0}
-.ai-vip-preview>.od-button{justify-self:start}
-.ai-vip-shop{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);flex-wrap:wrap;min-width:0}
-.ai-vip-shop>div{min-width:0;flex:1 1 160px}
-.ai-vip-shop p{margin:var(--space-1) 0 0}
-@media(max-width:360px){
-  .ai-vip-redeem-row{grid-template-columns:minmax(0,1fr)}
-  .ai-vip-redeem-row .od-button{justify-self:start}
-  .ai-vip-shop{align-items:stretch}
-  .ai-vip-shop>div{flex-basis:100%}
-  .ai-vip-shop>.od-button{width:100%;justify-content:center}
-}
-
-.ai-vip-proxy-actions{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-2);min-width:0}
-.ai-vip-proxy-actions>.od-button{flex:1 1 100px;min-width:0}
+/* AI VIP Share: R5.7 product structure, built on OpenDesk's shared Sidebar Tool controls. */
+/* The preview studio, demo accounts, fixtures and fake proxy states do not ship here. */
+.ai-vip{--ai-vip-brand:var(--od-brand);--ai-vip-brand-soft:var(--od-muted);width:100%;min-width:0;display:grid;gap:14px;padding:var(--space-2) var(--od-page-gutter) var(--space-3);color:var(--od-ink);overflow-wrap:anywhere}
+.ai-vip *{box-sizing:border-box;min-width:0}
+.ai-vip [hidden]{display:none!important}
+.ai-vip button{touch-action:manipulation}
+.ai-vip-sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.ai-vip-brand{display:flex;align-items:center;gap:10px;padding:1px 0 2px}
+.ai-vip-logo{height:38px;width:38px;flex:0 0 38px;display:grid;place-items:center;border-radius:11px;background:var(--od-brand);color:var(--od-on-brand)}
+.ai-vip-logo svg{width:23px;height:23px;display:block}
+.ai-vip-brand-copy{flex:1}
+.ai-vip-brand h1{font-size:16px;font-weight:750;line-height:1.25;margin:0 0 4px;letter-spacing:-.25px}
+.ai-vip-brand p{margin:0;font-size:11px;line-height:1.45;color:var(--od-sub)}
+.ai-vip-membership,.ai-vip-redeem,.ai-vip-proxy{border:1px solid var(--od-line);border-radius:12px;background:var(--od-paper);overflow:hidden}
+.ai-vip-card-inner{padding:14px 15px 13px}
+.ai-vip-section-head,.ai-vip-benefits-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ai-vip-section-head h2,.ai-vip-benefits-head h3{margin:0;line-height:1.4}
+.ai-vip-section-head h2{font-size:12px;font-weight:750;color:var(--od-ink)}
+.ai-vip-pill{max-width:70%;flex:none;border-radius:6px;padding:4px 7px;background:var(--od-bg);color:var(--od-sub);font-size:10px;font-weight:700;line-height:1.3;white-space:normal;text-align:center}
+.ai-vip-pill[data-tone="active"]{color:var(--od-positive);background:var(--od-bg)}
+.ai-vip-pill[data-tone="warn"]{color:var(--od-warning-ink);background:var(--od-warning-bg)}
+.ai-vip-pill[data-tone="neutral"]{color:var(--od-accent-ink);background:var(--ai-vip-brand-soft)}
+.ai-vip-account-row{display:flex;align-items:center;gap:10px;padding:13px 0 11px;border-bottom:1px solid var(--od-line)}
+.ai-vip-avatar{height:33px;width:33px;flex:0 0 33px;display:grid;place-items:center;border-radius:10px;background:var(--ai-vip-brand-soft);color:var(--od-accent-ink);font-size:12px;font-weight:750}
+.ai-vip-account-copy{flex:1;min-width:0}
+.ai-vip-account-copy strong{display:block;font-size:13px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ai-vip-account-copy>span{display:block;color:var(--od-sub);font-size:11px;line-height:1.6;overflow-wrap:anywhere}
+.ai-vip-text-action{flex:none;min-height:28px;white-space:nowrap}
+.ai-vip-metric-caption{font-size:11px;color:var(--od-sub);margin:13px 0 6px}
+.ai-vip-metric-line{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px}
+.ai-vip-metric{display:flex;align-items:baseline;gap:5px;flex-wrap:wrap}
+.ai-vip-metric strong{font-size:27px;font-weight:790;line-height:1.1;letter-spacing:-.7px;color:var(--od-ink);overflow-wrap:anywhere}
+.ai-vip-metric>span{font-size:13px;font-weight:650;color:var(--od-ink)}
+.ai-vip-expiry{flex:1 1 auto;font-size:11px;line-height:1.55;color:var(--od-sub);text-align:right;overflow-wrap:anywhere}
+.ai-vip-meter{height:5px;border-radius:99px;background:var(--od-bg);margin:10px 0 7px;overflow:hidden}
+.ai-vip-meter span{display:block;height:100%;width:0;border-radius:99px;background:var(--od-brand);transition:width .2s}
+.ai-vip-meta{font-size:10.5px;line-height:1.6;color:var(--od-sub);margin:9px 0 0}
+.ai-vip-benefits{margin-top:12px;padding-top:12px;border-top:1px solid var(--od-line)}
+.ai-vip-benefits-head h3,.ai-vip-benefits-head strong{font-size:11px;font-weight:700;color:var(--od-ink)}
+.ai-vip-benefits-head span{font-size:10px;color:var(--od-sub)}
+.ai-vip-list{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}
+.ai-vip-list li{font-size:11px;line-height:1.55;padding:8px 9px;border-radius:7px;background:var(--od-bg);color:var(--od-sub);overflow-wrap:anywhere}
+.ai-vip-list .ai-vip-list-item{display:grid;gap:2px}
+.ai-vip-list-item strong{font-size:11px;color:var(--od-ink);font-weight:650}
+.ai-vip-list-item p{margin:0;font-size:10.5px;line-height:1.55;color:var(--od-sub)}
+.ai-vip-history{border-top:1px solid var(--od-line);background:var(--od-bg)}
+.ai-vip-history summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px;cursor:pointer;font-size:11px;line-height:1.4;color:var(--od-sub)}
+.ai-vip-history summary::-webkit-details-marker{display:none}
+.ai-vip-history summary strong{font-weight:650;color:var(--od-accent-ink);white-space:nowrap}
+.ai-vip-history .ai-vip-list{padding:0 14px 11px;margin:0}
+.ai-vip-redeem,.ai-vip-proxy{padding:13px 14px 14px;display:grid;gap:10px}
+.ai-vip-redeem h2{font-size:13px;line-height:1.35;margin:0;color:var(--od-ink)}
+.ai-vip-note,.ai-vip-fine-print,.ai-vip-proxy-source{color:var(--od-sub);font-size:11px;line-height:1.6;margin:0}
+.ai-vip-fine-print{font-size:10.5px}
+.ai-vip-redeem-form{display:grid;gap:8px;margin:0}
+.ai-vip-redeem-inputs{display:grid;grid-template-columns:minmax(0,1fr) 44px 40px;align-items:center;gap:7px}
+.ai-vip-redeem-inputs>.od-field{width:100%;height:37px;min-height:37px;margin:0;min-width:0;max-width:none;padding:0 10px;font-size:12px}
+.ai-vip-small-button{height:37px;min-height:37px;width:100%;white-space:nowrap}
+.ai-vip-primary{min-height:36px;width:100%;justify-content:center}
+.ai-vip-review{border:1px solid var(--od-line);border-radius:9px;padding:10px;background:var(--ai-vip-brand-soft);color:var(--od-ink);display:grid;gap:7px;font-size:11px;line-height:1.6}
+.ai-vip-review>strong{font-size:11px}
+.ai-vip-review p{font-size:11px;line-height:1.6;margin:0;overflow-wrap:anywhere}
+.ai-vip-review-actions{display:flex;gap:7px;flex-wrap:wrap}
+.ai-vip-review-actions .od-button{flex:1 1 115px;min-height:36px}
+.ai-vip-review--warning{background:var(--od-warning-bg,var(--od-bg));border-color:var(--od-line)}
+.ai-vip-review--warning>.od-button{justify-self:start}
+.ai-vip-error{border-radius:8px;background:var(--od-negative-bg,var(--od-bg));color:var(--od-negative);padding:9px;margin:0;font-size:11px;line-height:1.6}
+.ai-vip-shop{display:grid;gap:4px}
+.ai-vip-shop-link{min-height:37px;justify-content:center;width:100%;font-size:12px;font-weight:700}
+.ai-vip-shop-status{margin:0;text-align:center}
+.ai-vip-proxy h2{font-size:13px}
+.ai-vip-proxy-toggle{width:100%;min-height:36px}
+.ai-vip-proxy-alert{background:var(--od-warning-bg,var(--od-bg));border:1px solid var(--od-line);border-radius:8px;padding:10px;font-size:11px;line-height:1.6;color:var(--od-warning-ink,var(--od-ink))}
+.ai-vip-proxy-alert p{margin:0}
+.ai-vip-proxy-refresh{justify-self:end}
+.ai-vip-service{border-top:1px solid var(--od-line);padding-top:10px}
+.ai-vip-service summary{display:flex;align-items:center;gap:8px;list-style:none;cursor:pointer;font-size:11px;color:var(--od-sub);line-height:1.55}
+.ai-vip-service summary::-webkit-details-marker{display:none}
+.ai-vip-service summary span{margin-left:auto}
+.ai-vip-service-content{padding:9px 1px 0;font-size:11px;color:var(--od-sub);line-height:1.65}
+.ai-vip-service-content p{margin:0 0 9px;overflow-wrap:anywhere}
+@media(max-width:360px){.ai-vip{gap:12px}.ai-vip-card-inner{padding:12px}.ai-vip-redeem,.ai-vip-proxy{padding:12px}.ai-vip-expiry{max-width:55%;font-size:10.5px}.ai-vip-account-row{gap:7px}.ai-vip-pill{max-width:62%}}
+@media(max-width:320px){.ai-vip{padding-left:var(--space-2);padding-right:var(--space-2)}.ai-vip-account-copy strong{font-size:12px}.ai-vip-redeem-inputs{grid-template-columns:minmax(0,1fr) 42px 38px;gap:5px}}
+@media(prefers-reduced-motion:reduce){.ai-vip-meter span{transition:none}}
