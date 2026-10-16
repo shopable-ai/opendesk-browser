@@ -701,6 +701,9 @@ for(const value of ['true','plaintext-only']){
     const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
     const f=fixture({pkg,library:{schema:1,items:[],settings:{webButtons:true}}});
     f.win.location.href='https://example.org/chat';
+    // This fixture normally accelerates all timers to zero. A 65s picker
+    // expiry must remain long enough for asynchronous status readback.
+    f.win.setTimeout=(fn,ms)=>setTimeout(fn,ms>=65000?ms:0);
     f.editor.tagName='div';f.editor.isContentEditable=true;
     f.editor.attributes.contenteditable=value;
     const wrapper=mockElement('section'),label=mockElement('div');
@@ -710,7 +713,8 @@ for(const value of ['true','plaintext-only']){
     other.attributes.contenteditable=value;
     const semantic='[contenteditable="'+value+'"]',scoped='#rich-container div'+semantic;
     f.doc.querySelectorAll=selector=>{
-      if([semantic,'div'+semantic,'div'].includes(selector))return [f.editor,other,label];
+      if(selector===semantic||selector==='div'+semantic)return [f.editor,other];
+      if(selector==='div')return [f.editor,other,label];
       if(selector===scoped)return [f.editor];
       if(selector==='main')return [f.main];
       return [];
@@ -729,6 +733,7 @@ for(const value of ['true','plaintext-only']){
         preventDefault(){},stopImmediatePropagation(){}});
       const selection=await send('prompt.page.pick.status',{session});
       assert.equal(selection.ok,true);
+      assert.equal(selection.data.state,'selected',JSON.stringify(selection));
       assert.equal(selection.data.selector,scoped,'scoped editable selector is unique');
       assert.equal(selection.data.editorType,'richtext');
       const checked=await send('prompt.page.check',{rule:{
