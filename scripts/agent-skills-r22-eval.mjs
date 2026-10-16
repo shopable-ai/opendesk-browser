@@ -83,6 +83,17 @@ const REASONING = [
     checks:['确认|授权|同意','删除|不可逆|危险','拒绝|不自动|不直接|不能']}
 ];
 
+// R1.0: opt-in read-only ownership cases; this is human-review triage,
+// never an oracle for actual model routing, SDK availability or Chrome install.
+const OWNERSHIP = [
+  {key:'mindmap',input:'在 ChatGPT 回复操作栏加 XMind 思维导图按钮，正式安装后自动出现。请从公开 SDK 开发。',expected:'opendesk-script-authoring',checks:['USER_SCRIPT|Page Program','examples/programs/chatgpt-mindmap/','SDK_GAP_NOT_PROVEN|缺口|阻塞']},
+  {key:'cookie-editor',input:'只优化已安装 Cookie Editor 的 React UI，不重写安装器。',expected:'opendesk-sidebar-tool-dev',checks:['Sidebar Tool|应用','examples/sidebar-tools/cookie-editor/','React|UI']},
+  {key:'prompt-shortcuts',input:'给多个 AI 网页加入自动出现的提示词快捷按钮，保留现有管理入口。',expected:'opendesk-script-authoring',checks:['USER_SCRIPT|网页增强|Page','权限|站点','Host|SDK|框架']},
+  {key:'bookmark-manager',input:'只优化 Bookmark Manager 的 React 文件树、详情和编辑，不修改平台运行时。',expected:'opendesk-sidebar-tool-dev',checks:['Sidebar Tool|应用','examples/sidebar-tools/bookmark-manager/','React|UI']},
+  {key:'platform-revocation',input:'我要求修复通用 Page Program 安装和撤权错误，必要时修改 Browser Authority。',expected:'opendesk-extension-runtime',checks:['opendesk-extension-runtime|Runtime','Authority|src/','撤权|平台']},
+  {key:'external-author',input:'我是外部开发者，只能看公开 SDK/示例，想制作侧栏笔记应用，不能读 Browser 内部源码。',expected:'opendesk-sidebar-tool-dev',checks:['Sidebar Tool|应用','OpenDeskTool|SDK','文档|公开|示例']}
+];
+
 const opt = (key, fallback) => {
   const i = process.argv.indexOf(key);
   return i >= 0 && i+1 < process.argv.length ? process.argv[i+1] : fallback;
@@ -104,7 +115,8 @@ function casesFor(mode){
     push('reasoning','reasoning-base',input,'opendesk-sidebar-tool-dev',1);
     push('reasoning','reasoning-guided',input,'opendesk-sidebar-tool-dev',2);
   }
-  if(!cases.length) throw new Error('Invalid --mode. Valid: all/core/ambiguous/explicit/negative/context/real/reasoning');
+  if(mode==='ownership')for(const {input,expected} of OWNERSHIP)push('ownership','ownership',input,expected);
+  if(!cases.length) throw new Error('Invalid --mode. Valid: all/core/ambiguous/explicit/negative/context/real/reasoning/ownership');
   return cases;
 }
 
@@ -223,6 +235,18 @@ function reasoningPairs(records){
   });
 }
 
+function reviewOwnership(input,raw){
+  const fixture=OWNERSHIP.find(x=>x.input===input);
+  if(!fixture)return {status:'NO_REFERENCE_NOT_SCORED'};
+  const answer=finalModelText(raw);
+  if(!answer.trim())return {key:fixture.key,status:'MODEL_OUTPUT_NOT_OBSERVABLE',expectedSkill:fixture.expected};
+  const checks=fixture.checks.map(pattern=>({pattern,visible:new RegExp(pattern,'iu').test(answer)}));
+  return {key:fixture.key,expectedSkill:fixture.expected,
+    status:checks.every(x=>x.visible)?'CHECKLIST_VISIBLE_REVIEW_REQUIRED':'CHECKLIST_GAPS_REVIEW_REQUIRED',
+    missing:checks.filter(x=>!x.visible).map(x=>x.pattern),
+    semanticAccuracy:'HUMAN_REVIEW_REQUIRED',installedChrome:'NOT_TESTED'};
+}
+
 function localPreflight(repo){
   const result={};
   if(!fs.existsSync(path.join(repo,'.git'))){
@@ -280,20 +304,22 @@ function selfTest(){
   if(score({kind:'negative',expected:null},read)!=='FAIL')throw new Error('negative false positive');
   if(score({kind:'negative',expected:null},analyzeTrace(done,{status:0}))!=='TRIGGER_NOT_OBSERVABLE')throw new Error('unobservable negative wrongly passed');
   if(score({kind:'implicit',expected:'opendesk-extension-ui'},analyzeTrace(completeRead+'\n'+done,{status:1}))!=='RUN_FAILED')throw new Error('failed command wrongly passed');
-  if(casesFor('all').length!==43||casesFor('reasoning').length!==12)throw new Error('fixture count regression');
+  if(casesFor('all').length!==43||casesFor('reasoning').length!==12||casesFor('ownership').length!==6)throw new Error('fixture count regression');
   const fakeAnswer=JSON.stringify({type:'item.completed',item:{type:'agent_message',text:'本地保存并持久化；删除确认；失败时恢复'}});
   const review=reviewReasoning(REASONING[0].input,fakeAnswer);
   if(review.status!=='CHECKLIST_VISIBLE_REVIEW_REQUIRED'||review.matched!==4)throw new Error('reasoning review triage failed');
   if(reviewReasoning(REASONING[0].input,done).status!=='MODEL_OUTPUT_NOT_OBSERVABLE')throw new Error('missing model output was marked as complete');
   if(reasoningPairs([]).some(x=>x.humanSemanticReview!=='REQUIRED'||x.installedChrome!=='NOT_TESTED'))throw new Error('heuristic falsely promoted acceptance');
   if(SKILLS.includes('opendesk-marketplace-publish'))throw new Error('unimplemented remote publisher must not be routed as an active Skill');
-  console.log('SELF_TEST_PASS: 43 routing fixtures and 6 requirement pairs (12 read-only runs); human review required');
+  if(reviewOwnership(OWNERSHIP[0].input,done).status!=='MODEL_OUTPUT_NOT_OBSERVABLE')throw new Error('absent ownership model text accepted');
+  if(OWNERSHIP.some(x=>!SKILLS.includes(x.expected)))throw new Error('unknown ownership Skill');
+  console.log('SELF_TEST_PASS: 43 routing fixtures, 6 requirement pairs and 6 opt-in ownership cases; semantic review required');
 }
 
 if(process.argv.includes('--self-test')){
   selfTest();
 }else if(process.argv.includes('--help')){
-  console.log('Usage: node opendesk-agent-skills-r22-eval.mjs --repo <Mac git path> [--mode all|core|ambiguous|explicit|negative|context|real|reasoning] [--max-tests N] [--model MODEL]\nRequires existing Codex login; output stays under ~/.codex-evals/opendesk-r22/. No repository writes.');
+  console.log('Usage: node opendesk-agent-skills-r22-eval.mjs --repo <Mac git path> [--mode all|core|ambiguous|explicit|negative|context|real|reasoning|ownership] [--max-tests N] [--model MODEL]\nRequires existing Codex login; output stays under ~/.codex-evals/opendesk-r22/. No repository writes.');
 }else{
   try{
     const repo=path.resolve(opt('--repo',process.cwd()));
@@ -317,7 +343,9 @@ if(process.argv.includes('--self-test')){
         ? t.kind==='reasoning-guided'
           ? '\n\n请按 docs/framework/browser-tool-creation-workflow.zh-CN.md 的 R2.1 工作方法，只读检查最新 main、相关工具实际源码、已批准历史原型及 Skill 路由。给出用户目标、场景与 F/S/A 功能树、P0/P1/OUT_OF_SCOPE、失败恢复、未经批准的建议和一个最小影响范围。SOURCE_VERIFIED 与 AI_INFERRED 不得混淆。仅做分析，禁止修改文件、安装/授权/发布，缺少真实证据标 NOT_TESTED。'
           : '\n\n请只读分析当前仓库中这项想法和可以复用的实现，说明你理解的功能和注意事项。不要修改文件、安装、授权或发布。'
-        : '\n\n只读检查真实源码并说明正确的职责边界、代码归属与可运行测试。不要修改文件、安装扩展、授权网站、使用凭据或执行发布操作。';
+        : t.group==='ownership'
+          ? '\n\n按公开 SDK 与独立项目优先判断执行世界、主 Skill、业务目录、平台缺口证据、交付与权限；普通第三方不应依赖宿主内部 src，真正平台任务允许按范围检查 src。只读，不安装，缺证据标 NOT_TESTED，结论须人工语义审查。'
+          : '\n\n只读检查真实源码并说明正确的职责边界、代码归属与可运行测试。不要修改文件、安装扩展、授权网站、使用凭据或执行发布操作。';
       const prompt=t.kind==='explicit'?t.prompt:t.prompt+suffix;
       const args=['exec','--json','--sandbox','read-only'];
       if(model)args.push('--model',model);
@@ -335,20 +363,21 @@ if(process.argv.includes('--self-test')){
       const trace=analyzeTrace(stdout,res);
       const outcome=caseShaBefore!==caseShaAfter||caseStatusBefore!==caseStatusAfter?'SOURCE_CHANGED_DURING_CASE':score(t,trace);
       const requirementReview=t.group==='reasoning'?reviewReasoning(t.prompt,stdout):null;
-      const record={id:t.id,group:t.group,kind:t.kind,iteration:t.iteration,prompt:t.prompt,expected:t.expected,status:outcome,caseShaBefore,caseShaAfter,sourceChangedDuringCase:caseShaBefore!==caseShaAfter||caseStatusBefore!==caseStatusAfter,trace,durationMs:Date.now()-start,traceFilename:path.basename(outPath),...(requirementReview?{requirementReview}:{})};
+      const ownershipReview=t.group==='ownership'?reviewOwnership(t.prompt,stdout):null;
+      const record={id:t.id,group:t.group,kind:t.kind,iteration:t.iteration,prompt:t.prompt,expected:t.expected,status:outcome,caseShaBefore,caseShaAfter,sourceChangedDuringCase:caseShaBefore!==caseShaAfter||caseStatusBefore!==caseStatusAfter,trace,durationMs:Date.now()-start,traceFilename:path.basename(outPath),...(requirementReview?{requirementReview}:{}),...(ownershipReview?{ownershipReview}:{})};
       records.push(record);
       console.log(`${String(i+1).padStart(2,'0')}/${tests.length} ${t.id} ${outcome} ${t.expected||'(none)'}`);
     }
     const afterSha=run('git',['rev-parse','HEAD'],repo).stdout.trim();
     const afterStatus=run('git',['status','--short'],repo).stdout.trim();
     const totals=Object.fromEntries([...new Set(records.map(r=>r.status))].map(status=>[status,records.filter(r=>r.status===status).length]));
-    const summary={createdAt:new Date().toISOString(),tool:'opendesk-agent-skills-r22-eval',preflight:before,modelRequested:model||null,repoShaAfter:afterSha,gitStatusLineCountAfter:afterStatus?afterStatus.split('\n').length:0,repoShaChanged:afterSha!==before.sha,worktreeStatusChanged:afterStatus!==before.statusSnapshot,counts:totals,records,...(mode==='reasoning'?{reasoningPairs:reasoningPairs(records),accuracyStatus:'HUMAN_SEMANTIC_REVIEW_REQUIRED'}:{})};
+    const summary={createdAt:new Date().toISOString(),tool:'opendesk-agent-skills-r22-eval',preflight:before,modelRequested:model||null,repoShaAfter:afterSha,gitStatusLineCountAfter:afterStatus?afterStatus.split('\n').length:0,repoShaChanged:afterSha!==before.sha,worktreeStatusChanged:afterStatus!==before.statusSnapshot,counts:totals,records,...(mode==='reasoning'?{reasoningPairs:reasoningPairs(records),accuracyStatus:'HUMAN_SEMANTIC_REVIEW_REQUIRED'}:{}),...(mode==='ownership'?{ownershipReviews:'HUMAN_SEMANTIC_REVIEW_REQUIRED',installedChrome:'NOT_TESTED'}:{})};
     fs.writeFileSync(path.join(outDir,'summary.json'),JSON.stringify(summary,null,2)+'\n',{encoding:'utf8',mode:0o600,flag:'wx'});
     console.log('RESULT: '+JSON.stringify(totals));
     if(summary.repoShaChanged||summary.worktreeStatusChanged||records.some(r=>r.sourceChangedDuringCase))console.error('WARNING: repository HEAD or status changed during the evaluation; do not combine sample results into one SHA accuracy claim.');
     if(before.localMatchesRemote===false)console.error('WARNING: local main is not identical to remote main; this tests the local candidate only.');
     console.log('Evidence: '+path.join(outDir,'summary.json'));
     // Incomplete/non-observable evaluations must never emit a green exit code.
-    process.exitCode=(mode!=='reasoning' && !summary.repoShaChanged && !summary.worktreeStatusChanged && records.every(r=>r.status==='PASS'||r.status==='EXPLICIT_TRIGGER_PASS'))?0:2;
+    process.exitCode=(mode!=='reasoning' && mode!=='ownership' && !summary.repoShaChanged && !summary.worktreeStatusChanged && records.every(r=>r.status==='PASS'||r.status==='EXPLICIT_TRIGGER_PASS'))?0:2;
   }catch(error){console.error('BLOCKED: '+String(error?.message||error));process.exitCode=2;}
 }
