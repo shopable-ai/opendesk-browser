@@ -112,7 +112,7 @@
 #ps-site-status[data-error="true"]{background:var(--od-negative-bg);color:var(--od-negative)}
 @media(max-width:340px){.ps-site-form .ps-compact-row{grid-template-columns:70px minmax(0,1fr)}}
 
-/* R1.17: use the canonical public od-icon-button appearance. Tool CSS controls layout only. */
+/* R1.17: reuse shared visual primitives; keep tool CSS layout-only. */
 .ps-sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 .ps-head{justify-content:flex-end;min-height:40px;align-items:center}
 .ps-action-control{width:40px;height:40px;min-width:40px;min-height:40px}
