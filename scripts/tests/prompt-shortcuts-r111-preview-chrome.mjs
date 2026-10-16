@@ -107,6 +107,8 @@ async function run(){
   // R1.14 trusted settings: three switches and multi-site status (no fake site authorization).
   await click('#hostSettings');
   assert.equal(await evalChrome('!document.querySelector("#settingsView").hidden'),true);
+  assert.equal(await evalChrome('document.querySelector("#hostToolTitle").textContent'),"工具设置");
+  assert.equal(await evalChrome('document.querySelector("#settingsView h2")===null'),true);
   assert.equal(await evalChrome('document.querySelector("#permissionView")===null'),true);
   for(const width of [320,360,400,440]){
     await click('#size'+width);x=await state();
@@ -126,6 +128,7 @@ async function run(){
   assert.equal(await evalChrome('document.querySelector("#siteDetails").textContent.includes("其他 AI 网站仍须逐站验证")'),true);
   await click('#hostBack');
   assert.equal(await evalChrome('!document.querySelector("#indexView").hidden'),true);
+  assert.equal(await evalChrome('document.querySelector("#hostToolTitle").textContent'),"提示词快捷按钮");
   report.compactHostSettings=true;
   await click('#resetButton');
   await click('.prompt-use');x=await state();
@@ -138,6 +141,13 @@ async function run(){
   assert.equal(await evalChrome('document.activeElement?.textContent==="编辑"'),true);
   await click('.prompt-more button:first-child');
   x=await state();assert.equal(x.editing,true);assert.equal(x.shapeInputs,0);
+  assert.equal(await evalChrome('document.querySelector("#hostToolTitle").textContent'),"编辑提示词");
+  assert.equal(await evalChrome('document.querySelector("#formView h2")===null'),true);
+  assert.equal(await evalChrome('document.querySelector("#formView").getAttribute("aria-labelledby")'),"hostToolTitle");
+  assert.equal(await evalChrome('document.querySelector("label[for=promptBody]").classList.contains("sr-only")'),true);
+  assert.equal(await evalChrome('document.querySelector("#quotaMeter").hidden'),true);
+  assert.equal(await evalChrome('document.querySelector("#contentHint")===null'),true);
+  assert.equal(await evalChrome('document.querySelector("#effectiveShort")===null'),true);
   await shot('edit-440px');
   for(const width of [320,360]){
     await click('#size'+width);
@@ -148,8 +158,26 @@ async function run(){
   }
   report.editView=true;
   await click('#cancelForm');assert.equal((await state()).leaving,false);
-  await click('#addButton');await click('#cancelForm');
-  x=await state();assert.equal(x.editing,false);assert.equal(x.leaving,false);report.pristineForm=true;
+  await click('#addButton');
+  assert.equal(await evalChrome('document.querySelector("#hostToolTitle").textContent'),"新建提示词");
+  assert.equal(await evalChrome('document.querySelector("#quotaMeter").hidden'),true);
+  await shot('new-minimal-360px');
+  await evalChrome('(()=>{const f=document.querySelector("#promptBody");f.value="a".repeat(7000);f.dispatchEvent(new Event("input",{bubbles:true}));})()');
+  assert.equal(await evalChrome('!document.querySelector("#quotaMeter").hidden'),true);
+  assert.equal(await evalChrome('document.querySelector("#quotaLabel").textContent'),"空间接近上限");
+  assert.equal(await evalChrome('document.querySelector("#quotaValue").textContent.startsWith("剩余 ")'),true);
+  await shot('new-near-limit-360px');
+  await evalChrome('(()=>{const f=document.querySelector("#promptBody");f.value="a".repeat(8500);f.dispatchEvent(new Event("input",{bubbles:true}));})()');
+  assert.equal(await evalChrome('document.querySelector("#quotaLabel").textContent'),"存储空间不足");
+  await click('#saveButton');
+  assert.equal(await evalChrome('!document.querySelector("#formView").hidden'),true);
+  assert.equal(await evalChrome('document.querySelector("#promptBody").value.length'),8500);
+  assert.equal(await evalChrome('document.querySelector("#bodyError").textContent.includes("8 KiB")'),true);
+  await evalChrome('(()=>{const f=document.querySelector("#promptBody");f.value="";f.dispatchEvent(new Event("input",{bubbles:true}));})()');
+  assert.equal(await evalChrome('document.querySelector("#quotaMeter").hidden'),true);
+  await click('#cancelForm');
+  x=await state();assert.equal(x.editing,false);assert.equal(x.leaving,false);
+  report.pristineForm=true;report.conditionalQuotaAndSingleTitle=true;
   await click('#addButton');
   assert.equal(await evalChrome('!document.querySelector("#saveContinue").hidden'),true);
   await evalChrome('(()=>{const f=document.querySelector("#promptBody");f.value="连续创建第一条：回顾昨天的工作。";f.dispatchEvent(new Event("input",{bubbles:true}));})()');
