@@ -98,41 +98,93 @@ function FolderPicker({tree,value,onChange,onClose,currentId}){
   </div><small className="bm-note">共 {folders.length} 个符合条件的目标 · 已排除自身、子目录及受保护节点</small>
  </div>
 }
-function Inspector({tree,node,draft,setDraft,onEdit,onSave,onCancel,onOpenPicker,pickerOpen,setPickerOpen,busy,uncertain,onDelete}){
- const foldersCount=tree&&[...tree.byId.values()].filter(isFolder).length;
+function Inspector({tree,node,draft,setDraft,onSave,onCancel,onOpenPicker,pickerOpen,setPickerOpen,busy,uncertain,error}){
  return <section className={'bm-inspector'+(draft?' is-editing':'')+(!node&&!draft?' is-empty':'')} aria-label={draft?'编辑书签':'书签详情'} data-testid="bookmark-inspector">
-  <div className="bm-inspector-heading"><strong>{draft?(draft.mode==='create'?(draft.kind==='folder'?'新建文件夹':'新建书签'):'编辑'+(draft.kind==='folder'?'文件夹':'书签')):(node?'已选择 · 只读详情':'书签详情')}</strong>
-   {!draft&&node&&!node.locked&&<button type="button" className="bm-quiet-action" onClick={()=>onEdit(node)}><Icon name="edit" size={15}/>编辑</button>}
-  </div>
   <span id="bm-inspector-id" className="bm-sr-only">{node?.id||''}</span>
   {draft?<form className="bm-editor" onSubmit={e=>e.preventDefault()} onKeyDown={e=>{if(e.key==="Enter"&&!e.nativeEvent.isComposing&&["bm-edit-name","bm-edit-url"].includes(e.target.id)){e.preventDefault();onSave(e)}}} data-testid="bookmark-editor">
    <div className="bm-field"><label htmlFor="bm-edit-name">名称</label><input id="bm-edit-name" autoFocus maxLength={256} required value={draft.title} onChange={e=>setDraft({...draft,title:e.target.value})}/></div>
    {draft.kind==='bookmark'&&<div className="bm-field"><label htmlFor="bm-edit-url">网址</label><input id="bm-edit-url" type="url" required maxLength={2048} value={draft.url} placeholder="https://example.com" onChange={e=>setDraft({...draft,url:e.target.value})}/></div>}
    <div className="bm-parent-line"><span className="bm-note">所在文件夹：</span><span className="bm-parent-path" title={folderLabel(tree,draft.parentId)}>{folderLabel(tree,draft.parentId)}</span><button type="button" className="bm-text-button" aria-expanded={pickerOpen} onClick={()=>onOpenPicker(!pickerOpen)}>更改</button></div>
    {pickerOpen&&<FolderPicker tree={tree} value={draft.parentId} currentId={draft.mode==='edit'&&draft.kind==='folder'?draft.id:null} onChange={id=>setDraft({...draft,parentId:id})} onClose={()=>setPickerOpen(false)}/>}
-   <div className="bm-editor-actions"><Button type="button" data-testid="bookmark-save" onClick={onSave} kind="primary" icon="arrow" disabled={busy||uncertain}>保存并验证</Button><button type="button" className="bm-button" onClick={onCancel}>取消</button></div>
-   {uncertain&&<p className="bm-warning">写入结果未知；已禁止再次保存。可刷新核对，或明确放弃草稿。</p>}
+   <div className="bm-editor-actions"><Button type="button" data-testid="bookmark-save" onClick={onSave} kind="primary" icon="arrow" disabled={busy||uncertain}>保存</Button><button type="button" className="bm-button" onClick={onCancel}>取消</button></div>
+   {error&&<p className="bm-sheet-error" role="alert">{error}</p>}
+   {uncertain&&<p className="bm-warning">写入结果未知，已禁止重复保存。请先核对书签状态。</p>}
   </form>:
   node?<div className="bm-readonly">
    <div className="bm-detail-title" title={node.title}><Icon name={isFolder(node)?'folder':'link'} size={17}/><span>{node.title}</span></div>
    <div className="bm-detail-path" title={folderLabel(tree,node.parentId)}>{folderLabel(tree,node.parentId)}</div>
    {!isFolder(node)&&<a className="bm-detail-url" href={node.url} target="_blank" rel="noopener noreferrer" title={node.url}>{node.url}<Icon name="external" size={13}/></a>}
-   <div className="bm-inspector-tail"><span> {isFolder(node)?(tree.children.get(node.id)?.length||0)+' 个直接子项':'网页书签'} </span>{!node.locked&&<button className="bm-quiet-action bm-destructive" type="button" onClick={()=>onDelete(node.id)}><Icon name="trash" size={14}/>删除</button>}</div>
+
   </div>:<p className="bm-empty-detail">选择书签可以查看详情，点击「编辑」才会修改内容。</p>}
  </section>
 }
 function ActionMenu({state,onAction,onClose}){const menuRef=useRef(null);useEffect(()=>{menuRef.current?.querySelector('button')?.focus();const click=e=>{if(!menuRef.current?.contains(e.target))onClose()};const key=e=>{if(e.key==='Escape'){e.preventDefault();onClose()}else if(e.key==='ArrowDown'||e.key==='ArrowUp'){const choices=[...menuRef.current?.querySelectorAll('button')||[]];const i=choices.indexOf(document.activeElement);choices[(i+(e.key==='ArrowDown'?1:choices.length-1))%choices.length]?.focus();e.preventDefault()}};document.addEventListener('pointerdown',click);document.addEventListener('keydown',key);return()=>{document.removeEventListener('pointerdown',click);document.removeEventListener('keydown',key)}},[onClose]);
  return <div ref={menuRef} className="bm-popover" role="menu" style={{top:state.top,left:state.left}} data-testid="action-menu">
-   <button role="menuitem" onClick={()=>onAction('edit',state.id)}><Icon name="edit" size={16}/>编辑</button>
-   <button role="menuitem" onClick={()=>onAction('move',state.id)}><Icon name="folder" size={16}/>移动到…</button>
-   <button role="menuitem" className="bm-destructive" onClick={()=>onAction('delete',state.id)}><Icon name="trash" size={16}/>删除</button>
+   <button role="menuitem" onClick={()=>onAction('detail',state.id)}><Icon name="link" size={16}/>查看详情</button>
+   {!state.locked&&<button role="menuitem" onClick={()=>onAction('edit',state.id)}><Icon name="edit" size={16}/>编辑</button>}
+   {!state.locked&&<button role="menuitem" onClick={()=>onAction('move',state.id)}><Icon name="folder" size={16}/>移动到…</button>}
+   {!state.locked&&<button role="menuitem" className="bm-destructive" onClick={()=>onAction('delete',state.id)}><Icon name="trash" size={16}/>删除</button>}
   </div>
 }
-function Confirm({title,description,confirm,canConfirm=true,onConfirm,onCancel,danger=false}){const ref=useRef(null);useEffect(()=>{ref.current?.querySelector('button')?.focus()},[]);function keys(e){if(e.key==='Escape'){e.preventDefault();onCancel()}if(e.key==='Tab'){const buttons=[...ref.current.querySelectorAll('button:not(:disabled)')];const ix=buttons.indexOf(document.activeElement),next=e.shiftKey?(ix<=0?buttons.length-1:ix-1):(ix===buttons.length-1?0:ix+1);e.preventDefault();buttons[next]?.focus()}}
- return <div className="bm-scrim" role="presentation" onKeyDown={keys}><div ref={ref} className="bm-dialog" role="alertdialog" aria-modal="true" aria-label={title} aria-describedby="bm-dialog-desc" data-testid="confirm-dialog"><h2>{title}</h2><p id="bm-dialog-desc">{description}</p><div className="bm-dialog-actions"><button className="bm-button" type="button" onClick={onCancel}>继续编辑 / 取消</button><button className={'bm-button '+(danger?'bm-button--danger':'bm-button--primary')} type="button" disabled={!canConfirm} onClick={onConfirm}>{confirm}</button></div></div></div>
+function Sheet({title,onClose,children}){
+ const ref=useRef(null),closeRef=useRef(onClose),origin=useRef(null);
+ closeRef.current=onClose;
+ useEffect(()=>{
+  origin.current=document.activeElement;
+  const region=ref.current;
+  const field=region?.querySelector('[autofocus],input,button');
+  (field||region)?.focus();
+  const key=e=>{
+   if(e.key==='Escape'){e.preventDefault();e.stopPropagation();closeRef.current();return}
+   if(e.key!=='Tab'||!region)return;
+   const items=[...region.querySelectorAll('button:not(:disabled),input:not(:disabled),a[href],select:not(:disabled)')].filter(el=>el.getClientRects().length);
+   if(!items.length)return;
+   const first=items[0],last=items[items.length-1];
+   if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}
+   else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
+  };
+  document.addEventListener('keydown',key,true);
+  return()=>{
+   document.removeEventListener('keydown',key,true);
+   const target=origin.current;
+   if(target?.isConnected)target.focus();
+   else document.querySelector('.bm-tree-scroll')?.focus();
+  };
+ },[]);
+ return <div className="bm-sheet-backdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget)closeRef.current()}}>
+  <section ref={ref} className="bm-sheet" role="dialog" aria-modal="true" aria-label={title} tabIndex={-1} data-testid="bookmark-sheet">
+   <header className="bm-sheet-header"><strong>{title}</strong><button className="bm-sheet-close" type="button" aria-label="关闭" onClick={onClose}><Icon name="x" size={17}/></button></header>
+   {children}
+  </section>
+ </div>;
+}
+function Confirm({title,description,confirm,canConfirm=true,onConfirm,onCancel,danger=false}){
+ const ref=useRef(null),origin=useRef(null);
+ useEffect(()=>{
+  origin.current=document.activeElement;
+  ref.current?.querySelector('button')?.focus();
+  return()=>{if(origin.current?.isConnected)origin.current.focus();else document.querySelector('.bm-tree-scroll')?.focus()};
+ },[]);
+ function keys(e){
+  if(e.key==='Escape'){e.preventDefault();onCancel()}
+  if(e.key==='Tab'){
+   const buttons=[...ref.current.querySelectorAll('button:not(:disabled)')];
+   const ix=buttons.indexOf(document.activeElement),next=e.shiftKey?(ix<=0?buttons.length-1:ix-1):(ix===buttons.length-1?0:ix+1);
+   e.preventDefault();buttons[next]?.focus();
+  }
+ }
+ return <div className="bm-scrim" role="presentation" onKeyDown={keys}>
+  <div ref={ref} className="bm-dialog" role="alertdialog" aria-modal="true" aria-label={title} aria-describedby="bm-dialog-desc" data-testid="confirm-dialog">
+   <h2>{title}</h2><p id="bm-dialog-desc">{description}</p>
+   <div className="bm-dialog-actions">
+    <button className="bm-button" type="button" onClick={onCancel}>取消</button>
+    <button className={'bm-button '+(danger?'bm-button--danger':'bm-button--primary')} type="button" disabled={!canConfirm} onClick={onConfirm}>{confirm}</button>
+   </div>
+  </div>
+ </div>;
 }
 export default function App(){
- const [tree,setTree]=useState(null),[expanded,setExpanded]=useState(new Set(['1','2','10','11'])),[query,setQuery]=useState(''),[selectedId,setSelectedId]=useState(null),[activeId,setActiveId]=useState('1'),[draft,setDraft]=useState(null),[pickerOpen,setPickerOpen]=useState(false),[pending,setPending]=useState(null),[menu,setMenu]=useState(null),[confirmDelete,setConfirmDelete]=useState(null),[busy,setBusy]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState(''),[uncertain,setUncertain]=useState(false);
+ const [tree,setTree]=useState(null),[expanded,setExpanded]=useState(new Set(['1','2','10','11'])),[query,setQuery]=useState(''),[selectedId,setSelectedId]=useState(null),[activeId,setActiveId]=useState('1'),[draft,setDraft]=useState(null),[pickerOpen,setPickerOpen]=useState(false),[detailOpen,setDetailOpen]=useState(false),[menu,setMenu]=useState(null),[confirmDelete,setConfirmDelete]=useState(null),[busy,setBusy]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState(''),[uncertain,setUncertain]=useState(false);
  const scrollRef=useRef(null),readEpoch=useRef(0),activeRef=useRef(true),menuButtonRef=useRef(null);
  useEffect(()=>{activeRef.current=true;return()=>{activeRef.current=false;readEpoch.current++}},[]);
  const load=useCallback(async({initial=false}={})=>{const stamp=++readEpoch.current;setLoading(true);setError('');try{const next=await service.load();if(!activeRef.current||stamp!==readEpoch.current)return null;setTree(next);setLoading(false);setNotice('');return next}catch(ex){if(activeRef.current&&stamp===readEpoch.current){setLoading(false);setError(humanError(ex))}return null}},[]);
@@ -142,13 +194,24 @@ export default function App(){
  const folders=useMemo(()=>tree?[...tree.byId.values()].filter(n=>isFolder(n)&&!n.locked&&!tree.roots.has(n.id)):[],[tree]);
  const closeMenu=useCallback(()=>{setMenu(null);menuButtonRef.current?.focus()},[]);
  function toggle(id){setExpanded(prev=>{const n=new Set(prev);if(n.has(id))n.delete(id);else n.add(id);return n})}
- function startEdit(node,{move=false}={}){if(!node||node.locked)return;setDraft(initialDraft('edit',isFolder(node)?'folder':'bookmark',node,node.parentId));setSelectedId(node.id);setPickerOpen(move);setUncertain(false)}
- function perform(action){setPickerOpen(false);setUncertain(false);setMenu(null);if(action.type==='select'){setSelectedId(action.id);setDraft(null)}else if(action.type==='create'){const parent=(current&&isFolder(current)?current.id:current?.parentId)||'1';setDraft(initialDraft('create',action.kind,null,parent))}else if(action.type==='edit'){startEdit(tree.byId.get(action.id),{move:action.move})}else if(action.type==='cancel'){setDraft(null)}else if(action.type==='delete'){prepareDelete(action.id)}else if(action.type==='currentPage'){void fillCurrentPage()}}
- function request(action){if(dirtyDraft(draft)){setPending(action);return}perform(action)}
- function select(id){if(draft&&draft.id===id&&draft.mode==='edit'){if(!dirtyDraft(draft)){setDraft(null);setPickerOpen(false)}return}request({type:'select',id})}
+ function startEdit(node,{move=false}={}){if(!node||node.locked)return;setDraft(initialDraft('edit',isFolder(node)?'folder':'bookmark',node,node.parentId));setSelectedId(node.id);setDetailOpen(false);setPickerOpen(move);setUncertain(false)}
+ function closeSheet(){setDraft(null);setDetailOpen(false);setPickerOpen(false);setError('');setUncertain(false)}
+ function perform(action){
+  setPickerOpen(false);setMenu(null);
+  if(action.type==='select'){setSelectedId(action.id);setDraft(null);setDetailOpen(false)}
+  else if(action.type==='detail'){setSelectedId(action.id);setDraft(null);setDetailOpen(true)}
+  else if(action.type==='create'){const parent=(current&&isFolder(current)?current.id:current?.parentId)||'1';setDetailOpen(false);setDraft(initialDraft('create',action.kind,null,parent));setUncertain(false)}
+  else if(action.type==='edit'){startEdit(tree.byId.get(action.id),{move:action.move})}
+  else if(action.type==='cancel')closeSheet();
+  else if(action.type==='delete'){setDetailOpen(false);prepareDelete(action.id)}
+  else if(action.type==='currentPage')void fillCurrentPage();
+ }
+ // Explicit cancel means discard. No modal for unsaved drafts.
+ function request(action){perform(action)}
+ function select(id){setActiveId(id);if(draft)return;request({type:'select',id})}
  function prepareDelete(id){const node=tree?.byId.get(id);if(node&&!node.locked){setConfirmDelete({id,expected:{...node},descendantSignatures:isFolder(node)?model.descendantSignatures(tree,id):[],count:isFolder(node)?descendants(tree,id):0})}}
- function onMenu(id,button){setMenu(null);menuButtonRef.current=button;const r=button.getBoundingClientRect();const max=window.innerWidth-190;setMenu({id,top:Math.max(8,Math.min(r.bottom+4,window.innerHeight-142)),left:Math.max(8,Math.min(r.right-182,max))})}
- function actionMenu(action,id){closeMenu();if(action==='delete')request({type:'delete',id});else request({type:'edit',id,move:action==='move'})}
+ function onMenu(id,button){setMenu(null);setSelectedId(id);setActiveId(id);menuButtonRef.current=button;const r=button.getBoundingClientRect();const max=window.innerWidth-190;setMenu({id,locked:Boolean(tree?.byId.get(id)?.locked),top:Math.max(8,Math.min(r.bottom+4,window.innerHeight-190)),left:Math.max(8,Math.min(r.right-182,max))})}
+ function actionMenu(action,id){closeMenu();if(action==='detail')request({type:'detail',id});else if(action==='delete')request({type:'delete',id});else request({type:'edit',id,move:action==='move'})}
  async function save(e){globalThis.__bmReactSaveStage='submit-handler';e.preventDefault();if(!draft||busy||uncertain)return;
   let title,url;try{title=model.displayName(draft.title);url=draft.kind==='bookmark'?model.asHttpUrl(draft.url):undefined;model.parentFolder(tree,draft.parentId);
    if(draft.kind==='folder'&&draft.mode==='edit'&&model.isDescendant(tree,draft.parentId,draft.id))throw Error('文件夹不能移动到自身或子目录');
@@ -164,22 +227,24 @@ export default function App(){
    }
    globalThis.__bmReactSaveStage='request-completed';const verified=await service.load(),actual=verified.byId.get(result.id);
    if(!actual||actual.title!==title||actual.parentId!==draft.parentId||(draft.kind==='bookmark'&&actual.url!==url))throw Object.assign(Error('数据写入后读回不一致；保留草稿并禁止盲目重试'),{code:'E_OUTCOME_UNKNOWN'});
-   globalThis.__bmReactSaveStage='readback-ok';if(!activeRef.current)return;setTree(verified);setSelectedId(actual.id);setActiveId(actual.id);setDraft(null);setPickerOpen(false);setUncertain(false);setNotice('已保存，书签数据读回核验通过。');
+   globalThis.__bmReactSaveStage='readback-ok';if(!activeRef.current)return;setTree(verified);setSelectedId(actual.id);setActiveId(actual.id);setDraft(null);setDetailOpen(false);setPickerOpen(false);setUncertain(false);setNotice('已保存');
   }catch(ex){globalThis.__bmReactSaveStage='error:'+(ex?.code||ex?.message||'unknown');if(activeRef.current){setError(humanError(ex));if(ex?.code==='E_OUTCOME_UNKNOWN')setUncertain(true)}}finally{if(activeRef.current)setBusy(false)}
  }
- async function removeConfirmed(){if(!confirmDelete||busy)return;setBusy(true);setError('');try{await service.remove({expected:confirmDelete.expected,confirmed:true,expectedDescendantSignatures:confirmDelete.descendantSignatures});const refreshed=await service.load();if(refreshed.byId.has(confirmDelete.id))throw Object.assign(Error('删除后仍发现目标，拒绝认定成功'),{code:'E_OUTCOME_UNKNOWN'});if(!activeRef.current)return;setTree(refreshed);if(selectedId===confirmDelete.id)setSelectedId(null);setConfirmDelete(null);setDraft(null);setNotice('已删除，重新读取后确认目标不存在。')}catch(ex){if(activeRef.current)setError(humanError(ex))}finally{if(activeRef.current)setBusy(false)}}
- function bookmarkCurrentPage(){if(dirtyDraft(draft)){setPending({type:'currentPage'});return}void fillCurrentPage()}
+ async function removeConfirmed(){if(!confirmDelete||busy)return;setBusy(true);setError('');try{await service.remove({expected:confirmDelete.expected,confirmed:true,expectedDescendantSignatures:confirmDelete.descendantSignatures});const refreshed=await service.load();if(refreshed.byId.has(confirmDelete.id))throw Object.assign(Error('删除后仍发现目标，拒绝认定成功'),{code:'E_OUTCOME_UNKNOWN'});if(!activeRef.current)return;setTree(refreshed);if(selectedId===confirmDelete.id)setSelectedId(null);setConfirmDelete(null);setDraft(null);setDetailOpen(false);setNotice('已删除')}catch(ex){if(activeRef.current)setError(humanError(ex))}finally{if(activeRef.current)setBusy(false)}}
+ function bookmarkCurrentPage(){void fillCurrentPage()}
  async function fillCurrentPage(){if(busy)return;try{const info=await globalThis.OpenDeskSDK.browser.page.getContext();if(info.status!=='available')throw Error('当前页不可用');const parent=(current&&isFolder(current)?current.id:current?.parentId)||'1';setDraft(initialDraft('create','bookmark',null,parent));setDraft(d=>({...d,title:info.title,url:info.url}));setNotice('已填写当前模拟网页，确认后再保存。')}catch(ex){setError(humanError(ex))}}
  return <div className="bm-app" data-react-bookmark="r3.0.2">
   <header className="bm-topbar"><div className="bm-heading"><strong className="bm-sr-only">书签管理</strong><span>{tree?tree.byId.size.toLocaleString('zh-CN'):'—'} 项</span></div><div className="bm-top-actions"><button title="收藏当前模拟网页" aria-label="收藏当前页" className="bm-icon-btn" type="button" onClick={bookmarkCurrentPage}><Icon name="star" size={17}/></button><button title="从 Mock 重新读取" aria-label="刷新书签" className="bm-icon-btn" type="button" onClick={()=>void load()} disabled={loading}><Icon name="refresh" size={17}/></button></div></header>
   <div className="bm-tools"><div className="bm-search-wrap"><Icon name="search" size={16}/><label className="bm-sr-only" htmlFor="bm-search">搜索名称、URL 或文件夹</label><input id="bm-search" value={query} placeholder="搜索书签、网址或文件夹" onChange={e=>setQuery(e.target.value)}/>{query&&<button aria-label="清空搜索" type="button" onClick={()=>setQuery('')}><Icon name="x" size={14}/></button>}</div><div className="bm-create-actions"><Button icon="plus" kind="primary" onClick={()=>request({type:'create',kind:'bookmark'})}>新建书签</Button><Button icon="folder" onClick={()=>request({type:'create',kind:'folder'})}>新建文件夹</Button></div></div>
-  {error&&<div className="bm-error" role="alert"><Icon name="alert" size={17}/><span>{error}</span><button type="button" onClick={()=>{setError('');void load()}}>刷新</button></div>}
+  {error&&!draft&&<div className="bm-error" role="alert"><Icon name="alert" size={17}/><span>{error}</span><button type="button" onClick={()=>{setError('');void load()}}>刷新</button></div>}
   {notice&&<div className="bm-notice" role="status">{notice}</div>}
-  <div className="bm-workspace"><section className="bm-explorer" aria-label="书签树"><div className="bm-tree-head"><span>全部书签</span><small>{query?rows.filter(r=>((r.node.title+' '+(r.node.url||'')).toLocaleLowerCase()).includes(query.toLocaleLowerCase())).length+' 条匹配':folders.length+' 个文件夹'}</small></div>
+  <div className="bm-workspace"><section className="bm-explorer" aria-label="书签树">{query&&<div className="bm-tree-head"><span>搜索结果</span><small>{rows.filter(r=>((r.node.title+' '+(r.node.url||'')).toLocaleLowerCase()).includes(query.toLocaleLowerCase())).length} 条匹配</small></div>}
   {loading&&!tree?<div className="bm-loading" role="status">正在读取离线模拟书签…</div>:tree?<Tree rows={rows} expanded={expanded} selectedId={selectedId} activeId={activeId} setActiveId={setActiveId} onSelect={select} onToggle={toggle} onMenu={onMenu} onScrollClose={()=>setMenu(null)} scrollRef={scrollRef}/>:<div className="bm-empty">暂时无法读取书签。使用刷新重试。</div>}</section>
-  {tree&&<Inspector tree={tree} node={current} draft={draft} setDraft={setDraft} onEdit={node=>request({type:'edit',id:node.id})} onSave={save} onCancel={()=>request({type:'cancel'})} onOpenPicker={setPickerOpen} pickerOpen={pickerOpen} setPickerOpen={setPickerOpen} busy={busy} uncertain={uncertain} onDelete={id=>request({type:'delete',id})}/>}</div>
+  </div>
+  {tree&&(draft||detailOpen)&&<Sheet title={draft?(draft.mode==='create'?(draft.kind==='folder'?'新建文件夹':'新建书签'):'编辑'+(draft.kind==='folder'?'文件夹':'书签')):'书签详情'} onClose={closeSheet}>
+    <Inspector tree={tree} node={current} draft={draft} setDraft={setDraft} onSave={save} onCancel={closeSheet} onOpenPicker={setPickerOpen} pickerOpen={pickerOpen} setPickerOpen={setPickerOpen} busy={busy} uncertain={uncertain} error={error}/>
+  </Sheet>}
   {menu&&<ActionMenu state={menu} onAction={actionMenu} onClose={closeMenu}/>}
-  {pending&&<Confirm title="有尚未保存的修改" description="当前内容已修改。可以继续编辑，或明确放弃本次草稿并执行刚才的操作。" confirm="放弃修改" danger onConfirm={()=>{const task=pending;setPending(null);setDraft(null);perform(task)}} onCancel={()=>setPending(null)}/>}
-  {confirmDelete&&<Confirm title={confirmDelete.count?'删除文件夹及子项？':'确认删除书签？'} description={confirmDelete.count?'将删除「'+confirmDelete.expected.title+'」及 '+confirmDelete.count+' 个子项。此操作不可撤销；保存前会再次核对整个子树。':'将删除「'+confirmDelete.expected.title+'」，确认后会重新读取核验。'} confirm={busy?'正在处理…':'确认删除'} danger canConfirm={!busy} onConfirm={()=>void removeConfirmed()} onCancel={()=>setConfirmDelete(null)}/>}
+  {confirmDelete&&<Confirm title={confirmDelete.count?'删除文件夹及子项？':'确认删除书签？'} description={confirmDelete.count?'「'+confirmDelete.expected.title+'」及其 '+confirmDelete.count+' 个子项将被永久删除。':'确定删除「'+confirmDelete.expected.title+'」？'} confirm={busy?'正在删除…':confirmDelete.count?'删除文件夹':'删除书签'} danger canConfirm={!busy} onConfirm={()=>void removeConfirmed()} onCancel={()=>setConfirmDelete(null)}/>}
  </div>
 }

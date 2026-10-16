@@ -1,10 +1,11 @@
-name: Bookmark Manager R3.0.2 React Preview · Real Chromium
+name: Bookmark Manager R3.0.3 React Preview · List-First UX Chromium
 on:
   push:
     branches: [main]
     paths:
       - 'examples/sidebar-tools/bookmark-manager/preview/react/**'
       - 'examples/sidebar-tools/bookmark-manager/preview/r302-chrome.mjs'
+      - 'examples/sidebar-tools/bookmark-manager/preview/r303-chrome.mjs'
       - '.github/workflows/bookmark-manager-r302-react-preview.yml'
       - 'scripts/preview/bookmark-manager-mock.js'
       - 'examples/sidebar-tools/bookmark-manager/src/model.js'
@@ -13,7 +14,7 @@ on:
 permissions:
   contents: write
 concurrency:
-  group: bookmark-r302-react-preview
+  group: bookmark-r303-react-preview
   cancel-in-progress: false
 jobs:
   react-preview-chromium:
@@ -39,6 +40,7 @@ jobs:
         run: |
           node --check examples/sidebar-tools/bookmark-manager/preview/react/build-preview.mjs
           node --check examples/sidebar-tools/bookmark-manager/preview/r302-chrome.mjs
+          node --check examples/sidebar-tools/bookmark-manager/preview/r303-chrome.mjs
           node --input-type=module <<'NODE'
           import assert from 'node:assert/strict';
           import {readFile} from 'node:fs/promises';
@@ -69,20 +71,20 @@ jobs:
           sudo apt-get install -y -qq fonts-noto-cjk
       - uses: browser-actions/setup-chrome@v2
         id: chrome
-      - name: Real Chromium click, save, search, menu, folder picker and failure regression
+      - name: Real Chromium R3.0.3 no-footer, cancel, details, edit, menu, delete and focus acceptance
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
-        run: node examples/sidebar-tools/bookmark-manager/preview/r302-chrome.mjs artifacts/preview-chrome-r302
+        run: node examples/sidebar-tools/bookmark-manager/preview/r303-chrome.mjs artifacts/preview-chrome-r303
       - name: Preserve exact candidate and browser evidence even on failure
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: bookmark-r302-react-${{ github.sha }}-${{ github.run_attempt }}
+          name: bookmark-r303-react-${{ github.sha }}-${{ github.run_attempt }}
           retention-days: 14
           if-no-files-found: warn
           path: |
             examples/sidebar-tools/bookmark-manager/preview/index.html
-            artifacts/preview-chrome-r302/
+            artifacts/preview-chrome-r303/
       - name: Promote exact Chromium-tested HTML with concurrent main protection
         if: github.event_name == 'push'
         shell: bash
@@ -114,7 +116,7 @@ jobs:
             exit 0
           fi
           git -c user.name='OpenDesk Preview CI' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
-            commit -m 'build(bookmark-manager): promote verified R3.0.2 React offline preview'
+            commit -m 'build(bookmark-manager): promote verified R3.0.3 list-first React preview'
           if [ "$remote_head" != "$GITHUB_SHA" ]; then
             git -c user.name='OpenDesk Preview CI' \
               -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
