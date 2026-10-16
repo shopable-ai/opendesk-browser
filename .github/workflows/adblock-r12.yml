@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'examples/sidebar-tools/adblock/**'
+      - '!examples/sidebar-tools/adblock/adblock.opendesk-tool.json'
       - 'src/sw.js'
       - 'src/entrypoints/sidebar-tool-host.js'
       - 'src/ui/sidebar-tools.js'
@@ -129,3 +130,86 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
           path: artifacts/adblock-r12-native/
+
+  # Publishing never substitutes for a macOS Native PASS. A runner-generated
+  # candidate alone is NOT a trusted release and must not modify main.
+  publish-official-package:
+    needs: [source-and-package, native-macos-chrome]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/download-artifact@v4
+        with:
+          name: adblock-r12-validated-production-${{ github.sha }}
+          path: .
+      - name: Promote only a native-passed, drift-free official AdBlock package
+        shell: bash
+        env:
+          REVIEWED_HEAD: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          candidate=artifacts/sidebar-tools/adblock/candidate.opendesk-tool.json
+          official=examples/sidebar-tools/adblock/adblock.opendesk-tool.json
+          test -s "$candidate"
+          test -s dist/production/official-tools/adblock/adblock.opendesk-tool.json
+          cmp "$candidate" dist/production/official-tools/adblock/adblock.opendesk-tool.json
+          sha256sum "$candidate"
+
+          # Parallel agents can advance main. Never publish stale runtime,
+          # toolbar, DNR, sandbox, package builder, native driver or CI inputs.
+          git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main
+          if ! git diff --quiet "$REVIEWED_HEAD" refs/remotes/origin/main -- \
+              examples/sidebar-tools/adblock \
+              src/ui/tool.html \
+              src/ui/sidebar-tools.js \
+              src/ui/tool-shell.css \
+              src/ui/sidebar-tools \
+              src/sw.js \
+              src/entrypoints/sidebar-tool-host.js \
+              src/sidebar-tools/bridge.js \
+              scripts/build-sidebar-tool.mjs \
+              scripts/build-official-tools.mjs \
+              scripts/bundle-provenance.mjs \
+              scripts/preview \
+              scripts/templates/sidebar-tool-preview-shell.html \
+              contracts/ui-preview \
+              official-tools/catalog.json \
+              tests/environment/adblock-r12.test.mjs \
+              tests/environment/adblock-host-controls-r13.test.mjs \
+              tests/environment/adblock-preview-contract.test.mjs \
+              tests/framework/adblock-r12-native.test.mjs \
+              .github/workflows/adblock-r12.yml; then
+            echo "::error::AdBlock source/Host/DNR/CI inputs changed after native validation; refusing stale promotion"
+            exit 1
+          fi
+
+          # Only work on the actual latest main. Do not create a feature
+          # branch/worktree or replace other agents' commits.
+          git switch -C main refs/remotes/origin/main
+          npm ci --ignore-scripts --no-audit --no-fund
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/adblock --out artifacts/sidebar-tools/adblock/revalidated.opendesk-tool.json
+          cmp "$candidate" artifacts/sidebar-tools/adblock/revalidated.opendesk-tool.json
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/adblock --promote-from "$candidate"
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/adblock --check-project
+          cmp "$candidate" "$official"
+          sha256sum "$official"
+
+          git add -- "$official"
+          if git diff --cached --quiet; then
+            echo "Official package is already source-identical; no redundant commit"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'build(adblock): promote native-validated official 1.1.1 package'
+          # Strict non-force push: a changed remote head causes rejection.
+          git push origin HEAD:refs/heads/main
+          git rev-parse HEAD
