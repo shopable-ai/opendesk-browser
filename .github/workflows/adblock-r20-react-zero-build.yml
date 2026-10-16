@@ -42,7 +42,18 @@ jobs:
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
           ADBLOCK_PREVIEW_EVIDENCE_DIR: ${{ runner.temp }}/adblock-react-r20-evidence
-        run: node examples/sidebar-tools/adblock/preview/acceptance.mjs
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Some macOS-15 CFT runner builds cannot create Chromium's Mach rendezvous service.
+          # Prefer the runner's separately installed stable Chrome on macOS; keep CFT for
+          # Linux and as a macOS fallback. Never mock the browser or skip the assertions.
+          if [[ "$RUNNER_OS" == "macOS" ]] && [[ -x "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" ]]; then
+            export CHROME_BIN="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+          fi
+          echo "CHROME_BIN=$CHROME_BIN"
+          "$CHROME_BIN" --version
+          node examples/sidebar-tools/adblock/preview/acceptance.mjs
       - name: Upload real file Chrome screenshots
         if: always()
         uses: actions/upload-artifact@v4
