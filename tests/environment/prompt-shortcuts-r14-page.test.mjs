@@ -548,6 +548,7 @@ test('R2 custom site exact two selectors, enabled lifecycle, ambiguous editor fa
   const f=fixture({pkg,library});
   const url='https://example.org/compose';
   f.win.location.href=url;f.editor.tagName='textarea';f.editor.isContentEditable=false;
+  f.editor.getBoundingClientRect=()=>({left:350,top:480,width:540,height:100});
   f.editor.value='旧草稿';f.doc.querySelectorAll=s=>s==='main'?[f.main]:s==='textarea'?[f.editor]:[];
   f.doc.execCommand=(command,_show,value)=>{f.calls.push({command,value});f.editor.value+=value;return true;};
   const rule={origin:'https://example.org',pathScope:'/compose',containerSelector:'main',
@@ -574,6 +575,7 @@ test('R2 picker uses extension-owned message, exact document, unique semantic se
   const library={schema:1,items:[],settings:{webButtons:true}};
   const f=fixture({pkg,library});f.win.location.href='https://example.org/compose';
   f.editor.tagName='textarea';f.editor.attributes.id='composer';
+  f.editor.getBoundingClientRect=()=>({left:350,top:480,width:540,height:100});
   f.doc.querySelectorAll=s=>s==='textarea'||s==='#composer'?[f.editor]:s==='main'?[f.main]:[];
   const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
   const send=(operation,extra={})=>new Promise(resolve=>{
