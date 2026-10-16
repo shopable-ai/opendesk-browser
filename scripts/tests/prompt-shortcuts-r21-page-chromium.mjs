@@ -219,7 +219,7 @@ try{
   console.log('PROMPT_SHORTCUTS_R21_PAGE_CHROMIUM_FIXTURE_PASS',JSON.stringify(report));
 }catch(error){
   let snapshot;
-  try{snapshot=await evaluate('({ready:window.__ready,errors:window.__loadErrors||[],promptRail:!!document.querySelector("[data-opendesk-prompts]"),path:location.pathname})');}
+  try{snapshot=await evaluate('({ready:window.__ready,errors:window.__loadErrors||[],promptRail:!!document.querySelector("[data-opendesk-prompts]"),path:location.pathname,focused:document.activeElement?.id,draft:document.querySelector("#draft")?.value,edits:window.__edits||[],copied:window.__copied||[],inputEvents:window.__inputs||0,hostHidden:document.querySelector("[data-opendesk-prompts]")?.hidden,feedback:window.__railRoot?.querySelector(".feedback")?.textContent,feedbackHidden:window.__railRoot?.querySelector(".feedback")?.hidden,railButton:window.__railRoot?.querySelector(".item")?.getBoundingClientRect()?.toJSON()})');}
   catch(snapshotError){snapshot={diagnosticError:String(snapshotError)};}
   console.error('PROMPT_SHORTCUTS_R21_PAGE_CHROMIUM_FIXTURE_FAIL',
     JSON.stringify({message:String(error?.stack||error),snapshot,jsErrors}));
