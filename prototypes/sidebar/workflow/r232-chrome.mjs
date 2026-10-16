@@ -183,6 +183,19 @@ try{
   assert.equal((await state()).stage,'unknown');
   assert.equal(await nameValue(),'旧的预填内容');
   mark('unknown effect does not auto-run or change DOM');
+  await reset();
+  await send(first);await expectState('approval');
+  await page.locator('[data-action="grant"]').click();await expectState('result');
+  const savedWorkflow=(await state()).workflowId;
+  await page.locator('#new-chat').click();
+  assert.equal((await state()).workflowId,savedWorkflow);
+  assert.equal((await state()).dirty,true);
+  assert.equal((await state()).firstCompleted,false);
+  await send(second);
+  assert.equal((await state()).stage,'unsupported');
+  assert.equal(await nameValue(),'给我一个亿的项目');
+  mark('new chat resets prior-round conversational context without erasing workflow draft or target DOM');
+  await reset();
   for(const width of ['360','420','520']){
     await page.locator('#r23-width').selectOption(width);
     if(width==='360'||width==='420')await page.locator('#r23-theme').click();
