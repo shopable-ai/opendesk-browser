@@ -23,3 +23,7 @@
 本轮 GitHub 连接具备源码读取与提交能力，但不能直接访问用户 Mac 的真实 Chrome Profile，也不能在远端 GitHub connector 中运行仓库的 Node 命令。虚拟 DOM 的交互检查与静态编译检查**不等于**生产构建、Chromium 和 Mac 原生验收。
 
 提交前补充：候选包 SHA-256/字节、真实 CI、Chromium 截图、Chrome 原生安装升级结果、六维独立实评分与未完成项。未经证据不得标记 95+ 或 NATIVE_PASS。
+
+## 新固定集合修订
+
+为适配正式源码候选 1.0.8，最新 reading-kit 集合添加 **revision 7**；revision 1–6 原内容保留且不得改写。发行摘要、真实安装包与 Catalog 一致性必须以打包后 CI/晋升证据为准。
