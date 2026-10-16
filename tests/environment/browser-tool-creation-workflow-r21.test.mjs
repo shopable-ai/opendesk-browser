@@ -119,3 +119,23 @@ test('the existing real-package offline preview chain is explicitly kept below n
   assert.match(w,/自动调 Skill 完整交付=NOT_IMPLEMENTED/);
   assert.match(w,/UNKNOWN_EFFECT|未知/);
 });
+
+// R1 static gate regression: owns only docs/route semantics, not generated
+// installed packages or model outputs.
+test('R1 Extension Type and Ownership Gate precedes code and keeps F/S/A identity',async()=>{
+  const [contract,agents]=await Promise.all([read(contractPath),read('AGENTS.md')]);
+  const gate=contract.indexOf('## 二-A、Extension Type & Ownership Gate');
+  assert.ok(gate>contract.indexOf('## 二、九个环节')&&gate<contract.indexOf('## 三、核心新增'),
+    'ownership gate must be before reasoning and implementation');
+  const section=contract.slice(gate,contract.indexOf('## 三、核心新增'));
+  for(const kind of ['Sidebar Tool','Page USER_SCRIPT','Controller Task','第一方可信功能','Framework / SDK'])
+    assert.ok(section.includes(kind),'type missing '+kind);
+  for(const phrase of ['八项','公开 SDK','SDK_GAP_NOT_PROVEN','BLOCKED','用户确认','src/','通用','不另建'])
+    assert.ok(section.includes(phrase),'missing boundary '+phrase);
+  assert.match(contract,/仅 Sidebar Tool.*\.opendesk-tool\.json/);
+  assert.match(contract,/Page\/Controller 走各自 Candidate\/Authority/);
+  assert.match(contract,/Page Program 优先写在/);
+  assert.match(agents,/SDK First/);
+  assert.match(agents,/不采用.*src\/.*路径禁令/);
+  assert.match(contract,/F\/S\/A/);
+});
