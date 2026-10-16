@@ -1193,3 +1193,17 @@ test('R4.10.1 error codes with credential-looking content never appear in the UI
   assert.doesNotMatch(s.getStatusMessage(),new RegExp(secret));
   assert.match(s.getStatusMessage(),/E_COOKIE_SET/);
 });
+
+
+test('R4.10.1 a forged permission reason must not reveal any credential-like text',async()=>{
+  const secret='FICTIONAL_COOKIE_VALUE_IN_REASON_CODE';
+  const s=await harness({capabilities:{getStatus:async()=>({
+    callableNow:false,reasonCode:'E_PERMISSION_'+secret
+  })},cookies:{getAll:async()=>{assert.fail('denied grant cannot read Chrome');}}});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');
+  await s.readBrowserMetadata();
+  const {state,message}=s.liveSnapshot();
+  assert.equal(state,'blocked');
+  assert.match(message,/E_PERMISSION_REQUIRED/);
+  assert.doesNotMatch(message,new RegExp(secret));
+});
