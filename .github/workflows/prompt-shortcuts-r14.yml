@@ -11,6 +11,7 @@ on:
       - 'scripts/bundle-provenance.mjs'
       - 'scripts/tests/prompt-shortcuts-r111-preview-chrome.mjs'
       - 'scripts/tests/prompt-shortcuts-r113-formal-chrome.mjs'
+      - 'scripts/tests/prompt-shortcuts-r21-page-chromium.mjs'
       - 'src/ui/sidebar-tools/package.js'
       - 'src/ui/sidebar-tools/installation.js'
       - 'src/ui/sidebar-tools.js'
@@ -87,6 +88,17 @@ jobs:
         env:
           CHROME_BIN: ${{ steps.preview-chrome.outputs.chrome-path }}
         run: node scripts/tests/prompt-shortcuts-r113-formal-chrome.mjs artifacts/prompt-shortcuts-r113-formal-chrome
+      - name: Real Chromium trusted page picker, textarea insert, rule lifecycle and safe single-line fallback (mock Host)
+        env:
+          CHROME_BIN: ${{ steps.preview-chrome.outputs.chrome-path }}
+        run: node scripts/tests/prompt-shortcuts-r21-page-chromium.mjs artifacts/prompt-shortcuts-r21-page-chromium
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: prompt-shortcuts-r21-page-chromium-${{ github.sha }}
+          path: artifacts/prompt-shortcuts-r21-page-chromium/
+          if-no-files-found: warn
+          retention-days: 14
       - uses: actions/upload-artifact@v4
         if: always()
         with:
