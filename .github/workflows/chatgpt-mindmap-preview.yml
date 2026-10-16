@@ -53,18 +53,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node examples/programs/chatgpt-mindmap/scripts/audit-build.mjs --out "${{ runner.temp }}/r35-program-build-audit.json"
-          test -s "${{ runner.temp }}/r35-program-build-audit.json"
+          node examples/programs/chatgpt-mindmap/scripts/audit-build.mjs --out "${{ runner.temp }}/r36-program-build-audit.json"
+          test -s "${{ runner.temp }}/r36-program-build-audit.json"
       - name: Upload actual candidate bytes and verified hashes (NOT Chrome installation)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: r35-program-build-candidate
+          name: r36-program-build-candidate
           path: |
             artifacts/programs/opendesk.chatgpt-mindmap/**/program.js
             artifacts/programs/opendesk.chatgpt-mindmap/**/program.opendesk-draft.json
             artifacts/programs/opendesk.chatgpt-mindmap/**/artifact.json
-            ${{ runner.temp }}/r35-program-build-audit.json
+            ${{ runner.temp }}/r36-program-build-audit.json
           retention-days: 7
           if-no-files-found: warn
       - name: Source safety checks
@@ -179,12 +179,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p "${RUNNER_TEMP}/r35-xmind-proof"
+          mkdir -p "${RUNNER_TEMP}/r36-xmind-proof"
           node tests/framework/chatgpt-mindmap-xmind-probe.mjs \
             --assets "$XMIND_REFERENCE_DIR" \
             --browser "$XMIND_CHROME" \
             --playwright "$GITHUB_WORKSPACE/node_modules/playwright-core/index.mjs" \
-            --out "${RUNNER_TEMP}/r35-xmind-proof"
+            --out "${RUNNER_TEMP}/r36-xmind-proof"
       - name: ChatGPT simulated UI with real XMind answer registry / interaction
         shell: bash
         run: |
@@ -192,15 +192,15 @@ jobs:
           node tests/framework/chatgpt-mindmap-chatgpt-probe.mjs \
             --browser "$XMIND_CHROME" \
             --playwright "$GITHUB_WORKSPACE/node_modules/playwright-core/index.mjs" \
-            --out "${RUNNER_TEMP}/r35-xmind-proof"
+            --out "${RUNNER_TEMP}/r36-xmind-proof"
       - name: Preserve only screenshots and result (never SDK vendor bytes)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: r35-chatgpt-icon-toolbar-proof
+          name: r36-chatgpt-icon-toolbar-proof
           path: |
-            ${{ runner.temp }}/r35-xmind-proof/*.png
-            ${{ runner.temp }}/r35-xmind-proof/*.json
+            ${{ runner.temp }}/r36-xmind-proof/*.png
+            ${{ runner.temp }}/r36-xmind-proof/*.json
           retention-days: 7
           if-no-files-found: ignore
       - name: Declare proof scope

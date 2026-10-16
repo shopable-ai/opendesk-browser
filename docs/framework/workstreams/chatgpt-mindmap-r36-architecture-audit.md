@@ -92,3 +92,22 @@ Hash 与绝对路径来自 CI stdout `PROGRAM_BUILD_CANDIDATE_AUDIT`，不是推
 Chromium 专项使用 `tests/framework/chatgpt-mindmap-xmind-probe.mjs` 与 `tests/framework/chatgpt-mindmap-chatgpt-probe.mjs`；实际 PNG 必须逐张打开审阅、保存带 SHA-256 的 `screenshot-evidence.json` 后才能填写 `VISUAL_PASS` 或 UX ≥95。无证据时使用 `SCREENSHOT_NOT_VERIFIED` / `NOT_TESTED`。预览设计继续 `PENDING_USER_CONFIRMATION`。
 
 本轮更新涉及的 Git 提交：`86a970560c2fce0a07a00f09e80071a2028a364b`（容器查询/Focus/专项断言）、`77a8cf9ee499f3f130ef7b874f9ebe4d87b866f4`、`f6cee5b1c9c0bd80deafead06d9f77c920805069`（旧 Chromium 探针定位器）。**这些提交均未改变仓库根目录 `src/`。**
+
+## 8. R3.6 后续实测补充（2026-10-16）
+
+本轮通过 `https://github.com/shopable-ai/opendesk-browser/actions/runs/38865072908` 验证：`offline-source-contract` 和 `real-local-xmind-html` 均 SUCCESS，完整 Chromium 输出中的独立真实 XMind SDK 交互为 PASS，ChatGPT 模拟产品 27 条检查为 PASS，浏览器异常/外部请求 0。320px 内容宽 320，画布实际宽 318，根节点宽 180 且可见宽 180；菜单两项均为 158×44px，真实原始 XMind 横向滚动范围得到验证（scrollLeft 176→411）。`screenshot-evidence.json` 记录本轮 Git SHA、Chrome 版本、topic 数及逐张真实 PNG SHA-256。已逐张打开重点桌面/320px/菜单/全屏截图，但用户预览尚未确认，保持 `PENDING_USER_CONFIRMATION`。
+
+本轮 `691ffa15a35b1a487cdb92f7c0cccb24e25ad5f6` 的真实 Program build：
+
+| 字段 | 值 |
+| --- | --- |
+| 构建状态 | `BUILT_UNVERIFIED` / `installable:false` |
+| `programId` / `version` | `opendesk.chatgpt-mindmap` / `0.2.0` |
+| `sourceBytes` | `53841` |
+| `sourceHash` = `buildHash` = `program.js` SHA-256 | `e17e473394c6b8269277ff1373c831346706d03f6bbfb912c759767194f25799` |
+| Draft SHA-256 | `e44eae02bf790ec8a4a0811e809ff2e76b8d013d8b8d69895dd40e2faa94546a` |
+| Artifact JSON SHA-256 | `98790b297745590b4378dbc52fe625224912fe3fb2dfce4b673fc87f6d3803aa` |
+| CI 输出绝对路径 | `/home/runner/work/opendesk-browser/opendesk-browser/artifacts/programs/opendesk.chatgpt-mindmap/0.2.0/r31-production/e17e473394c6b826-98444e05e46f` |
+
+上述三个文件已从 Actions Artifact 下载，在独立容器重新计算 SHA-256 **全部匹配**；它不是用户 Mac 原生路径，更不是 Host MV3 注册证明。Program 业务 JS 源文件仍是独立项目七个模块，宿主根 `src/` 未修改。图片和源码阶段的通过均不能解除 `BLOCKED_GLOBAL_STYLE_RESIDUE`、`E_XMIND_RUNTIME_UNAVAILABLE` 和许可证/USER_SCRIPT 合规审查。
+
