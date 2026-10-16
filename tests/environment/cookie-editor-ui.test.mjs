@@ -1093,3 +1093,30 @@ test('R4.8 clipboard rejection is safely reported and can fall back to download'
   s.fire('live-export-confirm','click');await s.settle();
   assert.equal(downloaded.length,1);
 });
+
+test('R4.10 production keeps approved value alignment and explicit sensitive export consent',async()=>{
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},
+    cookies:{getAll:async()=>[]}});
+  const exportBlock=s.html.slice(s.html.indexOf('id="live-export-panel"'),s.html.indexOf('id="browser-import-slot"'));
+  assert.match(exportBlock,/<option value="backup" selected>/,'JSON defaults to a restorable, values-included backup');
+  assert.match(exportBlock,/class="export-advanced"/);
+  assert.match(exportBlock,/id="live-export-metadata" type="checkbox"/);
+  assert.match(exportBlock,/id="live-export-content" hidden/);
+  assert.match(s.html,/id="cookie-value" type="password"/);
+  assert.match(s.html,/class="cookie-value-control"/);
+  assert.match(s.html,/id="editor-reset-value"/);
+  assert.match(s.html,/id="editor-discard"/);
+  assert.match(s.css,/\.cookie-value-control\{position:relative;display:flex;align-items:center/);
+  assert.match(s.css,/\.reveal-value-button\{position:absolute;right:4px;top:50%;transform:translateY\(-50%\)/);
+  assert.match(s.source,/guardedInline\(\(\)=>selected\?dismiss\(\):openEditor\(row\)\)/);
+  assert.match(s.source,/sdk\.clipboard\.writeText\(text\)/);
+  assert.match(s.source,/sdk\.downloads\.text\(\{text,filename\}\)/);
+  assert.doesNotMatch(s.source,/chrome\.cookies/,'sandbox must not bypass the public SDK');
+  s.getField('live-export-content').value='backup';
+  s.getField('live-export-metadata').checked=true;
+  s.fire('live-export-metadata','change');
+  assert.equal(s.getField('live-export-content').value,'metadata');
+  s.getField('live-export-metadata').checked=false;
+  s.fire('live-export-metadata','change');
+  assert.equal(s.getField('live-export-content').value,'backup');
+});

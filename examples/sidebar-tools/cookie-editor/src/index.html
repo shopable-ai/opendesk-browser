@@ -29,9 +29,10 @@
     <div class="section-head"><strong id="live-export-heading">导出本站 Cookie</strong><button id="live-export-close" class="icon-button" type="button" title="关闭导出" aria-label="关闭导出"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
     <p id="live-export-target" class="hint">正在检查目标网站…</p>
     <div class="field"><label for="live-export-format">导出格式</label><select id="live-export-format" aria-label="真实导出格式"><option value="json">JSON · 当前范围完整属性</option><option value="header">Cookie Header · 仅名称和值</option><option value="netscape">Netscape · 部分属性</option></select></div>
-    <div class="field"><label for="live-export-content">导出内容</label><select id="live-export-content" aria-label="选择含敏感值的备份或不含值的元数据清单"><option value="metadata" selected>元数据清单 · 不含 Value（仅 JSON）</option><option value="backup">当前范围备份 · 包含 Cookie Value（敏感）</option></select></div>
+    <select id="live-export-content" hidden aria-label="导出值授权模式"><option value="backup" selected>包含 Cookie Value</option><option value="metadata">仅属性</option></select>
+    <details class="export-advanced"><summary>更多选项</summary><label class="export-metadata"><input id="live-export-metadata" type="checkbox">仅导出 Cookie 属性（不含值）</label><p class="hint">仅用于配置检查，无法恢复 Cookie 内容。</p></details>
     <p id="live-export-warning" class="hint" role="note">JSON 仅保存当前授权范围的必要属性，不代表浏览器完整备份。</p>
-    <p id="live-export-sensitive" class="sensitive-note">包含 Cookie 值时需单独授权。复制可能暴露到剪贴板；下载的文件可能包含登录凭据。</p>
+    <p id="live-export-sensitive" class="sensitive-note">含值备份须通过敏感值授权和本次操作确认。</p>
     <div class="form-actions live-export-actions" role="group" aria-label="导出操作"><button id="live-export-copy" class="text-button" type="button">复制</button><button id="live-export-confirm" class="text-button primary" type="button">下载</button></div>
   </section>
   <div id="browser-import-slot" hidden></div>
@@ -93,11 +94,10 @@
 
 <div class="footer-actions"><button id="clear" class="text-button danger-text" type="button" disabled>清空工作区 Cookie</button></div><div id="offline-editor-slot" hidden></div><div id="offline-import-slot" hidden></div></section>
 <section id="editor-panel" class="editor-panel" aria-labelledby="editor-heading" hidden>
-<div class="section-head"><strong id="editor-heading">新建 Cookie</strong><button id="editor-close" class="icon-button" type="button" title="关闭编辑" aria-label="关闭编辑"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+<div class="section-head"><strong id="editor-heading">新建 Cookie</strong><span id="editor-dirty" class="editor-dirty" role="status" hidden>未保存</span><button id="editor-close" class="icon-button" type="button" title="关闭编辑" aria-label="关闭编辑"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
 <form id="editor-form">
-<p class="editor-top-tip">可在原位置编辑；实际写入由可信宿主核验并确认。</p>
 <div class="field"><label for="cookie-name">名称</label><input id="cookie-name" type="text" maxlength="256" autocomplete="off" required></div>
-<div class="field cookie-value-field"><div class="value-label"><label for="cookie-value">值</label><button id="editor-reveal-value" class="reveal-value-button" type="button" title="单独读取选中 Cookie 的敏感值" aria-label="显示选中 Cookie 值" hidden>显示值</button></div><textarea id="cookie-value" data-sensitive="true" rows="3" maxlength="4096" autocomplete="off" spellcheck="false" placeholder="输入新值；未触碰时保留旧值"></textarea><code id="editor-revealed-value" class="revealed-cookie-value" data-sensitive="true" hidden></code><span class="field-note">默认不读取旧值；未编辑值字段时保留旧值需单独授权，主动编辑后清空将明确写入空值。</span></div>
+<div class="field cookie-value-field"><label for="cookie-value">值</label><div class="cookie-value-control"><input id="cookie-value" type="password" data-sensitive="true" maxlength="4096" autocomplete="off" spellcheck="false" placeholder="保持旧值（默认隐藏）" aria-describedby="cookie-value-help"><button id="editor-reveal-value" class="reveal-value-button" type="button" title="显示 Cookie 值" aria-label="显示 Cookie 值" data-revealed="false" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div><code id="editor-revealed-value" class="revealed-cookie-value" data-sensitive="true" hidden></code><button id="editor-reset-value" class="inline-link" type="button" hidden>撤销值修改 · 保留原值</button><span id="cookie-value-help" class="visually-hidden">已有 Cookie 未修改值时保留旧值需单独授权；输入后清空表示写入空值。</span></div>
 <details id="cookie-advanced" class="cookie-advanced"><summary>Cookie 属性与高级设置</summary><div class="cookie-advanced-fields">
 <div class="field-grid">
 <div class="field"><label for="cookie-domain">域名</label><input id="cookie-domain" type="text" maxlength="253" autocomplete="off" required></div>
@@ -107,11 +107,12 @@
 <div id="expiry-field" class="field" hidden><label for="cookie-expiry">过期时间</label><input id="cookie-expiry" type="datetime-local" step="1"></div>
 <p id="editor-scope-note" class="field-note">现有 Cookie 的 Domain、Path、Store、Partition 身份保持不变。</p></div></details>
 <p id="editor-help" class="hint">名称可以修改；修改浏览器 Cookie 时按权限保存，Domain/Path/Partition 保持不变。</p>
+<div id="editor-discard" class="editor-discard" role="group" aria-label="未保存修改确认" hidden><span>放弃当前未保存修改？</span><button id="editor-discard-keep" class="text-button" type="button">继续编辑</button><button id="editor-discard-confirm" class="text-button" type="button">放弃</button></div>
 <div class="form-actions"><button id="editor-delete" class="text-button danger-text editor-delete" type="button" title="精确删除此 Cookie" hidden>删除</button><button id="editor-cancel" class="text-button" type="button">取消</button><button id="editor-save" class="text-button primary" type="button">保存 Cookie</button></div></form></section>
 <section id="import-panel" class="editor-panel" aria-labelledby="import-heading" hidden>
 <div class="section-head"><strong id="import-heading">导入离线工作区</strong><button id="import-close" class="icon-button" type="button" title="关闭导入" aria-label="关闭导入"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
 <div class="field"><label for="import-file">选择本地文件（可选）</label><input id="import-file" data-sensitive="true" type="file" accept=".json,.txt,text/plain,application/json"></div>
-<div class="field"><label for="import-format">导入格式</label><select id="import-format"><option value="auto">自动识别</option><option value="json">JSON（数组或 cookies 对象）</option><option value="header">Cookie Header</option><option value="netscape">Netscape</option></select></div>
+<details class="import-advanced"><summary>手动指定格式</summary><div class="field"><label for="import-format">导入格式</label><select id="import-format"><option value="auto" selected>自动识别</option><option value="json">JSON</option><option value="header">Cookie Header</option><option value="netscape">Netscape</option></select></div></details>
 <div class="field"><label for="import-text">导入内容</label><textarea id="import-text" data-sensitive="true" rows="5" maxlength="150000" spellcheck="false" placeholder="粘贴或选择本地文件…"></textarea></div>
 <p id="import-help" class="hint">仅操作本地临时工作区，每次最多导入 100 条。会先显示新增/覆盖数量供确认；不会写入真实浏览器。</p>
 <p id="live-import-preview" class="import-preview" role="status" aria-live="polite" hidden></p>

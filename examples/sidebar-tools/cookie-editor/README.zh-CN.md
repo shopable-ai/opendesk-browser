@@ -1,6 +1,6 @@
 # Cookie Editor · 正式 Cookies SDK 安装工具
 
-**入口：** Side Panel「扩展」→ **Cookie Editor → 打开**。首次安装浏览器扩展时，可信离线目录自动预装工具包，不运行工具代码、不自动授权 Cookie 网站；旧 Profile 未安装时，直接在「扩展」列表点击「安装」进行可信审阅，然后打开。也可将本目录源码打包为 JSON 后手动导入。默认中文，官方目录为 `installationPolicy: preinstalled`；工具包 **2.0.13 / opendesk.sidebar-tool.v2**。**历史 2.0.4 隔离 CFT 候选**曾通过真实发现、安装、授权、读取、编辑、新建、保存回读和精确删除；该记录仅适用于当时的工具包。**当前 2.0.13 的 Mac Chrome 安装/导入/导出/缩放矩阵仍为 NOT_TESTED**；不能将历史截图、回执或分数延用为当前版本的 PASS/95+。所有 Cookie 修改均从已安装工具 UI 发起。
+**入口：** Side Panel「扩展」→ **Cookie Editor → 打开**。首次安装浏览器扩展时，可信离线目录自动预装工具包，不运行工具代码、不自动授权 Cookie 网站；旧 Profile 未安装时，直接在「扩展」列表点击「安装」进行可信审阅，然后打开。也可将本目录源码打包为 JSON 后手动导入。默认中文，官方目录为 `installationPolicy: preinstalled`；工具包 **2.0.15 / opendesk.sidebar-tool.v2**。**历史 2.0.4 隔离 CFT 候选**曾通过真实发现、安装、授权、读取、编辑、新建、保存回读和精确删除；该记录仅适用于当时的工具包。**当前 2.0.15 的 Mac Chrome 安装/导入/导出/缩放矩阵仍为 NOT_TESTED**；不能将历史截图、回执或分数延用为当前版本的 PASS/95+。所有 Cookie 修改均从已安装工具 UI 发起。
 
 ## 快速开始：使用已安装扩展，或编译本地 JSON
 
@@ -37,7 +37,7 @@ node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor --check
 3. `cookies.set/remove` 实际新增、编辑、精确删除；受信 Side Panel 每次要求用户明确确认。原生回读和结果未知不自动重试。Name 可直接修改，并按先新建核验再精确删除旧名称执行（非原子）。未改动的隐藏 Value 仅在获准独立敏感值权限后临时读取保留；也可主动提供新 Value。未授权时绝不静默写空值。
 4. `clearSite` 只清理选定主机的 Host-only Cookie、批准的 Store/Partition、最多 50 条。先生成含 **60 秒、一次性 `previewRef`** 的预览；清理前核对精确 Cookie 身份集合，数量相同而内容改变也拒绝。实际删除仍需可信点击；Worker 重启、撤权会使旧预览不可用。
 5. `observe.start/getStatus/read/stop` 手动启动最长 15 秒的有界脱敏变化观察，携带 cursor/gap。事件不传 Cookie 值。
-6. 「离线工作区」仍支持 JSON、Cookie Header、Netscape 读取/编辑/导出，绝不冒充真实 Chrome；真实导入每批至多 10 条，预览并逐条经 Chrome SDK 与用户确认。真实含值导出需要主动触发本地保存和额外敏感值授权。
+6. 「离线工作区」仍支持 JSON、Cookie Header、Netscape 读取/编辑/导出，绝不冒充真实 Chrome；真实导入每批至多 10 条，预览并逐条经 Chrome SDK 与用户确认。真实导出 JSON 默认含值，必须在执行复制或下载时通过独立敏感值授权与本次最终确认；仅导出属性放在「更多选项」。
 
 ## 唯一架构及授权边界
 
@@ -133,3 +133,13 @@ R3.3 新候选：授权变化后经已有 Bridge 自动检查当前网站；拒�
 - 正式导出区域与 HTML 预览只保留并列的「复制」「下载」两个操作按钮，不增加按钮下方逐项功能说明；小宽度下均分空间。
 - 导出格式说明、敏感 Cookie 值读取授权与最终操作确认仍沿用原有机制，不新增提示弹窗或业务接口。
 - 以 DOM 静态回归断言守护按钮数量、名称与无附属说明；真实 Mac Chrome 安装仍需单独验收。
+
+
+## R4.10 · 正式 UI 迁移与 SDK 约束（2026-10-16）
+
+- R4.9.2 获用户确认的紧凑列表、原位唯一编辑器、左 Label / 右 Input、Value 右侧显示按钮和行内放弃提示，已迁入现有原生 JS Sandbox；**没有**迁移 preview 的虚构 Cookie、授权或 Blob 下载实现。
+- 正式导出默认选 JSON 含值备份；「更多选项」可以改成无值属性清单。每次敏感复制/下载均先进行可信确认，随后独立通过 `OpenDeskSDK.browser.cookies.*` 请求本网站已授权 Value，才调用正式 `browser.clipboard.writeText` / `browser.downloads.text`。
+- 真实导入继续使用同一解析/预检/Store-Partition 身份保护/逐条 Host 确认路径；格式默认为自动识别，低频手动指定收于折叠项。
+- React 19 预览 CI [38895344576](https://github.com/shopable-ai/opendesk-browser/actions/runs/38895344576) PASS，但压缩后 UI JS **219999 / 220000** 代码单元、离线 HTML 317263 字节，还不包括正式业务；故正式 UI 使用原生 JS。该 CI 不能证明正式安装。
+- R4.8「默认仅属性」属于历史方案，**不是**当前正式产品合同。正式 JSON 默认包括经本次授权读取的可导出 Cookie 值；不具有未经授权的全浏览器备份能力。
+- Node / CI / 同源包体积 / Native Chrome 的验收状态须以 2.0.15 同一提交的实际执行结果为准；未执行不得沿用旧版本 PASS。

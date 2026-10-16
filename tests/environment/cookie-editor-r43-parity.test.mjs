@@ -53,8 +53,8 @@ test('R4.3 installed HTML presents visible import/export/new actions without ent
   assert.match(js,/function confirmLiveImport\(\)/);
   assert.match(js,/originalExpiryInput/);
   assert.match(css,/#live-cookie-list \.cookie-row\{/);
-  assert.match(html,/<option value="metadata" selected>/);
-  assert.equal(pkg.version,'2.0.14');
+  assert.match(html,/<option value="backup" selected>/);
+  assert.equal(pkg.version,'2.0.15');
   assert.equal(pkg.html,html);
   assert.equal(pkg.js,js);
   assert.equal(pkg.css,css);
@@ -72,7 +72,7 @@ test('R4.4 mirrors the approved R4.3 list and inline editing without weakening r
   assert.match(html,/data-cookie-filter="secure"/);
   assert.match(html,/id="browser-list-hint"/);
   assert.match(js,/toggle\.append\(summary,badge,chev\)/);
-  assert.match(js,/toggle\.addEventListener\('click',\(\)=>guarded/);
+  assert.match(js,/toggle\.addEventListener\('click',\(\)=>guardedInline/);
   assert.match(js,/meta\.textContent=row\.domain\+row\.path;/);
   assert.doesNotMatch(js,/meta\.textContent=row\.domain\+row\.path\+\(row\.hostOnly/);
   assert.match(js,/E\('cookie-advanced'\)\.open=false/);
