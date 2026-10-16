@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OpenDesk Browser · Workflow R23.8.1 AI 来源精简（离线模拟）</title>
+<title>OpenDesk Browser · Workflow R23.9 AI 设置 Bottom Sheet（离线模拟）</title>
 <!-- UI_SIMULATION: eleven display scenarios; not an AI provider, extension permission,
      actual RunHost, native receipt, persistent save, or multi-origin workflow. -->
 <style>
@@ -335,11 +335,81 @@ body[data-theme=dark] .r23-demo #r23-readback{background:#213e32;color:#c5f0da;b
 body[data-theme=dark] .device .r23-settings .r234-field label{color:var(--ink)}
 @media(max-width:380px){.device .r23-settings .r234-body{padding:20px 16px 24px}.device .r23-settings .r236-switch{width:238px}.device .r23-settings .r234-local-row{padding:12px}}
 
+
+/* R23.9: desktop Side Panel bottom sheet; the chat remains mounted behind it. */
+.device #r239-sheet-backdrop{
+  position:absolute;inset:0;z-index:29;display:block;
+  border:0;background:rgba(11,26,46,.29);
+  animation:r239-fade-in .18s ease-out both;
+}
+.device .r23-settings.r239-sheet{
+  position:absolute;inset:auto 0 0;z-index:30;
+  width:100%;height:auto;max-height:calc(100% - 58px);
+  display:flex;flex-direction:column;min-height:0;
+  padding:0;margin:0;overflow:hidden;
+  border:1px solid var(--outline);border-bottom:0;
+  border-radius:18px 18px 0 0;
+  background:var(--surface);color:var(--ink);
+  box-shadow:0 -12px 38px #101e3c34;
+  animation:r239-sheet-in .2s cubic-bezier(.16,1,.3,1) both;
+}
+.device .r239-sheet .r234-head{
+  display:flex;flex:none;align-items:center;gap:10px;
+  min-height:52px;padding:7px 12px 7px 19px;border-bottom:1px solid var(--outline);
+}
+.device .r239-sheet .r234-heading{flex:1}
+.device .r239-sheet .r234-heading h3{margin:0;font-size:14px;line-height:1.4}
+.device .r239-sheet .r234-back{
+  flex:none;width:34px;height:34px;min-height:34px;
+  color:var(--secondary);border-radius:9px;
+}
+.device .r239-sheet .r234-back svg{width:17px;height:17px}
+.device .r239-sheet .r234-body{
+  flex:0 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;
+  padding:16px 19px 23px;--r234-label:auto;--r234-gap:0;
+}
+.device .r239-sheet .r236-switch{width:100%;max-width:100%}
+.device .r239-sheet .r236-option span{min-height:36px;font-size:12px}
+.device .r239-sheet .r234-local-row{
+  display:flex;align-items:center;gap:12px;
+  margin:14px 0 0;padding:12px 13px;
+  border-radius:11px;min-height:65px;
+}
+.device .r239-sheet .r238-native-state{gap:4px}
+.device .r239-sheet .r238-native-title{font-size:11.5px}
+.device .r239-sheet #r23-native-status{font-size:10.5px;line-height:1.4}
+.device .r239-sheet .r234-remote-config{margin-top:16px;gap:12px}
+.device .r239-sheet .r234-field{gap:6px}
+.device .r239-sheet .r234-field label{font-size:11.5px}
+.device .r239-sheet .r234-body input:not([type=radio]):not([type=checkbox]){min-height:40px}
+.device .r239-sheet .r236-input-action,.device .r239-sheet .r234-secret{min-height:40px}
+.device .r239-sheet .r236-input-action button,.device .r239-sheet .r234-secret button{width:38px;height:38px}
+.device .r239-sheet .r236-protocol-note{margin:-6px 0 0}
+.device .r239-sheet .r234-validation{margin:2px 0 0;gap:10px}
+.device .r239-sheet .r234-share{margin:15px 0 0}
+.device .r239-sheet .r234-feedback{max-width:100%}
+.device .r239-sheet .r234-field .r234-field-error{margin:0}
+.device .r23-settings.r239-sheet.r239-leaving{
+  animation:r239-sheet-out .16s ease-in both;pointer-events:none;
+}
+.device #r239-sheet-backdrop.r239-leaving{
+  animation:r239-fade-out .16s ease-in both;pointer-events:none;
+}
+@keyframes r239-sheet-in{from{transform:translateY(20px);opacity:.84}to{transform:translateY(0);opacity:1}}
+@keyframes r239-sheet-out{from{transform:translateY(0);opacity:1}to{transform:translateY(20px);opacity:0}}
+@keyframes r239-fade-in{from{opacity:0}to{opacity:1}}
+@keyframes r239-fade-out{from{opacity:1}to{opacity:0}}
+@media(prefers-reduced-motion:reduce){
+  .device .r23-settings.r239-sheet,.device #r239-sheet-backdrop,
+  .device .r23-settings.r239-sheet.r239-leaving,
+  .device #r239-sheet-backdrop.r239-leaving{animation:none}
+}
+
 </style>
 </head>
 <body>
 <div class="scenario-bar">
-<h1>R23.8.1 · 工作流交互预览（待用户确认）</h1>
+<h1>R23.9 · 工作流 Bottom Sheet（待用户确认）</h1>
 <p>可体验两轮填写与读回。AI 配置仅供离线演示，不连接真实服务。</p>
 <details id="r233-qa"><summary>研发验收工具 · 场景与视口</summary><div id="scenarios" class="scenarios" role="group" aria-label="选择工作流产品状态"></div><div class="r23-examples" role="group" aria-label="模拟指令和异常条件"><button type="button" data-action="example-first">填入第一轮指令</button><button type="button" data-action="example-second">填入第二轮指令</button><button type="button" data-action="revoke-site">撤销模拟网站权限</button><button type="button" data-action="change-document">模拟切换文档</button></div><div class="r23-toolbar"><label>宽度 <select id="r23-width"><option>360</option><option selected>420</option><option>520</option></select> px</label><button type="button" id="r23-theme" aria-pressed="false">深色模式</button><span>浏览器验收以本轮真实测试为准。</span></div></details>
 </div>
@@ -381,7 +451,22 @@ body[data-theme=dark] .device .r23-settings .r234-field label{color:var(--ink)}
   const settings = document.createElement('section');settings.id='r23-settings-panel';settings.className='r23-settings';settings.hidden=true;
   settings.setAttribute('aria-label','AI 设置（离线演示）');
   settings.innerHTML="\n<header class=\"r234-head\">\n  <button type=\"button\" class=\"r234-back\" data-action=\"close-settings\" id=\"r234-back\" aria-label=\"返回对话\" title=\"返回对话\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M15 18l-6-6 6-6\"/></svg></button>\n  <div class=\"r234-heading\"><h3>AI 设置</h3></div><span class=\"r234-status\">离线演示</span>\n</header>\n<div class=\"r234-body\" id=\"r234-body\">\n  <div class=\"r236-source-row\">\n    <fieldset class=\"r236-switch\">\n      <legend class=\"visually-hidden\">AI 来源</legend>\n      <label class=\"r236-option\"><input type=\"radio\" id=\"r236-native\" name=\"r236-source\" value=\"local_codex\" checked><span>本机 Codex</span></label>\n      <label class=\"r236-option\"><input type=\"radio\" id=\"r236-https\" name=\"r236-source\" value=\"https\"><span>HTTPS 模型</span></label>\n    </fieldset>\n  </div>\n  <section id=\"r23-local-config\" class=\"r234-local-row\">\n    <div class=\"r238-native-state\"><strong class=\"r238-native-title\">本机连接</strong><span id=\"r23-native-status\">模拟就绪 · 未检测 Native</span></div>\n    <button class=\"r234-secondary\" type=\"button\" data-action=\"reconnect\">模拟检查</button>\n  </section>\n  <section id=\"r23-remote-config\" class=\"r234-remote-config\" hidden>\n    <div class=\"r234-field\">\n      <label for=\"r23-endpoint\">接口地址</label>\n      <div class=\"r236-input-action\"><input id=\"r23-endpoint\" type=\"url\" inputmode=\"url\" spellcheck=\"false\" autocomplete=\"off\" maxlength=\"2048\" placeholder=\"https://.../v1/chat/completions\"><button type=\"button\" id=\"r236-clear-endpoint\" data-action=\"clear-endpoint\" aria-label=\"清空接口地址\" title=\"清空接口地址\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M6 6l12 12M18 6 6 18\"/></svg></button></div>\n    </div>\n    <p class=\"r236-protocol-note\" id=\"r236-protocol-note\" role=\"status\">Responses API · 按接口路径自动识别</p>\n    <div class=\"r234-field\">\n      <label for=\"r23-model\">模型 ID</label>\n      <input id=\"r23-model\" type=\"text\" spellcheck=\"false\" autocomplete=\"off\" maxlength=\"120\" placeholder=\"model-id\">\n    </div>\n    <div class=\"r234-field\">\n      <label for=\"r23-api-key\">API Key</label>\n      <div class=\"r234-secret\"><input id=\"r23-api-key\" type=\"password\" autocomplete=\"new-password\" spellcheck=\"false\" placeholder=\"demo-...（仅演示密钥）\" aria-describedby=\"r234-key-help\"><button type=\"button\" id=\"r234-key-toggle\" data-action=\"toggle-api-key\" aria-label=\"显示 API Key\" title=\"显示 API Key\" aria-pressed=\"false\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z\"/><circle cx=\"12\" cy=\"12\" r=\"2.7\"/><path class=\"r234-eye-slash\" d=\"M3 3l18 18\"/></svg></button></div>\n    </div>\n    <p id=\"r234-key-help\" class=\"visually-hidden\">仅允许以 demo- 开头的虚拟密钥，切勿输入真实 API Key；预览不会联网。</p>\n    <div class=\"r234-validation\"><button type=\"button\" class=\"r234-secondary\" data-action=\"simulate-config\">检查配置</button><p id=\"r234-feedback\" class=\"r234-feedback\" role=\"status\" data-kind=\"idle\">未检查</p></div>\n  </section>\n  <section id=\"r23-share-config\" class=\"r234-share\" hidden>\n    <label class=\"r233-check\" for=\"r23-share\"><input id=\"r23-share\" type=\"checkbox\"><span>允许向此 AI 来源提供页面摘要</span></label>\n  </section>\n</div>";
-  shell.append(settings);
+  settings.classList.add('r239-sheet');
+  settings.setAttribute('role','dialog');
+  settings.setAttribute('aria-modal','true');
+  settings.setAttribute('aria-labelledby','r239-sheet-title');
+  settings.querySelector('.r234-heading h3').id='r239-sheet-title';
+  settings.querySelector('.r234-status')?.remove();
+  const sheetClose=settings.querySelector('#r234-back');
+  sheetClose.setAttribute('aria-label','关闭 AI 设置');
+  sheetClose.title='关闭 AI 设置';
+  sheetClose.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M5.5 5.5l13 13m0-13-13 13"/></svg>';
+  settings.querySelector('.r234-head').append(sheetClose);
+  const settingsBackdrop=document.createElement('div');
+  settingsBackdrop.id='r239-sheet-backdrop';settingsBackdrop.hidden=true;
+  settingsBackdrop.setAttribute('aria-hidden','true');
+  settingsBackdrop.addEventListener('click',()=>closeSheet());
+  shell.append(settingsBackdrop,settings);
   const modal = document.createElement('div');modal.id='r23-modal-root';modal.className='r23-modal-backdrop';modal.hidden=true;shell.append(modal);
   const announcer=document.createElement('div');announcer.id='r23-announcer';announcer.className='visually-hidden';announcer.setAttribute('role','status');announcer.setAttribute('aria-live','polite');document.body.append(announcer);
   const initialBar = $('scenarios');
@@ -406,6 +491,48 @@ body[data-theme=dark] .device .r23-settings .r234-field label{color:var(--ink)}
   composeActions.append(left,actionGroup);
   const hint=document.createElement('span');hint.id='r23-compose-hint';hint.className='visually-hidden';hint.textContent='Enter 发送 · Shift+Enter 换行';$('form').append(hint);
   function announce(s){announcer.textContent=s;}
+  let sheetClosingTimer=null;
+  const sheetBackground=[
+    shell.querySelector('.tabs'),shell.querySelector('.title-bar'),
+    $('content'),$('form'),shell.querySelector('.foot-note'),
+    document.querySelector('.scenario-bar'),document.querySelector('.r23-demo')
+  ];
+  function syncSheetLayer(){
+    if(data.settingsOpen){
+      if(sheetClosingTimer!==null){clearTimeout(sheetClosingTimer);sheetClosingTimer=null;}
+      settings.classList.remove('r239-leaving');
+      settingsBackdrop.classList.remove('r239-leaving');
+      settings.hidden=false;settingsBackdrop.hidden=false;
+    }else if(!settings.classList.contains('r239-leaving')){
+      settings.hidden=true;settingsBackdrop.hidden=true;
+    }
+    for(const layer of sheetBackground)if(layer)layer.inert=data.settingsOpen;
+    $('settings').setAttribute('aria-expanded',String(data.settingsOpen));
+    sourceLabel.textContent=isNative()?'本机 Codex':'HTTPS 模型';
+  }
+  function openSheet(){
+    if(data.dialog)return;
+    data.settingsOpen=true;data.modeOpen=false;modeMenu.hidden=true;
+    modeButton.setAttribute('aria-expanded','false');
+    syncSheetLayer();renderConfig();
+    sheetClose.focus({preventScroll:true});
+  }
+  function closeSheet(){
+    if(!data.settingsOpen)return;
+    data.settingsOpen=false;
+    settings.classList.add('r239-leaving');
+    settingsBackdrop.classList.add('r239-leaving');
+    syncSheetLayer();
+    $('settings').focus({preventScroll:true});
+    if(sheetClosingTimer!==null)clearTimeout(sheetClosingTimer);
+    sheetClosingTimer=setTimeout(()=>{
+      sheetClosingTimer=null;
+      if(!data.settingsOpen){settings.hidden=true;settingsBackdrop.hidden=true;
+        settings.classList.remove('r239-leaving');
+        settingsBackdrop.classList.remove('r239-leaving');}
+    },170);
+  }
+
   function cancelTimer(){if(data.timer!==null){clearTimeout(data.timer);data.timer=null;}data.requestSeq++;}
   function timed(ms,cb){const seq=data.requestSeq;data.timer=setTimeout(()=>{data.timer=null;if(seq===data.requestSeq)cb();},ms);}
   function busy(){return data.stage==='planning'||data.stage==='running';}
@@ -529,7 +656,7 @@ body[data-theme=dark] .device .r23-settings .r234-field label{color:var(--ink)}
     data.connected=!!data.sourceReady[data.provider];
     data.stage=data.connected?'connected':'disconnected';
     data.actionWarning='';data.modeOpen=false;
-    render();$('r234-body').scrollTop=0;
+    syncSheetLayer();renderConfig();$('r234-body').scrollTop=0;
     $(choice==='local_codex'?'r236-native':'r236-https').focus();
     announce('已切换来源，模拟网页摘要许可不会继承。');
   }
@@ -689,11 +816,7 @@ body[data-theme=dark] .device .r23-settings .r234-field label{color:var(--ink)}
     modeButton.textContent=({standard:'标准',readonly:'只读',confirm:'每次确认'}[data.mode]||'标准')+'⌄';
     modeButton.setAttribute('aria-expanded',String(data.modeOpen));modeMenu.hidden=!data.modeOpen;
     modeMenu.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===data.mode)));
-    $('settings').setAttribute('aria-expanded',String(data.settingsOpen));
-    settings.hidden=!data.settingsOpen;
-    // The full-view route must remove the underlying chat from keyboard and AT navigation.
-    for(const layer of [shell.querySelector('.tabs'),shell.querySelector('.title-bar'),$('content'),$('form'),shell.querySelector('.foot-note')])layer.inert=data.settingsOpen;
-    sourceLabel.textContent=isNative()?'本机 Codex':'HTTPS 模型';
+    syncSheetLayer();
     renderConfig();
     renderDialog();
     document.querySelectorAll('[data-scenario]').forEach(b=>b.setAttribute('aria-pressed',String(!data.historyOpen?b.dataset.scenario===data.stage:b.dataset.scenario==='history')));
@@ -708,7 +831,7 @@ body[data-theme=dark] .device .r23-settings .r234-field label{color:var(--ink)}
     const action=target.dataset.action;
     if(target.id==='r23-mode-button'){if(busy()||data.stage==='approval')return;data.modeOpen=!data.modeOpen;data.settingsOpen=false;render();return;}
     if(target.id==='history'){if(switchBlocked())return;data.historyOpen=true;data.settingsOpen=false;data.actionWarning='';render();return;}
-    if(target.id==='settings'){data.settingsOpen=!data.settingsOpen;data.modeOpen=false;render();if(data.settingsOpen)$('r234-back').focus();else prompt.focus();return;}
+    if(target.id==='settings'){data.settingsOpen?closeSheet():openSheet();return;}
     if(target.dataset.mode){if(busy()||data.stage==='approval')return;data.mode=target.dataset.mode;data.modeOpen=false;render();announce('已切换模拟操作模式');modeButton.focus();return;}
     // A sandboxed srcdoc iframe may allow scripts but disallow form submission.
     // Handle trusted button clicks directly; prevent native submit to avoid double-send.
@@ -726,12 +849,12 @@ body[data-theme=dark] .device .r23-settings .r234-field label{color:var(--ink)}
       case 'cancel-dialog':closeDialog();break;
       case 'save-then-proceed':proceedDialog(true);break;
       case 'discard-proceed':proceedDialog(false);break;
-      case 'close-settings':data.settingsOpen=false;render();$('settings').focus();break;
+      case 'close-settings':closeSheet();break;
       case 'toggle-api-key':{const input=$('r23-api-key'),shown=input.type==='password';input.type=shown?'text':'password';target.title=shown?'隐藏 API Key':'显示 API Key';target.setAttribute('aria-label',target.title);target.setAttribute('aria-pressed',String(shown));break;}
-      case 'reconnect':if(!isNative()){data.settingsOpen=true;data.modeOpen=false;render();$('r234-back').focus();announce('HTTPS 来源必须先完成离线字段检查；真实连接状态仍未知');break;}data.connected=true;data.sourceReady.local_codex=true;data.stage=data.messages.length?'connected':'empty';data.scenarioOnly=false;announce('已模拟本机连接；没有访问真实 Native 服务');render();break;
+      case 'reconnect':if(!isNative()){openSheet();announce('HTTPS 来源必须先完成离线字段检查；真实连接状态仍未知');break;}data.connected=true;data.sourceReady.local_codex=true;data.stage=data.messages.length?'connected':'empty';data.scenarioOnly=false;announce('已模拟本机连接；没有访问真实 Native 服务');render();break;
       case 'simulate-config':checkConfig();break;
       case 'clear-endpoint':$('r23-endpoint').value='';configEdited();$('r23-endpoint').focus();announce('已清空接口地址，可填写自定义 HTTPS 地址。');break;
-      case 'open-settings':data.settingsOpen=true;data.modeOpen=false;render();$('r234-back').focus();break;
+      case 'open-settings':openSheet();break;
       case 'clarify-fill':if(data.stage!=='clarifying'||data.pending?.type!=='clarify')break;data.pending={type:'fill',value:data.pending.value,round:data.firstCompleted?2:1,request:data.pending.request};data.stage='planning';announce('已确认目标，开始模拟规划');render();timed(320,completePlanning);break;
       case 'grant':grant();break;
       case 'deny':deny();break;
@@ -746,9 +869,19 @@ body[data-theme=dark] .device .r23-settings .r234-field label{color:var(--ink)}
   prompt.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&!ev.shiftKey&&!composing&&!ev.isComposing&&ev.keyCode!==229){ev.preventDefault();if(!busy())onSend();}});
   document.addEventListener('keydown',ev=>{
     if(data.dialog&&ev.key==='Tab'){const els=[...modal.querySelectorAll('button:not([disabled])')];if(!els.length)return;const first=els[0],last=els[els.length-1];if(ev.shiftKey&&(document.activeElement===first||!modal.contains(document.activeElement))){ev.preventDefault();last.focus();}else if(!ev.shiftKey&&(document.activeElement===last||!modal.contains(document.activeElement))){ev.preventDefault();first.focus();}return;}
+    if(data.settingsOpen&&ev.key==='Tab'&&!data.dialog){
+      const tabbables=[...settings.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')]
+        .filter(el=>!el.closest('[hidden]')&&el.getClientRects().length>0);
+      if(tabbables.length){
+        const first=tabbables[0],last=tabbables[tabbables.length-1],active=document.activeElement;
+        if(ev.shiftKey&&(active===first||!settings.contains(active))){ev.preventDefault();last.focus();}
+        else if(!ev.shiftKey&&(active===last||!settings.contains(active))){ev.preventDefault();first.focus();}
+      }
+      return;
+    }
     if(ev.key==='Escape'){
     if(data.dialog){ev.preventDefault();closeDialog();}
-    else if(data.settingsOpen){ev.preventDefault();data.settingsOpen=false;render();$('settings').focus();}
+    else if(data.settingsOpen){ev.preventDefault();closeSheet();}
     else if(data.modeOpen){ev.preventDefault();data.modeOpen=false;render();modeButton.focus();}
     
   }});
