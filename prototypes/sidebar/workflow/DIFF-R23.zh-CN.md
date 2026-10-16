@@ -212,3 +212,25 @@ GitHub Actions 原始证据：
 2. “模拟配置通过”不得被误写成在线、真实模型可用或持有用户密钥；本预览只接受 `demo-...` 作为虚拟输入，真实 Provider 是独立产线，不在本轮范围。
 3. 原型视觉保留 10–12px 的辅助文字；即使没有技术溢出，也不能仅凭 CI 断言真实用户觉得排版达到 95 分，需要独立视觉评审/用户复核。
 4. 完整 HTML 只准作为设计候选；未经用户确认，禁止迁移正式 Side Panel，更不能调整正式权限、工作流 Runtime 或 SDK。
+
+### 10.4 R23.4 安全回归与最终 Chromium 取证（2026-10-16）
+
+- **原型授权修复**：实际验证发现，在同一 `cloud_responses` 来源下先授权模拟网页摘要，再修改 HTTPS Endpoint，原 `shareApproved.cloud_responses` 仍为 `true`。现于 `configEdited()` 清空该 Provider 的批准、`consent`、已检查配置状态，并取消勾选；Endpoint、Model ID、演示 API Key 均触发失效。重新通过离线格式检查也不能自动恢复旧授权。新增源绑定 Chromium 真实 `input.fill` / `checkbox.check` 回归。
+- **全屏设置路径**：切换 AI 来源时把设置内容滚动到顶部，避免上一个 Provider 的滚动位置遮住「AI 来源」标题；对话输入及消息历史继续保留。
+- **200% 证据修正**：原 `page.screenshot` 在 Chrome 原生 200% 时生成了尺寸约 633×794 的截图，仅覆盖实际浏览器窗口的一部分，不能用它证明真实物理屏幕的视觉布局。新增 CI `scrot`，直接捕获 1366×1024 X11 整屏，展示浏览器实际 UI，并在三个宽度下保留原生放大截图。脚本仍通过 X11 `xdotool` Ctrl+Plus 到 DPR 1→2，不使用 CSS transform 或模拟 device scale。
+- **底部「完成」入口**：先关闭研发场景展开区，再将外层文档实际滚动到底部、拍摄物理屏幕，证明原生 200% 下设置操作可以抵达底部「完成」按钮；仅检查虚拟 DOM viewport 的位置不足以声称用户能看见它。
+- **最新真实 GitHub Actions**：[Workflow CI #38901803852](https://github.com/shopable-ai/opendesk-browser/actions/runs/38901803852)，HEAD `77ca47b9a7f4f62879ffaada457d5eadd9b8287c`，`exact-saved-html` 与 `native-browser-zoom` 均为 SUCCESS。原型 Git Blob `b1caf5a13b1493975868ce00e1f0bcacc3fbec44`，Chrome 155.0.8059.84，**21 类 Chromium 回归通过且 JS Console/Page Error 为 0**，原生 200% 独立工作 SUCCESS。
+- [来源绑定 Chromium 截图与 JSON Artifact](https://github.com/shopable-ai/opendesk-browser/actions/runs/38901803852/artifacts/12046790222) 与 [原生 200% 物理 X11 截图/JSON Artifact](https://github.com/shopable-ai/opendesk-browser/actions/runs/38901803852/artifacts/12046626584) 均保存同一 Git Blob 的 `index.html`，严格区分真实浏览器证据与本地 `set_content` 辅助截图。
+
+### 10.5 六维复核与反方审计：严禁伪造 95 分
+
+| 维度 | 已有可重现实证 | 尚缺的独立质量门禁 |
+| --- | --- | --- |
+| 视觉、排版 | 360／420／520，浅深色、原生 Chrome 200% X11 整屏以及底部操作可达 | 用户审美确认、Mac 正式 Sidebar 实际宽度与字体：`NOT_SCORED` |
+| AI 设置完整性 | Native、Responses、自定义 HTTPS 三来源，完整 Endpoint/Model ID/API Key、遮蔽及格式错误状态 | 真实供应商连接与最终产品信息架构评审：`NOT_SCORED` |
+| 自定义 HTTPS | 旧版 Chat Completions/Bearer、HTTPS 校验、虚拟配置与实际连接状态清晰分离 | 第三方服务真实兼容性、非模拟密钥测试：`NOT_TESTED` |
+| 对话操作 | 鼠标真实点击、两轮 DOM 读回、Stop、规则不支持输入有反馈、受限 allow-scripts srcdoc 成功 | ChatGPT 对话实际宿主、任意 AI 真实语义能力：`NOT_TESTED` |
+| 权限与状态 | 标准/只读/每次确认、高风险拒绝、跨来源及同来源 Endpoint 变更撤销模拟授权 | 正式 Chrome 权限、RunHost Authority、真实网页跨站策略：`NOT_TESTED` |
+| 无障碍与可维护性 | 40px 图标入口、焦点与 inert、键盘 Enter/Shift+Enter、合成 IME、三宽与 200% | Mac 原生 IME、VoiceOver、人工键盘走查：`NOT_SCORED` |
+
+**反方结论**：21 类通过证明当前离线原型在指定条件下可用，不能自动成为六名真实独立专家的 95/100 评分；真实 ChatGPT 宿主交互、实际 Provider、Mac 运行环境均尚未验收。R23.3.1 的 95/100 历史自评分不能继承。唯一 HTML 仍处于 `DESIGN_REVIEW_REQUIRED`，用户批准前不修改正式 Workflow Sidebar/SDK/Runtime。
