@@ -167,6 +167,8 @@ try{
   await page.locator('#r23-api-key').fill('demo-openai-test');
   await page.locator('[data-action="simulate-config"]').click();
   assert.equal(await page.locator('#r23-endpoint').getAttribute('aria-invalid'),'true');
+  assert.ok((await page.locator('#r234-field-error').innerText()).includes('HTTPS'));
+  assert.equal(await page.locator('#r23-endpoint').getAttribute('aria-describedby'),'r234-field-error');
   await page.locator('#r23-endpoint').fill('https://api.openai.com/v1/responses');
   await page.locator('#r23-api-key').fill('');
   await page.locator('[data-action="simulate-config"]').click();
@@ -179,6 +181,8 @@ try{
   await page.locator('[data-action="simulate-config"]').click();
   assert.equal(await page.locator('#r234-feedback').getAttribute('data-kind'),'checked');
   assert.ok((await page.locator('#r234-feedback').textContent()).includes('真实连接'));
+  const feedbackVisible=()=>page.evaluate(()=>{const field=document.querySelector('#r234-feedback').getBoundingClientRect(),scroller=document.querySelector('#r234-body').getBoundingClientRect();return field.top>=scroller.top-1&&field.bottom<=scroller.bottom+1});
+  assert.equal(await feedbackVisible(),true,'checked status must be visible without extra scrolling');
   await shot('r234-responses-config');
   mark('Responses: endpoint/model/key, password reveal, required/HTTPS validation, offline status');
 
@@ -192,6 +196,7 @@ try{
   await page.locator('#r23-api-key').fill('demo-custom-test');
   await page.locator('[data-action="simulate-config"]').click();
   assert.equal(await page.locator('#r234-feedback').getAttribute('data-kind'),'checked');
+  assert.equal(await feedbackVisible(),true,'custom HTTPS checked status must be visible');
   await shot('r234-custom-config');
   mark('custom HTTPS uses independent endpoint, model, demo key, legacy Chat Completions');
 
