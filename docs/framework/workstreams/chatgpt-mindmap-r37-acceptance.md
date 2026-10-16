@@ -23,7 +23,7 @@
 - 更新响应式断言意外让折叠的预览实验台按钮不可定位：[Actions #38865992280](https://github.com/shopable-ai/opendesk-browser/actions/runs/38865992280)，属于**测试状态恢复缺口**，不能当作生产 SDK 故障。
 - `ce0e448bb73d6f8574c8d9dd4b7bf18c6e395354`：先恢复 desktop viewport、重新打开实验台，再取消强制 320px 模式；增加 400/440 容器响应式断言。[Actions #38866604870](https://github.com/shopable-ai/opendesk-browser/actions/runs/38866604870) 两个 Job 成功。
 - `aaccbf608b0b2c98d13074158f4404cae73bd598`：逐 PNG 加真实 geometry；修复响应式截图上方 toolbar 裁切；完整补充更多菜单 Up/End/Space/外部点击。[Actions #38867300512](https://github.com/shopable-ai/opendesk-browser/actions/runs/38867300512) 两个 Job 成功。
-- `862eef6c24c6af3046cec8792c7c0fc0d69d1071`：新增 320px **浏览其他分支后点击适配应恢复真实根节点**的浏览器断言。[Actions #38867753856](https://github.com/shopable-ai/opendesk-browser/actions/runs/38867753856)，最终结果以该次 Actions 为准；未取到结果时不可写 PASS。
+- `862eef6c24c6af3046cec8792c7c0fc0d69d1071`：新增 320px **浏览其他分支后点击适配应恢复真实根节点**的浏览器断言；[Actions #38867753856](https://github.com/shopable-ai/opendesk-browser/actions/runs/38867753856) 两个 Job 实际 **SUCCESS**，滚动位置从 411px 回到 176px 且 180px 根节点重新进入可读视口。[R3.7 文档版本复验 #38868394764](https://github.com/shopable-ai/opendesk-browser/actions/runs/38868394764) 两个 Job 亦 SUCCESS，19/19 条截图清单 PNG SHA-256 经独立计算核对一致。
 
 上述本轮源码变化仅在 `tests/framework/chatgpt-mindmap-chatgpt-probe.mjs`；**没有改仓库根 `src/`**。后续单独文档提交不应被描述为 Program 业务迁移。
 
@@ -40,7 +40,7 @@
 | 真实 `.workbook-item` scrollLeft | 827px | 660px |
 | 页面整体水平溢出 | 未核实 | 无 |
 
-320px **整窗**：内容容器 296px、XMind Canvas 294px；鼠标水平滚轮使真实 `.workbook-item.scrollLeft` 从 176px 变为 411px，证明用户能浏览被遮挡的其他分支；PNG 记录动作前后。新加的「滚动后适配复位」必须再看 `862eef6c` 的真实 Job，不在此凭推论盖章。
+320px **整窗**：内容容器 296px、XMind Canvas 294px；鼠标水平滚轮使真实 `.workbook-item.scrollLeft` 从 176px 变为 411px，证明用户能浏览被遮挡的其他分支；PNG 记录动作前后。额外「滚动后适配复位」已经在 #38867753856 和 #38868394764 实测通过，成功从用户滚动后位置 411px 回到根节点起始适配位置 176px。
 
 宽度审计（取对应 CI `chatgpt-result.json`，非设计稿）：
 
@@ -100,7 +100,7 @@
 | 专家维度 | 可证状态 | 不能冒充的结论 |
 | --- | --- | --- |
 | 真实 XMind 结构和 A/B/C | `PASS`（固定 fixture） | 不是登录 ChatGPT |
-| 320px 根节点及实际滚动 | `PASS`（旧/新比较） | 新增 Fit after pan 需看 #38867753856 |
+| 320px 根节点及实际滚动 | `PASS`（旧/新比较） | Fit after pan #38867753856 已通过 |
 | Responsive / Toolbar / ARIA / 菜单 | `PASS`（自动交互、几何） | 跨机型真实触屏/用户偏好仍需验收 |
 | 视觉排版 | PNG 已实生成、抽检，`SCREENSHOT_NOT_VERIFIED` | 未完成用户批准与正式产品逐张质量打分 |
 | 20 次开关与停止 | `PASS`（fixture） | Native stop/revoke/old-tab 未测试 |

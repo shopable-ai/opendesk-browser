@@ -213,7 +213,7 @@
 **设计审批状态保持 `PENDING_USER_CONFIRMATION`，不得通过 CI 自动变更为 `APPROVED`。**
 
 - 测试仍在 `preview/chatgpt.html` 使用原始四份 Git 跟踪 XMind JS 以及正式 `src/answer-registry.js`、`src/view.js`、`src/xmind-adapter.js`；未替换为假的绘图器，没有 CDN、MAIN-world 或第二套 Renderer。
-- 失败 [#38864663581](https://github.com/shopable-ai/opendesk-browser/actions/runs/38864663581) 的 320px 根节点仅露出 31/180px；通过 [#38867300512](https://github.com/shopable-ai/opendesk-browser/actions/runs/38867300512) 的根节点露出 180/180px，支持手动横向滚动且页面无整体横向溢出。额外「滚动后适配返回根节点」新断言需要独立 CI 结果，不因历史绿色就提前宣称通过。
+- 失败 [#38864663581](https://github.com/shopable-ai/opendesk-browser/actions/runs/38864663581) 的 320px 根节点仅露出 31/180px；通过 [#38867300512](https://github.com/shopable-ai/opendesk-browser/actions/runs/38867300512) 的根节点露出 180/180px，支持手动横向滚动且页面无整体横向溢出。额外「滚动后适配返回根节点」新断言已由 [Actions #38867753856](https://github.com/shopable-ai/opendesk-browser/actions/runs/38867753856) 实测通过：`.workbook-item.scrollLeft` 从 411px 返回 176px，真实 180px 根节点重新充分可见；并由 [#38868394764](https://github.com/shopable-ai/opendesk-browser/actions/runs/38868394764) 在文档版本再次复验成功。
 - 窄容器更多菜单由真实 CSS `@container` 决定；验证 ArrowDown/ArrowUp/Home/End/Enter/Space/Escape、外部点击、焦点恢复和 44px 行高。400px 页面自然内容容器为 376px（精简菜单）；440px 页面内容容器为 406px（桌面工具栏），不得错误将浏览器窗口宽度直接当成 `@container` 宽度。
 - 自动收集的 `screenshot-evidence.json` 对每张 PNG 写入 Git SHA、浏览器、URL、视口、各回复实际 Topic 数、内容宽、根节点可见宽、真实滚动范围、工具栏宽、时间、PNG SHA-256 和 CI Run ID。每张机器 JSON 的视觉标志仍为 `SCREENSHOT_NOT_VERIFIED`；只能在逐张真人复审、获得用户设计确认后更新相应验收结论。
 - 产品正式运行 `E_XMIND_RUNTIME_UNAVAILABLE`、产物 `installable:false` 和 Snowbrush `BLOCKED_GLOBAL_STYLE_RESIDUE` 未解决。原生安装、权限撤销、用户 Mac 的 Chromium 和真实登录 ChatGPT 与本预览明确隔离。
