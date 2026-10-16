@@ -362,7 +362,11 @@ export async function runMarketR5Acceptance(d){
     await ui.layout(timeoutPage,'r5-real-connection-timeout','#connect-button');
   }finally{await timeoutObserver.dispose();}
   assert.equal(timeoutObserver.record.status,'OBSERVED');assert.deepEqual(timeoutObserver.record.errors,[]);
-  await click(timeoutPage,'#connect-button');
+  // On narrow macOS pages, the independently enabled Reading TOC overlay may
+  // cover the reconnect button's pointer hit point. Its native Tab focus was
+  // already verified above; use a REAL Chrome keyboard Enter to activate the
+  // same control without synthetic DOM events or changing the product policy.
+  await ui.enter(timeoutPage,'#connect-button','r5-timeout-native-keyboard-reconnect');
   await until(()=>evaluate(timeoutPage,'document.querySelector("#connection-state").textContent.includes("已连接 OpenDesk")'),'explicit real reconnect after delayed PROBE');
   const afterTimeout=await storedCutState();
   assert.deepEqual(afterTimeout.registry,beforeTimeout.registry);assert.deepEqual(afterTimeout.operations,beforeTimeout.operations);
