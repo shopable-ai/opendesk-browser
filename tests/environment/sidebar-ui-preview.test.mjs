@@ -141,8 +141,12 @@ test('R19 Sidebar spacing and corner system is consistent across all five tabs',
   assert.match(body('.od-stack',design),/gap:var\(--space-2\)/);
   assert.match(body('#workbench-develop #manual-source-editor'),/display:grid;gap:var\(--space-2\)/);
   assert.match(body('#workbench-develop .local-project-tools>:not([hidden])'),/margin-block:0/);
-  for(const selector of ['.developer-source-switch','#script-source','.program-source-toolbar','#tool-diagnostics'])
+  for(const selector of ['.developer-source-switch','#script-source','.program-source-toolbar'])
     assert.match(body(selector),/margin:(?:0|0;)/,'view-owned vertical margin: '+selector);
+  assert.match(body('.od-disclosure',design),/(?:^|;)margin:0;/,
+    'Advanced diagnostics and sibling cards inherit the shared margin, not a second view-owned rule');
+  assert.doesNotMatch(css,/#tool-diagnostics\{[^}]*margin:/,
+    'Legacy one-off diagnostics margin override must not return');
   assert.match(body('#workbench-develop .developer-context .developer-target>details,\n#workbench-develop .developer-run-area>:not([hidden])'),
     /margin-block:0/, 'related groups do not add default detail margins');
   for(const selector of ['.od-disclosure','.od-disclosure>summary'])

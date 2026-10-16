@@ -4,7 +4,7 @@
 
 ## 范围与写入所有权
 
-本任务主要修改 `src/ui/tool.html`、`src/ui/tool-shell.css`、`tests/environment/developer-layout.test.mjs`；同时因相关 R21 检查被已存在的 Workflow 断言阻塞，定向更新 `tests/environment/sidebar-component-contract.test.mjs` 过期断言，并保留本记录；不修改 `src/ui/tool-shell.js`、`src/ui/script-editor.js`、Browser SDK Authority、Chrome permissions、Host/Native、底部 Run/Stop。与其他会话不共享 Chrome profile、`dist/development`、CI fixture/端口，不主动重启 watcher。
+本任务主要修改 `src/ui/tool.html`、`src/ui/tool-shell.css`、`tests/environment/developer-layout.test.mjs`；同时因相关 R21 检查被已存在的 Workflow 断言阻塞，定向更新 `tests/environment/sidebar-component-contract.test.mjs` 及 `tests/environment/sidebar-ui-preview.test.mjs` 两处过期断言，并保留本记录；不修改 `src/ui/tool-shell.js`、`src/ui/script-editor.js`、Browser SDK Authority、Chrome permissions、Host/Native、底部 Run/Stop。与其他会话不共享 Chrome profile、`dist/development`、CI fixture/端口，不主动重启 watcher。
 
 ## 问题与修复
 
@@ -27,3 +27,5 @@
 - 初版候选 `b3ee5d7902cfeda6f287aef2803fb7ea287b2026`：R19 静态 Chromium 源码布局成功（Actions run 38873689674）；R21 首阶段 Node 63/64，唯一失败在旧 `sidebar-component-contract.test.mjs` 的 Workflow observation consent 文本断言（Actions run 38873689530）。
 - Workflow 源码 `src/ui/workflow/workflow-view.js` 与本任务父提交逐字节相同，旧断言要求 `observation:selected==='local_codex'`，真实源码已将用户明确发送表达为 `observation:true`，但另行要求 `permission=row.siteGranted?Promise.resolve(true):api.permissions.request` 及本机 Local Codex 有效摘要审批。
 - **修复仅更新测试契约并增强安全拦截断言**；不修改 Workflow JS、模型 Provider、网页审批或任何其他 Runtime。后续以本提交的 R21 Node / 构建结果为准，静态 Chromium 可复用不变的 HTML/CSS R19 证据。
+
+- 第二轮候选 `795e41f7906f4507ab46347850168673855f7231`：R21 首个 Node 组中的旧 Workflow 授权断言已通过；后续 Node 组发现 `sidebar-ui-preview.test.mjs` 仍要求旧 `#tool-diagnostics{margin:0}` 专属 CSS。按 R31 公共所有权原则，更新断言改查 `design-system.css` 的 `.od-disclosure{margin:0}`，并明确拒绝重新新增单独 margin 规则。无样式/运行时更改，R19 静态 Chrome 源码输入不变。
