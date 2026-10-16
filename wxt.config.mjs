@@ -2,7 +2,7 @@ import {createSchemaSpecializer} from './scripts/scoped-schema.mjs';
 import protocolSchema from './src/platform/schema.js';
 import {recordBundle} from './scripts/bundle-provenance.mjs';
 import {transformPinnedAxiosBrowserSource} from './scripts/axios-browser-csp.mjs';
-import {transformPinnedReactDomInputTracker} from './scripts/react-dom-input-csp.mjs';
+import {transformPinnedReactDomInputTracker,transformPinnedReactDomReplayClone} from './scripts/react-dom-input-csp.mjs';
 import {defineConfig} from 'wxt';
 import {readFileSync} from 'node:fs';
 import {resolve, dirname} from 'node:path';
@@ -131,8 +131,10 @@ export default defineConfig({
           name:'opendesk-pinned-react-dom-input-tracker-csp',
           enforce:'pre',
           transform(code,id){
-            const changed=transformPinnedReactDomInputTracker(code,id,{target,reactDomVersion});
-            return changed===null?undefined:{code:changed,map:null};
+            const input=transformPinnedReactDomInputTracker(code,id,{target,reactDomVersion});
+            if(input===null)return;
+            const output=transformPinnedReactDomReplayClone(input,id,{target,reactDomVersion});
+            return {code:output,map:null};
           }
         });
       }

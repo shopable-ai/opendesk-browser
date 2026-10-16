@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {transformPinnedReactDomInputTracker} from '../../scripts/react-dom-input-csp.mjs';
+import {transformPinnedReactDomInputTracker,transformPinnedReactDomReplayClone} from '../../scripts/react-dom-input-csp.mjs';
 import {inspectScript} from '../../scripts/verify-package.mjs';
 
 const modulePath='/repo/node_modules/react-dom/cjs/react-dom-client.production.js';
@@ -44,4 +44,28 @@ test('native input prototype descriptor semantics match without trusting an inst
   );
   Object.defineProperty(nativeInput,'constructor',{get(){throw Error('overridden constructor must not be read')}});
   assert.equal(typeof Object.getOwnPropertyDescriptor(Object.getPrototypeOf(nativeInput),'value').get,'function');
+});
+
+
+const replaySource='function replayContinuousEvent(queuedEvent){'+
+  'var nativeEvent=queuedEvent.nativeEvent;'+
+  'var nativeEventClone=new nativeEvent.constructor(nativeEvent.type,nativeEvent);'+
+  'nativeEvent.target.dispatchEvent(nativeEventClone);}';
+
+test('pinned ReactDOM replay constructs only reviewed native browser event subclasses',()=>{
+  assert.throws(()=>inspectScript(replaySource,'ui/tool-shell.js'),/Unapproved dynamic constructor reference/);
+  const clean=transformPinnedReactDomReplayClone(replaySource,modulePath,
+    {target,reactDomVersion:'19.2.0'});
+  assert.doesNotMatch(clean,/\.constructor/);
+  for(const ctor of ['PointerEvent','DragEvent','FocusEvent','MouseEvent','Event'])
+    assert.match(clean,new RegExp('new '+ctor+'\\(event\\.type,event\\)'));
+  assert.deepEqual(inspectScript(clean,'ui/tool-shell.js'),{approvedAsyncBodyConstructors:0});
+  assert.throws(()=>transformPinnedReactDomReplayClone(replaySource.replace('.dispatchEvent(','.dispatchPrivate('),
+    modulePath,{target,reactDomVersion:'19.2.0'}),/drift/);
+  assert.equal(transformPinnedReactDomReplayClone(replaySource,'\0'+modulePath+'?commonjs-exports',
+    {target,reactDomVersion:'19.2.0'}),null);
+  assert.throws(()=>transformPinnedReactDomReplayClone(replaySource.replace(
+    'new nativeEvent.constructor(nativeEvent.type,nativeEvent)',
+    'new nativeEvent.constructor(nativeEvent.type,otherEvent)'),
+    modulePath,{target,reactDomVersion:'19.2.0'}),/drift/);
 });
