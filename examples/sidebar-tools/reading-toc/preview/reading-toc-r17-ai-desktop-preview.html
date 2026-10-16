@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>OpenDesk Reading TOC · AI 整理桌面预览 R1.7.1</title>
+<!-- UI-only / Offline: no Browser SDK requests, no user body upload, no payment, no provider. -->
+<style>
+:root{--od-ink:#1b2c49;--od-sub:#53647e;--od-line:#e1e8f1;--od-brand:#365eda;--od-paper:#fff;--od-bg:#f5f7fb;--od-muted:#f5f7fb;--od-focus:#365eda;--od-positive:#117a5d;--od-negative:#ae3d4b;--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--radius-control:8px;--radius-surface:12px;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Segoe UI",system-ui,sans-serif;line-height:1.45;color:var(--od-ink);background:#f3f5f9}
+*{box-sizing:border-box} [hidden]{display:none!important}body{margin:0}button{font:inherit;cursor:pointer}button:disabled{cursor:not-allowed}button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}svg{display:block;stroke-linecap:round;stroke-linejoin:round}p,h1,h2,h3{margin:0}button:focus:not(:focus-visible){outline:none}
+/* Desktop review harness is deliberately outside the formal tool surface. */
+.review-shell{max-width:1120px;margin:0 auto;padding:28px 28px 64px}
+.review-topline{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:22px}
+.review-topline h1{font-size:18px;letter-spacing:-.025em;font-weight:690;color:#28364e}
+.review-topline p{font-size:12px;color:#758198}
+.preview-workspace{display:flex;align-items:flex-start;gap:28px;min-width:0}
+.panel-column{flex:0 0 auto;min-width:0}
+.panel-caption{font-size:11px;color:#7a879a;letter-spacing:.035em;margin:0 0 10px 2px}
+.side-panel{width:var(--panel-width,360px);max-width:none;min-width:0;background:#fff;border:1px solid #dfe6f0;border-radius:14px;padding:12px;box-shadow:0 14px 32px #2435540b;zoom:var(--preview-zoom,1)}
+/* Matches the tool's officially shipped single-row compact header geometry. */
+.toc-panel{min-width:0}
+.toc-head{display:flex;align-items:center;justify-content:space-between;gap:6px;min-width:0;white-space:nowrap;padding-bottom:11px;border-bottom:1px solid var(--od-line)}
+.toc-title{flex:0 1 auto;min-width:0;font-size:11px;color:#697993;font-weight:720;letter-spacing:.07em;overflow:hidden;text-overflow:ellipsis}
+.toc-actions{display:flex;align-items:center;gap:6px;min-width:0;flex:none}
+.toc-modes{display:flex;align-items:center;gap:1px;padding:2px;border:1px solid #e7eaf0;border-radius:8px;background:#f7f9fc;flex:none}
+.toc-modes button{display:grid;place-items:center;flex:none;width:27px;height:27px;padding:0;border:0;border-radius:5px;background:transparent;color:#8190a6;transition:background .12s ease,color .12s ease}
+.toc-modes button svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7}
+.toc-modes button:hover{background:#ecf1fa;color:#365eda}
+.toc-modes button[aria-pressed="true"]{background:#fff;color:#365eda;box-shadow:0 1px 4px #23385b18}
+.toc-refresh{display:grid;place-items:center;flex:none;width:29px;height:29px;padding:0;border:1px solid #e7eaf0;border-radius:8px;background:#fff;color:#76849a}
+.toc-refresh:hover{background:#f2f6ff;color:#365eda}
+.toc-refresh svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8}
+.toc-view{min-width:0;min-height:205px}
+/* Compact AI body: value, structured outline, one status/action region. */
+.ai-head{padding:16px 2px 14px}
+.ai-head h2{font-size:15px;line-height:1.52;letter-spacing:-.018em;font-weight:700;color:var(--od-ink);overflow-wrap:anywhere}
+.ai-head p{margin-top:5px;color:var(--od-sub);font-size:12px;line-height:1.6;overflow-wrap:anywhere}
+.outline-heading{display:flex;align-items:center;justify-content:space-between;min-width:0;gap:8px;margin:0 2px 9px}
+.outline-heading h3{font-size:12px;font-weight:670;color:var(--od-ink)}
+.outline-annotation{white-space:nowrap;font-size:11px;color:#7b879c}
+.outline{list-style:none;margin:0;padding:6px 4px 6px 0;border-radius:9px;background:#f7f9fc;min-width:0}
+.outline li{min-width:0}
+.outline li.group-break{margin-top:5px;padding-top:5px;border-top:1px solid #edf0f6}
+.outline button{width:100%;min-width:0;min-height:34px;text-align:left;display:flex;align-items:flex-start;gap:8px;border:0;border-left:2px solid transparent;border-radius:0 5px 5px 0;background:transparent;color:var(--od-ink);padding:7px 7px 6px 11px;line-height:1.5}
+.outline button:hover:not(:disabled){background:#eaf0fb;color:#254cae}
+.outline button[aria-current="location"]{border-left-color:var(--od-brand);background:#eaf0fb;color:#254cae}
+.outline .level-2 button{padding-left:27px;color:#607089;font-size:12px}
+.outline .level-1 button{font-size:13px;font-weight:630}
+.outline .level-2 button[aria-current="location"]{color:#254cae}
+.outline button:disabled{opacity:.55}
+.outline button svg{width:12px;height:12px;flex:none;margin-top:3px;stroke:#7d8aa1;stroke-width:1.6;fill:none}
+.outline button .outline-text{min-width:0;flex:1;overflow-wrap:anywhere}
+.outline button:focus-visible{outline-offset:-2px}
+.ai-status{margin:14px 1px 1px;padding:12px 1px 0;border-top:1px solid var(--od-line);min-width:0}
+.status-title{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:660;line-height:1.5;color:var(--od-ink)}
+.status-dot{display:inline-block;flex:none;width:7px;height:7px;border-radius:50%;background:#a3afc0}
+.ai-status[data-tone="positive"] .status-dot{background:var(--od-positive)}
+.ai-status[data-tone="negative"] .status-dot{background:var(--od-negative)}
+.ai-status[data-tone="info"] .status-dot{background:#6686e9}
+.status-desc{color:var(--od-sub);font-size:12px;line-height:1.6;margin:4px 0 0 14px;overflow-wrap:anywhere}
+.ai-action{display:flex;align-items:center;justify-content:center;gap:7px;margin:12px 0 0;width:100%;min-height:36px;padding:8px 12px;border-radius:8px;border:1px solid var(--od-brand);background:var(--od-brand);color:#fff;font-weight:650;font-size:12px}
+.ai-action:hover:not(:disabled){background:#2b50c4}
+.ai-action:disabled{opacity:.66}
+.ai-action svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8}
+.ai-action.secondary{background:#fff;color:#3559bd;border-color:#d5deec}
+.ai-action.secondary:hover:not(:disabled){background:#f4f7ff}
+.progress-spinner{animation:spin .85s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ai-footnote{font-size:11px;color:#8490a2;margin:10px 2px 1px;line-height:1.55}
+.toc-free{padding-top:10px}
+.free-label{color:var(--od-sub);font-size:11px;line-height:1.5;margin:0 0 8px 3px}
+.free-outline{background:transparent;padding:0}
+.free-outline li.group-break{border-top:0;margin-top:4px}
+.free-outline button{min-height:31px;padding-top:5px;padding-bottom:5px}
+.free-empty{font-size:12px;color:var(--od-sub);padding:8px}
+.sr-only{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* All test controls and mocked article live in separate review panel. */
+.lab{flex:1 1 auto;min-width:290px;max-width:590px}
+.lab-section{border:1px solid #e0e7f1;background:#fff;border-radius:12px;padding:16px 17px;margin-bottom:12px}
+.lab-section h2{font-size:13px;font-weight:710;margin:0 0 12px;color:#263956}
+.lab-row{display:grid;grid-template-columns:68px minmax(0,1fr);align-items:start;gap:8px;margin-top:12px}
+.lab-label{font-size:12px;color:#627188;padding-top:7px}
+.lab-controls{display:flex;flex-wrap:wrap;gap:6px}
+.lab-controls button{border:1px solid #dce4ef;background:#fff;color:#53647e;min-height:31px;padding:5px 9px;border-radius:7px;font-size:12px;line-height:1.35}
+.lab-controls button:hover{background:#f5f8ff}
+.lab-controls button[aria-pressed="true"]{background:#eaf0fe;border-color:#bccffb;color:#2f51bb;font-weight:650}
+.lab-hint{margin-top:12px;color:#77869b;font-size:11px;line-height:1.7}
+.lab-description{color:#69788e;font-size:12px;margin:-4px 0 11px;line-height:1.6}
+.mock-article{height:264px;overflow:auto;border:1px solid #e8edf5;border-radius:9px;background:#fafbfd;padding:15px 16px;scroll-behavior:auto}
+.mock-article h3{margin:16px 0 4px;font-size:14px;color:#334867;scroll-margin-top:8px}
+.mock-article h3:first-child{margin-top:0}
+.mock-article h3[tabindex="-1"]:focus{outline:none}
+.mock-article h3.is-target{color:#3156bf;background:#e8efff;border-radius:5px;padding:3px 6px;margin-left:-6px}
+.mock-article p{color:#6f7e93;font-size:12px;line-height:1.7;margin:0 0 9px}
+.article-feedback{font-size:12px;color:#53647e;min-height:20px;margin-top:9px}
+.status-help{margin:0 0 12px;font-size:11px;color:#7b889c;line-height:1.5}
+@media(max-width:850px){.review-shell{padding:20px 14px 48px}.preview-workspace{gap:16px;flex-wrap:wrap}.lab{max-width:100%;flex-basis:100%}.review-topline{margin-bottom:16px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main class="review-shell">
+  <header class="review-topline">
+    <h1 data-i18n="reviewTitle">Reading TOC · AI 整理</h1>
+    <p data-i18n="reviewHint">R1.7.1 / 桌面 Side Panel 候选 / 完全离线</p>
+  </header>
+  <div class="preview-workspace">
+    <div class="panel-column">
+      <p class="panel-caption" data-i18n="panelCaption">正式侧栏内容区域 · 候选预览</p>
+      <aside id="side-panel" class="side-panel" style="--panel-width:360px;--preview-zoom:1" aria-label="Reading TOC Side Panel preview">
+        <section class="toc-panel">
+          <header class="toc-head">
+            <strong class="toc-title" id="toc-title">CONTENTS</strong>
+            <div class="toc-actions">
+              <div class="toc-modes" id="toc-modes" role="group" aria-label="目录视图">
+                <button type="button" data-mode="top" title="章节概览" aria-label="章节概览" aria-pressed="false"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16"/></svg></button>
+                <button type="button" data-mode="focus" title="当前章节" aria-label="当前章节" aria-pressed="false"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2"/></svg></button>
+                <button type="button" data-mode="full" title="完整目录" aria-label="完整目录" aria-pressed="false"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M8 5h13M13 12h8M13 19h8M3 10a2 2 0 0 0 2 2h3M3 5v12a2 2 0 0 0 2 2h3"/></svg></button>
+                <button type="button" data-mode="ai" title="AI 整理" aria-label="AI 整理" aria-pressed="true"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m12 3 1.55 5.2L19 10l-5.45 1.8L12 17l-1.55-5.2L5 10l5.45-1.8L12 3Z"/><path d="m19 17 .65 1.35L21 19l-1.35.65L19 21l-.65-1.35L17 19l1.35-.65L19 17ZM4 15l.62 1.38L6 17l-1.38.62L4 19l-.62-1.38L2 17l1.38-.62L4 15Z"/></svg></button>
+              </div>
+              <button type="button" class="toc-refresh" id="toc-refresh" title="重新读取当前网页章节" aria-label="刷新阅读目录"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.4 6M20 4v7h-7"/></svg></button>
+            </div>
+          </header>
+          <div id="ai-view" class="toc-view" aria-label="AI 整理目录">
+            <section class="ai-head" aria-labelledby="ai-title">
+              <h2 id="ai-title" data-i18n="valueTitle">把长文章整理成清晰目录</h2>
+              <p data-i18n="valueDesc">AI 梳理正文中的章节关系，让重要内容更容易找到。</p>
+            </section>
+            <section aria-labelledby="outline-title">
+              <div class="outline-heading"><h3 id="outline-title" data-i18n="outlineTitle">整理后的章节</h3><span class="outline-annotation" id="outline-annotation">演示 · 非当前网页</span></div>
+              <nav aria-label="AI 目录演示导航"><ul class="outline" id="ai-outline"></ul></nav>
+            </section>
+            <section class="ai-status" id="ai-status" data-tone="neutral" aria-label="会员与服务状态">
+              <p class="status-title"><span class="status-dot" aria-hidden="true"></span><span id="status-title">暂未开放</span></p>
+              <p class="status-desc" id="status-desc">当前仍可使用三个免费的目录视图。</p>
+              <button type="button" class="ai-action" id="ai-action" hidden></button>
+            </section>
+            <p class="ai-footnote" id="ai-footnote">离线演示，无真实会员、AI 请求或正文传输。</p>
+          </div>
+          <div id="free-view" class="toc-view toc-free" hidden>
+            <p id="free-label" class="free-label">当前网页 · 离线示例</p>
+            <nav aria-label="免费目录模拟导航"><ul id="free-outline" class="outline free-outline"></ul></nav>
+          </div>
+        </section>
+      </aside>
+    </div>
+    <div class="lab" aria-label="Preview QA controller outside Side Panel">
+      <section class="lab-section" id="lab-section">
+        <h2 data-i18n="labTitle">预览控制台 <span style="font-weight:450;color:#8591a4" data-i18n="outsideLabel">· 仅供验收，不属于侧栏</span></h2>
+        <div class="lab-row"><span class="lab-label" data-i18n="stateLabel">业务状态</span><div id="state-controls" class="lab-controls" role="group" aria-label="离线状态测试"></div></div>
+        <div class="lab-row"><span class="lab-label" data-i18n="widthLabel">侧栏宽度</span><div id="width-controls" class="lab-controls" role="group" aria-label="侧栏宽度测试"></div></div>
+        <div class="lab-row"><span class="lab-label" data-i18n="scaleLabel">预览倍率</span><div id="scale-controls" class="lab-controls" role="group" aria-label="预览 CSS 缩放测试"></div></div>
+        <div class="lab-row"><span class="lab-label" data-i18n="languageLabel">语言</span><div id="lang-controls" class="lab-controls" role="group" aria-label="预览语言"></div></div>
+        <p class="lab-hint" data-i18n="labHint">切换状态不会调用网络；“生成”“重试”仅模拟状态迁移。预览倍率使用 CSS zoom，不等于 Chrome 菜单缩放验收。</p>
+      </section>
+      <section class="lab-section">
+        <h2 data-i18n="articleTitle">离线测试文章 · 跳转目标</h2>
+        <p class="lab-description" data-i18n="articleIntro">点击左侧目录，会定位到这里的对应章节。这些章节仅用于验证导航交互。</p>
+        <div class="mock-article" id="mock-article" aria-label="可跳转的模拟文章">
+          <h3 id="article-overview" tabindex="-1" data-i18n="sectionOverview">产品概述</h3><p data-i18n="paragraph1">这是一篇用于验证阅读目录的离线文章，包含背景、能力、场景和安装说明。</p><p data-i18n="paragraph2">原始内容可能没有清晰的层级，而整理后的目录会把主题归并。</p>
+          <h3 id="article-features" tabindex="-1" data-i18n="sectionFeatures">核心能力</h3><p data-i18n="paragraph3">整理段落结构、理解章节间的关系，并保留可定位的章节。</p>
+          <h3 id="article-scenes" tabindex="-1" data-i18n="sectionScenes">适用场景</h3><p data-i18n="paragraph4">长文章、文档说明与学习资料等需要快速查找重点的内容。</p>
+          <h3 id="article-install" tabindex="-1" data-i18n="sectionInstall">安装与使用</h3><p data-i18n="paragraph5">在扩展侧栏打开阅读目录，选择需要的查看模式。</p>
+          <h3 id="article-start" tabindex="-1" data-i18n="sectionStart">快速开始</h3><p data-i18n="paragraph6">先使用免费目录预览；AI 能力上线后，主动操作才会生成。</p>
+          <h3 id="article-faq" tabindex="-1" data-i18n="sectionFaq">常见问题</h3><p data-i18n="paragraph7">模拟数据不代表任何真实会员权益、余额、订阅或模型结果。</p>
+        </div>
+        <p class="article-feedback" id="article-feedback" role="status" aria-live="polite"></p>
+      </section>
+    </div>
+  </div>
+</main>
+<div class="sr-only" id="live-status" role="status" aria-live="polite" aria-atomic="true"></div>
+<script>
+(() => {
+'use strict';
+const $=selector=>document.querySelector(selector);
+const lex={
+  'zh-CN':{
+    reviewTitle:'Reading TOC · AI 整理',reviewHint:'R1.7.1 / 桌面 Side Panel 候选 / 完全离线',panelCaption:'正式侧栏内容区域 · 候选预览',labTitle:'预览控制台 ',outsideLabel:'· 仅供验收，不属于侧栏',
+    valueTitle:'把长文章整理成清晰目录',valueDesc:'AI 梳理正文中的章节关系，让重要内容更容易找到。',outlineTitle:'整理后的章节',demoMark:'演示 · 非当前网页',resultMark:'离线生成演示 · 非真实 AI',oldMark:'过期的演示目录',
+    stateLabel:'业务状态',widthLabel:'侧栏宽度',scaleLabel:'预览倍率',languageLabel:'语言',labHint:'切换状态不会调用网络；“生成”“重试”仅模拟状态迁移。预览倍率使用 CSS zoom，不等于 Chrome 菜单缩放验收。',
+    articleTitle:'离线测试文章 · 跳转目标',articleIntro:'点击左侧目录，会定位到这里的对应章节。这些章节仅用于验证导航交互。',
+    sectionOverview:'产品概述',sectionFeatures:'核心能力',sectionScenes:'适用场景',sectionInstall:'安装与使用',sectionStart:'快速开始',sectionFaq:'常见问题',
+    paragraph1:'这是一篇用于验证阅读目录的离线文章，包含背景、能力、场景和安装说明。',paragraph2:'原始内容可能没有清晰的层级，而整理后的目录会把主题归并。',paragraph3:'整理段落结构、理解章节间的关系，并保留可定位的章节。',paragraph4:'长文章、文档说明与学习资料等需要快速查找重点的内容。',paragraph5:'在扩展侧栏打开阅读目录，选择需要的查看模式。',paragraph6:'先使用免费目录预览；AI 能力上线后，主动操作才会生成。',paragraph7:'模拟数据不代表任何真实会员权益、余额、订阅或模型结果。',
+    groupLabel:'目录视图',topLabel:'章节概览',focusLabel:'当前章节',fullLabel:'完整目录',aiLabel:'AI 整理',refreshLabel:'刷新阅读目录',refreshTitle:'重新读取当前网页章节',
+    stateGuest:'未开通会员',stateUnavailable:'服务暂未开放',stateReady:'已开通',stateLoading:'生成中',stateSuccess:'生成成功',stateQuota:'额度不足 / 到期',stateError:'生成失败',stateStale:'正文已变化',
+    guestTitle:'会员专属整理',guestDesc:'开通后可主动为当前网页生成可跳转目录；目前没有可用的购买入口。',
+    unavailableTitle:'AI 整理暂未开放',unavailableDesc:'你仍可使用概览、当前和完整三种免费目录。',
+    readyTitle:'已具备整理权限',readyDesc:'点击生成后才会读取当前网页正文。',
+    loadingTitle:'正在整理目录',loadingDesc:'正在分析章节结构，请勿重复提交。',
+    successTitle:'目录已整理',successDesc:'点击上方章节，可体验离线文章定位。',
+    quotaTitle:'当前无法继续整理',quotaDesc:'额度不足或会员已到期；已有免费目录不受影响。',
+    errorTitle:'本次整理未成功',errorDesc:'可以重试，三个免费目录视图仍然可用。',
+    staleTitle:'网页内容已变化',staleDesc:'旧目录已暂停跳转；请重新整理当前内容。',
+    generate:'生成 AI 目录',generating:'正在整理…',regenerate:'重新整理',retry:'重试生成',
+    footnote:'离线演示，无真实会员、AI 请求或正文传输。',freeHint:'当前网页 · 离线示例',jumped:'已定位演示文章：',locked:'目录已失效，不能跳转',refreshNotice:'已模拟重新读取网页章节',staleNotice:'内容已变化，请重新整理',
+  },
+  en:{
+    reviewTitle:'Reading TOC · AI outline',reviewHint:'R1.7.1 / Desktop Side Panel candidate / Offline',panelCaption:'Tool content in Side Panel · Candidate preview',labTitle:'Preview controls ',outsideLabel:'· Test-only, outside the sidebar',
+    valueTitle:'Turn long articles into clear outlines',valueDesc:'AI groups related sections so key topics are easier to find.',outlineTitle:'Organized sections',demoMark:'Demo · Not this webpage',resultMark:'Offline simulation · Not real AI',oldMark:'Outdated demo outline',
+    stateLabel:'Scenario',widthLabel:'Panel width',scaleLabel:'Preview zoom',languageLabel:'Language',labHint:'No network calls. Generate and Retry only simulate transitions. CSS zoom does not replace testing Chrome menu zoom.',
+    articleTitle:'Offline test article · Navigation targets',articleIntro:'Click an outline entry to jump to its matching section below. These are test-only headings.',
+    sectionOverview:'Product overview',sectionFeatures:'Core capabilities',sectionScenes:'Use cases',sectionInstall:'Installation and use',sectionStart:'Getting started',sectionFaq:'Frequently asked questions',
+    paragraph1:'This sample article is only used for an offline outline preview.',paragraph2:'Scattered topics can become a structured and navigable outline.',paragraph3:'Organize paragraphs and preserve their relationships as jump targets.',paragraph4:'Useful for long-form articles, documentation, and learning resources.',paragraph5:'Open Reading TOC in the extension side panel and choose a view.',paragraph6:'Start with a free outline; AI generation always requires explicit action.',paragraph7:'No actual memberships, credits, billing, or model outputs are represented.',
+    groupLabel:'Outline views',topLabel:'Overview',focusLabel:'Current section',fullLabel:'Full outline',aiLabel:'AI outline',refreshLabel:'Refresh outline',refreshTitle:'Read current webpage sections again',
+    stateGuest:'No membership',stateUnavailable:'Not available',stateReady:'Member ready',stateLoading:'Generating',stateSuccess:'Generated',stateQuota:'Quota / expired',stateError:'Failed',stateStale:'Page changed',
+    guestTitle:'Member-only organization',guestDesc:'Members can request a navigable AI outline. No purchase link is available yet.',
+    unavailableTitle:'AI outline is not available yet',unavailableDesc:'Overview, Current, and Full remain free to use.',
+    readyTitle:'Ready to generate',readyDesc:'Page content is read only after you select Generate.',
+    loadingTitle:'Organizing sections',loadingDesc:'Analyzing headings. Duplicate requests are disabled.',
+    successTitle:'Outline organized',successDesc:'Select a section above to test offline navigation.',
+    quotaTitle:'Cannot generate right now',quotaDesc:'Your quota may be exhausted or access has expired. Free views still work.',
+    errorTitle:'Generation did not complete',errorDesc:'Retry if you wish. Existing free outlines are unaffected.',
+    staleTitle:'Page content has changed',staleDesc:'Old links are paused. Reorganize the current content to continue.',
+    generate:'Generate AI outline',generating:'Organizing…',regenerate:'Generate again',retry:'Retry generation',
+    footnote:'Offline demo only. No real memberships, AI requests, or page uploads.',freeHint:'Current page · Offline demo',jumped:'Jumped to sample article: ',locked:'Outline is stale and cannot navigate',refreshNotice:'Simulated a webpage outline refresh',staleNotice:'Page changed. Reorganize the outline',
+  }
+};
+const records=[['overview',1,'sectionOverview'],['features',2,'sectionFeatures'],['scenes',2,'sectionScenes'],['install',1,'sectionInstall'],['start',2,'sectionStart'],['faq',2,'sectionFaq']];
+const scenarios=['guest','unavailable','ready','loading','success','quota','error','stale'];
+const labels={guest:'stateGuest',unavailable:'stateUnavailable',ready:'stateReady',loading:'stateLoading',success:'stateSuccess',quota:'stateQuota',error:'stateError',stale:'stateStale'};
+const statusFields={guest:['guestTitle','guestDesc','neutral'],unavailable:['unavailableTitle','unavailableDesc','neutral'],ready:['readyTitle','readyDesc','info'],loading:['loadingTitle','loadingDesc','info'],success:['successTitle','successDesc','positive'],quota:['quotaTitle','quotaDesc','neutral'],error:['errorTitle','errorDesc','negative'],stale:['staleTitle','staleDesc','negative']};
+let locale='zh-CN',width=360,scale=1,mode='ai',state='unavailable',activeId='features',activeFreeMode='focus',generationToken=0,generationTimer=null;
+const t=key=>lex[locale][key]||key;
+function live(message){$('#live-status').textContent=message;}
+function clearGeneration(){generationToken++;if(generationTimer!==null){clearTimeout(generationTimer);generationTimer=null;}}
+function modeButton(modeId){return document.querySelector(`[data-mode="${modeId}"]`);}
+function setMode(next){mode=next;if(next!=='ai')activeFreeMode=next;render();}
+function navigateTo(id,fromAI){if(fromAI&&state==='stale'){live(t('locked'));return;}
+ const el=document.getElementById('article-'+id);if(!el)return;
+ activeId=id;document.querySelectorAll('.mock-article h3').forEach(h=>h.classList.toggle('is-target',h===el));
+ el.scrollIntoView({block:'start',inline:'nearest',behavior:'instant'});el.focus({preventScroll:true});
+ $('#article-feedback').textContent=t('jumped')+t(records.find(r=>r[0]===id)[2]);renderOutline();renderFree();
+}
+function makeRow([id,depth,key],fromAI){const li=document.createElement('li');li.className='level-'+depth+(id==='install'?' group-break':'');
+ const b=document.createElement('button');b.type='button';b.setAttribute('aria-label',t(key));b.title=t(key);if(id===activeId)b.setAttribute('aria-current','location');
+ if(fromAI&&state==='stale')b.disabled=true;
+ const icon=document.createElementNS('http://www.w3.org/2000/svg','svg');icon.setAttribute('viewBox','0 0 16 16');icon.setAttribute('aria-hidden','true');
+ const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d',depth===1?'M4 4h8M4 8h8M4 12h8':'M6 5h6M6 9h6');icon.append(path);
+ const span=document.createElement('span');span.className='outline-text';span.textContent=t(key);b.append(icon,span);b.addEventListener('click',()=>navigateTo(id,fromAI));li.append(b);return li;
+}
+function renderOutline(){const list=$('#ai-outline');list.replaceChildren(...records.map(r=>makeRow(r,true)));}
+function freeRows(){if(mode==='top')return records.filter(r=>r[1]===1);if(mode==='focus')return records.filter(r=>r[0]==='overview'||r[0]==='features'||r[0]==='scenes');return records;}
+function renderFree(){const list=$('#free-outline');list.replaceChildren(...freeRows().map(r=>makeRow(r,false)));$('#free-label').textContent=t('freeHint');}
+function renderControls(){for(const [name,target,values,current,formatter] of [
+  ['state','#state-controls',scenarios,state,v=>t(labels[v])],['width','#width-controls',[320,360,420,520],width,v=>v+'px'],
+  ['scale','#scale-controls',[1,1.25,1.5,2],scale,v=>Math.round(v*100)+'%'],['locale','#lang-controls',['zh-CN','en'],locale,v=>v==='en'?'English':'简体中文']]){
+  const box=$(target);box.replaceChildren(...values.map(value=>{const b=document.createElement('button');b.type='button';b.textContent=formatter(value);b.setAttribute('aria-pressed',String(current===value));b.addEventListener('click',()=>{
+    if(name==='state'){clearGeneration();state=value;}
+    else if(name==='width')width=value;
+    else if(name==='scale')scale=value;
+    else{locale=value;document.documentElement.lang=value;}
+    render();
+  });return b;}));
+ }
+}
+function renderStatus(){const [key,description,tone]=statusFields[state];const el=$('#ai-status');el.dataset.tone=tone;el.setAttribute('aria-label',t('stateLabel')+': '+t(labels[state]));
+ $('#status-title').textContent=t(key);$('#status-desc').textContent=t(description);
+ const action=$('#ai-action');action.hidden=!['ready','loading','success','error','stale'].includes(state);action.disabled=state==='loading';
+ action.classList.toggle('secondary',state==='success');
+ const akey=state==='ready'?'generate':state==='loading'?'generating':state==='error'?'retry':'regenerate';
+ action.replaceChildren();
+ if(state==='loading'){
+   const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.classList.add('progress-spinner');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');
+   const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d','M12 3a9 9 0 1 1-9 9');svg.append(path);action.append(svg);
+ }
+ action.append(document.createTextNode(t(akey)));$('#ai-footnote').textContent=t('footnote');
+ $('#outline-annotation').textContent=state==='success'?t('resultMark'):state==='stale'?t('oldMark'):t('demoMark');
+}
+function renderLanguage(){for(const el of document.querySelectorAll('[data-i18n]')){
+  if(el.id===''){}const value=t(el.dataset.i18n);if(el.dataset.i18n==='labTitle'){el.firstChild.textContent=value;continue;}el.textContent=value;
+ }
+ $('#toc-title').textContent='CONTENTS';$('#toc-modes').setAttribute('aria-label',t('groupLabel'));
+ for(const [id,key] of [['top','topLabel'],['focus','focusLabel'],['full','fullLabel'],['ai','aiLabel']]){
+   const button=modeButton(id);button.title=t(key);button.setAttribute('aria-label',t(key));
+ }
+ $('#toc-refresh').title=t('refreshTitle');$('#toc-refresh').setAttribute('aria-label',t('refreshLabel'));
+ $('#state-controls').setAttribute('aria-label',t('stateLabel'));$('#width-controls').setAttribute('aria-label',t('widthLabel'));
+ $('#scale-controls').setAttribute('aria-label',t('scaleLabel'));$('#lang-controls').setAttribute('aria-label',t('languageLabel'));
+ $('#mock-article').setAttribute('aria-label',t('articleTitle'));$('#ai-view').setAttribute('aria-label',t('aiLabel'));
+}
+function render(){renderLanguage();renderControls();$('#side-panel').style.setProperty('--panel-width',width+'px');$('#side-panel').style.setProperty('--preview-zoom',String(scale));
+ for(const button of document.querySelectorAll('[data-mode]'))button.setAttribute('aria-pressed',String(button.dataset.mode===mode));
+ $('#ai-view').hidden=mode!=='ai';$('#free-view').hidden=mode==='ai';
+ renderStatus();renderOutline();renderFree();
+ if($('#article-feedback').textContent)$('#article-feedback').textContent=t('jumped')+t(records.find(r=>r[0]===activeId)[2]);
+}
+function startGeneration(){if(state==='loading')return;clearGeneration();const token=generationToken;state='loading';render();live(t('loadingTitle'));
+ generationTimer=setTimeout(()=>{generationTimer=null;if(token!==generationToken||state!=='loading')return;state='success';render();live(t('successTitle'));},1150);
+}
+$('#ai-action').addEventListener('click',()=>{if(['ready','error','stale','success'].includes(state))startGeneration();});
+for(const button of document.querySelectorAll('[data-mode]'))button.addEventListener('click',()=>setMode(button.dataset.mode));
+$('#toc-modes').addEventListener('keydown',event=>{
+ if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
+ const buttons=[...document.querySelectorAll('[data-mode]')];const current=buttons.indexOf(document.activeElement);if(current===-1)return;
+ const index=event.key==='Home'?0:event.key==='End'?buttons.length-1:(current+(event.key==='ArrowRight'?1:-1)+buttons.length)%buttons.length;
+ event.preventDefault();buttons[index].focus();setMode(buttons[index].dataset.mode);
+});
+$('#toc-refresh').addEventListener('click',()=>{if(state==='success'){clearGeneration();state='stale';}render();live(state==='stale'?t('staleNotice'):t('refreshNotice'));});
+render();
+// Exposed only to self-tests in the detached offline preview. Not a Browser SDK API.
+Object.defineProperty(window,'__READING_TOC_PREVIEW__',{value:Object.freeze({getState:()=>({locale,width,scale,mode,state,activeId,activeFreeMode}),setScenario(value){if(!scenarios.includes(value))return;clearGeneration();state=value;render();}})});
+})();
+</script>
+</body>
+</html>
