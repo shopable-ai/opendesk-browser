@@ -43,6 +43,16 @@ node examples/sidebar-tools/adblock/preview/acceptance.mjs
 
 HTM 更新必须同时审查上游源码、许可证、固定版本、运行时变更和真实浏览器验收。React 更新应复用根仓库维护的 `scripts/build-page-framework-runtimes.mjs` 与 `src/libs/page-frameworks/contract.js` 锁定流程；先审计版本、SHA 和安全策略，再更新本预览的引用及验收脚本。以上**固定资源维护步骤不属于日常组件开发**。
 
+## R2.0 官方预览 Skill 与同源边界
+
+- 主 Skill：`.agents/skills/opendesk-ui-preview/SKILL.md`，不是仅复制 Skill 名称。已核对 R27/R20 与权威预览模板两种职责。
+- **React 设计稿** `preview/index.html` 是经认可的独立、离线 `file://` Mock。该可信设计评审文件只读加载仓库 `src/ui/design-tokens.css` 与 `src/ui/design-system.css`，组件采用 `od-surface`、`od-icon-button`、`od-button`；此种样式复用**不得复制到正式工具沙箱 iframe**。
+- **设计模板** `scripts/templates/sidebar-preview.html` 由 `scripts/sidebar-preview-kit.mjs create/check` 生成、校验。现有 React 设计稿不是其生成物，不能直接运行此 `check` 并假报 PASS。
+- **正式源码同源模板** `scripts/templates/sidebar-tool-preview-shell.html` 由 `scripts/preview/build-preview.mjs --tool adblock --surface side-panel --scenario success --theme light --width 360 --height 760` 使用；输入为现有正式工具源码/可信 Host 而非此 React Mock。生成 `artifacts/previews/adblock/` 下的正式快照，严禁手工编辑。已跟踪的 `../adblock-r1-interactive-preview.html` 也是正式生成快照，不能覆盖本设计稿。
+- 官方预览外壳仅浅色；本设计稿因用户保留的演示需求可显式切换深浅 Mock。两者**不能等价**。聊天交互若无法直接执行 React 原文，标记 `CHAT_ADAPTER_NOT_SOURCE_HTML`。
+- 新增读取中/失败/权限不足/不可信文本模拟状态只在右侧原型控制里，正式用户界面只按状态临时显示提示；失败不允许开关静默生效。规则和返回路径更明确，Chrome DNR/权限/安装代码不变。
+- 控件密度对齐 34px 图标、12px 圆角与 8/12/16px 节奏；目前仅对设计稿做变更，正式同源预览仍需与实际安装产品按相同候选单独对照，禁止宣称 UI 漂移完全消除。
+
 ## 产品与 Mock 边界
 
 预览正常宽度为约 **360px**，原型场景切换、深浅色、重置和说明放在**工具画布之外**。保留原批准的盾牌与工具标题、全局保护、当前网站、演示统计、默认推荐过滤、已停用网站管理、设置页及返回交互。
