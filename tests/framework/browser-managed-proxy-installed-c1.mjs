@@ -217,9 +217,11 @@ async function main(){
     process.env.OPENDESK_PROXY_C1_RUNNER==='github-hosted'&&
     process.env.OPENDESK_PROXY_C1_ALLOW_NO_SANDBOX==='yes';
   profile=await mkdtemp(join(tmpdir(),'opendesk-managed-c1-'));
-  const args=['--headless=new','--no-first-run','--no-default-browser-check','--disable-sync',
-    '--disable-background-networking','--remote-debugging-port=0','--user-data-dir='+profile,
+  const headed=process.env.OPENDESK_PROXY_C1_HEADED==='xvfb';
+  const args=['--no-first-run','--no-default-browser-check','--disable-sync',
+    '--window-size=1440,1000','--disable-background-networking','--remote-debugging-port=0','--user-data-dir='+profile,
     '--disable-extensions-except='+PATH,'--load-extension='+PATH,'about:blank'];
+  if(!headed)args.unshift('--headless=new');
   if(noSandbox)args.unshift('--no-sandbox');
   child=spawn(process.env.CHROME_FOR_TESTING_BIN,args,{stdio:['ignore','ignore','pipe']});
   let stderr='';child.stderr.on('data',part=>{stderr=(stderr+part.toString()).slice(-8000);});
@@ -228,7 +230,7 @@ async function main(){
     return lines.length===2?lines:null;
   },'Chrome debugger');
   client=await connect('ws://127.0.0.1:'+location[0]+location[1]);
-  receipt.chrome={...(await client.send('Browser.getVersion')),noSandbox};
+  receipt.chrome={...(await client.send('Browser.getVersion')),noSandbox,headed};
   const targets=()=>client.send('Target.getTargets').then(x=>x.targetInfos||[]);
   const swTarget=await until(async()=>(await targets()).find(x=>
     x.type==='service_worker'&&/^chrome-extension:\/\/[a-p]{32}\/sw\.js$/.test(x.url)),'production SW');
