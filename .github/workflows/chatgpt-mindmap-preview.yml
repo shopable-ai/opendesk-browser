@@ -8,6 +8,7 @@ on:
       - 'tests/environment/chatgpt-mindmap-r1.test.mjs'
       - 'tests/framework/chatgpt-mindmap-xmind-probe.mjs'
       - 'tests/framework/chatgpt-mindmap-chatgpt-probe.mjs'
+      - 'tests/framework/chatgpt-mindmap-r38-native-probe.mjs'
       - 'src/scripting/user-scripts/installed-programs.js'
       - 'src/platform/host/broker.js'
       - 'src/ui/page-program-library.js'
@@ -208,3 +209,68 @@ jobs:
         run: |
           echo 'LOCAL_HTML_CHROMIUM_ONLY including ChatGPT simulation. No native USER_SCRIPT install, style isolation approval or logged-in ChatGPT verified.'
           echo 'No vendor JS or installation bundles are uploaded.'
+
+  native-user-script-xmind-feasibility:
+    # Test-only extension generated from actual WXT dist/production plus four
+    # SHA-verified preview vendor files; never ship test package or vendor.
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Build real extension and unchanged Mind Map Program
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm run build
+          node scripts/verify-package.mjs dist/production
+          npm run build:program -- examples/programs/chatgpt-mindmap
+          node examples/programs/chatgpt-mindmap/scripts/audit-build.mjs --out "${{ runner.temp }}/r38-candidate-audit.json"
+      - name: Prepare real Chromium driver
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright-core@1.56.1
+          node --check tests/framework/chatgpt-mindmap-r38-native-probe.mjs
+          browser=""
+          for candidate in /usr/bin/google-chrome /usr/bin/chromium /usr/bin/chromium-browser; do
+            if [ -x "$candidate" ]; then browser="$candidate"; break; fi
+          done
+          test -n "$browser" || { echo E_NATIVE_CHROME_MISSING; exit 1; }
+          test -x /usr/bin/xvfb-run || { echo E_NATIVE_XVFB_MISSING; exit 1; }
+          "$browser" --version
+          echo "ODMM_NATIVE_BROWSER=$browser" >> "$GITHUB_ENV"
+      - name: Real extension + Chrome USER_SCRIPT + real XMind (test-only resources)
+        shell: bash
+        run: |
+          set -euo pipefail
+          program="$(find artifacts/programs/opendesk.chatgpt-mindmap/0.2.0/r31-production -name program.js -print -quit)"
+          test -n "$program" || { echo E_CURRENT_PROGRAM_BUILD_MISSING; exit 1; }
+          mkdir -p "${{ runner.temp }}/r38-native-proof"
+          xvfb-run -a node tests/framework/chatgpt-mindmap-r38-native-probe.mjs \
+            --browser "$ODMM_NATIVE_BROWSER" \
+            --extension "$GITHUB_WORKSPACE/dist/production" \
+            --program "$program" \
+            --out "${{ runner.temp }}/r38-native-proof"
+      - name: Preserve only JSON evidence and screenshots, never SDK vendor JS
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r38-real-chrome-temporary-extension-feasibility
+          path: |
+            ${{ runner.temp }}/r38-native-proof/*.json
+            ${{ runner.temp }}/r38-native-proof/*.png
+            ${{ runner.temp }}/r38-candidate-audit.json
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Declare test boundary (not an Installed Program or real ChatGPT)
+        if: always()
+        run: |
+          echo 'This native probe NEVER installs via OpenDesk Page Program broker.'
+          echo 'Any PASS shows only temporary test-stage USER_SCRIPT feasibility, not license approval, installed lifecycle or logged-in ChatGPT.'
