@@ -482,6 +482,18 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
     'await chrome.tabs.update(t.id,{active:true});await chrome.windows.update(t.windowId,{focused:true});})()');
   await until(()=>evaluate(client,sid,'document.querySelector('+JSON.stringify(siteSelector)+')?.getAttribute("aria-checked")==="false"'),
     'site switch now off');
+  // R1.9 three-page product: the opaque exception iframe is deliberately
+  // hidden on Overview. A real trusted pointer must navigate to Exceptions
+  // before the restore control can receive a meaningful user click.
+  const exceptionsNav='#sidebar-tool-adblock-native button[aria-label="管理已停用的网站"]';
+  await click(client,sid,exceptionsNav);
+  await until(()=>evaluate(client,sid,'(()=>{const root=document.querySelector("#sidebar-tool-adblock-native");'+
+    'const page=root?.querySelector(".adblock-native-overview");'+
+    'const exceptions=root?.querySelector(".adblock-native-subpage[aria-label=\\"已停用的网站\\"]");'+
+    'const frame=document.querySelector("#sidebar-tool-frame");'+
+    'return !!root&&!root.hidden&&page?.hidden===true&&exceptions?.hidden===false&&'+
+    'frame?.hidden===false&&frame.getBoundingClientRect().height>0;})()'),
+    'real native Exceptions navigation exposes opaque iframe');
   const sandboxTarget=await until(async()=>{
     const url=await evaluate(client,sid,'document.querySelector("#sidebar-tool-frame iframe")?.src');
     return (await client.send('Target.getTargets')).targetInfos.find(x=>x.type==='iframe'&&x.url===url);
