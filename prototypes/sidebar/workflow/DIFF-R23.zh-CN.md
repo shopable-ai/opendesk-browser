@@ -150,3 +150,31 @@ docs/framework/workstreams/workflow-local-e2e-01a13fcb-20261015.md 记载旧特�
 - 用户 Mac 已安装 OpenDesk 扩展、真正 Codex 登录模型、真实 OpenAI API、Chrome 权限审批、RunHost Durables / Browser SDK / 多站点执行均 NOT_TESTED。
 - Mac 原生中文 IME、VoiceOver、系统级焦点操作均 NOT_TESTED。Chromium 的 JS 合成 composition 只能验证事件级逻辑。
 - 本轮不修改正式 Sidebar。唯一下一步是用户实际体验并批准 HTML 之后，再另立生产实现与真机测试范围。
+
+
+## 十、R23.4：完整 AI 设置与受限沙箱发送修复（2026-10-16）
+
+> **R23.3.1 的「AI 设置 95/100」评级已被用户实际体验否定，本轮不继承该评级。** 仅此原型文件允许实施，正式 \`src/ui/workflow/*\` 和 \`src/ui/tool.html\` 只读。本阶段仍是 \`DESIGN_REVIEW_REQUIRED\`。
+
+### 10.1 已确认的原型缺陷和实施
+
+- 原 \`.r23-settings\` 是底部绝对定位的局限浮层，表单被固定高度压缩；已改成侧边栏内完整覆盖视图，上方返回，中间唯一独立滚动，下方固定完成。原对话和输入草稿不会因进入设置而清空。
+- Provider 选择保持三个直接可见选项：Native Codex、OpenAI Responses、自定义 HTTPS；不再将第三方 HTTPS 藏到「高级」。OpenDesk AI 仅展示不可选项。
+- 正式 API 只读映射：\`provider.js\` 具有 \`local_codex\`（Native）、\`cloud_responses\`（Responses）、\`custom_https\`（旧版 Chat Completions）；\`workflow-view.js\` 仅为 HTTPS 来源读取 \`endpoint\`、\`model\`、\`apiKey\`；\`ai-plan.js\` 对旧协议用 \`Authorization: Bearer\`；\`responses.js\` 要求 HTTPS 与 \`/v1/responses\`。没有实现原型不存在的自定义 Header、Body 模板、任意认证、HTTP 明文或模型探测。
+- 每个 HTTPS 来源具有独立的 Endpoint/Model ID/API Key，默认 password 并支持显示/隐藏；只接受 \`demo-...\` **虚拟**密钥进行离线格式检查，防止把用户真实 Key 输入原型；不向网络发送、不写入 localStorage/模拟聊天/控制台。检查通过只标记「离线字段格式检查通过、真实连接未知」；字段被修改即失效；Native 显示「模拟连接／未检测实际 Native」；未配置 HTTPS 来源不能借「重新连接」跳过验证。
+- 摘要使用许可独立于操作模式；切换 Provider、文档或撤销网站权限均清空当前模拟接收方批准；正式云端每轮批准、安全权限与 Native 会话不在原型中绕过或修改。
+
+### 10.2 真实故障根因及证据边界
+
+- 用户报告对话内预览无法发送：旧代码在点击按钮时依赖浏览器原生 \`<form>\` 的 \`submit\`。在允许 JavaScript 但**不允许 form submit** 的 \`iframe sandbox="allow-scripts"\` 中，表单提交被浏览器限制，按钮点击不能推进模拟流程。
+- 原型现在由**真实按钮点击**直接调用 \`onSend()\`，同步 \`preventDefault()\` 以防普通浏览器的原生提交重复触发；Enter 与中文 IME 的独立处理保留。
+- 已用相同 Git Blob HTML 在 Chromium \`srcdoc\` + \`sandbox="allow-scripts"\` 下点击完成：第一轮「给我一个亿的项目」→ 澄清→ 填写→ DOM 读回；第二轮「把刚才的内容改成：项目已启动」→ 更新→ DOM 读回；提交、导航均 0。此证明**类沙箱**交互，不代表 ChatGPT 宿主已经实测；后者标记 \`EMBEDDED_PREVIEW_NOT_WORKING / NOT_TESTED\`，不可冒充 PASS。
+- 原型源文件及 Playwright 场景直接写入 main，\`r232-chrome.mjs\` 包含原始 \`file://\` Chrome 测试及沙箱回归；\`r232-zoom.mjs\` 增加浏览器原生 Ctrl+Plus 到 200% 的设置字段验证。Linux 本地补充截图采用相同 HTML 内容注入，故标记 \`LOCAL_SET_CONTENT_SIMULATION\` 而非直接打开文件的证据。
+
+### 10.3 审计及验收门禁
+
+- **已核对 DOM 行为**：默认/澄清/两轮操作、OpenAI Responses 与自定义 HTTPS 输入与错误、虚拟密钥遮蔽、高风险阻断、只读、每次确认、三个宽度、沙箱两轮按钮点击。
+- **不得宣称**：真实 Provider 连接、Mac 已安装扩展、ChatGPT 平台自身内嵌可交互、Mac 原生中文输入/VoiceOver、正式权限与 RunHost 都已验收。
+- **评分原则**：六维（视觉、AI 设置完整性、HTTPS 合理性、交互、安全、可访问性）均从本轮新证据独立判定；截图及 CI 证明行为正确，但无独立人类 UX/VoiceOver/ChatGPT 宿主验证时，不能宣称已经六项 ≥95。证据不足维度保留 \`NOT_SCORED\`。
+- **反方重点**：配置“模拟通过”是否误导成联网；是否仍有裁切/二次滚动；是否通过 \`reconnect\` 绕过配置；相同业务逻辑在 \`allow-scripts\` 无 \`allow-forms\` 的真实发送；Provider 切换是否继承摘要许可；是否有多余的权限文案。以上以行为测试和截图为准。
+
