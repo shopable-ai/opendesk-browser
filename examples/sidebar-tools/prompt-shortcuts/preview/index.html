@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OpenDesk Browser · 提示词快捷按钮｜Side Panel 交互预览 R1.15</title>
+<title>OpenDesk Browser · 提示词快捷按钮｜Side Panel 交互预览 R1.16</title>
 <meta name="description" content="OpenDesk Prompt Shortcuts 独立侧边栏交互原型。仅模拟、不安装、无真实权限请求。">
 <style>
 /* Offline design contract: semantic values mirror src/ui/design-tokens.css (blob 134dd7871da4bf0ee26b6d0135e69e7273fdabdb).
@@ -261,15 +261,10 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 .host-setting-value{font-size:11px;font-weight:700;color:var(--od-positive);white-space:nowrap}
 .host-setting-note{background:var(--od-bg);padding:10px;border-radius:8px;margin:0}
 /* R1.14: one discreet per-row action, settings-only toggles, top-right create and batch creation. */
-.tool-host-head .host-add{flex:none;min-width:66px;white-space:nowrap}
+.tool-host-head .host-add{flex:none;width:40px;min-width:40px;white-space:nowrap}
 .tool-host-head strong{letter-spacing:-.01em}
 .prompt-actions{flex:none;min-width:40px}
-.prompt-actions .od-button{width:40px;min-width:40px;height:40px;min-height:40px;opacity:.42;transition:opacity .14s ease}
-.prompt-card:hover .prompt-actions .od-button,
-.prompt-card:focus-within .prompt-actions .od-button,
-.prompt-card.is-menu-open .prompt-actions .od-button{opacity:1}
-.prompt-card.is-menu-open .prompt-actions .od-button{background:var(--od-muted);color:var(--od-brand)}
-@media (hover:none),(pointer:coarse){.prompt-actions .od-button{opacity:1}}
+/* Per-row actions now use the shared icon-only control and retain a single trigger. */
 .host-settings{gap:8px}
 .host-settings .host-setting-row{min-height:55px;padding:8px 10px}
 .host-settings .host-setting-row:not(.od-surface){padding:9px 1px}
@@ -284,7 +279,31 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 .form-actions{gap:6px;justify-content:space-between}
 .form-actions #saveContinue{margin-left:auto}
 .form-actions .od-button{font-size:12px;padding:5px 8px;min-height:36px}
-@media(max-width:380px){.tool-host-head{gap:7px}.tool-host-head .host-add{min-width:62px}.form-actions .od-button{padding:5px 7px;font-size:11px}}
+@media(max-width:380px){.tool-host-head{gap:7px}.tool-host-head .host-add{min-width:40px}.form-actions .od-button{padding:5px 7px;font-size:11px}}
+/* R1.16: locally sourced Lucide-style SVG icons, no new library or browser SDK. */
+.od-icon-sprite{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}
+.od-glyph{width:18px;height:18px;display:block;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.od-icon-button{width:40px;height:40px;min-width:40px;min-height:40px;display:inline-grid;place-items:center;padding:0;line-height:1}
+.od-icon-button--primary{background:var(--od-brand);border-color:var(--od-brand);color:#fff}
+.od-icon-button--primary:hover:not(:disabled){background:#294fc4;border-color:#294fc4}
+.od-icon-button--primary .od-glyph{width:21px;height:21px}
+.od-icon-button--quiet{border-color:transparent;background:transparent}
+.od-icon-button--quiet:hover{border-color:var(--od-line);background:var(--od-muted)}
+.tool-host-head .host-add{width:40px;min-width:40px;min-height:40px}
+.prompt-actions .od-icon-action{width:40px;min-width:40px;height:40px;min-height:40px;border-color:transparent;background:transparent;color:var(--od-sub);opacity:.82;transition:opacity .12s ease}
+.prompt-card:hover .prompt-actions .od-icon-action,
+.prompt-card:focus-within .prompt-actions .od-icon-action,
+.prompt-card.is-menu-open .prompt-actions .od-icon-action{opacity:1;color:var(--od-ink)}
+.prompt-card.is-menu-open .prompt-actions .od-icon-action{background:var(--od-muted)}
+.prompt-more{display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap;padding-top:8px}
+.prompt-more .od-icon-action{background:var(--od-paper);border-color:var(--od-line)}
+.prompt-more .od-icon-action:hover:not(:disabled){background:var(--od-muted);border-color:var(--od-input-border);color:var(--od-brand)}
+.prompt-more .od-icon-action--danger{color:var(--od-negative)}
+.prompt-more .od-icon-action--danger:hover:not(:disabled){background:var(--od-negative-bg);color:var(--od-negative)}
+.host-site-row .od-icon-button{flex:none}
+.host-site-row .is-open .od-glyph{transform:rotate(90deg)}
+@media (hover:none),(pointer:coarse){.prompt-actions .od-icon-action{opacity:1}}
+@media (prefers-reduced-motion:reduce){.prompt-actions .od-icon-action,.host-site-row .od-glyph{transition:none}}
 /* R1.15: keep the single dynamic host title and focus on the editor. */
 .primary-content{padding:8px 10px}
 .primary-content textarea.od-field{margin:0}
@@ -293,18 +312,35 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 </style>
 </head>
 <body>
+<svg class="od-icon-sprite" width="0" height="0" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs>
+ <symbol id="ps-icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+ <symbol id="ps-icon-arrow-left" viewBox="0 0 24 24"><path d="M19 12H5m7-7-7 7 7 7"/></symbol>
+ <symbol id="ps-icon-settings" viewBox="0 0 24 24"><path d="M4 21v-7m0-4V3m8 18v-9m0-4V3m8 18v-5m0-4V3"/><path d="M1 14h6M9 8h6M17 16h6"/></symbol>
+ <symbol id="ps-icon-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none"/></symbol>
+ <symbol id="ps-icon-pencil" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></symbol>
+ <symbol id="ps-icon-eye" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+ <symbol id="ps-icon-eye-off" viewBox="0 0 24 24"><path d="M10.6 5.1A11 11 0 0 1 12 5c7 0 10 7 10 7a14 14 0 0 1-4 4.8"/><path d="M6.5 6.5A15 15 0 0 0 2 12s3 7 10 7a11 11 0 0 0 5.5-1.5"/><path d="m3 3 18 18"/><path d="M10 10a3 3 0 0 0 4 4"/></symbol>
+ <symbol id="ps-icon-arrow-up" viewBox="0 0 24 24"><path d="M12 19V5m-7 7 7-7 7 7"/></symbol>
+ <symbol id="ps-icon-arrow-down" viewBox="0 0 24 24"><path d="M12 5v14m-7-7 7 7 7-7"/></symbol>
+ <symbol id="ps-icon-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></symbol>
+ <symbol id="ps-icon-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15M10 10v7m4-7v7"/></symbol>
+ <symbol id="ps-icon-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+ <symbol id="ps-icon-moon" viewBox="0 0 24 24"><path d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z"/></symbol>
+ <symbol id="ps-icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+ <symbol id="ps-icon-rotate-ccw" viewBox="0 0 24 24"><path d="M3 11a9 9 0 1 1 2.7 6.4"/><path d="M3 3v8h8"/></symbol>
+</defs></svg>
 <header class="demo-header">
  <div class="demo-title"><span class="logo" aria-hidden="true">OD</span><div>
   <h1>Prompt Shortcuts · Side Panel UI</h1>
-  <p>管理界面交互预览 R1.15 · 单标题 · 极简创建 · 按需容量反馈</p></div></div>
+  <p>管理界面交互预览 R1.16 · 纯图标操作 · 极简创建 · 键盘与触控兼容</p></div></div>
  <div class="demo-controls" aria-label="预览控制">
   <span class="design-badge">模拟预览 · 非真实安装</span>
   <button id="size320" class="od-button od-button--small" type="button">320px</button>
   <button id="size360" class="od-button od-button--small" type="button">360px</button>
   <button id="size400" class="od-button od-button--small" type="button">400px</button>
   <button id="size440" class="od-button od-button--small" type="button">440px</button>
-  <button id="themeButton" class="od-button od-button--small" type="button">深色模式</button>
-  <button id="resetButton" class="od-button od-button--small" type="button">重置模拟数据</button>
+  <button id="themeButton" class="od-icon-button" type="button" aria-label="切换深色模式" title="切换深色模式" aria-pressed="false"><svg class="od-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ps-icon-moon"/></svg></button>
+  <button id="resetButton" class="od-icon-button" type="button" aria-label="重置模拟数据" title="重置模拟数据"><svg class="od-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ps-icon-rotate-ccw"/></svg></button>
 <label class="demo-mode">使用场景 <select id="actionScenario" aria-label="快捷使用测试场景">
 <option value="normal">输入框可用</option><option value="no-editor">输入框不可用</option>
 <option value="unsupported">非 ChatGPT 网页</option><option value="clipboard-failure">插入和复制均失败</option>
@@ -339,8 +375,8 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   <div class="panel-brand"><span class="mini-logo" aria-hidden="true">OD</span><div><strong>OpenDesk Browser</strong><small>Side Panel · 扩展管理</small></div><span style="margin-left:auto;font-size:11px;color:var(--od-sub)">预览</span></div>
   <nav class="product-tabs" aria-label="OpenDesk 产品 Tab（展示）"><span>我的</span><span class="active" aria-current="page">扩展</span><span>工作流</span><span>开发</span><span>云控</span></nav>
   <div class="tool-host-head" id="hostToolHead" aria-label="模拟正式宿主工具标题栏">
-   <button id="hostBack" class="od-icon-button" type="button" title="返回已安装工具" aria-label="返回已安装工具列表">‹</button>
-   <strong id="hostToolTitle" role="heading" aria-level="2">提示词快捷按钮</strong><button id="addButton" class="od-button od-button--primary od-button--small host-add" type="button" aria-label="新建提示词">＋ 新建</button><button id="hostSettings" class="od-icon-button" type="button" aria-label="工具设置" title="工具设置" aria-expanded="false">⚙</button>
+   <button id="hostBack" class="od-icon-button" type="button" title="返回已安装工具" aria-label="返回已安装工具列表"><svg class="od-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ps-icon-arrow-left"/></svg></button>
+   <strong id="hostToolTitle" role="heading" aria-level="2">提示词快捷按钮</strong><button id="addButton" class="od-icon-button od-icon-button--primary host-add" type="button" title="新建提示词" aria-label="新建提示词"><svg class="od-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ps-icon-plus"/></svg></button><button id="hostSettings" class="od-icon-button" type="button" aria-label="工具设置" title="工具设置" aria-expanded="false"><svg class="od-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ps-icon-settings"/></svg></button>
   </div>
   <div class="panel-body" id="panelBody">
    <div id="panelStatus" class="status" role="status" aria-live="polite" hidden></div>
@@ -385,7 +421,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
     <label class="host-setting-row od-surface"><span><strong>启用工具</strong><small>停用后提示词仍保留</small></span><span class="switch"><input id="toolEnabledSwitch" type="checkbox" role="switch" checked aria-label="启用工具"><span class="switch-track" aria-hidden="true"></span></span></label>
     <label class="host-setting-row od-surface"><span><strong>网页快捷按钮</strong><small>在已支持的网站显示悬浮按钮</small></span><span class="switch"><input id="showBarSwitch" type="checkbox" role="switch" checked aria-label="网页快捷按钮"><span class="switch-track" aria-hidden="true"></span></span></label>
     <label class="host-setting-row od-surface"><span><strong>选中文字快速添加</strong><small>可选 · Chrome 原生右键菜单</small></span><span class="switch"><input id="contextSwitch" type="checkbox" role="switch" aria-label="选中文字快速添加"><span class="switch-track" aria-hidden="true"></span></span></label>
-    <div class="host-setting-row host-site-row"><span><strong>适用网站</strong><small>ChatGPT 内置 · 自定义网站可配置</small></span><button id="sitesButton" class="od-button od-button--small" type="button" aria-expanded="false" aria-controls="siteDetails">查看 ›</button></div>
+    <div class="host-setting-row host-site-row"><span><strong>适用网站</strong><small>ChatGPT 内置 · 自定义网站可配置</small></span><button id="sitesButton" class="od-icon-button od-icon-button--quiet" type="button" title="展开适用网站" aria-label="展开适用网站" aria-expanded="false" aria-controls="siteDetails"><svg class="od-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ps-icon-chevron-right"/></svg></button></div>
     <div id="siteDetails" class="host-site-details" hidden>
       <div class="host-site-entry"><strong>ChatGPT · chatgpt.com</strong><span>现有内置适配</span></div>
       <div class="host-site-entry"><strong>自定义网站</strong><span>正式工具已提供「配置当前网站」入口，按网站选择按钮容器和目标输入框。此预览不执行真实选取；其他 AI 网站仍须逐站验证。</span></div>
@@ -410,6 +446,19 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  let state={version:1,revision:1,settings:{showBar:true,contextMenu:false},items:COPY(),toolEnabled:true};
  let currentView='index', editId=null,baselineForm='',revisionAtEdit=1,dirty=false,saving=false,pendingDestination='index',expandedId=null,deleteId=null,copyId=null,tipButton=null,noticeKind='info',nextSaveFailure=null;
  const create=(tag,classes,text)=>{const n=document.createElement(tag);if(classes)n.className=classes;if(text!==undefined)n.textContent=text;return n;};
+ function icon(name){
+  // The fixed icon names map only to trusted inline SVG symbols. No external assets or HTML injection.
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('class','od-glyph');svg.setAttribute('viewBox','0 0 24 24');
+  svg.setAttribute('aria-hidden','true');svg.setAttribute('focusable','false');
+  const use=document.createElementNS('http://www.w3.org/2000/svg','use');
+  use.setAttribute('href','#ps-icon-'+name);svg.append(use);return svg;
+ }
+ function iconAction(parent,name,label,callback,{disabled=false,danger=false}={}){
+  const b=create('button','od-icon-button od-icon-action'+(danger?' od-icon-action--danger':''));
+  b.type='button';b.disabled=disabled;b.title=label;b.setAttribute('aria-label',label);
+  b.append(icon(name));b.addEventListener('click',callback);parent.append(b);return b;
+ }
  function action(parent,label,callback,{small=false,subtle=false,disabled=false,title='',danger=false}={}){
   const b=create('button','od-button'+(small?' od-button--small':'')+(subtle?' od-button--subtle':'')+(danger?' od-button--danger':''),label);b.type='button';b.disabled=disabled;if(title)b.title=title;
   b.addEventListener('click',callback);parent.append(b);return b;
@@ -488,11 +537,11 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
     use.append(icon,details);
    use.addEventListener('click',()=>void usePrompt(item));
    const actions=create('div','prompt-actions');
-   const more=action(actions,'⋯',()=>{
+   const more=iconAction(actions,'more','更多操作：'+identity,()=>{
     const willOpen=expandedId!==item.id;expandedId=willOpen?item.id:null;deleteId=null;renderIndex();
     const target=willOpen?el('prompt-menu-'+i)?.querySelector('button'):el('prompt-more-'+i);
     target?.focus({preventScroll:true});
-   },{small:true,subtle:true,title:'更多操作：'+identity});
+   });
    more.id='prompt-more-'+i;
    more.setAttribute('aria-label','更多操作：'+identity);
    more.setAttribute('aria-expanded',String(expandedId===item.id));
@@ -500,19 +549,24 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
    row.append(use,actions);card.append(row);
    if(expandedId===item.id){
     const commands=create('div','prompt-more');commands.id='prompt-menu-'+i;commands.setAttribute('role','group');commands.setAttribute('aria-label','提示词操作');
-    action(commands,'编辑',()=>openForm(item.id),{small:true});
-    action(commands,item.enabled?'停用':'启用',()=>{
+    iconAction(commands,'pencil','编辑：'+identity,()=>openForm(item.id));
+    iconAction(commands,item.enabled?'eye-off':'eye',item.enabled?'停用：'+identity:'启用：'+identity,()=>{
      item.enabled=!item.enabled;state.revision++;renderIndex();renderRail();
+     const index=state.items.findIndex(x=>x.id===item.id);
+     el('prompt-menu-'+index)?.querySelectorAll('button')[1]?.focus({preventScroll:true});
      notice(item.enabled?'「'+identity+'」已启用（模拟）':'「'+identity+'」已停用（模拟）');
-    },{small:true});
-    action(commands,'↑ 上移',()=>moveItem(i,-1),{small:true,disabled:i===0});
-    action(commands,'↓ 下移',()=>moveItem(i,1),{small:true,disabled:i===state.items.length-1});
-    action(commands,'复制',()=>void copyPrompt(item),{small:true});
-    action(commands,'删除',()=>{deleteId=item.id;renderIndex();},{small:true,danger:true});
+    });
+    iconAction(commands,'arrow-up','上移：'+identity,()=>moveItem(i,-1),{disabled:i===0});
+    iconAction(commands,'arrow-down','下移：'+identity,()=>moveItem(i,1),{disabled:i===state.items.length-1});
+    iconAction(commands,'copy','复制：'+identity,()=>void copyPrompt(item));
+    iconAction(commands,'trash','删除：'+identity,()=>{
+     deleteId=item.id;renderIndex();el('prompt-delete-'+i)?.querySelector('button')?.focus({preventScroll:true});
+    },{danger:true});
     card.append(commands);
    }
    if(deleteId===item.id){
-    const box=create('div','prompt-delete');
+    const box=create('div','prompt-delete');box.id='prompt-delete-'+i;
+    box.setAttribute('role','group');box.setAttribute('aria-label','删除提示词确认');
     box.append(create('p','','确认删除「'+identity+'」？仅删除模拟数据，操作不能撤销。'));
     const buttons=create('div','actions');
     action(buttons,'取消',()=>{deleteId=null;renderIndex();},{small:true});
@@ -527,7 +581,13 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   }
   el('revisionIndicator').textContent='Mock r'+state.revision;
  }
- function moveItem(i,delta){const target=i+delta;if(target<0||target>=state.items.length)return;[state.items[i],state.items[target]]=[state.items[target],state.items[i]];state.revision++;renderIndex();renderRail();notice('顺序已更新（模拟）');}
+ function moveItem(i,delta){
+  const target=i+delta;if(target<0||target>=state.items.length)return;
+  const moved=state.items[i];[state.items[i],state.items[target]]=[state.items[target],state.items[i]];
+  expandedId=moved.id;deleteId=null;state.revision++;renderIndex();renderRail();
+  el('prompt-menu-'+target)?.querySelectorAll('button')[delta<0?2:3]?.focus({preventScroll:true});
+  notice('顺序已更新（模拟）');
+ }
  let lastUseId=null,lastUseAt=0,using=false;
  async function copyPrompt(item){
   try{
@@ -692,7 +752,9 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  el('sitesButton').addEventListener('click',()=>{
   const pane=el('siteDetails'),expanded=pane.hidden;pane.hidden=!expanded;
   el('sitesButton').setAttribute('aria-expanded',String(expanded));
-  el('sitesButton').textContent=expanded?'收起':'查看 ›';
+  el('sitesButton').classList.toggle('is-open',expanded);
+  el('sitesButton').setAttribute('aria-label',expanded?'收起适用网站':'展开适用网站');
+  el('sitesButton').title=expanded?'收起适用网站':'展开适用网站';
  });
  el('actionScenario').addEventListener('change',()=>{
   const mode=el('actionScenario').value;
@@ -703,9 +765,16 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  });
  for(const width of [320,360,400,440])el('size'+width).addEventListener('click',()=>{
   document.documentElement.style.setProperty('--panel-width',width+'px');notice('侧边栏模拟宽度：'+width+' CSS px');});
- el('themeButton').addEventListener('click',()=>{const dark=document.documentElement.dataset.theme!=='dark';document.documentElement.dataset.theme=dark?'dark':'light';el('themeButton').textContent=dark?'浅色模式':'深色模式';});
+ el('themeButton').addEventListener('click',()=>{
+  const dark=document.documentElement.dataset.theme!=='dark';
+  document.documentElement.dataset.theme=dark?'dark':'light';
+  const label=dark?'切换浅色模式':'切换深色模式';
+  el('themeButton').querySelector('use').setAttribute('href',dark?'#ps-icon-sun':'#ps-icon-moon');
+  el('themeButton').setAttribute('aria-label',label);el('themeButton').title=label;
+  el('themeButton').setAttribute('aria-pressed',String(dark));
+ });
  el('resetButton').addEventListener('click',()=>{if(currentView==='form'&&dirty){showFormError('当前编辑尚未保存，请先取消或保存，再重置模拟数据。');return;}
-  state={version:1,revision:1,settings:{showBar:true,contextMenu:false},items:COPY(),toolEnabled:true};nextSaveFailure=null;expandedId=null;deleteId=null;copyId=null;el('mockDraft').value='';el('mockDraft').disabled=false;el('actionScenario').value='normal';document.querySelector('.browser-address').textContent='chatgpt.com · 模拟网页';el('mockContextMenu').hidden=true;el('siteDetails').hidden=true;el('sitesButton').setAttribute('aria-expanded','false');el('sitesButton').textContent='查看 ›';returnIndex();notice('已重置为初始模拟数据。');});
+  state={version:1,revision:1,settings:{showBar:true,contextMenu:false},items:COPY(),toolEnabled:true};nextSaveFailure=null;expandedId=null;deleteId=null;copyId=null;el('mockDraft').value='';el('mockDraft').disabled=false;el('actionScenario').value='normal';document.querySelector('.browser-address').textContent='chatgpt.com · 模拟网页';el('mockContextMenu').hidden=true;el('siteDetails').hidden=true;el('sitesButton').setAttribute('aria-expanded','false');el('sitesButton').classList.remove('is-open');el('sitesButton').setAttribute('aria-label','展开适用网站');el('sitesButton').title='展开适用网站';returnIndex();notice('已重置为初始模拟数据。');});
  for(const [id,mode,label] of [['simulateWriteFail','write','写入失败'],['simulateConflict','conflict','并发冲突'],['simulateUnknown','unknown','结果未知']])el(id).addEventListener('click',()=>{nextSaveFailure=mode;el('failureStatus').textContent='下次保存将模拟：'+label;notice('已设置下次保存模拟：'+label+'，当前草稿会保留。');});
  document.addEventListener('keydown',event=>{
   if(event.key!=='Escape')return;
