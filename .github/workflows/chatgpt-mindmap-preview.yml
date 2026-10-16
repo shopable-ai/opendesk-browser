@@ -342,17 +342,17 @@ jobs:
           set -euo pipefail
           program="$(find artifacts/programs/opendesk.chatgpt-mindmap/0.2.0/r31-production -name program.js -print -quit)"
           test -n "$program"
-          mkdir -p "\${{ runner.temp }}/r393-sandbox-proof"
+          mkdir -p "${{ runner.temp }}/r393-sandbox-proof"
           xvfb-run -a node tests/framework/chatgpt-mindmap-r393-sandbox-probe.mjs \
             --browser "$ODMM_R393_BROWSER" \
             --program "$program" \
-            --out "\${{ runner.temp }}/r393-sandbox-proof"
+            --out "${{ runner.temp }}/r393-sandbox-proof"
       - name: Retain actual native proof or failure, never vendor bytes
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: r393-sandbox-native-test-only
-          path: \${{ runner.temp }}/r393-sandbox-proof/*.json
+          path: ${{ runner.temp }}/r393-sandbox-proof/*.json
           retention-days: 7
           if-no-files-found: warn
       - name: Declare strict proof scope
