@@ -88,9 +88,9 @@ async function poll(fn,label){
   }
   throw Error('UI did not reach '+label+(last?': '+last:''));
 }
-async function open(scenario){
+async function open(scenario,width=360){
   const built=await buildPreview({tool:'adblock',surface:'side-panel',
-    scenario,theme:'light',width:360,height:760});
+    scenario,theme:'light',width,height:760});
   contexts.clear();errors.length=0;network.length=0;
   await cdp('Emulation.setDeviceMetricsOverride',{
     width:670,height:1000,deviceScaleFactor:1,mobile:false
@@ -232,6 +232,22 @@ try{
       uiSha256:built.uiSha256,checks:['source-dom','source-css-switch',
       'sandbox-opaque','DOM-simulated-confirm-not-user-gesture','cancel-preserves-state',
       'accepted-matching-receipt','forged-message-rejected','no-network']});
+  }
+  // Real Chromium responsive matrix: source-generated tool, not screenshots
+  // captured from a manually redrawn shell or scaled bitmap.
+  for(const width of [320,400,480]){
+    const {ctx,built}=await open('success',width);
+    await poll(async()=>(await child(ctx)).count==='1 个例外网站',
+      'responsive sandbox '+width);
+    const host=await parent(),list=await child(ctx);
+    assert.equal(host.overflow,false,'host horizontal overflow at '+width);
+    assert.equal(list.overflow,false,'opaque sandbox horizontal overflow at '+width);
+    assert.equal(host.frameHeight,0,'overview may not show exceptions iframe at '+width);
+    await screenshot('success-'+width);
+    clean();
+    report.push({scenario:'success',width,sourceCommit:built.sourceCommit,
+      uiSha256:built.uiSha256,checks:['real-chrome-responsive',
+        'no-horizontal-overflow','opaque-sandbox','overview-no-exceptions']});
   }
   {
     const {ctx}=await open('empty');
