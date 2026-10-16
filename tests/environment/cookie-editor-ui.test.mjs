@@ -259,7 +259,7 @@ test('Cookie Editor is an optional two-mode tool without private cookies API',as
   assert(s.html.includes('id="live-search"')&&s.html.includes('id="live-filter"')&&
     s.html.includes('id="live-sort"'));
   assert(s.source.includes("E('live-filters').hidden=!hasRead"));
-  assert.equal(s.config.version,'2.0.11');
+  assert.equal(s.config.version,'2.0.12');
   assert(s.html.includes('id="offline-tools"')&&s.html.includes('id="browser-panel"'),
     'Live Chrome management is the default; offline tools are secondary');
   assert(!/\b(?:window|globalThis|chrome)\.cookies\./.test(s.source));
