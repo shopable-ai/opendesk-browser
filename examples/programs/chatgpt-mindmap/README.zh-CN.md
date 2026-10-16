@@ -191,3 +191,11 @@ npm run check
 - 最新已通过的源码构建 Hash：`e17e473394c6b8269277ff1373c831346706d03f6bbfb912c759767194f25799`；`sourceBytes=53841`，`status=BUILT_UNVERIFIED`、`installable=false`。正式四份 XMind vendor JS 总计 4,042,573 B **仅用于预览**，受信 Runtime/第三方许可/资源准入/全局 `snowbrush_style` 隔离尚未通过。Mac `dist`、登录 ChatGPT、`chrome.userScripts` 真实注册、撤权、卸载、BFCache 均为 `NOT_TESTED` 或 `BLOCKED`。
 
 详见 [R3.7 验收审计](../../../docs/framework/workstreams/chatgpt-mindmap-r37-acceptance.md)；不要依据本文对生产安装或用户满意度自行填写 95 分。
+
+## R3.8 · 真实 Browser Extension 原生技术验证（2026-10-16）
+
+正式产品现状仍为 **NO / BLOCKED**：该 Program 的四个 XMind 厂商 JS 仍仅用于离线预览，未获生产许可/固定资源审核，也未通过实际 Page Program 安装、登录 ChatGPT 或 Mac 生命周期 E2E；`BUILT_UNVERIFIED / installable:false` 和 `E_XMIND_RUNTIME_UNAVAILABLE` 不得伪装成已完成。
+
+新增 `tests/framework/chatgpt-mindmap-r38-native-probe.mjs` 与专项 Actions 的 `native-user-script-xmind-feasibility` Job：使用**真正 WXT 包和原始编译 Program**，仅在 **CI 一次性测试副本**内载入 Git 已跟踪的四份 SHA 校验 XMind 资源，尝试由真正的 Chrome `chrome.userScripts` 在独立 `USER_SCRIPT` 世界执行。它**没有使用** OpenDesk 的 Verified → Available → Installed Broker，故即使通过也仅能证明 Chrome/XMind 技术可行性，不能称为正式安装。失败保留 JSON 且退出非零；只上传 JSON 和截图，不上传 vendor JS。
+
+更新正式 Page Program 安装管理 UI：把网站授权与 Chrome 原生注册拆分显示，原生注册失败不再出现成功提示，并告知 Chrome 138+ 用户开启「允许用户脚本」。回归测试覆盖这两个状态。完整安全门禁、CI 结果解读和后续阻塞见 [R3.8 原生集成审计](../../../docs/framework/workstreams/chatgpt-mindmap-r38-native-integration.md)。R3.7 Icon 工具栏/移动端产品代码不更换。设计状态继续为 **PENDING_USER_CONFIRMATION**。
