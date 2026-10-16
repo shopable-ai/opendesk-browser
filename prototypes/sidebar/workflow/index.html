@@ -601,7 +601,7 @@ body[data-theme=dark] .r234-feedback[data-kind=checked],body[data-theme=dark] .r
       case 'discard-proceed':proceedDialog(false);break;
       case 'close-settings':data.settingsOpen=false;render();$('settings').focus();break;
       case 'toggle-api-key':{const input=$('r23-api-key'),shown=input.type==='password';input.type=shown?'text':'password';target.textContent=shown?'隐藏':'显示';target.setAttribute('aria-label',shown?'隐藏 API Key':'显示 API Key');target.setAttribute('aria-pressed',String(shown));break;}
-      case 'reconnect':data.connected=true;data.sourceReady[data.provider]=true;data.stage=data.messages.length?'connected':'empty';data.scenarioOnly=false;announce('已模拟连接当前来源；没有访问真实服务');render();break;
+      case 'reconnect':if(!isNative()){data.settingsOpen=true;data.modeOpen=false;render();$('r234-back').focus();announce('HTTPS 来源必须先完成离线字段检查；真实连接状态仍未知');break;}data.connected=true;data.sourceReady.local_codex=true;data.stage=data.messages.length?'connected':'empty';data.scenarioOnly=false;announce('已模拟本机连接；没有访问真实 Native 服务');render();break;
       case 'simulate-config':checkConfig();break;
       case 'use-custom':captureConfig();data.provider='custom_https';data.connected=!!data.sourceReady.custom_https;data.shareApproved={cloud_responses:false,custom_https:false};render();announce('已选择自定义 HTTPS，需单独配置与数据选择');break;
       case 'open-settings':data.settingsOpen=true;data.modeOpen=false;render();$('r234-back').focus();break;
