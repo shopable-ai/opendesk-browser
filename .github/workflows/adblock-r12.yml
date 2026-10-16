@@ -61,6 +61,13 @@ jobs:
           npm run verify
           node scripts/verify-package.mjs dist/production
           sha256sum dist/production/official-tools/adblock/adblock.opendesk-tool.json
+      - name: Officially promote validated candidate and verify source identity
+        run: |
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/adblock --promote-from artifacts/sidebar-tools/adblock/candidate.opendesk-tool.json
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/adblock --check-project
+          cmp artifacts/sidebar-tools/adblock/candidate.opendesk-tool.json examples/sidebar-tools/adblock/adblock.opendesk-tool.json
+          cmp dist/production/official-tools/adblock/adblock.opendesk-tool.json examples/sidebar-tools/adblock/adblock.opendesk-tool.json
+          sha256sum examples/sidebar-tools/adblock/adblock.opendesk-tool.json
       - name: Preserve exact candidate - not native approval yet
         uses: actions/upload-artifact@v4
         with:
@@ -70,6 +77,7 @@ jobs:
           path: |
             dist/production/
             artifacts/sidebar-tools/adblock/
+            examples/sidebar-tools/adblock/adblock.opendesk-tool.json
             artifacts/previews/adblock/
             docs/framework/evidence/wxt/builds/build-production.json
             docs/framework/evidence/wxt/builds/build-development.json
