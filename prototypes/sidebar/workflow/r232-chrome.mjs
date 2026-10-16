@@ -419,6 +419,8 @@ try{
   await page.setViewportSize({width:470,height:530});
   await page.locator('#settings').click();
   await page.locator('#r236-https').check();
+  await page.locator('#r23-settings-panel').evaluate(el=>
+    Promise.all(el.getAnimations().map(animation=>animation.finished.catch(()=>{}))));
   const overflow=await page.evaluate(()=>{
     const b=document.querySelector('#r234-body'),
       d=document.querySelector('.device').getBoundingClientRect(),
@@ -428,6 +430,7 @@ try{
   });
   assert.ok(overflow.scrollHeight>overflow.clientHeight,
     'HTTPS content must scroll inside a short bottom sheet');
+  console.log('R2391_OVERFLOW_GEOMETRY '+JSON.stringify(overflow));
   assert.ok(overflow.bottom<=2&&overflow.fits);
   await page.locator('#r23-api-key').scrollIntoViewIfNeeded();
   await shot('r2391-bottom-sheet-https-scroll');
