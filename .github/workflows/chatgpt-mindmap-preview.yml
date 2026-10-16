@@ -34,6 +34,31 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Verify original four in-place JS before all source tests
         run: node examples/programs/chatgpt-mindmap/preview/verify-assets.mjs
+      - name: Audit exact XMind bytes and verify production license is still blocked
+        shell: bash
+        run: |
+          set -euo pipefail
+          node examples/programs/chatgpt-mindmap/scripts/audit-runtime-license.mjs \
+            --out "${{ runner.temp }}/r393-license-audit.json"
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile} from 'node:fs/promises';
+          const report=JSON.parse(await readFile(process.env.RUNNER_TEMP+'/r393-license-audit.json','utf8'));
+          assert.equal(report.totalBytes,4042573);
+          assert.equal(report.files.length,4);
+          assert.equal(report.status,'BLOCKED');
+          assert.equal(report.installable,false);
+          assert(report.files.every(row=>row.exactBytesVerified&&row.missingEvidence.length>0));
+          console.log('R393_LICENSE_BLOCKED_WITH_EXACT_BYTES_PASS');
+          NODE
+      - name: Preserve standalone license closure receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r393-xmind-license-blocked-audit
+          path: ${{ runner.temp }}/r393-license-audit.json
+          retention-days: 7
+          if-no-files-found: ignore
       - name: Real XMind adapter and preview source/regression checks
         env:
           XMIND_REFERENCE_DIR: ${{ github.workspace }}/examples/programs/chatgpt-mindmap/preview
