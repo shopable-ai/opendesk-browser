@@ -38,7 +38,7 @@ test('native host snapshots render original trusted control factory, not HTML re
     assert.equal((html.match(/role="switch"/g)||[]).length,2,name);
     assert.match(html,/aria-label="全局广告拦截"/,name);
     assert.match(html,/adblock-native-card/,name);
-    assert.doesNotMatch(html,/adblock-native-head|adblock-native-icon|adblock-native-logo|adblock-native-identity|adblock-native-title|adblock-native-subtitle|广告拦截 · 安静浏览/,name);
+    assert.doesNotMatch(html,/adblock-native-(?:head|icon|logo|identity|title|subtitle)\b|广告拦截 · 安静浏览/,name);
     assert.equal((html.match(/aria-label="打开 AdBlock 产品设置"/g)||[]).length,0,name);
   }
   assert.match(host.snapshots['on-site-on'],/aria-checked="true"/);

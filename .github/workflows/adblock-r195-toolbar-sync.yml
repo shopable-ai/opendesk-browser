@@ -1,4 +1,5 @@
 # One-shot source-bound UI closure; do not block AdBlock publication on unrelated Bookmark Manager or Quick Notes parallel edits.
+# R1.9.5 exact-class guard: 'heading' must not be mistaken for deprecated 'head'.
 name: AdBlock R1.9.5 same-row toolbar source preview
 on:
   push:
