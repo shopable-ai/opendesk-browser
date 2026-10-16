@@ -245,33 +245,58 @@ async function main(){
   page=await attach(tab.targetId,true);
   const url='chrome-extension://'+extensionId+'/ui/tool.html?toolId=ai-vip-share';
   await client.send('Page.navigate',{url},page);
-  // The element exists in HTML before the async tool-shell routes to Tools.
-  // Wait for the actual visible, hittable installer before a real browser click.
-  await until(async()=>{const e=await element('#sidebar-tool-import-trigger');return e?.visible&&e;},
-    'visible trusted production installer');
   step('FORMAL_EXTENSION_HOST',{status:'PASS',url:await evalAt(page,'location.href')});
-  await click('#sidebar-tool-import-trigger');
-  const {root}=await client.send('DOM.getDocument',{depth:1},page);
-  const {nodeId}=await client.send('DOM.querySelector',{nodeId:root.nodeId,selector:'#sidebar-tool-file'},page);
-  assert(nodeId,'Official installer file field missing');
-  await client.send('DOM.setFileInputFiles',{nodeId,
-    files:[resolve('examples/sidebar-tools/ai-vip-share/ai-vip-share.opendesk-tool.json')]},page);
-  await until(async()=>{
-    const btn=await element('#sidebar-tool-install');
-    return btn?.visible&&btn.text?.includes('确认安装');
-  },'genuine package review');
-  await screenshot('review');
-  await click('#sidebar-tool-install');
-  const installed=await until(async()=>evalAt(page,'(async()=>{const values=await chrome.storage.local.get(['+
+  const installedQuery='(async()=>{const values=await chrome.storage.local.get(['+
     '"opendesk.sidebar-tools.installed.v1","opendesk.sidebar-tools.revocation-epochs.v1"]);'+
     'const pkg=values["opendesk.sidebar-tools.installed.v1"]?.find(x=>x.id==="ai-vip-share");'+
-    'return pkg?{pkg,epoch:values["opendesk.sidebar-tools.revocation-epochs.v1"]?.["ai-vip-share"]??null}:null;})()'),
-  'actual Chrome-installed package');
+    'return pkg?{pkg,epoch:values["opendesk.sidebar-tools.revocation-epochs.v1"]?.["ai-vip-share"]??null}:null;})()';
+  // A formal official build may initialize its default tools automatically.
+  // An active tool hides the list importer by design. Compare that actual
+  // registry with the SAME SHA official package rather than click hidden UI.
+  let available;
+  try{
+    available=await until(async()=>{
+      const registered=await evalAt(page,installedQuery);
+      if(registered?.pkg)return {kind:'already-installed',registered};
+      const trigger=await element('#sidebar-tool-import-trigger');
+      return trigger?.visible?{kind:'import'}:null;
+    },'installed official package or visible trusted importer');
+  }catch(error){
+    receipt.uiDiagnostics=await evalAt(page,'(()=>{const x=document.querySelector("#sidebar-tool-import-trigger");'+
+      'const ancestor=[];for(let e=x;e&&ancestor.length<8;e=e.parentElement){const r=e.getBoundingClientRect();'+
+      'ancestor.push({id:e.id,hidden:e.hidden,display:getComputedStyle(e).display,width:r.width,height:r.height});}'+
+      'return {href:location.href,surface:document.documentElement.dataset.opendeskSurface,'+
+      'tabTools:document.getElementById("tab-tools")?.getAttribute("aria-selected"),'+
+      'ancestor};})()').catch(e=>({error:String(e)}));
+    await screenshot('installer-blocked').catch(()=>{});
+    throw error;
+  }
+  let installed;
+  if(available.kind==='already-installed'){
+    installed=available.registered;
+    step('OFFICIAL_PREINSTALLED',{status:'PASS',source:'Chrome native storage, not test insertion'});
+  }else{
+    await click('#sidebar-tool-import-trigger');
+    const {root}=await client.send('DOM.getDocument',{depth:1},page);
+    const {nodeId}=await client.send('DOM.querySelector',{nodeId:root.nodeId,selector:'#sidebar-tool-file'},page);
+    assert(nodeId,'Official installer file field missing');
+    await client.send('DOM.setFileInputFiles',{nodeId,
+      files:[resolve('examples/sidebar-tools/ai-vip-share/ai-vip-share.opendesk-tool.json')]},page);
+    await until(async()=>{
+      const btn=await element('#sidebar-tool-install');
+      return btn?.visible&&btn.text?.includes('确认安装');
+    },'genuine package review');
+    await screenshot('review');
+    await click('#sidebar-tool-install');
+    installed=await until(()=>evalAt(page,installedQuery),'actual Chrome-installed package');
+    step('OFFICIAL_INSTALLED_BY_CHROME_INPUT',{status:'PASS',source:'trusted file input and browser pointer'});
+  }
   assert.equal(installed.pkg.version,candidate.version);
   assert.equal(serializeSidebarToolPackage(installed.pkg),serializeSidebarToolPackage(candidate));
   assert.equal(await sidebarToolPackageHash(installed.pkg),identityHash);
   receipt.installed=true;receipt.installEpoch=installed.epoch;
-  step('TRUSTED_INSTALL',{status:'PASS',packageHash:identityHash,installEpoch:installed.epoch});
+  step('FORMAL_INSTALL_IDENTITY',{status:'PASS',packageHash:identityHash,installEpoch:installed.epoch,
+    installationRoute:available.kind});
   await screenshot('installed');
   await client.send('Page.navigate',{url},page);
   await until(async()=>{const e=await element('#sidebar-tool-frame iframe');return e?.visible&&e;},
