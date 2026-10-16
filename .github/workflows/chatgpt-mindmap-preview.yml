@@ -238,11 +238,12 @@ jobs:
           set -euo pipefail
           npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright-core@1.56.1
           node --check tests/framework/chatgpt-mindmap-r38-native-probe.mjs
-          browser=""
-          for candidate in /usr/bin/google-chrome /usr/bin/chromium /usr/bin/chromium-browser; do
-            if [ -x "$candidate" ]; then browser="$candidate"; break; fi
-          done
-          test -n "$browser" || { echo E_NATIVE_CHROME_MISSING; exit 1; }
+          # Branded Google Chrome 155 may suppress the development extension
+          # side-loading switches. Use Playwright's unbranded Chromium binary,
+          # which exercises genuine Chrome MV3/USER_SCRIPT APIs.
+          npx playwright-core install chromium
+          browser="$(node --input-type=module -e "import {chromium} from 'playwright-core';console.log(chromium.executablePath())")"
+          test -x "$browser" || { echo E_NATIVE_CHROMIUM_MISSING; exit 1; }
           test -x /usr/bin/xvfb-run || { echo E_NATIVE_XVFB_MISSING; exit 1; }
           "$browser" --version
           echo "ODMM_NATIVE_BROWSER=$browser" >> "$GITHUB_ENV"
