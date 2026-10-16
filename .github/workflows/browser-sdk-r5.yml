@@ -193,6 +193,10 @@ jobs:
       - name: Real SOCKS5 TLS fixture and isolated Chromium PAC network acceptance (A/B)
         env:
           CHROME_FOR_TESTING_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          # Ubuntu GitHub-hosted runner denies unprivileged namespace sandbox.
+          # Explicitly scoped by script to this isolated main-branch fixture only.
+          OPENDESK_PROXY_AB_RUNNER: ${{ runner.environment }}
+          OPENDESK_PROXY_AB_ALLOW_NO_SANDBOX: 'yes'
         run: node tests/framework/browser-managed-proxy-chromium-pac.mjs
       - name: Archive SHA-specific browser and network evidence (never SDK C)
         if: always()

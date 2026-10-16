@@ -17,6 +17,17 @@ import {compileManagedProxyPac} from '../../src/platform/chrome/browser-managed-
 
 const chromeBinary=process.env.CHROME_FOR_TESTING_BIN;
 assert(chromeBinary,'Pinned CHROME_FOR_TESTING_BIN required for mandatory Chrome A/B evidence');
+// Ubuntu hosted Actions runners can deny Chromium's unprivileged namespace sandbox.
+// Only the disposable, loopback-only, main-branch test fixture may opt into
+// --no-sandbox. This exception is never exposed by shipped Host/SDK/Driver.
+const allowIsolatedRunnerFallback=
+ process.platform==='linux'&&process.env.GITHUB_ACTIONS==='true'&&
+ process.env.GITHUB_REF==='refs/heads/main'&&
+ ['push','workflow_dispatch'].includes(process.env.GITHUB_EVENT_NAME)&&
+ process.env.OPENDESK_PROXY_AB_RUNNER==='github-hosted'&&
+ process.env.OPENDESK_PROXY_AB_ALLOW_NO_SANDBOX==='yes';
+if(process.env.OPENDESK_PROXY_AB_ALLOW_NO_SANDBOX==='yes')
+ assert(allowIsolatedRunnerFallback,'Refusing unsandboxed Chrome outside trusted disposable GitHub main runner');
 const target='ai.example.test',sub='sub.ai.example.test',lookalike='lookalike-ai.example.test';
 const proxyHostname='pac-proxy.test',proxyPort=7897;
 const root=await mkdtemp(join(tmpdir(),'opendesk-proxy-native-'));
@@ -208,6 +219,7 @@ async function run(){
   '--ignore-certificate-errors', // Isolated self-signed test certificate only.
   'about:blank'
  ];
+ if(allowIsolatedRunnerFallback)chromeArgs.unshift('--no-sandbox');
  chromeLaunchedAt=Date.now();
  chrome=spawn(chromeBinary,chromeArgs,{stdio:['ignore','ignore','pipe']});
  chrome.on('error',error=>{chromeSpawnError=String(error);});
@@ -305,6 +317,7 @@ finally{
  if(failure)report.status='FAIL';
  report.chromeLaunch={
   binary:chromeBinary,args:chromeArgs,
+  sandboxMode:allowIsolatedRunnerFallback?'ISOLATED_HOSTED_RUNNER_FALLBACK':'DEFAULT_CHROMIUM',
   elapsedMs:chromeLaunchedAt===null?null:Date.now()-chromeLaunchedAt,
   pid:chrome?.pid??null,exitCode:chrome?.exitCode??null,
   signalCode:chrome?.signalCode??null,
