@@ -304,3 +304,27 @@ R23.5 的「AI 来源」下拉沿用了三种 Provider 并使用与其它表单�
 - 纯右对齐来源并非所有屏宽最佳通解：本轮用户明确希望靠右，故优先 196px 控件与右边缘对齐，待用户实际查看以确定最终观感。
 - 移除固定「完成」是由**没有独立待提交设置草稿**的当前模拟合同决定，不代表正式产品未来不得设计保存操作。正式实现如有需要必须重新评审。
 - UI 视觉、信息密度、交互一致性有自动化／独立截图取证，可作为内部设计评估；没有真正的六名外部独立专家评分、用户 Mac VoiceOver、真实 ChatGPT 对话内预览或正式安装验收，所以**不得声称这些维度已获得客观 ≥95 分**。本轮状态仍是 `DESIGN_REVIEW_REQUIRED`。
+
+## 十四、R23.8：本机 Codex 布局重构与真实 Chrome 验收（2026-10-16）
+
+### 根因与设计修复
+
+- 先在 420px 默认 Sidebar 中对旧版 Native、HTTPS 设置实际渲染取证。R23.7 将 AI 来源靠右，同时把 Native 状态贴左、操作贴右，形成不相干的三个视觉锚点。旧版虽对齐几何达标，但信息分组和视觉扫视路径明显不合理。
+- 查询现有技能目录与 GitHub 工程内容，没有可直接适配该 Sidebar 的专门 UI/UX 技能。采用正式 HTML 的 Chromium 可视复核与最小源码变更，而不是引入独立的静态图片或第二套不可交互原型。
+- 移除仅用于强行靠右的旧 R23.7 覆写，设置正文使用一个左侧视觉起点：AI 来源标题在上、248px 原生 Radio 双段切换在下；本机 Codex 使用同宽浅色「本机连接」状态卡，状态文本及模拟检查属于同一容器并垂直居中。
+- HTTPS 改为三个纵向标签与完整宽度输入控件，保留 Endpoint 清空、模型 ID、API Key 眼睛按钮、协议状态、离线配置检查、摘要许可；不额外增加冗长技术说明。除 Native 状态组补充短标题，其余字段／业务文案大致不变。
+- 仅修改 prototypes/sidebar/workflow/index.html、已有两份 Chrome/zoom 测试及同目录文档；没有修改正式 Workflow Provider、RunHost、Chrome 授权或 Browser SDK，没有新增第二份 JS 模拟器。
+
+### 来源绑定验收
+
+- 最新源绑定工作流：https://github.com/shopable-ai/opendesk-browser/actions/runs/38919335668 ，HTML Blob 166460eeb8d9c91891600c764a67fd02b17b4290。被测 HEAD 0a4b45d7161d711531318ea8edd21f3aae5ebeee。
+- GitHub Actions exact-saved-html 和 native-browser-zoom 均 SUCCESS；日志记录 R238_SOURCE_BOUND_CHROMIUM_PASS 22 和 R238_REAL_CHROME_UI_200_ZOOM_PASS。新版回归不再要求旧版横向居中标签和来源右侧悬挂布局。
+- 本地 Chromium 来源相同字节 HTML 的视觉及真实 DOM 点击复核：默认侧栏 Native 248px 来源切换器与标签左端精确对齐，连接状态卡约 378px，状态组与按钮中心偏差为零；HTTPS 三组标签均位于 378px 完整宽度输入框上方，左端偏差为零；无横向溢出。
+- 本地进一步验证 URL 清空、HTTPS 错误检查、旧 Key 失效、两轮自然语言发送、读回「项目已启动」、提交/跳转零次；浅深两个主题的 Native/HTTPS 可视结果已检查。GitHub CI 的 file:// 与实际 200% 证据是正式自动化验收；本地 set_content 仅作为视觉辅助，不能冒充 ChatGPT 宿主测试。
+
+### 专家反方审计与质量边界
+
+- Native 状态本来信息很少，不应该靠凭空增加表单或技术说明填满页面；合理留白优于分散控件。淡色状态卡提供操作归属但不能包装成真实连接成功：始终明确「模拟就绪 · 未检测 Native」。
+- HTTPS 上下字段牺牲少量垂直空间，以换取长 URL 输入可读性、清晰标签归属和本机/HTTPS 的统一阅读起点。默认 420px 优先，保留但不以其它尺寸主导设计。
+- 保留原生 Radio、键盘焦点、密码遮蔽与两轮模拟能力，不放松模拟摘要授权／高风险保护。未做真实 Provider 连接或正式 UI 迁移。
+- 目标为 95+ UI/UX；但模型视觉审查、22 类 Chromium PASS 和 200% 缩放 PASS 不构成六名外部独立专家的客观 95/100。Mac VoiceOver、ChatGPT 真实内嵌、正式扩展安装和用户视觉确认仍是 NOT_TESTED／NOT_SCORED，设计状态保持 DESIGN_REVIEW_REQUIRED。
