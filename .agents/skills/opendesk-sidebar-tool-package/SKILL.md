@@ -5,6 +5,8 @@ description: Build, validate, synchronize and install portable OpenDesk Sidebar 
 
 # OpenDesk Browser · Sidebar Tool 编译、打包与本地交付
 
+**独立工具交付，不改平台**：本 Skill 只负责已存在的 Sidebar Tool JSON 打包、校验、正式包晋升和安装证据；业务留 `examples/sidebar-tools/<id>/`，使用现有 `scripts/build-sidebar-tool.mjs`。不得把 Page Program/Controller 包转为 Sidebar JSON，也不要求第三方阅读 `src/` Installer 或为单工具创建新 Host。公共 SDK 缺口未经证明先记 `SDK_GAP_NOT_PROVEN`。
+
 ## 唯一职责、触发与分工
 
 当任务是「编译应用」「生成可导入 JSON」「把安装包放在工具项目目录」「校验安装包是否与源码一致」「离线分发」「安装/更新验收」时，以本 Skill 为**唯一主 Skill**。常规 UI、交互、业务逻辑的创作以 [工具开发 Skill](../opendesk-sidebar-tool-dev/SKILL.md) 为主；可信 Chrome 服务由 `opendesk-trusted-sidebar-feature`、通用 SDK/Host 由 `opendesk-extension-runtime` 管理；扩展中心的市场列表 UI 由 `opendesk-extension-ui` 管理。Controller/Page Program 的构建和 Authority 归 `opendesk-program-publish`，**不是本格式**。
