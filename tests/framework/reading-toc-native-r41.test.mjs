@@ -332,9 +332,13 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
       const frames=await chrome.webNavigation.getAllFrames({tabId:tab.id});
       const frame=frames?.find(f=>f.frameId===0);
       if(!frame?.documentId)throw Error('Missing Chrome document identity');
+      // Match the official trusted host/Sandbox boundary: lifecycle changes
+      // rotate this instance identity. Never bypass or weaken revocation checks.
+      const revocations=await chrome.storage.local.get('opendesk.sidebar-tools.revocation-epochs.v1');
+      const installEpoch=revocations['opendesk.sidebar-tools.revocation-epochs.v1']?.['reading-toc']??null;
       return chrome.tabs.sendMessage(tab.id,{protocol:'opendesk.reading-toc.v1',
         operation:${JSON.stringify(operation)},toolId:'reading-toc',expectedUrl:${JSON.stringify(url)},
-        ...${JSON.stringify(details)}},{frameId:0,documentId:frame.documentId});
+        installEpoch,...${JSON.stringify(details)}},{frameId:0,documentId:frame.documentId});
     })()`;
     return evaluate(host,code,18000);
   }
