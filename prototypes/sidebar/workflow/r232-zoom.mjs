@@ -69,33 +69,43 @@ try{
    await page.locator('#r236-https').check();
    await page.locator('#r23-api-key').scrollIntoViewIfNeeded();
    const geom=await page.evaluate(()=>{
-     const device=document.querySelector('.device').getBoundingClientRect(),
-       panel=document.querySelector('.r23-settings').getBoundingClientRect(),
-       input=document.querySelector('#r23-api-key').getBoundingClientRect(),
+     const d=document.querySelector('.device').getBoundingClientRect(),
+       p=document.querySelector('.r23-settings').getBoundingClientRect(),
+       body=document.querySelector('#r234-body').getBoundingClientRect(),
+       field=document.querySelector('#r23-api-key').getBoundingClientRect(),
        back=document.querySelector('#r234-back').getBoundingClientRect(),
        label=document.querySelector('#r236-source-title').getBoundingClientRect(),
-       switchBox=document.querySelector('.r236-switch').getBoundingClientRect();
-     return{deviceWidth:Math.round(device.width),panelWidth:Math.round(panel.width),
-       inputInside:input.left>=panel.left-1&&input.right<=panel.right+1,
-       backInside:back.left>=panel.left-1&&back.right<=panel.right+1,
-       sourceGap:switchBox.left-label.right,
-       switchInside:switchBox.right<=panel.right+1,
-       switchWidth:switchBox.width,
-       contentRightGap:document.querySelector('.r236-source-row').getBoundingClientRect().right-switchBox.right,
-       fieldsRightAligned:[...document.querySelectorAll('.r234-field label')].every(el=>getComputedStyle(el).textAlign==='right'),
+       switchBox=document.querySelector('.r236-switch').getBoundingClientRect(),
+       note=document.querySelector('#r236-protocol-note').getBoundingClientRect(),
+       url=document.querySelector('#r23-endpoint').closest('.r236-input-action').getBoundingClientRect();
+     const fieldRows=[...document.querySelectorAll('.r234-field')].map(row=>{
+       const a=row.querySelector('label').getBoundingClientRect(),
+         b=(row.querySelector('.r236-input-action')||row.querySelector('.r234-secret')||row.querySelector('input')).getBoundingClientRect();
+       return{stacked:a.bottom<b.top-4,sameLeft:Math.abs(a.left-b.left)<=2,
+         inside:b.left>=p.left-1&&b.right<=p.right+1};
+     });
+     return{
+       deviceWidth:d.width,panelWidth:p.width,
+       inputInside:field.left>=p.left-1&&field.right<=p.right+1,
+       backInside:back.left>=p.left-1&&back.right<=p.right+1,
+       selectorAligned:Math.abs(label.left-switchBox.left)<=2,
+       sourceVerticalGap:switchBox.top-label.bottom,
+       selectorWidth:switchBox.width,
+       noteAligned:Math.abs(note.left-url.left)<=2,
+       rows:fieldRows,
        noFooter:!document.querySelector('.r234-footer'),
-       documentOverflow:document.documentElement.scrollWidth>innerWidth+1};
+       documentOverflow:document.documentElement.scrollWidth>innerWidth+1
+     };
    });
-   assert.equal(geom.deviceWidth,Number(width));
-   assert.ok(Math.abs(geom.panelWidth-Number(width))<=2,'settings fits inner device width');
-   assert.equal(geom.inputInside,true);
-   assert.equal(geom.backInside,true);
-   assert.ok(geom.sourceGap>=4&&geom.sourceGap<=16&&geom.switchInside,'native 200% source selector spacing');
-   assert.ok(geom.switchWidth>=170&&geom.switchWidth<=202&&Math.abs(geom.contentRightGap)<=1,
-     'native 200% compact right-aligned mode switch');
-   assert.ok(geom.fieldsRightAligned&&geom.noFooter,
-     'no redundant completion footer and right-aligned labels at 200%');
-   assert.equal(geom.documentOverflow,false);
+   assert.equal(Math.round(geom.deviceWidth),Number(width));
+   assert.ok(Math.abs(geom.panelWidth-geom.deviceWidth)<=2,'settings route fits native Chrome 200%');
+   assert.ok(geom.inputInside&&geom.backInside&&!geom.documentOverflow,'all controls stay accessible');
+   assert.ok(geom.selectorAligned&&geom.sourceVerticalGap>=6&&geom.sourceVerticalGap<=15,
+     'source choices stay directly below heading under 200% zoom');
+   assert.ok(geom.selectorWidth>=235&&geom.selectorWidth<=252,
+     'source switch width remains compact under native Chrome zoom');
+   assert.ok(geom.noteAligned&&geom.noFooter,'protocol hint and return controls are coherent');
+   assert.ok(geom.rows.every(x=>x.stacked&&x.sameLeft&&x.inside),'native 200% input labels stacked correctly');
    await page.locator('#r233-qa > summary').click();
    await page.screenshot({path:resolve(out,'r234-real-200-settings-'+width+'.png'),fullPage:true});
    await page.waitForTimeout(180);
@@ -110,14 +120,14 @@ try{
      assert.ok(headerBack.top>=0&&headerBack.bottom<=headerBack.viewport+1,
        'header return remains reachable under native Chrome 200%');
      await page.waitForTimeout(220);
-     events.push({width,headerBack,physicalScreenshot:await capturePhysicalScreen('r237-physical-200-header-back-360.png')});
+     events.push({width,headerBack,physicalScreenshot:await capturePhysicalScreen('r238-physical-200-header-back-360.png')});
    }
    await page.locator('#r233-qa > summary').click();
    await page.locator('#r234-back').click();
    events.push({width,settingsLayout:geom});
  }
 
- console.log('R237_REAL_CHROME_UI_200_ZOOM_PASS');
+ console.log('R238_REAL_CHROME_UI_200_ZOOM_PASS');
  await writeFile(resolve(out,'r232-real-zoom.json'),JSON.stringify({status:'CHROME_NATIVE_ZOOM_200_PASS',head,gitBlob,sha256,input,version,zoom:zoomData,events},null,2));
 }catch(e){
  console.error(e);
