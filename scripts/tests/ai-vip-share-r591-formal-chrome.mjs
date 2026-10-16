@@ -131,7 +131,7 @@ async function click(selector){
 async function run(){
  await connect();
  for(const width of [320,360,390,440])for(const theme of ['light','dark']){
-  await viewport(1100,theme);await navigate('/preview');
+  await viewport(width,theme);await navigate('/preview');
   await until('!!document.getElementById("scenario")','preview loaded');
   await evaluate('('+function(w,t){
    const el=document.getElementById('scenario');el.value='blocked';
