@@ -26,7 +26,11 @@ const send=async text=>{await page.locator('#prompt').fill(text);await page.loca
 const nameValue=()=>page.locator('#r23-name').inputValue();
 const first='请在当前网页的姓名输入框中填写：给我一个亿的项目。填写后读取输入框的实际值并告诉我，不要点击提交按钮，不要跳转网页。';
 const second='把刚才填写的内容改成：项目已启动，并重新读取验证。不要提交表单，也不要跳转。';
-async function reset(){await page.locator('[data-action="reset"]').click();assert.equal((await state()).stage,'empty')}
+async function reset(){
+  await page.locator('[data-action="reset"]').click();
+  if(await page.locator('#r23-modal-root [role="dialog"]').isVisible())await page.locator('[data-action="discard-proceed"]').click();
+  assert.equal((await state()).stage,'empty');
+}
 try{
   await page.goto(pathToFileURL(input).href);
   await page.locator('#content .intro').waitFor();
@@ -83,11 +87,47 @@ try{
   assert.equal(s.firstCompleted??false,false);
   assert.equal(await nameValue(),'项目已启动');
   mark('cross-workflow history restore changes identity without running DOM action');
+  await page.locator('[data-action="reset"]').click();
+  assert.equal(await page.locator('#r23-modal-root [role="dialog"]').count(),1);
+  await page.keyboard.press('Escape');
+  assert.equal((await state()).versions.length,1);
+  assert.equal(await page.evaluate(()=>document.activeElement.dataset.action),'reset');
+  mark('destructive reset Escape preserves memory versions and restores control focus');
+  await reset();
+  const originalBlank=(await state()).workflowId;
+  await page.locator('#new-workflow').click();
+  assert.equal(await page.locator('#r23-modal-root [role="dialog"]').count(),0);
+  assert.notEqual((await state()).workflowId,originalBlank);
+  mark('empty new workflow creates without false unsaved modal');
+  await reset();
+  await page.locator('#prompt').fill('未发送的草稿');
+  await page.locator('#new-workflow').click();
+  assert.equal(await page.locator('#r23-modal-root [role="dialog"]').count(),1);
+  await page.locator('[data-action="cancel-dialog"]').focus();
+  await page.keyboard.press('Shift+Tab');
+  assert.equal(await page.evaluate(()=>document.activeElement.dataset.action),'discard-proceed');
+  await page.keyboard.press('Tab');
+  assert.equal(await page.evaluate(()=>document.activeElement.dataset.action),'cancel-dialog');
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('#prompt').inputValue(),'未发送的草稿');
+  assert.equal(await page.evaluate(()=>document.activeElement.id),'new-workflow');
+  mark('unsent draft Escape, keyboard Tab trap, focus restoration');
   await reset();
   await send('请帮我打开一个新闻网站');
   s=await state();assert.equal(s.stage,'unsupported');assert.equal(await nameValue(),'旧的预填内容');
   assert.equal(s.submits,0);assert.equal(s.navigations,0);
   mark('unsupported commands not executed');
+  await reset();
+  await page.locator('#prompt').fill('测试');
+  await page.locator('#prompt').evaluate(el=>el.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true,data:'测'})));
+  await page.locator('#prompt').press('Enter');
+  assert.equal((await state()).messages.length,0);
+  await page.locator('#prompt').evaluate(el=>el.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true,data:'测'})));
+  await page.locator('#prompt').press('Shift+Enter');
+  assert.equal((await page.locator('#prompt').inputValue()).includes('\n'),true);
+  await page.locator('#prompt').press('Enter');
+  assert.equal((await state()).stage,'unsupported');
+  mark('Enter/Shift+Enter and synthetic composition events; OS IME remains NOT_TESTED');
   await reset();
   await send(first);
   assert.equal((await state()).stage,'planning');
@@ -101,6 +141,15 @@ try{
   await page.locator('[data-action="deny"]').click();
   assert.equal(await nameValue(),'旧的预填内容');assert.equal((await state()).stage,'failed');
   mark('deny approval prevents DOM write');
+  await reset();
+  await send(first);await expectState('approval');
+  await page.locator('#new-chat').click();
+  assert.equal((await state()).stage,'approval');
+  assert.ok((await state()).actionWarning.includes('允许或拒绝'));
+  assert.equal((await state()).messages.filter(m=>m.role==='user').length,1);
+  await page.locator('[data-action="deny"]').click();
+  assert.equal((await state()).stage,'failed');
+  mark('new chat blocked during approval; rejection preserves user request');
   await reset();
   await send(first);await expectState('approval');
   await page.locator('[data-action="grant"]').click();await expectState('running');
@@ -133,7 +182,7 @@ try{
   mark('unknown effect does not auto-run or change DOM');
   for(const width of ['360','420','520']){
     await page.locator('#r23-width').selectOption(width);
-    if(width==='360')await page.locator('#r23-theme').click();
+    if(width==='360'||width==='420')await page.locator('#r23-theme').click();
     const metrics=await page.evaluate(()=>{const d=document.querySelector('.device'),h=d.querySelector('.title-bar');return {deviceWidth:Math.round(d.getBoundingClientRect().width),titleOverflow:h.scrollWidth>h.clientWidth+1,docOverflow:document.documentElement.scrollWidth>window.innerWidth+1}});
     assert.equal(metrics.deviceWidth,Number(width));
     assert.equal(metrics.titleOverflow,false,'title overflow '+width);
@@ -141,7 +190,6 @@ try{
     await shot('r232-'+width+(width==='360'?'-dark':'-light'));
   }
   mark('three CSS sidebar widths and light/dark screenshots');
-  await page.locator('#r23-theme').click();
   const before=await page.evaluate(()=>({dpr:devicePixelRatio,w:innerWidth}));
   await page.keyboard.press('Control+=');
   await page.waitForTimeout(200);
