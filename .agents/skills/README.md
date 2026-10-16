@@ -25,10 +25,12 @@
 | --- | --- | --- | --- | --- |
 | A ChatGPT Mind Map 网页回复按钮 | Page USER_SCRIPT | `examples/programs/chatgpt-mindmap/` | `opendesk-script-authoring` | 复用 Page UI，正式安装由 `opendesk-program-publish`；XMind 固定 JS 的许可/预算/隔离单独审计，无通用证据时 `SDK_GAP_NOT_PROVEN` |
 | B Cookie Editor 仅优化已安装 UI | Sidebar Tool | `examples/sidebar-tools/cookie-editor/` | `opendesk-sidebar-tool-dev` | 业务 UI/React 与打包属于工具；若明确是受审可信后台业务才另路由 |
-| C Prompt Shortcuts 跨 AI 网站网页按钮 | Page USER_SCRIPT（按真实功能分类） | `examples/programs/<id>/` 或现有已确认业务目录 | `opendesk-script-authoring` | 优先公开 Page UI/网站授权；Sidebar 管理须另核现有身份，不能仅因为网页按钮重写 Browser Host |
+| C Prompt Shortcuts 跨 AI 网站网页按钮 | Sidebar Tool v2 + 既有受信网页适配器 | `examples/sidebar-tools/prompt-shortcuts/` | `opendesk-sidebar-tool-dev` | 保留现有 `page.prompts`/`browser.contextMenu` SDK、安装身份与 `trusted/page.js`；只改双选择器和业务适配器，不能擅自迁成 Page Program 或重写 Host |
 | D Bookmark Manager React UI | Sidebar Tool | `examples/sidebar-tools/bookmark-manager/` | `opendesk-sidebar-tool-dev` | 复用现有工具权限和打包，独立 UI 修改不新建 Installer |
 | E 通用 Page Program 安装/撤权缺陷 | Browser Framework | 原有 `src/` 平台模块 | `opendesk-extension-runtime` | 真正的平台需求允许定向修改 `src/` 并验证 Authority，不做 src 路径一刀切禁止 |
 | F 只读公开文档的第三方小工具 | Sidebar Tool | 独立 `examples/sidebar-tools/<id>/` | `opendesk-sidebar-tool-dev` | 公开 `OpenDeskTool.request`、Schema、示例就能开发已支持的功能；不需私有 Host 源码 |
+
+**Prompt Shortcuts R2.0 已核实真实项目身份**：`examples/sidebar-tools/prompt-shortcuts/tool.config.json` 为 `opendesk.sidebar-tool.v2`；此例不能因有网页按钮便重命名为 Page Program。未来全新独立网页增强才先检查 Page USER_SCRIPT 的公开能力，产品已确认的旧身份与受信执行世界优先保护。
 
 开发后正式发布：Sidebar Tool 使用 `opendesk-sidebar-tool-package`，Page Program 使用 `opendesk-program-publish`；需要经审计的第一方业务才由 `opendesk-trusted-sidebar-feature` 修改特定 `src/<feature>/`。平台缺口必须有可复现证据和最小公共接口/权限分析；未证实记 `SDK_GAP_NOT_PROVEN`，不可安全执行的特权动作记 `BLOCKED`。真实自动注入与已安装状态无同候选证据记 `NOT_TESTED`。完整关卡仍以[唯一创建工作流](../workflows/extension-creation.md)为准。
 
