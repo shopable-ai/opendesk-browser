@@ -55,6 +55,32 @@ async function fixture(catalog=[candidate()]){
     click:async id=>{nodes.get(id).fire('click',{isTrusted:true});await tick();await tick();}};
 }
 
+test('Native installation error cannot be presented as successful permission authorization',async t=>{
+  const row=candidate();
+  row.installed={...row,title:'ChatGPT 思维导图',nativeState:'blocked',enabled:true,
+    authorization:{installationId,generation:2,status:'active'},
+    error:{code:'E_NATIVE_REGISTRATION',message:'Chrome did not register the userscript'}};
+  const f=await fixture([row]);t.after(()=>f.ui.dispose());
+  const detail=f.get('detail').textContent;
+  assert.match(detail,/原生注册异常 · 自动运行未确认/);
+  assert.doesNotMatch(detail,/已授权 · Chrome 已注册/);
+  assert.match(detail,/E_NATIVE_REGISTRATION/);
+  row.installed.nativeState='registered';row.installed.error=null;
+  await f.ui.refresh();
+  assert.match(f.get('detail').textContent,/已授权 · Chrome 已注册/);
+});
+
+test('Unavailable Chrome userScripts includes the native explicit opt-in recovery path',async t=>{
+  const row=candidate();
+  row.installed={...row,title:'ChatGPT 思维导图',nativeState:'blocked',enabled:true,
+    authorization:{installationId,generation:7,status:'suspended'},
+    error:{code:'E_USER_SCRIPTS_UNAVAILABLE',message:'User scripts API not available'}};
+  const f=await fixture([row]);t.after(()=>f.ui.dispose());
+  assert.match(f.get('detail').textContent,/允许用户脚本/);
+  assert.match(f.get('detail').textContent,/Chrome 138\+/);
+  assert.equal(f.get('restore').hidden,false);
+});
+
 test('Page Verify, Install and Enable reuse native grants and keep program authorization in the existing RPC',async t=>{
   const row=candidate();row.stage='Candidate';const f=await fixture([row]);t.after(()=>f.ui.dispose());
   await f.click('verify');await f.click('install');
