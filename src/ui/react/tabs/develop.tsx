@@ -48,3 +48,11 @@ export function DeveloperFramework({model}){
       </label>)}
   </>;
 }
+
+ 
+// Only the trusted status text is React-owned. The actual execution, result
+// projection and authorization still come from the original Script Editor.
+export function DeveloperRunStatus({model,node}){
+  React.useLayoutEffect(()=>{node.dataset.state=model.state;},[node,model.state]);
+  return model.text;
+}

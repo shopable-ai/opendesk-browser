@@ -131,7 +131,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       .catch(error=>console.warn('Sidebar draft could not be retained',error));
   }
   let scriptListSequence = 0, ownedDraftRunId = null, ownedManagedPreview=null, lastPagePreview=null;
-  let reactDeveloperTarget=null,reactDeveloperActions=null,reactDeveloperFramework=null;
+  let reactDeveloperTarget=null,reactDeveloperActions=null,reactDeveloperFramework=null,reactDeveloperStatus=null;
   let currentRevision, currentRevisionAuthorSource, currentPageState = currentPageTarget?.snapshot ?? {status:'unavailable',reason:'E_TARGET',message:'当前网页服务不可用'},
     selectionVersion = 0, running = false, disposed = false;
   const listeners = [];
@@ -190,7 +190,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if (disposed) return;
     // RunHost return values enter the result area only via an authorized Result
     // projection, never through transient claim/preview transport payloads.
-    status.dataset.state = state; status.textContent = message;
+    if(reactDeveloperStatus)reactDeveloperStatus({state,text:message});
+    else {status.dataset.state = state;status.textContent = message;}
     const taskStatus = find('script-task-status');
     taskStatus.hidden = state !== 'results' || !taskStatus.textContent;
   }
@@ -1459,7 +1460,12 @@ export function createScriptEditor({client, currentPageTarget, development=false
     display('draft','已导入未保存草稿；请返回目标网页后明确点击运行');
   }
   scheduleControllerClassicWarm();
-  return {host,connectReactDeveloperFramework(render){
+  return {host,connectReactDeveloperStatus(render){
+    if(disposed||reactDeveloperStatus||typeof render!=='function')
+      throw new Error('E_REACT_DEVELOPER_STATUS_OWNERSHIP');
+    reactDeveloperStatus=render;
+    render({state:status.dataset.state||'loading',text:status.textContent||''});
+  },connectReactDeveloperFramework(render){
     if(disposed||reactDeveloperFramework||typeof render!=='function')
       throw new Error('E_REACT_DEVELOPER_FRAMEWORK_OWNERSHIP');
     const attached=Object.values(componentInputs).map(element=>
@@ -1535,7 +1541,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   }, resourceSnapshot: () => ({...host.resourceSnapshot(), editor:{
     timers:[...downloads.values(),...preparations.values()].filter(entry=>entry.timer != null).length+Number(localPollTimer!=null),
     pending:Number(downloading)+preparations.size, subscriptions:listeners.length+2*Number(browserListenersAttached)+Number(Boolean(unsubscribeCurrentPage))+(localProject?.resourceSnapshot().subscriptions||0)}}), dispose() {
-    if (disposed) return; disposed = true; reactDeveloperTarget=null;reactDeveloperActions=null;reactDeveloperFramework=null; controllerClassicConsent.dispose(); componentRemote.dispose(); browserPrepareGeneration++; browserPreparer.dispose();staticESMPreparer.dispose(); scriptsCheckSequence++; localInstaller.dispose();localProject?.dispose();pageLibrary.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyReview.dispose();dependencyResolver.dispose();dependencyInstaller.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
+    if (disposed) return; disposed = true; reactDeveloperTarget=null;reactDeveloperActions=null;reactDeveloperFramework=null;reactDeveloperStatus=null; controllerClassicConsent.dispose(); componentRemote.dispose(); browserPrepareGeneration++; browserPreparer.dispose();staticESMPreparer.dispose(); scriptsCheckSequence++; localInstaller.dispose();localProject?.dispose();pageLibrary.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyReview.dispose();dependencyResolver.dispose();dependencyInstaller.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
     api.webNavigation.onCommitted.removeListener(onNavigation); api.tabs.onRemoved.removeListener(onRemoved); host.dispose();
     browserListenersAttached = false;
     for (const {element, event, listener} of listeners) element.removeEventListener(event, listener);

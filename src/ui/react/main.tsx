@@ -3,7 +3,7 @@ import {createRoot} from 'react-dom/client';
 import {createPortal} from 'react-dom';
 import {flushSync} from 'react-dom';
 import {ExtensionRows,ExtensionDetail,ExtensionToolbar,ExtensionEmpty,ExtensionRecoveries,ExtensionStatus,ExtensionRowMenu} from './tabs/tools.tsx';
-import {DeveloperActions,DeveloperFramework,DeveloperTargetText} from './tabs/develop.tsx';
+import {DeveloperActions,DeveloperFramework,DeveloperTargetText,DeveloperRunStatus} from './tabs/develop.tsx';
 
 // One trusted React root and three portals in the existing fixed Side Panel.
 // Portals preserve the installed DOM IDs, CSS and Host wiring; they never run
@@ -24,6 +24,10 @@ export function mountExtensionList(doc){
     title:doc.getElementById('script-current-page-title'),
     url:doc.getElementById('script-current-page-url')
   };
+  const developerRunStatus=doc.getElementById('script-status');
+  const developerStatusMounted=Boolean(developerRunStatus);
+  if(developerRunStatus?.dataset.opendeskReactOwner)
+    throw new Error('E_REACT_DEVELOPER_STATUS_MOUNT');
   const developerChoices=doc.querySelector('#page-component-framework .page-component-choices');
   const developerFrameworkMounted=Boolean(developerChoices);
   if(developerFrameworkMounted&&(
@@ -68,6 +72,7 @@ export function mountExtensionList(doc){
   for(const [node,name] of [[cleanups,'extension-cleanups'],[empty,'extension-empty'],
     [count,'extension-count'],[status,'extension-status']])
     node.dataset.opendeskReactOwner=name;
+  if(developerStatusMounted)developerRunStatus.dataset.opendeskReactOwner='developer-run-status';
   if(developerTargetMounted)for(const [name,node] of Object.entries(developer))
     node.dataset.opendeskReactOwner='developer-target-'+name;
   const root=createRoot(host);
@@ -78,6 +83,8 @@ export function mountExtensionList(doc){
   let feedbackModel={showEmpty:false,emptyText:'',countText:'正在读取扩展…'};
   let recoveryModel={ids:[],busy:false,onRetry:()=>{}};
   let statusModel={text:'',state:'info'};
+  let developerRunStatusModel={state:developerRunStatus?.dataset.state||'loading',
+    text:developerRunStatus?.textContent||''};
   let developerActionsActive=false,developerActionsModel=null;
   let developerFrameworkActive=false,developerFrameworkModel=null;
   let developerTargetModel={host:'正在识别…',hostTitle:'',status:'检查中',
@@ -95,6 +102,9 @@ export function mountExtensionList(doc){
       {createPortal(feedbackModel.countText,count)}
       {createPortal(<ExtensionStatus model={statusModel} container={status}/>,status)}
       {rowMenuHost&&createPortal(<ExtensionRowMenu items={rowMenuItems}/>,rowMenuHost)}
+      {developerStatusMounted&&createPortal(
+        <DeveloperRunStatus model={developerRunStatusModel} node={developerRunStatus}/>,
+        developerRunStatus)}
       {developerFrameworkActive&&createPortal(
         <DeveloperFramework model={developerFrameworkModel}/>,developerChoices)}
       {developerActionsActive&&createPortal(
@@ -120,6 +130,11 @@ export function mountExtensionList(doc){
     developerTargetMounted,
     developerActionsMounted,
     developerFrameworkMounted,
+    developerStatusMounted,
+    renderDeveloperStatus(next){
+      if(disposed||!developerStatusMounted)return;
+      developerRunStatusModel=next;paint();
+    },
     attachRowMenu(element){
       if(disposed||rowMenuHost||!element||element.dataset.opendeskReactOwner||
         element.childElementCount||element.id!=='extension-center-row-menu')
@@ -165,6 +180,7 @@ export function mountExtensionList(doc){
     renderDeveloperTarget(next){if(disposed||!developerTargetMounted)return;
       developerTargetModel=next;paint();},
     dispose(){if(disposed)return;disposed=true;root.unmount();
+      if(developerStatusMounted)delete developerRunStatus.dataset.opendeskReactOwner;
       if(rowMenuHost)delete rowMenuHost.dataset.opendeskReactOwner;
       if(developerActionsActive)delete developerDock.dataset.opendeskReactOwner;
       if(developerFrameworkActive)delete developerChoices.dataset.opendeskReactOwner;

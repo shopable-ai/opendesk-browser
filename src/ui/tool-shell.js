@@ -110,6 +110,8 @@ if(extensionList.developerActionsMounted)
   scriptEditor.connectReactDeveloperActions(model=>extensionList.renderDeveloperActions(model));
 if(extensionList.developerFrameworkMounted)
   scriptEditor.connectReactDeveloperFramework(model=>extensionList.renderDeveloperFramework(model));
+if(extensionList.developerStatusMounted)
+  scriptEditor.connectReactDeveloperStatus(model=>extensionList.renderDeveloperStatus(model));
 const extensionCenter=createExtensionCenter({api:chrome,client:foundationClient,doc:document,sidebarTools,taskWorkbench,localeController,extensionList});
 const scheduleStatus=message=>{
   for(const id of ['schedule-host-status','schedule-runner-host-status']){
