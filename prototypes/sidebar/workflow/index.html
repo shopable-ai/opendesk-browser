@@ -207,6 +207,7 @@ body[data-theme=dark] .device .title-actions .create-action{background:var(--sur
   <form id="form" class="composer"><div class="compose-box"><label for="prompt" class="visually-hidden">描述任务</label><textarea id="prompt" placeholder="描述要自动完成的任务…" aria-label="输入工作流需求"></textarea><div class="compose-bottom"><button type="button" id="settings" class="icon-btn" aria-label="配置 AI 模型" title="AI 设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h9m6 0h1M4 17h1m6 0h9"></path><circle cx="16" cy="7" r="3"></circle><circle cx="8" cy="17" r="3"></circle></svg></button><button type="submit" class="send-btn" aria-label="发送并模拟任务" title="发送并执行（仅模拟）"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 19V5m-7 7 7-7 7 7"></path></svg></button></div></div></form>
   <p class="foot-note">R23.2 设计候选 · 仅模拟，不生成真实运行回执或浏览器副作用</p>
 </div>
+<section class="r23-demo" aria-label="扩展外部模拟网页"><b>模拟目标网页</b> · 127.0.0.1:43111/demo-form.html（非真实访问）<label for="r23-name">姓名输入框<input id="r23-name" value="旧的预填内容"></label><button type="button" disabled>提交（预览禁用）</button><p id="r23-readback">模拟 DOM 读回：旧的预填内容；提交 0 次，跳转 0 次</p></section>
 <script>
 /* R23.1: UI-only simulation. Never call a Provider, Browser SDK, Chrome API or RunHost. */
 (() => {
@@ -420,5 +421,5 @@ body[data-theme=dark] .device .title-actions .create-action{background:var(--sur
   render();
 })();
 </script>
-<section class="r23-demo" aria-label="扩展外部模拟网页"><b>模拟目标网页</b> · 127.0.0.1:43111/demo-form.html（非真实访问）<label for="r23-name">姓名输入框<input id="r23-name" value="旧的预填内容"></label><button type="button" disabled>提交（预览禁用）</button><p id="r23-readback">模拟 DOM 读回：旧的预填内容；提交 0 次，跳转 0 次</p></section></body>
+</body>
 </html>
