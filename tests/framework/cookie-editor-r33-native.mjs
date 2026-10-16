@@ -182,11 +182,11 @@ async function createCookie(name,value,path='/'){
 }
 async function scopedAction(name,path,action){
   const index=await read(toolSession,`[...document.querySelectorAll('#live-cookie-list .cookie-row')].findIndex(n=>
-    n.querySelector('.cookie-row-name')?.textContent===${quote(name)}&&n.querySelector('.cookie-row-meta')?.textContent.startsWith(${quote('127.0.0.1'+path+' ·')}))`);
+    n.querySelector('.cookie-row-name')?.textContent===${quote(name)}&&n.querySelector('.cookie-row-meta')?.textContent===${quote('127.0.0.1'+path)})`);
   assert(index>=0,'Visible exact scoped row');
   const selector='#live-cookie-list .cookie-row:nth-child('+(index+1)+')';
   return action==='展开编辑'?selector+' .cookie-row-trigger':
-    selector+' button[aria-label='+quote(action+' '+name)+']';
+    action==='删除 Cookie'?'#editor-delete':selector+' button[aria-label='+quote(action+' '+name)+']';
 }
 async function editCookie(name,path='/'){
   const selector=await scopedAction(name,path,'展开编辑');
@@ -214,7 +214,8 @@ async function advanced(){
 }
 async function closeEditor(){
   await click(toolSession,'#editor-cancel');
-  if(!await read(toolSession,'document.querySelector("#confirm-panel").hidden'))await click(toolSession,'#confirm-accept');
+  if(!await read(toolSession,'document.querySelector("#editor-discard").hidden'))
+    await click(toolSession,'#editor-discard-confirm');
   await until(()=>read(toolSession,'document.querySelector("#editor-panel").hidden'),'Editor dismissal');
 }
 async function grant(capability){
@@ -486,6 +487,12 @@ try{
           'Actual native select choice '+selector,600000);
         assert.equal(await read(toolSession,'document.querySelector('+quote(selector)+').value'),value,'Trusted select input');
       }
+      async function chooseExportMetadata(metadata){
+        const current=await read(toolSession,'document.querySelector("#live-export-metadata").checked');
+        if(current!==metadata)await click(toolSession,'#live-export-metadata');
+        assert.equal(await read(toolSession,'document.querySelector("#live-export-content").value'),
+          metadata?'metadata':'backup','Approved export mode');
+      }
       async function dismissImport(){
         if(!await read(toolSession,'document.querySelector("#import-panel").hidden')){
           await click(toolSession,'#import-cancel');
@@ -495,6 +502,8 @@ try{
       }
       async function previewImport(text,format='auto'){
         await dismissImport();await click(toolSession,'#live-import');
+        if(format!=='auto'&&!await read(toolSession,'document.querySelector(".import-advanced").open'))
+          await click(toolSession,'.import-advanced > summary');
         await selectOption('#import-format',['auto','json','header','netscape'],format);
         await type('#import-text',text);await click(toolSession,'#import-apply');
         const preview=await until(()=>read(toolSession,'(()=>{const n=document.querySelector("#live-import-preview");return !n.hidden?n.textContent:null;})()'),'Native read-only import preview');
@@ -604,7 +613,7 @@ try{
             await mkdir(downloads,{recursive:true});await client.send('Browser.setDownloadBehavior',{behavior:'allow',downloadPath:downloads,eventsEnabled:true});
             assert.equal((await readdir(downloads)).length,0);const firstEvent=downloadEvents.length;
             await click(toolSession,'#live-export');
-            await selectOption('#live-export-content',['backup','metadata'],metadata?'metadata':'backup');
+            await chooseExportMetadata(metadata);
             if(metadata){
               assert.equal(await read(toolSession,'document.querySelector("#live-export-format").value'),'json');
               assert(await read(toolSession,'document.querySelector("#live-export-format").disabled'),'Metadata only allows JSON');
@@ -830,15 +839,9 @@ try{
       await client.send('Browser.setDownloadBehavior',{behavior:'allow',downloadPath:downloads,eventsEnabled:true});
       await click(toolSession,'#live-export');
       await until(()=>read(toolSession,'!document.querySelector("#live-export-panel").hidden'),'Inline export panel');
-      assert.equal(await read(toolSession,'document.querySelector("#live-export-content").value'),'metadata');
-      // R4.8 intentionally defaults to a Value-free JSON inventory. A real
-      // macOS native dropdown selection is needed for this legacy backup case.
-      await click(toolSession,'#live-export-content');
-      report.externalNativeSelect={case:currentCase,pid:launched.metadata.pid,
-        selector:'#live-export-content',value:'backup',values:['metadata','backup']};
-      await persist();console.log('COOKIE_NATIVE_SELECT '+JSON.stringify(report.externalNativeSelect));
-      await until(()=>read(toolSession,'document.querySelector("#live-export-content").value==="backup"'),
-        'Actual native backup selection',600000);
+      // R4.10 defaults to a values-included JSON backup.
+      assert.equal(await read(toolSession,'document.querySelector("#live-export-content").value'),'backup');
+      assert.equal(await read(toolSession,'document.querySelector("#live-export-metadata").checked'),false);
       assert.equal(await read(toolSession,'document.querySelector("#live-export-format").value'),'json');
       await click(toolSession,'#live-export-confirm');
       await click(toolSession,'#confirm-accept');

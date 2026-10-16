@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
+import {readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import test from 'node:test';
 
@@ -57,4 +58,16 @@ test('R4.8 real clipboard cases preserve metadata-only access and sensitive-valu
   assert.deepEqual(b.selected,['export-sensitive-denied','export-copy-sensitive-json','export-json']);
   assert.equal(b.valuesGrant,true,'Native value copy and download require an independent grant');
   assert(b.selected.indexOf('export-sensitive-denied')<b.selected.indexOf('export-copy-sensitive-json'));
+});
+
+test('R4.10 native case driver uses real approved metadata toggle and inline discard',async()=>{
+  const source=await readFile(driver,'utf8');
+  assert.match(source,/async function chooseExportMetadata\(metadata\)/);
+  assert.match(source,/#live-export-metadata/);
+  assert.match(source,/#editor-discard-confirm/);
+  assert.match(source,/\.cookie-row-meta'\)\?\.textContent===/);
+  assert.match(source,/action==='删除 Cookie'\?'#editor-delete'/);
+  assert.doesNotMatch(source,/await click\(toolSession,'#live-export-content'\)/,
+    'hidden legacy dropdown cannot receive trusted Chrome clicks');
+  assert.match(source,/document.querySelector\("#live-export-content"\).value'\),'backup'/);
 });
