@@ -42,3 +42,19 @@ test('unknown stages fail instead of reporting an empty native suite as complete
   const result=plan(undefined,'improt-export');assert.notEqual(result.status,0);
   assert.match(result.stderr,/Unknown COOKIE_NATIVE_STAGE/);
 });
+
+test('R4.8 real clipboard cases preserve metadata-only access and sensitive-value authority',()=>{
+  const metadata=plan('export-copy-metadata-json,export-metadata-json');
+  assert.equal(metadata.status,0,metadata.stderr);
+  const m=JSON.parse(metadata.stdout);
+  assert.deepEqual(m.selected,['export-copy-metadata-json','export-metadata-json']);
+  assert.equal(m.valuesGrant,false);
+  assert(m.prerequisites.includes('gap-seed-import'));
+
+  const backup=plan('export-sensitive-denied,export-copy-sensitive-json,export-json');
+  assert.equal(backup.status,0,backup.stderr);
+  const b=JSON.parse(backup.stdout);
+  assert.deepEqual(b.selected,['export-sensitive-denied','export-copy-sensitive-json','export-json']);
+  assert.equal(b.valuesGrant,true,'Native value copy and download require an independent grant');
+  assert(b.selected.indexOf('export-sensitive-denied')<b.selected.indexOf('export-copy-sensitive-json'));
+});

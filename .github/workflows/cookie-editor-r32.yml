@@ -10,6 +10,7 @@ on:
       - 'tests/environment/cookie-editor-preview-r46.test.mjs'
       - 'tests/environment/cookie-editor-r43-parity.test.mjs'
       - 'tests/environment/cookie-editor-native-selection.test.mjs'
+      - 'tests/framework/cookie-editor-r33-native.mjs'
       - 'tests/environment/extension-center-r47-interaction.test.mjs'
       - 'tests/environment/time-review-host-controls-r51.test.mjs'
       - 'tests/environment/static-import-drafts-ui.test.mjs'

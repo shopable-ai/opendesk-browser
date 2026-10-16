@@ -1,4 +1,6 @@
 // Actual headed Mac CFT smoke. Business actions use only trusted Chrome Input.
+// R4.8 copy validation reads the real macOS system clipboard with pbpaste;
+// never persist copied Cookie values in screenshots, CI logs or report JSON.
 // Runtime evaluations read DOM/contexts/permissions and limited install metadata.
 // No injected controls, storage writes, Cookie writes, grants or synthetic events.
 import assert from 'node:assert/strict';
@@ -21,8 +23,9 @@ const supportedStages=['all','visual','upgrade','partial','negative','path','adv
 assert(!requestedStage||supportedStages.includes(requestedStage),'Unknown COOKIE_NATIVE_STAGE');
 const gapCases=['import-json-file','import-json-auto','import-json-manual','import-header-auto',
   'import-header-manual','import-netscape-auto','import-netscape-manual','import-overwrite-cancel',
-  'import-partial-cancel','import-invalid','import-preview-input-change','export-metadata-json',
-  'export-sensitive-denied','export-json','export-header','export-netscape'];
+  'import-partial-cancel','import-invalid','import-preview-input-change',
+  'export-copy-metadata-json','export-metadata-json','export-sensitive-denied',
+  'export-copy-sensitive-json','export-json','export-header','export-netscape'];
 const gapStage=requestedStage==='import-export';
 const requestedCases=process.env.COOKIE_NATIVE_CASES?.split(',').map(id=>id.trim());
 assert(!requestedCases||gapStage,'COOKIE_NATIVE_CASES requires import-export stage');
@@ -30,7 +33,7 @@ assert(!requestedCases||requestedCases.every(id=>gapCases.includes(id)),'Unknown
 assert(!requestedCases||new Set(requestedCases).size===requestedCases.length,'Duplicate COOKIE_NATIVE_CASES');
 const selectedGapCases=gapStage?gapCases.filter(id=>!requestedCases||requestedCases.includes(id)):[];
 const needsSeed=selectedGapCases.some(id=>id.startsWith('export-')||id==='import-overwrite-cancel');
-const needsValues=selectedGapCases.some(id=>['export-json','export-header','export-netscape'].includes(id));
+const needsValues=selectedGapCases.some(id=>['export-copy-sensitive-json','export-json','export-header','export-netscape'].includes(id));
 const suite=gapStage?'extended':process.env.COOKIE_NATIVE_SUITE;
 const gapPlan={stage:requestedStage,selected:selectedGapCases,
   prerequisites:gapStage?['launch','product-side-panel','official-install','active-fixture',
@@ -461,6 +464,7 @@ try{
       const row=(name,value)=>({name,value,domain:'127.0.0.1',path:'/',hostOnly:true,session:true});
       const seed=[row('od_gap_seed_a','invented-gap-a'),row('od_gap_seed_b','invented-gap-b')];
       const ownedCookies=new Map();
+      const copiedPayloads=new Map(); // In-memory only; no copied Cookie values in reports.
       const identity=c=>JSON.stringify([c.name,c.domain,c.path,c.storeId,
         c.partitionKey?[c.partitionKey.topLevelSite,Boolean(c.partitionKey.hasCrossSiteAncestor)]:null]);
       async function keyInput(key,code=key){
@@ -589,12 +593,14 @@ try{
         });
         else if(id.startsWith('export-')){
           await dismissImport();
-          if(needsValues&&['export-json','export-header','export-netscape'].includes(id)&&!valuesGranted){
+          if(needsValues&&['export-copy-sensitive-json','export-json','export-header','export-netscape'].includes(id)&&!valuesGranted){
             await step('gap-values-grant',async()=>{await grant('values');valuesGranted=true;return {capability:'values'};});
           }
           await step(id,async()=>{
-            const metadata=id==='export-metadata-json',denied=id==='export-sensitive-denied';
-            const format=metadata||denied?'json':id.slice('export-'.length),downloads=path.join(directory,'downloads',id);
+            const isCopy=id.startsWith('export-copy-');
+            const metadata=id==='export-metadata-json'||id==='export-copy-metadata-json';
+            const denied=id==='export-sensitive-denied';
+            const format=metadata||denied||isCopy?'json':id.slice('export-'.length),downloads=path.join(directory,'downloads',id);
             await mkdir(downloads,{recursive:true});await client.send('Browser.setDownloadBehavior',{behavior:'allow',downloadPath:downloads,eventsEnabled:true});
             assert.equal((await readdir(downloads)).length,0);const firstEvent=downloadEvents.length;
             await click(toolSession,'#live-export');
@@ -606,14 +612,46 @@ try{
             }else await selectOption('#live-export-format',['json','header','netscape'],format);
             const warning=await read(toolSession,'document.querySelector("#live-export-warning").textContent');
             assert(warning.includes(metadata?'不含 Value':format==='header'?'丢失':format==='netscape'?'丢失':'不是'));
-            const native=await cookies();await click(toolSession,'#live-export-confirm');await click(toolSession,'#confirm-accept');
+            const native=await cookies();
+            // Metadata is deliberately consent-free after the real user button;
+            // value-bearing backups require the Cookie Editor's own confirmation.
+            await click(toolSession,isCopy?'#live-export-copy':'#live-export-confirm');
+            if(!metadata)await click(toolSession,'#confirm-accept');
             if(denied){
               assert(!valuesGranted,'Sensitive rejection must precede grant');
-              const status=await until(()=>read(toolSession,'document.querySelector("#status").textContent').then(text=>text.includes('真实导出被拒绝')?text:null),'Missing sensitive grant rejected');
+              const status=await until(()=>read(toolSession,'document.querySelector("#status").textContent').then(text=>text.includes('Host 未确认全部 Cookie 敏感值权限')?text:null),'Missing sensitive grant rejected');
               assert.equal((await readdir(downloads)).length,0);assert.equal(downloadEvents.length,firstEvent);
+              await click(toolSession,'#live-export-close');
               return {warning,status,downloaded:false};
             }
             const approval=await approveHost();
+            if(isCopy){
+              // The extension MUST complete the real Host click and writeText.
+              // A mocked SDK, DOM event, or navigator.clipboard read in the
+              // sandbox is never a substitute for the OS clipboard.
+              const status=await until(()=>read(toolSession,'document.querySelector("#status").textContent').then(text=>text.includes('已复制')?text:null),'Real Chrome clipboard success');
+              const copied=execFileSync('pbpaste',{encoding:'utf8',maxBuffer:200000});
+              assert(copied.length>0,'macOS clipboard must contain copied Cookie text');
+              const rows=JSON.parse(copied),values=metadata?rows.cookies:rows;
+              if(metadata){
+                assert.equal(rows.kind,'opendesk.cookie-metadata.v1');
+                assert.equal(rows.restoreSupported,false);
+                assert(!/"value"\\s*:/.test(copied),'Metadata must not include Cookie Value');
+                for(const cookie of native)assert(!copied.includes(cookie.value),'Native values must be redacted');
+              }
+              assert.equal(values.length,native.length);
+              for(const cookie of native){
+                const found=values.find(candidate=>identity(candidate)===identity(cookie));
+                assert(found,'Copied JSON must retain every approved Cookie identity');
+                if(!metadata)assert.equal(found.value,cookie.value);
+              }
+              assert.equal((await readdir(downloads)).length,0,'Copy must not download a file');
+              assert.equal(downloadEvents.length,firstEvent,'Copy must not start downloads');
+              copiedPayloads.set(metadata?'metadata-json':'backup-json',copied);
+              await click(toolSession,'#live-export-close');
+              assert.equal(await read(toolSession,'document.activeElement?.id'),'live-export','Copy closes to opener focus');
+              return {warning,approval,status,clipboard:{sha256:hash(Buffer.from(copied)),bytes:Buffer.byteLength(copied),format:'json',metadata,count:values.length}};
+            }
             const begin=await until(()=>downloadEvents.slice(firstEvent).find(event=>event.method==='Browser.downloadWillBegin'),'Real download GUID');
             const completion=await until(()=>downloadEvents.slice(firstEvent).find(event=>event.guid===begin.guid&&event.state==='completed'),'Same download GUID completed');
             assert.equal(downloadEvents.slice(firstEvent).filter(event=>event.method==='Browser.downloadWillBegin').length,1);
@@ -621,6 +659,9 @@ try{
             assert.equal(files.length,1);const bytes=await readFile(path.join(downloads,files[0])),text=bytes.toString('utf8');
             assert.equal(files[0],begin.suggestedFilename);if(completion.filePath)assert.equal(path.resolve(completion.filePath),path.join(downloads,files[0]));
             assert.equal(completion.receivedBytes,bytes.length);
+            const expectedCopy=copiedPayloads.get(metadata?'metadata-json':'backup-json');
+            if(expectedCopy!==undefined&&format==='json')
+              assert.equal(text,expectedCopy,'Copied OS clipboard and downloaded file must be byte-identical');
             let exported;
             if(metadata){
               const data=JSON.parse(text);assert.equal(data.kind,'opendesk.cookie-metadata.v1');assert.equal(data.restoreSupported,false);
@@ -644,7 +685,7 @@ try{
               if(format==='netscape')for(const field of ['hostOnly','secure','httpOnly','session'])assert.equal(found[field],cookie[field]);
             }
             assert.equal(remaining.length,0,'No duplicate or unbound exported records');
-            await click(toolSession,'#live-export-cancel');
+            await click(toolSession,'#live-export-close');
             assert.equal(await read(toolSession,'document.activeElement?.id'),'live-export','Export closes to opener focus');
             return {warning,approval,file:{name:files[0],guid:begin.guid,state:completion.state,sha256:hash(bytes),bytes:bytes.length,format,metadata,count:exported.length},cookies:native};
           });
@@ -652,7 +693,7 @@ try{
       }
       await step('gap-cleanup',async()=>{
         await dismissImport();
-        if(!await read(toolSession,'document.querySelector("#live-export-panel").hidden'))await click(toolSession,'#live-export-cancel');
+        if(!await read(toolSession,'document.querySelector("#live-export-panel").hidden'))await click(toolSession,'#live-export-close');
         const native=await cookies();assert.equal(native.length,ownedCookies.size,'Unexpected Cookie prevents cleanup');
         assert(native.every(cookie=>ownedCookies.has(identity(cookie))),'Only exact identities recorded by this batch may be cleaned');
         for(const cookie of native){
@@ -788,7 +829,15 @@ try{
       await client.send('Browser.setDownloadBehavior',{behavior:'allow',downloadPath:downloads,eventsEnabled:true});
       await click(toolSession,'#live-export');
       await until(()=>read(toolSession,'!document.querySelector("#live-export-panel").hidden'),'Inline export panel');
-      assert.equal(await read(toolSession,'document.querySelector("#live-export-content").value'),'backup');
+      assert.equal(await read(toolSession,'document.querySelector("#live-export-content").value'),'metadata');
+      // R4.8 intentionally defaults to a Value-free JSON inventory. A real
+      // macOS native dropdown selection is needed for this legacy backup case.
+      await click(toolSession,'#live-export-content');
+      report.externalNativeSelect={case:currentCase,pid:launched.metadata.pid,
+        selector:'#live-export-content',value:'backup',values:['metadata','backup']};
+      await persist();console.log('COOKIE_NATIVE_SELECT '+JSON.stringify(report.externalNativeSelect));
+      await until(()=>read(toolSession,'document.querySelector("#live-export-content").value==="backup"'),
+        'Actual native backup selection',600000);
       assert.equal(await read(toolSession,'document.querySelector("#live-export-format").value'),'json');
       await click(toolSession,'#live-export-confirm');
       await click(toolSession,'#confirm-accept');
