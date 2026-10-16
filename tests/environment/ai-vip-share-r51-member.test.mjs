@@ -81,7 +81,7 @@ const confirm=env=>node(env,'redeem-confirm').listeners.click({isTrusted:true});
 
 test('R5.2 official package grants scoped recovery storage but no network permission',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/ai-vip-share');
-  assert.equal(pkg.version,'1.3.3');
+  assert.equal(pkg.version,'1.3.4');
   assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
   assert.deepEqual(pkg.capabilities,['storage.local','network','browser.tabs','browser.proxy.managed']);
   assert.match(pkg.css,/opendesk\.shared-design\.v1/);
@@ -156,6 +156,36 @@ test('R5.1 two-step voucher flow confirms account and passes exactly one idempot
   assert.equal(node(e,'redeem-preview').hidden,true);
   assert.match(node(e,'redeem-status').textContent,/已确认兑换成功/);
 });
+test('R5.9.3 preflight focuses confirmation and trusted Escape cancels without POST',async()=>{
+  const calls=[];
+  const e=await runtime({configured:true,provider:async args=>{
+    calls.push(args);
+    if(args.url.endsWith('/member'))return {status:200,data:member({entitlements:[quota]})};
+    if(args.url.endsWith('/preview'))return {status:200,data:{
+      previewId:'esc-preview-123',accountId:'customer-123',skuTitle:'测试权益',
+      grantSummary:'仅本地 VM 预检',voucherPreviewMasked:'***-123',
+      expiresAt:Date.now()+120000}};
+    throw Error('Escape must not redeem voucher');
+  }});
+  node(e,'redeem-code').value='SAMPLE-CODE-123';
+  node(e,'redeem-code').listeners.input();
+  preflight(e);await flush();await flush();
+  assert.equal(node(e,'redeem-preview').hidden,false);
+  assert.equal(node(e,'redeem-confirm').focused,true,'focus must follow preflight');
+  assert.equal(node(e,'redeem-code').disabled,true);
+  const preview=node(e,'redeem-preview');let prevented=0,stopped=0;
+  preview.listeners.keydown({isTrusted:false,key:'Escape',preventDefault(){prevented++;}});
+  assert.equal(preview.hidden,false,'synthetic key ignored');
+  preview.listeners.keydown({isTrusted:true,key:'Escape',preventDefault(){prevented++;},
+    stopPropagation(){stopped++;}});
+  assert.equal(prevented,1);assert.equal(stopped,1);
+  assert.equal(preview.hidden,true);
+  assert.equal(node(e,'redeem-code').disabled,false);
+  assert.equal(node(e,'redeem-code').focused,true,'restore voucher input focus');
+  assert.equal(calls.filter(row=>row.url.endsWith('/redeem')).length,0);
+  assert.equal(e.store.value,null,'no transaction journal created by cancel');
+});
+
 test('R5.1 ambiguous redemption never auto-retries an unknown side effect',async()=>{
   let posts=0;
   const e=await runtime({configured:true,provider:async args=>{
@@ -492,7 +522,7 @@ test('R5.2 preview expiry during journal persistence forbids consumption and ret
   assert.equal(elapsed,180000,'clock advances only after durable journal write');
   assert.equal(e.calls.filter(args=>args.method==='POST'&&args.url.endsWith('/redeem')).length,0);
   assert.equal(store.value?.accountId,'customer-123');
-  assert.equal(store.value?.packageVersion,'1.3.3');
+  assert.equal(store.value?.packageVersion,'1.3.4');
   assert.equal(e.storageCalls.filter(operation=>operation==='storage.set').length,1);
   assert.equal(node(e,'recovery').hidden,false);
   assert.equal(node(e,'redeem').disabled,true);

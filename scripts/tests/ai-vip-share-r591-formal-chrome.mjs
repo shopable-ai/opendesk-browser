@@ -11,7 +11,7 @@ import {createSidebarToolPackage,encodeSidebarToolPackage} from '../build-sideba
 const out=resolve(process.argv[2]||'artifacts/ai-vip-share-r591/chromium');
 await mkdir(out,{recursive:true});
 const pkg=await createSidebarToolPackage('examples/sidebar-tools/ai-vip-share');
-assert.equal(pkg.id,'ai-vip-share');assert.equal(pkg.version,'1.3.3');
+assert.equal(pkg.id,'ai-vip-share');assert.equal(pkg.version,'1.3.4');
 const preview=await readFile('examples/sidebar-tools/ai-vip-share/preview/index.html','utf8');
 const escape=s=>s.replace(/<\/script/gi,'<\\/script').replace(/<\/style/gi,'<\\/style');
 function fixture(){

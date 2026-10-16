@@ -76,7 +76,7 @@
 .ai-vip-proxy-head-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;min-width:0}
 .ai-vip-proxy-refresh{flex:none}
 .ai-vip-service{margin:0;border-top:1px solid var(--od-line);padding-top:10px}
-.ai-vip-service summary{display:flex;align-items:center;gap:8px;list-style:none;cursor:pointer;font-size:11px;color:var(--od-sub);line-height:1.55}
+.ai-vip-service summary{display:flex;align-items:center;gap:8px;min-height:32px;padding:4px 0;list-style:none;cursor:pointer;font-size:11px;color:var(--od-sub);line-height:1.55}
 .ai-vip-service summary::-webkit-details-marker{display:none}
 .ai-vip-service summary span{margin-left:auto}
 .ai-vip-service-content{padding:9px 1px 0;font-size:11px;color:var(--od-sub);line-height:1.65}

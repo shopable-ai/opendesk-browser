@@ -81,9 +81,9 @@
   const businessSdk=window.OpenDeskSDK?.browser?.network;
   // Existing installed-tool storage is bound by Host to package and install epoch.
   // Never store a voucher, password, auth cookie, proxy lease or access token.
-  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.3.3';
+  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.3.4';
   // Do not strand an unresolved 1.2.0 voucher journal after a tool upgrade.
-  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2','1.3.3']);
+  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2','1.3.3','1.3.4']);
   const storeRequest=window.OpenDeskTool.request;
   let snapshot=null,pending=null,recovery=null,recoveryFault=null;
   let recoveryReady=false,busy=false,seq=0;
@@ -446,7 +446,11 @@
         redeemNotice('请核对商品与账号，再点击「确认兑换」。');
       }catch{
         redeemNotice('无法核验兑换码，请检查账号、兑换码或网络后重试。',true);
-      }finally{busy=false;renderRedeem();}
+      }finally{
+        busy=false;renderRedeem();
+        // The input becomes disabled after preflight; move focus to the review.
+        if(pending)confirm.focus?.({preventScroll:true});
+      }
       return;
     }
     const previewNow=estimatedServerNow();
@@ -569,11 +573,22 @@
   });
   confirm.addEventListener('click',event=>{void redeemClick(event);});
   recoveryCheck.addEventListener('click',event=>{void checkRecoveryClick(event);});
-  cancel.addEventListener('click',event=>{
-    if(event?.isTrusted!==true||busy)return;
+  function cancelPendingPreview(){
+    if(busy||!pending)return;
     pending=null;code.value='';
     redeemNotice('已取消本次预检，未提交任何兑换。');
-    renderRedeem();code.focus?.();
+    renderRedeem();
+    code.focus?.({preventScroll:true});
+  }
+  previewPanel.addEventListener('keydown',event=>{
+    if(event?.isTrusted!==true||event.key!=='Escape'||busy||!pending)return;
+    event.preventDefault?.();
+    event.stopPropagation?.();
+    cancelPendingPreview();
+  });
+  cancel.addEventListener('click',event=>{
+    if(event?.isTrusted!==true)return;
+    cancelPendingPreview();
   });
   const shopSdk=window.OpenDeskSDK?.browser?.tabs;
   shop.disabled=!catalog;
@@ -725,10 +740,10 @@
   if(!endpoints){
     memberState.textContent='服务未配置';
     memberState.setAttribute('data-tone','warn');
-    accountName.textContent='会员账号暂不可核验';
-    productName.textContent='正式会员服务尚未配置';
+    accountName.textContent='账号暂不可核验';
+    productName.textContent='权益待正式服务核验';
     metricLabel.textContent='当前会员权益';
-    verified.textContent='正式会员 Provider 尚未配置，账号、权益与兑换记录均不可验证。';
+    verified.textContent='账号、权益与兑换记录尚无法从正式服务核验。';
     redeemNotice('兑换服务未配置，暂无法提交。');
     refresh.disabled=true;
   }else{

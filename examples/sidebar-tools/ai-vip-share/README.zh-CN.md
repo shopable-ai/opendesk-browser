@@ -3,7 +3,7 @@
 正式工具 ID：`ai-vip-share`；源码目录：`examples/sidebar-tools/ai-vip-share/`。
 用户从 OpenDesk Browser「扩展」安装，不需要持有浏览器项目源码；本工具不提供任意节点、PAC 编辑器、Cookie 会话移植或常驻日志。
 
-## 当前正式源码：R5.9.2 / 1.3.3
+## 当前正式源码：R5.9.3 / 1.3.4
 
 唯一可导入包为本目录的 [`ai-vip-share.opendesk-tool.json`](ai-vip-share.opendesk-tool.json)，由唯一打包器验证候选后晋升。正式顺序为会员 → 兑换 → 商品 → 代理；沿用原控件 ID、opaque-origin 沙箱、现有安装存储和公共 Browser SDK。当前 v2 能力为 `storage.local`、`network`、`browser.tabs`、`browser.proxy.managed`；R2–R5.2 下文关于旧 `aiAccess.*` 与 `SDK_BLOCKED` 的描述仅是历史，不能当作当前接线。
 
@@ -123,3 +123,9 @@ src/main.js 保留原有 Browser SDK、可信服务端会员数据、存储 CAS 
 ## R5.9.2 · Chromium 截图驱动的紧凑化迭代（1.3.3）
 
 比对同源正式打包 UI 的真实 Chromium 图片后发现代理「重新检测」单独占用一整行，商品、兑换和代理区的无 Provider 提示存在重复。刷新调整到代理标题右侧的公共图标按钮，保留原 ID、原生用户点击和原公共 SDK 状态回读；短化重复提示而保留正确禁用、STOP、持久事务保护与折叠网络说明。原型紫色与正式公共蓝色设计系统的色值仍需产品 Owner 决议；真实已安装 1.3.3、商业服务、原生代理和 Mac 本地均不可用这些模拟图片声称通过。
+
+## R5.9.3 · 键盘预检与重复信息收敛（1.3.4）
+
+沿用 R5.9.2 正式结构及公共 Design Tokens：预检成功后聚焦「确认兑换」，可信 Escape 与取消按钮共用不提交的取消路径，并恢复兑换输入框焦点；收敛「兑换记录」重复标题及会员未配置时的技术重复文案，优化折叠说明点击高度。原兑换 journal 仍支持 1.2.0/1.3.0/1.3.1/1.3.2/1.3.3/1.3.4。STOP、SDK 权限和未配置商业服务均保持不变。
+
+**证据分级：** 正式源码、同源包及 VM/打包 Chromium 的通过记录不能证明 1.3.4 已在 Mac 日常 Chrome 真实 Side Panel 安装。缺少实际安装、沙箱截图、宿主存储回读之前记录 `INSTALLED_NOT_TESTED`；商业 Provider 与可信代理仍 `PROVIDER_BLOCKED` / `REAL_PROXY_BLOCKED`，不可复用 1.3.1 证据冒充本版本。
