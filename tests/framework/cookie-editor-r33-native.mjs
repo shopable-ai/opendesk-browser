@@ -13,6 +13,7 @@ import {setTimeout as sleep} from 'node:timers/promises';
 import {launchChrome} from './k5-sdk-native-launcher.mjs';
 import {connect,evaluate} from './sidebar-native-session.mjs';
 import {packageFingerprint} from '../../scripts/verify-package.mjs';
+import {COOKIE_EDITOR_UPGRADE_FROM,verifyCookieEditorUpgradeBaseline} from './cookie-editor-upgrade-contract.mjs';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const fixture='http://127.0.0.1:43111/demo-form.html';
@@ -55,6 +56,7 @@ const report={mode:'headed-owned-macos-CFT',startedAt:new Date().toISOString(),e
     ['launch','product-side-panel','official-install','active-fixture','first-use-combined-grant','write-grant-reuse'])
     .map(id=>[id,{status:'NOT_TESTED'}])),screenshots:[],steps:[],complete:false};
 let launched,client,control,side,sideTargetId,website,currentCase,toolSession;
+let upgradeBaseline=null,upgradeOldFile=null;
 const targetSessions=new Map();
 const trace=[];
 const downloadEvents=[];
@@ -301,6 +303,16 @@ try{
     if(process.env.COOKIE_NATIVE_TOOL_SHA)assert.equal(hash(pkgBytes),process.env.COOKIE_NATIVE_TOOL_SHA);
   }
   report.candidate={extensionFingerprint:await fingerprint(),toolVersion:pkg.version,toolFileSha256:hash(pkgBytes)};
+  if(stage==='upgrade'){
+    // Verify exact historical JSON before launch; the real file picker and
+    // installed Side Panel still perform every installation transition.
+    upgradeOldFile=required('COOKIE_NATIVE_OLD_TOOL');
+    upgradeBaseline=verifyCookieEditorUpgradeBaseline(await readFile(upgradeOldFile),pkg,{
+      version:process.env.COOKIE_NATIVE_OLD_VERSION||COOKIE_EDITOR_UPGRADE_FROM.version,
+      sha256:process.env.COOKIE_NATIVE_OLD_TOOL_SHA256||COOKIE_EDITOR_UPGRADE_FROM.sha256,
+    });
+    report.upgradeBaseline=upgradeBaseline;
+  }
   report.candidate.extensionPackage=await packageFingerprint(extension);
   const sourceCommit=process.env.COOKIE_NATIVE_CANDIDATE_SHA,receiptPath=process.env.COOKIE_NATIVE_BUILD_RECEIPT;
   assert.equal(Boolean(sourceCommit),Boolean(receiptPath),'Provide source commit and build receipt together');
@@ -358,10 +370,11 @@ try{
       await until(()=>read(side,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>v["opendesk.sidebar-tools.installed.v1"]?.some(t=>t.id==="cookie-editor"&&t.version==='+quote(pkg.version)+'))'),
         'Trusted fresh-profile Cookie preinstall');
     if(imported){
-      const file=required('COOKIE_NATIVE_OLD_TOOL');
-      const old=JSON.parse(await readFile(file,'utf8'));assert.equal(old.version,'2.0.3');
+      const file=upgradeOldFile;
+      assert.equal(hash(await readFile(file)),upgradeBaseline.sha256,
+        'Historical Cookie package changed after native preflight');
       await click(side,'#sidebar-tool-import-trigger');await click(side,'#sidebar-tool-file');
-      report.externalFilePicker={pid:launched.metadata.pid,path:file,sha256:hash(await readFile(file)),version:old.version};
+      report.externalFilePicker={pid:launched.metadata.pid,path:file,sha256:hash(await readFile(file)),version:upgradeBaseline.version};
       await persist();console.log('COOKIE_NATIVE_FILE_PICKER '+JSON.stringify(report.externalFilePicker));
       await until(()=>read(side,'!document.querySelector("#sidebar-tool-preview").hidden'),'Actual Mac file chooser upload',600000);
     }else if(release.installationPolicy!=='preinstalled'&&unifiedCenter){
@@ -381,14 +394,14 @@ try{
     if(imported||release.installationPolicy!=='preinstalled'){
       await until(()=>read(side,'!!document.querySelector("#sidebar-tool-preview")&&!document.querySelector("#sidebar-tool-preview").hidden'),'Visible official review');
       preview=await read(side,'({title:document.querySelector("#sidebar-tool-preview-title")?.textContent,version:document.querySelector("#sidebar-tool-preview-version")?.textContent,frames:document.querySelectorAll("#sidebar-tool-frame iframe").length})');
-      assert(preview.title.includes('Cookie'));assert(preview.version.includes(imported?'2.0.3':pkg.version));assert.equal(preview.frames,0);
+      assert(preview.title.includes('Cookie'));assert(preview.version.includes(imported?upgradeBaseline.version:pkg.version));assert.equal(preview.frames,0);
       await click(side,'#sidebar-tool-install');
     }
     const open=unifiedCenter?'[data-extension-key="app:cookie-editor"][data-extension-action="primary"]':
       '[data-sidebar-tool-action="open"][data-sidebar-tool-id="cookie-editor"]';
     await until(()=>read(side,'Boolean(document.querySelector('+quote(open)+'))'),'Installed Cookie list item');
     const installed=await read(side,'chrome.storage.local.get(["opendesk.sidebar-tools.installed.v1","opendesk.sidebar-tools.revocation-epochs.v1"]).then(v=>{const t=v["opendesk.sidebar-tools.installed.v1"]?.find(t=>t.id==="cookie-editor");return t?{id:t.id,version:t.version,capabilities:t.capabilities,installEpoch:v["opendesk.sidebar-tools.revocation-epochs.v1"]?.[t.id]??null}:null;})');
-    assert.equal(installed?.version,imported?'2.0.3':pkg.version);await click(side,open);return {preview,installed,preinstalled:release.installationPolicy==='preinstalled'&&!imported};
+    assert.equal(installed?.version,imported?upgradeBaseline.version:pkg.version);await click(side,open);return {preview,installed,preinstalled:release.installationPolicy==='preinstalled'&&!imported};
   });
   await step('active-fixture',async()=>{
     const target=await client.send('Target.createTarget',{url:fixture});website=await attach(target);
@@ -754,6 +767,12 @@ try{
       });
     }
     if(stage==='upgrade'){
+      await step('upgrade-preservation-baseline',async()=>{
+        const created=await createCookie('od_upgrade_retained','invented-before-upgrade');
+        assert(created.cookies.some(c=>c.name==='od_upgrade_retained'&&c.value==='invented-before-upgrade'),
+          'Old version must write the real Cookie through the installed UI');
+        return {cookies:created.cookies};
+      });
       await step('explicit-upgrade',async()=>{
         await click(side,'#sidebar-tool-back');
         if(await read(side,'document.querySelector("#sidebar-tool-discover-panel").hidden'))await click(side,'#sidebar-tool-discover-toggle');
@@ -761,7 +780,7 @@ try{
         await click(side,'#sidebar-tool-official-cookie-editor-install');
         await until(()=>read(side,'!document.querySelector("#sidebar-tool-preview").hidden'),'New official package review');
         const review=await read(side,'({versions:document.querySelector("#sidebar-tool-update-versions").textContent,warning:document.querySelector("#sidebar-tool-update-warning").textContent})');
-        assert(review.versions.includes('2.0.3')&&review.versions.includes(pkg.version));
+        assert(review.versions.includes(upgradeBaseline.version)&&review.versions.includes(pkg.version));
         await click(side,'#sidebar-tool-install');
         await until(()=>read(side,`chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>v["opendesk.sidebar-tools.installed.v1"]?.find(t=>t.id==="cookie-editor")?.version===${quote(pkg.version)})`),'Explicit upgraded package persisted');
         await click(side,'[data-sidebar-tool-action="open"][data-sidebar-tool-id="cookie-editor"]');await bindCookieFrame();
@@ -769,11 +788,16 @@ try{
         const grants=await read(side,'[...document.querySelectorAll("[data-cookie-capability]")].map(n=>({cap:n.dataset.cookieCapability,enabled:n.dataset.enabled}))');
         assert(grants.every(row=>row.enabled==='false'),'Old package grants cannot authorize the new revision');
         await click(side,'#sidebar-tool-settings-open');await grant('read');await grant('write');
-        return {review,grants,toolVersion:pkg.version};
+        const retained=(await cookies()).find(c=>c.name==='od_upgrade_retained');
+        assert(retained&&retained.value==='invented-before-upgrade',
+          'Same-ID upgrade must preserve the real existing Chrome Cookie');
+        return {review,grants,toolVersion:pkg.version,
+          retained:{name:retained.name,domain:retained.domain,path:retained.path}};
       });
       await step('upgraded-tool-save-and-delete',async()=>{
         const result=await createCookie('od_upgrade','invented-upgrade');assert(result.cookies.some(c=>c.name==='od_upgrade'));
-        return deleteCookie('od_upgrade');
+        await deleteCookie('od_upgrade');
+        return deleteCookie('od_upgrade_retained');
       });
     }
     if(stage==='partial'){
