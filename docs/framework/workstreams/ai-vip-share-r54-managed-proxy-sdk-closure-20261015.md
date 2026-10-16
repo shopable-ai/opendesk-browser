@@ -229,12 +229,35 @@ npm run check
 | 阶段 | 截至 R1.6 当前真实状态 |
 | --- | --- |
 | 正式 UI 导入、AI VIP Share 1.3.5 安装、正式工具显示、测试工具安装 | **CHROMIUM_NATIVE_PASS（标签页）**，run 38906892746 / Artifact 12048427702 |
-| 公共 SDK STATUS | 测试工具真实截图已显示成功；C1 CDP 自动读回仍待补齐 |
-| 生产 ENABLE 未审审批拒绝、STOP / journal / native readback | **NOT_TESTED（正式 C1）**，Node Host regression 已通过，不可冒充原生链路 |
-| Chrome 真正 `SIDE_PANEL` context/document ID、实际面板点击/截图 | **NOT_TESTED**，标签页不等于 Side Panel |
+| 公共 SDK STATUS | **CHROMIUM_NATIVE_PASS（正式标签页）**：R1.6 run 38909198977 已完成 SDK `getStatus()` 读回，不能借作完整 Side Panel C1 |
+| 生产 ENABLE 未审审批拒绝、STOP / journal / native readback | **CHROMIUM_NATIVE_PASS（正式标签页）**：R1.6 run 38909198977 有安全拒绝、STOP、readback；Side Panel 内可信交互仍 **NATIVE_UI_BLOCKED** |
+| Chrome 真正 `SIDE_PANEL` context/document ID、实际面板点击/截图 | **SIDE_PANEL_OBSERVED**：Chrome 原生 Document ID 已取得、`#tab-tools` 真实输入已发送，但官方工具列表等待超时，未形成 Side Panel 完整 PASS |
 | 隔离测试候选 C2 正向代理 | **NOT_TESTED**，须在正式安装与生产拒绝链路实证后推进 |
 | Worker Recovery、竞态、其他扩展控制权与旧六模块迁移 | **NODE_PASS / CHROMIUM_NATIVE_NOT_TESTED**，不得删除旧 Host 六文件 |
 | 生产代理审核/商业 Provider | **UNAPPROVED / NOT_CONFIGURED**；保持 `REVIEWED_MANAGED_PROXY_PROFILES=[]`、`APPROVED_PROXY_ENDPOINT=null` |
 | 独立架构、安全、Chromium、生命周期、UI、CI 专家 >=95 | **NOT_SCORED**；有缺口不可按综合均分虚报 |
 
 已修改的正式产品文件：**无**。R1.6 本轮修复集中在 `tests/framework/browser-managed-proxy-installed-c1.mjs`；旧业务、并行 Owner 与用户 Chrome Profile 均保持不变。后续仅按真实原生失败点继续最小修复、同 SHA 复验和保留截图。
+
+## Managed Proxy SDK R1.7 · 严格 C1 CI 门禁和真实 Side Panel 诊断（2026-10-16）
+
+### 本轮证据和源码修复
+
+- 历史 R1.6 [Actions 38909198977](https://github.com/shopable-ai/opendesk-browser/actions/runs/38909198977) / [Artifact 12049249674](https://github.com/shopable-ai/opendesk-browser/actions/runs/38909198977/artifacts/12049249674) 的四个 Job SUCCESS，但脚本实际返回 `NATIVE_TAB_INSTALL_PASS_SIDE_PANEL_OBSERVED_NOT_INTERACTED`，**不是 `FORMAL_C1_NATIVE_PASS`**；这是需修复的 CI 假阳性。
+- R1.7 初始核对 main 为 `0f69552761e9e648ecd247ef216a5037414a31dc`，相对历史 `ab6b31db` 前进了 13 提交，React Extension Center 列表已正式接管渲染。源码确认 React 仍包含 `data-extension-action="main"`，不能仅凭超时推断该选择器被删除。
+- [92d1455](https://github.com/shopable-ai/opendesk-browser/commit/92d145516f58d3bd661e30e2b870d72f7aa5f9a6)：仅修改 `tests/framework/browser-managed-proxy-installed-c1.mjs`；增加同一真实 Side Panel Tab/list 门禁及只读 DOM、安装记录、native readback、Target 诊断；失败保存截图和非零退出码，禁止部分 PASS 升格。
+- [149441d](https://github.com/shopable-ai/opendesk-browser/commit/149441da630c16ae62db5fad4a8280d08dde7af3)：仅修改 `.github/workflows/browser-sdk-r5.yml`；增加始终执行的独立回执完整性断言，核对 Actions SHA、原生 SIDE_PANEL Document ID、必要步骤及两张实际截图；产物仍在失败时上传。
+- **并行构建阻塞**：R1.7 的 [Actions 38914522677](https://github.com/shopable-ai/opendesk-browser/actions/runs/38914522677) 在 Product Bundles 报 React 打包后的 `ui/tool-shell.js` 安全扫描误报 `Unapproved dynamic constructor reference`，与本轮 C1 修改无关。并行 React Owner 随后的 `b43e95ed` / `d47968f` 正在处理 verifier 与专项回归。本轮不绕过安全校验、不覆盖该 Owner 的文件；需要在更晚的同 SHA CI 复核。
+
+### 当前独立判定
+
+| 项目 | 结论 |
+| --- | --- |
+| R1.6 官方安装、STATUS、未审批 ENABLE 拒绝、STOP、native readback | **PASS（历史标签页证据）** |
+| R1.7 脚本退出码和工作流回执强制门禁 | **源码已提交；待成功构建后的原生 CI 证据** |
+| 真实 Side Panel 工具列表与 AI VIP 正式 Sandbox、同页 SDK 点击 | **NATIVE_UI_BLOCKED**；等待新 CI 详细 DOM/Context/截图诊断，不得虚报完整 C1 |
+| R1.7 同 SHA Node / Production Build / Chromium A/B / C1 | **逐 Job 核对中**；历史 PASS 不跨 SHA 继承 |
+| C2 独立受审 loopback SOCKS5 正向代理 | **NOT_TESTED**；完整 C1 先通过 |
+| 生命周期、其他扩展所有权、Mac 原生、六专家评分 >=95 | **NOT_TESTED / NOT_SCORED**，不可用 Node 测试替代 |
+
+安全边界维持 `REVIEWED_MANAGED_PROXY_PROFILES=[]`、`APPROVED_PROXY_ENDPOINT=null`；未修改正式产品 UI、SDK、Host、Driver 或并行 Owner 源码。下一步以 C1 严格 CI 的 `MANAGED_PROXY_C1_SIDE_PANEL_DIAGNOSTICS` 为准，核实 Tab 切换/列表异步加载/安装状态/CDP 目标与 Document ID，并据实最小修复。
