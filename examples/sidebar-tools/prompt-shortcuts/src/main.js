@@ -194,7 +194,21 @@ async function commitSites(next){
 function renderSites(){
   const host=el('ps-sites-list');host.replaceChildren();
   if(!sitesReady){host.append(dom('p','ps-hint','网站规则未加载。'));return;}
-  if(!sites.rules.length)host.append(dom('p','ps-hint','目前仅启用内置 ChatGPT。'));
+  // Fixed-source support is distinct from custom-site configuration and demos.
+  for(const [name,detail,mark] of [
+    ['ChatGPT','内置适配 · 真实站点仍需验收','内置'],
+    ['Claude','可信适配尚未验证','待验证'],
+    ['Gemini','可信适配尚未验证','待验证'],
+    ['DeepSeek','规划中','规划'],
+    ['Perplexity','规划中','规划'],
+    ['Grok','规划中','规划'],
+    ['Cursor Web','规划中','规划']
+  ]){
+    const card=dom('article','ps-site-row ps-site-builtin');
+    const info=dom('div');info.append(dom('strong','',name),dom('small','',detail));
+    card.append(info,dom('span','',mark));host.append(card);
+  }
+  if(sites.rules.length)host.append(dom('p','ps-hint','自定义网站 · 仅已验证并保存的规则生效'));
   for(const rule of sites.rules){
     const card=dom('article','ps-site-row');
     const head=dom('div','ps-site-row-heading');
@@ -359,7 +373,14 @@ async function toggleSites(){
   if(!open)await stopSitePick();
   panel.hidden=!open;el('ps-sites-open').setAttribute('aria-expanded',String(open));
   if(!open){sitesReady=false;return;}
-  try{await loadSites();siteMessage('');}
+  try{await loadSites();siteMessage('');
+    try{
+      const context=await request('prompt.page.context',{});
+      el('ps-current-site-status').textContent=context?.status==='available'&&context?.origin?
+        '当前网站：'+context.origin+(context.origin==='https://chatgpt.com'?' · 内置适配':' · 可配置自定义规则'):
+        '当前网页不可用；仍可管理已保存的网站规则。';
+    }catch{el('ps-current-site-status').textContent='当前网页不可用；仍可管理已保存的网站规则。';}
+  }
   catch(error){sitesReady=false;renderSites();siteMessage('网站规则读取失败：'+(error.code||error.message),true);}
 }
 

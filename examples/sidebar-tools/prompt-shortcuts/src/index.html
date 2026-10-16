@@ -4,13 +4,13 @@
     <div class="ps-list-caption ps-sr-only"><small id="ps-count" role="status" aria-live="polite">0 个 · 0 个启用</small></div>
     <div id="ps-list" class="ps-list"></div>
     <div id="ps-empty" class="ps-empty" hidden><strong>尚未创建提示词</strong><p>点击右上角的新建图标添加第一个快捷按钮。</p></div>
-    <section class="ps-settings" aria-label="使用设置">
+    <section class="ps-settings" aria-label="旧版设置兼容容器" aria-hidden="true" hidden>
       <div class="ps-section-heading"><h3>快捷入口</h3><small>默认开启</small></div>
       <label class="ps-setting-card od-surface"><span class="ps-setting-copy"><strong>网页左侧快捷按钮</strong><small>ChatGPT 页面直接可用，不需额外授权</small></span><span class="ps-switch"><input id="ps-web" type="checkbox" role="switch" checked aria-label="网页左侧快捷按钮"><span class="ps-switch-track" aria-hidden="true"></span></span></label>
       <p class="ps-hint">原生右键快捷添加为可选功能，需要时可在工具详情的「设置」中启用。</p>
 
     </section>
-    <section class="ps-sites" aria-label="网站适配"><div class="ps-sites-heading"><h3>适用网站</h3><button id="ps-sites-open" class="od-button od-button--secondary" aria-controls="ps-sites-panel" aria-expanded="false" type="button">管理网站</button></div><div id="ps-sites-panel" hidden><p class="ps-hint">ChatGPT 已内置，其他网站分别选择两个目标。</p><div id="ps-sites-list" class="ps-sites-list" aria-live="polite"></div><button id="ps-site-current" class="od-button od-button--secondary" type="button">配置当前网站</button><div id="ps-site-form" class="ps-site-form od-surface" hidden><strong id="ps-site-form-title">网站适配</strong>
+    <section class="ps-sites" aria-label="网站适配"><div class="ps-sites-heading"><h3>适用网站</h3><button id="ps-sites-open" class="od-button od-button--secondary" aria-controls="ps-sites-panel" aria-expanded="false" type="button">管理网站</button></div><div id="ps-sites-panel" hidden><p id="ps-current-site-status" class="ps-hint" role="status" aria-live="polite">当前网页识别状态待读取。</p><p class="ps-hint">ChatGPT 已内置；未验证的网站不标记为支持。自定义网站需先选择并验证两个目标。</p><div id="ps-sites-list" class="ps-sites-list" aria-live="polite"></div><button id="ps-site-current" class="od-button od-button--secondary" type="button">配置当前网站</button><div id="ps-site-form" class="ps-site-form od-surface" hidden><strong id="ps-site-form-title">网站适配</strong>
 <p id="ps-site-origin" class="ps-site-origin"></p>
 <div class="ps-compact-row"><label for="ps-site-container" class="od-field-label">按钮容器</label><input id="ps-site-container" class="od-field" placeholder="CSS 选择器"></div>
 <button id="ps-pick-container" class="od-button od-button--secondary" type="button">在网页选择容器</button>
