@@ -2,7 +2,7 @@ import * as React from 'react';
 import {createRoot} from 'react-dom/client';
 import {createPortal} from 'react-dom';
 import {flushSync} from 'react-dom';
-import {ExtensionRows,ExtensionDetail,ExtensionToolbar,ExtensionEmpty,ExtensionRecoveries,ExtensionStatus} from './tabs/tools.tsx';
+import {ExtensionRows,ExtensionDetail,ExtensionToolbar,ExtensionEmpty,ExtensionRecoveries,ExtensionStatus,ExtensionRowMenu} from './tabs/tools.tsx';
 import {DeveloperActions,DeveloperFramework,DeveloperTargetText} from './tabs/develop.tsx';
 
 // One trusted React root and three portals in the existing fixed Side Panel.
@@ -72,6 +72,7 @@ export function mountExtensionList(doc){
     node.dataset.opendeskReactOwner='developer-target-'+name;
   const root=createRoot(host);
   let disposed=false,menuKey=null,detailModel=null;
+  let rowMenuHost=null,rowMenuItems=[];
   let model={rows:[],busy:false,pendingKey:null,onOpenRow:()=>{},onMore:()=>{}};
   let toolbarModel={query:'',kind:'all',scope:'smart',language:'zh-CN',menuOpen:false};
   let feedbackModel={showEmpty:false,emptyText:'',countText:'正在读取扩展…'};
@@ -93,6 +94,7 @@ export function mountExtensionList(doc){
       {createPortal(<ExtensionEmpty model={feedbackModel} container={empty}/>,empty)}
       {createPortal(feedbackModel.countText,count)}
       {createPortal(<ExtensionStatus model={statusModel} container={status}/>,status)}
+      {rowMenuHost&&createPortal(<ExtensionRowMenu items={rowMenuItems}/>,rowMenuHost)}
       {developerFrameworkActive&&createPortal(
         <DeveloperFramework model={developerFrameworkModel}/>,developerChoices)}
       {developerActionsActive&&createPortal(
@@ -118,6 +120,18 @@ export function mountExtensionList(doc){
     developerTargetMounted,
     developerActionsMounted,
     developerFrameworkMounted,
+    attachRowMenu(element){
+      if(disposed||rowMenuHost||!element||element.dataset.opendeskReactOwner||
+        element.childElementCount||element.id!=='extension-center-row-menu')
+        throw new Error('E_REACT_EXTENSION_ROW_MENU_MOUNT');
+      rowMenuHost=element;
+      element.dataset.opendeskReactOwner='extension-row-menu';
+      paint();
+    },
+    renderRowMenu(items){
+      if(disposed||!rowMenuHost)throw new Error('E_REACT_EXTENSION_ROW_MENU_OWNER');
+      rowMenuItems=items;paint();
+    },
     renderDeveloperFramework(next){
       if(disposed||!developerFrameworkMounted)throw new Error('E_REACT_DEVELOPER_FRAMEWORK_OWNER');
       if(!developerFrameworkActive){
@@ -151,6 +165,7 @@ export function mountExtensionList(doc){
     renderDeveloperTarget(next){if(disposed||!developerTargetMounted)return;
       developerTargetModel=next;paint();},
     dispose(){if(disposed)return;disposed=true;root.unmount();
+      if(rowMenuHost)delete rowMenuHost.dataset.opendeskReactOwner;
       if(developerActionsActive)delete developerDock.dataset.opendeskReactOwner;
       if(developerFrameworkActive)delete developerChoices.dataset.opendeskReactOwner;
       if(developerTargetMounted)for(const node of developerNodes)
