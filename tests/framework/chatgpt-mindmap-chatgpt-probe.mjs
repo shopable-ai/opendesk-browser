@@ -386,13 +386,17 @@ try{
   await capture('chatgpt-mobile-320-panned.png',{fullPage:true});
   report.checks.push('MOBILE_REAL_XMIND_HORIZONTAL_BROWSE');
   await viewer(2).getByRole('button',{name:'适配导图画布'}).click();
-  // Restore the normal responsive content width; otherwise a 1440px browser
-  // screenshot still contains the 320px *forced container* and proves nothing.
+  // The fixture controls live inside a <details> which we collapsed before
+  // the mobile screenshots. Restore desktop viewport, reopen its controls,
+  // then turn off the forced 320px mode before testing natural widths.
+  await page.setViewportSize({width:1220,height:860});
+  await page.locator('#developer-lab summary').click();
   await page.getByRole('button',{name:'切换 320px 容器'}).click();
+  await page.locator('#developer-lab summary').click();
   await page.waitForFunction(()=>!document.getElementById('preview-conversation')
     ?.classList.contains('is-narrow'),null,{timeout:10000});
   report.responsive=[];
-  for(const width of [375,390,768,1220,1440]){
+  for(const width of [375,390,400,440,768,1220,1440]){
     await page.setViewportSize({width,height:860});
     await page.waitForFunction(expected=>document.documentElement.clientWidth===expected,
       width,{timeout:10000});
@@ -409,19 +413,21 @@ try{
       const topic=root.querySelector('.topic')?.getBoundingClientRect();
       const rect=canvas.getBoundingClientRect();
       return {contentWidth:Math.round(panel.getBoundingClientRect().width),
+        shellWidth:root.querySelector('.odmm-shell').getBoundingClientRect().width,
         canvasWidth:canvas.clientWidth,fitWidth:Number(canvas.dataset.fitWidth),
         desktop:getComputedStyle(root.querySelector('.odmm-desktop-only')).display,
         mobile:getComputedStyle(root.querySelector('.odmm-mobile-only')).display,
         visibleRootPx:topic?Math.max(0,Math.min(rect.right,topic.right)-
           Math.max(rect.left,topic.left)):0};
     });
-    if(width>=768){
-      assert.ok(metrics.contentWidth>390&&metrics.canvasWidth>390,
-        'Wide viewport must contain a genuinely wide XMind canvas, not 320px');
+    // @container follows actual shell width, not a browser-window breakpoint:
+    // 400px still fits compact mode while 440px may use desktop controls.
+    if(width>=768)assert.ok(metrics.contentWidth>390&&metrics.canvasWidth>390,
+      'Wide viewport must contain a genuinely wide XMind canvas, not 320px');
+    if(metrics.shellWidth>390){
       assert.notEqual(metrics.desktop,'none');
       assert.equal(metrics.mobile,'none');
     }else{
-      assert.ok(metrics.contentWidth<=390);
       assert.equal(metrics.desktop,'none');
       assert.equal(metrics.mobile,'flex');
     }
