@@ -165,6 +165,8 @@ try{
   await until(ctx,"Boolean(document.querySelector('[data-testid=\"bookmark-editor\"]'))",'new folder form '+width);
   assert.equal(await invoke(ctx,"return document.getElementById('bm-edit-url')===null"),true);
   await setInput(ctx,'bm-edit-name','脏草稿需要保护');
+  await setInput(ctx,'bm-search','产品研究');
+  await until(ctx,"Boolean(document.querySelector('[data-node-id=\"11\"]'))",'virtualized folder 11 search '+width);
   await invoke(ctx,"document.querySelector('[data-node-id=\"11\"]').click();return true");
   await until(ctx,"Boolean(document.querySelector('[data-testid=\"confirm-dialog\"]'))",'dirty guard '+width);
   await invoke(ctx,"document.querySelector('[data-testid=\"confirm-dialog\"] button').click();return true");
@@ -172,6 +174,8 @@ try{
   await invoke(ctx,"document.querySelector('[data-node-id=\"11\"]').click();document.querySelector('[data-testid=\"confirm-dialog\"] button:last-child').click();return true");
   await until(ctx,"!document.querySelector('[data-testid=\"bookmark-editor\"]')",'explicit discard '+width);
   // The list menu must be separate from selecting/editing, Escape restores a usable state.
+  await setInput(ctx,'bm-search','');
+  await until(ctx,"Boolean(document.querySelector('[data-node-id=\"10\"]'))",'virtualized folder 10 after clear '+width);
   await invoke(ctx,"document.querySelector('[data-node-id=\"10\"] .bm-row-more').click();return true");
   await until(ctx,"Boolean(document.querySelector('[data-testid=\"action-menu\"]'))",'row menu '+width);
   await invoke(ctx,"document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));return true");
