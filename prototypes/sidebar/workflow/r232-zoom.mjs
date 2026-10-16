@@ -49,7 +49,36 @@ try{
    await page.locator('#r233-qa > summary').click();
    events.push({width,layout:m});
  }
- console.log('R232_REAL_CHROME_UI_200_ZOOM_PASS');
+
+ // Native browser zoom must not clip fields in the complete settings route.
+ for(const width of ['360','420','520']){
+   await page.locator('#r23-width').selectOption(width);
+   await page.locator('#settings').click();
+   await page.locator('#r23-provider').selectOption('custom_https');
+   await page.locator('#r23-api-key').scrollIntoViewIfNeeded();
+   const geom=await page.evaluate(()=>{
+     const device=document.querySelector('.device').getBoundingClientRect(),
+       panel=document.querySelector('.r23-settings').getBoundingClientRect(),
+       input=document.querySelector('#r23-api-key').getBoundingClientRect(),
+       back=document.querySelector('#r234-back').getBoundingClientRect();
+     return{deviceWidth:Math.round(device.width),panelWidth:Math.round(panel.width),
+       inputInside:input.left>=panel.left-1&&input.right<=panel.right+1,
+       backInside:back.left>=panel.left-1&&back.right<=panel.right+1,
+       documentOverflow:document.documentElement.scrollWidth>innerWidth+1};
+   });
+   assert.equal(geom.deviceWidth,Number(width));
+   assert.equal(geom.panelWidth,Number(width));
+   assert.equal(geom.inputInside,true);
+   assert.equal(geom.backInside,true);
+   assert.equal(geom.documentOverflow,false);
+   await page.locator('#r233-qa > summary').click();
+   await page.screenshot({path:resolve(out,'r234-real-200-settings-'+width+'.png'),fullPage:true});
+   await page.locator('#r233-qa > summary').click();
+   await page.locator('#r234-back').click();
+   events.push({width,settingsLayout:geom});
+ }
+
+ console.log('R234_REAL_CHROME_UI_200_ZOOM_PASS');
  await writeFile(resolve(out,'r232-real-zoom.json'),JSON.stringify({status:'CHROME_NATIVE_ZOOM_200_PASS',head,gitBlob,sha256,input,version,zoom:zoomData,events},null,2));
 }catch(e){
  console.error(e);
