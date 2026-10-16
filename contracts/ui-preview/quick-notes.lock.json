@@ -13,7 +13,7 @@
     "scripts/preview/shared-tool-design.mjs": "d5f8fba474ff934298c6b897db45c2c3fff82981",
     "scripts/preview/sidebar-shell-source.mjs": "f20eb823f253495c185d0d12454f94f97ad054e6",
     "scripts/templates/sidebar-tool-preview-shell.html": "66c7447537a759fe867f5f8d14725b7234f8f9b7",
-    "scripts/preview/build-preview.mjs": "42bf11d0742304d2da6cac17ab51796f707e43e8",
+    "scripts/preview/build-preview.mjs": "627624ad59969c61fb133345b043ac7ec46ed719",
     "scripts/preview/quick-notes-mock.js": "65f447314af901386eb3b32136d2f224701dd7b6",
     "scripts/preview/check-preview-contract.mjs": "0fc4aa33ee084c864884f57fcce224e3b86e3770"
   }
