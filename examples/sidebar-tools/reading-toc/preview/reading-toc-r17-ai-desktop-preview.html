@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>OpenDesk Reading TOC · AI 整理桌面预览 R1.7.1</title>
+<title>OpenDesk Reading TOC · AI 整理桌面预览 R1.7.3</title>
 <!-- UI-only / Offline: no Browser SDK requests, no user body upload, no payment, no provider. -->
 <style>
 :root{--od-ink:#1b2c49;--od-sub:#53647e;--od-line:#e1e8f1;--od-brand:#365eda;--od-paper:#fff;--od-bg:#f5f7fb;--od-muted:#f5f7fb;--od-focus:#365eda;--od-positive:#117a5d;--od-negative:#ae3d4b;--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--radius-control:8px;--radius-surface:12px;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Segoe UI",system-ui,sans-serif;line-height:1.45;color:var(--od-ink);background:#f3f5f9}
@@ -14,7 +14,7 @@
 .review-topline{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:22px}
 .review-topline h1{font-size:18px;letter-spacing:-.025em;font-weight:690;color:#28364e}
 .review-topline p{font-size:12px;color:#758198}
-.preview-workspace{display:flex;align-items:flex-start;gap:28px;min-width:0}
+.preview-workspace{display:flex;align-items:flex-start;gap:28px;min-width:0;flex-wrap:wrap}
 .panel-column{flex:0 0 auto;min-width:0}
 .panel-caption{font-size:11px;color:#7a879a;letter-spacing:.035em;margin:0 0 10px 2px}
 .side-panel{width:var(--panel-width,360px);max-width:none;min-width:0;background:#fff;border:1px solid #dfe6f0;border-radius:14px;padding:12px;box-shadow:0 14px 32px #2435540b;zoom:var(--preview-zoom,1)}
@@ -83,7 +83,7 @@
 <main class="review-shell">
   <header class="review-topline">
     <h1 data-i18n="reviewTitle">Reading TOC · AI 整理</h1>
-    <p data-i18n="reviewHint">R1.7.1 / 桌面 Side Panel 候选 / 完全离线</p>
+    <p data-i18n="reviewHint">R1.7.3 / 桌面 Side Panel 候选 / 完全离线</p>
   </header>
   <div class="preview-workspace">
     <div class="panel-column">
@@ -103,11 +103,11 @@
             </div>
           </header>
           <div id="ai-view" class="toc-view" aria-label="AI 整理目录">
-            <nav aria-label="AI 整理的演示目录">
+            <nav aria-label="AI 整理目录" hidden>
               <ul class="outline" id="ai-outline"></ul>
             </nav>
             <footer class="ai-status" id="ai-status" aria-label="会员与整理状态">
-              <span class="status-title" id="status-title">示例目录 · 会员专属 · 暂未开放</span>
+              <span class="status-title" id="status-title">AI 整理 · 会员专属 · 暂未开放</span>
               <button type="button" class="ai-action" id="ai-action" hidden></button>
             </footer>
           </div>
@@ -150,13 +150,13 @@
 const $=selector=>document.querySelector(selector);
 const lex={
   'zh-CN':{
-    reviewTitle:'Reading TOC · AI 整理',reviewHint:'R1.7.1 / 桌面 Side Panel 候选 / 完全离线',panelCaption:'正式侧栏内容区域 · 候选预览',labTitle:'预览控制台 ',outsideLabel:'· 仅供验收，不属于侧栏',
+    reviewTitle:'Reading TOC · AI 整理',reviewHint:'R1.7.3 / 桌面 Side Panel 候选 / 完全离线',panelCaption:'正式侧栏内容区域 · 候选预览',labTitle:'预览控制台 ',outsideLabel:'· 仅供验收，不属于侧栏',
     valueTitle:'把长文章整理成清晰目录',valueDesc:'AI 梳理正文中的章节关系，让重要内容更容易找到。',outlineTitle:'整理后的章节',demoMark:'演示 · 非当前网页',resultMark:'离线生成演示 · 非真实 AI',oldMark:'过期的演示目录',
     stateLabel:'业务状态',widthLabel:'侧栏宽度',scaleLabel:'预览倍率',languageLabel:'语言',labHint:'切换状态不会调用网络；“生成”“重试”仅模拟状态迁移。预览倍率使用 CSS zoom，不等于 Chrome 菜单缩放验收。',
     articleTitle:'离线测试文章 · 跳转目标',articleIntro:'点击左侧目录，会定位到这里的对应章节。这些章节仅用于验证导航交互。',
     sectionOverview:'产品概述',sectionFeatures:'核心能力',sectionScenes:'适用场景',sectionInstall:'安装与使用',sectionStart:'快速开始',sectionFaq:'常见问题',
     paragraph1:'这是一篇用于验证阅读目录的离线文章，包含背景、能力、场景和安装说明。',paragraph2:'原始内容可能没有清晰的层级，而整理后的目录会把主题归并。',paragraph3:'整理段落结构、理解章节间的关系，并保留可定位的章节。',paragraph4:'长文章、文档说明与学习资料等需要快速查找重点的内容。',paragraph5:'在扩展侧栏打开阅读目录，选择需要的查看模式。',paragraph6:'先使用免费目录预览；AI 能力上线后，主动操作才会生成。',paragraph7:'模拟数据不代表任何真实会员权益、余额、订阅或模型结果。',
-    groupLabel:'目录视图',topLabel:'章节概览',focusLabel:'当前章节',fullLabel:'完整目录',aiLabel:'AI 整理',refreshLabel:'刷新阅读目录',refreshTitle:'重新读取当前网页章节',
+    groupLabel:'目录视图',topLabel:'章节概览',focusLabel:'当前章节',fullLabel:'完整目录',aiLabel:'AI 整理',freeNavLabel:'免费目录',refreshLabel:'刷新阅读目录',refreshTitle:'重新读取当前网页章节',
     stateGuest:'未开通会员',stateUnavailable:'服务暂未开放',stateReady:'已开通',stateLoading:'生成中',stateSuccess:'生成成功',stateQuota:'额度不足 / 到期',stateError:'生成失败',stateStale:'正文已变化',
     guestTitle:'会员专属整理',guestDesc:'开通后可主动为当前网页生成可跳转目录；目前没有可用的购买入口。',
     unavailableTitle:'AI 整理暂未开放',unavailableDesc:'你仍可使用概览、当前和完整三种免费目录。',
@@ -166,18 +166,18 @@ const lex={
     quotaTitle:'当前无法继续整理',quotaDesc:'额度不足或会员已到期；已有免费目录不受影响。',
     errorTitle:'本次整理未成功',errorDesc:'可以重试，三个免费目录视图仍然可用。',
     staleTitle:'网页内容已变化',staleDesc:'旧目录已暂停跳转；请重新整理当前内容。',
-    guestFooter:'示例目录 · 会员专属 · 暂未开放',unavailableFooter:'示例目录 · 会员专属 · 暂未开放',readyFooter:'目录示例',loadingFooter:'正在整理当前网页…',successFooter:'离线模拟结果',quotaFooter:'暂时无法生成 · 额度不足或会员到期',errorFooter:'整理失败',staleFooter:'网页已变化 · 目录已失效',
+    guestFooter:'AI 整理 · 会员专属 · 暂未开放',unavailableFooter:'AI 整理 · 暂未开放',readyFooter:'',loadingFooter:'正在整理当前网页…',successFooter:'',quotaFooter:'暂不可用 · 额度不足或会员到期',errorFooter:'整理失败',staleFooter:'网页已变化 · 目录已失效',
     generate:'生成 AI 目录',generating:'正在整理…',regenerate:'重新整理',retry:'重试生成',
     footnote:'离线演示，无真实会员、AI 请求或正文传输。',freeHint:'当前网页 · 离线示例',jumped:'已定位演示文章：',locked:'目录已失效，不能跳转',refreshNotice:'已模拟重新读取网页章节',staleNotice:'内容已变化，请重新整理',
   },
   en:{
-    reviewTitle:'Reading TOC · AI outline',reviewHint:'R1.7.1 / Desktop Side Panel candidate / Offline',panelCaption:'Tool content in Side Panel · Candidate preview',labTitle:'Preview controls ',outsideLabel:'· Test-only, outside the sidebar',
+    reviewTitle:'Reading TOC · AI outline',reviewHint:'R1.7.3 / Desktop Side Panel candidate / Offline',panelCaption:'Tool content in Side Panel · Candidate preview',labTitle:'Preview controls ',outsideLabel:'· Test-only, outside the sidebar',
     valueTitle:'Turn long articles into clear outlines',valueDesc:'AI groups related sections so key topics are easier to find.',outlineTitle:'Organized sections',demoMark:'Demo · Not this webpage',resultMark:'Offline simulation · Not real AI',oldMark:'Outdated demo outline',
     stateLabel:'Scenario',widthLabel:'Panel width',scaleLabel:'Preview zoom',languageLabel:'Language',labHint:'No network calls. Generate and Retry only simulate transitions. CSS zoom does not replace testing Chrome menu zoom.',
     articleTitle:'Offline test article · Navigation targets',articleIntro:'Click an outline entry to jump to its matching section below. These are test-only headings.',
     sectionOverview:'Product overview',sectionFeatures:'Core capabilities',sectionScenes:'Use cases',sectionInstall:'Installation and use',sectionStart:'Getting started',sectionFaq:'Frequently asked questions',
     paragraph1:'This sample article is only used for an offline outline preview.',paragraph2:'Scattered topics can become a structured and navigable outline.',paragraph3:'Organize paragraphs and preserve their relationships as jump targets.',paragraph4:'Useful for long-form articles, documentation, and learning resources.',paragraph5:'Open Reading TOC in the extension side panel and choose a view.',paragraph6:'Start with a free outline; AI generation always requires explicit action.',paragraph7:'No actual memberships, credits, billing, or model outputs are represented.',
-    groupLabel:'Outline views',topLabel:'Overview',focusLabel:'Current section',fullLabel:'Full outline',aiLabel:'AI outline',refreshLabel:'Refresh outline',refreshTitle:'Read current webpage sections again',
+    groupLabel:'Outline views',topLabel:'Overview',focusLabel:'Current section',fullLabel:'Full outline',aiLabel:'AI outline',freeNavLabel:'Free outline',refreshLabel:'Refresh outline',refreshTitle:'Read current webpage sections again',
     stateGuest:'No membership',stateUnavailable:'Not available',stateReady:'Member ready',stateLoading:'Generating',stateSuccess:'Generated',stateQuota:'Quota / expired',stateError:'Failed',stateStale:'Page changed',
     guestTitle:'Member-only organization',guestDesc:'Members can request a navigable AI outline. No purchase link is available yet.',
     unavailableTitle:'AI outline is not available yet',unavailableDesc:'Overview, Current, and Full remain free to use.',
@@ -187,7 +187,7 @@ const lex={
     quotaTitle:'Cannot generate right now',quotaDesc:'Your quota may be exhausted or access has expired. Free views still work.',
     errorTitle:'Generation did not complete',errorDesc:'Retry if you wish. Existing free outlines are unaffected.',
     staleTitle:'Page content has changed',staleDesc:'Old links are paused. Reorganize the current content to continue.',
-    guestFooter:'Sample outline · Members only · Coming soon',unavailableFooter:'Sample outline · Members only · Coming soon',readyFooter:'Sample outline',loadingFooter:'Organizing this page…',successFooter:'Offline simulated result',quotaFooter:'Unavailable · Limit reached or membership expired',errorFooter:'Generation failed',staleFooter:'Page changed · Outline outdated',
+    guestFooter:'AI outline · Members only · Coming soon',unavailableFooter:'AI outline · Coming soon',readyFooter:'',loadingFooter:'Organizing this page…',successFooter:'',quotaFooter:'Unavailable · Limit reached or membership expired',errorFooter:'Generation failed',staleFooter:'Page changed · Outline outdated',
     generate:'Generate AI outline',generating:'Organizing…',regenerate:'Generate again',retry:'Retry generation',
     footnote:'Offline demo only. No real memberships, AI requests, or page uploads.',freeHint:'Current page · Offline demo',jumped:'Jumped to sample article: ',locked:'Outline is stale and cannot navigate',refreshNotice:'Simulated a webpage outline refresh',staleNotice:'Page changed. Reorganize the outline',
   }
@@ -196,13 +196,16 @@ const records=[['overview',1,'sectionOverview'],['features',2,'sectionFeatures']
 const scenarios=['guest','unavailable','ready','loading','success','quota','error','stale'];
 const labels={guest:'stateGuest',unavailable:'stateUnavailable',ready:'stateReady',loading:'stateLoading',success:'stateSuccess',quota:'stateQuota',error:'stateError',stale:'stateStale'};
 const statusFields={guest:['guestTitle','guestDesc','neutral'],unavailable:['unavailableTitle','unavailableDesc','neutral'],ready:['readyTitle','readyDesc','info'],loading:['loadingTitle','loadingDesc','info'],success:['successTitle','successDesc','positive'],quota:['quotaTitle','quotaDesc','neutral'],error:['errorTitle','errorDesc','negative'],stale:['staleTitle','staleDesc','negative']};
-let locale='zh-CN',width=360,scale=1,mode='ai',state='unavailable',activeId='features',activeFreeMode='focus',generationToken=0,generationTimer=null;
-const t=key=>lex[locale][key]||key;
+let locale='zh-CN',width=360,scale=1,mode='ai',state='guest',activeId='features',activeFreeMode='focus',generationToken=0,generationTimer=null;
+// Offline AI output is independent of the free directory and exists only after a simulated success.
+let aiResult=[];
+function mockAIResult(){return records.map(record=>[...record]);}
+const t=key=>lex[locale][key]??key;
 function live(message){$('#live-status').textContent=message;}
 function clearGeneration(){generationToken++;if(generationTimer!==null){clearTimeout(generationTimer);generationTimer=null;}}
 function modeButton(modeId){return document.querySelector(`[data-mode="${modeId}"]`);}
 function setMode(next){mode=next;if(next!=='ai')activeFreeMode=next;render();}
-function navigateTo(id,fromAI){if(fromAI&&state==='stale'){live(t('locked'));return;}
+function navigateTo(id,fromAI){if(fromAI&&(state!=='success'||!aiResult.some(record=>record[0]===id))){live(t('locked'));return;}
  const el=document.getElementById('article-'+id);if(!el)return;
  activeId=id;document.querySelectorAll('.mock-article h3').forEach(h=>h.classList.toggle('is-target',h===el));
  el.scrollIntoView({block:'start',inline:'nearest',behavior:'instant'});el.focus({preventScroll:true});
@@ -210,28 +213,26 @@ function navigateTo(id,fromAI){if(fromAI&&state==='stale'){live(t('locked'));ret
 }
 function makeRow([id,depth,key],fromAI){
  const li=document.createElement('li');li.className='level-'+depth;
- const isResult=fromAI&&state==='success';
- const isStale=fromAI&&state==='stale';
- const isExample=fromAI&&!isResult&&!isStale;
- const row=document.createElement(isExample?'span':'button');
- row.className='outline-row';
- if(!isExample){
-  row.type='button';row.setAttribute('aria-label',t(key));row.title=t(key);
-  if(isStale)row.disabled=true;
-  if(id===activeId&&(!fromAI||isResult))row.setAttribute('aria-current','location');
-  row.addEventListener('click',()=>navigateTo(id,fromAI));
- }
+ const row=document.createElement('button');row.className='outline-row';row.type='button';
+ row.setAttribute('aria-label',t(key));row.title=t(key);
+ if(id===activeId)row.setAttribute('aria-current','location');
+ row.addEventListener('click',()=>navigateTo(id,fromAI));
  const label=document.createElement('span');label.className='outline-text';label.textContent=t(key);
  row.append(label);li.append(row);return li;
 }
-function renderOutline(){const list=$('#ai-outline');list.replaceChildren(...records.map(r=>makeRow(r,true)));}
+function renderOutline(){
+ const list=$('#ai-outline');
+ const valid=state==='success'&&aiResult.length>0;
+ list.replaceChildren(...(valid?aiResult:[]).map(record=>makeRow(record,true)));
+ list.parentElement.hidden=!valid;
+}
 function freeRows(){if(mode==='top')return records.filter(r=>r[1]===1);if(mode==='focus')return records.filter(r=>r[0]==='overview'||r[0]==='features'||r[0]==='scenes');return records;}
 function renderFree(){const list=$('#free-outline');list.replaceChildren(...freeRows().map(r=>makeRow(r,false)));$('#free-label').textContent=t('freeHint');}
 function renderControls(){for(const [name,target,values,current,formatter] of [
   ['state','#state-controls',scenarios,state,v=>t(labels[v])],['width','#width-controls',[320,360,420,520],width,v=>v+'px'],
   ['scale','#scale-controls',[1,1.25,1.5,2],scale,v=>Math.round(v*100)+'%'],['locale','#lang-controls',['zh-CN','en'],locale,v=>v==='en'?'English':'简体中文']]){
   const box=$(target);box.replaceChildren(...values.map(value=>{const b=document.createElement('button');b.type='button';b.textContent=formatter(value);b.setAttribute('aria-pressed',String(current===value));b.addEventListener('click',()=>{
-    if(name==='state'){clearGeneration();state=value;}
+    if(name==='state'){applyScenario(value);return;}
     else if(name==='width')width=value;
     else if(name==='scale')scale=value;
     else{locale=value;document.documentElement.lang=value;}
@@ -242,7 +243,10 @@ function renderControls(){for(const [name,target,values,current,formatter] of [
 function renderStatus(){
  const el=$('#ai-status');
  el.setAttribute('aria-label',t('stateLabel')+': '+t(labels[state]));
- $('#status-title').textContent=t(state+'Footer');
+ const statusTitle=$('#status-title');
+ statusTitle.textContent=t(state+'Footer');
+ statusTitle.hidden=!statusTitle.textContent;
+ el.style.justifyContent=statusTitle.hidden?'flex-end':'';
  const action=$('#ai-action');
  action.hidden=!['ready','success','error','stale'].includes(state);
  action.disabled=state==='loading';
@@ -261,6 +265,8 @@ function renderLanguage(){for(const el of document.querySelectorAll('[data-i18n]
  $('#state-controls').setAttribute('aria-label',t('stateLabel'));$('#width-controls').setAttribute('aria-label',t('widthLabel'));
  $('#scale-controls').setAttribute('aria-label',t('scaleLabel'));$('#lang-controls').setAttribute('aria-label',t('languageLabel'));
  $('#mock-article').setAttribute('aria-label',t('articleTitle'));$('#ai-view').setAttribute('aria-label',t('aiLabel'));
+ $('#ai-outline').parentElement.setAttribute('aria-label',t('aiLabel'));
+ $('#free-outline').parentElement.setAttribute('aria-label',t('freeNavLabel'));
 }
 function render(){renderLanguage();renderControls();$('#side-panel').style.setProperty('--panel-width',width+'px');$('#side-panel').style.setProperty('--preview-zoom',String(scale));
  for(const button of document.querySelectorAll('[data-mode]'))button.setAttribute('aria-pressed',String(button.dataset.mode===mode));
@@ -268,8 +274,20 @@ function render(){renderLanguage();renderControls();$('#side-panel').style.setPr
  renderStatus();renderOutline();renderFree();
  if($('#article-feedback').textContent)$('#article-feedback').textContent=t('jumped')+t(records.find(r=>r[0]===activeId)[2]);
 }
-function startGeneration(){if(state==='loading')return;clearGeneration();const token=generationToken;state='loading';render();live(t('loadingTitle'));
- generationTimer=setTimeout(()=>{generationTimer=null;if(token!==generationToken||state!=='loading')return;state='success';render();live(t('successTitle'));},1150);
+function startGeneration(){
+ if(!['ready','error','stale','success'].includes(state))return;
+ clearGeneration();aiResult=[];const token=generationToken;state='loading';render();live(t('loadingTitle'));
+ generationTimer=setTimeout(()=>{
+  generationTimer=null;
+  if(token!==generationToken||state!=='loading')return;
+  aiResult=mockAIResult();state='success';render();live(t('successTitle'));
+ },1150);
+}
+function applyScenario(next){
+ if(!scenarios.includes(next))return;
+ clearGeneration();aiResult=[];state=next;
+ if(next==='success')aiResult=mockAIResult(); // Explicitly injected successful offline scenario only.
+ render();
 }
 $('#ai-action').addEventListener('click',()=>{if(['ready','error','stale','success'].includes(state))startGeneration();});
 for(const button of document.querySelectorAll('[data-mode]'))button.addEventListener('click',()=>setMode(button.dataset.mode));
@@ -279,10 +297,13 @@ $('#toc-modes').addEventListener('keydown',event=>{
  const index=event.key==='Home'?0:event.key==='End'?buttons.length-1:(current+(event.key==='ArrowRight'?1:-1)+buttons.length)%buttons.length;
  event.preventDefault();buttons[index].focus();setMode(buttons[index].dataset.mode);
 });
-$('#toc-refresh').addEventListener('click',()=>{if(state==='success'){clearGeneration();state='stale';}render();live(state==='stale'?t('staleNotice'):t('refreshNotice'));});
+$('#toc-refresh').addEventListener('click',()=>{
+ if(state==='success'||state==='loading'){clearGeneration();aiResult=[];state='stale';}
+ render();live(state==='stale'?t('staleNotice'):t('refreshNotice'));
+});
 render();
 // Exposed only to self-tests in the detached offline preview. Not a Browser SDK API.
-Object.defineProperty(window,'__READING_TOC_PREVIEW__',{value:Object.freeze({getState:()=>({locale,width,scale,mode,state,activeId,activeFreeMode}),setScenario(value){if(!scenarios.includes(value))return;clearGeneration();state=value;render();}})});
+Object.defineProperty(window,'__READING_TOC_PREVIEW__',{value:Object.freeze({getState:()=>({locale,width,scale,mode,state,activeId,activeFreeMode}),setScenario(value){applyScenario(value);}})});
 })();
 </script>
 </body>
