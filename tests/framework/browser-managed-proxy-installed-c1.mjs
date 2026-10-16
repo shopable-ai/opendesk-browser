@@ -323,7 +323,10 @@ async function main(){
   assert.equal(serializeSidebarToolPackage(installed.pkg),serializeSidebarToolPackage(candidate));
   assert.equal(await sidebarToolPackageHash(installed.pkg),identityHash);
   assert.equal(installed.enabled,true,'Formal AI VIP Share is not enabled after install');
-  assert.match(installed.epoch||'',/^[0-9a-f-]{36}$/i,'Missing formal installEpoch');
+  // A first install has a null revocation epoch by contract. An update,
+  // disable or uninstall may rotate it to a UUID; never fabricate one in CI.
+  assert(installed.epoch===null||/^[0-9a-f-]{36}$/i.test(installed.epoch),
+    'Malformed installed revocation epoch');
   receipt.installed=true;receipt.installEpoch=installed.epoch;
   receipt.installedSource=installed.provenance?'reviewed-market':'production-package-local-import';
   step('FORMAL_INSTALL_IDENTITY',{status:'PASS',packageHash:identityHash,installEpoch:installed.epoch,
