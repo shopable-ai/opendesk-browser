@@ -234,7 +234,9 @@ async function main(){
     x.type==='service_worker'&&/^chrome-extension:\/\/[a-p]{32}\/sw\.js$/.test(x.url)),'production SW');
   const extensionId=swTarget.url.split('/')[2],worker=await attach(swTarget.targetId);
   receipt.extensionId=extensionId;
-  const first=await readNative(worker);
+  // A newly attached MV3 worker can precede Chrome API/context initialization.
+  // Reuse the existing native SW smoke test's real readiness wait; never mock chrome.
+  const first=await until(()=>readNative(worker),'real MV3 chrome API ready');
   assert.equal(first.journal,null,'Fresh Chrome profile has an unexpected proxy journal');
   if(first.settings)assert.notEqual(first.settings.value?.mode,'pac_script');
   const tab=await until(async()=>(await targets()).find(x=>x.type==='page'&&x.url==='about:blank'),'Chrome tab');
@@ -274,7 +276,7 @@ async function main(){
   // the production AI VIP UI correctly disables commercial ENABLE without Provider.
   // This isolated tool is not an official release and has no approved profile.
   await exerciseProductionDeniedSdk(extensionId);
-  const after=await readNative(worker);
+  const after=await until(()=>readNative(worker),'post-UI native Chrome proxy readback');
   assert.equal(after.journal,null,'Unconfigured official tool wrote managed proxy journal');
   if(after.settings)assert.notEqual(after.settings.value?.mode,'pac_script');
   step('NO_UNAPPROVED_NATIVE_SET',{status:'PASS',permission:after.permission,
