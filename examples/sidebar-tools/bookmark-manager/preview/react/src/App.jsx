@@ -243,7 +243,7 @@ export default function App(){
  function toggle(id){if(expanded.has(id)&&tree){let node=tree.byId.get(activeId),limit=0;while(node&&limit++<100){if(node.parentId===id){setActiveId(id);break}node=tree.byId.get(node.parentId)}}setExpanded(prev=>{const n=new Set(prev);if(n.has(id))n.delete(id);else n.add(id);return n})}
  function startEdit(node,{move=false}={}){if(!node||node.locked)return;setDraft(initialDraft('edit',isFolder(node)?'folder':'bookmark',node,node.parentId));setSelectedId(node.id);setPickerOpen(move);setUncertain(false)}
  function closeSheet(){if(busy)return;if(uncertain)setNotice('写入结果未知，请先刷新核对书签。');setDraft(null);setPickerOpen(false);setError('')}
- function requestCloseSheet(){if(busy)return;if(dirtyDraft(draft)&&!uncertain){setConfirmDiscard(true);return}closeSheet()}
+ function requestCloseSheet(){if(busy)return;if(dirtyDraft(draft)||uncertain){setConfirmDiscard(true);return}closeSheet()}
  function perform(action){
   setPickerOpen(false);setMenu(null);
   if(action.type==='select'){setSelectedId(action.id);setDraft(null);setPreviewOpen(true)}
@@ -298,10 +298,10 @@ export default function App(){
   {previewNode&&<PreviewPane tree={tree} node={previewNode} onClose={closePreview} onEdit={id=>request({type:'edit',id})} onCopy={copyPreviewUrl}/>}
   </div>
   {tree&&draft&&<Sheet title={draft?(draft.mode==='create'?(draft.kind==='folder'?'新建文件夹':'新建书签'):'编辑'+(draft.kind==='folder'?'文件夹':'书签')):'书签详情'} onClose={requestCloseSheet} canClose={!busy} dismissOnBackdrop={!busy&&!dirtyDraft(draft)}>
-    <Inspector tree={tree} node={current} draft={draft} setDraft={setDraft} onSave={save} onCancel={closeSheet} onOpenPicker={setPickerOpen} pickerOpen={pickerOpen} setPickerOpen={setPickerOpen} busy={busy} uncertain={uncertain} error={error}/>
+    <Inspector tree={tree} node={current} draft={draft} setDraft={setDraft} onSave={save} onCancel={uncertain?requestCloseSheet:closeSheet} onOpenPicker={setPickerOpen} pickerOpen={pickerOpen} setPickerOpen={setPickerOpen} busy={busy} uncertain={uncertain} error={error}/>
   </Sheet>}
   {menu&&<ActionMenu state={menu} onAction={actionMenu} onClose={closeMenu}/>}
-  {confirmDiscard&&<Confirm title="放弃未保存的修改？" description="草稿尚未保存。可以继续编辑或明确放弃。" cancelLabel="继续编辑" confirm="放弃修改" danger onConfirm={()=>{setConfirmDiscard(false);closeSheet()}} onCancel={()=>setConfirmDiscard(false)}/>}
+  {confirmDiscard&&<Confirm title={uncertain?"写入结果未知，确定放弃草稿？":"放弃未保存的修改？"} description={uncertain?"无法确认上次保存是否生效。此操作仅放弃本地草稿，不会重试写入；请刷新核对数据。":"草稿尚未保存。可以继续编辑或明确放弃。"} cancelLabel="继续编辑" confirm={uncertain?"放弃草稿":"放弃修改"} danger onConfirm={()=>{setConfirmDiscard(false);closeSheet()}} onCancel={()=>setConfirmDiscard(false)}/>}
    {confirmDelete&&<Confirm title={confirmDelete.count?'删除文件夹及子项？':'删除书签？'} description={confirmDelete.count?'「'+confirmDelete.expected.title+'」及其 '+confirmDelete.count+' 个子项将被永久删除。':'「'+confirmDelete.expected.title+'」将被永久删除。'} confirm={busy?'正在删除…':confirmDelete.count?'删除文件夹':'删除书签'} danger canConfirm={!busy} onConfirm={()=>void removeConfirmed()} onCancel={()=>setConfirmDelete(null)}/>}
  </div>
 }

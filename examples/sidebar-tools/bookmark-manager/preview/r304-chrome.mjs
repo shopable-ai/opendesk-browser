@@ -295,9 +295,29 @@ try{
    assert.equal(await invoke(ctx,"return document.getElementById('bm-edit-name').value"),'失败后保留输入');
    await screenshot('bookmark-r304-400-failure.png');
    await click(ctx,'.bm-editor-actions button:last-child');
-   await gone(ctx,'[data-testid="bookmark-sheet"]','cancel failed draft');
+   await gone(ctx,'[data-testid="bookmark-sheet"]','cancel failed draft'); 
+   // Simulate an indeterminate write: both Close and Cancel must ask before discarding.
+   await openMenu(ctx,'100');
+   await choose(ctx,1);
+   await until(ctx,"!!document.getElementById('bm-edit-name')",'edit before unknown write');
+   await setInput(ctx,'bm-edit-name','结果未知仍保留草稿');
+   await invoke(ctx,"globalThis.__opendeskBookmarkMockDiagnostic('write-unknown');return true");
+   await click(ctx,'[data-testid="bookmark-save"]');
+   await until(ctx,"!!document.querySelector('.bm-warning')",'unknown save warning');
+   assert.equal(await invoke(ctx,"return document.getElementById('bm-edit-name').value"),'结果未知仍保留草稿');
+   await click(ctx,'.bm-sheet-close');
+   await until(ctx,"!!document.querySelector('[data-testid=confirm-dialog]')",'unknown X confirmation');
+   assert.match(await invoke(ctx,"return document.querySelector('[data-testid=confirm-dialog]').textContent"),/写入结果未知/);
+   await screenshot('bookmark-r304-400-unknown-draft.png');
+   await click(ctx,'[data-testid="confirm-dialog"] button:first-child');
+   await gone(ctx,'[data-testid="confirm-dialog"]','continue unknown editing');
+   assert.equal(await invoke(ctx,"return document.getElementById('bm-edit-name').value"),'结果未知仍保留草稿');
+   await click(ctx,'.bm-editor-actions button:last-child');
+   await until(ctx,"!!document.querySelector('[data-testid=confirm-dialog]')",'unknown Cancel confirmation');
+   await click(ctx,'[data-testid="confirm-dialog"] button:last-child');
+   await gone(ctx,'[data-testid="bookmark-sheet"]','explicitly discard unknown draft');
   }
-  report.push({width,treeHeight:originalHeight,noPersistentInspector:true,passed:['one-click-preview','five-click-five-previews','folder-disclosure','nonmodal-preview','view-detail-on-demand','direct-cancel','edit-no-tree-jump','save-readback','search-2159','create-types','delete-confirm-copy-and-target','focus-restore','menu-Escape',...(width===400?['folder-130','failure-preserve']:[])]});
+  report.push({width,treeHeight:originalHeight,noPersistentInspector:true,passed:['one-click-preview','five-click-five-previews','folder-disclosure','nonmodal-preview','view-detail-on-demand','direct-cancel','edit-no-tree-jump','save-readback','search-2159','create-types','delete-confirm-copy-and-target','focus-restore','menu-Escape',...(width===400?['folder-130','failure-preserve','unknown-draft-safety']:[])]});
  }
  assert.deepEqual(network,[],'no network requests');
  assert.deepEqual(exceptions,[],'no browser JS exceptions');

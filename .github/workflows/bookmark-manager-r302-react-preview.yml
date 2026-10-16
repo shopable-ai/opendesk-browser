@@ -120,7 +120,7 @@ jobs:
             fi
             echo "Concurrent unrelated changes only; preserve them with a local non-force rebase."
           fi
-          git add -- examples/sidebar-tools/bookmark-manager/preview/index.html examples/sidebar-tools/bookmark-manager/preview/evidence/r304/ examples/sidebar-tools/bookmark-manager/preview/evidence/r3041/
+          git add -- examples/sidebar-tools/bookmark-manager/preview/index.html # screenshots live in Actions artifacts, not Git
           if git diff --cached --quiet; then
             echo "Exact React preview already committed."
             exit 0
