@@ -21,6 +21,8 @@ description: Author, iterate and preview sandboxed 扩展 center Sidebar App UI 
 4. [示例导航](../../../examples/sidebar-tools/README.zh-CN.md)：选择与任务真正相符的原生、React、Vue 或官方可信示例。
 5. **只有开发特定工具时**，才补读该工具自己的 README、可选 DEVELOPMENT 与范围内 AGENTS。
 
+**已安装复合工具的身份保护**：Prompt Shortcuts 的实际 `tool.config.json` 是 Sidebar Tool v2，网页操作由原 `trusted/page.js` 与宿主受审 Browser SDK 提供；Cookie Editor/Bookmark Manager 也保留已授权 v2 SDK。修改这类工具的 UI 或网站规则，不得仅根据“网页按钮”就改成 Page Program，也不能扩大原私有能力为第三方通用 `request`。正式来源、安装与权限按 [公开 Browser SDK v2](../../../docs/api/browser-sdk.zh-CN.md) 和各工具 README 核对。
+
 **第三方作者免读 Browser 内部源码**：本 Skill、公开 SDK/Schema、示例和工具自身 README 足够作为默认开发输入。`src/ui/sidebar-tools/package.js` 等内部实现仅供平台维护者在已证明通用缺口时调查；不能要求普通用户读取 Broker/Host，也不能靠某工具需求新增通用运行器。无证据时记 `SDK_GAP_NOT_PROVEN`。
 
 ## 工具项目归属与演进顺序（2026-10-14）
