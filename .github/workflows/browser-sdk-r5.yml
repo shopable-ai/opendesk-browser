@@ -57,6 +57,7 @@ on:
       - 'examples/sidebar-tools/browser-sdk-acceptance/**'
       - 'tests/framework/browser-sdk-r106-native.mjs'
       - 'tests/framework/browser-managed-proxy-chromium-pac.mjs'
+      - 'tests/framework/browser-managed-proxy-installed-c1.mjs'
       - 'scripts/check-browser-sdk-coverage.mjs'
       - 'tests/environment/browser-sdk-coverage.test.mjs'
       - '.github/workflows/browser-sdk-r5.yml'
@@ -206,3 +207,40 @@ jobs:
           retention-days: 14
           if-no-files-found: warn
           path: artifacts/browser-managed-proxy-chromium-pac.json
+
+  # C1 actual production MV3 installation through Chrome pointer/file input.
+  # The receipt explicitly forbids promotion from tab-host proof to SIDE_PANEL C1.
+  sdk-formal-chromium-c1:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          clean: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Build real production candidate with empty reviewed Proxy profiles
+        run: npm run build
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome-c1
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Real installed AI VIP Share, Chrome user input and production reject gate (C1 partial)
+        env:
+          CHROME_FOR_TESTING_BIN: ${{ steps.chrome-c1.outputs.chrome-path }}
+          OPENDESK_PROXY_C1_RUNNER: ${{ runner.environment }}
+          OPENDESK_PROXY_C1_ALLOW_NO_SANDBOX: 'yes'
+        run: node tests/framework/browser-managed-proxy-installed-c1.mjs
+      - name: Preserve raw C1 installed Chromium evidence (not Side Panel PASS)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: managed-proxy-native-c1-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            artifacts/managed-proxy-installed-c1.json
+            artifacts/managed-proxy-c1-*.png
