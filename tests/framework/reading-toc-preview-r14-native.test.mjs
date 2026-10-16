@@ -113,7 +113,7 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
  const side=await open('reading-toc-r12-interactive-preview.html'),panel=await child(browser,side.page);
  await until(()=>evaluate(panel,'document.querySelectorAll("#toc-list button").length>0'),'Compiled TOC did not start in real sandbox');
  await select(side.page,'od-toc-language','en');
- await until(()=>evaluate(panel,'document.querySelector(".toc-title")?.textContent==="CONTENTS"'),'English panel switch failed');
+ await until(()=>evaluate(panel,'document.querySelector(".toc-title")?.textContent==="CONTENTS" && document.querySelector(".toc-panel")?.getAttribute("aria-label")==="Reading table of contents"'),'English accessible label and fixed CONTENTS heading failed');
  await evaluate(panel,"(()=>{const s=document.querySelector('#toc-source');s.value='s-2';s.dispatchEvent(new Event('change',{bubbles:true}));})()");
  const labels=await until(async()=>{const rows=await evaluate(panel,
   '[...document.querySelectorAll("#toc-list button")].map(n=>({id:n.dataset.id,label:n.textContent.trim()}))');
@@ -122,7 +122,7 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
  assert.equal(new Set(labels.map(row=>row.id)).size,4);
  await evaluate(panel,"document.querySelector('[data-toc-mode=full]').click()");
  await select(side.page,'od-toc-language','zh-CN');
- await until(()=>evaluate(panel,'document.querySelector(".toc-title")?.textContent==="阅读目录"'),'Chinese restore failed');
+ await until(()=>evaluate(panel,'document.querySelector(".toc-title")?.textContent==="CONTENTS" && document.querySelector(".toc-panel")?.getAttribute("aria-label")==="阅读目录"'),'Chinese accessible label restore failed without changing the approved CONTENTS visual');
  assert.equal(await evaluate(panel,'document.querySelector("#toc-source").value'),'s-2');
  assert.equal(await evaluate(panel,'document.querySelector("[data-toc-mode=full]").getAttribute("aria-pressed")'),'true');
  await screenshot(side.page,'toc-r14-preview-panel.png');
