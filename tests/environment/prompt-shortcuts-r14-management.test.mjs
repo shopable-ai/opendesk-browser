@@ -49,33 +49,30 @@ function buttonByText(root,text){
   const button=allDescendants(root).find(node=>node.tagName==='BUTTON'&&node.textContent===text);
   assert(button,'missing clickable '+text);return button;
 }
-async function fixture(){
+async function fixture({initialStored=null,storageFault=null}={}){
   const [html,main,modelSource]=await Promise.all([
     readFile(tool+'/src/index.html','utf8'),readFile(tool+'/src/main.js','utf8'),
     readFile(tool+'/trusted/model.js','utf8')
   ]);
   const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(x=>x[1]);
   const nodes=Object.fromEntries(ids.map(id=>[id,new FakeNode('div',id)]));
-  for(const id of ['ps-edit','ps-leave','ps-copy','ps-empty','ps-error'])nodes[id].hidden=true;
+  for(const id of ['ps-edit','ps-leave','ps-empty','ps-error','ps-body-error'])nodes[id].hidden=true;
   nodes['ps-body'].tagName='TEXTAREA';
   nodes['ps-label'].tagName='INPUT';nodes['ps-name'].tagName='INPUT';
   nodes['ps-enabled'].checked=true;nodes['ps-web'].checked=true;
-  const shapes={square:new FakeNode('input'),round:new FakeNode('input')};
-  shapes.square.value='square';shapes.square.checked=true;shapes.round.value='round';
+  const copies=[];
   const root={
-    ownerDocument:{createElement:tag=>new FakeNode(tag)},
+    ownerDocument:{createElement:tag=>new FakeNode(tag),
+      execCommand:cmd=>{assert.equal(cmd,'copy');copies.push(nodes['ps-clipboard-buffer'].value);return true;},
+      activeElement:null},
     querySelector(selector){
       if(selector.startsWith('#'))return nodes[selector.slice(1)]||null;
       if(selector.startsWith('.'))return allDescendants(nodes['ps-list'])
         .find(node=>node.classList.contains(selector.slice(1)))||null;
-      if(selector==='input[name="ps-shape"]:checked')
-        return shapes.round.checked?shapes.round:shapes.square;
-      const match=selector.match(/^input\[name="ps-shape"\]\[value="(square|round)"\]$/);
-      return match?shapes[match[1]]:null;
     },
     addEventListener(){},
   };
-  let stored=null,version='a'.repeat(64),writes=0;
+  let stored=initialStored===null?null:structuredClone(initialStored),version='a'.repeat(64),writes=0;
   const states=[],requests=[];
   const request=async(op,payload={})=>{
     requests.push({op,payload});
@@ -85,14 +82,16 @@ async function fixture(){
     }
     if(op==='storage.set'){
       assert.equal(payload.key,'library');assert.equal(payload.ifMatch,version);
+      if(storageFault==='reject')throw Object.assign(Error('Chrome storage unavailable'),{code:'E_HOST_STORAGE_WRITE'});
       stored=structuredClone(payload.value);writes++;
-      version=String(writes).padStart(64,'0');return {saved:true,etag:version};
+      version=String(writes).padStart(64,'0');
+      if(storageFault==='unknown')throw Object.assign(Error('Acknowledgment not verified'),{code:'E_OUTCOME_UNKNOWN'});
+      return {saved:true,etag:version};
     }
-    if(op==='clipboard.writeText')return {copied:true};
     throw Error('unexpected operation: '+op);
   };
   const sandbox={
-    Intl,TextEncoder,crypto:webcrypto,
+    Intl,TextEncoder,crypto:{getRandomValues:array=>webcrypto.getRandomValues(array)},
     OpenDeskTool:{root,request,setState:row=>states.push({...row})},
     OpenDeskSDK:{browser:{contextMenu:{
       getStatus:async()=>({enabled:false,approvedOrigins:[],browserPermission:false}),
@@ -102,9 +101,8 @@ async function fixture(){
   runInNewContext(modelSource,sandbox,{filename:'trusted/model.js'});
   runInNewContext(main,sandbox,{filename:'src/main.js'});
   await settle();
-  return {nodes,root,requests,states,shapes,
-    stored:()=>stored,writes:()=>writes,
-    chooseShape:value=>{shapes.square.checked=value==='square';shapes.round.checked=value==='round';}
+  return {nodes,root,requests,states,copies:()=>copies.slice(),
+    stored:()=>stored,writes:()=>writes
   };
 }
 test('R1.7 actual Sandbox UI: content-first create, inline confirm, draft guard and quota recovery',async()=>{
@@ -200,5 +198,66 @@ test('R1.13 management is content-first, one-click copy and no redundant grant w
   assert(first,'first visual tier must be a clickable full-body button');
   assert.equal(first.children[0]?.textContent,'第一行\n\n第二行');
   first.emit('click');await settle();
-  assert(f.requests.some(v=>v.op==='clipboard.writeText'&&v.payload.text==='第一行\n\n第二行'));
+  assert.deepEqual(f.copies(),['第一行\n\n第二行']);
+  assert.equal(n['ps-status'].textContent,'已复制完整正文。');
+});
+
+
+test('R1.13 P0: text-only 你好 persists across actual tool script reinitialization without randomUUID',async()=>{
+  const f=await fixture(),n=f.nodes;
+  n['ps-new'].emit('click');
+  assert.equal(n['ps-setting-fields'].hidden,false,'settings start expanded');
+  n['ps-toggle-settings'].emit('click');
+  assert.equal(n['ps-setting-fields'].hidden,true);
+  n['ps-body'].value='你好';n['ps-form'].emit('input');
+  assert.equal(n['ps-setting-fields'].hidden,true,'typing does not reopen settings');
+  n['ps-form'].emit('submit',{preventDefault(){}});
+  await settle();
+  assert.equal(f.writes(),1);
+  assert.equal(f.stored().items.length,1);
+  assert.equal(f.stored().items[0].body,'你好');
+  assert.match(f.stored().items[0].id,/^[a-zA-Z0-9_-]{8,64}$/);
+  assert.equal(n['ps-index'].hidden,false);
+  const reopened=await fixture({initialStored:f.stored()});
+  assert.equal(reopened.nodes['ps-count'].textContent,'1 个 · 1 个启用');
+  assert.equal(reopened.stored().items[0].body,'你好');
+  assert.equal(reopened.writes(),0,'reopening cannot duplicate a saved entry');
+});
+
+test('R1.13 old round shape remains unchanged during content edit',async()=>{
+  const library={schema:1,items:[{id:'legacy-round-123',body:'原内容',label:'原内',name:'手动标题',
+    shape:'round',enabled:true,order:0}],settings:{webButtons:true}};
+  const f=await fixture({initialStored:library});
+  buttonByText(f.nodes['ps-list'],'编辑').emit('click');
+  f.nodes['ps-body'].value='修改正文';f.nodes['ps-form'].emit('input');
+  f.nodes['ps-form'].emit('submit',{preventDefault(){}});
+  await settle();
+  assert.equal(f.stored().items[0].body,'修改正文');
+  assert.equal(f.stored().items[0].shape,'round','editing must not silently change old round shape');
+});
+
+test('R1.13 write rejection and outcome unknown protect the draft and never auto-retry',async()=>{
+  for(const storageFault of ['reject','unknown']){
+    const f=await fixture({storageFault}),n=f.nodes;
+    n['ps-new'].emit('click');n['ps-body'].value='你好';n['ps-form'].emit('input');
+    n['ps-form'].emit('submit',{preventDefault(){}});
+    await settle();
+    assert.equal(n['ps-edit'].hidden,false,'do not close failed or uncertain edit');
+    assert.equal(n['ps-body'].value,'你好');
+    assert.equal(f.writes(),storageFault==='reject'?0:1);
+    assert.match(n['ps-error'].textContent,storageFault==='unknown'?/E_OUTCOME_UNKNOWN/:/E_HOST_STORAGE_WRITE/);
+    if(storageFault==='unknown'){
+      const restarted=await fixture({initialStored:f.stored()});
+      assert.equal(restarted.stored().items.length,1,'outcome unknown may have committed exactly once');
+    }
+  }
+});
+
+test('R1.13 empty body focuses the textarea with local validation',async()=>{
+  const f=await fixture(),n=f.nodes;n['ps-new'].emit('click');n['ps-body'].value='\n  ';
+  n['ps-form'].emit('submit',{preventDefault(){}});
+  await settle();
+  assert.equal(f.writes(),0);
+  assert.equal(n['ps-body'].focused,true);
+  assert.match(n['ps-body-error'].textContent,/唯一必填/);
 });

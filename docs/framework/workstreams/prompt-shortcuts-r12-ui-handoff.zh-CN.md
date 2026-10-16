@@ -299,3 +299,14 @@
 - **无标题列表**：新增 `customTitle` / `itemIdentity` 处理手动标题、自动名称及空名。卡片正文始终第一行，`nameAuto=true` 或空 `name` 时不渲染次级空白名称或重复标签；手工名称次级展示。默认模拟库包含一个空 `name` 的旧数据样例；正文片段作为无标题项的编辑、更多、停用和删除确认及网页按钮 ARIA 语义。原有 R1.11 点击正文优先填写模拟 ChatGPT 输入框，其他情况回退剪贴板的交互仍保持。
 - **真实 Chromium 验证**：Python Playwright + 本环境 `/usr/bin/chromium` headless，使用 `page.set_content` 加载逐字节匹配的 HTML 候选，**15/15 项 PASS，页面 JavaScript 异常 0**：默认展开与对齐、键盘 Enter 收起/展开及重新进入、空名称旧数据、只写“你好”自动名称、手动名称次级、无名称编辑回读、无名称启停、三行正文与百行内滚、Unicode Emoji、空内容与 8192B 校验、保存失败保留、结果未知核对、取消和宿主返回保护、320/360/400/440px 与深色不溢出且操作区域不重叠、点击正文直接插入。测试脚本和原始截图保存在本轮会话附件，不当作本机安装证据。
 - **未验收**：本环境不具备用户 Mac 原生安装 Chrome、真实 ChatGPT DOM/IME 和 Host `storage.set` 验收；正式“你好”保存失败 P0 没有在本轮修复。九维专家评分仍 **`NOT_SCORED`**，目标 >=95，而非据 15 项模拟通过就虚报专家分数。用户尚未明确批准 R1.12 预览进入正式迁移，保持 **PREVIEW_APPROVAL_PENDING**。
+
+
+## R1.13 正式迁移修复：2026-10-16
+
+- 正式工具从 main 已存在的 1.0.2 继续递增为 1.0.3；不创建第二个工具或预览文件。
+- 修复受限 Sandbox 中 `crypto.randomUUID` 不存在时安全创建失败：优先 `randomUUID`，不可用时仅使用 WebCrypto `getRandomValues`，拒绝可预测 ID。
+- 修复历史 `name: ""` 与缺失 `name` 的读取兼容（内存规范化，不在加载时偷偷落盘）；编辑旧圆形按钮不隐式更改形状。
+- 规范正式 UI 为正文优先单行卡、三行滚动输入、预览前置、按钮设置默认展开且可手动收起；空正文就近反馈。
+- 列表使用真实浏览器用户点击触发工具文档直接复制（先 `execCommand('copy')`，再尝试 Clipboard API），不再向 Host 发送不存在的 `clipboard.writeText` operation，也不弹手动复制面板。两种剪贴板方式都失败必须明确提示。
+- 新增 Node 测试覆盖 `你好` 的写入、重新挂载读回、防重复、缺少 randomUUID、旧形状、失败、未知结果与空正文；R1.13 修改只属于独立工具及来源测试。
+- 当前记录是源码修改说明：Node / CI / PACKAGE / 已安装 Mac Chrome / ChatGPT / IME 实际结果必须以运行日志单独补证，未取得之前为 `NOT_TESTED`。不得把用户既有保存失败误诊为某一单一根因。

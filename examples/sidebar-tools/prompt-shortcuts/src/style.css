@@ -74,3 +74,17 @@
 .ps-effective-preview{padding:7px 8px;gap:6px}
 .ps-enabled{padding:7px 8px}
 @media(max-width:340px){.ps-compact-row{grid-template-columns:70px minmax(0,1fr)}}
+
+/* R1.13 native form/list closure: icon + body + actions in one compact row. */
+.ps-card-main{display:grid;grid-template-columns:30px minmax(0,1fr) auto;align-items:center;gap:var(--space-2);min-width:0}
+.ps-card-use{padding:4px 0;border:0;overflow:hidden;max-width:100%}
+.ps-card-caption{color:var(--od-sub);font-size:var(--od-meta-size);padding-left:calc(30px + var(--space-2));overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ps-optional-head{width:100%;padding:2px 0;text-align:left;border:0;background:transparent;color:var(--od-ink);font:inherit;cursor:pointer}
+.ps-optional-head>span{font-size:var(--od-note-size);font-weight:650}
+.ps-optional-head:focus-visible{outline:3px solid var(--od-focus);outline-offset:2px}
+.ps-setting-fields{display:grid;gap:var(--space-2)}
+.ps-setting-fields[hidden]{display:none}
+.ps-effective-preview{margin-bottom:var(--space-2)}
+.ps-inline-error{color:var(--od-negative);font-size:var(--od-meta-size);margin:var(--space-1) 0}
+.ps-clipboard-buffer{position:fixed;left:-10000px;top:-10000px;width:1px;height:1px;opacity:0;pointer-events:none}
+@media(max-width:340px){.ps-card-main{grid-template-columns:30px minmax(0,1fr) auto;gap:var(--space-1)}}
