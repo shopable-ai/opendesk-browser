@@ -1,41 +1,60 @@
 import * as React from 'react';
 import {createRoot} from 'react-dom/client';
+import {createPortal} from 'react-dom';
 import {flushSync} from 'react-dom';
-import {ExtensionRows,ExtensionDetail} from './tabs/tools.tsx';
+import {ExtensionRows,ExtensionDetail,ExtensionToolbar} from './tabs/tools.tsx';
 
-// Reuse ui/tool-shell.js: no second WXT entry, page, router, or Host.
-// The installed extension list and its detail body have disjoint React roots.
-// Toolbar, back button, installer and other tabs remain legacy-owned.
+// One trusted React root and three portals in the existing fixed Side Panel.
+// Portals preserve the installed DOM IDs, CSS and Host wiring; they never run
+// user tool packages, which stay in their opaque-origin sandbox iframe.
 export function mountExtensionList(doc){
   const container=doc.getElementById('extension-center-list');
-  if(!container||container.dataset.opendeskReactOwner)
-    throw new Error('E_REACT_LIST_MOUNT');
-  if(container.childElementCount)throw new Error('E_REACT_LIST_NOT_EMPTY');
-  container.dataset.opendeskReactOwner='extension-list';
   const detailContainer=doc.getElementById('extension-center-detail-body');
-  if(!detailContainer||detailContainer.dataset.opendeskReactOwner||detailContainer.childElementCount)
-    throw new Error('E_REACT_DETAIL_MOUNT');
+  const toolbar=doc.querySelector('#extension-center-list-view > .ec-toolbar');
+  const section=doc.getElementById('extension-center');
+  if(!container||!detailContainer||!toolbar||!section||
+    container.dataset.opendeskReactOwner||detailContainer.dataset.opendeskReactOwner||
+    toolbar.dataset.opendeskReactOwner)
+    throw new Error('E_REACT_EXTENSION_MOUNT');
+  if(container.childElementCount||detailContainer.childElementCount)
+    throw new Error('E_REACT_EXTENSION_NOT_EMPTY');
+
+  // The toolbar's static HTML remains the non-React fallback for legacy test
+  // harnesses. In the real shell it is replaced ONCE, before legacy handlers
+  // are registered, and React exclusively owns its children thereafter.
+  const host=doc.createElement('div');
+  host.id='extension-center-react-root';
+  host.hidden=true;
+  section.append(host);
+  toolbar.replaceChildren();
+  container.dataset.opendeskReactOwner='extension-list';
   detailContainer.dataset.opendeskReactOwner='extension-detail';
-  const root=createRoot(container);
-  const detailRoot=createRoot(detailContainer);
-  let disposed=false,menuKey=null,model=null,detailModel=null;
+  toolbar.dataset.opendeskReactOwner='extension-toolbar';
+  const root=createRoot(host);
+  let disposed=false,menuKey=null,detailModel=null;
+  let model={rows:[],busy:false,pendingKey:null,onOpenRow:()=>{},onMore:()=>{}};
+  let toolbarModel={query:'',kind:'all',scope:'smart',language:'zh-CN',menuOpen:false};
   function paint(){
-    if(disposed||!model)return;
-    // Legacy focus restoration and trusted menu placement run immediately
-    // after draw(), so commit this small list before those synchronous effects.
-    flushSync(()=>root.render(<ExtensionRows {...model} menuKey={menuKey}/>));
+    if(disposed)return;
+    // Extension Center restores focus immediately after draw(). Commit the
+    // single React tree and all portals synchronously before that readback.
+    flushSync(()=>root.render(<>
+      {createPortal(<ExtensionToolbar model={toolbarModel}/>,toolbar)}
+      {createPortal(<ExtensionRows {...model} menuKey={menuKey}/>,container)}
+      {createPortal(<ExtensionDetail model={detailModel} container={detailContainer}/>,detailContainer)}
+    </>));
   }
-  function paintDetail(){
-    if(disposed||!detailModel)return;
-    flushSync(()=>detailRoot.render(<ExtensionDetail model={detailModel} container={detailContainer}/>));
-  }
+  paint();
   return Object.freeze({
     owner:'extension-list',
     renderRows(next){if(disposed)return;model=next;paint();},
     setMenuKey(key){if(disposed||menuKey===key)return;menuKey=key;paint();},
-    renderDetail(next){if(disposed)return;detailModel=next;paintDetail();},
-    dispose(){if(disposed)return;disposed=true;detailRoot.unmount();root.unmount();
+    renderDetail(next){if(disposed)return;detailModel=next;paint();},
+    renderToolbar(next){if(disposed)return;toolbarModel=next;paint();},
+    dispose(){if(disposed)return;disposed=true;root.unmount();
+      delete toolbar.dataset.opendeskReactOwner;
       delete detailContainer.dataset.opendeskReactOwner;
-      delete container.dataset.opendeskReactOwner;}
+      delete container.dataset.opendeskReactOwner;
+      host.remove();}
   });
 }

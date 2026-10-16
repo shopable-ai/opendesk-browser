@@ -19,6 +19,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     throw new Error('E_REACT_LIST_OWNERSHIP');
   let disposed=false,sequence=0,officialSequence=0,busy=false,pendingKey=null,installed=[],pages=[],enabled={},official=[];
   let appStatusKnown=false,pageStatusKnown=false,pendingCleanups=new Set();
+  let toolbarMenuOpen=false,searchText='';
   let sources={};
   let catalogError='',dataError='',statusOrigin='loading',hasLoaded=false,query='',kind='all',scope='smart',selectedKey=null,selectedInstalled=null;
   let listScroll=0,focusKey=null,focusAction=null,detailFocusAction=null,selectedIdentity=null;
@@ -43,9 +44,36 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   const message=(value='',state='info',origin='action')=>{
     statusOrigin=origin;notice.textContent=value;notice.dataset.state=state;
   };
-  function closeMenu(returnFocus=false){menu.hidden=true;more.setAttribute('aria-expanded','false');if(returnFocus)more.focus({preventScroll:true});}
-  function showMenu(){menu.hidden=false;more.setAttribute('aria-expanded','true');}
+  function closeMenu(returnFocus=false){
+    if(extensionList){if(toolbarMenuOpen){toolbarMenuOpen=false;syncFilters();}}
+    else{menu.hidden=true;more.setAttribute('aria-expanded','false');}
+    if(returnFocus)more.focus({preventScroll:true});
+  }
+  function showMenu(){
+    if(extensionList){toolbarMenuOpen=true;syncFilters();}
+    else{menu.hidden=false;more.setAttribute('aria-expanded','true');}
+  }
   function syncFilters(){
+    if(extensionList){
+      extensionList.renderToolbar({
+        query:searchText,kind,scope,menuOpen:toolbarMenuOpen,
+        language:resolveUiLocale(language(),['zh-CN','en'],'zh-CN'),
+        onSearch(value){searchText=value;query=value.trim();draw();},
+        onMarket(){openMarket();},
+        onToggleMenu(){closeRowMenu();toolbarMenuOpen?closeMenu():showMenu();},
+        onKind(value){kind=value;draw();},
+        onScope(value){scope=value;draw();},
+        onReset(){kind='all';scope='smart';draw();},
+        onImport(){closeMenu();backIfNeeded();sidebarTools.openImport();
+          get('sidebar-tool-file')?.focus({preventScroll:true});},
+        onReload(){closeMenu();message('正在刷新扩展…','loading','loading');
+          void readOfficial();void refresh();},
+        onLanguage(value){void localeController?.setLocale(value).catch(error=>{
+          message('语言保存失败：'+String(error?.message||error),'error');syncLanguage();
+        });}
+      });
+      return;
+    }
     for(const b of menu.querySelectorAll('button[data-ec-kind]'))
       b.setAttribute('aria-pressed',String(b.dataset.ecKind===kind));
     for(const b of menu.querySelectorAll('button[data-ec-scope]'))
@@ -530,28 +558,32 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   }
   const languageInput=get('extension-center-language');
   const syncLanguage=()=>{if(disposed)return;
-    if(languageInput)languageInput.value=resolveUiLocale(language(),['zh-CN','en'],'zh-CN');
+    if(languageInput&&!extensionList)languageInput.value=resolveUiLocale(language(),['zh-CN','en'],'zh-CN');
     draw();if(selectedKey)renderDetail();
   };
   const stopLanguage=localeController?.subscribe?.(syncLanguage);
   void localeController?.ready?.then(syncLanguage);
-  languageInput?.addEventListener('change',()=>{
-    void localeController?.setLocale(languageInput.value).catch(error=>{
-      message('语言保存失败：'+String(error?.message||error),'error');syncLanguage();
+  if(!extensionList){
+    // The React path supplies these callbacks as props. Never attach a second
+    // legacy listener to a React-owned input, menu button or filter control.
+    languageInput?.addEventListener('change',()=>{
+      void localeController?.setLocale(languageInput.value).catch(error=>{
+        message('语言保存失败：'+String(error?.message||error),'error');syncLanguage();
+      });
     });
-  });
-  search.addEventListener('input',()=>{query=search.value.trim();draw();});
-  more.addEventListener('click',()=>{closeRowMenu();menu.hidden?showMenu():closeMenu();});
-  for(const b of menu.querySelectorAll('[data-ec-kind]'))b.addEventListener('click',()=>{kind=b.dataset.ecKind;draw();});
-  for(const b of menu.querySelectorAll('[data-ec-scope]'))b.addEventListener('click',()=>{scope=b.dataset.ecScope;draw();});
-  get('extension-center-reset').addEventListener('click',()=>{kind='all';scope='smart';draw();});
-  get('extension-center-import').addEventListener('click',()=>{
-    closeMenu();backIfNeeded();sidebarTools.openImport();get('sidebar-tool-file')?.focus({preventScroll:true});
-  });
-  get('extension-center-reload').addEventListener('click',()=>{
-    closeMenu();message('正在刷新扩展…','loading','loading');void readOfficial();void refresh();
-  });
-  get('extension-center-market').addEventListener('click',()=>openMarket());
+    search.addEventListener('input',()=>{query=search.value.trim();draw();});
+    more.addEventListener('click',()=>{closeRowMenu();menu.hidden?showMenu():closeMenu();});
+    for(const b of menu.querySelectorAll('[data-ec-kind]'))b.addEventListener('click',()=>{kind=b.dataset.ecKind;draw();});
+    for(const b of menu.querySelectorAll('[data-ec-scope]'))b.addEventListener('click',()=>{scope=b.dataset.ecScope;draw();});
+    get('extension-center-reset').addEventListener('click',()=>{kind='all';scope='smart';draw();});
+    get('extension-center-import').addEventListener('click',()=>{
+      closeMenu();backIfNeeded();sidebarTools.openImport();get('sidebar-tool-file')?.focus({preventScroll:true});
+    });
+    get('extension-center-reload').addEventListener('click',()=>{
+      closeMenu();message('正在刷新扩展…','loading','loading');void readOfficial();void refresh();
+    });
+    get('extension-center-market').addEventListener('click',()=>openMarket());
+  }
   get('extension-center-back').addEventListener('click',back);
   function backIfNeeded(){if(selectedKey)back();}
   const clickOutside=event=>{

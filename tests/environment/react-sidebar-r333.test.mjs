@@ -39,13 +39,17 @@ test('R33.3 single DOM child owner and original privileged operations',async()=>
     read('docs/architecture/react-ui-shared-components-r33.zh-CN.md')
   ]);
   assert.match(html,/id="extension-center-list" class="ec-list"/);
-  assert.match(main,/createRoot\(container\)/);
-  assert.match(main,/createRoot\(detailContainer\)/);
+  assert.match(main,/createRoot\(host\)/);
+  assert.match(main,/createPortal\(<ExtensionRows/);
+  assert.match(main,/createPortal\(<ExtensionDetail/);
+  assert.match(main,/createPortal\(<ExtensionToolbar/);
+  assert.doesNotMatch(main,/createRoot\(container\)|createRoot\(detailContainer\)/);
   assert.match(main,/root\.unmount\(\)/);
-  assert.match(main,/detailRoot\.unmount\(\)/);
   assert.match(main,/flushSync/);
   assert.match(center,/if\(!extensionList\)list\.replaceChildren\(\)/);
   assert.match(center,/extensionList\.renderRows\(/);
+  assert.match(center,/extensionList\.renderToolbar\(/);
+  assert.match(center,/if\(!extensionList\)\{/);
   assert.match(center,/extensionList\.renderDetail\(/);
   assert.match(rows,/export function ExtensionDetail/);
   assert.match(rows,/data-ec-detail-action/);

@@ -86,3 +86,63 @@ export function ExtensionDetail({model,container}){
     </section>}
   </>;
 }
+
+
+// Search and filter UI belongs to React. The existing Extension Center owns
+// query/filter values, refresh, installation/Host actions and locale storage.
+// Existing IDs/ARIA/CSS are preserved for accessibility and legacy contracts.
+export function ExtensionToolbar({model}){
+  const current=model||{};
+  const kind=current.kind||'all',scope=current.scope||'smart';
+  const menuOpen=Boolean(current.menuOpen);
+  return <>
+    <label className="ec-search" htmlFor="extension-center-search">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg>
+      <input id="extension-center-search" type="search" placeholder="搜索当前列表"
+        autoComplete="off" value={current.query||''}
+        onChange={event=>current.onSearch?.(event.currentTarget.value)}/>
+    </label>
+    <IconButton id="extension-center-market" className="ec-icon" label="在新标签页打开应用市场"
+      onClick={()=>current.onMarket?.()}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16l-1.5-6h-13L4 10Zm2 0v10h12V10M10 20v-6h4v6"/></svg>
+    </IconButton>
+    <div id="extension-center-menu-wrap" className="ec-menu-wrap">
+      <IconButton id="extension-center-more" className="ec-icon" label="筛选和管理扩展"
+        title="扩展筛选与更多操作" aria-haspopup="true"
+        aria-expanded={menuOpen} aria-controls="extension-center-menu"
+        data-active={String(kind!=='all'||scope!=='smart')}
+        onClick={()=>current.onToggleMenu?.()}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
+      </IconButton>
+      <div id="extension-center-menu" className="ec-more" role="group"
+        aria-label="扩展筛选和操作" hidden={!menuOpen}>
+        <fieldset><legend>类型</legend><div className="ec-filter-group">
+          {[[ 'all','全部'],['app','应用'],['page','网页增强']].map(([value,label])=>
+            <button key={value} type="button" data-ec-kind={value}
+              aria-pressed={kind===value} onClick={()=>current.onKind?.(value)}>{label}</button>)}
+        </div></fieldset>
+        <fieldset className="ec-language"><legend>OpenDesk 界面语言</legend>
+          <label htmlFor="extension-center-language" className="visually-hidden">界面语言</label>
+          <select id="extension-center-language" aria-label="OpenDesk 界面语言"
+            value={current.language||'zh-CN'}
+            onChange={event=>current.onLanguage?.(event.currentTarget.value)}>
+            <option value="zh-CN">简体中文</option><option value="en">English</option>
+          </select>
+        </fieldset>
+        <fieldset><legend>显示范围</legend><div className="ec-filter-group">
+          {[[ 'smart','已安装'],['available','可安装 / 更新']].map(([value,label])=>
+            <button key={value} type="button" data-ec-scope={value}
+              aria-pressed={scope===value} onClick={()=>current.onScope?.(value)}>{label}</button>)}
+        </div></fieldset>
+        <button id="extension-center-reset" className="ec-menu-action" type="button"
+          onClick={()=>current.onReset?.()}>恢复默认筛选</button>
+        <div className="ec-menu-separator">
+          <button id="extension-center-import" className="ec-menu-action" type="button"
+            onClick={()=>current.onImport?.()}>导入本地工具包</button>
+          <button id="extension-center-reload" className="ec-menu-action" type="button"
+            onClick={()=>current.onReload?.()}>刷新扩展</button>
+        </div>
+      </div>
+    </div>
+  </>;
+}
