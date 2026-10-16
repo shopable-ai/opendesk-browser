@@ -246,3 +246,12 @@ GitHub Actions 原始证据：
 - 模拟网页测试卡仅展示模拟身份、姓名输入框与读回值，不再展示虚构访问地址、无功能的禁用提交按钮、重复的提交/跳转计数文案；副作用计数仍由回归测试检查为 0。
 - 源绑定 Chromium 新增紧凑行对齐、主界面无重复协议文案、眼睛 icon-only 和三宽字段可见性断言；仍然需要完整原始文件 Chromium、200% 原生缩放与受限 iframe 两轮测试全部通过，才可称原型代码验收通过。
 - 本轮用户仅要求可点击打开的 HTML，不另行提供运行截图。代码及自动化结果不能代替用户亲自判断视觉是否达到 95 分，独立专家人工评分和 ChatGPT 宿主嵌入仍为 `NOT_SCORED / NOT_TESTED`。
+
+
+### 11.1 R23.5 最终复验
+
+- HTML Git Blob：`605c05e417c2491d4369d69b400ace6254651989`；由最新唯一 `prototypes/sidebar/workflow/index.html` 生成，未新建第二套行为模拟器。
+- Chromium 来源级回归：提交 `951634cc8199c2a3266378dd4b390f7d970c4814`、[GitHub Actions #38906372237](https://github.com/shopable-ai/opendesk-browser/actions/runs/38906372237)；`R234_SOURCE_BOUND_CHROMIUM_PASS 22`，包含 R23.5 新增紧凑三行、去重、纯眼睛图标、读回与三宽回归。
+- Chrome 原生 200%：同一提交的独立 CI `R234_REAL_CHROME_UI_200_ZOOM_PASS`。两个 Job 均 `success`。
+- 本地无截图 `set_content` 辅助操作复验：三行远端配置块测量 186px，Endpoint/Model/API Key 对齐；虚拟 HTTPS 配置通过，修改配置撤销摘要许可；两轮 DOM 读回最终 `项目已启动`，提交 0、跳转 0。该辅助验证单独标识，不代替 GitHub 源级 CI。
+- 按本轮目标不向用户提供截图；交付同字节单文件 HTML 供 Chrome 直接预览。六维所谓「独立专家 95+」没有独立真人参与，不应虚报为已完成；用户仍有最终设计确认权，`DESIGN_REVIEW_REQUIRED`。
