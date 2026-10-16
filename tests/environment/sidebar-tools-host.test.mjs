@@ -605,7 +605,10 @@ test('R14 preview compares permissions and downgrade, confirmation protects upda
   f.elements['sidebar-tool-import-trigger'].emit('click');
   const file=JSON.stringify({...sample,version:'2.0.0'});
   f.elements['sidebar-tool-file'].files=[{name:'update.opendesk-tool.json',size:file.length,text:async()=>file}];
-  f.elements['sidebar-tool-file'].emit('change');await pause();await pause();
+  f.elements['sidebar-tool-file'].emit('change');
+  // Hash/preview generation can span more than two turns under concurrent
+  // React/Vite builds. Wait for the actual reviewed candidate, not timing.
+  await settle(()=>!f.elements['sidebar-tool-update'].hidden);
   assert.equal(f.elements['sidebar-tool-update'].hidden,false);
   assert.match(f.elements['sidebar-tool-update-versions'].textContent,/3\.0\.0.*2\.0\.0/);
   assert.match(f.elements['sidebar-tool-update-capabilities'].textContent,/新增能力：.*读取当前网页/);
