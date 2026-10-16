@@ -16,7 +16,7 @@ export function createXmindRenderer({window,canvas,tree,skinMode='light'}){
   const sdk=requireXmindRuntime(window);
   let controller=null,mount=null,disposed=false,folded=false,closing=null;
   let appliedSkin=skinMode,desiredSkin=skinMode,manualViewport=false;
-  let operations=Promise.resolve(),lastWidth=0,lastHeight=0;
+  let operations=Promise.resolve(),lastWidth=0,lastHeight=0,fitGeneration=0;
   const frame=()=>new Promise(resolve=>{
     const done=()=>{window.clearTimeout(timer);window.cancelAnimationFrame(id);resolve();};
     const timer=window.setTimeout(done,40),id=window.requestAnimationFrame(done);
@@ -88,11 +88,30 @@ export function createXmindRenderer({window,canvas,tree,skinMode='light'}){
     left:Math.min(...rects.map(r=>r.left)),right:Math.max(...rects.map(r=>r.right)),
     top:Math.min(...rects.map(r=>r.top)),bottom:Math.max(...rects.map(r=>r.bottom))
   });
+  // Real Snowbrush topics and its scroll viewport can settle *after* two RAFs.
+  // Observe actual geometry rather than assuming a delayed SDK update is done.
+  async function settleTopicLayout(){
+    let previous=null,stable=0;
+    for(let i=0;i<18;i++){
+      await frame();
+      if(disposed||!mount)return;
+      const root=mount.querySelector('.topic')?.getBoundingClientRect();
+      if(!root||root.width===0)continue;
+      const scroll=scrollerOf();
+      const state=[root.left,root.top,root.width,root.height,scroll.scrollLeft,scroll.scrollTop];
+      stable=previous&&state.every((value,j)=>Math.abs(value-previous[j])<.6)?stable+1:0;
+      if(stable>=3)return;
+      previous=state;
+    }
+  }
   function fit({resetManual=true}={}){
     if(resetManual){manualViewport=false;canvas.dataset.manualViewport='false';}
     if(manualViewport)return Promise.resolve();
+    const generation=++fitGeneration;
+    canvas.dataset.fitReady='false';
     return command(async c=>{
       if(disposed||!mount||canvas.clientWidth<100||canvas.clientHeight<100)return;
+      await settleTopicLayout();
       const narrow=canvas.clientWidth<420;
       const minimumZoom=narrow?100:50;
       const widthAvailable=Math.max(100,canvas.clientWidth-(narrow?24:36));
@@ -110,14 +129,14 @@ export function createXmindRenderer({window,canvas,tree,skinMode='light'}){
         const desired=Math.round(previous*ratio*(pass===0?1:.98));
         const next=Math.max(minimumZoom,Math.min(narrow?140:180,desired));
         if(Math.abs(next-previous)<2)break;
-        c.zoom(next);await settled();
+        c.zoom(next);await settleTopicLayout();
       }
       if(disposed)return;
       const rects=rectangles();
       if(!rects.length)return;
       const bounds=canvas.getBoundingClientRect();
       const scroll=scrollerOf();
-      for(let attempt=0;attempt<2;attempt++){
+      for(let attempt=0;attempt<6;attempt++){
         const now=rectangles();
         if(!now.length)break;
         const beforeLeft=scroll.scrollLeft,beforeTop=scroll.scrollTop;
@@ -131,18 +150,28 @@ export function createXmindRenderer({window,canvas,tree,skinMode='light'}){
           scroll.scrollLeft+=(area.left+area.right-bounds.left-bounds.right)/2;
           scroll.scrollTop+=(area.top+area.bottom-bounds.top-bounds.bottom)/2;
         }
+        await settleTopicLayout();
+        if(narrow){
+          const root=mount?.querySelector('.topic')?.getBoundingClientRect();
+          if(root&&root.left>=bounds.left+10&&root.left<=bounds.left+26)break;
+        }
         if(Math.abs(scroll.scrollLeft-beforeLeft)<.5&&
            Math.abs(scroll.scrollTop-beforeTop)<.5)break;
-        await settled();
       }
+      await settleTopicLayout();
       const final=rectangles();
       if(final.length){
+        const root=mount.querySelector('.topic')?.getBoundingClientRect();
+        if(root)canvas.dataset.fitRootVisible=String(Math.round(Math.max(0,
+          Math.min(bounds.right,root.right)-Math.max(bounds.left,root.left))));
         const area=span(final);
         canvas.dataset.fitOverhangLeft=String(Math.max(0,Math.round(bounds.left-area.left)));
         canvas.dataset.fitOverhangRight=String(Math.max(0,Math.round(area.right-bounds.right)));
       }
     }).then(()=>{
-      if(!disposed){canvas.dataset.fitReady='true';canvas.dataset.fitWidth=String(canvas.clientWidth);}
+      if(!disposed&&generation===fitGeneration){
+        canvas.dataset.fitReady='true';canvas.dataset.fitWidth=String(canvas.clientWidth);
+      }
     });
   }
   function reflow(){return settled().then(()=>manualViewport?undefined:fit({resetManual:false}));}
