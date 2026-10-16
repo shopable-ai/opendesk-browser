@@ -39,14 +39,20 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   const observedRegions=new Set();
   let locationTimer=0,folded=false,narrowMode=null,composing=false,inserting=false,lastAttempt=0,lastAttemptId=null;
   let activeRule=null,picker=null;
+  const PICK_BLOCK_EVENTS=['pointerdown','pointerup','pointercancel','mousedown','mouseup',
+    'dblclick','auxclick','contextmenu','touchstart','touchend','touchcancel'];
+  const removePickerGuides=entry=>{
+    entry.outline?.remove();entry.label?.remove();entry.outline=null;entry.label=null;
+  };
   const detachPicker=entry=>{
     if(!entry)return;
+    win.clearTimeout(entry.guardTimer);entry.guardTimer=0;
     doc.removeEventListener('pointermove',entry.hover,true);
-    doc.removeEventListener('pointerdown',entry.block,true);
+    for(const type of PICK_BLOCK_EVENTS)doc.removeEventListener(type,entry.block,true);
     doc.removeEventListener('click',entry.choose,true);
     doc.removeEventListener('keydown',entry.escape,true);
-    entry.outline?.remove();entry.label?.remove();
-    entry.outline=null;entry.label=null;
+    doc.removeEventListener('keyup',entry.keyup,true);
+    removePickerGuides(entry);entry.selectedNode=null;
   };
   const closePicker=()=>{
     if(!picker)return;
@@ -167,9 +173,10 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     label.setAttribute('aria-hidden','true');
     (doc.documentElement||doc.body).append(outline,label);
     const entry={kind,session,state:'selecting',selected:null,expiresAt:Date.now()+65000,
-      outline,label,hover:null,block:null,choose:null,escape:null,timer:0,lastHover:0};
+      outline,label,hover:null,block:null,choose:null,escape:null,timer:0,guardTimer:0,selectedAt:0,selectedNode:null,keyup:null,lastHover:0};
     entry.hover=event=>{
-      if(event.isTrusted===false||picker!==entry||Date.now()-entry.lastHover<45)return;
+      if(event.isTrusted===false||picker!==entry||entry.state!=='selecting'||
+          Date.now()-entry.lastHover<45)return;
       entry.lastHover=Date.now();
       const node=pickerCandidate(event.target,kind);
       if(!node){outline.style.display='none';return;}
@@ -178,31 +185,58 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
         top:Math.round(rect.top)+'px',width:Math.round(rect.width)+'px',
         height:Math.round(rect.height)+'px'});
     };
+    const isPickedTarget=event=>entry.selectedNode&&
+      (event.target===entry.selectedNode||entry.selectedNode.contains?.(event.target));
     entry.block=event=>{
       if(picker!==entry||event.isTrusted===false)return;
-      event.preventDefault();event.stopImmediatePropagation?.();
+      if(entry.state!=='selecting'&&!(entry.state==='selected'&&
+         Date.now()-entry.selectedAt<750&&isPickedTarget(event)))return;
+      // Touch default must remain available for a final synthesized click.
+      if(event.cancelable!==false&&!String(event.type||'').startsWith('touch'))
+        event.preventDefault();
+      event.stopImmediatePropagation?.();
     };
     entry.choose=event=>{
       if(picker!==entry||event.isTrusted===false)return;
+      if(entry.state==='selected'){
+        if(Date.now()-entry.selectedAt<750&&isPickedTarget(event)){
+          event.preventDefault();event.stopImmediatePropagation?.();
+        }
+        return;
+      }
+      if(entry.state!=='selecting')return;
       event.preventDefault();event.stopImmediatePropagation?.();
       const node=pickerCandidate(event.target,kind),selector=pickerSelector(node);
       if(!node||!selector){
-        label.textContent='未找到稳定、唯一的元素，请改选区域或手动输入 CSS';
+        label.textContent='未找到唯一、稳定的目标，请尝试选择其他区域';
         return;
       }
       entry.selected={selector,editorType:kind==='editor'?editorKind(node):null};
-      entry.state='selected';detachPicker(entry);
+      entry.selectedNode=node;entry.selectedAt=Date.now();entry.state='selected';
+      doc.removeEventListener('pointermove',entry.hover,true);
+      removePickerGuides(entry);
+      // Guard late second clicks/dblclicks even after the first selected click.
+      entry.guardTimer=win.setTimeout(()=>{
+        if(picker===entry&&entry.state==='selected')detachPicker(entry);
+      },750);
     };
     entry.escape=event=>{
-      if(picker!==entry||event.key!=='Escape')return;
-      entry.state='cancelled';detachPicker(entry);
-      event.preventDefault();event.stopPropagation();
+      if(picker!==entry||entry.state!=='selecting'||event.isTrusted===false)return;
+      event.preventDefault();event.stopImmediatePropagation?.();
+      if(event.key==='Escape'){entry.state='cancelled';detachPicker(entry);}
+    };
+    entry.keyup=event=>{
+      if(picker!==entry||entry.state!=='selecting'||event.isTrusted===false)return;
+      event.preventDefault();event.stopImmediatePropagation?.();
     };
     picker=entry;
     doc.addEventListener('pointermove',entry.hover,true);
-    doc.addEventListener('pointerdown',entry.block,true);
+    for(const type of PICK_BLOCK_EVENTS)
+      doc.addEventListener(type,entry.block,type.startsWith('touch')?
+        {capture:true,passive:false}:true);
     doc.addEventListener('click',entry.choose,true);
     doc.addEventListener('keydown',entry.escape,true);
+    doc.addEventListener('keyup',entry.keyup,true);
     entry.timer=win.setTimeout(closePicker,66000);
     return {state:'selecting',session};
   };
@@ -336,7 +370,11 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     try{
       if(!win.navigator?.clipboard?.writeText)throw Error('浏览器没有提供可用的剪贴板写入接口');
       await win.navigator.clipboard.writeText(body);
-      showFeedback(reason?
+      showFeedback(reason==='单行输入框不支持多行提示词'?
+        '当前是单行输入框，不支持换行；已复制完整提示词，请改用多行编辑器。':
+        reason==='编辑器剩余长度不足，已取消插入'?
+        '输入框长度不足；已复制完整提示词，未修改原草稿。':
+        reason?
         '编辑器插入未确认；已复制完整提示词。请先检查草稿再粘贴，避免重复。':
         '已复制提示词，可直接粘贴。','success');
     }catch(error){
@@ -394,6 +432,13 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       if(composing)return;
       const before=readDraft(target);
       if(typeof before!=='string')throw Error('编辑器无法确认当前草稿');
+      const singleLine=String(target.tagName||'').toLowerCase()==='input';
+      if(singleLine&&/[\r\n\u2028\u2029]/u.test(row.body))
+        throw Error('单行输入框不支持多行提示词');
+      const insertion=(before.trim()?(singleLine?' ':'\n'):'')+row.body;
+      if(!target.isContentEditable&&Number.isInteger(target.maxLength)&&
+         target.maxLength>=0&&before.length+insertion.length>target.maxLength)
+        throw Error('编辑器剩余长度不足，已取消插入');
       target.focus();
       if(target.isContentEditable){
         const selection=doc.getSelection(),range=doc.createRange();
@@ -403,7 +448,6 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       }else if(typeof target.setSelectionRange==='function')target.setSelectionRange(before.length,before.length);
       // Use the browser's real editing command; never assign DOM draft values,
       // dispatch synthetic input events, click Send, or replace a selection.
-      const insertion=(before.trim()? '\n':'')+row.body;
       if(!doc.execCommand('insertText',false,insertion))throw Error('编辑器未确认插入');
       // Wait for a framework-controlled editor to commit or reject the DOM
       // edit before confirming. Never retry an unknown effect automatically.

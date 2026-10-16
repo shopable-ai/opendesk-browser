@@ -423,3 +423,11 @@
 **实机待取得**：Mac 日常 `dist/development` watcher 身份、Chrome 扩展 ID、实际工具包 SHA、Claude/Gemini 登录站点编辑器框架状态/Undo/中文 IME、停用与安装升级验收。缺少原生设备或登录站点时标记 `NOT_TESTED`，不制造 ≥95/100 的测试评分。
 
 **产品验收门槛**：两个选择器明确可见且能自选、没有新权限泛化、用户原草稿不被覆盖、实时网站匹配不会误写、多站规则独立保存、构建官方单包同源校验及 CI 原始链接可核实。只有完整闭环实证才能授予各维 ≥95 分。
+
+
+## R2.1 双选择器与单行输入安全修复（2026-10-16）
+
+- 固定可信 `trusted/page.js` 的取点原实现只捕获 `pointerdown/click`，不能阻止网页的 `pointerup/mouseup/dblclick` 或 Enter/Space 键盘副作用。改为全手势捕获、Esc 中止、取点后同目标尾随双击 750ms 防护；未新增 Host / SDK 能力。
+- 单行 `input` 追加不再使用换行前缀；合法单行正文使用空格分隔。多行提示词或原生 `maxLength` 不足时在聚焦和原生写入之前失败，并复制完整正文，不修改旧草稿。
+- 来源白名单及 Node 测试中的 `trusted/page.js` Git blob 只更新精准 SHA，没有放宽目录或特权目标名单。新增 Node 回归专测取点、Esc、单行插入和失败保留原文。
+- `tool.config.json`、Sandbox UI、存储和唯一 `1.1.0` 正式 JSON 包均未改动，**用户真实 Chrome 必须加载新构建的固定可信代码**。此提交只能代表源码修复，Node / CI / Chromium / 已安装 Chrome / Claude / Gemini / Mac IME 必须分别依真实运行证据定级，不能自动宣称通过。

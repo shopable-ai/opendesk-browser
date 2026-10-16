@@ -605,3 +605,92 @@ test('R2 picker uses extension-owned message, exact document, unique semantic se
     assert.equal(deny.ok,false,'other extensions cannot invoke picker');
   }finally{controller.dispose();}
 });
+
+
+test('R2.1 site picker suppresses pointerup/dblclick, keyboard submission and supports Esc',async()=>{
+  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const library={schema:1,items:[],settings:{webButtons:true}};
+  const f=fixture({pkg,library});f.win.location.href='https://example.org/compose';
+  f.editor.tagName='textarea';f.editor.attributes.id='composer';
+  f.editor.getBoundingClientRect=()=>({left:350,top:480,width:540,height:100});
+  f.doc.querySelectorAll=s=>s==='#composer'?[f.editor]:[];
+  const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
+  const send=(operation,session,extra={})=>new Promise(resolve=>{
+    [...f.runtimeMessages][0]({protocol:'opendesk.prompt-shortcuts.picker.v1',toolId:PROMPT_ID,
+      operation,session,expectedUrl:f.win.location.href,...extra},
+    {id:'test-extension',url:'chrome-extension://test-extension/tool.html'},resolve);
+  });
+  const event=(type,key='')=>({type,key,isTrusted:true,target:f.editor,
+    prevented:false,stopped:false,
+    preventDefault(){this.prevented=true;},stopImmediatePropagation(){this.stopped=true;}});
+  try{
+    await settle();
+    const session='11234567-89ab-cdef-0123-456789abcdef';
+    assert.equal((await send('prompt.page.pick.start',session,{kind:'editor'})).data.state,'selecting');
+    for(const type of ['pointerdown','mousedown','pointerup','mouseup','dblclick',
+      'contextmenu','touchstart','touchend']){
+      const e=event(type);assert(f.docEvents.has(type),type);
+      f.docEvents.get(type)(e);assert(e.stopped,type+' must not reach site handlers');
+      if(!type.startsWith('touch'))assert(e.prevented,type+' must cancel default');
+    }
+    for(const key of ['Enter',' ']){
+      const e=event('keydown',key);f.docEvents.get('keydown')(e);
+      assert(e.prevented&&e.stopped,'keyboard shortcuts must not submit while picking');
+    }
+    const click=event('click');f.docEvents.get('click')(click);
+    assert(click.prevented&&click.stopped,'selection click itself is blocked');
+    for(const type of ['pointerup','mouseup','click','dblclick']){
+      const e=event(type);f.docEvents.get(type)?.(e);
+      assert(e.prevented&&e.stopped,'late '+type+' must not reach selected control');
+    }
+    const result=await send('prompt.page.pick.status',session);
+    assert.equal(result.data.state,'selected');assert.equal(result.data.selector,'#composer');
+    const nextSession='21234567-89ab-cdef-0123-456789abcdef';
+    assert.equal((await send('prompt.page.pick.start',nextSession,{kind:'editor'})).data.state,'selecting');
+    const esc=event('keydown','Escape');f.docEvents.get('keydown')(esc);
+    assert(esc.prevented&&esc.stopped);
+    assert.equal((await send('prompt.page.pick.status',nextSession)).data.state,'cancelled');
+    assert.equal(f.docEvents.has('pointerup'),false,'Esc releases all event guards');
+  }finally{controller.dispose();}
+});
+
+for(const scenario of [
+  {name:'multiline',body:'第一行\n\n第三行🧑‍💻',draft:'旧草稿',expected:'copy'},
+  {name:'maxlength',body:'继续',draft:'旧草稿',maxLength:3,expected:'copy'},
+  {name:'plain single-line',body:'继续',draft:'旧草稿',expected:'insert'}
+]){
+  test('R2.1 input '+scenario.name+' preflights before focus, preserving original text',async()=>{
+    const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+    const row=globalThis.OpenDeskPromptShortcutsModel.draft({body:scenario.body},
+      null,()=> 'input-12345678');
+    const library={schema:1,items:[row],settings:{webButtons:true}};
+    const f=fixture({pkg,library});f.win.location.href='https://example.org/compose';
+    f.editor.tagName='input';f.editor.type='text';f.editor.isContentEditable=false;
+    f.editor.value=scenario.draft;f.editor.maxLength=scenario.maxLength??-1;
+    f.editor.getBoundingClientRect=()=>({left:350,top:480,width:540,height:40});
+    f.doc.querySelectorAll=s=>s==='main'?[f.main]:s==='input'?[f.editor]:[];
+    f.doc.execCommand=(command,_show,value)=>{
+      f.calls.push({command,value});f.editor.value+=value;return true;
+    };
+    f.values.set(PROMPT_DATA_STORE,{library,sites:{schema:1,rules:[{
+      origin:'https://example.org',pathScope:'/compose',containerSelector:'main',
+      editorSelector:'input',enabled:true
+    }]}});
+    const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
+    try{
+      await settle();assert.equal(f.buttons().length,1);
+      f.buttons()[0].emit('click',{isTrusted:true});await settle();
+      if(scenario.expected==='copy'){
+        assert.equal(f.calls.length,0,'reject before native edit');
+        assert.equal(f.editor.value,scenario.draft,'original draft unchanged');
+        assert.equal(f.editor.focused,undefined,'no focus theft on known failure');
+        assert.deepEqual(f.copied,[scenario.body],'full prompt is copied');
+      }else{
+        assert.equal(f.calls.length,1);
+        assert.equal(f.calls[0].value,' '+scenario.body,'single-line delimiter is a space');
+        assert.equal(f.editor.value,scenario.draft+' '+scenario.body);
+        assert.deepEqual(f.copied,[]);
+      }
+    }finally{controller.dispose();}
+  });
+}
