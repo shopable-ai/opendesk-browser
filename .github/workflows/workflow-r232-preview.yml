@@ -79,7 +79,7 @@ jobs:
       - name: Install X11 for real Chrome menu-level zoom proof
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq --no-install-recommends xvfb xauth xdotool fonts-noto-cjk
+          sudo apt-get install -y -qq --no-install-recommends xvfb xauth xdotool scrot fonts-noto-cjk
       - uses: browser-actions/setup-chrome@v2
         id: chrome
       - name: Install isolated Playwright driver
