@@ -96,7 +96,13 @@ export default defineConfig({
         config.build.terserOptions = {...options, format:{...options.format,semicolons:false}, compress:{...options.compress, passes:6, toplevel:true, top_retain:['sw','background'], unsafe:true}};
       }
       if (target === 'ui/tool-shell.js') {
-         // Preserve the 512 KiB fixed IIFE ceiling; optimize, never relax.
+         // Chrome's trusted Side Panel uses the pinned React 19.2.0 release
+         // runtime in BOTH extension output modes. Development-only React
+         // diagnostics access arbitrary .constructor members rejected by the
+         // existing fail-closed CSP AST gate. Keep sourcemaps and every other
+         // development integration unchanged; do NOT weaken the scanner.
+         config.define={...config.define,'process.env.NODE_ENV':JSON.stringify('production')};
+         // Preserve the existing fixed IIFE byte budget; never relax.
          const options=config.build.terserOptions;
          config.build.terserOptions={...options,
            format:{...options.format,wrap_func_args:false},

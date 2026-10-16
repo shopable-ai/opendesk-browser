@@ -35,7 +35,7 @@ const http=createHttpServer((req,res)=>{
 });
 const profile=await mkdtemp(join(tmpdir(),'opendesk-react-r3331-'));
 let chrome,socket,chromeStartError;
-const pending=new Map(),exceptions=[];
+const pending=new Map(),exceptions=[],networkFailures=[];
 let sequence=0,port=0;
 function cdp(method,params={}){
   return new Promise((ok,fail)=>{
@@ -102,14 +102,36 @@ try{
   await new Promise((ok,fail)=>{socket.addEventListener('open',ok,{once:true});socket.addEventListener('error',fail,{once:true});});
   socket.addEventListener('message',event=>{
     const m=JSON.parse(event.data);
-    if(m.method==='Runtime.exceptionThrown')exceptions.push(String(m.params.exceptionDetails?.text||'Browser exception'));
+    if(m.method==='Runtime.exceptionThrown'){
+      const d=m.params.exceptionDetails||{};
+      exceptions.push([d.text,d.exception?.description,d.url,d.lineNumber].filter(Boolean).join(' | '));
+    }
+    if(m.method==='Runtime.consoleAPICalled'&&m.params.type==='error')
+      exceptions.push('console.error: '+(m.params.args||[]).map(x=>x.value||x.description).join(' '));
+    if(m.method==='Network.responseReceived'&&m.params.response?.status>=400)
+      networkFailures.push(m.params.response.status+' '+m.params.response.url);
+    if(m.method==='Network.loadingFailed')
+      networkFailures.push('request failed: '+m.params.errorText+' '+(m.params.blockedReason||''));
     if(!pending.has(m.id))return;
     const waiter=pending.get(m.id);pending.delete(m.id);
     if(m.error)waiter.fail(Error(m.error.message));else waiter.ok(m.result);
   });
-  await cdp('Runtime.enable');await cdp('Page.enable');
-  await cdp('Page.navigate',{url:'http://127.0.0.1:'+httpPort+'/'});
-  await checkEventually('document.documentElement.dataset.fixtureReady==="true"');
+  await cdp('Runtime.enable');await cdp('Page.enable');await cdp('Network.enable');
+  const navigation=await cdp('Page.navigate',{url:'http://127.0.0.1:'+httpPort+'/'});
+  assert(!navigation.errorText,'Fixture navigation failed: '+navigation.errorText);
+  try {
+    await checkEventually('document.documentElement.dataset.fixtureReady==="true"');
+  } catch(error) {
+    let snapshot;
+    try{snapshot=await evaluate('({url:location.href,readyState:document.readyState,'+
+      'title:document.title,script:[...document.scripts].map(s=>s.src),'+
+      'root:document.querySelectorAll("#extension-center-react-root").length,'+
+      'html:document.documentElement.outerHTML.slice(0,800)})');}
+    catch(readError){snapshot={readError:String(readError)};}
+    throw Error(error.message+'; browserErrors='+JSON.stringify(exceptions.slice(-15))+
+      '; failedRequests='+JSON.stringify(networkFailures.slice(-15))+
+      '; snapshot='+JSON.stringify(snapshot));
+  }
   assert.equal(await evaluate('document.querySelectorAll("#extension-center-react-root").length'),1);
   assert.equal(await evaluate('document.querySelectorAll("#extension-center-search").length'),1);
   assert.equal(await evaluate('document.querySelectorAll("#extension-center-list .ec-row").length'),1);
