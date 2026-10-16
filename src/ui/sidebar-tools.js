@@ -697,7 +697,10 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     focusPermissions?.render(active,readOnlyPreview,enabled);
     adblockControls?.render(active,readOnlyPreview,enabled,tocSettingsOpen);
     aiPermissions?.render(active,readOnlyPreview,enabled);
-    aiProxyContainer.hidden=!(managed&&id===AI_ID&&enabled&&(frame||nativeUI));
+    // Only legacy ai.access installations use the separately hosted control card.
+    // v2 browser.proxy.managed tools own their visible UI via the audited SDK.
+    const legacyAiProxyTool=managed&&id===AI_ID&&active?.capabilities?.includes(AI_CAPABILITY);
+    aiProxyContainer.hidden=!(legacyAiProxyTool&&enabled&&(frame||nativeUI));
     const sitePending=siteTogglePending.has(id);
     const isToc=managed&&id===READING_TOC_TOOL_ID&&active.capabilities.includes(TOC_CAPABILITY);
     // Settings live in the trusted Host. Repaint text, never iframe content or permissions.

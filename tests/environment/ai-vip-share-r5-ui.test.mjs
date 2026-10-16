@@ -43,7 +43,8 @@ test('R5 existing host shows isolated product and a single trusted proxy card',a
   const host=await readFile('src/ui/sidebar-tools.js','utf8');
   assert.match(host,/frameRoot\.after\?\.\(aiProxyContainer\)/);
   assert.match(host,/container:aiProxyContainer/);
-  assert.match(host,/aiProxyContainer\.hidden=!\(managed&&id===AI_ID&&enabled&&\(frame\|\|nativeUI\)\)/);
+  assert.match(host,/legacyAiProxyTool=managed&&id===AI_ID&&active\?\.capabilities\?\.includes\(AI_CAPABILITY\)/);
+  assert.match(host,/aiProxyContainer\.hidden=!\(legacyAiProxyTool&&enabled&&\(frame\|\|nativeUI\)\)/);
   assert(!host.includes('frameRoot.hidden=id===AI_ID'));
   assert.match(host,/const show=managed&&tocSettingsOpen/);
   const css=await readFile('src/ui/tool-shell.css','utf8');
