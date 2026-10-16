@@ -30,3 +30,31 @@ The editing contract is deliberately differentiated: explicit inline **Cancel** 
 - Independent readback safety regression at 360/400/960: dirty X guard / Escape keep draft / explicit discard, external conflict preserving draft, E_OUTCOME_UNKNOWN save disabled and new writes blocked until refresh, revoked permissions clear visible tree and restored permissions reload. All passed in sandbox-only Mock.
 - Remaining quality gates: native macOS installed Chrome and true browser zoom at 125%/150% **NOT_TESTED**; manual screen-reader audit **NOT_TESTED**; ten independent 95+ UX ratings **NOT_SCORED**.
 - Further incremental compact icon-only create controls preserve one existing React UI and maintain locator semantics; the final HTML for this additional change must pass its *own* same-candidate CI before it can be promoted.
+
+## R3.0.3 FINAL CI + TEN-DIMENSION AUDIT — 2026-10-16
+
+**Implementation-only revision**: commit [7ebf10c28a2a5402e425d8a522ea32e9a634a585](https://github.com/shopable-ai/opendesk-browser/commit/7ebf10c28a2a5402e425d8a522ea32e9a634a585), direct `main`, no branch / PR / formal extension UI migration. The final R3.0.3 compact-icon preview passed [Chromium CI 38889562200](https://github.com/shopable-ai/opendesk-browser/actions/runs/38889562200), Chrome 155.0.8059.84, with *exact same Git-promoted HTML* blob `f1f27b883c6d1c8906de0201c45f0631530ecf95`, SHA-256 `8d57771ef88c55563c8ffb0be8d9a7748e7ef42463da54bb2bf7121bd0a89b84`.
+
+Additional verified local Chromium 144 results on these **exact HTML bytes** at 360 / 400 / 960 CSS px:
+- Keyboard End / Home and scrolled-away active-descendant remain attached to mounted DOM nodes; 2,159 Mock nodes are virtualized into only 22 rendered rows; no JS page errors.
+- Explicit X dirty-confirm, Escape keep-edit, explicit discard, external conflict preserves editable content, E_OUTCOME_UNKNOWN disables save and blocks another create until successful refresh; permission revoke removes visible node data; restore reloads. All these regression probes pass for all three widths.
+- Compact icon-only creation with aria-labels reduces tree's 360px viewport height overhead: list height **665px vs 618px** for prior R3.0.3 CI under same outer viewport, 47 CSS px recovered. No network-bound dependencies; Mock remains sandboxed; React 19.2.0 and Vite 7.3.6 are candidate-only.
+- The wider 960px detail/editor currently uses a **right-side modal sheet** with backdrop, not a fully simultaneous persistent split inspector. This is an actual remaining product design disagreement with the requested two-column model, not an accepted 95+ UX state.
+- Verified environment scope: GitHub Chrome 155 headless + local Chromium 144; **actual browser zoom 125% / 150%**, human screen reader, 20k-node memory stress, native Mac installed extension CRUD / permission lifecycle, and full partial-success error injection remain `NOT_TESTED`. No one shall substitute DPR/CSS scale for real Chrome zoom.
+
+**Evidence-bound, separately scored UX working assessment** (self-assessment, not a claim that multiple independent human experts reviewed it):
+
+| Dimension | Score / 100 | Concrete evidence and why points are deducted |
+| --- | ---: | --- |
+| 1. Visual cohesion | **90** | 360/400/960 real screenshot consistency and compact icon row; 960 modal backdrop and oversized blank editor space reduce polish. |
+| 2. Information architecture / space | **92** | List-first replaces persistent footer, 47px recovered; wide split is not a true interactive dual pane. |
+| 3. Tree / search efficiency | **93** | 2,159-node search, Home/End, 130 folders; human screen reader behavior and deep edge cases not fully evaluated. |
+| 4. Read-only / edit / drafts | **93** | Sheet, direct Cancel, dirty X/Escape explicit guard, verified readback; more complex undo/focus transitions untested. |
+| 5. Create / move / delete | **88** | Two typed create actions, picker and confirmed deletion pass; partial move/update injected failure and native Host tickets not covered here. |
+| 6. Responsive | **88** | 360/400/960 screenshot and zero layout jump, but true Chrome zoom 125/150 untested and wide inspector is modal. |
+| 7. Keyboard / accessibility | **86** | Mounted aria-activedescendant, positions, F2/Shift+F10 implemented and automated tree checks pass; real assistive technology / user testing missing. |
+| 8. Error handling | **92** | Revoked, restored, stale external conflict, E_OUTCOME_UNKNOWN and failed save proven in Chrome Mock; end-to-end partial write needs fault injection. |
+| 9. Big-tree performance | **91** | 2,159 nodes + 130 folders, 22 rendered DOM rows; 20,000-node memory/time and offscreen AX behavior not measured. |
+| 10. React reusability / engineering | **90** | React/Vite CI & source-parity, real model/service/Mock/token reuse; central shared React UI was not identified, custom tree and mount lifecycle need scrutiny. |
+
+**Quality gate = NOT_MET (all ten 95+ NOT achieved)**. These scores explicitly name limits; no fabricated PASS or native release approval. This document supersedes historic candidate-pending statuses above. R3.1 production UI migration **requires separate explicit user approval**, and remains **NOT_APPROVED**.
