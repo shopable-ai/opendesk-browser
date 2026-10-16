@@ -9,6 +9,7 @@ on:
       - 'tests/framework/chatgpt-mindmap-xmind-probe.mjs'
       - 'tests/framework/chatgpt-mindmap-chatgpt-probe.mjs'
       - 'tests/framework/chatgpt-mindmap-r38-native-probe.mjs'
+      - 'tests/framework/chatgpt-mindmap-r393-sandbox-probe.mjs'
       - 'src/scripting/user-scripts/installed-programs.js'
       - 'src/platform/host/broker.js'
       - 'src/ui/page-program-library.js'
@@ -300,3 +301,62 @@ jobs:
         run: |
           echo 'This native probe NEVER installs via OpenDesk Page Program broker.'
           echo 'Any PASS shows only temporary test-stage USER_SCRIPT feasibility, not license approval, installed lifecycle or logged-in ChatGPT.'
+
+
+  native-r393-sandbox-feasibility:
+    # Independent of WXT's concurrent React tool-shell build. This is a
+    # one-time test extension, NOT the OpenDesk installed-Program broker.
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Build original Mind Map Program without React shell production bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm run build:program -- examples/programs/chatgpt-mindmap
+          node examples/programs/chatgpt-mindmap/scripts/audit-build.mjs
+          node --check tests/framework/chatgpt-mindmap-r393-sandbox-probe.mjs
+      - name: Prepare unbranded native Chromium test environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright-core@1.56.1
+          npx playwright-core install chromium
+          browser="$(node --input-type=module -e "import {chromium} from 'playwright-core';console.log(chromium.executablePath())")"
+          test -x "$browser"
+          test -x /usr/bin/xvfb-run
+          echo "ODMM_R393_BROWSER=$browser" >> "$GITHUB_ENV"
+      - name: Opaque iframe native USER_SCRIPT original XMind CSS isolation proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          program="$(find artifacts/programs/opendesk.chatgpt-mindmap/0.2.0/r31-production -name program.js -print -quit)"
+          test -n "$program"
+          mkdir -p "\${{ runner.temp }}/r393-sandbox-proof"
+          xvfb-run -a node tests/framework/chatgpt-mindmap-r393-sandbox-probe.mjs \
+            --browser "$ODMM_R393_BROWSER" \
+            --program "$program" \
+            --out "\${{ runner.temp }}/r393-sandbox-proof"
+      - name: Retain actual native proof or failure, never vendor bytes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r393-sandbox-native-test-only
+          path: \${{ runner.temp }}/r393-sandbox-proof/*.json
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Declare strict proof scope
+        if: always()
+        run: |
+          echo 'Sandbox proof is NOT formal OpenDesk installation, Broker admission, legal redistribution approval, or logged-in ChatGPT.'
+          echo 'No XMind vendor JS is uploaded or admitted to dist/production.'
