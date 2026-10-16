@@ -330,6 +330,7 @@ try{
    await setInput(ctx,'bm-search','产品研究');
    await until(ctx,"!!document.querySelector('[data-node-id=\"11\"] .bm-search-highlight')",'search folder highlight');
    assert.equal(await invoke(ctx,"return !!document.querySelector('[data-node-id=\"2\"]')"),true,'search reveals matching ancestor path');
+   await screenshot('bookmark-r304-400-search-results.png');
    await click(ctx,'[data-node-id="11"] .bm-node-title');
    await until(ctx,"document.getElementById('bm-search').value===''",'folder search result returns to tree');
    await until(ctx,"document.querySelector('[data-node-id=\"11\"]')?.getAttribute('aria-expanded')==='true'",'folder result expands and scrolls into view');

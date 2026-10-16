@@ -225,7 +225,7 @@ export default function App(){
   const index=rows.findIndex(row=>row.node.id===id);
   if(index<0)return;
   pendingFolderReveal.current=null;
-  scroller.scrollTop=Math.max(0,index*42-Math.min(150,Math.round(scroller.clientHeight/3)));
+  scroller.scrollTop=Math.max(0,index*42); // Position entered folder at the top, not amid unrelated sibling bookmarks.
  },[rows]);
  const current=tree?.byId.get(selectedId)||null;
  const previewNode=previewOpen&&!draft?current:null;
