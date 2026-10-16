@@ -1,9 +1,9 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "cookie-editor",
-  "version": "2.0.15",
+  "version": "2.0.16",
   "title": "Cookie Editor · Cookie 管理",
-  "description": "Cookie Editor R4.10：已确认 R4.9.2 紧凑原位编辑交互接入正式 Cookie SDK；JSON 默认含值备份，敏感值需独立授权及最终确认。",
+  "description": "Cookie Editor R4.10.1：保留 R4.9.2 正式 UI，修复 Cookie SDK/Host 错误回执潜在敏感值泄漏。",
   "capabilities": [
     "currentPage.read",
     "user.export",

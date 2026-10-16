@@ -63,6 +63,24 @@ const sameNativeSlot=(a,b)=>a.name===b.name&&a.path===b.path&&
   (a.partitionKey?.topLevelSite??null)===(b.partitionKey?.topLevelSite??null)&&
   Boolean(a.partitionKey?.hasCrossSiteAncestor)===Boolean(b.partitionKey?.hasCrossSiteAncestor);
 const status=(msg,type='info')=>{E('status').textContent=msg;E('status').dataset.state=type;E('status').hidden=!msg;};
+// Host/SDK error text (including error.code) is untrusted and may carry Cookie values.
+const safeErrorCodes=new Set([
+  'E_CANCELLED','E_COOKIE_CONFLICT','E_OUTCOME_UNKNOWN','E_PERMISSION_REQUIRED',
+  'E_GRANT_REVOKED','E_SITE_GRANT_REQUIRED','E_SESSION_EXPIRED','E_COOKIE_VALUES',
+  'E_COOKIE_READ','E_COOKIE_SET','E_COOKIE_REMOVE','E_COOKIE_CLEAR',
+  'E_COOKIE_OBSERVE','E_COOKIE_IMPORT','E_COOKIE_EXPORT','E_CLIPBOARD',
+  'E_DOWNLOAD','E_COOKIE_WRITE','E_SCHEMA','E_PERMISSION'
+]);
+const safeCookieCode=(error,fallback)=>safeErrorCodes.has(error?.code)?error.code:fallback;
+const safeCookieDetails=new Set([
+  '原 Cookie 属性已改变或消失，请刷新后再编辑',
+  '新名称已存在于相同 Domain/Path/Store/Partition；不会覆盖',
+  '旧 Cookie 值不可用；请授权敏感值或主动填写新值',
+  '保留旧值需在工具设置授权“读取敏感值”，或主动填写新值。',
+  '原 Cookie Path 无法精确查询'
+]);
+const safeCookieDetail=error=>safeCookieDetails.has(error?.message)?error.message:
+  '请手动刷新核对 Cookie，切勿盲目重试。';
 const notify=()=>setState?.({dirty,busy});
 const setBusy=value=>{
   busy=value;notify();
@@ -534,7 +552,7 @@ async function readBrowserMetadata(){
     const permission=await sdk.capabilities.getStatus({operation:'browser.cookies.getAll',url:target.url});
     if(!permission?.callableNow){
       if(id===epoch){liveState='blocked';liveMessage='尚未获得该网站的读取能力（'+
-        String(permission?.reasonCode||'E_PERMISSION_REQUIRED').slice(0,80)+'）。请在工具详情中审阅网站授权。';}
+        safeCookieCode({code:permission?.reasonCode},'E_PERMISSION_REQUIRED')+'）。请在工具详情中审阅网站授权。';}
       return;
     }
     if(id!==epoch||liveTarget?.url!==target.url||targetPending||mode!=='browser')return;
@@ -547,7 +565,7 @@ async function readBrowserMetadata(){
     liveRows=rows;liveState='ready';liveMessage='';
   }catch(error){
     if(id===epoch){liveRows=[];liveState='error';
-      liveMessage='读取被拒绝或结果不确定（'+String(error.code||'E_COOKIE_READ').slice(0,60)+
+      liveMessage='读取被拒绝或结果不确定（'+safeCookieCode(error,'E_COOKIE_READ')+
         '）。检查安装、网站、Store 与授权后手动刷新，不会自动重试。';}
   }finally{if(id===epoch){setBusy(false);render();}}
 }
@@ -587,7 +605,7 @@ async function revealBrowserValue(row){
     liveSecrets.set(identity,receipt.cookie.value);status('仅为选定 Cookie 显示当前敏感值。');
   }catch(e){if(stillCurrent(id,target)){
     // SDK errors are untrusted and may themselves contain a Cookie value.
-    const code=String(e?.code||'E_COOKIE_VALUES').replace(/[^A-Za-z0-9_]/g,'').slice(0,40);
+    const code=safeCookieCode(e,'E_COOKIE_VALUES');
     status('显示值被拒绝（'+code+'）：请在可信工具设置中核对本站敏感值授权。','error');
   }}
   finally{if(id===epoch){setBusy(false);render();}}
@@ -630,8 +648,7 @@ async function saveBrowserCookie(){
             ...(old.partitionKey?{partitionKey:old.partitionKey}:{}),includeValues:true});
         }catch(error){
           if(!stillCurrent(id,target))return;
-          throw Object.assign(new Error('保留旧值需在工具设置授权“读取敏感值”，或主动填写新值。'+
-            String(error?.message||'')),{code:error?.code||'E_COOKIE_VALUES'});
+          throw Object.assign(new Error('保留旧值需在工具设置授权“读取敏感值”，或主动填写新值。'),{code:safeCookieCode(error,'E_COOKIE_VALUES')});
         }
         if(!stillCurrent(id,target))return;
         if(!source?.cookie||key(source.cookie)!==key(old)||
@@ -664,13 +681,13 @@ async function saveBrowserCookie(){
     if(newNameSaved){
       liveSecrets.clear();scrubEditors();
       status('新名称已由 Chrome 确认写入，但旧名称删除未确认（'+
-        (e.code||'E_COOKIE_REMOVE')+'）：'+e.message+
+        safeCookieCode(e,'E_COOKIE_REMOVE')+'）：'+safeCookieDetail(e)+
         '。两条 Cookie 可能并存；请手动刷新核对，切勿盲目重试。','error');
     }else if(e.code==='E_CANCELLED')status('已取消保存，未写入 Cookie；输入已保留，可继续编辑。');
-    else if(e.code==='E_COOKIE_CONFLICT')status('名称冲突（E_COOKIE_CONFLICT）：'+e.message+
+    else if(e.code==='E_COOKIE_CONFLICT')status('名称冲突（E_COOKIE_CONFLICT）：新名称已存在于相同 Cookie 身份'+
       '。未写入 Cookie，输入已保留；请换一个名称或编辑已有记录。','error');
-    else status('操作未完成或结果未知（'+(e.code||'E_COOKIE_SET')+
-      '）：'+e.message+'。请手动刷新核对，切勿盲目重试。','error');
+    else status('操作未完成或结果未知（'+safeCookieCode(e,'E_COOKIE_SET')+
+      '）：'+safeCookieDetail(e)+'。请手动刷新核对，切勿盲目重试。','error');
   }}
   finally{if(id===epoch){setBusy(false);render();}}
   if(confirmed&&stillCurrent(id,target))void readBrowserMetadata();
@@ -688,8 +705,8 @@ async function deleteBrowserCookie(row){
     confirmed=true;liveSecrets.delete(key(row));status('Chrome 已确认删除「'+row.name+'」。','success');
   }catch(e){if(stillCurrent(id,target)){
     if(e.code==='E_CANCELLED')status('已取消删除，未删除 Cookie。');
-    else status('删除未确认（'+(e.code||'E_COOKIE_REMOVE')+
-      '）：'+e.message+'。请核对实际 Cookie，勿重复删除。','error');
+    else status('删除未确认（'+safeCookieCode(e,'E_COOKIE_REMOVE')+
+      '）：请核对实际 Cookie，勿重复删除。','error');
   }}
   finally{if(id===epoch){setBusy(false);render();}}
   if(confirmed&&stillCurrent(id,target))void readBrowserMetadata();
@@ -705,7 +722,7 @@ async function clearBrowserSite(){
        typeof previewRef!=='string'||!/^[0-9a-f-]{36}$/i.test(previewRef))
       throw new Error('Host 未返回可绑定的真实 Cookie 清理预览回执');
     if(!count){status('所选 Store/Partition 下没有本主机 Host-only Cookie。');return;}
-  }catch(e){if(stillCurrent(id,target))status('清理预览被拒绝：'+(e.code||'E_COOKIE_CLEAR')+' '+e.message,'error');return;}
+  }catch(e){if(stillCurrent(id,target))status('清理预览被拒绝（'+safeCookieCode(e,'E_COOKIE_CLEAR')+'）：请检查网站授权和 Cookie 状态。','error');return;}
   finally{if(id===epoch){setBusy(false);render();}}
   if(!stillCurrent(id,target)||!count)return;
   ask('将真实清理 '+target.hostname+' 的 '+count+
@@ -722,8 +739,8 @@ async function clearBrowserSite(){
       confirmed=true;
       if(stillCurrent(id,target))status('Chrome 清理完成：删除 '+result.removed+
         ' 条，剩余 '+result.remaining+' 条。','success');
-    }catch(e){if(stillCurrent(id,target))status('清理部分生效或失败（'+(e.code||'E_COOKIE_CLEAR')+
-      '）：'+e.message+'。请重新预览，不要直接重试。','error');}
+    }catch(e){if(stillCurrent(id,target))status('清理部分生效或失败（'+safeCookieCode(e,'E_COOKIE_CLEAR')+
+      '）：请核对 Chrome Cookie 状态，重新预览后再操作，不要直接重试。','error');}
     finally{if(id===epoch){setBusy(false);render();}}
     if(confirmed&&stillCurrent(id,target))void readBrowserMetadata();
   });
@@ -761,8 +778,8 @@ async function observeBrowser(action){
   }catch(error){
     if(stillCurrent(id,target)){
       if(['E_SESSION_EXPIRED','E_GRANT_REVOKED','E_SITE_GRANT_REQUIRED'].includes(error.code))observing=null;
-      E('live-observe-status').textContent='观察被拒绝或结束（'+(error.code||'E_COOKIE_OBSERVE')+
-        '）：'+error.message;
+      E('live-observe-status').textContent='观察被拒绝或结束（'+safeCookieCode(error,'E_COOKIE_OBSERVE')+
+        '）：请检查会话和网站权限。';
     }
   }finally{if(id===epoch){setBusy(false);render();}}
 }
@@ -819,7 +836,7 @@ async function exportBrowserCookies(method){
         '导出超过 150 KB 安全预算']);
       const reason=safeMessages.has(error?.message)?error.message:
         method==='copy'?'请检查剪贴板权限后重试，或使用「下载」。':'请检查网站授权或下载权限后重试。';
-      const code=String(error?.code||'E_COOKIE_EXPORT').replace(/[^A-Za-z0-9_]/g,'').slice(0,40);
+      const code=safeCookieCode(error,'E_COOKIE_EXPORT');
       status((method==='copy'?'复制':'下载')+'失败（'+code+'）：'+reason,'error');
     }
   }finally{if(id===epoch){setBusy(false);render();}text='';}
@@ -883,8 +900,8 @@ async function prepareLiveImport(){
       '。尚未写入 Chrome；提交后每条需可信 Host 确认。';
     E('live-import-preview').hidden=false;E('live-import-confirm').hidden=false;
     status('预览已生成，请核对数量后确认。');
-  }catch(error){if(stillCurrent(id,target))status('真实导入预检失败：'+
-    (error.code||'E_COOKIE_IMPORT')+' '+error.message,'error');}
+  }catch(error){if(stillCurrent(id,target))status('真实导入预检失败（'+
+    safeCookieCode(error,'E_COOKIE_IMPORT')+'）：请检查导入格式、Store/Partition 与网站授权。','error');}
   finally{if(id===epoch){setBusy(false);render();}}
 }
 function confirmLiveImport(){
@@ -908,7 +925,7 @@ function confirmLiveImport(){
         return {...row,storeId:plan.storeId};
       });
       if(rows.length!==plan.count)throw new Error('数量发生变化');
-    }catch(error){clearImportPreview();status('导入计划已失效：'+error.message,'error');return;}
+    }catch(error){clearImportPreview();status('导入计划已失效：请重新预览并检查 Cookie 格式。','error');return;}
     clearImportPreview();let succeeded=0,failed=null,complete=false;setBusy(true);
     try{
       for(const row of rows){
@@ -927,7 +944,7 @@ function confirmLiveImport(){
         if(!failed&&succeeded===rows.length){
           complete=true;scrubEditors();status('Chrome 已确认导入 '+succeeded+' 条，正在刷新。','success');
         }else status('真实导入已确认 '+succeeded+'/'+rows.length+' 条；其余停止（'+
-          (failed?.code||'E_COOKIE_IMPORT')+'）：'+String(failed?.message||'网站切换')+
+          safeCookieCode(failed,'E_COOKIE_IMPORT')+'）：请核对已写入的 Cookie 状态'+
           '。请检查实际 Cookie，不能盲目重试。','error');
       }
     }finally{if(plan.epoch===epoch){setBusy(false);render();}}
@@ -1253,7 +1270,7 @@ E('copy').addEventListener('click',async()=>{
     if(!text.trim()||new Blob([text]).size>150000)throw new Error('导出为空或超过 150 KB');
     setBusy(true);await browserSdk().clipboard.writeText(text);
     if(actionEpoch===epoch)status('已复制；Cookie 可能包含登录凭据，请勿在不可信网站粘贴。','success');
-  }catch(error){if(actionEpoch===epoch)status('复制失败：'+String(error.message||error),'error');}
+  }catch(error){if(actionEpoch===epoch)status('复制失败（'+safeCookieCode(error,'E_CLIPBOARD')+'）：请检查剪贴板权限。','error');}
   finally{if(actionEpoch===epoch)setBusy(false);text='';}
 });
 E('download').addEventListener('click',async()=>{
@@ -1265,7 +1282,7 @@ E('download').addEventListener('click',async()=>{
     const filename=host+'-cookies.'+(format==='json'?'json':'txt');
     await browserSdk().downloads.text({text,filename});
     if(actionEpoch===epoch)status('已导出本地临时数据，请妥善保管。真实浏览器 Cookie 未被读取。','success');
-  }catch(error){if(actionEpoch===epoch)status('导出失败：'+String(error.message||error),'error');}
+  }catch(error){if(actionEpoch===epoch)status('导出失败（'+safeCookieCode(error,'E_DOWNLOAD')+'）：请核对导出格式或下载权限。','error');}
   finally{if(actionEpoch===epoch)setBusy(false);}
 });
 E('import-file').addEventListener('change',async()=>{
@@ -1278,7 +1295,7 @@ E('import-file').addEventListener('change',async()=>{
     // A chosen import format takes precedence; auto mode sniffs the contents.
     clearImportPreview();mark();status('已载入本地文件，尚未合并数据。');
   }
-  catch(error){status('读取文件失败：'+String(error.message||error),'error');}
+  catch(error){status('读取文件失败：请检查文件权限和编码。','error');}
 });
 E('import-apply').addEventListener('click',prepareImport);
 root.addEventListener('keydown',event=>{

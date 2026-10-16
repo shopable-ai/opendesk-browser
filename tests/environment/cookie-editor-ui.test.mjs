@@ -1142,3 +1142,54 @@ test('R4.10 unsaved browser toolbar switch uses local discard, never a global co
   assert.equal(s.getField('live-export-panel').hidden,false);
   assert.equal(s.getField('confirm-panel').hidden,true);
 });
+
+
+test('R4.10.1 Cookie write failures mask untrusted Host text and preserve the editor draft',async()=>{
+  const secret='FICTIONAL_SDK_ERROR_COOKIE_VALUE';
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{
+    getAll:async()=>[],
+    set:async()=>{throw Object.assign(new Error('untrusted Host text '+secret),
+      {code:'E_COOKIE_WRITE'});}
+  }});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
+  s.openEditor();s.getField('cookie-name').value='sample';
+  s.getField('cookie-value').value='draft-must-survive';
+  await s.saveBrowserCookie();
+  assert.doesNotMatch(s.getStatusMessage(),new RegExp(secret));
+  assert.match(s.getStatusMessage(),/操作未完成或结果未知/);
+  assert.equal(s.getField('cookie-value').value,'draft-must-survive');
+  assert.equal(s.getField('editor-panel').hidden,false);
+});
+
+test('R4.10.1 delete and import preflight mask untrusted SDK/Host exception details',async()=>{
+  const secret='FICTIONAL_UNTRUSTED_HOST_SECRET';
+  const old={name:'sample',domain:'example.com',path:'/',hostOnly:true,session:true,storeId:'0'};
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{
+    getAll:async()=>[old],
+    remove:async()=>{throw Object.assign(new Error(secret),{code:'E_COOKIE_REMOVE'});},
+    getCurrentStore:async()=>{throw Object.assign(new Error(secret),{code:'E_COOKIE_IMPORT'});}
+  }});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
+  s.openEditor(s.liveSnapshot().rows[0]);s.fire('editor-delete','click');
+  s.fire('confirm-accept','click');await s.settle();
+  assert.match(s.getStatusMessage(),/删除未确认/);
+  assert.doesNotMatch(s.getStatusMessage(),new RegExp(secret));
+  s.fire('live-import','click');s.getField('import-text').value='sample=fake';
+  s.fire('import-apply','click');await new Promise(resolve=>setImmediate(resolve));
+  assert.match(s.getStatusMessage(),/真实导入预检失败/);
+  assert.doesNotMatch(s.getStatusMessage(),new RegExp(secret));
+});
+
+test('R4.10.1 error codes with credential-looking content never appear in the UI',async()=>{
+  const secret='FICTIONAL_COOKIE_TOKEN';
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{
+    getAll:async()=>[],
+    set:async()=>{throw Object.assign(new Error(secret),{code:'E_COOKIE_'+secret});}
+  }});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
+  s.openEditor();s.getField('cookie-name').value='sample';
+  s.getField('cookie-value').value='fake';
+  await s.saveBrowserCookie();
+  assert.doesNotMatch(s.getStatusMessage(),new RegExp(secret));
+  assert.match(s.getStatusMessage(),/E_COOKIE_SET/);
+});
