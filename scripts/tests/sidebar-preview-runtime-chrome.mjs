@@ -288,6 +288,21 @@ try{
     }
     throw Error('AdBlock sandbox not ready: '+JSON.stringify(last));
   }
+  // R1.9 keeps the exception sandbox mounted but hidden on overview. Navigate
+  // through the actual trusted host before measuring the iframe viewport.
+  async function clickAdblockNavigation(view){
+    const selector='#od-preview-adblock-host [data-adblock-nav="'+view+'"]';
+    const point=(await cdp('Runtime.evaluate',{expression:
+      '(()=>{const x=document.querySelector('+JSON.stringify(selector)+');'+
+      'if(!x)return null;const r=x.getBoundingClientRect();'+
+      'const p={x:r.left+r.width/2,y:r.top+r.height/2};'+
+      'return { ...p,hit:r.width>0&&r.height>0&&x.contains(document.elementFromPoint(p.x,p.y)) };})()',
+      returnByValue:true})).result?.value;
+    assert.ok(point?.hit,'visible AdBlock navigation target: '+view);
+    await cdp('Input.dispatchMouseEvent',{type:'mouseMoved',x:point.x,y:point.y});
+    for(const type of ['mousePressed','mouseReleased'])
+      await cdp('Input.dispatchMouseEvent',{type,x:point.x,y:point.y,button:'left',clickCount:1});
+  }
   const adblockChecks=[];
   for(const scenario of ['success','empty']){
     const candidate=await buildPreview({tool:'adblock',surface:'side-panel',
@@ -299,11 +314,19 @@ try{
       {features:[{name:'prefers-color-scheme',value:'light'}]});
     await cdp('Page.navigate',{url:pathToFileURL(candidate.output).href});
     let parent=await adblockOuter();
-    let child=await adblockFrame(row=>scenario!=='success'||row.count==='1');
     assert.equal(parent.buttons,2,'source-derived trusted toggles are missing');
     assert.equal(parent.frameSandbox,'allow-scripts','iframe must keep opaque origin');
     assert.ok(Math.abs(parent.switchWidth-46)<1,'canonical 46px switch width');
     assert.ok(Math.abs(parent.switchHeight-27)<1,'canonical 27px switch height');
+    assert.equal(parent.frameHeight,0,'overview must hide the separate exceptions iframe');
+    if(scenario==='success'){
+      const overviewShot=await cdp('Page.captureScreenshot',{format:'png'});
+      await writeFile(join(output,'adblock-overview-360.png'),Buffer.from(overviewShot.data,'base64'));
+    }
+    await clickAdblockNavigation('exceptions');
+    await adblockOuter(row=>row.frameHeight>0);
+    let child=await adblockFrame(row=>row.frameWidth>0&&
+      (scenario!=='success'||row.count==='1'));
     assert.ok(child.scrollWidth<=child.frameWidth+1,'AdBlock iframe horizontal overflow');
     assert.equal(child.maliciousImages,0,'sandbox must only render inert domain text');
     assert.equal(network.length,0,'preview made a remote request');
@@ -333,6 +356,8 @@ try{
       await writeFile(join(output,'adblock-restored-360.png'),Buffer.from(changed.data,'base64'));
     }else{
       assert.equal(parent.globalOn,'false');
+      await clickAdblockNavigation('overview');
+      parent=await adblockOuter(row=>row.frameHeight===0&&!row.globalDisabled);
       const {x,y}=parent;
       await cdp('Input.dispatchMouseEvent',{type:'mouseMoved',x,y});
       await cdp('Input.dispatchMouseEvent',{type:'mousePressed',x,y,button:'left',clickCount:1});

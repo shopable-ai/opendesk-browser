@@ -153,7 +153,12 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   await mkdir(OUT,{recursive:true});
   const bytes=await readFile(path.join(ROOT,'official-tools/adblock/adblock.opendesk-tool.json'));
   const pkg=JSON.parse(bytes);
-  assert.equal(pkg.id,'adblock');assert.equal(pkg.version,'1.0.0');
+  const sourceConfig=JSON.parse(await readFile(
+    path.resolve('examples/sidebar-tools/adblock/tool.config.json'),'utf8'));
+  assert.equal(pkg.id,'adblock');
+  assert.equal(pkg.id,sourceConfig.id,'installed tool identity must match canonical source');
+  assert.equal(pkg.version,sourceConfig.version,
+    'official package must have the current reviewed tool version');
   const report={candidate:process.env.GITHUB_SHA||spawnSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).stdout.trim(),
     root:ROOT,driverSHA256:createHash('sha256').update(await readFile(new URL(import.meta.url))).digest('hex'),
     chromeBin:BIN,packageSHA256:createHash('sha256').update(bytes).digest('hex'),
@@ -324,7 +329,6 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   note('installed-no-filter-before-opt-in',{adRequests:counts.ad,officialVersion:pkg.version});
 
   const global='#sidebar-tool-adblock-native button[aria-label="全局广告拦截"]';
-  const local='#sidebar-tool-adblock-native button[role="switch"]:nth-of-type(1)';
   assert.equal(await evaluate(client,sid,
     'chrome.permissions.contains({permissions:["declarativeNetRequestWithHostAccess"]})'),
     false,'clean Chrome Profile must not pregrant DNR');
