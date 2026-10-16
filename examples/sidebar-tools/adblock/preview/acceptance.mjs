@@ -65,6 +65,8 @@ async function until(fn, label, ms=9000) {
 const profile = mkdtempSync(join(tmpdir(), 'adblock-r2-chrome-'));
 let browser, socket;
 let browserLog='';
+// Prevent a stuck macOS Chrome/CDP process from holding CI indefinitely.
+const watchdog=setTimeout(()=>{console.error('E_CHROME_WATCHDOG · last stderr: '+browserLog);process.exit(124);},75000);
 const exceptions = [];
 const requests = [];
 let counter = 1;
@@ -233,7 +235,12 @@ try {
   console.log('08 OFFLINE_NO_CONSOLE_ERRORS_PASS');
   console.log('BROWSER_RESULT PASS · genuine Chromium file:// interactions · no build/no server');
 } finally {
-  socket?.close();
-  browser?.kill('SIGTERM');
+  try {socket?.close();}catch{}
+  if (browser) {
+    try {browser.kill('SIGKILL');}catch{}
+    browser.stderr?.destroy();
+    browser.unref();
+  }
   rmSync(profile,{recursive:true,force:true,maxRetries:4,retryDelay:100});
+  clearTimeout(watchdog);
 }
