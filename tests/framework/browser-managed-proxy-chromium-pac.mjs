@@ -4,7 +4,7 @@
 // No production proxy profile, user Chrome Profile, or commercial endpoint is touched.
 import assert from 'node:assert/strict';
 import {spawn,execFileSync} from 'node:child_process';
-import {createHash} from 'node:crypto';
+import {createHash,X509Certificate} from 'node:crypto';
 import {mkdtemp,mkdir,readFile,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -174,6 +174,11 @@ async function run(){
   '-subj','/CN='+target,'-addext','subjectAltName=DNS:'+target+',DNS:'+sub,
   '-keyout',keyPath,'-out',certPath,'-days','1'],{stdio:'ignore'});
  const cert=await readFile(certPath),key=await readFile(keyPath);
+ // Pin only the generated disposable leaf SPKI in Chromium, not all TLS hosts.
+ // The separate Node TLS check below still authenticates the full cert and SAN.
+ const testCertSpkiSha256=createHash('sha256').update(
+  new X509Certificate(cert).publicKey.export({type:'spki',format:'der'})
+ ).digest('base64');
  httpServer=http.createServer((req,res)=>{
   httpRequests.push({host:req.headers.host,path:req.url});
   res.writeHead(200,{'content-type':'text/plain','cache-control':'no-store','connection':'close'});
@@ -215,7 +220,7 @@ async function run(){
  assert(forwarded.some(x=>x.host===target&&x.port===httpsPort));
  report.A='PASS';
  report.fixture={proxy:'127.0.0.1:'+proxyPort,transport:'SOCKS5',
-  nodeTlsCertificateVerified:true,httpConnect:'NOT_SUPPORTED_BY_FIXTURE'};
+  nodeTlsCertificateVerified:true,testCertSpkiSha256,httpConnect:'NOT_SUPPORTED_BY_FIXTURE'};
  const pac=compileManagedProxyPac({
   endpoint:{scheme:'socks5',host:proxyHostname,port:proxyPort},domains:[target]
  },{toolId:'test-only',packageHash:'a'.repeat(64),installEpoch:'ci-isolated'});
@@ -231,7 +236,7 @@ async function run(){
   '--disable-background-networking','--remote-debugging-port=0',
   '--user-data-dir='+profile,'--disable-extensions-except='+extension,
   '--load-extension='+extension,'--host-resolver-rules='+rules,
-  '--ignore-certificate-errors', // Isolated self-signed test certificate only.
+  '--ignore-certificate-errors-spki-list='+testCertSpkiSha256, // This fixture cert only.
   'about:blank'
  ];
  if(allowIsolatedRunnerFallback)chromeArgs.unshift('--no-sandbox');
@@ -312,9 +317,13 @@ async function run(){
   extensionId:worker.url.split('/')[2],
   pacSha256:createHash('sha256').update(pac).digest('hex'),
   proxyOwnerReadback:native.levelOfControl,
-  forwarded,lookalikeDirect:true,httpFailClosed:true,httpsFailClosed:true,
+  forwarded,httpRequests,httpsRequests,
+  networkResponses:{targetHttp:httpResult,subdomainHttp:subResult,
+   lookalikeDirectHttp:lookalikeResult,targetHttps:tlsResult,websocket,
+   outageHttp:failedHttp,outageHttps:failedTls},
+  lookalikeDirect:true,httpFailClosed:true,httpsFailClosed:true,
   websocket:websocket.supported?'PASS':'NOT_SUPPORTED',
-  selfSignedCertificateException:'DISPOSABLE_TEST_PROFILE_ONLY'};
+  selfSignedCertificateException:'DISPOSABLE_TEST_CERT_SPKI_PIN_ONLY'};
  report.status='A_B_PASS';
 }
 let failure;
