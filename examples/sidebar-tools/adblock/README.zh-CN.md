@@ -36,7 +36,7 @@ Chrome 首次授予可选 DNR 权限存在[已确认的初始化缺陷](https://
     npm run verify
     sha256sum examples/sidebar-tools/adblock/rules/domains.js
 
-正式工具项目版本：1.0.0。独立工具包由现有 build:sidebar-tool 生成到 artifacts/sidebar-tools/adblock/1.0.0/；官方发行包经 Catalog 生成到 dist/production/official-tools/adblock/，不得把构建输出手工写回 examples。用户使用正式发行版，不需要自行下载源码或安装 Node。
+正式工具项目版本：**1.1.1**（相对已安装的 1.1.0 修复 iframe 首次焦点导致恢复按钮点击丢失的问题，包字节已改变，不能沿用同版本不同包升级）。使用原有 `scripts/build-sidebar-tool.mjs` 生成 `artifacts/sidebar-tools/adblock/candidate.opendesk-tool.json` 临时候选，来源与测试门禁通过后由 `--promote-from` 显式晋升到唯一正式 `examples/sidebar-tools/adblock/adblock.opendesk-tool.json`；`--check-project` 校验身份及字节。官方发行由 Catalog 生成到 `dist/production/official-tools/adblock/`。不得手工编辑正式 JSON，实际用户仍须经过原安装器的权限和版本审阅。
 
 ## 实际验收边界
 
