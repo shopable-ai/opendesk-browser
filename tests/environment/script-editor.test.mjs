@@ -372,10 +372,10 @@ test('local project setup guide opens only after a trusted user click in local m
 test('developer current-page summary follows the actual tab without exposing document internals',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   assert.equal(f.find('script-current-page-host').textContent,'a.example');
-  assert.equal(f.find('script-current-page-status').textContent,'可运行');
+  assert.equal(f.find('script-current-page-status').textContent,'网页可运行');
   await f.switchTab();
   assert.equal(f.find('script-current-page-host').textContent,'b.example');
-  assert.equal(f.find('script-current-page-status').textContent,'可运行');
+  assert.equal(f.find('script-current-page-status').textContent,'网页可运行');
   assert.equal(f.find('script-current-page-title').textContent,'B');
   assert.match(f.find('script-current-page-debug').textContent,/documentId/);
 });

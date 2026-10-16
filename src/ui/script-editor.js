@@ -361,7 +361,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       find('script-save').textContent=localInstaller.saveLabel();
       find('script-run').textContent='运行本地项目';
       find('script-run').disabled=stopping||editingBusy||previewBusy||running||!projection?.slotAvailable||!!host.currentRun||!localProject.canAttemptRun()||currentPageState?.status!=='available';
-      find('script-version').textContent='本地项目模式 · 手工草稿已保留；正式任务请使用打包安装流程';
+      find('script-version').textContent='本地项目模式 · 手工草稿已保留；运行所选项目准备完成的代码';
     }else {
       find('script-save').hidden=false;
       find('script-run').textContent=componentMode!=='javascript'
@@ -398,8 +398,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
       currentPageHost.textContent = new URL(next.url).host;
       currentPageHost.title = next.url;
       currentPageStatus.dataset.state = 'available';
-      currentPageStatus.textContent = '可运行';
-      currentPageStatus.title = '已识别可运行网页；执行时仍需检查网站授权及文档身份';
+      currentPageStatus.textContent = '网页可运行';
+      currentPageStatus.title = '目标网页可运行；运行时核对所选源码、网站授权及文档身份';
       currentPageDebug.textContent = JSON.stringify({windowId:next.windowId,tabId:next.tabId,frameId:next.frameId,
         documentId:next.documentId,url:next.url,origin:next.origin}, null, 2);
     } else if (next?.status === 'resolving') {
@@ -834,10 +834,10 @@ export function createScriptEditor({client, currentPageTarget, development=false
     });
   }
   function startLocal(event){
-    if(!event.isTrusted||!localAdapter)return;
+    if(!event.isTrusted||!localAdapter||!projection?.slotAvailable||!localProject.canAttemptRun()||currentPageState?.status!=='available')return;
     let captured,binding,paramsText,permission;
     try{
-      captured=currentPageTarget.capture();binding=localProject.capture();paramsText=find('local-project-params').value;
+      binding=localProject.capture();captured=currentPageTarget.capture();paramsText=find('local-project-params').value;
       permission=requireChromePermissions({api,request:{origins:[permissionPattern(captured.url)],...(find('script-allow-cookies').checked?{permissions:['cookies']}:{})}});
     }catch(error){fail(error);return;}
     hideUserScriptsRecovery();
@@ -849,6 +849,9 @@ export function createScriptEditor({client, currentPageTarget, development=false
       if(disposed)throw {code:'E_HOST_CLOSED',message:'Sidebar 已关闭，本次未运行'};
       const source=await localProject.resolve(binding);
       await currentPageTarget.revalidate(captured);await localProject.assertReady(binding,source.sourceHash);localProject.assertCaptured(binding);
+      if(disposed)throw {code:'E_HOST_CLOSED',message:'Sidebar 已关闭，本次未运行'};
+      if(stopping||editingBusy||previewBusy||!projection?.slotAvailable||host.currentRun)
+        throw {code:'E_RUN_ACTIVE',message:'运行状态已变化；请等待当前任务释放后重新运行'};
       page=source.runtimeKind==='page-userscript';
       const params=page?{}:JSON.parse(paramsText);
       if((!page||source.siteOrigins?.length)&&!source.siteOrigins?.includes(captured.origin))throw {code:'E_DEV_ORIGIN',message:'当前网站不在本地项目的允许范围内'};

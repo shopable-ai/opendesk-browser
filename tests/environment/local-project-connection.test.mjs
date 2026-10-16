@@ -7,13 +7,65 @@ import {createLocalProjectProvider} from '../../native-agent/local-dev/provider.
 
 const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
 const request=(id,method='project.resolve',params={bindingId:'local-a'})=>({type:'native-agent.dev.request',requestId:id,method,params,registrationId:'host-a'});
-function serviceFixture(){
+function serviceFixture({files,permission=true}={}){
   const sent=[],received=[],host={registrationId:'host-a',postMessage:x=>received.push(x)},hostPorts=new Map([['doc-a',host]]);
   const connection={enabled:true,ready:true,generation:1,port:{postMessage:x=>sent.push(x)}};
-  const service=createLocalProjectService({api:{permissions:{contains:async()=>true}},hostPorts,connection:()=>connection});
+  const service=createLocalProjectService({api:{permissions:{contains:async()=>permission}},hostPorts,connection:()=>connection,files});
   service.receive({v:1,kind:'dev.state',connected:true,providerEpoch:'epoch-a'});
   return {service,sent,received,host,hostPorts,connection};
 }
+
+const workspace={workspaceId:'workspace-4c85d884-a0f7-aa64-4882-988b9efafd0e',name:'prompt-shortcuts',
+  sourceId:'source-b415e56bdeedab91d5e28df3',access:'read-write',leaseEpoch:'lease-1234567890123456'};
+function workspaceFiles(){
+  let sessionId='files-session-1234567890';const calls=[];
+  return {calls,state:()=>({connected:!!sessionId,sessionId}),setSession:value=>{sessionId=value;},
+    request:async(...args)=>{calls.push(args);return {workspaces:[{...workspace,root:'/private/directory',content:'not catalog data'}]};}};
+}
+
+test('registered Host lists file-only workspaces through existing file session without a runnable provider',async t=>{
+  const files=workspaceFiles(),f=serviceFixture({files});t.after(()=>f.service.disconnected());
+  f.service.disconnected();
+  f.service.acceptHostRequest(f.host,request('files-only','workspaces.list',{}));await tick();
+  assert.deepEqual(files.calls,[['workspaces.list',{}, {sessionId:'files-session-1234567890'}]]);
+  assert.deepEqual(f.received.at(-1).result,{workspaces:[workspace],sessionId:'files-session-1234567890'});
+  assert.equal(f.sent.length,0,'catalog never dispatches through the runnable source provider');
+});
+
+test('workspace catalog keeps Host, params and Native permission boundaries',async t=>{
+  const files=workspaceFiles(),f=serviceFixture({files});t.after(()=>f.service.disconnected());
+  f.service.acceptHostRequest(f.host,{...request('old-host','workspaces.list',{}),registrationId:'other-host'});
+  f.service.acceptHostRequest(f.host,request('arbitrary-path','workspaces.list',{path:'/private'}));
+  f.service.acceptHostRequest(f.host,request('file-read','files.read',{workspaceId:workspace.workspaceId,path:'secret'}));
+  await tick();assert.equal(files.calls.length,0);
+  assert.deepEqual(f.received.slice(-3).map(row=>row.error.code),['E_OWNER','E_SCHEMA','E_SCHEMA']);
+  const denied=serviceFixture({files,permission:false});t.after(()=>denied.service.disconnected());
+  denied.service.acceptHostRequest(denied.host,request('denied','workspaces.list',{}));await tick();
+  assert.equal(denied.received.at(-1).error.code,'E_PERMISSION');assert.equal(files.calls.length,0);
+});
+
+test('workspace catalog rejects late results after session, Host or Native connection changes',async t=>{
+  for(const change of ['session','host','port','generation']){
+    const files=workspaceFiles(),f=serviceFixture({files});t.after(()=>f.service.disconnected());
+    let release;files.request=()=>new Promise(resolve=>{release=resolve;});
+    f.service.acceptHostRequest(f.host,request(change,'workspaces.list',{}));await tick();
+    if(change==='session')files.setSession('files-session-changed');
+    if(change==='host')f.host.registrationId='new-host';
+    if(change==='port')f.connection.port={postMessage:()=>assert.fail('no source dispatch')};
+    if(change==='generation')f.connection.generation++;
+    release({workspaces:[workspace]});await tick();
+    assert.equal(f.received.at(-1).error.code,'E_FILES_SESSION',change);
+  }
+});
+
+test('workspace catalog fails closed for disconnected or malformed directory identities',async t=>{
+  const files=workspaceFiles(),f=serviceFixture({files});t.after(()=>f.service.disconnected());
+  files.setSession(null);f.service.acceptHostRequest(f.host,request('offline','workspaces.list',{}));await tick();
+  assert.equal(f.received.at(-1).error.code,'E_FILES_DISCONNECTED');assert.equal(files.calls.length,0);
+  files.setSession('files-session-1234567890');files.request=async()=>({workspaces:[{...workspace,workspaceId:'../../private'}]});
+  f.service.acceptHostRequest(f.host,request('invalid-id','workspaces.list',{}));await tick();
+  assert.equal(f.received.at(-1).error.code,'E_FILES_PROTOCOL');
+});
 test('local project status reports Native connectivity separately from source registration',async t=>{
   const f=serviceFixture();t.after(()=>f.service.disconnected());
   f.service.disconnected();

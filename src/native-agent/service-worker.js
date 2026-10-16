@@ -8,12 +8,12 @@ import {createFileWorkspaceService} from './file-workspace-service.js';
 export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Map(),development}={}) {
   let enabled=false,port=null,ready=false,disposed=false,generation=0,settingsGeneration=0,workflowAiVersion=0;
   const pending=new Map(),store=api.storage.local;
-  const projects=createLocalProjectService({api,hostPorts,connection:()=>({enabled,ready,port,generation})});
   const workflowAI=createWorkflowAIService({api,hostPorts,
     connection:()=>({enabled,ready,port,generation,workflowAiVersion}),
     enable:host=>enableRegisteredHost(host),refresh:async()=>{await initial;if(enabled&&!port)connect();}});
   const files=createFileWorkspaceService({api,connection:()=>({enabled,ready,port,generation}),
     onChange:({connected}={})=>{api.runtime.sendMessage?.({protocol:AGENT_CONFIG_PROTOCOL,type:'files.changed',connected}).catch?.(()=>{});}});
+  const projects=createLocalProjectService({api,hostPorts,connection:()=>({enabled,ready,port,generation}),files});
   const sequences={ledger:Promise.resolve(),settings:Promise.resolve()};
   function exclusive(action,key='ledger') {
     const next=sequences[key].then(action);

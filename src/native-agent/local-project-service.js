@@ -1,9 +1,9 @@
-import {AGENT_MAX_BYTES,AgentBridgeError} from './protocol.js';
+import {AGENT_MAX_BYTES,AgentBridgeError,agentObject} from './protocol.js';
 import {validLocalProjectRequest,localSourceMethod} from '../../native-agent/local-project-source-contract.mjs';
 
 // Reverse, read-only project transport on authenticated Native Messaging. Only
 // the original broker's currently registered Host ports may request a binding.
-export function createLocalProjectService({api,hostPorts,connection}) {
+export function createLocalProjectService({api,hostPorts,connection,files}) {
   let providerEpoch=null,sourceTransfers=false;
   const pending=new Map();
   const live=host=>[...hostPorts.values()].includes(host)&&typeof host.registrationId==='string';
@@ -43,7 +43,34 @@ export function createLocalProjectService({api,hostPorts,connection}) {
     const fail=error=>send(host,{type:'native-agent.dev.response',requestId:message.requestId,error:{code:error.code||'E_DEV_DISCONNECTED',message:error.message||'Local project unavailable'}});
     (async()=>{
       if(!live(host)||message.registrationId!==host.registrationId)throw new AgentBridgeError('E_OWNER');
-      if(typeof message.requestId!=='string'||!validLocalProjectRequest(message.method,message.params,{status:true}))throw new AgentBridgeError('E_SCHEMA');
+      const workspaceCatalog=message.method==='workspaces.list';
+      if(typeof message.requestId!=='string'||!(workspaceCatalog?
+        agentObject(message.params)&&Object.keys(message.params).length===0:
+        validLocalProjectRequest(message.method,message.params,{status:true})))throw new AgentBridgeError('E_SCHEMA');
+      // Directory discovery uses the existing file authority, independently of
+      // runnable-source registration. This Host route grants no file I/O.
+      if(workspaceCatalog){
+        const c={...connection()},fileState=files?.state();
+        if(!fileState?.connected||!fileState.sessionId)throw new AgentBridgeError('E_FILES_DISCONNECTED');
+        const current=()=>live(host)&&host.registrationId===message.registrationId&&
+          connection().enabled&&connection().ready&&connection().port===c.port&&connection().generation===c.generation&&
+          files.state().connected&&files.state().sessionId===fileState.sessionId;
+        if(!await api.permissions.contains({permissions:['nativeMessaging']}))throw new AgentBridgeError('E_PERMISSION');
+        if(!current())throw new AgentBridgeError('E_FILES_SESSION');
+        const value=await files.request('workspaces.list',{}, {sessionId:fileState.sessionId});
+        if(!current())throw new AgentBridgeError('E_FILES_SESSION');
+        if(!Array.isArray(value?.workspaces)||value.workspaces.length>32||value.workspaces.some(row=>
+          !agentObject(row)||!/^workspace-[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(row.workspaceId||'')||
+          typeof row.name!=='string'||!row.name.trim()||row.name.length>160||/[\u0000-\u001f\u007f]/u.test(row.name)||
+          !['read-only','read-write'].includes(row.access)||
+          row.sourceId!==undefined&&!/^source-[a-f0-9]{24}$/.test(row.sourceId)||
+          row.leaseEpoch!==undefined&&(typeof row.leaseEpoch!=='string'||! /^[A-Za-z0-9._:-]{16,100}$/.test(row.leaseEpoch))))
+          throw new AgentBridgeError('E_FILES_PROTOCOL');
+        const workspaces=value.workspaces.map(({workspaceId,name,access,sourceId,leaseEpoch})=>
+          ({workspaceId,name,access,...(sourceId===undefined?{}:{sourceId}),...(leaseEpoch===undefined?{}:{leaseEpoch})}));
+        send(host,{type:'native-agent.dev.response',requestId:message.requestId,
+          result:{workspaces,sessionId:fileState.sessionId}});return;
+      }
       if(localSourceMethod(message.method)&&!sourceTransfers)throw new AgentBridgeError('E_NATIVE_UPDATE_REQUIRED');
       if(message.method==='status'){send(host,{type:'native-agent.dev.response',requestId:message.requestId,result:state()});return;}
       const c=connection(),epoch=providerEpoch;
