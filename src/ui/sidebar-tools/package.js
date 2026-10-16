@@ -33,10 +33,16 @@ export function validateSidebarToolPackage(value) {
     fail('工具格式、ID 或版本无效');
   for (const name of ['title','description','html','css','js'])
     if (!validText(value[name],LIMITS[name],name==='css')) fail('工具字段过大或无效：'+name,'E_TOOL_LIMIT');
-  if (!Array.isArray(value.capabilities) || value.capabilities.length>(v2?V2_CAPABILITIES:CAPABILITIES).length ||
-      new Set(value.capabilities).size!==value.capabilities.length ||
-      !value.capabilities.every(item=>(v2?V2_CAPABILITIES:CAPABILITIES).includes(item)))
-    fail('工具能力声明超出当前支持范围');
+  const supportedCapabilities=v2?V2_CAPABILITIES:CAPABILITIES;
+  if (!Array.isArray(value.capabilities)) fail('工具能力声明必须是数组');
+  if (value.capabilities.length>supportedCapabilities.length) fail('工具能力声明数量超出当前支持范围');
+  if (!value.capabilities.every(item=>typeof item==='string')) fail('工具能力声明的每一项必须是字符串');
+  if (new Set(value.capabilities).size!==value.capabilities.length) fail('工具能力声明包含重复项');
+  const unsupportedCapabilities=value.capabilities.filter(item=>!supportedCapabilities.includes(item));
+  if (unsupportedCapabilities.length) {
+    const names=unsupportedCapabilities.slice(0,4).map(item=>item.length>80?item.slice(0,80)+'…':item).join('、');
+    fail('工具能力声明超出当前支持范围：'+names+(unsupportedCapabilities.length>4?'等 '+unsupportedCapabilities.length+' 项':'')+'。请核对工具包格式，并更新 OpenDesk Browser 扩展后重新导入。');
+  }
   if(v2){
     if(!plain(value.requires)||!fields(value.requires,['browserSdk'])||
        value.requires.browserSdk!=='1.0.0')fail('浏览器 SDK 版本不受支持');

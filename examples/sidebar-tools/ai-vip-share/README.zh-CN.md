@@ -30,6 +30,14 @@ node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ai-vip-share --check-
 
 ## 安装身份迁移
 
+### 导入提示“工具能力声明超出当前支持范围”
+
+本包需要支持 `browser.proxy.managed` 的 OpenDesk Browser。请在 Chrome 扩展详情中核对实际加载目录与扩展 ID；扩展显示 `0.1.0` 不能区分不同时间生成的源码。
+
+2026-10-16 已定位的一例来自 **OpenDesk Schedule Demo CFT 的历史 production 验收候选**，其导入白名单没有这项能力。日常 Google Chrome 加载本仓库 `dist/development` 的实例已支持当前四项声明，并通过正式文件审阅、打开、返回及重开验证。使用日常开发实例时保留现有 ID 与 Native 配对；历史验收候选由所属工作流单独升级，不能覆盖旧候选或删减工具能力。Standard/Developer 名称本身不是支持能力的判断依据。
+
+已安装相同包时，导入面板显示“已安装相同工具”，直接取消导入并打开现有工具即可保留数据。会员、商品、兑换和代理 Provider 尚未配置，导入通过不代表这些真实服务已可用。
+
 `ai-vip-share` 是新的独立安装身份，不能自动继承 `ai-smart-access` 的安装授权、epoch、激活租约或启用状态。
 旧版工具应在代理释放后明确卸载，再审核安装新版。旧版卸载只能清理旧身份数据，不能覆盖新版可能持有的代理设置。
 
