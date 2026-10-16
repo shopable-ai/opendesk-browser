@@ -252,6 +252,56 @@ async function run(){
     await screenshot('formal-list-'+n+'px');
     report.scenes.push({width:n,form:'list',overflow:x.horizontalOverflow,screenshot:'formal-list-'+n+'px.png'});
   }
+  // R1.17 acceptance: exercise THE FORMAL BUNDLED UI in real Chromium,
+  // not just the independent preview, across the complete Side Panel width range.
+  for(const n of [320,360,400,440]){
+    await width(n);
+    const initial=await evaluate('('+function(){
+      const buttons=[...document.querySelectorAll('.ps-card-actions button')];
+      return {count:buttons.length,actions:buttons.map(b=>b.dataset.action),
+        hasIcons:buttons.every(b=>b.querySelector('svg')&&b.textContent.trim()===''&&b.title&&b.getAttribute('aria-label'))};
+    }.toString()+')()');
+    assert.equal(initial.count,1,'one More trigger per prompt');
+    assert.deepEqual(initial.actions,['more']);
+    assert.equal(Boolean(initial.hasIcons),true);
+    await click('.ps-card-actions button');
+    const menu=await evaluate('('+function(){
+      const buttons=[...document.querySelectorAll('.ps-card-actions button,.ps-more button')];
+      return {actions:buttons.map(b=>b.dataset.action),
+        iconOnly:buttons.every(b=>b.textContent.trim()===''&&!!b.querySelector('svg')&&!!b.title&&!!b.getAttribute('aria-label')),
+        minWidth:Math.min(...buttons.map(b=>b.getBoundingClientRect().width)),
+        hasHorizontalOverflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+1,
+        expanded:document.querySelector('.ps-card-actions button')?.getAttribute('aria-expanded')};
+    }.toString()+')()');
+    assert.deepEqual(menu.actions,['more','edit','toggle','up','down','copy','delete']);
+    assert.equal(menu.iconOnly,true,'all management buttons must be SVG-only');
+    assert(menu.minWidth>=39,'every management icon should have an approximately 40px hit target');
+    assert.equal(menu.hasHorizontalOverflow,false,'management menu overflow '+n);
+    assert.equal(menu.expanded,'true');
+    await screenshot('formal-icon-actions-'+n+'px');
+    report.scenes.push({width:n,form:'icon-actions',overflow:menu.hasHorizontalOverflow,
+      screenshot:'formal-icon-actions-'+n+'px.png'});
+    await rpc('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',
+      windowsVirtualKeyCode:27,nativeVirtualKeyCode:27});
+    await rpc('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape',
+      windowsVirtualKeyCode:27,nativeVirtualKeyCode:27});
+    await poll('!document.querySelector(".ps-more")','Esc closes icon actions');
+    assert.equal(await evaluate('document.activeElement===document.querySelector(".ps-card-actions button")'),
+      true,'Escape must restore focus to More');
+  }
+  report.iconOnlyFormalActions=true;
+  await click('#ps-new');
+  await fill('#ps-body','批量保存测试');
+  await click('#ps-save-next');
+  await poll('document.querySelector("#ps-edit")&&!document.querySelector("#ps-edit").hidden&&'+
+    'document.querySelector("#ps-body").value===""','save-and-continue form reset');
+  assert.deepEqual((await view()).itemBodies,['你好','批量保存测试']);
+  assert.equal(await evaluate('document.activeElement===document.querySelector("#ps-body")'),true,
+    'new draft receives keyboard focus only after acknowledged save');
+  await click('#ps-cancel');
+  await poll('document.querySelector("#ps-index")&&!document.querySelector("#ps-index").hidden',
+    'batch cancel to list');
+  report.saveAndContinueMockHost=true;
   await click('#ps-new');
   assert.equal((await view()).settingsExpanded,'true');
   await click('#ps-toggle-settings');
