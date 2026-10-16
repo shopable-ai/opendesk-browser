@@ -51,11 +51,16 @@ async function snapshot(status,mode='ready',view='overview'){
     }});
   controls.render(tool,false,true);
   await new Promise(resolve=>setImmediate(resolve));
-  if(view!=='overview'){
+  if(view==='settings'){
+    // Product settings are opened by the real trusted toolbar action.
+    // The snapshot builder invokes the same controller method, without a
+    // duplicate button or privileged code in the sandbox package.
+    controls.toggleProductSettings();
+  }else if(view==='exceptions'){
     const target=find(parent,'data-adblock-nav',view);
     if(!target?.listeners?.click)fail('cannot navigate to source product view '+view);
     target.listeners.click();
-  }
+  }else if(view!=='overview')fail('unsupported source product view '+view);
   const html=parent.html();
   controls.dispose();
   if(!html.includes('adblock-native-card')||!html.includes('role="switch"')||

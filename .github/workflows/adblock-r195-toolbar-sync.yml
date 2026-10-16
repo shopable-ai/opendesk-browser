@@ -1,4 +1,4 @@
-# One-shot source-bound UI closure, not a replacement for DNR native acceptance.
+# One-shot source-bound UI closure; canonical host snapshots use the real toolbar controller, not obsolete inner settings buttons.
 name: AdBlock R1.9.5 same-row toolbar source preview
 on:
   push:
