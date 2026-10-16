@@ -353,11 +353,14 @@ try{
   assert.equal(await page.locator('#r23-settings-panel').getAttribute('aria-modal'),'true');
   assert.equal(await page.evaluate(()=>document.activeElement.id),'r234-back');
   assert.equal(await page.locator('#r23-remote-config').isVisible(),false);
+  await page.locator('#r23-settings-panel').evaluate(el=>
+    Promise.all(el.getAnimations().map(animation=>animation.finished.catch(()=>{}))));
   const codexBounds=await page.evaluate(()=>{
     const d=document.querySelector('.device').getBoundingClientRect(),
       s=document.querySelector('#r23-settings-panel').getBoundingClientRect();
     return {bottom:Math.abs(d.bottom-s.bottom),height:s.height,deviceHeight:d.height};
   });
+  console.log('R2391_CODEX_REOPEN_GEOMETRY '+JSON.stringify(codexBounds));
   assert.ok(codexBounds.bottom<=2&&codexBounds.height>120
     &&codexBounds.height<codexBounds.deviceHeight*.7,
     'Native Codex uses natural-height bottom sheet');
