@@ -872,6 +872,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  }
  function resolveSite(){
   const site=siteInfo();if(el('actionScenario').value==='unsupported')return {error:'当前 Origin 不受支持'};
+  if(el('actionScenario').value==='clipboard-failure')return {error:'模拟编辑器与剪贴板均不可用'};
   if(storageCorrupt)return {error:'保存的网站配置异常，已停止网页操作以保护原始数据'};
   if(!state.toolEnabled||!state.settings.showBar)return {error:'网页按钮已停用'};
   if(site.planned)return {error:'规划中 · 未提供经过验证的适配器'};
