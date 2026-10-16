@@ -273,15 +273,33 @@ try{
   await page.getByRole('button',{name:'切换 320px 容器'}).click();
   await page.waitForFunction(()=>document.getElementById('preview-conversation').getBoundingClientRect().width<=321);
   report.narrowWidth=await page.locator('#preview-conversation').evaluate(node=>node.getBoundingClientRect().width);
+  // A ResizeObserver fit is asynchronous. A topic's width can still reflect
+  // the previous 619px canvas, so wait for the actual *new* fitted width.
+  await page.waitForFunction(()=>{
+    const host=document.querySelector('[data-testid="conversation-turn-2"] [data-opendesk-chatgpt-mindmap="viewer"]');
+    const canvas=host?.shadowRoot?.querySelector('.odmm-canvas');
+    return !!canvas&&canvas.dataset.fitReady==='true'&&
+      Number(canvas.dataset.fitWidth)===canvas.clientWidth&&canvas.clientWidth<=320;
+  },null,{timeout:25000});
   await page.waitForFunction(()=>{
     const host=document.querySelector('[data-testid="conversation-turn-2"] [data-opendesk-chatgpt-mindmap="viewer"]');
     return (host?.shadowRoot?.querySelector('.topic')?.getBoundingClientRect().width||0)>=115;
   },null,{timeout:20000});
   report.narrowRootWidth=(await viewer(2).locator('.topic').first().boundingBox()).width;
   report.narrowGeometry=await geometry(2);
+  report.narrowScroller=await viewer(2).evaluate(host=>{
+    const canvas=host.shadowRoot.querySelector('.odmm-canvas');
+    return {fitReady:canvas.dataset.fitReady,fitWidth:canvas.dataset.fitWidth,
+      width:canvas.clientWidth,manualViewport:canvas.dataset.manualViewport,
+      candidates:[...canvas.querySelectorAll('.workbook-item,[class*=\"scroll\"],[class*=\"viewport\"]')]
+        .filter(node=>node.clientWidth>0).slice(0,12).map(node=>({
+          tag:node.tagName,className:String(node.className).slice(0,70),
+          client:node.clientWidth,scroll:node.scrollWidth,left:node.scrollLeft}))};
+  });
   assert.ok(report.narrowGeometry?.root.visibleWidth>=
     Math.min(48,report.narrowGeometry.root.width*.3),
-    'At 320px, the actual root topic must be visible enough to understand');
+    'At 320px, the actual root topic must be visible enough to understand: '+
+    JSON.stringify({geometry:report.narrowGeometry,scroll:report.narrowScroller}));
   report.checks.push('MOBILE_320_ROOT_ACTUALLY_VISIBLE');
   report.narrowToolbar=await viewer(2).locator('.odmm-toolbar').evaluate(node=>({
     client:node.clientWidth,scroll:node.scrollWidth}));
