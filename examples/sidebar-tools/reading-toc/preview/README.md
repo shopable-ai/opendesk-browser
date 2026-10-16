@@ -14,4 +14,4 @@ node scripts/preview/build-preview.mjs --tool reading-toc --surface page-overlay
 
 **生成输出的身份：** HTML 中嵌入仓库当前 commit、设计系统与正式工具 JS/CSS 摘要；context.json 与 HTML 同时生成。CI 的 `.github/workflows/reading-toc-r41.yml` 也会生成并保留 `artifacts/previews/reading-toc/` 中同构的产物。当前暂不把每次变化的生成 HTML 当作第二份长期设计源码，避免生成物脱离正式实现。要查看最新交互，请按上面的命令生成。
 
-**边界：** `PREVIEW_PASS` 仅限已在浏览器打开并验证**此新候选**的生成 HTML；不等于 `NATIVE_PASS`。原生验收需要新版本 1.0.6 工具包、真实 Chrome、两种 UI、离线、权限撤销、SPA、刷新恢复及跨版本数据持久化的独立证据。
+**边界：** `PREVIEW_PASS` 仅限已在浏览器打开并验证**此新候选**的生成 HTML；不等于 `NATIVE_PASS`。原生验收需要正式版本 1.0.7 工具包、真实 Chrome、两种 UI、离线、权限撤销、SPA、刷新恢复及跨版本数据持久化的独立证据。

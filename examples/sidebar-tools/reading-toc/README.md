@@ -28,13 +28,13 @@
 npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc
 ```
 
-可导入文件：`examples/sidebar-tools/reading-toc/reading-toc.opendesk-tool.json`（仓库内随源码校验的 1.0.7 正式便携包），也可重新构建得到 `artifacts/sidebar-tools/reading-toc/1.0.6/reading-toc.opendesk-tool.json`。在「工具」→「＋ 导入」选择文件，审阅后确认安装。官方快捷安装和本地文件导入复用同一工具包校验、权限复核和持久安装记录。官方资源自动生成到 `dist/production/official-tools/reading-toc/reading-toc.opendesk-tool.json`；版本、能力和 SHA-256 由统一 [Catalog](../../../docs/api/official-tools-catalog.zh-CN.md) 派生。源码目录中保留此工具明确选择的便携包副本；不带 `--out` 的打包命令会按照同一套验证代码自动刷新该副本，其他工具仍维持自己的发行政策。默认预装由宿主持久计划管理；卸载后重启不会重新安装。其他 ID 的导入目录工具仍需逐站点授权。
+可导入的已审阅正式包为 `examples/sidebar-tools/reading-toc/reading-toc.opendesk-tool.json`（ID `reading-toc`，v1.0.7）。`npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc` 会将候选输出到 `artifacts/sidebar-tools/reading-toc/1.0.7/reading-toc.opendesk-tool.json`，**不会自动覆盖**仓库正式便携包。候选经真实测试及摘要核对后，如需替换正式副本，必须按构建器的 `--promote-from` 流程明确提升。官方资源由构建器生成至 `dist/production/official-tools/reading-toc/reading-toc.opendesk-tool.json`；正式 ID、版本、能力、SHA-256 与 [官方 Catalog](../../../docs/api/official-tools-catalog.zh-CN.md) 一起核验。安装、同 ID 更新和卸载仍通过现有可信宿主审核，不会因生成候选自动更改已安装工具。
 
 ## 当前证据与边界
 
 - 受控 Chrome for Testing 155 正式包、原生 Side Panel、官方快捷安装和本地 JSON 导入、精确 Origin 确认、H1–H6 多标题索引、关闭 Side Panel 后网页目录留存、站点撤销，均有自动化原生证据。
 - 真实已登录 ChatGPT、真实知乎、多回答版本切换及用户 Mac 生产 Profile 尚未通过本轮原生验收；模拟 ChatGPT DOM 页面不等于真实站点通过。
-- 具体候选 SHA、GitHub Actions、截图和 Mac 验收步骤见 `docs/framework/workstreams/reading-toc-r41-real-chrome-20261010.md`。不可无证据宣称 95/100 独立评分。
+- R1.6 定向 Chrome/Chromium、发行集合和 macOS Actions 的最新证据及未关闭事项，见 [R1.6 验收记录](../../../docs/framework/workstreams/reading-toc-r16-20261016.md)。不可将 CI macOS 通过冒充用户 Mac 已通过，更不可无证据宣称六维独立 95/100。历史 R4.1 记录仍见 `docs/framework/workstreams/reading-toc-r41-real-chrome-20261010.md`。
 
 ## R4.2 悬浮位置验收
 
