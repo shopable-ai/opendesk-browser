@@ -34,6 +34,7 @@
     if(!Object.hasOwn(snapshots,name))throw Error('E_ADBLOCK_PREVIEW_SNAPSHOT: '+name);
     mount.innerHTML=snapshots[name];
     frame.hidden=page!=='exceptions';
+    frame.style.display=frame.hidden?'none':'';
   }
   function notifySandbox(){
     if(scenario==='untrusted')return; // preserve malicious-string fixture without changing production state
