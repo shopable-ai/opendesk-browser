@@ -49,8 +49,10 @@ test('R33.3 single DOM child owner and original privileged operations',async()=>
   assert.match(main,/createPortal\(\s*<DeveloperTargetText/);
   assert.match(main,/developerTargetMounted/);
   assert.match(main,/renderDeveloperTarget\(next\)/);
-  assert.match(main,/createPortal\(<DeveloperActions/);
+  assert.match(main,/createPortal\(\s*<DeveloperActions/);
   assert.match(main,/renderDeveloperActions\(next\)/);
+  assert.match(main,/createPortal\(\s*<DeveloperFramework/);
+  assert.match(main,/renderDeveloperFramework\(next\)/);
   assert.match(main,/renderFeedback\(next\)/);
   assert.match(center,/extensionList\.renderFeedback\(/);
   assert.match(center,/extensionList\.renderRecoveries\(/);
@@ -62,6 +64,9 @@ test('R33.3 single DOM child owner and original privileged operations',async()=>
   assert.match(scriptEditor,/connectReactDeveloperTarget\(render\)/);
   assert.match(shell,/scriptEditor\.connectReactDeveloperActions\(/);
   assert.match(scriptEditor,/connectReactDeveloperActions\(render\)/);
+  assert.match(shell,/scriptEditor\.connectReactDeveloperFramework\(/);
+  assert.match(scriptEditor,/connectReactDeveloperFramework\(render\)/);
+  assert.match(scriptEditor,/chooseComponentMode\(next\)/);
   assert.match(scriptEditor,/entry\.element\.removeEventListener/);
   assert.match(scriptEditor,/onRun:start,onSave:saveClick/);
   assert.match(scriptEditor,/if\(reactDeveloperTarget\)reactDeveloperTarget\(ui\)/);

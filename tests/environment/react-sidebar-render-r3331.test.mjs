@@ -67,7 +67,7 @@ test('R33.3.1 renders extension toolbar, rows and detail as real React elements'
     container:null,model:{text:'异常 <img onerror=evil()>',state:'error'}
   }));
   assert.match(status,/&lt;img onerror=evil\(\)&gt;/);
-  const {DeveloperTargetText,DeveloperActions}=await vite.ssrLoadModule('/src/ui/react/tabs/develop.tsx');
+  const {DeveloperTargetText,DeveloperActions,DeveloperFramework}=await vite.ssrLoadModule('/src/ui/react/tabs/develop.tsx');
   const devIndicator=renderToStaticMarkup(React.createElement(DeveloperTargetText,{
     value:'网页标题 <svg onload=alert(1)>',node:null,title:'bad',state:'available'
   }));
@@ -83,4 +83,11 @@ test('R33.3.1 renders extension toolbar, rows and detail as real React elements'
   assert.match(actions,/id="script-stop"[^>]*disabled=""/);
   assert.match(actions,/&lt;img onerror=evil\(\)&gt;/);
   assert.doesNotMatch(actions,/<img\b/i);
+  const framework=renderToStaticMarkup(React.createElement(DeveloperFramework,{model:{
+    mode:'react',compilerEnabled:true,onSelect:()=>{}
+  }}));
+  assert.match(framework,/id="page-component-javascript"/);
+  assert.match(framework,/id="page-component-react"[^>]*checked=""/);
+  assert.match(framework,/id="page-component-vue"/);
+  assert.match(framework,/aria-label="React JSX"/);
 });
