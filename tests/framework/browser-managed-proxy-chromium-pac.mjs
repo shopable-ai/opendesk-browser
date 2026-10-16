@@ -216,11 +216,33 @@ async function run(){
    new Promise((_,reject)=>setTimeout(()=>reject(Error('SOCKS5 TLS timeout')),9000))
   ]);
   assert.equal(secure.authorized,true);
+  // Independently verify an HTTP 200 and the TLS fixture's response body
+  // across the same authenticated SOCKS5/TLS socket used by A.
+  const nodeTlsResponse=await new Promise((resolve,reject)=>{
+   let wire='',settled=false;
+   const done=error=>{
+    if(settled)return;settled=true;clearTimeout(timer);
+    error?reject(error):resolve(wire);
+   };
+   const timer=setTimeout(()=>done(Error('Authenticated SOCKS5 TLS HTTP timeout')),8000);
+   secure.on('data',chunk=>{
+    wire+=chunk.toString();
+    if(wire.includes('FIXTURE_TLS_OK'))done();
+   });
+   secure.once('end',()=>done(Error('TLS closed before fixture HTTP body')));
+   secure.once('error',done);
+   secure.write('GET /verified-node-tls HTTP/1.1\r\nHost: '+target+':'+httpsPort+
+    '\r\nConnection: close\r\n\r\n');
+  });
+  assert.match(nodeTlsResponse,/HTTP\/1\.1 200/);
+  assert(httpsRequests.some(row=>row.path==='/verified-node-tls'),
+   'Authenticated SOCKS5 TLS request did not reach HTTPS fixture');
  }finally{secure.destroy();tunnel.destroy();}
  assert(forwarded.some(x=>x.host===target&&x.port===httpsPort));
  report.A='PASS';
  report.fixture={proxy:'127.0.0.1:'+proxyPort,transport:'SOCKS5',
-  nodeTlsCertificateVerified:true,testCertSpkiSha256,httpConnect:'NOT_SUPPORTED_BY_FIXTURE'};
+  nodeTlsCertificateVerified:true,nodeTlsHttpRequestVerified:true,
+  testCertSpkiSha256,httpConnect:'NOT_SUPPORTED_BY_FIXTURE'};
  const pac=compileManagedProxyPac({
   endpoint:{scheme:'socks5',host:proxyHostname,port:proxyPort},domains:[target]
  },{toolId:'test-only',packageHash:'a'.repeat(64),installEpoch:'ci-isolated'});
