@@ -184,6 +184,9 @@ try{
   const checked=await evaluate('window.__send("prompt.page.check",{rule:window.__rule})');
   assert.equal(checked.ok,true);assert.equal(checked.data.editorType,'textarea');
   scenes.push({step:'editor picker and live selector check',selector:chosen.data.selector,kind:checked.data.editorType});
+  // The trusted picker deliberately guards the selected target for 750 ms
+  // against late click/double-click events. Do not race its release in CI.
+  await sleep(825);
   await clickJS('window.__railRoot.querySelector(".item")');
   await poll('document.querySelector("#draft").value.includes("第二行")','native textarea insertion');
   assert.equal(await evaluate('document.querySelector("#draft").value'),'旧草稿\n'+body);
