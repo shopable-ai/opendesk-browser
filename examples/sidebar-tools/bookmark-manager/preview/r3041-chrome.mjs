@@ -106,25 +106,13 @@ async function screenshot(name,clip){
  await writeFile(join(out,name),bytes);
  return createHash('sha256').update(bytes).digest('hex');
 }
-// Preserve the entire document from y=0, even when Chrome Zoom makes the
-// desktop preview taller than the physical screenshot viewport.
-async function screenshotFull(name){
- const layout=await cdp('Page.getLayoutMetrics');
- const area=layout.cssContentSize,view=layout.cssVisualViewport;
- assert.ok(area.width>0&&area.height>0,'Chrome full-page capture dimensions');
- // CDP screenshot clip dimensions are surface pixels when Chrome's real UI
- // zoom is active. A raw CSS clip at 150% cuts off two thirds of the app.
- const actualDpr=await evaluate('devicePixelRatio',await outerContext());
- const physicalWidth=Math.ceil(Math.max(area.width,view?.clientWidth||0)*actualDpr);
- const physicalHeight=Math.ceil(Math.max(area.height,view?.clientHeight||0)*actualDpr);
- assert.ok(physicalWidth>300&&physicalWidth<6000&&physicalHeight>300&&physicalHeight<9000,
-  'safe physical full-page capture dimensions');
- const reply=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:true,
-  clip:{x:0,y:0,width:physicalWidth,height:physicalHeight,scale:1}});
- const bytes=Buffer.from(reply.data,'base64');
- await writeFile(join(out,name),bytes);
- return {sha256:createHash('sha256').update(bytes).digest('hex'),bytes:bytes.length,
-  cssSize:{width:area.width,height:area.height},physicalSize:{width:physicalWidth,height:physicalHeight}};
+// Sandboxed data: iframe rendering is distorted by CDP screenshot clips beyond
+// the actual Chrome viewport at non-100% browser zoom. Record unaltered real
+// Chrome viewport screenshots before and after scrolling the outer shell.
+async function screenshotBottom(name,outer){
+ const frame=await invoke(outer,`const f=document.getElementById('opendesk-preview-frame');f.scrollIntoView({block:'end'});window.scrollTo(0,document.documentElement.scrollHeight);return {scrollY,innerHeight,scrollHeight:document.documentElement.scrollHeight,frameBottom:f.getBoundingClientRect().bottom}`);
+ await delay(100);
+ return {sha256:await screenshot(name),outer:frame};
 }
 // Page.navigate resolves before the new document and nested React iframe mount.
 // Never reuse a preceding width/zoom context as screenshot evidence.
@@ -181,6 +169,9 @@ async function clickReal(ctx,outer,selector){
  const f=await invoke(outer,'const b=document.getElementById("opendesk-preview-frame").getBoundingClientRect();return {x:b.left,y:b.top,w:b.width}');
  const inside=await evaluate('innerWidth',ctx);
  const x=f.x+p.x*f.w/inside, y=f.y+p.y*f.w/inside;
+ const pageHeight=await evaluate('innerHeight',outer),pageWidth=await evaluate('innerWidth',outer);
+ assert.ok(x>=0&&x<pageWidth&&y>=0&&y<pageHeight,
+  'pointer target outside real Chrome viewport; scroll shell first: '+JSON.stringify({x,y,pageHeight,pageWidth,local:p,frame:f}));
  await cdp('Input.dispatchMouseEvent',{type:'mouseMoved',x,y});
  await cdp('Input.dispatchMouseEvent',{type:'mousePressed',x,y,button:'left',clickCount:1});
  await cdp('Input.dispatchMouseEvent',{type:'mouseReleased',x,y,button:'left',clickCount:1});
@@ -270,7 +261,7 @@ try{
    assert.ok(dimensions.h>180&&dimensions.scroll<=dimensions.root+1&&Math.abs(dimensions.scale-1)<.02,'zoom fits tree '+width);
    await invoke(outer,'window.scrollTo(0,0);return true');
    const listSha=await screenshot('bookmark-r3041-'+width+'-zoom'+zoom.percent+'-list.png');
-   const listFull=await screenshotFull('bookmark-r3041-'+width+'-zoom'+zoom.percent+'-list-full.png');
+   const listBottom=await screenshotBottom('bookmark-r3041-'+width+'-zoom'+zoom.percent+'-list-bottom.png',outer);
    await invoke(ctx,'document.querySelector("#bm-treeitem-100 .bm-node-title").click();return true');
    await until(ctx,'!!document.querySelector("[data-testid=bookmark-preview]")','nonmodal '+width);
    assert.equal(await invoke(ctx,'return !!document.querySelector("[data-testid=bookmark-sheet]")'),false);
@@ -278,7 +269,7 @@ try{
    assert.ok(bounds.left>=-1&&bounds.right<=dimensions.root+1,'preview within viewport');
    await invoke(outer,'window.scrollTo(0,0);return true');
    const previewSha=await screenshot('bookmark-r3041-'+width+'-zoom'+zoom.percent+'-preview.png');
-   const previewFull=await screenshotFull('bookmark-r3041-'+width+'-zoom'+zoom.percent+'-preview-full.png');
+   const previewBottom=await screenshotBottom('bookmark-r3041-'+width+'-zoom'+zoom.percent+'-preview-bottom.png',outer);
    // Run the real editor at both high zoom levels, not just the readonly pane.
    if(zoom.percent>100){
     await clickReal(ctx,outer,'[data-testid="bookmark-preview"] [aria-label="编辑"]');
@@ -330,7 +321,7 @@ try{
    assert.equal(await invoke(ctx,'return document.querySelector(".bm-tree-scroll").scrollTop'),top,'close preserves virtual scroll');
    report.push({width,zoom:zoom.percent,realBrowserDprRatio:actualDpr/base.dpr,cssViewport:actualViewport,
     frameDpr,frameCssWidth:dimensions.root,viewportScreenshotSha256:{list:listSha,preview:previewSha},
-    fullPage:{list:listFull,preview:previewFull},nonModal:true,uncoveredBottom:true,scrollPreserved:true});
+    browserBottom:{list:listBottom,preview:previewBottom},nonModal:true,uncoveredBottom:true,scrollPreserved:true});
   }
  }
  assert.deepEqual(network,[],'offline model and assets only');
