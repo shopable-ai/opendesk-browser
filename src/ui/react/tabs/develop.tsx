@@ -33,6 +33,13 @@ export function DeveloperActions({model}){
 // A controlled code-type picker. Framework/source preparation and edition
 // checks remain in Script Editor; this component has no compiler or Host API.
 export function DeveloperFramework({model}){
+  // Chrome/React radio value tracking can suppress a later change event
+  // after a controlled re-render. The trusted native click is the primary
+  // activation; change also covers keyboard selection without double action.
+  const select=(kind,event)=>{
+    if(model.mode===kind||event.nativeEvent?.isTrusted!==true)return;
+    model.onSelect?.(kind,event.nativeEvent);
+  };
   return <>
     {[
       ['javascript','JavaScript','JavaScript'],
@@ -43,7 +50,8 @@ export function DeveloperFramework({model}){
         <input id={'page-component-'+kind} type="radio" name="page-component-choice"
           value={kind} aria-label={label} checked={model.mode===kind}
           disabled={!model.compilerEnabled&&kind!=='javascript'}
-          onChange={event=>model.onSelect?.(kind,event.nativeEvent)}/>
+          onClick={event=>select(kind,event)}
+          onChange={event=>select(kind,event)}/>
         <span>{kind==='javascript'?'JavaScript':kind==='react'?'React':'Vue'}</span>
       </label>)}
   </>;
