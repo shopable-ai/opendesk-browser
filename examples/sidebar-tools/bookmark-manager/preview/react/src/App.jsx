@@ -8,6 +8,7 @@ const iconPaths={
  link:<><path d="M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1"/><path d="M14 11a5 5 0 0 0-7.1 0l-2 2a5 5 0 0 0 7.1 7.1l1.1-1.1"/></>,
  chevron:<path d="m9 18 6-6-6-6"/>,
  more:<><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></>,
+ copy:<><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></>,
  plus:<path d="M12 5v14M5 12h14"/>,
  star:<path d="m12 2 3 6.3 7 1-5 4.9 1.2 7-6.2-3.3-6.2 3.3 1.2-7-5-4.9 7-1z"/>,
  refresh:<><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.8 9A7 7 0 0 1 18 7l2 5M4 12l2 5a7 7 0 0 0 12.2-2"/></>,
@@ -123,6 +124,20 @@ function Inspector({tree,node,draft,setDraft,onSave,onCancel,onOpenPicker,picker
   </div>:<p className="bm-empty-detail">选择书签可以查看详情，点击「编辑」才会修改内容。</p>}
  </section>
 }
+
+function PreviewPane({tree,node,onClose,onEdit,onCopy}){
+ const folder=isFolder(node),count=tree.children.get(node.id)?.length||0;
+ return <aside className="bm-preview-pane" aria-label="书签只读预览" data-testid="bookmark-preview">
+  <div className="bm-preview-head"><strong>详情</strong><button type="button" className="bm-preview-close" aria-label="关闭预览" title="关闭预览" onClick={onClose}><Icon name="x" size={16}/></button></div>
+  <div className="bm-preview-content" aria-live="polite"><Inspector tree={tree} node={node} draft={null}/></div>
+  {folder&&<div className="bm-preview-count">{count} 个子项</div>}
+  <div className="bm-preview-actions">
+   {!folder&&<a href={node.url} target="_blank" rel="noopener noreferrer" className="bm-preview-action" aria-label="打开书签" title="打开书签"><Icon name="external" size={17}/></a>}
+   {!folder&&<button type="button" className="bm-preview-action" aria-label="复制网址" title="复制网址" onClick={()=>onCopy(node.url)}><Icon name="copy" size={17}/></button>}
+   {!node.locked&&<button type="button" className="bm-preview-action" aria-label="编辑" title="编辑" onClick={()=>onEdit(node.id)}><Icon name="edit" size={17}/></button>}
+  </div>
+ </aside>
+}
 function ActionMenu({state,onAction,onClose}){const menuRef=useRef(null);useEffect(()=>{menuRef.current?.querySelector('button')?.focus();const click=e=>{if(!menuRef.current?.contains(e.target))onClose()};const key=e=>{if(e.key==='Escape'){e.preventDefault();onClose()}else if(e.key==='ArrowDown'||e.key==='ArrowUp'){const choices=[...menuRef.current?.querySelectorAll('button')||[]];const i=choices.indexOf(document.activeElement);choices[(i+(e.key==='ArrowDown'?1:choices.length-1))%choices.length]?.focus();e.preventDefault()}};document.addEventListener('pointerdown',click);document.addEventListener('keydown',key);return()=>{document.removeEventListener('pointerdown',click);document.removeEventListener('keydown',key)}},[onClose]);
  return <div ref={menuRef} className="bm-popover" role="menu" style={{top:state.top,left:state.left}} data-testid="action-menu">
    <button role="menuitem" onClick={()=>onAction('detail',state.id)}><Icon name="link" size={16}/>查看详情</button>
@@ -190,28 +205,52 @@ function Confirm({title,description,confirm,cancelLabel='取消',canConfirm=true
  </div>;
 }
 export default function App(){
- const [tree,setTree]=useState(null),[expanded,setExpanded]=useState(new Set(['1','2','10','11'])),[query,setQuery]=useState(''),[selectedId,setSelectedId]=useState(null),[activeId,setActiveId]=useState('1'),[draft,setDraft]=useState(null),[pickerOpen,setPickerOpen]=useState(false),[detailOpen,setDetailOpen]=useState(false),[menu,setMenu]=useState(null),[confirmDiscard,setConfirmDiscard]=useState(false),[confirmDelete,setConfirmDelete]=useState(null),[busy,setBusy]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState(''),[uncertain,setUncertain]=useState(false);
+ const [tree,setTree]=useState(null),[expanded,setExpanded]=useState(new Set(['1','2','10','11'])),[query,setQuery]=useState(''),[selectedId,setSelectedId]=useState(null),[activeId,setActiveId]=useState('1'),[draft,setDraft]=useState(null),[pickerOpen,setPickerOpen]=useState(false),[previewOpen,setPreviewOpen]=useState(false),[menu,setMenu]=useState(null),[confirmDiscard,setConfirmDiscard]=useState(false),[confirmDelete,setConfirmDelete]=useState(null),[busy,setBusy]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState(''),[uncertain,setUncertain]=useState(false);
  const scrollRef=useRef(null),readEpoch=useRef(0),activeRef=useRef(true),menuButtonRef=useRef(null);
  useEffect(()=>{activeRef.current=true;return()=>{activeRef.current=false;readEpoch.current++}},[]);
- const load=useCallback(async({initial=false}={})=>{const stamp=++readEpoch.current;setLoading(true);setError('');try{const next=await service.load();if(!activeRef.current||stamp!==readEpoch.current)return null;setTree(next);setLoading(false);if(!initial)setUncertain(false);setNotice('');return next}catch(ex){if(activeRef.current&&stamp===readEpoch.current){setLoading(false);setError(humanError(ex));if(['E_GRANT_REVOKED','E_BOOKMARK_PERMISSION'].includes(ex?.code)){setTree(null);setSelectedId(null);setDraft(null);setDetailOpen(false);setMenu(null)}}return null}},[]);
+ const load=useCallback(async({initial=false}={})=>{const stamp=++readEpoch.current;setLoading(true);setError('');try{const next=await service.load();if(!activeRef.current||stamp!==readEpoch.current)return null;setTree(next);setLoading(false);if(!initial)setUncertain(false);setNotice('');return next}catch(ex){if(activeRef.current&&stamp===readEpoch.current){setLoading(false);setError(humanError(ex));if(['E_GRANT_REVOKED','E_BOOKMARK_PERMISSION'].includes(ex?.code)){setTree(null);setSelectedId(null);setDraft(null);setPreviewOpen(false);setMenu(null)}}return null}},[]);
  useEffect(()=>{void load({initial:true})},[load]);
  useEffect(()=>{if(!notice||notice.startsWith('写入结果未知'))return;const timer=setTimeout(()=>setNotice(''),3300);return()=>clearTimeout(timer)},[notice]);
  const rows=useMemo(()=>filteredRows(tree,expanded,query),[tree,expanded,query]);
  const current=tree?.byId.get(selectedId)||null;
+ const previewNode=previewOpen&&!draft?current:null;
  const folders=useMemo(()=>tree?[...tree.byId.values()].filter(n=>isFolder(n)&&!n.locked&&!tree.roots.has(n.id)):[],[tree]);
  const closeMenu=useCallback(()=>{setMenu(null);menuButtonRef.current?.focus()},[]);
+ useEffect(()=>{
+  if(!previewOpen||draft||menu||confirmDiscard||confirmDelete)return;
+  const key=event=>{
+   if(event.key!=='Escape'||event.defaultPrevented)return;
+   event.preventDefault();setPreviewOpen(false);
+   if(document.activeElement?.closest?.('[data-testid="bookmark-preview"]'))scrollRef.current?.focus({preventScroll:true});
+  };
+  document.addEventListener('keydown',key);
+  return()=>document.removeEventListener('keydown',key);
+ },[previewOpen,draft,menu,confirmDiscard,confirmDelete]);
+ function closePreview(){setPreviewOpen(false);scrollRef.current?.focus({preventScroll:true})}
+ async function copyPreviewUrl(url){
+  if(!url)return;
+  let copied=false;
+  try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(url);copied=true}}catch{}
+  if(!copied){
+   const prev=document.activeElement,el=document.createElement('textarea');
+   el.value=url;el.setAttribute('readonly','');el.style.cssText='position:fixed;left:-9999px;top:0';
+   document.body.appendChild(el);el.select();
+   try{copied=document.execCommand('copy')}catch{}finally{el.remove();prev?.focus?.({preventScroll:true})}
+  }
+  setNotice(copied?'网址已复制':'无法自动复制，请选择网址手动复制');
+ }
  function toggle(id){if(expanded.has(id)&&tree){let node=tree.byId.get(activeId),limit=0;while(node&&limit++<100){if(node.parentId===id){setActiveId(id);break}node=tree.byId.get(node.parentId)}}setExpanded(prev=>{const n=new Set(prev);if(n.has(id))n.delete(id);else n.add(id);return n})}
- function startEdit(node,{move=false}={}){if(!node||node.locked)return;setDraft(initialDraft('edit',isFolder(node)?'folder':'bookmark',node,node.parentId));setSelectedId(node.id);setDetailOpen(false);setPickerOpen(move);setUncertain(false)}
- function closeSheet(){if(busy)return;if(uncertain)setNotice('写入结果未知，请先刷新核对书签。');setDraft(null);setDetailOpen(false);setPickerOpen(false);setError('')}
+ function startEdit(node,{move=false}={}){if(!node||node.locked)return;setDraft(initialDraft('edit',isFolder(node)?'folder':'bookmark',node,node.parentId));setSelectedId(node.id);setPickerOpen(move);setUncertain(false)}
+ function closeSheet(){if(busy)return;if(uncertain)setNotice('写入结果未知，请先刷新核对书签。');setDraft(null);setPickerOpen(false);setError('')}
  function requestCloseSheet(){if(busy)return;if(dirtyDraft(draft)&&!uncertain){setConfirmDiscard(true);return}closeSheet()}
  function perform(action){
   setPickerOpen(false);setMenu(null);
-  if(action.type==='select'){setSelectedId(action.id);setDraft(null);setDetailOpen(false)}
-  else if(action.type==='detail'){setSelectedId(action.id);setDraft(null);setDetailOpen(true)}
-  else if(action.type==='create'){const parent=(current&&isFolder(current)?current.id:current?.parentId)||'1';setDetailOpen(false);setDraft(initialDraft('create',action.kind,null,parent));setUncertain(false)}
+  if(action.type==='select'){setSelectedId(action.id);setDraft(null);setPreviewOpen(true)}
+  else if(action.type==='detail'){setSelectedId(action.id);setDraft(null);setPreviewOpen(true)}
+  else if(action.type==='create'){const parent=(current&&isFolder(current)?current.id:current?.parentId)||'1';setPreviewOpen(false);setDraft(initialDraft('create',action.kind,null,parent));setUncertain(false)}
   else if(action.type==='edit'){startEdit(tree.byId.get(action.id),{move:action.move})}
   else if(action.type==='cancel')closeSheet();
-  else if(action.type==='delete'){setDetailOpen(false);prepareDelete(action.id)}
+  else if(action.type==='delete'){prepareDelete(action.id)}
   else if(action.type==='currentPage')void fillCurrentPage();
  }
  // Explicit cancel means discard. No modal for unsaved drafts.
@@ -236,13 +275,13 @@ export default function App(){
    }
    globalThis.__bmReactSaveStage='request-completed';const verified=await service.load(),actual=verified.byId.get(result.id);
    if(!actual||actual.title!==title||actual.parentId!==draft.parentId||(draft.kind==='bookmark'&&actual.url!==url))throw Object.assign(Error('数据写入后读回不一致；保留草稿并禁止盲目重试'),{code:'E_OUTCOME_UNKNOWN'});
-   globalThis.__bmReactSaveStage='readback-ok';if(!activeRef.current)return;setTree(verified);setSelectedId(actual.id);setActiveId(actual.id);setDraft(null);setDetailOpen(false);setPickerOpen(false);setUncertain(false);setNotice('已保存');
+   globalThis.__bmReactSaveStage='readback-ok';if(!activeRef.current)return;setTree(verified);setSelectedId(actual.id);setActiveId(actual.id);setDraft(null);setPreviewOpen(true);setPickerOpen(false);setUncertain(false);setNotice('已保存');
   }catch(ex){const outcome=completedWrite&&ex?.code!=='E_OUTCOME_UNKNOWN'?Object.assign(Error('可能发生部分写入；须核对再操作'),{code:'E_OUTCOME_UNKNOWN',cause:ex}):ex;globalThis.__bmReactSaveStage='error:'+(outcome?.code||outcome?.message||'unknown');if(activeRef.current){setError(humanError(outcome));if(outcome?.code==='E_OUTCOME_UNKNOWN')setUncertain(true)}}finally{if(activeRef.current)setBusy(false)}
  }
- async function removeConfirmed(){if(!confirmDelete||busy||uncertain)return;setBusy(true);setError('');let completedWrite=false;try{await service.remove({expected:confirmDelete.expected,confirmed:true,expectedDescendantSignatures:confirmDelete.descendantSignatures});completedWrite=true;const refreshed=await service.load();if(refreshed.byId.has(confirmDelete.id))throw Object.assign(Error('删除后仍发现目标，拒绝认定成功'),{code:'E_OUTCOME_UNKNOWN'});if(!activeRef.current)return;setTree(refreshed);if(selectedId===confirmDelete.id)setSelectedId(null);setConfirmDelete(null);setDraft(null);setDetailOpen(false);setNotice('已删除')}catch(ex){if(activeRef.current){const unknown=completedWrite||ex?.code==='E_OUTCOME_UNKNOWN';setError(humanError(unknown?Object.assign(Error('删除结果未知，先刷新核对'),{code:'E_OUTCOME_UNKNOWN'}):ex));if(unknown){setUncertain(true);setConfirmDelete(null)}}}finally{if(activeRef.current)setBusy(false)}}
+ async function removeConfirmed(){if(!confirmDelete||busy||uncertain)return;setBusy(true);setError('');let completedWrite=false;try{await service.remove({expected:confirmDelete.expected,confirmed:true,expectedDescendantSignatures:confirmDelete.descendantSignatures});completedWrite=true;const refreshed=await service.load();if(refreshed.byId.has(confirmDelete.id))throw Object.assign(Error('删除后仍发现目标，拒绝认定成功'),{code:'E_OUTCOME_UNKNOWN'});if(!activeRef.current)return;setTree(refreshed);if(selectedId===confirmDelete.id)setSelectedId(null);setConfirmDelete(null);setDraft(null);setPreviewOpen(false);setNotice('已删除')}catch(ex){if(activeRef.current){const unknown=completedWrite||ex?.code==='E_OUTCOME_UNKNOWN';setError(humanError(unknown?Object.assign(Error('删除结果未知，先刷新核对'),{code:'E_OUTCOME_UNKNOWN'}):ex));if(unknown){setUncertain(true);setConfirmDelete(null)}}}finally{if(activeRef.current)setBusy(false)}}
  function bookmarkCurrentPage(){request({type:'currentPage'})}
  async function fillCurrentPage(){if(busy)return;try{const info=await globalThis.OpenDeskSDK.browser.page.getContext();if(info.status!=='available')throw Error('当前页不可用');const parent=(current&&isFolder(current)?current.id:current?.parentId)||'1';setDraft(initialDraft('create','bookmark',null,parent));setDraft(d=>({...d,title:info.title,url:info.url}));setNotice('已填写当前模拟网页，确认后再保存。')}catch(ex){setError(humanError(ex))}}
- return <div className="bm-app" data-react-bookmark="r3.0.3">
+ return <div className="bm-app" data-react-bookmark="r3.0.4">
   <header className="bm-topbar"><div className="bm-heading"><strong className="bm-sr-only">书签管理</strong><span>{tree?tree.byId.size.toLocaleString('zh-CN'):'—'} 项</span></div>
    <div className="bm-top-actions"><div className="bm-create-actions" aria-label="新建书签或文件夹">
     <button title="新建书签" aria-label="新建书签" className="bm-icon-btn bm-icon-btn--primary" type="button" onClick={()=>request({type:'create',kind:'bookmark'})}><Icon name="plus" size={18}/></button>
@@ -255,8 +294,9 @@ export default function App(){
   {notice&&<div className="bm-notice" role="status">{notice}</div>}
   <div className="bm-workspace"><section className="bm-explorer" aria-label="书签树">{query&&<div className="bm-tree-head"><span>搜索结果</span><small>{rows.filter(r=>((r.node.title+' '+(r.node.url||'')).toLocaleLowerCase()).includes(query.toLocaleLowerCase())).length} 条匹配</small></div>}
   {loading&&!tree?<div className="bm-loading" role="status">正在读取离线模拟书签…</div>:tree?<Tree rows={rows} expanded={expanded} selectedId={selectedId} activeId={activeId} setActiveId={setActiveId} onSelect={select} onToggle={toggle} onMenu={onMenu} searchActive={Boolean(query.trim())} onEdit={id=>request({type:'edit',id})} onScrollClose={()=>setMenu(null)} scrollRef={scrollRef}/>:<div className="bm-empty">暂时无法读取书签。使用刷新重试。</div>}</section>
+  {previewNode&&<PreviewPane tree={tree} node={previewNode} onClose={closePreview} onEdit={id=>request({type:'edit',id})} onCopy={copyPreviewUrl}/>}
   </div>
-  {tree&&(draft||detailOpen)&&<Sheet title={draft?(draft.mode==='create'?(draft.kind==='folder'?'新建文件夹':'新建书签'):'编辑'+(draft.kind==='folder'?'文件夹':'书签')):'书签详情'} onClose={requestCloseSheet} canClose={!busy} dismissOnBackdrop={!busy&&!dirtyDraft(draft)}>
+  {tree&&draft&&<Sheet title={draft?(draft.mode==='create'?(draft.kind==='folder'?'新建文件夹':'新建书签'):'编辑'+(draft.kind==='folder'?'文件夹':'书签')):'书签详情'} onClose={requestCloseSheet} canClose={!busy} dismissOnBackdrop={!busy&&!dirtyDraft(draft)}>
     <Inspector tree={tree} node={current} draft={draft} setDraft={setDraft} onSave={save} onCancel={closeSheet} onOpenPicker={setPickerOpen} pickerOpen={pickerOpen} setPickerOpen={setPickerOpen} busy={busy} uncertain={uncertain} error={error}/>
   </Sheet>}
   {menu&&<ActionMenu state={menu} onAction={actionMenu} onClose={closeMenu}/>}
