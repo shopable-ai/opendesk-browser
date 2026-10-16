@@ -279,6 +279,42 @@ try{
    await invoke(outer,'window.scrollTo(0,0);return true');
    const previewSha=await screenshot('bookmark-r3041-'+width+'-zoom'+zoom.percent+'-preview.png');
    const previewFull=await screenshotFull('bookmark-r3041-'+width+'-zoom'+zoom.percent+'-preview-full.png');
+   // Run the real editor at both high zoom levels, not just the readonly pane.
+   if(zoom.percent>100){
+    await clickReal(ctx,outer,'[data-testid="bookmark-preview"] [aria-label="编辑"]');
+    await until(ctx,'!!document.querySelector("[data-testid=bookmark-sheet]")',
+     'high-Zoom Sheet '+width+' / '+zoom.percent);
+    const sheetRect=await invoke(ctx,`const s=document.querySelector('[data-testid="bookmark-sheet"]').getBoundingClientRect(),n=document.getElementById('bm-edit-name').getBoundingClientRect(),b=document.querySelector('[data-testid="bookmark-save"]').getBoundingClientRect();return {left:s.left,right:s.right,top:s.top,bottom:s.bottom,inputTop:n.top,inputBottom:n.bottom,saveTop:b.top,saveBottom:b.bottom,viewportH:innerHeight,viewportW:innerWidth}`);
+    assert.ok(sheetRect.left>=-1&&sheetRect.right<=sheetRect.viewportW+1&&
+     sheetRect.top>=-1&&sheetRect.bottom<=sheetRect.viewportH+1&&
+     sheetRect.inputTop>=0&&sheetRect.inputBottom<=sheetRect.viewportH+1&&
+     sheetRect.saveTop>=0&&sheetRect.saveBottom<=sheetRect.viewportH+1,
+     'high-Zoom editor fields must remain visible: '+JSON.stringify(sheetRect));
+    await screenshot('bookmark-r3041-'+width+'-zoom'+zoom.percent+'-edit.png');
+    if(width===400){
+     await setInput(ctx,'bm-edit-name','真实缩放 '+zoom.percent+'% 草稿');
+     await realKey('Escape','Escape',27);
+     await until(ctx,'!!document.querySelector("[data-testid=confirm-dialog]")',
+      'dirty high-Zoom Escape confirmation');
+     assert.equal(await invoke(ctx,'return document.getElementById("bm-edit-name")?.value'),
+      '真实缩放 '+zoom.percent+'% 草稿','dirty draft must be preserved');
+     await screenshot('bookmark-r3041-'+width+'-zoom'+zoom.percent+'-dirty-confirm.png');
+     await realKey('Escape','Escape',27);
+     await until(ctx,'!document.querySelector("[data-testid=confirm-dialog]")',
+      'Escape cancels dirty discard');
+     assert.equal(await invoke(ctx,'return document.getElementById("bm-edit-name")?.value'),
+      '真实缩放 '+zoom.percent+'% 草稿');
+     await invoke(ctx,'document.querySelector(".bm-editor-actions button:last-child").click();return true');
+     await until(ctx,'!document.querySelector("[data-testid=bookmark-sheet]")',
+      'explicit cancel returns readonly at high Zoom');
+    }else{
+     await realKey('Escape','Escape',27);
+     await until(ctx,'!document.querySelector("[data-testid=bookmark-sheet]")',
+      'Escape closes clean high-Zoom editor');
+    }
+    assert.equal(await invoke(ctx,'return !!document.querySelector("[data-testid=bookmark-preview]")'),
+     true,'readonly pane must survive editor cancellation');
+   }
    if(width===400&&zoom.percent===100)report.push({width,zoom:100,keyboard:await keyboardCase(ctx,outer)});
    await invoke(ctx,'const t=document.querySelector(".bm-tree-scroll");t.scrollTop=t.scrollHeight;t.dispatchEvent(new Event("scroll",{bubbles:true}));return true');
    await until(ctx,'!!document.querySelector("#bm-treeitem-2651")','last virtual row mounted '+width);
@@ -286,6 +322,8 @@ try{
    assert.ok(last.found&&last.visible&&last.hit,'last bookmark must not be blocked by readonly preview: '+JSON.stringify(last));
    await invoke(ctx,'document.querySelector("#bm-treeitem-2651 .bm-node-title").click();return true');
    await until(ctx,'document.querySelector("[data-testid=bookmark-preview] .bm-detail-title span")?.textContent.includes("2152")','last item readonly '+width);
+   await invoke(outer,'window.scrollTo(0,0);return true');
+   await screenshot('bookmark-r3041-'+width+'-zoom'+zoom.percent+'-last.png');
    const top=await invoke(ctx,'return document.querySelector(".bm-tree-scroll").scrollTop');
    await invoke(ctx,'document.querySelector(".bm-preview-close").click();return true');
    await until(ctx,'!document.querySelector("[data-testid=bookmark-preview]")','close preview '+width);
