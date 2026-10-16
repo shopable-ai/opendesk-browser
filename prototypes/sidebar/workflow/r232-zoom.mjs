@@ -12,6 +12,16 @@ await mkdir(out,{recursive:true});
 const sha256=createHash('sha256').update(await readFile(input)).digest('hex');
 const gitBlob=execFileSync('git',['hash-object',input],{encoding:'utf8'}).trim();
 const head=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
+// Real native zoom can cause Playwright's viewport screenshots to crop the physical window.
+// Supplement with X11 screen captures and verify the physical pixels.
+const capturePhysicalScreen=async filename=>{
+ const dest=resolve(out,filename);
+ execFileSync('scrot',['-q','95',dest]);
+ const png=await readFile(dest);
+ assert.ok(png.length>24&&png.readUInt32BE(16)>=1300&&png.readUInt32BE(20)>=900,
+   'native zoom X11 screenshot must capture the full physical desktop');
+ return filename;
+};
 let browser,version='NOT_STARTED',events=[],zoomData={status:'NOT_TESTED'};
 try{
  browser=await chromium.launch({headless:false,executablePath:process.env.CHROME_BIN||'/usr/bin/google-chrome',args:['--no-sandbox','--disable-dev-shm-usage','--window-size=1280,950']});
@@ -37,7 +47,7 @@ try{
    if(current.dpr/start.dpr>=1.95&&current.dpr/start.dpr<=2.05)break;
  }
  const factor=current.dpr/start.dpr;
- zoomData={status:factor>=1.95&&factor<=2.05?'CHROME_NATIVE_ZOOM_200_PASS':'NOT_TESTED',initial:start,current,factor,events,via:'real X11 native Chrome Ctrl+Plus',windowId};
+ zoomData={status:factor>=1.95&&factor<=2.05?'CHROME_NATIVE_ZOOM_200_PASS':'NOT_TESTED',initial:start,current,factor,events,via:'real X11 native Chrome Ctrl+Plus; scrot physical X11 screenshots',windowId};
  assert.equal(zoomData.status,'CHROME_NATIVE_ZOOM_200_PASS','Chrome zoom ratio was not physically changed to 200%; never claim PASS');
  for(const width of ['360','420','520']){
    await page.locator('#r23-width').selectOption(width);
@@ -46,6 +56,8 @@ try{
    assert.equal(m.documentOverflow,false);
    await page.locator('#r233-qa > summary').click();
    await page.screenshot({path:resolve(out,'r232-real-200-'+width+'.png'),fullPage:true});
+   await page.waitForTimeout(180);
+   events.push({width,physicalScreenshot:await capturePhysicalScreen('r234-physical-200-chat-'+width+'.png')});
    await page.locator('#r233-qa > summary').click();
    events.push({width,layout:m});
  }
@@ -73,6 +85,8 @@ try{
    assert.equal(geom.documentOverflow,false);
    await page.locator('#r233-qa > summary').click();
    await page.screenshot({path:resolve(out,'r234-real-200-settings-'+width+'.png'),fullPage:true});
+   await page.waitForTimeout(180);
+   events.push({width,physicalScreenshot:await capturePhysicalScreen('r234-physical-200-settings-'+width+'.png')});
    await page.locator('#r233-qa > summary').click();
    await page.locator('#r234-back').click();
    events.push({width,settingsLayout:geom});
