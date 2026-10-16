@@ -37,7 +37,7 @@ const compiledAdblockInputs=Object.freeze({
   'examples/sidebar-tools/adblock/trusted/rules.js':'8100276a38117c3e6f88f04f65a4a6ea1a7cddc6',
   'examples/sidebar-tools/adblock/trusted/lifecycle.js':'f6789d278c59c8f4148ed0c0c4e55b29c68758d0',
   'examples/sidebar-tools/adblock/trusted/tool-host.js':'e967e44ec44e3d4085e517a6c11bd45e546df1b6',
-  'examples/sidebar-tools/adblock/trusted/host-controls.js':'37c92abdcde09fe4e628de5adfd1bb3094359ee8',
+  'examples/sidebar-tools/adblock/trusted/host-controls.js':'6f6f000831a25234896c3b0fbb67b416a9ed7fb7',
   'examples/sidebar-tools/adblock/rules/domains.js':'e78bbaea99f39b52cd3bc57d4379af68b166c2f9'
 });
 const preapprovedFixedTargets=new Set(['sw.js',...Object.values(FIXED_OUTPUTS)]);

@@ -47,8 +47,9 @@ export function createAdblockPermissionControls({
   siteCard.append(siteIdent);
   const siteRow=make('div','adblock-native-card-row');
   const siteCopy=make('div','adblock-native-copy');
-  siteCopy.append(make('h3','adblock-native-heading','在此网站拦截'),
-    make('p','adblock-native-muted','仅影响当前域名'));
+  const siteHeading=make('h3','adblock-native-heading','在此网站拦截');
+  const siteScope=make('p','adblock-native-muted','仅影响当前域名');
+  siteCopy.append(siteHeading,siteScope);
   const site=button('adblock-native-toggle','当前网站不可用','状态未确认');
   site.setAttribute('role','switch');site.setAttribute('aria-checked','false');
   siteRow.append(siteCopy,site);siteCard.append(siteRow);
@@ -58,7 +59,8 @@ export function createAdblockPermissionControls({
   metric.append(make('strong','adblock-native-count','—'),
     make('span','adblock-native-muted','本网站已拦截的请求'));
   summary.append(metric,make('span','adblock-native-stat-note','暂无可核实统计'));
-  siteCard.append(summary,make('p','adblock-native-help','网页显示异常时，可临时关闭当前网站过滤，再刷新网页。'));
+  const siteHelp=make('p','adblock-native-help');
+  siteCard.append(summary,siteHelp);
   overview.append(siteCard);
 
   const preset=make('section','adblock-native-card adblock-native-preset');
@@ -165,6 +167,12 @@ export function createAdblockPermissionControls({
     site.setAttribute('aria-label',host?'网站 '+host+' 的广告过滤':'当前网站不可用');
     site.textContent=!host?'不可用':!state?'状态未确认':siteOn?'开启':'关闭';
     site.disabled=!visible||!enabled||busy||!on||!host;
+    siteHeading.textContent=host?'在此网站拦截':'当前页面不支持过滤';
+    siteScope.textContent=host?'仅影响当前域名':'请切换到普通 HTTP(S) 网站';
+    siteHelp.textContent=!host?'切换到普通 HTTP(S) 网站后，可在这里管理该网站的过滤。':
+      !on?'开启全局保护后，可单独管理当前网站的过滤。':
+      siteOn?'网页显示异常时，可临时关闭当前网站过滤，再刷新网页。':
+      '当前网站已停用过滤，重新开启后请刷新网页。';
     exceptionTotal.textContent=String(exceptionsList.length);
     exceptionsSummary.textContent=exceptionsList.length+' 个网站';
     exceptionsTrigger.disabled=!visible;

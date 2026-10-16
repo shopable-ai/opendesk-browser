@@ -151,3 +151,13 @@
 | 可维护性 | 小范围修复、精确来源/整包门禁、113 项测试；官方闭环未完成 | NOT_SCORED |
 
 资源交接：隔离 Native Chrome/Profile/HTTP 服务已关闭；独立构建已结束。正常 `npm run dev` 仍由本聊天启动的 PID 23773 持续运行，写入固定 `dist/development`，端口 43119；未操作日常 Chrome Profile。该 watcher 的 serve 状态与静态候选测试分开记录，不将“服务正在监听”当作日常 Chrome 客户端已连接。不得由其他 build 覆盖它的输出。
+
+### 新版主页 UI 复核（2026-10-17，继续开发）
+
+- 同一 owner 继续负责本工作流、AdBlock `src/main.js`、`trusted/host-controls.js`、精确可信 blob pin、对应两项定向测试及同源预览。仅修复真实状态文案，不改变已批准工具栏/三页布局。独立构建使用原快照及 guard 43220；日常服务继续独占固定 `dist/development`。
+- 新增真实 production CFT 复核原始证据 `artifacts/adblock-r198-local/ui-production-review/`：Chrome 156.0.8078.4，实际五 Tab，360×815 / DPR2，三页均无横向溢出，设置/返回及焦点框可见。独立评审暂评 92/100，指出空例外状态易与全局启用混淆、不可用页面帮助文案不匹配两项 P2，正在最小修复；不是完整产品验收或正式晋升。该 production 原生重跑仍在真实权限撤销网络恢复断言失败，完整报告保留。
+- 两项 P2 已修复：空态只陈述“暂无网站例外”；网站标题/帮助根据不可用页面、全局暂停、当前网站例外、正常保护状态显示真实指引。新增状态切换断言及空态回归，精确 host-controls pin 为 `6f6f000831a25234896c3b0fbb67b416a9ed7fb7`；批准设计参考文件未修改。
+- 最新验证：8 个 Node 文件 **114/114 PASS**；check **795 文件 PASS**；独立快照 production/development 构建及两包 verify **PASS**，期间输入无漂移。整包 SHA-256：production `64cc95328fbf260aa35265782f38c2956a9a6fe76fa4d794c27d17a358b2967a`；development `ae2627c34be12934233a8088fd0fcae7cdda0c6f1b6b1bd0947a436cbb4a7227`。日志 `ui-wording-node-final.log`、`ui-check.log`、`ui-production-build.log`、`ui-development-build.log`、`ui-verify.log` 与 receipt `ui-builds/` 均在本轮 artifacts 下。旧 dist 保留在快照 `dist-before-ui-review/`，旧 receipt 不改写。
+- 最新临时候选 `ui-candidate.opendesk-tool.json`，版本 **1.1.1**，**19103 字节**，SHA-256 `a45ef76ff290b13e607aa259a98a92ece1af0bdc06e9c359e2c2ecc0e56f338d`，与最新 production/development 内嵌包逐字节相等；没有晋升正式 JSON。
+- 日常固定目录的隔离 CFT 已实际确认 serve 连接：extension ID `ccfcjegpkdlgbclopjmadlcjedelidmf`，revision `645bed88d6900a3627152e261acab2b829999bad7060abd5e84ff6dab3833af1`；新版不可用页面文案已实装，截图及连接回读在 `ui-development-review/`。本次只读业务状态、真实安装及原生输入，没有写入 storage 制造结果。隔离浏览器/profile 已关闭；正常 watcher 继续运行。
+- 用户要求在新对话继续：最新文案后的 production 三页重评、四档真实布局及完整 Native 仍为 **NOT_TESTED**，不能沿用修改前的 92 分或伪造 95+。既有撤权网络失败仍是正式发行 blocker；先前 Native 报告只绑定其原始 hash。用户已在本对话明确授权一次保留双方提交的 `main` 合并并推送，取代该次分叉的仅快进限制；其他 Agent 未提交改动继续保留。

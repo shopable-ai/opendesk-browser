@@ -29,7 +29,7 @@
     if(!entries.length){
       const empty=el('div','adblock-empty');
       empty.append(el('span','adblock-empty-mark','✓'),
-        el('strong','','所有网站均未停用过滤'),
+        el('strong','','暂无网站例外'),
         el('p','od-note','关闭某个网站的广告过滤后，会在这里显示。'));
       list.append(empty);return;
     }

@@ -55,6 +55,8 @@ test('changed authority status and failed read still remove stale restore contro
   const f=await sandbox();
   f.setStatus({exceptions:[],toolEnabled:true,rules:{verified:true}});
   f.handlers.poll();await f.settled();assert.equal(f.restore(),undefined);
+  assert.equal(f.nodes.get('exceptions').children[0].children[1].textContent,'暂无网站例外',
+    'an empty exception list must not claim that global filtering is enabled');
   f.setStatus({exceptions:['127.0.0.1'],toolEnabled:false,rules:{verified:true}});
   f.handlers.poll();await f.settled();assert.equal(f.restore().disabled,true);
   f.fail();f.handlers.poll();await f.settled();

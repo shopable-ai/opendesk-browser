@@ -78,6 +78,22 @@ test('two visible AdBlock panels synchronize both switches and aria after one di
   await tick();switches(a,false);switches(b,false);
 });
 
+test('site guidance follows unavailable, globally paused, excepted and protected states',async()=>{
+  const f=fixture();let current={...status(),currentHost:null};
+  const panel=f.mount(async()=>structuredClone(current));
+  panel.controls.render(tool,false,true);await tick();
+  const text=klass=>panel.find(node=>node.className===klass)?.textContent;
+  assert.equal(panel.site.disabled,true);
+  assert.match(text('adblock-native-help'),/切换到普通 HTTP\(S\) 网站/);
+  assert.equal(panel.find(node=>node.textContent==='当前页面不支持过滤')?.textContent,'当前页面不支持过滤');
+  current=status(false);f.change();await tick();
+  assert.match(text('adblock-native-help'),/开启全局保护后/);
+  current={...status(),exceptions:['news.example.com']};f.change();await tick();
+  assert.match(text('adblock-native-help'),/当前网站已停用过滤/);
+  current=status();f.change();await tick();
+  assert.match(text('adblock-native-help'),/网页显示异常时/);
+});
+
 test('only AdBlock local storage and permission changes invalidate visible controls',async()=>{
   const f=fixture();let current=status(),reads=0;
   const panel=f.mount(async()=>{reads++;return structuredClone(current);});
