@@ -15,9 +15,10 @@ const blob=execFileSync('git',['hash-object',input],{encoding:'utf8'}).trim();
 const head=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
 const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_BIN||'/usr/bin/chromium',args:['--no-sandbox']});
 const page=await browser.newPage({viewport:{width:1100,height:900}});
-const errors=[],checks=[],screenshots=[];
+const errors=[],checks=[],screenshots=[],externalRequests=[];
 page.on('pageerror',err=>errors.push('pageerror: '+err.message));
 page.on('console',msg=>{if(msg.type()==='error')errors.push('console: '+msg.text())});
+page.on('request',req=>{if(!req.url().startsWith('file:')&&!req.url().startsWith('data:'))externalRequests.push(req.url())});
 const mark=name=>checks.push(name);
 const shot=async name=>{const qa=page.locator('#r233-qa'),wasOpen=await qa.evaluate(el=>el.open);if(wasOpen)await qa.evaluate(el=>{el.open=false});await page.screenshot({path:resolve(out,name+'.png'),fullPage:true});if(wasOpen)await qa.evaluate(el=>{el.open=true});screenshots.push(name+'.png')};
 const state=()=>page.evaluate(()=>window.workflowPreviewState());
@@ -59,6 +60,14 @@ try{
   assert.equal(await page.locator('#r236-https').isChecked(),false);
   assert.equal((await state()).provider,'local_codex','first-load provider must be Native Codex');
   assert.equal((await state()).mode,'standard');
+  assert.equal(await page.locator('#r23-settings-panel').isVisible(),false,
+    'initial HTML must not render an invisible-but-interactive settings sheet');
+  assert.equal(await page.locator('#r239-sheet-backdrop').isVisible(),false,
+    'initial HTML must not leave a ghost backdrop');
+  assert.equal(await page.locator('#r23-modal-root').isVisible(),false,
+    'initial HTML must not leave a hidden but visible confirmation modal');
+  assert.equal(await page.locator('#r23-remote-config').isVisible(),false);
+  mark('R23.9.1 exact HTML hidden-state recovery: sheet / backdrop / modal / inactive HTTPS');
   await shot('r233-default');
   await page.locator('#r233-qa > summary').click();
   mark('first screen, 3 icon actions, source and mode are separate');
@@ -328,6 +337,98 @@ try{
   await page.locator('[data-action="close-settings"]').last().click();
   mark('existing chat draft, two-way switch, recipient-change consent revocation and readback');
 
+
+  // R23.9.1 regression: real Chromium pointer, focus, geometry and scroll.
+  await reset();
+  await page.locator('#prompt').fill('保留的抽屉关闭后草稿');
+  await page.evaluate(()=>window.__r239ChatNode=document.getElementById('content'));
+  const preservedScroll=await page.locator('#content').evaluate(el=>el.scrollTop);
+  await page.locator('#settings').click();
+  assert.equal(await page.locator('#r23-settings-panel').isVisible(),true);
+  assert.equal(await page.locator('#r239-sheet-backdrop').isVisible(),true);
+  assert.equal(await page.locator('#r23-settings-panel').getAttribute('aria-modal'),'true');
+  assert.equal(await page.evaluate(()=>document.activeElement.id),'r234-back');
+  assert.equal(await page.locator('#r23-remote-config').isVisible(),false);
+  const codexBounds=await page.evaluate(()=>{
+    const d=document.querySelector('.device').getBoundingClientRect(),
+      s=document.querySelector('#r23-settings-panel').getBoundingClientRect();
+    return {bottom:Math.abs(d.bottom-s.bottom),height:s.height,deviceHeight:d.height};
+  });
+  assert.ok(codexBounds.bottom<=2&&codexBounds.height>120
+    &&codexBounds.height<codexBounds.deviceHeight*.7,
+    'Native Codex uses natural-height bottom sheet');
+  assert.equal(await page.locator('#form').evaluate(el=>el.inert),true);
+  await page.locator('#prompt').evaluate(el=>el.focus());
+  assert.notEqual(await page.evaluate(()=>document.activeElement?.id),'prompt');
+  await page.locator('#r234-back').focus();
+  for(let n=0;n<16;n++){
+    await page.keyboard.press(n%3===0?'Shift+Tab':'Tab');
+    assert.equal(await page.evaluate(()=>
+      document.querySelector('#r23-settings-panel').contains(document.activeElement)),true);
+  }
+  mark('R23.9.1 natural Codex height, background inert, focus trap and initial focus');
+  await shot('r2391-bottom-sheet-codex');
+  await page.locator('#r236-https').check();
+  assert.equal(await page.locator('#r23-local-config').isVisible(),false);
+  assert.equal(await page.locator('#r23-remote-config').isVisible(),true);
+  const httpsBounds=await page.evaluate(()=>{
+    const d=document.querySelector('.device').getBoundingClientRect(),
+      s=document.querySelector('#r23-settings-panel').getBoundingClientRect();
+    return {bottom:Math.abs(d.bottom-s.bottom),height:s.height,deviceHeight:d.height};
+  });
+  assert.ok(httpsBounds.height>codexBounds.height+70);
+  assert.ok(httpsBounds.bottom<=2&&httpsBounds.height<=httpsBounds.deviceHeight-56);
+  for(let n=0;n<5;n++){
+    await page.locator('#r236-native').check();
+    assert.equal(await page.locator('#r23-remote-config').isVisible(),false);
+    await page.locator('#r236-https').check();
+    assert.equal(await page.locator('#r23-remote-config').isVisible(),true);
+    assert.equal((await state()).settingsOpen,true);
+  }
+  assert.equal(await page.evaluate(()=>
+    document.getElementById('content')===window.__r239ChatNode),true);
+  await shot('r2391-bottom-sheet-https');
+  mark('R23.9.1 HTTPS natural height, bottom pin and 5 source round trips');
+  await page.keyboard.press('Escape');
+  assert.equal(await page.evaluate(()=>document.activeElement.id),'settings');
+  assert.equal((await state()).settingsOpen,false);
+  await page.waitForTimeout(220);
+  assert.equal(await page.locator('#r23-settings-panel').isVisible(),false);
+  await page.locator('#settings').click();
+  await page.locator('#r239-sheet-backdrop').click({position:{x:8,y:8}});
+  assert.equal((await state()).settingsOpen,false);
+  assert.equal(await page.evaluate(()=>document.activeElement.id),'settings');
+  await page.waitForTimeout(220);
+  await page.locator('#settings').click();
+  await page.locator('#r234-back').click();
+  assert.equal((await state()).settingsOpen,false);
+  await page.waitForTimeout(220);
+  assert.equal(await page.locator('#r239-sheet-backdrop').isVisible(),false);
+  assert.equal(await page.locator('#prompt').inputValue(),'保留的抽屉关闭后草稿');
+  assert.equal(await page.locator('#content').evaluate(el=>el.scrollTop),preservedScroll);
+  assert.equal(await page.locator('#form').evaluate(el=>el.inert),false);
+  mark('R23.9.1 Escape / backdrop / close, return focus, draft and scroll preservation');
+  // Deliberately small viewport to force a real overflow; then restore legacy runner size.
+  await page.setViewportSize({width:470,height:530});
+  await page.locator('#settings').click();
+  await page.locator('#r236-https').check();
+  const overflow=await page.evaluate(()=>{
+    const b=document.querySelector('#r234-body'),
+      d=document.querySelector('.device').getBoundingClientRect(),
+      s=document.querySelector('#r23-settings-panel').getBoundingClientRect();
+    return {scrollHeight:b.scrollHeight,clientHeight:b.clientHeight,
+      bottom:Math.abs(d.bottom-s.bottom),fits:s.height<=d.height-56};
+  });
+  assert.ok(overflow.scrollHeight>overflow.clientHeight,
+    'HTTPS content must scroll inside a short bottom sheet');
+  assert.ok(overflow.bottom<=2&&overflow.fits);
+  await page.locator('#r23-api-key').scrollIntoViewIfNeeded();
+  await shot('r2391-bottom-sheet-https-scroll');
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(220);
+  await page.setViewportSize({width:1100,height:900});
+  mark('R23.9.1 short viewport internal scrollbar is reachable and not clipped');
+
   await reset();await page.locator('[data-action="revoke-site"]').click();
   await send(first);await expectState('permission');
   assert.equal(await nameValue(),'旧的预填内容');
@@ -459,9 +560,10 @@ try{
   mark('sandbox allow-scripts srcdoc embedded two-round button-click test; ChatGPT host NOT_TESTED');
 
   assert.deepEqual(errors,[]);
+  assert.deepEqual(externalRequests,[],'offline HTML must not request network/CDN or AI');
   const report={status:'PREVIEW_CHROMIUM_PASS',scope:'R23.4 simulated DOM and scripted sandbox iframe; NOT the ChatGPT host, real AI provider, Chrome permission, Mac IME or RunHost',head,gitBlobSha:blob,sha256:hash,
-    chromiumVersion:browser.version(),checks,errors,screenshots,independentUxScore:'NOT_SCORED'};
-  console.log('R2381_SOURCE_BOUND_CHROMIUM_PASS '+checks.length);
+    chromiumVersion:browser.version(),checks,errors,externalRequests,screenshots,independentUxScore:'NOT_SCORED'};
+  console.log('R2391_SOURCE_BOUND_CHROMIUM_PASS '+checks.length);
   await writeFile(resolve(out,'r232-evidence.json'),JSON.stringify(report,null,2));
 }catch(error){
   const report={status:'PREVIEW_CHROMIUM_FAIL',scope:'R23.4 offline HTML',head,gitBlobSha:blob,sha256:hash,error:String(error?.stack||error),checks,errors,screenshots,chromiumVersion:browser.version()};
