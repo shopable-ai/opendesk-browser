@@ -325,7 +325,7 @@ try{
       const b=(row.querySelector('.r234-secret')||row.querySelector('input')).getBoundingClientRect();
       return{aligned:Math.abs((a.top+a.bottom)/2-(b.top+b.bottom)/2)<7,right:b.right,left:b.left};
     }));
-    assert.ok(rowLayout.every(g=>g.aligned&&g.left>=0&&g.right<=innerWidth+1),
+    assert.ok(rowLayout.every(g=>g.aligned&&g.left>=0&&g.right<=page.viewportSize().width+1),
       'all three compact AI fields aligned and horizontally visible');
     const g=await page.evaluate(()=>{
       const d=document.querySelector('.device'),panel=document.querySelector('#r23-settings-panel'),field=document.querySelector('#r23-api-key');
