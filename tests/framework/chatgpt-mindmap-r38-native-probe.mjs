@@ -221,16 +221,60 @@ try{
   assert.equal(started[0]?.result?.ok,true,JSON.stringify(started[0]?.result));
   await page.locator('[data-opendesk-chatgpt-mindmap="button"] button').first().waitFor({timeout:15000});
   assert.equal(await page.locator('[data-opendesk-chatgpt-mindmap="button"]').count(),3);
-  await page.locator('[data-opendesk-chatgpt-mindmap="button"] button').first().click();
-  await page.locator('.topic').first().waitFor({timeout:30000});
-  assert((await page.locator('.topic').count())>=3,'Expected the real Snowbrush topic DOM');
+  // Check the real original DOM and vendor style state BEFORE any workbook
+  // opens. Snowbrush may have injected its global CSS during script loading,
+  // so even a later zero style-count delta cannot prove owned cleanup.
+  const answerRoots=page.locator('[data-message-author-role="assistant"]');
+  const originalA=await answerRoots.nth(0).locator('.markdown').evaluate(node=>node.innerHTML);
+  const globalStyleBeforeRender=await page.locator('style#snowbrush_style').count();
+  const trigger=n=>answerRoots.nth(n).locator('[data-opendesk-chatgpt-mindmap="button"] button');
+  const viewer=n=>answerRoots.nth(n).locator('[data-opendesk-chatgpt-mindmap="viewer"]');
+  await trigger(0).click();
+  await viewer(0).and(page.locator('[data-ready="true"]')).waitFor({timeout:30000});
+  const topicsA=await viewer(0).locator('.topic').count();
+  assert(topicsA>=3,'Expected original Snowbrush topics for reply A');
+  await trigger(1).click();
+  await viewer(1).and(page.locator('[data-ready="true"]')).waitFor({timeout:30000});
+  const topicsB=await viewer(1).locator('.topic:visible').count();
+  assert(topicsB>1,'Reply B should have independent visible Snowbrush topics');
+  record('ORIGINAL_XMIND_A_AND_B_INDEPENDENT_USER_SCRIPT_INSTANCES','PASS',{
+    topicsA,topicsB});
+  // Use the actual user-facing toolbar on an actual USER_SCRIPT-rendered
+  // workbook; a mere DOM count cannot prove the product works.
+  await viewer(0).getByRole('button',{name:'放大导图'}).click();
+  await viewer(0).getByRole('button',{name:'适配导图画布'}).click();
+  await viewer(1).getByRole('button',{name:'折叠所有分支'}).click();
+  await viewer(1).getByRole('button',{name:'展开所有分支'}).waitFor({timeout:20000});
+  const foldedB=await viewer(1).locator('.topic:visible').count();
+  assert(foldedB<topicsB,'Real XMind branch folding should reduce visible topics');
+  await viewer(1).getByRole('button',{name:'展开所有分支'}).click();
+  await viewer(1).getByRole('button',{name:'进入全屏'}).click();
+  await viewer(1).getByRole('button',{name:'退出全屏'}).waitFor({timeout:15000});
+  await viewer(1).getByRole('button',{name:'退出全屏'}).click();
+  record('NATIVE_USER_SCRIPT_ZOOM_FOLD_FULLSCREEN_CONTROLS','PASS',{topicsB,foldedB});
   await page.screenshot({path:join(out,'r38-native-user-script-xmind.png'),fullPage:true});
+  const globalStyleWhileOpen=await page.locator('style#snowbrush_style').count();
+  await viewer(0).getByRole('button',{name:'恢复本条回复原文'}).click();
+  await viewer(0).waitFor({state:'detached',timeout:30000});
+  assert.equal(await answerRoots.nth(0).locator('.markdown').evaluate(node=>node.innerHTML),originalA,
+    'A must restore the original ChatGPT reply byte-for-byte');
+  assert((await viewer(1).locator('.topic:visible').count())>1,
+    'Closing A must not retire the independent XMind viewer B');
+  await viewer(1).getByRole('button',{name:'恢复本条回复原文'}).click();
+  await viewer(1).waitFor({state:'detached',timeout:30000});
+  assert.equal(await page.locator('[data-opendesk-chatgpt-mindmap="viewer"]').count(),0);
+  const globalStyleAfterClose=await page.locator('style#snowbrush_style').count();
+  report.snowbrushStyleEvidence={beforeRender:globalStyleBeforeRender,
+    whileOpen:globalStyleWhileOpen,afterAllClosed:globalStyleAfterClose,
+    scope:'OBSERVATION_ONLY_NO_STYLE_NODE_OWNERSHIP'};
+  report.globalSnowbrushStyles=globalStyleAfterClose;
+  record('USER_SCRIPT_RESTORE_A_KEEPS_B_AND_RESTORES_ORIGINAL_HTML','PASS');
+  record('SNOWBRUSH_GLOBAL_STYLE_ISOLATION','BLOCKED',report.snowbrushStyleEvidence);
   report.xmindWorldResult='PASS_REAL_XMIND_IN_USER_SCRIPT_TEST_STAGE';
   record('SAME_COMPILED_PROGRAM_AND_ACTUAL_XMIND_IN_REAL_CHROME','PASS',{
-    topics:await page.locator('.topic').count(),buttons:3});
+    topics:topicsA+topicsB,buttons:3});
   assert.equal(await page.evaluate(()=>typeof window.JSZip),'undefined');
   record('XMind_GLOBALS_ISOLATED_FROM_PAGE_MAIN','PASS');
-  report.globalSnowbrushStyles=await page.locator('style#snowbrush_style').count();
   await native(markerId=>chrome.userScripts.unregister({ids:[markerId]}),markerId);
   assert.equal((await native(markerId=>chrome.userScripts.getScripts({ids:[markerId]}),markerId)).length,0);
   await page.reload({waitUntil:'domcontentloaded'});
