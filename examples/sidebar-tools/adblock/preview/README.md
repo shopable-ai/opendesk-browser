@@ -79,3 +79,31 @@ CI 额外设置 `ADBLOCK_PREVIEW_EVIDENCE_DIR`，通过真正的 Chrome CDP 导�
 
 - 已批准 R1 HTML 原件：2026-10-15 Git blob `f10b6f6671480b3ea4828a04541e7bffa4e4d58a`，SHA-256 `c0a030441720ee74e599e47d9e61d7725b5f947aa62da9324e5ac5b56356c8b7`。R2 CSS 继承此前 `preview/index.html` 的已批准视觉变量。
 - `../adblock-r1-interactive-preview.html` 是 `scripts/preview/build-preview.mjs` 生成的**生产源码同源快照**，不是此已批准 React 交互预览，不能互相覆盖。正式 Chrome DNR / 安装升级仍需独立验收。
+
+## R2.1 · Mac CI、官方来源合同和 360px 收敛（2026-10-17）
+
+### 三种预览的身份（不可互换）
+
+| 入口 | 可修改源码 | 实际渲染来源 | 不可作出的声明 |
+| --- | --- | --- | --- |
+| `scripts/sidebar-preview-kit.mjs create/check` | 官方设计模板中的受保护编辑区 | 唯一设计系统 CSS 快照与模板 JS | `preview/index.html` **并非**该生成器的输出，也不能冒充通过其 `check` |
+| `preview/index.html` | **本目录 `app.js`、`style.css`** | 固定 React 19.2.0 + HTM、本地官方 Token、独立 Mock | 不调用正式 DNR、权限、Host 或 SDK；标记 `DESIGN_REACT_MOCK_NOT_INSTALLED` |
+| `scripts/preview/build-preview.mjs --tool adblock` | `src/ui/tool.html`、`tool-shell.css`、`trusted/host-controls.js`、AdBlock 正式工具源码 | **正式安装包同源**可信宿主快照 + 工具 iframe；SDK 边界使用 Mock | 不把生成的 `adblock-r1-interactive-preview.html` 当作 React 设计稿，也不手工修改它 |
+
+**当前需保留的差异**：React 独立设计稿自绘蓝盾、标题和设置入口；正式工具由可信宿主控制**唯一**标题/返回/设置/卸载工具栏，开关、权限及全局状态由 `trusted/host-controls.js` 生成；AdBlock 沙箱 `src/index.html` 只呈现例外列表和恢复操作。正式 UI 的来源与职责已经确认，但**不等于这两种页面视觉一致**。在得到用户批准和真实候选浏览器证据前，不把 React Demo DOM 复制进正式工具，也不在 iframe 内重复标题/设置/权限开关。
+
+### 本轮源码级防漂移
+
+- `index.html` 必须明确标记 `DESIGN_REACT_MOCK_NOT_INSTALLED`，只以本地路径加载运行时与 CSS。
+- `acceptance.mjs` 静态检查官方 `--od-icon-size:34px`、`--radius-control:8px`、`--radius-surface:12px`、`--od-page-gutter:11px`，在真实 Chrome 的 computed style 中复核 **34px 设置按钮、12px 卡片圆角、11px 单一 gutter**；反例与来源变化不得假报模板 check PASS。
+- 360px 保留原始信息结构，卡片内采用 **12px**、同级操作间距 **8/12px**、独立标题间距 **16px**；长域名使用 `overflow-wrap:anywhere`，320/360px 检查横向溢出。
+- 测试使用 CDP 真正发送 Space 与 Shift+Tab，验证开关语义和焦点顺序；旧的程序化 `.click()` 保留用于其他业务状态路径，二者不可互相替代。
+- CI `ADBLOCK_PREVIEW_EVIDENCE_DIR` 下由 **相同 `file://` 浏览器会话**生成 320、360、1024px 浅色及 360px 深色 PNG，上传单独 artifact；截图存在只代表像素证据，不代表 95 分。
+
+### Mac 启动失败与证据等级
+
+历史 [React CI 38955276818](https://github.com/shopable-ai/opendesk-browser/actions/runs/38955276818) 在 macOS-15 的 Chrome for Testing 启动/CDP 阶段出现 `MachPortRendezvousServer Permission denied (1100)` 和 network-service crash，75 秒 watchdog 退出。它**没有进入 React UI 测试**，不能归因为 React 业务失败。R2.1 使 macOS CI 优先尝试 Runner 预装 Google Chrome，CFT 仍作为 fallback；给 CDP 探测/命令加有界超时、诊断日志，**不取消任何业务断言**。如果 runner 安全策略仍拒绝启动，结果必须是 `MACOS_CHROME_BLOCKED` / FAIL，而不是用 Linux 替代 PASS。
+
+以下分别记账：`STATIC_GUARDS`、`LINUX_FILE_CHROME`、`MACOS_RUNNER_FILE_CHROME`、`USER_MAC_CHROME`、`INSTALLED_EXTENSION`、`NATIVE_DNR_NETWORK_REVOKE`。其中最后一项由 [正式 AdBlock CI](https://github.com/shopable-ai/opendesk-browser/actions/workflows/adblock-r12.yml) 独立负责。旧版本撤权测试超时仍属发布阻塞；不得以本目录 React 预览的 PASS 解除。
+
+代码改动后执行：`node examples/sidebar-tools/adblock/preview/acceptance.mjs`；正式同源对照仍需独立执行 `node scripts/preview/build-preview.mjs --tool adblock --surface side-panel --scenario success --theme light --width 360 --height 760`、`node scripts/preview/check-preview-contract.mjs` 与三个已存在的 `tests/environment/sidebar-preview-*.test.mjs` 定向测试。聊天内适配展示必须标 `CHAT_ADAPTER_NOT_SOURCE_HTML`，不能称为真实 React `index.html` 执行。
