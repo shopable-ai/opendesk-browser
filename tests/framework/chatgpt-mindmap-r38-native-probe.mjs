@@ -249,8 +249,12 @@ try{
   assert(foldedB<topicsB,'Real XMind branch folding should reduce visible topics');
   await viewer(1).getByRole('button',{name:'展开所有分支'}).click();
   await viewer(1).getByRole('button',{name:'进入全屏'}).click();
-  await viewer(1).getByRole('button',{name:'退出全屏'}).waitFor({timeout:15000});
-  await viewer(1).getByRole('button',{name:'退出全屏'}).click();
+  // A fullscreen viewer is deliberately moved from its answer into body.
+  // Scope the exit control to that relocated host, then verify restoration.
+  const fullViewer=page.locator('[data-opendesk-chatgpt-mindmap="viewer"].odmm-fullscreen');
+  await fullViewer.getByRole('button',{name:'退出全屏'}).waitFor({timeout:15000});
+  await fullViewer.getByRole('button',{name:'退出全屏'}).click();
+  await viewer(1).getByRole('button',{name:'进入全屏'}).waitFor({timeout:15000});
   record('NATIVE_USER_SCRIPT_ZOOM_FOLD_FULLSCREEN_CONTROLS','PASS',{topicsB,foldedB});
   await page.screenshot({path:join(out,'r38-native-user-script-xmind.png'),fullPage:true});
   const globalStyleWhileOpen=await page.locator('style#snowbrush_style').count();
