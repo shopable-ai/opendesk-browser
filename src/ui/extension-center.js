@@ -614,14 +614,14 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   const keyDown=event=>{
     if(!rowMenu.hidden){
       if(event.key==='Escape'){event.preventDefault();closeRowMenu(true);return;}
-      if(['ArrowDown','ArrowUp','Home','End'].includes(event.key)){
+      if(rowMenu.contains(doc.activeElement)&&['ArrowDown','ArrowUp','Home','End'].includes(event.key)){
         event.preventDefault();
         const buttons=[...rowMenu.querySelectorAll('button')],index=buttons.indexOf(doc.activeElement);
         const next=event.key==='Home'?0:event.key==='End'?buttons.length-1:
           (index+(event.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length;
         buttons[next]?.focus({preventScroll:true});return;
       }
-      if(event.key==='Tab')closeRowMenu();
+      if(event.key==='Tab'&&rowMenu.contains(doc.activeElement))closeRowMenu(true);
     }
     if(event.key==='Escape'){
       if(!menu.hidden){event.preventDefault();closeMenu(true);}

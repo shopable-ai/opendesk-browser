@@ -64,3 +64,9 @@ export function DeveloperRunStatus({model,node}){
   React.useLayoutEffect(()=>{node.dataset.state=model.state;},[node,model.state]);
   return model.text;
 }
+
+// Script Editor retains the authorized result projection; this text-only
+// React view never parses output as HTML or requests new Host capabilities.
+export function DeveloperResultText({value=''}){
+  return value;
+}
