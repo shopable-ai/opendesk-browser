@@ -151,7 +151,7 @@ async function clipboard(){
 }
 async function keyboardCase(ctx,outer){
  await invoke(ctx,'const t=document.querySelector(".bm-tree-scroll");t.scrollTop=0;t.dispatchEvent(new Event("scroll",{bubbles:true}));t.focus();return true');
- await until(ctx,'!!document.querySelector("[data-node-id=100]")','first row');
+ await until(ctx,'!!document.querySelector("#bm-treeitem-100")','first row');
  await realKey('Home','Home',36);
  await realKey('ArrowDown','ArrowDown',40);
  await realKey('Enter','Enter',13);
@@ -171,7 +171,7 @@ async function keyboardCase(ctx,outer){
  await realKey('Escape','Escape',27);
  await until(ctx,'!document.querySelector("[data-testid=action-menu]")','Escape closes menu only');
  assert.equal(await invoke(ctx,'return !!document.querySelector("[data-testid=bookmark-preview]")'),true,'menu Escape preserves readonly');
- await invoke(ctx,'document.querySelector("[data-node-id=100] .bm-node-title").click();return true');
+ await invoke(ctx,'document.querySelector("#bm-treeitem-100 .bm-node-title").click();return true');
  const url=await invoke(ctx,'return document.querySelector("[data-testid=bookmark-preview] .bm-detail-url").href');
  await clickReal(ctx,outer,'[data-testid="bookmark-preview"] [aria-label="复制网址"]');
  const value=await waitFor(async()=>{try{const x=await clipboard();return x===url?x:null}catch{return null}},'real OS clipboard exact URL',36);
@@ -205,7 +205,7 @@ try{
    const dimensions=await invoke(ctx,'const t=document.querySelector(".bm-tree-scroll");return {h:t.clientHeight,root:innerWidth,scroll:document.documentElement.scrollWidth,scale:visualViewport.scale}');
    assert.ok(dimensions.h>180&&dimensions.scroll<=dimensions.root+1&&Math.abs(dimensions.scale-1)<.02,'zoom fits tree '+width);
    await screenshot('bookmark-r3041-'+width+'-zoom'+zoom.percent+'-list.png');
-   await invoke(ctx,'document.querySelector("[data-node-id=100] .bm-node-title").click();return true');
+   await invoke(ctx,'document.querySelector("#bm-treeitem-100 .bm-node-title").click();return true');
    await until(ctx,'!!document.querySelector("[data-testid=bookmark-preview]")','nonmodal '+width);
    assert.equal(await invoke(ctx,'return !!document.querySelector("[data-testid=bookmark-sheet]")'),false);
    const bounds=await invoke(ctx,'const r=document.querySelector(".bm-preview-pane").getBoundingClientRect();return {left:r.left,right:r.right}');
@@ -213,10 +213,10 @@ try{
    await screenshot('bookmark-r3041-'+width+'-zoom'+zoom.percent+'-preview.png');
    if(width===400&&zoom.percent===100)report.push({width,zoom:100,keyboard:await keyboardCase(ctx,outer)});
    await invoke(ctx,'const t=document.querySelector(".bm-tree-scroll");t.scrollTop=t.scrollHeight;t.dispatchEvent(new Event("scroll",{bubbles:true}));return true');
-   await until(ctx,'!!document.querySelector("[data-node-id=2651]")','last virtual row mounted '+width);
+   await until(ctx,'!!document.querySelector("#bm-treeitem-2651")','last virtual row mounted '+width);
    const last=await hit(ctx,'[data-node-id="2651"]');
    assert.ok(last.found&&last.visible&&last.hit,'last bookmark must not be blocked by readonly preview: '+JSON.stringify(last));
-   await invoke(ctx,'document.querySelector("[data-node-id=2651] .bm-node-title").click();return true');
+   await invoke(ctx,'document.querySelector("#bm-treeitem-2651 .bm-node-title").click();return true');
    await until(ctx,'document.querySelector("[data-testid=bookmark-preview] .bm-detail-title span")?.textContent.includes("2152")','last item readonly '+width);
    const top=await invoke(ctx,'return document.querySelector(".bm-tree-scroll").scrollTop');
    await invoke(ctx,'document.querySelector(".bm-preview-close").click();return true');
