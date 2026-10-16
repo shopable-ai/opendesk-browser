@@ -30,19 +30,18 @@ R2.1 已在本次会话的 Chromium 静态页面环境做 **23 项交互断言�
 
 ## 下一步
 
-1. 用户确认可见信息架构及截图；若有不满意，**只**修改 R2.1 对应区域。
+1. 用户确认可见信息架构及截图；若有不满意，**只**修改 R2.2 对应区域。
 2. 使用 `scripts/sidebar-preview-kit.mjs create/check` 或对应平台正式预览流程，通过既有浅色壳和设计 Tokens 输出来源可查、静态可 lint 的 UI。
 3. 真正迁入已有 React 19 单一 Root；保留源码编辑器、RunHost、Page 运行、SDK Authority 和原有业务 DOM/事件语义，不用 Mock 覆盖真实操作。
 4. CI Chromium + 本地 macOS Chrome 做 E2E；对任意未测试场景标注 NOT_TESTED，不伪造“95+ PASS”。
 
-
 ## R2.2 垂直节奏精修（2026-10-17）
 
-- 最新 HTML：\`index.html\`（R2.2）；R2.1 原样归档为 \`r2.1-audited-preview.html\`，R2 原样归档为 \`r2-full-preview.html\`。不覆盖历史。
-- **修复根因，而不是加负 margin 补丁**：把浏览器默认 \`p/pre\` 上下外边距归零；统一移除折叠区 \`.fold\` 自带的底部 8px margin，由所属区域统一管理 gap；SDK 抽屉 \`.drawer-section\` 不再把 \`section-head\` 的 margin 和 Grid gap 重复计算。
-- **统一尺寸**：章节 16px、同组 8px、标签/说明 4px、卡片内 12px、图标按钮 34px、通常输入 36px、源码编辑器至少 216px。结果标题 / 当前运行状态 / 复制按钮合为同一个头部，源代码和说明为独立 \`editor-code-group\`，保留原功能 ID。
-- **页面状态**：默认 JS Controller、Page 模式、React、Vue、本地多文件、历史展开、长标题、SDK 抽屉与高级权限，均仍由原离线 Mock 处理；这不是正式 RunHost/SDK 调用。没有修改 \`src/ui/\` 或权限 Authority。
+- 最新 HTML：`index.html`（R2.2）；R2.1 原样归档为 `r2.1-audited-preview.html`，R2 原样归档为 `r2-full-preview.html`。不覆盖历史。
+- **修复根因，而不是加负 margin 补丁**：把浏览器默认 `p/pre` 上下外边距归零；统一移除折叠区 `.fold` 自带的底部 8px margin，由所属区域统一管理 gap；SDK 抽屉 `.drawer-section` 不再把 `section-head` 的 margin 和 Grid gap 重复计算。
+- **统一尺寸**：章节 16px、同组 8px、标签/说明 4px、卡片内 12px、图标按钮 34px、通常输入 36px、源码编辑器至少 216px。结果标题 / 当前运行状态 / 复制按钮合为同一个头部，源代码和说明为独立 `editor-code-group`，保留原功能 ID。
+- **页面状态**：默认 JS Controller、Page 模式、React、Vue、本地多文件、历史展开、长标题、SDK 抽屉与高级权限，均仍由原离线 Mock 处理；这不是正式 RunHost/SDK 调用。没有修改 `src/ui/` 或权限 Authority。
 - **实测差值**（Chromium 静态预览，420px）：运行结果模块由 193px → 165px；代码到说明 4px，说明到参数 8px，编辑区到运行结果 16px，结果正文到历史 8px，高级两折叠项间 8px，SDK 抽屉标题到正文 8px。
 - **回归结果**：原有 23/23 个交互场景通过；新 75/75 个布局/状态断言通过（320/360/420px、长标题、折叠、模式、本地项目、SDK 抽屉、键盘 Escape 和页面/区域横向溢出），来自本会话本地 headless Chromium + Playwright 自测；不是独立外部专家验收。
-- **仍需正式验证**：官方 \`sidebar-preview-kit.mjs check\` / 官方 Preview Shell、React 19 正式组件迁移、真实 Chrome Side Panel 和 Mac 原生验收均为 \`NOT_TESTED\`。非正式模板合同，不宣称已取得独立专家评分 95+ 或生产环境 95+。
-- **后续注意**：生产 React 迁移必须复用正式 \`--space-1/2/3/4\` 和 \`od-*\`，**由布局父容器负责间距、取消子控件重复 margin**，保留已有精确文档授权与实际运行/安装语义。不要把 Mock 的静态状态误接入真实 Authority。
+- **仍需正式验证**：官方 `sidebar-preview-kit.mjs check` / 官方 Preview Shell、React 19 正式组件迁移、真实 Chrome Side Panel 和 Mac 原生验收均为 `NOT_TESTED`。非正式模板合同，不宣称已取得独立专家评分 95+ 或生产环境 95+。
+- **后续注意**：生产 React 迁移必须复用正式 `--space-1/2/3/4` 和 `od-*`，**由布局父容器负责间距、取消子控件重复 margin**，保留已有精确文档授权与实际运行/安装语义。不要把 Mock 的静态状态误接入真实 Authority。
