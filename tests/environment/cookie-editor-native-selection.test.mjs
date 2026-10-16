@@ -3,6 +3,8 @@ import {spawnSync} from 'node:child_process';
 import {readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import test from 'node:test';
+import {createHash} from 'node:crypto';
+import {COOKIE_EDITOR_UPGRADE_FROM,verifyCookieEditorUpgradeBaseline} from '../framework/cookie-editor-upgrade-contract.mjs';
 
 const driver=fileURLToPath(new URL('../framework/cookie-editor-r33-native.mjs',import.meta.url));
 function plan(cases,stage='import-export'){
@@ -70,4 +72,31 @@ test('R4.10 native case driver uses real approved metadata toggle and inline dis
   assert.doesNotMatch(source,/await click\(toolSession,'#live-export-content'\)/,
     'hidden legacy dropdown cannot receive trusted Chrome clicks');
   assert.match(source,/document.querySelector\("#live-export-content"\).value'\),'backup'/);
+});
+
+test('R4.10.2 upgrade verifies historical 2.0.15 bytes, same ID and unchanged capabilities',async()=>{
+  const candidateConfig=JSON.parse(await readFile(new URL('../../examples/sidebar-tools/cookie-editor/tool.config.json',import.meta.url),'utf8'));
+  assert.equal(candidateConfig.version,'2.0.16');
+  assert.equal(COOKIE_EDITOR_UPGRADE_FROM.version,'2.0.15');
+  assert.equal(COOKIE_EDITOR_UPGRADE_FROM.sha256,
+    'f6aa6d83533dba166497fce2d37b6ee2a358c102b3f85b63ce8c6a62d6fb64ce');
+  // Synthetic bytes exercise only the pure preflight; they cannot pass the
+  // historical digest or substitute for real installed/native evidence.
+  const old={format:'opendesk.sidebar-tool.v2',id:'cookie-editor',version:'2.0.15',
+    capabilities:candidateConfig.capabilities};
+  const bytes=value=>Buffer.from(JSON.stringify(value));
+  const hash=data=>createHash('sha256').update(data).digest('hex');
+  const verify=(value,candidate=candidateConfig,version=value.version)=>
+    verifyCookieEditorUpgradeBaseline(bytes(value),candidate,{version,sha256:hash(bytes(value))});
+  assert.deepEqual(verify(old),{id:'cookie-editor',version:'2.0.15',sha256:hash(bytes(old))});
+  assert.throws(()=>verifyCookieEditorUpgradeBaseline(bytes(old),candidateConfig),/historical release/);
+  assert.throws(()=>verify({...old,id:'another-tool'}),/same tool ID/);
+  assert.throws(()=>verify({...old,format:'other'}),/opendesk.sidebar-tool.v2/);
+  assert.throws(()=>verify(old,{...candidateConfig,version:'2.0.15'}),/must be newer/);
+  assert.throws(()=>verify(old,{...candidateConfig,version:'2.0.14'}),/must be newer/);
+  assert.throws(()=>verify(old,{...candidateConfig,capabilities:[...old.capabilities,'browser.cookies.extra']}),/must not silently change/);
+  assert.throws(()=>verify({...old,version:'02.0.15'},candidateConfig,'02.0.15'),/numeric semver/);
+  const source=await readFile(driver,'utf8');
+  assert.doesNotMatch(source,/old\.version,'2\.0\.3'/);
+  assert.match(source,/upgrade-preservation-baseline/);
 });
