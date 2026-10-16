@@ -170,22 +170,56 @@ try{
   assert.equal(execution[0].error,undefined,JSON.stringify(execution[0].error));
   assert.equal(execution[0].result?.ok,true,JSON.stringify(execution[0].result));
   const button=child.locator('[data-opendesk-chatgpt-mindmap="button"] button');
+  const turns=child.locator('article[data-testid^="conversation-turn-"]');
+  const viewer=index=>turns.nth(index).locator('[data-opendesk-chatgpt-mindmap="viewer"]');
+  const originalA=await turns.nth(0).locator('.markdown').evaluate(el=>el.innerHTML);
   await button.first().waitFor({timeout:20000});
   assert.equal(await button.count(),3);
-  await button.first().click();
-  await child.locator('.topic').first().waitFor({timeout:30000});
+  for(let index=0;index<3;index++){
+    await button.nth(index).click();
+    await viewer(index).and(child.locator('[data-ready="true"]'))
+      .waitFor({timeout:30000});
+    assert((await viewer(index).locator('.topic').count())>=3,
+      'Original XMind topics missing for independent reply '+index);
+    assert.equal(await host.locator('style#snowbrush_style').count(),0,
+      'Snowbrush host CSS leaked while opening answer '+index);
+  }
+  report.answerInstances=3;
   report.realTopics=await child.locator('.topic').count();
-  assert(report.realTopics>=3,'The original XMind renderer did not create topics');
+  assert(report.realTopics>=9,'Three independent XMind workbooks were not mounted');
   report.childSnowbrushStyle=await child.locator('style#snowbrush_style').count();
   report.parentSnowbrushStyle=await host.locator('style#snowbrush_style').count();
   assert(report.childSnowbrushStyle>0,'Snowbrush style not observed in child document');
   assert.equal(report.parentSnowbrushStyle,0,'Snowbrush CSS leaked into host');
-  await child.locator('[data-opendesk-chatgpt-mindmap="viewer"]')
-    .first().getByRole('button',{name:'放大导图'}).click();
-  await child.locator('[data-opendesk-chatgpt-mindmap="viewer"]')
-    .first().getByRole('button',{name:'恢复本条回复原文'}).click();
-  await child.locator('[data-opendesk-chatgpt-mindmap="viewer"]')
-    .first().waitFor({state:'detached',timeout:30000});
+  await viewer(0).getByRole('button',{name:'放大导图'}).click();
+  const expanded=await viewer(1).locator('.topic:visible').count();
+  await viewer(1).getByRole('button',{name:'折叠所有分支'}).click();
+  await viewer(1).getByRole('button',{name:'展开所有分支'})
+    .waitFor({timeout:30000});
+  const collapsed=await viewer(1).locator('.topic:visible').count();
+  assert(collapsed<expanded,'Original XMind branch fold did not change visible topic count');
+  await viewer(1).getByRole('button',{name:'展开所有分支'}).click();
+  report.fold={expanded,collapsed};
+  await viewer(2).getByRole('button',{name:'进入全屏'}).click();
+  const full=child.locator('[data-opendesk-chatgpt-mindmap="viewer"].odmm-fullscreen');
+  await full.getByRole('button',{name:'退出全屏'}).waitFor({timeout:15000});
+  await full.getByRole('button',{name:'退出全屏'}).click();
+  await viewer(2).getByRole('button',{name:'进入全屏'})
+    .waitFor({timeout:15000});
+  await viewer(0).getByRole('button',{name:'恢复本条回复原文'}).click();
+  await viewer(0).waitFor({state:'detached',timeout:30000});
+  assert.equal(await turns.nth(0).locator('.markdown').evaluate(el=>el.innerHTML),
+    originalA,'Closing A must restore its byte-identical original HTML');
+  assert((await viewer(1).locator('.topic').count())>=3,
+    'Retiring reply A accidentally closed reply B');
+  assert((await viewer(2).locator('.topic').count())>=3,
+    'Retiring reply A accidentally closed reply C');
+  for(let index=1;index<3;index++){
+    await viewer(index).getByRole('button',{name:'恢复本条回复原文'}).click();
+    await viewer(index).waitFor({state:'detached',timeout:30000});
+  }
+  assert.equal(await child.locator('[data-opendesk-chatgpt-mindmap="viewer"]').count(),0);
+  report.allAnswerViewsRetired=true;
   await host.locator('iframe[data-r393-real-sdk]').evaluate(frame=>frame.remove());
   assert.equal(await host.locator('style#snowbrush_style').count(),0);
   report.frameDisposed=true;
