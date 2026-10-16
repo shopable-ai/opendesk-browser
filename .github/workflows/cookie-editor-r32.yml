@@ -7,6 +7,10 @@ on:
       - '.github/workflows/cookie-editor-r32.yml'
       - 'examples/sidebar-tools/cookie-editor/**'
       - 'tests/environment/cookie-editor-ui.test.mjs'
+      - 'tests/environment/cookie-editor-preview-r46.test.mjs'
+      - 'tests/environment/cookie-editor-r43-parity.test.mjs'
+      - 'tests/environment/cookie-editor-native-selection.test.mjs'
+      - 'tests/environment/extension-center-r47-interaction.test.mjs'
       - 'tests/environment/time-review-host-controls-r51.test.mjs'
       - 'tests/environment/static-import-drafts-ui.test.mjs'
       - 'tests/environment/browser-sdk-r106-cookie-contract-gaps.test.mjs'
@@ -62,6 +66,10 @@ jobs:
             tests/environment/browser-sdk-r7-trusted-cookies.test.mjs \
             tests/environment/browser-sdk-r8-cookies.test.mjs \
             tests/environment/cookie-editor-ui.test.mjs \
+            tests/environment/cookie-editor-preview-r46.test.mjs \
+            tests/environment/cookie-editor-r43-parity.test.mjs \
+            tests/environment/cookie-editor-native-selection.test.mjs \
+            tests/environment/extension-center-r47-interaction.test.mjs \
             tests/environment/sidebar-tool-enable-r26.test.mjs \
             tests/environment/official-tools-catalog-r45.test.mjs \
             tests/environment/browser-sdk-interface-matrix.test.mjs \
@@ -94,11 +102,11 @@ jobs:
           npm run build
           npm run build:dev
           npm run verify
-      - name: Full repository regression against verified candidate builds
-        # Compiler, resource, CSS and provenance tests inspect these actual
-        # outputs and their default receipts. Keep the complete regression gate.
-        run: npm test
-      - name: Retain exact installable Node/Build candidate (NOT native Chrome acceptance)
+      - name: Retain verified Cookie Editor candidate (NOT release or native Chrome acceptance)
+        # Capture only after the scoped SDK, package, source and build gates pass.
+        # Full-repository regressions may fail in other workstreams; their
+        # independent failure must not erase this immutable candidate evidence.
+        # This artifact is NOT auto-promoted or installed in any user profile.
         if: success()
         uses: actions/upload-artifact@v4
         with:
@@ -111,3 +119,7 @@ jobs:
             dist/production/official-tools/
             docs/framework/evidence/wxt/builds/build-production.json
             docs/framework/evidence/wxt/builds/build-development.json
+      - name: Full repository regression against verified candidate builds
+        # Complete gate remains mandatory for final release acceptance. Keep
+        # unrelated failures visible without suppressing scoped PASS evidence.
+        run: npm test
