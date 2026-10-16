@@ -151,6 +151,8 @@ try{
   await page.locator('#prompt').fill('尚未发送的设置前草稿');
   await page.locator('#settings').click();
   assert.equal(await page.locator('#r234-back').isVisible(),true);
+  assert.equal(await page.locator('#form').evaluate(el=>el.inert),true);
+  assert.equal(await page.locator('#history').evaluate(el=>el.closest('.title-bar').inert),true);
   assert.ok(Math.abs((await page.locator('.r23-settings').evaluate(el=>el.getBoundingClientRect().height))-(await page.locator('.device').evaluate(el=>el.getBoundingClientRect().height)))<=2,'settings must fill device inner box');
   assert.equal(await page.locator('#r23-native-status').isVisible(),true);
   await shot('r234-ai-settings-local');
@@ -206,6 +208,7 @@ try{
   await page.locator('[data-action="close-settings"]').last().click();
   assert.equal(await page.locator('#prompt').inputValue(),'尚未发送的设置前草稿');
   assert.equal(await page.locator('#r234-back').isVisible(),false);
+  assert.equal(await page.locator('#form').evaluate(el=>el.inert),false);
   await page.locator('#prompt').fill('');
   await send(first);await expectState('sharing-required');
   assert.equal(await nameValue(),'旧的预填内容');
