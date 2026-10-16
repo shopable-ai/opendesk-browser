@@ -239,14 +239,43 @@ jobs:
         run: |
           command -v Xvfb
           command -v xvfb-run
-      - name: Real windowed Chrome, installed tool SDK and native Side Panel (C1 partial)
+      - name: Real windowed Chrome, installed SDK and native Side Panel (strict C1)
         env:
           CHROME_FOR_TESTING_BIN: ${{ steps.chrome-c1.outputs.chrome-path }}
           OPENDESK_PROXY_C1_RUNNER: ${{ runner.environment }}
           OPENDESK_PROXY_C1_ALLOW_NO_SANDBOX: 'yes'
           OPENDESK_PROXY_C1_HEADED: 'xvfb'
         run: xvfb-run -a -s '-screen 0 1440x1000x24' node tests/framework/browser-managed-proxy-installed-c1.mjs
-      - name: Preserve raw C1 installed Chromium evidence (not Side Panel PASS)
+      - name: Enforce same-SHA C1 receipt and native Side Panel hard gate
+        if: always()
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          const receipt=JSON.parse(readFileSync('artifacts/managed-proxy-installed-c1.json','utf8'));
+          const required=['FORMAL_INSTALL_IDENTITY','C1_SDK_STATUS',
+            'C1_PRODUCTION_ENABLE_DENIED','C1_SDK_STOP','NO_UNAPPROVED_NATIVE_SET',
+            'C1_SIDE_PANEL_TOOLS_VISIBLE','C1_SIDE_PANEL_OFFICIAL_UI',
+            'C1_SIDE_PANEL_SDK_HOST_NATIVE'];
+          assert.equal(receipt.sha,process.env.GITHUB_SHA,'C1 receipt SHA differs from checked-out source');
+          assert.equal(receipt.result,'FORMAL_C1_NATIVE_PASS','C1 native Side Panel is not fully verified');
+          assert.equal(receipt.installed,true);
+          assert.equal(receipt.sidePanelObserved,true);
+          assert.equal(receipt.sidePanelInteracted,true);
+          assert.equal(typeof receipt.sidePanelDocumentId,'string');
+          assert(receipt.sidePanelDocumentId.length>0);
+          assert(receipt.sidePanelContexts?.some(row=>row.id===receipt.sidePanelDocumentId),
+            'The trusted interactions did not retain the observed SIDE_PANEL Document ID');
+          assert.equal(receipt.errors.length,0,'C1 receipt contains unresolved errors');
+          for(const name of required)
+            assert(receipt.steps.some(row=>row.name===name&&row.status==='PASS'),
+              'C1 mandatory native step missing: '+name);
+          for(const name of ['native-side-panel-ai-vip','native-side-panel-sdk-denied-stop'])
+            assert(receipt.screenshots.some(row=>row.name===name&&row.sha256&&row.bytes>0),
+              'C1 native screenshot missing: '+name);
+          console.log('FORMAL_C1_NATIVE_PASS verified for '+receipt.sha);
+          NODE
+      - name: Preserve raw C1 installed Chromium evidence (no implied Side Panel PASS)
         if: always()
         uses: actions/upload-artifact@v4
         with:
