@@ -53,12 +53,7 @@ development?.start(async()=>{
   const broker=await foundation;
   const native=await chrome.storage.local.get('opendesk.native-agent.ledger.v1');
   if(Object.values(native['opendesk.native-agent.ledger.v1']||{}).some(row=>row.state==='OUTCOME_UNKNOWN'))return false;
-  return broker.storage.transaction(['runs','commandJournal'],'readonly',async tx=>{
-    const slot=await tx.get('runs','@slot');
-    if(slot?.currentRunId||slot?.preview)return false;
-    const journal=await tx.all('commandJournal');
-    return !journal.some(row=>['dispatched','remove-dispatched','effect_unknown','OUTCOME_UNKNOWN','outcome-unknown'].includes(row.state));
-  });
+  return development.runHostIdle(broker.storage);
 });
 function invalidateSdk(reason, selector) {
   foundation.then(broker => Promise.all([

@@ -802,6 +802,62 @@ test('native rejection after submission without receipt stays unknown and cannot
   assert.equal((await f.rows('runs')).find(row=>row.runId===run.runId).state,'paused_unknown');
   await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code('E_EFFECT_UNKNOWN'));assert.equal(submissions,1);
 });
+test('unknown Controller effect can fail and retire Worker with matching release receipt without replay',async () => {
+  const f=await fixture(),run=await f.start(await f.commit()),execute=f.api.userScripts.execute;
+  let submissions=0,operationCode;
+  f.api.userScripts.execute=async options=>{
+    operationCode??=options.js[0].code;
+    if(options.js[0].code!==operationCode)return execute(options); // Preserve framework retirement cleanup.
+    submissions++;throw Object.assign(new Error('Native channel disconnected after submission'),{code:'E_TRANSPORT'});
+  };
+  const envelope={requestId:'lost-native-reply',identity:run.identity,revision:run.revision,target:run.target,
+    operation:{kind:'user-script',method:'$eval',args:controlEncode(['body','el => el.textContent'])}};
+  await assert.rejects(f.authority.controllerOperation({envelope},f.sender));
+  const operation=(await f.rows('commandJournal')).find(row=>row.tag==='controller-operation'&&row.envelope.requestId===envelope.requestId);
+  assert.equal(operation.state,'effect_unknown');assert.equal(submissions,1);
+  assert((operation.nativeReceipts||[]).every(receipt=>receipt.stage==='webNavigation.getAllFrames'));
+  assert.equal((await f.rows('runs')).find(row=>row.runId===run.runId).state,'paused_unknown');
+  await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code('E_EFFECT_UNKNOWN'));
+
+  const error={code:'E_EFFECT_UNKNOWN',message:'Native effect is unknown; operation must not be replayed'};
+  const failed=await f.finish(run,'error',{error,workerRetired:false});
+  assert.equal(failed.result.state,'failed');assert.deepEqual(failed.result.outcome,{ok:false,error});
+  assert.equal(failed.result.runId,run.runId);assert.equal(failed.result.resultId,run.resultId);
+  assert.deepEqual(failed.result.revision,run.revision);
+  const fenced=(await f.rows('runs')).find(row=>row.runId===run.runId);
+  assert.equal(fenced.state,'failed');assert.equal(fenced.workerRetired,false);
+  assert.equal(fenced.retirementState,'fenced');assert.ok(fenced.retirementId);
+  assert.equal((await f.authority.snapshotControllerRun({runId:run.runId},f.sender)).slotAvailable,false);
+  assert.deepEqual(await f.authority.retireControllerTarget({runId:run.runId},f.sender),
+    {state:'pending',releaseCount:0,reason:'worker-not-retired'});
+  const beforeRetirement=await f.rows('commandJournal');
+  assert.equal(beforeRetirement.filter(row=>row.tag==='controller-retirement'&&row.runId===run.runId).length,0);
+  assert.equal(beforeRetirement.find(row=>row.tag==='script-revision-pin'&&row.runId===run.runId).released,false);
+
+  // The existing fixture models the host's conclusive Worker-retirement acknowledgement.
+  assert.deepEqual((await f.finish(run,'error',{error,workerRetired:true})).result,failed.result);
+  const released=await f.authority.retireControllerTarget({runId:run.runId},f.sender);
+  assert.deepEqual(released,{state:'released',releaseCount:1,retirementId:fenced.retirementId});
+  const snapshot=await f.authority.snapshotControllerRun({runId:run.runId},f.sender);
+  assert.equal(snapshot.run.state,'failed');assert.equal(snapshot.run.workerRetired,true);
+  assert.equal(snapshot.run.retirementState,'released');assert.equal(snapshot.slotAvailable,true);
+  assert.deepEqual(snapshot.results,[failed.result]);
+  const slot=(await f.rows('runs')).find(row=>row.tag==='slot');
+  assert.equal(slot.currentRunId,null);assert.equal(slot.retirementId,released.retirementId);assert.equal(slot.releaseCount,1);
+  const journal=await f.rows('commandJournal');
+  const receipts=journal.filter(row=>row.tag==='controller-retirement'&&row.runId===run.runId);
+  assert.equal(receipts.length,1);
+  assert.equal(receipts[0].runId,run.runId);assert.equal(receipts[0].retirementId,released.retirementId);
+  assert.equal(receipts[0].releaseCount,released.releaseCount);assert.equal(receipts[0].absence,'borrowed-not-closed');
+  assert.ok(Number.isFinite(receipts[0].releasedAt));
+  const lease=journal.find(row=>row.tag==='controller-lease'&&row.runId===run.runId);
+  assert.equal(lease.state,'failed');assert.equal(lease.workerRetired,true);assert.equal(lease.retirementState,'released');
+  assert.equal(journal.find(row=>row.tag==='script-revision-pin'&&row.runId===run.runId).released,true);
+  await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code('E_EFFECT_UNKNOWN'));
+  assert.equal(submissions,1);
+  assert.deepEqual((await f.rows('commandJournal')).find(row=>row.tag==='controller-operation'&&row.envelope.requestId===envelope.requestId),operation);
+  assert.equal(f.calls.filter(call=>call.method==='remove').length,0);
+});
 test('native receipt survives post-dispatch permission loss; request is never resubmitted',async () => {
   const f=await fixture(),run=await f.start(await f.commit());f.beforeReply(()=>f.setAllowed(false));
   const envelope={requestId:'once',identity:run.identity,revision:run.revision,target:run.target,operation:{kind:'packaged',method:'title',args:controlEncode([])}};

@@ -1,19 +1,82 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createDevelopmentWorker,developmentChanges} from '../../src/development/worker.js';
+import {createDevelopmentWorker,developmentChanges,developmentRunHostIdle} from '../../src/development/worker.js';
 import {installDevelopmentPage} from '../../src/development/page.js';
 const event=()=>{const listeners=new Set();return {addListener:fn=>listeners.add(fn),removeListener:fn=>listeners.delete(fn),emit:async(...args)=>{for(const fn of [...listeners])await fn(...args);}};};
 const until=async condition=>{const deadline=Date.now()+2500;while(!condition()){if(Date.now()>deadline)throw Error('Development transition timed out');await new Promise(resolve=>setTimeout(resolve,10));}};
 const revision=number=>String(number).padStart(64,'0');
-function workerFixture({missingDocumentId=false}={}){
+
+function idleStorage({run={},operation={},receipt={},slot={}}={}){
+  const rows={runs:{'@slot':{currentRunId:null,...slot},'retired-run':{
+    tag:'controller-run',runId:'retired-run',state:'failed',workerRetired:true,
+    retirementState:'released',retirementId:'retirement-1',...run}},commandJournal:{
+    operation:{tag:'controller-operation',runId:'retired-run',state:'effect_unknown',
+      envelope:{identity:{tag:'controller-run',runId:'retired-run'}},...operation},
+    'controller-retirement:retirement-1':{tag:'controller-retirement',runId:'retired-run',
+      retirementId:'retirement-1',releaseCount:1,...receipt}}};
+  return {rows,transaction:async(stores,mode,read)=>{
+    assert.deepEqual(stores,['runs','commandJournal']);assert.equal(mode,'readonly');
+    return read({get:async(store,key)=>structuredClone(rows[store][key]),
+      all:async store=>structuredClone(Object.values(rows[store]))});
+  }};
+}
+
+test('released Controller history no longer blocks development reload and remains unknown',async()=>{
+  const storage=idleStorage(),before=structuredClone(storage.rows);
+  assert.equal(await developmentRunHostIdle(storage),true);
+  assert.deepEqual(storage.rows,before);
+  storage.rows.commandJournal.operation.tag='controller-navigation';
+  assert.equal(await developmentRunHostIdle(storage),true);
+});
+
+for(const [name,options] of [
+  ['active run',{slot:{currentRunId:'active'}}],['preview',{slot:{preview:{id:'preview'}}}],
+  ['unreleased',{run:{retirementState:'pending'}}],['live Worker',{run:{workerRetired:false}}],
+  ['paused outcome',{run:{state:'paused_unknown'}}],['inconsistent success',{run:{state:'completed'}}],
+  ['unbound envelope',{operation:{envelope:{identity:{runId:'other'}}}}],
+  ['dispatched effect',{operation:{state:'dispatched'}}],
+  ['SDK unknown',{operation:{tag:'sdk-operation'}}],['other unknown',{operation:{state:'OUTCOME_UNKNOWN'}}],
+  ['missing Run',{operation:{runId:'missing'}}],['missing retirement',{run:{retirementId:''}}],
+  ['mismatched receipt',{receipt:{retirementId:'other'}}],['mismatched Run receipt',{receipt:{runId:'other'}}],
+  ['unreleased receipt',{receipt:{releaseCount:0}}],['wrong receipt tag',{receipt:{tag:'sdk-operation'}}],
+])test('development reload still blocks '+name,async()=>{
+  assert.equal(await developmentRunHostIdle(idleStorage(options)),false);
+});
+
+test('development reload fails closed when the retirement receipt is missing',async()=>{
+  const storage=idleStorage();delete storage.rows.commandJournal['controller-retirement:retirement-1'];
+  assert.equal(await developmentRunHostIdle(storage),false);
+});
+function workerFixture({missingDocumentId=false,storage}={}){
   let update={protocol:'opendesk.development.v1',revision:revision(1),files:{'sw.js':'initial','ui/tool-shell.js':'initial','ui/tool-shell.css':'initial','agents/page-agent.js':'initial'}};
   const messages=[],contexts=[{contextType:'SIDE_PANEL',documentId:'document-1',documentUrl:'chrome-extension://extension/ui/tool.html?hostInstanceId=host-1',frameId:0,incognito:false}];
   let reloads=0,idle=true,reads=0;
   const saved={};const api={storage:{session:{get:async()=>structuredClone(saved),set:async value=>Object.assign(saved,structuredClone(value))}},runtime:{id:'extension',getURL:path=>'chrome-extension://extension/'+path,onConnect:event(),getContexts:async()=>contexts,reload:()=>reloads++}};
   const port={name:'opendesk.development.v1',sender:{id:'extension',url:contexts[0].documentUrl,...(!missingDocumentId&&{documentId:'document-1'})},onMessage:event(),onDisconnect:event(),disconnect(){this.onDisconnect.emit();},postMessage(message){messages.push(message);if(message.type==='prepare')this.onMessage.emit({type:'ready',token:message.token,ready:true});}};
   const worker=createDevelopmentWorker(api,{intervalMs:10,fetch:async()=>{reads++;return {ok:true,json:async()=>structuredClone(update)};}});
-  return {worker,api,port,messages,get reloads(){return reloads;},get reads(){return reads;},setIdle:value=>{idle=value;},connect:()=>api.runtime.onConnect.emit(port),start:()=>worker.start(()=>idle),change:(file,hash)=>{update={...update,revision:revision(Number(update.revision)+1),files:{...update.files,[file]:hash}};}};
+  return {worker,api,port,messages,get reloads(){return reloads;},get reads(){return reads;},setIdle:value=>{idle=value;},connect:()=>api.runtime.onConnect.emit(port),start:()=>worker.start(()=>idle&&!worker.nativePending&&(!storage||worker.runHostIdle(storage))),change:(file,hash)=>{update={...update,revision:revision(Number(update.revision)+1),files:{...update.files,[file]:hash}};}};
 }
+test('retired unknown history passes the update flow only after receipt, Native and host fences release',async()=>{
+  const storage=idleStorage({receipt:{releaseCount:0}}),f=workerFixture({storage});
+  let hostReady=false;
+  f.port.postMessage=message=>{f.messages.push(message);if(message.type==='prepare')f.port.onMessage.emit({type:'ready',token:message.token,ready:hostReady});};
+  try{
+    await f.connect();f.start();await until(()=>f.reads>1);
+    f.change('sw.js','retirement-aware-update');
+    await until(()=>f.messages.some(message=>message.type==='waiting'));
+    assert.equal(f.reloads,0);assert.equal(f.messages.some(message=>message.type==='prepare'),false);
+    const nativeDone=f.worker.nativeStarted();
+    storage.rows.commandJournal['controller-retirement:retirement-1'].releaseCount=1;
+    const reads=f.reads;await until(()=>f.reads>reads+2);
+    assert.equal(f.reloads,0);assert.equal(f.messages.some(message=>message.type==='prepare'),false);
+    nativeDone();await until(()=>f.messages.some(message=>message.type==='prepare'));
+    assert.equal(f.reloads,0);assert.equal((await f.api.storage.session.get())['opendesk.development.applied.v1'].revision,revision(1));
+    const before=structuredClone(storage.rows);hostReady=true;
+    await until(()=>f.reloads===1);
+    assert.equal((await f.api.storage.session.get())['opendesk.development.applied.v1'].revision,revision(2));
+    assert.deepEqual(storage.rows,before);assert.equal(storage.rows.commandJournal.operation.state,'effect_unknown');
+  }finally{f.worker.dispose();}
+});
 
 test('real Side Panel context resolves missing sender documentId and rejects foreign senders',async()=>{
   const f=workerFixture({missingDocumentId:true});await f.connect();assert.equal(f.messages[0].type,'connected');assert.equal(f.messages[0].documentId,'document-1');
@@ -43,6 +106,21 @@ test('SDK MAIN, relay and built-in manifest changes are extension updates, not C
     assert.equal(changes.page,false);
   }
 });
+test('newly connected tools receive the existing reason a development update is waiting',async()=>{
+  const f=workerFixture();
+  try{
+    await f.connect();f.start();await until(()=>f.reads>1);
+    f.setIdle(false);f.change('sw.js','pending-update');
+    await until(()=>f.messages.some(message=>message.type==='waiting'));
+    const waiting=f.messages.find(message=>message.type==='waiting');
+    f.messages.length=0;await f.connect();
+    assert.deepEqual(f.messages.map(message=>message.type),['connected','waiting']);
+    assert.equal(f.messages[1].reason,waiting.reason);
+    assert.equal(f.messages[0].revision,revision(1));
+    assert.equal(f.reloads,0);
+  }finally{f.worker.dispose();}
+});
+
 test('background waits for idle, freezes admissions, acknowledges draft and reloads only once',async()=>{
   const f=workerFixture();await f.connect();f.setIdle(false);f.start();await until(()=>f.reads>1);f.change('sw.js','new');await until(()=>f.messages.some(m=>m.type==='waiting'));assert.equal(f.reloads,0);assert.equal(f.worker.held,false);
   f.setIdle(true);await until(()=>f.reloads===1);assert.equal(f.worker.held,true);const reads=f.reads;await new Promise(resolve=>setTimeout(resolve,50));assert.equal(f.reloads,1);assert.equal(f.reads,reads);f.worker.dispose();

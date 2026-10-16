@@ -66,7 +66,7 @@ npm run dev
 
 这里的 CSS 热加载、工具页面刷新和扩展重载是三种不同机制。经典 IIFE 入口使用增量构建与安全刷新；不会承诺所有模块都能保持内存状态热替换。
 
-正在执行的 Controller、未退出的 USER_SCRIPT 预览、Native 请求、未释放资源或未知效果会延后刷新。先按原有 Stop/恢复流程处理；未知效果不要盲目重放。开发更新不会自动运行草稿、点击网页、提交表单、下载文件或重放任务。
+正在执行的 Controller、未退出的 USER_SCRIPT 预览、Native 请求、未释放资源或未知效果会延后刷新。历史 Controller operation/navigation 的 `effect_unknown` 只有在精确关联失败、停止或中断的 Run，Worker 已退役、资源已 released，且匹配同 runId/retirementId、releaseCount=1 的正式退役回执后，才不再阻挡开发刷新；未知审计仍保留且不能重放。缺失或冲突的回执、SDK/Native 未知结果继续阻挡。先按原有 Stop/恢复流程处理；未知效果不要盲目重放。开发更新不会自动运行草稿、点击网页、提交表单、下载文件或重放任务。
 
 工具页刷新前保存手工草稿到 `storage.session`，扩展重载前另存开发专用 `storage.local` 备份；只有编辑器仍为初始状态时才恢复，用户已经输入的新代码不会被覆盖。正式静态包不启用开发连接和备份。
 

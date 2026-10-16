@@ -2,6 +2,29 @@ import {resolveToolSender,isToolSender} from '../environment.js';
 const protocol='opendesk.development.v1';
 const baselineKey='opendesk.development.applied.v1';
 const unavailable='开发输出暂不可用；保留当前宿主与任务。';
+export function developmentRunHostIdle(storage){
+  return storage.transaction(['runs','commandJournal'],'readonly',async tx=>{
+    const slot=await tx.get('runs','@slot');
+    if(slot?.currentRunId||slot?.preview)return false;
+    const journal=await tx.all('commandJournal');
+    for(const row of journal){
+      if(!['dispatched','remove-dispatched','effect_unknown','OUTCOME_UNKNOWN','outcome-unknown'].includes(row.state))continue;
+      if(row.state!=='effect_unknown'||!['controller-operation','controller-navigation'].includes(row.tag)||
+        typeof row.runId!=='string'||row.envelope?.identity?.tag!=='controller-run'||
+        row.envelope.identity.runId!==row.runId)return false;
+      const run=await tx.get('runs',row.runId);
+      if(run?.tag!=='controller-run'||run.runId!==row.runId||
+        !['failed','stopped','interrupted'].includes(run.state)||run.workerRetired!==true||
+        run.retirementState!=='released'||typeof run.retirementId!=='string'||!run.retirementId)return false;
+      const receipt=await tx.get('commandJournal','controller-retirement:'+run.retirementId);
+      if(receipt?.tag!=='controller-retirement'||receipt.runId!==run.runId||
+        receipt.retirementId!==run.retirementId||receipt.releaseCount!==1)return false;
+      // Retirement releases execution resources, not the unknown effect.
+      // Preserve the journal and its replay fence across the development reload.
+    }
+    return true;
+  });
+}
 // Packaged injected code belongs to Chrome's loaded extension version.
 // Merely overwriting dist bytes does not re-register existing content scripts.
 // Reload the extension only after the RunHost/host-idle fence; never reload the
@@ -26,6 +49,7 @@ export function createDevelopmentWorker(api=globalThis.chrome,{fetch:read=global
     port.onMessage.addListener(message=>{if(message.type==='ready'&&message.token===row.token)row.ready=message.ready===true;});
     port.onDisconnect.addListener(()=>{row.ready=false;if(ports.get(row.documentId)===row)ports.delete(row.documentId);});
     port.postMessage({type:'connected',documentId:row.documentId,revision:applied?.revision ?? null});
+    if(lastReason)port.postMessage({type:'waiting',reason:lastReason});
   }
   api.runtime.onConnect.addListener(connect);
   const send=(type,details={})=>{for(const {port} of ports.values())try{port.postMessage({type,...details});}catch{}};
@@ -89,7 +113,7 @@ export function createDevelopmentWorker(api=globalThis.chrome,{fetch:read=global
     }catch(error){waiting(unavailable);console.debug('[OpenDesk dev]',error);}
     finally{if(!reloading){held=false;if(token)send('abort',{token});}checking=false;}
   }
-  return {get held(){return held;},get nativePending(){return nativePending;},nativeStarted(){nativePending++;return ()=>nativePending--;},
+  return {runHostIdle:developmentRunHostIdle,get held(){return held;},get nativePending(){return nativePending;},nativeStarted(){nativePending++;return ()=>nativePending--;},
     start(canReload){checkIdle=canReload;tick();timer=setInterval(tick,intervalMs);},
     dispose(){clearInterval(timer);api.runtime.onConnect.removeListener(connect);for(const {port} of ports.values())port.disconnect();ports.clear();}};
 }
