@@ -83,25 +83,54 @@ function frameFromTree(tree,urlPart){
   }
   return null;
 }
+async function sandboxTargets(){
+  const {targetInfos=[]}=await client.send('Target.getTargets');
+  return targetInfos.filter(x=>x.url?.includes('/sidebar-tools/sandbox.html'));
+}
 async function toolFrame(){
+  // An opaque-origin sandbox can be an OOPIF with its own CDP target. Chrome's
+  // parent Page.getFrameTree alone is not authoritative for that child.
   const tree=(await client.send('Page.getFrameTree',{},page)).frameTree;
   const frame=frameFromTree(tree,'/sidebar-tools/sandbox.html');
-  if(!frame)throw Error('Installed opaque sandbox not found in the native Chrome frame tree');
-  const world=await client.send('Page.createIsolatedWorld',{
-    frameId:frame.id,worldName:'opendesk-proxy-c1-readonly'
-  },page);
-  return world.executionContextId;
+  let parentWorldError=null;
+  if(frame){
+    try{
+      const world=await client.send('Page.createIsolatedWorld',{
+        frameId:frame.id,worldName:'opendesk-proxy-c1-readonly'
+      },page);
+      const candidate={session:page,contextId:world.executionContextId,via:'parent-frame'};
+      if(await evalAt(candidate.session,'document.getElementById("tool-root")!==null',candidate.contextId))
+        return candidate;
+      parentWorldError='Parent isolated world did not resolve the installed sandbox DOM';
+    }catch(error){parentWorldError=String(error?.message||error);}
+  }
+  const targets=await sandboxTargets();
+  for(const target of targets){
+    try{
+      const session=await attach(target.targetId);
+      const candidate={session,contextId:null,via:'oopif-target',targetId:target.targetId};
+      if(await evalAt(session,'document.getElementById("tool-root")!==null'))
+        return candidate;
+    }catch(error){parentWorldError=String(error?.message||error);}
+  }
+  const children=(node)=>[
+    ...(node?.frame?[{id:node.frame.id,url:node.frame.url}]:[]),
+    ...(node?.childFrames||[]).flatMap(children)];
+  throw Error('Sandbox CDP context inaccessible: '+JSON.stringify({
+    frames:children(tree),targets:targets.map(t=>({type:t.type,url:t.url,id:t.targetId})),
+    parentWorldError
+  }));
 }
-async function toolResult(contextId){
-  const text=await evalAt(page,
-    'document.getElementById("proxy-c2-result")?.textContent??null',contextId);
+async function toolResult(frame){
+  const text=await evalAt(frame.session,
+    'document.getElementById("proxy-c2-result")?.textContent??null',frame.contextId);
   if(!text)return null;
   try{return JSON.parse(text);}catch{return null;}
 }
-async function clickSandbox(contextId,selector){
-  const local=await evalAt(page,'(()=>{const e=document.querySelector('+
+async function clickSandbox(frame,selector){
+  const local=await evalAt(frame.session,'(()=>{const e=document.querySelector('+
     JSON.stringify(selector)+');if(!e)return null;const r=e.getBoundingClientRect();'+
-    'return {x:r.left+r.width/2,y:r.top+r.height/2,width:r.width,height:r.height};})()',contextId);
+    'return {x:r.left+r.width/2,y:r.top+r.height/2,width:r.width,height:r.height};})()',frame.contextId);
   assert(local?.width>0&&local?.height>0,'Sandbox test UI target unavailable: '+selector);
   const parent=await evalAt(page,'(()=>{const e=document.querySelector("#sidebar-tool-frame iframe");'+
     'if(!e)return null;const r=e.getBoundingClientRect();return {x:r.left,y:r.top};})()');
@@ -169,23 +198,36 @@ async function exerciseProductionDeniedSdk(extensionId){
   await installFixtureForC1(fixture);
   await client.send('Page.navigate',{url:'chrome-extension://'+extensionId+
     '/ui/tool.html?toolId=managed-proxy-c2-fixture'},page);
-  const contextId=await until(async()=>{
-    try{return await toolFrame();}catch{return null;}
-  },'installed test-only sandbox native frame');
+  let frameError='';
+  let sandboxFrame;
+  try{
+    sandboxFrame=await until(async()=>{
+      try{return await toolFrame();}catch(error){frameError=String(error?.message||error);return null;}
+    },'installed test-only sandbox native frame');
+  }catch(error){
+    receipt.frameDiagnostics={lastError:frameError,
+      parent:await evalAt(page,'(()=>{const e=document.querySelector("#sidebar-tool-frame iframe");'+
+        'return e?{src:e.src,sandbox:e.getAttribute("sandbox"),connected:e.isConnected,'+
+        'width:e.getBoundingClientRect().width,height:e.getBoundingClientRect().height}:null;})()').catch(e=>String(e)),
+      targets:(await client.send('Target.getTargets').catch(()=>({targetInfos:[]}))).targetInfos
+        .filter(t=>['iframe','page'].includes(t.type)).map(t=>({type:t.type,url:t.url}))};
+    throw error;
+  }
+  step('C1_SANDBOX_CDP_FRAME',{status:'PASS',via:sandboxFrame.via});
   const initial=await until(async()=>{
-    const row=await toolResult(contextId);return row?.method==='getStatus'&&row.state!=='pending'?row:null;
+    const row=await toolResult(sandboxFrame);return row?.method==='getStatus'&&row.state!=='pending'?row:null;
   },'formal public SDK getStatus result');
   assert.equal(initial.ok,true,'Real installed SDK getStatus failed: '+JSON.stringify(initial));
   assert(['disabled','unavailable','conflict'].includes(initial.data?.state),
     'Unexpected production active proxy state');
   assert.equal(initial.data?.canStop,false,'Fresh isolated tool claims another owner STOP');
   step('C1_SDK_STATUS',{status:'PASS',output:initial});
-  await clickSandbox(contextId,'#proxy-c2-enable');
+  await clickSandbox(sandboxFrame,'#proxy-c2-enable');
   await until(async()=>{const e=await element('#sidebar-tool-action-continue');return e?.visible&&e;},
     'trusted requestEnable confirmation');
   await click('#sidebar-tool-action-continue');
   const denied=await until(async()=>{
-    const row=await toolResult(contextId);
+    const row=await toolResult(sandboxFrame);
     return row?.method==='requestEnable'&&row.state!=='pending'?row:null;
   },'real Host rejected an unreviewed production proxy');
   assert.equal(denied.ok,false,'An unreviewed production ENABLE must be rejected');
@@ -193,12 +235,12 @@ async function exerciseProductionDeniedSdk(extensionId){
     'Unexpected production rejection '+JSON.stringify(denied));
   step('C1_PRODUCTION_ENABLE_DENIED',{status:'PASS',output:denied,
     profileReviewed:false});
-  await clickSandbox(contextId,'#proxy-c2-disable');
+  await clickSandbox(sandboxFrame,'#proxy-c2-disable');
   await until(async()=>{const e=await element('#sidebar-tool-action-continue');return e?.visible&&e;},
     'trusted requestDisable confirmation');
   await click('#sidebar-tool-action-continue');
   const stopped=await until(async()=>{
-    const row=await toolResult(contextId);
+    const row=await toolResult(sandboxFrame);
     return row?.method==='requestDisable'&&row.state!=='pending'?row:null;
   },'formal SDK STOP for a tool without an active journal');
   assert.equal(stopped.ok,true,'Formal STOP must remain callable: '+JSON.stringify(stopped));
