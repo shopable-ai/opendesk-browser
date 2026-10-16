@@ -669,7 +669,7 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   const answerB=conversation.data.items.find(item=>item.label==='回答二 H1');
   assert.ok(answerB,'second answer fixture must exist');
   const jumpB=await panelSend(origin+'/chat.html','toc.navigate',{id:answerB.id,sourceId:answerB.sourceId});
-  assert.equal(jumpB.ok,true,'trusted navigation must activate the second answer');
+  assert.equal(jumpB.ok,true,'trusted navigation must activate the second answer: '+JSON.stringify(jumpB));
   await eventually(async()=>{
     const snapshot=await evaluate(sandbox,`({
       selected:document.querySelector('#toc-source').value,
