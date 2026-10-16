@@ -205,3 +205,36 @@ npm run check
 这些旧模块未达到安全删除条件，本轮没有删除文件、修改真实 Chrome Profile 或引入第二套公共 Proxy Driver。
 
 **下一可执行源码目标**：取得 532cc7e9 后 C1 原生安装/点击/Host 实际回执，对真实错误修复并复验；再搭建完全隔离且源码审核的 C2 Test Candidate，核对真实 Chrome PAC readback、loopback SOCKS 出口和 STOP/Worker Recovery。任何 Chrome Side Panel 无法在 CI 打开的结果必须 NATIVE_UI_BLOCKED，不能升级为 FORMAL_C_PASS。
+
+
+## Managed Proxy SDK R1.6 · 正式 C1 安装路径与原生隔离 Frame 修复（2026-10-16）
+
+本节采用 **TASK → SOURCE → IMPLEMENTATION → TEST → EVIDENCE → COMMIT → STATUS**，仅记录本轮实证；并行 AI VIP Share 生产源码已升至 **1.3.5**，没有回退或修改其 UI、SDK/Host/Driver、生产 Profile 审批名单。CI 逐 SHA 独立认定，后续提交不能继承旧候选的全链路 PASS。
+
+### TASK-01：正式 Extension Center 安装（已取得原生 Chrome 安装证据；C1 整体仍未通过）
+
+- SOURCE：`src/ui/extension-center.css` 隐藏旧 `.sidebar-tools-head`；正式可信安装路径是 `#extension-center-more → #extension-center-import → #sidebar-tool-file → #sidebar-tool-install`，`src/ui/tool-shell.js` 复用原安装器表单，不存在第二套安装服务。
+- IMPLEMENTATION：[`30f97ccc`](https://github.com/shopable-ai/opendesk-browser/commit/30f97ccc512448f5492bb0a37f34fe8cc03f4455) 修改唯一 C1 测试使用 CDP `Input.dispatchMouseEvent` 的实际可见菜单、`DOM.setFileInputFiles` 选择同 SHA `dist/production/official-tools` 正式包；[`1a5341be`](https://github.com/shopable-ai/opendesk-browser/commit/1a5341be1ac6fdb949eaec7299f704f524ec1ebd) 创建截图输出目录，避免 `ENOENT`；[`272c6ce2`](https://github.com/shopable-ai/opendesk-browser/commit/272c6ce2579a270c60a9ad45e19e7d7748baae7a) 与真实 Host 合同对齐：首次安装的 revocation epoch 可为 `null`，后续撤权/更新才轮换 UUID，不允许测试伪造 epoch 或改正式生命周期。
+- TEST/EVIDENCE：[`R5 run 38906892746`](https://github.com/shopable-ai/opendesk-browser/actions/runs/38906892746) 的 `sdk-host-contracts`、`sdk-product-bundles`、`sdk-real-chromium-pac` 均 SUCCESS；`sdk-formal-chromium-c1` FAIL，失败位置晚于成功的正式安装。原生 [Artifact 12048427702](https://github.com/shopable-ai/opendesk-browser/actions/runs/38906892746/artifacts/12048427702) 保存正式审阅、已安装 AI VIP、正式工具 UI、测试工具及失败屏幕截图和 JSON 收据。真实 Chrome for Testing `155.0.8059.39`，正式版本 `1.3.5`，`packageHash=f6d782d1b6eaeac0ab8ea78443becf65764d13298728617bda5b923ae3171f7b`，`installEpoch=null`，`enabled=true`，`installedSource=production-package-local-import`，`FORMAL_INSTALL_IDENTITY=PASS`。测试工具经第二次真实 Extension Center 导入，`ISOLATED_TOOL_UI_INSTALLED=PASS`，包 Hash `d258fb893cf8562d874214e4b4f326da6ef1bd57ab393b32e4e17d0603f9feb7`。
+- STATUS：**TASK-01 FORMAL_TAB_INSTALL_NATIVE_PASS**，不等同完整 C1；正式 Side Panel、C1 SDK ENABLE 拒绝和 STOP 仍待后续读回。
+
+### TASK-02：Sandbox CDP 与 STATUS/ENABLE/STOP
+
+- 2026-10-16 的 [R5 run 38906892746](https://github.com/shopable-ai/opendesk-browser/actions/runs/38906892746) 的失败是 `Timeout installed test-only sandbox native frame`。失败截图**实际显示**已安装测试工具成功加载、公共 SDK `getStatus` 返回 `ok:true`、`state:disabled`、`control:controllable_by_this_extension`、`permission:true`、`canStop:false`，证明并非 SDK 未加载或安装失败。原测试仅调用父页 CDP `Page.getFrameTree` + `Page.createIsolatedWorld`，对隔离跨进程 iframe（OOPIF）发现不完整。
+- [`36128614`](https://github.com/shopable-ai/opendesk-browser/commit/36128614167d7c48e6b157b0b8f9337beea61782) 增加 Chrome `Target.getTargets`、子 Frame 独立 Session 读写与父 Frame 兼容回退；失败时保存真实 Frame/Target/原始错误。对应 [R5 run 38907717164](https://github.com/shopable-ai/opendesk-browser/actions/runs/38907717164) 已触发，结果以实际 Job/Artifact 为准，**不得预写 PASS**。
+- Host Node 安全、Production Build、原生 A/B 在上述 38906892746 同 SHA 各自 PASS，但生产 C1 的 `requestEnable` 拒绝、`requestDisable`、native readback 与 journal 在该次测试中尚未运行到对应断言；仅屏幕可见 STATUS 不替代整个 TASK-02。
+
+### P0/P1 保留门禁
+
+| 阶段 | 截至 R1.6 当前真实状态 |
+| --- | --- |
+| 正式 UI 导入、AI VIP Share 1.3.5 安装、正式工具显示、测试工具安装 | **CHROMIUM_NATIVE_PASS（标签页）**，run 38906892746 / Artifact 12048427702 |
+| 公共 SDK STATUS | 测试工具真实截图已显示成功；C1 CDP 自动读回仍待补齐 |
+| 生产 ENABLE 未审审批拒绝、STOP / journal / native readback | **NOT_TESTED（正式 C1）**，Node Host regression 已通过，不可冒充原生链路 |
+| Chrome 真正 `SIDE_PANEL` context/document ID、实际面板点击/截图 | **NOT_TESTED**，标签页不等于 Side Panel |
+| 隔离测试候选 C2 正向代理 | **NOT_TESTED**，须在正式安装与生产拒绝链路实证后推进 |
+| Worker Recovery、竞态、其他扩展控制权与旧六模块迁移 | **NODE_PASS / CHROMIUM_NATIVE_NOT_TESTED**，不得删除旧 Host 六文件 |
+| 生产代理审核/商业 Provider | **UNAPPROVED / NOT_CONFIGURED**；保持 `REVIEWED_MANAGED_PROXY_PROFILES=[]`、`APPROVED_PROXY_ENDPOINT=null` |
+| 独立架构、安全、Chromium、生命周期、UI、CI 专家 >=95 | **NOT_SCORED**；有缺口不可按综合均分虚报 |
+
+已修改的正式产品文件：**无**。R1.6 本轮修复集中在 `tests/framework/browser-managed-proxy-installed-c1.mjs`；旧业务、并行 Owner 与用户 Chrome Profile 均保持不变。后续仅按真实原生失败点继续最小修复、同 SHA 复验和保留截图。
