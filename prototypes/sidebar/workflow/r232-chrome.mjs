@@ -19,7 +19,7 @@ const errors=[],checks=[],screenshots=[];
 page.on('pageerror',err=>errors.push('pageerror: '+err.message));
 page.on('console',msg=>{if(msg.type()==='error')errors.push('console: '+msg.text())});
 const mark=name=>checks.push(name);
-const shot=async name=>{await page.screenshot({path:resolve(out,name+'.png'),fullPage:true});screenshots.push(name+'.png')};
+const shot=async name=>{const qa=page.locator('#r233-qa'),wasOpen=await qa.evaluate(el=>el.open);if(wasOpen)await qa.evaluate(el=>{el.open=false});await page.screenshot({path:resolve(out,name+'.png'),fullPage:true});if(wasOpen)await qa.evaluate(el=>{el.open=true});screenshots.push(name+'.png')};
 const state=()=>page.evaluate(()=>window.workflowPreviewState());
 const expectState=async stage=>{await page.waitForFunction(expected=>window.workflowPreviewState()?.stage===expected,stage,{timeout:9000})};
 const send=async text=>{await page.locator('#prompt').fill(text);await page.locator('.send-btn').click()};
@@ -55,6 +55,7 @@ try{
   assert.equal(await page.locator('#r23-provider').inputValue(),'local_codex');
   assert.equal((await state()).mode,'standard');
   await shot('r233-default');
+  await page.locator('#r233-qa > summary').click();
   mark('first screen, 3 icon actions, source and mode are separate');
 
   await send('给我一个亿的项目');

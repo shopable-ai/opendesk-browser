@@ -230,13 +230,26 @@ body[data-theme=dark] .r23-history-heading .btn.alt{background:#263b5c;border-co
 body[data-theme=dark] .r233-mode,body[data-theme=dark] .device .composer .compose-bottom #settings{color:#dce8ff}
 body[data-theme=dark] .r233-mode:hover,body[data-theme=dark] .device .composer .compose-bottom #settings:hover,body[data-theme=dark] .r233-mode-menu button[aria-pressed=true],body[data-theme=dark] .r233-mode-menu button:hover{background:#30486c;color:#fff}
 @media(max-width:370px){.r233-mode,.device .composer .compose-bottom #settings{padding-left:4px;padding-right:4px}#r23-source-label{max-width:72px}}
+
+/* R23.3.1: visual audit. Existing icon-only top actions untouched. */
+.scenario-bar{padding:9px 14px}
+.scenario-bar h1{font-size:13px;margin-bottom:3px}
+.scenario-bar p{margin:0 0 6px;line-height:1.5}
+#r233-qa{border-top:1px solid var(--border);padding-top:6px}
+#r233-qa summary{font-size:11px;cursor:pointer;color:var(--secondary);font-weight:600;line-height:1.7}
+#r233-qa[open] summary{margin-bottom:8px}
+.device .composer .compose-bottom button#settings{display:inline-flex;width:auto;height:40px;min-height:40px;min-width:0;max-width:154px;flex:0 1 auto;align-items:center;justify-content:center;background:transparent;color:var(--ink);border:1px solid transparent;border-radius:8px;padding:0 7px;white-space:nowrap}
+.device .composer .compose-bottom button.r233-mode{display:inline-flex;width:auto;height:40px;min-height:40px;min-width:0;align-items:center;background:var(--surface);color:var(--ink);border:1px solid var(--outline);border-radius:8px;padding:0 8px;white-space:nowrap}
+.device .composer .compose-bottom button#settings:hover,.device .composer .compose-bottom button.r233-mode:hover{background:#e9f0ff}
+body[data-theme=dark] .device .composer .compose-bottom button#settings,body[data-theme=dark] .device .composer .compose-bottom button.r233-mode{color:#eaf1fb}
+body[data-theme=dark] .device .composer .compose-bottom button#settings:hover,body[data-theme=dark] .device .composer .compose-bottom button.r233-mode:hover{background:#30486c}
 </style>
 </head>
 <body>
 <div class="scenario-bar">
 <h1>R23.3 · 工作流交互预览（待用户确认）</h1>
 <p>可以自然语言交互、修改刚才的内容并切换操作模式。顶部场景按钮仅供研发验收；本页不连接真实 AI、Chrome、Native 或 RunHost。</p>
-<div id="scenarios" class="scenarios" role="group" aria-label="选择工作流产品状态"></div><div class="r23-examples" role="group" aria-label="模拟指令和异常条件"><button type="button" data-action="example-first">填入第一轮指令</button><button type="button" data-action="example-second">填入第二轮指令</button><button type="button" data-action="revoke-site">撤销模拟网站权限</button><button type="button" data-action="change-document">模拟切换文档</button></div><div class="r23-toolbar"><label>宽度 <select id="r23-width"><option>360</option><option selected>420</option><option>520</option></select> px</label><button type="button" id="r23-theme" aria-pressed="false">深色模式</button><span>浏览器验收以本轮真实测试为准。</span></div>
+<details id="r233-qa"><summary>研发验收工具 · 场景与视口</summary><div id="scenarios" class="scenarios" role="group" aria-label="选择工作流产品状态"></div><div class="r23-examples" role="group" aria-label="模拟指令和异常条件"><button type="button" data-action="example-first">填入第一轮指令</button><button type="button" data-action="example-second">填入第二轮指令</button><button type="button" data-action="revoke-site">撤销模拟网站权限</button><button type="button" data-action="change-document">模拟切换文档</button></div><div class="r23-toolbar"><label>宽度 <select id="r23-width"><option>360</option><option selected>420</option><option>520</option></select> px</label><button type="button" id="r23-theme" aria-pressed="false">深色模式</button><span>浏览器验收以本轮真实测试为准。</span></div></details>
 </div>
 <div class="device" aria-label="浏览器扩展侧边栏布局预览">
   <nav class="tabs" aria-label="Sidebar 一级导航"><span>我的</span><span>扩展</span><span class="current">工作流</span><span>开发</span><span>云控</span></nav>
@@ -471,7 +484,7 @@ body[data-theme=dark] .r233-mode:hover,body[data-theme=dark] .device .composer .
     $('settings').setAttribute('aria-expanded',String(data.settingsOpen));
     settings.hidden=!data.settingsOpen;
     $('r23-provider').value=data.provider;
-    sourceLabel.textContent=providerTitle();
+    sourceLabel.textContent=isNative()?'本机 Codex':data.provider==='cloud_responses'?'OpenAI':'自定义 HTTPS';
     $('r23-local-config').hidden=!isNative();$('r23-remote-config').hidden=isNative();
     $('r23-share-config').hidden=isNative();$('r23-custom-config').hidden=data.provider!=='custom_https';
     $('r23-share').checked=!!data.shareApproved[data.provider];
