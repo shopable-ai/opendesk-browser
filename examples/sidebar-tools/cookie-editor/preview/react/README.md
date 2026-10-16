@@ -42,3 +42,13 @@
 - 场景选择器新增「授权被拒绝」「授权请求失败」，真实 Chromium 回归覆盖失败→重试成功→无常驻授权卡片→撤销→重新授权以及空列表。
 - **严格限定：** 所有授权行为均为页面内存模拟，不操作 Chrome 权限、真实 Cookie、SDK、Host 或存储。正式迁移必须调用可信 Host 授权，并**重新查询权限有效性**后才能隐藏引导；每次打开/网站变更/撤权需以真实网站和授权范围为准，撤权时及时清除已加载的敏感 Cookie 数据。不能以本预览状态作为权限事实。
 - R4.9.2 已确认的列表/原位编辑/导入导出/敏感操作确认布局保持不变；正式扩展仍需用户另行确认后迁移。
+
+## 浏览器 Side Panel 宽度与无需构建的预览（2026-10-17）
+
+- **审核宽度：** React 预览的实验台与 Cookie 面板最大宽度从 520px 调整为 **380 CSS px**；在大屏浏览器中也不会拉宽。浏览器窗口变窄时仍按可用宽度收缩；360 / 380 / 420px 用于检查不同侧栏宽度下的排版，不代表所有 Chrome 都有固定宽度。
+- **首选独立预览：** `examples/sidebar-tools/cookie-editor/preview/react/index.html`。这是包含 React 19、JavaScript、CSS 的**已构建、单文件、可离线运行的 HTML**。审阅人员直接双击或 `file://` 打开即可，不需要 Node、npm、Vite、CDN，也不需要安装 OpenDesk 扩展。其内容为内存模拟，不能操作真实 Cookie。
+- **历史确认快照：** `examples/sidebar-tools/cookie-editor/preview/cookie-editor-r4.9.2-approved.html` 同步收窄为 380px，但它使用 React 16 兼容运行时；仅作 R4.9.2 设计对照，不应代替最新 React 19 预览。
+- **修改与发布约束：** 唯一交互源码在 `react/src/`。只有开发者修改源码后才需要在 `preview/react/` 执行 `npm ci --ignore-scripts --no-audit --no-fund && npm run build && npm run check && npm run test:chromium`，将通过检查的 `react/index.html` 连同源码提交。**不得只修改编译产物而不更新源码**，也不得把本地 React 16 测试产物覆盖 React 19 产物。
+- **自动验收：** `chromium.mjs` 增加桌面 1280px 浏览器打开单文件 HTML 时的 Cookie 面板 380px 宽度及控制台区域宽度检查；仍沿用 320 / 360 / 384 / 420 / 520px、缩放和交互回归。真实 Chrome 安装及 Cookie Host 功能需另行验收，不能用此预览代替。
+- **不修改正式业务：** 本次仅收敛预览 CSS、更新生成的 React 19 HTML 和测试文档，不触碰正式 `cookie-editor/src/`、JSON 安装包、SDK 或 Host。
+

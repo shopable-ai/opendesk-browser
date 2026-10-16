@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OpenDesk Browser · 提示词快捷按钮｜Side Panel 交互预览 R2.4</title>
+<title>OpenDesk Browser · 提示词快捷按钮｜Side Panel 交互预览 R2.4.1</title>
 <meta name="description" content="OpenDesk Prompt Shortcuts 独立侧边栏交互原型。仅模拟、不安装、无真实权限请求。">
 <style>
 /* Offline design contract: semantic values mirror src/ui/design-tokens.css (blob 134dd7871da4bf0ee26b6d0135e69e7273fdabdb).
@@ -335,6 +335,12 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 
 .fixture-wrong-region{position:absolute;top:70px;right:12px;max-width:170px;padding:4px;background:var(--stage-bubble);z-index:5}
 
+/* R2.4.1: switch and icon actions. The existing trusted UI behavior is unchanged. */
+.host-settings .host-setting-row.is-dependent-disabled>span:first-child{opacity:.55}
+.host-settings .host-setting-row.is-dependent-disabled .switch-track{opacity:.46}
+.prompt-more{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;justify-items:stretch}
+.prompt-more .od-icon-action{width:100%;min-width:0;max-width:100%;height:40px}
+@media(max-width:380px){.prompt-more{gap:4px}}
 </style>
 </head>
 <body>
@@ -358,7 +364,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 <header class="demo-header">
  <div class="demo-title"><span class="logo" aria-hidden="true">OD</span><div>
   <h1>Prompt Shortcuts · Side Panel UI</h1>
-  <p>交互预览 R2.4 · 内置网站自动适配 · 自定义网站选取</p></div></div>
+  <p>交互预览 R2.4.1 · 内置网站自动适配 · 自定义网站选取</p></div></div>
  <div class="demo-controls" aria-label="预览控制">
   <span class="design-badge">模拟预览 · 非真实安装</span>
   <button id="size320" class="od-button od-button--small" type="button">320px</button>
@@ -450,8 +456,8 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
    </section>
    <section id="settingsView" hidden aria-labelledby="hostToolTitle" class="host-settings">
     <label class="host-setting-row od-surface"><span><strong>启用工具</strong><small>停用后提示词仍保留</small></span><span class="switch"><input id="toolEnabledSwitch" type="checkbox" role="switch" checked aria-label="启用工具"><span class="switch-track" aria-hidden="true"></span></span></label>
-    <label class="host-setting-row od-surface"><span><strong>网页快捷按钮</strong><small>在已支持的网站显示悬浮按钮</small></span><span class="switch"><input id="showBarSwitch" type="checkbox" role="switch" checked aria-label="网页快捷按钮"><span class="switch-track" aria-hidden="true"></span></span></label>
-    <label class="host-setting-row od-surface"><span><strong>选中文字快速添加</strong><small>可选 · Chrome 原生右键菜单</small></span><span class="switch"><input id="contextSwitch" type="checkbox" role="switch" aria-label="选中文字快速添加"><span class="switch-track" aria-hidden="true"></span></span></label>
+    <label class="host-setting-row od-surface"><span><strong>网页快捷按钮</strong><small>在已支持的网站显示快捷按钮</small></span><span class="switch"><input id="showBarSwitch" type="checkbox" role="switch" checked aria-label="网页快捷按钮"><span class="switch-track" aria-hidden="true"></span></span></label>
+    <label class="host-setting-row od-surface"><span><strong>选中文字快速添加</strong><small>Chrome 原生右键，可选</small></span><span class="switch"><input id="contextSwitch" type="checkbox" role="switch" aria-label="选中文字快速添加"><span class="switch-track" aria-hidden="true"></span></span></label>
     <div class="host-setting-row host-site-row"><span><strong>适用网站</strong><small>ChatGPT 内置 · 自定义网站可配置</small></span><button id="sitesButton" class="od-icon-button od-icon-button--quiet" type="button" title="展开适用网站" aria-label="展开适用网站" aria-expanded="false" aria-controls="siteDetails"><svg class="od-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ps-icon-chevron-right"/></svg></button></div>
     <div class="site-current"><div class="site-current-copy"><strong id="currentSiteStatus">ChatGPT · 模拟就绪</strong><small id="currentSiteOrigin">https://chatgpt.com/c/demo</small></div><button id="configureCurrentSite" class="od-button od-button--small" type="button">配置当前网站</button></div>
 <div id="siteDetails" class="host-site-details" hidden></div>
@@ -540,6 +546,10 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   el('contextSwitch').checked=state.settings.contextMenu;
   el('showBarSwitch').disabled=!state.toolEnabled;
   el('contextSwitch').disabled=!state.toolEnabled;
+  for(const id of ['showBarSwitch','contextSwitch']){
+    const control=el(id);
+    control.closest('.host-setting-row')?.classList.toggle('is-dependent-disabled',control.disabled);
+  }
   el('hostSettings').setAttribute('aria-expanded',String(currentView==='settings'));
  }
  function renderRail(){const rail=el('pageRail');rail.replaceChildren();el('webTooltip').hidden=true;tipButton=null;
