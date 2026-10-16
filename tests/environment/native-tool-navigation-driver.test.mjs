@@ -39,7 +39,7 @@ test('native tool navigation uniquely identifies an open action among nested row
     setAttribute(name,value){this.attributes[name]=value;},addEventListener(name,handler){this.handlers[name]=handler;}});
   const list=element('div'),opened=[],installed=[{id:'notes',title,description:'Notes',version:'1.0.0'}];
   runInNewContext('let lastInstalledView;'+product.slice(producers[0].start,producers[0].end)+';renderInstalledTools();',{
-    busy:false,enableReadError:'',enableRecords:{},installed,officialReleases:[],list,active:false,
+    busy:false,installedReadError:false,enableReadError:'',enableRecords:{},installed,officialReleases:[],list,active:false,
     doc:{activeElement:null,createElement:element},sidebarToolEnabled:()=>true,openTool:id=>opened.push(id)});
   assert.equal(list.children.length,1);assert.equal(list.children[0].children.length,1);
   const open=list.children[0].children[0];assert.equal(open.tag,'button');
