@@ -712,7 +712,9 @@ for(const value of ['true','plaintext-only']){
     const other=mockElement('div');other.isContentEditable=true;
     other.attributes.contenteditable=value;
     const semantic='[contenteditable="'+value+'"]',scoped='#rich-container div'+semantic;
+    const queried=[];
     f.doc.querySelectorAll=selector=>{
+      queried.push(selector);
       if(selector===semantic||selector==='div'+semantic)return [f.editor,other];
       if(selector==='div')return [f.editor,other,label];
       if(selector===scoped)return [f.editor];
@@ -733,7 +735,10 @@ for(const value of ['true','plaintext-only']){
         preventDefault(){},stopImmediatePropagation(){}});
       const selection=await send('prompt.page.pick.status',{session});
       assert.equal(selection.ok,true);
-      assert.equal(selection.data.state,'selected',JSON.stringify(selection));
+      assert.equal(selection.data.state,'selected',JSON.stringify({selection,
+        editorKind:{tag:f.editor.tagName,editable:f.editor.isContentEditable,
+          attribute:f.editor.getAttribute('contenteditable'),connected:f.editor.isConnected},
+        queried,labels:f.root.children.map(x=>String(x.textContent||'').slice(0,140))}));
       assert.equal(selection.data.selector,scoped,'scoped editable selector is unique');
       assert.equal(selection.data.editorType,'richtext');
       const checked=await send('prompt.page.check',{rule:{
