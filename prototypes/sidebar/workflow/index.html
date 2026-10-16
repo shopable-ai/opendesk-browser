@@ -177,21 +177,20 @@ body[data-theme=dark] .r23-toolbar,body[data-theme=dark] .r23-toolbar select,bod
 .device .title-bar{gap:5px}.device .title-actions{gap:4px;flex:none}
 .device .title-actions button{min-width:40px;min-height:40px}
 .device .title-actions .icon-btn{width:40px;height:40px;min-width:40px;min-height:40px}
-.device .title-actions .create-action{display:inline-flex;gap:4px;align-items:center;justify-content:center;width:auto;min-width:70px;min-height:40px;border:1px solid var(--outline);background:var(--surface);color:var(--ink);padding:0 7px;font-size:10.5px;font-weight:650}
-.device .title-actions .create-action svg{flex:none;width:17px;height:17px}.device .title-actions .create-action span{white-space:nowrap}
 .r23-examples{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
 .r23-examples button{padding:6px 9px;border:1px solid var(--border);border-radius:7px;background:#f6f9ff;color:#365d9e;font-size:11px;min-height:33px}
 .r23-warning{border:1px solid #e5c489;border-radius:9px;background:#fff6e5;color:#6e5020;margin:8px 0;padding:10px;font-size:11.5px;line-height:1.55}
 body[data-theme=dark] .r23-warning{background:#453924;color:#f5dfac;border-color:#7c6236}
 body[data-theme=dark] .r23-examples button{background:#283d5b;border-color:#526788;color:#d5e5ff}
-body[data-theme=dark] .device .title-actions .create-action{background:var(--surface);color:var(--ink);border-color:var(--outline)}
-@media(max-width:350px){.device .title-actions .create-action{width:40px;min-width:40px;padding:0}.device .title-actions .create-action span{display:none}.device .title-bar{padding-left:7px;padding-right:7px}}
-@media(max-width:240px){.device .title-actions .icon-btn,.device .title-actions .create-action{width:36px;min-width:36px;min-height:40px}}
 /* R23.2 screenshot review: one label instead of a nested pill, one visible focus ring. */
-.device .title-actions .create-action span{border:0;border-radius:0;background:transparent;padding:0;color:inherit;font:inherit}
 .device textarea:focus-visible{outline:0}
+.device .title-actions .icon-btn{width:40px;height:40px;min-width:40px;min-height:40px;padding:0;border:1px solid transparent;background:transparent;color:#536b8b;display:grid;place-items:center}
+.device .title-actions .icon-btn:hover{background:#e9f0fb;color:#365eda}
+body[data-theme=dark] .device .title-actions .icon-btn{color:#c3d3e8}
+body[data-theme=dark] .device .title-actions .icon-btn:hover{background:#31496c;color:#ffffff}
+@media(max-width:350px){.device .title-bar{padding-left:7px;padding-right:7px}}
+@media(max-width:240px){.device .title-actions .icon-btn{width:40px;min-width:40px;min-height:40px}}
 .device .composer .compose-bottom .send-btn{width:40px;height:40px;min-height:40px}
-body[data-theme=dark] .device .title-actions .create-action:hover{background:#31496c}
 </style>
 </head>
 <body>
@@ -205,8 +204,8 @@ body[data-theme=dark] .device .title-actions .create-action:hover{background:#31
   <header class="title-bar"><div class="workflow-heading"><h2 id="title">新工作流</h2><span id="tag" class="workflow-status" hidden></span></div>
    <div class="title-actions">
     <button type="button" class="icon-btn" id="history" title="查看历史版本" aria-label="查看历史版本"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></button>
-    <button type="button" class="icon-btn create-action" id="new-chat" data-action="new-chat" title="新对话：保留当前工作流和版本" aria-label="新对话，保留当前工作流"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19 11v6a2 2 0 0 1-2 2H8l-4 3V6a2 2 0 0 1 2-2h7M15 5h7M18.5 1.5v7"></path></svg><span>新对话</span></button>
-    <button type="button" class="icon-btn create-action" id="new-workflow" data-action="new-workflow" title="新工作流：创建独立草稿，保护未保存修改" aria-label="新工作流，创建独立草稿"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-7M13 3l4 4M15 8h7M18.5 4.5v7"></path></svg><span>新工作流</span></button>
+    <button type="button" class="icon-btn" id="new-chat" data-action="new-chat" title="新对话：保留当前工作流、草稿与历史" aria-label="新对话"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5"></path><path d="M19 2v6M16 5h6"></path></svg></button>
+    <button type="button" class="icon-btn" id="new-workflow" data-action="new-workflow" title="新建工作流：创建独立草稿并保护未保存修改" aria-label="新建工作流"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 9V4a2 2 0 0 1 2-2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-1"></path><path d="M15 2v5h5"></path><path d="M3 15h8M7 11v8"></path></svg></button>
    </div></header>
   <main id="content" class="content" aria-live="polite"></main>
   <form id="form" class="composer"><div class="compose-box"><label for="prompt" class="visually-hidden">描述任务</label><textarea id="prompt" placeholder="描述要自动完成的任务…" aria-label="输入工作流需求"></textarea><div class="compose-bottom"><button type="button" id="settings" class="icon-btn" aria-label="配置 AI 模型" title="AI 设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h9m6 0h1M4 17h1m6 0h9"></path><circle cx="16" cy="7" r="3"></circle><circle cx="8" cy="17" r="3"></circle></svg></button><button type="submit" class="send-btn" aria-label="发送并模拟任务" title="发送并执行（仅模拟）"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 19V5m-7 7 7-7 7 7"></path></svg></button></div></div></form>
