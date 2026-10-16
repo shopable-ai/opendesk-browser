@@ -226,20 +226,27 @@ try{
  let outer=await outerContext();
  const base={dpr:await evaluate('devicePixelRatio',outer),width:await evaluate('innerWidth',outer)};
  assert.ok(base.dpr>0&&base.width>300);
- for(const zoom of [{percent:100,steps:0},{percent:125,steps:2},{percent:150,steps:1}]){
-  if(zoom.steps)await zoomKeys(zoom.steps);
-  outer=await outerContext();
-  await waitFor(async()=>Math.abs((await evaluate('devicePixelRatio',outer))/base.dpr-zoom.percent/100)<.025,'real browser zoom '+zoom.percent);
-  const dpr=await evaluate('devicePixelRatio',outer),viewport=await evaluate('innerWidth',outer),scale=await evaluate('visualViewport.scale',outer);
-  assert.ok(Math.abs(scale-1)<.02,'pinch/page scale must remain one');
-  assert.ok(Math.abs(viewport-base.width/(zoom.percent/100))<9,'real Chrome browser CSS viewport changes');
+ // file:// pages may reset Chrome site zoom upon Page.navigate. Therefore each
+ // tested width must receive and prove its OWN real X11 browser zoom.
+ const supportedZoom=[100,110,125,150];
+ for(const zoom of [{percent:100},{percent:125},{percent:150}]){
   for(const width of [360,400,960]){
    await cdp('Page.navigate',{url:url+'?width='+width});
    const ready=await settledPreview(width);outer=ready.outer;
    const ctx=ready.ctx;
-   // Real Chrome UI zoom must survive every URL/iframe reload; checking the
-   // DPR only BEFORE navigation is insufficient to validate screenshots.
+   // Navigation to a file:// preview can reset per-document zoom to 100%.
+   // Read the actual NEW page DPR, then send only the necessary real XTEST
+   // Ctrl+plus/minus keystrokes; never replace this with CDP emulation.
+   const startingDpr=await evaluate('devicePixelRatio',outer);
+   const startingZoom=supportedZoom.findIndex(p=>Math.abs(startingDpr/base.dpr-p/100)<.025);
+   assert.ok(startingZoom>=0,'unexpected Chrome zoom after navigation '+startingDpr);
+   const requiredKeys=supportedZoom.indexOf(zoom.percent)-startingZoom;
+   if(requiredKeys)await zoomKeys(requiredKeys);
+   await waitFor(async()=>Math.abs((await evaluate('devicePixelRatio',outer))/base.dpr-zoom.percent/100)<.025,
+    'REAL_X11_ZOOM_ADJUSTMENT at '+width+' / '+zoom.percent+'%',110);
    const actualDpr=await evaluate('devicePixelRatio',outer);
+   const outerScale=await evaluate('visualViewport.scale',outer);
+   assert.ok(Math.abs(outerScale-1)<.02,'pinch/page scale must remain one');
    const actualViewport=await evaluate('innerWidth',outer);
    const frameDpr=await evaluate('devicePixelRatio',ctx);
    assert.ok(Math.abs(actualDpr/base.dpr-zoom.percent/100)<.025,
