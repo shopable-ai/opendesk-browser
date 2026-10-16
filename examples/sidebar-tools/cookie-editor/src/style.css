@@ -206,3 +206,49 @@ input[type=file]{min-width:0;width:100%;max-width:100%;font-size:12px}.export-ac
 .browser-state p{font-size:12px;line-height:1.8;max-width:280px;margin:10px auto}
 @media(max-width:335px){.cookie-app{padding-inline:10px}#live-cookie-list{margin-inline:-10px}#live-cookie-list .cookie-row-trigger{padding:10px}#live-cookie-list .cookie-row-tag{display:none}.field-grid{grid-template-columns:1fr}}
 @media(prefers-color-scheme:dark){:root{--od-sub:#a2b1c8;--od-line:#344054}.editor-top-tip{color:#88cdb1;background:#213a37}.live-filter-chip.sel{background:#263754;color:#9ab2ff}.browser-state{background:transparent}#live-cookie-list .cookie-row-expanded{background:linear-gradient(to right,#263754,var(--od-paper) 12%)}}
+
+
+/* R4.10: approved R4.9.2 compact native production surface.
+   Only sandbox presentation changes; all trusted Cookie operations stay in the SDK. */
+.cookie-app{max-width:760px;margin-inline:auto}
+#live-cookie-list .cookie-row-expanded{background:#f8faff}
+#live-cookie-list .cookie-row-tag{background:transparent;padding:0;color:var(--od-sub);font-size:10px;font-weight:650;letter-spacing:.025em}
+#editor-panel.cookie-inline{margin:0;padding:12px 14px 14px;border:0;border-top:1px solid var(--od-line);border-radius:0;background:#f8faff;gap:10px}
+#editor-panel.cookie-inline #editor-form{gap:10px}
+#editor-panel .section-head{gap:8px;justify-content:flex-start}
+#editor-panel .section-head #editor-close{margin-left:auto;width:27px;height:27px;border:0;background:transparent}
+.editor-dirty{font-size:10.5px;color:#a26a17;background:#fff2d7;border-radius:5px;padding:2px 6px}
+#editor-panel .field{display:grid;grid-template-columns:minmax(58px,72px) minmax(0,1fr);align-items:center;gap:8px}
+#editor-panel .field>label{color:var(--od-sub);font-size:11px;font-weight:600}
+#editor-panel .field>input,#editor-panel .field>select{width:100%;min-width:0}
+#editor-panel .cookie-advanced-fields .field-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+#editor-panel .cookie-advanced-fields .field{grid-template-columns:minmax(58px,72px) minmax(0,1fr)}
+#editor-panel .cookie-value-control{position:relative;display:flex;align-items:center;min-width:0}
+#editor-panel .cookie-value-control input{min-width:0;width:100%;height:36px;padding-right:42px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+#editor-panel .reveal-value-button{position:absolute;right:4px;top:50%;transform:translateY(-50%);display:grid;place-items:center;width:30px;height:30px;padding:0;border:0;border-radius:7px;background:transparent;color:var(--od-sub)}
+#editor-panel .reveal-value-button:hover:not(:disabled){background:#eaf0fa;color:var(--od-brand)}
+#editor-panel .reveal-value-button svg{display:block;width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#editor-panel .reveal-value-button[data-revealed="true"]::after{content:"";position:absolute;width:19px;height:1.8px;border-radius:2px;transform:rotate(-43deg);background:currentColor}
+#editor-panel .revealed-cookie-value,#editor-panel .inline-link{grid-column:2;min-width:0}
+#editor-panel .inline-link{justify-self:start;border:0;background:transparent;padding:0;color:var(--od-brand);font-size:11px;text-align:left}
+#editor-panel .cookie-advanced-fields .flag-grid{display:flex;gap:10px 14px;flex-wrap:wrap}
+#editor-panel .check-label{font-size:11px}
+#editor-panel #editor-help{font-size:10.5px;line-height:1.45}
+.editor-discard{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;border:1px solid #ebd7b0;background:#fffaf0;border-radius:8px;padding:7px 8px;color:#7b5c21;font-size:11px}
+.editor-discard span{flex:1 1 120px}
+.editor-discard .text-button{min-height:29px;padding:3px 7px;font-size:11px}
+#live-export-panel .export-advanced,#browser-import-slot .import-advanced{border:0;margin:0}
+.export-advanced summary,.import-advanced summary{cursor:pointer;color:var(--od-sub);font-size:11px}
+.export-advanced .export-metadata{display:flex;align-items:center;gap:7px;font-size:11px;padding:8px 0}
+.export-advanced .hint{font-size:10.5px}
+#live-export-panel .field{grid-template-columns:66px minmax(0,1fr);display:grid;align-items:center;gap:8px}
+#live-export-panel .field>select{min-width:0}
+#live-export-panel .sensitive-note{font-size:10.5px;color:var(--od-sub)}
+#browser-import-slot .import-advanced .field{margin-top:8px}
+#live-export-panel .live-export-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#live-export-panel .live-export-actions button{min-width:0;width:100%}
+@media(max-width:335px){
+ #editor-panel.cookie-inline{padding:10px}
+ #editor-panel .field,#editor-panel .cookie-advanced-fields .field{grid-template-columns:54px minmax(0,1fr);gap:6px}
+}
+@media(prefers-reduced-motion:reduce){.row-chevron{transition:none}}
