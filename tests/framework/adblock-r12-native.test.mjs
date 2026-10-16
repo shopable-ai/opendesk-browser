@@ -339,7 +339,49 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   report.installedIdentity={packageHash:await sidebarToolPackageHash(installedIdentity.tool),epoch:installedIdentity.epoch,version:installedIdentity.tool.version};
   await until(()=>evaluate(client,sid,'(()=>{const x=document.querySelector("#sidebar-tool-adblock-native");return !!x&&!x.hidden&&!!x.querySelector("[role=switch]")})()'),
     'trusted AdBlock switches visible');
+  // R1.9.5 approved toolbar must match the ACTUALLY INSTALLED Side Panel,
+  // never the standalone preview or sandbox mock.
+  const toolbar=await evaluate(client,sid,`(()=>{
+    const byId=id=>document.getElementById(id);
+    const back=byId('sidebar-tool-back'),title=byId('sidebar-tool-title');
+    const settings=byId('sidebar-tool-settings-open'),remove=byId('sidebar-tool-remove');
+    const root=byId('sidebar-tool-adblock-native'),frame=byId('sidebar-tool-frame');
+    const rect=node=>node.getBoundingClientRect();
+    return {title:title?.textContent?.trim(),
+      titleFontPx:Number.parseFloat(getComputedStyle(title).fontSize),
+      backTitleGapPx:rect(title).left-rect(back).right,
+      settingsVisible:!settings.hidden&&rect(settings).width>0,
+      removeVisible:!remove.hidden&&rect(remove).width>0,
+      actionRowOffsetPx:Math.abs((rect(settings).top+rect(settings).bottom)/2-
+        (rect(remove).top+rect(remove).bottom)/2),
+      duplicateBrand:!!root.querySelector('.adblock-native-head,.adblock-native-logo,'+
+        '.adblock-native-title,.adblock-native-subtitle'),
+      overviewVisible:root.querySelector('.adblock-native-overview')?.hidden===false,
+      exceptionsHidden:root.querySelector('[aria-label="已停用的网站"]')?.hidden===true,
+      iframeHidden:frame.hidden===true};
+  })()`);
+  assert.equal(toolbar.title,'广告拦截');
+  assert.ok(Math.abs(toolbar.titleFontPx-14)<=1,'installed title must remain about 14px');
+  assert.ok(Math.abs(toolbar.backTitleGapPx-8)<=2,'installed back/title gap must remain 8px');
+  assert.equal(toolbar.settingsVisible,true,'settings belongs to the installed toolbar');
+  assert.equal(toolbar.removeVisible,true,'uninstall belongs to the installed toolbar');
+  assert.ok(toolbar.actionRowOffsetPx<=2,'settings and uninstall must share a row');
+  assert.equal(toolbar.duplicateBrand,false,'installed product body must not repeat a brand header');
+  assert.equal(toolbar.overviewVisible,true);
+  assert.equal(toolbar.exceptionsHidden,true);
+  assert.equal(toolbar.iframeHidden,true,'exceptions iframe must be hidden on Overview');
+  report.installedUiParity='PASS';note('r195-installed-toolbar-parity',toolbar);
   report.screenshots.push(await screenshot(client,sid,'adblock-installed-before-native-grant'));
+  // Product settings belong to the same trusted toolbar and must return.
+  await click(client,sid,'#sidebar-tool-settings-open');
+  await until(()=>evaluate(client,sid,
+    'document.querySelector("#sidebar-tool-adblock-native [aria-label=\\"AdBlock 产品设置\\"]")?.hidden===false'),
+    'actual installed product settings visible');
+  await click(client,sid,'#sidebar-tool-settings-open');
+  await until(()=>evaluate(client,sid,
+    'document.querySelector("#sidebar-tool-adblock-native .adblock-native-overview")?.hidden===false'),
+    'toolbar settings returns to AdBlock overview');
+  note('r195-installed-settings-navigation',{opened:true,returned:true});
   note('installed-no-filter-before-opt-in',{adRequests:counts.ad,officialVersion:pkg.version});
 
   const global='#sidebar-tool-adblock-native button[aria-label="全局广告拦截"]';
