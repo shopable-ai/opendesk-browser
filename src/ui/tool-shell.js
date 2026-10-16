@@ -102,6 +102,10 @@ if(importHost&&originalImport)importHost.append(originalImport);
 // The installed extension list is the first React-owned region. Installer,
 // detail, dynamic tool sandbox and the other tabs keep their original owners.
 const extensionList=mountExtensionList(document);
+// First Developer Tab React region: trusted current-page indicator only.
+// Editor, component compilers, drafts, Run/Stop and Host remain authoritative.
+if(extensionList.developerTargetMounted)
+  scriptEditor.connectReactDeveloperTarget(model=>extensionList.renderDeveloperTarget(model));
 const extensionCenter=createExtensionCenter({api:chrome,client:foundationClient,doc:document,sidebarTools,taskWorkbench,localeController,extensionList});
 const scheduleStatus=message=>{
   for(const id of ['schedule-host-status','schedule-runner-host-status']){
