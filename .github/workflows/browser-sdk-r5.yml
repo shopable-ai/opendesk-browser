@@ -58,6 +58,7 @@ on:
       - 'tests/framework/browser-sdk-r106-native.mjs'
       - 'tests/framework/browser-managed-proxy-chromium-pac.mjs'
       - 'tests/framework/browser-managed-proxy-installed-c1.mjs'
+      - 'tests/fixtures/managed-proxy-c2-test-tool.json'
       - 'scripts/check-browser-sdk-coverage.mjs'
       - 'tests/environment/browser-sdk-coverage.test.mjs'
       - '.github/workflows/browser-sdk-r5.yml'
@@ -222,6 +223,10 @@ jobs:
         with:
           node-version: '22'
       - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Validate C1 native driver syntax and CI-only tool schema
+        run: |
+          node --check tests/framework/browser-managed-proxy-installed-c1.mjs
+          node --input-type=module -e 'import {readFileSync} from "node:fs"; import {validateSidebarToolPackage} from "./src/ui/sidebar-tools/package.js"; const p=JSON.parse(readFileSync("tests/fixtures/managed-proxy-c2-test-tool.json","utf8")); validateSidebarToolPackage(p); if(p.id!=="managed-proxy-c2-fixture"||p.capabilities.join(",")!=="browser.proxy.managed") throw Error("Invalid isolated C1/C2 fixture"); console.log("MANAGED_PROXY_C1_FIXTURE_SCHEMA=PASS");'
       - name: Build real production candidate with empty reviewed Proxy profiles
         run: npm run build
       - uses: browser-actions/setup-chrome@v2
