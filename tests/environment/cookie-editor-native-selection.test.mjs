@@ -112,3 +112,11 @@ test('R4.10.2 explicit upgrade and all stages cannot silently run only generic C
     assert.match(text,/Real 2\.0\.15 to 2\.0\.16 upgrade steps must all pass/);
   });
 });
+
+test('R4.10.2 native upgrade validates chosen Mac file digest, not just its version label',async()=>{
+  const source=await readFile(driver,'utf8');
+  assert.match(source,/preview\.source\?\.includes\('候选包 SHA-256（规范序列化）：'\+upgradeBaseline\.sha256\)/);
+  assert.match(source,/verifyCookieEditorUpgradeBaseline\(await readFile\(upgradeOldFile\),pkg\)/);
+  assert.doesNotMatch(source,/COOKIE_NATIVE_OLD_(?:VERSION|TOOL_SHA256)/,
+    'Native upgrade must accept only the pinned and reviewed historical 2.0.15 package');
+});
