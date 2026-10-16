@@ -173,7 +173,7 @@ try{
   assert.equal(five.length,5);
   for(const id of five){
    await click(ctx,'[data-node-id="'+id+'"] .bm-node-title');
-   assert.equal(await invoke(ctx,"return document.querySelector('[data-testid=\"bookmark-preview\"] .bm-detail-title span')?.textContent"),await invoke(ctx,"return document.querySelector('[data-node-id=\"'+id+'\"] .bm-node-title')?.textContent"),'five clicks switch five previews '+id);
+    assert.equal(await invoke(ctx,"return document.querySelector('[data-testid=\"bookmark-preview\"] .bm-detail-title span')?.textContent"),await invoke(ctx,"return document.querySelector("+JSON.stringify('[data-node-id="'+id+'"] .bm-node-title')+")?.textContent"),'five clicks switch five previews '+id);
   }
   if(width===400)await screenshot('bookmark-r304-400-switch.png');
   await click(ctx,'[data-node-id="10"] .bm-node-title');
