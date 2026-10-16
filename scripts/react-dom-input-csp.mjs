@@ -18,7 +18,8 @@ export function transformPinnedReactDomInputTracker(code,id,{target,reactDomVers
   const match=matches[0],object=match[1],field=match[2];
   const nearby=code.slice(Math.max(0,match.index-600),match.index+match[0].length+3500);
   const hasOwnProperty=new RegExp('\\b'+object+'\\.hasOwnProperty\\(\\s*'+field+'\\s*\\)');
-  const prodSource=/["']checked["']\s*:\s*["']value["']/.test(nearby);
+  const prodSource=id.endsWith('react-dom-client.production.js')&&
+    /["']checked["']\s*:\s*["']value["']/.test(nearby);
   // ReactDOM development splits the checked/value choice into trackValueOnNode's
   // caller; validate the descriptor read together with own-property and
   // defineProperty checks rather than weakening to a generic constructor edit.
