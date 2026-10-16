@@ -108,6 +108,7 @@ try{
 
   await reset();await mode('readonly');await send(first);await expectState('readonly');
   assert.equal(await nameValue(),'旧的预填内容');await assertNoEffect();
+  await shot('r234-readonly');
   mark('readonly has no DOM writes or clicks');
 
   await reset();await mode('confirm');await send(first);await expectState('approval');
