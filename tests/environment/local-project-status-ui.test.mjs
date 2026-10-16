@@ -107,6 +107,35 @@ test('runnable source errors show the actual failing entry and repair direction'
   assert.equal(f.view.openWorkspace({isTrusted:true}),false);
   assert.deepEqual(f.opened,[]);
 });
+test('preparation identity and diagnostics follow canonical input and artifact revisions',async t=>{
+  const f=fixture(t,{connected:true}),sourceHash='a'.repeat(64);
+  const row=(revision,artifact)=>({...project,preparation:{state:'ready',sourceHash,sourceRevision:revision,artifactId:artifact}});
+  f.setProjects([row('b'.repeat(64),'c'.repeat(64))]);await tick();
+  const initial=f.view.preparationIdentity();
+  assert.match(f.find('local-project-diagnostics').textContent,new RegExp('输入版本：'+'b'.repeat(64)));
+  f.setProjects([row('d'.repeat(64),'c'.repeat(64))]);f.notify({connected:true,nativeConnected:true,providerEpoch:'epoch-a'});await tick();
+  const changedInput=f.view.preparationIdentity();
+  assert.notEqual(changedInput,initial,'changed input must invalidate a prepared install even when executable bytes are unchanged');
+  assert.match(f.find('local-project-diagnostics').textContent,new RegExp('输入版本：'+'d'.repeat(64)));
+  f.setProjects([row('d'.repeat(64),'e'.repeat(64))]);f.notify({connected:true,nativeConnected:true,providerEpoch:'epoch-a'});await tick();
+  assert.notEqual(f.view.preparationIdentity(),changedInput,'a new artifact must invalidate the captured preparation');
+});
+test('resolve rejects newer input under unchanged executable bytes and a stale ready catalog',async t=>{
+  const f=fixture(t,{connected:true}),sourceUtf8='async function main(){return 1;}',
+    sourceHash=(await import('node:crypto')).createHash('sha256').update(sourceUtf8).digest('hex'),revision='b'.repeat(64);
+  f.setProjects([{...project,preparation:{state:'ready',sourceHash,sourceRevision:revision}}]);
+  f.notify({connected:true,nativeConnected:true,providerEpoch:'epoch-a'});await tick();
+  assert.equal(f.view.capture().preparedSourceRevision,revision);
+  const request=f.client.requestLocalProject;
+  let returnedRevision=revision;
+  f.client.requestLocalProject=async(method,params)=>method==='project.resolve'?{
+    bindingId:params.bindingId,providerEpoch:'epoch-a',runtimeKind:'page-userscript',sourceUtf8,
+    sourceBytes:Buffer.byteLength(sourceUtf8),sourceHash,sourceRevision:returnedRevision,inputHash:returnedRevision
+  }:request(method,params);
+  assert.equal((await f.view.resolve(f.view.capture())).sourceHash,sourceHash,'matching prepared input remains runnable');
+  returnedRevision='c'.repeat(64);
+  await assert.rejects(f.view.resolve(f.view.capture()),{code:'E_DEV_CONFLICT'});
+});
 test('quiet discovery and revocation update availability without changing an empty or offline selection',async t=>{
   t.mock.timers.enable({apis:['setInterval']});
   const other={...workspace,workspaceId:workspace.workspaceId.slice(0,-1)+'2',sourceId:'source-'+'b'.repeat(24),name:'other files'};

@@ -86,7 +86,7 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{},
       backgroundError?(backgroundError.code||'E_DEV_SOURCE')+'：'+(backgroundError.message||'准备失败'):'',
       preparation?.error?(preparation.error.code||'E_DEV_SOURCE')+'：'+(preparation.error.message||'准备失败'):'',
       report?.sourceHash?'源码 SHA-256：'+report.sourceHash:'',
-      report?.inputHash?'输入版本：'+report.inputHash:'',
+      report?.sourceRevision||report?.inputHash?'输入版本：'+(report.sourceRevision||report.inputHash):'',
       preparationError?'状态读取错误：'+(preparationError.code||'E_DEV_STATUS'):'',
       last?'最近读取源码（不代表已执行）：'+last.sourceHash+'；输入版本：'+last.inputHash+'；源码读取：'+(last.cacheHit?'复用已准备产物':'本次准备')+
         '；编译 '+Math.round(last.timings?.webpackMs||0)+'ms；总计 '+Math.round(last.timings?.totalMs||0)+
@@ -275,6 +275,7 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{},
     const row=selected(),currentPreparation=row?.preparation;
     if((row?.runtimeKind&&row.runtimeKind!==value.runtimeKind)||
       (captured.preparedSourceHash&&captured.preparedSourceHash!==value.sourceHash)||
+      (captured.preparedSourceRevision&&captured.preparedSourceRevision!==(value.sourceRevision??value.inputHash))||
       (currentPreparation?.state==='ready'&&/^[a-f0-9]{64}$/.test(currentPreparation.sourceHash||'')&&currentPreparation.sourceHash!==value.sourceHash)||
       (captured.preparedSourceRevision&&/^[a-f0-9]{64}$/.test(currentPreparation?.sourceRevision||'')&&captured.preparedSourceRevision!==currentPreparation.sourceRevision))
       throw failure('E_DEV_CONFLICT','本地项目运行类型或源码版本已变化；等待准备完成后明确重新运行');
@@ -364,7 +365,7 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{},
   pollTimer=setInterval(refreshPreparation,2000);
   if(!api.storage?.local&&active())void refresh();
   return {active,connected:()=>connected&&!checking&&!nativeUpdateError&&!!runnable(),canAttemptRun,readyForRun,selectionKind,canOpenWorkspace,openWorkspace,selectedBindingId:()=>selection,providerEpoch:()=>epoch,
-    preparationIdentity:()=>{const p=selected()?.preparation;return JSON.stringify([p?.state??null,p?.inputHash??prepared?.inputHash??null,p?.sourceHash??prepared?.sourceHash??null,p?.buildHash??null]);},
+    preparationIdentity:()=>{const p=selected()?.preparation;return JSON.stringify([p?.state??null,p?.sourceRevision??prepared?.inputHash??null,p?.sourceHash??prepared?.sourceHash??null,p?.artifactId??null]);},
     selectedProject:()=>{const row=selected();return row?{name:sourceName(row.name),sourceId:row.sourceId||''}:null;},
     capture,resolve,assertCaptured,assertReady,
     dispose(){disposed=true;generation++;clearInterval(pollTimer);resetBackground();unsubscribe?.();unsubscribeConnection?.();for(const [node,event,callback] of listeners)node.removeEventListener(event,callback);},
