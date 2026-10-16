@@ -204,7 +204,7 @@ function renderSites(){
     ['Grok','规划中','规划'],
     ['Cursor Web','规划中','规划']
   ]){
-    const card=dom('article','ps-site-row ps-site-builtin');
+    const card=dom('article','ps-site-builtin');
     const info=dom('div');info.append(dom('strong','',name),dom('small','',detail));
     card.append(info,dom('span','',mark));host.append(card);
   }
