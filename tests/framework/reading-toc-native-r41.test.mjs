@@ -501,7 +501,16 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
     const finalX=start.x+wantedLeft-rect.left,finalY=start.y+wantedTop-rect.top;
     await articlePage.send('Input.dispatchMouseEvent',{type:'mouseMoved',...start,button:'none'});
     await articlePage.send('Input.dispatchMouseEvent',{type:'mousePressed',...start,button:'left',buttons:1,clickCount:1});
-    await articlePage.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:finalX,y:finalY,button:'left',buttons:1});
+    // Chrome pointer capture becomes effective after pointerdown dispatch.
+    // A real drag emits several intermediate moves, not one teleported mouse.
+    await pause(32);
+    for(let step=1;step<=8;step++){
+      const progress=step/8;
+      await articlePage.send('Input.dispatchMouseEvent',{
+        type:'mouseMoved',x:start.x+(finalX-start.x)*progress,
+        y:start.y+(finalY-start.y)*progress,button:'left',buttons:1});
+      await pause(16);
+    }
     await articlePage.send('Input.dispatchMouseEvent',{type:'mouseReleased',x:finalX,y:finalY,button:'left',buttons:0,clickCount:1});
   }
   const beforeDrag=await tocRect();
