@@ -16,9 +16,16 @@ export function transformPinnedReactDomInputTracker(code,id,{target,reactDomVers
   if(matches.length!==1)
     throw new Error('ReactDOM 19.2.0 input tracker descriptor drift; expected one reviewed constructor use');
   const match=matches[0],object=match[1],field=match[2];
-  const nearby=code.slice(Math.max(0,match.index-600),match.index+match[0].length+1100);
+  const nearby=code.slice(Math.max(0,match.index-600),match.index+match[0].length+3500);
   const hasOwnProperty=new RegExp('\\b'+object+'\\.hasOwnProperty\\(\\s*'+field+'\\s*\\)');
-  if(!/["']checked["']\s*:\s*["']value["']/.test(nearby)||!hasOwnProperty.test(nearby))
+  const prodSource=/["']checked["']\\s*:\\s*["']value["']/.test(nearby);
+  // ReactDOM development splits the checked/value choice into trackValueOnNode's
+  // caller; validate the descriptor read together with own-property and
+  // defineProperty checks rather than weakening to a generic constructor edit.
+  const defineProperty=new RegExp('Object\\.defineProperty\\(\\s*'+object+'\\s*,\\s*'+field+'\\s*,');
+  const devSource=id.endsWith('react-dom-client.development.js')&&
+    defineProperty.test(nearby);
+  if(!hasOwnProperty.test(nearby)||!(prodSource||devSource))
     throw new Error('ReactDOM input tracker source shape drift; review before bundling');
   const replacement='Object.getOwnPropertyDescriptor(Object.getPrototypeOf('+object+'), '+field+')';
   return code.slice(0,match.index)+replacement+code.slice(match.index+match[0].length);

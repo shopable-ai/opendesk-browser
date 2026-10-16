@@ -35,6 +35,19 @@ test('only the pinned client module in the trusted shell can receive the transfo
   ])assert.throws(()=>replace(tampered),/drift/);
 });
 
+test('development ReactDOM separates value-field selection from the tracker itself',()=>{
+  const fixture='function trackValueOnNode(node,valueField){'+
+    'var descriptor=Object.getOwnPropertyDescriptor(node.constructor.prototype,valueField);'+
+    'if(node.hasOwnProperty(valueField))return;'+
+    'Object.defineProperty(node,valueField,{configurable:true});}'+
+    'function track(node){var key=isCheckable(node)?"checked":"value";return trackValueOnNode(node,key);}';
+  const output=replace(fixture,modulePath.replace('production','development'));
+  assert.doesNotMatch(output,/\.constructor/);
+  assert.deepEqual(inspectScript(output,'ui/tool-shell.js'),{approvedAsyncBodyConstructors:0});
+  assert.throws(()=>replace(fixture.replace('Object.defineProperty','Object.unsafeProperty'),
+    modulePath.replace('production','development')),/drift/);
+});
+
 test('native input prototype descriptor semantics match without trusting an instance constructor',()=>{
   class Input{get value(){return 'sample';}}
   const nativeInput=new Input();
