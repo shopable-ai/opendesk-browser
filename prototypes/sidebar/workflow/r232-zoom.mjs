@@ -74,7 +74,6 @@ try{
        body=document.querySelector('#r234-body').getBoundingClientRect(),
        field=document.querySelector('#r23-api-key').getBoundingClientRect(),
        back=document.querySelector('#r234-back').getBoundingClientRect(),
-       label=document.querySelector('#r236-source-title').getBoundingClientRect(),
        switchBox=document.querySelector('.r236-switch').getBoundingClientRect(),
        note=document.querySelector('#r236-protocol-note').getBoundingClientRect(),
        url=document.querySelector('#r23-endpoint').closest('.r236-input-action').getBoundingClientRect();
@@ -88,8 +87,10 @@ try{
        deviceWidth:d.width,panelWidth:p.width,
        inputInside:field.left>=p.left-1&&field.right<=p.right+1,
        backInside:back.left>=p.left-1&&back.right<=p.right+1,
-       selectorAligned:Math.abs(label.left-switchBox.left)<=2,
-       sourceVerticalGap:switchBox.top-label.bottom,
+       selectorAligned:Math.abs(switchBox.left-(body.left+parseFloat(getComputedStyle(document.querySelector('#r234-body')).paddingLeft)))<=2,
+       selectorAtTop:Math.abs(switchBox.top-(body.top+parseFloat(getComputedStyle(document.querySelector('#r234-body')).paddingTop)))<=2,
+       noVisibleSourceLabel:!document.querySelector('#r236-source-title'),
+       accessibleSourceName:document.querySelector('.r236-switch legend')?.textContent.trim()==='AI 来源',
        selectorWidth:switchBox.width,
        noteAligned:Math.abs(note.left-url.left)<=2,
        rows:fieldRows,
@@ -100,8 +101,8 @@ try{
    assert.equal(Math.round(geom.deviceWidth),Number(width));
    assert.ok(Math.abs(geom.panelWidth-geom.deviceWidth)<=2,'settings route fits native Chrome 200%');
    assert.ok(geom.inputInside&&geom.backInside&&!geom.documentOverflow,'all controls stay accessible');
-   assert.ok(geom.selectorAligned&&geom.sourceVerticalGap>=6&&geom.sourceVerticalGap<=15,
-     'source choices stay directly below heading under 200% zoom');
+   assert.ok(geom.selectorAligned&&geom.selectorAtTop&&geom.noVisibleSourceLabel&&geom.accessibleSourceName,
+     'source choices start settings without visible heading while retaining accessible name');
    assert.ok(geom.selectorWidth>=235&&geom.selectorWidth<=252,
      'source switch width remains compact under native Chrome zoom');
    assert.ok(geom.noteAligned&&geom.noFooter,'protocol hint and return controls are coherent');
@@ -127,7 +128,7 @@ try{
    events.push({width,settingsLayout:geom});
  }
 
- console.log('R238_REAL_CHROME_UI_200_ZOOM_PASS');
+ console.log('R2381_REAL_CHROME_UI_200_ZOOM_PASS');
  await writeFile(resolve(out,'r232-real-zoom.json'),JSON.stringify({status:'CHROME_NATIVE_ZOOM_200_PASS',head,gitBlob,sha256,input,version,zoom:zoomData,events},null,2));
 }catch(e){
  console.error(e);
