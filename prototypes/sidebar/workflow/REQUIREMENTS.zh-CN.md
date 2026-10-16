@@ -96,3 +96,19 @@
 | 换 Provider 至 Cloud / HTTPS | 清除本机模拟披露授权，重新询问 | Cloud 不继承 Native 披露许可；披露接收方与数据范围必须重新同意 |
 | 摘要读回批准后网页填写 | 单独在进度中解释用户的填写指令；提交始终禁用 | 摘要批准 != write/click/submit/navigation；保留原 RunHost Authority |
 | Stop / 拒绝 / 效果未知 | 解释未完成与检查当前网页，永不自动重放 | `E_OUTCOME_UNKNOWN` 不得自动重跑副作用，资源退休按既有 Controller |
+
+## 十、R23.2 双新建入口、连续对话和模拟授权闭环（2026-10-16）
+
+> 唯一正式预览入口：prototypes/sidebar/workflow/index.html；r232-chrome.mjs 是来源级浏览器测试，不是第二份 HTML。设计仍是 **DESIGN_REVIEW_REQUIRED**；未经用户明确批准，绝不迁入正式 Sidebar。
+
+- **顶部双入口**：在同一 R15.3/R23.1 图标/布局语言下，将合并「＋」下拉替换为直接可见的「新对话」及「新工作流」独立按钮，「历史」独立保留。360/420/520px 和超窄视图不能遮挡或误触；超窄可用 Icon + aria-label + tooltip 退化。
+- **新对话**：递增 chatId，清空当前聊天与规划上下文，保留 workflowId、工作流未保存设计、版本、模拟目标 DOM 和未发送文字。规划/执行中必须先 Stop，授权待决必须先处理，不可静默遗弃。
+- **新工作流**：递增 workflowId 和 chatId，清理旧会话与草稿。有真实未保存设计或未发送文字时弹窗选择取消、保存后继续（有设计时）、放弃。空白页不可误报未保存。
+- **历史恢复**：跨工作流恢复身份和设计，不能沿用另一工作流的聊天成功、Provider 披露许可或自动写 DOM。取消恢复保留原消息、输入和焦点。
+- **模拟读回**：仅操作本页真实存在的 input DOM，再读 input.value；两轮分别严格匹配「给我一个亿的项目」「项目已启动」。提交/跳转均 0；Stop、拒绝、未知、不支持任务均不应产生伪造的成功。
+- **授权细化**：Native 同一会话、Provider、Origin、Document、披露范围、有效期且未撤权可模拟复用；Document 变化或撤权需重新请求；Cloud/HTTPS 不继承 Native 披露授权。摘要披露不能推导为任意填表、点击、提交、导航许可。模拟 Document ID 不等于正式浏览器的精确 tab/frame/document 身份证明。
+- **预览实验台**：示例指令填充、状态按钮、切换模拟 Document、撤销、宽度、主题都在 Sidebar 产品主体之外；不得迁入正式首屏或 RunHost。
+
+来源级 Chromium 测试：prototypes/sidebar/workflow/r232-chrome.mjs，经 .github/workflows/workflow-r232-preview.yml 执行。必须直接访问仓库 checkout 的真实 index.html，绑定 HEAD/Blob/SHA-256，使用真实 DOM 输入、按钮和截图，而非 page.set_content。状态须以对应 GitHub Actions 的实际结论为准；提交或启动 CI 不是 PASS，旧 55/55 不代表本轮。
+
+**尚未满足的验收门禁**：Mac 正式安装、真实 Provider/RunHost/Native、系统 IME 与实际 Chrome 菜单 200% 缩放均 NOT_TESTED，除非取得同候选专门证据。六维评分需可追溯截图、可访问性审计、反方复核，每维缺证据则 NOT_SCORED。即使离线 Chromium 通过，也不等于 PREVIEW_UX_ACCEPTED_CANDIDATE 或用户确认。
