@@ -884,6 +884,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   else return {error:'尚未配置当前网站'};
   const mount=findUnique(selectors.mount,'按钮容器');if(mount.error)return {error:mount.error};
   const editor=findUnique(selectors.editor,'目标输入框');if(editor.error)return {error:editor.error};
+  if(!editor.node.closest('#mockComposer'))return {error:'目标输入框不属于当前主内容区域'};
   if(!isEditor(editor.node))return {error:'目标不是可见、可编辑的安全输入框'};
   if(!mount.node.closest('#messageArea')||mount.node.closest('.web-main')!==editor.node.closest('.web-main'))return {error:'容器与输入框不属于同一主内容区域'};
   return {mount:mount.node,editor:editor.node,rule:rule&&selectors.mount[0]===rule.mount?'自定义覆盖':'内置模拟',selector:editor.selector};
@@ -1058,7 +1059,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
      siteDrafts[currentSite]=expected;field.focus();notice('已插入 '+siteInfo().name+' 模拟编辑器 · 原草稿保留 · 未发送','success');
    }catch(err){try{if(readEditor(field)!==before){if(field instanceof HTMLTextAreaElement||field instanceof HTMLInputElement)field.value=before;
           else if(!document.execCommand('undo')||readEditor(field)!==before)field.textContent=before;}}catch{}
-     siteDrafts[currentSite]=before;notice('安全停止，已尽力恢复原草稿：'+err.message,'error');
+     siteDrafts[currentSite]=before;field.dispatchEvent(new Event('input',{bubbles:true}));notice('安全停止，已尽力恢复原草稿：'+err.message,'error');
    }finally{siteBusy=false;}
  };
  readSiteStorage();
