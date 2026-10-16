@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// R1.5 C1: formal extension, installed official tool, actual CDP mouse and file input.
+// R1.6 C1: real Chrome pointer/file input through the current visible Extension Center.
 // This is NOT a Side Panel PASS unless a real SIDE_PANEL context is observed.
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
@@ -111,13 +111,42 @@ async function clickSandbox(contextId,selector){
     await client.send('Input.dispatchMouseEvent',{type,button:'left',clickCount:1,x,y},page);
   step('CHROME_SANDBOX_MOUSE_INPUT',{selector,api:'Input.dispatchMouseEvent'});
 }
+async function installerDiagnostics(){
+  return evalAt(page,'(()=>{const ids=["extension-center-more","extension-center-menu",'+
+    '"extension-center-import","extension-center-import-host","sidebar-tool-import",'+
+    '"sidebar-tool-file","sidebar-tool-install","sidebar-tool-import-trigger","sidebar-tool-back"];'+
+    'const elements=Object.fromEntries(ids.map(id=>{const e=document.getElementById(id);'+
+    'if(!e)return [id,null];const rect=e.getBoundingClientRect();'+
+    'const chain=[];for(let x=e;x&&chain.length<7;x=x.parentElement){'+
+    'chain.push({id:x.id,hidden:x.hidden,display:getComputedStyle(x).display});}'+
+    'return [id,{width:rect.width,height:rect.height,disabled:!!e.disabled,'+
+    'text:e.textContent?.slice(0,120),chain}];}));'+
+    'return {href:location.href,surface:document.documentElement.dataset.opendeskSurface,'+
+    'tabTools:document.getElementById("tab-tools")?.getAttribute("aria-selected"),'+
+    'status:document.getElementById("sidebar-tool-status")?.textContent?.slice(0,240),elements};})()');
+}
+async function openExtensionCenterImporter(){
+  // The old .sidebar-tools-head importer is intentionally hidden by the
+  // current Extension Center. Never reveal or click that obsolete entrypoint.
+  await until(async()=>{const e=await element('#extension-center-more');return e?.visible&&e;},
+    'visible current Extension Center toolbar');
+  await click('#extension-center-more');
+  await until(async()=>{const e=await element('#extension-center-import');return e?.visible&&e;},
+    'visible current Extension Center import menu action');
+  await click('#extension-center-import');
+  await until(async()=>{
+    const input=await element('#sidebar-tool-file'),panel=await element('#sidebar-tool-import');
+    return input?.visible&&panel?.visible;
+  },'visible trusted importer inside current Extension Center');
+  step('EXTENSION_CENTER_TRUSTED_IMPORT',{status:'PASS',
+    route:['#extension-center-more','#extension-center-import','#sidebar-tool-file','#sidebar-tool-install'],
+    nativeInput:'Input.dispatchMouseEvent + DOM.setFileInputFiles'});
+}
 async function installFixtureForC1(expected){
   // All writes are performed through the existing trusted extension installer.
   // This fixture is never bundled in the production official releases.
   await click('#sidebar-tool-back');
-  await until(async()=>{const e=await element('#sidebar-tool-import-trigger');return e?.visible&&e;},
-    'return to trusted installed tools list');
-  await click('#sidebar-tool-import-trigger');
+  await openExtensionCenterImporter();
   const {root}=await client.send('DOM.getDocument',{depth:1},page);
   const {nodeId}=await client.send('DOM.querySelector',{nodeId:root.nodeId,selector:'#sidebar-tool-file'},page);
   assert(nodeId,'Trusted installer input disappeared');
@@ -247,9 +276,12 @@ async function main(){
   await client.send('Page.navigate',{url},page);
   step('FORMAL_EXTENSION_HOST',{status:'PASS',url:await evalAt(page,'location.href')});
   const installedQuery='(async()=>{const values=await chrome.storage.local.get(['+
-    '"opendesk.sidebar-tools.installed.v1","opendesk.sidebar-tools.revocation-epochs.v1"]);'+
+    '"opendesk.sidebar-tools.installed.v1","opendesk.sidebar-tools.revocation-epochs.v1",'+
+    '"opendesk.sidebar-tools.enabled.v1","opendesk.market.provenance.v1"]);'+
     'const pkg=values["opendesk.sidebar-tools.installed.v1"]?.find(x=>x.id==="ai-vip-share");'+
-    'return pkg?{pkg,epoch:values["opendesk.sidebar-tools.revocation-epochs.v1"]?.["ai-vip-share"]??null}:null;})()';
+    'return pkg?{pkg,epoch:values["opendesk.sidebar-tools.revocation-epochs.v1"]?.["ai-vip-share"]??null,'+
+    'enabled:values["opendesk.sidebar-tools.enabled.v1"]?.["ai-vip-share"]!==false,'+
+    'provenance:values["opendesk.market.provenance.v1"]?.["ai-vip-share"]??null}:null;})()';
   // A formal official build may initialize its default tools automatically.
   // An active tool hides the list importer by design. Compare that actual
   // registry with the SAME SHA official package rather than click hidden UI.
@@ -258,16 +290,11 @@ async function main(){
     available=await until(async()=>{
       const registered=await evalAt(page,installedQuery);
       if(registered?.pkg)return {kind:'already-installed',registered};
-      const trigger=await element('#sidebar-tool-import-trigger');
-      return trigger?.visible?{kind:'import'}:null;
+      const menu=await element('#extension-center-more');
+      return menu?.visible?{kind:'extension-center-import'}:null;
     },'installed official package or visible trusted importer');
   }catch(error){
-    receipt.uiDiagnostics=await evalAt(page,'(()=>{const x=document.querySelector("#sidebar-tool-import-trigger");'+
-      'const ancestor=[];for(let e=x;e&&ancestor.length<8;e=e.parentElement){const r=e.getBoundingClientRect();'+
-      'ancestor.push({id:e.id,hidden:e.hidden,display:getComputedStyle(e).display,width:r.width,height:r.height});}'+
-      'return {href:location.href,surface:document.documentElement.dataset.opendeskSurface,'+
-      'tabTools:document.getElementById("tab-tools")?.getAttribute("aria-selected"),'+
-      'ancestor};})()').catch(e=>({error:String(e)}));
+    receipt.uiDiagnostics=await installerDiagnostics().catch(e=>({error:String(e)}));
     await screenshot('installer-blocked').catch(()=>{});
     throw error;
   }
@@ -276,12 +303,12 @@ async function main(){
     installed=available.registered;
     step('OFFICIAL_PREINSTALLED',{status:'PASS',source:'Chrome native storage, not test insertion'});
   }else{
-    await click('#sidebar-tool-import-trigger');
+    await openExtensionCenterImporter();
     const {root}=await client.send('DOM.getDocument',{depth:1},page);
     const {nodeId}=await client.send('DOM.querySelector',{nodeId:root.nodeId,selector:'#sidebar-tool-file'},page);
     assert(nodeId,'Official installer file field missing');
     await client.send('DOM.setFileInputFiles',{nodeId,
-      files:[resolve('examples/sidebar-tools/ai-vip-share/ai-vip-share.opendesk-tool.json')]},page);
+      files:[join(PATH,'official-tools/ai-vip-share/ai-vip-share.opendesk-tool.json')]},page);
     await until(async()=>{
       const btn=await element('#sidebar-tool-install');
       return btn?.visible&&btn.text?.includes('确认安装');
@@ -294,9 +321,12 @@ async function main(){
   assert.equal(installed.pkg.version,candidate.version);
   assert.equal(serializeSidebarToolPackage(installed.pkg),serializeSidebarToolPackage(candidate));
   assert.equal(await sidebarToolPackageHash(installed.pkg),identityHash);
+  assert.equal(installed.enabled,true,'Formal AI VIP Share is not enabled after install');
+  assert.match(installed.epoch||'',/^[0-9a-f-]{36}$/i,'Missing formal installEpoch');
   receipt.installed=true;receipt.installEpoch=installed.epoch;
+  receipt.installedSource=installed.provenance?'reviewed-market':'production-package-local-import';
   step('FORMAL_INSTALL_IDENTITY',{status:'PASS',packageHash:identityHash,installEpoch:installed.epoch,
-    installationRoute:available.kind});
+    enabled:installed.enabled,installationRoute:available.kind,provenance:installed.provenance});
   await screenshot('installed');
   await client.send('Page.navigate',{url},page);
   await until(async()=>{const e=await element('#sidebar-tool-frame iframe');return e?.visible&&e;},
@@ -343,6 +373,10 @@ async function main(){
   console.log('MANAGED_PROXY_C1='+receipt.result);
 }
 try{await main();}catch(e){receipt.result='FAIL';receipt.errors.push(String(e.stack||e));
+  if(page){
+    receipt.uiDiagnostics??=await installerDiagnostics().catch(error=>({error:String(error)}));
+    await screenshot('failure').catch(()=>{});
+  }
   console.error('MANAGED_PROXY_C1=FAIL',e);process.exitCode=1;
 }finally{
   await mkdir(dirname(OUTPUT),{recursive:true});
