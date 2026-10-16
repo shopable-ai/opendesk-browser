@@ -234,11 +234,16 @@ test('R1 SDK-first ownership routes six positive and counterexample scenarios wi
   const expected=[
     ['A ChatGPT Mind Map','Page USER_SCRIPT','examples/programs/chatgpt-mindmap/','opendesk-script-authoring','SDK_GAP_NOT_PROVEN'],
     ['B Cookie Editor','Sidebar Tool','examples/sidebar-tools/cookie-editor/','opendesk-sidebar-tool-dev','打包'],
-    ['C Prompt Shortcuts','Page USER_SCRIPT','examples/programs/<id>/','opendesk-script-authoring','Host'],
+    ['C Prompt Shortcuts','Sidebar Tool v2','examples/sidebar-tools/prompt-shortcuts/','opendesk-sidebar-tool-dev','page.prompts'],
     ['D Bookmark Manager','Sidebar Tool','examples/sidebar-tools/bookmark-manager/','opendesk-sidebar-tool-dev','Installer'],
     ['E 通用 Page Program','Browser Framework','src/','opendesk-extension-runtime','允许'],
     ['F 只读公开文档','Sidebar Tool','examples/sidebar-tools/<id>/','opendesk-sidebar-tool-dev','OpenDeskTool.request']
   ];
+  const promptProject=JSON.parse(await read('examples/sidebar-tools/prompt-shortcuts/tool.config.json'));
+  assert.equal(promptProject.format,'opendesk.sidebar-tool.v2','keep real installed Prompt Shortcuts identity');
+  assert.equal(promptProject.id,'prompt-shortcuts');
+  assert.ok(promptProject.capabilities.includes('page.prompts'),'reuse existing trusted page adapter');
+  assert.ok(promptProject.capabilities.includes('browser.contextMenu'),'preserve optional context menu');
   for(let i=0;i<expected.length;i++){
     const cells=rows[i].split('|').slice(1,-1).map(s=>s.trim());
     assert.equal(cells.length,5,'R1 route schema must remain five columns');
