@@ -329,7 +329,7 @@ try{
     await clickAdblockNavigation('exceptions');
     await adblockOuter(row=>row.frameHeight>0);
     let child=await adblockFrame(row=>row.frameWidth>0&&
-      (scenario!=='success'||row.count==='1'));
+      (scenario!=='success'||row.count==='1 个例外网站'));
     assert.ok(child.scrollWidth<=child.frameWidth+1,'AdBlock iframe horizontal overflow');
     assert.equal(child.maliciousImages,0,'sandbox must only render inert domain text');
     assert.equal(network.length,0,'preview made a remote request');
@@ -345,14 +345,14 @@ try{
       await cdp('Runtime.evaluate',{expression:
         'document.getElementById("od-preview-adblock-restore-cancel").click()'});
       await adblockOuter(row=>!row.dialogOpen);
-      child=await adblockFrame(row=>row.count==='1');
+      child=await adblockFrame(row=>row.count==='1 个例外网站');
       assert.equal(child.restoreButtons,1,'cancel must preserve the website exception');
       await cdp('Runtime.evaluate',{expression:'document.querySelector(".adblock-restore").click()',
         contextId:child.context.contextId},child.context.session);
       await adblockOuter(row=>row.dialogOpen);
       await cdp('Runtime.evaluate',{expression:
         'document.getElementById("od-preview-adblock-restore-accept").click()'});
-      child=await adblockFrame(row=>row.count==='0');
+      child=await adblockFrame(row=>row.count==='0 个例外网站');
       parent=await adblockOuter(row=>row.siteOn==='true'&&!row.dialogOpen);
       assert.equal(child.restoreButtons,0,'confirmed restore must empty sandbox list');
       const changed=await cdp('Page.captureScreenshot',{format:'png'});

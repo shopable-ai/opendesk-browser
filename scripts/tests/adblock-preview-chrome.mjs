@@ -176,7 +176,7 @@ try{
   const report=[];
   {
     const {built,ctx}=await open('success');
-    await poll(async()=>(await child(ctx)).count==='1','initial exception');
+    await poll(async()=>(await child(ctx)).count==='1 个例外网站','initial exception');
     const host=await parent(),list=await child(ctx);
     assert.deepEqual(host.switches.map(x=>x.checked),[true,false]);
     assert.deepEqual(host.switches.map(x=>Math.round(x.width)),[46,46]);
@@ -208,11 +208,11 @@ try{
     await screenshot('confirmation');
     await click('#od-preview-adblock-restore-cancel');
     await poll(async()=>!(await parent()).dialog,'restore cancel');
-    assert.equal((await child(ctx)).count,'1');
+    assert.equal((await child(ctx)).count,'1 个例外网站');
     await click('#exceptions .adblock-restore',ctx);
     await poll(async()=>(await parent()).dialog,'restore repeat');
     await click('#od-preview-adblock-restore-accept');
-    await poll(async()=>(await child(ctx)).count==='0','sandbox restore readback');
+    await poll(async()=>(await child(ctx)).count==='0 个例外网站','sandbox restore readback');
     await poll(async()=>(await parent()).switches[1].checked,'host exception readback');
     await screenshot('restored');
     await click('#od-preview-adblock-host [data-adblock-nav="overview"]');
@@ -229,7 +229,7 @@ try{
   }
   {
     const {ctx}=await open('empty');
-    await poll(async()=>(await child(ctx)).count==='0','empty exception list');
+    await poll(async()=>(await child(ctx)).count==='0 个例外网站','empty exception list');
     assert.equal((await parent()).switches[0].checked,false);
     await screenshot('permission-before');
     await click('#od-preview-adblock-host button[role=switch]');
