@@ -5,6 +5,14 @@
   const root=window.OpenDeskTool?.root;
   if(!root)return;
   const byId=id=>root.querySelector('#'+id);
+  const memberCard=byId('ai-vip-member-card');
+  const memberFacts=byId('ai-vip-member-facts');
+  const benefitSection=byId('ai-vip-benefits-section');
+  const historyDetails=byId('ai-vip-history-details');
+  const redeemIntro=byId('ai-vip-redeem-intro');
+  const redeemFine=byId('ai-vip-redeem-fine');
+  const shopSection=byId('ai-vip-shop-section');
+  const proxySection=byId('ai-vip-proxy-section');
   const memberState=byId('ai-vip-member-state');
   const accountName=byId('ai-vip-account-name');
   const productName=byId('ai-vip-product-name');
@@ -38,7 +46,9 @@
     benefits,history,historyCount,refresh,code,redeem,redeemStatus,redeemError,
     previewPanel,previewTitle,previewDescription,previewAccount,cancel,
     recoveryPanel,recoveryStatus,recoveryCheck,shop,shopStatus,
-    metricLabel,meter,meterBar,redeemForm,codeReveal,codeClear,confirm]
+    metricLabel,meter,meterBar,redeemForm,codeReveal,codeClear,confirm,
+    memberCard,memberFacts,benefitSection,historyDetails,redeemIntro,redeemFine,
+    shopSection,proxySection]
       .some(element=>!element))return;
 
   // Release-owned values: only populate after commercial/provider review.
@@ -81,9 +91,9 @@
   const businessSdk=window.OpenDeskSDK?.browser?.network;
   // Existing installed-tool storage is bound by Host to package and install epoch.
   // Never store a voucher, password, auth cookie, proxy lease or access token.
-  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.3.4';
+  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.3.5';
   // Do not strand an unresolved 1.2.0 voucher journal after a tool upgrade.
-  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2','1.3.3','1.3.4']);
+  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2','1.3.3','1.3.4','1.3.5']);
   const storeRequest=window.OpenDeskTool.request;
   let snapshot=null,pending=null,recovery=null,recoveryFault=null;
   let recoveryReady=false,busy=false,seq=0;
@@ -265,30 +275,42 @@
   function renderMember(){
     if(!snapshot)return;
     const {account,entitlements,redemptions,serverNow}=snapshot;
-    accountName.textContent=account.state==='bound'?account.name:'尚未登录或绑定账号';
-    const active=entitlements.filter(e=>e.status==='active');
-    const primary=active.find(e=>e.type==='time')||active[0]||entitlements[0]||null;
+    const effective=entitlements.filter(e=>e.status==='active'&&
+      (e.type!=='time'||e.expiresAt>serverNow)&&
+      (!['quota','credit'].includes(e.type)||e.remaining>0));
+    const primary=effective.find(e=>e.type==='time')||effective[0]||entitlements[0]||null;
+    const view=account.state==='guest'?'guest':effective.length?'active':
+      entitlements.length?'inactive':'empty';
+    memberCard.setAttribute('data-view',view);
+    const exhausted=entitlements.some(e=>e.status==='exhausted'||
+      (['quota','credit'].includes(e.type)&&e.remaining===0));
+    const expired=entitlements.some(e=>e.status==='expired'||
+      (e.type==='time'&&e.expiresAt<=serverNow));
     memberState.textContent=account.state==='guest'?'未登录':
-      active.length?'权益有效':entitlements.length?'暂无有效权益':'未开通';
-    memberState.setAttribute('data-tone',active.length?'active':
+      effective.length?'权益有效':exhausted?'额度已用尽':expired?'已到期':
+      entitlements.length?'权益未生效':'尚未开通';
+    memberState.setAttribute('data-tone',effective.length?'active':
       entitlements.length?'warn':'neutral');
+    accountName.textContent=account.state==='bound'?account.name:'尚未绑定会员账号';
+    accountName.hidden=false;
     productName.textContent=primary?primary.title:
-      account.state==='guest'?'请先绑定 AI VIP Share 产品账号':'尚无已核验商品';
-    metricLabel.textContent=primary?.type==='time'?'剩余会员时间':
-      primary?.type==='quota'||primary?.type==='credit'?'剩余使用额度':
-      primary?.type==='feature'?'已获得的功能':'当前会员权益';
-    meter.hidden=true;
-    meterBar.style.width='0%';
+      account.state==='guest'?'请先使用正式产品账号登录或绑定。':'可使用兑换码激活会员权益。';
+    productName.hidden=false;
+    memberFacts.hidden=!primary||account.state!=='bound';
+    memberFacts.setAttribute('data-kind',primary?.type||'none');
+    meter.hidden=true;meterBar.style.width='0%';
     meter.removeAttribute('aria-valuenow');
-    if(!primary){
-      remaining.textContent='—';unit.textContent='暂无权益';
-      expiry.textContent='具体权益以服务端核验结果为准';
-    }else if(primary.type==='time'){
-      remaining.textContent=String(Math.max(0,Math.ceil((primary.expiresAt-serverNow)/86400000)));
-      unit.textContent='天';
+    remaining.textContent='';unit.textContent='';expiry.textContent='';
+    if(primary?.type==='time'){
+      metricLabel.textContent='会员时间';
+      const isFuture=primary.expiresAt>serverNow;
+      const days=Math.ceil((primary.expiresAt-serverNow)/86400000);
+      remaining.textContent=isFuture&&primary.status==='active'?String(days):
+        !isFuture?'0':'已结束';
+      unit.textContent=/^\d+$/.test(remaining.textContent)?'天':'';
       expiry.textContent='到期 '+dateLabel(primary.expiresAt);
-      // Do not invent original duration; a time entitlement has no verified start.
-    }else if(primary.type==='quota'||primary.type==='credit'){
+    }else if(primary?.type==='quota'||primary?.type==='credit'){
+      metricLabel.textContent='剩余使用额度';
       remaining.textContent=String(primary.remaining);
       unit.textContent=primary.unit;
       expiry.textContent='总额度 '+primary.total+' '+primary.unit;
@@ -297,34 +319,40 @@
         meter.hidden=false;meterBar.style.width=percent+'%';
         meter.setAttribute('aria-valuenow',String(percent));
       }
-    }else{
-      remaining.textContent=primary.status==='active'?'已开通':'未生效';
-      unit.textContent='功能权益';
+    }else if(primary?.type==='feature'){
+      metricLabel.textContent='功能权益';
+      remaining.textContent=primary.status==='active'?'已启用':statusLabel(primary.status);
       expiry.textContent=primary.detail;
     }
-    verified.textContent='服务端核验时间：'+dateLabel(serverNow)+'；网络与会员分别核验。';
-    emptyRow(benefits,'尚未开通任何权益。');
-    if(entitlements.length){
-      clear(benefits);
-      entitlements.forEach(e=>addRow(benefits,e.title,benefitDescription(e,serverNow)));
-    }
-    historyCount.textContent=String(redemptions.length)+' 条';
-    emptyRow(history,'暂无经过核验的兑换记录。');
-    if(redemptions.length){
-      clear(history);
-      redemptions.slice(0,20).forEach(item=>addRow(history,item.title,
-        dateLabel(item.at)+' · '+(item.status==='redeemed'?'已兑换':'已撤销')+
-        (item.masked?' · '+item.masked:'')));
-    }
-    refresh.disabled=false;
-    // Absence in the bounded ledger is never proof of non-consumption.
+    verified.hidden=!primary&&!redemptions.length;
+    verified.textContent=verified.hidden?'':'服务端已核验 · '+dateLabel(serverNow);
+    benefitSection.hidden=!entitlements.length;
+    clear(benefits);
+    entitlements.forEach(e=>addRow(benefits,e.title,benefitDescription(e,serverNow)));
+    historyDetails.hidden=!redemptions.length;
+    historyCount.textContent=redemptions.length?String(redemptions.length)+' 条':'';
+    clear(history);
+    redemptions.slice(0,20).forEach(item=>addRow(history,item.title,
+      dateLabel(item.at)+' · '+(item.status==='redeemed'?'已兑换':'已撤销')+
+      (item.masked?' · '+item.masked:'')));
+    refresh.hidden=false;refresh.disabled=false;
     if(recovery&&account.id!==recovery.accountId)
       redeemNotice('当前账号与未确认兑换归属不同。请切回原账号核对，不会继承权益。',true);
+    else if(!busy&&!recovery&&!recoveryFault){
+      if(account.state==='guest')redeemNotice('登录并绑定账号后可使用兑换码。');
+      else if(/服务未配置|服务接入后|核验中|会员无法核验|兑换已暂停/.test(redeemStatus.textContent))
+        redeemNotice('输入兑换码并预检，确认后再领取。');
+    }
     renderRedeem();
   }
   function renderRedeem(){
-    const allowed=Boolean(endpoints)&&snapshot?.account.state==='bound'&&!busy&&
-      recoveryReady&&!recovery&&!recoveryFault;
+    const accountReady=Boolean(endpoints)&&snapshot?.account.state==='bound';
+    const locked=Boolean(recovery||recoveryFault);
+    const allowed=accountReady&&!busy&&recoveryReady&&!locked;
+    const showForm=accountReady&&!locked;
+    redeemForm.hidden=!showForm;
+    redeemIntro.hidden=!showForm;
+    redeemFine.hidden=!showForm;
     code.disabled=!allowed||Boolean(pending);
     redeem.disabled=!allowed||Boolean(pending)||
       !/^[A-Za-z0-9._-]{6,120}$/.test(code.value.trim());
@@ -335,19 +363,20 @@
     cancel.disabled=busy;
     codeReveal.disabled=code.disabled;
     codeClear.disabled=code.disabled||!code.value;
-    // Sensitive code must return to masked mode after a preflight or lock.
     if(code.disabled||!code.value){
-      code.type='password';codeReveal.textContent='显示';
+      code.type='password';
       codeReveal.setAttribute('aria-label','显示兑换码');
       codeReveal.setAttribute('aria-pressed','false');
     }
     showRecovery();
+    redeemStatus.hidden=!recoveryPanel.hidden||!redeemError.hidden;
     refreshProxyPresentation();
   }
   function redeemNotice(message,error=false){
-    redeemStatus.textContent=error?'请查看错误提示；未经确认的结果不视为兑换成功。':message;
+    redeemStatus.textContent=message;
     redeemError.hidden=!error;
     redeemError.textContent=error?message:'';
+    redeemStatus.hidden=error||!recoveryPanel.hidden;
   }
   async function businessRequest(method,url,data){
     if(!endpoints||typeof businessSdk?.request!=='function')
@@ -372,8 +401,13 @@
     if(!endpoints||busy)return;
     const current=++seq;
     busy=true;refresh.disabled=true;
-    memberState.textContent='正在核验';
-    verified.textContent='正在请求正式会员服务，不使用本地缓存作为有效会员证明。';
+    memberCard.setAttribute('data-view','loading');
+    memberState.textContent='核验中';
+    accountName.textContent='正在读取会员信息';
+    accountName.hidden=false;
+    productName.textContent='';productName.hidden=true;
+    memberFacts.hidden=true;verified.hidden=true;
+    benefitSection.hidden=true;historyDetails.hidden=true;
     renderRedeem();
     try{
       const data=verifiedMember(await businessRequest('GET',endpoints.member));
@@ -383,25 +417,24 @@
       if(current!==seq)return;
       snapshot=null;serverSampleAt=null;
       pending=null;code.value='';
+      memberCard.setAttribute('data-view','failed');
       memberState.textContent='无法核验';
       memberState.setAttribute('data-tone','warn');
-      metricLabel.textContent='当前会员权益';
+      accountName.textContent='会员服务暂时不可用';
+      productName.textContent='请检查网络或权限，然后刷新重试。';
+      productName.hidden=false;
+      memberFacts.hidden=true;verified.hidden=true;
+      benefitSection.hidden=true;historyDetails.hidden=true;
+      remaining.textContent='';unit.textContent='';expiry.textContent='';
       meter.hidden=true;meterBar.style.width='0%';
       meter.removeAttribute('aria-valuenow');
-      accountName.textContent='账号状态待核验';
-      productName.textContent='无法确认会员身份';
-      remaining.textContent='—';unit.textContent='待核验';
-      expiry.textContent='权益数据不可用，不能推断会员仍然有效';
-      verified.textContent='会员服务暂时不可用；请检查权限或网络后手动刷新。';
-      emptyRow(benefits,'权益核验失败');
-      emptyRow(history,'兑换历史不可核验');
-      historyCount.textContent='暂不可查';
+      clear(benefits);clear(history);historyCount.textContent='';
       if(recovery)redeemNotice('会员身份暂无法核验，上次兑换仍待核对；不可再次提交。',true);
       else if(redeemStatus.textContent.includes('服务端已确认兑换成功'))
         redeemNotice('服务端已确认兑换成功，但权益刷新失败；请稍后刷新查看最新数据。');
-      else redeemNotice('会员无法核验，兑换已锁定。',true);
+      else redeemNotice('会员无法核验，兑换已暂停。',true);
     }finally{
-      if(current===seq){busy=false;refresh.disabled=false;renderRedeem();}
+      if(current===seq){busy=false;refresh.disabled=false;if(snapshot)renderMember();else renderRedeem();}
     }
   }
   function validatePreview(data){
@@ -554,7 +587,6 @@
     if(event?.isTrusted!==true||code.disabled)return;
     const visible=code.type==='password';
     code.type=visible?'text':'password';
-    codeReveal.textContent=visible?'隐藏':'显示';
     codeReveal.setAttribute('aria-label',visible?'隐藏兑换码':'显示兑换码');
     codeReveal.setAttribute('aria-pressed',String(visible));
   });
@@ -592,11 +624,11 @@
   });
   const shopSdk=window.OpenDeskSDK?.browser?.tabs;
   shop.disabled=!catalog;
-  shopStatus.textContent=catalog?'在新标签页打开已审核的商品目录（需要安装审阅和浏览器授权）。':
-    '商品目录暂不可用。';
+  shopSection.hidden=!catalog;
+  shopStatus.hidden=true;
   shop.addEventListener('click',event=>{
     if(event?.isTrusted!==true||!catalog||shop.disabled)return;
-    shop.disabled=true;shopStatus.textContent='正在请求打开商品目录…';
+    shop.disabled=true;shopStatus.hidden=false;shopStatus.textContent='正在请求打开商品目录…';
     // Invoke the reviewed SDK directly in the trusted user gesture.
     let operation;
     try{
@@ -642,28 +674,39 @@
     const canStop=()=>stopRequired||starting||current?.canStop===true;
     const paint=()=>{
       const stop=canStop();
-      status.textContent=!sdk?'SDK 不可用':stopping?'正在停用':
-        starting?'启用请求待确认':stopRequired?'停用待确认':!current?'尚未确认':
-        current.state==='disabled'?(released(current)?'已停止':'尚未确认'):
-        ({enabled:'已启用',conflict:'代理被占用',unavailable:'需要恢复'})[current.state];
+      const ready=!stop&&!starting&&!stopping&&!reading&&
+        typeof sdk?.requestEnable==='function'&&safeEndpoint&&hasEntitlement()&&released(current);
+      const controlIssue=stopRequired||['conflict','unavailable'].includes(current?.state)||
+        Boolean(notice&&stop);
+      status.textContent=stopping?'正在停用':starting?'启用待确认':
+        stopRequired?'停用待确认':!sdk?'不可用':
+        notice&&!current?'状态异常':!current?'检测中':
+        current.state==='disabled'?(stopConfirmed&&released(current)?'已停止':'未启用'):
+        ({enabled:'已启用',conflict:'控制权冲突',unavailable:'状态异常'})[current.state];
       toggle.setAttribute('data-action',stop?'stop':'start');
       toggle.classList.toggle('od-button--secondary',stop);
       toggle.textContent=stop?(stopping?'正在停用…':'停用代理'):'启用代理';
+      toggle.hidden=!stop&&!ready;
       toggle.disabled=stop?(stopping||!sdk||typeof sdk.requestDisable!=='function'):
-        (starting||stopping||reading||!sdk||typeof sdk.requestEnable!=='function'||
-          !safeEndpoint||!released(current)||!hasEntitlement());
+        (starting||stopping||reading||!ready);
+      refreshProxy.hidden=!sdk&&!stop;
       refreshProxy.disabled=reading||starting||stopping||!sdk;
-      const uncertain=stopRequired||['conflict','unavailable'].includes(current?.state)||!current;
-      status.setAttribute('data-tone',uncertain?'warn':current?.state==='enabled'?'active':'neutral');
-      alert.hidden=!uncertain;
-      alertText.textContent=uncertain?(notice||'代理状态尚未确认；请重新检测并按需请求停用。'):'';
+      proxySection.setAttribute('data-mode',stop||controlIssue?'critical':ready?'ready':'passive');
+      status.hidden=!stop&&!controlIssue&&(!safeEndpoint||!sdk||!hasEntitlement());
+      const warning=controlIssue||Boolean(notice&&!current);
+      alert.hidden=!warning;
+      alertText.textContent=warning?(notice||(current?.state==='conflict'?
+        '代理由其他扩展或系统策略管理，不能覆盖。':
+        '代理状态未确认，请检查后按需请求停用。')):'';
+      detail.hidden=warning;
       if(notice)detail.textContent=notice;
-      else if(!sdk)detail.textContent='当前浏览器未提供已批准的 Managed Proxy SDK。';
-      else if(stop)detail.textContent='可请求停用当前安装的代理意图；不依赖会员或 Provider。释放须经 Chrome 回读确认，不会清除其他所有者配置。';
-      else if(current?.state==='conflict')detail.textContent='浏览器级代理控制权冲突。不会覆盖其他扩展、策略或旧版安装。';
-      else if(!safeEndpoint)detail.textContent='代理服务尚未配置；已有代理仍可安全停止。';
-      else if(!hasEntitlement())detail.textContent='会员权益尚未由正式服务验证，禁止仅凭代理设置启用访问。';
-      else detail.textContent='启用需经可信 Side Panel 单次确认，目标站点采用严格代理分流。';
+      else if(!sdk)detail.textContent='当前扩展没有可用的代理管理能力。';
+      else if(stop)detail.textContent='本工具仍有代理控制意图，可随时请求停用。';
+      else if(current?.state==='conflict')detail.textContent='代理控制权冲突，不会覆盖其他扩展。';
+      else if(!safeEndpoint)detail.textContent='代理服务尚未接入，暂不能启用。';
+      else if(!hasEntitlement())detail.textContent='需要经过服务端核验的有效会员权益。';
+      else if(!current)detail.textContent='正在检测浏览器代理状态。';
+      else detail.textContent='启用需经过可信 Side Panel 授权。';
     };
     refreshProxyPresentation=paint;
     async function update(){
@@ -738,14 +781,16 @@
   // Recover independently of Provider configuration; never silently drop a journal.
   void loadRecovery();
   if(!endpoints){
+    memberCard.setAttribute('data-view','unconfigured');
     memberState.textContent='服务未配置';
-    memberState.setAttribute('data-tone','warn');
-    accountName.textContent='账号暂不可核验';
-    productName.textContent='权益待正式服务核验';
-    metricLabel.textContent='当前会员权益';
-    verified.textContent='账号、权益与兑换记录尚无法从正式服务核验。';
-    redeemNotice('兑换服务未配置，暂无法提交。');
-    refresh.disabled=true;
+    memberState.setAttribute('data-tone','neutral');
+    accountName.textContent='正式会员服务尚未接入';
+    accountName.hidden=false;
+    productName.textContent='';productName.hidden=true;
+    memberFacts.hidden=true;verified.hidden=true;
+    benefitSection.hidden=true;historyDetails.hidden=true;
+    redeemNotice('会员服务接入后可使用兑换码。');
+    refresh.hidden=true;refresh.disabled=true;
   }else{
     refresh.disabled=false;
     void refreshMember();

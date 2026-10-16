@@ -13,55 +13,52 @@
     </div>
   </header>
 
-  <section class="ai-vip-membership" aria-labelledby="ai-vip-member-title">
+  <section id="ai-vip-member-card" class="ai-vip-membership" data-view="unconfigured" aria-labelledby="ai-vip-member-title">
     <div class="ai-vip-card-inner">
       <div class="ai-vip-section-head">
         <h2 id="ai-vip-member-title">AI 会员</h2>
         <span id="ai-vip-member-state" class="ai-vip-pill" role="status" aria-live="polite">待核验</span>
       </div>
       <div class="ai-vip-account-row">
-        <span class="ai-vip-avatar" aria-hidden="true">AI</span>
         <div class="ai-vip-account-copy">
-          <strong id="ai-vip-account-name">账号状态待核验</strong>
-          <span id="ai-vip-product-name">正式会员服务尚未配置</span>
+          <strong id="ai-vip-account-name">正式会员服务尚未接入</strong>
+          <span id="ai-vip-product-name" hidden></span>
         </div>
-        <button id="ai-vip-refresh" class="od-button od-button--quiet ai-vip-text-action" type="button" disabled>刷新</button>
+        <button id="ai-vip-refresh" class="od-icon-button" type="button" title="刷新会员信息" aria-label="刷新会员信息" hidden disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.5-4.5L3 9"/><path d="M3 4v5h5"/><path d="M4 13a8 8 0 0 0 14.5 4.5L21 15"/><path d="M21 20v-5h-5"/></svg></button>
       </div>
-      <p id="ai-vip-metric-label" class="ai-vip-metric-caption">当前会员权益</p>
+      <div id="ai-vip-member-facts" class="ai-vip-member-facts" hidden>
+        <p id="ai-vip-metric-label" class="ai-vip-metric-caption">权益状态</p>
       <div class="ai-vip-metric-line">
         <div class="ai-vip-metric" aria-label="经过服务端核验的权益">
-          <strong id="ai-vip-remaining">—</strong><span id="ai-vip-remaining-unit">待核验</span>
+          <strong id="ai-vip-remaining"></strong><span id="ai-vip-remaining-unit"></span>
         </div>
-        <span id="ai-vip-expiry" class="ai-vip-expiry">到期时间或额度尚不可查询</span>
+        <span id="ai-vip-expiry" class="ai-vip-expiry"></span>
       </div>
       <div id="ai-vip-meter" class="ai-vip-meter" role="progressbar" aria-label="已核验的剩余额度进度" aria-valuemin="0" aria-valuemax="100" hidden><span id="ai-vip-meter-bar"></span></div>
-      <p id="ai-vip-verified" class="ai-vip-meta" role="status" aria-live="polite">会员权益尚未经过正式服务核验。</p>
-      <div class="ai-vip-benefits">
+      </div>
+      <p id="ai-vip-verified" class="ai-vip-meta" role="status" aria-live="polite" hidden></p>
+      <div id="ai-vip-benefits-section" class="ai-vip-benefits" hidden>
         <div class="ai-vip-benefits-head"><h3 id="ai-vip-benefits-title">我的权益</h3></div>
-        <ul id="ai-vip-benefits" class="ai-vip-list" aria-labelledby="ai-vip-benefits-title">
-          <li>尚无经过服务端核验的权益数据。</li>
-        </ul>
+        <ul id="ai-vip-benefits" class="ai-vip-list" aria-labelledby="ai-vip-benefits-title"></ul>
       </div>
     </div>
-    <details id="ai-vip-history-details" class="ai-vip-history">
-      <summary><strong>兑换记录</strong><span><span id="ai-vip-history-count">待核验</span> <span aria-hidden="true">▾</span></span></summary>
-      <ol id="ai-vip-history-list" class="ai-vip-list">
-        <li>暂无经过服务端核验的兑换记录。</li>
-      </ol>
+    <details id="ai-vip-history-details" class="ai-vip-history" hidden>
+      <summary><strong>兑换记录</strong><span><span id="ai-vip-history-count"></span> <span aria-hidden="true">▾</span></span></summary>
+      <ol id="ai-vip-history-list" class="ai-vip-list"></ol>
     </details>
   </section>
 
   <section class="ai-vip-redeem" aria-labelledby="ai-vip-redeem-title">
     <h2 id="ai-vip-redeem-title">兑换激活</h2>
-    <p class="ai-vip-note">输入兑换码或激活码，预检后再确认领取。</p>
-    <form id="ai-vip-redeem-form" class="ai-vip-redeem-form" novalidate>
+    <p id="ai-vip-redeem-intro" class="ai-vip-note" hidden>预检兑换内容后，再确认领取。</p>
+    <form id="ai-vip-redeem-form" class="ai-vip-redeem-form" novalidate hidden>
       <label class="ai-vip-sr-only" for="ai-vip-redeem-code">兑换码或激活码</label>
       <div class="ai-vip-redeem-inputs">
         <input id="ai-vip-redeem-code" class="od-field" type="password" data-sensitive
           maxlength="120" autocomplete="off" autocapitalize="none" spellcheck="false"
           aria-describedby="ai-vip-redeem-status" placeholder="输入兑换码或激活码" disabled>
-        <button id="ai-vip-code-reveal" class="od-button od-button--secondary ai-vip-small-button" type="button" aria-label="显示兑换码" aria-pressed="false" disabled>显示</button>
-        <button id="ai-vip-code-clear" class="od-button od-button--secondary ai-vip-small-button" type="button" aria-label="清空兑换码" disabled>清空</button>
+        <button id="ai-vip-code-reveal" class="od-icon-button" type="button" title="显示或隐藏兑换码" aria-label="显示兑换码" aria-pressed="false" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        <button id="ai-vip-code-clear" class="od-icon-button" type="button" title="清空兑换码" aria-label="清空兑换码" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5 19 19M19 5 5 19"/></svg></button>
       </div>
       <button id="ai-vip-redeem" class="od-button ai-vip-primary" type="submit" disabled>预检兑换</button>
     </form>
@@ -80,34 +77,33 @@
       <p id="ai-vip-recovery-status" role="status" aria-live="polite"></p>
       <button id="ai-vip-recovery-check" class="od-button od-button--secondary" type="button" disabled>核对上次兑换</button>
     </div>
-    <p id="ai-vip-redeem-status" class="ai-vip-note" role="status" aria-live="polite">兑换服务未配置，暂无法提交。</p>
+    <p id="ai-vip-redeem-status" class="ai-vip-note" role="status" aria-live="polite">会员服务接入后可使用兑换码。</p>
     <p id="ai-vip-redeem-error" class="ai-vip-error" role="alert" hidden></p>
-    <p class="ai-vip-fine-print">具体权益以服务端回执为准；兑换不会自动启用代理。</p>
+    <p id="ai-vip-redeem-fine" class="ai-vip-fine-print" hidden>兑换以服务端回执为准，不会自动启用代理。</p>
   </section>
 
-  <section class="ai-vip-shop" aria-label="更多商品">
+  <section id="ai-vip-shop-section" class="ai-vip-shop" aria-label="更多商品" hidden>
     <button id="ai-vip-shop-open" class="od-button od-button--secondary ai-vip-shop-link" type="button" disabled>查看更多商品 ↗</button>
-    <p id="ai-vip-shop-status" class="ai-vip-fine-print" role="status" aria-live="polite">正式商品目录尚未配置。</p>
+    <p id="ai-vip-shop-status" class="ai-vip-fine-print" role="status" aria-live="polite" hidden></p>
   </section>
 
-  <section class="ai-vip-proxy" aria-labelledby="ai-vip-proxy-title">
+  <section id="ai-vip-proxy-section" class="ai-vip-proxy" data-mode="passive" aria-labelledby="ai-vip-proxy-title">
     <div class="ai-vip-section-head">
       <h2 id="ai-vip-proxy-title">AI 网站访问</h2>
       <div class="ai-vip-proxy-head-actions">
-        <span id="ai-vip-proxy-state" class="ai-vip-pill" role="status" aria-live="polite">状态待确认</span>
+        <span id="ai-vip-proxy-state" class="ai-vip-pill" role="status" aria-live="polite" hidden></span>
         <button id="ai-vip-proxy-refresh" class="od-icon-button ai-vip-proxy-refresh" type="button" title="重新检测代理状态" aria-label="重新检测代理状态">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.5-4.5L3 9"/><path d="M3 4v5h5"/><path d="M4 13a8 8 0 0 0 14.5 4.5L21 15"/><path d="M21 20v-5h-5"/></svg>
         </button>
       </div>
     </div>
     <p id="ai-vip-proxy-detail" class="ai-vip-proxy-source" role="status" aria-live="polite">正在读取浏览器代理状态。</p>
-    <button id="ai-vip-proxy-toggle" class="od-button ai-vip-primary ai-vip-proxy-toggle" type="button" disabled>启用代理</button>
-    <p class="ai-vip-fine-print">仅管理本工具已获准控制的代理，不修改其他代理设置。</p>
+    <button id="ai-vip-proxy-toggle" class="od-button ai-vip-primary ai-vip-proxy-toggle" type="button" hidden disabled>启用代理</button>
     <div id="ai-vip-proxy-alert" class="ai-vip-proxy-alert" hidden><p id="ai-vip-proxy-alert-text"></p></div>
   </section>
 
   <details class="ai-vip-service">
-    <summary>适用网站与网络说明 <span aria-hidden="true">▾</span></summary>
+    <summary>使用说明 <span aria-hidden="true">▾</span></summary>
     <div class="ai-vip-service-content">
       <p>仅在通过可信 Browser SDK 与 Chrome 原生权限确认后管理本工具的代理，不修改其他工具或系统 VPN 配置。连接可用不代表第三方会员已开通。</p>
       <p>站点示例：ChatGPT · Claude · Gemini · Perplexity；最终适用范围以审核后的服务与商品说明为准。系统代理、VPN / TUN 与本工具状态分别核验。</p>

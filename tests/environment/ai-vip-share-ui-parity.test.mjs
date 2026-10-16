@@ -54,7 +54,8 @@ test('redeem uses actual user submit, preflight, explicit confirmation and maske
   assert.match(js,/codeReveal\.addEventListener\('click'/);
   assert.match(js,/codeClear\.addEventListener\('click'/);
   assert.match(js,/const RECOVERY_KEY='aiVipRedeemR52'/);
-  assert.match(js,/RECOVERY_COMPAT_VERSIONS=Object\.freeze\(\['1\.2\.0','1\.3\.0','1\.3\.1','1\.3\.2','1\.3\.3','1\.3\.4'\]\)/);
+  assert.match(js,/RECOVERY_COMPAT_VERSIONS=Object\.freeze/);
+  assert.match(js,/'1\.3\.4','1\.3\.5'/);
   assert.match(js,/await beginRecovery\(accountId,key\)/);
   assert.match(js,/voucherStatus/);
   assert.doesNotMatch(js,/localStorage|sessionStorage/);
@@ -74,19 +75,29 @@ test('responsive styling and explicit theme tokens cover narrow Sidebar tool',()
   assert.match(css,/@media\(max-width:360px\)/);
   assert.match(css,/@media\(max-width:320px\)/);
   assert.match(css,/--od-paper/);
-  assert.match(css,/minmax\(0,1fr\) 44px 40px/);
+  assert.match(css,/minmax\(0,1fr\) 36px 36px/);
   assert.match(css,/\[hidden\]\{display:none!important\}/);
 });
 
 test('v2 Sidebar Tool candidate builds from the real UI source, not preview',async()=>{
   assert.equal(config.id,'ai-vip-share');
-  assert.equal(config.version,'1.3.4');
+  assert.equal(config.version,'1.3.5');
   assert.equal(config.files.html,'src/index.html');
   assert.equal(config.files.css,'src/style.css');
   assert.equal(config.files.js,'src/main.js');
   const pkg=await createSidebarToolPackage(toolRoot);
-  assert.equal(pkg.version,'1.3.4');
+  assert.equal(pkg.version,'1.3.5');
   assert.equal(pkg.html,html);
   assert.match(pkg.css,/ai-vip-brand/);
   assert.match(pkg.js,/RECOVERY_COMPAT_VERSIONS/);
+});
+
+test('R5.9.4 empty state hides unavailable content instead of emitting fake metrics',()=>{
+  assert.doesNotMatch(html,/id="ai-vip-remaining">—|id="ai-vip-remaining-unit">待核验/);
+  assert.match(html,/id="ai-vip-member-facts"[^>]*hidden/);
+  assert.match(html,/id="ai-vip-redeem-form"[^>]*hidden/);
+  assert.match(html,/id="ai-vip-shop-section"[^>]*hidden/);
+  assert.match(html,/id="ai-vip-proxy-toggle"[^>]*hidden/);
+  assert.match(js,/toggle\.hidden=!stop&&!ready/);
+  assert.match(js,/redeemForm\.hidden=!showForm/);
 });

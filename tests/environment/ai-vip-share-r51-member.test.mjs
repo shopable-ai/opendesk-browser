@@ -81,7 +81,7 @@ const confirm=env=>node(env,'redeem-confirm').listeners.click({isTrusted:true});
 
 test('R5.2 official package grants scoped recovery storage but no network permission',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/ai-vip-share');
-  assert.equal(pkg.version,'1.3.4');
+  assert.equal(pkg.version,'1.3.5');
   assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
   assert.deepEqual(pkg.capabilities,['storage.local','network','browser.tabs','browser.proxy.managed']);
   assert.match(pkg.css,/opendesk\.shared-design\.v1/);
@@ -213,7 +213,8 @@ test('R5.1 invalid Provider identity data fails closed',async()=>{
       status:'active',title:'Bad',expiresAt:'tomorrow'}],redemptions:[]}})});
   assert.equal(node(e,'member-state').textContent,'无法核验');
   assert.equal(node(e,'redeem').disabled,true);
-  assert.equal(node(e,'remaining').textContent,'—');
+  assert.equal(node(e,'remaining').textContent,'');
+  assert.equal(node(e,'member-facts').hidden,true);
 });
 
 test('R5.2 write-ahead survives restart, never repeats consumption and reconciles final receipt',async()=>{
@@ -522,7 +523,7 @@ test('R5.2 preview expiry during journal persistence forbids consumption and ret
   assert.equal(elapsed,180000,'clock advances only after durable journal write');
   assert.equal(e.calls.filter(args=>args.method==='POST'&&args.url.endsWith('/redeem')).length,0);
   assert.equal(store.value?.accountId,'customer-123');
-  assert.equal(store.value?.packageVersion,'1.3.4');
+  assert.equal(store.value?.packageVersion,'1.3.5');
   assert.equal(e.storageCalls.filter(operation=>operation==='storage.set').length,1);
   assert.equal(node(e,'recovery').hidden,false);
   assert.equal(node(e,'redeem').disabled,true);
@@ -603,4 +604,38 @@ test('R5.2 fixed HTTPS catalog requires trust, coalesces in-flight clicks and re
   rejectOpen(Error('Denied again'));
   await flush();await flush();
   assert.equal(node(e,'shop-open').disabled,false);
+});
+
+test('R5.9.4 service-unconfigured UI omits empty metrics, disabled forms and shop',async()=>{
+  const e=await runtime();
+  for(const id of ['member-facts','benefits-section','history-details','redeem-form',
+    'shop-section','proxy-toggle','refresh'])
+    assert.equal(node(e,id).hidden,true,id+' must be absent from the visible empty state');
+  assert.equal(node(e,'remaining').textContent,'');
+  assert(!node(e,'account-name').textContent.includes('待核验'));
+});
+test('R5.9.4 guest and verified no-subscription state do not show phantom stats',async()=>{
+  for(const [account,isGuest] of [[{state:'guest'},true],[undefined,false]]){
+    const e=await runtime({configured:true,provider:async()=>({status:200,
+      data:member({account,entitlements:[]})})});
+    for(const id of ['member-facts','benefits-section','history-details'])
+      assert.equal(node(e,id).hidden,true);
+    assert.equal(node(e,'redeem-form').hidden,isGuest);
+    assert.equal(node(e,'remaining').textContent,'');
+  }
+});
+test('R5.9.4 quota, feature and exhausted entitlement get truthful distinct presentation',async()=>{
+  for(const [entitlement,want,label] of [
+    [quota,'17','权益有效'],
+    [{type:'feature',status:'active',title:'功能服务',detail:'已开放'},'已启用','权益有效'],
+    [{type:'quota',status:'exhausted',title:'请求配额',remaining:0,total:50,unit:'次'},'0','额度已用尽']
+  ]){
+    const e=await runtime({configured:true,provider:async()=>({status:200,
+      data:member({entitlements:[entitlement]})})});
+    assert.equal(node(e,'member-state').textContent,label);
+    assert.equal(node(e,'member-facts').hidden,false);
+    assert.equal(node(e,'remaining').textContent,want);
+    assert.notEqual(node(e,'remaining-unit').textContent,'天');
+    assert.equal(node(e,'benefits-section').hidden,false);
+  }
 });

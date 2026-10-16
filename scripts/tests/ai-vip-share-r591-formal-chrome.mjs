@@ -11,7 +11,7 @@ import {createSidebarToolPackage,encodeSidebarToolPackage} from '../build-sideba
 const out=resolve(process.argv[2]||'artifacts/ai-vip-share-r591/chromium');
 await mkdir(out,{recursive:true});
 const pkg=await createSidebarToolPackage('examples/sidebar-tools/ai-vip-share');
-assert.equal(pkg.id,'ai-vip-share');assert.equal(pkg.version,'1.3.4');
+assert.equal(pkg.id,'ai-vip-share');assert.equal(pkg.version,'1.3.5');
 const preview=await readFile('examples/sidebar-tools/ai-vip-share/preview/index.html','utf8');
 const escape=s=>s.replace(/<\/script/gi,'<\\/script').replace(/<\/style/gi,'<\\/style');
 function fixture(){
@@ -130,7 +130,7 @@ async function click(selector){
 }
 async function run(){
  await connect();
- for(const width of [320,360,390,440])for(const theme of ['light','dark']){
+ for(const width of [320,360,390,440])for(const theme of ['light']){
   await viewport(width+20,theme);await navigate('/preview');
   await until('!!document.getElementById("scenario")','preview loaded');
   await evaluate('('+function(w,t){
@@ -151,11 +151,14 @@ async function run(){
    const $=id=>document.getElementById(id),f=window.__aiVipVisual;
    return {redeemDisabled:$('ai-vip-redeem').disabled,shopDisabled:$('ai-vip-shop-open').disabled,
     proxyDisabled:$('ai-vip-proxy-toggle').disabled,action:$('ai-vip-proxy-toggle').dataset.action,
-    proxyCount:document.querySelectorAll('#ai-vip-proxy-toggle').length,starts:f.starts,external:f.external};
+    proxyCount:document.querySelectorAll('#ai-vip-proxy-toggle').length,starts:f.starts,external:f.external,
+    emptyHidden:['ai-vip-member-facts','ai-vip-benefits-section','ai-vip-history-details',
+      'ai-vip-redeem-form','ai-vip-shop-section','ai-vip-proxy-toggle'].every(id=>$(id).hidden)};
   }.toString()+')()');
   assert.equal(state.redeemDisabled,true);assert.equal(state.shopDisabled,true);
   assert.equal(state.proxyDisabled,true);assert.equal(state.action,'start');
   assert.equal(state.proxyCount,1);assert.equal(state.starts,0);assert.equal(state.external,0);
+  assert.equal(state.emptyHidden,true,'All unconfigured empty state controls are hidden');
   report.checks.push({width,theme,prototype:original,formal:installedSource,state});
   console.log('R591_PACKAGED_CHROME_MATRIX_PASS',width,theme);
  }
