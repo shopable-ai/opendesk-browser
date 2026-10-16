@@ -261,3 +261,11 @@ npm run check
 | 生命周期、其他扩展所有权、Mac 原生、六专家评分 >=95 | **NOT_TESTED / NOT_SCORED**，不可用 Node 测试替代 |
 
 安全边界维持 `REVIEWED_MANAGED_PROXY_PROFILES=[]`、`APPROVED_PROXY_ENDPOINT=null`；未修改正式产品 UI、SDK、Host、Driver 或并行 Owner 源码。下一步以 C1 严格 CI 的 `MANAGED_PROXY_C1_SIDE_PANEL_DIAGNOSTICS` 为准，核实 Tab 切换/列表异步加载/安装状态/CDP 目标与 Document ID，并据实最小修复。
+
+### R1.7 CI 实际回读：生产构建阻塞与 C1 不得混淆
+
+- [R5 run 38914522677](https://github.com/shopable-ai/opendesk-browser/actions/runs/38914522677)、[38914654415](https://github.com/shopable-ai/opendesk-browser/actions/runs/38914654415)、[38914674426](https://github.com/shopable-ai/opendesk-browser/actions/runs/38914674426)：严格 C1 相关修改提交后的早期 workflow 均 **FAIL**，并非完整 C1 PASS。Production Build 的 `verify-package.mjs` 拒绝 React 运行时构造器访问；后一运行的独立 receipt 门禁对不存在的 C1 回执同样 FAIL，证明不会再“构建未跑/C1 未完成却成功”。
+- [R5 run 38916929436](https://github.com/shopable-ai/opendesk-browser/actions/runs/38916929436)：`sdk-host-contracts`、`sdk-real-chromium-pac` **SUCCESS**；Product Build 中 ReactDOM 19.2.0 精确 CSP transform 对模块身份命中失败，`ReactDOM 19.2.0 input tracker descriptor drift`，Chrome C1 尚未运行。
+- [R5 run 38917137836](https://github.com/shopable-ai/opendesk-browser/actions/runs/38917137836)：`sdk-host-contracts` 与 `sdk-real-chromium-pac` **SUCCESS**；`sdk-product-bundles` 与 `sdk-formal-chromium-c1` **FAIL**。C1 Job 生产构建审计报 `Unapproved dynamic constructor reference in ui/tool-shell.js: count=1`，实际来自打包 ReactDOM 事件重放的 `new (n=e.nativeEvent).constructor(n.type,n)`；本次**未启动**原生 Side Panel Chrome 测试，`artifacts/managed-proxy-installed-c1.json` 不存在属于构建前置失败，而不是面板 E2E 失败。
+- 上述 React 安全校验器、`wxt.config.mjs` 和 React UI 均由并行 Owner 修改，本工作流不关闭 CSP/AST 扫描、不绕过构建、不覆盖该 Owner 提交。必须先在同一 SHA 的 Production Build 成功后，读取本次新增的 `MANAGED_PROXY_C1_SIDE_PANEL_DIAGNOSTICS` 和真实截图，区分 Side Panel 的 Tab/列表/数据/CDP 身份根因，再最小修复并复验。
+- **当前验收**：R1.7 CI 假阳性 fail-closed 已经由真实 FAIL 证实；实际 `FORMAL_C1_NATIVE_PASS` 尚无证据，C2 保持 **NOT_TESTED**；六类 >=95 评分保持 **NOT_SCORED**。历史 R1.6 标签页原生成功不替代本轮同 SHA Side Panel 成功。
