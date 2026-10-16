@@ -127,7 +127,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       .catch(error=>console.warn('Sidebar draft could not be retained',error));
   }
   let scriptListSequence = 0, ownedDraftRunId = null, ownedManagedPreview=null, lastPagePreview=null;
-  let reactDeveloperTarget=null;
+  let reactDeveloperTarget=null,reactDeveloperActions=null;
   let currentRevision, currentRevisionAuthorSource, currentPageState = currentPageTarget?.snapshot ?? {status:'unavailable',reason:'E_TARGET',message:'当前网页服务不可用'},
     selectionVersion = 0, running = false, disposed = false;
   const listeners = [];
@@ -326,19 +326,19 @@ export function createScriptEditor({client, currentPageTarget, development=false
       '组件草稿保留在当前窗口会话；只有明确点击运行才操作网页，安装须另外授权。';
     // Controller Save commits a Controller revision. Page ESM uses the
     // separate, preview-verified Page Candidate Save button.
-    find('script-save').disabled=editingBusy||(isComponentDraft()&&!canPrepareComponentCandidate());
+    let saveDisabled=editingBusy||(isComponentDraft()&&!canPrepareComponentCandidate());
     find('script-load').disabled=editingBusy;
-    find('script-save').title=isComponentDraft()?'保存组件候选':
+    const saveTitle=isComponentDraft()?'保存组件候选':
       lastPagePreview?.sourceFormat==='esm-page'&&previewMatchesEditor(lastPagePreview)?'保存已试运行的 Page import 候选':'保存 Controller 固定版本';
     find('script-list-refresh').disabled = editingBusy; find('script-list-load').disabled = editingBusy || !scriptList.value;
     find('script-delete').disabled = editingBusy || !revisions.has(scriptId());
-    find('script-run').disabled = stopping || editingBusy || previewBusy || running || !projection?.slotAvailable || !!host.currentRun ||
+    let runDisabled = stopping || editingBusy || previewBusy || running || !projection?.slotAvailable || !!host.currentRun ||
       (componentMode!=='javascript'||!programSource.source().trim()) || programSource.kind() === 'page-userscript' ||
       (browserCompilerEnabled&&hasUnbuiltESM(programSource.source())&&!componentRemote?.readyForRun) ||
       !controllerClassicReadyForRun() ||
       mode.value === 'current' && currentPageState?.status !== 'available';
-    find('script-stop').disabled = stopping || !browserPreparing&&!componentRemote?.busy&&!canStopManaged()&&(!ownedDraftRunId || host.currentRun !== ownedDraftRunId);
-    find('script-stop').textContent=browserPreparing||componentRemote?.busy?'取消准备':canStopManaged()?'停止受管 UI':'停止';
+    const stopDisabled = stopping || !browserPreparing&&!componentRemote?.busy&&!canStopManaged()&&(!ownedDraftRunId || host.currentRun !== ownedDraftRunId);
+    const stopLabel=browserPreparing||componentRemote?.busy?'取消准备':canStopManaged()?'停止受管 UI':'停止';
     if(componentSelector)componentSelector.disabled=!!localProject?.active()||editingBusy||previewBusy||running||stopping||componentRemote?.busy||!!programSource.snapshot();
     if(componentStatus)componentStatus.hidden=componentMode==='javascript'&&!componentStatus.textContent;
     find('page-preview-run').disabled = stopping||browserEffectUnknown||browserManagedPreview?.recoveredOnly||otherTabOwnsBrowserUI()||previewBusy||componentRemote?.busy||dependencyInstaller?.busy ||
@@ -349,30 +349,41 @@ export function createScriptEditor({client, currentPageTarget, development=false
       (componentMode!=='javascript'&&!componentRemote?.readyForRun)||
       currentPageState?.status!=='available';
     find('page-preview-run').textContent=componentMode==='javascript'?'在当前网页试运行':'运行'+(componentMode==='react'?' React':' Vue')+' 组件';
-    if(isComponentDraft())find('script-run').disabled=find('page-preview-run').disabled||!projection?.slotAvailable;
+    if(isComponentDraft())runDisabled=find('page-preview-run').disabled||!projection?.slotAvailable;
     const pageCandidateButton=find('page-candidate-save');
     if(pageCandidateButton)pageCandidateButton.disabled=!canSavePagePreview()&&!canPrepareComponentCandidate();
     if(pageCandidateButton)pageCandidateButton.title='';
     find('script-owned-url').disabled = mode.value !== 'owned';
     tab.disabled = mode.value !== 'borrowed'; frame.disabled = mode.value !== 'borrowed' || !documents.size;
     find('script-download').disabled = downloading || !downloadable.has(resultSelect.value);
+    let saveHidden=false,saveLabel='保存版本',runLabel='运行草稿';
     if(localProject?.active()){
       for(const id of ['script-load','script-list-load','script-delete','page-preview-run','task-create-candidate'])if(find(id))find(id).disabled=true;
-      find('script-save').hidden=!localInstaller.canSave();
-      find('script-save').disabled=editingBusy||running||stopping||previewBusy||!localInstaller.canSave();
-      find('script-save').textContent=localInstaller.saveLabel();
-      find('script-run').textContent='运行本地项目';
-      find('script-run').disabled=stopping||editingBusy||previewBusy||running||!projection?.slotAvailable||!!host.currentRun||!localProject.canAttemptRun()||currentPageState?.status!=='available';
+      saveHidden=!localInstaller.canSave();
+      saveDisabled=editingBusy||running||stopping||previewBusy||!localInstaller.canSave();
+      saveLabel=localInstaller.saveLabel();
+      runLabel='运行本地项目';
+      runDisabled=stopping||editingBusy||previewBusy||running||!projection?.slotAvailable||!!host.currentRun||!localProject.canAttemptRun()||currentPageState?.status!=='available';
       find('script-version').textContent='本地项目模式 · 手工草稿已保留；运行所选项目准备完成的代码';
     }else {
-      find('script-save').hidden=false;
-      find('script-run').textContent=componentMode!=='javascript'
+      runLabel=componentMode!=='javascript'
         ? '运行'+(componentMode==='react'?' React':' Vue')+' 组件'
         : '运行草稿';
-      find('script-save').textContent=isComponentDraft()?'准备并保存网页脚本':'保存版本';
+      saveLabel=isComponentDraft()?'准备并保存网页脚本':'保存版本';
     }
     find('script-library-tools').hidden=!!localProject?.active();
     find('page-preview-tools').hidden=!!localProject?.active();
+    const actions={runDisabled,runLabel,saveDisabled,saveHidden,saveTitle,saveLabel,
+      stopDisabled,stopLabel,onRun:start,onSave:saveClick,
+      onStop:event=>{if(event?.isTrusted&&!disposed)Promise.resolve().then(stop).catch(fail);}};
+    if(reactDeveloperActions)reactDeveloperActions(actions);
+    else{
+      const runButton=find('script-run'),saveButton=find('script-save'),stopButton=find('script-stop');
+      runButton.disabled=runDisabled;runButton.textContent=runLabel;
+      saveButton.disabled=saveDisabled;saveButton.hidden=saveHidden;
+      saveButton.title=saveTitle;saveButton.textContent=saveLabel;
+      stopButton.disabled=stopDisabled;stopButton.textContent=stopLabel;
+    }
     dependencyInstaller?.update();
   }
   function renderCurrentPage(next) {
@@ -1239,12 +1250,14 @@ export function createScriptEditor({client, currentPageTarget, development=false
     editingBusy = true; update();
     try {await operation();} finally {editingBusy = false; update();}
   };
-  listen(find('script-save'),'click',event=>{
-    if(!event.isTrusted)return;
+  function saveClick(event){
+    if(!event?.isTrusted||disposed)return;
     Promise.resolve().then(()=>localProject?.active()?localInstaller.prepare():
       isComponentDraft()?savePreparedComponent():
       lastPagePreview?.sourceFormat==='esm-page'&&previewMatchesEditor(lastPagePreview)?savePageCandidate():edit(save)()).catch(fail);
-  }); on('script-load','click',edit(load)); on('script-list-load','click',edit(loadLatestFromList));
+  }
+  listen(find('script-save'),'click',saveClick);
+  on('script-load','click',edit(load)); on('script-list-load','click',edit(loadLatestFromList));
   on('script-read','click',()=>read('')); on('script-delete','click',edit(remove)); on('script-list-refresh','click',()=>refreshScripts().catch(fail));
   on('script-read-run','click',()=>read());
   on('script-history-open','click',()=>read(find('script-history-run').value));
@@ -1323,7 +1336,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       node.textContent=(error.code||'E_PAGE_CANDIDATE')+'：'+(error.message||error);
     });
   });
-  on('script-stop','click',async () => {
+  async function stop(){
     if(browserPreparing||componentRemote?.busy){
       browserPrepareGeneration++;browserPreparing=false;browserPreparer.cancel();componentRemote.cancel();
       componentMessage('completed','已取消本次准备；迟到结果不会运行。');update();return;
@@ -1376,7 +1389,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
     stopping = true; update(); display('stopping','正在提交停止并等待持久收尾…');
     try {await host.stop({runId:ownedDraftRunId,controller:true});}
     finally {stopping = false; update();}
-  });
+  }
+  on('script-stop','click',stop);
   api.webNavigation.onCommitted.addListener(onNavigation); api.tabs.onRemoved.addListener(onRemoved);
   browserListenersAttached = true;
   const unsubscribeRun = host.subscribe(next => {
@@ -1438,7 +1452,20 @@ export function createScriptEditor({client, currentPageTarget, development=false
     display('draft','已导入未保存草稿；请返回目标网页后明确点击运行');
   }
   scheduleControllerClassicWarm();
-  return {host,connectReactDeveloperTarget(render){
+  return {host,connectReactDeveloperActions(render){
+    if(disposed||reactDeveloperActions||typeof render!=='function')
+      throw new Error('E_REACT_DEVELOPER_ACTIONS_OWNERSHIP');
+    const attached=['script-run','script-save','script-stop'].map(id=>
+      listeners.filter(entry=>entry.element===find(id)&&entry.event==='click'));
+    if(attached.some(entries=>entries.length!==1))
+      throw new Error('E_REACT_DEVELOPER_LEGACY_LISTENERS');
+    // Remove the legacy listeners before React replaces the DOM children.
+    for(const entry of attached.flat()){
+      entry.element.removeEventListener(entry.event,entry.listener);
+      listeners.splice(listeners.indexOf(entry),1);
+    }
+    reactDeveloperActions=render;update();
+  },connectReactDeveloperTarget(render){
     if(disposed||reactDeveloperTarget||typeof render!=='function')
       throw new Error('E_REACT_DEVELOPER_TARGET_OWNERSHIP');
     reactDeveloperTarget=render;renderCurrentPage(currentPageState);
@@ -1489,7 +1516,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   }, resourceSnapshot: () => ({...host.resourceSnapshot(), editor:{
     timers:[...downloads.values(),...preparations.values()].filter(entry=>entry.timer != null).length+Number(localPollTimer!=null),
     pending:Number(downloading)+preparations.size, subscriptions:listeners.length+2*Number(browserListenersAttached)+Number(Boolean(unsubscribeCurrentPage))+(localProject?.resourceSnapshot().subscriptions||0)}}), dispose() {
-    if (disposed) return; disposed = true; reactDeveloperTarget=null; controllerClassicConsent.dispose(); componentRemote.dispose(); browserPrepareGeneration++; browserPreparer.dispose();staticESMPreparer.dispose(); scriptsCheckSequence++; localInstaller.dispose();localProject?.dispose();pageLibrary.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyReview.dispose();dependencyResolver.dispose();dependencyInstaller.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
+    if (disposed) return; disposed = true; reactDeveloperTarget=null;reactDeveloperActions=null; controllerClassicConsent.dispose(); componentRemote.dispose(); browserPrepareGeneration++; browserPreparer.dispose();staticESMPreparer.dispose(); scriptsCheckSequence++; localInstaller.dispose();localProject?.dispose();pageLibrary.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyReview.dispose();dependencyResolver.dispose();dependencyInstaller.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
     api.webNavigation.onCommitted.removeListener(onNavigation); api.tabs.onRemoved.removeListener(onRemoved); host.dispose();
     browserListenersAttached = false;
     for (const {element, event, listener} of listeners) element.removeEventListener(event, listener);
