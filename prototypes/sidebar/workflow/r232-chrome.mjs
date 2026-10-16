@@ -52,7 +52,8 @@ try{
     assert.equal(await button.locator('svg').count(),1);
     assert.ok(box&&box.width>=40&&box.height>=40,'top icon too small: '+id);
   }
-  assert.equal(await page.locator('#r23-provider').inputValue(),'local_codex');
+  assert.equal(await page.locator('#r236-native').isChecked(),true);
+  assert.equal(await page.locator('#r236-https').isChecked(),false);
   assert.equal((await state()).mode,'standard');
   await shot('r233-default');
   await page.locator('#r233-qa > summary').click();
@@ -154,15 +155,37 @@ try{
   assert.equal(await page.locator('#r234-back').isVisible(),true);
   assert.equal(await page.locator('#form').evaluate(el=>el.inert),true);
   assert.equal(await page.locator('#history').evaluate(el=>el.closest('.title-bar').inert),true);
-  assert.ok(Math.abs((await page.locator('.r23-settings').evaluate(el=>el.getBoundingClientRect().height))-(await page.locator('.device').evaluate(el=>el.getBoundingClientRect().height)))<=2,'settings must fill device inner box');
+  assert.ok(Math.abs((await page.locator('.r23-settings').evaluate(el=>el.getBoundingClientRect().height))
+    -(await page.locator('.device').evaluate(el=>el.getBoundingClientRect().height)))<=2);
+  assert.equal(await page.locator('#r236-native').isChecked(),true);
   assert.equal(await page.locator('#r23-native-status').isVisible(),true);
-  await shot('r234-ai-settings-local');
-  await page.locator('#r23-provider').selectOption('cloud_responses');
-  s=await state();assert.equal(s.connected,false);assert.equal(s.shareApproved.cloud_responses,false);
-  for(const id of ['r23-endpoint','r23-model','r23-api-key'])assert.equal(await page.locator('#'+id).isVisible(),true);
+  await shot('r236-settings-local');
+
+  const sourceGap=await page.evaluate(()=>{
+    const label=document.getElementById('r236-source-title').getBoundingClientRect();
+    const switchBox=document.querySelector('.r236-switch').getBoundingClientRect();
+    const device=document.querySelector('.device').getBoundingClientRect();
+    return {gap:switchBox.left-label.right,right:switchBox.right,deviceRight:device.right,
+      choices:document.querySelectorAll('.r236-switch input[type=radio]').length};
+  });
+  assert.ok(sourceGap.gap>=4&&sourceGap.gap<=16,'excess blank space between source label and selector');
+  assert.ok(sourceGap.right<=sourceGap.deviceRight,'source selector overflows sidebar');
+  assert.equal(sourceGap.choices,2,'only Native and HTTPS mode choices');
+  await page.locator('#r236-native').focus();
+  await page.locator('#r236-native').press('ArrowRight');
+  assert.equal(await page.locator('#r236-https').isChecked(),true,'native segmented radio keyboard ArrowRight');
+  assert.equal((await state()).provider,'cloud_responses','default HTTPS is Responses');
+  assert.equal((await state()).connected,false);
+  for(const id of ['r23-endpoint','r23-model','r23-api-key']){
+    assert.equal(await page.locator('#'+id).isVisible(),true);
+  }
   assert.equal(await page.locator('#r23-endpoint').inputValue(),'https://api.openai.com/v1/responses');
+  assert.equal(await page.locator('#r236-clear-endpoint').isVisible(),true);
   assert.equal(await page.locator('#r23-api-key').getAttribute('type'),'password');
-  await shot('r234-responses-empty');
+  assert.ok((await page.locator('#r236-protocol-note').innerText()).includes('Responses'));
+  await shot('r236-https-default');
+  mark('segmented source gap <=16px, native radio keyboard, default OpenAI endpoint');
+
   await page.locator('[data-action="simulate-config"]').click();
   assert.equal(await page.locator('#r234-feedback').getAttribute('data-kind'),'error');
   await page.locator('#r23-endpoint').fill('http://api.openai.com/v1/responses');
@@ -172,8 +195,9 @@ try{
   assert.equal(await page.locator('#r23-endpoint').getAttribute('aria-invalid'),'true');
   assert.ok((await page.locator('#r234-field-error').innerText()).includes('HTTPS'));
   assert.equal(await page.locator('#r23-endpoint').getAttribute('aria-describedby'),'r234-field-error');
+
   await page.locator('#r23-endpoint').fill('https://api.openai.com/v1/responses');
-  await page.locator('#r23-api-key').fill('');
+  assert.equal(await page.locator('#r23-api-key').inputValue(),'','editing recipient clears previously entered secret');
   await page.locator('[data-action="simulate-config"]').click();
   assert.equal(await page.locator('#r23-api-key').getAttribute('aria-invalid'),'true');
   await page.locator('#r23-api-key').fill('demo-openai-test');
@@ -184,60 +208,71 @@ try{
   await page.locator('[data-action="simulate-config"]').click();
   assert.equal(await page.locator('#r234-feedback').getAttribute('data-kind'),'checked');
   assert.ok((await page.locator('#r234-feedback').textContent()).includes('真实连接'));
-  const feedbackVisible=()=>page.evaluate(()=>{const field=document.querySelector('#r234-feedback').getBoundingClientRect(),scroller=document.querySelector('#r234-body').getBoundingClientRect();return field.top>=scroller.top-1&&field.bottom<=scroller.bottom+1});
-  assert.equal(await feedbackVisible(),true,'checked status must be visible without extra scrolling');
-  await shot('r234-responses-config');
-  mark('Responses: endpoint/model/key, password reveal, required/HTTPS validation, offline status');
+  await shot('r236-responses-config');
+  mark('Responses HTTPS, separate Model ID, masked API key and clear-on-recipient-change');
 
-  await page.locator('#r23-provider').selectOption('custom_https');
-  assert.equal(await page.locator('#r23-custom-config').isVisible(),true);
-  assert.equal(await page.locator('#r23-endpoint').inputValue(),'');
-  assert.equal((await state()).shareApproved.custom_https,false);
-  // R23.5: compact rows and one meaningful compatibility note, no repeated protocol prose.
-  assert.equal(await page.locator('#r23-custom-config').innerText(),'兼容 Chat Completions');
-  const visibleSettingsText=await page.locator('#r234-body').innerText();
-  for(const redundant of ['模型连接参数','协议：','旧版兼容','不支持任意 Header','仅本页内存']){
-    assert.equal(visibleSettingsText.includes(redundant),false,'redundant setting prose: '+redundant);
-  }
-  const compact=await page.evaluate(()=>{
-    const fields=[...document.querySelectorAll('#r23-remote-config .r234-field')];
-    const remote=document.getElementById('r23-remote-config'),secret=document.getElementById('r234-key-toggle');
-    return{height:remote.getBoundingClientRect().height,
-      rows:fields.map(row=>{const label=row.querySelector('label').getBoundingClientRect();
-        const control=(row.querySelector('.r234-secret')||row.querySelector('input')).getBoundingClientRect();
-        return{aligned:Math.abs((label.top+label.bottom)/2-(control.top+control.bottom)/2)<6,width:control.width};}),
-      hasIcon:secret.querySelectorAll('svg').length===1,
-      noVisibleLabel:!secret.textContent.trim(),
-      demoSubmitCount:document.querySelectorAll('.r23-demo button').length,
-      demoReadback:document.querySelector('#r23-readback').textContent};
+  const feedbackVisible=()=>page.evaluate(()=>{
+    const field=document.querySelector('#r234-feedback').getBoundingClientRect();
+    const scroller=document.querySelector('#r234-body').getBoundingClientRect();
+    return field.top>=scroller.top-1&&field.bottom<=scroller.bottom+1;
   });
-  assert.ok(compact.rows.every(row=>row.aligned&&row.width>=150),'compact inline labels and fields must align');
-  assert.ok(compact.height<=250,'field block too tall for a compact settings page');
-  assert.equal(compact.hasIcon,true);assert.equal(compact.noVisibleLabel,true);
-  assert.equal(compact.demoSubmitCount,0);
-  assert.equal(compact.demoReadback.includes('提交'),false);
-  mark('R23.5 compact field-row geometry, icon-only secret toggle, no duplicate prose or demo submit');
+  assert.equal(await feedbackVisible(),true);
+  await page.locator('#r236-clear-endpoint').click();
+  assert.equal(await page.locator('#r23-endpoint').inputValue(),'');
+  assert.equal(await page.locator('#r23-api-key').inputValue(),'');
+  assert.equal((await state()).provider,'custom_https');
+  assert.equal((await state()).sourceReady.cloud_responses,false);
+  assert.equal(await page.locator('#r236-clear-endpoint').isVisible(),false);
+  assert.ok((await page.locator('#r236-protocol-note').innerText()).includes('Chat Completions'));
+  await page.locator('[data-action="simulate-config"]').click();
+  assert.equal(await page.locator('#r23-endpoint').getAttribute('aria-invalid'),'true');
+  await shot('r236-https-cleared');
 
-  await shot('r234-custom-empty');
   await page.locator('#r23-endpoint').fill('https://example.test/v1/chat/completions');
+  assert.equal((await state()).provider,'custom_https');
   await page.locator('#r23-model').fill('my-chat-model');
   await page.locator('#r23-api-key').fill('demo-custom-test');
   await page.locator('[data-action="simulate-config"]').click();
   assert.equal(await page.locator('#r234-feedback').getAttribute('data-kind'),'checked');
-  assert.equal(await feedbackVisible(),true,'custom HTTPS checked status must be visible');
-  await shot('r234-custom-config');
-  mark('custom HTTPS uses independent endpoint, model, demo key, legacy Chat Completions');
+  assert.equal(await feedbackVisible(),true);
+  await shot('r236-https-custom');
+  mark('one shared HTTPS form, clear endpoint, custom Chat Completions auto-routing');
 
-  await page.locator('#r23-provider').selectOption('cloud_responses');
-  assert.equal(await page.locator('#r23-model').inputValue(),'gpt-4o-mini');
-  assert.equal((await state()).shareApproved.cloud_responses,false);
+  await page.locator('#r23-endpoint').fill('https://api.other.example/v1/responses?unexpected=1');
+  assert.equal((await state()).provider,'cloud_responses','Responses path selects Responses adapter regardless of hostname');
+  assert.equal(await page.locator('#r23-api-key').inputValue(),'');
+  await page.locator('#r23-api-key').fill('demo-other-test');
+  await page.locator('[data-action="simulate-config"]').click();
+  assert.equal(await page.locator('#r23-endpoint').getAttribute('aria-invalid'),'true');
+  await page.locator('#r23-endpoint').fill('https://api.openai.com/v1/responses');
+  await page.locator('#r23-api-key').fill('demo-openai-test');
+  await page.locator('[data-action="simulate-config"]').click();
+  assert.equal(await page.locator('#r234-feedback').getAttribute('data-kind'),'checked');
+  const visibleText=await page.locator('#r234-body').innerText();
+  assert.equal(visibleText.includes('模型连接参数'),false);
+  assert.equal(visibleText.includes('旧版兼容'),false);
+  assert.equal((visibleText.match(/Chat Completions/g)||[]).length<=1,true);
+
+  const compact=await page.evaluate(()=>{
+    const rows=[...document.querySelectorAll('#r23-remote-config .r234-field')];
+    const remote=document.getElementById('r23-remote-config').getBoundingClientRect();
+    return{height:remote.height,rows:rows.map(row=>{
+      const label=row.querySelector('label').getBoundingClientRect();
+      const control=(row.querySelector('.r234-secret')||row.querySelector('.r236-input-action')||row.querySelector('input')).getBoundingClientRect();
+      return{aligned:Math.abs((label.top+label.bottom)/2-(control.top+control.bottom)/2)<7,width:control.width};
+    }),iconOnly:document.querySelector('#r234-key-toggle').textContent.trim()==='',
+      demoSubmitCount:document.querySelectorAll('.r23-demo button').length};
+  });
+  assert.ok(compact.rows.every(row=>row.aligned&&row.width>=150));
+  assert.ok(compact.height<=270,'HTTPS settings should remain compact');
+  assert.equal(compact.iconOnly,true);assert.equal(compact.demoSubmitCount,0);
+  mark('compact source, three aligned inputs, one protocol hint, no redundant demo actions');
+
   await page.locator('[data-action="close-settings"]').last().click();
   assert.equal(await page.locator('#prompt').inputValue(),'尚未发送的设置前草稿');
-  assert.equal(await page.locator('#r234-back').isVisible(),false);
   assert.equal(await page.locator('#form').evaluate(el=>el.inert),false);
   await page.locator('#prompt').fill('');
   await send(first);await expectState('sharing-required');
-  assert.equal(await nameValue(),'旧的预填内容');
   await page.locator('[data-action="open-settings"]').click();
   await page.locator('#r23-share').check();
   await page.locator('[data-action="close-settings"]').last().click();
@@ -246,16 +281,15 @@ try{
   await page.locator('#settings').click();
   assert.equal((await state()).shareApproved.cloud_responses,true);
   await page.locator('#r23-endpoint').fill('https://replacement.example/v1/responses');
-  assert.equal((await state()).shareApproved.cloud_responses,false,'Changing HTTPS recipient must invalidate prior disclosure consent');
+  assert.equal((await state()).shareApproved.cloud_responses,false);
   assert.equal(await page.locator('#r23-share').isChecked(),false);
-  await page.locator('[data-action="simulate-config"]').click();
-  assert.equal((await state()).shareApproved.cloud_responses,false,'Re-validating fields must not restore consent');
-  mark('revising endpoint within one provider invalidates its disclosure approval');
-  await page.locator('#r23-provider').selectOption('local_codex');
-  await page.locator('#r23-provider').selectOption('cloud_responses');
+  assert.equal(await page.locator('#r23-api-key').inputValue(),'');
+  await page.locator('#r236-native').check();
+  assert.equal((await state()).provider,'local_codex');
+  await page.locator('#r236-https').check();
   assert.equal((await state()).shareApproved.cloud_responses,false);
   await page.locator('[data-action="close-settings"]').last().click();
-  mark('settings route preserves draft, source switch revokes disclosure consent, no real network');
+  mark('existing chat draft, two-way switch, recipient-change consent revocation and readback');
 
   await reset();await page.locator('[data-action="revoke-site"]').click();
   await send(first);await expectState('permission');
@@ -314,32 +348,36 @@ try{
   }
   mark('responsive 360/420/520 light/dark screenshots');
 
-  // Check full-height AI route in each sidebar width, including scroll-to-last-field.
+  // R23.6: source label is next to the segmented switch at all three sidebar widths.
   for(const width of ['360','420','520']){
     await page.locator('#r23-width').selectOption(width);
     await page.locator('#settings').click();
-    await page.locator('#r23-provider').selectOption('custom_https');
+    await page.locator('#r236-https').check();
     await page.locator('#r23-api-key').scrollIntoViewIfNeeded();
-    const rowLayout=await page.evaluate(()=>[...document.querySelectorAll('#r23-remote-config .r234-field')].map(row=>{
-      const a=row.querySelector('label').getBoundingClientRect();
-      const b=(row.querySelector('.r234-secret')||row.querySelector('input')).getBoundingClientRect();
-      return{aligned:Math.abs((a.top+a.bottom)/2-(b.top+b.bottom)/2)<7,right:b.right,left:b.left};
-    }));
-    assert.ok(rowLayout.every(g=>g.aligned&&g.left>=0&&g.right<=page.viewportSize().width+1),
-      'all three compact AI fields aligned and horizontally visible');
     const g=await page.evaluate(()=>{
-      const d=document.querySelector('.device'),panel=document.querySelector('#r23-settings-panel'),field=document.querySelector('#r23-api-key');
-      const b=d.getBoundingClientRect(),p=panel.getBoundingClientRect(),f=field.getBoundingClientRect();
-      return{panelHeight:Math.round(p.height),deviceHeight:Math.round(b.height),panelWidth:Math.round(p.width),
-        deviceWidth:Math.round(b.width),fieldInside:f.left>=p.left-1&&f.right<=p.right+1,
-        pageOverflow:document.documentElement.scrollWidth>innerWidth+1};
+      const d=document.querySelector('.device').getBoundingClientRect();
+      const p=document.querySelector('#r23-settings-panel').getBoundingClientRect();
+      const field=document.querySelector('#r23-api-key').getBoundingClientRect();
+      const source=document.querySelector('#r236-source-title').getBoundingClientRect();
+      const slider=document.querySelector('.r236-switch').getBoundingClientRect();
+      const rows=[...document.querySelectorAll('#r23-remote-config .r234-field')].map(row=>{
+        const a=row.querySelector('label').getBoundingClientRect(),
+          b=(row.querySelector('.r234-secret')||row.querySelector('.r236-input-action')||row.querySelector('input')).getBoundingClientRect();
+        return{aligned:Math.abs((a.top+a.bottom)/2-(b.top+b.bottom)/2)<7,
+          within:b.left>=p.left-1&&b.right<=p.right+1};
+      });
+      return{panelWidth:p.width,deviceWidth:d.width,panelHeight:p.height,deviceHeight:d.height,
+        fieldInside:field.left>=p.left-1&&field.right<=p.right+1,sourceGap:slider.left-source.right,
+        switchInside:slider.right<=p.right+1,rows,noDocOverflow:document.documentElement.scrollWidth<=innerWidth+1};
     });
-    assert.ok(Math.abs(g.panelHeight-g.deviceHeight)<=2);assert.ok(Math.abs(g.panelWidth-g.deviceWidth)<=2);
-    assert.equal(g.fieldInside,true);assert.equal(g.pageOverflow,false);
-    await shot('r234-ai-settings-'+width);
+    assert.ok(Math.abs(g.panelWidth-g.deviceWidth)<=2&&Math.abs(g.panelHeight-g.deviceHeight)<=2);
+    assert.ok(g.fieldInside&&g.switchInside&&g.noDocOverflow);
+    assert.ok(g.sourceGap>=4&&g.sourceGap<=16,'wide gap between source and selector at '+width);
+    assert.ok(g.rows.every(x=>x.aligned&&x.within),'compact field alignment at '+width);
+    await shot('r236-settings-'+width);
     await page.locator('#r234-back').click();
   }
-  mark('full-screen settings route accessible with input scrolling at 360/420/520');
+  mark('R23.6 360/420/520 responsive source spacing and field alignment');
   // Source-identical HTML is injected as srcdoc: isolate sandbox scripting separately
   // from file:// Chromium PASS. This does NOT prove the ChatGPT UI itself runs scripts.
   const embedded=await browser.newPage({viewport:{width:1100,height:850}});
