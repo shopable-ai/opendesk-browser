@@ -269,3 +269,12 @@ R23.5 的「AI 来源」下拉沿用了三种 Provider 并使用与其它表单�
 - **最小安全保护**：Endpoint 一有变动即清空此前输入的演示密钥、全部 HTTPS 模拟配置状态和接收方摘要许可；切换本机/HTTPS 也不能继承许可；仅支持 HTTPS 和 `demo-...` 虚拟密钥。任何已填字段都不意味着已联网。
 - **未动范围**：正式 `src/ui/workflow`、SDK、RunHost、Chrome 权限未改；顶部历史／新对话／新工作流、两轮模拟、只读与每次确认、高风险防护继续保留。
 - **独立证据门槛**：Chromium 真实来源 Radio 点击/键盘、清空按钮、自动路由、Endpoint 改变密钥清除、授权撤销、三宽间距、200% 原生缩放与无表单沙箱双轮读回。用户没有要求截图，本轮不以截图充当交互证明。六维独立专家 ≥95 仍需真实证据与外部 UX 审核，不能自行宣布。
+
+ 
+### 12.2 最终实证与反方质量门禁
+
+- 源码版本：Workflow R23.6 单一 HTML Blob `3078aae17eb9101ac1f7588c339259a98d984d59`，没有新增第二份原型或模拟器，正式 Provider/Browser SDK/RunHost 未修改。
+- 最新 [GitHub Actions #38913244892](https://github.com/shopable-ai/opendesk-browser/actions/runs/38913244892)，被测 HEAD `0f69552761e9e648ecd247ef216a5037414a31dc`；`exact-saved-html` 与 `native-browser-zoom` 两项 SUCCESS。来源绑定 Chromium `R234_SOURCE_BOUND_CHROMIUM_PASS 22`，原生 Chrome 200% `R234_REAL_CHROME_UI_200_ZOOM_PASS`。
+- 独立本地 Chromium 144 复核（非正式 Chrome 155 CI 的替代）：360／420／520px AI 来源文字与开关实际间距均为 **9px**；下方协议小字和接口输入框左边沿偏差为 **0px**；没有横向溢出与脚本错误。两轮模拟最终读回「项目已启动」，提交/导航均为零。点击清空 URL 后自动变成 Chat Completions 来源，旧密钥及旧授权被清空。
+- **反方 UX 核查**：避免为简洁而隐藏必填 Endpoint/Model/API Key；不能把两种不同协议当成同一个 HTTP 请求；不能把自定义 Responses 域名误称 OpenAI 官方；旧 Key 不能跟随 Endpoint 换接收方；两段切换不得丢失屏幕阅读器的单选语义；360px/200% 不可裁切。对应布局和代码行为均有回归测试，待用户实体验证视觉观感。
+- 质量评分说明：目标仍为六维 ≥95。Chromium PASS、比例几何和内部 UX 复核不等于六名外部独立专家评分。缺少真实 ChatGPT 宿主、Mac VoiceOver、正式扩展实际 UI 和用户主观视觉评审时，相关评分 **NOT_SCORED**；原型仍为 `DESIGN_REVIEW_REQUIRED`。
