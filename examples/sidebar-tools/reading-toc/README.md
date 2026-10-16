@@ -114,3 +114,11 @@ R4.5 资源迁移的候选、测试与真实浏览器证据见 [专项工作流]
 - 可编辑唯一源：`examples/sidebar-tools/reading-toc/locales.json`。独立包构建器在 `src/main.js` 中编入校验通过的文案。
 - 可信代码使用 `src/reading-toc/locales.generated.js`，由 `node scripts/generate-reading-toc-locales.mjs --write` 确定性生成并带源 blob 摘要；生成后审阅差异再提交。`npm run check`、`npm run build`、`npm run dev` 都会拒绝未经同步的资源，保持 Content Script 安全来源检查。不得在可信 bundle 中直接 import 工具项目。
 - 本地可交互预览由同一个 `scripts/preview/build-preview.mjs` 生成，示例命令见 [preview/README.md](preview/README.md)。同时复用安装包的 HTML/CSS/JS 和可信 `src/reading-toc/view.js`；模拟文章不是正式浏览器网站或真实 Chrome 验收。
+
+## R1.8 · 已批准 AI 侧栏 UI 的正式源码迁移（2026-10-17）
+
+- 正式源码候选从 v1.0.7 升到 **v1.0.8**；保持 `reading-toc`、`opendesk.sidebar-tool.v1`、唯一 `page.toc` 能力和三个免费视图的全部索引/跳转/自动跟随流程。第四个 **AI** 仅在 Side Panel 内显示，可信网页悬浮目录不变。
+- AI 视图默认显示**服务暂未开放**的权益卡及**合作招募**。没有受信会员、支付、AI 生成合同，因此当前不会请求模型、上传正文、生成章节或伪造付款。入口禁用且隐藏，已具备会员/额度/AI 结果不作猜测。
+- 这次改动先是**正式源码候选**，不是安装验证声明。项目根目录稳定安装包在候选经 Node/Chromium/原生安装测试并经 `--promote-from` 之前仍为已发行版本。不要手动改写此 JSON、历史 reading-kit revision 6 或用户数据。
+- 后续真实接入必须复用受信 Broker 与身份权限合同，并对来源、页面、文档、请求世代和取消/刷新/撤权进行严格校验；未接入时 UI 安全降级。
+- R1.8 新增 `tests/environment/reading-toc-ai-r18.test.mjs`，包括正式打包后的 UI、会员可用性、默认推广、locale、四种模式和免费回归断言。必须结合正式 Chromium/Chrome 安装验收及构建结果判断可发布性。

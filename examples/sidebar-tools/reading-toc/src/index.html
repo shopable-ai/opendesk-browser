@@ -2,7 +2,25 @@
 <div class="toc-head"><strong class="toc-title">CONTENTS</strong><div class="toc-actions"><div class="toc-modes" role="group" aria-label="目录视图">
 <button type="button" data-toc-mode="top" aria-label="章节概览（自动补充子章节）" title="章节概览" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16"/></svg></button>
 <button type="button" data-toc-mode="focus" aria-label="当前章节" title="当前章节" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2"/></svg></button>
-<button type="button" data-toc-mode="full" aria-label="完整目录" title="完整目录" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 5h13M13 12h8M13 19h8M3 10a2 2 0 0 0 2 2h3M3 5v12a2 2 0 0 0 2 2h3"/></svg></button></div><button type="button" id="toc-refresh" class="toc-refresh" aria-label="刷新阅读目录" title="重新读取当前网页章节"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.4 6M20 4v7h-7"/></svg></button></div></div>
+<button type="button" data-toc-mode="full" aria-label="完整目录" title="完整目录" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 5h13M13 12h8M13 19h8M3 10a2 2 0 0 0 2 2h3M3 5v12a2 2 0 0 0 2 2h3"/></svg></button>
+<button type="button" data-toc-mode="ai" aria-label="AI 整理" title="AI 整理" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 1.55 5.2L19 10l-5.45 1.8L12 17l-1.55-5.2L5 10l5.45-1.8L12 3Z"/><path d="m19 17 .65 1.35L21 19l-1.35.65L19 21l-.65-1.35L17 19l1.35-.65L19 17ZM4 15l.62 1.38L6 17l-1.38.62L4 19l-.62-1.38L2 17l1.38-.62L4 15Z"/></svg></button></div><button type="button" id="toc-refresh" class="toc-refresh" aria-label="刷新阅读目录" title="重新读取当前网页章节"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.4 6M20 4v7h-7"/></svg></button></div></div>
+<section id="toc-ai-view" class="toc-ai-view" aria-label="AI 整理目录" hidden>
+  <div id="toc-member-card" class="toc-member-card">
+    <div class="toc-member-head"><strong id="toc-member-title" class="toc-member-title">AI 整理</strong><span id="toc-member-tag" class="toc-member-tag">会员专属</span></div>
+    <p id="toc-member-description" class="toc-member-description">为长文章生成可跳转的智能目录</p>
+    <div class="toc-member-bottom"><span id="toc-member-meta" class="toc-member-meta">服务暂未开放</span><button type="button" id="toc-member-entry" class="toc-member-entry" hidden disabled></button></div>
+    <p id="toc-member-disclaimer" class="toc-member-disclaimer">会员与支付服务尚未接入</p>
+  </div>
+  <section id="toc-promo" class="toc-promo" aria-label="合作招募">
+    <div class="toc-promo-head"><span id="toc-promo-brand" class="toc-promo-brand">OpenDesk · 合作计划</span><span id="toc-promo-kind" class="toc-promo-kind">合作招募</span></div>
+    <h2 id="toc-promo-title" class="toc-promo-title">广告位开放合作</h2>
+    <p id="toc-promo-description" class="toc-promo-description">欢迎阅读、效率和开发工具相关品牌合作</p>
+    <button type="button" id="toc-promo-action" class="toc-promo-action" hidden></button>
+  </section>
+  <nav id="toc-ai-navigation" aria-label="AI 整理目录" hidden><ul id="toc-ai-list" class="toc-list"></ul></nav>
+  <footer id="toc-ai-status" class="toc-ai-status" role="status">AI 整理 · 暂未开放</footer>
+</section>
+<div id="toc-free-view">
 <select id="toc-source" class="toc-source" aria-label="目录来源" hidden></select>
 <nav class="toc-scroll" aria-label="章节导航"><ul id="toc-list" class="toc-list"></ul><button id="toc-overview-more" type="button" class="toc-more" hidden>查看完整目录</button><p id="toc-empty" class="toc-empty" hidden>当前网页暂无可识别的章节，将自动检查更新。</p></nav>
-<p id="toc-error" class="toc-error" role="status" hidden></p></main>
+<p id="toc-error" class="toc-error" role="status" hidden></p></div></main>

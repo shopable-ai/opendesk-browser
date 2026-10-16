@@ -11,3 +11,39 @@
 .toc-error[data-state=loading]{color:#777b8a}
 @media(prefers-color-scheme:dark){.toc-refresh{background:#1b1c24;border-color:#383a48;color:#a4a7b3}.toc-refresh:hover{background:#292c38;color:#f4f5f7}}
 @media(prefers-reduced-motion:reduce){.toc-refresh[aria-busy=true] svg{animation:none}}
+
+/* R1.8: approved fourth Side Panel view, existing free TOC rows unchanged. */
+[hidden]{display:none!important}
+.toc-head{gap:6px;min-width:0;white-space:nowrap}
+.toc-title{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:11px;letter-spacing:.07em}
+.toc-actions{flex:none;min-width:0}
+.toc-modes{flex:none}
+.toc-modes button{flex:none}
+.toc-modes button:hover{background:#ecf1fa;color:#365eda}
+.toc-modes button[aria-pressed=true]{color:#365eda}
+.toc-ai-view{min-width:0}
+.toc-member-card{min-width:0;padding:12px;background:#f8faff;border:1px solid #e4eaf7;border-radius:9px}
+.toc-member-head,.toc-member-bottom,.toc-promo-head{display:flex;justify-content:space-between;align-items:baseline;gap:6px;min-width:0}
+.toc-member-title{font-size:13px;font-weight:680;line-height:1.4;color:#1b2c49}
+.toc-member-tag{font-size:10px;color:#7283a0;white-space:nowrap}
+.toc-member-description{margin:6px 0 10px;color:#566982;font-size:12px;line-height:1.55}
+.toc-member-bottom{align-items:center;flex-wrap:wrap;gap:8px}
+.toc-member-meta{font-size:11px;color:#697b96;line-height:1.4}
+.toc-member-entry{min-height:30px;padding:5px 10px;border:1px solid #365eda;border-radius:7px;background:#365eda;color:#fff;font-size:12px}
+.toc-member-disclaimer{margin:7px 0 0;color:#8b96a8;text-align:right;font-size:10px}
+.toc-promo{margin-top:10px;min-width:0;padding:10px 12px;background:#fff;border:1px solid #e6ebf3;border-radius:9px}
+.toc-promo-brand,.toc-promo-kind{font-size:10px;line-height:1.4;color:#8290a5}
+.toc-promo-kind{flex:none}
+.toc-promo-title{margin:5px 0 0;font-size:12px;font-weight:650;line-height:1.45;color:#2c3b56}
+.toc-promo-description{margin:3px 0 0;color:#6d7f95;font-size:11px;line-height:1.55}
+.toc-promo-action{margin-top:6px;padding:3px 0;border:0;background:transparent;color:#365eda;font-size:11px;text-align:left}
+.toc-ai-status{margin:12px 1px 1px;color:#53647e;font-size:11px;line-height:1.5}
+@media(prefers-color-scheme:dark){
+.toc-modes button:hover{background:#303850;color:#c7d6ff}
+.toc-modes button[aria-pressed=true]{color:#c7d6ff}
+.toc-member-card{background:#23283a;border-color:#39415d}
+.toc-member-title,.toc-promo-title{color:#edf1fc}
+.toc-member-description,.toc-member-meta,.toc-ai-status{color:#abb8d0}
+.toc-member-tag,.toc-member-disclaimer,.toc-promo-brand,.toc-promo-kind,.toc-promo-description{color:#9aa8be}
+.toc-promo{background:#1b1c24;border-color:#383a48}
+}
