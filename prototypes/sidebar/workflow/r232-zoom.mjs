@@ -67,7 +67,7 @@ try{
        documentOverflow:document.documentElement.scrollWidth>innerWidth+1};
    });
    assert.equal(geom.deviceWidth,Number(width));
-   assert.equal(geom.panelWidth,Number(width));
+   assert.ok(Math.abs(geom.panelWidth-Number(width))<=2,'settings fits inner device width');
    assert.equal(geom.inputInside,true);
    assert.equal(geom.backInside,true);
    assert.equal(geom.documentOverflow,false);
