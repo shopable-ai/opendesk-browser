@@ -16,6 +16,11 @@
   const history=byId('ai-vip-history-list');
   const historyCount=byId('ai-vip-history-count');
   const refresh=byId('ai-vip-refresh');
+  const metricLabel=byId('ai-vip-metric-label');
+  const meter=byId('ai-vip-meter'),meterBar=byId('ai-vip-meter-bar');
+  const redeemForm=byId('ai-vip-redeem-form');
+  const codeReveal=byId('ai-vip-code-reveal'),codeClear=byId('ai-vip-code-clear');
+  const confirm=byId('ai-vip-redeem-confirm');
   const code=byId('ai-vip-redeem-code');
   const redeem=byId('ai-vip-redeem');
   const redeemStatus=byId('ai-vip-redeem-status');
@@ -32,7 +37,8 @@
   if([memberState,accountName,productName,remaining,unit,expiry,verified,
     benefits,history,historyCount,refresh,code,redeem,redeemStatus,redeemError,
     previewPanel,previewTitle,previewDescription,previewAccount,cancel,
-    recoveryPanel,recoveryStatus,recoveryCheck,shop,shopStatus]
+    recoveryPanel,recoveryStatus,recoveryCheck,shop,shopStatus,
+    metricLabel,meter,meterBar,redeemForm,codeReveal,codeClear,confirm]
       .some(element=>!element))return;
 
   // Release-owned values: only populate after commercial/provider review.
@@ -264,31 +270,46 @@
     const primary=active.find(e=>e.type==='time')||active[0]||entitlements[0]||null;
     memberState.textContent=account.state==='guest'?'未登录':
       active.length?'权益有效':entitlements.length?'暂无有效权益':'未开通';
-    productName.textContent=primary?primary.title:'尚无已核验商品';
+    memberState.setAttribute('data-tone',active.length?'active':
+      entitlements.length?'warn':'neutral');
+    productName.textContent=primary?primary.title:
+      account.state==='guest'?'请先绑定 AI VIP Share 产品账号':'尚无已核验商品';
+    metricLabel.textContent=primary?.type==='time'?'剩余会员时间':
+      primary?.type==='quota'||primary?.type==='credit'?'剩余使用额度':
+      primary?.type==='feature'?'已获得的功能':'当前会员权益';
+    meter.hidden=true;
+    meterBar.style.width='0%';
+    meter.removeAttribute('aria-valuenow');
     if(!primary){
       remaining.textContent='—';unit.textContent='暂无权益';
-      expiry.textContent='商品时长与额度以实际核验结果为准';
+      expiry.textContent='具体权益以服务端核验结果为准';
     }else if(primary.type==='time'){
       remaining.textContent=String(Math.max(0,Math.ceil((primary.expiresAt-serverNow)/86400000)));
       unit.textContent='天';
-      expiry.textContent='服务端到期时间：'+dateLabel(primary.expiresAt);
+      expiry.textContent='到期 '+dateLabel(primary.expiresAt);
+      // Do not invent original duration; a time entitlement has no verified start.
     }else if(primary.type==='quota'||primary.type==='credit'){
       remaining.textContent=String(primary.remaining);
       unit.textContent=primary.unit;
-      expiry.textContent='额度总量 '+primary.total+' '+primary.unit+'，'+statusLabel(primary.status);
+      expiry.textContent='总额度 '+primary.total+' '+primary.unit;
+      if(primary.total>0){
+        const percent=Math.max(0,Math.min(100,Math.round(primary.remaining/primary.total*100)));
+        meter.hidden=false;meterBar.style.width=percent+'%';
+        meter.setAttribute('aria-valuenow',String(percent));
+      }
     }else{
-      remaining.textContent=primary.status==='active'?'有效':'—';
+      remaining.textContent=primary.status==='active'?'已开通':'未生效';
       unit.textContent='功能权益';
       expiry.textContent=primary.detail;
     }
-    verified.textContent='权益数据截至服务端 '+dateLabel(serverNow)+'；网络状态与会员权益分别核验。';
+    verified.textContent='服务端核验时间：'+dateLabel(serverNow)+'；网络与会员分别核验。';
     emptyRow(benefits,'尚未开通任何权益。');
     if(entitlements.length){
       clear(benefits);
       entitlements.forEach(e=>addRow(benefits,e.title,benefitDescription(e,serverNow)));
     }
-    historyCount.textContent=String(redemptions.length)+' 条（本次核验）';
-    emptyRow(history,'没有已经核验的兑换记录。');
+    historyCount.textContent=String(redemptions.length)+' 条';
+    emptyRow(history,'暂无经过核验的兑换记录。');
     if(redemptions.length){
       clear(history);
       redemptions.slice(0,20).forEach(item=>addRow(history,item.title,
@@ -296,8 +317,7 @@
         (item.masked?' · '+item.masked:'')));
     }
     refresh.disabled=false;
-    // A bounded ledger page can omit a transaction; absence is never final
-    // non-consumption evidence, so do not silently resolve an unknown POST.
+    // Absence in the bounded ledger is never proof of non-consumption.
     if(recovery&&account.id!==recovery.accountId)
       redeemNotice('当前账号与未确认兑换归属不同。请切回原账号核对，不会继承权益。',true);
     renderRedeem();
@@ -306,15 +326,26 @@
     const allowed=Boolean(endpoints)&&snapshot?.account.state==='bound'&&!busy&&
       recoveryReady&&!recovery&&!recoveryFault;
     code.disabled=!allowed||Boolean(pending);
-    redeem.disabled=!allowed||(!pending&&!/^[A-Za-z0-9._-]{6,120}$/.test(code.value.trim()));
-    redeem.textContent=busy?'正在处理':pending?'确认兑换':'立即兑换';
+    redeem.disabled=!allowed||Boolean(pending)||
+      !/^[A-Za-z0-9._-]{6,120}$/.test(code.value.trim());
+    redeem.textContent=busy?'正在处理…':'预检兑换';
+    confirm.disabled=!allowed||!pending;
     previewPanel.hidden=!pending;
-    cancel.hidden=!pending||busy;
+    cancel.hidden=!pending;
+    cancel.disabled=busy;
+    codeReveal.disabled=code.disabled;
+    codeClear.disabled=code.disabled||!code.value;
+    // Sensitive code must return to masked mode after a preflight or lock.
+    if(code.disabled||!code.value){
+      code.type='password';codeReveal.textContent='显示';
+      codeReveal.setAttribute('aria-label','显示兑换码');
+      codeReveal.setAttribute('aria-pressed','false');
+    }
     showRecovery();
     refreshProxyPresentation();
   }
   function redeemNotice(message,error=false){
-    redeemStatus.textContent=message;
+    redeemStatus.textContent=error?'请查看错误提示；未经确认的结果不视为兑换成功。':message;
     redeemError.hidden=!error;
     redeemError.textContent=error?message:'';
   }
@@ -353,6 +384,10 @@
       snapshot=null;serverSampleAt=null;
       pending=null;code.value='';
       memberState.textContent='无法核验';
+      memberState.setAttribute('data-tone','warn');
+      metricLabel.textContent='当前会员权益';
+      meter.hidden=true;meterBar.style.width='0%';
+      meter.removeAttribute('aria-valuenow');
       accountName.textContent='账号状态待核验';
       productName.textContent='无法确认会员身份';
       remaining.textContent='—';unit.textContent='待核验';
@@ -507,8 +542,32 @@
   refresh.addEventListener('click',event=>{
     if(event?.isTrusted===true)void refreshMember();
   });
-  code.addEventListener('input',()=>{redeemNotice('兑换内容需先经过服务端预检，确认后才会提交。');renderRedeem();});
-  redeem.addEventListener('click',event=>{void redeemClick(event);});
+  code.addEventListener('input',()=>{
+    redeemNotice('兑换内容需先由服务端预检，确认后才会提交。');
+    renderRedeem();
+  });
+  codeReveal.addEventListener('click',event=>{
+    if(event?.isTrusted!==true||code.disabled)return;
+    const visible=code.type==='password';
+    code.type=visible?'text':'password';
+    codeReveal.textContent=visible?'隐藏':'显示';
+    codeReveal.setAttribute('aria-label',visible?'隐藏兑换码':'显示兑换码');
+    codeReveal.setAttribute('aria-pressed',String(visible));
+  });
+  codeClear.addEventListener('click',event=>{
+    if(event?.isTrusted!==true||code.disabled)return;
+    code.value='';
+    code.type='password';
+    redeemNotice('兑换码已清空，尚未提交。');
+    renderRedeem();
+    code.focus?.();
+  });
+  // Both keyboard Enter and button click use one real form-submit handler.
+  redeemForm.addEventListener('submit',event=>{
+    event.preventDefault();
+    void redeemClick(event);
+  });
+  confirm.addEventListener('click',event=>{void redeemClick(event);});
   recoveryCheck.addEventListener('click',event=>{void checkRecoveryClick(event);});
   cancel.addEventListener('click',event=>{
     if(event?.isTrusted!==true||busy)return;
@@ -523,12 +582,16 @@
   shop.addEventListener('click',event=>{
     if(event?.isTrusted!==true||!catalog||shop.disabled)return;
     shop.disabled=true;shopStatus.textContent='正在请求打开商品目录…';
-    // Browser SDK runs the existing trusted per-operation approval.
-    Promise.resolve().then(()=>{
-      const sdk=shopSdk;
-      if(typeof sdk?.create!=='function')throw Error('当前版本缺少网页打开能力');
-      return sdk.create({url:catalog});
-    }).then(
+    // Invoke the reviewed SDK directly in the trusted user gesture.
+    let operation;
+    try{
+      if(typeof shopSdk?.create!=='function')throw Error('当前版本缺少网页打开能力');
+      operation=shopSdk.create({url:catalog});
+    }catch{
+      shopStatus.textContent='未能打开商品目录，请检查权限或稍后重试。';
+      shop.disabled=false;return;
+    }
+    Promise.resolve(operation).then(
       ()=>{shopStatus.textContent='已请求在浏览器新标签页打开商品目录。';},
       ()=>{shopStatus.textContent='未能打开商品目录，请检查权限或稍后重试。';}
     ).finally(()=>{shop.disabled=false;});
@@ -542,9 +605,9 @@
   const APPROVED_PROXY_ENDPOINT=null; // Release-owned; never use localhost for production.
   function setupManagedProxy(){
     const status=byId('ai-vip-proxy-state'),detail=byId('ai-vip-proxy-detail');
-    const refresh=byId('ai-vip-proxy-refresh'),enable=byId('ai-vip-proxy-enable');
-    const disable=byId('ai-vip-proxy-disable');
-    if(!status||!detail||!refresh||!enable||!disable)return;
+    const refreshProxy=byId('ai-vip-proxy-refresh'),toggle=byId('ai-vip-proxy-toggle');
+    const alert=byId('ai-vip-proxy-alert'),alertText=byId('ai-vip-proxy-alert-text');
+    if(!status||!detail||!refreshProxy||!toggle||!alert||!alertText)return;
     const sdk=window.OpenDeskSDK?.browser?.proxy?.managed;
     let current=null,starting=false,stopping=false,reading=false;
     let stopRequired=false,stopConfirmed=false,operation=0,readSequence=0,notice='';
@@ -568,12 +631,17 @@
         starting?'启用请求待确认':stopRequired?'停用待确认':!current?'尚未确认':
         current.state==='disabled'?(released(current)?'已停止':'尚未确认'):
         ({enabled:'已启用',conflict:'代理被占用',unavailable:'需要恢复'})[current.state];
-      // Keep both established IDs, but expose exactly one primary action.
-      enable.hidden=stop;disable.hidden=!stop;
-      enable.disabled=starting||stopping||reading||!sdk||!safeEndpoint||!released(current)||!hasEntitlement();
-      disable.disabled=stopping||!sdk||typeof sdk.requestDisable!=='function'||!stop;
-      disable.textContent=stopping?'正在停用…':'停用代理';
-      refresh.disabled=reading||starting||stopping||!sdk;
+      toggle.setAttribute('data-action',stop?'stop':'start');
+      toggle.classList.toggle('od-button--secondary',stop);
+      toggle.textContent=stop?(stopping?'正在停用…':'停用代理'):'启用代理';
+      toggle.disabled=stop?(stopping||!sdk||typeof sdk.requestDisable!=='function'):
+        (starting||stopping||reading||!sdk||typeof sdk.requestEnable!=='function'||
+          !safeEndpoint||!released(current)||!hasEntitlement());
+      refreshProxy.disabled=reading||starting||stopping||!sdk;
+      const uncertain=stopRequired||['conflict','unavailable'].includes(current?.state)||!current;
+      status.setAttribute('data-tone',uncertain?'warn':current?.state==='enabled'?'active':'neutral');
+      alert.hidden=!uncertain;
+      alertText.textContent=uncertain?(notice||'代理状态尚未确认；请重新检测并按需请求停用。'):'';
       if(notice)detail.textContent=notice;
       else if(!sdk)detail.textContent='当前浏览器未提供已批准的 Managed Proxy SDK。';
       else if(stop)detail.textContent='可请求停用当前安装的代理意图；不依赖会员或 Provider。释放须经 Chrome 回读确认，不会清除其他所有者配置。';
@@ -601,11 +669,11 @@
         notice='代理状态无法确认（'+String(error?.code||'E_PROXY_STATUS').slice(0,50)+'）；未确认释放。';
       }finally{if(read===readSequence){reading=false;paint();}}
     }
-    refresh.addEventListener('click',event=>{
+    refreshProxy.addEventListener('click',event=>{
       if(event?.isTrusted===true)void update();
     });
-    enable.addEventListener('click',async event=>{
-      if(event?.isTrusted!==true||starting||stopping||reading||canStop()||!safeEndpoint||!hasEntitlement()||
+    async function start(){
+      if(starting||stopping||reading||canStop()||!safeEndpoint||!hasEntitlement()||
         !released(current)||typeof sdk?.requestEnable!=='function')return;
       const token=++operation;++readSequence;reading=false;
       starting=true;stopRequired=true;stopConfirmed=false;notice='启用请求在途，仍可主动请求 STOP。';paint();
@@ -627,9 +695,9 @@
           if(!stopping)void update();
         }else paint();
       }
-    });
-    disable.addEventListener('click',async event=>{
-      if(event?.isTrusted!==true||stopping||!canStop()||typeof sdk?.requestDisable!=='function')return;
+    }
+    async function stop(){
+      if(stopping||!canStop()||typeof sdk?.requestDisable!=='function')return;
       const token=++operation;++readSequence;reading=false;
       stopping=true;stopRequired=true;stopConfirmed=false;notice='正在请求 STOP；尚未确认释放。';paint();
       try{
@@ -642,7 +710,12 @@
       }catch(error){
         if(token===operation)notice='STOP 仍待确认（'+String(error?.code||'E_PROXY_STOP').slice(0,50)+'）；不会覆盖其他代理配置。';
       }finally{if(token===operation){stopping=false;paint();}}
+    }
+    toggle.addEventListener('click',event=>{
+      if(event?.isTrusted!==true)return;
+      if(canStop())void stop();else void start();
     });
+    paint();
     void update();
   }
   setupManagedProxy();
@@ -651,6 +724,10 @@
   void loadRecovery();
   if(!endpoints){
     memberState.textContent='服务未配置';
+    memberState.setAttribute('data-tone','warn');
+    accountName.textContent='会员账号暂不可核验';
+    productName.textContent='正式会员服务尚未配置';
+    metricLabel.textContent='当前会员权益';
     verified.textContent='正式会员 Provider 尚未配置，账号、权益与兑换记录均不可验证。';
     redeemNotice('兑换服务未配置，暂无法提交。权益仅按服务端回执生效；兑换不会自动开启代理。');
     refresh.disabled=true;

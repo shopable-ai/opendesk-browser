@@ -28,7 +28,7 @@ test('R5 official tool compiles member, redeem and store UI with canonical desig
   assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
   assert.deepEqual(pkg.capabilities,['storage.local','network','browser.tabs','browser.proxy.managed']);
   assert.match(pkg.css,/opendesk\.shared-design\.v1/);
-  for(const text of ['AI 会员','兑换激活','立即兑换','查看更多商品','待核验'])
+  for(const text of ['AI 会员','兑换激活','预检兑换','查看更多商品','待核验'])
     assert(pkg.html.includes(text),text);
   assert.match(pkg.html,/id="ai-vip-redeem-code"[^>]*type="password"[^>]*data-sensitive/);
   assert.match(pkg.html,/id="ai-vip-redeem"[^>]*disabled/);
@@ -36,14 +36,15 @@ test('R5 official tool compiles member, redeem and store UI with canonical desig
   assert(!pkg.html.includes('id="proxy-toggle"'));
   assert(!pkg.html.includes('1 个月')&&!pkg.html.includes('3 个月'));
   assert(!pkg.js.includes('showModal')&&!pkg.js.includes('window.open('));
-  assert.match(pkg.js,/sdk\.create\(\{url:catalog\}\)/);
+  assert.match(pkg.js,/shopSdk\.create\(\{url:catalog\}\)/);
 });
 
 test('R5 existing host shows isolated product and a single trusted proxy card',async()=>{
   const host=await readFile('src/ui/sidebar-tools.js','utf8');
   assert.match(host,/frameRoot\.after\?\.\(aiProxyContainer\)/);
   assert.match(host,/container:aiProxyContainer/);
-  assert.match(host,/aiProxyContainer\.hidden=!\(managed&&id===AI_ID&&enabled&&\(frame\|\|nativeUI\)\)/);
+  assert.match(host,/legacyAiProxyTool=managed&&id===AI_ID&&active\?\.capabilities\?\.includes\(AI_CAPABILITY\)/);
+  assert.match(host,/aiProxyContainer\.hidden=!\(legacyAiProxyTool&&enabled&&\(frame\|\|nativeUI\)\)/);
   assert(!host.includes('frameRoot.hidden=id===AI_ID'));
   assert.match(host,/const show=managed&&tocSettingsOpen/);
   const css=await readFile('src/ui/tool-shell.css','utf8');
@@ -116,11 +117,11 @@ test('R5 conflict never enables proxy, but stops outstanding own intent',async()
 test('R5 no Provider, SKU or shop can invent business success',async()=>{
   const html=await readFile('examples/sidebar-tools/ai-vip-share/src/index.html','utf8');
   const script=await readFile('examples/sidebar-tools/ai-vip-share/src/main.js','utf8');
-  assert.match(html,/会员服务未配置/);
+  assert.match(html,/会员服务尚未配置/);
   assert.match(html,/兑换服务未配置/);
-  assert.match(html,/专属激活链接续接须经正式服务验证/);
+  assert.match(html,/专属激活链接续接尚未接入正式安装与服务验证流程/);
   assert.match(script,/PRODUCT_CATALOG_URL=''/);
-  assert.match(script,/sdk\.create\(\{url:catalog\}\)/);
+  assert.match(script,/shopSdk\.create\(\{url:catalog\}\)/);
   assert(!/fetch\(|showModal\(|window\.open\(/.test(script));
   assert(!/aiAccess\.activate|aiAccess\.enable|chrome\.proxy/.test(script));
 });

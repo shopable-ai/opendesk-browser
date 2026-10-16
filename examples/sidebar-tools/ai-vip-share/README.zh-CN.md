@@ -98,3 +98,20 @@ node examples/sidebar-tools/ai-vip-share/dev/local-test/local-fixture-server.mjs
 ```
 
 默认 `127.0.0.1:7898` 提供演示会员 API 与 PAC；`127.0.0.1:7897` 由用户自行提供真实 HTTP CONNECT/SOCKS5 代理。当前联调仅为独立开发验证，**尚未接入正式可信启停按钮**，不可当作商业 Provider 或 Chrome Native 验收。
+
+
+## R5.8 · 正式工具与 R5.7 主 HTML 原型的 UI 对齐（1.3.1）
+
+本轮仅更新独立 ai-vip-share 工具：正式主视图采用已评审原型的品牌头部、紧凑会员主卡（脱敏账号、会员类型、已核验指标、权益和折叠兑换记录）、兑换卡（显示/清空、Enter 预检、明确确认/取消与未知回执核对）、独立「查看更多商品」入口、常驻单个 AI 网站访问代理按钮及折叠网络说明。只迁移设计和交互，不复制 preview/index.html 的实验台、示例会员、演示码、虚构回执或代理状态机。
+
+src/main.js 保留原有 Browser SDK、可信服务端会员数据、存储 CAS 兑换事务账本和安装 epoch，新增单按钮 STOP 优先与用户在启用期间显式请求 STOP 的续接。商品 SDK 调用直接发生在可信点击内。旧 1.2.0 / 1.3.0 未确认兑换记录在 1.3.1 中继续受保护，不会被版本升级自动解除。
+
+**现实边界：** BUSINESS_ENDPOINTS、PRODUCT_CATALOG_URL 和 APPROVED_PROXY_ENDPOINT 仍没有已审核生产配置。正式工具的默认状态是「服务未配置」，不是原型中的演示已开通；兑换、商品打开和代理启用均 fail-closed，已有代理的 STOP 只由可信 SDK ownership 检查决定。专属链接、商户、Chrome Native/Mac 安装/视觉 95+ 尚未验证，不能将源码对齐当作真实商业闭环。
+
+新增静态与构建回归：
+
+    node --test tests/environment/ai-vip-share-ui-parity.test.mjs
+    node --test examples/sidebar-tools/ai-vip-share/preview/test-r41.mjs examples/sidebar-tools/ai-vip-share/preview/test-ui.mjs
+    npm run build:sidebar-tool -- examples/sidebar-tools/ai-vip-share
+
+上述构建生成候选包到 artifacts/sidebar-tools/ai-vip-share/1.3.1/，不代表已安装或已更新正式产品。必须在 Mac 上经安装包身份/版本/权限审核、真实已安装 OpenDesk Browser「扩展」Tab 更新、320/360/390px 深浅色对比截图、键盘与 STOP 生命周期复验；通过后再按仓库候选包晋升规则发布。宿主 src/ 业务代码不得为此新增。

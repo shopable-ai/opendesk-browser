@@ -358,9 +358,9 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
    </section>
    <section id="settingsView" hidden aria-labelledby="settingsHeading" class="host-settings">
     <div class="view-top view-top--compact"><h2 id="settingsHeading">工具设置</h2><small>基础功能默认可用</small></div>
-    <div class="host-setting-row od-surface"><span><strong>启用工具</strong><small>停用后提示词仍保留</small></span><label class="switch"><input id="toolEnabledSwitch" type="checkbox" role="switch" checked aria-label="启用工具"><span class="switch-track" aria-hidden="true"></span></label></div>
+    <div class="host-setting-row od-surface"><span><strong>启用工具</strong><small>停用后提示词仍保留</small></span><button id="toolEnabledButton" class="od-button od-button--small" type="button" aria-pressed="true">停用工具</button></div>
     <div class="host-setting-row"><span><strong>适用网站</strong><small>仅 chatgpt.com</small></span><span class="host-setting-value">默认可用</span></div>
-    <div class="host-setting-row od-surface"><span><strong>选中文字快速添加</strong><small>可选 · Chrome 原生右键菜单</small></span><label class="switch" title="启用或关闭右键快捷添加"><input id="contextSwitch" type="checkbox" role="switch" checked aria-label="选中文字快速添加"><span class="switch-track" aria-hidden="true"></span></label></div>
+    <div class="host-setting-row od-surface"><span><strong>选中文字快速添加</strong><small>可选 · Chrome 原生右键菜单</small></span><button id="contextButton" class="od-button od-button--small" type="button" aria-pressed="false">启用右键快捷添加</button></div>
     <p class="host-setting-note">已安装且启用即可使用，点击快捷按钮仅填写草稿。右键快捷添加是可选功能，可能需要 Chrome 菜单许可。</p>
     <button id="settingsBack" class="od-button od-button--small" type="button">返回提示词</button>
    </section>
@@ -379,7 +379,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  ];
  const $=selector=>document.querySelector(selector), el=id=>document.getElementById(id), encoder=new TextEncoder();
  const COPY=()=>INITIAL.map(item=>({...item}));
- let state={version:1,revision:1,settings:{showBar:true,contextMenu:true},items:COPY(),toolEnabled:true};
+ let state={version:1,revision:1,settings:{showBar:true,contextMenu:false},items:COPY(),toolEnabled:true};
  let currentView='index', editId=null,baselineForm='',revisionAtEdit=1,dirty=false,saving=false,pendingDestination='index',expandedId=null,deleteId=null,copyId=null,tipButton=null,noticeKind='info',nextSaveFailure=null;
  const create=(tag,classes,text)=>{const n=document.createElement(tag);if(classes)n.className=classes;if(text!==undefined)n.textContent=text;return n;};
  function action(parent,label,callback,{small=false,subtle=false,disabled=false,title='',danger=false}={}){
@@ -404,7 +404,15 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  }
  function countText(){const enabled=state.items.filter(item=>item.enabled).length;return `${state.items.length} 个 · ${enabled} 个启用`;}
  function setView(next){currentView=next;for(const v of ['index','form','settings','toolList'])el(v+'View').hidden=v!==next;el('hostToolHead').hidden=next==='toolList';el('panelBody').scrollTop=0;}
- function setSettings(){el('showBarSwitch').checked=state.settings.showBar;el('contextSwitch').checked=state.settings.contextMenu;el('toolEnabledSwitch').checked=state.toolEnabled;el('contextSwitch').disabled=!state.toolEnabled;el('hostSettings').setAttribute('aria-expanded',String(currentView==='settings'));}
+ function setSettings(){
+  el('showBarSwitch').checked=state.settings.showBar;
+  el('toolEnabledButton').textContent=state.toolEnabled?'停用工具':'启用工具';
+  el('toolEnabledButton').setAttribute('aria-pressed',String(state.toolEnabled));
+  el('contextButton').textContent=state.settings.contextMenu?'关闭右键快捷添加':'启用右键快捷添加';
+  el('contextButton').setAttribute('aria-pressed',String(state.settings.contextMenu));
+  el('contextButton').disabled=!state.toolEnabled;
+  el('hostSettings').setAttribute('aria-expanded',String(currentView==='settings'));
+ }
  function renderRail(){const rail=el('pageRail');rail.replaceChildren();el('webTooltip').hidden=true;tipButton=null;
   if(!state.settings.showBar||!state.toolEnabled){rail.hidden=true;return;}rail.hidden=false;
   const active=state.items.filter(item=>item.enabled);
@@ -616,13 +624,14 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  el('closeVerification').addEventListener('click',()=>{el('verificationPanel').hidden=true;el('promptBody').focus({preventScroll:true});});
  el('stayEditing').addEventListener('click',()=>{el('leaveConfirm').hidden=true;el('promptBody').focus();});el('discardEditing').addEventListener('click',()=>{const destination=pendingDestination;pendingDestination='index';if(destination==='host')exitTool();else returnIndex();notice('已主动放弃未保存更改。');});
  el('promptForm').addEventListener('submit',event=>void saveForm(event));el('promptForm').addEventListener('input',updateMeter);el('promptForm').addEventListener('change',updateMeter);
- for(const [id,key] of [['showBarSwitch','showBar'],['contextSwitch','contextMenu']])el(id).addEventListener('change',event=>{
+ for(const [id,key] of [['showBarSwitch','showBar']])el(id).addEventListener('change',event=>{
   state.settings[key]=event.currentTarget.checked;state.revision++;renderIndex();renderRail();el('mockContextMenu').hidden=true;
   notice(key==='showBar'?(state.settings.showBar?'左侧按钮栏已开启（模拟）':'左侧按钮栏已关闭，提示词仍保留（模拟）'):(state.settings.contextMenu?'右键快捷添加已开启（模拟）':'右键快捷添加已关闭，现有按钮保留（模拟）'));
  });
  el('hostSettings').addEventListener('click',()=>{if(currentView==='form'&&dirty){showFormError('请先处理未保存草稿。');return;}setView(currentView==='settings'?'index':'settings');setSettings();});
  el('settingsBack').addEventListener('click',()=>{setView('index');renderIndex();el('hostSettings').focus();});
- el('toolEnabledSwitch').addEventListener('change',event=>{state.toolEnabled=event.currentTarget.checked;state.revision++;renderIndex();renderRail();notice(state.toolEnabled?'工具已启用，无需网站二次授权（模拟）':'工具已停用，提示词仍保留（模拟）');});
+ el('toolEnabledButton').addEventListener('click',()=>{state.toolEnabled=!state.toolEnabled;state.revision++;renderIndex();renderRail();notice(state.toolEnabled?'工具已启用，无需二次网站授权（模拟）':'工具已停用，提示词仍保留（模拟）');});
+ el('contextButton').addEventListener('click',()=>{if(!state.toolEnabled)return;state.settings.contextMenu=!state.settings.contextMenu;state.revision++;renderIndex();renderRail();el('mockContextMenu').hidden=true;notice(state.settings.contextMenu?'原生右键快捷添加已开启（仅模拟）':'原生右键快捷添加已关闭（仅模拟）');});
  el('actionScenario').addEventListener('change',()=>{
   const mode=el('actionScenario').value;
   el('mockDraft').disabled=mode==='no-editor'||mode==='clipboard-failure';
@@ -634,7 +643,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   document.documentElement.style.setProperty('--panel-width',width+'px');notice('侧边栏模拟宽度：'+width+' CSS px');});
  el('themeButton').addEventListener('click',()=>{const dark=document.documentElement.dataset.theme!=='dark';document.documentElement.dataset.theme=dark?'dark':'light';el('themeButton').textContent=dark?'浅色模式':'深色模式';});
  el('resetButton').addEventListener('click',()=>{if(currentView==='form'&&dirty){showFormError('当前编辑尚未保存，请先取消或保存，再重置模拟数据。');return;}
-  state={version:1,revision:1,settings:{showBar:true,contextMenu:true},items:COPY(),toolEnabled:true};nextSaveFailure=null;expandedId=null;deleteId=null;copyId=null;el('mockDraft').value='';el('mockDraft').disabled=false;el('actionScenario').value='normal';document.querySelector('.browser-address').textContent='chatgpt.com · 模拟网页';el('mockContextMenu').hidden=true;returnIndex();notice('已重置为初始模拟数据。');});
+  state={version:1,revision:1,settings:{showBar:true,contextMenu:false},items:COPY(),toolEnabled:true};nextSaveFailure=null;expandedId=null;deleteId=null;copyId=null;el('mockDraft').value='';el('mockDraft').disabled=false;el('actionScenario').value='normal';document.querySelector('.browser-address').textContent='chatgpt.com · 模拟网页';el('mockContextMenu').hidden=true;returnIndex();notice('已重置为初始模拟数据。');});
  for(const [id,mode,label] of [['simulateWriteFail','write','写入失败'],['simulateConflict','conflict','并发冲突'],['simulateUnknown','unknown','结果未知']])el(id).addEventListener('click',()=>{nextSaveFailure=mode;el('failureStatus').textContent='下次保存将模拟：'+label;notice('已设置下次保存模拟：'+label+'，当前草稿会保留。');});
  document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!el('mockContextMenu').hidden){el('mockContextMenu').hidden=true;el('mockSelection').focus();}else if(event.key==='Escape'&&!el('webTooltip').hidden){el('webTooltip').hidden=true;tipButton=null;}});
  window.addEventListener('beforeunload',event=>{if(currentView==='form'&&(dirty||saving)){event.preventDefault();event.returnValue='';}});

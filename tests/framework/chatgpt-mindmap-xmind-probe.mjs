@@ -65,24 +65,24 @@ try{
  await trigger(1).click();await ready(1);await trigger(2).click();await ready(2);
  assert.ok(await viewer(1).locator('.topic').count()>1);assert.ok(await viewer(2).locator('.topic').count()>1);passed('A/B both render actual XMind topics');
  const zoomBefore=await page.evaluate(()=>window.fixture.calls.controllers[0].getZoomPencentage());
- await control(1,'放大').click();await page.waitForTimeout(180);
+ await control(1,'放大导图').click();await page.waitForTimeout(180);
  const zoomAfter=await page.evaluate(()=>window.fixture.calls.controllers[0].getZoomPencentage());assert.ok(zoomAfter>zoomBefore);passed('Toolbar calls real SDK zoom');
  const expandedCount=await viewer(1).locator('.topic:visible').count();
- await control(1,'展开或折叠分支').click();
- await page.waitForFunction(()=>document.querySelector('[data-testid=conversation-turn-1] [data-opendesk-chatgpt-mindmap=viewer]').shadowRoot.querySelector('[aria-label="展开或折叠分支"]').textContent==='展开');
+ await control(1,'折叠所有分支').click();
+ await control(1,'展开所有分支').waitFor({timeout:20000});
  const foldedCount=await viewer(1).locator('.topic:visible').count();report.actualFold={expandedCount,foldedCount};assert.ok(foldedCount<expandedCount);
- await control(1,'展开或折叠分支').click();
- await page.waitForFunction(()=>document.querySelector('[data-testid=conversation-turn-1] [data-opendesk-chatgpt-mindmap=viewer]').shadowRoot.querySelector('[aria-label="展开或折叠分支"]').textContent==='折叠');
+ await control(1,'展开所有分支').click();
+ await control(1,'折叠所有分支').waitFor({timeout:20000});
  assert.equal(await viewer(1).locator('.topic:visible').count(),expandedCount);
  report.actualFold={expandedCount,foldedCount};passed('Real Workbook branch flags collapse and expand rendered topics');
- await control(1,'切换全屏').click();await page.waitForFunction(()=>window.fixture.registry.activeFullscreen);await page.keyboard.press('Escape');
+ await control(1,'进入全屏').click();await page.waitForFunction(()=>window.fixture.registry.activeFullscreen);await page.keyboard.press('Escape');
  await viewer(1).waitFor();passed('Fullscreen/Escape returns to A');
  await trigger(5).click();await ready(5);await trigger(6).click();await ready(6);
  const beforeFold=await viewer(5).locator('.topic').count();
- await control(5,'展开或折叠分支').click();
- await page.waitForFunction(()=>document.querySelector('[data-testid=conversation-turn-5] [data-opendesk-chatgpt-mindmap=viewer]').shadowRoot.querySelector('[aria-label="展开或折叠分支"]').textContent==='展开');
- assert.equal(await control(5,'展开或折叠分支').getAttribute('aria-pressed'),'true');
- assert.equal(await control(6,'展开或折叠分支').textContent(),'折叠');
+ await control(5,'折叠所有分支').click();
+ await control(5,'展开所有分支').waitFor({timeout:20000});
+ assert.equal(await control(5,'展开所有分支').getAttribute('aria-pressed'),'true');
+ assert.equal(await control(6,'折叠所有分支').getAttribute('aria-pressed'),'false');
  passed('Identical replies keep independent SDK controllers and toolbar state');
  report.foldObservation={beforeFold,afterFold:await viewer(5).locator('.topic').count()};
  await page.getByRole('button',{name:'重建 B 操作栏',exact:true}).click();await page.waitForTimeout(250);
@@ -143,10 +143,10 @@ try{
   assert.ok(await viewer(1).locator('.topic:visible').count()>1);
   assert.ok(await viewer(2).locator('.topic:visible').count()>1);
   passed('R2.1 real standalone HTML opens A/B XMind from product code');
-  await viewer(1).getByRole('button',{name:'放大',exact:true}).click();
-  await viewer(1).getByRole('button',{name:'展开或折叠分支',exact:true}).click();
-  await previewPage.waitForFunction(()=>document.querySelector('[data-testid="conversation-turn-1"] [data-opendesk-chatgpt-mindmap="viewer"]')?.shadowRoot?.querySelector('[aria-label="展开或折叠分支"]')?.textContent==='展开');
-  assert.equal(await viewer(2).getByRole('button',{name:'展开或折叠分支',exact:true}).textContent(),'折叠');
+  await viewer(1).getByRole('button',{name:'放大导图',exact:true}).click();
+  await viewer(1).getByRole('button',{name:'折叠所有分支',exact:true}).click();
+  await viewer(1).getByRole('button',{name:'展开所有分支',exact:true}).waitFor({timeout:20000});
+  assert.equal(await viewer(2).getByRole('button',{name:'折叠所有分支',exact:true}).getAttribute('aria-pressed'),'false');
   passed('R2.1 standalone A/B controllers and state are independent');
   // CDP page-scale is a real Chromium visual viewport zoom, NOT equivalent
   // to a user's Chrome-toolbar text/layout zoom. Preserve that distinction.
@@ -155,7 +155,7 @@ try{
     // Focus the actual Shadow DOM toolbar button before pinch-style scaling.
     // Playwright mouse hit-testing at visualViewport.scale=2 differs from a
     // Chrome toolbar zoom and can hit a different reply; do not force-click.
-    const fitAtScale=viewer(2).getByRole('button',{name:'适配画布',exact:true});
+    const fitAtScale=viewer(2).getByRole('button',{name:'适配导图画布',exact:true});
     await fitAtScale.focus();
     assert.ok(await fitAtScale.evaluate(button=>button.getRootNode().activeElement===button));
     await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:2});

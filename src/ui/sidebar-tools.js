@@ -30,7 +30,7 @@ import {TIME_REVIEW_KEY} from '../time-review/model.js';
 import {FOCUS_ID,FOCUS_CAPABILITY} from '../stay-focus/policy.js';
 import {ADBLOCK_ID,ADBLOCK_CAPABILITY} from '../../examples/sidebar-tools/adblock/trusted/policy.js';
 import {AI_ID,AI_CAPABILITY} from '../ai-smart-access/policy.js';
-import {PROMPT_ID,PROMPT_CAPABILITY,PROMPT_SITE_STORE,CHATGPT_ORIGIN,supportedOrigin,changePromptSiteGrant} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/policy.js';
+import {PROMPT_ID,CHATGPT_ORIGIN,supportedOrigin} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/policy.js';
 import {createTimeReviewPermissionControls} from '../time-review/host-controls.js';
 import {admitsTrustedTimeReview,TRUSTED_TIME_REVIEW_VERSION,trustedTimeReviewProvenanceChanged} from '../time-review/trusted-admission.js';
 
@@ -126,7 +126,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   let officialFilter='available',officialQuery='';
   let officialReleases=[],officialError='',officialLoaded=false;
   let officialMatches=new Set(),checkedInstalled=null,checkedReleases=null,matchEpoch=0,lastOfficialView='';
-  let siteGrants={},menuGrants={},promptGrants={},siteEpoch=0,tocVisibility={},tocVisibilityEpoch=0,expandedSiteTool='';
+  let siteGrants={},menuGrants={},siteEpoch=0,tocVisibility={},tocVisibilityEpoch=0,expandedSiteTool='';
   let tocPageRules={},tocPageRulesEpoch=0,tocSettingsOpen=false,tocScope='site',lastTocSettingsRows='';
   const siteTogglePending=new Set();
   let captureGrants={},enableRecords,enableReadEpoch=0,enableReadError=true;
@@ -166,7 +166,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     'browser.runtime':'读取操作系统和处理器架构，用于工具兼容性判断',
     'browser.i18n':'读取浏览器语言偏好并识别工具提供的文本语言',
     'browser.contextMenu':'在明确授权的网站显示 Chrome 右键菜单（最多三项）',
-    'page.prompts':'在授权的 ChatGPT 主内容区域显示提示词快捷按钮（仅插入草稿）',
+    'page.prompts':'在 ChatGPT 主内容区域显示提示词快捷按钮（安装启用后直接可用，仅插入草稿）',
     'browser.scheduler':'经确认定时执行已安装的固定任务版本，只管理本工具的计划',
     'browser.tabs':'经用户单次批准打开或聚焦自己获准的标签页',
     'browser.sidePanel':'经真实点击打开 OpenDesk 自己的侧边栏',
@@ -685,8 +685,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     }
   }
   function siteCapability(tool){
-    return tool?.id===PROMPT_ID&&tool?.capabilities.includes(PROMPT_CAPABILITY)?PROMPT_CAPABILITY:
-      tool?.capabilities.includes(CAPTURE_CAPABILITY)?CAPTURE_CAPABILITY:
+    return tool?.capabilities.includes(CAPTURE_CAPABILITY)?CAPTURE_CAPABILITY:
       tool?.capabilities.includes(CLIP_CAPABILITY)?CLIP_CAPABILITY:
       tool?.capabilities.includes(TOC_CAPABILITY)?TOC_CAPABILITY:null;
   }
@@ -698,7 +697,10 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     focusPermissions?.render(active,readOnlyPreview,enabled);
     adblockControls?.render(active,readOnlyPreview,enabled,tocSettingsOpen);
     aiPermissions?.render(active,readOnlyPreview,enabled);
-    aiProxyContainer.hidden=!(managed&&id===AI_ID&&enabled&&(frame||nativeUI));
+    // Only legacy ai.access installations use the separately hosted control card.
+    // v2 browser.proxy.managed tools own their visible UI via the audited SDK.
+    const legacyAiProxyTool=managed&&id===AI_ID&&active?.capabilities?.includes(AI_CAPABILITY);
+    aiProxyContainer.hidden=!(legacyAiProxyTool&&enabled&&(frame||nativeUI));
     const sitePending=siteTogglePending.has(id);
     const isToc=managed&&id===READING_TOC_TOOL_ID&&active.capabilities.includes(TOC_CAPABILITY);
     // Settings live in the trusted Host. Repaint text, never iframe content or permissions.
@@ -738,8 +740,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     else if(!trustedInline&&settingsView.previousElementSibling!==retiredDraft)retiredDraft.after?.(settingsView);
     display.setAttribute('data-trusted-tool-inline',String(trustedInline));
     settingsView.hidden=!show;
-    promptNativeRow.hidden=!(show&&promptSettings);
-    if(promptSettings){
+    if(promptNativeRow)promptNativeRow.hidden=!(show&&promptSettings);
+    if(promptSettings&&promptNativeAction){
       const targetOrigin=supportedOrigin(currentPageTarget?.snapshot?.url);
       const record=menuGrants?.[PROMPT_ID],contextActive=Boolean(record?.version===active.version&&
         record?.origins?.includes(CHATGPT_ORIGIN)&&record?.activeActions?.length);
@@ -762,21 +764,17 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     removeButton.hidden=readOnlyPreview;if(openTabButton)openTabButton.hidden=readOnlyPreview;
     if(enableButton){enableButton.textContent=isToc?tocText(enabled?'disable':'enable'):enabled?'停用工具':'启用工具';enableButton.disabled=busy||enableReadError;
       enableButton.setAttribute('aria-pressed',String(enabled));}
-    if(enableHint)enableHint.textContent=isToc?
-      tocText(enableReadError?'enableError':enabled?'enabledHint':'disabledHint'):
+    if(enableHint)enableHint.textContent=promptSettings?
+      (enableReadError?'工具状态读取异常，已保护性停止运行。':enabled?'已启用 · 基础快捷按钮可直接使用':'已停用 · 已保存提示词保留'):
+      isToc?tocText(enableReadError?'enableError':enabled?'enabledHint':'disabledHint'):
       enableReadError?'启停状态读取异常；已保护性停止运行。':
       enabled?'工具已启用。启用不会自动运行代码。':'工具已停用。数据、网站授权和显示偏好保留。';
     if(launchButton){launchButton.hidden=!managed||Boolean(frame||nativeUI||nativePending);launchButton.disabled=busy||!enabled;
       launchButton.textContent=isToc?tocText(enabled?'launch':'launchDisabled'):enabled?'打开工具':'已停用，请在设置中启用';}
     const url=currentPageTarget?.snapshot?.url,capability=siteCapability(active);
-    const origin=capability===PROMPT_CAPABILITY?supportedOrigin(url):
-      capability===CAPTURE_CAPABILITY?chatCaptureOrigin(url):websiteOrigin(url);
-    const grants=capability===PROMPT_CAPABILITY?promptGrants:
-      capability===CAPTURE_CAPABILITY?captureGrants:capability===CLIP_CAPABILITY?clipGrants:siteGrants;
-    const promptGrant=grants?.[PROMPT_ID];
-    const grant=Boolean(capability&&origin&&(capability===PROMPT_CAPABILITY?
-      promptGrant?.version===active?.version&&promptGrant?.installEpoch===(revocationEpochs[id]??null)&&
-        promptGrant?.origins?.includes(origin):capability===TOC_CAPABILITY?
+    const origin=capability===CAPTURE_CAPABILITY?chatCaptureOrigin(url):websiteOrigin(url);
+    const grants=capability===CAPTURE_CAPABILITY?captureGrants:capability===CLIP_CAPABILITY?clipGrants:siteGrants;
+    const grant=Boolean(capability&&origin&&(capability===TOC_CAPABILITY?
       tocSiteAllowed(grants,id,url):grantedOrigins(grants,id).includes(origin)));
     const appearance=readingTocDisplayState(tocVisibility,id,url);
     const pageAllowed=readingTocPageAllowed(tocPageRules,id,url);
@@ -815,8 +813,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       button.hidden=!isToc;button.textContent=isToc?tocText(hidden?'restoreVisibility':'hide'):hidden?'恢复显示':'隐藏';button.setAttribute('aria-pressed',String(!hidden));
       button.disabled=busy||sitePending||!enabled||!grant||!origin;
     }
-    const origins=isToc?blockedTocOrigins(grants):capability===PROMPT_CAPABILITY?
-      (grant?[CHATGPT_ORIGIN]:[]):capability?grantedOrigins(grants,id):[],denied=isToc?disabledTocPages(tocPageRules,id):[];
+    const origins=isToc?blockedTocOrigins(grants):capability?grantedOrigins(grants,id):[],denied=isToc?disabledTocPages(tocPageRules,id):[];
     if(settingsSitesTitle)settingsSitesTitle.textContent=isToc?tocText('disabledSites'):'已授权的网站';
     const identity=JSON.stringify([id,origins,denied,busy,sitePending,isToc?tocLocale:null]);
     if(identity===lastTocSettingsRows)return;lastTocSettingsRows=identity;
@@ -834,8 +831,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       }
     };
     section(settingsPages,denied,url=>setTocPageAvailability(true,url),isToc?tocText('noPages'):'没有排除的页面');
-    section(settingsSites,origins,url=>capability===PROMPT_CAPABILITY?changePromptSite(id,url,false):
-      capability===CAPTURE_CAPABILITY?changeCaptureSite(id,url,false):
+    section(settingsSites,origins,url=>capability===CAPTURE_CAPABILITY?changeCaptureSite(id,url,false):
       capability===CLIP_CAPABILITY?revokeClipOrigin(id,url):revokeTocOrigin(id,url,isToc),isToc?tocText('noSites'):'尚未授权任何网站');
   }
   function render() {
@@ -1722,9 +1718,6 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       captureGrants=changes[CAPTURE_SITE_STORE]?.newValue||{};render();
       // Revoking capture stops future page reads; explicitly saved local assets remain available.
     }
-    if(Object.hasOwn(changes||{},PROMPT_SITE_STORE)){
-      promptGrants=changes[PROMPT_SITE_STORE]?.newValue||{};render();
-    }
     if(Object.hasOwn(changes||{},READING_TOC_SITE_STORE)){
       siteEpoch++;siteGrants=changes[READING_TOC_SITE_STORE]?.newValue||{};render();
     }
@@ -1881,46 +1874,6 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     finally{siteTogglePending.delete(id);render();}
   }
 
-  // Fixed trusted consent: package hash, installation incarnation and the
-  // exact ChatGPT origin are bound under the existing tool/catalog locks.
-  async function changePromptSite(id,origin,enabled,target=null){
-    if(disposed||busy||id!==PROMPT_ID||supportedOrigin(origin)!==CHATGPT_ORIGIN)
-      throw new Error('提示词工具仅允许授权 chatgpt.com');
-    const tool=toolById(id);
-    if(!tool?.capabilities.includes(PROMPT_CAPABILITY))throw new Error('提示词工具已更新或不存在');
-    await locked('tool:'+id,()=>locked('catalog',async()=>{
-      const current=admittedList((await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);
-      if(!current.some(row=>samePackage(row,tool)))throw new Error('工具安装状态已变化');
-      if(enabled)await assertSidebarToolEnabled(api,id);
-      if(target)await currentPageTarget.revalidate(target);
-      const persisted=await api.storage.local.get([PROMPT_SITE_STORE,TOOL_REVOCATION_EPOCHS_STORE]);
-      const raw=persisted[PROMPT_SITE_STORE],prior=raw||{};
-      if(prior!==null&&(typeof prior!=='object'||Array.isArray(prior)))
-        throw new Error('提示词授权存储无效，已拒绝覆盖');
-      const record=prior[PROMPT_ID];
-      const has=record?.version===tool.version&&
-        record?.installEpoch===(persisted[TOOL_REVOCATION_EPOCHS_STORE]?.[id]??null)&&
-        record?.origins?.includes(CHATGPT_ORIGIN);
-      if(Boolean(has)===enabled)return;
-      const next=await changePromptSiteGrant(prior,tool,
-        persisted[TOOL_REVOCATION_EPOCHS_STORE]?.[id]??null,enabled);
-      await writeVerifiedLocalValue(api,PROMPT_SITE_STORE,next,raw,'ChatGPT 提示词网站授权');
-      promptGrants=next;
-    }));
-    render();
-    notice(enabled?'已允许 ChatGPT 网页显示提示词按钮（不自动发送）':'已撤销 ChatGPT 网页按钮授权，已保存内容保留');
-  }
-  async function togglePromptSite(id){
-    if(!currentPageTarget?.capture||!currentPageTarget?.revalidate)
-      throw new Error('请先选择有效的 ChatGPT 标签页');
-    const target=currentPageTarget.capture(),origin=supportedOrigin(target.url);
-    if(origin!==CHATGPT_ORIGIN)throw new Error('请先打开 https://chatgpt.com/');
-    const record=promptGrants?.[PROMPT_ID];
-    const installed=toolById(id);
-    const on=record?.version===installed?.version&&record?.origins?.includes(origin)&&
-      record?.installEpoch===(revocationEpochs[id]??null);
-    await changePromptSite(id,origin,!on,target);
-  }
   async function changeCaptureSite(id,origin,enabled,target=null){
     const tool=toolById(id);
     if(id!==KNOWLEDGE_TOOL_ID||!tool?.capabilities.includes(CAPTURE_CAPABILITY))throw new Error('知识保存工具已变化');
@@ -2370,20 +2323,13 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   listen(settingsScopeButton,'click',()=>{tocScope=tocScope==='site'?'page':'site';render();});
   const setSitePermission=allowed=>{
     const id=active?.id,capability=siteCapability(active),url=currentPageTarget?.snapshot?.url;
-    const grants=capability===PROMPT_CAPABILITY?promptGrants:
-      capability===CAPTURE_CAPABILITY?captureGrants:capability===CLIP_CAPABILITY?clipGrants:siteGrants;
-    const origin=capability===PROMPT_CAPABILITY?supportedOrigin(url):
-      capability===CAPTURE_CAPABILITY?chatCaptureOrigin(url):websiteOrigin(url);
+    if(!capability)return; // Basic prompt shortcuts use no per-site grant.
+    const grants=capability===CAPTURE_CAPABILITY?captureGrants:capability===CLIP_CAPABILITY?clipGrants:siteGrants;
+    const origin=capability===CAPTURE_CAPABILITY?chatCaptureOrigin(url):websiteOrigin(url);
     if(!origin)throw new Error('请选择适用网页');
-    const record=grants?.[PROMPT_ID];
-    const permitted=capability===PROMPT_CAPABILITY?
-      record?.version===active?.version&&record?.installEpoch===(revocationEpochs[id]??null)&&
-      record?.origins?.includes(origin):capability===TOC_CAPABILITY?tocSiteAllowed(grants,id,url):
-      grantedOrigins(grants,id).includes(origin);
+    const permitted=capability===TOC_CAPABILITY?tocSiteAllowed(grants,id,url):grantedOrigins(grants,id).includes(origin);
     if(Boolean(permitted)===allowed)return;
-    return capability===PROMPT_CAPABILITY?togglePromptSite(id):
-      capability===CAPTURE_CAPABILITY?toggleCaptureSite(id):
-      capability===CLIP_CAPABILITY?toggleClipSite(id):toggleTocSite(id);
+    return capability===CAPTURE_CAPABILITY?toggleCaptureSite(id):capability===CLIP_CAPABILITY?toggleClipSite(id):toggleTocSite(id);
   };
   listen(settingsAllow,'click',action(()=>runSiteToggle(active?.id,()=>setSitePermission(true))));
   listen(settingsDeny,'click',action(()=>runSiteToggle(active?.id,()=>setSitePermission(false))));
@@ -2458,12 +2404,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const captureSitesReady=api.storage.local.get(CAPTURE_SITE_STORE).then(saved=>{
     if(disposed)return;captureGrants=saved[CAPTURE_SITE_STORE]||{};render();
   }).catch(error=>notice('知识保存授权读取失败：'+error.message,true));
-  const promptSitesReady=api.storage.local.get(PROMPT_SITE_STORE).then(saved=>{
-    if(disposed)return;promptGrants=saved[PROMPT_SITE_STORE]||{};render();
-  }).catch(error=>notice('提示词网站授权读取失败：'+error.message,true));
   const officialReady=loadOfficial();
   const preinstallReady=runDefaultPreinstall();
-  const ready=Promise.all([enableReady,installedReady,sitesReady,menuReady,tocVisibilityReady,tocPagesReady,clipSitesReady,captureSitesReady,promptSitesReady,officialReady,preinstallReady]);
+  const ready=Promise.all([enableReady,installedReady,sitesReady,menuReady,tocVisibilityReady,tocPagesReady,clipSitesReady,captureSitesReady,officialReady,preinstallReady]);
   if(currentPageTarget?.subscribe){
     // revalidate() intentionally observes the same document before and after a
     // privileged read. Only an actual target transition invalidates tool output;

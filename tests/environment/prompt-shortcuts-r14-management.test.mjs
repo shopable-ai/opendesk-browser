@@ -180,3 +180,25 @@ test('R1.7 actual Sandbox UI: content-first create, inline confirm, draft guard 
   assert.equal(n['ps-count'].textContent,'0 个 · 0 个启用');
   assert.equal(n['ps-empty'].hidden,false);
 });
+
+test('R1.13 management is content-first, one-click copy and no redundant grant widgets',async()=>{
+  const [html,preview,host]=await Promise.all([
+    readFile(tool+'/src/index.html','utf8'),
+    readFile(tool+'/preview/index.html','utf8'),
+    readFile('src/ui/sidebar-tools.js','utf8')
+  ]);
+  assert.doesNotMatch(html,/ps-grant|ps-permission-strip|id="ps-menu"|ps-shapes/);
+  assert.doesNotMatch(preview,/permissionView|mockRevoke|openPermissions/);
+  assert.match(preview,/id="settingsView"/);
+  assert.match(host,/promptNativeAction/);
+  assert.match(host,/siteCapability\(active\)&&!promptSettings/);
+  const f=await fixture(),n=f.nodes;
+  n['ps-new'].emit('click');n['ps-body'].value='第一行\n\n第二行';
+  n['ps-form'].emit('input');
+  n['ps-form'].emit('submit',{preventDefault(){}});await settle();
+  const first=allDescendants(n['ps-list']).find(v=>v.classList.contains('ps-card-use'));
+  assert(first,'first visual tier must be a clickable full-body button');
+  assert.equal(first.children[0]?.textContent,'第一行\n\n第二行');
+  first.emit('click');await settle();
+  assert(f.requests.some(v=>v.op==='clipboard.writeText'&&v.payload.text==='第一行\n\n第二行'));
+});

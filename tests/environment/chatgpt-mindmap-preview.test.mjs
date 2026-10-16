@@ -158,10 +158,14 @@ test('R3.5 icon toolbar is product-owned, mobile-capable and nonduplicating',asy
   assert.match(view,/createElementNS\('http:\/\/www\.w3\.org\/2000\/svg'/);
   assert.match(view,/aria-haspopup','menu'/);
   assert.match(view,/aria-expanded/);
-  assert.match(view,/renderer\.reflow\(\)/);
+  // Fullscreen may be requested while the renderer is being retired; optional chaining is intentional.
+  assert.match(view,/await renderer\?\.reflow\(\)/);
   assert.match(registry,/buttonRef\.host\.hidden=!!view/);
   assert.match(registry,/view\?\.focusFullscreen\(\)/);
   assert.match(css,/@container \(max-width:390px\)/);
+  assert.match(css,/\.odmm-shell\{container-type:inline-size/,
+    'The toolbar itself cannot query its own container size');
+  assert.doesNotMatch(css,/\.odmm-toolbar\{container-type:inline-size/);
   assert.match(css,/:host\(\[hidden\]\)/);
   assert.match(adapter,/manualViewport/);
   assert.match(adapter,/canvas\.dataset\.fitWidth/);
