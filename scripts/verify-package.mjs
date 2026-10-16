@@ -398,7 +398,27 @@ export function inspectScript(text, file, options = {}) {
         prototype.right.arguments[0]?.type==='MemberExpression'&&
         !prototype.right.arguments[0].computed&&
         property(prototype.right.arguments[0])==='prototype';
-      if(!reviewedCryptoJsNewTarget&&!reviewedPapaDateType&&!reviewedPapaPrototype)
+      // React 19's compiled class helper restores a *newly allocated local*
+      // component prototype: var instance=Component.prototype=new Parent;
+      // instance.constructor=Component. This assignment is never a constructor
+      // read/call, dynamic code execution, or general .constructor exemption.
+      // Verify lexical ownership and that the assigned class matches the
+      // exact prototype initialized on the preceding variable declaration.
+      const localPrototype=node.object?.type==='Identifier'?
+        resolveBinding(node.object)?.node?.init:null;
+      const reviewedReactPrototype=file==='ui/tool-shell.js'&&
+        node.computed===false&&parent?.type==='AssignmentExpression'&&
+        parent.operator==='='&&parent.left===node&&parent.right?.type==='Identifier'&&
+        localPrototype?.type==='AssignmentExpression'&&localPrototype.operator==='='&&
+        localPrototype.left?.type==='MemberExpression'&&!localPrototype.left.computed&&
+        property(localPrototype.left)==='prototype'&&
+        localPrototype.left.object?.type==='Identifier'&&
+        localPrototype.left.object.name===parent.right.name&&
+        localPrototype.right?.type==='NewExpression'&&
+        localPrototype.right.callee?.type==='Identifier'&&
+        localPrototype.right.arguments.length===0;
+      if(!reviewedCryptoJsNewTarget&&!reviewedPapaDateType&&!reviewedPapaPrototype&&
+         !reviewedReactPrototype)
         throw new Error(`Unapproved dynamic constructor reference in ${file} offset=${node.start} nearby=${JSON.stringify(text.slice(Math.max(0,node.start-100),node.end+100))}`);
     }
     if (['CallExpression', 'NewExpression'].includes(node.type) && node.callee.type === 'Identifier' && ['eval', 'Function', 'AsyncFunction', 'importScripts'].includes(node.callee.name) && !approvedNativeImport(node.callee,node,file)) throw new Error(`Dynamic execution in ${file}: ${node.callee.name}`);
