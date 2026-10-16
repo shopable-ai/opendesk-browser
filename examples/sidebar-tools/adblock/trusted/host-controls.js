@@ -209,13 +209,14 @@ export function createAdblockPermissionControls({
     }finally{reading=false;if(refreshPending)void refresh();}
   }
   function finish(){busy=false;paint();if(refreshPending||!state)void refresh();}
-  async function operate(op,payload,event){
+  async function operate(op,payload,event,focusAtDispatch=null){
     if(event?.isTrusted!==true||busy||!visible||!enabled)return;
     // Preserve native keyboard focus when the pending Chrome operation disables
     // the switch. Chrome may blur a focused <button> as soon as disabled=true.
-    const focusTarget=event?.currentTarget===global?global:
-      event?.currentTarget===site?site:null;
-    const restoreFocus=Boolean(focusTarget&&doc.activeElement===focusTarget);
+    const focusTarget=focusAtDispatch===global||focusAtDispatch===site?focusAtDispatch:
+      event?.currentTarget===global?global:event?.currentTarget===site?site:null;
+    const restoreFocus=Boolean(focusAtDispatch===focusTarget||
+      (focusTarget&&doc.activeElement===focusTarget));
     const captured=sequence;busy=true;paint();report('正在核对 Chrome 规则…');
     try{
       const data=await runOperation(op,payload,event);
@@ -242,13 +243,14 @@ export function createAdblockPermissionControls({
     if(event?.isTrusted!==true||busy||!visible||!enabled||!state)return;
     if(state.enabled){void operate('adblock.disable',{},event);return;}
     // First-party synchronous permission request MUST precede any await.
+    const focusAtDispatch=doc.activeElement===global?global:null;
     const captured=generation;busy=true;paint();let request;
     try{request=api.permissions.request({permissions:[ADBLOCK_PERMISSION]});}
     catch(e){report('Chrome 授权请求失败：'+String(e.message||e),true);finish();return;}
     void Promise.resolve(request).then(granted=>{
       if(captured!==generation){finish();return;}
       if(!granted)throw Error('未批准 Chrome DNR，不会开启过滤');
-      busy=false;return operate('adblock.enable',{},event);
+      busy=false;return operate('adblock.enable',{},event,focusAtDispatch);
     }).catch(e=>{
       if(captured===generation){state=null;report(String(e.message||e),true);}
       finish();
