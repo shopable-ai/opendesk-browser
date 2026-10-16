@@ -256,6 +256,28 @@ try {
   console.log('04B ERROR_PERMISSION_UNTRUSTED_LOADING_PASS');
   await click('theme-button');
   assert.equal(await evaluate('document.querySelector(".stage").classList.contains("night")'),true);
+  // Inspect true browser computed colors, not declared CSS token strings.
+  const darkContrast = await evaluate([
+    '(() => {',
+    '  const lum = rgb => {',
+    '    const v = rgb.match(/[0-9]+/g).slice(0,3).map(Number).map(n => n/255)',
+    '      .map(n => n <= .04045 ? n/12.92 : Math.pow((n+.055)/1.055,2.4));',
+    '    return v[0]*.2126+v[1]*.7152+v[2]*.0722;',
+    '  };',
+    '  const ratio = (a,b) => {',
+    '    const x=lum(a),y=lum(b);',
+    '    return (Math.max(x,y)+.05)/(Math.min(x,y)+.05);',
+    '  };',
+    '  const status=document.getElementById("global-status");',
+    '  return {',
+    '    status:ratio(getComputedStyle(status).color,getComputedStyle(status.closest(".global-card")).backgroundColor),',
+    '    kicker:ratio(getComputedStyle(document.querySelector(".notes .kicker")).color,"rgb(21,34,54)")',
+    '  };',
+    '})()'
+  ].join('\n'));
+  assert.ok(darkContrast.status >= 4.5,'dark enabled status text contrast '+JSON.stringify(darkContrast));
+  assert.ok(darkContrast.kicker >= 4.5,'dark preview heading contrast '+JSON.stringify(darkContrast));
+  console.log('04C DARK_TEXT_CONTRAST_PASS · '+JSON.stringify(darkContrast));
   await selectDomain('video.example.com');
   const storageWorks=await evaluate('(()=>{try{return !!localStorage.getItem("opendesk.adblock.preview.r2")}catch{return false}})()');
   await send('Page.reload',{ignoreCache:true});
