@@ -27,6 +27,9 @@ const nameValue=()=>page.locator('#r23-name').inputValue();
 const first='请在当前网页的姓名输入框中填写：给我一个亿的项目。填写后读取输入框的实际值并告诉我，不要点击提交按钮，不要跳转网页。';
 const second='把刚才填写的内容改成：项目已启动，并重新读取验证。不要提交表单，也不要跳转。';
 async function reset(){
+  // A pending disclosure must be handled explicitly, never silently discarded by reset.
+  if((await state()).stage==='approval')await page.locator('[data-action="deny"]').click();
+  assert.notEqual((await state()).stage,'approval');
   await page.locator('[data-action="reset"]').click();
   if(await page.locator('#r23-modal-root [role="dialog"]').isVisible())await page.locator('[data-action="discard-proceed"]').click();
   assert.equal((await state()).stage,'empty');
