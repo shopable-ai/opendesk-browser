@@ -636,7 +636,7 @@ try{
               if(metadata){
                 assert.equal(rows.kind,'opendesk.cookie-metadata.v1');
                 assert.equal(rows.restoreSupported,false);
-                assert(!/"value"\\s*:/.test(copied),'Metadata must not include Cookie Value');
+                assert(!/"value"\s*:/.test(copied),'Metadata must not include Cookie Value');
                 for(const cookie of native)assert(!copied.includes(cookie.value),'Native values must be redacted');
               }
               assert.equal(values.length,native.length);
@@ -661,7 +661,8 @@ try{
             assert.equal(completion.receivedBytes,bytes.length);
             const expectedCopy=copiedPayloads.get(metadata?'metadata-json':'backup-json');
             if(expectedCopy!==undefined&&format==='json')
-              assert.equal(text,expectedCopy,'Copied OS clipboard and downloaded file must be byte-identical');
+              assert.equal(hash(Buffer.from(text)),hash(Buffer.from(expectedCopy)),
+                'Copied OS clipboard and downloaded file must be byte-identical');
             let exported;
             if(metadata){
               const data=JSON.parse(text);assert.equal(data.kind,'opendesk.cookie-metadata.v1');assert.equal(data.restoreSupported,false);
