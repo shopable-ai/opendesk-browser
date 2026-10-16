@@ -528,15 +528,29 @@ test('trusted native click gates optional Chrome permission prompt; disabled too
     requests++;return Promise.resolve(true);
   }}},doc,container,notice:()=>{},runOperation});
   controls.render(tool,false,false);
-  const global=container.children[0].children[0].children[1];
+  // Identify the two independent product controls by their accessible contracts,
+  // never by a DOM child offset shared with the three-page product layout.
+  const walk=node=>[node,...node.children.flatMap(walk)];
+  const switches=walk(container).filter(node=>node.attributes.role==='switch');
+  assert.equal(switches.length,2,'global and current-site switches must both exist');
+  const global=switches.find(node=>node.attributes['aria-label']==='全局广告拦截');
+  const site=switches.find(node=>node.attributes['aria-label']==='当前网站不可用');
+  assert.ok(global,'global protection switch must have stable accessible identity');
+  assert.ok(site,'site switch must remain separate from global protection');
+  assert.notEqual(global,site);
   assert.equal(container.hidden,false);
   assert.equal(global.disabled,true);
   global.listeners.click({isTrusted:true});assert.equal(requests,0);
   controls.render(tool,false,true);
   await new Promise(done=>setImmediate(done));
+  assert.equal(global.disabled,false,'active global switch is actionable after status read');
+  assert.equal(site.disabled,true,'site switch is disabled while global protection is off');
+  assert.equal(site.attributes['aria-label'],'网站 news.example.com 的广告过滤');
   global.listeners.click({isTrusted:false});assert.equal(requests,0);
   global.listeners.click({isTrusted:true});
   assert.equal(requests,1,'native Chrome permission request must begin synchronously');
   await new Promise(done=>setImmediate(done));
   assert.ok(changes.includes('adblock.enable'));
+  assert.equal(global.attributes['aria-checked'],'true');
+  assert.equal(site.attributes['aria-checked'],'true');
 });
