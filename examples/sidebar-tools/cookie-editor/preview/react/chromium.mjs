@@ -63,7 +63,45 @@ try{
   for(const width of [320,360,384,420,520]){await page.setViewportSize({width,height:850});assert.equal(await page.evaluate('document.documentElement.scrollWidth<=innerWidth'),true,`overflow ${width}`);await page.screenshot({path:join(output,`${width}-export.png`),fullPage:true});for(const zoom of ['125%','150%','200%']){await page.evaluate(z=>document.body.style.zoom=z,zoom);assert.equal(await page.evaluate('document.documentElement.scrollWidth<=innerWidth'),true,`overflow ${width}@${zoom}`);}await page.evaluate('document.body.style.zoom=""');}
   await page.getByRole('button',{name:'深色'}).click();await page.screenshot({path:join(output,'384-dark.png'),fullPage:true});
  });
- await test('unauthorized is not empty',async()=>{await page.locator('[data-testid="scenario"]').selectOption('first');await page.getByText('尚未授权查看本站 Cookie').waitFor();assert.equal(await page.getByText('本站暂无 Cookie').count(),0);});
+ await test('first authorization denial, recovery, auto-hide and revocation',async()=>{
+   await page.locator('[data-testid="scenario"]').selectOption('first');
+   await page.getByRole('button',{name:'允许访问',exact:true}).waitFor();
+   assert.equal(await page.locator('.cookie-row').count(),0);
+   assert.equal(await page.getByText('本站暂无 Cookie').count(),0);
+   await page.locator('[data-testid="failure"]').selectOption('grantDenied');
+   await page.getByRole('button',{name:'允许访问',exact:true}).click();
+   await page.getByText('授权已取消或被拒绝。未读取本站 Cookie，可重新尝试。').waitFor();
+   assert.equal(await page.locator('.permission-state').count(),1);
+   await page.getByRole('button',{name:'允许访问',exact:true}).click();
+   await page.locator('.cookie-row').first().waitFor();
+   assert.equal(await page.locator('.permission-state').count(),0);
+   assert.equal(await page.locator('.site-status').count(),0,'no permanent authorized badge');
+   assert.equal(await page.locator('.cookie-row').count(),8);
+   await page.getByText('已允许访问本站 Cookie').waitFor();
+   await page.getByText('已允许访问本站 Cookie').waitFor({state:'hidden',timeout:7000});
+   await page.locator('.site-permissions summary').click();
+   await page.getByText('Cookie 读取',{exact:true}).waitFor();
+   await page.getByRole('button',{name:'撤销本站授权'}).click();
+   await page.getByRole('button',{name:'允许访问',exact:true}).waitFor();
+   assert.equal(await page.locator('.cookie-row').count(),0);
+   await page.locator('[data-testid="failure"]').selectOption('grantError');
+   await page.getByRole('button',{name:'允许访问',exact:true}).click();
+   await page.getByText('授权请求未完成，请检查权限后重试。').waitFor();
+   assert.equal(await page.locator('.permission-state').count(),1);
+   await page.getByRole('button',{name:'允许访问',exact:true}).click();
+   await page.locator('.cookie-row').first().waitFor();
+   assert.equal(await page.locator('.permission-state').count(),0);
+   await page.locator('[data-testid="scenario"]').selectOption('ready');
+   assert.equal(await page.locator('.permission-state').count(),0,'already authorized session should have no authorization card');
+ });
+ await test('loading is not an authorization prompt and empty authorized site stays empty',async()=>{
+   await page.locator('[data-testid="scenario"]').selectOption('loading');
+   await page.getByText('正在读取本站 Cookie…').waitFor();
+   assert.equal(await page.getByRole('button',{name:'允许访问',exact:true}).count(),0);
+   await page.locator('[data-testid="scenario"]').selectOption('empty');
+   assert.equal(await page.locator('.permission-state').count(),0);
+   await page.getByText('本站暂无 Cookie').waitFor();
+ });
  assert.deepEqual(errors,[],`Runtime errors: ${errors.join('; ')}`);
  console.log(JSON.stringify({result:'PASS',react:'19.2.0',passed:pass.length,pass,errors},null,2));
 }finally{await browser.close();}

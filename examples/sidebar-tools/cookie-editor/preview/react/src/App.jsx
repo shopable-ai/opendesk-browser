@@ -26,11 +26,13 @@ const svgPaths={
   chevron:<path d="m7 10 5 5 5-5"/>,close:<path d="M6 6l12 12M18 6 6 18"/>,eye:<><path d="M2 12s3.4-6.5 10-6.5S22 12 22 12s-3.4 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.5"/></>,
   eyeoff:<><path d="m3 3 18 18"/><path d="M9.8 5.7A10 10 0 0 1 12 5.5c6.6 0 10 6.5 10 6.5a13 13 0 0 1-3.4 4"/><path d="M6.5 6.5C3.5 8.4 2 12 2 12s3.4 6.5 10 6.5a10 10 0 0 0 4-.8"/></>,
   trash:<><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13"/></>,globe:<><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c-5 5-5 13 0 18M12 3c5 5 5 13 0 18"/></>,
-  check:<path d="m5 12 5 5L20 7"/>,alert:<><path d="M12 3 2 21h20L12 3z"/><path d="M12 9v5M12 18h.01"/></>,copy:<><rect x="7" y="7" width="13" height="13" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h2"/></>
+  check:<path d="m5 12 5 5L20 7"/>,alert:<><path d="M12 3 2 21h20L12 3z"/><path d="M12 9v5M12 18h.01"/></>,copy:<><rect x="7" y="7" width="13" height="13" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h2"/></>,
+  shield:<><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></>,
+  more:<><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></>
 };
 function Icon({name}){return <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">{svgPaths[name]}</svg>}
 function IconButton({name,label,onClick,disabled=false,pressed,small=false}){return <button type="button" className={'icon-btn'+(small?' small':'')} onClick={onClick} aria-label={label} title={label} disabled={disabled} aria-pressed={pressed===undefined?undefined:pressed}><Icon name={name}/></button>}
-function Message({tone='neutral',children}){return <p className={'message '+tone} role="status" aria-live="polite">{children}</p>}
+function Message({tone='neutral',children}){return <p className={'message '+tone} role={tone==='error'?'alert':'status'} aria-live="polite">{children}</p>}
 function Field({label,children}){return <label className="field"><span>{label}</span>{children}</label>}
 function parseInput(text){
  const s=text.trim();if(!s)return {error:'请先选择文件或粘贴 Cookie 内容。'};
@@ -65,13 +67,15 @@ function exportContent(rows,fmt,includeValue){
 }
 export default function App(){
  const [rows,setRows]=React.useState(initialRows);const [scene,setScene]=React.useState('ready');const [dark,setDark]=React.useState(false);
+ const [grantBusy,setGrantBusy]=React.useState(false);const [grantError,setGrantError]=React.useState('');
  const [query,setQuery]=React.useState('');const [filter,setFilter]=React.useState('all');const [sort,setSort]=React.useState('name');const [expandedFilters,setExpandedFilters]=React.useState(false);
  const [selected,setSelected]=React.useState(null);const [draft,setDraft]=React.useState(null);const [baseline,setBaseline]=React.useState(null);const [pending,setPending]=React.useState(null);const [reveal,setReveal]=React.useState(false);
  const [io,setIo]=React.useState(null);const [importText,setImportText]=React.useState('');const [importPlan,setImportPlan]=React.useState(null);const [format,setFormat]=React.useState('json');const [includeValues,setIncludeValues]=React.useState(true);
  const [confirm,setConfirm]=React.useState(null);const [saving,setSaving]=React.useState(false);const [needsVerify,setNeedsVerify]=React.useState(false);const [skipPartition,setSkipPartition]=React.useState(false);const [flash,setFlash]=React.useState(null);const [error,setError]=React.useState('');const [failNext,setFailNext]=React.useState('');
  const [version,setVersion]=React.useState(0); const fileRef=React.useRef(null);const epochRef=React.useRef(0); const focusKey=React.useRef(null);
- const granted=scene==='ready'||scene==='readonly'||scene==='valuesDenied'||scene==='saveError'||scene==='copyError'||scene==='downloadError'||scene==='unknown';
- const canWrite=scene!=='readonly'&&granted; const canValues=granted&&scene!=='valuesDenied'; const busy=scene==='loading'||saving;
+ const needsSiteGrant=scene==='first';const loading=scene==='loading';
+ const granted=!needsSiteGrant&&!loading;
+ const canWrite=scene!=='readonly'&&granted; const canValues=granted&&scene!=='valuesDenied'; const busy=loading||saving||grantBusy;
  const current=selected==='new'?null:rows.find(x=>x.id===selected);
  const dirty=isDirty(draft,baseline);
  const notify=(text,tone='success')=>{setFlash({text,tone});setError('');};
@@ -79,6 +83,7 @@ export default function App(){
  const focusAfter=id=>{focusKey.current=id;};
  React.useEffect(()=>{if(focusKey.current){const k=focusKey.current;focusKey.current=null;requestAnimationFrame(()=>document.querySelector(k)?.focus());}},[selected,version]);
  React.useEffect(()=>{if(confirm?.type==='export')document.getElementById('r491-export-confirm-yes')?.focus();},[confirm?.type,confirm?.kind]);
+ React.useEffect(()=>{if(!flash?.ephemeral)return;const timer=setTimeout(()=>setFlash(v=>v===flash?null:v),2400);return()=>clearTimeout(timer);},[flash]);
  const openEditor=(id)=>{const c=id==='new'?null:rows.find(x=>x.id===id);const d=toDraft(c);setSelected(id);setDraft(d);setBaseline({...d});setPending(null);setError('');setReveal(false);setIo(null);setFlash(null);focusAfter('#cookie-name');setVersion(v=>v+1);};
  const requestSwitch=(id)=>{if(saving||!granted)return;if(selected===id){requestClose();return;}if(selected!==null&&dirty){setPending(id);setError('');return;}openEditor(id);};
  const requestClose=()=>{if(saving)return;if(dirty){setPending('close');return;}const old=selected;resetEditor();if(old&&old!=='new')focusAfter('[data-row="'+old+'"]');else focusAfter('[data-action="new"]');setVersion(v=>v+1);};
@@ -96,7 +101,28 @@ export default function App(){
  };
  const remove=async()=>{if(!current)return;setConfirm({type:'delete',message:'精确删除「'+current.name+'」？'});};
  const runDelete=async()=>{if(!current)return;const epoch=epochRef.current;setSaving(true);await sleep(200);if(epoch!==epochRef.current)return;setRows(a=>a.filter(x=>x.id!==current.id));setSaving(false);setConfirm(null);resetEditor();notify('已删除 Cookie');};
- const useScene=v=>{epochRef.current++;setSaving(false);setNeedsVerify(false);setScene(v);setFlash(null);setError('');setConfirm(null);setIo(null);resetEditor();setQuery('');if(v==='empty')setRows([]);else setRows(initialRows());};
+ const useScene=v=>{epochRef.current++;setSaving(false);setGrantBusy(false);setGrantError('');setNeedsVerify(false);setScene(v);setFlash(null);setError('');setConfirm(null);setIo(null);resetEditor();setQuery('');if(v==='empty')setRows([]);else setRows(initialRows());};
+ const requestGrant=async()=>{
+   if(!needsSiteGrant||grantBusy)return;
+   const epoch=epochRef.current;setGrantBusy(true);setGrantError('');setFlash(null);
+   await sleep(420);
+   if(epoch!==epochRef.current)return;
+   setGrantBusy(false);
+   if(failNext==='grantDenied'||failNext==='grantError'){
+     setGrantError(failNext==='grantDenied'?'授权已取消或被拒绝。未读取本站 Cookie，可重新尝试。':'授权请求未完成，请检查权限后重试。');
+     setFailNext('');
+     return;
+   }
+   // PREVIEW ONLY: the real tool must await trusted Host grant + permission re-read.
+   setScene('ready');setGrantError('');
+   setFlash({text:'已允许访问本站 Cookie',tone:'success',ephemeral:true});
+   focusAfter('[aria-label="搜索 Cookie"]');setVersion(v=>v+1);
+ };
+ const revokeDemo=()=>{
+   if(busy)return;
+   if(dirty){setError('有未保存的修改，请先保存或取消后再管理权限。');return;}
+   useScene('first');focusAfter('[data-testid="request-access"]');setVersion(v=>v+1);
+ };
  const matching=c=>[c.name,c.domain,c.path].some(t=>t.toLowerCase().includes(query.toLowerCase()))&&(filter==='all'||(filter==='session'?c.session:filter==='partitioned'?!!c.partitionKey:!!c[filter]));
  const visible=rows.filter(matching).sort((a,b)=>sort==='name'?a.name.localeCompare(b.name):sort==='domain'?a.domain.localeCompare(b.domain):sort==='path'?a.path.localeCompare(b.path):(a.expiration||'').localeCompare(b.expiration||''));
  const pinned=current&&!visible.some(x=>x.id===current.id)?[current]:[];const shown=[...pinned,...visible];
@@ -126,17 +152,38 @@ export default function App(){
   }catch(e){setError(kind==='copy'?'浏览器未允许写入剪贴板；可以改用下载。':'无法下载，请检查浏览器设置。');}finally{setSaving(false);}
  };
  const handleConfirm=()=>{if(confirm?.type==='delete')runDelete();else if(confirm?.type==='import')runImport();else if(confirm?.type==='export')runExport(confirm.kind,true);};
- const resetAll=()=>{epochRef.current++;setSaving(false);setNeedsVerify(false);setRows(initialRows());setScene('ready');resetEditor();setIo(null);setFlash(null);setError('');setFilter('all');setQuery('');setImportText('');setFailNext('');};
+ const resetAll=()=>{epochRef.current++;setSaving(false);setGrantBusy(false);setGrantError('');setNeedsVerify(false);setRows(initialRows());setScene('ready');resetEditor();setIo(null);setFlash(null);setError('');setFilter('all');setQuery('');setImportText('');setFailNext('');};
  const appKeydown=e=>{if(e.key!=='Escape')return;if(confirm){setConfirm(null);return;}if(pending){setPending(null);return;}if(selected!==null){requestClose();return;}if(io)setIo(null);};
  return <div className={'r49-page '+(dark?'theme-dark':'')}>
-   <section className="demo-lab" aria-label="预览场景切换器"><div className="lab-title"><span>Cookie Editor R4.9</span><span className="lab-label">独立交互候选 · 虚构数据</span></div><div className="lab-controllers">
+   <section className="demo-lab" aria-label="预览场景切换器"><div className="lab-title"><span>Cookie Editor R4.10.3</span><span className="lab-label">独立交互候选 · 虚构数据</span></div><div className="lab-controllers">
       <label>场景 <select data-testid="scenario" value={scene} onChange={e=>useScene(e.target.value)}><option value="ready">已授权</option><option value="first">未授权</option><option value="readonly">仅查看</option><option value="empty">空列表</option><option value="loading">正在读取</option><option value="valuesDenied">值未授权</option><option value="saveError">保存失败</option><option value="copyError">复制失败</option><option value="downloadError">下载失败</option><option value="unknown">写入结果未知</option></select></label>
-      <label>下次操作 <select data-testid="failure" value={failNext} onChange={e=>setFailNext(e.target.value)}><option value="">正常</option><option value="save">保存失败</option><option value="import">导入失败</option><option value="copy">复制失败</option><option value="download">下载失败</option><option value="unknown">结果未知</option></select></label>
+      <label>下次操作 <select data-testid="failure" value={failNext} onChange={e=>setFailNext(e.target.value)}><option value="">正常</option><option value="save">保存失败</option><option value="import">导入失败</option><option value="copy">复制失败</option><option value="download">下载失败</option><option value="unknown">结果未知</option><option value="grantDenied">授权被拒绝</option><option value="grantError">授权请求失败</option></select></label>
       <button className="lab-button" type="button" onClick={()=>setDark(a=>!a)}>{dark?'浅色':'深色'}</button><button className="lab-button" type="button" onClick={resetAll}>重置</button>
    </div></section>
    <main className="cookie-app" onKeyDown={appKeydown} aria-label="Cookie Editor">
-      <header className="site-bar"><span className="site-symbol"><Icon name="globe"/></span><div className="site-name"><span>当前网站</span><strong title={demoSite}>{demoSite}</strong></div><span className={'site-status '+(!granted?'muted':scene==='readonly'?'limited':'')}>{busy?'读取中':!granted?'未授权':scene==='readonly'?'仅查看':'已授权'}</span><IconButton name="refresh" label="刷新 Cookie" onClick={()=>{if(needsVerify){setNeedsVerify(false);setError('');notify('已核对模拟数据。请确认草稿后再保存。','neutral');return;}if(dirty){setError('有未保存的修改，请先保存或取消。');return;}setFlash(null);setError('');setVersion(v=>v+1);notify('已刷新 Cookie 列表')}} disabled={busy}/></header>
-      {!granted?<div className="permission-state" role="status"><Icon name={scene==='loading'?'refresh':'alert'}/><strong>{scene==='loading'?'正在读取本站 Cookie…':'尚未授权查看本站 Cookie'}</strong><p>{scene==='loading'?'请检查网站和访问权限。':'请前往已安装工具的设置，授权本站的 Cookie 读取权限。'}</p><button className="text-btn" onClick={()=>notify('正式版本请在可信工具设置中授权；预览可在上方切换场景。','neutral')}>查看授权方式</button></div>:<>
+      <header className="site-bar">
+        <span className="site-symbol"><Icon name="globe"/></span>
+        <div className="site-name"><span>当前网站</span><strong title={demoSite}>{demoSite}</strong></div>
+        {loading&&<span className="site-status muted">读取中</span>}
+        {scene==='readonly'&&<span className="site-status limited">仅查看</span>}
+        <IconButton name="refresh" label="刷新 Cookie" onClick={()=>{if(needsVerify){setNeedsVerify(false);setError('');notify('已核对模拟数据。请确认草稿后再保存。','neutral');return;}if(dirty){setError('有未保存的修改，请先保存或取消。');return;}setFlash(null);setError('');setVersion(v=>v+1);notify('已刷新 Cookie 列表')}} disabled={busy||!granted}/>
+        {granted&&<details className="site-permissions" onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget))e.currentTarget.open=false}} onKeyDown={e=>{if(e.key==='Escape'){e.currentTarget.open=false;e.stopPropagation()}}}>
+          <summary aria-label="网站权限" title="网站权限"><Icon name="more"/></summary>
+          <div className="site-permissions-popover">
+            <strong>网站权限</strong>
+            <div className="permission-item"><span>Cookie 读取</span><span className="permission-ok"><Icon name="check"/>已允许</span></div>
+            {!canValues&&<p className="permission-explain">Cookie 值读取尚未授权，使用时需单独申请。</p>}
+            <button className="permission-manage" type="button" onClick={revokeDemo} disabled={busy}>撤销本站授权</button>
+          </div>
+        </details>}
+      </header>
+      {!granted?<section className="permission-state" aria-label={loading?'正在读取 Cookie':'网站访问授权'}>
+        <span className="permission-illustration"><Icon name={loading?'refresh':'shield'}/></span>
+        <strong>{loading?'正在读取本站 Cookie…':'允许访问本站 Cookie'}</strong>
+        <p>{loading?'正在检查网站与访问权限。':<>首次使用需要允许访问 <b>{demoSite}</b> 的 Cookie。</>}</p>
+        {needsSiteGrant&&<button data-testid="request-access" className="text-btn primary permission-primary" type="button" disabled={grantBusy} onClick={requestGrant}>{grantBusy?'正在请求授权…':'允许访问'}</button>}
+        {grantError&&needsSiteGrant&&<Message tone="error">{grantError}</Message>}
+      </section>:<>
        <div className="list-toolbar"><strong>Cookie <span>{rows.length}</span></strong><div className="toolbar-actions"><IconButton name="upload" label="导入 Cookie" onClick={startImport} disabled={busy||!canWrite}/><IconButton name="download" label="导出 Cookie" onClick={startExport} disabled={busy}/><span className="action-separator"/><span data-action="new"><IconButton name="plus" label="新建 Cookie" onClick={()=>requestSwitch('new')} disabled={busy||!canWrite}/></span></div></div>
        <div className="searchbar"><div className="searchbox"><Icon name="search"/><input value={query} type="search" onChange={e=>setQuery(e.target.value)} placeholder="搜索名称、域名或路径" aria-label="搜索 Cookie"/></div><IconButton name="filter" label="筛选与排序" pressed={expandedFilters} onClick={()=>setExpandedFilters(v=>!v)}/></div>
        {expandedFilters&&<section className="filter-panel" aria-label="筛选与排序"><div className="filter-chips">{[['all','全部'],['secure','Secure'],['httpOnly','HttpOnly'],['session','会话'],['partitioned','分区']].map(([key,label])=><button key={key} type="button" className={'chip '+(filter===key?'selected':'')} onClick={()=>setFilter(key)} aria-pressed={filter===key}>{label}</button>)}</div><label className="sort-field">排序<select value={sort} onChange={e=>setSort(e.target.value)}><option value="name">名称</option><option value="domain">域名</option><option value="path">路径</option><option value="expiration">过期时间</option></select></label></section>}

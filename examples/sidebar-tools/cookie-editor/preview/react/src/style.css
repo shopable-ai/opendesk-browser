@@ -45,3 +45,30 @@
 .inline-editor .toggles{gap:6px 9px;min-width:0}
 @media(max-width:350px){.inline-editor .toggles-row{grid-template-columns:56px minmax(0,1fr)}}
 @media(max-width:260px){.inline-editor .toggles-row{grid-template-columns:minmax(0,1fr)}}
+
+/* R4.10.3 — grant once, disappear after verified success; management stays in an icon menu. */
+.site-bar{position:relative}
+.site-permissions{position:relative;flex:none}
+.site-permissions>summary{list-style:none;width:34px;height:34px;display:grid;place-items:center;border-radius:8px;cursor:pointer;color:#496080}
+.site-permissions>summary::-webkit-details-marker{display:none}
+.site-permissions>summary:hover,.site-permissions[open]>summary{background:#edf2fa}
+.site-permissions>summary:focus-visible{outline:2px solid var(--od-brand);outline-offset:2px}
+.site-permissions-popover{position:absolute;right:0;top:calc(100% + 6px);width:min(275px,calc(100vw - 38px));z-index:20;padding:12px;background:var(--od-paper);border:1px solid var(--od-line);border-radius:10px;box-shadow:0 12px 26px #16284024;display:grid;gap:11px;text-align:left}
+.site-permissions-popover>strong{font-size:12px}
+.permission-item{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:11px;color:var(--od-sub)}
+.permission-ok{display:inline-flex;align-items:center;gap:4px;color:var(--od-positive);white-space:nowrap}
+.permission-ok svg{width:14px;height:14px}
+.permission-explain{margin:0;color:var(--od-sub);font-size:11px;line-height:1.5}
+.permission-manage{border:1px solid var(--od-line);background:var(--od-bg);color:var(--od-ink);text-align:left;border-radius:7px;padding:9px;font-size:12px;cursor:pointer}
+.permission-manage:hover:not(:disabled){background:#edf2fa}
+.permission-state{margin:4px 0 0;padding:30px 18px 26px;min-height:245px;align-content:center;gap:12px;border:1px solid var(--od-line);border-radius:11px;background:var(--od-paper)}
+.permission-illustration{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;background:#edf3ff;color:var(--od-brand)}
+.permission-state .permission-illustration svg{width:23px;height:23px;color:inherit}
+.permission-state strong{font-size:15px}
+.permission-state p{line-height:1.6;max-width:275px;overflow-wrap:anywhere}
+.permission-state p b{font-weight:600;color:var(--od-ink)}
+.permission-state .permission-primary{width:min(100%,210px);min-height:38px}
+.permission-state .message{width:min(100%,320px);text-align:left}
+.theme-dark .site-permissions>summary{color:var(--od-sub)}
+.theme-dark .site-permissions>summary:hover,.theme-dark .site-permissions[open]>summary,.theme-dark .permission-manage:hover:not(:disabled){background:#273a56}
+.theme-dark .permission-illustration{background:#283d66}
