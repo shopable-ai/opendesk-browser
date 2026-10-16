@@ -12,9 +12,11 @@ description: Freeze, verify, install, upgrade or publish Controller Tasks and Pa
 ## 先读真实合同
 
 1. 阅读 AGENTS.md、docs/framework/testing-guide.md；当前中文主入口 docs/api/README.md，首次操作 docs/api/quickstart.zh-CN.md，精确参数 docs/api/mcp-local-development.zh-CN.md。原配置细节见 docs/framework/local-development-r22.zh-CN.md。
-2. 优先阅读 docs/product/program-development-dual-format-and-sidebar.zh-CN.md（统一操作）；需要 HTTPS ESM 时再读 docs/architecture/browser-framework/https-esm-imports-r1.zh-CN.md；按需查 schemas/opendesk-program-project.v1.schema.json、src/platform/tasks/contract.js、src/scripting/user-scripts/page-program-contract.js。
+2. 第三方优先查 `docs/api/page-userscript.zh-CN.md`、`docs/api/page-ui-frameworks.zh-CN.md`、`docs/api/page-import-persistence.zh-CN.md`、`docs/api/local-projects.zh-CN.md`、`docs/product/program-development-dual-format-and-sidebar.zh-CN.md` 和公开的 `schemas/opendesk-program-project.v1.schema.json`；Controller 查 `docs/api/controller.zh-CN.md`，HTTPS 依赖按公开文档锁定。**内部** `src/platform/tasks/contract.js` / `src/scripting/user-scripts/page-program-contract.js` 仅在真正平台任务或已证明公共能力缺口时供维护者核查，不能作为普通第三方必读项。
 3. 检查当前 HEAD、未提交修改及并行工作；保护现有内容、遵守集成规则。
 4. 按 docs/framework/program-evidence-reuse.zh-CN.md 核对已有候选、相关输入和证据等级，不因新会话重复未变化的全量验收。
+
+**SDK First 来源约束**：Page Program 业务保留 `examples/programs/<id>/`，本 Skill 只负责版本冻结、验证、安装、升级和真实身份记录。不能因为用户需要自动注入、安装、XMind 类大型静态 Runtime 就直接改 Broker、Registry 或通用 Page Installer。先按公开 SDK/预算、许可、生命周期与复现证据评估，缺口未证明写 `SDK_GAP_NOT_PROVEN`，越权需求写 `BLOCKED`；可证明的跨工具缺口交 `opendesk-extension-runtime` 单独维护。临时 Chrome 注入不是正式安装 PASS。
 
 ## 源码和环境
 
