@@ -56,6 +56,18 @@ html[data-preview-theme=dark] :is(.account-content span,.benefits li,.history-pa
 html[data-preview-theme=dark] :is(.pill.active,.pill.neutral,.pill.warn){background:#384264;color:#f4eaff}
 html[data-preview-theme=dark] :is(.step-action,.code-reveal){background:#303e55}
 
+/* R5.8: readable baseline colors, preserving the approved card structure. */
+.shell :is(.brand p,.account-content span,.clock-label,.expiry,.time-meta,.benefits-head span,.benefits li,.history,.validity,.redeem .sub,.proxy-source,.proxy-help,.service summary,.service summary span,.detail,.domains,.crumbs){color:#5c687d}
+.avatar{color:#6258ca}.tiny-link{min-height:34px;min-width:34px}
+.pill{color:#596275}.pill.active{color:#166746}.pill.neutral{color:#5a50ac}.pill.warn{color:#85531a}
+.input-row input::placeholder{color:#667186;opacity:1}
+html[data-preview-theme=dark] .shell :is(.brand p,.account-content span,.clock-label,.expiry,.time-meta,.benefits-head span,.benefits li,.history,.validity,.redeem .sub,.proxy-source,.proxy-help,.service summary,.service summary span,.detail,.domains,.crumbs,.crumbs b){color:#c3cee0}
+html[data-preview-theme=dark] .tiny-link{color:#c8c2ff}
+html[data-preview-theme=dark] .input-row input::placeholder{color:#b0bdd0}
+html[data-preview-theme=dark] .input-row .action{background:#675bd0;border-color:#675bd0}
+html[data-preview-theme=dark] .pill{background:#384264;color:#f4eaff}
+html[data-preview-theme=dark] .proxy-actions .primary{background:#6258ca;border-color:#8177dc;color:#fff}
+
 </style>
 </head>
 <body>
@@ -88,7 +100,7 @@ html[data-preview-theme=dark] :is(.step-action,.code-reveal){background:#303e55}
           </form>
 <div class="redeem-review" id="redeem-review" hidden><div class="benefits-head"><strong>兑换预检 · 离线示例</strong><span>尚未领取</span></div><p id="review-product"></p><p id="review-account"></p><div class="review-actions"><button class="action" id="review-confirm" type="button">确认兑换（模拟）</button><button class="step-action" id="review-cancel" type="button">取消</button></div></div>
 <div class="redeem-review" id="recovery-panel" hidden><strong>兑换回执尚未确认</strong><p id="recovery-text">有一笔演示事务结果未知；必须核对正式服务端后再继续。</p><button class="step-action" id="recovery-check" type="button">核对上次兑换（模拟）</button></div>
-<p id="redeem-feedback" class="redeem-feedback" role="status" aria-live="polite" hidden></p>
+<p id="redeem-feedback" class="redeem-feedback" role="status" aria-live="polite" tabindex="-1" hidden></p>
           <div class="validity" id="redeem-caption">具体权益以服务端核验结果为准；兑换不会自动开启代理。</div>
         </section>
         <div class="bottomline"><a class="buy-more" id="shop" href="https://example.com/" target="_blank" rel="noopener noreferrer" title="在新标签页打开外部示例网站（正式商城地址尚未配置）">查看更多商品 ↗</a></div>
@@ -105,7 +117,7 @@ html[data-preview-theme=dark] :is(.step-action,.code-reveal){background:#303e55}
       
     </main>
     <aside class="aside" aria-label="产品设计说明">
-      <h2>会员优先，网络可控</h2><p>把「会员账号 + 当前权益」放在首屏主卡片，「兑换激活」紧随其后；兑换码的权益内容由商品核验决定，不预设固定时长。</p><hr><div class="mini">预览实验台（独立于扩展）</div><p>场景、宽度和外观控件只用于设计验收，不属于正式安装工具。</p><div class="mini">三种核心使用方式</div><p>① 登录后查看已有会员；② 手动输入兑换码；③ 从专属激活链接带入兑换意图，按安装状态继续。</p><div class="mini">链接场景</div><p>浏览器插件未安装：先完成浏览器确认安装；宿主已安装但工具未安装：明确确认添加工具；工具已安装：直接查看并确认兑换。</p><div class="mini">离线兑换样例</div><p>仅识别 <code>DEMO-ACCESS-2026</code> 作为固定演示码，未知兑换码不会成功。</p><button class="step-action" id="demo-code" type="button">填入演示兑换码</button><div class="mini">安装步骤模拟</div><button class="step-action" id="lab-install-confirm" type="button" hidden>实验台：模拟安装核验完成</button><p id="lab-install-status" role="status" aria-live="polite">安装状态说明</p><p id="lab-notice" role="status" aria-live="polite">离线预览状态</p><div class="mini">商品入口 · 外部页面</div><p>顶部和正文商品入口统一在浏览器新标签页打开外部 HTTPS 页面，不再显示内置商品弹窗。当前目标为 example.com 演示域名，正式产品须更换为经过审核的商城地址。</p><div class="mini">代理冲突也能退出</div><p>启停入口始终可见；单击「启用代理」或「停用代理」直接操作本工具，无二次选择弹窗。停用只释放本工具接管，不关闭其他扩展或系统网络。</p><div class="mini">重要区分</div><p>账号、会员时长、工具安装、Chrome 代理启用是四种独立状态。会员有效不代表实际网络已成功接通。</p><hr><p><code>目标：examples/sidebar-tools/ai-vip-share/</code></p></aside>
+      <h2>会员优先，网络可控</h2><p>把「会员账号 + 当前权益」放在首屏主卡片，「兑换激活」紧随其后；兑换码的权益内容由商品核验决定，不预设固定时长。</p><hr><div class="mini">预览实验台（独立于扩展）</div><p>场景、宽度和外观控件只用于设计验收，不属于正式安装工具。</p><div class="mini">三种核心使用方式</div><p>① 登录后查看已有会员；② 手动输入兑换码；③ 从专属激活链接带入兑换意图，按安装状态继续。</p><div class="mini">链接场景</div><p>浏览器插件未安装：先完成浏览器确认安装；宿主已安装但工具未安装：明确确认添加工具；工具已安装：直接查看并确认兑换。</p><div class="mini">离线兑换样例</div><p>仅识别 <code>DEMO-ACCESS-2026</code> 作为固定演示码，未知兑换码不会成功。</p><button class="step-action" id="demo-code" type="button">填入演示兑换码</button><div class="mini">安装步骤模拟</div><button class="step-action" id="lab-install-confirm" type="button" hidden>实验台：模拟安装核验完成</button><p id="lab-install-status" role="status" aria-live="polite">安装状态说明</p><p id="lab-notice" role="status" aria-live="polite">离线预览状态</p><div class="mini">商品入口 · 外部页面</div><p>唯一商品入口在浏览器新标签页打开外部 HTTPS 页面，不再显示内置商品弹窗。当前目标为 example.com 演示域名，正式产品须更换为经过审核的商城地址。</p><div class="mini">代理冲突也能退出</div><p>启停入口始终可见；单击「启用代理」或「停用代理」直接操作本工具，无二次选择弹窗。停用只释放本工具接管，不关闭其他扩展或系统网络。</p><div class="mini">重要区分</div><p>账号、会员时长、工具安装、Chrome 代理启用是四种独立状态。会员有效不代表实际网络已成功接通。</p><hr><p><code>目标：examples/sidebar-tools/ai-vip-share/</code></p></aside>
   </div>
   <div class="note">设计场景模拟 · 商品入口将打开外部 HTTPS 示例网站 · 无真实支付或会员账户 · 不修改浏览器代理</div>
 </div>
@@ -133,7 +145,7 @@ html[data-preview-theme=dark] :is(.step-action,.code-reveal){background:#303e55}
   if(e.type==='stop')return {...s,desired:false,stoppedByUser:true,mode:'existing',operation:'stopping',revision:s.revision+1};
   if(e.type==='stopped'&&e.revision===s.revision&&s.operation==='stopping'){
    if(s.failures>0)return {...s,operation:'stop_failed',failures:s.failures-1};
-   if(s.owner==='unknown')return {...s,operation:'stop_failed'};
+   if(['unknown','locked'].includes(s.owner))return {...s,operation:'stop_failed'};
    return {...s,owner:s.owner==='self'?'none':s.owner,ownPreference:false,operation:'idle'};
   }
   if(e.type==='ownerChanged')return {...s,owner:e.owner,desired:false,operation:'idle',revision:s.revision+1};
@@ -158,7 +170,7 @@ html[data-preview-theme=dark] :is(.step-action,.code-reveal){background:#303e55}
     const code=typeof raw==='string'?raw.trim():'';
     if(!/^[A-Za-z0-9_-]{6,120}$/.test(code))
       return {status:'invalid',message:'兑换码格式不正确。请输入 6–120 位字母、数字、短横线或下划线。'};
-    if(['blocked','link-host','link-install','recovery'].includes(scenario))
+    if(['blocked','provider-stop','link-host','link-install','recovery'].includes(scenario))
       return {status:'unavailable',message:'尚不能核验权益：请完成必要步骤或等待正式会员服务恢复。'};
     if(scenario==='guest')
       return {status:'login_required',message:'请先绑定 AI VIP Share 产品账号，再预检兑换码。'};
@@ -377,7 +389,7 @@ html[data-preview-theme=dark] :is(.step-action,.code-reveal){background:#303e55}
       $('review-product').textContent='待领取（演示）：'+result.product;
       $('review-account').textContent='绑定到产品账号：'+result.account+' · 未实际核验';
       setMessage('预检完成。请核对权益和脱敏账号，确认或取消；尚未提交。');
-      drawRedeem();
+      drawRedeem();$('review-confirm').focus();
     },420);
   }
   function confirm(){
@@ -386,7 +398,7 @@ html[data-preview-theme=dark] :is(.step-action,.code-reveal){background:#303e55}
     const p=r.pending;
     if(r.consumed.has(p.raw)||r.unknown.has(p.raw))return;
     r.phase='submitting';const revision=++r.revision;
-    setMessage('模拟提交中，请勿重复确认…');drawRedeem();
+    setMessage('模拟提交中，请勿重复确认…');drawRedeem();$('redeem-feedback').focus();
     setTimeout(()=>{
       if(revision!==r.revision||r.phase!=='submitting')return;
       r.pending=null;
@@ -404,6 +416,7 @@ html[data-preview-theme=dark] :is(.step-action,.code-reveal){background:#303e55}
         }
       }
       draw();
+      $(r.phase==='unknown'?'recovery-check':'redeem-code').focus();
     },460);
   }
   function changeScene(){
@@ -417,6 +430,9 @@ html[data-preview-theme=dark] :is(.step-action,.code-reveal){background:#303e55}
       state.redeem.phase='unknown';state.redeem.unknownCode=abandonedCode||sampleCode;
     }else if(state.redeem.phase!=='unknown')state.redeem.phase='idle';
     state.scene=next;state.account.bound=next!=='guest';
+    if(next==='recovery'){
+      state.redeem.phase='unknown';state.redeem.unknownCode=sampleCode;state.redeem.unknown.add(sampleCode);
+    }
     state.install={host:next!=='link-host',tool:!['link-host','link-install'].includes(next),intent:next.startsWith('link-'),guide:false};
     // Preserve typed code when switching ordinary cases. A link only supplies a sample when empty.
     if(state.install.intent&&!$('redeem-code').value)$('redeem-code').value=sampleCode;

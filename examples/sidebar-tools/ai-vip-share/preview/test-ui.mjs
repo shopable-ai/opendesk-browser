@@ -287,3 +287,31 @@ test('offline preview cannot claim Chrome native or server acceptance',()=>{
   assert.doesNotMatch(all,/fetch\s*\(|XMLHttpRequest\s*\(|localStorage\s*\./);
   assert.match(html,/演示/);
 });
+
+test('R5.8 offline Provider cannot authorize redemption while STOP remains usable',()=>{
+  const v=fixture();v.scenario('provider-stop');v.precheck('DEMO-ACCESS-2026');
+  assert.equal(v.elements['redeem-review'].hidden,true);
+  assert.match(v.elements['redeem-feedback'].textContent,/尚不能核验/);
+  assert.equal(v.elements['proxy-toggle'].disabled,false);
+});
+
+test('R5.8 selecting recovery establishes the same persistent unknown lock as initial load',()=>{
+  const v=fixture();v.scenario('recovery');
+  assert.equal(v.elements['recovery-panel'].hidden,false);
+  assert.equal(v.elements['redeem-button'].disabled,true);
+  v.scenario('link-host');v.emit('lab-install-confirm');v.emit('lab-install-confirm');
+  assert.equal(v.elements['recovery-panel'].hidden,false);
+  assert.equal(v.elements['history-list'].children.length,0);
+});
+
+test('R5.8 Chrome not controllable cannot claim that its preference was released',()=>{
+  const v=fixture();v.scenario('locked');v.emit('proxy-toggle');v.flush();
+  assert.match(v.elements['proxy-status'].textContent,/停止未确认/);
+  assert.equal(v.elements['proxy-toggle'].textContent,'重试停用');
+});
+
+test('R5.8 precheck and terminal receipt restore a visible focus target',()=>{
+  const v=fixture();v.precheck('DEMO-ACCESS-2026');
+  assert.equal(v.elements['review-confirm'].focused,true);
+  v.submit();assert.equal(v.elements['redeem-code'].focused,true);
+});
