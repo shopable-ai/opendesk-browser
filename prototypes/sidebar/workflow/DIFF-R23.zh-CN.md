@@ -278,3 +278,29 @@ R23.5 的「AI 来源」下拉沿用了三种 Provider 并使用与其它表单�
 - 独立本地 Chromium 144 复核（非正式 Chrome 155 CI 的替代）：360／420／520px AI 来源文字与开关实际间距均为 **9px**；下方协议小字和接口输入框左边沿偏差为 **0px**；没有横向溢出与脚本错误。两轮模拟最终读回「项目已启动」，提交/导航均为零。点击清空 URL 后自动变成 Chat Completions 来源，旧密钥及旧授权被清空。
 - **反方 UX 核查**：避免为简洁而隐藏必填 Endpoint/Model/API Key；不能把两种不同协议当成同一个 HTTP 请求；不能把自定义 Responses 域名误称 OpenAI 官方；旧 Key 不能跟随 Endpoint 换接收方；两段切换不得丢失屏幕阅读器的单选语义；360px/200% 不可裁切。对应布局和代码行为均有回归测试，待用户实体验证视觉观感。
 - 质量评分说明：目标仍为六维 ≥95。Chromium PASS、比例几何和内部 UX 复核不等于六名外部独立专家评分。缺少真实 ChatGPT 宿主、Mac VoiceOver、正式扩展实际 UI 和用户主观视觉评审时，相关评分 **NOT_SCORED**；原型仍为 `DESIGN_REVIEW_REQUIRED`。
+
+
+## 十三、R23.7：AI 设置精细排版与单入口返回（2026-10-16）
+
+### 用户反馈与实施结果
+
+- 问题：R23.6 的 AI 来源 Tab 过宽（最大约 320px）、输入控件标签左对齐导致每行右边界参差、单独「说明」写有技术内部术语、底部固定「完成」与顶部返回重复且远离操作区。
+- 本轮只变更单一原型 `prototypes/sidebar/workflow/index.html` 与现有测试及文档，**不触及正式 Workflow/Provider/RunHost/Chrome/SDK**。
+- AI 来源与原生 Radio 切换器组成**整体右对齐**的小型工具组；切换器 196px，响应式保持右边缘贴齐设置正文，且保留 Tab、方向键和可见焦点。
+- 三个 HTTPS 字段标签 **text-align: right**，宽约 64px，与完整输入框相距 10px；360px 时标签 60px、间距 8px。输入框不会为迁就短标签而损失可输入宽度。
+- 删除独立「说明」折叠项（原有协议与权限说明转移到文档）及底部固定「完成」栏：即时生效的模拟设置仅保留顶部「返回对话」，不会给用户造成额外一次提交或真正保存凭据的误解。
+- 协议指示简化为「Responses API」／「Chat Completions」，仍严格根据 Endpoint 路径派发到原有模拟来源，不冒充实际联网验证。虚拟密钥遮蔽、Endpoint 改变撤销凭据和摘要同意、二轮填写／只读／Stop／高风险拦截均保持原样。
+
+### 源绑定实证
+
+- 唯一 HTML Git Blob：`1ff1f40497eae4e5d6a3c93aebacc3c7be291df3`。
+- CI：[GitHub Actions #38915373224](https://github.com/shopable-ai/opendesk-browser/actions/runs/38915373224)；被测 HEAD `cd154d2a39a5860c93db89bf6a37e95eba5e7c00`；`exact-saved-html` 和 `native-browser-zoom` 两项成功。日志记录 `R234_SOURCE_BOUND_CHROMIUM_PASS 22`、`R237_REAL_CHROME_UI_200_ZOOM_PASS`。
+- 附加 Chromium 本地 `set_content` 交互复验（独立于源绑定 CI）：360／420／520px 模式切换器均为 **196px** 并靠右，三行标签与输入框 CSS 计算间距为 **10px**、垂直中心偏差 **0px**，无横向溢出／Page Error。API Key 清理、授权撤销、两轮自然语言填写读回「项目已启动」、提交与导航零次通过。
+- 测试明确断言旧「完成」和「说明」不存在、唯一返回按钮可见，原生 Chrome 200% 放大下顶部返回可点击，不能引用旧版固定底栏截图冒充新版本成功。
+
+### 反方评审与评分边界
+
+- 过窄 Tab 触点会影响缩放和无障碍：因此保留 32px 高内部按钮、原生 Radio 与完整可见焦点；200% 验证已通过，Mac VoiceOver 仍 `NOT_TESTED`。
+- 纯右对齐来源并非所有屏宽最佳通解：本轮用户明确希望靠右，故优先 196px 控件与右边缘对齐，待用户实际查看以确定最终观感。
+- 移除固定「完成」是由**没有独立待提交设置草稿**的当前模拟合同决定，不代表正式产品未来不得设计保存操作。正式实现如有需要必须重新评审。
+- UI 视觉、信息密度、交互一致性有自动化／独立截图取证，可作为内部设计评估；没有真正的六名外部独立专家评分、用户 Mac VoiceOver、真实 ChatGPT 对话内预览或正式安装验收，所以**不得声称这些维度已获得客观 ≥95 分**。本轮状态仍是 `DESIGN_REVIEW_REQUIRED`。
