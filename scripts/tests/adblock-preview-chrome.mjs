@@ -221,12 +221,12 @@ try{
     await poll(async()=>(await child(ctx)).count==='0 个例外网站','sandbox restore readback');
     await poll(async()=>(await parent()).switches[1].checked,'host exception readback');
     await screenshot('restored');
-    await click('#od-preview-adblock-host [data-adblock-nav="overview"]');
+    await click('#od-preview-adblock-host button[aria-label="从已停用的网站返回概览"]');
     await poll(async()=>(await parent()).frameHeight===0,'return to overview');
     await click('#od-preview-adblock-host [data-adblock-nav="settings"]');
     await poll(async()=>(await parent()).hostText.includes('Chrome 权限与重启'),'product settings');
     await screenshot('settings');
-    await click('#od-preview-adblock-host [data-adblock-nav="overview"]');
+    await click('#od-preview-adblock-host button[aria-label="从 AdBlock 设置返回概览"]');
     clean();
     report.push({scenario:'success',sourceCommit:built.sourceCommit,
       uiSha256:built.uiSha256,checks:['source-dom','source-css-switch',
