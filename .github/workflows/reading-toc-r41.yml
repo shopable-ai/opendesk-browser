@@ -63,20 +63,25 @@ jobs:
           node scripts/preview/build-preview.mjs --tool reading-toc --surface page-overlay --scenario success --theme light --width 360 --out artifacts/previews/reading-toc/reading-toc-r12-overlay.html
           npm run check
       - name: Production and development bundles with unchanged strict packaging
+        id: production_build
+        if: ${{ !cancelled() }}
         run: |
           npm run build
           npm run build:dev
           npm run verify
       - name: Install Chinese fonts for readable UI screenshots
+        if: ${{ !cancelled() && steps.production_build.outcome == 'success' }}
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y fonts-noto-cjk
       - name: Install Chrome for Testing (unpacked MV3 supported)
+        if: ${{ !cancelled() && steps.production_build.outcome == 'success' }}
         id: cft
         uses: browser-actions/setup-chrome@v2
         with:
           chrome-version: stable
       - name: Real Chrome R4.6 adaptive height, Side Panel visibility, drag and screenshot evidence
+        if: ${{ !cancelled() && steps.production_build.outcome == 'success' }}
         env:
           CHROME_BIN: ${{ steps.cft.outputs.chrome-path }}
           OPENDESK_NATIVE_HEADED: '1'
@@ -90,7 +95,7 @@ jobs:
         if: ${{ !cancelled() }}
         run: node --test tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs
       - name: Full automated source suite
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.production_build.outcome == 'success' }}
         run: npm test
       - name: Preserve package evidence - not Chrome native acceptance
         if: always()
