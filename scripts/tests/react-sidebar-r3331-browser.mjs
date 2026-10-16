@@ -22,7 +22,12 @@ assert.ok(browser,'Real Chromium/Chrome required (CHROME_BIN or installed binary
 // Serve fixture endpoints BEFORE Vite's transform/fallback middleware.
  // This avoids a custom route appended after Vite's terminal 404 handler.
 const vite=await createServer({root:process.cwd(),configFile:false,appType:'custom',
-  logLevel:'error',optimizeDeps:{noDiscovery:true,include:[],entries:[]},
+  logLevel:'error',
+  // The fixture imports JSX from source. Browser ESM cannot directly import
+  // React 19's CommonJS exports (e.g. react-dom.createPortal), so prebundle
+  // only the pinned React entrypoints; do not scan the entire repository.
+  optimizeDeps:{noDiscovery:true,entries:[],
+    include:['react','react/jsx-runtime','react-dom','react-dom/client']},
   server:{middlewareMode:true}});
 const http=createHttpServer((req,res)=>{
   const path=new URL(req.url||'/','http://localhost').pathname;
