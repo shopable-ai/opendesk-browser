@@ -15,6 +15,17 @@ const pass=[];
 const test=async(name,run)=>{await run();pass.push(name);console.log('PASS',name)};
 try{
  await page.goto(url,{waitUntil:'load'});
+ await test('380px native-width panel when standalone HTML is opened on desktop',async()=>{
+   await page.setViewportSize({width:1280,height:880});
+   await page.locator('.cookie-app').waitFor();
+   const app=await page.locator('.cookie-app').boundingBox();
+   const lab=await page.locator('.demo-lab').boundingBox();
+   assert.ok(app&&Math.abs(app.width-380)<=1,`expected 380px sidebar, got ${app?.width}`);
+   assert.ok(lab&&lab.width<=381,`preview controls exceed sidebar width: ${lab?.width}`);
+   assert.equal(await page.evaluate('document.documentElement.scrollWidth<=innerWidth'),true,'desktop horizontal overflow');
+   await page.screenshot({path:join(output,'380-standalone-desktop.png'),fullPage:true});
+   await page.setViewportSize({width:384,height:880});
+ });
  await test('React 19 render eight cookies',async()=>{await page.locator('.cookie-row').first().waitFor();assert.equal(await page.locator('.cookie-row').count(),8);});
  await page.screenshot({path:join(output,'384-initial.png'),fullPage:true});
  await test('inline dirty restore and save',async()=>{

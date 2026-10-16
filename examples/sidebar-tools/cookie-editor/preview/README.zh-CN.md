@@ -37,3 +37,11 @@
 - **真实 React19 产物：** `react/index.html` 必须从上述 JSX 通过 `npm run build` 生成，经 Chromium E2E 后由现有 `cookie-editor-r49-react-preview.yml` 晋升。旧产物不可自动视为与 R4.9.2 源码一致。
 - **正式扩展保护：** 当前配置版本 2.0.14 的 `src/`、安装包、SDK/Host、本目录 R4.3 与 R4.6 历史预览本轮不变；正式业务迁移下轮才进行。
 - **本地校正证据：** 8 组 Chromium 回归 PASS，320/384/520px 值显示图标中心偏差 0px；React19 构建、最新 CI、真实 Chrome 安装需分别核验。
+
+## React 19 离线审核入口 · 380px 侧栏（2026-10-17）
+
+- **当前推荐审核：** `preview/react/index.html`，React 19 与 CSS/JS 均内联的独立 HTML；宽屏打开时 Cookie 面板仍保持 380px，直接双击可用，无须构建或安装开发环境。
+- **历史 R4.9.2 确认版：** `preview/cookie-editor-r4.9.2-approved.html` 已同步调整为 380px，但仍是 React 16 兼容快照，不是 React 19 产物。
+- **唯一维护路径：** React 源码位于 `preview/react/src/`，修改后使用 `preview/react/package.json` 的 `npm run build` 重新生成并提交 `preview/react/index.html`；`npm run check` 验证源码与 HTML 构建一致性，`npm run test:chromium` 做真实 Chromium UI 回归。仅审核现有 HTML 无须执行这些命令。
+- **历史预览保护：** `preview/index.html` 仍保留 R4.6 版本；此处不改正式工具源码或已安装 JSON 包。
+
