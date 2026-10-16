@@ -1,0 +1,105 @@
+{
+  "kind": "REAL_CHROMIUM_X11_BROWSER_ZOOM",
+  "browser": "Chrome/155.0.8059.84",
+  "base": {
+    "dpr": 1,
+    "width": 1800
+  },
+  "report": [
+    {
+      "width": 360,
+      "zoom": 100,
+      "realBrowserDprRatio": 1,
+      "cssViewport": 1800,
+      "nonModal": true,
+      "uncoveredBottom": true,
+      "scrollPreserved": true
+    },
+    {
+      "width": 400,
+      "zoom": 100,
+      "keyboard": [
+        "real-enter",
+        "real-space",
+        "real-escape",
+        "real-F2",
+        "real-shift-F10",
+        "real-X11-clipboard"
+      ]
+    },
+    {
+      "width": 400,
+      "zoom": 100,
+      "realBrowserDprRatio": 1,
+      "cssViewport": 1800,
+      "nonModal": true,
+      "uncoveredBottom": true,
+      "scrollPreserved": true
+    },
+    {
+      "width": 960,
+      "zoom": 100,
+      "realBrowserDprRatio": 1,
+      "cssViewport": 1800,
+      "nonModal": true,
+      "uncoveredBottom": true,
+      "scrollPreserved": true
+    },
+    {
+      "width": 360,
+      "zoom": 125,
+      "realBrowserDprRatio": 1.25,
+      "cssViewport": 1440,
+      "nonModal": true,
+      "uncoveredBottom": true,
+      "scrollPreserved": true
+    },
+    {
+      "width": 400,
+      "zoom": 125,
+      "realBrowserDprRatio": 1.25,
+      "cssViewport": 1440,
+      "nonModal": true,
+      "uncoveredBottom": true,
+      "scrollPreserved": true
+    },
+    {
+      "width": 960,
+      "zoom": 125,
+      "realBrowserDprRatio": 1.25,
+      "cssViewport": 1440,
+      "nonModal": true,
+      "uncoveredBottom": true,
+      "scrollPreserved": true
+    },
+    {
+      "width": 360,
+      "zoom": 150,
+      "realBrowserDprRatio": 1.5,
+      "cssViewport": 1200,
+      "nonModal": true,
+      "uncoveredBottom": true,
+      "scrollPreserved": true
+    },
+    {
+      "width": 400,
+      "zoom": 150,
+      "realBrowserDprRatio": 1.5,
+      "cssViewport": 1200,
+      "nonModal": true,
+      "uncoveredBottom": true,
+      "scrollPreserved": true
+    },
+    {
+      "width": 960,
+      "zoom": 150,
+      "realBrowserDprRatio": 1.5,
+      "cssViewport": 1200,
+      "nonModal": true,
+      "uncoveredBottom": true,
+      "scrollPreserved": true
+    }
+  ],
+  "htmlSha256": "4fc7283b74127f1aa112dcca5c8d7e9286bed341084095ffe291eaf7f3985cb9",
+  "zoomMethod": "XTEST keyboard, corroborated by actual viewport change; no CSS, pinch or DPR override"
+}
