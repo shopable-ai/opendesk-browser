@@ -224,11 +224,15 @@ try{
   // Check the real original DOM and vendor style state BEFORE any workbook
   // opens. Snowbrush may have injected its global CSS during script loading,
   // so even a later zero style-count delta cannot prove owned cleanup.
-  const answerRoots=page.locator('[data-message-author-role="assistant"]');
-  const originalA=await answerRoots.nth(0).locator('.markdown').evaluate(node=>node.innerHTML);
+  // ChatGPT's native action toolbar is a sibling of the assistant body.
+  // Both must be scoped to the outer conversation turn, not the inner
+  // data-message-author-role node (which never contains the action buttons).
+  const answerTurns=page.locator('article[data-testid^="conversation-turn-"]');
+  assert.equal(await answerTurns.count(),3,'Fixture must expose three assistant turns');
+  const originalA=await answerTurns.nth(0).locator('.markdown').evaluate(node=>node.innerHTML);
   const globalStyleBeforeRender=await page.locator('style#snowbrush_style').count();
-  const trigger=n=>answerRoots.nth(n).locator('[data-opendesk-chatgpt-mindmap="button"] button');
-  const viewer=n=>answerRoots.nth(n).locator('[data-opendesk-chatgpt-mindmap="viewer"]');
+  const trigger=n=>answerTurns.nth(n).locator('[data-opendesk-chatgpt-mindmap="button"] button');
+  const viewer=n=>answerTurns.nth(n).locator('[data-opendesk-chatgpt-mindmap="viewer"]');
   await trigger(0).click();
   await viewer(0).and(page.locator('[data-ready="true"]')).waitFor({timeout:30000});
   const topicsA=await viewer(0).locator('.topic').count();
@@ -260,7 +264,7 @@ try{
   const globalStyleWhileOpen=await page.locator('style#snowbrush_style').count();
   await viewer(0).getByRole('button',{name:'恢复本条回复原文'}).click();
   await viewer(0).waitFor({state:'detached',timeout:30000});
-  assert.equal(await answerRoots.nth(0).locator('.markdown').evaluate(node=>node.innerHTML),originalA,
+  assert.equal(await answerTurns.nth(0).locator('.markdown').evaluate(node=>node.innerHTML),originalA,
     'A must restore the original ChatGPT reply byte-for-byte');
   assert((await viewer(1).locator('.topic:visible').count())>1,
     'Closing A must not retire the independent XMind viewer B');
