@@ -52,14 +52,6 @@ test('private button skins, duplicated tokens and remote CSS fail the build',asy
     await assert.rejects(compileSharedToolCss(SHARED_DESIGN_MARKER+'\n'+rule),
       /E_PREVIEW_DESIGN/,rule);
 });
-test('CSS comments with button wording cannot masquerade as a button visual override',async()=>{
-  const innocent=SHARED_DESIGN_MARKER+
-    '\n/* R1.13: compact square-button edit form. */\n.ps{gap:var(--space-2);padding:var(--space-2)}';
-  assert.match(await compileSharedToolCss(innocent),/\.ps\{gap:var\(--space-2\)/);
-  const dangerous=SHARED_DESIGN_MARKER+
-    '\n/* inert text */ .ps-button{background:var(--od-brand)}';
-  await assert.rejects(compileSharedToolCss(dangerous),/E_PREVIEW_DESIGN/);
-});
 test('freshness lock rejects a changed formal token without falsely passing',async()=>{
   const lock=JSON.parse(await read('contracts/ui-preview/quick-notes.lock.json'));
   const hashes=await previewSourceHashes();

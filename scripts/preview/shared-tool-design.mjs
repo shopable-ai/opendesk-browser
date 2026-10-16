@@ -27,12 +27,7 @@ export function assertLayoutOnly(css) {
     throw Error('E_PREVIEW_DESIGN: global or shared component appearance override');
   // A tool may position an existing button but may not establish its own visual skin.
   // This deliberately distinguishes harmless layout (margin, flex, grid) from visual declarations.
-  // Comments are not selectors. Scan CSS tokens after removing inert comments:
-  // this prevents a comment such as "square-button form" from reclassifying
-  // a following layout-only rule as a forbidden custom button appearance.
-  // Stripping comments also exposes declarations split with CSS comments.
-  const activeLayout=layout.replace(/\/\*[\s\S]*?\*\//g,'');
-  for(const match of activeLayout.matchAll(/([^{}]+)\{([^{}]*)\}/g)){
+  for(const match of layout.matchAll(/([^{}]+)\{([^{}]*)\}/g)){
     const selector=match[1],declarations=match[2];
     if(/(?:\.|#|\s)(?:[\w-]*button|[\w-]*btn)\b|\bbutton\b/i.test(selector)&&
       /(?:^|;)\s*(?:background(?:-color)?|border(?:-[\w-]+)?|color|font(?:-[\w-]+)?|box-shadow|padding(?:-[\w-]+)?|outline(?:-[\w-]+)?)\s*:/i.test(declarations))

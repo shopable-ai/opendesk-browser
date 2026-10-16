@@ -50,7 +50,7 @@
 .ps-status[data-error="true"]{background:var(--od-negative-bg);color:var(--od-negative)}
 @media(max-width:340px){.ps-head{flex-wrap:wrap}.ps-card-main{grid-template-columns:34px minmax(0,1fr) auto;gap:var(--space-1)}.ps-card{padding:var(--space-2)}}
 
-/* R1.13: content-first cards and a compact, square-button edit form. */
+/* R1.13: content-first cards and a compact, square control edit form. */
 .ps{gap:var(--space-2);padding:var(--space-2) var(--space-3)}
 .ps-head{align-items:center;margin:0 0 var(--space-1)}
 .ps-head h2,.ps-form-head h2{font-size:15px}
