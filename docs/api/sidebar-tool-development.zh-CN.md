@@ -6,7 +6,7 @@
 >
 > **零技术用户的上游入口**：先按[自然语言扩展开发工作流：需求推理与功能树先行](../../.agents/workflows/extension-creation.md)恢复历史决定、补齐用户场景、生成带验收映射的功能树并通过需求关卡；随后在本页继续原有的 UI 预览、实施、打包和验收。不新增另一套运行时或并列技术规范。
 >
-> **合同优先级**：`src/ui/sidebar-tools/package.js`、`src/ui/sidebar-tools.js`、`scripts/build-sidebar-tool.mjs` 和实际测试 > 本文。本文标记的“当前支持”是源码事实；“必须/建议”是工程规范，不能被当作已经实现的自动校验。
+> **公开 SDK 优先**：第三方开发只需本开发规范、公开 API、配置示例与工具自身项目，不需要读取宿主 `src/`。平台维护者才按可复现缺口核对内部 Host/打包实现；文档列出的能力不等于已经获得用户安装/网站授权。
 
 ## 产品设计与对话预览关卡（新建/显著改造 UI 时适用）
 
@@ -15,7 +15,7 @@
 此关卡与下文的 **stage / STAGED_NOT_INSTALLED 只读运行预览**是两件事：前者用无权限模拟数据评审信息架构，后者检查真实可安装包能否在隔离文档中只读运行。不能用任一个替代另一个；纯错误修复可依据影响范围省略重画原型，但不能省略相关回归。
 
 1. **需求与分类**：明确用户实际操作场景、P0/P1、动态沙箱还是经审计的第一方可信功能；需要全量 Chrome 私人数据的需求不得直接给任意动态工具赋权。
-2. **仓库事实核对**：读取 AGENTS、对应 Skill、现有 Host/SDK、[R27](../architecture/ui-layout-conventions-r27.zh-CN.md) 和 [R28](../architecture/sidebar-multi-section-tab-contract-r28.zh-CN.md)，列出可复用能力、缺口及写入文件所有权。
+2. **独立项目事实核对**：优先读取 AGENTS、对应 Skill、公开 SDK 与当前工具源码；只有已证实的通用平台缺口才由平台维护者检查 Host。界面规范可查 [R27](../architecture/ui-layout-conventions-r27.zh-CN.md) 和 [R28](../architecture/sidebar-multi-section-tab-contract-r28.zh-CN.md)，列出可复用能力、缺口及写入文件所有权。
 3. **信息架构与用户旅程**：先确定 Index → Detail / Form / Management / Confirm 的视图和空态、失败态、撤权态、返回路径；**独立工具页标题默认只有一个标题**，不要跟静态用途描述、重复面包屑；集合“＋ 新建”贴近集合标题。
 4. **HTML 交互原型（强制设计产物）**：创建独立、可打开、无网络/无真实权限副作用的 HTML + 模拟数据；在**当前对话的上下文可视区域直接呈现**可交互预览（不仅提供链接），同时提供完整 HTML 文件；若当前客户端无法嵌入交互内容，要明确说明并给出可打开的 HTML，不能谎称已经显示。
 5. **独立设计评分与修订**：功能、操作可发现性、信息层级、320/360/420px、可访问性、安全/隔离、模块解耦、测试覆盖分别记录；每项设计目标 ≥95/100，未达标返回原型修改。原型评分不得冒充原生 Chrome 产品通过。
@@ -31,12 +31,15 @@
 | --- | --- | --- | --- |
 | 常规笔记、格式转换、Markdown、个人信息面板 | **轻量工具**：HTML + CSS + 经典 JS | `tool.config.json` → `build-sidebar-tool.mjs` → 由用户导入并打开 | 不需要每个工具再建 Chrome 扩展或后台运行器 |
 | 有组件/复杂 UI 的工具 | **预编译工具**：React/Vue/可选 Tailwind | 先用 Vite 产出单个 IIFE JS + 静态 CSS，再走相同工具打包器 | 框架代码计入包预算；不能在 sandbox 直接运行 JSX/TSX/.vue/ESM |
-| 要在网页里固定插入按钮、读取完整内容、控制站点 | **可信扩展增强**：工具 UI + 经审查的 Content Script/宿主服务 | 改 `src/` 可信代码、授权合同与独立测试；再构建整个扩展 | 不能只在 JSON 中声明一个能力就获得任意 DOM/Chrome/Native 权限 |
+| 在网页插入按钮、访问 DOM、添加 React/Vue UI | **Page USER_SCRIPT / Page Program**，见 [公开规范](page-userscript.zh-CN.md) | `examples/programs/<id>/`；独立 Page 安装/权限合同 | 不把网页增强误当 Sidebar Tool，不默认修改 Host |
+| 已确认为第一方可信特权功能 | **可信扩展增强**：经审查的固定 Content/后台或 Side Panel 功能 | 仅必要时编辑 `src/<feature>/`、定向测试并构建整个扩展 | 普通第三方不能靠 JSON 声明获得任意 Chrome/Native 权限 |
 | 运行网页 USER_SCRIPT 或 Controller 自动化 | **不是这种工具包** | 阅读 [Page USER_SCRIPT](page-userscript.zh-CN.md) 或 [Controller](controller.zh-CN.md) | 不把 `.opendesk-task.json`、`package.json.opendesk` 与 `.opendesk-tool.json` 混用 |
 
 **默认从轻量工具开始**；出现确切组件复用需要时再选 React/Vue。既有 Side Panel 的工具宿主、RunHost、权限、Native 通道与 Design System 不重新搭建第二套。
 
 **当前选型决定（2026-10-14）：保留同仓库的 `examples/sidebar-tools/<id>/` 独立工具项目，不迁出为 `opendesk-tools` 仓库。** 用户界面与发行源码归各自项目；确需特权的 Background、Content Script 或可信 Side Panel 代码继续在已有 `src/<feature>/` 静态模块中，由固定入口编译接入。目录外观与真正耦合度不能混为一谈，先治理依赖方向，再考虑移动文件。
+
+**普通第三方最短流程（不读取内部 `src/`）**：确认真正需要的是 Sidebar Tool 而非 Page USER_SCRIPT → 创建 `examples/sidebar-tools/<id>/tool.config.json` 和自己的 `src/` → 按 [公开 API](sidebar-tools.zh-CN.md) 选择实际支持的 `OpenDeskTool.request` → 使用下文唯一打包器生成忽略目录临时候选 → 定向验证 → 显式晋升同源正式 JSON → 用户审阅安装/更新。Schema 中存在名称不等于通用权限；没有公开能力时保留复现，记 `SDK_GAP_NOT_PROVEN` 或对无法安全授权的操作记 `BLOCKED`，不能增加私有 Host API。
 
 ## 2. 共用目录与源码组织
 
