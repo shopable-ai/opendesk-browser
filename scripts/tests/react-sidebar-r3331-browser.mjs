@@ -12,7 +12,7 @@ import {join} from 'node:path';
 import {createServer} from 'vite';
 
 const fixtureJS="\nimport {mountExtensionList} from '/src/ui/react/main.tsx';\nconst ui=mountExtensionList(document),calls=[],state={query:'',kind:'all',scope:'smart',menuOpen:false};\nconst row={key:'app:sample',title:'React 安全演示',description:'不可运行用户代码',kind:'app',type:'应用',installed:true,primaryAction:'打开'};\nfunction draw(){\n  ui.renderToolbar({...state,language:'zh-CN',\n    onSearch(value){state.query=value;calls.push('search:'+value);draw();},\n    onToggleMenu(){state.menuOpen=!state.menuOpen;calls.push('menu:'+state.menuOpen);draw();},\n    onKind(value){state.kind=value;calls.push('kind:'+value);draw();},\n    onScope(value){state.scope=value;calls.push('scope:'+value);draw();},\n    onReset(){state.kind='all';state.scope='smart';calls.push('reset');draw();},\n    onMarket(){calls.push('market');},onImport(){calls.push('import');},\n    onReload(){calls.push('reload');},onLanguage(value){calls.push('language:'+value);}\n  });\n  ui.renderRows({rows:[row],busy:false,pendingKey:null,\n    onOpenRow(key){calls.push('open:'+key);\n      ui.renderDetail({key,title:row.title,description:row.description,\n        type:'应用',kind:'app',installed:true,busy:false,actions:[],\n        installationText:'本机已安装（测试模拟）',version:'1.0.0',source:null});},\n    onMore(key){calls.push('more:'+key);ui.setMenuKey(key);}\n  });\n  ui.renderFeedback({showEmpty:false,emptyText:'无匹配扩展',countText:'1 个扩展'});\n  ui.renderRecoveries({ids:[],busy:false,onRetry(id,event){calls.push('cleanup:'+id+':'+event.isTrusted);}});\n  ui.renderStatus({text:'测试状态',state:'info'});\n}\ndraw();\nconst dev={runDisabled:false,runLabel:'运行草稿',saveDisabled:false,saveHidden:false,saveTitle:'保存草稿',saveLabel:'保存版本',stopDisabled:false,stopLabel:'停止'};\nfunction paintDeveloperActions(){ui.renderDeveloperActions({...dev,onRun:event=>calls.push('run:'+event.isTrusted),onSave:event=>calls.push('save:'+event.isTrusted),onStop:event=>calls.push('stop:'+event.isTrusted)});}\npaintDeveloperActions();\nconst framework={mode:'javascript',compilerEnabled:true};\nfunction paintFramework(){ui.renderDeveloperFramework({...framework,onSelect:(kind,event)=>{calls.push('framework:'+kind+':'+event.isTrusted);framework.mode=kind;paintFramework();}});}\npaintFramework();\nui.renderDeveloperTarget({title:'本地 Chromium 页面',url:'https://example.com/view',host:'example.com',hostTitle:'https://example.com/view',status:'网页可运行',state:'available',statusTitle:'已核对身份'});\nwindow.__reactTest={ui,calls,state,dev,framework,paintDeveloperActions,paintFramework,dispose(){ui.dispose()}};\ndocument.documentElement.dataset.fixtureReady='true';\n";
-const fixtureHtml="<!doctype html><html lang=\"zh-CN\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><link rel=\"stylesheet\" href=\"/src/ui/design-tokens.css\"><link rel=\"stylesheet\" href=\"/src/ui/design-system.css\"><link rel=\"stylesheet\" href=\"/src/ui/extension-center.css\"></head><body><main id=\"extension-center\"><div id=\"extension-center-list-view\"><div class=\"ec-toolbar\"><span>旧静态工具栏</span></div><ul id=\"extension-center-list\" class=\"ec-list\"></ul><div id=\"extension-center-cleanups\" hidden></div><div id=\"extension-center-empty\" hidden><p id=\"extension-center-empty-text\"></p></div><span id=\"extension-center-count\"></span></div><section id=\"extension-center-detail-body\"></section><p id=\"extension-center-status\"></p></main><section id=\"workbench-develop\"><span id=\"script-current-page-host\"></span><span id=\"script-current-page-status\"></span><p id=\"script-current-page-title\"></p><p id=\"script-current-page-url\"></p></section><fieldset id=\"page-component-framework\"><div class=\"page-component-choices\"><label for=\"page-component-javascript\"><input id=\"page-component-javascript\" type=\"radio\" name=\"page-component-choice\" checked>JavaScript</label><label for=\"page-component-react\"><input id=\"page-component-react\" type=\"radio\" name=\"page-component-choice\">React</label><label for=\"page-component-vue\"><input id=\"page-component-vue\" type=\"radio\" name=\"page-component-choice\">Vue</label></div></fieldset><div id=\"develop-dock\"><div class=\"dock-buttons\"><button id=\"script-run\" disabled>运行草稿</button><button id=\"script-save\">保存版本</button><button id=\"script-stop\" disabled>停止</button></div></div><script type=\"module\" src=\"/__react_fixture.js\"></script></body></html>";
+const fixtureHtml="<!doctype html><html lang=\"zh-CN\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><link rel=\"stylesheet\" href=\"/src/ui/design-tokens.css\"><link rel=\"stylesheet\" href=\"/src/ui/design-system.css\"><link rel=\"stylesheet\" href=\"/src/ui/tool-shell.css\"><link rel=\"stylesheet\" href=\"/src/ui/extension-center.css\"></head><body><main id=\"extension-center\"><div id=\"extension-center-list-view\"><div class=\"ec-toolbar\"><span>旧静态工具栏</span></div><ul id=\"extension-center-list\" class=\"ec-list\"></ul><div id=\"extension-center-cleanups\" hidden></div><div id=\"extension-center-empty\" hidden><p id=\"extension-center-empty-text\"></p></div><span id=\"extension-center-count\"></span></div><section id=\"extension-center-detail-body\"></section><p id=\"extension-center-status\"></p></main><section id=\"workbench-develop\"><span id=\"script-current-page-host\"></span><span id=\"script-current-page-status\"></span><p id=\"script-current-page-title\"></p><p id=\"script-current-page-url\"></p></section><fieldset id=\"page-component-framework\"><div class=\"page-component-choices\"><label for=\"page-component-javascript\"><input id=\"page-component-javascript\" type=\"radio\" name=\"page-component-choice\" checked>JavaScript</label><label for=\"page-component-react\"><input id=\"page-component-react\" type=\"radio\" name=\"page-component-choice\">React</label><label for=\"page-component-vue\"><input id=\"page-component-vue\" type=\"radio\" name=\"page-component-choice\">Vue</label></div></fieldset><div id=\"develop-dock\"><div class=\"dock-buttons\"><button id=\"script-run\" disabled>运行草稿</button><button id=\"script-save\">保存版本</button><button id=\"script-stop\" disabled>停止</button></div></div><script type=\"module\" src=\"/__react_fixture.js\"></script></body></html>";
 
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const browser=process.env.CHROME_BIN||
@@ -64,10 +64,28 @@ async function checkEventually(expression){
   throw Error('Browser assertion never became true: '+expression);
 }
 async function click(selector){
-  const rect=await evaluate('(()=>{const node=document.querySelector('+JSON.stringify(selector)+');'+
-    'if(!node)throw Error("Missing click target");const r=node.getBoundingClientRect();'+
-    'return {x:r.left+r.width/2,y:r.top+r.height/2,width:r.width,height:r.height}})()');
-  assert(rect.width>0&&rect.height>0,'Browser click target must be visible: '+selector);
+  let rect;
+  for(let attempt=0;attempt<8;attempt++){
+    rect=await evaluate('(()=>{const node=document.querySelector('+JSON.stringify(selector)+');'+
+      'if(!node)throw Error("Missing click target");const r=node.getBoundingClientRect();'+
+      'const left=Math.max(0,r.left),right=Math.min(innerWidth,r.right),'+
+      'top=Math.max(0,r.top),bottom=Math.min(innerHeight,r.bottom);'+
+      'const x=(left+right)/2,y=(top+bottom)/2;'+
+      'const hit=left<right&&top<bottom?document.elementFromPoint(x,y):null;'+
+      'return {x,y,width:r.width,height:r.height,visible:getComputedStyle(node).visibility==="visible",'+
+      'hit:!!hit&&(hit===node||node.contains(hit)),hitTarget:hit?.id||hit?.tagName||null,'+
+      'wheelX:Math.max(0,Math.min(innerWidth-1,x)),wheelY:Math.max(0,Math.min(innerHeight-1,y)),'+
+      'deltaX:left<right?0:Math.max(-innerWidth,Math.min(innerWidth,r.left+r.width/2-innerWidth/2)),'+
+      'deltaY:top<bottom?0:Math.max(-innerHeight,Math.min(innerHeight,r.top+r.height/2-innerHeight/2))}})()');
+    // Product radios are intentionally transparent; require a visible layout and
+    // actual hit target without rejecting their opacity or disabled controls.
+    assert(rect.width>0&&rect.height>0&&rect.visible,'Browser click target must be visible: '+selector);
+    if(rect.hit||(!rect.deltaX&&!rect.deltaY)||attempt===7)break;
+    await cdp('Input.dispatchMouseEvent',{type:'mouseWheel',x:rect.wheelX,y:rect.wheelY,
+      deltaX:rect.deltaX,deltaY:rect.deltaY});
+    await delay(60);
+  }
+  assert(rect.hit,'Browser click target must receive native input: '+selector+'; '+JSON.stringify(rect));
   await cdp('Input.dispatchMouseEvent',{type:'mousePressed',x:rect.x,y:rect.y,button:'left',clickCount:1});
   await cdp('Input.dispatchMouseEvent',{type:'mouseReleased',x:rect.x,y:rect.y,button:'left',clickCount:1});
 }
@@ -146,11 +164,11 @@ try{
   assert.equal(await evaluate('document.getElementById("script-current-page-host").textContent'),'example.com');
   assert.equal(await evaluate('document.querySelectorAll("#develop-dock .dock-buttons > button").length'),3);
   assert.equal(await evaluate('document.querySelectorAll("#page-component-framework input").length'),3);
-  await click('label[for="page-component-react"]');
+  await click('#page-component-react');
   await checkEventually('window.__reactTest.framework.mode==="react"');
   assert.equal(await evaluate('document.getElementById("page-component-react").checked'),true);
   assert.equal(await evaluate('window.__reactTest.calls.filter(x=>x==="framework:react:true").length'),1);
-  await click('label[for="page-component-vue"]');
+  await click('#page-component-vue');
   await checkEventually('window.__reactTest.framework.mode==="vue"');
   await evaluate('window.__reactTest.framework.mode="javascript";window.__reactTest.framework.compilerEnabled=false;window.__reactTest.paintFramework()');
   assert.equal(await evaluate('document.getElementById("page-component-react").disabled'),true);
