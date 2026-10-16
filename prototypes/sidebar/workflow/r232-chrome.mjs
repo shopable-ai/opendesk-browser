@@ -164,8 +164,14 @@ try{
     'remove redundant technical explanation rather than hiding nested notes');
   assert.equal(await page.locator('#form').evaluate(el=>el.inert),true);
   assert.equal(await page.locator('#history').evaluate(el=>el.closest('.title-bar').inert),true);
-  assert.ok(Math.abs((await page.locator('.r23-settings').evaluate(el=>el.getBoundingClientRect().height))
-    -(await page.locator('.device').evaluate(el=>el.getBoundingClientRect().height)))<=2);
+  const r239ShortSheet=await page.evaluate(()=>{
+    const d=document.querySelector('.device').getBoundingClientRect(),
+      p=document.querySelector('.r23-settings').getBoundingClientRect();
+    return {bottomPinned:Math.abs(p.bottom-d.bottom)<=2,
+      naturallyShort:p.height>120&&p.height<d.height*.70};
+  });
+  assert.ok(r239ShortSheet.bottomPinned&&r239ShortSheet.naturallyShort,
+    'Codex must use a bottom-pinned short sheet without replacing the chat');
   assert.equal(await page.locator('#r236-native').isChecked(),true);
   assert.equal(await page.locator('#r23-native-status').isVisible(),true);
   await shot('r236-settings-local');
@@ -197,7 +203,7 @@ try{
     'remove visible AI 来源 text but keep accessible fieldset name');
   assert.ok(nativeLayout.sourceLeftAligned&&nativeLayout.sourceStartsAtTop,
     'two source choices must start the settings content without a blank heading');
-  assert.ok(nativeLayout.switchWidth>=235&&nativeLayout.switchWidth<=252,'source selector must be compact');
+  assert.ok(nativeLayout.switchWidth>=290,'source selector fills the bottom sheet content rail');
   assert.ok(nativeLayout.cardInside&&nativeLayout.cardWidth>=300,'native controls must form one coherent row');
   assert.ok(nativeLayout.statusAligned<=6&&nativeLayout.statusVisible,'native status and check action vertically aligned');
   assert.equal(nativeLayout.title,'本机连接');
@@ -410,7 +416,7 @@ try{
           visible:b.left>=p.left-1&&b.right<=p.right+1};
       });
       return{
-        panelFits:Math.abs(p.width-d.width)<=2&&Math.abs(p.height-d.height)<=2,
+        panelFits:Math.abs(p.width-d.width)<=2&&Math.abs(p.bottom-d.bottom)<=2&&p.height<d.height,
         sliderLeftAligned:Math.abs(slider.left-(body.left+parseFloat(getComputedStyle(document.querySelector('#r234-body')).paddingLeft)))<=2,
         sourceAtTop:Math.abs(slider.top-(body.top+parseFloat(getComputedStyle(document.querySelector('#r234-body')).paddingTop)))<=2,
         sourceLabelAbsent:!document.querySelector('#r236-source-title'),
@@ -422,13 +428,13 @@ try{
     });
     assert.ok(g.panelFits&&g.fieldVisible&&g.pageNoOverflow,'settings route must fit at '+width);
     assert.ok(g.sliderLeftAligned&&g.sourceAtTop&&g.sourceLabelAbsent&&g.accessibleName,'unlabeled visual selector remains accessible and aligned at '+width);
-    assert.ok(g.sliderWidth>=235&&g.sliderWidth<=252,'source toggle width at '+width);
+    assert.ok(g.sliderWidth>=width-58,'source toggle fills bottom sheet at '+width);
     assert.equal(g.protocolAligned,true,'protocol hint belongs below the endpoint at '+width);
     assert.ok(g.rows.every(x=>x.labelAbove&&x.sameRail&&x.visible),'stacked full-width inputs at '+width);
     await shot('r238-https-'+width);
     await page.locator('#r234-back').click();
   }
-  mark('R23.8.1 default Codex and unlabeled source selector align across 360/420/520');
+  mark('R23.9.1 Codex bottom sheet and unlabeled source selector align across 360/420/520');
   // Source-identical HTML is injected as srcdoc: isolate sandbox scripting separately
   // from file:// Chromium PASS. This does NOT prove the ChatGPT UI itself runs scripts.
   const embedded=await browser.newPage({viewport:{width:1100,height:850}});

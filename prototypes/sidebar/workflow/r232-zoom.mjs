@@ -103,8 +103,8 @@ try{
    assert.ok(geom.inputInside&&geom.backInside&&!geom.documentOverflow,'all controls stay accessible');
    assert.ok(geom.selectorAligned&&geom.selectorAtTop&&geom.noVisibleSourceLabel&&geom.accessibleSourceName,
      'source choices start settings without visible heading while retaining accessible name');
-   assert.ok(geom.selectorWidth>=235&&geom.selectorWidth<=252,
-     'source switch width remains compact under native Chrome zoom');
+   assert.ok(geom.selectorWidth>=Number(width)-58,
+     'source switch fills the bottom sheet rail under native Chrome zoom');
    assert.ok(geom.noteAligned&&geom.noFooter,'protocol hint and return controls are coherent');
    assert.ok(geom.rows.every(x=>x.stacked&&x.sameLeft&&x.inside),'native 200% input labels stacked correctly');
    await page.locator('#r233-qa > summary').click();
@@ -128,7 +128,7 @@ try{
    events.push({width,settingsLayout:geom});
  }
 
- console.log('R2381_REAL_CHROME_UI_200_ZOOM_PASS');
+ console.log('R2391_REAL_CHROME_UI_200_ZOOM_PASS');
  await writeFile(resolve(out,'r232-real-zoom.json'),JSON.stringify({status:'CHROME_NATIVE_ZOOM_200_PASS',head,gitBlob,sha256,input,version,zoom:zoomData,events},null,2));
 }catch(e){
  console.error(e);
