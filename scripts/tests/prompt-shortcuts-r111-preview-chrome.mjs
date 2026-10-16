@@ -286,7 +286,7 @@ async function run(){
   await sleep(700);
   await click('.prompt-use');
   await poll('document.querySelector("#panelStatus").dataset.kind==="error"','double-failure notice');
-  x=await state();assert.match(x.notice,/复制失败/);assert.equal(x.copyDialog,false);
+  x=await state();assert.match(x.notice,/安全停止：模拟编辑器与剪贴板均不可用/);assert.equal(x.copyDialog,false);
   report.simulatedFailure=true;report.result='PASS';
   console.log('PROMPT_SHORTCUTS_R111_REAL_CHROME_MOCK_PASS',JSON.stringify(report));
 }
