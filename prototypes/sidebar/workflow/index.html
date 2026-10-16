@@ -583,7 +583,9 @@ body[data-theme=dark] .r234-feedback[data-kind=checked],body[data-theme=dark] .r
     if(target.id==='history'){if(switchBlocked())return;data.historyOpen=true;data.settingsOpen=false;data.actionWarning='';render();return;}
     if(target.id==='settings'){data.settingsOpen=!data.settingsOpen;data.modeOpen=false;render();if(data.settingsOpen)$('r234-back').focus();else prompt.focus();return;}
     if(target.dataset.mode){if(busy()||data.stage==='approval')return;data.mode=target.dataset.mode;data.modeOpen=false;render();announce('已切换模拟操作模式');modeButton.focus();return;}
-    if(target===send&&busy()){stop();return;}
+    // A sandboxed srcdoc iframe may allow scripts but disallow form submission.
+    // Handle trusted button clicks directly; prevent native submit to avoid double-send.
+    if(target===send){ev.preventDefault();if(busy())stop();else if(!send.disabled)onSend();return;}
     if(!action)return;
     switch(action){
       case 'reset':attemptReset();break;
