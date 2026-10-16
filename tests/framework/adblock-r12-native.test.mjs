@@ -304,15 +304,25 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   // historical discovery button still exists in markup but is CSS-hidden.
   await until(()=>evaluate(client,sid,'!document.querySelector("#workbench-tools").hidden'),
     'real Extension Center tab is selected');
+  // The Extension Center intentionally keeps Catalog-only applications out of
+  // the default Installed scope. Discovery requires a real user scope change.
+  await click(client,sid,'#extension-center-more');
+  await click(client,sid,'#extension-center-menu [data-ec-scope="available"]');
   await click(client,sid,'#extension-center-search');
   await client.send('Input.insertText',{text:'广告拦截'},sid);
-  const official='#extension-center-list button[data-extension-key="app:adblock"][data-extension-action="primary"]';
+  const official='#extension-center-list button[data-extension-key="app:adblock"][data-extension-action="main"]';
   await until(()=>evaluate(client,sid,'(()=>{const b=document.querySelector('+
-    JSON.stringify(official)+');return !!b&&!b.disabled&&b.textContent.trim()==="安装"})()'),
-    'official optional AdBlock visible after real search');
+    JSON.stringify(official)+');return !!b&&!b.disabled})()'),
+    'official optional AdBlock in user-selected available scope');
   await click(client,sid,official);
+  await until(()=>evaluate(client,sid,
+    '!!document.querySelector("#extension-center-detail [data-ec-detail-action=install]")'),
+    'official AdBlock detail requires review');
+  await click(client,sid,'#extension-center-detail [data-ec-detail-action="install"]');
   await until(()=>evaluate(client,sid,'!document.querySelector("#sidebar-tool-preview").hidden'),'review fixed AdBlock');
   await click(client,sid,'#sidebar-tool-install');
+  await click(client,sid,'#extension-center-more');
+  await click(client,sid,'#extension-center-menu [data-ec-scope="smart"]');
   const installed='#extension-center-list button[data-extension-key="app:adblock"][data-extension-action="primary"]';
   await until(()=>evaluate(client,sid,'(()=>{const b=document.querySelector('+
     JSON.stringify(installed)+');return !!b&&!b.disabled&&b.textContent.trim()==="打开"})()'),
