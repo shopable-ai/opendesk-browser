@@ -705,6 +705,7 @@ for(const value of ['true','plaintext-only']){
     // expiry must remain long enough for asynchronous status readback.
     f.win.setTimeout=(fn,ms)=>setTimeout(fn,ms>=65000?ms:0);
     f.editor.tagName='div';f.editor.isContentEditable=true;
+    f.editor.getBoundingClientRect=()=>({left:350,top:480,width:540,height:100});
     f.editor.attributes.contenteditable=value;
     const wrapper=mockElement('section'),label=mockElement('div');
     wrapper.attributes.id='rich-container';wrapper.append(label,f.editor);
