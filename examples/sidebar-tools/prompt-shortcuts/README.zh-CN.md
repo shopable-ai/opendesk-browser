@@ -93,3 +93,11 @@ git diff -- examples/sidebar-tools/prompt-shortcuts/
 - 新建采用工具内右上角 Plus 图标；宿主仍负责自己的标题与通用安装设置，不新增宿主 Action Slot 或第二套 Header。
 - 新建／编辑表单隐藏无价值的固定字节提示和占位预览，接近 8 KiB 时才显示存储计数；新增「保存并继续」，成功的 Host 持久回执后才清空并聚焦新建正文，异常保留草稿。
 - 内置 ChatGPT／多网站双选择器、原生右键、权限与可信 Host 未变。Chromium 模拟 Host 验证不等于已安装的 Mac Chrome 验收。
+
+### R1.17 已核验构建与 Chromium 证据（2026-10-16）
+
+- R1.17 正式 UI 已在 `main` 落地：列表默认仅一个 More 图标，展开后编辑 / 启停 / 上移 / 下移 / 复制 / 删除为六个独立纯 SVG 图标（无按钮可见文字），保留 `title` / `aria-label`、40px 目标、Esc、禁用与删除文字确认；新建 Plus 图标及条件存储计数、保存并继续均使用正式工具源码。
+- [专项 CI Run 38892514805](https://github.com/shopable-ai/opendesk-browser/actions/runs/38892514805)：`prompt-shortcuts-scope` 与 `sync-project-package` 两项 SUCCESS；Prompt Node **76/76** PASS；共享 Sidebar Node **6/6** PASS；正式 HTML/CSS/JS 语法与打包一致性检查 PASS。
+- 正式包真实 Chromium / **受控 Mock Host**：320/360/400/440px 六操作 SVG-only/无横向溢出、40px hit target、ARIA、Esc 关闭恢复焦点、连续保存并继续、重开读回等 PASS，`consoleExceptions=[]`。预览 Chromium 与 R2.1 网页 DOM 双选择器 Chromium Fixture 均 PASS；这些不是已安装的原生扩展测试。
+- 唯一正式可安装 JSON：`prompt-shortcuts.opendesk-tool.json`，版本 **1.1.1**，**71,146 UTF-8 bytes**，SHA-256 **`d8194d106eaa4c171203c5ad3f131bbdb4b65864e8036d5cb7460abff4a4ffc5`**；自动同步提交 [2f4ddbc](https://github.com/shopable-ai/opendesk-browser/commit/2f4ddbc749badfcddc0412442dfdf1e15c5b0b36)；`--check-project` = **PROJECT_PACKAGE_MATCH**。
+- 尚未取得 Mac 本地 `dist/development` 同 ID 安装升级、真实 Host 存储事务、已登录 chatgpt.com/第三方网站实际编辑器插入、撤权、中文 IME/Undo 的原生证据：分别为 **NOT_TESTED**。九维专家 95+ 是后续正式产品验收门槛，不得把模拟 CI 当成已满足。
