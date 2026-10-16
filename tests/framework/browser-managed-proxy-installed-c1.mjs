@@ -54,8 +54,9 @@ async function attach(targetId,pageTarget=false){
   if(pageTarget)await client.send('Page.enable',{},sessionId);
   return sessionId;
 }
-async function evalAt(session,expression){
-  const reply=await client.send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true},session);
+async function evalAt(session,expression,contextId=null){
+  const reply=await client.send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true,
+    ...(contextId?{contextId}:{})},session);
   if(reply.exceptionDetails)throw Error(reply.exceptionDetails.exception?.description||reply.exceptionDetails.text);
   return reply.result?.value;
 }
@@ -74,6 +75,108 @@ async function click(selector){
     await client.send('Input.dispatchMouseEvent',{type,button:'left',clickCount:1,x:a.x,y:a.y},page);
   step('CHROME_MOUSE_INPUT',{selector,api:'Input.dispatchMouseEvent'});
 }
+
+function frameFromTree(tree,urlPart){
+  if(tree?.frame?.url?.includes(urlPart))return tree.frame;
+  for(const child of tree?.childFrames||[]){
+    const found=frameFromTree(child,urlPart);if(found)return found;
+  }
+  return null;
+}
+async function toolFrame(){
+  const tree=(await client.send('Page.getFrameTree',{},page)).frameTree;
+  const frame=frameFromTree(tree,'/sidebar-tools/sandbox.html');
+  if(!frame)throw Error('Installed opaque sandbox not found in the native Chrome frame tree');
+  const world=await client.send('Page.createIsolatedWorld',{
+    frameId:frame.id,worldName:'opendesk-proxy-c1-readonly'
+  },page);
+  return world.executionContextId;
+}
+async function toolResult(contextId){
+  const text=await evalAt(page,
+    'document.getElementById("proxy-c2-result")?.textContent??null',contextId);
+  if(!text)return null;
+  try{return JSON.parse(text);}catch{return null;}
+}
+async function clickSandbox(contextId,selector){
+  const local=await evalAt(page,'(()=>{const e=document.querySelector('+
+    JSON.stringify(selector)+');if(!e)return null;const r=e.getBoundingClientRect();'+
+    'return {x:r.left+r.width/2,y:r.top+r.height/2,width:r.width,height:r.height};})()',contextId);
+  assert(local?.width>0&&local?.height>0,'Sandbox test UI target unavailable: '+selector);
+  const parent=await evalAt(page,'(()=>{const e=document.querySelector("#sidebar-tool-frame iframe");'+
+    'if(!e)return null;const r=e.getBoundingClientRect();return {x:r.left,y:r.top};})()');
+  assert(parent,'Trusted parent sandbox iframe unavailable');
+  const x=parent.x+local.x,y=parent.y+local.y;
+  for(const type of ['mouseMoved','mousePressed','mouseReleased'])
+    await client.send('Input.dispatchMouseEvent',{type,button:'left',clickCount:1,x,y},page);
+  step('CHROME_SANDBOX_MOUSE_INPUT',{selector,api:'Input.dispatchMouseEvent'});
+}
+async function installFixtureForC1(expected){
+  // All writes are performed through the existing trusted extension installer.
+  // This fixture is never bundled in the production official releases.
+  await click('#sidebar-tool-back');
+  await until(async()=>{const e=await element('#sidebar-tool-import-trigger');return e?.visible&&e;},
+    'return to trusted installed tools list');
+  await click('#sidebar-tool-import-trigger');
+  const {root}=await client.send('DOM.getDocument',{depth:1},page);
+  const {nodeId}=await client.send('DOM.querySelector',{nodeId:root.nodeId,selector:'#sidebar-tool-file'},page);
+  assert(nodeId,'Trusted installer input disappeared');
+  await client.send('DOM.setFileInputFiles',{nodeId,
+    files:[resolve('tests/fixtures/managed-proxy-c2-test-tool.json')]},page);
+  await until(async()=>{const e=await element('#sidebar-tool-install');return e?.visible&&e;},
+    'independent test-only fixture review');
+  await click('#sidebar-tool-install');
+  const record=await until(async()=>evalAt(page,'(async()=>{const saved=await chrome.storage.local.get('+
+    '"opendesk.sidebar-tools.installed.v1");return saved["opendesk.sidebar-tools.installed.v1"]'+
+    '?.find(x=>x.id==="managed-proxy-c2-fixture")??null;})()'),
+  'actual test-only installed package');
+  assert.equal(serializeSidebarToolPackage(record),serializeSidebarToolPackage(expected));
+  step('ISOLATED_TOOL_UI_INSTALLED',{status:'PASS',id:record.id,
+    packageHash:await sidebarToolPackageHash(record)});
+}
+async function exerciseProductionDeniedSdk(extensionId){
+  const fixture=JSON.parse(await readFile('tests/fixtures/managed-proxy-c2-test-tool.json','utf8'));
+  assert.equal(fixture.id,'managed-proxy-c2-fixture');
+  await installFixtureForC1(fixture);
+  await client.send('Page.navigate',{url:'chrome-extension://'+extensionId+
+    '/ui/tool.html?toolId=managed-proxy-c2-fixture'},page);
+  const contextId=await until(async()=>{
+    try{return await toolFrame();}catch{return null;}
+  },'installed test-only sandbox native frame');
+  const initial=await until(async()=>{
+    const row=await toolResult(contextId);return row?.method==='getStatus'&&row.state!=='pending'?row:null;
+  },'formal public SDK getStatus result');
+  assert.equal(initial.ok,true,'Real installed SDK getStatus failed: '+JSON.stringify(initial));
+  assert(['disabled','unavailable','conflict'].includes(initial.data?.state),
+    'Unexpected production active proxy state');
+  assert.equal(initial.data?.canStop,false,'Fresh isolated tool claims another owner STOP');
+  step('C1_SDK_STATUS',{status:'PASS',output:initial});
+  await clickSandbox(contextId,'#proxy-c2-enable');
+  await until(async()=>{const e=await element('#sidebar-tool-action-continue');return e?.visible&&e;},
+    'trusted requestEnable confirmation');
+  await click('#sidebar-tool-action-continue');
+  const denied=await until(async()=>{
+    const row=await toolResult(contextId);
+    return row?.method==='requestEnable'&&row.state!=='pending'?row:null;
+  },'real Host rejected an unreviewed production proxy');
+  assert.equal(denied.ok,false,'An unreviewed production ENABLE must be rejected');
+  assert(['E_PROXY_PROFILE_NOT_APPROVED','E_CHROME_PERMISSION_REQUIRED'].includes(denied.code),
+    'Unexpected production rejection '+JSON.stringify(denied));
+  step('C1_PRODUCTION_ENABLE_DENIED',{status:'PASS',output:denied,
+    profileReviewed:false});
+  await clickSandbox(contextId,'#proxy-c2-disable');
+  await until(async()=>{const e=await element('#sidebar-tool-action-continue');return e?.visible&&e;},
+    'trusted requestDisable confirmation');
+  await click('#sidebar-tool-action-continue');
+  const stopped=await until(async()=>{
+    const row=await toolResult(contextId);
+    return row?.method==='requestDisable'&&row.state!=='pending'?row:null;
+  },'formal SDK STOP for a tool without an active journal');
+  assert.equal(stopped.ok,true,'Formal STOP must remain callable: '+JSON.stringify(stopped));
+  step('C1_SDK_STOP',{status:'PASS',output:stopped});
+  await screenshot('sdk-deny-and-stop');
+}
+
 async function screenshot(name){
   const frame=await client.send('Page.captureScreenshot',{format:'png'},page);
   const bytes=Buffer.from(frame.data,'base64'),file=resolve('artifacts/managed-proxy-c1-'+name+'.png');
@@ -165,6 +268,10 @@ async function main(){
   await until(async()=>{const e=await element('#sidebar-tool-frame iframe');return e?.visible&&e;},
     'installed tool sandbox');
   await screenshot('tool');
+  // C1 needs an actual installed Consumer to exercise Host rejection, because
+  // the production AI VIP UI correctly disables commercial ENABLE without Provider.
+  // This isolated tool is not an official release and has no approved profile.
+  await exerciseProductionDeniedSdk(extensionId);
   const after=await readNative(worker);
   assert.equal(after.journal,null,'Unconfigured official tool wrote managed proxy journal');
   if(after.settings)assert.notEqual(after.settings.value?.mode,'pac_script');
