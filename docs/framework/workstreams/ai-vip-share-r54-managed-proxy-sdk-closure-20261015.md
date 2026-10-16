@@ -124,3 +124,42 @@ npm run check
 | `src/ai-smart-access/provider-config.js` | 历史 Provider / 测试开关和审批前兼容合同；生产不能因此开放 localhost 代理，**保留** |
 
 下一源码任务：取得 `sdk-real-chromium-pac` Job 的实际结果并检查 raw JSON 网络日志，修复真正复现的问题；在 C 级没有真实安装与可信点击回执前不可宣称 95+ 云端或正式产品上线。
+
+## Managed Proxy SDK R1.4 · CHROMIUM CI REPAIR / REAL A-B ACCEPTANCE（2026-10-16）
+
+本节只记录真正提交 GitHub main 的改动、同 SHA Actions 与原始 Artifact；并行 Owner 的更新不会被覆盖。本轮没有修改正式 Host/Driver/生产 Proxy Profile、AI VIP Share 的正式 UI，也没有操作用户 Mac 和真实代理。
+
+### 已实施与复验的五个提交
+
+| Commit | 真实变更 |
+| --- | --- |
+| [ef503377](https://github.com/shopable-ai/opendesk-browser/commit/ef503377371e62da885d8928555ea9cd9554a351) | Chrome 启动诊断：保存 stderr、PID、退出信号、参数与 DevToolsActivePort 状态。 |
+| [e3558897](https://github.com/shopable-ai/opendesk-browser/commit/e355889799064b0d65497ef60aa76a79a349b3e7) | 在测试脚本及 browser-sdk-r5.yml 严格限制 GitHub-hosted Linux 主分支临时 Chrome 的 no-sandbox 回退，不涉及生产 SDK、Host 或用户 Chrome。 |
+| [c19edd3c](https://github.com/shopable-ai/opendesk-browser/commit/c19edd3caf71b29c51f52f740653ab0520a455e6) | 追踪及销毁 HTTPS WebSocket 升级 socket，对 Socks、HTTP、WSS、Profile 清理设置有限时和可记录失败，要求 cleanup 完成才写成功收据。 |
+| [6ea22477](https://github.com/shopable-ai/opendesk-browser/commit/6ea224779c6d04ce0f3cfbe921395b028f25fe30) | 移除浏览器全局忽略 TLS 证书错误，改为临时生成证书的 SHA-256 SPKI 公钥测试例外；补齐真实请求结果与出口后端日志。 |
+| [7e10e8f8](https://github.com/shopable-ai/opendesk-browser/commit/7e10e8f8dbb3b31e35c3c82be7c0ceec24805afc) | A 阶段补上经独立 Node 完整证书验证的 SOCKS5/TLS 实际 HTTP GET、HTTP 200、正文和后端路径证明，不能仅凭握手冒充真实请求。 |
+
+### 实际根因、失败分类与成功证据
+
+1. [Run 38871566443](https://github.com/shopable-ai/opendesk-browser/actions/runs/38871566443)、[Artifact 12033289063](https://github.com/shopable-ai/opendesk-browser/actions/runs/38871566443/artifacts/12033289063)：Chrome for Testing 155.0.8059.39 在约 505ms 后 SIGABRT；stderr 明确为 FATAL No usable sandbox!；未创建 DevToolsActivePort。根因是 Runner 的 Ubuntu AppArmor / Linux user namespace sandbox 限制，并非安装路径或简单超时过短。
+2. [Run 38871947392](https://github.com/shopable-ai/opendesk-browser/actions/runs/38871947392)：隔离脚本已完成 A/B 业务验证，但 Job 因 Node 顶层 await stopServer(httpsServer) 不退出、Exit 13 而失败；已追溯到未回收的 WebSocket 升级 socket。不得把当时报告的 A_B_PASS 当作 CI 成功。
+3. [Run 38872346543](https://github.com/shopable-ai/opendesk-browser/actions/runs/38872346543)、[Artifact 12033663769](https://github.com/shopable-ai/opendesk-browser/actions/runs/38872346543/artifacts/12033663769)：真实 sdk-real-chromium-pac Job SUCCESS；A、B、原生代理释放、清理均 PASS，剩余升级 socket=0。
+4. [Run 38872668345](https://github.com/shopable-ai/opendesk-browser/actions/runs/38872668345)、[Artifact 12033971189](https://github.com/shopable-ai/opendesk-browser/actions/runs/38872668345/artifacts/12033971189)：同 SHA 候选 sdk-host-contracts、sdk-product-bundles、sdk-real-chromium-pac 三 Job 均 SUCCESS；Chromium HTTPS 使用单证书 SPKI 例外而不是全部 TLS 放行；PAC/native readback、HTTP/HTTPS/WSS、相似域名 DIRECT、断线 fail-closed、clear 和 cleanup 均有对应证据。
+5. [Run 38873022185](https://github.com/shopable-ai/opendesk-browser/actions/runs/38873022185)、[Artifact 12034730671](https://github.com/shopable-ai/opendesk-browser/actions/runs/38873022185/artifacts/12034730671)：7e10e8f8 的 sdk-real-chromium-pac Job SUCCESS；A 的 nodeTlsCertificateVerified=true 及 nodeTlsHttpRequestVerified=true，后端日志包含 /verified-node-tls；B、STOP 清理继续 PASS。本节记录时同 SHA 的 sdk-host-contracts 已 SUCCESS，sdk-product-bundles 尚在运行，不提前声称整条 workflow 成功。
+
+### 严格门禁：通过、未测、必须保留
+
+| 层级 | 2026-10-16 实证状态 |
+| --- | --- |
+| A：隔离 SOCKS5 + Node 已授权 TLS + 实际 HTTP GET | PASS，7e10e8f8；HTTP CONNECT 不被当前 SOCKS fixture 支持，不宣称通过 |
+| B：CFT 155 MV3 原生 PAC 字节与 get 回读、HTTP/HTTPS/WSS、代理失联拒绝直连、STOP clear、完整清理 | PASS，7e10e8f8；测试身份是独立 MV3，不是正式 OpenDesk |
+| C：正式 OpenDesk 安装包 + AI VIP Share 1.3.1 + 真实 Side Panel 点击 + Browser SDK/Host/Driver | NOT_TESTED，不允许被 A/B 或 Node mock 冒充 |
+| ENABLE/STOP/revoke/Worker/跨扩展所有权 | HOST NODE COVERED；真正的 Chromium 多扩展控制权竞争与 Worker 重启仍 NATIVE_NOT_TESTED |
+| AI VIP Share 1.3.1 UI 与 HTML Preview | 正式 tool.config.json 1.3.1、公共 Managed Proxy SDK 代理入口已在源码确认；正式已安装 Side Panel 截图/交互 REAL_NOT_TESTED |
+| 生产会员 Provider 与受审 Profile | BLOCKED/NOT_READY；正式 APPROVED_PROXY_ENDPOINT=null，REVIEWED_MANAGED_PROXY_PROFILES 为空，新生产 ENABLE 继续被审批拒绝 |
+| Mac Native | LOCAL_NATIVE_REQUIRED，不允许以 Linux Chrome for Testing 替代 |
+| 旧 src/ai-smart-access 六个模块 | RETAIN：现有 src/sw.js 仍装载 installAiAccessService()，旧 journal/工具卸载 STOP/Worker 恢复的完整迁移证据不足，不安全删除 |
+
+安全注释：GitHub-hosted Runner 的 no-sandbox 回退由脚本同时校验 Linux、GITHUB_ACTIONS、分支、事件、Runner 环境和显式测试开关，只用于隔离测试。浏览器端临时 SPKI 例外仍然是测试例外，不等同受信 CA；A 阶段独立 Node TLS 验证执行完整证书和域名认证。报告没有商业真实节点，7897 是独立 Runner 内受限 loopback，发生端口占用必须失败，不能修改其他进程。
+
+**下一可执行任务**：复用正式构建产物和现有真实 Chrome 自动化，增加 C 级真实已安装工具及 Side Panel 用户点击的原生正反向测试，保留 packageHash、installEpoch、授权与 STOP 恢复回执。生产受审 Profile 空名单不能改；只允许独立测试构建中明确审过的临时 Profile。若 CI headless Side Panel 实际无法触达，记录 Chrome 限制并给出 headed/真实 Mac 验收阻塞，禁止伪造 isTrusted 或 95+ 评分。
