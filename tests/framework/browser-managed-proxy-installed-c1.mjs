@@ -209,6 +209,7 @@ async function exerciseProductionDeniedSdk(extensionId){
 async function screenshot(name){
   const frame=await client.send('Page.captureScreenshot',{format:'png'},page);
   const bytes=Buffer.from(frame.data,'base64'),file=resolve('artifacts/managed-proxy-c1-'+name+'.png');
+  await mkdir(dirname(file),{recursive:true});
   await writeFile(file,bytes);
   receipt.screenshots.push({name,sha256:hash(bytes),bytes:bytes.length,
     path:'artifacts/managed-proxy-c1-'+name+'.png'});
