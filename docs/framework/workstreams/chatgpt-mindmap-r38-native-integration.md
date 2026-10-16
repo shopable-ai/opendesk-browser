@@ -53,3 +53,26 @@
 正式安装体验 `BLOCKED`；生产 XMind Runtime `BLOCKED`；真实 ChatGPT `NOT_TESTED`；正式 Native 安装 E2E `NOT_TESTED`；R3.7 交互 `PASS (SIMULATION_ONLY)`；架构复用 `PARTIAL_PASS`；许可/样式 `BLOCKED`；生命周期 `NOT_TESTED`；正式打包 Hash `CI_RUNNING_OR_NOT_TESTED`；正式视觉截图 `NOT_TESTED`。**无证据维度不填写数字，整体质量门禁未达到 95 分。**
 
 R3.7 的历史结果保持独立，用户尚未确认预览设计，`PENDING_USER_CONFIRMATION` 不变。
+
+
+## 6. R3.9.1 · 4 MB Runtime 资源实施决策（2026-10-16）
+
+**问题不是 Chrome 扩展整体只能容纳 4 MB，而是 OpenDesk 的不同执行通道各有预算。不能把限制全部调大后把生产阻塞记为完成。**
+
+| 通道 | 实际源码约束 | 此资源是否适用 |
+| --- | --- | --- |
+| Page 项目最终源码 | `docs/api/dependencies-and-errors.zh-CN.md`：100,000 B | 53,841 B 的产品逻辑可以；不能嵌入 4,042,573 B vendor |
+| Page linked 编译入口 | `src/scripting/user-scripts/page-bundle.js`：512 KiB | 不能用来包 Snowbrush |
+| 动态依赖 SHA 缓存 | `src/scripting/user-scripts/dependency-manager.js`：每项 1 MiB、总计 4 MiB | 四项合计 4,042,573 B 虽在总额以内，但 3,439,267 B Snowbrush 违反单项限制；绝不拆包规避 |
+| 扩展包中的固定 JS 文件 | `chrome.userScripts.register({js:[{file:...}]})`：指向实际扩展内文件 | **首选的技术路径**，不是调用依赖缓存虚拟 URL；需先获得确切生产再分发依据 |
+
+**决策顺序：**
+
+1. **首选**：对四份精确上游 JS 逐文件完成许可、NOTICE、传递依赖、哈希及可信版本审核。审核通过后，才考虑将固定文件列入同一个 OpenDesk Browser 扩展构建，由现有 Chrome `USER_SCRIPT` 注册/安装链在被授权的特定 Program 版本中按顺序引用它们；数据和版本用实际 SHA 固定。不得把 XMind 业务渲染逻辑植入 Browser 的通用 `src/`。扩展资源文件会随 Browser 版本发行，不是无需重编即可更新的远端资源，升级需验证 Browser/Program 两份身份。
+2. **备选**：现有 HTTPS 下载、SHA 资产库和 User Scripts API 提供受控动态资源能力，但不能假设 3.44 MB Snowbrush 符合当前 1 MiB/项限制，更不能使用普通 `script.src` 注入 MAIN 或 `eval`。仅在许可、Chrome Web Store 的 User Scripts 专用例外适用性、受信签名/哈希和已有锁/恢复/撤权均完成审查后，才考虑经独立测试证明必要的**定向**预算调整。禁止全局放宽、自动执行未批准代码或每次访问重新 CDN 拉取。
+3. **样式隔离必须独立解决**：即使四份 JS 能成功自动加载，也不代表 `style#snowbrush_style` 已隔离。ShadowRoot 对第三方注入到 document 的 CSS 不提供可靠隔离。优先在 Mind Map 自己的 UI/渲染层验证真正独立的文档隔离和清理；若考虑 iframe，必须评估 origin、沙箱能力、扩展特权、消息权限、原回复数据范围和 A/B 多实例，不允许直接创建新的通用 Host。
+4. **现有生产门禁不变**：许可及样式隔离未关闭时，`E_XMIND_RUNTIME_UNAVAILABLE`、`BUILT_UNVERIFIED/installable:false` 和 `MM-01/MM-02=BLOCKED` 保持原样。HTTP、测试包和调整配置都不是审批回执。
+
+**本轮实际安全代码修改**：`tests/framework/chatgpt-mindmap-r38-native-probe.mjs` 修复误把 ChatGPT 操作栏当作正文子节点的定位；在**一次性测试扩展**内新增四份真实文件通过 `chrome.userScripts.register` 随新文档自动执行原编译 Program 的验证，检查真实主题、MAIN 隔离、撤销注册后新文档不再自动运行。测试文件永不写入 `dist/production`，不绕过正式 Broker，也不声明已取得生产再分发许可。新增测试以**最新关联 Actions 原始运行结果**为准；未通过前为 `NOT_TESTED`，不能继承早期仅手动 `execute` 的 PASS。
+
+**当前实际产品任务**：MM-01 `BLOCKED`（许可/生产固定资源未获批准）、MM-02 `BLOCKED`（Snowbrush 全局样式）、MM-03 `NOT_TESTED`（未走原 Broker Verified→Installed）、MM-04 `FIXTURE_PASS/REAL_CHATGPT_NOT_TESTED`、MM-05 `PARTIAL`。不得因本节文档或一次技术可行性 Job 提升任何验收等级。
