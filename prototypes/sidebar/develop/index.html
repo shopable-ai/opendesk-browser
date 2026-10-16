@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OpenDesk Browser · 开发选项卡 R2.1 · 精简审计版交互预览</title>
+<title>OpenDesk Browser · 开发选项卡 R2.2 · 垂直节奏精修交互预览</title>
 <style>
 :root{
  color-scheme:light; --ink:#1d293b;--sub:#637184;--meta:#8793a5;--brand:#365eda;--brand-soft:#edf2ff;
@@ -15,7 +15,7 @@
 }
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;font:13px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",Inter,system-ui,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
 body{background:#edf0f5;display:flex;align-items:flex-start;justify-content:center}
-button,input,select,textarea{font:inherit}button{cursor:pointer}input,select,textarea{min-width:0;max-width:100%;outline:none}
+button,input,select,textarea{font:inherit}p,pre,figure,fieldset{margin:0}button{cursor:pointer}input,select,textarea{min-width:0;max-width:100%;outline:none}
 [hidden]{display:none!important}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
 button:disabled{cursor:not-allowed;opacity:.45}button:hover:not(:disabled){filter:brightness(.984)}
 .shell{position:relative;width:420px;max-width:100vw;min-width:0;height:100dvh;max-height:1000px;min-height:620px;background:var(--paper);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 12px 55px var(--shadow)}
@@ -27,7 +27,7 @@ button:disabled{cursor:not-allowed;opacity:.45}button:hover:not(:disabled){filte
 .brandmark{display:grid;place-items:center;width:27px;height:27px;border-radius:8px;background:#25334c;color:white;font-weight:850;font-size:15px}
 .brand small{color:var(--meta);font-size:10px;letter-spacing:.04em;font-weight:540;margin-left:var(--space-1)}
 .head-actions{display:flex;gap:var(--space-1)}
-.icon-btn{height:34px;width:34px;display:grid;place-items:center;flex-shrink:0;background:transparent;color:#687a92;border:1px solid transparent;border-radius:9px;padding:0}
+.icon-btn{height:34px;width:34px;display:grid;place-items:center;flex-shrink:0;background:transparent;color:#687a92;border:1px solid transparent;border-radius:var(--r-input);padding:0}
 .icon-btn:hover{background:var(--soft)}.icon-btn.outline{border-color:var(--line);background:#fff}.icon-btn.danger{color:var(--negative)}
 .top-tabs{height:45px;border-bottom:1px solid var(--line);display:flex;flex-shrink:0;padding:0 var(--space-2)}
 .tab{flex:1;min-width:0;display:grid;place-items:center;font-size:12px;font-weight:520;color:#8996a7;position:relative}
@@ -38,7 +38,7 @@ h1{font-size:19px;line-height:1.3;font-weight:740;letter-spacing:-.035em;margin:
 .chip{display:inline-flex;align-items:center;justify-content:center;padding:4px 8px;border-radius:7px;font-size:11px;background:#f4f6f9;color:#8b96a5;white-space:nowrap}
 .pill{font-size:10.5px;line-height:1.3;font-weight:620;color:var(--positive);background:var(--positive-soft);border-radius:var(--r-pill);padding:4px 8px;white-space:nowrap}
 .pill.neutral{color:var(--sub);background:#f2f5f8}.pill.warn{background:var(--warn-soft);color:var(--warn)}
-.section{margin:0 0 var(--space-5)}.section:last-child{margin-bottom:0}
+.section{margin:0 0 var(--space-4)}.section:last-child{margin-bottom:0}
 .section-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);margin-bottom:var(--space-2)}
 .section-head .trailing{font-size:11px;color:var(--meta);font-weight:500}
 .muted{font-size:11.5px;color:var(--sub);line-height:1.6}.micro{font-size:11px;color:var(--meta);line-height:1.5}
@@ -55,10 +55,10 @@ input:disabled,select:disabled{background:var(--soft)!important;color:#9aa6b5!im
 .target-icon{width:36px;height:36px;display:grid;place-items:center;flex:none;border-radius:10px;background:#eff3f9;color:#61738d}
 .target-name{display:block;font-size:12.5px;font-weight:690;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}.target-url{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px;color:var(--meta);margin-top:2px}
 .target-state{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--positive);white-space:nowrap}.dot{height:6px;width:6px;border-radius:50%;background:currentColor;display:inline-block}
-.target details{width:100%;min-width:0}.target summary{list-style:none;display:flex;align-items:center;gap:var(--space-3);cursor:pointer}.target summary::-webkit-details-marker{display:none}.target summary .grow{min-width:0;flex:1}.target-detail{padding:var(--space-3) 0 0;margin-top:var(--space-3);border-top:1px solid var(--line-soft)}
+.target details{width:100%;min-width:0}.target summary{list-style:none;display:flex;align-items:center;gap:var(--space-3);cursor:pointer}.target summary::-webkit-details-marker{display:none}.target summary .grow{min-width:0;flex:1}.target-detail{padding:var(--space-3) 0 0;margin-top:var(--space-3);border-top:1px solid var(--line-soft);display:grid;gap:var(--space-2)}
 .target-detail .micro{overflow-wrap:anywhere}
 .editor-top{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2)}
-.switch{display:inline-flex;align-items:center;gap:7px;cursor:pointer;color:#617084;font-size:11.5px}.switch input{position:absolute;opacity:0;width:1px;height:1px}
+.switch{display:inline-flex;align-items:center;gap:var(--space-2);cursor:pointer;color:#617084;font-size:11.5px}.switch input{position:absolute;opacity:0;width:1px;height:1px}
 .switch .track{height:20px;width:34px;background:#cdd5df;border-radius:30px;display:flex;align-items:center;padding:3px;transition:background .17s}.switch .track:after{content:"";width:14px;height:14px;background:white;box-shadow:0 1px 4px #0001;border-radius:50%;transition:transform .17s}.switch input:checked+.track{background:var(--brand)}.switch input:checked+.track:after{transform:translateX(14px)}.switch input:focus-visible+.track{outline:2px solid var(--brand);outline-offset:3px}
 .segment{display:inline-flex;align-items:center;background:#f2f4f8;border-radius:10px;padding:3px;gap:2px;max-width:100%}.seg-btn{border:0;background:transparent;padding:6px 12px;min-height:28px;line-height:1.3;border-radius:8px;color:#8793a5;font-size:11.5px;font-weight:520}.seg-btn[aria-pressed=true]{background:#fff;box-shadow:0 1px 4px #243b5722;color:#35465c;font-weight:720}
 .mode-row{display:flex;justify-content:space-between;align-items:center;gap:var(--space-2);min-height:33px}
@@ -67,11 +67,11 @@ input:disabled,select:disabled{background:var(--soft)!important;color:#9aa6b5!im
 .editor-head .filename{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:#748098}
 .code-editor{display:block;border:0;outline:0!important;width:100%;min-height:173px;max-height:330px;background:#fbfcfd;padding:var(--space-3);font:11.7px/1.85 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#31445e;tab-size:2;white-space:pre;overflow:auto;border-radius:0;resize:vertical}
 .code-editor:focus{box-shadow:inset 0 0 0 1px #8cacf8}
-.fold{border:1px solid var(--line);border-radius:var(--r-card);margin:0 0 var(--space-2);background:#fff;min-width:0;overflow:hidden}
+.fold{border:1px solid var(--line);border-radius:var(--r-card);margin:0;background:#fff;min-width:0;overflow:hidden}
 .fold>summary{list-style:none;display:flex;align-items:center;gap:var(--space-2);min-height:43px;padding:10px var(--space-3);font-size:12px;font-weight:675;cursor:pointer;user-select:none}
 .fold>summary::-webkit-details-marker{display:none}.fold>summary .summary-label{flex:1;min-width:0}.fold>summary .summary-end{font-size:11px;font-weight:500;color:var(--meta)}
 .fold>summary .chevron{color:#8f9bad;transition:transform .16s}.fold[open]>summary .chevron{transform:rotate(90deg)}.fold[open]>summary{border-bottom:1px solid var(--line-soft)}
-.fold-body{padding:var(--space-3);display:grid;gap:var(--space-3)}.fold-body .fold:last-child{margin-bottom:0}
+.fold-body{padding:var(--space-3);display:grid;gap:var(--space-2)}
 .fold-inner{border:1px solid var(--line-soft);background:#fcfdff;border-radius:10px;margin:0}.fold-inner>summary{min-height:39px;font-size:11.8px}.fold-inner .fold-body{padding:var(--space-3)}
 .result-card{border:1px solid var(--line-soft);background:var(--soft);border-radius:10px;padding:var(--space-3);min-height:65px;display:block;max-height:195px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font:11px/1.7 ui-monospace,Menlo,monospace;color:#68798c}
 .result-card.success{color:#25694f}.result-card.error{color:var(--negative)}
@@ -80,7 +80,7 @@ input:disabled,select:disabled{background:var(--soft)!important;color:#9aa6b5!im
 .inline-card:hover{background:#fbfcff}.inline-icon{height:36px;width:36px;display:grid;place-items:center;background:var(--positive-soft);color:var(--positive);border-radius:10px;flex-shrink:0}
 .inline-title{display:block;font-weight:690;font-size:12.5px}.inline-sub{display:block;color:var(--meta);font-size:11px;margin-top:2px;line-height:1.4}
 .note-panel{padding:var(--space-3);border-radius:9px;background:var(--soft);border:1px solid var(--line-soft);font-size:11.5px;color:var(--sub);line-height:1.6}
-.banner{display:flex;align-items:center;gap:var(--space-2);padding:9px 10px;border-radius:9px;background:#f1f5ff;color:#526488;border:1px solid #e9effc;font-size:11px;line-height:1.5}.banner.warn{background:var(--warn-soft);border-color:#f4e7c9;color:var(--warn)}.banner.error{background:var(--negative-soft);border-color:#f1dade;color:var(--negative)}.banner.success{background:var(--positive-soft);border-color:#d2eddf;color:var(--positive)}
+.banner{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-3);border-radius:9px;background:#f1f5ff;color:#526488;border:1px solid #e9effc;font-size:11px;line-height:1.5}.banner.warn{background:var(--warn-soft);border-color:#f4e7c9;color:var(--warn)}.banner.error{background:var(--negative-soft);border-color:#f1dade;color:var(--negative)}.banner.success{background:var(--positive-soft);border-color:#d2eddf;color:var(--positive)}
 .table-box{display:grid;gap:var(--space-2)}.table-row{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--space-2);font-size:11.5px}.table-row span:first-child{color:var(--sub)}
 .footer-dock{height:61px;flex-shrink:0;display:flex;align-items:center;gap:var(--space-2);border-top:1px solid var(--line);background:#fff;padding:var(--space-2) var(--space-4);box-shadow:0 -7px 19px #24395308}
 .footer-dock .btn{min-height:38px}.footer-dock .primary{flex:1}.footer-dock .compact-save{width:74px}
@@ -92,8 +92,8 @@ input:disabled,select:disabled{background:var(--soft)!important;color:#9aa6b5!im
 .drawer-head{min-height:65px;display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-4);border-bottom:1px solid var(--line);flex-shrink:0}.drawer-head h2{font-size:15px;font-weight:740}.drawer-head p{margin:2px 0 0;font-size:11px;color:var(--meta)}
 .drawer-scroll{flex:1;overflow:auto;padding:var(--space-4);display:grid;gap:var(--space-4);align-content:start;scrollbar-width:thin}.drawer-section{display:grid;gap:var(--space-2)}
 .drawer-foot{flex-shrink:0;border-top:1px solid var(--line);padding:var(--space-3) var(--space-4);display:grid;gap:var(--space-2);background:white}.drawer-foot .hstack>*{flex:1}.drawer-notice{text-align:center;color:var(--meta);font-size:10.5px}
-.origin-list{display:grid;gap:6px}.origin-item{display:flex;align-items:center;gap:8px;min-height:36px;padding:3px 6px 3px 10px;background:var(--soft);border:1px solid var(--line-soft);border-radius:9px;font:11px/1.5 ui-monospace,monospace}.origin-item span{flex:1;min-width:0;overflow-wrap:anywhere}.origin-list-empty{text-align:center;padding:16px;color:var(--meta);border:1px dashed var(--line);border-radius:9px;font-size:11px}
-.cap-list{display:grid;gap:0}.cap-row{display:flex;align-items:center;gap:9px;min-height:45px;padding:8px 0;border-bottom:1px solid var(--line-soft);font-size:11.5px;cursor:pointer}.cap-row:last-child{border-bottom:0}.cap-row input{accent-color:var(--brand);height:15px;width:15px;flex-shrink:0}.cap-row .cap-name{font-weight:650}.cap-row .cap-code{font:10px/1.4 ui-monospace,monospace;color:var(--meta)}.cap-row .cap-extra{margin-left:auto;white-space:nowrap;color:var(--meta);font-size:10px}
+.origin-list{display:grid;gap:var(--space-2)}.origin-item{display:flex;align-items:center;gap:8px;min-height:36px;padding:3px 6px 3px 10px;background:var(--soft);border:1px solid var(--line-soft);border-radius:9px;font:11px/1.5 ui-monospace,monospace}.origin-item span{flex:1;min-width:0;overflow-wrap:anywhere}.origin-list-empty{text-align:center;padding:16px;color:var(--meta);border:1px dashed var(--line);border-radius:9px;font-size:11px}
+.cap-list{display:grid;gap:0}.cap-row{display:flex;align-items:center;gap:var(--space-2);min-height:44px;padding:8px 0;border-bottom:1px solid var(--line-soft);font-size:11.5px;cursor:pointer}.cap-row:last-child{border-bottom:0}.cap-row input{accent-color:var(--brand);height:15px;width:15px;flex-shrink:0}.cap-row .cap-name{font-weight:650}.cap-row .cap-code{font:10px/1.4 ui-monospace,monospace;color:var(--meta)}.cap-row .cap-extra{margin-left:auto;white-space:nowrap;color:var(--meta);font-size:10px}
 .pre{border-radius:9px;background:var(--soft);border:1px solid var(--line-soft);padding:var(--space-3);font:10.5px/1.65 ui-monospace,monospace;white-space:pre-wrap;overflow-wrap:anywhere;max-height:220px;overflow:auto;margin:0}
 .actions-wrap{display:flex;gap:var(--space-2);align-items:center;flex-wrap:wrap}.actions-wrap .btn{flex:0 1 auto}
 .preview-footer{padding-top:var(--space-3);border-top:1px solid var(--line-soft);font-size:10.5px;color:#a2acb9;text-align:center}
@@ -114,19 +114,24 @@ h1{font-size:15px;line-height:1.4;font-weight:680}
 .code-kind-row label{white-space:nowrap;color:var(--sub)}
 select.mini-select{width:76px;min-width:76px;height:34px;min-height:34px;padding:4px 8px;border:1px solid var(--line);border-radius:8px;font-size:12px;font-weight:650;background:var(--paper)}
 .code-editor{min-height:216px;line-height:1.65}
-.fold{margin-bottom:8px}
 .fold>summary{min-height:42px;padding:8px 12px}
 .fold>.fold-body{padding:12px}
-.section:last-of-type{margin-bottom:16px}
-#deps-fold{margin-bottom:0}
 #page-publish-actions[hidden],#page-publish-actions:empty{display:none}
 #page-install[hidden]{display:none!important}
-#page-management{margin-top:4px}
 #page-management .fold-body{gap:8px}
+#page-publish-actions:not(:has(> :not([hidden]))){display:none}
 .preview-footer{display:flex;flex-direction:column;gap:8px;align-items:flex-start;line-height:1.5}
 .preview-demo-actions{display:flex;gap:8px;flex-wrap:wrap}
 .preview-demo-actions .btn{font-weight:500;font-size:11px}
-#advanced-fold>.fold-body>.fold{margin-bottom:0}
+.section[aria-label="高级设置与诊断"]{display:grid;gap:var(--space-2)}
+.drawer-section>.section-head{margin-bottom:0}
+.editor-code-group{display:grid;gap:var(--space-1)}
+.result-heading{min-height:40px;margin-bottom:var(--space-2)}
+.result-heading-copy{min-width:0;display:grid;gap:var(--space-1)}
+.result-heading-copy .micro{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.result-heading>.hstack{flex:none;gap:var(--space-2)}
+#history-fold{margin-top:var(--space-2)}
+#run-result{margin:0}
 .sr-only{position:absolute!important;width:1px;height:1px;padding:0!important;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @media(max-width:360px){.code-kind-row .seg-btn{min-width:36px;padding:6px 7px}.code-kind-row label{display:none}.code-kind-row #run-location{gap:0}}
 </style>
@@ -172,13 +177,13 @@ select.mini-select{width:76px;min-width:76px;height:34px;min-height:34px;padding
   <div class="stack" style="margin-top:var(--space-2)">
    <div class="stack-sm" id="manual-area">
     <div class="mode-row code-kind-row" id="framework-area"><div class="segment" role="group" aria-label="代码类型"><button type="button" class="seg-btn" data-framework="javascript" aria-pressed="true">JS</button><button type="button" class="seg-btn" data-framework="react" aria-pressed="false">React</button><button type="button" class="seg-btn" data-framework="vue" aria-pressed="false">Vue</button></div><div class="hstack" id="run-location"><label class="micro" for="js-runtime-select">运行位置</label><select class="control mini-select" id="js-runtime-select" aria-label="JS 运行方式"><option value="controller">任务</option><option value="page">网页</option></select></div><span id="mode-caption" class="sr-only" aria-live="polite">任务 · JS</span></div>
-    <div class="editor-card"><div class="editor-head"><span>当前草稿 <span id="dirty-dot" hidden>· 未保存</span></span><span class="filename" id="filename">main.js</span></div><textarea class="code-editor" id="code-editor" spellcheck="false" aria-label="源码编辑器">async function main() {
+    <div class="editor-code-group"><div class="editor-card"><div class="editor-head"><span>当前草稿 <span id="dirty-dot" hidden>· 未保存</span></span><span class="filename" id="filename">main.js</span></div><textarea class="code-editor" id="code-editor" spellcheck="false" aria-label="源码编辑器">async function main() {
   return {
     title: await page.title(),
     url: await page.url()
   };
 }</textarea></div>
-    <div class="micro" id="code-hint">保存不会运行。运行时会校验当前网页。</div>
+    <div class="micro" id="code-hint">保存不会运行。运行时会校验当前网页。</div></div>
     <details class="fold fold-inner" id="params-fold"><summary><svg class="icon icon-sm"><use href="#i-file"/></svg><span class="summary-label">参数 JSON（可选）</span><span class="summary-end">{&quot;value&quot;: 0}</span><svg class="icon icon-sm chevron"><use href="#i-chevron"/></svg></summary><div class="fold-body"><div class="field"><label for="params-editor">参数 JSON</label><textarea class="control" id="params-editor" rows="3" spellcheck="false">{"value":0}</textarea></div></div></details>
     <details class="fold fold-inner" id="deps-fold"><summary><svg class="icon icon-sm"><use href="#i-folder"/></svg><span class="summary-label">编译与依赖诊断</span><span class="summary-end">按需查看</span><svg class="icon icon-sm chevron"><use href="#i-chevron"/></svg></summary><div class="fold-body"><div class="muted">只有引入第三方模块或编译失败时才需要查看。系统会在运行前准备和校验依赖，不必手工编译。</div><div class="actions-wrap"><button class="btn compact" id="deps-check">检查依赖</button><button class="btn compact" id="deps-lock">检查固定版本</button></div><details class="fold fold-inner"><summary>许可证、源码哈希和编译产物 <svg class="icon icon-sm chevron" style="margin-left:auto"><use href="#i-chevron"/></svg></summary><div class="fold-body"><pre class="pre" id="dependency-info">尚无外部依赖。此处只展示审核数据，不执行代码。</pre></div></details></div></details>
    </div>
@@ -196,10 +201,9 @@ select.mini-select{width:76px;min-width:76px;height:34px;min-height:34px;padding
  </section>
 
  <section class="section" aria-label="运行结果">
-  <div class="section-head"><h2>运行结果</h2><span class="trailing" id="result-badge">尚未运行</span></div>
-  <div class="result-toolbar"><span class="micro" id="result-context">草稿 · 等待运行</span><button class="icon-btn outline" id="copy-result" aria-label="复制运行结果" title="复制结果"><svg class="icon icon-sm"><use href="#i-copy"/></svg></button></div>
+  <div class="section-head result-heading"><div class="result-heading-copy"><h2>运行结果</h2><span class="micro" id="result-context">草稿 · 等待运行</span></div><div class="hstack"><span class="trailing" id="result-badge">尚未运行</span><button class="icon-btn outline" id="copy-result" aria-label="复制运行结果" title="复制结果"><svg class="icon icon-sm"><use href="#i-copy"/></svg></button></div></div>
   <pre class="result-card" id="run-result">点击底部「运行草稿」，查看本次执行结果。</pre>
-  <details class="fold fold-inner" style="margin-top:var(--space-2)" id="history-fold"><summary><svg class="icon icon-sm"><use href="#i-history"/></svg><span class="summary-label">运行记录与技术信息</span><span class="summary-end" id="history-count">0 次</span><svg class="icon icon-sm chevron"><use href="#i-chevron"/></svg></summary><div class="fold-body"><div class="hstack"><select class="control grow" id="history-select" aria-label="历史运行"><option value="">选择历史运行记录</option></select><button class="icon-btn outline" id="refresh-history" title="刷新运行记录" aria-label="刷新运行记录"><svg class="icon icon-sm"><use href="#i-refresh"/></svg></button></div><details class="fold fold-inner"><summary>完整历史与版本身份 <svg class="icon icon-sm chevron" style="margin-left:auto"><use href="#i-chevron"/></svg></summary><div class="fold-body"><pre class="pre" id="history-detail">无运行记录</pre></div></details><details class="fold fold-inner"><summary>结果下载与任务查询 <svg class="icon icon-sm chevron" style="margin-left:auto"><use href="#i-chevron"/></svg></summary><div class="fold-body"><div class="field"><label for="run-id-input">查询 runId（留空读取全部历史）</label><input class="control" id="run-id-input" placeholder="runId"></div><div class="actions-wrap"><button class="btn compact" id="lookup-run">查询任务</button><button class="btn compact" id="download-result"><svg class="icon icon-sm"><use href="#i-download"/></svg>下载结果 JSON</button></div><div class="micro">保留持久结果类型信息，真实环境以 RunHost 回执为准。</div></div></details><details class="fold fold-inner"><summary>运行目标与版本 <svg class="icon icon-sm chevron" style="margin-left:auto"><use href="#i-chevron"/></svg></summary><div class="fold-body"><pre class="pre" id="run-identity">运行目标：尚未建立</pre></div></details></div></details>
+  <details class="fold fold-inner" id="history-fold"><summary><svg class="icon icon-sm"><use href="#i-history"/></svg><span class="summary-label">运行记录与技术信息</span><span class="summary-end" id="history-count">0 次</span><svg class="icon icon-sm chevron"><use href="#i-chevron"/></svg></summary><div class="fold-body"><div class="hstack"><select class="control grow" id="history-select" aria-label="历史运行"><option value="">选择历史运行记录</option></select><button class="icon-btn outline" id="refresh-history" title="刷新运行记录" aria-label="刷新运行记录"><svg class="icon icon-sm"><use href="#i-refresh"/></svg></button></div><details class="fold fold-inner"><summary>完整历史与版本身份 <svg class="icon icon-sm chevron" style="margin-left:auto"><use href="#i-chevron"/></svg></summary><div class="fold-body"><pre class="pre" id="history-detail">无运行记录</pre></div></details><details class="fold fold-inner"><summary>结果下载与任务查询 <svg class="icon icon-sm chevron" style="margin-left:auto"><use href="#i-chevron"/></svg></summary><div class="fold-body"><div class="field"><label for="run-id-input">查询 runId（留空读取全部历史）</label><input class="control" id="run-id-input" placeholder="runId"></div><div class="actions-wrap"><button class="btn compact" id="lookup-run">查询任务</button><button class="btn compact" id="download-result"><svg class="icon icon-sm"><use href="#i-download"/></svg>下载结果 JSON</button></div><div class="micro">保留持久结果类型信息，真实环境以 RunHost 回执为准。</div></div></details><details class="fold fold-inner"><summary>运行目标与版本 <svg class="icon icon-sm chevron" style="margin-left:auto"><use href="#i-chevron"/></svg></summary><div class="fold-body"><pre class="pre" id="run-identity">运行目标：尚未建立</pre></div></details></div></details>
  </section>
 
  <section class="section" aria-label="网页脚本试运行与安装">
@@ -220,7 +224,7 @@ select.mini-select{width:76px;min-width:76px;height:34px;min-height:34px;padding
   <details class="fold" id="advanced-fold"><summary><svg class="icon"><use href="#i-settings"/></svg><span class="summary-label">高级脚本与目标设置</span><svg class="icon icon-sm chevron"><use href="#i-chevron"/></svg></summary><div class="fold-body"><details class="fold fold-inner" id="site-permission-fold"><summary>网站权限 · 默认全部网站 <span class="pill" style="margin-left:auto">已授权</span><svg class="icon icon-sm chevron"><use href="#i-chevron"/></svg></summary><div class="fold-body"><div class="muted">Chrome 网站权限不等于脚本或网页 SDK 的应用级授权；用户脚本开关、隐身及浏览器内部页仍受独立限制。</div><div class="actions-wrap"><button class="btn compact" id="site-restore">恢复全部网站访问</button><button class="btn compact" id="site-refresh">刷新授权状态</button></div><div class="micro" id="site-state">演示环境：网站权限显示为可用，未查询实际 Chrome 权限。</div></div></details><div class="field"><label for="target-mode">目标方式</label><select class="control" id="target-mode"><option value="current">当前网页（默认）</option><option value="owned">创建隔离网页（高级）</option><option value="borrowed">手动选择精确文档（高级）</option></select></div><div class="field" id="owned-url-wrap" hidden><label for="owned-url">隔离网页地址</label><input class="control" id="owned-url" type="url" placeholder="https://example.com/"></div><div class="stack-sm" id="borrowed-wrap" hidden><div class="field"><label for="existing-tab">现有网页</label><div class="hstack"><select class="control grow" id="existing-tab"><option value="lab">OpenDesk Browser · Browser Test Lab</option><option value="docs">文档示例 · https://example.com</option></select><button class="icon-btn outline" id="tab-refresh" aria-label="刷新网页列表" title="刷新网页列表"><svg class="icon icon-sm"><use href="#i-refresh"/></svg></button></div></div><div class="field"><label for="exact-document">精确文档</label><select class="control" id="exact-document"><option value="main">frame 0 · 主文档</option><option value="frame-1">frame 1 · 示例 iframe</option></select></div></div><details class="fold fold-inner" id="user-scripts-fold"><summary>用户脚本权限恢复（遇到问题时）<svg class="icon icon-sm chevron" style="margin-left:auto"><use href="#i-chevron"/></svg></summary><div class="fold-body"><div class="muted">Chrome 138+ 若关闭「允许用户脚本」，Page 试运行或安装会被阻止。必须前往扩展详情手动开启，不能由工具静默开启。</div><div class="actions-wrap"><button class="btn compact" id="scripts-settings">打开扩展设置</button><button class="btn compact" id="scripts-check">重新检测</button></div><div class="micro" id="user-scripts-status">原型仅展示恢复路径，未查询真实浏览器。</div></div></details><label class="hstack muted"><input type="checkbox" id="cookie-access" style="accent-color:var(--brand)">允许脚本访问目标网站的 Cookie</label><div class="actions-wrap"><button class="btn compact danger" id="delete-script">删除当前脚本</button></div><details class="fold fold-inner"><summary>当前网页精确身份 <svg class="icon icon-sm chevron" style="margin-left:auto"><use href="#i-chevron"/></svg></summary><div class="fold-body"><pre class="pre" id="target-identity"></pre></div></details></div></details>
   <details class="fold" id="diagnostics-fold"><summary><svg class="icon"><use href="#i-terminal"/></svg><span class="summary-label">目标检查与开发诊断</span><svg class="icon icon-sm chevron"><use href="#i-chevron"/></svg></summary><div class="fold-body"><button class="inline-card" id="sdk-from-diagnostics" type="button" hidden><span class="inline-icon" style="height:32px;width:32px"><svg class="icon"><use href="#i-code"/></svg></span><span class="grow"><span class="inline-title">网页 SDK 授权管理</span><span class="inline-sub">查看跨站目标、能力、精确文档与撤销记录</span></span><svg class="icon icon-sm"><use href="#i-chevron"/></svg></button><details class="fold fold-inner" id="health-fold"><summary>目标健康检查 <svg class="icon icon-sm chevron" style="margin-left:auto"><use href="#i-chevron"/></svg></summary><div class="fold-body"><div class="muted">检查仅确认测试页和已绑定文档间通信，不执行采集。</div><div class="field"><label for="health-url">测试页面地址</label><input type="url" class="control" id="health-url" value="http://127.0.0.1:43111/demo-form.html"></div><div class="actions-wrap"><button class="btn compact" id="health-create">创建检查页</button><button class="btn compact" id="health-source">检查原页面</button><button class="btn compact" id="health-bound">检查已绑定文档</button></div><pre class="pre" id="health-result">环境入口已加载（模拟）</pre></div></details><div class="micro">SDK 授权与自动化任务独立，诊断只读，不代表执行成功。</div></div></details>
  </section>
- <div class="preview-footer"><span>R2.1 · 离线交互预览；未调用真实 Chrome 或 SDK</span><div class="preview-demo-actions"><button class="btn ghost compact" id="try-cross">模拟跨站拒绝</button><button class="btn ghost compact" id="sdk-inspect-inline">模拟授权状态</button></div></div>
+ <div class="preview-footer"><span>R2.2 · 离线交互预览；未调用真实 Chrome 或 SDK</span><div class="preview-demo-actions"><button class="btn ghost compact" id="try-cross">模拟跨站拒绝</button><button class="btn ghost compact" id="sdk-inspect-inline">模拟授权状态</button></div></div>
 </main>
 <footer class="footer-dock" id="dock"><button class="btn primary" id="run-btn"><svg class="icon icon-sm"><use href="#i-play"/></svg><span id="run-label">运行草稿</span></button><button class="btn" id="stop-btn" hidden><svg class="icon icon-sm"><use href="#i-square"/></svg>停止</button><button class="btn compact-save" id="save-btn" title="将当前任务草稿保存为浏览器运行快照，不提交 Git"><svg class="icon icon-sm"><use href="#i-save"/></svg>存快照</button><button class="icon-btn outline" id="dock-more" aria-label="更多：运行快照与任务发布" title="运行快照与任务发布"><svg class="icon"><use href="#i-dots"/></svg></button></footer>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
