@@ -21,6 +21,7 @@ import {MARKET_PROVENANCE_STORE,TOOL_CLEANUP_STORE} from '../../src/ui/sidebar-t
 import {MARKET_BATCH_STORE} from '../../src/marketplace/batch.js';
 import {OFFICIAL_COLLECTIONS} from '../../src/marketplace/catalog.js';
 import {READING_TOC_SITE_STORE} from '../../src/reading-toc/policy.js';
+import {TRUSTED_TIME_REVIEW_VERSION} from '../../src/time-review/trusted-admission.js';
 import {CLIP_SITE_STORE} from '../../src/page-clip/policy.js';
 import {CAPTURE_SITE_STORE} from '../../src/knowledge/policy.js';
 
@@ -557,8 +558,24 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
     const index=(await installed()).findIndex(row=>row.id===release.toolId)+1;
     const open='#market-root .surface .action-row:nth-child('+index+') button';await visible(market,open);await click(market,open);
     const opened=await until(async()=>(await browser.send('Target.getTargets')).targetInfos.find(row=>row.type==='page'&&row.url?.includes('/ui/tool.html')&&new URL(row.url).searchParams.get('toolId')===release.toolId),'explicit market tool open');
-    await iframeWith(release.toolId);
     const toolPage=await attach(opened.targetId);
+    if(release.toolId==='time-review'&&release.version===TRUSTED_TIME_REVIEW_VERSION){
+      // The exact, provenance-checked official Time Review runs as a trusted
+      // first-party host view, not in the legacy opaque tool iframe. A missing
+      // iframe is only valid when the real native view AND trusted permission
+      // controls are visible; never silently accept a failed admission.
+      const native=await until(()=>evaluate(toolPage,
+        '(()=>{const holder=document.querySelector("#sidebar-tool-frame"),settings=document.querySelector("#time-review-permission-settings"),main=holder?.querySelector("main.review");'+
+        'if(holder?.dataset.timeReviewNative!=="true"||holder.hidden||!main||!main.querySelector("#start")||!main.querySelector("#minute-canvas")||'+
+        '!settings||settings.hidden||!settings.querySelector("#time-review-grant-idle"))return false;'+
+        'return {native:true,permissionControlsVisible:true,hasStart:true,hasMinuteCanvas:true,iframeCount:holder.querySelectorAll("iframe").length};})()'),
+        'verified native Time Review view and separate trusted permission controls');
+      assert.equal(native.iframeCount,0,'approved native Time Review does not create an opaque tool sandbox');
+      const sandboxes=(await browser.send('Target.getTargets')).targetInfos.filter(row=>
+        row.type==='iframe'&&row.url?.includes('/sidebar-tools/sandbox.html'));
+      assert.equal(sandboxes.length,0,'native Time Review has no hidden privileged fallback sandbox');
+      (evidence.trustedNativeTools??=[]).push({toolId:release.toolId,version:release.version,level:'REAL_NATIVE_UI_WITH_TRUSTED_CONSENT',...native});
+    }else await iframeWith(release.toolId);
     const hostResources=await until(()=>evaluate(toolPage,'(()=>{const value=globalThis.OpenDeskResourceDiagnostics?.snapshot();return value?.owners?.client?.ports===1&&value;})()'),'actual standalone Foundation host connected '+release.toolId);
     (evidence.standaloneHosts??=[]).push({toolId:release.toolId,version:release.version,url:await evaluate(toolPage,'location.href'),resources:hostResources});
     if(release.toolId==='reading-toc'){
