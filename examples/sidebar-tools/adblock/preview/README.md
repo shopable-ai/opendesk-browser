@@ -73,7 +73,7 @@ node examples/sidebar-tools/adblock/preview/acceptance.mjs
 
 脚本先验证固定 React SHA、资源路径、无 CDN/浏览器 Babel；再通过 **真实 Chrome DevTools Protocol** 打开本地 `file://` 文件，并禁止 HTTP(S) 请求，测试 React 挂载、开关同步、例外关闭与恢复、模拟站点、限制页面、设置与返回、深浅色、重置后刷新、**主动模拟 localStorage 禁用时的内存降级**、320/360px 无溢出与桌面下真实 360px 工具画布，以及**临时复制页面的 `app.js` 改动后直接刷新生效**。禁止使用静态截图代替运行结果。真实浏览器未执行时仅能报告「待验收」，不能宣称 PASS。
 
-CI 额外设置 `ADBLOCK_PREVIEW_EVIDENCE_DIR`，通过真正的 Chrome CDP 导出 `320/360/1024` 浅色与 `360` 深色 PNG，并分别上传至 `adblock-r20-ubuntu-latest-chrome-file`、`adblock-r20-macos-15-chrome-file` Actions artifacts（保留 7 天）。图片可用于人工视觉对比，但**截图存在不代表 UI 相似度自动达到 95 分**。Linux Chrome CI、macOS GitHub runner、用户 Mac 本机已安装 Chrome 是三个不同证据等级；不得相互替代。
+CI 额外设置 `ADBLOCK_PREVIEW_EVIDENCE_DIR`，通过真正的 Chrome CDP 导出 `320/360/1024` 浅色与 `360` 深色 PNG，并分别上传至 `adblock-r20-ubuntu-latest-chrome-file`、`adblock-r20-macos-15-chrome-file` Actions artifacts（保留 7 天）。图片可用于人工视觉对比，但**截图存在不代表 UI 相似度自动达到 95 分**。Linux Chrome CI、macOS GitHub runner、用户 Mac 本机已安装 Chrome 是三个不同证据等级；不得相互替代。 Ubuntu CI 为避免无中文字形导致的方框截图，**仅在测试 runner 上安装系统 `fonts-noto-cjk`**；该字体不属于预览资源或正式扩展，也不影响用户打开 `file://` 文件的离线工作流。截图须实际查看中文字形、行高与间距，方框截图不能作为视觉保真通过证据。
 
 ### 设计历史与生产快照
 

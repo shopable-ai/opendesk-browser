@@ -36,6 +36,16 @@ jobs:
           node --check examples/sidebar-tools/adblock/preview/acceptance.mjs
           node examples/sidebar-tools/adblock/preview/vendor/rebuild-htm.mjs
           git diff --exit-code -- examples/sidebar-tools/adblock/preview/vendor/htm-3.1.1.js
+      - name: Install OS CJK fonts for accurate Chinese UI screenshots (CI only)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends fonts-noto-cjk
+          fc-cache -f
+          fc-match -f '%{family}' ':lang=zh-cn' | tee /tmp/opendesk-cjk-font.txt
+          grep -Eq 'Noto (Sans|Serif) CJK' /tmp/opendesk-cjk-font.txt
       - uses: browser-actions/setup-chrome@v2
         id: chrome
       - name: Actual React 19.2.0 Chrome file protocol E2E without build or web server
