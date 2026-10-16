@@ -9,7 +9,7 @@ const [html, css, editor, design] = await Promise.all([
   readFile('src/ui/script-editor.js', 'utf8'),
   readFile('src/ui/design-system.css', 'utf8')
 ]);
-const dev = html.slice(html.indexOf('id="workbench-develop"'), html.indexOf('id="tool-diagnostics"'));
+const dev = html.slice(html.indexOf('id="workbench-develop"'), html.indexOf('id="workbench-debug"'));
 
 test('Dev has one live run-status row and moves technical identity below results', () => {
   assert.match(dev, /id="developer-run-feedback"[^>]+role="status"[^>]+aria-live="polite"/);
@@ -51,7 +51,7 @@ test('Develop primary accordions use consistent paper cards and nested diagnosti
     assert.match(tag, /\bod-disclosure\b/, 'shared card '+id);
     assert.doesNotMatch(tag, /od-disclosure--flat/, 'primary section should not be borderless: '+id);
   }
-  assert.match(dev, /<details class="od-disclosure od-disclosure--flat"><summary>高级诊断<\/summary><p id="local-project-diagnostics"/);
+  assert.match(dev, /<details class="od-disclosure od-disclosure--flat"><summary>本地连接诊断<\/summary><p id="local-project-diagnostics"/);
   assert.match(dev, /id="script-history-panel" class="result-history od-disclosure od-disclosure--flat"/);
   for (const id of ['page-dependency-panel','program-generated']) {
     const tag = html.match(new RegExp('<details\\b[^>]*\\bid="'+id+'"[^>]*>'))?.[0];
@@ -61,5 +61,25 @@ test('Develop primary accordions use consistent paper cards and nested diagnosti
   assert.match(css, /#workspace-content #workbench-develop\{display:grid;gap:var\(--space-4\)/);
   assert.match(css, /#workbench-develop \.developer-editor\{display:grid;gap:var\(--space-4\)/);
   assert.match(design, /\.od-disclosure>summary\{[^}]*min-height:44px/);
-  assert.match(css, /#tool-diagnostics>section\{[^}]*background:var\(--od-paper\)/);
+  assert.doesNotMatch(css, /#tool-diagnostics>section\{/, 'Advanced content must not re-create bordered cards');
+});
+
+
+test('Dev advanced tools follow parameters, use lightweight subsections and preserve SDK authority actions', () => {
+  const params = dev.indexOf('id="manual-project-params-tools"');
+  const advanced = dev.indexOf('id="tool-diagnostics"');
+  const results = dev.indexOf('id="developer-results-panel"');
+  assert.ok(params>=0 && params<advanced && advanced<results,
+    'parameter → advanced tools → run result');
+  assert.match(dev, /<details id="tool-diagnostics" class="od-disclosure"><summary>高级诊断与网页 SDK<\/summary>/);
+  for (const id of ['developer-sdk-diagnostics','developer-health-diagnostics']) {
+    assert.match(dev, new RegExp('id="'+id+'" class="od-disclosure od-disclosure--flat"'),
+      'nested technical details should not add another bordered card: '+id);
+  }
+  assert.match(dev, /id="scraping-panel" aria-label="采集模块" hidden/);
+  for (const id of ['sdk-install','sdk-inspect','sdk-revoke','sdk-approval-preview',
+    'create-target','check-source','check-target'])
+    assert.ok(dev.indexOf('id="'+id+'"')>advanced, 'SDK/health action preserved: '+id);
+  assert.match(css, /#workbench-develop #sdk-capabilities\{display:grid;gap:var\(--space-2\)/);
+  assert.doesNotMatch(css, /#scraping-panel\{border-left/);
 });

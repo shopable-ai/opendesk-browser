@@ -1,0 +1,23 @@
+# Sidebar「开发」高级诊断一致性修复 R1
+
+日期：2026-10-16；工作分支仅 main；开始时 main: `f637dd269a0569ba54214e51eaaa827f74043ef0`。
+
+## 范围与写入所有权
+
+本任务只修改 `src/ui/tool.html`、`src/ui/tool-shell.css`、`tests/environment/developer-layout.test.mjs` 和本记录；不修改 `src/ui/tool-shell.js`、`src/ui/script-editor.js`、Browser SDK Authority、Chrome permissions、Host/Native、底部 Run/Stop。与其他会话不共享 Chrome profile、`dist/development`、CI fixture/端口，不主动重启 watcher。
+
+## 问题与修复
+
+- 原 `Advanced / Diagnostics` 脱离 `.developer-editor`、位于最末端，顺序与参数/结果不一致；修复为紧随手动 `参数 JSON（可选）` 后且在 `运行结果` 前，并由现有 `od-disclosure` 接管一级卡片。
+- 原诊断内部 SDK/健康检查重复嵌套专属卡片背景边框且直出所有表单；改为各自独立、默认收起的 `od-disclosure--flat`，共享源的 token/聚焦/hover，保留原所有授权和健康检查 ID、行为与回执。
+- 历史未注册采集模块占位隐藏，仍保留 `#scraping-panel` DOM/模块状态以免破坏依赖；移除固定棕色边框。
+- 表单标签使用 `od-field-label`，响应 JSON 使用 `od-result`，清除空 SDK/健康结果的空白区域；原生 SDK fieldset 调整为无额外边框的列表，使用 CSS token；本地连接诊断、编译技术信息语义去重。
+- 源码级防退化检查扩展到顺序、折叠结构、ID 唯一性、授权和健康入口完整性、无冗余边框。没有新增依赖、权限或运行时逻辑。
+
+## 验收级别
+
+- SOURCE_WIRED：修改完成后需核对实际提交内容。
+- NODE_CONTRACT：等待本提交对应 GitHub Actions 的 `Sidebar R21 integrated UI quality` 结果。
+- STATIC_CHROMIUM：等待本提交对应 `Sidebar R19 - real markup static layout audit` 结果，需检查其准确候选 SHA 与截图。
+- REAL_MAC_CHROME、SDK 授权/撤销原生端到端、生产包安装：NOT_TESTED；Node PASS 不可提升为真实安装 PASS。
+- 已有 RunHost、权限及 Native 历史证据只在原绑定候选范围有效，本次不会通过布局改动重写历史凭证。

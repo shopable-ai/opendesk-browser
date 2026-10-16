@@ -793,7 +793,7 @@
         <div class="row"><button id="local-install-confirm" type="button" disabled class="od-button">确认安装固定版本</button><button id="local-install-cancel" type="button" class="od-button od-button--secondary">取消</button></div>
         <p id="local-install-status" role="status" aria-live="polite"></p>
       </section>
-      <details class="od-disclosure od-disclosure--flat"><summary>高级诊断</summary><p id="local-project-diagnostics">正在核对 Native 和源码 Provider。</p></details>
+      <details class="od-disclosure od-disclosure--flat"><summary>本地连接诊断</summary><p id="local-project-diagnostics">正在核对 Native 和源码 Provider。</p></details>
       <div id="local-project-recovery" class="local-project-recovery" hidden>
       <button id="local-project-connect" class="local-project-connect od-button od-button--secondary" type="button">连接本机 OpenDesk ↗</button>
       <details id="local-project-guide" class="local-project-guide od-disclosure od-disclosure--info">
@@ -854,9 +854,38 @@
       <div class="od-toolbar"><button id="page-component-remote-prepare" type="button" class="od-button od-button--secondary">检查依赖</button><button id="page-component-remote-cancel" type="button" hidden class="od-button od-button--secondary">取消准备</button></div>
       <details id="page-component-remote-details" hidden class="od-disclosure od-disclosure--flat"><summary>固定模块、许可证与 SHA-256</summary><pre id="page-component-remote-detail-body"></pre></details>
     </section>
-    <details id="program-generated" hidden class="od-disclosure od-disclosure--flat"><summary>高级诊断：查看编译产物</summary><pre id="program-generated-source"></pre></details>
+    <details id="program-generated" hidden class="od-disclosure od-disclosure--flat"><summary>编译产物（技术信息）</summary><pre id="program-generated-source"></pre></details>
     </div>
     <details id="manual-project-params-tools" class="developer-params od-disclosure"><summary>参数 JSON（可选）</summary><label for="script-params" class="od-field-label">参数 JSON</label><textarea id="script-params" rows="3" spellcheck="false" class="od-field">{"value":0}</textarea></details>
+
+    <details id="tool-diagnostics" class="od-disclosure"><summary>高级诊断与网页 SDK</summary>
+    <section id="scraping-panel" aria-label="采集模块" hidden></section>
+    <details id="developer-sdk-diagnostics" class="od-disclosure od-disclosure--flat"><summary id="sdk-title">网页 SDK 授权管理</summary>
+    <section class="developer-diagnostics-body od-stack" aria-labelledby="sdk-title">
+      <p>SDK 与 axiosx 会自动加载到允许访问的 HTTP(S) 网页。默认同源 HTTP 与固定本地实验测试 Origin 无需逐页审批；本区域只用于<strong>额外跨站 Origin 或高级能力</strong>的显式授权、检查和撤销。后台仍按真实网页身份核查每次请求。</p>
+      <div class="row"><label for="sdk-tab" class="od-field-label">网页</label><select id="sdk-tab" class="od-field"><option value="">请选择具体网页</option></select><button id="sdk-refresh" class="od-button od-button--secondary">刷新网页列表</button></div>
+      <div class="row"><label for="sdk-document" class="od-field-label">精确文档</label><select id="sdk-document" disabled class="od-field"><option value="">先选择网页，再选择文档</option></select></div>
+      <fieldset id="sdk-capabilities"><legend class="od-field-label">允许的服务（仅授予勾选项）</legend></fieldset>
+      <label for="sdk-target-origins" class="od-field-label">额外批准的目标 origin（每行一个，最多 8 条）</label>
+      <textarea id="sdk-target-origins" rows="3" maxlength="18000" spellcheck="false" placeholder="https://api.example.com&#10;http://127.0.0.1:43111" aria-describedby="sdk-target-help" class="od-field"></textarea>
+      <p id="sdk-target-help">留空仅允许来源同源；这里是完整的新范围，不与旧授权自动合并。协议、主机和有效端口精确匹配；不能填写账户、路径、查询或通配符。回环与局域网也须明确列出。原生权限可能覆盖更多端口，但不会扩大应用授权；此检查不是 DNS 重绑定防护。</p>
+      <details open class="od-disclosure od-disclosure--flat"><summary><span>本次批准快照（来源、精确 document、服务与目标）</span></summary><pre id="sdk-approval-preview" aria-live="polite" class="od-result"></pre></details>
+      <div class="row"><button id="sdk-install" disabled class="od-button">明确批准此快照并安装 SDK</button></div>
+      <div class="row"><button id="sdk-inspect" type="button" disabled class="od-button od-button--secondary">只读查询当前授权</button><button id="sdk-revoke" type="button" disabled class="od-button od-button--danger">撤销已确认授权</button></div>
+      <p class="hint">这是<strong>网页文档级</strong>授权：同页第一方与第三方 JavaScript 都可能调用 SDK，<strong>并非只授权某个用户脚本</strong>。用户脚本的 @grant / GM_* 不会在这里自动授权。查询不会申请新权限；撤销阻止后续 SDK 服务，但不能回滚已发生操作，也无法强制卸载已执行 JS；结果未知时须重新查询。</p>
+      <p id="sdk-status" role="status" data-state="idle">请选择网页、文档和服务</p><pre id="sdk-result" aria-label="SDK 安装结果" class="od-result"></pre>
+    </section>
+    </details>
+    <details id="developer-health-diagnostics" class="od-disclosure od-disclosure--flat"><summary id="health-title">目标健康检查</summary>
+    <section class="developer-diagnostics-body od-stack" aria-labelledby="health-title">
+      <p>检查只确认包内脚本与目标文档通信。不会采集数据或翻动原页面。</p>
+      <div class="row"><label for="target-url" class="od-field-label">测试页面地址</label><input id="target-url" type="url" placeholder="https://example.com/" class="od-field"><button id="create-target" class="od-button">授权并创建检查页</button></div>
+      <div class="row"><button id="check-source" class="od-button od-button--secondary">检查原页面</button><button id="check-target" disabled class="od-button od-button--secondary">检查已绑定文档</button></div>
+      <p id="status" role="status">环境入口已加载</p><pre id="health-result" aria-label="目标检查结果" class="od-result"></pre>
+    </section>
+    </details>
+    <aside>SDK 授权与自动化任务独立；健康检查只确认环境通信。</aside>
+    </details>
 
     <div class="developer-run-area od-stack">
     <p id="developer-run-feedback" class="developer-run-feedback" role="status" aria-live="polite"><span id="script-status" data-state="loading">正在连接公共运行入口…</span><span id="script-task-status" class="developer-task-status" hidden></span></p>
@@ -971,30 +1000,6 @@
       <details class="od-disclosure od-disclosure--flat"><summary>当前网页精确身份</summary><pre id="script-current-page-debug" aria-label="当前网页精确目标"></pre></details>
     </details>
   </section>
-  <details id="tool-diagnostics" class="od-disclosure"><summary>Advanced / Diagnostics</summary>
-  <section id="scraping-panel" aria-label="采集模块"></section>
-  <section aria-labelledby="sdk-title"><h2 id="sdk-title">独立网页 SDK</h2>
-    <p>SDK 与 axiosx 会自动加载到允许访问的 HTTP(S) 网页。默认同源 HTTP 与固定本地实验测试 Origin 无需逐页审批；本区域只用于<strong>额外跨站 Origin 或高级能力</strong>的显式授权、检查和撤销。后台仍按真实网页身份核查每次请求。</p>
-    <div class="row"><label for="sdk-tab">网页</label><select id="sdk-tab" class="od-field"><option value="">请选择具体网页</option></select><button id="sdk-refresh" class="od-button od-button--secondary">刷新网页列表</button></div>
-    <div class="row"><label for="sdk-document">精确文档</label><select id="sdk-document" disabled class="od-field"><option value="">先选择网页，再选择文档</option></select></div>
-    <fieldset id="sdk-capabilities"><legend>允许的服务（仅授予勾选项）</legend></fieldset>
-    <label for="sdk-target-origins">额外批准的目标 origin（每行一个，最多 8 条）</label>
-    <textarea id="sdk-target-origins" rows="3" maxlength="18000" spellcheck="false" placeholder="https://api.example.com&#10;http://127.0.0.1:43111" aria-describedby="sdk-target-help" class="od-field"></textarea>
-    <p id="sdk-target-help">留空仅允许来源同源；这里是完整的新范围，不与旧授权自动合并。协议、主机和有效端口精确匹配；不能填写账户、路径、查询或通配符。回环与局域网也须明确列出。原生权限可能覆盖更多端口，但不会扩大应用授权；此检查不是 DNS 重绑定防护。</p>
-    <details open class="od-disclosure od-disclosure--flat"><summary><span>本次批准快照（来源、精确 document、服务与目标）</span></summary><pre id="sdk-approval-preview" aria-live="polite"></pre></details>
-    <div class="row"><button id="sdk-install" disabled class="od-button">明确批准此快照并安装 SDK</button></div>
-    <div class="row"><button id="sdk-inspect" type="button" disabled class="od-button od-button--secondary">只读查询当前授权</button><button id="sdk-revoke" type="button" disabled class="od-button od-button--danger">撤销已确认授权</button></div>
-    <p class="hint">这是<strong>网页文档级</strong>授权：同页第一方与第三方 JavaScript 都可能调用 SDK，<strong>并非只授权某个用户脚本</strong>。用户脚本的 @grant / GM_* 不会在这里自动授权。查询不会申请新权限；撤销阻止后续 SDK 服务，但不能回滚已发生操作，也无法强制卸载已执行 JS；结果未知时须重新查询。</p>
-    <p id="sdk-status" role="status" data-state="idle">请选择网页、文档和服务</p><pre id="sdk-result" aria-label="SDK 安装结果"></pre>
-  </section>
-  <section aria-labelledby="health-title"><h2 id="health-title">目标健康检查</h2>
-    <p>检查只确认包内脚本与目标文档通信。不会采集数据或翻动原页面。</p>
-    <div class="row"><label for="target-url">测试页面地址</label><input id="target-url" type="url" placeholder="https://example.com/" class="od-field"><button id="create-target" class="od-button">授权并创建检查页</button></div>
-    <div class="row"><button id="check-source" class="od-button od-button--secondary">检查原页面</button><button id="check-target" disabled class="od-button od-button--secondary">检查已绑定文档</button></div>
-    <p id="status" role="status">环境入口已加载</p><pre id="health-result" aria-label="目标检查结果"></pre>
-  </section>
-    <aside>SDK 授权与自动化任务独立；健康检查只确认环境通信。</aside>
-  </details>
   </div>
 
   <div id="workbench-debug" role="tabpanel" aria-labelledby="tab-debug" class="od-page" data-workbench-page="debug" hidden>

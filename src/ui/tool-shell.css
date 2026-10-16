@@ -6,7 +6,6 @@
 #script-current-page-status[data-state=available]{color:var(--od-positive)}
 #script-version[data-dirty=true]{color:var(--od-warning-ink);font-weight:650}
 #script-running-target[data-state=running]{font-weight:650}
-#scraping-panel{border-left:3px solid #c68b37}
 #script-revision{max-width:150px}
 #script-version{font-size:11px;overflow-wrap:anywhere}
 .row input,.row select{flex:1 1 120px;width:auto;max-width:100%}
@@ -209,11 +208,11 @@
   #workbench-develop .developer-history-actions{grid-template-columns:minmax(0,1fr)}
   #workbench-develop .developer-history-actions>button{width:100%}
 }
-#tool-diagnostics{margin:0}
-/* Legacy embedded SDK/health diagnostics: intentionally scoped; not a disclosure header. */
-#tool-diagnostics>section{border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper);padding:var(--space-3);margin-bottom:var(--space-2)}
-#tool-diagnostics>section:last-of-type{margin-bottom:0}
-#tool-diagnostics h2{font-size:14px;margin:0 0 8px}
+/* Advanced tools use the shared disclosure skin; only native fieldset and empty result layout is local. */
+#workbench-develop #sdk-capabilities{display:grid;gap:var(--space-2);min-width:0;margin:0;padding:0;border:0}
+#workbench-develop #sdk-capabilities legend{padding:0;margin-bottom:var(--space-1)}
+#workbench-develop #sdk-capabilities label{margin:0}
+#workbench-develop #sdk-result:empty,#workbench-develop #health-result:empty{display:none}
 
 /* Existing authenticated full-size catalog: keep its reader and install UI. */
 #workbench-discover .catalog-section{background:transparent;border:0;box-shadow:none;padding:0}
