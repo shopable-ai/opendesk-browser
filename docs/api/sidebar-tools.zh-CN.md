@@ -63,6 +63,8 @@ HTML 不允许 `script/iframe/object/embed/base/link/meta/style` 标签、内联
 
 `opendesk.sidebar-tools.toc-sites.v1` 中，`reading-toc` 缺记录或原有正向站点数组表示默认全部可用；停用记录为 `{mode:'all-except',blockedOrigins:[具体 HTTP(S) origin]}`，最多 64 个。恢复最后一个停用网站后移除该工具记录，回到默认可用。其他工具保持原有正向数组；异常内置记录保守拒绝，不自动丢弃。旧白名单不保存历史撤权意图，因此按新的用户要求改为全部默认可用，已有明确单页排除和隐藏偏好保留。
 
+**Browser SDK v2 不是自动授权**：已有工具可以按当前 [Browser SDK API、可调用状态与 v2 菜单合同](browser-sdk.zh-CN.md) 声明受审的 `requires.browserSdk`、`contributes.contextMenus` 和相应 capability；例如 Cookie Editor、Bookmark Manager、Prompt Shortcuts 的真实配置已分别声明受控 Cookie、Bookmark、`page.prompts`/原生菜单能力，但这些能力**不等于所有新第三方工具均已取得原生访问权限**。新增工具必须根据公开能力状态（IMPLEMENTED/HOST_ONLY/NOT_EXPOSED/PLANNED）、权限和安装身份逐项审核；不能把 Browser SDK v2 错误简化成只有下述基础 `request` 操作。
+
 **公开能力分级**：下文 `storage.local`、`currentPage.read`、`tasks.open`、`user.export` 是普通第三方可审阅的基础 capability；`page.toc/page.clip/page.capture/knowledge.store/time.review` 为受限一方固定服务，不是任意网页 DOM 或通用 Chrome API。没有公开的页面操作、跨域抓取、Native 文件写入或任意宿主消息，不得通过声明一个 JSON capability 伪装成已支持。缺失能力记 `SDK_GAP_NOT_PROVEN` 并提交复现，由平台按通用价值审查；无安全授权时记 `BLOCKED`。
 
 ## 2. 工具的运行 API
